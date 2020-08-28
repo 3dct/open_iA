@@ -725,13 +725,13 @@ void iATreeView::processParameters( const QList<PorosityFilterID> & filterIds, Q
 	for (const PorosityFilterID fid: filterIds)
 	{
 		QList<ParamNameType> params = FilterIdToParamList[fid];
-		for (const ParamNameType pnt: params)
+		for (auto const & pnt: params)
 		{
 			header << pnt.name();
 		}
 
 		QList<ParamNameType> outParams = FilterIdToOutputParamList[fid];
-		for (const ParamNameType pnt: outParams)
+		for (auto const & pnt: outParams)
 		{
 			outParamNames << pnt.name();
 		}

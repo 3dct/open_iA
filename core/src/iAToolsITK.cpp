@@ -47,7 +47,7 @@ itk::ImageIOBase::IOComponentType itkScalarPixelType(iAITKIO::ImagePointer image
 		result = itk::ImageIOBase::LONG;
 	else if (dynamic_cast<itk::Image< unsigned long, iAITKIO::m_DIM> *>(imagePtr))
 		result = itk::ImageIOBase::ULONG;
-#if ITK_VERSION_MAJOR > 4 || (ITK_VERSION_MAJOR == 4 && ITK_VERSION_MINOR > 12)
+#if ITK_VERSION_NUMBER >= ITK_VERSION_CHECK(4, 13, 0)
 	else if (dynamic_cast<itk::Image< long long, iAITKIO::m_DIM> *>(imagePtr))
 		result = itk::ImageIOBase::LONGLONG;
 	else if (dynamic_cast<itk::Image< unsigned long long, iAITKIO::m_DIM> *>(imagePtr))
@@ -73,7 +73,7 @@ itk::ImageIOBase::IOComponentType itkScalarPixelType(iAITKIO::ImagePointer image
 		result = itk::ImageIOBase::LONG;
 	else if ( dynamic_cast<itk::Image< itk::RGBAPixel< unsigned long >, iAITKIO::m_DIM> *>( imagePtr ) )
 		result = itk::ImageIOBase::ULONG;
-#if ITK_VERSION_MAJOR > 4 || (ITK_VERSION_MAJOR == 4 && ITK_VERSION_MINOR > 12)
+#if ITK_VERSION_NUMBER >= ITK_VERSION_CHECK(4, 13, 0)
 	else if (dynamic_cast<itk::Image< itk::RGBAPixel< long long >, iAITKIO::m_DIM> *>(imagePtr))
 		result = itk::ImageIOBase::LONGLONG;
 	else if (dynamic_cast<itk::Image< itk::RGBAPixel< unsigned long long >, iAITKIO::m_DIM> *>(imagePtr))
@@ -99,7 +99,7 @@ itk::ImageIOBase::IOComponentType itkScalarPixelType(iAITKIO::ImagePointer image
 		result = itk::ImageIOBase::LONG;
 	else if (dynamic_cast<itk::Image< itk::RGBPixel< unsigned long >, iAITKIO::m_DIM> *>(imagePtr))
 		result = itk::ImageIOBase::ULONG;
-#if ITK_VERSION_MAJOR > 4 || (ITK_VERSION_MAJOR == 4 && ITK_VERSION_MINOR > 12)
+#if ITK_VERSION_NUMBER >= ITK_VERSION_CHECK(4, 13, 0)
 	else if (dynamic_cast<itk::Image< itk::RGBPixel< long long >, iAITKIO::m_DIM> *>(imagePtr))
 		result = itk::ImageIOBase::LONGLONG;
 	else if (dynamic_cast<itk::Image< itk::RGBPixel< unsigned long long >, iAITKIO::m_DIM> *>(imagePtr))

@@ -22,14 +22,14 @@
 
 #include "iAUndecidedPixelClassifierImageFilter.h"
 
+#include <iAConsole.h>
+#include <iAMathUtility.h>
+
 #include <itkImageRegionIterator.h>
 #include <itkConstNeighborhoodIterator.h>
 #include <itkMath.h>
 #include <itkProgressReporter.h>
 #include <itkStatisticsImageFilter.h>
-
-#include "iAConsole.h"
-#include "iAMathUtility.h"
 
 #include <QString>
 

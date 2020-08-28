@@ -21,14 +21,15 @@
 #include "iAAstraAlgorithm.h"
 
 #include "dlg_ProjectionParameters.h"
-#include "iAConnector.h"
-#include "iAConsole.h"
-#include "iAPerformanceHelper.h"
-#include "iAToolsVTK.h"
-#include "iATypedCallHelper.h"
-#include "iAvec3.h"
-#include "mainwindow.h"
-#include "mdichild.h"
+
+#include <iAConnector.h>
+#include <iAConsole.h>
+#include <iAPerformanceHelper.h>
+#include <iAToolsVTK.h>
+#include <iATypedCallHelper.h>
+#include <iAvec3.h>
+#include <mainwindow.h>
+#include <mdichild.h>
 
 #include <astra/CudaBackProjectionAlgorithm3D.h>
 #include <astra/CudaFDKAlgorithm3D.h>

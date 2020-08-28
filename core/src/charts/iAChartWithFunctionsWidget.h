@@ -40,7 +40,7 @@ class vtkColorTransferFunction;
 
 class iAChartFunction;
 class iAXmlSettings;
-class dlg_TFTable;
+class iATFTableDlg;
 class MdiChild;
 
 //! A chart widget that can also show functions overlaid over the chart area (transfer function, Gaussian and Bezier curves)
@@ -135,7 +135,7 @@ private slots:
 private:
 	bool m_allowTrfReset;
 	bool m_enableAdditionalFunctions;
-	dlg_TFTable* m_TFTable;
+	iATFTableDlg* m_TFTable;
 
 	void newTransferFunction();
 };

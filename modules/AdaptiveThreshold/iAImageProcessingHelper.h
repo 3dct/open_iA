@@ -33,6 +33,6 @@ private:
 
 	iAImageProcessingHelper(const iAImageProcessingHelper& other) = delete;
 	iAImageProcessingHelper() = delete;
-	MdiChild* m_childData = nullptr;
+	MdiChild* m_child = nullptr;
 };
 

@@ -28,7 +28,6 @@
 #include "iACsvConfig.h"
 #include "iACsvVtkTableCreator.h"
 
-#include <dlg_commoninput.h>
 #include <qthelper/iADockWidgetWrapper.h>
 #include <iAModality.h>
 #include <iAModalityTransfer.h>

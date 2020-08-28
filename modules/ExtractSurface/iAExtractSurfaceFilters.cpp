@@ -240,7 +240,7 @@ iAExtractSurface::iAExtractSurface() :
 	AlgorithmNames << "Marching Cubes" << "Flying Edges";
 	addParameter("Extraction Algorithm", Categorical, AlgorithmNames);
 	addParameter("Iso value", Continuous, 1);
-	addParameter("STL output filename", FileNameSave, "");
+	addParameter("STL output filename", FileNameSave, ".stl");
 	QStringList SimplificationAlgorithms;
 	SimplificationAlgorithms << "Quadric Clustering" << "Decimate Pro" << "Windowed Sinc" << "None";
 	addParameter("Simplification Algorithm", Categorical, SimplificationAlgorithms);

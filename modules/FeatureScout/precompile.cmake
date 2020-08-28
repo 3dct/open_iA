@@ -40,4 +40,4 @@ SET (FeatureScout_PRECOMPILE_INCLUDES <iA3DColoredPolyObjectVis.h>
 <vtkRendererCollection.h>
 <vtkSmartPointer.h>
 <vtkTable.h>
-<vtkVersion.h>)
+<vtkUnsignedCharArray.h>)

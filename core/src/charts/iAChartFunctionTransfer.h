@@ -26,21 +26,20 @@
 
 #include <QLinearGradient>
 
-class QColorDialog;
 class QDomNode;
 
 class vtkPiecewiseFunction;
 class vtkColorTransferFunction;
 
+//! Class representing a transfer function in a histogram chart.
+//! Draws itself, and allows adding, removing and modifying point (color and opacity).
 class open_iA_Core_API iAChartTransferFunction : public iAChartFunction, public iATransferFunction
 {
 Q_OBJECT
 
 public:
 	iAChartTransferFunction(iAChartWithFunctionsWidget *histogram, QColor color);
-	~iAChartTransferFunction();
 
-	int getType() const override { return TRANSFER; }
 	void draw(QPainter &painter) override;
 	void draw(QPainter &painter, QColor color, int lineWidth) override;
 	void drawOnTop(QPainter &painter) override;
@@ -68,17 +67,14 @@ public:
 	void setColorFunction(vtkColorTransferFunction *colorTF) { m_colorTF = colorTF; }
 	void triggerOnChange();
 signals:
-	void Changed();
+	void changed();
 private:
-	void setColorPoint(int selectedPoint, double x, double red, double green, double blue);
-	void setColorPoint(int selectedPoint, int x, double red, double green, double blue);
-	void setColorPoint(int selectedPoint, int x);
-	void setPoint(int selectedPoint, int x, int y);
-	void setPointX(int selectedPoint, int x);
-	void setPointY(int selectedPoint, int y);
+	void setPointColor(int selectedPoint, double chartX, double red, double green, double blue);
+	void setPointOpacity(int selectedPoint, int pixelX, int pixelY);
+	void setPointOpacity(int selectedPoint, int pixelY);
 	
 	//! convert from pixel coordinate on chart [0..maxDiagPixelHeight] to opacity [0..1]
-	double pixelY2Opacity(int y);
+	double pixelY2Opacity(int pixelY);
 
 	//! convert from opacity [0..1] to pixel coordinate on chart [0..maxDiagPixelHeight]
 	int opacity2PixelY(double opacity);
@@ -86,7 +82,6 @@ private:
 	bool m_rangeSliderHandles;
 	int m_selectedPoint;
 	QColor m_color;
-	QColorDialog* m_colorDlg;
 	QLinearGradient m_gradient;
 	vtkPiecewiseFunction* m_opacityTF;
 	vtkColorTransferFunction* m_colorTF;

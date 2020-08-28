@@ -8,6 +8,7 @@ SET (4DCT_PRECOMPILE_INCLUDES <dlg_4DCTFileOpen.h>
 <iA4DCTStageData.h>
 <iA4DCTVisWin.h>
 <iABoundingBoxVisModule.h>
+<iAConsole.h>
 <iADefectVisModule.h>
 <iAFeature.h>
 <iAFractureVisModule.h>

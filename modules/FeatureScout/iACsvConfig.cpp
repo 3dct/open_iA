@@ -77,7 +77,9 @@ iACsvConfig::VisualizationType MapStr2VisType(QString name)
 	for (int i = 0; i < iACsvConfig::VisTypeCount; ++i)
 	{
 		if (name == VisualizationTypeName[i])
+		{
 			return static_cast<iACsvConfig::VisualizationType>(i);
+		}
 	}
 	return iACsvConfig::UseVolume;
 }
@@ -326,12 +328,16 @@ void iACsvConfig::save(QSettings & settings, QString const & formatName)
 	settings.setValue(CfgKeyIsDiameterFixed, isDiameterFixed);
 	settings.setValue(CfgKeyFixedDiameterValue, fixedDiameterValue);
 	settings.setValue(CfgKeyVisualizationType, MapVisType2Str(visType));
-	for (int i=0; i<3; ++i)
-		settings.setValue(CfgKeyOffset+QString::number(i), offset[i]);
+	for (int i = 0; i < 3; ++i)
+	{
+		settings.setValue(CfgKeyOffset + QString::number(i), offset[i]);
+	}
 	// save column mappings:
 	QStringList columnMappings;
 	for (auto key : columnMapping.keys())
+	{
 		columnMappings.append(QString("%1:%2").arg(key).arg(columnMapping[key]));
+	}
 	settings.setValue(CfgKeyColumnMappings, columnMappings);
 	settings.setValue(CfgKeySelectedHeaders, selectedHeaders);
 	settings.setValue(CfgKeyAllHeaders, currentHeaders);
@@ -357,8 +363,10 @@ bool iACsvConfig::load(QSettings const & settings, const QString & formatName)
 	isDiameterFixed = settings.value(prefix+CfgKeyIsDiameterFixed, defaultConfig.isDiameterFixed).toBool();
 	fixedDiameterValue = settings.value(prefix+CfgKeyFixedDiameterValue, defaultConfig.fixedDiameterValue).toDouble();
 	visType = MapStr2VisType(settings.value(prefix+CfgKeyVisualizationType, MapVisType2Str(defaultConfig.visType)).toString());
-	for (int i = 0; i<3; ++i)
-		offset[i] = settings.value(prefix+CfgKeyOffset + QString::number(i), defaultConfig.offset[i]).toDouble();
+	for (int i = 0; i < 3; ++i)
+	{
+		offset[i] = settings.value(prefix + CfgKeyOffset + QString::number(i), defaultConfig.offset[i]).toDouble();
+	}
 	unit = settings.value(prefix+CfgKeyUnit, defaultConfig.unit).toString();
 	spacing = settings.value(prefix+CfgKeySpacing, defaultConfig.spacing).toDouble();
 	encoding = settings.value(prefix+CfgKeyEncoding, defaultConfig.encoding).toString();

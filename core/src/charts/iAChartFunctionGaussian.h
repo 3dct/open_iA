@@ -25,12 +25,14 @@
 
 #include <QColor>
 
+//! Class representing a Gaussian function in an iAChartWithFunctionsWidget.
+//! Draws itself, and allows modifying its mean, sigma, "multiplier" (i.e. its height).
+//! Can be used e.g. for fitting Gaussian curves to histogram peaks.
 class open_iA_Core_API iAChartFunctionGaussian : public iAChartFunction
 {
 public:
 	iAChartFunctionGaussian(iAChartWithFunctionsWidget *chart, QColor &color, bool reset = true);
 
-	int getType() const override { return GAUSSIAN; }
 	void draw(QPainter &painter) override;
 	void draw(QPainter &painter, QColor color, int lineWidth) override;
 	void drawOnTop(QPainter&) override {}

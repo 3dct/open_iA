@@ -41,16 +41,10 @@ iAChartTransferFunction::iAChartTransferFunction(iAChartWithFunctionsWidget *cha
 	m_rangeSliderHandles(false),
 	m_selectedPoint(-1),
 	m_color(color),
-	m_colorDlg(new QColorDialog(chart)),
 	m_opacityTF(nullptr),
 	m_colorTF(nullptr)
 {
 	m_gradient.setSpread(QGradient::PadSpread);
-}
-
-iAChartTransferFunction::~iAChartTransferFunction()
-{
-	delete m_colorDlg;
 }
 
 void iAChartTransferFunction::draw(QPainter &painter, QColor color, int lineWidth)
@@ -189,20 +183,20 @@ void iAChartTransferFunction::drawOnTop(QPainter &painter)
 
 int iAChartTransferFunction::selectPoint(QMouseEvent *event, int *x)
 {
-	int lx = event->x() - m_chart->leftMargin() - m_chart->xShift();
-	int ly = m_chart->chartHeight() - event->y() - m_chart->yShift();
+	int mouseX = event->x() - m_chart->leftMargin() - m_chart->xShift();
+	int mouseY = m_chart->chartHeight() - event->y() - m_chart->yShift();
 	int index = -1;
 
 	double pointValue[4];
 	for (int pointIndex = 0; pointIndex < m_opacityTF->GetSize(); pointIndex++)
 	{
 		m_opacityTF->GetNodeValue(pointIndex, pointValue);
-		int viewX = m_chart->xMapper().srcToDst(pointValue[0]);
-		int viewY = opacity2PixelY(pointValue[1]);
+		int pointX = m_chart->xMapper().srcToDst(pointValue[0]);
+		int pointY = opacity2PixelY(pointValue[1]);
 		int pointRadius = (pointIndex == m_selectedPoint) ? iAChartWithFunctionsWidget::SELECTED_POINT_RADIUS : iAChartWithFunctionsWidget::POINT_RADIUS;
 		if ( !m_rangeSliderHandles )
 		{
-			if (std::abs(lx - viewX) < pointRadius && std::abs(ly - viewY) < pointRadius)
+			if (std::abs(mouseX - pointX) < pointRadius && std::abs(mouseY - pointY) < pointRadius)
 			{
 				index = pointIndex;
 				break;
@@ -210,10 +204,10 @@ int iAChartTransferFunction::selectPoint(QMouseEvent *event, int *x)
 		}
 		else
 		{
-			if ( ( lx >= viewX - SELECTED_PIE_RADIUS && lx <= viewX + SELECTED_PIE_RADIUS
-				&& ly >= viewY - SELECTED_PIE_RADIUS && ly <= viewY )
-				|| ( lx >= viewX - PIE_RADIUS && lx <= viewX + PIE_RADIUS
-				&& ly >= viewY - PIE_RADIUS && ly <= viewY ) )
+			if ( (mouseX >= pointX - SELECTED_PIE_RADIUS && mouseX <= pointX + SELECTED_PIE_RADIUS
+				&& mouseY >= pointY - SELECTED_PIE_RADIUS && mouseY <= pointY)
+				|| (mouseX >= pointX - PIE_RADIUS && mouseX <= pointX + PIE_RADIUS
+				&& mouseY >= pointY - PIE_RADIUS && mouseY <= pointY) )
 			{
 				// FeatureAnalyzer: range slider widget; only handles can get selected (no end points)
 				if (this->isEndPoint(pointIndex))
@@ -236,7 +230,7 @@ int iAChartTransferFunction::selectPoint(QMouseEvent *event, int *x)
 		//     - never called if selected point is first one?
 		if (x != nullptr)
 		{
-			*x = (*x == viewX)? lx + 1: lx;
+			*x = (*x == pointX)? mouseX + 1: mouseX;
 		}
 	}
 
@@ -336,12 +330,15 @@ void iAChartTransferFunction::moveSelectedPoint(int x, int y)
 		{
 			newX = m_chart->xMapper().srcToDst(prevOpacityTFValue[0]) + 1;
 		}
-		setPoint(m_selectedPoint, newX, y);
-		setColorPoint(m_selectedPoint, newX);
+		setPointOpacity(m_selectedPoint, newX, y);
+		double colorTFValue[6];
+		m_colorTF->GetNodeValue(m_selectedPoint, colorTFValue);
+		double chartX = m_chart->xMapper().dstToSrc(newX - m_chart->xShift());
+		setPointColor(m_selectedPoint, chartX, colorTFValue[1], colorTFValue[2], colorTFValue[3]);
 	}
 	else
 	{
-		setPointY(m_selectedPoint, y);
+		setPointOpacity(m_selectedPoint, y);
 	}
 
 	triggerOnChange();
@@ -358,28 +355,17 @@ void iAChartTransferFunction::changeColor(QMouseEvent *event)
 	{
 		return;
 	}
-
 	double colorTFValue[6];
 	m_colorTF->GetNodeValue(m_selectedPoint, colorTFValue);
-	m_colorDlg->adjustSize();
-	m_colorDlg->setCurrentColor(QColor(colorTFValue[1]*255, colorTFValue[2]*255, colorTFValue[3]*255));
-	/*
-	// QApplication::desktop()->screenGeometry() is deprecated;
-	// one should use QGuiApplication::screens() instead, but we'd have to know which screen to use if more than one...
-	QRect scr = QApplication::desktop()->screenGeometry();
-	// ... so avoid manual placement of color dialog altogether for now...
-	m_colorDlg->setGeometry(scr.width()/2 - m_colorDlg->width()/2,
-						scr.height()/2 - m_colorDlg->height()/2,
-		m_colorDlg->width(),
-		m_colorDlg->height());
-	*/
-	if (m_colorDlg->exec() != QDialog::Accepted)
+	QColorDialog colorDlg;
+	colorDlg.setCurrentColor(QColor(colorTFValue[1]*255, colorTFValue[2]*255, colorTFValue[3]*255));
+	if (colorDlg.exec() != QDialog::Accepted)
 	{
 		return;
 	}
 
-	QColor col = m_colorDlg->selectedColor();
-	setColorPoint(m_selectedPoint, m_chart->xMapper().srcToDst(colorTFValue[0]), col.redF(), col.greenF(), col.blueF());
+	QColor col = colorDlg.selectedColor();
+	setPointColor(m_selectedPoint, colorTFValue[0], col.redF(), col.greenF(), col.blueF());
 	m_colorTF->Modified();
 	m_colorTF->Build();
 	triggerOnChange();
@@ -450,24 +436,12 @@ void iAChartTransferFunction::mouseReleaseEventAfterNewPoint(QMouseEvent *)
 {
 	double colorTFValue[6];
 	m_colorTF->GetNodeValue(m_selectedPoint, colorTFValue);
-	m_colorDlg->setCurrentColor(QColor(colorTFValue[1]*255, colorTFValue[2]*255, colorTFValue[3]*255));
-	/*
-	// QApplication::desktop()->screenGeometry() is deprecated;
-	// one should use QGuiApplication::screens() instead, but we'd have to know which screen to use if more than one...
-	QRect scr = QApplication::desktop()->screenGeometry();
-	m_colorDlg->adjustSize();
-	// ... so avoid manual placement of color dialog altogether for now...
-	m_colorDlg->setGeometry(scr.width()/2 - m_colorDlg->width()/2,
-		scr.height()/2 - m_colorDlg->height()/2,
-		m_colorDlg->width(),
-		m_colorDlg->height());
-	*/
-	bool accepted = m_colorDlg->exec() == QDialog::Accepted;
-
-	if (accepted)
+	QColorDialog colorDlg;
+	colorDlg.setCurrentColor(QColor(colorTFValue[1]*255, colorTFValue[2]*255, colorTFValue[3]*255));
+	if (colorDlg.exec() == QDialog::Accepted)
 	{
-		QColor col = m_colorDlg->selectedColor();
-		setColorPoint(m_selectedPoint, colorTFValue[0], (double)col.red()/255.0, (double)col.green()/255.0, (double)col.blue()/255.0 );
+		QColor col = colorDlg.selectedColor();
+		setPointColor(m_selectedPoint, colorTFValue[0], (double)col.red()/255.0, (double)col.green()/255.0, (double)col.blue()/255.0 );
 	}
 	else if (m_selectedPoint > 0 && m_selectedPoint < m_opacityTF->GetSize()-1)
 	{
@@ -475,63 +449,33 @@ void iAChartTransferFunction::mouseReleaseEventAfterNewPoint(QMouseEvent *)
 	}
 }
 
-void iAChartTransferFunction::setColorPoint(int selectedPoint, double x, double red, double green, double blue)
+void iAChartTransferFunction::setPointColor(int selectedPoint, double x, double red, double green, double blue)
 {
 	double colorVal[6] = { x, red, green, blue, 0.5, 0.0 };
-
 	m_colorTF->SetNodeValue(selectedPoint, colorVal);
 	m_colorTF->Modified();
 	m_colorTF->Build();
 	triggerOnChange();
 }
 
-void iAChartTransferFunction::setColorPoint(int selectedPoint, int x, double red, double green, double blue)
+void iAChartTransferFunction::setPointOpacity(int selectedPoint, int pixelX, int pixelY)
 {
-	double colorVal[6] = { m_chart->xMapper().dstToSrc(x - m_chart->xShift()), red, green, blue, 0.5, 0.0 };
-
-	m_colorTF->SetNodeValue(selectedPoint, colorVal);
-	m_colorTF->Modified();
-	m_colorTF->Build();
-	triggerOnChange();
-}
-
-void iAChartTransferFunction::setColorPoint(int selectedPoint, int x)
-{
-	double colorTFValue[6];
-	m_colorTF->GetNodeValue(selectedPoint, colorTFValue);
-	setColorPoint(selectedPoint, x, colorTFValue[1], colorTFValue[2], colorTFValue[3]);
-}
-
-void iAChartTransferFunction::setPoint(int selectedPoint, int x, int y)
-{
-	if (y < 0)
-	{
-		y = 0;
-	}
-	double opacityVal[4] = { m_chart->xMapper().dstToSrc(x - m_chart->xShift()), pixelY2Opacity(y), 0.0, 0.0 };
+	double opacityVal[4] = { m_chart->xMapper().dstToSrc(pixelX - m_chart->xShift()), pixelY2Opacity(pixelY), 0.0, 0.0 };
 	m_opacityTF->SetNodeValue(selectedPoint, opacityVal);
 }
 
-void iAChartTransferFunction::setPointX(int selectedPoint, int x)
-{
-	double opacityTFValues[4];
-	m_opacityTF->GetNodeValue(selectedPoint, opacityTFValues);
-	opacityTFValues[0] = m_chart->xMapper().dstToSrc(x-m_chart->xShift());
-	m_opacityTF->SetNodeValue(selectedPoint, opacityTFValues);
-}
-
-void iAChartTransferFunction::setPointY(int selectedPoint, int y)
+void iAChartTransferFunction::setPointOpacity(int selectedPoint, int pixelY)
 {
 	double opacityTFValues[4];
 	m_opacityTF->GetNodeValue(selectedPoint, opacityTFValues);
 
-	opacityTFValues[1] = pixelY2Opacity(y);
+	opacityTFValues[1] = pixelY2Opacity(pixelY);
 	m_opacityTF->SetNodeValue(selectedPoint, opacityTFValues);
 }
 
-double iAChartTransferFunction::pixelY2Opacity(int y)
+double iAChartTransferFunction::pixelY2Opacity(int pixelY)
 {
-	return mapToNorm(0, m_chart->chartHeight(), y);
+	return mapToNorm(0, m_chart->chartHeight(), clamp(0, m_chart->chartHeight(), pixelY));
 }
 
 int iAChartTransferFunction::opacity2PixelY(double opacity)
@@ -541,7 +485,7 @@ int iAChartTransferFunction::opacity2PixelY(double opacity)
 
 void iAChartTransferFunction::triggerOnChange()
 {
-	emit Changed();
+	emit changed();
 }
 
 size_t iAChartTransferFunction::numPoints() const

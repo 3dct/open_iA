@@ -20,11 +20,12 @@
 * ************************************************************************************/
 #pragma once
 
-#include "iAProgress.h"
-
 #include "iAFiberData.h"
 #include "iAFiberCharData.h"
 
+#include <iAProgress.h>
+
+#include <QDataStream>
 #include <QSharedPointer>
 #include <QThread>
 
@@ -35,6 +36,9 @@ class iAFiberResultsCollection;
 class vtkTable;
 
 class QFile;
+
+
+static const QDataStream::Version CacheFileQtDataStreamVersion(QDataStream::Qt_5_6);
 
 class iARefDistCompute : public QThread
 {

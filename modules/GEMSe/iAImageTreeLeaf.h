@@ -20,11 +20,11 @@
 * ************************************************************************************/
 #pragma once
 
+#include <iAAttributes.h>
+
 #include "iAImageTreeNode.h"
 
 class iASingleResult;
-
-class iAAttributes;
 
 class iAImageTreeLeaf : public iAImageTreeNode
 {

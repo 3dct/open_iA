@@ -20,10 +20,10 @@
 * ************************************************************************************/
 #include "iAFreeBeamCalculation.h"
 
-#include "defines.h"        // for DIM
-#include "iAConnector.h"
-#include "iAProgress.h"
-#include "iATypedCallHelper.h"
+#include <defines.h>        // for DIM
+#include <iAConnector.h>
+#include <iAProgress.h>
+#include <iATypedCallHelper.h>
 
 #include <itkExtractImageFilter.h>
 #include <itkImageIOBase.h>

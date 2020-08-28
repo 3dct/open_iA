@@ -129,9 +129,7 @@ iAChartWidget::iAChartWidget(QWidget* parent, QString const & xLabel, QString co
 	m_maxXAxisSteps(AxisTicksXDefault),
 	m_drawXAxisAtZero(false)
 {
-	iAQGLFormat fmt;
-	fmt.setSamples(8);
-	setFormat(fmt);
+	setFormat(defaultOpenGLFormat());
 	updateBounds();
 	setMouseTracking(true);
 	setFocusPolicy(Qt::WheelFocus);

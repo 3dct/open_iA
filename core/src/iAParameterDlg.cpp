@@ -21,7 +21,7 @@
 #include "iAParameterDlg.h"
 
 #include "iAAttributeDescriptor.h"
-#include "dlg_FilterSelection.h"
+#include "iAFilterSelectionDlg.h"
 #include "iAConsole.h"
 #include "iAFilter.h"
 #include "iAFilterRegistry.h"
@@ -49,17 +49,23 @@ enum ContainerSize {
 
 namespace
 {
+	iAFileChooserWidget::ChoiceType mapValueTypeToFileChoiceType(iAValueType valueType)
+	{
+		switch (valueType)
+		{
+		default:
+#if __cplusplus >= 201703L
+			[[fallthrough]];
+#endif
+		case FileNameOpen:  return iAFileChooserWidget::FileNameOpen;
+		case FileNamesOpen: return iAFileChooserWidget::FileNamesOpen;
+		case FileNameSave:  return iAFileChooserWidget::FileNameSave;
+		case Folder:        return iAFileChooserWidget::Folder;
+		}
+	}
 	iAFileChooserWidget* createFileChooser(iAValueType type, QString const & value)
 	{
-		iAFileChooserWidget* newWidget = nullptr;
-		switch (type)
-		{
-		default: // intentional fall-through
-		case FileNameOpen:  newWidget = new iAFileChooserWidget(nullptr, iAFileChooserWidget::FileNameOpen);  break;
-		case FileNamesOpen: newWidget = new iAFileChooserWidget(nullptr, iAFileChooserWidget::FileNamesOpen); break;
-		case FileNameSave:  newWidget = new iAFileChooserWidget(nullptr, iAFileChooserWidget::FileNameSave);  break;
-		case Folder:        newWidget = new iAFileChooserWidget(nullptr, iAFileChooserWidget::Folder);        break;
-		}
+		auto newWidget =  new iAFileChooserWidget(nullptr, mapValueTypeToFileChoiceType(type));
 		newWidget->setText(value);
 		return newWidget;
 	}
@@ -184,7 +190,10 @@ iAParameterDlg::iAParameterDlg(QWidget* parent, QString const& title, QVector<QS
 			newWidget = comboBox;
 			break;
 		}
-		default:     // intentional fall-through
+		default:
+#if __cplusplus >= 201703L
+			[[fallthrough]];
+#endif
 		case String:
 		{
 			auto textEdit = new QLineEdit(m_container);
@@ -207,9 +216,18 @@ iAParameterDlg::iAParameterDlg(QWidget* parent, QString const& title, QVector<QS
 			connect(button, &QPushButton::clicked, this, &iAParameterDlg::selectFilter);
 			break;
 		}
-		case FileNameOpen:  // intentional fall-through
-		case FileNamesOpen: // intentional fall-through
-		case FileNameSave:  // intentional fall-through
+		case FileNameOpen:
+#if __cplusplus >= 201703L
+			[[fallthrough]];
+#endif
+		case FileNamesOpen:
+#if __cplusplus >= 201703L
+			[[fallthrough]];
+#endif
+		case FileNameSave:
+#if __cplusplus >= 201703L
+			[[fallthrough]];
+#endif
 		case Folder:
 		{
 			newWidget = createFileChooser(p->valueType(), p->defaultValue().toString());
@@ -269,7 +287,7 @@ QVector<QWidget*> iAParameterDlg::widgetList()
 void iAParameterDlg::selectFilter()
 {
 	QPushButton* sender = qobject_cast<QPushButton*>(QObject::sender());
-	dlg_FilterSelection dlg(this, sender->text());
+	iAFilterSelectionDlg dlg(this, sender->text());
 	if (dlg.exec())
 	{
 		QString filterName = dlg.selectedFilterName();
@@ -441,7 +459,10 @@ QMap<QString, QVariant> iAParameterDlg::parameterValues() const
 			result.insert(p->name(), t->currentText());
 			break;
 		}
-		default:     // intentional fall-through
+		default:
+#if __cplusplus >= 201703L
+			[[fallthrough]];
+#endif
 		case String:
 		{
 			QLineEdit* t = qobject_cast<QLineEdit*>(m_widgetList[i]);
@@ -463,9 +484,18 @@ QMap<QString, QVariant> iAParameterDlg::parameterValues() const
 			result.insert(p->name(), t->text());
 			break;
 		}
-		case FileNameOpen:  // intentional fall-through
-		case FileNamesOpen: // intentional fall-through
-		case FileNameSave:  // intentional fall-through
+		case FileNameOpen:
+#if __cplusplus >= 201703L
+			[[fallthrough]];
+#endif
+		case FileNamesOpen:
+#if __cplusplus >= 201703L
+			[[fallthrough]];
+#endif
+		case FileNameSave:
+#if __cplusplus >= 201703L
+			[[fallthrough]];
+#endif
 		case Folder:
 		{
 			iAFileChooserWidget* t = qobject_cast<iAFileChooserWidget*>(m_widgetList[i]);

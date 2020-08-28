@@ -29,13 +29,8 @@
 #include "iACsvConfig.h"
 #include "iACsvVtkTableCreator.h"
 
-#include <dlg_commoninput.h>
 #include <iAConsole.h>
-#include <iAModality.h>
-#include <iAModalityTransfer.h>
-#include <iAVolumeRenderer.h>
 #include <mainwindow.h>
-#include <mdichild.h>
 
 #include <openvr.h>
 
@@ -47,8 +42,9 @@
 void iAVRModuleInterface::Initialize()
 {
 	if (!m_mainWnd)
+	{
 		return;
-
+	}
 	QMenu * toolsMenu = m_mainWnd->toolsMenu();
 	QMenu* vrMenu = getMenuWithTitle(toolsMenu, tr("VR"), false);
 
@@ -104,7 +100,9 @@ void iAVRModuleInterface::info()
 void iAVRModuleInterface::render()
 {
 	if (!vrAvailable())
+	{
 		return;
+	}
 	PrepareActiveChild();
 	AttachToMdiChild( m_mdiChild );
 }
@@ -116,25 +114,36 @@ void iAVRModuleInterface::showFibers()
 		m_vrEnv->stop();
 		return;
 	}
-
 	if (!vrAvailable())
+	{
 		return;
+	}
 	dlg_CSVInput dlg(false);
 	if (dlg.exec() != QDialog::Accepted)
+	{
 		return;
+	}
 	iACsvConfig csvConfig = dlg.getConfig();
 	if (csvConfig.visType == iACsvConfig::UseVolume)
+	{
 		return;
+	}
 
 	iACsvVtkTableCreator creator;
 	iACsvIO io;
 	if (!io.loadCSV(creator, csvConfig))
+	{
 		return;
+	}
 
 	if (!vrAvailable())
+	{
 		return;
+	}
 	if (m_vrEnv)
+	{
 		return;
+	}
 	m_vrEnv.reset(new iAVREnvironment());
 	connect(m_vrEnv.data(), &iAVREnvironment::finished, this, &iAVRModuleInterface::vrDone);
 	m_actionVRShowFibers->setText("Stop Show Fibers");

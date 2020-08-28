@@ -50,14 +50,14 @@ void iAMaximumDistanceFilter<TImageType>::GenerateData()
 	}
 	if (m_centre == 0)
 	{
-		m_centre = std::numeric_limits<typename TImageType::PixelType>::max() / (m_binWidth * 2);
+		m_centre = static_cast<double>(std::numeric_limits<typename TImageType::PixelType>::max()) / (m_binWidth * 2);
 	}
 	assert(m_binWidth != 0);
 	m_inImage = this->GetInput();
 	ConstIteratorType in_Iter (m_inImage, m_inImage->GetLargestPossibleRegion());
 
 	// histogram:
-	int noofBins = (std::numeric_limits<typename TImageType::PixelType>::max() / m_binWidth) + 1;
+	int noofBins = (static_cast<double>(std::numeric_limits<typename TImageType::PixelType>::max()) / m_binWidth) + 1;
 	std::vector<long long> histogram (noofBins, 0 );
 	for ( in_Iter.GoToBegin(); !in_Iter.IsAtEnd(); ++in_Iter )
 	{

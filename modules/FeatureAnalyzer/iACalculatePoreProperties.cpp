@@ -231,8 +231,10 @@ void iACalculatePorePropertiesThread::run()
 			for ( allLabelsIt = allLabels.begin(); allLabelsIt != allLabels.end(); allLabelsIt++ )
 			{
 				LabelGeometryImageFilterType::LabelPixelType labelValue = *allLabelsIt;
-				if ( labelValue == 0 )	// label 0 = backround
+				if (labelValue == 0)	// label 0 = background
+				{
 					continue;
+				}
 
 				std::vector<double> eigenvalue( 3 );
 				std::vector<double> eigenvector( 3 );
@@ -288,12 +290,14 @@ void iACalculatePorePropertiesThread::run()
 				theta = ( theta*180.0f ) / vtkMath::Pi();
 
 				// Locating the phi value to quadrant
-				if ( dx < 0 )
+				if (dx < 0)
+				{
 					phi = 180.0 - phi;
-
-				if ( phi < 0.0 )
+				}
+				if (phi < 0.0)
+				{
 					phi = phi + 360.0;
-
+				}
 				if ( dx == 0 && dy == 0 )
 				{
 					phi = 0.0;

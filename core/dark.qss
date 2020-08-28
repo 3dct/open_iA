@@ -79,6 +79,21 @@ General
 		background-color: rgba(40, 40, 40, 255);
 		border: 1px solid white;
 	}
+
+	QComboBox,
+	QDockWidget::title,
+	QDoubleSpinBox,
+	QLineEdit,
+	QListWidget,
+	QProgressBar,
+	QSlider::groove:horizontal,
+	QSpinBox,
+	QTabBar::tab,
+	QWidget[qssClass="jobList"]
+	{
+		border: 1px solid rgba(100, 100, 100, 255);
+	}
+
 /****************************************************************************
 QToolBar
 QStatusBar
@@ -305,7 +320,7 @@ QTabBar
 	}
 	QTabBar::tab
 	{
-		/* Style the tab using the tab sub-control. Note thatit reads QTabBar _not_ QTabWidget */
+		/* Style the tab using the tab sub-control. Note that it reads QTabBar _not_ QTabWidget */
 		color: rgba(230, 230, 230, 255);
 		background: qlineargradient(spread:pad,
 			x1:0, y1:0,
@@ -315,9 +330,6 @@ QTabBar
 			stop:0.618 rgba(23, 23, 23, 255),
 			stop:1 rgba(20, 20, 20, 255)
 		);
-		border: 1px solid rgba(100, 100, 100, 255);
-		/*border-top-left-radius: 4px;
-		border-top-right-radius: 10px;*/
 		min-width:36ex;
 		padding:1px 4px;
 	}
@@ -368,7 +380,6 @@ QLineEdit
 	QLineEdit
 	{
 		color: rgba(230, 230, 230, 255);
-		border: 1px solid rgba(100, 100, 100, 255);
 	}
 /****************************************************************************
 QSpinBox
@@ -377,7 +388,6 @@ QDoubleSpinBox
 	QSpinBox,
 	QDoubleSpinBox
 	{
-		border: 1px solid rgba(100, 100, 100, 255);
 		color: rgba(230, 230, 230, 255);
 	}
 	QSpinBox::up-button,
@@ -433,7 +443,8 @@ QProgressBar
 ****************************************************************************/
 	QProgressBar
 	{
-		border: 0px solid rgba(100, 100, 100, 255);
+		text-align: center;
+		vertical-align: center;
 		color: rgba(230, 230, 230, 255);
 		border-bottom-right-radius: 0px;
 		border-top-right-radius:  0px;
@@ -581,7 +592,6 @@ QSlider
 	}
 	QSlider::groove:horizontal
 	{
-		border: 1px solid rgba(100, 100, 100, 255);
 		height: 5px; /* the groove expands to the size of the slider by default. by giving it a height, it has a fixed size */
 		background: qlineargradient(spread:pad,
 			x1:0, y1:0,
@@ -643,7 +653,6 @@ QComboBox
 	QComboBox
 	{
 		padding-right: 20px; /* make room for the arrows */
-		border: 1px solid rgba(100, 100, 100, 255);
 		color: rgba(230, 230, 230, 255);
 	}
 	QComboBox::drop-down,
@@ -819,7 +828,6 @@ QDockWidget
 		background-color: rgba(40, 40, 40, 255);
 		vertical-align: center;
 		text-align: left;
-		border: 1px solid rgba(100, 100, 100, 255);
 	}
 /****************************************************************************
 QSplitter
@@ -864,6 +872,31 @@ Disabled Inputs
 	{
 		border: 1px solid rgba(50, 50, 50, 255);
 		background-color: rgba(20, 20, 20, 255);
+	}
+
+/****************************************************************************
+Specific / Custom Widgets
+****************************************************************************/
+
+	QWidget[qssClass="jobWidget"]
+	{
+		background-color: rgba(30, 30, 30, 255);
+		min-height:  80px;
+		border-radius: 4px;
+	}
+	QWidget[qssClass="jobWidget"] *
+	{
+		padding: 0px;
+	}
+	QWidget[qssClass="jobWidget"] .QWidget,
+	QWidget[qssClass="jobWidget"] QLabel,
+	QWidget[qssClass="jobWidget"] QToolButton:!hover
+	{
+		background-color: transparent;
+	}
+	QWidget[qssClass="jobWidget"] QLabel[qssClass="titleLabel"]
+	{
+		font-weight: bold;
 	}
 
 /** Hack to avoid loading some implicit stuff from Qt? Without this "error" in qss syntax (open bracket), dockwidgets in background would be bright

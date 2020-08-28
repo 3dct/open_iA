@@ -506,15 +506,15 @@ void iAMultimodalWidget::updateModalities()
 		m_mdiChild->initChannelRenderer(m_channelID[i], false, true);
 	}
 
-	connect((iAChartTransferFunction*)(m_histograms[0]->functions()[0]), &iAChartTransferFunction::Changed, this, &iAMultimodalWidget::updateTransferFunction1);
-	connect((iAChartTransferFunction*)(m_histograms[1]->functions()[0]), &iAChartTransferFunction::Changed, this, &iAMultimodalWidget::updateTransferFunction2);
+	connect((iAChartTransferFunction*)(m_histograms[0]->functions()[0]), &iAChartTransferFunction::changed, this, &iAMultimodalWidget::updateTransferFunction1);
+	connect((iAChartTransferFunction*)(m_histograms[1]->functions()[0]), &iAChartTransferFunction::changed, this, &iAMultimodalWidget::updateTransferFunction2);
 	if (m_numOfMod >= THREE)
 	{
-		connect((iAChartTransferFunction*)(m_histograms[2]->functions()[0]), &iAChartTransferFunction::Changed, this, &iAMultimodalWidget::updateTransferFunction3);
+		connect((iAChartTransferFunction*)(m_histograms[2]->functions()[0]), &iAChartTransferFunction::changed, this, &iAMultimodalWidget::updateTransferFunction3);
 	}
 
 	applyWeights();
-	connect((iAChartTransferFunction*)(m_mdiChild->histogram()->functions()[0]), &iAChartTransferFunction::Changed, this, &iAMultimodalWidget::originalHistogramChanged);
+	connect((iAChartTransferFunction*)(m_mdiChild->histogram()->functions()[0]), &iAChartTransferFunction::changed, this, &iAMultimodalWidget::originalHistogramChanged);
 
 	emit(modalitiesLoaded_beforeUpdate());
 

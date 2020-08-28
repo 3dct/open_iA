@@ -25,19 +25,24 @@
 #include "dlg_Consensus.h"
 #include "dlg_progress.h"
 #include "dlg_samplings.h"
-#include "dlg_samplingSettings.h"
-#include "iAAttributes.h"
 #include "iAGEMSeConstants.h"
 #include "iAImageTree.h"
 #include "iAImageTreeLeaf.h" // for VisitLeafs
-#include "iAImageSampler.h"
 #include "iALabelInfo.h"
 #include "iAImageClusterer.h"
-#include "iASamplingResults.h"
 #include "iASEAFile.h"
 
+// MetaFilters
+#include <iAImageSampler.h>
+#include <iASamplingMethodImpl.h>
+#include <iASamplingResults.h>
+#include <iAParameterNames.h>
+#include <iASamplingSettingsDlg.h>
+
+// core
 #include <dlg_commoninput.h>
 #include <dlg_modalities.h>
+#include <iAAttributes.h>
 #include <iAAttributeDescriptor.h>
 #include <iAColorTheme.h>
 #include <iAConnector.h>
@@ -181,49 +186,47 @@ void dlg_GEMSeControl::startSampling()
 		QMessageBox::warning(this, "GEMSe", "Another sampler still running / dialog is still open...");
 		return;
 	}
-	m_dlgSamplingSettings = new dlg_samplingSettings(this, m_dlgModalities->modalities(), m_samplingSettings);
+	m_dlgSamplingSettings = new iASamplingSettingsDlg(this, m_dlgModalities->modalities()->size(), m_samplingSettings);
 	if (m_dlgSamplingSettings->exec() == QDialog::Accepted)
 	{
-		// get parameter ranges
-		QSharedPointer<iAAttributes> parameters = m_dlgSamplingSettings->GetAttributes();
-		m_outputFolder = m_dlgSamplingSettings->GetOutputFolder();
+		QSharedPointer<iAAttributes> parameterRanges = m_dlgSamplingSettings->parameterRanges();
+		m_dlgSamplingSettings->getValues(m_samplingSettings);
+		m_outputFolder = m_samplingSettings[spnOutputFolder].toString();
 		QDir outputFolder(m_outputFolder);
 		outputFolder.mkpath(".");
-		if (m_dlgSamplingSettings->labelCount() < 2)
+		if (m_samplingSettings[spnComputeDerivedOutput].toBool() &&
+			m_samplingSettings[spnNumberOfLabels].toInt() < 2)
 		{
 			DEBUG_LOG("Label Count must not be smaller than 2!");
 			QMessageBox::warning(this, "GEMSe", "Label Count must not be smaller than 2!");
 			return;
 		}
-		m_simpleLabelInfo->setLabelCount(m_dlgSamplingSettings->labelCount());
+		m_simpleLabelInfo->setLabelCount(m_samplingSettings[spnNumberOfLabels].toInt());
+		auto samplingMethod = createSamplingMethod(m_samplingSettings);
+		if (!samplingMethod)
+		{
+			return;
+		}
 		m_sampler = QSharedPointer<iAImageSampler>(new iAImageSampler(
 			m_dlgModalities->modalities(),
-			parameters,
-			m_dlgSamplingSettings->GetGenerator(),
-			m_dlgSamplingSettings->GetSampleCount(),
-			m_dlgSamplingSettings->labelCount(),
-			m_outputFolder,
+			m_samplingSettings,
+			parameterRanges,
+			samplingMethod,
 			iASEAFile::DefaultSMPFileName,
 			iASEAFile::DefaultSPSFileName,
 			iASEAFile::DefaultCHRFileName,
-			m_dlgSamplingSettings->GetExecutable(),
-			m_dlgSamplingSettings->GetAdditionalArguments(),
-			m_dlgSamplingSettings->GetPipelineName(),
-			m_dlgSamplingSettings->GetImageBaseName(),
-			m_dlgSamplingSettings->GetSeparateFolder(),
-			m_dlgSamplingSettings->GetCalcChar(),
-			m_dlgSamplings->GetSamplings()->size()
+			m_dlgSamplings->GetSamplings()->size(),
+			iAGlobalLogger::get()
 		));
 		m_dlgProgress = new dlg_progress(this, m_sampler, m_sampler, "Sampling Progress");
 		MdiChild* mdiChild = dynamic_cast<MdiChild*>(parent());
 		mdiChild->tabifyDockWidget(this, m_dlgProgress);
 		connect(m_sampler.data(), &iAImageSampler::finished, this, &dlg_GEMSeControl::samplingFinished);
-		connect(m_sampler.data(), &iAImageSampler::Progress, m_dlgProgress, &dlg_progress::setProgress );
-		connect(m_sampler.data(), &iAImageSampler::Status, m_dlgProgress, &dlg_progress::setStatus );
+		connect(m_sampler.data(), &iAImageSampler::progress, m_dlgProgress, &dlg_progress::setProgress);
+		connect(m_sampler.data(), &iAImageSampler::status, m_dlgProgress, &dlg_progress::setStatus);
 
 		// trigger parameter set creation & sampling (in foreground with progress bar for now)
 		m_sampler->start();
-		m_dlgSamplingSettings->GetValues(m_samplingSettings);
 	}
 	delete m_dlgSamplingSettings;
 	m_dlgSamplingSettings = 0;
@@ -264,7 +267,7 @@ bool dlg_GEMSeControl::loadSampling(QString const & fileName, int labelCount, in
 		DEBUG_LOG("No filename given, not loading.");
 		return false;
 	}
-	QSharedPointer<iASamplingResults> samplingResults = iASamplingResults::Load(fileName, datasetID);
+	QSharedPointer<iASamplingResults> samplingResults = iASamplingResults::load(fileName, datasetID);
 	if (!samplingResults)
 	{
 		DEBUG_LOG("Loading Sampling failed.");
@@ -280,18 +283,18 @@ bool dlg_GEMSeControl::loadSampling(QString const & fileName, int labelCount, in
 void dlg_GEMSeControl::samplingFinished()
 {
 	// retrieve results from sampler
-	QSharedPointer<iASamplingResults> samplingResults = m_sampler->GetResults();
+	QSharedPointer<iASamplingResults> samplingResults = m_sampler->results();
 	delete m_dlgProgress;
 	m_dlgProgress = 0;
 
-	if (!samplingResults || m_sampler->IsAborted())
+	if (!samplingResults || m_sampler->isAborted())
 	{
 		m_sampler.clear();
 		return;
 	}
 	m_sampler.clear();
 	m_dlgSamplings->Add(samplingResults);
-	samplingResults->Store(
+	samplingResults->store(
 		m_outputFolder + "/" + iASEAFile::DefaultSMPFileName,
 		m_outputFolder + "/" + iASEAFile::DefaultSPSFileName,
 		m_outputFolder + "/" + iASEAFile::DefaultCHRFileName);
@@ -393,7 +396,7 @@ void dlg_GEMSeControl::calculateClustering()
 		QSharedPointer<iASamplingResults> sampling = m_dlgSamplings->GetSampling(samplingIdx);
 		for (int sampleIdx = 0; sampleIdx < sampling->size(); ++sampleIdx)
 		{
-			m_clusterer->AddImage(sampling->Get(sampleIdx));
+			m_clusterer->AddImage(sampling->get(sampleIdx));
 		}
 	}
 	MdiChild* mdiChild = dynamic_cast<MdiChild*>(parent());
@@ -479,7 +482,7 @@ void dlg_GEMSeControl::saveGEMSeProject(QString const & fileName, QString const 
 	QMap<int, QString> samplingFilenames;
 	for (QSharedPointer<iASamplingResults> sampling : *m_dlgSamplings->GetSamplings())
 	{
-		samplingFilenames.insert(sampling->GetID(), sampling->GetFileName());
+		samplingFilenames.insert(sampling->id(), sampling->fileName());
 	}
 	MdiChild* mdiChild = dynamic_cast<MdiChild*>(parent());
 	iASEAFile seaFile(
@@ -502,7 +505,7 @@ void dlg_GEMSeControl::saveProject(QSettings & metaFile, QString const & fileNam
 	QMap<int, QString> samplingFilenames;
 	for (QSharedPointer<iASamplingResults> sampling : *m_dlgSamplings->GetSamplings())
 	{
-		samplingFilenames.insert(sampling->GetID(), sampling->GetFileName());
+		samplingFilenames.insert(sampling->id(), sampling->fileName());
 	}
 	MdiChild* mdiChild = dynamic_cast<MdiChild*>(parent());
 	iASEAFile seaFile(
@@ -529,7 +532,9 @@ void dlg_GEMSeControl::EnableClusteringDependantUI()
 		m_dlgConsensus = new dlg_Consensus(mdiChild, m_dlgGEMSe, m_simpleLabelInfo->count(), m_outputFolder,
 			m_dlgSamplings);
 		if (m_refImg)
+		{
 			m_dlgConsensus->SetGroundTruthImage(m_refImg);
+		}
 		mdiChild->splitDockWidget(this, m_dlgConsensus, Qt::Vertical);
 	}
 }
@@ -613,7 +618,9 @@ void dlg_GEMSeControl::loadRefImgSlot()
 		iAIOProvider::MetaImages
 	);
 	if (refFileName.isEmpty())
+	{
 		return;
+	}
 	loadRefImg(refFileName);
 }
 
@@ -676,10 +683,10 @@ void dlg_GEMSeControl::saveDerivedOutput(
 		return;
 	}
 	QTextStream out(&paramRangeFile);
-	results->GetAttributes()->store(out);
+	storeAttributes(out, *results->attributes().data());
 
 	// store derived output:
-	results->StoreAttributes(iAAttributeDescriptor::DerivedOutput, derivedOutputFileName, false);
+	results->storeAttributes(iAAttributeDescriptor::DerivedOutput, derivedOutputFileName, false);
 }
 
 void dlg_GEMSeControl::exportAttributeRangeRanking()
@@ -733,21 +740,27 @@ void dlg_GEMSeControl::freeMemory()
 void dlg_GEMSeControl::setProbabilityProbing(int state)
 {
 	if (!m_dlgGEMSe)
+	{
 		return;
+	}
 	m_dlgGEMSe->SetProbabilityProbing(state == Qt::Checked);
 }
 
 void dlg_GEMSeControl::setCorrectnessUncertainty(int state)
 {
 	if (!m_dlgGEMSe)
+	{
 		return;
+	}
 	m_dlgGEMSe->SetCorrectnessUncertaintyOverlay(state == Qt::Checked);
 }
 
 void dlg_GEMSeControl::dataTFChanged()
 {
 	if (!m_dlgGEMSe)
+	{
 		return;
+	}
 	m_dlgGEMSe->DataTFChanged();
 }
 

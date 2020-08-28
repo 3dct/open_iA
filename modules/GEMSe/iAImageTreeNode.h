@@ -22,10 +22,7 @@
 
 #include "iAChartFilter.h"	// try to avoid - but iAResultFilter is a template
 
-#include <io/iAITKIO.h> // TODO: replace?
-
-#include <itkImage.h>
-#include <itkSmartPointer.h>
+#include <iAITKImageTypes.h>
 
 #include <vtkSmartPointer.h>
 
@@ -40,16 +37,6 @@ class iASingleResult;
 
 typedef int ClusterIDType;
 typedef float ClusterDistanceType;
-
-// TODO: Replace with some other definition / template?
-const int Dimensions = 3;
-typedef int LabelPixelType;
-typedef itk::Image<LabelPixelType, Dimensions> LabelImageType;
-typedef LabelImageType::Pointer LabelImagePointer;
-
-typedef double ProbabilityPixel;
-typedef itk::Image<ProbabilityPixel, Dimensions> ProbabilityImageType;
-typedef ProbabilityImageType::Pointer ProbabilityImagePointer;
 
 typedef iAITKIO::ImagePointer ClusterImageType;
 

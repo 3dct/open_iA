@@ -713,8 +713,17 @@ bool iAIO::setupIO( iAIOType type, QString f, bool c, int channel)
 	switch (m_ioID)
 	{
 		case MHD_WRITER:
+#if __cplusplus >= 201703L
+			[[fallthrough]];
+#endif
 		case STL_WRITER:
+#if __cplusplus >= 201703L
+			[[fallthrough]];
+#endif
 		case MHD_READER:
+#if __cplusplus >= 201703L
+			[[fallthrough]];
+#endif
 		case STL_READER:
 			m_fileName = f; m_compression = c; break;
 		case VTK_READER:
@@ -726,8 +735,17 @@ bool iAIO::setupIO( iAIOType type, QString f, bool c, int channel)
 		case VGI_READER:
 			return setupVGIReader(f);
 		case TIF_STACK_READER:
+#if __cplusplus >= 201703L
+			[[fallthrough]];
+#endif
 		case JPG_STACK_READER:
+#if __cplusplus >= 201703L
+			[[fallthrough]];
+#endif
 		case PNG_STACK_READER:
+#if __cplusplus >= 201703L
+			[[fallthrough]];
+#endif
 		case BMP_STACK_READER:
 			return setupStackReader(f);
 		case VOLUME_STACK_READER:
@@ -739,19 +757,55 @@ bool iAIO::setupIO( iAIOType type, QString f, bool c, int channel)
 		case VOLUME_STACK_VOLSTACK_WRITER:
 			return setupVolumeStackVolStackWriter(f);
 
-		case PROJECT_READER:  // intentional fall-throughs
+		case PROJECT_READER:
+#if __cplusplus >= 201703L
+			[[fallthrough]];
+#endif
 		case PROJECT_WRITER:
+#if __cplusplus >= 201703L
+			[[fallthrough]];
+#endif
 		case TIF_STACK_WRITER:
+#if __cplusplus >= 201703L
+			[[fallthrough]];
+#endif
 		case JPG_STACK_WRITER:
+#if __cplusplus >= 201703L
+			[[fallthrough]];
+#endif
 		case PNG_STACK_WRITER:
+#if __cplusplus >= 201703L
+			[[fallthrough]];
+#endif
 		case BMP_STACK_WRITER:
+#if __cplusplus >= 201703L
+			[[fallthrough]];
+#endif
 		case DCM_READER:
+#if __cplusplus >= 201703L
+			[[fallthrough]];
+#endif
 		case DCM_WRITER:
+#if __cplusplus >= 201703L
+			[[fallthrough]];
+#endif
 		//case NRRD_READER:
 		case OIF_READER:
+#if __cplusplus >= 201703L
+			[[fallthrough]];
+#endif
 		case AM_READER:
+#if __cplusplus >= 201703L
+			[[fallthrough]];
+#endif
 		case AM_WRITER:
+#if __cplusplus >= 201703L
+			[[fallthrough]];
+#endif
 		case CSV_WRITER:
+#if __cplusplus >= 201703L
+			[[fallthrough]];
+#endif
 		case VTI_READER:
 			m_fileName = f; break;
 #ifdef USE_HDF5
@@ -868,6 +922,9 @@ bool iAIO::setupIO( iAIOType type, QString f, bool c, int channel)
 		}
 #endif
 		case UNKNOWN_READER:
+#if __cplusplus >= 201703L
+			[[fallthrough]];
+#endif
 		default:
 			DEBUG_LOG(QString("Unknown IO type '%1' for file '%2'!").arg(m_ioID).arg(f));
 			addMsg(tr("Unknown IO type"));
@@ -1085,13 +1142,17 @@ void iAIO::readVolumeStack()
 	for (int m=0; m<= m_fileNameArray->GetMaxId(); m++)
 	{
 		m_fileName=(m_fileNameArray->GetValue(m));
-		readRawImage();
+		readRawImage(false);
 		vtkSmartPointer<vtkImageData> image = vtkSmartPointer<vtkImageData>::New();
 		image->DeepCopy(getConnector()->vtkImage());
-		if(m_volumes)
+		if (m_volumes)
+		{
 			m_volumes->push_back(image);
-		if(m_fileNames_volstack)
+		}
+		if (m_fileNames_volstack)
+		{
 			m_fileNames_volstack->push_back(m_fileName);
+		}
 		int progress = (m * 100) / m_fileNameArray->GetMaxId();
 		ProgressObserver()->emitProgress(progress);
 	}
@@ -1128,9 +1189,11 @@ void iAIO::writeVolumeStack()
 	}
 }
 
-void iAIO::readRawImage()
+void iAIO::readRawImage(bool reportProgress)
 {
-	VTK_TYPED_CALL(read_raw_image_template, m_rawFileParams.m_scalarType, m_rawFileParams, m_fileName, ProgressObserver(), getConnector());
+	iAProgress dummyProgress;
+	VTK_TYPED_CALL(read_raw_image_template, m_rawFileParams.m_scalarType, m_rawFileParams, m_fileName,
+		reportProgress ? ProgressObserver() : &dummyProgress, getConnector());
 }
 
 void iAIO::postImageReadActions()
@@ -1144,7 +1207,7 @@ void iAIO::postImageReadActions()
 
 void iAIO::readImageData()
 {
-	readRawImage();
+	readRawImage(true);
 	postImageReadActions();
 	storeIOSettings();
 }

@@ -49,6 +49,8 @@
 #include <QVariant>
 #include <QVBoxLayout>
 
+#include <set>
+
 iAScatterPlotView::iAScatterPlotView():
 	m_voxelCount(0),
 	m_xAxisChooser(new QWidget()),

@@ -20,7 +20,7 @@
 * ************************************************************************************/
 #include "iAChartWithFunctionsWidget.h"
 
-#include "dlg_TFTable.h"
+#include "iATFTableDlg.h"
 #include "iAChartFunctionBezier.h"
 #include "iAChartFunctionGaussian.h"
 #include "iAChartFunctionTransfer.h"
@@ -639,36 +639,30 @@ void iAChartWithFunctionsWidget::saveProbabilityFunctions(iAXmlSettings &xml)
 	// add new function nodes
 	for (unsigned int f = 1; f < m_functions.size(); ++f)
 	{
-		switch (m_functions[f]->getType())
+		if (dynamic_cast<iAChartFunctionBezier*>(m_functions[f]))
 		{
-			case iAChartFunction::BEZIER:
+			QDomElement bezierElement = xml.createElement("bezier", functionsNode);
+			auto bezier = dynamic_cast<iAChartFunctionBezier*>(m_functions[f]);
+			std::vector<QPointF> points = bezier->getPoints();
+			std::vector<QPointF>::iterator it = points.begin();
+			while (it != points.end())
 			{
-				QDomElement bezierElement = xml.createElement("bezier", functionsNode);
-				std::vector<QPointF> points = ((iAChartFunctionBezier*)m_functions[f])->getPoints();
-				std::vector<QPointF>::iterator it = points.begin();
-				while (it != points.end())
-				{
-					QPointF point = *it;
-					QDomElement nodeElement = xml.createElement("node", bezierElement);
-					nodeElement.setAttribute("value", tr("%1").arg(point.x()));
-					nodeElement.setAttribute("fktValue", tr("%1").arg(point.y()));
-					++it;
-				}
-				break;
+				QPointF point = *it;
+				QDomElement nodeElement = xml.createElement("node", bezierElement);
+				nodeElement.setAttribute("value", tr("%1").arg(point.x()));
+				nodeElement.setAttribute("fktValue", tr("%1").arg(point.y()));
+				++it;
 			}
-			case iAChartFunction::GAUSSIAN:
-			{
-				QDomElement gaussianElement = xml.createElement("gaussian", functionsNode);
-				iAChartFunctionGaussian * gaussian = (iAChartFunctionGaussian*)m_functions[f];
-				gaussianElement.setAttribute("mean", tr("%1").arg(gaussian->getMean()));
-				gaussianElement.setAttribute("sigma", tr("%1").arg(gaussian->getSigma()));
-				gaussianElement.setAttribute("multiplier", tr("%1").arg(gaussian->getMultiplier()));
-				break;
-			}
-			default:
-			// unknown function type, do nothing
-				break;
 		}
+		else if (dynamic_cast<iAChartFunctionGaussian*>(m_functions[f]))
+		{
+			QDomElement gaussianElement = xml.createElement("gaussian", functionsNode);
+			auto gaussian = dynamic_cast<iAChartFunctionGaussian*>(m_functions[f]);
+			gaussianElement.setAttribute("mean", tr("%1").arg(gaussian->getMean()));
+			gaussianElement.setAttribute("sigma", tr("%1").arg(gaussian->getSigma()));
+			gaussianElement.setAttribute("multiplier", tr("%1").arg(gaussian->getMultiplier()));
+		}
+		// otherwise: unknown function type, do nothing
 	}
 }
 
@@ -734,14 +728,14 @@ void iAChartWithFunctionsWidget::showTFTable()
 	{
 		iAChartFunction* func = m_functions[0];
 
-		m_TFTable = new dlg_TFTable( this, func );
+		m_TFTable = new iATFTableDlg( this, func );
 		m_TFTable->setWindowTitle( "Transfer Function Table View" );
 		m_TFTable->setWindowFlags( Qt::Dialog |Qt::WindowMinimizeButtonHint |Qt::WindowCloseButtonHint );
 		m_TFTable->setAttribute( Qt::WA_DeleteOnClose, true);
 		m_TFTable->show();
 
-		connect(m_TFTable, &dlg_TFTable::destroyed, this, &iAChartWithFunctionsWidget::tfTableIsFinished);
-		connect(this, &iAChartWithFunctionsWidget::updateTFTable, m_TFTable, &dlg_TFTable::updateTable);
+		connect(m_TFTable, &iATFTableDlg::destroyed, this, &iAChartWithFunctionsWidget::tfTableIsFinished);
+		connect(this, &iAChartWithFunctionsWidget::updateTFTable, m_TFTable, &iATFTableDlg::updateTable);
 	}
 }
 

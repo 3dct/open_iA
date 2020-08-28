@@ -99,7 +99,7 @@ QSharedPointer<iASingleResult> findResultWithID(QVector<QSharedPointer<iASingleR
 {
 	for (int i=0; i<sampleResults.size(); ++i)
 	{
-		if (sampleResults[i]->GetID() == id)
+		if (sampleResults[i]->id() == id)
 		{
 			return sampleResults[i];
 		}
@@ -141,7 +141,7 @@ QSharedPointer<iAImageTreeNode> iAImageTree::ReadNode(QTextStream & in,
 			DEBUG_LOG(QString("Reading node: Invalid (non-integer) dataset ID in cluster file, line: '%1'").arg(currentLine));
 			return QSharedPointer<iAImageTreeNode>();
 		}
-		QVector<QSharedPointer<iASingleResult> > sampleResults = samplingResults->at(datasetID)->GetResults();
+		QVector<QSharedPointer<iASingleResult> > sampleResults = samplingResults->at(datasetID)->members();
 		QSharedPointer<iASingleResult> result = findResultWithID(sampleResults, id);
 		return QSharedPointer<iAImageTreeNode>(new iAImageTreeLeaf(result, labelCount) );
 	}

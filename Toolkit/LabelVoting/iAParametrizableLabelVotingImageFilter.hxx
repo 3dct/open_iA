@@ -47,8 +47,8 @@
 
 #include "iAParametrizableLabelVotingImageFilter.h"
 
-#include "iAConsole.h"
-#include "iAMathUtility.h"
+#include <iAConsole.h>
+#include <iAMathUtility.h>
 
 #include <itkImageRegionIterator.h>
 #include <itkMath.h>
