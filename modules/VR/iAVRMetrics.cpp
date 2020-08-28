@@ -298,16 +298,14 @@ void iAVRMetrics::calculateColorBarLegend(double physicalScale)
 
 	double actorBounds[6];
 	m_ColorBar->GetBounds(actorBounds);
-	//double pos[3] = { 0, 0, 0 };
-	// ((maxY - minY) / #Labels) and then /2 for the center of a row
-	//double subScale = ((actorBounds[3] - actorBounds[2]) / (m_lut->GetNumberOfAvailableColors() - 1));
-	initialTextOffset = physicalScale * 0.00001;
+
+	initialTextOffset = physicalScale* 0.001;// 0.000021;
 
 	textSource->SetPosition(actorBounds[1] + initialTextOffset, actorBounds[2] + initialTextOffset, actorBounds[4]);
-	textSource->SetScale(physicalScale * 0.0005, physicalScale * 0.0009, 1);
+	textSource->SetScale(physicalScale * 0.0005, physicalScale * 0.001, 1);
 
 	titleTextSource->SetPosition(actorBounds[0] , actorBounds[3] + initialTextOffset, actorBounds[4]);
-	titleTextSource->SetScale(physicalScale * 0.0008, physicalScale * 0.001, 1);
+	titleTextSource->SetScale(physicalScale * 0.0008, physicalScale * 0.00085, 1);
 	
 	for (int i = 0; i < 3; i++)
 	{

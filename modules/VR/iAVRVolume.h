@@ -55,7 +55,7 @@ public:
 	void moveFibersByMaxCoverage(std::vector<std::vector<std::vector<vtkIdType>>>* m_maxCoverage, double offset);
 	void moveFibersbyAllCoveredRegions(double offset);
 	void createRegionLinks(std::vector<std::vector<std::vector<double>>>* similarityMetric, double maxFibersInRegions, double worldSize);
-	void filterRegionLinks();
+	void filterRegionLinks(int sign);
 	double getJaccardFilterVal();
 
 private:

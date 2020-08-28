@@ -76,8 +76,11 @@ void iAVRDistributionVis::initialize()
 	currentlyShownAxis = -1;
 	m_axisLength = -1;
 
-	barColorR1 = QColor(85, 217, 73, 255);
-	barColorR2 = QColor(217, 73, 157, 255);
+	//https://colorbrewer2.org/#type=diverging&scheme=PiYG&n=4
+	//barColorR1 = QColor(85, 217, 73, 255);
+	//barColorR2 = QColor(217, 73, 157, 255);
+	barColorR1 = QColor(77, 172, 38);
+	barColorR2 = QColor(208, 28, 139);
 }
 
 void iAVRDistributionVis::createVisualization(double* pos, double visSize, double offset, int level, std::vector<vtkIdType>* regions, std::vector<int>* featureList)
@@ -816,8 +819,8 @@ void iAVRDistributionVis::createAxisLabels(int axis)
 	m_axisTitleActor->push_back(iAVR3DText(m_renderer));
 	m_axisLabelActor->push_back(std::vector<std::vector<iAVR3DText>>());
 
-	double offsetXAxis = 9.5;
-	double offsetYAxis = 8.0;
+	double offsetXAxis = m_radius * 0.04;
+	double offsetYAxis = m_radius * 0.006;
 	int loopCount = 0;
 
 	auto minVal = m_histogramParameter->minValue.at(axis);
@@ -828,10 +831,10 @@ void iAVRDistributionVis::createAxisLabels(int axis)
 		double* pos = m_axesMarksPoly->at(axis).at(0)->GetPoint(point);
 
 		if (loopCount % 2 == 0) pos[1] -= offsetXAxis; //Add offset to y
-		else pos[1] -= offsetXAxis * 2.5;
+		else pos[1] -= offsetXAxis * 2.1;
 
 		auto tempText = iAVR3DText(m_renderer);
-		QString textLabel = QString("[%1-%2]").arg(minVal, 0, 'f', 1).arg(minVal + (m_histogramParameter->histogramWidth.at(axis)), 0, 'f', 1);
+		QString textLabel = QString("%1-%2").arg(minVal, 0, 'f', 2).arg(minVal + (m_histogramParameter->histogramWidth.at(axis)), 0, 'f', 2);
 		tempText.createSmall3DLabel(textLabel);
 		tempText.setLabelPos(pos);
 		m_axisLabelActor->at(axis).at(0).push_back(tempText);

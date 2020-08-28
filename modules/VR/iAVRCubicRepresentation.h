@@ -49,7 +49,7 @@ public:
 	vtkIdType getClosestCellID(double pos[3], double eventOrientation[3]);
 	void setCubeColor(QColor col, int regionID);
 	void applyHeatmapColoring(std::vector<QColor>* colorPerRegion);
-	void highlightGlyphs(std::vector<vtkIdType>* regionIDs);
+	void highlightGlyphs(std::vector<vtkIdType>* regionIDs, std::vector<QColor>* colorPerRegion = new std::vector<QColor>());
 	void removeHighlightedGlyphs();
 	void redrawHighlightedGlyphs();
 	double* getDefaultActorSize();
@@ -74,6 +74,7 @@ protected:
 	std::vector<std::vector<std::unordered_map<vtkIdType, double>*>>* m_fiberCoverage;
 	//Currently selected cubes
 	std::vector<vtkIdType> activeRegions;
+	std::vector<QColor> activeColors;
 	QColor defaultColor;
 	bool m_visible;
 	bool m_highlightVisible;

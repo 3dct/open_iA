@@ -24,7 +24,6 @@
 #include "iAVREnvironment.h"
 #include "iAVRMetrics.h"
 #include "iAVR3DText.h"
-#include "iAVRDashboard.h"
 #include "iAVRDistributionVis.h"
 #include "iAVRVolume.h"
 #include "iACsvIO.h"
@@ -56,15 +55,15 @@ enum class iAVROperations {
   Unknown = -1,
   None,
   SpawnModelInMiniature,
-  PickSingleFiber,
   PickFibersinRegion,
   PickMiMRegion,
   MultiPickMiMRegion,
   ChangeOctreeAndMetric,
   ResetSelection,
   ExplodeMiM,
+  DisplayNodeLinkDiagram,
   ChangeMiMDisplacementType,
-  ChangeRegionLinks,
+  ChangeJaccardIndex,
   RotateVis,
   NumberOfOperations
 };
@@ -98,7 +97,6 @@ private:
 	bool m_networkGraphMode;
 	std::vector<iAVR3DText*>* m_3DTextLabels;
 	iAVRSlider* m_slider;
-	iAVRDashboard* m_dashboard;
 	iACsvIO m_io;
 	iAVRMetrics* fiberMetrics;
 	iAVRDistributionVis* m_distributionVis;
@@ -168,8 +166,8 @@ private:
 	void multiPickMiMRegion();
 	void resetSelection();
 	void spawnModelInMiniature(double eventPosition[3], bool hide);
-	void explodeMiM(int displacementType, double offset);
+	void pressLeftTouchpad();
 	void changeMiMDisplacementType();
 	void rotateDistributionVis(double eventPosition[3], bool startAction);
-	void changeRegionLinks();
+	void displayNodeLinkD();
 };
