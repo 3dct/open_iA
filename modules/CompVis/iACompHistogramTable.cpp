@@ -8,7 +8,6 @@
 #include "iACompVisMain.h"
 
 //iA
-#include <iAVtkVersion.h>
 #include "mainwindow.h"
 
 //Qt
@@ -17,7 +16,7 @@
 
 //vtk
 #include <vtkActor.h>
-#include <vtkGenericOpenGLRenderWindow.h>
+
 #include <vtkPolyDataMapper.h>
 #include <vtkRenderWindow.h>
 #include <vtkRenderWindowInteractor.h>
@@ -74,7 +73,7 @@
 #include <cstring>
 #include <functional>
 #include <vector>
-
+#include <iostream>
 #include <tuple>
 
 
@@ -95,7 +94,16 @@ iACompHistogramTable::iACompHistogramTable(
 	m_originalPlaneActors(new std::vector<vtkSmartPointer<vtkActor>>()),
 	m_zoomedPlaneActors(new std::vector<vtkSmartPointer<vtkActor>>()),
 	originalPlaneZoomedPlanePair(new std::map<vtkSmartPointer<vtkActor>, std::vector<vtkSmartPointer<vtkActor>>*>()),
-	m_rowDataIndexPair(new std::map<vtkSmartPointer<vtkActor>, int>())
+	m_rowDataIndexPair(new std::map<vtkSmartPointer<vtkActor>, int>()),
+	m_drawingPositionForRegions(new std::map<int, std::vector<double>>()),
+	m_highlightRowActor(vtkSmartPointer<vtkActor>::New()),
+	m_useDarkerLut(false),
+	m_lutDarker(vtkSmartPointer<vtkLookupTable>::New()),
+	m_barActors(new std::vector<vtkSmartPointer<vtkActor>>()),
+	m_barTextActors(new std::vector<vtkSmartPointer<vtkTextActor>>()),
+	m_stippledActors(new std::vector<vtkSmartPointer<vtkActor>>()),
+	m_initialRendering(true),
+	m_oldDrawingPosition(-1)
 {
 	//initialize GUI
 	setupUi(this);
@@ -110,6 +118,7 @@ iACompHistogramTable::iACompHistogramTable(
 	m_amountDatasets = dataResolution->size();
 	m_orderOfIndicesDatasets = new std::vector<int>(m_amountDatasets, 0);
 	m_originalOrderOfIndicesDatasets = new std::vector<int>(m_amountDatasets, 0);
+	m_newOrderOfIndicesDatasets = new std::vector<int>(m_amountDatasets, 0);
 
 	m_bins = minBins;
 	m_binsZoomed = minBins;
@@ -121,22 +130,121 @@ iACompHistogramTable::iACompHistogramTable(
 	m_renderer->SetBackground(iACompVisOptions::getDoubleArray(iACompVisOptions::BACKGROUNDCOLOR_GREY));
 	m_renderer->SetViewport(0, 0, 0.8, 1);
 	m_renderer->SetUseFXAA(true);
-#if VTK_VERSION_NUMBER < VTK_VERSION_CHECK(9, 0, 0)
-	m_qvtkWidget->GetRenderWindow()->AddRenderer(m_renderer);
-#else
-	m_qvtkWidget->renderWindow()->AddRenderer(m_renderer);
-#endif
 
+	m_qvtkWidget->GetRenderWindow()->AddRenderer(m_renderer);
 }
 
 void iACompHistogramTable::showEvent(QShowEvent* event)
 {
 	QDockWidget::showEvent(event);
 	
-	m_windowWidth = (double)m_qvtkWidget->width();
-	m_windowHeight = (double)m_qvtkWidget->height();
+	if(m_initialRendering)
+	{
+		m_windowWidth = (double)m_qvtkWidget->width();
+		m_windowHeight = (double)m_qvtkWidget->height();
+
+		calculateRowWidthAndHeight(m_windowWidth, m_windowHeight, m_amountDatasets);
+		m_initialRendering = false;
+	}
+
+	//initialize drawing areas of rows for manual repositioning
+	determineRowAreas();
+
+	//initialize visualization
+	initializeHistogramTable();
+}
+
+void iACompHistogramTable::reinitializeHistogramTable(iAMultidimensionalScaling* newMds)
+{
+	m_mds = newMds;
+	m_inputData = m_mds->getCSVFileData();
+
+	m_BinRangeLength = 0;
+	m_lut = vtkSmartPointer<vtkLookupTable>::New();
+	m_tableSize = 10;
+
+	m_pointRepresentationActors->clear();
+	delete m_pointRepresentationActors;
+	m_pointRepresentationActors = new std::vector<vtkSmartPointer<vtkActor>>();
+
+	m_datasetNameActors->clear();
+	delete m_datasetNameActors;
+	m_datasetNameActors = new std::vector<vtkSmartPointer<vtkActor>>();
+
+	m_highlighingActors->clear();
+	delete m_highlighingActors;
+	m_highlighingActors = new std::vector<vtkSmartPointer<vtkActor>>();
+
+	m_originalPlaneActors->clear();
+	delete m_originalPlaneActors;
+	m_originalPlaneActors = new std::vector<vtkSmartPointer<vtkActor>>();
+
+	m_zoomedPlaneActors->clear();
+	delete m_zoomedPlaneActors;
+	m_zoomedPlaneActors = new std::vector<vtkSmartPointer<vtkActor>>();
+
+	originalPlaneZoomedPlanePair->clear();
+	delete originalPlaneZoomedPlanePair;
+	originalPlaneZoomedPlanePair = new std::map<vtkSmartPointer<vtkActor>, std::vector<vtkSmartPointer<vtkActor>>*>();
+	
+	m_rowDataIndexPair->clear();
+	delete m_rowDataIndexPair;
+	m_rowDataIndexPair = new std::map<vtkSmartPointer<vtkActor>, int>();
+	
+	m_drawingPositionForRegions->clear();
+	delete m_drawingPositionForRegions;
+	m_drawingPositionForRegions = new std::map<int, std::vector<double>>();
+	
+	m_highlightRowActor = vtkSmartPointer<vtkActor>::New();
+	
+	m_useDarkerLut = false;
+	
+	m_lutDarker = vtkSmartPointer<vtkLookupTable>::New();
+
+	m_barActors->clear();
+	delete m_barActors;
+	m_barActors = new std::vector<vtkSmartPointer<vtkActor>>();
+
+	m_barTextActors->clear();
+	delete m_barTextActors;
+	m_barTextActors = new std::vector<vtkSmartPointer<vtkTextActor>>();
+
+	m_stippledActors->clear();
+	delete m_stippledActors;
+	m_stippledActors = new std::vector<vtkSmartPointer<vtkActor>>();
+
+	std::vector<int>* dataResolution = csvFileData::getAmountObjectsEveryDataset(m_inputData);
+	m_amountDatasets = dataResolution->size();
+
+	m_orderOfIndicesDatasets->clear();
+	delete m_orderOfIndicesDatasets;
+	m_orderOfIndicesDatasets = new std::vector<int>(m_amountDatasets, 0);
+
+	m_originalOrderOfIndicesDatasets->clear();
+	delete m_originalOrderOfIndicesDatasets;
+	m_originalOrderOfIndicesDatasets = new std::vector<int>(m_amountDatasets, 0);
+
+	m_newOrderOfIndicesDatasets->clear();
+	delete m_newOrderOfIndicesDatasets;
+	m_newOrderOfIndicesDatasets = new std::vector<int>(m_amountDatasets, 0);
+
+	m_bins = minBins;
+	m_binsZoomed = minBins;
+
+	//initialize datastructure
+	calculateHistogramTable();
+
+	m_qvtkWidget->GetRenderWindow()->RemoveRenderer(m_renderer);
+	m_renderer = vtkSmartPointer<vtkRenderer>::New();
+	m_renderer->SetBackground(iACompVisOptions::getDoubleArray(iACompVisOptions::BACKGROUNDCOLOR_GREY));
+	m_renderer->SetViewport(0, 0, 0.8, 1);
+	m_renderer->SetUseFXAA(true);
+	m_qvtkWidget->GetRenderWindow()->AddRenderer(m_renderer);
 
 	calculateRowWidthAndHeight(m_windowWidth, m_windowHeight, m_amountDatasets);
+
+	//initialize drawing areas of rows for manual repositioning
+	determineRowAreas();
 
 	//initialize visualization
 	initializeHistogramTable();
@@ -156,6 +264,22 @@ void iACompHistogramTable::calculateRowWidthAndHeight(double width, double heigt
 		screenRatio = heigth / width;
 		m_colSize = (screenRatio / numberOfDatasets);
 		m_rowSize = 1;
+	}
+}
+
+void iACompHistogramTable::determineRowAreas()
+{
+	//drawing position 0 = bottom until m_amountDatasets-1 = top
+	for(int drawingPosition = 0; drawingPosition < m_amountDatasets; drawingPosition++)
+	{
+		double ymin = m_colSize * drawingPosition;
+		double ymax = ymin + m_colSize;
+		
+		std::vector<double> yInterval = std::vector<double>(2, 0);
+		yInterval.at(0) = ymin;
+		yInterval.at(1) = ymax;
+
+		m_drawingPositionForRegions->insert({drawingPosition, yInterval});
 	}
 }
 
@@ -209,16 +333,84 @@ double iACompHistogramTable::calculateChiSquaredMetric(bin::BinType* observedFre
 		{
 			int diff = observedFrequency->at(i).size() - expectedFrequency->at(i).size();
 			chiSquare += std::pow(((double)diff), 2) / ((double)expectedFrequency->at(i).size());
+		}else
+		{
+			int diff = observedFrequency->at(i).size();
+			chiSquare += std::pow(((double)diff), 2);
 		}
 	}
 
 	return chiSquare;
 }
 
+void iACompHistogramTable::drawHistogramTableAccordingToCellSimilarity(int bins, Pick::PickedMap* m_picked)
+{
+	//get for all dataset each bin with its MDS values
+	QList<bin::BinType*>* binData = m_histData->getBinData();
+	vtkSmartPointer<vtkActor> referenceData;
+	std::vector<vtkIdType>* indexOfCells;
+
+	//is only run once, since the map can only contain 1 actor with its selected cells
+	for (Pick::PickedMap::iterator it = m_picked->begin(); it != m_picked->end(); ++it)
+	{
+		referenceData = it->first;
+		indexOfCells = it->second;
+	}
+
+	//set dataIndex
+	std::map<vtkSmartPointer<vtkActor>, int>::iterator it = m_rowDataIndexPair->find(referenceData);
+	if (it == m_rowDataIndexPair->end()) { return; }
+	int dataIndex = it->second;
+
+	//get all the bins
+	bin::BinType* referenceRow = binData->at(dataIndex);
+	bin::BinType* referenceCells = bin::copyCells(referenceRow, indexOfCells);
+
+	std::vector<double> results = std::vector<double>(m_amountDatasets, 0);
+
+	for (int currInd = 0; currInd < m_amountDatasets; currInd++)
+	{
+		if (currInd == dataIndex)
+		{ //there is no difference in the same dataset
+			results.at(currInd) = 0.0;
+
+		}
+		else
+		{
+			bin::BinType* testRow = binData->at(currInd);
+			bin::BinType* testCells = bin::copyCells(testRow, indexOfCells);
+			double result = calculateChiSquaredMetric(testCells, referenceCells);
+			results.at(currInd) = result;
+		}
+	}
+
+	//stores the new order of the datasets as their new position
+	std::vector<int>* newOrder = sortWithMemory(results, 0);
+	m_orderOfIndicesDatasets = reorderAccordingTo(newOrder);
+
+	drawHistogramTable(m_bins);
+
+	//highlight selected cells
+	for(int i= 0; i < indexOfCells->size(); i++)
+	{
+		highlightSelectedCell(m_originalPlaneActors->at(m_amountDatasets - 1), indexOfCells->at(i));
+	}
+}
+
 void iACompHistogramTable::drawHistogramTableInOriginalOrder(int bins)
 {
-	m_orderOfIndicesDatasets = m_originalOrderOfIndicesDatasets;
+	if (m_useDarkerLut)
+	{
+		removeBarCharShowingAmountOfObjects();
+	}
+
+	iACompVisOptions::copyVector(m_originalOrderOfIndicesDatasets, m_orderOfIndicesDatasets);
+	m_useDarkerLut = true;
+
 	drawHistogramTable(m_bins);
+
+	std::vector<int> amountObjectsEveryDataset = *csvFileData::getAmountObjectsEveryDataset(m_inputData);
+	drawBarChartShowingAmountOfObjects(amountObjectsEveryDataset);
 }
 
 void iACompHistogramTable::drawHistogramTableInDescendingOrder(int bins)
@@ -229,7 +421,15 @@ void iACompHistogramTable::drawHistogramTableInDescendingOrder(int bins)
 	std::vector<int>* newOrder = sortWithMemory(amountObjectsEveryDataset, 1);
 	m_orderOfIndicesDatasets = reorderAccordingTo(newOrder);
 
+	if(m_useDarkerLut)
+	{
+		removeBarCharShowingAmountOfObjects();
+	}
+
+	m_useDarkerLut = true;
+
 	drawHistogramTable(m_bins);
+	drawBarChartShowingAmountOfObjects(amountObjectsEveryDataset);
 }
 
 void iACompHistogramTable::drawHistogramTableInAscendingOrder(int bins)
@@ -240,7 +440,15 @@ void iACompHistogramTable::drawHistogramTableInAscendingOrder(int bins)
 	std::vector<int>* newOrder = sortWithMemory(amountObjectsEveryDataset, 0);
 	m_orderOfIndicesDatasets = reorderAccordingTo(newOrder);
 
+	if (m_useDarkerLut)
+	{
+		removeBarCharShowingAmountOfObjects();
+	}
+
+	m_useDarkerLut = true;
+
 	drawHistogramTable(m_bins);
+	drawBarChartShowingAmountOfObjects(amountObjectsEveryDataset);
 }
 
 std::vector<int>* iACompHistogramTable::reorderAccordingTo(std::vector<int>* newPositions)
@@ -304,6 +512,119 @@ std::vector<int>* iACompHistogramTable::sortWithMemory(std::vector<double> input
 	return newOrder;
 }
 
+void iACompHistogramTable::drawReorderedHistogramTable()
+{
+	iACompVisOptions::copyVector(m_newOrderOfIndicesDatasets, m_orderOfIndicesDatasets);
+	drawHistogramTable(m_bins);
+
+	//highlight moved actor
+	highlightSelectedRow(m_originalPlaneActors->at(m_newDrawingPosition));
+}
+
+void iACompHistogramTable::drawBarChartShowingAmountOfObjects(std::vector<int> amountObjectsEveryDataset)
+{
+	//define bars
+	auto minMax = std::minmax_element(begin(amountObjectsEveryDataset), end(amountObjectsEveryDataset));
+	int max = *minMax.second;
+
+	for(int i = 0; i < m_originalPlaneActors->size(); i++)
+	{
+		vtkSmartPointer<vtkActor> currAct = m_originalPlaneActors->at(i);
+		vtkSmartPointer<vtkAlgorithm> currAlgorithm = currAct->GetMapper()->GetInputConnection(0, 0)->GetProducer();
+		vtkSmartPointer<vtkPlaneSource> currPlane = vtkPlaneSource::SafeDownCast(currAlgorithm);
+
+		createBar(currPlane, amountObjectsEveryDataset.at(m_orderOfIndicesDatasets->at(i)), max);
+		createAmountOfObjectsText(currPlane, amountObjectsEveryDataset.at(m_orderOfIndicesDatasets->at(i)));
+	}
+
+	renderWidget();
+}
+
+void iACompHistogramTable::createAmountOfObjectsText(vtkSmartPointer<vtkPlaneSource> currPlane, int currAmountObjects)
+{
+	vtkSmartPointer<vtkTextActor> legend = vtkSmartPointer<vtkTextActor>::New();
+	legend->SetTextScaleModeToNone();
+	legend->SetInput(std::to_string(currAmountObjects).c_str());
+
+	vtkSmartPointer<vtkTextProperty> legendProperty = legend->GetTextProperty();
+	legendProperty->BoldOn();
+	legendProperty->ItalicOff();
+	legendProperty->ShadowOff();
+	legendProperty->SetFontFamilyToArial();
+	legendProperty->SetColor(iACompVisOptions::getDoubleArray(iACompVisOptions::BACKGROUNDCOLOR_WHITE));
+	legendProperty->SetFontSize(iACompVisOptions::FONTSIZE_TEXT);
+	legendProperty->SetJustification(VTK_TEXT_LEFT);
+	legendProperty->SetVerticalJustificationToCentered();
+	legendProperty->Modified();
+
+	double x = currPlane->GetPoint1()[0] + (m_rowSize * 0.05);
+	double height = currPlane->GetPoint2()[1] - currPlane->GetOrigin()[1];
+	double y = currPlane->GetOrigin()[1] + (height * 0.5);
+	legend->GetPositionCoordinate()->SetCoordinateSystemToWorld();
+	legend->GetPositionCoordinate()->SetValue(x,y);
+	legend->Modified();
+
+	m_renderer->AddActor(legend);
+	m_barTextActors->push_back(legend);
+}
+
+void iACompHistogramTable::createBar(vtkSmartPointer<vtkPlaneSource> currPlane, int currAmountObjects, int maxAmountObjects)
+{
+	//calculate height of bar
+	double maxHeight = currPlane->GetPoint2()[1] - currPlane->GetOrigin()[1];
+	double height25 = currPlane->GetOrigin()[1] + (maxHeight*0.25);
+	double height75 = currPlane->GetOrigin()[1] + (maxHeight*0.75);
+
+	//calculate width of bar
+	double maxWidth = currPlane->GetPoint1()[0] - currPlane->GetOrigin()[0];
+	double percent = ((double)currAmountObjects) / ((double)maxAmountObjects);
+	double correctWidth = maxWidth * percent;
+	double correctX = (currPlane->GetOrigin()[0]) + correctWidth;
+
+	vtkSmartPointer<vtkPlaneSource> barPlane = vtkSmartPointer<vtkPlaneSource>::New();
+	barPlane->SetXResolution(1);
+	barPlane->SetYResolution(1);
+	barPlane->SetOrigin(currPlane->GetOrigin()[0], height25, currPlane->GetOrigin()[2]);
+	barPlane->SetPoint1(correctX, height25, currPlane->GetPoint1()[2]);
+	barPlane->SetPoint2(currPlane->GetPoint2()[0], height75,currPlane->GetPoint2()[2]);
+	barPlane->Update();
+
+	// Setup actor and mapper
+	vtkSmartPointer<vtkPolyDataMapper> mapper = vtkSmartPointer<vtkPolyDataMapper>::New();
+	mapper->SetInputConnection(barPlane->GetOutputPort());
+	mapper->Update();
+
+	vtkSmartPointer<vtkActor> actor = vtkSmartPointer<vtkActor>::New();
+	actor->SetMapper(mapper);
+	double color[3];
+	color[0] = iACompVisOptions::getDoubleArray(iACompVisOptions::HIGHLIGHTCOLOR_GREEN)[0];
+	color[1] = iACompVisOptions::getDoubleArray(iACompVisOptions::HIGHLIGHTCOLOR_GREEN)[1];
+	color[2] = iACompVisOptions::getDoubleArray(iACompVisOptions::HIGHLIGHTCOLOR_GREEN)[2];
+	actor->GetProperty()->SetColor(color[0], color[1], color[2]);
+
+	m_renderer->AddActor(actor);
+	m_barActors->push_back(actor);
+}
+
+void iACompHistogramTable::removeBarCharShowingAmountOfObjects()
+{
+	m_useDarkerLut = false;
+
+	for(int i = 0; i < m_barActors->size(); i++)
+	{
+		m_renderer->RemoveActor(m_barActors->at(i));
+		m_renderer->RemoveActor2D(m_barTextActors->at(i));
+	}
+
+	m_barActors->clear();
+	m_barTextActors->clear();
+}
+
+bool iACompHistogramTable::getBarChartAmountObjectsActive()
+{
+	return m_useDarkerLut;
+}
+
 /******************************************  Rendering  **********************************************/
 void iACompHistogramTable::drawHistogramTable(int bins)
 {
@@ -322,7 +643,6 @@ void iACompHistogramTable::drawHistogramTable(int bins)
 	{
 		int dataInd = m_orderOfIndicesDatasets->at(currCol);
 		drawRow(dataInd, currCol, bins, 0);
-		
 	}
 
 	renderWidget();
@@ -337,6 +657,7 @@ void iACompHistogramTable::drawLinearZoom(Pick::PickedMap* map, int notSelectedB
 	m_originalPlaneActors->clear();
 	m_zoomedPlaneActors->clear();
 	originalPlaneZoomedPlanePair->clear();
+	m_rowDataIndexPair->clear();
 
 	int currCol = 0;
 	double offset = 0;
@@ -419,6 +740,7 @@ void iACompHistogramTable::drawLinearZoom(Pick::PickedMap* map, int notSelectedB
 		currCol += 1;
 	}
 
+	
 	renderWidget();	
 }
 
@@ -449,12 +771,20 @@ vtkSmartPointer<vtkPlaneSource> iACompHistogramTable::drawRow(int currDataInd, i
 
 	vtkSmartPointer<vtkActor> actor = vtkSmartPointer<vtkActor>::New();
 	actor->SetMapper(mapper);
-	actor->GetProperty()->EdgeVisibilityOn();
-	double col[3];
-	col[0] = iACompVisOptions::getDoubleArray(iACompVisOptions::BACKGROUNDCOLOR_GREY)[0]; //iACompVisOptions::BACKGROUNDCOLOR_WHITE
-	col[1] = iACompVisOptions::getDoubleArray(iACompVisOptions::BACKGROUNDCOLOR_GREY)[1]; //iACompVisOptions::BACKGROUNDCOLOR_WHITE
-	col[2] = iACompVisOptions::getDoubleArray(iACompVisOptions::BACKGROUNDCOLOR_GREY)[2]; //iACompVisOptions::BACKGROUNDCOLOR_WHITE
-	actor->GetProperty()->SetEdgeColor(col[0], col[1], col[2]);
+
+	if(!m_useDarkerLut)
+	{ //the edges of the cells are drawn
+		actor->GetProperty()->EdgeVisibilityOn();
+		double col[3];
+		col[0] = iACompVisOptions::getDoubleArray(iACompVisOptions::BACKGROUNDCOLOR_GREY)[0];
+		col[1] = iACompVisOptions::getDoubleArray(iACompVisOptions::BACKGROUNDCOLOR_GREY)[1];
+		col[2] = iACompVisOptions::getDoubleArray(iACompVisOptions::BACKGROUNDCOLOR_GREY)[2];
+		actor->GetProperty()->SetEdgeColor(col[0], col[1], col[2]);
+	}else
+	{ //not showing the edges of the cells
+		actor->GetProperty()->EdgeVisibilityOff();
+	}
+
 	m_renderer->AddActor(actor);
 
 	//store row and for each row the index which dataset it is showing
@@ -599,6 +929,43 @@ void iACompHistogramTable::drawPointRepresentation()
 	std::map<vtkSmartPointer<vtkActor>, std::vector<vtkSmartPointer<vtkActor>>* >::iterator it;
 	int zoomedRowDataInd = m_zoomedRowData->size() - 1;
 	
+	//find max-min val of each dataset and same bin to enable comparison of the same bins in different datasets
+	std::map<int, std::vector<double>*> minMaxPerBin = std::map<int, std::vector<double>*>();
+	for (int datasetInd = 0; datasetInd < m_zoomedRowData->size(); datasetInd++)
+	{
+		for (int binId = 0; binId < m_zoomedRowData->at(datasetInd)->size(); binId++)
+		{
+			minMaxPerBin.insert({binId, new std::vector<double>()});
+
+			for (int valId = 0; valId < m_zoomedRowData->at(datasetInd)->at(binId).size(); valId++)
+			{
+				auto binData = m_zoomedRowData->at(datasetInd)->at(binId);
+				auto minMax = std::minmax_element(binData.begin(), binData.end());
+				double currMin = *minMax.first;
+				double currMax = *minMax.second;
+
+				std::vector<double>* minMaxVec = minMaxPerBin.at(binId);
+				if(minMaxVec->size() == 0)
+				{ // if empty --> initialize
+					minMaxVec->push_back(currMin);
+					minMaxVec->push_back(currMax);
+				}else
+				{
+					if (minMaxVec->at(0) > currMin)
+					{
+						minMaxVec->at(0) = currMin;
+					}
+
+					if(minMaxVec->at(1) < currMax)
+					{
+						minMaxVec->at(1) = currMax;
+					}
+				}
+			}
+		}
+	}
+
+	//draw point presentation
 	for (int counter = 0; counter < m_amountDatasets; counter++)
 	{
 		int indData = m_orderOfIndicesDatasets->at(counter);
@@ -672,18 +1039,20 @@ void iACompHistogramTable::drawPointRepresentation()
 				double radius = (m_colSize*0.5)*0.25;
 				double lineWidth = 1;
 				double circleColor[3];
-				circleColor[0] = iACompVisOptions::getDoubleArray(iACompVisOptions::BACKGROUNDCOLOR_GREY)[0];
-				circleColor[1] = iACompVisOptions::getDoubleArray(iACompVisOptions::BACKGROUNDCOLOR_GREY)[1];
-				circleColor[2] = iACompVisOptions::getDoubleArray(iACompVisOptions::BACKGROUNDCOLOR_GREY)[2];
+				circleColor[0] = iACompVisOptions::getDoubleArray(iACompVisOptions::BACKGROUNDCOLOR_LIGHTGREY)[0];
+				circleColor[1] = iACompVisOptions::getDoubleArray(iACompVisOptions::BACKGROUNDCOLOR_LIGHTGREY)[1];
+				circleColor[2] = iACompVisOptions::getDoubleArray(iACompVisOptions::BACKGROUNDCOLOR_LIGHTGREY)[2];
 				double lineColor[3];
-				lineColor[0] = iACompVisOptions::getDoubleArray(iACompVisOptions::HIGHLIGHTCOLOR_BLACK)[0];
-				lineColor[1] = iACompVisOptions::getDoubleArray(iACompVisOptions::HIGHLIGHTCOLOR_BLACK)[1];
-				lineColor[2] = iACompVisOptions::getDoubleArray(iACompVisOptions::HIGHLIGHTCOLOR_BLACK)[2];
+				lineColor[0] = iACompVisOptions::getDoubleArray(iACompVisOptions::BACKGROUNDCOLOR_LIGHTGREY)[0];
+				lineColor[1] = iACompVisOptions::getDoubleArray(iACompVisOptions::BACKGROUNDCOLOR_LIGHTGREY)[1];
+				lineColor[2] = iACompVisOptions::getDoubleArray(iACompVisOptions::BACKGROUNDCOLOR_LIGHTGREY)[2];
 
 				std::vector<double> data = m_zoomedRowData->at(zoomedRowDataInd)->at(zoomedRowInd);
+
+
 				double newY = ymin + ((ymax - ymin) / 2.0);
 				//(newXMin + radius) --> so that min & max points do not lie on border
-				vtkSmartPointer<vtkPoints> points = calculatePointPosition(data, (xmin + radius), (xmax - radius), newY);
+				vtkSmartPointer<vtkPoints> points = calculatePointPosition(data, (xmin + radius), (xmax - radius), newY, *minMaxPerBin.at(zoomedRowInd));
 				if (points == nullptr)
 				{
 					continue;
@@ -709,11 +1078,24 @@ void iACompHistogramTable::removePointRepresentation()
 	m_pointRepresentationActors->clear();
 }
 
-vtkSmartPointer<vtkPoints> iACompHistogramTable::calculatePointPosition(std::vector<double> dataPoints, double newMinX, double newMaxX, double y)
+vtkSmartPointer<vtkPoints> iACompHistogramTable::calculatePointPosition(std::vector<double> dataPoints, double newMinX, double newMaxX, double y, std::vector<double> currMinMax)
 {
+
+	/*DEBUG_LOG("dataPoints.size() = " + QString::number(dataPoints.size()));
+
+	for (int i = 0; i < dataPoints.size(); i++)
+	{
+		DEBUG_LOG("Point " + QString::number(i) + ": " + QString::number(dataPoints.at(i)));
+	}*/
+
 	if(dataPoints.size() == 0)
 	{ //when the list is empty
 		return nullptr;
+	}else if(dataPoints.size() == 1)
+	{ //min and max are the same
+		vtkSmartPointer<vtkPoints> result = vtkSmartPointer<vtkPoints>::New();
+		result->InsertNextPoint(newMinX + ((newMaxX-newMinX)*0.5), y, 0.0);
+		return result;
 	}
 
 	vtkSmartPointer<vtkPoints> result = vtkSmartPointer<vtkPoints>::New();
@@ -721,10 +1103,21 @@ vtkSmartPointer<vtkPoints> iACompHistogramTable::calculatePointPosition(std::vec
 	double min = *minMax.first;
 	double max = *minMax.second;
 
+	//use when point representation should be comparable
+	/*double min = currMinMax.at(0);
+	double max = currMinMax.at(1);*/
+
 	for (int i = 0; i < dataPoints.size(); i++)
 	{
-		double x = iACompVisOptions::histogramNormalization(dataPoints.at(i), newMinX, newMaxX, min, max);
-		result->InsertNextPoint(x,y,0.0);
+		if (min == max)
+		{
+			result->InsertNextPoint(newMaxX, y, 0.0);
+		}
+		else
+		{
+			double x = iACompVisOptions::histogramNormalization(dataPoints.at(i), newMinX, newMaxX, min, max);
+			result->InsertNextPoint(x, y, 0.0);
+		}
 	}
 
 	return result;
@@ -752,9 +1145,9 @@ void iACompHistogramTable::drawLineBetweenRowAndZoomedRow(std::vector<vtkSmartPo
 		double currCellId = cellIdsOriginalPlane->at(i);
 
 		double col[3];
-		col[0] = iACompVisOptions::getDoubleArray(iACompVisOptions::HIGHLIGHTCOLOR_BLACK)[0];
-		col[1] = iACompVisOptions::getDoubleArray(iACompVisOptions::HIGHLIGHTCOLOR_BLACK)[1];
-		col[2] = iACompVisOptions::getDoubleArray(iACompVisOptions::HIGHLIGHTCOLOR_BLACK)[2];
+		col[0] = iACompVisOptions::getDoubleArray(iACompVisOptions::HIGHLIGHTCOLOR_GREEN)[0];
+		col[1] = iACompVisOptions::getDoubleArray(iACompVisOptions::HIGHLIGHTCOLOR_GREEN)[1];
+		col[2] = iACompVisOptions::getDoubleArray(iACompVisOptions::HIGHLIGHTCOLOR_GREEN)[2];
 
 		//left line
 		double p0[3];
@@ -956,11 +1349,7 @@ vtkSmartPointer<vtkActor> iACompHistogramTable::drawPoints(vtkSmartPointer<vtkPo
 
 void iACompHistogramTable::renderWidget()
 {
-#if VTK_VERSION_NUMBER < VTK_VERSION_CHECK(9, 0, 0)
 	m_qvtkWidget->GetRenderWindow()->GetInteractor()->Render();
-#else
-	m_qvtkWidget->renderWindow()->GetInteractor()->Render();
-#endif
 }
 
 /******************************************  Coloring (LookupTable)  **********************************/
@@ -1003,7 +1392,7 @@ void iACompHistogramTable::makeLUTFromCTF()
 	QColor c9 = QColor(234, 185, 214);
 	QColor c10 = QColor(255, 255, 255);*/
 
-	QColor c1 = QColor(77, 0, 23);
+	QColor c1 = QColor(103, 21, 45); 
 	QColor c2 = QColor(128, 0, 38);
 	QColor c3 = QColor(189, 0, 38);
 	QColor c4 = QColor(227, 26, 28);
@@ -1063,12 +1452,89 @@ void iACompHistogramTable::makeLUTFromCTF()
 	}
 
 	m_lut->SetTableRange(min, max);
+
 	double col[3];
 	col[0] = iACompVisOptions::getDoubleArray(iACompVisOptions::BACKGROUNDCOLOR_GREY)[0];
 	col[1] = iACompVisOptions::getDoubleArray(iACompVisOptions::BACKGROUNDCOLOR_GREY)[1];
 	col[2] = iACompVisOptions::getDoubleArray(iACompVisOptions::BACKGROUNDCOLOR_GREY)[2];
 	m_lut->SetBelowRangeColor(col[0], col[1], col[2], 1);
 	m_lut->UseBelowRangeColorOn();
+}
+
+void iACompHistogramTable::makeLUTDarker()
+{
+	vtkSmartPointer<vtkColorTransferFunction> ctf = vtkSmartPointer<vtkColorTransferFunction>::New();
+	ctf->SetColorSpaceToRGB();
+
+	QColor c1 = QColor(51, 10, 23);
+	QColor c2 = QColor(64, 0, 19);
+	QColor c3 = QColor(64, 0, 19);
+	QColor c4 = QColor(113, 13, 14);
+	QColor c5 = QColor(126, 39, 21);
+	QColor c6 = QColor(126, 70, 30);
+	QColor c7 = QColor(127, 89, 38);
+	QColor c8 = QColor(127, 108, 59);
+	QColor c9 = QColor(127, 118, 80);
+	QColor c10 = QColor(127, 127, 102);
+
+	ctf->AddRGBPoint(1.0, c1.redF(), c1.greenF(), c1.blueF());
+	ctf->AddRGBPoint(0.9, c1.redF(), c1.greenF(), c1.blueF());
+	ctf->AddRGBPoint(0.8, c2.redF(), c2.greenF(), c2.blueF());
+	ctf->AddRGBPoint(0.7, c3.redF(), c3.greenF(), c3.blueF());
+	ctf->AddRGBPoint(0.6, c4.redF(), c4.greenF(), c4.blueF());
+	ctf->AddRGBPoint(0.5, c5.redF(), c5.greenF(), c5.blueF());
+	ctf->AddRGBPoint(0.4, c6.redF(), c6.greenF(), c6.blueF());
+	ctf->AddRGBPoint(0.3, c7.redF(), c7.greenF(), c7.blueF());
+	ctf->AddRGBPoint(0.2, c8.redF(), c8.greenF(), c8.blueF());
+	ctf->AddRGBPoint(0.1, c9.redF(), c9.greenF(), c9.blueF());
+	ctf->AddRGBPoint(0.0, c10.redF(), c10.greenF(), c10.blueF());
+
+	m_lutDarker->SetNumberOfTableValues(m_tableSize);
+	m_lutDarker->Build();
+
+	double min = 0;
+	double max = 0;
+	int startVal = 0;
+
+	for (size_t i = 0; i < m_tableSize; i++)
+	{
+		double* rgb;
+		rgb = ctf->GetColor(static_cast<double>(i) / (double)m_tableSize);
+		m_lutDarker->SetTableValue(i, rgb);
+
+		//make format of annotations
+		double low = round_up(startVal + (i * m_BinRangeLength), 2);
+		double high = round_up(startVal + ((i + 1) * m_BinRangeLength), 2);
+
+		std::string sLow = std::to_string(low);
+		std::string sHigh = std::to_string(high);
+
+		std::string lowerString = initializeLegendLabels(sLow);
+		std::string upperString = initializeLegendLabels(sHigh);
+
+		//position description in the middle of each color bar in the scalarBar legend
+		m_lutDarker->SetAnnotation(low + ((high - low)*0.5), lowerString + " - " + upperString);
+
+		//store min and max value of the dataset
+		if (i == 0)
+		{
+			min = low;
+		}
+		else if (i == m_tableSize - 1)
+		{
+			max = high;
+		}
+	}
+
+	m_lutDarker->SetTableRange(min, max);
+
+	double col[3];
+	col[0] = iACompVisOptions::getDoubleArray(iACompVisOptions::BACKGROUNDCOLOR_GREY)[0];
+	col[1] = iACompVisOptions::getDoubleArray(iACompVisOptions::BACKGROUNDCOLOR_GREY)[1];
+	col[2] = iACompVisOptions::getDoubleArray(iACompVisOptions::BACKGROUNDCOLOR_GREY)[2];
+	m_lutDarker->SetBelowRangeColor(col[0], col[1], col[2], 1);
+	m_lutDarker->UseBelowRangeColorOn();
+
 }
 
 void iACompHistogramTable::colorRow(vtkUnsignedCharArray* colors, int currDataset, int numberOfBins)
@@ -1106,8 +1572,14 @@ void iACompHistogramTable::colorBinsOfRow(vtkUnsignedCharArray* colors, bin::Bin
 		double rgb[3];
 		int amountVals = binData->at(b).size();
 		
-		m_lut->GetColor(amountVals, rgb);
-
+		if(m_useDarkerLut)
+		{
+			m_lutDarker->GetColor(amountVals, rgb);
+		}else
+		{
+			m_lut->GetColor(amountVals, rgb);
+		}
+		
 		unsigned char* ucrgb = iACompVisOptions::getColorArray(rgb);
 		colors->InsertNextTuple3(ucrgb[0], ucrgb[1], ucrgb[2]);
 	}
@@ -1124,6 +1596,7 @@ void iACompHistogramTable::initializeHistogramTable()
 {
 	//setup color table
 	makeLUTFromCTF();
+	makeLUTDarker();
 
 	//initialize legend
 	initializeLegend();
@@ -1175,6 +1648,7 @@ void iACompHistogramTable::initializeLegend()
 	//title properties
 	scalarBar->GetTitleTextProperty()->BoldOn();
 	scalarBar->GetTitleTextProperty()->SetFontSize(iACompVisOptions::FONTSIZE_TITLE);
+	scalarBar->GetTitleTextProperty()->SetColor(iACompVisOptions::getDoubleArray(iACompVisOptions::FONTCOLOR_TITLE));
 	scalarBar->GetTitleTextProperty()->SetVerticalJustificationToTop();
 	scalarBar->SetVerticalTitleSeparation(7);
 	scalarBar->GetTitleTextProperty()->Modified();
@@ -1191,11 +1665,7 @@ void iACompHistogramTable::initializeLegend()
 	renderer->SetViewport(0.8, 0, 1, 1);
 	renderer->SetBackground(iACompVisOptions::getDoubleArray(iACompVisOptions::BACKGROUNDCOLOR_GREY));
 	renderer->AddActor2D(scalarBar);
-#if VTK_VERSION_NUMBER < VTK_VERSION_CHECK(9, 0, 0)
 	m_qvtkWidget->GetRenderWindow()->AddRenderer(renderer);
-#else
-	m_qvtkWidget->renderWindow()->AddRenderer(renderer);
-#endif
 }
 
 std::string iACompHistogramTable::initializeLegendLabels(std::string input)
@@ -1233,7 +1703,7 @@ void iACompHistogramTable::addDatasetName(int currDataset, double* position)
 	legendProperty->ItalicOff();
 	legendProperty->ShadowOn();
 	legendProperty->SetFontFamilyToArial();
-	legendProperty->SetColor(iACompVisOptions::getDoubleArray(iACompVisOptions::BACKGROUNDCOLOR_WHITE));
+	legendProperty->SetColor(iACompVisOptions::getDoubleArray(iACompVisOptions::FONTCOLOR_TITLE));
 	legendProperty->SetFontSize(iACompVisOptions::FONTSIZE_TITLE);
 	legendProperty->SetVerticalJustificationToCentered();
 	legendProperty->SetJustification(VTK_TEXT_RIGHT);
@@ -1248,13 +1718,9 @@ void iACompHistogramTable::initializeInteraction()
 		vtkSmartPointer<iACompHistogramTableInteractorStyle>::New();
 	style->setIACompHistogramTable(this);
 	style->SetDefaultRenderer(m_renderer);
-	style->SetCurrentRenderer(m_renderer);
 	style->setIACompVisMain(m_main);
-#if VTK_VERSION_NUMBER < VTK_VERSION_CHECK(9, 0, 0)
+
 	m_qvtkWidget->GetInteractor()->SetInteractorStyle(style);
-#else
-	m_qvtkWidget->interactor()->SetInteractorStyle(style);
-#endif
 }
 
 /******************************************  Getter & Setter ******************************************/
@@ -1312,6 +1778,11 @@ std::vector<int>* iACompHistogramTable::getIndexOfPickedRows()
 std::vector<int>* iACompHistogramTable::getAmountObjectsEveryDataset()
 {
 	return csvFileData::getAmountObjectsEveryDataset(m_dataStorage->getData());
+}
+
+vtkSmartPointer<vtkActor> iACompHistogramTable::getHighlightingRowActor()
+{
+	return m_highlightRowActor;
 }
 
 /******************************************  Data Caculation  **********************************************/
@@ -1424,9 +1895,10 @@ void iACompHistogramTable::highlightSelectedCell(vtkSmartPointer<vtkActor> picke
 	selectedActor->SetMapper(selectedMapper);
 	selectedActor->GetProperty()->EdgeVisibilityOn();
 	double col[3];
-	col[0] = iACompVisOptions::getDoubleArray(iACompVisOptions::HIGHLIGHTCOLOR_BLACK)[0];
-	col[1] = iACompVisOptions::getDoubleArray(iACompVisOptions::HIGHLIGHTCOLOR_BLACK)[1];
-	col[2] = iACompVisOptions::getDoubleArray(iACompVisOptions::HIGHLIGHTCOLOR_BLACK)[2];
+	col[0] = iACompVisOptions::getDoubleArray(iACompVisOptions::HIGHLIGHTCOLOR_GREEN)[0];
+	col[1] = iACompVisOptions::getDoubleArray(iACompVisOptions::HIGHLIGHTCOLOR_GREEN)[1];
+	col[2] = iACompVisOptions::getDoubleArray(iACompVisOptions::HIGHLIGHTCOLOR_GREEN)[2];
+
 	selectedActor->GetProperty()->SetEdgeColor(col[0],col[1],col[2]);
 	selectedActor->GetProperty()->SetLineWidth(iACompVisOptions::LINE_WIDTH);
 
@@ -1466,11 +1938,258 @@ void iACompHistogramTable::highlightSelectedRow(vtkSmartPointer<vtkActor> picked
 	points->InsertNextPoint(plane->GetOrigin());
 
 	double col[3];
-	col[0] = iACompVisOptions::getDoubleArray(iACompVisOptions::HIGHLIGHTCOLOR_BLACK)[0];
-	col[1] = iACompVisOptions::getDoubleArray(iACompVisOptions::HIGHLIGHTCOLOR_BLACK)[1];
-	col[2] = iACompVisOptions::getDoubleArray(iACompVisOptions::HIGHLIGHTCOLOR_BLACK)[2];
+	col[0] = iACompVisOptions::getDoubleArray(iACompVisOptions::HIGHLIGHTCOLOR_GREEN)[0];
+	col[1] = iACompVisOptions::getDoubleArray(iACompVisOptions::HIGHLIGHTCOLOR_GREEN)[1];
+	col[2] = iACompVisOptions::getDoubleArray(iACompVisOptions::HIGHLIGHTCOLOR_GREEN)[2];
 
-	drawPolyLine(points, col, iACompVisOptions::LINE_WIDTH);
+	m_highlightRowActor = drawPolyLine(points, col, iACompVisOptions::LINE_WIDTH);
 
 	renderWidget();
+}
+
+bool iACompHistogramTable::removeHighlightedRow()
+{
+	if(m_renderer->HasViewProp(m_highlightRowActor))
+	{
+		m_renderer->RemoveActor(m_highlightRowActor);
+		return true;
+	}
+
+	return false;
+}
+
+void iACompHistogramTable::reorderHistogramTable(vtkSmartPointer<vtkActor> movingActor)
+{
+	//calculate in which row the moving actor will be set
+	m_newDrawingPosition = calculateCurrentPosition(movingActor);
+
+	if(m_oldDrawingPosition != -1)
+	{
+		//reorder the indices that describe the drawing order
+		reorderIndices(m_newDrawingPosition, m_oldDrawingPosition);
+	}
+}
+
+void iACompHistogramTable::reorderIndices(int newDrawingPos, int oldDrawingPos)
+{
+	//initialize storage for indices during moving of actor
+	iACompVisOptions::copyVector(m_orderOfIndicesDatasets, m_newOrderOfIndicesDatasets);
+
+	int difference = newDrawingPos - oldDrawingPos;
+
+	if(difference > 0)
+	{//reorder when difference is positive --> actor is moving up
+		
+		int currDataIndx = m_newOrderOfIndicesDatasets->at(newDrawingPos);
+		m_newOrderOfIndicesDatasets->at(newDrawingPos) = m_newOrderOfIndicesDatasets->at(oldDrawingPos);
+
+		for(int i = 1; i <= difference; i++)
+		{	
+			int nextDataIndx = m_newOrderOfIndicesDatasets->at(newDrawingPos - i);
+			m_newOrderOfIndicesDatasets->at(newDrawingPos - i) = currDataIndx;
+			currDataIndx = nextDataIndx;
+		}
+	}
+	else if(difference < 0)
+	{//reorder when difference is negative --> actor is moving down
+
+		int currDataIndx = m_newOrderOfIndicesDatasets->at(newDrawingPos);
+		m_newOrderOfIndicesDatasets->at(newDrawingPos) = m_newOrderOfIndicesDatasets->at(oldDrawingPos);
+
+		for (int i = 1; i <= std::abs(difference); i++)
+		{
+			int nextDataIndx = m_newOrderOfIndicesDatasets->at(newDrawingPos + i);
+			m_newOrderOfIndicesDatasets->at(newDrawingPos + i) = currDataIndx;
+			currDataIndx = nextDataIndx;
+		}
+	}
+}
+
+void iACompHistogramTable::calculateOldDrawingPositionOfMovingActor(vtkSmartPointer<vtkActor> movingActor)
+{
+	//get oldPosition of the moving actor
+	std::vector<vtkSmartPointer<vtkActor>>::iterator it = std::find(m_originalPlaneActors->begin(), m_originalPlaneActors->end(), movingActor);
+	m_oldDrawingPosition = std::distance(m_originalPlaneActors->begin(), it);
+}
+
+int iACompHistogramTable::calculateCurrentPosition(vtkSmartPointer<vtkActor> movingActor)
+{
+	double yPos = movingActor->GetCenter()[1];
+
+	std::map<int, std::vector<double>>::iterator iter = m_drawingPositionForRegions->begin();
+	
+	double minPossibleY = INFINITY;
+	double maxPossibleY = -INFINITY;
+
+	//inside defined drawing area
+	while( iter != m_drawingPositionForRegions->end())
+	{
+		std::vector<double> yInterval = iter->second;
+		double yMin = yInterval.at(0);
+		double yMax = yInterval.at(1);
+
+		if(yPos >= yMin && yPos <= yMax)
+		{
+			return iter->first;
+		}
+
+		if (minPossibleY > yMin) minPossibleY = yMin;
+		if (maxPossibleY < yMax) maxPossibleY = yMax;
+
+		iter++;
+	}
+
+	//outside defined drawing area
+	if(yPos < minPossibleY)
+	{
+		return 0;
+	}
+
+	if (yPos > maxPossibleY) 
+	{
+		return m_amountDatasets - 1;
+	}
+
+	return -1;
+}
+
+/******************************************  Update  **********************************************/
+
+void iACompHistogramTable::showSelectionOfCorrelationMap(std::map<int, double>* dataIndxSelectedType)
+{
+	//remove the old selection
+	removeSelectionOfCorrelationMap();
+
+	for (std::map<int, double>::iterator iter = dataIndxSelectedType->begin(); iter != dataIndxSelectedType->end(); iter++)
+	{
+		int selectedDataInd = iter->first;
+
+		std::map<vtkSmartPointer<vtkActor>, int>::iterator iterActor;
+		for (iterActor = m_rowDataIndexPair->begin(); iterActor != m_rowDataIndexPair->end(); iterActor++)
+		{ //find actor according to dataIndex
+			
+			int dataInd = iterActor->second;
+			
+			if(dataInd == selectedDataInd)
+			{
+				vtkSmartPointer<vtkActor> selectedAct = iterActor->first;
+			
+				vtkSmartPointer<vtkAlgorithm> algorithm = selectedAct->GetMapper()->GetInputConnection(0, 0)->GetProducer();
+				vtkSmartPointer<vtkPlaneSource> oldPlane = vtkPlaneSource::SafeDownCast(algorithm);
+
+				if (iter->second == 0.0)
+				{ // is outer arc --> highlight whole dataset
+
+					double col[3];
+					col[0] = iACompVisOptions::getDoubleArray(iACompVisOptions::BACKGROUNDCOLOR_LIGHTGREY)[0];
+					col[1] = iACompVisOptions::getDoubleArray(iACompVisOptions::BACKGROUNDCOLOR_LIGHTGREY)[1];
+					col[2] = iACompVisOptions::getDoubleArray(iACompVisOptions::BACKGROUNDCOLOR_LIGHTGREY)[2];
+
+					drawStippledTexture(oldPlane->GetOrigin(), oldPlane->GetPoint1(), oldPlane->GetPoint2(), col);
+
+				}else if(iter->second == 1.0)
+				{ // is selected inner arc --> highlight selected cells
+					
+					std::map<int, std::vector<vtkIdType>*>::iterator pos = m_pickedCellsforPickedRow->find(selectedDataInd);
+					if (pos != m_pickedCellsforPickedRow->end())
+					{
+						std::vector<vtkIdType>* cells = pos->second;
+						
+						double startX = oldPlane->GetOrigin()[0];
+						double cellWidth = (oldPlane->GetPoint1()[0] - oldPlane->GetOrigin()[0]) / m_bins;
+
+						for (int i = 0; i < cells->size(); i++)
+						{
+							vtkIdType cellId = cells->at(i);
+							
+							double startXCell = startX + (cellWidth * cellId);
+							double endXCell = startXCell + cellWidth;
+
+							double origin[3] = { startXCell, oldPlane->GetOrigin()[1], oldPlane->GetOrigin()[2] };
+							double point1[3] = { endXCell, oldPlane->GetPoint1()[1], oldPlane->GetPoint1()[2] };
+							double point2[3] = { startXCell, oldPlane->GetPoint2()[1], oldPlane->GetPoint2()[2] };
+
+							double col[3];
+							col[0] = iACompVisOptions::getDoubleArray(iACompVisOptions::HIGHLIGHTCOLOR_GREEN)[0];
+							col[1] = iACompVisOptions::getDoubleArray(iACompVisOptions::HIGHLIGHTCOLOR_GREEN)[1];
+							col[2] = iACompVisOptions::getDoubleArray(iACompVisOptions::HIGHLIGHTCOLOR_GREEN)[2];
+
+							drawStippledTexture(origin, point1, point2, col);
+						}
+					}
+				}
+				else
+				{ //is not-selected inner arc --> highlight all other cells (not the selected ones)
+					std::map<int, std::vector<vtkIdType>*>::iterator pos = m_pickedCellsforPickedRow->find(selectedDataInd);
+					if (pos != m_pickedCellsforPickedRow->end())
+					{
+						std::vector<vtkIdType>* cells = pos->second;
+						std::vector<vtkIdType>::iterator cellIterator;
+
+						double startX = oldPlane->GetOrigin()[0];
+						double cellWidth = (oldPlane->GetPoint1()[0] - oldPlane->GetOrigin()[0]) / m_bins;
+
+						for(int i = 0; i < m_bins; i++)
+						{
+							cellIterator = std::find(cells->begin(), cells->end(), i); 
+							if (cellIterator == cells->end())
+							{ //when the cell is not one of the selected ones
+								double startXCell = startX + (cellWidth * i);
+								double endXCell = startXCell + cellWidth;
+
+								double origin[3] = { startXCell, oldPlane->GetOrigin()[1], oldPlane->GetOrigin()[2] };
+								double point1[3] = { endXCell, oldPlane->GetPoint1()[1], oldPlane->GetPoint1()[2] };
+								double point2[3] = { startXCell, oldPlane->GetPoint2()[1], oldPlane->GetPoint2()[2] };
+
+								double col[3];
+								col[0] = iACompVisOptions::getDoubleArray(iACompVisOptions::BACKGROUNDCOLOR_LIGHTERGREY)[0];
+								col[1] = iACompVisOptions::getDoubleArray(iACompVisOptions::BACKGROUNDCOLOR_LIGHTERGREY)[1];
+								col[2] = iACompVisOptions::getDoubleArray(iACompVisOptions::BACKGROUNDCOLOR_LIGHTERGREY)[2];
+
+								drawStippledTexture(origin, point1, point2, col);
+							}
+						}
+					}
+				}
+			}
+		}
+	}
+
+	renderWidget();
+
+}
+
+void iACompHistogramTable::drawStippledTexture(double* origin, double* point1, double* point2, double* color)
+{
+	vtkSmartPointer<vtkPlaneSource> texturePlane = vtkSmartPointer<vtkPlaneSource>::New();
+	texturePlane->SetXResolution(1);
+	texturePlane->SetYResolution(1);
+	texturePlane->SetOrigin(origin);
+	texturePlane->SetPoint1(point1);
+	texturePlane->SetPoint2(point2);
+
+	// Setup actor and mapper
+	vtkSmartPointer<vtkPolyDataMapper> mapper = vtkSmartPointer<vtkPolyDataMapper>::New();
+	mapper->SetInputConnection(texturePlane->GetOutputPort());
+	mapper->Update();
+
+	vtkSmartPointer<vtkActor> actor = vtkSmartPointer<vtkActor>::New();
+	actor->SetMapper(mapper);
+	actor->GetProperty()->SetLineWidth(iACompVisOptions::LINE_WIDTH);
+
+	actor->GetProperty()->SetColor(color[0], color[1], color[2]);
+	iACompVisOptions::stippledLine(actor, 0xAAAA, 1);
+
+	m_renderer->AddActor(actor);
+	m_stippledActors->push_back(actor);
+}
+
+void iACompHistogramTable::removeSelectionOfCorrelationMap()
+{
+	for(int i = 0; i < m_stippledActors->size(); i++)
+	{
+		m_renderer->RemoveActor(m_stippledActors->at(i));
+	}
+
+	m_stippledActors->clear();
 }

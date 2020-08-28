@@ -21,10 +21,14 @@
 #include <QMessageBox>
 #include <QBoxLayout>
 
-iACompVisMain::iACompVisMain(MainWindow* mainWin)
+iACompVisMain::iACompVisMain(MainWindow* mainWin):
+	m_mainWindow(mainWin)
 {
 	//load data
-	loadData();
+	if (!loadData()) 
+	{	//quit the program when no data was selected
+		return;
+	};
 
 	//calculate metrics
 	initializeMDS();
@@ -45,7 +49,7 @@ iACompVisMain::iACompVisMain(MainWindow* mainWin)
 	layout1->addLayout(layout2);
 
 	//add correlation map
-	m_CorrelationMapDockWidget = new iACompCorrelationMap(mainWin, m_corCoeff, m_dataStorage);
+	m_CorrelationMapDockWidget = new iACompCorrelationMap(mainWin, m_corCoeff, m_dataStorage, this);
 	layout2->addWidget(m_CorrelationMapDockWidget);
 
 	QVBoxLayout* layout3 = new QVBoxLayout;
@@ -63,24 +67,36 @@ iACompVisMain::iACompVisMain(MainWindow* mainWin)
 	m_mainW->show();
 }
 
-void iACompVisMain::loadData()
+bool iACompVisMain::loadData()
 {
 	dlg_CSVReader* dlg = new dlg_CSVReader();
 
 	if (dlg->exec() != QDialog::Accepted)
 	{
-		return;
+		noDatasetChosenMessage();
+		return false;
 	}
 
 	m_dataStorage = dlg->getCsvDataStorage();
+
+	if(m_dataStorage->getDatasetNames()->size() == 0)
+	{
+		noDatasetChosenMessage();
+		return false;
+	}
+
+	return true;
+}
+
+void iACompVisMain::noDatasetChosenMessage()
+{
+	DEBUG_LOG(QString("No Dataset was chosen. Therefore the module CompVis closed."));
 }
 
 /******************************************  Initialization Methods  **********************************/
 void iACompVisMain::initializeMDS()
 {
 	m_mds = new iAMultidimensionalScaling(m_dataStorage->getData());
-
-	//todo calculate histogramtable again
 }
 
 void iACompVisMain::initializeVariationCoefficient() 
@@ -91,6 +107,32 @@ void iACompVisMain::initializeVariationCoefficient()
 void iACompVisMain::initializeCorrelationCoefficient()
 {
 	m_corCoeff = new iACorrelationCoefficient(m_dataStorage);
+}
+
+void iACompVisMain::reintitalizeMetrics()
+{
+	//calculate metrics
+	initializeMDS();
+	m_mainW->updateMDS(m_mds);
+
+	initializeVariationCoefficient();
+	initializeCorrelationCoefficient();
+}
+
+void iACompVisMain::reinitializeCharts()
+{
+	//reinitialize histogram table
+	m_HistogramTableDockWidget->reinitializeHistogramTable(m_mds);
+
+	//reinitialize correlation map
+	m_CorrelationMapDockWidget->reinitializeCorrelationMap(m_corCoeff);
+
+	//reinitialize bar chart
+	m_BarChartDockWidget->reinitializeBarChart(m_cofVar);
+
+	//reinitialize box plot
+	m_BoxPlotDockWidget->setOrderedPositions(m_BarChartDockWidget->getOrderedPositions());
+	m_BoxPlotDockWidget->reinitializeBoxPlot();
 }
 
 /******************************************  Order Methods  **********************************/
@@ -114,8 +156,8 @@ void iACompVisMain::orderHistogramTableAsLoaded()
 void iACompVisMain::updateOtherCharts(csvDataType::ArrayType* selectedData, std::map<int, std::vector<double>>* pickStatistic)
 {
 	// Bar Chart
-	updateBarChart(selectedData);
-	
+	updateBarChart(selectedData, pickStatistic);
+	 
 	//Box Plot
 	updateBoxPlot(selectedData);
 
@@ -129,10 +171,10 @@ void iACompVisMain::updateCorrelationMap(csvDataType::ArrayType* selectedData, s
 	m_CorrelationMapDockWidget->updateCorrelationMap(coefficients, pickStatistic);
 }
 
-void iACompVisMain::updateBarChart(csvDataType::ArrayType* selectedData)
+void iACompVisMain::updateBarChart(csvDataType::ArrayType* selectedData, std::map<int, std::vector<double>>* pickStatistic)
 {
 	std::vector<double>* coefficients = m_cofVar->recalculateCoefficentOfVariation(selectedData);
-	m_BarChartDockWidget->updateBarChart(coefficients);
+	m_BarChartDockWidget->updateBarChart(coefficients, pickStatistic);
 }
 
 void iACompVisMain::updateBoxPlot(csvDataType::ArrayType* selectedData)
@@ -160,4 +202,15 @@ void iACompVisMain::resetBoxPlot()
 void iACompVisMain::resetCorrelationMap()
 {
 	m_CorrelationMapDockWidget->resetCorrelationMap();
+}
+
+void iACompVisMain::updateHistogramTableFromCorrelationMap(std::map<int, double>* dataIndxSelectedType)
+{
+	m_HistogramTableDockWidget->showSelectionOfCorrelationMap(dataIndxSelectedType);
+}
+
+void iACompVisMain::resetHistogramTableFromCorrelationMap()
+{
+	m_HistogramTableDockWidget->removeSelectionOfCorrelationMap();
+	m_HistogramTableDockWidget->renderWidget();
 }

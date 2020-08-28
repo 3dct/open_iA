@@ -83,9 +83,9 @@ std::map<QString, Correlation::CorrelationStore>* iACorrelationCoefficient::calc
 vtkSmartPointer<vtkTable> iACorrelationCoefficient::toVtkTable(QList<csvFileData>* data)
 {
 	// data preparation
-	m_numberOfAttr = data->at(0).header->size()-1; //amount of attributes
-	QStringList attrNames = *m_dataStorage->getData()->at(0).header;
-	attrNames.erase(attrNames.begin());//remove label attributes
+	QStringList attrNames = *m_dataStorage->getAttributeNamesWithoutLabel();
+	m_numberOfAttr = attrNames.size(); //amount of attributes
+
 
 	m_inputTable = vtkSmartPointer<vtkTable>::New();
 
@@ -138,7 +138,7 @@ std::map<QString, Correlation::CorrelationStore>* iACorrelationCoefficient::getC
 
 std::map<QString, Correlation::CorrelationStore>* iACorrelationCoefficient::calculateCorrelationCoefficients(csvDataType::ArrayType* selectedData)
 {
-	QStringList attrNames = *m_dataStorage->getData()->at(0).header;
+	QStringList attrNames = *m_dataStorage->getAttributeNamesWithoutLabel();
 
 	vtkSmartPointer<vtkStringArray> labels = vtkSmartPointer<vtkStringArray>::New();
 	vtkSmartPointer<vtkTable> table = vtkSmartPointer<vtkTable>::New();

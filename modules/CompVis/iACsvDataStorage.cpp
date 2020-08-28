@@ -4,6 +4,8 @@
 #include "QFile.h"
 #include "QTextStream.h"
 
+#include <cstdlib>
+
 iACsvDataStorage::iACsvDataStorage(QStringList* csvFiles, QListView* listView) :
 	m_filenames(csvFiles),
 	m_data(new QList<csvFileData>())
@@ -22,6 +24,16 @@ iACsvDataStorage::iACsvDataStorage(QStringList* csvFiles, QListView* listView) :
 
 		storeCSVToVectorArray(list);
 	}
+
+	//calculate overall number of objects of all datasets
+	std::vector<int>* objectsPerDataset = csvFileData::getAmountObjectsEveryDataset(m_data);
+	int sum = 0;
+	for(int i = 0; i < objectsPerDataset->size(); i++)
+	{
+		sum += objectsPerDataset->at(i);
+	}
+
+	m_totalNumberOfObjects = sum;
 }
 
 QList<QStringList>* iACsvDataStorage::readCSV(QString csvFile)
@@ -110,6 +122,27 @@ QList<csvFileData>* iACsvDataStorage::getData()
 	return m_data;
 }
 
+int iACsvDataStorage::getTotalNumberOfObjects()
+{
+	return m_totalNumberOfObjects;
+}
+
+//returns the names of the attributes without the label attribute
+QStringList* iACsvDataStorage::getAttributeNamesWithoutLabel()
+{
+	QStringList attrNamesWithoutLabel = *(this->getData()->at(0).header);
+	attrNamesWithoutLabel.removeFirst();
+
+	QStringList* newList = new QStringList(attrNamesWithoutLabel);
+
+	return newList;
+}
+
+QStringList* iACsvDataStorage::getAttributeNames()
+{
+	return this->getData()->at(0).header;
+}
+
 /*********************** csvFileData methods ******************************************/
 std::vector<int>* csvFileData::getAmountObjectsEveryDataset(QList<csvFileData>* data)
 {
@@ -127,28 +160,38 @@ std::vector<int>* csvFileData::getAmountObjectsEveryDataset(QList<csvFileData>* 
 /***********************  csvDataType methods  ******************************************/
 csvDataType::ArrayType* csvDataType::initialize(int rows, int columns)
 {
-	std::vector<double> vec(columns, 0);
+	std::vector<double> vec(columns, 0.0);
 	return new csvDataType::ArrayType(rows, vec);
 }
 
 csvDataType::ArrayType* csvDataType::initializeRandom(int rows, int columns)
 {
 	ArrayType* result = new ArrayType(rows);
+
+	double rand2 = 1.0 / rows;
 	for (int r = 0; r < rows; r++)
 	{
-		int rand1;
-		double rand2;
+		/*int rand1;
+		double rand2;*/
 
 		std::vector<double> vec(columns);
 		for (int c = 0; c < columns; c++)
 		{
-			rand1 = rand() * rand() + rand() * rand() + rand();
-			if (rand1 < 0)
-				rand1 = -rand1;
-			rand2 = double(rand1 % 1000001) / 1000000;
+			//rand1 = rand() * rand() + rand() * rand() + rand();
+			////rand1 = rand();
+
+			//if (rand1 < 0)
+			//	rand1 = -rand1;
+			//rand2 = double(rand1 % 1000001) / 1000000;
+
+			//vec.at(c) = double(rand2);
+
 
 			vec.at(c) = double(rand2);
+
 		}
+		rand2 += (1.0 / rows);
+
 		result->at(r) = vec;
 	}
 
@@ -297,6 +340,9 @@ void csvDataType::debugArrayType(ArrayType* input)
 {
 	int amountCols = getColumns(input);
 	int amountRows = getRows(input);
+
+	QString output;
+
 	//DEBUG
 	DEBUG_LOG("Columns: " + QString::number(amountCols));
 	DEBUG_LOG("Rows: " + QString::number(amountRows));
@@ -304,11 +350,24 @@ void csvDataType::debugArrayType(ArrayType* input)
 	DEBUG_LOG("Matrix: ");
 	for (int r1 = 0; r1 < amountRows; r1++)
 	{
-		DEBUG_LOG("Row " + QString::number(r1) + ":");
+		//DEBUG_LOG("Row " + QString::number(r1) + ":");
+
 		for (int col1 = 0; col1 < amountCols; col1++)
 		{
-			DEBUG_LOG("Column " + QString::number(col1) + ": " + QString::number(input->at(r1).at(col1)));
+			//DEBUG_LOG("Column " + QString::number(col1) + ": " + QString::number(input->at(r1).at(col1)));
+			//DEBUG_LOG(QString("Column %1 : %2").arg(col1).arg(input->at(r1).at(col1)));
+			QString number = QString::number(input->at(r1).at(col1));
+			if(number.size() == 1)
+			{
+				number += ".000000";
+			}
+			int pos = number.lastIndexOf(QChar('.'));
+			output += number.left(pos + 7) + ", ";
 		}
+
+		output += "\n";
 	}
+
+	DEBUG_LOG(output);
 }
 

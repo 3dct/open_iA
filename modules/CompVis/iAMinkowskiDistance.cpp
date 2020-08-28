@@ -9,11 +9,10 @@ iAMinkowskiDistance::iAMinkowskiDistance() : iASimilarityDistance()
 {
 }
 
-csvDataType::ArrayType* iAMinkowskiDistance::calculateSimilarityDistance(
+void iAMinkowskiDistance::calculateSimilarityDistance(
 	csvDataType::ArrayType* dataMatrix, csvDataType::ArrayType* distanceMatrix)
 {
 	//TODO implement logic
 	csvDataType::ArrayType* resultMatrix = distanceMatrix;
 
-	return resultMatrix;
 }

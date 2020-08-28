@@ -34,7 +34,7 @@
       <item>
        <widget class="QGroupBox" name="Box_Weights">
         <property name="title">
-         <string>Define the Weigths</string>
+         <string>Define the Weigths - ATTENTION: The weights must add up to 100%</string>
         </property>
         <widget class="QTableWidget" name="tableWeightsWidget">
          <property name="geometry">
@@ -92,17 +92,17 @@
     </item>
    </layout>
   </widget>
-  <widget class="QDialogButtonBox" name="Box_StartMDS">
+  <widget class="QPushButton" name="Button_StartMDS">
    <property name="geometry">
     <rect>
-     <x>20</x>
+     <x>500</x>
      <y>610</y>
-     <width>551</width>
+     <width>75</width>
      <height>23</height>
     </rect>
    </property>
-   <property name="standardButtons">
-    <set>QDialogButtonBox::Cancel|QDialogButtonBox::Ok</set>
+   <property name="text">
+    <string>OK</string>
    </property>
   </widget>
  </widget>

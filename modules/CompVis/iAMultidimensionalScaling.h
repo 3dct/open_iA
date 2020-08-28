@@ -79,6 +79,8 @@ class iAMultidimensionalScaling
 {
    public:
 	iAMultidimensionalScaling(QList<csvFileData>* data);
+	~iAMultidimensionalScaling();
+
 	std::vector<double>* getWeights();
 	void startMDS(std::vector<double>* weights);
 	void setProximityMetric(ProximityMetric proxiName);
@@ -133,5 +135,6 @@ class iAMultidimensionalScaling
 	DistanceMetric m_activeDisM;
 	ProximityMetric m_activeProxM;
 
-	const int Epsilon = 0.0000001;
+	const double Epsilon = 0.000001;
+	void vectorDiff(csvDataType::ArrayType* a, csvDataType::ArrayType* b, csvDataType::ArrayType* result);
 };

@@ -19,6 +19,8 @@ struct bin
 	static QList<bin::BinType*>* DeepCopy(QList<bin::BinType*>* input);
 	//outputs the content of the bintype
 	static void debugBinType(BinType* input);
+	//copies the specified cells into a new BinType object
+	static bin::BinType* copyCells(bin::BinType* input, std::vector<vtkIdType>* indexOfCellsToCopy);
 	
 };
 

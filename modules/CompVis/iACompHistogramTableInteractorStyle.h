@@ -26,12 +26,18 @@ class iACompHistogramTableInteractorStyle : public vtkInteractorStyleTrackballCa
 	vtkTypeMacro(iACompHistogramTableInteractorStyle, vtkInteractorStyleTrackballCamera);
 
 	virtual void OnLeftButtonDown();
+	virtual void OnLeftButtonUp();
+
+	virtual void OnMouseMove();
+
 	virtual void OnMiddleButtonDown();
 	virtual void OnRightButtonDown();
 	virtual void OnMouseWheelForward();
 	virtual void OnMouseWheelBackward();
 	virtual void OnKeyPress();
 	virtual void OnKeyRelease();
+
+	virtual void Pan();
 
 	//init iACompHistogramTable
 	void setIACompHistogramTable(iACompHistogramTable* visualization);
@@ -62,14 +68,29 @@ class iACompHistogramTableInteractorStyle : public vtkInteractorStyleTrackballCa
 	//non linear zooming out - zooming out on currently selected bin(s)/row(s)
 	void nonLinearZoomOut();
 
-	void updateOtherCharts();
+	void updateCharts();
+	void updateOtherCharts(QList<std::vector<csvDataType::ArrayType*>*>* selectedObjectAttributes);
 	void resetOtherCharts();
+
+	void resetHistogramTable();
+
+	//remove unnecessary highlights and bar char visualization 
+	void reinitializeState();
+
+	void manualTableRelocatingStart(vtkSmartPointer<vtkActor> movingActor);
+	void manualTableRelocatingStop();
 
 	//set the picklist for the propPicker to only pick original row actors
 	void setPickList(std::vector<vtkSmartPointer<vtkActor>>* originalRowActors);
 
+	void storePickedActorAndCell(vtkSmartPointer<vtkActor> pickedA, vtkIdType id);
+
+	//reset the bar chart visualization showing the number of objects for each dataset
+	bool resetBarChartAmountObjects();
+
 	iACompHistogramTable* m_visualization;
-	//is a u
+
+	//stores for each actor a vector for each picked cell according to their vtkIdType
 	Pick::PickedMap* m_picked;
 
 	//controls whether the linear or non-linear zoom on the histogram is activated
@@ -79,13 +100,18 @@ class iACompHistogramTableInteractorStyle : public vtkInteractorStyleTrackballCa
 	//true --> point representation is drawn
 	bool m_pointRepresentationOn;
 
+	//if ture --> zooming is active, otherwise ordering according to selected bins is active
+	bool m_zoomOn;
+
 	//is always 1 -> only needed for changing the zoom for the camera
 	double m_zoomLevel;
-
 
 	QList<bin::BinType*>* m_zoomedRowData;
 
 	iACompVisMain* m_main;
 
 	vtkSmartPointer<vtkPropPicker> m_actorPicker;
+	vtkSmartPointer<vtkActor> m_currentlyPickedActor;
+
+	bool m_panActive;
 };

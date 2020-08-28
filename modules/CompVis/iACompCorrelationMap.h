@@ -9,6 +9,7 @@
 #include "iACorrelationCoefficient.h"
 #include "vtkGraphLayoutStrategy.h"
 #include "vtkSmartPointer.h"
+#include "vtkCommand.h"
 
 class MainWindow;
 class iACorrelationCoefficient;
@@ -24,20 +25,26 @@ class vtkUnsignedCharArray;
 class vtkActor;
 class vtkActor2D;
 class vtkPropPicker;
-class vtkTooltipItem;
+class vtkTextActor;
+class vtkHoverWidget;
+class vtkBalloonWidget;
+class iACompVisMain;
 
-//TODO change to ui_correlationmap!!!
 class iACompCorrelationMap : public QDockWidget, public Ui_CompHistogramTable
 {
 	Q_OBJECT
    public:
-	iACompCorrelationMap(MainWindow* parent, iACorrelationCoefficient* corrCalculation, iACsvDataStorage* dataStorage);
+	iACompCorrelationMap(MainWindow* parent, iACorrelationCoefficient* corrCalculation, iACsvDataStorage* dataStorage, iACompVisMain* main);
 	void showEvent(QShowEvent* event);
 
 	void updateCorrelationMap(std::map<QString, Correlation::CorrelationStore>* correlations, std::map<int, std::vector<double>>* pickStatistic);
 	void resetCorrelationMap();
 
 	std::vector<vtkSmartPointer<vtkActor>>* getArcActors();
+	std::map<vtkSmartPointer<vtkActor>, double>* getArcPercentPairs();
+	std::map<vtkSmartPointer<vtkActor>, vtkSmartPointer<vtkTextActor>>* getOuterArcsWithLegends();
+
+	void reinitializeCorrelationMap(iACorrelationCoefficient* newCorrCalculation);
 
 private:
 
@@ -47,19 +54,20 @@ private:
 	void initializeVertices(QStringList attrNames);
 	
 	void initializeLutForEdges();
-	void initializeLegend(int numberOfLabels);
+	void initializeLegend(vtkScalarBarWidget* widget);
 	void initializeEdges(QStringList attrNames);
 	double colorEdges(vtkIdType startVertex, vtkIdType endVertex, std::map<QString, Correlation::CorrelationStore>* correlations, std::map<vtkIdType, QString>* vertices);
 
 	void initializeArcs();
 	void initializeLutForArcs();
+	void initializeArcLegend();
+
 	//draw the arc with on a specific start position (startPos), with a defined color and line width for a specified length in degree
 	//the arc can be dotted if the stippled variable is true, then the variables lineStipplePattern & lineStippleRepeat have to be set, otherwise they can be set to 0
 	void drawArc(double lengthInDegree, double* startPos, double* color, double lineWidth, bool stippled, int lineStipplePattern, int lineStippleRepeat);
 	void drawGlyphs(vtkSmartPointer<vtkPoints> positions, vtkSmartPointer<vtkDoubleArray> colors, vtkSmartPointer<vtkDoubleArray> scales);
 	void drawLegend(vtkSmartPointer<vtkPoints> positions, QStringList names);
-	void drawInnerArc(std::vector<double> data, double* parentPosition, double parentTheta, double parentPhi, double parentAngle, double parentArcLength);
-	void stippledLine(vtkSmartPointer<vtkActor> &actor, int lineStipplePattern, int lineStippleRepeat);
+	void drawInnerArc(std::vector<double> data, double* parentPosition, double parentTheta, double parentPhi, double parentAngle, double parentArcLength, int dataIndex);
 
 	void calculateLabelPosition(vtkSmartPointer<vtkPoints> labelPositions, double theta, double arcLength, double phi, double radiusOffset);
 
@@ -72,11 +80,13 @@ private:
 	iACorrelationCoefficient* m_corrCalculation;
 	iACsvDataStorage* m_dataStorage;
 
+	iACompVisMain* m_main;
+
 	QVTKOpenGLNativeWidget* m_qvtkWidget;
 	vtkSmartPointer<vtkRenderer> m_renderer;
 
 	int m_numberOfAttr;
-	double m_radius = 0.75; //1.25;
+	double m_radius = 0.75;
 	double m_PI = std::atan(1) * 4;
 	QStringList m_attrNames;
 	//stores for every vertex its name
@@ -273,6 +283,9 @@ private:
 			void setBaseClass(iACompCorrelationMap* baseClass);
 			bool setPickList();
 
+			void removeHighlighting();
+			void resetEdgeVisualization();
+
 			virtual void OnLeftButtonDown();
 			virtual void OnMiddleButtonDown();
 			virtual void OnRightButtonDown();
@@ -286,12 +299,40 @@ private:
 
 		private:
 
+			void drawSelectedArc(vtkSmartPointer<vtkActor> arcActor);
+			void drawPercentLabel(vtkSmartPointer<vtkActor> arcActor);
+			void storePickedActor(vtkSmartPointer<vtkActor> arcActor, double* position, double lineWidth);
+			//resets old arcs to get back to their initial position/linewidth,...
+			void resetOldPickedActor();
+			//adds highlighting arc below picked arc
+			void addHighlightingBelow(vtkSmartPointer<vtkActor> arcActor);
+			//moves label when according arc was picked
+			void moveLabel(vtkSmartPointer<vtkActor> arcActor);
+
+			void initializeLutForEdgesWithLabel();
+			
+
 			iACompCorrelationMap* m_baseClass;
 			vtkSmartPointer<vtkPropPicker> m_actorPicker;
 			vtkSmartPointer<vtkGraphLayoutView> m_graphLayoutView;
-			vtkSmartPointer<vtkTooltipItem> m_Tooltip;
+			vtkSmartPointer<vtkTextActor> m_percentLegend;
+			
+			std::vector<vtkSmartPointer<vtkActor>>* m_oldPickedActors;
+			//for each oldPickedActor the first 3 positions of the vector are the old position, and the 4th position is the lineWidth
+			std::map<vtkSmartPointer<vtkActor>, std::vector<double>>* m_oldAttributesForOldPickedActors;
+			//stores the yellow arc for highlighting
+			vtkSmartPointer<vtkActor> highlightingActor;
+			//stores all moved labels, which were moved when according arc was picked
+			std::vector <vtkSmartPointer<vtkTextActor>>* movedLabels;
+			//stores for each moved label its old position
+			std::map<vtkSmartPointer<vtkTextActor>, std::vector<double>>* m_oldLabelPositionInWorldCoords;
+
+
+			bool edgeLabelsShown;
+			vtkSmartPointer<vtkLookupTable> lutForLabels;
 	};
 
+	vtkSmartPointer<GraphInteractorStyle> style;
 	vtkSmartPointer<CorrelationGraphLayout> m_graphLayout;
 	vtkSmartPointer<vtkGraphLayoutView> m_graphLayoutView;
 	vtkSmartPointer<vtkViewTheme> m_theme;
@@ -302,7 +343,17 @@ private:
 	vtkSmartPointer<vtkLookupTable> m_lutForArcs;
 
 	std::vector<vtkSmartPointer<vtkActor>>* arcActors;
+	std::map<vtkSmartPointer<vtkActor>, double>* arcPercentPair;
+	std::map<vtkSmartPointer<vtkActor>, std::vector<vtkSmartPointer<vtkActor>>>* outerArcWithInnerArcs;
+	std::map<vtkSmartPointer<vtkActor>, vtkSmartPointer<vtkTextActor>>* outerArcWithLegend;
+
+	//for each arc actor store to which dataset it belong by storing the dataIndex and whether it is 
+	//a selected inner-arc, non-selected inner-arc or an outer arc
+	//outer-arc = 0; selected inner arc = 1; not-selected inner arc = 2, 
+	std::map< vtkSmartPointer<vtkActor>, std::map<int, double>*>* m_arcDataIndxTypePair;
+
 	std::vector<vtkSmartPointer<vtkActor>>* glyphActors;
-	std::vector<vtkSmartPointer<vtkActor2D>>* legendActors;
+	std::vector<vtkSmartPointer<vtkTextActor>>* legendActors;
+
 };
 

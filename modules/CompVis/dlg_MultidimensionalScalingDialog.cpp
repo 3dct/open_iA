@@ -26,8 +26,10 @@ dlg_MultidimensionalScalingDialog::dlg_MultidimensionalScalingDialog(
 
 void dlg_MultidimensionalScalingDialog::setupWeigthTable()
 {
-	int amountElems = m_data->at(0).header->size()-1; //neglect label row
-	QStringList* elems = m_data->at(0).header;
+	QStringList elems = *(m_data->at(0).header);
+	elems.removeFirst(); //neglect label row
+	int amountElems = elems.size(); 
+	
 	QList<QTableWidgetItem*>* tableItems = new QList<QTableWidgetItem*>();
 
 	//init tableWidget
@@ -50,15 +52,15 @@ void dlg_MultidimensionalScalingDialog::setupWeigthTable()
 	}
 	
 	//start with second argument --> neglect label
-	for (int ind = 1; ind <= amountElems; ind++)
+	for (int ind = 0; ind < amountElems; ind++)
 	{
-		QTableWidgetItem* item = new QTableWidgetItem(elems->at(ind));
+		QTableWidgetItem* item = new QTableWidgetItem(elems.at(ind));
 		item->setFlags(item->flags() ^ Qt::ItemIsEditable);
 		tableItems->append(item);
-		tableWeightsWidget->setItem(ind-1, 0, item);
+		tableWeightsWidget->setItem(ind, 0, item);
 
-		QTableWidgetItem* weight = new QTableWidgetItem(QString::number(m_weights->at(ind - 1)));
-		tableWeightsWidget->setItem(ind-1, 1, weight);
+		QTableWidgetItem* weight = new QTableWidgetItem(QString::number(m_weights->at(ind)));
+		tableWeightsWidget->setItem(ind, 1, weight);
 	}
 
 	connect(tableWeightsWidget, &QTableWidget::cellChanged, this, &dlg_MultidimensionalScalingDialog::onCellChanged);
@@ -66,7 +68,17 @@ void dlg_MultidimensionalScalingDialog::setupWeigthTable()
 
 void dlg_MultidimensionalScalingDialog::onCellChanged(int row, int column)
 {
-	m_weights->at(row) =  tableWeightsWidget->item(row, column)->text().toDouble();
+	double inputWeight = tableWeightsWidget->item(row, column)->text().toDouble();
+
+	if(inputWeight <= 0)
+	{ //weights are not allowed to be completely 0, since arccosine distance is only delivering 0 as value
+		m_weights->at(row) = 0.01;
+	}
+	else
+	{
+		m_weights->at(row) = inputWeight;
+	}
+
 }
 
 void dlg_MultidimensionalScalingDialog::setupProximityBox()
@@ -113,7 +125,7 @@ void dlg_MultidimensionalScalingDialog::setupDistanceBox()
 
 void dlg_MultidimensionalScalingDialog::connectSignals()
 {
-	connect(Box_StartMDS, &QDialogButtonBox::accepted, this, &dlg_MultidimensionalScalingDialog::okBtnClicked);
+	connect(Button_StartMDS, &QPushButton::clicked, this, &dlg_MultidimensionalScalingDialog::okBtnClicked);
 }
 
 void dlg_MultidimensionalScalingDialog::okBtnClicked()
@@ -128,10 +140,3 @@ void dlg_MultidimensionalScalingDialog::okBtnClicked()
 
 	accept();
 }
-
-//TODO
-void dlg_MultidimensionalScalingDialog::checkWeightValues()
-{
-
-}
-
