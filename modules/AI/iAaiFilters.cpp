@@ -108,18 +108,18 @@ void executeDNN(iAFilter* filter, QMap<QString, QVariant> const & parameters)
 	// create session and load model into memory
 	// using squeezenet version 1.3
 	// URL = https://github.com/onnx/models/tree/master/squeezenet
-//#ifdef _WIN32
-//	 wchar_t* model_path = L"C:\\Users\\p41877\\Downloads\\squeezenet\\model.onnx";
-//#else
-//	const char* model_path = "squeezenet.onnx";
-//#endif
-//
-//
-
+#ifdef _WIN32
 	wchar_t model_path[128];
-
 	parameters["OnnxFile"].toString().toWCharArray(model_path);
 	model_path[parameters["OnnxFile"].toString().length()] = L'\0';
+#else
+	const char model_path[128];
+	parameters["OnnxFile"].toString().toCharArray(model_path);
+	model_path[parameters["OnnxFile"].toString().length()] = L'\0';
+#endif
+
+
+
 	DEBUG_LOG(QString("Using Onnxruntime C++ API"));
 	Ort::Session session(env, model_path, session_options);
 
@@ -194,6 +194,8 @@ void executeDNN(iAFilter* filter, QMap<QString, QVariant> const & parameters)
 
 	ImageType::Pointer outputImage = createImage(size[0], size[1], size[2]);
 
+	iAProgress *progressPrediction = filter->progress();
+
 	for (int x = 0; x <= size[0] - sizeDNNout; x=x+sizeDNNout) {
 		for (int y = 0; y <= size[1] - sizeDNNout; y=y+sizeDNNout) {
 			for (int z = 0; z <= size[2] - sizeDNNout; z=z+sizeDNNout) {
@@ -217,6 +219,8 @@ void executeDNN(iAFilter* filter, QMap<QString, QVariant> const & parameters)
 				//ImageType::Pointer outputImage = ImageType::New();
 
 				tensor2itk(result, outputImage,x,y,z);
+
+				progressPrediction->emitProgress(x*100/size[0]);
 			}
 		}
 	}
