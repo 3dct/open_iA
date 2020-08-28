@@ -26,16 +26,6 @@ ADD_SUBDIRECTORY(modules)
 # modules might have added something to BUILD_INFO:
 configure_file("${open_iA_SOURCE_DIR}/cmake/version.h.in" "${open_iA_BINARY_DIR}/version.h" @ONLY)
 	
-	IF (ONNX_RUNTIME_LIBRARIES)
-		get_filename_component(ONNX_LIB_DIR ${ONNX_RUNTIME_LIBRARIES} DIRECTORY)
-		STRING(REGEX REPLACE "/" "\\\\" ONNX_LIB_WIN_DIR ${ONNX_LIB_DIR})
-		SET (RelWithDebInfoLibraryPaths "${ONNX_LIB_WIN_DIR};${RelWithDebInfoLibraryPaths}")
-		SET (ReleaseLibraryPaths "${ONNX_LIB_WIN_DIR};${ReleaseLibraryPaths}")
-		SET (DebugLibraryPaths "${ONNX_LIB_WIN_DIR};${DebugLibraryPaths}")
-		SET (MinSizeRelLibraryPaths "${ONNX_LIB_WIN_DIR};${MinSizeRelLibraryPaths}")
-		LIST (APPEND BUNDLE_DIRS "${ONNX_LIB_DIR}")
-	ENDIF()
-
 ADD_SUBDIRECTORY(gui)
 
 ADD_SUBDIRECTORY(xinst)

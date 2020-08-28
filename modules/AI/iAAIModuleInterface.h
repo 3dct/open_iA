@@ -22,7 +22,7 @@
 
 #include <iAModuleInterface.h>
 
-class iAaiModuleInterface : public iAModuleInterface
+class iAAIModuleInterface : public iAModuleInterface
 {
 public:
 	void Initialize() override;

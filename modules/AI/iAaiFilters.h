@@ -23,4 +23,3 @@
 #include <iAFilter.h>
 
 IAFILTER_DEFAULT_CLASS(iAai);
-//IAFILTER_DEFAULT_CLASS(iAFlyingEdges);

@@ -50,28 +50,151 @@ typedef itk::Image<PixelType, Dimension>      				ImageType;
 typedef itk::ImageFileReader<ImageType>       				ReaderType;
 typedef itk::ImageRegionIterator<ImageType> 			    IteratorType;
 
-#define sizeDNNin 132
-#define sizeDNNout 122
+namespace
+{
+	const size_t sizeDNNin = 132;
+	const size_t sizeDNNout = 122;
+}
+
+typename ImageType::Pointer Normalize(typename ImageType::Pointer itk_img)
+{
+	typedef itk::NormalizeImageFilter< ImageType, ImageType > NormalizeFilterType;
+
+	auto normalizeFilter = NormalizeFilterType::New();
+	normalizeFilter->SetInput(itk_img);
+
+	normalizeFilter->Update();
+
+	return normalizeFilter->GetOutput();
+}
+
+typename ImageType::Pointer AddPadding(typename ImageType::Pointer itk_img, int paddingSize )
+{
+	ImageType::SizeType lowerExtendRegion;
+	lowerExtendRegion.Fill(paddingSize);
+
+	ImageType::SizeType upperExtendRegion;
+	upperExtendRegion.Fill(paddingSize);
+
+	using FilterType = itk::MirrorPadImageFilter<ImageType, ImageType>;
+	typename FilterType::Pointer filter = FilterType::New();
+	filter->SetInput(itk_img);
+	filter->SetPadLowerBound(lowerExtendRegion);
+	filter->SetPadUpperBound(upperExtendRegion);
+	filter->Update();
+
+	return filter->GetOutput();
+}
+
+bool itk2tensor(typename ImageType::Pointer itk_img, std::vector<float> &tensor_img, int offsetX, int offsetY, int offsetZ)
+{
+	//typename ImageType::Pointer itk_img_normalized = Normalize(itk_img);
+
+	typename ImageType::RegionType region = itk_img->GetLargestPossibleRegion();
+	
+
+	ImageType::RegionType inputRegion;
+
+	ImageType::RegionType::IndexType inputStart;
+	ImageType::RegionType::SizeType  size;
+
+	inputStart[0] = offsetX;
+	inputStart[1] = offsetY;
+	inputStart[2] = offsetZ;
+
+	size[0] = sizeDNNin;
+	size[1] = sizeDNNin;
+	size[2] = sizeDNNin;
+
+	inputRegion.SetSize(size);
+	inputRegion.SetIndex(inputStart);
+
+	tensor_img.resize(size[0] * size[1] * size[2]);
+	int count = 0;
+	IteratorType iter(itk_img, inputRegion);
+
+	// convert itk to array
+	for (iter.GoToBegin(); !iter.IsAtEnd(); ++iter)
+	{
+		tensor_img[count] = iter.Get();
+		count++;
+	}
+	return true;
+}
+
+bool tensor2itk(std::vector<Ort::Value> &tensor_img, typename ImageType::Pointer itk_img, int offsetX, int offsetY, int offsetZ)
+{
+	ImageType::IndexType start;
+	start[0] = offsetX;  // first index on X
+	start[1] = offsetY;  // first index on Y
+	start[2] = offsetZ;  // first index on Z
+
+	ImageType::SizeType  size;
+	size[0] = sizeDNNout;
+	size[1] = sizeDNNout;
+	size[2] = sizeDNNout;
+
+	ImageType::RegionType region;
+	region.SetSize(size);
+	region.SetIndex(start);
+
+	IteratorType iter(itk_img, region);
+	int count = 0;
+	// convert array to itk
+
+	float* floatarr = tensor_img.front().GetTensorMutableData<float>();
+
+	for (iter.GoToBegin(); !iter.IsAtEnd(); ++iter)
+	{
+		float val = floatarr[count];
+		iter.Set(val);
+		++count;
+	}
+
+	return true;
+}
+
+typename ImageType::Pointer createImage(int X, int Y, int Z)
+{
+	ImageType::IndexType start;
+	start[0] = 0;  // first index on X
+	start[1] = 0;  // first index on Y
+	start[2] = 0;  // first index on Z
+
+	ImageType::SizeType  size;
+	size[0] = X;
+	size[1] = Y;
+	size[2] = Z;
+
+	ImageType::RegionType region;
+	region.SetSize(size);
+	region.SetIndex(start);
+
+	typename ImageType::Pointer itk_img = ImageType::New();
+	itk_img->SetRegions(region);
+	itk_img->Allocate();
+	itk_img->FillBuffer(0);
+
+	return itk_img;
+}
 
 template<class T>
 void executeDNN(iAFilter* filter, QMap<QString, QVariant> const & parameters)
 {
-
-	
-	ImageType::Pointer itk_img;
+	typename ImageType::Pointer itk_img;
 
 	typedef itk::Image<T, DIM> InputImageType;
 
 		using FilterType = itk::CastImageFilter<InputImageType, ImageType>;
-		FilterType::Pointer castFilter = FilterType::New();
+		typename FilterType::Pointer castFilter = FilterType::New();
 		castFilter->SetInput(dynamic_cast<InputImageType *>(filter->input()[0]->itkImage()));
 		castFilter->Update();
 		itk_img = castFilter->GetOutput();
 		
 
-		ImageType::Pointer itk_img_normalized = Normamalize(itk_img);
+		typename ImageType::Pointer itk_img_normalized = Normalize(itk_img);
 
-		ImageType::Pointer itk_img_normalized_padded = AddPadding(itk_img_normalized,(sizeDNNin - sizeDNNout)/2);
+		typename ImageType::Pointer itk_img_normalized_padded = AddPadding(itk_img_normalized,(sizeDNNin - sizeDNNout)/2);
 
 
 
@@ -89,7 +212,7 @@ void executeDNN(iAFilter* filter, QMap<QString, QVariant> const & parameters)
 	// session (we also need to include cuda_provider_factory.h above which defines it)
 	
 	#ifdef ONNX_CUDA
-		OrtSessionOptionsAppendExecutionProvider_CUDA(session_options, 0);
+		Ort::ThrowOnError(OrtSessionOptionsAppendExecutionProvider_CUDA(session_options, 0));
 	#else
 		session_options.DisableMemPattern();
 		session_options.SetExecutionMode(ExecutionMode::ORT_SEQUENTIAL);
@@ -131,7 +254,8 @@ void executeDNN(iAFilter* filter, QMap<QString, QVariant> const & parameters)
 	DEBUG_LOG(QString("Number of inputs = %1").arg(num_input_nodes));
 
 	// iterate over all input nodes
-	for (int i = 0; i < num_input_nodes; i++) {
+	for (size_t i = 0; i < num_input_nodes; i++)
+	{
 		// print input node names
 		char* input_name = session.GetInputName(i, allocator);
 		DEBUG_LOG(QString("Input %1 : name=%2").arg(i).arg(input_name));
@@ -147,14 +271,14 @@ void executeDNN(iAFilter* filter, QMap<QString, QVariant> const & parameters)
 		// print input shapes/dims
 		input_node_dims = tensor_info.GetShape();
 		DEBUG_LOG(QString("Input %1 : num_dims=%2").arg(i).arg(input_node_dims.size()));
-		for (int j = 0; j < input_node_dims.size(); j++) {
+		for (size_t j = 0; j < input_node_dims.size(); j++)
+		{
 			DEBUG_LOG(QString("Input %1 : dim %2=%3").arg(i).arg(j).arg(input_node_dims[j]));
-			if (input_node_dims[j] == -1) {
+			if (input_node_dims[j] == -1)
+			{
 				input_node_dims[j] = 1;
 			}
 		}
-
-
 	}
 
 	// Results should be...
@@ -187,18 +311,19 @@ void executeDNN(iAFilter* filter, QMap<QString, QVariant> const & parameters)
 
 	ImageType::SizeType size = region.GetSize();
 
-	ImageType::Pointer outputImage = createImage(size[0], size[1], size[2]);
+	typename ImageType::Pointer outputImage = createImage(size[0], size[1], size[2]);
 
 	iAProgress *progressPrediction = filter->progress();
 
-	for (int x = 0; x <= size[0] - sizeDNNout; x=x+sizeDNNout) {
-		for (int y = 0; y <= size[1] - sizeDNNout; y=y+sizeDNNout) {
-			for (int z = 0; z <= size[2] - sizeDNNout; z=z+sizeDNNout) {
-
+	for (size_t x = 0; x <= size[0] - sizeDNNout; x=x+sizeDNNout)
+	{
+		for (size_t y = 0; y <= size[1] - sizeDNNout; y=y+sizeDNNout)
+		{
+			for (size_t z = 0; z <= size[2] - sizeDNNout; z=z+sizeDNNout)
+			{
 				std::vector<float> tensor_img;
-
 				
-				int offset = (sizeDNNout - sizeDNNin)/2;
+				size_t offset = (sizeDNNout - sizeDNNin)/2;
 				itk2tensor(itk_img_normalized_padded, tensor_img,x+ offset,y+ offset,z+ offset);
 
 				// create input tensor object from data values
@@ -219,17 +344,14 @@ void executeDNN(iAFilter* filter, QMap<QString, QVariant> const & parameters)
 			}
 		}
 	}
-
 	outputImage->SetSpacing(filter->input()[0]->itkImage()->GetSpacing());
-
 	filter->addOutput(outputImage);
-
-
 }
 
 IAFILTER_CREATE(iAai)
 
-void iAai::performWork(QMap<QString, QVariant> const & parameters) {
+void iAai::performWork(QMap<QString, QVariant> const & parameters)
+{
 	ITK_TYPED_CALL(executeDNN, input()[0]->itkScalarPixelType(), this, parameters);
 }
 
@@ -243,133 +365,5 @@ iAai::iAai() :
 
 	addParameter("OnnxFile", FileNameOpen);
 	addParameter("GPU", Discrete,0);
-
 }
 
-ImageType::Pointer Normamalize(ImageType::Pointer itk_img) {
-
-	typedef itk::NormalizeImageFilter< ImageType, ImageType > NormalizeFilterType;
-
-	auto normalizeFilter = NormalizeFilterType::New();
-	normalizeFilter->SetInput(itk_img);
-
-	normalizeFilter->Update();
-
-	return normalizeFilter->GetOutput();
-}
-
-ImageType::Pointer AddPadding(ImageType::Pointer itk_img, int paddingSize ) {
-
-	ImageType::SizeType lowerExtendRegion;
-	lowerExtendRegion.Fill(paddingSize);
-
-	ImageType::SizeType upperExtendRegion;
-	upperExtendRegion.Fill(paddingSize);
-
-	using FilterType = itk::MirrorPadImageFilter<ImageType, ImageType>;
-	FilterType::Pointer filter = FilterType::New();
-	filter->SetInput(itk_img);
-	filter->SetPadLowerBound(lowerExtendRegion);
-	filter->SetPadUpperBound(upperExtendRegion);
-	filter->Update();
-
-	return filter->GetOutput();
-}
-
-bool itk2tensor(ImageType::Pointer itk_img, std::vector<float> &tensor_img, int offsetX, int offsetY, int offsetZ) {
-
-	//ImageType::Pointer itk_img_normalized = Normamalize(itk_img);
-
-	typename ImageType::RegionType region = itk_img->GetLargestPossibleRegion();
-	
-
-	ImageType::RegionType inputRegion;
-
-	ImageType::RegionType::IndexType inputStart;
-	ImageType::RegionType::SizeType  size;
-
-	inputStart[0] = offsetX;
-	inputStart[1] = offsetY;
-	inputStart[2] = offsetZ;
-
-	size[0] = sizeDNNin;
-	size[1] = sizeDNNin;
-	size[2] = sizeDNNin;
-
-	inputRegion.SetSize(size);
-	inputRegion.SetIndex(inputStart);
-
-	tensor_img.resize(size[0] * size[1] * size[2]);
-	int count = 0;
-	IteratorType iter(itk_img, inputRegion);
-
-	// convert itk to array
-	for (iter.GoToBegin(); !iter.IsAtEnd(); ++iter) {
-		tensor_img[count] = iter.Get();
-		count++;
-	}
-
-
-
-	return true;
-}
-
-
-ImageType::Pointer createImage(int X, int Y, int Z) {
-	ImageType::IndexType start;
-	start[0] = 0;  // first index on X
-	start[1] = 0;  // first index on Y
-	start[2] = 0;  // first index on Z
-
-	ImageType::SizeType  size;
-	size[0] = X;
-	size[1] = Y;
-	size[2] = Z;
-
-	ImageType::RegionType region;
-	region.SetSize(size);
-	region.SetIndex(start);
-
-	ImageType::Pointer itk_img = ImageType::New();
-	itk_img->SetRegions(region);
-	itk_img->Allocate();
-	itk_img->FillBuffer(0);
-
-	return itk_img;
-}
-
-bool tensor2itk(std::vector<Ort::Value> &tensor_img, ImageType::Pointer itk_img, int offsetX, int offsetY, int offsetZ) {
-
-
-
-	ImageType::IndexType start;
-	start[0] = offsetX;  // first index on X
-	start[1] = offsetY;  // first index on Y
-	start[2] = offsetZ;  // first index on Z
-
-	ImageType::SizeType  size;
-	size[0] = sizeDNNout;
-	size[1] = sizeDNNout;
-	size[2] = sizeDNNout;
-
-	ImageType::RegionType region;
-	region.SetSize(size);
-	region.SetIndex(start);
-
-
-
-	IteratorType iter(itk_img, region);
-	int count = 0;
-	// convert array to itk
-
-	float* floatarr = tensor_img.front().GetTensorMutableData<float>();
-
-	for (iter.GoToBegin(); !iter.IsAtEnd(); ++iter) {
-		float val = floatarr[count];
-		iter.Set(val);
-		count++;
-	}
-
-
-	return true;
-}
