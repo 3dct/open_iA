@@ -435,15 +435,6 @@ QSharedPointer<iAAttributeDescriptor> iAOtherParameterInputs::currentDescriptor(
 void iASamplingSettingsDlg::setInputsFromMap(iASettings const & values)
 {
 	::loadSettings(values, m_widgetMap);
-	auto algoType = values[spnAlgorithmType].toString();
-	if (algoType == atExternal && values.contains(spnParameterDescriptor))
-	{
-		parameterDescriptorChanged();
-	}
-	else if (algoType == atBuiltIn)
-	{
-		setParametersFromFilter(values[spnFilter].toString());
-	}
 	algoTypeChanged();
 	if (!values.contains(spnFilter) || values[spnFilter].toString().isEmpty())
 	{
@@ -457,6 +448,14 @@ void iASamplingSettingsDlg::setInputsFromMap(iASettings const & values)
 void iASamplingSettingsDlg::algoTypeChanged()
 {
 	bool isExternal = rbExternal->isChecked();
+	if (isExternal)
+	{
+		parameterDescriptorChanged();
+	}
+	else
+	{
+		setParametersFromFilter(pbFilterSelect->text());
+	}
 	pbFilterSelect->setEnabled(!isExternal);
 	leExecutable->setEnabled(isExternal);
 	pbChooseExecutable->setEnabled(isExternal);
@@ -651,6 +650,10 @@ void iASamplingSettingsDlg::setParametersFromFilter(QString const& filterName)
 		return;
 	}
 	auto filter = iAFilterRegistry::filter(filterName);
+	if (!filter)
+	{
+		DEBUG_LOG(QString("Invalid filter name '%1'").arg(filterName));
+	}
 	auto params = QSharedPointer<iAAttributes>(new iAAttributes(filter->parameters()));
 	setParameters(params);
 
