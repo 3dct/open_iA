@@ -216,7 +216,7 @@ void executeDNN(iAFilter* filter, QMap<QString, QVariant> const & parameters)
 	#else
 		session_options.DisableMemPattern();
 		session_options.SetExecutionMode(ExecutionMode::ORT_SEQUENTIAL);
-		OrtSessionOptionsAppendExecutionProvider_DML(session_options, parameters["GPU"].toInt());
+		Ort::ThrowOnError(OrtSessionOptionsAppendExecutionProvider_DML(session_options, parameters["GPU"].toInt()));
 	#endif
 
 	// Sets graph optimization level
