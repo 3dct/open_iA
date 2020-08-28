@@ -32,6 +32,21 @@ void dlg_VisMainWindow::startMDSDialog()
 	}
 }
 
+void dlg_VisMainWindow::recalculateMDS()
+{
+
+	m_main->reintitalizeMetrics();
+
+	startMDSDialog();
+
+	m_main->reinitializeCharts();
+}
+
+void dlg_VisMainWindow::updateMDS(iAMultidimensionalScaling* newMds)
+{
+	m_mds = newMds;
+}
+
 QList<csvFileData>* dlg_VisMainWindow::getData()
 {
 	return m_data;
@@ -39,7 +54,7 @@ QList<csvFileData>* dlg_VisMainWindow::getData()
 
 void dlg_VisMainWindow::createMenu()
 {
-	connect(actionRecalculateMDS, &QAction::triggered, this, &dlg_VisMainWindow::startMDSDialog);
+	connect(actionRecalculateMDS, &QAction::triggered, this, &dlg_VisMainWindow::recalculateMDS);
 	
 	connect(actionAscending_to_Number_of_Objects, &QAction::triggered, this, &dlg_VisMainWindow::reorderHistogramTableAscending);
 	connect(actionDescending_to_Number_of_Objects, &QAction::triggered, this, &dlg_VisMainWindow::reorderHistogramTableDescending);

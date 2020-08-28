@@ -17,37 +17,42 @@
 
 class MainWindow;
 class iACsvDataStorage;
+class iACompVisMain;
+class iACompHistogramTableData;
+
+
 class QVTKOpenGLNativeWidget;
 class vtkLookupTable;
 class vtkDataObject;
 class vtkActor;
+class vtkTextActor;
 class vtkUnsignedCharArray;
 class vtkPlaneSource;
 class vtkRenderer;
 class vtkPoints;
 
-class iACompVisMain;
-
-
-//testing
-
-class iACompHistogramTableData;
-
 class iACompHistogramTable : public QDockWidget, public Ui_CompHistogramTable
 {
 	Q_OBJECT
+
    public:
 	iACompHistogramTable(MainWindow* parent, iAMultidimensionalScaling* mds, iACsvDataStorage* m_dataStorage, iACompVisMain* main);
 	void showEvent(QShowEvent* event);
 
+	void reinitializeHistogramTable(iAMultidimensionalScaling* newMds);
+
 	//draw Histogram table according to the similiarity values calculated for a picked row
 	void drawHistogramTableAccordingToSimilarity(int bins, vtkSmartPointer<vtkActor> referenceData);
+	//draw Histogram table according to the similiarity values calculated for a picked row AND CELL
+	void drawHistogramTableAccordingToCellSimilarity(int bins, Pick::PickedMap* m_picked);
 	//draw Histogram table with rows ordered ascending to its amount of objects
 	void drawHistogramTableInAscendingOrder(int bins);
 	//draw Histogram table with rows ordered descending to its amount of objects
 	void drawHistogramTableInDescendingOrder(int bins);
 	//draw Histogram table with rows ordered according to loading the datasets
 	void drawHistogramTableInOriginalOrder(int bins);
+	//draw Histogram table after manual repositioning is finsihed
+	void drawReorderedHistogramTable();
 
 	//draw initial Histogram Table
 	void drawHistogramTable(int bins);
@@ -76,6 +81,8 @@ class iACompHistogramTable : public QDockWidget, public Ui_CompHistogramTable
 	std::vector<int>* getIndexOfPickedRows();
 	std::vector<int>* getAmountObjectsEveryDataset();
 
+	vtkSmartPointer<vtkActor> getHighlightingRowActor();
+
 	//return the actors representing the original rows
 	std::vector<vtkSmartPointer<vtkActor>>* getOriginalRowActors();
 
@@ -90,9 +97,24 @@ class iACompHistogramTable : public QDockWidget, public Ui_CompHistogramTable
 	//highlight the selected cells with an outline
 	void highlightSelectedCell(vtkSmartPointer<vtkActor> pickedActor, vtkIdType pickedCellId);
 	void highlightSelectedRow(vtkSmartPointer<vtkActor> pickedActor);
+
 	//dehighlight the selected cells with an outline 
 	//(necessary that the renderer only contains the datarows for further calculations)
 	void removeHighlightedCells();
+	//dehighlihgte the selcted row
+	bool removeHighlightedRow();
+
+	void reorderHistogramTable(vtkSmartPointer<vtkActor> movingActor);
+	//calculate the old position (drawing order) of the picked/moved plane
+	void calculateOldDrawingPositionOfMovingActor(vtkSmartPointer<vtkActor> movingActor);
+
+	//remove the bar chart visulaiztion showing the number of objects for each dataset
+	void removeBarCharShowingAmountOfObjects();
+	//get the boolean indicating that the bar chart visulaiztion showing the number of objects for each dataset is active
+	bool getBarChartAmountObjectsActive();
+
+	void showSelectionOfCorrelationMap(std::map<int, double>* dataIndxSelectedType);
+	void removeSelectionOfCorrelationMap();
 
    private:
 	//calculate the histogram datastructure
@@ -100,11 +122,11 @@ class iACompHistogramTable : public QDockWidget, public Ui_CompHistogramTable
 
 	//create the color lookuptable
 	void makeLUTFromCTF();
+	void makeLUTDarker();
 	//color the planes according to the colors and the amount of elements each bin stores
 	void colorRow(vtkUnsignedCharArray* colors, int currDataset, int numberOfBins);
 	void colorRowForZoom(vtkUnsignedCharArray* colors, int currBin, bin::BinType* data, int amountOfBins);
 	void colorBinsOfRow(vtkUnsignedCharArray* colors, bin::BinType* data, int amountOfBins);
-
 
 	//create the histogramTable visualization
 	void initializeHistogramTable();
@@ -128,6 +150,13 @@ class iACompHistogramTable : public QDockWidget, public Ui_CompHistogramTable
 	std::vector<int>* sortWithMemory(std::vector<double> input, int orderStyle);
 	std::vector<int>* reorderAccordingTo(std::vector<int>* newPositions);
 	double calculateChiSquaredMetric(bin::BinType* observedFrequency, bin::BinType* expectedFrequency);
+
+	//draws the bar chart for showing the number of objects for each dataset
+	void drawBarChartShowingAmountOfObjects(std::vector<int> amountObjectsEveryDataset);
+	//creates the bar actors for showing the number of objects for each dataset
+	void createBar(vtkSmartPointer<vtkPlaneSource> currPlane, int currAmountObjects, int maxAmountObjects);
+	//creates the text actors for showing the number of objects for each dataset
+	void createAmountOfObjectsText(vtkSmartPointer<vtkPlaneSource> currPlane, int currAmountObjects);
 
 	//draw each row from bottom to top --> the higher the column number, the further on the top it is drawn
 	//currDataInd: contains the index to the current datastructure
@@ -154,10 +183,21 @@ class iACompHistogramTable : public QDockWidget, public Ui_CompHistogramTable
 	vtkSmartPointer<vtkActor> drawPolyLine(vtkSmartPointer<vtkPoints> points, double lineColor[3], double lineWidth);
 	vtkSmartPointer<vtkActor> drawPoints(vtkSmartPointer<vtkPoints> points, double color[3], double radius, double lineColor[3], double lineWidth);
 
-	vtkSmartPointer<vtkPoints> calculatePointPosition(std::vector<double> dataPoints, double newMinX, double newMaxX, double y);
+	vtkSmartPointer<vtkPoints> calculatePointPosition(std::vector<double> dataPoints, double newMinX, double newMaxX, double y, std::vector<double> currMinMax);
 
 	//calculate the height and width each row can have to fit into the screen
 	void calculateRowWidthAndHeight(double width, double heigth, double numberOfDatasets);
+
+	//calculate the new position (drawing order) of the picked/moved plane
+	//returns the drawing position in which it is laying
+	int calculateCurrentPosition(vtkSmartPointer<vtkActor> movingActor);
+	void reorderIndices(int newDrawingPos, int oldDrawingPos);
+	
+	//initialize in which drawing area the a row with specified y coordinates belongs to
+	//stores for each y-area = [minY,maxY] to which drawing position it belongs to
+	void determineRowAreas();
+
+	void drawStippledTexture(double* origin, double* point1, double* point2, double* color);
 
 	iACompVisMain* m_main;
 	iACsvDataStorage* m_dataStorage;
@@ -186,6 +226,8 @@ class iACompHistogramTable : public QDockWidget, public Ui_CompHistogramTable
 
 	double m_windowWidth;
 	double m_windowHeight;
+	
+	bool m_initialRendering;
 
 	//each dataset is one plane row
 	const int m_ColForData = 1;
@@ -229,12 +271,33 @@ class iACompHistogramTable : public QDockWidget, public Ui_CompHistogramTable
 	//stores the order of the indices of each dataset
 	//each dataset has an index between 0 and amountOfDatasets-1
 	//initially the last dataset is stored first, descendingly
+	//the position in the vector determines the drawingPosition --> 0 is bottom, m_amountDatasets-1 is top
 	std::vector<int>* m_orderOfIndicesDatasets;
+
 	//stores for each row which dataset is currently drawn inside
 	std::map<vtkSmartPointer<vtkActor>, int>* m_rowDataIndexPair;
 
 	//stores the ORIGINAL order of the indices of each dataset
 	std::vector<int>* m_originalOrderOfIndicesDatasets;
 	
+	std::map<int, std::vector<double>>* m_drawingPositionForRegions;
+	int m_oldDrawingPosition;
+	int m_newDrawingPosition;
 
+	//stores the order of the indices of each dataset during the manual repositioning of an actor
+	std::vector<int>* m_newOrderOfIndicesDatasets;
+
+	//stores the actor showing the highlight for one row during the manual repositioning
+	vtkSmartPointer<vtkActor> m_highlightRowActor;
+
+	//defines whether the table should be drawn darker
+	//is set true during drawing the bar chart to show the number of objects for each dataset
+	bool m_useDarkerLut;
+	//stores the darker color lookup table
+	vtkSmartPointer<vtkLookupTable> m_lutDarker;
+	//stores the bar actors drawn to show the number of objects for each dataset
+	std::vector<vtkSmartPointer<vtkActor>>* m_barActors;
+	//stores the text actors drawn to show the number of objects for each dataset
+	std::vector<vtkSmartPointer<vtkTextActor>>* m_barTextActors;
+	std::vector<vtkSmartPointer<vtkActor>>* m_stippledActors;
 };

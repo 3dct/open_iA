@@ -8,8 +8,6 @@
 
 #include <vector>
 
-
-
 namespace csvDataType
 {
 	//using ValueType = double;
@@ -51,6 +49,7 @@ struct csvFileData
 
 	//returns the amount of objects of each single csv dataset
 	static std::vector<int>* getAmountObjectsEveryDataset(QList<csvFileData>* data);
+
 };
 
 class iACsvDataStorage
@@ -63,7 +62,16 @@ class iACsvDataStorage
 	void storeCSVToVectorArray(QList<QStringList>* list);
 	//returns the data of all csv files
 	QList<csvFileData>* getData();
+
+	//returns the names of the attributes without the label attribute
+	QStringList* getAttributeNamesWithoutLabel();
+	//returns the names of ALL attributes
+	QStringList* getAttributeNames();
+
 	QStringList* getDatasetNames();
+
+	//returns the total number of objects in all datasets
+	int getTotalNumberOfObjects();
 
    private:
 	//fill a list with the attribute names
@@ -81,4 +89,7 @@ class iACsvDataStorage
 	//header = [name1,name2,...] --> Strings
 	//values = [ [f1_val1,f1_val2,...], [f2_val1,f2_val2,...]]
 	QList<csvFileData>* m_data;
+
+	//stores the overall number of objects of all datasets
+	int m_totalNumberOfObjects;
 };

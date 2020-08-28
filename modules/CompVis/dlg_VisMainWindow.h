@@ -23,6 +23,9 @@ class dlg_VisMainWindow : public QMainWindow, public Ui_CompVisMainWindow
 	QList<csvFileData>* getData();
 	void startMDSDialog();
 
+	void recalculateMDS();
+	void updateMDS(iAMultidimensionalScaling* newMds);
+
    private:
 	void createMenu();
 

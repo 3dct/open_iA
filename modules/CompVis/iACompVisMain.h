@@ -5,7 +5,6 @@
 #include "iACsvDataStorage.h"
 #include "dlg_VisMainWindow.h"
 #include "iACompHistogramTableData.h"
-//#include "iACorrelationCoefficient.h"
 #include "vtkSmartPointer.h"
 
 //QT
@@ -28,7 +27,11 @@ class iACompVisMain
 	iACompVisMain(MainWindow* mainWin);
 
 	//load the CSV datasets
-	void loadData();
+	//when nothing was loaded it returns false
+	bool loadData();
+
+	void reinitializeCharts();
+	void reintitalizeMetrics();
 
 	void orderHistogramTableAscending();
 	void orderHistogramTableDescending();
@@ -41,7 +44,7 @@ class iACompVisMain
 	//each entry has as many bins as cells were selected for this row
 	void updateOtherCharts(csvDataType::ArrayType* selectedData, std::map<int, std::vector<double>>* pickStatistic);
 	//update BarChart  according to the Histogram Table selection
-	void updateBarChart(csvDataType::ArrayType* selectedData);
+	void updateBarChart(csvDataType::ArrayType* selectedData, std::map<int, std::vector<double>>* pickStatistic);
 	void updateBoxPlot(csvDataType::ArrayType* selectedData);
 	void updateCorrelationMap(csvDataType::ArrayType* selectedData, std::map<int, std::vector<double>>* pickStatistic);
 
@@ -49,14 +52,20 @@ class iACompVisMain
 	void resetBarChart();
 	void resetBoxPlot();
 	void resetCorrelationMap();
-	
+
+	void updateHistogramTableFromCorrelationMap(std::map<int, double>* dataIndxSelectedType);
+	void resetHistogramTableFromCorrelationMap();
+
    private:
 	void initializeMDS();
 	void initializeVariationCoefficient();
 	void initializeCorrelationCoefficient();
 
+	void noDatasetChosenMessage();
+
 
 	dlg_VisMainWindow* m_mainW;
+	MainWindow* m_mainWindow;
 	iACsvDataStorage* m_dataStorage;
 
 	iAMultidimensionalScaling* m_mds;

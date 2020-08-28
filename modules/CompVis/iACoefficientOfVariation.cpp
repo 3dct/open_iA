@@ -76,11 +76,20 @@ std::vector<double>* iACoefficientOfVariation::calculateVariationCoefficient(csv
 			m_maxValForEachAttr->push_back(*result.second);
 			m_minValForEachAttr->push_back(*result.first);
 
+			/*DEBUG_LOG("" );
+			DEBUG_LOG("min = " + QString::number(*result.first));
+			DEBUG_LOG("max = " + QString::number(*result.second));*/
+
 			double mean = calculateMean(currAttr);
 			double standardDev = calculateStandardDeviation(currAttr, mean);
 
+			//DEBUG_LOG("mean = " + QString::number(mean));
+			//DEBUG_LOG("standardDev = " + QString::number(standardDev));
+
 			double variationCoeff = (standardDev / mean);
 			variationCoeffEmpirical;
+
+			/*DEBUG_LOG("variationCoeff = " + QString::number(variationCoeff));*/
 
 			if (mean == 0)
 			{
@@ -92,6 +101,8 @@ std::vector<double>* iACoefficientOfVariation::calculateVariationCoefficient(csv
 			}
 		}
 	
+		/*DEBUG_LOG("variationCoeffEmpirical = " + QString::number(variationCoeffEmpirical));*/
+
 		resultCoeff->push_back(variationCoeffEmpirical);
 	}
 

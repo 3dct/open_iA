@@ -9,6 +9,6 @@ class iASimilarityDistance
 {
    public:
 	iASimilarityDistance();
-	virtual csvDataType::ArrayType* calculateSimilarityDistance(
+	virtual void calculateSimilarityDistance(
 		csvDataType::ArrayType* dataMatrix, csvDataType::ArrayType* distanceMatrix) = 0;
 };

@@ -32,8 +32,6 @@
 #include "vtkLookupTable.h"
 #include "vtkVariant.h"
 
-#include "vtkPlotBox.h"
-
 #include "vtkTextActor.h"
 #include "vtkTooltipItem.h"
 #include "vtkContextMouseEvent.h"
@@ -50,20 +48,25 @@
 #include  "vtkActor2D.h"
 #include "vtkPolyDataMapper2D.h"
 
+#include "vtkPen.h"
+#include "vtkBrush.h"
+#include "vtkContext2D.h"
+
 #include <string>
 
 vtkStandardNewMacro(iACompBoxPlot::BoxPlotChart);
+vtkStandardNewMacro(iACompBoxPlot::BoxPlot);
 
 iACompBoxPlot::iACompBoxPlot(MainWindow* parent, iACsvDataStorage* dataStorage) : 
 	QDockWidget(parent),
 	m_dataStorage(dataStorage),
 	maxValsAttr(new std::vector<double>()),
 	minValsAttr(new std::vector<double>()),
-	inputBoxPlotTable(vtkSmartPointer<vtkTable>::New()),
 	m_legendAttributes(new std::vector<vtkSmartPointer<vtkTextActor>>()),
 	m_numberOfAttr(0),
 	currentQuartileTable(vtkSmartPointer<vtkTable>::New()),
-	finishedInitalization(false)
+	finishedInitalization(false),
+	labels(vtkSmartPointer<vtkStringArray>::New())
 {
 	setupUi(this);
 
@@ -78,24 +81,126 @@ iACompBoxPlot::iACompBoxPlot(MainWindow* parent, iACsvDataStorage* dataStorage) 
 	m_view = vtkSmartPointer<vtkContextView>::New();
 	m_view->SetRenderWindow(m_qvtkWidget->GetRenderWindow());
 	m_view->SetInteractor(m_qvtkWidget->GetInteractor());
-
 }
 
 void iACompBoxPlot::showEvent(QShowEvent* event)
 {
-	// data preparation
-	QList<csvFileData>* data = m_dataStorage->getData();
-	m_numberOfAttr = data->at(0).header->size(); //amount of attributes
-	QStringList* attrNames = m_dataStorage->getData()->at(0).header;
+	//reset chart if something was drawn before
+	m_view->GetScene()->ClearItems();
+
+	for (int i = 0; i < m_legendAttributes->size(); i++)
+	{
+		m_view->GetRenderer()->RemoveActor2D(m_legendAttributes->at(i));
+	}
+	m_legendAttributes->clear();
+
+	//create lookup tables
+	initializeLutForOriginalBoxPlot();
+	initializeLutForSelectedBoxPlot();
 
 	//create chart (a plot is stored inside a chart)
-	chart = vtkSmartPointer<BoxPlotChart>::New();
-	chart->setOuterClass(this);
-	chart->Update();
-	m_view->GetScene()->AddItem(chart);
+	m_chartOriginal = vtkSmartPointer<BoxPlotChart>::New();
+	m_chartOriginal->setOuterClass(this);
+	m_chartOriginal->Update();
+	m_view->GetScene()->AddItem(m_chartOriginal);
 
+	//create box plot
+	m_boxOriginal = vtkSmartPointer<BoxPlot>::New();
+	m_boxOriginal->SetInputData(normalizedTable);
+	m_boxOriginal->SetLookupTable(lutOriginal);
+
+	double col[3];
+	col[0] = iACompVisOptions::getDoubleArray(iACompVisOptions::BACKGROUNDCOLOR_LIGHTGREY)[0];
+	col[1] = iACompVisOptions::getDoubleArray(iACompVisOptions::BACKGROUNDCOLOR_LIGHTGREY)[1];
+	col[2] = iACompVisOptions::getDoubleArray(iACompVisOptions::BACKGROUNDCOLOR_LIGHTGREY)[2];
+	m_boxOriginal->SetColor(col[0], col[1], col[2]);
+	m_boxOriginal->GetPen()->SetWidth(m_boxOriginal->GetPen()->GetWidth() * 2.5);
+
+	m_chartOriginal->SetPlot(m_boxOriginal);
+	m_chartOriginal->SetColumnVisibilityAll(true);
+	m_chartOriginal->Update();
+
+	//render all to get position of columns
+	renderWidget();
+
+	//set size of chart
+	m_chartOriginal->SetPoint1(m_qvtkWidget->width()*0.0, (m_qvtkWidget->height()*0.3));
+	m_chartOriginal->SetPoint2(m_qvtkWidget->width()*0.75, (m_qvtkWidget->height())*0.85);
+	m_chartOriginal->Update();
+
+	initializeAxes(m_chartOriginal, true);
+	initializeLegend(m_chartOriginal);
+
+	finishedInitalization = true;
+
+	this->renderWidget();
+}
+
+void iACompBoxPlot::reinitializeBoxPlot()
+{
+	m_view->GetScene()->ClearItems();
+	removeSelectedMessage();
+
+	for(int i = 0; i < m_legendAttributes->size(); i++)
+	{
+		m_view->GetRenderer()->RemoveActor2D(m_legendAttributes->at(i));
+	}
+
+	m_legendAttributes->clear();
+	labels->Initialize();
+
+	// data preparation
+	initializeData();
+
+	//create chart (a plot is stored inside a chart)
+	m_chartOriginal = vtkSmartPointer<BoxPlotChart>::New();
+	m_chartOriginal->setOuterClass(this);
+	m_chartOriginal->Update();
+	m_view->GetScene()->AddItem(m_chartOriginal);
+
+	//create box plot
+	m_boxOriginal = vtkSmartPointer<BoxPlot>::New();
+	m_boxOriginal->SetInputData(normalizedTable);
+	m_boxOriginal->SetLookupTable(lutOriginal);
+
+	double col[3];
+	col[0] = iACompVisOptions::getDoubleArray(iACompVisOptions::BACKGROUNDCOLOR_LIGHTGREY)[0];
+	col[1] = iACompVisOptions::getDoubleArray(iACompVisOptions::BACKGROUNDCOLOR_LIGHTGREY)[1];
+	col[2] = iACompVisOptions::getDoubleArray(iACompVisOptions::BACKGROUNDCOLOR_LIGHTGREY)[2];
+	m_boxOriginal->SetColor(col[0], col[1], col[2]);
+	m_boxOriginal->GetPen()->SetWidth(m_boxOriginal->GetPen()->GetWidth() * 2.5);
+
+	m_chartOriginal->SetPlot(m_boxOriginal);
+	m_chartOriginal->SetColumnVisibilityAll(true);
+	m_chartOriginal->Update();
+
+	//render all to get position of columns
+	renderWidget();
+
+	//set size of chart
+	m_chartOriginal->SetPoint1(m_qvtkWidget->width()*0.0, (m_qvtkWidget->height()*0.3));
+	m_chartOriginal->SetPoint2(m_qvtkWidget->width()*0.75, (m_qvtkWidget->height())*0.85);
+	m_chartOriginal->Update();
+	renderWidget();
+
+	initializeAxes(m_chartOriginal, true);
+	initializeLegend(m_chartOriginal);
+
+	renderWidget();
+}
+
+void iACompBoxPlot::initializeData()
+{
+	// data preparation
+	QList<csvFileData>* data = m_dataStorage->getData();
+	QStringList* attrNames = m_dataStorage->getAttributeNamesWithoutLabel();
+	m_numberOfAttr = attrNames->size(); //amount of attributes
+	
 	// Set the labels
-	vtkSmartPointer<vtkStringArray> labels = vtkSmartPointer<vtkStringArray>::New();
+	labels->Initialize();
+
+	vtkSmartPointer<vtkTable> originalValuesTable = vtkSmartPointer<vtkTable>::New();
+	m_originalOrderTable = vtkSmartPointer<vtkTable>::New();
 
 	//set amount of attributes
 	for (int i = 0; i < m_numberOfAttr; i++)
@@ -104,7 +209,9 @@ void iACompBoxPlot::showEvent(QShowEvent* event)
 
 		vtkSmartPointer<vtkDoubleArray> arrIndex = vtkSmartPointer<vtkDoubleArray>::New();
 		arrIndex->SetName(attrNames->at(i).toStdString().c_str());
-		inputBoxPlotTable->AddColumn(arrIndex);
+		
+		originalValuesTable->AddColumn(arrIndex);
+		m_originalOrderTable->AddColumn(arrIndex);
 	}
 
 	//calculate amount of objects(fibers)/rows
@@ -113,7 +220,8 @@ void iACompBoxPlot::showEvent(QShowEvent* event)
 	{
 		numberOfRows += csvDataType::getRows(data->at(i).values);
 	}
-	inputBoxPlotTable->SetNumberOfRows(numberOfRows);
+	originalValuesTable->SetNumberOfRows(numberOfRows);
+	m_originalOrderTable->SetNumberOfRows(numberOfRows);
 
 	int row = 0;
 	//fill table with data
@@ -121,62 +229,44 @@ void iACompBoxPlot::showEvent(QShowEvent* event)
 	{//for all datasets
 		for (int dataInd = 0; dataInd < data->at(i).values->size(); dataInd++)
 		{ //for all values
-			//for (int attrInd = 1; attrInd <= m_numberOfAttr; attrInd++)
-			for (int attrInd = 1; attrInd < m_numberOfAttr; attrInd++)
+			for (int attrInd = 1; attrInd <= m_numberOfAttr; attrInd++)
+
 			{//for all attributes but without the label attribute
 
 				int col = attrInd - 1;
 				double val = data->at(i).values->at(dataInd).at(m_orderedPositions->at(col) + 1);
+				
+				originalValuesTable->SetValue(row, col, vtkVariant(val));
 
-				inputBoxPlotTable->SetValue(row, col, vtkVariant(val));
+				double valOriginalOrder = data->at(i).values->at(dataInd).at(attrInd);
+				m_originalOrderTable->SetValue(row, col, valOriginalOrder);
+				
 			}
+
 			row++;
 		}
 	}
 
 	//calculate quartiles
-	outTable = calcualteVTKQuartiles(inputBoxPlotTable);
+	outTable = calcualteVTKQuartiles(originalValuesTable);
 	currentQuartileTable->DeepCopy(outTable);
 	currentQuartileTable->Modified();
 
+	m_originalOrderTableNotNormalized = calcualteVTKQuartiles(m_originalOrderTable);
+	m_originalOrderTable = normalizeTable(m_originalOrderTableNotNormalized);
+
 	//normalize quartiles in the interval [0,1]
 	normalizedTable = normalizeTable(outTable);
+}
 
-	//create lookup table
-	vtkSmartPointer<vtkLookupTable> lookup = vtkSmartPointer<vtkLookupTable>::New();
-	lookup->SetNumberOfColors(2);
-	lookup->SetRange(0, 1);
-	lookup->Build();
-	double col[3];
-	col[0] = iACompVisOptions::BACKGROUNDCOLOR_GREY[0];
-	col[1] = iACompVisOptions::BACKGROUNDCOLOR_GREY[1];
-	col[2] = iACompVisOptions::BACKGROUNDCOLOR_GREY[2];
-	lookup->SetTableValue(0, col[0], col[1], col[2]);
-	lookup->SetTableValue(1, col[0], col[1], col[2]);
-
-	//create box plot
-	box = vtkSmartPointer<vtkPlotBox>::New();
-	box->SetInputData(normalizedTable);
-	box->SetLookupTable(lookup);
-
-	chart->SetPlot(box);
-	chart->SetColumnVisibilityAll(true);
-	chart->Update();
-
-	//render all to get position of columns
-	renderWidget();
-
-	//set size of chart
-	chart->SetPoint1(m_qvtkWidget->width()*0.0, (m_qvtkWidget->height()*0.3));
-	chart->SetPoint2(m_qvtkWidget->width()*0.75, (m_qvtkWidget->height())*0.85);
-	chart->Update();
-
+void iACompBoxPlot::initializeAxes(vtkSmartPointer<BoxPlotChart> chart, bool axesVisibleOn)
+{
 	//create title
 	chart->SetTitle("Interval Similarity");
 	chart->GetTitleProperties()->BoldOn();
 	chart->GetTitleProperties()->ItalicOff();
 	chart->GetTitleProperties()->ShadowOff();
-	chart->GetTitleProperties()->SetColor(iACompVisOptions::getDoubleArray(iACompVisOptions::BACKGROUNDCOLOR_GREY));
+	chart->GetTitleProperties()->SetColor(iACompVisOptions::getDoubleArray(iACompVisOptions::BACKGROUNDCOLOR_LIGHTGREY));
 	chart->GetTitleProperties()->SetFontFamilyToArial();
 	chart->GetTitleProperties()->SetFontSize(iACompVisOptions::FONTSIZE_TITLE);
 	chart->GetTitleProperties()->Modified();
@@ -186,7 +276,7 @@ void iACompBoxPlot::showEvent(QShowEvent* event)
 	axisLeft->SetBehavior(1);
 	axisLeft->SetTitle("Converted Interval Size");
 	axisLeft->GetTitleProperties()->ItalicOff();
-	axisLeft->GetTitleProperties()->SetColor(iACompVisOptions::getDoubleArray(iACompVisOptions::BACKGROUNDCOLOR_GREY));
+	axisLeft->GetTitleProperties()->SetColor(iACompVisOptions::getDoubleArray(iACompVisOptions::BACKGROUNDCOLOR_LIGHTGREY));
 	axisLeft->GetTitleProperties()->SetFontFamilyToArial();
 	axisLeft->GetTitleProperties()->SetFontSize(iACompVisOptions::FONTSIZE_TEXT);
 	axisLeft->GetTitleProperties()->SetLineOffset(-20);
@@ -195,12 +285,75 @@ void iACompBoxPlot::showEvent(QShowEvent* event)
 	axisLeft->GetTitleProperties()->SetJustification(VTK_TEXT_CENTERED);
 	axisLeft->SetMaximum(1.0);
 	axisLeft->SetMinimum(0.0);
-	axisLeft->AutoScale();
 	axisLeft->SetNumberOfTicks(5);
+	axisLeft->Update();
 
+	if(!axesVisibleOn)
+	{
+		chart->GetTitleProperties()->SetOpacity(0);
+		chart->GetTitleProperties()->Modified();
+
+		axisLeft->GetTitleProperties()->SetOpacity(0);
+		axisLeft->GetTitleProperties()->Modified();
+		axisLeft->SetTicksVisible(false);
+		axisLeft->SetOpacity(0);
+		axisLeft->Modified();
+		axisLeft->Update();
+	}
+
+	chart->Update();
+}
+
+void iACompBoxPlot::initializeLutForOriginalBoxPlot()
+{
+	lutOriginal = vtkSmartPointer<vtkLookupTable>::New();
+	lutOriginal->SetNumberOfColors(m_numberOfAttr);
+	lutOriginal->Build();
+	
+	double col[3];
+	col[0] = iACompVisOptions::getDoubleArray(iACompVisOptions::BACKGROUNDCOLOR_LIGHTGREY)[0];
+	col[1] = iACompVisOptions::getDoubleArray(iACompVisOptions::BACKGROUNDCOLOR_LIGHTGREY)[1];
+	col[2] = iACompVisOptions::getDoubleArray(iACompVisOptions::BACKGROUNDCOLOR_LIGHTGREY)[2];
+
+	for(int i = 0; i < m_numberOfAttr; i++)
+	{
+		lutOriginal->SetTableValue(i, col[0], col[1], col[2], 0);
+	}
+}
+
+void iACompBoxPlot::initializeLutForSelectedBoxPlot()
+{
+	lutSelected = vtkSmartPointer<vtkLookupTable>::New();
+	lutSelected->SetNumberOfColors(m_numberOfAttr);
+	lutSelected->Build();
+
+	double col[3];
+	col[0] = iACompVisOptions::getDoubleArray(iACompVisOptions::HIGHLIGHTCOLOR_GREEN)[0];
+	col[1] = iACompVisOptions::getDoubleArray(iACompVisOptions::HIGHLIGHTCOLOR_GREEN)[1];
+	col[2] = iACompVisOptions::getDoubleArray(iACompVisOptions::HIGHLIGHTCOLOR_GREEN)[2];
+
+	for (int i = 0; i < m_numberOfAttr; i++)
+	{
+		lutSelected->SetTableValue(i, col[0], col[1], col[2], 0.25);
+	}
+}
+
+void iACompBoxPlot::initializeLegend(vtkSmartPointer<BoxPlotChart> chart)
+{
 	//for each column draw a legend
 	double offset = 1.0;
-	double factor = offset / ((double)(m_numberOfAttr - 1));
+	double factor;
+	
+	if (m_numberOfAttr == 1)
+	{
+		factor = offset;
+	}else
+	{
+		factor = offset / ((double)(m_numberOfAttr));
+	}
+
+	offset = offset - factor;
+	
 	for (int i = 0; i < m_numberOfAttr; i++)
 	{
 		vtkSmartPointer<vtkTextActor> legend = vtkSmartPointer<vtkTextActor>::New();
@@ -219,7 +372,7 @@ void iACompBoxPlot::showEvent(QShowEvent* event)
 		legendProperty->SetVerticalJustificationToTop();
 		legendProperty->Modified();
 
-		float x = chart->GetXPosition(i) + (box->GetBoxWidth()*offset);
+		float x = chart->GetXPosition(i) + (BoxPlot::SafeDownCast(chart->GetPlot(0))->GetBoxWidth()*offset);
 		legend->GetPositionCoordinate()->SetCoordinateSystemToDisplay();
 		legend->GetPositionCoordinate()->SetValue(x, m_qvtkWidget->height()*0.27);
 		legend->Modified();
@@ -227,29 +380,26 @@ void iACompBoxPlot::showEvent(QShowEvent* event)
 		m_view->GetRenderer()->AddActor(legend);
 		m_legendAttributes->push_back(legend);
 
-		//TESTING
-		/*DEBUG_LOG("chart->GetXPosition(i) = (" + QString::number(chart->GetXPosition(i)) + ")");
-		DEBUG_LOG("(box->GetBoxWidth()*0.5) = (" + QString::number((box->GetBoxWidth() * offset)) + ")");
+		////TESTING
+		//DEBUG_LOG("chart->GetXPosition(i) = (" + QString::number(chart->GetXPosition(i)) + ")");
+		//DEBUG_LOG("(box->GetBoxWidth()) = (" + QString::number(BoxPlot::SafeDownCast(chart->GetPlot(0))->GetBoxWidth() * offset) + ")");
 
-		vtkSmartPointer<vtkRegularPolygonSource> point = vtkSmartPointer<vtkRegularPolygonSource>::New();
-		point->SetNumberOfSides(50);
-		point->SetRadius(1);
-		point->SetCenter(x, m_qvtkWidget->height()*0.25, 0);
+		//vtkSmartPointer<vtkRegularPolygonSource> point = vtkSmartPointer<vtkRegularPolygonSource>::New();
+		//point->SetNumberOfSides(50);
+		//point->SetRadius(1);
+		//point->SetCenter(chart->GetXPosition(i), m_qvtkWidget->height()*0.25, 0);
 
-		// Visualize
-		vtkSmartPointer<vtkPolyDataMapper2D> mapper = vtkSmartPointer<vtkPolyDataMapper2D>::New();
-		mapper->SetInputConnection(point->GetOutputPort());
+		//// Visualize
+		//vtkSmartPointer<vtkPolyDataMapper2D> mapper = vtkSmartPointer<vtkPolyDataMapper2D>::New();
+		//mapper->SetInputConnection(point->GetOutputPort());
 
-		vtkSmartPointer<vtkActor2D> actor = vtkSmartPointer<vtkActor2D>::New();
-		actor->SetMapper(mapper);
-		actor->GetProperty()->SetColor(1, 0, 0);
-		m_view->GetRenderer()->AddActor2D(actor);*/
-
+		//vtkSmartPointer<vtkActor2D> actor = vtkSmartPointer<vtkActor2D>::New();
+		//actor->SetMapper(mapper);
+		//actor->GetProperty()->SetColor(1, 0, 0);
+		//m_view->GetRenderer()->AddActor2D(actor);
 
 		offset = offset - factor;
 	}
-
-	finishedInitalization = true;
 }
 
 void iACompBoxPlot::renderWidget()
@@ -260,6 +410,9 @@ void iACompBoxPlot::renderWidget()
 void iACompBoxPlot::setOrderedPositions(std::vector<double>* orderedPositions)
 {
 	m_orderedPositions = orderedPositions;
+
+	// data preparation
+	initializeData();
 }
 
 double iACompBoxPlot::median(std::vector<double>::const_iterator begin, std::vector<double>::const_iterator end)
@@ -308,8 +461,8 @@ vtkSmartPointer<vtkTable> iACompBoxPlot::calcualteVTKQuartiles(vtkSmartPointer<v
 
 vtkSmartPointer<vtkTable> iACompBoxPlot::normalizeTable(vtkSmartPointer<vtkTable> input)
 {
-	vtkSmartPointer<vtkTable> normalizedTable = vtkSmartPointer<vtkTable>::New();
-	normalizedTable->DeepCopy(input);
+	vtkSmartPointer<vtkTable> normalizedTableCurr = vtkSmartPointer<vtkTable>::New();
+	normalizedTableCurr->DeepCopy(input);
 
 	//normalize quartiles in the interval [0,1]
 	for (vtkIdType c = 0; c < input->GetNumberOfColumns(); c++)
@@ -318,23 +471,53 @@ vtkSmartPointer<vtkTable> iACompBoxPlot::normalizeTable(vtkSmartPointer<vtkTable
 		{
 			vtkVariant v = input->GetValue(r, c);
 			double newV = iACompVisOptions::histogramNormalization(v.ToDouble(), 0.0, 1.0, input->GetValue(0, c).ToDouble(), input->GetValue(input->GetNumberOfRows() - 1, c).ToDouble());
-			normalizedTable->SetValue(r, c, vtkVariant(newV));
+			normalizedTableCurr->SetValue(r, c, vtkVariant(newV));
 		}
 	}
 
-	return normalizedTable;
+	return normalizedTableCurr;
+}
+
+vtkSmartPointer<vtkTable> iACompBoxPlot::normalizeTableSelected(vtkSmartPointer<vtkTable> input, std::vector<double>* selected_orderedPositions)
+{
+	vtkSmartPointer<vtkTable> normalizedTableCurr = vtkSmartPointer<vtkTable>::New();
+	normalizedTableCurr->DeepCopy(input);
+
+	//normalize quartiles in the interval [0,1]
+	for (vtkIdType c = 0; c < input->GetNumberOfColumns(); c++)
+	{
+		for (vtkIdType r = 0; r < input->GetNumberOfRows(); r++)
+		{
+			double originalMin = m_originalOrderTableNotNormalized->GetValue(0, selected_orderedPositions->at(c)).ToDouble();
+			double originalMax = m_originalOrderTableNotNormalized->GetValue(m_originalOrderTableNotNormalized->GetNumberOfRows() - 1, selected_orderedPositions->at(c)).ToDouble();
+
+			vtkVariant v = input->GetValue(r, c);
+			double newV = iACompVisOptions::histogramNormalization(v.ToDouble(), 0.0, 1.0, originalMin, originalMax);
+			normalizedTableCurr->SetValue(r, c, vtkVariant(newV));
+		}
+	}
+
+	return normalizedTableCurr;
 }
 
 /******************************************  Update Methods  **********************************/
 
 void iACompBoxPlot::updateBoxPlot(csvDataType::ArrayType* selectedData, std::vector<double>* selected_orderedPositions)
 {	
+	//reset box plot
+	m_view->GetScene()->RemoveItem(m_chartSelected);
+	removeSelectedMessage();
+
+	//reorder original data table
+	reorderOriginalData(selected_orderedPositions);
+
+	//create selected data table
 	vtkSmartPointer<vtkTable> table = vtkSmartPointer<vtkTable>::New();
 	vtkSmartPointer<vtkTable> selectedNormalizedTable = vtkSmartPointer<vtkTable>::New();
 
 	// Set the labels
-	QStringList* attrNames = m_dataStorage->getData()->at(0).header;
-	vtkSmartPointer<vtkStringArray> labels = vtkSmartPointer<vtkStringArray>::New();
+	QStringList* attrNames = m_dataStorage->getAttributeNamesWithoutLabel();
+	labels->Initialize();
 
 	//set amount of attributes
 	for (int i = 0; i < m_numberOfAttr; i++)
@@ -346,21 +529,13 @@ void iACompBoxPlot::updateBoxPlot(csvDataType::ArrayType* selectedData, std::vec
 		table->AddColumn(arrIndex);
 	}
 
-	if(selectedData->size() == 0)
+	if(selectedData->size() == 0 || selectedData->at(0).size() == 0 || selectedData->at(0).size() == 1 || selectedData->at(0).size() == 2)
 	{// no data -> draw empty box plot
-		table->SetNumberOfRows(m_numberOfAttr);
 		
-		for (int col = 0; col < m_numberOfAttr; col++)
-		{//for each attribute
+		drawNotEnoughObjectsSelectedMessage();
+		renderWidget();
 
-			vtkSmartPointer<vtkDoubleArray> arrIndex = vtkSmartPointer<vtkDoubleArray>::New();
-			arrIndex->SetName(attrNames->at(col).toStdString().c_str());
-			for (int row = 0; row < 5; row++)
-			{
-				arrIndex->InsertNextValue(0.0);
-			}
-			selectedNormalizedTable->AddColumn(arrIndex);
-		}
+		return;
 	}
 	else
 	{
@@ -370,6 +545,7 @@ void iACompBoxPlot::updateBoxPlot(csvDataType::ArrayType* selectedData, std::vec
 		//fill table with data
 		for (int col = 1; col < selectedData->size(); col++)
 		{//for each attribute
+
 			for (int row = 0; row < selectedData->at(col).size(); row++)
 			{
 				int colNew = col - 1;
@@ -383,30 +559,87 @@ void iACompBoxPlot::updateBoxPlot(csvDataType::ArrayType* selectedData, std::vec
 		currentQuartileTable->Modified();
 
 		//normalize quartiles in the interval [0,1]
-		selectedNormalizedTable = normalizeTable(quartileTable);
+		selectedNormalizedTable = normalizeTableSelected(quartileTable, selected_orderedPositions);
 	}
 
-	box->SetInputData(selectedNormalizedTable);
-	box->Modified();
+	double col[3];
+	col[0] = iACompVisOptions::getDoubleArray(iACompVisOptions::HIGHLIGHTCOLOR_GREEN)[0];
+	col[1] = iACompVisOptions::getDoubleArray(iACompVisOptions::HIGHLIGHTCOLOR_GREEN)[1];
+	col[2] = iACompVisOptions::getDoubleArray(iACompVisOptions::HIGHLIGHTCOLOR_GREEN)[2];
 
-	chart->SetPoint1(m_qvtkWidget->width()*0.0, (m_qvtkWidget->height()*0.3));
-	chart->SetPoint2(m_qvtkWidget->width()*0.75, (m_qvtkWidget->height())*0.85);
-	chart->Update();
+	//create box plot
+	m_boxSelected = vtkSmartPointer<BoxPlot>::New();
+	m_boxSelected->setNumberOfColumns(m_numberOfAttr);
+	m_boxSelected->setOuterClass(this);
+	m_boxSelected->SetInputData(selectedNormalizedTable);
+	//color of inner space
+	m_boxSelected->SetLookupTable(lutSelected);
+	//color of bar contours
+	m_boxSelected->SetColor(col[0], col[1], col[2]);
+	m_boxSelected->Update();
 
+	m_chartSelected = vtkSmartPointer<BoxPlotChart>::New();
+	m_chartSelected->setOuterClass(this);
+	m_chartSelected->SetPlot(m_boxSelected);
+	m_chartSelected->SetColumnVisibilityAll(true);
+
+	//render all to get position of columns
+	renderWidget();
+
+	//set size of chart
+	m_chartSelected->SetPoint1(m_qvtkWidget->width()*0.0, (m_qvtkWidget->height()*0.3));
+	m_chartSelected->SetPoint2(m_qvtkWidget->width()*0.75, (m_qvtkWidget->height())*0.85);
+	m_chartSelected->Update();
+
+	//initialize axes as the original box plot
+	initializeAxes(m_chartSelected, true);
+
+	m_view->GetScene()->AddItem(m_chartSelected);
+
+	//reorder label legend
+	reorderLegend(selected_orderedPositions);
+
+	renderWidget();
+}
+
+void iACompBoxPlot::reorderOriginalData(std::vector<double>* selected_orderedPositions)
+{
+	//create selected data table
+	vtkSmartPointer<vtkTable> reorderedNormalizedTable = vtkSmartPointer<vtkTable>::New();
+	reorderedNormalizedTable->Initialize();
+
+	for(int colId = 0; colId < m_originalOrderTable->GetNumberOfColumns(); colId++)
+	{
+		vtkAbstractArray * column = m_originalOrderTable->GetColumn(selected_orderedPositions->at(colId));
+		reorderedNormalizedTable->AddColumn(column);
+	}
+
+	m_boxOriginal->SetInputData(reorderedNormalizedTable);
+	m_boxOriginal->Modified();
+
+	m_chartOriginal->SetPoint1(m_qvtkWidget->width()*0.0, (m_qvtkWidget->height()*0.3));
+	m_chartOriginal->SetPoint2(m_qvtkWidget->width()*0.75, (m_qvtkWidget->height())*0.85);
+	m_chartOriginal->Update();
+}
+
+void iACompBoxPlot::reorderLegend(std::vector<double>* selected_orderedPositions)
+{
 	for (int i = 0; i < m_legendAttributes->size(); i++)
 	{
 		vtkSmartPointer<vtkTextActor> legend = m_legendAttributes->at(i);
 		legend->SetInput(labels->GetValue(selected_orderedPositions->at(i)));
 		legend->Modified();
 	}
-
-	renderWidget();
 }
 
 void iACompBoxPlot::resetBoxPlot()
 {
+	//reset box plot
+	m_view->GetScene()->RemoveItem(m_chartSelected);
+	removeSelectedMessage();
+
 	// Set the labels
-	QStringList* attrNames = m_dataStorage->getData()->at(0).header;
+	QStringList* attrNames = m_dataStorage->getAttributeNamesWithoutLabel();
 	vtkSmartPointer<vtkStringArray> labels = vtkSmartPointer<vtkStringArray>::New();
 
 	for (int i = 0; i < m_numberOfAttr; i++)
@@ -418,12 +651,12 @@ void iACompBoxPlot::resetBoxPlot()
 	currentQuartileTable->Modified();
 
 	//set data
-	box->SetInputData(normalizedTable);
-	box->Modified();
+	m_boxOriginal->SetInputData(normalizedTable);
+	m_boxOriginal->Modified();
 
-	chart->SetPoint1(m_qvtkWidget->width()*0.0, (m_qvtkWidget->height()*0.3));
-	chart->SetPoint2(m_qvtkWidget->width()*0.75, (m_qvtkWidget->height())*0.85);
-	chart->Update();
+	m_chartOriginal->SetPoint1(m_qvtkWidget->width()*0.0, (m_qvtkWidget->height()*0.3));
+	m_chartOriginal->SetPoint2(m_qvtkWidget->width()*0.75, (m_qvtkWidget->height())*0.85);
+	m_chartOriginal->Update();
 
 	for (int i = 0; i < m_legendAttributes->size(); i++)
 	{
@@ -442,7 +675,7 @@ void iACompBoxPlot::updateLegend()
 
 	for (int i = 0; i < m_numberOfAttr; i++)
 	{
-		float x = chart->GetXPosition(i) + (box->GetBoxWidth()*offset);
+		float x = m_chartOriginal->GetXPosition(i) + (m_boxOriginal->GetBoxWidth()*offset);
 		vtkSmartPointer<vtkTextActor> legend = m_legendAttributes->at(i);
 		legend->GetPositionCoordinate()->SetCoordinateSystemToDisplay();
 		legend->GetPositionCoordinate()->SetValue(x, m_qvtkWidget->height()*0.27);
@@ -451,6 +684,35 @@ void iACompBoxPlot::updateLegend()
 
 		offset = offset - factor;
 	}
+}
+
+void iACompBoxPlot::drawNotEnoughObjectsSelectedMessage()
+{
+	notEnoughElementsSelectedTextActor = vtkSmartPointer<vtkTextActor>::New();
+	notEnoughElementsSelectedTextActor->SetTextScaleModeToNone();
+	notEnoughElementsSelectedTextActor->SetInput("Not enough objects selected to calculate a box plot.");
+
+	vtkSmartPointer<vtkTextProperty> property = notEnoughElementsSelectedTextActor->GetTextProperty();
+	property->BoldOn();
+	property->ItalicOff();
+	property->ShadowOff();
+	property->SetFontFamilyToArial();
+	property->SetColor(0, 0, 0);
+	property->SetFontSize(iACompVisOptions::FONTSIZE_TEXT);
+	property->SetJustification(VTK_TEXT_CENTERED);
+	property->SetVerticalJustificationToTop();
+	property->Modified();
+
+	notEnoughElementsSelectedTextActor->GetPositionCoordinate()->SetCoordinateSystemToNormalizedDisplay();
+	notEnoughElementsSelectedTextActor->GetPositionCoordinate()->SetValue(0.5, 0.5);
+	notEnoughElementsSelectedTextActor->Modified();
+
+	m_view->GetRenderer()->AddActor(notEnoughElementsSelectedTextActor);
+}
+
+void iACompBoxPlot::removeSelectedMessage()
+{
+	m_view->GetRenderer()->RemoveActor(notEnoughElementsSelectedTextActor);
 }
 
 /************************* INNER CLASS BoxPlotChart *******************************************/
@@ -486,20 +748,13 @@ void iACompBoxPlot::BoxPlotChart::SetTooltipInfo(const vtkContextMouseEvent& mou
 
 void iACompBoxPlot::BoxPlotChart::Update()
 {
-	/*if (m_outerClass->finishedInitalization)
+	if (m_outerClass->finishedInitalization)
 	{
-		m_outerClass->chart->SetPoint1(m_outerClass->m_qvtkWidget->width()*0.0, (m_outerClass->m_qvtkWidget->height()*0.3)); //0.4
-		m_outerClass->chart->SetPoint2(m_outerClass->m_qvtkWidget->width()*0.75, (m_outerClass->m_qvtkWidget->height())*0.85);
-		m_outerClass->chart->Modified();
-	}*/
+		this->SetPoint1(m_outerClass->m_qvtkWidget->width()*0.0, (m_outerClass->m_qvtkWidget->height()*0.3));
+		this->SetPoint2(m_outerClass->m_qvtkWidget->width()*0.75, (m_outerClass->m_qvtkWidget->height())*0.85);
+	}
 	
 	vtkChartBox::Update();
-
-	if(m_outerClass->finishedInitalization)
-	{
-		//m_outerClass->updateLegend();
-	}
-
 }
 
 void iACompBoxPlot::BoxPlotChart::setOuterClass(iACompBoxPlot * outerClass)
@@ -509,4 +764,123 @@ void iACompBoxPlot::BoxPlotChart::setOuterClass(iACompBoxPlot * outerClass)
 
 iACompBoxPlot::BoxPlotChart::BoxPlotChart()
 {
+}
+
+/************************* INNER CLASS vtkPlotBox *******************************************/
+
+class vtkPlotBox::Private : public std::vector<std::vector<double>>
+{
+public:
+	Private() = default;
+};
+
+iACompBoxPlot::BoxPlot::BoxPlot() {}
+
+void iACompBoxPlot::BoxPlot::setOuterClass(iACompBoxPlot * outerClass)
+{
+	m_outerClass = outerClass;
+}
+
+void iACompBoxPlot::BoxPlot::setNumberOfColumns(int nmbCols)
+{
+	m_numberOfColumns = nmbCols;
+}
+
+bool iACompBoxPlot::BoxPlot::Paint(vtkContext2D *painter)
+{
+	// This is where everything should be drawn, or dispatched to other methods.
+	vtkDebugMacro(<< "Paint event called in vtkPlotBox.");
+
+	if (!this->Visible)
+	{
+		return false;
+	}
+
+	if (this->Storage->empty() || this->Storage->at(0).size() != 5)
+	{
+		vtkErrorMacro(
+			<< "Input table must contain 5 rows per column. These rows hold min, quartile 1, median, "
+			"quartile 2 and max. Use vtkComputeQuartiles to create a proper table.");
+		return false;
+	}
+
+	vtkChartBox* parent = vtkChartBox::SafeDownCast(this->Parent);
+
+	int nbCols = static_cast<int>(this->Storage->size());
+
+
+	for (int i = 0; i < nbCols; i++)
+	{
+		vtkStdString colName = parent->GetVisibleColumns()->GetValue(i);
+		int index;
+		this->GetInput()->GetRowData()->GetAbstractArray(colName.c_str(), index);
+
+		double rgb[4];
+		this->LookupTable->GetIndexedColor(index, rgb);
+
+		unsigned char crgba[4] = { static_cast<unsigned char>(rgb[0] * 255.),
+		  static_cast<unsigned char>(rgb[1] * 255.), static_cast<unsigned char>(rgb[2] * 255.), static_cast<unsigned char>(rgb[3] * 255.) };
+
+		if (parent->GetSelectedColumn() == i)
+		{
+			crgba[0] = crgba[0] ^ 255;
+			crgba[1] = crgba[1] ^ 255;
+			crgba[2] = crgba[2] ^ 255;
+			crgba[3] = crgba[3] ^ 255;
+		}
+
+		DrawBoxPlot(i, crgba, parent->GetXPosition(i), painter);
+	}
+
+	return true;
+}
+
+void iACompBoxPlot::BoxPlot::DrawBoxPlot(int i, unsigned char* rgba, double x, vtkContext2D* painter)
+{
+	std::vector<double>& colQuartiles = this->Storage->at(i);
+	if (colQuartiles.size() < 5)
+	{
+		return;
+	}
+	painter->ApplyPen(this->Pen);
+
+	vtkNew<vtkBrush> brush;
+	brush->SetColor(rgba);
+
+	brush->SetOpacityF( (rgba[3]/ 255.)); //new
+
+	painter->ApplyBrush(brush);
+
+	// Helper variables for x position
+	double xpos = x + 0.5 * this->BoxWidth;
+	double xneg = x - 0.5 * this->BoxWidth;
+	double hBoxW = this->BoxWidth * 0.25;
+
+	// Fetch the quartiles and median
+	double* q = &colQuartiles[0];
+
+	// Draw the box
+	painter->DrawQuad(xpos, q[1], xneg, q[1], xneg, q[3], xpos, q[3]);
+
+	// Draw the whiskers: ends of the whiskers match the
+	// extremum values of the quartiles
+	painter->DrawLine(x, q[0], x, q[1]);
+	painter->DrawLine(x - hBoxW, q[0], x + hBoxW, q[0]);
+	painter->DrawLine(x, q[3], x, q[4]);
+	painter->DrawLine(x - hBoxW, q[4], x + hBoxW, q[4]);
+
+	// Draw the median
+	vtkNew<vtkPen> whitePen;
+	unsigned char brushColor[4];
+	brush->GetColor(brushColor);
+	// Use a gray pen if the brush is black so the median is always visible
+	if (brushColor[0] == 0 && brushColor[1] == 0 && brushColor[2] == 0)
+	{
+		whitePen->SetWidth(this->Pen->GetWidth());
+		whitePen->SetColor(128, 128, 128, 128);
+		whitePen->SetOpacity(this->Pen->GetOpacity());
+		painter->ApplyPen(whitePen);
+	}
+
+	painter->DrawLine(xneg, q[2], xpos, q[2]);
 }

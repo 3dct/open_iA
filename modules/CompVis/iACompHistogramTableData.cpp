@@ -35,10 +35,10 @@ iACompHistogramTableData::iACompHistogramTableData(iAMultidimensionalScaling* md
 
 QList<bin::BinType*>* iACompHistogramTableData::calculateBins(int numberOfBins)
 {
-	//DEBUG_LOG("");
 
 	binData = new QList<bin::BinType*>; //stores MDS values
 	binDataObjects = new QList<std::vector<csvDataType::ArrayType*>*>; //stores data of selected objects attributes
+
 
 	double length = std::abs(m_maxVal) + std::abs(m_minVal);
 	double binLength = length / numberOfBins;
@@ -56,7 +56,6 @@ QList<bin::BinType*>* iACompHistogramTableData::calculateBins(int numberOfBins)
 			csvDataType::ArrayType* init = new csvDataType::ArrayType();
 			binsWithFiberIds->push_back(init);
 		}
-		
 
 		int datasetInd = values.size();
 	
@@ -66,9 +65,10 @@ QList<bin::BinType*>* iACompHistogramTableData::calculateBins(int numberOfBins)
 			for (int b = 0; b < numberOfBins; b++)
 			{
 				bool inside = checkRange(values.at(v), m_minVal + (binLength * b), m_minVal + (binLength * (b+1)));
+
 				if (!inside && b == numberOfBins - 1)
 				{
-					inside = (values.at(v) == m_maxVal);
+					inside = (abs(m_maxVal - values.at(v)) < 0.0000001);
 				}
 				if (inside)
 				{
@@ -247,6 +247,18 @@ QList<bin::BinType*>* bin::DeepCopy(QList<bin::BinType*>* input)
 		}
 
 		output->append(newBin);
+	}
+
+	return output;
+}
+
+bin::BinType* bin::copyCells(bin::BinType* input, std::vector<vtkIdType>* indexOfCellsToCopy)
+{
+	bin::BinType* output = new bin::BinType();
+
+	for(int i = 0; i < indexOfCellsToCopy->size(); i++)
+	{
+		output->push_back( input->at(indexOfCellsToCopy->at(i)) );
 	}
 
 	return output;

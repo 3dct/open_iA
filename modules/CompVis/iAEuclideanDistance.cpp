@@ -4,20 +4,19 @@ iAEuclideanDistance::iAEuclideanDistance() : iASimilarityDistance()
 {
 }
 
-csvDataType::ArrayType* iAEuclideanDistance::calculateSimilarityDistance(
+void iAEuclideanDistance::calculateSimilarityDistance(
 	csvDataType::ArrayType* dataMatrix, csvDataType::ArrayType* distanceMatrix)
 {
-
 	int amountRows = csvDataType::getRows(distanceMatrix);
 	int amountCols = csvDataType::getColumns(distanceMatrix);
 
 	if (csvDataType::getRows(dataMatrix) != amountRows || csvDataType::getRows(dataMatrix) != amountCols)
 	{
 		DEBUG_LOG("Euclidean Distance Calculation: Invalid distance matrix dimension.\n");
-		return distanceMatrix;
+		return;
 	}
 
-	csvDataType::ArrayType* resultMatrix = distanceMatrix;
+	//csvDataType::ArrayType* resultMatrix = distanceMatrix;
 
 	double temp;
 
@@ -30,7 +29,7 @@ csvDataType::ArrayType* iAEuclideanDistance::calculateSimilarityDistance(
 			{
 				temp += pow(dataMatrix->at(r).at(c2) - dataMatrix->at(c).at(c2), 2);
 			}
-			resultMatrix->at(r).at(c) = std::sqrt(temp);
+			distanceMatrix->at(r).at(c) = std::sqrt(temp);
 		}
 	}
 
@@ -38,7 +37,7 @@ csvDataType::ArrayType* iAEuclideanDistance::calculateSimilarityDistance(
 	{
 		for (int c = 0; c < r; c++)
 		{
-			resultMatrix->at(r).at(c) = resultMatrix->at(c).at(r);
+			distanceMatrix->at(r).at(c) = distanceMatrix->at(c).at(r);
 		}
 	}
 
@@ -46,5 +45,4 @@ csvDataType::ArrayType* iAEuclideanDistance::calculateSimilarityDistance(
 	//DEBUG_LOG("Euclidean Distance:");
 	//csvDataType::debugArrayType(resultMatrix);
 
-	return resultMatrix;
 }

@@ -18,8 +18,6 @@
 #include <vtkPropPicker.h>
 #include <vtkRendererCollection.h>
 
-//testing
-
 #include <vtkCellData.h>
 #include <vtkProperty.h>
 
@@ -29,7 +27,6 @@
 #include <vtkCellData.h>
 #include <vtkLight.h>
 #include <vtkMapper.h>
-#include <vtkNamedColors.h>
 #include <vtkNew.h>
 #include <vtkPlaneSource.h>
 #include <vtkPolyDataMapper.h>
@@ -40,9 +37,12 @@
 #include <vtkSphereSource.h>
 #include <vtkUnsignedCharArray.h>
 
+#include <vtkCallbackCommand.h>
+#include <vtkTransform.h>
+
 //Qt
 #include <QDockWidget>
-
+#include "QVTKOpenGLNativeWidget.h"
 
 #include <tuple>
 
@@ -54,20 +54,15 @@ iACompHistogramTableInteractorStyle::iACompHistogramTableInteractorStyle() :
 	m_controlBinsInZoomedRows(false),
 	m_pointRepresentationOn(false),
 	m_zoomLevel(1),
-	m_actorPicker(vtkSmartPointer<vtkPropPicker>::New())
+	m_actorPicker(vtkSmartPointer<vtkPropPicker>::New()),
+	m_zoomOn(true),
+	m_currentlyPickedActor(vtkSmartPointer<vtkActor>::New()),
+	m_panActive(false)
 {
 	m_actorPicker->SetPickFromList(true);
 }
 
-void iACompHistogramTableInteractorStyle::OnKeyPress()
-{
-	vtkRenderWindowInteractor* interactor = this->GetInteractor();
-
-	// Get the shift press
-	if (interactor->GetShiftKey())
-	{
-	}
-}
+void iACompHistogramTableInteractorStyle::OnKeyPress(){}
 
 void iACompHistogramTableInteractorStyle::OnKeyRelease()
 {
@@ -77,139 +72,313 @@ void iACompHistogramTableInteractorStyle::OnKeyRelease()
 	//when shift is released, the compuation of the zoom is performed
 	if (key == "Shift_L")
 	{
-		if (m_picked->size() >= 1)
+		if(m_zoomOn)
 		{
-			m_visualization->removeHighlightedCells();
+			if (m_picked->size() >= 1)
+			{
+				m_visualization->removeHighlightedCells();
 
-			//forward update to all other charts
-			updateOtherCharts();
-			
-			//change in histogram table
-			m_visualization->drawLinearZoom(m_picked, m_visualization->getBins(), m_visualization->getBinsZoomed(), m_zoomedRowData);
+				//forward update to all other charts & histogram table
+				updateCharts();
 
-			//reset selection variables
-			m_picked->clear();
-			m_controlBinsInZoomedRows = true;
+				//reset selection variables
+				m_picked->clear();
+				m_controlBinsInZoomedRows = true;
+			}
+		}
+		else
+		{
+			//only one actor is allowed to be picked --> otherwise the calculation is not working
+			if (m_picked->size() == 1)
+			{
+				m_visualization->drawHistogramTableAccordingToCellSimilarity(m_visualization->getBins(), m_picked);
+
+				//reset selection variables
+				m_picked->clear();
+			}
 		}
 	}
 }
 
 void iACompHistogramTableInteractorStyle::OnLeftButtonDown()
 {
-	//select rows & bins which should be zoomed
-	if (this->GetInteractor()->GetShiftKey())
+	reinitializeState();
+
+	//set pick list
+	setPickList(m_visualization->getOriginalRowActors());
+
+	// Get the location of the click (in window coordinates)
+	int* pos = this->GetInteractor()->GetEventPosition();
+	this->FindPokedRenderer(pos[0], pos[1]);
+	auto currentRenderer = this->GetDefaultRenderer();
+	if (currentRenderer == nullptr)
 	{
-		//set pick list
-		setPickList(m_visualization->getOriginalRowActors());
+		DEBUG_LOG("HistogramTableInteractorStyle: currentRenderer is null!!");
+		return;
+	}
 
-		// Get the location of the click (in window coordinates)
-		int* pos = this->GetInteractor()->GetEventPosition();
-		this->FindPokedRenderer(pos[0], pos[1]);
-		auto currentRenderer = this->GetDefaultRenderer();
-		if (currentRenderer == nullptr)
-		{
-			return;
-		}
+	int is = m_actorPicker->Pick(pos[0], pos[1], 0, this->CurrentRenderer); //this->GetDefaultRenderer()
+	if (is == 0) 
+	{
+		resetHistogramTable();
+		m_picked->clear();
+		return; 
+	}
+	
+	vtkSmartPointer<vtkActor> pickedA = m_actorPicker->GetActor();
 
-		if (((pos[0] >= currentRenderer->GetSize()[0]) || (pos[1] >= currentRenderer->GetSize()[1])))
-		{
-			return;
-		}
+	this->GrabFocus(this->EventCallbackCommand);
 
+	//select rows & bins which should be zoomed
+	if (pickedA != NULL && this->GetInteractor()->GetShiftKey())
+	{	
+		vtkSmartPointer<vtkCellPicker> cellPicker = vtkSmartPointer<vtkCellPicker>::New();
+		cellPicker->Pick(pos[0], pos[1], 0, m_visualization->getRenderer());
+		cellPicker->SetTolerance(0.0);
+
+		vtkIdType id = cellPicker->GetCellId();
+		storePickedActorAndCell(pickedA, id);
+				
+		//color selected bin
+		m_visualization->highlightSelectedCell(pickedA, id);
+		m_zoomOn = true;
 		
-		int is = m_actorPicker->Pick(pos[0], pos[1], 0, currentRenderer);
+	}
+	else if(pickedA != NULL)
+	{
+		if(m_pointRepresentationOn || m_controlBinsInZoomedRows)
+		{//when non-linear zoom is active --> do nothing
+			//resetHistogramTable();
+		}else
+		{ //manual reordering only working when no non-linear zoom is active
+			m_currentlyPickedActor = pickedA;
+			manualTableRelocatingStart(m_currentlyPickedActor);
 
-		if (is != 0)
-		{
-			vtkSmartPointer<vtkActor> pickedA = m_actorPicker->GetActor();
+			//make actor nearest to user
+			m_visualization->getRenderer()->RemoveActor(m_currentlyPickedActor);
+			m_visualization->getRenderer()->AddActor(m_currentlyPickedActor);
 
-			if (pickedA != NULL)
+			m_visualization->highlightSelectedRow(m_currentlyPickedActor);
+		}
+	}
+}
+
+void iACompHistogramTableInteractorStyle::OnLeftButtonUp()
+{
+	manualTableRelocatingStop();
+}
+
+void iACompHistogramTableInteractorStyle::OnMouseMove()
+{
+	int x = this->Interactor->GetEventPosition()[0];
+	int y = this->Interactor->GetEventPosition()[1];
+
+	switch (this->State)
+	{
+		case VTKIS_PAN:
+			this->FindPokedRenderer(x, y);
+			this->Pan();
+			this->InvokeEvent(vtkCommand::InteractionEvent, nullptr);
+			break;
+	}
+}
+
+void iACompHistogramTableInteractorStyle::manualTableRelocatingStart(vtkSmartPointer<vtkActor> movingActor)
+{
+	m_visualization->calculateOldDrawingPositionOfMovingActor(movingActor);
+	this->StartPan();
+}
+
+void iACompHistogramTableInteractorStyle::manualTableRelocatingStop()
+{
+	switch (this->State)
+	{
+		case VTKIS_PAN:
+			this->EndPan();
+
+			if(m_panActive)
 			{
-				vtkSmartPointer<vtkCellPicker> cellPicker = vtkSmartPointer<vtkCellPicker>::New();
-				cellPicker->Pick(pos[0], pos[1], 0, currentRenderer);
-				cellPicker->SetTolerance(0.0);
-
-				vtkIdType id = cellPicker->GetCellId();
-
-				if (m_picked->find(pickedA) != m_picked->end())
-				{
-					//when this actor has been picked already
-					std::vector<vtkIdType>* v = m_picked->find(pickedA)->second;
-					if (std::find(v->begin(), v->end(), id) == v->end())
-					{  //when cellId is not already in the vector, add it
-						v->push_back(id);
-					}
-				}
-				else
-				{
-					//when this actor has NOT been picked until now
-					std::vector<vtkIdType>* pickedCellsList = new std::vector<vtkIdType>();
-					pickedCellsList->push_back(id);
-
-					m_picked->insert({pickedA, pickedCellsList});
-				}
-
-				//color selected bin
-				m_visualization->highlightSelectedCell(pickedA, id);
+				m_visualization->drawReorderedHistogramTable();
+				m_panActive = false;
 			}
+			
+			break;
+	}
+
+	if (this->Interactor)
+	{
+		this->ReleaseFocus();
+	}
+}
+
+void iACompHistogramTableInteractorStyle::Pan()
+{
+	m_panActive = true;
+
+	//move picked actor
+	vtkRenderWindowInteractor* rwi = this->Interactor;
+
+	// Use initial center as the origin from which to pan
+	double* obj_center = m_currentlyPickedActor->GetCenter();
+
+	double disp_obj_center[3], new_pick_point[4];
+	double old_pick_point[4], motion_vector[3];
+
+	this->ComputeWorldToDisplay(obj_center[0], obj_center[1], obj_center[2], disp_obj_center);
+
+	this->ComputeDisplayToWorld(
+		rwi->GetEventPosition()[0], rwi->GetEventPosition()[1], disp_obj_center[2], new_pick_point);
+
+	this->ComputeDisplayToWorld(rwi->GetLastEventPosition()[0], rwi->GetLastEventPosition()[1],
+		disp_obj_center[2], old_pick_point);
+
+	motion_vector[0] = new_pick_point[0] - old_pick_point[0];
+	motion_vector[1] = new_pick_point[1] - old_pick_point[1];
+	motion_vector[2] = new_pick_point[2] - old_pick_point[2];
+
+	if (m_currentlyPickedActor->GetUserMatrix() != nullptr)
+	{
+		vtkTransform* t = vtkTransform::New();
+		t->PostMultiply();
+		t->SetMatrix(m_currentlyPickedActor->GetUserMatrix());
+		t->Translate(motion_vector[0], motion_vector[1], motion_vector[2]);
+		m_currentlyPickedActor->GetUserMatrix()->DeepCopy(t->GetMatrix());
+		t->Delete();
+	}
+	else
+	{
+		m_currentlyPickedActor->AddPosition(motion_vector[0], motion_vector[1], motion_vector[2]);
+	}
+
+	vtkSmartPointer<vtkActor> highlightActor = m_visualization->getHighlightingRowActor();
+	if (highlightActor->GetUserMatrix() != nullptr)
+	{
+		vtkTransform* t = vtkTransform::New();
+		t->PostMultiply();
+		t->SetMatrix(m_currentlyPickedActor->GetUserMatrix());
+		t->Translate(motion_vector[0], motion_vector[1], motion_vector[2]);
+		highlightActor->GetUserMatrix()->DeepCopy(t->GetMatrix());
+		t->Delete();
+	}
+	else
+	{
+		highlightActor->AddPosition(motion_vector[0], motion_vector[1], motion_vector[2]);
+	}
+
+	if (this->AutoAdjustCameraClippingRange)
+	{
+		this->CurrentRenderer->ResetCameraClippingRange();
+	}
+
+	//reorder HistogramTable visualization accordingly
+	m_visualization->reorderHistogramTable(m_currentlyPickedActor);
+
+	m_visualization->renderWidget();
+}
+
+void iACompHistogramTableInteractorStyle::storePickedActorAndCell(vtkSmartPointer<vtkActor> pickedA, vtkIdType id)
+{
+	if (m_picked->find(pickedA) != m_picked->end())
+	{
+		//when this actor has been picked already
+		std::vector<vtkIdType>* v = m_picked->find(pickedA)->second;
+		if (std::find(v->begin(), v->end(), id) == v->end())
+		{  //when cellId is not already in the vector, add it
+			v->push_back(id);
 		}
 	}
 	else
 	{
-		//reset visualization when clicked anywhere
-		m_picked->clear();
-		m_visualization->setBinsZoomed(m_visualization->getMinBins());
-		m_visualization->removePointRepresentation();
-		m_visualization->removeHighlightedCells();
+		//when this actor has NOT been picked until now
+		std::vector<vtkIdType>* pickedCellsList = new std::vector<vtkIdType>();
+		pickedCellsList->push_back(id);
 
-		m_controlBinsInZoomedRows = false;
-		m_visualization->drawHistogramTable(m_visualization->getBins());
-
-		resetOtherCharts();
+		m_picked->insert({ pickedA, pickedCellsList });
 	}
+}
+
+void iACompHistogramTableInteractorStyle::resetHistogramTable()
+{
+	//reset visualization when clicked anywhere
+	m_visualization->setBinsZoomed(m_visualization->getMinBins());
+	m_visualization->removePointRepresentation();
+	m_visualization->removeHighlightedCells();
+	m_visualization->removeHighlightedRow();
+	resetBarChartAmountObjects();
+
+	m_controlBinsInZoomedRows = false;
+	m_pointRepresentationOn = false;
+	m_visualization->drawHistogramTable(m_visualization->getBins());
+
+	resetOtherCharts();
 }
 
 void iACompHistogramTableInteractorStyle::OnMiddleButtonDown()
 {
+	reinitializeState();
+
 	// Forward events
 	vtkInteractorStyleTrackballCamera::OnMiddleButtonDown();
 }
 
 void iACompHistogramTableInteractorStyle::OnRightButtonDown()
 {
-	
+	reinitializeState();
+
 	setPickList(m_visualization->getOriginalRowActors());
 
 	int* pos = this->GetInteractor()->GetEventPosition();
-	/*this->FindPokedRenderer(pos[0], pos[1]);
+	this->FindPokedRenderer(pos[0], pos[1]);
 	auto currentRenderer = this->GetDefaultRenderer();
 	if (currentRenderer == nullptr)
 	{
 		return;
 	}
-	
-	DEBUG_LOG("Here");
 
 	if (((pos[0] >= currentRenderer->GetSize()[0]) || (pos[1] >= currentRenderer->GetSize()[1])))
 	{
 		return;
 	}
-*/
 
 	//int is = m_actorPicker->Pick(pos[0], pos[1], 0, currentRenderer)
 	int is = m_actorPicker->Pick(pos[0], pos[1], 0, m_visualization->getRenderer());
 
-	if (is != 0)
+	if (is == 0)
 	{
-		vtkSmartPointer<vtkActor> pickedA = m_actorPicker->GetActor();
-		m_visualization->highlightSelectedRow(pickedA);
+		return;
+	}
 
+	vtkSmartPointer<vtkActor> pickedA = m_actorPicker->GetActor();
+	if (pickedA == NULL)
+	{
+		return;
+	}
+
+	if (this->GetInteractor()->GetShiftKey())
+	{ //order data only according to selected bins when shift is released
+
+		vtkSmartPointer<vtkCellPicker> cellPicker = vtkSmartPointer<vtkCellPicker>::New();
+		cellPicker->Pick(pos[0], pos[1], 0, currentRenderer);
+		cellPicker->SetTolerance(0.0);
+
+		vtkIdType id = cellPicker->GetCellId();
+		storePickedActorAndCell(pickedA, id);
+
+		//color selected bin
+		m_visualization->highlightSelectedCell(pickedA, id);
+		m_zoomOn = false;
+	}
+	else
+	{	//order datasets according to every bin
+		m_visualization->highlightSelectedRow(pickedA);
 		m_visualization->drawHistogramTableAccordingToSimilarity(m_visualization->getBins(), pickedA);
 	}
 }
 
 void iACompHistogramTableInteractorStyle::OnMouseWheelForward()
 {
+	reinitializeState();
+
 	//camera zoom in
 	if (this->GetInteractor()->GetShiftKey() && this->GetInteractor()->GetControlKey())
 	{  
@@ -232,6 +401,8 @@ void iACompHistogramTableInteractorStyle::OnMouseWheelForward()
 
 void iACompHistogramTableInteractorStyle::OnMouseWheelBackward()
 {
+	reinitializeState();
+
 	//camera zoom out
 	if (this->GetInteractor()->GetShiftKey() && this->GetInteractor()->GetControlKey())
 	{  
@@ -335,19 +506,27 @@ void iACompHistogramTableInteractorStyle::setIACompVisMain(iACompVisMain* main)
 	m_main = main;
 }
 
-void iACompHistogramTableInteractorStyle::updateOtherCharts()
+void iACompHistogramTableInteractorStyle::updateCharts()
 {
 	QList<bin::BinType*>* zoomedRowDataMDS;
 	QList<std::vector<csvDataType::ArrayType*>*>* selectedObjectAttributes;
-	
+
 	//calculate the fiberIds per selected cells & the mds values per selected cells
 	std::tie(zoomedRowDataMDS, selectedObjectAttributes) = m_visualization->getSelectedData(m_picked);
 	m_zoomedRowData = zoomedRowDataMDS;
 
+	//change histogram table
+	m_visualization->drawLinearZoom(m_picked, m_visualization->getBins(), m_visualization->getBinsZoomed(), m_zoomedRowData);
+
+	updateOtherCharts(selectedObjectAttributes);
+}
+
+void iACompHistogramTableInteractorStyle::updateOtherCharts(QList<std::vector<csvDataType::ArrayType*>*>* selectedObjectAttributes)
+{
 	std::vector<int>* indexOfPickedRows = m_visualization->getIndexOfPickedRows();
 	csvDataType::ArrayType* selectedData = formatPickedObjects(selectedObjectAttributes);
 
-	std::map<int, std::vector<double>>* pickStatistic = calculatePickedObjects(zoomedRowDataMDS);
+	std::map<int, std::vector<double>>* pickStatistic = calculatePickedObjects(m_zoomedRowData);
 
 	m_main->updateOtherCharts(selectedData, pickStatistic);
 }
@@ -424,7 +603,6 @@ csvDataType::ArrayType* iACompHistogramTableInteractorStyle::formatPickedObjects
 	}
 	DEBUG_LOG("++++++++++++++++++++++++");*/
 
-	//TODO recalculate attribute array with correct values!!!
 	int amountDatasets = zoomedRowData->size();
 
 	if(amountDatasets == 0 || (zoomedRowData->at(0)->size() == 0) || (zoomedRowData->at(0)->at(0)->size() == 0))
@@ -441,20 +619,16 @@ csvDataType::ArrayType* iACompHistogramTableInteractorStyle::formatPickedObjects
 		for (int datasetInd = 0; datasetInd < amountDatasets; datasetInd++)
 		{ //for the datasets that were picked
 			int amountBins = zoomedRowData->at(datasetInd)->size();
-			//DEBUG_LOG("amountBins = " + QString::number(amountBins));
 
 			for (int binId = 0; binId < amountBins; binId++)
 			{ //for the bins that were picked
 
 				int amountVals = zoomedRowData->at(datasetInd)->at(binId)->size();
-				//DEBUG_LOG("Fibers = " + QString::number(amountVals));
-
+				
 				for (int objInd = 0; objInd < amountVals; objInd++)
 				{
 					csvDataType::ArrayType* vals = zoomedRowData->at(datasetInd)->at(binId);
 					attr.push_back(vals->at(objInd).at(attrInd));
-
-					//DEBUG_LOG("Attribute " + QString::number(attrInd) + " with " + QString::number(vals->at(objInd).at(attrInd)) + " values");
 				}
 			}
 		}
@@ -470,4 +644,27 @@ csvDataType::ArrayType* iACompHistogramTableInteractorStyle::formatPickedObjects
 	}*/
 
 	return result;
+}
+
+bool iACompHistogramTableInteractorStyle::resetBarChartAmountObjects()
+{
+	if(m_visualization->getBarChartAmountObjectsActive())
+	{
+		m_visualization->removeBarCharShowingAmountOfObjects();
+		m_visualization->drawHistogramTable(m_visualization->getBins());
+		return true;
+	}
+
+	return false;
+}
+
+void iACompHistogramTableInteractorStyle::reinitializeState()
+{
+	bool resetVis = resetBarChartAmountObjects();
+	bool resetHigh = m_visualization->removeHighlightedRow();
+
+	if(resetVis || resetHigh)
+	{
+		m_visualization->renderWidget();
+	}
 }

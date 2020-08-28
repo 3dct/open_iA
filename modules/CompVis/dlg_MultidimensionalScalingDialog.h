@@ -27,8 +27,7 @@ class dlg_MultidimensionalScalingDialog : public QDialog, public Ui_Multidimensi
 	void setupWeigthTable();
 	void setupProximityBox();
 	void setupDistanceBox();
-	//TODO check if the weights sum up to 100%
-	void checkWeightValues();
+	
 
 	QList<csvFileData>* m_data;
 	std::vector<double>* m_weights;

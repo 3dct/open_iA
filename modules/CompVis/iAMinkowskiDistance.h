@@ -7,6 +7,6 @@ class iAMinkowskiDistance : public iASimilarityDistance
 {
    public:
 	iAMinkowskiDistance();
-	csvDataType::ArrayType* calculateSimilarityDistance(
+	void calculateSimilarityDistance(
 		csvDataType::ArrayType* dataMatrix, csvDataType::ArrayType* distanceMatrix);
 };

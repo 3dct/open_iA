@@ -23,6 +23,18 @@ iAMultidimensionalScaling::iAMultidimensionalScaling(QList<csvFileData>* data) :
 	normalizeMatrix();
 }
 
+iAMultidimensionalScaling::~iAMultidimensionalScaling()
+{
+	m_inputData->clear();
+	delete m_inputData;
+
+	delete m_matrixUNormalized;
+	delete m_matrixProximityDis;
+	delete m_configuration;
+
+	delete m_weights;
+}
+
 void iAMultidimensionalScaling::initializeWeights()
 {
 	m_weights = new std::vector<double>();
@@ -32,7 +44,8 @@ void iAMultidimensionalScaling::startMDS(std::vector<double>* weights)
 {
 	m_weights = weights;
 	calculateProximityDistance();
-	calculateMDS(1, 1);
+
+	calculateMDS(1, 100); //1,1
 }
 
 void iAMultidimensionalScaling::setProximityMetric(ProximityMetric proxiName)
@@ -49,7 +62,7 @@ void iAMultidimensionalScaling::initializeMatrixUNormalized()
 {
 	// initialize matrixUNormalized --> different size of different input datasets
 	m_amountOfCharas = m_inputData->at(0).header->size();
-	std::vector<double> vec(m_amountOfCharas);
+	std::vector<double> vec(m_amountOfCharas - 1);
 
 	for (int k = 0; k < m_inputData->size(); k++)
 	{
@@ -57,22 +70,16 @@ void iAMultidimensionalScaling::initializeMatrixUNormalized()
 	}
 
 	m_matrixUNormalized = new csvDataType::ArrayType(m_amountOfElems, vec);
-	
-	//DEBUG
-	//DEBUG_LOG("");
-	//DEBUG_LOG("m_matrixUNormalized");
-	//csvDataType::debugArrayType(m_matrixUNormalized);
-	//DEBUG_LOG("");
 }
 
 void iAMultidimensionalScaling::normalizeMatrix()
 {
-	std::vector<double> maxValsForCols(m_amountOfCharas);
+	std::vector<double> maxValsForCols(m_amountOfCharas - 1);
 
 	//skip first column & row, since these are only label numbers	
-	for (int col = 1; col < m_amountOfCharas; col++)
+	for (int col = 0; col < m_amountOfCharas - 1; col++)
 	{
-		maxValsForCols[col - 1] = -INFINITY;
+		maxValsForCols[col] = -INFINITY;
 
 		for (int ind = 0; ind < m_inputData->count(); ind++)
 		{
@@ -81,14 +88,15 @@ void iAMultidimensionalScaling::normalizeMatrix()
 			//find max of each column for all datasets
 			for (int row = 0; row < currDataset.values->size(); row++)
 			{
-				double curVal = currDataset.values->at(row).at(col);
-				if (maxValsForCols[col - 1] < curVal)
+				double curVal = currDataset.values->at(row).at(col + 1);
+
+				if (maxValsForCols[col] < curVal)
 				{
-					maxValsForCols[col - 1] = curVal;
+					maxValsForCols[col] = curVal;
 				}
 			}
 		}
-
+	
 		//normalize column according to maxVal
 		int rowU = 0;
 		for (int ind = 0; ind < m_inputData->count(); ind++)
@@ -97,19 +105,26 @@ void iAMultidimensionalScaling::normalizeMatrix()
 
 			for (int row = 0; row < currDataset.values->size(); row++)
 			{
-				double curVal = currDataset.values->at(row).at(col);
-				if (!(maxValsForCols[col - 1] == 0))
+				double curVal = currDataset.values->at(row).at(col + 1);
+
+				if (!(maxValsForCols[col] == 0))
 				{
-					m_matrixUNormalized->at(rowU).at(col - 1) = curVal / maxValsForCols[col - 1];
+					m_matrixUNormalized->at(rowU).at(col) = curVal / maxValsForCols[col];
 				}
 				else
 				{
-					m_matrixUNormalized->at(rowU).at(col - 1) = curVal;
+					m_matrixUNormalized->at(rowU).at(col) = curVal;
 				}
 				rowU += 1;
 			}
 		}
 	}
+
+	//DEBUG
+	/*DEBUG_LOG("");
+	DEBUG_LOG("m_matrixUNormalized");
+	csvDataType::debugArrayType(m_matrixUNormalized);
+	DEBUG_LOG("");*/
 }
 
 void iAMultidimensionalScaling::calculateProximityDistance()
@@ -121,10 +136,10 @@ void iAMultidimensionalScaling::calculateProximityDistance()
 		m_matrixProximityDis = pd.calculateProximityDistance();
 
 		//DEBUG
-		//DEBUG_LOG("");
-		//DEBUG_LOG("m_matrixProximityDis");
-		//csvDataType::debugArrayType(m_matrixProximityDis);
-		//DEBUG_LOG("");
+		/*DEBUG_LOG("");
+		DEBUG_LOG("m_matrixProximityDis");
+		csvDataType::debugArrayType(m_matrixProximityDis);
+		DEBUG_LOG("");*/
 	}
 }
 
@@ -147,41 +162,55 @@ void iAMultidimensionalScaling::calculateMDS(int dim, int iterations)
 {
 	int amountColsProxM = csvDataType::getColumns(m_matrixProximityDis);
 	int amountRowsProxM = csvDataType::getRows(m_matrixProximityDis);
-	
+
+	////DEBUG
+	/*DEBUG_LOG(" \n m_matrixProximityDis");
+	csvDataType::debugArrayType(m_matrixProximityDis);*/
+
 	//X - configuration of points in Euclidiean space
 	//initialize X with one vector filled with random values between [0,1]
 	csvDataType::ArrayType* X = csvDataType::initializeRandom(amountRowsProxM, dim);
-	//csvDataType::debugArrayType(X);
+	////DEBUG
+	/*DEBUG_LOG(" \n init X");
+	csvDataType::debugArrayType(X);*/
+
 	// mean value of distance matrix
 	double meanD = csvDataType::mean(m_matrixProximityDis);
+
 	// move to the center
 	csvDataType::addNumberSelf(X, -0.5);
+
 	// before this step, mean distance is 1/3*sqrt(d)
 	csvDataType::multiplyNumberSelf(X, 0.1 * meanD / (1.0 / 3.0 * sqrt((double)dim)));
 
-	//DEBUG
-	/*DEBUG_LOG("");
-	DEBUG_LOG("X:");
-	csvDataType::debugArrayType(X);
-	DEBUG_LOG("");
-	*/
+	////DEBUG
+	/*DEBUG_LOG("X");
+	csvDataType::debugArrayType(X);*/
 
 	csvDataType::ArrayType* Z = csvDataType::copy(X);
 	csvDataType::ArrayType* D_ = csvDataType::initialize(amountRowsProxM, amountColsProxM);
 	csvDataType::ArrayType* B = csvDataType::initialize(amountRowsProxM, amountColsProxM);
 
+	/*DEBUG_LOG("\n init Z");
+	csvDataType::debugArrayType(Z);*/
+
 	//calculate euclidean distance
 	iASimilarityDistance* d = initializeDistanceMetric();
-	D_ = d->calculateSimilarityDistance(X, D_);
-	
-	//DEBUG_LOG("");
-	//DEBUG_LOG("D_");
-	//csvDataType::debugArrayType(D_);
-	//DEBUG_LOG("");
+	d->calculateSimilarityDistance(X, D_);
+
+	////DEBUG
+	/*DEBUG_LOG("\n D_");
+	csvDataType::debugArrayType(D_);*/
+
+	csvDataType::ArrayType oldX_ = *X;
+	csvDataType::ArrayType* result = csvDataType::initialize(csvDataType::getRows(&oldX_), csvDataType::getColumns(&oldX_));
 
 	//MDS iteration
 	for (int it = 0; it < iterations; it++)
 	{
+		/*DEBUG_LOG(QString("\n old B number %1").arg(it));
+		csvDataType::debugArrayType(B);*/
+
 		// B = calc_B(D_,D);
 		for (int r = 0; r < amountRowsProxM; r++)	
 		{
@@ -198,6 +227,9 @@ void iAMultidimensionalScaling::calculateMDS(int dim, int iterations)
 			}
 		}
 
+		/*DEBUG_LOG(QString("\n middle B number %1").arg(it));
+		csvDataType::debugArrayType(B);*/
+
 		double temp;
 		for (int c = 0; c < amountColsProxM; c++)
 		{
@@ -205,10 +237,17 @@ void iAMultidimensionalScaling::calculateMDS(int dim, int iterations)
 			for (int r = 0; r < amountRowsProxM; r++)
 			{
 				temp += B->at(r).at(c);
+
 			}
 
 			B->at(c).at(c) = -temp;
 		}
+
+		/*DEBUG_LOG(QString("\n new B number %1").arg(it));
+		csvDataType::debugArrayType(B);
+
+		DEBUG_LOG(QString("\n old Z number %1").arg(it));
+		csvDataType::debugArrayType(Z);*/
 
 		// X = B*Z/size(D,1);
 		for (int r = 0; r < csvDataType::getRows(X); r++)	
@@ -220,24 +259,49 @@ void iAMultidimensionalScaling::calculateMDS(int dim, int iterations)
 				{
 					temp += (B->at(r).at(bCols) * Z->at(bCols).at(xCols));
 				}
+
 				X->at(r).at(xCols) = temp / (double)amountRowsProxM;
 			}
 		}
 
 		//D_ = calc_D (X);
-		D_ = d->calculateSimilarityDistance(X, D_);
+		d->calculateSimilarityDistance(X, D_);
+
+		/*vectorDiff(X, &oldX_, result);
+		DEBUG_LOG(QString("\n X diff number %1 ").arg(it));
+		csvDataType::debugArrayType(result);
+		oldX_ = *X;
+
+		//DEBUG_LOG(QString("\n new D number %1").arg(it));
+		//csvDataType::debugArrayType(D_);	*/
 
 		//Z = X;
 		Z = csvDataType::elementCopy(X);
+
+		/*DEBUG_LOG(QString("\n new X number %1").arg(it));
+		csvDataType::debugArrayType(X);
+
+		DEBUG_LOG(QString("\n new Z number %1").arg(it));
+		csvDataType::debugArrayType(Z);*/
+
 	}
 
 	m_configuration = X;
 	
-	//DEBUG
-	//DEBUG_LOG("");
-	//DEBUG_LOG("m_configuration");
+	////DEBUG
+	//DEBUG_LOG("\n m_configuration");
 	//csvDataType::debugArrayType(m_configuration);
-	//DEBUG_LOG("");
+}
+
+void iAMultidimensionalScaling::vectorDiff(csvDataType::ArrayType * a, csvDataType::ArrayType * b, csvDataType::ArrayType * result)
+{
+	for (int i = 0; i < csvDataType::getRows(a); i++)
+	{
+		for (int j = 0; j < csvDataType::getColumns(a); j++)
+		{
+			result->at(i).at(j) = abs(a->at(i).at(j)) - abs(b->at(i).at(j));
+		}
+	}
 }
 
 std::vector<double>* iAMultidimensionalScaling::getWeights()
