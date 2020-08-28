@@ -37,10 +37,11 @@
 
 #include "onnxruntime_cxx_api.h"
 
-//#include "cuda_provider_factory.h"
-
-#include "dml_provider_factory.h"
-
+#ifdef ONNX_CUDA
+	#include "cuda_provider_factory.h"
+#else
+	#include "dml_provider_factory.h"
+#endif
 
 
 typedef float                                 				PixelType;
@@ -87,10 +88,13 @@ void executeDNN(iAFilter* filter, QMap<QString, QVariant> const & parameters)
 	// If onnxruntime.dll is built with CUDA enabled, we can uncomment out this line to use CUDA for this
 	// session (we also need to include cuda_provider_factory.h above which defines it)
 	
-	//OrtSessionOptionsAppendExecutionProvider_CUDA(session_options, 0);
-
-	OrtSessionOptionsAppendExecutionProvider_DML(session_options, parameters["GPU"].toInt());
-	
+	#ifdef ONNX_CUDA
+		OrtSessionOptionsAppendExecutionProvider_CUDA(session_options, 0);
+	#else
+		session_options.DisableMemPattern();
+		session_options.SetExecutionMode(ExecutionMode::ORT_SEQUENTIAL);
+		OrtSessionOptionsAppendExecutionProvider_DML(session_options, parameters["GPU"].toInt());
+	#endif
 
 	// Sets graph optimization level
 	// Available levels are
