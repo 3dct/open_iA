@@ -35,6 +35,7 @@ class MdiChild;
 
 class QLabel;
 class QGridLayout;
+class QScrollArea;
 
 class iANModalWidget : public QWidget {
 	Q_OBJECT
@@ -55,8 +56,6 @@ private:
 	QMap<int, iANModalLabel> m_labels;
 
 private slots:
-	void onButtonRefreshModalitiesClicked();
-
 	void onAllSlicersInitialized();
 	void onAllSlicersReinitialized();
 

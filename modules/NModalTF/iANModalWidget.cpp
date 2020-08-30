@@ -30,6 +30,11 @@
 #include "iAModality.h"
 #include "iAModalityList.h"
 #include "iASlicer.h"
+#include "iAModalityTransfer.h"
+#include "iASlicerMode.h"
+#include "charts/iAChartWithFunctionsWidget.h"
+#include <charts/iAHistogramData.h>
+#include "charts/iAPlotTypes.h"
 #include "dlg_modalities.h"
 #include "mdichild.h"
 
@@ -112,23 +117,21 @@ iANModalWidget::iANModalWidget(MdiChild *mdiChild) {
 	}
 }
 
-void iANModalWidget::onButtonRefreshModalitiesClicked() {
-	/*auto list = m_mdiChild->modalities();
-	QList<QSharedPointer<iAModality>> modalities;
-	for (int i = 0; i < list->size(); i++) {
-		modalities.append(list->get(i));
-	}
-	
-	auto output = m_preprocessor->preprocess(modalities);
-
-	m_c->setModalities(output.modalities);
-	m_c->reinitialize();*/
-}
-
 void iANModalWidget::onAllSlicersInitialized() {
 	for (int i = 0; i < m_c->m_slicers.size(); i++) {
 		auto slicer = m_c->m_slicers[i];
+		auto modality = m_c->m_modalities[i];
+
+		QSharedPointer<iAPlot> histogramPlot = QSharedPointer<iAPlot>(
+			new	iABarGraphPlot(modality->histogramData(), QColor(70, 70, 70, 255)));
+
+		auto histogram = new iAChartWithFunctionsWidget(nullptr, m_mdiChild, modality->name() + " grey value", "Frequency");
+		histogram->addPlot(histogramPlot);
+		histogram->setTransferFunctions(modality->transfer()->colorTF(), modality->transfer()->opacityTF());
+		histogram->updateTrf();
+
 		m_layoutSlicersGrid->addWidget(slicer, 0, i);
+		m_layoutSlicersGrid->addWidget(histogram, 1, i);
 	}
 }
 
