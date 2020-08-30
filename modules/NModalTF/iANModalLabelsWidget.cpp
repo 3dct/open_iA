@@ -119,13 +119,13 @@ void iANModalLabelsWidget::addRow(int rowIndex, iANModalLabel label, float opaci
 	QLabel *lColor = new QLabel();
 	setLabelColor(lColor, label.color);
 
-	QSlider* sOpacity = new QSlider(Qt::Orientation::Horizontal);
+	QSlider* sOpacity = new QSlider(Qt::Orientation::Vertical);
 	sOpacity->setMinimum(0);
 	sOpacity->setMaximum(SLIDER_MAX);
 	setOpacity(sOpacity, opacity);
 
-	m_layout->addWidget(lColor, rowIndex, COLOR);
-	m_layout->addWidget(sOpacity, rowIndex, OPACITY);
+	m_layout->addWidget(lColor, OPACITY, rowIndex);
+	m_layout->addWidget(sOpacity, COLOR, rowIndex);
 
 	if (rowIndex >= m_rows.size()) {
 		m_rows.resize(rowIndex + 1);

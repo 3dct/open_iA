@@ -23,10 +23,10 @@
 
 #include "iALabellingObjects.h"
 #include "iANModalLabelsWidget.h"
-
 #include "iANModalPreprocessor.h"
 
 #include "dlg_labels.h"
+
 #include "iAModality.h"
 #include "iAModalityList.h"
 #include "iASlicer.h"
@@ -39,25 +39,31 @@
 #include <QStandardItemModel>
 #include <QSizePolicy>
 #include <QGridLayout>
+#include <QScrollArea>
 
 iANModalWidget::iANModalWidget(MdiChild *mdiChild) {
 	m_mdiChild = mdiChild;
 	m_c = new iANModalController(mdiChild);
 
-	// QWidgets
+	// Main
+	QHBoxLayout *layoutMain = new QHBoxLayout(this);
+
+	// Slicers
 	QWidget *widgetSlicersGrid = new QWidget();
-
-	// Layouts
-	QVBoxLayout *layoutMain = new QVBoxLayout(this);
 	m_layoutSlicersGrid = new QGridLayout(widgetSlicersGrid);
-	//setLayout(layoutMain);
 
-	// Other widgets
+	QScrollArea *scrollArea = new QScrollArea();
+	scrollArea->setHorizontalScrollBarPolicy(Qt::ScrollBarAsNeeded);
+	scrollArea->setVerticalScrollBarPolicy(Qt::ScrollBarAlwaysOff);
+	//scrollArea->setWidget(widgetSlicersGrid);
+
+	// Labels
 	m_labelsWidget = new iANModalLabelsWidget();
 
-	layoutMain->addWidget(m_labelsWidget);
-	layoutMain->addWidget(widgetSlicersGrid);
-
+	// Wrap up!
+	layoutMain->addWidget(m_labelsWidget, 0);
+	//layoutMain->addWidget(scrollArea, 1);
+	layoutMain->addWidget(widgetSlicersGrid, 1);
 
 	connect(m_labelsWidget, SIGNAL(labelOpacityChanged(int)), this, SLOT(onLabelOpacityChanged(int)));
 	//connect(m_labelsWidget, &iANModalLabelsWidget::labelRemoverStateChanged, this, &iANModalWidget::onLabelRemoverStateChanged);
