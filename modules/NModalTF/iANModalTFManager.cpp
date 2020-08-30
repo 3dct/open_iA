@@ -213,7 +213,8 @@ void iANModalTFManager::removeAllControlPoints() {
 }
 
 inline void iANModalTFManager::addControlPointToTfs(const CP &cp) {
-	m_colorTf->AddRGBPoint(cp.x, cp.r, cp.g, cp.b);
+	double mul = cp.a == 0 ? 0 : 1;
+	m_colorTf->AddRGBPoint(cp.x , cp.r * mul, cp.g * mul, cp.b * mul);
 	m_opacityTf->AddPoint(cp.x, cp.a);
 }
 
