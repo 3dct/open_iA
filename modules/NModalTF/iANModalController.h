@@ -127,6 +127,7 @@ signals:
 	void allSlicersReinitialized();
 
 private slots:
-	void onHistogramAvailable();
+	void setSliceNumber(int);
+	void setSlicerMode(int);
 
 };

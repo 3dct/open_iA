@@ -82,8 +82,6 @@ iANModalController::iANModalController(MdiChild *mdiChild) :
 		mdiChild->splitDockWidget(mdiChild->logDockWidget(), m_dlg_labels, Qt::Vertical);
 	}
 	m_dlg_labels->setSeedsTracking(true);
-
-	connect(mdiChild, SIGNAL(histogramAvailable()), this, SLOT(onHistogramAvailable()));
 }
 
 void iANModalController::initialize() {
@@ -214,12 +212,6 @@ inline void iANModalController::_initializeMainSlicers() {
 		imgOut->SetSpacing(spc);
 		imgOut->AllocateScalars(VTK_UNSIGNED_CHAR, 4);
 		m_sliceImages2D[mainSlicerIndex] = imgOut;
-	}
-}
-
-void iANModalController::onHistogramAvailable() {
-	if (m_initialized && countModalities() > 0) {
-		//_initializeCombinedVol();
 	}
 }
 
@@ -581,9 +573,17 @@ static constexpr int slicerCoordSwapIndices[NUM_SLICERS][NUM_SLICERS] = {
 };
 
 static inline void swapIndices(const int (&xyz_orig)[3], int mainSlicerIndex, int (&xyz_out)[3]) {
-	xyz_out[0] = xyz_orig[slicerCoordSwapIndices[mainSlicerIndex][0]];
-	xyz_out[1] = xyz_orig[slicerCoordSwapIndices[mainSlicerIndex][1]];
-	xyz_out[2] = xyz_orig[slicerCoordSwapIndices[mainSlicerIndex][2]];
+	int i0 = xyz_orig[slicerCoordSwapIndices[mainSlicerIndex][0]];
+	int i1 = xyz_orig[slicerCoordSwapIndices[mainSlicerIndex][1]];
+	int i2 = xyz_orig[slicerCoordSwapIndices[mainSlicerIndex][2]];
+
+	xyz_out[0] = mapSliceToGlobalAxis(mainSlicerIndex, 0);
+	xyz_out[1] = mapSliceToGlobalAxis(mainSlicerIndex, 1);
+	xyz_out[2] = mapSliceToGlobalAxis(mainSlicerIndex, 2);
+
+	assert(i0 == xyz_out[0]);
+	assert(i1 == xyz_out[1]);
+	assert(i2 == xyz_out[2]);
 }
 
 static inline void convert_2d_to_3d(const int(&xyz_orig)[3], int mainSlicerIndex, int sliceNum, int(&xyz_out)[3]) {
@@ -806,5 +806,17 @@ void iANModalController::_updateMainSlicers() {
 
 	for (int i = 0; i < NUM_SLICERS; ++i) {
 		m_mdiChild->slicer(i)->update();
+	}
+}
+
+void iANModalController::setSliceNumber(int sliceNumber) {
+	for (auto slicer : m_slicers) {
+		// TODO: set slice number for each slicer
+	}
+}
+
+void iANModalController::setSlicerMode(int slicerMode) {
+	for (auto slicer : m_slicers) {
+		// TODO: set slicer mode for each slicer
 	}
 }
