@@ -24,6 +24,7 @@
 #include <defines.h> // for DIM
 #include "iAModality.h"
 #include "iATypedCallHelper.h"
+#include "iAPerformanceHelper.h"
 
 #ifndef NDEBUG
 #include "iAToolsITK.h"
@@ -63,7 +64,7 @@ QList<QSharedPointer<iAModality>> iANModalPCAModalityReducer::reduce(QList<QShar
 		auto mod = new iAModality(name, "", -1, imageData, iAModality::NoRenderer);
 
 #ifndef NDEBUG
-		storeImage(connectors[i].itkImage(), "pca_output_" + QString::number(i) + ".mhd", true);
+		//storeImage(connectors[i].itkImage(), "pca_output_" + QString::number(i) + ".mhd", true);
 #endif
 
 		//QSharedPointer<iAVolumeRenderer> renderer(new iAVolumeRenderer(mod->transfer().data(), mod->image()));
@@ -95,8 +96,8 @@ void iANModalPCAModalityReducer::itkPCA(std::vector<iAConnector> &c) {
 	for (int i = 0; i < inputSize; i++) {
 
 #ifndef NDEBUG
-		storeImage2(c[i].itkImage(), "pca_input_itk_" + QString::number(i) + ".mhd", true);
-		storeImage2(dynamic_cast<ImageType *>(c[i].itkImage()), "pca_input_itkcast_" + QString::number(i) + ".mhd", true);
+		//storeImage2(c[i].itkImage(), "pca_input_itk_" + QString::number(i) + ".mhd", true);
+		//storeImage2(dynamic_cast<ImageType *>(c[i].itkImage()), "pca_input_itkcast_" + QString::number(i) + ".mhd", true);
 #endif
 
 		pca->SetInput(i, dynamic_cast<ImageType *>(c[i].itkImage()));
@@ -118,7 +119,8 @@ void iANModalPCAModalityReducer::itkPCA(std::vector<iAConnector> &c) {
 	for (int i = 0; i < count; i++) {
 
 #ifndef NDEBUG
-		storeImage2(pca->GetOutput(i), "pca_output_before_conversion_" + QString::number(i) + ".mhd", true);
+		//storeImage2(pca->GetOutput(i), "pca_output_before_conversion_" + QString::number(i) + ".mhd", true);
+		storeImage2(pca->GetOutput(i), "pca_output_" + QString::number(i) + ".mhd", true);
 #endif
 
 		c[i].setImage(pca->GetOutput(i));
@@ -156,6 +158,8 @@ void iANModalPCAModalityReducer::ownPCA(std::vector<iAConnector> &c) {
 
 	assert(c.size() > 0);
 
+	iATimeGuard tg("Perform PCA");
+
 	int numInputs = c.size();
 	int numOutputs = std::min((int)c.size(), maxOutputLength());
 
@@ -180,8 +184,8 @@ void iANModalPCAModalityReducer::ownPCA(std::vector<iAConnector> &c) {
 		}
 
 #ifndef NDEBUG
-		storeImage(c[row_i].itkImage(), "pca_input_itk_" + QString::number(row_i) + ".mhd", true);
-		storeImage(dynamic_cast<ImageType *>(c[row_i].itkImage()), "pca_input_itkcast_" + QString::number(row_i) + ".mhd", true);
+		//storeImage(c[row_i].itkImage(), "pca_input_itk_" + QString::number(row_i) + ".mhd", true);
+		//storeImage(dynamic_cast<ImageType *>(c[row_i].itkImage()), "pca_input_itkcast_" + QString::number(row_i) + ".mhd", true);
 #endif
 	}
 
@@ -198,11 +202,29 @@ void iANModalPCAModalityReducer::ownPCA(std::vector<iAConnector> &c) {
 	// Calculate means
 	vnl_vector<double> means;
 	means.set_size(numInputs);
-	for (int img_i = 0; img_i < numInputs; img_i++) {
+
+	// Calculate inner product (lower triangle) (for covariance matrix)
+	vnl_matrix<double> innerProd;
+	innerProd.set_size(numInputs, numInputs);
+	innerProd.fill(0);
+
+	// Initialize the reconstructed matrix (with zeros)
+	vnl_matrix<double> reconstructed(numOutputs, numVoxels);
+
+	// Eigenvectors
+	vnl_matrix<double> evecs_innerProd;
+
+	// Normalize row-wise (i.e. image-wise) to range 0..1
+	double max_val = -DBL_MAX;
+	double min_val = DBL_MAX;
+
 #pragma omp parallel
-		{
+	{
+
+		// Calculate means
+		for (int img_i = 0; img_i < numInputs; img_i++) {
 			double mean = 0;
-#pragma omp for
+#pragma omp for nowait
 			for (int i = 0; i < numVoxels; i++) {
 				//means[img_i] += inputs[img_i][i];
 				mean += inputs[img_i][i];
@@ -212,22 +234,23 @@ void iANModalPCAModalityReducer::ownPCA(std::vector<iAConnector> &c) {
 #pragma omp barrier
 #pragma omp atomic
 			means[img_i] += mean;
-		} // end of parallel block
-		means[img_i] /= numVoxels;
-	}
+#pragma omp barrier
+#pragma omp single
+			means[img_i] /= numVoxels;
+		}
 
-	DEBUG_LOG_VECTOR(means, "Means");
 
-	// Calculate inner product (lower triangle) (for covariance matrix)
-	vnl_matrix<double> innerProd;
-	innerProd.set_size(numInputs, numInputs);
-	innerProd.fill(0);
-	for (int ix = 0; ix < numInputs; ix++) {
-		for (int iy = 0; iy <= ix; iy++) {
-#pragma omp parallel
-			{
+#ifndef NDEBUG
+#pragma omp single
+		DEBUG_LOG_VECTOR(means, "Means");
+#endif
+
+
+		// Calculate inner product (lower triangle) (for covariance matrix)
+		for (int ix = 0; ix < numInputs; ix++) {
+			for (int iy = 0; iy <= ix; iy++) {
 				double innerProd_thread = 0;
-#pragma omp for
+#pragma omp for nowait
 				for (int i = 0; i < numVoxels; i++) {
 					auto mx = inputs[ix][i] - means[ix];
 					auto my = inputs[iy][i] - means[iy];
@@ -239,74 +262,89 @@ void iANModalPCAModalityReducer::ownPCA(std::vector<iAConnector> &c) {
 #pragma omp barrier
 #pragma omp atomic
 				innerProd[ix][iy] += innerProd_thread;
-
-/*#ifndef NDEBUG
-#pragma omp single
-				DEBUG_LOG_MATRIX(innerProd, "Inner product (not complete)");
-#endif*/
-			} // end of parallel block
-		}
-	}
-
-	// Fill upper triangle (make symmetric)
-	for (int ix = 0; ix < (numInputs - 1); ix++) {
-		for (int iy = ix + 1; iy < numInputs; iy++) {
-			innerProd[ix][iy] = innerProd[iy][ix];
-		}
-	}
-	DEBUG_LOG_MATRIX(innerProd, "Inner product");
-
-	// Make covariance matrix (divide by N-1)
-	if (numInputs - 1 != 0) {
-		innerProd /= (numVoxels - 1);
-	} else {
-		innerProd.fill(0);
-	}
-	DEBUG_LOG_MATRIX(innerProd, "Covariance matrix");
-
-	// Solve eigenproblem
-	vnl_matrix<double> eye(numInputs, numInputs); // (eye)dentity matrix
-	eye.set_identity();
-	//DEBUG_LOG_MATRIX(eye, "Identity");
-	vnl_generalized_eigensystem evecs_evals_innerProd(innerProd, eye);
-	auto evecs_innerProd = evecs_evals_innerProd.V;
-	evecs_innerProd.fliplr(); // Flipped because VNL sorts eigenvectors in ascending order
-	if (numInputs != numOutputs) evecs_innerProd.extract(numInputs, numOutputs); // Keep only 'numOutputs' columns
-	//auto evals_innerProd = evecs_evals_innerProd.D.diagonal();
-
-	DEBUG_LOG_MATRIX(evecs_innerProd, "Eigenvectors");
-	DEBUG_LOG_VECTOR(evecs_evals_innerProd.D.diagonal(), "Eigenvalues");
-	
-	// Initialize the reconstructed matrix (with zeros)
-	vnl_matrix<double> reconstructed(numOutputs, numVoxels);
-	for (int row_i = 0; row_i < numOutputs; row_i++) {
-#pragma omp parallel for
-		for (int col_i = 0; col_i < numVoxels; col_i++) {
-			reconstructed[row_i][col_i] = 0;
-		}
-	}
-
-	// Transform images to principal components
-
-	for (int row_i = 0; row_i < numInputs; row_i++) {
-		for (int vec_i = 0; vec_i < numOutputs; vec_i++) {
-			auto evec_elem = evecs_innerProd[row_i][vec_i];
-#pragma omp parallel for
-			for (int col_i = 0; col_i < numVoxels; col_i++) {
-				auto voxel_value = inputs[row_i][col_i];
-				reconstructed[vec_i][col_i] += (voxel_value * evec_elem);
 			}
 		}
-	}
 
-	// Normalize row-wise (i.e. image-wise) to range 0..1
-	for (int vec_i = 0; vec_i < numOutputs; vec_i++) {
-		double max_val = -DBL_MAX;
-		double min_val = DBL_MAX;
-#pragma omp parallel
+
+		// Fill upper triangle (make symmetric)
+#pragma omp for
+		for (int ix = 0; ix < (numInputs - 1); ix++) {
+			for (int iy = ix + 1; iy < numInputs; iy++) {
+				innerProd[ix][iy] = innerProd[iy][ix];
+			}
+		}
+
+
+#ifndef NDEBUG
+#pragma omp single
+		DEBUG_LOG_MATRIX(innerProd, "Inner product");
+#endif
+
+
+#pragma omp single
 		{
+			// Make covariance matrix (divide by N-1)
+			if (numInputs - 1 != 0) {
+				innerProd /= (numVoxels - 1);
+			} else {
+				innerProd.fill(0);
+			}
+
+#ifndef NDEBUG
+			DEBUG_LOG_MATRIX(innerProd, "Covariance matrix");
+#endif
+
+			// Solve eigenproblem
+			vnl_matrix<double> eye(numInputs, numInputs); // (eye)dentity matrix
+			eye.set_identity();
+			//DEBUG_LOG_MATRIX(eye, "Identity");
+			vnl_generalized_eigensystem evecs_evals_innerProd(innerProd, eye);
+			evecs_innerProd = evecs_evals_innerProd.V;
+			evecs_innerProd.fliplr(); // Flipped because VNL sorts eigenvectors in ascending order
+			if (numInputs != numOutputs) evecs_innerProd.extract(numInputs, numOutputs); // Keep only 'numOutputs' columns
+			//auto evals_innerProd = evecs_evals_innerProd.D.diagonal();
+
+#ifndef NDEBUG
+			DEBUG_LOG_MATRIX(evecs_innerProd, "Eigenvectors");
+			DEBUG_LOG_VECTOR(evecs_evals_innerProd.D.diagonal(), "Eigenvalues");
+#endif
+		}
+
+
+		// Initialize the reconstructed matrix (with zeros)
+		for (int row_i = 0; row_i < numOutputs; row_i++) {
+#pragma omp for nowait
+			for (int col_i = 0; col_i < numVoxels; col_i++) {
+				reconstructed[row_i][col_i] = 0;
+			}
+		}
+
+
+#pragma omp barrier
+
+
+		// Transform images to principal components
+		for (int row_i = 0; row_i < numInputs; row_i++) {
+			for (int vec_i = 0; vec_i < numOutputs; vec_i++) {
+				auto evec_elem = evecs_innerProd[row_i][vec_i];
+				double reconstructed_thread = 0;
+#pragma omp for nowait
+				for (int col_i = 0; col_i < numVoxels; col_i++) {
+					auto voxel_value = inputs[row_i][col_i];
+					reconstructed[vec_i][col_i] += (voxel_value * evec_elem);
+				}
+			}
+		}
+
+
+#pragma omp barrier
+
+
+		// Normalize row-wise (i.e. image-wise) to range 0..1
+		for (int vec_i = 0; vec_i < numOutputs; vec_i++) {
 			double max_thread = -DBL_MAX;
 			double min_thread = DBL_MAX;
+
 #pragma omp for
 			for (int i = 0; i < numVoxels; i++) {
 				auto rec = reconstructed[vec_i][i];
@@ -315,6 +353,7 @@ void iANModalPCAModalityReducer::ownPCA(std::vector<iAConnector> &c) {
 				max_thread = max_thread > rec ? max_thread : rec;
 				min_thread = min_thread < rec ? min_thread : rec;
 			}
+			// Implicit barrier
 
 #pragma omp critical // Unfortunatelly, no atomic max :(
 			max_val = max_thread > max_val ? max_thread : max_val;
@@ -323,13 +362,16 @@ void iANModalPCAModalityReducer::ownPCA(std::vector<iAConnector> &c) {
 
 #pragma omp barrier
 
-#pragma omp for
+#pragma omp for nowait
 			for (int i = 0; i < numVoxels; i++) {
 				auto old = reconstructed[vec_i][i];
 				reconstructed[vec_i][i] = (old - min_val) / (max_val - min_val) * 65535.0;
 			}
-		} // end of parallel block
-	}
+		}
+
+
+	} // end of parallel block
+
 
 	// Reshape reconstructed vectors into image
 	c.resize(numOutputs);
@@ -358,7 +400,8 @@ void iANModalPCAModalityReducer::ownPCA(std::vector<iAConnector> &c) {
 		}
 
 #ifndef NDEBUG
-		storeImage(output, "pca_output_before_conversion_" + QString::number(out_i) + ".mhd", true);
+		//storeImage(output, "pca_output_before_conversion_" + QString::number(out_i) + ".mhd", true);
+		storeImage(output, "pca_output_" + QString::number(out_i) + ".mhd", true);
 #endif
 
 		c[out_i].setImage(output);
