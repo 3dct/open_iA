@@ -164,26 +164,30 @@ void iANModalTFManager::removeControlPoints(int labelId) {
 			to_be_removed.push_back(x);
 		}
 	}
-#pragma omp parallel sections
-	{
-#pragma omp section
-		for (unsigned int x : to_be_removed) {
-			m_colorTf->RemovePoint(x);
-		}
-#pragma omp section
-		for (unsigned int x : to_be_removed) {
-			m_opacityTf->RemovePoint(x);
-		}
-	}
 
-	// Then remove control points from our data structure
-	CP *ptr = m_cps.data();
-#pragma omp parallel for
-	for (int i = 0; i < m_cps.size(); ++i) {
-		if (ptr[i].labelId == labelId) {
-			ptr[i] = CP();
+#pragma omp parallel
+	{
+	#pragma omp sections
+		{
+	#pragma omp section
+			for (unsigned int x : to_be_removed) {
+				m_colorTf->RemovePoint(x);
+			}
+	#pragma omp section
+			for (unsigned int x : to_be_removed) {
+				m_opacityTf->RemovePoint(x);
+			}
 		}
-	}
+
+		// Then remove control points from our data structure
+		CP *ptr = m_cps.data();
+	#pragma omp for
+		for (int i = 0; i < m_cps.size(); ++i) {
+			if (ptr[i].labelId == labelId) {
+				ptr[i] = CP();
+			}
+		}
+	} // end of parallel block
 }
 
 void iANModalTFManager::removeAllControlPoints() {
