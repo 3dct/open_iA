@@ -79,8 +79,15 @@ iACompBoxPlot::iACompBoxPlot(MainWindow* parent, iACsvDataStorage* dataStorage) 
 	layout->addWidget(m_qvtkWidget);
 
 	m_view = vtkSmartPointer<vtkContextView>::New();
-	m_view->SetRenderWindow(m_qvtkWidget->GetRenderWindow());
-	m_view->SetInteractor(m_qvtkWidget->GetInteractor());
+
+	#if VTK_VERSION_NUMBER < VTK_VERSION_CHECK(9, 0, 0)
+		m_view->SetRenderWindow(m_qvtkWidget->GetRenderWindow());
+		m_view->SetInteractor(m_qvtkWidget->GetInteractor());
+	#else
+		m_view->SetRenderWindow(m_qvtkWidget->renderWindow());
+		m_view->SetInteractor(m_qvtkWidget->interactor());
+	#endif
+
 }
 
 void iACompBoxPlot::showEvent(QShowEvent* event)
@@ -404,7 +411,11 @@ void iACompBoxPlot::initializeLegend(vtkSmartPointer<BoxPlotChart> chart)
 
 void iACompBoxPlot::renderWidget()
 {
-	m_qvtkWidget->GetRenderWindow()->GetInteractor()->Render();
+	#if VTK_VERSION_NUMBER < VTK_VERSION_CHECK(9, 0, 0)
+		m_qvtkWidget->GetRenderWindow()->GetInteractor()->Render();
+	#else
+		m_qvtkWidget->renderWindow()->GetInteractor()->Render();
+	#endif
 }
 
 void iACompBoxPlot::setOrderedPositions(std::vector<double>* orderedPositions)

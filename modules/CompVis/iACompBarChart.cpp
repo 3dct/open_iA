@@ -77,11 +77,21 @@ iACompBarChart::iACompBarChart(MainWindow* parent, iACoefficientOfVariation* coe
 	style = vtkSmartPointer<BarChartInteractorStyle>::New();
 	style->setOuterClass(this);
 	style->initializeBarChartInteractorStyle();
-	m_qvtkWidget->GetInteractor()->SetInteractorStyle(style);
-
+	
 	m_view = vtkSmartPointer<vtkContextView>::New();
-	m_view->SetRenderWindow(m_qvtkWidget->GetRenderWindow());
-	m_view->SetInteractor(m_qvtkWidget->GetInteractor());
+	
+	#if VTK_VERSION_NUMBER < VTK_VERSION_CHECK(9, 0, 0)
+		m_qvtkWidget->GetInteractor()->SetInteractorStyle(style);
+
+		m_view->SetRenderWindow(m_qvtkWidget->GetRenderWindow());
+		m_view->SetInteractor(m_qvtkWidget->GetInteractor());
+	#else
+		m_qvtkWidget->interactor()->SetInteractorStyle(style);
+
+		m_view->SetRenderWindow(m_qvtkWidget->renderWindow());
+		m_view->SetInteractor(m_qvtkWidget->interactor());
+	#endif
+
 	m_view->GetInteractor()->SetInteractorStyle(style);
 
 	//data preparation
@@ -371,7 +381,11 @@ void iACompBarChart::removeLabelAttribute(std::vector<double>* input)
 
 void iACompBarChart::renderWidget()
 {
-	m_qvtkWidget->GetRenderWindow()->GetInteractor()->Render();
+	#if VTK_VERSION_NUMBER < VTK_VERSION_CHECK(9, 0, 0)
+		m_qvtkWidget->GetRenderWindow()->GetInteractor()->Render();
+	#else
+		m_qvtkWidget->renderWindow()->GetInteractor()->Render();
+	#endif
 }
 
 /******************************************  Getter Methods  **********************************************/
