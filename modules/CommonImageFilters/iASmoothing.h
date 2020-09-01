@@ -22,13 +22,13 @@
 
 #include <iAFilter.h>
 
-#include <itkConfigure.h>    // for ITK_VERSION...
+#include <iAItkVersion.h>
 
-#if (!defined(ITKNOGPU) && ITK_VERSION_MAJOR == 5 && ITK_VERSION_MINOR == 1)
+#if (!defined(ITKNOGPU) && ITK_VERSION_NUMBER >= ITK_VERSION_CHECK(5,1,0))
 #ifndef _MSC_VER
-#warning("ITK 5.1 FixME: GPU option not working together with shared libraries, see https://github.com/InsightSoftwareConsortium/ITK/issues/1381. Disabling GPU support")
+#warning("With ITK 5.1.x, GPU-accelerated filters don't work in open_iA, see https://github.com/InsightSoftwareConsortium/ITK/issues/1381. Disabling GPU support")
 #else
-#pragma message("ITK 5.1 FixME: GPU option not working together with shared libraries, see https://github.com/InsightSoftwareConsortium/ITK/issues/1381. Disabling GPU support")
+#pragma message("With ITK 5.1.x, GPU-accelerated filters don't work in open_iA, see https://github.com/InsightSoftwareConsortium/ITK/issues/1381. Disabling GPU support")
 #endif
 #define ITKNOGPU
 #endif
