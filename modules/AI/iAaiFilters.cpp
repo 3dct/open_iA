@@ -205,8 +205,6 @@ void executeDNN(iAFilter* filter, QMap<QString, QVariant> const & parameters)
 	// initialize session options if needed
 	Ort::SessionOptions session_options;
 	//session_options.SetIntraOpNumThreads(1);
-	session_options.DisableMemPattern();
-	session_options.SetExecutionMode(ExecutionMode::ORT_SEQUENTIAL);
 
 	// If onnxruntime.dll is built with CUDA enabled, we can uncomment out this line to use CUDA for this
 	// session (we also need to include cuda_provider_factory.h above which defines it)
