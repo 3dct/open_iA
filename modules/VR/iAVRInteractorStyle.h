@@ -62,6 +62,8 @@ class iAVRInteractorStyle : public vtkOpenVRInteractorStyle
 	void setVRMain(iAVRMain* vrMain);
 	void OnButton3D(vtkEventData* edata) override;
 	void OnMove3D(vtkEventData* edata) override;
+	void OnPinch() override;
+	void OnRotate() override;
 
 	inputScheme* getInputScheme();	// returns the vector for the Operation definition
 	std::vector<int>* getActiveInput(); //if >0 then has an action applied

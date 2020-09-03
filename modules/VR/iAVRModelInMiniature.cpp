@@ -42,9 +42,9 @@
 
 iAVRModelInMiniature::iAVRModelInMiniature(vtkRenderer* ren):iAVRCubicRepresentation{ren}
 {
-	defaultActorSize[0] = 0.15;
-	defaultActorSize[1] = 0.15;
-	defaultActorSize[2] = 0.15;
+	defaultActorSize[0] = 0.18;
+	defaultActorSize[1] = 0.18;
+	defaultActorSize[2] = 0.18;
 }
 
 //! Creates for every region of the octree a cube glyph. The cubes are stored in one actor.
@@ -52,7 +52,7 @@ void iAVRModelInMiniature::createCubeModel()
 {
 	iAVRCubicRepresentation::createCubeModel();
 
-	applyRelativeCubeOffset(2.8);
+	applyRelativeCubeOffset(2.9);
 
 	m_actor->GetMapper()->ScalarVisibilityOn();
 	m_actor->GetMapper()->SetScalarModeToUsePointFieldData();
@@ -64,12 +64,14 @@ void iAVRModelInMiniature::createCubeModel()
 
 void iAVRModelInMiniature::setScale(double x, double y, double z)
 {
-	m_actor->SetScale(x, y, z);
+	m_actor->SetScale(x * defaultActorSize[0], y * defaultActorSize[1], z * defaultActorSize[2]);
+	m_activeActor->SetScale(x * defaultActorSize[0], y * defaultActorSize[1], z * defaultActorSize[2]);
 }
 
 void iAVRModelInMiniature::setPos(double x, double y, double z)
 {
 	m_actor->SetPosition(x, y, z);
+	m_activeActor->SetPosition(x, y, z);
 }
 
 void iAVRModelInMiniature::addPos(double x, double y, double z)
@@ -81,4 +83,5 @@ void iAVRModelInMiniature::addPos(double x, double y, double z)
 void iAVRModelInMiniature::setOrientation(double x, double y, double z)
 {
 	m_actor->SetOrientation(x, y, z);
+	m_activeActor->SetOrientation(x, y, z);
 }

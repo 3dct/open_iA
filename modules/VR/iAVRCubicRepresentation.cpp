@@ -38,6 +38,7 @@ iAVRCubicRepresentation::iAVRCubicRepresentation(vtkRenderer* ren) :m_renderer(r
 	defaultColor = QColor(0, 0, 200, 255);
 
 	activeRegions = std::vector<vtkIdType>();
+	activeColors = std::vector<QColor>();
 
 	defaultActorSize[0] = 1;
 	defaultActorSize[1] = 1;
@@ -177,15 +178,30 @@ void iAVRCubicRepresentation::applyHeatmapColoring(std::vector<QColor>* colorPer
 	m_cubePolyData->GetPointData()->AddArray(glyphColor);
 }
 
-void iAVRCubicRepresentation::highlightGlyphs(std::vector<vtkIdType>* regionIDs)
+//! Creates colored border around the given Cubes. If no/empty color vector or too few colors are given the additional border are black
+void iAVRCubicRepresentation::highlightGlyphs(std::vector<vtkIdType>* regionIDs, std::vector<QColor>* colorPerRegion)
 {
 	if (!regionIDs->empty())
 	{
+		//Add black color if too few colors are given
+		if(regionIDs->size() > colorPerRegion->size())
+		{
+			for (int i = 0; i < colorPerRegion->size() - regionIDs->size(); i++)
+			{
+				colorPerRegion->push_back(QColor(0, 0, 0));
+			}
+		}
+
 		activeRegions = *regionIDs;
+		activeColors = *colorPerRegion;
 
 		vtkSmartPointer<vtkPolyData> activeData = vtkSmartPointer<vtkPolyData>::New();
 		vtkSmartPointer<vtkPoints> points = vtkSmartPointer<vtkPoints>::New();
 		activeGlyph3D = vtkSmartPointer<vtkGlyph3D>::New();
+
+		vtkSmartPointer<vtkUnsignedCharArray> activeGlyphColor = vtkSmartPointer<vtkUnsignedCharArray>::New();
+		activeGlyphColor->SetName("highlightColor");
+		activeGlyphColor->SetNumberOfComponents(3);
 
 		vtkSmartPointer<vtkDoubleArray> activeGlyphScales = vtkSmartPointer<vtkDoubleArray>::New();
 		activeGlyphScales->SetName("scales");
@@ -198,9 +214,11 @@ void iAVRCubicRepresentation::highlightGlyphs(std::vector<vtkIdType>* regionIDs)
 
 			double* regionSize = glyphScales->GetTuple3(iD);
 			activeGlyphScales->InsertNextTuple3(regionSize[0], regionSize[1], regionSize[2]);
+			activeGlyphColor->InsertNextTuple3(colorPerRegion->at(i).red(), colorPerRegion->at(i).green(), colorPerRegion->at(i).blue());
 		}
 		activeData->SetPoints(points);
 		activeData->GetPointData()->SetScalars(activeGlyphScales);
+		activeData->GetPointData()->AddArray(activeGlyphColor);
 
 		vtkSmartPointer<vtkCubeSource> cubeSource = vtkSmartPointer<vtkCubeSource>::New();
 
@@ -213,12 +231,13 @@ void iAVRCubicRepresentation::highlightGlyphs(std::vector<vtkIdType>* regionIDs)
 		glyphMapper->SetInputConnection(activeGlyph3D->GetOutputPort());
 
 		m_activeActor->SetMapper(glyphMapper);
-		m_activeActor->GetMapper()->SetScalarVisibility(false); //Don't use scalars for color
+		m_activeActor->GetMapper()->ScalarVisibilityOn();//Use scalars for color
+		m_activeActor->GetMapper()->SetScalarModeToUsePointFieldData();
+		m_activeActor->GetMapper()->SelectColorArray("highlightColor");
 		m_activeActor->GetProperty()->SetRepresentationToWireframe();
 		m_activeActor->GetProperty()->SetRenderLinesAsTubes(true);
 		m_activeActor->GetProperty()->SetLineWidth(12);
-		m_activeActor->GetProperty()->SetColor(0, 0, 0);
-		m_activeActor->SetScale(defaultActorSize);
+		m_activeActor->SetScale(m_actor->GetScale());
 		m_activeActor->SetPosition(m_actor->GetPosition());
 		m_activeActor->PickableOff();
 		m_activeActor->Modified();
@@ -236,12 +255,19 @@ void iAVRCubicRepresentation::removeHighlightedGlyphs()
 	}
 	m_renderer->RemoveActor(m_activeActor);
 	activeRegions.clear();
+	activeColors.clear();
 	m_highlightVisible = false;
 }
 
+//! Redraw the borders of the last selection in black color
 void iAVRCubicRepresentation::redrawHighlightedGlyphs()
 {
-	highlightGlyphs(&activeRegions);
+	highlightGlyphs(&activeRegions, &activeColors);
+}
+
+double* iAVRCubicRepresentation::getDefaultActorSize()
+{
+	return defaultActorSize;
 }
 
 //! This Method iterates through all leaf regions of the octree and stores its center point in an vtkPolyData

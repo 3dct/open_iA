@@ -64,13 +64,14 @@ public:
 	std::vector<QColor>* getHeatmapColoring(int octreeLevel, int feature, int valueMapping);
 	vtkSmartPointer<vtkLookupTable> getLut();
 	std::vector<std::vector<std::vector<vtkIdType>>>* getMaxCoverageFiberPerRegion();
-	void calculateColorBarLegend();
+	void calculateColorBarLegend(double physicalScale);
 	void showColorBarLegend();
 	void hideColorBarLegend();
 	int getNumberOfFeatures();
 	QString getFeatureName(int feature);
 	void moveColorBarLegend(double *pos);
 	void rotateColorBarLegend(double x, double y, double z);
+	void resizeColorBarLegend(double scale);
 	void setLegendTitle(QString title);
 	std::vector<std::vector<std::vector<double>>>* getWeightedJaccardIndex(int level);
 	void createMIPPanels(int octreeLevel, int feature);
@@ -116,6 +117,9 @@ private:
 	std::vector<std::vector<bool>>* isAlreadyCalculated;
 	int numberOfFeatures;
 	bool m_maxCoverageisAlreadyCalculated;
+	double titleFieldScale[3];
+	double textFieldScale[3];
+	double initialTextOffset;
 
 	void calculateWeightedAverage(int octreeLevel, int feature);
 	vtkSmartPointer<vtkLookupTable> calculateLUT(double min, double max, int tableSize);
