@@ -20,7 +20,9 @@
 * ************************************************************************************/
 #pragma once
 
-enum iAValueType
+#include "open_iA_Core_export.h"
+
+enum class iAValueType
 {
 	Invalid = -1,
 	Continuous,
@@ -40,5 +42,5 @@ enum iAValueType
 
 class QString;
 
-QString ValueType2Str(iAValueType type);
+open_iA_Core_API QString ValueType2Str(iAValueType type);
 iAValueType Str2ValueType(QString const & str);

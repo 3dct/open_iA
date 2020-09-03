@@ -154,7 +154,7 @@ iAHessianEigenanalysis::iAHessianEigenanalysis() :
 		"<a href=\"https://itk.org/Doxygen/html/classitk_1_1SymmetricEigenAnalysisImageFilter.html\">"
 		"Symmetric Eigen Analysis Filter</a> in the ITK documentation.", 1, 3)
 {
-	addParameter("Sigma", Continuous, 1.0);
+	addParameter("Sigma", iAValueType::Continuous, 1.0);
 }
 
 
@@ -190,5 +190,5 @@ iALaplacian::iALaplacian() :
 		"<a href=\"https://itk.org/Doxygen/html/classitk_1_1LaplacianRecursiveGaussianImageFilter.html\">"
 		"Laplacian Recursive Gaussian Filter</a> in the ITK documentation.")
 {
-	addParameter("Sigma", Continuous, 1.0);
+	addParameter("Sigma", iAValueType::Continuous, 1.0);
 }

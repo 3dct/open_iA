@@ -142,7 +142,7 @@ iATsvToVolume::iATsvToVolume() :
 	iAFilter("TSV reader", "Input",
 		"Creates from a TSV file a volume.")
 {
-	addParameter("File", FileNameOpen, 0, 0);
+	addParameter("File", iAValueType::FileNameOpen, 0, 0);
 
 	setOutputName(0u, "Z Displacement");
 	setOutputName(1u, "Y Displacement");

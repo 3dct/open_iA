@@ -361,7 +361,7 @@ iAai::iAai() :
 		"GPU select gpu should be used by DirectML (0 -> Default GPU)")
 {
 
-	addParameter("OnnxFile", FileNameOpen);
-	addParameter("GPU", Discrete,0);
+	addParameter("OnnxFile", iAValueType::FileNameOpen);
+	addParameter("GPU", iAValueType::Discrete,0);
 }
 

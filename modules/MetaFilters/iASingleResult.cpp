@@ -72,23 +72,24 @@ QSharedPointer<iASingleResult> iASingleResult::create(
 	for (int i = 0; i < attributes->size(); ++i)
 	{
 		double value = -1;
-		int valueType = attributes->at(i)->valueType();
+		auto valueType = attributes->at(i)->valueType();
 		QString curToken = tokens[i + 1];
 		switch (valueType)
 		{
-			case Continuous:
+			case iAValueType::Continuous:
 				value = curToken.toDouble(&ok);
 				break;
-			case Discrete:
+			case iAValueType::Discrete:
 				value = curToken.toInt(&ok);
 				break;
-			case Categorical:
+			case iAValueType::Categorical:
 				value = attributes->at(i)->nameMapper()->GetIdx(curToken, ok);
 				break;
 		}
 		if (!ok)
 		{
-			DEBUG_LOG(QString("Could not parse attribute value # %1: '%2' (type=%3).").arg(i).arg(curToken).arg((valueType==Continuous?"Continuous": valueType == Discrete? "Discrete":"Categorical")));
+			DEBUG_LOG(QString("Could not parse attribute value # %1: '%2' (type=%3).")
+				.arg(i).arg(curToken).arg(ValueType2Str(valueType)));
 			return QSharedPointer<iASingleResult>();
 		}
 		result->m_attributeValues.push_back(value);
@@ -132,7 +133,7 @@ QString iASingleResult::toString(QSharedPointer<iAAttributes> attributes, int ty
 			{
 				result += ValueSplitString;
 			}
-			if (attributes->at(i)->valueType() == Categorical &&
+			if (attributes->at(i)->valueType() == iAValueType::Categorical &&
 				m_attributeValues[i].toInt() < attributes->at(i)->nameMapper()->size())
 			{
 				result += attributes->at(i)->nameMapper()->name(m_attributeValues[i].toInt());

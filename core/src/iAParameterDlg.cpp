@@ -57,10 +57,10 @@ namespace
 #if __cplusplus >= 201703L
 			[[fallthrough]];
 #endif
-		case FileNameOpen:  return iAFileChooserWidget::FileNameOpen;
-		case FileNamesOpen: return iAFileChooserWidget::FileNamesOpen;
-		case FileNameSave:  return iAFileChooserWidget::FileNameSave;
-		case Folder:        return iAFileChooserWidget::Folder;
+		case iAValueType::FileNameOpen:  return iAFileChooserWidget::FileNameOpen;
+		case iAValueType::FileNamesOpen: return iAFileChooserWidget::FileNamesOpen;
+		case iAValueType::FileNameSave:  return iAFileChooserWidget::FileNameSave;
+		case iAValueType::Folder:        return iAFileChooserWidget::Folder;
 		}
 	}
 	iAFileChooserWidget* createFileChooser(iAValueType type, QString const & value)
@@ -125,9 +125,9 @@ iAParameterDlg::iAParameterDlg(QWidget* parent, QString const& title, QVector<QS
 
 		switch (p->valueType())
 		{
-		case FilterParameters:
+		case iAValueType::FilterParameters:
 		{
-			if (parameters[i - 1]->valueType() == FilterName)
+			if (parameters[i - 1]->valueType() == iAValueType::FilterName)
 			{                                            // if this is a filter parameter string,
 				m_filterWithParameters.push_back(i - 1); // and previous was a filter name, then
 			}                                            // remember this for the filter selection
@@ -136,7 +136,7 @@ iAParameterDlg::iAParameterDlg(QWidget* parent, QString const& title, QVector<QS
 			newWidget = lineEdit;
 			break;
 		}
-		case Continuous:
+		case iAValueType::Continuous:
 		{
 			auto lineEdit = new QLineEdit(m_container);
 			lineEdit->setText(p->defaultValue().toString());
@@ -152,7 +152,7 @@ iAParameterDlg::iAParameterDlg(QWidget* parent, QString const& title, QVector<QS
 			*/
 			break;
 		}
-		case Discrete:
+		case iAValueType::Discrete:
 		{
 			auto spinBox = new QSpinBox(m_container);
 			int minValue = (p->min() < std::numeric_limits<int>::lowest()) ? std::numeric_limits<int>::lowest() : static_cast<int>(p->min());
@@ -163,14 +163,14 @@ iAParameterDlg::iAParameterDlg(QWidget* parent, QString const& title, QVector<QS
 			newWidget = spinBox;
 			break;
 		}
-		case Boolean:
+		case iAValueType::Boolean:
 		{
 			auto checkBox = new QCheckBox(m_container);
 			checkBox->setChecked(p->defaultValue().toBool());
 			newWidget = checkBox;
 			break;
 		}
-		case Categorical:
+		case iAValueType::Categorical:
 		{
 			auto comboBox = new QComboBox(m_container);
 			for (QString s : p->defaultValue().toStringList())
@@ -194,21 +194,21 @@ iAParameterDlg::iAParameterDlg(QWidget* parent, QString const& title, QVector<QS
 #if __cplusplus >= 201703L
 			[[fallthrough]];
 #endif
-		case String:
+		case iAValueType::String:
 		{
 			auto textEdit = new QLineEdit(m_container);
 			textEdit->setText(p->defaultValue().toString());
 			newWidget = textEdit;
 			break;
 		}
-		case Text:
+		case iAValueType::Text:
 		{
 			auto plainTextEdit = new QPlainTextEdit(m_container);
 			plainTextEdit->setPlainText(p->defaultValue().toString());
 			newWidget = plainTextEdit;
 			break;
 		}
-		case FilterName:
+		case iAValueType::FilterName:
 		{
 			auto button = new QPushButton(m_container);
 			button->setText(p->defaultValue().toString());
@@ -216,19 +216,19 @@ iAParameterDlg::iAParameterDlg(QWidget* parent, QString const& title, QVector<QS
 			connect(button, &QPushButton::clicked, this, &iAParameterDlg::selectFilter);
 			break;
 		}
-		case FileNameOpen:
+		case iAValueType::FileNameOpen:
 #if __cplusplus >= 201703L
 			[[fallthrough]];
 #endif
-		case FileNamesOpen:
+		case iAValueType::FileNamesOpen:
 #if __cplusplus >= 201703L
 			[[fallthrough]];
 #endif
-		case FileNameSave:
+		case iAValueType::FileNameSave:
 #if __cplusplus >= 201703L
 			[[fallthrough]];
 #endif
-		case Folder:
+		case iAValueType::Folder:
 		{
 			newWidget = createFileChooser(p->valueType(), p->defaultValue().toString());
 			break;
@@ -309,10 +309,10 @@ void iAParameterDlg::selectFilter()
 				paramStr += (paramStr.isEmpty() ? "" : " ");
 				switch (param->valueType())
 				{
-				case Boolean:
+				case iAValueType::Boolean:
 					paramStr += paramValues[param->name()].toBool() ? "true" : "false"; break;
-				case Discrete:
-				case Continuous:
+				case iAValueType::Discrete:
+				case iAValueType::Continuous:
 					paramStr += paramValues[param->name()].toString(); break;
 				default:
 					paramStr += quoteString(paramValues[param->name()].toString()); break;
@@ -412,14 +412,14 @@ QMap<QString, QVariant> iAParameterDlg::parameterValues() const
 		auto p = m_parameters[i];
 		switch (p->valueType())
 		{
-		case FilterParameters:
+		case iAValueType::FilterParameters:
 		{
 			auto t = qobject_cast<QLineEdit*>(m_widgetList[i]);
 			assert(t);
 			result.insert(p->name(), t->text());
 			break;
 		}
-		case Continuous:
+		case iAValueType::Continuous:
 		{
 			auto t = qobject_cast<QLineEdit*>(m_widgetList[i]);
 			assert(t);
@@ -438,21 +438,21 @@ QMap<QString, QVariant> iAParameterDlg::parameterValues() const
 			*/
 			break;
 		}
-		case Discrete:
+		case iAValueType::Discrete:
 		{
 			QSpinBox* t = qobject_cast<QSpinBox*>(m_widgetList[i]);
 			assert(t);
 			result.insert(p->name(), t->value());
 			break;
 		}
-		case Boolean:
+		case iAValueType::Boolean:
 		{
 			QCheckBox* t = qobject_cast<QCheckBox*>(m_widgetList[i]);
 			assert(t);
 			result.insert(p->name(), t->checkState());
 			break;
 		}
-		case Categorical:
+		case iAValueType::Categorical:
 		{
 			QComboBox* t = qobject_cast<QComboBox*>(m_widgetList[i]);
 			assert(t);
@@ -463,40 +463,40 @@ QMap<QString, QVariant> iAParameterDlg::parameterValues() const
 #if __cplusplus >= 201703L
 			[[fallthrough]];
 #endif
-		case String:
+		case iAValueType::String:
 		{
 			QLineEdit* t = qobject_cast<QLineEdit*>(m_widgetList[i]);
 			assert(t);
 			result.insert(p->name(), t->text());
 			break;
 		}
-		case Text:
+		case iAValueType::Text:
 		{
 			QPlainTextEdit* t = qobject_cast<QPlainTextEdit*>(m_widgetList[i]);
 			assert(t);
 			result.insert(p->name(), t->toPlainText());
 			break;
 		}
-		case FilterName:
+		case iAValueType::FilterName:
 		{
 			QPushButton* t = qobject_cast<QPushButton*>(m_widgetList[i]);
 			assert(t);
 			result.insert(p->name(), t->text());
 			break;
 		}
-		case FileNameOpen:
+		case iAValueType::FileNameOpen:
 #if __cplusplus >= 201703L
 			[[fallthrough]];
 #endif
-		case FileNamesOpen:
+		case iAValueType::FileNamesOpen:
 #if __cplusplus >= 201703L
 			[[fallthrough]];
 #endif
-		case FileNameSave:
+		case iAValueType::FileNameSave:
 #if __cplusplus >= 201703L
 			[[fallthrough]];
 #endif
-		case Folder:
+		case iAValueType::Folder:
 		{
 			iAFileChooserWidget* t = qobject_cast<iAFileChooserWidget*>(m_widgetList[i]);
 			assert(t);

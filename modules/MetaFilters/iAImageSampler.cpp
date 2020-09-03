@@ -161,13 +161,13 @@ void iAImageSampler::newSamplingRun()
 			QString value;
 			switch (m_parameterRanges->at(i)->valueType())
 			{
-			case Continuous:
+			case iAValueType::Continuous:
 				value = QString::number(paramSet.at(i).toDouble(), 'g', 12);
 				break;
-			case Discrete:
+			case iAValueType::Discrete:
 				value = QString::number(paramSet.at(i).toInt());
 				break;
-			case Categorical:
+			case iAValueType::Categorical:
 				value = m_parameterRanges->at(i)->nameMapper()->name(paramSet.at(i).toInt());
 				break;
 			default:
@@ -229,11 +229,11 @@ void iAImageSampler::start()
 	{
 		// add derived output to the attributes (which we want to set during sampling):
 		QSharedPointer<iAAttributeDescriptor> objectCountAttr(new iAAttributeDescriptor(
-			"Object Count", iAAttributeDescriptor::DerivedOutput, Discrete));
+			"Object Count", iAAttributeDescriptor::DerivedOutput, iAValueType::Discrete));
 		QSharedPointer<iAAttributeDescriptor> avgUncertaintyAttr(new iAAttributeDescriptor(
-			"Average Uncertainty", iAAttributeDescriptor::DerivedOutput, Continuous));
+			"Average Uncertainty", iAAttributeDescriptor::DerivedOutput, iAValueType::Continuous));
 		QSharedPointer<iAAttributeDescriptor> timeAttr(new iAAttributeDescriptor(
-			"Performance", iAAttributeDescriptor::DerivedOutput, Continuous));
+			"Performance", iAAttributeDescriptor::DerivedOutput, iAValueType::Continuous));
 		m_parameterRanges->push_back(objectCountAttr);
 		m_parameterRanges->push_back(avgUncertaintyAttr);
 		m_parameterRanges->push_back(timeAttr);

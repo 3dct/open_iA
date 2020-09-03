@@ -1075,22 +1075,22 @@ void dlg_Consensus::samplerFinished()
 		// TODO: remove duplication between here and dlg_GEMSe::CalcRefImgComp
 		QVector<QSharedPointer<iAAttributeDescriptor> > measures;
 		measures.push_back(QSharedPointer<iAAttributeDescriptor>(new iAAttributeDescriptor(
-			"Dice", iAAttributeDescriptor::DerivedOutput, Continuous)));
+			"Dice", iAAttributeDescriptor::DerivedOutput, iAValueType::Continuous)));
 		measures.push_back(QSharedPointer<iAAttributeDescriptor>(new iAAttributeDescriptor(
-			"Kappa", iAAttributeDescriptor::DerivedOutput, Continuous)));
+			"Kappa", iAAttributeDescriptor::DerivedOutput, iAValueType::Continuous)));
 		measures.push_back(QSharedPointer<iAAttributeDescriptor>(new iAAttributeDescriptor(
-			"Overall Accuracy", iAAttributeDescriptor::DerivedOutput, Continuous)));
+			"Overall Accuracy", iAAttributeDescriptor::DerivedOutput, iAValueType::Continuous)));
 		measures.push_back(QSharedPointer<iAAttributeDescriptor>(new iAAttributeDescriptor(
-			"Precision", iAAttributeDescriptor::DerivedOutput, Continuous)));
+			"Precision", iAAttributeDescriptor::DerivedOutput, iAValueType::Continuous)));
 		measures.push_back(QSharedPointer<iAAttributeDescriptor>(new iAAttributeDescriptor(
-			"Recall", iAAttributeDescriptor::DerivedOutput, Continuous)));
+			"Recall", iAAttributeDescriptor::DerivedOutput, iAValueType::Continuous)));
 		for (int i = 0; i<m_labelCount; ++i)
 		{
 			measures.push_back(QSharedPointer<iAAttributeDescriptor>(new iAAttributeDescriptor(
-				QString("Dice %1").arg(i), iAAttributeDescriptor::DerivedOutput, Continuous)));
+				QString("Dice %1").arg(i), iAAttributeDescriptor::DerivedOutput, iAValueType::Continuous)));
 		}
 		measures.push_back(QSharedPointer<iAAttributeDescriptor>(new iAAttributeDescriptor(
-			"Undecided Pixels", iAAttributeDescriptor::DerivedOutput, Discrete)));
+			"Undecided Pixels", iAAttributeDescriptor::DerivedOutput, iAValueType::Discrete)));
 		for (QSharedPointer<iAAttributeDescriptor> measure : measures)
 		{
 			measure->resetMinMax();

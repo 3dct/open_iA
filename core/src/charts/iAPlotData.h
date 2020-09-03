@@ -47,6 +47,6 @@ public:
 	}
 	virtual iAValueType valueType() const
 	{
-		return Continuous;
+		return iAValueType::Continuous;
 	}
 };

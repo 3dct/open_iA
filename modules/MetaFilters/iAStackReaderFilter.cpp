@@ -148,9 +148,9 @@ iAStackReaderFilter::iAStackReaderFilter() :
 		"Minimum and maximum index are automatically determined "
 		"from the given folder name, spacing and datatype can be adapted.", 0, 1)
 {
-	addParameter("Folder name", String, "");
-	addParameter("File name base", String, "");
-	addParameter("Spacing X", Continuous, 1.0);
-	addParameter("Spacing Y", Continuous, 1.0);
-	addParameter("Spacing Z", Continuous, 1.0);
+	addParameter("Folder name", iAValueType::String, "");
+	addParameter("File name base", iAValueType::String, "");
+	addParameter("Spacing X", iAValueType::Continuous, 1.0);
+	addParameter("Spacing Y", iAValueType::Continuous, 1.0);
+	addParameter("Spacing Z", iAValueType::Continuous, 1.0);
 }

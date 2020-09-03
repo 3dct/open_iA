@@ -147,7 +147,7 @@ void iAClusterAttribChart::SelectionChanged()
 {
 	double minValue = m_charts->GetMinSliderPos();
 	double maxValue = m_charts->GetMaxSliderPos();
-	if (m_charts->GetRangeType() == Discrete || m_charts->GetRangeType() == Categorical)
+	if (m_charts->GetRangeType() == iAValueType::Discrete || m_charts->GetRangeType() == iAValueType::Categorical)
 	{
 		minValue = static_cast<int>(minValue);
 		maxValue = static_cast<int>(maxValue);

@@ -32,7 +32,7 @@
 
 
 iAHistogramData::iAHistogramData()
-	: m_binCount(0), m_rawData(nullptr), m_accSpacing(0), m_type(Continuous)
+	: m_binCount(0), m_rawData(nullptr), m_accSpacing(0), m_type(iAValueType::Continuous)
 {
 	m_xBounds[0] = m_xBounds[1] = 0;
 	m_yBounds[0] = m_yBounds[1] = 0;
@@ -103,8 +103,8 @@ QSharedPointer<iAHistogramData> iAHistogramData::create(vtkImageData* img, size_
 	}
 	result->setMaxFreq();
 	result->m_type = (img && (img->GetScalarType() != VTK_FLOAT) && (img->GetScalarType() != VTK_DOUBLE))
-		? Discrete
-		: Continuous;
+		? iAValueType::Discrete
+		: iAValueType::Continuous;
 	if (info)
 	{
 		*info = iAImageInfo(accumulate->GetVoxelCount(),

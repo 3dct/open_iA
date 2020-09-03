@@ -242,10 +242,10 @@ void dlg_commoninput::SelectFilter()
 				paramStr += (paramStr.isEmpty() ? "" : " ");
 				switch (param->valueType())
 				{
-				case Boolean:
+				case iAValueType::Boolean:
 					paramStr += paramValues[param->name()].toBool() ? "true" : "false"; break;
-				case Discrete:
-				case Continuous:
+				case iAValueType::Discrete:
+				case iAValueType::Continuous:
 					paramStr += paramValues[param->name()].toString(); break;
 				default:
 					paramStr += quoteString(paramValues[param->name()].toString()); break;

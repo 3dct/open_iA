@@ -284,13 +284,13 @@ iAElastixRegistration::iAElastixRegistration() :
 		"<ol>Deformation Z</ol>"
 		"< / ul>",2,2)
 {
-	addParameter("ParameterFile", FileNameOpen);
-	addParameter("PathElastix", Folder);
-	addParameter("Outputdir", Folder,"");
-	addParameter("Timeout[sec]", Discrete, 300);
+	addParameter("ParameterFile", iAValueType::FileNameOpen);
+	addParameter("PathElastix", iAValueType::Folder);
+	addParameter("Outputdir", iAValueType::Folder,"");
+	addParameter("Timeout[sec]", iAValueType::Discrete, 300);
 
-	addParameter("Load Files", Boolean, true);
-	addParameter("Run Transformix", Boolean, true);
+	addParameter("Load Files", iAValueType::Boolean, true);
+	addParameter("Run Transformix", iAValueType::Boolean, true);
 	
 
 

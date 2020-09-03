@@ -37,7 +37,7 @@ size_t iASimpleHistogramData::numBin() const
 
 double iASimpleHistogramData::spacing() const
 {						// check int type (see also iAHistogramData)
-	return (m_xBounds[1] - m_xBounds[0] + ((valueType() == Discrete) ? 1 : 0)) / m_numBin;
+	return (m_xBounds[1] - m_xBounds[0] + ((valueType() == iAValueType::Discrete) ? 1 : 0)) / m_numBin;
 }
 
 double const * iASimpleHistogramData::xBounds() const

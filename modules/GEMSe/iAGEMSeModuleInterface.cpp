@@ -51,7 +51,7 @@ iADifferenceMarker::iADifferenceMarker():
 		"where the two given images deviate. Where the images are the same, "
 		"this same value will be used in the output image as well.", 2)
 {
-	addParameter("Difference marker value", Continuous);
+	addParameter("Difference marker value", iAValueType::Continuous);
 	setInputName(1u, "Difference to");
 }
 

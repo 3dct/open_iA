@@ -80,25 +80,25 @@ iABatchFilter::iABatchFilter():
 {
 	QStringList filesFoldersBoth;
 	filesFoldersBoth << "Files" << "Folders" << "Both Files and Folders";
-	addParameter("Image folder", Folder, "");
-	addParameter("Recursive", Boolean, false);
-	addParameter("File mask", String, "*.mhd");
-	addParameter(spnFilter, FilterName, "Image Quality");
-	addParameter("Parameters", FilterParameters, "");
-	addParameter("Additional Input", FileNamesOpen, "");
-	addParameter(spnOutputFolder, Folder, "");
-	addParameter("Output suffix", String, "");
-	addParameter(spnOverwriteOutput, Boolean, false);
-	addParameter(spnCompressOutput, Boolean, true);
-	addParameter("Output csv file", FileNameSave, ".csv");
-	addParameter("Append to output", Boolean, true);
-	addParameter("Add filename", Boolean, true);
-	addParameter(spnContinueOnError, Boolean, false);
-	addParameter("Work on", Categorical, filesFoldersBoth);
+	addParameter("Image folder", iAValueType::Folder, "");
+	addParameter("Recursive", iAValueType::Boolean, false);
+	addParameter("File mask", iAValueType::String, "*.mhd");
+	addParameter(spnFilter, iAValueType::FilterName, "Image Quality");
+	addParameter("Parameters", iAValueType::FilterParameters, "");
+	addParameter("Additional Input", iAValueType::FileNamesOpen, "");
+	addParameter(spnOutputFolder, iAValueType::Folder, "");
+	addParameter("Output suffix", iAValueType::String, "");
+	addParameter(spnOverwriteOutput, iAValueType::Boolean, false);
+	addParameter(spnCompressOutput, iAValueType::Boolean, true);
+	addParameter("Output csv file", iAValueType::FileNameSave, ".csv");
+	addParameter("Append to output", iAValueType::Boolean, true);
+	addParameter("Add filename", iAValueType::Boolean, true);
+	addParameter(spnContinueOnError, iAValueType::Boolean, false);
+	addParameter("Work on", iAValueType::Categorical, filesFoldersBoth);
 	QStringList outputFormat;
 	outputFormat << "Same as input"
 		<< "MetaImage (*.mhd)";
-	addParameter("Output format", Categorical, outputFormat);
+	addParameter("Output format", iAValueType::Categorical, outputFormat);
 }
 
 void iABatchFilter::performWork(QMap<QString, QVariant> const & parameters)
@@ -241,7 +241,7 @@ void iABatchFilter::performWork(QMap<QString, QVariant> const & parameters)
 			}
 			for (auto const& param: filter->parameters())
 			{
-				if (param->valueType() == FileNameSave)
+				if (param->valueType() == iAValueType::FileNameSave)
 				{	// all output file names need to be adapted to output file name;
 					// merge with code in iASampleBuiltInFilterOperation?
 					auto value = pathFileBaseName(fileName) + param->defaultValue().toString();

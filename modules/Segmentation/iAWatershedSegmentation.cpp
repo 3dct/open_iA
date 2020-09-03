@@ -62,8 +62,8 @@ iAWatershed::iAWatershed() :
 		"<a href=\"https://itk.org/Doxygen/html/classitk_1_1WatershedImageFilter.html\">"
 		"Watershed filter</a> in the ITK documentation.")
 {
-	addParameter("Level", Continuous, 0);
-	addParameter("Threshold", Continuous, 0);
+	addParameter("Level", iAValueType::Continuous, 0);
+	addParameter("Threshold", iAValueType::Continuous, 0);
 }
 
 void iAWatershed::performWork(QMap<QString, QVariant> const & parameters)
@@ -101,9 +101,9 @@ iAMorphologicalWatershed::iAMorphologicalWatershed() :
 		"<a href=\"https://itk.org/Doxygen/html/classitk_1_1MorphologicalWatershedImageFilter.html\">"
 		"Morphological Watershed filter</a> in the ITK documentation.</p>")
 {
-	addParameter("Level", Continuous, 0);
-	addParameter("Mark WS Lines", Boolean, false);
-	addParameter("Fully Connected", Boolean, false);
+	addParameter("Level", iAValueType::Continuous, 0);
+	addParameter("Mark WS Lines", iAValueType::Boolean, false);
+	addParameter("Fully Connected", iAValueType::Boolean, false);
 }
 
 void iAMorphologicalWatershed::performWork(QMap<QString, QVariant> const & parameters)

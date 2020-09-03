@@ -218,11 +218,11 @@ iAFreeBeamCalculation::iAFreeBeamCalculation() :
 		"If <em>Float output</em> is enabled, then the output will be in float "
 		"datatype, otherwise double will be used.")
 {
-	addParameter("Index X", Discrete, 0);
-	addParameter("Index Y", Discrete, 0);
-	addParameter("Size X", Discrete, 1, 1);
-	addParameter("Size Y", Discrete, 1, 1);
-	addParameter("Set I0 manually", Boolean, false);
-	addParameter("Manual I0", Continuous, 0);
-	addParameter("Float output", Boolean, true);
+	addParameter("Index X", iAValueType::Discrete, 0);
+	addParameter("Index Y", iAValueType::Discrete, 0);
+	addParameter("Size X", iAValueType::Discrete, 1, 1);
+	addParameter("Size Y", iAValueType::Discrete, 1, 1);
+	addParameter("Set I0 manually", iAValueType::Boolean, false);
+	addParameter("Manual I0", iAValueType::Continuous, 0);
+	addParameter("Float output", iAValueType::Boolean, true);
 }

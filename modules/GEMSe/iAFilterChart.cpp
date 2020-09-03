@@ -77,8 +77,8 @@ double iAFilterChart::mapValueToBin(double value) const
 
 QSharedPointer<iAPlot> iAFilterChart::GetDrawer(QSharedPointer<iAParamHistogramData> newData, QColor color)
 {
-	return (newData->valueType() == Categorical ||
-		(newData->valueType() == Discrete && ((newData->xBounds()[1]- newData->xBounds()[0])  <= newData->numBin())))
+	return (newData->valueType() == iAValueType::Categorical ||
+		(newData->valueType() == iAValueType::Discrete && ((newData->xBounds()[1]- newData->xBounds()[0])  <= newData->numBin())))
 		? QSharedPointer<iAPlot>(new iABarGraphPlot(newData, color, 2))
 		: QSharedPointer<iAPlot>(new iAFilledLinePlot(newData, color));
 }
@@ -169,7 +169,7 @@ double iAFilterChart::GetMaxVisibleBin() const
 
 QString iAFilterChart::xAxisTickMarkLabel(double value, double stepWidth)
 {
-	if (plots().size() > 0 && plots()[0]->data()->valueType() == Categorical)
+	if (plots().size() > 0 && plots()[0]->data()->valueType() == iAValueType::Categorical)
 	{
 		return (m_nameMapper && value < m_nameMapper->size()) ? m_nameMapper->name(static_cast<int>(value)): "";
 	}
@@ -246,11 +246,11 @@ void iAFilterChart::mouseMoveEvent( QMouseEvent *event )
 		double value = xMapper().dstToSrc(x);
 
 		// snap to next valid value
-		if (GetRangeType() == Categorical)
+		if (GetRangeType() == iAValueType::Categorical)
 		{
 			value = mapBinToValue(std::round(mapValueToBin(value)));
 		}
-		if (GetRangeType() == Discrete)
+		if (GetRangeType() == iAValueType::Discrete)
 		{
 			value = std::round(value);
 		}

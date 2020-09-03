@@ -90,7 +90,7 @@ iAFlipAxis::iAFlipAxis() :
 		"Flip Filter</a> in the ITK documentation.")
 {
 	QStringList flipAxis = { "X", "Y", "Z" };
-	addParameter("Flip axis", Categorical, flipAxis);
+	addParameter("Flip axis", iAValueType::Categorical, flipAxis);
 }
 
 
@@ -180,14 +180,14 @@ iARotate::iARotate() :
 		"https://itk.org/Doxygen/html/classitk_1_1ResampleImageFilter.html\">"
 		"Resample Image Filter</a> in the ITK documentation.")
 {
-	addParameter("Rotation angle", Continuous, 0.0, 0.0, 360.0);
+	addParameter("Rotation angle", iAValueType::Continuous, 0.0, 0.0, 360.0);
 	QStringList rotAxes = QStringList() << "Rotation along X" << "Rotation along Y" << "Rotation along Z";
-	addParameter("Rotation axis", Categorical, rotAxes);
+	addParameter("Rotation axis", iAValueType::Categorical, rotAxes);
 	QStringList rotCenter = QStringList() << "Image center" << "Origin" << "Specify coordinate";
-	addParameter("Rotation center", Categorical, rotCenter);
-	addParameter("Center X", Continuous, 0);
-	addParameter("Center Y", Continuous, 0);
-	addParameter("Center Z", Continuous, 0);
+	addParameter("Rotation center", iAValueType::Categorical, rotCenter);
+	addParameter("Center X", iAValueType::Continuous, 0);
+	addParameter("Center Y", iAValueType::Continuous, 0);
+	addParameter("Center Z", iAValueType::Continuous, 0);
 }
 
 
@@ -222,9 +222,9 @@ iATranslate::iATranslate() :
 		"https://itk.org/Doxygen/html/classitk_1_1ResampleImageFilter.html\">"
 		"Resample Image Filter</a> in the ITK documentation.")
 {
-	addParameter("Translate X", Continuous, 0);
-	addParameter("Translate Y", Continuous, 0);
-	addParameter("Translate Z", Continuous, 0);
+	addParameter("Translate X", iAValueType::Continuous, 0);
+	addParameter("Translate Y", iAValueType::Continuous, 0);
+	addParameter("Translate Z", iAValueType::Continuous, 0);
 }
 
 
@@ -264,5 +264,5 @@ iAPermuteAxes::iAPermuteAxes() :
 		"Permute Axes Filter</a> in the ITK documentation.")
 {
 	QStringList permutationOrder = QStringList() << "XZY" << "YXZ" << "YZX" << "ZXY" << "ZYX";
-	addParameter("Order", Categorical, permutationOrder);
+	addParameter("Order", iAValueType::Categorical, permutationOrder);
 }

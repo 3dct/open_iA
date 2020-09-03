@@ -118,22 +118,22 @@ iAResampleFilter::iAResampleFilter() :
 		"<a href=\"https ://itk.org/Doxygen/html/classitk_1_1ResampleImageFilter.html\">"
 		"Resample Filter</a> in the ITK documentation.")
 {
-	addParameter("Origin X", Discrete, 0);
-	addParameter("Origin Y", Discrete, 0);
-	addParameter("Origin Z", Discrete, 0);
-	addParameter("Spacing X", Continuous, 0);
-	addParameter("Spacing Y", Continuous, 0);
-	addParameter("Spacing Z", Continuous, 0);
-	addParameter("Size X", Discrete, 1, 1);
-	addParameter("Size Y", Discrete, 1, 1);
-	addParameter("Size Z", Discrete, 1, 1);
+	addParameter("Origin X", iAValueType::Discrete, 0);
+	addParameter("Origin Y", iAValueType::Discrete, 0);
+	addParameter("Origin Z", iAValueType::Discrete, 0);
+	addParameter("Spacing X", iAValueType::Continuous, 0);
+	addParameter("Spacing Y", iAValueType::Continuous, 0);
+	addParameter("Spacing Z", iAValueType::Continuous, 0);
+	addParameter("Size X", iAValueType::Discrete, 1, 1);
+	addParameter("Size Y", iAValueType::Discrete, 1, 1);
+	addParameter("Size Z", iAValueType::Discrete, 1, 1);
 	QStringList interpolators;
 	interpolators
 		<< InterpLinear
 		<< InterpNearestNeighbour
 		<< InterpBSpline
 		<< InterpWindowedSinc;
-	addParameter("Interpolator", Categorical, interpolators);
+	addParameter("Interpolator", iAValueType::Categorical, interpolators);
 }
 
 QSharedPointer<iAFilterRunnerGUI> iAResampleFilterRunner::create()
@@ -191,12 +191,12 @@ iAExtractImageFilter::iAExtractImageFilter() :
 		"<a href=\"https://itk.org/Doxygen/html/classitk_1_1ExtractImageFilter.html\">"
 		"Extract Image Filter</a> in the ITK documentation.")
 {
-	addParameter("Index X", Discrete, 0);
-	addParameter("Index Y", Discrete, 0);
-	addParameter("Index Z", Discrete, 0);
-	addParameter("Size X", Discrete, 1, 1);
-	addParameter("Size Y", Discrete, 1, 1);
-	addParameter("Size Z", Discrete, 1, 1);
+	addParameter("Index X", iAValueType::Discrete, 0);
+	addParameter("Index Y", iAValueType::Discrete, 0);
+	addParameter("Index Z", iAValueType::Discrete, 0);
+	addParameter("Size X", iAValueType::Discrete, 1, 1);
+	addParameter("Size Y", iAValueType::Discrete, 1, 1);
+	addParameter("Size Z", iAValueType::Discrete, 1, 1);
 }
 
 QSharedPointer<iAFilterRunnerGUI> iAExtractImageFilterRunner::create()
@@ -266,11 +266,11 @@ iAPadImageFilter::iAPadImageFilter() :
 		"<a href=\"https://itk.org/Doxygen/html/classitk_1_1ConstantPadImageFilter.html\">"
 		"Extract Image Filter</a> in the ITK documentation.")
 {
-	addParameter("Lower X padding", Discrete, 1, 0);
-	addParameter("Lower Y padding", Discrete, 1, 0);
-	addParameter("Lower Z padding", Discrete, 1, 0);
-	addParameter("Upper X padding", Discrete, 1, 0);
-	addParameter("Upper Y padding", Discrete, 1, 0);
-	addParameter("Upper Z padding", Discrete, 1, 0);
-	addParameter("Value", Continuous, 0.0);
+	addParameter("Lower X padding", iAValueType::Discrete, 1, 0);
+	addParameter("Lower Y padding", iAValueType::Discrete, 1, 0);
+	addParameter("Lower Z padding", iAValueType::Discrete, 1, 0);
+	addParameter("Upper X padding", iAValueType::Discrete, 1, 0);
+	addParameter("Upper Y padding", iAValueType::Discrete, 1, 0);
+	addParameter("Upper Z padding", iAValueType::Discrete, 1, 0);
+	addParameter("Value", iAValueType::Continuous, 0.0);
 }

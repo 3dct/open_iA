@@ -76,11 +76,11 @@ iASignedMaurerDistanceMap::iASignedMaurerDistanceMap() :
 		"<a href=\"https://itk.org/Doxygen/html/classitk_1_1SignedMaurerDistanceMapImageFilter.html\">"
 		"Signed Maurer Distance Map Filter</a> in the ITK documentation.")
 {
-	addParameter("Use image spacing", Boolean, true);
-	addParameter("Squared distance", Boolean, false);
-	addParameter("Inside positive", Boolean, false);
-	addParameter("Remove negative values", Boolean, false);
-	addParameter("Background Value", Continuous, 0);
+	addParameter("Use image spacing", iAValueType::Boolean, true);
+	addParameter("Squared distance", iAValueType::Boolean, false);
+	addParameter("Inside positive", iAValueType::Boolean, false);
+	addParameter("Remove negative values", iAValueType::Boolean, false);
+	addParameter("Background Value", iAValueType::Continuous, 0);
 }
 
 
@@ -130,6 +130,6 @@ iADanielssonDistanceMap::iADanielssonDistanceMap() :
 		"<a href=\"https://itk.org/Doxygen/html/classitk_1_1DanielssonDistanceMapImageFilter.html\">"
 		"Danielsson Distance Map Filter</a> in the ITK documentation.")
 {
-	addParameter("Input binary", Boolean, true);
-	addParameter("Rescale to unsigned char", Boolean, false);
+	addParameter("Input binary", iAValueType::Boolean, true);
+	addParameter("Rescale to unsigned char", iAValueType::Boolean, false);
 }

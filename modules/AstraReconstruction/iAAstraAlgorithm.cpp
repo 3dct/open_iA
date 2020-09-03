@@ -270,13 +270,13 @@ namespace
 	void addCommonForwardReconstructParams(iAFilter* filter)
 	{
 		QStringList projectionGeometries; projectionGeometries << "cone";
-		filter->addParameter(ProjGeometry, Categorical, projectionGeometries);
-		filter->addParameter(DetSpcX, Continuous, 1.0, 0.0);
-		filter->addParameter(DetSpcY, Continuous, 1.0, 0.0);
-		filter->addParameter(ProjAngleStart, Continuous, 0.0);
-		filter->addParameter(ProjAngleEnd, Continuous, 359.0);
-		filter->addParameter(DstOrigDet, Continuous, 1.0);
-		filter->addParameter(DstOrigSrc, Continuous, 1.0);
+		filter->addParameter(ProjGeometry, iAValueType::Categorical, projectionGeometries);
+		filter->addParameter(DetSpcX, iAValueType::Continuous, 1.0, 0.0);
+		filter->addParameter(DetSpcY, iAValueType::Continuous, 1.0, 0.0);
+		filter->addParameter(ProjAngleStart, iAValueType::Continuous, 0.0);
+		filter->addParameter(ProjAngleEnd, iAValueType::Continuous, 359.0);
+		filter->addParameter(DstOrigDet, iAValueType::Continuous, 1.0);
+		filter->addParameter(DstOrigSrc, iAValueType::Continuous, 1.0);
 	}
 }
 
@@ -289,9 +289,9 @@ iAASTRAForwardProject::iAASTRAForwardProject() :
 		"Forward Projection with the ASTRA Toolbox")
 {
 	addCommonForwardReconstructParams(this);
-	addParameter(DetRowCnt, Discrete, 512);
-	addParameter(DetColCnt, Discrete, 512);
-	addParameter(ProjAngleCnt, Discrete, 360);
+	addParameter(DetRowCnt, iAValueType::Discrete, 512);
+	addParameter(DetColCnt, iAValueType::Discrete, 512);
+	addParameter(ProjAngleCnt, iAValueType::Discrete, 360);
 }
 
 class CPPAstraCustomMemory: public astra::CFloat32CustomMemory
@@ -386,23 +386,23 @@ iAASTRAReconstruct::iAASTRAReconstruct() :
 		"Reconstruction with the ASTRA Toolbox")
 {
 	addCommonForwardReconstructParams(this);
-	addParameter(DetRowDim, Discrete, 1, 0, 5);
-	addParameter(DetColDim, Discrete, 3, 0, 5);
-	addParameter(ProjAngleDim, Discrete, 5, 0, 5);
+	addParameter(DetRowDim, iAValueType::Discrete, 1, 0, 5);
+	addParameter(DetColDim, iAValueType::Discrete, 3, 0, 5);
+	addParameter(ProjAngleDim, iAValueType::Discrete, 5, 0, 5);
 
-	addParameter(VolDimX, Discrete, 512, 1);
-	addParameter(VolDimY, Discrete, 512, 1);
-	addParameter(VolDimZ, Discrete, 512, 1);
-	addParameter(VolSpcX, Continuous, 1.0);
-	addParameter(VolSpcY, Continuous, 1.0);
-	addParameter(VolSpcZ, Continuous, 1.0);
+	addParameter(VolDimX, iAValueType::Discrete, 512, 1);
+	addParameter(VolDimY, iAValueType::Discrete, 512, 1);
+	addParameter(VolDimZ, iAValueType::Discrete, 512, 1);
+	addParameter(VolSpcX, iAValueType::Continuous, 1.0);
+	addParameter(VolSpcY, iAValueType::Continuous, 1.0);
+	addParameter(VolSpcZ, iAValueType::Continuous, 1.0);
 
-	addParameter(AlgoType, Categorical, algorithmStrings());
+	addParameter(AlgoType, iAValueType::Categorical, algorithmStrings());
 
-	addParameter(NumberOfIterations, Discrete, 100, 0);
-	addParameter(CenterOfRotCorr, Boolean, false);
-	addParameter(CenterOfRotOfs, Continuous, 0.0);
-	addParameter(InitWithFDK, Boolean, true);
+	addParameter(NumberOfIterations, iAValueType::Discrete, 100, 0);
+	addParameter(CenterOfRotCorr, iAValueType::Boolean, false);
+	addParameter(CenterOfRotOfs, iAValueType::Continuous, 0.0);
+	addParameter(InitWithFDK, iAValueType::Boolean, true);
 }
 
 

@@ -346,8 +346,8 @@ QString attrValueStr(double value, QSharedPointer<iAAttributes> attributes, int 
 {
 	switch(attributes->at(id)->valueType())
 	{
-		case Discrete:    return QString::number(static_cast<int>(value)); break;
-		case Categorical: return attributes->at(id)->nameMapper()->name(static_cast<int>(value)); break;
+		case iAValueType::Discrete:    return QString::number(static_cast<int>(value)); break;
+		case iAValueType::Categorical: return attributes->at(id)->nameMapper()->name(static_cast<int>(value)); break;
 		default:          return QString::number(value); break;
 	}
 }
@@ -390,7 +390,7 @@ void iADetailView::SetNode(iAImageTreeNode const * node,
 		{
 			for (int chartID = 0; chartID < allAttributes->size(); ++chartID)
 			{
-				if (allAttributes->at(chartID)->valueType() != Categorical)
+				if (allAttributes->at(chartID)->valueType() != iAValueType::Categorical)
 				{
 					double min,	max;
 					GetClusterMinMax(node, chartID, min, max, mapper);

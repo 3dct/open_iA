@@ -64,7 +64,7 @@ iAConnectedComponents::iAConnectedComponents() :
 		"<a href=\"https://itk.org/Doxygen/html/classitk_1_1ConnectedComponentImageFilter.html\">"
 		"Connected Component Filter</a> in the ITK documentation.")
 {
-	addParameter("Fully Connected", Boolean, false);
+	addParameter("Fully Connected", iAValueType::Boolean, false);
 }
 
 
@@ -97,7 +97,7 @@ iAScalarConnectedComponents::iAScalarConnectedComponents() :
 		"<a href=\"https://itk.org/Doxygen/html/classitk_1_1ScalarConnectedComponentImageFilter.html\">"
 		"Scalar Connected Component Filter</a> in the ITK documentation.")
 {
-	addParameter("Distance Threshold", Continuous, 1);
+	addParameter("Distance Threshold", iAValueType::Continuous, 1);
 }
 
 
@@ -153,7 +153,7 @@ iARelabelComponents::iARelabelComponents() :
 		"<a href=\"https://itk.org/Doxygen/html/classitk_1_1RelabelComponentImageFilter.html\">"
 		"Relabel Component Filter</a> in the ITK documentation.")
 {
-	addParameter("Minimum object size", Discrete, 1, 1);
-	addParameter("Write labels to file", Boolean, false);
-	addParameter("Label file", FileNameSave, ".csv");
+	addParameter("Minimum object size", iAValueType::Discrete, 1, 1);
+	addParameter("Write labels to file", iAValueType::Boolean, false);
+	addParameter("Label file", iAValueType::FileNameSave, ".csv");
 }

@@ -1092,7 +1092,7 @@ void iADreamCaster::UpdateHistogramSlot()
 		app->processEvents();
 	}
 	hist->clearPlots();
-	auto histData = iAHistogramData::create(values, numBins, Continuous, min_x, max_x);
+	auto histData = iAHistogramData::create(values, numBins, iAValueType::Continuous, min_x, max_x);
 	auto histPlot = QSharedPointer<iAPlot>(new iABarGraphPlot(histData, QColor(0, 0, 255, 255)));
 	hist->addPlot(histPlot);
 	hist->update();

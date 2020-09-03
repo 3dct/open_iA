@@ -42,7 +42,7 @@ iAEntropy::iAEntropy() :
 		"\"http://ieeexplore.ieee.org/document/6415481/\">"
 		"Visualization of Uncertainty without a Mean</a> by Kristin Potter et al.")
 {
-	addParameter("Normalize", Boolean, true);
+	addParameter("Normalize", iAValueType::Boolean, true);
 }
 
 IAFILTER_CREATE(iAEntropy)

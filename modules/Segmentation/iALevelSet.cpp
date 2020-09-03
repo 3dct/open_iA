@@ -63,13 +63,13 @@ iALaplacianSegmentationLevelSet::iALaplacianSegmentationLevelSet() :
 		"<a href=\"https://itk.org/Doxygen/html/classitk_1_1LaplacianSegmentationLevelSetImageFilter.html#details\">"
 		"Laplacian Segmentation Level Set Image Filter</a> in the ITK documentation.", 2)
 {
-	addParameter("Maximum RMS error", Continuous, 0.002, 0.0, 1.0);
-	addParameter("Number of iterations", Discrete, 1000, 1, static_cast<double>(std::numeric_limits<uint64_t>::max()));
-	addParameter("Advection scaling", Continuous, 1.0);
-	addParameter("Propagation scaling", Continuous, 1.0);
-	addParameter("Curvature scaling", Continuous, 1.0);
-	addParameter("Iso surface value", Continuous, 0.5);
-	addParameter("Reverse expansion direction", Boolean, false);
+	addParameter("Maximum RMS error", iAValueType::Continuous, 0.002, 0.0, 1.0);
+	addParameter("Number of iterations", iAValueType::Discrete, 1000, 1, static_cast<double>(std::numeric_limits<uint64_t>::max()));
+	addParameter("Advection scaling", iAValueType::Continuous, 1.0);
+	addParameter("Propagation scaling", iAValueType::Continuous, 1.0);
+	addParameter("Curvature scaling", iAValueType::Continuous, 1.0);
+	addParameter("Iso surface value", iAValueType::Continuous, 0.5);
+	addParameter("Reverse expansion direction", iAValueType::Boolean, false);
 }
 
 void iALaplacianSegmentationLevelSet::performWork(QMap<QString, QVariant> const & parameters)
@@ -113,13 +113,13 @@ iACannySegmentationLevelSet::iACannySegmentationLevelSet() :
 		"<a href=\"https://itk.org/Doxygen/html/classitk_1_1CannySegmentationLevelSetImageFilter.html#details\">"
 		"Canny Segmentation Level Set Image Filter</a> in the ITK documentation.", 2)
 {
-	addParameter("Maximum RMS error", Continuous, 0.002, 0.0, 1.0);
-	addParameter("Number of iterations", Discrete, 1000, 1, static_cast<double>(std::numeric_limits<uint64_t>::max()));
-	addParameter("Advection scaling", Continuous, 1.0);
-	addParameter("Propagation scaling", Continuous, 1.0);
-	addParameter("Curvature scaling", Continuous, 1.0);
-	addParameter("Iso surface value", Continuous, 0.5);
-	addParameter("Reverse expansion direction", Boolean, false);
+	addParameter("Maximum RMS error", iAValueType::Continuous, 0.002, 0.0, 1.0);
+	addParameter("Number of iterations", iAValueType::Discrete, 1000, 1, static_cast<double>(std::numeric_limits<uint64_t>::max()));
+	addParameter("Advection scaling", iAValueType::Continuous, 1.0);
+	addParameter("Propagation scaling", iAValueType::Continuous, 1.0);
+	addParameter("Curvature scaling", iAValueType::Continuous, 1.0);
+	addParameter("Iso surface value", iAValueType::Continuous, 0.5);
+	addParameter("Reverse expansion direction", iAValueType::Boolean, false);
 }
 
 void iACannySegmentationLevelSet::performWork(QMap<QString, QVariant> const & parameters)
@@ -153,8 +153,8 @@ iAZeroCrossing::iAZeroCrossing() :
 		"<a href=\"https://itk.org/Doxygen/html/classitk_1_1ZeroCrossingImageFilter.html#details\">"
 		"Zero Crossing Image Filter</a> in the ITK documentation.")
 {
-	addParameter("Background value", Continuous, 0);
-	addParameter("Foreground value", Continuous, 1);
+	addParameter("Background value", iAValueType::Continuous, 0);
+	addParameter("Foreground value", iAValueType::Continuous, 1);
 }
 
 void iAZeroCrossing::performWork(QMap<QString, QVariant> const & parameters)

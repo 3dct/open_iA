@@ -64,8 +64,8 @@ iACannyEdgeDetection::iACannyEdgeDetection() :
 		"<a href=\"https://itk.org/Doxygen/html/classitk_1_1CannyEdgeDetectionImageFilter.html\">"
 		"Canny Edge Detection Filter</a> in the ITK documentation.")
 {
-	addParameter("Variance", Continuous, 0.01);
-	addParameter("Maximum error", Continuous, 0.01, std::numeric_limits<double>::epsilon(), 1);
-	addParameter("Lower threshold", Continuous, 0);
-	addParameter("Upper threshold", Continuous, 1);
+	addParameter("Variance", iAValueType::Continuous, 0.01);
+	addParameter("Maximum error", iAValueType::Continuous, 0.01, std::numeric_limits<double>::epsilon(), 1);
+	addParameter("Lower threshold", iAValueType::Continuous, 0);
+	addParameter("Upper threshold", iAValueType::Continuous, 1);
 }

@@ -408,7 +408,7 @@ void iAChartTransferFunction::TranslateToNewRange(double const oldXRange[2])
 {
 	double newXRange[2];
 	m_opacityTF->GetRange(newXRange);
-	double offset = (m_chart->plots().size() > 0 && m_chart->plots()[0]->data()->valueType() == Discrete) ? 0.5 : 0;
+	double offset = (m_chart->plots().size() > 0 && m_chart->plots()[0]->data()->valueType() == iAValueType::Discrete) ? 0.5 : 0;
 	if (dblApproxEqual(newXRange[0] - offset, oldXRange[0]) &&
 		dblApproxEqual(newXRange[1] + offset, oldXRange[1]))
 	{

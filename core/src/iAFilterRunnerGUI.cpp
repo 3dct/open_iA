@@ -127,8 +127,8 @@ QMap<QString, QVariant> iAFilterRunnerGUI::loadParameters(QSharedPointer<iAFilte
 	QSettings settings;
 	for (auto param : params)
 	{
-		QVariant defaultValue = (param->valueType() == Categorical) ? "" : param->defaultValue();
-		QVariant value = (param->valueType() == FileNameSave) ?
+		QVariant defaultValue = (param->valueType() == iAValueType::Categorical) ? "" : param->defaultValue();
+		QVariant value = (param->valueType() == iAValueType::FileNameSave) ?
 			pathFileBaseName(sourceMdi->fileInfo()) + param->defaultValue().toString() :
 			settings.value(SettingName(filter, param->name()), defaultValue);
 		result.insert(param->name(), value);
@@ -162,7 +162,7 @@ bool iAFilterRunnerGUI::askForParameters(QSharedPointer<iAFilter> filter, QMap<Q
 	for (auto filterParam : filter->parameters())
 	{
 		QSharedPointer<iAAttributeDescriptor> p(filterParam->clone());
-		if (p->valueType() == Categorical)
+		if (p->valueType() == iAValueType::Categorical)
 		{
 			QStringList comboValues = p->defaultValue().toStringList();
 			QString storedValue = paramValues[p->name()].toString();
@@ -214,7 +214,7 @@ bool iAFilterRunnerGUI::askForParameters(QSharedPointer<iAFilter> filter, QMap<Q
 		for (int i = 1; i < filter->requiredInputs(); ++i)
 		{
 			dlgParams.push_back(iAAttributeDescriptor::createParam(
-				QString("%1").arg(filter->inputName(i)), Categorical, mdiChildrenNames));
+				QString("%1").arg(filter->inputName(i)), iAValueType::Categorical, mdiChildrenNames));
 		}
 	}
 	iAParameterDlg dlg(mainWnd, filter->name(), dlgParams, filter->description());
@@ -322,7 +322,7 @@ void iAFilterRunnerGUI::run(QSharedPointer<iAFilter> filter, MainWindow* mainWnd
 		{
 			auto paramDescriptor = thread->filter()->parameters()[p];
 			QString paramName = paramDescriptor->name();
-			QString paramValue = paramDescriptor->valueType() == Boolean ?
+			QString paramValue = paramDescriptor->valueType() == iAValueType::Boolean ?
 				(paramValues[paramName].toBool() ? "yes" : "no")
 				: paramValues[paramName].toString();
 			mdiChild->addMsg(QString("    %1 = %2").arg(paramName).arg(paramValue));
