@@ -2,7 +2,7 @@
 * **********   A tool for visual analysis and processing of 3D CT images   ********** *
 * *********************************************************************************** *
 * Copyright (C) 2016-2020  C. Heinzl, M. Reiter, A. Reh, W. Li, M. Arikan, Ar. &  Al. *
-*                          Amirkhanov, J. Weissenböck, B. Fröhler, M. Schiwarth       *
+*                 Amirkhanov, J. Weissenböck, B. Fröhler, M. Schiwarth, P. Weinberger *
 * *********************************************************************************** *
 * This program is free software: you can redistribute it and/or modify it under the   *
 * terms of the GNU General Public License as published by the Free Software           *
@@ -39,7 +39,7 @@ class dlg_Consensus;
 class dlg_modalities;
 class dlg_progress;
 class dlg_samplings;
-class dlg_samplingSettings;
+class iASamplingSettingsDlg;
 class iAColorTheme;
 class iASimpleLabelInfo;
 class iASamplingResults;
@@ -105,7 +105,7 @@ private:
 
 
 	dlg_modalities*                      m_dlgModalities;
-	dlg_samplingSettings*                m_dlgSamplingSettings;
+	iASamplingSettingsDlg*               m_dlgSamplingSettings;
 	dlg_progress*						 m_dlgProgress;
 	dlg_GEMSe*                           m_dlgGEMSe;
 	dlg_labels*                          m_dlgLabels;

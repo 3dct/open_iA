@@ -2,7 +2,7 @@
 * **********   A tool for visual analysis and processing of 3D CT images   ********** *
 * *********************************************************************************** *
 * Copyright (C) 2016-2020  C. Heinzl, M. Reiter, A. Reh, W. Li, M. Arikan, Ar. &  Al. *
-*                          Amirkhanov, J. Weissenböck, B. Fröhler, M. Schiwarth       *
+*                 Amirkhanov, J. Weissenböck, B. Fröhler, M. Schiwarth, P. Weinberger *
 * *********************************************************************************** *
 * This program is free software: you can redistribute it and/or modify it under the   *
 * terms of the GNU General Public License as published by the Free Software           *
@@ -18,7 +18,7 @@
 * Contact: FH OÖ Forschungs & Entwicklungs GmbH, Campus Wels, CT-Gruppe,              *
 *          Stelzhamerstraße 23, 4600 Wels / Austria, Email: c.heinzl@fh-wels.at       *
 * ************************************************************************************/
-#include "dlg_TFTable.h"
+#include "iATFTableDlg.h"
 
 #include "charts/iAChartWithFunctionsWidget.h"
 #include "iAChartFunctionTransfer.h"
@@ -44,53 +44,49 @@ public:
 	}
 };
 
-dlg_TFTable::dlg_TFTable( iAChartWithFunctionsWidget * parent, iAChartFunction* func ) : dlg_TFTableWidgetConnector( parent ),
+iATFTableDlg::iATFTableDlg( iAChartWithFunctionsWidget * parent, iAChartFunction* func ) : iATFTableWidgetConnector( parent ),
 	m_oTF( dynamic_cast<iAChartTransferFunction*>( func )->opacityTF() ),
 	m_cTF( dynamic_cast<iAChartTransferFunction*>( func )->colorTF() ),
 	m_newPointColor( Qt::gray ),
 	m_parent(parent)
 {
-	Init();
+	m_oTF->GetRange(m_xRange);
+	dsbNewPointX->setRange(m_xRange[0], m_xRange[1]);
+
+	QPixmap pxMap(23, 23);
+	pxMap.fill(m_newPointColor);
+	tbChangeColor->setIcon(pxMap);
+
+	QAction* removePnt = new QAction(tr("Remove Point"), this);
+	QAction* addPnt = new QAction(tr("add Point"), this);
+	QAction* updateHisto = new QAction(tr("Update Histogram"), this);
+	removePnt->setShortcut(Qt::Key_Delete);
+	addPnt->setShortcut(Qt::Key_Space);
+	updateHisto->setShortcut(Qt::Key_Enter);
+	addAction(addPnt);
+	addAction(updateHisto);
+	table->addAction(removePnt);
+	table->setColumnCount(columnNames.size());
+	table->setHorizontalHeaderLabels(columnNames);
+	table->horizontalHeader()->setSectionResizeMode(QHeaderView::Stretch);
+	table->verticalHeader()->setDefaultSectionSize(25);
+	table->setSelectionBehavior(QAbstractItemView::SelectRows);
+
+	connect(tbChangeColor, &QToolButton::clicked, this, &iATFTableDlg::changeColor);
+	connect(tbAddPoint, &QToolButton::clicked, this, &iATFTableDlg::addPoint);
+	connect(addPnt, &QAction::triggered, this, &iATFTableDlg::addPoint);
+	connect(tbRemovePoint, &QToolButton::clicked, this, &iATFTableDlg::removeSelectedPoint);
+	connect(removePnt, &QAction::triggered, this, &iATFTableDlg::removeSelectedPoint);
+	connect(tbUpdateHisto, &QToolButton::clicked, this, &iATFTableDlg::updateHistogram);
+	connect(updateHisto, &QAction::triggered, this, &iATFTableDlg::updateHistogram);
+	connect(table, &QTableWidget::itemClicked, this, &iATFTableDlg::itemClicked);
+	connect(table, &QTableWidget::cellChanged, this, &iATFTableDlg::cellValueChanged);
+
 	updateTable();
 	resize( table->columnWidth( 0 ) * columnNames.size(), table->rowHeight( 0 ) * 13 );
 }
 
-void dlg_TFTable::Init()
-{
-	m_oTF->GetRange( m_xRange );
-	dsbNewPointX->setRange( m_xRange[0], m_xRange[1] );
-
-	QPixmap pxMap( 23, 23 );
-	pxMap.fill( m_newPointColor );
-	tbChangeColor->setIcon( pxMap );
-
-	QAction* removePnt = new QAction( tr( "Remove Point" ), this );
-	QAction* addPnt = new QAction( tr( "add Point" ), this );
-	QAction* updateHisto = new QAction( tr( "Update Histogram" ), this );
-	removePnt->setShortcut( Qt::Key_Delete );
-	addPnt->setShortcut( Qt::Key_Space );
-	updateHisto->setShortcut( Qt::Key_Enter );
-	addAction( addPnt );
-	addAction( updateHisto );
-	table->addAction( removePnt );
-	table->setColumnCount( columnNames.size() );
-	table->setHorizontalHeaderLabels( columnNames );
-	table->horizontalHeader()->setSectionResizeMode( QHeaderView::Stretch );
-	table->verticalHeader()->setDefaultSectionSize( 25 );
-	table->setSelectionBehavior( QAbstractItemView::SelectRows );
-
-	connect(tbChangeColor, &QToolButton::clicked, this, &dlg_TFTable::changeColor);
-	connect(tbAddPoint, &QToolButton::clicked, this, &dlg_TFTable::addPoint);
-	connect(addPnt, &QAction::triggered, this, &dlg_TFTable::addPoint);
-	connect(tbRemovePoint, &QToolButton::clicked, this, &dlg_TFTable::removeSelectedPoint);
-	connect(removePnt, &QAction::triggered, this, &dlg_TFTable::removeSelectedPoint);
-	connect(tbUpdateHisto, &QToolButton::clicked, this, &dlg_TFTable::updateHistogram);
-	connect(updateHisto, &QAction::triggered, this, &dlg_TFTable::updateHistogram);
-	connect(table, &QTableWidget::itemClicked, this, &dlg_TFTable::itemClicked);
-	connect(table, &QTableWidget::cellChanged, this, &dlg_TFTable::cellValueChanged);
-}
-
-void dlg_TFTable::updateTable()
+void iATFTableDlg::updateTable()
 {
 	table->setRowCount( m_oTF->GetSize() );
 	table->blockSignals( true );
@@ -119,7 +115,7 @@ void dlg_TFTable::updateTable()
 	table->blockSignals( false );
 }
 
-void dlg_TFTable::changeColor()
+void iATFTableDlg::changeColor()
 {
 	m_newPointColor = QColorDialog::getColor( Qt::gray, this, "Set Color", QColorDialog::ShowAlphaChannel );
 	QPixmap pxMap( 23, 23 );
@@ -127,7 +123,7 @@ void dlg_TFTable::changeColor()
 	tbChangeColor->setIcon( pxMap );
 }
 
-void dlg_TFTable::addPoint()
+void iATFTableDlg::addPoint()
 {
 	if ( !isValueXValid( dsbNewPointX->value() ) )
 		return;
@@ -148,7 +144,7 @@ void dlg_TFTable::addPoint()
 	table->blockSignals( false );
 }
 
-void dlg_TFTable::removeSelectedPoint()
+void iATFTableDlg::removeSelectedPoint()
 {
 	QList<QTableWidgetSelectionRange> selRangeList =  table->selectedRanges();
 	QList<int> rowsToRemove;
@@ -169,7 +165,7 @@ void dlg_TFTable::removeSelectedPoint()
 	}
 }
 
-void dlg_TFTable::updateHistogram()
+void iATFTableDlg::updateHistogram()
 {
 	m_oTF->RemoveAllPoints();
 	m_cTF->RemoveAllPoints();
@@ -184,7 +180,7 @@ void dlg_TFTable::updateHistogram()
 	m_parent->setTransferFunctions( m_cTF, m_oTF );
 }
 
-void dlg_TFTable::itemClicked( QTableWidgetItem * item )
+void iATFTableDlg::itemClicked( QTableWidgetItem * item )
 {
 	if ( item->column() == 2 )
 	{
@@ -199,7 +195,7 @@ void dlg_TFTable::itemClicked( QTableWidgetItem * item )
 	}
 }
 
-void dlg_TFTable::cellValueChanged( int changedRow, int changedColumn )
+void iATFTableDlg::cellValueChanged( int changedRow, int changedColumn )
 {
 	double val = table->item( changedRow, changedColumn )->data( Qt::DisplayRole ).toDouble();
 	table->blockSignals( true );
@@ -220,7 +216,7 @@ void dlg_TFTable::cellValueChanged( int changedRow, int changedColumn )
 	table->blockSignals( false );
 }
 
-bool dlg_TFTable::isValueXValid( double xVal, int row )
+bool iATFTableDlg::isValueXValid( double xVal, int row )
 {
 	if ( xVal < m_xRange[0] || xVal > m_xRange[1] )
 	{

@@ -2,7 +2,7 @@
 * **********   A tool for visual analysis and processing of 3D CT images   ********** *
 * *********************************************************************************** *
 * Copyright (C) 2016-2020  C. Heinzl, M. Reiter, A. Reh, W. Li, M. Arikan, Ar. &  Al. *
-*                          Amirkhanov, J. Weissenböck, B. Fröhler, M. Schiwarth       *
+*                 Amirkhanov, J. Weissenböck, B. Fröhler, M. Schiwarth, P. Weinberger *
 * *********************************************************************************** *
 * This program is free software: you can redistribute it and/or modify it under the   *
 * terms of the GNU General Public License as published by the Free Software           *
@@ -62,7 +62,7 @@ iASelectedBinPlot::iASelectedBinPlot(QSharedPointer<iAPlotData> proxyData, int p
 
 void iASelectedBinPlot::draw(QPainter& painter, double binWidth, size_t /*startBin*/, size_t /*endBin*/, iAMapper const & xMapper, iAMapper const & /*yMapper*/) const
 {
-	int x = xMapper.srcToDst(m_position) - ((m_data->valueType() == Discrete) ? binWidth/2 : 0);
+	int x = xMapper.srcToDst(m_position) - ((m_data->valueType() == iAValueType::Discrete) ? binWidth/2 : 0);
 	int h = painter.device()->height();
 	painter.setPen(getColor());
 	painter.drawRect( QRect( x, 0, binWidth, h ) );
@@ -169,13 +169,13 @@ void iAStepFunctionPlot::draw(QPainter& painter, double /*binWidth*/, size_t sta
 	poly.push_back(QPoint(xMapper.srcToDst(startBin), 0));
 	for (size_t curBin = startBin; curBin <= endBin; ++curBin)
 	{
-		int curX1 = xMapper.srcToDst(curBin - ((m_data->valueType() == Discrete) ? 0.5 : 0));
-		int curX2 = xMapper.srcToDst(curBin + ((m_data->valueType() == Discrete) ? 0.5 : 1));
+		int curX1 = xMapper.srcToDst(curBin - ((m_data->valueType() == iAValueType::Discrete) ? 0.5 : 0));
+		int curX2 = xMapper.srcToDst(curBin + ((m_data->valueType() == iAValueType::Discrete) ? 0.5 : 1));
 		int curY = yMapper.srcToDst(rawData[curBin]);
 		poly.push_back(QPoint(curX1, curY));
 		poly.push_back(QPoint(curX2, curY));
 	}
-	poly.push_back(QPoint(xMapper.srcToDst(endBin + ((m_data->valueType() == Discrete) ? 0.5 : 1)), 0));
+	poly.push_back(QPoint(xMapper.srcToDst(endBin + ((m_data->valueType() == iAValueType::Discrete) ? 0.5 : 1)), 0));
 	tmpPath.addPolygon(poly);
 	painter.fillPath(tmpPath, QBrush(getFillColor()));
 }
@@ -198,7 +198,7 @@ void iABarGraphPlot::draw(QPainter& painter, double binWidth, size_t startBin, s
 	QColor fillColor = getColor();
 	for (size_t curBin = startBin; curBin <= endBin; ++curBin)
 	{
-		int x = xMapper.srcToDst(curBin) - ((m_data->valueType() == Discrete || m_data->numBin() == 1) ? barWidth/2 : 0);
+		int x = xMapper.srcToDst(curBin) - ((m_data->valueType() == iAValueType::Discrete || m_data->numBin() == 1) ? barWidth/2 : 0);
 		int h = yMapper.srcToDst(rawData[curBin]);
 		if (m_lut)
 		{

@@ -2,7 +2,7 @@
 * **********   A tool for visual analysis and processing of 3D CT images   ********** *
 * *********************************************************************************** *
 * Copyright (C) 2016-2020  C. Heinzl, M. Reiter, A. Reh, W. Li, M. Arikan, Ar. &  Al. *
-*                          Amirkhanov, J. Weissenböck, B. Fröhler, M. Schiwarth       *
+*                 Amirkhanov, J. Weissenböck, B. Fröhler, M. Schiwarth, P. Weinberger *
 * *********************************************************************************** *
 * This program is free software: you can redistribute it and/or modify it under the   *
 * terms of the GNU General Public License as published by the Free Software           *
@@ -21,7 +21,7 @@
 #include "dlg_commoninput.h"
 
 #include "iAAttributeDescriptor.h"
-#include "dlg_FilterSelection.h"
+#include "iAFilterSelectionDlg.h"
 #include "iAConsole.h"
 #include "iAFilter.h"
 #include "iAFilterRegistry.h"
@@ -220,7 +220,7 @@ QVector<QWidget*> dlg_commoninput::widgetList()
 void dlg_commoninput::SelectFilter()
 {
 	QPushButton* sender = qobject_cast<QPushButton*>(QObject::sender());
-	dlg_FilterSelection dlg(this, sender->text());
+	iAFilterSelectionDlg dlg(this, sender->text());
 	if (dlg.exec())
 	{
 		QString filterName = dlg.selectedFilterName();
@@ -242,10 +242,10 @@ void dlg_commoninput::SelectFilter()
 				paramStr += (paramStr.isEmpty() ? "" : " ");
 				switch (param->valueType())
 				{
-				case Boolean:
+				case iAValueType::Boolean:
 					paramStr += paramValues[param->name()].toBool() ? "true" : "false"; break;
-				case Discrete:
-				case Continuous:
+				case iAValueType::Discrete:
+				case iAValueType::Continuous:
 					paramStr += paramValues[param->name()].toString(); break;
 				default:
 					paramStr += quoteString(paramValues[param->name()].toString()); break;

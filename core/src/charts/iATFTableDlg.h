@@ -2,7 +2,7 @@
 * **********   A tool for visual analysis and processing of 3D CT images   ********** *
 * *********************************************************************************** *
 * Copyright (C) 2016-2020  C. Heinzl, M. Reiter, A. Reh, W. Li, M. Arikan, Ar. &  Al. *
-*                          Amirkhanov, J. Weissenböck, B. Fröhler, M. Schiwarth       *
+*                 Amirkhanov, J. Weissenböck, B. Fröhler, M. Schiwarth, P. Weinberger *
 * *********************************************************************************** *
 * This program is free software: you can redistribute it and/or modify it under the   *
 * terms of the GNU General Public License as published by the Free Software           *
@@ -31,14 +31,15 @@ class iAChartWithFunctionsWidget;
 class vtkPiecewiseFunction;
 class vtkColorTransferFunction;
 
-typedef iAQTtoUIConnector<QDialog, Ui_TFTableWidget>  dlg_TFTableWidgetConnector;
+typedef iAQTtoUIConnector<QDialog, Ui_TFTableWidget>  iATFTableWidgetConnector;
 
-class dlg_TFTable : public dlg_TFTableWidgetConnector
+//! Dialog for editing the precise values of a transfer function.
+class iATFTableDlg : public iATFTableWidgetConnector
 {
 	Q_OBJECT
 
 public:
-	dlg_TFTable( iAChartWithFunctionsWidget * parent, iAChartFunction* func );
+	iATFTableDlg( iAChartWithFunctionsWidget * parent, iAChartFunction* func );
 
 public slots:
 	void changeColor();
@@ -50,7 +51,6 @@ public slots:
 	void updateTable();
 
 private:
-	void Init();
 	bool isValueXValid(double xVal, int row = -1);
 
 	vtkSmartPointer<vtkPiecewiseFunction> m_oTF;

@@ -2,7 +2,7 @@
 * **********   A tool for visual analysis and processing of 3D CT images   ********** *
 * *********************************************************************************** *
 * Copyright (C) 2016-2020  C. Heinzl, M. Reiter, A. Reh, W. Li, M. Arikan, Ar. &  Al. *
-*                          Amirkhanov, J. Weissenböck, B. Fröhler, M. Schiwarth       *
+*                 Amirkhanov, J. Weissenböck, B. Fröhler, M. Schiwarth, P. Weinberger *
 * *********************************************************************************** *
 * This program is free software: you can redistribute it and/or modify it under the   *
 * terms of the GNU General Public License as published by the Free Software           *
@@ -91,7 +91,7 @@ private:
 	void fillFileNameArray(int * indexRange, int digitsInIndex, int stepSize = 1);
 
 	void readImageStack();
-	void readRawImage();
+	void readRawImage(bool reportProgress);
 	void loadMetaImageFile(QString const & fileName);
 	void readVTKFile();
 

@@ -2,7 +2,7 @@
 * **********   A tool for visual analysis and processing of 3D CT images   ********** *
 * *********************************************************************************** *
 * Copyright (C) 2016-2020  C. Heinzl, M. Reiter, A. Reh, W. Li, M. Arikan, Ar. &  Al. *
-*                          Amirkhanov, J. Weissenböck, B. Fröhler, M. Schiwarth       *
+*                 Amirkhanov, J. Weissenböck, B. Fröhler, M. Schiwarth, P. Weinberger *
 * *********************************************************************************** *
 * This program is free software: you can redistribute it and/or modify it under the   *
 * terms of the GNU General Public License as published by the Free Software           *
@@ -37,7 +37,7 @@
 #include <iASamplingMethodImpl.h>
 #include <iASamplingResults.h>
 #include <iAParameterNames.h>
-#include <dlg_samplingSettings.h>
+#include <iASamplingSettingsDlg.h>
 
 // core
 #include <dlg_commoninput.h>
@@ -186,7 +186,7 @@ void dlg_GEMSeControl::startSampling()
 		QMessageBox::warning(this, "GEMSe", "Another sampler still running / dialog is still open...");
 		return;
 	}
-	m_dlgSamplingSettings = new dlg_samplingSettings(this, m_dlgModalities->modalities()->size(), m_samplingSettings);
+	m_dlgSamplingSettings = new iASamplingSettingsDlg(this, m_dlgModalities->modalities()->size(), m_samplingSettings);
 	if (m_dlgSamplingSettings->exec() == QDialog::Accepted)
 	{
 		QSharedPointer<iAAttributes> parameterRanges = m_dlgSamplingSettings->parameterRanges();

@@ -2,7 +2,7 @@
 * **********   A tool for visual analysis and processing of 3D CT images   ********** *
 * *********************************************************************************** *
 * Copyright (C) 2016-2020  C. Heinzl, M. Reiter, A. Reh, W. Li, M. Arikan, Ar. &  Al. *
-*                          Amirkhanov, J. Weissenböck, B. Fröhler, M. Schiwarth       *
+*                 Amirkhanov, J. Weissenböck, B. Fröhler, M. Schiwarth, P. Weinberger *
 * *********************************************************************************** *
 * This program is free software: you can redistribute it and/or modify it under the   *
 * terms of the GNU General Public License as published by the Free Software           *
@@ -1142,13 +1142,17 @@ void iAIO::readVolumeStack()
 	for (int m=0; m<= m_fileNameArray->GetMaxId(); m++)
 	{
 		m_fileName=(m_fileNameArray->GetValue(m));
-		readRawImage();
+		readRawImage(false);
 		vtkSmartPointer<vtkImageData> image = vtkSmartPointer<vtkImageData>::New();
 		image->DeepCopy(getConnector()->vtkImage());
-		if(m_volumes)
+		if (m_volumes)
+		{
 			m_volumes->push_back(image);
-		if(m_fileNames_volstack)
+		}
+		if (m_fileNames_volstack)
+		{
 			m_fileNames_volstack->push_back(m_fileName);
+		}
 		int progress = (m * 100) / m_fileNameArray->GetMaxId();
 		ProgressObserver()->emitProgress(progress);
 	}
@@ -1185,9 +1189,11 @@ void iAIO::writeVolumeStack()
 	}
 }
 
-void iAIO::readRawImage()
+void iAIO::readRawImage(bool reportProgress)
 {
-	VTK_TYPED_CALL(read_raw_image_template, m_rawFileParams.m_scalarType, m_rawFileParams, m_fileName, ProgressObserver(), getConnector());
+	iAProgress dummyProgress;
+	VTK_TYPED_CALL(read_raw_image_template, m_rawFileParams.m_scalarType, m_rawFileParams, m_fileName,
+		reportProgress ? ProgressObserver() : &dummyProgress, getConnector());
 }
 
 void iAIO::postImageReadActions()
@@ -1201,7 +1207,7 @@ void iAIO::postImageReadActions()
 
 void iAIO::readImageData()
 {
-	readRawImage();
+	readRawImage(true);
 	postImageReadActions();
 	storeIOSettings();
 }

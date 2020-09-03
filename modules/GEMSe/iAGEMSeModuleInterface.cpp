@@ -2,7 +2,7 @@
 * **********   A tool for visual analysis and processing of 3D CT images   ********** *
 * *********************************************************************************** *
 * Copyright (C) 2016-2020  C. Heinzl, M. Reiter, A. Reh, W. Li, M. Arikan, Ar. &  Al. *
-*                          Amirkhanov, J. Weissenböck, B. Fröhler, M. Schiwarth       *
+*                 Amirkhanov, J. Weissenböck, B. Fröhler, M. Schiwarth, P. Weinberger *
 * *********************************************************************************** *
 * This program is free software: you can redistribute it and/or modify it under the   *
 * terms of the GNU General Public License as published by the Free Software           *
@@ -51,7 +51,7 @@ iADifferenceMarker::iADifferenceMarker():
 		"where the two given images deviate. Where the images are the same, "
 		"this same value will be used in the output image as well.", 2)
 {
-	addParameter("Difference marker value", Continuous);
+	addParameter("Difference marker value", iAValueType::Continuous);
 	setInputName(1u, "Difference to");
 }
 

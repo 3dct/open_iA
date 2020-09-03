@@ -2,7 +2,7 @@
 * **********   A tool for visual analysis and processing of 3D CT images   ********** *
 * *********************************************************************************** *
 * Copyright (C) 2016-2020  C. Heinzl, M. Reiter, A. Reh, W. Li, M. Arikan, Ar. &  Al. *
-*                          Amirkhanov, J. Weissenböck, B. Fröhler, M. Schiwarth       *
+*                 Amirkhanov, J. Weissenböck, B. Fröhler, M. Schiwarth, P. Weinberger *
 * *********************************************************************************** *
 * This program is free software: you can redistribute it and/or modify it under the   *
 * terms of the GNU General Public License as published by the Free Software           *
@@ -18,27 +18,13 @@
 * Contact: FH OÖ Forschungs & Entwicklungs GmbH, Campus Wels, CT-Gruppe,              *
 *          Stelzhamerstraße 23, 4600 Wels / Austria, Email: c.heinzl@fh-wels.at       *
 * ************************************************************************************/
-#pragma once
+#include "iAAIModuleInterface.h"
 
-#include "open_iA_Core_export.h"
+#include "iAaiFilters.h"
 
-#include "ui_FilterSelection.h"
-#include "qthelper/iAQTtoUIConnector.h"
+#include <iAFilterRegistry.h>
 
-
-typedef iAQTtoUIConnector<QDialog, Ui_FilterSelectionDlg> dlg_FilterSelectionConnector;
-
-class open_iA_Core_API dlg_FilterSelection : public dlg_FilterSelectionConnector
+void iAAIModuleInterface::Initialize()
 {
-Q_OBJECT
-public:
-	dlg_FilterSelection(QWidget * parent, QString const & preselectedFilter = "");
-	QString selectedFilterName() const;
-public slots:
-	void filterChanged(QString const &);
-	void listSelectionChanged(QListWidgetItem *, QListWidgetItem *);
-private:
-	//! check whether one (shown) item is selected, and if it is, show its description and enable OK button.
-	void updateOKAndDescription();
-	int m_curMatches;
-};
+	REGISTER_FILTER(iAai);
+}

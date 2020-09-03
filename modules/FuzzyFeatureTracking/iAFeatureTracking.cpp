@@ -2,7 +2,7 @@
 * **********   A tool for visual analysis and processing of 3D CT images   ********** *
 * *********************************************************************************** *
 * Copyright (C) 2016-2020  C. Heinzl, M. Reiter, A. Reh, W. Li, M. Arikan, Ar. &  Al. *
-*                          Amirkhanov, J. Weissenböck, B. Fröhler, M. Schiwarth       *
+*                 Amirkhanov, J. Weissenböck, B. Fröhler, M. Schiwarth, P. Weinberger *
 * *********************************************************************************** *
 * This program is free software: you can redistribute it and/or modify it under the   *
 * terms of the GNU General Public License as published by the Free Software           *
@@ -133,10 +133,9 @@ void iAFeatureTracking::sortCorrespondencesByOverlap(std::vector<iAFeatureTracki
 int nrOfOccurences(std::vector<int>& v, int occurence)
 {
 	int result = 0;
-	// this loop probably does not do what it's supposed to? only compares index of v, not its content!
-	for (int i = 0; i < v.size(); ++i)
+	for (size_t i = 0; i < v.size(); ++i)
 	{
-		if (i == occurence)	// v[i] == occurrence ?
+		if (v[i] == occurence)
 		{
 			++result;
 		}

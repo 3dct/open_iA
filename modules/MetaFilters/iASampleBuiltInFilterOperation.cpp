@@ -2,7 +2,7 @@
 * **********   A tool for visual analysis and processing of 3D CT images   ********** *
 * *********************************************************************************** *
 * Copyright (C) 2016-2020  C. Heinzl, M. Reiter, A. Reh, W. Li, M. Arikan, Ar. &  Al. *
-*                          Amirkhanov, J. Weissenböck, B. Fröhler, M. Schiwarth       *
+*                 Amirkhanov, J. Weissenböck, B. Fröhler, M. Schiwarth, P. Weinberger *
 * *********************************************************************************** *
 * This program is free software: you can redistribute it and/or modify it under the   *
 * terms of the GNU General Public License as published by the Free Software           *
@@ -70,7 +70,7 @@ void iASampleBuiltInFilterOperation::performWork()
 	}
 	for (auto param: filter->parameters())
 	{
-		if (param->valueType() == FileNameSave)
+		if (param->valueType() == iAValueType::FileNameSave)
 		{	// all output file names need to be adapted to output file name
 			auto value = pathFileBaseName(m_outputFileName) + param->defaultValue().toString();
 			if (QFile::exists(value) && !m_overwriteOutput)

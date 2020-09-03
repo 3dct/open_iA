@@ -2,7 +2,7 @@
 * **********   A tool for visual analysis and processing of 3D CT images   ********** *
 * *********************************************************************************** *
 * Copyright (C) 2016-2020  C. Heinzl, M. Reiter, A. Reh, W. Li, M. Arikan, Ar. &  Al. *
-*                          Amirkhanov, J. Weissenböck, B. Fröhler, M. Schiwarth       *
+*                 Amirkhanov, J. Weissenböck, B. Fröhler, M. Schiwarth, P. Weinberger *
 * *********************************************************************************** *
 * This program is free software: you can redistribute it and/or modify it under the   *
 * terms of the GNU General Public License as published by the Free Software           *
@@ -20,11 +20,11 @@
 * ************************************************************************************/
 #include "iAModuleDispatcher.h"
 
-#include "dlg_FilterSelection.h"
 #include "iAConsole.h"
 #include "iAFilter.h"
 #include "iAFilterRegistry.h"
 #include "iAFilterRunnerGUI.h"
+#include "iAFilterSelectionDlg.h"
 #include "iALogger.h"
 #include "iAModuleInterface.h"
 #include "mainwindow.h"
@@ -249,7 +249,7 @@ void iAModuleDispatcher::executeFilter()
 
 void iAModuleDispatcher::selectAndRunFilter()
 {
-	dlg_FilterSelection filterSelection(m_mainWnd);
+	iAFilterSelectionDlg filterSelection(m_mainWnd);
 	if (filterSelection.exec() == QDialog::Accepted)
 	{
 		runFilter(iAFilterRegistry::filterID(filterSelection.selectedFilterName()));

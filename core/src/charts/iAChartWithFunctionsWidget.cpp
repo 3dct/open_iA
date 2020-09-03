@@ -2,7 +2,7 @@
 * **********   A tool for visual analysis and processing of 3D CT images   ********** *
 * *********************************************************************************** *
 * Copyright (C) 2016-2020  C. Heinzl, M. Reiter, A. Reh, W. Li, M. Arikan, Ar. &  Al. *
-*                          Amirkhanov, J. Weissenböck, B. Fröhler, M. Schiwarth       *
+*                 Amirkhanov, J. Weissenböck, B. Fröhler, M. Schiwarth, P. Weinberger *
 * *********************************************************************************** *
 * This program is free software: you can redistribute it and/or modify it under the   *
 * terms of the GNU General Public License as published by the Free Software           *
@@ -20,7 +20,7 @@
 * ************************************************************************************/
 #include "iAChartWithFunctionsWidget.h"
 
-#include "dlg_TFTable.h"
+#include "iATFTableDlg.h"
 #include "iAChartFunctionBezier.h"
 #include "iAChartFunctionGaussian.h"
 #include "iAChartFunctionTransfer.h"
@@ -728,14 +728,14 @@ void iAChartWithFunctionsWidget::showTFTable()
 	{
 		iAChartFunction* func = m_functions[0];
 
-		m_TFTable = new dlg_TFTable( this, func );
+		m_TFTable = new iATFTableDlg( this, func );
 		m_TFTable->setWindowTitle( "Transfer Function Table View" );
 		m_TFTable->setWindowFlags( Qt::Dialog |Qt::WindowMinimizeButtonHint |Qt::WindowCloseButtonHint );
 		m_TFTable->setAttribute( Qt::WA_DeleteOnClose, true);
 		m_TFTable->show();
 
-		connect(m_TFTable, &dlg_TFTable::destroyed, this, &iAChartWithFunctionsWidget::tfTableIsFinished);
-		connect(this, &iAChartWithFunctionsWidget::updateTFTable, m_TFTable, &dlg_TFTable::updateTable);
+		connect(m_TFTable, &iATFTableDlg::destroyed, this, &iAChartWithFunctionsWidget::tfTableIsFinished);
+		connect(this, &iAChartWithFunctionsWidget::updateTFTable, m_TFTable, &iATFTableDlg::updateTable);
 	}
 }
 

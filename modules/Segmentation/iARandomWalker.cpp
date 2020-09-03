@@ -2,7 +2,7 @@
 * **********   A tool for visual analysis and processing of 3D CT images   ********** *
 * *********************************************************************************** *
 * Copyright (C) 2016-2020  C. Heinzl, M. Reiter, A. Reh, W. Li, M. Arikan, Ar. &  Al. *
-*                          Amirkhanov, J. Weissenböck, B. Fröhler, M. Schiwarth       *
+*                 Amirkhanov, J. Weissenböck, B. Fröhler, M. Schiwarth, P. Weinberger *
 * *********************************************************************************** *
 * This program is free software: you can redistribute it and/or modify it under the   *
 * terms of the GNU General Public License as published by the Free Software           *
@@ -216,9 +216,9 @@ namespace
 		QStringList normalizeFunctions;
 		for (int j = 0; j < nmCount; j++)
 			normalizeFunctions << GetNormalizerNames()[j];
-		filter->addParameter("Beta", Continuous, 100);
-		filter->addParameter("Distance Function", Categorical, distanceFunctions);
-		filter->addParameter("Normalizer", Categorical, normalizeFunctions);
+		filter->addParameter("Beta", iAValueType::Continuous, 100);
+		filter->addParameter("Distance Function", iAValueType::Categorical, distanceFunctions);
+		filter->addParameter("Normalizer", iAValueType::Categorical, normalizeFunctions);
 	}
 	QString CommonRWParameterDescription("The <em>Distance Function</em> "
 		"determines how the distance between two data points is calculated."
@@ -241,7 +241,7 @@ iARandomWalker::iARandomWalker() :
 		"(inventor of the algorithm)</a>")
 {
 	AddCommonRWParameters(this);
-	addParameter("Seeds", Text, "");
+	addParameter("Seeds", iAValueType::Text, "");
 }
 
 IAFILTER_CREATE(iARandomWalker)
@@ -447,8 +447,8 @@ iAExtendedRandomWalker::iAExtendedRandomWalker() :
 		"(inventor of the algorithm)</a>", 2)
 {
 	AddCommonRWParameters(this);
-	addParameter("Maximum Iterations", Discrete, 100);
-	addParameter("Gamma", Continuous, 1);
+	addParameter("Maximum Iterations", iAValueType::Discrete, 100);
+	addParameter("Gamma", iAValueType::Continuous, 1);
 }
 
 IAFILTER_CREATE(iAExtendedRandomWalker)
@@ -661,7 +661,7 @@ iALabelImageToSeeds::iALabelImageToSeeds() :
 		"This text file can be used as input for segmentation algorithms such as"
 		"Random Walker or (Probabilistic) Support Vector Machines.", 1, 0)
 {
-	addParameter("File name", FileNameSave, ".txt");
+	addParameter("File name", iAValueType::FileNameSave, ".txt");
 }
 
 IAFILTER_CREATE(iALabelImageToSeeds)

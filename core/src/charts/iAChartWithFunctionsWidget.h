@@ -2,7 +2,7 @@
 * **********   A tool for visual analysis and processing of 3D CT images   ********** *
 * *********************************************************************************** *
 * Copyright (C) 2016-2020  C. Heinzl, M. Reiter, A. Reh, W. Li, M. Arikan, Ar. &  Al. *
-*                          Amirkhanov, J. Weissenböck, B. Fröhler, M. Schiwarth       *
+*                 Amirkhanov, J. Weissenböck, B. Fröhler, M. Schiwarth, P. Weinberger *
 * *********************************************************************************** *
 * This program is free software: you can redistribute it and/or modify it under the   *
 * terms of the GNU General Public License as published by the Free Software           *
@@ -40,7 +40,7 @@ class vtkColorTransferFunction;
 
 class iAChartFunction;
 class iAXmlSettings;
-class dlg_TFTable;
+class iATFTableDlg;
 class MdiChild;
 
 //! A chart widget that can also show functions overlaid over the chart area (transfer function, Gaussian and Bezier curves)
@@ -135,7 +135,7 @@ private slots:
 private:
 	bool m_allowTrfReset;
 	bool m_enableAdditionalFunctions;
-	dlg_TFTable* m_TFTable;
+	iATFTableDlg* m_TFTable;
 
 	void newTransferFunction();
 };

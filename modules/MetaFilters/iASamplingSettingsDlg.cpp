@@ -2,7 +2,7 @@
 * **********   A tool for visual analysis and processing of 3D CT images   ********** *
 * *********************************************************************************** *
 * Copyright (C) 2016-2020  C. Heinzl, M. Reiter, A. Reh, W. Li, M. Arikan, Ar. &  Al. *
-*                          Amirkhanov, J. Weissenböck, B. Fröhler, M. Schiwarth       *
+*                 Amirkhanov, J. Weissenböck, B. Fröhler, M. Schiwarth, P. Weinberger *
 * *********************************************************************************** *
 * This program is free software: you can redistribute it and/or modify it under the   *
 * terms of the GNU General Public License as published by the Free Software           *
@@ -18,13 +18,13 @@
 * Contact: FH OÖ Forschungs & Entwicklungs GmbH, Campus Wels, CT-Gruppe,              *
 *          Stelzhamerstraße 23, 4600 Wels / Austria, Email: c.heinzl@fh-wels.at       *
 * ************************************************************************************/
-#include "dlg_samplingSettings.h"
+#include "iASamplingSettingsDlg.h"
 
 #include "iAAttributes.h"
 #include "iASamplingMethodImpl.h"
 #include "iAParameterNames.h"
 
-#include <dlg_FilterSelection.h>
+#include <iAFilterSelectionDlg.h>
 #include <iAAttributeDescriptor.h>
 #include <iAConsole.h>
 #include <iAFilter.h>
@@ -81,7 +81,7 @@ public:
 };
 
 
-dlg_samplingSettings::dlg_samplingSettings(QWidget *parentWdgt,
+iASamplingSettingsDlg::iASamplingSettingsDlg(QWidget *parentWdgt,
 	int inputImageCount,
 	iASettings const & values):
 	dlg_samplingSettingsUI(parentWdgt),
@@ -130,23 +130,23 @@ dlg_samplingSettings::dlg_samplingSettings(QWidget *parentWdgt,
 
 	setInputsFromMap(values);
 
-	connect(leParamDescriptor, &QLineEdit::editingFinished, this, &dlg_samplingSettings::parameterDescriptorChanged);
-	connect(pbChooseOutputFolder, &QPushButton::clicked, this, &dlg_samplingSettings::chooseOutputFolder);
-	connect(pbChooseParameterDescriptor, &QPushButton::clicked, this, &dlg_samplingSettings::chooseParameterDescriptor);
-	connect(pbChooseExecutable, &QPushButton::clicked, this, &dlg_samplingSettings::chooseExecutable);
-	connect(tbSaveSettings, &QToolButton::clicked, this, &dlg_samplingSettings::saveSettings);
-	connect(tbLoadSettings, &QToolButton::clicked, this, &dlg_samplingSettings::loadSettings);
-	connect(rbBuiltIn, &QRadioButton::toggled, this, &dlg_samplingSettings::algoTypeChanged);
-	connect(rbExternal, &QRadioButton::toggled, this, &dlg_samplingSettings::algoTypeChanged);
-	connect(pbFilterSelect, &QPushButton::clicked, this, &dlg_samplingSettings::selectFilter);
-	connect(leOutputFolder, &QLineEdit::editingFinished, this, &dlg_samplingSettings::outputBaseChanged);
-	connect(leBaseName, &QLineEdit::editingFinished, this, &dlg_samplingSettings::outputBaseChanged);
-	connect(cbSeparateFolder, &QCheckBox::toggled, this, &dlg_samplingSettings::outputBaseChanged);
-	connect(sbNumberOfSamples, QOverload<int>::of(&QSpinBox::valueChanged), this, &dlg_samplingSettings::outputBaseChanged);
-	connect(cbSamplingMethod, QOverload<int>::of(&QComboBox::currentIndexChanged), this, &dlg_samplingSettings::samplingMethodChanged);
+	connect(leParamDescriptor, &QLineEdit::editingFinished, this, &iASamplingSettingsDlg::parameterDescriptorChanged);
+	connect(pbChooseOutputFolder, &QPushButton::clicked, this, &iASamplingSettingsDlg::chooseOutputFolder);
+	connect(pbChooseParameterDescriptor, &QPushButton::clicked, this, &iASamplingSettingsDlg::chooseParameterDescriptor);
+	connect(pbChooseExecutable, &QPushButton::clicked, this, &iASamplingSettingsDlg::chooseExecutable);
+	connect(tbSaveSettings, &QToolButton::clicked, this, &iASamplingSettingsDlg::saveSettings);
+	connect(tbLoadSettings, &QToolButton::clicked, this, &iASamplingSettingsDlg::loadSettings);
+	connect(rbBuiltIn, &QRadioButton::toggled, this, &iASamplingSettingsDlg::algoTypeChanged);
+	connect(rbExternal, &QRadioButton::toggled, this, &iASamplingSettingsDlg::algoTypeChanged);
+	connect(pbFilterSelect, &QPushButton::clicked, this, &iASamplingSettingsDlg::selectFilter);
+	connect(leOutputFolder, &QLineEdit::editingFinished, this, &iASamplingSettingsDlg::outputBaseChanged);
+	connect(leBaseName, &QLineEdit::editingFinished, this, &iASamplingSettingsDlg::outputBaseChanged);
+	connect(cbSeparateFolder, &QCheckBox::toggled, this, &iASamplingSettingsDlg::outputBaseChanged);
+	connect(sbNumberOfSamples, QOverload<int>::of(&QSpinBox::valueChanged), this, &iASamplingSettingsDlg::outputBaseChanged);
+	connect(cbSamplingMethod, QOverload<int>::of(&QComboBox::currentIndexChanged), this, &iASamplingSettingsDlg::samplingMethodChanged);
 
-	connect(pbRun, &QPushButton::clicked, this, &dlg_samplingSettings::runClicked);
-	connect(pbCancel, &QPushButton::clicked, this, &dlg_samplingSettings::reject);
+	connect(pbRun, &QPushButton::clicked, this, &iASamplingSettingsDlg::runClicked);
+	connect(pbCancel, &QPushButton::clicked, this, &iASamplingSettingsDlg::reject);
 };
 
 namespace
@@ -182,8 +182,8 @@ namespace
 	{
 		QSharedPointer<iAParameterInputs> result;
 		// merge with common input / iAParameter dlg ?
-		bool isCategorical = descriptor->valueType() == Categorical;
-		if (isCategorical || descriptor->valueType() == Boolean)
+		bool isCategorical = descriptor->valueType() == iAValueType::Categorical;
+		if (isCategorical || descriptor->valueType() == iAValueType::Boolean)
 		{
 			auto categoryInputs = new iACategoryParameterInputs();
 			QWidget* w = new QWidget();
@@ -203,17 +203,17 @@ namespace
 			gridLay->addWidget(w, curGridLine, 1, 1, 3);
 			result = QSharedPointer<iAParameterInputs>(categoryInputs);
 		}
-		else if (descriptor->valueType() == Continuous || descriptor->valueType() == Discrete)
+		else if (descriptor->valueType() == iAValueType::Continuous || descriptor->valueType() == iAValueType::Discrete)
 		{
 			auto numberInputs = new iANumberParameterInputs();
 			numberInputs->from = new QLineEdit(QString::number(
 				descriptor->min() == std::numeric_limits<double>::lowest()? 0 : descriptor->min(),
-				descriptor->valueType() != Continuous ? 'd' : 'g',
-				descriptor->valueType() != Continuous ? 0 : ContinuousPrecision));
+				descriptor->valueType() != iAValueType::Continuous ? 'd' : 'g',
+				descriptor->valueType() != iAValueType::Continuous ? 0 : ContinuousPrecision));
 			numberInputs->to = new QLineEdit(QString::number(
 				descriptor->max() == std::numeric_limits<double>::max() ? 0 : descriptor->max(),
-				descriptor->valueType() != Continuous ? 'd' : 'g',
-				descriptor->valueType() != Continuous ? 0 : ContinuousPrecision));
+				descriptor->valueType() != iAValueType::Continuous ? 'd' : 'g',
+				descriptor->valueType() != iAValueType::Continuous ? 0 : ContinuousPrecision));
 			gridLay->addWidget(numberInputs->from, curGridLine, 1);
 			gridLay->addWidget(numberInputs->to, curGridLine, 2);
 			numberInputs->logScale = new QCheckBox("Log Scale");
@@ -224,9 +224,9 @@ namespace
 		else
 		{
 			auto otherInputs = new iAOtherParameterInputs();
-			otherInputs->m_valueEdit->setText(descriptor->valueType() == FileNameSave ? "" :
+			otherInputs->m_valueEdit->setText(descriptor->valueType() == iAValueType::FileNameSave ? "" :
 				descriptor->defaultValue().toString());
-			otherInputs->m_valueEdit->setReadOnly(descriptor->valueType() == FileNameSave);
+			otherInputs->m_valueEdit->setReadOnly(descriptor->valueType() == iAValueType::FileNameSave);
 			gridLay->addWidget(otherInputs->m_valueEdit, curGridLine, 1, 1, 3);
 			result = QSharedPointer<iAParameterInputs>(otherInputs);
 			// DEBUG_LOG(QString("Don't know how to handle parameters with type %1").arg(descriptor->valueType()));
@@ -289,8 +289,8 @@ void adjustMinMax(QSharedPointer<iAAttributeDescriptor> desc, QString valueText)
 {
 	bool ok;
 	double value = valueText.toDouble(&ok);
-	if (desc->valueType() == Categorical ||
-		desc->valueType() == Discrete)
+	if (desc->valueType() == iAValueType::Categorical ||
+		desc->valueType() == iAValueType::Discrete)
 	{
 		/*int value =*/ valueText.toInt(&ok);
 	}
@@ -304,7 +304,7 @@ void adjustMinMax(QSharedPointer<iAAttributeDescriptor> desc, QString valueText)
 
 QSharedPointer<iAAttributeDescriptor> iANumberParameterInputs::currentDescriptor()
 {
-	assert(descriptor->valueType() == Discrete || descriptor->valueType() == Continuous);
+	assert(descriptor->valueType() == iAValueType::Discrete || descriptor->valueType() == iAValueType::Continuous);
 	QString pName(label->text());
 	QSharedPointer<iAAttributeDescriptor> desc(new iAAttributeDescriptor(
 		pName,
@@ -379,7 +379,7 @@ void iACategoryParameterInputs::changeInputValues(iASettings const & values)
 QSharedPointer<iAAttributeDescriptor> iACategoryParameterInputs::currentDescriptor()
 {
 	QString pName(label->text());
-	assert(descriptor->valueType() == Categorical || descriptor->valueType() == Boolean);
+	assert(descriptor->valueType() == iAValueType::Categorical || descriptor->valueType() == iAValueType::Boolean);
 	QSharedPointer<iAAttributeDescriptor> desc(new iAAttributeDescriptor(
 		pName,
 		iAAttributeDescriptor::Parameter,
@@ -433,7 +433,7 @@ QSharedPointer<iAAttributeDescriptor> iAOtherParameterInputs::currentDescriptor(
 }
 
 
-void dlg_samplingSettings::setInputsFromMap(iASettings const & values)
+void iASamplingSettingsDlg::setInputsFromMap(iASettings const & values)
 {
 	::loadSettings(values, m_widgetMap);
 	auto algoType = values[spnAlgorithmType].toString();
@@ -455,7 +455,7 @@ void dlg_samplingSettings::setInputsFromMap(iASettings const & values)
 	samplingMethodChanged();
 }
 
-void dlg_samplingSettings::algoTypeChanged()
+void iASamplingSettingsDlg::algoTypeChanged()
 {
 	bool isExternal = rbExternal->isChecked();
 	pbFilterSelect->setEnabled(!isExternal);
@@ -466,7 +466,7 @@ void dlg_samplingSettings::algoTypeChanged()
 	leAdditionalArguments->setEnabled(isExternal);
 }
 
-void dlg_samplingSettings::getValues(iASettings& values) const
+void iASamplingSettingsDlg::getValues(iASettings& values) const
 {
 	values.clear();
 	::saveSettings(values, m_widgetMap);
@@ -481,7 +481,7 @@ void dlg_samplingSettings::getValues(iASettings& values) const
 	}
 }
 
-void dlg_samplingSettings::setParameterValues(iASettings const& values)
+void iASamplingSettingsDlg::setParameterValues(iASettings const& values)
 {
 	for (int i = 0; i < m_paramInputs.size(); ++i)
 	{
@@ -489,7 +489,7 @@ void dlg_samplingSettings::setParameterValues(iASettings const& values)
 	}
 }
 
-void dlg_samplingSettings::saveSettings()
+void iASamplingSettingsDlg::saveSettings()
 {
 	QString fileName = QFileDialog::getSaveFileName(
 		this,
@@ -521,7 +521,7 @@ void dlg_samplingSettings::saveSettings()
 	}
 }
 
-void dlg_samplingSettings::loadSettings()
+void iASamplingSettingsDlg::loadSettings()
 {
 	QString fileName = QFileDialog::getOpenFileName(
 		this,
@@ -555,10 +555,10 @@ void dlg_samplingSettings::loadSettings()
 	setInputsFromMap(settings);
 }
 
-void dlg_samplingSettings::selectFilter()
+void iASamplingSettingsDlg::selectFilter()
 {
 	QPushButton* sender = qobject_cast<QPushButton*>(QObject::sender());
-	dlg_FilterSelection filterSelectionDlg(this, sender->text());
+	iAFilterSelectionDlg filterSelectionDlg(this, sender->text());
 	if (!filterSelectionDlg.exec())
 	{
 		return;
@@ -568,7 +568,7 @@ void dlg_samplingSettings::selectFilter()
 	setParametersFromFilter(filterName);
 }
 
-void dlg_samplingSettings::outputBaseChanged()
+void iASamplingSettingsDlg::outputBaseChanged()
 {
 	if (!m_paramSpecs)
 	{
@@ -576,7 +576,7 @@ void dlg_samplingSettings::outputBaseChanged()
 	}
 	for (int p = 0; p < m_paramSpecs->size(); ++p)
 	{
-		if (m_paramSpecs->at(p)->valueType() == FileNameSave)
+		if (m_paramSpecs->at(p)->valueType() == iAValueType::FileNameSave)
 		{
 			auto inputs = dynamic_cast<iAOtherParameterInputs*>(m_paramInputs[p].data());
 			assert(inputs);
@@ -591,12 +591,12 @@ void dlg_samplingSettings::outputBaseChanged()
 	}
 }
 
-void dlg_samplingSettings::samplingMethodChanged()
+void iASamplingSettingsDlg::samplingMethodChanged()
 {
 	globalSensitivitySettingsWidget->setVisible(cbSamplingMethod->currentText() == iASamplingMethodName::GlobalSensitivity);
 }
 
-void dlg_samplingSettings::chooseParameterDescriptor()
+void iASamplingSettingsDlg::chooseParameterDescriptor()
 {
 	QString fileName = QFileDialog::getOpenFileName(this, tr("Load Parameter Descriptor"),
 		QString(), // TODO get directory of current file
@@ -608,7 +608,7 @@ void dlg_samplingSettings::chooseParameterDescriptor()
 	setParametersFromFile(leParamDescriptor->text());
 }
 
-void dlg_samplingSettings::chooseExecutable()
+void iASamplingSettingsDlg::chooseExecutable()
 {
 	QString fileName = QFileDialog::getOpenFileName(this, tr("Load Executable"),
 		QString(), // TODO get directory of current file
@@ -619,13 +619,13 @@ void dlg_samplingSettings::chooseExecutable()
 	}
 }
 
-void dlg_samplingSettings::parameterDescriptorChanged()
+void iASamplingSettingsDlg::parameterDescriptorChanged()
 {
 	// load parameter descriptor from file
 	setParametersFromFile(leParamDescriptor->text());
 }
 
-void dlg_samplingSettings::setParametersFromFile(QString const& fileName)
+void iASamplingSettingsDlg::setParametersFromFile(QString const& fileName)
 {
 	if (fileName == m_lastParamsFileName)
 	{	// nothing changed, we don't need to load again
@@ -645,7 +645,7 @@ void dlg_samplingSettings::setParametersFromFile(QString const& fileName)
 }
 
 
-void dlg_samplingSettings::setParametersFromFilter(QString const& filterName)
+void iASamplingSettingsDlg::setParametersFromFilter(QString const& filterName)
 {
 	if (filterName == m_lastFilterName)
 	{	// nothing changed, we don't need to load again
@@ -663,7 +663,7 @@ void dlg_samplingSettings::setParametersFromFilter(QString const& filterName)
 	m_lastParamsFileName.clear();   // if we change to external, it should reload parameters
 }
 
-void dlg_samplingSettings::setParameters(QSharedPointer<iAAttributes> params)
+void iASamplingSettingsDlg::setParameters(QSharedPointer<iAAttributes> params)
 {
 	m_paramSpecs = params;
 	m_paramInputs.clear();
@@ -697,7 +697,7 @@ void dlg_samplingSettings::setParameters(QSharedPointer<iAAttributes> params)
 	}
 }
 
-QSharedPointer<iAAttributes> dlg_samplingSettings::parameterRanges()
+QSharedPointer<iAAttributes> iASamplingSettingsDlg::parameterRanges()
 {
 	QSharedPointer<iAAttributes> result(new iAAttributes);
 	for (int l = 0; l < m_paramInputs.size(); ++l)
@@ -707,7 +707,7 @@ QSharedPointer<iAAttributes> dlg_samplingSettings::parameterRanges()
 	return result;
 }
 
-void dlg_samplingSettings::chooseOutputFolder()
+void iASamplingSettingsDlg::chooseOutputFolder()
 {
 	QFileDialog dialog;
 	dialog.setFileMode(QFileDialog::Directory);
@@ -719,7 +719,7 @@ void dlg_samplingSettings::chooseOutputFolder()
 	}
 }
 
-void dlg_samplingSettings::runClicked()
+void iASamplingSettingsDlg::runClicked()
 {
 	QString minStr = QString::number(std::numeric_limits<double>::lowest(), 'g', ContinuousPrecision);
 	QString maxStr = QString::number(std::numeric_limits<double>::max(), 'g', ContinuousPrecision);
@@ -737,7 +737,7 @@ void dlg_samplingSettings::runClicked()
 	for (int l = 0; l < m_paramInputs.size(); ++l)
 	{
 		auto desc = m_paramInputs[l]->currentDescriptor();
-		if (desc->valueType() == Continuous || desc->valueType() == Discrete)
+		if (desc->valueType() == iAValueType::Continuous || desc->valueType() == iAValueType::Discrete)
 		{
 			auto curMinStr = QString::number(desc->min(), 'g'),
 			     curMaxStr = QString::number(desc->max(), 'g');
@@ -764,7 +764,7 @@ void dlg_samplingSettings::runClicked()
 					.arg(m_paramSpecs->at(l)->min()).arg(m_paramSpecs->at(l)->max());
 			}
 		}
-		if (desc->valueType() == Categorical && desc->defaultValue().toString().size() == 0)
+		if (desc->valueType() == iAValueType::Categorical && desc->defaultValue().toString().size() == 0)
 		{
 			msg += QString("Parameter '%1': Currently, no value is selected; you must select at least one value!").arg(desc->name());
 		}

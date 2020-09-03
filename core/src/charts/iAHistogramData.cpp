@@ -2,7 +2,7 @@
 * **********   A tool for visual analysis and processing of 3D CT images   ********** *
 * *********************************************************************************** *
 * Copyright (C) 2016-2020  C. Heinzl, M. Reiter, A. Reh, W. Li, M. Arikan, Ar. &  Al. *
-*                          Amirkhanov, J. Weissenböck, B. Fröhler, M. Schiwarth       *
+*                 Amirkhanov, J. Weissenböck, B. Fröhler, M. Schiwarth, P. Weinberger *
 * *********************************************************************************** *
 * This program is free software: you can redistribute it and/or modify it under the   *
 * terms of the GNU General Public License as published by the Free Software           *
@@ -32,7 +32,7 @@
 
 
 iAHistogramData::iAHistogramData()
-	: m_binCount(0), m_rawData(nullptr), m_accSpacing(0), m_type(Continuous)
+	: m_binCount(0), m_rawData(nullptr), m_accSpacing(0), m_type(iAValueType::Continuous)
 {
 	m_xBounds[0] = m_xBounds[1] = 0;
 	m_yBounds[0] = m_yBounds[1] = 0;
@@ -103,8 +103,8 @@ QSharedPointer<iAHistogramData> iAHistogramData::create(vtkImageData* img, size_
 	}
 	result->setMaxFreq();
 	result->m_type = (img && (img->GetScalarType() != VTK_FLOAT) && (img->GetScalarType() != VTK_DOUBLE))
-		? Discrete
-		: Continuous;
+		? iAValueType::Discrete
+		: iAValueType::Continuous;
 	if (info)
 	{
 		*info = iAImageInfo(accumulate->GetVoxelCount(),

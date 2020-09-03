@@ -2,7 +2,7 @@
 * **********   A tool for visual analysis and processing of 3D CT images   ********** *
 * *********************************************************************************** *
 * Copyright (C) 2016-2020  C. Heinzl, M. Reiter, A. Reh, W. Li, M. Arikan, Ar. &  Al. *
-*                          Amirkhanov, J. Weissenböck, B. Fröhler, M. Schiwarth       *
+*                 Amirkhanov, J. Weissenböck, B. Fröhler, M. Schiwarth, P. Weinberger *
 * *********************************************************************************** *
 * This program is free software: you can redistribute it and/or modify it under the   *
 * terms of the GNU General Public License as published by the Free Software           *
@@ -54,11 +54,11 @@ public:
 	virtual QSharedPointer<iAAttributeDescriptor> currentDescriptor() = 0;
 };
 
-class MetaFilters_API dlg_samplingSettings : public dlg_samplingSettingsUI
+class MetaFilters_API iASamplingSettingsDlg : public dlg_samplingSettingsUI
 {
 	Q_OBJECT
 public:
-	dlg_samplingSettings(QWidget* parentWdgt, int inputImageCount,
+	iASamplingSettingsDlg(QWidget* parentWdgt, int inputImageCount,
 		iASettings const & values);
 	QSharedPointer<iAAttributes> parameterRanges();
 	void getValues(iASettings & values) const;

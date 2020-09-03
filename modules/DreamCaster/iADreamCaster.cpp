@@ -2,7 +2,7 @@
 * **********   A tool for visual analysis and processing of 3D CT images   ********** *
 * *********************************************************************************** *
 * Copyright (C) 2016-2020  C. Heinzl, M. Reiter, A. Reh, W. Li, M. Arikan, Ar. &  Al. *
-*                          Amirkhanov, J. Weissenböck, B. Fröhler, M. Schiwarth       *
+*                 Amirkhanov, J. Weissenböck, B. Fröhler, M. Schiwarth, P. Weinberger *
 * *********************************************************************************** *
 * This program is free software: you can redistribute it and/or modify it under the   *
 * terms of the GNU General Public License as published by the Free Software           *
@@ -1092,7 +1092,7 @@ void iADreamCaster::UpdateHistogramSlot()
 		app->processEvents();
 	}
 	hist->clearPlots();
-	auto histData = iAHistogramData::create(values, numBins, Continuous, min_x, max_x);
+	auto histData = iAHistogramData::create(values, numBins, iAValueType::Continuous, min_x, max_x);
 	auto histPlot = QSharedPointer<iAPlot>(new iABarGraphPlot(histData, QColor(0, 0, 255, 255)));
 	hist->addPlot(histPlot);
 	hist->update();

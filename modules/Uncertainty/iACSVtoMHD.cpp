@@ -2,7 +2,7 @@
 * **********   A tool for visual analysis and processing of 3D CT images   ********** *
 * *********************************************************************************** *
 * Copyright (C) 2016-2020  C. Heinzl, M. Reiter, A. Reh, W. Li, M. Arikan, Ar. &  Al. *
-*                          Amirkhanov, J. Weissenböck, B. Fröhler, M. Schiwarth       *
+*                 Amirkhanov, J. Weissenböck, B. Fröhler, M. Schiwarth, P. Weinberger *
 * *********************************************************************************** *
 * This program is free software: you can redistribute it and/or modify it under the   *
 * terms of the GNU General Public License as published by the Free Software           *
@@ -36,21 +36,21 @@ iACSVtoMHD::iACSVtoMHD() : iAFilter("CSV to MHD", "Uncertainty",
 	"Read a CSV file and reshape it into an image of the given dimensions", 0, 1)
 {
 	QStringList pixelTypes (readableDataTypeList(false));
-	addParameter("CSV FileName", String, "");
-	addParameter("Output fileName", String, "");
-	//addParameter("Field separator", String, ";");
-	addParameter("Pixel Type", Categorical, pixelTypes);
-	addParameter("Size X", Discrete, 1);
-	addParameter("Size Y", Discrete, 1);
-	addParameter("Size Z", Discrete, 1);
-	addParameter("Spacing X", Continuous, 1);
-	addParameter("Spacing Y", Continuous, 1);
-	addParameter("Spacing Z", Continuous, 1);
+	addParameter("CSV FileName", iAValueType::String, "");
+	addParameter("Output fileName", iAValueType::String, "");
+	//addParameter("Field separator", iAValueType::String, ";");
+	addParameter("Pixel Type", iAValueType::Categorical, pixelTypes);
+	addParameter("Size X", iAValueType::Discrete, 1);
+	addParameter("Size Y", iAValueType::Discrete, 1);
+	addParameter("Size Z", iAValueType::Discrete, 1);
+	addParameter("Spacing X", iAValueType::Continuous, 1);
+	addParameter("Spacing Y", iAValueType::Continuous, 1);
+	addParameter("Spacing Z", iAValueType::Continuous, 1);
 	QStringList coordOrders;
 	coordOrders
 		<< "XYZ"
 		<< "ZYX";
-	addParameter("Coordinate Order", Categorical, coordOrders);
+	addParameter("Coordinate Order", iAValueType::Categorical, coordOrders);
 }
 
 IAFILTER_CREATE(iACSVtoMHD)

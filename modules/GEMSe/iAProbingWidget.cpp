@@ -2,7 +2,7 @@
 * **********   A tool for visual analysis and processing of 3D CT images   ********** *
 * *********************************************************************************** *
 * Copyright (C) 2016-2020  C. Heinzl, M. Reiter, A. Reh, W. Li, M. Arikan, Ar. &  Al. *
-*                          Amirkhanov, J. Weissenböck, B. Fröhler, M. Schiwarth       *
+*                 Amirkhanov, J. Weissenböck, B. Fröhler, M. Schiwarth, P. Weinberger *
 * *********************************************************************************** *
 * This program is free software: you can redistribute it and/or modify it under the   *
 * terms of the GNU General Public License as published by the Free Software           *
@@ -44,7 +44,7 @@ namespace
 QSharedPointer<iAParamHistogramData> CreateEmptyProbData(iAValueType type, double min, double max)
 {
 	QSharedPointer<iAParamHistogramData> result(new iAParamHistogramData(
-		type == Discrete ? (max-min) : ProbabilityHistogramBinCount,
+		type == iAValueType::Discrete ? (max-min) : ProbabilityHistogramBinCount,
 		min, max, false, type));
 	return result;
 }
@@ -65,7 +65,7 @@ iAProbingWidget::iAProbingWidget(iALabelInfo const * labelInfo):
 	layout->addWidget(m_lbInfo);
 
 	// entropy chart:
-	m_entropyChartData = CreateEmptyProbData(Continuous, 0, 1);
+	m_entropyChartData = CreateEmptyProbData(iAValueType::Continuous, 0, 1);
 	m_charts.push_back(new iAChartWidget(this, "Algorithmic Uncertainty", "Frequency (Members)"));
 	auto algoUncertaintyPlot = QSharedPointer<iAPlot>(
 		new iABarGraphPlot(m_entropyChartData,
@@ -75,7 +75,7 @@ iAProbingWidget::iAProbingWidget(iALabelInfo const * labelInfo):
 	// label distribution chart:
 	for (int label = 0; label < m_labelInfo->count(); ++label)
 	{
-		m_labelDistributionChartData.push_back(CreateEmptyProbData(Discrete, 0, m_labelInfo->count()));
+		m_labelDistributionChartData.push_back(CreateEmptyProbData(iAValueType::Discrete, 0, m_labelInfo->count()));
 	}
 	m_charts.push_back(new iAChartWidget(this, "Label", "Frequency (Members)"));
 	for (int label = 0; label < m_labelInfo->count(); ++label)
@@ -90,7 +90,7 @@ iAProbingWidget::iAProbingWidget(iALabelInfo const * labelInfo):
 	m_probChartStart = m_charts.size();
 	for (int l = 0; l < std::min(NumOfChartsShown, labelInfo->count()); ++l)
 	{
-		m_probabilitiesChartData.push_back(CreateEmptyProbData(Continuous, 0, 1));
+		m_probabilitiesChartData.push_back(CreateEmptyProbData(iAValueType::Continuous, 0, 1));
 		m_charts.push_back(new iAChartWidget(this, QString("Probability Label %1").arg(l), "Frequency (Members)"));
 		auto plot = QSharedPointer<iAPlot>(
 			new iABarGraphPlot(m_probabilitiesChartData[l],

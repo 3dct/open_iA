@@ -2,7 +2,7 @@
 * **********   A tool for visual analysis and processing of 3D CT images   ********** *
 * *********************************************************************************** *
 * Copyright (C) 2016-2020  C. Heinzl, M. Reiter, A. Reh, W. Li, M. Arikan, Ar. &  Al. *
-*                          Amirkhanov, J. Weissenböck, B. Fröhler, M. Schiwarth       *
+*                 Amirkhanov, J. Weissenböck, B. Fröhler, M. Schiwarth, P. Weinberger *
 * *********************************************************************************** *
 * This program is free software: you can redistribute it and/or modify it under the   *
 * terms of the GNU General Public License as published by the Free Software           *
@@ -103,8 +103,8 @@ namespace
 			std::cout << "    " << p->name().toStdString() << " " << ValueType2Str(p->valueType()).toStdString();
 			switch (p->valueType())
 			{
-			case Continuous:
-			case Discrete:
+			case iAValueType::Continuous:
+			case iAValueType::Discrete:
 				if (p->min() != std::numeric_limits<double>::lowest())
 				{
 					std::cout << " min=" << p->min();
@@ -116,35 +116,35 @@ namespace
 #if __cplusplus >= 201703L
 				[[fallthrough]];
 #endif
-			case Boolean:
+			case iAValueType::Boolean:
 				std::cout << " default=" << p->defaultValue().toString().toStdString();
 				break;
-			case Categorical:
+			case iAValueType::Categorical:
 				std::cout << " possible values=(" << p->defaultValue().toStringList().join(",").toStdString() << ")";
 				break;
-			case FileNameOpen:
+			case iAValueType::FileNameOpen:
 				std::cout << " specify an existing file.";
 				break;
-			case FileNamesOpen:
+			case iAValueType::FileNamesOpen:
 				std::cout << " specify a list of existing filenames.";
 				break;
-			case FileNameSave:
+			case iAValueType::FileNameSave:
 				std::cout << " specify an output filename.";
 				break;
-			case Folder:
+			case iAValueType::Folder:
 				std::cout << " specify a folder.";
 				break;
-			case String:
+			case iAValueType::String:
 #if __cplusplus >= 201703L
 				[[fallthrough]];
 #endif
-			case Text:
+			case iAValueType::Text:
 				std::cout << " text, see filter description for details.";
 				break;
-			case FilterName:
+			case iAValueType::FilterName:
 				std::cout << " name of another filter.";
 				break;
-			case FilterParameters:
+			case iAValueType::FilterParameters:
 				std::cout << " parameters of a filter.";
 				break;
 			default: // no more help text available
@@ -191,11 +191,11 @@ namespace
 		{
 			std::cout << p->name().toStdString() << "\tParameter\t"
 					<< ValueType2Str(p->valueType()).toStdString() << "\t";
-			if (p->valueType() == Continuous || p->valueType() == Discrete)
+			if (p->valueType() == iAValueType::Continuous || p->valueType() == iAValueType::Discrete)
 			{
 				std::cout << p->min() << "\t" << p->max() << "\tLinear";
 			}
-			else if (p->valueType() == Categorical)
+			else if (p->valueType() == iAValueType::Categorical)
 			{
 				std::cout << "\t" << p->defaultValue().toStringList().join(",").toStdString();
 			}
@@ -305,7 +305,7 @@ namespace
 							{
 								QString paramName = filter->parameters()[paramIdx]->name();
 								QString value(args[a]);
-								if (filter->parameters()[paramIdx]->valueType() == Text)
+								if (filter->parameters()[paramIdx]->valueType() == iAValueType::Text)
 								{
 									QFile f(value);
 									if (!f.open(QFile::ReadOnly | QFile::Text))
