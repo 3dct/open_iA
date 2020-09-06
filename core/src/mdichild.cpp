@@ -2669,30 +2669,70 @@ void MdiChild::initModalities()
 	m_dwModalities->selectRow(0);
 }
 
-void MdiChild::setHistogramModality(int modalityIdx)
+bool MdiChild::histogramComputed(QSharedPointer<iAModality> modality)
 {
-	if (!m_histogram || modalities()->size() <= modalityIdx ||
-		modality(modalityIdx)->image()->GetNumberOfScalarComponents() != 1) //No histogram/profile for rgb, rgba or vector pixel type images
+	return modality->transfer()->statisticsComputed();
+}
+
+bool MdiChild::histogramComputable(QSharedPointer<iAModality> modality, int modalityIdx /* = -1 */)
+//bool MdiChild::histogramComputedOrComputing(QSharedPointer<iAModality> modality, int modalityIdx /* = -1 */) {
+{
+	if (modality->info().isComputing())
 	{
+		return false;
+	}
+
+	// If modality index is provided
+	if (modalityIdx != -1)
+	{
+		// If histogram can't be computed
+		if (modalities()->size() < modalityIdx ||
+			!m_histogram || modality->image()->GetNumberOfScalarComponents() != 1)
+		{
+			return false;
+		}
+	}
+
+	return true;
+}
+
+void MdiChild::computeHistogramAsync(iAStatisticsUpdater *updater)
+{
+	auto mod = updater->modality();
+
+	if (!histogramComputable(mod)) {
 		return;
 	}
-	if (modality(modalityIdx)->transfer()->statisticsComputed())
+
+	addMsg(QString("Computing statistics for modality %1...")
+		.arg(mod->name()));
+	mod->transfer()->info().setComputing();
+	updateImageProperties();
+	connect(updater, &iAStatisticsUpdater::finished, updater, &QObject::deleteLater);
+	updater->start();
+}
+
+void MdiChild::setHistogramModality(int modalityIdx)
+{
+	auto mod = modality(modalityIdx);
+
+	if (histogramComputed(mod))
 	{
 		displayHistogram(modalityIdx);
 		return;
 	}
-	if (modality(modalityIdx)->info().isComputing()) // already computing currently...
-	{
+
+	if (!histogramComputable(mod, modalityIdx)) {
+		// Here, we also return if the histogram is currently being computed
+		// However, it is possible that an external class requested the computation of the histogram
+		// In that case, the function MdiChild::statisticsAvailable may never be called
+		// TODO: fix that
 		return;
 	}
-	addMsg(QString("Computing statistics for modality %1...")
-		.arg(modality(modalityIdx)->name()));
-	modality(modalityIdx)->transfer()->info().setComputing();
-	updateImageProperties();
-	auto workerThread = new iAStatisticsUpdater(modalityIdx, modality(modalityIdx));
-	connect(workerThread, &iAStatisticsUpdater::StatisticsReady, this, &MdiChild::statisticsAvailable);
-	connect(workerThread, &iAStatisticsUpdater::finished, workerThread, &QObject::deleteLater);
-	workerThread->start();
+
+	auto updater = new iAStatisticsUpdater(modalityIdx, mod);
+	connect(updater, &iAStatisticsUpdater::StatisticsReady, this, &MdiChild::statisticsAvailable);
+	computeHistogramAsync(updater);
 }
 
 void MdiChild::modalityAdded(int modalityIdx)

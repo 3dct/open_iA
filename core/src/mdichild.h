@@ -309,6 +309,12 @@ public:
 
 	//! makes job status window visible and adds the given job there.
 	void addJob(QString name, iAProgress* p, QThread* t, iAAbortListener* abortListener = nullptr);
+	
+	//! @{ 
+	bool histogramComputed(QSharedPointer<iAModality>);
+	bool histogramComputable(QSharedPointer<iAModality>, int modalityIdx = -1);
+	void computeHistogramAsync(iAStatisticsUpdater *);
+	//! @}
 
 signals:
 	void rendererDeactivated(int c);

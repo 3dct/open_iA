@@ -181,6 +181,7 @@ private:
 	QSharedPointer<iAModality> m_modality;
 public:
 	iAStatisticsUpdater(int modalityIdx, QSharedPointer<iAModality> modality);
+	QSharedPointer<iAModality> modality() { return m_modality; }
 };
 
 
