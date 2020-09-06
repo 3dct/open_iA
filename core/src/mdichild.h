@@ -72,6 +72,7 @@ class iAIO;
 class iAJobListView;
 class iALogger;
 class iAModality;
+class iAStatisticsUpdater;
 class iAModalityList;
 class iAParametricSpline;
 class iAPlot;
