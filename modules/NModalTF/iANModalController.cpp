@@ -41,6 +41,7 @@
 //#include "iAToolsVTK.h"
 #include "iAPerformanceHelper.h"
 #include "iAConsole.h"
+#include "iATypedCallHelper.h"
 
 #include <vtkImageData.h>
 #include <vtkColorTransferFunction.h>
@@ -431,7 +432,10 @@ void iANModalController::removeSeeds(int labelId) {
 void iANModalController::update() {
 	m_mdiChild->redrawHistogram();
 	m_mdiChild->renderer()->update();
-	_updateMainSlicers();
+
+	// TODO
+	int type = m_mdiChild->slicer(0)->channel(0)->reslicer()->GetOutput()->GetScalarType();
+	VTK_TYPED_CALL(_updateMainSlicers, type);
 }
 
 using Rgb = std::array<unsigned char, 3>;
@@ -517,6 +521,9 @@ static inline void convert_2d_to_3d(const int(&xyz_orig)[3], int mainSlicerIndex
 #define iANModal_SET_COLOR(img, ptr, color, alpha) setRgba(img, x, y, z, color, alpha)
 #endif
 
+// Assume that all modalities have the same pixel type
+// TODO: Don't...
+template <typename PixelType>
 void iANModalController::_updateMainSlicers() {
 
 	/*for (int i = 0; i < NUM_SLICERS; ++i) {
@@ -541,7 +548,7 @@ void iANModalController::_updateMainSlicers() {
 		int sliceNum = slicer->sliceNumber();
 
 		std::vector<vtkSmartPointer<vtkImageData>> sliceImgs2D(numModalities);
-		iANModal_IF_USE_GETSCALARPOINTER(std::vector<unsigned short *> sliceImgs2D_ptrs(numModalities));
+		iANModal_IF_USE_GETSCALARPOINTER(std::vector<PixelType*> sliceImgs2D_ptrs(numModalities));
 		std::vector<vtkScalarsToColors*>           sliceColorTf(numModalities);
 		std::vector<vtkPiecewiseFunction*>         sliceOpacityTf(numModalities);
 
@@ -561,12 +568,12 @@ void iANModalController::_updateMainSlicers() {
 
 			// Save 2D slice image and transfer functions for future processing
 			sliceImgs2D[modalityIndex] = sliceImg2D;
-			iANModal_IF_USE_GETSCALARPOINTER(sliceImgs2D_ptrs[modalityIndex] = static_cast<unsigned short *>(sliceImg2D->GetScalarPointer()));
+			iANModal_IF_USE_GETSCALARPOINTER(sliceImgs2D_ptrs[modalityIndex] = static_cast<PixelType*>(sliceImg2D->GetScalarPointer()));
 			sliceColorTf[modalityIndex] = channel->colorTF();
 			sliceOpacityTf[modalityIndex] = channel->opacityTF();
 
 			assert(sliceImg2D->GetNumberOfScalarComponents() == 1);
-			assert(sliceImg2D->GetScalarType() == VTK_UNSIGNED_SHORT); // TODO reinforce on Release (e.g. check and display error message on setModalities(...))
+			//assert(sliceImg2D->GetScalarType() == VTK_UNSIGNED_SHORT);
 		}
 
 		testSlice.time("All info gathered");
@@ -630,23 +637,23 @@ void iANModalController::_updateMainSlicers() {
 			for (int mod_i = 0; mod_i < numModalities; ++mod_i) {
 
 #ifdef iANModal_USE_GETSCALARPOINTER
-				unsigned short *ptr2 = sliceImgs2D_ptrs[mod_i];
+				PixelType *ptr2 = sliceImgs2D_ptrs[mod_i];
 
 #ifndef NDEBUG
 				{
 					int id_scalar_test = sliceImgs2D[mod_i]->ComputePointId(ijk);
 					assert(id_scalar == id_scalar_test);
-					unsigned short *ptr2_test1 = &ptr2[id_scalar_test];
-					unsigned short *ptr2_test2 = static_cast<unsigned short *>(sliceImgs2D[mod_i]->GetScalarPointer(x, y, z));
+					PixelType *ptr2_test1 = &ptr2[id_scalar_test];
+					PixelType *ptr2_test2 = static_cast<PixelType *>(sliceImgs2D[mod_i]->GetScalarPointer(x, y, z));
 					assert(ptr2_test1 == ptr2_test2);
 				}
 #endif
 
-				unsigned short scalar = getScalar(ptr2, id_scalar);
+				PixelType scalar = getScalar(ptr2, id_scalar);
 
 #ifndef NDEBUG
 			{
-					unsigned short scalar_test = sliceImgs2D[mod_i]->GetScalarComponentAsDouble(x, y, z, 0);
+					PixelType scalar_test = sliceImgs2D[mod_i]->GetScalarComponentAsDouble(x, y, z, 0);
 					assert(scalar == scalar_test);
 			}
 #endif

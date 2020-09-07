@@ -136,7 +136,6 @@ void iANModalWidget::onAllSlicersInitialized() {
 
 		int column = i;
 
-		//if (modality(modalityIdx)->transfer()->statisticsComputed()) {
 		if (m_mdiChild->histogramComputed(modality)) {
 			onHistogramReady(modality, column);
 		} else {

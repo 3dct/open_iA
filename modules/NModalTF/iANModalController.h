@@ -91,7 +91,7 @@ private:
 	void _initializeMainSlicers();
 	bool _checkModalities(QList<QSharedPointer<iAModality>> modalities);
 	bool _matchModalities(QSharedPointer<iAModality> m1, QSharedPointer<iAModality> m2);
-	void _updateMainSlicers();
+	template <typename PixelType> void _updateMainSlicers();
 
 	QList<QSharedPointer<iAModality>> m_modalities;
 	QList<QSharedPointer<iANModalTFManager>> m_tfs;
