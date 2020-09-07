@@ -125,6 +125,8 @@ void iANModalController::_initialize() {
 		_initializeCombinedVol();
 	}
 
+	m_tracker.reinitialize(m_mdiChild);
+
 	m_initialized = true;
 }
 
@@ -393,7 +395,7 @@ void iANModalController::updateLabels(const QList<iANModalLabel> &labelsList) {
 }
 
 void iANModalController::addSeeds(const QList<iANModalSeed> &seeds, const iANModalLabel &label) {
-	for (auto seed : seeds) {
+	for (const auto &seed : seeds) {
 		auto modality = m_mapOverlayImageId2modality.value(seed.overlayImageId);
 		unsigned int x = modality->image()->GetScalarComponentAsDouble(seed.x, seed.y, seed.z, 0);
 		int i = m_modalities.lastIndexOf(modality);
@@ -410,7 +412,7 @@ void iANModalController::addSeeds(const QList<iANModalSeed> &seeds, const iANMod
 }
 
 void iANModalController::removeSeeds(const QList<iANModalSeed> &seeds) {
-	for (auto seed : seeds) {
+	for (const auto &seed : seeds) {
 		auto modality = m_mapOverlayImageId2modality.value(seed.overlayImageId);
 		unsigned int x = modality->image()->GetScalarComponentAsDouble(seed.x, seed.y, seed.z, 0);
 		int i = m_modalities.lastIndexOf(modality);

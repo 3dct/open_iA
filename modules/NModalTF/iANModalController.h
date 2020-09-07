@@ -21,6 +21,7 @@
 #pragma once
 
 #include "iANModalObjects.h"
+#include "iANModalSeedTracker.h"
 
 #include <vtkSmartPointer.h>
 #include <vtkSmartVolumeMapper.h>
@@ -116,8 +117,8 @@ private:
 	// Internal widgets
 	QList<iASlicer*> m_slicers;
 
-	// Labeling widgets
-
+	// Seed tracker (visualization next to the main slicers's sliders)
+	iANModalSeedTracker m_tracker;
 
 	// MdiChild widgets
 	dlg_labels *m_dlg_labels;
