@@ -31,6 +31,7 @@ class iANModalController;
 class iANModalPreprocessor;
 class iANModalLabelsWidget;
 class iASlicer;
+class iAModality;
 class MdiChild;
 
 class QLabel;
@@ -58,6 +59,8 @@ private:
 private slots:
 	void onAllSlicersInitialized();
 	void onAllSlicersReinitialized();
+
+	void onHistogramReady(QSharedPointer<iAModality> modality, int column);
 
 	//void onModalitiesChanged();
 
