@@ -67,17 +67,17 @@ public:
 	void initialize();
 
 	int countModalities();
-	void setModalities(QList<QSharedPointer<iAModality>> modalities);
+	void setModalities(const QList<QSharedPointer<iAModality>> &modalities);
 	void setMask(vtkSmartPointer<vtkImageData> mask);
 	void resetTf(QSharedPointer<iAModality> modality);
-	void resetTf(QList<QSharedPointer<iAModality>> modalities);
+	void resetTf(const QList<QSharedPointer<iAModality>> &modalities);
 
 	void reinitialize();
 
-	void updateLabel(iANModalLabel);
-	void updateLabels(QList<iANModalLabel>);
-	void addSeeds(QList<iANModalSeed>, iANModalLabel);
-	void removeSeeds(QList<iANModalSeed>);
+	void updateLabel(const iANModalLabel &);
+	void updateLabels(const QList<iANModalLabel> &);
+	void addSeeds(const QList<iANModalSeed> &, const iANModalLabel &);
+	void removeSeeds(const QList<iANModalSeed> &);
 	void removeSeeds(int labelId);
 
 	void update();
@@ -89,7 +89,7 @@ private:
 	iASlicer* _initializeSlicer(QSharedPointer<iAModality> modality);
 	void _initializeCombinedVol();
 	void _initializeMainSlicers();
-	bool _checkModalities(QList<QSharedPointer<iAModality>> modalities);
+	bool _checkModalities(const QList<QSharedPointer<iAModality>> &modalities);
 	bool _matchModalities(QSharedPointer<iAModality> m1, QSharedPointer<iAModality> m2);
 	template <typename PixelType> void _updateMainSlicers();
 

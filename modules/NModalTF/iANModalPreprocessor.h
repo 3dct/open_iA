@@ -56,7 +56,7 @@ public:
 		bool valid = true;
 	};
 	
-	Output preprocess(QList<QSharedPointer<iAModality>>);
+	Output preprocess(const QList<QSharedPointer<iAModality>> &);
 
 private:
 
@@ -71,11 +71,11 @@ private:
 	QSharedPointer<iANModalBackgroundRemover> chooseBackgroundRemover();
 
 	bool areModalitiesCompatible(QSharedPointer<iAModality>, QSharedPointer <iAModality>);
-	void groupModalities(QList<QSharedPointer<iAModality>>, QList<ModalitiesGroup> &output);
-	QList<QSharedPointer<iAModality>> chooseGroup(QList<ModalitiesGroup>);
+	void groupModalities(const QList<QSharedPointer<iAModality>> &, QList<ModalitiesGroup> &output);
+	QList<QSharedPointer<iAModality>> chooseGroup(const QList<ModalitiesGroup> &);
 
-	QList<QSharedPointer<iAModality>> extractNewModalities(QList<QSharedPointer<iAModality>>);
-	void addModalitiesToMdiChild(QList<QSharedPointer<iAModality>>);
+	QList<QSharedPointer<iAModality>> extractNewModalities(const QList<QSharedPointer<iAModality>> &);
+	void addModalitiesToMdiChild(const QList<QSharedPointer<iAModality>> &);
 };
 
 class iANModalPreprocessorSelector : public QObject {

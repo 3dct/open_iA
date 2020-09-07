@@ -50,7 +50,7 @@ iANModalLabelsWidget::iANModalLabelsWidget(QWidget* parent) {
 	m_layout = new QGridLayout(this);
 }
 
-void iANModalLabelsWidget::updateTable(QList<iANModalLabel> labels) {
+void iANModalLabelsWidget::updateTable(const QList<iANModalLabel> &labels) {
 	int i;
 	for (i = 0; i < labels.size(); i++) {
 		auto label = labels[i];

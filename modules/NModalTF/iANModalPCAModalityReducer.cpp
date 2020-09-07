@@ -38,15 +38,15 @@
 #include <itkImageRegionConstIterator.h>
 
 // Input modalities (volumes) must have the exact same dimensions
-QList<QSharedPointer<iAModality>> iANModalPCAModalityReducer::reduce(QList<QSharedPointer<iAModality>> modalities) {
+QList<QSharedPointer<iAModality>> iANModalPCAModalityReducer::reduce(const QList<QSharedPointer<iAModality>> &modalities_in) {
 
 	// TODO: assert if all modalities have the same dimensions
 
 	// Set up connectors
-	std::vector<iAConnector> connectors(modalities.size());
-	for (int i = 0; i < modalities.size(); i++) {
+	std::vector<iAConnector> connectors(modalities_in.size());
+	for (int i = 0; i < modalities_in.size(); i++) {
 		connectors[i] = iAConnector();
-		connectors[i].setImage(modalities[i]->image());
+		connectors[i].setImage(modalities_in[i]->image());
 	}
 
 	// Go!
@@ -54,7 +54,7 @@ QList<QSharedPointer<iAModality>> iANModalPCAModalityReducer::reduce(QList<QShar
 	ITK_TYPED_CALL(ownPCA, connectors[0].itkScalarPixelType(), connectors);
 
 	// Set up output list
-	modalities = QList<QSharedPointer<iAModality>>();
+	auto modalities = QList<QSharedPointer<iAModality>>();
 	for (int i = 0; i < connectors.size(); i++) {
 		auto name = "Principal Component " + QString::number(i);
 

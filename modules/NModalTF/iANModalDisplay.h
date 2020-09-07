@@ -43,7 +43,7 @@ public:
 	// numOfRows must be at least 1; smaller values will be clamped
 	// maxSelection: how many modalities can be selected at maximum. <= 0 means there is no limit
 	// minSelection: how many modalities can be selected at minimum. <= 0 means it acceptable to make no selections
-	iANModalDisplay(QWidget *parent, MdiChild *mdiChild, QList<QSharedPointer<iAModality>> modalities, int maxSelection = 0, int minSelection = 1, int numOfRows = 1);
+	iANModalDisplay(QWidget *parent, MdiChild *mdiChild, const QList<QSharedPointer<iAModality>> &modalities, int maxSelection = 0, int minSelection = 1, int numOfRows = 1);
 
 	QList<QSharedPointer<iAModality>> modalities() { return m_modalities; }
 
@@ -85,7 +85,7 @@ public:
 
 	static Footer* createOkCancelFooter(QDialog *dialog) { return createFooter(dialog, {"OK"}, {"Cancel"}); }
 	static Footer* createOkSkipFooter(QDialog *dialog) { return createFooter(dialog, {"OK"}, {"Skip"}); }
-	static Footer* createFooter(QDialog *dialog, QList<QString> acceptTexts, QList<QString> rejectTexts);
+	static Footer* createFooter(QDialog *dialog, const QList<QString> &acceptTexts, const QList<QString> &rejectTexts);
 
 private:
 	QList<QSharedPointer<iAModality>> m_modalities;

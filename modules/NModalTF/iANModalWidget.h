@@ -64,11 +64,11 @@ private slots:
 
 	//void onModalitiesChanged();
 
-	void onSeedsAdded(QList<iASeed>);
-	void onSeedsRemoved(QList<iASeed>);
-	void onLabelAdded(iALabel);
-	void onLabelRemoved(iALabel);
-	void onLabelsColorChanged(QList<iALabel>);
+	void onSeedsAdded(const QList<iASeed> &);
+	void onSeedsRemoved(const QList<iASeed> &);
+	void onLabelAdded(const iALabel &);
+	void onLabelRemoved(const iALabel &);
+	void onLabelsColorChanged(const QList<iALabel> &);
 
 	void onLabelOpacityChanged(int labelId);
 	void onLabelRemoverStateChanged(int labelId);

@@ -46,5 +46,5 @@ public:
 		MaskMode maskMode;
 	};
 	virtual ~iANModalBackgroundRemover() {};
-	virtual	Mask removeBackground(QList<QSharedPointer<iAModality>>) = 0; // TODO: make input std::vector<vtkSmartPointer<vtkImageData>>
+	virtual	Mask removeBackground(const QList<QSharedPointer<iAModality>> &) = 0; // TODO: make input std::vector<vtkSmartPointer<vtkImageData>>
 };

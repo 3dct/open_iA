@@ -73,11 +73,11 @@ public:
 	QStandardItemModel* m_itemModel; // TODO: make private
 
 signals:
-	void seedsAdded(QList<iASeed>);
-	void seedsRemoved(QList<iASeed>);
-	void labelAdded(iALabel);
-	void labelRemoved(iALabel);
-	void labelsColorChanged(QList<iALabel>);
+	void seedsAdded(const QList<iASeed> &);
+	void seedsRemoved(const QList<iASeed> &);
+	void labelAdded(const iALabel &);
+	void labelRemoved(const iALabel &);
+	void labelsColorChanged(const QList<iALabel> &);
 
 public slots:
 	void rendererClicked(int, int, int, iASlicer*);

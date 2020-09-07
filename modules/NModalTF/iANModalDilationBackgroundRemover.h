@@ -64,7 +64,7 @@ class iANModalDilationBackgroundRemover : public QObject, public iANModalBackgro
 
 public:
 	iANModalDilationBackgroundRemover(MdiChild *mdiChild);
-	Mask removeBackground(QList<QSharedPointer<iAModality>>) override;
+	Mask removeBackground(const QList<QSharedPointer<iAModality>> &) override;
 
 private:
 	using ImagePointer = itk::ImageBase<DIM>::Pointer;
@@ -78,7 +78,7 @@ private:
 
 	// return - true if a modality and a threshold were successfully chosen
 	//        - false otherwise
-	bool selectModalityAndThreshold(QWidget *parent, QList<QSharedPointer<iAModality>> modalities,
+	bool selectModalityAndThreshold(QWidget *parent, const QList<QSharedPointer<iAModality>> &modalities,
 		int &out_threshold,
 		QSharedPointer<iAModality> &out_modality,
 		iANModalBackgroundRemover::MaskMode &out_maskMode);

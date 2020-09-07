@@ -244,7 +244,7 @@ iANModalDilationBackgroundRemover::iANModalDilationBackgroundRemover(MdiChild *m
 }
 
 iANModalBackgroundRemover::Mask iANModalDilationBackgroundRemover::removeBackground(
-	QList<QSharedPointer<iAModality>> modalities)
+	const QList<QSharedPointer<iAModality>> &modalities)
 {
 	QSharedPointer<iAModality> selectedMod;
 	iANModalBackgroundRemover::MaskMode maskMode;
@@ -295,7 +295,7 @@ iANModalBackgroundRemover::Mask iANModalDilationBackgroundRemover::removeBackgro
 // return - true if a modality and a threshold were successfully chosen
 //        - false otherwise
 bool iANModalDilationBackgroundRemover::selectModalityAndThreshold(QWidget *parent,
-	QList<QSharedPointer<iAModality>> modalities,
+	const QList<QSharedPointer<iAModality>> &modalities,
 	int &out_threshold, QSharedPointer<iAModality> &out_modality, iANModalBackgroundRemover::MaskMode &out_maskMode)
 {
 	QDialog *dialog = new QDialog(parent);

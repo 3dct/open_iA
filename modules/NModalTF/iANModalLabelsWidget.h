@@ -37,7 +37,7 @@ class iANModalLabelsWidget : public QWidget {
 public:
 	iANModalLabelsWidget(QWidget *parent = nullptr);
 
-	void updateTable(QList<iANModalLabel>);
+	void updateTable(const QList<iANModalLabel> &);
 	void insertLabel(int row, iANModalLabel, float opacity);
 	void removeLabel(int row);
 	bool containsLabel(int row);

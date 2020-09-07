@@ -37,7 +37,7 @@
 #include <QButtonGroup>
 #include <QStatusBar>
 
-iANModalDisplay::iANModalDisplay(QWidget *parent, MdiChild *mdiChild, QList<QSharedPointer<iAModality>> modalities, int maxSelection, int minSelection, int numOfRows) :
+iANModalDisplay::iANModalDisplay(QWidget *parent, MdiChild *mdiChild, const QList<QSharedPointer<iAModality>> &modalities, int maxSelection, int minSelection, int numOfRows) :
 	m_mdiChild(mdiChild),
 	m_maxSelection(maxSelection),
 	m_minSelection(minSelection),
@@ -169,7 +169,7 @@ QList<QSharedPointer<iAModality>> iANModalDisplay::selectModalities(
 	return display->selection();
 }
 
-iANModalDisplay::Footer* iANModalDisplay::createFooter(QDialog *dialog, QList<QString> acceptText, QList<QString> rejectText) {
+iANModalDisplay::Footer* iANModalDisplay::createFooter(QDialog *dialog, const QList<QString> &acceptText, const QList<QString> &rejectText) {
 	auto footerWigdet = new Footer(dialog);
 	auto footerLabel = new QLabel(footerWigdet);
 	auto footerLayout = new QHBoxLayout(footerWigdet); {

@@ -43,12 +43,12 @@
 
 namespace {
 	class PassthroughReducer : public iANModalModalityReducer {
-		QList<QSharedPointer<iAModality>> reduce(QList<QSharedPointer<iAModality>> inputModalities) {
+		QList<QSharedPointer<iAModality>> reduce(const QList<QSharedPointer<iAModality>> &inputModalities) {
 			return inputModalities;
 		}
 	};
 	class PassthroughBackgroundRemover : public iANModalBackgroundRemover {
-		iANModalBackgroundRemover::Mask removeBackground(QList<QSharedPointer<iAModality>>) {
+		iANModalBackgroundRemover::Mask removeBackground(const QList<QSharedPointer<iAModality>> &) {
 			return {nullptr, NONE};
 		}
 	};
@@ -60,15 +60,15 @@ iANModalPreprocessor::iANModalPreprocessor(MdiChild *mdiChild) :
 
 }
 
-inline QList<QSharedPointer<iAModality>> applyMask(vtkSmartPointer<vtkImageData> mask, QList<QSharedPointer<iAModality>> modalities);
+inline QList<QSharedPointer<iAModality>> applyMask(const vtkSmartPointer<vtkImageData> &mask, const QList<QSharedPointer<iAModality>> &modalities);
 
-iANModalPreprocessor::Output iANModalPreprocessor::preprocess(QList<QSharedPointer<iAModality>> modalities) {
+iANModalPreprocessor::Output iANModalPreprocessor::preprocess(const QList<QSharedPointer<iAModality>> &modalities_in) {
 
 	Output output;
 
 	QList<ModalitiesGroup> groups;
-	groupModalities(modalities, groups);
-	modalities = chooseGroup(groups);
+	groupModalities(modalities_in, groups);
+	auto modalities = chooseGroup(groups);
 
 	// Step 1: Dimensionality reduction
 	modalities = chooseModalityReducer()->reduce(modalities);
@@ -152,7 +152,7 @@ bool iANModalPreprocessor::areModalitiesCompatible(QSharedPointer<iAModality> m1
 	return true; // TODO
 }
 
-void iANModalPreprocessor::groupModalities(QList<QSharedPointer<iAModality>> modalitiesToGroup, QList<ModalitiesGroup> &output) {
+void iANModalPreprocessor::groupModalities(const QList<QSharedPointer<iAModality>> &modalitiesToGroup, QList<ModalitiesGroup> &output) {
 	// TODO
 	// Currently returning same list as in input
 	auto dims = modalitiesToGroup[0]->image()->GetDimensions();
@@ -164,12 +164,12 @@ void iANModalPreprocessor::groupModalities(QList<QSharedPointer<iAModality>> mod
 	output.append(group);
 }
 
-QList<QSharedPointer<iAModality>> iANModalPreprocessor::chooseGroup(QList<ModalitiesGroup> groups) {
+QList<QSharedPointer<iAModality>> iANModalPreprocessor::chooseGroup(const QList<ModalitiesGroup> &groups) {
 	// TODO
 	return groups[0].modalities;
 }
 
-QList<QSharedPointer<iAModality>> iANModalPreprocessor::extractNewModalities(QList<QSharedPointer<iAModality>> modalities) {
+QList<QSharedPointer<iAModality>> iANModalPreprocessor::extractNewModalities(const QList<QSharedPointer<iAModality>> &modalities) {
 	auto list = m_mdiChild->modalitiesDockWidget()->modalities();
 	auto currentModalities = QList<QSharedPointer<iAModality>>();
 	for (int i = 0; i < list->size(); ++i) {
@@ -187,7 +187,7 @@ QList<QSharedPointer<iAModality>> iANModalPreprocessor::extractNewModalities(QLi
 	return newModalities;
 }
 
-void iANModalPreprocessor::addModalitiesToMdiChild(QList<QSharedPointer<iAModality>> modalities) {
+void iANModalPreprocessor::addModalitiesToMdiChild(const QList<QSharedPointer<iAModality>> &modalities) {
 	for (auto mod : modalities) {
 		//m_mdiChild->modalitiesDockWidget()->addModality(mod->image(), mod->name());
 		m_mdiChild->modalitiesDockWidget()->addModality(mod);
@@ -195,8 +195,8 @@ void iANModalPreprocessor::addModalitiesToMdiChild(QList<QSharedPointer<iAModali
 }
 
 inline QList<QSharedPointer<iAModality>> applyMask(
-	vtkSmartPointer<vtkImageData> mask,
-	QList<QSharedPointer<iAModality>> modalities) {
+	const vtkSmartPointer<vtkImageData> &mask,
+	const QList<QSharedPointer<iAModality>> &modalities) {
 
 	/* TODO (28th July 2020)
 	As of now, the way the mask works does not support dynamic addition of modalities.

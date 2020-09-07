@@ -294,7 +294,7 @@ int iANModalController::countModalities() {
 	return numModalities;
 }
 
-bool iANModalController::_checkModalities(QList<QSharedPointer<iAModality>> modalities) {
+bool iANModalController::_checkModalities(const QList<QSharedPointer<iAModality>> &modalities) {
 	if (modalities.size() < 1 || modalities.size() > 4) { // Bad: '4' is hard-coded. TODO: improve
 		return false;
 	}
@@ -324,7 +324,7 @@ bool iANModalController::_matchModalities(QSharedPointer<iAModality> m1, QShared
 	return true;
 }
 
-void iANModalController::setModalities(QList<QSharedPointer<iAModality>> modalities) {
+void iANModalController::setModalities(const QList<QSharedPointer<iAModality>> &modalities) {
 	if (!_checkModalities(modalities)) {
 		return;
 	}
@@ -372,19 +372,19 @@ void iANModalController::resetTf(QSharedPointer<iAModality> modality) {
 	tf->update();
 }
 
-void iANModalController::resetTf(QList<QSharedPointer<iAModality>> modalities) {
+void iANModalController::resetTf(const QList<QSharedPointer<iAModality>> &modalities) {
 	for (auto modality : modalities) {
 		resetTf(modality);
 	}
 }
 
-void iANModalController::updateLabel(iANModalLabel label) {
+void iANModalController::updateLabel(const iANModalLabel &label) {
 	auto list = QList<iANModalLabel>();
 	list.append(label);
 	updateLabels(list);
 }
 
-void iANModalController::updateLabels(QList<iANModalLabel> labelsList) {
+void iANModalController::updateLabels(const QList<iANModalLabel> &labelsList) {
 	std::vector<iANModalLabel> labels = labelsList.toVector().toStdVector();
 	for (auto tf : m_tfs) {
 		tf->updateLabels(labels);
@@ -392,7 +392,7 @@ void iANModalController::updateLabels(QList<iANModalLabel> labelsList) {
 	}
 }
 
-void iANModalController::addSeeds(QList<iANModalSeed> seeds, iANModalLabel label) {
+void iANModalController::addSeeds(const QList<iANModalSeed> &seeds, const iANModalLabel &label) {
 	for (auto seed : seeds) {
 		auto modality = m_mapOverlayImageId2modality.value(seed.overlayImageId);
 		unsigned int x = modality->image()->GetScalarComponentAsDouble(seed.x, seed.y, seed.z, 0);
@@ -409,7 +409,7 @@ void iANModalController::addSeeds(QList<iANModalSeed> seeds, iANModalLabel label
 	}
 }
 
-void iANModalController::removeSeeds(QList<iANModalSeed> seeds) {
+void iANModalController::removeSeeds(const QList<iANModalSeed> &seeds) {
 	for (auto seed : seeds) {
 		auto modality = m_mapOverlayImageId2modality.value(seed.overlayImageId);
 		unsigned int x = modality->image()->GetScalarComponentAsDouble(seed.x, seed.y, seed.z, 0);
