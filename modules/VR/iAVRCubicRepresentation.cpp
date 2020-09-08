@@ -140,8 +140,18 @@ vtkIdType iAVRCubicRepresentation::getClosestCellID(double pos[3], double eventO
 
 	if (cellPicker->Pick3DRay(pos, eventOrientation, m_renderer) >= 0)
 	{
-		vtkIdType regionId = dynamic_cast<vtkIdTypeArray*>(glyph3D->GetOutput()->GetPointData()->GetArray("InputPointIds"))
-			->GetValue(cellPicker->GetPointId());
+		if (!glyph3D)
+		{
+			DEBUG_LOG("Glyph not set (yet)!");
+			return -1;
+		}
+		auto inputPointIDs = dynamic_cast<vtkIdTypeArray*>(glyph3D->GetOutput()->GetPointData()->GetArray("InputPointIds"));
+		if (!inputPointIDs)
+		{
+			DEBUG_LOG("Input point IDs not set!");
+			return -1;
+		}
+		vtkIdType regionId = inputPointIDs->GetValue(cellPicker->GetPointId());
 
 		return regionId;
 	}
