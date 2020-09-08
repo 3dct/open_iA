@@ -409,6 +409,9 @@ void iANModalController::addSeeds(const QList<iANModalSeed> &seeds, const iANMod
 	for (auto tf : m_tfs) {
 		tf->update();
 	}
+
+	m_tracker.addSeeds(seeds, label);
+	m_tracker.update();
 }
 
 void iANModalController::removeSeeds(const QList<iANModalSeed> &seeds) {
@@ -422,13 +425,19 @@ void iANModalController::removeSeeds(const QList<iANModalSeed> &seeds) {
 	for (auto tf : m_tfs) {
 		tf->update();
 	}
+
+	m_tracker.removeSeeds(seeds);
+	m_tracker.update();
 }
 
-void iANModalController::removeSeeds(int labelId) {
+void iANModalController::removeSeeds(const iANModalLabel &label) {
 	for (auto tf : m_tfs) {
-		tf->removeControlPoints(labelId);
+		tf->removeControlPoints(label.id);
 		tf->update();
 	}
+
+	m_tracker.removeSeeds(label);
+	m_tracker.update();
 }
 
 void iANModalController::update() {

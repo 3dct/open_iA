@@ -25,6 +25,7 @@
 #include <QWidget>
 
 struct iANModalSeed;
+struct iANModalLabel;
 class iANModalSeedVisualizer;
 
 class MdiChild;
@@ -39,8 +40,9 @@ public:
 	~iANModalSeedTracker();
 	void teardown();
 
-	void addSeeds(const QList<iANModalSeed> &);
+	void addSeeds(const QList<iANModalSeed> &, const iANModalLabel &);
 	void removeSeeds(const QList<iANModalSeed> &);
+	void removeSeeds(const iANModalLabel &);
 
 	void update();
 
@@ -57,8 +59,9 @@ public:
 	void reinitialize(MdiChild *mdiChild);
 	void teardown();
 
-	void addSeeds(const QList<iANModalSeed> &);
+	void addSeeds(const QList<iANModalSeed> &, const iANModalLabel &);
 	void removeSeeds(const QList<iANModalSeed> &);
+	void removeSeeds(const iANModalLabel &);
 
 	void update();
 
@@ -75,10 +78,17 @@ private:
 	std::vector<unsigned int> m_values;
 	QImage m_image;
 
+	// Maps label ID to number of seeds
+	// Value only changes at addSeeds (where new values are added to their respective labels)
+	// ...and at removeSeeds(const iANModalLabel &) (where values are removed from their respective labels)
+	// Values remains UNCHANGED at removeSeeds(const QList<iANModalSeed> &)!!!
+	// ...meaning that this container cannot be relied on for the exact value
+	std::vector<std::map<int, unsigned int>> m_valuesLabelled;
+
 	void paint();
 	void autoresize();
 	void resize(int width, int heigth);
-	void click();
-	void hover();
+	void click(int y);
+	void hover(int y);
 
 };

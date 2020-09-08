@@ -195,7 +195,8 @@ void iANModalWidget::onLabelAdded(const iALabel &label) {
 }
 
 void iANModalWidget::onLabelRemoved(const iALabel &label) {
-	m_c->removeSeeds(label.id);
+	auto nmLabel = iANModalLabel(label.id, label.name, label.color, 1.0f);
+	m_c->removeSeeds(nmLabel);
 	m_labels.remove(label.id);
 	m_labelsWidget->updateTable(m_labels.values());
 	m_c->update();

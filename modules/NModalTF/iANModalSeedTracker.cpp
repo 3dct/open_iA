@@ -54,28 +54,30 @@ iANModalSeedTracker::~iANModalSeedTracker() {
 	teardown();
 }
 
-void iANModalSeedTracker::teardown() {
-	for (auto vis : m_visualizers) {
-		vis->teardown();
-	}
+#define iANModal_FOR_EACH_VISUALIZER_DO(visualizer, athing) \
+for (int iANModal_vis_id = 0; iANModal_vis_id < iASlicerMode::SlicerCount; ++iANModal_vis_id) { \
+	auto visualizer = m_visualizers[iANModal_vis_id]; \
+	athing; \
 }
 
-void iANModalSeedTracker::addSeeds(const QList<iANModalSeed> &seeds) {
-	for (auto vis : m_visualizers) {
-		vis->addSeeds(seeds);
-	}
+void iANModalSeedTracker::teardown() {
+	iANModal_FOR_EACH_VISUALIZER_DO(vis, vis->teardown());
+}
+
+void iANModalSeedTracker::addSeeds(const QList<iANModalSeed> &seeds, const iANModalLabel &label) {
+	iANModal_FOR_EACH_VISUALIZER_DO(vis, vis->addSeeds(seeds, label));
 }
 
 void iANModalSeedTracker::removeSeeds(const QList<iANModalSeed> &seeds) {
-	for (auto vis : m_visualizers) {
-		vis->removeSeeds(seeds);
-	}
+	iANModal_FOR_EACH_VISUALIZER_DO(vis, vis->removeSeeds(seeds));
+}
+
+void iANModalSeedTracker::removeSeeds(const iANModalLabel &label) {
+	iANModal_FOR_EACH_VISUALIZER_DO(vis, vis->removeSeeds(label));
 }
 
 void iANModalSeedTracker::update() {
-	for (auto vis : m_visualizers) {
-		vis->update();
-	}
+	iANModal_FOR_EACH_VISUALIZER_DO(vis, vis->update());
 }
 
 // iANModalSeedVisualizer -------------------------------------------------------------
@@ -98,6 +100,8 @@ void iANModalSeedVisualizer::reinitialize(MdiChild *mdiChild) {
 	m_values.resize(range);
 	std::fill(m_values.begin(), m_values.end(), 0);
 
+	m_valuesLabelled.resize(range);
+
 	if (!m_initialized) {
 		widget->horizontalLayout_2->addWidget(this, 0);
 	}
@@ -109,16 +113,68 @@ void iANModalSeedVisualizer::teardown() {
 	deleteLater();
 }
 
-void iANModalSeedVisualizer::addSeeds(const QList<iANModalSeed> &seeds) {
+void iANModalSeedVisualizer::addSeeds(const QList<iANModalSeed> &seeds, const iANModalLabel &label) {
 
+#define iANModal_ADD_SEEDS(membervar) { \
+	for (const auto &seed : seeds) { \
+		++m_values[seed.membervar]; \
+		auto map = m_valuesLabelled[seed.membervar]; \
+		++map[id]; \
+	} \
+}
+
+	int id = label.id;
+	switch (m_mode) {
+	case iASlicerMode::XY: iANModal_ADD_SEEDS(z); break;
+	case iASlicerMode::XZ: iANModal_ADD_SEEDS(y); break;
+	case iASlicerMode::YZ: iANModal_ADD_SEEDS(x); break;
+	default: break; // TODO: error 
+	}
 }
 
 void iANModalSeedVisualizer::removeSeeds(const QList<iANModalSeed> &seeds) {
 
 }
 
-void iANModalSeedVisualizer::update() {
+void iANModalSeedVisualizer::removeSeeds(const iANModalLabel &label) {
 
+}
+
+void iANModalSeedVisualizer::update() {
+	constexpr QRgb HISTOGRAM_COLOR_FOREGROUND = qRgb(0, 114, 189);
+	constexpr QRgb HISTOGRAM_COLOR_BACKGROUND = qRgb(255, 255, 255);
+
+	unsigned int maxValue = *std::max_element(m_values.begin(), m_values.end());
+
+	if (maxValue == 0) {
+		//m_image.fill(HISTOGRAM_COLOR_BACKGROUND);
+		m_image.fill(QColor(255, 255, 255));
+
+	} else {
+		float maxValue_float = (float) maxValue;
+		for (int y = 0; y < m_image.height(); ++y) {
+
+			float valueIndex_float = ((float) y / (float) (m_image.height()) * (float) (m_values.size() - 1));
+			int valueIndex = round(valueIndex_float);
+			assert(valueIndex >= 0 && valueIndex < m_values.size());
+			unsigned int value = m_values[valueIndex];
+
+			float lineLength_float = ((float) value / maxValue_float) * ((float) m_image.width());
+			int lineLength = ceil(lineLength_float);
+			assert((value == 0 && lineLength == 0) || (lineLength >= 1 && lineLength <= m_image.width()));
+
+			QRgb *line = (QRgb*) m_image.scanLine(y);
+			int x = 0;
+			for (; x < lineLength; ++x) {
+				line[x] = HISTOGRAM_COLOR_FOREGROUND;
+			}
+			for (; x < m_image.width(); ++x) {
+				line[x] = HISTOGRAM_COLOR_BACKGROUND;
+			}
+		}
+	}
+
+	QWidget::update();
 }
 
 // EVENT FUNCTIONS --------------------------------------------------------------------
@@ -133,35 +189,32 @@ void iANModalSeedVisualizer::autoresize() {
 }
 
 void iANModalSeedVisualizer::resize(int width, int height) {
-	m_image = QImage(width, height, QImage::Format::Format_RGB888);
+	m_image = QImage(width, height, QImage::Format::Format_RGB32);
 	// At this point, m_image contains uninitialized data
 }
 
-void iANModalSeedVisualizer::click() {
+void iANModalSeedVisualizer::click(int y) {
 
 }
 
-void iANModalSeedVisualizer::hover() {
+void iANModalSeedVisualizer::hover(int y) {
 
 }
 
 // EVENTS -----------------------------------------------------------------------------
 
 void iANModalSeedVisualizer::paintEvent(QPaintEvent* event) {
-
+	paint();
 }
 
 void iANModalSeedVisualizer::resizeEvent(QResizeEvent* event) {
 	autoresize();
-	
-	// temporary TODO remove
-	m_image.fill(QColor(255, 0, 0));
 }
 
 void iANModalSeedVisualizer::mousePressEvent(QMouseEvent* event) {
-
+	click(event->pos().y());
 }
 
 void iANModalSeedVisualizer::mouseMoveEvent(QMouseEvent* event) {
-
+	hover(event->pos().y());
 }
