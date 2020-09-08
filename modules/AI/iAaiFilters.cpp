@@ -233,7 +233,8 @@ void executeDNN(iAFilter* filter, QMap<QString, QVariant> const & parameters)
 		parameters["OnnxFile"].toString().toWCharArray(model_path);
 		model_path[parameters["OnnxFile"].toString().length()] = L'\0';
 	#else
-		const char* model_path = parameters["OnnxFile"].toString().toStdString().c_str();
+		std::string modelPathStdString = parameters["OnnxFile"].toString().toStdString();
+		const char* model_path = modelPathStdString.c_str();
 	#endif
 
 	DEBUG_LOG(QString("Using Onnxruntime C++ API"));

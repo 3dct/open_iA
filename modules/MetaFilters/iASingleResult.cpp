@@ -71,7 +71,7 @@ QSharedPointer<iASingleResult> iASingleResult::create(
 	}
 	for (int i = 0; i < attributes->size(); ++i)
 	{
-		double value = -1;
+		QVariant value;
 		auto valueType = attributes->at(i)->valueType();
 		QString curToken = tokens[i + 1];
 		switch (valueType)
@@ -84,6 +84,9 @@ QSharedPointer<iASingleResult> iASingleResult::create(
 				break;
 			case iAValueType::Categorical:
 				value = attributes->at(i)->nameMapper()->GetIdx(curToken, ok);
+				break;
+			default:
+				value = curToken;
 				break;
 		}
 		if (!ok)
