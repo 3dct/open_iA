@@ -452,12 +452,17 @@ void dlg_labels::remove()
 
 		auto label = m_labels[curLabel];
 
+		QList<iASeed> removedSeeds;
 		for (int s = item->rowCount()-1; s >= 0; --s)
 		{
 			auto seed = item->child(s);
 			int x = seed->data(Qt::UserRole + 1).toInt();
 			int y = seed->data(Qt::UserRole + 2).toInt();
 			int z = seed->data(Qt::UserRole + 3).toInt();
+			int oiid = seed->data(Qt::UserRole + 4).toInt();
+			if (m_trackingSeeds) {
+				removedSeeds.append(iASeed(x, y, z, oiid, label));
+			}
 			for (QSharedPointer<OverlayImage> oi : m_mapId2image.values()) {
 				drawPixel<LabelPixelType>(oi->image, x, y, z, 0);
 			}
@@ -490,6 +495,10 @@ void dlg_labels::remove()
 		// TODO remove respective SlicerData from m_mapSlicer2data
 		// ... by going through all entries and checking if overlayImageId matches that of the removed image
 
+		if (m_trackingSeeds) {
+			emit seedsRemoved(removedSeeds);
+		}
+
 		emit labelRemoved(*label);
 
 		recolorItems();
@@ -521,9 +530,11 @@ void dlg_labels::removeSeed(int x, int y, int z, iASlicer *slicer)
 	labelItem->removeRow(seedItemRow);
 	m_itemModel->item(labelRow, 1)->setText(QString::number(m_itemModel->item(labelRow, 1)->text().toInt() - 1));
 
-	QList<iASeed> removedSeeds;
-	removedSeeds.append(iASeed(x, y, z, id, label));
-	emit seedsRemoved(removedSeeds);
+	if (m_trackingSeeds) {
+		QList<iASeed> removedSeeds;
+		removedSeeds.append(iASeed(x, y, z, id, label));
+		emit seedsRemoved(removedSeeds);
+	}
 }
 
 void dlg_labels::removeSeed(QStandardItem *item) {
@@ -533,10 +544,15 @@ void dlg_labels::removeSeed(QStandardItem *item) {
 	int id = item->data(Qt::UserRole + 4).toInt();
 	int row = item->parent()->row();
 	auto label = m_labels[row];
-	iASeed seed(x, y, z, id, label);
-	QList<iASeed> seeds;
-	seeds.append(seed);
-	emit seedsRemoved(seeds);
+
+	// TODO remove item from list
+
+	if (m_trackingSeeds) {
+		iASeed seed(x, y, z, id, label);
+		QList<iASeed> seeds;
+		seeds.append(seed);
+		emit seedsRemoved(seeds);
+	}
 }
 
 int dlg_labels::curLabelRow() const
@@ -972,6 +988,7 @@ void dlg_labels::clear()
 	}
 	updateChannels();
 	m_itemModel->clear();
+	emit allSeedsRemoved();
 	for (auto label : m_labels) {
 		emit labelRemoved(*label);
 	}

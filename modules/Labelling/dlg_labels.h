@@ -75,6 +75,7 @@ public:
 signals:
 	void seedsAdded(const QList<iASeed> &);
 	void seedsRemoved(const QList<iASeed> &);
+	void allSeedsRemoved();
 	void labelAdded(const iALabel &);
 	void labelRemoved(const iALabel &);
 	void labelsColorChanged(const QList<iALabel> &);
