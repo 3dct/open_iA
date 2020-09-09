@@ -9,6 +9,7 @@
 
 //iA
 #include "mainwindow.h"
+#include "iAVtkVersion.h"
 
 //Qt
 #include <QColor>

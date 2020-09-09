@@ -8,6 +8,7 @@
 
 //iA
 #include "mainwindow.h"
+#include "iAVtkVersion.h"
 
 //vtk
 #include "QVTKOpenGLNativeWidget.h"

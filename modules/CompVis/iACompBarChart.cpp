@@ -3,6 +3,7 @@
 //compVis
 #include "iACoefficientOfVariation.h"
 #include "iACompVisOptions.h"
+#include "iAVtkVersion.h"
 
 //Qt
 #include "vtkGenericOpenGLRenderWindow.h"
