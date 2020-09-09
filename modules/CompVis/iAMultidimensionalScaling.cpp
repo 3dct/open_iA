@@ -45,7 +45,7 @@ void iAMultidimensionalScaling::startMDS(std::vector<double>* weights)
 	m_weights = weights;
 	calculateProximityDistance();
 
-	calculateMDS(1, 100); //1,1
+	calculateMDS(1, 1); //1,100
 }
 
 void iAMultidimensionalScaling::setProximityMetric(ProximityMetric proxiName)
@@ -169,7 +169,9 @@ void iAMultidimensionalScaling::calculateMDS(int dim, int iterations)
 
 	//X - configuration of points in Euclidiean space
 	//initialize X with one vector filled with random values between [0,1]
-	csvDataType::ArrayType* X = csvDataType::initializeRandom(amountRowsProxM, dim);
+	csvDataType::ArrayType* X = new csvDataType::ArrayType();
+	csvDataType::initializeRandom(amountRowsProxM, dim, X);
+		
 	////DEBUG
 	/*DEBUG_LOG(" \n init X");
 	csvDataType::debugArrayType(X);*/
@@ -188,8 +190,11 @@ void iAMultidimensionalScaling::calculateMDS(int dim, int iterations)
 	csvDataType::debugArrayType(X);*/
 
 	csvDataType::ArrayType* Z = csvDataType::copy(X);
-	csvDataType::ArrayType* D_ = csvDataType::initialize(amountRowsProxM, amountColsProxM);
-	csvDataType::ArrayType* B = csvDataType::initialize(amountRowsProxM, amountColsProxM);
+	csvDataType::ArrayType* D_ = new csvDataType::ArrayType();
+	csvDataType::initialize(amountRowsProxM, amountColsProxM, D_);
+
+	csvDataType::ArrayType* B = new csvDataType::ArrayType();
+	csvDataType::initialize(amountRowsProxM, amountColsProxM, B);
 
 	/*DEBUG_LOG("\n init Z");
 	csvDataType::debugArrayType(Z);*/
@@ -203,7 +208,8 @@ void iAMultidimensionalScaling::calculateMDS(int dim, int iterations)
 	csvDataType::debugArrayType(D_);*/
 
 	csvDataType::ArrayType oldX_ = *X;
-	csvDataType::ArrayType* result = csvDataType::initialize(csvDataType::getRows(&oldX_), csvDataType::getColumns(&oldX_));
+	csvDataType::ArrayType* result = new csvDataType::ArrayType();
+	csvDataType::initialize(csvDataType::getRows(&oldX_), csvDataType::getColumns(&oldX_), result);
 
 	//MDS iteration
 	for (int it = 0; it < iterations; it++)

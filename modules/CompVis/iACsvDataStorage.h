@@ -17,9 +17,9 @@ namespace csvDataType
 	using ArrayType = std::vector<std::vector<double>>;
 
 	//initialize with zeros
-	ArrayType* initialize(int rows, int columns);
+	void initialize(int rows, int columns, csvDataType::ArrayType* result);
 	//initialize with random numbers in range [0,1]
-	ArrayType* initializeRandom(int rows, int columns);
+	void initializeRandom(int rows, int columns, csvDataType::ArrayType* result);
 	//calculate the mean of all values
 	double mean(ArrayType* input);
 	// add a number to the array in space

@@ -13,7 +13,8 @@ iAArcCosineDistance::iAArcCosineDistance(
 
 csvDataType::ArrayType* iAArcCosineDistance::calculateProximityDistance()
 {
-	m_distanceMatrix = csvDataType::initialize(m_amountOfElems, m_amountOfElems);
+	m_distanceMatrix = new csvDataType::ArrayType();
+	csvDataType::initialize(m_amountOfElems, m_amountOfElems, m_distanceMatrix);
 
 	//DEBUG
 	/*DEBUG_LOG("");

@@ -95,11 +95,14 @@ void iACsvDataStorage::initializeValueArray(
 {
 	for (int row = 1; row < (list->size()); row++)
 	{
-		values->push_back(std::vector<double>(attrCount, 0));
+		std::vector<double> vec = std::vector<double>();
+		vec.reserve(attrCount);
 		for (int col = 0; col < attrCount; col++)
 		{
-			values->at(row - 1).at(col) = list->at(row).at(col).toDouble();
+			//values->at(row - 1).at(col) = list->at(row).at(col).toDouble();
+			vec.push_back(list->at(row).at(col).toDouble());
 		}
+		values->push_back(vec);
 	}
 }
 
@@ -158,16 +161,30 @@ std::vector<int>* csvFileData::getAmountObjectsEveryDataset(QList<csvFileData>* 
 }
 
 /***********************  csvDataType methods  ******************************************/
-csvDataType::ArrayType* csvDataType::initialize(int rows, int columns)
+void csvDataType::initialize(int rows, int columns, csvDataType::ArrayType* result)
 {
-	std::vector<double> vec(columns, 0.0);
-	return new csvDataType::ArrayType(rows, vec);
+	/*std::vector<double> vec(columns, 0.0);
+	return csvDataType::ArrayType(rows, vec);*/
+
+	//TODO here is problem of memory leak!!!!!!!!!!!!!
+	result->reserve(rows);
+
+	for(int i = 0;  i < rows; i++)
+	{
+		std::vector<double> vec = std::vector<double>();
+		vec.reserve(columns);
+
+		for (int j = 0; j < columns; j++)
+		{
+			vec.push_back(0.0);
+		}
+		result->push_back(vec);
+	}
+
 }
 
-csvDataType::ArrayType* csvDataType::initializeRandom(int rows, int columns)
+void csvDataType::initializeRandom(int rows, int columns, csvDataType::ArrayType* result)
 {
-	ArrayType* result = new ArrayType(rows);
-
 	double rand2 = 1.0 / rows;
 	for (int r = 0; r < rows; r++)
 	{
@@ -192,10 +209,8 @@ csvDataType::ArrayType* csvDataType::initializeRandom(int rows, int columns)
 		}
 		rand2 += (1.0 / rows);
 
-		result->at(r) = vec;
+		result->push_back(vec);
 	}
-
-	return result;
 }
 
 double csvDataType::mean(ArrayType* input)
@@ -249,7 +264,8 @@ csvDataType::ArrayType* csvDataType::copy(ArrayType* input)
 	int cols = getColumns(input);
 	int rows = getRows(input);
 
-	ArrayType* result = initialize(rows, cols);
+	ArrayType* result = new ArrayType(); 
+	initialize(rows, cols, result);
 
 	for (int r = 0; r < rows; r++)
 	{
@@ -282,7 +298,8 @@ csvDataType::ArrayType* csvDataType::elementCopy(ArrayType* input)
 {
 	int cols = getColumns(input);
 	int rows = getRows(input);
-	ArrayType* result = initialize(rows,cols);
+	ArrayType* result = new ArrayType();
+	initialize(rows, cols, result);
 	
 	for (int r = 0; r < rows; r++)
 	{
@@ -300,7 +317,8 @@ csvDataType::ArrayType* csvDataType::transpose(ArrayType* input)
 	int amountCols = getColumns(input);
 	int amountRows = getRows(input);
 
-	ArrayType* result = initialize(amountRows, amountCols);
+	ArrayType* result = new ArrayType();
+	initialize(amountRows, amountCols, result);
 
 	for (int r = 0; r < amountRows; r++)
 	{
