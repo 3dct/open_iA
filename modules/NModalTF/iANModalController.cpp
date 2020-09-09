@@ -430,13 +430,13 @@ void iANModalController::removeSeeds(const QList<iANModalSeed> &seeds) {
 	m_tracker.update();
 }
 
-void iANModalController::removeSeeds(const iANModalLabel &label) {
+void iANModalController::removeAllSeeds() {
 	for (auto tf : m_tfs) {
-		tf->removeControlPoints(label.id);
+		tf->removeAllControlPoints();
 		tf->update();
 	}
 
-	m_tracker.removeSeeds(label);
+	m_tracker.removeAllSeeds();
 	m_tracker.update();
 }
 

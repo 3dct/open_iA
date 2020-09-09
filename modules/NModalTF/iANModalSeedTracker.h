@@ -42,7 +42,7 @@ public:
 
 	void addSeeds(const QList<iANModalSeed> &, const iANModalLabel &);
 	void removeSeeds(const QList<iANModalSeed> &);
-	void removeSeeds(const iANModalLabel &);
+	void removeAllSeeds();
 
 	void update();
 
@@ -61,7 +61,7 @@ public:
 
 	void addSeeds(const QList<iANModalSeed> &, const iANModalLabel &);
 	void removeSeeds(const QList<iANModalSeed> &);
-	void removeSeeds(const iANModalLabel &);
+	void removeAllSeeds();
 
 	void update();
 
@@ -77,13 +77,6 @@ private:
 	iASlicerMode m_mode;
 	std::vector<unsigned int> m_values;
 	QImage m_image;
-
-	// Maps label ID to number of seeds
-	// Value only changes at addSeeds (where new values are added to their respective labels)
-	// ...and at removeSeeds(const iANModalLabel &) (where values are removed from their respective labels)
-	// Values remains UNCHANGED at removeSeeds(const QList<iANModalSeed> &)!!!
-	// ...meaning that this container cannot be relied on for the exact value
-	std::vector<std::map<int, unsigned int>> m_valuesLabelled;
 
 	void paint();
 	void autoresize();

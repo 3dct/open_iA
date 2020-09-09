@@ -66,6 +66,7 @@ private slots:
 
 	void onSeedsAdded(const QList<iASeed> &);
 	void onSeedsRemoved(const QList<iASeed> &);
+	void onAllSeedsRemoved();
 	void onLabelAdded(const iALabel &);
 	void onLabelRemoved(const iALabel &);
 	void onLabelsColorChanged(const QList<iALabel> &);

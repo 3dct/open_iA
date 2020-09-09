@@ -72,8 +72,8 @@ void iANModalSeedTracker::removeSeeds(const QList<iANModalSeed> &seeds) {
 	iANModal_FOR_EACH_VISUALIZER_DO(vis, vis->removeSeeds(seeds));
 }
 
-void iANModalSeedTracker::removeSeeds(const iANModalLabel &label) {
-	iANModal_FOR_EACH_VISUALIZER_DO(vis, vis->removeSeeds(label));
+void iANModalSeedTracker::removeAllSeeds() {
+	iANModal_FOR_EACH_VISUALIZER_DO(vis, vis->removeAllSeeds());
 }
 
 void iANModalSeedTracker::update() {
@@ -95,12 +95,10 @@ void iANModalSeedVisualizer::reinitialize(MdiChild *mdiChild) {
 
 	int min = widget->verticalScrollBar->minimum();
 	int max = widget->verticalScrollBar->maximum();
-	int range = max - min;
+	int range = max - min + 1;
 
 	m_values.resize(range);
 	std::fill(m_values.begin(), m_values.end(), 0);
-
-	m_valuesLabelled.resize(range);
 
 	if (!m_initialized) {
 		widget->horizontalLayout_2->addWidget(this, 0);
@@ -114,30 +112,34 @@ void iANModalSeedVisualizer::teardown() {
 }
 
 void iANModalSeedVisualizer::addSeeds(const QList<iANModalSeed> &seeds, const iANModalLabel &label) {
-
-#define iANModal_ADD_SEEDS(membervar) { \
-	for (const auto &seed : seeds) { \
-		++m_values[seed.membervar]; \
-		auto map = m_valuesLabelled[seed.membervar]; \
-		++map[id]; \
-	} \
-}
-
 	int id = label.id;
-	switch (m_mode) {
-	case iASlicerMode::XY: iANModal_ADD_SEEDS(z); break;
-	case iASlicerMode::XZ: iANModal_ADD_SEEDS(y); break;
-	case iASlicerMode::YZ: iANModal_ADD_SEEDS(x); break;
-	default: break; // TODO: error 
+	for (const auto &seed : seeds) {
+		int i;
+		switch (m_mode) {
+		case iASlicerMode::XY: i = seed.z; break;
+		case iASlicerMode::XZ: i = seed.y; break;
+		case iASlicerMode::YZ: i = seed.x; break;
+		default: break; // TODO: error 
+		}
+		++m_values[i];
 	}
 }
 
 void iANModalSeedVisualizer::removeSeeds(const QList<iANModalSeed> &seeds) {
-
+	for (const auto &seed : seeds) {
+		int i;
+		switch (m_mode) {
+		case iASlicerMode::XY: i = seed.z; break;
+		case iASlicerMode::XZ: i = seed.y; break;
+		case iASlicerMode::YZ: i = seed.x; break;
+		default: break; // TODO: error 
+		}
+		--m_values[i];
+	}
 }
 
-void iANModalSeedVisualizer::removeSeeds(const iANModalLabel &label) {
-
+void iANModalSeedVisualizer::removeAllSeeds() {
+	std::fill(m_values.begin(), m_values.end(), 0);
 }
 
 void iANModalSeedVisualizer::update() {

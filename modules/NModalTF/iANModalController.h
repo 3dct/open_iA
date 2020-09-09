@@ -79,7 +79,7 @@ public:
 	void updateLabels(const QList<iANModalLabel> &);
 	void addSeeds(const QList<iANModalSeed> &, const iANModalLabel &);
 	void removeSeeds(const QList<iANModalSeed> &);
-	void removeSeeds(const iANModalLabel &);
+	void removeAllSeeds();
 
 	void update();
 

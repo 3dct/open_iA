@@ -80,8 +80,9 @@ iANModalWidget::iANModalWidget(MdiChild *mdiChild) {
 
 	connect(m_c->m_dlg_labels, SIGNAL(seedsAdded(const QList<iASeed> &)), this, SLOT(onSeedsAdded(const QList<iASeed> &)));
 	connect(m_c->m_dlg_labels, SIGNAL(seedsRemoved(const QList<iASeed> &)), this, SLOT(onSeedsRemoved(const QList<iASeed> &)));
+	connect(m_c->m_dlg_labels, &dlg_labels::allSeedsRemoved, this, &iANModalWidget::onAllSeedsRemoved);
 	connect(m_c->m_dlg_labels, SIGNAL(labelAdded(const iALabel &)), this, SLOT(onLabelAdded(const iALabel &)));
-	connect(m_c->m_dlg_labels, SIGNAL(labelRemoved(const iALabel &)), this, SLOT(onLabelRemoved(const iALabel &)));
+	connect(m_c->m_dlg_labels, &dlg_labels::labelRemoved, this, &iANModalWidget::onLabelRemoved);
 	connect(m_c->m_dlg_labels, SIGNAL(labelsColorChanged(const QList<iALabel> &)), this, SLOT(onLabelsColorChanged(const QList<iALabel> &)));
 
 	iASlicerMode slicerModes[iASlicerMode::SlicerCount] { iASlicerMode::YZ, iASlicerMode::XZ, iASlicerMode::XY };
@@ -188,6 +189,10 @@ void iANModalWidget::onSeedsRemoved(const QList<iASeed> &seeds) {
 	m_c->update();
 }
 
+void iANModalWidget::onAllSeedsRemoved() {
+	m_c->removeAllSeeds();
+}
+
 void iANModalWidget::onLabelAdded(const iALabel &label) {
 	auto nmLabel = iANModalLabel(label.id, label.name, label.color, 1.0f);
 	m_labels.insert(label.id, nmLabel);
@@ -195,8 +200,8 @@ void iANModalWidget::onLabelAdded(const iALabel &label) {
 }
 
 void iANModalWidget::onLabelRemoved(const iALabel &label) {
-	auto nmLabel = iANModalLabel(label.id, label.name, label.color, 1.0f);
-	m_c->removeSeeds(nmLabel);
+	//auto nmLabel = iANModalLabel(label.id, label.name, label.color, 1.0f);
+	//m_c->removeSeeds(nmLabel,);
 	m_labels.remove(label.id);
 	m_labelsWidget->updateTable(m_labels.values());
 	m_c->update();
