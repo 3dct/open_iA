@@ -20,16 +20,16 @@
 * ************************************************************************************/
 #pragma once
 
-#include "open_iA_Core_export.h"
+#include <vtkVersion.h>
 
-class open_iA_Core_API iAChangeableCameraWidget
-{
-public:
-	//! Set a predefined camera position to the 3D renderer(s) in this widget.
-	//! @param pos one of the predefined camera positions
-	virtual void setCamPosition(int pos) =0;
-protected:
-	//! Prevent destruction of the object through this interface.
-	//! (implemented empty in iASavableProject.cpp)
-	~iAChangeableCameraWidget();
-};
+// Define VTK_VERSION_CHECK and VTK_VERSION number for easier version checking
+// not defined in VTK < 9.0.0
+
+#if VTK_MAJOR_VERSION < 9
+
+#define VTK_VERSION_CHECK(major, minor, build)                                                     \
+  (10000000000ULL * major + 100000000ULL * minor + build)
+#define VTK_VERSION_NUMBER                                                                         \
+  VTK_VERSION_CHECK(VTK_MAJOR_VERSION, VTK_MINOR_VERSION, VTK_BUILD_VERSION)
+
+#endif

@@ -45,7 +45,6 @@
 #include <vtkProperty.h>
 #include <vtkRenderer.h>
 #include <vtkRenderWindow.h>
-#include <vtkVersion.h>
 #include <vtkWindowToImageFilter.h>
 
 #include <QSettings>

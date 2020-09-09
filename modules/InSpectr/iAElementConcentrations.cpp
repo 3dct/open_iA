@@ -28,7 +28,6 @@
 #include <iAMathUtility.h>
 
 #include <vtkImageData.h>
-#include <vtkVersion.h>
 
 iAElementConcentrations::iAElementConcentrations():
 	m_elementCount(0)

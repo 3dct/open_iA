@@ -1,7 +1,7 @@
 #pragma once
 
 //CompVis
-#include "iACsvDataStorage.h";
+#include "iACsvDataStorage.h"
 #include "iACompHistogramTableData.h"
 
 /*

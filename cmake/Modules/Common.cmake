@@ -205,17 +205,16 @@ SET (VTK_COMPONENTS
 	${VTK_COMP_PREFIX}IOGeometry              # for vtkSTLReader/Writer
 	${VTK_COMP_PREFIX}IOMovie                 # for vtkGenericMovieWriter
 	${VTK_COMP_PREFIX}RenderingAnnotation     # for vtkAnnotatedCubeActor, vtkScalarBarActor
+	${VTK_COMP_PREFIX}RenderingContext${VTK_RENDERING_BACKEND} # required, otherwise 3D renderer CRASHES somewhere with a nullptr access in vtkContextActor::GetDevice !!!
 	${VTK_COMP_PREFIX}RenderingImage          # for vtkImageResliceMapper
 	${VTK_COMP_PREFIX}RenderingVolume${VTK_RENDERING_BACKEND}  # for volume rendering
 	${VTK_COMP_PREFIX}RenderingQt             # for vtkQImageToImageSource, also pulls in vtkGUISupportQt (for QVTKWidgetOpenGL)
 	${VTK_COMP_PREFIX}ViewsContext2D          # for vtkContextView, vtkContextInteractorStyle
 	${VTK_COMP_PREFIX}ViewsInfovis)           # for vtkGraphItem
-IF (VTK_MAJOR_VERSION LESS 9) # Modules not required/available anymore in VTK 9:
-	LIST (APPEND VTK_COMPONENTS ${VTK_COMP_PREFIX}RenderingContext${VTK_RENDERING_BACKEND}) # required, otherwise 3D renderer CRASHES somewhere with a nullptr access in vtkContextActor::GetDevice !!!
-ELSE()
-	# These components are apparently not pulled in automatically anymore in VTK >= 9
-	LIST (APPEND VTK_COMPONENTS
+IF (VTK_MAJOR_VERSION GREATER_EQUAL 9)
+	LIST (APPEND VTK_COMPONENTS         # components not pulled in automatically anymore in VTK >= 9:
 		ChartsCore                  # for vtkAxis, vtkChart, vtkChartParallelCoordinates, used in FeatureScout, FuzzyFeatureTracking, GEMSE, PorosityAnalyzer
+		CommonColor                 # for vtkNamedColors, vtkColorSeries, used in CompVis
 		CommonComputationalGeometry # for vtkParametricSpline, used in core - iASpline/iAParametricSpline
 		GUISupportQt                # for QVTKOpenGLNativeWidget
 		FiltersExtraction           # for vtkExtractGeometry, used in FIAKER - iASelectionInteractorStyle
@@ -223,6 +222,7 @@ ELSE()
 		FiltersHybrid               # for vtkDepthSortPolyData used in 4DCT, DreamCaster, FeatureScout, vtkPolyDataSilhouette used in FeatureScout
 		FiltersStatistics           # for vtkDataSetSurfaceFilter used in BoneThickness - iABoneThickness
 		ImagingHybrid               # for vtkSampleFunction.h used in FeatureScout - iABlobCluster
+		InfovisLayout               # for vtkGraphLayoutStrategy used in CompVis
 		IOXML                       # for vtkXMLImageDataReader used in iAIO
 	)
 ENDIF()
@@ -556,8 +556,11 @@ IF (MSVC)
 ELSE()
 	# on MSVC, setting CMAKE_CXX_STANDARD leads to RTK not to compile currently
 	# due to random_shuffle being used (deprecated in C++14, apparently removed in 17 or 20)
-	MESSAGE(STATUS "Aiming for C++20 support.")
-	SET(CMAKE_CXX_STANDARD 20)
+	#MESSAGE(STATUS "Aiming for C++20 support.")
+	#SET(CMAKE_CXX_STANDARD 20)
+	# Enabling C++20 can cause problems as e.g. ITK 5.0.1 is not yet fully C++20 compatible!
+	MESSAGE(STATUS "Aiming for C++17 support.")
+	SET(CMAKE_CXX_STANDARD 17)
 	SET(CMAKE_CXX_EXTENSIONS OFF)
 	# use CMAKE_CXX_STANDARD_REQUIRED? e.g.:
 	# SET (CMAKE_CXX_STANDARD 11)

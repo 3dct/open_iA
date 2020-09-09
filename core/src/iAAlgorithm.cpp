@@ -27,7 +27,6 @@
 
 #include <vtkImageData.h>
 #include <vtkPolyData.h>
-#include <vtkVersion.h>
 
 #include <QLocale>
 #include <QMessageBox>
