@@ -127,6 +127,8 @@ void iANModalWidget::onHistogramReady(QSharedPointer<iAModality> modality, int c
 	histogram->setTransferFunctions(modality->transfer()->colorTF(), modality->transfer()->opacityTF());
 	histogram->updateTrf();
 
+	histogram->setMinimumSize(0, 100);
+
 	m_layoutSlicersGrid->addWidget(histogram, 1, column);
 }
 
