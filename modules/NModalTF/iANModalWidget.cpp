@@ -36,6 +36,7 @@
 #include <charts/iAHistogramData.h>
 #include "charts/iAPlotTypes.h"
 #include "dlg_modalities.h"
+#include "dlg_slicer.h"
 #include "mdichild.h"
 
 #include <vtkImageData.h>
@@ -144,7 +145,18 @@ void iANModalWidget::onAllSlicersInitialized() {
 		} else {
 			// TODO
 			//auto updater = new iAStatisticsUpdater(-1, modality);
-			//connect(updater, &iAStatisticsUpdater::StatisticsReady, this, [this, modality, column](){ onHistogramReady(modality, column); });
+			//connect(updater, &iAStatisticsUpdater::StatisticsReady, [this, modality, column](){ onHistogramReady(modality, column); });
+		}
+
+		constexpr iASlicerMode modes[iASlicerMode::SlicerCount] = {
+			iASlicerMode::XY, iASlicerMode::XZ, iASlicerMode::YZ
+		};
+		for (iASlicerMode mode : modes) {
+			auto mainSlider = m_mdiChild->slicerDockWidget(mode)->verticalScrollBar;
+			connect(mainSlider, &QAbstractSlider::sliderPressed, [slicer, mainSlider, mode](){
+				slicer->setMode(mode);
+				slicer->setSliceNumber(mainSlider->value()); });
+			connect(mainSlider, &QAbstractSlider::valueChanged, slicer, &iASlicer::setSliceNumber);
 		}
 
 		m_layoutSlicersGrid->addWidget(slicer, 0, column);
