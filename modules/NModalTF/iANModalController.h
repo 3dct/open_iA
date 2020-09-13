@@ -128,7 +128,6 @@ signals:
 	void allSlicersReinitialized();
 
 private slots:
-	void setSliceNumber(int);
-	void setSlicerMode(int);
+	void trackerBinClicked(iASlicerMode mode, int num);
 
 };

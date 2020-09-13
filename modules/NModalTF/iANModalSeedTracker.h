@@ -30,7 +30,10 @@ class iANModalSeedVisualizer;
 
 class MdiChild;
 
-class iANModalSeedTracker {
+class QTimer;
+
+class iANModalSeedTracker : public QObject {
+	Q_OBJECT
 
 public:
 	iANModalSeedTracker();
@@ -44,10 +47,13 @@ public:
 	void removeSeeds(const QList<iANModalSeed> &);
 	void removeAllSeeds();
 
-	void update();
+	void updateLater();
 
 private:
 	iANModalSeedVisualizer *m_visualizers[iASlicerMode::SlicerCount];
+
+signals:
+	void binCliked(iASlicerMode slicerMode, int sliceNumber);
 
 };
 
@@ -63,25 +69,36 @@ public:
 	void removeSeeds(const QList<iANModalSeed> &);
 	void removeAllSeeds();
 
-	void update();
+	void updateLater();
 
 protected:
 	void paintEvent(QPaintEvent* event) override;
 	void resizeEvent(QResizeEvent* event) override;
 	void mousePressEvent(QMouseEvent* event) override;
 	void mouseMoveEvent(QMouseEvent* event) override;
+	void leaveEvent(QEvent* event) override;
 
 private:
-	bool m_initialized = false;
-
 	iASlicerMode m_mode;
 	std::vector<unsigned int> m_values;
 	QImage m_image;
+	QTimer *m_timer_resizeUpdate;
+
+	int m_indexHovered = -1;
+
+	int yToSliceNumber(int y);
 
 	void paint();
 	void autoresize();
 	void resize(int width, int heigth);
 	void click(int y);
 	void hover(int y);
+	void leave();
+
+signals:
+	void binClicked(int sliceNumber);
+
+public slots:
+	void update();
 
 };

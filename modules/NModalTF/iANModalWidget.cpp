@@ -86,17 +86,6 @@ iANModalWidget::iANModalWidget(MdiChild *mdiChild) {
 	connect(m_c->m_dlg_labels, &dlg_labels::labelRemoved, this, &iANModalWidget::onLabelRemoved);
 	connect(m_c->m_dlg_labels, SIGNAL(labelsColorChanged(const QList<iALabel> &)), this, SLOT(onLabelsColorChanged(const QList<iALabel> &)));
 
-	iASlicerMode slicerModes[iASlicerMode::SlicerCount] { iASlicerMode::YZ, iASlicerMode::XZ, iASlicerMode::XY };
-	for (int i = 0; i < iASlicerMode::SlicerCount; ++i) {
-		iASlicerMode sm = slicerModes[i];
-		auto slicer = m_mdiChild->slicer(sm);
-		connect(slicer, &iASlicer::sliceNumberChanged, m_c, [this](int mode, int sliceNumber){
-				m_c->setSlicerMode(mode);
-				m_c->setSliceNumber(sliceNumber);
-				m_c->update();
-			});
-	}
-
 	auto list = m_mdiChild->modalities();
 	QList<QSharedPointer<iAModality>> modalities;
 	for (int i = 0; i < list->size(); i++) {

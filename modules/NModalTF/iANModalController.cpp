@@ -126,6 +126,7 @@ void iANModalController::_initialize() {
 	}
 
 	m_tracker.reinitialize(m_mdiChild);
+	connect(&m_tracker, &iANModalSeedTracker::binCliked, this, &iANModalController::trackerBinClicked);
 
 	m_initialized = true;
 }
@@ -411,7 +412,7 @@ void iANModalController::addSeeds(const QList<iANModalSeed> &seeds, const iANMod
 	}
 
 	m_tracker.addSeeds(seeds, label);
-	m_tracker.update();
+	m_tracker.updateLater();
 }
 
 void iANModalController::removeSeeds(const QList<iANModalSeed> &seeds) {
@@ -427,7 +428,7 @@ void iANModalController::removeSeeds(const QList<iANModalSeed> &seeds) {
 	}
 
 	m_tracker.removeSeeds(seeds);
-	m_tracker.update();
+	m_tracker.updateLater();
 }
 
 void iANModalController::removeAllSeeds() {
@@ -437,7 +438,7 @@ void iANModalController::removeAllSeeds() {
 	}
 
 	m_tracker.removeAllSeeds();
-	m_tracker.update();
+	m_tracker.updateLater();
 }
 
 void iANModalController::update() {
@@ -741,14 +742,10 @@ void iANModalController::_updateMainSlicers() {
 	}
 }
 
-void iANModalController::setSliceNumber(int sliceNumber) {
+void iANModalController::trackerBinClicked(iASlicerMode slicerMode, int sliceNumber) {
+	m_mdiChild->slicer(slicerMode)->setSliceNumber(sliceNumber);
 	for (auto slicer : m_slicers) {
-		// TODO: set slice number for each slicer
-	}
-}
-
-void iANModalController::setSlicerMode(int slicerMode) {
-	for (auto slicer : m_slicers) {
-		// TODO: set slicer mode for each slicer
+		slicer->setMode(slicerMode);
+		slicer->setSliceNumber(sliceNumber);
 	}
 }
