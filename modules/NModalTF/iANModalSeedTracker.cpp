@@ -196,11 +196,11 @@ void iANModalSeedVisualizer::resize(int width, int height) {
 }
 
 void iANModalSeedVisualizer::click(int y) {
-
+	// TODO
 }
 
 void iANModalSeedVisualizer::hover(int y) {
-
+	// TODO
 }
 
 // EVENTS -----------------------------------------------------------------------------

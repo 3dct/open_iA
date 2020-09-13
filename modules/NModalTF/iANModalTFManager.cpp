@@ -209,6 +209,7 @@ void iANModalTFManager::removeAllControlPoints() {
 				}
 			}
 		} // end of sections
+		// Implicit barrier
 #pragma omp for
 		for (int i = 0; i < m_cps.size(); ++i) {
 			ptr[i] = CP();
