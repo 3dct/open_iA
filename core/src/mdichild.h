@@ -41,6 +41,7 @@
 #include <QSharedPointer>
 
 #include <vector>
+#include <functional>
 
 class QProgressBar;
 
@@ -312,9 +313,15 @@ public:
 	void addJob(QString name, iAProgress* p, QThread* t, iAAbortListener* abortListener = nullptr);
 	
 	//! @{ 
-	bool histogramComputed(QSharedPointer<iAModality>);
-	bool histogramComputable(QSharedPointer<iAModality>, int modalityIdx = -1);
-	void computeHistogramAsync(iAStatisticsUpdater *);
+	bool statisticsComputed(QSharedPointer<iAModality>);
+	bool statisticsComputable(QSharedPointer<iAModality>, int modalityIdx = -1);
+	void computeStatisticsAsync(QObject *caller, std::function<void(int)> callbackSlot, QSharedPointer<iAModality> modality, int modalityIdx = -1);
+	//! @}
+
+	//! @{
+	size_t histogramNewBinCount(QSharedPointer<iAModality>);
+	bool histogramComputed(size_t histogramNewBinCount, QSharedPointer<iAModality>, int modalityIdx = -1);
+	void computeHistogramAsync(QObject *caller, std::function<void(int)> callbackSlot, size_t histogramNewBinCount, QSharedPointer<iAModality>, int modalityIdx = -1);
 	//! @}
 
 signals:

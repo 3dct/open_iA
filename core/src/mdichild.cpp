@@ -2669,12 +2669,12 @@ void MdiChild::initModalities()
 	m_dwModalities->selectRow(0);
 }
 
-bool MdiChild::histogramComputed(QSharedPointer<iAModality> modality)
+bool MdiChild::statisticsComputed(QSharedPointer<iAModality> modality)
 {
 	return modality->transfer()->statisticsComputed();
 }
 
-bool MdiChild::histogramComputable(QSharedPointer<iAModality> modality, int modalityIdx /* = -1 */)
+bool MdiChild::statisticsComputable(QSharedPointer<iAModality> modality, int modalityIdx /* = -1 */)
 //bool MdiChild::histogramComputedOrComputing(QSharedPointer<iAModality> modality, int modalityIdx /* = -1 */) {
 {
 	if (modality->info().isComputing())
@@ -2696,11 +2696,9 @@ bool MdiChild::histogramComputable(QSharedPointer<iAModality> modality, int moda
 	return true;
 }
 
-void MdiChild::computeHistogramAsync(iAStatisticsUpdater *updater)
+void MdiChild::computeStatisticsAsync(QObject *caller, std::function<void(int)> callbackSlot, QSharedPointer<iAModality> mod, int modalityIdx)
 {
-	auto mod = updater->modality();
-
-	if (!histogramComputable(mod)) {
+	if (!statisticsComputable(mod)) {
 		return;
 	}
 
@@ -2708,6 +2706,8 @@ void MdiChild::computeHistogramAsync(iAStatisticsUpdater *updater)
 		.arg(mod->name()));
 	mod->transfer()->info().setComputing();
 	updateImageProperties();
+	auto updater = new iAStatisticsUpdater(modalityIdx, mod);
+	connect(updater, &iAStatisticsUpdater::StatisticsReady, caller, callbackSlot);
 	connect(updater, &iAStatisticsUpdater::finished, updater, &QObject::deleteLater);
 	updater->start();
 }
@@ -2716,13 +2716,13 @@ void MdiChild::setHistogramModality(int modalityIdx)
 {
 	auto mod = modality(modalityIdx);
 
-	if (histogramComputed(mod))
+	if (statisticsComputed(mod))
 	{
 		displayHistogram(modalityIdx);
 		return;
 	}
 
-	if (!histogramComputable(mod, modalityIdx)) {
+	if (!statisticsComputable(mod, modalityIdx)) {
 		// Here, we also return if the histogram is currently being computed
 		// However, it is possible that an external class requested the computation of the histogram
 		// In that case, the function MdiChild::statisticsAvailable may never be called
@@ -2730,9 +2730,8 @@ void MdiChild::setHistogramModality(int modalityIdx)
 		return;
 	}
 
-	auto updater = new iAStatisticsUpdater(modalityIdx, mod);
-	connect(updater, &iAStatisticsUpdater::StatisticsReady, this, &MdiChild::statisticsAvailable);
-	computeHistogramAsync(updater);
+	auto callbackSlot = [this](int modalityIdx){ statisticsAvailable(modalityIdx); };
+	computeStatisticsAsync(this, callbackSlot, mod, modalityIdx);
 }
 
 void MdiChild::modalityAdded(int modalityIdx)
@@ -2771,32 +2770,53 @@ void MdiChild::histogramDataAvailable(int modalityIdx)
 	emit histogramAvailable();
 }
 
-void MdiChild::displayHistogram(int modalityIdx)
+size_t MdiChild::histogramNewBinCount(QSharedPointer<iAModality> mod)
 {
-	auto histData = modality(modalityIdx)->transfer()->histogramData();
 	size_t newBinCount = m_preferences.HistogramBins;
-	auto img = modality(modalityIdx)->image();
+	auto img = mod->image();
 	auto scalarRange = img->GetScalarRange();
-	if (isVtkIntegerType(modality(modalityIdx)->image()->GetScalarType()))
+	if (isVtkIntegerType(mod->image()->GetScalarType()))
 	{
 		newBinCount = std::min(newBinCount, static_cast<size_t>(scalarRange[1] - scalarRange[0] + 1));
 	}
-	if (histData && histData->numBin() == newBinCount)
+	return newBinCount;
+}
+
+bool MdiChild::histogramComputed(size_t histogramNewBinCount, QSharedPointer<iAModality> mod, int modalityIdx)
+{
+	auto histData = mod->transfer()->histogramData();
+	if (histData && histData->numBin() == histogramNewBinCount)
 	{
 		if (modalityIdx != m_currentHistogramModality)
 		{
-			histogramDataAvailable(modalityIdx);
+			return true;
 		}
+	}
+	return false;
+}
+
+void MdiChild::computeHistogramAsync(QObject *caller, std::function<void(int)> callbackSlot, size_t histogramNewBinCount, QSharedPointer<iAModality> mod, int modalityIdx)
+{
+	addMsg(QString("Computing histogram for modality %1...")
+		.arg(mod->name()));
+	auto workerThread = new iAHistogramUpdater(modalityIdx,
+		mod, histogramNewBinCount);
+	connect(workerThread, &iAHistogramUpdater::HistogramReady, caller, callbackSlot);
+	connect(workerThread, &iAHistogramUpdater::finished, workerThread, &QObject::deleteLater);
+	workerThread->start();
+}
+
+void MdiChild::displayHistogram(int modalityIdx)
+{
+	auto mod = modality(modalityIdx);
+	size_t newBinCount = histogramNewBinCount(mod);
+	if (histogramComputed(newBinCount, mod, modalityIdx)) {
+		histogramDataAvailable(modalityIdx);
 		return;
 	}
 
-	addMsg(QString("Computing histogram for modality %1...")
-		.arg(modality(modalityIdx)->name()));
-	auto workerThread = new iAHistogramUpdater(modalityIdx,
-		modality(modalityIdx), newBinCount);
-	connect(workerThread, &iAHistogramUpdater::HistogramReady, this, &MdiChild::histogramDataAvailable);
-	connect(workerThread, &iAHistogramUpdater::finished, workerThread, &QObject::deleteLater);
-	workerThread->start();
+	std::function<void(int)> callbackSlot = [this](int modalityIdx){ histogramDataAvailable(modalityIdx); };
+	computeHistogramAsync(this, callbackSlot, newBinCount, mod, modalityIdx);
 }
 
 void MdiChild::clearHistogram()
