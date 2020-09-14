@@ -98,7 +98,7 @@ iANModalSeedVisualizer::iANModalSeedVisualizer(MdiChild *mdiChild, iASlicerMode 
 	setToolTipDuration(-1);
 
 	m_timer_resizeUpdate->setSingleShot(true);
-	m_timer_resizeUpdate->setInterval(250); // In ms
+	m_timer_resizeUpdate->setInterval(1000); // In ms
 	connect(m_timer_resizeUpdate, &QTimer::timeout, this, &iANModalSeedVisualizer::update);
 
 	reinitialize(mdiChild);
@@ -161,58 +161,109 @@ void iANModalSeedVisualizer::updateLater() {
 }
 
 void iANModalSeedVisualizer::update() {
-	constexpr QRgb HISTOGRAM_COLOR_FOREGROUND = qRgb(0, 114, 189);
-	constexpr QRgb HISTOGRAM_COLOR_FOREGROUND_SELECTED = qRgb(0, 0, 0);
-	constexpr QRgb HISTOGRAM_COLOR_BACKGROUND = qRgb(255, 255, 255);
-	constexpr QRgb HISTOGRAM_COLOR_BACKGROUND_SELECTED = qRgb(191, 191, 191);
-
-	unsigned int maxValue = *std::max_element(m_values.begin(), m_values.end());
-
-	if (maxValue == 0) {
-		//m_image.fill(HISTOGRAM_COLOR_BACKGROUND);
-		m_image.fill(QColor(255, 255, 255));
-
+	if (m_image.height() > m_values.size()) {
+		update_imageLargerThanBuffer();
 	} else {
-		float maxValue_float = (float) maxValue;
-		for (int y = 0; y < m_image.height(); ++y) {
+		update_imageSmallerThanBuffer();
+	}
+	QWidget::update();
+}
 
-			int sliceNumber = yToSliceNumber(y);
-			int index = sliceNumber;
-			unsigned int value = m_values[index];
+static constexpr QRgb HISTOGRAM_COLOR_FOREGROUND = qRgb(0, 114, 189);
+static constexpr QRgb HISTOGRAM_COLOR_FOREGROUND_SELECTED = qRgb(0, 0, 0);
+static constexpr QRgb HISTOGRAM_COLOR_BACKGROUND = qRgb(255, 255, 255);
+static constexpr QRgb HISTOGRAM_COLOR_BACKGROUND_SELECTED = qRgb(191, 191, 191);
 
-			float lineLength_float = ((float) value / maxValue_float) * ((float) m_image.width());
-			int lineLength = ceil(lineLength_float);
-			assert((value == 0 && lineLength == 0) || (lineLength >= 1 && lineLength <= m_image.width()));
-
-			QRgb fg, bg;
-			if (index == m_indexHovered) {
-				fg = HISTOGRAM_COLOR_FOREGROUND_SELECTED;
-				bg = HISTOGRAM_COLOR_BACKGROUND_SELECTED;
-			} else {
-				fg = HISTOGRAM_COLOR_FOREGROUND;
-				bg = HISTOGRAM_COLOR_BACKGROUND;
-			}
-
-			QRgb *line = (QRgb*) m_image.scanLine(y);
-			int x = 0;
-			for (; x < lineLength; ++x) {
-				line[x] = fg;
-			}
-			for (; x < m_image.width(); ++x) {
-				line[x] = bg;
-			}
-		}
+inline void iANModalSeedVisualizer::drawLine(int lineY, double value, double maxValue, bool selected) {
+	QRgb fg, bg;
+	if (selected) {
+		fg = HISTOGRAM_COLOR_FOREGROUND_SELECTED;
+		bg = HISTOGRAM_COLOR_BACKGROUND_SELECTED;
+	}
+	else {
+		fg = HISTOGRAM_COLOR_FOREGROUND;
+		bg = HISTOGRAM_COLOR_BACKGROUND;
 	}
 
-	QWidget::update();
+	double lineLength_double = (value / maxValue) * ((double)m_image.width());
+	int lineLength = ceil(lineLength_double);
+	assert((value == 0.0 && lineLength == 0) || (lineLength >= 1 && lineLength <= m_image.width()));
+
+	QRgb *line = (QRgb*)m_image.scanLine(lineY);
+	int x = 0;
+	for (; x < lineLength; ++x) {
+		line[x] = fg;
+	}
+	for (; x < m_image.width(); ++x) {
+		line[x] = bg;
+	}
+}
+
+inline void iANModalSeedVisualizer::update_imageLargerThanBuffer() {
+	m_imageAccumulator.resize(0);
+	unsigned int maxValue = *std::max_element(m_values.begin(), m_values.end());
+	if (maxValue == 0) {
+		m_image.fill(HISTOGRAM_COLOR_BACKGROUND);
+		return;
+	}
+	double maxValue_double = (double)maxValue;
+	for (int y = 0; y < m_image.height(); ++y) {
+		int sliceNumber = yToSliceNumber(y);
+		int index = sliceNumber;
+		unsigned int value = m_values[index];
+		drawLine(y, value, maxValue_double, index == m_indexHovered);
+	}
+}
+
+void iANModalSeedVisualizer::update_imageSmallerThanBuffer() {
+	if (m_imageAccumulator.size() != m_image.height()) {
+		m_imageAccumulator.resize(m_image.height());
+	}
+	std::fill(m_imageAccumulator.begin(), m_imageAccumulator.end(), 0);
+	unsigned int maxValue = 0;
+	int ySelected = -1;
+	for (int index = 0; index < m_values.size(); ++index) {
+		unsigned int value = m_values[index];
+
+		int sliceNumber = index;
+		int y = sliceNumberToY(sliceNumber);
+		unsigned int accumulatedValue = m_imageAccumulator[y] + value;
+		m_imageAccumulator[y] = accumulatedValue;
+
+		if (accumulatedValue > maxValue) {
+			maxValue = accumulatedValue;
+		}
+
+		if (index == m_indexHovered) {
+			ySelected = y;
+		}
+	}
+	if (maxValue == 0) {
+		m_image.fill(HISTOGRAM_COLOR_BACKGROUND);
+		return;
+	}
+	double maxValue_double = (double)maxValue;
+	for (int y = 0; y < m_image.height(); ++y) {
+		int index = y;
+		unsigned int value = m_imageAccumulator[index];
+		drawLine(y, value, maxValue_double, ySelected == y);
+	}
 }
 
 inline int iANModalSeedVisualizer::yToSliceNumber(int y) {
 	int y_inv = m_image.height() - 1 - y;
-	float valueIndex_float = ((float)y_inv / (float)(m_image.height()) * (float)(m_values.size() - 1));
+	float valueIndex_float = ((float)y_inv / (float)(m_image.height() - 1) * (float)(m_values.size() - 1));
 	int valueIndex = round(valueIndex_float);
 	assert(valueIndex >= 0 && valueIndex < m_values.size());
 	return valueIndex;
+}
+
+inline int iANModalSeedVisualizer::sliceNumberToY(int sliceNumber) {
+	float y_inv_float = (float)sliceNumber / (float)(m_values.size() - 1) * (float)(m_image.height() - 1);
+	int y_inv = round(y_inv_float);
+	int y = m_image.height() - 1 - y_inv;
+	assert(y >= 0 && y < m_image.height());
+	return y;
 }
 
 // EVENT FUNCTIONS --------------------------------------------------------------------
@@ -246,7 +297,25 @@ void iANModalSeedVisualizer::hover(int y) {
 	int sliceNumber = yToSliceNumber(y);
 	int index = sliceNumber;
 	unsigned int value = m_values[index];
-	setToolTip(QString("Slice %0\n%1 seed%2").arg(sliceNumber).arg(value).arg(value == 1 ? "" : "s"));
+
+	bool aggregatedSlices = m_image.height() < m_values.size();
+	QString aggregatedSlicesText = 
+		"(because the height of this histogram\n"
+		"is too small to display one bin per\n"
+		"slice, some bins may contain the\n"
+		"added seed count of multiple slices)";
+
+	QString sliceInfo = QString(aggregatedSlices
+		? "Click to select slice %1"
+		: "Slice %1").arg(sliceNumber);
+
+	QString seedInfo = QString("%0 seed%1%2").arg(value).arg(value == 1 ? "" : "s").arg(aggregatedSlices
+		? " (may be aggregated)"
+		: "");
+
+	setToolTip(sliceInfo + "\n" + seedInfo + (aggregatedSlices ? "\n\n" + aggregatedSlicesText : ""));
+
+	setCursor(QCursor(Qt::CursorShape::PointingHandCursor));
 
 	if (index != m_indexHovered) {
 		m_indexHovered = index;

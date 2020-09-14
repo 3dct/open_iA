@@ -82,11 +82,13 @@ private:
 	iASlicerMode m_mode;
 	std::vector<unsigned int> m_values;
 	QImage m_image;
+	std::vector<unsigned int> m_imageAccumulator;
 	QTimer *m_timer_resizeUpdate;
 
 	int m_indexHovered = -1;
 
 	int yToSliceNumber(int y);
+	int sliceNumberToY(int sliceNumber);
 
 	void paint();
 	void autoresize();
@@ -94,6 +96,10 @@ private:
 	void click(int y);
 	void hover(int y);
 	void leave();
+
+	void update_imageLargerThanBuffer();
+	void update_imageSmallerThanBuffer();
+	void drawLine(int lineY, double value, double maxValue, bool selected);
 
 signals:
 	void binClicked(int sliceNumber);
