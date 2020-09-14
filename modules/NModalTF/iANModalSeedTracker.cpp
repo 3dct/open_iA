@@ -299,6 +299,7 @@ void iANModalSeedVisualizer::hover(int y) {
 	unsigned int value = m_values[index];
 
 	bool aggregatedSlices = m_image.height() < m_values.size();
+
 	QString aggregatedSlicesText = 
 		"(because the height of this histogram\n"
 		"is too small to display one bin per\n"
@@ -306,14 +307,17 @@ void iANModalSeedVisualizer::hover(int y) {
 		"added seed count of multiple slices)";
 
 	QString sliceInfo = QString(aggregatedSlices
-		? "Click to select slice %1"
-		: "Slice %1").arg(sliceNumber);
+		? "Click to select slice #%1"
+		: "Slice #%1").arg(sliceNumber);
 
-	QString seedInfo = QString("%0 seed%1%2").arg(value).arg(value == 1 ? "" : "s").arg(aggregatedSlices
-		? " (may be aggregated)"
-		: "");
+	QString seedInfo = QString("%0 seed%1").arg(value).arg(value == 1 ? "" : "s");
 
-	setToolTip(sliceInfo + "\n" + seedInfo + (aggregatedSlices ? "\n\n" + aggregatedSlicesText : ""));
+	QString tooltipText;
+	tooltipText += sliceInfo;
+	if (!aggregatedSlices) tooltipText += "\n" + seedInfo;
+	if (aggregatedSlices) tooltipText += "\n\n" + aggregatedSlicesText;
+
+	setToolTip(tooltipText);
 
 	setCursor(QCursor(Qt::CursorShape::PointingHandCursor));
 
