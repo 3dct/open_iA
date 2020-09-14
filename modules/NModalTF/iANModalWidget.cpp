@@ -32,12 +32,10 @@
 #include "iASlicer.h"
 #include "iAModalityTransfer.h"
 #include "iASlicerMode.h"
-#include "charts/iAChartWithFunctionsWidget.h"
-#include <charts/iAHistogramData.h>
-#include "charts/iAPlotTypes.h"
 #include "dlg_modalities.h"
 #include "dlg_slicer.h"
 #include "mdichild.h"
+#include "charts/iAChartWithFunctionsWidget.h"
 
 #include <vtkImageData.h>
 #include <vtkSmartPointer.h>
@@ -76,6 +74,7 @@ iANModalWidget::iANModalWidget(MdiChild *mdiChild) {
 
 	connect(m_c, SIGNAL(allSlicersInitialized()), this, SLOT(onAllSlicersInitialized()));
 	connect(m_c, SIGNAL(allSlicersReinitialized()), this, SLOT(onAllSlicersReinitialized()));
+	connect(m_c, &iANModalController::histogramInitialized, this, &iANModalWidget::onHistogramInitialized);
 
 	//connect(m_mdiChild->modalitiesDockWidget(), &dlg_modalities::modalitiesChanged, this, &iANModalWidget::onModalitiesChanged);
 
@@ -108,34 +107,12 @@ iANModalWidget::iANModalWidget(MdiChild *mdiChild) {
 	}
 }
 
-void iANModalWidget::onHistogramReady(QSharedPointer<iAModality> modality, int column) {
-	QSharedPointer<iAPlot> histogramPlot = QSharedPointer<iAPlot>(
-		new	iABarGraphPlot(modality->histogramData(), QColor(70, 70, 70, 255)));
-
-	auto histogram = new iAChartWithFunctionsWidget(nullptr, m_mdiChild, modality->name() + " grey value", "Frequency");
-	histogram->addPlot(histogramPlot);
-	histogram->setTransferFunctions(modality->transfer()->colorTF(), modality->transfer()->opacityTF());
-	histogram->updateTrf();
-
-	histogram->setMinimumSize(0, 100);
-
-	m_layoutSlicersGrid->addWidget(histogram, 1, column);
-}
-
 void iANModalWidget::onAllSlicersInitialized() {
 	for (int i = 0; i < m_c->m_slicers.size(); i++) {
 		auto slicer = m_c->m_slicers[i];
 		auto modality = m_c->m_modalities[i];
 
 		int column = i;
-
-		if (m_mdiChild->histogramComputed(modality)) {
-			onHistogramReady(modality, column);
-		} else {
-			// TODO
-			//auto updater = new iAStatisticsUpdater(-1, modality);
-			//connect(updater, &iAStatisticsUpdater::StatisticsReady, [this, modality, column](){ onHistogramReady(modality, column); });
-		}
 
 		constexpr iASlicerMode modes[iASlicerMode::SlicerCount] = {
 			iASlicerMode::XY, iASlicerMode::XZ, iASlicerMode::YZ
@@ -157,6 +134,15 @@ void iANModalWidget::onAllSlicersReinitialized() {
 		delete slicer;
 	}
 	onAllSlicersInitialized();
+}
+
+void iANModalWidget::onHistogramInitialized(int index) {
+	auto histogram = m_c->m_histograms[index];
+
+	connect(histogram, &iAChartWithFunctionsWidget::updateTFTable, m_c, &iANModalController::update);
+
+	int column = index;
+	m_layoutSlicersGrid->addWidget(histogram, 1, column);
 }
 
 void iANModalWidget::onSeedsAdded(const QList<iASeed> &seeds) {

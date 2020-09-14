@@ -43,6 +43,10 @@
 #include "iAConsole.h"
 #include "iATypedCallHelper.h"
 
+#include "charts/iAChartWithFunctionsWidget.h"
+#include "charts/iAHistogramData.h"
+#include "charts/iAPlotTypes.h"
+
 #include <vtkImageData.h>
 #include <vtkColorTransferFunction.h>
 #include <vtkPiecewiseFunction.h>
@@ -105,7 +109,13 @@ void iANModalController::_initialize() {
 	}
 
 	m_slicers.clear();
+	m_slicers.resize(m_modalities.size());
+
 	m_mapOverlayImageId2modality.clear();
+
+	m_histograms.clear();
+	m_histograms.resize(m_modalities.size());
+
 	for (int i = 0; i < m_modalities.size(); i++) {
 		auto modality = m_modalities[i];
 
@@ -116,8 +126,16 @@ void iANModalController::_initialize() {
 			modality->image()->GetExtent(),
 			modality->image()->GetSpacing(),
 			m_slicerChannel_label);
-		m_slicers.append(slicer);
+		m_slicers[i] = slicer;
 		m_mapOverlayImageId2modality.insert(id, modality);
+
+		auto histogramNewBinCount = m_mdiChild->histogramNewBinCount(modality);
+		if (m_mdiChild->histogramComputed(histogramNewBinCount, modality)) {
+			_initializeHistogram(modality, i);
+		} else {
+			auto callback = [this, modality, i](int modalityIndex){ _initializeHistogram(modality, i); };
+			m_mdiChild->computeHistogramAsync(this, callback, histogramNewBinCount, modality);
+		}
 	}
 
 	if (countModalities() > 0) {
@@ -129,6 +147,21 @@ void iANModalController::_initialize() {
 	connect(&m_tracker, &iANModalSeedTracker::binCliked, this, &iANModalController::trackerBinClicked);
 
 	m_initialized = true;
+}
+
+void iANModalController::_initializeHistogram(QSharedPointer<iAModality> modality, int index) {
+	QSharedPointer<iAPlot> histogramPlot = QSharedPointer<iAPlot>(
+		new	iABarGraphPlot(modality->histogramData(), QColor(70, 70, 70, 255)));
+
+	auto histogram = new iAChartWithFunctionsWidget(nullptr, m_mdiChild, modality->name() + " grey value", "Frequency");
+	histogram->addPlot(histogramPlot);
+	histogram->setTransferFunctions(modality->transfer()->colorTF(), modality->transfer()->opacityTF());
+	histogram->updateTrf();
+
+	histogram->setMinimumSize(0, 100);
+
+	m_histograms[index] = histogram;
+	emit histogramInitialized(index);
 }
 
 inline iASlicer* iANModalController::_initializeSlicer(QSharedPointer<iAModality> modality) {
@@ -442,12 +475,14 @@ void iANModalController::removeAllSeeds() {
 }
 
 void iANModalController::update() {
-	m_mdiChild->redrawHistogram();
 	m_mdiChild->renderer()->update();
 
-	// TODO
+	// TODO: see TODO at implementation of _updateMainSlicers
 	int type = m_mdiChild->slicer(0)->channel(0)->reslicer()->GetOutput()->GetScalarType();
 	VTK_TYPED_CALL(_updateMainSlicers, type);
+
+	_updateHistograms();
+	m_mdiChild->redrawHistogram();
 }
 
 using Rgb = std::array<unsigned char, 3>;
@@ -532,6 +567,12 @@ static inline void convert_2d_to_3d(const int(&xyz_orig)[3], int mainSlicerIndex
 #define iANModal_GET_SCALAR(img, ptr) getScalar(img, x, y, z)
 #define iANModal_SET_COLOR(img, ptr, color, alpha) setRgba(img, x, y, z, color, alpha)
 #endif
+
+void iANModalController::_updateHistograms() {
+	for (auto histogram : m_histograms) {
+		histogram->update();
+	}
+}
 
 // Assume that all modalities have the same pixel type
 // TODO: Don't...

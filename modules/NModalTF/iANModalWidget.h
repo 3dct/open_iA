@@ -59,8 +59,7 @@ private:
 private slots:
 	void onAllSlicersInitialized();
 	void onAllSlicersReinitialized();
-
-	void onHistogramReady(QSharedPointer<iAModality> modality, int column);
+	void onHistogramInitialized(int index);
 
 	//void onModalitiesChanged();
 

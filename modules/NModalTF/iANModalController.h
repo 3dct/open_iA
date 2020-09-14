@@ -27,6 +27,7 @@
 #include <vtkSmartVolumeMapper.h>
 
 #include <QColor>
+#include <QVector>
 #include <QList>
 #include <QMap>
 //#include <QSet>
@@ -42,11 +43,11 @@ class iANModalTFManager;
 class iAModality;
 class iASlicer;
 class MdiChild;
+class iAChartWithFunctionsWidget;
 
 class vtkVolume;
 class vtkRenderer;
 class vtkImageData;
-
 
 class iANModalSmartVolumeMapper : public vtkSmartVolumeMapper {
 public:
@@ -81,17 +82,17 @@ public:
 	void removeSeeds(const QList<iANModalSeed> &);
 	void removeAllSeeds();
 
-	void update();
-
 private:
 	MdiChild *m_mdiChild;
 
 	void _initialize();
-	iASlicer* _initializeSlicer(QSharedPointer<iAModality> modality);
+	iASlicer* _initializeSlicer(QSharedPointer<iAModality>);
+	void _initializeHistogram(QSharedPointer<iAModality> modality, int index);
 	void _initializeCombinedVol();
 	void _initializeMainSlicers();
 	bool _checkModalities(const QList<QSharedPointer<iAModality>> &modalities);
 	bool _matchModalities(QSharedPointer<iAModality> m1, QSharedPointer<iAModality> m2);
+	void _updateHistograms();
 	template <typename PixelType> void _updateMainSlicers();
 
 	QList<QSharedPointer<iAModality>> m_modalities;
@@ -115,7 +116,8 @@ private:
 	void applyVolumeSettings();
 
 	// Internal widgets
-	QList<iASlicer*> m_slicers;
+	QVector<iASlicer*> m_slicers;
+	QVector<iAChartWithFunctionsWidget*> m_histograms;
 
 	// Seed tracker (visualization next to the main slicers's sliders)
 	iANModalSeedTracker m_tracker;
@@ -126,8 +128,12 @@ private:
 signals:
 	void allSlicersInitialized();
 	void allSlicersReinitialized();
+	void histogramInitialized(int index);
 
 private slots:
 	void trackerBinClicked(iASlicerMode mode, int num);
+
+public slots:
+	void update();
 
 };
