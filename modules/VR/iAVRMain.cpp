@@ -1200,8 +1200,8 @@ void iAVRMain::spawnModelInMiniature(double eventPosition[3], bool hide)
 void iAVRMain::pressLeftTouchpad()
 {
 	auto initWorldScale = m_vrEnv->getInitialWorldScale();
-	double offsetMiM = initWorldScale * 0.008;
-	double offsetVol = initWorldScale * 0.03;
+	double offsetMiM = initWorldScale * 0.0095;
+	double offsetVol = initWorldScale * 0.034;
 	iAVRTouchpadPosition touchpadPos = m_style->getTouchedPadSide(touchPadPosition);
 
 	if (modelInMiniatureActive && currentOctreeLevel > 0)

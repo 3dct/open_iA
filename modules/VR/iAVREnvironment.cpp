@@ -35,6 +35,8 @@
 #include <vtkLightKit.h>
 #include <vtkPickingManager.h>
 
+#include <QCoreApplication>
+
 iAVREnvironment::iAVREnvironment():	m_renderer(vtkSmartPointer<vtkOpenVRRenderer>::New()), m_interactor(vtkSmartPointer<iAVRInteractor>::New()), 
 m_renderWindow(vtkSmartPointer<vtkOpenVRRenderWindow>::New())
 {	
@@ -113,11 +115,11 @@ double iAVREnvironment::getInitialWorldScale()
 void iAVREnvironment::createSkybox(int skyboxImage)
 {
 	const std::string chosenSkybox = QString("/skybox%1/").arg(skyboxImage).toUtf8();
-	//auto cubemap = ReadCubeMap("C:/FHTools/open_iA/src/modules/VR/images", chosenSkybox, ".png", 0);
 
 	// Load the skybox
 	// Read it again as there is no deep copy for vtkTexture
-	auto skybox = ReadCubeMap("C:/FHTools/open_iA/src/modules/VR/images", chosenSkybox, ".png", 0);
+	QString path = QCoreApplication::applicationDirPath() + "/VR-skybox";
+	auto skybox = ReadCubeMap(path.toStdString(), chosenSkybox, ".png", 0);
 	skybox->InterpolateOn();
 	skybox->RepeatOff();
 	skybox->EdgeClampOn();
