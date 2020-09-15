@@ -1163,13 +1163,14 @@ void iAVRMain::updateModelInMiniatureData()
 
 	m_modelInMiniature->setOctree(m_octrees->at(currentOctreeLevel));
 	m_modelInMiniature->createCubeModel(); //Here a new MiM is calculated
-
+	
 	//double offset = m_vrEnv->getInitialWorldScale() * 0.15;
 	//double* centerPos = m_modelInMiniature->getActor()->GetCenter();
 	//m_modelInMiniature->getActor()->AddPosition(cPos[controllerID][0] - centerPos[0], cPos[controllerID][1] - centerPos[1] + offset, cPos[controllerID][2] - centerPos[2]);
 	m_modelInMiniature->getActor()->SetPosition(cPos[controllerID][0], cPos[controllerID][1], cPos[controllerID][2]);
 
 	calculateMetrics();
+	onZoom();
 }
 
 void iAVRMain::spawnModelInMiniature(double eventPosition[3], bool hide)
@@ -1200,8 +1201,8 @@ void iAVRMain::spawnModelInMiniature(double eventPosition[3], bool hide)
 void iAVRMain::pressLeftTouchpad()
 {
 	auto initWorldScale = m_vrEnv->getInitialWorldScale();
-	double offsetMiM = initWorldScale * 0.0095;
-	double offsetVol = initWorldScale * 0.034;
+	double offsetMiM = initWorldScale * 0.0096;
+	double offsetVol = initWorldScale * 0.036;
 	iAVRTouchpadPosition touchpadPos = m_style->getTouchedPadSide(touchPadPosition);
 
 	if (modelInMiniatureActive && currentOctreeLevel > 0)

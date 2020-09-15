@@ -40,7 +40,7 @@
 iAVREnvironment::iAVREnvironment():	m_renderer(vtkSmartPointer<vtkOpenVRRenderer>::New()), m_interactor(vtkSmartPointer<iAVRInteractor>::New()), 
 m_renderWindow(vtkSmartPointer<vtkOpenVRRenderWindow>::New())
 {	
-	createSkybox(1);
+	createSkybox(0);
 	createLightKit();
 	//m_renderer->SetShowFloor(true);
 }
