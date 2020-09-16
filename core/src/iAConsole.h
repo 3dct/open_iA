@@ -34,6 +34,8 @@ class dlg_console;
 class iARedirectVtkOutput;
 class iARedirectItkOutput;
 
+class QDockWidget;
+
 //! Singleton providing access to the global logger object.
 class open_iA_Core_API iAGlobalLogger
 {
@@ -63,6 +65,7 @@ public:
 	bool isFileLogError() const;
 	bool isVisible() const;
 	void setVisible(bool visible);
+	QDockWidget* dockWidget();
 // decouple logging methods from GUI logging (to allow logging from any thread):
 signals:
 	void logSignal(QString const & text);
