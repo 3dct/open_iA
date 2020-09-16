@@ -10,11 +10,16 @@ SET (LIB_TYPE SHARED)
 
 # Generate core dll file / shared object:
 add_library(${CORE_LIBRARY_NAME} ${LIB_TYPE} ${open_iA_core_SRCS} ${open_iA_core_QRC} )
-if (VTK_MAJOR_VERSION GREATER 8)
+# TODO: only include those modules actually needed by core?
+IF (VTK_MAJOR_VERSION GREATER 8)
 	vtk_module_autoinit(
 	  TARGETS ${CORE_LIBRARY_NAME}
 	  MODULES ${VTK_LIBRARIES})
-endif()
+ENDIF()
+IF ("${VTK_VIDEO_SUPPORT}" STREQUAL "ogg")
+	TARGET_COMPILE_DEFINITIONS(${CORE_LIBRARY_NAME} PRIVATE VTK_USE_OGGTHEORA_ENCODER)
+ENDIF()
+# TODO: only link against libraries actually needed by core?
 TARGET_LINK_LIBRARIES(${CORE_LIBRARY_NAME} PUBLIC ${QT_LIBRARIES} ${VTK_LIBRARIES} ${ITK_LIBRARIES})
 IF (HDF5_FOUND)
 	# as HDF5 is required only in core, we could link privately, but under Linux this leads
@@ -22,7 +27,10 @@ IF (HDF5_FOUND)
 	TARGET_LINK_LIBRARIES(${CORE_LIBRARY_NAME} PUBLIC ${HDF5_LIBRARY})
 	# make sure HDF5 is included before itk (which brings its own hdf5 libraries in a different version):
 	TARGET_INCLUDE_DIRECTORIES(${CORE_LIBRARY_NAME} BEFORE PRIVATE ${HDF5_INCLUDE_DIR})
-	ADD_DEFINITIONS(-DUSE_HDF5)
+	TARGET_COMPILE_DEFINITIONS(${CORE_LIBRARY_NAME} PRIVATE USE_HDF5)
+ENDIF()
+IF (SCIFIO_LOADED)
+	TARGET_COMPILE_DEFINITIONS(${CORE_LIBRARY_NAME} PRIVATE USE_SCIFIO)
 ENDIF()
 IF (WIN32)
 	# apparently required for VS 2015, and doesn't hurt for VS2013:
