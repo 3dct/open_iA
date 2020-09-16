@@ -347,7 +347,7 @@ void iAVRMain::onMove(vtkEventDataDevice3D * device, double movePosition[3], dou
 			{
 				if(m_MIPPanelsVisible)
 				{
-					fiberMetrics->createSingleMIPPanel(currentOctreeLevel, currentFeature, viewDirection);
+					fiberMetrics->createSingleMIPPanel(currentOctreeLevel, currentFeature, viewDirection, m_vrEnv->getInitialWorldScale());
 				}
 			}
 		}
@@ -371,7 +371,7 @@ void iAVRMain::onMove(vtkEventDataDevice3D * device, double movePosition[3], dou
 		m_3DTextLabels->at(1)->setLabelPos(lcPos);
 		m_3DTextLabels->at(1)->moveInEyeDir(initialScale * 0.04, initialScale * 0.04, initialScale * 0.04);
 
-		m_slider->setPosition(lcPos[0], lcPos[1] - 22, lcPos[2] + 70);
+		m_slider->setPosition(lcPos[0], lcPos[1] - (initialScale * 0.03), lcPos[2] + (initialScale * 0.05));
 	}
 
 	//Movement of Right controller
@@ -928,7 +928,7 @@ void iAVRMain::calculateMetrics()
 		fiberMetrics->setLegendTitle(QString(" %1 ").arg(fiberMetrics->getFeatureName(currentFeature)).toUtf8());
 
 		m_MIPPanelsVisible = true;
-		fiberMetrics->createSingleMIPPanel(currentOctreeLevel, currentFeature,viewDirection);
+		fiberMetrics->createSingleMIPPanel(currentOctreeLevel, currentFeature,viewDirection, m_vrEnv->getInitialWorldScale());
 	}
 	
 }
@@ -1108,12 +1108,12 @@ void iAVRMain::multiPickMiMRegion()
 
 			std::vector<int>* featureList = new std::vector<int>(); //
 			//featureList->push_back(currentFeature); //
-			featureList->push_back(22);
 			featureList->push_back(21);
 			featureList->push_back(20);
+			featureList->push_back(19);
 			featureList->push_back(11);
-			featureList->push_back(9);
-			featureList->push_back(8);
+			featureList->push_back(18);
+			featureList->push_back(17);
 			featureList->push_back(7);
 
 			auto cubePos = m_volume->getCubePos(multiPickIDs->at(0));
@@ -1158,12 +1158,12 @@ void iAVRMain::updateModelInMiniatureData()
 {
 	int controllerID = static_cast<int>(vtkEventDataDevice::LeftController);
 	
-	//m_networkGraphMode = false;
-	resetSelection();
-
 	m_modelInMiniature->setOctree(m_octrees->at(currentOctreeLevel));
 	m_modelInMiniature->createCubeModel(); //Here a new MiM is calculated
 	
+	//m_networkGraphMode = false;
+	resetSelection();
+
 	//double offset = m_vrEnv->getInitialWorldScale() * 0.15;
 	//double* centerPos = m_modelInMiniature->getActor()->GetCenter();
 	//m_modelInMiniature->getActor()->AddPosition(cPos[controllerID][0] - centerPos[0], cPos[controllerID][1] - centerPos[1] + offset, cPos[controllerID][2] - centerPos[2]);
@@ -1201,8 +1201,8 @@ void iAVRMain::spawnModelInMiniature(double eventPosition[3], bool hide)
 void iAVRMain::pressLeftTouchpad()
 {
 	auto initWorldScale = m_vrEnv->getInitialWorldScale();
-	double offsetMiM = initWorldScale * 0.0096;
-	double offsetVol = initWorldScale * 0.036;
+	double offsetMiM = initWorldScale * 0.022;
+	double offsetVol = initWorldScale * 0.039;
 	iAVRTouchpadPosition touchpadPos = m_style->getTouchedPadSide(touchPadPosition);
 
 	if (modelInMiniatureActive && currentOctreeLevel > 0)
@@ -1318,6 +1318,7 @@ void iAVRMain::displayNodeLinkD()
 
 		m_slider->createSlider(0.0, 1.0, QString("Jaccard Index").toUtf8());
 		m_slider->setSliderLength(m_vrEnv->getInitialWorldScale() * 0.17);
+		m_slider->setValue(m_volume->getJaccardFilterVal());
 		m_slider->show();
 
 		m_networkGraphMode = true;

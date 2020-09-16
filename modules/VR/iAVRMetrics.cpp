@@ -451,10 +451,11 @@ void iAVRMetrics::createMIPPanels(int octreeLevel, int feature)
 
 //! Creates a plane for the MIP Projection for the current viewed direction
 //! The plane cells start at the lower left cell depending on the origin Point of the Plane
-void iAVRMetrics::createSingleMIPPanel(int octreeLevel, int feature, int viewDir)
+void iAVRMetrics::createSingleMIPPanel(int octreeLevel, int feature, int viewDir, double physicalScale)
 {
 	hideMIPPanels();
 
+	double planeOffset = physicalScale * 0.9;
 	int gridSize = pow(2, octreeLevel);
 	double direction[6] = { 1,1,-1,-1,-1,1 }; //normals
 	int viewPlane[6] = { 0,2,0,2,1,1 }; //x,y,z
@@ -468,7 +469,7 @@ void iAVRMetrics::createSingleMIPPanel(int octreeLevel, int feature, int viewDir
 	plane->SetOrigin(planePoints->at(viewDir).at(0).data());
 	plane->SetPoint1(planePoints->at(viewDir).at(1).data());
 	plane->SetPoint2(planePoints->at(viewDir).at(2).data());
-	plane->Push(610 * direction[viewDir]);
+	plane->Push(planeOffset * direction[viewDir]);
 	plane->Update();
 
 	vtkSmartPointer<vtkUnsignedCharArray> colorData = vtkSmartPointer<vtkUnsignedCharArray>::New();

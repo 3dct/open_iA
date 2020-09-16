@@ -51,7 +51,7 @@ iAVRVolume::iAVRVolume(vtkRenderer* ren, vtkTable* objectTable, iACsvIO io) :m_o
 
 	m_volumeVisible = false;
 	m_regionLinksVisible = false;
-	m_regionLinkDrawRadius = 0.9;
+	m_regionLinkDrawRadius = 0.5;
 
 	resetVolume();
 }
@@ -468,17 +468,19 @@ void iAVRVolume::calculateNodeLUT(double min, double max, int colorScheme)
 	m_lut->SetTableRange(min, max);
 }
 
-//! Cycles between values from 0.9 to 0
+//! Cycles between values from 0.95 to 0
 //! The sign defines if the values are increased/decreased
 void iAVRVolume::filterRegionLinks(int sign)
 {
-	double step = 0.18;
+	double step = 0.05;
 
 	if(sign > 0) m_regionLinkDrawRadius += step;
 	else m_regionLinkDrawRadius -= step;
 
-	if (m_regionLinkDrawRadius <= 0) m_regionLinkDrawRadius = 0.9;
-	else if (m_regionLinkDrawRadius >= 0.9) m_regionLinkDrawRadius = 0.0;
+	if (m_regionLinkDrawRadius < 0) m_regionLinkDrawRadius = 0.95;
+	else if (m_regionLinkDrawRadius >= 0.95) m_regionLinkDrawRadius = 0.0;
+
+	if (m_regionLinkDrawRadius - 0.0 <= 0.00001) m_regionLinkDrawRadius = 0.0;
 }
 
 double iAVRVolume::getJaccardFilterVal()
