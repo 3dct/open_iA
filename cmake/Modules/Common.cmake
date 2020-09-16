@@ -499,28 +499,9 @@ ENDIF()
 
 # OpenMP
 INCLUDE(${CMAKE_ROOT}/Modules/FindOpenMP.cmake)
-# For CMake < 3.9, we need to make the target 'OpenMP::OpenMP_CXX' ourselves
-if(NOT TARGET OpenMP::OpenMP_CXX)
-    find_package(Threads REQUIRED)
-    add_library(OpenMP::OpenMP_CXX IMPORTED INTERFACE)
-    set_property(TARGET OpenMP::OpenMP_CXX
-                 PROPERTY INTERFACE_COMPILE_OPTIONS ${OpenMP_CXX_FLAGS})
-    # Only works if the same flag is passed to the linker; use CMake 3.9+ otherwise (Intel, AppleClang)
-    set_property(TARGET OpenMP::OpenMP_CXX
-                 PROPERTY INTERFACE_LINK_LIBRARIES ${OpenMP_CXX_FLAGS} Threads::Threads)
-endif()
+# Above imports the target 'OpenMP::OpenMP_CXX'; only for CMake >= 3.9,
+# but project-wide we require a higher version already anyway!
 
-# IF (Module_ElastixRegistration)
-	# find_package(Elastix REQUIRED)
-	# include(${ELASTIX_USE_FILE})
-	# #FOREACH (lib ${ELASTIX_LIBRARIES})
-	# #	LIST(APPEND FULL_ELASTIX_LIBS "${ELASTIX_LIBRARY_DIRS}/Debug/${lib}-5.0.lib")
-	# #ENDFOREACH()
-	# #LIST(APPEND FULL_ELASTIX_LIBS "${ELASTIX_LIBRARY_DIRS}/Debug/param-5.0.lib")
-	# #MESSAGE(STATUS "${FULL_ELASTIX_LIBS}")
-	# #SET (ELASTIX_LIBRARIES "${FULL_ELASTIX_LIBS}" PARENT_SCOPE)
-	# #SET (ELASTIX_INCLUDE_DIRS "${ELASTIX_INCLUDE_DIRS}" PARENT_SCOPE)
-# ENDIF()
 
 #-------------------------
 # Compiler Flags
