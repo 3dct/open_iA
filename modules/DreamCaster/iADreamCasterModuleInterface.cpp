@@ -33,11 +33,9 @@ void iADreamCasterModuleInterface::Initialize()
 	{
 		return;
 	}
-	QMenu * toolsMenu = m_mainWnd->toolsMenu();
-	QAction * actionDreamcaster_Open_file = new QAction( m_mainWnd );
-	actionDreamcaster_Open_file->setText( QApplication::translate( "MainWindow", "DreamCaster", 0 ) );
-	AddActionToMenuAlphabeticallySorted( toolsMenu,  actionDreamcaster_Open_file, false );
-	connect( actionDreamcaster_Open_file, &QAction::triggered, this, &iADreamCasterModuleInterface::dreamcasterOpenFile);
+	QAction * actionDreamcaster_Open_file = new QAction(tr("DreamCaster"), m_mainWnd);
+	connect(actionDreamcaster_Open_file, &QAction::triggered, this, &iADreamCasterModuleInterface::dreamcasterOpenFile);
+	addToMenuSorted(m_mainWnd->toolsMenu(), actionDreamcaster_Open_file);
 }
 
 void iADreamCasterModuleInterface::dreamcasterOpenFile()

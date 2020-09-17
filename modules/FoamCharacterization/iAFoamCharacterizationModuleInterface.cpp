@@ -30,10 +30,10 @@ void iAFoamCharacterizationModuleInterface::Initialize( )
 	{
 		return;
 	}
-	QMenu* toolsMenu (m_mainWnd->toolsMenu());
-	QAction* pFoamCharacterization(new QAction(QApplication::translate("MainWindows", "Foam characterization", 0), m_mainWnd));
-	connect(pFoamCharacterization, &QAction::triggered, this, &iAFoamCharacterizationModuleInterface::slotFoamCharacterization);
-	AddActionToMenuAlphabeticallySorted(toolsMenu, pFoamCharacterization);
+	QAction* actionFoamCharacterization(new QAction(tr("Foam characterization"), m_mainWnd));
+	connect(actionFoamCharacterization, &QAction::triggered, this, &iAFoamCharacterizationModuleInterface::slotFoamCharacterization);
+	makeActionChildDependent(actionFoamCharacterization);
+	addToMenuSorted(m_mainWnd->toolsMenu(), actionFoamCharacterization);
 }
 
 void iAFoamCharacterizationModuleInterface::slotFoamCharacterization()

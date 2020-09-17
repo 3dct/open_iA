@@ -45,20 +45,21 @@ void iAVRModuleInterface::Initialize()
 	{
 		return;
 	}
-	QMenu * toolsMenu = m_mainWnd->toolsMenu();
-	QMenu* vrMenu = getMenuWithTitle(toolsMenu, tr("VR"), false);
 
-	QAction * actionVRInfo = new QAction(tr("Info"), nullptr);
-	AddActionToMenuAlphabeticallySorted(vrMenu, actionVRInfo, false);
+	QAction * actionVRInfo = new QAction(tr("Info"), m_mainWnd);
 	connect(actionVRInfo, &QAction::triggered, this, &iAVRModuleInterface::info);
 
-	QAction * actionVRRender = new QAction(tr("Rendering"), nullptr);
-	AddActionToMenuAlphabeticallySorted(vrMenu, actionVRRender, true);
+	QAction * actionVRRender = new QAction(tr("Rendering"), m_mainWnd);
 	connect(actionVRRender, &QAction::triggered, this, &iAVRModuleInterface::render);
+	makeActionChildDependent(actionVRRender);
 
-	m_actionVRShowFibers = new QAction(tr("Show Fibers"), nullptr);
-	AddActionToMenuAlphabeticallySorted(vrMenu, m_actionVRShowFibers, false);
+	m_actionVRShowFibers = new QAction(tr("Show Fibers"), m_mainWnd);
 	connect(m_actionVRShowFibers, &QAction::triggered, this, &iAVRModuleInterface::showFibers);
+
+	QMenu* vrMenu = getOrAddSubMenu(m_mainWnd->toolsMenu(), tr("VR"), false);
+	vrMenu->addAction(actionVRInfo);
+	vrMenu->addAction(actionVRRender);
+	vrMenu->addAction(m_actionVRShowFibers);
 }
 
 void iAVRModuleInterface::info()

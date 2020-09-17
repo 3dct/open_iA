@@ -78,7 +78,7 @@ void iAFeatureScoutSPLOM::initScatterPlot(QDockWidget* container, vtkTable* csvT
 	connect(matrix, &iAQSplom::parameterVisibilityChanged, this, &iAFeatureScoutSPLOM::parameterVisibilityChanged);
 	connect(matrix, &iAQSplom::lookupTableChanged, this, &iAFeatureScoutSPLOM::lookupTableChanged);
 
-	QAction* addClass = new QAction(QObject::tr("Add class"), nullptr);
+	QAction* addClass = new QAction(tr("Add class"), nullptr);
 	connect(addClass, &QAction::triggered, this, &iAFeatureScoutSPLOM::addClass);
 	matrix->addContextMenuAction(addClass);
 }

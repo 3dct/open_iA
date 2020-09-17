@@ -34,10 +34,10 @@ void iADynamicVolumeLinesModuleInterface::Initialize()
 	{
 		return;
 	}
-	QMenu * toolsMenu = m_mainWnd->toolsMenu();
-	QAction * actionDynamicVolumeLines = new QAction(QApplication::translate("MainWindow", "Dynamic Volume Lines", 0), m_mainWnd);
-	AddActionToMenuAlphabeticallySorted(toolsMenu, actionDynamicVolumeLines);
+	QAction * actionDynamicVolumeLines = new QAction(tr("Dynamic Volume Lines"), m_mainWnd);
 	connect(actionDynamicVolumeLines, &QAction::triggered, this, &iADynamicVolumeLinesModuleInterface::DynamicVolumeLines);
+	makeActionChildDependent(actionDynamicVolumeLines);
+	addToMenuSorted(m_mainWnd->toolsMenu(), actionDynamicVolumeLines);
 }
 
 void iADynamicVolumeLinesModuleInterface::DynamicVolumeLines()

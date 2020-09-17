@@ -106,16 +106,18 @@ void iAFiAKErModuleInterface::Initialize()
 		return;
 	}
 	iAProjectRegistry::addProject<iAFIAKERProject>(iAFiAKErController::FIAKERProjectID);
-	QMenu * toolsMenu = m_mainWnd->toolsMenu();
-	QMenu * fiakerMenu = getMenuWithTitle(toolsMenu, tr("FiAKEr"), false);
-	QAction * actionFiAKEr = new QAction( "Open Results Folder", nullptr );
+
+	QAction * actionFiAKEr = new QAction(tr("Open Results Folder"), m_mainWnd);
 	actionFiAKEr->setShortcut(QKeySequence(Qt::ALT + Qt::Key_R, Qt::Key_O));
-	AddActionToMenuAlphabeticallySorted(fiakerMenu, actionFiAKEr, false );
 	connect(actionFiAKEr, &QAction::triggered, this, &iAFiAKErModuleInterface::startFiAKEr );
-	QAction * actionFiAKErProject = new QAction("Load Project (for .fpf; for .iaproj use File->Open)", nullptr);
+
+	QAction * actionFiAKErProject = new QAction(tr("Load Project (for .fpf; for .iaproj use File->Open)"), m_mainWnd);
 	actionFiAKErProject->setShortcut(QKeySequence(Qt::ALT + Qt::Key_R, Qt::Key_P));
-	AddActionToMenuAlphabeticallySorted(fiakerMenu, actionFiAKErProject, false);
 	connect(actionFiAKErProject, &QAction::triggered, this, &iAFiAKErModuleInterface::loadFiAKErProject);
+
+	QMenu* fiakerMenu = getOrAddSubMenu(m_mainWnd->toolsMenu(), tr("FiAKEr"), false);
+	fiakerMenu->addAction(actionFiAKEr);
+	fiakerMenu->addAction(actionFiAKErProject);
 
 	QSettings s;
 	m_lastFormat = s.value(LastFormatKey, "").toString();

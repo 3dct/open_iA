@@ -35,17 +35,16 @@
 void iAUncertaintyModuleInterface::Initialize()
 {
 	REGISTER_FILTER(iAEntropy);
-
 	REGISTER_FILTER(iACSVtoMHD);
 	if (!m_mainWnd)
 	{
 		return;
 	}
-	QMenu * toolsMenu = m_mainWnd->toolsMenu();
-	QMenu * menuSegmentation = getMenuWithTitle( toolsMenu, QString( "Image Ensembles" ), false );
-	QAction * actionUncertainty = new QAction(QApplication::translate("MainWindow", "Uncertainty Exploration", 0), m_mainWnd );
-	AddActionToMenuAlphabeticallySorted(menuSegmentation, actionUncertainty, false);
+	QAction * actionUncertainty = new QAction(tr("Uncertainty Exploration"), m_mainWnd);
 	connect(actionUncertainty, &QAction::triggered, this, &iAUncertaintyModuleInterface::UncertaintyExploration);
+
+	QMenu* submenu = getOrAddSubMenu(m_mainWnd->toolsMenu(), tr("Image Ensembles"), true);
+	submenu->addAction(actionUncertainty);
 }
 
 

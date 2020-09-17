@@ -27,12 +27,13 @@
 void iABoneThicknessModuleInterface::Initialize( )
 {
 	if (!m_mainWnd)
+	{
 		return;
-	QMenu* toolsMenu (m_mainWnd->toolsMenu());
-
-	QAction* pBoneThickness (new QAction(QApplication::translate("MainWindows", "Bone thickness", 0), m_mainWnd));
-	connect(pBoneThickness, &QAction::triggered, this, &iABoneThicknessModuleInterface::slotBoneThickness);
-	AddActionToMenuAlphabeticallySorted(toolsMenu, pBoneThickness);
+	}
+	QAction* actionBoneThickness = new QAction(tr("Bone thickness"), m_mainWnd);
+	connect(actionBoneThickness, &QAction::triggered, this, &iABoneThicknessModuleInterface::slotBoneThickness);
+	makeActionChildDependent(actionBoneThickness);
+	addToMenuSorted(m_mainWnd->toolsMenu(), actionBoneThickness);
 }
 
 void iABoneThicknessModuleInterface::slotBoneThickness()

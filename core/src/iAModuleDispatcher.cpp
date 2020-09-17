@@ -201,13 +201,17 @@ void iAModuleDispatcher::InitializeModules(iALogger* logger)
 		for (QFileInfo fi : fList)
 		{
 			if (!loadModuleAndInterface(fi, loadErrorMessages))
+			{
 				failed.push_back(fi);
+			}
 		}
 		someNewLoaded = failed.size() < fList.size();
 		fList = failed;
 	} while (fList.size() != 0 && someNewLoaded);
 	for (auto msg : loadErrorMessages)
+	{
 		logger->log(msg);
+	}
 	if (!m_mainWnd)	// all non-GUI related stuff already done
 	{
 		return;
@@ -220,10 +224,15 @@ void iAModuleDispatcher::InitializeModules(iALogger* logger)
 		QMenu * filterMenu = m_mainWnd->filtersMenu();
 		QStringList categories = filter->fullCategory().split("/");
 		for (auto cat : categories)
+		{
 			if (!cat.isEmpty())
-				filterMenu = getMenuWithTitle(filterMenu, cat);
-		QAction * filterAction = new QAction(QApplication::translate("MainWindow", filter->name().toStdString().c_str(), 0), m_mainWnd);
-		AddActionToMenuAlphabeticallySorted(filterMenu, filterAction);
+			{
+				filterMenu = getOrAddSubMenu(filterMenu, cat);
+			}
+		}
+		QAction * filterAction = new QAction(tr(filter->name().toStdString().c_str()), m_mainWnd);
+		addToMenuSorted(filterMenu, filterAction);
+		makeActionChildDependent(filterAction);
 		filterAction->setData(i);
 		connect(filterAction, &QAction::triggered, this, &iAModuleDispatcher::executeFilter);
 	}
@@ -234,8 +243,8 @@ void iAModuleDispatcher::InitializeModules(iALogger* logger)
 	if (m_mainWnd->filtersMenu()->actions().size() > 0)
 	{
 		QMenu * filterMenu = m_mainWnd->filtersMenu();
-		QAction * selectAndRunFilterAction = new QAction(QApplication::translate("MainWindow", "Select and Run Filter...", 0), m_mainWnd);
-		AddModuleAction(selectAndRunFilterAction, true);
+		QAction * selectAndRunFilterAction = new QAction(tr("Select and Run Filter..."), m_mainWnd);
+		makeActionChildDependent(selectAndRunFilterAction);
 		filterMenu->insertAction(filterMenu->actions()[0], selectAndRunFilterAction);
 		connect(selectAndRunFilterAction, &QAction::triggered, this, &iAModuleDispatcher::selectAndRunFilter);
 	}
@@ -294,22 +303,17 @@ MainWindow * iAModuleDispatcher::GetMainWnd() const
 	return m_mainWnd;
 }
 
-void iAModuleDispatcher::AddModuleAction( QAction * action, bool isDisablable )
-{
-	iAModuleAction moduleAction( action, isDisablable );
-	m_moduleActions.push_back( moduleAction );
-}
-
 void iAModuleDispatcher::SetModuleActionsEnabled( bool isEnabled )
 {
-	for (int i = 0; i < m_moduleActions.size(); ++i)
-		if( m_moduleActions[i].isDisablable )
+	for (int i = 0; i < m_childDependentActions.size(); ++i)
+	{
+		m_childDependentActions[i]->setEnabled(isEnabled);
+		QMenu* actMenu = m_childDependentActions[i]->menu();
+		if (actMenu)
 		{
-			m_moduleActions[i].action->setEnabled( isEnabled );
-			QMenu * actMenu = m_moduleActions[i].action->menu();
-			if (actMenu)
-				actMenu->setEnabled(isEnabled);
+			actMenu->setEnabled(isEnabled);
 		}
+	}
 }
 
 void iAModuleDispatcher::ChildCreated(MdiChild* child)
@@ -321,32 +325,7 @@ void iAModuleDispatcher::ChildCreated(MdiChild* child)
 	}
 }
 
-
-QMenu * iAModuleDispatcher::getMenuWithTitle(QMenu * parentMenu, QString const & title, bool isDisablable)
+void  iAModuleDispatcher::makeActionChildDependent(QAction* action)
 {
-	QList<QMenu*> submenus = parentMenu->findChildren<QMenu*>();
-	for (int i = 0; i < submenus.size(); ++i)
-	{
-		if (submenus.at(i)->title() == title)
-			return submenus.at(i);
-	}
-	QMenu * result = new QMenu(parentMenu);
-	result->setTitle(title);
-	AddActionToMenuAlphabeticallySorted(parentMenu, result->menuAction(), isDisablable);
-	return result;
-}
-
-
-void  iAModuleDispatcher::AddActionToMenuAlphabeticallySorted(QMenu * menu, QAction * action, bool isDisablable)
-{
-	AddModuleAction(action, isDisablable);
-	for(QAction * curAct: menu->actions())
-	{
-		if (curAct->text() > action->text())
-		{
-			menu->insertAction(curAct, action);
-			return;
-		}
-	}
-	menu->addAction(action);
+	m_childDependentActions.push_back(action);
 }

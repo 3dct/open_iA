@@ -124,12 +124,12 @@ void iAFeatureScoutModuleInterface::Initialize()
 		return;
 	}
 	Q_INIT_RESOURCE(FeatureScout);
-	iAProjectRegistry::addProject<iAFeatureScoutProject>(iAFeatureScoutProject::ID);
-	QMenu * toolsMenu = m_mainWnd->toolsMenu();
-	QAction * actionFibreScout = new QAction( QObject::tr("FeatureScout"), nullptr );
-	AddActionToMenuAlphabeticallySorted( toolsMenu, actionFibreScout, false );
-	connect(actionFibreScout, &QAction::triggered, this, &iAFeatureScoutModuleInterface::FeatureScout);
 	tlbFeatureScout = nullptr;
+
+	iAProjectRegistry::addProject<iAFeatureScoutProject>(iAFeatureScoutProject::ID);
+	QAction * actionFibreScout = new QAction(tr("FeatureScout"), m_mainWnd);
+	connect(actionFibreScout, &QAction::triggered, this, &iAFeatureScoutModuleInterface::FeatureScout);
+	addToMenuSorted(m_mainWnd->toolsMenu(), actionFibreScout);
 }
 
 void iAFeatureScoutModuleInterface::FeatureScout()
