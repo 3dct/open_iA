@@ -40,7 +40,9 @@ QString GetLastErrorAsString()
 {
 	DWORD errorMessageID = ::GetLastError();
 	if (errorMessageID == 0)
+	{
 		return QString();
+	}
 	LPSTR messageBuffer = nullptr;
 	size_t size = FormatMessageA(FORMAT_MESSAGE_ALLOCATE_BUFFER | FORMAT_MESSAGE_FROM_SYSTEM | FORMAT_MESSAGE_IGNORE_INSERTS,
 		nullptr, errorMessageID, MAKELANGID(LANG_NEUTRAL, SUBLANG_DEFAULT), (LPSTR)&messageBuffer, 0, nullptr);
@@ -201,13 +203,17 @@ void iAModuleDispatcher::InitializeModules(iALogger* logger)
 		for (QFileInfo fi : fList)
 		{
 			if (!loadModuleAndInterface(fi, loadErrorMessages))
+			{
 				failed.push_back(fi);
+			}
 		}
 		someNewLoaded = failed.size() < fList.size();
 		fList = failed;
 	} while (fList.size() != 0 && someNewLoaded);
 	for (auto msg : loadErrorMessages)
+	{
 		logger->log(msg);
+	}
 	if (!m_mainWnd)	// all non-GUI related stuff already done
 	{
 		return;
@@ -303,13 +309,17 @@ void iAModuleDispatcher::AddModuleAction( QAction * action, bool isDisablable )
 void iAModuleDispatcher::SetModuleActionsEnabled( bool isEnabled )
 {
 	for (int i = 0; i < m_moduleActions.size(); ++i)
-		if( m_moduleActions[i].isDisablable )
+	{
+		if (m_moduleActions[i].isDisablable)
 		{
-			m_moduleActions[i].action->setEnabled( isEnabled );
-			QMenu * actMenu = m_moduleActions[i].action->menu();
+			m_moduleActions[i].action->setEnabled(isEnabled);
+			QMenu* actMenu = m_moduleActions[i].action->menu();
 			if (actMenu)
+			{
 				actMenu->setEnabled(isEnabled);
+			}
 		}
+	}
 }
 
 void iAModuleDispatcher::ChildCreated(MdiChild* child)
@@ -328,7 +338,9 @@ QMenu * iAModuleDispatcher::getMenuWithTitle(QMenu * parentMenu, QString const &
 	for (int i = 0; i < submenus.size(); ++i)
 	{
 		if (submenus.at(i)->title() == title)
+		{
 			return submenus.at(i);
+		}
 	}
 	QMenu * result = new QMenu(parentMenu);
 	result->setTitle(title);
