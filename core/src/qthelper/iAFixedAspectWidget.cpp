@@ -23,8 +23,6 @@
 #include "iAConsole.h"
 #include "iAVtkQtWidget.h"
 
-#include <QVTKOpenGLWidget.h>
-
 #include <QPainter>
 #include <QVBoxLayout>
 
