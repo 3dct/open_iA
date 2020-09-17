@@ -43,5 +43,5 @@ void dlg_console::clear()
 void dlg_console::closeEvent(QCloseEvent *event)
 {
 	emit onClose();
-	QMainWindow::closeEvent(event);
+	QDockWidget::closeEvent(event);
 }

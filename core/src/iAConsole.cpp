@@ -95,8 +95,15 @@ void iAConsole::logSlot(QString const & text)
 void iAConsole::setVisible(bool visible)
 {
 	if (m_closed)
+	{
 		return;
+	}
 	m_console->setVisible(visible);
+}
+
+QDockWidget* iAConsole::dockWidget()
+{
+	return m_console;
 }
 
 void iAConsole::setLogToFile(bool value, QString const & fileName, bool verbose)

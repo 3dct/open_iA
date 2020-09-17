@@ -2565,6 +2565,7 @@ int MainWindow::runGUI(int argc, char * argv[], QString const & appName, QString
 	app.setAttribute(Qt::AA_DontCreateNativeWidgetSiblings);
 	iAGlobalLogger::setLogger(iAConsole::instance());
 	MainWindow mainWin(appName, version, buildInformation, splashPath);
+	mainWin.addDockWidget(Qt::RightDockWidgetArea, iAConsole::instance()->dockWidget());
 	CheckSCIFIO(QCoreApplication::applicationDirPath());
 	mainWin.loadArguments(argc, argv);
 	// TODO: unify with logo in slicer/renderer!

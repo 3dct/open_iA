@@ -22,7 +22,7 @@
 
 #include "ui_Console.h"
 
-class dlg_console : public QMainWindow, public Ui_Console
+class dlg_console : public QDockWidget, public Ui_Console
 {
 	Q_OBJECT
 public:
