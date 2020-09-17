@@ -66,18 +66,21 @@ typedef vnl_vector<double> VectorType;
 
 namespace
 {
-	typedef itk::Image<int, DIM> LabelImageType;
-	typedef itk::Image<double, DIM> ProbImageType;
+	typedef itk::Image<unsigned char, DIM> LabelImageType;
 	typedef QMap<iAVertexIndexType, iAVertexIndexType> IndexMap;
 
-	iAITKIO::ImagePointer CreateLabelImage(
+
+	template <class T>
+	void CreateLabelImage(
 		int const dim[3],
 		double const spacing[3],
-		QVector<iAITKIO::ImagePointer> const & probabilityImages,
-		int labelCount)
+		QVector<iAITKIO::ImagePointer> const & probabilityImages, 
+		int labelCount, 
+		iAITKIO::ImagePointer& labelImgP)
 	{
+		typedef itk::Image<T, DIM> ProbImageType;
 		// create labelled image (as value at k = arg l max(p_l^k) for each pixel k)
-		iAITKIO::ImagePointer labelImgP = allocateImage(dim, spacing, itk::ImageIOBase::INT);
+		labelImgP = allocateImage(dim, spacing, itk::ImageIOBase::UCHAR);
 		LabelImageType* labelImg = dynamic_cast<LabelImageType*>(labelImgP.GetPointer());
 		QVector<ProbImageType*> probImgs;
 		for (int i = 0; i < labelCount; ++i)
@@ -110,14 +113,17 @@ namespace
 				}
 			}
 		}
-		return labelImgP;
 	}
 
+	template <class T>
 	void SetIndexMapValues(iAITKIO::ImagePointer image,
 		VectorType const & values,
 		IndexMap const & indexMap,
 		iAImageCoordConverter const & conv)
 	{
+
+		typedef itk::Image<T, DIM> ProbImageType;
+
 		ProbImageType* pImg = dynamic_cast<ProbImageType*>(image.GetPointer());
 		for (IndexMap::const_iterator it = indexMap.begin(); it != indexMap.end(); ++it)
 		{
@@ -248,6 +254,8 @@ IAFILTER_CREATE(iARandomWalker)
 
 void iARandomWalker::performWork(QMap<QString, QVariant> const & parameters)
 {
+
+
 	int const * dim = input()[0]->vtkImage()->GetDimensions();
 	double const * spc = input()[0]->vtkImage()->GetSpacing();
 	QVector<iARWInputChannel> inputChannels;
@@ -410,11 +418,12 @@ void iARandomWalker::performWork(QMap<QString, QVariant> const & parameters)
 #endif
 		// put values into probability image
 		iAITKIO::ImagePointer pImg = allocateImage(dim, spc, itk::ImageIOBase::DOUBLE);
-		SetIndexMapValues(pImg, x, unlabeledMap, imageGraph.converter());
-		SetIndexMapValues(pImg, boundary, seedMap, imageGraph.converter());
+		ITK_TYPED_CALL(SetIndexMapValues, input()[0]->itkScalarPixelType(), pImg, x, unlabeledMap, imageGraph.converter());
+		ITK_TYPED_CALL(SetIndexMapValues, input()[0]->itkScalarPixelType(), pImg, boundary, seedMap, imageGraph.converter());
 		probImgs.push_back(pImg);
 	}
-	auto labelImg = CreateLabelImage(dim, spc, probImgs, labelCount);
+	iAITKIO::ImagePointer labelImg;
+	ITK_TYPED_CALL(CreateLabelImage, input()[0]->itkScalarPixelType(), dim, spc, probImgs, labelCount, labelImg );
 	addOutput(labelImg);
 	setOutputName(0u, "Label Image");
 	for (int i = 0; i < labelCount; ++i)
@@ -609,11 +618,13 @@ void iAExtendedRandomWalker::performWork(QMap<QString, QVariant> const & paramet
 #endif
 		// put values into probability image
 		iAITKIO::ImagePointer pImg = allocateImage(dim, spc, itk::ImageIOBase::DOUBLE);
-		SetIndexMapValues(pImg, x, fullMap, imageGraph.converter());
+		ITK_TYPED_CALL(SetIndexMapValues, input()[0]->itkScalarPixelType(), pImg, x, fullMap, imageGraph.converter());
 		probImgs.push_back(pImg);
 	}
 	// create labelled image (as value at k = arg l max(p_l^k) for each pixel k)
-	auto labelImg = CreateLabelImage(dim, spc, probImgs, labelCount);
+
+	iAITKIO::ImagePointer labelImg;
+	ITK_TYPED_CALL(CreateLabelImage, input()[0]->itkScalarPixelType(), dim, spc, probImgs, labelCount, labelImg);
 	addOutput(labelImg);
 	setOutputName(0u, "Label Image");
 	for (int i = 0; i < labelCount; ++i)
@@ -628,7 +639,8 @@ iAMaximumDecisionRule::iAMaximumDecisionRule() :
 	iAFilter("Maximum Decision Rule", "Segmentation",
 		"Assign each pixel the label with maximum probability.<br/>"
 		"Applies the maximum decision rule to a multichannel input which "
-		"represents a probability distribution over labels.")
+		"represents a probability distribution over labels. <br/>"
+		"Output is an unsigned char (256 classes possible)")
 {
 }
 
@@ -647,7 +659,8 @@ void iAMaximumDecisionRule::performWork(QMap<QString, QVariant> const & /*parame
 	{
 		probImgs.push_back(input()[i]->itkImage());
 	}
-	auto labelImg = CreateLabelImage(dim, spc, probImgs, input().size());
+	iAITKIO::ImagePointer labelImg;
+	ITK_TYPED_CALL(CreateLabelImage, input()[0]->itkScalarPixelType(), dim, spc, probImgs, input().size(), labelImg);
 	addOutput(labelImg);
 }
 
