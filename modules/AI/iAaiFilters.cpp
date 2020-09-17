@@ -21,6 +21,7 @@
 #include "iAaiFilters.h"
 
 #include<vector>
+#include <omp.h>
 
 #include "defines.h" // for DIM
 
@@ -363,32 +364,48 @@ void executeDNN(iAFilter* filter, QMap<QString, QVariant> const & parameters)
 
 	iAProgress *progressPrediction = filter->progress();
 
-	for (size_t x = 0; x <= size[0] - sizeDNNout; x=x+sizeDNNout)
+
+	for (int x = 0; x <= size[0] ; x=x+sizeDNNout)
 	{
-		for (size_t y = 0; y <= size[1] - sizeDNNout; y=y+sizeDNNout)
+		#pragma omp parallel for
+		for (int y = 0; y <= size[1] ; y=y+sizeDNNout)
 		{
-			for (size_t z = 0; z <= size[2] - sizeDNNout; z=z+sizeDNNout)
+			#pragma omp parallel for
+			for (int z = 0; z <= size[2] ; z=z+sizeDNNout)
 			{
 				std::vector<float> tensor_img;
 				
+				int tempX, tempY, tempZ;
+
+				tempX = (x <= size[0] - sizeDNNout) ? x : (x -  (sizeDNNout - size[0] % sizeDNNout)); 
+				tempY = (y <= size[1] - sizeDNNout) ? y : (y -  (sizeDNNout - size[1] % sizeDNNout)); 
+				tempZ = (z <= size[2] - sizeDNNout) ? z : (z -  (sizeDNNout - size[2] % sizeDNNout)); 
+
 				size_t offset = (sizeDNNout - sizeDNNin)/2;
-				itk2tensor(itk_img_normalized_padded, tensor_img,x+ offset,y+ offset,z+ offset);
+				itk2tensor(itk_img_normalized_padded, tensor_img, tempX + offset, tempY + offset, tempZ + offset);
+
+				std::vector<Ort::Value> result;
+
 
 				// create input tensor object from data values
 				auto memory_info = Ort::MemoryInfo::CreateCpu(OrtArenaAllocator, OrtMemTypeDefault);
-				Ort::Value input_tensor = Ort::Value::CreateTensor<float>(memory_info, tensor_img.data(), input_tensor_size, input_node_dims.data(), 5);
+				Ort::Value input_tensor = Ort::Value::CreateTensor<float>(
+						memory_info, tensor_img.data(), input_tensor_size, input_node_dims.data(), 5);
 				assert(input_tensor.IsTensor());
+				#pragma omp critical
+				{
+					// score model & input tensor, get back output tensor
+					result = session.Run(Ort::RunOptions{nullptr}, input_node_names.data(), &input_tensor, 1,
+						output_node_names.data(), 1);
+				}
+					assert(result.size() == 1 && result.front().IsTensor());
 
-				// score model & input tensor, get back output tensor
-				auto result = session.Run(Ort::RunOptions{ nullptr }, input_node_names.data(), &input_tensor, 1, output_node_names.data(), 1);
-				assert(result.size() == 1 && result.front().IsTensor());
-
-				int offsetOutput = 0;
+				int outputChannel = 0;
 				//ImageType::Pointer outputImage = ImageType::New();
 				for (auto outputImage : outputs)
 				{
-					tensor2itk(result, outputImage, x, y, z, offsetOutput, outputs.size());
-					offsetOutput++;
+					tensor2itk(result, outputImage, tempX, tempY, tempZ, outputChannel, outputs.size());
+					outputChannel++;
 				}
 				
 
