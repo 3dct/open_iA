@@ -542,7 +542,7 @@ iAParameterSetsPointer iAGlobalSensitivitySamplingMethod::parameterSets(QSharedP
 		for (int p = 0; p < parameters->size(); ++p)
 		{
 			auto param = parameters->at(p);
-			if (param->valueType() != Continuous && param->valueType() != Discrete)
+			if (param->valueType() != iAValueType::Continuous && param->valueType() != iAValueType::Discrete)
 			{	// we only support sensitivity of numerical parameters currently
 				continue;	// TODO: supporting categorical would probably work too - but just if all values are tried
 			}
