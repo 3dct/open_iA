@@ -106,16 +106,23 @@ void iAFiAKErModuleInterface::Initialize()
 		return;
 	}
 	iAProjectRegistry::addProject<iAFIAKERProject>(iAFiAKErController::FIAKERProjectID);
-	QMenu * toolsMenu = m_mainWnd->toolsMenu();
-	QMenu * fiakerMenu = getMenuWithTitle(toolsMenu, tr("FiAKEr"), false);
-	QAction * actionFiAKEr = new QAction( "Open Results Folder", nullptr );
+
+	QAction * actionFiAKEr = new QAction( "Start FIAKER", nullptr );
 	actionFiAKEr->setShortcut(QKeySequence(Qt::ALT + Qt::Key_R, Qt::Key_O));
-	AddActionToMenuAlphabeticallySorted(fiakerMenu, actionFiAKEr, false );
 	connect(actionFiAKEr, &QAction::triggered, this, &iAFiAKErModuleInterface::startFiAKEr );
-	QAction * actionFiAKErProject = new QAction("Load Project (for .fpf; for .iaproj use File->Open)", nullptr);
+
+	QAction * actionFiAKErProject = new QAction("Load FIAKER (old .fpf files)", nullptr);
 	actionFiAKErProject->setShortcut(QKeySequence(Qt::ALT + Qt::Key_R, Qt::Key_P));
-	AddActionToMenuAlphabeticallySorted(fiakerMenu, actionFiAKErProject, false);
 	connect(actionFiAKErProject, &QAction::triggered, this, &iAFiAKErModuleInterface::loadFiAKErProject);
+
+	QMenu* toolsMenu = m_mainWnd->toolsMenu();
+	QMenu* featureAnalysisMenu = getMenuWithTitle(toolsMenu, tr("Feature Analysis"), false);
+	if (!featureAnalysisMenu->isEmpty())
+	{
+		featureAnalysisMenu->addSeparator();
+	}
+	featureAnalysisMenu->addAction(actionFiAKEr);
+	featureAnalysisMenu->addAction(actionFiAKErProject);
 
 	QSettings s;
 	m_lastFormat = s.value(LastFormatKey, "").toString();
