@@ -2,7 +2,7 @@
 * **********   A tool for visual analysis and processing of 3D CT images   ********** *
 * *********************************************************************************** *
 * Copyright (C) 2016-2020  C. Heinzl, M. Reiter, A. Reh, W. Li, M. Arikan, Ar. &  Al. *
-*                          Amirkhanov, J. Weissenböck, B. Fröhler, M. Schiwarth       *
+*                 Amirkhanov, J. Weissenböck, B. Fröhler, M. Schiwarth, P. Weinberger *
 * *********************************************************************************** *
 * This program is free software: you can redistribute it and/or modify it under the   *
 * terms of the GNU General Public License as published by the Free Software           *
@@ -242,10 +242,10 @@ void dlg_commoninput::SelectFilter()
 				paramStr += (paramStr.isEmpty() ? "" : " ");
 				switch (param->valueType())
 				{
-				case Boolean:
+				case iAValueType::Boolean:
 					paramStr += paramValues[param->name()].toBool() ? "true" : "false"; break;
-				case Discrete:
-				case Continuous:
+				case iAValueType::Discrete:
+				case iAValueType::Continuous:
 					paramStr += paramValues[param->name()].toString(); break;
 				default:
 					paramStr += quoteString(paramValues[param->name()].toString()); break;

@@ -2,7 +2,7 @@
  * * **********   A tool for visual analysis and processing of 3D CT images   ********** *
  * * *********************************************************************************** *
  * * Copyright (C) 2016-2020  C. Heinzl, M. Reiter, A. Reh, W. Li, M. Arikan, Ar. &  Al. *
- * *                          Amirkhanov, J. Weissenböck, B. Fröhler, M. Schiwarth       *
+ * *                 Amirkhanov, J. Weissenböck, B. Fröhler, M. Schiwarth, P. Weinberger *
  * * *********************************************************************************** *
  * * This program is free software: you can redistribute it and/or modify it under the   *
  * * terms of the GNU General Public License as published by the Free Software           *
@@ -223,12 +223,12 @@ iASVMImageFilter::iASVMImageFilter() :
 {
 	QStringList kernels; kernels
 		<< "Linear" << "Polynomial" << "RBF" << "Sigmoid";
-	addParameter("Kernel Type", Categorical, kernels);
-	addParameter("Gamma", Continuous, 0.1);
-	addParameter("Dimension", Discrete, 2);
-	addParameter("Coef0", Continuous, 1);
-	addParameter("C", Continuous, 10);
-	addParameter("Seeds", Text);
+	addParameter("Kernel Type", iAValueType::Categorical, kernels);
+	addParameter("Gamma", iAValueType::Continuous, 0.1);
+	addParameter("Dimension", iAValueType::Discrete, 2);
+	addParameter("Coef0", iAValueType::Continuous, 1);
+	addParameter("C", iAValueType::Continuous, 10);
+	addParameter("Seeds", iAValueType::Text);
 }
 
 
@@ -271,6 +271,6 @@ iAKMeans::iAKMeans() :
 		"<a href=\"https://itk.org/Doxygen/html/classitk_1_1ScalarImageKmeansImageFilter.html\">"
 		"Scalar Image K-Means Filter</a> in the ITK documentation.", 1)
 {
-	addParameter("Initial means", Text, "");
-	addParameter("Non-contiguous labels", Boolean, false);
+	addParameter("Initial means", iAValueType::Text, "");
+	addParameter("Non-contiguous labels", iAValueType::Boolean, false);
 }

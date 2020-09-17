@@ -2,7 +2,7 @@
 * **********   A tool for visual analysis and processing of 3D CT images   ********** *
 * *********************************************************************************** *
 * Copyright (C) 2016-2020  C. Heinzl, M. Reiter, A. Reh, W. Li, M. Arikan, Ar. &  Al. *
-*                          Amirkhanov, J. Weissenböck, B. Fröhler, M. Schiwarth       *
+*                 Amirkhanov, J. Weissenböck, B. Fröhler, M. Schiwarth, P. Weinberger *
 * *********************************************************************************** *
 * This program is free software: you can redistribute it and/or modify it under the   *
 * terms of the GNU General Public License as published by the Free Software           *
@@ -154,7 +154,7 @@ iAHessianEigenanalysis::iAHessianEigenanalysis() :
 		"<a href=\"https://itk.org/Doxygen/html/classitk_1_1SymmetricEigenAnalysisImageFilter.html\">"
 		"Symmetric Eigen Analysis Filter</a> in the ITK documentation.", 1, 3)
 {
-	addParameter("Sigma", Continuous, 1.0);
+	addParameter("Sigma", iAValueType::Continuous, 1.0);
 }
 
 
@@ -190,5 +190,5 @@ iALaplacian::iALaplacian() :
 		"<a href=\"https://itk.org/Doxygen/html/classitk_1_1LaplacianRecursiveGaussianImageFilter.html\">"
 		"Laplacian Recursive Gaussian Filter</a> in the ITK documentation.")
 {
-	addParameter("Sigma", Continuous, 1.0);
+	addParameter("Sigma", iAValueType::Continuous, 1.0);
 }

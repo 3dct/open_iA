@@ -2,7 +2,7 @@
 * **********   A tool for visual analysis and processing of 3D CT images   ********** *
 * *********************************************************************************** *
 * Copyright (C) 2016-2020  C. Heinzl, M. Reiter, A. Reh, W. Li, M. Arikan, Ar. &  Al. *
-*                          Amirkhanov, J. Weissenböck, B. Fröhler, M. Schiwarth       *
+*                 Amirkhanov, J. Weissenböck, B. Fröhler, M. Schiwarth, P. Weinberger *
 * *********************************************************************************** *
 * This program is free software: you can redistribute it and/or modify it under the   *
 * terms of the GNU General Public License as published by the Free Software           *
@@ -44,30 +44,30 @@ iASampleFilter::iASampleFilter() :
 		1, 0),
 	m_sampler(nullptr)
 {
-	addParameter(spnAlgorithmName, String, "");
+	addParameter(spnAlgorithmName, iAValueType::String, "");
 	QStringList algorithmTypes;
 	algorithmTypes << atBuiltIn << atExternal;
-	addParameter(spnAlgorithmType, Categorical, algorithmTypes);
-	addParameter(spnFilter, FilterName, "Image Quality");
-	addParameter(spnExecutable, FileNameOpen, "");
-	addParameter(spnParameterDescriptor, FileNameOpen, "");
-	addParameter(spnAdditionalArguments, String, "");
+	addParameter(spnAlgorithmType, iAValueType::Categorical, algorithmTypes);
+	addParameter(spnFilter, iAValueType::FilterName, "Image Quality");
+	addParameter(spnExecutable, iAValueType::FileNameOpen, "");
+	addParameter(spnParameterDescriptor, iAValueType::FileNameOpen, "");
+	addParameter(spnAdditionalArguments, iAValueType::String, "");
 	QStringList samplingMethods(samplingMethodNames());
-	addParameter(spnSamplingMethod, Categorical, samplingMethods);
-	addParameter(spnNumberOfSamples, Discrete, 100);
-	addParameter(spnOutputFolder, Folder, "C:/sampling");
-	addParameter(spnBaseName, String, "sample.mhd");
-	addParameter(spnOverwriteOutput, Boolean, false);
-	addParameter(spnSubfolderPerSample, Boolean, false);
-	addParameter(spnComputeDerivedOutput, Boolean, false);
-	addParameter(spnContinueOnError, Boolean, false);
-	addParameter(spnCompressOutput, Boolean, true);
-	addParameter(spnNumberOfLabels, Discrete, 2);
+	addParameter(spnSamplingMethod, iAValueType::Categorical, samplingMethods);
+	addParameter(spnNumberOfSamples, iAValueType::Discrete, 100);
+	addParameter(spnOutputFolder, iAValueType::Folder, "C:/sampling");
+	addParameter(spnBaseName, iAValueType::String, "sample.mhd");
+	addParameter(spnOverwriteOutput, iAValueType::Boolean, false);
+	addParameter(spnSubfolderPerSample, iAValueType::Boolean, false);
+	addParameter(spnComputeDerivedOutput, iAValueType::Boolean, false);
+	addParameter(spnContinueOnError, iAValueType::Boolean, false);
+	addParameter(spnCompressOutput, iAValueType::Boolean, true);
+	addParameter(spnNumberOfLabels, iAValueType::Discrete, 2);
 	
 	samplingMethods.removeAll(iASamplingMethodName::GlobalSensitivity);
 	// parameters only required for "Global sensitivity (star)" sampling:
-	addParameter(spnBaseSamplingMethod, Categorical, samplingMethods);
-	addParameter(spnSensitivityDelta, Continuous, 0.1);
+	addParameter(spnBaseSamplingMethod, iAValueType::Categorical, samplingMethods);
+	addParameter(spnSensitivityDelta, iAValueType::Continuous, 0.1);
 }
 
 void iASampleFilter::performWork(QMap<QString, QVariant> const& parameters)

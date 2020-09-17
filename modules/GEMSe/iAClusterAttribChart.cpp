@@ -2,7 +2,7 @@
 * **********   A tool for visual analysis and processing of 3D CT images   ********** *
 * *********************************************************************************** *
 * Copyright (C) 2016-2020  C. Heinzl, M. Reiter, A. Reh, W. Li, M. Arikan, Ar. &  Al. *
-*                          Amirkhanov, J. Weissenböck, B. Fröhler, M. Schiwarth       *
+*                 Amirkhanov, J. Weissenböck, B. Fröhler, M. Schiwarth, P. Weinberger *
 * *********************************************************************************** *
 * This program is free software: you can redistribute it and/or modify it under the   *
 * terms of the GNU General Public License as published by the Free Software           *
@@ -147,7 +147,7 @@ void iAClusterAttribChart::SelectionChanged()
 {
 	double minValue = m_charts->GetMinSliderPos();
 	double maxValue = m_charts->GetMaxSliderPos();
-	if (m_charts->GetRangeType() == Discrete || m_charts->GetRangeType() == Categorical)
+	if (m_charts->GetRangeType() == iAValueType::Discrete || m_charts->GetRangeType() == iAValueType::Categorical)
 	{
 		minValue = static_cast<int>(minValue);
 		maxValue = static_cast<int>(maxValue);

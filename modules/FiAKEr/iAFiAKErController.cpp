@@ -2,7 +2,7 @@
 * **********   A tool for visual analysis and processing of 3D CT images   ********** *
 * *********************************************************************************** *
 * Copyright (C) 2016-2020  C. Heinzl, M. Reiter, A. Reh, W. Li, M. Arikan, Ar. &  Al. *
-*                          Amirkhanov, J. Weissenböck, B. Fröhler, M. Schiwarth       *
+*                 Amirkhanov, J. Weissenböck, B. Fröhler, M. Schiwarth, P. Weinberger *
 * *********************************************************************************** *
 * This program is free software: you can redistribute it and/or modify it under the   *
 * terms of the GNU General Public License as published by the Free Software           *
@@ -1585,7 +1585,7 @@ void iAFiAKErController::changeDistributionSource(int index)
 			fiberData[fiberID] = matchQualityVisActive() ? m_data->avgRefFiberMatch[fiberID]
 				: d.table->GetValue(fiberID, index).ToDouble();
 		}
-		auto histogramData = iAHistogramData::create(fiberData, m_histogramBins, Continuous, range[0], range[1]);
+		auto histogramData = iAHistogramData::create(fiberData, m_histogramBins, iAValueType::Continuous, range[0], range[1]);
 		QSharedPointer<iAPlot> histogramPlot =
 			(m_settingsView->cmbboxDistributionPlotType->currentIndex() == 0) ?
 			QSharedPointer<iAPlot>(new iABarGraphPlot(histogramData, getResultColor(resultID)))
@@ -1918,7 +1918,7 @@ void iAFiAKErController::toggleOptimStepChart(size_t chartID, bool visible)
 				{
 					plotData = QSharedPointer<iAVectorPlotData>(new iAVectorPlotData(d.projectionError[fiberID]));
 				}
-				plotData->setXDataType(Discrete);
+				plotData->setXDataType(iAValueType::Discrete);
 				m_optimStepChart[chartID]->addPlot(QSharedPointer<iALinePlot>(new iALinePlot(plotData, getResultColor(resultID))));
 			}
 		}

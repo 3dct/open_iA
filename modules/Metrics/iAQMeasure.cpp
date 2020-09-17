@@ -2,7 +2,7 @@
 * **********   A tool for visual analysis and processing of 3D CT images   ********** *
 * *********************************************************************************** *
 * Copyright (C) 2016-2020  C. Heinzl, M. Reiter, A. Reh, W. Li, M. Arikan, Ar. &  Al. *
-*                          Amirkhanov, J. Weissenböck, B. Fröhler, M. Schiwarth       *
+*                 Amirkhanov, J. Weissenböck, B. Fröhler, M. Schiwarth, P. Weinberger *
 * *********************************************************************************** *
 * This program is free software: you can redistribute it and/or modify it under the   *
 * terms of the GNU General Public License as published by the Free Software           *
@@ -122,7 +122,7 @@ void computeQ(iAQMeasure* filter, vtkSmartPointer<vtkImageData> img, QMap<QStrin
 
 	if (filter->m_chart)
 	{
-		auto histoPlotData = iASimpleHistogramData::create(minVal, maxVal, vecHist, Continuous);
+		auto histoPlotData = iASimpleHistogramData::create(minVal, maxVal, vecHist, iAValueType::Continuous);
 		filter->m_chart->addPlot(QSharedPointer<iAPlot>(new iABarGraphPlot(histoPlotData, QColor(180, 90, 90, 127))));
 	}
 
@@ -132,7 +132,7 @@ void computeQ(iAQMeasure* filter, vtkSmartPointer<vtkImageData> img, QMap<QStrin
 
 	if (filter->m_chart)
 	{
-		auto smoothedHistoPlotData = iASimpleHistogramData::create(minVal, maxVal, smoothedHist, Continuous);
+		auto smoothedHistoPlotData = iASimpleHistogramData::create(minVal, maxVal, smoothedHist, iAValueType::Continuous);
 		filter->m_chart->addPlot(QSharedPointer<iAPlot>(new iABarGraphPlot(smoothedHistoPlotData, QColor(90, 180, 90, 127))));
 	}
 
@@ -141,7 +141,7 @@ void computeQ(iAQMeasure* filter, vtkSmartPointer<vtkImageData> img, QMap<QStrin
 	auto smoothedDeriv = gaussianSmoothing(firstDeriv, derivSigma, 5);
 	if (filter->m_chart)
 	{
-		auto firstDerivPlotData = iASimpleHistogramData::create(minVal, maxVal, smoothedDeriv, Continuous);
+		auto firstDerivPlotData = iASimpleHistogramData::create(minVal, maxVal, smoothedDeriv, iAValueType::Continuous);
 		filter->m_chart->addPlot(QSharedPointer<iAPlot>(new iABarGraphPlot(firstDerivPlotData, QColor(90, 90, 180, 127))));
 	}
 
@@ -210,7 +210,7 @@ void computeQ(iAQMeasure* filter, vtkSmartPointer<vtkImageData> img, QMap<QStrin
 		auto smoothedHistoMin = gaussianSmoothing(vecHist, minSigma, 10);
 		if (filter->m_chart)
 		{
-			//auto smoothedHisto2PlotData = iASimpleHistogramData::Create(minVal, maxVal, smoothedHistoMin, Continuous);
+			//auto smoothedHisto2PlotData = iASimpleHistogramData::Create(minVal, maxVal, smoothedHistoMin, iAValueType::Continuous);
 			//filter->m_chart->AddPlot(QSharedPointer<iAPlot>(new iABarGraphPlot(smoothedHisto2PlotData, QColor(90, 180, 180, 127))));
 		}
 		int minIdx = peaks[m].first;
@@ -411,20 +411,20 @@ iAQMeasure::iAQMeasure() :
 	m_chart(nullptr),
 	m_mdiChild(nullptr)
 {
-	addParameter("Index X", Discrete, 0);
-	addParameter("Index Y", Discrete, 0);
-	addParameter("Index Z", Discrete, 0);
-	addParameter("Size X", Discrete, 1);
-	addParameter("Size Y", Discrete, 1);
-	addParameter("Size Z", Discrete, 1);
-	addParameter("Histogram-based SNR (highest non-air-peak)", Boolean, true);
-	addParameter("Q metric", Boolean, true);
-	addParameter("Number of peaks", Discrete, 2, 2);
-	addParameter("Histogram bin factor"       , Continuous, 0.125, 0.0000001);
-	addParameter("Derivative smoothing factor", Continuous,    64, 0.0000001);
-	addParameter("Minima finding smoothing factor", Continuous, 8, 0.0000001);
-	addParameter("OrigQ Histogram bins", Discrete, 512, 2);
-	addParameter("Analyze Peaks", Boolean, false);
+	addParameter("Index X", iAValueType::Discrete, 0);
+	addParameter("Index Y", iAValueType::Discrete, 0);
+	addParameter("Index Z", iAValueType::Discrete, 0);
+	addParameter("Size X", iAValueType::Discrete, 1);
+	addParameter("Size Y", iAValueType::Discrete, 1);
+	addParameter("Size Z", iAValueType::Discrete, 1);
+	addParameter("Histogram-based SNR (highest non-air-peak)", iAValueType::Boolean, true);
+	addParameter("Q metric", iAValueType::Boolean, true);
+	addParameter("Number of peaks", iAValueType::Discrete, 2, 2);
+	addParameter("Histogram bin factor"       , iAValueType::Continuous, 0.125, 0.0000001);
+	addParameter("Derivative smoothing factor", iAValueType::Continuous,    64, 0.0000001);
+	addParameter("Minima finding smoothing factor", iAValueType::Continuous, 8, 0.0000001);
+	addParameter("OrigQ Histogram bins", iAValueType::Discrete, 512, 2);
+	addParameter("Analyze Peaks", iAValueType::Boolean, false);
 
 	addOutputValue("Histogram-based SNR (highest non-air-peak)");
 	addOutputValue("Q");
@@ -460,12 +460,12 @@ iASNR::iASNR() :
 	iAFilter("Signal-to-Noise Ratio", "Metrics",
 		"Computes the Signal-to-noise ratio as (mean / stddev) of the given image region.<br/>", 1, 0)
 {
-	addParameter("Index X", Discrete, 0);
-	addParameter("Index Y", Discrete, 0);
-	addParameter("Index Z", Discrete, 0);
-	addParameter("Size X", Discrete, 1);
-	addParameter("Size Y", Discrete, 1);
-	addParameter("Size Z", Discrete, 1);
+	addParameter("Index X", iAValueType::Discrete, 0);
+	addParameter("Index Y", iAValueType::Discrete, 0);
+	addParameter("Index Z", iAValueType::Discrete, 0);
+	addParameter("Size X", iAValueType::Discrete, 1);
+	addParameter("Size Y", iAValueType::Discrete, 1);
+	addParameter("Size Z", iAValueType::Discrete, 1);
 	addOutputValue("Signal-to-Noise Ratio");
 }
 
@@ -488,18 +488,18 @@ iACNR::iACNR() :
 		"Region 1 should typically contain a homogeneous area of surroundings (air), "
 		"while region 2 should typically contain a homogeneous region of material", 1, 0)
 {
-	addParameter("Region 1 Index X", Discrete, 0);
-	addParameter("Region 1 Index Y", Discrete, 0);
-	addParameter("Region 1 Index Z", Discrete, 0);
-	addParameter("Region 1 Size X" , Discrete, 1);
-	addParameter("Region 1 Size Y" , Discrete, 1);
-	addParameter("Region 1 Size Z" , Discrete, 1);
-	addParameter("Region 2 Index X", Discrete, 0);
-	addParameter("Region 2 Index Y", Discrete, 0);
-	addParameter("Region 2 Index Z", Discrete, 0);
-	addParameter("Region 2 Size X" , Discrete, 1);
-	addParameter("Region 2 Size Y" , Discrete, 1);
-	addParameter("Region 2 Size Z" , Discrete, 1);
+	addParameter("Region 1 Index X", iAValueType::Discrete, 0);
+	addParameter("Region 1 Index Y", iAValueType::Discrete, 0);
+	addParameter("Region 1 Index Z", iAValueType::Discrete, 0);
+	addParameter("Region 1 Size X" , iAValueType::Discrete, 1);
+	addParameter("Region 1 Size Y" , iAValueType::Discrete, 1);
+	addParameter("Region 1 Size Z" , iAValueType::Discrete, 1);
+	addParameter("Region 2 Index X", iAValueType::Discrete, 0);
+	addParameter("Region 2 Index Y", iAValueType::Discrete, 0);
+	addParameter("Region 2 Index Z", iAValueType::Discrete, 0);
+	addParameter("Region 2 Size X" , iAValueType::Discrete, 1);
+	addParameter("Region 2 Size Y" , iAValueType::Discrete, 1);
+	addParameter("Region 2 Size Z" , iAValueType::Discrete, 1);
 	addOutputValue("Contrast-to-Noise Ratio");
 }
 

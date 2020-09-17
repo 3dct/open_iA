@@ -2,7 +2,7 @@
 * **********   A tool for visual analysis and processing of 3D CT images   ********** *
 * *********************************************************************************** *
 * Copyright (C) 2016-2020  C. Heinzl, M. Reiter, A. Reh, W. Li, M. Arikan, Ar. &  Al. *
-*                          Amirkhanov, J. Weissenböck, B. Fröhler, M. Schiwarth       *
+*                 Amirkhanov, J. Weissenböck, B. Fröhler, M. Schiwarth, P. Weinberger *
 * *********************************************************************************** *
 * This program is free software: you can redistribute it and/or modify it under the   *
 * terms of the GNU General Public License as published by the Free Software           *
@@ -342,7 +342,7 @@ QString iAChartWidget::xAxisTickMarkLabel(double value, double stepWidth)
 {
 	int placesBeforeComma = requiredDigits(value);
 	int placesAfterComma = (stepWidth < 10) ? requiredDigits(10 / stepWidth) : 0;
-	if ((!m_plots.empty() && m_plots[0]->data()->valueType() == Continuous) || placesAfterComma > 1)
+	if ((!m_plots.empty() && m_plots[0]->data()->valueType() == iAValueType::Continuous) || placesAfterComma > 1)
 	{
 		QString result = QString::number(value, 'g', ((value > 0) ? placesBeforeComma + placesAfterComma : placesAfterComma));
 		if (result.contains("e")) // only 4 digits for scientific notation:
@@ -367,7 +367,7 @@ bool iAChartWidget::categoricalAxis() const
 {
 	if (!m_plots.empty())
 	{
-		return (m_plots[0]->data()->valueType() == Categorical);
+		return (m_plots[0]->data()->valueType() == iAValueType::Categorical);
 	}
 	else
 	{
@@ -609,8 +609,8 @@ void iAChartWidget::updateXBounds(size_t startPlot)
 		for (size_t curPlot = std::max(static_cast<size_t>(0), startPlot); curPlot < m_plots.size(); ++curPlot)
 		{
 			auto d = m_plots[curPlot]->data();
-			m_xBounds[0] = std::min(m_xBounds[0], d->xBounds()[0] - ((d->valueType() == Discrete) ? 0.5 : 0) );
-			m_xBounds[1] = std::max(m_xBounds[1], d->xBounds()[1] + ((d->valueType() == Discrete) ? 0.5 : 0) );
+			m_xBounds[0] = std::min(m_xBounds[0], d->xBounds()[0] - ((d->valueType() == iAValueType::Discrete) ? 0.5 : 0) );
+			m_xBounds[1] = std::max(m_xBounds[1], d->xBounds()[1] + ((d->valueType() == iAValueType::Discrete) ? 0.5 : 0) );
 			m_xTickBounds[0] = std::min(m_xTickBounds[0], d->xBounds()[0]);
 			m_xTickBounds[1] = std::max(m_xTickBounds[1], d->xBounds()[1]);
 			m_maxXAxisSteps = std::max(m_maxXAxisSteps, d->numBin() );
@@ -751,8 +751,8 @@ bool iAChartWidget::isDrawnDiscrete() const
 {
 	for (auto plot : m_plots)
 	{
-		if (!((plot->data()->valueType() == Discrete && (xRange() <= plot->data()->numBin()))
-			  || plot->data()->valueType() == Categorical))
+		if (!((plot->data()->valueType() == iAValueType::Discrete && (xRange() <= plot->data()->numBin()))
+			  || plot->data()->valueType() == iAValueType::Categorical))
 		{
 			return false;
 		}
@@ -805,12 +805,12 @@ void iAChartWidget::drawPlots(QPainter &painter)
 			};
 			ensureNonZeroRange(plotVisXBounds);
 			double plotStepWidth = (plotXBounds[1] - plotXBounds[0]
-				+ (((*it)->data()->valueType() == Discrete)?1:0) ) / (*it)->data()->numBin();
+				+ (((*it)->data()->valueType() == iAValueType::Discrete)?1:0) ) / (*it)->data()->numBin();
 			size_t plotStartBin = static_cast<size_t>(clamp(0.0, static_cast<double>(plotNumBin - 1), (plotVisXBounds[0] - (*it)->data()->xBounds()[0]) / plotStepWidth - 1));
 			size_t plotEndBin = static_cast<size_t>(clamp(0.0, static_cast<double>(plotNumBin - 1), (plotVisXBounds[1] - (*it)->data()->xBounds()[0]) / plotStepWidth + 1));
 			double plotPixelBinWidth = m_xMapper->srcToDst(xBounds()[0] + plotStepWidth);
 			iALinearMapper plotXMapper;
-			plotXMapper.update(-1, plotNumBin + (((*it)->data()->valueType() == Continuous) ? 1 : 0),
+			plotXMapper.update(-1, plotNumBin + (((*it)->data()->valueType() == iAValueType::Continuous) ? 1 : 0),
 				m_xMapper->srcToDst((*it)->data()->xBounds()[0] - plotStepWidth),
 				m_xMapper->srcToDst((*it)->data()->xBounds()[1] + plotStepWidth));
 			(*it)->draw(painter, plotPixelBinWidth, plotStartBin, plotEndBin, plotXMapper, *m_yMapper.data());

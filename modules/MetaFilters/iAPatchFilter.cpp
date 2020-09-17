@@ -2,7 +2,7 @@
 * **********   A tool for visual analysis and processing of 3D CT images   ********** *
 * *********************************************************************************** *
 * Copyright (C) 2016-2020  C. Heinzl, M. Reiter, A. Reh, W. Li, M. Arikan, Ar. &  Al. *
-*                          Amirkhanov, J. Weissenböck, B. Fröhler, M. Schiwarth       *
+*                 Amirkhanov, J. Weissenböck, B. Fröhler, M. Schiwarth, P. Weinberger *
 * *********************************************************************************** *
 * This program is free software: you can redistribute it and/or modify it under the   *
 * terms of the GNU General Public License as published by the Free Software           *
@@ -336,22 +336,22 @@ iAPatchFilter::iAPatchFilter():
 		, 1, 0),
 	m_aborted(false)
 {
-	addParameter("Patch size X", Discrete, 1, 1);
-	addParameter("Patch size Y", Discrete, 1, 1);
-	addParameter("Patch size Z", Discrete, 1, 1);
-	addParameter("Step size X", Discrete, 1, 1);
-	addParameter("Step size Y", Discrete, 1, 1);
-	addParameter("Step size Z", Discrete, 1, 1);
-	addParameter("Center patch", Boolean, true);
-	addParameter(spnFilter, FilterName, "Image Quality");
-	addParameter("Parameters", FilterParameters, "");
-	addParameter("Additional input", FileNamesOpen, "");
-	addParameter("Output csv file", FileNameSave, ".csv");
-	addParameter("Write output value image", Boolean, true);
-	addParameter("Output image base name", String, "output.mhd");
-	addParameter(spnCompressOutput, Boolean, true);
-	addParameter(spnContinueOnError, Boolean, false);
-	addParameter(spnOverwriteOutput, Boolean, false);
+	addParameter("Patch size X", iAValueType::Discrete, 1, 1);
+	addParameter("Patch size Y", iAValueType::Discrete, 1, 1);
+	addParameter("Patch size Z", iAValueType::Discrete, 1, 1);
+	addParameter("Step size X", iAValueType::Discrete, 1, 1);
+	addParameter("Step size Y", iAValueType::Discrete, 1, 1);
+	addParameter("Step size Z", iAValueType::Discrete, 1, 1);
+	addParameter("Center patch", iAValueType::Boolean, true);
+	addParameter(spnFilter, iAValueType::FilterName, "Image Quality");
+	addParameter("Parameters", iAValueType::FilterParameters, "");
+	addParameter("Additional input", iAValueType::FileNamesOpen, "");
+	addParameter("Output csv file", iAValueType::FileNameSave, ".csv");
+	addParameter("Write output value image", iAValueType::Boolean, true);
+	addParameter("Output image base name", iAValueType::String, "output.mhd");
+	addParameter(spnCompressOutput, iAValueType::Boolean, true);
+	addParameter(spnContinueOnError, iAValueType::Boolean, false);
+	addParameter(spnOverwriteOutput, iAValueType::Boolean, false);
 }
 
 void iAPatchFilter::performWork(QMap<QString, QVariant> const & parameters)

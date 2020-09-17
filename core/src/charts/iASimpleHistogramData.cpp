@@ -2,7 +2,7 @@
 * **********   A tool for visual analysis and processing of 3D CT images   ********** *
 * *********************************************************************************** *
 * Copyright (C) 2016-2020  C. Heinzl, M. Reiter, A. Reh, W. Li, M. Arikan, Ar. &  Al. *
-*                          Amirkhanov, J. Weissenböck, B. Fröhler, M. Schiwarth       *
+*                 Amirkhanov, J. Weissenböck, B. Fröhler, M. Schiwarth, P. Weinberger *
 * *********************************************************************************** *
 * This program is free software: you can redistribute it and/or modify it under the   *
 * terms of the GNU General Public License as published by the Free Software           *
@@ -37,7 +37,7 @@ size_t iASimpleHistogramData::numBin() const
 
 double iASimpleHistogramData::spacing() const
 {						// check int type (see also iAHistogramData)
-	return (m_xBounds[1] - m_xBounds[0] + ((valueType() == Discrete) ? 1 : 0)) / m_numBin;
+	return (m_xBounds[1] - m_xBounds[0] + ((valueType() == iAValueType::Discrete) ? 1 : 0)) / m_numBin;
 }
 
 double const * iASimpleHistogramData::xBounds() const

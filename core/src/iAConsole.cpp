@@ -2,7 +2,7 @@
 * **********   A tool for visual analysis and processing of 3D CT images   ********** *
 * *********************************************************************************** *
 * Copyright (C) 2016-2020  C. Heinzl, M. Reiter, A. Reh, W. Li, M. Arikan, Ar. &  Al. *
-*                          Amirkhanov, J. Weissenböck, B. Fröhler, M. Schiwarth       *
+*                 Amirkhanov, J. Weissenböck, B. Fröhler, M. Schiwarth, P. Weinberger *
 * *********************************************************************************** *
 * This program is free software: you can redistribute it and/or modify it under the   *
 * terms of the GNU General Public License as published by the Free Software           *
@@ -95,8 +95,15 @@ void iAConsole::logSlot(QString const & text)
 void iAConsole::setVisible(bool visible)
 {
 	if (m_closed)
+	{
 		return;
+	}
 	m_console->setVisible(visible);
+}
+
+QDockWidget* iAConsole::dockWidget()
+{
+	return m_console;
 }
 
 void iAConsole::setLogToFile(bool value, QString const & fileName, bool verbose)

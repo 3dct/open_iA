@@ -2,7 +2,7 @@
 * **********   A tool for visual analysis and processing of 3D CT images   ********** *
 * *********************************************************************************** *
 * Copyright (C) 2016-2020  C. Heinzl, M. Reiter, A. Reh, W. Li, M. Arikan, Ar. &  Al. *
-*                          Amirkhanov, J. Weissenböck, B. Fröhler, M. Schiwarth       *
+*                 Amirkhanov, J. Weissenböck, B. Fröhler, M. Schiwarth, P. Weinberger *
 * *********************************************************************************** *
 * This program is free software: you can redistribute it and/or modify it under the   *
 * terms of the GNU General Public License as published by the Free Software           *
@@ -200,7 +200,7 @@ bool iAFilter::checkParameters(QMap<QString, QVariant> & parameters)
 	{
 		switch (param->valueType())
 		{
-		case Discrete: {
+		case iAValueType::Discrete: {
 			long long value = parameters[param->name()].toLongLong(&ok);
 			if (!ok)
 			{
@@ -217,7 +217,7 @@ bool iAFilter::checkParameters(QMap<QString, QVariant> & parameters)
 			}
 			break;
 		}
-		case Continuous:
+		case iAValueType::Continuous:
 		{
 			double value = parameters[param->name()].toDouble(&ok);
 			if (!ok)
@@ -235,7 +235,7 @@ bool iAFilter::checkParameters(QMap<QString, QVariant> & parameters)
 			}
 			break;
 		}
-		case Categorical:
+		case iAValueType::Categorical:
 		{
 			QStringList values = param->defaultValue().toStringList();
 			if (!values.contains(parameters[param->name()].toString()))
@@ -248,7 +248,7 @@ bool iAFilter::checkParameters(QMap<QString, QVariant> & parameters)
 			}
 			break;
 		}
-		case FileNameOpen:
+		case iAValueType::FileNameOpen:
 		{
 			QFileInfo file(parameters[param->name()].toString());
 			if (!file.isFile() || !file.isReadable())
@@ -259,7 +259,7 @@ bool iAFilter::checkParameters(QMap<QString, QVariant> & parameters)
 			}
 			break;
 		}
-		case FileNamesOpen:
+		case iAValueType::FileNamesOpen:
 		{
 			QStringList files = splitPossiblyQuotedString(parameters[param->name()].toString());
 			for (auto fileName : files)
@@ -276,7 +276,7 @@ bool iAFilter::checkParameters(QMap<QString, QVariant> & parameters)
 			}
 			break;
 		}
-		case Folder:
+		case iAValueType::Folder:
 		{
 			// TODO: allow to specify whether the folder can be empty or not!
 			QFileInfo file(parameters[param->name()].toString());
@@ -288,7 +288,7 @@ bool iAFilter::checkParameters(QMap<QString, QVariant> & parameters)
 			}
 			break;
 		}
-		case Color:
+		case iAValueType::Color:
 		{
 			QColor color(parameters[param->name()].toString());
 			if (!color.isValid())
@@ -301,7 +301,7 @@ bool iAFilter::checkParameters(QMap<QString, QVariant> & parameters)
 			}
 			break;
 		}
-		case Invalid:
+		case iAValueType::Invalid:
 			addMsg(QString("Parameter '%1': Invalid parameter type (please contact developers!)!").arg(param->name()));
 			return false;
 		default:  // no checks

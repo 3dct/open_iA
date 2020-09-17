@@ -2,7 +2,7 @@
 * **********   A tool for visual analysis and processing of 3D CT images   ********** *
 * *********************************************************************************** *
 * Copyright (C) 2016-2020  C. Heinzl, M. Reiter, A. Reh, W. Li, M. Arikan, Ar. &  Al. *
-*                          Amirkhanov, J. Weissenböck, B. Fröhler, M. Schiwarth       *
+*                 Amirkhanov, J. Weissenböck, B. Fröhler, M. Schiwarth, P. Weinberger *
 * *********************************************************************************** *
 * This program is free software: you can redistribute it and/or modify it under the   *
 * terms of the GNU General Public License as published by the Free Software           *
@@ -166,14 +166,14 @@ iACastImageFilter::iACastImageFilter() :
 		"Rescale Image Filter</a> in the ITK documentation.")
 {
 	QStringList datatypes = readableDataTypeList(false);
-	addParameter("Data Type", Categorical, datatypes);
-	addParameter("Rescale Range", Boolean, false);
-	addParameter("Automatic Input Range", Boolean, false);
-	addParameter("Input Min", Continuous, 0);
-	addParameter("Input Max", Continuous, 1);
-	addParameter("Use Full Output Range", Boolean, true);
-	addParameter("Output Min", Continuous, 0);
-	addParameter("Output Max", Continuous, 1);
+	addParameter("Data Type", iAValueType::Categorical, datatypes);
+	addParameter("Rescale Range", iAValueType::Boolean, false);
+	addParameter("Automatic Input Range", iAValueType::Boolean, false);
+	addParameter("Input Min", iAValueType::Continuous, 0);
+	addParameter("Input Max", iAValueType::Continuous, 1);
+	addParameter("Use Full Output Range", iAValueType::Boolean, true);
+	addParameter("Output Min", iAValueType::Continuous, 0);
+	addParameter("Output Max", iAValueType::Continuous, 1);
 }
 
 
@@ -264,11 +264,11 @@ iAConvertToRGBAFilter::iAConvertToRGBAFilter() :
 	QStringList colorSchemes;
 	colorSchemes << "Default";
 	colorSchemes.append(iAColorThemeManager::instance().availableThemes());
-	addParameter("Background color", Color, "#000000");
-	addParameter("Background value", Discrete, 0);
-	addParameter("Background opacity", Discrete, 0, 0, 255);
-	addParameter("Object opacity", Discrete, 255, 0, 255);
-	addParameter("Color scheme", Categorical, colorSchemes);
+	addParameter("Background color", iAValueType::Color, "#000000");
+	addParameter("Background value", iAValueType::Discrete, 0);
+	addParameter("Background opacity", iAValueType::Discrete, 0, 0, 255);
+	addParameter("Object opacity", iAValueType::Discrete, 255, 0, 255);
+	addParameter("Color scheme", iAValueType::Categorical, colorSchemes);
 }
 
 IAFILTER_CREATE(iAConvertToRGBAFilter)

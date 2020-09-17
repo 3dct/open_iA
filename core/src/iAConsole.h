@@ -2,7 +2,7 @@
 * **********   A tool for visual analysis and processing of 3D CT images   ********** *
 * *********************************************************************************** *
 * Copyright (C) 2016-2020  C. Heinzl, M. Reiter, A. Reh, W. Li, M. Arikan, Ar. &  Al. *
-*                          Amirkhanov, J. Weissenböck, B. Fröhler, M. Schiwarth       *
+*                 Amirkhanov, J. Weissenböck, B. Fröhler, M. Schiwarth, P. Weinberger *
 * *********************************************************************************** *
 * This program is free software: you can redistribute it and/or modify it under the   *
 * terms of the GNU General Public License as published by the Free Software           *
@@ -34,6 +34,8 @@ class dlg_console;
 class iARedirectVtkOutput;
 class iARedirectItkOutput;
 
+class QDockWidget;
+
 //! Singleton providing access to the global logger object.
 class open_iA_Core_API iAGlobalLogger
 {
@@ -63,6 +65,7 @@ public:
 	bool isFileLogError() const;
 	bool isVisible() const;
 	void setVisible(bool visible);
+	QDockWidget* dockWidget();
 // decouple logging methods from GUI logging (to allow logging from any thread):
 signals:
 	void logSignal(QString const & text);

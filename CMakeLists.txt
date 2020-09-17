@@ -25,7 +25,7 @@ ADD_SUBDIRECTORY(modules)
 
 # modules might have added something to BUILD_INFO:
 configure_file("${open_iA_SOURCE_DIR}/cmake/version.h.in" "${open_iA_BINARY_DIR}/version.h" @ONLY)
-
+	
 ADD_SUBDIRECTORY(gui)
 
 ADD_SUBDIRECTORY(xinst)
