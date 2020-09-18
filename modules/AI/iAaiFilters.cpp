@@ -436,7 +436,7 @@ iAai::iAai() :
 {
 
 	addParameter("OnnxFile", iAValueType::FileNameOpen);
-	addParameter("use GPU", iAValueType::Boolean, TRUE);
+	addParameter("use GPU", iAValueType::Boolean, true);
 	addParameter("GPU", iAValueType::Discrete,0);
 	
 }

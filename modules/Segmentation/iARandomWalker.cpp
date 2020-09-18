@@ -96,7 +96,7 @@ namespace
 				{
 					double maxProb = 0;
 					int maxProbLabel = -1;
-					ProbImageType::IndexType idx;
+					typename ProbImageType::IndexType idx;
 					idx[0] = x;
 					idx[1] = y;
 					idx[2] = z;
@@ -133,7 +133,7 @@ namespace
 			double imgVal = values[it.value()];
 #endif
 			iAImageCoordinate coord = conv.coordinatesFromIndex(it.key());
-			ProbImageType::IndexType pixelIndex;
+			typename ProbImageType::IndexType pixelIndex;
 			pixelIndex[0] = coord.x;
 			pixelIndex[1] = coord.y;
 			pixelIndex[2] = coord.z;
