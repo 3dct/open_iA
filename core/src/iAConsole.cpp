@@ -155,7 +155,6 @@ iAConsole::iAConsole() :
 
 iAConsole::~iAConsole()
 {
-	delete m_console;
 }
 
 iAConsole* iAConsole::instance()
