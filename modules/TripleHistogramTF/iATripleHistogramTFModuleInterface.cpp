@@ -28,7 +28,9 @@
 void iATripleHistogramTFModuleInterface::Initialize()
 {
 	if (!m_mainWnd)    // if m_mainWnd is not set, we are running in command line mode
-	    return;        // in that case, we do not do anything as we can not add a menu entry there
+	{
+		return;        // in that case, we do not do anything as we can not add a menu entry there
+	}
 	QMenu * toolsMenu = m_mainWnd->toolsMenu();
 	QMenu * menuMultiModalChannel = getMenuWithTitle(toolsMenu, QString("Multi-Modal/-Channel Images"), false);
 

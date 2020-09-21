@@ -95,7 +95,9 @@ void iAParameterExplorerModuleInterface::StartParameterExplorer()
 {
 	PrepareActiveChild();
 	if (!m_mdiChild)
+	{
 		return;
+	}
 	QString csvFileName = QFileDialog::getOpenFileName(m_mainWnd,
 		tr("Select CSV File"), m_mdiChild->filePath(), tr("CSV Files (*.csv);;"));
 	if (csvFileName.isEmpty())

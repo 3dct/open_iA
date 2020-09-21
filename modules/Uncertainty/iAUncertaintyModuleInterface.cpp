@@ -148,7 +148,9 @@ void iAUncertaintyModuleInterface::WriteFullDataFile()
 		m_mainWnd->activeMdiChild() ? m_mainWnd->activeMdiChild()->filePath() : QString(),
 		tr("SVM file format (*.svm);;"));
 	if (fileName.isEmpty())
+	{
 		return;
+	}
 
 	QStringList params;
 	params
@@ -160,7 +162,9 @@ void iAUncertaintyModuleInterface::WriteFullDataFile()
 	values << true << true << true;
 	dlg_commoninput whatToStore(m_mainWnd, "Write parameters", params, values);
 	if (whatToStore.exec() != QDialog::Accepted)
+	{
 		return;
+	}
 	attach->WriteFullDataFile(fileName, whatToStore.getCheckValue(0), whatToStore.getCheckValue(1), whatToStore.getCheckValue(2), whatToStore.getCheckValue(3));
 
 }

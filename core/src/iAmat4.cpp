@@ -261,6 +261,7 @@ iAMat4 scale ( const iAVec3f & v )
 	return res;
 }
 
+/*
 iAMat4 rotateX ( float angle )
 {
 	iAMat4 res ( 1 );
@@ -302,6 +303,7 @@ iAMat4 rotateZ ( float angle )
 
 	return res;
 }
+*/
 
 iAMat4 rotation ( const iAVec3f & axis, float angle )
 {
@@ -349,6 +351,7 @@ iAMat4 rotationZ ( float angle )
 	iAVec3f axis(0,0,1);
 	return rotation(axis, angle);
 }
+/*
 
 iAMat4 mirrorX ()
 {
@@ -492,3 +495,4 @@ iAMat4 frProjectXZ3(float focus)
 	res.x[3][2] = -1/focus;
 	return res;
 }
+*/

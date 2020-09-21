@@ -54,5 +54,7 @@ void iAModalityExplorerModuleInterface::ModalitySPLOM()
 	bool result = AttachToMdiChild(m_mdiChild);
 	iAModalityExplorerAttachment* attach = GetAttachment<iAModalityExplorerAttachment>();
 	if (!result || !attach)
+	{
 		DEBUG_LOG("ModalityExplorer could not be initialized!");
+	}
 }
