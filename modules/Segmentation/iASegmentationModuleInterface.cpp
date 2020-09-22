@@ -36,6 +36,7 @@ void iASegmentationModuleInterface::Initialize()
 	REGISTER_FILTER(iACopy);
 
 	REGISTER_FILTER(iABinaryThreshold);
+	REGISTER_FILTER(iAMultiThreshold);
 	REGISTER_FILTER(iAOtsuThreshold);
 	REGISTER_FILTER(iAOtsuMultipleThreshold);
 	REGISTER_FILTER(iAMaximumDistance);
