@@ -99,7 +99,10 @@ protected slots:
 	void detach();
 };
 
+//! In the given menu, search for a menu with the given title; if it doesn't exist, add (alphabetically sorted).
 open_iA_Core_API QMenu* getOrAddSubMenu(QMenu* parentMenu, QString const& title, bool addSeparator=false);
+
+//! Add a given action to a menu, such that the (previously sorted) menu stays alphabetically sorted.
 open_iA_Core_API void addToMenuSorted(QMenu* menu, QAction* action);
 
 template <class T>
