@@ -633,7 +633,7 @@ void iAVRMetrics::calculateMaxCoverageFiberPerRegion()
 //! Returns the biggest coverage value for a specific fiber over all regions at the given octree level
 void iAVRMetrics::findBiggestCoverage(int level, int fiber)
 {
-	double currentMaxCoverage = 0;
+	double currentMaxCoverage = -1.0;
 	int regionWithMaxCoverage = 0;
 
 	for (int region = 0; region < m_fiberCoverage->at(level).size(); region++)
@@ -647,13 +647,13 @@ void iAVRMetrics::findBiggestCoverage(int level, int fiber)
 				currentMaxCoverage = it->second;
 				regionWithMaxCoverage = region;
 			}
+
+			//fibers is fully contained in one region - stop searching
+			if (currentMaxCoverage >= 1.0) break;
 		}
 	}
 
-	if (currentMaxCoverage > 0)
-	{
-		m_maxCoverage->at(level).at(regionWithMaxCoverage).push_back(fiber);
-	}
+	m_maxCoverage->at(level).at(regionWithMaxCoverage).push_back(fiber);
 }
 
 void iAVRMetrics::calculateJaccardIndex(int level, bool weighted)

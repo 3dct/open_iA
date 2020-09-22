@@ -237,10 +237,6 @@ void iAVRMain::startInteraction(vtkEventDataDevice3D* device, double eventPositi
 		this->rotateDistributionVis(eventPosition, true);
 		break;
 	}
-
-	//DEBUG_LOG(QString("[START] active Input rc = %1, lc = %2").arg(activeInput->at(1)).arg(activeInput->at(2)));
-	//Update Changes //ToDO: Required? Or is render Selection enough?
-	//m_vrEnv->update();
 }
 
 void iAVRMain::endInteraction(vtkEventDataDevice3D* device, double eventPosition[3], double eventOrientation[4], vtkProp3D* pickedProp)
@@ -249,11 +245,6 @@ void iAVRMain::endInteraction(vtkEventDataDevice3D* device, double eventPosition
 	int inputID = static_cast<int>(device->GetInput());  // Input Method
 	int actioniD = static_cast<int>(device->GetAction());     // Action of Input Method
 	int optionID = getOptionForObject(pickedProp);
-
-	// Active Input Saves the current applied operation in case Multiinput is requires
-	//std::vector<int>* activeInput = m_style->getActiveInput();
-
-	//if (optionID == -1) return;
 
 	inputScheme* scheme = m_style->getInputScheme();
 	int operation = scheme->at(deviceID).at(inputID).at(actioniD).at(optionID);
@@ -371,7 +362,7 @@ void iAVRMain::onMove(vtkEventDataDevice3D * device, double movePosition[3], dou
 		m_3DTextLabels->at(1)->setLabelPos(lcPos);
 		m_3DTextLabels->at(1)->moveInEyeDir(initialScale * 0.04, initialScale * 0.04, initialScale * 0.04);
 
-		m_slider->setPosition(lcPos[0], lcPos[1] - (initialScale * 0.03), lcPos[2] + (initialScale * 0.05));
+		m_slider->setPosition(lcPos[0], lcPos[1] - (initialScale * 0.04), lcPos[2] + (initialScale * 0.07));
 	}
 
 	//Movement of Right controller
@@ -520,11 +511,6 @@ void iAVRMain::mapAllPointiDsAndCalculateFiberCoverage()
 					DEBUG_LOG(QString("!! vtkPoints is null..."));
 				}
 			}
-			//ADD the new Points to the Polydata and the Mapping
-			//m_extendedCylinderVisData->GetPoints()->InsertNextPoint(intersectionPoint);
-			// bzw. m_extendedCylinderVisData->SetPoints(intersectionPoints)
-			//m_extendedCylinderVisData->GetPoints()->Modified();
-			//m_pointIDToCsvIndex.insert(std::make_pair(m_extendedCylinderVisData->FindPoint(intersectionPoint), row));
 		}
 	}
 
@@ -534,6 +520,7 @@ void iAVRMain::mapAllPointiDsAndCalculateFiberCoverage()
 	m_volume->setFiberCoverageData(m_fiberCoverage);
 	m_modelInMiniature->setFiberCoverageData(m_fiberCoverage);
 	fiberMetrics->setFiberCoverageData(m_fiberCoverage);
+	fiberMetrics->getMaxCoverageFiberPerRegion();
 
 	for (int level = 1; level < m_octrees->size(); level++)
 	{
@@ -984,9 +971,6 @@ void iAVRMain::changeOctreeAndMetric()
 		m_3DTextLabels->at(0)->show();
 		m_3DTextLabels->at(1)->hide();
 
-		//m_octrees->at(currentOctreeLevel)->generateOctreeRepresentation(currentOctreeLevel, OCTREE_COLOR);
-		//m_octrees->at(currentOctreeLevel)->show();
-
 		m_volume->setOctree(m_octrees->at(currentOctreeLevel));
 		m_volume->createCubeModel();
 		m_volume->show();
@@ -1020,10 +1004,6 @@ void iAVRMain::pickSingleFiber(double eventPosition[3])
 
 	vtkIdType rowiD = getObjectiD(iD);
 	selection.push_back(rowiD);
-
-	//double pos[3];
-	//m_octrees->at(currentOctreeLevel)->getOctree()->GetDataSet()->GetPoint(iD, pos); //For Debug
-	//DEBUG_LOG(QString("Fiber %1 in Region %2").arg(rowiD).arg(m_octrees->at(currentOctreeLevel)->getOctree()->GetRegionContainingPoint(pos[0], pos[1], pos[2])));
 
 	m_volume->renderSelection(selection, 0, QColor(140, 140, 140, 255), nullptr);
 }
@@ -1164,9 +1144,6 @@ void iAVRMain::updateModelInMiniatureData()
 	//m_networkGraphMode = false;
 	resetSelection();
 
-	//double offset = m_vrEnv->getInitialWorldScale() * 0.15;
-	//double* centerPos = m_modelInMiniature->getActor()->GetCenter();
-	//m_modelInMiniature->getActor()->AddPosition(cPos[controllerID][0] - centerPos[0], cPos[controllerID][1] - centerPos[1] + offset, cPos[controllerID][2] - centerPos[2]);
 	m_modelInMiniature->getActor()->SetPosition(cPos[controllerID][0], cPos[controllerID][1], cPos[controllerID][2]);
 
 	calculateMetrics();
@@ -1232,18 +1209,17 @@ void iAVRMain::pressLeftTouchpad()
 			case 0:
 				m_modelInMiniature->applyRelativeCubeOffset(offsetMiM);
 				m_volume->applyRelativeCubeOffset(offsetVol);
-				m_volume->moveFibersByMaxCoverage(fiberMetrics->getMaxCoverageFiberPerRegion(), offsetVol);
+				m_volume->moveFibersByMaxCoverage(fiberMetrics->getMaxCoverageFiberPerRegion(), offsetVol, true);
 				break;
 			case 1:
 				m_modelInMiniature->applyLinearCubeOffset(offsetMiM);
 				m_volume->applyLinearCubeOffset(offsetVol);
-				m_volume->moveFibersByMaxCoverage(fiberMetrics->getMaxCoverageFiberPerRegion(), offsetVol);
-				//m_volume->moveFibersbyAllCoveredRegions(offset);
+				m_volume->moveFibersByMaxCoverage(fiberMetrics->getMaxCoverageFiberPerRegion(), offsetVol, false);
 				break;
 			case 2:
 				m_modelInMiniature->apply4RegionCubeOffset(offsetMiM);
 				m_volume->apply4RegionCubeOffset(offsetVol);
-				m_volume->moveFibersByMaxCoverage(fiberMetrics->getMaxCoverageFiberPerRegion(), offsetVol);
+				m_volume->moveFibersby4Regions(fiberMetrics->getMaxCoverageFiberPerRegion(), offsetVol);
 				break;
 			}
 

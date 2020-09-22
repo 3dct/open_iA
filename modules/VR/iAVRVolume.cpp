@@ -182,46 +182,45 @@ void iAVRVolume::renderSelection(std::vector<size_t> const& sortedSelInds, int c
 
 //! Moves all fibers from the octree center away.
 //! The fibers belong to the region in which they have their maximum coverage
+//! The flag relativMovement decides if the offset is applied to the relative octree region postion or linear
 //! Should only be called if the mappers are set!
-void iAVRVolume::moveFibersByMaxCoverage(std::vector<std::vector<std::vector<vtkIdType>>>* m_maxCoverage, double offset)
+void iAVRVolume::moveFibersByMaxCoverage(std::vector<std::vector<std::vector<vtkIdType>>>* m_maxCoverage, double offset, bool relativMovement)
 {
 	double maxLength = 0; // m_octree->getMaxDistanceOctCenterToRegionCenter();// m_octree->getMaxDistanceOctCenterToFiber();
-	double centerPoint[3];
-	double regionCenterPoint[3];
+	double centerPoint[3]{};
 	m_octree->calculateOctreeCenterPos(centerPoint);
 	iAVec3d centerPos = iAVec3d(centerPoint);
 
-	for (int region = 0; region < m_octree->getNumberOfLeafeNodes(); region++)
+	if(relativMovement)
 	{
-		m_octree->calculateOctreeRegionCenterPos(region, regionCenterPoint);
-
-		iAVec3d currentRegionCenterPoint = iAVec3d(regionCenterPoint);
-		iAVec3d direction = currentRegionCenterPoint - centerPos;
-		double length = direction.length();
-		if (length > maxLength) maxLength = length;		// Get max length
+		for (int region = 0; region < m_octree->getNumberOfLeafeNodes(); region++)
+		{
+			iAVec3d regionCenterPoint = iAVec3d(glyph3D->GetPolyDataInput(0)->GetPoint(region));
+			iAVec3d direction = regionCenterPoint - centerPos;
+			double length = direction.length();
+			if (length > maxLength) maxLength = length;		// Get max length
+		}
 	}
 
 	for (int region = 0; region < m_octree->getNumberOfLeafeNodes(); region++)
 	{
-		//DEBUG_LOG(QString("\n<< REGION %1 >>").arg(region));
-
-		m_octree->calculateOctreeRegionCenterPos(region, regionCenterPoint);
+		iAVec3d regionCenterPoint = iAVec3d(glyph3D->GetPolyDataInput(0)->GetPoint(region));
 
 		for (auto fiberID : m_maxCoverage->at(m_octree->getLevel()).at(region))
 		{
-			//DEBUG_LOG(QString("\n\nFiber <%1> is in Region").arg(element.first));
 
 			auto findKeys = m_csvIndexToPointID.equal_range(fiberID);
-			for (auto it = findKeys.first; it != findKeys.second; ++it) {
-
-				//DEBUG_LOG(QString("It has PolyPointID %1").arg(it->second));
+			for (auto it = findKeys.first; it != findKeys.second; ++it) 
+			{
 				iAVec3d currentPoint = iAVec3d(m_cylinderVis->getPolyData()->GetPoint(it->second));
 				iAVec3d currentRegionCenterPoint = iAVec3d(regionCenterPoint);
 				iAVec3d normDirection = currentRegionCenterPoint - centerPos;
 				double currentLength = normDirection.length();
 				normDirection.normalize();
 
-				iAVec3d move = normDirection * offset * (currentLength / maxLength);
+				iAVec3d move;
+				if (relativMovement) move = normDirection * offset * (currentLength / maxLength);
+				else move = normDirection * offset;
 				iAVec3d newPoint = currentPoint + move;
 
 				m_cylinderVis->getPolyData()->GetPoints()->SetPoint(it->second, newPoint.data());
@@ -230,55 +229,109 @@ void iAVRVolume::moveFibersByMaxCoverage(std::vector<std::vector<std::vector<vtk
 	}
 	
 	m_cylinderVis->getPolyData()->GetPoints()->GetData()->Modified();
-	//m_octree->getOctree()->Modified();
 }
 
 //! Moves all fibers from the octree center away.
 //! The fibers belong to every region in which they have a coverage
 //! Should only be called if the mappers are set!
-void iAVRVolume::moveFibersbyAllCoveredRegions(double offset)
+void iAVRVolume::moveFibersbyAllCoveredRegions(double offset, bool relativMovement)
 {
+	double maxLength = 0;
 	double centerPoint[3];
-	double regionCenterPoint[3];
 	m_octree->calculateOctreeCenterPos(centerPoint);
 	iAVec3d centerPos = iAVec3d(centerPoint);
 
-	//for (int region = 0; region < m_octree->getNumberOfLeafeNodes(); region++)
-	//{
-	//	m_octree->calculateOctreeRegionCenterPos(region, regionCenterPoint);
+	if(relativMovement)
+	{
+		for (int region = 0; region < m_octree->getNumberOfLeafeNodes(); region++)
+		{
+			iAVec3d regionCenterPoint = iAVec3d(glyph3D->GetPolyDataInput(0)->GetPoint(region));
+			iAVec3d direction = regionCenterPoint - centerPos;
+			double length = direction.length();
+			if (length > maxLength) maxLength = length;		// Get max length
+		}
+	}
 
-	//	iAVec3d currentRegionCenterPoint = iAVec3d(regionCenterPoint);
-	//	iAVec3d direction = currentRegionCenterPoint - centerPos;
-	//	double length = direction.length();
-	//	if (length > maxLength) maxLength = length;		// Get max length
-	//}
 
 	for (int region = 0; region < m_octree->getNumberOfLeafeNodes(); region++)
 	{
-		//DEBUG_LOG(QString("\n<< REGION %1 >>").arg(region));
 
 		for (auto element : *m_fiberCoverage->at(m_octree->getLevel()).at(region))
 		{
 
 			iAVec3d currentPoint = iAVec3d(m_cylinderVis->getPolyData()->GetPoint(element.first));
 
-			m_octree->calculateOctreeRegionCenterPos(region, regionCenterPoint);
-			iAVec3d currentRegionCenterPoint = iAVec3d(regionCenterPoint);
-			iAVec3d normDirection = currentRegionCenterPoint - centerPos;
+			iAVec3d regionCenterPoint = iAVec3d(glyph3D->GetPolyDataInput(0)->GetPoint(region));
+			iAVec3d normDirection = regionCenterPoint - centerPos;
 			double currentLength = normDirection.length();
 			normDirection.normalize();
 
 			//Offset gets smaller with coverage
-			iAVec3d move = normDirection * offset * element.second;// *(currentLength / maxLength);
+			iAVec3d move;
+			if (relativMovement) move = normDirection * offset * element.second * (currentLength / maxLength);
+			else move = normDirection * offset * element.second;
 			iAVec3d newPoint = currentPoint + move;
 
 			m_cylinderVis->getPolyData()->GetPoints()->SetPoint(element.first, newPoint.data());
 
 		}
-
 	}
 	m_cylinderVis->getPolyData()->GetPoints()->GetData()->Modified();
-	//m_octree->getOctree()->Modified();
+}
+
+void iAVRVolume::moveFibersby4Regions(std::vector<std::vector<std::vector<vtkIdType>>>* m_maxCoverage, double offset)
+{
+	double centerPoint[3]{};
+	m_octree->calculateOctreeCenterPos(centerPoint);
+	iAVec3d centerPos = iAVec3d(centerPoint);
+
+	for (int region = 0; region < m_octree->getNumberOfLeafeNodes(); region++)
+	{
+		iAVec3d currentRegion = iAVec3d(glyph3D->GetPolyDataInput(0)->GetPoint(region));
+		iAVec3d move = iAVec3d(0,0,0);
+
+		// X
+		if (currentRegion[0] < centerPos[0])
+		{
+			move[0] = - offset;
+		}
+		if (currentRegion[0] > centerPos[0])
+		{
+			move[0] = + offset;
+		}
+		// Y
+		if (currentRegion[1] < centerPos[1])
+		{
+			move[1] = - offset;
+		}
+		if (currentRegion[1] > centerPos[1])
+		{
+			move[1] = + offset;
+		}
+		// Z
+		if (currentRegion[2] < centerPos[2])
+		{
+			move[2] = - offset;
+		}
+		if (currentRegion[2] > centerPos[2])
+		{
+			move[2] = + offset;
+		}
+		
+		for (auto fiberID : m_maxCoverage->at(m_octree->getLevel()).at(region))
+		{
+			auto findKeys = m_csvIndexToPointID.equal_range(fiberID);
+			for (auto it = findKeys.first; it != findKeys.second; ++it)
+			{
+				iAVec3d currentPoint = iAVec3d(m_cylinderVis->getPolyData()->GetPoint(it->second));
+				iAVec3d newPoint = currentPoint + move;
+
+				m_cylinderVis->getPolyData()->GetPoints()->SetPoint(it->second, newPoint.data());
+			}
+		}
+		
+	}
+	m_cylinderVis->getPolyData()->GetPoints()->GetData()->Modified();
 }
 
 void iAVRVolume::createRegionLinks(std::vector<std::vector<std::vector<double>>>* similarityMetric, double maxFibersInRegions, double worldSize)
