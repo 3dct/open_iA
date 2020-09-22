@@ -155,7 +155,7 @@ iAMultiThreshold::iAMultiThreshold() :
 		"Label an input image according to a set of thresholds<br/>"
 		"This filter produces an output image whose pixels are labeled progressively according to the classes identified by a set of thresholds.Values equal to a threshold is considered to be in the lower class."
 		"<a href=\"https://itk.org/Doxygen/html/classitk_1_1ThresholdLabelerImageFilter.html\">"
-		"Binary Threshold Filter</a> in the ITK documentation.<br/>"
+		"Multi Threshold Filter</a> in the ITK documentation.<br/>"
 		"The thresholds are seperated with semicolon \";\"")
 {
 	addParameter("Thresholds", iAValueType::String);
