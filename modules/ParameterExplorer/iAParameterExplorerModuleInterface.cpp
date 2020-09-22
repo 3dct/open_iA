@@ -36,18 +36,17 @@ void iAParameterExplorerModuleInterface::Initialize()
 	{
 		return;
 	}
-
-	QMenu * toolsMenu = m_mainWnd->toolsMenu();
-	QMenu * menuEnsembles = getMenuWithTitle( toolsMenu, QString( "Image Ensembles" ), false );
-	QAction * actionExplore = new QAction( m_mainWnd );
-	actionExplore->setText(QApplication::translate("MainWindow", "Parameter Explorer", 0));
-	AddActionToMenuAlphabeticallySorted(menuEnsembles, actionExplore, true);
+	QAction * actionExplore = new QAction(tr("Parameter Explorer"), m_mainWnd);
+	makeActionChildDependent(actionExplore);
 	connect(actionExplore, &QAction::triggered, this, &iAParameterExplorerModuleInterface::StartParameterExplorer);
 
-	QAction * actionLoad = new QAction(m_mainWnd);
-	actionLoad->setText(QApplication::translate("MainWindow", "Load Parameter Explorer State", 0));
-	AddActionToMenuAlphabeticallySorted(menuEnsembles, actionLoad, false);
+	QAction * actionLoad = new QAction(tr("Load Parameter Explorer State"), m_mainWnd);
+	makeActionChildDependent(actionLoad);
 	connect(actionLoad, &QAction::triggered, this, &iAParameterExplorerModuleInterface::LoadState);
+
+	QMenu* submenu = getOrAddSubMenu(m_mainWnd->toolsMenu(), tr("Image Ensembles"), true);
+	submenu->addAction(actionExplore);
+	submenu->addAction(actionLoad);
 }
 
 void iAParameterExplorerModuleInterface::SetupToolBar()
@@ -95,7 +94,9 @@ void iAParameterExplorerModuleInterface::StartParameterExplorer()
 {
 	PrepareActiveChild();
 	if (!m_mdiChild)
+	{
 		return;
+	}
 	QString csvFileName = QFileDialog::getOpenFileName(m_mainWnd,
 		tr("Select CSV File"), m_mdiChild->filePath(), tr("CSV Files (*.csv);;"));
 	if (csvFileName.isEmpty())

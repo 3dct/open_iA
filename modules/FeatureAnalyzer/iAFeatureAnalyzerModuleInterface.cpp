@@ -60,22 +60,16 @@ void iAFeatureAnalyzerModuleInterface::Initialize()
 #if QT_VERSION < QT_VERSION_CHECK(5, 10, 0)
 	qsrand(QTime::currentTime().msec());
 #endif
-	QAction * actionComputeSegmentations = new QAction(QObject::tr("Compute Segmentations"), nullptr);
+
+	QAction * actionComputeSegmentations = new QAction(tr("Compute Segmentations"), m_mainWnd);
 	connect(actionComputeSegmentations, &QAction::triggered, this, &iAFeatureAnalyzerModuleInterface::computeParameterSpace);
 
-	QAction * actionRunPA = new QAction(QObject::tr("Start FeatureAnalyzer"), nullptr);
+	QAction * actionRunPA = new QAction(tr("Start FeatureAnalyzer"), m_mainWnd);
 	connect(actionRunPA, &QAction::triggered, this, &iAFeatureAnalyzerModuleInterface::launchFeatureAnalyzer);
 
-	QMenu* toolsMenu = m_mainWnd->toolsMenu();
-	QMenu* featureAnalysisMenu = getMenuWithTitle(toolsMenu, QString("Feature Analysis"), false);
-	if (!featureAnalysisMenu->isEmpty())
-	{
-		featureAnalysisMenu->addSeparator();
-	}
-	featureAnalysisMenu->addAction( actionComputeSegmentations );
-	featureAnalysisMenu->addAction( actionRunPA );
-
-	//connect signals to slots
+	QMenu* submenu = getOrAddSubMenu(m_mainWnd->toolsMenu(), tr("Feature Analysis"), true);
+	submenu->addAction( actionComputeSegmentations );
+	submenu->addAction( actionRunPA );
 
 	//Read settings
 	QSettings settings( organisationName, applicationName );

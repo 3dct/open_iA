@@ -40,11 +40,10 @@ void iAAdaptiveThresholdModuleInterface::Initialize()
 	{
 		return;
 	}
-	QMenu * toolsMenu = m_mainWnd->toolsMenu();
-	QAction * determineThreshold = new QAction( m_mainWnd );
-	determineThreshold->setText( QApplication::translate( "MainWindow", "Adaptive Thresholding", 0 ) );
-	AddActionToMenuAlphabeticallySorted(toolsMenu,  determineThreshold, true);
-	connect(determineThreshold, &QAction::triggered, this, &iAAdaptiveThresholdModuleInterface::determineThreshold);
+	QAction * determineThresholdAction = new QAction(tr("Adaptive Thresholding"), m_mainWnd);
+	connect(determineThresholdAction, &QAction::triggered, this, &iAAdaptiveThresholdModuleInterface::determineThreshold);
+	makeActionChildDependent(determineThresholdAction);
+	addToMenuSorted(m_mainWnd->toolsMenu(), determineThresholdAction);
 }
 
 /*

@@ -32,12 +32,12 @@ void iAModalityExplorerModuleInterface::Initialize()
 	{
 		return;
 	}
-	QMenu * toolsMenu = m_mainWnd->toolsMenu();
-	QMenu * menuMultiModalChannel = getMenuWithTitle( toolsMenu, QString( "Multi-Modal/-Channel Images" ), false );
-
-	QAction * actionModalitySPLOM = new QAction(QApplication::translate("MainWindow", "Modality SPLOM", 0), m_mainWnd);
-	AddActionToMenuAlphabeticallySorted(menuMultiModalChannel, actionModalitySPLOM, true);
+	QAction * actionModalitySPLOM = new QAction(tr("Modality SPLOM"), m_mainWnd);
 	connect(actionModalitySPLOM, &QAction::triggered, this, &iAModalityExplorerModuleInterface::ModalitySPLOM);
+	makeActionChildDependent(actionModalitySPLOM);
+
+	QMenu* submenu = getOrAddSubMenu(m_mainWnd->toolsMenu(), tr("Multi-Modal/-Channel Images"));
+	addToMenuSorted(submenu, actionModalitySPLOM);
 }
 
 
@@ -54,5 +54,7 @@ void iAModalityExplorerModuleInterface::ModalitySPLOM()
 	bool result = AttachToMdiChild(m_mdiChild);
 	iAModalityExplorerAttachment* attach = GetAttachment<iAModalityExplorerAttachment>();
 	if (!result || !attach)
+	{
 		DEBUG_LOG("ModalityExplorer could not be initialized!");
+	}
 }

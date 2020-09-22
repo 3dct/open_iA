@@ -107,27 +107,22 @@ void iAFiAKErModuleInterface::Initialize()
 	}
 	iAProjectRegistry::addProject<iAFIAKERProject>(iAFiAKErController::FIAKERProjectID);
 
-	QAction * actionFiAKEr = new QAction( "Start FIAKER", nullptr );
+	QAction * actionFiAKEr = new QAction(tr("Start FIAKER"), m_mainWnd);
 	actionFiAKEr->setShortcut(QKeySequence(Qt::ALT + Qt::Key_R, Qt::Key_O));
 	connect(actionFiAKEr, &QAction::triggered, this, &iAFiAKErModuleInterface::startFiAKEr );
 
-	QAction* actionComputeSensitivity = new QAction("Compute Variation-based Sensitivity", nullptr);
+	QAction* actionComputeSensitivity = new QAction("Compute Variation-based Sensitivity", m_mainWnd);
 	actionComputeSensitivity->setShortcut(QKeySequence(Qt::ALT + Qt::Key_R, Qt::Key_S));
 	connect(actionComputeSensitivity, &QAction::triggered, this, &iAFiAKErModuleInterface::computeSensitivity);
 
-	QAction * actionFiAKErProject = new QAction("Load FIAKER (old .fpf files)", nullptr);
+	QAction* actionFiAKErProject = new QAction(tr("Load FIAKER (old .fpf files)"), m_mainWnd);
 	actionFiAKErProject->setShortcut(QKeySequence(Qt::ALT + Qt::Key_R, Qt::Key_P));
 	connect(actionFiAKErProject, &QAction::triggered, this, &iAFiAKErModuleInterface::loadFiAKErProject);
 
-	QMenu* toolsMenu = m_mainWnd->toolsMenu();
-	QMenu* featureAnalysisMenu = getMenuWithTitle(toolsMenu, tr("Feature Analysis"), false);
-	if (!featureAnalysisMenu->isEmpty())
-	{
-		featureAnalysisMenu->addSeparator();
-	}
-	featureAnalysisMenu->addAction(actionFiAKEr);
-	featureAnalysisMenu->addAction(actionComputeSensitivity);
-	featureAnalysisMenu->addAction(actionFiAKErProject);
+	QMenu* submenu = getOrAddSubMenu(m_mainWnd->toolsMenu(), tr("Feature Analysis"), true);
+	submenu->addAction(actionFiAKEr);
+	submenu->addAction(actionComputeSensitivity);
+	submenu->addAction(actionFiAKErProject);
 
 	QSettings s;
 	m_lastFormat = s.value(LastFormatKey, "").toString();

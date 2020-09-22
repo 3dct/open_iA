@@ -75,11 +75,6 @@ void iAModuleInterface::PrepareActiveChild()
 	}
 }
 
-QMenu * iAModuleInterface::getMenuWithTitle( QMenu * parentMenu, QString const & title, bool isDisablable /*= true*/  )
-{
-	return m_dispatcher->getMenuWithTitle(parentMenu, title, isDisablable);
-}
-
 void iAModuleInterface::SaveSettings() const {}
 
 void iAModuleInterface::ChildCreated(MdiChild * /*child*/)
@@ -132,9 +127,9 @@ bool iAModuleInterface::isAttached()
 	return false;
 }
 
-void iAModuleInterface::AddActionToMenuAlphabeticallySorted( QMenu * menu, QAction * action, bool isDisablable /*= true */ )
+void iAModuleInterface::makeActionChildDependent(QAction * action)
 {
-	m_dispatcher->AddActionToMenuAlphabeticallySorted(menu, action, isDisablable);
+	m_dispatcher->makeActionChildDependent(action);
 }
 
 iAModuleAttachmentToChild * iAModuleInterface::CreateAttachment( MainWindow * /*mainWnd*/, MdiChild * /*child*/ )
@@ -171,4 +166,37 @@ bool iAModuleInterface::AttachToMdiChild( MdiChild * child )
 		return false;
 	}
 	return true;
+}
+
+QMenu* getOrAddSubMenu(QMenu* parentMenu, QString const& title, bool addSeparator)
+{
+	QList<QMenu*> submenus = parentMenu->findChildren<QMenu*>();
+	for (int i = 0; i < submenus.size(); ++i)
+	{
+		if (submenus.at(i)->title() == title)
+		{
+			if (addSeparator && !submenus.at(i)->isEmpty())
+			{
+				submenus.at(i)->addSeparator();
+			}
+			return submenus.at(i);
+		}
+	}
+	QMenu* result = new QMenu(parentMenu);
+	result->setTitle(title);
+	addToMenuSorted(parentMenu, result->menuAction());
+	return result;
+}
+
+void addToMenuSorted(QMenu* menu, QAction* action)
+{
+	for (QAction* curAct : menu->actions())
+	{
+		if (curAct->text() > action->text())
+		{
+			menu->insertAction(curAct, action);
+			return;
+		}
+	}
+	menu->addAction(action);
 }

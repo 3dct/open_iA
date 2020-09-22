@@ -86,16 +86,17 @@ void iAGEMSeModuleInterface::Initialize()
 	Q_INIT_RESOURCE(GEMSe);
 
 	iAProjectRegistry::addProject<iAGEMSeProject>(iAGEMSeProject::ID);
-	QMenu * toolsMenu = m_mainWnd->toolsMenu();
-	QMenu * menuEnsembles = getMenuWithTitle( toolsMenu, tr( "Image Ensembles" ), false );
 
-	QAction * actionGEMSe = new QAction( tr("GEMSe"), nullptr);
-	AddActionToMenuAlphabeticallySorted(menuEnsembles, actionGEMSe, true);
+	QAction * actionGEMSe = new QAction(tr("GEMSe"), m_mainWnd);
+	makeActionChildDependent(actionGEMSe);
 	connect(actionGEMSe, &QAction::triggered, this, &iAGEMSeModuleInterface::startGEMSe);
 
-	QAction * actionPreCalculated = new QAction( tr("GEMSe - Load Ensemble (old)"), nullptr );
-	AddActionToMenuAlphabeticallySorted(menuEnsembles, actionPreCalculated, false);
+	QAction * actionPreCalculated = new QAction(tr("GEMSe - Load Ensemble (old)"), m_mainWnd);
 	connect(actionPreCalculated, &QAction::triggered, this, &iAGEMSeModuleInterface::loadPreCalculatedData);
+
+	QMenu* submenu = getOrAddSubMenu(m_mainWnd->toolsMenu(), tr("Image Ensembles"), true);
+	submenu->addAction(actionGEMSe);
+	submenu->addAction(actionPreCalculated);
 }
 
 void iAGEMSeModuleInterface::startGEMSe()

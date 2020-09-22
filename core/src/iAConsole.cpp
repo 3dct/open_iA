@@ -81,7 +81,10 @@ void iAConsole::logSlot(QString const & text)
 		logfile.close();
 		if (logfile.bad())
 		{
-			m_console->log(QString("Could not write to logfile '%1', file output will be disabled for now.").arg(m_logFileName));
+			if (!m_closed)
+			{
+				m_console->log(QString("Could not write to logfile '%1', file output will be disabled for now.").arg(m_logFileName));
+			}
 			m_fileLogError = true;
 			m_logToFile = false;
 		}
@@ -155,7 +158,6 @@ iAConsole::iAConsole() :
 
 iAConsole::~iAConsole()
 {
-	delete m_console;
 }
 
 iAConsole* iAConsole::instance()

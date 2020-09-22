@@ -29,7 +29,7 @@ class iAPolygonPrimitivesModuleInterface : public iAModuleInterface
 public:
 	void Initialize();
 private slots:
-	void addPolygonObject();
+	void addObject();
 private:
 	iAGeometricObjectsDialog* m_dlg;
 };
