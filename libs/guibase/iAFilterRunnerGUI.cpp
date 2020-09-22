@@ -286,7 +286,9 @@ void iAFilterRunnerGUI::run(QSharedPointer<iAFilter> filter, iAMainWindow* mainW
 	iAMdiChild* sourceMdi = mainWnd->activeMdiChild();
 	if (filter->requiredInputs() > 0 && (!sourceMdi || !sourceMdi->isFullyLoaded()))
 	{
-		mainWnd->statusBar()->showMessage("Please wait until file is fully loaded!");
+		LOG(lvlWarn,QString("Filter requires %1 input(s), but %2!")
+			.arg(filter->requiredInputs())
+			.arg(!sourceMdi ? "no source file is available" : "source file is not fully loaded yet"));
 		emit finished();
 		return;
 	}

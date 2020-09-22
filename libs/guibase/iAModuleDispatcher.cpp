@@ -261,7 +261,6 @@ void iAModuleDispatcher::InitializeModules(iALogger* logger)
 	{
 		QMenu * filterMenu = m_mainWnd->filtersMenu();
 		QAction * selectAndRunFilterAction = new QAction(tr("Select and Run Filter..."), m_mainWnd);
-		m_mainWnd->makeActionChildDependent(selectAndRunFilterAction);
 		filterMenu->insertAction(filterMenu->actions()[0], selectAndRunFilterAction);
 		connect(selectAndRunFilterAction, &QAction::triggered, this, &iAModuleDispatcher::selectAndRunFilter);
 	}

@@ -334,6 +334,7 @@ void iAParameterDlg::setValue(QString const& key, QString const& value)
 
 void  iAParameterDlg::setSourceMdi(iAMdiChild* child, iAMainWindow* mainWnd)
 {
+	assert(child);
 	m_sourceMdiChild = child;
 	m_mainWnd = mainWnd;
 	connect(child, &iAMdiChild::closed, this, &iAParameterDlg::sourceChildClosed);
