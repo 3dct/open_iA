@@ -68,29 +68,28 @@ void iA4DCTModuleInterface::Initialize( )
 		return;
 	}
 	Q_INIT_RESOURCE(4DCT);
-	QMenu* toolsMenu = m_mainWnd->toolsMenu( );
-	QMenu* menu4DCT = getMenuWithTitle(toolsMenu, tr("4DCT"), false);
+	QMenu* menu4DCT = getOrAddSubMenu(m_mainWnd->toolsMenu(), tr("4DCT"), false);
 
-	QAction * newProj = new QAction(tr("New 4DCT project"), nullptr );
+	QAction * newProj = new QAction(tr("New 4DCT project"), m_mainWnd);
 	newProj->setShortcut(QKeySequence( Qt::ALT + Qt::Key_4, Qt::Key_N ));
 	connect( newProj, &QAction::triggered, this, &iA4DCTModuleInterface::newProj);
 	menu4DCT->addAction( newProj );
 
-	QAction * openProj = new QAction(tr("Open 4DCT project"), nullptr );
+	QAction * openProj = new QAction(tr("Open 4DCT project"), m_mainWnd);
 	openProj->setShortcut(QKeySequence( Qt::ALT + Qt::Key_4, Qt::Key_O ));
 	connect( openProj, &QAction::triggered, this, &iA4DCTModuleInterface::openProj);
 	menu4DCT->addAction( openProj );
 
-	QAction* saveProj = new QAction(tr("Save 4DCT project"), nullptr);
+	QAction* saveProj = new QAction(tr("Save 4DCT project"), m_mainWnd);
 	saveProj->setShortcut(QKeySequence( Qt::ALT + Qt::Key_4, Qt::Key_S ));
 	connect( saveProj, &QAction::triggered, this, &iA4DCTModuleInterface::saveProj);
 	menu4DCT->addAction( saveProj );
 
-	QAction* featureExtraction = new QAction(tr("Extract features to file"), nullptr);
+	QAction* featureExtraction = new QAction(tr("Extract features to file"), m_mainWnd);
 	connect( featureExtraction, &QAction::triggered, this, &iA4DCTModuleInterface::extractFeaturesToFile);
 	menu4DCT->addAction( featureExtraction );
 
-	QAction* defectClassification = new QAction(tr("Defect classification"), nullptr);
+	QAction* defectClassification = new QAction(tr("Defect classification"), m_mainWnd);
 	connect( defectClassification, &QAction::triggered, this, &iA4DCTModuleInterface::defectClassification);
 	menu4DCT->addAction( defectClassification );
 }

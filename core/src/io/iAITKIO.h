@@ -93,13 +93,13 @@ namespace iAITKIO
 		imageIO->ReadImageInformation();
 		pixelType = imageIO->GetComponentType();
 		ImagePointer image;
-		ITK_TYPED_CALL( read_image_template, pixelType, fileName, image, releaseFlag);
+		ITK_TYPED_CALL(read_image_template, static_cast<int>(pixelType), fileName, image, releaseFlag);
 
 		return image;
 	}
 
 	inline void writeFile (QString const & fileName, ImagePtr image, ScalarPixelType pixelType, bool useCompression = false )
 	{
-		ITK_TYPED_CALL(write_image_template, pixelType, useCompression, fileName, image);
+		ITK_TYPED_CALL(write_image_template, static_cast<int>(pixelType), useCompression, fileName, image);
 	}
 } // namespace iAITKIO

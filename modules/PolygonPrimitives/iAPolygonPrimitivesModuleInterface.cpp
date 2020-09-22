@@ -34,17 +34,17 @@ namespace
 
 void iAPolygonPrimitivesModuleInterface::Initialize()
 {
-	if (!m_mainWnd)    // if m_mainWnd is not set, we are running in command line mode
+	if (!m_mainWnd)
 	{
-		return;        // in that case, we do not do anything as we can not add a menu entry there
+		return;
 	}
-	QMenu* filtersMenu = m_mainWnd->toolsMenu();  // alternatively, you can use getToolsMenu() here if you want to add a tool
-	QAction* actionTest = new QAction(Title, nullptr);
-	AddActionToMenuAlphabeticallySorted(filtersMenu, actionTest);
-	connect(actionTest, &QAction::triggered, this, &iAPolygonPrimitivesModuleInterface::addPolygonObject);
+	QAction* actionAddObject = new QAction(Title, m_mainWnd);
+	connect(actionAddObject, &QAction::triggered, this, &iAPolygonPrimitivesModuleInterface::addObject);
+	makeActionChildDependent(actionAddObject);
+	addToMenuSorted(m_mainWnd->toolsMenu(), actionAddObject);
 }
 
-void iAPolygonPrimitivesModuleInterface::addPolygonObject()
+void iAPolygonPrimitivesModuleInterface::addObject()
 {
 	auto child = m_mainWnd->activeMdiChild();
 	if (!child)

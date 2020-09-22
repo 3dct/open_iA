@@ -31,11 +31,10 @@ void iAInSpectrModuleInterface::Initialize()
 	{
 		return;
 	}
-	QMenu * toolsMenu = m_mainWnd->toolsMenu();
-	QAction * actionXRF = new QAction( m_mainWnd );
-	actionXRF->setText( QApplication::translate( "MainWindow", "InSpectr", 0 ) );
-	AddActionToMenuAlphabeticallySorted( toolsMenu,  actionXRF );
-	connect(actionXRF, &QAction::triggered, this, &iAInSpectrModuleInterface::startInSpectr);
+	QAction * actionInSpectr = new QAction(tr("InSpectr"), m_mainWnd);
+	connect(actionInSpectr, &QAction::triggered, this, &iAInSpectrModuleInterface::startInSpectr);
+	makeActionChildDependent(actionInSpectr);
+	addToMenuSorted(m_mainWnd->toolsMenu(), actionInSpectr);
 }
 
 bool iAInSpectrModuleInterface::startInSpectr()

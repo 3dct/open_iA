@@ -66,16 +66,14 @@ public:
 
 open_iA_Core_API iAMat4	translate ( const iAVec3f& );
 open_iA_Core_API iAMat4	scale     ( const iAVec3f& );
-iAMat4	rotateX   ( float );
-iAMat4	rotateY   ( float );
-iAMat4	rotateZ   ( float );
 open_iA_Core_API iAMat4	rotation  ( const iAVec3f& v, float );
-iAMat4	rotateX   ( float );
-iAMat4	rotateY   ( float );
-iAMat4	rotateZ   ( float );
 open_iA_Core_API iAMat4	rotationX   ( float );
 open_iA_Core_API iAMat4	rotationY   ( float );
 open_iA_Core_API iAMat4	rotationZ   ( float );
+/*
+iAMat4	rotateX   ( float );
+iAMat4	rotateY   ( float );
+iAMat4	rotateZ   ( float );
 iAMat4	mirrorX   ();
 iAMat4	mirrorY   ();
 iAMat4	mirrorZ   ();
@@ -94,3 +92,4 @@ iAMat4  frProjectYZ2(float);
 iAMat4  frProjectXY3(float);
 iAMat4  frProjectXZ3(float);
 iAMat4  frProjectYZ3(float);
+*/

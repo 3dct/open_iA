@@ -61,21 +61,15 @@ void iAFeatureAnalyzerModuleInterface::Initialize()
 	qsrand(QTime::currentTime().msec());
 #endif
 
-	QMenu * toolsMenu = m_mainWnd->toolsMenu();
-	QMenu * menuFeatureAnalyzer = getMenuWithTitle( toolsMenu, QString( "FeatureAnalyzer" ), false );
+	QAction * actionComputeSegmentations = new QAction(tr("Compute Segmentations"), m_mainWnd);
+	connect(actionComputeSegmentations, &QAction::triggered, this, &iAFeatureAnalyzerModuleInterface::computeParameterSpace);
 
-	QAction * actionComputeSegmentations = new QAction( m_mainWnd );
-	actionComputeSegmentations->setText( QApplication::translate( "MainWindow", "Compute Segmentations", 0 ) );
+	QAction * actionRunPA = new QAction(tr("Analyze Segmentations"), m_mainWnd);
+	connect(actionRunPA, &QAction::triggered, this, &iAFeatureAnalyzerModuleInterface::launchFeatureAnalyzer);
 
-	QAction * actionRunPA = new QAction( m_mainWnd );
-	actionRunPA->setText( QApplication::translate( "MainWindow", "Analyze Segmentations", 0 ) );
-
-	menuFeatureAnalyzer->addAction( actionComputeSegmentations );
-	menuFeatureAnalyzer->addAction( actionRunPA );
-
-	//connect signals to slots
-	connect( actionComputeSegmentations, &QAction::triggered, this, &iAFeatureAnalyzerModuleInterface::computeParameterSpace);
-	connect( actionRunPA, &QAction::triggered, this, &iAFeatureAnalyzerModuleInterface::launchFeatureAnalyzer);
+	QMenu* submenu = getOrAddSubMenu(m_mainWnd->toolsMenu(), tr("FeatureAnalyzer"));
+	submenu->addAction( actionComputeSegmentations );
+	submenu->addAction( actionRunPA );
 
 	//Read settings
 	QSettings settings( organisationName, applicationName );
