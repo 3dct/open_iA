@@ -288,12 +288,15 @@ void iACompBoxPlot::initializeAxes(vtkSmartPointer<BoxPlotChart> chart, bool axe
 	axisLeft->GetTitleProperties()->SetFontFamilyToArial();
 	axisLeft->GetTitleProperties()->SetFontSize(iACompVisOptions::FONTSIZE_TEXT);
 	axisLeft->GetTitleProperties()->SetLineOffset(-20);
-	axisLeft->GetTitleProperties()->SetOrientation(90);
+	axisLeft->GetTitleProperties()->SetOrientation(90); 
 	axisLeft->GetTitleProperties()->SetVerticalJustification(VTK_TEXT_CENTERED);
 	axisLeft->GetTitleProperties()->SetJustification(VTK_TEXT_CENTERED);
-	axisLeft->SetMaximum(1.0);
-	axisLeft->SetMinimum(0.0);
+	
 	axisLeft->SetNumberOfTicks(5);
+	axisLeft->SetMinimum(0.0);
+	axisLeft->SetMaximum(1.0);
+	axisLeft->SetNotation(2);
+	axisLeft->SetPrecision(2);
 	axisLeft->Update();
 
 	if(!axesVisibleOn)
@@ -303,9 +306,13 @@ void iACompBoxPlot::initializeAxes(vtkSmartPointer<BoxPlotChart> chart, bool axe
 
 		axisLeft->GetTitleProperties()->SetOpacity(0);
 		axisLeft->GetTitleProperties()->Modified();
+
 		axisLeft->SetTicksVisible(false);
+		axisLeft->SetAxisVisible(false);
+
+		axisLeft->GetLabelProperties()->SetOpacity(0);
+
 		axisLeft->SetOpacity(0);
-		axisLeft->Modified();
 		axisLeft->Update();
 	}
 
@@ -374,7 +381,10 @@ void iACompBoxPlot::initializeLegend(vtkSmartPointer<BoxPlotChart> chart)
 		legendProperty->ShadowOff();
 		legendProperty->SetFontFamilyToArial();
 		legendProperty->SetColor(0, 0, 0);
-		legendProperty->SetOrientation(20);
+
+		//legendProperty->SetOrientation(20);//use with material data
+		legendProperty->SetOrientation(30);//use with unemployment data
+
 		legendProperty->SetFontSize(iACompVisOptions::FONTSIZE_TEXT);
 		legendProperty->SetJustification(VTK_TEXT_RIGHT);
 		legendProperty->SetVerticalJustificationToTop();
@@ -505,6 +515,17 @@ vtkSmartPointer<vtkTable> iACompBoxPlot::normalizeTableSelected(vtkSmartPointer<
 
 			vtkVariant v = input->GetValue(r, c);
 			double newV = iACompVisOptions::histogramNormalization(v.ToDouble(), 0.0, 1.0, originalMin, originalMax);
+
+			//catch numerical errors for 0
+			if (newV - 0.0 < 1e-7) { 
+				newV = 0.0;
+			};
+
+			//catch numerical errors for 1
+			if (1.0 - newV < 1e-7) {
+				newV = 1.0;
+			};
+
 			normalizedTableCurr->SetValue(r, c, vtkVariant(newV));
 		}
 	}
@@ -604,7 +625,7 @@ void iACompBoxPlot::updateBoxPlot(csvDataType::ArrayType* selectedData, std::vec
 	m_chartSelected->Update();
 
 	//initialize axes as the original box plot
-	initializeAxes(m_chartSelected, true);
+	initializeAxes(m_chartSelected, false);
 
 	m_view->GetScene()->AddItem(m_chartSelected);
 

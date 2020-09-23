@@ -240,7 +240,8 @@ void iACompBarChart::initializeAxes(std::vector<double>* orderedPos)
 
 	axisBottom->SetCustomTickPositions(labelInd, labelStrings);
 	axisBottom->GetLabelProperties()->SetLineOffset(10);
-	axisBottom->GetLabelProperties()->SetOrientation(20);
+	//axisBottom->GetLabelProperties()->SetOrientation(20); //use with material data
+	axisBottom->GetLabelProperties()->SetOrientation(30);//use with unemployment data
 	axisBottom->GetLabelProperties()->BoldOff();
 	axisBottom->GetLabelProperties()->ItalicOff();
 	axisBottom->GetLabelProperties()->SetFontFamilyToArial();

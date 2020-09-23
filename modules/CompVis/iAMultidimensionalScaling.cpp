@@ -45,7 +45,7 @@ void iAMultidimensionalScaling::startMDS(std::vector<double>* weights)
 	m_weights = weights;
 	calculateProximityDistance();
 
-	calculateMDS(1, 1); //1,100
+	calculateMDS(1, 100);
 }
 
 void iAMultidimensionalScaling::setProximityMetric(ProximityMetric proxiName)
