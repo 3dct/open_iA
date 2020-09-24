@@ -82,7 +82,7 @@ void iAVRInteractorStyle::OnButton3D(vtkEventData* edata)
 	m_eventOrientation[2] = vtkMath::DegreesFromRadians(m_eventOrientation[2]);
 	m_eventOrientation[3] = vtkMath::DegreesFromRadians(m_eventOrientation[3]);
 
-	this->PickingManagedOn();
+	this->PickingManagedOff();
 	this->FindPickedActor(m_eventPosition, nullptr);
 
 	if(action == vtkEventDataAction::Press || action == vtkEventDataAction::Touch)

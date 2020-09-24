@@ -137,6 +137,7 @@ vtkIdType iAVRCubicRepresentation::getClosestCellID(double pos[3], double eventO
 {
 	vtkSmartPointer<vtkCellPicker> cellPicker = vtkSmartPointer<vtkCellPicker>::New();
 	cellPicker->AddPickList(m_actor);
+	cellPicker->PickFromListOn();
 
 	if (cellPicker->Pick3DRay(pos, eventOrientation, m_renderer) >= 0)
 	{

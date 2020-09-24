@@ -1011,7 +1011,7 @@ void iAVRMain::pickSingleFiber(double eventPosition[3])
 //! Picks all fibers in the region clicked by the user.
 void iAVRMain::pickFibersinRegion(double eventPosition[3], double eventOrientation[4])
 {
-	vtkIdType cellID = m_modelInMiniature->getClosestCellID(eventPosition, eventOrientation);
+	vtkIdType cellID = m_volume->getClosestCellID(eventPosition, eventOrientation);
 
 	if (cellID >= 0 && cellID <= m_octrees->at(currentOctreeLevel)->getNumberOfLeafeNodes())
 	{
@@ -1190,6 +1190,7 @@ void iAVRMain::pressLeftTouchpad()
 
 		if (touchpadPos == iAVRTouchpadPosition::Up || touchpadPos == iAVRTouchpadPosition::Down)
 		{
+			m_3DTextLabels->at(1)->show();
 
 			if (touchpadPos == iAVRTouchpadPosition::Up)
 			{
