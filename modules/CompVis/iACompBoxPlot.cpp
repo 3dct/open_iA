@@ -382,9 +382,14 @@ void iACompBoxPlot::initializeLegend(vtkSmartPointer<BoxPlotChart> chart)
 		legendProperty->SetFontFamilyToArial();
 		legendProperty->SetColor(0, 0, 0);
 
-		//legendProperty->SetOrientation(20);//use with material data
-		legendProperty->SetOrientation(30);//use with unemployment data
-
+		if(m_numberOfAttr < 20)
+		{
+			legendProperty->SetOrientation(20);//use with material data
+		}
+		else {
+			legendProperty->SetOrientation(30);//use with unemployment data
+		}		
+		
 		legendProperty->SetFontSize(iACompVisOptions::FONTSIZE_TEXT);
 		legendProperty->SetJustification(VTK_TEXT_RIGHT);
 		legendProperty->SetVerticalJustificationToTop();
