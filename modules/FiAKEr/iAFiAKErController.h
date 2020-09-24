@@ -210,7 +210,8 @@ private slots:
 	void update3D();
 	void applyRenderSettings();
 	// sensitivity:
-	void sensitivitySlot();
+	void computeDissimilarityMatrix();
+	void computeSensitivity();
 	void dissimMatrixMeasureChanged(int);
 	void dissimMatrixParameterChanged(int);
 	void dissimMatrixColorMapChanged(int);

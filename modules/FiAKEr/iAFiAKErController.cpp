@@ -501,7 +501,8 @@ void iAFiAKErController::setupSettingsView()
 		this, &iAFiAKErController::distributionColorThemeChanged);
 	connect(m_settingsView->cmbboxResultColors, QOverload<int>::of(&QComboBox::currentIndexChanged),
 		this, &iAFiAKErController::resultColorThemeChanged);
-	connect(m_settingsView->pbSensitivity, &QPushButton::clicked, this, &iAFiAKErController::sensitivitySlot);
+	connect(m_settingsView->pbDissimilarityMatrix, &QPushButton::clicked, this, &iAFiAKErController::computeDissimilarityMatrix);
+	connect(m_settingsView->pbSensitivity, &QPushButton::clicked, this, &iAFiAKErController::computeSensitivity);
 }
 
 QWidget* iAFiAKErController::setupOptimStepView()
@@ -1425,7 +1426,7 @@ void iAFiAKErController::writeDissimilarityMatrixCache(QVector<int> const& measu
 	out << m_dissimilarityMatrix;
 }
 
-void iAFiAKErController::sensitivitySlot()
+void iAFiAKErController::computeDissimilarityMatrix()
 {
 	QString fileName = QFileDialog::getOpenFileName(m_mainWnd, iAFiAKErController::FIAKERProjectID, m_data->folder, "Comma-Separated Values (*.csv);;");
 	if (fileName.isEmpty())
@@ -1536,6 +1537,11 @@ void iAFiAKErController::dissimMatrixColorMapChanged(int idx)
 	m_matrixWidget->setLookupTable(iALUT::Build(m_matrixWidget->range(), iALUT::GetColorMapNames()[idx], 255, 255));
 	m_matrixWidget->update();
 	m_parameterListView->dissimMatrixColorMapChanged(idx);
+}
+
+void iAFiAKErController::computeSensitivity()
+{
+
 }
 
 void iAFiAKErController::stackedBarColorThemeChanged(int index)
