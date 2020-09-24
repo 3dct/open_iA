@@ -246,15 +246,8 @@ void iACompBoxPlot::initializeData()
 
 				int col = attrInd - 1;
 				double val = data->at(i).values->at(dataInd).at(m_orderedPositions->at(col) + 1);
-				//double val = data->at(i).values->at(dataInd).at(m_orderedPositions->at(col));
-
-				/*DEBUG_LOG(QString(" col = %1").arg(col));
-				DEBUG_LOG(QString(" m_orderedPositions->at(col) +1  = %1").arg(m_orderedPositions->at(col) + 1));
-				DEBUG_LOG(QString(" val = %1").arg(val));*/
 				
 				originalValuesTable->SetValue(row, col, vtkVariant(val));
-
-				//DEBUG_LOG(QString(" c = %1  r = %2     val = %3 ").arg(col).arg(row).arg(originalValuesTable->GetValue(row, col).ToDouble()));
 
 				double valOriginalOrder = data->at(i).values->at(dataInd).at(attrInd);
 				m_originalOrderTable->SetValue(row, col, valOriginalOrder);
@@ -263,36 +256,6 @@ void iACompBoxPlot::initializeData()
 			row++;
 		}
 	}
-
-	DEBUG_LOG("\n originalValuesTable    ################################################");
-
-	for (vtkIdType c = 0; c < originalValuesTable->GetNumberOfColumns(); c++)
-	{
-		DEBUG_LOG(QString(" c = %1").arg(c));
-		for (vtkIdType r = 0; r < originalValuesTable->GetNumberOfRows(); r++)
-		{
-			double v = originalValuesTable->GetValue(r, c).ToDouble();
-			DEBUG_LOG(QString(" r = %1     val = %2 ").arg(r).arg(v));
-		}
-
-		DEBUG_LOG("");
-	}
-
-	DEBUG_LOG("################################################");
-
-	for (vtkIdType c = 0; c < m_originalOrderTable->GetNumberOfColumns(); c++)
-	{
-		DEBUG_LOG(QString(" c = %1").arg(c));
-		for (vtkIdType r = 0; r < m_originalOrderTable->GetNumberOfRows(); r++)
-		{
-			double v = m_originalOrderTable->GetValue(r, c).ToDouble();
-			DEBUG_LOG(QString(" r = %1     val = %2 ").arg(r).arg(v));
-		}
-
-		DEBUG_LOG("");
-	}
-
-	DEBUG_LOG("################################################");
 
 	//calculate quartiles
 	outTable = calcualteVTKQuartiles(originalValuesTable);
@@ -304,18 +267,6 @@ void iACompBoxPlot::initializeData()
 
 	//normalize quartiles in the interval [0,1]
 	normalizedTable = normalizeTable(outTable);
-
-	/*for (vtkIdType c= 0; c < normalizedTable->GetNumberOfColumns(); c++)
-	{
-		DEBUG_LOG(QString(" c = %1").arg(c));
-		for (vtkIdType r = 0; r < normalizedTable->GetNumberOfRows(); r++)
-		{
-			double v = normalizedTable->GetValue(r, c).ToDouble();
-			DEBUG_LOG(QString(" r = %1     val = %2 ").arg(r).arg(v));
-		}
-
-		DEBUG_LOG("");
-	}*/
 }
 
 void iACompBoxPlot::initializeAxes(vtkSmartPointer<BoxPlotChart> chart, bool axesVisibleOn)
@@ -693,20 +644,6 @@ void iACompBoxPlot::updateBoxPlot(csvDataType::ArrayType* selectedData, std::vec
 
 void iACompBoxPlot::reorderOriginalData(std::vector<double>* selected_orderedPositions)
 {
-	//DEBUG_LOG("m_originalOrderTable  ------------------------------------------");
-	//for (vtkIdType c = 0; c < m_originalOrderTable->GetNumberOfColumns(); c++)
-	//{
-	//	DEBUG_LOG(QString(" c = %1").arg(c));
-	//	for (vtkIdType r = 0; r < m_originalOrderTable->GetNumberOfRows(); r++)
-	//	{
-	//		double v = m_originalOrderTable->GetValue(r, c).ToDouble();
-	//		DEBUG_LOG(QString(" r = %1     val = %2 ").arg(r).arg(v));
-	//	}
-
-	//	DEBUG_LOG("");
-	//}
-
-
 	//create selected data table
 	reorderedNormalizedTable = vtkSmartPointer<vtkTable>::New();
 
@@ -731,37 +668,12 @@ void iACompBoxPlot::reorderOriginalData(std::vector<double>* selected_orderedPos
 		}
 	}
 
-	/*for(int colId = 0; colId < m_originalOrderTable->GetNumberOfColumns(); colId++)
-	{
-		vtkAbstractArray * column = m_originalOrderTable->GetColumn(selected_orderedPositions->at(colId));
-		reorderedNormalizedTable->AddColumn(column);
-	}*/
-
-	//DEBUG_LOG("reorderedNormalizedTable ################################################");
-
-	//for (int r = 0; r < selected_orderedPositions->size(); r++)
-	//{
-	//	double v = selected_orderedPositions->at(r);
-	//	DEBUG_LOG(QString(" r = %1     val = %2 ").arg(r).arg(v));
-	//}
-
-	//DEBUG_LOG("");
-
-	//for (vtkIdType c = 0; c < reorderedNormalizedTable->GetNumberOfColumns(); c++)
-	//{
-	//	DEBUG_LOG(QString(" c = %1").arg(c));
-	//	for (vtkIdType r = 0; r < reorderedNormalizedTable->GetNumberOfRows(); r++)
-	//	{
-	//		double v = reorderedNormalizedTable->GetValue(r, c).ToDouble();
-	//		DEBUG_LOG(QString(" r = %1     val = %2 ").arg(r).arg(v));
-	//	}
-
-	//	DEBUG_LOG("");
-	//}
-
-
 	m_boxOriginal->SetInputData(reorderedNormalizedTable);
 	m_boxOriginal->Modified();
+
+	m_chartOriginal->SetPlot(m_boxOriginal);
+	m_chartOriginal->SetColumnVisibilityAll(true);
+	m_chartOriginal->Update();
 
 	m_chartOriginal->SetPoint1(m_qvtkWidget->width()*0.0, (m_qvtkWidget->height()*0.3));
 	m_chartOriginal->SetPoint2(m_qvtkWidget->width()*0.75, (m_qvtkWidget->height())*0.85);
@@ -799,6 +711,11 @@ void iACompBoxPlot::resetBoxPlot()
 	//set data
 	m_boxOriginal->SetInputData(normalizedTable);
 	m_boxOriginal->Modified();
+
+	m_chartOriginal->SetPlot(m_boxOriginal);
+	m_chartOriginal->SetColumnVisibilityAll(true);
+	m_chartOriginal->Update();
+
 
 	m_chartOriginal->SetPoint1(m_qvtkWidget->width()*0.0, (m_qvtkWidget->height()*0.3));
 	m_chartOriginal->SetPoint2(m_qvtkWidget->width()*0.75, (m_qvtkWidget->height())*0.85);
