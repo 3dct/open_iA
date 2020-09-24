@@ -123,6 +123,8 @@ private:
 	//stores the values of outTable in the interval [0,1]
 	vtkSmartPointer<vtkTable> normalizedTable;
 
+	vtkSmartPointer<vtkTable> reorderedNormalizedTable;
+
 	vtkSmartPointer<vtkTable> currentQuartileTable;
 
 	//stores the normalized values in the original order

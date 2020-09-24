@@ -215,11 +215,14 @@ void iACompBoxPlot::initializeData()
 	{
 		labels->InsertNextValue(attrNames->at(i).toStdString());
 
-		vtkSmartPointer<vtkDoubleArray> arrIndex = vtkSmartPointer<vtkDoubleArray>::New();
-		arrIndex->SetName(attrNames->at(i).toStdString().c_str());
+		vtkSmartPointer<vtkDoubleArray> arrIndex1 = vtkSmartPointer<vtkDoubleArray>::New();
+		arrIndex1->SetName(attrNames->at(i).toStdString().c_str());
+
+		vtkSmartPointer<vtkDoubleArray> arrIndex2 = vtkSmartPointer<vtkDoubleArray>::New();
+		arrIndex2->SetName(attrNames->at(i).toStdString().c_str());
 		
-		originalValuesTable->AddColumn(arrIndex);
-		m_originalOrderTable->AddColumn(arrIndex);
+		originalValuesTable->AddColumn(arrIndex1);
+		m_originalOrderTable->AddColumn(arrIndex2);
 	}
 
 	//calculate amount of objects(fibers)/rows
@@ -243,17 +246,53 @@ void iACompBoxPlot::initializeData()
 
 				int col = attrInd - 1;
 				double val = data->at(i).values->at(dataInd).at(m_orderedPositions->at(col) + 1);
+				//double val = data->at(i).values->at(dataInd).at(m_orderedPositions->at(col));
+
+				/*DEBUG_LOG(QString(" col = %1").arg(col));
+				DEBUG_LOG(QString(" m_orderedPositions->at(col) +1  = %1").arg(m_orderedPositions->at(col) + 1));
+				DEBUG_LOG(QString(" val = %1").arg(val));*/
 				
 				originalValuesTable->SetValue(row, col, vtkVariant(val));
 
+				//DEBUG_LOG(QString(" c = %1  r = %2     val = %3 ").arg(col).arg(row).arg(originalValuesTable->GetValue(row, col).ToDouble()));
+
 				double valOriginalOrder = data->at(i).values->at(dataInd).at(attrInd);
 				m_originalOrderTable->SetValue(row, col, valOriginalOrder);
-				
 			}
 
 			row++;
 		}
 	}
+
+	DEBUG_LOG("\n originalValuesTable    ################################################");
+
+	for (vtkIdType c = 0; c < originalValuesTable->GetNumberOfColumns(); c++)
+	{
+		DEBUG_LOG(QString(" c = %1").arg(c));
+		for (vtkIdType r = 0; r < originalValuesTable->GetNumberOfRows(); r++)
+		{
+			double v = originalValuesTable->GetValue(r, c).ToDouble();
+			DEBUG_LOG(QString(" r = %1     val = %2 ").arg(r).arg(v));
+		}
+
+		DEBUG_LOG("");
+	}
+
+	DEBUG_LOG("################################################");
+
+	for (vtkIdType c = 0; c < m_originalOrderTable->GetNumberOfColumns(); c++)
+	{
+		DEBUG_LOG(QString(" c = %1").arg(c));
+		for (vtkIdType r = 0; r < m_originalOrderTable->GetNumberOfRows(); r++)
+		{
+			double v = m_originalOrderTable->GetValue(r, c).ToDouble();
+			DEBUG_LOG(QString(" r = %1     val = %2 ").arg(r).arg(v));
+		}
+
+		DEBUG_LOG("");
+	}
+
+	DEBUG_LOG("################################################");
 
 	//calculate quartiles
 	outTable = calcualteVTKQuartiles(originalValuesTable);
@@ -265,6 +304,18 @@ void iACompBoxPlot::initializeData()
 
 	//normalize quartiles in the interval [0,1]
 	normalizedTable = normalizeTable(outTable);
+
+	/*for (vtkIdType c= 0; c < normalizedTable->GetNumberOfColumns(); c++)
+	{
+		DEBUG_LOG(QString(" c = %1").arg(c));
+		for (vtkIdType r = 0; r < normalizedTable->GetNumberOfRows(); r++)
+		{
+			double v = normalizedTable->GetValue(r, c).ToDouble();
+			DEBUG_LOG(QString(" r = %1     val = %2 ").arg(r).arg(v));
+		}
+
+		DEBUG_LOG("");
+	}*/
 }
 
 void iACompBoxPlot::initializeAxes(vtkSmartPointer<BoxPlotChart> chart, bool axesVisibleOn)
@@ -642,15 +693,72 @@ void iACompBoxPlot::updateBoxPlot(csvDataType::ArrayType* selectedData, std::vec
 
 void iACompBoxPlot::reorderOriginalData(std::vector<double>* selected_orderedPositions)
 {
-	//create selected data table
-	vtkSmartPointer<vtkTable> reorderedNormalizedTable = vtkSmartPointer<vtkTable>::New();
-	reorderedNormalizedTable->Initialize();
+	//DEBUG_LOG("m_originalOrderTable  ------------------------------------------");
+	//for (vtkIdType c = 0; c < m_originalOrderTable->GetNumberOfColumns(); c++)
+	//{
+	//	DEBUG_LOG(QString(" c = %1").arg(c));
+	//	for (vtkIdType r = 0; r < m_originalOrderTable->GetNumberOfRows(); r++)
+	//	{
+	//		double v = m_originalOrderTable->GetValue(r, c).ToDouble();
+	//		DEBUG_LOG(QString(" r = %1     val = %2 ").arg(r).arg(v));
+	//	}
 
-	for(int colId = 0; colId < m_originalOrderTable->GetNumberOfColumns(); colId++)
+	//	DEBUG_LOG("");
+	//}
+
+
+	//create selected data table
+	reorderedNormalizedTable = vtkSmartPointer<vtkTable>::New();
+
+	//set amount of attributes
+	for (int i = 0; i < m_numberOfAttr; i++)
+	{
+		vtkSmartPointer<vtkDoubleArray> arrIndex = vtkSmartPointer<vtkDoubleArray>::New();
+		arrIndex->SetName(std::to_string(i).c_str());
+		reorderedNormalizedTable->AddColumn(arrIndex);
+	}
+
+	reorderedNormalizedTable->SetNumberOfRows(m_originalOrderTable->GetNumberOfRows());
+
+	//fill table with data
+	for (int colId = 0; colId < m_originalOrderTable->GetNumberOfColumns(); colId++)
+	{//for each attribute
+
+		for (int row = 0; row < m_originalOrderTable->GetNumberOfRows(); row++)
+		{
+			double v = m_originalOrderTable->GetValue(row, selected_orderedPositions->at(colId)).ToDouble();
+			reorderedNormalizedTable->SetValue(row, colId, v);
+		}
+	}
+
+	/*for(int colId = 0; colId < m_originalOrderTable->GetNumberOfColumns(); colId++)
 	{
 		vtkAbstractArray * column = m_originalOrderTable->GetColumn(selected_orderedPositions->at(colId));
 		reorderedNormalizedTable->AddColumn(column);
-	}
+	}*/
+
+	//DEBUG_LOG("reorderedNormalizedTable ################################################");
+
+	//for (int r = 0; r < selected_orderedPositions->size(); r++)
+	//{
+	//	double v = selected_orderedPositions->at(r);
+	//	DEBUG_LOG(QString(" r = %1     val = %2 ").arg(r).arg(v));
+	//}
+
+	//DEBUG_LOG("");
+
+	//for (vtkIdType c = 0; c < reorderedNormalizedTable->GetNumberOfColumns(); c++)
+	//{
+	//	DEBUG_LOG(QString(" c = %1").arg(c));
+	//	for (vtkIdType r = 0; r < reorderedNormalizedTable->GetNumberOfRows(); r++)
+	//	{
+	//		double v = reorderedNormalizedTable->GetValue(r, c).ToDouble();
+	//		DEBUG_LOG(QString(" r = %1     val = %2 ").arg(r).arg(v));
+	//	}
+
+	//	DEBUG_LOG("");
+	//}
+
 
 	m_boxOriginal->SetInputData(reorderedNormalizedTable);
 	m_boxOriginal->Modified();
