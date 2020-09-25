@@ -183,6 +183,7 @@ private slots:
 	void raycasterLoadCameraSettings();
 	void openRecentFile();
 	void childClosed();
+	void listDockWidgetsInMenu();
 	void toggleMainWindowStatusBar();
 	void toggleChildStatusBar();
 	void toggleToolbar();

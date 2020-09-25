@@ -24,6 +24,7 @@
 #include <iAAttributeDescriptor.h>
 #include <iAConnector.h>
 #include <iAProgress.h>
+#include <iAStringHelper.h>
 #include <iATypedCallHelper.h>
 
 // from Toolkit/MaximumDistance
@@ -45,6 +46,7 @@
 #include <itkRemovePeaksOtsuThresholdImageFilter.h>
 #include <itkRenyiEntropyThresholdImageFilter.h>
 #include <itkShanbhagThresholdImageFilter.h>
+#include <itkThresholdLabelerImageFilter.h>
 #include <itkTriangleThresholdImageFilter.h>
 #include <itkYenThresholdImageFilter.h>
 
@@ -108,6 +110,57 @@ iABinaryThreshold::iABinaryThreshold() :
 	addParameter("Outside value", iAValueType::Continuous, 0);
 	addParameter("Inside value", iAValueType::Continuous, 1);
 }
+
+
+// Multi Threshold
+
+template <class T>
+void multi_threshold(iAFilter* filter, QMap<QString, QVariant> const& parameters)
+{
+
+	std::vector<T> thresholds;
+
+	QString numString = parameters["Thresholds"].toString().replace(" ", "");
+	;
+	auto numberStringArray = numString.split(";");
+
+
+	for (QString numberString : numberStringArray)
+	{
+		bool ok;
+		thresholds.push_back(iAConverter<T>::toT(numberString, &ok));
+	}
+
+	typedef itk::Image<T, 3> InputImageType;
+	typedef itk::Image<T, 3> OutputImageType;
+	typedef itk::ThresholdLabelerImageFilter<InputImageType, OutputImageType> BTIFType;
+	auto multiThreshFilter = BTIFType::New();
+	multiThreshFilter->SetThresholds(thresholds);
+	multiThreshFilter->SetInput(dynamic_cast<InputImageType*>(filter->input()[0]->itkImage()));
+	filter->progress()->observe(multiThreshFilter);
+	multiThreshFilter->Update();
+	filter->addOutput(multiThreshFilter->GetOutput());
+}
+
+IAFILTER_CREATE(iAMultiThreshold)
+
+void iAMultiThreshold::performWork(QMap<QString, QVariant> const& parameters)
+{
+	ITK_TYPED_CALL(multi_threshold, inputPixelType(), this, parameters);
+}
+
+iAMultiThreshold::iAMultiThreshold() :
+	iAFilter("Multi Thresholding", "Segmentation/Global Thresholding",
+
+		"Label an input image according to a set of thresholds<br/>"
+		"This filter produces an output image whose pixels are labeled progressively according to the classes identified by a set of thresholds.Values equal to a threshold is considered to be in the lower class."
+		"<a href=\"https://itk.org/Doxygen/html/classitk_1_1ThresholdLabelerImageFilter.html\">"
+		"Multi Threshold Filter</a> in the ITK documentation.<br/>"
+		"The thresholds are seperated with semicolon \";\"")
+{
+	addParameter("Thresholds", iAValueType::String);
+}
+
 
 
 // Robust Automatic Threshold (RAT)

@@ -65,6 +65,19 @@ struct iAConverter<int>
 };
 
 template <>
+struct iAConverter<unsigned short>
+{
+	static int toT(QString str, bool* ok)
+	{
+		return str.toUShort(ok);
+	}
+	static QString toString(unsigned short n)
+	{
+		return QString::number(n);
+	}
+};
+
+template <>
 struct iAConverter<double>
 {
 	static double toT(QString str, bool * ok)
