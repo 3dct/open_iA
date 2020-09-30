@@ -179,9 +179,9 @@ void iAImageSampler::newSamplingRun()
 		return;
 	}
 	m_runningComputation.insert(op, m_curSample);
+	++m_curSample;
 	connect(op, &iASampleBuiltInFilterOperation::finished, this, &iAImageSampler::computationFinished);
 	op->start();
-	++m_curSample;
 }
 
 void iAImageSampler::start()
@@ -218,8 +218,9 @@ void iAImageSampler::start()
 		return;
 	}
 	m_numDigits = requiredDigits(m_parameterSets->size());
-	for (auto & paramSet : *m_parameterSets.data())
+	for (int paramSetIdx = 0; paramSetIdx < m_parameterSets->size(); ++paramSetIdx)
 	{
+		auto& paramSet = (*m_parameterSets)[paramSetIdx];
 		for (int p = 0; p < m_parameterRanges->size(); ++p)
 		{
 			auto const & param = m_parameterRanges->at(p);
@@ -227,9 +228,9 @@ void iAImageSampler::start()
 			{	// all output file names need to be adapted to output file name
 				QString outputFolder(getOutputFolder(
 					m_parameters[spnOutputFolder].toString(),
-					m_parameters[spnSubfolderPerSample].toBool(), m_curSample, m_numDigits));
+					m_parameters[spnSubfolderPerSample].toBool(), paramSetIdx, m_numDigits));
 				QString outputFile(getOutputFileName(outputFolder, m_parameters[spnBaseName].toString(),
-					m_parameters[spnSubfolderPerSample].toBool(), m_curSample, m_numDigits));
+					m_parameters[spnSubfolderPerSample].toBool(), paramSetIdx, m_numDigits));
 				auto value = pathFileBaseName(outputFile) + m_parameterSpecs->at(p)->defaultValue().toString();
 				if (QFile::exists(value) && !m_parameters[spnOverwriteOutput].toBool())
 				{
@@ -245,7 +246,6 @@ void iAImageSampler::start()
 	for (auto parameterSet: *m_parameterSets.data())
 	{
 		DEBUG_LOG(QString(joinQVariantAsString(parameterSet, ",")));
-
 	}
 
 	m_parameterCount = countAttributes(*m_parameterRanges.data(), iAAttributeDescriptor::Parameter);
