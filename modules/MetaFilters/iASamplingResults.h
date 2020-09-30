@@ -43,9 +43,8 @@ public:
 		int id
 	);
 	static QSharedPointer<iASamplingResults> load(QString const & metaFileName, int datasetID);
-	bool store(QString const & smpFileName,
-		QString const & parameterSetFileName,
-		QString const & derivedOutputFileName);
+	bool store(QString const& rangeFileName, QString const& parameterSetFileName,
+		QString const& derivedOutputFileName);
 	int size() const;
 	QSharedPointer<iASingleResult> get(int i) const;
 	void addResult(QSharedPointer<iASingleResult> result);
@@ -67,7 +66,7 @@ private:
 	QString m_parameterSetFile;//!<the name of the file containing the parameter sets
 	QString m_derivedOutputFile;//!<the name of the file containing the derived outputs
 	QString m_samplingMethod; //!< the name of the applied sampling method (Latin Hypercube, Random, ...)
-	QString m_fileName;       //!< smp fileName
+	QString m_rangeFileName;  //!< the name of the file containing parameter ranges that were sampled
 	QString m_path;           //!< base filename for the sampling results
 	QString m_executable;     //!< executable used to create this sampling
 	QString m_additionalArguments; //!< additional parameters passed to the executable

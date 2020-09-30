@@ -134,7 +134,7 @@ QSharedPointer<iASamplingResults> iASamplingResults::load(QString const & smpFil
 	if (result->loadInternal(MakeAbsolute(fileInfo.absolutePath(), parameterSetFileName),
 		MakeAbsolute(fileInfo.absolutePath(), derivedOutputFileName)))
 	{
-		result->m_fileName = smpFileName;
+		result->m_rangeFileName = smpFileName;
 		return result;
 	}
 	DEBUG_LOG("Sampling: Internal loading failed.");
@@ -142,17 +142,17 @@ QSharedPointer<iASamplingResults> iASamplingResults::load(QString const & smpFil
 }
 
 
-bool iASamplingResults::store(QString const & fileName,
+bool iASamplingResults::store(QString const & rangeFileName,
 	QString const & parameterSetFileName,
 	QString const & derivedOutputFileName)
 {
 	m_parameterSetFile = parameterSetFileName;
 	m_derivedOutputFile = derivedOutputFileName;
 	// write parameter ranges:
-	QFile paramRangeFile(fileName);
+	QFile paramRangeFile(rangeFileName);
 	if (!paramRangeFile.open(QIODevice::WriteOnly | QIODevice::Text))
 	{
-		DEBUG_LOG(QString("Could not open parameter range file '%1' for writing!").arg(fileName));
+		DEBUG_LOG(QString("Could not open parameter range file '%1' for writing!").arg(rangeFileName));
 		return false;
 	}
 	QTextStream out(&paramRangeFile);
@@ -168,7 +168,7 @@ bool iASamplingResults::store(QString const & fileName,
 	::storeAttributes(out, *m_attributes.data());
 	paramRangeFile.close();
 
-	m_fileName = fileName;
+	m_rangeFileName = rangeFileName;
 
 	return storeAttributes(iAAttributeDescriptor::Parameter, parameterSetFileName, true) &&
 		storeAttributes(iAAttributeDescriptor::DerivedOutput, derivedOutputFileName, false);
@@ -183,6 +183,11 @@ bool iASamplingResults::storeAttributes(int type, QString const & fileName, bool
 		return false;
 	}
 	QTextStream outParamSet(&paramSetFile);
+	// header:
+	outParamSet << joinAsString((*m_attributes), ",",
+			[](QSharedPointer<iAAttributeDescriptor> const& attrib) { return attrib->name(); })
+		<< QTENDL;
+	// values:
 	for (int i = 0; i<m_results.size(); ++i)
 	{
 		if (id)
@@ -234,13 +239,20 @@ bool iASamplingResults::loadInternal(QString const & parameterSetFileName, QStri
 			// for now, assemble attributes from two files (could be merged in one)
 			attribLine,
 			*this,
-			m_attributes);
-		if (!result)
+			m_attributes,
+			lineNr != 0);   // for line 0, don't show error output (assume it's the header)
+		if (result)
 		{
-			DEBUG_LOG(QString("Invalid parameter set / derived output descriptor at line  %1: %2").arg(lineNr).arg(attribLine));
-			return false;
+			m_results.push_back(result);
 		}
-		m_results.push_back(result);
+		else
+		{
+			if (lineNr > 0) // skip potential header
+			{
+				DEBUG_LOG(QString("Invalid parameter set / derived output descriptor at line  %1: %2").arg(lineNr).arg(attribLine));
+				return false;
+			}
+		}
 	}
 	paramFile.close();
 	if (charac)
@@ -294,7 +306,7 @@ QString iASamplingResults::name() const
 
 QString iASamplingResults::fileName() const
 {
-	return m_fileName;
+	return m_rangeFileName;
 }
 
 
