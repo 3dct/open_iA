@@ -36,6 +36,7 @@
 #include <mainwindow.h>
 #include <mdichild.h>
 #include <qthelper/iAQFlowLayout.h>
+#include <qthelper/iAQtEndl.h>
 
 #include <QCheckBox>
 #include <QFileDialog>
@@ -511,11 +512,7 @@ void iASamplingSettingsDlg::saveSettings()
 	QTextStream stream(&file);
 	for (QString key : settings.keys())
 	{
-#if QT_VERSION >= QT_VERSION_CHECK(5,14,0)
-		stream << key << KeyValueSeparator << settings[key].toString() << Qt::endl;
-#else
-		stream << key << KeyValueSeparator << settings[key].toString() << endl;
-#endif
+		stream << key << KeyValueSeparator << settings[key].toString() << QTENDL;
 	}
 }
 

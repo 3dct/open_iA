@@ -26,6 +26,8 @@
 #include <iAAttributeDescriptor.h>
 #include <iAConsole.h>
 #include <io/iAFileUtils.h>
+#include <iAStringHelper.h>
+#include <qthelper/iAQtEndl.h>
 
 #include <QFile>
 #include <QTextStream>
@@ -156,23 +158,13 @@ bool iASamplingResults::store(QString const & fileName,
 	QTextStream out(&paramRangeFile);
 	out.setCodec("UTF-8");
 	QFileInfo fi(paramRangeFile);
-#if QT_VERSION >= QT_VERSION_CHECK(5,14,0)
-	out << SMPFileFormatVersion << Qt::endl;
-	out << "Name" << Output::NameSeparator << m_name << Qt::endl;
-	out << "ParameterSet" << Output::NameSeparator << MakeRelative(fi.absolutePath(), parameterSetFileName) << Qt::endl;
-	out << "DerivedOutput" << Output::NameSeparator << MakeRelative(fi.absolutePath(), derivedOutputFileName) << Qt::endl;
-	out << "SamplingMethod" << Output::NameSeparator << m_samplingMethod << Qt::endl;
-	out << "Executable" << Output::NameSeparator << m_executable << Qt::endl;
-	out << "AdditionalArguments" << Output::NameSeparator << m_additionalArguments << Qt::endl;
-#else
-	out << SMPFileFormatVersion << endl;
-	out << "Name" << Output::NameSeparator << m_name << endl;
-	out << "ParameterSet" << Output::NameSeparator << MakeRelative(fi.absolutePath(), parameterSetFileName) << endl;
-	out << "DerivedOutput" << Output::NameSeparator << MakeRelative(fi.absolutePath(), derivedOutputFileName) << endl;
-	out << "SamplingMethod" << Output::NameSeparator << m_samplingMethod << endl;
-	out << "Executable" << Output::NameSeparator << m_executable << endl;
-	out << "AdditionalArguments" << Output::NameSeparator << m_additionalArguments << endl;
-#endif
+	out << SMPFileFormatVersion << QTENDL;
+	out << "Name" << Output::NameSeparator << m_name << QTENDL;
+	out << "ParameterSet" << Output::NameSeparator << MakeRelative(fi.absolutePath(), parameterSetFileName) << QTENDL;
+	out << "DerivedOutput" << Output::NameSeparator << MakeRelative(fi.absolutePath(), derivedOutputFileName) << QTENDL;
+	out << "SamplingMethod" << Output::NameSeparator << m_samplingMethod << QTENDL;
+	out << "Executable" << Output::NameSeparator << m_executable << QTENDL;
+	out << "AdditionalArguments" << Output::NameSeparator << m_additionalArguments << QTENDL;
 	::storeAttributes(out, *m_attributes.data());
 	paramRangeFile.close();
 
@@ -197,11 +189,7 @@ bool iASamplingResults::storeAttributes(int type, QString const & fileName, bool
 		{
 			outParamSet << m_results[i]->id() << iASingleResult::ValueSplitString;
 		}
-#if QT_VERSION >= QT_VERSION_CHECK(5,14,0)
-		outParamSet << m_results[i]->toString(m_attributes, type) << Qt::endl;
-#else
-		outParamSet << m_results[i]->toString(m_attributes, type) << endl;
-#endif
+		outParamSet << m_results[i]->toString(m_attributes, type) << QTENDL;
 	}
 	paramSetFile.close();
 	return true;

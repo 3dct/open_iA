@@ -30,6 +30,7 @@
 #include <iAModality.h>
 #include <iAModalityList.h>
 #include <iAToolsITK.h>
+#include <qthelper/iAQtEndl.h>
 
 #include <itkConstNeighborhoodIterator.h>
 
@@ -643,11 +644,7 @@ void iAEnsemble::WriteFullDataFile(QString const & filename, bool writeIntensiti
 					}
 				}
 				       // cut last space:
-#if QT_VERSION >= QT_VERSION_CHECK(5,14,0)
-				out << line.left(line.size()-1) << Qt::endl;
-#else
-				out << line.left(line.size()-1) << endl;
-#endif
+				out << line.left(line.size()-1) << QTENDL;
 			}
 		}
 	}

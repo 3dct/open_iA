@@ -30,6 +30,7 @@
 #include <iAStringHelper.h>
 #include <io/iAITKIO.h>
 #include <io/iAFileUtils.h>
+#include <qthelper/iAQtEndl.h>
 
 #include <QDir>
 #include <QFile>
@@ -344,11 +345,7 @@ void iABatchFilter::performWork(QMap<QString, QVariant> const & parameters)
 			QTextStream textStream(&file);
 			for (QString line : outputBuffer)
 			{
-#if QT_VERSION >= QT_VERSION_CHECK(5,14,0)
-				textStream << line << Qt::endl;
-#else
-				textStream << line << endl;
-#endif
+				textStream << line << QTENDL;
 			}
 			file.close();
 		}

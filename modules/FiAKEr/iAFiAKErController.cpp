@@ -64,6 +64,7 @@
 #include <mdichild.h>
 #include <qthelper/iADockWidgetWrapper.h>
 #include <qthelper/iAFixedAspectWidget.h>
+#include <qthelper/iAQtEndl.h>
 #include <qthelper/iAQTtoUIConnector.h>
 #include <qthelper/iASignallingWidget.h>
 #include <qthelper/iAVtkQtWidget.h>
@@ -1728,11 +1729,7 @@ void iAFiAKErController::exportDissimilarities()
 	{
 		out << "," << measureNames[measureID];
 	}
-#if QT_VERSION >= QT_VERSION_CHECK(5,14,0)
-	out << Qt::endl;
-#else
-	out << endl;
-#endif
+	out << QTENDL;
 	QFileInfo fi(fileName);
 	for (size_t resultID = 0; resultID < m_data->result.size(); ++resultID)
 	{
@@ -1751,11 +1748,7 @@ void iAFiAKErController::exportDissimilarities()
 				out << "," << avgMeasure[m];
 			}
 		}
-#if QT_VERSION >= QT_VERSION_CHECK(5,14,0)
-		out << Qt::endl;
-#else
-		out << endl;
-#endif
+		out << QTENDL;
 
 		if (resultID == m_referenceID)
 		{
@@ -1779,11 +1772,7 @@ void iAFiAKErController::exportDissimilarities()
 					<< "," << measureNames[measureID] << QString(" Dissimilarity %1").arg(i);
 			}
 		}
-#if QT_VERSION >= QT_VERSION_CHECK(5,14,0)
-		resultOut << Qt::endl;
-#else
-		resultOut << endl;
-#endif
+		resultOut << QTENDL;
 		for (int fiberID = 0; fiberID < r.refDiffFiber.size(); ++fiberID)
 		{
 			auto& f = r.refDiffFiber[fiberID].dist;
@@ -1795,11 +1784,7 @@ void iAFiAKErController::exportDissimilarities()
 					resultOut << "," << f[m][i].index << "," << f[m][i].dissimilarity;
 				}
 			}
-#if QT_VERSION >= QT_VERSION_CHECK(5,14,0)
-			resultOut << Qt::endl;
-#else
-			resultOut << endl;
-#endif
+			resultOut << QTENDL;
 		}
 		resultOutFile.close();
 	}
