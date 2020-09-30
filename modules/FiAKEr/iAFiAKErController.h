@@ -22,6 +22,7 @@
 
 // FiAKEr:
 #include "iAFiberCharData.h"            // for iAFiberSimilarity -> REFACTOR!!!
+#include "iAMatrixWidget.h"
 #include "iASavableProject.h"
 #include "iASelectionInteractorStyle.h" // for iASelectionProvider
 #include "ui_FiAKErSettings.h"
@@ -111,21 +112,6 @@ public:
 	//! index where the plots for this result start
 	size_t startPlotIdx;
 };
-
-
-class iAResultPairInfo
-{
-public:
-	iAResultPairInfo();
-	iAResultPairInfo(int measureCount);
-	// average dissimilarity, per dissimilarity measure
-	QVector<double> avgDissim;
-
-	// for every fiber, and every dissimilarity measure, the n best matching fibers (in descending match quality)
-	QVector<QVector<QVector<iAFiberSimilarity>>> fiberDissim;
-};
-
-using iADissimilarityMatrixType = QVector<QVector<iAResultPairInfo>>;
 
 class iAFiAKErController: public QObject, public iASelectionProvider
 {
