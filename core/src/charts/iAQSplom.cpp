@@ -1948,7 +1948,7 @@ void iAQSplom::saveSettings(QSettings & iniFile) const
 	iniFile.setValue(CfgKeyColorCodingMin, colorCodingMin);
 	iniFile.setValue(CfgKeyColorCodingMax, colorCodingMax);
 	iniFile.setValue(CfgKeyColorLookupParam, static_cast<qulonglong>(m_colorLookupParam));
-	iniFile.setValue(CfgKeyVisibleParameters, joinAsString(m_visibleIndices, ","));
+	iniFile.setValue(CfgKeyVisibleParameters, joinNumbersAsString(m_visibleIndices, ","));
 	if (m_maximizedPlot)
 	{
 		iniFile.setValue(CfgKeyMaximizedPlot, QString("%1,%2").arg(m_maximizedPlot->getIndices()[0]).arg(m_maximizedPlot->getIndices()[1]));

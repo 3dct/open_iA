@@ -175,15 +175,11 @@ open_iA_Core_API QString stripHTML(QString const & html);
 //! returns the value converted to string, with units (K, M, G, T, P) applied for every 10³ factor over 1000
 open_iA_Core_API QString dblToStringWithUnits(double value);
 
-//! join an iterable collection of numeric elements to a string
-//!
-//! works similar to QString::join, but on arbitrary iterable collection types
-//! containing items which can be converted to QString via QString::number.
-//! @param vec the collection of elements to be joined
-//! @param joinStr the string to be used in between the elements of the string
-//! @return a string joining all elements of the given collection together
-template <template <typename...> class Container, typename Element>
-QString joinAsString(Container<Element> const & vec, QString const & joinStr)
+//! join any list as string - the conversion of the single items happens via the passed-in lambda
+//! FnType is something like a function taking an Element parameter and has a QString(-compatible)
+//! return type; tried QString fct(Element const &) but it doesn't work as expected
+template <template <typename...> class Container, typename Element, typename FnType>
+QString joinAsString(Container<Element> const& vec, QString const& joinStr, FnType lambda)
 {
 	QString result;
 	bool first = true;
@@ -197,9 +193,22 @@ QString joinAsString(Container<Element> const & vec, QString const & joinStr)
 		{
 			first = false;
 		}
-		result += QString::number(elem);
+		result += lambda(elem);
 	}
 	return result;
+}
+
+//! join an iterable collection of numeric elements to a string
+//!
+//! works similar to QString::join, but on arbitrary iterable collection types
+//! containing items which can be converted to QString via QString::number.
+//! @param vec the collection of elements to be joined
+//! @param joinStr the string to be used in between the elements of the string
+//! @return a string joining all elements of the given collection together
+template <template <typename...> class Container, typename Element>
+QString joinNumbersAsString(Container<Element> const& vec, QString const& joinStr)
+{
+	return joinAsString(vec, joinStr, [](Element const& elem) -> QString { return QString::number(elem); });
 }
 
 open_iA_Core_API QString joinQVariantAsString(QVector<QVariant> const& vec, QString const& joinStr);

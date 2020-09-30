@@ -404,7 +404,7 @@ iAParameterSetsPointer iACartesianGridSamplingMethod::parameterSets(QSharedPoint
 			set.push_back(value);
 		}
 		result->append(set);
-		//DEBUG_LOG(QString("%1: %2").arg(joinAsString(parameterRangeIdx, ",")).arg(joinAsString(result->at(result->size() - 1), ",")));
+		//DEBUG_LOG(QString("%1: %2").arg(joinNumbersAsString(parameterRangeIdx, ",")).arg(joinNumbersAsString(result->at(result->size() - 1), ",")));
 
 		// increase indices into the parameter range:
 		++parameterRangeIdx[0];
@@ -496,7 +496,7 @@ iAParameterSetsPointer iALocalSensitivitySamplingMethod::parameterSets(QSharedPo
 			set.push_back(allValues[p][parameterRangeIdx[p]]);
 		}
 		result->append(set);
-		//DEBUG_LOG(QString("%1: %2").arg(joinAsString(parameterRangeIdx, ",")).arg(joinAsString(result->at(result->size() - 1), ",")));
+		//DEBUG_LOG(QString("%1: %2").arg(joinNumbersAsString(parameterRangeIdx, ",")).arg(joinNumbersAsString(result->at(result->size() - 1), ",")));
 
 		// increase indices into the parameter range:
 		++parameterRangeIdx[0];

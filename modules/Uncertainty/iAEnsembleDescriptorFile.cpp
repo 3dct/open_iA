@@ -244,7 +244,8 @@ void iAEnsembleDescriptorFile::Store(QString const & fileName)
 
 	for (int i = 0; i < m_subEnsembles.size(); ++i)
 	{
-		metaFile.setValue(SubEnsembleKey + QString::number(m_subEnsembleID[i]), joinAsString(m_subEnsembles[i], ","));
+		metaFile.setValue(SubEnsembleKey + QString::number(m_subEnsembleID[i]),
+			joinNumbersAsString(m_subEnsembles[i], ","));
 	}
 
 	metaFile.sync();
