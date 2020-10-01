@@ -1613,70 +1613,9 @@ void iAIO::writeImageStack( )
 
 bool iAIO::setupStackReader( QString const & f )
 {
-	QFileInfo fi(f);
-	QDir dir(fi.absolutePath());
-	QStringList nameFilters;
-	nameFilters << "*."+fi.suffix();
-	QFileInfoList imgFiles = dir.entryInfoList(nameFilters);
-	// determine most common file name base
-	for (QFileInfo imgFileInfo : imgFiles)
-	{
-		QString imgFileName = imgFileInfo.absoluteFilePath();
-		QString suffix = imgFileInfo.suffix();
-		QString lastDigit = imgFileName.mid(imgFileName.length() - (suffix.length() + 2), 1);
-		bool ok;
-		/*int myNum =*/ lastDigit.toInt(&ok);
-		if (!ok)
-		{
-			DEBUG_LOG(QString("Skipping image with no number at end '%1'.").arg(imgFileName));
-			continue;
-		}
-		if (m_fileNamesBase.isEmpty())
-		{
-			m_fileNamesBase = imgFileInfo.absoluteFilePath();
-		}
-		else
-		{
-			m_fileNamesBase = greatestCommonPrefix(m_fileNamesBase, imgFileInfo.absoluteFilePath());
-		}
-	}
-	int baseLength = m_fileNamesBase.length();
-	// determine index range:
-	int indexRange[2] = { std::numeric_limits<int>::max(), std::numeric_limits<int>::min() };
-	int digits = -1;
-	for (QFileInfo imgFileInfo : imgFiles)
-	{
-		QString imgFileName = imgFileInfo.absoluteFilePath();
-		QString suffix = imgFileInfo.suffix();
-		QString lastDigit = imgFileName.mid(imgFileName.length() - (suffix.length() + 2), 1);
-		bool ok;
-		/*int myNum =*/ lastDigit.toInt(&ok);
-		if (!ok)
-		{
-			//DEBUG_LOG(QString("Skipping image with no number at end '%1'.").arg(imgFileName));
-			continue;
-		}
-		QString numStr = imgFileName.mid(baseLength, imgFileName.length() - baseLength - suffix.length() - 1);
-		if (digits == -1)
-		{
-			digits = numStr.length();
-		}
-		int num = numStr.toInt(&ok);
-		if (!ok)
-		{
-			DEBUG_LOG(QString("Invalid, non-numeric part (%1) in image file name '%2'.").arg(numStr).arg(imgFileName));
-			continue;
-		}
-		if (num < indexRange[0])
-		{
-			indexRange[0] = num;
-		}
-		if (num > indexRange[1])
-		{
-			indexRange[1] = num;
-		}
-	}
-	m_extension = "." + fi.suffix();
+	int indexRange[2];
+	int digits;
+	determineStackParameters(f, m_fileNamesBase, m_extension, indexRange, digits);
 	QStringList inList = (QStringList()
 		<< tr("#File Names Base") << tr("#Extension")
 		<< tr("#Number of Digits in Index")

@@ -1777,6 +1777,7 @@ void MainWindow::connectSignalsToSlots()
 	connect(actionShowMenu, &QAction::triggered, this, &MainWindow::toggleMenu);
 	connect(actionShowToolbar, &QAction::triggered, this, &MainWindow::toggleToolbar);
 	connect(actionMainWindowStatusBar, &QAction::triggered, this, &MainWindow::toggleMainWindowStatusBar);
+	connect(menuDockWidgets, &QMenu::aboutToShow, this, &MainWindow::listDockWidgetsInMenu);
 	// Enable these actions also when menu not visible:
 	addAction(actionFullScreenMode);
 	addAction(actionShowMenu);
@@ -2299,6 +2300,21 @@ QMenu * MainWindow::helpMenu()
 void MainWindow::toggleMainWindowStatusBar()
 {
 	statusBar()->setVisible(actionMainWindowStatusBar->isChecked());
+}
+
+void MainWindow::listDockWidgetsInMenu()
+{
+	menuDockWidgets->clear();
+	for (auto dockWidget : findChildren<QDockWidget*>())
+	{
+		QAction* act(new QAction(dockWidget->windowTitle(), this));
+		act->setCheckable(true);
+		act->setChecked(dockWidget->isVisible());
+		connect(act, &QAction::triggered, [dockWidget] {
+			dockWidget->setVisible(!dockWidget->isVisible());
+			});
+		menuDockWidgets->addAction(act);
+	}
 }
 
 void MainWindow::toggleToolbar()

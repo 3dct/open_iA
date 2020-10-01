@@ -50,3 +50,25 @@ open_iA_Core_API QString fileNameOnly(QString const & fileName);
 //! returns the full path of the given file along with the file's basename.
 //! e.g. if the given QFileInfo points to C:/test/data.mhd, the function would return C:/test/data
 open_iA_Core_API QString pathFileBaseName(QFileInfo const& fi);
+
+//! Determine parameters for (image) stacks from a given filename.
+//!
+//! Takes a filename, and checks the folder containing
+//! this file for similarly named files; it determines a common prefix and suffix,
+//! and the range of numbers contained in the part of the filename that varies.
+//! If multiple files exist in the same folder, with different parts varying, then
+//! the values for first of these will be contained in the returned variables.
+//! example:
+//!   content of folder: file1-1.tif  file1-2.tif  file1-3.tif file2-1.tif file2-2.tif
+//!   filename:  file1-1.tif
+//!   result: prefix="file1-", suffix=".tif", range=[1,3], digits=1
+//!   (note that prefix="file", suffix="-1.tif", range=[1,2], digits=1 would also be a valid "solution")
+//! @param[in]  fullFileName full file name (including path)
+//! @param[out] prefix the prefix that all files which were determined to belong to the stack share
+//! @param[out] suffix the suffix that all files which were determined to belong to the stack share
+//! @param[out] range the minimum (index 0) and maximum (index 1) number occurring in the string part
+//!     not shared between the filenames belonging to the stack
+//! @param[out] digits the number of digits in the numbers of the filenames belonging to the stack
+//!     (typically padded by zeros)
+open_iA_Core_API void determineStackParameters(QString const & fullFileName,
+	QString & prefix, QString & suffix, int range[2], int & digits);

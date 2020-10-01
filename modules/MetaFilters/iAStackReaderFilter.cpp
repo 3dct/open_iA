@@ -41,90 +41,41 @@
 
 void iAStackReaderFilter::performWork(QMap<QString, QVariant> const & parameters)
 {
-	QString fullFileName = parameters["Folder name"].toString() + "/" + parameters["File name base"].toString();
-	QFileInfo fi(fullFileName);
-	QDir dir(fi.absolutePath());
-	QStringList nameFilters;
-	nameFilters << "*." + fi.suffix();
-	QFileInfoList imgFiles = dir.entryInfoList(nameFilters);
-	// determine most common file name base
-	QString fileNamesBase;
-	for (QFileInfo imgFileInfo : imgFiles)
-	{
-		QString imgFileName = imgFileInfo.absoluteFilePath();
-		QString suffix = imgFileInfo.suffix();
-		QString lastDigit = imgFileName.mid(imgFileName.length() - (suffix.length() + 2), 1);
-		bool ok;
-		/*int myNum =*/ lastDigit.toInt(&ok);
-		if (!ok)
-		{
-			DEBUG_LOG(QString("Skipping image with no number at end '%1'.").arg(imgFileName));
-			continue;
-		}
-		if (fileNamesBase.isEmpty())
-		{
-			fileNamesBase = imgFileInfo.absoluteFilePath();
-		}
-		else
-		{
-			fileNamesBase = greatestCommonPrefix(fileNamesBase, imgFileInfo.absoluteFilePath());
-		}
-	}
-	int baseLength = fileNamesBase.length();
-	// determine index range:
-	int indexRange[2] = { std::numeric_limits<int>::max(), std::numeric_limits<int>::min() };
-	int digits = -1;
-	for (QFileInfo imgFileInfo : imgFiles)
-	{
-		QString imgFileName = imgFileInfo.absoluteFilePath();
-		QString suffix = imgFileInfo.suffix();
-		QString lastDigit = imgFileName.mid(imgFileName.length() - (suffix.length() + 2), 1);
-		bool ok;
-		/*int myNum =*/ lastDigit.toInt(&ok);
-		if (!ok)
-		{
-			//DEBUG_LOG(QString("Skipping image with no number at end '%1'.").arg(imgFileName));
-			continue;
-		}
-		QString numStr = imgFileName.mid(baseLength, imgFileName.length() - baseLength - suffix.length() - 1);
-		if (digits == -1)
-		{
-			digits = numStr.length();
-		}
-		int num = numStr.toInt(&ok);
-		if (!ok)
-		{
-			DEBUG_LOG(QString("Invalid, non-numeric part (%1) in image file name '%2'.").arg(numStr).arg(imgFileName));
-			continue;
-		}
-		if (num < indexRange[0])
-		{
-			indexRange[0] = num;
-		}
-		if (num > indexRange[1])
-		{
-			indexRange[1] = num;
-		}
-	}
-	QString extension = "." + fi.suffix();
+	QString fileName = parameters["File name"].toString();
+	QFileInfo fi(fileName);
+	QString prefix, suffix;
+	int indexRange[2];
+	int digits;
+	determineStackParameters(fileName, prefix, suffix, indexRange, digits);
 
 	vtkSmartPointer<vtkImageReader2> imgReader;
-	if (extension.toUpper() == ".TIF" || extension.toUpper() == ".TIFF")
+	auto ext = fi.suffix().toUpper();
+	if (ext == "TIF" || ext == ".TIFF")
+	{
 		imgReader = vtkSmartPointer<vtkTIFFReader>::New();
-	else if (extension.toUpper() == ".JPG" || extension.toUpper() == ".JPEG")
+	}
+	else if (ext == ".JPG" || ext == ".JPEG")
+	{
 		imgReader = vtkSmartPointer<vtkJPEGReader>::New();
-	else if (extension.toUpper() == ".PNG")
+	}
+	else if (ext == ".PNG")
+	{
 		imgReader = vtkSmartPointer<vtkPNGReader>::New();
-	else if (extension.toUpper() == ".BMP")
+	}
+	else if (ext == ".BMP")
+	{
 		imgReader = vtkSmartPointer<vtkBMPReader>::New();
+	}
 	else
-		throw std::runtime_error(QString("Unknown filetype of extension %1").arg(extension).toStdString());
+	{
+		throw std::runtime_error(QString("Unknown filetype of extension %1").arg(ext).toStdString());
+	}
 	progress()->observe(imgReader);
 	imgReader->AddObserver(vtkCommand::ErrorEvent, iAExceptionThrowingErrorObserver::New());
 	auto fileNameArray = vtkSmartPointer<vtkStringArray>::New();
 	for (int i = indexRange[0]; i <= indexRange[1]; i++)
 	{
-		QString temp = fileNamesBase + QString("%1").arg(i, digits, 10, QChar('0')) + extension;
+		QString temp = prefix + QString("%1").arg(i, digits, 10, QChar('0')) + suffix;
 		fileNameArray->InsertNextValue(getLocalEncodingFileName(temp));
 	}
 	imgReader->SetFileNames(fileNameArray);
@@ -146,10 +97,9 @@ iAStackReaderFilter::iAStackReaderFilter() :
 	iAFilter("Image Stack Reader", "Input",
 		"Read an image stack.<br/>"
 		"Minimum and maximum index are automatically determined "
-		"from the given folder name, spacing and datatype can be adapted.", 0, 1)
+		"from the given filename (any image file which is part of the stack should do), spacing and datatype can be adapted.", 0, 1)
 {
-	addParameter("Folder name", iAValueType::String, "");
-	addParameter("File name base", iAValueType::String, "");
+	addParameter("File name", iAValueType::FileNameOpen, "");
 	addParameter("Spacing X", iAValueType::Continuous, 1.0);
 	addParameter("Spacing Y", iAValueType::Continuous, 1.0);
 	addParameter("Spacing Z", iAValueType::Continuous, 1.0);
