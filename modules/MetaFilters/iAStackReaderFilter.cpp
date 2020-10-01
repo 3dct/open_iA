@@ -41,12 +41,12 @@
 
 void iAStackReaderFilter::performWork(QMap<QString, QVariant> const & parameters)
 {
-	QString fullFileName = parameters["Folder name"].toString() + "/" + parameters["File name base"].toString();
-	QFileInfo fi(fullFileName);
+	QString fileName = parameters["File name"].toString();
+	QFileInfo fi(fileName);
 	QString prefix, suffix;
 	int indexRange[2];
 	int digits;
-	determineStackParameters(fullFileName, prefix, suffix, indexRange, digits);
+	determineStackParameters(fileName, prefix, suffix, indexRange, digits);
 
 	vtkSmartPointer<vtkImageReader2> imgReader;
 	auto ext = fi.suffix().toUpper();
@@ -97,10 +97,9 @@ iAStackReaderFilter::iAStackReaderFilter() :
 	iAFilter("Image Stack Reader", "Input",
 		"Read an image stack.<br/>"
 		"Minimum and maximum index are automatically determined "
-		"from the given folder name, spacing and datatype can be adapted.", 0, 1)
+		"from the given filename (any image file which is part of the stack should do), spacing and datatype can be adapted.", 0, 1)
 {
-	addParameter("Folder name", iAValueType::String, "");
-	addParameter("File name base", iAValueType::String, "");
+	addParameter("File name", iAValueType::FileNameOpen, "");
 	addParameter("Spacing X", iAValueType::Continuous, 1.0);
 	addParameter("Spacing Y", iAValueType::Continuous, 1.0);
 	addParameter("Spacing Z", iAValueType::Continuous, 1.0);
