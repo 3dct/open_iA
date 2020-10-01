@@ -144,6 +144,11 @@ iASamplingSettingsDlg::iASamplingSettingsDlg(QWidget *parentWdgt,
 	connect(cbSeparateFolder, &QCheckBox::toggled, this, &iASamplingSettingsDlg::outputBaseChanged);
 	connect(sbNumberOfSamples, QOverload<int>::of(&QSpinBox::valueChanged), this, &iASamplingSettingsDlg::outputBaseChanged);
 	connect(cbSamplingMethod, QOverload<int>::of(&QComboBox::currentIndexChanged), this, &iASamplingSettingsDlg::samplingMethodChanged);
+	connect(tbAlgorithmInfo, &QToolButton::toggled, this, &iASamplingSettingsDlg::showAlgorithmInfo);
+	connect(tbSamplingInfo, &QToolButton::toggled, this, &iASamplingSettingsDlg::showSamplingInfo);
+	// initial state
+	showAlgorithmInfo();
+	showSamplingInfo();
 
 	connect(pbRun, &QPushButton::clicked, this, &iASamplingSettingsDlg::runClicked);
 	connect(pbCancel, &QPushButton::clicked, this, &iASamplingSettingsDlg::reject);
@@ -457,6 +462,7 @@ void iASamplingSettingsDlg::algoTypeChanged()
 	{
 		setParametersFromFilter(pbFilterSelect->text());
 	}
+	tbAlgorithmInfo->setEnabled(!isExternal);
 	pbFilterSelect->setEnabled(!isExternal);
 	leExecutable->setEnabled(isExternal);
 	pbChooseExecutable->setEnabled(isExternal);
@@ -589,6 +595,16 @@ void iASamplingSettingsDlg::outputBaseChanged()
 void iASamplingSettingsDlg::samplingMethodChanged()
 {
 	globalSensitivitySettingsWidget->setVisible(cbSamplingMethod->currentText() == iASamplingMethodName::GlobalSensitivity);
+}
+
+void iASamplingSettingsDlg::showAlgorithmInfo()
+{
+	textAlgorithmDescription->setVisible(tbAlgorithmInfo->isChecked());
+}
+
+void iASamplingSettingsDlg::showSamplingInfo()
+{
+	textSamplingDescription->setVisible(tbSamplingInfo->isChecked());
 }
 
 void iASamplingSettingsDlg::chooseParameterDescriptor()

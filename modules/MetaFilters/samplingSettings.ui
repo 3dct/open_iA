@@ -233,7 +233,7 @@
                </property>
               </widget>
              </item>
-             <item row="2" column="1" colspan="3">
+             <item row="2" column="1" colspan="2">
               <widget class="QPushButton" name="pbFilterSelect">
                <property name="enabled">
                 <bool>false</bool>
@@ -243,6 +243,23 @@
                </property>
                <property name="text">
                 <string>Select Filter ...</string>
+               </property>
+              </widget>
+             </item>
+             <item row="2" column="3">
+              <widget class="QToolButton" name="tbAlgorithmInfo">
+               <property name="enabled">
+                <bool>false</bool>
+               </property>
+               <property name="text">
+                <string/>
+               </property>
+               <property name="icon">
+                <iconset resource="../../core/open_iA.qrc">
+                 <normaloff>:/images/info.png</normaloff>:/images/info.png</iconset>
+               </property>
+               <property name="checkable">
+                <bool>true</bool>
                </property>
               </widget>
              </item>
@@ -727,6 +744,20 @@
         </property>
         <property name="popupMode">
          <enum>QToolButton::InstantPopup</enum>
+        </property>
+       </widget>
+      </item>
+      <item>
+       <widget class="QToolButton" name="tbSamplingInfo">
+        <property name="text">
+         <string/>
+        </property>
+        <property name="icon">
+         <iconset resource="../../core/open_iA.qrc">
+          <normaloff>:/images/info.png</normaloff>:/images/info.png</iconset>
+        </property>
+        <property name="checkable">
+         <bool>true</bool>
         </property>
        </widget>
       </item>
