@@ -1357,6 +1357,28 @@ public:
 
 };
 
+void addCheckItem(QStandardItemModel* model, size_t i, QString const & title )
+{
+	model->setItem(i, 0, new QStandardItem(title));
+	auto checkItem = new QStandardItem();
+	checkItem->setCheckable(true);
+	checkItem->setCheckState(Qt::Unchecked);
+	model->setItem(i, 1, checkItem);
+}
+
+std::vector<int> selectedIndices(QStandardItemModel* model)
+{
+	std::vector<int> result;
+	for (int row = 0; row < model->rowCount(); ++row)
+	{
+		if (model->item(row, 1)->checkState() == Qt::Checked)
+		{
+			result.push_back(row);
+		}
+	}
+	return result;
+}
+
 void iAFiAKErController::computeSensitivity()
 {
 	QString fileName = QFileDialog::getOpenFileName(m_mainWnd, iAFiAKErController::FIAKERProjectID, m_data->folder, "Comma-Separated Values (*.csv);;");
@@ -1455,41 +1477,59 @@ void iAFiAKErController::computeSensitivity()
 	// - the loaded and computed ones (length, orientation, ...)
 	// - dissimilarity measure(s)
 
-	QDialog dlg;
-	dlg.setLayout(new QVBoxLayout);
-	auto lv(new QTableView);
 	auto buttonBox(new QDialogButtonBox(QDialogButtonBox::Ok | QDialogButtonBox::Cancel));
-	dlg.setWindowTitle("Feature/Measure selection");
-	dlg.layout()->addWidget(new QLabel("Select Features/Measures for which to compute sensitivity:"));
-	dlg.layout()->addWidget(lv);
-	dlg.layout()->addWidget(buttonBox);
+
+	auto tvFeatures(new QTableView);
+	auto featuresModel(new QStandardItemModel());
+	featuresModel->setHorizontalHeaderLabels(QStringList() << "Feature" << "Select");
+	for (size_t i = 0; i < m_data->m_resultIDColumn; ++i)
+	{
+		addCheckItem(featuresModel, i, m_data->spmData->parameterName(i));
+	}
+	tvFeatures->setModel(featuresModel);
+
+	auto tvDiffMeasures(new QTableView);
+	auto diffMeasuresModel(new QStandardItemModel());
+	diffMeasuresModel->setHorizontalHeaderLabels(QStringList() << "Difference" << "Select");
+	addCheckItem(diffMeasuresModel, 0, "Between Averages");
+	addCheckItem(diffMeasuresModel, 1, "Jensen-Shannon divergence");
+	addCheckItem(diffMeasuresModel, 2, "Shannon entropy");
+	addCheckItem(diffMeasuresModel, 3, "Mutual information");
+
+	tvDiffMeasures->setModel(diffMeasuresModel);
+
+	auto tvMeasures(new QTableView);
+	auto measuresModel(new QStandardItemModel());
+	measuresModel->setHorizontalHeaderLabels(QStringList() << "Measure" << "Select");
+	auto measureNames = getAvailableDissimilarityMeasureNames();
+	for (size_t i=0; i < measureNames.size(); ++i)
+	{
+		addCheckItem(measuresModel, i, measureNames[i]);
+	}
+	tvMeasures->setModel(measuresModel);
+
+	QDialog dlg;
 	connect(buttonBox, &QDialogButtonBox::accepted, &dlg, &QDialog::accept);
 	connect(buttonBox, &QDialogButtonBox::rejected, &dlg, &QDialog::reject);
-	QStringList headers;
-	headers << "Feature/Measure" << "Compute";
-	auto model(new QStandardItemModel());
-	model->setHorizontalHeaderLabels(headers);
+	dlg.setLayout(new QVBoxLayout);
+	dlg.setWindowTitle("Feature/Measure/Difference selection");
+	dlg.layout()->addWidget(new QLabel("Features for which to compute sensitivity:"));
+	dlg.layout()->addWidget(tvFeatures);
+	dlg.layout()->addWidget(new QLabel("Difference measure for two feature distributions:"));
+	dlg.layout()->addWidget(tvDiffMeasures);
+	dlg.layout()->addWidget(new QLabel("Measures for which to compute sensitivity:"));
+	dlg.layout()->addWidget(tvMeasures);
+	dlg.layout()->addWidget(buttonBox);
 
-	QStringList featureMeasureNames;
-	for (size_t curIdx = 0; curIdx < m_data->m_resultIDColumn; ++curIdx)
-	{
-		featureMeasureNames.push_back(m_data->spmData->parameterName(curIdx));
-	}
-	featureMeasureNames.append(getAvailableDissimilarityMeasureNames());
-
-	for (size_t i = 0; i < featureMeasureNames.size(); ++i)
-	{
-		model->setItem(i, 0, new QStandardItem(featureMeasureNames[i]));
-		auto checkItem = new QStandardItem();
-		checkItem->setCheckable(true);
-		checkItem->setCheckState(Qt::Unchecked);
-		model->setItem(i, 1, checkItem);
-	}
-	lv->setModel(model);
 	if (dlg.exec() != QDialog::Accepted)
 	{
 		return;
 	}
+	auto selectedFeatures = selectedIndices(featuresModel);
+	auto selectedFeatureDiffMeasures = selectedIndices(diffMeasuresModel);
+	auto selectedMeasures = selectedIndices(measuresModel);
+
+
 }
 
 void iAFiAKErController::stackedBarColorThemeChanged(int index)
