@@ -1047,7 +1047,7 @@ bool readParameterCSV(QString const& fileName, QString const & encoding, QString
 	auto headers = in.readLine().split(columnSeparator);
 	tblCreator.initialize(headers, resultCount);
 	size_t row = 0;
-	while (!in.atEnd())
+	while (!in.atEnd()  && row < resultCount)
 	{
 		QString line = in.readLine();
 		if (line.trimmed().isEmpty()) // skip empty lines
@@ -1057,6 +1057,11 @@ bool readParameterCSV(QString const& fileName, QString const & encoding, QString
 		auto values = line.split(columnSeparator);
 		tblCreator.addRow(row, values);
 		++row;
+	}
+	if (!in.atEnd())
+	{
+		DEBUG_LOG("Found additional rows at end...");
+		return false;
 	}
 	return true;
 }
@@ -1344,9 +1349,151 @@ void iAFiAKErController::dissimMatrixColorMapChanged(int idx)
 	m_parameterListView->dissimMatrixColorMapChanged(idx);
 }
 
+class iASensitivityInfo
+{
+public:
+	// for which features / 
+	QVector<QString> featureOrMeasureName;
+
+};
+
 void iAFiAKErController::computeSensitivity()
 {
+	QString fileName = QFileDialog::getOpenFileName(m_mainWnd, iAFiAKErController::FIAKERProjectID, m_data->folder, "Comma-Separated Values (*.csv);;");
+	if (fileName.isEmpty())
+	{
+		return;
+	}
+	iACsvVectorTableCreator tblCreator;
+	// csv assumed to contain header line (names of parameters), and one row per parameter set;
+	// parameter set contains an ID as first column and a filename as last row
+	if (!readParameterCSV(fileName, "UTF-8", ",", tblCreator, m_data->result.size()))
+	{
+		return;
+	}
+	auto paramNames = tblCreator.header();
+	auto paramValues = tblCreator.table();
 
+	if (paramValues.size() <= 1 || paramValues[0].size() <= 2)
+	{
+		DEBUG_LOG(QString("Invalid parameter set file: expected at least 2 data rows (actual: %1) "
+			"and at least 3 columns (ID, filename, and one parameter; actual: %2")
+			.arg(paramValues.size() > 0 ? paramValues[0].size() : -1)
+			.arg(paramValues.size())
+		);
+		return;
+	}
+	// data in paramValues is indexed [col][row]
+
+	// find min/max, for all columns except ID and filename
+	std::vector<double> valueMin(paramValues.size() - 2, std::numeric_limits<double>::max());
+	std::vector<double> valueMax(paramValues.size() - 2, std::numeric_limits<double>::lowest());
+	DEBUG_LOG(QString("Parameter values size: %1x%2").arg(paramValues.size()).arg(paramValues[0].size()));
+	// TODO: common min/max calculator for table?
+	for (int p = 1; p < paramValues.size() - 1; ++p)
+	{
+		for (int row = 0; row < paramValues[0].size(); ++row)
+		{
+			double value = paramValues[p][row];
+			if (value < valueMin[p-1])    // -1 because of skipping ID
+			{
+				valueMin[p - 1] = value;
+			}
+			if (value > valueMax[p - 1])    // -1 because of skipping ID
+			{
+				valueMax[p - 1] = value;
+			}
+		}
+	}
+
+	// countOfVariedParams = number of parameters for which min != max:
+	std::vector<size_t> variedParams;
+	for (int p = 0; p < valueMin.size(); ++p)
+	{
+		if (valueMin[p] != valueMax[p])
+		{
+			variedParams.push_back(p + 1); // +1 because valueMin/valueMax don't contain ID
+		}
+	}
+	if (variedParams.size() == 0)
+	{
+		DEBUG_LOG("Invalid sampling: No parameter was varied!");
+		return;
+	}
+	DEBUG_LOG(QString("Found the following parameters to vary (number: %1): %2")
+		.arg(variedParams.size())
+		.arg(joinAsString(variedParams, ",", [&paramNames](size_t const& i) { return paramNames[i + 1]; })));
+	
+	// find out how many additional parameter sets were added per STAR:
+	//   - go to first value row; take value of first varied parameter as v
+	//   - go down rows, as long as either
+	//        first varied parameter has same value as v
+	//        or distance of current value of first varied parameter is a multiple
+	//        of the distance between its first row value and second row value
+	double checkValue0 = paramValues[variedParams[0]][0];
+	const double RemainderCheckEpsilon = 1e-14;
+	double curCheckValue = paramValues[variedParams[0]][1];
+	double diffCheck = curCheckValue - checkValue0;
+	//DEBUG_LOG(QString("checkValue0=%1, diffCheck=%2").arg(checkValue0).arg(diffCheck));
+	double remainder = 0;
+	size_t row = 2;
+	while (row < paramValues[variedParams[0]].size() &&
+		(remainder < RemainderCheckEpsilon || (dblApproxEqual(curCheckValue, checkValue0))))
+	{
+		curCheckValue = paramValues[variedParams[0]][row];
+		remainder = std::abs(std::fmod(std::abs(curCheckValue - checkValue0), diffCheck));
+		//DEBUG_LOG(QString("curCheckValue=%1, remainder=%2, row=%3").arg(curCheckValue).arg(remainder).arg(row));
+		++row;
+	}
+	size_t numberOfStarPointsPerParam = (row - 2) / variedParams.size();
+	DEBUG_LOG(QString("Determined that there are groups of size: %1; number of STAR points per parameter: %2")
+		.arg(row - 1)
+		.arg(numberOfStarPointsPerParam)
+	);
+
+	// select output features to compute sensitivity for:
+	// - the loaded and computed ones (length, orientation, ...)
+	// - dissimilarity measure(s)
+
+	QDialog dlg;
+	dlg.setLayout(new QHBoxLayout);
+	auto lv(new QListView);
+	auto buttonBox(new QDialogButtonBox(QDialogButtonBox::Ok | QDialogButtonBox::Cancel));
+	dlg.setWindowTitle("Feature/Measure selection");
+	dlg.layout()->addWidget(new QLabel("Select Features/Measures for which to compute sensitivity:"));
+	dlg.layout()->addWidget(lv);
+	dlg.layout()->addWidget(buttonBox);
+	connect(buttonBox, &QDialogButtonBox::accepted, &dlg, &QDialog::accept);
+	connect(buttonBox, &QDialogButtonBox::rejected, &dlg, &QDialog::reject);
+	QStringList headers;
+	headers << "Feature/Measure" << "Compute";
+	auto model(new QStandardItemModel());
+	model->setHorizontalHeaderLabels(headers);
+	
+	const int ColumnCount = 1;
+	QStringList featureMeasureNames;
+	for (size_t curIdx = 0; curIdx < m_data->m_resultIDColumn; ++curIdx)
+	{
+		featureMeasureNames.push_back(m_data->spmData->parameterName(curIdx));
+	}
+	featureMeasureNames.append(getAvailableDissimilarityMeasureNames());
+
+	for (size_t i = 0; i < featureMeasureNames.size(); ++i)
+	{
+		model->setItem(i, 0, new QStandardItem(featureMeasureNames[i]));
+		for (int col = 1; col < ColumnCount; ++col)
+		{
+			auto checkItem = new QStandardItem();
+			checkItem->setCheckable(true);
+			checkItem->setCheckState(Qt::Unchecked);
+			model->setItem(i, col, checkItem);
+		}
+	}
+	lv->setModel(model);
+	if (dlg.exec() != QDialog::Accepted)
+	{
+		return;
+	}
 }
 
 void iAFiAKErController::stackedBarColorThemeChanged(int index)
@@ -2894,7 +3041,6 @@ void iAFiAKErController::changeReferenceDisplay()
 	// ... and set up color coding by it!
 	//m_nearestReferenceVis->setLookupTable(lut, refTable->GetNumberOfColumns()-2);
 	// TODO: show similarity color map somewhere!!!
-
 
 	// Lines from Fiber points to reference:
 	if (!m_chkboxShowLines->isChecked())

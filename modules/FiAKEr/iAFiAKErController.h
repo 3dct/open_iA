@@ -65,7 +65,6 @@ class iAMapper;
 class iAQSplom;
 class iARendererManager;
 class iARefDistCompute;
-class iASPLOMData;
 class iAVolumeRenderer;
 class MainWindow;
 class MdiChild;
