@@ -1456,8 +1456,8 @@ void iAFiAKErController::computeSensitivity()
 	// - dissimilarity measure(s)
 
 	QDialog dlg;
-	dlg.setLayout(new QHBoxLayout);
-	auto lv(new QListView);
+	dlg.setLayout(new QVBoxLayout);
+	auto lv(new QTableView);
 	auto buttonBox(new QDialogButtonBox(QDialogButtonBox::Ok | QDialogButtonBox::Cancel));
 	dlg.setWindowTitle("Feature/Measure selection");
 	dlg.layout()->addWidget(new QLabel("Select Features/Measures for which to compute sensitivity:"));
@@ -1469,8 +1469,7 @@ void iAFiAKErController::computeSensitivity()
 	headers << "Feature/Measure" << "Compute";
 	auto model(new QStandardItemModel());
 	model->setHorizontalHeaderLabels(headers);
-	
-	const int ColumnCount = 1;
+
 	QStringList featureMeasureNames;
 	for (size_t curIdx = 0; curIdx < m_data->m_resultIDColumn; ++curIdx)
 	{
@@ -1481,13 +1480,10 @@ void iAFiAKErController::computeSensitivity()
 	for (size_t i = 0; i < featureMeasureNames.size(); ++i)
 	{
 		model->setItem(i, 0, new QStandardItem(featureMeasureNames[i]));
-		for (int col = 1; col < ColumnCount; ++col)
-		{
-			auto checkItem = new QStandardItem();
-			checkItem->setCheckable(true);
-			checkItem->setCheckState(Qt::Unchecked);
-			model->setItem(i, col, checkItem);
-		}
+		auto checkItem = new QStandardItem();
+		checkItem->setCheckable(true);
+		checkItem->setCheckState(Qt::Unchecked);
+		model->setItem(i, 1, checkItem);
 	}
 	lv->setModel(model);
 	if (dlg.exec() != QDialog::Accepted)
