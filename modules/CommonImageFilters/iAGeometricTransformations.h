@@ -23,9 +23,17 @@
 #include <iAFilter.h>
 #include <iAFilterRunnerGUI.h>
 
+IAFILTER_DEFAULT_CLASS(iASimpleResampleFilter);
 IAFILTER_DEFAULT_CLASS(iAResampleFilter);
 IAFILTER_DEFAULT_CLASS(iAExtractImageFilter);
 IAFILTER_DEFAULT_CLASS(iAPadImageFilter);
+
+class iASimpleResampleFilterRunner : public iAFilterRunnerGUI
+{
+public:
+	static QSharedPointer<iAFilterRunnerGUI> create();
+	QMap<QString, QVariant> loadParameters(QSharedPointer<iAFilter> filter, MdiChild* sourceMdi) override;
+};
 
 class iAResampleFilterRunner : public iAFilterRunnerGUI
 {

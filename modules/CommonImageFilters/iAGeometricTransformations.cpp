@@ -46,19 +46,22 @@ namespace
 	const QString InterpWindowedSinc("Windowed Sinc");
 }
 
-template<typename T> void resampler(iAFilter* filter, QMap<QString, QVariant> const & parameters)
+template<typename T> void simpleResampler(iAFilter* filter, QMap<QString, QVariant> const & parameters)
 {
 	typedef itk::Image<T, DIM> InputImageType;
 	typedef itk::ResampleImageFilter<InputImageType, InputImageType> ResampleFilterType;
 	auto resampler = ResampleFilterType::New();
 	typename ResampleFilterType::OriginPointType origin;
-	origin[0] = parameters["Origin X"].toUInt();
-	origin[1] = parameters["Origin Y"].toUInt();
-	origin[2] = parameters["Origin Z"].toUInt();
+	origin[0] = filter->input()[0]->itkImage()->GetOrigin()[0];
+	origin[1] = filter->input()[0]->itkImage()->GetOrigin()[1];
+	origin[2] = filter->input()[0]->itkImage()->GetOrigin()[2];
 	typename ResampleFilterType::SpacingType spacing;
-	spacing[0] = parameters["Spacing X"].toDouble();
-	spacing[1] = parameters["Spacing Y"].toDouble();
-	spacing[2] = parameters["Spacing Z"].toDouble();
+	spacing[0] = filter->input()[0]->itkImage()->GetSpacing()[0] * (double)filter->input()[0]->vtkImage()->GetDimensions()[0] /
+		parameters["Size X"].toDouble();
+	spacing[1] = filter->input()[0]->itkImage()->GetSpacing()[1] * (double)filter->input()[0]->vtkImage()->GetDimensions()[1] /
+		parameters["Size Y"].toDouble();
+	spacing[2] = filter->input()[0]->itkImage()->GetSpacing()[2] * (double)filter->input()[0]->vtkImage()->GetDimensions()[2] /
+		parameters["Size Z"].toDouble();
 	typename ResampleFilterType::SizeType size;
 	size[0] = parameters["Size X"].toUInt();
 	size[1] = parameters["Size Y"].toUInt();
@@ -102,6 +105,102 @@ template<typename T> void resampler(iAFilter* filter, QMap<QString, QVariant> co
 	filter->progress()->observe( resampler );
 	resampler->Update( );
 	filter->addOutput( resampler->GetOutput() );
+}
+
+
+IAFILTER_CREATE(iASimpleResampleFilter)
+
+void iASimpleResampleFilter::performWork(QMap<QString, QVariant> const& parameters)
+{
+	ITK_TYPED_CALL(simpleResampler, inputPixelType(), this, parameters);
+}
+
+iASimpleResampleFilter::iASimpleResampleFilter() :
+	iAFilter("Simple Resample", "Geometric Transformations",
+		"Resample the image to a new size.<br/>"
+		"For more information, see the "
+		"<a href=\"https ://itk.org/Doxygen/html/classitk_1_1ResampleImageFilter.html\">"
+		"Resample Filter</a> in the ITK documentation.")
+{
+	addParameter("Size X", iAValueType::Discrete, 1, 1);
+	addParameter("Size Y", iAValueType::Discrete, 1, 1);
+	addParameter("Size Z", iAValueType::Discrete, 1, 1);
+	QStringList interpolators;
+	interpolators << InterpLinear << InterpNearestNeighbour << InterpBSpline << InterpWindowedSinc;
+	addParameter("Interpolator", iAValueType::Categorical, interpolators);
+}
+
+QSharedPointer<iAFilterRunnerGUI> iASimpleResampleFilterRunner::create()
+{
+	return QSharedPointer<iAFilterRunnerGUI>(new iASimpleResampleFilterRunner());
+}
+
+QMap<QString, QVariant> iASimpleResampleFilterRunner::loadParameters(QSharedPointer<iAFilter> filter, MdiChild* sourceMdi)
+{
+	auto params = iAFilterRunnerGUI::loadParameters(filter, sourceMdi);
+
+	params["Size X"] = sourceMdi->imagePointer()->GetDimensions()[0];
+	params["Size Y"] = sourceMdi->imagePointer()->GetDimensions()[1];
+	params["Size Z"] = sourceMdi->imagePointer()->GetDimensions()[2];
+	return params;
+}
+
+
+
+template <typename T>
+void resampler(iAFilter* filter, QMap<QString, QVariant> const& parameters)
+{
+	typedef itk::Image<T, DIM> InputImageType;
+	typedef itk::ResampleImageFilter<InputImageType, InputImageType> ResampleFilterType;
+	auto resampler = ResampleFilterType::New();
+	typename ResampleFilterType::OriginPointType origin;
+	origin[0] = parameters["Origin X"].toUInt();
+	origin[1] = parameters["Origin Y"].toUInt();
+	origin[2] = parameters["Origin Z"].toUInt();
+	typename ResampleFilterType::SpacingType spacing;
+	spacing[0] = parameters["Spacing X"].toDouble();
+	spacing[1] = parameters["Spacing Y"].toDouble();
+	spacing[2] = parameters["Spacing Z"].toDouble();
+	typename ResampleFilterType::SizeType size;
+	size[0] = parameters["Size X"].toUInt();
+	size[1] = parameters["Size Y"].toUInt();
+	size[2] = parameters["Size Z"].toUInt();
+	QString interpolatorName = parameters["Interpolator"].toString();
+	if (interpolatorName == InterpLinear)
+	{
+		typedef itk::LinearInterpolateImageFunction<InputImageType, double> InterpolatorType;
+		auto interpolator = InterpolatorType::New();
+		resampler->SetInterpolator(interpolator);
+	}
+	else if (interpolatorName == InterpNearestNeighbour)
+	{
+		typedef itk::NearestNeighborInterpolateImageFunction<InputImageType, double> InterpolatorType;
+		auto interpolator = InterpolatorType::New();
+		resampler->SetInterpolator(interpolator);
+	}
+	else if (interpolatorName == InterpBSpline)
+	{
+		typedef itk::BSplineInterpolateImageFunction<InputImageType, double> InterpolatorType;
+		auto interpolator = InterpolatorType::New();
+		resampler->SetInterpolator(interpolator);
+	}
+	else if (interpolatorName == InterpWindowedSinc)
+	{
+		typedef itk::Function::HammingWindowFunction<3> WindowFunctionType;
+		typedef itk::ZeroFluxNeumannBoundaryCondition<InputImageType> ConditionType;
+		typedef itk::WindowedSincInterpolateImageFunction<InputImageType, 3, WindowFunctionType, ConditionType, double>
+			InterpolatorType;
+		auto interpolator = InterpolatorType::New();
+		resampler->SetInterpolator(interpolator);
+	}
+	resampler->SetInput(dynamic_cast<InputImageType*>(filter->input()[0]->itkImage()));
+	resampler->SetOutputOrigin(origin);
+	resampler->SetOutputSpacing(spacing);
+	resampler->SetSize(size);
+	resampler->SetDefaultPixelValue(0);
+	filter->progress()->observe(resampler);
+	resampler->Update();
+	filter->addOutput(resampler->GetOutput());
 }
 
 IAFILTER_CREATE(iAResampleFilter)
