@@ -50,19 +50,19 @@ void iAStackReaderFilter::performWork(QMap<QString, QVariant> const & parameters
 
 	vtkSmartPointer<vtkImageReader2> imgReader;
 	auto ext = fi.suffix().toUpper();
-	if (ext == "TIF" || ext == ".TIFF")
+	if (ext == "TIF" || ext == "TIFF")
 	{
 		imgReader = vtkSmartPointer<vtkTIFFReader>::New();
 	}
-	else if (ext == ".JPG" || ext == ".JPEG")
+	else if (ext == "JPG" || ext == "JPEG")
 	{
 		imgReader = vtkSmartPointer<vtkJPEGReader>::New();
 	}
-	else if (ext == ".PNG")
+	else if (ext == "PNG")
 	{
 		imgReader = vtkSmartPointer<vtkPNGReader>::New();
 	}
-	else if (ext == ".BMP")
+	else if (ext == "BMP")
 	{
 		imgReader = vtkSmartPointer<vtkBMPReader>::New();
 	}
