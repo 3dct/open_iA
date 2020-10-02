@@ -67,8 +67,18 @@ private:
 		int dimx, dimy, dimz;
 	};
 
+	enum Pipeline {
+		NONE,
+		BGR, // Background removal
+		MR,  // Modality reduction
+		BGR_MR,
+		MR_BGR
+	};
+
+	Pipeline choosePipeline();
 	QSharedPointer<iANModalModalityReducer> chooseModalityReducer();
 	QSharedPointer<iANModalBackgroundRemover> chooseBackgroundRemover();
+	
 
 	bool areModalitiesCompatible(QSharedPointer<iAModality>, QSharedPointer <iAModality>);
 	void groupModalities(const QList<QSharedPointer<iAModality>> &, QList<ModalitiesGroup> &output);
@@ -87,7 +97,7 @@ public:
 		QString description;
 	};
 
-	iANModalPreprocessorSelector();
+	iANModalPreprocessorSelector(QString dialogTitle);
 	void addOption(QString displayName, Option option);
 	QString exec();
 
