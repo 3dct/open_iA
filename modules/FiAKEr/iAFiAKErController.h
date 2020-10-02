@@ -65,6 +65,7 @@ class iAMapper;
 class iAQSplom;
 class iARendererManager;
 class iARefDistCompute;
+class iASensitivityInfo;
 class iAVolumeRenderer;
 class MainWindow;
 class MdiChild;
@@ -346,6 +347,7 @@ private:
 	iADissimilarityMatrixType m_dissimilarityMatrix;
 	iAMatrixWidget* m_matrixWidget;
 	iAParameterListView* m_parameterListView;
+	QSharedPointer<iASensitivityInfo> m_sensitivityInfo;
 
 	QString dissimilarityMatrixCacheFileName();
 	bool readDissimilarityMatrixCache(QVector<int>& measures);

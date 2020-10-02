@@ -25,6 +25,7 @@
 #include "iAJobListView.h"
 #include "iAMeasureSelectionDlg.h"
 #include "iARefDistCompute.h"
+#include "iASensitivityInfo.h"
 #include "iAStackedBarChart.h"
 #include "ui_DissimilarityMatrix.h"
 
@@ -1028,44 +1029,6 @@ void iAFiAKErController::resultColorThemeChanged(int index)
 	// main3DVis automatically updated through SPM
 }
 
-// Factor out as generic CSV reading class also used by iACsvIO?
-bool readParameterCSV(QString const& fileName, QString const & encoding, QString const & columnSeparator, iACsvTableCreator& tblCreator, size_t resultCount)
-{
-	if (!QFile::exists(fileName))
-	{
-		DEBUG_LOG("Error loading csv file, file does not exist.");
-		return false;
-	}
-	QFile file(fileName);
-	if (!file.open(QIODevice::ReadOnly | QIODevice::Text))
-	{
-		DEBUG_LOG(QString("Unable to open file '%1': %2").arg(fileName).arg(file.errorString()));
-		return false;
-	}
-	QTextStream in(&file);
-	in.setCodec(encoding.toStdString().c_str());
-	auto headers = in.readLine().split(columnSeparator);
-	tblCreator.initialize(headers, resultCount);
-	size_t row = 0;
-	while (!in.atEnd()  && row < resultCount)
-	{
-		QString line = in.readLine();
-		if (line.trimmed().isEmpty()) // skip empty lines
-		{
-			continue;
-		}
-		auto values = line.split(columnSeparator);
-		tblCreator.addRow(row, values);
-		++row;
-	}
-	if (!in.atEnd())
-	{
-		DEBUG_LOG("Found additional rows at end...");
-		return false;
-	}
-	return true;
-}
-
 using iADissimilarityMatrixDockContent = iAQTtoUIConnector<QWidget, Ui_DissimilarityMatrix>;
 
 QWidget* iAFiAKErController::setupMatrixView(QStringList paramNames, std::vector<std::vector<double>> const& paramValues, QVector<int> const & measures)
@@ -1349,36 +1312,6 @@ void iAFiAKErController::dissimMatrixColorMapChanged(int idx)
 	m_parameterListView->dissimMatrixColorMapChanged(idx);
 }
 
-class iASensitivityInfo
-{
-public:
-	// for which features / 
-	QVector<QString> featureOrMeasureName;
-
-};
-
-void addCheckItem(QStandardItemModel* model, size_t i, QString const & title )
-{
-	model->setItem(i, 0, new QStandardItem(title));
-	auto checkItem = new QStandardItem();
-	checkItem->setCheckable(true);
-	checkItem->setCheckState(Qt::Unchecked);
-	model->setItem(i, 1, checkItem);
-}
-
-std::vector<int> selectedIndices(QStandardItemModel* model)
-{
-	std::vector<int> result;
-	for (int row = 0; row < model->rowCount(); ++row)
-	{
-		if (model->item(row, 1)->checkState() == Qt::Checked)
-		{
-			result.push_back(row);
-		}
-	}
-	return result;
-}
-
 void iAFiAKErController::computeSensitivity()
 {
 	QString fileName = QFileDialog::getOpenFileName(m_mainWnd, iAFiAKErController::FIAKERProjectID, m_data->folder, "Comma-Separated Values (*.csv);;");
@@ -1386,150 +1319,7 @@ void iAFiAKErController::computeSensitivity()
 	{
 		return;
 	}
-	iACsvVectorTableCreator tblCreator;
-	// csv assumed to contain header line (names of parameters), and one row per parameter set;
-	// parameter set contains an ID as first column and a filename as last row
-	if (!readParameterCSV(fileName, "UTF-8", ",", tblCreator, m_data->result.size()))
-	{
-		return;
-	}
-	auto paramNames = tblCreator.header();
-	auto paramValues = tblCreator.table();
-
-	if (paramValues.size() <= 1 || paramValues[0].size() <= 2)
-	{
-		DEBUG_LOG(QString("Invalid parameter set file: expected at least 2 data rows (actual: %1) "
-			"and at least 3 columns (ID, filename, and one parameter; actual: %2")
-			.arg(paramValues.size() > 0 ? paramValues[0].size() : -1)
-			.arg(paramValues.size())
-		);
-		return;
-	}
-	// data in paramValues is indexed [col][row]
-
-	// find min/max, for all columns except ID and filename
-	std::vector<double> valueMin(paramValues.size() - 2, std::numeric_limits<double>::max());
-	std::vector<double> valueMax(paramValues.size() - 2, std::numeric_limits<double>::lowest());
-	DEBUG_LOG(QString("Parameter values size: %1x%2").arg(paramValues.size()).arg(paramValues[0].size()));
-	// TODO: common min/max calculator for table?
-	for (int p = 1; p < paramValues.size() - 1; ++p)
-	{
-		for (int row = 0; row < paramValues[0].size(); ++row)
-		{
-			double value = paramValues[p][row];
-			if (value < valueMin[p-1])    // -1 because of skipping ID
-			{
-				valueMin[p - 1] = value;
-			}
-			if (value > valueMax[p - 1])    // -1 because of skipping ID
-			{
-				valueMax[p - 1] = value;
-			}
-		}
-	}
-
-	// countOfVariedParams = number of parameters for which min != max:
-	std::vector<size_t> variedParams;
-	for (int p = 0; p < valueMin.size(); ++p)
-	{
-		if (valueMin[p] != valueMax[p])
-		{
-			variedParams.push_back(p + 1); // +1 because valueMin/valueMax don't contain ID
-		}
-	}
-	if (variedParams.size() == 0)
-	{
-		DEBUG_LOG("Invalid sampling: No parameter was varied!");
-		return;
-	}
-	DEBUG_LOG(QString("Found the following parameters to vary (number: %1): %2")
-		.arg(variedParams.size())
-		.arg(joinAsString(variedParams, ",", [&paramNames](size_t const& i) { return paramNames[i + 1]; })));
-	
-	// find out how many additional parameter sets were added per STAR:
-	//   - go to first value row; take value of first varied parameter as v
-	//   - go down rows, as long as either
-	//        first varied parameter has same value as v
-	//        or distance of current value of first varied parameter is a multiple
-	//        of the distance between its first row value and second row value
-	double checkValue0 = paramValues[variedParams[0]][0];
-	const double RemainderCheckEpsilon = 1e-14;
-	double curCheckValue = paramValues[variedParams[0]][1];
-	double diffCheck = curCheckValue - checkValue0;
-	//DEBUG_LOG(QString("checkValue0=%1, diffCheck=%2").arg(checkValue0).arg(diffCheck));
-	double remainder = 0;
-	size_t row = 2;
-	while (row < paramValues[variedParams[0]].size() &&
-		(remainder < RemainderCheckEpsilon || (dblApproxEqual(curCheckValue, checkValue0))))
-	{
-		curCheckValue = paramValues[variedParams[0]][row];
-		remainder = std::abs(std::fmod(std::abs(curCheckValue - checkValue0), diffCheck));
-		//DEBUG_LOG(QString("curCheckValue=%1, remainder=%2, row=%3").arg(curCheckValue).arg(remainder).arg(row));
-		++row;
-	}
-	size_t numberOfStarPointsPerParam = (row - 2) / variedParams.size();
-	DEBUG_LOG(QString("Determined that there are groups of size: %1; number of STAR points per parameter: %2")
-		.arg(row - 1)
-		.arg(numberOfStarPointsPerParam)
-	);
-
-	// select output features to compute sensitivity for:
-	// - the loaded and computed ones (length, orientation, ...)
-	// - dissimilarity measure(s)
-
-	auto buttonBox(new QDialogButtonBox(QDialogButtonBox::Ok | QDialogButtonBox::Cancel));
-
-	auto tvFeatures(new QTableView);
-	auto featuresModel(new QStandardItemModel());
-	featuresModel->setHorizontalHeaderLabels(QStringList() << "Feature" << "Select");
-	for (size_t i = 0; i < m_data->m_resultIDColumn; ++i)
-	{
-		addCheckItem(featuresModel, i, m_data->spmData->parameterName(i));
-	}
-	tvFeatures->setModel(featuresModel);
-
-	auto tvDiffMeasures(new QTableView);
-	auto diffMeasuresModel(new QStandardItemModel());
-	diffMeasuresModel->setHorizontalHeaderLabels(QStringList() << "Difference" << "Select");
-	addCheckItem(diffMeasuresModel, 0, "Between Averages");
-	addCheckItem(diffMeasuresModel, 1, "Jensen-Shannon divergence");
-	addCheckItem(diffMeasuresModel, 2, "Shannon entropy");
-	addCheckItem(diffMeasuresModel, 3, "Mutual information");
-
-	tvDiffMeasures->setModel(diffMeasuresModel);
-
-	auto tvMeasures(new QTableView);
-	auto measuresModel(new QStandardItemModel());
-	measuresModel->setHorizontalHeaderLabels(QStringList() << "Measure" << "Select");
-	auto measureNames = getAvailableDissimilarityMeasureNames();
-	for (size_t i=0; i < measureNames.size(); ++i)
-	{
-		addCheckItem(measuresModel, i, measureNames[i]);
-	}
-	tvMeasures->setModel(measuresModel);
-
-	QDialog dlg;
-	connect(buttonBox, &QDialogButtonBox::accepted, &dlg, &QDialog::accept);
-	connect(buttonBox, &QDialogButtonBox::rejected, &dlg, &QDialog::reject);
-	dlg.setLayout(new QVBoxLayout);
-	dlg.setWindowTitle("Feature/Measure/Difference selection");
-	dlg.layout()->addWidget(new QLabel("Features for which to compute sensitivity:"));
-	dlg.layout()->addWidget(tvFeatures);
-	dlg.layout()->addWidget(new QLabel("Difference measure for two feature distributions:"));
-	dlg.layout()->addWidget(tvDiffMeasures);
-	dlg.layout()->addWidget(new QLabel("Measures for which to compute sensitivity:"));
-	dlg.layout()->addWidget(tvMeasures);
-	dlg.layout()->addWidget(buttonBox);
-
-	if (dlg.exec() != QDialog::Accepted)
-	{
-		return;
-	}
-	auto selectedFeatures = selectedIndices(featuresModel);
-	auto selectedFeatureDiffMeasures = selectedIndices(diffMeasuresModel);
-	auto selectedMeasures = selectedIndices(measuresModel);
-
-
+	m_sensitivityInfo = iASensitivityInfo::create(fileName, m_data);
 }
 
 void iAFiAKErController::stackedBarColorThemeChanged(int index)

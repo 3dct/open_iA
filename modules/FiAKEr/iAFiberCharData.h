@@ -81,7 +81,8 @@ QDataStream &operator>>(QDataStream &in, iARefDiffFiberData &s);
 class iAFiberCharData
 {
 public:
-	//! the fiber data as vtkTable, mainly for the 3d visualization:
+	//! the fiber data as vtkTable, mainly for the 3d visualization
+	// TODO: deduplicate data here and in iAFiberResultsCollection::spmData
 	vtkSmartPointer<vtkTable> table;
 	//! mapping of the columns in m_resultTable
 	QSharedPointer<QMap<uint, uint> > mapping;
@@ -117,7 +118,8 @@ public:
 
 	//! for each result, detailed data
 	std::vector<iAFiberCharData> result;
-	//! SPM data
+	//! SPM data.
+	// TODO: deduplicate data here and in result[x].table
 	QSharedPointer<iASPLOMData> spmData;
 	//! min and max of fiber count over all results
 	size_t minFiberCount, maxFiberCount;
