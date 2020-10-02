@@ -1613,92 +1613,9 @@ void iAIO::writeImageStack( )
 
 bool iAIO::setupStackReader( QString const & f )
 {
-	QFileInfo fi(f);
-	QDir dir(fi.absolutePath());
-	QStringList nameFilters;
-	nameFilters << "*."+fi.suffix();
-	QFileInfoList imgFiles = dir.entryInfoList(nameFilters);
-	m_fileNamesBase = fi.absoluteFilePath();
-	m_extension = fi.absoluteFilePath();
-	for (QFileInfo imgFileInfo : imgFiles)
-	{
-		QString imgFileName = imgFileInfo.absoluteFilePath();
-		if (imgFileName == fi.absoluteFilePath())
-		{
-			continue;
-		}
-		auto newPrefix = greatestCommonPrefix(m_fileNamesBase, imgFileName);
-		auto newSuffix = greatestCommonSuffix(m_extension, imgFileName);
-		//DEBUG_LOG(QString("  File %1: new prefix=%2, new suffix=%3").arg(imgFileName).arg(newPrefix).arg(newSuffix));
-		auto differentPartLength = imgFileName.length() - newPrefix.length() - newSuffix.length();
-		auto differentPart = imgFileName.mid(newPrefix.length(), differentPartLength);
-		bool ok;
-		/* auto differentSuffixNr = */ differentPart.toInt(&ok);
-		if (ok)
-		{
-			m_fileNamesBase = newPrefix;
-			m_extension = newSuffix;
-		}
-		//else
-		//{
-		//	DEBUG_LOG(QString("    Skipping: Part differing (%1) from chosen file (%2) is not a number!").arg(differentPart).arg(f));
-		//}
-	}
-	//DEBUG_LOG(QString("FINAL prefix=%1, suffix=%2").arg(m_fileNamesBase).arg(m_extension));
-	int digits = fi.absoluteFilePath().length();
-	int indexRange[2] = { std::numeric_limits<int>::max(), std::numeric_limits<int>::min() };
-	if (m_fileNamesBase == fi.absoluteFilePath() || m_extension == fi.absoluteFilePath())
-	{
-		//DEBUG_LOG("Automatic determination of prefix and suffix failed, could not determine any valid range of which the given filename is a part!");
-		// fallback: set full filename as base, and extension as suffix
-		m_fileNamesBase = fi.absoluteFilePath().left(fi.absoluteFilePath().length() - fi.suffix().length() - 1);
-		m_extension = "." + fi.suffix();
-		digits = 0;
-	}
-	else
-	{
-		// determine index range:
-		//DEBUG_LOG("Determine index range:");
-		for (QFileInfo imgFileInfo : imgFiles)
-		{
-			QString imgFileName = imgFileInfo.absoluteFilePath();
-			int len = imgFileName.length() - m_fileNamesBase.length() - m_extension.length();
-			if (!imgFileName.startsWith(m_fileNamesBase) || !imgFileName.endsWith(m_extension) || len <= 0)
-			{
-				//DEBUG_LOG(QString("  File %1: does not match prefix(%2) or suffix(%3); or length of extracted number (%4) string would be <= 0").arg(imgFileName).arg(m_fileNamesBase).arg(m_extension).arg(len));
-				continue;
-			}
-			QString numStr = imgFileName.mid(m_fileNamesBase.length(), len);
-			//DEBUG_LOG(QString("  File %1: numStr=%2 (start=%3, len=%4)").arg(imgFileName).arg(numStr).arg(m_fileNamesBase.length()).arg(len));
-			digits = std::min(numStr.length(), digits);
-			bool ok;
-			int num = numStr.toInt(&ok);
-			if (!ok)
-			{
-				//DEBUG_LOG(QString("    Invalid, non-numeric part (%1) in image file name '%2'.").arg(numStr).arg(imgFileName));
-				continue;
-			}
-			if (num < indexRange[0])
-			{
-				indexRange[0] = num;
-			}
-			if (num > indexRange[1])
-			{
-				indexRange[1] = num;
-			}
-			//DEBUG_LOG(QString("  New range: %1-%2").arg(indexRange[0]).arg(indexRange[1]));
-		}
-		// Check if all files in range exist:
-		for (int val = indexRange[0]; val <= indexRange[1]; ++val)
-		{
-			QString filename(m_fileNamesBase + QString::number(val).rightJustified(digits, '0') + m_extension);
-			if (!QFile::exists(filename))
-			{
-				DEBUG_LOG(QString("NOTE: Filename '%1' would be in determined range, but it does not exist! "
-					"Loading with the determined min/max values will fail!").arg(filename));
-			}
-		}
-	}
+	int indexRange[2];
+	int digits;
+	determineStackParameters(f, m_fileNamesBase, m_extension, indexRange, digits);
 	QStringList inList = (QStringList()
 		<< tr("#File Names Base") << tr("#Extension")
 		<< tr("#Number of Digits in Index")
