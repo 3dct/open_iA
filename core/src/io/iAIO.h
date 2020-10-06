@@ -83,6 +83,7 @@ private:
 	bool setupRAWReader( QString const & f );
 	bool setupPARSReader( QString const & f );
 	bool setupVGIReader( QString const & f );
+	bool setupNKCReader(QString const& f);
 	bool setupStackReader( QString const & f );
 	bool setupVolumeStackReader(QString const & f);
 	bool setupVolumeStackMHDReader(QString const & f);

@@ -72,7 +72,8 @@ enum iAIOType
 #endif
 	HDF5_WRITER,
 	PROJECT_READER,
-	PROJECT_WRITER
+	PROJECT_WRITER,
+	NKC_READER
 };
 
 const int DefaultMagicLensSize = 120;
