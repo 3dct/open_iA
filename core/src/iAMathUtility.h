@@ -249,3 +249,47 @@ std::vector<size_t> sort_indexes(const std::vector<T>& v)
 
 	return idx;
 }
+
+// TODO: policy regarding std::vector / QVector usage!
+#include <QVector>
+
+//! compute histogram from given values
+// TODO: use in iAHistogramData::create
+template <typename ContainerT, typename ValueT, typename IndexT, typename FreqT>
+QVector<FreqT> createHistogram(const ContainerT& inData, IndexT binCount, ValueT minValue, ValueT maxValue)
+{
+	if (std::isinf(minValue))
+	{
+		minValue = std::numeric_limits<ValueT>::max();
+		for (ValueT d : inData)
+		{
+			if (d < minValue)
+			{
+				minValue = d;
+			}
+		}
+	}
+	if (std::isinf(maxValue))
+	{
+		maxValue = std::numeric_limits<ValueT>::lowest();
+		for (ValueT d : inData)
+		{
+			if (d > maxValue)
+			{
+				maxValue = d;
+			}
+		}
+	}
+	if (dblApproxEqual(minValue, maxValue))
+	{   // if min == max, there is only one bin - one in which all values are contained!
+		return QVector<FreqT>(1, inData.size());
+	}
+	QVector<FreqT> result;
+	result.fill(0, binCount);
+	for (ValueT d : inData)
+	{
+		IndexT bin = clamp(static_cast<IndexT>(0), binCount - 1, mapValue(minValue, maxValue, static_cast<IndexT>(0), binCount, d));
+		++result[bin];
+	}
+	return result;
+}
