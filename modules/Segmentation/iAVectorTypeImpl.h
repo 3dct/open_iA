@@ -28,7 +28,7 @@
 #include <vector>
 #include <cstddef> // for size_t
 
-// implementation of a standalone vector of values
+//! implementation of a standalone vector of values
 class iAStandaloneVector: public iAVectorType
 {
 private:
@@ -36,10 +36,24 @@ private:
 public:
 	iAStandaloneVector(IndexType size);
 	~iAStandaloneVector() override;
-	virtual iAVectorDataType get(size_t channelIdx) const override;
-	virtual IndexType size() const override;
+	iAVectorDataType get(size_t channelIdx) const override;
+	IndexType size() const override;
 	void set(IndexType, iAVectorDataType);
 };
+
+
+//! implementation of a reference to a container type
+template<typename ContainerT>
+class iARefVector : public iAVectorType
+{
+private:
+	ContainerT const & m_ref;
+public:
+	iARefVector(ContainerT const & ref);
+	iAVectorDataType get(size_t channelIdx) const override;
+	IndexType size() const override;
+};
+
 
 //! a single vector accessing its data via the iAVectorArray it is contained in
 //! (mainly to directly access the vector for a single pixel from a iAVectorArray
@@ -55,3 +69,23 @@ public:
 	iAVectorDataType get(size_t channelIdx) const override;
 	IndexType size() const override;
 };
+
+
+
+
+template <typename ContainerT>
+iARefVector<ContainerT>::iARefVector(ContainerT const& ref) : m_ref(ref)
+{}
+
+
+template <typename ContainerT>
+iAVectorDataType iARefVector<ContainerT>::get(size_t channelIdx) const
+{
+	return m_ref[channelIdx];
+}
+
+template <typename ContainerT>
+iAVectorType::IndexType iARefVector<ContainerT>::size() const
+{
+	return m_ref.size();
+}

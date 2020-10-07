@@ -20,12 +20,14 @@
 * ************************************************************************************/
 #pragma once
 
+#include "Segmentation_export.h"
+
 #include <QSharedPointer>
 
 typedef double iAVectorDataType;
 
 //! abstract base class for an arbitrary-sized vector
-class iAVectorType
+class Segmentation_API iAVectorType
 {
 public:
 	virtual ~iAVectorType();
