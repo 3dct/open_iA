@@ -367,9 +367,9 @@ QSharedPointer<iASensitivityInfo> iASensitivityInfo::create(QString const& param
 	dlg.layout()->addWidget(tvMeasures);
 	dlg.layout()->addWidget(new QLabel("Number of Histogram Bins:"));
 	QSpinBox* spHistogramBins(new QSpinBox);
-	spHistogramBins->setValue(100);
 	spHistogramBins->setMinimum(2);
 	spHistogramBins->setMaximum(9999);
+	spHistogramBins->setValue(100);
 	dlg.layout()->addWidget(spHistogramBins);
 	dlg.layout()->addWidget(buttonBox);
 
