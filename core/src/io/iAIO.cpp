@@ -1629,7 +1629,9 @@ void writeImageStack_template(QString const & fileName, iAProgress* p, iAConnect
 		auto imgIO = itk::TIFFImageIO::New();
 		writer->SetImageIO(imgIO);
 	}
-	QString format(fi.absolutePath() + "/" + fi.baseName() + "%d." + fi.completeSuffix());
+	
+	QString length = QString::number(size[2]);
+	QString format(fi.absolutePath() + "/" + fi.baseName() + "%0" + QString::number(length.size()) + "d." + fi.completeSuffix());
 	nameGenerator->SetSeriesFormat( getLocalEncodingFileName(format).c_str());
 	writer->SetFileNames(nameGenerator->GetFileNames());
 	writer->SetInput(dynamic_cast< InputImageType * > (con->itkImage()));
