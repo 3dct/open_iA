@@ -359,6 +359,8 @@ QSharedPointer<iASensitivityInfo> iASensitivityInfo::create(QString const& param
 	QObject::connect(buttonBox, &QDialogButtonBox::rejected, &dlg, &QDialog::reject);
 	dlg.setLayout(new QVBoxLayout);
 	dlg.setWindowTitle("Characteristic/Measure/Difference selection");
+	dlg.layout()->setContentsMargins(4, 4, 4, 4);
+	dlg.layout()->setSpacing(4);
 	dlg.layout()->addWidget(new QLabel("Characteristic for which to compute sensitivity:"));
 	dlg.layout()->addWidget(tvCharacteristic);
 	dlg.layout()->addWidget(new QLabel("Measure difference between two feature distributions:"));
