@@ -32,7 +32,12 @@ class iASensitivityInfo
 public:
 	QStringList paramNames;
 	//! "points" in parameter space at which the sensitivity was computed
-	QVector<QVector<double>> paramValues;
+	//! first index: parameter set; second index: parameter
+	QVector<QVector<double>> paramSetValues;
+	//! all samples points (i.e. all values from paramSetValues + points sampled for STAR around these points)
+	//! NOTE: due to legacy reasons, swapped index order in comparison to paramSetValues!
+	// TODO: unify index order?
+	std::vector<std::vector<double>> allParamValues;
 	//! indices of features for which sensitivity was computed
 	QVector<int> charactIndex;
 	//! which difference measures were used for distribution comparison
@@ -40,19 +45,33 @@ public:
 	//! for which dissimilarity measure sensitivity was computed
 	QVector<int> dissimMeasure;
 
+
+	QVector<                //! For each result,
+		QVector<	        //! for each characteristic,
+		QVector<double>>>   //! a histogram.
+		resultCharacteristicHistograms;
+
+	int numOfSTARSteps;
+	// CURRENTLY UNUSED: QVector<double> paramStep;  //! per varied parameter, the size of step performed for the STAR
+
+	QVector<int> variedParams;  //! indices of the parameters that were varied
+
 	// for each characteristic
-	//     for each point in parameter space (of base sampling method)
-	//         for each varied parameter
-	//             for each selected characteristics difference measure
-	//                 compute local change by that difference measure
+	//     for each varied parameter
+	//         for each selected characteristics difference measure
+	//             for variation aggregation (see iASensitivityInfo::create)
+	//                 for each point in parameter space (of base sampling method)
+	//                     compute local change by that difference measure
 
 	//! store "sensitivity field":
 	//! characteristic / parameter space point / parameter / diff measure
 	QVector<    // characteristic (index in charactIndex)
-		QVector<    // parameter set (first index in paramValues)
-		QVector<    // parameter index (second index in paramValues)
+		QVector<    // parameter index (second index in paramSetValues / allParamValues)
 		QVector<    // characteristics difference measure index (index in charDiffMeasure)
-		double>>>> sensitivityField;
+		QVector<    // variation aggregation (see iASensitivityInfo::create)
+		QVector<    // parameter set index (first index in paramSetValues)
+		double
+	>>>>> sensitivityField;
 
 	//! store per-characteristic/ parameter average
 
@@ -84,14 +103,27 @@ bool readParameterCSV(QString const& fileName, QString const& encoding, QString 
 
 // TODO: Extract to .cpp FILE:
 
-#include <iAConsole.h>
 #include <charts/iASPLOMData.h>
+#include <iAConsole.h>
+#include <iAMathUtility.h>
+#include <iAStringHelper.h>
 
 #include "iACsvVectorTableCreator.h"
 #include "iAFiberCharData.h"
+#include "iAFiberData.h"
 
+#include <QDialog>
+#include <QDialogButtonBox>
 #include <QFile>
+#include <QLabel>
+#include <QStandardItemModel>
+#include <QTableView>
 #include <QTextStream>
+#include <QVBoxLayout>
+
+#include <vtkSmartPointer.h>
+#include <vtkTable.h>
+#include <vtkVariant.h>
 
 // Factor out as generic CSV reading class also used by iACsvIO?
 bool readParameterCSV(QString const& fileName, QString const& encoding, QString const& columnSeparator, iACsvTableCreator& tblCreator, size_t resultCount)
@@ -153,6 +185,13 @@ QVector<int> selectedIndices(QStandardItemModel* model)
 	return result;
 }
 
+using HistogramType = QVector<double>;
+
+double distributionDifference(HistogramType const& distr1, HistogramType const& distr2, int diffType)
+{
+	return 0;
+}
+
 QSharedPointer<iASensitivityInfo> iASensitivityInfo::create(QString const& parameterFileName,
 	QSharedPointer<iAFiberResultsCollection> data)
 {
@@ -163,10 +202,12 @@ QSharedPointer<iASensitivityInfo> iASensitivityInfo::create(QString const& param
 	{
 		return QSharedPointer<iASensitivityInfo>();
 	}
+	QSharedPointer<iASensitivityInfo> sensitivityInfo(new iASensitivityInfo());
 	auto paramNames = tblCreator.header();
-	auto paramValues = tblCreator.table();
+	sensitivityInfo->allParamValues = tblCreator.table();
+	auto& paramValues = sensitivityInfo->allParamValues;
 
-	if (paramValues.size() <= 1 || paramValues[0].size() <= 2)
+	if (paramValues.size() <= 2 || paramValues[0].size() <= 3)
 	{
 		DEBUG_LOG(QString("Invalid parameter set file: expected at least 2 data rows (actual: %1) "
 			"and at least 3 columns (ID, filename, and one parameter; actual: %2")
@@ -181,7 +222,7 @@ QSharedPointer<iASensitivityInfo> iASensitivityInfo::create(QString const& param
 	QVector<double> valueMin(paramValues.size() - 2, std::numeric_limits<double>::max());
 	QVector<double> valueMax(paramValues.size() - 2, std::numeric_limits<double>::lowest());
 	DEBUG_LOG(QString("Parameter values size: %1x%2").arg(paramValues.size()).arg(paramValues[0].size()));
-	// TODO: common min/max calculator for table?
+	// TODO: common min/max calculator for table? (/ SPM data)
 	for (int p = 1; p < paramValues.size() - 1; ++p)
 	{
 		for (int row = 0; row < paramValues[0].size(); ++row)
@@ -199,22 +240,21 @@ QSharedPointer<iASensitivityInfo> iASensitivityInfo::create(QString const& param
 	}
 
 	// countOfVariedParams = number of parameters for which min != max:
-	QVector<size_t> variedParams;
 	for (int p = 0; p < valueMin.size(); ++p)
 	{
 		if (valueMin[p] != valueMax[p])
 		{
-			variedParams.push_back(p + 1); // +1 because valueMin/valueMax don't contain ID
+			sensitivityInfo->variedParams.push_back(p + 1); // +1 because valueMin/valueMax don't contain ID
 		}
 	}
-	if (variedParams.size() == 0)
+	if (sensitivityInfo->variedParams.size() == 0)
 	{
 		DEBUG_LOG("Invalid sampling: No parameter was varied!");
 		return QSharedPointer<iASensitivityInfo>();
 	}
 	DEBUG_LOG(QString("Found the following parameters to vary (number: %1): %2")
-		.arg(variedParams.size())
-		.arg(joinAsString(variedParams, ",", [&paramNames](size_t const& i) { return paramNames[i + 1]; })));
+		.arg(sensitivityInfo->variedParams.size())
+		.arg(joinAsString(sensitivityInfo->variedParams, ",", [&paramNames](size_t const& i) { return paramNames[i + 1]; })));
 
 	// find out how many additional parameter sets were added per STAR:
 	//   - go to first value row; take value of first varied parameter as v
@@ -222,26 +262,27 @@ QSharedPointer<iASensitivityInfo> iASensitivityInfo::create(QString const& param
 	//        first varied parameter has same value as v
 	//        or distance of current value of first varied parameter is a multiple
 	//        of the distance between its first row value and second row value
-	double checkValue0 = paramValues[variedParams[0]][0];
+	double checkValue0 = paramValues[sensitivityInfo->variedParams[0]][0];
 	const double RemainderCheckEpsilon = 1e-14;
-	double curCheckValue = paramValues[variedParams[0]][1];
+	double curCheckValue = paramValues[sensitivityInfo->variedParams[0]][1];
 	double diffCheck = curCheckValue - checkValue0;
 	//DEBUG_LOG(QString("checkValue0=%1, diffCheck=%2").arg(checkValue0).arg(diffCheck));
 	double remainder = 0;
 	int row = 2;
-	while (row < paramValues[variedParams[0]].size() &&
+	while (row < paramValues[sensitivityInfo->variedParams[0]].size() &&
 		(remainder < RemainderCheckEpsilon || (dblApproxEqual(curCheckValue, checkValue0))))
 	{
-		curCheckValue = paramValues[variedParams[0]][row];
+		curCheckValue = paramValues[sensitivityInfo->variedParams[0]][row];
 		remainder = std::abs(std::fmod(std::abs(curCheckValue - checkValue0), diffCheck));
 		//DEBUG_LOG(QString("curCheckValue=%1, remainder=%2, row=%3").arg(curCheckValue).arg(remainder).arg(row));
 		++row;
 	}
 	int starGroupSize = row - 1;
-	int numberOfStarPointsPerParam = (starGroupSize - 1) / variedParams.size();
+
+	sensitivityInfo->numOfSTARSteps = (starGroupSize - 1) / sensitivityInfo->variedParams.size();
 	DEBUG_LOG(QString("Determined that there are groups of size: %1; number of STAR points per parameter: %2")
 		.arg(starGroupSize)
-		.arg(numberOfStarPointsPerParam)
+		.arg(sensitivityInfo->numOfSTARSteps)
 	);
 
 	// select output features to compute sensitivity for:
@@ -291,22 +332,24 @@ QSharedPointer<iASensitivityInfo> iASensitivityInfo::create(QString const& param
 	dlg.layout()->addWidget(tvDiffMeasures);
 	dlg.layout()->addWidget(new QLabel("Measures for which to compute sensitivity:"));
 	dlg.layout()->addWidget(tvMeasures);
+	dlg.layout()->addWidget(new QLabel("Number of Histogram Bins:"));
+	QSpinBox* spHistogramBins(new QSpinBox);
+	spHistogramBins->setValue(100);
+	spHistogramBins->setMinimum(2);
+	spHistogramBins->setMaximum(9999);
+	dlg.layout()->addWidget(spHistogramBins);
 	dlg.layout()->addWidget(buttonBox);
 
 	if (dlg.exec() != QDialog::Accepted)
 	{
 		return QSharedPointer<iASensitivityInfo>();
 	}
-	QSharedPointer<iASensitivityInfo> sensitivityInfo(new iASensitivityInfo());
 	sensitivityInfo->charactIndex = selectedIndices(characteristicsModel);
 	sensitivityInfo->charDiffMeasure = selectedIndices(diffMeasuresModel);
 	sensitivityInfo->dissimMeasure = selectedIndices(measuresModel);
+	const size_t HistogramBins = spHistogramBins->value();
 
-	// for each characteristic
-	//     for each point in parameter space (of base sampling method)
-	//         for each varied parameter
-	//             for each selected characteristics difference measure
-	//                 compute local change by that difference measure
+	// store parameter set values
 	for (int p = 0; p < paramValues[0].size(); p += starGroupSize)
 	{
 		QVector<double> parameterSet;
@@ -314,18 +357,98 @@ QSharedPointer<iASensitivityInfo> iASensitivityInfo::create(QString const& param
 		{
 			parameterSet.push_back(paramValues[v][p]);
 		}
-		sensitivityInfo->paramValues.push_back(parameterSet);
+		sensitivityInfo->paramSetValues.push_back(parameterSet);
 	}
 
-	for (size_t featureIdx = 0; featureIdx < sensitivityInfo->charactIndex.size(); ++featureIdx)
+	// sensitivityInfo->paramStep.fill(0.0, sensitivityInfo->variedParams.size());
+	
+	// compute characteristics distribution (histogram) for all results:
+	for (auto & r: data->result)
 	{
-		int charactID = sensitivityInfo->charactIndex[featureIdx];
-		auto charactName = data->spmData->parameterName(charactID);
-		for (size_t paramSetIdx = 0; paramSetIdx < sensitivityInfo->paramValues.size(); ++paramSetIdx)
+		// TODO: skip some columns? like ID...
+		for (int c = 0; c < data->spmData->numParams(); ++c)
 		{
-			for (size_t paramIdx = 0; paramIdx < variedParams.size(); ++paramIdx)
+			// make sure of all histograms for the same characteristic have the same range
+			double rangeMin = data->spmData->paramRange(c)[0];
+			double rangeMax = data->spmData->paramRange(c)[1];
+			std::vector<double> fiberData(r.fiberCount);
+			for (size_t fiberID = 0; fiberID < r.fiberCount; ++fiberID)
 			{
+				fiberData[fiberID] = r.table->GetValue(fiberID, c).ToDouble();
+			}
+			auto histogram = createHistogram<std::vector<double>, double, size_t, double>(
+				fiberData, HistogramBins, rangeMin, rangeMax);
+		}
+	}
 
+	// for each characteristic
+	//     for each varied parameter
+	//         for each selected characteristics difference measure
+	//             for left only, right only, average/? over full range
+	//                 for each point in parameter space (of base sampling method)
+	//                     compute local change by that difference measure
+
+	sensitivityInfo->sensitivityField.resize(sensitivityInfo->charactIndex.size());
+	for (int charactIdx = 0; charactIdx < sensitivityInfo->charactIndex.size(); ++charactIdx)
+	{
+		sensitivityInfo->sensitivityField[charactIdx].resize(sensitivityInfo->charactIndex.size());
+		int charactID = sensitivityInfo->charactIndex[charactIdx];
+		auto charactName = data->spmData->parameterName(charactID);
+		for (int paramIdx = 0; paramIdx < sensitivityInfo->variedParams.size(); ++paramIdx)
+		{
+			int origParamColIdx = sensitivityInfo->variedParams[paramIdx];
+			sensitivityInfo->sensitivityField[charactIdx][paramIdx].resize(sensitivityInfo->variedParams.size());
+			for (int diffMeasure = 0; diffMeasure < sensitivityInfo->charDiffMeasure.size(); ++diffMeasure)
+			{
+				const int NumOfVarianceAggregation = 4;
+				// for now:
+				//     - one step average, left only, right only
+				//      future: overall (weighted) average, ...=
+				sensitivityInfo->sensitivityField[charactIdx][paramIdx][diffMeasure].resize(NumOfVarianceAggregation);
+				for (int i = 0; i < NumOfVarianceAggregation; ++i)
+				{
+					sensitivityInfo->sensitivityField[charactIdx][paramIdx][diffMeasure][i].resize(sensitivityInfo->paramSetValues.size());
+				}
+				for (int paramSetIdx = 0; paramSetIdx < sensitivityInfo->paramSetValues.size(); ++paramSetIdx)
+				{
+					int resultIdxGroupStart = starGroupSize * paramSetIdx;
+					int resultIdxParamStart = resultIdxGroupStart + 1 + paramIdx * sensitivityInfo->numOfSTARSteps;
+
+					// first - then + steps (both skipped if value +/- step exceeds bounds
+					double groupStartParamVal = sensitivityInfo->allParamValues[origParamColIdx][resultIdxGroupStart];
+					double paramStartParamVal = sensitivityInfo->allParamValues[origParamColIdx][resultIdxParamStart];
+					double paramDiff = paramStartParamVal - groupStartParamVal;
+
+					double leftVar = 0;
+					int numVals = 0;
+					if (paramDiff > 0)
+					{
+						leftVar = distributionDifference(
+							sensitivityInfo->resultCharacteristicHistograms[resultIdxGroupStart][charactIdx],
+							sensitivityInfo->resultCharacteristicHistograms[resultIdxParamStart][charactIdx],
+							diffMeasure);
+						++numVals;
+					}
+
+					int k = 1;
+					while (paramDiff > 0 && k < sensitivityInfo->numOfSTARSteps)
+					{
+						double paramVal = sensitivityInfo->allParamValues[origParamColIdx][resultIdxParamStart+k];
+						double paramDiff = paramStartParamVal - paramVal;
+						++k;
+					}
+					double rightVar = 0;
+					if (paramDiff < 0)
+					{
+						int firstPosStepIdx = resultIdxParamStart + (k - 1);
+						rightVar = distributionDifference(
+							sensitivityInfo->resultCharacteristicHistograms[resultIdxGroupStart][charactIdx],
+							sensitivityInfo->resultCharacteristicHistograms[firstPosStepIdx][charactIdx],
+							diffMeasure);
+						++numVals;
+					}
+					double meanVar = (leftVar + rightVar) / numVals;
+				}
 			}
 		}
 	}
