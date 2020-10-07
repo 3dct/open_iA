@@ -103,12 +103,20 @@ bool readParameterCSV(QString const& fileName, QString const& encoding, QString 
 
 // TODO: Extract to .cpp FILE:
 
+// Core
 #include <charts/iASPLOMData.h>
 #include <iAConsole.h>
 #include <iAMathUtility.h>
 #include <iAStringHelper.h>
 
+// FeatureScout
 #include "iACsvVectorTableCreator.h"
+
+// Segmentation
+#include "iAVectorTypeImpl.h"
+#include "iAVectorDistanceImpl.h"
+
+// FIAKER
 #include "iAFiberCharData.h"
 #include "iAFiberData.h"
 
@@ -189,7 +197,32 @@ using HistogramType = QVector<double>;
 
 double distributionDifference(HistogramType const& distr1, HistogramType const& distr2, int diffType)
 {
-	return 0;
+	assert(distr1.size() == distr2.size());
+	QSharedPointer<iAVectorType> dist1Ptr(new iARefVector<HistogramType>(distr1));
+	QSharedPointer<iAVectorType> dist2Ptr(new iARefVector<HistogramType>(distr2));
+	if (diffType == 0)
+	{
+		/*
+		// (start of) distance between AVERAGEs - (can that be useful?)
+		// approximate average over all values by building sum weighted by histogram
+		for (int i = 0; i < distr1.size(); ++i)
+		{
+
+		}
+		*/
+		iAL2NormDistance l2Dist;
+		return l2Dist.GetDistance(dist1Ptr, dist2Ptr);
+	}
+	else if (diffType == 1)
+	{
+		iAJensenShannonDistance jsDist;
+		return jsDist.GetDistance(dist1Ptr, dist2Ptr);
+	}
+	else
+	{
+		DEBUG_LOG(QString("invalid diffType %1").arg(diffType));
+		return 0;
+	}
 }
 
 QSharedPointer<iASensitivityInfo> iASensitivityInfo::create(QString const& parameterFileName,
@@ -219,8 +252,8 @@ QSharedPointer<iASensitivityInfo> iASensitivityInfo::create(QString const& param
 	// data in paramValues is indexed [col(=parameter index)][row(=parameter set index)]
 
 	// find min/max, for all columns except ID and filename
-	QVector<double> valueMin(paramValues.size() - 2, std::numeric_limits<double>::max());
-	QVector<double> valueMax(paramValues.size() - 2, std::numeric_limits<double>::lowest());
+	QVector<double> valueMin(static_cast<int>(paramValues.size() - 2), std::numeric_limits<double>::max());
+	QVector<double> valueMax(static_cast<int>(paramValues.size() - 2), std::numeric_limits<double>::lowest());
 	DEBUG_LOG(QString("Parameter values size: %1x%2").arg(paramValues.size()).arg(paramValues[0].size()));
 	// TODO: common min/max calculator for table? (/ SPM data)
 	for (int p = 1; p < paramValues.size() - 1; ++p)
@@ -254,7 +287,7 @@ QSharedPointer<iASensitivityInfo> iASensitivityInfo::create(QString const& param
 	}
 	DEBUG_LOG(QString("Found the following parameters to vary (number: %1): %2")
 		.arg(sensitivityInfo->variedParams.size())
-		.arg(joinAsString(sensitivityInfo->variedParams, ",", [&paramNames](size_t const& i) { return paramNames[i + 1]; })));
+		.arg(joinAsString(sensitivityInfo->variedParams, ",", [&paramNames](int const& i) { return paramNames[i + 1]; })));
 
 	// find out how many additional parameter sets were added per STAR:
 	//   - go to first value row; take value of first varied parameter as v
@@ -294,7 +327,7 @@ QSharedPointer<iASensitivityInfo> iASensitivityInfo::create(QString const& param
 	auto tvCharacteristic(new QTableView);
 	auto characteristicsModel(new QStandardItemModel());
 	characteristicsModel->setHorizontalHeaderLabels(QStringList() << "Characteristic" << "Select");
-	for (size_t i = 0; i < data->m_resultIDColumn; ++i)
+	for (int i = 0; i < static_cast<int>(data->m_resultIDColumn); ++i)
 	{
 		addCheckItem(characteristicsModel, i, data->spmData->parameterName(i));
 	}
@@ -303,11 +336,11 @@ QSharedPointer<iASensitivityInfo> iASensitivityInfo::create(QString const& param
 	auto tvDiffMeasures(new QTableView);
 	auto diffMeasuresModel(new QStandardItemModel());
 	diffMeasuresModel->setHorizontalHeaderLabels(QStringList() << "Difference" << "Select");
-	addCheckItem(diffMeasuresModel, 0, "Difference Between Averages");
+	addCheckItem(diffMeasuresModel, 0, "L2 Difference");
 	// Difference Between Mean, Min, Max ? other single measures?
 	addCheckItem(diffMeasuresModel, 1, "Jensen-Shannon divergence");
-	addCheckItem(diffMeasuresModel, 2, "Shannon entropy");
-	addCheckItem(diffMeasuresModel, 3, "Mutual information");
+	//addCheckItem(diffMeasuresModel, 2, "Mutual information");
+	// ... some other measures from iAVectorDistance...?
 
 	tvDiffMeasures->setModel(diffMeasuresModel);
 
@@ -363,10 +396,15 @@ QSharedPointer<iASensitivityInfo> iASensitivityInfo::create(QString const& param
 	// sensitivityInfo->paramStep.fill(0.0, sensitivityInfo->variedParams.size());
 	
 	// compute characteristics distribution (histogram) for all results:
-	for (auto & r: data->result)
+
+	sensitivityInfo->resultCharacteristicHistograms.resize(data->result.size());
+	for (int rIdx=0; rIdx < data->result.size(); ++rIdx)
 	{
+		auto const & r = data->result[rIdx];
+		int numCharact = data->spmData->numParams();
 		// TODO: skip some columns? like ID...
-		for (int c = 0; c < data->spmData->numParams(); ++c)
+		sensitivityInfo->resultCharacteristicHistograms[rIdx].reserve(numCharact);
+		for (int c = 0; c < numCharact; ++c)
 		{
 			// make sure of all histograms for the same characteristic have the same range
 			double rangeMin = data->spmData->paramRange(c)[0];
@@ -378,6 +416,7 @@ QSharedPointer<iASensitivityInfo> iASensitivityInfo::create(QString const& param
 			}
 			auto histogram = createHistogram<std::vector<double>, double, size_t, double>(
 				fiberData, HistogramBins, rangeMin, rangeMax);
+			sensitivityInfo->resultCharacteristicHistograms[rIdx].push_back(histogram);
 		}
 	}
 
@@ -391,13 +430,13 @@ QSharedPointer<iASensitivityInfo> iASensitivityInfo::create(QString const& param
 	sensitivityInfo->sensitivityField.resize(sensitivityInfo->charactIndex.size());
 	for (int charactIdx = 0; charactIdx < sensitivityInfo->charactIndex.size(); ++charactIdx)
 	{
-		sensitivityInfo->sensitivityField[charactIdx].resize(sensitivityInfo->charactIndex.size());
+		sensitivityInfo->sensitivityField[charactIdx].resize(sensitivityInfo->variedParams.size());
 		int charactID = sensitivityInfo->charactIndex[charactIdx];
 		auto charactName = data->spmData->parameterName(charactID);
 		for (int paramIdx = 0; paramIdx < sensitivityInfo->variedParams.size(); ++paramIdx)
 		{
 			int origParamColIdx = sensitivityInfo->variedParams[paramIdx];
-			sensitivityInfo->sensitivityField[charactIdx][paramIdx].resize(sensitivityInfo->variedParams.size());
+			sensitivityInfo->sensitivityField[charactIdx][paramIdx].resize(sensitivityInfo->charDiffMeasure.size());
 			for (int diffMeasure = 0; diffMeasure < sensitivityInfo->charDiffMeasure.size(); ++diffMeasure)
 			{
 				const int NumOfVarianceAggregation = 4;
@@ -434,7 +473,7 @@ QSharedPointer<iASensitivityInfo> iASensitivityInfo::create(QString const& param
 					while (paramDiff > 0 && k < sensitivityInfo->numOfSTARSteps)
 					{
 						double paramVal = sensitivityInfo->allParamValues[origParamColIdx][resultIdxParamStart+k];
-						double paramDiff = paramStartParamVal - paramVal;
+						paramDiff = paramStartParamVal - paramVal;
 						++k;
 					}
 					double rightVar = 0;
@@ -448,6 +487,9 @@ QSharedPointer<iASensitivityInfo> iASensitivityInfo::create(QString const& param
 						++numVals;
 					}
 					double meanVar = (leftVar + rightVar) / numVals;
+					sensitivityInfo->sensitivityField[charactIdx][paramIdx][diffMeasure][0][paramSetIdx] = meanVar;
+					sensitivityInfo->sensitivityField[charactIdx][paramIdx][diffMeasure][1][paramSetIdx] = leftVar;
+					sensitivityInfo->sensitivityField[charactIdx][paramIdx][diffMeasure][2][paramSetIdx] = rightVar;
 				}
 			}
 		}
