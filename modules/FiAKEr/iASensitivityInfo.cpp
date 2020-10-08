@@ -555,6 +555,39 @@ public:
 	void changeMeasure(int newMeasure)
 	{
 		m_measureIdx = newMeasure;
+		updateStackedBars();
+	}
+
+	void changeAggregation(int newAggregation)
+	{
+		m_aggrType = newAggregation;
+		updateStackedBars();
+	}
+private slots:
+	void stackedColSelect()
+	{
+		auto source = qobject_cast<QAction*>(QObject::sender());
+		size_t charactIdx = source->property("charactIdx").toULongLong();
+		if (source->isChecked())
+		{
+			addStackedBar(charactIdx);
+		}
+		else
+		{
+			removeStackedBar(charactIdx);
+		}
+	}
+	void selectMeasure(int measureIdx)
+	{
+		m_measureIdx = measureIdx;
+		//updateStackedBars();
+	}
+
+private:
+	QVector<int> m_visibleCharacts;
+
+	void updateStackedBars()
+	{
 		for (auto charactIdx : m_visibleCharacts)
 		{
 			// TODO: unify with addStackedBar
@@ -583,38 +616,12 @@ public:
 			m_stackedCharts[paramIdx]->update();
 		}
 	}
-private slots:
-	void stackedColSelect()
-	{
-		auto source = qobject_cast<QAction*>(QObject::sender());
-		size_t charactIdx = source->property("charactIdx").toULongLong();
-		if (source->isChecked())
-		{
-			addStackedBar(charactIdx);
-		}
-		else
-		{
-			removeStackedBar(charactIdx);
-		}
-	}
-	void selectMeasure(int measureIdx)
-	{
-		m_measureIdx = measureIdx;
-		//updateStackedBars();
-	}
 
-private:
-	QVector<int> m_visibleCharacts;
-	/*
-	void updateStackedBars()
-	{
-
-	}
-	*/
 	QString charactName(int charactIdx)
 	{
 		return m_sensInf->m_data->spmData->parameterName(m_sensInf->charactIndex[charactIdx]);
 	}
+
 	void addStackedBar(int charactIdx)
 	{
 		m_visibleCharacts.push_back(charactIdx);
@@ -684,7 +691,6 @@ void iASensitivityInfo::createGUI(QMainWindow* child, QDockWidget* nextToDW)
 	m_gui->m_paramInfluenceView = new iAParameterInfluenceView(this);
 	auto dwParamInfluence = new iADockWidgetWrapper(m_gui->m_paramInfluenceView, "Parameter Influence", "foeParamInfluence");
 	child->splitDockWidget(dwSettings, dwParamInfluence, Qt::Vertical);
-
 }
 
 void iASensitivityInfo::changeMeasure(int newMeasure)
@@ -694,5 +700,5 @@ void iASensitivityInfo::changeMeasure(int newMeasure)
 
 void iASensitivityInfo::changeAggregation(int newAggregation)
 {
-
+	m_gui->m_paramInfluenceView->changeAggregation(newAggregation);
 }
