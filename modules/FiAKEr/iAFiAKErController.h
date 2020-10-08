@@ -110,6 +110,8 @@ public:
 	QWidget* topFiller, * bottomFiller;
 	//! index where the plots for this result start
 	size_t startPlotIdx;
+	//! bounding box of the 3D data:
+	double bounds[6];
 };
 
 class iAFiAKErController: public QObject, public iASelectionProvider
@@ -284,6 +286,7 @@ private:
 		ResultListView, OptimStepChart, SPMView, ProtocolView, SelectionView, SettingsView, DockWidgetCount
 	};
 	// 3D View:
+	void ensureMain3DViewCreated(size_t resultID);
 	iAVtkWidget* m_main3DWidget;
 	vtkSmartPointer<vtkRenderer> m_ren;
 	QCheckBox* m_chkboxShowReference;

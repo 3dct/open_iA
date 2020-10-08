@@ -561,6 +561,61 @@ namespace
 	}
 }
 
+//! compute result bounding box from its value table
+//! only considers start and end points, not curved points at the moment
+//! relies on StartX, StartY, StartZ & EndX, EndY, EndZ constant defines being in sequence.
+//! @param box[out] contains minX, maxX, minY, maxY, minZ, maxZ
+void computeBoundingBox(vtkSmartPointer<vtkTable> tbl, QMap<uint, uint> const & mapping, double box[6])
+{
+	box[0] = box[2] = box[4] = std::numeric_limits<double>::max();
+	box[1] = box[3] = box[5] = std::numeric_limits<double>::lowest();
+	for (size_t f = 0; f < tbl->GetNumberOfRows(); ++f)
+	{
+		for (int i = 0; i < 3; ++i)
+		{
+			double pts[2];
+			pts[0] = tbl->GetValue(f, mapping[iACsvConfig::StartX + i]).ToDouble();
+			pts[1] = tbl->GetValue(f, mapping[iACsvConfig::EndX + i]).ToDouble();
+			for (int j = 0; j < 2; ++j)
+			{
+				if (pts[j] < box[2 * i])
+				{
+					box[2 * i] = pts[j];
+				}
+				if (pts[j] > box[2 * i + 1])
+				{
+					box[2 * i + 1] = pts[j];
+				}
+			}
+		}
+	}
+}
+
+std::map<size_t, std::vector<iAVec3f> > getCurvedStepInfo(iAFiberCharData const & d)
+{
+	std::map<size_t, std::vector<iAVec3f> > curvedStepInfo;
+   // get last step:
+	auto& lastStepValues = d.stepValues[d.stepValues.size() - 1];
+	//              fibers,      point values (each coordinate is 3 values)
+	// convert from std::vector<std::vector<double>> to    (as in lastStepValues)
+	//                       fiberid, coordinate
+	//              std::map<size_t,  std::vector<iAVec3f>
+	for (size_t f = 0; f < d.fiberCount; ++f)
+	{
+		size_t const numPts = lastStepValues[f].size() / 3;
+		std::vector<iAVec3f> fiberCurvePoints(numPts);
+		for (size_t p = 0; p < numPts; ++p)
+		{
+			fiberCurvePoints[p] = iAVec3f(
+				static_cast<float>(lastStepValues[f][p * 3]),
+				static_cast<float>(lastStepValues[f][p * 3 + 1]),
+				static_cast<float>(lastStepValues[f][p * 3 + 2]));
+		}
+		curvedStepInfo.insert(std::make_pair(f, fiberCurvePoints));
+	}
+	return curvedStepInfo;
+}
+
 QWidget* iAFiAKErController::setupResultListView()
 {
 	if (!m_showPreviews)
@@ -691,32 +746,9 @@ QWidget* iAFiAKErController::setupResultListView()
 
 		m_resultListSorting.insert(resultID, static_cast<int>(resultID));
 
-		std::map<size_t, std::vector<iAVec3f> > curvedStepInfo;
-		if (m_useStepData && d.stepData == iAFiberCharData::CurvedStepData)
-		{   // get last step:
-			auto & lastStepValues = d.stepValues[d.stepValues.size() - 1];
-			//              fibers,      point values (each coordinate is 3 values)
-			// convert from std::vector<std::vector<double>> to    (as in lastStepValues)
-			//                       fiberid, coordinate
-			//              std::map<size_t,  std::vector<iAVec3f>
-			for (size_t f = 0; f < d.fiberCount; ++f)
-			{
-				size_t const numPts = lastStepValues[f].size() / 3;
-				std::vector<iAVec3f> fiberCurvePoints(numPts);
-				for (size_t p = 0; p < numPts; ++p)
-				{
-					fiberCurvePoints[p] = iAVec3f(
-						static_cast<float>(lastStepValues[f][p * 3]),
-						static_cast<float>(lastStepValues[f][p * 3 + 1]),
-						static_cast<float>(lastStepValues[f][p * 3 + 2]));
-				}
-				curvedStepInfo.insert(std::make_pair(f, fiberCurvePoints));
-			}
-		}
-
 		std::map<size_t, std::vector<iAVec3f> > const & curveInfo =
 			(m_useStepData && d.stepData == iAFiberCharData::CurvedStepData) ?
-			curvedStepInfo : d.curveInfo;
+			getCurvedStepInfo(d) : d.curveInfo;
 		QColor resultColor(getResultColor(resultID));
 
 		if (m_showPreviews)
@@ -745,14 +777,11 @@ QWidget* iAFiAKErController::setupResultListView()
 			connect(ui.previewWidget, &iASignallingWidget::clicked, this, &iAFiAKErController::previewMouseClick);
 			connect(ui.mini3DVis.data(), &iA3DObjectVis::updated, ui.vtkWidget, &iAVtkQtWidget::updateAll);
 		}
-		ui.main3DVis = create3DVis(m_ren, d.table, d.mapping, resultColor, m_data->objectType, curveInfo);
-
-		const double * b = ui.main3DVis->bounds();
+		computeBoundingBox(d.table, *d.mapping.data(), ui.bounds);
 		QString bbox = QString("Bounding box: (x: %1..%2, y: %3..%4, z: %5..%6)")
-			.arg(b[0]).arg(b[1]).arg(b[2]).arg(b[3]).arg(b[4]).arg(b[5]);
+			.arg(ui.bounds[0]).arg(ui.bounds[1]).arg(ui.bounds[2]).arg(ui.bounds[3]).arg(ui.bounds[4]).arg(ui.bounds[5]);
 		ui.nameActions->setToolTip(bbox + "\n"
-			"Filename: " + d.fileName + "\n"
-			"Visualization details: " + ui.main3DVis->visualizationStatistics());
+			"Filename: " + d.fileName + "\n");
 
 		ui.stackedBars->setProperty("resultID", static_cast<qulonglong>(resultID));
 		ui.histoChart->setProperty("resultID", static_cast<qulonglong>(resultID));
@@ -762,11 +791,6 @@ QWidget* iAFiAKErController::setupResultListView()
 		connect(ui.nameActions, &iASignallingWidget::dblClicked, this, &iAFiAKErController::referenceToggled);
 		connect(m_showResultVis[resultID], &QCheckBox::stateChanged, this, &iAFiAKErController::toggleVis);
 		connect(m_showResultBox[resultID], &QCheckBox::stateChanged, this, &iAFiAKErController::toggleBoundingBox);
-
-
-		// iA3DColoredObjectVis::updateRenderer makes sure this connection is only triggered if vis is currently shown:
-		connect(ui.main3DVis.data(), &iA3DObjectVis::updated, this, &iAFiAKErController::update3D);
-		// }
 	}
 	updateResultList();
 
@@ -1460,7 +1484,7 @@ void iAFiAKErController::colorByDistrToggled()
 					continue;
 				}
 				auto mainVis = m_resultUIs[resultID].main3DVis;
-				if (mainVis->visible())
+				if (mainVis && mainVis->visible())
 				{
 					mainVis->setColor(getResultColor(resultID));
 				}
@@ -1600,7 +1624,7 @@ namespace
 {
 	bool resultSelected(std::vector<iAFiberCharUIData> const & uiCollection, size_t resultID)
 	{
-		return (uiCollection[resultID].main3DVis->visible());
+		return (uiCollection[resultID].main3DVis && uiCollection[resultID].main3DVis->visible());
 	}
 	bool noResultSelected(std::vector<iAFiberCharUIData> const & uiCollection)
 	{
@@ -1734,12 +1758,31 @@ void iAFiAKErController::toggleVis(int state)
 	showMainVis(resultID, state);
 }
 
+void iAFiAKErController::ensureMain3DViewCreated(size_t resultID)
+{
+	auto& d = m_data->result[resultID];
+	auto& ui = m_resultUIs[resultID];
+	if (!ui.main3DVis)
+	{
+		std::map<size_t, std::vector<iAVec3f> > const& curveInfo =
+			(m_useStepData && d.stepData == iAFiberCharData::CurvedStepData) ?
+			getCurvedStepInfo(d) : d.curveInfo;
+		QColor resultColor(getResultColor(resultID));
+		ui.main3DVis = create3DVis(m_ren, d.table, d.mapping, resultColor, m_data->objectType, curveInfo);
+		ui.nameActions->setToolTip(ui.nameActions->toolTip() +
+			"Visualization details: " + ui.main3DVis->visualizationStatistics());
+		// iA3DColoredObjectVis::updateRenderer makes sure this connection is only triggered if vis is currently shown:
+		connect(ui.main3DVis.data(), &iA3DObjectVis::updated, this, &iAFiAKErController::update3D);
+	}
+}
+
 void iAFiAKErController::showMainVis(size_t resultID, int state)
 {
 	auto & d = m_data->result[resultID];
 	auto & ui = m_resultUIs[resultID];
 	if (state == Qt::Checked)
 	{
+		ensureMain3DViewCreated(resultID);
 		ui.main3DVis->setSelectionOpacity(m_selectionOpacity);
 		ui.main3DVis->setContextOpacity(m_contextOpacity);
 		ui.main3DVis->setShowWireFrame(m_showWireFrame);
@@ -1879,6 +1922,7 @@ void iAFiAKErController::toggleBoundingBox(int state)
 	auto & ui = m_resultUIs[resultID];
 	if (state == Qt::Checked)
 	{
+		ensureMain3DViewCreated(resultID);
 		ui.main3DVis->showBoundingBox();
 		if (!m_cameraInitialized)
 		{
@@ -2028,7 +2072,7 @@ void iAFiAKErController::showSelectionIn3DViews()
 	for (size_t resultID = 0; resultID < m_resultUIs.size(); ++resultID)
 	{
 		auto& vis = m_resultUIs[resultID];
-		if (vis.main3DVis->visible())
+		if (vis.main3DVis && vis.main3DVis->visible())
 		{
 			vis.main3DVis->setSelection(m_selection[resultID], anythingSelected);
 		}
@@ -2170,7 +2214,7 @@ void iAFiAKErController::setOptimStep(int optimStep)
 		for (size_t resultID = 0; resultID < m_data->result.size(); ++resultID)
 		{
 			auto main3DVis = m_resultUIs[resultID].main3DVis;
-			if (main3DVis->visible() &&
+			if (main3DVis && main3DVis->visible() &&
 				m_data->objectType == iACsvConfig::Cylinders &&
 				m_data->result[resultID].stepData != iAFiberCharData::NoStepData)
 			{
@@ -2260,7 +2304,7 @@ void iAFiAKErController::visitAllVisibleVis(std::function<void(QSharedPointer<iA
 		{
 			func(vis.mini3DVis, resultID);
 		}
-		if (vis.main3DVis->visible())
+		if (vis.main3DVis && vis.main3DVis->visible())
 		{
 			func(vis.main3DVis, resultID);
 		}
@@ -2490,7 +2534,7 @@ void iAFiAKErController::setReference(size_t referenceID, std::vector<std::pair<
 		m_showResultVis[m_referenceID]->setText(m_showResultVis[m_referenceID]->text().left(m_showResultVis[m_referenceID]->text().length()-RefMarker.length()));
 	}
 	addInteraction(QString("Reference set to %1.").arg(resultName(referenceID)));
-	auto bounds = m_resultUIs[referenceID].main3DVis->bounds();
+	auto & bounds = m_resultUIs[referenceID].bounds;
 	bool setBB = true;
 	for (int i = 0; i < 6; ++i)
 	{
@@ -2702,6 +2746,7 @@ void iAFiAKErController::showSpatialOverview()
 	double range[2] = {-1.0, 1.0};
 	QSharedPointer<iALookupTable> lut(new iALookupTable());
 	*lut = iALUT::Build(range, m_colorByThemeName, 255, m_selectionOpacity);
+	ensureMain3DViewCreated(m_referenceID);
 	auto ref3D = m_resultUIs[m_referenceID].main3DVis;
 	QSignalBlocker cbBlock(m_showResultVis[m_referenceID]);
 	m_showResultVis[m_referenceID]->setChecked(true);
@@ -2733,7 +2778,7 @@ void iAFiAKErController::spmLookupTableChanged()
 	//     - update color theme name if changed in SPM settings
 	for (size_t resultID = 0; resultID < m_resultUIs.size(); ++resultID)
 	{
-		if (m_resultUIs[resultID].main3DVis->visible() && (!matchQualityVisActive() || resultID != m_referenceID))
+		if (m_resultUIs[resultID].main3DVis && m_resultUIs[resultID].main3DVis->visible() && (!matchQualityVisActive() || resultID != m_referenceID))
 		{
 			m_resultUIs[resultID].main3DVis->setLookupTable(lut, colorLookupParam);
 		}
@@ -3258,7 +3303,7 @@ void iAFiAKErController::applyRenderSettings()
 			ren->SetBackground(bgBottom.redF(), bgBottom.greenF(), bgBottom.blueF());
 		}
 
-		if (mainVis->visible())
+		if (mainVis && mainVis->visible())
 		{
 			setClippingPlanes(mainVis);
 		}
