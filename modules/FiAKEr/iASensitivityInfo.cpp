@@ -454,16 +454,16 @@ QSharedPointer<iASensitivityInfo> iASensitivityInfo::create(QString const& param
 					bool wasSmaller = true;
 					for (int i = 0; i < sensitivityInfo->numOfSTARSteps; ++i)
 					{
-						int compareIdx = i - 1;
+						int compareIdx = (i==0)? resultIdxGroupStart : (resultIdxParamStart + i - 1);
 						double paramVal = sensitivityInfo->allParamValues[origParamColIdx][resultIdxParamStart + i];
 						if (paramVal > paramStartParamVal && wasSmaller)
 						{
 							wasSmaller = false;
-							compareIdx = -1;
+							compareIdx = resultIdxGroupStart;
 						}
 						double difference = distributionDifference(
-							sensitivityInfo->resultCharacteristicHistograms[resultIdxGroupStart + 1 + compareIdx][charactIdx],
-							sensitivityInfo->resultCharacteristicHistograms[resultIdxGroupStart + 1 + i][charactIdx],
+							sensitivityInfo->resultCharacteristicHistograms[compareIdx][charactIdx],
+							sensitivityInfo->resultCharacteristicHistograms[resultIdxParamStart + i][charactIdx],
 							diffMeasure);
 						sumTotal += difference;
 					}
