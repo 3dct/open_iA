@@ -46,6 +46,7 @@ public:
 	const int TextPadding = 5;
 	iAStackedBarChart(iAColorTheme const * theme, bool header = false);
 	void addBar(QString const & name, double value, double maxValue);
+	void updateBar(QString const& name, double value, double maxValue);
 	void removeBar(QString const & name);
 	void setColorTheme(iAColorTheme const * theme);
 	QMenu* contextMenu();

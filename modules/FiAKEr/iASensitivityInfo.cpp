@@ -56,6 +56,16 @@ namespace
 	const int LayoutMargin = 4;
 	const int LayoutSpacing = 4;
 	const QString DefaultStackedBarColorTheme("Brewer Accent (max. 8)");
+	QStringList const & MeasureNames()
+	{
+		static QStringList Names = QStringList() << "L2 Difference" << "Jensen-Shannon divergence";
+		return Names;
+	}
+	QStringList const& AggregationNames()
+	{
+		static QStringList Names = QStringList() << "Mean left+right" << "Left only" << "Right only";
+		return Names;
+	}
 }
 
 // Factor out as generic CSV reading class also used by iACsvIO?
@@ -262,9 +272,11 @@ QSharedPointer<iASensitivityInfo> iASensitivityInfo::create(QString const& param
 	auto tvDiffMeasures(new QTableView);
 	auto diffMeasuresModel(new QStandardItemModel());
 	diffMeasuresModel->setHorizontalHeaderLabels(QStringList() << "Difference" << "Select");
-	addCheckItem(diffMeasuresModel, 0, "L2 Difference");
 	// Difference Between Mean, Min, Max ? other single measures?
-	addCheckItem(diffMeasuresModel, 1, "Jensen-Shannon divergence");
+	for (int i = 0; i < MeasureNames().size(); ++i)
+	{
+		addCheckItem(diffMeasuresModel, i, MeasureNames()[i]);
+	}
 	//addCheckItem(diffMeasuresModel, 2, "Mutual information");
 	// ... some other measures from iAVectorDistance...?
 
@@ -466,10 +478,15 @@ typedef iAQTtoUIConnector<QWidget, Ui_SensitivitySettings> iASensitivitySettings
 class iASensitivitySettingsView: public iASensitivitySettingsUI
 {
 public:
-	iASensitivitySettingsView()
+	iASensitivitySettingsView(iASensitivityInfo* sensInf)
 	{
 		cmbboxStackedBarChartColors->addItems(iAColorThemeManager::instance().availableThemes());
 		cmbboxStackedBarChartColors->setCurrentText(DefaultStackedBarColorTheme);
+
+		cmbboxMeasure->addItems(MeasureNames());
+		cmbboxAggregation->addItems(AggregationNames());
+		connect(cmbboxMeasure, QOverload<int>::of(&QComboBox::currentIndexChanged), sensInf, &iASensitivityInfo::changeMeasure);
+		connect(cmbboxAggregation, QOverload<int>::of(&QComboBox::currentIndexChanged), sensInf, &iASensitivityInfo::changeAggregation);
 	}
 };
 
@@ -534,6 +551,38 @@ public:
 			paramListLayout->addWidget(m_stackedCharts[paramIdx], 1 + paramIdx, 1);
 		}
 	}
+
+	void changeMeasure(int newMeasure)
+	{
+		m_measureIdx = newMeasure;
+		for (auto charactIdx : m_visibleCharacts)
+		{
+			// TODO: unify with addStackedBar
+			auto title(charactName(charactIdx));
+			double maxValue = std::numeric_limits<double>::lowest();
+			for (size_t paramIdx = 0; paramIdx < m_sensInf->variedParams.size(); ++paramIdx)
+			{
+				double value = m_sensInf->aggregatedSensitivities[charactIdx][paramIdx][m_measureIdx][m_aggrType];
+				if (value > maxValue)
+				{
+					maxValue = value;
+				}
+			}
+			for (size_t paramIdx = 0; paramIdx < m_sensInf->variedParams.size(); ++paramIdx)
+			{
+				// characteristis
+				// parameter index
+				// difference measure
+				// variation aggregation
+				double value = m_sensInf->aggregatedSensitivities[charactIdx][paramIdx][m_measureIdx][m_aggrType];
+				m_stackedCharts[paramIdx]->updateBar(title, value, maxValue);
+			}
+		}
+		for (size_t paramIdx = 0; paramIdx < m_sensInf->variedParams.size(); ++paramIdx)
+		{
+			m_stackedCharts[paramIdx]->update();
+		}
+	}
 private slots:
 	void stackedColSelect()
 	{
@@ -555,6 +604,7 @@ private slots:
 	}
 
 private:
+	QVector<int> m_visibleCharacts;
 	/*
 	void updateStackedBars()
 	{
@@ -567,6 +617,7 @@ private:
 	}
 	void addStackedBar(int charactIdx)
 	{
+		m_visibleCharacts.push_back(charactIdx);
 		auto title(charactName(charactIdx));
 		DEBUG_LOG(QString("Showing stacked bar for characteristic %1").arg(title));
 		m_stackedHeader->addBar(title, 1, 1);
@@ -593,6 +644,12 @@ private:
 
 	void removeStackedBar(int charactIdx)
 	{
+		int visibleIdx = m_visibleCharacts.indexOf(charactIdx);
+		if (visibleIdx == -1)
+		{
+			DEBUG_LOG(QString("Invalid state - called remove on non-added characteristic idx %1").arg(charactIdx));
+		}
+		m_visibleCharacts.remove(visibleIdx);
 		auto title(charactName(charactIdx));
 		DEBUG_LOG(QString("Showing stacked bar for characteristic %1").arg(title));
 		m_stackedHeader->removeBar(title);
@@ -601,6 +658,7 @@ private:
 			m_stackedCharts[paramIdx]->removeBar(title);
 		}
 	}
+
 };
 
 class iASensitivityGUI
@@ -619,12 +677,22 @@ void iASensitivityInfo::createGUI(QMainWindow* child, QDockWidget* nextToDW)
 {
 	m_gui.reset(new iASensitivityGUI);
 
-	m_gui->m_settings = new iASensitivitySettingsView();
+	m_gui->m_settings = new iASensitivitySettingsView(this);
 	auto dwSettings = new iADockWidgetWrapper(m_gui->m_settings, "Sensitivity Settings", "foeSensitivitySettings");
 	child->splitDockWidget(nextToDW, dwSettings, Qt::Horizontal);
 
 	m_gui->m_paramInfluenceView = new iAParameterInfluenceView(this);
 	auto dwParamInfluence = new iADockWidgetWrapper(m_gui->m_paramInfluenceView, "Parameter Influence", "foeParamInfluence");
 	child->splitDockWidget(dwSettings, dwParamInfluence, Qt::Vertical);
+
+}
+
+void iASensitivityInfo::changeMeasure(int newMeasure)
+{
+	m_gui->m_paramInfluenceView->changeMeasure(newMeasure);
+}
+
+void iASensitivityInfo::changeAggregation(int newAggregation)
+{
 
 }

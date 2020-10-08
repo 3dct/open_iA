@@ -65,6 +65,17 @@ void iAStackedBarChart::addBar(QString const & name, double value, double maxVal
 	update();
 }
 
+void iAStackedBarChart::updateBar(QString const& name, double value, double maxValue)
+{
+	auto it = std::find_if(m_bars.begin(), m_bars.end(),
+		[name](iABarData const& d) { return d.name == name; });
+	if (it != m_bars.end())
+	{
+		it->value = value;
+		it->maxValue = maxValue;
+	}
+}
+
 void iAStackedBarChart::removeBar(QString const & name)
 {
 	auto it = std::find_if(m_bars.begin(), m_bars.end(),

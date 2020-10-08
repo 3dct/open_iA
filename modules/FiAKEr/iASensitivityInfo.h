@@ -32,12 +32,14 @@ class iASensitivityGUI;
 class QDockWidget;
 class QMainWindow;
 
-class iASensitivityInfo
+class iASensitivityInfo: public QObject
 {
+	Q_OBJECT
 public:
 	static QSharedPointer<iASensitivityInfo> create(QString const& parameterFileName, QSharedPointer<iAFiberResultsCollection> data);
 	void createGUI(QMainWindow* child, QDockWidget* nextToDW);
 
+	// TODO: make private:
 	iASensitivityInfo(QSharedPointer<iAFiberResultsCollection> data);
 	QSharedPointer<iAFiberResultsCollection> m_data;
 	QStringList paramNames;
@@ -110,6 +112,10 @@ public:
 	//         - option 2 -> length differences: 2, 1, 3
 
 	QSharedPointer<iASensitivityGUI> m_gui;
+
+public slots:
+	void changeAggregation(int newAggregation);
+	void changeMeasure(int newMeasure);
 };
 
 // Factor out as generic CSV reading class also used by iACsvIO?
