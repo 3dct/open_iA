@@ -485,6 +485,7 @@ iASensitivityInfo::iASensitivityInfo(QSharedPointer<iAFiberResultsCollection> da
 	m_data(data)
 {}
 
+#include <charts/iAChartWidget.h>
 #include <iAColorTheme.h>
 #include <iAStackedBarChart.h>
 #include <qthelper/iADockWidgetWrapper.h>
@@ -519,6 +520,8 @@ private:
 	//! stacked bar charts (one per parameter)
 	QVector<iAStackedBarChart*> m_stackedCharts;
 	iAStackedBarChart* m_stackedHeader;
+
+	QVector<iAChartWidget*> m_chartWidget;
 	//! sensitivity information
 	iASensitivityInfo* m_sensInf;
 	//! measure to use 
