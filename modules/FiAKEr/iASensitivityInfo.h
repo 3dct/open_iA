@@ -63,7 +63,7 @@ public:
 	//                 for each point in parameter space (of base sampling method)
 	//                     compute local change by that difference measure
 
-	//! store "sensitivity field":
+	//! "sensitivity field":
 	//! characteristic / parameter space point / parameter / diff measure
 	QVector<    // characteristic (index in charactIndex)
 		QVector<    // parameter index (second index in paramSetValues / allParamValues)
@@ -73,7 +73,13 @@ public:
 		double
 	>>>>> sensitivityField;
 
-	//! store per-characteristic/ parameter average
+	//! averages over all parameter-set of above field ("global sensitivity" for a parameter
+	QVector<		// characteristis
+		QVector<    // parameter index
+		QVector<    // difference measure
+		QVector<    // variation aggregation
+		double
+	>>>> aggregatedSensitivities;
 
 	// per-object sensitivity:
 	// required: 1-1 match between fibers
@@ -395,6 +401,8 @@ QSharedPointer<iASensitivityInfo> iASensitivityInfo::create(QString const& param
 		sensitivityInfo->paramSetValues.push_back(parameterSet);
 	}
 
+	// TODO: make computation asynchronous
+
 	// sensitivityInfo->paramStep.fill(0.0, sensitivityInfo->variedParams.size());
 	
 	// compute characteristics distribution (histogram) for all results:
@@ -425,31 +433,39 @@ QSharedPointer<iASensitivityInfo> iASensitivityInfo::create(QString const& param
 	// for each characteristic
 	//     for each varied parameter
 	//         for each selected characteristics difference measure
-	//             for left only, right only, average/? over full range
+	//             for each "aggregation type" - left only, right only, average/? over full range
 	//                 for each point in parameter space (of base sampling method)
 	//                     compute local change by that difference measure
 
+	const int NumOfVarianceAggregation = 4;
+
 	sensitivityInfo->sensitivityField.resize(sensitivityInfo->charactIndex.size());
+	sensitivityInfo->aggregatedSensitivities.resize(sensitivityInfo->charactIndex.size());
 	for (int charactIdx = 0; charactIdx < sensitivityInfo->charactIndex.size(); ++charactIdx)
 	{
 		sensitivityInfo->sensitivityField[charactIdx].resize(sensitivityInfo->variedParams.size());
+		sensitivityInfo->aggregatedSensitivities[charactIdx].resize(sensitivityInfo->variedParams.size());
 		int charactID = sensitivityInfo->charactIndex[charactIdx];
 		auto charactName = data->spmData->parameterName(charactID);
 		for (int paramIdx = 0; paramIdx < sensitivityInfo->variedParams.size(); ++paramIdx)
 		{
 			int origParamColIdx = sensitivityInfo->variedParams[paramIdx];
 			sensitivityInfo->sensitivityField[charactIdx][paramIdx].resize(sensitivityInfo->charDiffMeasure.size());
+			sensitivityInfo->aggregatedSensitivities[charactIdx][paramIdx].resize(sensitivityInfo->charDiffMeasure.size());
 			for (int diffMeasure = 0; diffMeasure < sensitivityInfo->charDiffMeasure.size(); ++diffMeasure)
 			{
-				const int NumOfVarianceAggregation = 4;
 				// for now:
 				//     - one step average, left only, right only
 				//      future: overall (weighted) average, ...=
 				sensitivityInfo->sensitivityField[charactIdx][paramIdx][diffMeasure].resize(NumOfVarianceAggregation);
+				sensitivityInfo->aggregatedSensitivities[charactIdx][paramIdx][diffMeasure].fill(0.0, NumOfVarianceAggregation);
 				for (int i = 0; i < NumOfVarianceAggregation; ++i)
 				{
 					sensitivityInfo->sensitivityField[charactIdx][paramIdx][diffMeasure][i].resize(sensitivityInfo->paramSetValues.size());
 				}
+				int numLeft = 0,
+					numRight = 0,
+					numTotal = 0;
 				for (int paramSetIdx = 0; paramSetIdx < sensitivityInfo->paramSetValues.size(); ++paramSetIdx)
 				{
 					int resultIdxGroupStart = starGroupSize * paramSetIdx;
@@ -469,6 +485,7 @@ QSharedPointer<iASensitivityInfo> iASensitivityInfo::create(QString const& param
 							sensitivityInfo->resultCharacteristicHistograms[resultIdxParamStart][charactIdx],
 							diffMeasure);
 						++numVals;
+						++numLeft;
 					}
 
 					int k = 1;
@@ -487,14 +504,24 @@ QSharedPointer<iASensitivityInfo> iASensitivityInfo::create(QString const& param
 							sensitivityInfo->resultCharacteristicHistograms[firstPosStepIdx][charactIdx],
 							diffMeasure);
 						++numVals;
+						++numRight;
 					}
+					numTotal += numVals;
 					double meanVar = (leftVar + rightVar) / numVals;
 					sensitivityInfo->sensitivityField[charactIdx][paramIdx][diffMeasure][0][paramSetIdx] = meanVar;
 					sensitivityInfo->sensitivityField[charactIdx][paramIdx][diffMeasure][1][paramSetIdx] = leftVar;
 					sensitivityInfo->sensitivityField[charactIdx][paramIdx][diffMeasure][2][paramSetIdx] = rightVar;
+
+					sensitivityInfo->aggregatedSensitivities[charactIdx][paramIdx][diffMeasure][0] += meanVar;
+					sensitivityInfo->aggregatedSensitivities[charactIdx][paramIdx][diffMeasure][1] += leftVar;
+					sensitivityInfo->aggregatedSensitivities[charactIdx][paramIdx][diffMeasure][2] += rightVar;
 				}
+				sensitivityInfo->aggregatedSensitivities[charactIdx][paramIdx][diffMeasure][0] /= numTotal;
+				sensitivityInfo->aggregatedSensitivities[charactIdx][paramIdx][diffMeasure][1] /= numLeft;
+				sensitivityInfo->aggregatedSensitivities[charactIdx][paramIdx][diffMeasure][2] /= numRight;
 			}
 		}
 	}
+
 	return sensitivityInfo;
 }
