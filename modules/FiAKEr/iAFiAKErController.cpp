@@ -1369,7 +1369,10 @@ void iAFiAKErController::computeSensitivity()
 		return;
 	}
 	m_sensitivityInfo = iASensitivityInfo::create(fileName, m_data);
-
+	if (!m_sensitivityInfo)
+	{
+		return;
+	}
 	m_sensitivityInfo->createGUI(m_mdiChild, m_views[ResultListView]);
 }
 
