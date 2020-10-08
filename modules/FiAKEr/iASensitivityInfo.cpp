@@ -379,21 +379,27 @@ QSharedPointer<iASensitivityInfo> iASensitivityInfo::create(QString const& param
 		sensitivityInfo->aggregatedSensitivities[charactIdx].resize(sensitivityInfo->variedParams.size());
 		int charactID = sensitivityInfo->charactIndex[charactIdx];
 		auto charactName = data->spmData->parameterName(charactID);
+		DEBUG_LOG(QString("Characteristic %1 (%2):").arg(charactIdx).arg(charactName));
 		for (int paramIdx = 0; paramIdx < sensitivityInfo->variedParams.size(); ++paramIdx)
 		{
+			QString paramName(sensitivityInfo->paramNames[sensitivityInfo->variedParams[paramIdx]]);
+			DEBUG_LOG(QString("  Parameter %1 (%2):").arg(paramIdx).arg(paramName));
 			int origParamColIdx = sensitivityInfo->variedParams[paramIdx];
 			sensitivityInfo->sensitivityField[charactIdx][paramIdx].resize(sensitivityInfo->charDiffMeasure.size());
 			sensitivityInfo->aggregatedSensitivities[charactIdx][paramIdx].resize(sensitivityInfo->charDiffMeasure.size());
 			for (int diffMeasure = 0; diffMeasure < sensitivityInfo->charDiffMeasure.size(); ++diffMeasure)
 			{
+				DEBUG_LOG(QString("    Difference Measure %1 (%2)").arg(diffMeasure).arg(MeasureNames()[diffMeasure]));
 				// for now:
 				//     - one step average, left only, right only
 				//      future: overall (weighted) average, ...=
-				sensitivityInfo->sensitivityField[charactIdx][paramIdx][diffMeasure].resize(NumOfVarianceAggregation);
-				sensitivityInfo->aggregatedSensitivities[charactIdx][paramIdx][diffMeasure].fill(0.0, NumOfVarianceAggregation);
+				auto& field = sensitivityInfo->sensitivityField[charactIdx][paramIdx][diffMeasure];
+				field.resize(NumOfVarianceAggregation);
+				auto& agg = sensitivityInfo->aggregatedSensitivities[charactIdx][paramIdx][diffMeasure];
+				agg.fill(0.0, NumOfVarianceAggregation);
 				for (int i = 0; i < NumOfVarianceAggregation; ++i)
 				{
-					sensitivityInfo->sensitivityField[charactIdx][paramIdx][diffMeasure][i].resize(sensitivityInfo->paramSetValues.size());
+					field[i].resize(sensitivityInfo->paramSetValues.size());
 				}
 				int numAllLeft = 0,
 					numAllRight = 0,
@@ -408,6 +414,9 @@ QSharedPointer<iASensitivityInfo> iASensitivityInfo::create(QString const& param
 					double groupStartParamVal = sensitivityInfo->allParamValues[origParamColIdx][resultIdxGroupStart];
 					double paramStartParamVal = sensitivityInfo->allParamValues[origParamColIdx][resultIdxParamStart];
 					double paramDiff = paramStartParamVal - groupStartParamVal;
+					DEBUG_LOG(QString("      Parameter Set %1; start: %2 (value %3), param start: %4 (value %5); diff: %6")
+						.arg(paramSetIdx).arg(resultIdxGroupStart).arg(groupStartParamVal)
+						.arg(resultIdxParamStart).arg(paramStartParamVal).arg(paramDiff));
 
 					double leftVar = 0;
 					int numLeftRight = 0;
@@ -417,6 +426,7 @@ QSharedPointer<iASensitivityInfo> iASensitivityInfo::create(QString const& param
 							sensitivityInfo->resultCharacteristicHistograms[resultIdxGroupStart][charactIdx],
 							sensitivityInfo->resultCharacteristicHistograms[resultIdxParamStart][charactIdx],
 							diffMeasure);
+						DEBUG_LOG(QString("        Left var available: %1").arg(leftVar));
 						++numLeftRight;
 						++numAllLeft;
 					}
@@ -429,13 +439,14 @@ QSharedPointer<iASensitivityInfo> iASensitivityInfo::create(QString const& param
 						++k;
 					}
 					double rightVar = 0;
-					if (paramDiff < 0)
+					if (paramDiff < 0) // additional check required??
 					{
 						int firstPosStepIdx = resultIdxParamStart + (k - 1);
 						rightVar = distributionDifference(
 							sensitivityInfo->resultCharacteristicHistograms[resultIdxGroupStart][charactIdx],
 							sensitivityInfo->resultCharacteristicHistograms[firstPosStepIdx][charactIdx],
 							diffMeasure);
+						DEBUG_LOG(QString("        Right var available: %1").arg(rightVar));
 						++numLeftRight;
 						++numAllRight;
 					}
@@ -460,20 +471,25 @@ QSharedPointer<iASensitivityInfo> iASensitivityInfo::create(QString const& param
 					numAllTotal += sensitivityInfo->numOfSTARSteps;
 					double meanLeftRightVar = (leftVar + rightVar) / numLeftRight;
 					double meanTotal = sumTotal / sensitivityInfo->numOfSTARSteps;
-					sensitivityInfo->sensitivityField[charactIdx][paramIdx][diffMeasure][0][paramSetIdx] = meanLeftRightVar;
-					sensitivityInfo->sensitivityField[charactIdx][paramIdx][diffMeasure][1][paramSetIdx] = leftVar;
-					sensitivityInfo->sensitivityField[charactIdx][paramIdx][diffMeasure][2][paramSetIdx] = rightVar;
-					sensitivityInfo->sensitivityField[charactIdx][paramIdx][diffMeasure][3][paramSetIdx] = meanTotal;
+					DEBUG_LOG(QString("        (left+right)/(numLeftRight=%1) = %2").arg(numLeftRight).arg(meanLeftRightVar));
+					DEBUG_LOG(QString("        (sum total var = %1) / (numOfSTARSteps = %2)  = %3")
+						.arg(sumTotal).arg(sensitivityInfo->numOfSTARSteps).arg(meanTotal));
+					field[0][paramSetIdx] = meanLeftRightVar;
+					field[1][paramSetIdx] = leftVar;
+					field[2][paramSetIdx] = rightVar;
+					field[3][paramSetIdx] = meanTotal;
 
-					sensitivityInfo->aggregatedSensitivities[charactIdx][paramIdx][diffMeasure][0] += meanLeftRightVar;
-					sensitivityInfo->aggregatedSensitivities[charactIdx][paramIdx][diffMeasure][1] += leftVar;
-					sensitivityInfo->aggregatedSensitivities[charactIdx][paramIdx][diffMeasure][2] += rightVar;
-					sensitivityInfo->aggregatedSensitivities[charactIdx][paramIdx][diffMeasure][3] += meanTotal;
+					agg[0] += meanLeftRightVar;
+					agg[1] += leftVar;
+					agg[2] += rightVar;
+					agg[3] += meanTotal;
 				}
-				sensitivityInfo->aggregatedSensitivities[charactIdx][paramIdx][diffMeasure][0] /= numAllLeftRight;
-				sensitivityInfo->aggregatedSensitivities[charactIdx][paramIdx][diffMeasure][1] /= numAllLeft;
-				sensitivityInfo->aggregatedSensitivities[charactIdx][paramIdx][diffMeasure][2] /= numAllRight;
-				sensitivityInfo->aggregatedSensitivities[charactIdx][paramIdx][diffMeasure][3] /= numAllTotal;
+				agg[0] /= numAllLeftRight;
+				agg[1] /= numAllLeft;
+				agg[2] /= numAllRight;
+				agg[3] /= numAllTotal;
+				DEBUG_LOG(QString("      LeftRight=%1, Left=%2, Right=%3, Total=%4")
+					.arg(agg[0]).arg(agg[1]).arg(agg[2]).arg(agg[3]));
 			}
 		}
 	}
