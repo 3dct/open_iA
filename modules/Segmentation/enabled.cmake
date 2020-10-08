@@ -5,8 +5,8 @@ IF (openiA_TESTING_ENABLED)
 	ADD_EXECUTABLE(DistanceMeasureTest Segmentation/iADistanceMeasureTest.cpp Segmentation/iAVectorDistanceImpl.cpp Segmentation/iAVectorArrayImpl.cpp Segmentation/iAVectorTypeImpl.cpp ${CoreSrcDir}/iAImageCoordinate.cpp)
 	TARGET_LINK_LIBRARIES(ImageGraphTest PRIVATE ${QT_LIBRARIES})
 	TARGET_LINK_LIBRARIES(DistanceMeasureTest PRIVATE ${QT_LIBRARIES} ${VTK_LIBRARIES})
-	TARGET_INCLUDE_DIRECTORIES(ImageGraphTest PRIVATE ${CoreSrcDir} ${CoreBinDir})
-	TARGET_INCLUDE_DIRECTORIES(DistanceMeasureTest PRIVATE ${CoreSrcDir} ${CoreBinDir})
+	TARGET_INCLUDE_DIRECTORIES(ImageGraphTest PRIVATE ${CoreSrcDir} ${CoreBinDir} ${OpeniABinDir}/modules)  # ../modules is for _export.h
+	TARGET_INCLUDE_DIRECTORIES(DistanceMeasureTest PRIVATE ${CoreSrcDir} ${CoreBinDir} ${OpeniABinDir}/modules)  # ../modules is for _export.h
 	TARGET_COMPILE_DEFINITIONS(ImageGraphTest PRIVATE NO_DLL_LINKAGE)
 	TARGET_COMPILE_DEFINITIONS(DistanceMeasureTest PRIVATE NO_DLL_LINKAGE)
 	ADD_TEST(NAME ImageGraphTest COMMAND ImageGraphTest)
