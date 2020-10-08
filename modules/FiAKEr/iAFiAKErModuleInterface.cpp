@@ -97,6 +97,7 @@ namespace
 	const QString LastPathKey("FIAKER/LastPath");
 	const QString LastUseStepData("FIAKER/LastUseStepData");
 	const QString LastShowPreviews("FIAKER/LastShowPreviews");
+	const QString LastShowCharts("FIAKER/LastShowCharts");
 }
 
 void iAFiAKErModuleInterface::Initialize()
@@ -129,6 +130,7 @@ void iAFiAKErModuleInterface::Initialize()
 	m_lastPath = s.value(LastPathKey, m_mainWnd->path()).toString();
 	m_lastUseStepData = s.value(LastUseStepData, true).toBool();
 	m_lastShowPreviews = s.value(LastShowPreviews, true).toBool();
+	m_lastShowCharts = s.value(LastShowCharts, true).toBool();
 	bool ok;
 	m_lastTimeStepOffset = s.value(LastTimeStepOffsetKey, 0).toDouble(&ok);
 	if (!ok)
@@ -145,6 +147,7 @@ void iAFiAKErModuleInterface::SaveSettings() const
 	s.setValue(LastTimeStepOffsetKey, m_lastTimeStepOffset);
 	s.setValue(LastUseStepData, m_lastUseStepData);
 	s.setValue(LastShowPreviews, m_lastShowPreviews);
+	s.setValue(LastShowCharts, m_lastShowCharts);
 }
 
 void iAFiAKErModuleInterface::startFiAKEr()
@@ -169,7 +172,8 @@ void iAFiAKErModuleInterface::startFiAKEr()
 		<< "+CSV cormat"
 		<< "#Step coordinate shift"
 		<< "$Use step data"
-		<< "$Show result previews in list";
+		<< "$Show mini previews in result list"
+		<< "$Show distribution charts in result list";
 	QStringList formatEntries = iACsvConfig::getListFromRegistry();
 	if (!formatEntries.contains(iAFiberResultsCollection::SimpleFormat))
 	{
@@ -196,7 +200,7 @@ void iAFiAKErModuleInterface::startFiAKEr()
 	}
 
 	QList<QVariant> values;
-	values << m_lastPath << formatEntries << m_lastTimeStepOffset << m_lastUseStepData << m_lastShowPreviews;
+	values << m_lastPath << formatEntries << m_lastTimeStepOffset << m_lastUseStepData << m_lastShowPreviews << m_lastShowCharts;
 
 	QString descr("Starts FIAKER, a comparison tool for results from fiber reconstruction algorithms.<br/>"
 		"Choose a <em>Result folder</em> containing two or more fiber reconstruction results in .csv format. "
@@ -227,6 +231,7 @@ void iAFiAKErModuleInterface::startFiAKEr()
 	m_lastTimeStepOffset = dlg.getDblValue(2);
 	m_lastUseStepData = dlg.getCheckValue(3);
 	m_lastShowPreviews = dlg.getCheckValue(4);
+	m_lastShowCharts = dlg.getCheckValue(5);
 	//cmbbox_Format->addItems(formatEntries);
 
 	AttachToMdiChild(mdiChild);
@@ -239,7 +244,8 @@ void iAFiAKErModuleInterface::startFiAKEr()
 	auto project = QSharedPointer<iAFIAKERProject>::create();
 	project->setController(attach->controller());
 	mdiChild->addProject(iAFiAKErController::FIAKERProjectID, project);
-	attach->controller()->start(m_lastPath, getCsvConfig(m_lastFormat), m_lastTimeStepOffset, m_lastUseStepData, m_lastShowPreviews);
+	attach->controller()->start(m_lastPath, getCsvConfig(m_lastFormat), m_lastTimeStepOffset,
+		m_lastUseStepData, m_lastShowPreviews, m_lastShowCharts);
 }
 
 void iAFiAKErModuleInterface::computeSensitivity()

@@ -150,6 +150,7 @@ namespace
 	const QString ProjectFileSaveFormatName("CsvFormat");
 	const QString ProjectUseStepData("UseStepData");
 	const QString ProjectShowPreviews("ShowPreviews");
+	const QString ProjectShowCharts("ShowCharts");
 	const QString CameraPosition("CameraPosition");
 	const QString CameraViewUp("CameraViewUp");
 	const QString CameraFocalPoint("CameraFocalPoint");
@@ -210,6 +211,9 @@ iAFiAKErController::iAFiAKErController(MainWindow* mainWnd, MdiChild* mdiChild) 
 	m_mdiChild(mdiChild),
 	m_referenceID(NoResult),
 	m_colorByThemeName(iALUT::GetColorMapNames()[0]),
+	m_useStepData(false),
+	m_showPreviews(false),
+	m_showCharts(false),
 	m_showFiberContext(false),
 	m_mergeContextBoxes(false),
 	m_showWireFrame(false),
@@ -252,15 +256,17 @@ void iAFiAKErController::loadProject(QSettings const& projectFile, QString const
 	auto stepShift = projectFile.value(ProjectFileStepShift, 0).toDouble();
 	auto useStepData = projectFile.value(ProjectUseStepData, true).toBool();
 	auto showPreviews = projectFile.value(ProjectShowPreviews, true).toBool();
-	start(dataFolder, config, stepShift, useStepData, showPreviews);
+	auto createCharts = projectFile.value(ProjectShowCharts, true).toBool();
+	start(dataFolder, config, stepShift, useStepData, showPreviews, createCharts);
 }
 
-void iAFiAKErController::start(QString const & path, iACsvConfig const & config, double stepShift, bool useStepData, bool showPreviews)
+void iAFiAKErController::start(QString const & path, iACsvConfig const & config, double stepShift, bool useStepData, bool showPreviews, bool createCharts)
 {
 	m_config = config;
 	m_config.addClassID = false;
 	m_useStepData = useStepData;
 	m_showPreviews = showPreviews;
+	m_showCharts = createCharts;
 	m_views.resize(DockWidgetCount);
 	connect(m_mdiChild, &MdiChild::renderSettingsChanged, this, &iAFiAKErController::applyRenderSettings);
 
@@ -328,6 +334,7 @@ void iAFiAKErController::resultsLoaded()
 	m_settingsWidgetMap.insert(ProjectConnectMatchingReferenceFibers, m_chkboxShowLines);
 	m_settingsWidgetMap.insert(ProjectShowRefInDistribution, m_settingsView->cbShowReferenceDistribution);
 	m_settingsWidgetMap.insert(ProjectShowPreviews, m_settingsView->cbShowPreviews);
+	m_settingsWidgetMap.insert(ProjectShowCharts, m_settingsView->cbShowCharts);
 	m_settingsWidgetMap.insert(ProjectLinkPreviews, m_settingsView->cbLinkPreviews);
 	m_settingsWidgetMap.insert(ProjectDistributionHistogramBins, m_settingsView->sbHistogramBins);
 	m_settingsWidgetMap.insert(ProjectDistributionPlotTypes, m_settingsView->cmbboxDistributionPlotType);
@@ -653,7 +660,10 @@ QWidget* iAFiAKErController::setupResultListView()
 	m_resultsListLayout->setSpacing(ControlSpacing);
 	m_resultsListLayout->setContentsMargins(ResultListMargin, ResultListMargin, ResultListMargin, ResultListMargin);
 	m_resultsListLayout->setColumnStretch(m_stackedBarColumn, static_cast<int>(m_data->result.size()));
-	m_resultsListLayout->setColumnStretch(m_histogramColumn, static_cast<int>(2 * m_data->result.size()));
+	if (m_showCharts)
+	{
+		m_resultsListLayout->setColumnStretch(m_histogramColumn, static_cast<int>(2 * m_data->result.size()));
+	}
 
 	auto colorTheme = iAColorThemeManager::instance().theme(DefaultStackedBarColorTheme);
 	m_stackedBarsHeaders = new iAStackedBarChart(colorTheme, true);
@@ -686,12 +696,6 @@ QWidget* iAFiAKErController::setupResultListView()
 	m_colorByDistribution = new QCheckBox("Color by");
 	connect(m_colorByDistribution, &QCheckBox::stateChanged, this, &iAFiAKErController::colorByDistrToggled);
 
-	auto histHeader = new QWidget();
-	histHeader->setLayout(new QHBoxLayout());
-	histHeader->layout()->setContentsMargins(0, 0, 0, 0);
-	histHeader->layout()->addWidget(m_colorByDistribution);
-	histHeader->layout()->addWidget(m_distributionChoice);
-
 	addHeaderLabel(m_resultsListLayout, m_nameActionColumn, "Name/Actions");
 	if (m_showPreviews)
 	{
@@ -699,7 +703,15 @@ QWidget* iAFiAKErController::setupResultListView()
 		addHeaderLabel(m_resultsListLayout, m_previewColumn, "Preview");
 	}
 	m_resultsListLayout->addWidget(m_stackedBarsHeaders, 0, m_stackedBarColumn);
-	m_resultsListLayout->addWidget(histHeader, 0, m_histogramColumn);
+	if (m_showCharts)
+	{
+		auto histHeader = new QWidget();
+		histHeader->setLayout(new QHBoxLayout());
+		histHeader->layout()->setContentsMargins(0, 0, 0, 0);
+		histHeader->layout()->addWidget(m_colorByDistribution);
+		histHeader->layout()->addWidget(m_distributionChoice);
+		m_resultsListLayout->addWidget(histHeader, 0, m_histogramColumn);
+	}
 
 	m_showResultVis.resize(m_data->result.size());
 	m_showResultBox.resize(m_data->result.size());
@@ -739,10 +751,13 @@ QWidget* iAFiAKErController::setupResultListView()
 		ui.stackedBars->setSizePolicy(QSizePolicy::Expanding, QSizePolicy::Expanding);
 		connect(m_stackedBarsHeaders, &iAStackedBarChart::weightsChanged, ui.stackedBars, &iAStackedBarChart::setWeights);
 
-		ui.histoChart = new iAChartWidget(resultList, "Fiber Length", "");
-		ui.histoChart->setShowXAxisLabel(false);
-		ui.histoChart->setMinimumWidth(HistogramMinWidth);
-		ui.histoChart->setSizePolicy(QSizePolicy::Expanding, QSizePolicy::Expanding);
+		if (m_showCharts)
+		{
+			ui.histoChart = new iAChartWidget(resultList, "Fiber Length", "");
+			ui.histoChart->setShowXAxisLabel(false);
+			ui.histoChart->setMinimumWidth(HistogramMinWidth);
+			ui.histoChart->setSizePolicy(QSizePolicy::Expanding, QSizePolicy::Expanding);
+		}
 
 		m_resultListSorting.insert(resultID, static_cast<int>(resultID));
 
@@ -784,10 +799,13 @@ QWidget* iAFiAKErController::setupResultListView()
 			"Filename: " + d.fileName + "\n");
 
 		ui.stackedBars->setProperty("resultID", static_cast<qulonglong>(resultID));
-		ui.histoChart->setProperty("resultID", static_cast<qulonglong>(resultID));
+		if (m_showCharts)
+		{
+			ui.histoChart->setProperty("resultID", static_cast<qulonglong>(resultID));
+			connect(ui.histoChart, &iAChartWidget::dblClicked, this, &iAFiAKErController::referenceToggled);
+		}
 		ui.nameActions->setProperty("resultID", static_cast<qulonglong>(resultID));
 		connect(ui.stackedBars, &iAStackedBarChart::dblClicked, this, &iAFiAKErController::referenceToggled);
-		connect(ui.histoChart, &iAChartWidget::dblClicked, this, &iAFiAKErController::referenceToggled);
 		connect(ui.nameActions, &iASignallingWidget::dblClicked, this, &iAFiAKErController::referenceToggled);
 		connect(m_showResultVis[resultID], &QCheckBox::stateChanged, this, &iAFiAKErController::toggleVis);
 		connect(m_showResultBox[resultID], &QCheckBox::stateChanged, this, &iAFiAKErController::toggleBoundingBox);
@@ -931,14 +949,21 @@ void iAFiAKErController::updateResultList()
 			m_resultsListLayout->removeWidget(ui.previewWidget);
 		}
 		m_resultsListLayout->removeWidget(ui.stackedBars);
-		m_resultsListLayout->removeWidget(ui.histoChart);
+		if (ui.histoChart)
+		{
+			m_resultsListLayout->removeWidget(ui.histoChart);
+		}
 		m_resultsListLayout->addWidget(ui.nameActions, m_resultListSorting[resultID] + 1, m_nameActionColumn);
 		if (ui.previewWidget)
 		{
 			m_resultsListLayout->addWidget(ui.previewWidget, m_resultListSorting[resultID] + 1, m_previewColumn);
 		}
 		m_resultsListLayout->addWidget(ui.stackedBars, m_resultListSorting[resultID] + 1, m_stackedBarColumn);
-		m_resultsListLayout->addWidget(ui.histoChart, m_resultListSorting[resultID] + 1, m_histogramColumn);
+
+		if (ui.histoChart)
+		{
+			m_resultsListLayout->addWidget(ui.histoChart, m_resultListSorting[resultID] + 1, m_histogramColumn);
+		}
 	}
 }
 
@@ -1362,6 +1387,10 @@ void iAFiAKErController::stackedBarColorThemeChanged(int index)
 
 void iAFiAKErController::changeDistributionSource(int index)
 {
+	if (!m_showCharts)
+	{
+		return;
+	}
 	if (matchQualityVisActive() && m_referenceID == NoResult)
 	{
 		DEBUG_LOG(QString("You need to set a reference first!"));
@@ -1420,6 +1449,10 @@ void iAFiAKErController::changeDistributionSource(int index)
 
 void iAFiAKErController::updateHistogramColors()
 {
+	if (!m_showCharts)
+	{
+		return;
+	}
 	double range[2] = { 0.0, static_cast<double>(m_histogramBins) };
 	auto lut = m_colorByDistribution->isChecked() ?
 		QSharedPointer<iALookupTable>(new iALookupTable(iALUT::Build(range, m_colorByThemeName, 255, 1)))
@@ -1448,6 +1481,10 @@ void iAFiAKErController::updateHistogramColors()
 
 void iAFiAKErController::updateRefDistPlots()
 {
+	if (!m_showCharts)
+	{
+		return;
+	}
 	for (size_t resultID = 0; resultID < m_data->result.size(); ++resultID)
 	{
 		auto & chart = m_resultUIs[resultID].histoChart;
@@ -2493,7 +2530,10 @@ namespace
 			ui.vtkWidget->update();
 		}
 		ui.stackedBars->setBackgroundColor(color);
-		ui.histoChart->setBackgroundColor(color);
+		if (ui.histoChart)
+		{
+			ui.histoChart->setBackgroundColor(color);
+		}
 	}
 }
 
@@ -3253,6 +3293,7 @@ void iAFiAKErController::saveProject(QSettings & projectFile, QString  const & f
 	projectFile.setValue(ProjectFileStepShift, m_data->stepShift);
 	projectFile.setValue(ProjectUseStepData, m_useStepData);
 	projectFile.setValue(ProjectShowPreviews, m_showPreviews);
+	projectFile.setValue(ProjectShowCharts, m_showCharts);
 	saveSettings(projectFile);
 }
 

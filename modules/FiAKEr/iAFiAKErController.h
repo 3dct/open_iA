@@ -125,7 +125,7 @@ public:
 	iAFiAKErController(MainWindow* mainWnd, MdiChild* mdiChild);
 
 	void loadProject(QSettings const & projectFile, QString const & fileName);
-	void start(QString const & path, iACsvConfig const & config, double stepShift, bool useStepData, bool showPreview);
+	void start(QString const & path, iACsvConfig const & config, double stepShift, bool useStepData, bool showPreview, bool createCharts);
 	std::vector<std::vector<size_t> > & selection() override;
 	void toggleDockWidgetTitleBars();
 	void toggleSettings();
@@ -258,7 +258,7 @@ private:
 	vtkSmartPointer<vtkTable> m_refVisTable;
 	iACsvConfig m_config;
 	QString m_colorByThemeName;
-	bool m_useStepData, m_showPreviews;
+	bool m_useStepData, m_showPreviews, m_showCharts;
 	bool m_showFiberContext, m_mergeContextBoxes, m_showWireFrame, m_showLines;
 	double m_contextSpacing;
 	QString m_parameterFile; //! (.csv-)file containing eventual parameters used in creating the loaded results
