@@ -232,18 +232,21 @@ QSharedPointer<iASensitivityInfo> iASensitivityInfo::create(QString const& param
 	//        or distance of current value of first varied parameter is a multiple
 	//        of the distance between its first row value and second row value
 	double checkValue0 = paramValues[sensitivityInfo->variedParams[0]][0];
-	const double RemainderCheckEpsilon = 1e-14;
+	const double RemainderCheckEpsilon = 1e-12;
 	double curCheckValue = paramValues[sensitivityInfo->variedParams[0]][1];
-	double diffCheck = curCheckValue - checkValue0;
-	//DEBUG_LOG(QString("checkValue0=%1, diffCheck=%2").arg(checkValue0).arg(diffCheck));
+	double diffCheck = std::abs(curCheckValue - checkValue0);
+	//DEBUG_LOG(QString("checkValue0=%1, curCheckValue=%2, diffCheck=%3").arg(checkValue0).arg(curCheckValue).arg(diffCheck));
 	double remainder = 0;
 	int row = 2;
 	while (row < paramValues[sensitivityInfo->variedParams[0]].size() &&
-		(remainder < RemainderCheckEpsilon || (dblApproxEqual(curCheckValue, checkValue0))))
+		(remainder < RemainderCheckEpsilon || 	// "approximately a multiple" is not so easy with double
+			(std::abs(diffCheck-remainder) < RemainderCheckEpsilon) || // remainder could also be close to but smaller than diffCheck
+			(dblApproxEqual(curCheckValue, checkValue0))))
 	{
 		curCheckValue = paramValues[sensitivityInfo->variedParams[0]][row];
 		remainder = std::abs(std::fmod(std::abs(curCheckValue - checkValue0), diffCheck));
-		//DEBUG_LOG(QString("curCheckValue=%1, remainder=%2, row=%3").arg(curCheckValue).arg(remainder).arg(row));
+		//DEBUG_LOG(QString("Row %1: curCheckValue=%2, checkValue0=%3, remainder=%4")
+		//	.arg(row).arg(curCheckValue).arg(checkValue0).arg(remainder));
 		++row;
 	}
 	int starGroupSize = row - 1;
