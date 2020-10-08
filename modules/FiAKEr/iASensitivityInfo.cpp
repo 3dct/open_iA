@@ -223,7 +223,7 @@ QSharedPointer<iASensitivityInfo> iASensitivityInfo::create(QString const& param
 	}
 	DEBUG_LOG(QString("Found the following parameters to vary (number: %1): %2")
 		.arg(sensitivityInfo->variedParams.size())
-		.arg(joinAsString(sensitivityInfo->variedParams, ",", [&paramNames](int const& i) { return paramNames[i + 1]; })));
+		.arg(joinAsString(sensitivityInfo->variedParams, ",", [&paramNames](int const& i) { return paramNames[i]; })));
 
 	// find out how many additional parameter sets were added per STAR:
 	//   - go to first value row; take value of first varied parameter as v
