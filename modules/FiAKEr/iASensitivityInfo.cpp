@@ -63,7 +63,7 @@ namespace
 	}
 	QStringList const& AggregationNames()
 	{
-		static QStringList Names = QStringList() << "Mean left+right" << "Left only" << "Right only";
+		static QStringList Names = QStringList() << "Mean left+right" << "Left only" << "Right only" << "Mean of all neighbours in STAR";
 		return Names;
 	}
 }
@@ -395,9 +395,10 @@ QSharedPointer<iASensitivityInfo> iASensitivityInfo::create(QString const& param
 				{
 					sensitivityInfo->sensitivityField[charactIdx][paramIdx][diffMeasure][i].resize(sensitivityInfo->paramSetValues.size());
 				}
-				int numLeft = 0,
-					numRight = 0,
-					numTotal = 0;
+				int numAllLeft = 0,
+					numAllRight = 0,
+					numAllLeftRight = 0,
+					numAllTotal = 0;
 				for (int paramSetIdx = 0; paramSetIdx < sensitivityInfo->paramSetValues.size(); ++paramSetIdx)
 				{
 					int resultIdxGroupStart = starGroupSize * paramSetIdx;
@@ -409,15 +410,15 @@ QSharedPointer<iASensitivityInfo> iASensitivityInfo::create(QString const& param
 					double paramDiff = paramStartParamVal - groupStartParamVal;
 
 					double leftVar = 0;
-					int numVals = 0;
+					int numLeftRight = 0;
 					if (paramDiff > 0)
 					{
 						leftVar = distributionDifference(
 							sensitivityInfo->resultCharacteristicHistograms[resultIdxGroupStart][charactIdx],
 							sensitivityInfo->resultCharacteristicHistograms[resultIdxParamStart][charactIdx],
 							diffMeasure);
-						++numVals;
-						++numLeft;
+						++numLeftRight;
+						++numAllLeft;
 					}
 
 					int k = 1;
@@ -435,22 +436,44 @@ QSharedPointer<iASensitivityInfo> iASensitivityInfo::create(QString const& param
 							sensitivityInfo->resultCharacteristicHistograms[resultIdxGroupStart][charactIdx],
 							sensitivityInfo->resultCharacteristicHistograms[firstPosStepIdx][charactIdx],
 							diffMeasure);
-						++numVals;
-						++numRight;
+						++numLeftRight;
+						++numAllRight;
 					}
-					numTotal += numVals;
-					double meanVar = (leftVar + rightVar) / numVals;
-					sensitivityInfo->sensitivityField[charactIdx][paramIdx][diffMeasure][0][paramSetIdx] = meanVar;
+					double sumTotal = 0;
+					bool wasSmaller = true;
+					for (int i = 0; i < sensitivityInfo->numOfSTARSteps; ++i)
+					{
+						int compareIdx = i - 1;
+						double paramVal = sensitivityInfo->allParamValues[origParamColIdx][resultIdxParamStart + i];
+						if (paramVal > paramStartParamVal && wasSmaller)
+						{
+							wasSmaller = false;
+							compareIdx = -1;
+						}
+						double difference = distributionDifference(
+							sensitivityInfo->resultCharacteristicHistograms[resultIdxGroupStart + 1 + compareIdx][charactIdx],
+							sensitivityInfo->resultCharacteristicHistograms[resultIdxGroupStart + 1 + i][charactIdx],
+							diffMeasure);
+						sumTotal += difference;
+					}
+					numAllLeftRight += numLeftRight;
+					numAllTotal += sensitivityInfo->numOfSTARSteps;
+					double meanLeftRightVar = (leftVar + rightVar) / numLeftRight;
+					double meanTotal = sumTotal / sensitivityInfo->numOfSTARSteps;
+					sensitivityInfo->sensitivityField[charactIdx][paramIdx][diffMeasure][0][paramSetIdx] = meanLeftRightVar;
 					sensitivityInfo->sensitivityField[charactIdx][paramIdx][diffMeasure][1][paramSetIdx] = leftVar;
 					sensitivityInfo->sensitivityField[charactIdx][paramIdx][diffMeasure][2][paramSetIdx] = rightVar;
+					sensitivityInfo->sensitivityField[charactIdx][paramIdx][diffMeasure][3][paramSetIdx] = meanTotal;
 
-					sensitivityInfo->aggregatedSensitivities[charactIdx][paramIdx][diffMeasure][0] += meanVar;
+					sensitivityInfo->aggregatedSensitivities[charactIdx][paramIdx][diffMeasure][0] += meanLeftRightVar;
 					sensitivityInfo->aggregatedSensitivities[charactIdx][paramIdx][diffMeasure][1] += leftVar;
 					sensitivityInfo->aggregatedSensitivities[charactIdx][paramIdx][diffMeasure][2] += rightVar;
+					sensitivityInfo->aggregatedSensitivities[charactIdx][paramIdx][diffMeasure][3] += meanTotal;
 				}
-				sensitivityInfo->aggregatedSensitivities[charactIdx][paramIdx][diffMeasure][0] /= numTotal;
-				sensitivityInfo->aggregatedSensitivities[charactIdx][paramIdx][diffMeasure][1] /= numLeft;
-				sensitivityInfo->aggregatedSensitivities[charactIdx][paramIdx][diffMeasure][2] /= numRight;
+				sensitivityInfo->aggregatedSensitivities[charactIdx][paramIdx][diffMeasure][0] /= numAllLeftRight;
+				sensitivityInfo->aggregatedSensitivities[charactIdx][paramIdx][diffMeasure][1] /= numAllLeft;
+				sensitivityInfo->aggregatedSensitivities[charactIdx][paramIdx][diffMeasure][2] /= numAllRight;
+				sensitivityInfo->aggregatedSensitivities[charactIdx][paramIdx][diffMeasure][3] /= numAllTotal;
 			}
 		}
 	}
