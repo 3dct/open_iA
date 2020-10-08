@@ -1344,6 +1344,8 @@ void iAFiAKErController::computeSensitivity()
 		return;
 	}
 	m_sensitivityInfo = iASensitivityInfo::create(fileName, m_data);
+
+	m_sensitivityInfo->createGUI(m_mdiChild, m_views[ResultListView]);
 }
 
 void iAFiAKErController::stackedBarColorThemeChanged(int index)
