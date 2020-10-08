@@ -44,7 +44,6 @@ protected:
 	iAModuleAttachmentToChild* CreateAttachment(MainWindow* mainWnd, MdiChild* child) override;
 private slots:
 	void startFiAKEr();
-	void computeSensitivity();
 
 	//! Method to load fiaker project (called on Tools->FIAKER->Load project)
 	//! Deprecated, use open_iA project feature instead!

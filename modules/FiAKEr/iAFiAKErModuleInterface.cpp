@@ -112,17 +112,12 @@ void iAFiAKErModuleInterface::Initialize()
 	actionFiAKEr->setShortcut(QKeySequence(Qt::ALT + Qt::Key_R, Qt::Key_O));
 	connect(actionFiAKEr, &QAction::triggered, this, &iAFiAKErModuleInterface::startFiAKEr );
 
-	QAction* actionComputeSensitivity = new QAction("Compute Variation-based Sensitivity", m_mainWnd);
-	actionComputeSensitivity->setShortcut(QKeySequence(Qt::ALT + Qt::Key_R, Qt::Key_S));
-	connect(actionComputeSensitivity, &QAction::triggered, this, &iAFiAKErModuleInterface::computeSensitivity);
-
 	QAction* actionFiAKErProject = new QAction(tr("Load FIAKER (old .fpf files)"), m_mainWnd);
 	actionFiAKErProject->setShortcut(QKeySequence(Qt::ALT + Qt::Key_R, Qt::Key_P));
 	connect(actionFiAKErProject, &QAction::triggered, this, &iAFiAKErModuleInterface::loadFiAKErProject);
 
 	QMenu* submenu = getOrAddSubMenu(m_mainWnd->toolsMenu(), tr("Feature Analysis"), true);
 	submenu->addAction(actionFiAKEr);
-	submenu->addAction(actionComputeSensitivity);
 	submenu->addAction(actionFiAKErProject);
 
 	QSettings s;
@@ -246,11 +241,6 @@ void iAFiAKErModuleInterface::startFiAKEr()
 	mdiChild->addProject(iAFiAKErController::FIAKERProjectID, project);
 	attach->controller()->start(m_lastPath, getCsvConfig(m_lastFormat), m_lastTimeStepOffset,
 		m_lastUseStepData, m_lastShowPreviews, m_lastShowCharts);
-}
-
-void iAFiAKErModuleInterface::computeSensitivity()
-{
-
 }
 
 void iAFiAKErModuleInterface::loadFiAKErProject()
