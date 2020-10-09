@@ -39,6 +39,8 @@ public:
 	static QSharedPointer<iASensitivityInfo> create(QString const& parameterFileName, QSharedPointer<iAFiberResultsCollection> data);
 	void createGUI(QMainWindow* child, QDockWidget* nextToDW);
 
+	QString charactName(int charactIdx) const;
+
 	// TODO: make private:
 	iASensitivityInfo(QSharedPointer<iAFiberResultsCollection> data);
 	QSharedPointer<iAFiberResultsCollection> m_data;
@@ -116,6 +118,7 @@ public:
 public slots:
 	void changeAggregation(int newAggregation);
 	void changeMeasure(int newMeasure);
+	void paramChanged();
 };
 
 // Factor out as generic CSV reading class also used by iACsvIO?

@@ -22,6 +22,7 @@
 
 // Core
 #include <charts/iASPLOMData.h>
+#include <charts/qcustomplot.h>
 #include <iAConsole.h>
 #include <iAMathUtility.h>
 #include <iAStringHelper.h>
@@ -530,188 +531,19 @@ public:
 		cmbboxAggregation->addItems(AggregationNames());
 		connect(cmbboxMeasure, QOverload<int>::of(&QComboBox::currentIndexChanged), sensInf, &iASensitivityInfo::changeMeasure);
 		connect(cmbboxAggregation, QOverload<int>::of(&QComboBox::currentIndexChanged), sensInf, &iASensitivityInfo::changeAggregation);
-	}
-};
 
-class iAParameterInfluenceView: public QWidget
-{
-private:
-	//! stacked bar charts (one per parameter)
-	QVector<iAStackedBarChart*> m_stackedCharts;
-	iAStackedBarChart* m_stackedHeader;
-
-	QVector<iAChartWidget*> m_chartWidget;
-	//! sensitivity information
-	iASensitivityInfo* m_sensInf;
-	//! measure to use 
-	int m_measureIdx;
-	//! aggregation type
-	int m_aggrType;
-public:
-	iAParameterInfluenceView(iASensitivityInfo* sensInf):
-		m_sensInf(sensInf),
-		m_measureIdx(0),
-		m_aggrType(0)
-	{
-		setLayout(new QHBoxLayout);
-		layout()->setContentsMargins(0, 0, 0, 0);
-		auto paramScrollArea = new QScrollArea();
-		paramScrollArea->setWidgetResizable(true);
-		auto paramList = new QWidget();
-		paramScrollArea->setWidget(paramList);
-		paramScrollArea->setContentsMargins(0, 0, 0, 0);
-		layout()->addWidget(paramScrollArea);
-
-		auto paramListLayout = new QGridLayout();
-		paramList->setLayout(paramListLayout);
-		paramListLayout->setSpacing(LayoutSpacing);
-		paramListLayout->setContentsMargins(LayoutMargin, LayoutMargin, LayoutMargin, LayoutMargin);
-		paramListLayout->setColumnStretch(0, 1); // param name
-		paramListLayout->setColumnStretch(1, 2); // stacked bar chart
-		//paramListLayout->setColumnStretch(2, 2); // histogram
-		
-		auto colorTheme = iAColorThemeManager::instance().theme(DefaultStackedBarColorTheme);
-		m_stackedHeader = new iAStackedBarChart(colorTheme, true);
-		// TODO: Unify/Group stacked bar widgets here / in iAFIAKERController into a class
-		// which encapsulates updating weights, showing columns, unified data interface (table?)
-		// for all characteristics, add column to stacked bar charts
+		QStringList characteristics;
 		for (size_t charactIdx = 0; charactIdx < sensInf->charactIndex.size(); ++charactIdx)
 		{
-			auto charactShowAction = new QAction(charactName(charactIdx), nullptr);
-			charactShowAction->setProperty("charactIdx", static_cast<unsigned long long>(charactIdx));
-			charactShowAction->setCheckable(true);
-			charactShowAction->setChecked(false);
-			connect(charactShowAction, &QAction::triggered, this, &iAParameterInfluenceView::stackedColSelect);
-			m_stackedHeader->contextMenu()->addAction(charactShowAction);
+			characteristics << sensInf->charactName(charactIdx);
 		}
-
-		DEBUG_LOG(QString("Adding lines for %1 characteristics").arg(sensInf->charactIndex.size()));
-		paramListLayout->addWidget(new QLabel("Parameter"), 0, 0);
-		paramListLayout->addWidget(m_stackedHeader, 0, 1);
-		for (int paramIdx = 0; paramIdx < sensInf->variedParams.size(); ++paramIdx)
-		{
-			m_stackedCharts.push_back(new iAStackedBarChart(colorTheme, false));
-			connect(m_stackedHeader, &iAStackedBarChart::weightsChanged, m_stackedCharts[paramIdx], &iAStackedBarChart::setWeights);
-			paramListLayout->addWidget(new QLabel(sensInf->paramNames[sensInf->variedParams[paramIdx]]), 1 + paramIdx, 0);
-			paramListLayout->addWidget(m_stackedCharts[paramIdx], 1 + paramIdx, 1);
-		}
+		cmbboxCharacteristic->addItems(characteristics);
 	}
-
-	void changeMeasure(int newMeasure)
-	{
-		m_measureIdx = newMeasure;
-		updateStackedBars();
-	}
-
-	void changeAggregation(int newAggregation)
-	{
-		m_aggrType = newAggregation;
-		updateStackedBars();
-	}
-private slots:
-	void stackedColSelect()
-	{
-		auto source = qobject_cast<QAction*>(QObject::sender());
-		size_t charactIdx = source->property("charactIdx").toULongLong();
-		if (source->isChecked())
-		{
-			addStackedBar(charactIdx);
-		}
-		else
-		{
-			removeStackedBar(charactIdx);
-		}
-	}
-	void selectMeasure(int measureIdx)
-	{
-		m_measureIdx = measureIdx;
-		//updateStackedBars();
-	}
-
-private:
-	QVector<int> m_visibleCharacts;
-
-	void updateStackedBars()
-	{
-		for (auto charactIdx : m_visibleCharacts)
-		{
-			// TODO: unify with addStackedBar
-			auto title(charactName(charactIdx));
-			double maxValue = std::numeric_limits<double>::lowest();
-			for (size_t paramIdx = 0; paramIdx < m_sensInf->variedParams.size(); ++paramIdx)
-			{
-				double value = m_sensInf->aggregatedSensitivities[charactIdx][paramIdx][m_measureIdx][m_aggrType];
-				if (value > maxValue)
-				{
-					maxValue = value;
-				}
-			}
-			for (size_t paramIdx = 0; paramIdx < m_sensInf->variedParams.size(); ++paramIdx)
-			{
-				// characteristis
-				// parameter index
-				// difference measure
-				// variation aggregation
-				double value = m_sensInf->aggregatedSensitivities[charactIdx][paramIdx][m_measureIdx][m_aggrType];
-				m_stackedCharts[paramIdx]->updateBar(title, value, maxValue);
-			}
-		}
-		for (size_t paramIdx = 0; paramIdx < m_sensInf->variedParams.size(); ++paramIdx)
-		{
-			m_stackedCharts[paramIdx]->update();
-		}
-	}
-
-	QString charactName(int charactIdx)
-	{
-		return m_sensInf->m_data->spmData->parameterName(m_sensInf->charactIndex[charactIdx]);
-	}
-
-	void addStackedBar(int charactIdx)
-	{
-		m_visibleCharacts.push_back(charactIdx);
-		auto title(charactName(charactIdx));
-		DEBUG_LOG(QString("Showing stacked bar for characteristic %1").arg(title));
-		m_stackedHeader->addBar(title, 1, 1);
-
-		double maxValue = std::numeric_limits<double>::lowest();
-		for (size_t paramIdx = 0; paramIdx < m_sensInf->variedParams.size(); ++paramIdx)
-		{
-			double value = m_sensInf->aggregatedSensitivities[charactIdx][paramIdx][m_measureIdx][m_aggrType];
-			if (value > maxValue)
-			{
-				maxValue = value;
-			}
-		}
-		for (size_t paramIdx = 0; paramIdx < m_sensInf->variedParams.size(); ++paramIdx)
-		{
-			// characteristis
-			// parameter index
-			// difference measure
-			// variation aggregation
-			double value = m_sensInf->aggregatedSensitivities[charactIdx][paramIdx][m_measureIdx][m_aggrType];
-			m_stackedCharts[paramIdx]->addBar(title, value, maxValue);
-		}
-	}
-
-	void removeStackedBar(int charactIdx)
-	{
-		int visibleIdx = m_visibleCharacts.indexOf(charactIdx);
-		if (visibleIdx == -1)
-		{
-			DEBUG_LOG(QString("Invalid state - called remove on non-added characteristic idx %1").arg(charactIdx));
-		}
-		m_visibleCharacts.remove(visibleIdx);
-		auto title(charactName(charactIdx));
-		DEBUG_LOG(QString("Showing stacked bar for characteristic %1").arg(title));
-		m_stackedHeader->removeBar(title);
-		for (size_t paramIdx = 0; paramIdx < m_sensInf->variedParams.size(); ++paramIdx)
-		{
-			m_stackedCharts[paramIdx]->removeBar(title);
-		}
-	}
-
+	int charactIdx() const { return cmbboxCharacteristic->currentIndex(); }
 };
+
+
+#include "iAParameterInfluenceView.h"
 
 class iASensitivityGUI
 {
@@ -723,7 +555,15 @@ public:
 
 	//! Overall settings
 	iASensitivitySettingsView* m_settings;
+
+	//! Parameter detail
+	QCustomPlot* m_paramDetails;
 };
+
+QString iASensitivityInfo::charactName(int charactIdx) const
+{
+	return m_data->spmData->parameterName(charactIndex[charactIdx]);
+}
 
 void iASensitivityInfo::createGUI(QMainWindow* child, QDockWidget* nextToDW)
 {
@@ -735,7 +575,12 @@ void iASensitivityInfo::createGUI(QMainWindow* child, QDockWidget* nextToDW)
 
 	m_gui->m_paramInfluenceView = new iAParameterInfluenceView(this);
 	auto dwParamInfluence = new iADockWidgetWrapper(m_gui->m_paramInfluenceView, "Parameter Influence", "foeParamInfluence");
+	connect(m_gui->m_paramInfluenceView, &iAParameterInfluenceView::parameterChanged, this, &iASensitivityInfo::paramChanged);
 	child->splitDockWidget(dwSettings, dwParamInfluence, Qt::Vertical);
+
+	m_gui->m_paramDetails = new QCustomPlot(child);
+	auto dwParamDetails = new iADockWidgetWrapper(m_gui->m_paramDetails, "Parameter Details", "foeParamDetails");
+	child->splitDockWidget(dwParamInfluence, dwParamDetails, Qt::Vertical);
 }
 
 void iASensitivityInfo::changeMeasure(int newMeasure)
@@ -746,4 +591,45 @@ void iASensitivityInfo::changeMeasure(int newMeasure)
 void iASensitivityInfo::changeAggregation(int newAggregation)
 {
 	m_gui->m_paramInfluenceView->changeAggregation(newAggregation);
+}
+
+void iASensitivityInfo::paramChanged()
+{
+	int paramIdx = m_gui->m_paramInfluenceView->selectedParam();
+	int charactIdx = m_gui->m_settings->charactIdx();
+	int measureIdx = m_gui->m_paramInfluenceView->selectedMeasure();
+	int aggrType = m_gui->m_paramInfluenceView->selectedAggrType();
+
+	auto& plot = m_gui->m_paramDetails;
+	plot->clearGraphs();
+	plot->addGraph();
+	plot->graph(0)->setPen(QPen(Qt::blue));
+
+	auto const& data = sensitivityField[charactIdx][paramIdx][measureIdx][aggrType];
+		// characteristic (index in charactIndex)
+		// parameter index (second index in paramSetValues / allParamValues)
+		// characteristics difference measure index (index in charDiffMeasure)
+		// variation aggregation (see iASensitivityInfo::create)
+		// parameter set index (first index in paramSetValues)
+	QVector<double> x(data.size()), y(data.size());
+	for (int i = 0; i < data.size(); ++i)
+	{
+		x[i] = paramSetValues[i][paramIdx];
+		y[i] = data[i];
+	}
+	// configure right and top axis to show ticks but no labels:
+	// (see QCPAxisRect::setupFullAxesBox for a quicker method to do this)
+	plot->xAxis2->setVisible(true);
+	plot->xAxis2->setTickLabels(false);
+	plot->yAxis2->setVisible(true);
+	plot->yAxis2->setTickLabels(false);
+	// make left and bottom axes always transfer their ranges to right and top axes:
+	connect(plot->xAxis, SIGNAL(rangeChanged(QCPRange)), plot->xAxis2, SLOT(setRange(QCPRange)));
+	connect(plot->yAxis, SIGNAL(rangeChanged(QCPRange)), plot->yAxis2, SLOT(setRange(QCPRange)));
+	// pass data points to graphs:
+	plot->graph(0)->setData(x, y);
+	// let the ranges scale themselves so graph 0 fits perfectly in the visible area:
+	plot->graph(0)->rescaleAxes();
+	plot->setInteractions(QCP::iRangeDrag | QCP::iRangeZoom | QCP::iSelectPlottables);
+	plot->update();
 }
