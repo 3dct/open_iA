@@ -50,20 +50,33 @@
       <property name="spacing">
        <number>4</number>
       </property>
-      <item row="1" column="0">
-       <widget class="QLabel" name="lbMeasure">
-        <property name="text">
-         <string>Measure</string>
+      <item row="0" column="1">
+       <widget class="QComboBox" name="cmbboxCharacteristic">
+        <property name="enabled">
+         <bool>true</bool>
         </property>
-       </widget>
-      </item>
-      <item row="1" column="1">
-       <widget class="QComboBox" name="cmbboxMeasure">
         <property name="sizePolicy">
          <sizepolicy hsizetype="Expanding" vsizetype="Fixed">
           <horstretch>0</horstretch>
           <verstretch>0</verstretch>
          </sizepolicy>
+        </property>
+       </widget>
+      </item>
+      <item row="2" column="1">
+       <widget class="QComboBox" name="cmbboxAggregation">
+        <property name="sizePolicy">
+         <sizepolicy hsizetype="Expanding" vsizetype="Fixed">
+          <horstretch>0</horstretch>
+          <verstretch>0</verstretch>
+         </sizepolicy>
+        </property>
+       </widget>
+      </item>
+      <item row="1" column="0">
+       <widget class="QLabel" name="lbMeasure">
+        <property name="text">
+         <string>Measure</string>
         </property>
        </widget>
       </item>
@@ -81,21 +94,8 @@
         </property>
        </widget>
       </item>
-      <item row="0" column="1">
-       <widget class="QComboBox" name="cmbboxCharacteristic">
-        <property name="enabled">
-         <bool>false</bool>
-        </property>
-        <property name="sizePolicy">
-         <sizepolicy hsizetype="Expanding" vsizetype="Fixed">
-          <horstretch>0</horstretch>
-          <verstretch>0</verstretch>
-         </sizepolicy>
-        </property>
-       </widget>
-      </item>
-      <item row="2" column="1">
-       <widget class="QComboBox" name="cmbboxAggregation">
+      <item row="1" column="1">
+       <widget class="QComboBox" name="cmbboxMeasure">
         <property name="sizePolicy">
          <sizepolicy hsizetype="Expanding" vsizetype="Fixed">
           <horstretch>0</horstretch>

@@ -48,6 +48,9 @@ iAParameterInfluenceView::iAParameterInfluenceView(iASensitivityInfo* sensInf) :
 	// TODO: Unify/Group stacked bar widgets here / in iAFIAKERController into a class
 	// which encapsulates updating weights, showing columns, unified data interface (table?)
 	// for all characteristics, add column to stacked bar charts
+
+	//connect(m_stackedHeader, &iAStackedBarChart::switchedStackMode, this, &iAParameterInfluenceView::switchStackMode);
+
 	for (size_t charactIdx = 0; charactIdx < sensInf->charactIndex.size(); ++charactIdx)
 	{
 		auto charactShowAction = new QAction(sensInf->charactName(charactIdx), nullptr);
