@@ -55,7 +55,12 @@ iAStackedBarChart::iAStackedBarChart(iAColorTheme const * theme, bool header):
 	switchStack->setCheckable(true);
 	switchStack->setChecked(true);
 	connect(switchStack, &QAction::triggered, this, &iAStackedBarChart::switchStackMode);
+	QAction* resetWeightsAction = new QAction("Set Equal Weights", nullptr);
+	connect(resetWeightsAction, &QAction::triggered, this, &iAStackedBarChart::resetWeights);
 	m_contextMenu->addAction(switchStack);
+	m_contextMenu->addAction(switchStack);
+	m_contextMenu->addAction(resetWeightsAction);
+	m_contextMenu->addSeparator();
 }
 
 void iAStackedBarChart::addBar(QString const & name, double value, double maxValue)
@@ -292,4 +297,15 @@ void iAStackedBarChart::setWeights(std::vector<double> const & weights)
 		m_bars[b].weight = weights[b];
 	}
 	update();
+}
+
+void iAStackedBarChart::resetWeights()
+{
+	std::vector<double> weights(m_bars.size(), 1.0 / m_bars.size());
+	for (size_t b = 0; b < m_bars.size(); ++b)
+	{
+		m_bars[b].weight = weights[b];
+	}
+	update();
+	emit weightsChanged(weights);
 }

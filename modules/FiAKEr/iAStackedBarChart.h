@@ -60,6 +60,7 @@ signals:
 	void doubleClicked();
 public slots:
 	void setWeights(std::vector<double> const & weights);
+	void resetWeights();
 private slots:
 	void switchStackMode();
 private:
