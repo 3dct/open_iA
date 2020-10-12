@@ -1,5 +1,6 @@
 #pragma once
 
+class iAColorTheme;
 class iAStackedBarChart;
 class iASensitivityInfo;
 
@@ -15,10 +16,12 @@ public:
 	int selectedMeasure() const;
 	int selectedAggrType() const;
 	int selectedParam() const;
+	void setColorTheme(iAColorTheme const * colorTheme);
 private slots:
 	void stackedColSelect();
 	void selectMeasure(int measureIdx);
 	void paramChangedSlot();
+	void switchStackMode(bool stack);
 private:
 	QVector<int> m_visibleCharacts;
 	void updateStackedBars();

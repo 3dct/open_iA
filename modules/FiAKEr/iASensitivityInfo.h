@@ -119,6 +119,7 @@ public slots:
 	void changeAggregation(int newAggregation);
 	void changeMeasure(int newMeasure);
 	void paramChanged();
+	void changeStackedBarColors();
 };
 
 // Factor out as generic CSV reading class also used by iACsvIO?

@@ -531,6 +531,8 @@ public:
 		cmbboxAggregation->addItems(AggregationNames());
 		connect(cmbboxMeasure, QOverload<int>::of(&QComboBox::currentIndexChanged), sensInf, &iASensitivityInfo::changeMeasure);
 		connect(cmbboxAggregation, QOverload<int>::of(&QComboBox::currentIndexChanged), sensInf, &iASensitivityInfo::changeAggregation);
+		connect(cmbboxStackedBarChartColors, QOverload<int>::of(&QComboBox::currentIndexChanged),
+			sensInf, &iASensitivityInfo::changeStackedBarColors);
 
 		QStringList characteristics;
 		for (size_t charactIdx = 0; charactIdx < sensInf->charactIndex.size(); ++charactIdx)
@@ -591,6 +593,12 @@ void iASensitivityInfo::changeMeasure(int newMeasure)
 void iASensitivityInfo::changeAggregation(int newAggregation)
 {
 	m_gui->m_paramInfluenceView->changeAggregation(newAggregation);
+}
+
+void iASensitivityInfo::changeStackedBarColors()
+{
+	iAColorTheme const* theme = iAColorThemeManager::instance().theme(m_gui->m_settings->cmbboxStackedBarChartColors->currentText());
+	m_gui->m_paramInfluenceView->setColorTheme(theme);
 }
 
 void iASensitivityInfo::paramChanged()

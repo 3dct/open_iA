@@ -49,7 +49,7 @@ iAParameterInfluenceView::iAParameterInfluenceView(iASensitivityInfo* sensInf) :
 	// which encapsulates updating weights, showing columns, unified data interface (table?)
 	// for all characteristics, add column to stacked bar charts
 
-	//connect(m_stackedHeader, &iAStackedBarChart::switchedStackMode, this, &iAParameterInfluenceView::switchStackMode);
+	connect(m_stackedHeader, &iAStackedBarChart::switchedStackMode, this, &iAParameterInfluenceView::switchStackMode);
 
 	for (size_t charactIdx = 0; charactIdx < sensInf->charactIndex.size(); ++charactIdx)
 	{
@@ -95,6 +95,16 @@ int iAParameterInfluenceView::selectedMeasure() const { return m_measureIdx; }
 int iAParameterInfluenceView::selectedAggrType() const { return m_aggrType; }
 int iAParameterInfluenceView::selectedParam() const { return m_paramIdx; }
 
+
+void iAParameterInfluenceView::setColorTheme(iAColorTheme const * colorTheme)
+{
+	m_stackedHeader->setColorTheme(colorTheme);
+	for (size_t paramIdx = 0; paramIdx < m_sensInf->variedParams.size(); ++paramIdx)
+	{
+		m_stackedCharts[paramIdx]->setColorTheme(colorTheme);
+	}
+}
+
 void iAParameterInfluenceView::stackedColSelect()
 {
 	auto source = qobject_cast<QAction*>(QObject::sender());
@@ -114,6 +124,7 @@ void iAParameterInfluenceView::selectMeasure(int measureIdx)
 	//updateStackedBars();
 	emit parameterChanged();
 }
+
 void iAParameterInfluenceView::paramChangedSlot()
 {
 	auto source = qobject_cast<iAStackedBarChart*>(QObject::sender());
@@ -124,6 +135,14 @@ void iAParameterInfluenceView::paramChangedSlot()
 		m_stackedCharts[paramIdx]->update();
 	}
 	emit parameterChanged();
+}
+
+void iAParameterInfluenceView::switchStackMode(bool stack)
+{
+	for (size_t paramIdx = 0; paramIdx < m_sensInf->variedParams.size(); ++paramIdx)
+	{
+		m_stackedCharts[paramIdx]->setDoStack(stack);
+	}
 }
 
 void iAParameterInfluenceView::updateStackedBars()
