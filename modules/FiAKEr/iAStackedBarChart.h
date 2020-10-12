@@ -58,11 +58,14 @@ signals:
 	void switchedStackMode(bool mode);
 	void weightsChanged(std::vector<double> const & weights);
 	void doubleClicked();
+	void normalizeModeChanged(bool normalizePerBar);
 public slots:
 	void setWeights(std::vector<double> const & weights);
-	void resetWeights();
+	void setNormalizeMode(bool normalizePerBar);
 private slots:
 	void switchStackMode();
+	void resetWeights();
+	void toggleNormalizeMode();
 private:
 	//! @{ Event Handlers:
 	void paintEvent(QPaintEvent* ev) override;
@@ -74,8 +77,10 @@ private:
 	//! @}
 
 	size_t dividerWithinRange(int x) const;
+	double weightAndNormalize(iABarData const& bar) const;
 	int barWidth(iABarData const & bar) const;
 	void normalizeWeights();
+	void updateOverallMax();
 
 	std::vector<iABarData> m_bars;
 	std::vector<int> m_dividers;
@@ -87,4 +92,6 @@ private:
 	double m_resizeWidth;
 	std::vector<iABarData> m_resizeBars;
 	QColor m_bgColor;
+	bool m_normalizePerBar;
+	double m_overallMaxValue;
 };

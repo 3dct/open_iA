@@ -72,6 +72,7 @@ iAParameterInfluenceView::iAParameterInfluenceView(iASensitivityInfo* sensInf) :
 		label->setProperty("paramIdx", paramIdx);
 		m_stackedCharts[paramIdx]->setProperty("paramIdx", paramIdx);
 		connect(m_stackedCharts[paramIdx], &iAStackedBarChart::doubleClicked, this, &iAParameterInfluenceView::paramChangedSlot);
+		connect(m_stackedHeader, &iAStackedBarChart::normalizeModeChanged, m_stackedCharts[paramIdx], &iAStackedBarChart::setNormalizeMode);
 		paramListLayout->addWidget(label, 1 + paramIdx, 0);
 		paramListLayout->addWidget(m_stackedCharts[paramIdx], 1 + paramIdx, 1);
 	}

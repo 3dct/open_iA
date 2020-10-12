@@ -47,20 +47,31 @@ iAStackedBarChart::iAStackedBarChart(iAColorTheme const * theme, bool header):
 	m_stack(true),
 	m_resizeBar(NoBar),
 	m_resizeStartX(0),
-	m_resizeWidth(0)
+	m_resizeWidth(0),
+	m_normalizePerBar(true)
 {
 	setMouseTracking(true);
 	setContextMenuPolicy(Qt::DefaultContextMenu);
-	QAction* switchStack = new QAction("Switch Stacked Mode", nullptr);
+
+	// Context Menu:
+	QAction* switchStack = new QAction("Switch stacked mode", nullptr);
 	switchStack->setCheckable(true);
 	switchStack->setChecked(true);
 	connect(switchStack, &QAction::triggered, this, &iAStackedBarChart::switchStackMode);
-	QAction* resetWeightsAction = new QAction("Set Equal Weights", nullptr);
+
+	QAction* resetWeightsAction = new QAction("Set equal weights", nullptr);
 	connect(resetWeightsAction, &QAction::triggered, this, &iAStackedBarChart::resetWeights);
+
+	QAction* normalizeAction = new QAction("Normalize per bar", nullptr);
+	normalizeAction->setCheckable(true);
+	normalizeAction->setChecked(true);
+	connect(normalizeAction, &QAction::triggered, this, &iAStackedBarChart::toggleNormalizeMode);
+
 	m_contextMenu->addAction(switchStack);
-	m_contextMenu->addAction(switchStack);
+	m_contextMenu->addAction(normalizeAction);
 	m_contextMenu->addAction(resetWeightsAction);
 	m_contextMenu->addSeparator();
+
 }
 
 void iAStackedBarChart::addBar(QString const & name, double value, double maxValue)
@@ -79,6 +90,7 @@ void iAStackedBarChart::updateBar(QString const& name, double value, double maxV
 		it->value = value;
 		it->maxValue = maxValue;
 	}
+	updateOverallMax();
 }
 
 void iAStackedBarChart::removeBar(QString const & name)
@@ -115,12 +127,18 @@ size_t iAStackedBarChart::numberOfBars() const
 	return m_bars.size();
 }
 
+double iAStackedBarChart::weightAndNormalize(iABarData const& bar) const
+{
+	return bar.value /
+		(m_normalizePerBar ? bar.maxValue : m_overallMaxValue) * bar.weight;
+}
+
 double iAStackedBarChart::weightedSum() const
 {
 	double result = 0;
-	for (size_t i = 0; i < m_bars.size(); ++i)
+	for (auto const & b: m_bars)
 	{
-		result += m_bars[i].value/m_bars[i].maxValue * m_bars[i].weight;
+		result += weightAndNormalize(b);
 	}
 	return result;
 }
@@ -191,6 +209,7 @@ size_t iAStackedBarChart::dividerWithinRange(int x) const
 
 void iAStackedBarChart::normalizeWeights()
 {
+	updateOverallMax();
 	double weightSum = 0;
 	for (auto& bar : m_bars)
 	{
@@ -202,9 +221,22 @@ void iAStackedBarChart::normalizeWeights()
 	}
 }
 
+void iAStackedBarChart::updateOverallMax()
+{
+	m_overallMaxValue = std::numeric_limits<double>::lowest();
+	for (auto& bar : m_bars)
+	{
+		if (bar.maxValue > m_overallMaxValue)
+		{
+			m_overallMaxValue = bar.maxValue;
+		}
+	}
+}
+
 int iAStackedBarChart::barWidth(iABarData const & bar) const
 {
-	return std::max(MinimumPixelBarWidth, static_cast<int>((bar.value / bar.maxValue) * bar.weight * geometry().width()) );
+	return std::max(MinimumPixelBarWidth,
+		static_cast<int>(weightAndNormalize(bar) * geometry().width()) );
 }
 
 void iAStackedBarChart::mouseMoveEvent(QMouseEvent* ev)
@@ -308,4 +340,16 @@ void iAStackedBarChart::resetWeights()
 	}
 	update();
 	emit weightsChanged(weights);
+}
+
+void iAStackedBarChart::toggleNormalizeMode()
+{
+	setNormalizeMode(!m_normalizePerBar);
+	emit normalizeModeChanged(m_normalizePerBar);
+}
+
+void iAStackedBarChart::setNormalizeMode(bool normalizePerBar)
+{
+	m_normalizePerBar = normalizePerBar;
+	update();
 }
