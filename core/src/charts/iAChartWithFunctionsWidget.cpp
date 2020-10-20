@@ -105,7 +105,7 @@ void iAChartWithFunctionsWidget::drawFunctions(QPainter &painter)
 
 		if (counter == m_selectedFunction)
 		{
-			func->draw(painter, QColor(255,128,0,255), iAChartFunction::LineWidthSelected);
+			func->draw(painter, iAChartFunction::DefaultColor, iAChartFunction::LineWidthSelected);
 		}
 		else
 		{
@@ -659,17 +659,6 @@ void iAChartWithFunctionsWidget::saveProbabilityFunctions(iAXmlSettings &xml)
 		}
 		// otherwise: unknown function type, do nothing
 	}
-}
-
-
-int iAChartWithFunctionsWidget::pointRadius(bool selected)
-{
-	return selected ? PointRadiusSelected : PointRadius;
-}
-
-int iAChartWithFunctionsWidget::pointSize(bool selected)
-{
-	return selected ? PointSizeSelected : PointSize;
 }
 
 void iAChartWithFunctionsWidget::saveFunctions()

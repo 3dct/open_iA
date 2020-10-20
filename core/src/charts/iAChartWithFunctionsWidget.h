@@ -74,12 +74,6 @@ public:
 
 	bool loadProbabilityFunctions(iAXmlSettings & xml);
 	void saveProbabilityFunctions(iAXmlSettings &xml);
-
-	static int pointRadius(bool selected);
-	static int pointSize(bool selected);
-	static const int PointRadius = 6;
-	static const int PointSize = 2 * PointRadius;
-
 protected:
 	//! @{ Events overrided from Qt.
 	void mousePressEvent(QMouseEvent *event) override;
@@ -136,8 +130,6 @@ private:
 	bool m_allowTrfReset;
 	bool m_enableAdditionalFunctions;
 	iATFTableDlg* m_TFTable;
-	static const int PointRadiusSelected = 10;
-	static const int PointSizeSelected = 2 * PointRadiusSelected;
 
 	void newTransferFunction();
 };

@@ -47,26 +47,12 @@ iAChartTransferFunction::iAChartTransferFunction(iAChartWithFunctionsWidget *cha
 	m_gradient.setSpread(QGradient::PadSpread);
 }
 
-namespace
-{
-	void drawPoint(QPainter& painter, int x1, int y1, QColor c, QPen& pen, QPen& penSel, bool selected)
-	{
-		painter.setPen(selected ? penSel : pen);
-		painter.setBrush(QBrush(c));
-		painter.drawEllipse(x1 - iAChartWithFunctionsWidget::pointRadius(selected), y1 - iAChartWithFunctionsWidget::pointRadius(selected),
-			iAChartWithFunctionsWidget::pointSize(selected), iAChartWithFunctionsWidget::pointSize(selected));
-	}
-}
-
-
 void iAChartTransferFunction::draw(QPainter &painter, QColor color, int lineWidth)
 {
 	bool active = (m_chart->selectedFunction() == this);
 
 	QPen pen = painter.pen();
 	pen.setColor(color); pen.setWidth(lineWidth);
-	QPen pointPen = painter.pen();
-	pointPen.setColor(color); pointPen.setWidth(1);
 	QPen pointSelPen = painter.pen();
 	pointSelPen.setColor(Qt::red); pointSelPen.setWidth(1);
 
@@ -117,7 +103,7 @@ void iAChartTransferFunction::draw(QPainter &painter, QColor color, int lineWidt
 		{
 			if (!m_rangeSliderHandles)
 			{
-				drawPoint(painter, x1, y1, c, pointSelPen, pointPen, (i - 1 == m_selectedPoint));
+				drawPoint(painter, x1, y1, (i - 1 == m_selectedPoint), c);
 			}
 			else
 			{
@@ -149,7 +135,7 @@ void iAChartTransferFunction::draw(QPainter &painter, QColor color, int lineWidt
 	// draw last point:
 	if (active && !m_rangeSliderHandles)
 	{
-		drawPoint(painter, x1, y1, c, pointSelPen, pointPen, m_selectedPoint == m_opacityTF->GetSize() - 1);
+		drawPoint(painter, x1, y1, m_selectedPoint == m_opacityTF->GetSize() - 1, c);
 	}
 }
 
@@ -177,7 +163,7 @@ int iAChartTransferFunction::selectPoint(int mouseX, int mouseY)
 		m_opacityTF->GetNodeValue(pointIndex, pointValue);
 		int pointX = m_chart->data2MouseX(pointValue[0]);
 		int pointY = opacity2PixelY(pointValue[1]);
-		int pointRadius = iAChartWithFunctionsWidget::pointRadius(pointIndex == m_selectedPoint);
+		int pointRadius = iAChartFunction::pointRadius(pointIndex == m_selectedPoint);
 		if ( !m_rangeSliderHandles )
 		{
 			if (std::abs(mouseX - pointX) < pointRadius && std::abs(mouseY - pointY) < pointRadius)
@@ -204,9 +190,7 @@ int iAChartTransferFunction::selectPoint(int mouseX, int mouseY)
 			}
 		}
 	}
-
 	m_selectedPoint = index;
-
 	return index;
 }
 

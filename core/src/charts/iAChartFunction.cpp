@@ -18,57 +18,43 @@
 * Contact: FH OÖ Forschungs & Entwicklungs GmbH, Campus Wels, CT-Gruppe,              *
 *          Stelzhamerstraße 23, 4600 Wels / Austria, Email: c.heinzl@fh-wels.at       *
 * ************************************************************************************/
-#pragma once
+#include "iAChartFunction.h"
 
-#include "open_iA_Core_export.h"
+#include "iAChartWithFunctionsWidget.h"
 
-#include <QObject>
+#include <QPainter>
 
-#include "open_iA_Core_export.h"
+iAChartFunction::iAChartFunction(iAChartWithFunctionsWidget* chart) : m_chart(chart) { }
 
-class QColor;
-class QMouseEvent;
-class QPainter;
-class iAChartWithFunctionsWidget;
+void iAChartFunction::changeColor()
+{}
 
-//! Abstract base class for representing some kind of function in an an iAChartWithFunctionsWidget.
-class open_iA_Core_API iAChartFunction: public QObject
+bool iAChartFunction::isColored() const
 {
-	Q_OBJECT
-public:
-	static const int PointRadius = 6;
-	static const int PointRadiusSelected = 10;
-	static const int LineWidthUnselected = 1;
-	static const int LineWidthSelected   = 2;
-	static const QColor DefaultColor;
-	//! size of a point in pixels
-	static int pointRadius(bool selected);
+	return false;
+}
 
-	iAChartFunction(iAChartWithFunctionsWidget* chart);
+void iAChartFunction::mouseReleaseEvent(QMouseEvent*)
+{}
 
-	virtual void draw(QPainter &painter) = 0;
-	virtual void draw(QPainter &painter, QColor color, int lineWidth) = 0;
-	virtual void drawOnTop(QPainter &painter) = 0;
+void iAChartFunction::mouseReleaseEventAfterNewPoint(QMouseEvent*)
+{}
 
-	virtual int selectPoint(int mouseX, int mouseY) = 0;
-	virtual int getSelectedPoint() const = 0;
-	virtual int addPoint(int mouseX, int mouseY) = 0;
-	virtual void addColorPoint(int x, double red = -1.0, double green = -1.0, double blue = -1.0) = 0;
-	virtual void removePoint(int index) = 0;
-	virtual void moveSelectedPoint(int mouseX, int mouseY) = 0;
-	virtual void changeColor();
-	virtual bool isColored() const;
-	virtual bool isEndPoint(int index) const = 0;
-	virtual bool isDeletable(int index) const = 0;
-	virtual size_t numPoints() const = 0;
+int iAChartFunction::pointRadius(bool selected)
+{
+	return selected ? PointRadiusSelected : PointRadius;
+}
 
-	virtual void reset() = 0;
-	virtual void mouseReleaseEvent(QMouseEvent*);
-	virtual void mouseReleaseEventAfterNewPoint(QMouseEvent*);
+const QColor iAChartFunction::DefaultColor(255, 128, 0, 255);
 
-	virtual QString name() const = 0;
-
-	iAChartWithFunctionsWidget* m_chart;
-};
-
-void drawPoint(QPainter& painter, int x, int y, bool selected, QColor const & color = iAChartFunction::DefaultColor, double radiusFactor=1);
+void drawPoint(QPainter& painter, int x, int y, bool selected, QColor const& color, double sizeFactor)
+{
+	QPen pointPen = painter.pen();
+	pointPen.setColor(color); pointPen.setWidth(iAChartFunction::LineWidthUnselected);
+	QPen pointPenSel = painter.pen();
+	pointPenSel.setColor(Qt::red); pointPenSel.setWidth(iAChartFunction::LineWidthSelected);
+	painter.setPen(selected ? pointPenSel : pointPen);
+	painter.setBrush(QBrush(color));
+	int radius = iAChartFunction::pointRadius(selected) * sizeFactor;
+	painter.drawEllipse(x - radius, y - radius, 2*radius, 2*radius);
+}
