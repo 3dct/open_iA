@@ -60,8 +60,8 @@ private:
 
 	void insert(unsigned int index, unsigned int x, unsigned int y);
 
-	void setViewPoint(int selectedPoint);
-	void setOppositeViewPoint(int selectedPoint);
+	void setViewPoint(int selPntIdx);
+	void setOppositeViewPoint(int selPntIdx);
 
 	int getFunctionPointIndex(int index);
 	double getLength(QPointF start, QPointF end);
@@ -69,8 +69,6 @@ private:
 	QColor m_color;
 	int m_selectedPoint;
 	double m_controlDist;
-	double m_length;
-	double m_oppositeLength;
 	std::vector<QPointF> m_viewPoints;
 	std::vector<QPointF> m_realPoints;
 };
