@@ -41,10 +41,10 @@ public:
 	void drawOnTop(QPainter&) override {}
 	int selectPoint(QMouseEvent *event, int *x = nullptr) override;
 	int getSelectedPoint() const override { return m_selectedPoint; }
-	int addPoint(int x, int y) override;
+	int addPoint(int mouseX, int mouseY) override;
 	void addColorPoint(int, double, double, double) override {}
 	void removePoint(int index) override;
-	void moveSelectedPoint(int x, int y) override;
+	void moveSelectedPoint(int mouseX, int mouseY) override;
 	void changeColor(QMouseEvent *) override{}
 	bool isColored() const override { return false; }
 	bool isEndPoint(int index) const override;

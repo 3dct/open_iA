@@ -176,30 +176,30 @@ int iAChartFunctionGaussian::selectPoint(QMouseEvent *event, int*)
 	return m_selectedPoint;
 }
 
-void iAChartFunctionGaussian::moveSelectedPoint(int x, int y)
+void iAChartFunctionGaussian::moveSelectedPoint(int mouseX, int mouseY)
 {
-	y = clamp(0, m_chart->chartHeight()-1, y);
+	mouseY = clamp(0, m_chart->chartHeight()-1, mouseY);
 	if (m_selectedPoint != -1)
 	{
 		switch(m_selectedPoint)
 		{
 			case 0:
 			{
-				m_mean = clamp(m_chart->xBounds()[0], m_chart->xBounds()[1], m_chart->xMapper().dstToSrc(x - m_chart->xShift()));
+				m_mean = clamp(m_chart->xBounds()[0], m_chart->xBounds()[1], m_chart->mouse2DataX(mouseX));
 			}
 			break;
 			case 1:
 			case 2:
 			{
-				m_sigma = fabs(m_mean - m_chart->xMapper().dstToSrc(x - m_chart->xShift())) / SigmaHandleFactor;
+				m_sigma = fabs(m_mean - m_chart->mouse2DataX(mouseX)) / SigmaHandleFactor;
 				if (m_sigma <= std::numeric_limits<double>::epsilon())
 				{
-					m_sigma = fabs(m_mean - m_chart->xMapper().dstToSrc(x - m_chart->xShift() + 1));
+					m_sigma = fabs(m_mean - m_chart->mouse2DataX(mouseX+1));
 				}
 			}
 		}
 		double maxValue = 1.0/(m_sigma*sqrt(2*vtkMath::Pi()));
-		m_multiplier  = m_chart->yMapper().dstToSrc(y) / maxValue;
+		m_multiplier  = m_chart->yMapper().dstToSrc(mouseY) / maxValue;
 	}
 }
 

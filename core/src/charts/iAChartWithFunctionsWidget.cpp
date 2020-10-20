@@ -214,13 +214,13 @@ void iAChartWithFunctionsWidget::mouseMoveEvent(QMouseEvent *event)
 		case MOVE_POINT_MODE:
 		case MOVE_NEW_POINT_MODE:
 		{
-			int viewX = event->x() - leftMargin();
-			int viewY = geometry().height() -event->y() -bottomMargin();
+			int mouseX = event->x() - leftMargin();
+			int mouseY = geometry().height() -event->y() -bottomMargin();
 			if (m_showFunctions)
 			{
 				std::vector<iAChartFunction*>::iterator it = m_functions.begin();
 				iAChartFunction *func = *(it + m_selectedFunction);
-				func->moveSelectedPoint(viewX, viewY);
+				func->moveSelectedPoint(mouseX, mouseY);
 				update();
 				emit updateTFTable();
 			}

@@ -164,7 +164,7 @@ int iAChartFunctionBezier::selectPoint(QMouseEvent *event, int *x)
 	for (size_t pointIndex = 0; pointIndex < m_viewPoints.size(); ++pointIndex)
 	{
 		bool selected = std::abs(static_cast<int>(pointIndex) - selectionCenter) <= 1;
-		int viewX = m_chart->xMapper().srcToDst(m_viewPoints[pointIndex].x()) + m_chart->xShift();
+		int viewX = m_chart->data2MouseX(m_viewPoints[pointIndex].x());
 		int viewY = m_chart->yMapper().srcToDst(m_viewPoints[pointIndex].y());
 		int pointRadius = (selected ? iAChartWithFunctionsWidget::SELECTED_POINT_RADIUS : iAChartWithFunctionsWidget::POINT_RADIUS)
 			/ ((pointIndex % 3 == 0) ? 1 : 2);
@@ -224,9 +224,9 @@ int iAChartFunctionBezier::selectPoint(QMouseEvent *event, int *x)
 	return index;
 }
 
-int iAChartFunctionBezier::addPoint(int x, int y)
+int iAChartFunctionBezier::addPoint(int mouseX, int mouseY)
 {
-	double xf = m_chart->xMapper().dstToSrc(x - m_chart->xShift());
+	double xf = m_chart->mouse2DataX(mouseX);
 
 	int index = 0;
 
@@ -237,7 +237,7 @@ int iAChartFunctionBezier::addPoint(int x, int y)
 		it+=3;
 	}
 
-	insert(index, x, y);
+	insert(index, mouseX, mouseY);
 
 	m_selectedPoint = index*3;
 
@@ -260,16 +260,16 @@ void iAChartFunctionBezier::removePoint(int index)
 	}
 }
 
-void iAChartFunctionBezier::moveSelectedPoint(int x, int y)
+void iAChartFunctionBezier::moveSelectedPoint(int mouseX, int mouseY)
 {
 	assert(m_realPoints.size() < std::numeric_limits<int>::max());
 	if (isFunctionPoint(m_selectedPoint))
 	{
-		x = clamp(0, m_chart->geometry().width() - 1, x);
-		y = clamp(0, static_cast<int>((m_chart->chartHeight() - 1)*m_chart->yZoom()), y);
+		mouseX = clamp(0, m_chart->geometry().width() - 1, mouseX);
+		mouseY = clamp(0, static_cast<int>((m_chart->chartHeight() - 1)*m_chart->yZoom()), mouseY);
 		if (isEndPoint(m_selectedPoint))
 		{
-			y = 0;
+			mouseY = 0;
 		}
 	}
 
@@ -284,10 +284,10 @@ void iAChartFunctionBezier::moveSelectedPoint(int x, int y)
 		dy = (m_chart->yMapper().srcToDst(m_viewPoints[m_selectedPoint].y()) - m_chart->yMapper().srcToDst(m_viewPoints[functionPointIndex].y())) / dLength;
 	}
 
-	double vx = m_chart->xMapper().dstToSrc(x - m_chart->xShift());
-	double vy = m_chart->yMapper().dstToSrc(y);
-	double fx = m_chart->xMapper().dstToSrc(x - m_chart->xShift() + dx * m_length);
-	double fy = m_chart->yMapper().dstToSrc(y + dy * m_length);
+	double vx = m_chart->mouse2DataX(mouseX);
+	double vy = m_chart->yMapper().dstToSrc(mouseY);
+	double fx = m_chart->mouse2DataX(mouseX + dx * m_length);
+	double fy = m_chart->yMapper().dstToSrc(mouseY + dy * m_length);
 
 	QPointF &selPoint = m_realPoints[m_selectedPoint];
 	bool functionPoint = isFunctionPoint(m_selectedPoint);
@@ -400,10 +400,10 @@ bool iAChartFunctionBezier::isControlPoint(int point)
 	return !isFunctionPoint(point);
 }
 
-void iAChartFunctionBezier::insert(unsigned int index, unsigned int x, unsigned int y)
+void iAChartFunctionBezier::insert(unsigned int index, unsigned int mouseX, unsigned int mouseY)
 {
-	double xf = m_chart->xMapper().dstToSrc(x - m_chart->xShift());
-	double yf = m_chart->yMapper().dstToSrc(y);
+	double xf = m_chart->mouse2DataX(mouseX);
+	double yf = m_chart->yMapper().dstToSrc(mouseY);
 
 	if (m_realPoints.size() == 0)
 	{
@@ -501,7 +501,7 @@ void iAChartFunctionBezier::setOppositeViewPoint(int selectedPoint)
 	double dy = -(point.y() -functionPoint.y()) / curLength;
 
 	m_realPoints[oppositePointIndex].setX(
-		m_chart->xMapper().dstToSrc(functionPoint.x() + dx * m_oppositeLength - m_chart->xShift()));
+		m_chart->mouse2DataX(functionPoint.x() + dx * m_oppositeLength));
 	m_realPoints[oppositePointIndex].setY(m_chart->yMapper().dstToSrc(functionPoint.y() + dy * m_oppositeLength));
 
 	setViewPoint(oppositePointIndex);

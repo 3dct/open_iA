@@ -69,6 +69,10 @@ public:
 	iAMapper const & xMapper() const;
 	iAMapper const & yMapper() const;
 	//! @}
+	//! @{ Convert mouse X coordinates (in chart already, i.e. without left/bottom margin) to chart x coordinates and vice versa
+	int data2MouseX(double dataX);
+	double mouse2DataX(int mouseX);
+	//! @}
 	//! @{ Get x/y bounds as array of size 2 (minimum, maximum)
 	virtual iAPlotData::DataType const * yBounds() const;
 	virtual double const * xBounds() const;
@@ -91,8 +95,6 @@ public:
 	//! @param x the bin space index; see screenX2DataBin for details
 	//! @return the screen space coordinate for the given bin space index
 	int  dataBin2ScreenX(long x) const;
-	//! Check whether currently a context menu is shown.
-	bool isContextMenuVisible() const;
 	//! Check whether currently tooltips are enabled.
 	bool isTooltipShown() const;
 	//! Get the position where the context menu was last shown.
