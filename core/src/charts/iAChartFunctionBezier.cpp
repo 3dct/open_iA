@@ -137,8 +137,8 @@ void iAChartFunctionBezier::draw(QPainter &painter, QColor penColor, int lineWid
 			bool isFunctionPoint = (l % 3 == 0); // is it a function point? (if false: control point)
 			QColor currentColor = selected ? redColor : penColor;
 			int sizeRadiusDenominator = isFunctionPoint ? 1 : 2; // control points only shown with half size
-			int radius = (selected ? iAChartWithFunctionsWidget::SELECTED_POINT_RADIUS : iAChartWithFunctionsWidget::POINT_RADIUS) / sizeRadiusDenominator;
-			int size   = (selected ? iAChartWithFunctionsWidget::SELECTED_POINT_SIZE   : iAChartWithFunctionsWidget::POINT_SIZE) / sizeRadiusDenominator;
+			int radius = iAChartWithFunctionsWidget::pointRadius(selected) / sizeRadiusDenominator;
+			int size   = iAChartWithFunctionsWidget::pointSize(selected) / sizeRadiusDenominator;
 			int penWidth = isFunctionPoint ? 1 : 3;
 			double pointX = isFunctionPoint ? m_realPoints[l].x() : m_viewPoints[l].x();
 			double pointY = isFunctionPoint ? m_realPoints[l].y() : m_viewPoints[l].y();
@@ -166,8 +166,7 @@ int iAChartFunctionBezier::selectPoint(QMouseEvent *event, int *x)
 		bool selected = std::abs(static_cast<int>(pointIndex) - selectionCenter) <= 1;
 		int viewX = m_chart->data2MouseX(m_viewPoints[pointIndex].x());
 		int viewY = m_chart->yMapper().srcToDst(m_viewPoints[pointIndex].y());
-		int pointRadius = (selected ? iAChartWithFunctionsWidget::SELECTED_POINT_RADIUS : iAChartWithFunctionsWidget::POINT_RADIUS)
-			/ ((pointIndex % 3 == 0) ? 1 : 2);
+		int pointRadius = iAChartWithFunctionsWidget::pointRadius(selected)	/ ((pointIndex % 3 == 0) ? 1 : 2);
 		if (std::abs(lx - viewX) <= pointRadius && std::abs(ly - viewY) <= pointRadius)
 		{
 			index = static_cast<int>(pointIndex);

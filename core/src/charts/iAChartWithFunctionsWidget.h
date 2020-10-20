@@ -51,11 +51,6 @@ class open_iA_Core_API iAChartWithFunctionsWidget : public iAChartWidget
 public:
 	enum AdditionalMode { MOVE_NEW_POINT_MODE=Y_ZOOM_MODE+1, MOVE_POINT_MODE};
 
-	static const int SELECTED_POINT_RADIUS = 10;
-	static const int SELECTED_POINT_SIZE = 2*SELECTED_POINT_RADIUS;
-	static const int POINT_RADIUS = 6/*4*/; //looks better
-	static const int POINT_SIZE = 2*POINT_RADIUS;
-
 	iAChartWithFunctionsWidget(QWidget *parent, MdiChild *mdiChild,
 		QString const & label = "Greyvalue", QString const & yLabel = "");
 	virtual ~iAChartWithFunctionsWidget();
@@ -79,6 +74,11 @@ public:
 
 	bool loadProbabilityFunctions(iAXmlSettings & xml);
 	void saveProbabilityFunctions(iAXmlSettings &xml);
+
+	static int pointRadius(bool selected);
+	static int pointSize(bool selected);
+	static const int PointRadius = 6;
+	static const int PointSize = 2 * PointRadius;
 
 protected:
 	//! @{ Events overrided from Qt.
@@ -136,6 +136,8 @@ private:
 	bool m_allowTrfReset;
 	bool m_enableAdditionalFunctions;
 	iATFTableDlg* m_TFTable;
+	static const int PointRadiusSelected = 10;
+	static const int PointSizeSelected = 2 * PointRadiusSelected;
 
 	void newTransferFunction();
 };

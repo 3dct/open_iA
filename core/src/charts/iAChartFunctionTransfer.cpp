@@ -47,16 +47,28 @@ iAChartTransferFunction::iAChartTransferFunction(iAChartWithFunctionsWidget *cha
 	m_gradient.setSpread(QGradient::PadSpread);
 }
 
+namespace
+{
+	void drawPoint(QPainter& painter, int x1, int y1, QColor c, QPen& pen, QPen& penSel, bool selected)
+	{
+		painter.setPen(selected ? penSel : pen);
+		painter.setBrush(QBrush(c));
+		painter.drawEllipse(x1 - iAChartWithFunctionsWidget::pointRadius(selected), y1 - iAChartWithFunctionsWidget::pointRadius(selected),
+			iAChartWithFunctionsWidget::pointSize(selected), iAChartWithFunctionsWidget::pointSize(selected));
+	}
+}
+
+
 void iAChartTransferFunction::draw(QPainter &painter, QColor color, int lineWidth)
 {
 	bool active = (m_chart->selectedFunction() == this);
 
 	QPen pen = painter.pen();
 	pen.setColor(color); pen.setWidth(lineWidth);
-	QPen pen1 = painter.pen();
-	pen1.setColor(color); pen1.setWidth(1);
-	QPen redPen = painter.pen();
-	redPen.setColor(Qt::red); redPen.setWidth(1);
+	QPen pointPen = painter.pen();
+	pointPen.setColor(color); pointPen.setWidth(1);
+	QPen pointSelPen = painter.pen();
+	pointSelPen.setColor(Qt::red); pointSelPen.setWidth(1);
 
 	painter.setPen(pen);
 	painter.setBrush(QColor(128, 128, 128, 255));
@@ -105,26 +117,13 @@ void iAChartTransferFunction::draw(QPainter &painter, QColor color, int lineWidt
 		{
 			if (!m_rangeSliderHandles)
 			{
-				if (i - 1 == m_selectedPoint)
-				{
-					painter.setPen(redPen);
-					painter.setBrush(QBrush(c));
-					painter.drawEllipse(x1 - iAChartWithFunctionsWidget::SELECTED_POINT_RADIUS, y1 - iAChartWithFunctionsWidget::SELECTED_POINT_RADIUS,
-						iAChartWithFunctionsWidget::SELECTED_POINT_SIZE, iAChartWithFunctionsWidget::SELECTED_POINT_SIZE);
-				}
-				else
-				{
-					painter.setPen(pen1);
-					painter.setBrush(QBrush(c));
-					painter.drawEllipse(x1 - iAChartWithFunctionsWidget::POINT_RADIUS, y1 - iAChartWithFunctionsWidget::POINT_RADIUS,
-						iAChartWithFunctionsWidget::POINT_SIZE, iAChartWithFunctionsWidget::POINT_SIZE);
-				}
+				drawPoint(painter, x1, y1, c, pointSelPen, pointPen, (i - 1 == m_selectedPoint));
 			}
 			else
 			{
 				if ( i - 1 == m_selectedPoint &&  i - 1 > 0 )
 				{
-					painter.setPen( redPen );
+					painter.setPen(pointSelPen);
 					painter.setBrush( QBrush( QColor( 254, 153, 41, 150 ) ) );
 					QRectF rectangle( x1 - SELECTED_PIE_RADIUS, y1 - SELECTED_PIE_RADIUS,
 										SELECTED_PIE_SIZE, SELECTED_PIE_SIZE );
@@ -132,7 +131,7 @@ void iAChartTransferFunction::draw(QPainter &painter, QColor color, int lineWidt
 				}
 				else if ( i - 1 > 0 )
 				{
-					painter.setPen( redPen );
+					painter.setPen(pointSelPen);
 					painter.setBrush( QBrush( QColor( 254, 153, 41, 150 ) ) );
 					QRectF rectangle( x1 - PIE_RADIUS, y1 - PIE_RADIUS,
 										PIE_SIZE, PIE_SIZE );
@@ -147,22 +146,10 @@ void iAChartTransferFunction::draw(QPainter &painter, QColor color, int lineWidt
 		x1 = x2;
 		y1 = y2;
 	}
-	if ( active && !m_rangeSliderHandles )
+	// draw last point:
+	if (active && !m_rangeSliderHandles)
 	{
-		if (m_selectedPoint == m_opacityTF->GetSize()-1)
-		{
-			painter.setPen(redPen);
-			painter.setBrush(QBrush(c));
-			painter.drawEllipse(x1-iAChartWithFunctionsWidget::SELECTED_POINT_RADIUS, y1-iAChartWithFunctionsWidget::SELECTED_POINT_RADIUS,
-				iAChartWithFunctionsWidget::SELECTED_POINT_SIZE, iAChartWithFunctionsWidget::SELECTED_POINT_SIZE);
-		}
-		else
-		{
-			painter.setPen(pen1);
-			painter.setBrush(QBrush(c));
-			painter.drawEllipse(x1-iAChartWithFunctionsWidget::POINT_RADIUS, y1-iAChartWithFunctionsWidget::POINT_RADIUS,
-				iAChartWithFunctionsWidget::POINT_SIZE, iAChartWithFunctionsWidget::POINT_SIZE);
-		}
+		drawPoint(painter, x1, y1, c, pointSelPen, pointPen, m_selectedPoint == m_opacityTF->GetSize() - 1);
 	}
 }
 
@@ -193,7 +180,7 @@ int iAChartTransferFunction::selectPoint(QMouseEvent *event, int *x)
 		m_opacityTF->GetNodeValue(pointIndex, pointValue);
 		int pointX = m_chart->data2MouseX(pointValue[0]);
 		int pointY = opacity2PixelY(pointValue[1]);
-		int pointRadius = (pointIndex == m_selectedPoint) ? iAChartWithFunctionsWidget::SELECTED_POINT_RADIUS : iAChartWithFunctionsWidget::POINT_RADIUS;
+		int pointRadius = iAChartWithFunctionsWidget::pointRadius(pointIndex == m_selectedPoint);
 		if ( !m_rangeSliderHandles )
 		{
 			if (std::abs(mouseX - pointX) < pointRadius && std::abs(mouseY - pointY) < pointRadius)

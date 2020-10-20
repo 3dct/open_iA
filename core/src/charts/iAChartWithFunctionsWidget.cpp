@@ -666,6 +666,17 @@ void iAChartWithFunctionsWidget::saveProbabilityFunctions(iAXmlSettings &xml)
 	}
 }
 
+
+int iAChartWithFunctionsWidget::pointRadius(bool selected)
+{
+	return selected ? PointRadiusSelected : PointRadius;
+}
+
+int iAChartWithFunctionsWidget::pointSize(bool selected)
+{
+	return selected ? PointSizeSelected : PointSize;
+}
+
 void iAChartWithFunctionsWidget::saveFunctions()
 {
 	QString filePath = m_activeChild ? m_activeChild->filePath(): "";
