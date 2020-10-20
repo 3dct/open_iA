@@ -141,11 +141,8 @@ void iAChartFunctionGaussian::draw(QPainter &painter, QColor color, int lineWidt
 	}
 }
 
-int iAChartFunctionGaussian::selectPoint(QMouseEvent *event, int*)
+int iAChartFunctionGaussian::selectPoint(int mouseX, int mouseY)
 {
-	int lx = event->x() - m_chart->leftMargin() - m_chart->xShift();
-	int ly = m_chart->chartHeight() - event->y();
-
 	double meanValue = 1.0/(m_sigma*sqrt(2*vtkMath::Pi()));
 
 	int viewXPoint = m_chart->xMapper().srcToDst(m_mean);
@@ -154,18 +151,18 @@ int iAChartFunctionGaussian::selectPoint(QMouseEvent *event, int*)
 	int viewXLeftSigmaPoint  = m_chart->xMapper().srcToDst(m_mean - SigmaHandleFactor * m_sigma);
 	int viewXRightSigmaPoint = m_chart->xMapper().srcToDst(m_mean + SigmaHandleFactor * m_sigma);
 
-	if (std::abs(lx - viewXLeftSigmaPoint) <= iAChartWithFunctionsWidget::PointRadius / 2 &&
-		std::abs(ly - viewYPoint) <= iAChartWithFunctionsWidget::PointRadius / 2)
+	if (std::abs(mouseX - viewXLeftSigmaPoint) <= iAChartWithFunctionsWidget::PointRadius / 2 &&
+		std::abs(mouseY - viewYPoint) <= iAChartWithFunctionsWidget::PointRadius / 2)
 	{
 		m_selectedPoint = 1;
 	}
-	else if (std::abs(lx - viewXRightSigmaPoint) <= iAChartWithFunctionsWidget::PointRadius / 2 &&
-		std::abs(ly - viewYPoint)- iAChartWithFunctionsWidget::PointRadius / 2)
+	else if (std::abs(mouseX - viewXRightSigmaPoint) <= iAChartWithFunctionsWidget::PointRadius / 2 &&
+		std::abs(mouseY - viewYPoint)- iAChartWithFunctionsWidget::PointRadius / 2)
 	{
 		m_selectedPoint = 2;
 	}
-	else if (std::abs(lx - viewXPoint) <= iAChartWithFunctionsWidget::PointRadius &&
-		std::abs(ly - viewYPoint) <= iAChartWithFunctionsWidget::PointRadius)
+	else if (std::abs(mouseX - viewXPoint) <= iAChartWithFunctionsWidget::PointRadius &&
+		std::abs(mouseY - viewYPoint) <= iAChartWithFunctionsWidget::PointRadius)
 	{
 		m_selectedPoint = 0;
 	}

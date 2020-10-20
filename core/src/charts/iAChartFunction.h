@@ -45,7 +45,7 @@ public:
 	virtual void draw(QPainter &painter, QColor color, int lineWidth) = 0;
 	virtual void drawOnTop(QPainter &painter) = 0;
 
-	virtual int selectPoint(QMouseEvent *event, int *x = nullptr) = 0;
+	virtual int selectPoint(int mouseX, int mouseY) = 0;
 	virtual int getSelectedPoint() const = 0;
 	virtual int addPoint(int mouseX, int mouseY) = 0;
 	virtual void addColorPoint(int x, double red = -1.0, double green = -1.0, double blue = -1.0) = 0;

@@ -84,12 +84,14 @@ public:
 	//! Get the maximum zoom factor in x direction that can be in use.
 	double maxXZoom() const;
 	//! Convert an x screen coordinate to a bin space index;
-	//! Note that there are three different spaces to consider: <ol>
+	//! Note that there are (at least) four different coordinate spaces to consider: <ol>
 	//! <li>the data space (i.e., a coordinate between the minimum/maximum specified by the x bounds),</li>
 	//! <li>the bin space (i.e., an index in the data bin array)</li>
-	//! <li>the screen space (i.e., a pixel x coordinate on the screen)</li></ol>
+	//! <li>the screen space (i.e., a pixel coordinate on the screen)</li>
+	//! <li>the mouse space (i.e., a pixel coordinate on the currently visible part of the chart) </ol>
 	//! @param x the x screen coordinate to convert
 	//! @return the bin index for the given x coordinate.
+	//! @see xMapper, yMapper, data2MouseX, mouse2DataX
 	long screenX2DataBin(int x) const;
 	//! Convert a bin number to a screen coordinate.
 	//! @param x the bin space index; see screenX2DataBin for details

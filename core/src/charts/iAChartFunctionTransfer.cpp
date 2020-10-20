@@ -168,12 +168,9 @@ void iAChartTransferFunction::drawOnTop(QPainter &painter)
 	}
 }
 
-int iAChartTransferFunction::selectPoint(QMouseEvent *event, int *x)
+int iAChartTransferFunction::selectPoint(int mouseX, int mouseY)
 {
-	int mouseX = event->x() - m_chart->leftMargin() - m_chart->xShift();
-	int mouseY = m_chart->chartHeight() - event->y() - m_chart->yShift();
 	int index = -1;
-
 	double pointValue[4];
 	for (int pointIndex = 0; pointIndex < m_opacityTF->GetSize(); pointIndex++)
 	{
@@ -205,19 +202,6 @@ int iAChartTransferFunction::selectPoint(QMouseEvent *event, int *x)
 				index = pointIndex;
 				break;
 			}
-		}
-
-		// TODO: determine what the use of the following block is.
-		// from a cursory glance: it sets x to the pixel position of the event + 1,
-		// if current x is equal to center pixel position of current point
-		// Questions:
-		//     - why does this happen in every loop, not only if current point is selected one?
-		//     - what's the use of the +1 / not +1 distinction?
-		//     - seems to be skipped for the actually selected point (because of break)...?
-		//     - never called if selected point is first one?
-		if (x != nullptr)
-		{
-			*x = (*x == pointX)? mouseX + 1: mouseX;
 		}
 	}
 

@@ -152,10 +152,8 @@ void iAChartFunctionBezier::draw(QPainter &painter, QColor penColor, int lineWid
 	}
 }
 
-int iAChartFunctionBezier::selectPoint(QMouseEvent *event, int *x)
+int iAChartFunctionBezier::selectPoint(int mouseX, int mouseY)
 {
-	int lx = event->x() - m_chart->leftMargin() - m_chart->xShift();
-	int ly = m_chart->chartHeight() - event->y();
 	int index = -1;
 	assert(m_realPoints.size() < std::numeric_limits<int>::max());
 	assert(m_viewPoints.size() < std::numeric_limits<int>::max());
@@ -167,22 +165,10 @@ int iAChartFunctionBezier::selectPoint(QMouseEvent *event, int *x)
 		int viewX = m_chart->data2MouseX(m_viewPoints[pointIndex].x());
 		int viewY = m_chart->yMapper().srcToDst(m_viewPoints[pointIndex].y());
 		int pointRadius = iAChartWithFunctionsWidget::pointRadius(selected)	/ ((pointIndex % 3 == 0) ? 1 : 2);
-		if (std::abs(lx - viewX) <= pointRadius && std::abs(ly - viewY) <= pointRadius)
+		if (std::abs(mouseX - viewX) <= pointRadius && std::abs(mouseY - viewY) <= pointRadius)
 		{
 			index = static_cast<int>(pointIndex);
 			break;
-		}
-
-		if (x != nullptr)
-		{
-			if (*x == viewX)
-			{
-				*x = lx + 1;
-			}
-			else
-			{
-				*x = lx;
-			}
 		}
 	}
 
