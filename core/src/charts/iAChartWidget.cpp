@@ -520,6 +520,12 @@ void iAChartWidget::drawYAxis(QPainter &painter)
 	}
 	painter.save();
 	painter.translate(-m_translationX, 0);
+	QColor bgColor(m_bgColor);
+	if (!bgColor.isValid())
+	{
+		bgColor = QWidget::palette().color(QWidget::backgroundRole());
+	}
+	painter.fillRect(QRect(-leftMargin(), -chartHeight(), leftMargin(), geometry().height()), bgColor);
 	QFontMetrics fm = painter.fontMetrics();
 	int aheight = chartHeight() - 1;
 	painter.setPen(QWidget::palette().color(QPalette::Text));
