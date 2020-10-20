@@ -413,8 +413,11 @@ void iAChartWithFunctionsWidget::changeColor(QMouseEvent *event)
 	}
 	std::vector<iAChartFunction*>::iterator it = m_functions.begin();
 	iAChartFunction *func = *(it + m_selectedFunction);
-
-	func->changeColor(event);
+	if (event != nullptr)
+	{
+		func->selectPoint(event->x() - leftMargin(), chartHeight() - event->y());
+	}
+	func->changeColor();
 
 	update();
 	emit updateTFTable();

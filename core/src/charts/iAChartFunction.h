@@ -51,9 +51,8 @@ public:
 	virtual void addColorPoint(int x, double red = -1.0, double green = -1.0, double blue = -1.0) = 0;
 	virtual void removePoint(int index) = 0;
 	virtual void moveSelectedPoint(int mouseX, int mouseY) = 0;
-	virtual void changeColor(QMouseEvent *event) = 0;
-
-	virtual bool isColored() const = 0;
+	virtual void changeColor() {}
+	virtual bool isColored() const { return false; }
 	virtual bool isEndPoint(int index) const = 0;
 	virtual bool isDeletable(int index) const = 0;
 	virtual size_t numPoints() const = 0;

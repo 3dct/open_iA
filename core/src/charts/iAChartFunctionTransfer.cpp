@@ -316,13 +316,8 @@ void iAChartTransferFunction::moveSelectedPoint(int mouseX, int mouseY)
 	triggerOnChange();
 }
 
-void iAChartTransferFunction::changeColor(QMouseEvent *event)
+void iAChartTransferFunction::changeColor()
 {
-	if (event != nullptr)
-	{
-		m_selectedPoint = selectPoint(event);
-	}
-
 	if (m_selectedPoint == -1)
 	{
 		return;

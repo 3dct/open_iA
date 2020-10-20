@@ -42,8 +42,6 @@ public:
 	void addColorPoint(int, double, double, double) override {}
 	void removePoint(int) override {}
 	void moveSelectedPoint(int x, int y) override;
-	void changeColor(QMouseEvent *) override {}
-	bool isColored() const override { return false; }
 	bool isEndPoint(int) const override { return true; }
 	bool isDeletable(int) const override { return false; }
 	void reset() override;

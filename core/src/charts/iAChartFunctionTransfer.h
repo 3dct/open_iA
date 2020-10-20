@@ -49,7 +49,7 @@ public:
 	void addColorPoint(int x, double red = -1.0, double green = -1.0, double blue = -1.0) override;
 	void removePoint(int index) override;
 	void moveSelectedPoint(int mouseX, int mouseY) override;
-	void changeColor(QMouseEvent *event) override;
+	void changeColor() override;
 	void mouseReleaseEventAfterNewPoint(QMouseEvent *event) override;
 	bool isColored() const override { return true; }
 	bool isEndPoint(int index) const override;
