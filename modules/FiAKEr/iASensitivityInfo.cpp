@@ -37,13 +37,13 @@
 // FIAKER
 #include "iAFiberCharData.h"
 #include "iAFiberData.h"
+#include "iASensitivityDialog.h"
 
 #include <QDialog>
 #include <QDialogButtonBox>
 #include <QFile>
 #include <QLabel>
 #include <QSpinBox>
-#include <QStandardItemModel>
 #include <QTableView>
 #include <QTextStream>
 #include <QVBoxLayout>
@@ -57,11 +57,6 @@ namespace
 	const int LayoutMargin = 4;
 	const int LayoutSpacing = 4;
 	const QString DefaultStackedBarColorTheme("Brewer Accent (max. 8)");
-	QStringList const & MeasureNames()
-	{
-		static QStringList Names = QStringList() << "L2 Difference" << "Jensen-Shannon divergence";
-		return Names;
-	}
 	QStringList const& AggregationNames()
 	{
 		static QStringList Names = QStringList() << "Mean left+right" << "Left only" << "Right only" << "Mean of all neighbours in STAR";
@@ -105,28 +100,6 @@ bool readParameterCSV(QString const& fileName, QString const& encoding, QString 
 		return false;
 	}
 	return true;
-}
-
-void addCheckItem(QStandardItemModel* model, int i, QString const& title)
-{
-	model->setItem(i, 0, new QStandardItem(title));
-	auto checkItem = new QStandardItem();
-	checkItem->setCheckable(true);
-	checkItem->setCheckState(Qt::Unchecked);
-	model->setItem(i, 1, checkItem);
-}
-
-QVector<int> selectedIndices(QStandardItemModel* model)
-{
-	QVector<int> result;
-	for (int row = 0; row < model->rowCount(); ++row)
-	{
-		if (model->item(row, 1)->checkState() == Qt::Checked)
-		{
-			result.push_back(row);
-		}
-	}
-	return result;
 }
 
 using HistogramType = QVector<double>;
@@ -261,70 +234,15 @@ QSharedPointer<iASensitivityInfo> iASensitivityInfo::create(QString const& param
 	// select output features to compute sensitivity for:
 	// - the loaded and computed ones (length, orientation, ...)
 	// - dissimilarity measure(s)
-
-	auto buttonBox(new QDialogButtonBox(QDialogButtonBox::Ok | QDialogButtonBox::Cancel));
-
-	auto tvCharacteristic(new QTableView);
-	auto characteristicsModel(new QStandardItemModel());
-	characteristicsModel->setHorizontalHeaderLabels(QStringList() << "Characteristic" << "Select");
-	for (int i = 0; i < static_cast<int>(data->m_resultIDColumn); ++i)
-	{
-		addCheckItem(characteristicsModel, i, data->spmData->parameterName(i));
-	}
-	tvCharacteristic->setModel(characteristicsModel);
-
-	auto tvDiffMeasures(new QTableView);
-	auto diffMeasuresModel(new QStandardItemModel());
-	diffMeasuresModel->setHorizontalHeaderLabels(QStringList() << "Difference" << "Select");
-	// Difference Between Mean, Min, Max ? other single measures?
-	for (int i = 0; i < MeasureNames().size(); ++i)
-	{
-		addCheckItem(diffMeasuresModel, i, MeasureNames()[i]);
-	}
-	//addCheckItem(diffMeasuresModel, 2, "Mutual information");
-	// ... some other measures from iAVectorDistance...?
-
-	tvDiffMeasures->setModel(diffMeasuresModel);
-
-	auto tvMeasures(new QTableView);
-	auto measuresModel(new QStandardItemModel());
-	measuresModel->setHorizontalHeaderLabels(QStringList() << "Measure" << "Select");
-	auto measureNames = getAvailableDissimilarityMeasureNames();
-	for (size_t i = 0; i < measureNames.size(); ++i)
-	{
-		addCheckItem(measuresModel, i, measureNames[i]);
-	}
-	tvMeasures->setModel(measuresModel);
-
-	QDialog dlg;
-	QObject::connect(buttonBox, &QDialogButtonBox::accepted, &dlg, &QDialog::accept);
-	QObject::connect(buttonBox, &QDialogButtonBox::rejected, &dlg, &QDialog::reject);
-	dlg.setLayout(new QVBoxLayout);
-	dlg.setWindowTitle("Characteristic/Measure/Difference selection");
-	dlg.layout()->setContentsMargins(LayoutMargin, LayoutMargin, LayoutMargin, LayoutMargin);
-	dlg.layout()->setSpacing(LayoutSpacing);
-	dlg.layout()->addWidget(new QLabel("Characteristic for which to compute sensitivity:"));
-	dlg.layout()->addWidget(tvCharacteristic);
-	dlg.layout()->addWidget(new QLabel("Measure difference between two feature distributions:"));
-	dlg.layout()->addWidget(tvDiffMeasures);
-	dlg.layout()->addWidget(new QLabel("Measures for which to compute sensitivity:"));
-	dlg.layout()->addWidget(tvMeasures);
-	dlg.layout()->addWidget(new QLabel("Number of Histogram Bins:"));
-	QSpinBox* spHistogramBins(new QSpinBox());
-	spHistogramBins->setMinimum(2);
-	spHistogramBins->setMaximum(9999);
-	spHistogramBins->setValue(100);
-	dlg.layout()->addWidget(spHistogramBins);
-	dlg.layout()->addWidget(buttonBox);
-
+	iASensitivityDialog dlg(data);
 	if (dlg.exec() != QDialog::Accepted)
 	{
 		return QSharedPointer<iASensitivityInfo>();
 	}
-	sensitivityInfo->charactIndex = selectedIndices(characteristicsModel);
-	sensitivityInfo->charDiffMeasure = selectedIndices(diffMeasuresModel);
-	sensitivityInfo->dissimMeasure = selectedIndices(measuresModel);
-	const size_t HistogramBins = spHistogramBins->value();
+	sensitivityInfo->charactIndex = dlg.selectedCharacteristics();
+	sensitivityInfo->charDiffMeasure = dlg.selectedDiffMeasures();
+	sensitivityInfo->dissimMeasure = dlg.selectedMeasures();
+	const size_t HistogramBins = dlg.histogramBins();
 
 	// store parameter set values
 	for (int p = 0; p < paramValues[0].size(); p += starGroupSize)
@@ -392,7 +310,7 @@ QSharedPointer<iASensitivityInfo> iASensitivityInfo::create(QString const& param
 			sensitivityInfo->aggregatedSensitivities[charactIdx][paramIdx].resize(sensitivityInfo->charDiffMeasure.size());
 			for (int diffMeasure = 0; diffMeasure < sensitivityInfo->charDiffMeasure.size(); ++diffMeasure)
 			{
-				DEBUG_LOG(QString("    Difference Measure %1 (%2)").arg(diffMeasure).arg(MeasureNames()[diffMeasure]));
+				DEBUG_LOG(QString("    Difference Measure %1 (%2)").arg(diffMeasure).arg(DistributionDifferenceMeasureNames()[diffMeasure]));
 				// for now:
 				//     - one step average, left only, right only
 				//      future: overall (weighted) average, ...=
@@ -531,7 +449,7 @@ public:
 		cmbboxStackedBarChartColors->addItems(iAColorThemeManager::instance().availableThemes());
 		cmbboxStackedBarChartColors->setCurrentText(DefaultStackedBarColorTheme);
 
-		cmbboxMeasure->addItems(MeasureNames());
+		cmbboxMeasure->addItems(DistributionDifferenceMeasureNames());
 		cmbboxAggregation->addItems(AggregationNames());
 		connect(cmbboxMeasure, QOverload<int>::of(&QComboBox::currentIndexChanged), sensInf, &iASensitivityInfo::changeMeasure);
 		connect(cmbboxAggregation, QOverload<int>::of(&QComboBox::currentIndexChanged), sensInf, &iASensitivityInfo::changeAggregation);
