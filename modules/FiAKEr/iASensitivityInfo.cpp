@@ -339,8 +339,6 @@ QSharedPointer<iASensitivityInfo> iASensitivityInfo::create(QString const& param
 
 	// TODO: make computation asynchronous
 
-	// sensitivityInfo->paramStep.fill(0.0, sensitivityInfo->variedParams.size());
-
 	// compute characteristics distribution (histogram) for all results:
 
 	sensitivityInfo->resultCharacteristicHistograms.resize(data->result.size());
@@ -375,6 +373,7 @@ QSharedPointer<iASensitivityInfo> iASensitivityInfo::create(QString const& param
 
 	const int NumOfVarianceAggregation = 4;
 
+	sensitivityInfo->paramStep.fill(0.0, sensitivityInfo->variedParams.size());
 	sensitivityInfo->sensitivityField.resize(sensitivityInfo->charactIndex.size());
 	sensitivityInfo->aggregatedSensitivities.resize(sensitivityInfo->charactIndex.size());
 	for (int charactIdx = 0; charactIdx < sensitivityInfo->charactIndex.size(); ++charactIdx)
@@ -421,6 +420,11 @@ QSharedPointer<iASensitivityInfo> iASensitivityInfo::create(QString const& param
 					DEBUG_LOG(QString("      Parameter Set %1; start: %2 (value %3), param start: %4 (value %5); diff: %6")
 						.arg(paramSetIdx).arg(resultIdxGroupStart).arg(groupStartParamVal)
 						.arg(resultIdxParamStart).arg(paramStartParamVal).arg(paramDiff));
+
+					if (sensitivityInfo->paramStep[paramIdx] == 0)
+					{
+						sensitivityInfo->paramStep[paramIdx] = std::abs(paramDiff);
+					}
 
 					double leftVar = 0;
 					int numLeftRight = 0;

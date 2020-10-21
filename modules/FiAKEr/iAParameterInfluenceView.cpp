@@ -39,9 +39,12 @@ iAParameterInfluenceView::iAParameterInfluenceView(iASensitivityInfo* sensInf) :
 	paramList->setLayout(paramListLayout);
 	paramListLayout->setSpacing(LayoutSpacing);
 	paramListLayout->setContentsMargins(LayoutMargin, LayoutMargin, LayoutMargin, LayoutMargin);
-	paramListLayout->setColumnStretch(0, 1); // param name
-	paramListLayout->setColumnStretch(1, 2); // stacked bar chart
-	//paramListLayout->setColumnStretch(2, 2); // histogram
+	enum ColumnIndices { colParamName=0, colMin=1, colMax=2, colStep=3, colStackedBar=4 };
+	paramListLayout->setColumnStretch(colParamName, 1);
+	paramListLayout->setColumnStretch(colMin, 1);
+	paramListLayout->setColumnStretch(colMax, 1);
+	paramListLayout->setColumnStretch(colStep, 1);
+	paramListLayout->setColumnStretch(colStackedBar, 3);
 
 	auto colorTheme = iAColorThemeManager::instance().theme(DefaultStackedBarColorTheme);
 	m_stackedHeader = new iAStackedBarChart(colorTheme, true);
@@ -60,10 +63,12 @@ iAParameterInfluenceView::iAParameterInfluenceView(iASensitivityInfo* sensInf) :
 		connect(charactShowAction, &QAction::triggered, this, &iAParameterInfluenceView::stackedColSelect);
 		m_stackedHeader->contextMenu()->addAction(charactShowAction);
 	}
-
 	DEBUG_LOG(QString("Adding lines for %1 characteristics").arg(sensInf->charactIndex.size()));
-	paramListLayout->addWidget(new QLabel("Parameter"), 0, 0);
-	paramListLayout->addWidget(m_stackedHeader, 0, 1);
+	addHeaderLabel(paramListLayout, colParamName, "Parameter");
+	addHeaderLabel(paramListLayout, colMin, "Min");
+	addHeaderLabel(paramListLayout, colMax, "Max");
+	addHeaderLabel(paramListLayout, colStep, "Step");
+	paramListLayout->addWidget(m_stackedHeader, 0, colStackedBar);
 	for (int paramIdx = 0; paramIdx < sensInf->variedParams.size(); ++paramIdx)
 	{
 		m_stackedCharts.push_back(new iAStackedBarChart(colorTheme, false));
@@ -74,7 +79,13 @@ iAParameterInfluenceView::iAParameterInfluenceView(iASensitivityInfo* sensInf) :
 		connect(m_stackedCharts[paramIdx], &iAStackedBarChart::doubleClicked, this, &iAParameterInfluenceView::paramChangedSlot);
 		connect(m_stackedHeader, &iAStackedBarChart::normalizeModeChanged, m_stackedCharts[paramIdx], &iAStackedBarChart::setNormalizeMode);
 		paramListLayout->addWidget(label, 1 + paramIdx, 0);
-		paramListLayout->addWidget(m_stackedCharts[paramIdx], 1 + paramIdx, 1);
+		auto const& paramVec = sensInf->allParamValues[sensInf->variedParams[paramIdx]];
+		double minVal = *std::min_element(paramVec.begin(), paramVec.end()),
+			maxVal = *std::max_element(paramVec.begin(), paramVec.end());
+		paramListLayout->addWidget(new QLabel(QString::number(minVal)), 1 + paramIdx, colMin);
+		paramListLayout->addWidget(new QLabel(QString::number(maxVal)), 1 + paramIdx, colMax);
+		paramListLayout->addWidget(new QLabel(QString::number(sensInf->paramStep[paramIdx])), 1 + paramIdx, colStep);
+		paramListLayout->addWidget(m_stackedCharts[paramIdx], 1 + paramIdx, colStackedBar);
 	}
 }
 

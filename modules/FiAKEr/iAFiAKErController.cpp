@@ -559,13 +559,6 @@ namespace
 		case iACsvConfig::Cylinders: return QSharedPointer<iA3DColoredPolyObjectVis>(new iA3DCylinderObjectVis(renderer, table, mapping, color, curvedFiberData));
 		}
 	}
-
-	void addHeaderLabel(QGridLayout* layout, int column, QString const& text)
-	{
-		auto headerLabel = new QLabel(text);
-		headerLabel->setSizePolicy(QSizePolicy::Expanding, QSizePolicy::Fixed);
-		layout->addWidget(headerLabel, 0, column);
-	}
 }
 
 //! compute result bounding box from its value table

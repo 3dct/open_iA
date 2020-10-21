@@ -95,3 +95,7 @@ private:
 	bool m_normalizePerBar;
 	double m_overallMaxValue;
 };
+
+class QGridLayout;
+
+void addHeaderLabel(QGridLayout* layout, int column, QString const& text);

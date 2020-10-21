@@ -25,6 +25,8 @@
 #include <iAMathUtility.h>
 
 #include <QAction>
+#include <QGridLayout>
+#include <QLabel>
 #include <QMenu>
 #include <QMouseEvent>
 #include <QPainter>
@@ -352,4 +354,11 @@ void iAStackedBarChart::setNormalizeMode(bool normalizePerBar)
 {
 	m_normalizePerBar = normalizePerBar;
 	update();
+}
+
+void addHeaderLabel(QGridLayout* layout, int column, QString const& text)
+{
+	auto headerLabel = new QLabel(text);
+	headerLabel->setSizePolicy(QSizePolicy::Expanding, QSizePolicy::Fixed);
+	layout->addWidget(headerLabel, 0, column);
 }
