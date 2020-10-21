@@ -276,7 +276,7 @@ QSharedPointer<iASensitivityInfo> iASensitivityInfo::create(QString const& param
 			{
 				fiberData[fiberID] = r.table->GetValue(fiberID, c).ToDouble();
 			}
-			auto histogram = createHistogram<std::vector<double>, double, size_t, double>(
+			auto histogram = createHistogram(
 				fiberData, HistogramBins, rangeMin, rangeMax);
 			sensitivityInfo->resultCharacteristicHistograms[rIdx].push_back(histogram);
 		}

@@ -255,40 +255,27 @@ std::vector<size_t> sort_indexes(const std::vector<T>& v)
 
 //! compute histogram from given values
 // TODO: use in iAHistogramData::create
-template <typename ContainerT, typename ValueT, typename IndexT, typename FreqT>
-QVector<FreqT> createHistogram(const ContainerT& inData, IndexT binCount, ValueT minValue, ValueT maxValue)
+template<typename OutContainerT=QVector<double>, typename ValueT=double, typename InContainerT>
+OutContainerT createHistogram(const InContainerT& inData, typename InContainerT::size_type binCount, ValueT minValue, ValueT maxValue)
 {
 	if (std::isinf(minValue))
 	{
-		minValue = std::numeric_limits<ValueT>::max();
-		for (ValueT d : inData)
-		{
-			if (d < minValue)
-			{
-				minValue = d;
-			}
-		}
+		minValue = *std::min_element(inData.begin(), inData.end());
 	}
 	if (std::isinf(maxValue))
 	{
-		maxValue = std::numeric_limits<ValueT>::lowest();
-		for (ValueT d : inData)
-		{
-			if (d > maxValue)
-			{
-				maxValue = d;
-			}
-		}
+		maxValue = *std::max_element(inData.begin(), inData.end());
 	}
 	if (dblApproxEqual(minValue, maxValue))
 	{   // if min == max, there is only one bin - one in which all values are contained!
-		return QVector<FreqT>(1, inData.size());
+		return OutContainerT(1, inData.size());
 	}
-	QVector<FreqT> result;
+	OutContainerT result;
 	result.fill(0, binCount);
+	using IdxT = typename InContainerT::size_type;
 	for (ValueT d : inData)
 	{
-		IndexT bin = clamp(static_cast<IndexT>(0), binCount - 1, mapValue(minValue, maxValue, static_cast<IndexT>(0), binCount, d));
+		IdxT bin = clamp(static_cast<IdxT>(0), binCount - 1, mapValue(minValue, maxValue, static_cast<IdxT>(0), binCount, d));
 		++result[bin];
 	}
 	return result;
