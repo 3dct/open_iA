@@ -36,6 +36,16 @@ namespace// merge with iASensitivityinfo!
 {
 	int LayoutSpacing = 4; int LayoutMargin = 4; 
 	const QString DefaultStackedBarColorTheme("Brewer Accent (max. 8)");
+
+	void addColumnAction(QString const & name, int charactIdx, iAParameterInfluenceView* view, iAStackedBarChart* stackedHeader)
+	{
+		auto charactShowAction = new QAction(name, nullptr);
+		charactShowAction->setProperty("charactIdx", static_cast<unsigned long long>(charactIdx));
+		charactShowAction->setCheckable(true);
+		charactShowAction->setChecked(false);
+		QObject::connect(charactShowAction, &QAction::triggered, view, &iAParameterInfluenceView::stackedColSelect);
+		stackedHeader->contextMenu()->addAction(charactShowAction);
+	}
 }
 
 iAParameterInfluenceView::iAParameterInfluenceView(iASensitivityInfo* sensInf) :
@@ -74,13 +84,9 @@ iAParameterInfluenceView::iAParameterInfluenceView(iASensitivityInfo* sensInf) :
 
 	for (size_t charactIdx = 0; charactIdx < sensInf->charactIndex.size(); ++charactIdx)
 	{
-		auto charactShowAction = new QAction(sensInf->charactName(charactIdx), nullptr);
-		charactShowAction->setProperty("charactIdx", static_cast<unsigned long long>(charactIdx));
-		charactShowAction->setCheckable(true);
-		charactShowAction->setChecked(false);
-		connect(charactShowAction, &QAction::triggered, this, &iAParameterInfluenceView::stackedColSelect);
-		m_stackedHeader->contextMenu()->addAction(charactShowAction);
+		addColumnAction(sensInf->charactName(charactIdx), charactIdx, this, m_stackedHeader);
 	}
+	addColumnAction("Fiber Count", sensInf->charactIndex.size() + 1, this, m_stackedHeader);
 	DEBUG_LOG(QString("Adding lines for %1 characteristics").arg(sensInf->charactIndex.size()));
 	addHeaderLabel(paramListLayout, colParamName, "Parameter");
 	addHeaderLabel(paramListLayout, colMin, "Min");
@@ -184,7 +190,9 @@ void iAParameterInfluenceView::updateStackedBars()
 		double maxValue = std::numeric_limits<double>::lowest();
 		for (size_t paramIdx = 0; paramIdx < m_sensInf->variedParams.size(); ++paramIdx)
 		{
-			double value = m_sensInf->aggregatedSensitivities[charactIdx][paramIdx][m_measureIdx][m_aggrType];
+			double value = (charactIdx < m_sensInf->aggregatedSensitivities.size())?
+				m_sensInf->aggregatedSensitivities[charactIdx][paramIdx][m_measureIdx][m_aggrType] :
+				m_sensInf->aggregatedSensitivitiesFiberCount[paramIdx][m_aggrType];
 			if (value > maxValue)
 			{
 				maxValue = value;
@@ -196,7 +204,9 @@ void iAParameterInfluenceView::updateStackedBars()
 			// parameter index
 			// difference measure
 			// variation aggregation
-			double value = m_sensInf->aggregatedSensitivities[charactIdx][paramIdx][m_measureIdx][m_aggrType];
+			double value = (charactIdx < m_sensInf->aggregatedSensitivities.size()) ?
+				m_sensInf->aggregatedSensitivities[charactIdx][paramIdx][m_measureIdx][m_aggrType] :
+				m_sensInf->aggregatedSensitivitiesFiberCount[paramIdx][m_aggrType];
 			m_stackedCharts[paramIdx]->updateBar(title, value, maxValue);
 		}
 	}
@@ -209,14 +219,17 @@ void iAParameterInfluenceView::updateStackedBars()
 void iAParameterInfluenceView::addStackedBar(int charactIdx)
 {
 	m_visibleCharacts.push_back(charactIdx);
-	auto title(m_sensInf->charactName(charactIdx));
+	auto title(charactIdx < m_sensInf->aggregatedSensitivities.size() ?
+		m_sensInf->charactName(charactIdx): "Fiber Count");
 	DEBUG_LOG(QString("Showing stacked bar for characteristic %1").arg(title));
 	m_stackedHeader->addBar(title, 1, 1);
 
 	double maxValue = std::numeric_limits<double>::lowest();
 	for (size_t paramIdx = 0; paramIdx < m_sensInf->variedParams.size(); ++paramIdx)
 	{
-		double value = m_sensInf->aggregatedSensitivities[charactIdx][paramIdx][m_measureIdx][m_aggrType];
+		double value = (charactIdx < m_sensInf->aggregatedSensitivities.size()) ?
+			m_sensInf->aggregatedSensitivities[charactIdx][paramIdx][m_measureIdx][m_aggrType] :
+			m_sensInf->aggregatedSensitivitiesFiberCount[paramIdx][m_aggrType];
 		if (value > maxValue)
 		{
 			maxValue = value;
@@ -228,7 +241,9 @@ void iAParameterInfluenceView::addStackedBar(int charactIdx)
 		// parameter index
 		// difference measure
 		// variation aggregation
-		double value = m_sensInf->aggregatedSensitivities[charactIdx][paramIdx][m_measureIdx][m_aggrType];
+		double value = (charactIdx < m_sensInf->aggregatedSensitivities.size()) ?
+			m_sensInf->aggregatedSensitivities[charactIdx][paramIdx][m_measureIdx][m_aggrType] :
+			m_sensInf->aggregatedSensitivitiesFiberCount[paramIdx][m_aggrType];
 		m_stackedCharts[paramIdx]->addBar(title, value, maxValue);
 	}
 }

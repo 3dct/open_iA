@@ -56,7 +56,7 @@ iAStackedBarChart::iAStackedBarChart(iAColorTheme const * theme, bool header):
 	setContextMenuPolicy(Qt::DefaultContextMenu);
 
 	// Context Menu:
-	QAction* switchStack = new QAction("Switch stacked mode", nullptr);
+	QAction* switchStack = new QAction("Stacked mode", nullptr);
 	switchStack->setCheckable(true);
 	switchStack->setChecked(true);
 	connect(switchStack, &QAction::triggered, this, &iAStackedBarChart::switchStackMode);

@@ -86,13 +86,24 @@ public:
 		double
 	>>>>> sensitivityField;
 
-	//! averages over all parameter-set of above field ("global sensitivity" for a parameter)
+	//! averages over all parameter-sets of above field ("global sensitivity" for a parameter)
+	// TODO: maybe switch parameter index with difference measure -> easier re-use between aggregatedSensitivities <-> aggregatedSensitivitiesFiberCount
 	QVector<		// characteristis
 		QVector<    // parameter index
 		QVector<    // difference measure
 		QVector<    // variation aggregation
 		double
 	>>>> aggregatedSensitivities;
+
+	//! sensitivity at each parameter regarding fiber count
+	QVector<        // parameter index
+		QVector<    // variation aggregation
+		QVector<    // parameter set index
+		double>>> sensitivityFiberCount;
+	//! averages over all parameter-sets of above field ("global sensitivity" for a parameter, regarding fiber count)
+	QVector<        // parameter index
+		QVector<    // variation aggregation
+		double>> aggregatedSensitivitiesFiberCount;
 
 	// per-object sensitivity:
 	// required: 1-1 match between fibers
@@ -120,6 +131,7 @@ public slots:
 	void changeMeasure(int newMeasure);
 	void paramChanged();
 	void changeStackedBarColors();
+	void updateOutputControls();
 };
 
 // Factor out as generic CSV reading class also used by iACsvIO?

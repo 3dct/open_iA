@@ -17,8 +17,9 @@ public:
 	int selectedAggrType() const;
 	int selectedParam() const;
 	void setColorTheme(iAColorTheme const * colorTheme);
-private slots:
+public slots:
 	void stackedColSelect();
+private slots:
 	void selectMeasure(int measureIdx);
 	void paramChangedSlot();
 	void switchStackMode(bool stack);

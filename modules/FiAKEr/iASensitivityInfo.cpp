@@ -420,6 +420,107 @@ QSharedPointer<iASensitivityInfo> iASensitivityInfo::create(QString const& param
 		}
 	}
 
+	// compute variation in fiber count:
+	sensitivityInfo->sensitivityFiberCount.resize(sensitivityInfo->variedParams.size());
+	sensitivityInfo->aggregatedSensitivitiesFiberCount.resize(sensitivityInfo->variedParams.size());
+	for (int paramIdx = 0; paramIdx < sensitivityInfo->variedParams.size(); ++paramIdx)
+	{
+		int origParamColIdx = sensitivityInfo->variedParams[paramIdx];
+
+		// TODO: unify with above!
+		auto& field = sensitivityInfo->sensitivityFiberCount[paramIdx];
+		field.resize(NumOfVarianceAggregation);
+		auto& agg = sensitivityInfo->aggregatedSensitivitiesFiberCount[paramIdx];
+		agg.fill(0.0, NumOfVarianceAggregation);
+		for (int i = 0; i < NumOfVarianceAggregation; ++i)
+		{
+			field[i].resize(sensitivityInfo->paramSetValues.size());
+		}
+		int numAllLeft = 0,
+			numAllRight = 0,
+			numAllLeftRight = 0,
+			numAllTotal = 0;
+		for (int paramSetIdx = 0; paramSetIdx < sensitivityInfo->paramSetValues.size(); ++paramSetIdx)
+		{
+			int resultIdxGroupStart = starGroupSize * paramSetIdx;
+			int resultIdxParamStart = resultIdxGroupStart + 1 + paramIdx * sensitivityInfo->numOfSTARSteps;
+
+			// first - then + steps (both skipped if value +/- step exceeds bounds
+			double groupStartParamVal = sensitivityInfo->allParamValues[origParamColIdx][resultIdxGroupStart];
+			double paramStartParamVal = sensitivityInfo->allParamValues[origParamColIdx][resultIdxParamStart];
+			double paramDiff = paramStartParamVal - groupStartParamVal;
+			DEBUG_LOG(QString("      Parameter Set %1; start: %2 (value %3), param start: %4 (value %5); diff: %6")
+				.arg(paramSetIdx).arg(resultIdxGroupStart).arg(groupStartParamVal)
+				.arg(resultIdxParamStart).arg(paramStartParamVal).arg(paramDiff));
+
+			if (sensitivityInfo->paramStep[paramIdx] == 0)
+			{
+				sensitivityInfo->paramStep[paramIdx] = std::abs(paramDiff);
+			}
+
+			double leftVar = 0;
+			int numLeftRight = 0;
+			if (paramDiff > 0)
+			{
+				leftVar = std::abs(static_cast<double>(sensitivityInfo->m_data->result[resultIdxGroupStart].fiberCount)
+					- sensitivityInfo->m_data->result[resultIdxParamStart].fiberCount);
+				DEBUG_LOG(QString("        Left var available: %1").arg(leftVar));
+				++numLeftRight;
+				++numAllLeft;
+			}
+
+			int k = 1;
+			while (paramDiff > 0 && k < sensitivityInfo->numOfSTARSteps)
+			{
+				double paramVal = sensitivityInfo->allParamValues[origParamColIdx][resultIdxParamStart + k];
+				paramDiff = paramStartParamVal - paramVal;
+				++k;
+			}
+			double rightVar = 0;
+			if (paramDiff < 0) // additional check required??
+			{
+				int firstPosStepIdx = resultIdxParamStart + (k - 1);
+				rightVar = std::abs(static_cast<double>(sensitivityInfo->m_data->result[resultIdxGroupStart].fiberCount)
+					- sensitivityInfo->m_data->result[firstPosStepIdx].fiberCount);
+				DEBUG_LOG(QString("        Right var available: %1").arg(rightVar));
+				++numLeftRight;
+				++numAllRight;
+			}
+			double sumTotal = 0;
+			bool wasSmaller = true;
+			for (int i = 0; i < sensitivityInfo->numOfSTARSteps; ++i)
+			{
+				int compareIdx = (i == 0) ? resultIdxGroupStart : (resultIdxParamStart + i - 1);
+				double paramVal = sensitivityInfo->allParamValues[origParamColIdx][resultIdxParamStart + i];
+				if (paramVal > paramStartParamVal && wasSmaller)
+				{
+					wasSmaller = false;
+					compareIdx = resultIdxGroupStart;
+				}
+				double difference = std::abs(static_cast<double>(sensitivityInfo->m_data->result[compareIdx].fiberCount)
+					- sensitivityInfo->m_data->result[resultIdxParamStart + i].fiberCount);
+				sumTotal += difference;
+			}
+			numAllLeftRight += numLeftRight;
+			numAllTotal += sensitivityInfo->numOfSTARSteps;
+			double meanLeftRightVar = (leftVar + rightVar) / numLeftRight;
+			double meanTotal = sumTotal / sensitivityInfo->numOfSTARSteps;
+			DEBUG_LOG(QString("        (left+right)/(numLeftRight=%1) = %2").arg(numLeftRight).arg(meanLeftRightVar));
+			DEBUG_LOG(QString("        (sum total var = %1) / (numOfSTARSteps = %2)  = %3")
+				.arg(sumTotal).arg(sensitivityInfo->numOfSTARSteps).arg(meanTotal));
+			field[0][paramSetIdx] = meanLeftRightVar;
+			field[1][paramSetIdx] = leftVar;
+			field[2][paramSetIdx] = rightVar;
+			field[3][paramSetIdx] = meanTotal;
+
+			agg[0] += meanLeftRightVar;
+			agg[1] += leftVar;
+			agg[2] += rightVar;
+			agg[3] += meanTotal;
+		}
+	}
+
+	// TODO: compute variation histogram
 	return sensitivityInfo;
 }
 
@@ -451,19 +552,26 @@ public:
 
 		cmbboxMeasure->addItems(DistributionDifferenceMeasureNames());
 		cmbboxAggregation->addItems(AggregationNames());
-		connect(cmbboxMeasure, QOverload<int>::of(&QComboBox::currentIndexChanged), sensInf, &iASensitivityInfo::changeMeasure);
-		connect(cmbboxAggregation, QOverload<int>::of(&QComboBox::currentIndexChanged), sensInf, &iASensitivityInfo::changeAggregation);
-		connect(cmbboxStackedBarChartColors, QOverload<int>::of(&QComboBox::currentIndexChanged),
-			sensInf, &iASensitivityInfo::changeStackedBarColors);
-
 		QStringList characteristics;
 		for (size_t charactIdx = 0; charactIdx < sensInf->charactIndex.size(); ++charactIdx)
 		{
 			characteristics << sensInf->charactName(charactIdx);
 		}
 		cmbboxCharacteristic->addItems(characteristics);
+
+		connect(cmbboxMeasure, QOverload<int>::of(&QComboBox::currentIndexChanged), sensInf, &iASensitivityInfo::changeMeasure);
+		connect(cmbboxAggregation, QOverload<int>::of(&QComboBox::currentIndexChanged), sensInf, &iASensitivityInfo::changeAggregation);
+		connect(cmbboxStackedBarChartColors, QOverload<int>::of(&QComboBox::currentIndexChanged),
+			sensInf, &iASensitivityInfo::changeStackedBarColors);
+
+		connect(cmbboxAggregation, QOverload<int>::of(&QComboBox::currentIndexChanged), sensInf, &iASensitivityInfo::paramChanged);
+		connect(cmbboxCharacteristic, QOverload<int>::of(&QComboBox::currentIndexChanged), sensInf, &iASensitivityInfo::paramChanged);
+		connect(cmbboxMeasure, QOverload<int>::of(&QComboBox::currentIndexChanged), sensInf, &iASensitivityInfo::paramChanged);
+		connect(cmbboxOutput, QOverload<int>::of(&QComboBox::currentIndexChanged), sensInf, &iASensitivityInfo::paramChanged);
+		connect(cmbboxOutput, QOverload<int>::of(&QComboBox::currentIndexChanged), sensInf, &iASensitivityInfo::updateOutputControls);
 	}
 	int charactIdx() const { return cmbboxCharacteristic->currentIndex(); }
+	int outputIdx() const { return cmbboxOutput->currentIndex(); }
 };
 
 
@@ -525,6 +633,7 @@ void iASensitivityInfo::changeStackedBarColors()
 
 void iASensitivityInfo::paramChanged()
 {
+	int outputIdx = m_gui->m_settings->outputIdx();
 	int paramIdx = m_gui->m_paramInfluenceView->selectedParam();
 	int charactIdx = m_gui->m_settings->charactIdx();
 	int measureIdx = m_gui->m_paramInfluenceView->selectedMeasure();
@@ -535,7 +644,9 @@ void iASensitivityInfo::paramChanged()
 	plot->addGraph();
 	plot->graph(0)->setPen(QPen(Qt::blue));
 
-	auto const& data = sensitivityField[charactIdx][paramIdx][measureIdx][aggrType];
+	auto const& data = (outputIdx == 0) ?
+		sensitivityField[charactIdx][paramIdx][measureIdx][aggrType]:
+		sensitivityFiberCount[paramIdx][aggrType];
 		// characteristic (index in charactIndex)
 		// parameter index (second index in paramSetValues / allParamValues)
 		// characteristics difference measure index (index in charDiffMeasure)
@@ -544,7 +655,7 @@ void iASensitivityInfo::paramChanged()
 	QVector<double> x(data.size()), y(data.size());
 	for (int i = 0; i < data.size(); ++i)
 	{
-		x[i] = paramSetValues[i][paramIdx];
+		x[i] = paramSetValues[i][variedParams[paramIdx]];
 		y[i] = data[i];
 	}
 	// configure right and top axis to show ticks but no labels:
@@ -553,6 +664,10 @@ void iASensitivityInfo::paramChanged()
 	plot->xAxis2->setTickLabels(false);
 	plot->yAxis2->setVisible(true);
 	plot->yAxis2->setTickLabels(false);
+	plot->xAxis->setLabel(paramNames[variedParams[paramIdx]]);
+	plot->yAxis->setLabel( ((outputIdx == 0) ?
+		(charactName(charactIdx) + " (" + DistributionDifferenceMeasureNames()[measureIdx]+")") :
+		"Fiber Count") + AggregationNames()[aggrType]  );
 	// make left and bottom axes always transfer their ranges to right and top axes:
 	connect(plot->xAxis, SIGNAL(rangeChanged(QCPRange)), plot->xAxis2, SLOT(setRange(QCPRange)));
 	connect(plot->yAxis, SIGNAL(rangeChanged(QCPRange)), plot->yAxis2, SLOT(setRange(QCPRange)));
@@ -561,5 +676,14 @@ void iASensitivityInfo::paramChanged()
 	// let the ranges scale themselves so graph 0 fits perfectly in the visible area:
 	plot->graph(0)->rescaleAxes();
 	plot->setInteractions(QCP::iRangeDrag | QCP::iRangeZoom | QCP::iSelectPlottables);
-	plot->update();
+	plot->replot();
+}
+
+void iASensitivityInfo::updateOutputControls()
+{
+	bool characteristics = m_gui->m_settings->cmbboxOutput->currentIndex() == 0;
+	m_gui->m_settings->lbCharacteristic->setEnabled(characteristics);
+	m_gui->m_settings->cmbboxCharacteristic->setEnabled(characteristics);
+	m_gui->m_settings->lbMeasure->setEnabled(characteristics);
+	m_gui->m_settings->cmbboxMeasure->setEnabled(characteristics);
 }
