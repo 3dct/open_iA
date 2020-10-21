@@ -207,11 +207,15 @@ void iAFiAKErModuleInterface::startFiAKEr()
 		"there is a similar setting available via the .csv format specification, see above. "
 		"<em>Use step data</em> determines whether FIAKER immediately uses information on curved files from the last step; "
 		"if unchecked, FIAKER will initially show the separate curved representation for the final result.<br/>"
-		"For more information on FIAKER, see the corresponding publication: "
-		"Bernhard Fröhler, Tim Elberfeld, Torsten Möller, Hans-Christian Hege, Johannes Weissenböck, "
-		"Jan De Beenhouwer, Jan Sijbers, Johann Kastner and Christoph Heinzl, "
+		"For more information on FIAKER, see the corresponding publications:"
+		"<ul><li>B. Fröhler, T. Elberfeld, T. Möller, H.-C. Hege, J. Weissenböck, "
+		"J. De Beenhouwer, J. Sijbers, J. Kastner, and C. Heinzl, "
 		"A Visual Tool for the Analysis of Algorithms for Tomographic Fiber Reconstruction in Materials Science, "
-		"2019, Computer Graphics Forum 38 (3), <a href=\"https://doi.org/10.1111/cgf.13688\">doi: 10.1111/cgf.13688</a>.");
+		"Computer Graphics Forum 38 (3), 2019, pp. 273-283, doi: <a href=\"https://doi.org/10.1111/cgf.13688\">10.1111/cgf.13688</a>.</li>"
+		"<li>B. Fröhler, T. Elberfeld, T. Möller, H.-C. Hege, J. De Beenhouwer, J. Sijbers, J. Kastner, and Christoph Heinzl, "
+		"Analysis and comparison of algorithms for the tomographic reconstruction of curved fibres, "
+		"Nondestructive Testing and Evaluation 35 (3), 2020, pp. 328–341, "
+		"doi: <a href=\"https://doi.org/10.1080/10589759.2020.1774583\">10.1080/10589759.2020.1774583</a>.</li></ul>");
 	dlg_commoninput dlg(m_mainWnd, "Start FIAKER", parameterNames, values, descr);
 	if (dlg.exec() != QDialog::Accepted || dlg.getText(0).isEmpty())
 	{
