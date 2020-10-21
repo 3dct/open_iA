@@ -49,7 +49,7 @@ namespace
 template<typename T> void simpleResampler(iAFilter* filter, QMap<QString, QVariant> const & parameters)
 {
 
-	double SpacingSalt = -0.0001;
+	double VoxelScale = 0.999; //Used because otherwise is a one voxel border with 0
 
 	typedef itk::Image<T, DIM> InputImageType;
 	typedef itk::ResampleImageFilter<InputImageType, InputImageType> ResampleFilterType;
@@ -59,9 +59,9 @@ template<typename T> void simpleResampler(iAFilter* filter, QMap<QString, QVaria
 	origin[1] = filter->input()[0]->itkImage()->GetOrigin()[1];
 	origin[2] = filter->input()[0]->itkImage()->GetOrigin()[2];
 	typename ResampleFilterType::SpacingType spacing;
-	spacing[0] = filter->input()[0]->itkImage()->GetSpacing()[0] * ((double)filter->input()[0]->vtkImage()->GetDimensions()[0] / parameters["Size X"].toDouble() + SpacingSalt);
-	spacing[1] = filter->input()[0]->itkImage()->GetSpacing()[1] * ((double)filter->input()[0]->vtkImage()->GetDimensions()[1] / parameters["Size Y"].toDouble() + SpacingSalt);
-	spacing[2] = filter->input()[0]->itkImage()->GetSpacing()[2] * ((double)filter->input()[0]->vtkImage()->GetDimensions()[2] / parameters["Size Z"].toDouble() + SpacingSalt);
+	spacing[0] = filter->input()[0]->itkImage()->GetSpacing()[0] * ((double)filter->input()[0]->vtkImage()->GetDimensions()[0] / parameters["Size X"].toDouble() * VoxelScale);
+	spacing[1] = filter->input()[0]->itkImage()->GetSpacing()[1] * ((double)filter->input()[0]->vtkImage()->GetDimensions()[1] / parameters["Size Y"].toDouble() * VoxelScale);
+	spacing[2] = filter->input()[0]->itkImage()->GetSpacing()[2] * ((double)filter->input()[0]->vtkImage()->GetDimensions()[2] / parameters["Size Z"].toDouble() * VoxelScale);
 	typename ResampleFilterType::SizeType size;
 	size[0] = parameters["Size X"].toUInt();
 	size[1] = parameters["Size Y"].toUInt();
