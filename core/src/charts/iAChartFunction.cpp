@@ -18,69 +18,43 @@
 * Contact: FH OÖ Forschungs & Entwicklungs GmbH, Campus Wels, CT-Gruppe,              *
 *          Stelzhamerstraße 23, 4600 Wels / Austria, Email: c.heinzl@fh-wels.at       *
 * ************************************************************************************/
-#pragma once
+#include "iAChartFunction.h"
 
-#include <QColor>
-#include <QString>
+#include "iAChartWithFunctionsWidget.h"
 
-#include "open_iA_Core_export.h"
+#include <QPainter>
 
-#define DIM 3
+iAChartFunction::iAChartFunction(iAChartWithFunctionsWidget* chart) : m_chart(chart) { }
 
-open_iA_Core_API extern const QString organisationName;
-open_iA_Core_API extern const QString applicationName;
+void iAChartFunction::changeColor()
+{}
 
-enum iAIOType
+bool iAChartFunction::isColored() const
 {
-	UNKNOWN_READER,
-	MHD_READER,
-	STL_READER,
-	RAW_READER,
-	PARS_READER,
-	VGI_READER,
-	TIF_STACK_READER,
-	JPG_STACK_READER,
-	PNG_STACK_READER,
-	BMP_STACK_READER,
-	MHD_WRITER,
-	STL_WRITER,
-	TIF_STACK_WRITER,
-	JPG_STACK_WRITER,
-	PNG_STACK_WRITER,
-	BMP_STACK_WRITER,
-	MPEG_WRITER,
-	OGV_WRITER,
-	AVI_WRITER,
-	CSV_READER,
-	XML_READER,
-	XML_WRITER,
-	VOLUME_STACK_READER,
-	VOLUME_STACK_MHD_READER,
-	VOLUME_STACK_VOLSTACK_READER,
-	VOLUME_STACK_VOLSTACK_WRITER,
-	VTK_READER,  //new for VTK Input
-	DCM_READER,
-	DCM_WRITER,
-//	NRRD_READER,     // see iAIOProvider.cpp why this is commented out
-	OIF_READER,
-	AM_READER,
-	AM_WRITER,
-	VTI_READER,
-	CSV_WRITER,
-#ifdef USE_HDF5
-	HDF5_READER,
-#endif
-	HDF5_WRITER,
-	PROJECT_READER,
-	PROJECT_WRITER,
-	NKC_READER
-};
+	return false;
+}
 
-const int DefaultMagicLensSize = 120;
-const int MinimumMagicLensSize = 40;
-const int MaximumMagicLensSize = 8192;
+void iAChartFunction::mouseReleaseEvent(QMouseEvent*)
+{}
 
-// define preset colors
-open_iA_Core_API QColor * PredefinedColors();
+void iAChartFunction::mouseReleaseEventAfterNewPoint(QMouseEvent*)
+{}
 
-const uint NotExistingChannel = std::numeric_limits<uint>::max();
+int iAChartFunction::pointRadius(bool selected)
+{
+	return selected ? PointRadiusSelected : PointRadius;
+}
+
+const QColor iAChartFunction::DefaultColor(255, 128, 0, 255);
+
+void drawPoint(QPainter& painter, int x, int y, bool selected, QColor const& color, double sizeFactor)
+{
+	QPen pointPen = painter.pen();
+	pointPen.setColor(color); pointPen.setWidth(iAChartFunction::LineWidthUnselected);
+	QPen pointPenSel = painter.pen();
+	pointPenSel.setColor(Qt::red); pointPenSel.setWidth(iAChartFunction::LineWidthSelected);
+	painter.setPen(selected ? pointPenSel : pointPen);
+	painter.setBrush(QBrush(color));
+	int radius = iAChartFunction::pointRadius(selected) * sizeFactor;
+	painter.drawEllipse(x - radius, y - radius, 2*radius, 2*radius);
+}

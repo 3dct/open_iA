@@ -37,7 +37,7 @@ namespace
 QString iAIOProvider::GetSupportedLoadFormats()
 {
 	return QString(
-		"All supported types (*.mhd *.mha *.stl *.vgi *.raw *.rec *.vol *.pro *.pre *.pars *.dcm *.nia *.nii *.nii.gz *.hdr *.hdr.gz *.img *.img.gz *.oif *.am *.vtk "
+		"All supported types (*.mhd *.mha *.stl *.vgi *.raw *.rec *.vol *.pro *.pre *.pars *.dcm *.nia *.nii *.nii.gz *.hdr *.hdr.gz *.img *.img.gz *.oif *.am *.vtk *.nkc "
 #ifdef USE_HDF5
 		"*.hdf5 *.h5 *.he5 *.mat "
 #endif

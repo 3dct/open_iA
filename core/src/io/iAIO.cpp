@@ -70,9 +70,11 @@
 
 #include <QDateTime>
 #include <QFileDialog>
+#include <QRegularExpression>
 #include <QSettings>
 #include <QStringList>
 #include <QTextStream>
+
 
 #ifdef USE_HDF5
 // for now, let's use HDF5 1.10 API:
@@ -435,6 +437,8 @@ void iAIO::run()
 				readVTKFile(); break;
 			case RAW_READER:
 			case PARS_READER:
+			case NKC_READER:
+				readImageData(); break;
 			case VGI_READER:
 				readImageData(); break;
 			case VOLUME_STACK_READER:
@@ -734,6 +738,8 @@ bool iAIO::setupIO( iAIOType type, QString f, bool c, int channel)
 			return setupPARSReader(f);
 		case VGI_READER:
 			return setupVGIReader(f);
+		case NKC_READER:
+			return setupNKCReader(f);
 		case TIF_STACK_READER:
 #if __cplusplus >= 201703L
 			[[fallthrough]];
@@ -1212,6 +1218,7 @@ void iAIO::readImageData()
 	storeIOSettings();
 }
 
+
 void iAIO::readMetaImage( )
 {
 	loadMetaImageFile(m_fileName);
@@ -1503,6 +1510,46 @@ bool iAIO::setupVGIReader( QString const & f )
 	return true;
 }
 
+bool iAIO::setupNKCReader(QString const& f)
+{
+
+
+	QFile file(f);
+	file.open(QFile::ReadOnly | QFile::Text);
+
+	QTextStream in(&file);
+
+	auto text = in.readAll();
+
+	QRegularExpression regexColumns("number of columns : (\\d*)\\D");
+	QRegularExpressionMatch matchColumns = regexColumns.match(text);
+	if (matchColumns.hasMatch())
+	{
+		QString columns = matchColumns.captured(1); 
+		m_rawFileParams.m_size[0] = columns.toInt();
+											  
+	}
+
+	QRegularExpression regexRows("number of raws : (\\d*)\\D");
+	QRegularExpressionMatch matchRows = regexRows.match(text);
+	if (matchRows.hasMatch())
+	{
+		QString rows = matchRows.captured(1);  
+		m_rawFileParams.m_size[1] = rows.toInt();
+	}
+
+	m_rawFileParams.m_size[2] = 1;
+	m_rawFileParams.m_scalarType = VTK_SHORT;
+	m_rawFileParams.m_byteOrder = VTK_FILE_BYTE_ORDER_BIG_ENDIAN;
+
+	m_rawFileParams.m_headersize = file.size() - (m_rawFileParams.m_size[0] * m_rawFileParams.m_size[1] * 2);
+
+	m_fileName = f;
+
+	return true;
+
+}
+
 void iAIO::writeMetaImage( vtkSmartPointer<vtkImageData> imgToWrite, QString fileName )
 {
 	iAConnector con; con.setImage(imgToWrite); con.modified();
@@ -1582,7 +1629,9 @@ void writeImageStack_template(QString const & fileName, iAProgress* p, iAConnect
 		auto imgIO = itk::TIFFImageIO::New();
 		writer->SetImageIO(imgIO);
 	}
-	QString format(fi.absolutePath() + "/" + fi.baseName() + "%d." + fi.completeSuffix());
+	
+	QString length = QString::number(size[2]);
+	QString format(fi.absolutePath() + "/" + fi.baseName() + "%0" + QString::number(length.size()) + "d." + fi.completeSuffix());
 	nameGenerator->SetSeriesFormat( getLocalEncodingFileName(format).c_str());
 	writer->SetFileNames(nameGenerator->GetFileNames());
 	writer->SetInput(dynamic_cast< InputImageType * > (con->itkImage()));
