@@ -303,6 +303,16 @@ iAMapper const & iAChartWidget::yMapper() const
 	return *m_yMapper.data();
 }
 
+int iAChartWidget::data2MouseX(double dataX)
+{
+	return xMapper().srcToDst(dataX) + xShift();
+}
+
+double iAChartWidget::mouse2DataX(int mouseX)
+{
+	return xMapper().dstToSrc(mouseX - xShift());
+}
+
 void iAChartWidget::createMappers()
 {
 	m_xMapper = QSharedPointer<iAMapper>(new iALinearMapper(m_xBounds[0], m_xBounds[1], 0, (chartWidth() - 1)*m_xZoom));
@@ -459,12 +469,17 @@ void iAChartWidget::drawXAxis(QPainter &painter)
 		}
 		QString text = xAxisTickMarkLabel(value, stepWidth);
 		int markerX = markerPos(static_cast<int>(m_xMapper->srcToDst(value)), i, stepCount);
-		painter.drawLine(markerX, TickWidth, markerX, -1);
+		if (markerX >= m_translationX + leftMargin())
+		{
+			painter.drawLine(markerX, TickWidth, markerX, -1);
+		}
+		int textWidth =
 #if QT_VERSION >= QT_VERSION_CHECK(5, 11, 0)
-		int textX = textPos(markerX, i, stepCount, fm.horizontalAdvance(text));
+			fm.horizontalAdvance(text);
 #else
-		int textX = textPos(markerX, i, stepCount, fm.width(text));
+			fm.width(text);
 #endif
+		int textX = textPos(markerX, i, stepCount, textWidth);
 		int textY = fm.height() + TextAxisDistance;
 		painter.translate(textX, textY);
 		painter.drawText(0, 0, text);
@@ -505,6 +520,12 @@ void iAChartWidget::drawYAxis(QPainter &painter)
 	}
 	painter.save();
 	painter.translate(-m_translationX, 0);
+	QColor bgColor(m_bgColor);
+	if (!bgColor.isValid())
+	{
+		bgColor = QWidget::palette().color(QWidget::backgroundRole());
+	}
+	painter.fillRect(QRect(-leftMargin(), -chartHeight(), leftMargin(), geometry().height()), bgColor);
 	QFontMetrics fm = painter.fontMetrics();
 	int aheight = chartHeight() - 1;
 	painter.setPen(QWidget::palette().color(QPalette::Text));

@@ -105,7 +105,7 @@ void iAChartWithFunctionsWidget::drawFunctions(QPainter &painter)
 
 		if (counter == m_selectedFunction)
 		{
-			func->draw(painter, QColor(255,128,0,255), iAChartFunction::LineWidthSelected);
+			func->draw(painter, iAChartFunction::DefaultColor, iAChartFunction::LineWidthSelected);
 		}
 		else
 		{
@@ -161,7 +161,7 @@ void iAChartWithFunctionsWidget::mousePressEvent(QMouseEvent *event)
 			}
 			std::vector<iAChartFunction*>::iterator it = m_functions.begin();
 			iAChartFunction *func = *(it + m_selectedFunction);
-			int selectedPoint = func->selectPoint(event);
+			int selectedPoint = func->selectPoint(event->x() - leftMargin(), chartHeight() - event->y());
 			if (selectedPoint == -1)
 			{
 				emit noPointSelected();
@@ -214,13 +214,13 @@ void iAChartWithFunctionsWidget::mouseMoveEvent(QMouseEvent *event)
 		case MOVE_POINT_MODE:
 		case MOVE_NEW_POINT_MODE:
 		{
-			int viewX = event->x() - leftMargin();
-			int viewY = geometry().height() -event->y() -bottomMargin();
+			int mouseX = event->x() - leftMargin();
+			int mouseY = geometry().height() -event->y() -bottomMargin();
 			if (m_showFunctions)
 			{
 				std::vector<iAChartFunction*>::iterator it = m_functions.begin();
 				iAChartFunction *func = *(it + m_selectedFunction);
-				func->moveSelectedPoint(viewX, viewY);
+				func->moveSelectedPoint(mouseX, mouseY);
 				update();
 				emit updateTFTable();
 			}
@@ -339,37 +339,29 @@ void iAChartWithFunctionsWidget::changeMode(int newMode, QMouseEvent *event)
 			}
 			std::vector<iAChartFunction*>::iterator it = m_functions.begin();
 			iAChartFunction *func = *(it + m_selectedFunction);
-			int x = event->x() - leftMargin();
-			int y = geometry().height() - event->y() -bottomMargin();
-			// TODO: check whether/why we need to pass in x here!
-			int selectedPoint = func->selectPoint(event, &x);
-
+			int mouseX = event->x() - leftMargin();
+			int mouseY = chartHeight() - event->y();
+			int selectedPoint = func->selectPoint(mouseX, mouseY);
 			// don't do anything if outside of diagram region:
-			if (selectedPoint == -1 && x < 0)
+			if (selectedPoint == -1 && mouseX < 0)
 			{
 				return;
-			}
-			// disallow removal and reinsertion of first point; instead, insert a point after it:
-			if (selectedPoint == -1 && x == 0)
-			{
-				x = 1;
 			}
 			bool added = false;
 			if (selectedPoint == -1)
 			{
-				if (y < 0)
-				{
-					y = 0;
-				}
+				// disallow removal and reinsertion of first/last point
+				mouseX = clamp(1, chartWidth() - 1, mouseX);
+				mouseY = clamp(0, chartHeight(), mouseY);
 				size_t numPointsBefore = func->numPoints();
 				// if point's x is the same as for an existing point, that point will be selected, instead of a new one created:
-				selectedPoint = func->addPoint(x, y);
+				selectedPoint = func->addPoint(mouseX, mouseY);
 				// to know whether really a point was added, we need to check whether the number of points has increased:
 				added = numPointsBefore < func->numPoints();
 			}
 			if (added)
 			{
-				func->addColorPoint(x);
+				func->addColorPoint(mouseX);
 				m_mode = MOVE_NEW_POINT_MODE;
 			}
 			else
@@ -421,8 +413,11 @@ void iAChartWithFunctionsWidget::changeColor(QMouseEvent *event)
 	}
 	std::vector<iAChartFunction*>::iterator it = m_functions.begin();
 	iAChartFunction *func = *(it + m_selectedFunction);
-
-	func->changeColor(event);
+	if (event != nullptr)
+	{
+		func->selectPoint(event->x() - leftMargin(), chartHeight() - event->y());
+	}
+	func->changeColor();
 
 	update();
 	emit updateTFTable();

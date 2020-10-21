@@ -69,6 +69,10 @@ public:
 	iAMapper const & xMapper() const;
 	iAMapper const & yMapper() const;
 	//! @}
+	//! @{ Convert mouse X coordinates (in chart already, i.e. without left/bottom margin) to chart x coordinates and vice versa
+	int data2MouseX(double dataX);
+	double mouse2DataX(int mouseX);
+	//! @}
 	//! @{ Get x/y bounds as array of size 2 (minimum, maximum)
 	virtual iAPlotData::DataType const * yBounds() const;
 	virtual double const * xBounds() const;
@@ -80,19 +84,19 @@ public:
 	//! Get the maximum zoom factor in x direction that can be in use.
 	double maxXZoom() const;
 	//! Convert an x screen coordinate to a bin space index;
-	//! Note that there are three different spaces to consider: <ol>
+	//! Note that there are (at least) four different coordinate spaces to consider: <ol>
 	//! <li>the data space (i.e., a coordinate between the minimum/maximum specified by the x bounds),</li>
 	//! <li>the bin space (i.e., an index in the data bin array)</li>
-	//! <li>the screen space (i.e., a pixel x coordinate on the screen)</li></ol>
+	//! <li>the screen space (i.e., a pixel coordinate on the screen)</li>
+	//! <li>the mouse space (i.e., a pixel coordinate on the currently visible part of the chart) </ol>
 	//! @param x the x screen coordinate to convert
 	//! @return the bin index for the given x coordinate.
+	//! @see xMapper, yMapper, data2MouseX, mouse2DataX
 	long screenX2DataBin(int x) const;
 	//! Convert a bin number to a screen coordinate.
 	//! @param x the bin space index; see screenX2DataBin for details
 	//! @return the screen space coordinate for the given bin space index
 	int  dataBin2ScreenX(long x) const;
-	//! Check whether currently a context menu is shown.
-	bool isContextMenuVisible() const;
 	//! Check whether currently tooltips are enabled.
 	bool isTooltipShown() const;
 	//! Get the position where the context menu was last shown.

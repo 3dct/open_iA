@@ -18,57 +18,43 @@
 * Contact: FH OÖ Forschungs & Entwicklungs GmbH, Campus Wels, CT-Gruppe,              *
 *          Stelzhamerstraße 23, 4600 Wels / Austria, Email: c.heinzl@fh-wels.at       *
 * ************************************************************************************/
-#pragma once
-
 #include "iAChartFunction.h"
-#include "open_iA_Core_export.h"
 
-#include <QColor>
+#include "iAChartWithFunctionsWidget.h"
 
-#include <vector>
+#include <QPainter>
 
-class QPointF;
+iAChartFunction::iAChartFunction(iAChartWithFunctionsWidget* chart) : m_chart(chart) { }
 
-//! Class representing a bezier curve in an iAChartWithFunctionsWidget.
-//! Draws itself, and allows adding, removing and modifying points (and their directions).
-class open_iA_Core_API iAChartFunctionBezier : public iAChartFunction
+void iAChartFunction::changeColor()
+{}
+
+bool iAChartFunction::isColored() const
 {
-public:
-	iAChartFunctionBezier(iAChartWithFunctionsWidget *chart, QColor &color, bool reset = true);
+	return false;
+}
 
-	void draw(QPainter &painter) override;
-	void draw(QPainter &painter, QColor penColor, int lineWidth) override;
-	void drawOnTop(QPainter&) override {}
-	int selectPoint(int mouseX, int mouseY) override;
-	int getSelectedPoint() const override { return m_selectedPoint; }
-	int addPoint(int mouseX, int mouseY) override;
-	void addColorPoint(int, double, double, double) override {}
-	void removePoint(int index) override;
-	void moveSelectedPoint(int mouseX, int mouseY) override;
-	bool isEndPoint(int index) const override;
-	bool isDeletable(int index) const override;
-	void reset() override;
-	virtual QString name() const override;
-	size_t numPoints() const override;
-	void mouseReleaseEvent(QMouseEvent *event) override;
+void iAChartFunction::mouseReleaseEvent(QMouseEvent*)
+{}
 
-	void push_back(double x, double y);
-	std::vector<QPointF> &getPoints() { return m_realPoints; }
-private:
-	bool isFunctionPoint(int point);
-	bool isControlPoint(int point);
+void iAChartFunction::mouseReleaseEventAfterNewPoint(QMouseEvent*)
+{}
 
-	void insert(unsigned int index, unsigned int x, unsigned int y);
+int iAChartFunction::pointRadius(bool selected)
+{
+	return selected ? PointRadiusSelected : PointRadius;
+}
 
-	void setViewPoint(int selPntIdx);
-	void setOppositeViewPoint(int selPntIdx);
+const QColor iAChartFunction::DefaultColor(255, 128, 0, 255);
 
-	int getFunctionPointIndex(int index);
-	double getLength(QPointF start, QPointF end);
-
-	QColor m_color;
-	int m_selectedPoint;
-	double m_controlDist;
-	std::vector<QPointF> m_viewPoints;
-	std::vector<QPointF> m_realPoints;
-};
+void drawPoint(QPainter& painter, int x, int y, bool selected, QColor const& color, double sizeFactor)
+{
+	QPen pointPen = painter.pen();
+	pointPen.setColor(color); pointPen.setWidth(iAChartFunction::LineWidthUnselected);
+	QPen pointPenSel = painter.pen();
+	pointPenSel.setColor(Qt::red); pointPenSel.setWidth(iAChartFunction::LineWidthSelected);
+	painter.setPen(selected ? pointPenSel : pointPen);
+	painter.setBrush(QBrush(color));
+	int radius = iAChartFunction::pointRadius(selected) * sizeFactor;
+	painter.drawEllipse(x - radius, y - radius, 2*radius, 2*radius);
+}
