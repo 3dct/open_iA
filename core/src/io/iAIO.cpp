@@ -1648,7 +1648,7 @@ void iAIO::writeImageStack( )
 	const ScalarPixelType pixelType = getConnector()->itkScalarPixelType();
 	const PixelType imagePixelType = getConnector()->itkPixelType();
 	ITK_EXTENDED_TYPED_CALL(writeImageStack_template, pixelType, imagePixelType,
-		m_fileName, ProgressObserver(), getConnector(), m_compression);
+		m_fileName, ProgressObserver(), getConnector(), false);  //compression Hard coded to false, because the used m_compression was used for stl 
 	addMsg(tr("%1 Image Stack saved; base file name: %2")
 		.arg(QFileInfo(m_fileName).completeSuffix().toUpper())
 		.arg(m_fileName));
