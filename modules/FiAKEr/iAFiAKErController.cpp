@@ -1356,17 +1356,16 @@ void iAFiAKErController::dissimMatrixColorMapChanged(int idx)
 
 void iAFiAKErController::computeSensitivity()
 {
-	QString fileName = QFileDialog::getOpenFileName(m_mainWnd, iAFiAKErController::FIAKERProjectID, m_data->folder, "Comma-Separated Values (*.csv);;");
-	if (fileName.isEmpty())
+	if (m_sensitivityInfo)
 	{
+		DEBUG_LOG("Already computed!");
 		return;
 	}
-	m_sensitivityInfo = iASensitivityInfo::create(fileName, m_data);
-	if (!m_sensitivityInfo)
+	m_sensitivityInfo = iASensitivityInfo::create(m_mdiChild, m_data, m_views[ResultListView]);
+	if (m_sensitivityInfo)
 	{
-		return;
+		// TODO: link progress to job list view entry
 	}
-	m_sensitivityInfo->createGUI(m_mdiChild, m_views[ResultListView]);
 }
 
 void iAFiAKErController::stackedBarColorThemeChanged(int index)

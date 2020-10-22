@@ -20,6 +20,8 @@
 * ************************************************************************************/
 #pragma once
 
+#include "iAProgress.h"
+
 #include <QSharedPointer>
 #include <QStringList>
 #include <QVector>
@@ -36,22 +38,19 @@ class iASensitivityInfo: public QObject
 {
 	Q_OBJECT
 public:
-	static QSharedPointer<iASensitivityInfo> create(QString const& parameterFileName, QSharedPointer<iAFiberResultsCollection> data);
+	static QSharedPointer<iASensitivityInfo> create(QMainWindow* child, QSharedPointer<iAFiberResultsCollection> data, QDockWidget* nextToDW);
 	void createGUI(QMainWindow* child, QDockWidget* nextToDW);
-
 	QString charactName(int charactIdx) const;
 
-	// TODO: make private:
-	iASensitivityInfo(QSharedPointer<iAFiberResultsCollection> data);
 	QSharedPointer<iAFiberResultsCollection> m_data;
-	QStringList paramNames;
+	QStringList m_paramNames;
 	//! "points" in parameter space at which the sensitivity was computed
 	//! first index: parameter set; second index: parameter
 	QVector<QVector<double>> paramSetValues;
 	//! all samples points (i.e. all values from paramSetValues + points sampled for STAR around these points)
 	//! NOTE: due to legacy reasons, swapped index order in comparison to paramSetValues!
 	// TODO: unify index order?
-	std::vector<std::vector<double>> allParamValues;
+	std::vector<std::vector<double>> m_paramValues;
 	//! indices of features for which sensitivity was computed
 	QVector<int> charactIndex;
 	//! which difference measures were used for distribution comparison
@@ -64,7 +63,8 @@ public:
 		QVector<double>>>   //! a histogram.
 		resultCharacteristicHistograms;
 
-	int numOfSTARSteps;
+	int numOfSTARSteps, m_starGroupSize;
+	size_t m_histogramBins;
 	QVector<double> paramStep;  //!< per varied parameter, the size of step performed for the STAR
 
 	QVector<int> variedParams;  //!< indices of the parameters that were varied
@@ -125,6 +125,16 @@ public:
 	//         - option 2 -> length differences: 2, 1, 3
 
 	QSharedPointer<iASensitivityGUI> m_gui;
+
+	iAProgress m_progress;
+
+private:
+	iASensitivityInfo(QSharedPointer<iAFiberResultsCollection> data,
+		QString const& parameterFileName, QStringList const& paramNames,
+		std::vector<std::vector<double>> const& paramValues);
+	void compute();
+
+	QString m_parameterFileName;
 
 public slots:
 	void changeAggregation(int newAggregation);
