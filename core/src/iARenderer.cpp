@@ -1008,6 +1008,10 @@ void iARenderer::applySettings(iARenderSettings const & settings, bool slicePlan
 
 	m_ren->SetBackground2(bgTop.redF(), bgTop.greenF(), bgTop.blueF());
 	m_ren->SetBackground(bgBottom.redF(), bgBottom.greenF(), bgBottom.blueF());
+	if (!m_imageData)
+	{
+		return;
+	}
 	showHelpers(settings.ShowHelpers);
 	showRPosition(settings.ShowRPosition);
 	for (int i = 0; i < 3; ++i)
