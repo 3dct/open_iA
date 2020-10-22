@@ -36,8 +36,16 @@ class QHelpEvent;
 class QMenu;
 class QRubberBand;
 
+#define CHART_GL
+
+#ifdef CHART_GL
+using iAChartParentWidget = iAQGLWidget;
+#else
+using iAChartParentWidget = QWidget;
+#endif
+
 //! A chart widget which can show an arbitrary number of plots.
-class open_iA_Core_API iAChartWidget : public iAQGLWidget
+class open_iA_Core_API iAChartWidget : public iAChartParentWidget
 {
 	Q_OBJECT
 public:
@@ -205,7 +213,11 @@ protected:
 	void mouseDoubleClickEvent(QMouseEvent *event) override;
 	void wheelEvent(QWheelEvent *event) override;
 	void leaveEvent(QEvent *event) override;
+#ifdef CHART_GL
 	void paintGL() override;
+#else
+	void paintEvent(QPaintEvent *event) override;
+#endif
 	void contextMenuEvent(QContextMenuEvent *event) override;
 	bool event(QEvent *event) override;
 	//! @}
