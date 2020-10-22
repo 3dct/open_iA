@@ -216,11 +216,16 @@ void iAParameterInfluenceView::updateStackedBars()
 	}
 }
 
+QString iAParameterInfluenceView::columnName(int charactIdx) const
+{
+	return charactIdx < m_sensInf->aggregatedSensitivities.size() ?
+		m_sensInf->charactName(charactIdx) : "Fiber Count";
+}
+
 void iAParameterInfluenceView::addStackedBar(int charactIdx)
 {
 	m_visibleCharacts.push_back(charactIdx);
-	auto title(charactIdx < m_sensInf->aggregatedSensitivities.size() ?
-		m_sensInf->charactName(charactIdx): "Fiber Count");
+	auto title(columnName(charactIdx));
 	DEBUG_LOG(QString("Showing stacked bar for characteristic %1").arg(title));
 	m_stackedHeader->addBar(title, 1, 1);
 
@@ -256,8 +261,8 @@ void iAParameterInfluenceView::removeStackedBar(int charactIdx)
 		DEBUG_LOG(QString("Invalid state - called remove on non-added characteristic idx %1").arg(charactIdx));
 	}
 	m_visibleCharacts.remove(visibleIdx);
-	auto title(m_sensInf->charactName(charactIdx));
-	DEBUG_LOG(QString("Showing stacked bar for characteristic %1").arg(title));
+	auto title(columnName(charactIdx));
+	DEBUG_LOG(QString("Removing stacked bar for characteristic %1").arg(title));
 	m_stackedHeader->removeBar(title);
 	for (size_t paramIdx = 0; paramIdx < m_sensInf->variedParams.size(); ++paramIdx)
 	{

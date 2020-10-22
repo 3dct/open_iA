@@ -24,10 +24,12 @@ private slots:
 	void paramChangedSlot();
 	void switchStackMode(bool stack);
 private:
-	QVector<int> m_visibleCharacts;
 	void updateStackedBars();
 	void addStackedBar(int charactIdx);
 	void removeStackedBar(int charactIdx);
+	QString columnName(int charactIdx) const;
+
+	QVector<int> m_visibleCharacts;
 	//! stacked bar charts (one per parameter)
 	QVector<iAStackedBarChart*> m_stackedCharts;
 	iAStackedBarChart* m_stackedHeader;
