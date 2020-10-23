@@ -24,6 +24,7 @@
 #include <charts/iASPLOMData.h>
 #include <charts/qcustomplot.h>
 #include <iAConsole.h>
+#include <iAJobListView.h>
 #include <iAMathUtility.h>
 #include <iAStringHelper.h>
 
@@ -42,9 +43,12 @@
 #include <QDialog>
 #include <QDialogButtonBox>
 #include <QFile>
+#include <QFileDialog>
 #include <QLabel>
+#include <QMainWindow>
 #include <QSpinBox>
 #include <QTableView>
+#include <QtConcurrent>
 #include <QTextStream>
 #include <QVBoxLayout>
 
@@ -134,9 +138,14 @@ double distributionDifference(HistogramType const& distr1, HistogramType const& 
 	}
 }
 
+void iASensitivityInfo::abort()
+{
+	m_aborted = true;
+}
 
 QSharedPointer<iASensitivityInfo> iASensitivityInfo::create(QMainWindow* child,
-	QSharedPointer<iAFiberResultsCollection> data, QDockWidget* nextToDW)
+	QSharedPointer<iAFiberResultsCollection> data, QDockWidget* nextToDW,
+	iAJobListView* jobListView)
 {
 	QString fileName = QFileDialog::getOpenFileName(child,
 		"Sensitivity: Parameter Sets file", data->folder,
@@ -165,7 +174,7 @@ QSharedPointer<iASensitivityInfo> iASensitivityInfo::create(QMainWindow* child,
 	}
 	// data in m_paramValues is indexed [col(=parameter index)][row(=parameter set index)]
 	QSharedPointer<iASensitivityInfo> sensitivity(
-		new iASensitivityInfo(data, fileName, paramNames, paramValues));
+		new iASensitivityInfo(data, fileName, paramNames, paramValues, child, nextToDW));
 
 	// find min/max, for all columns except ID and filename
 	QVector<double> valueMin(static_cast<int>(paramValues.size() - 2), std::numeric_limits<double>::max());
@@ -249,25 +258,35 @@ QSharedPointer<iASensitivityInfo> iASensitivityInfo::create(QMainWindow* child,
 	sensitivity->dissimMeasure = dlg.selectedMeasures();
 	sensitivity->m_histogramBins = dlg.histogramBins();
 
-	// TODO: start compute in separate thread, link createGUI to finished
-	sensitivity->compute();
-	sensitivity->createGUI(child, nextToDW);
+	connect(&sensitivity->m_futureWatcher, &QFutureWatcher<bool>::finished, [sensitivity]
+		{
+			if (!sensitivity->m_aborted)
+			{
+				sensitivity->createGUI();
+			}
+		});
+	jobListView->addJob("Sensitivity computation", &sensitivity->m_progress, &sensitivity->m_futureWatcher, sensitivity.data());
+	sensitivity->m_future = QtConcurrent::run(sensitivity.data(), &iASensitivityInfo::compute);
+	sensitivity->m_futureWatcher.setFuture(sensitivity->m_future);
 	return sensitivity;
 }
 
 iASensitivityInfo::iASensitivityInfo(QSharedPointer<iAFiberResultsCollection> data,
 	QString const& parameterFileName, QStringList const& paramNames,
-	std::vector<std::vector<double>> const & paramValues) :
+	std::vector<std::vector<double>> const & paramValues, QMainWindow* child, QDockWidget* nextToDW) :
 	m_data(data),
-	m_parameterFileName(parameterFileName),
 	m_paramNames(paramNames),
-	m_paramValues(paramValues)
+	m_paramValues(paramValues),
+	m_parameterFileName(parameterFileName),
+	m_child(child),
+	m_nextToDW(nextToDW),
+	m_aborted(false)
 {
 }
 
-void iASensitivityInfo::compute()
+bool iASensitivityInfo::compute()
 {
-	// store parameter set values
+	m_progress.setStatus("Storing parameter set values");
 	for (int p = 0; p < m_paramValues[0].size(); p += m_starGroupSize)
 	{
 		QVector<double> parameterSet;
@@ -276,9 +295,10 @@ void iASensitivityInfo::compute()
 			parameterSet.push_back(m_paramValues[v][p]);
 		}
 		paramSetValues.push_back(parameterSet);
+		m_progress.emitProgress(100 * p / m_paramValues[0].size());
 	}
 
-	// compute characteristics distribution (histogram) for all results:
+	m_progress.setStatus("Computing characteristics distribution (histogram) for all results.");
 	// TODO: common storage for that in data!
 	resultCharacteristicHistograms.resize(m_data->result.size());
 	for (int rIdx = 0; rIdx < m_data->result.size(); ++rIdx)
@@ -301,6 +321,11 @@ void iASensitivityInfo::compute()
 				fiberData, m_histogramBins, rangeMin, rangeMax);
 			resultCharacteristicHistograms[rIdx].push_back(histogram);
 		}
+		m_progress.emitProgress(100 * rIdx / m_data->result.size());
+	}
+	if (m_aborted)
+	{
+		return false;
 	}
 
 	// for each characteristic
@@ -310,12 +335,13 @@ void iASensitivityInfo::compute()
 	//                 for each point in parameter space (of base sampling method)
 	//                     compute local change by that difference measure
 
+	m_progress.setStatus("Computing characteristics sensitivities.");
 	const int NumOfVarianceAggregation = 4;
 
 	paramStep.fill(0.0, variedParams.size());
 	sensitivityField.resize(charactIndex.size());
 	aggregatedSensitivities.resize(charactIndex.size());
-	for (int charactIdx = 0; charactIdx < charactIndex.size(); ++charactIdx)
+	for (int charactIdx = 0; charactIdx < charactIndex.size() && !m_aborted; ++charactIdx)
 	{
 		sensitivityField[charactIdx].resize(variedParams.size());
 		aggregatedSensitivities[charactIdx].resize(variedParams.size());
@@ -439,12 +465,17 @@ void iASensitivityInfo::compute()
 					.arg(agg[0]).arg(agg[1]).arg(agg[2]).arg(agg[3]));
 			}
 		}
+		m_progress.emitProgress(100 * charactIdx / charactIndex.size());
+	}
+	if (m_aborted)
+	{
+		return false;
 	}
 
-	// compute variation in fiber count:
+	m_progress.setStatus("Computing fiber count sensitivities.");
 	sensitivityFiberCount.resize(variedParams.size());
 	aggregatedSensitivitiesFiberCount.resize(variedParams.size());
-	for (int paramIdx = 0; paramIdx < variedParams.size(); ++paramIdx)
+	for (int paramIdx = 0; paramIdx < variedParams.size() && !m_aborted; ++paramIdx)
 	{
 		int origParamColIdx = variedParams[paramIdx];
 
@@ -539,7 +570,9 @@ void iASensitivityInfo::compute()
 			agg[2] += rightVar;
 			agg[3] += meanTotal;
 		}
+		m_progress.emitProgress(100 * paramIdx / variedParams.size());
 	}
+	return m_aborted;
 	// TODO: compute variation histogram
 }
 
@@ -612,22 +645,22 @@ QString iASensitivityInfo::charactName(int charactIdx) const
 	return m_data->spmData->parameterName(charactIndex[charactIdx]);
 }
 
-void iASensitivityInfo::createGUI(QMainWindow* child, QDockWidget* nextToDW)
+void iASensitivityInfo::createGUI()
 {
 	m_gui.reset(new iASensitivityGUI);
 
 	m_gui->m_settings = new iASensitivitySettingsView(this);
 	auto dwSettings = new iADockWidgetWrapper(m_gui->m_settings, "Sensitivity Settings", "foeSensitivitySettings");
-	child->splitDockWidget(nextToDW, dwSettings, Qt::Horizontal);
+	m_child->splitDockWidget(m_nextToDW, dwSettings, Qt::Horizontal);
 
 	m_gui->m_paramInfluenceView = new iAParameterInfluenceView(this);
 	auto dwParamInfluence = new iADockWidgetWrapper(m_gui->m_paramInfluenceView, "Parameter Influence", "foeParamInfluence");
 	connect(m_gui->m_paramInfluenceView, &iAParameterInfluenceView::parameterChanged, this, &iASensitivityInfo::paramChanged);
-	child->splitDockWidget(dwSettings, dwParamInfluence, Qt::Vertical);
+	m_child->splitDockWidget(dwSettings, dwParamInfluence, Qt::Vertical);
 
-	m_gui->m_paramDetails = new QCustomPlot(child);
+	m_gui->m_paramDetails = new QCustomPlot(m_child);
 	auto dwParamDetails = new iADockWidgetWrapper(m_gui->m_paramDetails, "Parameter Details", "foeParamDetails");
-	child->splitDockWidget(dwParamInfluence, dwParamDetails, Qt::Vertical);
+	m_child->splitDockWidget(dwParamInfluence, dwParamDetails, Qt::Vertical);
 }
 
 void iASensitivityInfo::changeMeasure(int newMeasure)

@@ -1361,11 +1361,7 @@ void iAFiAKErController::computeSensitivity()
 		DEBUG_LOG("Already computed!");
 		return;
 	}
-	m_sensitivityInfo = iASensitivityInfo::create(m_mdiChild, m_data, m_views[ResultListView]);
-	if (m_sensitivityInfo)
-	{
-		// TODO: link progress to job list view entry
-	}
+	m_sensitivityInfo = iASensitivityInfo::create(m_mdiChild, m_data, m_views[ResultListView], m_mdiChild->jobsList());
 }
 
 void iAFiAKErController::stackedBarColorThemeChanged(int index)

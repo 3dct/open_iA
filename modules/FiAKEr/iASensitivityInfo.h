@@ -20,26 +20,31 @@
 * ************************************************************************************/
 #pragma once
 
+#include <iAAbortListener.h>
 #include "iAProgress.h"
 
+#include <QFuture>
+#include <QFutureWatcher>
 #include <QSharedPointer>
 #include <QStringList>
 #include <QVector>
 
 class iACsvTableCreator;
 class iAFiberResultsCollection;
-
 class iASensitivityGUI;
+
+class iAJobListView;
 
 class QDockWidget;
 class QMainWindow;
 
-class iASensitivityInfo: public QObject
+class iASensitivityInfo: public QObject, public iAAbortListener
 {
 	Q_OBJECT
 public:
-	static QSharedPointer<iASensitivityInfo> create(QMainWindow* child, QSharedPointer<iAFiberResultsCollection> data, QDockWidget* nextToDW);
-	void createGUI(QMainWindow* child, QDockWidget* nextToDW);
+	static QSharedPointer<iASensitivityInfo> create(QMainWindow* child,
+		QSharedPointer<iAFiberResultsCollection> data, QDockWidget* nextToDW,
+		iAJobListView* jobListView);
 	QString charactName(int charactIdx) const;
 
 	QSharedPointer<iAFiberResultsCollection> m_data;
@@ -126,22 +131,30 @@ public:
 
 	QSharedPointer<iASensitivityGUI> m_gui;
 
-	iAProgress m_progress;
-
+	void abort() override;
 private:
 	iASensitivityInfo(QSharedPointer<iAFiberResultsCollection> data,
 		QString const& parameterFileName, QStringList const& paramNames,
-		std::vector<std::vector<double>> const& paramValues);
-	void compute();
+		std::vector<std::vector<double>> const& paramValues,
+		QMainWindow* child, QDockWidget* nextToDW);
+	bool compute();
 
 	QString m_parameterFileName;
+	QMainWindow* m_child;
+	QDockWidget* m_nextToDW;
 
+	// for computation:
+	QFutureWatcher<bool> m_futureWatcher;
+	QFuture<bool> m_future;
+	iAProgress m_progress;
+	bool m_aborted;
 public slots:
 	void changeAggregation(int newAggregation);
 	void changeMeasure(int newMeasure);
 	void paramChanged();
 	void changeStackedBarColors();
 	void updateOutputControls();
+	void createGUI();
 };
 
 // Factor out as generic CSV reading class also used by iACsvIO?
