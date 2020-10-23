@@ -224,7 +224,6 @@ void iAStackedBarChart::paintEvent(QPaintEvent* /*ev*/)
 			painter.drawLine(box.topRight(), box.bottomRight());
 			if (m_last)
 			{
-				box.setBottom(box.bottom()-1);
 				painter.drawLine(box.bottomLeft(), box.bottomRight());
 			}
 		}
