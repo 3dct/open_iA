@@ -31,6 +31,8 @@ public:
 	iAClickableLabel(QString const& text);
 signals:
 	void dblClicked();
+	void clicked();
 private:
 	void mouseDoubleClickEvent(QMouseEvent* ev) override;
+	void mouseReleaseEvent(QMouseEvent* ev) override;
 };

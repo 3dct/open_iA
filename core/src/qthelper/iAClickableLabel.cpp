@@ -25,7 +25,14 @@
 iAClickableLabel::iAClickableLabel(QString const& text): QLabel(text)
 {}
 
-void iAClickableLabel::mouseDoubleClickEvent(QMouseEvent*)
+void iAClickableLabel::mouseDoubleClickEvent(QMouseEvent* ev)
 {
+	Q_UNUSED(ev);
 	emit dblClicked();
+}
+
+void iAClickableLabel::mouseReleaseEvent(QMouseEvent* ev)
+{
+	Q_UNUSED(ev);
+	emit clicked();
 }
