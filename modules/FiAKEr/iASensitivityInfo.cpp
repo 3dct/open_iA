@@ -645,6 +645,8 @@ void iASensitivityInfo::createGUI()
 	m_gui->m_paramInfluenceView = new iAParameterInfluenceView(this);
 	auto dwParamInfluence = new iADockWidgetWrapper(m_gui->m_paramInfluenceView, "Parameter Influence", "foeParamInfluence");
 	connect(m_gui->m_paramInfluenceView, &iAParameterInfluenceView::parameterChanged, this, &iASensitivityInfo::paramChanged);
+	connect(m_gui->m_settings->cmbboxCharacteristic, QOverload<int>::of(&QComboBox::currentIndexChanged),
+		m_gui->m_paramInfluenceView, &iAParameterInfluenceView::selectStackedBar);
 	m_child->splitDockWidget(dwSettings, dwParamInfluence, Qt::Vertical);
 
 	m_gui->m_paramDetails = new QCustomPlot(m_child);
@@ -671,7 +673,7 @@ void iASensitivityInfo::changeStackedBarColors()
 void iASensitivityInfo::paramChanged()
 {
 	int outputIdx = m_gui->m_settings->outputIdx();
-	int paramIdx = m_gui->m_paramInfluenceView->selectedParam();
+	int paramIdx = m_gui->m_paramInfluenceView->selectedRow();
 	int charactIdx = m_gui->m_settings->charactIdx();
 	int measureIdx = m_gui->m_paramInfluenceView->selectedMeasure();
 	int aggrType = m_gui->m_paramInfluenceView->selectedAggrType();

@@ -42,18 +42,20 @@ class iAStackedBarChart: public iASignallingWidget
 {
 	Q_OBJECT
 public:
-	const int MaxBarHeight = 50;
+	const int MaxBarHeight = 100;
 	const int TextPadding = 5;
-	iAStackedBarChart(iAColorTheme const * theme, bool header = false);
+	iAStackedBarChart(iAColorTheme const * theme, bool header = false, bool last = false);
 	void addBar(QString const & name, double value, double maxValue);
 	void updateBar(QString const& name, double value, double maxValue);
 	void removeBar(QString const & name);
+	int barIndex(QString const& name) const;
 	void setColorTheme(iAColorTheme const * theme);
 	QMenu* contextMenu();
 	void setDoStack(bool doStack);
 	size_t numberOfBars() const;
 	void setBackgroundColor(QColor const & color);
 	double weightedSum() const;
+	void setSelectedBar(int barIdx);
 signals:
 	void switchedStackMode(bool mode);
 	void weightsChanged(std::vector<double> const & weights);
@@ -86,7 +88,7 @@ private:
 	std::vector<int> m_dividers;
 	iAColorTheme const * m_theme;
 	QMenu* m_contextMenu;
-	bool m_header, m_stack;
+	bool m_header, m_stack, m_last;
 	size_t m_resizeBar;
 	int m_resizeStartX;
 	double m_resizeWidth;
@@ -94,6 +96,7 @@ private:
 	QColor m_bgColor;
 	bool m_normalizePerBar;
 	double m_overallMaxValue;
+	int m_selectedBar;
 };
 
 class QGridLayout;

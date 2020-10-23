@@ -39,18 +39,21 @@ namespace
 	double MinimumWeight = 0.001;
 	int MinimumPixelBarWidth = 1;
 	const int DividerRange = 2;
+	const int BarSpacing = 1;
 	size_t NoBar = std::numeric_limits<size_t>::max();
 }
 
-iAStackedBarChart::iAStackedBarChart(iAColorTheme const * theme, bool header):
+iAStackedBarChart::iAStackedBarChart(iAColorTheme const * theme, bool header, bool last):
 	m_theme(theme),
-	m_contextMenu(new QMenu(this)),
+	m_contextMenu(header ? new QMenu(this): nullptr),
 	m_header(header),
+	m_last(last),
 	m_stack(true),
 	m_resizeBar(NoBar),
 	m_resizeStartX(0),
 	m_resizeWidth(0),
-	m_normalizePerBar(true)
+	m_normalizePerBar(true),
+	m_selectedBar(-1)
 {
 	setMouseTracking(true);
 	setContextMenuPolicy(Qt::DefaultContextMenu);
@@ -68,11 +71,13 @@ iAStackedBarChart::iAStackedBarChart(iAColorTheme const * theme, bool header):
 	normalizeAction->setCheckable(true);
 	normalizeAction->setChecked(true);
 	connect(normalizeAction, &QAction::triggered, this, &iAStackedBarChart::toggleNormalizeMode);
-
-	m_contextMenu->addAction(switchStack);
-	m_contextMenu->addAction(normalizeAction);
-	m_contextMenu->addAction(resetWeightsAction);
-	m_contextMenu->addSeparator();
+	if (m_header)
+	{
+		m_contextMenu->addAction(switchStack);
+		m_contextMenu->addAction(normalizeAction);
+		m_contextMenu->addAction(resetWeightsAction);
+		m_contextMenu->addSeparator();
+	}
 
 }
 
@@ -107,6 +112,13 @@ void iAStackedBarChart::removeBar(QString const & name)
 	update();
 }
 
+int iAStackedBarChart::barIndex(QString const& name) const
+{
+	auto it = std::find_if(m_bars.begin(), m_bars.end(),
+		[name](iABarData const& d) { return d.name == name; });
+	return it == m_bars.end() ? -1 : it - m_bars.begin();
+}
+
 void iAStackedBarChart::setColorTheme(iAColorTheme const * theme)
 {
 	m_theme = theme;
@@ -120,7 +132,21 @@ QMenu* iAStackedBarChart::contextMenu()
 
 void iAStackedBarChart::setDoStack(bool doStack)
 {
+	if (m_contextMenu)
+	{
+		m_contextMenu->actions()[0]->setChecked(doStack);
+	}
 	m_stack = doStack;
+	update();
+}
+
+void iAStackedBarChart::setNormalizeMode(bool normalizePerBar)
+{
+	m_normalizePerBar = normalizePerBar;
+	if (m_contextMenu)
+	{
+		m_contextMenu->actions()[1]->setChecked(normalizePerBar);
+	}
 	update();
 }
 
@@ -145,6 +171,12 @@ double iAStackedBarChart::weightedSum() const
 	return result;
 }
 
+void iAStackedBarChart::setSelectedBar(int barIdx)
+{
+	m_selectedBar = barIdx;
+	update();
+}
+
 void iAStackedBarChart::setBackgroundColor(QColor const & color)
 {
 	m_bgColor = color;
@@ -153,9 +185,8 @@ void iAStackedBarChart::setBackgroundColor(QColor const & color)
 
 void iAStackedBarChart::switchStackMode()
 {
-	// TODO: Log interaction
 	QAction* sender = qobject_cast<QAction*>(QObject::sender());
-	setDoStack(sender->isChecked());
+	m_stack = sender->isChecked(); // don't use setDoStack, as this sets checked state, and would therefore trigger recursive signal
 	update();
 	emit switchedStackMode(sender->isChecked());
 }
@@ -166,7 +197,7 @@ void iAStackedBarChart::paintEvent(QPaintEvent* /*ev*/)
 	QPainter painter(this);
 	painter.setPen(QWidget::palette().color(QPalette::Text));
 	int accumulatedWidth = 0;
-	int barHeight = std::min(geometry().height(), MaxBarHeight);
+	int barHeight = std::min(geometry().height(), MaxBarHeight) - (m_header? 0 : 2*BarSpacing);
 	int topY = geometry().height() / 2 - barHeight / 2;
 	QColor bg(m_bgColor);
 	if (!bg.isValid())
@@ -181,6 +212,22 @@ void iAStackedBarChart::paintEvent(QPaintEvent* /*ev*/)
 		QRect barRect(accumulatedWidth, topY, bWidth, barHeight);
 		QBrush barBrush(m_theme->color(barID));
 		painter.fillRect(barRect, barBrush);
+		if (m_selectedBar == barID)
+		{
+			QRect box(accumulatedWidth, 0,
+				(m_stack ? bWidth : static_cast<int>(bar.weight * geometry().width())) - 1, geometry().height());
+			if (m_header)
+			{
+				painter.drawLine(box.topLeft(), box.topRight());
+			}
+			painter.drawLine(box.topLeft(), box.bottomLeft());
+			painter.drawLine(box.topRight(), box.bottomRight());
+			if (m_last)
+			{
+				box.setBottom(box.bottom()-1);
+				painter.drawLine(box.bottomLeft(), box.bottomRight());
+			}
+		}
 		barRect.adjust(TextPadding, 0, -TextPadding, 0);
 		painter.drawText(barRect, Qt::AlignVCenter,
 			(m_header ? bar.name : QString("%1").arg(bar.value)));
@@ -346,14 +393,9 @@ void iAStackedBarChart::resetWeights()
 
 void iAStackedBarChart::toggleNormalizeMode()
 {
-	setNormalizeMode(!m_normalizePerBar);
-	emit normalizeModeChanged(m_normalizePerBar);
-}
-
-void iAStackedBarChart::setNormalizeMode(bool normalizePerBar)
-{
-	m_normalizePerBar = normalizePerBar;
+	m_normalizePerBar = !m_normalizePerBar; // don't use setNormalizeMode, as this sets checked state, and would therefore trigger recursive signal
 	update();
+	emit normalizeModeChanged(m_normalizePerBar);
 }
 
 void addHeaderLabel(QGridLayout* layout, int column, QString const& text)
