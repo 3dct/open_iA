@@ -101,7 +101,7 @@ iAParameterInfluenceView::iAParameterInfluenceView(iASensitivityInfo* sensInf) :
 		m_stackedCharts.push_back(new iAStackedBarChart(colorTheme, false, paramIdx == sensInf->variedParams.size()-1));
 		connect(m_stackedHeader, &iAStackedBarChart::weightsChanged, m_stackedCharts[paramIdx], &iAStackedBarChart::setWeights);
 		m_stackedCharts[paramIdx]->setProperty("paramIdx", paramIdx);
-		connect(m_stackedCharts[paramIdx], &iAStackedBarChart::doubleClicked, this, &iAParameterInfluenceView::paramChangedSlot);
+		connect(m_stackedCharts[paramIdx], &iAStackedBarChart::clicked, this, &iAParameterInfluenceView::paramChangedSlot);
 		connect(m_stackedHeader, &iAStackedBarChart::normalizeModeChanged, m_stackedCharts[paramIdx], &iAStackedBarChart::setNormalizeMode);
 		connect(m_stackedHeader, &iAStackedBarChart::switchedStackMode, m_stackedCharts[paramIdx], &iAStackedBarChart::setDoStack);
 		auto const& paramVec = sensInf->m_paramValues[sensInf->variedParams[paramIdx]];
@@ -112,7 +112,7 @@ iAParameterInfluenceView::iAParameterInfluenceView(iASensitivityInfo* sensInf) :
 		labels[colMin] = new iAClickableLabel(QString::number(minVal));
 		labels[colMax] = new iAClickableLabel(QString::number(maxVal));
 		labels[colStep] = new iAClickableLabel(QString::number(sensInf->paramStep[paramIdx]));
-		for (int i = 0; i < 4; ++i)
+		for (int i = colParamName; i < colStep; ++i)
 		{
 			labels[i]->setProperty("paramIdx", paramIdx);
 			m_paramListLayout->addWidget(labels[i], 1 + paramIdx, i);
@@ -203,7 +203,7 @@ void iAParameterInfluenceView::paramChangedSlot()
 	for (size_t paramIdx = 0; paramIdx < m_sensInf->variedParams.size(); ++paramIdx)
 	{
 		QColor color = palette().color(paramIdx == m_selectedRow ? QPalette::AlternateBase : backgroundRole());
-		for (int col = colParamName; col < colStep; ++col)
+		for (int col = colParamName; col <= colStep; ++col)
 		{
 			m_paramListLayout->itemAtPosition(paramIdx+1, col)->widget()->setStyleSheet(
 				"QLabel { background-color : " + color.name() + "; }");

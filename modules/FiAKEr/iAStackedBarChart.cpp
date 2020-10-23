@@ -363,6 +363,10 @@ void iAStackedBarChart::mouseReleaseEvent(QMouseEvent* /*ev*/)
 		}
 		emit weightsChanged(weights);
 	}
+	else
+	{
+		emit clicked();
+	}
 }
 
 void iAStackedBarChart::mouseDoubleClickEvent(QMouseEvent*)

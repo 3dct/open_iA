@@ -59,6 +59,7 @@ public:
 signals:
 	void switchedStackMode(bool mode);
 	void weightsChanged(std::vector<double> const & weights);
+	void clicked();
 	void doubleClicked();
 	void normalizeModeChanged(bool normalizePerBar);
 public slots:
