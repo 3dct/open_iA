@@ -176,25 +176,14 @@ QSharedPointer<iASensitivityInfo> iASensitivityInfo::create(QMainWindow* child,
 	QSharedPointer<iASensitivityInfo> sensitivity(
 		new iASensitivityInfo(data, fileName, paramNames, paramValues, child, nextToDW));
 
-	// find min/max, for all columns except ID and filename
-	QVector<double> valueMin(static_cast<int>(paramValues.size() - 2), std::numeric_limits<double>::max());
-	QVector<double> valueMax(static_cast<int>(paramValues.size() - 2), std::numeric_limits<double>::lowest());
+	// find min/max, for all columns except ID and filename (maybe we could reuse SPM data ranges here?)
+	QVector<double> valueMin(static_cast<int>(paramValues.size() - 2));
+	QVector<double> valueMax(static_cast<int>(paramValues.size() - 2));
 	DEBUG_LOG(QString("Parameter values size: %1x%2").arg(paramValues.size()).arg(paramValues[0].size()));
-	// TODO: common min/max calculator for table? (/ SPM data)
 	for (int p = 1; p < paramValues.size() - 1; ++p)
-	{
-		for (int row = 0; row < paramValues[0].size(); ++row)
-		{
-			double value = paramValues[p][row];
-			if (value < valueMin[p - 1])    // -1 because of skipping ID
-			{
-				valueMin[p - 1] = value;
-			}
-			if (value > valueMax[p - 1])    // -1 because of skipping ID
-			{
-				valueMax[p - 1] = value;
-			}
-		}
+	{           // - 1 because of skipping ID
+		valueMin[p - 1] = *std::min_element(paramValues[p].begin(), paramValues[p].end());
+		valueMax[p - 1] = *std::max_element(paramValues[p].begin(), paramValues[p].end());
 	}
 
 	// countOfVariedParams = number of parameters for which min != max:
