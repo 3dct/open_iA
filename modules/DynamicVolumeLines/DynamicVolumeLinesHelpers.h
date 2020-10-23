@@ -28,6 +28,11 @@
 #include <itkImage.h>
 #include <itkImageIOBase.h>
 
+#include <QCheckBox>
+#include <QComboBox>
+#include <QSlider>
+#include <QToolButton>
+
 #include <cassert>
 
 typedef itk::ImageBase< DIM > ImageBaseType;

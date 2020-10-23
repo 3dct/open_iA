@@ -35,6 +35,9 @@
 #include <vtkRenderWindow.h>
 #include <vtkTextProperty.h>
 
+#include <QGuiApplication>
+#include <QSettings>
+
 #include <algorithm>
 
 void SetWidgetSelectionStyle(QWidget * w, bool isSelected)
