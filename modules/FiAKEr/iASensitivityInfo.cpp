@@ -179,7 +179,7 @@ QSharedPointer<iASensitivityInfo> iASensitivityInfo::create(QMainWindow* child,
 	// find min/max, for all columns except ID and filename (maybe we could reuse SPM data ranges here?)
 	QVector<double> valueMin(static_cast<int>(paramValues.size() - 2));
 	QVector<double> valueMax(static_cast<int>(paramValues.size() - 2));
-	DEBUG_LOG(QString("Parameter values size: %1x%2").arg(paramValues.size()).arg(paramValues[0].size()));
+	//DEBUG_LOG(QString("Parameter values size: %1x%2").arg(paramValues.size()).arg(paramValues[0].size()));
 	for (int p = 1; p < paramValues.size() - 1; ++p)
 	{           // - 1 because of skipping ID
 		valueMin[p - 1] = *std::min_element(paramValues[p].begin(), paramValues[p].end());
@@ -199,9 +199,9 @@ QSharedPointer<iASensitivityInfo> iASensitivityInfo::create(QMainWindow* child,
 		DEBUG_LOG("Invalid sampling: No parameter was varied!");
 		return QSharedPointer<iASensitivityInfo>();
 	}
-	DEBUG_LOG(QString("Found the following parameters to vary (number: %1): %2")
-		.arg(sensitivity->variedParams.size())
-		.arg(joinAsString(sensitivity->variedParams, ",", [&paramNames](int const& i) { return paramNames[i]; })));
+	//DEBUG_LOG(QString("Found the following parameters to vary (number: %1): %2")
+	//	.arg(sensitivity->variedParams.size())
+	//	.arg(joinAsString(sensitivity->variedParams, ",", [&paramNames](int const& i) { return paramNames[i]; })));
 
 	// find out how many additional parameter sets were added per STAR:
 	//   - go to first value row; take value of first varied parameter as v
@@ -229,10 +229,10 @@ QSharedPointer<iASensitivityInfo> iASensitivityInfo::create(QMainWindow* child,
 	}
 	sensitivity->m_starGroupSize = row - 1;
 	sensitivity->numOfSTARSteps = (sensitivity->m_starGroupSize - 1) / sensitivity->variedParams.size();
-	DEBUG_LOG(QString("Determined that there are groups of size: %1; number of STAR points per parameter: %2")
-		.arg(sensitivity->m_starGroupSize)
-		.arg(sensitivity->numOfSTARSteps)
-	);
+	//DEBUG_LOG(QString("Determined that there are groups of size: %1; number of STAR points per parameter: %2")
+	//	.arg(sensitivity->m_starGroupSize)
+	//	.arg(sensitivity->numOfSTARSteps)
+	//);
 
 	// select output features to compute sensitivity for:
 	// - the loaded and computed ones (length, orientation, ...)
@@ -336,17 +336,17 @@ bool iASensitivityInfo::compute()
 		aggregatedSensitivities[charactIdx].resize(variedParams.size());
 		int charactID = charactIndex[charactIdx];
 		auto charactName = m_data->spmData->parameterName(charactID);
-		DEBUG_LOG(QString("Characteristic %1 (%2):").arg(charactIdx).arg(charactName));
+		//DEBUG_LOG(QString("Characteristic %1 (%2):").arg(charactIdx).arg(charactName));
 		for (int paramIdx = 0; paramIdx < variedParams.size(); ++paramIdx)
 		{
 			QString paramName(m_paramNames[variedParams[paramIdx]]);
-			DEBUG_LOG(QString("  Parameter %1 (%2):").arg(paramIdx).arg(paramName));
+			//DEBUG_LOG(QString("  Parameter %1 (%2):").arg(paramIdx).arg(paramName));
 			int origParamColIdx = variedParams[paramIdx];
 			sensitivityField[charactIdx][paramIdx].resize(charDiffMeasure.size());
 			aggregatedSensitivities[charactIdx][paramIdx].resize(charDiffMeasure.size());
 			for (int diffMeasure = 0; diffMeasure < charDiffMeasure.size(); ++diffMeasure)
 			{
-				DEBUG_LOG(QString("    Difference Measure %1 (%2)").arg(diffMeasure).arg(DistributionDifferenceMeasureNames()[diffMeasure]));
+				//DEBUG_LOG(QString("    Difference Measure %1 (%2)").arg(diffMeasure).arg(DistributionDifferenceMeasureNames()[diffMeasure]));
 				// for now:
 				//     - one step average, left only, right only
 				//      future: overall (weighted) average, ...=
@@ -371,9 +371,9 @@ bool iASensitivityInfo::compute()
 					double groupStartParamVal = m_paramValues[origParamColIdx][resultIdxGroupStart];
 					double paramStartParamVal = m_paramValues[origParamColIdx][resultIdxParamStart];
 					double paramDiff = paramStartParamVal - groupStartParamVal;
-					DEBUG_LOG(QString("      Parameter Set %1; start: %2 (value %3), param start: %4 (value %5); diff: %6")
-						.arg(paramSetIdx).arg(resultIdxGroupStart).arg(groupStartParamVal)
-						.arg(resultIdxParamStart).arg(paramStartParamVal).arg(paramDiff));
+					//DEBUG_LOG(QString("      Parameter Set %1; start: %2 (value %3), param start: %4 (value %5); diff: %6")
+					//	.arg(paramSetIdx).arg(resultIdxGroupStart).arg(groupStartParamVal)
+					//	.arg(resultIdxParamStart).arg(paramStartParamVal).arg(paramDiff));
 
 					if (paramStep[paramIdx] == 0)
 					{
@@ -388,7 +388,7 @@ bool iASensitivityInfo::compute()
 							resultCharacteristicHistograms[resultIdxGroupStart][charactIdx],
 							resultCharacteristicHistograms[resultIdxParamStart][charactIdx],
 							diffMeasure);
-						DEBUG_LOG(QString("        Left var available: %1").arg(leftVar));
+						//DEBUG_LOG(QString("        Left var available: %1").arg(leftVar));
 						++numLeftRight;
 						++numAllLeft;
 					}
@@ -408,7 +408,7 @@ bool iASensitivityInfo::compute()
 							resultCharacteristicHistograms[resultIdxGroupStart][charactIdx],
 							resultCharacteristicHistograms[firstPosStepIdx][charactIdx],
 							diffMeasure);
-						DEBUG_LOG(QString("        Right var available: %1").arg(rightVar));
+						//DEBUG_LOG(QString("        Right var available: %1").arg(rightVar));
 						++numLeftRight;
 						++numAllRight;
 					}
@@ -433,9 +433,9 @@ bool iASensitivityInfo::compute()
 					numAllTotal += numOfSTARSteps;
 					double meanLeftRightVar = (leftVar + rightVar) / numLeftRight;
 					double meanTotal = sumTotal / numOfSTARSteps;
-					DEBUG_LOG(QString("        (left+right)/(numLeftRight=%1) = %2").arg(numLeftRight).arg(meanLeftRightVar));
-					DEBUG_LOG(QString("        (sum total var = %1) / (numOfSTARSteps = %2)  = %3")
-						.arg(sumTotal).arg(numOfSTARSteps).arg(meanTotal));
+					//DEBUG_LOG(QString("        (left+right)/(numLeftRight=%1) = %2").arg(numLeftRight).arg(meanLeftRightVar));
+					//DEBUG_LOG(QString("        (sum total var = %1) / (numOfSTARSteps = %2)  = %3")
+					//	.arg(sumTotal).arg(numOfSTARSteps).arg(meanTotal));
 					field[0][paramSetIdx] = meanLeftRightVar;
 					field[1][paramSetIdx] = leftVar;
 					field[2][paramSetIdx] = rightVar;
@@ -450,8 +450,8 @@ bool iASensitivityInfo::compute()
 				agg[1] /= numAllLeft;
 				agg[2] /= numAllRight;
 				agg[3] /= numAllTotal;
-				DEBUG_LOG(QString("      LeftRight=%1, Left=%2, Right=%3, Total=%4")
-					.arg(agg[0]).arg(agg[1]).arg(agg[2]).arg(agg[3]));
+				//DEBUG_LOG(QString("      LeftRight=%1, Left=%2, Right=%3, Total=%4")
+				//	.arg(agg[0]).arg(agg[1]).arg(agg[2]).arg(agg[3]));
 			}
 		}
 		m_progress.emitProgress(100 * charactIdx / charactIndex.size());
@@ -490,9 +490,9 @@ bool iASensitivityInfo::compute()
 			double groupStartParamVal = m_paramValues[origParamColIdx][resultIdxGroupStart];
 			double paramStartParamVal = m_paramValues[origParamColIdx][resultIdxParamStart];
 			double paramDiff = paramStartParamVal - groupStartParamVal;
-			DEBUG_LOG(QString("      Parameter Set %1; start: %2 (value %3), param start: %4 (value %5); diff: %6")
-				.arg(paramSetIdx).arg(resultIdxGroupStart).arg(groupStartParamVal)
-				.arg(resultIdxParamStart).arg(paramStartParamVal).arg(paramDiff));
+			//DEBUG_LOG(QString("      Parameter Set %1; start: %2 (value %3), param start: %4 (value %5); diff: %6")
+			//	.arg(paramSetIdx).arg(resultIdxGroupStart).arg(groupStartParamVal)
+			//	.arg(resultIdxParamStart).arg(paramStartParamVal).arg(paramDiff));
 
 			if (paramStep[paramIdx] == 0)
 			{
@@ -505,7 +505,7 @@ bool iASensitivityInfo::compute()
 			{
 				leftVar = std::abs(static_cast<double>(m_data->result[resultIdxGroupStart].fiberCount)
 					- m_data->result[resultIdxParamStart].fiberCount);
-				DEBUG_LOG(QString("        Left var available: %1").arg(leftVar));
+				//DEBUG_LOG(QString("        Left var available: %1").arg(leftVar));
 				++numLeftRight;
 				++numAllLeft;
 			}
@@ -523,7 +523,7 @@ bool iASensitivityInfo::compute()
 				int firstPosStepIdx = resultIdxParamStart + (k - 1);
 				rightVar = std::abs(static_cast<double>(m_data->result[resultIdxGroupStart].fiberCount)
 					- m_data->result[firstPosStepIdx].fiberCount);
-				DEBUG_LOG(QString("        Right var available: %1").arg(rightVar));
+				//DEBUG_LOG(QString("        Right var available: %1").arg(rightVar));
 				++numLeftRight;
 				++numAllRight;
 			}
@@ -546,9 +546,9 @@ bool iASensitivityInfo::compute()
 			numAllTotal += numOfSTARSteps;
 			double meanLeftRightVar = (leftVar + rightVar) / numLeftRight;
 			double meanTotal = sumTotal / numOfSTARSteps;
-			DEBUG_LOG(QString("        (left+right)/(numLeftRight=%1) = %2").arg(numLeftRight).arg(meanLeftRightVar));
-			DEBUG_LOG(QString("        (sum total var = %1) / (numOfSTARSteps = %2)  = %3")
-				.arg(sumTotal).arg(numOfSTARSteps).arg(meanTotal));
+			//DEBUG_LOG(QString("        (left+right)/(numLeftRight=%1) = %2").arg(numLeftRight).arg(meanLeftRightVar));
+			//DEBUG_LOG(QString("        (sum total var = %1) / (numOfSTARSteps = %2)  = %3")
+			//	.arg(sumTotal).arg(numOfSTARSteps).arg(meanTotal));
 			field[0][paramSetIdx] = meanLeftRightVar;
 			field[1][paramSetIdx] = leftVar;
 			field[2][paramSetIdx] = rightVar;
