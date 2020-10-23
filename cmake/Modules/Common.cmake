@@ -318,7 +318,7 @@ SET(QT_USE_QTXML TRUE)
 #IF (WIN32)
 #	SET( CMAKE_LIBRARY_PATH ${CMAKE_LIBRARY_PATH} "C:/Program Files (x86)/Windows Kits/8.1/Lib/winv6.3/um/x64" )
 #ENDIF (WIN32)
-FIND_PACKAGE(Qt5 COMPONENTS Widgets Xml Network Test OpenGL PrintSupport Svg REQUIRED)
+FIND_PACKAGE(Qt5 COMPONENTS Gui OpenGL Svg Widgets Xml REQUIRED)
 MESSAGE(STATUS "Qt: ${Qt5_VERSION} in ${Qt5_DIR}")
 set (BUILD_INFO "${BUILD_INFO}    \"Qt: ${Qt5_VERSION}\\n\"\n")
 IF (Qt5_VERSION VERSION_LESS "5.9.0")
@@ -326,7 +326,7 @@ IF (Qt5_VERSION VERSION_LESS "5.9.0")
 ENDIF()
 # Qt5OpenGL_INCLUDE_DIRS seems to be required on linux only, but doesn't hurt on Windows:
 INCLUDE_DIRECTORIES(${Qt5Widgets_INCLUDE_DIRS} ${Qt5OpenGL_INCLUDE_DIRS} )
-SET(QT_LIBRARIES ${Qt5Core_LIBRARIES} ${Qt5Xml_LIBRARIES} ${Qt5OpenGL_LIBRARIES} ${Qt5Network_LIBRARIES} ${Qt5PrintSupport_LIBRARIES})
+SET(QT_LIBRARIES ${Qt5Core_LIBRARIES} ${Qt5Concurrent_LIBRARIES} ${Qt5OpenGL_LIBRARIES} ${Qt5Xml_LIBRARIES})
 
 STRING(REGEX REPLACE "/lib/cmake/Qt5" "" Qt5_BASEDIR ${Qt5_DIR})
 STRING(REGEX REPLACE "/cmake/Qt5" "" Qt5_BASEDIR ${Qt5_BASEDIR})	# on linux, lib is omitted if installed from package repos

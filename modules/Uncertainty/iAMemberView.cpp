@@ -26,6 +26,7 @@
 
 #include <charts/qcustomplot.h>
 
+#include <QGuiApplication>
 #include <QHBoxLayout>
 
 #include <vector>
