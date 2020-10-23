@@ -184,7 +184,7 @@ iAFiberResultsCollection::iAFiberResultsCollection():
 	m_projectionErrorColumn(0)
 {}
 
-bool iAFiberResultsCollection::loadData(QString const & path, iACsvConfig const & cfg, double newStepShift, iAProgress * progress)
+bool iAFiberResultsCollection::loadData(QString const & path, iACsvConfig const & cfg, double newStepShift, iAProgress * progress, bool & abort)
 {
 	folder = path;
 	stepShift = newStepShift;
@@ -529,6 +529,10 @@ bool iAFiberResultsCollection::loadData(QString const & path, iACsvConfig const 
 		}
 		++resultID;
 		progress->emitProgress((100 * resultID) / csvFileNames.size());
+		if (abort)
+		{
+			return false;
+		}
 		result.push_back(curData);
 	}
 
@@ -562,7 +566,7 @@ bool iAFiberResultsCollection::loadData(QString const & path, iACsvConfig const 
 	size_t spmStartIdx = 0;
 	m_resultIDColumn = static_cast<uint>(numParams) - 2;
 	m_projectionErrorColumn = static_cast<uint>(numParams) - 1;
-	for (resultID=0; static_cast<size_t>(resultID) < result.size(); ++resultID)
+	for (resultID=0; static_cast<size_t>(resultID) < result.size() && !abort; ++resultID)
 	{
 		auto & curData = result[resultID];
 		vtkIdType numTableColumns = curData.table->GetNumberOfColumns();
@@ -594,7 +598,7 @@ bool iAFiberResultsCollection::loadData(QString const & path, iACsvConfig const 
 
 	spmData->updateRanges();
 
-	return true;
+	return !abort;
 }
 
 iAFiberResultsLoader::iAFiberResultsLoader(QSharedPointer<iAFiberResultsCollection> results,
@@ -602,12 +606,13 @@ iAFiberResultsLoader::iAFiberResultsLoader(QSharedPointer<iAFiberResultsCollecti
 	m_results(results),
 	m_path(path),
 	m_config(config),
-	m_stepShift(stepShift)
+	m_stepShift(stepShift),
+	m_aborted(false)
 {}
 
 void iAFiberResultsLoader::run()
 {
-	if (!m_results->loadData(m_path, m_config, m_stepShift, &m_progress))
+	if (!m_results->loadData(m_path, m_config, m_stepShift, &m_progress, m_aborted))
 	{
 		emit failed(m_path);
 	}
@@ -615,6 +620,16 @@ void iAFiberResultsLoader::run()
 	{
 		emit success();
 	}
+}
+
+void iAFiberResultsLoader::abort()
+{
+	m_aborted = true;
+}
+
+bool iAFiberResultsLoader::isAborted() const
+{
+	return m_aborted;
 }
 
 iAProgress* iAFiberResultsLoader::progress()

@@ -159,7 +159,6 @@ private slots:
 	void refDistAvailable();
 	void optimDataToggled(int);
 	void resultsLoaded();
-	void resultsLoadFailed(QString const & path);
 	void visualizeCylinderSamplePoints();
 	void hideSamplePoints();
 	void showReferenceToggled();

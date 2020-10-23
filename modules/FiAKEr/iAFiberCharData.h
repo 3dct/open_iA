@@ -22,6 +22,7 @@
 
 #include "iACsvConfig.h"
 
+#include <iAAbortListener.h>
 #include <iAProgress.h>
 #include <iAvec3.h>
 
@@ -146,17 +147,19 @@ public:
 	uint m_resultIDColumn, m_projectionErrorColumn;
 
 // Methods:
-	bool loadData(QString const & path, iACsvConfig const & config, double stepShift, iAProgress * progress);
+	bool loadData(QString const & path, iACsvConfig const & config, double stepShift, iAProgress * progress, bool& abort);
 };
 
 //! Loads a collection of results from a folder, in the background
-class iAFiberResultsLoader: public QThread
+class iAFiberResultsLoader: public QThread, public iAAbortListener
 {
 	Q_OBJECT
 public:
 	iAFiberResultsLoader(QSharedPointer<iAFiberResultsCollection> results,
 		QString const & path, iACsvConfig const & config, double stepShift);
 	void run() override;
+	void abort() override;
+	bool isAborted() const;
 	iAProgress* progress();
 signals:
 	void failed(QString const & path);
@@ -167,6 +170,7 @@ private:
 	QString m_path;
 	iACsvConfig m_config;
 	double m_stepShift;
+	bool m_aborted;
 };
 
 // helper functions:
