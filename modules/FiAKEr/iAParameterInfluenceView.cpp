@@ -25,6 +25,7 @@
 
 #include "iASensitivityInfo.h"
 #include "iAStackedBarChart.h"
+#include "qthelper/iAClickableLabel.h"
 
 #include <QAction>
 #include <QGridLayout>
@@ -99,19 +100,24 @@ iAParameterInfluenceView::iAParameterInfluenceView(iASensitivityInfo* sensInf) :
 	{
 		m_stackedCharts.push_back(new iAStackedBarChart(colorTheme, false, paramIdx == sensInf->variedParams.size()-1));
 		connect(m_stackedHeader, &iAStackedBarChart::weightsChanged, m_stackedCharts[paramIdx], &iAStackedBarChart::setWeights);
-		auto label = new QLabel(sensInf->m_paramNames[sensInf->variedParams[paramIdx]]);
-		label->setProperty("paramIdx", paramIdx);
 		m_stackedCharts[paramIdx]->setProperty("paramIdx", paramIdx);
 		connect(m_stackedCharts[paramIdx], &iAStackedBarChart::doubleClicked, this, &iAParameterInfluenceView::paramChangedSlot);
 		connect(m_stackedHeader, &iAStackedBarChart::normalizeModeChanged, m_stackedCharts[paramIdx], &iAStackedBarChart::setNormalizeMode);
 		connect(m_stackedHeader, &iAStackedBarChart::switchedStackMode, m_stackedCharts[paramIdx], &iAStackedBarChart::setDoStack);
-		m_paramListLayout->addWidget(label, 1 + paramIdx, 0);
 		auto const& paramVec = sensInf->m_paramValues[sensInf->variedParams[paramIdx]];
 		double minVal = *std::min_element(paramVec.begin(), paramVec.end()),
 			maxVal = *std::max_element(paramVec.begin(), paramVec.end());
-		m_paramListLayout->addWidget(new QLabel(QString::number(minVal)), 1 + paramIdx, colMin);
-		m_paramListLayout->addWidget(new QLabel(QString::number(maxVal)), 1 + paramIdx, colMax);
-		m_paramListLayout->addWidget(new QLabel(QString::number(sensInf->paramStep[paramIdx])), 1 + paramIdx, colStep);
+		iAClickableLabel* labels[4];
+		labels[colParamName] = new iAClickableLabel(sensInf->m_paramNames[sensInf->variedParams[paramIdx]]);
+		labels[colMin] = new iAClickableLabel(QString::number(minVal));
+		labels[colMax] = new iAClickableLabel(QString::number(maxVal));
+		labels[colStep] = new iAClickableLabel(QString::number(sensInf->paramStep[paramIdx]));
+		for (int i = 0; i < 4; ++i)
+		{
+			labels[i]->setProperty("paramIdx", paramIdx);
+			m_paramListLayout->addWidget(labels[i], 1 + paramIdx, i);
+			connect(labels[i], &iAClickableLabel::dblClicked, this, &iAParameterInfluenceView::paramChangedSlot);
+		}
 		m_paramListLayout->addWidget(m_stackedCharts[paramIdx], 1 + paramIdx, colStackedBar);
 	}
 	// default stacked bar content/settings:
@@ -192,7 +198,7 @@ void iAParameterInfluenceView::selectMeasure(int measureIdx)
 
 void iAParameterInfluenceView::paramChangedSlot()
 {
-	auto source = qobject_cast<iAStackedBarChart*>(QObject::sender());
+	auto source = qobject_cast<QWidget*>(QObject::sender());
 	m_selectedRow = source->property("paramIdx").toInt();
 	for (size_t paramIdx = 0; paramIdx < m_sensInf->variedParams.size(); ++paramIdx)
 	{
