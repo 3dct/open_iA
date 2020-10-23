@@ -45,9 +45,8 @@ iAJobListView::iAJobListView():
 	layout()->addWidget(m_insideWidget);
 }
 
-void iAJobListView::addJob(QString name, iAProgress * p, QThread * t, iAAbortListener* abortListener)
+QWidget* iAJobListView::addJobWidget(QString name, iAProgress* p, iAAbortListener* abortListener)
 {
-	m_runningJobs.fetchAndAddOrdered(1);
 	auto titleLabel = new QLabel(name);
 	titleLabel->setProperty("qssClass", "titleLabel");
 
@@ -88,15 +87,6 @@ void iAJobListView::addJob(QString name, iAProgress * p, QThread * t, iAAbortLis
 	// connections
 	connect(p, &iAProgress::progress, progressBar, &QProgressBar::setValue);
 	connect(p, &iAProgress::statusChanged, statusLabel, &QLabel::setText);
-	connect(t, &QThread::finished, [this, jobWidget]()
-	{
-		int oldJobCount = m_runningJobs.fetchAndAddOrdered(-1);
-		if (oldJobCount == 1)
-		{
-			emit allJobsDone();
-		}
-		jobWidget->deleteLater();
-	});
 	if (abortListener)
 	{
 		connect(abortButton, &QToolButton::clicked, [=]()
@@ -107,4 +97,5 @@ void iAJobListView::addJob(QString name, iAProgress * p, QThread * t, iAAbortLis
 				abortListener->abort();
 			});
 	}
+	return jobWidget;
 }

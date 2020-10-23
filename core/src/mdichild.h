@@ -187,6 +187,8 @@ public:
 	iADockWidgetWrapper* histogramDockWidget();
 	//! Access to modalities dock widget
 	dlg_modalities* modalitiesDockWidget();
+	//! Access to the jobs dock widget
+	iAJobListView* jobsList();
 
 	void setReInitializeRenderWindows(bool reInit);
 	vtkTransform* slicerTransform();

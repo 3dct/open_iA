@@ -2645,6 +2645,11 @@ dlg_modalities* MdiChild::modalitiesDockWidget()
 	return m_dwModalities;
 }
 
+iAJobListView* MdiChild::jobsList()
+{
+	return m_jobs;
+}
+
 QSharedPointer<iAModalityList> MdiChild::modalities()
 {
 	return m_dwModalities->modalities();
