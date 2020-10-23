@@ -89,13 +89,15 @@ iAParameterInfluenceView::iAParameterInfluenceView(iASensitivityInfo* sensInf) :
 		addColumnAction(sensInf->charactName(charactIdx), charactIdx, this, m_stackedHeader, charactIdx == 0);
 	}
 	addColumnAction("Fiber Count", sensInf->charactIndex.size() + 1, this, m_stackedHeader, false);
-	DEBUG_LOG(QString("Adding lines for %1 characteristics").arg(sensInf->charactIndex.size()));
+	//DEBUG_LOG(QString("Adding lines for %1 characteristics").arg(sensInf->charactIndex.size()));
+
+	// headers:
 	addHeaderLabel(m_paramListLayout, colParamName, "Parameter");
 	addHeaderLabel(m_paramListLayout, colMin, "Min");
 	addHeaderLabel(m_paramListLayout, colMax, "Max");
 	addHeaderLabel(m_paramListLayout, colStep, "Step");
-	
 	m_paramListLayout->addWidget(m_stackedHeader, 0, colStackedBar);
+
 	for (int paramIdx = 0; paramIdx < sensInf->variedParams.size(); ++paramIdx)
 	{
 		m_stackedCharts.push_back(new iAStackedBarChart(colorTheme, false, paramIdx == sensInf->variedParams.size()-1));
@@ -112,7 +114,7 @@ iAParameterInfluenceView::iAParameterInfluenceView(iASensitivityInfo* sensInf) :
 		labels[colMin] = new iAClickableLabel(QString::number(minVal));
 		labels[colMax] = new iAClickableLabel(QString::number(maxVal));
 		labels[colStep] = new iAClickableLabel(QString::number(sensInf->paramStep[paramIdx]));
-		for (int i = colParamName; i < colStep; ++i)
+		for (int i = colParamName; i <= colStep; ++i)
 		{
 			labels[i]->setProperty("paramIdx", paramIdx);
 			m_paramListLayout->addWidget(labels[i], 1 + paramIdx, i);
