@@ -219,7 +219,7 @@ void iAQSplom::selectionModeRectangle()
 }
 
 iAQSplom::iAQSplom(QWidget * parent):
-	iAQGLWidget(parent),
+	iAChartParentWidget(parent),
 	settings(),
 	m_lut(new iALookupTable()),
 	m_colorLookupParam(0),
@@ -238,7 +238,9 @@ iAQSplom::iAQSplom(QWidget * parent):
 	m_contextMenu(new QMenu(this)),
 	m_settingsDlg(new iASPMSettings(this))
 {
+#ifdef CHART_OPENGL
 	setFormat(defaultOpenGLFormat());
+#endif
 	setMouseTracking( true );
 	setFocusPolicy( Qt::StrongFocus );
 	setBackgroundRole(QPalette::Base);
@@ -401,9 +403,11 @@ void iAQSplom::updateFilter()
 	update();
 }
 
+#ifdef CHART_OPENGL
 void iAQSplom::initializeGL()
 {
 }
+#endif
 
 iAQSplom::~iAQSplom()
 {
@@ -1072,19 +1076,28 @@ int iAQSplom::invert( int val ) const
 	return ( getVisibleParametersCount() - val - 1 );
 }
 
+#ifdef CHART_OPENGL
 void iAQSplom::paintGL()
+#else
+void iAQSplom::paintEvent(QPaintEvent* event)
+#endif
 {
 	QPainter painter( this );
 	painter.setRenderHint(QPainter::Antialiasing);
-	painter.beginNativePainting();
-	QColor bg(settings.backgroundColor);
-	if (!bg.isValid())
+	QColor bgColor(settings.backgroundColor);
+	if (!bgColor.isValid())
 	{
-		bg = QWidget::palette().color(QWidget::backgroundRole());
+		bgColor = QWidget::palette().color(QWidget::backgroundRole());
 	}
-	glClearColor(bg.redF(), bg.greenF(), bg.blueF(), bg.alphaF());
+#ifdef CHART_OPENGL
+	painter.beginNativePainting();
+	glClearColor(bgColor.redF(), bgColor.greenF(), bgColor.blueF(), bgColor.alphaF());
 	glClear(GL_COLOR_BUFFER_BIT);
 	painter.endNativePainting();
+#else
+	Q_UNUSED(event);
+	painter.fillRect(rect(), bgColor);
+#endif
 	painter.setPen(QWidget::palette().color(QPalette::Text));
 	if (m_visiblePlots.size() < 2)
 	{
@@ -1162,6 +1175,7 @@ void iAQSplom::paintGL()
 	{
 		return;
 	}
+	painter.setPen(QWidget::palette().color(QPalette::Text));
 	// Draw scalar bar:
 	// maybe reuse code from iALinearColorGradientBar (DynamicVolumeLines)
 	QPoint topLeft = getMaxRect().topLeft();
@@ -1339,7 +1353,7 @@ iAScatterPlot * iAQSplom::getScatterplotAt( QPoint pos )
 void iAQSplom::resizeEvent( QResizeEvent * event )
 {
 	updateSPLOMLayout();
-	iAQGLWidget::resizeEvent( event );
+	iAChartParentWidget::resizeEvent( event );
 }
 
 void iAQSplom::updatePlotGridParams()

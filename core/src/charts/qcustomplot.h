@@ -28,7 +28,9 @@
 
 #include "open_iA_Core_export.h"
 
+#ifdef CHART_OPENGL
 #define QCUSTOMPLOT_USE_OPENGL
+#endif
 
 #include <QtCore/qglobal.h>
 

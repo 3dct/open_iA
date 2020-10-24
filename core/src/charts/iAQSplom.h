@@ -24,7 +24,13 @@
 
 #include "iAScatterPlotSelectionHandler.h"
 #include "iASettings.h"
+#ifdef CHART_OPENGL
 #include "qthelper/iAQGLWidget.h"
+using iAChartParentWidget = iAQGLWidget;
+#else
+#include <QWidget>
+using iAChartParentWidget = QWidget;
+#endif
 
 #include <QList>
 
@@ -85,7 +91,7 @@ class QSettings;
 		splom->setLookupTable( lut, 0 );
 */
 
-class open_iA_Core_API iAQSplom : public iAQGLWidget, public iAScatterPlotSelectionHandler
+class open_iA_Core_API iAQSplom : public iAChartParentWidget, public iAScatterPlotSelectionHandler
 {
 	Q_OBJECT
 	Q_PROPERTY(double m_animIn READ getAnimIn WRITE setAnimIn)
@@ -173,8 +179,12 @@ signals:
 	void lookupTableChanged();                                       //!< Emitted when the lookup table has changed
 protected:
 	void clear();                                                    //!< Clear all scatter plots in the SPLOM.
+#ifdef CHART_OPENGL
 	void initializeGL() override;                                    //!< overrides function inherited from base class.
 	void paintGL() override;                                         //!< Draws all scatter plots, tick labels and axes.
+#else
+	void paintEvent(QPaintEvent* event) override;
+#endif
 	virtual bool drawPopup( QPainter& painter );                     //!< Draws popup on the splom
 	iAScatterPlot * getScatterplotAt( QPoint pos );                  //!< Get a scatter plot at mouse position.
 	void changeActivePlot( iAScatterPlot * s);

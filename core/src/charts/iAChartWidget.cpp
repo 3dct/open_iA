@@ -35,7 +35,7 @@
 #include <QFileDialog>
 #include <QIcon>
 #include <QMenu>
-#ifdef CHART_GL
+#ifdef CHART_OPENGL
 #include <QOpenGLFramebufferObject>
 #include <QOpenGLPaintDevice>
 #endif
@@ -131,7 +131,7 @@ iAChartWidget::iAChartWidget(QWidget* parent, QString const & xLabel, QString co
 	m_maxXAxisSteps(AxisTicksXDefault),
 	m_drawXAxisAtZero(false)
 {
-#ifdef CHART_GL
+#ifdef CHART_OPENGL
 	setFormat(defaultOpenGLFormat());
 #endif
 	updateBounds();
@@ -1075,7 +1075,7 @@ void iAChartWidget::mouseMoveEvent(QMouseEvent *event)
 
 QImage iAChartWidget::drawOffscreen()
 {
-#ifdef CHART_GL
+#ifdef CHART_OPENGL
 	QSurfaceFormat format;
 	format.setMajorVersion(3);
 	format.setMinorVersion(3);
@@ -1101,7 +1101,7 @@ QImage iAChartWidget::drawOffscreen()
 	QImage image(width(), height(), QImage::Format_RGB32);
 #endif
 	QPainter p;
-#ifdef CHART_GL
+#ifdef CHART_OPENGL
 	p.begin(&device);
 #else
 	p.begin(&image);
@@ -1109,7 +1109,7 @@ QImage iAChartWidget::drawOffscreen()
 
 	drawAll(p);
 	p.end();
-#ifdef CHART_GL
+#ifdef CHART_OPENGL
 	fbo.release();
 	QImage image = fbo.toImage();
 	context.doneCurrent();
@@ -1123,7 +1123,7 @@ void iAChartWidget::setBackgroundColor(QColor const & color)
 	update();
 }
 
-#ifdef CHART_GL
+#ifdef CHART_OPENGL
 void iAChartWidget::paintGL()
 #else
 void iAChartWidget::paintEvent(QPaintEvent* /*event*/)

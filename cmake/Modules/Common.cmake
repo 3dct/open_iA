@@ -43,6 +43,8 @@ IF (CMAKE_VERSION VERSION_GREATER "3.15.99")
 	ENDIF()
 ENDIF()
 
+option (openiA_CHART_OPENGL "Whether to use OpenGL in chart widgets (disable this if you see no text, which was observed on AMD graphics cards" ON)
+
 #------------------------------
 # Build / Compiler information
 #------------------------------

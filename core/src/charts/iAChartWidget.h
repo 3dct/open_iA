@@ -23,7 +23,13 @@
 #include "open_iA_Core_export.h"
 
 #include "iAPlotData.h"
+#ifdef CHART_OPENGL
 #include "qthelper/iAQGLWidget.h"
+using iAChartParentWidget = iAQGLWidget;
+#else
+#include <QWidget>
+using iAChartParentWidget = QWidget;
+#endif
 
 #include <vector>
 
@@ -35,14 +41,6 @@ class iAMapper;
 class QHelpEvent;
 class QMenu;
 class QRubberBand;
-
-#define CHART_GL
-
-#ifdef CHART_GL
-using iAChartParentWidget = iAQGLWidget;
-#else
-using iAChartParentWidget = QWidget;
-#endif
 
 //! A chart widget which can show an arbitrary number of plots.
 class open_iA_Core_API iAChartWidget : public iAChartParentWidget
@@ -213,7 +211,7 @@ protected:
 	void mouseDoubleClickEvent(QMouseEvent *event) override;
 	void wheelEvent(QWheelEvent *event) override;
 	void leaveEvent(QEvent *event) override;
-#ifdef CHART_GL
+#ifdef CHART_OPENGL
 	void paintGL() override;
 #else
 	void paintEvent(QPaintEvent *event) override;
