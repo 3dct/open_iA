@@ -38,14 +38,18 @@ namespace
 		QSharedPointer<iASPLOMData> result(new iASPLOMData());
 		std::vector<QString> paramNames;
 		for (vtkIdType col = 0; col < table->GetNumberOfColumns(); ++col)
+		{
 			paramNames.push_back(table->GetColumnName(col));
+		}
 		result->setParameterNames(paramNames);
 		for (vtkIdType row = 0; row < table->GetNumberOfRows(); ++row)
+		{
 			for (vtkIdType col = 0; col < table->GetNumberOfColumns(); ++col)
 			{
 				double value = table->GetValue(row, col).ToDouble();
 				result->data()[col].push_back(value);
 			}
+		}
 		result->updateRanges();
 		return result;
 	}
@@ -63,14 +67,16 @@ iAFeatureScoutSPLOM::~iAFeatureScoutSPLOM()
 void iAFeatureScoutSPLOM::initScatterPlot(QDockWidget* container, vtkTable* csvTable, std::vector<char> const & columnVisibility)
 {
 	if (matrix)
+	{
 		delete matrix;
+	}
 	matrix = new iAQSplom();
 	matrix->setSelectionMode(iAScatterPlot::Rectangle);
 	auto spInput = createSPLOMData(csvTable);
 	container->setWidget(matrix);
 	matrix->showAllPlots(false);
 	matrix->setData(spInput, columnVisibility);
-	matrix->setSelectionColor(QColor(255, 40, 0, 1));
+	matrix->setSelectionColor(QColor(255, 40, 0, 255));
 	matrix->enableSelection(selectionEnabled);
 	matrix->showDefaultMaxizimedPlot();
 	matrix->settings.enableColorSettings = true;
@@ -94,20 +100,26 @@ void iAFeatureScoutSPLOM::multiClassRendering(QList<QColor> const & colors)
 	lookupTable.allocate(colors.size());
 	lookupTable.setRange(0, colors.size() - 1);
 	for (int c = 0; c < colors.size(); ++c)
+	{
 		lookupTable.setColor(static_cast<size_t>(c), colors.at(c));
+	}
 	matrix->setLookupTable(lookupTable, matrix->data()->numParams()-1 );
 }
 
 void iAFeatureScoutSPLOM::updateColumnVisibility(std::vector<char> const & columnVisibility)
 {
 	if (matrix)
+	{
 		matrix->setParameterVisibility(columnVisibility);
+	}
 }
 
 void iAFeatureScoutSPLOM::setParameterVisibility(size_t paramIndex, bool visible)
 {
 	if (matrix)
+	{
 		matrix->setParameterVisibility(paramIndex, visible);
+	}
 }
 
 void iAFeatureScoutSPLOM::lookupTableChanged()
@@ -118,34 +130,46 @@ void iAFeatureScoutSPLOM::lookupTableChanged()
 void iAFeatureScoutSPLOM::setFilter(int classID)
 {
 	if (!matrix)
+	{
 		return;
+	}
 	matrix->resetFilter();
 	if (classID != -1)
+	{
 		matrix->addFilter(matrix->data()->numParams() - 1, classID);
+	}
 	matrix->update();
 }
 
 void iAFeatureScoutSPLOM::setDotColor(QColor const & color)
 {
 	if (!matrix)
+	{
 		return;
+	}
 	matrix->setPointColor(color);
 }
 
 void iAFeatureScoutSPLOM::setFilteredSelection(std::vector<size_t> const & selection)
 {
 	if (matrix && selectionEnabled)
+	{
 		matrix->setFilteredSelection(selection);
+	}
 }
 
 void iAFeatureScoutSPLOM::classAdded(int classID)
 {
 	if (!matrix)
+	{
 		return;
+	}
 	size_t classColumn = matrix->data()->numParams() - 1;
 	auto sel = matrix->getSelection();
 	for (size_t objID : sel)
-		matrix->data()->data()[ classColumn ][ objID ] = classID;
+	{
+		matrix->data()->data()[classColumn][objID] = classID;
+	}
 	classesChanged();
 	setFilter(classID);
 	matrix->clearSelection();
@@ -155,16 +179,22 @@ void iAFeatureScoutSPLOM::classAdded(int classID)
 void iAFeatureScoutSPLOM::classDeleted(int deleteClassID)
 {
 	if (!matrix)
+	{
 		return;
+	}
 	matrix->clearSelection();
 	size_t classColumn = matrix->data()->numParams() - 1;
 	for (size_t objID = 0; objID < matrix->data()->numPoints(); ++objID)
 	{
 		int curClassID = matrix->data()->paramData(classColumn)[objID];
 		if (curClassID == deleteClassID)
+		{
 			matrix->data()->data()[classColumn][objID] = 0;
+		}
 		else if (curClassID > deleteClassID)
-			matrix->data()->data()[classColumn][objID] = curClassID-1;
+		{
+			matrix->data()->data()[classColumn][objID] = curClassID - 1;
+		}
 	}
 	classesChanged();
 	setFilter(0); // set filter to unclassified class
@@ -174,7 +204,9 @@ void iAFeatureScoutSPLOM::classDeleted(int deleteClassID)
 void iAFeatureScoutSPLOM::changeClass(size_t objID, int classID)
 {
 	if (!matrix)
+	{
 		return;
+	}
 	size_t classColumn = matrix->data()->numParams() - 1;
 	matrix->data()->data()[classColumn][objID] = classID;
 }
@@ -182,7 +214,9 @@ void iAFeatureScoutSPLOM::changeClass(size_t objID, int classID)
 void iAFeatureScoutSPLOM::classesChanged()
 {
 	if (!matrix)
+	{
 		return;
+	}
 	size_t classColumn = matrix->data()->numParams() - 1;
 	matrix->data()->updateRange(classColumn);
 }
@@ -200,14 +234,18 @@ bool iAFeatureScoutSPLOM::isShown() const
 void iAFeatureScoutSPLOM::clearSelection()
 {
 	if (matrix)
+	{
 		matrix->clearSelection();
+	}
 }
 
 void iAFeatureScoutSPLOM::enableSelection(bool enable)
 {
 	selectionEnabled = enable;
 	if (!matrix)
+	{
 		return;
+	}
 	matrix->clearSelection();
 	matrix->enableSelection(enable);
 }

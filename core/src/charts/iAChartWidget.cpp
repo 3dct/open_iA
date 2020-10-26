@@ -35,8 +35,10 @@
 #include <QFileDialog>
 #include <QIcon>
 #include <QMenu>
+#ifdef CHART_OPENGL
 #include <QOpenGLFramebufferObject>
 #include <QOpenGLPaintDevice>
+#endif
 #include <QPainter>
 #include <QRubberBand>
 #include <QtGlobal> // for QT_VERSION
@@ -103,7 +105,7 @@ namespace
 }
 
 iAChartWidget::iAChartWidget(QWidget* parent, QString const & xLabel, QString const & yLabel):
-	iAQGLWidget(parent),
+	iAChartParentWidget(parent),
 	m_xCaption(xLabel),
 	m_yCaption(yLabel),
 	m_xZoom(1.0),
@@ -129,7 +131,9 @@ iAChartWidget::iAChartWidget(QWidget* parent, QString const & xLabel, QString co
 	m_maxXAxisSteps(AxisTicksXDefault),
 	m_drawXAxisAtZero(false)
 {
+#ifdef CHART_OPENGL
 	setFormat(defaultOpenGLFormat());
+#endif
 	updateBounds();
 	setMouseTracking(true);
 	setFocusPolicy(Qt::WheelFocus);
@@ -843,7 +847,7 @@ bool iAChartWidget::event(QEvent *event)
 {
 	if (event->type() != QEvent::ToolTip)
 	{
-		return iAQGLWidget::event(event);
+		return iAChartParentWidget::event(event);
 	}
 
 	if (m_plots.empty() || !m_showTooltip)
@@ -1071,6 +1075,7 @@ void iAChartWidget::mouseMoveEvent(QMouseEvent *event)
 
 QImage iAChartWidget::drawOffscreen()
 {
+#ifdef CHART_OPENGL
 	QSurfaceFormat format;
 	format.setMajorVersion(3);
 	format.setMinorVersion(3);
@@ -1092,13 +1097,23 @@ QImage iAChartWidget::drawOffscreen()
 	QOpenGLFramebufferObject fbo(drawRectSize, fboFormat);
 	fbo.bind();
 	QOpenGLPaintDevice device(drawRectSize);
+#else
+	QImage image(width(), height(), QImage::Format_RGB32);
+#endif
 	QPainter p;
+#ifdef CHART_OPENGL
 	p.begin(&device);
+#else
+	p.begin(&image);
+#endif
+
 	drawAll(p);
 	p.end();
+#ifdef CHART_OPENGL
 	fbo.release();
 	QImage image = fbo.toImage();
 	context.doneCurrent();
+#endif
 	return image;
 }
 
@@ -1108,7 +1123,11 @@ void iAChartWidget::setBackgroundColor(QColor const & color)
 	update();
 }
 
+#ifdef CHART_OPENGL
 void iAChartWidget::paintGL()
+#else
+void iAChartWidget::paintEvent(QPaintEvent* /*event*/)
+#endif
 {
 	QPainter p(this);
 	drawAll(p);
