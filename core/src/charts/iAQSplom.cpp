@@ -1210,9 +1210,14 @@ void iAQSplom::paintEvent(QPaintEvent* event)
 #endif
 	// Draw color bar / name of parameter used for coloring
 	int colorBarTextX = topLeft.x() - (textWidth + settings.plotsSpacing);
-	painter.drawText(colorBarTextX, topLeft.y() + fm.height(), maxStr);
-	painter.drawText(colorBarTextX, height() - settings.plotsSpacing, minStr);
-	int textHeight = height() - (topLeft.y() + 2 * fm.height() + 2*settings.plotsSpacing);
+	if (settings.colorMode != cmAllPointsSame)
+	{
+		painter.drawText(colorBarTextX, topLeft.y() + fm.height(), maxStr);
+		painter.drawText(colorBarTextX, height() - settings.plotsSpacing, minStr);
+	}
+	int textHeight = height() - (topLeft.y() +
+		((settings.colorMode != cmAllPointsSame) ? 2 * fm.height() : 0)
+		+ 2*settings.plotsSpacing);
 	textWidth = std::max(textWidth, fm.height()); // guarantee that label has at least text height
 	QString scalarBarCaption;
 	switch (settings.colorMode)
@@ -1226,7 +1231,8 @@ void iAQSplom::paintEvent(QPaintEvent* event)
 	default:              scalarBarCaption = "Unknown"; break;
 	}
 	painter.save();
-	painter.translate(colorBarTextX - settings.plotsSpacing, topLeft.y() + fm.height() + settings.plotsSpacing + textHeight);
+	painter.translate(colorBarTextX - settings.plotsSpacing, topLeft.y() +
+		((settings.colorMode != cmAllPointsSame)? fm.height() : 0) + settings.plotsSpacing + textHeight);
 	painter.rotate(-90);
 	painter.drawText(QRect(0, 0, textHeight, textWidth), Qt::AlignHCenter | Qt::AlignBottom, scalarBarCaption);
 	painter.restore();

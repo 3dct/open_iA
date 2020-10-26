@@ -818,8 +818,8 @@ void iAScatterPlot::drawPoint(QPainter& painter, double ptX, double ptY, int rad
 {
 	int tx = p2x(ptX);
 	int ty = p2y(ptY);
-	if (tx - radius < 0 || tx + radius > m_globRect.width() ||
-		ty - radius < 0 || ty + radius > m_globRect.height())
+	if (tx < 0 || tx > m_globRect.width() ||
+		ty < 0 || ty > m_globRect.height())
 	{ // point outside current screen
 		return;
 	}
