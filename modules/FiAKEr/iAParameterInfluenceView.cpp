@@ -220,29 +220,22 @@ void iAParameterInfluenceView::updateStackedBars()
 {
 	for (auto charactIdx : m_visibleCharacts)
 	{
+		auto const& data = (charactIdx < m_sensInf->aggregatedSensitivities.size()) ?
+			m_sensInf->aggregatedSensitivities[charactIdx][m_measureIdx] :
+			m_sensInf->aggregatedSensitivitiesFiberCount;
 		// TODO: unify with addStackedBar
 		auto title(m_sensInf->charactName(charactIdx));
 		double maxValue = std::numeric_limits<double>::lowest();
 		for (size_t paramIdx = 0; paramIdx < m_sensInf->variedParams.size(); ++paramIdx)
 		{
-			double value = (charactIdx < m_sensInf->aggregatedSensitivities.size())?
-				m_sensInf->aggregatedSensitivities[charactIdx][paramIdx][m_measureIdx][m_aggrType] :
-				m_sensInf->aggregatedSensitivitiesFiberCount[paramIdx][m_aggrType];
-			if (value > maxValue)
+			if (data[paramIdx][m_aggrType] > maxValue)
 			{
-				maxValue = value;
+				maxValue = data[paramIdx][m_aggrType];
 			}
 		}
 		for (size_t paramIdx = 0; paramIdx < m_sensInf->variedParams.size(); ++paramIdx)
 		{
-			// characteristis
-			// parameter index
-			// difference measure
-			// variation aggregation
-			double value = (charactIdx < m_sensInf->aggregatedSensitivities.size()) ?
-				m_sensInf->aggregatedSensitivities[charactIdx][paramIdx][m_measureIdx][m_aggrType] :
-				m_sensInf->aggregatedSensitivitiesFiberCount[paramIdx][m_aggrType];
-			m_stackedCharts[paramIdx]->updateBar(title, value, maxValue);
+			m_stackedCharts[paramIdx]->updateBar(title, data[paramIdx][m_aggrType], maxValue);
 		}
 	}
 	for (size_t paramIdx = 0; paramIdx < m_sensInf->variedParams.size(); ++paramIdx)
@@ -263,28 +256,20 @@ void iAParameterInfluenceView::addStackedBar(int charactIdx)
 	auto title(columnName(charactIdx));
 	DEBUG_LOG(QString("Showing stacked bar for characteristic %1").arg(title));
 	m_stackedHeader->addBar(title, 1, 1);
-
+	auto const& data = (charactIdx < m_sensInf->aggregatedSensitivities.size()) ?
+		m_sensInf->aggregatedSensitivities[charactIdx][m_measureIdx] :
+		m_sensInf->aggregatedSensitivitiesFiberCount;
 	double maxValue = std::numeric_limits<double>::lowest();
 	for (size_t paramIdx = 0; paramIdx < m_sensInf->variedParams.size(); ++paramIdx)
 	{
-		double value = (charactIdx < m_sensInf->aggregatedSensitivities.size()) ?
-			m_sensInf->aggregatedSensitivities[charactIdx][paramIdx][m_measureIdx][m_aggrType] :
-			m_sensInf->aggregatedSensitivitiesFiberCount[paramIdx][m_aggrType];
-		if (value > maxValue)
+		if (data[paramIdx][m_aggrType] > maxValue)
 		{
-			maxValue = value;
+			maxValue = data[paramIdx][m_aggrType];
 		}
 	}
 	for (size_t paramIdx = 0; paramIdx < m_sensInf->variedParams.size(); ++paramIdx)
 	{
-		// characteristis
-		// parameter index
-		// difference measure
-		// variation aggregation
-		double value = (charactIdx < m_sensInf->aggregatedSensitivities.size()) ?
-			m_sensInf->aggregatedSensitivities[charactIdx][paramIdx][m_measureIdx][m_aggrType] :
-			m_sensInf->aggregatedSensitivitiesFiberCount[paramIdx][m_aggrType];
-		m_stackedCharts[paramIdx]->addBar(title, value, maxValue);
+		m_stackedCharts[paramIdx]->addBar(title, data[paramIdx][m_aggrType], maxValue);
 	}
 }
 

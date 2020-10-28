@@ -262,7 +262,7 @@ QSharedPointer<iASensitivityInfo> iASensitivityInfo::create(QMainWindow* child,
 			if (!sensitivity->m_aborted)
 			{
 				sensitivity->createGUI();
-			}
+			} // else - we should un-set iAFiakerController's sensitivity data...
 		}, jobListView, "Sensitivity computation", &sensitivity->m_progress, sensitivity.data());
 	return sensitivity;
 }
@@ -339,27 +339,27 @@ bool iASensitivityInfo::compute()
 	aggregatedSensitivities.resize(charactIndex.size());
 	for (int charactIdx = 0; charactIdx < charactIndex.size() && !m_aborted; ++charactIdx)
 	{
-		sensitivityField[charactIdx].resize(variedParams.size());
-		aggregatedSensitivities[charactIdx].resize(variedParams.size());
-		int charactID = charactIndex[charactIdx];
-		auto charactName = m_data->spmData->parameterName(charactID);
+		//int charactID = charactIndex[charactIdx];
+		//auto charactName = m_data->spmData->parameterName(charactID);
 		//DEBUG_LOG(QString("Characteristic %1 (%2):").arg(charactIdx).arg(charactName));
-		for (int paramIdx = 0; paramIdx < variedParams.size(); ++paramIdx)
+		sensitivityField[charactIdx].resize(charDiffMeasure.size());
+		aggregatedSensitivities[charactIdx].resize(charDiffMeasure.size());
+		for (int diffMeasure = 0; diffMeasure < charDiffMeasure.size(); ++diffMeasure)
 		{
-			QString paramName(m_paramNames[variedParams[paramIdx]]);
-			//DEBUG_LOG(QString("  Parameter %1 (%2):").arg(paramIdx).arg(paramName));
-			int origParamColIdx = variedParams[paramIdx];
-			sensitivityField[charactIdx][paramIdx].resize(charDiffMeasure.size());
-			aggregatedSensitivities[charactIdx][paramIdx].resize(charDiffMeasure.size());
-			for (int diffMeasure = 0; diffMeasure < charDiffMeasure.size(); ++diffMeasure)
+			//DEBUG_LOG(QString("    Difference Measure %1 (%2)").arg(diffMeasure).arg(DistributionDifferenceMeasureNames()[diffMeasure]));
+			sensitivityField[charactIdx][diffMeasure].resize(variedParams.size());
+			aggregatedSensitivities[charactIdx][diffMeasure].resize(variedParams.size());
+			for (int paramIdx = 0; paramIdx < variedParams.size(); ++paramIdx)
 			{
-				//DEBUG_LOG(QString("    Difference Measure %1 (%2)").arg(diffMeasure).arg(DistributionDifferenceMeasureNames()[diffMeasure]));
-				// for now:
-				//     - one step average, left only, right only
-				//      future: overall (weighted) average, ...=
-				auto& field = sensitivityField[charactIdx][paramIdx][diffMeasure];
+				//QString paramName(m_paramNames[variedParams[paramIdx]]);
+				//DEBUG_LOG(QString("  Parameter %1 (%2):").arg(paramIdx).arg(paramName));
+				int origParamColIdx = variedParams[paramIdx];
+				auto& field = sensitivityField[charactIdx][diffMeasure][paramIdx];
 				field.resize(NumOfVarianceAggregation);
-				auto& agg = aggregatedSensitivities[charactIdx][paramIdx][diffMeasure];
+				// aggregation types:
+				//     - for now: one step average, left only, right only, average over all steps
+				//     - future: overall (weighted) average, values over multiples of step size, ...
+				auto& agg = aggregatedSensitivities[charactIdx][diffMeasure][paramIdx];
 				agg.fill(0.0, NumOfVarianceAggregation);
 				for (int i = 0; i < NumOfVarianceAggregation; ++i)
 				{
@@ -691,7 +691,7 @@ void iASensitivityInfo::paramChanged()
 	plot->graph(0)->setPen(QPen(Qt::blue));
 
 	auto const& data = (outputIdx == 0) ?
-		sensitivityField[charactIdx][paramIdx][measureIdx][aggrType]:
+		sensitivityField[charactIdx][measureIdx][paramIdx][aggrType]:
 		sensitivityFiberCount[paramIdx][aggrType];
 		// characteristic (index in charactIndex)
 		// parameter index (second index in paramSetValues / allParamValues)

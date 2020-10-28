@@ -75,8 +75,8 @@ public:
 	QVector<int> variedParams;  //!< indices of the parameters that were varied
 
 	// for each characteristic
-	//     for each varied parameter
-	//         for each selected characteristics difference measure
+	//     for each selected characteristics difference measure
+	//         for each varied parameter
 	//             for variation aggregation (see iASensitivityInfo::create)
 	//                 for each point in parameter space (of base sampling method)
 	//                     compute local change by that difference measure
@@ -84,18 +84,17 @@ public:
 	//! "sensitivity field":
 	//! characteristic / parameter space point / parameter / diff measure
 	QVector<    // characteristic (index in charactIndex)
-		QVector<    // parameter index (second index in paramSetValues / allParamValues)
 		QVector<    // characteristics difference measure index (index in charDiffMeasure)
+		QVector<    // parameter index (second index in paramSetValues / allParamValues)
 		QVector<    // variation aggregation (see iASensitivityInfo::create)
 		QVector<    // parameter set index (first index in paramSetValues)
 		double
 	>>>>> sensitivityField;
 
 	//! averages over all parameter-sets of above field ("global sensitivity" for a parameter)
-	// TODO: maybe switch parameter index with difference measure -> easier re-use between aggregatedSensitivities <-> aggregatedSensitivitiesFiberCount
 	QVector<		// characteristis
-		QVector<    // parameter index
 		QVector<    // difference measure
+		QVector<    // parameter index
 		QVector<    // variation aggregation
 		double
 	>>>> aggregatedSensitivities;
