@@ -1917,6 +1917,13 @@ void MainWindow::readSettings()
 	m_spRenderSettings = settings.value("Parameters/spRenderSettings").toBool();
 	m_spSlicerSettings = settings.value("Parameters/spSlicerSettings").toBool();
 
+	actionShowConsole->setChecked(settings.value("Parameters/ShowConsole", false).toBool());
+	toggleConsole();
+	actionShowToolbar->setChecked(settings.value("Parameters/ShowToolbar", true).toBool());
+	toggleToolbar();
+	actionMainWindowStatusBar->setChecked(settings.value("Parameters/ShowMainStatusBar", true).toBool());
+	toggleMainWindowStatusBar();
+
 	m_owdtcs = settings.value("OpenWithDataTypeConversion/owdtcs", 1).toInt();
 	m_rawFileParams.m_size[0] = settings.value("OpenWithDataTypeConversion/owdtcx", 1).toInt();
 	m_rawFileParams.m_size[1] = settings.value("OpenWithDataTypeConversion/owdtcy", 1).toInt();
@@ -2018,6 +2025,10 @@ void MainWindow::writeSettings()
 	settings.setValue("Parameters/spPreferences", m_spPreferences);
 	settings.setValue("Parameters/spRenderSettings", m_spRenderSettings);
 	settings.setValue("Parameters/spSlicerSettings", m_spSlicerSettings);
+
+	settings.setValue("Parameters/ShowConsole", actionShowConsole->isChecked());
+	settings.setValue("Parameters/ShowToolbar", actionShowToolbar->isChecked());
+	settings.setValue("Parameters/ShowMainStatusBar", actionMainWindowStatusBar->isChecked());
 
 	settings.setValue("OpenWithDataTypeConversion/owdtcs", m_owdtcs);
 	settings.setValue("OpenWithDataTypeConversion/owdtcx", m_rawFileParams.m_size[0]);

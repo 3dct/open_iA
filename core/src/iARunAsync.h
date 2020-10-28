@@ -18,43 +18,25 @@
 * Contact: FH OÖ Forschungs & Entwicklungs GmbH, Campus Wels, CT-Gruppe,              *
 *          Stelzhamerstraße 23, 4600 Wels / Austria, Email: c.heinzl@fh-wels.at       *
 * ************************************************************************************/
-#include "iAChartFunction.h"
+#pragma once
 
-#include "iAChartWithFunctionsWidget.h"
+#include <QtConcurrent>
 
-#include <QPainter>
+class iAAbortListener;
+class iAJobListView;
+class iAProgress;
 
-iAChartFunction::iAChartFunction(iAChartWithFunctionsWidget* chart) : m_chart(chart) { }
-
-void iAChartFunction::changeColor()
-{}
-
-bool iAChartFunction::isColored() const
+template <typename RunnerT, typename FinishT>
+void runAsync(RunnerT runner, FinishT finish, iAJobListView* jobList=nullptr, QString taskName=QString(),
+	iAProgress* progress=nullptr, iAAbortListener * abort=nullptr)
 {
-	return false;
-}
-
-void iAChartFunction::mouseReleaseEvent(QMouseEvent*)
-{}
-
-void iAChartFunction::mouseReleaseEventAfterNewPoint(QMouseEvent*)
-{}
-
-int iAChartFunction::pointRadius(bool selected)
-{
-	return selected ? PointRadiusSelected : PointRadius;
-}
-
-const QColor iAChartFunction::DefaultColor(255, 128, 0, 255);
-
-void drawPoint(QPainter& painter, int x, int y, bool selected, QColor const& color, double sizeFactor)
-{
-	QPen pointPen = painter.pen();
-	pointPen.setColor(iAChartFunction::DefaultColor); pointPen.setWidth(iAChartFunction::LineWidthUnselected);
-	QPen pointPenSel = painter.pen();
-	pointPenSel.setColor(Qt::red); pointPenSel.setWidth(iAChartFunction::LineWidthSelected);
-	painter.setPen(selected ? pointPenSel : pointPen);
-	painter.setBrush(QBrush(color));
-	int radius = iAChartFunction::pointRadius(selected) * sizeFactor;
-	painter.drawEllipse(x - radius, y - radius, 2*radius, 2*radius);
+	auto futureWatcher = new QFutureWatcher<void>();
+	QObject::connect(futureWatcher, &QFutureWatcher<void>::finished, finish);
+	QObject::connect(futureWatcher, &QFutureWatcher<void>::finished, futureWatcher, &QFutureWatcher<void>::deleteLater);
+	if (jobList)
+	{
+		jobList->addJob(taskName, progress, futureWatcher, abort);
+	}
+	auto future = QtConcurrent::run(runner);
+	futureWatcher->setFuture(future);
 }

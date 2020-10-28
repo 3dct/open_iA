@@ -85,15 +85,21 @@ QWidget* iAJobListView::addJobWidget(QString name, iAProgress* p, iAAbortListene
 	m_insideWidget->layout()->addWidget(jobWidget);
 
 	// connections
-	connect(p, &iAProgress::progress, progressBar, &QProgressBar::setValue);
-	connect(p, &iAProgress::statusChanged, statusLabel, &QLabel::setText);
+	if (p)
+	{
+		connect(p, &iAProgress::progress, progressBar, &QProgressBar::setValue);
+		connect(p, &iAProgress::statusChanged, statusLabel, &QLabel::setText);
+	}
 	if (abortListener)
 	{
 		connect(abortButton, &QToolButton::clicked, [=]()
 			{
 				abortButton->setEnabled(false);
 				statusLabel->setText("Aborting...");
-				QObject::disconnect(p, &iAProgress::statusChanged, statusLabel, &QLabel::setText);
+				if (p)
+				{
+					QObject::disconnect(p, &iAProgress::statusChanged, statusLabel, &QLabel::setText);
+				}
 				abortListener->abort();
 			});
 	}
