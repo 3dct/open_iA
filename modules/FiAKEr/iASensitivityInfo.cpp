@@ -26,6 +26,7 @@
 #include <iAConsole.h>
 #include <iAJobListView.h>
 #include <iAMathUtility.h>
+#include <iARunAsync.h>
 #include <iAStringHelper.h>
 
 // FeatureScout
@@ -252,19 +253,17 @@ QSharedPointer<iASensitivityInfo> iASensitivityInfo::create(QMainWindow* child,
 		QMessageBox::warning(child, "Sensitivity", "You have to select at least one characteristic and at least one measure!", QMessageBox::Ok);
 		return QSharedPointer<iASensitivityInfo>();
 	}
-
-	auto futureWatcher = new QFutureWatcher<bool>();
-	connect(futureWatcher, &QFutureWatcher<bool>::finished, [sensitivity]
+	runAsync([sensitivity]
+		{
+			sensitivity->compute();
+		},
+		[sensitivity]
 		{
 			if (!sensitivity->m_aborted)
 			{
 				sensitivity->createGUI();
 			}
-		});
-	connect(futureWatcher, &QFutureWatcher<bool>::finished, futureWatcher, &QFutureWatcher<bool>::deleteLater);
-	jobListView->addJob("Sensitivity computation", &sensitivity->m_progress, futureWatcher, sensitivity.data());
-	auto future = QtConcurrent::run(sensitivity.data(), &iASensitivityInfo::compute);
-	futureWatcher->setFuture(future);
+		}, jobListView, "Sensitivity computation", &sensitivity->m_progress, sensitivity.data());
 	return sensitivity;
 }
 
