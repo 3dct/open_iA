@@ -35,6 +35,7 @@
 #include "iAChannelData.h"
 #include "iAChannelSlicerData.h"
 #include "iAConsole.h"
+#include "iARunAsync.h"
 #include "qthelper/iADockWidgetWrapper.h"
 #include "iAJobListView.h"
 #include "iALogger.h"
@@ -92,7 +93,6 @@
 #include <QProgressBar>
 #include <QSettings>
 #include <QSpinBox>
-#include <QtConcurrent>
 #include <QToolButton>
 #include <QtGlobal> // for QT_VERSION
 
@@ -2675,19 +2675,6 @@ void MdiChild::initModalities()
 	m_dwModalities->selectRow(0);
 }
 
-
-template <typename RunnerT, typename FinishT>
-void runAsynchronously(RunnerT runner, FinishT finish)
-{
-	auto futureWatcher = new QFutureWatcher<void>();
-	QObject::connect(futureWatcher, &QFutureWatcher<void>::finished, finish);
-	QObject::connect(futureWatcher, &QFutureWatcher<void>::finished, futureWatcher, &QFutureWatcher<void>::deleteLater);
-	//jobListView->addJob("Compute statistics", /* no progress available */, futureWatcher, /* abort listener */);
-	auto future = QtConcurrent::run(runner);
-	futureWatcher->setFuture(future);
-}
-
-
 void MdiChild::setHistogramModality(int modalityIdx)
 {
 	if (!m_histogram || modalities()->size() <= modalityIdx ||
@@ -2709,7 +2696,7 @@ void MdiChild::setHistogramModality(int modalityIdx)
 	modality(modalityIdx)->transfer()->info().setComputing();
 	updateImageProperties();
 
-	runAsynchronously([this, modalityIdx]
+	runAsync([this, modalityIdx]
 		{
 			modality(modalityIdx)->computeImageStatistics();
 		},
@@ -2776,7 +2763,7 @@ void MdiChild::displayHistogram(int modalityIdx)
 
 	addMsg(QString("Computing histogram for modality %1...")
 		.arg(modality(modalityIdx)->name()));
-	runAsynchronously([this, modalityIdx, newBinCount]
+	runAsync([this, modalityIdx, newBinCount]
 		{   // run computation of histogram...
 			modality(modalityIdx)->computeHistogramData(newBinCount);
 		},  // ... and on finished signal, trigger histogramDataAvailable
