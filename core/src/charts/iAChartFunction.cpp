@@ -50,7 +50,7 @@ const QColor iAChartFunction::DefaultColor(255, 128, 0, 255);
 void drawPoint(QPainter& painter, int x, int y, bool selected, QColor const& color, double sizeFactor)
 {
 	QPen pointPen = painter.pen();
-	pointPen.setColor(color); pointPen.setWidth(iAChartFunction::LineWidthUnselected);
+	pointPen.setColor(iAChartFunction::DefaultColor); pointPen.setWidth(iAChartFunction::LineWidthUnselected);
 	QPen pointPenSel = painter.pen();
 	pointPenSel.setColor(Qt::red); pointPenSel.setWidth(iAChartFunction::LineWidthSelected);
 	painter.setPen(selected ? pointPenSel : pointPen);
