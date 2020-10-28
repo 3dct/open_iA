@@ -28,7 +28,6 @@
 #include <QLabel>
 #include <QProgressBar>
 #include <QToolButton>
-#include <QThread>
 #include <QVariant>
 #include <QVBoxLayout>
 

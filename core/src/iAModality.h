@@ -168,33 +168,3 @@ private:
 	QString m_orientationSettings;
 	QString m_tfFileName;
 };
-
-
-class iAStatisticsUpdater : public QThread
-{
-Q_OBJECT
-	void run() override;
-signals:
-	void StatisticsReady(int modalityIdx);
-private:
-	int m_modalityIdx;
-	QSharedPointer<iAModality> m_modality;
-public:
-	iAStatisticsUpdater(int modalityIdx, QSharedPointer<iAModality> modality);
-};
-
-
-//! class for updating the histogram of a modality
-class iAHistogramUpdater : public QThread
-{
-Q_OBJECT
-	void run() override;
-signals:
-	void HistogramReady(int modalityIdx);
-private:
-	int m_modalityIdx;
-	QSharedPointer<iAModality> m_modality;
-	size_t m_binCount;
-public:
-	iAHistogramUpdater(int modalityIdx, QSharedPointer<iAModality> modality, size_t binCount);
-};

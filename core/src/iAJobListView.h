@@ -28,8 +28,6 @@
 class iAAbortListener;
 class iAProgress;
 
-class QThread;
-
 //! A simple widget showing a list of currently running jobs and their progress.
 class open_iA_Core_API iAJobListView : public QWidget
 {
