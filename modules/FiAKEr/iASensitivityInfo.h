@@ -144,8 +144,6 @@ private:
 	QDockWidget* m_nextToDW;
 
 	// for computation:
-	QFutureWatcher<bool> m_futureWatcher;
-	QFuture<bool> m_future;
 	iAProgress m_progress;
 	bool m_aborted;
 public slots:

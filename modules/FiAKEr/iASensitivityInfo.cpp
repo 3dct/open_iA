@@ -46,6 +46,7 @@
 #include <QFileDialog>
 #include <QLabel>
 #include <QMainWindow>
+#include <QMessageBox>
 #include <QSpinBox>
 #include <QTableView>
 #include <QtConcurrent>
@@ -246,17 +247,24 @@ QSharedPointer<iASensitivityInfo> iASensitivityInfo::create(QMainWindow* child,
 	sensitivity->charDiffMeasure = dlg.selectedDiffMeasures();
 	sensitivity->dissimMeasure = dlg.selectedMeasures();
 	sensitivity->m_histogramBins = dlg.histogramBins();
+	if (sensitivity->charactIndex.size() == 0 || sensitivity->charDiffMeasure.size() == 0)
+	{
+		QMessageBox::warning(child, "Sensitivity", "You have to select at least one characteristic and at least one measure!", QMessageBox::Ok);
+		return QSharedPointer<iASensitivityInfo>();
+	}
 
-	connect(&sensitivity->m_futureWatcher, &QFutureWatcher<bool>::finished, [sensitivity]
+	auto futureWatcher = new QFutureWatcher<bool>();
+	connect(futureWatcher, &QFutureWatcher<bool>::finished, [sensitivity]
 		{
 			if (!sensitivity->m_aborted)
 			{
 				sensitivity->createGUI();
 			}
 		});
-	jobListView->addJob("Sensitivity computation", &sensitivity->m_progress, &sensitivity->m_futureWatcher, sensitivity.data());
-	sensitivity->m_future = QtConcurrent::run(sensitivity.data(), &iASensitivityInfo::compute);
-	sensitivity->m_futureWatcher.setFuture(sensitivity->m_future);
+	connect(futureWatcher, &QFutureWatcher<bool>::finished, futureWatcher, &QFutureWatcher<bool>::deleteLater);
+	jobListView->addJob("Sensitivity computation", &sensitivity->m_progress, futureWatcher, sensitivity.data());
+	auto future = QtConcurrent::run(sensitivity.data(), &iASensitivityInfo::compute);
+	futureWatcher->setFuture(future);
 	return sensitivity;
 }
 
