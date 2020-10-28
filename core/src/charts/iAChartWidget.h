@@ -246,7 +246,7 @@ private:
 	int  m_fontHeight;
 	int  m_yMaxTickLabelWidth;
 	bool m_customXBounds, m_customYBounds;
-	double m_xBounds[2], m_yBounds[2], m_xTickBounds[2];
+	double m_xBounds[2], m_yBounds[2]/*, m_xTickBounds[2]*/;
 	QFlags<Qt::AlignmentFlag> m_captionPosition;
 	SelectionMode m_selectionMode;
 	QRubberBand* m_selectionBand;

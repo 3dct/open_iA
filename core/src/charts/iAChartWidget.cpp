@@ -413,8 +413,8 @@ void iAChartWidget::drawXAxis(QPainter &painter)
 	QFontMetrics fm = painter.fontMetrics();
 	size_t stepCount = m_maxXAxisSteps;
 	double stepWidth;
-	double startXVal = clamp(m_xTickBounds[0], m_xTickBounds[1], visibleXStart());
-	double endXVal = clamp(m_xTickBounds[0], m_xTickBounds[1], visibleXEnd());
+	double startXVal = clamp(m_xBounds[0], m_xBounds[1], visibleXStart());
+	double endXVal = clamp(m_xBounds[0], m_xBounds[1], visibleXEnd());
 	if (!categoricalAxis())
 	{
 		// check for overlap:
@@ -425,8 +425,8 @@ void iAChartWidget::drawXAxis(QPainter &painter)
 			overlap = false;
 			for (size_t i = 0; i<stepCount && !overlap; ++i)
 			{
-				double value = m_xTickBounds[0] + static_cast<double>(i) * stepWidth;
-				double nextValue = m_xTickBounds[0] + static_cast<double>(i+1) * stepWidth;
+				double value = m_xBounds[0] + static_cast<double>(i) * stepWidth;
+				double nextValue = m_xBounds[0] + static_cast<double>(i+1) * stepWidth;
 				if (value < startXVal)
 				{
 					continue;
@@ -468,7 +468,7 @@ void iAChartWidget::drawXAxis(QPainter &painter)
 	stepCount = std::max(static_cast<size_t>(1), stepCount); // at least one step
 	for (size_t i = 0; i <= stepCount; ++i)
 	{
-		double value = m_xTickBounds[0] + static_cast<double>(i) * stepWidth;
+		double value = m_xBounds[0] + static_cast<double>(i) * stepWidth;
 		if (value < startXVal)
 		{
 			continue;
@@ -582,8 +582,8 @@ void iAChartWidget::setXBounds(double valMin, double valMax)
 	m_customXBounds = true;
 	m_xBounds[0] = valMin;
 	m_xBounds[1] = valMax;
-	m_xTickBounds[0] = valMin;
-	m_xTickBounds[1] = valMax;
+	//m_xTickBounds[0] = valMin;
+	//m_xTickBounds[1] = valMax;
 	ensureNonZeroRange(m_xBounds, true);
 }
 
@@ -634,20 +634,20 @@ void iAChartWidget::updateXBounds(size_t startPlot)
 	{                             // update   partial            full
 		m_xBounds[0]     = (startPlot != 0) ? m_xBounds[0]     : std::numeric_limits<double>::max();
 		m_xBounds[1]     = (startPlot != 0) ? m_xBounds[1]     : std::numeric_limits<double>::lowest();
-		m_xTickBounds[0] = (startPlot != 0) ? m_xTickBounds[0] : std::numeric_limits<double>::max();
-		m_xTickBounds[1] = (startPlot != 0) ? m_xTickBounds[1] : std::numeric_limits<double>::lowest();
+		//m_xTickBounds[0] = (startPlot != 0) ? m_xTickBounds[0] : std::numeric_limits<double>::max();
+		//m_xTickBounds[1] = (startPlot != 0) ? m_xTickBounds[1] : std::numeric_limits<double>::lowest();
 		m_maxXAxisSteps = 0;
 		for (size_t curPlot = std::max(static_cast<size_t>(0), startPlot); curPlot < m_plots.size(); ++curPlot)
 		{
 			auto d = m_plots[curPlot]->data();
-			m_xBounds[0] = std::min(m_xBounds[0], d->xBounds()[0] - ((d->valueType() == iAValueType::Discrete) ? 0.5 : 0) );
-			m_xBounds[1] = std::max(m_xBounds[1], d->xBounds()[1] + ((d->valueType() == iAValueType::Discrete) ? 0.5 : 0) );
-			m_xTickBounds[0] = std::min(m_xTickBounds[0], d->xBounds()[0]);
-			m_xTickBounds[1] = std::max(m_xTickBounds[1], d->xBounds()[1]);
+			m_xBounds[0] = std::min(m_xBounds[0], d->xBounds()[0] /*- ((d->valueType() == iAValueType::Discrete) ? 0.5 : 0)*/ );
+			m_xBounds[1] = std::max(m_xBounds[1], d->xBounds()[1] /*+ ((d->valueType() == iAValueType::Discrete) ? 0.5 : 0)*/ );
+			//m_xTickBounds[0] = std::min(m_xTickBounds[0], d->xBounds()[0]);
+			//m_xTickBounds[1] = std::max(m_xTickBounds[1], d->xBounds()[1]);
 			m_maxXAxisSteps = std::max(m_maxXAxisSteps, d->numBin() );
 		}
 		ensureNonZeroRange(m_xBounds);
-		ensureNonZeroRange(m_xTickBounds);
+		//ensureNonZeroRange(m_xTickBounds);
 	}
 }
 
@@ -783,7 +783,7 @@ bool iAChartWidget::isDrawnDiscrete() const
 {
 	for (auto plot : m_plots)
 	{
-		if (!((plot->data()->valueType() == iAValueType::Discrete && (xRange() <= plot->data()->numBin()))
+		if (!((plot->data()->valueType() == iAValueType::Discrete && (xRange() == plot->data()->numBin()))
 			  || plot->data()->valueType() == iAValueType::Categorical))
 		{
 			return false;
@@ -889,10 +889,11 @@ void iAChartWidget::showDataTooltip(QHelpEvent *event)
 	QString toolTip;
 	double stepWidth = numBin >= 1 ? m_plots[0]->data()->binStart(1) - m_plots[0]->data()->binStart(0) : 0;
 	double binStart = m_plots[0]->data()->binStart(nthBin);
+	/*
 	if (isDrawnDiscrete())
 	{
 		binStart = static_cast<int>(binStart);
-	}
+	}*/
 	if (m_yCaption.isEmpty())
 	{
 		toolTip = QString("%1: ").arg(xAxisTickMarkLabel(binStart, stepWidth));
