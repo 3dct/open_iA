@@ -20,42 +20,23 @@
 * ************************************************************************************/
 #pragma once
 
-#include "open_iA_Core_export.h"
-
-#include <QAtomicInteger>
-#include <QWidget>
+#include <QtConcurrent>
 
 class iAAbortListener;
+class iAJobListView;
 class iAProgress;
 
-//! A simple widget showing a list of currently running jobs and their progress.
-class open_iA_Core_API iAJobListView : public QWidget
+template <typename RunnerT, typename FinishT>
+void runAsync(RunnerT runner, FinishT finish, iAJobListView* jobList=nullptr, QString taskName=QString(),
+	iAProgress* progress=nullptr, iAAbortListener * abort=nullptr)
 {
-	Q_OBJECT
-public:
-	iAJobListView();
-	template <typename TaskT>
-	void addJob(QString name, iAProgress* p, TaskT* t, iAAbortListener* abortListener = nullptr);
-signals:
-	void allJobsDone();
-private:
-	QWidget* addJobWidget(QString name, iAProgress* p, iAAbortListener* abortListener = nullptr);
-	QAtomicInteger<int> m_runningJobs;
-	QWidget* m_insideWidget;
-};
-
-template <typename TaskT>
-void iAJobListView::addJob(QString name, iAProgress* p, TaskT* t, iAAbortListener* abortListener)
-{
-	m_runningJobs.fetchAndAddOrdered(1);
-	auto jobWidget = addJobWidget(name, p, abortListener);
-	connect(t, &TaskT::finished, [this, jobWidget]()
-		{
-			int oldJobCount = m_runningJobs.fetchAndAddOrdered(-1);
-			if (oldJobCount == 1)
-			{
-				emit allJobsDone();
-			}
-			jobWidget->deleteLater();
-		});
+	auto futureWatcher = new QFutureWatcher<void>();
+	QObject::connect(futureWatcher, &QFutureWatcher<void>::finished, finish);
+	QObject::connect(futureWatcher, &QFutureWatcher<void>::finished, futureWatcher, &QFutureWatcher<void>::deleteLater);
+	if (jobList)
+	{
+		jobList->addJob(taskName, progress, futureWatcher, abort);
+	}
+	auto future = QtConcurrent::run(runner);
+	futureWatcher->setFuture(future);
 }

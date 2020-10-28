@@ -28,9 +28,13 @@
 
 #include "open_iA_Core_export.h"
 
+#ifdef CHART_OPENGL
 #define QCUSTOMPLOT_USE_OPENGL
+#endif
 
 #include <QtCore/qglobal.h>
+
+//#define PRINT_SUPPORT  // for support for saving as pdf, this needs to be defined - currently we don't need it!
 
 // some Qt version/configuration dependent macros to include or exclude certain code paths:
 #ifdef QCUSTOMPLOT_USE_OPENGL
@@ -56,6 +60,7 @@
 #include <QtCore/QSharedPointer>
 #include <QtCore/QTimer>
 #include <QtGui/QPainter>
+#include <QtGui/QPainterPath>
 #include <QtGui/QPaintEvent>
 #include <QtGui/QMouseEvent>
 #include <QtGui/QWheelEvent>
@@ -81,18 +86,23 @@
 #    include <QtGui/QWindow>
 #  endif
 #endif
+#  include <QtGui/QOpenGLPaintDevice>
 #ifdef QCP_OPENGL_PBUFFER
 #  include <QtOpenGL/QGLPixelBuffer>
 #endif
 #if QT_VERSION < QT_VERSION_CHECK(5, 0, 0)
 #  include <qnumeric.h>
 #  include <QtGui/QWidget>
+#ifdef PRINT_SUPPORT
 #  include <QtGui/QPrinter>
 #  include <QtGui/QPrintEngine>
+#endif
 #else
 #  include <QtNumeric>
 #  include <QtWidgets/QWidget>
+#ifdef PRINT_SUPPORT
 #  include <QtPrintSupport/QtPrintSupport>
+#endif
 #endif
 
 class QCPPainter;
@@ -3722,8 +3732,9 @@ public:
   QList<QCPAxis*> selectedAxes() const;
   QList<QCPLegend*> selectedLegends() const;
   Q_SLOT void deselectAll();
-  
-  bool savePdf(const QString &fileName, int width=0, int height=0, QCP::ExportPen exportPen=QCP::epAllowCosmetic, const QString &pdfCreator=QString(), const QString &pdfTitle=QString());
+#ifdef PRINT_SUPPORT
+  bool savePdf(const QString &fileName, int width=0, int height=0, QCP::ExportPen exportPen=QCP::epAllowCosmetic, const QString &pdfCreator=QString(), const QString &pdfTitle=QString());#
+#endif
   bool savePng(const QString &fileName, int width=0, int height=0, double scale=1.0, int quality=-1, int resolution=96, QCP::ResolutionUnit resolutionUnit=QCP::ruDotsPerInch);
   bool saveJpg(const QString &fileName, int width=0, int height=0, double scale=1.0, int quality=-1, int resolution=96, QCP::ResolutionUnit resolutionUnit=QCP::ruDotsPerInch);
   bool saveBmp(const QString &fileName, int width=0, int height=0, double scale=1.0, int resolution=96, QCP::ResolutionUnit resolutionUnit=QCP::ruDotsPerInch);

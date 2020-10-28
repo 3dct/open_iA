@@ -35,6 +35,7 @@
 #include "iAChannelData.h"
 #include "iAChannelSlicerData.h"
 #include "iAConsole.h"
+#include "iARunAsync.h"
 #include "qthelper/iADockWidgetWrapper.h"
 #include "iAJobListView.h"
 #include "iALogger.h"
@@ -2644,6 +2645,11 @@ dlg_modalities* MdiChild::modalitiesDockWidget()
 	return m_dwModalities;
 }
 
+iAJobListView* MdiChild::jobsList()
+{
+	return m_jobs;
+}
+
 QSharedPointer<iAModalityList> MdiChild::modalities()
 {
 	return m_dwModalities->modalities();
@@ -2689,10 +2695,15 @@ void MdiChild::setHistogramModality(int modalityIdx)
 		.arg(modality(modalityIdx)->name()));
 	modality(modalityIdx)->transfer()->info().setComputing();
 	updateImageProperties();
-	auto workerThread = new iAStatisticsUpdater(modalityIdx, modality(modalityIdx));
-	connect(workerThread, &iAStatisticsUpdater::StatisticsReady, this, &MdiChild::statisticsAvailable);
-	connect(workerThread, &iAStatisticsUpdater::finished, workerThread, &QObject::deleteLater);
-	workerThread->start();
+
+	runAsync([this, modalityIdx]
+		{
+			modality(modalityIdx)->computeImageStatistics();
+		},
+		[this, modalityIdx]
+		{
+			statisticsAvailable(modalityIdx);
+		});
 }
 
 void MdiChild::modalityAdded(int modalityIdx)
@@ -2752,11 +2763,14 @@ void MdiChild::displayHistogram(int modalityIdx)
 
 	addMsg(QString("Computing histogram for modality %1...")
 		.arg(modality(modalityIdx)->name()));
-	auto workerThread = new iAHistogramUpdater(modalityIdx,
-		modality(modalityIdx), newBinCount);
-	connect(workerThread, &iAHistogramUpdater::HistogramReady, this, &MdiChild::histogramDataAvailable);
-	connect(workerThread, &iAHistogramUpdater::finished, workerThread, &QObject::deleteLater);
-	workerThread->start();
+	runAsync([this, modalityIdx, newBinCount]
+		{   // run computation of histogram...
+			modality(modalityIdx)->computeHistogramData(newBinCount);
+		},  // ... and on finished signal, trigger histogramDataAvailable
+		[this, modalityIdx]
+		{
+			histogramDataAvailable(modalityIdx);
+		});
 }
 
 void MdiChild::clearHistogram()

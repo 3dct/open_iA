@@ -28,6 +28,7 @@
 
 #include <Hilbert.hpp>
 
+#include <QDir>
 
 template<class T>
 void getIntensities(iAProgress &imp, PathID m_pathID, ImagePointer &image, QList<icData> &intensityList,

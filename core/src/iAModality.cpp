@@ -302,31 +302,3 @@ void iAModality::setChannelID(uint channelID)
 {
 	m_channelID = channelID;
 }
-
-// iAStatisticsUpdater
-
-void iAStatisticsUpdater::run()
-{
-	m_modality->computeImageStatistics();
-	emit StatisticsReady(m_modalityIdx);
-}
-
-iAStatisticsUpdater::iAStatisticsUpdater(int modalityIdx, QSharedPointer<iAModality> modality) :
-	m_modalityIdx(modalityIdx),
-	m_modality(modality)
-{}
-
-
-// iAHistogramUpdater
-
-void iAHistogramUpdater::run()
-{
-	m_modality->computeHistogramData(m_binCount);
-	emit HistogramReady(m_modalityIdx);
-}
-
-iAHistogramUpdater::iAHistogramUpdater(int modalityIdx, QSharedPointer<iAModality> modality, size_t binCount) :
-	m_modalityIdx(modalityIdx),
-	m_modality(modality),
-	m_binCount(binCount)
-{}

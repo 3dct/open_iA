@@ -239,7 +239,9 @@ private:
 	double m_owdtcoutmin, m_owdtcoutmax, m_owdtcmin, m_owdtcmax;
 	//! @}
 
+	//! which settings to load from an XML settings file:
 	bool m_lpCamera, m_lpSliceViews, m_lpTransferFunction, m_lpProbabilityFunctions, m_lpPreferences, m_lpRenderSettings, m_lpSlicerSettings;
+	//! which settings to save to an XML settings file:
 	bool m_spCamera, m_spSliceViews, m_spTransferFunction, m_spProbabilityFunctions, m_spPreferences, m_spRenderSettings, m_spSlicerSettings;
 
 	QString m_defaultLayout;
