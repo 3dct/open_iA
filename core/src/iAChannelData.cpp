@@ -36,7 +36,6 @@
 
 #include <QObject>
 #include <QString>
-#include <QThread>
 #include <QWidget>
 
 #include <cassert>
