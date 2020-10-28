@@ -109,6 +109,21 @@ public:
 		QVector<    // parameter index
 		double>> aggregatedSensitivitiesFiberCount;
 
+	//! distribution of characteristics distributions ("histogram of histograms") across:
+	QVector<        // characteristics index
+		QVector<    // parameter index
+		QVector<    // parameter set index
+		QVector<    // distribution over characteristics range
+		QVector<    // distribution over frequency range
+		double>>>>> charHistHist;
+
+	//! variation of each bin in histogram above
+	QVector<        // characteristics index
+		QVector<    // parameter index
+		QVector<    // parameter set index
+		QVector<    // distribution over characteristics range
+		double>>>> charHistVar;
+
 	// per-object sensitivity:
 	// required: 1-1 match between fibers
 	// compute on the fly? spatial subdivision structure required...

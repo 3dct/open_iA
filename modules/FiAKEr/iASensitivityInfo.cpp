@@ -486,7 +486,6 @@ bool iASensitivityInfo::compute()
 	for (int paramIdx = 0; paramIdx < variedParams.size() && !m_aborted; ++paramIdx)
 	{
 		int origParamColIdx = variedParams[paramIdx];
-
 		for (int i = 0; i < NumOfVarianceAggregation; ++i)
 		{
 			sensitivityFiberCount[i][paramIdx].resize(paramSetValues.size());
@@ -575,8 +574,87 @@ bool iASensitivityInfo::compute()
 		}
 		m_progress.emitProgress(100 * paramIdx / variedParams.size());
 	}
+
+	m_progress.setStatus("Compute variation histogram");
+	charHistHist.resize(charactIndex.size());
+	charHistVar.resize(charactIndex.size());
+	for (int charactIdx = 0; charactIdx < charactIndex.size() && !m_aborted; ++charactIdx)
+	{
+		charHistHist[charactIdx].resize(variedParams.size());
+		charHistVar[charactIdx].resize(variedParams.size());
+		for (int paramIdx = 0; paramIdx < variedParams.size() && !m_aborted; ++paramIdx)
+		{
+			charHistHist[charactIdx].resize(variedParams.size());
+			charHistVar[charactIdx].resize(variedParams.size());
+			int origParamColIdx = variedParams[paramIdx];
+			for (int paramSetIdx = 0; paramSetIdx < paramSetValues.size(); ++paramSetIdx)
+			{
+				/*
+				int resultIdxGroupStart = m_starGroupSize * paramSetIdx;
+				int resultIdxParamStart = resultIdxGroupStart + 1 + paramIdx * numOfSTARSteps;
+
+				// first - then + steps (both skipped if value +/- step exceeds bounds
+				double groupStartParamVal = m_paramValues[origParamColIdx][resultIdxGroupStart];
+				double paramStartParamVal = m_paramValues[origParamColIdx][resultIdxParamStart];
+				double paramDiff = paramStartParamVal - groupStartParamVal;
+				//DEBUG_LOG(QString("      Parameter Set %1; start: %2 (value %3), param start: %4 (value %5); diff: %6")
+				//	.arg(paramSetIdx).arg(resultIdxGroupStart).arg(groupStartParamVal)
+				//	.arg(resultIdxParamStart).arg(paramStartParamVal).arg(paramDiff));
+
+				if (paramStep[paramIdx] == 0)
+				{
+					paramStep[paramIdx] = std::abs(paramDiff);
+				}
+
+				double leftVar = 0;
+				int numLeftRight = 0;
+				if (paramDiff > 0)
+				{
+					leftVar = std::abs(static_cast<double>(m_data->result[resultIdxGroupStart].fiberCount)
+						- m_data->result[resultIdxParamStart].fiberCount);
+					//DEBUG_LOG(QString("        Left var available: %1").arg(leftVar));
+					++numLeftRight;
+					++numAllLeft;
+				}
+
+				int k = 1;
+				while (paramDiff > 0 && k < numOfSTARSteps)
+				{
+					double paramVal = m_paramValues[origParamColIdx][resultIdxParamStart + k];
+					paramDiff = paramStartParamVal - paramVal;
+					++k;
+				}
+				double rightVar = 0;
+				if (paramDiff < 0) // additional check required??
+				{
+					int firstPosStepIdx = resultIdxParamStart + (k - 1);
+					rightVar = std::abs(static_cast<double>(m_data->result[resultIdxGroupStart].fiberCount)
+						- m_data->result[firstPosStepIdx].fiberCount);
+					//DEBUG_LOG(QString("        Right var available: %1").arg(rightVar));
+					++numLeftRight;
+					++numAllRight;
+				}
+				double sumTotal = 0;
+				bool wasSmaller = true;
+				for (int i = 0; i < numOfSTARSteps; ++i)
+				{
+					int compareIdx = (i == 0) ? resultIdxGroupStart : (resultIdxParamStart + i - 1);
+					double paramVal = m_paramValues[origParamColIdx][resultIdxParamStart + i];
+					if (paramVal > paramStartParamVal && wasSmaller)
+					{
+						wasSmaller = false;
+						compareIdx = resultIdxGroupStart;
+					}
+					double difference = std::abs(static_cast<double>(m_data->result[compareIdx].fiberCount)
+						- m_data->result[resultIdxParamStart + i].fiberCount);
+					sumTotal += difference;
+				}
+				*/
+			}
+		}
+		m_progress.emitProgress(100 * charactIdx / charactIndex.size());
+	}
 	return m_aborted;
-	// TODO: compute variation histogram
 }
 
 #include <charts/iAChartWidget.h>
@@ -700,11 +778,6 @@ void iASensitivityInfo::paramChanged()
 	auto const& data = (outputIdx == 0) ?
 		sensitivityField[charactIdx][measureIdx][paramIdx][aggrType]:
 		sensitivityFiberCount[paramIdx][aggrType];
-		// characteristic (index in charactIndex)
-		// parameter index (second index in paramSetValues / allParamValues)
-		// characteristics difference measure index (index in charDiffMeasure)
-		// variation aggregation (see iASensitivityInfo::create)
-		// parameter set index (first index in paramSetValues)
 	QVector<double> x(data.size()), y(data.size());
 	for (int i = 0; i < data.size(); ++i)
 	{
