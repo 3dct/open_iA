@@ -679,9 +679,10 @@ long iAChartWidget::screenX2DataBin(int x) const
 		return x;
 	}
 	double numBin = m_plots[0]->data()->numBin();
-	double diagX = static_cast<double>(x - m_translationX - leftMargin()) * numBin / (chartWidth() * m_xZoom);
-	diagX = clamp(0.0, numBin, diagX);
-	return static_cast<long>(round(diagX));
+	double dBinX = clamp(0.0, numBin-1, static_cast<double>(x - m_translationX - leftMargin()) * (numBin-1) / (chartWidth() * m_xZoom));
+	long binX = static_cast<long>(isDrawnDiscrete() ? round(dBinX): dBinX);
+	DEBUG_LOG(QString("screenX2DataBin(x=%1); double=%2, long=%3").arg(x).arg(dBinX).arg(binX))
+	return binX;
 }
 
 int iAChartWidget::dataBin2ScreenX(long x) const
@@ -694,7 +695,7 @@ int iAChartWidget::dataBin2ScreenX(long x) const
 	double numBin = m_plots[0]->data()->numBin();
 	double screenX = static_cast<double>(x) * chartWidth() * m_xZoom / (numBin);
 	screenX = clamp(0.0, chartWidth()*m_xZoom, screenX);
-	return static_cast<int>(round(screenX));
+	return static_cast<int>(isDrawnDiscrete() ? round(screenX) : screenX);
 }
 
 bool iAChartWidget::isTooltipShown() const
@@ -870,12 +871,15 @@ void iAChartWidget::showDataTooltip(QHelpEvent *event)
 	assert(numBin > 0);
 	int xPos = clamp(0, geometry().width() - 1, event->x());
 	assert (chartWidth() >= 0);
-	size_t nthBin = static_cast<size_t>(((static_cast<unsigned long>(xPos - m_translationX - leftMargin()) * numBin) / (static_cast<unsigned long>(chartWidth()))) / m_xZoom);
+	size_t nthBin = screenX2DataBin(xPos);
+	/*
+		static_cast<size_t>(((static_cast<unsigned long>(xPos - m_translationX - leftMargin()) * numBin) / (static_cast<unsigned long>(chartWidth()))) / m_xZoom);
 	nthBin = clamp(static_cast<size_t>(0), numBin, nthBin);
 	if (xPos == geometry().width() - 1)
 	{
 		nthBin = numBin - 1;
 	}
+	*/
 	QString toolTip;
 	double stepWidth = numBin >= 1 ? m_plots[0]->data()->binStart(1) - m_plots[0]->data()->binStart(0) : 0;
 	double binStart = m_plots[0]->data()->binStart(nthBin);
