@@ -65,6 +65,8 @@ public:
 	virtual int leftMargin() const;
 	//! Retrieve width (in pixels) of the actual chart, i.e. the region where plots are drawn, without space for margins / axes.
 	virtual int chartWidth()  const;
+	//! width in pixels that the chart would have if it were fully shown (considering current zoom level)k
+	double fullChartWidth() const;
 	//! Retrieve height (in pixels) of the actual chart, i.e. the region where plots are drawn, without space for the margins / axes.
 	virtual int chartHeight() const;
 	//! @{ Retrieve minimum/maximum y data value.

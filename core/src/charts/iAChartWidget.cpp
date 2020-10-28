@@ -201,7 +201,7 @@ void iAChartWidget::zoomAlongX(double value, int x, bool deltaMode)
 		return;
 	}
 	int absoluteX = x-m_translationX-leftMargin();
-	double absoluteXRatio = static_cast<double>(absoluteX)/((chartWidth()-1)*m_xZoom);
+	double absoluteXRatio = static_cast<double>(absoluteX)/fullChartWidth();
 	if (deltaMode)
 	{
 		if (value /* = delta */ > 0)
@@ -220,7 +220,7 @@ void iAChartWidget::zoomAlongX(double value, int x, bool deltaMode)
 
 	m_xZoom = clamp(ZoomXMin, maxXZoom(), m_xZoom);
 
-	int absXAfterZoom = static_cast<int>(chartWidth()*m_xZoom*absoluteXRatio);
+	int absXAfterZoom = static_cast<int>(fullChartWidth()*absoluteXRatio);
 
 	m_translationX = clamp(-static_cast<int>(chartWidth() * (m_xZoom-1)), 0,
 		-absXAfterZoom +x -leftMargin());
@@ -234,6 +234,12 @@ void iAChartWidget::zoomAlongX(double value, int x, bool deltaMode)
 int iAChartWidget::chartWidth() const
 {
 	return geometry().width() - leftMargin();
+}
+
+//! width in pixels that the chart would have if it were fully shown (considering current zoom level)k
+double iAChartWidget::fullChartWidth() const
+{
+	return chartWidth() * m_xZoom;
 }
 
 int iAChartWidget::chartHeight() const
@@ -319,7 +325,7 @@ double iAChartWidget::mouse2DataX(int mouseX)
 
 void iAChartWidget::createMappers()
 {
-	m_xMapper = QSharedPointer<iAMapper>(new iALinearMapper(m_xBounds[0], m_xBounds[1], 0, (chartWidth() - 1)*m_xZoom));
+	m_xMapper = QSharedPointer<iAMapper>(new iALinearMapper(m_xBounds[0], m_xBounds[1], 0, fullChartWidth()));
 	if (m_yMappingMode == Linear)
 	{
 		m_yMapper = QSharedPointer<iAMapper>(new iALinearMapper(m_yBounds[0], m_yBounds[1], 0, (chartHeight()-1)*m_yZoom));
@@ -391,7 +397,7 @@ bool iAChartWidget::categoricalAxis() const
 
 double iAChartWidget::visibleXStart() const
 {
-	return xBounds()[0] + (((static_cast<double>(-m_translationX)) / (chartWidth()*m_xZoom)) * xRange());
+	return xBounds()[0] + (((static_cast<double>(-m_translationX)) / fullChartWidth()) * xRange());
 }
 
 double iAChartWidget::visibleXEnd() const
@@ -679,8 +685,8 @@ long iAChartWidget::screenX2DataBin(int x) const
 		return x;
 	}
 	double numBin = m_plots[0]->data()->numBin();
-	double dBinX = clamp(0.0, numBin-1, static_cast<double>(x - m_translationX - leftMargin()) * (numBin-1) / (chartWidth() * m_xZoom));
-	long binX = static_cast<long>(isDrawnDiscrete() ? round(dBinX): dBinX);
+	double dBinX = clamp(0.0, numBin-1, static_cast<double>(x - m_translationX - leftMargin()) * numBin / fullChartWidth());
+	long binX = static_cast<long>(dBinX);
 	DEBUG_LOG(QString("screenX2DataBin(x=%1); double=%2, long=%3").arg(x).arg(dBinX).arg(binX))
 	return binX;
 }
@@ -693,9 +699,9 @@ int iAChartWidget::dataBin2ScreenX(long x) const
 		return static_cast<int>(x);
 	}
 	double numBin = m_plots[0]->data()->numBin();
-	double screenX = static_cast<double>(x) * chartWidth() * m_xZoom / (numBin);
-	screenX = clamp(0.0, chartWidth()*m_xZoom, screenX);
-	return static_cast<int>(isDrawnDiscrete() ? round(screenX) : screenX);
+	double screenX = static_cast<double>(x) * fullChartWidth() / (numBin);
+	screenX = clamp(0.0, fullChartWidth(), screenX);
+	return static_cast<int>(screenX);
 }
 
 bool iAChartWidget::isTooltipShown() const
@@ -1149,7 +1155,7 @@ void iAChartWidget::drawAll(QPainter & painter)
 	{
 		createMappers();
 	}
-	m_xMapper->update(m_xBounds[0], m_xBounds[1], 0, m_xZoom*(chartWidth()-1));
+	m_xMapper->update(m_xBounds[0], m_xBounds[1], 0, fullChartWidth());
 	m_yMapper->update(m_yMappingMode == Logarithmic && m_yBounds[0] <= 0 ? LogYMapModeMin : m_yBounds[0], m_yBounds[1], 0, m_yZoom*(chartHeight()-1));
 	QFontMetrics fm = painter.fontMetrics();
 	m_fontHeight = fm.height();
