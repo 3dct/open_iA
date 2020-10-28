@@ -634,20 +634,15 @@ void iAChartWidget::updateXBounds(size_t startPlot)
 	{                             // update   partial            full
 		m_xBounds[0]     = (startPlot != 0) ? m_xBounds[0]     : std::numeric_limits<double>::max();
 		m_xBounds[1]     = (startPlot != 0) ? m_xBounds[1]     : std::numeric_limits<double>::lowest();
-		//m_xTickBounds[0] = (startPlot != 0) ? m_xTickBounds[0] : std::numeric_limits<double>::max();
-		//m_xTickBounds[1] = (startPlot != 0) ? m_xTickBounds[1] : std::numeric_limits<double>::lowest();
 		m_maxXAxisSteps = 0;
 		for (size_t curPlot = std::max(static_cast<size_t>(0), startPlot); curPlot < m_plots.size(); ++curPlot)
 		{
 			auto d = m_plots[curPlot]->data();
 			m_xBounds[0] = std::min(m_xBounds[0], d->xBounds()[0] /*- ((d->valueType() == iAValueType::Discrete) ? 0.5 : 0)*/ );
 			m_xBounds[1] = std::max(m_xBounds[1], d->xBounds()[1] /*+ ((d->valueType() == iAValueType::Discrete) ? 0.5 : 0)*/ );
-			//m_xTickBounds[0] = std::min(m_xTickBounds[0], d->xBounds()[0]);
-			//m_xTickBounds[1] = std::max(m_xTickBounds[1], d->xBounds()[1]);
 			m_maxXAxisSteps = std::max(m_maxXAxisSteps, d->numBin() );
 		}
 		ensureNonZeroRange(m_xBounds);
-		//ensureNonZeroRange(m_xTickBounds);
 	}
 }
 
@@ -687,7 +682,6 @@ long iAChartWidget::screenX2DataBin(int x) const
 	double numBin = m_plots[0]->data()->numBin();
 	double dBinX = clamp(0.0, numBin-1, static_cast<double>(x - m_translationX - leftMargin()) * numBin / fullChartWidth());
 	long binX = static_cast<long>(dBinX);
-	DEBUG_LOG(QString("screenX2DataBin(x=%1); double=%2, long=%3").arg(x).arg(dBinX).arg(binX))
 	return binX;
 }
 
@@ -828,6 +822,7 @@ void iAChartWidget::drawPlots(QPainter &painter)
 	{
 		if ((*it)->visible())
 		{
+			// TODO: make agnostic of whether we draw histogram or not -> move numBin computations to PlotData
 			size_t plotNumBin = (*it)->data()->numBin();
 			double plotXBounds[2] = {(*it)->data()->xBounds()[0], (*it)->data()->xBounds()[1]};
 			ensureNonZeroRange(plotXBounds);
@@ -836,13 +831,12 @@ void iAChartWidget::drawPlots(QPainter &painter)
 				clamp((*it)->data()->xBounds()[0], (*it)->data()->xBounds()[1], xEnd)
 			};
 			ensureNonZeroRange(plotVisXBounds);
-			double plotStepWidth = (plotXBounds[1] - plotXBounds[0]
-				+ (((*it)->data()->valueType() == iAValueType::Discrete)?1:0) ) / (*it)->data()->numBin();
+			double plotStepWidth = (plotXBounds[1] - plotXBounds[0]) / (*it)->data()->numBin();
 			size_t plotStartBin = static_cast<size_t>(clamp(0.0, static_cast<double>(plotNumBin - 1), (plotVisXBounds[0] - (*it)->data()->xBounds()[0]) / plotStepWidth - 1));
 			size_t plotEndBin = static_cast<size_t>(clamp(0.0, static_cast<double>(plotNumBin - 1), (plotVisXBounds[1] - (*it)->data()->xBounds()[0]) / plotStepWidth + 1));
 			double plotPixelBinWidth = m_xMapper->srcToDst(xBounds()[0] + plotStepWidth);
 			iALinearMapper plotXMapper;
-			plotXMapper.update(-1, plotNumBin + (((*it)->data()->valueType() == iAValueType::Continuous) ? 1 : 0),
+			plotXMapper.update(-1, plotNumBin + 1,
 				m_xMapper->srcToDst((*it)->data()->xBounds()[0] - plotStepWidth),
 				m_xMapper->srcToDst((*it)->data()->xBounds()[1] + plotStepWidth));
 			(*it)->draw(painter, plotPixelBinWidth, plotStartBin, plotEndBin, plotXMapper, *m_yMapper.data());
@@ -1156,7 +1150,6 @@ void iAChartWidget::drawAll(QPainter & painter)
 	{
 		createMappers();
 	}
-	DEBUG_LOG(QString("Chart pixel space: %1 x %2").arg(fullChartWidth()).arg(m_yZoom * (chartHeight() - 1)));
 	m_xMapper->update(m_xBounds[0], m_xBounds[1], 0, fullChartWidth());
 	m_yMapper->update(m_yMappingMode == Logarithmic && m_yBounds[0] <= 0 ? LogYMapModeMin : m_yBounds[0], m_yBounds[1], 0, m_yZoom*(chartHeight()-1));
 	QFontMetrics fm = painter.fontMetrics();

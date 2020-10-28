@@ -67,15 +67,27 @@ QSharedPointer<iAHistogramData> iAHistogramData::create(vtkImageData* img, size_
 	accumulate->SetInputData(img);
 	accumulate->SetComponentOrigin(img->GetScalarRange()[0], 0.0, 0.0);
 	double * const scalarRange = img->GetScalarRange();
+	double valueRange = scalarRange[1] - scalarRange[0];
+	double histRange = valueRange;
 	if (binCount > std::numeric_limits<int>::max())
 	{
 		DEBUG_LOG(QString("iAHistogramData::create: Only up to %1 bins supported, but requested %2! Bin number will be set to %1!")
 			.arg(std::numeric_limits<int>::max()).arg(binCount));
 		binCount = std::numeric_limits<int>::max();
+	}
+	if (isVtkIntegerType(static_cast<vtkImageData*>(accumulate->GetInput())->GetScalarType()))
+	{   // make sure we have bins of integer step size:
+		double stepSize = std::ceil(valueRange / binCount);
+		double newMax = scalarRange[0] + static_cast<int>(stepSize * binCount);
+		histRange = newMax - scalarRange[0];
 	}   // check above guarantees that binCount is smaller than int max, so cast below is safe!
 	accumulate->SetComponentExtent(0, static_cast<int>(binCount - 1), 0, 0, 0, 0);
-	const double RangeEnlargeFactor = 1 + 1e-10;  // to put max values in max bin (as vtkImageAccumulate otherwise would cut off with < max)
-	accumulate->SetComponentSpacing(((scalarRange[1] - scalarRange[0]) * RangeEnlargeFactor) / binCount, 0.0, 0.0);
+	if (dblApproxEqual(valueRange, histRange))
+	{  // to put max values in max bin (as vtkImageAccumulate otherwise would cut off with < max)
+		const double RangeEnlargeFactor = 1 + 1e-10;
+		histRange = valueRange * RangeEnlargeFactor;
+	}
+	accumulate->SetComponentSpacing(histRange / binCount, 0.0, 0.0);
 	accumulate->Update();
 
 	int extent[6];
@@ -86,22 +98,13 @@ QSharedPointer<iAHistogramData> iAHistogramData::create(vtkImageData* img, size_
 	caster->Update();
 	auto rawImg = caster->GetOutput();
 
-	result->m_binCount = extent[1] + 1;
-	result->m_xBounds[0] = accumulate->GetMin()[0];
-	result->m_xBounds[1] = accumulate->GetMax()[0];
+	result->m_binCount = binCount;
+	result->m_xBounds[0] = scalarRange[0];
+	result->m_xBounds[1] = scalarRange[0] + histRange;
 	result->m_rawData = new double[result->m_binCount];
 	auto vtkRawData = static_cast<DataType*>(rawImg->GetScalarPointer());
 	std::copy(vtkRawData, vtkRawData + result->m_binCount, result->m_rawData);
-	double null1, null2;
-	if (isVtkIntegerType(static_cast<vtkImageData*>(accumulate->GetInput())->GetScalarType()))
-	{	// for int types, the last value is inclusive:
-		result->m_accSpacing = (result->m_xBounds[1] - result->m_xBounds[0] + 1) / result->m_binCount;
-		DEBUG_LOG(QString("Histogram data: binWidth= %1, xBounds=%2..%3, binCount=%4").arg(result->m_accSpacing).arg(result->m_xBounds[0]).arg(result->m_xBounds[1]).arg(result->m_binCount));
-	}
-	else
-	{
-		accumulate->GetComponentSpacing(result->m_accSpacing, null1, null2);
-	}
+	result->m_accSpacing = histRange / result->m_binCount;
 	result->setMaxFreq();
 	result->m_type = (img && (img->GetScalarType() != VTK_FLOAT) && (img->GetScalarType() != VTK_DOUBLE))
 		? iAValueType::Discrete
