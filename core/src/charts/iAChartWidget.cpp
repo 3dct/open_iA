@@ -373,7 +373,7 @@ QString iAChartWidget::xAxisTickMarkLabel(double value, double stepWidth)
 	}
 	else
 	{
-		return QString::number(static_cast<long long>(value), 'g', 15);
+		return QString::number(value, 'g', 15);
 	}
 }
 
@@ -1156,6 +1156,7 @@ void iAChartWidget::drawAll(QPainter & painter)
 	{
 		createMappers();
 	}
+	DEBUG_LOG(QString("Chart pixel space: %1 x %2").arg(fullChartWidth()).arg(m_yZoom * (chartHeight() - 1)));
 	m_xMapper->update(m_xBounds[0], m_xBounds[1], 0, fullChartWidth());
 	m_yMapper->update(m_yMappingMode == Logarithmic && m_yBounds[0] <= 0 ? LogYMapModeMin : m_yBounds[0], m_yBounds[1], 0, m_yZoom*(chartHeight()-1));
 	QFontMetrics fm = painter.fontMetrics();

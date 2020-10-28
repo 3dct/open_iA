@@ -96,6 +96,7 @@ QSharedPointer<iAHistogramData> iAHistogramData::create(vtkImageData* img, size_
 	if (isVtkIntegerType(static_cast<vtkImageData*>(accumulate->GetInput())->GetScalarType()))
 	{	// for int types, the last value is inclusive:
 		result->m_accSpacing = (result->m_xBounds[1] - result->m_xBounds[0] + 1) / result->m_binCount;
+		DEBUG_LOG(QString("Histogram data: binWidth= %1, xBounds=%2..%3, binCount=%4").arg(result->m_accSpacing).arg(result->m_xBounds[0]).arg(result->m_xBounds[1]).arg(result->m_binCount));
 	}
 	else
 	{
