@@ -221,21 +221,21 @@ void iAParameterInfluenceView::updateStackedBars()
 	for (auto charactIdx : m_visibleCharacts)
 	{
 		auto const& data = (charactIdx < m_sensInf->aggregatedSensitivities.size()) ?
-			m_sensInf->aggregatedSensitivities[charactIdx][m_measureIdx] :
-			m_sensInf->aggregatedSensitivitiesFiberCount;
+			m_sensInf->aggregatedSensitivities[charactIdx][m_measureIdx][m_aggrType] :
+			m_sensInf->aggregatedSensitivitiesFiberCount[m_aggrType];
 		// TODO: unify with addStackedBar
 		auto title(m_sensInf->charactName(charactIdx));
 		double maxValue = std::numeric_limits<double>::lowest();
 		for (size_t paramIdx = 0; paramIdx < m_sensInf->variedParams.size(); ++paramIdx)
 		{
-			if (data[paramIdx][m_aggrType] > maxValue)
+			if (data[paramIdx] > maxValue)
 			{
-				maxValue = data[paramIdx][m_aggrType];
+				maxValue = data[paramIdx];
 			}
 		}
 		for (size_t paramIdx = 0; paramIdx < m_sensInf->variedParams.size(); ++paramIdx)
 		{
-			m_stackedCharts[paramIdx]->updateBar(title, data[paramIdx][m_aggrType], maxValue);
+			m_stackedCharts[paramIdx]->updateBar(title, data[paramIdx], maxValue);
 		}
 	}
 	for (size_t paramIdx = 0; paramIdx < m_sensInf->variedParams.size(); ++paramIdx)
@@ -257,19 +257,19 @@ void iAParameterInfluenceView::addStackedBar(int charactIdx)
 	DEBUG_LOG(QString("Showing stacked bar for characteristic %1").arg(title));
 	m_stackedHeader->addBar(title, 1, 1);
 	auto const& data = (charactIdx < m_sensInf->aggregatedSensitivities.size()) ?
-		m_sensInf->aggregatedSensitivities[charactIdx][m_measureIdx] :
-		m_sensInf->aggregatedSensitivitiesFiberCount;
+		m_sensInf->aggregatedSensitivities[charactIdx][m_measureIdx][m_aggrType] :
+		m_sensInf->aggregatedSensitivitiesFiberCount[m_aggrType];
 	double maxValue = std::numeric_limits<double>::lowest();
 	for (size_t paramIdx = 0; paramIdx < m_sensInf->variedParams.size(); ++paramIdx)
 	{
-		if (data[paramIdx][m_aggrType] > maxValue)
+		if (data[paramIdx] > maxValue)
 		{
-			maxValue = data[paramIdx][m_aggrType];
+			maxValue = data[paramIdx];
 		}
 	}
 	for (size_t paramIdx = 0; paramIdx < m_sensInf->variedParams.size(); ++paramIdx)
 	{
-		m_stackedCharts[paramIdx]->addBar(title, data[paramIdx][m_aggrType], maxValue);
+		m_stackedCharts[paramIdx]->addBar(title, data[paramIdx], maxValue);
 	}
 }
 

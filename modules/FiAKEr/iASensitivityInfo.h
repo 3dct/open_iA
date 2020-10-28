@@ -76,8 +76,8 @@ public:
 
 	// for each characteristic
 	//     for each selected characteristics difference measure
-	//         for each varied parameter
-	//             for variation aggregation (see iASensitivityInfo::create)
+	//         for variation aggregation (see iASensitivityInfo::create)
+	//             for each varied parameter
 	//                 for each point in parameter space (of base sampling method)
 	//                     compute local change by that difference measure
 
@@ -85,8 +85,8 @@ public:
 	//! characteristic / parameter space point / parameter / diff measure
 	QVector<    // characteristic (index in charactIndex)
 		QVector<    // characteristics difference measure index (index in charDiffMeasure)
-		QVector<    // parameter index (second index in paramSetValues / allParamValues)
 		QVector<    // variation aggregation (see iASensitivityInfo::create)
+		QVector<    // parameter index (second index in paramSetValues / allParamValues)
 		QVector<    // parameter set index (first index in paramSetValues)
 		double
 	>>>>> sensitivityField;
@@ -94,19 +94,19 @@ public:
 	//! averages over all parameter-sets of above field ("global sensitivity" for a parameter)
 	QVector<		// characteristis
 		QVector<    // difference measure
-		QVector<    // parameter index
 		QVector<    // variation aggregation
+		QVector<    // parameter index
 		double
 	>>>> aggregatedSensitivities;
 
 	//! sensitivity at each parameter regarding fiber count
-	QVector<        // parameter index
-		QVector<    // variation aggregation
+	QVector<        // variation aggregation
+		QVector<    // parameter index
 		QVector<    // parameter set index
 		double>>> sensitivityFiberCount;
 	//! averages over all parameter-sets of above field ("global sensitivity" for a parameter, regarding fiber count)
-	QVector<        // parameter index
-		QVector<    // variation aggregation
+	QVector<        // variation aggregation
+		QVector<    // parameter index
 		double>> aggregatedSensitivitiesFiberCount;
 
 	// per-object sensitivity:

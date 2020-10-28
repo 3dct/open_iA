@@ -347,24 +347,27 @@ bool iASensitivityInfo::compute()
 		for (int diffMeasure = 0; diffMeasure < charDiffMeasure.size(); ++diffMeasure)
 		{
 			//DEBUG_LOG(QString("    Difference Measure %1 (%2)").arg(diffMeasure).arg(DistributionDifferenceMeasureNames()[diffMeasure]));
-			sensitivityField[charactIdx][diffMeasure].resize(variedParams.size());
-			aggregatedSensitivities[charactIdx][diffMeasure].resize(variedParams.size());
+			auto& field = sensitivityField[charactIdx][diffMeasure];
+			field.resize(NumOfVarianceAggregation);
+			auto& agg = aggregatedSensitivities[charactIdx][diffMeasure];
+			agg.resize(NumOfVarianceAggregation);
+			for (int i = 0; i < NumOfVarianceAggregation; ++i)
+			{
+				field[i].resize(variedParams.size());
+				agg[i].fill(0.0, variedParams.size());
+			}
 			for (int paramIdx = 0; paramIdx < variedParams.size(); ++paramIdx)
 			{
+				for (int i = 0; i < NumOfVarianceAggregation; ++i)
+				{
+					field[i][paramIdx].resize(paramSetValues.size());
+				}
 				//QString paramName(m_paramNames[variedParams[paramIdx]]);
 				//DEBUG_LOG(QString("  Parameter %1 (%2):").arg(paramIdx).arg(paramName));
 				int origParamColIdx = variedParams[paramIdx];
-				auto& field = sensitivityField[charactIdx][diffMeasure][paramIdx];
-				field.resize(NumOfVarianceAggregation);
 				// aggregation types:
 				//     - for now: one step average, left only, right only, average over all steps
 				//     - future: overall (weighted) average, values over multiples of step size, ...
-				auto& agg = aggregatedSensitivities[charactIdx][diffMeasure][paramIdx];
-				agg.fill(0.0, NumOfVarianceAggregation);
-				for (int i = 0; i < NumOfVarianceAggregation; ++i)
-				{
-					field[i].resize(paramSetValues.size());
-				}
 				int numAllLeft = 0,
 					numAllRight = 0,
 					numAllLeftRight = 0,
@@ -443,20 +446,20 @@ bool iASensitivityInfo::compute()
 					//DEBUG_LOG(QString("        (left+right)/(numLeftRight=%1) = %2").arg(numLeftRight).arg(meanLeftRightVar));
 					//DEBUG_LOG(QString("        (sum total var = %1) / (numOfSTARSteps = %2)  = %3")
 					//	.arg(sumTotal).arg(numOfSTARSteps).arg(meanTotal));
-					field[0][paramSetIdx] = meanLeftRightVar;
-					field[1][paramSetIdx] = leftVar;
-					field[2][paramSetIdx] = rightVar;
-					field[3][paramSetIdx] = meanTotal;
+					field[0][paramIdx][paramSetIdx] = meanLeftRightVar;
+					field[1][paramIdx][paramSetIdx] = leftVar;
+					field[2][paramIdx][paramSetIdx] = rightVar;
+					field[3][paramIdx][paramSetIdx] = meanTotal;
 
-					agg[0] += meanLeftRightVar;
-					agg[1] += leftVar;
-					agg[2] += rightVar;
-					agg[3] += meanTotal;
+					agg[0][paramIdx] += meanLeftRightVar;
+					agg[1][paramIdx] += leftVar;
+					agg[2][paramIdx] += rightVar;
+					agg[3][paramIdx] += meanTotal;
 				}
-				agg[0] /= numAllLeftRight;
-				agg[1] /= numAllLeft;
-				agg[2] /= numAllRight;
-				agg[3] /= numAllTotal;
+				agg[0][paramIdx] /= numAllLeftRight;
+				agg[1][paramIdx] /= numAllLeft;
+				agg[2][paramIdx] /= numAllRight;
+				agg[3][paramIdx] /= numAllTotal;
 				//DEBUG_LOG(QString("      LeftRight=%1, Left=%2, Right=%3, Total=%4")
 				//	.arg(agg[0]).arg(agg[1]).arg(agg[2]).arg(agg[3]));
 			}
@@ -469,20 +472,24 @@ bool iASensitivityInfo::compute()
 	}
 
 	m_progress.setStatus("Computing fiber count sensitivities.");
-	sensitivityFiberCount.resize(variedParams.size());
-	aggregatedSensitivitiesFiberCount.resize(variedParams.size());
+
+	// TODO: unify with above!
+	auto& field = sensitivityFiberCount;
+	field.resize(NumOfVarianceAggregation);
+	auto& agg = aggregatedSensitivitiesFiberCount;
+	agg.resize(NumOfVarianceAggregation);
+	for (int i = 0; i < NumOfVarianceAggregation; ++i)
+	{
+		field[i].resize(variedParams.size());
+		agg[i].fill(0.0, variedParams.size());
+	}
 	for (int paramIdx = 0; paramIdx < variedParams.size() && !m_aborted; ++paramIdx)
 	{
 		int origParamColIdx = variedParams[paramIdx];
 
-		// TODO: unify with above!
-		auto& field = sensitivityFiberCount[paramIdx];
-		field.resize(NumOfVarianceAggregation);
-		auto& agg = aggregatedSensitivitiesFiberCount[paramIdx];
-		agg.fill(0.0, NumOfVarianceAggregation);
 		for (int i = 0; i < NumOfVarianceAggregation; ++i)
 		{
-			field[i].resize(paramSetValues.size());
+			sensitivityFiberCount[i][paramIdx].resize(paramSetValues.size());
 		}
 		int numAllLeft = 0,
 			numAllRight = 0,
@@ -556,15 +563,15 @@ bool iASensitivityInfo::compute()
 			//DEBUG_LOG(QString("        (left+right)/(numLeftRight=%1) = %2").arg(numLeftRight).arg(meanLeftRightVar));
 			//DEBUG_LOG(QString("        (sum total var = %1) / (numOfSTARSteps = %2)  = %3")
 			//	.arg(sumTotal).arg(numOfSTARSteps).arg(meanTotal));
-			field[0][paramSetIdx] = meanLeftRightVar;
-			field[1][paramSetIdx] = leftVar;
-			field[2][paramSetIdx] = rightVar;
-			field[3][paramSetIdx] = meanTotal;
+			field[0][paramIdx][paramSetIdx] = meanLeftRightVar;
+			field[1][paramIdx][paramSetIdx] = leftVar;
+			field[2][paramIdx][paramSetIdx] = rightVar;
+			field[3][paramIdx][paramSetIdx] = meanTotal;
 
-			agg[0] += meanLeftRightVar;
-			agg[1] += leftVar;
-			agg[2] += rightVar;
-			agg[3] += meanTotal;
+			agg[0][paramIdx] += meanLeftRightVar;
+			agg[1][paramIdx] += leftVar;
+			agg[2][paramIdx] += rightVar;
+			agg[3][paramIdx] += meanTotal;
 		}
 		m_progress.emitProgress(100 * paramIdx / variedParams.size());
 	}
@@ -712,8 +719,8 @@ void iASensitivityInfo::paramChanged()
 	plot->yAxis2->setTickLabels(false);
 	plot->xAxis->setLabel(m_paramNames[variedParams[paramIdx]]);
 	plot->yAxis->setLabel( ((outputIdx == 0) ?
-		(charactName(charactIdx) + " (" + DistributionDifferenceMeasureNames()[measureIdx]+")") :
-		"Fiber Count") + AggregationNames()[aggrType]  );
+		"Sensitivity " + (charactName(charactIdx) + " (" + DistributionDifferenceMeasureNames()[measureIdx]+") ") :
+		"Fiber Count ") + AggregationNames()[aggrType]  );
 	// make left and bottom axes always transfer their ranges to right and top axes:
 	connect(plot->xAxis, SIGNAL(rangeChanged(QCPRange)), plot->xAxis2, SLOT(setRange(QCPRange)));
 	connect(plot->yAxis, SIGNAL(rangeChanged(QCPRange)), plot->yAxis2, SLOT(setRange(QCPRange)));
