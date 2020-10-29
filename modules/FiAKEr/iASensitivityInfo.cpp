@@ -832,7 +832,7 @@ void iASensitivityInfo::paramChanged()
 	plot->addGraph();
 	plot->graph(0)->setPen(QPen(Qt::blue));
 
-	auto const& data = (outputIdx == 0) ?
+	auto const& data = (outputIdx == outCharacteristic) ?
 		sensitivityField[charIdx][measureIdx][paramIdx][aggrType]:
 		sensitivityFiberCount[paramIdx][aggrType];
 	QVector<double> x(data.size()), y(data.size());
@@ -848,7 +848,7 @@ void iASensitivityInfo::paramChanged()
 	plot->yAxis2->setVisible(true);
 	plot->yAxis2->setTickLabels(false);
 	plot->xAxis->setLabel(m_paramNames[variedParams[paramIdx]]);
-	plot->yAxis->setLabel( ((outputIdx == 0) ?
+	plot->yAxis->setLabel( ((outputIdx == outCharacteristic) ?
 		"Sensitivity " + (charactName(charIdx) + " (" + DistributionDifferenceMeasureNames()[measureIdx]+") ") :
 		"Fiber Count ") + AggregationNames()[aggrType]  );
 	// make left and bottom axes always transfer their ranges to right and top axes:
@@ -860,6 +860,8 @@ void iASensitivityInfo::paramChanged()
 	plot->graph(0)->rescaleAxes();
 	plot->setInteractions(QCP::iRangeDrag | QCP::iRangeZoom | QCP::iSelectPlottables);
 	plot->replot();
+
+	m_gui->m_paramInfluenceView->showDifferenceDistribution(outputIdx, charIdx, aggrType);
 }
 
 void iASensitivityInfo::charactChanged(int charIdx)

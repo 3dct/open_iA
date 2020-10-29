@@ -20,13 +20,17 @@
 * ************************************************************************************/
 #include "iAParameterInfluenceView.h"
 
-#include <charts/iAChartWidget.h>
-#include <iAColorTheme.h>
-#include <iAConsole.h>
-
+#include "iAFiberCharData.h"
 #include "iASensitivityInfo.h"
 #include "iAStackedBarChart.h"
 #include "qthelper/iAClickableLabel.h"
+
+#include <charts/iAChartWidget.h>
+#include <charts/iAHistogramData.h>
+#include <charts/iAPlotTypes.h>
+#include <charts/iASPLOMData.h>
+#include <iAColorTheme.h>
+#include <iAConsole.h>
 
 #include <QAction>
 #include <QGridLayout>
@@ -158,13 +162,39 @@ int iAParameterInfluenceView::selectedAggrType() const { return m_aggrType; }
 int iAParameterInfluenceView::selectedRow() const { return m_selectedRow; }
 int iAParameterInfluenceView::selectedCol() const { return m_selectedCol; }
 
-
 void iAParameterInfluenceView::setColorTheme(iAColorTheme const * colorTheme)
 {
 	m_stackedHeader->setColorTheme(colorTheme);
 	for (auto stackedChart : m_stackedCharts)
 	{
 		stackedChart->setColorTheme(colorTheme);
+	}
+}
+
+void iAParameterInfluenceView::showDifferenceDistribution(int outputIdx, int charIdx, int aggrType)
+{
+	for (auto chart : m_diffChart)
+	{
+		chart->clearPlots();
+	}
+	if (outputIdx == outFiberCount)
+	{
+		return;
+	}
+	const int numBins = m_sensInf->m_histogramBins;
+	for (int paramIdx=0; paramIdx < m_sensInf->variedParams.size(); ++paramIdx)
+	{	// improve iAHistogramData to directly take QVector/std::vector data?
+		double * myHisto = new double[numBins];
+		for (int bin = 0; bin < numBins; ++bin)
+		{
+			myHisto[bin] = m_sensInf->charHistVarAgg[charIdx][aggrType][paramIdx][bin];
+		}
+		double cMin = m_sensInf->m_data->spmData->paramRange(charIdx)[0],
+			cMax = m_sensInf->m_data->spmData->paramRange(charIdx)[1];
+		m_diffChart[paramIdx]->addPlot(QSharedPointer<iAPlot>(new iABarGraphPlot(
+			iAHistogramData::create(myHisto, numBins,
+			(cMax-cMin)/numBins, cMin, cMax), QColor(80, 80, 80) )));
+		m_diffChart[paramIdx]->update();
 	}
 }
 

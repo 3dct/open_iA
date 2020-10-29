@@ -29,6 +29,13 @@ class iASensitivityInfo;
 
 class QGridLayout;
 
+enum
+{
+	outCharacteristic = 0,
+	outFiberCount = 1,
+	outDissimilarity = 2
+};
+
 class iAParameterInfluenceView : public QWidget
 {
 	Q_OBJECT
@@ -41,6 +48,7 @@ public:
 	int selectedRow() const;
 	int selectedCol() const;
 	void setColorTheme(iAColorTheme const * colorTheme);
+	void showDifferenceDistribution(int outputIdx, int charIdx, int aggrType);
 public slots:
 	void showStackedBar();
 	void selectStackedBar(int idx);
