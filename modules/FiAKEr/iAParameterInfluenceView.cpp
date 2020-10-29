@@ -20,6 +20,7 @@
 * ************************************************************************************/
 #include "iAParameterInfluenceView.h"
 
+#include <charts/iAChartWidget.h>
 #include <iAColorTheme.h>
 #include <iAConsole.h>
 
@@ -36,7 +37,7 @@
 
 namespace// merge with iASensitivityinfo!
 {
-	enum ColumnIndices { colParamName = 0, colMin = 1, colMax = 2, colStep = 3, colStackedBar = 4 };
+	enum ColumnIndices { colParamName = 0, colMin = 1, colMax = 2, colStep = 3, colStackedBar = 4, colHistogram = 5 };
 	int LayoutSpacing = 0; int LayoutMargin = 4;
 	const QString DefaultStackedBarColorTheme("Brewer Accent (max. 8)");
 
@@ -76,6 +77,7 @@ iAParameterInfluenceView::iAParameterInfluenceView(iASensitivityInfo* sensInf) :
 	m_paramListLayout->setColumnStretch(colMax, 1);
 	m_paramListLayout->setColumnStretch(colStep, 1);
 	m_paramListLayout->setColumnStretch(colStackedBar, 10);
+	m_paramListLayout->setColumnStretch(colHistogram, 10);
 
 	auto colorTheme = iAColorThemeManager::instance().theme(DefaultStackedBarColorTheme);
 	m_stackedHeader = new iAStackedBarChart(colorTheme, true);
@@ -97,6 +99,7 @@ iAParameterInfluenceView::iAParameterInfluenceView(iASensitivityInfo* sensInf) :
 	addHeaderLabel(m_paramListLayout, colMax, "Max");
 	addHeaderLabel(m_paramListLayout, colStep, "Step");
 	m_paramListLayout->addWidget(m_stackedHeader, 0, colStackedBar);
+	addHeaderLabel(m_paramListLayout, colHistogram, "Difference Distribution");
 
 	for (int paramIdx = 0; paramIdx < sensInf->variedParams.size(); ++paramIdx)
 	{
@@ -121,6 +124,9 @@ iAParameterInfluenceView::iAParameterInfluenceView(iASensitivityInfo* sensInf) :
 			connect(labels[i], &iAClickableLabel::clicked, this, &iAParameterInfluenceView::paramChangedSlot);
 		}
 		m_paramListLayout->addWidget(m_stackedCharts[paramIdx], 1 + paramIdx, colStackedBar);
+
+		m_diffChart.push_back(new iAChartWidget(this, "Characteristics distribution", "Variation"));
+		m_paramListLayout->addWidget(m_diffChart[paramIdx], 1 + paramIdx, colHistogram);
 	}
 	// default stacked bar content/settings:
 	addStackedBar(0);

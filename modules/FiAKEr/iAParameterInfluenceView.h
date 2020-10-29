@@ -22,6 +22,7 @@
 
 #include <QWidget>
 
+class iAChartWidget;
 class iAColorTheme;
 class iAStackedBarChart;
 class iASensitivityInfo;
@@ -56,8 +57,8 @@ private:
 	QVector<int> m_visibleCharacts;
 	//! stacked bar charts (one per parameter)
 	QVector<iAStackedBarChart*> m_stackedCharts;
+	QVector<iAChartWidget*> m_diffChart;
 	iAStackedBarChart* m_stackedHeader;
-	//QVector<iAChartWidget*> m_chartWidget;
 	//! sensitivity information
 	iASensitivityInfo* m_sensInf;
 	//! measure to use 
