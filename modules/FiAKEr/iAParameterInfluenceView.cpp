@@ -118,7 +118,7 @@ iAParameterInfluenceView::iAParameterInfluenceView(iASensitivityInfo* sensInf) :
 		{
 			labels[i]->setProperty("paramIdx", paramIdx);
 			m_paramListLayout->addWidget(labels[i], 1 + paramIdx, i);
-			connect(labels[i], &iAClickableLabel::dblClicked, this, &iAParameterInfluenceView::paramChangedSlot);
+			connect(labels[i], &iAClickableLabel::clicked, this, &iAParameterInfluenceView::paramChangedSlot);
 		}
 		m_paramListLayout->addWidget(m_stackedCharts[paramIdx], 1 + paramIdx, colStackedBar);
 	}
