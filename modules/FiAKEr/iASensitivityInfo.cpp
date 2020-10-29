@@ -253,7 +253,7 @@ QSharedPointer<iASensitivityInfo> iASensitivityInfo::create(QMainWindow* child,
 		QMessageBox::warning(child, "Sensitivity", "You have to select at least one characteristic and at least one measure!", QMessageBox::Ok);
 		return QSharedPointer<iASensitivityInfo>();
 	}
-	runAsync([sensitivity]
+	auto futureWatcher = runAsync([sensitivity]
 		{
 			sensitivity->compute();
 		},
@@ -263,7 +263,8 @@ QSharedPointer<iASensitivityInfo> iASensitivityInfo::create(QMainWindow* child,
 			{
 				sensitivity->createGUI();
 			} // else - we should un-set iAFiakerController's sensitivity data...
-		}, jobListView, "Sensitivity computation", &sensitivity->m_progress, sensitivity.data());
+		});
+	jobListView->addJob("Sensitivity computation", &sensitivity->m_progress, futureWatcher, sensitivity.data());
 	return sensitivity;
 }
 
