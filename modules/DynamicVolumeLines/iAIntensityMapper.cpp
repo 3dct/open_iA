@@ -60,20 +60,30 @@ void getIntensities(iAProgress &imp, PathID m_pathID, ImagePointer &image, QList
 				for (int i = 0; i < DIM; ++i)
 					nbOfBitsPerDim[i] = ceil(sqrt((size[i] - 1)));
 
-				for (unsigned int h = 0; h < HilbertCnt; ++h)
+				#pragma omp parallel for 
+				for (long h = 0; h < HilbertCnt; ++h)
 				{
-					CFixBitVec *coordPtr = new CFixBitVec[HilbertCnt];
+					CFixBitVec *coordPtr = new CFixBitVec[DIM];
 					CFixBitVec compHilbertIdx;
 					compHilbertIdx = (FBV_UINT)h;
 					Hilbert::compactIndexToCoords(coordPtr,
 						nbOfBitsPerDim, DIM, compHilbertIdx);
 
-					for (int i = 0; i < DIM; i++)
-						coord[i] = coordPtr[i].rack();
 
-					delete[] coordPtr;
-					coordList.append(coord);
-					imp.emitProgress((h + 1) * 100 / HilbertCnt);
+					#pragma omp critical
+					{
+					for (int i = 0; i < DIM; i++)
+					{
+						coord[i] = coordPtr[i].rack();
+					}
+					
+						delete[] coordPtr;
+						coordList.append(coord);
+						if (coordList.size() % 64 == 0)
+						{
+							imp.emitProgress(coordList.size() * 100 / HilbertCnt);
+						}
+					}
 				}
 			}
 
