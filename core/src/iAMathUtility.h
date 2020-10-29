@@ -256,7 +256,7 @@ std::vector<size_t> sort_indexes(const std::vector<T>& v)
 //! compute histogram from given values
 // TODO: use in iAHistogramData::create
 template<typename OutContainerT=QVector<double>, typename ValueT=double, typename InContainerT>
-OutContainerT createHistogram(const InContainerT& inData, typename InContainerT::size_type binCount, ValueT minValue, ValueT maxValue)
+OutContainerT createHistogram(const InContainerT& inData, typename OutContainerT::size_type binCount, ValueT minValue, ValueT maxValue)
 {
 	if (std::isinf(minValue))
 	{
@@ -272,7 +272,7 @@ OutContainerT createHistogram(const InContainerT& inData, typename InContainerT:
 	}
 	OutContainerT result;
 	result.fill(0, binCount);
-	using IdxT = typename InContainerT::size_type;
+	using IdxT = typename OutContainerT::size_type;
 	for (ValueT d : inData)
 	{
 		IdxT bin = clamp(static_cast<IdxT>(0), binCount - 1, mapValue(minValue, maxValue, static_cast<IdxT>(0), binCount, d));
