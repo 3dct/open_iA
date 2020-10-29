@@ -292,12 +292,12 @@ bool iASensitivityInfo::compute()
 			parameterSet.push_back(m_paramValues[v][p]);
 		}
 		paramSetValues.push_back(parameterSet);
-		m_progress.emitProgress(100 * p / m_paramValues[0].size());
+		m_progress.emitProgress(static_cast<int>(100 * p / m_paramValues[0].size()));
 	}
 
 	m_progress.setStatus("Computing characteristics distribution (histogram) for all results.");
 	// TODO: common storage for that in data!
-	charHistograms.resize(m_data->result.size());
+	charHistograms.resize(static_cast<int>(m_data->result.size()));
 	for (int rIdx = 0; rIdx < m_data->result.size(); ++rIdx)
 	{
 		auto const& r = m_data->result[rIdx];
@@ -318,7 +318,7 @@ bool iASensitivityInfo::compute()
 				fiberData, m_histogramBins, rangeMin, rangeMax);
 			charHistograms[rIdx].push_back(histogram);
 		}
-		m_progress.emitProgress(100 * rIdx / m_data->result.size());
+		m_progress.emitProgress(static_cast<int>(100 * rIdx / m_data->result.size()));
 	}
 	if (m_aborted)
 	{
@@ -477,14 +477,12 @@ bool iASensitivityInfo::compute()
 	m_progress.setStatus("Computing fiber count sensitivities.");
 
 	// TODO: unify with other loops over STARs
-	auto& field = sensitivityFiberCount;
-	field.resize(NumOfVarianceAggregation);
-	auto& agg = aggregatedSensitivitiesFiberCount;
-	agg.resize(NumOfVarianceAggregation);
+	sensitivityFiberCount.resize(NumOfVarianceAggregation);
+	aggregatedSensitivitiesFiberCount.resize(NumOfVarianceAggregation);
 	for (int i = 0; i < NumOfVarianceAggregation; ++i)
 	{
-		field[i].resize(variedParams.size());
-		agg[i].fill(0.0, variedParams.size());
+		sensitivityFiberCount[i].resize(variedParams.size());
+		aggregatedSensitivitiesFiberCount[i].fill(0.0, variedParams.size());
 	}
 	for (int paramIdx = 0; paramIdx < variedParams.size() && !m_aborted; ++paramIdx)
 	{
@@ -565,15 +563,15 @@ bool iASensitivityInfo::compute()
 			//DEBUG_LOG(QString("        (left+right)/(numLeftRight=%1) = %2").arg(numLeftRight).arg(meanLeftRightVar));
 			//DEBUG_LOG(QString("        (sum total var = %1) / (numOfSTARSteps = %2)  = %3")
 			//	.arg(sumTotal).arg(numOfSTARSteps).arg(meanTotal));
-			field[0][paramIdx][paramSetIdx] = meanLeftRightVar;
-			field[1][paramIdx][paramSetIdx] = leftVar;
-			field[2][paramIdx][paramSetIdx] = rightVar;
-			field[3][paramIdx][paramSetIdx] = meanTotal;
+			sensitivityFiberCount[0][paramIdx][paramSetIdx] = meanLeftRightVar;
+			sensitivityFiberCount[1][paramIdx][paramSetIdx] = leftVar;
+			sensitivityFiberCount[2][paramIdx][paramSetIdx] = rightVar;
+			sensitivityFiberCount[3][paramIdx][paramSetIdx] = meanTotal;
 
-			agg[0][paramIdx] += meanLeftRightVar;
-			agg[1][paramIdx] += leftVar;
-			agg[2][paramIdx] += rightVar;
-			agg[3][paramIdx] += meanTotal;
+			aggregatedSensitivitiesFiberCount[0][paramIdx] += meanLeftRightVar;
+			aggregatedSensitivitiesFiberCount[1][paramIdx] += leftVar;
+			aggregatedSensitivitiesFiberCount[2][paramIdx] += rightVar;
+			aggregatedSensitivitiesFiberCount[3][paramIdx] += meanTotal;
 		}
 		m_progress.emitProgress(100 * paramIdx / variedParams.size());
 	}
@@ -587,19 +585,19 @@ bool iASensitivityInfo::compute()
 		//charHistHist[charIdx].resize(NumOfVarianceAggregation);
 		charHistVar[charIdx].resize(NumOfVarianceAggregation);
 		charHistVarAgg[charIdx].resize(NumOfVarianceAggregation);
-		for (int agg = 0; agg < NumOfVarianceAggregation && !m_aborted; ++agg)
+		for (int aggIdx = 0; aggIdx < NumOfVarianceAggregation && !m_aborted; ++aggIdx)
 		{
-			//charHistHist[charIdx][agg].resize(variedParams.size());
-			charHistVar[charIdx][agg].resize(variedParams.size());
-			charHistVarAgg[charIdx][agg].resize(variedParams.size());
+			//charHistHist[charIdx][aggIdx].resize(variedParams.size());
+			charHistVar[charIdx][aggIdx].resize(variedParams.size());
+			charHistVarAgg[charIdx][aggIdx].resize(variedParams.size());
 		}
 		for (int paramIdx = 0; paramIdx < variedParams.size() && !m_aborted; ++paramIdx)
 		{
-			for (int agg = 0; agg < NumOfVarianceAggregation && !m_aborted; ++agg)
+			for (int aggIdx = 0; aggIdx < NumOfVarianceAggregation && !m_aborted; ++aggIdx)
 			{
-				//charHistHist[charIdx][agg][paramIdx].resize(m_histogramBins);
-				charHistVar[charIdx][agg][paramIdx].resize(m_histogramBins);
-				charHistVarAgg[charIdx][agg][paramIdx].fill(0.0, m_histogramBins);
+				//charHistHist[charIdx][aggIdx][paramIdx].resize(m_histogramBins);
+				charHistVar[charIdx][aggIdx][paramIdx].resize(m_histogramBins);
+				charHistVarAgg[charIdx][aggIdx][paramIdx].fill(0.0, m_histogramBins);
 			}
 			// TODO: unify with other loops over STARs?
 			int origParamColIdx = variedParams[paramIdx];
@@ -609,19 +607,19 @@ bool iASensitivityInfo::compute()
 				int numAllLeft = 0,
 					numAllRight = 0,
 					numAllTotal = 0;
-				for (int agg = 0; agg < NumOfVarianceAggregation && !m_aborted; ++agg)
+				for (int aggIdx = 0; aggIdx < NumOfVarianceAggregation && !m_aborted; ++aggIdx)
 				{
-					//charHistHist[charIdx][agg][paramIdx][bin].resize(paramSetValues.size());
-					charHistVar[charIdx][agg][paramIdx][bin].resize(paramSetValues.size());
+					//charHistHist[charIdx][aggIdx][paramIdx][bin].resize(paramSetValues.size());
+					charHistVar[charIdx][aggIdx][paramIdx][bin].resize(paramSetValues.size());
 				}
 				for (int paramSetIdx = 0; paramSetIdx < paramSetValues.size(); ++paramSetIdx)
 				{
 					int resultIdxGroupStart = m_starGroupSize * paramSetIdx;
 					int resultIdxParamStart = resultIdxGroupStart + 1 + paramIdx * numOfSTARSteps;
 					/*
-					for (int agg = 0; agg < NumOfVarianceAggregation && !m_aborted; ++agg)
+					for (int aggIdx = 0; aggIdx < NumOfVarianceAggregation && !m_aborted; ++aggIdx)
 					{
-						charHistHist[charIdx][agg][paramIdx][bin][paramSetIdx].resize(paramSetValues.size());
+						charHistHist[charIdx][aggIdx][paramIdx][bin][paramSetIdx].resize(paramSetValues.size());
 					}
 					*/
 					// first - then + steps (both skipped if value +/- step exceeds bounds
@@ -684,7 +682,6 @@ bool iASensitivityInfo::compute()
 						++numAllRight;
 					}
 					charHistVar[charIdx][2][paramIdx][bin][paramSetIdx] /= numLeftRight;
-					double sumTotal = 0;
 					bool wasSmaller = true;
 					charHistVar[charIdx][3][paramIdx][bin][paramSetIdx] = 0;
 					numAllTotal += numOfSTARSteps;
@@ -741,7 +738,7 @@ public:
 		cmbboxMeasure->addItems(DistributionDifferenceMeasureNames());
 		cmbboxAggregation->addItems(AggregationNames());
 		QStringList characteristics;
-		for (size_t charIdx = 0; charIdx < sensInf->charactIndex.size(); ++charIdx)
+		for (int charIdx = 0; charIdx < sensInf->charactIndex.size(); ++charIdx)
 		{
 			characteristics << sensInf->charactName(charIdx);
 		}

@@ -69,7 +69,7 @@ public:
 		charHistograms;
 
 	int numOfSTARSteps, m_starGroupSize;
-	size_t m_histogramBins;
+	int m_histogramBins;
 	QVector<double> paramStep;  //!< per varied parameter, the size of step performed for the STAR
 
 	QVector<int> variedParams;  //!< indices of the parameters that were varied

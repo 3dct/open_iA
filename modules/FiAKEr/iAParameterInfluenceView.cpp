@@ -43,7 +43,7 @@ namespace// merge with iASensitivityinfo!
 	void addColumnAction(QString const & name, int charactIdx, iAParameterInfluenceView* view, iAStackedBarChart* stackedHeader, bool checked)
 	{
 		auto charactShowAction = new QAction(name, nullptr);
-		charactShowAction->setProperty("charactIdx", static_cast<unsigned long long>(charactIdx));
+		charactShowAction->setProperty("charactIdx", charactIdx);
 		charactShowAction->setCheckable(true);
 		charactShowAction->setChecked(checked);
 		QObject::connect(charactShowAction, &QAction::triggered, view, &iAParameterInfluenceView::showStackedBar);
@@ -83,8 +83,7 @@ iAParameterInfluenceView::iAParameterInfluenceView(iASensitivityInfo* sensInf) :
 	// which encapsulates updating weights, showing columns, unified data interface (table?)
 	// for all characteristics, add column to stacked bar charts
 
-
-	for (size_t charactIdx = 0; charactIdx < sensInf->charactIndex.size(); ++charactIdx)
+	for (int charactIdx = 0; charactIdx < sensInf->charactIndex.size(); ++charactIdx)
 	{
 		addColumnAction(sensInf->charactName(charactIdx), charactIdx, this, m_stackedHeader, charactIdx == 0);
 	}
@@ -165,7 +164,7 @@ void iAParameterInfluenceView::setColorTheme(iAColorTheme const * colorTheme)
 void iAParameterInfluenceView::showStackedBar()
 {
 	auto source = qobject_cast<QAction*>(QObject::sender());
-	size_t charactIdx = source->property("charactIdx").toULongLong();
+	int charactIdx = source->property("charactIdx").toInt();
 	if (source->isChecked())
 	{
 		addStackedBar(charactIdx);
@@ -202,7 +201,7 @@ void iAParameterInfluenceView::paramChangedSlot()
 {
 	auto source = qobject_cast<QWidget*>(QObject::sender());
 	m_selectedRow = source->property("paramIdx").toInt();
-	for (size_t paramIdx = 0; paramIdx < m_sensInf->variedParams.size(); ++paramIdx)
+	for (int paramIdx = 0; paramIdx < m_sensInf->variedParams.size(); ++paramIdx)
 	{
 		QColor color = palette().color(paramIdx == m_selectedRow ? QPalette::AlternateBase : backgroundRole());
 		for (int col = colParamName; col <= colStep; ++col)
@@ -220,25 +219,25 @@ void iAParameterInfluenceView::updateStackedBars()
 {
 	for (auto charactIdx : m_visibleCharacts)
 	{
-		auto const& data = (charactIdx < m_sensInf->aggregatedSensitivities.size()) ?
+		auto const& d = (charactIdx < m_sensInf->aggregatedSensitivities.size()) ?
 			m_sensInf->aggregatedSensitivities[charactIdx][m_measureIdx][m_aggrType] :
 			m_sensInf->aggregatedSensitivitiesFiberCount[m_aggrType];
 		// TODO: unify with addStackedBar
 		auto title(m_sensInf->charactName(charactIdx));
 		double maxValue = std::numeric_limits<double>::lowest();
-		for (size_t paramIdx = 0; paramIdx < m_sensInf->variedParams.size(); ++paramIdx)
+		for (int paramIdx = 0; paramIdx < m_sensInf->variedParams.size(); ++paramIdx)
 		{
-			if (data[paramIdx] > maxValue)
+			if (d[paramIdx] > maxValue)
 			{
-				maxValue = data[paramIdx];
+				maxValue = d[paramIdx];
 			}
 		}
-		for (size_t paramIdx = 0; paramIdx < m_sensInf->variedParams.size(); ++paramIdx)
+		for (int paramIdx = 0; paramIdx < m_sensInf->variedParams.size(); ++paramIdx)
 		{
-			m_stackedCharts[paramIdx]->updateBar(title, data[paramIdx], maxValue);
+			m_stackedCharts[paramIdx]->updateBar(title, d[paramIdx], maxValue);
 		}
 	}
-	for (size_t paramIdx = 0; paramIdx < m_sensInf->variedParams.size(); ++paramIdx)
+	for (int paramIdx = 0; paramIdx < m_sensInf->variedParams.size(); ++paramIdx)
 	{
 		m_stackedCharts[paramIdx]->update();
 	}
@@ -256,20 +255,20 @@ void iAParameterInfluenceView::addStackedBar(int charactIdx)
 	auto title(columnName(charactIdx));
 	DEBUG_LOG(QString("Showing stacked bar for characteristic %1").arg(title));
 	m_stackedHeader->addBar(title, 1, 1);
-	auto const& data = (charactIdx < m_sensInf->aggregatedSensitivities.size()) ?
+	auto const& d = (charactIdx < m_sensInf->aggregatedSensitivities.size()) ?
 		m_sensInf->aggregatedSensitivities[charactIdx][m_measureIdx][m_aggrType] :
 		m_sensInf->aggregatedSensitivitiesFiberCount[m_aggrType];
 	double maxValue = std::numeric_limits<double>::lowest();
-	for (size_t paramIdx = 0; paramIdx < m_sensInf->variedParams.size(); ++paramIdx)
+	for (int paramIdx = 0; paramIdx < m_sensInf->variedParams.size(); ++paramIdx)
 	{
-		if (data[paramIdx] > maxValue)
+		if (d[paramIdx] > maxValue)
 		{
-			maxValue = data[paramIdx];
+			maxValue = d[paramIdx];
 		}
 	}
-	for (size_t paramIdx = 0; paramIdx < m_sensInf->variedParams.size(); ++paramIdx)
+	for (int paramIdx = 0; paramIdx < m_sensInf->variedParams.size(); ++paramIdx)
 	{
-		m_stackedCharts[paramIdx]->addBar(title, data[paramIdx], maxValue);
+		m_stackedCharts[paramIdx]->addBar(title, d[paramIdx], maxValue);
 	}
 }
 

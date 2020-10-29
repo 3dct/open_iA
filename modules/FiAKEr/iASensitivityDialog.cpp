@@ -86,7 +86,7 @@ iASensitivityDialog::iASensitivityDialog(QSharedPointer<iAFiberResultsCollection
 
 	m_measuresModel->setHorizontalHeaderLabels(QStringList() << "Measure" << "Select");
 	auto measureNames = getAvailableDissimilarityMeasureNames();
-	for (size_t i = 0; i < measureNames.size(); ++i)
+	for (int i = 0; i < measureNames.size(); ++i)
 	{
 		addCheckItem(m_measuresModel, i, measureNames[i]);
 	}

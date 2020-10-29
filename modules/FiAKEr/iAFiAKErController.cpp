@@ -569,7 +569,7 @@ void computeBoundingBox(vtkSmartPointer<vtkTable> tbl, QMap<uint, uint> const & 
 {
 	box[0] = box[2] = box[4] = std::numeric_limits<double>::max();
 	box[1] = box[3] = box[5] = std::numeric_limits<double>::lowest();
-	for (size_t f = 0; f < tbl->GetNumberOfRows(); ++f)
+	for (vtkIdType f = 0; f < tbl->GetNumberOfRows(); ++f)
 	{
 		for (int i = 0; i < 3; ++i)
 		{
