@@ -275,7 +275,7 @@ void iAParameterInfluenceView::updateStackedBars()
 			m_sensInf->aggregatedSensitivities[charactIdx][m_measureIdx][m_aggrType] :
 			m_sensInf->aggregatedSensitivitiesFiberCount[m_aggrType];
 		// TODO: unify with addStackedBar
-		auto title(m_sensInf->charactName(charactIdx));
+		auto title(columnName(charactIdx));
 		double maxValue = std::numeric_limits<double>::lowest();
 		for (int paramIdx = 0; paramIdx < m_sensInf->variedParams.size(); ++paramIdx)
 		{
