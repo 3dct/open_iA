@@ -338,19 +338,19 @@ bool iASensitivityInfo::compute()
 	paramStep.fill(0.0, variedParams.size());
 	sensitivityField.resize(charactIndex.size());
 	aggregatedSensitivities.resize(charactIndex.size());
-	for (int charactIdx = 0; charactIdx < charactIndex.size() && !m_aborted; ++charactIdx)
+	for (int charIdx = 0; charIdx < charactIndex.size() && !m_aborted; ++charIdx)
 	{
-		//int charactID = charactIndex[charactIdx];
+		//int charactID = charactIndex[charIdx];
 		//auto charactName = m_data->spmData->parameterName(charactID);
-		//DEBUG_LOG(QString("Characteristic %1 (%2):").arg(charactIdx).arg(charactName));
-		sensitivityField[charactIdx].resize(charDiffMeasure.size());
-		aggregatedSensitivities[charactIdx].resize(charDiffMeasure.size());
+		//DEBUG_LOG(QString("Characteristic %1 (%2):").arg(charIdx).arg(charactName));
+		sensitivityField[charIdx].resize(charDiffMeasure.size());
+		aggregatedSensitivities[charIdx].resize(charDiffMeasure.size());
 		for (int diffMeasure = 0; diffMeasure < charDiffMeasure.size(); ++diffMeasure)
 		{
 			//DEBUG_LOG(QString("    Difference Measure %1 (%2)").arg(diffMeasure).arg(DistributionDifferenceMeasureNames()[diffMeasure]));
-			auto& field = sensitivityField[charactIdx][diffMeasure];
+			auto& field = sensitivityField[charIdx][diffMeasure];
 			field.resize(NumOfVarianceAggregation);
-			auto& agg = aggregatedSensitivities[charactIdx][diffMeasure];
+			auto& agg = aggregatedSensitivities[charIdx][diffMeasure];
 			agg.resize(NumOfVarianceAggregation);
 			for (int i = 0; i < NumOfVarianceAggregation; ++i)
 			{
@@ -363,6 +363,7 @@ bool iASensitivityInfo::compute()
 				{
 					field[i][paramIdx].resize(paramSetValues.size());
 				}
+				// TODO: unify with other loops over STARs
 				//QString paramName(m_paramNames[variedParams[paramIdx]]);
 				//DEBUG_LOG(QString("  Parameter %1 (%2):").arg(paramIdx).arg(paramName));
 				int origParamColIdx = variedParams[paramIdx];
@@ -396,8 +397,8 @@ bool iASensitivityInfo::compute()
 					if (paramDiff > 0)
 					{
 						leftVar = distributionDifference(
-							charHistograms[resultIdxGroupStart][charactIdx],
-							charHistograms[resultIdxParamStart][charactIdx],
+							charHistograms[resultIdxGroupStart][charIdx],
+							charHistograms[resultIdxParamStart][charIdx],
 							diffMeasure);
 						//DEBUG_LOG(QString("        Left var available: %1").arg(leftVar));
 						++numLeftRight;
@@ -416,8 +417,8 @@ bool iASensitivityInfo::compute()
 					{
 						int firstPosStepIdx = resultIdxParamStart + (k - 1);
 						rightVar = distributionDifference(
-							charHistograms[resultIdxGroupStart][charactIdx],
-							charHistograms[firstPosStepIdx][charactIdx],
+							charHistograms[resultIdxGroupStart][charIdx],
+							charHistograms[firstPosStepIdx][charIdx],
 							diffMeasure);
 						//DEBUG_LOG(QString("        Right var available: %1").arg(rightVar));
 						++numLeftRight;
@@ -435,8 +436,8 @@ bool iASensitivityInfo::compute()
 							compareIdx = resultIdxGroupStart;
 						}
 						double difference = distributionDifference(
-							charHistograms[compareIdx][charactIdx],
-							charHistograms[resultIdxParamStart + i][charactIdx],
+							charHistograms[compareIdx][charIdx],
+							charHistograms[resultIdxParamStart + i][charIdx],
 							diffMeasure);
 						sumTotal += difference;
 					}
@@ -457,6 +458,7 @@ bool iASensitivityInfo::compute()
 					agg[2][paramIdx] += rightVar;
 					agg[3][paramIdx] += meanTotal;
 				}
+				assert(numAllLeftRight == (numAllLeft + numAllRight));
 				agg[0][paramIdx] /= numAllLeftRight;
 				agg[1][paramIdx] /= numAllLeft;
 				agg[2][paramIdx] /= numAllRight;
@@ -465,7 +467,7 @@ bool iASensitivityInfo::compute()
 				//	.arg(agg[0]).arg(agg[1]).arg(agg[2]).arg(agg[3]));
 			}
 		}
-		m_progress.emitProgress(100 * charactIdx / charactIndex.size());
+		m_progress.emitProgress(100 * charIdx / charactIndex.size());
 	}
 	if (m_aborted)
 	{
@@ -474,7 +476,7 @@ bool iASensitivityInfo::compute()
 
 	m_progress.setStatus("Computing fiber count sensitivities.");
 
-	// TODO: unify with above!
+	// TODO: unify with other loops over STARs
 	auto& field = sensitivityFiberCount;
 	field.resize(NumOfVarianceAggregation);
 	auto& agg = aggregatedSensitivitiesFiberCount;
@@ -577,30 +579,51 @@ bool iASensitivityInfo::compute()
 	}
 
 	m_progress.setStatus("Compute variation histogram");
-	charHistHist.resize(charactIndex.size());
+	//charHistHist.resize(charactIndex.size());
 	charHistVar.resize(charactIndex.size());
 	charHistVarAgg.resize(charactIndex.size());
-	for (int charactIdx = 0; charactIdx < charactIndex.size() && !m_aborted; ++charactIdx)
+	for (int charIdx = 0; charIdx < charactIndex.size() && !m_aborted; ++charIdx)
 	{
-		for (int i = 0; i < NumOfVarianceAggregation; ++i)
+		//charHistHist[charIdx].resize(NumOfVarianceAggregation);
+		charHistVar[charIdx].resize(NumOfVarianceAggregation);
+		charHistVarAgg[charIdx].resize(NumOfVarianceAggregation);
+		for (int agg = 0; agg < NumOfVarianceAggregation && !m_aborted; ++agg)
 		{
-			charHistHist[charactIdx].resize(variedParams.size());
-			charHistVar[charactIdx].resize(variedParams.size());
-			for (int paramIdx = 0; paramIdx < variedParams.size() && !m_aborted; ++paramIdx)
+			//charHistHist[charIdx][agg].resize(variedParams.size());
+			charHistVar[charIdx][agg].resize(variedParams.size());
+			charHistVarAgg[charIdx][agg].resize(variedParams.size());
+		}
+		for (int paramIdx = 0; paramIdx < variedParams.size() && !m_aborted; ++paramIdx)
+		{
+			for (int agg = 0; agg < NumOfVarianceAggregation && !m_aborted; ++agg)
 			{
-				charHistHist[charactIdx].resize(variedParams.size());
-				charHistVar[charactIdx].resize(variedParams.size());
-				int origParamColIdx = variedParams[paramIdx];
+				//charHistHist[charIdx][agg][paramIdx].resize(m_histogramBins);
+				charHistVar[charIdx][agg][paramIdx].resize(m_histogramBins);
+				charHistVarAgg[charIdx][agg][paramIdx].fill(0.0, m_histogramBins);
+			}
+			// TODO: unify with other loops over STARs?
+			int origParamColIdx = variedParams[paramIdx];
+
+			for (int bin = 0; bin < m_histogramBins; ++bin)
+			{
+				int numAllLeft = 0,
+					numAllRight = 0,
+					numAllTotal = 0;
+				for (int agg = 0; agg < NumOfVarianceAggregation && !m_aborted; ++agg)
+				{
+					//charHistHist[charIdx][agg][paramIdx][bin].resize(paramSetValues.size());
+					charHistVar[charIdx][agg][paramIdx][bin].resize(paramSetValues.size());
+				}
 				for (int paramSetIdx = 0; paramSetIdx < paramSetValues.size(); ++paramSetIdx)
 				{
-					for (int bin = 0; bin < m_histogramBins; ++bin)
-					{
-
-					}
-					/*
 					int resultIdxGroupStart = m_starGroupSize * paramSetIdx;
 					int resultIdxParamStart = resultIdxGroupStart + 1 + paramIdx * numOfSTARSteps;
-
+					/*
+					for (int agg = 0; agg < NumOfVarianceAggregation && !m_aborted; ++agg)
+					{
+						charHistHist[charIdx][agg][paramIdx][bin][paramSetIdx].resize(paramSetValues.size());
+					}
+					*/
 					// first - then + steps (both skipped if value +/- step exceeds bounds
 					double groupStartParamVal = m_paramValues[origParamColIdx][resultIdxGroupStart];
 					double paramStartParamVal = m_paramValues[origParamColIdx][resultIdxParamStart];
@@ -614,12 +637,24 @@ bool iASensitivityInfo::compute()
 						paramStep[paramIdx] = std::abs(paramDiff);
 					}
 
-					double leftVar = 0;
 					int numLeftRight = 0;
+					/*
+					for (int agg = 0; agg < NumOfVarianceAggregation; ++agg)
+					{
+						charHistHist[charIdx][agg][paramIdx][bin][paramSetIdx].push_back(charHistograms[resultIdxGroupStart][charIdx][bin]);
+					}
+					*/
+					charHistVar[charIdx][0][paramIdx][bin][paramSetIdx] = 0;
 					if (paramDiff > 0)
 					{
-						leftVar = std::abs(static_cast<double>(m_data->result[resultIdxGroupStart].fiberCount)
-							- m_data->result[resultIdxParamStart].fiberCount);
+						// left-only:
+						//charHistHist[charIdx][0][paramIdx][bin][paramSetIdx].push_back(charHistograms[resultIdxParamStart][charIdx][bin]);
+						// left+right:
+						//charHistHist[charIdx][2][paramIdx][bin][paramSetIdx].push_back(charHistograms[resultIdxGroupStart][charIdx][bin]);
+						charHistVar[charIdx][0][paramIdx][bin][paramSetIdx] =
+							std::abs(charHistograms[resultIdxGroupStart][charIdx][bin] - charHistograms[resultIdxParamStart][charIdx][bin]);
+						charHistVarAgg[charIdx][0][paramIdx][bin] += charHistVar[charIdx][0][paramIdx][bin][paramSetIdx];
+						charHistVarAgg[charIdx][2][paramIdx][bin] += charHistVar[charIdx][0][paramIdx][bin][paramSetIdx];
 						//DEBUG_LOG(QString("        Left var available: %1").arg(leftVar));
 						++numLeftRight;
 						++numAllLeft;
@@ -632,20 +667,30 @@ bool iASensitivityInfo::compute()
 						paramDiff = paramStartParamVal - paramVal;
 						++k;
 					}
-					double rightVar = 0;
+					charHistVar[charIdx][1][paramIdx][bin][paramSetIdx] = 0;
 					if (paramDiff < 0) // additional check required??
 					{
 						int firstPosStepIdx = resultIdxParamStart + (k - 1);
-						rightVar = std::abs(static_cast<double>(m_data->result[resultIdxGroupStart].fiberCount)
-							- m_data->result[firstPosStepIdx].fiberCount);
+						// left-only:
+						//charHistHist[charIdx][1][paramIdx][bin][paramSetIdx].push_back(charHistograms[firstPosStepIdx][charIdx][bin]);
+						// left+right:
+						//charHistHist[charIdx][2][paramIdx][bin][paramSetIdx].push_back(charHistograms[firstPosStepIdx][charIdx][bin]);
+						charHistVar[charIdx][1][paramIdx][bin][paramSetIdx] =
+							std::abs(charHistograms[resultIdxGroupStart][charIdx][bin] - charHistograms[firstPosStepIdx][charIdx][bin]);
+						charHistVarAgg[charIdx][1][paramIdx][bin] += charHistVar[charIdx][1][paramIdx][bin][paramSetIdx];
+						charHistVarAgg[charIdx][2][paramIdx][bin] += charHistVar[charIdx][1][paramIdx][bin][paramSetIdx];
 						//DEBUG_LOG(QString("        Right var available: %1").arg(rightVar));
 						++numLeftRight;
 						++numAllRight;
 					}
+					charHistVar[charIdx][2][paramIdx][bin][paramSetIdx] /= numLeftRight;
 					double sumTotal = 0;
 					bool wasSmaller = true;
+					charHistVar[charIdx][3][paramIdx][bin][paramSetIdx] = 0;
+					numAllTotal += numOfSTARSteps;
 					for (int i = 0; i < numOfSTARSteps; ++i)
 					{
+						//charHistHist[charIdx][3][paramIdx][bin][paramSetIdx].push_back(charHistograms[resultIdxParamStart + i][charIdx][bin]);
 						int compareIdx = (i == 0) ? resultIdxGroupStart : (resultIdxParamStart + i - 1);
 						double paramVal = m_paramValues[origParamColIdx][resultIdxParamStart + i];
 						if (paramVal > paramStartParamVal && wasSmaller)
@@ -653,15 +698,20 @@ bool iASensitivityInfo::compute()
 							wasSmaller = false;
 							compareIdx = resultIdxGroupStart;
 						}
-						double difference = std::abs(static_cast<double>(m_data->result[compareIdx].fiberCount)
-							- m_data->result[resultIdxParamStart + i].fiberCount);
-						sumTotal += difference;
+						charHistVar[charIdx][3][paramIdx][bin][paramSetIdx] +=
+							std::abs(charHistograms[compareIdx][charIdx][bin] - charHistograms[resultIdxParamStart + i][charIdx][bin]);
 					}
-					*/
+					charHistVar[charIdx][3][paramIdx][bin][paramSetIdx] /= numOfSTARSteps;//charHistHist[charIdx][3][paramIdx][bin][paramSetIdx].size();
+					charHistVarAgg[charIdx][3][paramIdx][bin] += charHistVar[charIdx][3][paramIdx][bin][paramSetIdx];
 				}
+				assert(numAllTotal == paramSetValues.size() * numOfSTARSteps);
+				charHistVarAgg[charIdx][0][paramIdx][bin] /= numAllLeft;
+				charHistVarAgg[charIdx][1][paramIdx][bin] /= numAllRight;
+				charHistVarAgg[charIdx][2][paramIdx][bin] /= (numAllLeft + numAllRight);
+				charHistVarAgg[charIdx][3][paramIdx][bin] /= numAllTotal;
 			}
 		}
-		m_progress.emitProgress(100 * charactIdx / charactIndex.size());
+		m_progress.emitProgress(100 * charIdx / charactIndex.size());
 	}
 	return m_aborted;
 }
@@ -691,9 +741,9 @@ public:
 		cmbboxMeasure->addItems(DistributionDifferenceMeasureNames());
 		cmbboxAggregation->addItems(AggregationNames());
 		QStringList characteristics;
-		for (size_t charactIdx = 0; charactIdx < sensInf->charactIndex.size(); ++charactIdx)
+		for (size_t charIdx = 0; charIdx < sensInf->charactIndex.size(); ++charIdx)
 		{
-			characteristics << sensInf->charactName(charactIdx);
+			characteristics << sensInf->charactName(charIdx);
 		}
 		cmbboxCharacteristic->addItems(characteristics);
 
@@ -708,7 +758,7 @@ public:
 		connect(cmbboxOutput, QOverload<int>::of(&QComboBox::currentIndexChanged), sensInf, &iASensitivityInfo::paramChanged);
 		connect(cmbboxOutput, QOverload<int>::of(&QComboBox::currentIndexChanged), sensInf, &iASensitivityInfo::updateOutputControls);
 	}
-	int charactIdx() const { return cmbboxCharacteristic->currentIndex(); }
+	int charIdx() const { return cmbboxCharacteristic->currentIndex(); }
 	int outputIdx() const { return cmbboxOutput->currentIndex(); }
 };
 
@@ -730,9 +780,9 @@ public:
 	QCustomPlot* m_paramDetails;
 };
 
-QString iASensitivityInfo::charactName(int charactIdx) const
+QString iASensitivityInfo::charactName(int charIdx) const
 {
-	return m_data->spmData->parameterName(charactIndex[charactIdx]);
+	return m_data->spmData->parameterName(charactIndex[charIdx]);
 }
 
 void iASensitivityInfo::createGUI()
@@ -775,7 +825,7 @@ void iASensitivityInfo::paramChanged()
 {
 	int outputIdx = m_gui->m_settings->outputIdx();
 	int paramIdx = m_gui->m_paramInfluenceView->selectedRow();
-	int charactIdx = m_gui->m_settings->charactIdx();
+	int charIdx = m_gui->m_settings->charIdx();
 	int measureIdx = m_gui->m_paramInfluenceView->selectedMeasure();
 	int aggrType = m_gui->m_paramInfluenceView->selectedAggrType();
 
@@ -785,7 +835,7 @@ void iASensitivityInfo::paramChanged()
 	plot->graph(0)->setPen(QPen(Qt::blue));
 
 	auto const& data = (outputIdx == 0) ?
-		sensitivityField[charactIdx][measureIdx][paramIdx][aggrType]:
+		sensitivityField[charIdx][measureIdx][paramIdx][aggrType]:
 		sensitivityFiberCount[paramIdx][aggrType];
 	QVector<double> x(data.size()), y(data.size());
 	for (int i = 0; i < data.size(); ++i)
@@ -801,7 +851,7 @@ void iASensitivityInfo::paramChanged()
 	plot->yAxis2->setTickLabels(false);
 	plot->xAxis->setLabel(m_paramNames[variedParams[paramIdx]]);
 	plot->yAxis->setLabel( ((outputIdx == 0) ?
-		"Sensitivity " + (charactName(charactIdx) + " (" + DistributionDifferenceMeasureNames()[measureIdx]+") ") :
+		"Sensitivity " + (charactName(charIdx) + " (" + DistributionDifferenceMeasureNames()[measureIdx]+") ") :
 		"Fiber Count ") + AggregationNames()[aggrType]  );
 	// make left and bottom axes always transfer their ranges to right and top axes:
 	connect(plot->xAxis, SIGNAL(rangeChanged(QCPRange)), plot->xAxis2, SLOT(setRange(QCPRange)));

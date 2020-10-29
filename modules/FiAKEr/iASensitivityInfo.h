@@ -109,28 +109,33 @@ public:
 		QVector<    // parameter index
 		double>> aggregatedSensitivitiesFiberCount;
 
+	// Histogram "variation" (i.e. average of differences in frequency)
+	// TODO: think about other measures (variation, ...) for differences between bins?
+	
+	/* not used for now - TODO: actual histogram of histograms
 	//! distribution of characteristics distributions ("histogram of histograms") across:
 	QVector<        // characteristics index
 		QVector<    // variation aggregation
 		QVector<    // parameter index
+		QVector<    // bin index
 		QVector<    // parameter set index
-		QVector<    // distribution over characteristics range
-		QVector<    // distribution over frequency range
+		QVector<    // index of value (stores frequency values of original histogram)
 		double>>>>>> charHistHist;
+	*/
 
-	//! variation of each bin in histogram above
+	//!  difference at each bin of characteristics distribution (histogram above)
 	QVector<        // characteristics index
 		QVector<    // variation aggregation
 		QVector<    // parameter index
+		QVector<    // bin index
 		QVector<    // parameter set index
-		QVector<    // variation at each bin of characteristics distribution
 		double>>>>> charHistVar;
 
-	//! aggregation of variation of each bin over all parameter sets above
+	//! aggregation of differences at each bin of characteristics distribution over all parameter sets above
 	QVector<        // characteristics index
 		QVector<    // variation aggregation
 		QVector<    // parameter index
-		QVector<    // variation at each bin of characteristics distribution
+		QVector<    // bin index
 		double>>>> charHistVarAgg;
 
 	// per-object sensitivity:
