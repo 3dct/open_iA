@@ -109,8 +109,3 @@ QVector<int> iASensitivityDialog::selectedDiffMeasures() const
 {
 	return selectedIndices(m_diffMeasuresModel);
 }
-
-int iASensitivityDialog::histogramBins() const
-{
-	return sbHistogramBins->value();
-}

@@ -44,7 +44,7 @@ class iASensitivityInfo: public QObject, public iAAbortListener
 public:
 	static QSharedPointer<iASensitivityInfo> create(QMainWindow* child,
 		QSharedPointer<iAFiberResultsCollection> data, QDockWidget* nextToDW,
-		iAJobListView* jobListView);
+		iAJobListView* jobListView, int histogramBins);
 	QString charactName(int charactIdx) const;
 
 	QSharedPointer<iAFiberResultsCollection> m_data;

@@ -1361,7 +1361,7 @@ void iAFiAKErController::computeSensitivity()
 		DEBUG_LOG("Already computed!");
 		return;
 	}
-	m_sensitivityInfo = iASensitivityInfo::create(m_mdiChild, m_data, m_views[ResultListView], m_mdiChild->jobsList());
+	m_sensitivityInfo = iASensitivityInfo::create(m_mdiChild, m_data, m_views[ResultListView], m_mdiChild->jobsList(), m_histogramBins);
 }
 
 void iAFiAKErController::stackedBarColorThemeChanged(int index)

@@ -147,7 +147,7 @@ void iASensitivityInfo::abort()
 
 QSharedPointer<iASensitivityInfo> iASensitivityInfo::create(QMainWindow* child,
 	QSharedPointer<iAFiberResultsCollection> data, QDockWidget* nextToDW,
-	iAJobListView* jobListView)
+	iAJobListView* jobListView, int histogramBins)
 {
 	QString fileName = QFileDialog::getOpenFileName(child,
 		"Sensitivity: Parameter Sets file", data->folder,
@@ -247,7 +247,7 @@ QSharedPointer<iASensitivityInfo> iASensitivityInfo::create(QMainWindow* child,
 	sensitivity->charactIndex = dlg.selectedCharacteristics();
 	sensitivity->charDiffMeasure = dlg.selectedDiffMeasures();
 	sensitivity->dissimMeasure = dlg.selectedMeasures();
-	sensitivity->m_histogramBins = dlg.histogramBins();
+	sensitivity->m_histogramBins = histogramBins;
 	if (sensitivity->charactIndex.size() == 0 || sensitivity->charDiffMeasure.size() == 0)
 	{
 		QMessageBox::warning(child, "Sensitivity", "You have to select at least one characteristic and at least one measure!", QMessageBox::Ok);
