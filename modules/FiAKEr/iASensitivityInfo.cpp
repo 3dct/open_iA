@@ -296,13 +296,13 @@ bool iASensitivityInfo::compute()
 
 	m_progress.setStatus("Computing characteristics distribution (histogram) for all results.");
 	// TODO: common storage for that in data!
-	resultCharacteristicHistograms.resize(m_data->result.size());
+	charHistograms.resize(m_data->result.size());
 	for (int rIdx = 0; rIdx < m_data->result.size(); ++rIdx)
 	{
 		auto const& r = m_data->result[rIdx];
 		int numCharact = m_data->spmData->numParams();
 		// TODO: skip some columns? like ID...
-		resultCharacteristicHistograms[rIdx].reserve(numCharact);
+		charHistograms[rIdx].reserve(numCharact);
 		for (int c = 0; c < numCharact; ++c)
 		{
 			// make sure of all histograms for the same characteristic have the same range
@@ -315,7 +315,7 @@ bool iASensitivityInfo::compute()
 			}
 			auto histogram = createHistogram(
 				fiberData, m_histogramBins, rangeMin, rangeMax);
-			resultCharacteristicHistograms[rIdx].push_back(histogram);
+			charHistograms[rIdx].push_back(histogram);
 		}
 		m_progress.emitProgress(100 * rIdx / m_data->result.size());
 	}
@@ -395,8 +395,8 @@ bool iASensitivityInfo::compute()
 					if (paramDiff > 0)
 					{
 						leftVar = distributionDifference(
-							resultCharacteristicHistograms[resultIdxGroupStart][charactIdx],
-							resultCharacteristicHistograms[resultIdxParamStart][charactIdx],
+							charHistograms[resultIdxGroupStart][charactIdx],
+							charHistograms[resultIdxParamStart][charactIdx],
 							diffMeasure);
 						//DEBUG_LOG(QString("        Left var available: %1").arg(leftVar));
 						++numLeftRight;
@@ -415,8 +415,8 @@ bool iASensitivityInfo::compute()
 					{
 						int firstPosStepIdx = resultIdxParamStart + (k - 1);
 						rightVar = distributionDifference(
-							resultCharacteristicHistograms[resultIdxGroupStart][charactIdx],
-							resultCharacteristicHistograms[firstPosStepIdx][charactIdx],
+							charHistograms[resultIdxGroupStart][charactIdx],
+							charHistograms[firstPosStepIdx][charactIdx],
 							diffMeasure);
 						//DEBUG_LOG(QString("        Right var available: %1").arg(rightVar));
 						++numLeftRight;
@@ -434,8 +434,8 @@ bool iASensitivityInfo::compute()
 							compareIdx = resultIdxGroupStart;
 						}
 						double difference = distributionDifference(
-							resultCharacteristicHistograms[compareIdx][charactIdx],
-							resultCharacteristicHistograms[resultIdxParamStart + i][charactIdx],
+							charHistograms[compareIdx][charactIdx],
+							charHistograms[resultIdxParamStart + i][charactIdx],
 							diffMeasure);
 						sumTotal += difference;
 					}
