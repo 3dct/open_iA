@@ -178,6 +178,7 @@ public slots:
 	void changeAggregation(int newAggregation);
 	void changeMeasure(int newMeasure);
 	void paramChanged();
+	void charactChanged(int charIdx);
 	void changeStackedBarColors();
 	void updateOutputControls();
 	void createGUI();

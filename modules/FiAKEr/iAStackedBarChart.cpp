@@ -177,6 +177,11 @@ void iAStackedBarChart::setSelectedBar(int barIdx)
 	update();
 }
 
+QString iAStackedBarChart::barName(int barIdx) const
+{
+	return m_bars[barIdx].name;
+}
+
 void iAStackedBarChart::setBackgroundColor(QColor const & color)
 {
 	m_bgColor = color;
@@ -369,9 +374,22 @@ void iAStackedBarChart::mouseReleaseEvent(QMouseEvent* /*ev*/)
 	}
 }
 
-void iAStackedBarChart::mouseDoubleClickEvent(QMouseEvent*)
+void iAStackedBarChart::mouseDoubleClickEvent(QMouseEvent* ev)
 {
 	emit doubleClicked();
+	int x = ev->x();
+	int barID = -1;
+	for (size_t divID = 0; divID < m_dividers.size(); ++divID)
+	{
+		if (x >= ((divID > 0) ? m_dividers[divID - 1] : 0) && x < m_dividers[divID])
+		{
+			barID = static_cast<int>(divID);
+		}
+	}
+	if (barID != -1)
+	{
+		emit barDblClicked(barID);
+	}
 }
 
 void iAStackedBarChart::setWeights(std::vector<double> const & weights)

@@ -79,6 +79,7 @@ iAParameterInfluenceView::iAParameterInfluenceView(iASensitivityInfo* sensInf) :
 
 	auto colorTheme = iAColorThemeManager::instance().theme(DefaultStackedBarColorTheme);
 	m_stackedHeader = new iAStackedBarChart(colorTheme, true);
+	connect(m_stackedHeader, &iAStackedBarChart::barDblClicked, this, &iAParameterInfluenceView::stackedBarDblClicked);
 	// TODO: Unify/Group stacked bar widgets here / in iAFIAKERController into a class
 	// which encapsulates updating weights, showing columns, unified data interface (table?)
 	// for all characteristics, add column to stacked bar charts
@@ -188,6 +189,21 @@ void iAParameterInfluenceView::selectStackedBar(int charactIdx)
 	{
 		stackedChart->setSelectedBar(m_selectedCol);
 	}
+}
+
+void iAParameterInfluenceView::stackedBarDblClicked(int barIdx)
+{
+	QString barName = m_stackedHeader->barName(barIdx);
+	int selectedCharactIdx = -1;
+	for (auto charactIdx : m_visibleCharacts)
+	{
+		if (columnName(charactIdx) == barName)
+		{
+			selectedCharactIdx = charactIdx;
+		}
+	}
+	selectStackedBar(selectedCharactIdx);
+	emit characteristicSelected(selectedCharactIdx);
 }
 
 void iAParameterInfluenceView::selectMeasure(int measureIdx)

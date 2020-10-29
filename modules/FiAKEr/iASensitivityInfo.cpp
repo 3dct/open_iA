@@ -793,6 +793,7 @@ void iASensitivityInfo::createGUI()
 	m_gui->m_paramInfluenceView = new iAParameterInfluenceView(this);
 	auto dwParamInfluence = new iADockWidgetWrapper(m_gui->m_paramInfluenceView, "Parameter Influence", "foeParamInfluence");
 	connect(m_gui->m_paramInfluenceView, &iAParameterInfluenceView::parameterChanged, this, &iASensitivityInfo::paramChanged);
+	connect(m_gui->m_paramInfluenceView, &iAParameterInfluenceView::characteristicSelected, this, &iASensitivityInfo::charactChanged);
 	connect(m_gui->m_settings->cmbboxCharacteristic, QOverload<int>::of(&QComboBox::currentIndexChanged),
 		m_gui->m_paramInfluenceView, &iAParameterInfluenceView::selectStackedBar);
 	m_child->splitDockWidget(dwSettings, dwParamInfluence, Qt::Vertical);
@@ -859,6 +860,22 @@ void iASensitivityInfo::paramChanged()
 	plot->graph(0)->rescaleAxes();
 	plot->setInteractions(QCP::iRangeDrag | QCP::iRangeZoom | QCP::iSelectPlottables);
 	plot->replot();
+}
+
+void iASensitivityInfo::charactChanged(int charIdx)
+{
+	QSignalBlocker block1(m_gui->m_settings->cmbboxOutput);
+	if (charIdx < charactIndex.size())
+	{
+		m_gui->m_settings->cmbboxOutput->setCurrentIndex(0);
+		QSignalBlocker block2(m_gui->m_settings->cmbboxCharacteristic);
+		m_gui->m_settings->cmbboxCharacteristic->setCurrentIndex(charIdx);
+	}
+	else
+	{
+		m_gui->m_settings->cmbboxOutput->setCurrentIndex(1);
+	}
+	paramChanged();
 }
 
 void iASensitivityInfo::updateOutputControls()

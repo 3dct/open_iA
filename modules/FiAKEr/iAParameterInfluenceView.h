@@ -43,6 +43,7 @@ public:
 public slots:
 	void showStackedBar();
 	void selectStackedBar(int idx);
+	void stackedBarDblClicked(int idx);
 private slots:
 	void selectMeasure(int measureIdx);
 	void paramChangedSlot();
@@ -67,4 +68,5 @@ private:
 	QGridLayout* m_paramListLayout;
 signals:
 	void parameterChanged();
+	void characteristicSelected(int charIdx);
 };

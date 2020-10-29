@@ -56,11 +56,13 @@ public:
 	void setBackgroundColor(QColor const & color);
 	double weightedSum() const;
 	void setSelectedBar(int barIdx);
+	QString barName(int barIdx) const;
 signals:
 	void switchedStackMode(bool mode);
 	void weightsChanged(std::vector<double> const & weights);
 	void clicked();
 	void doubleClicked();
+	void barDblClicked(int barID);
 	void normalizeModeChanged(bool normalizePerBar);
 public slots:
 	void setWeights(std::vector<double> const & weights);
