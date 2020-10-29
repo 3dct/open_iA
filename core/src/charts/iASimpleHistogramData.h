@@ -28,6 +28,7 @@
 #include <itkImage.h>
 #include <itkImageRegionConstIterator.h>
 
+//! TODO: Unify with iAHistogramData!
 class open_iA_Core_API iASimpleHistogramData : public iAPlotData
 {
 public:
@@ -36,7 +37,6 @@ public:
 	static QSharedPointer<iASimpleHistogramData> create(DataType minX, DataType maxX, size_t numBin, double * data, iAValueType xValueType);
 	static QSharedPointer<iASimpleHistogramData> create(DataType minX, DataType maxX, std::vector<double> const & data, iAValueType xValueType);
 
-	// Inherited via iAAbstractDiagramRangedData
 	DataType const * rawData() const override;
 	size_t numBin() const override;
 	double spacing() const override;
