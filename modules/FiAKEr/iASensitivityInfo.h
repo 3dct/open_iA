@@ -111,18 +111,27 @@ public:
 
 	//! distribution of characteristics distributions ("histogram of histograms") across:
 	QVector<        // characteristics index
+		QVector<    // variation aggregation
 		QVector<    // parameter index
 		QVector<    // parameter set index
 		QVector<    // distribution over characteristics range
 		QVector<    // distribution over frequency range
-		double>>>>> charHistHist;
+		double>>>>>> charHistHist;
 
 	//! variation of each bin in histogram above
 	QVector<        // characteristics index
+		QVector<    // variation aggregation
 		QVector<    // parameter index
 		QVector<    // parameter set index
-		QVector<    // distribution over characteristics range
-		double>>>> charHistVar;
+		QVector<    // variation at each bin of characteristics distribution
+		double>>>>> charHistVar;
+
+	//! aggregation of variation of each bin over all parameter sets above
+	QVector<        // characteristics index
+		QVector<    // variation aggregation
+		QVector<    // parameter index
+		QVector<    // variation at each bin of characteristics distribution
+		double>>>> charHistVarAgg;
 
 	// per-object sensitivity:
 	// required: 1-1 match between fibers
