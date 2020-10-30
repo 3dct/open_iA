@@ -360,26 +360,27 @@ void executeDNN(iAFilter* filter, QMap<QString, QVariant> const & parameters)
 		outputs.push_back(createImage(size[0], size[1], size[2]));
 	}
 
-	
+	int sizeX = size[0];
+	int sizeY = size[1];
+	int sizeZ = size[2];
 
 	iAProgress *progressPrediction = filter->progress();
+	int count = 0;
 
-
-	for (int x = 0; x <= size[0] ; x=x+sizeDNNout)
+	for (int x = 0; x <= sizeX; x = x + sizeDNNout)
 	{
-		#pragma omp parallel for
-		for (int y = 0; y <= size[1] ; y=y+sizeDNNout)
+		for (int y = 0; y <= sizeY; y = y + sizeDNNout)
 		{
 			#pragma omp parallel for
-			for (int z = 0; z <= size[2] ; z=z+sizeDNNout)
+			for (int z = 0; z <= sizeZ; z = z + sizeDNNout)
 			{
 				std::vector<float> tensor_img;
 				
 				int tempX, tempY, tempZ;
 
-				tempX = (x <= size[0] - sizeDNNout) ? x : (x -  (sizeDNNout - size[0] % sizeDNNout)); 
-				tempY = (y <= size[1] - sizeDNNout) ? y : (y -  (sizeDNNout - size[1] % sizeDNNout)); 
-				tempZ = (z <= size[2] - sizeDNNout) ? z : (z -  (sizeDNNout - size[2] % sizeDNNout)); 
+				tempX = (x <= sizeX - sizeDNNout) ? x : (x - (sizeDNNout - sizeX % sizeDNNout)); 
+				tempY = (y <= sizeY - sizeDNNout) ? y : (y - (sizeDNNout - sizeY % sizeDNNout)); 
+				tempZ = (z <= sizeZ - sizeDNNout) ? z : (z - (sizeDNNout - sizeZ % sizeDNNout)); 
 
 				size_t offset = (sizeDNNout - sizeDNNin)/2;
 				itk2tensor(itk_img_normalized_padded, tensor_img, tempX + offset, tempY + offset, tempZ + offset);
@@ -407,9 +408,10 @@ void executeDNN(iAFilter* filter, QMap<QString, QVariant> const & parameters)
 					tensor2itk(result, outputImage, tempX, tempY, tempZ, outputChannel, outputs.size());
 					outputChannel++;
 				}
-				
+				count++;
+				int progress =(count * 100) / (sizeX / sizeDNNout * sizeY / sizeDNNout * sizeZ/sizeDNNout);
 
-				progressPrediction->emitProgress(x*100/size[0]);
+				progressPrediction->emitProgress(progress);
 			}
 		}
 	}
