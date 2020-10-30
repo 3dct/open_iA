@@ -20,8 +20,10 @@
 * ************************************************************************************/
 #pragma once
 
+#include <iAMatrixWidget.h> // for iADissimilarityMatrixType
+
 #include <iAAbortListener.h>
-#include "iAProgress.h"
+#include <iAProgress.h>
 
 #include <QFuture>
 #include <QFutureWatcher>
@@ -157,6 +159,12 @@ public:
 	//         - option 1 -> exactly the same, 1x5, 1x3, 1x2
 	//         - option 2 -> length differences: 2, 1, 3
 
+	// dissimilarity pairs:
+	std::vector<std::pair<int, bool>> m_resultDissimMeasures;
+	iADissimilarityMatrixType m_resultDissimMatrix;
+	int m_resultDissimOptimMeasureIdx;
+
+	//! the GUI elements:
 	QSharedPointer<iASensitivityGUI> m_gui;
 
 	void abort() override;
@@ -166,6 +174,9 @@ private:
 		std::vector<std::vector<double>> const& paramValues,
 		QMainWindow* child, QDockWidget* nextToDW);
 	bool compute();
+	QString dissimilarityMatrixCacheFileName() const;
+	bool readDissimilarityMatrixCache(QVector<int>& measures);
+	void writeDissimilarityMatrixCache(QVector<int> const& measures) const;
 
 	QString m_parameterFileName;
 	QMainWindow* m_child;

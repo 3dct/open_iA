@@ -163,8 +163,7 @@ std::vector<std::vector<double>> calculateMDS(std::vector<std::vector<double>> c
 	double meanD = matrixMean(distanceMatrix);
 
 	// move to the center
-	addNumberSelf(X, -0.5); // why 0.5?
-	//addNumberSelf(X, -meanD); // maybe this should be the mean (mean should be 0.5 if numbers in X were chosen from uniform distribution 0..1)
+	addNumberSelf(X, -0.5); // why 0.5? Maybe this should be meanD (should be 0.5 if numbers in X were chosen from uniform distribution 0..1)
 
 	// before this step, mean distance is 1/3*sqrt(d)
 	multiplyNumberSelf(X, 0.1 * meanD / (1.0 / 3.0 * sqrt((double)outputDimensions)));
@@ -175,7 +174,6 @@ std::vector<std::vector<double>> calculateMDS(std::vector<std::vector<double>> c
 	iAMatrixType D(numElems, std::vector<double>(numElems, 0.0));
 	iAMatrixType B(numElems, std::vector<double>(numElems, 0.0));
 
-	//calculate euclidean distance
 	computeDistance(X, D);
 	DEBUG_LOG(QString("D:\n%1").arg(matrixToString(D)));
 

@@ -39,6 +39,8 @@
 // FIAKER
 #include "iAFiberCharData.h"
 #include "iAFiberData.h"
+#include "iAMeasureSelectionDlg.h"
+#include "iARefDistCompute.h"
 #include "iASensitivityDialog.h"
 
 #include <QDialog>
@@ -67,6 +69,20 @@ namespace
 	{
 		static QStringList Names = QStringList() << "Mean left+right" << "Left only" << "Right only" << "Mean of all neighbours in STAR";
 		return Names;
+	}
+
+	QDataStream& operator<<(QDataStream& out, const iAResultPairInfo& pairInfo)
+	{
+		out << pairInfo.avgDissim;
+		out << pairInfo.fiberDissim;
+		return out;
+	}
+
+	QDataStream& operator>>(QDataStream& in, iAResultPairInfo& pairInfo)
+	{
+		in >> pairInfo.avgDissim;
+		in >> pairInfo.fiberDissim;
+		return in;
 	}
 }
 
@@ -253,6 +269,14 @@ QSharedPointer<iASensitivityInfo> iASensitivityInfo::create(QMainWindow* child,
 		QMessageBox::warning(child, "Sensitivity", "You have to select at least one characteristic and at least one measure!", QMessageBox::Ok);
 		return QSharedPointer<iASensitivityInfo>();
 	}
+	iAMeasureSelectionDlg selectMeasure;
+	if (selectMeasure.exec() != QDialog::Accepted)
+	{
+		return QSharedPointer<iASensitivityInfo>();
+	}
+
+	sensitivity->m_resultDissimMeasures = selectMeasure.measures();
+	sensitivity->m_resultDissimOptimMeasureIdx = selectMeasure.optimizeMeasureIdx();
 	auto futureWatcher = runAsync([sensitivity]
 		{
 			sensitivity->compute();
@@ -710,7 +734,141 @@ bool iASensitivityInfo::compute()
 		}
 		m_progress.emitProgress(100 * charIdx / charactIndex.size());
 	}
+
+	m_progress.setStatus("Computing dissimilarity between all result pairs.");
+	QVector<int> measures;
+
+	if (readDissimilarityMatrixCache(measures))
+	{
+		return m_aborted;
+	}
+
+	m_resultDissimMatrix = iADissimilarityMatrixType(m_data->result.size(),
+		QVector<iAResultPairInfo>(m_data->result.size(),
+			iAResultPairInfo(m_resultDissimMeasures.size())));
+
+	for (size_t m = 0; m < m_resultDissimMeasures.size(); ++m)
+	{
+		measures.push_back(m_resultDissimMeasures[m].first);
+	}
+
+	for (size_t resultID1 = 0; resultID1 < m_data->result.size(); ++resultID1)
+	{
+		auto& res1 = m_data->result[resultID1];
+		auto const& mapping = *res1.mapping.data();
+		double const* cxr = m_data->spmData->paramRange(mapping[iACsvConfig::CenterX]),
+			* cyr = m_data->spmData->paramRange(mapping[iACsvConfig::CenterY]),
+			* czr = m_data->spmData->paramRange(mapping[iACsvConfig::CenterZ]);
+		double a = cxr[1] - cxr[0], b = cyr[1] - cyr[0], c = czr[1] - czr[0];
+		double diagonalLength = std::sqrt(std::pow(a, 2) + std::pow(b, 2) + std::pow(c, 2));
+		double const* lengthRange = m_data->spmData->paramRange(mapping[iACsvConfig::Length]);
+		double maxLength = lengthRange[1] - lengthRange[0];
+		for (size_t resultID2 = 0; resultID2 < m_data->result.size(); ++resultID2)
+		{
+			for (size_t m = 0; m < m_resultDissimMeasures.size(); ++m)
+			{
+				m_resultDissimMatrix[resultID1][resultID2].avgDissim[m] = 0;
+			}
+			if (resultID1 == resultID2)
+			{
+				continue;
+			}
+			auto& res2 = m_data->result[resultID2];
+			qint64 const fiberCount = res2.table->GetNumberOfRows();
+			auto& dissimilarities = m_resultDissimMatrix[resultID1][resultID2].fiberDissim;
+			dissimilarities.resize(fiberCount);
+#pragma omp parallel for
+			for (qint64 fiberID = 0; fiberID < fiberCount; ++fiberID)
+			{
+				auto it = res2.curveInfo.find(fiberID);
+				// find the best-matching fibers in reference & compute difference:
+				iAFiberData fiber(res2.table, fiberID, mapping, (it != res2.curveInfo.end()) ? it->second : std::vector<iAVec3f>());
+				getBestMatches(fiber, mapping, res1.table, dissimilarities[fiberID], res1.curveInfo,
+					diagonalLength, maxLength, m_resultDissimMeasures, m_resultDissimOptimMeasureIdx);
+				for (size_t m = 0; m < m_resultDissimMeasures.size(); ++m)
+				{
+					m_resultDissimMatrix[resultID1][resultID2].avgDissim[m] += dissimilarities[fiberID][m][0].dissimilarity;
+				}
+			}
+			for (size_t m = 0; m < m_resultDissimMeasures.size(); ++m)
+			{
+				m_resultDissimMatrix[resultID1][resultID2].avgDissim[m] /= res2.fiberCount;
+			}
+		}
+	}
+
+
 	return m_aborted;
+}
+
+
+
+QString iASensitivityInfo::dissimilarityMatrixCacheFileName() const
+{
+	return m_data->folder + "/cache/dissimilarityMatrix.cache";
+}
+
+namespace
+{
+	const QString DissimilarityMatrixCacheFileIdentifier("DissimilarityMatrixCache");
+	const quint32 DissimilarityMatrixCacheFileVersion(1);
+}
+
+bool iASensitivityInfo::readDissimilarityMatrixCache(QVector<int>& measures)
+{
+	QFile cacheFile(dissimilarityMatrixCacheFileName());
+	// unify with verifyOpenCacheFile?
+	if (!cacheFile.exists())
+	{
+		return false;
+	}
+	if (!cacheFile.open(QFile::ReadOnly))
+	{
+		DEBUG_LOG(QString("Couldn't open file %1 for reading!").arg(cacheFile.fileName()));
+		return false;
+	}
+	// unify with readResultRefComparison / common cache file version/identifier pattern?
+	QDataStream in(&cacheFile);
+	in.setVersion(CacheFileQtDataStreamVersion);
+	QString identifier;
+	in >> identifier;
+	if (identifier != DissimilarityMatrixCacheFileIdentifier)
+	{
+		DEBUG_LOG(QString("FIAKER cache file '%1': Unknown cache file format - found identifier %2 does not match expected identifier %3.")
+			.arg(cacheFile.fileName())
+			.arg(identifier).arg(DissimilarityMatrixCacheFileIdentifier));
+		return false;
+	}
+	quint32 version;
+	in >> version;
+	if (version > DissimilarityMatrixCacheFileVersion)
+	{
+		DEBUG_LOG(QString("FIAKER cache file '%1': Invalid or too high version number (%2), expected %3 or less.")
+			.arg(cacheFile.fileName())
+			.arg(version).arg(DissimilarityMatrixCacheFileVersion));
+		return false;
+	}
+	in >> measures;
+	in >> m_resultDissimMatrix;
+	return true;
+}
+
+void iASensitivityInfo::writeDissimilarityMatrixCache(QVector<int> const& measures) const
+{
+	QFile cacheFile(dissimilarityMatrixCacheFileName());
+	if (!cacheFile.open(QFile::WriteOnly))
+	{
+		DEBUG_LOG(QString("Couldn't open file %1 for writing!").arg(cacheFile.fileName()));
+		return;
+	}
+	QDataStream out(&cacheFile);
+	out.setVersion(CacheFileQtDataStreamVersion);
+	// write header:
+	out << DissimilarityMatrixCacheFileIdentifier;
+	out << DissimilarityMatrixCacheFileVersion;
+
+	out << measures;
+	out << m_resultDissimMatrix;
 }
 
 #include <charts/iAChartWidget.h>
