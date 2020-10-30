@@ -795,8 +795,8 @@ bool iASensitivityInfo::compute()
 				m_resultDissimMatrix[resultID1][resultID2].avgDissim[m] /= res2.fiberCount;
 			}
 		}
+		m_progress.emitProgress(100 * resultID1 / m_data->result.size());
 	}
-
 
 	return m_aborted;
 }
