@@ -22,21 +22,13 @@
 
 #include <QtConcurrent>
 
-class iAAbortListener;
-class iAJobListView;
-class iAProgress;
-
 template <typename RunnerT, typename FinishT>
-void runAsync(RunnerT runner, FinishT finish, iAJobListView* jobList=nullptr, QString taskName=QString(),
-	iAProgress* progress=nullptr, iAAbortListener * abort=nullptr)
+QFutureWatcher<void>* runAsync(RunnerT runner, FinishT finish)
 {
 	auto futureWatcher = new QFutureWatcher<void>();
 	QObject::connect(futureWatcher, &QFutureWatcher<void>::finished, finish);
 	QObject::connect(futureWatcher, &QFutureWatcher<void>::finished, futureWatcher, &QFutureWatcher<void>::deleteLater);
-	if (jobList)
-	{
-		jobList->addJob(taskName, progress, futureWatcher, abort);
-	}
 	auto future = QtConcurrent::run(runner);
 	futureWatcher->setFuture(future);
+	return futureWatcher;
 }
