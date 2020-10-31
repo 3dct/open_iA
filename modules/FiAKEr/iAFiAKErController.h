@@ -198,6 +198,7 @@ private slots:
 	// sensitivity:
 	void computeDissimilarityMatrix();
 	void computeSensitivity();
+	void resetSensitivity();
 	void dissimMatrixMeasureChanged(int);
 	void dissimMatrixParameterChanged(int);
 	void dissimMatrixColorMapChanged(int);

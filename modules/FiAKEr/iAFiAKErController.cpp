@@ -1358,11 +1358,19 @@ void iAFiAKErController::computeSensitivity()
 {
 	if (m_sensitivityInfo)
 	{
-		DEBUG_LOG("Already computed!");
+		DEBUG_LOG("Already started!");
 		return;
 	}
-	m_sensitivityInfo = iASensitivityInfo::create(m_mdiChild, m_data, m_views[ResultListView], m_mdiChild->jobsList(), m_histogramBins);
+	m_sensitivityInfo = iASensitivityInfo::create(m_mdiChild, m_data, m_views[ResultListView],
+		m_mdiChild->jobsList(), m_histogramBins);
+	connect(m_sensitivityInfo.data(), &iASensitivityInfo::aborted, this, &iAFiAKErController::resetSensitivity);
 }
+
+void iAFiAKErController::resetSensitivity()
+{
+	m_sensitivityInfo.clear();
+}
+
 
 void iAFiAKErController::stackedBarColorThemeChanged(int index)
 {

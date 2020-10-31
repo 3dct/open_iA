@@ -185,6 +185,8 @@ private:
 	// for computation:
 	iAProgress m_progress;
 	bool m_aborted;
+signals:
+	void aborted();
 public slots:
 	void changeAggregation(int newAggregation);
 	void changeMeasure(int newMeasure);

@@ -283,10 +283,7 @@ QSharedPointer<iASensitivityInfo> iASensitivityInfo::create(QMainWindow* child,
 		},
 		[sensitivity]
 		{
-			if (!sensitivity->m_aborted)
-			{
-				sensitivity->createGUI();
-			} // else - we should un-set iAFiakerController's sensitivity data...
+			sensitivity->createGUI();
 		});
 	jobListView->addJob("Sensitivity computation", &sensitivity->m_progress, futureWatcher, sensitivity.data());
 	return sensitivity;
@@ -969,6 +966,11 @@ QString iASensitivityInfo::charactName(int charIdx) const
 
 void iASensitivityInfo::createGUI()
 {
+	if (m_aborted)
+	{
+		emit aborted();
+		return;
+	}
 	m_gui.reset(new iASensitivityGUI);
 
 	m_gui->m_settings = new iASensitivitySettingsView(this);
