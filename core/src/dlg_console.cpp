@@ -30,7 +30,7 @@ dlg_console::dlg_console()
 	connect(pbClearLog, &QPushButton::clicked, this, &dlg_console::clear);
 }
 
-void dlg_console::log(QString text)
+void dlg_console::log(QString const & text)
 {
 	consoleTextEdit->append(text);
 }
