@@ -324,6 +324,7 @@ bool iASensitivityInfo::compute()
 	charHistograms.resize(static_cast<int>(m_data->result.size()));
 	for (int rIdx = 0; rIdx < m_data->result.size(); ++rIdx)
 	{
+		m_progress.emitProgress(static_cast<int>(100 * rIdx / m_data->result.size()));
 		auto const& r = m_data->result[rIdx];
 		int numCharact = m_data->spmData->numParams();
 		// TODO: skip some columns? like ID...
@@ -342,7 +343,6 @@ bool iASensitivityInfo::compute()
 				fiberData, m_histogramBins, rangeMin, rangeMax);
 			charHistograms[rIdx].push_back(histogram);
 		}
-		m_progress.emitProgress(static_cast<int>(100 * rIdx / m_data->result.size()));
 	}
 	if (m_aborted)
 	{
@@ -364,6 +364,7 @@ bool iASensitivityInfo::compute()
 	aggregatedSensitivities.resize(charactIndex.size());
 	for (int charIdx = 0; charIdx < charactIndex.size() && !m_aborted; ++charIdx)
 	{
+		m_progress.emitProgress(100 * charIdx / charactIndex.size());
 		//int charactID = charactIndex[charIdx];
 		//auto charactName = m_data->spmData->parameterName(charactID);
 		//DEBUG_LOG(QString("Characteristic %1 (%2):").arg(charIdx).arg(charactName));
@@ -491,7 +492,6 @@ bool iASensitivityInfo::compute()
 				//	.arg(agg[0]).arg(agg[1]).arg(agg[2]).arg(agg[3]));
 			}
 		}
-		m_progress.emitProgress(100 * charIdx / charactIndex.size());
 	}
 	if (m_aborted)
 	{
@@ -510,6 +510,7 @@ bool iASensitivityInfo::compute()
 	}
 	for (int paramIdx = 0; paramIdx < variedParams.size() && !m_aborted; ++paramIdx)
 	{
+		m_progress.emitProgress(100 * paramIdx / variedParams.size());
 		int origParamColIdx = variedParams[paramIdx];
 		for (int i = 0; i < NumOfVarianceAggregation; ++i)
 		{
@@ -597,7 +598,10 @@ bool iASensitivityInfo::compute()
 			aggregatedSensitivitiesFiberCount[2][paramIdx] += rightVar;
 			aggregatedSensitivitiesFiberCount[3][paramIdx] += meanTotal;
 		}
-		m_progress.emitProgress(100 * paramIdx / variedParams.size());
+	}
+	if (m_aborted)
+	{
+		return false;
 	}
 
 	m_progress.setStatus("Compute variation histogram");
@@ -606,6 +610,7 @@ bool iASensitivityInfo::compute()
 	charHistVarAgg.resize(charactIndex.size());
 	for (int charIdx = 0; charIdx < charactIndex.size() && !m_aborted; ++charIdx)
 	{
+		m_progress.emitProgress(100 * charIdx / charactIndex.size());
 		//charHistHist[charIdx].resize(NumOfVarianceAggregation);
 		charHistVar[charIdx].resize(NumOfVarianceAggregation);
 		charHistVarAgg[charIdx].resize(NumOfVarianceAggregation);
@@ -732,7 +737,10 @@ bool iASensitivityInfo::compute()
 				charHistVarAgg[charIdx][3][paramIdx][bin] /= numAllTotal;
 			}
 		}
-		m_progress.emitProgress(100 * charIdx / charactIndex.size());
+	}	
+	if (m_aborted)
+	{
+		return false;
 	}
 
 	m_progress.setStatus("Computing dissimilarity between all result pairs.");
@@ -751,9 +759,10 @@ bool iASensitivityInfo::compute()
 	{
 		measures.push_back(m_resultDissimMeasures[m].first);
 	}
-
-	for (size_t resultID1 = 0; resultID1 < m_data->result.size(); ++resultID1)
+	// fill "upper" half
+	for (size_t resultID1 = 0; resultID1 < m_data->result.size()-1 && !m_aborted; ++resultID1)
 	{
+		m_progress.emitProgress(100 * resultID1 / m_data->result.size());
 		auto& res1 = m_data->result[resultID1];
 		auto const& mapping = *res1.mapping.data();
 		double const* cxr = m_data->spmData->paramRange(mapping[iACsvConfig::CenterX]),
@@ -763,15 +772,12 @@ bool iASensitivityInfo::compute()
 		double diagonalLength = std::sqrt(std::pow(a, 2) + std::pow(b, 2) + std::pow(c, 2));
 		double const* lengthRange = m_data->spmData->paramRange(mapping[iACsvConfig::Length]);
 		double maxLength = lengthRange[1] - lengthRange[0];
-		for (size_t resultID2 = 0; resultID2 < m_data->result.size(); ++resultID2)
+		for (size_t resultID2 = resultID1; resultID2 < m_data->result.size(); ++resultID2)
 		{
+			m_progress.setStatus(QString("Computing dissimilarity between results %1 and %2.").arg(result1).arg(result2));
 			for (size_t m = 0; m < m_resultDissimMeasures.size(); ++m)
 			{
 				m_resultDissimMatrix[resultID1][resultID2].avgDissim[m] = 0;
-			}
-			if (resultID1 == resultID2)
-			{
-				continue;
 			}
 			auto& res2 = m_data->result[resultID2];
 			qint64 const fiberCount = res2.table->GetNumberOfRows();
@@ -795,7 +801,25 @@ bool iASensitivityInfo::compute()
 				m_resultDissimMatrix[resultID1][resultID2].avgDissim[m] /= res2.fiberCount;
 			}
 		}
-		m_progress.emitProgress(100 * resultID1 / m_data->result.size());
+	}
+	// fill diagonal with 0
+	for (size_t r = 0; r < m_data->result.size() && !m_aborted; ++r)
+	{
+		for (size_t m = 0; m < m_resultDissimMeasures.size(); ++m)
+		{
+			m_resultDissimMatrix[r][r].avgDissim[m] = 0;
+		}
+	}
+	// copy other half triangle:
+	for (size_t resultID1 = 1; resultID1 < m_data->result.size() && !m_aborted; ++resultID1)
+	{
+		for (size_t resultID2 = 0; resultID2 < resultID1; ++resultID2)
+		{
+			for (size_t m = 0; m < m_resultDissimMeasures.size(); ++m)
+			{
+				m_resultDissimMatrix[resultID1][resultID2].avgDissim[m] = m_resultDissimMatrix[resultID2][resultID1].avgDissim[m];
+			}
+		}
 	}
 
 	return m_aborted;

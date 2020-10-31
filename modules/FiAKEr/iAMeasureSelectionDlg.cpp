@@ -22,6 +22,8 @@
 
 #include "iAFiberData.h"
 
+#include "iAConsole.h"
+
 #include <QMessageBox>
 
 iAMeasureSelectionDlg::iAMeasureSelectionDlg(QWidget* parent) :
@@ -123,7 +125,16 @@ int iAMeasureSelectionDlg::optimizeMeasureIdx() const
 	{
 		if (m_model->item(row, 3)->checkState() == Qt::Checked)
 		{
-			return row;
+			auto m = measures();
+			for (int mIdx = 0; mIdx < m.size(); ++mIdx)
+			{
+				if (m[mIdx].first == row)
+				{
+					return mIdx;
+				}
+			}
+			DEBUG_LOG("Optimization measure requested, but not selected to be computed!");
+			break;
 		}
 	}
 	return -1;
