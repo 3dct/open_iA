@@ -173,7 +173,7 @@ private:
 		QString const& parameterFileName, QStringList const& paramNames,
 		std::vector<std::vector<double>> const& paramValues,
 		QMainWindow* child, QDockWidget* nextToDW);
-	bool compute();
+	void compute();
 	QString dissimilarityMatrixCacheFileName() const;
 	bool readDissimilarityMatrixCache(QVector<int>& measures);
 	void writeDissimilarityMatrixCache(QVector<int> const& measures) const;

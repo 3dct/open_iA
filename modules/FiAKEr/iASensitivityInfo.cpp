@@ -305,7 +305,7 @@ iASensitivityInfo::iASensitivityInfo(QSharedPointer<iAFiberResultsCollection> da
 {
 }
 
-bool iASensitivityInfo::compute()
+void iASensitivityInfo::compute()
 {
 	m_progress.setStatus("Storing parameter set values");
 	for (int p = 0; p < m_paramValues[0].size(); p += m_starGroupSize)
@@ -346,7 +346,7 @@ bool iASensitivityInfo::compute()
 	}
 	if (m_aborted)
 	{
-		return false;
+		return;
 	}
 
 	// for each characteristic
@@ -495,7 +495,7 @@ bool iASensitivityInfo::compute()
 	}
 	if (m_aborted)
 	{
-		return false;
+		return;
 	}
 
 	m_progress.setStatus("Computing fiber count sensitivities.");
@@ -601,7 +601,7 @@ bool iASensitivityInfo::compute()
 	}
 	if (m_aborted)
 	{
-		return false;
+		return;
 	}
 
 	m_progress.setStatus("Compute variation histogram");
@@ -740,7 +740,7 @@ bool iASensitivityInfo::compute()
 	}	
 	if (m_aborted)
 	{
-		return false;
+		return;
 	}
 
 	m_progress.setStatus("Computing dissimilarity between all result pairs.");
@@ -748,7 +748,7 @@ bool iASensitivityInfo::compute()
 
 	if (readDissimilarityMatrixCache(measures))
 	{
-		return m_aborted;
+		return;
 	}
 
 	m_resultDissimMatrix = iADissimilarityMatrixType(m_data->result.size(),
@@ -821,8 +821,6 @@ bool iASensitivityInfo::compute()
 			}
 		}
 	}
-
-	return m_aborted;
 }
 
 
