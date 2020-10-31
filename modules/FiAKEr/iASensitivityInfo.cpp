@@ -760,10 +760,10 @@ void iASensitivityInfo::compute()
 		measures.push_back(m_resultDissimMeasures[m].first);
 	}
 	// fill "upper" half
-	for (size_t resultID1 = 0; resultID1 < m_data->result.size()-1 && !m_aborted; ++resultID1)
+	for (size_t r1 = 0; r1 < m_data->result.size()-1 && !m_aborted; ++r1)
 	{
-		m_progress.emitProgress(100 * resultID1 / m_data->result.size());
-		auto& res1 = m_data->result[resultID1];
+		m_progress.emitProgress(100 * r1 / m_data->result.size());
+		auto& res1 = m_data->result[r1];
 		auto const& mapping = *res1.mapping.data();
 		double const* cxr = m_data->spmData->paramRange(mapping[iACsvConfig::CenterX]),
 			* cyr = m_data->spmData->paramRange(mapping[iACsvConfig::CenterY]),
@@ -772,16 +772,16 @@ void iASensitivityInfo::compute()
 		double diagonalLength = std::sqrt(std::pow(a, 2) + std::pow(b, 2) + std::pow(c, 2));
 		double const* lengthRange = m_data->spmData->paramRange(mapping[iACsvConfig::Length]);
 		double maxLength = lengthRange[1] - lengthRange[0];
-		for (size_t resultID2 = resultID1; resultID2 < m_data->result.size(); ++resultID2)
+		for (size_t r2 = r1; r2 < m_data->result.size(); ++r2)
 		{
-			m_progress.setStatus(QString("Computing dissimilarity between results %1 and %2.").arg(result1).arg(result2));
+			m_progress.setStatus(QString("Computing dissimilarity between results %1 and %2.").arg(r1).arg(r2));
 			for (size_t m = 0; m < m_resultDissimMeasures.size(); ++m)
 			{
-				m_resultDissimMatrix[resultID1][resultID2].avgDissim[m] = 0;
+				m_resultDissimMatrix[r1][r2].avgDissim[m] = 0;
 			}
-			auto& res2 = m_data->result[resultID2];
+			auto& res2 = m_data->result[r2];
 			qint64 const fiberCount = res2.table->GetNumberOfRows();
-			auto& dissimilarities = m_resultDissimMatrix[resultID1][resultID2].fiberDissim;
+			auto& dissimilarities = m_resultDissimMatrix[r1][r2].fiberDissim;
 			dissimilarities.resize(fiberCount);
 #pragma omp parallel for
 			for (qint64 fiberID = 0; fiberID < fiberCount; ++fiberID)
@@ -793,12 +793,12 @@ void iASensitivityInfo::compute()
 					diagonalLength, maxLength, m_resultDissimMeasures, m_resultDissimOptimMeasureIdx);
 				for (size_t m = 0; m < m_resultDissimMeasures.size(); ++m)
 				{
-					m_resultDissimMatrix[resultID1][resultID2].avgDissim[m] += dissimilarities[fiberID][m][0].dissimilarity;
+					m_resultDissimMatrix[r1][r2].avgDissim[m] += dissimilarities[fiberID][m][0].dissimilarity;
 				}
 			}
 			for (size_t m = 0; m < m_resultDissimMeasures.size(); ++m)
 			{
-				m_resultDissimMatrix[resultID1][resultID2].avgDissim[m] /= res2.fiberCount;
+				m_resultDissimMatrix[r1][r2].avgDissim[m] /= res2.fiberCount;
 			}
 		}
 	}
@@ -811,13 +811,13 @@ void iASensitivityInfo::compute()
 		}
 	}
 	// copy other half triangle:
-	for (size_t resultID1 = 1; resultID1 < m_data->result.size() && !m_aborted; ++resultID1)
+	for (size_t r1 = 1; r1 < m_data->result.size() && !m_aborted; ++r1)
 	{
-		for (size_t resultID2 = 0; resultID2 < resultID1; ++resultID2)
+		for (size_t r2 = 0; r2 < r1; ++r2)
 		{
 			for (size_t m = 0; m < m_resultDissimMeasures.size(); ++m)
 			{
-				m_resultDissimMatrix[resultID1][resultID2].avgDissim[m] = m_resultDissimMatrix[resultID2][resultID1].avgDissim[m];
+				m_resultDissimMatrix[r1][r2].avgDissim[m] = m_resultDissimMatrix[r2][r1].avgDissim[m];
 			}
 		}
 	}
