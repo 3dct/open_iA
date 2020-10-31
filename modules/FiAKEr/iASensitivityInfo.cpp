@@ -772,7 +772,7 @@ void iASensitivityInfo::compute()
 		double diagonalLength = std::sqrt(std::pow(a, 2) + std::pow(b, 2) + std::pow(c, 2));
 		double const* lengthRange = m_data->spmData->paramRange(mapping[iACsvConfig::Length]);
 		double maxLength = lengthRange[1] - lengthRange[0];
-		for (size_t r2 = r1; r2 < m_data->result.size(); ++r2)
+		for (size_t r2 = r1; r2 < m_data->result.size() && !m_aborted; ++r2)
 		{
 			m_progress.setStatus(QString("Computing dissimilarity between results %1 and %2.").arg(r1).arg(r2));
 			for (size_t m = 0; m < m_resultDissimMeasures.size(); ++m)
