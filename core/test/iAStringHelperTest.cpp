@@ -82,4 +82,15 @@ BEGIN_TEST
 	TestEqual(dblToStringWithUnits(5323), QString("5.32K"));
 	TestEqual(dblToStringWithUnits(6306403), QString("6.31M"));
 	TestEqual(dblToStringWithUnits(92314300), QString("92.3M"));
+
+	std::vector<double> vecDbl = { 0.5, 1.222, 5, 3.33443 };
+	TestEqual(QString("0.5, 1.222, 5, 3.33443"), joinNumbersAsString(vecDbl, ", "));
+	TestEqual(QString("0.5,1.2,5,3.3"), joinAsString(vecDbl, ",", [](double v) { return QString::number(v, 'g', 2);  }));
+
+	TestEqual(0, greatestCommonPrefixLength("", "TEST"));
+	TestEqual(0, greatestCommonPrefixLength("TEST", ""));
+	TestEqual(0, greatestCommonPrefixLength("TEST", "test"));
+	TestEqual(3, greatestCommonPrefixLength("abcDEFGHIJ", "abcdeFGHIJ"));
+	TestEqual(5, greatestCommonSuffixLength("abcDEFGHIJ", "abcdeFGHIJ"));
+	TestEqual(4, greatestCommonPrefixLength("TEST", "TEST"));
 END_TEST
