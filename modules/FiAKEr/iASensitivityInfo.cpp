@@ -821,6 +821,11 @@ void iASensitivityInfo::compute()
 			}
 		}
 	}
+	if (m_aborted)
+	{
+		return;
+	}
+	writeDissimilarityMatrixCache(measures);
 }
 
 
