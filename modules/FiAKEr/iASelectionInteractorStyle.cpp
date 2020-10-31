@@ -20,7 +20,7 @@
 * ************************************************************************************/
 #include "iASelectionInteractorStyle.h"
 
-#include <iAConsole.h>
+#include <iALog.h>
 #include <iAMathUtility.h>
 
 #include <vtkAreaPicker.h>
@@ -137,7 +137,7 @@ void iASelectionInteractorStyle::pick()
 	}
 	if (!m_selectionProvider)
 	{
-		DEBUG_LOG("No selection provider given!");
+		LOG(lvlInfo, "No selection provider given!");
 		return;
 	}
 
@@ -279,7 +279,7 @@ void iASelectionInteractorStyle::OnLeftButtonDown()
 	{
 		if (!m_cellRenderer)
 		{
-			DEBUG_LOG("Cell renderer not set!");
+			LOG(lvlInfo, "Cell renderer not set!");
 			return;
 		}
 
@@ -304,7 +304,7 @@ void iASelectionInteractorStyle::OnLeftButtonDown()
 			}
 			if (pickedResultID == std::numeric_limits<size_t>::max())
 			{
-				DEBUG_LOG("Could not find picked result.");
+				LOG(lvlInfo, "Could not find picked result.");
 				return;
 			}
 			size_t objectID = (picker->GetCellId()) / 14;

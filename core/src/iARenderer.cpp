@@ -21,7 +21,7 @@
 #include "iARenderer.h"
 
 #include "defines.h"
-#include "iAConsole.h"
+#include "iALog.h"
 #include "iAChannelData.h"
 #include "iALineSegment.h"
 #include "iAMovieHelper.h"
@@ -733,7 +733,7 @@ void iARenderer::setSlicePlaneOpacity(float opc)
 {
 	if ((opc > 1.0) || (opc < 0.0f))
 	{
-		DEBUG_LOG(QString("Invalid slice plane opacity %1").arg(opc));
+		LOG(lvlWarn, QString("Invalid slice plane opacity %1").arg(opc));
 		return;
 	}
 
@@ -1043,7 +1043,7 @@ void iARenderer::updateSlicePlanes(double const * newSpacing)
 {
 	if (!newSpacing)
 	{
-		DEBUG_LOG("Spacing is nullptr");
+		LOG(lvlWarn, "Spacing is nullptr");
 		return;
 	}
 	double const * spc = newSpacing;

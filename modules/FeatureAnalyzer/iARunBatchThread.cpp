@@ -395,7 +395,7 @@ void computeParamFree( ImagePointer & image, PorosityFilterID filterId, RunInfo 
 			break;
 		}
 		default:
-			DEBUG_LOG(QString("Invalid algorithm selection (%1 is not a parameterless method)!").arg(filterId));
+			LOG(lvlInfo, QString("Invalid algorithm selection (%1 is not a parameterless method)!").arg(filterId));
 			break;
 	}
 

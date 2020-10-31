@@ -22,7 +22,7 @@
 
 #include <defines.h>    // for DIM
 #include <iAConnector.h>
-#include <iAConsole.h>
+#include <iALog.h>
 #include <iAProgress.h>
 #include <iATypedCallHelper.h>
 #include <io/iAITKIO.h>
@@ -88,7 +88,7 @@ namespace
 		auto centroidStringList = centroidString.split(" ");
 		if (centroidStringList.size() < 0 || static_cast<unsigned int>(centroidStringList.size()) != numberOfClasses)
 		{
-			DEBUG_LOG("Number of classes doesn't match the count of centroids specified!");
+			LOG(lvlInfo, "Number of classes doesn't match the count of centroids specified!");
 			return false;
 		}
 		for (auto c : centroidStringList)
@@ -97,7 +97,7 @@ namespace
 			double centroid = c.toDouble(&ok);
 			if (!ok)
 			{
-				DEBUG_LOG(QString("Could not convert string in centroid list to double: '%1' !").arg(c));
+				LOG(lvlInfo, QString("Could not convert string in centroid list to double: '%1' !").arg(c));
 				return false;
 			}
 			centroids.push_back(centroid);

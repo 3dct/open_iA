@@ -27,7 +27,7 @@
 #include "iAFeatureScoutToolbar.h"
 #include "ui_CsvInput.h"
 
-#include <iAConsole.h>
+#include <iALog.h>
 #include <iAModalityList.h>
 #include <iAModuleDispatcher.h> // TODO: Refactor; it shouldn't be required to go via iAModuleDispatcher to retrieve one's own module
 #include <iAProjectBase.h>
@@ -74,7 +74,7 @@ void iAFeatureScoutProject::loadProject(QSettings & projectFile, QString const &
 {
 	if (!m_mdiChild)
 	{
-		DEBUG_LOG(QString("Invalid FeatureScout project file '%1': FeatureScout requires an MdiChild, "
+		LOG(lvlInfo, QString("Invalid FeatureScout project file '%1': FeatureScout requires an MdiChild, "
 			"but UseMdiChild was apparently not specified in this project, as no MdiChild available! "
 			"Please report this error, along with the project file, to the open_iA developers!").arg(fileName));
 		return;
@@ -85,7 +85,7 @@ void iAFeatureScoutProject::loadProject(QSettings & projectFile, QString const &
 	QString csvFileName = projectFile.value("CSVFileName").toString();
 	if (csvFileName.isEmpty())
 	{
-		DEBUG_LOG(QString("Invalid FeatureScout project file '%1': Empty or missing 'CSVFileName'!").arg(fileName));
+		LOG(lvlInfo, QString("Invalid FeatureScout project file '%1': Empty or missing 'CSVFileName'!").arg(fileName));
 		return;
 	}
 	m_config.fileName = MakeAbsolute(path, csvFileName);
@@ -307,7 +307,7 @@ void iAFeatureScoutModuleInterface::FeatureScout_Options()
 	iAFeatureScoutAttachment* attach = GetAttachment<iAFeatureScoutAttachment>();
 	if ( !attach )
 	{
-		DEBUG_LOG( "No FeatureScout attachment in current MdiChild!" );
+		LOG(lvlInfo,  "No FeatureScout attachment in current MdiChild!" );
 		return;
 	}
 	QString actionText = qobject_cast<QAction *>(sender())->text();

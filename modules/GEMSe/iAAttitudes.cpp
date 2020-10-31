@@ -24,7 +24,7 @@
 #include "iAChartAttributeMapper.h"
 #include "iAImageTreeLeaf.h"
 
-#include <iAConsole.h>
+#include <iALog.h>
 #include <iAMathUtility.h>
 
 #include <QFile>
@@ -105,7 +105,7 @@ void SetAttitude(iAImageTreeNode * root, QStringList ids, iAImageTreeNode::Attit
 		int id = ids[i].toInt(&ok);
 		if (!ok)
 		{
-			DEBUG_LOG(QString("Invalid ID in rankings file (%1)!").arg(ids[i]));
+			LOG(lvlInfo, QString("Invalid ID in rankings file (%1)!").arg(ids[i]));
 			return;
 		}
 		SetAttitude(root, att, id);
@@ -117,7 +117,7 @@ void SetAttitudesFromRankingFile(QString const & fileName, iAImageTreeNode* root
 	QFile f(fileName);
 	if (!f.open(QIODevice::ReadOnly))
 	{
-		DEBUG_LOG("Couldn't open CSV file for reading rankings!");
+		LOG(lvlInfo, "Couldn't open CSV file for reading rankings!");
 		return;
 	}
 	QTextStream t(&f);
@@ -125,14 +125,14 @@ void SetAttitudesFromRankingFile(QString const & fileName, iAImageTreeNode* root
 	QStringList likeIDs = likes.split(",");
 	if (likeIDs.size() == 0 || likeIDs[0] != "Liked")
 	{
-		DEBUG_LOG("Invalid rankings file format!");
+		LOG(lvlInfo, "Invalid rankings file format!");
 		return;
 	}
 	QString hates = t.readLine();
 	QStringList hateIDs = hates.split(",");
 	if (hateIDs.size() == 0 || hateIDs[0] != "Disliked")
 	{
-		DEBUG_LOG("Invalid rankings file format!");
+		LOG(lvlInfo, "Invalid rankings file format!");
 		return;
 	}
 
@@ -150,7 +150,7 @@ void ExportAttitudesToRankingFile(QString const & fileName, iAImageTreeNode cons
 	QFile f(fileName);
 	if (!f.open(QIODevice::WriteOnly))
 	{
-		DEBUG_LOG("Couldn't open CSV file for writing attribute range rankings!");
+		LOG(lvlInfo, "Couldn't open CSV file for writing attribute range rankings!");
 		return;
 	}
 	QTextStream t(&f);

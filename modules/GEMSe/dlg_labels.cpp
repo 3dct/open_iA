@@ -26,7 +26,7 @@
 #include <dlg_commoninput.h>
 #include <iAChannelData.h>
 #include <iAColorTheme.h>
-#include <iAConsole.h>
+#include <iALog.h>
 #include <iAModality.h>
 #include <iAModalityList.h>
 #include <iAToolsVTK.h>
@@ -297,7 +297,7 @@ bool dlg_labels::load(QString const & filename)
 	QFile file(filename);
 	if (!file.open(QIODevice::ReadOnly | QIODevice::Text))
 	{
-		DEBUG_LOG(QString("Seed file loading: Failed to open file '%1'!").arg(filename));
+		LOG(lvlInfo, QString("Seed file loading: Failed to open file '%1'!").arg(filename));
 		return false;
 	}
 	QXmlStreamReader stream(&file);
@@ -321,7 +321,7 @@ bool dlg_labels::load(QString const & filename)
 				curLabelRow = addLabelItem(name);
 				if (m_itemModel->rowCount()-1 != id.toInt())
 				{
-					DEBUG_LOG(QString("Inserting row: rowCount %1 <-> label id %2 mismatch!")
+					LOG(lvlInfo, QString("Inserting row: rowCount %1 <-> label id %2 mismatch!")
 						.arg(m_itemModel->rowCount())
 						.arg(id) );
 				}
@@ -330,7 +330,7 @@ bool dlg_labels::load(QString const & filename)
 			{
 				if (curLabelRow == -1)
 				{
-					DEBUG_LOG(QString("Error loading seed file '%1': Current label not set!")
+					LOG(lvlInfo, QString("Error loading seed file '%1': Current label not set!")
 						.arg(filename) );
 					return false;
 				}
@@ -346,14 +346,14 @@ bool dlg_labels::load(QString const & filename)
 	file.close();
 	if (stream.hasError())
 	{
-	   DEBUG_LOG(QString("Error: Failed to parse seed xml file '%1': %2")
+	   LOG(lvlInfo, QString("Error: Failed to parse seed xml file '%1': %2")
 		   .arg(filename)
 		   .arg(stream.errorString()) );
 	   return false;
 	}
 	else if (file.error() != QFile::NoError)
 	{
-		DEBUG_LOG(QString("Error: Cannot read file '%1': %2")
+		LOG(lvlInfo, QString("Error: Cannot read file '%1': %2")
 			.arg(filename )
 			.arg(file.errorString()) );
 	   return false;
@@ -462,7 +462,7 @@ void dlg_labels::Store()
 	dlg_commoninput extendedFormatInput(this, "Seed File Format", inList, inPara, nullptr);
 	if (extendedFormatInput.exec() != QDialog::Accepted)
 	{
-		DEBUG_LOG("Selection of format aborted, aborting seed file storing");
+		LOG(lvlInfo, "Selection of format aborted, aborting seed file storing");
 		return;
 	}
 	if (!store(fileName, extendedFormatInput.getCheckValue(0)))
@@ -546,7 +546,7 @@ void dlg_labels::Sample()
 		if ((histogram[i] * 3 / 4) < numOfSeedsPerLabel[i])
 		{
 			numOfSeedsPerLabel[i] = histogram[i] * 3 / 4;
-			DEBUG_LOG(QString("Reducing number of seeds for label %1 to %2 because it only has %3 pixels")
+			LOG(lvlInfo, QString("Reducing number of seeds for label %1 to %2 because it only has %3 pixels")
 				.arg(i).arg(numOfSeedsPerLabel[i]).arg(histogram[i]));
 		}
 		if (numOfSeedsPerLabel[i] < minNumOfSeeds)

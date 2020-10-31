@@ -26,7 +26,7 @@
 #include "iAPreviewWidgetPool.h"
 #include "iAGEMSeConstants.h"
 
-#include <iAConsole.h>
+#include <iALog.h>
 #include <iAMathUtility.h>
 
 #include <QGridLayout>
@@ -172,7 +172,7 @@ void iAExampleImageWidget::UpdateImages()
 
 	if (m_nodes.size() > m_rootNode->GetFilteredSize() )
 	{
-		DEBUG_LOG(QString("Found more images (%1) than there are images in the cluster (%2)\n")
+		LOG(lvlInfo, QString("Found more images (%1) than there are images in the cluster (%2)\n")
 			.arg(m_nodes.size())
 			.arg(m_rootNode->GetFilteredSize()));
 	}
@@ -201,14 +201,14 @@ void iAExampleImageWidget::ImageClicked()
 	assert(imgWdgt);
 	if (!imgWdgt)
 	{
-		DEBUG_LOG("ExampleWidget click: sender not an image widget!\n");
+		LOG(lvlInfo, "ExampleWidget click: sender not an image widget!\n");
 		return;
 	}
 	int idx = m_gridWidget->m_previews.indexOf(imgWdgt);
 	assert(idx != -1);
 	if (idx == -1)
 	{
-		DEBUG_LOG("ExampleWidget click: didn't find originating image widget!\n");
+		LOG(lvlInfo, "ExampleWidget click: didn't find originating image widget!\n");
 		// something wrong...
 		return;
 	}
@@ -226,14 +226,14 @@ void iAExampleImageWidget::ImageRightClicked()
 	assert(imgWdgt);
 	if (!imgWdgt)
 	{
-		DEBUG_LOG("ExampleWidget click: sender not an image widget!\n");
+		LOG(lvlInfo, "ExampleWidget click: sender not an image widget!\n");
 		return;
 	}
 	int idx = m_gridWidget->m_previews.indexOf(imgWdgt);
 	assert(idx != -1);
 	if (idx == -1)
 	{
-		DEBUG_LOG("ExampleWidget click: didn't find originating image widget!\n");
+		LOG(lvlInfo, "ExampleWidget click: didn't find originating image widget!\n");
 		// something wrong...
 		return;
 	}

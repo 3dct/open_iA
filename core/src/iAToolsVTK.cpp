@@ -21,7 +21,7 @@
 #include "iAToolsVTK.h"
 
 #include "iAConnector.h"
-#include "iAConsole.h"
+#include "iALog.h"
 #include "iAVtkDraw.h"
 #include "io/iAITKIO.h"
 
@@ -106,7 +106,7 @@ void writeSingleSliceImage(QString const & filename, vtkImageData* imageData)
 	}
 	else
 	{
-		DEBUG_LOG("Could not write image: Filename has an unknown extension!");
+		LOG(lvlError, "Could not write image: Filename has an unknown extension!");
 		return;
 	}
 	writer->SetFileName( getLocalEncodingFileName(filename).c_str() );

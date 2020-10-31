@@ -22,7 +22,7 @@
 
 #include "iAUndecidedPixelClassifierImageFilter.h"
 
-#include <iAConsole.h>
+#include <iALog.h>
 #include <iAMathUtility.h>
 
 #include <itkImageRegionIterator.h>
@@ -98,12 +98,12 @@ void iAUndecidedPixelClassifierImageFilter<TInputImage, TOutputImage>::ThreadedG
 	const size_t numberOfClassifiers = m_probImgs.size();
 	if (numberOfClassifiers < 2)
 	{
-		DEBUG_LOG("Expected at least 2 input images!");
+		LOG(lvlError, "Expected at least 2 input images!");
 		return;
 	}
 	if (m_probImgs.size() == 0)
 	{
-		DEBUG_LOG("No probability images given!");
+		LOG(lvlError, "No probability images given!");
 		return;
 	}
 
@@ -204,7 +204,7 @@ void iAUndecidedPixelClassifierImageFilter<TInputImage, TOutputImage>::ThreadedG
 				}
 				if (selectedNeighbor == NoNeighbor)
 				{
-					DEBUG_LOG("No neighbor found with probability higher than 0!");
+					LOG(lvlWarn, "No neighbor found with probability higher than 0!");
 				}
 				double entropy = 0.0;
 				for (size_t l = 0; l < m_labelCount; ++l)
@@ -322,7 +322,7 @@ void iAUndecidedPixelClassifierImageFilter<TInputImage, TOutputImage>::ThreadedG
 					}
 				}
 				/*
-				DEBUG_LOG(QString("Ambiguous result in pixel (%1): candidates=%2, prob.=%3, final label=%4")
+				LOG(lvlInfo, QString("Ambiguous result in pixel (%1): candidates=%2, prob.=%3, final label=%4")
 					.arg(QString("%1, %2, %3")
 						.arg(it.GetIndex()[0])
 						.arg(it.GetIndex()[1])

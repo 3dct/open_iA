@@ -22,7 +22,7 @@
 
 #include <defines.h>          // for DIM
 #include <iAConnector.h>
-#include <iAConsole.h>
+#include <iALog.h>
 #include <iAToolsITK.h>
 #include <iATypedCallHelper.h>
 
@@ -71,7 +71,7 @@ void setSeeds(RegFilterT* filter, iAConnector::ImageBaseType* img)
 		case itk::ImageIOBase::FLOAT:  addSeeds(filter, dynamic_cast<itk::Image<         float, DIM>*>(img)); break;
 		case itk::ImageIOBase::DOUBLE: addSeeds(filter, dynamic_cast<itk::Image<        double, DIM>*>(img)); break;
 		default:
-			DEBUG_LOG("ERROR: Invalid/Unknown itk pixel datatype in setSeeds!"); break;
+			LOG(lvlInfo, "ERROR: Invalid/Unknown itk pixel datatype in setSeeds!"); break;
 	}
 }
 }

@@ -24,7 +24,7 @@
 #include "iAImageWidget.h"
 
 #include <iAChannelData.h>
-#include <iAConsole.h>
+#include <iALog.h>
 #include <iASlicer.h>
 #include <iASlicerMode.h>
 #include <iATransferFunction.h>
@@ -176,7 +176,7 @@ void iASpatialView::AddImageDisplay(int idx)
 {
 	if (m_guiElements.contains(idx))
 	{
-		DEBUG_LOG(QString("Image %1 already shown!").arg(idx));
+		LOG(lvlInfo, QString("Image %1 already shown!").arg(idx));
 		return;
 	}
 	ImageGUIElements gui;
@@ -313,7 +313,7 @@ void iASpatialView::AddMemberImage(QString const & caption, vtkImagePointer img,
 {
 	if (!img)
 	{
-		DEBUG_LOG("Image was null!");
+		LOG(lvlInfo, "Image was null!");
 		return;
 	}
 	if (!keep)

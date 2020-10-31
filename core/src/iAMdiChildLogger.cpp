@@ -27,7 +27,7 @@ iAMdiChildLogger::iAMdiChildLogger(MdiChild* mdiChild)
 	connect(this, &iAMdiChildLogger::logSignal, mdiChild, &MdiChild::addMsg);
 }
 
-void iAMdiChildLogger::log(QString const & msg)
+void iAMdiChildLogger::log(iALogLevel lvl, QString const & msg)
 {
 	emit logSignal(msg);
 }

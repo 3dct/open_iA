@@ -20,7 +20,7 @@
 * ************************************************************************************/
 #include "iAFixedAspectWidget.h"
 
-#include "iAConsole.h"
+#include "iALog.h"
 #include "iAVtkQtWidget.h"
 
 #include <QPainter>

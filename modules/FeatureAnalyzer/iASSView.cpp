@@ -29,7 +29,7 @@
 #include <iABoxPlotData.h>
 #include <iAChanData.h>
 #include <iAChannelData.h>
-#include <iAConsole.h>
+#include <iALog.h>
 #include <iACSVToQTableWidgetConverter.h>
 #include <iARenderer.h>
 #include <iASlicer.h>
@@ -138,7 +138,7 @@ void iASSView::updateSettings()
 void iASSView::BuildDefaultTF( vtkSmartPointer<vtkImageData> & imgData, vtkSmartPointer<vtkColorTransferFunction> & tf, QColor color )
 {
 	if (!imgData)
-		DEBUG_LOG("Image data is nullptr!");
+		LOG(lvlInfo, "Image data is nullptr!");
 	tf->RemoveAllPoints();
 	tf->AddRGBPoint( imgData->GetScalarRange()[0], 0.0, 0.0, 0.0 );
 	tf->AddRGBPoint( imgData->GetScalarRange()[1], color.redF(), color.greenF(), color.blueF() );

@@ -20,7 +20,7 @@
 * ************************************************************************************/
 #include "iAValueType.h"
 
-#include "iAConsole.h"
+#include "iALog.h"
 
 #include <QString>
 
@@ -85,7 +85,7 @@ iAValueType Str2ValueType(QString const & str)
 	}
 	else
 	{
-		DEBUG_LOG(QString("Unknown value type '%1'\n").arg(str));
+		LOG(lvlWarn, QString("Unknown value type '%1'\n").arg(str));
 		return iAValueType::Invalid;
 	}
 }

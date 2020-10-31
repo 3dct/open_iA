@@ -23,7 +23,7 @@
 #include "iACSVToQTableWidgetConverter.h"
 #include "iASelection.h"
 
-#include <iAConsole.h>
+#include <iALog.h>
 
 #include <vtkIdTypeArray.h>
 
@@ -159,7 +159,7 @@ bool iATreeView::calculatedSelectedRunsData( QList<QTreeWidgetItem*> selectedIte
 	//		if (j < finalItems[i]->columnCount() - 1);
 	//		s.append(",");
 	//	}
-	//	DEBUG_LOG(QString(s));
+	//	LOG(lvlInfo, QString(s));
 	//}
 
 	//insert header

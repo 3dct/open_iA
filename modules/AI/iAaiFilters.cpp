@@ -26,7 +26,7 @@
 #include "defines.h" // for DIM
 
 #include "iAConnector.h"
-#include "iAConsole.h"
+#include "iALog.h"
 #include "iAProgress.h"
 #include "iATypedCallHelper.h"
 
@@ -243,7 +243,7 @@ void executeDNN(iAFilter* filter, QMap<QString, QVariant> const & parameters)
 		const char* model_path = modelPathStdString.c_str();
 	#endif
 
-	DEBUG_LOG(QString("Using Onnxruntime C++ API"));
+	LOG(lvlInfo, QString("Using Onnxruntime C++ API"));
 	Ort::Session session(env, model_path, session_options);
 
 	//*************************************************************************
@@ -256,14 +256,14 @@ void executeDNN(iAFilter* filter, QMap<QString, QVariant> const & parameters)
 	std::vector<int64_t> input_node_dims;  // simplify... this model has only 1 input node {1, 3, 224, 224}.
 										   // Otherwise need vector<vector<>>
 
-	DEBUG_LOG(QString("Number of inputs = %1").arg(num_input_nodes));
+	LOG(lvlInfo, QString("Number of inputs = %1").arg(num_input_nodes));
 
 	// iterate over all input nodes
 	for (size_t i = 0; i < num_input_nodes; i++)
 	{
 		// print input node names
 		char* input_name = session.GetInputName(i, allocator);
-		DEBUG_LOG(QString("Input %1 : name=%2").arg(i).arg(input_name));
+		LOG(lvlInfo, QString("Input %1 : name=%2").arg(i).arg(input_name));
 		input_node_names[i] = input_name;
 
 		// print input node types
@@ -271,14 +271,14 @@ void executeDNN(iAFilter* filter, QMap<QString, QVariant> const & parameters)
 		auto tensor_info = type_info.GetTensorTypeAndShapeInfo();
 
 		ONNXTensorElementDataType type = tensor_info.GetElementType();
-		DEBUG_LOG(QString("Input %1 : type=%2").arg(i).arg(type));
+		LOG(lvlInfo, QString("Input %1 : type=%2").arg(i).arg(type));
 
 		// print input shapes/dims
 		input_node_dims = tensor_info.GetShape();
-		DEBUG_LOG(QString("Input %1 : num_dims=%2").arg(i).arg(input_node_dims.size()));
+		LOG(lvlInfo, QString("Input %1 : num_dims=%2").arg(i).arg(input_node_dims.size()));
 		for (size_t j = 0; j < input_node_dims.size(); j++)
 		{
-			DEBUG_LOG(QString("Input %1 : dim %2=%3").arg(i).arg(j).arg(input_node_dims[j]));
+			LOG(lvlInfo, QString("Input %1 : dim %2=%3").arg(i).arg(j).arg(input_node_dims[j]));
 			if (input_node_dims[j] == -1)
 			{
 				input_node_dims[j] = 1;
@@ -293,14 +293,14 @@ void executeDNN(iAFilter* filter, QMap<QString, QVariant> const & parameters)
 	std::vector<int64_t> output_node_dims;  // simplify... this model has only 1 input node {1, 3, 224, 224}.
 										   // Otherwise need vector<vector<>>
 
-	DEBUG_LOG(QString("Number of outputs = %1").arg(num_output_nodes));
+	LOG(lvlInfo, QString("Number of outputs = %1").arg(num_output_nodes));
 
 	// iterate over all input nodes
 	for (size_t i = 0; i < num_output_nodes; i++)
 	{
 		// print input node names
 		char* output_name = session.GetOutputName(i, allocator);
-		DEBUG_LOG(QString("Output %1 : name=%2").arg(i).arg(output_name));
+		LOG(lvlInfo, QString("Output %1 : name=%2").arg(i).arg(output_name));
 		output_node_names[i] = output_name;
 
 		// print input node types
@@ -308,14 +308,14 @@ void executeDNN(iAFilter* filter, QMap<QString, QVariant> const & parameters)
 		auto tensor_info = type_info.GetTensorTypeAndShapeInfo();
 
 		ONNXTensorElementDataType type = tensor_info.GetElementType();
-		DEBUG_LOG(QString("Output %1 : type=%2").arg(i).arg(type));
+		LOG(lvlInfo, QString("Output %1 : type=%2").arg(i).arg(type));
 
 		// print input shapes/dims
 		output_node_dims = tensor_info.GetShape();
-		DEBUG_LOG(QString("Output %1 : num_dims=%2").arg(i).arg(output_node_dims.size()));
+		LOG(lvlInfo, QString("Output %1 : num_dims=%2").arg(i).arg(output_node_dims.size()));
 		for (size_t j = 0; j < output_node_dims.size(); j++)
 		{
-			DEBUG_LOG(QString("Output %1 : dim %2=%3").arg(i).arg(j).arg(output_node_dims[j]));
+			LOG(lvlInfo, QString("Output %1 : dim %2=%3").arg(i).arg(j).arg(output_node_dims[j]));
 			if (output_node_dims[j] == -1)
 			{
 				output_node_dims[j] = 1;

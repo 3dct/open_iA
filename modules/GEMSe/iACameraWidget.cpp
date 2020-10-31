@@ -25,7 +25,7 @@
 #include "iAQtCaptionWidget.h"
 
 #include <iAColorTheme.h>
-#include <iAConsole.h>
+#include <iALog.h>
 
 #include <vtkImageData.h>
 #include <vtkCamera.h>
@@ -183,7 +183,7 @@ void iACameraWidget::showImage(vtkSmartPointer<vtkImageData> imgData)
 {
 	if (!imgData)
 	{
-		DEBUG_LOG("CameraWidget: image data is nullptr!\n");
+		LOG(lvlInfo, "CameraWidget: image data is nullptr!\n");
 		return;
 	}
 

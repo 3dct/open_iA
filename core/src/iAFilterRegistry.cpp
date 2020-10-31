@@ -20,7 +20,7 @@
 * ************************************************************************************/
 #include "iAFilterRegistry.h"
 
-#include "iAConsole.h"
+#include "iALog.h"
 #include "iAFilter.h"
 #include "iAFilterRunnerGUI.h"
 
@@ -60,7 +60,7 @@ int iAFilterRegistry::filterID(QString const & name)
 		}
 		++cur;
 	}
-	DEBUG_LOG(QString("Filter '%1' not found!").arg(name));
+	LOG(lvlError, QString("Filter '%1' not found!").arg(name));
 	return -1;
 }
 

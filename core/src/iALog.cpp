@@ -18,68 +18,16 @@
 * Contact: FH OÖ Forschungs & Entwicklungs GmbH, Campus Wels, CT-Gruppe,              *
 *          Stelzhamerstraße 23, 4600 Wels / Austria, Email: c.heinzl@fh-wels.at       *
 * ************************************************************************************/
+#include "iALog.h"
 
-#include "iATripleHistogramTFModuleInterface.h"
-#include "iATripleHistogramTFAttachment.h"
+iALogger* iALog::m_globalLogger(nullptr);
 
-#include <iALog.h>
-#include <mainwindow.h>
-
-void iATripleHistogramTFModuleInterface::Initialize()
+void iALog::setLogger(iALogger* logger)
 {
-	if (!m_mainWnd)
-	{
-		return;
-	}
-
-	QAction *action_2mod = new QAction(tr("Double Histogram Transfer Function"), m_mainWnd);
-	connect(action_2mod, &QAction::triggered, this, &iATripleHistogramTFModuleInterface::menuItemSelected_2mod);
-	makeActionChildDependent(action_2mod);
-
-	QAction *action_3mod = new QAction(tr("Triple Histogram Transfer Function"), m_mainWnd);
-	connect(action_3mod, &QAction::triggered, this, &iATripleHistogramTFModuleInterface::menuItemSelected_3mod);
-	makeActionChildDependent(action_3mod);
-
-	QMenu* submenu = getOrAddSubMenu(m_mainWnd->toolsMenu(), tr("Multi-Modal/-Channel Images"), true);
-	submenu->addAction(action_2mod);
-	submenu->addAction(action_3mod);
+	m_globalLogger = logger;
 }
 
-iAModuleAttachmentToChild* iATripleHistogramTFModuleInterface::CreateAttachment(MainWindow* mainWnd, MdiChild* child)
+iALogger* iALog::get()
 {
-	return iATripleHistogramTFAttachment::create(mainWnd, child);
-}
-
-void iATripleHistogramTFModuleInterface::menuItemSelected_2mod()
-{
-	PrepareActiveChild();
-	auto attach = GetAttachment<iATripleHistogramTFAttachment>();
-	if (!attach)
-	{
-		AttachToMdiChild(m_mdiChild);
-		attach = GetAttachment<iATripleHistogramTFAttachment>();
-		if (!attach)
-		{
-			LOG(lvlInfo, "Attaching failed!");
-			return;
-		}
-	}
-	attach->start2TF();
-}
-
-void iATripleHistogramTFModuleInterface::menuItemSelected_3mod()
-{
-	PrepareActiveChild();
-	auto attach = GetAttachment<iATripleHistogramTFAttachment>();
-	if (!attach)
-	{
-		AttachToMdiChild(m_mdiChild);
-		attach = GetAttachment<iATripleHistogramTFAttachment>();
-		if (!attach)
-		{
-			LOG(lvlInfo, "Attaching failed!");
-			return;
-		}
-	}
-	attach->start3TF();
+	return m_globalLogger;
 }

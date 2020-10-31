@@ -24,7 +24,7 @@
 
 #include <iAAttributes.h>
 #include <iAAttributeDescriptor.h>
-#include <iAConsole.h>
+#include <iALog.h>
 #include <iAMathUtility.h>
 #include <iAStringHelper.h>
 
@@ -326,7 +326,7 @@ iAParameterSetsPointer iALatinHypercubeSamplingMethod::parameterSets(QSharedPoin
 		}
 		else
 		{
-			DEBUG_LOG(QString("Sampling not supported for value type %1, using default value %2")
+			LOG(lvlInfo, QString("Sampling not supported for value type %1, using default value %2")
 				.arg(ValueType2Str(valueType)).arg(param->defaultValue().toString()));
 			for (int s = 0; s < sampleCount; ++s)
 			{
@@ -366,7 +366,7 @@ iAParameterSetsPointer iACartesianGridSamplingMethod::parameterSets(QSharedPoint
 	// maybe get sample count per parameter?
 	int actualSampleCount = std::pow(samplesPerParameter, parameters->size());
 /*
-	DEBUG_LOG(QString("param. count: %1, samples/param.: %2, targeted samples: %3, actual samples: %4")
+	LOG(lvlInfo, QString("param. count: %1, samples/param.: %2, targeted samples: %3, actual samples: %4")
 		.arg(parameter->size())
 		.arg(samplesPerParameter)
 		.arg(sampleCount)
@@ -404,7 +404,7 @@ iAParameterSetsPointer iACartesianGridSamplingMethod::parameterSets(QSharedPoint
 			set.push_back(value);
 		}
 		result->append(set);
-		//DEBUG_LOG(QString("%1: %2").arg(joinAsString(parameterRangeIdx, ",")).arg(joinAsString(result->at(result->size() - 1), ",")));
+		//LOG(lvlInfo, QString("%1: %2").arg(joinAsString(parameterRangeIdx, ",")).arg(joinAsString(result->at(result->size() - 1), ",")));
 
 		// increase indices into the parameter range:
 		++parameterRangeIdx[0];
@@ -471,7 +471,7 @@ iAParameterSetsPointer iALocalSensitivitySamplingMethod::parameterSets(QSharedPo
 		iAValueType valueType = parameters->at(p)->valueType();
 		if (valueType != iAValueType::Continuous)
 		{
-			DEBUG_LOG("Sensitivity Parameter Generator only works for Continuous parameters!");
+			LOG(lvlInfo, "Sensitivity Parameter Generator only works for Continuous parameters!");
 			return result;
 		}
 
@@ -496,7 +496,7 @@ iAParameterSetsPointer iALocalSensitivitySamplingMethod::parameterSets(QSharedPo
 			set.push_back(allValues[p][parameterRangeIdx[p]]);
 		}
 		result->append(set);
-		//DEBUG_LOG(QString("%1: %2").arg(joinAsString(parameterRangeIdx, ",")).arg(joinAsString(result->at(result->size() - 1), ",")));
+		//LOG(lvlInfo, QString("%1: %2").arg(joinAsString(parameterRangeIdx, ",")).arg(joinAsString(result->at(result->size() - 1), ",")));
 
 		// increase indices into the parameter range:
 		++parameterRangeIdx[0];
@@ -597,13 +597,13 @@ QSharedPointer<iASamplingMethod> createSamplingMethod(iASettings const& paramete
 		newParams[spnSamplingMethod] = parameters[spnBaseSamplingMethod];
 		if (newParams[spnSamplingMethod] == iASamplingMethodName::GlobalSensitivity)
 		{
-			DEBUG_LOG(QString("Cannot generate global sensitivity sampling: Base sampling method must not also be '%1'").arg(iASamplingMethodName::GlobalSensitivity));
+			LOG(lvlInfo, QString("Cannot generate global sensitivity sampling: Base sampling method must not also be '%1'").arg(iASamplingMethodName::GlobalSensitivity));
 			return QSharedPointer<iASamplingMethod>();
 		}
 		double delta = parameters[spnSensitivityDelta].toDouble();
 		auto otherSamplingMethod = createSamplingMethod(parameters);
 		return QSharedPointer<iASamplingMethod>(new iAGlobalSensitivitySamplingMethod(otherSamplingMethod, delta));
 	}
-	DEBUG_LOG(QString("Could not find sampling method '%1'").arg(methodName));
+	LOG(lvlInfo, QString("Could not find sampling method '%1'").arg(methodName));
 	return QSharedPointer<iASamplingMethod>();
 }

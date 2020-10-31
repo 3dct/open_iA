@@ -20,7 +20,7 @@
 * ************************************************************************************/
 #include "iASampleOperation.h"
 
-#include <iAConsole.h>
+#include <iALog.h>
 
 iASampleOperation::iASampleOperation():
 	m_success(false)
@@ -38,7 +38,7 @@ void iASampleOperation::run()
 	}
 	catch (std::exception& e)
 	{
-		DEBUG_LOG(QString("iASampleOperation: An exception has occurred: %1").arg(e.what()));
+		LOG(lvlInfo, QString("iASampleOperation: An exception has occurred: %1").arg(e.what()));
 		setSuccess(false);
 	}
 	m_duration = m_timer.elapsed();

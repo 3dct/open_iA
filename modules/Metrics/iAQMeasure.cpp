@@ -25,7 +25,7 @@
 #include <charts/iAPlotTypes.h>
 #include <defines.h>    // for DIM
 #include <iAConnector.h>
-#include <iAConsole.h>
+#include <iALog.h>
 #include <iAMathUtility.h>
 #include <iAProgress.h>
 #include <iAToolsITK.h>
@@ -165,10 +165,10 @@ void computeQ(iAQMeasure* filter, vtkSmartPointer<vtkImageData> img, QMap<QStrin
 	}
 	if (peaks.size() < numberOfPeaks)
 	{
-		//DEBUG_LOG(QString("Only found %1 peaks in total!").arg(peaks.size()));
+		//LOG(lvlInfo, QString("Only found %1 peaks in total!").arg(peaks.size()));
 		if (peaks.size() < 2)
 		{
-			//DEBUG_LOG(QString("Cannot continue with less than 2 peaks!"));
+			//LOG(lvlInfo, QString("Cannot continue with less than 2 peaks!"));
 			if (parameters["Histogram-based SNR (highest non-air-peak)"].toBool())
 			{
 				filter->addOutputValue("Histogram-based SNR (highest non-air-peak)", 0);
@@ -224,7 +224,7 @@ void computeQ(iAQMeasure* filter, vtkSmartPointer<vtkImageData> img, QMap<QStrin
 			}
 		}
 		thresholdIndices[m + 1] = minIdx;
-		//DEBUG_LOG(QString("Threshold %1: %2 (bin %3)").arg(m).arg(minVal + (minIdx * (maxVal - minVal) / binCount)).arg(minIdx));
+		//LOG(lvlInfo, QString("Threshold %1: %2 (bin %3)").arg(m).arg(minVal + (minIdx * (maxVal - minVal) / binCount)).arg(minIdx));
 		// calculate mean/stddev:
 		getMeanVariance(vecHist, minVal, maxVal, thresholdIndices[m], thresholdIndices[m + 1], mean[m], variance[m]);
 		if (filter->m_chart)
@@ -233,7 +233,7 @@ void computeQ(iAQMeasure* filter, vtkSmartPointer<vtkImageData> img, QMap<QStrin
 	// for last peak we still have to calculate mean and stddev
 	getMeanVariance(vecHist, minVal, maxVal, thresholdIndices[numberOfPeaks - 1], thresholdIndices[numberOfPeaks], mean[numberOfPeaks - 1], variance[numberOfPeaks - 1]);
 	//for (int p = 0; p < numberOfPeaks; ++p)
-	//	DEBUG_LOG(QString("Peak %1: mean=%2, variance=%3, stddev=%4").arg(p).arg(mean[p]).arg(variance[p]).arg(std::sqrt(variance[p])));
+	//	LOG(lvlInfo, QString("Peak %1: mean=%2, variance=%3, stddev=%4").arg(p).arg(mean[p]).arg(variance[p]).arg(std::sqrt(variance[p])));
 	if (filter->m_mdiChild)
 	{
 		for (size_t p = 0; p < numberOfPeaks; ++p)
@@ -276,7 +276,7 @@ void computeQ(iAQMeasure* filter, vtkSmartPointer<vtkImageData> img, QMap<QStrin
 	}
 	if (minDistToZeroIdx == NoIdx || highestNonAirPeakIdx == NoIdx)
 	{
-		DEBUG_LOG("No index for peak close to zero or highest non-air peak found!");
+		LOG(lvlInfo, "No index for peak close to zero or highest non-air peak found!");
 		return;
 	}
 	if (parameters["Histogram-based SNR (highest non-air-peak)"].toBool())
@@ -298,7 +298,7 @@ void computeQ(iAQMeasure* filter, vtkSmartPointer<vtkImageData> img, QMap<QStrin
 				}
 				if (numberOfPeaks > 2)
 				{
-					DEBUG_LOG(QString("Q(peak %1, peak %2) = %3").arg(p1).arg(p2).arg(curQ));
+					LOG(lvlInfo, QString("Q(peak %1, peak %2) = %3").arg(p1).arg(p2).arg(curQ));
 				}
 			}
 		}

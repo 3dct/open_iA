@@ -20,7 +20,7 @@
 * ************************************************************************************/
 #include "iARedirectItkOutput.h"
 
-#include "iAConsole.h"
+#include "iALog.h"
 
 iARedirectItkOutput::Pointer iARedirectItkOutput::m_instance;
 
@@ -36,27 +36,27 @@ iARedirectItkOutput::Pointer iARedirectItkOutput::New()
 
 void iARedirectItkOutput::DisplayDebugText(const char *t)
 {
-	DEBUG_LOG(QString("ITK %1").arg(t));
+	LOG(lvlDebug, QString("ITK %1").arg(t));
 }
 
 void iARedirectItkOutput::DisplayErrorText(const char *t)
 {
-	DEBUG_LOG(QString("ITK %1").arg(t));
+	LOG(lvlError, QString("ITK %1").arg(t));
 }
 
 void iARedirectItkOutput::DisplayGenericOutputText(const char *t)
 {
-	DEBUG_LOG(QString("ITK %1").arg(t));
+	LOG(lvlInfo, QString("ITK %1").arg(t));
 }
 
 void iARedirectItkOutput::DisplayText(const char * t)
 {
-	DEBUG_LOG(QString("ITK %1").arg(t));
+	LOG(lvlInfo, QString("ITK %1").arg(t));
 }
 
 void iARedirectItkOutput::DisplayWarningText(const char *t)
 {
-	DEBUG_LOG(QString("ITK %1").arg(t));
+	LOG(lvlWarn, QString("ITK %1").arg(t));
 }
 
 void iARedirectItkOutput::SetPromptUser(bool /*arg*/)

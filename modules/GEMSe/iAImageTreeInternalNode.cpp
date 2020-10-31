@@ -23,7 +23,7 @@
 #include "iAGEMSeConstants.h" // for iARepresentativeType -> move to iARepresentative?
 #include "iARepresentative.h"
 
-#include <iAConsole.h>
+#include <iALog.h>
 #include <iAMathUtility.h>
 #include <iAToolsITK.h>
 
@@ -161,7 +161,7 @@ ClusterImageType iAImageTreeInternalNode::CalculateRepresentative(int type, Labe
 		return m_representative[iARepresentativeType::AverageLabel];
 	}
 	default:
-		DEBUG_LOG("Requested to calculate invalid representative type!");
+		LOG(lvlInfo, "Requested to calculate invalid representative type!");
 		return ClusterImageType();
 	}
 }
@@ -193,7 +193,7 @@ ClusterImageType iAImageTreeInternalNode::CalculateFilteredRepresentative(int ty
 
 
 	default:
-		DEBUG_LOG("Requested to calculate invalid filtered representative type!");
+		LOG(lvlInfo, "Requested to calculate invalid filtered representative type!");
 		return ClusterImageType();
 	}
 }
@@ -272,7 +272,7 @@ ClusterImageType const iAImageTreeInternalNode::GetRepresentativeImage(int type,
 		// fine, this just means that all images were filtered out!
 		if (!m_filteredRepresentative[type])
 		{
-		DEBUG_LOG("Filtered representative is nullptr!");
+		LOG(lvlInfo, "Filtered representative is nullptr!");
 		}
 		*/
 		return m_filteredRepresentative[type];
@@ -297,7 +297,7 @@ ClusterImageType const iAImageTreeInternalNode::GetRepresentativeImage(int type,
 	}
 	if (!m_representative[type])
 	{
-		//DEBUG_LOG("Representative is nullptr!");
+		//LOG(lvlInfo, "Representative is nullptr!");
 	}
 	return m_representative[type];
 }
@@ -357,7 +357,7 @@ void iAImageTreeInternalNode::RecalculateFilteredRepresentative(int type, LabelI
 	m_filteredRepresentativeOutdated = false;
 	if (GetFilteredSize() == GetClusterSize())
 	{
-		DEBUG_LOG("RecalculateFilteredRepresentative called without need (not filtered!)");
+		LOG(lvlInfo, "RecalculateFilteredRepresentative called without need (not filtered!)");
 		// return;
 	}
 	m_filteredRepresentative[type] = CalculateFilteredRepresentative(type, refImg);

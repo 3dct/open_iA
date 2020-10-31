@@ -24,7 +24,7 @@
 #include "iACsvConfig.h"
 #include "iACsvQTableCreator.h"
 
-#include <iAConsole.h>
+#include <iALog.h>
 
 #include <QFileDialog>
 #include <QKeyEvent>
@@ -223,7 +223,7 @@ void dlg_CSVInput::exportTable()
 	iACsvQTableCreator creator(&tw);
 	if (!io.loadCSV(creator, m_confParams, std::numeric_limits<size_t>::max()))
 	{
-		DEBUG_LOG("Error loading csv file.");
+		LOG(lvlInfo, "Error loading csv file.");
 		return;
 	}
 
@@ -231,7 +231,7 @@ void dlg_CSVInput::exportTable()
 	QFile origCSV(origCSVFileName);
 	if (!origCSV.open(QIODevice::ReadOnly))
 	{
-		DEBUG_LOG("Error loading csv file, file does not exist.");
+		LOG(lvlInfo, "Error loading csv file, file does not exist.");
 		return;
 	}
 	QStringList origCSVInfo;
@@ -245,14 +245,14 @@ void dlg_CSVInput::exportTable()
 		m_path, "CSV file (*.csv);;");
 	if (exportCSVFileName.isEmpty())
 	{
-		DEBUG_LOG("Error, file name is empty.");
+		LOG(lvlInfo, "Error, file name is empty.");
 		return;
 	}
 
 	QFile csvExport(exportCSVFileName);
 	if (!csvExport.open(QIODevice::WriteOnly | QIODevice::Text))
 	{
-		DEBUG_LOG("Error loading csv file, file does not exist.");
+		LOG(lvlInfo, "Error loading csv file, file does not exist.");
 		return;
 	}
 
@@ -482,7 +482,7 @@ void dlg_CSVInput::showConfigParams()
 		m_confParams.skipLinesEnd > std::numeric_limits<int>::max() ||
 		m_confParams.segmentSkip > std::numeric_limits<int>::max())
 	{
-		DEBUG_LOG("Skip Line start/end or segment skip number is too high for display in this dialog!");
+		LOG(lvlInfo, "Skip Line start/end or segment skip number is too high for display in this dialog!");
 	}
 	int index = cmbbox_ObjectType->findText(MapObjectTypeToString(m_confParams.objectType), Qt::MatchContains);
 	cmbbox_ObjectType->setCurrentIndex(index);
@@ -549,7 +549,7 @@ void dlg_CSVInput::assignFormatSettings()
 		{
 			if (usedColumns.contains(m_mappingBoxes[i]->currentText()))
 			{
-				DEBUG_LOG(QString("Column '%1' used more than once!").arg(m_mappingBoxes[i]->currentText()));
+				LOG(lvlInfo, QString("Column '%1' used more than once!").arg(m_mappingBoxes[i]->currentText()));
 			}
 			else
 				usedColumns.insert(m_mappingBoxes[i]->currentText());
@@ -642,7 +642,7 @@ void dlg_CSVInput::showSelectedCols()
 		if (idx >= 0 && idx < list_ColumnSelection->count())
 			list_ColumnSelection->item(idx)->setSelected(true);
 		else
-			DEBUG_LOG(QString("Header entry %1 not found, skipping its selection.").arg(selected));
+			LOG(lvlInfo, QString("Header entry %1 not found, skipping its selection.").arg(selected));
 	}
 	if (m_confParams.addAutoID)
 		ed_col_ID->setText(iACsvIO::ColNameAutoID);

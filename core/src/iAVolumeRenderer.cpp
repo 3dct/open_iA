@@ -20,7 +20,7 @@
 * ************************************************************************************/
 #include "iAVolumeRenderer.h"
 
-#include "iAConsole.h"
+#include "iALog.h"
 #include "iATransferFunction.h"
 #include "iAVolumeSettings.h"
 
@@ -189,7 +189,7 @@ void iAVolumeRenderer::remove()
 	{
 		if (!m_isFlat)
 		{
-			DEBUG_LOG("RemoveFromWindow called on VolumeRenderer which was not attached to a window!");
+			LOG(lvlWarn, "RemoveFromWindow called on VolumeRenderer which was not attached to a window!");
 		}
 		return;
 	}

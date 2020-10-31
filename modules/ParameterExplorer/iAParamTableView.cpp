@@ -20,7 +20,7 @@
 * ************************************************************************************/
 #include "iAParamTableView.h"
 
-#include <iAConsole.h>
+#include <iALog.h>
 
 #include <QFile>
 #include <QHBoxLayout>
@@ -42,7 +42,7 @@ void iAParamTableView::LoadCSVData(QString const & csvFileName)
 	QFile file(csvFileName);
 	if (!file.open(QIODevice::ReadOnly | QIODevice::Text))
 	{
-		DEBUG_LOG(QString("Could not read csv file %1").arg(csvFileName));
+		LOG(lvlInfo, QString("Could not read csv file %1").arg(csvFileName));
 		return;
 	}
 	QStringList csvLines;
@@ -88,7 +88,7 @@ void iAParamTableView::LoadCSVData(QString const & csvFileName)
 		}
 		if (items.size() < headers.size())
 		{
-			DEBUG_LOG(QString("Line %1 has less columns(%2) than expected(%3)").arg(row).arg(items.size()).arg(headers.size()));
+			LOG(lvlInfo, QString("Line %1 has less columns(%2) than expected(%3)").arg(row).arg(items.size()).arg(headers.size()));
 			for (int col = items.size(); col < headers.size(); ++col)
 			{
 				m_table->setItem(row, col, new QTableWidgetItem("0"));

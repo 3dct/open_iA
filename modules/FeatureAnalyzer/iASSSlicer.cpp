@@ -26,7 +26,7 @@
 #include <iAChannelData.h>
 #include <iAChannelSlicerData.h>
 #include <iAConnector.h>
-#include <iAConsole.h>
+#include <iALog.h>
 #include <iASlicer.h>
 #include <iASlicerSettings.h>
 #include <io/iAITKIO.h>
@@ -96,7 +96,7 @@ void loadImageData( QString const & fileName, vtkSmartPointer<vtkImageData> & im
 	imgData = reader->GetOutput();
 	if (!imgData)
 	{
-		DEBUG_LOG("Image data is nullptr!");
+		LOG(lvlInfo, "Image data is nullptr!");
 	}
 }
 

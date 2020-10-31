@@ -30,6 +30,7 @@
 #include "dlg_openfile_sizecheck.h"
 #include "iACheckOpenGL.h"
 #include "iAConsole.h"
+#include "iALog.h"
 #include "iALogger.h"
 #include "iAMathUtility.h"
 #include "iAModuleDispatcher.h"
@@ -2054,7 +2055,7 @@ void MainWindow::setCurrentFile(const QString &fileName)
 {
 	if (fileName.isEmpty())
 	{
-		DEBUG_LOG("Can't use empty filename as current!");
+		LOG(lvlWarn, "Can't use empty filename as current!");
 		return;
 	}
 	m_curFile = fileName;
@@ -2416,7 +2417,7 @@ void MainWindow::loadArguments(int argc, char** argv)
 			}
 			else
 			{
-				DEBUG_LOG("Invalid --quit parameter; must be followed by an integer number (milliseconds) after which to quit, e.g. '--quit 1000'");
+				LOG(lvlWarn, "Invalid --quit parameter; must be followed by an integer number (milliseconds) after which to quit, e.g. '--quit 1000'");
 			}
 		}
 		else
@@ -2504,7 +2505,7 @@ void MainWindow::openWithDataTypeConversion()
 	}
 	catch (std::exception & e)
 	{
-		DEBUG_LOG(QString("Open with datatype conversion: %1").arg(e.what()));
+		LOG(lvlError, QString("Open with datatype conversion: %1").arg(e.what()));
 	}
 }
 
@@ -2529,7 +2530,7 @@ void MainWindow::loadTLGICTData(QString const & baseDirectory)
 	// tlgictLoader will delete itself when finished!
 }
 
-#include "iAConsole.h"
+#include "iALog.h"
 #include "iASCIFIOCheck.h"
 
 #include <QApplication>
@@ -2581,7 +2582,7 @@ int MainWindow::runGUI(int argc, char * argv[], QString const & appName, QString
 		}
 		if (runningScripted)
 		{
-			DEBUG_LOG(msg);
+			LOG(lvlWarn, msg);
 		}
 		else
 		{
@@ -2590,7 +2591,7 @@ int MainWindow::runGUI(int argc, char * argv[], QString const & appName, QString
 		return 1;
 	}
 	app.setAttribute(Qt::AA_DontCreateNativeWidgetSiblings);
-	iAGlobalLogger::setLogger(iAConsole::instance());
+	iALog::setLogger(iAConsole::instance());
 	MainWindow mainWin(appName, version, buildInformation, splashPath);
 	mainWin.addDockWidget(Qt::RightDockWidgetArea, iAConsole::instance()->dockWidget());
 	CheckSCIFIO(QCoreApplication::applicationDirPath());

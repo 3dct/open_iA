@@ -26,7 +26,7 @@
 #include "iAGEMSeConstants.h"
 #include "iATriangleButton.h"
 
-#include <iAConsole.h>
+#include <iALog.h>
 
 #include <QLabel>
 #include <QMouseEvent>
@@ -179,7 +179,7 @@ void iAImageNodeWidget::ExpandButtonClicked()
 	}
 	if (m_cluster->GetDistance() == 0)
 	{
-		DEBUG_LOG("Cluster only holds exactly equal results, skipping expansion!");
+		LOG(lvlInfo, "Cluster only holds exactly equal results, skipping expansion!");
 		return;
 	}
 	emit Expand(IsExpanded());

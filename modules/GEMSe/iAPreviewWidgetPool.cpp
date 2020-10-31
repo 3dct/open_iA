@@ -22,7 +22,7 @@
 
 #include "iAImagePreviewWidget.h"
 
-#include <iAConsole.h>
+#include <iALog.h>
 
 iAPreviewWidgetPool::iAPreviewWidgetPool(int maxWidgets, vtkCamera* camera, iASlicerMode slicerMode, int labelCount, iAColorTheme const * colorTheme):
 	m_commonCamera(camera),
@@ -46,7 +46,7 @@ iAImagePreviewWidget* iAPreviewWidgetPool::getWidget(QWidget* parent, bool /*mag
 	if (m_pool.size() == 0)
 	{
 #if _DEBUG
-		DEBUG_LOG("No more slicer widgets available!\n");
+		LOG(lvlInfo, "No more slicer widgets available!\n");
 #endif
 		return 0;
 	}
@@ -81,7 +81,7 @@ void iAPreviewWidgetPool::setSlicerMode(iASlicerMode mode, int sliceNr, vtkCamer
 	m_slicerMode = mode;
 	if (m_sliceNumber[m_slicerMode] != sliceNr && m_sliceNumber[m_slicerMode] != iAImagePreviewWidget::SliceNumberNotSet)
 	{
-		DEBUG_LOG(QString("Current and given sliceNumber unexpectedly don't match (sliceNr=%1 != m_sliceNumber[mode]=%2\n")
+		LOG(lvlInfo, QString("Current and given sliceNumber unexpectedly don't match (sliceNr=%1 != m_sliceNumber[mode]=%2\n")
 			.arg(sliceNr)
 			.arg(m_sliceNumber[m_slicerMode]));
 	}

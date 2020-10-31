@@ -24,7 +24,7 @@
 #include "iAChartAttributeMapper.h"
 #include "iAImageTreeLeaf.h"
 
-#include <iAConsole.h>
+#include <iALog.h>
 #include <iAMapperImpl.h>    // for LogFunc -> TODO: use iAMapper-derived classes here!
 #include <iAMathUtility.h>
 
@@ -156,7 +156,7 @@ iAParamHistogramData::iAParamHistogramData(size_t numBin, double min, double max
 	assert(!m_log || min > 0);
 	if (m_log && min <= 0)
 	{
-		DEBUG_LOG("Need to define minimum bigger than 0 for logarithmic scale!");
+		LOG(lvlInfo, "Need to define minimum bigger than 0 for logarithmic scale!");
 		min = 0.000001;
 	}
 	reset();

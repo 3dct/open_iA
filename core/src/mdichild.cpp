@@ -34,7 +34,7 @@
 #include "iAAlgorithm.h"
 #include "iAChannelData.h"
 #include "iAChannelSlicerData.h"
-#include "iAConsole.h"
+#include "iALog.h"
 #include "iARunAsync.h"
 #include "qthelper/iADockWidgetWrapper.h"
 #include "iAJobListView.h"
@@ -531,7 +531,7 @@ bool MdiChild::setupLoadIO(QString const& f, bool isStack)
 	}
 	if (ext2id->find(extension) == ext2id->end())
 	{
-		DEBUG_LOG(QString("Could not find loader for extension '%1' of file '%2'!").arg(extension).arg(f));
+		LOG(lvlError, QString("Could not find loader for extension '%1' of file '%2'!").arg(extension).arg(f));
 		return false;
 	}
 	iAIOType id = ext2id->find(extension).value();
@@ -576,7 +576,7 @@ bool MdiChild::loadFile(const QString& f, bool isStack)
 {
 	if (!QFile::exists(f))
 	{
-		DEBUG_LOG(QString("File '%1' does not exist!").arg(f));
+		LOG(lvlError, QString("File '%1' does not exist!").arg(f));
 		return false;
 	}
 
@@ -704,7 +704,7 @@ void MdiChild::setupStackView(bool active)
 
 	if (m_volumeStack->numberOfVolumes() == 0)
 	{
-		DEBUG_LOG("Invalid call to setupStackView: No Volumes loaded!");
+		LOG(lvlError, "Invalid call to setupStackView: No Volumes loaded!");
 		return;
 	}
 
@@ -737,7 +737,7 @@ void MdiChild::setupViewInternal(bool active)
 {
 	if (!m_imageData)
 	{
-		DEBUG_LOG("Image Data is not set!");
+		LOG(lvlError, "Image Data is not set!");
 		return;
 	}
 	if (!active)
@@ -2567,7 +2567,7 @@ void MdiChild::changeMagicLensModality(int chg)
 	}
 	if (m_currentModality < 0 || m_currentModality >= modalities()->size())
 	{
-		DEBUG_LOG("Invalid modality index!");
+		LOG(lvlWarn, "Invalid modality index!");
 		m_currentModality = 0;
 		return;
 	}

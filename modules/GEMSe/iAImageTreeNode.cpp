@@ -20,7 +20,7 @@
 * ************************************************************************************/
 #include "iAImageTreeNode.h"
 
-#include <iAConsole.h>
+#include <iALog.h>
 
 iAImageTreeNode::iAImageTreeNode() :
 	m_attitude(NoPreference)
@@ -109,12 +109,12 @@ vtkSmartPointer<vtkImageData> iAImageTreeNode::GetCorrectnessEntropyImage(LabelI
 	auto entropyImg = dynamic_cast<ProbabilityImageType*>(GetRepresentativeImage(iARepresentativeType::AverageEntropy, refImg).GetPointer());
 	if (!correctnessImg)
 	{
-		DEBUG_LOG("Correctness image not available!");
+		LOG(lvlInfo, "Correctness image not available!");
 		return vtkSmartPointer<vtkImageData>();
 	}
 	if (!entropyImg)
 	{
-		DEBUG_LOG("Entropy image not available!");
+		LOG(lvlInfo, "Entropy image not available!");
 		return vtkSmartPointer<vtkImageData>();
 	}
 

@@ -30,30 +30,14 @@
 #include <fstream>
 
 
-// iAGlobalLogger
-
-iALogger* iAGlobalLogger::m_globalLogger(nullptr);
-
-void iAGlobalLogger::setLogger(iALogger* logger)
-{
-	m_globalLogger = logger;
-}
-
-iALogger* iAGlobalLogger::get()
-
-{
-	return m_globalLogger;
-}
-
-
 // iAConsole
 
-void iAConsole::log(QString const & text)
+void iAConsole::log(iALogLevel lvl, QString const & text)
 {
-	emit logSignal(text);
+	emit logSignal(lvl, text);
 }
 
-void iAConsole::logSlot(QString const & text)
+void iAConsole::logSlot(iALogLevel lvl, QString const & text)
 {
 	// The log window prevents the whole application from shutting down
 	// if it is still open at the time the program should exit.
@@ -113,7 +97,7 @@ void iAConsole::setLogToFile(bool value, QString const & fileName, bool verbose)
 {
 	if (verbose && m_logToFile != value)
 	{
-		logSlot(QString("%1 logging to file '%2'...").arg(value ? "Enabling" : "Disabling").arg(m_logFileName));
+		logSlot(lvlInfo, QString("%1 logging to file '%2'...").arg(value ? "Enabling" : "Disabling").arg(m_logFileName));
 	}
 	m_logToFile = value;
 	m_logFileName = fileName;
@@ -192,9 +176,9 @@ iALogger::~iALogger()
 
 // iAConsoleLogger
 
-void iAConsoleLogger::log(QString const & msg)
+void iAConsoleLogger::log(iALogLevel lvl, QString const & msg)
 {
-	iAConsole::instance()->log(msg);
+	iAConsole::instance()->log(lvl, msg);
 }
 
 iAConsoleLogger * iAConsoleLogger::get()
@@ -210,7 +194,7 @@ iAConsoleLogger::iAConsoleLogger()
 
 // iAStdOutLogger
 
-void iAStdOutLogger::log(QString const & msg)
+void iAStdOutLogger::log(iALogLevel lvl, QString const & msg)
 {
 	std::cout << msg.toStdString() << std::endl;
 }

@@ -23,7 +23,7 @@
 #include "dlg_trackingGraph.h"
 #include "iAFeatureTracking.h"
 
-#include <iAConsole.h>
+#include <iALog.h>
 #include <iAVolumeStack.h>
 #include <iAVtkWidget.h>
 #include <mdichild.h>
@@ -84,7 +84,7 @@ dlg_eventExplorer::dlg_eventExplorer(QWidget *parent, size_t numberOfCharts, int
 	{
 		for (int r = 0; r < 5; r++)
 		{
-			DEBUG_LOG(QString("rgb[%1][%2] = %3").arg(r).arg(c).arg(m_rgb[r][c]));
+			LOG(lvlInfo, QString("rgb[%1][%2] = %3").arg(r).arg(c).arg(m_rgb[r][c]));
 		}
 	}
 
@@ -391,7 +391,7 @@ dlg_eventExplorer::dlg_eventExplorer(QWidget *parent, size_t numberOfCharts, int
 		auto u = ftB->getU();
 		auto v = ftF->getV();
 
-		DEBUG_LOG(QString("%1:   %2 rows in u, %3 rows in v").arg(t).arg(u->GetNumberOfRows()).arg(v->GetNumberOfRows()));
+		LOG(lvlInfo, QString("%1:   %2 rows in u, %3 rows in v").arg(t).arg(u->GetNumberOfRows()).arg(v->GetNumberOfRows()));
 
 		/*for (int i = 1; i <= numberOfRows; i++)
 		{
@@ -410,7 +410,7 @@ dlg_eventExplorer::dlg_eventExplorer(QWidget *parent, size_t numberOfCharts, int
 
 		int numberOfRows = (t > 0) ? u->GetNumberOfRows() : v->GetNumberOfRows();
 
-		DEBUG_LOG(QString("%1 rows\n").arg(numberOfRows));
+		LOG(lvlInfo, QString("%1 rows\n").arg(numberOfRows));
 
 		for (int i = 0; i < numberOfRows; ++i) //ft->getNumberOfEventsInV()
 		{
@@ -422,7 +422,7 @@ dlg_eventExplorer::dlg_eventExplorer(QWidget *parent, size_t numberOfCharts, int
 				/* ++c */  // currently only one loop iteration is performed anyway (see break at end) -> unreachable code warning if uncommented
 			)
 			{
-				DEBUG_LOG(QString("i: %1   c->id: %2, event: %3, overlap: %4, volumeRatio: %5   %6, %7, %8, %9")
+				LOG(lvlInfo, QString("i: %1   c->id: %2, event: %3, overlap: %4, volumeRatio: %5   %6, %7, %8, %9")
 					.arg(i).arg(c->id).arg(c->featureEvent).arg(c->overlap).arg(c->volumeRatio)
 					.arg(toqstr(v->GetValue(i, 4))).arg(toqstr(v->GetValue(i, 5)))
 					.arg(toqstr(v->GetValue(i, 6))).arg(toqstr(v->GetValue(i, 7))));
@@ -752,7 +752,7 @@ void dlg_eventExplorer::updateOpacityGrid(int v)
 
 void dlg_eventExplorer::updateCheckBoxCreation(int /*c*/)
 {
-	DEBUG_LOG(QString("BEFORE   %1 %2 %3 %4 %5   -   %6")
+	LOG(lvlInfo, QString("BEFORE   %1 %2 %3 %4 %5   -   %6")
 		.arg(m_plotPositionInVector[0]).arg(m_plotPositionInVector[1]).arg(m_plotPositionInVector[2])
 		.arg(m_plotPositionInVector[3]).arg(m_plotPositionInVector[4]).arg(m_numberOfActivePlots));
 
@@ -795,14 +795,14 @@ void dlg_eventExplorer::updateCheckBoxCreation(int /*c*/)
 	}
 	creationCheckBox->update();
 	creationSlider->update();
-	DEBUG_LOG(QString("AFTER   %1 %2 %3 %4 %5   -   %6")
+	LOG(lvlInfo, QString("AFTER   %1 %2 %3 %4 %5   -   %6")
 		.arg(m_plotPositionInVector[0]).arg(m_plotPositionInVector[1]).arg(m_plotPositionInVector[2])
 		.arg(m_plotPositionInVector[3]).arg(m_plotPositionInVector[4]).arg(m_numberOfActivePlots));
 }
 
 void dlg_eventExplorer::updateCheckBoxContinuation(int /*c*/)
 {
-	DEBUG_LOG(QString("BEFORE   %1 %2 %3 %4 %5   -   %6")
+	LOG(lvlInfo, QString("BEFORE   %1 %2 %3 %4 %5   -   %6")
 		.arg(m_plotPositionInVector[0]).arg(m_plotPositionInVector[1]).arg(m_plotPositionInVector[2])
 		.arg(m_plotPositionInVector[3]).arg(m_plotPositionInVector[4]).arg(m_numberOfActivePlots));
 	if(!continuationCheckBox->isChecked())
@@ -843,14 +843,14 @@ void dlg_eventExplorer::updateCheckBoxContinuation(int /*c*/)
 	}
 	continuationCheckBox->update();
 	continuationSlider->update();
-	DEBUG_LOG(QString("AFTER   %1 %2 %3 %4 %5   -   %6")
+	LOG(lvlInfo, QString("AFTER   %1 %2 %3 %4 %5   -   %6")
 		.arg(m_plotPositionInVector[0]).arg(m_plotPositionInVector[1]).arg(m_plotPositionInVector[2])
 		.arg(m_plotPositionInVector[3]).arg(m_plotPositionInVector[4]).arg(m_numberOfActivePlots));
 }
 
 void dlg_eventExplorer::updateCheckBoxSplit(int /*c*/)
 {
-	DEBUG_LOG(QString("BEFORE   %1 %2 %3 %4 %5   -   %6")
+	LOG(lvlInfo, QString("BEFORE   %1 %2 %3 %4 %5   -   %6")
 		.arg(m_plotPositionInVector[0]).arg(m_plotPositionInVector[1]).arg(m_plotPositionInVector[2])
 		.arg(m_plotPositionInVector[3]).arg(m_plotPositionInVector[4]).arg(m_numberOfActivePlots));
 	if(!splitCheckBox->isChecked())
@@ -891,14 +891,14 @@ void dlg_eventExplorer::updateCheckBoxSplit(int /*c*/)
 	}
 	splitCheckBox->update();
 	splitSlider->update();
-	DEBUG_LOG(QString("AFTER   %1 %2 %3 %4 %5   -   %6")
+	LOG(lvlInfo, QString("AFTER   %1 %2 %3 %4 %5   -   %6")
 		.arg(m_plotPositionInVector[0]).arg(m_plotPositionInVector[1]).arg(m_plotPositionInVector[2])
 		.arg(m_plotPositionInVector[3]).arg(m_plotPositionInVector[4]).arg(m_numberOfActivePlots));
 }
 
 void dlg_eventExplorer::updateCheckBoxMerge(int /*c*/)
 {
-	DEBUG_LOG(QString("BEFORE   %1 %2 %3 %4 %5   -   %6")
+	LOG(lvlInfo, QString("BEFORE   %1 %2 %3 %4 %5   -   %6")
 		.arg(m_plotPositionInVector[0]).arg(m_plotPositionInVector[1]).arg(m_plotPositionInVector[2])
 		.arg(m_plotPositionInVector[3]).arg(m_plotPositionInVector[4]).arg(m_numberOfActivePlots));
 	if (!mergeCheckBox->isChecked())
@@ -939,14 +939,14 @@ void dlg_eventExplorer::updateCheckBoxMerge(int /*c*/)
 	}
 	mergeCheckBox->update();
 	mergeSlider->update();
-	DEBUG_LOG(QString("AFTER   %1 %2 %3 %4 %5   -   %6")
+	LOG(lvlInfo, QString("AFTER   %1 %2 %3 %4 %5   -   %6")
 		.arg(m_plotPositionInVector[0]).arg(m_plotPositionInVector[1]).arg(m_plotPositionInVector[2])
 		.arg(m_plotPositionInVector[3]).arg(m_plotPositionInVector[4]).arg(m_numberOfActivePlots));
 }
 
 void dlg_eventExplorer::updateCheckBoxDissipation(int /*c*/)
 {
-	DEBUG_LOG(QString("BEFORE   %1 %2 %3 %4 %5   -   %6")
+	LOG(lvlInfo, QString("BEFORE   %1 %2 %3 %4 %5   -   %6")
 		.arg(m_plotPositionInVector[0]).arg(m_plotPositionInVector[1]).arg(m_plotPositionInVector[2])
 		.arg(m_plotPositionInVector[3]).arg(m_plotPositionInVector[4]).arg(m_numberOfActivePlots));
 	if (!dissipationCheckBox->isChecked())
@@ -987,7 +987,7 @@ void dlg_eventExplorer::updateCheckBoxDissipation(int /*c*/)
 	}
 	dissipationCheckBox->update();
 	dissipationSlider->update();
-	DEBUG_LOG(QString("AFTER   %1 %2 %3 %4 %5   -   %6")
+	LOG(lvlInfo, QString("AFTER   %1 %2 %3 %4 %5   -   %6")
 		.arg(m_plotPositionInVector[0]).arg(m_plotPositionInVector[1]).arg(m_plotPositionInVector[2])
 		.arg(m_plotPositionInVector[3]).arg(m_plotPositionInVector[4]).arg(m_numberOfActivePlots));
 }
@@ -1168,18 +1168,18 @@ void dlg_eventExplorer::chartMouseButtonCallBack(vtkObject * /*obj*/)
 		m_nodes.push_back(std::vector<int>());
 	}
 
-	DEBUG_LOG("\n\nSELECTION");
+	LOG(lvlInfo, "\n\nSELECTION");
 
 	vtkColorTransferFunction *cTF;
 	vtkPiecewiseFunction *oTF;
 
 	if (m_numberOfCharts > std::numeric_limits<int>::max())
 	{
-		DEBUG_LOG(QString("Number of charts (%1) larger than supported (%2)!").arg(m_numberOfCharts).arg(std::numeric_limits<int>::max()));
+		LOG(lvlInfo, QString("Number of charts (%1) larger than supported (%2)!").arg(m_numberOfCharts).arg(std::numeric_limits<int>::max()));
 	}
 	for (size_t i = 0; i < m_numberOfCharts; ++i)
 	{
-		DEBUG_LOG(QString("\nChart[%1]").arg(i));
+		LOG(lvlInfo, QString("\nChart[%1]").arg(i));
 
 		cTF = m_volumeStack->colorTF(i);
 		oTF = m_volumeStack->opacityTF(i);
@@ -1213,7 +1213,7 @@ void dlg_eventExplorer::chartMouseButtonCallBack(vtkObject * /*obj*/)
 
 				if (ids != 0)
 				{
-					DEBUG_LOG(QString("  Plot[%1] is active. %2 selected.").arg(j).arg(ids->GetNumberOfTuples()));
+					LOG(lvlInfo, QString("  Plot[%1] is active. %2 selected.").arg(j).arg(ids->GetNumberOfTuples()));
 
 					for (int k = 0; k < m_numberOfEventTypes; ++k)
 					{
@@ -1223,23 +1223,23 @@ void dlg_eventExplorer::chartMouseButtonCallBack(vtkObject * /*obj*/)
 							switch (k)
 							{
 							case 0:
-								DEBUG_LOG("   Creation Events");
+								LOG(lvlInfo, "   Creation Events");
 								//plots.at(numberOfCharts * 0)->GetColor(rgb);
 								break;
 							case 1:
-								DEBUG_LOG("   Continuation Events");
+								LOG(lvlInfo, "   Continuation Events");
 								//plots.at(numberOfCharts * 1)->GetColor(rgb);
 								break;
 							case 2:
-								DEBUG_LOG("   Split Events");
+								LOG(lvlInfo, "   Split Events");
 								//plots.at(numberOfCharts * 2)->GetColor(rgb);
 								break;
 							case 3:
-								DEBUG_LOG("   Merge Events");
+								LOG(lvlInfo, "   Merge Events");
 								//plots.at(numberOfCharts * 3)->GetColor(rgb);
 								break;
 							case 4:
-								DEBUG_LOG("   Dissipation Events");
+								LOG(lvlInfo, "   Dissipation Events");
 								//plots.at(numberOfCharts * 4)->GetColor(rgb);
 								break;
 							}
@@ -1247,7 +1247,7 @@ void dlg_eventExplorer::chartMouseButtonCallBack(vtkObject * /*obj*/)
 							for (int l = 0; l < ids->GetNumberOfTuples(); ++l)
 							{
 								double id = m_tables.at(i + m_numberOfCharts * k)->GetRow(ids->GetValue(l))->GetValue(0).ToDouble();
-								DEBUG_LOG(QString("    %1 --> table id: %2").arg(ids->GetValue(l)).arg(id));
+								LOG(lvlInfo, QString("    %1 --> table id: %2").arg(ids->GetValue(l)).arg(id));
 
 								buildGraph(id, static_cast<int>(i), k, m_tables.at(i + m_numberOfCharts * k)->GetRow(ids->GetValue(l))->GetValue(7).ToDouble());
 							}
@@ -1258,10 +1258,10 @@ void dlg_eventExplorer::chartMouseButtonCallBack(vtkObject * /*obj*/)
 			}
 			else
 			{
-				DEBUG_LOG(QString("  Plot[%1] is deactivated").arg(j));
+				LOG(lvlInfo, QString("  Plot[%1] is deactivated").arg(j));
 			}
 		}
-		DEBUG_LOG(QString("   cTF range: %1, %2").arg(cTF->GetRange()[0]).arg(cTF->GetRange()[1]));
+		LOG(lvlInfo, QString("   cTF range: %1, %2").arg(cTF->GetRange()[0]).arg(cTF->GetRange()[1]));
 	}
 	m_trackingGraph->updateGraph(m_graph, this->m_volumeStack->numberOfVolumes(), m_nodesToLayers, m_graphToTableId);
 }
@@ -1375,7 +1375,7 @@ void dlg_eventExplorer::buildSubGraph(int id, int layer)
 					{
 						//TODO: only add edges which are not existing
 						m_graph->AddEdge(m_tableToGraphId[layer][id], m_tableToGraphId[layer - 1][c.id]);
-						DEBUG_LOG(QString("Edge [%1][%2] --> [%3][%4]").arg(id).arg(layer).arg(c.id).arg(layer - 1));
+						LOG(lvlInfo, QString("Edge [%1][%2] --> [%3][%4]").arg(id).arg(layer).arg(c.id).arg(layer - 1));
 
 						/*if (g->GetEdgeId(tableToGraphId[layer][id], tableToGraphId[layer - 1][c.id]) != -1 || g->GetEdgeId(tableToGraphId[layer - 1][c.id], tableToGraphId[layer][id]) != -1)
 						{
@@ -1452,7 +1452,7 @@ void dlg_eventExplorer::buildSubGraph(int id, int layer)
 					{
 						//TODO: only add edges which are not existing
 						m_graph->AddEdge(m_tableToGraphId[layer][id], m_tableToGraphId[layer + 1][c.id]);
-						DEBUG_LOG(QString("Edge [%1][%2] --> [%3][%4]").arg(id).arg(layer).arg(c.id).arg(layer + 1));
+						LOG(lvlInfo, QString("Edge [%1][%2] --> [%3][%4]").arg(id).arg(layer).arg(c.id).arg(layer + 1));
 
 						/*if (g->GetEdgeId(tableToGraphId[layer][id], tableToGraphId[layer + 1][c.id]) != -1 || g->GetEdgeId(tableToGraphId[layer + 1][c.id], tableToGraphId[layer][id]) != -1)
 						{

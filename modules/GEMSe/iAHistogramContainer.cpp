@@ -30,7 +30,7 @@
 #include "iAQtCaptionWidget.h"
 
 #include <iAAttributeDescriptor.h>
-#include <iAConsole.h>
+#include <iALog.h>
 
 #include <QCheckBox>
 #include <QDialogButtonBox>
@@ -120,7 +120,7 @@ void iAHistogramContainer::CreateCharts()
 			numBin);
 		if (!paramData)
 		{
-			DEBUG_LOG(QString("ERROR: Creating chart #%1 data for attribute %2 failed!").arg(chartID)
+			LOG(lvlInfo, QString("ERROR: Creating chart #%1 data for attribute %2 failed!").arg(chartID)
 				.arg(attrib->name()));
 			continue;
 		}
@@ -421,7 +421,7 @@ void iAHistogramContainer::ChartDblClicked()
 	assert(slider);
 	if (!slider)
 	{
-		DEBUG_LOG("ChartDblClicked called from non-slider widget.");
+		LOG(lvlInfo, "ChartDblClicked called from non-slider widget.");
 		return;
 	}
 	int chartID = slider->GetID();
@@ -435,7 +435,7 @@ void iAHistogramContainer::FilterChanged(double min, double max)
 	assert(slider);
 	if (!slider)
 	{
-		DEBUG_LOG("FilterChanged called from non-slider widget.");
+		LOG(lvlInfo, "FilterChanged called from non-slider widget.");
 		return;
 	}
 	int chartID = slider->GetID();

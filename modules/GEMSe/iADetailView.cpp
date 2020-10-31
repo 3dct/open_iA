@@ -33,7 +33,7 @@
 #include <iAAttributeDescriptor.h>
 #include <iAChannelData.h>
 #include <iAConnector.h>
-#include <iAConsole.h>
+#include <iALog.h>
 #include <iAModality.h>
 #include <iAModalityList.h>
 #include <iAModalityTransfer.h>
@@ -503,7 +503,7 @@ void iADetailView::SetCorrectnessUncertaintyOverlay(bool enabled)
 {
 	if (!m_refImg)
 	{
-		DEBUG_LOG("Reference image must be set!");
+		LOG(lvlInfo, "Reference image must be set!");
 		return;
 	}
 	m_correctnessUncertaintyOverlayEnabled = enabled;
@@ -640,7 +640,7 @@ void iADetailView::SlicerMouseMove(int x, int y, int z, int /*c*/)
 		AddResultFilterPixel(x, y, z);
 		if (!m_resultFilterTriggerThread)
 			m_MouseButtonDown = false;
-			//DEBUG_LOG("Result Filter Trigger not yet started....");
+			//LOG(lvlInfo, "Result Filter Trigger not yet started....");
 		else
 			m_resultFilterTriggerThread->restart();
 	}

@@ -21,7 +21,7 @@
 #include "iAChannelSlicerData.h"
 
 #include "iAChannelData.h"
-#include "iAConsole.h"
+#include "iALog.h"
 #include "iASlicerMode.h"
 
 #include <vtkActor.h>
@@ -110,7 +110,7 @@ void iAChannelSlicerData::setupOutput(vtkScalarsToColors* ctf, vtkPiecewiseFunct
 		}
 		else
 		{
-			DEBUG_LOG(QString("Unsupported number of components (%1)!").arg(input()->GetNumberOfScalarComponents()));
+			LOG(lvlWarn, QString("Unsupported number of components (%1)!").arg(input()->GetNumberOfScalarComponents()));
 		}
 	}
 	m_colormapper->SetInputConnection(m_reslicer->GetOutputPort());
