@@ -23,6 +23,7 @@
 #include "iACsvIO.h"
 #include "iACsvConfig.h"
 #include "iACsvQTableCreator.h"
+#include "iACsvVectorTableCreator.h"
 
 #include <iALog.h>
 
@@ -219,8 +220,7 @@ void dlg_CSVInput::visualizationTypeChanged(int newType)
 void dlg_CSVInput::exportTable()
 {
 	iACsvIO io;
-	QTableWidget tw;
-	iACsvQTableCreator creator(&tw);
+	iACsvVectorTableCreator creator;
 	if (!io.loadCSV(creator, m_confParams, std::numeric_limits<size_t>::max()))
 	{
 		LOG(lvlError, QString("Error loading CSV file '%1'.").arg(m_confParams.fileName));
@@ -246,33 +246,34 @@ void dlg_CSVInput::exportTable()
 		m_path, "CSV file (*.csv);;");
 	if (exportCSVFileName.isEmpty())
 	{
-		LOG(lvlInfo, "Error, file name is empty.");
+		LOG(lvlInfo, "Selected file name is empty or selection cancelled, aborting!");
 		return;
 	}
 
 	QFile csvExport(exportCSVFileName);
 	if (!csvExport.open(QIODevice::WriteOnly | QIODevice::Text))
 	{
-		LOG(lvlInfo, "Error loading csv file, file does not exist.");
+		LOG(lvlError, QString("Could not open file '%1' for writing; "
+			"maybe it is locked by another program or the folder does not exist yet?").arg(exportCSVFileName));
 		return;
 	}
 
 	QTextStream ts(&csvExport);
 	for (int i = 0; i < origCSVInfo.size(); ++i)
+	{
 		ts << origCSVInfo[i] + "\n";
+	}
 	QStringList outputHeaders = io.getOutputHeaders();
 	outputHeaders.removeLast();	// without ClassID
 	ts << outputHeaders.join(",") + ",\n";
-	QStringList strList;
-	for (int r = 0; r < tw.rowCount(); ++r)
-	{
-		strList.clear();
-		for (int c = 0; c < tw.columnCount()-1; ++c)
+	for (int r=0; r < creator.table()[0].size(); ++r)
+	{   // values are stored in col-row order
+		QStringList strList;
+		for (int c = 0; c < creator.table().size()-1; ++c)
 		{
-			if (tw.item(r, c))
-				strList << tw.item(r, c)->text();
+			strList << QString::number(creator.table()[c][r]);
 		}
-		ts << strList.join(",") + (r == tw.rowCount() - 1 ? "," : ",\n");
+		ts << strList.join(",") + (r == creator.table().size() - 1 ? "," : ",\n");
 	}
 	csvExport.close();
 
