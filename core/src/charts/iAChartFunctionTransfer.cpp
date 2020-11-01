@@ -21,7 +21,7 @@
 #include "iAChartFunctionTransfer.h"
 
 #include "charts/iAChartWithFunctionsWidget.h"
-#include "iAConsole.h"
+#include "iALog.h"
 #include "iAMapper.h"
 #include "iAMathUtility.h"
 #include "mdichild.h"
@@ -68,7 +68,7 @@ void iAChartTransferFunction::draw(QPainter &painter, QColor color, int lineWidt
 	// draw opacity and color tf
 	if (m_opacityTF->GetSize() != m_colorTF->GetSize())
 	{
-		DEBUG_LOG(QString("Definition mismatch: opacity TF has %1 positions, color TF %2!")
+		LOG(lvlWarn, QString("Definition mismatch: opacity TF has %1 positions, color TF %2!")
 			.arg(m_opacityTF->GetSize())
 			.arg(m_colorTF->GetSize()));
 		return;

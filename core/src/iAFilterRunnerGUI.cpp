@@ -23,7 +23,7 @@
 #include "dlg_modalities.h"
 #include "iAAttributeDescriptor.h"
 #include "iAConnector.h"
-#include "iAConsole.h"
+#include "iALog.h"
 #include "iAFilter.h"
 #include "iALogger.h"
 #include "iAModality.h"
@@ -69,7 +69,7 @@ void iAFilterRunnerGUIThread::performWork()
 	}
 	if (!m_filter->run(m_paramValues))
 	{
-		m_filter->logger()->log("Running filter failed!");
+		m_filter->logger()->log(lvlError, "Running filter failed!");
 		return;
 	}
 	if (m_aborted)
@@ -149,7 +149,7 @@ void iAFilterRunnerGUI::storeParameters(QSharedPointer<iAFilter> filter, QMap<QS
 	{
 		if (!paramValues.contains(param->name()))
 		{
-			DEBUG_LOG(QString("No value for parameter '%1'").arg(param->name()));
+			LOG(lvlError, QString("No value for parameter '%1'").arg(param->name()));
 		}
 	}
 }

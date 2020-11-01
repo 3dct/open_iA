@@ -21,7 +21,7 @@
 #include "iAModality.h"
 
 #include "defines.h"  // for NotExistingChannel
-#include "iAConsole.h"
+#include "iALog.h"
 #include "iAImageCoordinate.h"
 #include "iAModalityTransfer.h"
 #include "iAXmlSettings.h"
@@ -185,7 +185,7 @@ void iAModality::loadTransferFunction()
 	iAXmlSettings s;
 	if (!s.read(m_tfFileName))
 	{
-		DEBUG_LOG(QString("Failed to read transfer function from file %1").arg(m_tfFileName));
+		LOG(lvlWarn, QString("Failed to read transfer function from file %1").arg(m_tfFileName));
 		return;
 	}
 	s.loadTransferFunction(transfer().data());

@@ -20,7 +20,7 @@
 * ************************************************************************************/
 #include "iAPerformanceHelper.h"
 
-#include "iAConsole.h"
+#include "iALog.h"
 
 #include <QString>
 
@@ -176,7 +176,7 @@ iAPerformanceHelper::~iAPerformanceHelper()
 
 void iAPerformanceHelper::printTime(iAPerformanceTimer::DurationType duration, std::string const & caption, bool printMemUsage)
 {
-	DEBUG_LOG(QString("%1 %2%3")
+	LOG(lvlInfo, QString("%1 %2%3")
 		.arg(caption.c_str())
 		.arg(formatDuration(duration))
 		.arg(printMemUsage ? printMemoryUsage() : "")
@@ -193,7 +193,7 @@ void iAPerformanceHelper::start(std::string const & caption, bool printMemUsage)
 	m_pImpl->m_caption = caption;
 	m_pImpl->m_printMemUsage = printMemUsage;
 	m_pImpl->m_perfTimer.start();
-	DEBUG_LOG(QString(">>>>> START %1 %2")
+	LOG(lvlInfo, QString(">>>>> START %1 %2")
 		.arg(m_pImpl->m_caption.c_str())
 		.arg(m_pImpl->m_printMemUsage ? printMemoryUsage(): "")
 	);

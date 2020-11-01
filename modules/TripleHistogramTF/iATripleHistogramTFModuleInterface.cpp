@@ -22,7 +22,7 @@
 #include "iATripleHistogramTFModuleInterface.h"
 #include "iATripleHistogramTFAttachment.h"
 
-#include <iAConsole.h>
+#include <iALog.h>
 #include <mainwindow.h>
 
 void iATripleHistogramTFModuleInterface::Initialize()
@@ -60,7 +60,7 @@ void iATripleHistogramTFModuleInterface::menuItemSelected_2mod()
 		attach = GetAttachment<iATripleHistogramTFAttachment>();
 		if (!attach)
 		{
-			DEBUG_LOG("Attaching failed!");
+			LOG(lvlError, "Attaching failed!");
 			return;
 		}
 	}
@@ -77,7 +77,7 @@ void iATripleHistogramTFModuleInterface::menuItemSelected_3mod()
 		attach = GetAttachment<iATripleHistogramTFAttachment>();
 		if (!attach)
 		{
-			DEBUG_LOG("Attaching failed!");
+			LOG(lvlError, "Attaching failed!");
 			return;
 		}
 	}

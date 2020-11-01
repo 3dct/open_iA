@@ -20,8 +20,6 @@
 * ************************************************************************************/
 #include "iAMathUtility.h"
 
-#include "iAConsole.h"
-
 #include <vtkMath.h>
 
 double gaussian(double x, double sigma)

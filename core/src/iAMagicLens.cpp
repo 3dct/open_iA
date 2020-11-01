@@ -21,7 +21,7 @@
 #include "iAMagicLens.h"
 
 #include "defines.h"    // for DefaultMagicLensSize
-#include "iAConsole.h"
+#include "iALog.h"
 #include "iAMathUtility.h"
 
 #include <QVTKInteractor.h>
@@ -148,7 +148,7 @@ void iALensData::setLensVisible(bool enabled)
 {
 	if (!m_renderWindow)
 	{
-		DEBUG_LOG("ERROR in Magic Lens: No render window set!");
+		LOG(lvlError, "Magic Lens: No render window set!");
 		return;
 	}
 	if (enabled)

@@ -20,7 +20,7 @@
 * ************************************************************************************/
 #include "iASeedType.h"
 
-#include "iAConsole.h"
+#include "iALog.h"
 #include "iAImageCoordinate.h"
 
 #include <utility>     // for std::make_pair
@@ -86,7 +86,7 @@ QSharedPointer<iASeedVector> ExtractSeedVector(QString const & seedString, int w
 	}
 	if (parseErrors.size() > 0)
 	{
-		DEBUG_LOG(QString("Error(s) in seed file: %1").arg(parseErrors));
+		LOG(lvlError, QString("Error(s) in seed file: %1").arg(parseErrors));
 	}
 	return result;
 }

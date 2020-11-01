@@ -18,18 +18,16 @@
 * Contact: FH OÖ Forschungs & Entwicklungs GmbH, Campus Wels, CT-Gruppe,              *
 *          Stelzhamerstraße 23, 4600 Wels / Austria, Email: c.heinzl@fh-wels.at       *
 * ************************************************************************************/
-#include "iACommandLineProcessor.h"
-#include "iAConsole.h"
 #include "iALog.h"
-#include "iASCIFIOCheck.h"
-#include "version.h"
 
-#include <QFileInfo>
+iALogger* iALog::m_globalLogger(nullptr);
 
-int main(int argc, char *argv[])
+void iALog::setLogger(iALogger* logger)
 {
-	iALog::setLogger(iAStdOutLogger::get());
-	QFileInfo fi(argv[0]);
-	CheckSCIFIO(fi.absolutePath());
-	return ProcessCommandLine(argc, argv, Open_iA_Version);
+	m_globalLogger = logger;
+}
+
+iALogger* iALog::get()
+{
+	return m_globalLogger;
 }

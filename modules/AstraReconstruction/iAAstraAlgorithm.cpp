@@ -23,7 +23,7 @@
 #include "dlg_ProjectionParameters.h"
 
 #include <iAConnector.h>
-#include <iAConsole.h>
+#include <iALog.h>
 #include <iAPerformanceHelper.h>
 #include <iAToolsVTK.h>
 #include <iATypedCallHelper.h>
@@ -213,7 +213,7 @@ namespace
 		{
 			cudaDeviceProp deviceProp;
 			cudaGetDeviceProperties(&deviceProp, dev);
-			DEBUG_LOG(QString("%1. Compute Capability: %2.%3. Clock Rate (kHz): %5. Memory Clock Rate (kHz): %6. Memory Bus Width (bits): %7. Concurrent kernels: %8. Total memory: %9.")
+			LOG(lvlInfo, QString("%1. Compute Capability: %2.%3. Clock Rate (kHz): %5. Memory Clock Rate (kHz): %6. Memory Bus Width (bits): %7. Concurrent kernels: %8. Total memory: %9.")
 				.arg(deviceProp.name)
 				.arg(deviceProp.major)
 				.arg(deviceProp.minor)
@@ -251,7 +251,9 @@ namespace
 	{
 		if (algorithmStrings().indexOf(algo) == -1)
 		{
-			DEBUG_LOG("Invalid Algorithm Type selection!");
+			LOG(lvlWarn, QString("Invalid algorithm string - "
+				"%1 is not in the list of valid algorithms (%2)!")
+				.arg(algo).arg(algorithmStrings().join(", ")) );
 			return FDK3D;
 		}
 		return algorithmStrings().indexOf(algo);
@@ -261,7 +263,9 @@ namespace
 	{
 		if (astraIndex < 0 || astraIndex >= algorithmStrings().size())
 		{
-			DEBUG_LOG("Invalid Algorithm Type selection!");
+			LOG(lvlWarn, QString("Invalid algorithm index - "
+				"%1 is not in the valid range (0..%2)!")
+				.arg(astraIndex).arg(algorithmStrings().size()-1));
 			return "Invalid";
 		}
 		return algorithmStrings()[astraIndex];
@@ -442,14 +446,14 @@ void iAASTRAReconstruct::performWork(QMap<QString, QVariant> const & parameters)
 	int * projDim = projImg->GetDimensions();
 	if (projDim[0] == 0 || projDim[1] == 0 || projDim[2] == 0)
 	{
-		DEBUG_LOG("File not fully loaded or invalid, at least one side is reported to have size 0.");
+		LOG(lvlError, "File not fully loaded or invalid, at least one side is reported to have size 0.");
 		return;
 	}
 	if (parameters[DetRowDim].toUInt() % 3 == parameters[DetColDim].toUInt() % 3 ||
 		parameters[DetRowDim].toUInt() % 3 == parameters[ProjAngleDim].toUInt() % 3 ||
 		parameters[ProjAngleDim].toUInt() % 3 == parameters[DetColDim].toUInt() % 3)
 	{
-		DEBUG_LOG("Invalid parameters: One dimension referenced multiple times!");
+		LOG(lvlError, "Invalid parameters: One dimension referenced multiple times!");
 		return;
 	}
 	size_t detRowCnt = projDim[parameters[DetRowDim].toUInt() % 3];
@@ -534,7 +538,7 @@ void iAASTRAReconstruct::performWork(QMap<QString, QVariant> const & parameters)
 			break;
 		}
 		default:
-			DEBUG_LOG("Unknown reconstruction algorithm selected!");
+			LOG(lvlError, "Unknown reconstruction algorithm selected!");
 	}
 
 	// retrieve result image:
@@ -568,13 +572,13 @@ IAFILTER_RUNNER_CREATE(iAASTRAFilterRunner);
 
 namespace
 {
-	void  astraLogCallback(const char *msg, size_t len)
+	void astraLogCallback(const char *msg, size_t len)
 	{
 		char * allMsg = new char[len + 1];
 		std::memcpy(allMsg, msg, len);
 		allMsg[len] = 0;
 		QString qtStr(allMsg);
-		DEBUG_LOG(qtStr.trimmed());
+		LOG(lvlInfo, qtStr.trimmed());
 	}
 }
 
@@ -591,7 +595,7 @@ void iAASTRAFilterRunner::run(QSharedPointer<iAFilter> filter, MainWindow* mainW
 	bool success = astra::CLogger::setCallbackScreen(astraLogCallback);
 	if (!success)
 	{
-		DEBUG_LOG("Setting Astra log callback failed!");
+		LOG(lvlWarn, "Setting Astra log callback failed!");
 	}
 	iAFilterRunnerGUI::run(filter, mainWnd);
 }

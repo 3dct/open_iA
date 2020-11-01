@@ -24,7 +24,7 @@
 #include "iASingleResult.h"
 
 #include <iAAttributeDescriptor.h>
-#include <iAConsole.h>
+#include <iALog.h>
 #include <io/iAFileUtils.h>
 #include <iAStringHelper.h>
 #include <qthelper/iAQtEndl.h>
@@ -78,7 +78,7 @@ namespace
 		QStringList nameValue = currentLine.split(Output::NameSeparator);
 		if (nameValue.size() < 2 || nameValue[0] != name || in.atEnd())
 		{
-			DEBUG_LOG(QString("Unexpected name '%1', expected '%2'!\n").arg(nameValue[0]).arg(name));
+			LOG(lvlError, QString("Unexpected name '%1', expected '%2'!\n").arg(nameValue[0]).arg(name));
 			return false;
 		}
 		value = nameValue[1];
@@ -91,7 +91,7 @@ QSharedPointer<iASamplingResults> iASamplingResults::load(QString const & smpFil
 	QFile file(smpFileName);
 	if (!file.open(QIODevice::ReadOnly | QIODevice::Text))
 	{
-		DEBUG_LOG(QString("Couldn't open file '%1'\n").arg(smpFileName));
+		LOG(lvlError, QString("Couldn't open file '%1'\n").arg(smpFileName));
 		return QSharedPointer<iASamplingResults>();
 	}
 	// TODO: replace with QSettings?
@@ -100,14 +100,14 @@ QSharedPointer<iASamplingResults> iASamplingResults::load(QString const & smpFil
 	QFileInfo fileInfo(file);
 	if (in.atEnd())
 	{
-		DEBUG_LOG("Invalid sampling descriptor!\n");
+		LOG(lvlError, "Invalid sampling descriptor!\n");
 		return QSharedPointer<iASamplingResults>();
 	}
 
 	QString currentLine = in.readLine();
 	if (currentLine != SMPFileFormatVersion)
 	{
-		DEBUG_LOG(QString("Unexpected file format/version identifier '%1', expected was '%2'!\n")
+		LOG(lvlError, QString("Unexpected file format/version identifier '%1', expected was '%2'!\n")
 			.arg(currentLine)
 			.arg(SMPFileFormatVersion));
 	}
@@ -117,14 +117,14 @@ QSharedPointer<iASamplingResults> iASamplingResults::load(QString const & smpFil
 		!GetNameValue("DerivedOutput", derivedOutputFileName, in) ||
 		!GetNameValue("SamplingMethod", samplingMethod, in))
 	{
-		DEBUG_LOG("Invalid sampling descriptor!");
+		LOG(lvlError, "Invalid sampling descriptor!");
 		return QSharedPointer<iASamplingResults>();
 	}
 	QString executable, additionalArguments;
 	if (!GetNameValue("Executable", executable, in) ||
 		!GetNameValue("AdditionalArguments", additionalArguments, in))
 	{
-		DEBUG_LOG("Executable and/or AdditionalArguments missing in sampling descriptor!");
+		LOG(lvlError, "Executable and/or AdditionalArguments missing in sampling descriptor!");
 	}
 
 	QSharedPointer<iAAttributes> attributes = createAttributes(in);
@@ -137,7 +137,7 @@ QSharedPointer<iASamplingResults> iASamplingResults::load(QString const & smpFil
 		result->m_rangeFileName = smpFileName;
 		return result;
 	}
-	DEBUG_LOG("Sampling: Internal loading failed.");
+	LOG(lvlError, "Sampling: Internal loading failed.");
 	return QSharedPointer<iASamplingResults>();
 }
 
@@ -152,7 +152,7 @@ bool iASamplingResults::store(QString const & rangeFileName,
 	QFile paramRangeFile(rangeFileName);
 	if (!paramRangeFile.open(QIODevice::WriteOnly | QIODevice::Text))
 	{
-		DEBUG_LOG(QString("Could not open parameter range file '%1' for writing!").arg(rangeFileName));
+		LOG(lvlError, QString("Could not open parameter range file '%1' for writing!").arg(rangeFileName));
 		return false;
 	}
 	QTextStream out(&paramRangeFile);
@@ -179,7 +179,7 @@ bool iASamplingResults::storeAttributes(int type, QString const & fileName, bool
 	QFile paramSetFile(fileName);
 	if (!paramSetFile.open(QIODevice::WriteOnly | QIODevice::Text))
 	{
-		DEBUG_LOG(QString("Could not open sample parameter set file '%1' for writing!").arg(fileName));
+		LOG(lvlError, QString("Could not open sample parameter set file '%1' for writing!").arg(fileName));
 		return false;
 	}
 	QTextStream outParamSet(&paramSetFile);
@@ -206,7 +206,7 @@ bool iASamplingResults::loadInternal(QString const & parameterSetFileName, QStri
 	QFile paramFile(parameterSetFileName);
 	if (!paramFile.open(QIODevice::ReadOnly | QIODevice::Text))
 	{
-		DEBUG_LOG(QString("Could not open sample parameter set file '%1' for reading!").arg(parameterSetFileName));
+		LOG(lvlError, QString("Could not open sample parameter set file '%1' for reading!").arg(parameterSetFileName));
 		return false;
 	}
 	m_derivedOutputFile = derivedOutputFileName;
@@ -215,7 +215,7 @@ bool iASamplingResults::loadInternal(QString const & parameterSetFileName, QStri
 	if (!characFile.open(QIODevice::ReadOnly | QIODevice::Text))
 	{
 
-		DEBUG_LOG(QString("Could not open sample derived output file '%1' for reading!").arg(derivedOutputFileName));
+		LOG(lvlError, QString("Could not open sample derived output file '%1' for reading!").arg(derivedOutputFileName));
 		charac = false;
 	}
 	QTextStream paramIn(&paramFile);
@@ -243,8 +243,7 @@ bool iASamplingResults::loadInternal(QString const & parameterSetFileName, QStri
 			lineNr != 0);   // for line 0, don't show error output (assume it's the header)
 		if (result)
 		{
-			m_results.push_back(result);
-		}
+			m_results.push_back(result);		}
 		else
 		{
 			if (lineNr > 0) // skip potential header

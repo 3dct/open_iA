@@ -29,7 +29,7 @@
 #include "iAPreviewMaker.h"
 #include "iAStageView.h"
 
-#include <iAConsole.h>
+#include <iALog.h>
 #include <mainwindow.h>
 
 #include <itkImageFileReader.h>

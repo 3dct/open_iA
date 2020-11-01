@@ -27,7 +27,7 @@
 #include "iAGEMSeProject.h"
 
 #include <dlg_modalities.h>
-#include <iAConsole.h>
+#include <iALog.h>
 #include <iAColorTheme.h>
 #include <iALogger.h>
 #include <iAModality.h>

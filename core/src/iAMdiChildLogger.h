@@ -33,7 +33,7 @@ class iAMdiChildLogger : public QObject, public iALogger
 	Q_OBJECT
 public:
 	iAMdiChildLogger(MdiChild* mdiChild);
-	void log(QString const & msg) override;
+	void log(iALogLevel lvl, QString const & msg) override;
 signals:
 	void logSignal(QString msg);
 };

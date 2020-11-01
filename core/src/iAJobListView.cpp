@@ -21,7 +21,7 @@
 #include "iAJobListView.h"
 
 #include "iAAbortListener.h"
-#include "iAConsole.h"
+#include "iALog.h"
 #include "iAProgress.h"
 
 //#include <QHBoxLayout>

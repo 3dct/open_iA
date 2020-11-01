@@ -311,9 +311,9 @@ bool iAFilter::checkParameters(QMap<QString, QVariant> & parameters)
 	return true;
 }
 
-void iAFilter::addMsg(QString msg)
+void iAFilter::addMsg(QString const & msg)
 {
-	m_log->log(msg);
+	m_log->log(lvlInfo, msg);
 }
 
 iAProgress* iAFilter::progress()

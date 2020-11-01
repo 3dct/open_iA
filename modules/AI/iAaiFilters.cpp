@@ -26,7 +26,7 @@
 #include "defines.h" // for DIM
 
 #include "iAConnector.h"
-#include "iAConsole.h"
+#include "iALog.h"
 #include "iAProgress.h"
 #include "iATypedCallHelper.h"
 
@@ -243,7 +243,7 @@ void executeDNN(iAFilter* filter, QMap<QString, QVariant> const & parameters)
 		const char* model_path = modelPathStdString.c_str();
 	#endif
 
-	DEBUG_LOG(QString("Using Onnxruntime C++ API"));
+	LOG(lvlInfo, QString("Using Onnxruntime C++ API"));
 	Ort::Session session(env, model_path, session_options);
 
 	//*************************************************************************
@@ -256,14 +256,14 @@ void executeDNN(iAFilter* filter, QMap<QString, QVariant> const & parameters)
 	std::vector<int64_t> input_node_dims;  // simplify... this model has only 1 input node {1, 3, 224, 224}.
 										   // Otherwise need vector<vector<>>
 
-	DEBUG_LOG(QString("Number of inputs = %1").arg(num_input_nodes));
+	LOG(lvlInfo, QString("Number of inputs = %1").arg(num_input_nodes));
 
 	// iterate over all input nodes
 	for (size_t i = 0; i < num_input_nodes; i++)
 	{
 		// print input node names
 		char* input_name = session.GetInputName(i, allocator);
-		DEBUG_LOG(QString("Input %1 : name=%2").arg(i).arg(input_name));
+		LOG(lvlInfo, QString("Input %1 : name=%2").arg(i).arg(input_name));
 		input_node_names[i] = input_name;
 
 		// print input node types
@@ -271,14 +271,14 @@ void executeDNN(iAFilter* filter, QMap<QString, QVariant> const & parameters)
 		auto tensor_info = type_info.GetTensorTypeAndShapeInfo();
 
 		ONNXTensorElementDataType type = tensor_info.GetElementType();
-		DEBUG_LOG(QString("Input %1 : type=%2").arg(i).arg(type));
+		LOG(lvlInfo, QString("Input %1 : type=%2").arg(i).arg(type));
 
 		// print input shapes/dims
 		input_node_dims = tensor_info.GetShape();
-		DEBUG_LOG(QString("Input %1 : num_dims=%2").arg(i).arg(input_node_dims.size()));
+		LOG(lvlInfo, QString("Input %1 : num_dims=%2").arg(i).arg(input_node_dims.size()));
 		for (size_t j = 0; j < input_node_dims.size(); j++)
 		{
-			DEBUG_LOG(QString("Input %1 : dim %2=%3").arg(i).arg(j).arg(input_node_dims[j]));
+			LOG(lvlInfo, QString("Input %1 : dim %2=%3").arg(i).arg(j).arg(input_node_dims[j]));
 			if (input_node_dims[j] == -1)
 			{
 				input_node_dims[j] = 1;
@@ -293,14 +293,14 @@ void executeDNN(iAFilter* filter, QMap<QString, QVariant> const & parameters)
 	std::vector<int64_t> output_node_dims;  // simplify... this model has only 1 input node {1, 3, 224, 224}.
 										   // Otherwise need vector<vector<>>
 
-	DEBUG_LOG(QString("Number of outputs = %1").arg(num_output_nodes));
+	LOG(lvlInfo, QString("Number of outputs = %1").arg(num_output_nodes));
 
 	// iterate over all input nodes
 	for (size_t i = 0; i < num_output_nodes; i++)
 	{
 		// print input node names
 		char* output_name = session.GetOutputName(i, allocator);
-		DEBUG_LOG(QString("Output %1 : name=%2").arg(i).arg(output_name));
+		LOG(lvlInfo, QString("Output %1 : name=%2").arg(i).arg(output_name));
 		output_node_names[i] = output_name;
 
 		// print input node types
@@ -308,14 +308,14 @@ void executeDNN(iAFilter* filter, QMap<QString, QVariant> const & parameters)
 		auto tensor_info = type_info.GetTensorTypeAndShapeInfo();
 
 		ONNXTensorElementDataType type = tensor_info.GetElementType();
-		DEBUG_LOG(QString("Output %1 : type=%2").arg(i).arg(type));
+		LOG(lvlInfo, QString("Output %1 : type=%2").arg(i).arg(type));
 
 		// print input shapes/dims
 		output_node_dims = tensor_info.GetShape();
-		DEBUG_LOG(QString("Output %1 : num_dims=%2").arg(i).arg(output_node_dims.size()));
+		LOG(lvlInfo, QString("Output %1 : num_dims=%2").arg(i).arg(output_node_dims.size()));
 		for (size_t j = 0; j < output_node_dims.size(); j++)
 		{
-			DEBUG_LOG(QString("Output %1 : dim %2=%3").arg(i).arg(j).arg(output_node_dims[j]));
+			LOG(lvlInfo, QString("Output %1 : dim %2=%3").arg(i).arg(j).arg(output_node_dims[j]));
 			if (output_node_dims[j] == -1)
 			{
 				output_node_dims[j] = 1;
@@ -360,26 +360,27 @@ void executeDNN(iAFilter* filter, QMap<QString, QVariant> const & parameters)
 		outputs.push_back(createImage(size[0], size[1], size[2]));
 	}
 
-	
+	int sizeX = size[0];
+	int sizeY = size[1];
+	int sizeZ = size[2];
 
 	iAProgress *progressPrediction = filter->progress();
+	int count = 0;
 
-
-	for (int x = 0; x <= size[0] ; x=x+sizeDNNout)
+	for (int x = 0; x <= sizeX; x = x + sizeDNNout)
 	{
-		#pragma omp parallel for
-		for (int y = 0; y <= size[1] ; y=y+sizeDNNout)
+		for (int y = 0; y <= sizeY; y = y + sizeDNNout)
 		{
 			#pragma omp parallel for
-			for (int z = 0; z <= size[2] ; z=z+sizeDNNout)
+			for (int z = 0; z <= sizeZ; z = z + sizeDNNout)
 			{
 				std::vector<float> tensor_img;
 				
 				int tempX, tempY, tempZ;
 
-				tempX = (x <= size[0] - sizeDNNout) ? x : (x -  (sizeDNNout - size[0] % sizeDNNout)); 
-				tempY = (y <= size[1] - sizeDNNout) ? y : (y -  (sizeDNNout - size[1] % sizeDNNout)); 
-				tempZ = (z <= size[2] - sizeDNNout) ? z : (z -  (sizeDNNout - size[2] % sizeDNNout)); 
+				tempX = (x <= sizeX - sizeDNNout) ? x : (x - (sizeDNNout - sizeX % sizeDNNout)); 
+				tempY = (y <= sizeY - sizeDNNout) ? y : (y - (sizeDNNout - sizeY % sizeDNNout)); 
+				tempZ = (z <= sizeZ - sizeDNNout) ? z : (z - (sizeDNNout - sizeZ % sizeDNNout)); 
 
 				size_t offset = (sizeDNNout - sizeDNNin)/2;
 				itk2tensor(itk_img_normalized_padded, tensor_img, tempX + offset, tempY + offset, tempZ + offset);
@@ -407,9 +408,10 @@ void executeDNN(iAFilter* filter, QMap<QString, QVariant> const & parameters)
 					tensor2itk(result, outputImage, tempX, tempY, tempZ, outputChannel, outputs.size());
 					outputChannel++;
 				}
-				
+				count++;
+				int progress =(count * 100) / (sizeX / sizeDNNout * sizeY / sizeDNNout * sizeZ/sizeDNNout);
 
-				progressPrediction->emitProgress(x*100/size[0]);
+				progressPrediction->emitProgress(progress);
 			}
 		}
 	}

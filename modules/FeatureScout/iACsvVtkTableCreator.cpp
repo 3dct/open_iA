@@ -55,7 +55,9 @@ void iACsvVtkTableCreator::addRow(size_t row, QStringList const & values)
 {
 	m_table->SetValue(row, 0, values[0].toInt()); // ID
 	for (int col = 1; col < values.size() - 1; ++col)
+	{
 		m_table->SetValue(row, col, values[col].toFloat());
+	}
 	m_table->SetValue(row, values.size() - 1, values[values.size() - 1].toFloat()); // class
 }
 

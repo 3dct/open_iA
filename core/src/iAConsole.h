@@ -36,18 +36,6 @@ class iARedirectItkOutput;
 
 class QDockWidget;
 
-//! Singleton providing access to the global logger object.
-class open_iA_Core_API iAGlobalLogger
-{
-public:
-	static void setLogger(iALogger* logger);
-	static iALogger* get();
-private:
-	static iALogger* m_globalLogger;
-};
-
-#define DEBUG_LOG(t) { if (iAGlobalLogger::get()) iAGlobalLogger::get()->log(t); }
-
 //! Helper class for (debug) logging purposes, available from everywhere as singleton.
 //! Instantiates a dlg_console to log debug messages
 //! Note: Typically not used directly, but through DEBUG_LOG macro!
@@ -58,7 +46,7 @@ class open_iA_Core_API iAConsole: public QObject, public iALogger
 public:
 	static iAConsole* instance();
 	static void closeInstance();
-	void log(QString const & text) override;
+	void log(iALogLevel lvl, QString const & text) override;
 	void setLogToFile(bool value, QString const & fileName, bool verbose=false);
 	bool isLogToFileOn() const;
 	QString logFileName() const;
@@ -68,10 +56,10 @@ public:
 	QDockWidget* dockWidget();
 // decouple logging methods from GUI logging (to allow logging from any thread):
 signals:
-	void logSignal(QString const & text);
+	void logSignal(iALogLevel lvl, QString const & text);
 	void consoleVisibilityChanged(bool newVisibility);
 private slots:
-	void logSlot(QString const & text);
+	void logSlot(iALogLevel lvl, QString const & text);
 	void consoleClosed();
 private:
 	iAConsole();
@@ -98,7 +86,7 @@ private:
 class open_iA_Core_API iAConsoleLogger : public iALogger
 {
 public:
-	void log(QString const & msg) override;
+	void log(iALogLevel lvl, QString const & msg) override;
 	static iAConsoleLogger * get();
 private:
 	iAConsoleLogger();
@@ -110,7 +98,7 @@ private:
 class open_iA_Core_API iAStdOutLogger : public iALogger
 {
 public:
-	void log(QString const & msg) override;
+	void log(iALogLevel lvl, QString const & msg) override;
 	static iAStdOutLogger * get();
 private:
 	iAStdOutLogger();

@@ -20,7 +20,7 @@
 * ************************************************************************************/
 #include "iAHistogramData.h"
 
-#include "iAConsole.h"
+#include "iALog.h"
 #include "iAImageInfo.h"
 #include "iAMathUtility.h"
 #include "iAVtkDataTypeMapper.h"
@@ -69,7 +69,7 @@ QSharedPointer<iAHistogramData> iAHistogramData::create(vtkImageData* img, size_
 	double * const scalarRange = img->GetScalarRange();
 	if (binCount > std::numeric_limits<int>::max())
 	{
-		DEBUG_LOG(QString("iAHistogramData::create: Only up to %1 bins supported, but requested %2! Bin number will be set to %1!")
+		LOG(lvlWarn, QString("iAHistogramData::create: Only up to %1 bins supported, but requested %2! Bin number will be set to %1!")
 			.arg(std::numeric_limits<int>::max()).arg(binCount));
 		binCount = std::numeric_limits<int>::max();
 	}   // check above guarantees that binCount is smaller than int max, so cast below is safe!

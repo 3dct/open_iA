@@ -26,7 +26,7 @@
 
 #include <iAFilterSelectionDlg.h>
 #include <iAAttributeDescriptor.h>
-#include <iAConsole.h>
+#include <iALog.h>
 #include <iAFilter.h>
 #include <iAFilterRegistry.h>
 #include <iAListNameMapper.h>
@@ -234,7 +234,7 @@ namespace
 			otherInputs->m_valueEdit->setReadOnly(descriptor->valueType() == iAValueType::FileNameSave);
 			gridLay->addWidget(otherInputs->m_valueEdit, curGridLine, 1, 1, 3);
 			result = QSharedPointer<iAParameterInputs>(otherInputs);
-			// DEBUG_LOG(QString("Don't know how to handle parameters with type %1").arg(descriptor->valueType()));
+			// LOG(lvlWarn, QString("Don't know how to handle parameters with type %1").arg(descriptor->valueType()));
 		}
 		result->label = new QLabel(pName);
 		gridLay->addWidget(result->label, curGridLine, 0);
@@ -301,7 +301,7 @@ void adjustMinMax(QSharedPointer<iAAttributeDescriptor> desc, QString valueText)
 	}
 	if (!ok)
 	{
-		DEBUG_LOG(QString("Value '%1' for parameter %2 is not valid!").arg(valueText).arg(desc->name()));
+		LOG(lvlError, QString("Value '%1' for parameter %2 is not valid!").arg(valueText).arg(desc->name()));
 		return;
 	}
 	desc->adjustMinMax(value);
@@ -377,7 +377,7 @@ void iACategoryParameterInputs::changeInputValues(iASettings const & values)
 	}
 	if (curOption != enabledOptions.size())
 	{
-		DEBUG_LOG(QString("Inconsistent state: not all stored, enabled options found for parameter '%1'").arg(name));
+		LOG(lvlError, QString("Inconsistent state: not all stored, enabled options found for parameter '%1'").arg(name));
 	}
 }
 
@@ -512,7 +512,7 @@ void iASamplingSettingsDlg::saveSettings()
 	QFile file(fileName);
 	if (!file.open(QIODevice::WriteOnly))
 	{
-		DEBUG_LOG(QString("Cannot open file '%1' for writing!").arg(fileName));
+		LOG(lvlError, QString("Cannot open file '%1' for writing!").arg(fileName));
 		return;
 	}
 	QTextStream stream(&file);
@@ -537,7 +537,7 @@ void iASamplingSettingsDlg::loadSettings()
 	QFile file(fileName);
 	if (!file.open(QIODevice::ReadOnly))
 	{
-		DEBUG_LOG(QString("Cannot open file '%1' for reading!").arg(fileName));
+		LOG(lvlError, QString("Cannot open file '%1' for reading!").arg(fileName));
 		return;
 	}
 	QTextStream in(&file);
@@ -547,7 +547,7 @@ void iASamplingSettingsDlg::loadSettings()
 		int sepPos = line.indexOf(KeyValueSeparator);
 		if (sepPos == -1)
 		{
-			DEBUG_LOG(QString("Invalid line '%1'").arg(line));
+			LOG(lvlError, QString("Invalid line '%1'").arg(line));
 		}
 		QString key = line.left(sepPos);
 		QString value = line.right(line.length() - (sepPos + KeyValueSeparator.length()));
@@ -645,7 +645,7 @@ void iASamplingSettingsDlg::setParametersFromFile(QString const& fileName)
 	QFile file(fileName);
 	if (!file.open(QIODevice::ReadOnly | QIODevice::Text))
 	{
-		DEBUG_LOG(QString("Couldn't open parameter descriptor file '%1'\n").arg(fileName));
+		LOG(lvlError, QString("Couldn't open parameter descriptor file '%1'\n").arg(fileName));
 		return;
 	}
 	QTextStream in(&file);

@@ -168,7 +168,7 @@ public:
 	//! Adds some message to the targeted output place for this filter.
 	//! Typically this will go into the log window of the result MdiChild
 	//! @param msg the message to print
-	void addMsg(QString msg);
+	void addMsg(QString const & msg);
 	//! Retrieve the progress reporting object for this filter.
 	iAProgress* progress();
 	//! Retrieve the logger used for log messages emitted by the filter.

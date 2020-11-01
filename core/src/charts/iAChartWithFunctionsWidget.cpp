@@ -24,7 +24,7 @@
 #include "iAChartFunctionBezier.h"
 #include "iAChartFunctionGaussian.h"
 #include "iAChartFunctionTransfer.h"
-#include "iAConsole.h"
+#include "iALog.h"
 #include "iAMapper.h"
 #include "iAMathUtility.h"
 #include "iAPlotData.h"
@@ -461,7 +461,7 @@ void iAChartWithFunctionsWidget::loadTransferFunction()
 	iAXmlSettings s;
 	if (!s.read(fileName))
 	{
-		DEBUG_LOG(QString("Failed to read transfer function from file %1").arg(fileName));
+		LOG(lvlError, QString("Failed to read transfer function from file %1").arg(fileName));
 		return;
 	}
 	s.loadTransferFunction((iAChartTransferFunction*)m_functions[0]);
@@ -543,12 +543,12 @@ void iAChartWithFunctionsWidget::loadFunctions()
 	iAXmlSettings xml;
 	if (!xml.read(fileName))
 	{
-		DEBUG_LOG(QString("Failed to read xml for functions from file %&1").arg(fileName));
+		LOG(lvlError, QString("Failed to read xml for functions from file %&1").arg(fileName));
 		return;
 	}
 	if (!loadProbabilityFunctions(xml))
 	{
-		DEBUG_LOG(QString("Failed to load functions from file %&1").arg(fileName));
+		LOG(lvlError, QString("Failed to load functions from file %&1").arg(fileName));
 		return;
 	}
 	emit noPointSelected();

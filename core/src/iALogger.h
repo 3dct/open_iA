@@ -24,9 +24,19 @@
 
 #include <QString>
 
+enum iALogLevel
+{
+	lvlDebug = 0,
+	lvlTrace = 1,
+	lvlInfo  = 2,
+	lvlWarn  = 3,
+	lvlError = 4,
+	lvlFatal = 5
+};
+
 class open_iA_Core_API iALogger
 {
 public:
 	virtual ~iALogger();
-	virtual void log(QString const & msg) =0;
+	virtual void log(iALogLevel level, QString const & msg) =0;
 };

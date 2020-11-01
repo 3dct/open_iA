@@ -20,7 +20,7 @@
 * ************************************************************************************/
 #include "iAGeometricObjectsDialog.h"
 
-#include <iAConsole.h>
+#include <iALog.h>
 #include <iARenderer.h>
 #include <iAvec3.h>
 #include <mdichild.h>

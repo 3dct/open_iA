@@ -20,7 +20,7 @@
 * ************************************************************************************/
 #include "iAModuleDispatcher.h"
 
-#include "iAConsole.h"
+#include "iALog.h"
 #include "iAFilter.h"
 #include "iAFilterRegistry.h"
 #include "iAFilterRunnerGUI.h"
@@ -88,7 +88,7 @@ void CloseLibrary(iALoadedModule & /*module*/)
 	// created by modules first!
 	if (FreeLibrary(module.handle) != TRUE)
 	{
-		DEBUG_LOG(QString("Error while unloading library %1: %2").arg(module.name).arg(GetLastErrorAsString()));
+		LOG(lvlError, QString("Error while unloading library %1: %2").arg(module.name).arg(GetLastErrorAsString()));
 	}
 */
 #else
@@ -96,7 +96,7 @@ void CloseLibrary(iALoadedModule & /*module*/)
 	// for unknown reason, unloading modules causes a segmentation fault under Linux
 	if (dlclose(module.handle) != 0)
 	{
-		DEBUG_LOG(QString("Error while unloading library %1: %2").arg(module.name).arg(dlerror()));
+		LOG(lvlError, QString("Error while unloading library %1: %2").arg(module.name).arg(dlerror()));
 	}
 */
 #endif
@@ -212,7 +212,7 @@ void iAModuleDispatcher::InitializeModules(iALogger* logger)
 	} while (fList.size() != 0 && someNewLoaded);
 	for (auto msg : loadErrorMessages)
 	{
-		logger->log(msg);
+		logger->log(lvlError, msg);
 	}
 	if (!m_mainWnd)	// all non-GUI related stuff already done
 	{

@@ -31,7 +31,7 @@
 
 #include <iAAttributeDescriptor.h>
 #include <iAConnector.h>
-#include <iAConsole.h>
+#include <iALog.h>
 #include <iAImageCoordinate.h>
 #include <iAModality.h>
 #include <iAModalityList.h>
@@ -76,7 +76,7 @@ void iAImageSampler::statusMsg(QString const & msg)
 		statusMsg = statusMsg.left(100) + "...";
 	}
 	emit status(statusMsg);
-	DEBUG_LOG(msg);
+	LOG(lvlInfo, msg);
 }
 
 void iAImageSampler::newSamplingRun()

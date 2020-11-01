@@ -22,7 +22,7 @@
 
 #include "iAChartWidget.h"
 #include "iAColorTheme.h"
-#include "iAConsole.h"
+#include "iALog.h"
 #include "iAHistogramData.h"
 #include "iALookupTable.h"
 #include "iAMathUtility.h"
@@ -421,13 +421,13 @@ void iAQSplom::setData( QSharedPointer<iASPLOMData> data, std::vector<char> cons
 {
 	if (data->numPoints() > std::numeric_limits<int>::max())
 	{
-		DEBUG_LOG(QString("Number of points (%1) larger than currently supported (%2).")
+		LOG(lvlWarn, QString("Number of points (%1) larger than currently supported (%2).")
 			.arg(data->numPoints())
 			.arg(std::numeric_limits<int>::max()));
 	}
 	if (data->numParams() > std::numeric_limits<int>::max())
 	{
-		DEBUG_LOG(QString("Number of parameters (%1) larger than currently supported (%2).")
+		LOG(lvlWarn, QString("Number of parameters (%1) larger than currently supported (%2).")
 			.arg(data->numParams())
 			.arg(std::numeric_limits<int>::max()));
 	}
@@ -586,7 +586,7 @@ void iAQSplom::setParameterVisibility(std::vector<char> const & visibility)
 {
 	if (visibility.size() != m_paramVisibility.size())
 	{
-		DEBUG_LOG("Call to setParameterVisibility with vector of invalid size!");
+		LOG(lvlWarn, "Call to setParameterVisibility with vector of invalid size!");
 		return;
 	}
 	m_paramVisibility = visibility;
@@ -986,7 +986,7 @@ void iAQSplom::contextMenuEvent(QContextMenuEvent * event)
 		size_t paramIdx = m_splomData->paramIndex(col->text());
 		if (paramIdx >= m_splomData->numParams())
 		{
-			DEBUG_LOG(QString("Invalid menu entry %1 in column pick submenu - there is currently no such column!").arg(col->text()));
+			LOG(lvlWarn, QString("Invalid menu entry %1 in column pick submenu - there is currently no such column!").arg(col->text()));
 			continue;
 		}
 		QSignalBlocker toggleBlock(col);
@@ -1726,7 +1726,7 @@ void iAQSplom::setParameterToColorCode(int paramIndex)
 	size_t unsignedParamIndex = static_cast<size_t>(paramIndex);
 	if (paramIndex < 0 || unsignedParamIndex >= m_splomData->numParams())
 	{
-		DEBUG_LOG(QString("setParameterToColorCode: Invalid paramIndex (%1) given!").arg(paramIndex));
+		LOG(lvlWarn, QString("setParameterToColorCode: Invalid paramIndex (%1) given!").arg(paramIndex));
 		return;
 	}
 	m_colorLookupParam = unsignedParamIndex;
@@ -1774,7 +1774,7 @@ void iAQSplom::updateLookupTable()
 			}
 			else
 			{
-				DEBUG_LOG("Invalid color state!");
+				LOG(lvlWarn, "Invalid color state!");
 			}
 #if __cplusplus >= 201703L
 			[[fallthrough]];
@@ -1981,7 +1981,7 @@ void iAQSplom::loadSettings(iASettings const & config)
 	double newPointRadius = config.value(CfgKeyPointRadius, settings.pointRadius).toDouble(&ok);
 	if (!ok)
 	{
-		DEBUG_LOG(QString("Invalid value for 'PointRadius' setting ('%1') in Scatter Plot Matrix settings")
+		LOG(lvlWarn, QString("Invalid value for 'PointRadius' setting ('%1') in Scatter Plot Matrix settings")
 			.arg(config.value(CfgKeyPointRadius).toString()));
 	}
 	if (settings.pointRadius != newPointRadius)
@@ -2041,12 +2041,12 @@ void iAQSplom::loadSettings(iASettings const & config)
 			size_t idx = idxStr.toULongLong(&ok);
 			if (!ok)
 			{
-				DEBUG_LOG(QString("Invalid index %1 in VisibleParameter Scatter Plot Matrix setting.").arg(idxStr));
+				LOG(lvlWarn, QString("Invalid index %1 in VisibleParameter Scatter Plot Matrix setting.").arg(idxStr));
 				continue;
 			}
 			if (idx >= newParamVis.size())
 			{
-				DEBUG_LOG(QString("Index %1 in VisibleParameter settings is larger than currently available number of parameters (%2); "
+				LOG(lvlWarn, QString("Index %1 in VisibleParameter settings is larger than currently available number of parameters (%2); "
 					"probably these settings were stored for a different Scatter Plot Matrix!").arg(idx).arg(newParamVis.size()));
 			}
 			else
@@ -2096,7 +2096,7 @@ void iAQSplom::loadSettings(iASettings const & config)
 	}
 	else
 	{
-		DEBUG_LOG(QString("Stored index of parameter to color by (%1) exceeds valid range (0..%2)")
+		LOG(lvlWarn, QString("Stored index of parameter to color by (%1) exceeds valid range (0..%2)")
 			.arg(tmpColorLookupParam)
 			.arg(m_splomData->numParams()));
 	}
@@ -2122,7 +2122,7 @@ void iAQSplom::loadSettings(iASettings const & config)
 		QStringList strInds = config[CfgKeyMaximizedPlot].toString().split(",");
 		if (strInds.size() != 2)
 		{
-			DEBUG_LOG(QString("Expected two indices separated by comma in %1 setting, but got %2")
+			LOG(lvlWarn, QString("Expected two indices separated by comma in %1 setting, but got %2")
 				.arg(CfgKeyMaximizedPlot)
 				.arg(config[CfgKeyMaximizedPlot].toString()));
 		}
@@ -2133,7 +2133,7 @@ void iAQSplom::loadSettings(iASettings const & config)
 			size_t idx2 = strInds[1].toULongLong(&ok2);
 			if (!ok1 || !ok2 || idx1 >= m_splomData->numParams() || idx2 >= m_splomData->numParams())
 			{
-				DEBUG_LOG(QString("Cannot create maximized plot from setting %1, invalid or out-of-range indices: %2")
+				LOG(lvlWarn, QString("Cannot create maximized plot from setting %1, invalid or out-of-range indices: %2")
 					.arg(CfgKeyMaximizedPlot)
 					.arg(config[CfgKeyMaximizedPlot].toString()));
 			}
@@ -2143,7 +2143,7 @@ void iAQSplom::loadSettings(iASettings const & config)
 				auto idx2VisIt = std::find(m_visibleIndices.begin(), m_visibleIndices.end(), idx2);
 				if (idx1VisIt == m_visibleIndices.end() || idx1VisIt == m_visibleIndices.end())
 				{
-					DEBUG_LOG(QString("Cannot create maximized plot from setting %1, given parameter indices %2, %3 were not among visible plots!")
+					LOG(lvlWarn, QString("Cannot create maximized plot from setting %1, given parameter indices %2, %3 were not among visible plots!")
 						.arg(CfgKeyMaximizedPlot)
 						.arg(idx1)
 						.arg(idx2));
@@ -2175,7 +2175,7 @@ void iAQSplom::colorModeChanged(int colorMode)
 {
 	if (!settings.enableColorSettings)
 	{
-		DEBUG_LOG("setColorMode called despite enableColorSettings being false!");
+		LOG(lvlWarn, "setColorMode called despite enableColorSettings being false!");
 		return;
 	}
 	if (colorMode == cmCustom)

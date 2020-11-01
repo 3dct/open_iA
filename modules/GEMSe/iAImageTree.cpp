@@ -25,7 +25,7 @@
 #include "iASamplingResults.h"
 #include "iASingleResult.h"
 
-#include <iAConsole.h>
+#include <iALog.h>
 #include <qthelper/iAQtEndl.h>
 
 #include <QDir>
@@ -77,13 +77,13 @@ bool iAImageTree::Store(QString const & fileName) const
 {
 	if (!m_root)
 	{
-		DEBUG_LOG("Root is null!");
+		LOG(lvlError, "Root is null!");
 		return false;
 	}
 	QFile file(fileName);
 	if(!file.open(QIODevice::WriteOnly | QIODevice::Text))
 	{
-		DEBUG_LOG(QString("Opening clustering file '%1' for writing failed!").arg(fileName));
+		LOG(lvlError, QString("Opening clustering file '%1' for writing failed!").arg(fileName));
 		return false;
 	}
 	QTextStream out(&file);
@@ -103,7 +103,7 @@ QSharedPointer<iASingleResult> findResultWithID(QVector<QSharedPointer<iASingleR
 	}
 	// shouldn't happen...
 	assert(false);
-	DEBUG_LOG(QString("Result with requested id %1 was not found!").arg(id));
+	LOG(lvlError, QString("Result with requested id %1 was not found!").arg(id));
 	return QSharedPointer<iASingleResult>();
 }
 
@@ -117,7 +117,7 @@ QSharedPointer<iAImageTreeNode> iAImageTree::ReadNode(QTextStream & in,
 	if (in.atEnd())
 	{
 		assert(false);
-		DEBUG_LOG("Reading node in cluster file failed!");
+		LOG(lvlError, "Reading node in cluster file failed!");
 		return QSharedPointer<iAImageTreeNode>();
 	}
 	QString currentLine = in.readLine().trimmed();
@@ -127,7 +127,7 @@ QSharedPointer<iAImageTreeNode> iAImageTree::ReadNode(QTextStream & in,
 	int id = strs[0].toInt(&isNum);
 	if (!isNum)
 	{
-		DEBUG_LOG(QString("Reading node: Invalid (non-integer) ID in cluster file, line: '%1'").arg(currentLine));
+		LOG(lvlError, QString("Reading node: Invalid (non-integer) ID in cluster file, line: '%1'").arg(currentLine));
 		return QSharedPointer<iAImageTreeNode>();
 	}
 	if (isLeaf)
@@ -135,7 +135,7 @@ QSharedPointer<iAImageTreeNode> iAImageTree::ReadNode(QTextStream & in,
 		int datasetID = strs[2].toInt(&isNum);
 		if (!isNum)
 		{
-			DEBUG_LOG(QString("Reading node: Invalid (non-integer) dataset ID in cluster file, line: '%1'").arg(currentLine));
+			LOG(lvlError, QString("Reading node: Invalid (non-integer) dataset ID in cluster file, line: '%1'").arg(currentLine));
 			return QSharedPointer<iAImageTreeNode>();
 		}
 		QVector<QSharedPointer<iASingleResult> > sampleResults = samplingResults->at(datasetID)->members();
@@ -167,7 +167,7 @@ QSharedPointer<iAImageTree> iAImageTree::Create(QString const & fileName,
 	QSharedPointer<iAImageTree> result;
 	if(!file.open(QIODevice::ReadOnly | QIODevice::Text))
 	{
-		DEBUG_LOG(QString("Opening clustering file '%1' for reading failed!").arg(fileName));
+		LOG(lvlError, QString("Opening clustering file '%1' for reading failed!").arg(fileName));
 		return result;
 	}
 	QTextStream in(&file);
@@ -176,7 +176,7 @@ QSharedPointer<iAImageTree> iAImageTree::Create(QString const & fileName,
 	QDir qdir;
 	if (!qdir.mkpath(dir))
 	{
-		DEBUG_LOG("Can't create representative directory!");
+		LOG(lvlError, "Can't create representative directory!");
 	}
 	int lastClusterID = -1;
 	for (int i=0; i<samplingResults->size(); ++i)

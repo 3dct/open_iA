@@ -24,7 +24,7 @@
 
 #include <QLineF>
 
-#include <iAConsole.h>
+#include <iALog.h>
 
 namespace
 {
