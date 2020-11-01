@@ -69,7 +69,7 @@ bool iAFavoriteWidget::ToggleLike(iAImageTreeNode * node)
 {
 	if (!node)
 	{
-		LOG(lvlInfo, "ERROR in favorites: ToggleLike called for nullptr node.\n");
+		LOG(lvlError, "Favorites: ToggleLike called for nullptr node.\n");
 		return false;
 	}
 	if (node->GetAttitude() == iAImageTreeNode::Liked)
@@ -90,7 +90,7 @@ bool iAFavoriteWidget::ToggleHate(iAImageTreeNode * node)
 {
 	if (!node)
 	{
-		LOG(lvlInfo, "ERROR in favorites: ToggleHate called for nullptr node.\n");
+		LOG(lvlError, "Favorites: ToggleHate called for nullptr node.\n");
 		return false;
 	}
 	if (node->GetAttitude() == iAImageTreeNode::Hated)
@@ -105,13 +105,13 @@ bool iAFavoriteWidget::ToggleHate(iAImageTreeNode * node)
 			int idx = GetIndexForNode(node);
 			if (idx == -1)
 			{
-				LOG(lvlInfo, "ERROR in favorites: node not found in favorite list.\n");
+				LOG(lvlError, "Favorites: node not found in favorite list.\n");
 				return false;
 			}
 			iAImagePreviewWidget * widget = m_favorites[idx].widget;
 			if (!widget)
 			{
-				LOG(lvlInfo, "ERROR in favorites: remove called for unset widget.\n");
+				LOG(lvlError, "Favorites: remove called for unset widget.\n");
 				return false;
 			}
 			m_likeLayout->removeWidget(widget);
@@ -131,7 +131,7 @@ void iAFavoriteWidget::Add(iAImageTreeNode * node)
 	iAImagePreviewWidget * widget = m_previewPool->getWidget(this);
 	if (!widget)
 	{
-		LOG(lvlInfo, "FavoriteView: No more slicer widgets available.\n");
+		LOG(lvlError, "FavoriteView: No more slicer widgets available.\n");
 		return;
 	}
 	widget->setFixedSize(FavoriteWidth, FavoriteWidth);
@@ -149,19 +149,19 @@ void iAFavoriteWidget::Remove(iAImageTreeNode const * node)
 {
 	if (!node)
 	{
-		LOG(lvlInfo, "ERROR in favorites: remove called for nullptr node\n");
+		LOG(lvlError, "Favorites: remove called for nullptr node\n");
 		return;
 	}
 	int idx = GetIndexForNode(node);
 	if (idx == -1)
 	{
-		LOG(lvlInfo, "ERROR in favorites: node not found in favorite list\n");
+		LOG(lvlError, "Favorites: node not found in favorite list\n");
 		return;
 	}
 	iAImagePreviewWidget * widget = m_favorites[idx].widget;
 	if (!widget)
 	{
-		LOG(lvlInfo, "ERROR in favorites: remove called for unset widget\n");
+		LOG(lvlError, "Favorites: remove called for unset widget\n");
 		return;
 	}
 	m_favorites[idx].node = 0;
@@ -179,12 +179,12 @@ void iAFavoriteWidget::FavoriteClicked()
 	iAImagePreviewWidget * widget = dynamic_cast<iAImagePreviewWidget*>(sender());
 	if (!widget)
 	{
-		LOG(lvlInfo, "FavoriteClicked: Error: invalid sender!\n");
+		LOG(lvlError, "FavoriteClicked: Invalid sender!\n");
 	}
 	iAImageTreeNode * node = GetNodeForWidget(widget);
 	if (!node)
 	{
-		LOG(lvlInfo, "FavoriteClicked: Error: node not found!\n");
+		LOG(lvlError, "FavoriteClicked: Node not found!\n");
 	}
 	emit clicked(node);
 }
@@ -195,12 +195,12 @@ void iAFavoriteWidget::FavoriteRightClicked()
 	iAImagePreviewWidget * widget = dynamic_cast<iAImagePreviewWidget*>(sender());
 	if (!widget)
 	{
-		LOG(lvlInfo, "FavoriteClicked: Error: invalid sender!\n");
+		LOG(lvlError, "FavoriteClicked: Invalid sender!\n");
 	}
 	iAImageTreeNode * node = GetNodeForWidget(widget);
 	if (!node)
 	{
-		LOG(lvlInfo, "FavoriteClicked: Error: node not found!\n");
+		LOG(lvlError, "FavoriteClicked: Node not found!\n");
 	}
 	emit rightClicked(node);
 }

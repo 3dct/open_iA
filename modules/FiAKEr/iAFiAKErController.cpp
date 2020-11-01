@@ -242,7 +242,7 @@ void iAFiAKErController::loadProject(QSettings const& projectFile, QString const
 	{  // load full format
 		if (!config.load(projectFile, ProjectFileSaveFormatName))
 		{
-			LOG(lvlInfo, "Could not load CSV format specification from project file!");
+			LOG(lvlError, "Could not load CSV format specification from project file!");
 			return;
 		}
 	}
@@ -1031,13 +1031,13 @@ bool readParameterCSV(QString const& fileName, QString const & encoding, QString
 {
 	if (!QFile::exists(fileName))
 	{
-		LOG(lvlInfo, "Error loading csv file, file does not exist.");
+		LOG(lvlError, QString("Error loading csv file %1, file does not exist.").arg(fileName));
 		return false;
 	}
 	QFile file(fileName);
 	if (!file.open(QIODevice::ReadOnly | QIODevice::Text))
 	{
-		LOG(lvlInfo, QString("Unable to open file '%1': %2").arg(fileName).arg(file.errorString()));
+		LOG(lvlError, QString("Unable to open file '%1': %2").arg(fileName).arg(file.errorString()));
 		return false;
 	}
 	QTextStream in(&file);
@@ -1378,7 +1378,7 @@ bool iAFiAKErController::readDissimilarityMatrixCache(QVector<int>& measures)
 	}
 	if (!cacheFile.open(QFile::ReadOnly))
 	{
-		LOG(lvlInfo, QString("Couldn't open file %1 for reading!").arg(cacheFile.fileName()));
+		LOG(lvlWarn, QString("FIAKER cache file '%1': Couldn't open for reading!").arg(cacheFile.fileName()));
 		return false;
 	}
 	// unify with readResultRefComparison / common cache file version/identifier pattern?
@@ -1388,7 +1388,7 @@ bool iAFiAKErController::readDissimilarityMatrixCache(QVector<int>& measures)
 	in >> identifier;
 	if (identifier != DissimilarityMatrixCacheFileIdentifier)
 	{
-		LOG(lvlInfo, QString("FIAKER cache file '%1': Unknown cache file format - found identifier %2 does not match expected identifier %3.")
+		LOG(lvlWarn, QString("FIAKER cache file '%1': Unknown cache file format - found identifier %2 does not match expected identifier %3.")
 			.arg(cacheFile.fileName())
 			.arg(identifier).arg(DissimilarityMatrixCacheFileIdentifier));
 		return false;
@@ -1397,7 +1397,7 @@ bool iAFiAKErController::readDissimilarityMatrixCache(QVector<int>& measures)
 	in >> version;
 	if (version > DissimilarityMatrixCacheFileVersion)
 	{
-		LOG(lvlInfo, QString("FIAKER cache file '%1': Invalid or too high version number (%2), expected %3 or less.")
+		LOG(lvlWarn, QString("FIAKER cache file '%1': Invalid or too high version number (%2), expected %3 or less.")
 			.arg(cacheFile.fileName())
 			.arg(version).arg(DissimilarityMatrixCacheFileVersion));
 		return false;
@@ -1412,7 +1412,7 @@ void iAFiAKErController::writeDissimilarityMatrixCache(QVector<int> const& measu
 	QFile cacheFile(dissimilarityMatrixCacheFileName());
 	if (!cacheFile.open(QFile::WriteOnly))
 	{
-		LOG(lvlInfo, QString("Couldn't open file %1 for writing!").arg(cacheFile.fileName()));
+		LOG(lvlWarn, QString("FIAKER cache file '%1': Couldn't open for writing!").arg(cacheFile.fileName()));
 		return;
 	}
 	QDataStream out(&cacheFile);
@@ -1554,7 +1554,7 @@ void iAFiAKErController::changeDistributionSource(int index)
 {
 	if (matchQualityVisActive() && m_referenceID == NoResult)
 	{
-		LOG(lvlInfo, QString("You need to set a reference first!"));
+		LOG(lvlWarn, QString("You need to set a reference first!"));
 		return;
 	}
 	double range[2];
@@ -1701,7 +1701,7 @@ void iAFiAKErController::exportDissimilarities()
 {
 	if (m_referenceID == NoResult)
 	{
-		LOG(lvlInfo, "No reference set, therefore there are no dissimilarities to export!");
+		LOG(lvlWarn, "No reference set, therefore there are no dissimilarities to export!");
 		return;
 	}
 	QString fileName = QFileDialog::getSaveFileName(m_mainWnd, iAFiAKErController::FIAKERProjectID, m_data->folder, "Comma-Separated Values (*.csv);;");
@@ -1712,7 +1712,7 @@ void iAFiAKErController::exportDissimilarities()
 	QFile outFile(fileName);
 	if (!outFile.open(QIODevice::WriteOnly))
 	{
-		LOG(lvlInfo, QString("Cannot open file %1 for writing!").arg(fileName));
+		LOG(lvlError, QString("FIAKER Dissimilarities export: Cannot open file %1 for writing!").arg(fileName));
 		return;
 	}
 	QTextStream out(&outFile);
@@ -1759,7 +1759,7 @@ void iAFiAKErController::exportDissimilarities()
 		QFile resultOutFile(resultFileName);
 		if (!resultOutFile.open(QIODevice::WriteOnly))
 		{
-			LOG(lvlInfo, QString("Cannot open file %1 for writing!").arg(fileName));
+			LOG(lvlError, QString("FIAKER Dissimilarities export: Cannot open file %1 for writing!").arg(fileName));
 			return;
 		}
 		const int NumOfMatchesToWrite = 3;
@@ -1864,7 +1864,7 @@ void iAFiAKErController::toggleOptimStepChart(size_t chartID, bool visible)
 	{
 		if (!m_optimStepChart[chartID])
 		{
-			LOG(lvlInfo, QString("Step chart %1 toggled invisible, but not created yet.").arg(chartID));
+			LOG(lvlWarn, QString("Step chart %1 toggled invisible, but not created yet.").arg(chartID));
 			return;
 		}
 		m_optimStepChart[chartID]->setVisible(false);
@@ -1874,7 +1874,7 @@ void iAFiAKErController::toggleOptimStepChart(size_t chartID, bool visible)
 	{
 		if (chartID < m_chartCount-1 && m_referenceID == NoResult)
 		{
-			LOG(lvlInfo, QString("You need to set a reference first!"));
+			LOG(lvlWarn, QString("You need to set a reference first!"));
 			return;
 		}
 		m_optimStepChart[chartID] = new iAChartWidget(nullptr, "Optimization Step", diffName(chartID));
@@ -1910,7 +1910,7 @@ void iAFiAKErController::toggleOptimStepChart(size_t chartID, bool visible)
 					}
 					else
 					{
-						LOG(lvlInfo, "Differences for this measure not computed (yet).");
+						LOG(lvlWarn, "Differences for this measure not computed (yet).");
 						return;
 					}
 				}
@@ -1945,7 +1945,7 @@ void iAFiAKErController::toggleOptimStepChart(size_t chartID, bool visible)
 			}
 			else
 			{
-				LOG(lvlInfo, "Tried to show/hide unavailable plot.");
+				LOG(lvlWarn, "Tried to show/hide unavailable plot.");
 				return;
 			}
 		}
@@ -2062,7 +2062,7 @@ void iAFiAKErController::showMainVis(size_t resultID, int state)
 						{
 							if (ui.startPlotIdx + p >= m_optimStepChart[c]->plots().size())
 							{
-								LOG(lvlInfo, QString("Invalid chart access: access to plot %1, but only has %2")
+								LOG(lvlError, QString("Invalid chart access: access to plot %1, but only has %2")
 									.arg(ui.startPlotIdx + p)
 									.arg(m_optimStepChart[c]->plots().size()));
 							}
@@ -2136,7 +2136,7 @@ void iAFiAKErController::getResultFiberIDFromSpmID(size_t spmID, size_t & result
 	}
 	if (resultID == m_data->result.size())
 	{
-		LOG(lvlInfo, QString("Invalid index in SPM: %1").arg(spmID));
+		LOG(lvlError, QString("Invalid index in SPM: %1").arg(spmID));
 		return;
 	}
 	fiberID = spmID - curStart;
@@ -2545,12 +2545,12 @@ void iAFiAKErController::updateBoundingBox()
 		newBounds[i * 2] = m_teBoundingBox[i]->text().toDouble(&ok);
 		if (!ok)
 		{
-			LOG(lvlInfo, QString("Invalid bounding box value: %1").arg(m_teBoundingBox[i]->text()))
+			LOG(lvlError, QString("Invalid bounding box value: %1").arg(m_teBoundingBox[i]->text()))
 		}
 		newBounds[i * 2 + 1] = m_teBoundingBox[i + 3]->text().toDouble(&ok);
 		if (!ok)
 		{
-			LOG(lvlInfo, QString("Invalid bounding box value: %1").arg(m_teBoundingBox[i]->text()))
+			LOG(lvlError, QString("Invalid bounding box value: %1").arg(m_teBoundingBox[i]->text()))
 		}
 	}
 	m_customBoundingBoxSource->SetBounds(newBounds);
@@ -2687,7 +2687,7 @@ void iAFiAKErController::referenceToggled()
 {
 	if (m_refDistCompute)
 	{
-		LOG(lvlInfo, "Another reference computation is currently running, please let that finish first!");
+		LOG(lvlWarn, "Another reference computation is currently running, please let that finish first!");
 		return;
 	}
 	size_t referenceID = QObject::sender()->property("resultID").toULongLong();
@@ -2773,7 +2773,7 @@ bool iAFiAKErController::loadReferenceInternal(iASettings settings)
 		referenceID = refIDStr.toULongLong(&ok);
 		if (!ok || referenceID >= m_data->result.size())
 		{
-			LOG(lvlInfo, QString("Invalid reference specification '%1' in project file! "
+			LOG(lvlWarn, QString("Invalid reference specification '%1' in project file! "
 				"Expected either a file name (new format) or a result number (old format)").arg(refIDStr));
 			return false;
 		}
@@ -2815,7 +2815,7 @@ namespace
 		}
 		else
 		{
-			LOG(lvlInfo, QString("Invalid value %1 for key=%2 couldn't be parsed as double array of size 3!")
+			LOG(lvlWarn, QString("Invalid value %1 for key=%2 couldn't be parsed as double array of size 3!")
 				.arg(settings.value(key).toString())
 				.arg(key));
 		}
@@ -3025,7 +3025,7 @@ void iAFiAKErController::changeReferenceDisplay()
 	}
 	if (m_referenceID == NoResult)
 	{
-		LOG(lvlInfo, QString("You need to set a reference first!"));
+		LOG(lvlWarn, QString("You need to set a reference first!"));
 		return;
 	}
 	m_refVisTable = vtkSmartPointer<vtkTable>::New();
@@ -3260,7 +3260,7 @@ void iAFiAKErController::visualizeCylinderSamplePoints()
 	}
 	if (fiberID == NoPlotsIdx)
 	{
-		LOG(lvlInfo, "No fiber selected!");
+		LOG(lvlWarn, "No fiber selected!");
 		return;
 	}
 	addInteraction(QString("Visualized cylinder sampling for fiber %1 in %2.").arg(fiberID).arg(resultName(resultID)));

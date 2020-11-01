@@ -75,7 +75,7 @@ void iASampleBuiltInFilterOperation::performWork()
 			auto value = pathFileBaseName(m_outputFileName) + param->defaultValue().toString();
 			if (QFile::exists(value) && !m_overwriteOutput)
 			{
-				LOG(lvlInfo, QString("Output file '%1' already exists! Aborting. "
+				LOG(lvlError, QString("Output file '%1' already exists! Aborting. "
 					"Check 'Overwrite output' to overwrite existing files.").arg(value));
 				return;
 			}
@@ -103,7 +103,7 @@ void iASampleBuiltInFilterOperation::performWork()
 		if (QFile(outFileName).exists() && !m_overwriteOutput)
 		{
 			// TODO: check at beginning to avoid aborting after long operation? But output count might not be known then...
-			LOG(lvlInfo, QString("Output file '%1' already exists! Aborting. "
+			LOG(lvlError, QString("Output file '%1' already exists! Aborting. "
 				"Check 'Overwrite output' to overwrite existing files.").arg(outFileName));
 			return;
 		}

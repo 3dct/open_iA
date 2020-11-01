@@ -60,7 +60,7 @@ void iATripleHistogramTFModuleInterface::menuItemSelected_2mod()
 		attach = GetAttachment<iATripleHistogramTFAttachment>();
 		if (!attach)
 		{
-			LOG(lvlInfo, "Attaching failed!");
+			LOG(lvlError, "Attaching failed!");
 			return;
 		}
 	}
@@ -77,7 +77,7 @@ void iATripleHistogramTFModuleInterface::menuItemSelected_3mod()
 		attach = GetAttachment<iATripleHistogramTFAttachment>();
 		if (!attach)
 		{
-			LOG(lvlInfo, "Attaching failed!");
+			LOG(lvlError, "Attaching failed!");
 			return;
 		}
 	}

@@ -326,7 +326,7 @@ iAParameterSetsPointer iALatinHypercubeSamplingMethod::parameterSets(QSharedPoin
 		}
 		else
 		{
-			LOG(lvlInfo, QString("Sampling not supported for value type %1, using default value %2")
+			LOG(lvlWarn, QString("Sampling not supported for value type %1, using default value %2")
 				.arg(ValueType2Str(valueType)).arg(param->defaultValue().toString()));
 			for (int s = 0; s < sampleCount; ++s)
 			{
@@ -471,7 +471,7 @@ iAParameterSetsPointer iALocalSensitivitySamplingMethod::parameterSets(QSharedPo
 		iAValueType valueType = parameters->at(p)->valueType();
 		if (valueType != iAValueType::Continuous)
 		{
-			LOG(lvlInfo, "Sensitivity Parameter Generator only works for Continuous parameters!");
+			LOG(lvlError, "Sensitivity Parameter Generator only works for Continuous parameters!");
 			return result;
 		}
 
@@ -597,13 +597,13 @@ QSharedPointer<iASamplingMethod> createSamplingMethod(iASettings const& paramete
 		newParams[spnSamplingMethod] = parameters[spnBaseSamplingMethod];
 		if (newParams[spnSamplingMethod] == iASamplingMethodName::GlobalSensitivity)
 		{
-			LOG(lvlInfo, QString("Cannot generate global sensitivity sampling: Base sampling method must not also be '%1'").arg(iASamplingMethodName::GlobalSensitivity));
+			LOG(lvlError, QString("Cannot generate global sensitivity sampling: Base sampling method must not also be '%1'").arg(iASamplingMethodName::GlobalSensitivity));
 			return QSharedPointer<iASamplingMethod>();
 		}
 		double delta = parameters[spnSensitivityDelta].toDouble();
 		auto otherSamplingMethod = createSamplingMethod(parameters);
 		return QSharedPointer<iASamplingMethod>(new iAGlobalSensitivitySamplingMethod(otherSamplingMethod, delta));
 	}
-	LOG(lvlInfo, QString("Could not find sampling method '%1'").arg(methodName));
+	LOG(lvlError, QString("Could not find sampling method '%1'").arg(methodName));
 	return QSharedPointer<iASamplingMethod>();
 }

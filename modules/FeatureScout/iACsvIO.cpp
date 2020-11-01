@@ -119,13 +119,13 @@ bool iACsvIO::loadCSV(iACsvTableCreator & dstTbl, iACsvConfig const & cnfg_param
 	m_csvConfig = cnfg_params;
 	if (!QFile::exists(m_csvConfig.fileName))
 	{
-		LOG(lvlInfo, "Error loading csv file, file does not exist.");
+		LOG(lvlError, "Error loading csv file, file does not exist.");
 		return false;
 	}
 	QFile file(m_csvConfig.fileName);
 	if (!file.open(QIODevice::ReadOnly | QIODevice::Text))
 	{
-		LOG(lvlInfo, QString("Unable to open file '%1': %2").arg(m_csvConfig.fileName).arg(file.errorString()));
+		LOG(lvlError, QString("Unable to open file '%1': %2").arg(m_csvConfig.fileName).arg(file.errorString()));
 		return false;
 	}
 	QTextStream in(&file);
@@ -134,7 +134,7 @@ bool iACsvIO::loadCSV(iACsvTableCreator & dstTbl, iACsvConfig const & cnfg_param
 		calcRowCount(in, m_csvConfig.skipLinesStart + (cnfg_params.containsHeader ? 1 : 0), m_csvConfig.skipLinesEnd));
 	if (effectiveRowCount <= 0)
 	{
-		LOG(lvlInfo, "No rows to load in the csv file!");
+		LOG(lvlError, "No rows to load in the csv file!");
 		return false;
 	}
 
@@ -173,14 +173,14 @@ bool iACsvIO::loadCSV(iACsvTableCreator & dstTbl, iACsvConfig const & cnfg_param
 		auto values = line.split(m_csvConfig.columnSeparator);
 		if (values.size() < m_csvConfig.currentHeaders.size())
 		{
-			LOG(lvlInfo, QString("Line %1 in file '%2' only contains %3 entries, expected %4. Skipping...")
+			LOG(lvlWarn, QString("Line %1 in file '%2' only contains %3 entries, expected %4. Skipping...")
 				.arg(row + m_csvConfig.skipLinesStart + (m_csvConfig.containsHeader ? 0 : 1)).arg(m_csvConfig.fileName)
 				.arg(values.size()).arg(m_csvConfig.currentHeaders.size()));
 			continue;
 		}
 		if (!m_csvConfig.addAutoID && values[0].toULongLong() != (row + 1))
 		{
-			LOG(lvlInfo, QString("ID column not ordered as expected in line %1 (needs to be consecutive, starting at 1)! "
+			LOG(lvlError, QString("ID column not ordered as expected in line %1 (needs to be consecutive, starting at 1)! "
 				"Please either fix the data in the CSV or use the 'Create ID' feature!").arg(row));
 			return false;
 		}
@@ -188,7 +188,7 @@ bool iACsvIO::loadCSV(iACsvTableCreator & dstTbl, iACsvConfig const & cnfg_param
 		{
 			if (valIdx >= values.size())
 			{
-				LOG(lvlInfo, QString("Error in line %1: Only %2 values, at least %3 expected").arg(resultRowID).arg(values.size()).arg(valIdx + 1));
+				LOG(lvlWarn, QString("Error in line %1: Only %2 values, at least %3 expected").arg(resultRowID).arg(values.size()).arg(valIdx + 1));
 				break;
 			}
 			QString value = values[valIdx];
@@ -341,7 +341,7 @@ void iACsvIO::determineOutputHeaders(QVector<uint> const & selectedCols)
 		int outIdx = selectedCols.indexOf(m_csvConfig.columnMapping[key]);
 		if (outIdx < 0)
 		{
-			LOG(lvlInfo, QString("Mapped column (ID=%1, input col=%2) not selected for output.").arg(key).arg(m_csvConfig.columnMapping[key]));
+			LOG(lvlWarn, QString("Mapped column (ID=%1, input col=%2) not selected for output.").arg(key).arg(m_csvConfig.columnMapping[key]));
 		}
 		else
 		{
@@ -431,7 +431,7 @@ QVector<uint> iACsvIO::computeSelectedColIdx()
 		}
 		else
 		{
-			LOG(lvlInfo, QString("Selected column '%1' not found in file headers '%2', skipping.").arg(colName).arg(m_fileHeaders.join(",")));
+			LOG(lvlWarn, QString("Selected column '%1' not found in file headers '%2', skipping.").arg(colName).arg(m_fileHeaders.join(",")));
 		}
 	}
 	return result;
@@ -480,13 +480,13 @@ bool readCurvedFiberInfo(QString const & fileName, std::map<size_t, std::vector<
 	QFileInfo curvedInfo(fileName);
 	if (!curvedInfo.exists() || !curvedInfo.isFile())
 	{
-		LOG(lvlInfo, QString("No curved fibre file named %1 exists.").arg(fileName));
+		LOG(lvlWarn, QString("No curved fibre file named %1 exists.").arg(fileName));
 		return false;
 	}
 	QFile curvedFiberPoints(curvedInfo.absoluteFilePath());
 	if (!curvedFiberPoints.open(QIODevice::ReadOnly | QIODevice::Text))
 	{
-		LOG(lvlInfo, QString("Unable to open curvedFiberPoints file: %1. Error: %2")
+		LOG(lvlError, QString("Unable to open curvedFiberPoints file: %1. Error: %2")
 			.arg(curvedInfo.absoluteFilePath()).arg(curvedFiberPoints.errorString()));
 		return false;
 	}
@@ -508,7 +508,7 @@ bool readCurvedFiberInfo(QString const & fileName, std::map<size_t, std::vector<
 #endif
 		if (valueStrList.size() < 7 || ((valueStrList.size() - 1) % 3) != 0)
 		{
-			LOG(lvlInfo, QString("Invalid line in curvedFiberPoints file %1, line %2: %3 - number of elements: %4")
+			LOG(lvlWarn, QString("Invalid line in curvedFiberPoints file %1, line %2: %3 - number of elements: %4")
 				.arg(curvedInfo.absoluteFilePath()).arg(lineNr).arg(line).arg(valueStrList.size()));
 			continue;
 		}
@@ -523,7 +523,7 @@ bool readCurvedFiberInfo(QString const & fileName, std::map<size_t, std::vector<
 			iAVec3f p(valueStrList[baseIdx].toFloat(&ok1), valueStrList[baseIdx + 1].toFloat(&ok2), valueStrList[baseIdx + 2].toFloat(&ok3));
 			if (!ok1 || !ok2 || !ok3)
 			{
-				LOG(lvlInfo, QString("Invalid point (%1, %2, %3) in curvedFiberPoints file %4, line %5: %6 - number of elements: %7")
+				LOG(lvlWarn, QString("Invalid point (%1, %2, %3) in curvedFiberPoints file %4, line %5: %6 - number of elements: %7")
 					.arg(valueStrList[baseIdx]).arg(valueStrList[baseIdx + 1]).arg(valueStrList[baseIdx + 2])
 					.arg(curvedInfo.absoluteFilePath()).arg(lineNr).arg(line).arg(valueStrList.size()));
 				continue;

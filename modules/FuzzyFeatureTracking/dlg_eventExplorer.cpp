@@ -1175,7 +1175,7 @@ void dlg_eventExplorer::chartMouseButtonCallBack(vtkObject * /*obj*/)
 
 	if (m_numberOfCharts > std::numeric_limits<int>::max())
 	{
-		LOG(lvlInfo, QString("Number of charts (%1) larger than supported (%2)!").arg(m_numberOfCharts).arg(std::numeric_limits<int>::max()));
+		LOG(lvlError, QString("Number of charts (%1) larger than supported (%2)!").arg(m_numberOfCharts).arg(std::numeric_limits<int>::max()));
 	}
 	for (size_t i = 0; i < m_numberOfCharts; ++i)
 	{

@@ -137,7 +137,7 @@ void iASelectionInteractorStyle::pick()
 	}
 	if (!m_selectionProvider)
 	{
-		LOG(lvlInfo, "No selection provider given!");
+		LOG(lvlError, "No selection provider given!");
 		return;
 	}
 
@@ -279,7 +279,7 @@ void iASelectionInteractorStyle::OnLeftButtonDown()
 	{
 		if (!m_cellRenderer)
 		{
-			LOG(lvlInfo, "Cell renderer not set!");
+			LOG(lvlError, "Cell renderer not set!");
 			return;
 		}
 
@@ -304,7 +304,7 @@ void iASelectionInteractorStyle::OnLeftButtonDown()
 			}
 			if (pickedResultID == std::numeric_limits<size_t>::max())
 			{
-				LOG(lvlInfo, "Could not find picked result.");
+				LOG(lvlError, "Could not find picked result.");
 				return;
 			}
 			size_t objectID = (picker->GetCellId()) / 14;

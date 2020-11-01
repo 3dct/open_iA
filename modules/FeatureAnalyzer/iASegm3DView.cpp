@@ -67,7 +67,8 @@ void iASegm3DView::SetDataToVisualize( QList<vtkImageData*> imgData, QList<vtkPo
 	{
 		if (!i)
 		{
-			LOG(lvlInfo, "Image data is nullptr!");
+			LOG(lvlError, "Image data is nullptr!");
+			return;
 		}
 	}
 	m_range = 0.0;
@@ -255,7 +256,8 @@ void iASegm3DViewData::SetDataToVisualize( vtkImageData * imgData, vtkPolyData *
 {
 	if (!imgData)
 	{
-		LOG(lvlInfo, "Image data is nullptr!");
+		LOG(lvlError, "Image data is nullptr!");
+		return;
 	}
 	iASimpleTransferFunction tf(ctf, otf);
 	if( !m_rendInitialized )

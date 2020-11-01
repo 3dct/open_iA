@@ -163,7 +163,7 @@ void iAParamSPLOMView::SetLUTColumn(QString const & colName)
 		}
 		if (col == -1)
 		{
-			LOG(lvlInfo, QString("Unknown column: %1").arg(colName));
+			LOG(lvlError, QString("Unknown column: %1").arg(colName));
 			return;
 		}
 	}

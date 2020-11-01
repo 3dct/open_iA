@@ -223,7 +223,7 @@ void dlg_CSVInput::exportTable()
 	iACsvQTableCreator creator(&tw);
 	if (!io.loadCSV(creator, m_confParams, std::numeric_limits<size_t>::max()))
 	{
-		LOG(lvlInfo, "Error loading csv file.");
+		LOG(lvlError, QString("Error loading CSV file '%1'.").arg(m_confParams.fileName));
 		return;
 	}
 
@@ -231,7 +231,8 @@ void dlg_CSVInput::exportTable()
 	QFile origCSV(origCSVFileName);
 	if (!origCSV.open(QIODevice::ReadOnly))
 	{
-		LOG(lvlInfo, "Error loading csv file, file does not exist.");
+		LOG(lvlError, QString("Could not open CSV file '%1' for reading! "
+			"It probably does not exist!").arg(origCSVFileName));
 		return;
 	}
 	QStringList origCSVInfo;
@@ -482,7 +483,7 @@ void dlg_CSVInput::showConfigParams()
 		m_confParams.skipLinesEnd > std::numeric_limits<int>::max() ||
 		m_confParams.segmentSkip > std::numeric_limits<int>::max())
 	{
-		LOG(lvlInfo, "Skip Line start/end or segment skip number is too high for display in this dialog!");
+		LOG(lvlWarn, "Skip Line start/end or segment skip number is too high to be displayed in this dialog!");
 	}
 	int index = cmbbox_ObjectType->findText(MapObjectTypeToString(m_confParams.objectType), Qt::MatchContains);
 	cmbbox_ObjectType->setCurrentIndex(index);
@@ -549,7 +550,7 @@ void dlg_CSVInput::assignFormatSettings()
 		{
 			if (usedColumns.contains(m_mappingBoxes[i]->currentText()))
 			{
-				LOG(lvlInfo, QString("Column '%1' used more than once!").arg(m_mappingBoxes[i]->currentText()));
+				LOG(lvlWarn, QString("Invalid column mapping: Column '%1' is used more than once!").arg(m_mappingBoxes[i]->currentText()));
 			}
 			else
 				usedColumns.insert(m_mappingBoxes[i]->currentText());
@@ -640,18 +641,30 @@ void dlg_CSVInput::showSelectedCols()
 	{
 		int idx = m_confParams.currentHeaders.indexOf(selected);
 		if (idx >= 0 && idx < list_ColumnSelection->count())
+		{
 			list_ColumnSelection->item(idx)->setSelected(true);
+		}
 		else
-			LOG(lvlInfo, QString("Header entry %1 not found, skipping its selection.").arg(selected));
+		{
+			LOG(lvlWarn, QString("Header entry '%1' not found, skipping its selection!").arg(selected));
+		}
 	}
 	if (m_confParams.addAutoID)
+	{
 		ed_col_ID->setText(iACsvIO::ColNameAutoID);
+	}
 	else if (m_confParams.selectedHeaders.size() > 0)
+	{
 		ed_col_ID->setText(m_confParams.selectedHeaders[0]);
+	}
 	else if (m_confParams.currentHeaders.size() > 0)
+	{
 		ed_col_ID->setText(m_confParams.currentHeaders[0]);
+	}
 	else
+	{
 		ed_col_ID->setText("NONE");
+	}
 }
 
 void dlg_CSVInput::saveGeneralSetting(QString const & settingName, QVariant value)

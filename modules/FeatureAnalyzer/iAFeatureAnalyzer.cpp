@@ -417,7 +417,7 @@ bool iAFeatureAnalyzer::doSaveProject(QString const& projectFileName)
 	
 	if (!projectFileName.toLower().endsWith(iAIOProvider::NewProjectFileExtension))
 	{
-		LOG(lvlInfo, QString("Only extension %1 is supported!").arg(iAIOProvider::NewProjectFileExtension));
+		LOG(lvlError, QString("Only extension %1 is supported!").arg(iAIOProvider::NewProjectFileExtension));
 		return false;
 	}
 	// TODO: Unify with MdiChild::doSaveProject

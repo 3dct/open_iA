@@ -247,7 +247,7 @@ void iABatchFilter::performWork(QMap<QString, QVariant> const & parameters)
 					auto value = pathFileBaseName(fileName) + param->defaultValue().toString();
 					if (QFile::exists(value) && !overwrite)
 					{
-						LOG(lvlInfo, QString("Output file '%1' already exists! Aborting. "
+						LOG(lvlError, QString("Output file '%1' already exists! Aborting. "
 							"Check '%2' to overwrite existing files.").arg(value).arg(spnOverwriteOutput));
 						return;
 					}
@@ -323,7 +323,7 @@ void iABatchFilter::performWork(QMap<QString, QVariant> const & parameters)
 		}
 		catch (std::exception & e)
 		{
-			LOG(lvlInfo, QString("Batch processing: Error while processing file '%1': %2").arg(fileName).arg(e.what()));
+			LOG(lvlError, QString("Batch processing: Error while processing file '%1': %2").arg(fileName).arg(e.what()));
 			if (!parameters["Continue on error"].toBool())
 			{
 				throw e;

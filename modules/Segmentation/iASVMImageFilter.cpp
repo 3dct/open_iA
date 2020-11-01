@@ -50,7 +50,7 @@ namespace
 		else if (type == "RBF") return 2;
 		else if (type == "Sigmoid") return 3;
 		else {
-			LOG(lvlInfo, "Invalid SVM kernel type! Falling back to RBF!");
+			LOG(lvlError, "Invalid SVM kernel type! Falling back to RBF!");
 			return 2;
 		}
 	}
@@ -60,7 +60,7 @@ void iASVMImageFilter::performWork(QMap<QString, QVariant> const & parameters)
 {
 	if (input().size() == 0)
 	{
-		LOG(lvlInfo, "No Input available!");
+		LOG(lvlError, "No Input available!");
 		return;
 	}
 	svm_set_print_string_function(myNullPrintFunc); // make libSVM shut up
@@ -129,14 +129,14 @@ void iASVMImageFilter::performWork(QMap<QString, QVariant> const & parameters)
 	//	}
 	//}
 	// } else {
-	//	LOG(lvlInfo, "Neither seeds nor training values specified!");
+	//	LOG(lvlError, "Neither seeds nor training values specified!");
 	//	return false;
 	// }
 
 	char const * error = svm_check_parameter(&problem, &param);
 	if (error)
 	{
-		LOG(lvlInfo, QString("Error in SVM parameters: %1").arg(error));
+		LOG(lvlError, QString("Error in SVM parameters: %1").arg(error));
 	}
 	// train the model
 	svm_model* model = svm_train(&problem, &param);
@@ -172,7 +172,7 @@ void iASVMImageFilter::performWork(QMap<QString, QVariant> const & parameters)
 			// DEBUG check begin
 			if (prob_estimates[l] < -MY_EPSILON || prob_estimates[l] > 1.0+MY_EPSILON)
 			{
-				LOG(lvlInfo, QString("SVM: Invalid probability (%1) at %2, %3, %4")
+				LOG(lvlWarn, QString("SVM: Invalid probability (%1) at %2, %3, %4")
 					.arg(prob_estimates[l])
 					.arg(x)
 					.arg(y)
@@ -183,7 +183,7 @@ void iASVMImageFilter::performWork(QMap<QString, QVariant> const & parameters)
 		// DEBUG check begin
 		if (probSum - 1.0 > MY_EPSILON)
 		{
-			LOG(lvlInfo, QString("SVM: Probabilities at %1, %2, %3 add up to %4 instead of 1!")
+			LOG(lvlWarn, QString("SVM: Probabilities at %1, %2, %3 add up to %4 instead of 1!")
 				.arg(x)
 				.arg(y)
 				.arg(z)

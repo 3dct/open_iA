@@ -176,7 +176,7 @@ void iASpatialView::AddImageDisplay(int idx)
 {
 	if (m_guiElements.contains(idx))
 	{
-		LOG(lvlInfo, QString("Image %1 already shown!").arg(idx));
+		LOG(lvlWarn, QString("Image %1 already shown!").arg(idx));
 		return;
 	}
 	ImageGUIElements gui;
@@ -187,7 +187,9 @@ void iASpatialView::AddImageDisplay(int idx)
 
 	vtkScalarsToColors* colors = m_labelImgLut;
 	if (m_images[idx].caption.contains("Uncertainty"))
+	{
 		colors = m_uncertaintyLut;
+	}
 	gui.imageWidget = new iAImageWidget(m_images[idx].image, colors);
 	auto label = new QLabel(m_images[idx].caption);
 	label->setSizePolicy(QSizePolicy::MinimumExpanding, QSizePolicy::Fixed);
@@ -313,7 +315,7 @@ void iASpatialView::AddMemberImage(QString const & caption, vtkImagePointer img,
 {
 	if (!img)
 	{
-		LOG(lvlInfo, "Image was null!");
+		LOG(lvlError, "Image was null!");
 		return;
 	}
 	if (!keep)

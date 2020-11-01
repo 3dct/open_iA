@@ -71,7 +71,7 @@ void setSeeds(RegFilterT* filter, iAConnector::ImageBaseType* img)
 		case itk::ImageIOBase::FLOAT:  addSeeds(filter, dynamic_cast<itk::Image<         float, DIM>*>(img)); break;
 		case itk::ImageIOBase::DOUBLE: addSeeds(filter, dynamic_cast<itk::Image<        double, DIM>*>(img)); break;
 		default:
-			LOG(lvlInfo, "ERROR: Invalid/Unknown itk pixel datatype in setSeeds!"); break;
+			LOG(lvlError, "Invalid/Unknown itk pixel datatype in setSeeds!"); break;
 	}
 }
 }

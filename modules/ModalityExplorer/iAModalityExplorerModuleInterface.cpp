@@ -55,6 +55,6 @@ void iAModalityExplorerModuleInterface::ModalitySPLOM()
 	iAModalityExplorerAttachment* attach = GetAttachment<iAModalityExplorerAttachment>();
 	if (!result || !attach)
 	{
-		LOG(lvlInfo, "ModalityExplorer could not be initialized!");
+		LOG(lvlError, "ModalityExplorer could not be initialized!");
 	}
 }

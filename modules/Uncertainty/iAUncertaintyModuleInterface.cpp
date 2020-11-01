@@ -75,7 +75,7 @@ void iAUncertaintyModuleInterface::LoadEnsemble(QString const & fileName)
 	iAUncertaintyAttachment* attach = GetAttachment<iAUncertaintyAttachment>();
 	if (!result || !attach)
 	{
-		LOG(lvlInfo, "Uncertainty exploration could not be initialized!");
+		LOG(lvlError, "Uncertainty exploration could not be initialized!");
 		return;
 	}
 	m_mdiChild->show();
@@ -106,7 +106,7 @@ void iAUncertaintyModuleInterface::ToggleDockWidgetTitleBars()
 	iAUncertaintyAttachment* attach = GetAttachment<iAUncertaintyAttachment>();
 	if (!attach)
 	{
-		LOG(lvlInfo, "Uncertainty exploration was not loaded properly!");
+		LOG(lvlError, "Uncertainty exploration was not loaded properly!");
 		return;
 	}
 	attach->ToggleDockWidgetTitleBars();
@@ -117,7 +117,7 @@ void iAUncertaintyModuleInterface::ToggleSettings()
 	iAUncertaintyAttachment* attach = GetAttachment<iAUncertaintyAttachment>();
 	if (!attach)
 	{
-		LOG(lvlInfo, "Uncertainty exploration was not loaded properly!");
+		LOG(lvlError, "Uncertainty exploration was not loaded properly!");
 		return;
 	}
 	attach->ToggleSettings();
@@ -128,7 +128,7 @@ void iAUncertaintyModuleInterface::CalculateNewSubEnsemble()
 	iAUncertaintyAttachment* attach = GetAttachment<iAUncertaintyAttachment>();
 	if (!attach)
 	{
-		LOG(lvlInfo, "Uncertainty exploration was not loaded properly!");
+		LOG(lvlError, "Uncertainty exploration was not loaded properly!");
 		return;
 	}
 	attach->CalculateNewSubEnsemble();
@@ -139,7 +139,7 @@ void iAUncertaintyModuleInterface::WriteFullDataFile()
 	iAUncertaintyAttachment* attach = GetAttachment<iAUncertaintyAttachment>();
 	if (!attach)
 	{
-		LOG(lvlInfo, "Uncertainty exploration was not loaded properly!");
+		LOG(lvlError, "Uncertainty exploration was not loaded properly!");
 		return;
 	}
 	QString fileName = QFileDialog::getSaveFileName(m_mainWnd,

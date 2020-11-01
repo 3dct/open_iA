@@ -199,7 +199,7 @@ void iAStackedBarChart::mouseMoveEvent(QMouseEvent* ev)
 		{
 			if (!(ev->buttons() & Qt::LeftButton))  // left button was released without being in the window?
 			{
-				LOG(lvlInfo, "iAStackedBarChart: resizedBar set but left button not pressed! Resetting...");
+				LOG(lvlError, "iAStackedBarChart: resizedBar set but left button not pressed! Resetting...");
 				m_resizeBar = NoBar;
 			}
 			else

@@ -177,12 +177,12 @@ void dlg_GEMSeControl::startSampling()
 {
 	if (!m_dlgModalities->modalities()->size())
 	{
-		LOG(lvlInfo, "No data available.");
+		LOG(lvlError, "No data available.");
 		return;
 	}
 	if (m_dlgSamplingSettings || m_sampler)
 	{
-		LOG(lvlInfo, "Cannot start sampling while another sampling is still running...");
+		LOG(lvlError, "Cannot start sampling while another sampling is still running...");
 		QMessageBox::warning(this, "GEMSe", "Another sampler still running / dialog is still open...");
 		return;
 	}
@@ -197,7 +197,7 @@ void dlg_GEMSeControl::startSampling()
 		if (m_samplingSettings[spnComputeDerivedOutput].toBool() &&
 			m_samplingSettings[spnNumberOfLabels].toInt() < 2)
 		{
-			LOG(lvlInfo, "Label Count must not be smaller than 2!");
+			LOG(lvlError, "Label Count must not be smaller than 2!");
 			QMessageBox::warning(this, "GEMSe", "Label Count must not be smaller than 2!");
 			return;
 		}
@@ -251,7 +251,7 @@ void dlg_GEMSeControl::loadSamplingSlot()
 		dlg_commoninput lblCountInput(this, "Label Count", inList, inPara, nullptr);
 		if (lblCountInput.exec() != QDialog::Accepted)
 		{
-			LOG(lvlInfo, "Cannot load sampling without label count input!");
+			LOG(lvlError, "Cannot load sampling without label count input!");
 			return;
 		}
 		labelCount = lblCountInput.getIntValue(0);
@@ -264,13 +264,13 @@ bool dlg_GEMSeControl::loadSampling(QString const & fileName, int labelCount, in
 	m_simpleLabelInfo->setLabelCount(labelCount);
 	if (fileName.isEmpty())
 	{
-		LOG(lvlInfo, "No filename given, not loading.");
+		LOG(lvlError, "No filename given, not loading.");
 		return false;
 	}
 	QSharedPointer<iASamplingResults> samplingResults = iASamplingResults::load(fileName, datasetID);
 	if (!samplingResults)
 	{
-		LOG(lvlInfo, "Loading Sampling failed.");
+		LOG(lvlError, "Loading Sampling failed.");
 		return false;
 	}
 	m_dlgSamplings->Add(samplingResults);
@@ -317,13 +317,13 @@ bool dlg_GEMSeControl::loadClustering(QString const & fileName)
 {
 	if (m_simpleLabelInfo->count() < 2)
 	{
-		LOG(lvlInfo, "Label Count must not be smaller than 2!");
+		LOG(lvlError, "Label Count must not be smaller than 2!");
 		return false;
 	}
 	assert(m_dlgSamplings->SamplingCount() > 0);
 	if (m_dlgSamplings->SamplingCount() == 0 || fileName.isEmpty())
 	{
-		LOG(lvlInfo, "No sampling data is available!");
+		LOG(lvlError, "No sampling data is available!");
 		return false;
 	}
 	MdiChild* mdiChild = dynamic_cast<MdiChild*>(parent());
@@ -335,7 +335,7 @@ bool dlg_GEMSeControl::loadClustering(QString const & fileName)
 	);
 	if (!tree)
 	{
-		LOG(lvlInfo, "Loading Clustering failed!");
+		LOG(lvlError, "Loading Clustering failed!");
 		return false;
 	}
 	double * origSpacing = originalImage->GetSpacing();
@@ -346,7 +346,7 @@ bool dlg_GEMSeControl::loadClustering(QString const & fileName)
 		origSpacing[1] != resultSpacing[1] ||
 		origSpacing[2] != resultSpacing[2])
 	{
-		LOG(lvlInfo, "Spacing of original images and of result images does not match!");
+		LOG(lvlError, "Spacing of original images and of result images does not match!");
 	}
 	m_dlgGEMSe->SetTree(
 		tree,
@@ -367,13 +367,13 @@ void dlg_GEMSeControl::calculateClustering()
 {
 	if (m_dlgSamplings->SamplingCount() == 0)
 	{
-		LOG(lvlInfo, "No Sampling Results available!");
+		LOG(lvlError, "No Sampling Results available!");
 		return;
 	}
 	assert( !m_dlgProgress );
 	if (m_dlgProgress)
 	{
-		LOG(lvlInfo, "Other operation still running?");
+		LOG(lvlError, "Other operation still running?");
 		return;
 	}
 	m_outputFolder = QFileDialog::getExistingDirectory(this, tr("Output Directory"), m_outputFolder);
@@ -386,7 +386,7 @@ void dlg_GEMSeControl::calculateClustering()
 	QDir qdir;
 	if (!qdir.mkpath(cacheDir))
 	{
-		LOG(lvlInfo, QString("Can't create representative directory %1!").arg(cacheDir));
+		LOG(lvlError, QString("Can't create representative directory %1!").arg(cacheDir));
 		return;
 	}
 	m_clusterer = QSharedPointer<iAImageClusterer>(new iAImageClusterer(m_simpleLabelInfo->count(), cacheDir));
@@ -418,12 +418,12 @@ void dlg_GEMSeControl::clusteringFinished()
 	assert(m_dlgGEMSe);
 	if (!m_dlgGEMSe)
 	{
-		LOG(lvlInfo, "GEMSe not initialized!");
+		LOG(lvlError, "GEMSe not initialized!");
 		return;
 	}
 	if (m_clusterer->IsAborted() || !m_clusterer->GetResult())
 	{
-		LOG(lvlInfo, "Clusterer aborted / missing Clustering Result!");
+		LOG(lvlError, "Clusterer aborted / missing Clustering Result!");
 		return;
 	}
 	if (!m_outputFolder.isEmpty())
@@ -641,7 +641,7 @@ bool dlg_GEMSeControl::loadRefImg(QString const & refImgName)
 	}
 	catch (std::exception & e)
 	{
-		LOG(lvlInfo, QString("Could not load reference image, problem: %1").arg(e.what()));
+		LOG(lvlError, QString("Could not load reference image, problem: %1").arg(e.what()));
 		return false;
 	}
 	leRefImage->setText(refImgName);
@@ -679,7 +679,7 @@ void dlg_GEMSeControl::saveDerivedOutput(
 	QFile paramRangeFile(attributeDescriptorOutputFileName);
 	if (!paramRangeFile.open(QIODevice::WriteOnly | QIODevice::Text))
 	{
-		LOG(lvlInfo, QString("Could not open parameter descriptor file '%1' for writing!").arg(attributeDescriptorOutputFileName));
+		LOG(lvlError, QString("Could not open parameter descriptor file '%1' for writing!").arg(attributeDescriptorOutputFileName));
 		return;
 	}
 	QTextStream out(&paramRangeFile);

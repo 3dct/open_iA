@@ -44,7 +44,7 @@ void iACommandRunner::performWork()
 	myProcess.waitForFinished(-1);
 	if (myProcess.exitStatus() != QProcess::NormalExit)
 	{
-		LOG(lvlInfo, "Program crashed!");
+		LOG(lvlError, "Program crashed!");
 	}
 	else
 	{
@@ -52,7 +52,7 @@ void iACommandRunner::performWork()
 		setSuccess(statusCode == 0);
 		if (!success())
 		{
-			LOG(lvlInfo, QString("Program exited with status code %1").arg(myProcess.exitCode()));
+			LOG(lvlError, QString("Program exited with status code %1").arg(myProcess.exitCode()));
 		}
 	}
 	m_output = myProcess.readAllStandardOutput();
@@ -61,7 +61,7 @@ void iACommandRunner::performWork()
 
 void iACommandRunner::errorOccured(QProcess::ProcessError p)
 {
-	LOG(lvlInfo, QString("CommandRunner: An error has occured %1").arg
+	LOG(lvlError, QString("CommandRunner: An error has occured %1").arg
 	(p == QProcess::FailedToStart ? "failed to start" :
 		p == QProcess::Crashed ? "Crashed" :
 		p == QProcess::Timedout ? "Timedout" :

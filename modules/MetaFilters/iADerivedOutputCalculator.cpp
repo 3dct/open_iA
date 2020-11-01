@@ -60,7 +60,7 @@ void iADerivedOutputCalculator::run()
 		connected->SetDistanceThreshold(0);
 		if (m_result->labelImage().IsNull())
 		{
-			LOG(lvlInfo, "Labelled Image is null");
+			LOG(lvlError, "Labelled Image is null");
 			m_success = false;
 			return;
 		}
@@ -93,7 +93,7 @@ void iADerivedOutputCalculator::run()
 			getStatistics(entropyFilter->GetOutput(), nullptr, nullptr, &avgEntropy);
 			if (qIsInf(avgEntropy))
 			{
-				LOG(lvlInfo, "AverageEntropy was infinity! Setting to -1")
+				LOG(lvlWarn, "AverageEntropy was infinity! Setting to -1")
 				avgEntropy = -1;
 			}
 			m_result->setAttribute(m_avgUncIdx, avgEntropy);
@@ -102,7 +102,7 @@ void iADerivedOutputCalculator::run()
 	}
 	catch (std::exception & e)
 	{
-		LOG(lvlInfo, QString("An exception occured while computing derived output: %1").arg(e.what()));
+		LOG(lvlError, QString("An exception occured while computing derived output: %1").arg(e.what()));
 		m_success = false;
 	}
 	/*

@@ -1703,7 +1703,7 @@ void dlg_FeatureScout::ClassAddButton()
 
 		if (kIdx.contains(v.ToInt()))
 		{
-			LOG(lvlInfo, QString("Tried to add objID=%1, v=%2 to class which is already contained in other class!").arg(objID).arg(v.ToInt()));
+			LOG(lvlWarn, QString("Tried to add objID=%1, v=%2 to class which is already contained in other class!").arg(objID).arg(v.ToInt()));
 		}
 		else
 		{
@@ -2380,7 +2380,7 @@ void dlg_FeatureScout::ClassLoadButton()
 	}
 	if (reader.hasError())
 	{
-		LOG(lvlInfo, QString("Error while parsing XML: %1").arg(reader.errorString()));
+		LOG(lvlError, QString("Error while parsing XML: %1").arg(reader.errorString()));
 	}
 	m_splom->classesChanged();
 
@@ -3433,7 +3433,7 @@ void dlg_FeatureScout::updatePolarPlotView(vtkTable* it)
 {
 	if (!m_columnMapping->contains(iACsvConfig::Phi) || !m_columnMapping->contains(iACsvConfig::Theta))
 	{
-		LOG(lvlInfo, "It wasn't defined in which columns the angles phi and theta can be found, cannot set up polar plot view.");
+		LOG(lvlWarn, "It wasn't defined in which columns the angles phi and theta can be found, cannot set up polar plot view.");
 		return;
 	}
 	m_dwPP->setWindowTitle("Orientation Distribution");
@@ -3816,7 +3816,7 @@ void dlg_FeatureScout::updateAxisProperties()
 		vtkAxis* axis = m_pcChart->GetAxis(i);
 		if (!axis)
 		{
-			LOG(lvlInfo, QString("Invalid axis %1 in Parallel Coordinates!").arg(i));
+			LOG(lvlWarn, QString("Invalid axis %1 in Parallel Coordinates!").arg(i));
 			continue;
 		}
 		axis->GetLabelProperties()->SetFontSize(m_pcFontSize);

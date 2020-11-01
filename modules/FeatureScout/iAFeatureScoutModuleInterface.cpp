@@ -74,7 +74,7 @@ void iAFeatureScoutProject::loadProject(QSettings & projectFile, QString const &
 {
 	if (!m_mdiChild)
 	{
-		LOG(lvlInfo, QString("Invalid FeatureScout project file '%1': FeatureScout requires an MdiChild, "
+		LOG(lvlError, QString("Invalid FeatureScout project file '%1': FeatureScout requires an MdiChild, "
 			"but UseMdiChild was apparently not specified in this project, as no MdiChild available! "
 			"Please report this error, along with the project file, to the open_iA developers!").arg(fileName));
 		return;
@@ -85,7 +85,7 @@ void iAFeatureScoutProject::loadProject(QSettings & projectFile, QString const &
 	QString csvFileName = projectFile.value("CSVFileName").toString();
 	if (csvFileName.isEmpty())
 	{
-		LOG(lvlInfo, QString("Invalid FeatureScout project file '%1': Empty or missing 'CSVFileName'!").arg(fileName));
+		LOG(lvlError, QString("Invalid FeatureScout project file '%1': Empty or missing 'CSVFileName'!").arg(fileName));
 		return;
 	}
 	m_config.fileName = MakeAbsolute(path, csvFileName);

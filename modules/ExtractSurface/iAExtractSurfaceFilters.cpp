@@ -50,7 +50,8 @@ namespace
 	{
 		if (!surfaceFilter)
 		{
-			LOG(lvlInfo, "Surface filter is null") return nullptr;
+			LOG(lvlError, "Surface filter is null");
+			return nullptr;
 		}
 
 		QString simplifyAlgoName = parameters["Simplification Algorithm"].toString();
@@ -91,7 +92,7 @@ namespace
 		}
 		else
 		{
-			LOG(lvlInfo, QString("Unknown simplification algorithm '%1'").arg(simplifyAlgoName));
+			LOG(lvlError, QString("Unknown simplification algorithm '%1'").arg(simplifyAlgoName));
 			return nullptr;
 		}
 		Progress->observe(result);
@@ -103,7 +104,7 @@ namespace
 	{
 		if (!imgData)
 		{
-			LOG(lvlInfo, "input Image is null");
+			LOG(lvlError, "input Image is null");
 			return nullptr;
 		}
 		vtkSmartPointer<vtkPolyDataAlgorithm> result;
@@ -196,7 +197,7 @@ void iAExtractSurface::performWork(QMap<QString, QVariant> const & parameters)
 	auto surfaceFilter = createSurfaceFilter(parameters, input()[0]->vtkImage(), progress());
 	if (!surfaceFilter)
 	{
-		LOG(lvlInfo, "Generated surface filter is null");
+		LOG(lvlError, "Generated surface filter is null");
 		return;
 	}
 
@@ -269,7 +270,7 @@ void iATriangulation::performWork(QMap<QString, QVariant> const& parameters) {
 	auto surfaceFilter = createSurfaceFilter(parameters, input()[0]->vtkImage(), progress());
 	if (!surfaceFilter)
 	{
-		LOG(lvlInfo, "Generated surface filter is null");
+		LOG(lvlError, "Generated surface filter is null");
 		return;
 	}
 

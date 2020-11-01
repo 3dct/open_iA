@@ -503,7 +503,7 @@ void iADetailView::SetCorrectnessUncertaintyOverlay(bool enabled)
 {
 	if (!m_refImg)
 	{
-		LOG(lvlInfo, "Reference image must be set!");
+		LOG(lvlError, "Reference image must be set!");
 		return;
 	}
 	m_correctnessUncertaintyOverlayEnabled = enabled;
@@ -640,7 +640,7 @@ void iADetailView::SlicerMouseMove(int x, int y, int z, int /*c*/)
 		AddResultFilterPixel(x, y, z);
 		if (!m_resultFilterTriggerThread)
 			m_MouseButtonDown = false;
-			//LOG(lvlInfo, "Result Filter Trigger not yet started....");
+			//LOG(lvlError, "Result Filter Trigger not yet started....");
 		else
 			m_resultFilterTriggerThread->restart();
 	}

@@ -159,7 +159,7 @@ iACsvConfig getCsvConfig(QString const & formatName)
 		}
 		else
 		{
-			LOG(lvlInfo, QString("Invalid format %1!").arg(formatName));
+			LOG(lvlError, QString("Invalid format %1!").arg(formatName));
 		}
 	}
 	return result;
@@ -197,7 +197,7 @@ bool iAFiberResultsCollection::loadData(QString const & path, iACsvConfig const 
 	const int MaxDatasetCount = 200;
 	if (csvFileNames.size() > MaxDatasetCount)
 	{
-		LOG(lvlInfo, QString("The specified folder %1 contains %2 datasets; currently we only support loading up to %3 datasets!")
+		LOG(lvlError, QString("The specified folder %1 contains %2 datasets; currently we only support loading up to %3 datasets!")
 			.arg(path).arg(csvFileNames.size()).arg(MaxDatasetCount));
 		return false;
 	}
@@ -217,7 +217,7 @@ bool iAFiberResultsCollection::loadData(QString const & path, iACsvConfig const 
 		iACsvVtkTableCreator tableCreator;
 		if (!io.loadCSV(tableCreator, config))
 		{
-			LOG(lvlInfo, QString("Could not load file '%1' - probably it's in a wrong format; skipping!").arg(csvFile));
+			LOG(lvlError, QString("Could not load file '%1' - probably it's in a wrong format; skipping!").arg(csvFile));
 			continue;
 		}
 
@@ -227,7 +227,7 @@ bool iAFiberResultsCollection::loadData(QString const & path, iACsvConfig const 
 		totalFiberCount += curData.fiberCount;
 		if (curData.fiberCount > std::numeric_limits<int>::max())
 		{
-			LOG(lvlInfo, QString("Large number of objects (%1) detected - currently only up to %2 objects are supported!")
+			LOG(lvlError, QString("Large number of objects (%1) detected - currently only up to %2 objects are supported!")
 				.arg(curData.fiberCount).arg(std::numeric_limits<int>::max()));
 		}
 		curData.mapping = io.getOutputMapping();
@@ -255,7 +255,7 @@ bool iAFiberResultsCollection::loadData(QString const & path, iACsvConfig const 
 			{
 				if (curData.mapping->value(key) != result[0].mapping->value(key))
 				{
-					LOG(lvlInfo, QString("Mapping does not match for result %1, column %2!").arg(csvFile).arg(curData.mapping->value(key)));
+					LOG(lvlError, QString("Mapping does not match for result %1, column %2!").arg(csvFile).arg(curData.mapping->value(key)));
 					return false;
 				}
 			}
@@ -300,7 +300,7 @@ bool iAFiberResultsCollection::loadData(QString const & path, iACsvConfig const 
 					}
 					if (fiberID >= curData.fiberCount)
 					{
-						LOG(lvlInfo, QString("Discrepancy: More lines in %1 file than there were fibers in the fiber description csv (%2).\n")
+						LOG(lvlError, QString("Discrepancy: More lines in %1 file than there were fibers in the fiber description csv (%2).\n")
 								  .arg(projErrorFile.fileName()).arg(curData.fiberCount));
 						break;
 					}
@@ -349,7 +349,7 @@ bool iAFiberResultsCollection::loadData(QString const & path, iACsvConfig const 
 						QStringList values = line.split(",");
 						if (values.size() != 6)
 						{
-							LOG(lvlInfo, QString("Invalid line %1 in file %2, there should be 6 entries but there are %3 (line: %4).\n")
+							LOG(lvlError, QString("Invalid line %1 in file %2, there should be 6 entries but there are %3 (line: %4).\n")
 								.arg(lineNr)
 								.arg(fiberStepCsvInfo.fileName())
 								.arg(values.size())
@@ -447,7 +447,7 @@ bool iAFiberResultsCollection::loadData(QString const & path, iACsvConfig const 
 						QStringList values = line.split(",");
 						if ((values.size()-1) %3 != 0)
 						{
-							LOG(lvlInfo, QString("Invalid line %1 in file %2: The number of entries should be divisible by 3, but it's %3 (line: %4).")
+							LOG(lvlError, QString("Invalid line %1 in file %2: The number of entries should be divisible by 3, but it's %3 (line: %4).")
 								.arg(lineNr).arg(fiberStepCsvInfo.fileName()).arg(values.size()).arg(line));
 						}
 						std::vector<double> stepValues;
@@ -455,7 +455,7 @@ bool iAFiberResultsCollection::loadData(QString const & path, iACsvConfig const 
 						double projError = values[0].toDouble(&ok);
 						if (!ok)
 						{
-							LOG(lvlInfo, QString("Invalid line %1 in file %2: projection error value %3 is not double!")
+							LOG(lvlError, QString("Invalid line %1 in file %2: projection error value %3 is not double!")
 								.arg(lineNr).arg(fiberStepCsvInfo.fileName()).arg(values[0]));
 						}
 						projErrFib.push_back(projError);
@@ -465,7 +465,7 @@ bool iAFiberResultsCollection::loadData(QString const & path, iACsvConfig const 
 							double curCoord = values[j].toDouble(&ok);
 							if (!ok)
 							{
-								LOG(lvlInfo, QString("Invalid line %1 in file %2: coordinate value %3 (%4th in line) is not double!")
+								LOG(lvlError, QString("Invalid line %1 in file %2: coordinate value %3 (%4th in line) is not double!")
 									.arg(lineNr).arg(fiberStepCsvInfo.fileName()).arg(values[j]).arg(j));
 							}
 							stepValues.push_back(curCoord);
@@ -534,12 +534,12 @@ bool iAFiberResultsCollection::loadData(QString const & path, iACsvConfig const 
 
 	if (result.size() == 0)
 	{
-		LOG(lvlInfo, QString("The specified folder %1 does not contain any valid csv files!").arg(path));
+		LOG(lvlError, QString("The specified folder %1 does not contain any valid csv files!").arg(path));
 		return false;
 	}
 	if (noStepFiberFiles.size() > 0)
 	{
-		LOG(lvlInfo, QString("\nThere seems to be fiber data available for optimization/iteration steps, "
+		LOG(lvlWarn, QString("\nThere seems to be fiber data available for optimization/iteration steps, "
 			"but for files (%1) I could not find usable information. "
 			"Maybe this debug output is helpful: '%2'.\n"
 			"FIAKER expects:\n"

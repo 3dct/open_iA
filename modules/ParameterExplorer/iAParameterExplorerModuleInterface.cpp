@@ -72,7 +72,7 @@ void iAParameterExplorerModuleInterface::ToggleDockWidgetTitleBars()
 	iAParameterExplorerAttachment* attach = GetAttachment<iAParameterExplorerAttachment>();
 	if (!attach)
 	{
-		LOG(lvlInfo, "ParameterExplorer was not loaded properly!");
+		LOG(lvlError, "ParameterExplorer was not loaded properly!");
 		return;
 	}
 	attach->ToggleDockWidgetTitleBars();
@@ -84,7 +84,7 @@ void iAParameterExplorerModuleInterface::ToggleSettings()
 	iAParameterExplorerAttachment* attach = GetAttachment<iAParameterExplorerAttachment>();
 	if (!attach)
 	{
-		LOG(lvlInfo, "ParameterExplorer was not loaded properly!");
+		LOG(lvlError, "ParameterExplorer was not loaded properly!");
 		return;
 	}
 	attach->ToggleSettings(m_toolBar->action_ToggleSettings->isChecked());
@@ -112,7 +112,7 @@ void iAParameterExplorerModuleInterface::SaveState()
 	iAParameterExplorerAttachment* attach = GetAttachment<iAParameterExplorerAttachment>();
 	if (!attach)
 	{
-		LOG(lvlInfo, "ParameterExplorer was not loaded properly!");
+		LOG(lvlError, "ParameterExplorer was not loaded properly!");
 		return;
 	}
 	QString stateFileName = QFileDialog::getSaveFileName(m_mainWnd, "Save Parameter Explorer State",
@@ -145,7 +145,7 @@ void iAParameterExplorerModuleInterface::LoadState()
 	connect(child, &MdiChild::fileLoaded, this, &iAParameterExplorerModuleInterface::ContinueStateLoading);
 	if (!child->loadFile(refFileName, false))
 	{
-		LOG(lvlInfo, QString("Could not load reference file %1.").arg(refFileName));
+		LOG(lvlError, QString("Could not load reference file %1.").arg(refFileName));
 		return;
 	}
 }
@@ -157,7 +157,7 @@ void iAParameterExplorerModuleInterface::ContinueStateLoading()
 	iAParameterExplorerAttachment* attach = GetAttachment<iAParameterExplorerAttachment>();
 	if (!child || attach)
 	{
-		LOG(lvlInfo, "ParameterExplorer: Invalid state - child null or Parameter Explorer already attached!");
+		LOG(lvlError, "ParameterExplorer: Invalid state - child null or Parameter Explorer already attached!");
 		return;
 	}
 	QString stateFileName = m_stateFiles[child];
@@ -171,7 +171,7 @@ void iAParameterExplorerModuleInterface::ContinueStateLoading()
 	attach = GetAttachment<iAParameterExplorerAttachment>();
 	if (!attach)
 	{
-		LOG(lvlInfo, "ParameterExplorer was not loaded properly!");
+		LOG(lvlError, "ParameterExplorer was not loaded properly!");
 		return;
 	}
 	attach->LoadSettings(stateFileSettings);
@@ -191,7 +191,7 @@ bool iAParameterExplorerModuleInterface::CreateAttachment(QString const & csvFil
 	iAParameterExplorerAttachment* attach = GetAttachment<iAParameterExplorerAttachment>();
 	if (!attach)
 	{
-		LOG(lvlInfo, "ParameterExplorer was not loaded properly!");
+		LOG(lvlError, "ParameterExplorer was not loaded properly!");
 		return false;
 	}
 	attach->LoadCSV(csvFileName);

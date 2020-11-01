@@ -203,7 +203,7 @@ void iAImagePreviewWidget::setImage(iAITKIO::ImagePointer const img, bool empty,
 {
 	if (!img)
 	{
-		LOG(lvlInfo, "iAImagePreviewWidget::setImage called with nullptr image!\n");
+		LOG(lvlError, "iAImagePreviewWidget::setImage called with nullptr image!\n");
 		return;
 	}
 	if (!m_conn)
@@ -218,7 +218,7 @@ void iAImagePreviewWidget::addNoMapperChannel(vtkSmartPointer<vtkImageData> img)
 {
 	if (m_addChannelImgActor)
 	{
-		LOG(lvlInfo, "Failsafe Remove Actor required");
+		LOG(lvlError, "Failsafe Remove Actor required");
 		m_slicer->removeImageActor(m_addChannelImgActor);
 	}
 	m_addChannelImgActor = vtkSmartPointer<vtkImageActor>::New();

@@ -71,7 +71,7 @@ namespace
 		auto filter = iAFilterRegistry::filter(parameters[spnFilter].toString());
 		if (!filter)
 		{
-			patchFilter->addMsg(QString("Patch: Cannot run filter '%1', it does not exist!").arg(parameters[spnFilter].toString()));
+			LOG(lvlError, QString("Patch: Cannot run filter '%1', it does not exist!").arg(parameters[spnFilter].toString()));
 			return;
 		}
 		typedef itk::Image<T, DIM> InputImageType;
@@ -83,7 +83,7 @@ namespace
 		QStringList filterParamStrs = splitPossiblyQuotedString(parameters["Parameters"].toString());
 		if (filter->parameters().size() != filterParamStrs.size())
 		{
-			LOG(lvlInfo, QString("PatchFilter: Invalid number of parameters: %1 expected, %2 given!")
+			LOG(lvlError, QString("PatchFilter: Invalid number of parameters: %1 expected, %2 given!")
 				.arg(filter->parameters().size())
 				.arg(filterParamStrs.size()));
 			return;
@@ -217,7 +217,7 @@ namespace
 								.arg(fi.completeSuffix());
 							if (QFile::exists(outFileName))
 							{
-								LOG(lvlInfo, QString("Output file %1 already exists; if you want to overwrite it, "
+								LOG(lvlWarn, QString("Output file %1 already exists; if you want to overwrite it, "
 									"you need to set the '%2' parameter to true.")
 									.arg(outFileName).arg(spnOverwriteOutput));
 								if (!continueOnError)
@@ -262,7 +262,7 @@ namespace
 					{
 						if (continueOnError)
 						{
-							LOG(lvlInfo, QString("Patch filter: An error has occurred: %1, continueing anyway.").arg(e.what()));
+							LOG(lvlError, QString("Patch filter: An error has occurred: %1, continueing anyway.").arg(e.what()));
 						}
 						else
 						{
@@ -286,7 +286,7 @@ namespace
 		QFile file(outputFile);
 		if (file.exists() && !overwrite)
 		{
-			LOG(lvlInfo, QString("Output file %1 already exists; if you want to overwrite it, "
+			LOG(lvlError, QString("Output file %1 already exists; if you want to overwrite it, "
 				"you need to set the '%2' parameter to true.")
 				.arg(outputFile).arg(spnOverwriteOutput));
 		}
@@ -305,7 +305,7 @@ namespace
 		}
 		else
 		{
-			LOG(lvlInfo, QString("Output file not specified, or could not be opened (%1)").arg(outputFile));
+			LOG(lvlError, QString("Output file not specified, or could not be opened (%1)").arg(outputFile));
 		}
 		for (int i = 0; i < outputImages.size(); ++i)
 		{

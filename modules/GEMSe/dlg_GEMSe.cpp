@@ -140,7 +140,7 @@ void dlg_GEMSe::SetTree(
 
 	if (m_pipelineNames.size() != m_samplings->size())
 	{
-		LOG(lvlInfo, "Insufficient number of pipeline names specified!");
+		LOG(lvlError, "Insufficient number of pipeline names specified!");
 		return;
 	}
 	m_histogramContainer = new iAHistogramContainer(m_chartAttributes, m_chartAttributeMapper, GetRoot().data(), m_pipelineNames);
@@ -410,7 +410,7 @@ void dlg_GEMSe::ToggleHate()
 	iAImageTreeNode* node = (m_selectedLeaf) ? m_selectedLeaf : m_selectedCluster.data();
 	if (!node)
 	{
-		LOG(lvlInfo, "ToggleHate No node selected!");
+		LOG(lvlError, "ToggleHate: No node selected!");
 		return;
 	}
 	bool isHated = m_favoriteWidget->ToggleHate(node);
@@ -425,7 +425,7 @@ void dlg_GEMSe::ToggleLike()
 	iAImageTreeNode* node = (m_selectedLeaf) ? m_selectedLeaf : m_selectedCluster.data();
 	if (!node)
 	{
-		LOG(lvlInfo, "ToggleHate No node selected!");
+		LOG(lvlError, "ToggleLike: No node selected!");
 		return;
 	}
 	m_favoriteWidget->ToggleLike(node);
@@ -496,7 +496,7 @@ void dlg_GEMSe::JumpToNode(iAImageTreeNode * node, int stepLimit)
 {
 	if (!node)
 	{
-		LOG(lvlInfo, "JumpToNode: No node selected!");
+		LOG(lvlError, "JumpToNode: No node selected!");
 		return;
 	}
 	if (dynamic_cast<iAFakeTreeNode*>(node) || !m_treeView->JumpToNode(node, stepLimit))
@@ -536,7 +536,7 @@ void dlg_GEMSe::ShowImage(vtkSmartPointer<vtkImageData> imgData)
 {
 	if (!m_cameraWidget)
 	{
-		LOG(lvlInfo, "ShowImage: Camera Widget not set!");
+		LOG(lvlError, "ShowImage: Camera Widget not set!");
 		return;
 	}
 	m_cameraWidget->showImage(imgData);
@@ -611,7 +611,7 @@ void dlg_GEMSe::CalcRefImgComp(LabelImagePointer refImg)
 {
 	if (!refImg)
 	{
-		LOG(lvlInfo, "Reference image comparison calculate: nullptr reference image (maybe wrong image type?)!");
+		LOG(lvlError, "Reference image comparison calculate: nullptr reference image (maybe wrong image type?)!");
 		return;
 	}
 	if (!m_treeView)

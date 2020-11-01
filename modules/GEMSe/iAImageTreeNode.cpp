@@ -109,12 +109,12 @@ vtkSmartPointer<vtkImageData> iAImageTreeNode::GetCorrectnessEntropyImage(LabelI
 	auto entropyImg = dynamic_cast<ProbabilityImageType*>(GetRepresentativeImage(iARepresentativeType::AverageEntropy, refImg).GetPointer());
 	if (!correctnessImg)
 	{
-		LOG(lvlInfo, "Correctness image not available!");
+		LOG(lvlError, "Correctness image not available!");
 		return vtkSmartPointer<vtkImageData>();
 	}
 	if (!entropyImg)
 	{
-		LOG(lvlInfo, "Entropy image not available!");
+		LOG(lvlError, "Entropy image not available!");
 		return vtkSmartPointer<vtkImageData>();
 	}
 

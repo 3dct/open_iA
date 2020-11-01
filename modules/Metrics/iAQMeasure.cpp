@@ -165,10 +165,10 @@ void computeQ(iAQMeasure* filter, vtkSmartPointer<vtkImageData> img, QMap<QStrin
 	}
 	if (peaks.size() < numberOfPeaks)
 	{
-		//LOG(lvlInfo, QString("Only found %1 peaks in total!").arg(peaks.size()));
+		//LOG(lvlWarn, QString("Only found %1 peaks in total!").arg(peaks.size()));
 		if (peaks.size() < 2)
 		{
-			//LOG(lvlInfo, QString("Cannot continue with less than 2 peaks!"));
+			//LOG(lvlWarn, QString("Cannot continue with less than 2 peaks!"));
 			if (parameters["Histogram-based SNR (highest non-air-peak)"].toBool())
 			{
 				filter->addOutputValue("Histogram-based SNR (highest non-air-peak)", 0);
@@ -276,7 +276,7 @@ void computeQ(iAQMeasure* filter, vtkSmartPointer<vtkImageData> img, QMap<QStrin
 	}
 	if (minDistToZeroIdx == NoIdx || highestNonAirPeakIdx == NoIdx)
 	{
-		LOG(lvlInfo, "No index for peak close to zero or highest non-air peak found!");
+		LOG(lvlError, "No index for peak close to zero or highest non-air peak found!");
 		return;
 	}
 	if (parameters["Histogram-based SNR (highest non-air-peak)"].toBool())

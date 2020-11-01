@@ -233,7 +233,7 @@ bool iAModalityList::load(QString const & filename, iAProgress& progress)
 		!stringToArray<double>(settings.value(CameraFocalPointKey).toString(), m_camFocalPoint, 3) ||
 		!stringToArray<double>(settings.value(CameraViewUpKey).toString(), m_camViewUp, 3))
 	{
-		//LOG(lvlInfo, QString("Invalid or missing camera information."));
+		//LOG(lvlWarn, QString("Invalid or missing camera information."));
 	}
 	else
 	{

@@ -90,7 +90,7 @@ double iALogarithmicMapper::srcToDst(double srcVal) const
 {
 	if (srcVal <= 0)
 	{
-		//LOG(lvlInfo, QString("Value %1 cannot be logarithmically mapped as it is <= 0!").arg(srcVal));
+		//LOG(lvlWarn, QString("Value %1 cannot be logarithmically mapped as it is <= 0!").arg(srcVal));
 		return 0;
 	}
 	double srcLog = clamp(m_srcMinLog, m_srcMaxLog, LogFunc(srcVal));

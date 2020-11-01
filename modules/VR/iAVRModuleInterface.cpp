@@ -80,7 +80,7 @@ void iAVRModuleInterface::info()
 	auto pHMD = vr::VR_Init(&eError, vr::VRApplication_Scene);
 	if (eError != vr::VRInitError_None)
 	{
-		LOG(lvlInfo, QString("    Unable to init VR runtime: %1").arg(vr::VR_GetVRInitErrorAsEnglishDescription(eError)));
+		LOG(lvlError, QString("    Unable to init VR runtime: %1").arg(vr::VR_GetVRInitErrorAsEnglishDescription(eError)));
 	}
 	else
 	{

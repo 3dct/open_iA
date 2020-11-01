@@ -48,7 +48,7 @@ public:
 	{
 		if (r < 0 || c < 0 || r >= rowCount || c >= colCount)
 		{
-			LOG(lvlInfo, QString("Invalid Matrix access (%1, %2), matrix dimensions (%3, %4)").arg(r).arg(c).arg(rowCount).arg(colCount));
+			LOG(lvlError, QString("Invalid Matrix access (%1, %2), matrix dimensions (%3, %4)").arg(r).arg(c).arg(rowCount).arg(colCount));
 		}
 		return data[r*colCount + c];
 	}
@@ -159,7 +159,7 @@ void CalculateMeasures(LabelImagePointer refImg, LabelImagePointer curImg, int l
 
 	if (reportUndecided)
 	{
-		// LOG(lvlInfo, QString("Encountered %1 pixel values out of valid range (0, %2)").arg(outsideValues).arg(labelCount));
+		// LOG(lvlWarn, QString("Encountered %1 pixel values out of valid range (0, %2)").arg(outsideValues).arg(labelCount));
 		measures.push_back(outsideValues);
 	}
 	delete[] actTot;

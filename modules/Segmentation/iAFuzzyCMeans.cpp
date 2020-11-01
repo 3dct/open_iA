@@ -88,7 +88,7 @@ namespace
 		auto centroidStringList = centroidString.split(" ");
 		if (centroidStringList.size() < 0 || static_cast<unsigned int>(centroidStringList.size()) != numberOfClasses)
 		{
-			LOG(lvlInfo, "Number of classes doesn't match the count of centroids specified!");
+			LOG(lvlError, "Number of classes doesn't match the count of centroids specified!");
 			return false;
 		}
 		for (auto c : centroidStringList)
@@ -97,7 +97,7 @@ namespace
 			double centroid = c.toDouble(&ok);
 			if (!ok)
 			{
-				LOG(lvlInfo, QString("Could not convert string in centroid list to double: '%1' !").arg(c));
+				LOG(lvlError, QString("Could not convert string in centroid list to double: '%1' !").arg(c));
 				return false;
 			}
 			centroids.push_back(centroid);

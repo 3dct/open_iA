@@ -159,7 +159,7 @@ void dlg_modalitySPLOM::SetData(QSharedPointer<iAModalityList> modalities)
 	{
 		if (modalities->get(imgIdx)->image()->GetScalarType() != VTK_UNSIGNED_SHORT)
 		{
-			LOG(lvlInfo, QString("Modality %1 is not of type unsigned short (which is "
+			LOG(lvlError, QString("Modality %1 is not of type unsigned short (which is "
 				"currently the only supported type for Modality SPLOM)!")
 				.arg(modalities->get(imgIdx)->name()));
 			return;

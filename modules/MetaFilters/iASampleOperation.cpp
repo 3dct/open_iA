@@ -38,7 +38,7 @@ void iASampleOperation::run()
 	}
 	catch (std::exception& e)
 	{
-		LOG(lvlInfo, QString("iASampleOperation: An exception has occurred: %1").arg(e.what()));
+		LOG(lvlError, QString("iASampleOperation: An exception has occurred: %1").arg(e.what()));
 		setSuccess(false);
 	}
 	m_duration = m_timer.elapsed();

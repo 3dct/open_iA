@@ -55,7 +55,7 @@ QSharedPointer<iAEnsemble> iAEnsemble::Create(int entropyBinCount,
 	{
 		if (!result->LoadSampling(samplings[key], key))
 		{
-			LOG(lvlInfo, QString("Ensemble: Could not load sampling '%1'!").arg(samplings[key]));
+			LOG(lvlError, QString("Ensemble: Could not load sampling '%1'!").arg(samplings[key]));
 			return QSharedPointer<iAEnsemble>();
 		}
 	}
@@ -192,7 +192,7 @@ namespace
 		imgPointer = dynamic_cast<TImage*>(img.GetPointer()); // check pixelType?
 		if (!imgPointer)
 		{
-			LOG(lvlInfo, QString("Error loading %1!").arg(label));
+			LOG(lvlError, QString("Error loading %1!").arg(label));
 			return false;
 		}
 		return true;
@@ -232,7 +232,7 @@ namespace
 		if (!in.open(QIODevice::ReadOnly | QIODevice::Text) ||
 			!in.isOpen())
 		{
-			LOG(lvlInfo, QString("Couldn't open %1 for reading!").arg(fileName));
+			LOG(lvlError, QString("Couldn't open %1 for reading!").arg(fileName));
 			return false;
 		}
 		QTextStream inStream(&in);
@@ -243,7 +243,7 @@ namespace
 		in.close();
 		if (lines.size() != binCount)
 		{
-			LOG(lvlInfo, "Different histogram bin count than anticipated, readjusting buffer size.");
+			LOG(lvlWarn, "Different histogram bin count than anticipated, readjusting buffer size.");
 			delete[] destination;
 			binCount = lines.size();
 			destination = new double[binCount];
@@ -255,7 +255,7 @@ namespace
 			destination[cur] = line.toDouble(&ok);
 			if (!ok)
 			{
-				LOG(lvlInfo, QString("Error while trying to convert %1 to number in histogram reading!").arg(line));
+				LOG(lvlError, QString("Error while trying to convert %1 to number in histogram reading!").arg(line));
 				return false;
 			}
 			++cur;
@@ -269,7 +269,7 @@ namespace
 		if (!out.open(QIODevice::WriteOnly | QIODevice::Text) ||
 			!out.isOpen())
 		{
-			LOG(lvlInfo, QString("Couldn't open %1 for output!").arg(fileName));
+			LOG(lvlError, QString("Couldn't open %1 for output!").arg(fileName));
 			return false;
 		}
 		QTextStream outStream(&out);
@@ -287,7 +287,7 @@ namespace
 		if (!out.open(QIODevice::WriteOnly | QIODevice::Text) ||
 			!out.isOpen())
 		{
-			LOG(lvlInfo, QString("Couldn't open %1 for output!").arg(fileName));
+			LOG(lvlError, QString("Couldn't open %1 for output!").arg(fileName));
 			return false;
 		}
 		QTextStream outStream(&out);
@@ -310,7 +310,7 @@ namespace
 		if (!in.open(QIODevice::ReadOnly | QIODevice::Text) ||
 			!in.isOpen())
 		{
-			LOG(lvlInfo, QString("Couldn't open %1 for reading!").arg(fileName));
+			LOG(lvlError, QString("Couldn't open %1 for reading!").arg(fileName));
 			return false;
 		}
 		QTextStream inStream(&in);
@@ -321,7 +321,7 @@ namespace
 			double val = line.toDouble(&ok);
 			if (!ok)
 			{
-				LOG(lvlInfo, QString("Error while trying to convert %1 to number in histogram reading!").arg(line));
+				LOG(lvlError, QString("Error while trying to convert %1 to number in histogram reading!").arg(line));
 				return false;
 			}
 			values.push_back(val);
@@ -399,12 +399,12 @@ void iAEnsemble::CreateUncertaintyImages()
 	QDir qdir;
 	if (!qdir.mkpath(m_cachePath))
 	{
-		LOG(lvlInfo, QString("Can't create cache directory %1!").arg(m_cachePath));
+		LOG(lvlError, QString("Can't create cache directory %1!").arg(m_cachePath));
 		return;
 	}
 	if (m_labelCount <= 0)
 	{
-		LOG(lvlInfo, QString("Invalid label count: %1").arg(m_labelCount));
+		LOG(lvlError, QString("Invalid label count: %1").arg(m_labelCount));
 		return;
 	}
 	try
@@ -412,7 +412,7 @@ void iAEnsemble::CreateUncertaintyImages()
 		// also load slice images here?
 		if (m_samplings.size() == 0 || m_samplings[0]->members().size() == 0)
 		{
-			LOG(lvlInfo, "No samplings or no members found!");
+			LOG(lvlError, "No samplings or no members found!");
 			return;
 		}
 		itk::Index<3> idx;
@@ -554,7 +554,7 @@ void iAEnsemble::CreateUncertaintyImages()
 	}
 	catch (itk::ExceptionObject & excp)
 	{
-		LOG(lvlInfo, QString("ITK ERROR: %1").arg(excp.what()));
+		LOG(lvlError, QString("ITK ERROR: %1").arg(excp.what()));
 	}
 }
 
@@ -564,7 +564,7 @@ void iAEnsemble::WriteFullDataFile(QString const & filename, bool writeIntensiti
 	QFile allDataFile(filename);
 	if (!allDataFile.open(QIODevice::WriteOnly | QIODevice::Text))
 	{
-		LOG(lvlInfo, QString("Could not open file '%1' for writing!").arg(filename));
+		LOG(lvlError, QString("Could not open file '%1' for writing!").arg(filename));
 		return;
 	}
 	QTextStream out(&allDataFile);
@@ -687,13 +687,13 @@ bool iAEnsemble::LoadSampling(QString const & fileName, int id)
 {
 	if (fileName.isEmpty())
 	{
-		LOG(lvlInfo, "No filename given, not loading.");
+		LOG(lvlError, "No filename given, not loading.");
 		return false;
 	}
 	QSharedPointer<iASamplingResults> samplingResults = iASamplingResults::load(fileName, id);
 	if (!samplingResults)
 	{
-		LOG(lvlInfo, "Loading Sampling failed.");
+		LOG(lvlError, "Loading Sampling failed.");
 		return false;
 	}
 	m_samplings.push_back(samplingResults);
@@ -799,7 +799,7 @@ int iAEnsemble::ID() const
 {
 	if (m_samplings.size() > 1)
 	{
-		LOG(lvlInfo, "Ensemble with more than one sampling -> could make problems with ensemble IDs (1:1 mapping currently from Sampling ID to Ensemble ID!)");
+		LOG(lvlWarn, "Ensemble with more than one sampling -> could make problems with ensemble IDs (1:1 mapping currently from Sampling ID to Ensemble ID!)");
 	}
 	return m_samplings[0]->id();
 }

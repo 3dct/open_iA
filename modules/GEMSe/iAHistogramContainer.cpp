@@ -120,7 +120,7 @@ void iAHistogramContainer::CreateCharts()
 			numBin);
 		if (!paramData)
 		{
-			LOG(lvlInfo, QString("ERROR: Creating chart #%1 data for attribute %2 failed!").arg(chartID)
+			LOG(lvlError, QString("Creating chart #%1 data for attribute %2 failed!").arg(chartID)
 				.arg(attrib->name()));
 			continue;
 		}
@@ -421,7 +421,7 @@ void iAHistogramContainer::ChartDblClicked()
 	assert(slider);
 	if (!slider)
 	{
-		LOG(lvlInfo, "ChartDblClicked called from non-slider widget.");
+		LOG(lvlError, "ChartDblClicked called from non-slider widget.");
 		return;
 	}
 	int chartID = slider->GetID();
@@ -435,7 +435,7 @@ void iAHistogramContainer::FilterChanged(double min, double max)
 	assert(slider);
 	if (!slider)
 	{
-		LOG(lvlInfo, "FilterChanged called from non-slider widget.");
+		LOG(lvlError, "FilterChanged called from non-slider widget.");
 		return;
 	}
 	int chartID = slider->GetID();

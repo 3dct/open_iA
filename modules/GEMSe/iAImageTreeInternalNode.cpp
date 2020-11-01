@@ -161,7 +161,7 @@ ClusterImageType iAImageTreeInternalNode::CalculateRepresentative(int type, Labe
 		return m_representative[iARepresentativeType::AverageLabel];
 	}
 	default:
-		LOG(lvlInfo, "Requested to calculate invalid representative type!");
+		LOG(lvlError, "Requested to calculate invalid representative type!");
 		return ClusterImageType();
 	}
 }
@@ -193,7 +193,7 @@ ClusterImageType iAImageTreeInternalNode::CalculateFilteredRepresentative(int ty
 
 
 	default:
-		LOG(lvlInfo, "Requested to calculate invalid filtered representative type!");
+		LOG(lvlError, "Requested to calculate invalid filtered representative type!");
 		return ClusterImageType();
 	}
 }
@@ -272,7 +272,7 @@ ClusterImageType const iAImageTreeInternalNode::GetRepresentativeImage(int type,
 		// fine, this just means that all images were filtered out!
 		if (!m_filteredRepresentative[type])
 		{
-		LOG(lvlInfo, "Filtered representative is nullptr!");
+		LOG(lvlError, "Filtered representative is nullptr!");
 		}
 		*/
 		return m_filteredRepresentative[type];
@@ -297,7 +297,7 @@ ClusterImageType const iAImageTreeInternalNode::GetRepresentativeImage(int type,
 	}
 	if (!m_representative[type])
 	{
-		//LOG(lvlInfo, "Representative is nullptr!");
+		//LOG(lvlError, "Representative is nullptr!");
 	}
 	return m_representative[type];
 }
@@ -357,7 +357,7 @@ void iAImageTreeInternalNode::RecalculateFilteredRepresentative(int type, LabelI
 	m_filteredRepresentativeOutdated = false;
 	if (GetFilteredSize() == GetClusterSize())
 	{
-		LOG(lvlInfo, "RecalculateFilteredRepresentative called without need (not filtered!)");
+		LOG(lvlError, "RecalculateFilteredRepresentative called without need (not filtered!)");
 		// return;
 	}
 	m_filteredRepresentative[type] = CalculateFilteredRepresentative(type, refImg);

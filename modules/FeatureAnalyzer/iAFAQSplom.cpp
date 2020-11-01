@@ -422,7 +422,7 @@ void iAFAQSplom::sendToFeatureScout()
 	connect(m_mdiChild, &MdiChild::histogramAvailable, this, &iAFAQSplom::startFeatureScout);
 	if (!m_mdiChild->loadFile(mhdName, false))
 	{
-		LOG(lvlInfo, QString("File '%1' could not be loaded!").arg(mhdName));
+		LOG(lvlError, QString("File '%1' could not be loaded!").arg(mhdName));
 		m_mdiChild->close();
 		return;
 	}

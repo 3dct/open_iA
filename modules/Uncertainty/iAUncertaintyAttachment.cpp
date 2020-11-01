@@ -101,13 +101,13 @@ bool iAUncertaintyAttachment::LoadEnsemble(QString const & fileName)
 	m_ensembleFile = QSharedPointer<iAEnsembleDescriptorFile>(new iAEnsembleDescriptorFile(fileName));
 	if (!m_ensembleFile->good())
 	{
-		LOG(lvlInfo, "Ensemble: Given data file could not be read.");
+		LOG(lvlError, "Ensemble: Given data file could not be read.");
 		return false;
 	}
 	connect(m_child, &MdiChild::fileLoaded, this, &iAUncertaintyAttachment::ContinueEnsembleLoading);
 	if (!m_child->loadFile(m_ensembleFile->ModalityFileName(), false))
 	{
-		LOG(lvlInfo, QString("Failed to load project '%1'").arg(m_ensembleFile->ModalityFileName()));
+		LOG(lvlError, QString("Failed to load project '%1'").arg(m_ensembleFile->ModalityFileName()));
 		return false;
 	}
 	return true;
@@ -156,7 +156,7 @@ void iAUncertaintyAttachment::CalculateNewSubEnsemble()
 	auto memberIDs = m_memberView->SelectedMemberIDs();
 	if (memberIDs.empty())
 	{
-		LOG(lvlInfo, "No members selected!");
+		LOG(lvlError, "No members selected!");
 		return;
 	}
 	QSharedPointer<iAEnsemble> mainEnsemble = m_ensembleView->Ensembles()[0];

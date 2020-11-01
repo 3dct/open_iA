@@ -183,7 +183,7 @@ void iACameraWidget::showImage(vtkSmartPointer<vtkImageData> imgData)
 {
 	if (!imgData)
 	{
-		LOG(lvlInfo, "CameraWidget: image data is nullptr!\n");
+		LOG(lvlError, "CameraWidget: image data is nullptr!\n");
 		return;
 	}
 
