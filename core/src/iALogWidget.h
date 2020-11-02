@@ -23,43 +23,41 @@
 #include "open_iA_Core_export.h"
 
 #include "iALogger.h"
+#include "ui_Console.h"
 
 #include <vtkSmartPointer.h>
 #include <itkSmartPointer.h>
 
-#include <QObject>
 #include <QString>
 
-class dlg_console;
 class iARedirectVtkOutput;
 class iARedirectItkOutput;
 
 class QDockWidget;
 
-//! Instantiates a dlg_console to log debug messages.
-//! Note: Typically you will want to use the LOG macro in iALog.h!
-class open_iA_Core_API iALogWidget: public QObject, public iALogger
+//! A dock widget to show log messages.
+//!
+//! Implements singleton pattern, as only one instance should exist per application window.
+//! Typically you should not use this directly, but use the LOG macro in iALog.h instead!
+class open_iA_Core_API iALogWidget: public QDockWidget, public Ui_Console, public iALogger
 {
 	Q_OBJECT
 public:
 	//! singleton pattern - retrieve logger instance
 	static iALogWidget* get();
-	static void closeInstance();
+	static void shutdown();
 	void log(iALogLevel lvl, QString const & text) override;
 	void setLogToFile(bool value, QString const & fileName, bool verbose=false);
 	bool isLogToFileOn() const;
 	QString logFileName() const;
 	bool isFileLogError() const;
-	bool isVisible() const;
-	void setVisible(bool visible);
-	QDockWidget* dockWidget();
 // decouple logging methods from GUI logging (to allow logging from any thread):
 signals:
 	void logSignal(iALogLevel lvl, QString const & text);
 	void consoleVisibilityChanged(bool newVisibility);
 private slots:
 	void logSlot(iALogLevel lvl, QString const & text);
-	void consoleClosed();
+	void clear();
 private:
 	//! private constructor - retrieve (single) instance via get!
 	iALogWidget();
@@ -69,11 +67,9 @@ private:
 	iALogWidget(iALogWidget const&)    = delete;
 	void operator=(iALogWidget const&) = delete;
 	//! @}
-
-	void close();
+	void closeEvent(QCloseEvent* event) override;
 
 	QString m_logFileName;
-	dlg_console* m_console;
 	bool m_logToFile;
 	bool m_closed;
 	bool m_fileLogError;

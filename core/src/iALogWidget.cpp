@@ -20,7 +20,6 @@
 * ************************************************************************************/
 #include "iALogWidget.h"
 
-#include "dlg_console.h"
 #include "iARedirectVtkOutput.h"
 #include "iARedirectItkOutput.h"
 #include "io/iAFileUtils.h"
@@ -43,12 +42,12 @@ void iALogWidget::logSlot(iALogLevel lvl, QString const & text)
 	// has been called. This allows the program to exit properly.
 	if (!m_closed)
 	{
-		if (!m_console->isVisible())
+		if (!isVisible())
 		{
-			m_console->show();
+			show();
 			emit consoleVisibilityChanged(true);
 		}
-		m_console->log(text);
+		consoleTextEdit->append(text);
 	}
 	if (m_logToFile)
 	{
@@ -65,7 +64,7 @@ void iALogWidget::logSlot(iALogLevel lvl, QString const & text)
 		{
 			if (!m_closed)
 			{
-				m_console->log(QString("Could not write to logfile '%1', file output will be disabled for now.").arg(m_logFileName));
+				consoleTextEdit->append(QString("Could not write to logfile '%1', file output will be disabled for now.").arg(m_logFileName));
 			}
 			m_fileLogError = true;
 			m_logToFile = false;
@@ -75,20 +74,6 @@ void iALogWidget::logSlot(iALogLevel lvl, QString const & text)
 			m_fileLogError = false;
 		}
 	}
-}
-
-void iALogWidget::setVisible(bool visible)
-{
-	if (m_closed)
-	{
-		return;
-	}
-	m_console->setVisible(visible);
-}
-
-QDockWidget* iALogWidget::dockWidget()
-{
-	return m_console;
 }
 
 void iALogWidget::setLogToFile(bool value, QString const & fileName, bool verbose)
@@ -111,11 +96,6 @@ bool iALogWidget::isFileLogError() const
 	return m_fileLogError;
 }
 
-bool iALogWidget::isVisible() const
-{
-	return m_console->isVisible();
-}
-
 QString iALogWidget::logFileName() const
 {
 	return m_logFileName;
@@ -123,19 +103,20 @@ QString iALogWidget::logFileName() const
 
 iALogWidget::iALogWidget() :
 	m_logFileName("debug.log"),
-	m_console(new dlg_console()),
 	m_logToFile(false),
 	m_closed(false),
 	m_fileLogError(false)
 {
+	setupUi(this);
+	setAttribute(Qt::WA_DeleteOnClose, false);
 	// redirect VTK and ITK output to console window:
 	m_vtkOutputWindow = vtkSmartPointer<iARedirectVtkOutput>::New();
 	m_itkOutputWindow = iARedirectItkOutput::New();
 	vtkOutputWindow::SetInstance(m_vtkOutputWindow);
 	itk::OutputWindow::SetInstance(m_itkOutputWindow);
 
+	connect(pbClearLog, &QPushButton::clicked, this, &iALogWidget::clear);
 	connect(this, &iALogWidget::logSignal, this, &iALogWidget::logSlot);
-	connect(m_console, &dlg_console::onClose, this, &iALogWidget::consoleClosed);
 }
 
 iALogWidget::~iALogWidget()
@@ -144,22 +125,23 @@ iALogWidget::~iALogWidget()
 
 iALogWidget* iALogWidget::get()
 {
-	static iALogWidget s_instance;
-	return &s_instance;
+	static iALogWidget* instance(new iALogWidget);
+	return instance;
 }
 
-void iALogWidget::consoleClosed()
+void iALogWidget::shutdown()
+{
+	get()->m_closed = true;
+	get()->close();
+}
+
+void iALogWidget::clear()
+{
+	consoleTextEdit->clear();
+}
+
+void iALogWidget::closeEvent(QCloseEvent* event)
 {
 	emit consoleVisibilityChanged(false);
-}
-
-void iALogWidget::close()
-{
-	m_closed = true;
-	m_console->close();
-}
-
-void iALogWidget::closeInstance()
-{
-	get()->close();
+	QDockWidget::closeEvent(event);
 }

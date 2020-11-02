@@ -202,7 +202,7 @@ void MainWindow::closeEvent(QCloseEvent *event)
 	else
 	{
 		writeSettings();
-		iALogWidget::closeInstance();
+		iALogWidget::shutdown();
 		event->accept();
 	}
 }
@@ -2591,7 +2591,7 @@ int MainWindow::runGUI(int argc, char * argv[], QString const & appName, QString
 	app.setAttribute(Qt::AA_DontCreateNativeWidgetSiblings);
 	iALog::setLogger(iALogWidget::get());
 	MainWindow mainWin(appName, version, buildInformation, splashPath);
-	mainWin.addDockWidget(Qt::RightDockWidgetArea, iALogWidget::get()->dockWidget());
+	mainWin.addDockWidget(Qt::RightDockWidgetArea, iALogWidget::get());
 	CheckSCIFIO(QCoreApplication::applicationDirPath());
 	mainWin.loadArguments(argc, argv);
 	// TODO: unify with logo in slicer/renderer!
