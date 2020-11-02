@@ -34,5 +34,19 @@ iALogger* iALog::get()
 
 // iALogger
 
+
+QString logLevelToString(iALogLevel lvl)
+{
+	switch (lvl)
+	{
+	case lvlDebug: return "DEBUG";
+	case lvlInfo : return "INFO ";
+	case lvlWarn : return "WARN ";
+	case lvlError: return "ERROR";
+	case lvlFatal: return "FATAL";
+	}
+	return "?????";
+}
+
 iALogger::~iALogger()
 {}

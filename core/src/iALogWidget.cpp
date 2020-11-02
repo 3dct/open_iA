@@ -47,15 +47,16 @@ void iALogWidget::logSlot(iALogLevel lvl, QString const & text)
 			show();
 			emit consoleVisibilityChanged(true);
 		}
-		consoleTextEdit->append(text);
+		consoleTextEdit->append(logLevelToString(lvl)+": "+text);
 	}
 	if (m_logToFile)
 	{
 		std::ofstream logfile( getLocalEncodingFileName(m_logFileName).c_str(), std::ofstream::out | std::ofstream::app);
-		logfile << QString("%1 %2\n")
+		logfile << QString("%1 %2 %3\n")
 			.arg(QLocale().toString(
 				QDateTime::currentDateTime(),
 				QLocale::ShortFormat))
+			.arg(logLevelToString(lvl))
 			.arg(text)
 			.toStdString();
 		logfile.flush();

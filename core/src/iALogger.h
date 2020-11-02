@@ -52,6 +52,8 @@ enum iALogLevel
 	lvlFatal = 50
 };
 
+open_iA_Core_API QString logLevelToString(iALogLevel lvl);
+
 //! Base interface for logging
 class open_iA_Core_API iALogger
 {

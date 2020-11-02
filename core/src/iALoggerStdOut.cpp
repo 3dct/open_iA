@@ -24,7 +24,7 @@
 
 void iALoggerStdOut::log(iALogLevel lvl, QString const& msg)
 {
-	std::cout << msg.toStdString() << std::endl;
+	std::cout << logLevelToString(lvl).toStdString() << ": " << msg.toStdString() << std::endl;
 }
 
 iALoggerStdOut* iALoggerStdOut::get()
