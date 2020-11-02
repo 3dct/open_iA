@@ -19,8 +19,8 @@
 *          Stelzhamerstraße 23, 4600 Wels / Austria, Email: c.heinzl@fh-wels.at       *
 * ************************************************************************************/
 #include "iACommandLineProcessor.h"
-#include "iAConsole.h"
 #include "iALog.h"
+#include "iALoggerStdOut.h"
 #include "iASCIFIOCheck.h"
 #include "version.h"
 
@@ -28,7 +28,7 @@
 
 int main(int argc, char *argv[])
 {
-	iALog::setLogger(iAStdOutLogger::get());
+	iALog::setLogger(iALoggerStdOut::get());
 	QFileInfo fi(argv[0]);
 	CheckSCIFIO(fi.absolutePath());
 	return ProcessCommandLine(argc, argv, Open_iA_Version);

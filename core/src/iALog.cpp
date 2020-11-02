@@ -31,3 +31,8 @@ iALogger* iALog::get()
 {
 	return m_globalLogger;
 }
+
+// iALogger
+
+iALogger::~iALogger()
+{}

@@ -18,30 +18,21 @@
 * Contact: FH OÖ Forschungs & Entwicklungs GmbH, Campus Wels, CT-Gruppe,              *
 *          Stelzhamerstraße 23, 4600 Wels / Austria, Email: c.heinzl@fh-wels.at       *
 * ************************************************************************************/
-#include "dlg_console.h"
+#pragma once
 
-#include <QString>
+#include "iALogger.h"
 
-#include <iostream>
-
-dlg_console::dlg_console()
+//! A logger whose output is written to standard output.
+class open_iA_Core_API iALoggerStdOut : public iALogger
 {
-	setupUi(this);
-	connect(pbClearLog, &QPushButton::clicked, this, &dlg_console::clear);
-}
-
-void dlg_console::log(QString const& text)
-{
-	consoleTextEdit->append(text);
-}
-
-void dlg_console::clear()
-{
-	consoleTextEdit->clear();
-}
-
-void dlg_console::closeEvent(QCloseEvent *event)
-{
-	emit onClose();
-	QDockWidget::closeEvent(event);
-}
+public:
+	void log(iALogLevel lvl, QString const& msg) override;
+	static iALoggerStdOut* get();
+private:
+	//! make default constructor private
+	iALoggerStdOut() =default;
+	//! @{ don't allow copying / copy-assingment
+	iALoggerStdOut(iALoggerStdOut const&) =delete;
+	void operator=(iALoggerStdOut const&) =delete;
+	//! @}
+};

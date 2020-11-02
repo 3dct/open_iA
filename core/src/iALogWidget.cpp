@@ -18,7 +18,7 @@
 * Contact: FH OÖ Forschungs & Entwicklungs GmbH, Campus Wels, CT-Gruppe,              *
 *          Stelzhamerstraße 23, 4600 Wels / Austria, Email: c.heinzl@fh-wels.at       *
 * ************************************************************************************/
-#include "iAConsole.h"
+#include "iALogWidget.h"
 
 #include "dlg_console.h"
 #include "iARedirectVtkOutput.h"
@@ -30,14 +30,12 @@
 #include <fstream>
 
 
-// iAConsole
-
-void iAConsole::log(iALogLevel lvl, QString const & text)
+void iALogWidget::log(iALogLevel lvl, QString const & text)
 {
 	emit logSignal(lvl, text);
 }
 
-void iAConsole::logSlot(iALogLevel lvl, QString const & text)
+void iALogWidget::logSlot(iALogLevel lvl, QString const & text)
 {
 	// The log window prevents the whole application from shutting down
 	// if it is still open at the time the program should exit.
@@ -79,7 +77,7 @@ void iAConsole::logSlot(iALogLevel lvl, QString const & text)
 	}
 }
 
-void iAConsole::setVisible(bool visible)
+void iALogWidget::setVisible(bool visible)
 {
 	if (m_closed)
 	{
@@ -88,12 +86,12 @@ void iAConsole::setVisible(bool visible)
 	m_console->setVisible(visible);
 }
 
-QDockWidget* iAConsole::dockWidget()
+QDockWidget* iALogWidget::dockWidget()
 {
 	return m_console;
 }
 
-void iAConsole::setLogToFile(bool value, QString const & fileName, bool verbose)
+void iALogWidget::setLogToFile(bool value, QString const & fileName, bool verbose)
 {
 	if (verbose && m_logToFile != value)
 	{
@@ -103,27 +101,27 @@ void iAConsole::setLogToFile(bool value, QString const & fileName, bool verbose)
 	m_logFileName = fileName;
 }
 
-bool iAConsole::isLogToFileOn() const
+bool iALogWidget::isLogToFileOn() const
 {
 	return m_logToFile;
 }
 
-bool iAConsole::isFileLogError() const
+bool iALogWidget::isFileLogError() const
 {
 	return m_fileLogError;
 }
 
-bool iAConsole::isVisible() const
+bool iALogWidget::isVisible() const
 {
 	return m_console->isVisible();
 }
 
-QString iAConsole::logFileName() const
+QString iALogWidget::logFileName() const
 {
 	return m_logFileName;
 }
 
-iAConsole::iAConsole() :
+iALogWidget::iALogWidget() :
 	m_logFileName("debug.log"),
 	m_console(new dlg_console()),
 	m_logToFile(false),
@@ -136,74 +134,32 @@ iAConsole::iAConsole() :
 	vtkOutputWindow::SetInstance(m_vtkOutputWindow);
 	itk::OutputWindow::SetInstance(m_itkOutputWindow);
 
-	connect(this, &iAConsole::logSignal, this, &iAConsole::logSlot);
-	connect(m_console, &dlg_console::onClose, this, &iAConsole::consoleClosed);
+	connect(this, &iALogWidget::logSignal, this, &iALogWidget::logSlot);
+	connect(m_console, &dlg_console::onClose, this, &iALogWidget::consoleClosed);
 }
 
-iAConsole::~iAConsole()
+iALogWidget::~iALogWidget()
 {
 }
 
-iAConsole* iAConsole::instance()
+iALogWidget* iALogWidget::get()
 {
-	static iAConsole s_instance;
+	static iALogWidget s_instance;
 	return &s_instance;
 }
 
-void iAConsole::consoleClosed()
+void iALogWidget::consoleClosed()
 {
 	emit consoleVisibilityChanged(false);
 }
 
-void iAConsole::close()
+void iALogWidget::close()
 {
 	m_closed = true;
 	m_console->close();
 }
 
-void iAConsole::closeInstance()
+void iALogWidget::closeInstance()
 {
-	instance()->close();
+	get()->close();
 }
-
-
-// iALogger
-
-iALogger::~iALogger()
-{}
-
-
-
-// iAConsoleLogger
-
-void iAConsoleLogger::log(iALogLevel lvl, QString const & msg)
-{
-	iAConsole::instance()->log(lvl, msg);
-}
-
-iAConsoleLogger * iAConsoleLogger::get()
-{
-	static iAConsoleLogger GlobalConsoleLogger;
-	return &GlobalConsoleLogger;
-}
-
-iAConsoleLogger::iAConsoleLogger()
-{}
-
-
-
-// iAStdOutLogger
-
-void iAStdOutLogger::log(iALogLevel lvl, QString const & msg)
-{
-	std::cout << msg.toStdString() << std::endl;
-}
-
-iAStdOutLogger * iAStdOutLogger::get()
-{
-	static iAStdOutLogger GlobalStdOutLogger;
-	return &GlobalStdOutLogger;
-}
-
-iAStdOutLogger::iAStdOutLogger()
-{}

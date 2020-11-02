@@ -22,12 +22,15 @@
 
 #include "ui_Console.h"
 
+//! The actual dock widget displaying log messages in the user interface.
+//! Used by iALogWidget
+//! maybe could be merged with iALogWidget? but maybe not, since this console can be closed anytime?
 class dlg_console : public QDockWidget, public Ui_Console
 {
 	Q_OBJECT
 public:
 	dlg_console();
-	void log(QString text);
+	void log(QString const & text);
 private slots:
 	void clear();
 private:

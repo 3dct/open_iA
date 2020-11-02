@@ -36,15 +36,14 @@ class iARedirectItkOutput;
 
 class QDockWidget;
 
-//! Helper class for (debug) logging purposes, available from everywhere as singleton.
-//! Instantiates a dlg_console to log debug messages
-//! Note: Typically not used directly, but through DEBUG_LOG macro!
-//! TODO: check if we can't reuse logging window here!
-class open_iA_Core_API iAConsole: public QObject, public iALogger
+//! Instantiates a dlg_console to log debug messages.
+//! Note: Typically you will want to use the LOG macro in iALog.h!
+class open_iA_Core_API iALogWidget: public QObject, public iALogger
 {
 	Q_OBJECT
 public:
-	static iAConsole* instance();
+	//! singleton pattern - retrieve logger instance
+	static iALogWidget* get();
 	static void closeInstance();
 	void log(iALogLevel lvl, QString const & text) override;
 	void setLogToFile(bool value, QString const & fileName, bool verbose=false);
@@ -62,11 +61,14 @@ private slots:
 	void logSlot(iALogLevel lvl, QString const & text);
 	void consoleClosed();
 private:
-	iAConsole();
-	virtual ~iAConsole();
-
-	iAConsole(iAConsole const&)			= delete;
-	void operator=(iAConsole const&)	= delete;
+	//! private constructor - retrieve (single) instance via get!
+	iALogWidget();
+	//! virtual destructor, explicitly implemented to avoid having to include iARedirectItkOutput
+	virtual ~iALogWidget();
+	//! @{ prevent copying:
+	iALogWidget(iALogWidget const&)    = delete;
+	void operator=(iALogWidget const&) = delete;
+	//! @}
 
 	void close();
 
@@ -77,31 +79,4 @@ private:
 	bool m_fileLogError;
 	vtkSmartPointer<iARedirectVtkOutput> m_vtkOutputWindow;
 	itk::SmartPointer<iARedirectItkOutput> m_itkOutputWindow;
-};
-
-
-//! Some default loggers:
-
-//! A logger whose output is written to the global output console (iAConsole).
-class open_iA_Core_API iAConsoleLogger : public iALogger
-{
-public:
-	void log(iALogLevel lvl, QString const & msg) override;
-	static iAConsoleLogger * get();
-private:
-	iAConsoleLogger();
-	iAConsoleLogger(iAConsoleLogger const&);
-	void operator=(iAConsoleLogger const&);
-};
-
-//! A logger whose output is written to standard output.
-class open_iA_Core_API iAStdOutLogger : public iALogger
-{
-public:
-	void log(iALogLevel lvl, QString const & msg) override;
-	static iAStdOutLogger * get();
-private:
-	iAStdOutLogger();
-	iAStdOutLogger(iAStdOutLogger const&);
-	void operator=(iAStdOutLogger const&);
 };

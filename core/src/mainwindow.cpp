@@ -29,9 +29,8 @@
 #include "dlg_datatypeconversion.h"
 #include "dlg_openfile_sizecheck.h"
 #include "iACheckOpenGL.h"
-#include "iAConsole.h"
 #include "iALog.h"
-#include "iALogger.h"
+#include "iALogWidget.h"
 #include "iAMathUtility.h"
 #include "iAModuleDispatcher.h"
 #include "iAProjectBase.h"
@@ -134,8 +133,7 @@ MainWindow::MainWindow(QString const & appName, QString const & version, QString
 	m_layout->setSizeAdjustPolicy(QComboBox::AdjustToContents);
 	this->layoutToolbar->insertWidget(this->actionSaveLayout, m_layout);
 
-	// why do we use iAConsoleLogger::get here and not iAConsole::instance()?
-	m_moduleDispatcher->InitializeModules(iAConsoleLogger::get());
+	m_moduleDispatcher->InitializeModules(iALogWidget::get());
 	setModuleActionsEnabled( false );
 	statusBar()->showMessage(tr("Ready"));
 }
@@ -204,7 +202,7 @@ void MainWindow::closeEvent(QCloseEvent *event)
 	else
 	{
 		writeSettings();
-		iAConsole::closeInstance();
+		iALogWidget::closeInstance();
 		event->accept();
 	}
 }
@@ -754,7 +752,7 @@ void MainWindow::savePreferences(iAXmlSettings &xml)
 	preferencesElement.setAttribute("resultsInNewWindow", tr("%1").arg(m_defaultPreferences.ResultInNewWindow));
 	preferencesElement.setAttribute("magicLensSize", tr("%1").arg(m_defaultPreferences.MagicLensSize));
 	preferencesElement.setAttribute("magicLensFrameWidth", tr("%1").arg(m_defaultPreferences.MagicLensFrameWidth));
-	preferencesElement.setAttribute("logToFile", tr("%1").arg(iAConsole::instance()->isLogToFileOn()));
+	preferencesElement.setAttribute("logToFile", tr("%1").arg(iALogWidget::get()->isLogToFileOn()));
 }
 
 void MainWindow::loadPreferences(QDomNode preferencesNode)
@@ -771,7 +769,7 @@ void MainWindow::loadPreferences(QDomNode preferencesNode)
 	bool prefLogToFile = attributes.namedItem("logToFile").nodeValue() == "1";
 	QString logFileName = attributes.namedItem("logFile").nodeValue();
 
-	iAConsole::instance()->setLogToFile(prefLogToFile, logFileName);
+	iALogWidget::get()->setLogToFile(prefLogToFile, logFileName);
 
 	activeMdiChild()->editPrefs(m_defaultPreferences);
 }
@@ -959,7 +957,7 @@ void MainWindow::enableInteraction()
 
 void MainWindow::toggleConsole()
 {
-	iAConsole::instance()->setVisible(actionShowConsole->isChecked());
+	iALogWidget::get()->setVisible(actionShowConsole->isChecked());
 }
 
 void MainWindow::toggleFullScreen()
@@ -1024,7 +1022,7 @@ void MainWindow::prefs()
 	}
 	iAPreferences p = child ? child->preferences() : m_defaultPreferences;
 	QString descr;
-	if (iAConsole::instance()->isFileLogError())
+	if (iALogWidget::get()->isFileLogError())
 	{
 		descr = "Could not write to the specified logfile, logging to file was therefore disabled."
 			" Please check file permissions and/or whether the path to the file exists, before re-enabling the option!.";
@@ -1034,8 +1032,8 @@ void MainWindow::prefs()
 		<< (p.Compression ? tr("true") : tr("false"))
 		<< (p.PrintParameters ? tr("true") : tr("false"))
 		<< (p.ResultInNewWindow ? tr("true") : tr("false"))
-		<< (iAConsole::instance()->isLogToFileOn() ? tr("true") : tr("false"))
-		<< iAConsole::instance()->logFileName()
+		<< (iALogWidget::get()->isLogToFileOn() ? tr("true") : tr("false"))
+		<< iALogWidget::get()->logFileName()
 		<< looks
 		<< tr("%1").arg(p.MagicLensSize)
 		<< tr("%1").arg(p.MagicLensFrameWidth)
@@ -1069,7 +1067,7 @@ void MainWindow::prefs()
 			statusBar()->showMessage(tr("Edit preferences"), 5000);
 		}
 
-		iAConsole::instance()->setLogToFile(logToFile, logFileName, true);
+		iALogWidget::get()->setLogToFile(logToFile, logFileName, true);
 	}
 }
 
@@ -1838,8 +1836,8 @@ void MainWindow::connectSignalsToSlots()
 
 	connect(mdiArea, &QMdiArea::subWindowActivated, this, &MainWindow::updateMenus);
 
-	consoleVisibilityChanged(iAConsole::instance()->isVisible());
-	connect(iAConsole::instance(), &iAConsole::consoleVisibilityChanged, this, &MainWindow::consoleVisibilityChanged);
+	consoleVisibilityChanged(iALogWidget::get()->isVisible());
+	connect(iALogWidget::get(), &iALogWidget::consoleVisibilityChanged, this, &MainWindow::consoleVisibilityChanged);
 }
 
 void MainWindow::readSettings()
@@ -1860,7 +1858,7 @@ void MainWindow::readSettings()
 	m_defaultPreferences.MagicLensFrameWidth = settings.value("Preferences/prefMagicLensFrameWidth", defaultPrefs.MagicLensFrameWidth).toInt();
 	bool prefLogToFile = settings.value("Preferences/prefLogToFile", false).toBool();
 	QString logFileName = settings.value("Preferences/prefLogFile", "debug.log").toString();
-	iAConsole::instance()->setLogToFile(prefLogToFile, logFileName);
+	iALogWidget::get()->setLogToFile(prefLogToFile, logFileName);
 
 	iARenderSettings fallbackRS;
 	m_defaultRenderSettings.ShowSlicers = settings.value("Renderer/rsShowSlicers", fallbackRS.ShowSlicers).toBool();
@@ -1971,8 +1969,8 @@ void MainWindow::writeSettings()
 	settings.setValue("Preferences/prefResultInNewWindow", m_defaultPreferences.ResultInNewWindow);
 	settings.setValue("Preferences/prefMagicLensSize", m_defaultPreferences.MagicLensSize);
 	settings.setValue("Preferences/prefMagicLensFrameWidth", m_defaultPreferences.MagicLensFrameWidth);
-	settings.setValue("Preferences/prefLogToFile", iAConsole::instance()->isLogToFileOn());
-	settings.setValue("Preferences/prefLogFile", iAConsole::instance()->logFileName());
+	settings.setValue("Preferences/prefLogToFile", iALogWidget::get()->isLogToFileOn());
+	settings.setValue("Preferences/prefLogFile", iALogWidget::get()->logFileName());
 
 	settings.setValue("Renderer/rsShowSlicers", m_defaultRenderSettings.ShowSlicers);
 	settings.setValue("Renderer/rsShowSlicePlanes", m_defaultRenderSettings.ShowSlicePlanes);
@@ -2591,9 +2589,9 @@ int MainWindow::runGUI(int argc, char * argv[], QString const & appName, QString
 		return 1;
 	}
 	app.setAttribute(Qt::AA_DontCreateNativeWidgetSiblings);
-	iALog::setLogger(iAConsole::instance());
+	iALog::setLogger(iALogWidget::get());
 	MainWindow mainWin(appName, version, buildInformation, splashPath);
-	mainWin.addDockWidget(Qt::RightDockWidgetArea, iAConsole::instance()->dockWidget());
+	mainWin.addDockWidget(Qt::RightDockWidgetArea, iALogWidget::get()->dockWidget());
 	CheckSCIFIO(QCoreApplication::applicationDirPath());
 	mainWin.loadArguments(argc, argv);
 	// TODO: unify with logo in slicer/renderer!
