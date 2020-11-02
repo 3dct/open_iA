@@ -50,3 +50,13 @@ QString logLevelToString(iALogLevel lvl)
 
 iALogger::~iALogger()
 {}
+
+void iALogger::setLogLevel(iALogLevel level)
+{
+	m_logLevel = level;
+}
+
+iALogLevel iALogger::logLevel() const
+{
+	return m_logLevel;
+}

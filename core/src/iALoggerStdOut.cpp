@@ -24,6 +24,10 @@
 
 void iALoggerStdOut::log(iALogLevel lvl, QString const& msg)
 {
+	if (lvl < m_logLevel)
+	{
+		return;
+	}
 	std::cout << logLevelToString(lvl).toStdString() << ": " << msg.toStdString() << std::endl;
 }
 

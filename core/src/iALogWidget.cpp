@@ -40,7 +40,7 @@ void iALogWidget::logSlot(iALogLevel lvl, QString const & text)
 	// if it is still open at the time the program should exit.
 	// Therefore, we don't reopen the console after the close() method
 	// has been called. This allows the program to exit properly.
-	if (!m_closed)
+	if (!m_closed && lvl >= m_logLevel)
 	{
 		if (!isVisible())
 		{
@@ -49,7 +49,7 @@ void iALogWidget::logSlot(iALogLevel lvl, QString const & text)
 		}
 		consoleTextEdit->append(logLevelToString(lvl)+": "+text);
 	}
-	if (m_logToFile)
+	if (m_logToFile && lvl >= m_fileLogLevel)
 	{
 		std::ofstream logfile( getLocalEncodingFileName(m_logFileName).c_str(), std::ofstream::out | std::ofstream::app);
 		logfile << QString("%1 %2 %3\n")
@@ -85,6 +85,16 @@ void iALogWidget::setLogToFile(bool value, QString const & fileName, bool verbos
 	}
 	m_logToFile = value;
 	m_logFileName = fileName;
+}
+
+void iALogWidget::setFileLogLevel(iALogLevel lvl)
+{
+	m_fileLogLevel = lvl;
+}
+
+iALogLevel iALogWidget::fileLogLevel() const
+{
+	return m_fileLogLevel;
 }
 
 bool iALogWidget::isLogToFileOn() const

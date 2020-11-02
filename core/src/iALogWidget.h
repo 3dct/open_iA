@@ -51,6 +51,11 @@ public:
 	bool isLogToFileOn() const;
 	QString logFileName() const;
 	bool isFileLogError() const;
+	//! set log level for the log written to file
+	//! (can diverge from the log in the console!)
+	void setFileLogLevel(iALogLevel lvl);
+	//! retrieve current log level for file
+	iALogLevel fileLogLevel() const;
 // decouple logging methods from GUI logging (to allow logging from any thread):
 signals:
 	void logSignal(iALogLevel lvl, QString const & text);
@@ -71,6 +76,7 @@ private:
 
 	QString m_logFileName;
 	bool m_logToFile;
+	iALogLevel m_fileLogLevel;
 	bool m_closed;
 	bool m_fileLogError;
 	vtkSmartPointer<iARedirectVtkOutput> m_vtkOutputWindow;
