@@ -665,7 +665,7 @@ void iASamplingSettingsDlg::setParametersFromFilter(QString const& filterName)
 	auto filter = iAFilterRegistry::filter(filterName);
 	if (!filter)
 	{
-		DEBUG_LOG(QString("Invalid filter name '%1'").arg(filterName));
+		LOG(lvlError, QString("Invalid filter name '%1'").arg(filterName));
 	}
 	auto params = QSharedPointer<iAAttributes>(new iAAttributes(filter->parameters()));
 	setParameters(params);

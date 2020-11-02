@@ -30,7 +30,7 @@
 #include <charts/iAPlotTypes.h>
 #include <charts/iASPLOMData.h>
 #include <iAColorTheme.h>
-#include <iAConsole.h>
+#include <iALog.h>
 
 #include <QAction>
 #include <QGridLayout>
@@ -95,7 +95,7 @@ iAParameterInfluenceView::iAParameterInfluenceView(iASensitivityInfo* sensInf) :
 		addColumnAction(sensInf->charactName(charactIdx), charactIdx, this, m_stackedHeader, charactIdx == 0);
 	}
 	addColumnAction("Fiber Count", sensInf->charactIndex.size() + 1, this, m_stackedHeader, false);
-	//DEBUG_LOG(QString("Adding lines for %1 characteristics").arg(sensInf->charactIndex.size()));
+	//LOG(lvlDebug, QString("Adding lines for %1 characteristics").arg(sensInf->charactIndex.size()));
 
 	// headers:
 	addHeaderLabel(m_paramListLayout, colParamName, "Parameter");
@@ -305,7 +305,7 @@ void iAParameterInfluenceView::addStackedBar(int charactIdx)
 {
 	m_visibleCharacts.push_back(charactIdx);
 	auto title(columnName(charactIdx));
-	DEBUG_LOG(QString("Showing stacked bar for characteristic %1").arg(title));
+	LOG(lvlInfo, QString("Showing stacked bar for characteristic %1").arg(title));
 	m_stackedHeader->addBar(title, 1, 1);
 	auto const& d = (charactIdx < m_sensInf->aggregatedSensitivities.size()) ?
 		m_sensInf->aggregatedSensitivities[charactIdx][m_measureIdx][m_aggrType] :
@@ -329,11 +329,11 @@ void iAParameterInfluenceView::removeStackedBar(int charactIdx)
 	int visibleIdx = m_visibleCharacts.indexOf(charactIdx);
 	if (visibleIdx == -1)
 	{
-		DEBUG_LOG(QString("Invalid state - called remove on non-added characteristic idx %1").arg(charactIdx));
+		LOG(lvlError, QString("Invalid state - called remove on non-added characteristic idx %1").arg(charactIdx));
 	}
 	m_visibleCharacts.remove(visibleIdx);
 	auto title(columnName(charactIdx));
-	DEBUG_LOG(QString("Removing stacked bar for characteristic %1").arg(title));
+	LOG(lvlInfo, QString("Removing stacked bar for characteristic %1").arg(title));
 	m_stackedHeader->removeBar(title);
 	for (auto stackedChart : m_stackedCharts)
 	{

@@ -1358,7 +1358,7 @@ void iAFiAKErController::computeSensitivity()
 {
 	if (m_sensitivityInfo)
 	{
-		DEBUG_LOG("Already started!");
+		LOG(lvlWarn, "Already started!");
 		return;
 	}
 	m_sensitivityInfo = iASensitivityInfo::create(m_mdiChild, m_data, m_views[ResultListView],

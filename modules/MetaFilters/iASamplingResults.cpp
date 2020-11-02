@@ -248,7 +248,7 @@ bool iASamplingResults::loadInternal(QString const & parameterSetFileName, QStri
 		{
 			if (lineNr > 0) // skip potential header
 			{
-				DEBUG_LOG(QString("Invalid parameter set / derived output descriptor at line  %1: %2").arg(lineNr).arg(attribLine));
+				LOG(lvlError, QString("Invalid parameter set / derived output descriptor at line  %1: %2").arg(lineNr).arg(attribLine));
 				return false;
 			}
 		}

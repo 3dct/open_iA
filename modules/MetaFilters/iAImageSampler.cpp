@@ -234,7 +234,7 @@ void iAImageSampler::start()
 				auto value = pathFileBaseName(outputFile) + m_parameterSpecs->at(p)->defaultValue().toString();
 				if (QFile::exists(value) && !m_parameters[spnOverwriteOutput].toBool())
 				{
-					DEBUG_LOG(QString("Output file '%1' already exists! Aborting. "
+					LOG(lvlError, QString("Output file '%1' already exists! Aborting. "
 						"Check 'Overwrite output' to overwrite existing files.").arg(value));
 					return;
 				}
@@ -242,10 +242,10 @@ void iAImageSampler::start()
 			}
 		}
 	}
-	DEBUG_LOG("Parameter combinations that will be sampled:");
+	LOG(lvlInfo, "Parameter combinations that will be sampled:");
 	for (auto parameterSet: *m_parameterSets.data())
 	{
-		DEBUG_LOG(QString(joinQVariantAsString(parameterSet, ",")));
+		LOG(lvlInfo, QString(joinQVariantAsString(parameterSet, ",")));
 	}
 
 	m_parameterCount = countAttributes(*m_parameterRanges.data(), iAAttributeDescriptor::Parameter);

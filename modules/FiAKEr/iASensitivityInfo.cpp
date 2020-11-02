@@ -23,8 +23,8 @@
 // Core
 #include <charts/iASPLOMData.h>
 #include <charts/qcustomplot.h>
-#include <iAConsole.h>
 #include <iAJobListView.h>
+#include <iALog.h>
 #include <iAMathUtility.h>
 #include <iARunAsync.h>
 #include <iAStringHelper.h>
@@ -91,13 +91,13 @@ bool readParameterCSV(QString const& fileName, QString const& encoding, QString 
 {
 	if (!QFile::exists(fileName))
 	{
-		DEBUG_LOG("Error loading csv file, file does not exist.");
+		LOG(lvlError, "Error loading csv file, file does not exist.");
 		return false;
 	}
 	QFile file(fileName);
 	if (!file.open(QIODevice::ReadOnly | QIODevice::Text))
 	{
-		DEBUG_LOG(QString("Unable to open file '%1': %2").arg(fileName).arg(file.errorString()));
+		LOG(lvlError, QString("Unable to open file '%1': %2").arg(fileName).arg(file.errorString()));
 		return false;
 	}
 	QTextStream in(&file);
@@ -118,7 +118,7 @@ bool readParameterCSV(QString const& fileName, QString const& encoding, QString 
 	}
 	if (!in.atEnd())
 	{
-		DEBUG_LOG("Found additional rows at end...");
+		LOG(lvlWarn, "Found additional rows at end...");
 		return false;
 	}
 	return true;
@@ -151,7 +151,7 @@ double distributionDifference(HistogramType const& distr1, HistogramType const& 
 	}
 	else
 	{
-		DEBUG_LOG(QString("invalid diffType %1").arg(diffType));
+		LOG(lvlError, QString("invalid diffType %1").arg(diffType));
 		return 0;
 	}
 }
@@ -183,7 +183,7 @@ QSharedPointer<iASensitivityInfo> iASensitivityInfo::create(QMainWindow* child,
 	// parameter set contains an ID as first column and a filename as last row
 	if (paramValues.size() <= 2 || paramValues[0].size() <= 3)
 	{
-		DEBUG_LOG(QString("Invalid parameter set file: expected at least 2 data rows (actual: %1) "
+		LOG(lvlError, QString("Invalid parameter set file: expected at least 2 data rows (actual: %1) "
 			"and at least 3 columns (ID, filename, and one parameter; actual: %2")
 			.arg(paramValues.size() > 0 ? paramValues[0].size() : -1)
 			.arg(paramValues.size())
@@ -197,7 +197,7 @@ QSharedPointer<iASensitivityInfo> iASensitivityInfo::create(QMainWindow* child,
 	// find min/max, for all columns except ID and filename (maybe we could reuse SPM data ranges here?)
 	QVector<double> valueMin(static_cast<int>(paramValues.size() - 2));
 	QVector<double> valueMax(static_cast<int>(paramValues.size() - 2));
-	//DEBUG_LOG(QString("Parameter values size: %1x%2").arg(paramValues.size()).arg(paramValues[0].size()));
+	//LOG(lvlInfo, QString("Parameter values size: %1x%2").arg(paramValues.size()).arg(paramValues[0].size()));
 	for (int p = 1; p < paramValues.size() - 1; ++p)
 	{           // - 1 because of skipping ID
 		valueMin[p - 1] = *std::min_element(paramValues[p].begin(), paramValues[p].end());
@@ -214,10 +214,10 @@ QSharedPointer<iASensitivityInfo> iASensitivityInfo::create(QMainWindow* child,
 	}
 	if (sensitivity->variedParams.size() == 0)
 	{
-		DEBUG_LOG("Invalid sampling: No parameter was varied!");
+		LOG(lvlError, "Invalid sampling: No parameter was varied!");
 		return QSharedPointer<iASensitivityInfo>();
 	}
-	//DEBUG_LOG(QString("Found the following parameters to vary (number: %1): %2")
+	//LOG(lvlInfo, QString("Found the following parameters to vary (number: %1): %2")
 	//	.arg(sensitivity->variedParams.size())
 	//	.arg(joinAsString(sensitivity->variedParams, ",", [&paramNames](int const& i) { return paramNames[i]; })));
 
@@ -231,7 +231,7 @@ QSharedPointer<iASensitivityInfo> iASensitivityInfo::create(QMainWindow* child,
 	const double RemainderCheckEpsilon = 1e-12;
 	double curCheckValue = paramValues[sensitivity->variedParams[0]][1];
 	double diffCheck = std::abs(curCheckValue - checkValue0);
-	//DEBUG_LOG(QString("checkValue0=%1, curCheckValue=%2, diffCheck=%3").arg(checkValue0).arg(curCheckValue).arg(diffCheck));
+	//LOG(lvlDebug, QString("checkValue0=%1, curCheckValue=%2, diffCheck=%3").arg(checkValue0).arg(curCheckValue).arg(diffCheck));
 	double remainder = 0;
 	int row = 2;
 	while (row < paramValues[sensitivity->variedParams[0]].size() &&
@@ -241,13 +241,13 @@ QSharedPointer<iASensitivityInfo> iASensitivityInfo::create(QMainWindow* child,
 	{
 		curCheckValue = paramValues[sensitivity->variedParams[0]][row];
 		remainder = std::abs(std::fmod(std::abs(curCheckValue - checkValue0), diffCheck));
-		//DEBUG_LOG(QString("Row %1: curCheckValue=%2, checkValue0=%3, remainder=%4")
+		//LOG(lvlDebug, QString("Row %1: curCheckValue=%2, checkValue0=%3, remainder=%4")
 		//	.arg(row).arg(curCheckValue).arg(checkValue0).arg(remainder));
 		++row;
 	}
 	sensitivity->m_starGroupSize = row - 1;
 	sensitivity->numOfSTARSteps = (sensitivity->m_starGroupSize - 1) / sensitivity->variedParams.size();
-	//DEBUG_LOG(QString("Determined that there are groups of size: %1; number of STAR points per parameter: %2")
+	//LOG(lvlInfo,QString("Determined that there are groups of size: %1; number of STAR points per parameter: %2")
 	//	.arg(sensitivity->m_starGroupSize)
 	//	.arg(sensitivity->numOfSTARSteps)
 	//);
@@ -364,12 +364,12 @@ void iASensitivityInfo::compute()
 		m_progress.emitProgress(100 * charIdx / charactIndex.size());
 		//int charactID = charactIndex[charIdx];
 		//auto charactName = m_data->spmData->parameterName(charactID);
-		//DEBUG_LOG(QString("Characteristic %1 (%2):").arg(charIdx).arg(charactName));
+		//LOG(lvlDebug, QString("Characteristic %1 (%2):").arg(charIdx).arg(charactName));
 		sensitivityField[charIdx].resize(charDiffMeasure.size());
 		aggregatedSensitivities[charIdx].resize(charDiffMeasure.size());
 		for (int diffMeasure = 0; diffMeasure < charDiffMeasure.size(); ++diffMeasure)
 		{
-			//DEBUG_LOG(QString("    Difference Measure %1 (%2)").arg(diffMeasure).arg(DistributionDifferenceMeasureNames()[diffMeasure]));
+			//LOG(lvlDebug, QString("    Difference Measure %1 (%2)").arg(diffMeasure).arg(DistributionDifferenceMeasureNames()[diffMeasure]));
 			auto& field = sensitivityField[charIdx][diffMeasure];
 			field.resize(NumOfVarianceAggregation);
 			auto& agg = aggregatedSensitivities[charIdx][diffMeasure];
@@ -387,7 +387,7 @@ void iASensitivityInfo::compute()
 				}
 				// TODO: unify with other loops over STARs
 				//QString paramName(m_paramNames[variedParams[paramIdx]]);
-				//DEBUG_LOG(QString("  Parameter %1 (%2):").arg(paramIdx).arg(paramName));
+				//LOG(lvlDebug, QString("  Parameter %1 (%2):").arg(paramIdx).arg(paramName));
 				int origParamColIdx = variedParams[paramIdx];
 				// aggregation types:
 				//     - for now: one step average, left only, right only, average over all steps
@@ -405,7 +405,7 @@ void iASensitivityInfo::compute()
 					double groupStartParamVal = m_paramValues[origParamColIdx][resultIdxGroupStart];
 					double paramStartParamVal = m_paramValues[origParamColIdx][resultIdxParamStart];
 					double paramDiff = paramStartParamVal - groupStartParamVal;
-					//DEBUG_LOG(QString("      Parameter Set %1; start: %2 (value %3), param start: %4 (value %5); diff: %6")
+					//LOG(lvlDebug, QString("      Parameter Set %1; start: %2 (value %3), param start: %4 (value %5); diff: %6")
 					//	.arg(paramSetIdx).arg(resultIdxGroupStart).arg(groupStartParamVal)
 					//	.arg(resultIdxParamStart).arg(paramStartParamVal).arg(paramDiff));
 
@@ -422,7 +422,7 @@ void iASensitivityInfo::compute()
 							charHistograms[resultIdxGroupStart][charIdx],
 							charHistograms[resultIdxParamStart][charIdx],
 							diffMeasure);
-						//DEBUG_LOG(QString("        Left var available: %1").arg(leftVar));
+						//LOG(lvlDebug, QString("        Left var available: %1").arg(leftVar));
 						++numLeftRight;
 						++numAllLeft;
 					}
@@ -442,7 +442,7 @@ void iASensitivityInfo::compute()
 							charHistograms[resultIdxGroupStart][charIdx],
 							charHistograms[firstPosStepIdx][charIdx],
 							diffMeasure);
-						//DEBUG_LOG(QString("        Right var available: %1").arg(rightVar));
+						//LOG(lvlDebug, QString("        Right var available: %1").arg(rightVar));
 						++numLeftRight;
 						++numAllRight;
 					}
@@ -467,8 +467,8 @@ void iASensitivityInfo::compute()
 					numAllTotal += numOfSTARSteps;
 					double meanLeftRightVar = (leftVar + rightVar) / numLeftRight;
 					double meanTotal = sumTotal / numOfSTARSteps;
-					//DEBUG_LOG(QString("        (left+right)/(numLeftRight=%1) = %2").arg(numLeftRight).arg(meanLeftRightVar));
-					//DEBUG_LOG(QString("        (sum total var = %1) / (numOfSTARSteps = %2)  = %3")
+					//LOG(lvlDebug, QString("        (left+right)/(numLeftRight=%1) = %2").arg(numLeftRight).arg(meanLeftRightVar));
+					//LOG(lvlDebug, QString("        (sum total var = %1) / (numOfSTARSteps = %2)  = %3")
 					//	.arg(sumTotal).arg(numOfSTARSteps).arg(meanTotal));
 					field[0][paramIdx][paramSetIdx] = meanLeftRightVar;
 					field[1][paramIdx][paramSetIdx] = leftVar;
@@ -485,7 +485,7 @@ void iASensitivityInfo::compute()
 				agg[1][paramIdx] /= numAllLeft;
 				agg[2][paramIdx] /= numAllRight;
 				agg[3][paramIdx] /= numAllTotal;
-				//DEBUG_LOG(QString("      LeftRight=%1, Left=%2, Right=%3, Total=%4")
+				//LOG(lvlDebug, QString("      LeftRight=%1, Left=%2, Right=%3, Total=%4")
 				//	.arg(agg[0]).arg(agg[1]).arg(agg[2]).arg(agg[3]));
 			}
 		}
@@ -526,7 +526,7 @@ void iASensitivityInfo::compute()
 			double groupStartParamVal = m_paramValues[origParamColIdx][resultIdxGroupStart];
 			double paramStartParamVal = m_paramValues[origParamColIdx][resultIdxParamStart];
 			double paramDiff = paramStartParamVal - groupStartParamVal;
-			//DEBUG_LOG(QString("      Parameter Set %1; start: %2 (value %3), param start: %4 (value %5); diff: %6")
+			//LOG(lvlDebug, QString("      Parameter Set %1; start: %2 (value %3), param start: %4 (value %5); diff: %6")
 			//	.arg(paramSetIdx).arg(resultIdxGroupStart).arg(groupStartParamVal)
 			//	.arg(resultIdxParamStart).arg(paramStartParamVal).arg(paramDiff));
 
@@ -541,7 +541,7 @@ void iASensitivityInfo::compute()
 			{
 				leftVar = std::abs(static_cast<double>(m_data->result[resultIdxGroupStart].fiberCount)
 					- m_data->result[resultIdxParamStart].fiberCount);
-				//DEBUG_LOG(QString("        Left var available: %1").arg(leftVar));
+				//LOG(lvlDebug, QString("        Left var available: %1").arg(leftVar));
 				++numLeftRight;
 				++numAllLeft;
 			}
@@ -559,7 +559,7 @@ void iASensitivityInfo::compute()
 				int firstPosStepIdx = resultIdxParamStart + (k - 1);
 				rightVar = std::abs(static_cast<double>(m_data->result[resultIdxGroupStart].fiberCount)
 					- m_data->result[firstPosStepIdx].fiberCount);
-				//DEBUG_LOG(QString("        Right var available: %1").arg(rightVar));
+				//LOG(lvlDebug, QString("        Right var available: %1").arg(rightVar));
 				++numLeftRight;
 				++numAllRight;
 			}
@@ -582,8 +582,8 @@ void iASensitivityInfo::compute()
 			numAllTotal += numOfSTARSteps;
 			double meanLeftRightVar = (leftVar + rightVar) / numLeftRight;
 			double meanTotal = sumTotal / numOfSTARSteps;
-			//DEBUG_LOG(QString("        (left+right)/(numLeftRight=%1) = %2").arg(numLeftRight).arg(meanLeftRightVar));
-			//DEBUG_LOG(QString("        (sum total var = %1) / (numOfSTARSteps = %2)  = %3")
+			//LOG(lvlDebug, QString("        (left+right)/(numLeftRight=%1) = %2").arg(numLeftRight).arg(meanLeftRightVar));
+			//LOG(lvlDebug, QString("        (sum total var = %1) / (numOfSTARSteps = %2)  = %3")
 			//	.arg(sumTotal).arg(numOfSTARSteps).arg(meanTotal));
 			sensitivityFiberCount[0][paramIdx][paramSetIdx] = meanLeftRightVar;
 			sensitivityFiberCount[1][paramIdx][paramSetIdx] = leftVar;
@@ -652,7 +652,7 @@ void iASensitivityInfo::compute()
 					double groupStartParamVal = m_paramValues[origParamColIdx][resultIdxGroupStart];
 					double paramStartParamVal = m_paramValues[origParamColIdx][resultIdxParamStart];
 					double paramDiff = paramStartParamVal - groupStartParamVal;
-					//DEBUG_LOG(QString("      Parameter Set %1; start: %2 (value %3), param start: %4 (value %5); diff: %6")
+					//LOG(lvlDebug, QString("      Parameter Set %1; start: %2 (value %3), param start: %4 (value %5); diff: %6")
 					//	.arg(paramSetIdx).arg(resultIdxGroupStart).arg(groupStartParamVal)
 					//	.arg(resultIdxParamStart).arg(paramStartParamVal).arg(paramDiff));
 
@@ -679,7 +679,7 @@ void iASensitivityInfo::compute()
 							std::abs(charHistograms[resultIdxGroupStart][charIdx][bin] - charHistograms[resultIdxParamStart][charIdx][bin]);
 						charHistVarAgg[charIdx][0][paramIdx][bin] += charHistVar[charIdx][0][paramIdx][bin][paramSetIdx];
 						charHistVarAgg[charIdx][2][paramIdx][bin] += charHistVar[charIdx][0][paramIdx][bin][paramSetIdx];
-						//DEBUG_LOG(QString("        Left var available: %1").arg(leftVar));
+						//LOG(lvlDebug, QString("        Left var available: %1").arg(leftVar));
 						++numLeftRight;
 						++numAllLeft;
 					}
@@ -703,7 +703,7 @@ void iASensitivityInfo::compute()
 							std::abs(charHistograms[resultIdxGroupStart][charIdx][bin] - charHistograms[firstPosStepIdx][charIdx][bin]);
 						charHistVarAgg[charIdx][1][paramIdx][bin] += charHistVar[charIdx][1][paramIdx][bin][paramSetIdx];
 						charHistVarAgg[charIdx][2][paramIdx][bin] += charHistVar[charIdx][1][paramIdx][bin][paramSetIdx];
-						//DEBUG_LOG(QString("        Right var available: %1").arg(rightVar));
+						//LOG(lvlDebug, QString("        Right var available: %1").arg(rightVar));
 						++numLeftRight;
 						++numAllRight;
 					}
@@ -848,7 +848,7 @@ bool iASensitivityInfo::readDissimilarityMatrixCache(QVector<int>& measures)
 	}
 	if (!cacheFile.open(QFile::ReadOnly))
 	{
-		DEBUG_LOG(QString("Couldn't open file %1 for reading!").arg(cacheFile.fileName()));
+		LOG(lvlError, QString("Couldn't open file %1 for reading!").arg(cacheFile.fileName()));
 		return false;
 	}
 	// unify with readResultRefComparison / common cache file version/identifier pattern?
@@ -858,7 +858,7 @@ bool iASensitivityInfo::readDissimilarityMatrixCache(QVector<int>& measures)
 	in >> identifier;
 	if (identifier != DissimilarityMatrixCacheFileIdentifier)
 	{
-		DEBUG_LOG(QString("FIAKER cache file '%1': Unknown cache file format - found identifier %2 does not match expected identifier %3.")
+		LOG(lvlError, QString("FIAKER cache file '%1': Unknown cache file format - found identifier %2 does not match expected identifier %3.")
 			.arg(cacheFile.fileName())
 			.arg(identifier).arg(DissimilarityMatrixCacheFileIdentifier));
 		return false;
@@ -867,7 +867,7 @@ bool iASensitivityInfo::readDissimilarityMatrixCache(QVector<int>& measures)
 	in >> version;
 	if (version > DissimilarityMatrixCacheFileVersion)
 	{
-		DEBUG_LOG(QString("FIAKER cache file '%1': Invalid or too high version number (%2), expected %3 or less.")
+		LOG(lvlError, QString("FIAKER cache file '%1': Invalid or too high version number (%2), expected %3 or less.")
 			.arg(cacheFile.fileName())
 			.arg(version).arg(DissimilarityMatrixCacheFileVersion));
 		return false;
@@ -882,7 +882,7 @@ void iASensitivityInfo::writeDissimilarityMatrixCache(QVector<int> const& measur
 	QFile cacheFile(dissimilarityMatrixCacheFileName());
 	if (!cacheFile.open(QFile::WriteOnly))
 	{
-		DEBUG_LOG(QString("Couldn't open file %1 for writing!").arg(cacheFile.fileName()));
+		LOG(lvlError, QString("Couldn't open file %1 for writing!").arg(cacheFile.fileName()));
 		return;
 	}
 	QDataStream out(&cacheFile);

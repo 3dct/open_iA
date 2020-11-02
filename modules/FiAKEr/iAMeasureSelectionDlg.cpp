@@ -22,7 +22,7 @@
 
 #include "iAFiberData.h"
 
-#include "iAConsole.h"
+#include "iALog.h"
 
 #include <QMessageBox>
 
@@ -133,7 +133,7 @@ int iAMeasureSelectionDlg::optimizeMeasureIdx() const
 					return mIdx;
 				}
 			}
-			DEBUG_LOG("Optimization measure requested, but not selected to be computed!");
+			LOG(lvlWarn, "Optimization measure requested, but not selected to be computed!");
 			break;
 		}
 	}

@@ -3,9 +3,9 @@
 #ifdef NO_DLL_LINKAGE
 // TODO: Log output support in tests!
 #include <iostream>
-#define DEBUG_LOG(msg) std::cout << msg.toStdString() << std::endl;
+#define LOG(lvlInfo, msg) std::cout << msg.toStdString() << std::endl;
 #else
-#include "iAConsole.h"
+#include "iALog.h"
 #endif
 #include "iAStringHelper.h"
 
@@ -90,7 +90,7 @@ namespace
 				distanceMatrix[r][c] = distanceMatrix[c][r];
 			}
 		}
-		//DEBUG_LOG(QString("Euclidean Distance:\n%1").arg(matrixToString(distanceMatrix)));
+		//LOG(lvlDebug, QString("Euclidean Distance:\n%1").arg(matrixToString(distanceMatrix)));
 	}
 
 
@@ -166,7 +166,7 @@ QString matrixToString(iAMatrixType const& input)
 std::vector<std::vector<double>> computeMDS(std::vector<std::vector<double>> const& distanceMatrix,
 	int outputDimensions, int iterations, double maxError/*, iADistanceMetricID distanceMetric*/)
 {
-	//DEBUG_LOG(QString("DistanceMatrix: %1").arg(matrixToString(distanceMatrix)));
+	//LOG(lvlDebug, QString("DistanceMatrix: %1").arg(matrixToString(distanceMatrix)));
 
 	//X - configuration of points in Euclidean space
 	//initialize X with one vector filled with random values between [0,1]
@@ -175,36 +175,36 @@ std::vector<std::vector<double>> computeMDS(std::vector<std::vector<double>> con
 	assert(numElems > 2 && numElems == distanceMatrix[0].size()); // at least 3 elements and quadratic matrix
 	iAMatrixType X;
 	initializeRandom(X, numElems, outputDimensions);
-	//DEBUG_LOG(QString("init X: %1").arg(matrixToString(X)));
+	//LOG(lvlDebug, QString("init X: %1").arg(matrixToString(X)));
 		
-	//DEBUG_LOG(QString("init X:\n%1").arg(matrixToString(X)));
+	//LOG(lvlDebug, QString("init X:\n%1").arg(matrixToString(X)));
 
 	// mean value of distance matrix
 	double meanD = matrixMean(distanceMatrix);
-	//DEBUG_LOG(QString("mean=%1").arg(meanD));
+	//LOG(lvlDebug, QString("mean=%1").arg(meanD));
 
 	// move to the center
 	matrixAddScalar(X, -0.5);
-	//DEBUG_LOG(QString("subt X: %1").arg(matrixToString(X)));
+	//LOG(lvlDebug, QString("subt X: %1").arg(matrixToString(X)));
 
 	// before this step, mean distance is 1/3*sqrt(d)
 	matrixMultiplyScalar(X, 0.1 * meanD / (1.0 / 3.0 * sqrt((double)outputDimensions)));
-	//DEBUG_LOG(QString("normalized X: %1").arg(matrixToString(X)));
+	//LOG(lvlDebug, QString("normalized X: %1").arg(matrixToString(X)));
 
 	iAMatrixType Z(X);
 	iAMatrixType D(numElems, std::vector<double>(numElems, 0.0));
 	iAMatrixType B(numElems, std::vector<double>(numElems, 0.0));
 
 	computeDistance(X, D);
-	//DEBUG_LOG(QString("D: %1").arg(matrixToString(D)));
+	//LOG(lvlDebug, QString("D: %1").arg(matrixToString(D)));
 
 	const double Epsilon = 0.000001;
 	//MDS iteration
 	double diffSum = 1;
 	for (int it = 0; it < iterations && diffSum > maxError; it++)
 	{
-		DEBUG_LOG(QString("ITERATION %1:").arg(it));
-		//DEBUG_LOG(QString("B old: %1").arg(matrixToString(B)));
+		LOG(lvlDebug, QString("ITERATION %1:").arg(it));
+		//LOG(lvlDebug, QString("B old: %1").arg(matrixToString(B)));
 
 		// B = calc_B(D_,D);
 		for (int r = 0; r < numElems; r++)
@@ -233,9 +233,9 @@ std::vector<std::vector<double>> computeMDS(std::vector<std::vector<double>> con
 
 			B[c][c] = -temp;
 		}
-		//DEBUG_LOG(QString("B new: %1").arg(matrixToString(B)));
+		//LOG(lvlDebug, QString("B new: %1").arg(matrixToString(B)));
 
-		//DEBUG_LOG(QString("Z: %1").arg(matrixToString(Z)));
+		//LOG(lvlDebug, QString("Z: %1").arg(matrixToString(Z)));
 
 		// X = B*Z/size(D,1);
 		for (int r = 0; r < X.size(); r++)	
@@ -251,15 +251,15 @@ std::vector<std::vector<double>> computeMDS(std::vector<std::vector<double>> con
 				X[r][xCols] = temp / numElems;
 			}
 		}
-		//DEBUG_LOG(QString("X: %1").arg(matrixToString(X)));
+		//LOG(lvlDebug, QString("X: %1").arg(matrixToString(X)));
 
 		//D_ = calc_D (X);
 		computeDistance(X, D);
-		//DEBUG_LOG(QString("D: %1").arg(matrixToString(D)));
+		//LOG(lvlDebug, QString("D: %1").arg(matrixToString(D)));
 
 		auto vecDiff = vectorDiff(Z, X);
 		diffSum = matrixSum(vecDiff);
-		DEBUG_LOG(QString("diff Z-X (sum=%1): %2").arg(diffSum).arg(matrixToString(vecDiff)));
+		LOG(lvlDebug, QString("diff Z-X (sum=%1): %2").arg(diffSum).arg(matrixToString(vecDiff)));
 		Z = X;
 	}
 	return X;
