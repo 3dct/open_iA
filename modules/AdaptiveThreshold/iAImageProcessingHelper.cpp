@@ -22,7 +22,6 @@
 
 #include <iAChannelData.h>
 #include <iAConnector.h>
-#include <iAConsole.h>
 #include <iAFilterRegistry.h>
 #include <iAFilter.h>
 #include <iALog.h>
@@ -96,7 +95,6 @@ void iAImageProcessingHelper::prepareFilter(double greyThresholdLower, double gr
 	{
 		throw std::invalid_argument("Could not retrieve Binary Thresholding filter. Make sure Segmentation plugin was loaded correctly!");
 	}
-	filter->setLogger(iAConsoleLogger::get());
 	filter->setProgress(pObserver.data());
 	filter->addInput(&con, m_child->fileName());
 	QMap<QString, QVariant> parameters;

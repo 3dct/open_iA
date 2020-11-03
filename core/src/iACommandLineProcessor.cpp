@@ -22,9 +22,9 @@
 
 #include "iAAttributeDescriptor.h"
 #include "iAConnector.h"
-#include "iAConsole.h"
 #include "iAFilter.h"
 #include "iAFilterRegistry.h"
+#include "iALoggerStdOut.h"
 #include "iAMathUtility.h"
 #include "iAModuleDispatcher.h"
 #include "iAProgress.h"
@@ -447,7 +447,7 @@ namespace
 int ProcessCommandLine(int argc, char const * const * argv, const char * version)
 {
 	auto dispatcher = new iAModuleDispatcher(QFileInfo(argv[0]).absolutePath());
-	dispatcher->InitializeModules(iAStdOutLogger::get());
+	dispatcher->InitializeModules(iALoggerStdOut::get());
 	if (argc > 1 && QString(argv[1]) == "-l")
 	{
 		PrintListOfAvailableFilters();
