@@ -47,7 +47,7 @@ void iALogWidget::logSlot(iALogLevel lvl, QString const & text)
 			show();
 			emit consoleVisibilityChanged(true);
 		}
-		consoleTextEdit->append(logLevelToString(lvl)+": "+text);
+		logTextEdit->append(logLevelToString(lvl)+": "+text);
 	}
 	if (m_logToFile && lvl >= m_fileLogLevel)
 	{
@@ -65,7 +65,7 @@ void iALogWidget::logSlot(iALogLevel lvl, QString const & text)
 		{
 			if (!m_closed)
 			{
-				consoleTextEdit->append(QString("Could not write to logfile '%1', file output will be disabled for now.").arg(m_logFileName));
+				logTextEdit->append(QString("Could not write to logfile '%1', file output will be disabled for now.").arg(m_logFileName));
 			}
 			m_fileLogError = true;
 			m_logToFile = false;
@@ -148,7 +148,7 @@ void iALogWidget::shutdown()
 
 void iALogWidget::clear()
 {
-	consoleTextEdit->clear();
+	logTextEdit->clear();
 }
 
 void iALogWidget::closeEvent(QCloseEvent* event)

@@ -23,7 +23,7 @@
 #include "open_iA_Core_export.h"
 
 #include "iALogger.h"
-#include "ui_Console.h"
+#include "ui_log.h"
 
 #include <vtkSmartPointer.h>
 #include <itkSmartPointer.h>
@@ -39,7 +39,7 @@ class QDockWidget;
 //!
 //! Implements singleton pattern, as only one instance should exist per application window.
 //! Typically you should not use this directly, but use the LOG macro in iALog.h instead!
-class open_iA_Core_API iALogWidget: public QDockWidget, public Ui_Console, public iALogger
+class open_iA_Core_API iALogWidget: public QDockWidget, public Ui_Log, public iALogger
 {
 	Q_OBJECT
 public:
