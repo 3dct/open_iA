@@ -132,7 +132,7 @@ ChartWidgetData CreateChartWidget(const char * xTitle, const char * yTitle,
 	iADockWidgetWrapper * w(new iADockWidgetWrapper(result.vtkWidget,
 			QString("%1 vs. %2").arg(xTitle).arg(yTitle),
 			QString("%1%2").arg(xTitle).arg(yTitle).replace(" ", "") ));
-	mdiChild->splitDockWidget(mdiChild->logDockWidget(), w, Qt::Vertical);
+	mdiChild->splitDockWidget(mdiChild->renderDockWidget(), w, Qt::Vertical);
 	return result;
 }
 

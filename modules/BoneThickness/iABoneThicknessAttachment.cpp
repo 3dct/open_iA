@@ -129,7 +129,7 @@ iABoneThicknessAttachment::iABoneThicknessAttachment(MainWindow* mainWnd, MdiChi
 	pGridLayout->addWidget(pGroupBoxSettings, 3, 0, 1, 2);
 
 	iADockWidgetWrapper* pDockWidgetWrapper(new iADockWidgetWrapper(pWidget, tr("Bone thickness"), "BoneThickness"));
-	m_child->tabifyDockWidget(m_child->logDockWidget(), pDockWidgetWrapper);
+	m_child->tabifyDockWidget(m_child->renderDockWidget(), pDockWidgetWrapper);
 
 	pDockWidgetWrapper->adjustSize();
 	m_pBoneThicknessChartBar->resize(pBoneThicknessSplitter->width() / 2, pBoneThicknessSplitter->height());

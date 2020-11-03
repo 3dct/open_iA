@@ -163,7 +163,6 @@ public:
 	void emitNoSelectedCells();
 
 signals:
-	void msg(QString s);
 	void progress(int);
 	void cellsSelected(vtkPoints* selCellPoints);
 	void noCellsSelected();

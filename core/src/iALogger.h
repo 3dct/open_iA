@@ -28,7 +28,7 @@
 //! Values persisted to preferences (see mainwindow)
 enum iALogLevel
 {
-	//! Extremely detailed information, only useful if trying to find a problem
+	//! Very detailed information, only useful if trying to find a problem
 	//! in a specific part of the code
 	lvlDebug = 1,
 
@@ -48,7 +48,10 @@ enum iALogLevel
 	
 	//! A situation that requires the program to stop (example: no more memory
 	//! available)
-	lvlFatal = 5
+	lvlFatal = 5,
+
+	//! Information that should be printed regardless of the log level
+	lvlImportant = lvlFatal
 };
 
 open_iA_Core_API QString logLevelToString(iALogLevel lvl);

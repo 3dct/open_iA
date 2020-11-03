@@ -38,6 +38,7 @@
 #include <QLabel>
 #include <QLineEdit>
 #include <QPlainTextEdit>
+#include <QPushButton>
 #include <QSpinBox>
 #include <QScrollArea>
 #include <QTextBrowser>

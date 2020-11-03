@@ -101,7 +101,7 @@ void iATLGICTLoader::start(MdiChild* child)
 	m_multiStepObserver = new iAMultiStepProgressObserver(m_subDirs.size());
 	m_child = child;
 	m_child->show();
-	m_child->addMsg(tr("Loading TLGI-CT data, please wait..."));
+	LOG(lvlInfo, tr("Loading TLGI-CT data."));
 
 	connect(m_multiStepObserver, &iAMultiStepProgressObserver::progress, m_child, &MdiChild::updateProgressBar);
 	connect(this, &iATLGICTLoader::started, m_child, &MdiChild::initProgressBar);
@@ -253,12 +253,10 @@ void iATLGICTLoader::run()
 	}
 }
 
-
-
 void iATLGICTLoader::finishUp()
 {
 	m_child->setCurrentFile(m_baseDirectory);
 	m_child->setModalities(m_modList);
-	m_child->addMsg(tr("Loading sequence completed; directory: %1.").arg(m_baseDirectory));
+	LOG(lvlInfo, tr("Loading sequence completed; directory: %1.").arg(m_baseDirectory));
 	delete this;
 }

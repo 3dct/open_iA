@@ -2235,7 +2235,7 @@ void dlg_FeatureScout::CreateLabelledOutputMask(iAConnector& con, const QString&
 		++out;
 	}
 	storeImage(out_img, fOutPath, m_activeChild->preferences().Compression);
-	m_activeChild->addMsg("Stored image of of classes.");
+	LOG(lvlInfo, "Stored image of of classes.");
 }
 
 void dlg_FeatureScout::ClassSaveButton()
@@ -3767,12 +3767,12 @@ void dlg_FeatureScout::initFeatureScoutUI()
 		m_activeChild->imagePropertyDockWidget()->hide();
 	}
 	m_activeChild->hideHistogram();
-	m_activeChild->logDockWidget()->hide();
+	m_activeChild->renderDockWidget()->hide();
 	for (int i = 0; i < 3; ++i)
 	{
 		m_activeChild->slicerDockWidget(i)->hide();
 	}
-	m_activeChild->modalitiesDockWidget()->hide();
+	m_activeChild->dataDockWidget()->hide();
 }
 
 void dlg_FeatureScout::changeFeatureScout_Options(int idx)

@@ -448,7 +448,7 @@ void iAQMeasureRunner::filterGUIPreparations(QSharedPointer<iAFilter> filter,
 	{
 		iAChartWidget* chart = new iAChartWidget(mdiChild, "Intensity", "Frequency");
 		iADockWidgetWrapper* wrapper = new iADockWidgetWrapper(chart, "TestHistogram", "TestHistogram");
-		mdiChild->splitDockWidget(mdiChild->logDockWidget(), wrapper, Qt::Horizontal);
+		mdiChild->splitDockWidget(mdiChild->renderDockWidget(), wrapper, Qt::Horizontal);
 		iAQMeasure* qfilter = dynamic_cast<iAQMeasure*>(filter.data());
 		qfilter->setupDebugGUI(chart, mdiChild);
 	}
