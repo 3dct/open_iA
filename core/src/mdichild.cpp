@@ -283,7 +283,6 @@ void MdiChild::connectSignalsToSlots()
 		connect(m_slicer[s], &iASlicer::sliceNumberChanged, this, &MdiChild::setSlice);
 
 		connect(m_slicer[s], &iASlicer::oslicerPos, this, &MdiChild::updatePositionMarker);
-		connect(m_slicer[s], &iASlicer::msg, this, &MdiChild::addMsg);
 		connect(m_slicer[s], &iASlicer::progress, this, &MdiChild::updateProgressBar);
 	}
 

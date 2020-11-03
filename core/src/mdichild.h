@@ -20,7 +20,6 @@
 * ************************************************************************************/
 #pragma once
 
-//#include "defines.h"
 #include "qthelper/iAQTtoUIConnector.h"
 #include "iAPreferences.h"
 #include "iARenderSettings.h"
