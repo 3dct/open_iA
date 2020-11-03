@@ -22,6 +22,7 @@
 
 #include <charts/iAChartFunctionTransfer.h>
 #include <iACSVToQTableWidgetConverter.h>
+#include <iAMathUtility.h>
 
 #include <cassert>
 
@@ -120,8 +121,8 @@ void iARangeSliderDiagramWidget::mousePressEvent( QMouseEvent *event )
 {
 	std::vector<iAChartFunction*>::iterator it = m_functions.begin();
 	iAChartFunction *func = *( it + m_selectedFunction );
-	int x = event->x() - leftMargin();
-	int selectedPoint = func->selectPoint( event, &x );
+	int mouseX = event->x() - leftMargin();
+	int selectedPoint = func->selectPoint(mouseX, chartHeight() - event->y());
 
 	if ( event->button() == Qt::RightButton )
 	{
@@ -138,16 +139,11 @@ void iARangeSliderDiagramWidget::mousePressEvent( QMouseEvent *event )
 	else if ( event->button() == Qt::LeftButton )
 	{
 		// don't do anything if outside of diagram region:
-		if (selectedPoint == -1 && x < 0)
+		if (selectedPoint == -1 && mouseX < 0)
 		{
 			return;
 		}
-
-		// disallow removal and reinsertion of first point; instead, insert a point after it:
-		if (selectedPoint == -1 && x == 0)
-		{
-			x = 1;
-		}
+		mouseX = clamp(1, chartWidth() - 1, mouseX);
 
 		// mouse event plus CTRL above X-axis
 		if ( ( event->modifiers() & Qt::ControlModifier ) == Qt::ControlModifier )
@@ -177,8 +173,8 @@ void iARangeSliderDiagramWidget::mousePressEvent( QMouseEvent *event )
 		{
 			if ( m_addedHandles.size() < 2 )
 			{
-				selectedPoint = func->addPoint( x, 0 );
-				func->addColorPoint( x );
+				selectedPoint = func->addPoint( mouseX, 0 );
+				func->addColorPoint(mouseX);
 				m_addedHandles.append( getBin( event ) );
 
 				if ( m_addedHandles.size() == 1 )
@@ -202,7 +198,7 @@ void iARangeSliderDiagramWidget::mouseReleaseEvent( QMouseEvent *event )
 	{
 		std::vector<iAChartFunction*>::iterator it = m_functions.begin();
 		iAChartFunction *func = *( it + m_selectedFunction );
-		func->selectPoint( event, 0 );	// to not allow last end point get selected
+		func->selectPoint(event->x() - leftMargin(), chartHeight() - event->y());
 		update();
 	}
 	else if ( event->button() == Qt::LeftButton )
@@ -216,16 +212,12 @@ void iARangeSliderDiagramWidget::mouseReleaseEvent( QMouseEvent *event )
 
 			std::vector<iAChartFunction*>::iterator it = m_functions.begin();
 			iAChartFunction *func = *( it + m_selectedFunction );
-			int x = event->x() - leftMargin();
-			int selectedPoint = func->selectPoint( event, &x );
+			int mouseX = event->x() - leftMargin();
+			int selectedPoint = func->selectPoint(mouseX, chartHeight() - event->y());
 
 			// don't do anything if outside of diagram region:
-			if ( selectedPoint == -1 && x < 0 )
+			if ( selectedPoint == -1 && mouseX < 0 )
 				return;
-
-			// disallow removal and reinsertion of first point; instead, insert a point after it:
-			if ( selectedPoint == -1 && x == 0 )
-				x = 1;
 
 			if ( selectedPoint == -1 )
 			{

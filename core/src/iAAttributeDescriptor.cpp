@@ -20,7 +20,7 @@
 * ************************************************************************************/
 #include "iAAttributeDescriptor.h"
 
-#include "iAConsole.h"
+#include "iALog.h"
 #include "iAListNameMapper.h"
 #include "iAStringHelper.h"
 
@@ -52,7 +52,7 @@ iAAttributeDescriptor::iAAttributeType Str2AttribType(QString const & str)
 	}
 	else
 	{
-		DEBUG_LOG(QString("Unknown attribute descriptor '%1'\n").arg(str));
+		LOG(lvlWarn, QString("Unknown attribute descriptor '%1'\n").arg(str));
 		return iAAttributeDescriptor::None;
 	}
 }
@@ -75,7 +75,7 @@ QSharedPointer<iAAttributeDescriptor> iAAttributeDescriptor::create(QString cons
 	QStringList defTokens = def.split(AttributeSplitString);
 	if (defTokens.size() < 3)
 	{
-		DEBUG_LOG(QString("Not enough tokens in attribute descriptor '%1'").arg(def));
+		LOG(lvlWarn, QString("Not enough tokens in attribute descriptor '%1'").arg(def));
 		return QSharedPointer<iAAttributeDescriptor>();
 	}
 	QSharedPointer<iAAttributeDescriptor> result(new iAAttributeDescriptor(
@@ -85,7 +85,7 @@ QSharedPointer<iAAttributeDescriptor> iAAttributeDescriptor::create(QString cons
 		((result->valueType() == iAValueType::Categorical) ? 4 : 5);
 	if (defTokens.size() < requiredTokens)
 	{
-		DEBUG_LOG(QString("Not enough tokens in attribute descriptor '%1'").arg(def));
+		LOG(lvlWarn, QString("Not enough tokens in attribute descriptor '%1'").arg(def));
 		return QSharedPointer<iAAttributeDescriptor>();
 	}
 	if (result->valueType() == iAValueType::Continuous || result->valueType() == iAValueType::Discrete)
@@ -96,7 +96,7 @@ QSharedPointer<iAAttributeDescriptor> iAAttributeDescriptor::create(QString cons
 		result->m_max = iAConverter<double>::toT(defTokens[4], &maxOk);
 		if (!minOk || !maxOk)
 		{
-			DEBUG_LOG(QString("Minimum or maximum of attribute couldn't be parsed in line %1\n").arg(def));
+			LOG(lvlWarn, QString("Minimum or maximum of attribute couldn't be parsed in line %1\n").arg(def));
 			return QSharedPointer<iAAttributeDescriptor>();
 		}
 		if (defTokens.size() >= 6)
@@ -105,7 +105,7 @@ QSharedPointer<iAAttributeDescriptor> iAAttributeDescriptor::create(QString cons
 		}
 		if (defTokens.size() > 6)
 		{
-			DEBUG_LOG(QString("Superfluous tokens in attribute descriptor %1\n").arg(def));
+			LOG(lvlWarn, QString("Superfluous tokens in attribute descriptor %1\n").arg(def));
 		}
 	}
 	else if (result->valueType() == iAValueType::Categorical)
@@ -116,7 +116,7 @@ QSharedPointer<iAAttributeDescriptor> iAAttributeDescriptor::create(QString cons
 		result->m_defaultValue = categories;
 		if (defTokens.size() > 5)
 		{
-			DEBUG_LOG(QString("Superfluous tokens in attribute descriptor %1\n").arg(def));
+			LOG(lvlWarn, QString("Superfluous tokens in attribute descriptor %1\n").arg(def));
 		}
 	}
 	return result;

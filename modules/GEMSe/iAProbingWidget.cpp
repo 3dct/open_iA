@@ -26,7 +26,7 @@
 
 #include <charts/iAChartWidget.h>
 #include <charts/iAPlotTypes.h>
-#include <iAConsole.h>
+#include <iALog.h>
 #include <iAMathUtility.h>
 #include <iASlicerMode.h>
 

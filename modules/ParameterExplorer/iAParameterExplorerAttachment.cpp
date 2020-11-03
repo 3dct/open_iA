@@ -60,7 +60,7 @@ void iAParameterExplorerAttachment::LoadCSV(QString const & csvFileName)
 	m_dockWidgets.push_back(new iADockWidgetWrapper(m_tableView, "Table", "ParamTableView"));
 	m_dockWidgets.push_back(m_child->histogramDockWidget());
 	m_dockWidgets.push_back(new iADockWidgetWrapper(m_featuresView, "Features", "ParamFeaturesView"));
-	m_child->splitDockWidget(m_child->logDockWidget(), m_dockWidgets[0], Qt::Horizontal);
+	m_child->splitDockWidget(m_child->renderDockWidget(), m_dockWidgets[0], Qt::Horizontal);
 	m_child->splitDockWidget(m_dockWidgets[0], m_dockWidgets[1], Qt::Horizontal);
 	m_child->splitDockWidget(m_dockWidgets[0], m_dockWidgets[2], Qt::Vertical);
 	m_child->splitDockWidget(m_dockWidgets[2], m_dockWidgets[4], Qt::Vertical);

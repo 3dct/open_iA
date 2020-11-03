@@ -26,7 +26,7 @@
 #include <charts/iAChartWithFunctionsWidget.h>
 #include <charts/iAPlot.h>
 #include <charts/iAPlotData.h>
-#include <iAConsole.h>
+#include <iALog.h>
 #include <mainwindow.h>
 #include <mdichild.h>
 
@@ -62,14 +62,14 @@ void iAAdaptiveThresholdModuleInterface::determineThreshold()
 {
 	if (!m_mainWnd->activeMdiChild())
 	{
-		DEBUG_LOG("No dataset avaiable, please load a dataset before.");
+		LOG(lvlInfo, "No dataset avaiable, please load a dataset before.");
 		return;
 	}
 
 	auto hist = m_mainWnd->activeMdiChild()->histogram();
 	if (!hist || hist->plots().empty())
 	{
-		DEBUG_LOG("Current data does not have a histogram or histogram not ready");
+		LOG(lvlInfo, "Current data does not have a histogram or histogram not ready");
 		return;
 	}
 	try
@@ -98,6 +98,6 @@ void iAAdaptiveThresholdModuleInterface::determineThreshold()
 	}
 	catch (std::exception& ex)
 	{
-		DEBUG_LOG(ex.what());
+		LOG(lvlError, ex.what());
 	}
 }

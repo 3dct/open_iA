@@ -121,7 +121,7 @@ template<class T> void hessianEigenAnalysis(iAFilter* filter, QMap<QString, QVar
 	eigenRaRbSIt.GoToBegin();
 	for (eigenImageIt.GoToBegin(); !eigenImageIt.IsAtEnd() && !eigenRaRbSIt.IsAtEnd(); ++eigenImageIt)
 	{
-		//DEBUG_LOG(QString("%1 -> ").arg(j));
+		//LOG(lvlInfo, QString("%1 -> ").arg(j));
 		EigenValueArrayType eigenArray = eigenImageIt.Get();
 
 		eigenTempVector[0] = fabs(eigenArray[1])/fabs(eigenArray[2]);

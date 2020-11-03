@@ -20,7 +20,7 @@
 * ************************************************************************************/
 #include "iAScatterPlotWidget.h"
 
-#include "iAConsole.h"
+#include "iALog.h"
 #include "iALookupTable.h"
 #include "iAScatterPlot.h"
 #include "iAScatterPlotSelectionHandler.h"
@@ -98,7 +98,7 @@ iAScatterPlotWidget::iAScatterPlotWidget(QSharedPointer<iASPLOMData> data) :
 	data->updateRanges();
 	if (data->numPoints() > std::numeric_limits<int>::max())
 	{
-		DEBUG_LOG(QString("Number of points (%1) larger than supported (%2)")
+		LOG(lvlWarn, QString("Number of points (%1) larger than supported (%2)")
 			.arg(data->numPoints())
 			.arg(std::numeric_limits<int>::max()));
 	}

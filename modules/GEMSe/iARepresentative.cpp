@@ -34,7 +34,7 @@ void diff_marker_tmpl(QVector<iAITKIO::ImagePointer> imgsBase, double difference
 		auto ptr = dynamic_cast<ImgType*>(imgsBase[i].GetPointer());
 		if (!ptr)
 		{
-			DEBUG_LOG("Differnce Marker: Invalid type conversion - images must have same type!");
+			LOG(lvlError, "Difference Marker: Invalid type conversion - images must have same type!");
 			return;
 		}
 		imgs.push_back(ptr);

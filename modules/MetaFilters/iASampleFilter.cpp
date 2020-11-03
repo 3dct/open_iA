@@ -25,7 +25,7 @@
 #include "iASamplingMethodImpl.h"
 #include "iAParameterNames.h"
 
-#include <iAConsole.h>
+#include <iALog.h>
 #include <iAModalityList.h>
 #include <iAModality.h>
 #include <iAProgress.h>
@@ -135,12 +135,13 @@ bool iASampleFilterRunnerGUI::askForParameters(QSharedPointer<iAFilter> filter, 
 	iASampleFilter* sampleFilter = dynamic_cast<iASampleFilter*>(filter.data());
 	if (!sampleFilter)
 	{
-		DEBUG_LOG("Invalid use of iASampleFilterRunnerGUI for a filter other than Sample Filter!");
+		LOG(lvlError, "Invalid use of iASampleFilterRunnerGUI for a filter other than Sample Filter!");
 		return false;
 	}
 	iASamplingSettingsDlg dlg(mainWnd, sourceMdi->modalities()->size(), parameters);
 	if (dlg.exec() != QDialog::Accepted)
 	{
+		LOG(lvlInfo, "Aborted sampling.")
 		return false;
 	}
 
@@ -149,7 +150,7 @@ bool iASampleFilterRunnerGUI::askForParameters(QSharedPointer<iAFilter> filter, 
 	outputFolder.mkpath(".");
 	if (parameters[spnComputeDerivedOutput].toBool() && parameters[spnNumberOfLabels].toInt() < 2)
 	{
-		DEBUG_LOG("'Number of labels' must not be smaller than 2!");
+		LOG(lvlError, "'Number of labels' must not be smaller than 2!");
 		return false;
 	}
 	auto parameterRanges = dlg.parameterRanges();

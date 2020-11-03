@@ -21,7 +21,7 @@
 #include "iARenderer.h"
 
 #include "defines.h"
-#include "iAConsole.h"
+#include "iALog.h"
 #include "iAChannelData.h"
 #include "iALineSegment.h"
 #include "iAMovieHelper.h"
@@ -311,7 +311,6 @@ iARenderer::iARenderer(QObject *par)  :  QObject( par ),
 	MdiChild * mdi_parent = dynamic_cast<MdiChild*>(parent());
 	if (mdi_parent)
 	{
-		connect(this, &iARenderer::msg, mdi_parent, &MdiChild::addMsg);
 		connect(this, &iARenderer::progress, mdi_parent, &MdiChild::updateProgressBar);
 	}
 }
@@ -733,7 +732,7 @@ void iARenderer::setSlicePlaneOpacity(float opc)
 {
 	if ((opc > 1.0) || (opc < 0.0f))
 	{
-		DEBUG_LOG(QString("Invalid slice plane opacity %1").arg(opc));
+		LOG(lvlWarn, QString("Invalid slice plane opacity %1").arg(opc));
 		return;
 	}
 
@@ -771,7 +770,7 @@ void iARenderer::saveMovie( const QString& fileName, int mode, int qual /*= 2*/ 
 	movieWriter->SetInputConnection(windowToImage->GetOutputPort());
 	movieWriter->Start();
 
-	emit msg(tr("Movie export started, output file name: %1").arg(fileName));
+	LOG(lvlInfo, tr("Movie export started, output file name: %1").arg(fileName));
 
 	int numRenderings = 360;//TODO
 	auto rot = vtkSmartPointer<vtkTransform>::New();
@@ -822,7 +821,7 @@ void iARenderer::saveMovie( const QString& fileName, int mode, int qual /*= 2*/ 
 		movieWriter->Write();
 		if (movieWriter->GetError())
 		{
-			emit msg(movieWriter->GetStringFromErrorCode(movieWriter->GetErrorCode()));
+			LOG(lvlError, movieWriter->GetStringFromErrorCode(movieWriter->GetErrorCode()));
 			break;
 		}
 		emit progress( 100 * (i+1) / numRenderings);
@@ -835,11 +834,11 @@ void iARenderer::saveMovie( const QString& fileName, int mode, int qual /*= 2*/ 
 
 	if (movieWriter->GetError())
 	{
-		emit msg(tr("Movie export failed."));
+		LOG(lvlError, tr("Movie export failed."));
 	}
 	else
 	{
-		emit msg(tr("Movie export completed."));
+		LOG(lvlInfo, tr("Movie export completed."));
 	}
 }
 
@@ -1008,6 +1007,10 @@ void iARenderer::applySettings(iARenderSettings const & settings, bool slicePlan
 
 	m_ren->SetBackground2(bgTop.redF(), bgTop.greenF(), bgTop.blueF());
 	m_ren->SetBackground(bgBottom.redF(), bgBottom.greenF(), bgBottom.blueF());
+	if (!m_imageData)
+	{
+		return;
+	}
 	showHelpers(settings.ShowHelpers);
 	showRPosition(settings.ShowRPosition);
 	for (int i = 0; i < 3; ++i)
@@ -1039,7 +1042,7 @@ void iARenderer::updateSlicePlanes(double const * newSpacing)
 {
 	if (!newSpacing)
 	{
-		DEBUG_LOG("Spacing is nullptr");
+		LOG(lvlWarn, "Spacing is nullptr");
 		return;
 	}
 	double const * spc = newSpacing;

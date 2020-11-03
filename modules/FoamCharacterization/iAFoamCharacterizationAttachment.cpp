@@ -114,7 +114,7 @@ iAFoamCharacterizationAttachment::iAFoamCharacterizationAttachment(MainWindow* m
 	pGridLayout->addWidget(pGroupBox1);
 
 	iADockWidgetWrapper* pDockWidgetWrapper(new iADockWidgetWrapper(pWidget, tr("Foam characterization"), "FoamCharacterization"));
-	child->tabifyDockWidget(child->logDockWidget(), pDockWidgetWrapper);
+	child->tabifyDockWidget(child->renderDockWidget(), pDockWidgetWrapper);
 }
 
 void iAFoamCharacterizationAttachment::slotPushButtonAnalysis()

@@ -25,7 +25,7 @@
 #include "iAIntersectionDefinition.h"
 
 #include <iAConnector.h>
-#include <iAConsole.h>
+#include <iALog.h>
 
 #include <QColor>
 #include <QPoint>
@@ -85,13 +85,13 @@ void iAAdaptiveThresholdDlg::determineMinMax(const std::vector<double> &xVal, co
 {
 	if ((xVal.size() == 0) || (yVal.size() == 0))
 	{
-		DEBUG_LOG("could not determine min and maximum of input range");
+		LOG(lvlInfo, "could not determine min and maximum of input range");
 		return;
 	}
 
 	if (xVal.size() != yVal.size())
 	{
-		DEBUG_LOG("min max of input range are not of equal size");
+		LOG(lvlInfo, "min max of input range are not of equal size");
 		return;
 	}
 
@@ -354,7 +354,7 @@ void iAAdaptiveThresholdDlg::createVisualisation(threshold_defs::iAParametersRan
 
 	if (!rangedSeries)
 	{
-		DEBUG_LOG("Range series not created");
+		LOG(lvlInfo, "Range series not created");
 		return;
 	}
 
@@ -594,7 +594,7 @@ void iAAdaptiveThresholdDlg::redrawPlots()
 	{
 		if (m_chartView)
 		{
-			DEBUG_LOG("Delete viewer");
+			LOG(lvlInfo, "Delete viewer");
 			auto sList = m_chart->series();
 
 			QListIterator<QAbstractSeries*> iter(sList);
@@ -717,18 +717,18 @@ void iAAdaptiveThresholdDlg::prepareDataSeries(QXYSeries *aSeries,
 {
 	if (!aSeries)
 	{
-		DEBUG_LOG("series is null");
+		LOG(lvlInfo, "series is null");
 		return;
 	}
 	if ((x_vals.size() == 0) || (y_vals.size() == 0))
 	{
-		DEBUG_LOG("entries are empty");
+		LOG(lvlInfo, "entries are empty");
 		return;
 	}
 
 	if (!(x_vals.size() == y_vals.size()))
 	{
-		DEBUG_LOG("x, y size different");
+		LOG(lvlInfo, "x, y size different");
 		return;
 	}
 	if (!useDefaultValues)

@@ -20,7 +20,7 @@
 * ************************************************************************************/
 #include "iARendererManager.h"
 
-#include "iAConsole.h"
+#include "iALog.h"
 
 #include <vtkCamera.h>
 #include <vtkCommand.h>
@@ -56,7 +56,7 @@ bool iARendererManager::removeFromBundle(vtkRenderer* renderer)
 	if(!m_renderers.contains(renderer))
 	{
 		assert(false);
-		DEBUG_LOG("iARenderManager::removeFromBundle called with renderer which isn't part of the Bundle!");
+		LOG(lvlWarn, "iARenderManager::removeFromBundle called with renderer which isn't part of the Bundle!");
 		return false;
 	}
 	vtkSmartPointer<vtkCamera> newCam = vtkSmartPointer<vtkCamera>::New();

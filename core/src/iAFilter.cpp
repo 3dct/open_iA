@@ -22,7 +22,7 @@
 
 #include "iAAttributeDescriptor.h"
 #include "iAConnector.h"
-#include "iAConsole.h"
+#include "iALog.h"
 #include "iAStringHelper.h"
 
 #include <QColor>
@@ -30,7 +30,7 @@
 
 iAFilter::iAFilter(QString const & name, QString const & category, QString const & description,
 	unsigned int requiredInputs, unsigned int outputCount) :
-	m_log(iAStdOutLogger::get()),
+	m_log(iALog::get()),
 	m_name(name),
 	m_category(category),
 	m_description(description),
@@ -311,9 +311,9 @@ bool iAFilter::checkParameters(QMap<QString, QVariant> & parameters)
 	return true;
 }
 
-void iAFilter::addMsg(QString msg)
+void iAFilter::addMsg(QString const & msg)
 {
-	m_log->log(msg);
+	m_log->log(lvlInfo, msg);
 }
 
 iAProgress* iAFilter::progress()

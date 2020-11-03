@@ -34,11 +34,10 @@
 #include "iAAlgorithm.h"
 #include "iAChannelData.h"
 #include "iAChannelSlicerData.h"
-#include "iAConsole.h"
+#include "iALog.h"
+#include "iARunAsync.h"
 #include "qthelper/iADockWidgetWrapper.h"
 #include "iAJobListView.h"
-#include "iALogger.h"
-#include "iAMdiChildLogger.h"
 #include "iAModality.h"
 #include "iAModalityList.h"
 #include "iAModalityTransfer.h"
@@ -124,7 +123,6 @@ MdiChild::MdiChild(MainWindow* mainWnd, iAPreferences const& prefs, bool unsaved
 	m_dwProfile(nullptr),
 	m_nextChannelID(0),
 	m_magicLensChannel(NotExistingChannel),
-	m_logger(new iAMdiChildLogger(this)),
 	m_currentModality(0),
 	m_currentComponent(0),
 	m_currentHistogramModality(-1),
@@ -154,15 +152,13 @@ MdiChild::MdiChild(MainWindow* mainWnd, iAPreferences const& prefs, bool unsaved
 	m_pbar->setMaximumSize(350, 17);
 	statusBar()->addPermanentWidget(m_pbar);
 	m_pbarMaxVal = m_pbar->maximum();
-	m_dwLog = new dlg_logs(this);
 	addDockWidget(Qt::LeftDockWidgetArea, m_dwRenderer);
 	m_initialLayoutState = saveState();
 
-	splitDockWidget(m_dwRenderer, m_dwLog, Qt::Vertical);
 	splitDockWidget(m_dwRenderer, m_dwSlicer[iASlicerMode::XZ], Qt::Horizontal);
 	splitDockWidget(m_dwRenderer, m_dwSlicer[iASlicerMode::YZ], Qt::Vertical);
 	splitDockWidget(m_dwSlicer[iASlicerMode::XZ], m_dwSlicer[iASlicerMode::XY], Qt::Vertical);
-	splitDockWidget(m_dwLog, m_dwJobs, Qt::Horizontal);
+	splitDockWidget(m_dwRenderer, m_dwJobs, Qt::Horizontal);
 	m_dwJobs->hide();
 	connect(m_jobs, &iAJobListView::allJobsDone, m_dwJobs, &QDockWidget::hide);
 
@@ -180,7 +176,7 @@ MdiChild::MdiChild(MainWindow* mainWnd, iAPreferences const& prefs, bool unsaved
 	m_dwModalities = new dlg_modalities(m_dwRenderer->vtkWidgetRC, m_renderer->renderer(), this);
 	QSharedPointer<iAModalityList> modList(new iAModalityList);
 	setModalities(modList);
-	splitDockWidget(m_dwLog, m_dwModalities, Qt::Horizontal);
+	splitDockWidget(m_dwJobs, m_dwModalities, Qt::Vertical);
 	applyViewerPreferences();
 	connectSignalsToSlots();
 	m_pbar->setValue(100);
@@ -267,8 +263,6 @@ void MdiChild::connectSignalsToSlots()
 	connect(m_dwRenderer->pushSaveRC, &QPushButton::clicked, this, &MdiChild::saveRC);
 	connect(m_dwRenderer->pushMovRC, &QPushButton::clicked, this, &MdiChild::saveMovRC);
 
-	connect(m_dwLog->pushClearLogs, &QPushButton::clicked, this, &MdiChild::clearLogs);
-
 	connect(m_dwRenderer->vtkWidgetRC, &iAFast3DMagicLensWidget::rightButtonReleasedSignal, m_renderer, &iARenderer::mouseRightButtonReleasedSlot);
 	connect(m_dwRenderer->vtkWidgetRC, &iAFast3DMagicLensWidget::leftButtonReleasedSignal, m_renderer, &iARenderer::mouseLeftButtonReleasedSlot);
 	connect(m_dwRenderer->spinBoxRC, QOverload<int>::of(&QSpinBox::valueChanged), this, &MdiChild::setChannel);
@@ -282,7 +276,6 @@ void MdiChild::connectSignalsToSlots()
 		connect(m_slicer[s], &iASlicer::sliceNumberChanged, this, &MdiChild::setSlice);
 
 		connect(m_slicer[s], &iASlicer::oslicerPos, this, &MdiChild::updatePositionMarker);
-		connect(m_slicer[s], &iASlicer::msg, this, &MdiChild::addMsg);
 		connect(m_slicer[s], &iASlicer::progress, this, &MdiChild::updateProgressBar);
 	}
 
@@ -530,7 +523,7 @@ bool MdiChild::setupLoadIO(QString const& f, bool isStack)
 	}
 	if (ext2id->find(extension) == ext2id->end())
 	{
-		DEBUG_LOG(QString("Could not find loader for extension '%1' of file '%2'!").arg(extension).arg(f));
+		LOG(lvlError, QString("Could not find loader for extension '%1' of file '%2'!").arg(extension).arg(f));
 		return false;
 	}
 	iAIOType id = ext2id->find(extension).value();
@@ -539,11 +532,15 @@ bool MdiChild::setupLoadIO(QString const& f, bool isStack)
 
 bool MdiChild::loadRaw(const QString& f)
 {
-	if (!QFile::exists(f))	return false;
-	addMsg(tr("Loading file '%1', please wait...").arg(f));
+	if (!QFile::exists(f))
+	{
+		LOG(lvlWarn, QString("File '%1' does not exist!").arg(f));
+		return false;
+	}
+	LOG(lvlInfo, tr("Loading file '%1'.").arg(f));
 	setCurrentFile(f);
 	waitForPreviousIO();
-	m_ioThread = new iAIO(m_imageData, nullptr, m_logger, this);
+	m_ioThread = new iAIO(m_imageData, nullptr, iALog::get(), this);
 	connect(m_ioThread, &iAIO::done, this, &MdiChild::setupView);
 	connectIOThreadSignals(m_ioThread);
 	connect(m_ioThread, &iAIO::done, this, &MdiChild::enableRenderWindows);
@@ -575,16 +572,16 @@ bool MdiChild::loadFile(const QString& f, bool isStack)
 {
 	if (!QFile::exists(f))
 	{
-		DEBUG_LOG(QString("File '%1' does not exist!").arg(f));
+		LOG(lvlError, QString("File '%1' does not exist!").arg(f));
 		return false;
 	}
 
-	addMsg(tr("Loading file '%1', please wait...").arg(f));
+	LOG(lvlInfo, tr("Loading file '%1', please wait...").arg(f));
 	setCurrentFile(f);
 
 	waitForPreviousIO();
 
-	m_ioThread = new iAIO(m_imageData, m_polyData, m_logger, this, m_volumeStack->volumes(), m_volumeStack->fileNames());
+	m_ioThread = new iAIO(m_imageData, m_polyData, iALog::get(), this, m_volumeStack->volumes(), m_volumeStack->fileNames());
 	if (f.endsWith(iAIOProvider::ProjectFileExtension) ||
 		f.endsWith(iAIOProvider::NewProjectFileExtension))
 	{
@@ -703,7 +700,7 @@ void MdiChild::setupStackView(bool active)
 
 	if (m_volumeStack->numberOfVolumes() == 0)
 	{
-		DEBUG_LOG("Invalid call to setupStackView: No Volumes loaded!");
+		LOG(lvlError, "Invalid call to setupStackView: No Volumes loaded!");
 		return;
 	}
 
@@ -736,7 +733,7 @@ void MdiChild::setupViewInternal(bool active)
 {
 	if (!m_imageData)
 	{
-		DEBUG_LOG("Image Data is not set!");
+		LOG(lvlError, "Image Data is not set!");
 		return;
 	}
 	if (!active)
@@ -940,7 +937,7 @@ void MdiChild::waitForPreviousIO()
 {
 	if (m_ioThread)
 	{
-		addMsg(tr("Waiting for I/O operation to complete..."));
+		LOG(lvlInfo, tr("Waiting for I/O operation to complete..."));
 		m_ioThread->wait();
 		m_ioThread = nullptr;
 	}
@@ -1031,7 +1028,7 @@ bool MdiChild::setupSaveIO(QString const& f)
 				if (supportedPixelTypes.contains(ioID) &&
 					!supportedPixelTypes[ioID].contains(m_imageData->GetScalarType()))
 				{
-					addMsg(QString("Writer for %1 only supports %2 input!")
+					LOG(lvlWarn, QString("Writer for %1 only supports %2 input!")
 						.arg(suffix)
 						.arg(GetSupportedPixelTypeString(supportedPixelTypes[ioID])));
 					return false;
@@ -1065,7 +1062,7 @@ bool MdiChild::saveFile(const QString& f, int modalityNr, int componentNr)
 		}
 	}
 
-	m_ioThread = new iAIO(m_tmpSaveImg, m_polyData, m_logger, this);
+	m_ioThread = new iAIO(m_tmpSaveImg, m_polyData, iALog::get(), this);
 	connectIOThreadSignals(m_ioThread);
 	connect(m_ioThread, &iAIO::done, this, &MdiChild::saveFinished);
 	m_storedModalityNr = modalityNr;
@@ -1075,7 +1072,7 @@ bool MdiChild::saveFile(const QString& f, int modalityNr, int componentNr)
 		return false;
 	}
 
-	addMsg(tr("Saving file '%1', please wait...").arg(f));
+	LOG(lvlInfo, tr("Saving file '%1'.").arg(f));
 	m_ioThread->start();
 
 	return true;
@@ -1096,11 +1093,6 @@ int MdiChild::visibility() const
 {
 	int vis = RC | YZ | XZ | XY;
 	return vis;
-}
-
-void MdiChild::clearLogs()
-{
-	m_dwLog->listWidget->clear();
 }
 
 void MdiChild::maximizeSlicer(int mode)
@@ -1159,12 +1151,12 @@ void MdiChild::triggerInteractionRaycaster()
 	if (m_renderer->interactor()->GetEnabled())
 	{
 		m_renderer->disableInteractor();
-		addMsg(tr("Renderer disabled."));
+		LOG(lvlInfo, tr("Renderer disabled."));
 	}
 	else
 	{
 		m_renderer->enableInteractor();
-		addMsg(tr("Renderer enabled."));
+		LOG(lvlInfo, tr("Renderer enabled."));
 	}
 }
 
@@ -1638,10 +1630,10 @@ void MdiChild::resetTrf()
 		return;
 	}
 	m_histogram->resetTrf();
-	addMsg(tr("Resetting Transfer Functions."));
-	addMsg(tr("  Adding transfer function point: %1.   Opacity: 0.0,   Color: 0, 0, 0")
+	LOG(lvlInfo, tr("Resetting Transfer Functions."));
+	LOG(lvlInfo, tr("  Adding transfer function point: %1.   Opacity: 0.0,   Color: 0, 0, 0")
 		.arg(m_histogram->xBounds()[0]));
-	addMsg(tr("  Adding transfer function point: %1.   Opacity: 1.0,   Color: 255, 255, 255")
+	LOG(lvlInfo, tr("  Adding transfer function point: %1.   Opacity: 1.0,   Color: 255, 255, 255")
 		.arg(m_histogram->xBounds()[1]));
 }
 
@@ -1895,7 +1887,7 @@ bool MdiChild::initView(QString const& title)
 		addImageProperty();
 		if (m_imageData->GetNumberOfScalarComponents() == 1)
 		{   // No histogram/profile for rgb, rgba or vector pixel type images
-			tabifyDockWidget(m_dwLog, m_dwHistogram);
+			tabifyDockWidget(m_dwModalities, m_dwHistogram);
 			addProfile();
 		}
 	}
@@ -1921,7 +1913,7 @@ void MdiChild::addImageProperty()
 		return;
 	}
 	m_dwImgProperty = new dlg_imageproperty(this);
-	tabifyDockWidget(m_dwLog, m_dwImgProperty);
+	tabifyDockWidget(m_dwModalities, m_dwImgProperty);
 }
 
 void MdiChild::updateImageProperties()
@@ -1946,7 +1938,7 @@ void MdiChild::updateImageProperties()
 bool MdiChild::addVolumePlayer()
 {
 	m_dwVolumePlayer = new dlg_volumePlayer(this, m_volumeStack.data());
-	tabifyDockWidget(m_dwLog, m_dwVolumePlayer);
+	tabifyDockWidget(m_dwModalities, m_dwVolumePlayer);
 	for (size_t id = 0; id < m_volumeStack->numberOfVolumes(); ++id)
 	{
 		m_checkedList.append(0);
@@ -1966,14 +1958,7 @@ int MdiChild::evaluatePosition(int pos, int i, bool invert)
 	return pos;
 }
 
-void MdiChild::addMsg(QString txt)
-{
-	m_dwLog->listWidget->addItem(tr("%1  %2").arg(QLocale().toString(QDateTime::currentDateTime(), QLocale::ShortFormat)).arg(txt));
-	m_dwLog->listWidget->scrollToBottom();
-	m_dwLog->listWidget->repaint();
-}
-
-void MdiChild::addStatusMsg(QString txt)
+void MdiChild::addStatusMsg(QString const & txt)
 {
 	m_mainWnd->statusBar()->showMessage(txt, 10000);
 }
@@ -2022,6 +2007,7 @@ void MdiChild::closeEvent(QCloseEvent* event)
 {
 	if (m_ioThread)
 	{
+		LOG(lvlWarn, "Cannot close window while I/O operation is in progress!");
 		addStatusMsg("Cannot close window while I/O operation is in progress!");
 		event->ignore();
 	}
@@ -2071,7 +2057,6 @@ void MdiChild::changeVisibility(unsigned char mode)
 	m_dwSlicer[iASlicerMode::YZ]->setVisible(yz);
 	m_dwSlicer[iASlicerMode::XZ]->setVisible(xz);
 
-	m_dwLog->setVisible(tab);
 	if (isVolumeDataLoaded())
 	{	// TODO: check redundancy with hideHistogram calls?
 		m_dwHistogram->setVisible(tab);
@@ -2273,7 +2258,7 @@ void MdiChild::addProfile()
 	m_profileProbe->updateProbe(1, end);
 	m_profileProbe->updateData();
 	m_dwProfile = new dlg_profile(this, m_profileProbe->m_profileData, m_profileProbe->rayLength());
-	tabifyDockWidget(m_dwLog, m_dwProfile);
+	tabifyDockWidget(m_dwHistogram, m_dwProfile);
 	connect(m_dwProfile->profileMode, &QCheckBox::toggled, this, &MdiChild::toggleProfileHandles);
 }
 
@@ -2394,11 +2379,6 @@ dlg_imageproperty* MdiChild::imagePropertyDockWidget()
 dlg_profile* MdiChild::profileDockWidget()
 {
 	return m_dwProfile;
-}
-
-dlg_logs* MdiChild::logDockWidget()
-{
-	return m_dwLog;
 }
 
 iADockWidgetWrapper* MdiChild::histogramDockWidget()
@@ -2534,11 +2514,6 @@ iAVolumeStack* MdiChild::volumeStack()
 	return m_volumeStack.data();
 }
 
-iALogger* MdiChild::logger()
-{
-	return m_logger;
-}
-
 bool MdiChild::isVolumeDataLoaded() const
 {
 	QString suffix = fileInfo().suffix();
@@ -2566,7 +2541,7 @@ void MdiChild::changeMagicLensModality(int chg)
 	}
 	if (m_currentModality < 0 || m_currentModality >= modalities()->size())
 	{
-		DEBUG_LOG("Invalid modality index!");
+		LOG(lvlWarn, "Invalid modality index!");
 		m_currentModality = 0;
 		return;
 	}
@@ -2639,9 +2614,14 @@ void MdiChild::setModalities(QSharedPointer<iAModalityList> modList)
 	}
 }
 
-dlg_modalities* MdiChild::modalitiesDockWidget()
+dlg_modalities* MdiChild::dataDockWidget()
 {
 	return m_dwModalities;
+}
+
+iAJobListView* MdiChild::jobsList()
+{
+	return m_jobs;
 }
 
 QSharedPointer<iAModalityList> MdiChild::modalities()
@@ -2685,14 +2665,19 @@ void MdiChild::setHistogramModality(int modalityIdx)
 	{
 		return;
 	}
-	addMsg(QString("Computing statistics for modality %1...")
+	LOG(lvlDebug, QString("Computing statistics for modality %1...")
 		.arg(modality(modalityIdx)->name()));
 	modality(modalityIdx)->transfer()->info().setComputing();
 	updateImageProperties();
-	auto workerThread = new iAStatisticsUpdater(modalityIdx, modality(modalityIdx));
-	connect(workerThread, &iAStatisticsUpdater::StatisticsReady, this, &MdiChild::statisticsAvailable);
-	connect(workerThread, &iAStatisticsUpdater::finished, workerThread, &QObject::deleteLater);
-	workerThread->start();
+
+	runAsync([this, modalityIdx]
+		{
+			modality(modalityIdx)->computeImageStatistics();
+		},
+		[this, modalityIdx]
+		{
+			statisticsAvailable(modalityIdx);
+		});
 }
 
 void MdiChild::modalityAdded(int modalityIdx)
@@ -2712,7 +2697,7 @@ void MdiChild::histogramDataAvailable(int modalityIdx)
 {
 	QString modalityName = modality(modalityIdx)->name();
 	m_currentHistogramModality = modalityIdx;
-	addMsg(QString("Displaying histogram for modality %1.").arg(modalityName));
+	LOG(lvlDebug, QString("Displaying histogram for modality %1.").arg(modalityName));
 	m_histogram->removePlot(m_histogramPlot);
 	m_histogramPlot = QSharedPointer<iAPlot>(new
 		iABarGraphPlot(modality(modalityIdx)->histogramData(),
@@ -2725,7 +2710,7 @@ void MdiChild::histogramDataAvailable(int modalityIdx)
 	updateImageProperties();
 	if (!findChild<iADockWidgetWrapper*>("Histogram"))
 	{
-		tabifyDockWidget(m_dwLog, m_dwHistogram);
+		splitDockWidget(m_dwRenderer, m_dwHistogram, Qt::Vertical);
 		addProfile();
 	}
 	emit histogramAvailable();
@@ -2750,13 +2735,16 @@ void MdiChild::displayHistogram(int modalityIdx)
 		return;
 	}
 
-	addMsg(QString("Computing histogram for modality %1...")
+	LOG(lvlDebug, QString("Computing histogram for modality %1...")
 		.arg(modality(modalityIdx)->name()));
-	auto workerThread = new iAHistogramUpdater(modalityIdx,
-		modality(modalityIdx), newBinCount);
-	connect(workerThread, &iAHistogramUpdater::HistogramReady, this, &MdiChild::histogramDataAvailable);
-	connect(workerThread, &iAHistogramUpdater::finished, workerThread, &QObject::deleteLater);
-	workerThread->start();
+	runAsync([this, modalityIdx, newBinCount]
+		{   // run computation of histogram...
+			modality(modalityIdx)->computeHistogramData(newBinCount);
+		},  // ... and on finished signal, trigger histogramDataAvailable
+		[this, modalityIdx]
+		{
+			histogramDataAvailable(modalityIdx);
+		});
 }
 
 void MdiChild::clearHistogram()
@@ -2818,7 +2806,7 @@ void MdiChild::initVolumeRenderers()
 
 void MdiChild::saveProject(QString const& fileName)
 {
-	m_ioThread = new iAIO(modalities(), m_renderer->renderer()->GetActiveCamera(), m_logger);
+	m_ioThread = new iAIO(modalities(), m_renderer->renderer()->GetActiveCamera(), iALog::get());
 	connectIOThreadSignals(m_ioThread);
 	QFileInfo fileInfo(fileName);
 	if (!m_ioThread->setupIO(PROJECT_WRITER, fileInfo.absoluteFilePath()))
@@ -2826,7 +2814,7 @@ void MdiChild::saveProject(QString const& fileName)
 		ioFinished();
 		return;
 	}
-	addMsg(tr("Saving file '%1', please wait...").arg(fileName));
+	LOG(lvlInfo, tr("Saving file '%1'.").arg(fileName));
 	m_ioThread->start();
 	// TODO: only set new project file name if saving succeeded
 	setCurrentFile(fileName);

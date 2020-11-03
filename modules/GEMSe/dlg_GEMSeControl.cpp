@@ -46,7 +46,7 @@
 #include <iAAttributeDescriptor.h>
 #include <iAColorTheme.h>
 #include <iAConnector.h>
-#include <iAConsole.h>
+#include <iALog.h>
 #include <iAModality.h>
 #include <iAModalityList.h>
 #include <iAToolsITK.h>
@@ -177,12 +177,12 @@ void dlg_GEMSeControl::startSampling()
 {
 	if (!m_dlgModalities->modalities()->size())
 	{
-		DEBUG_LOG("No data available.");
+		LOG(lvlError, "No data available.");
 		return;
 	}
 	if (m_dlgSamplingSettings || m_sampler)
 	{
-		DEBUG_LOG("Cannot start sampling while another sampling is still running...");
+		LOG(lvlError, "Cannot start sampling while another sampling is still running...");
 		QMessageBox::warning(this, "GEMSe", "Another sampler still running / dialog is still open...");
 		return;
 	}
@@ -197,7 +197,7 @@ void dlg_GEMSeControl::startSampling()
 		if (m_samplingSettings[spnComputeDerivedOutput].toBool() &&
 			m_samplingSettings[spnNumberOfLabels].toInt() < 2)
 		{
-			DEBUG_LOG("Label Count must not be smaller than 2!");
+			LOG(lvlError, "Label Count must not be smaller than 2!");
 			QMessageBox::warning(this, "GEMSe", "Label Count must not be smaller than 2!");
 			return;
 		}
@@ -216,7 +216,7 @@ void dlg_GEMSeControl::startSampling()
 			iASEAFile::DefaultSPSFileName,
 			iASEAFile::DefaultCHRFileName,
 			m_dlgSamplings->GetSamplings()->size(),
-			iAGlobalLogger::get()
+			iALog::get()
 		));
 		m_dlgProgress = new dlg_progress(this, m_sampler, m_sampler, "Sampling Progress");
 		MdiChild* mdiChild = dynamic_cast<MdiChild*>(parent());
@@ -251,7 +251,7 @@ void dlg_GEMSeControl::loadSamplingSlot()
 		dlg_commoninput lblCountInput(this, "Label Count", inList, inPara, nullptr);
 		if (lblCountInput.exec() != QDialog::Accepted)
 		{
-			DEBUG_LOG("Cannot load sampling without label count input!");
+			LOG(lvlError, "Cannot load sampling without label count input!");
 			return;
 		}
 		labelCount = lblCountInput.getIntValue(0);
@@ -264,13 +264,13 @@ bool dlg_GEMSeControl::loadSampling(QString const & fileName, int labelCount, in
 	m_simpleLabelInfo->setLabelCount(labelCount);
 	if (fileName.isEmpty())
 	{
-		DEBUG_LOG("No filename given, not loading.");
+		LOG(lvlError, "No filename given, not loading.");
 		return false;
 	}
 	QSharedPointer<iASamplingResults> samplingResults = iASamplingResults::load(fileName, datasetID);
 	if (!samplingResults)
 	{
-		DEBUG_LOG("Loading Sampling failed.");
+		LOG(lvlError, "Loading Sampling failed.");
 		return false;
 	}
 	m_dlgSamplings->Add(samplingResults);
@@ -317,13 +317,13 @@ bool dlg_GEMSeControl::loadClustering(QString const & fileName)
 {
 	if (m_simpleLabelInfo->count() < 2)
 	{
-		DEBUG_LOG("Label Count must not be smaller than 2!");
+		LOG(lvlError, "Label Count must not be smaller than 2!");
 		return false;
 	}
 	assert(m_dlgSamplings->SamplingCount() > 0);
 	if (m_dlgSamplings->SamplingCount() == 0 || fileName.isEmpty())
 	{
-		DEBUG_LOG("No sampling data is available!");
+		LOG(lvlError, "No sampling data is available!");
 		return false;
 	}
 	MdiChild* mdiChild = dynamic_cast<MdiChild*>(parent());
@@ -335,7 +335,7 @@ bool dlg_GEMSeControl::loadClustering(QString const & fileName)
 	);
 	if (!tree)
 	{
-		DEBUG_LOG("Loading Clustering failed!");
+		LOG(lvlError, "Loading Clustering failed!");
 		return false;
 	}
 	double * origSpacing = originalImage->GetSpacing();
@@ -346,7 +346,7 @@ bool dlg_GEMSeControl::loadClustering(QString const & fileName)
 		origSpacing[1] != resultSpacing[1] ||
 		origSpacing[2] != resultSpacing[2])
 	{
-		DEBUG_LOG("Spacing of original images and of result images does not match!");
+		LOG(lvlError, "Spacing of original images and of result images does not match!");
 	}
 	m_dlgGEMSe->SetTree(
 		tree,
@@ -367,13 +367,13 @@ void dlg_GEMSeControl::calculateClustering()
 {
 	if (m_dlgSamplings->SamplingCount() == 0)
 	{
-		DEBUG_LOG("No Sampling Results available!");
+		LOG(lvlError, "No Sampling Results available!");
 		return;
 	}
 	assert( !m_dlgProgress );
 	if (m_dlgProgress)
 	{
-		DEBUG_LOG("Other operation still running?");
+		LOG(lvlError, "Other operation still running?");
 		return;
 	}
 	m_outputFolder = QFileDialog::getExistingDirectory(this, tr("Output Directory"), m_outputFolder);
@@ -381,12 +381,12 @@ void dlg_GEMSeControl::calculateClustering()
 	{
 		return;
 	}
-	DEBUG_LOG(QString("Clustering and writing results to %1").arg(m_outputFolder));
+	LOG(lvlInfo, QString("Clustering and writing results to %1").arg(m_outputFolder));
 	QString cacheDir = m_outputFolder + "/representatives";
 	QDir qdir;
 	if (!qdir.mkpath(cacheDir))
 	{
-		DEBUG_LOG(QString("Can't create representative directory %1!").arg(cacheDir));
+		LOG(lvlError, QString("Can't create representative directory %1!").arg(cacheDir));
 		return;
 	}
 	m_clusterer = QSharedPointer<iAImageClusterer>(new iAImageClusterer(m_simpleLabelInfo->count(), cacheDir));
@@ -418,12 +418,12 @@ void dlg_GEMSeControl::clusteringFinished()
 	assert(m_dlgGEMSe);
 	if (!m_dlgGEMSe)
 	{
-		DEBUG_LOG("GEMSe not initialized!");
+		LOG(lvlError, "GEMSe not initialized!");
 		return;
 	}
 	if (m_clusterer->IsAborted() || !m_clusterer->GetResult())
 	{
-		DEBUG_LOG("Clusterer aborted / missing Clustering Result!");
+		LOG(lvlError, "Clusterer aborted / missing Clustering Result!");
 		return;
 	}
 	if (!m_outputFolder.isEmpty())
@@ -641,7 +641,7 @@ bool dlg_GEMSeControl::loadRefImg(QString const & refImgName)
 	}
 	catch (std::exception & e)
 	{
-		DEBUG_LOG(QString("Could not load reference image, problem: %1").arg(e.what()));
+		LOG(lvlError, QString("Could not load reference image, problem: %1").arg(e.what()));
 		return false;
 	}
 	leRefImage->setText(refImgName);
@@ -679,7 +679,7 @@ void dlg_GEMSeControl::saveDerivedOutput(
 	QFile paramRangeFile(attributeDescriptorOutputFileName);
 	if (!paramRangeFile.open(QIODevice::WriteOnly | QIODevice::Text))
 	{
-		DEBUG_LOG(QString("Could not open parameter descriptor file '%1' for writing!").arg(attributeDescriptorOutputFileName));
+		LOG(lvlError, QString("Could not open parameter descriptor file '%1' for writing!").arg(attributeDescriptorOutputFileName));
 		return;
 	}
 	QTextStream out(&paramRangeFile);

@@ -43,13 +43,13 @@ public:
 	void draw(QPainter &painter) override;
 	void draw(QPainter &painter, QColor color, int lineWidth) override;
 	void drawOnTop(QPainter &painter) override;
-	int selectPoint(QMouseEvent *event, int *x = nullptr) override;
+	int selectPoint(int mouseX, int mouseY) override;
 	int getSelectedPoint() const override { return m_selectedPoint; }
-	int addPoint(int x, int y) override;
+	int addPoint(int mouseX, int mouseY) override;
 	void addColorPoint(int x, double red = -1.0, double green = -1.0, double blue = -1.0) override;
 	void removePoint(int index) override;
-	void moveSelectedPoint(int x, int y) override;
-	void changeColor(QMouseEvent *event) override;
+	void moveSelectedPoint(int mouseX, int mouseY) override;
+	void changeColor() override;
 	void mouseReleaseEventAfterNewPoint(QMouseEvent *event) override;
 	bool isColored() const override { return true; }
 	bool isEndPoint(int index) const override;

@@ -18,42 +18,70 @@
 * Contact: FH OÖ Forschungs & Entwicklungs GmbH, Campus Wels, CT-Gruppe,              *
 *          Stelzhamerstraße 23, 4600 Wels / Austria, Email: c.heinzl@fh-wels.at       *
 * ************************************************************************************/
-#include "iAImageComparisonMetrics.h"
+#include "iALog.h"
+#include "iALogLevelMappings.h"
 
-#include "iATypedCallHelper.h"
-#include "iAToolsITK.h" // for itkScalarPixelType
+iALogger* iALog::m_globalLogger(nullptr);
 
-
-// TODO: check why this function is delivering bogus results for larger images!
-template <typename T>
-void compareImg_tmpl(iAITKIO::ImagePointer imgB, iAITKIO::ImagePointer refB, iAImageComparisonResult & result)
+void iALog::setLogger(iALogger* logger)
 {
-	typedef itk::Image<T, iAITKIO::m_DIM > ImgType;
-	ImgType * img = dynamic_cast<ImgType*>(imgB.GetPointer());
-	ImgType * ref = dynamic_cast<ImgType*>(refB.GetPointer());
-	if (!img || !ref)
-	{
-		LOG(lvlError, "compareImg_tmpl: One of the images to be compared is nullptr!");
-		result.equalPixelRate = 0;
-		return;
-	}
-	typename ImgType::RegionType reg = ref->GetLargestPossibleRegion();
-	long long size = reg.GetSize()[0] * reg.GetSize()[1] * reg.GetSize()[2];
-	double sumEqual = 0.0;
-#pragma omp parallel for reduction(+:sumEqual)
-	for (long long i = 0; i < size; ++i)
-	{
-		if (img->GetBufferPointer()[i] == ref->GetBufferPointer()[i])
-		{
-			++sumEqual;
-		}
-	}
-	result.equalPixelRate = sumEqual / size;
+	m_globalLogger = logger;
 }
 
-iAImageComparisonResult CompareImages(iAITKIO::ImagePointer img, iAITKIO::ImagePointer reference)
+iALogger* iALog::get()
 {
-	iAImageComparisonResult result;
-	ITK_TYPED_CALL(compareImg_tmpl, itkScalarPixelType(img), img, reference, result);
-	return result;
+	return m_globalLogger;
+}
+
+// iALogger - move to separate iALogger.cpp?
+
+QStringList AvailableLogLevels()
+{
+	static QStringList logLevelStrings;
+	if (logLevelStrings.isEmpty())
+	{
+		logLevelStrings << "DEBUG" << "INFO " << "WARN " << "ERROR" << "FATAL";
+	}
+	return logLevelStrings;
+}
+
+
+QString logLevelToString(iALogLevel lvl)
+{
+	if (lvl < lvlDebug && lvl > lvlFatal)
+	{
+		return "?????";
+	}
+	return AvailableLogLevels()[lvl - 1];
+}
+
+open_iA_Core_API iALogLevel stringToLogLevel(QString const& str, bool& ok)
+{
+	ok = true;
+	for (int l = 0; l < AvailableLogLevels().size(); ++l)
+	{
+		if (str == AvailableLogLevels()[l])
+		{
+			return static_cast<iALogLevel>(l+1);
+		}
+	}
+	ok = false;
+	return lvlWarn;
+}
+
+iALogger::iALogger():
+	m_logLevel(lvlWarn)
+{}
+
+iALogger::~iALogger()
+{}
+
+void iALogger::setLogLevel(iALogLevel level)
+{
+	m_logLevel = level;
+}
+
+iALogLevel iALogger::logLevel() const
+{
+	return m_logLevel;
 }

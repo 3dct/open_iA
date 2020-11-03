@@ -23,7 +23,6 @@
 #include "iAFoamCharacterizationDialogBinarization.h"
 
 #include <iAConnector.h>
-#include <iAConsole.h>
 #include <iAFilter.h>
 #include <iAFilterRegistry.h>
 #include <iAProgress.h>
@@ -103,7 +102,6 @@ void iAFoamCharacterizationItemBinarization::executeBinarization()
 	QScopedPointer<iAProgress> pObserver(new iAProgress());
 	connect(pObserver.data(), &iAProgress::progress, this, &iAFoamCharacterizationItemBinarization::slotObserver);
 	auto filter = iAFilterRegistry::filter("Binary Thresholding");
-	filter->setLogger(iAConsoleLogger::get());
 	filter->setProgress(pObserver.data());
 	filter->addInput(&con, "");
 	QMap<QString, QVariant> parameters;
@@ -123,7 +121,6 @@ void iAFoamCharacterizationItemBinarization::executeOtzu()
 	QScopedPointer<iAProgress> pObserver(new iAProgress());
 	connect(pObserver.data(), &iAProgress::progress, this, &iAFoamCharacterizationItemBinarization::slotObserver);
 	auto filter = iAFilterRegistry::filter("Otsu Threshold");
-	filter->setLogger(iAConsoleLogger::get());
 	filter->setProgress(pObserver.data());
 	filter->addInput(&con, "");
 	QMap<QString, QVariant> parameters;

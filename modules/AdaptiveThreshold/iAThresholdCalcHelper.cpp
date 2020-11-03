@@ -22,7 +22,7 @@
 
 #include "iAThresholdDefinitions.h"
 
-#include <iAConsole.h>
+#include <iALog.h>
 #include <iAMathUtility.h>
 
 #include <QLine>
@@ -210,7 +210,7 @@ void iAThresholdCalcHelper::getFirstElemInRange(const QVector <QPointF>& in, flo
 	}
 	catch (std::bad_alloc& /*ba*/)
 	{
-		DEBUG_LOG("error calculation elem by ranges faild in memory");
+		LOG(lvlInfo, "error calculation elem by ranges faild in memory");
 		throw;
 	}
 }
@@ -219,13 +219,13 @@ void iAThresholdCalcHelper::PeakgreyThresholdNormalization(threshold_defs::iAPar
 {
 	if (greyThrPeakAir < std::numeric_limits<double>::min() || (greyThrPeakAir > std::numeric_limits<double>::max()))
 	{
-		DEBUG_LOG(QString("grey value threshold invalid %1").arg(greyThrPeakAir));
+		LOG(lvlInfo, QString("grey value threshold invalid %1").arg(greyThrPeakAir));
 		return;
 	}
 
 	if (greyThrPeakAir > greyThrPeakMax)
 	{
-		DEBUG_LOG("grey value of air peak must be smaller than matierial peak, please change order");
+		LOG(lvlInfo, "grey value of air peak must be smaller than matierial peak, please change order");
 		return;
 	}
 
@@ -237,9 +237,9 @@ void iAThresholdCalcHelper::PeakgreyThresholdNormalization(threshold_defs::iAPar
 
 	for (double& val: tmp_ranges_x)
 	{
-		//DEBUG_LOG(QString("before %1").arg(val));
+		//LOG(lvlInfo, QString("before %1").arg(val));
 		val = mapToNorm(greyThrPeakAir, greyThrPeakMax, val);
-		//DEBUG_LOG(QString("after %1").arg(val))
+		//LOG(lvlInfo, QString("after %1").arg(val))
 	}
 
 	ranges.setXVals(tmp_ranges_x);

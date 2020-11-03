@@ -27,7 +27,7 @@
 #include <charts/iAQSplom.h>
 #include <charts/iASPLOMData.h>
 #include <iAColorTheme.h>
-#include <iAConsole.h>
+#include <iALog.h>
 #include <iALUT.h>
 #include <qthelper/iAQFlowLayout.h>
 
@@ -163,7 +163,7 @@ void iAParamSPLOMView::SetLUTColumn(QString const & colName)
 		}
 		if (col == -1)
 		{
-			DEBUG_LOG(QString("Unknown column: %1").arg(colName));
+			LOG(lvlError, QString("Unknown column: %1").arg(colName));
 			return;
 		}
 	}

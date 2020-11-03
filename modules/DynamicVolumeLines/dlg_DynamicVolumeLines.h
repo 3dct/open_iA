@@ -30,6 +30,8 @@
 #include <qthelper/iAQTtoUIConnector.h>
 #include <iAProgress.h>
 
+#include <QDir>
+
 class iANonLinearAxisTicker;
 class iAOrientationWidget;
 class iASegmentTree;

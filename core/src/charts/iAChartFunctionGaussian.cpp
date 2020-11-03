@@ -89,83 +89,68 @@ void iAChartFunctionGaussian::draw(QPainter &painter, QColor color, int lineWidt
 		painter.drawLine(pixelX1, pixelY1, pixelX2, pixelY2);
 
 		// smaller steps close to the mean: TODO - use adaptive step sizes?
-		step = std::abs( 0.5*(dataX1+dataX2)+startStep - m_mean) < (6 * m_sigma) ?
+		step = std::abs( 0.5*(dataX1+dataX2)+step - m_mean) < (15 * m_sigma) ?
 			smallStep : startStep;
 		dataX1 = dataX2;
 		dataY1 = dataY2;
 		dataX2 = dataX1 + step;
 	}
 
+	if (!active)
+	{
+		return;
+	}
 
 	// draw point lines
-	if (active)
-	{
-		int hue, sat, val, alpha;
-		QColor penColor = color;
-		penColor.getHsv(&hue, &sat, &val, &alpha);
-		val >>= 1;
-		penColor.setHsv(hue, sat, val, alpha);
+	int hue, sat, val, alpha;
+	QColor penColor = color;
+	penColor.getHsv(&hue, &sat, &val, &alpha);
+	val >>= 1;
+	penColor.setHsv(hue, sat, val, alpha);
 
-		pen.setColor(penColor);
-		pen.setWidth(1);
+	pen.setColor(penColor);
+	pen.setWidth(1);
 
-		painter.setPen(pen);
+	painter.setPen(pen);
 
-		int x, lx, rx, y;
-		double meanValue = 1.0/(m_sigma*sqrt(2*vtkMath::Pi()))*m_multiplier;
+	int x, lx, rx, y;
+	double meanValue = 1.0/(m_sigma*sqrt(2*vtkMath::Pi()))*m_multiplier;
 
-		x  = m_chart->xMapper().srcToDst(m_mean);
-		lx = m_chart->xMapper().srcToDst(m_mean - SigmaHandleFactor * m_sigma);
-		rx = m_chart->xMapper().srcToDst(m_mean + SigmaHandleFactor * m_sigma);
-		y = m_chart->yMapper().srcToDst(meanValue);
+	x  = m_chart->xMapper().srcToDst(m_mean);
+	lx = m_chart->xMapper().srcToDst(m_mean - SigmaHandleFactor * m_sigma);
+	rx = m_chart->xMapper().srcToDst(m_mean + SigmaHandleFactor * m_sigma);
+	y = m_chart->yMapper().srcToDst(meanValue);
 
-		painter.drawLine(lx, y, rx, y);
+	painter.drawLine(lx, y, rx, y);
 
-		// draw points
-		QColor redColor = QColor(255, 0, 0, 255);
-		painter.setBrush(QBrush(color));
-		painter.setPen(pen);
-
-		int radius = iAChartWithFunctionsWidget::POINT_RADIUS;
-		int size = iAChartWithFunctionsWidget::POINT_SIZE;
-
-		pen.setWidth(3);
-		pen.setColor(redColor);
-		painter.setPen(pen);
-		painter.drawEllipse(x-radius, y-radius, size, size);
-
-		pen.setWidth(1);
-		painter.setPen(pen);
-		painter.drawEllipse(lx-radius/2, y-radius/2, size/2, size/2);
-		painter.drawEllipse(rx-radius/2, y-radius/2, size/2, size/2);
-	}
+	// draw points
+	drawPoint(painter, x, y, true);
+	drawPoint(painter, lx, y, false);
+	drawPoint(painter, rx, y, false);
 }
 
-int iAChartFunctionGaussian::selectPoint(QMouseEvent *event, int*)
+int iAChartFunctionGaussian::selectPoint(int mouseX, int mouseY)
 {
-	int lx = event->x() - m_chart->leftMargin() - m_chart->xShift();
-	int ly = m_chart->chartHeight() - event->y();
-
 	double meanValue = 1.0/(m_sigma*sqrt(2*vtkMath::Pi()));
 
-	int viewXPoint = m_chart->xMapper().srcToDst(m_mean);
+	int viewXPoint = m_chart->data2MouseX(m_mean);
 	int viewYPoint = m_chart->yMapper().srcToDst(meanValue*m_multiplier);
 
-	int viewXLeftSigmaPoint  = m_chart->xMapper().srcToDst(m_mean - SigmaHandleFactor * m_sigma);
-	int viewXRightSigmaPoint = m_chart->xMapper().srcToDst(m_mean + SigmaHandleFactor * m_sigma);
+	int viewXLeftSigmaPoint  = m_chart->data2MouseX(m_mean - SigmaHandleFactor * m_sigma);
+	int viewXRightSigmaPoint = m_chart->data2MouseX(m_mean + SigmaHandleFactor * m_sigma);
 
-	if (std::abs(lx - viewXLeftSigmaPoint) <= iAChartWithFunctionsWidget::POINT_RADIUS / 2 &&
-		std::abs(ly - viewYPoint) <= iAChartWithFunctionsWidget::POINT_RADIUS / 2)
+	if (std::abs(mouseX - viewXLeftSigmaPoint) <= iAChartFunction::PointRadius / 2 &&
+		std::abs(mouseY - viewYPoint) <= iAChartFunction::PointRadius / 2)
 	{
 		m_selectedPoint = 1;
 	}
-	else if (std::abs(lx - viewXRightSigmaPoint) <= iAChartWithFunctionsWidget::POINT_RADIUS / 2 &&
-		std::abs(ly - viewYPoint)- iAChartWithFunctionsWidget::POINT_RADIUS / 2)
+	else if (std::abs(mouseX - viewXRightSigmaPoint) <= iAChartFunction::PointRadius / 2 &&
+		std::abs(mouseY - viewYPoint)- iAChartFunction::PointRadius / 2)
 	{
 		m_selectedPoint = 2;
 	}
-	else if (std::abs(lx - viewXPoint) <= iAChartWithFunctionsWidget::POINT_RADIUS &&
-		std::abs(ly - viewYPoint) <= iAChartWithFunctionsWidget::POINT_RADIUS)
+	else if (std::abs(mouseX - viewXPoint) <= iAChartFunction::PointRadius &&
+		std::abs(mouseY - viewYPoint) <= iAChartFunction::PointRadius)
 	{
 		m_selectedPoint = 0;
 	}
@@ -176,30 +161,30 @@ int iAChartFunctionGaussian::selectPoint(QMouseEvent *event, int*)
 	return m_selectedPoint;
 }
 
-void iAChartFunctionGaussian::moveSelectedPoint(int x, int y)
+void iAChartFunctionGaussian::moveSelectedPoint(int mouseX, int mouseY)
 {
-	y = clamp(0, m_chart->chartHeight()-1, y);
+	mouseY = clamp(0, m_chart->chartHeight()-1, mouseY);
 	if (m_selectedPoint != -1)
 	{
 		switch(m_selectedPoint)
 		{
 			case 0:
 			{
-				m_mean = clamp(m_chart->xBounds()[0], m_chart->xBounds()[1], m_chart->xMapper().dstToSrc(x - m_chart->xShift()));
+				m_mean = clamp(m_chart->xBounds()[0], m_chart->xBounds()[1], m_chart->mouse2DataX(mouseX));
 			}
 			break;
 			case 1:
 			case 2:
 			{
-				m_sigma = fabs(m_mean - m_chart->xMapper().dstToSrc(x - m_chart->xShift())) / SigmaHandleFactor;
+				m_sigma = fabs(m_mean - m_chart->mouse2DataX(mouseX)) / SigmaHandleFactor;
 				if (m_sigma <= std::numeric_limits<double>::epsilon())
 				{
-					m_sigma = fabs(m_mean - m_chart->xMapper().dstToSrc(x - m_chart->xShift() + 1));
+					m_sigma = fabs(m_mean - m_chart->mouse2DataX(mouseX+1));
 				}
 			}
 		}
 		double maxValue = 1.0/(m_sigma*sqrt(2*vtkMath::Pi()));
-		m_multiplier  = m_chart->yMapper().dstToSrc(y) / maxValue;
+		m_multiplier  = m_chart->yMapper().dstToSrc(mouseY) / maxValue;
 	}
 }
 

@@ -20,7 +20,7 @@
 * ************************************************************************************/
 #include "iAStackReaderFilter.h"
 
-#include <iAConsole.h>
+#include <iALog.h>
 #include <iAExceptionThrowingErrorObserver.h>
 #include <io/iAFileUtils.h>
 #include <iAProgress.h>

@@ -1,9 +1,9 @@
 SET (MetaFilters_PRECOMPILE_INCLUDES <iAAttributeDescriptor.h>
 <iAAttributes.h>
 <iAConnector.h>
-<iAConsole.h>
 <iAFilter.h>
 <iAFilterRegistry.h>
+<iALog.h>
 <iAModality.h>
 <iAModalityList.h>
 <iANameMapper.h>

@@ -18,20 +18,43 @@
 * Contact: FH OÖ Forschungs & Entwicklungs GmbH, Campus Wels, CT-Gruppe,              *
 *          Stelzhamerstraße 23, 4600 Wels / Austria, Email: c.heinzl@fh-wels.at       *
 * ************************************************************************************/
-#pragma once
+#include "iAChartFunction.h"
 
-#include "ui_Console.h"
+#include "iAChartWithFunctionsWidget.h"
 
-class dlg_console : public QDockWidget, public Ui_Console
+#include <QPainter>
+
+iAChartFunction::iAChartFunction(iAChartWithFunctionsWidget* chart) : m_chart(chart) { }
+
+void iAChartFunction::changeColor()
+{}
+
+bool iAChartFunction::isColored() const
 {
-	Q_OBJECT
-public:
-	dlg_console();
-	void log(QString text);
-private slots:
-	void clear();
-private:
-	void closeEvent(QCloseEvent *event) override;
-signals:
-	void onClose();
-};
+	return false;
+}
+
+void iAChartFunction::mouseReleaseEvent(QMouseEvent*)
+{}
+
+void iAChartFunction::mouseReleaseEventAfterNewPoint(QMouseEvent*)
+{}
+
+int iAChartFunction::pointRadius(bool selected)
+{
+	return selected ? PointRadiusSelected : PointRadius;
+}
+
+const QColor iAChartFunction::DefaultColor(255, 128, 0, 255);
+
+void drawPoint(QPainter& painter, int x, int y, bool selected, QColor const& color, double sizeFactor)
+{
+	QPen pointPen = painter.pen();
+	pointPen.setColor(iAChartFunction::DefaultColor); pointPen.setWidth(iAChartFunction::LineWidthUnselected);
+	QPen pointPenSel = painter.pen();
+	pointPenSel.setColor(Qt::red); pointPenSel.setWidth(iAChartFunction::LineWidthSelected);
+	painter.setPen(selected ? pointPenSel : pointPen);
+	painter.setBrush(QBrush(color));
+	int radius = iAChartFunction::pointRadius(selected) * sizeFactor;
+	painter.drawEllipse(x - radius, y - radius, 2*radius, 2*radius);
+}

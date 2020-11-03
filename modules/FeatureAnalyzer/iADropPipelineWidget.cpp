@@ -27,9 +27,10 @@
 
 #include <QDrag>
 #include <QDragEnterEvent>
+#include <QLabel>
+#include <QMessageBox>
 #include <QMimeData>
 #include <QPainter>
-#include <QLabel>
 #include <QSettings>
 #include <QTextDocument>
 

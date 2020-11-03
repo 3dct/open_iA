@@ -174,7 +174,7 @@ void iAProbabilisticVotingImageFilter<TInputImage, TOutputImage>::ThreadedGenera
 		/*
 		if (std::abs(normalizationSum - 1.0) > std::numeric_limits<float>::epsilon())
 		{
-			DEBUG_LOG("Normalization Sum != 1!");
+			LOG(lvlWarn, "Normalization Sum != 1!");
 		}
 		*/
 		size_t maxProbIdx = 0;

@@ -18,42 +18,23 @@
 * Contact: FH OÖ Forschungs & Entwicklungs GmbH, Campus Wels, CT-Gruppe,              *
 *          Stelzhamerstraße 23, 4600 Wels / Austria, Email: c.heinzl@fh-wels.at       *
 * ************************************************************************************/
-#include "iAImageComparisonMetrics.h"
+#include "iALoggerStdOut.h"
 
-#include "iATypedCallHelper.h"
-#include "iAToolsITK.h" // for itkScalarPixelType
+#include "iALogLevelMappings.h"
 
+#include <iostream>
 
-// TODO: check why this function is delivering bogus results for larger images!
-template <typename T>
-void compareImg_tmpl(iAITKIO::ImagePointer imgB, iAITKIO::ImagePointer refB, iAImageComparisonResult & result)
+void iALoggerStdOut::log(iALogLevel lvl, QString const& msg)
 {
-	typedef itk::Image<T, iAITKIO::m_DIM > ImgType;
-	ImgType * img = dynamic_cast<ImgType*>(imgB.GetPointer());
-	ImgType * ref = dynamic_cast<ImgType*>(refB.GetPointer());
-	if (!img || !ref)
+	if (lvl < m_logLevel)
 	{
-		LOG(lvlError, "compareImg_tmpl: One of the images to be compared is nullptr!");
-		result.equalPixelRate = 0;
 		return;
 	}
-	typename ImgType::RegionType reg = ref->GetLargestPossibleRegion();
-	long long size = reg.GetSize()[0] * reg.GetSize()[1] * reg.GetSize()[2];
-	double sumEqual = 0.0;
-#pragma omp parallel for reduction(+:sumEqual)
-	for (long long i = 0; i < size; ++i)
-	{
-		if (img->GetBufferPointer()[i] == ref->GetBufferPointer()[i])
-		{
-			++sumEqual;
-		}
-	}
-	result.equalPixelRate = sumEqual / size;
+	std::cout << logLevelToString(lvl).toStdString() << ": " << msg.toStdString() << std::endl;
 }
 
-iAImageComparisonResult CompareImages(iAITKIO::ImagePointer img, iAITKIO::ImagePointer reference)
+iALoggerStdOut* iALoggerStdOut::get()
 {
-	iAImageComparisonResult result;
-	ITK_TYPED_CALL(compareImg_tmpl, itkScalarPixelType(img), img, reference, result);
-	return result;
+	static iALoggerStdOut GlobalStdOutLogger;
+	return &GlobalStdOutLogger;
 }

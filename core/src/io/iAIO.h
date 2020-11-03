@@ -127,7 +127,7 @@ private:
 	QString m_prefix;
 	QString m_fileNamesBase;
 	vtkStringArray* m_fileNameArray;
-	bool m_compression;
+	bool m_compression = false;
 	iARawFileParameters m_rawFileParams;
 
 	int m_ioID;

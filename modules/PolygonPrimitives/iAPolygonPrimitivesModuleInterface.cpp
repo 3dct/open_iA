@@ -22,7 +22,7 @@
 
 #include "iAGeometricObjectsDialog.h"
 
-#include <iAConsole.h>
+#include <iALog.h>
 #include <mainwindow.h>
 
 #include <QMessageBox>

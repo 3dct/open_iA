@@ -20,7 +20,7 @@
 * ************************************************************************************/
 #include "iAChartWidget.h"
 
-#include "iAConsole.h"
+#include "iALog.h"
 #include "iAMapperImpl.h"
 #include "iAMathUtility.h"
 #include "iAPlot.h"
@@ -35,8 +35,10 @@
 #include <QFileDialog>
 #include <QIcon>
 #include <QMenu>
+#ifdef CHART_OPENGL
 #include <QOpenGLFramebufferObject>
 #include <QOpenGLPaintDevice>
+#endif
 #include <QPainter>
 #include <QRubberBand>
 #include <QtGlobal> // for QT_VERSION
@@ -94,7 +96,7 @@ namespace
 		{
 			if (warn)
 			{
-				DEBUG_LOG(QString("range [%1..%2] invalid (min~=max), enlarging it by %3").arg(bounds[0]).arg(bounds[1]).arg(offset));
+				LOG(lvlWarn, QString("range [%1..%2] invalid (min~=max), enlarging it by %3").arg(bounds[0]).arg(bounds[1]).arg(offset));
 			}
 			bounds[0] -= offset;
 			bounds[1] += offset;
@@ -103,7 +105,7 @@ namespace
 }
 
 iAChartWidget::iAChartWidget(QWidget* parent, QString const & xLabel, QString const & yLabel):
-	iAQGLWidget(parent),
+	iAChartParentWidget(parent),
 	m_xCaption(xLabel),
 	m_yCaption(yLabel),
 	m_xZoom(1.0),
@@ -129,7 +131,9 @@ iAChartWidget::iAChartWidget(QWidget* parent, QString const & xLabel, QString co
 	m_maxXAxisSteps(AxisTicksXDefault),
 	m_drawXAxisAtZero(false)
 {
+#ifdef CHART_OPENGL
 	setFormat(defaultOpenGLFormat());
+#endif
 	updateBounds();
 	setMouseTracking(true);
 	setFocusPolicy(Qt::WheelFocus);
@@ -303,6 +307,16 @@ iAMapper const & iAChartWidget::yMapper() const
 	return *m_yMapper.data();
 }
 
+int iAChartWidget::data2MouseX(double dataX)
+{
+	return xMapper().srcToDst(dataX) + xShift();
+}
+
+double iAChartWidget::mouse2DataX(int mouseX)
+{
+	return xMapper().dstToSrc(mouseX - xShift());
+}
+
 void iAChartWidget::createMappers()
 {
 	m_xMapper = QSharedPointer<iAMapper>(new iALinearMapper(m_xBounds[0], m_xBounds[1], 0, (chartWidth() - 1)*m_xZoom));
@@ -315,7 +329,7 @@ void iAChartWidget::createMappers()
 		m_yMapper = QSharedPointer<iAMapper>(new iALogarithmicMapper(m_yBounds[0] > 0 ? m_yBounds[0] : LogYMapModeMin, m_yBounds[1], 0, (chartHeight() - 1)*m_yZoom));
 		if (m_yBounds[0] < 0)
 		{
-			DEBUG_LOG(QString("Invalid y bounds in chart for logarithmic mapping: minimum=%1 is < 0, using %2 instead.")
+			LOG(lvlWarn, QString("Invalid y bounds in chart for logarithmic mapping: minimum=%1 is < 0, using %2 instead.")
 				.arg(m_yBounds[0]).arg(LogYMapModeMin));
 		}
 	}
@@ -459,12 +473,17 @@ void iAChartWidget::drawXAxis(QPainter &painter)
 		}
 		QString text = xAxisTickMarkLabel(value, stepWidth);
 		int markerX = markerPos(static_cast<int>(m_xMapper->srcToDst(value)), i, stepCount);
-		painter.drawLine(markerX, TickWidth, markerX, -1);
+		if (markerX >= m_translationX + leftMargin())
+		{
+			painter.drawLine(markerX, TickWidth, markerX, -1);
+		}
+		int textWidth =
 #if QT_VERSION >= QT_VERSION_CHECK(5, 11, 0)
-		int textX = textPos(markerX, i, stepCount, fm.horizontalAdvance(text));
+			fm.horizontalAdvance(text);
 #else
-		int textX = textPos(markerX, i, stepCount, fm.width(text));
+			fm.width(text);
 #endif
+		int textX = textPos(markerX, i, stepCount, textWidth);
 		int textY = fm.height() + TextAxisDistance;
 		painter.translate(textX, textY);
 		painter.drawText(0, 0, text);
@@ -505,6 +524,12 @@ void iAChartWidget::drawYAxis(QPainter &painter)
 	}
 	painter.save();
 	painter.translate(-m_translationX, 0);
+	QColor bgColor(m_bgColor);
+	if (!bgColor.isValid())
+	{
+		bgColor = QWidget::palette().color(QWidget::backgroundRole());
+	}
+	painter.fillRect(QRect(-leftMargin(), -chartHeight(), leftMargin(), geometry().height()), bgColor);
 	QFontMetrics fm = painter.fontMetrics();
 	int aheight = chartHeight() - 1;
 	painter.setPen(QWidget::palette().color(QPalette::Text));
@@ -822,7 +847,7 @@ bool iAChartWidget::event(QEvent *event)
 {
 	if (event->type() != QEvent::ToolTip)
 	{
-		return iAQGLWidget::event(event);
+		return iAChartParentWidget::event(event);
 	}
 
 	if (m_plots.empty() || !m_showTooltip)
@@ -1050,6 +1075,7 @@ void iAChartWidget::mouseMoveEvent(QMouseEvent *event)
 
 QImage iAChartWidget::drawOffscreen()
 {
+#ifdef CHART_OPENGL
 	QSurfaceFormat format;
 	format.setMajorVersion(3);
 	format.setMinorVersion(3);
@@ -1071,13 +1097,23 @@ QImage iAChartWidget::drawOffscreen()
 	QOpenGLFramebufferObject fbo(drawRectSize, fboFormat);
 	fbo.bind();
 	QOpenGLPaintDevice device(drawRectSize);
+#else
+	QImage image(width(), height(), QImage::Format_RGB32);
+#endif
 	QPainter p;
+#ifdef CHART_OPENGL
 	p.begin(&device);
+#else
+	p.begin(&image);
+#endif
+
 	drawAll(p);
 	p.end();
+#ifdef CHART_OPENGL
 	fbo.release();
 	QImage image = fbo.toImage();
 	context.doneCurrent();
+#endif
 	return image;
 }
 
@@ -1087,7 +1123,11 @@ void iAChartWidget::setBackgroundColor(QColor const & color)
 	update();
 }
 
+#ifdef CHART_OPENGL
 void iAChartWidget::paintGL()
+#else
+void iAChartWidget::paintEvent(QPaintEvent* /*event*/)
+#endif
 {
 	QPainter p(this);
 	drawAll(p);

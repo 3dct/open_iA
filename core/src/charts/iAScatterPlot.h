@@ -21,7 +21,14 @@
 #pragma once
 
 #include "open_iA_Core_export.h"
-#include "qthelper/iAQGLWidgetFwd.h"
+#ifdef CHART_OPENGL
+#include "qthelper/iAQGLWidget.h"
+#include "qthelper/iAQGLBuffer.h"
+using iAChartParentWidget = iAQGLWidget;
+#else
+#include <QWidget>
+using iAChartParentWidget = QWidget;
+#endif
 
 #include <QList>
 #include <QScopedPointer>
@@ -53,7 +60,7 @@ public:
 		Polygon
 	};
 	//!  Constructor: requires a parent SPLOM widget
-	iAScatterPlot(iAScatterPlotSelectionHandler * splom, iAQGLWidget* parent, int numTicks = 5, bool isMaximizedPlot = false);
+	iAScatterPlot(iAScatterPlotSelectionHandler * splom, iAChartParentWidget* parent, int numTicks = 5, bool isMaximizedPlot = false);
 	~iAScatterPlot();
 
 	void setData(size_t x, size_t y, QSharedPointer<iASPLOMData> &splomData ); //!< Set data to the scatter plot using indices of X and Y parameters and the raw SPLOM data
@@ -122,8 +129,12 @@ protected:
 	void drawMaximizedLabels( QPainter &painter );                   //!< Draws additional plot's labels (only maximized plot)
 	void drawSelectionPolygon( QPainter &painter );                  //!< Draws selection-lasso polygon
 	void drawPoints( QPainter &painter );                            //!< Draws plot's points (uses native OpenGL)
+#ifdef CHART_OPENGL
 	void createVBO();                                                //!< Creates and fills VBO with plot's 2D-points.
 	void fillVBO();                                                  //!< Fill existing VBO with plot's 2D-points.
+#else
+	void drawPoint(QPainter& painter, double ptX, double ptY, int radius, QColor const& color);
+#endif
 
 signals:
 	void selectionModified();                                        //!< Emitted when selected points changed
@@ -171,8 +182,11 @@ public:
 	// Members
 	Settings settings;
 protected:
-	iAQGLWidget * m_parentWidget;                                    //!< the parent widget
+	iAChartParentWidget* m_parentWidget;                             //!< the parent widget
+#ifdef CHART_OPENGL
 	iAQGLBuffer * m_pointsBuffer;                                    //!< OpenGL buffer used for points VBO
+	bool m_pointsOutdated;                                           //!< indicates whether we need to fill the points buffer
+#endif
 	iAScatterPlotSelectionHandler * m_splom;                         //!< selection/highlight/settings handler (if part of a SPLOM, the SPLOM-parent)
 	QRect m_globRect;                                                //!< plot's rectangle
 	QRectF m_locRect;                                                //!< plot's local drawing rectangle
@@ -206,7 +220,6 @@ protected:
 	bool m_isPreviewPlot;                                            //!< flag telling if a large version of this plot is shown maximized currently
 	size_t m_curVisiblePts;                                          //!< number of currently visible points
 	bool m_dragging;                                                 //!< indicates whether a drag operation is currently going on
-	bool m_pointsOutdated;                                           //!< indicates whether we need to fill the points buffer
 private:
 	double scc();
 	double pcc();

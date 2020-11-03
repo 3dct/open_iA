@@ -21,10 +21,10 @@
 #include "iAImageProcessingHelper.h"
 
 #include <iAChannelData.h>
-#include <iAConsole.h>
 #include <iAConnector.h>
 #include <iAFilterRegistry.h>
 #include <iAFilter.h>
+#include <iALog.h>
 #include <iAModality.h>
 #include <iAModalityTransfer.h>
 #include <iAProgress.h>
@@ -50,20 +50,20 @@ void iAImageProcessingHelper::performSegmentation(double greyThresholdMin, doubl
 {
 	if (!m_child)
 	{
-		DEBUG_LOG("Child data is null, cannnot perform segmentation");
+		LOG(lvlError, "Child data is null, cannnot perform segmentation");
 		//throw std::invalid_argument("Threshold not valid %1 or negative, aborted segmentation ");
 		return;
 	}
 
 	if ((greyThresholdUpper < 0) || (greyThresholdUpper == std::numeric_limits<double>::infinity()) || (greyThresholdUpper == -std::numeric_limits<double>::infinity()))
 	{
-		DEBUG_LOG(QString("Threshold not valid %1 or negative, please report to developer, if negative values should be valid, aborted segmentation ").arg(0));
+		LOG(lvlError, QString("Threshold not valid %1 or negative, please report to developer, if negative values should be valid, aborted segmentation ").arg(0));
 		throw std::invalid_argument("Threshold not valid %1 or negative, aborted segmentation ");
 
 	}
 	else if ((greyThresholdUpper > 0) && (greyThresholdUpper < 1))
 	{
-		DEBUG_LOG(
+		LOG(lvlError,
 			QString("grey threshold: %1 is close to zero, please check parametrisation, or normalized values are used").arg(greyThresholdUpper));
 	}
 	try
@@ -73,7 +73,7 @@ void iAImageProcessingHelper::performSegmentation(double greyThresholdMin, doubl
 	}
 	catch (std::invalid_argument& iav)
 	{
-		DEBUG_LOG(iav.what());
+		LOG(lvlError, iav.what());
 	}
 	//TODO show result in new window
 }
@@ -95,7 +95,6 @@ void iAImageProcessingHelper::prepareFilter(double greyThresholdLower, double gr
 	{
 		throw std::invalid_argument("Could not retrieve Binary Thresholding filter. Make sure Segmentation plugin was loaded correctly!");
 	}
-	filter->setLogger(iAConsoleLogger::get());
 	filter->setProgress(pObserver.data());
 	filter->addInput(&con, m_child->fileName());
 	QMap<QString, QVariant> parameters;

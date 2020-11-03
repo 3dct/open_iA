@@ -22,18 +22,17 @@
 
 #include "iALogger.h"
 
-#include <QObject>
-
-class MdiChild;
-
-//! simple wrapper class to decouple logging from the GUI
-//! regarding threads
-class iAMdiChildLogger : public QObject, public iALogger
+//! A logger whose output is written to standard output.
+class open_iA_Core_API iALoggerStdOut : public iALogger
 {
-	Q_OBJECT
 public:
-	iAMdiChildLogger(MdiChild* mdiChild);
-	void log(QString const & msg) override;
-signals:
-	void logSignal(QString msg);
+	void log(iALogLevel lvl, QString const& msg) override;
+	static iALoggerStdOut* get();
+private:
+	//! make default constructor private
+	iALoggerStdOut() =default;
+	//! @{ don't allow copying / copy-assingment
+	iALoggerStdOut(iALoggerStdOut const&) =delete;
+	void operator=(iALoggerStdOut const&) =delete;
+	//! @}
 };

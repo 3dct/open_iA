@@ -31,13 +31,16 @@
 #include <QCheckBox>
 #include <QComboBox>
 #include <QDebug>
+#include <QDir>
 #include <QErrorMessage>
+#include <QGuiApplication>
 #include <QGroupBox>
 #include <QLabel>
 #include <QLineEdit>
 #include <QScrollArea>
 #include <QSpacerItem>
 #include <QSpinBox>
+#include <QTextEdit>
 
 
 namespace

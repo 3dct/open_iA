@@ -18,30 +18,29 @@
 * Contact: FH OÖ Forschungs & Entwicklungs GmbH, Campus Wels, CT-Gruppe,              *
 *          Stelzhamerstraße 23, 4600 Wels / Austria, Email: c.heinzl@fh-wels.at       *
 * ************************************************************************************/
-#include "dlg_console.h"
+#pragma once
 
-#include <QString>
+#include "open_iA_Core_export.h"
 
-#include <iostream>
+#include "iALogger.h"
 
-dlg_console::dlg_console()
+//! Singleton providing access to the global logger object.
+//! Before first access (via get()), a specific logger needs to be set
+//! via setLogger(...). See classes derived from iALogger
+class open_iA_Core_API iALog
 {
-	setupUi(this);
-	connect(pbClearLog, &QPushButton::clicked, this, &dlg_console::clear);
-}
+public:
+    //! Set the class to perform the actual logging
+    //! @param logger a concrete implementation of the iALogger interface
+    static void setLogger(iALogger* logger);
+    //! Retrieve the global logger implementation
+    static iALogger* get();
+private:
+    static iALogger* m_globalLogger;
+    //! @{ Prevent copy construction and assignment
+    iALog(iALog const&) = delete;
+    void operator=(iALog const&) = delete;
+    //! @}
+};
 
-void dlg_console::log(QString text)
-{
-	consoleTextEdit->append(text);
-}
-
-void dlg_console::clear()
-{
-	consoleTextEdit->clear();
-}
-
-void dlg_console::closeEvent(QCloseEvent *event)
-{
-	emit onClose();
-	QDockWidget::closeEvent(event);
-}
+#define LOG(l, t) { if (iALog::get()) iALog::get()->log(l, t); }

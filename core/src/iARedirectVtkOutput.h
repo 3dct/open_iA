@@ -20,7 +20,7 @@
 * ************************************************************************************/
 #pragma once
 
-#include "iAConsole.h"
+#include "iALog.h"
 
 #include <vtkOutputWindow.h>
 #include <vtkObjectFactory.h>
@@ -44,7 +44,7 @@ iARedirectVtkOutput::iARedirectVtkOutput() {}
 
 void iARedirectVtkOutput::DisplayText(const char* someText)
 {
-	DEBUG_LOG(someText);
+	LOG(lvlInfo, someText);
 }
 
 //----------------------------------------------------------------------------

@@ -29,7 +29,7 @@
 #include "iACsvConfig.h"
 #include "iACsvVtkTableCreator.h"
 
-#include <iAConsole.h>
+#include <iALog.h>
 #include <mainwindow.h>
 
 #include <openvr.h>
@@ -64,8 +64,8 @@ void iAVRModuleInterface::Initialize()
 
 void iAVRModuleInterface::info()
 {
-	DEBUG_LOG(QString("VR Information:"));
-	DEBUG_LOG(QString("    Is Runtime installed: %1").arg(vr::VR_IsRuntimeInstalled() ? "yes" : "no"));
+	LOG(lvlInfo, QString("VR Information:"));
+	LOG(lvlInfo, QString("    Is Runtime installed: %1").arg(vr::VR_IsRuntimeInstalled() ? "yes" : "no"));
 	const uint32_t MaxRuntimePathLength = 1024;
 	uint32_t actualLength;
 #if OPENVR_VERSION_MAJOR > 1 || (OPENVR_VERSION_MAJOR == 1 && OPENVR_VERSION_MINOR > 3)
@@ -74,13 +74,13 @@ void iAVRModuleInterface::info()
 #else // OpenVR <= 1.3.22:
 	char const * runtimePath = vr::VR_RuntimePath();
 #endif
-	DEBUG_LOG(QString("    OpenVR runtime path: %1").arg(runtimePath));
-	DEBUG_LOG(QString("    Head-mounted display present: %1").arg(vr::VR_IsHmdPresent() ? "yes" : "no"));
+	LOG(lvlInfo, QString("    OpenVR runtime path: %1").arg(runtimePath));
+	LOG(lvlInfo, QString("    Head-mounted display present: %1").arg(vr::VR_IsHmdPresent() ? "yes" : "no"));
 	vr::EVRInitError eError = vr::VRInitError_None;
 	auto pHMD = vr::VR_Init(&eError, vr::VRApplication_Scene);
 	if (eError != vr::VRInitError_None)
 	{
-		DEBUG_LOG(QString("    Unable to init VR runtime: %1").arg(vr::VR_GetVRInitErrorAsEnglishDescription(eError)));
+		LOG(lvlError, QString("    Unable to init VR runtime: %1").arg(vr::VR_GetVRInitErrorAsEnglishDescription(eError)));
 	}
 	else
 	{
@@ -88,11 +88,11 @@ void iAVRModuleInterface::info()
 		{
 			uint32_t width, height;
 			pHMD->GetRecommendedRenderTargetSize(&width, &height);
-			DEBUG_LOG(QString("    Head-mounted display present, recommended render target size: %1x%2 ").arg(width).arg(height));
+			LOG(lvlInfo, QString("    Head-mounted display present, recommended render target size: %1x%2 ").arg(width).arg(height));
 		}
 		else
 		{
-			DEBUG_LOG(QString("    Head-mounted display could not be initialized: %1").arg(vr::VR_GetVRInitErrorAsEnglishDescription(eError)));
+			LOG(lvlInfo, QString("    Head-mounted display could not be initialized: %1").arg(vr::VR_GetVRInitErrorAsEnglishDescription(eError)));
 		}
 	}
 	vr::VR_Shutdown();

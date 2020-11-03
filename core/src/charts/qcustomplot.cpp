@@ -14482,6 +14482,7 @@ void QCustomPlot::rescaleAxes(bool onlyVisiblePlottables)
     axis->rescale(onlyVisiblePlottables);
 }
 
+#ifdef PRINT_SUPPORT
 /*!
   Saves a PDF with the vectorized plot to the file \a fileName. The axis ratio as well as the scale
   of texts and lines will be derived from the specified \a width and \a height. This means, the
@@ -14581,6 +14582,7 @@ bool QCustomPlot::savePdf(const QString &fileName, int width, int height, QCP::E
 #endif // QT_NO_PRINTER
   return success;
 }
+#endif
 
 /*!
   Saves a PNG image file to \a fileName on disc. The output plot will have the dimensions \a width

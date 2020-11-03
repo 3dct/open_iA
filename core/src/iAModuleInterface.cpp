@@ -20,6 +20,7 @@
 * ************************************************************************************/
 #include "iAModuleInterface.h"
 
+#include "iALog.h"
 #include "iAModuleDispatcher.h"
 #include "iAModuleAttachmentToChild.h"
 #include "mainwindow.h"
@@ -160,7 +161,7 @@ bool iAModuleInterface::AttachToMdiChild( MdiChild * child )
 	}
 	catch( itk::ExceptionObject &excep )
 	{  // check why we catch an ITK exception here! in the attachment initialization, no ITK filters should be called...
-		child->addMsg( tr("%1 in File %2, Line %3").arg( excep.GetDescription() )
+		LOG(lvlError, tr("%1 in File %2, Line %3").arg( excep.GetDescription() )
 			.arg( excep.GetFile() )
 			.arg( excep.GetLine() ) );
 		return false;

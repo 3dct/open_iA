@@ -27,7 +27,7 @@
 #include "iAChannelData.h"
 #include "iAChannelSlicerData.h"
 #include "iAConnector.h"
-#include "iAConsole.h"
+#include "iALog.h"
 #include "iAMagicLens.h"
 #include "iAMathUtility.h"
 #include "iAModality.h"
@@ -510,12 +510,12 @@ void iASlicer::toggleInteractorState()
 	if (m_interactor->GetEnabled())
 	{
 		disableInteractor();
-		emit msg(tr("Slicer %1 disabled.").arg(slicerModeString(m_mode)));
+		LOG(lvlInfo, tr("Slicer %1 disabled.").arg(slicerModeString(m_mode)));
 	}
 	else
 	{
 		enableInteractor();
-		emit msg(tr("Slicer %1 enabled.").arg(slicerModeString(m_mode)));
+		LOG(lvlInfo, tr("Slicer %1 enabled.").arg(slicerModeString(m_mode)));
 	}
 }
 
@@ -650,7 +650,7 @@ void iASlicer::setMagicLensEnabled( bool isEnabled )
 {
 	if (!m_magicLens)
 	{
-		DEBUG_LOG("SetMagicLensEnabled called on slicer which doesn't have a magic lens!");
+		LOG(lvlWarn, "SetMagicLensEnabled called on slicer which doesn't have a magic lens!");
 		return;
 	}
 	m_magicLens->setEnabled(isEnabled);
@@ -663,7 +663,7 @@ iAMagicLens * iASlicer::magicLens()
 {
 	if (!m_magicLens)
 	{
-		DEBUG_LOG("SetMagicLensEnabled called on slicer which doesn't have a magic lens!");
+		LOG(lvlWarn, "SetMagicLensEnabled called on slicer which doesn't have a magic lens!");
 		return nullptr;
 	}
 	return m_magicLens.data();
@@ -673,7 +673,7 @@ void iASlicer::setMagicLensSize(int newSize)
 {
 	if (!m_magicLens)
 	{
-		DEBUG_LOG("SetMagicLensSize called on slicer which doesn't have a magic lens!");
+		LOG(lvlWarn, "SetMagicLensSize called on slicer which doesn't have a magic lens!");
 		return;
 	}
 	m_magicLens->setSize(newSize);
@@ -689,7 +689,7 @@ void iASlicer::setMagicLensFrameWidth(int newWidth)
 {
 	if (!m_magicLens)
 	{
-		DEBUG_LOG("SetMagicLensFrameWidth called on slicer which doesn't have a magic lens!");
+		LOG(lvlWarn, "SetMagicLensFrameWidth called on slicer which doesn't have a magic lens!");
 		return;
 	}
 	m_magicLens->setFrameWidth(newWidth);
@@ -700,7 +700,7 @@ void iASlicer::setMagicLensCount(int count)
 {
 	if (!m_magicLens)
 	{
-		DEBUG_LOG("SetMagicLensCount called on slicer which doesn't have a magic lens!");
+		LOG(lvlWarn, "SetMagicLensCount called on slicer which doesn't have a magic lens!");
 		return;
 	}
 	m_magicLens->setLensCount(count);
@@ -711,7 +711,7 @@ void iASlicer::setMagicLensInput(uint id)
 {
 	if (!m_magicLens)
 	{
-		DEBUG_LOG("SetMagicLensInput called on slicer which doesn't have a magic lens!");
+		LOG(lvlWarn, "SetMagicLensInput called on slicer which doesn't have a magic lens!");
 		return;
 	}
 	iAChannelSlicerData * d = channel(id);
@@ -734,7 +734,7 @@ void iASlicer::setMagicLensOpacity(double opacity)
 {
 	if (!m_magicLens)
 	{
-		DEBUG_LOG("SetMagicLensOpacity called on slicer which doesn't have a magic lens!");
+		LOG(lvlWarn, "SetMagicLensOpacity called on slicer which doesn't have a magic lens!");
 		return;
 	}
 	m_magicLens->setOpacity(opacity);
@@ -1007,7 +1007,7 @@ void iASlicer::saveSliceMovie(QString const& fileName, int qual /*= 2*/)
 	double const * imgOrigin = m_channels[0]->input()->GetOrigin();
 	double const * imgSpacing = m_channels[0]->input()->GetSpacing();
 
-	emit msg(tr("Movie export started, output file name: %1.").arg(fileName));
+	LOG(lvlInfo, tr("Movie export started, output file name: %1.").arg(fileName));
 
 	double oldResliceAxesOrigin[3];
 	m_channels[0]->resliceAxesOrigin(oldResliceAxesOrigin);
@@ -1031,7 +1031,7 @@ void iASlicer::saveSliceMovie(QString const& fileName, int qual /*= 2*/)
 		movieWriter->Write();
 		if (movieWriter->GetError())
 		{
-			emit msg(movieWriter->GetStringFromErrorCode(movieWriter->GetErrorCode()));
+			LOG(lvlError, movieWriter->GetStringFromErrorCode(movieWriter->GetErrorCode()));
 			break;
 		}
 		emit progress(100 * (slice - sliceFrom) / (sliceTo - sliceFrom));
@@ -1043,11 +1043,11 @@ void iASlicer::saveSliceMovie(QString const& fileName, int qual /*= 2*/)
 
 	if (movieWriter->GetError())
 	{
-		emit msg(tr("Movie export failed."));
+		LOG(lvlError, tr("Movie export failed."));
 	}
 	else
 	{
-		emit msg(tr("Movie export completed."));
+		LOG(lvlInfo, tr("Movie export completed."));
 	}
 }
 
@@ -1243,7 +1243,7 @@ void iASlicer::saveImageStack()
 		writeSingleSliceImage(newFileName, img);
 	}
 	m_interactor->Enable();
-	emit msg(tr("Image stack saved in folder: %1")
+	LOG(lvlInfo, tr("Image stack saved in folder: %1")
 		.arg(fileInfo.absoluteDir().absolutePath()));
 }
 
@@ -1331,7 +1331,7 @@ void iASlicer::execute(vtkObject * /*caller*/, unsigned long eventId, void * /*c
 	}
 	case vtkCommand::MouseMoveEvent:
 	{
-		//DEBUG_LOG("iASlicer::execute vtkCommand::MouseMoveEvent");
+		//LOG(lvlInfo, "iASlicer::execute vtkCommand::MouseMoveEvent");
 		if (m_decorations)
 		{
 			m_positionMarkerActor->SetVisibility(false);

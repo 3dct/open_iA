@@ -36,7 +36,7 @@
 
 #include <dlg_commoninput.h>
 #include <iAColorTheme.h>
-#include <iAConsole.h>
+#include <iALog.h>
 #include <iALookupTable.h>
 #include <iAParameterNames.h>
 #include <iAToolsITK.h>
@@ -132,7 +132,7 @@ ChartWidgetData CreateChartWidget(const char * xTitle, const char * yTitle,
 	iADockWidgetWrapper * w(new iADockWidgetWrapper(result.vtkWidget,
 			QString("%1 vs. %2").arg(xTitle).arg(yTitle),
 			QString("%1%2").arg(xTitle).arg(yTitle).replace(" ", "") ));
-	mdiChild->splitDockWidget(mdiChild->logDockWidget(), w, Qt::Vertical);
+	mdiChild->splitDockWidget(mdiChild->renderDockWidget(), w, Qt::Vertical);
 	return result;
 }
 
@@ -321,7 +321,7 @@ LabelVotingType::Pointer GetLabelVotingFilter(
 				int attributeID = findAttribute(*selection[m]->attributes().data(), QString("Dice %1").arg(l));
 				if (attributeID == -1)
 				{
-					DEBUG_LOG(QString("Attribute 'Dice %1' not found, aborting!").arg(l));
+					LOG(lvlError, QString("Attribute 'Dice %1' not found, aborting!").arg(l));
 					return LabelVotingType::Pointer();
 				}
 				memberDice.push_back(std::make_pair(m, selection[m]->attribute(attributeID)));
@@ -350,7 +350,7 @@ LabelVotingType::Pointer GetLabelVotingFilter(
 				int attributeID = findAttribute(*selection[m]->attributes().data(), QString("Dice %1").arg(l));
 				if (attributeID == -1)
 				{
-					DEBUG_LOG(QString("Attribute 'Dice %1' not found, aborting!").arg(l));
+					LOG(lvlError, QString("Attribute 'Dice %1' not found, aborting!").arg(l));
 					return LabelVotingType::Pointer();
 				}
 				double labelDice = selection[m]->attribute(attributeID);
@@ -389,7 +389,7 @@ iAITKIO::ImagePointer GetVotingImage(QVector<QSharedPointer<iASingleResult> > se
 {
 	if (selection.size() == 0)
 	{
-		DEBUG_LOG("Please select a cluster from the tree!");
+		LOG(lvlError, "Please select a cluster from the tree!");
 		return iAITKIO::ImagePointer();
 	}
 	auto labelVotingFilter = GetLabelVotingFilter(
@@ -438,7 +438,7 @@ iAITKIO::ImagePointer GetProbVotingImage(QVector<QSharedPointer<iASingleResult> 
 {
 	if (selection.size() == 0)
 	{
-		DEBUG_LOG("Please select a cluster from the tree!");
+		LOG(lvlError, "Please select a cluster from the tree!");
 		return iAITKIO::ImagePointer();
 	}
 	auto filter = iAProbabilisticVotingImageFilter<LabelImageType>::New();
@@ -529,7 +529,7 @@ iAITKIO::ImagePointer GetVotingNumbers(QVector<QSharedPointer<iASingleResult> > 
 {
 	if (selection.size() == 0)
 	{
-		DEBUG_LOG("Please select a cluster from the tree!");
+		LOG(lvlError, "Please select a cluster from the tree!");
 		return iAITKIO::ImagePointer();
 	}
 	auto labelVotingFilter = GetLabelVotingFilter(
@@ -559,7 +559,7 @@ void dlg_Consensus::AbsMinPercentSlider(int)
 	m_dlgGEMSe->GetSelection(selection);
 	if (selection.size() == 0)
 	{
-		DEBUG_LOG("Please select a cluster from the tree!");
+		LOG(lvlError, "Please select a cluster from the tree!");
 		return;
 	}
 	double minAbs = static_cast<double>(slAbsMinPercent->value()) / slAbsMinPercent->maximum();
@@ -577,7 +577,7 @@ void dlg_Consensus::MinDiffPercentSlider(int)
 	m_dlgGEMSe->GetSelection(selection);
 	if (selection.size() == 0)
 	{
-		DEBUG_LOG("Please select a cluster from the tree!");
+		LOG(lvlError, "Please select a cluster from the tree!");
 		return;
 	}
 	double minDiff = static_cast<double>(slMinDiffPercent->value()) / slMinDiffPercent->maximum();
@@ -595,7 +595,7 @@ void dlg_Consensus::MinRatioSlider(int)
 	m_dlgGEMSe->GetSelection(selection);
 	if (selection.size() == 0)
 	{
-		DEBUG_LOG("Please select a cluster from the tree!");
+		LOG(lvlError, "Please select a cluster from the tree!");
 		return;
 	}
 	double minRatio = static_cast<double>(slMinRatio->value()) / 100;
@@ -613,7 +613,7 @@ void dlg_Consensus::MaxPixelEntropySlider(int)
 	m_dlgGEMSe->GetSelection(selection);
 	if (selection.size() == 0)
 	{
-		DEBUG_LOG("Please select a cluster from the tree!");
+		LOG(lvlError, "Please select a cluster from the tree!");
 		return;
 	}
 	double maxPixelEntropy = static_cast<double>(slMaxPixelEntropy->value()) / slMaxPixelEntropy->maximum();
@@ -629,14 +629,14 @@ void dlg_Consensus::LabelVoters(int)
 {
 	if (!m_groundTruthImage)
 	{
-		DEBUG_LOG("Please load a reference image first!");
+		LOG(lvlError, "Please load a reference image first!");
 		return;
 	}
 	QVector<QSharedPointer<iASingleResult> > selection;
 	m_dlgGEMSe->GetSelection(selection);
 	if (selection.size() == 0)
 	{
-		DEBUG_LOG("Please select a cluster from the tree!");
+		LOG(lvlError, "Please select a cluster from the tree!");
 		return;
 	}
 	int labelVoters = slLabelVoters->value();
@@ -655,7 +655,7 @@ void dlg_Consensus::MinAbsPlot()
 	m_dlgGEMSe->GetSelection(selection);
 	if (selection.size() == 0)
 	{
-		DEBUG_LOG("Please select a cluster from the tree!");
+		LOG(lvlError, "Please select a cluster from the tree!");
 		return;
 	}
 	double minAbs = static_cast<double>(slAbsMinPercent->value()) / slAbsMinPercent->maximum();
@@ -669,7 +669,7 @@ void dlg_Consensus::MinDiffPlot()
 	m_dlgGEMSe->GetSelection(selection);
 	if (selection.size() == 0)
 	{
-		DEBUG_LOG("Please select a cluster from the tree!");
+		LOG(lvlError, "Please select a cluster from the tree!");
 		return;
 	}
 	double minDiff = static_cast<double>(slAbsMinPercent->value()) / slAbsMinPercent->maximum();
@@ -683,7 +683,7 @@ void dlg_Consensus::RatioPlot()
 	m_dlgGEMSe->GetSelection(selection);
 	if (selection.size() == 0)
 	{
-		DEBUG_LOG("Please select a cluster from the tree!");
+		LOG(lvlError, "Please select a cluster from the tree!");
 		return;
 	}
 	double minRatio = static_cast<double>(slAbsMinPercent->value()) / slAbsMinPercent->maximum();
@@ -698,7 +698,7 @@ void dlg_Consensus::MaxPixelEntropyPlot()
 	m_dlgGEMSe->GetSelection(selection);
 	if (selection.size() == 0)
 	{
-		DEBUG_LOG("Please select a cluster from the tree!");
+		LOG(lvlError, "Please select a cluster from the tree!");
 		return;
 	}
 	double maxPixelEntropy = static_cast<double>(slMaxPixelEntropy->value()) / slMaxPixelEntropy->maximum();
@@ -710,7 +710,7 @@ void dlg_Consensus::StoreResult()
 {
 	if (!m_lastMVResult)
 	{
-		DEBUG_LOG("You need to perform Voting at least once, before last Consensus result can be stored!");
+		LOG(lvlError, "You need to perform Voting at least once, before last Consensus result can be stored!");
 		return;
 	}
 	iAITKIO::ScalarPixelType pixelType = itk::ImageIOBase::INT;
@@ -788,7 +788,7 @@ void dlg_Consensus::StoreConfig()
 	m_dlgGEMSe->GetSelection(selection);
 	if (selection.size() == 0)
 	{
-		DEBUG_LOG("Please select a cluster from the tree!");
+		LOG(lvlError, "Please select a cluster from the tree!");
 		return;
 	}
 	QStringList parameterSets;
@@ -810,7 +810,7 @@ void dlg_Consensus::StoreConfig()
 				int attributeID = findAttribute(*selection[m]->attributes().data(), derivedOutName);
 				if (attributeID == -1)
 				{
-					DEBUG_LOG(QString("Attribute '%1' not found!").arg(derivedOutName));
+					LOG(lvlError, QString("Attribute '%1' not found!").arg(derivedOutName));
 				}
 				double labelDice = selection[m]->attribute(attributeID);
 				inputWeights.append(QString::number(labelDice));
@@ -841,7 +841,7 @@ namespace
 			}
 			else
 			{
-				DEBUG_LOG(QString("Error in converting full ID '%1'!").arg(fullID));
+				LOG(lvlError, QString("Error in converting full ID '%1'!").arg(fullID));
 			}
 		}
 	}
@@ -918,7 +918,7 @@ void dlg_Consensus::LoadConfig()
 				double labelWeight = inputWeights[m].toDouble(&ok);
 				if (!ok)
 				{
-					DEBUG_LOG(QString("Error in label weights for label %1, entry %2('%3')").arg(l).arg(m).arg(inputWeights[m]));
+					LOG(lvlError, QString("Error in label weights for label %1, entry %2('%3')").arg(l).arg(m).arg(inputWeights[m]));
 					return;
 				}
 				inputLabelWeightMap.insert(
@@ -1015,7 +1015,7 @@ void dlg_Consensus::LoadConfig()
 			iASEAFile::DefaultSPSFileName,
 			iASEAFile::DefaultCHRFileName,
 			lastSamplingID+s,
-			iAGlobalLogger::get()
+			iALog::get()
 		));
 		m_queuedSamplers.push_back(sampler);
 	}
@@ -1045,12 +1045,12 @@ void dlg_Consensus::samplerFinished()
 	iAImageSampler* sender = qobject_cast<iAImageSampler*> (QObject::sender());
 	if (!sender)
 	{
-		DEBUG_LOG("Invalid samplingFinished: No iAImageSampler sender!");
+		LOG(lvlError, "Invalid samplingFinished: No iAImageSampler sender!");
 		return;
 	}
 	if (sender->isAborted())
 	{
-		DEBUG_LOG("Parameter sampling was aborted, aborting further configuration loading steps!");
+		LOG(lvlWarn, "Parameter sampling was aborted, aborting further configuration loading steps!");
 		return;
 	}
 	auto results = sender->results();
@@ -1065,7 +1065,7 @@ void dlg_Consensus::samplerFinished()
 		}
 	}
 
-	DEBUG_LOG("Measures for loaded configuration:");
+	LOG(lvlInfo, "Measures for loaded configuration:");
 	m_comparisonMVSelection.clear();
 	m_comparisonBestSelection.clear();
 	for (int s = 0; s < m_comparisonSamplingResults.size(); ++s)
@@ -1129,7 +1129,7 @@ void dlg_Consensus::samplerFinished()
 					debugOut += QString("\t%1").arg(m_comparisonSamplingResults[s]->get(m)->attribute(i));
 				}
 			}
-			DEBUG_LOG(debugOut);
+			LOG(lvlInfo, debugOut);
 			// }
 			for (int i = 0; i<measures.size(); ++i)
 			{
@@ -1191,7 +1191,7 @@ void dlg_Consensus::AddResult(vtkSmartPointer<vtkTable> table, QString const & t
 	m_checkBoxResultIDMap.insert(checkBox, idx);
 	if (m_results.size() != idx)
 	{
-		DEBUG_LOG("Results vector and table are out of sync!");
+		LOG(lvlError, "Results vector and table are out of sync!");
 		return;
 	}
 	m_results.push_back(table);
@@ -1283,7 +1283,7 @@ void dlg_Consensus::Sample(QVector<QSharedPointer<iASingleResult> > const & sele
 		auto size = region.GetSize();
 		double pixelCount = size[0] * size[1] * size[2];
 
-		// DEBUG_LOG("Measures for SAMPLING:");
+		// LOG(lvlInfo, "Measures for SAMPLING:");
 
 		// TODO:
 		/*
@@ -1371,7 +1371,7 @@ void dlg_Consensus::Sample(QVector<QSharedPointer<iASingleResult> > const & sele
 	}
 	catch (std::exception & e)
 	{
-		DEBUG_LOG(QString("Exception occured while sampling loaded config: %1").arg(e.what()));
+		LOG(lvlError, QString("Exception occured while sampling loaded config: %1").arg(e.what()));
 	}
 }
 
@@ -1456,7 +1456,7 @@ void dlg_Consensus::CalcSTAPLE()
 	m_dlgGEMSe->GetSelection(selection);
 	if (selection.size() == 0)
 	{
-		DEBUG_LOG("Please select a cluster from the tree!");
+		LOG(lvlError, "Please select a cluster from the tree!");
 		return;
 	}
 	typedef itk::MultiLabelSTAPLEImageFilter<UIntImage, UIntImage> STAPLEFilter;
@@ -1485,7 +1485,7 @@ void dlg_Consensus::CalcMajorityVote()
 	m_dlgGEMSe->GetSelection(selection);
 	if (selection.size() == 0)
 	{
-		DEBUG_LOG("Please select a cluster from the tree!");
+		LOG(lvlError, "Please select a cluster from the tree!");
 		return;
 	}
 	itk::LabelVotingImageFilter<UIntImage>::Pointer filter = itk::LabelVotingImageFilter<UIntImage>::New();
@@ -1514,7 +1514,7 @@ void dlg_Consensus::CalcProbRuleVote()
 	m_dlgGEMSe->GetSelection(selection);
 	if (selection.size() == 0)
 	{
-		DEBUG_LOG("Please select a cluster from the tree!");
+		LOG(lvlError, "Please select a cluster from the tree!");
 		return;
 	}
 	double undecided;
