@@ -1,4 +1,5 @@
-SET (ParameterExplorer_PRECOMPILE_INCLUDES <iAConsole.h>
+SET (ParameterExplorer_PRECOMPILE_INCLUDES
+<iALog.h>
 <iAParamSpatialView.h>
 <iAParamTableView.h>
 <QHBoxLayout>

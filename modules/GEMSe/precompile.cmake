@@ -15,7 +15,6 @@ SET (GEMSe_PRECOMPILE_INCLUDES <cassert>
 <iAClusterAttribChart.h>
 <iAColorTheme.h>
 <iAConnector.h>
-<iAConsole.h>
 <iAFakeTreeNode.h>
 <iAGEMSeConstants.h>
 <iAGEMSeProject.h>
@@ -28,6 +27,7 @@ SET (GEMSe_PRECOMPILE_INCLUDES <cassert>
 <iAImageTreeNode.h>
 <iALabelInfo.h>
 <iALabelOverlayThread.h>
+<iALog.h>
 <iAMathUtility.h>
 <iAMeasures.h>
 <iAModality.h>
