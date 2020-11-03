@@ -20,20 +20,12 @@
 * ************************************************************************************/
 #pragma once
 
-#include "iALogger.h"
+#include "iALog.h"
 
-#include <QObject>
+#include <QStringList>
 
-class MdiChild;
+open_iA_Core_API QString logLevelToString(iALogLevel lvl);
+open_iA_Core_API iALogLevel stringToLogLevel(QString const& str, bool& ok);
+QStringList AvailableLogLevels();
 
-//! simple wrapper class to decouple logging from the GUI
-//! regarding threads
-class iAMdiChildLogger : public QObject, public iALogger
-{
-	Q_OBJECT
-public:
-	iAMdiChildLogger(MdiChild* mdiChild);
-	void log(iALogLevel lvl, QString const & msg) override;
-signals:
-	void logSignal(QString msg);
-};
+// implementation in iALog.cpp

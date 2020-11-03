@@ -311,7 +311,6 @@ iARenderer::iARenderer(QObject *par)  :  QObject( par ),
 	MdiChild * mdi_parent = dynamic_cast<MdiChild*>(parent());
 	if (mdi_parent)
 	{
-		connect(this, &iARenderer::msg, mdi_parent, &MdiChild::addMsg);
 		connect(this, &iARenderer::progress, mdi_parent, &MdiChild::updateProgressBar);
 	}
 }
@@ -771,7 +770,7 @@ void iARenderer::saveMovie( const QString& fileName, int mode, int qual /*= 2*/ 
 	movieWriter->SetInputConnection(windowToImage->GetOutputPort());
 	movieWriter->Start();
 
-	emit msg(tr("Movie export started, output file name: %1").arg(fileName));
+	LOG(lvlInfo, tr("Movie export started, output file name: %1").arg(fileName));
 
 	int numRenderings = 360;//TODO
 	auto rot = vtkSmartPointer<vtkTransform>::New();
@@ -822,7 +821,7 @@ void iARenderer::saveMovie( const QString& fileName, int mode, int qual /*= 2*/ 
 		movieWriter->Write();
 		if (movieWriter->GetError())
 		{
-			emit msg(movieWriter->GetStringFromErrorCode(movieWriter->GetErrorCode()));
+			LOG(lvlError, movieWriter->GetStringFromErrorCode(movieWriter->GetErrorCode()));
 			break;
 		}
 		emit progress( 100 * (i+1) / numRenderings);
@@ -835,11 +834,11 @@ void iARenderer::saveMovie( const QString& fileName, int mode, int qual /*= 2*/ 
 
 	if (movieWriter->GetError())
 	{
-		emit msg(tr("Movie export failed."));
+		LOG(lvlError, tr("Movie export failed."));
 	}
 	else
 	{
-		emit msg(tr("Movie export completed."));
+		LOG(lvlInfo, tr("Movie export completed."));
 	}
 }
 

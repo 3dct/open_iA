@@ -30,6 +30,7 @@
 #include "dlg_openfile_sizecheck.h"
 #include "iACheckOpenGL.h"
 #include "iALog.h"
+#include "iALogLevelMappings.h"
 #include "iALogWidget.h"
 #include "iAMathUtility.h"
 #include "iAModuleDispatcher.h"
@@ -1029,12 +1030,9 @@ void MainWindow::prefs()
 		descr = "Could not write to the specified logfile, logging to file was therefore disabled."
 			" Please check file permissions and/or whether the path to the file exists, before re-enabling the option!.";
 	}
-	QStringList logLevels, fileLogLevels;
-	for (int i = lvlDebug; i <= lvlFatal; ++i)
-	{
-		logLevels << (((i == iALogWidget::get()->logLevel()) ? "!" : "") + logLevelToString(static_cast<iALogLevel>(i)));
-		fileLogLevels << (((i == iALogWidget::get()->fileLogLevel()) ? "!" : "") + logLevelToString(static_cast<iALogLevel>(i)));
-	}
+	QStringList logLevels(AvailableLogLevels()), fileLogLevels(AvailableLogLevels());
+	logLevels[iALogWidget::get()->logLevel()-1] = "!" + logLevels[iALogWidget::get()->logLevel()-1];
+	fileLogLevels[iALogWidget::get()->fileLogLevel() - 1] = "!" + fileLogLevels[iALogWidget::get()->fileLogLevel() - 1];
 	QList<QVariant> inPara; 	inPara << tr("%1").arg(p.HistogramBins)
 		<< tr("%1").arg(p.StatisticalExtent)
 		<< (p.Compression ? tr("true") : tr("false"))

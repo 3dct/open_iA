@@ -20,6 +20,8 @@
 * ************************************************************************************/
 #include "iALoggerStdOut.h"
 
+#include "iALogLevelMappings.h"
+
 #include <iostream>
 
 void iALoggerStdOut::log(iALogLevel lvl, QString const& msg)

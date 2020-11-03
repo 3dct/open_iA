@@ -32,6 +32,7 @@
 #include <iASlicer.h>
 #include <io/extension2id.h>
 #include <io/iAIO.h>
+#include <iALog.h>
 #include <mainwindow.h>
 #include <mdichild.h>
 #include <qthelper/iAWidgetAddHelper.h>
@@ -75,7 +76,7 @@ iAInSpectrAttachment::iAInSpectrAttachment( MainWindow * mainWnd, MdiChild * chi
 		throw itk::ExceptionObject(__FILE__, __LINE__, "File does not exist");
 	}
 
-	m_child->addMsg(tr("Loading file '%1', please wait...").arg(f));
+	LOG(lvlInfo, tr("Loading file '%1', please wait...").arg(f));
 
 	dlgPeriodicTable = new dlg_periodicTable( m_child );
 	dlgRefSpectra = new dlg_RefSpectra( m_child );
@@ -84,7 +85,7 @@ iAInSpectrAttachment::iAInSpectrAttachment( MainWindow * mainWnd, MdiChild * chi
 
 	dlgXRF = new dlg_InSpectr( m_child, dlgPeriodicTable, dlgRefSpectra );
 
-	ioThread = new iAIO( m_child->logger(), m_child, dlgXRF->GetXRFData()->GetDataPtr() );
+	ioThread = new iAIO(iALog::get(), m_child, dlgXRF->GetXRFData()->GetDataPtr() );
 	m_child->setReInitializeRenderWindows( false );
 	m_child->connectIOThreadSignals( ioThread );
 	connect( ioThread, &iAIO::done, this, &iAInSpectrAttachment::xrfLoadingDone);
@@ -158,7 +159,7 @@ void iAInSpectrAttachment::initXRF( bool enableChannel )
 		m_child->setMagicLensInput(m_xrfChannelID);
 	}
 	m_child->updateSlicers();
-	m_child->addMsg(tr("Spectral color image initialized."));
+	LOG(lvlInfo, tr("Spectral color image initialized."));
 }
 
 QThread* iAInSpectrAttachment::recalculateXRF()
@@ -246,7 +247,7 @@ void iAInSpectrAttachment::xrfLoadingDone()
 			haveEnergyLevels = true;
 		}
 	}
-	iAWidgetAddHelper wdgtHelp(m_child, m_child->logDockWidget());
+	iAWidgetAddHelper wdgtHelp(m_child, m_child->renderDockWidget());
 	dlgXRF->init( minEnergy, maxEnergy, haveEnergyLevels, wdgtHelp);
 	connect( dlgXRF->cb_spectralColorImage, &QCheckBox::stateChanged, this, &iAInSpectrAttachment::visualizeXRF);
 	connect( dlgXRF->sl_peakOpacity, &QSlider::valueChanged, this, &iAInSpectrAttachment::updateXRFOpacity);
@@ -258,7 +259,7 @@ void iAInSpectrAttachment::xrfLoadingDone()
 
 void iAInSpectrAttachment::xrfLoadingFailed()
 {
-	m_child->addMsg( tr("XRF data loading has failed!"));
+	LOG(lvlError, tr("XRF data loading has failed!"));
 	delete dlgXRF;
 	delete dlgPeriodicTable;
 	delete dlgRefSpectra;
@@ -289,7 +290,7 @@ void iAInSpectrAttachment::updateXRFOpacity( int /*value*/ )
 bool iAInSpectrAttachment::filter_SimilarityMap()
 {
 	dlgSimilarityMap = new dlg_SimilarityMap( m_child );
-	m_child->tabifyDockWidget( m_child->logDockWidget(), dlgSimilarityMap );
+	m_child->tabifyDockWidget( m_child->renderDockWidget(), dlgSimilarityMap );
 
 	return true;
 }
@@ -297,7 +298,7 @@ bool iAInSpectrAttachment::filter_SimilarityMap()
 void iAInSpectrAttachment::initSlicerXRF( bool enableChannel )
 {
 	assert( !m_child->channelData(m_xrfChannelID) );
-	m_child->addMsg(tr("Initializing Spectral Color Image. This may take a while..."));
+	LOG(lvlInfo, tr("Initializing Spectral Color Image. This may take a while..."));
 	auto calcThread = recalculateXRF();
 	if (enableChannel)
 	{

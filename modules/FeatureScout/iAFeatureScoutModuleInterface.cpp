@@ -218,7 +218,7 @@ void iAFeatureScoutModuleInterface::LoadFeatureScoutWithParams(QString const & c
 	auto type = guessFeatureType(csvFileName);
 	if (type == InvalidObjectType)
 	{
-		m_mdiChild->addMsg("CSV-file could not be opened or not a valid FeatureScout file!");
+		LOG(lvlError, "CSV-file could not be opened or not a valid FeatureScout file!");
 		return;
 	}
 	iACsvConfig csvConfig = (type != Voids) ?
@@ -278,7 +278,7 @@ bool iAFeatureScoutModuleInterface::startFeatureScout(iACsvConfig const & csvCon
 	iAFeatureScoutAttachment* attach = GetAttachment<iAFeatureScoutAttachment>();
 	if (!attach)
 	{
-		m_mdiChild->addMsg("Error while attaching FeatureScout to mdi child window!");
+		LOG(lvlError, "Error while attaching FeatureScout to mdi child window!");
 		return false;
 	}
 	std::map<size_t, std::vector<iAVec3f> > curvedFiberInfo;
@@ -290,11 +290,11 @@ bool iAFeatureScoutModuleInterface::startFeatureScout(iACsvConfig const & csvCon
 		curvedFiberInfo, csvConfig.cylinderQuality, csvConfig.segmentSkip);
 	SetupToolbar();
 	m_mdiChild->addStatusMsg(QString("FeatureScout started (csv: %1)").arg(csvConfig.fileName));
-	m_mdiChild->addMsg(QString("FeatureScout started (csv: %1)").arg(csvConfig.fileName));
+	LOG(lvlInfo, QString("FeatureScout started (csv: %1)").arg(csvConfig.fileName));
 	if (csvConfig.visType == iACsvConfig::UseVolume)
 	{
 		setFeatureScoutRenderSettings();
-		m_mdiChild->addMsg("The render settings of the current child window have been adapted for the volume visualization of FeatureScout!");
+		LOG(lvlInfo, "The render settings of the current child window have been adapted for the volume visualization of FeatureScout!");
 	}
 	auto project = QSharedPointer<iAFeatureScoutProject>::create();
 	project->setOptions(csvConfig);

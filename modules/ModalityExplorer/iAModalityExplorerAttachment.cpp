@@ -30,7 +30,7 @@ iAModalityExplorerAttachment::iAModalityExplorerAttachment(MainWindow * mainWnd,
 {
 	m_dlgModalitySPLOM = new dlg_modalitySPLOM();
 	m_dlgModalitySPLOM->SetData(child->modalities());
-	child->tabifyDockWidget(child->logDockWidget(), m_dlgModalitySPLOM);
+	child->tabifyDockWidget(child->renderDockWidget(), m_dlgModalitySPLOM);
 	/*
 	dlg_planeSlicer* planeSlicer = new dlg_planeSlicer();
 	mdiChild->splitDockWidget(renderWidget, planeSlicer, Qt::Horizontal);

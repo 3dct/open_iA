@@ -20,7 +20,6 @@
 * ************************************************************************************/
 #pragma once
 
-//#include "defines.h"
 #include "qthelper/iAQTtoUIConnector.h"
 #include "iAPreferences.h"
 #include "iARenderSettings.h"
@@ -28,7 +27,6 @@
 #include "iASlicerSettings.h"
 #include "iAVolumeSettings.h"
 #include "open_iA_Core_export.h"
-#include "ui_logs.h"
 #include "ui_Mdichild.h"
 #include "ui_renderer.h"
 
@@ -70,7 +68,6 @@ class iAChartWithFunctionsWidget;
 class iADockWidgetWrapper;
 class iAIO;
 class iAJobListView;
-class iALogger;
 class iAModality;
 class iAModalityList;
 class iAParametricSpline;
@@ -84,7 +81,6 @@ class iAVolumeStack;
 class MainWindow;
 
 typedef iAQTtoUIConnector<QDockWidget, Ui_renderer>  dlg_renderer;
-typedef iAQTtoUIConnector<QDockWidget, Ui_logs>   dlg_logs;
 
 //! Child window of MainWindow's mdi area for showing a volume or mesh dataset.
 //! Some tools in the modules attach to MdiChild's to enhance their functionality.
@@ -136,7 +132,6 @@ public:
 	void setRenderSettings(iARenderSettings const & rs, iAVolumeSettings const & vs);
 	void setupSlicers(iASlicerSettings const & ss, bool init);
 	void check2DMode();
-	iALogger * logger();
 	iARenderSettings const & renderSettings() const;
 	iAVolumeSettings const & volumeSettings() const;
 	iASlicerSettings const & slicerSettings() const;
@@ -181,12 +176,10 @@ public:
 	dlg_imageproperty * imagePropertyDockWidget();
 	//! Access to line profile dock widget
 	dlg_profile * profileDockWidget();
-	//! Access to log message dock widget
-	dlg_logs * logDockWidget();
 	//! Access to histogram dock widget
 	iADockWidgetWrapper* histogramDockWidget();
 	//! Access to modalities dock widget
-	dlg_modalities* modalitiesDockWidget();
+	dlg_modalities* dataDockWidget();
 	//! Access to the jobs dock widget
 	iAJobListView* jobsList();
 
@@ -338,8 +331,7 @@ public slots:
 	void updateSlicer(int index);
 	void updateSlicers();
 	void updateViews();
-	void addMsg(QString txt);
-	void addStatusMsg(QString txt);
+	void addStatusMsg(QString const & txt);
 	void setupView(bool active = false);
 	void setupStackView(bool active = false);
 	void setupProject(bool active = false);
@@ -371,7 +363,6 @@ private slots:
 	void toggleProfileHandles(bool isChecked);
 	void ioFinished();
 	void updateImageProperties();
-	void clearLogs();
 	void modalityTFChanged();
 	void histogramDataAvailable(int modalityIdx);
 	void statisticsAvailable(int modalityIdx);
@@ -498,7 +489,6 @@ private:
 	dlg_slicer * m_dwSlicer[3];
 	dlg_modalities * m_dwModalities;
 	dlg_renderer * m_dwRenderer;
-	dlg_logs * m_dwLog;
 	//! @}
 
 	QProgressBar * m_pbar;
@@ -510,8 +500,7 @@ private:
 	uint m_magicLensChannel;
 
 	int m_previousIndexOfVolume;
-
-	iALogger* m_logger;
+	
 	QByteArray m_initialLayoutState;
 	QString m_layout;
 	//! temporary smart pointer to image currently being saved

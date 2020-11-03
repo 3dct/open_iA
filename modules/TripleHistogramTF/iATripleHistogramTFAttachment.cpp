@@ -42,7 +42,7 @@ void iATripleHistogramTFAttachment::start2TF()
 	if (!m_tf_2mod)
 	{
 		m_tf_2mod = new dlg_tf_2mod(m_child);
-		m_child->tabifyDockWidget(m_child->logDockWidget(), m_tf_2mod);
+		m_child->tabifyDockWidget(m_child->renderDockWidget(), m_tf_2mod);
 	}
 	m_tf_2mod->show();
 	m_tf_2mod->raise();
@@ -53,7 +53,7 @@ void iATripleHistogramTFAttachment::start3TF()
 	if (!m_tf_3mod)
 	{
 		m_tf_3mod = new dlg_tf_3mod(m_child);
-		m_child->tabifyDockWidget(m_child->logDockWidget(), m_tf_3mod);
+		m_child->tabifyDockWidget(m_child->renderDockWidget(), m_tf_3mod);
 	}
 	m_tf_3mod->show();
 	m_tf_3mod->raise();

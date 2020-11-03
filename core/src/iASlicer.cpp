@@ -510,12 +510,12 @@ void iASlicer::toggleInteractorState()
 	if (m_interactor->GetEnabled())
 	{
 		disableInteractor();
-		emit msg(tr("Slicer %1 disabled.").arg(slicerModeString(m_mode)));
+		LOG(lvlInfo, tr("Slicer %1 disabled.").arg(slicerModeString(m_mode)));
 	}
 	else
 	{
 		enableInteractor();
-		emit msg(tr("Slicer %1 enabled.").arg(slicerModeString(m_mode)));
+		LOG(lvlInfo, tr("Slicer %1 enabled.").arg(slicerModeString(m_mode)));
 	}
 }
 
@@ -1007,7 +1007,7 @@ void iASlicer::saveSliceMovie(QString const& fileName, int qual /*= 2*/)
 	double const * imgOrigin = m_channels[0]->input()->GetOrigin();
 	double const * imgSpacing = m_channels[0]->input()->GetSpacing();
 
-	emit msg(tr("Movie export started, output file name: %1.").arg(fileName));
+	LOG(lvlInfo, tr("Movie export started, output file name: %1.").arg(fileName));
 
 	double oldResliceAxesOrigin[3];
 	m_channels[0]->resliceAxesOrigin(oldResliceAxesOrigin);
@@ -1031,7 +1031,7 @@ void iASlicer::saveSliceMovie(QString const& fileName, int qual /*= 2*/)
 		movieWriter->Write();
 		if (movieWriter->GetError())
 		{
-			emit msg(movieWriter->GetStringFromErrorCode(movieWriter->GetErrorCode()));
+			LOG(lvlError, movieWriter->GetStringFromErrorCode(movieWriter->GetErrorCode()));
 			break;
 		}
 		emit progress(100 * (slice - sliceFrom) / (sliceTo - sliceFrom));
@@ -1043,11 +1043,11 @@ void iASlicer::saveSliceMovie(QString const& fileName, int qual /*= 2*/)
 
 	if (movieWriter->GetError())
 	{
-		emit msg(tr("Movie export failed."));
+		LOG(lvlError, tr("Movie export failed."));
 	}
 	else
 	{
-		emit msg(tr("Movie export completed."));
+		LOG(lvlInfo, tr("Movie export completed."));
 	}
 }
 
@@ -1243,7 +1243,7 @@ void iASlicer::saveImageStack()
 		writeSingleSliceImage(newFileName, img);
 	}
 	m_interactor->Enable();
-	emit msg(tr("Image stack saved in folder: %1")
+	LOG(lvlInfo, tr("Image stack saved in folder: %1")
 		.arg(fileInfo.absoluteDir().absolutePath()));
 }
 

@@ -19,6 +19,7 @@
 *          Stelzhamerstraße 23, 4600 Wels / Austria, Email: c.heinzl@fh-wels.at       *
 * ************************************************************************************/
 #include "iALog.h"
+#include "iALogLevelMappings.h"
 
 iALogger* iALog::m_globalLogger(nullptr);
 
@@ -32,21 +33,45 @@ iALogger* iALog::get()
 	return m_globalLogger;
 }
 
-// iALogger
+// iALogger - move to separate iALogger.cpp?
+
+QStringList AvailableLogLevels()
+{
+	static QStringList logLevelStrings;
+	if (logLevelStrings.isEmpty())
+	{
+		logLevelStrings << "DEBUG" << "INFO " << "WARN " << "ERROR" << "FATAL";
+	}
+	return logLevelStrings;
+}
 
 
 QString logLevelToString(iALogLevel lvl)
 {
-	switch (lvl)
+	if (lvl < lvlDebug && lvl > lvlFatal)
 	{
-	case lvlDebug: return "DEBUG";
-	case lvlInfo : return "INFO ";
-	case lvlWarn : return "WARN ";
-	case lvlError: return "ERROR";
-	case lvlFatal: return "FATAL";
+		return "?????";
 	}
-	return "?????";
+	return AvailableLogLevels()[lvl - 1];
 }
+
+open_iA_Core_API iALogLevel stringToLogLevel(QString const& str, bool& ok)
+{
+	ok = true;
+	for (int l = 0; l < AvailableLogLevels().size(); ++l)
+	{
+		if (str == AvailableLogLevels()[l])
+		{
+			return static_cast<iALogLevel>(l+1);
+		}
+	}
+	ok = false;
+	return lvlWarn;
+}
+
+iALogger::iALogger():
+	m_logLevel(lvlWarn)
+{}
 
 iALogger::~iALogger()
 {}
