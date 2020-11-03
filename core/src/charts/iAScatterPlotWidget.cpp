@@ -105,14 +105,16 @@ iAScatterPlotWidget::iAScatterPlotWidget(QSharedPointer<iASPLOMData> data) :
 	m_scatterplot->setData(0, 1, data);
 }
 
-void iAScatterPlotWidget::SetPlotColor(QColor const & c, double rangeMin, double rangeMax)
+void iAScatterPlotWidget::setPlotColor(QColor const & c, double rangeMin, double rangeMax)
 {
 	QSharedPointer<iALookupTable> lut(new iALookupTable());
 	double lutRange[2] = { rangeMin, rangeMax };
 	lut->setRange(lutRange);
 	lut->allocate(2);
 	for (int i = 0; i < 2; ++i)
+	{
 		lut->setColor(i, c);
+	}
 	m_scatterplot->setLookupTable(lut, 0);
 }
 
@@ -133,15 +135,18 @@ void iAScatterPlotWidget::paintEvent(QPaintEvent * /*event*/)
 #endif
 	}
 	painter.setRenderHint(QPainter::Antialiasing);
-	painter.beginNativePainting();
 	QColor bgColor(QWidget::palette().color(QWidget::backgroundRole()));
 	QColor fg(QWidget::palette().color(QPalette::Text));
 	m_scatterplot->settings.tickLabelColor = fg;
+#ifdef CHART_OPENGL
+	painter.beginNativePainting();
 	glClearColor(bgColor.red() / 255.0, bgColor.green() / 255.0, bgColor.blue() / 255.0, 1.0);
 	glClear(GL_COLOR_BUFFER_BIT);
 	painter.endNativePainting();
+#else
+	painter.fillRect(rect(), bgColor);
+#endif
 	m_scatterplot->paintOnParent(painter);
-
 	// print axes tick labels:
 	painter.save();
 	QList<double> ticksX, ticksY; QList<QString> textX, textY;
@@ -152,7 +157,9 @@ void iAScatterPlotWidget::paintEvent(QPaintEvent * /*event*/)
 	for (long i = 0; i < ticksY.size(); ++i)
 	{
 		double t = ticksY[i]; QString text = textY[i];
-		painter.drawText(QRectF(0, t - tOfs.y(), tOfs.x() - tSpc, 2 * tOfs.y()), Qt::AlignRight | Qt::AlignVCenter, text);
+		QRectF textRect(-PaddingLeft(), t - tOfs.y(), tOfs.x() - tSpc, 2 * tOfs.y());
+		//LOG(lvlInfo, QString("text rect: %1,%2, %3x%4").arg(textRect.left()).arg(textRect.top()).arg(textRect.width()).arg(textRect.height()));
+		painter.drawText(textRect, Qt::AlignRight | Qt::AlignVCenter, text);
 	}
 	painter.rotate(-90);
 	for (long i = 0; i < ticksX.size(); ++i)
@@ -166,7 +173,7 @@ void iAScatterPlotWidget::paintEvent(QPaintEvent * /*event*/)
 	// print axes labels:
 	painter.save();
 	painter.setPen(m_scatterplot->settings.tickLabelColor);
-	painter.drawText(QRectF(0, height() - fm.height() - TextPadding, width(), fm.height()),
+	painter.drawText(QRectF(-PaddingLeft(), height() - fm.height() - TextPadding, width(), fm.height()),
 			Qt::AlignHCenter | Qt::AlignTop, m_data->parameterName(0));
 	painter.rotate(-90);
 	painter.drawText(QRectF(-height(), 0, height(), fm.height()), Qt::AlignCenter | Qt::AlignTop, m_data->parameterName(1));
@@ -179,6 +186,7 @@ void iAScatterPlotWidget::adjustScatterPlotSize()
 	size.moveTop(0);
 	size.moveLeft(0);
 	size.adjust(PaddingLeft(), PaddingTop, -PaddingRight, -PaddingBottom());
+	//LOG(lvlInfo, QString("%1,%2 %3x%4").arg(size.top()).arg(size.left()).arg(size.width()).arg(size.height()));
 	if (size.width() > 0 && size.height() > 0)
 	{
 		m_scatterplot->setRect(size);
@@ -247,30 +255,33 @@ void iAScatterPlotWidget::mouseMoveEvent(QMouseEvent * event)
 
 void iAScatterPlotWidget::keyPressEvent(QKeyEvent * event)
 {
-	switch (event->key())
+	if (event->key() == Qt::Key_R) //if R is pressed, reset all the applied transformation as offset and scaling
 	{
-	case Qt::Key_R: //if R is pressed, reset all the applied transformation as offset and scaling
 		m_scatterplot->setTransform(1.0, QPointF(0.0f, 0.0f));
-		break;
 	}
 }
 
-std::vector<size_t> & iAScatterPlotWidget::GetSelection()
+std::vector<size_t> & iAScatterPlotWidget::selection()
 {
 	return m_scatterPlotHandler->getSelection();
 }
 
-void iAScatterPlotWidget::SetSelection(std::vector<size_t> const & selection)
+void iAScatterPlotWidget::setSelection(std::vector<size_t> const & selection)
 {
 	m_scatterPlotHandler->setSelection(selection);
 }
 
-void iAScatterPlotWidget::SetSelectionColor(QColor const & c)
+void iAScatterPlotWidget::setSelectionColor(QColor const & c)
 {
 	m_scatterplot->settings.selectionColor = c;
 }
 
-void iAScatterPlotWidget::SetSelectionMode(iAScatterPlot::SelectionMode mode)
+void iAScatterPlotWidget::setSelectionMode(iAScatterPlot::SelectionMode mode)
 {
 	m_scatterplot->settings.selectionMode = mode;
+}
+
+void iAScatterPlotWidget::setPointRadius(double pointRadius)
+{
+	m_scatterplot->setPointRadius(pointRadius);
 }

@@ -24,7 +24,6 @@
 
 #include <iAConnector.h>
 #include <iALog.h>
-#include <iAPerformanceHelper.h>
 #include <iAToolsVTK.h>
 #include <iATypedCallHelper.h>
 #include <iAvec3.h>

@@ -95,7 +95,7 @@ void iAScatterPlotView::AddPlot(vtkImagePointer imgX, vtkImagePointer imgY, QStr
 	std::vector<size_t> selection;
 	if (m_scatterPlotWidget)
 	{
-		selection = m_scatterPlotWidget->GetSelection();
+		selection = m_scatterPlotWidget->selection();
 		delete m_scatterPlotWidget;
 	}
 	// setup data object:
@@ -120,10 +120,10 @@ void iAScatterPlotView::AddPlot(vtkImagePointer imgX, vtkImagePointer imgY, QStr
 	m_scatterPlotWidget = new iAScatterPlotWidget(splomData);
 	QColor c(iAUncertaintyColors::ScatterPlotDots);
 	c.setAlpha(128);
-	m_scatterPlotWidget->SetSelectionMode(iAScatterPlot::Rectangle);
-	m_scatterPlotWidget->SetPlotColor(c, 0, 1);
-	m_scatterPlotWidget->SetSelectionColor(iAUncertaintyColors::SelectedPixel);
-	m_scatterPlotWidget->SetSelection(selection);
+	m_scatterPlotWidget->setSelectionMode(iAScatterPlot::Rectangle);
+	m_scatterPlotWidget->setPlotColor(c, 0, 1);
+	m_scatterPlotWidget->setSelectionColor(iAUncertaintyColors::SelectedPixel);
+	m_scatterPlotWidget->setSelection(selection);
 	m_scatterPlotWidget->setMinimumWidth(width() / 2);
 	m_scatterPlotContainer->layout()->addWidget(m_scatterPlotWidget);
 	connect(m_scatterPlotWidget->m_scatterplot, &iAScatterPlot::selectionModified, this, &iAScatterPlotView::SelectionUpdated);
@@ -134,7 +134,7 @@ void iAScatterPlotView::SetDatasets(QSharedPointer<iAUncertaintyImages> imgs)
 {
 	if (m_scatterPlotWidget)
 	{
-		m_scatterPlotWidget->GetSelection().clear();
+		m_scatterPlotWidget->selection().clear();
 	}
 	for (auto widget : m_xAxisChooser->findChildren<QToolButton*>(QString(), Qt::FindDirectChildrenOnly))
 	{
@@ -214,7 +214,7 @@ void iAScatterPlotView::YAxisChoice()
 
 void iAScatterPlotView::SelectionUpdated()
 {
-	auto selectedPoints = m_scatterPlotWidget->GetSelection();
+	auto selectedPoints = m_scatterPlotWidget->selection();
 	std::set<size_t> selectedSet(selectedPoints.begin(), selectedPoints.end());
 	double* buf = static_cast<double*>(m_selectionImg->GetScalarPointer());
 	for (unsigned int v = 0; v<m_voxelCount; ++v)
