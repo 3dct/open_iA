@@ -1,9 +1,9 @@
 SET (FiAKEr_PRECOMPILE_INCLUDES <charts/iASPLOMData.h>
-<iAConsole.h>
 <iACsvConfig.h>
 <iAFiAKErController.h>
 <iAFiberCharData.h>
 <iAFiberData.h>
+<iALog.h>
 <iAMathUtility.h>
 <iARefDistCompute.h>
 <iAvec3.h>
