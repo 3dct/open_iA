@@ -809,13 +809,6 @@ void iAChartWidget::setSelectionMode(SelectionMode mode)
 
 void iAChartWidget::drawPlots(QPainter &painter)
 {
-	if (m_plots.empty())
-	{
-		painter.scale(1, -1);
-		painter.drawText(QRect(-m_translationX, -m_translationY, chartWidth(), -chartHeight()), Qt::AlignCenter, "Chart not (yet) available.");
-		painter.scale(1, -1);
-		return;
-	}
 	double xStart = visibleXStart(), xEnd = visibleXEnd();
 	for (auto it = m_plots.begin(); it != m_plots.end(); ++it)
 	{
@@ -1137,6 +1130,11 @@ void iAChartWidget::drawAll(QPainter & painter)
 {
 	painter.setRenderHint(QPainter::Antialiasing);
 	drawBackground(painter);
+	if (m_plots.empty())
+	{
+		painter.drawText(QRect(0, 0, width(), height()), Qt::AlignCenter, "Chart not (yet) available.");
+		return;
+	}
 	if (chartWidth() <= 1 || chartHeight() <= 1)
 	{
 		return;
