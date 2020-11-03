@@ -20,6 +20,7 @@
 * ************************************************************************************/
 #include "iALogWidget.h"
 
+#include "iALogLevelMappings.h"
 #include "iARedirectVtkOutput.h"
 #include "iARedirectItkOutput.h"
 #include "io/iAFileUtils.h"

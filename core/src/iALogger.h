@@ -54,12 +54,12 @@ enum iALogLevel
 	lvlImportant = lvlFatal
 };
 
-open_iA_Core_API QString logLevelToString(iALogLevel lvl);
-
 //! Base interface for logging
+//! implementation in iALog.cpp
 class open_iA_Core_API iALogger
 {
 public:
+	iALogger();
 	virtual ~iALogger();
 	//! Log a given message with the given log level. The actual implementations
 	//! (classes derived from iALogger) determine what happens with this information.

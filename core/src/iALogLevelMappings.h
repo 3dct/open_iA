@@ -18,23 +18,14 @@
 * Contact: FH OÖ Forschungs & Entwicklungs GmbH, Campus Wels, CT-Gruppe,              *
 *          Stelzhamerstraße 23, 4600 Wels / Austria, Email: c.heinzl@fh-wels.at       *
 * ************************************************************************************/
-#include "iALoggerStdOut.h"
+#pragma once
 
-#include "iALogLevelMappings.h"
+#include "iALog.h"
 
-#include <iostream>
+#include <QStringList>
 
-void iALoggerStdOut::log(iALogLevel lvl, QString const& msg)
-{
-	if (lvl < m_logLevel)
-	{
-		return;
-	}
-	std::cout << logLevelToString(lvl).toStdString() << ": " << msg.toStdString() << std::endl;
-}
+open_iA_Core_API QString logLevelToString(iALogLevel lvl);
+open_iA_Core_API iALogLevel stringToLogLevel(QString const& str, bool& ok);
+QStringList AvailableLogLevels();
 
-iALoggerStdOut* iALoggerStdOut::get()
-{
-	static iALoggerStdOut GlobalStdOutLogger;
-	return &GlobalStdOutLogger;
-}
+// implementation in iALog.cpp
