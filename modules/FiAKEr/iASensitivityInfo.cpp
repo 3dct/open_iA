@@ -23,6 +23,7 @@
 // Core
 #include <charts/iASPLOMData.h>
 #include <charts/qcustomplot.h>
+#include <charts/iAScatterPlotWidget.h>
 #include <iAJobListView.h>
 #include <iALog.h>
 #include <iAMathUtility.h>
@@ -963,6 +964,11 @@ public:
 
 	//! Parameter detail
 	QCustomPlot* m_paramDetails;
+
+	//! scatter plot for the MDS plot of all results
+	iAScatterPlotWidget* m_scatterPlot;
+
+	QSharedPointer<iASPLOMData> m_mdsData;
 };
 
 QString iASensitivityInfo::charactName(int charIdx) const
@@ -994,6 +1000,19 @@ void iASensitivityInfo::createGUI()
 	m_gui->m_paramDetails = new QCustomPlot(m_child);
 	auto dwParamDetails = new iADockWidgetWrapper(m_gui->m_paramDetails, "Parameter Details", "foeParamDetails");
 	m_child->splitDockWidget(dwParamInfluence, dwParamDetails, Qt::Vertical);
+
+
+	m_gui->m_mdsData = QSharedPointer<iASPLOMData>(new iASPLOMData());
+	std::vector<QString> paramNames;
+	paramNames.push_back("X");
+	paramNames.push_back("Y");
+	m_gui->m_mdsData->setParameterNames(paramNames, m_data->result.size());
+	m_gui->m_mdsData->data()[0].resize(m_data->result.size());
+	m_gui->m_mdsData->data()[1].resize(m_data->result.size());
+	m_gui->m_scatterPlot = new iAScatterPlotWidget(m_gui->m_mdsData);
+	m_gui->m_scatterPlot->setPointRadius(5);
+	auto dwScatterPlot = new iADockWidgetWrapper(m_gui->m_scatterPlot, "Results Overview", "foeScatterPlot");
+	m_child->splitDockWidget(dwParamInfluence, dwScatterPlot, Qt::Vertical);
 
 	updateDissimilarity();
 }
@@ -1095,5 +1114,14 @@ void iASensitivityInfo::updateDissimilarity()
 			distMatrix[r1][r2] = m_resultDissimMatrix[r1][r2].avgDissim[dissimIdx];
 		}
 	}
-	m_mds = computeMDS(distMatrix, 2, 10);
+	auto mds = computeMDS(distMatrix, 2, 10);
+	for (int i = 0; i < mds.size(); ++i)
+	{
+		for (int c = 0; c < mds[0].size(); ++c)
+		{
+			m_gui->m_mdsData->data()[c][i] = mds[i][c];
+		}
+		LOG(lvlInfo, QString("%1: %2, %3").arg(i).arg(mds[i][0]).arg(mds[i][1]));
+	}
+	m_gui->m_mdsData->updateRanges();
 }
