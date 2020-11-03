@@ -21,10 +21,11 @@ iADistanceMetricID stringToDistanceMetric(QString const & string);
 */
 QString matrixToString(iAMatrixType const& input);
 
-// Multidimensional scaling (MDS) with SMACOF
-// This code re-implements Michael Bronstein's SMACOF in his Matlab Toolbox for Surface Comparison and Analysis
-// The Matlab SMACOF can be downloaded at http://tosca.cs.technion.ac.il/
-//[1] A. M. Bronstein, M. M. Bronstein, R. Kimmel,"Numerical geometry of nonrigid shapes", Springer, 2008.
+//! Multidimensional scaling (MDS) with SMACOF
+//! This code re-implements Michael Bronstein's SMACOF in his Matlab Toolbox for Surface Comparison and Analysis
+//! The Matlab SMACOF can be downloaded at http://tosca.cs.technion.ac.il/
+//! [1] A. M. Bronstein, M. M. Bronstein, R. Kimmel,"Numerical geometry of nonrigid shapes", Springer, 2008.
+//! TODO: Move to core!
 iAMatrixType computeMDS(iAMatrixType const& distanceMatrix,
 	int outputDimensions, int iterations, double maxError = 0.0/*, iADistanceMetricID distanceMetric*/);
 

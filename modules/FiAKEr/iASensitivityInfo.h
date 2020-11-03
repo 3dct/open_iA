@@ -164,6 +164,8 @@ public:
 	iADissimilarityMatrixType m_resultDissimMatrix;
 	int m_resultDissimOptimMeasureIdx;
 
+	std::vector<std::vector<double>> m_mds;
+
 	//! the GUI elements:
 	QSharedPointer<iASensitivityGUI> m_gui;
 
@@ -194,6 +196,7 @@ public slots:
 	void charactChanged(int charIdx);
 	void changeStackedBarColors();
 	void updateOutputControls();
+	void updateDissimilarity();
 	void createGUI();
 };
 

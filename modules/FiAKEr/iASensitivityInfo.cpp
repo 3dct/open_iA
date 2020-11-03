@@ -40,6 +40,7 @@
 #include "iAFiberCharData.h"
 #include "iAFiberData.h"
 #include "iAMeasureSelectionDlg.h"
+#include "iAMultidimensionalScaling.h"
 #include "iARefDistCompute.h"
 #include "iASensitivityDialog.h"
 
@@ -743,89 +744,85 @@ void iASensitivityInfo::compute()
 	m_progress.setStatus("Computing dissimilarity between all result pairs.");
 	QVector<int> measures;
 
-	if (readDissimilarityMatrixCache(measures))
+	if (!readDissimilarityMatrixCache(measures))
 	{
-		return;
-	}
+		m_resultDissimMatrix = iADissimilarityMatrixType(m_data->result.size(),
+			QVector<iAResultPairInfo>(m_data->result.size(),
+				iAResultPairInfo(m_resultDissimMeasures.size())));
 
-	m_resultDissimMatrix = iADissimilarityMatrixType(m_data->result.size(),
-		QVector<iAResultPairInfo>(m_data->result.size(),
-			iAResultPairInfo(m_resultDissimMeasures.size())));
-
-	for (size_t m = 0; m < m_resultDissimMeasures.size(); ++m)
-	{
-		measures.push_back(m_resultDissimMeasures[m].first);
-	}
-	// fill "upper" half
-	for (size_t r1 = 0; r1 < m_data->result.size()-1 && !m_aborted; ++r1)
-	{
-		m_progress.emitProgress(100 * r1 / m_data->result.size());
-		auto& res1 = m_data->result[r1];
-		auto const& mapping = *res1.mapping.data();
-		double const* cxr = m_data->spmData->paramRange(mapping[iACsvConfig::CenterX]),
-			* cyr = m_data->spmData->paramRange(mapping[iACsvConfig::CenterY]),
-			* czr = m_data->spmData->paramRange(mapping[iACsvConfig::CenterZ]);
-		double a = cxr[1] - cxr[0], b = cyr[1] - cyr[0], c = czr[1] - czr[0];
-		double diagonalLength = std::sqrt(std::pow(a, 2) + std::pow(b, 2) + std::pow(c, 2));
-		double const* lengthRange = m_data->spmData->paramRange(mapping[iACsvConfig::Length]);
-		double maxLength = lengthRange[1] - lengthRange[0];
-		for (size_t r2 = r1 + 1; r2 < m_data->result.size() && !m_aborted; ++r2)
-		{
-			m_progress.setStatus(QString("Computing dissimilarity between results %1 and %2.").arg(r1).arg(r2));
-			for (size_t m = 0; m < m_resultDissimMeasures.size(); ++m)
-			{
-				m_resultDissimMatrix[r1][r2].avgDissim[m] = 0;
-			}
-			auto& res2 = m_data->result[r2];
-			qint64 const fiberCount = res2.table->GetNumberOfRows();
-			auto& dissimilarities = m_resultDissimMatrix[r1][r2].fiberDissim;
-			dissimilarities.resize(fiberCount);
-#pragma omp parallel for
-			for (qint64 fiberID = 0; fiberID < fiberCount; ++fiberID)
-			{
-				auto it = res2.curveInfo.find(fiberID);
-				// find the best-matching fibers in reference & compute difference:
-				iAFiberData fiber(res2.table, fiberID, mapping, (it != res2.curveInfo.end()) ? it->second : std::vector<iAVec3f>());
-				getBestMatches(fiber, mapping, res1.table, dissimilarities[fiberID], res1.curveInfo,
-					diagonalLength, maxLength, m_resultDissimMeasures, m_resultDissimOptimMeasureIdx);
-				for (size_t m = 0; m < m_resultDissimMeasures.size(); ++m)
-				{
-					m_resultDissimMatrix[r1][r2].avgDissim[m] += dissimilarities[fiberID][m][0].dissimilarity;
-				}
-			}
-			for (size_t m = 0; m < m_resultDissimMeasures.size(); ++m)
-			{
-				m_resultDissimMatrix[r1][r2].avgDissim[m] /= res2.fiberCount;
-			}
-		}
-	}
-	// fill diagonal with 0
-	for (size_t r = 0; r < m_data->result.size() && !m_aborted; ++r)
-	{
 		for (size_t m = 0; m < m_resultDissimMeasures.size(); ++m)
 		{
-			m_resultDissimMatrix[r][r].avgDissim[m] = 0;
+			measures.push_back(m_resultDissimMeasures[m].first);
 		}
-	}
-	// copy other half triangle:
-	for (size_t r1 = 1; r1 < m_data->result.size() && !m_aborted; ++r1)
-	{
-		for (size_t r2 = 0; r2 < r1; ++r2)
+		// fill "upper" half
+		for (size_t r1 = 0; r1 < m_data->result.size() - 1 && !m_aborted; ++r1)
+		{
+			m_progress.emitProgress(100 * r1 / m_data->result.size());
+			auto& res1 = m_data->result[r1];
+			auto const& mapping = *res1.mapping.data();
+			double const* cxr = m_data->spmData->paramRange(mapping[iACsvConfig::CenterX]),
+				* cyr = m_data->spmData->paramRange(mapping[iACsvConfig::CenterY]),
+				* czr = m_data->spmData->paramRange(mapping[iACsvConfig::CenterZ]);
+			double a = cxr[1] - cxr[0], b = cyr[1] - cyr[0], c = czr[1] - czr[0];
+			double diagonalLength = std::sqrt(std::pow(a, 2) + std::pow(b, 2) + std::pow(c, 2));
+			double const* lengthRange = m_data->spmData->paramRange(mapping[iACsvConfig::Length]);
+			double maxLength = lengthRange[1] - lengthRange[0];
+			for (size_t r2 = r1 + 1; r2 < m_data->result.size() && !m_aborted; ++r2)
+			{
+				m_progress.setStatus(QString("Computing dissimilarity between results %1 and %2.").arg(r1).arg(r2));
+				for (size_t m = 0; m < m_resultDissimMeasures.size(); ++m)
+				{
+					m_resultDissimMatrix[r1][r2].avgDissim[m] = 0;
+				}
+				auto& res2 = m_data->result[r2];
+				qint64 const fiberCount = res2.table->GetNumberOfRows();
+				auto& dissimilarities = m_resultDissimMatrix[r1][r2].fiberDissim;
+				dissimilarities.resize(fiberCount);
+#pragma omp parallel for
+				for (qint64 fiberID = 0; fiberID < fiberCount; ++fiberID)
+				{
+					auto it = res2.curveInfo.find(fiberID);
+					// find the best-matching fibers in reference & compute difference:
+					iAFiberData fiber(res2.table, fiberID, mapping, (it != res2.curveInfo.end()) ? it->second : std::vector<iAVec3f>());
+					getBestMatches(fiber, mapping, res1.table, dissimilarities[fiberID], res1.curveInfo,
+						diagonalLength, maxLength, m_resultDissimMeasures, m_resultDissimOptimMeasureIdx);
+					for (size_t m = 0; m < m_resultDissimMeasures.size(); ++m)
+					{
+						m_resultDissimMatrix[r1][r2].avgDissim[m] += dissimilarities[fiberID][m][0].dissimilarity;
+					}
+				}
+				for (size_t m = 0; m < m_resultDissimMeasures.size(); ++m)
+				{
+					m_resultDissimMatrix[r1][r2].avgDissim[m] /= res2.fiberCount;
+				}
+			}
+		}
+		// fill diagonal with 0
+		for (size_t r = 0; r < m_data->result.size() && !m_aborted; ++r)
 		{
 			for (size_t m = 0; m < m_resultDissimMeasures.size(); ++m)
 			{
-				m_resultDissimMatrix[r1][r2].avgDissim[m] = m_resultDissimMatrix[r2][r1].avgDissim[m];
+				m_resultDissimMatrix[r][r].avgDissim[m] = 0;
 			}
 		}
+		// copy other half triangle:
+		for (size_t r1 = 1; r1 < m_data->result.size() && !m_aborted; ++r1)
+		{
+			for (size_t r2 = 0; r2 < r1; ++r2)
+			{
+				for (size_t m = 0; m < m_resultDissimMeasures.size(); ++m)
+				{
+					m_resultDissimMatrix[r1][r2].avgDissim[m] = m_resultDissimMatrix[r2][r1].avgDissim[m];
+				}
+			}
+		}
+		if (m_aborted)
+		{
+			return;
+		}
+		writeDissimilarityMatrixCache(measures);
 	}
-	if (m_aborted)
-	{
-		return;
-	}
-	writeDissimilarityMatrixCache(measures);
 }
-
-
 
 QString iASensitivityInfo::dissimilarityMatrixCacheFileName() const
 {
@@ -926,6 +923,13 @@ public:
 		}
 		cmbboxCharacteristic->addItems(characteristics);
 
+		QStringList dissimilarities;
+		for (auto dissim : sensInf->m_resultDissimMeasures)
+		{
+			dissimilarities << getAvailableDissimilarityMeasureNames()[dissim.first];
+		}
+		cmbboxDissimilarity->addItems(dissimilarities);
+
 		connect(cmbboxMeasure, QOverload<int>::of(&QComboBox::currentIndexChanged), sensInf, &iASensitivityInfo::changeMeasure);
 		connect(cmbboxAggregation, QOverload<int>::of(&QComboBox::currentIndexChanged), sensInf, &iASensitivityInfo::changeAggregation);
 		connect(cmbboxStackedBarChartColors, QOverload<int>::of(&QComboBox::currentIndexChanged),
@@ -936,6 +940,8 @@ public:
 		connect(cmbboxMeasure, QOverload<int>::of(&QComboBox::currentIndexChanged), sensInf, &iASensitivityInfo::paramChanged);
 		connect(cmbboxOutput, QOverload<int>::of(&QComboBox::currentIndexChanged), sensInf, &iASensitivityInfo::paramChanged);
 		connect(cmbboxOutput, QOverload<int>::of(&QComboBox::currentIndexChanged), sensInf, &iASensitivityInfo::updateOutputControls);
+
+		connect(cmbboxDissimilarity, QOverload<int>::of(&QComboBox::currentIndexChanged), sensInf, &iASensitivityInfo::updateDissimilarity);
 	}
 	int charIdx() const { return cmbboxCharacteristic->currentIndex(); }
 	int outputIdx() const { return cmbboxOutput->currentIndex(); }
@@ -988,6 +994,8 @@ void iASensitivityInfo::createGUI()
 	m_gui->m_paramDetails = new QCustomPlot(m_child);
 	auto dwParamDetails = new iADockWidgetWrapper(m_gui->m_paramDetails, "Parameter Details", "foeParamDetails");
 	m_child->splitDockWidget(dwParamInfluence, dwParamDetails, Qt::Vertical);
+
+	updateDissimilarity();
 }
 
 void iASensitivityInfo::changeMeasure(int newMeasure)
@@ -1074,4 +1082,18 @@ void iASensitivityInfo::updateOutputControls()
 	m_gui->m_settings->cmbboxCharacteristic->setEnabled(characteristics);
 	m_gui->m_settings->lbMeasure->setEnabled(characteristics);
 	m_gui->m_settings->cmbboxMeasure->setEnabled(characteristics);
+}
+
+void iASensitivityInfo::updateDissimilarity()
+{
+	int dissimIdx = m_gui->m_settings->cmbboxDissimilarity->currentIndex();
+	iAMatrixType distMatrix(m_data->result.size(), std::vector<double>(m_data->result.size()));
+	for (int r1 = 0; r1 < distMatrix.size(); ++r1)
+	{
+		for (int r2 = 0; r2 < distMatrix.size(); ++r2)
+		{
+			distMatrix[r1][r2] = m_resultDissimMatrix[r1][r2].avgDissim[dissimIdx];
+		}
+	}
+	m_mds = computeMDS(distMatrix, 2, 10);
 }

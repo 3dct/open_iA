@@ -43,6 +43,7 @@ public:
 	QVector<QVector<QVector<iAFiberSimilarity>>> fiberDissim;
 };
 
+// result similarity matrix type: resultID x resultID
 using iADissimilarityMatrixType = QVector<QVector<iAResultPairInfo>>;
 
 using iAMatrixValuesType = std::vector<std::vector<double>>;
