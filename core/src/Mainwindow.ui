@@ -55,7 +55,7 @@
      <x>0</x>
      <y>0</y>
      <width>800</width>
-     <height>22</height>
+     <height>21</height>
     </rect>
    </property>
    <property name="toolTipDuration">
@@ -172,7 +172,7 @@
     <addaction name="menuLayout"/>
     <addaction name="separator"/>
     <addaction name="actionEnableInteraction"/>
-    <addaction name="actionShowConsole"/>
+    <addaction name="actionShowLog"/>
     <addaction name="actionMainWindowStatusBar"/>
     <addaction name="actionShowToolbar"/>
     <addaction name="actionFullScreenMode"/>
@@ -1057,12 +1057,12 @@
     <enum>Qt::ApplicationShortcut</enum>
    </property>
   </action>
-  <action name="actionShowConsole">
+  <action name="actionShowLog">
    <property name="checkable">
     <bool>true</bool>
    </property>
    <property name="text">
-    <string>Show Console</string>
+    <string>Show Log</string>
    </property>
   </action>
   <action name="actionBuildInformation">

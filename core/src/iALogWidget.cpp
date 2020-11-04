@@ -53,7 +53,7 @@ void iALogWidget::logSlot(int lvl, QString const & text)
 		if (!isVisible())
 		{
 			show();
-			emit consoleVisibilityChanged(true);
+			emit logVisibilityChanged(true);
 		}
 		logTextEdit->append(msg);
 	}
@@ -157,7 +157,7 @@ void iALogWidget::clear()
 
 void iALogWidget::closeEvent(QCloseEvent* event)
 {
-	emit consoleVisibilityChanged(false);
+	emit logVisibilityChanged(false);
 	QDockWidget::closeEvent(event);
 }
 

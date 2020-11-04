@@ -62,7 +62,7 @@ public:
 signals:
 	//! decouple logging methods from GUI logging (to allow logging from any thread):
 	void logSignal(int lvl, QString const & text);
-	void consoleVisibilityChanged(bool newVisibility);
+	void logVisibilityChanged(bool newVisibility);
 private slots:
 	void logSlot(int lvl, QString const & text);
 	void setLogLevelSlot(int selectedIdx);

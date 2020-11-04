@@ -161,7 +161,7 @@ private slots:
 	void linkViews();
 	void linkMDIs();
 	void enableInteraction();
-	void toggleConsole();
+	void toggleLog();
 	void toggleFullScreen();
 	void toggleMenu();
 	void renderSettings();
@@ -201,7 +201,7 @@ private slots:
 	void noPointSelected();
 	void endPointSelected();
 	void setHistogramFocus();
-	void consoleVisibilityChanged(bool newVisibility);
+	void logVisibilityChanged(bool newVisibility);
 
 private:
 	void connectSignalsToSlots();
