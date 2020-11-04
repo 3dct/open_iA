@@ -1126,4 +1126,5 @@ void iASensitivityInfo::updateDissimilarity()
 		LOG(lvlInfo, QString("%1: %2, %3").arg(i).arg(mds[i][0]).arg(mds[i][1]));
 	}
 	m_gui->m_mdsData->updateRanges();
+	m_gui->m_scatterPlot->setPlotColor(QColor(0, 0, 255), m_gui->m_mdsData->paramRange(0)[0], m_gui->m_mdsData->paramRange(0)[1]);
 }
