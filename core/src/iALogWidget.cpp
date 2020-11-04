@@ -32,7 +32,10 @@
 
 void iALogWidget::log(iALogLevel lvl, QString const & text)
 {
-	emit logSignal(lvl, text);
+	if (lvl >= m_logLevel || lvl >= m_fileLogLevel)
+	{
+		emit logSignal(lvl, text);
+	}
 }
 
 void iALogWidget::logSlot(int lvl, QString const & text)
@@ -41,6 +44,10 @@ void iALogWidget::logSlot(int lvl, QString const & text)
 	// if it is still open at the time the program should exit.
 	// Therefore, we don't reopen the console after the close() method
 	// has been called. This allows the program to exit properly.
+	QString msg = QString("%1 %2 %3\n")
+		.arg(QLocale().toString(QDateTime::currentDateTime(), QLocale::ShortFormat))
+		.arg(logLevelToString(static_cast<iALogLevel>(lvl)))
+		.arg(text);
 	if (!m_closed && lvl >= m_logLevel)
 	{
 		if (!isVisible())
@@ -48,18 +55,12 @@ void iALogWidget::logSlot(int lvl, QString const & text)
 			show();
 			emit consoleVisibilityChanged(true);
 		}
-		logTextEdit->append(logLevelToString(lvl)+": "+text);
+		logTextEdit->append(msg);
 	}
 	if (m_logToFile && lvl >= m_fileLogLevel)
 	{
 		std::ofstream logfile( getLocalEncodingFileName(m_logFileName).c_str(), std::ofstream::out | std::ofstream::app);
-		logfile << QString("%1 %2 %3\n")
-			.arg(QLocale().toString(
-				QDateTime::currentDateTime(),
-				QLocale::ShortFormat))
-			.arg(logLevelToString(lvl))
-			.arg(text)
-			.toStdString();
+		logfile << msg.toStdString();
 		logfile.flush();
 		logfile.close();
 		if (logfile.bad())
