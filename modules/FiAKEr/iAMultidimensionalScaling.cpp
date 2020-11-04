@@ -11,18 +11,24 @@
 
 #include <algorithm>
 #include <cmath>
+#include <random>
 
 namespace
 {
 
 	void initializeRandom(iAMatrixType& result, size_t rows, size_t cols)
 	{
+		std::mt19937 rng;
+		rng.seed(std::random_device{}());
+		std::uniform_real_distribution<double> dist;
 		result.resize(rows);
-		double rand2 = 1.0 / rows;
-		for (size_t r = 0; r < rows; r++)
+		for (size_t r = 0; r < rows; ++r)
 		{
-			result[r] = std::vector<double>(cols, rand2);
-			rand2 += (1.0 / rows);
+			result[r].resize(cols);
+			for (size_t c = 0; c < cols; ++c)
+			{
+				result[r][c] = dist(rng);
+			}
 		}
 	}
 
