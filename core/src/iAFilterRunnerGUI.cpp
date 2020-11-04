@@ -279,7 +279,7 @@ void iAFilterRunnerGUI::run(QSharedPointer<iAFilter> filter, MainWindow* mainWnd
 	QString oldTitle(sourceMdi->windowTitle());
 	oldTitle = oldTitle.replace("[*]", "").trimmed();
 	auto mdiChild = filter->outputCount() > 0 ?
-		mainWnd->resultChild(sourceMdi, filter->outputName(0, filter->name() + " " + oldTitle)) :
+		mainWnd->resultChild(sourceMdi, filter->outputName(0, filter->name()) + " " + oldTitle) :
 		sourceMdi;
 
 	if (!mdiChild)
