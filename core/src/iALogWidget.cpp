@@ -127,8 +127,10 @@ iALogWidget::iALogWidget() :
 	m_itkOutputWindow = iARedirectItkOutput::New();
 	vtkOutputWindow::SetInstance(m_vtkOutputWindow);
 	itk::OutputWindow::SetInstance(m_itkOutputWindow);
+	cmbboxLogLevel->addItems(AvailableLogLevels());
 
 	connect(pbClearLog, &QPushButton::clicked, this, &iALogWidget::clear);
+	connect(cmbboxLogLevel, QOverload<int>::of(&QComboBox::currentIndexChanged), this, &iALogWidget::setLogLevelSlot);
 	connect(this, &iALogWidget::logSignal, this, &iALogWidget::logSlot);
 }
 
@@ -157,4 +159,16 @@ void iALogWidget::closeEvent(QCloseEvent* event)
 {
 	emit consoleVisibilityChanged(false);
 	QDockWidget::closeEvent(event);
+}
+
+void iALogWidget::setLogLevel(iALogLevel lvl)
+{
+	QSignalBlocker sb(cmbboxLogLevel);
+	cmbboxLogLevel->setCurrentIndex(lvl - 1);
+	iALogger::setLogLevel(lvl);
+}
+
+void iALogWidget::setLogLevelSlot(int selectedIdx)
+{
+	iALogger::setLogLevel(static_cast<iALogLevel>(selectedIdx + 1));
 }

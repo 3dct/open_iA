@@ -56,12 +56,16 @@ public:
 	void setFileLogLevel(iALogLevel lvl);
 	//! retrieve current log level for file
 	iALogLevel fileLogLevel() const;
-// decouple logging methods from GUI logging (to allow logging from any thread):
+	//! override base class log level setting to make sure that
+	//! shown combobox gets updated
+	void setLogLevel(iALogLevel lvl) override;
 signals:
+	//! decouple logging methods from GUI logging (to allow logging from any thread):
 	void logSignal(int lvl, QString const & text);
 	void consoleVisibilityChanged(bool newVisibility);
 private slots:
 	void logSlot(int lvl, QString const & text);
+	void setLogLevelSlot(int selectedIdx);
 	void clear();
 private:
 	//! private constructor - retrieve (single) instance via get!
