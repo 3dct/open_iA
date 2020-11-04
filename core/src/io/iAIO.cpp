@@ -68,7 +68,6 @@
 #include <vtkRectilinearGrid.h>
 #include <vtkPointData.h>
 
-#include <QDateTime>
 #include <QFileDialog>
 #include <QRegularExpression>
 #include <QSettings>
@@ -1539,7 +1538,7 @@ bool iAIO::setupNKCReader(QString const& f)
 	}
 
 	m_rawFileParams.m_size[2] = 1;
-	m_rawFileParams.m_scalarType = VTK_SHORT;
+	m_rawFileParams.m_scalarType = VTK_TYPE_UINT16;
 	m_rawFileParams.m_byteOrder = VTK_FILE_BYTE_ORDER_BIG_ENDIAN;
 
 	m_rawFileParams.m_headersize = file.size() - (m_rawFileParams.m_size[0] * m_rawFileParams.m_size[1] * 2);

@@ -73,10 +73,12 @@
 #include <itkTriangleThresholdImageFilter.h>
 #include <itkYenThresholdImageFilter.h>
 
+#include <QDateTime>
 #include <QDebug>
 #include <QDir>
 #include <QDirIterator>
 #include <QElapsedTimer>
+#include <QLocale>
 #include <QMessageBox>
 #include <QTime>
 

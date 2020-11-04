@@ -73,9 +73,7 @@
 
 #include <QApplication>
 #include <QColor>
-#include <QDateTime>
 #include <QImage>
-#include <QLocale>
 #include <QtGlobal> // for QT_VERSION
 
 #include <cassert>

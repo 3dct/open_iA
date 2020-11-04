@@ -94,7 +94,6 @@ SET (OPENIA_PRECOMPILE_HEADERS
 
 	<QColor>
 	<QComboBox>
-	<QDateTime>
 	<QDir>
 	<QDockWidget>
 	<QFile>

@@ -58,10 +58,10 @@ public:
 	iALogLevel fileLogLevel() const;
 // decouple logging methods from GUI logging (to allow logging from any thread):
 signals:
-	void logSignal(iALogLevel lvl, QString const & text);
+	void logSignal(int lvl, QString const & text);
 	void consoleVisibilityChanged(bool newVisibility);
 private slots:
-	void logSlot(iALogLevel lvl, QString const & text);
+	void logSlot(int lvl, QString const & text);
 	void clear();
 private:
 	//! private constructor - retrieve (single) instance via get!

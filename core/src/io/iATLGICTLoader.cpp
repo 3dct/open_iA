@@ -37,7 +37,6 @@
 #include <vtkJPEGReader.h>
 #include <vtkStringArray.h>
 
-#include <QDateTime>
 #include <QDir>
 #include <QSettings>
 

@@ -66,11 +66,11 @@ open_iA_Core_API iALogLevel stringToLogLevel(QString const& str, bool& ok)
 		}
 	}
 	ok = false;
-	return lvlWarn;
+	return lvlInfo;
 }
 
 iALogger::iALogger():
-	m_logLevel(lvlWarn)
+	m_logLevel(lvlInfo)
 {}
 
 iALogger::~iALogger()
