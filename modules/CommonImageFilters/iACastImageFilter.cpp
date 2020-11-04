@@ -32,6 +32,7 @@
 #include <itkCastImageFilter.h>
 #include <itkImageRegionConstIterator.h>
 #include <itkImageRegionIterator.h>
+#include <itkImageIterator.h>
 #include <itkLabelToRGBImageFilter.h>
 #include <itkRGBPixel.h>
 #include <itkRGBAPixel.h>
@@ -276,4 +277,57 @@ IAFILTER_CREATE(iAConvertToRGBAFilter)
 void iAConvertToRGBAFilter::performWork(QMap<QString, QVariant> const & params)
 {
 	ITK_TYPED_CALL(convertToRGB, inputPixelType(), this, params);
+}
+
+
+template <class T>
+void fillHistogramm(iAFilter* filter, QMap<QString, QVariant> const& params)
+{
+	std::map<T, T> histogramm;
+	typedef itk::Image<T, DIM> ImageType;
+	ImageType::Pointer im = dynamic_cast<ImageType*>(filter->input()[0]->itkImage());
+
+	using IteratorType = itk::ImageRegionIterator< ImageType >;
+
+	IteratorType it(im, im->GetRequestedRegion());
+
+	it.GoToBegin();
+
+	while (!it.IsAtEnd())
+	{
+		histogramm[it.Value()] = it.Value();
+		++it;
+	}
+
+	int index = 0;
+
+
+	for (auto &element : histogramm)
+	{
+		histogramm[element.first] = index;
+		index++;	
+	}
+
+	it.GoToBegin();
+
+	while (!it.IsAtEnd())
+	{
+		it.Set(histogramm[it.Value()]);
+		++it;
+	}
+
+}
+
+
+iAHistogramFill::iAHistogramFill() :
+	iAFilter("Histogramm Fill", "","Test ultraschall")
+{
+
+}
+
+IAFILTER_CREATE(iAHistogramFill)
+
+void iAHistogramFill::performWork(QMap<QString, QVariant> const& params)
+{
+	ITK_TYPED_CALL(fillHistogramm, inputPixelType(), this, params);
 }
