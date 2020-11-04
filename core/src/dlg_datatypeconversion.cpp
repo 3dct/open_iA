@@ -184,7 +184,7 @@ template<class T> void DataTypeConversion_template(QString const & filename, iAR
 	// TODO: use itk methods instead?
 	typedef itk::Image< T, 3 >   InputImageType;
 
-	DEBUG_LOG(QString("Reading file '%1':").arg(filename));
+	LOG(lvlInfo, QString("Reading file '%1':").arg(filename));
 	FILE * pFile = openFile(filename);
 
 	typename InputImageType::Pointer itkimage = InputImageType::New();
@@ -225,15 +225,15 @@ template<class T> void DataTypeConversion_template(QString const & filename, iAR
 		{
 			if (feof(pFile))
 			{
-				DEBUG_LOG(QString("Unexpected end of file '%1'!").arg(filename));
+				LOG(lvlError, QString("Unexpected end of file '%1'!").arg(filename));
 			}
 			else if (ferror(pFile))
 			{
-				DEBUG_LOG(QString("Error while reading file '%1'!").arg(filename));
+				LOG(lvlError, QString("Error while reading file '%1'!").arg(filename));
 			}
 			else
 			{
-				DEBUG_LOG(QString("Could not read a full chunk of size %1 (bytes) while reading file '%2'!")
+				LOG(lvlError, QString("Could not read a full chunk of size %1 (bytes) while reading file '%2'!")
 						  .arg(datatypesize*elemCount)
 						  .arg(filename));
 			}
@@ -251,7 +251,7 @@ template<class T> void DataTypeConversion_template(QString const & filename, iAR
 			size_t skipmemory = slicesize*datatypesize * zSkip * numsliceread;
 			if ( skipmemory < totalsize )
 			{
-				DEBUG_LOG(QString("Skipping ahead to %1.").arg(skipmemory));
+				LOG(lvlDebug, QString("Skipping ahead to %1.").arg(skipmemory));
 				fseek ( pFile , static_cast<long>(skipmemory) , SEEK_SET );
 			}
 			else
