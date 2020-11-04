@@ -325,7 +325,7 @@ void iASensitivityInfo::compute()
 	{
 		m_progress.emitProgress(static_cast<int>(100 * rIdx / m_data->result.size()));
 		auto const& r = m_data->result[rIdx];
-		int numCharact = m_data->spmData->numParams();
+		int numCharact = static_cast<int>(m_data->spmData->numParams());
 		// TODO: skip some columns? like ID...
 		charHistograms[rIdx].reserve(numCharact);
 		for (int c = 0; c < numCharact; ++c)
@@ -747,18 +747,19 @@ void iASensitivityInfo::compute()
 
 	if (!readDissimilarityMatrixCache(measures))
 	{
-		m_resultDissimMatrix = iADissimilarityMatrixType(m_data->result.size(),
-			QVector<iAResultPairInfo>(m_data->result.size(),
-				iAResultPairInfo(m_resultDissimMeasures.size())));
+		int measureCount = static_cast<int>(m_resultDissimMeasures.size());
+		int resultCount = static_cast<int>(m_data->result.size());
+		m_resultDissimMatrix = iADissimilarityMatrixType(resultCount,
+			QVector<iAResultPairInfo>(resultCount, iAResultPairInfo(measureCount)));
 
 		for (size_t m = 0; m < m_resultDissimMeasures.size(); ++m)
 		{
 			measures.push_back(m_resultDissimMeasures[m].first);
 		}
 		// fill "upper" half
-		for (size_t r1 = 0; r1 < m_data->result.size() - 1 && !m_aborted; ++r1)
+		for (int r1 = 0; r1 < resultCount - 1 && !m_aborted; ++r1)
 		{
-			m_progress.emitProgress(100 * r1 / m_data->result.size());
+			m_progress.emitProgress(100 * r1 / resultCount);
 			auto& res1 = m_data->result[r1];
 			auto const& mapping = *res1.mapping.data();
 			double const* cxr = m_data->spmData->paramRange(mapping[iACsvConfig::CenterX]),
@@ -768,50 +769,51 @@ void iASensitivityInfo::compute()
 			double diagonalLength = std::sqrt(std::pow(a, 2) + std::pow(b, 2) + std::pow(c, 2));
 			double const* lengthRange = m_data->spmData->paramRange(mapping[iACsvConfig::Length]);
 			double maxLength = lengthRange[1] - lengthRange[0];
-			for (size_t r2 = r1 + 1; r2 < m_data->result.size() && !m_aborted; ++r2)
+			for (int r2 = r1 + 1; r2 < resultCount && !m_aborted; ++r2)
 			{
+				auto& mat = m_resultDissimMatrix[r1][r2];
 				m_progress.setStatus(QString("Computing dissimilarity between results %1 and %2.").arg(r1).arg(r2));
-				for (size_t m = 0; m < m_resultDissimMeasures.size(); ++m)
+				for (int m = 0; m < measureCount; ++m)
 				{
-					m_resultDissimMatrix[r1][r2].avgDissim[m] = 0;
+					mat.avgDissim[m] = 0;
 				}
 				auto& res2 = m_data->result[r2];
 				qint64 const fiberCount = res2.table->GetNumberOfRows();
-				auto& dissimilarities = m_resultDissimMatrix[r1][r2].fiberDissim;
+				auto& dissimilarities = mat.fiberDissim;
 				dissimilarities.resize(fiberCount);
 #pragma omp parallel for
-				for (qint64 fiberID = 0; fiberID < fiberCount; ++fiberID)
+				for (int fiberID = 0; fiberID < static_cast<int>(fiberCount); ++fiberID)
 				{
 					auto it = res2.curveInfo.find(fiberID);
 					// find the best-matching fibers in reference & compute difference:
 					iAFiberData fiber(res2.table, fiberID, mapping, (it != res2.curveInfo.end()) ? it->second : std::vector<iAVec3f>());
 					getBestMatches(fiber, mapping, res1.table, dissimilarities[fiberID], res1.curveInfo,
 						diagonalLength, maxLength, m_resultDissimMeasures, m_resultDissimOptimMeasureIdx);
-					for (size_t m = 0; m < m_resultDissimMeasures.size(); ++m)
+					for (int m = 0; m < measureCount; ++m)
 					{
-						m_resultDissimMatrix[r1][r2].avgDissim[m] += dissimilarities[fiberID][m][0].dissimilarity;
+						mat.avgDissim[m] += dissimilarities[fiberID][m][0].dissimilarity;
 					}
 				}
-				for (size_t m = 0; m < m_resultDissimMeasures.size(); ++m)
+				for (int m = 0; m < measureCount; ++m)
 				{
-					m_resultDissimMatrix[r1][r2].avgDissim[m] /= res2.fiberCount;
+					mat.avgDissim[m] /= res2.fiberCount;
 				}
 			}
 		}
 		// fill diagonal with 0
-		for (size_t r = 0; r < m_data->result.size() && !m_aborted; ++r)
+		for (int r = 0; r < resultCount && !m_aborted; ++r)
 		{
-			for (size_t m = 0; m < m_resultDissimMeasures.size(); ++m)
+			for (int m = 0; m < measureCount; ++m)
 			{
 				m_resultDissimMatrix[r][r].avgDissim[m] = 0;
 			}
 		}
 		// copy other half triangle:
-		for (size_t r1 = 1; r1 < m_data->result.size() && !m_aborted; ++r1)
+		for (int r1 = 1; r1 < resultCount && !m_aborted; ++r1)
 		{
-			for (size_t r2 = 0; r2 < r1; ++r2)
+			for (int r2 = 0; r2 < r1; ++r2)
 			{
-				for (size_t m = 0; m < m_resultDissimMeasures.size(); ++m)
+				for (int m = 0; m < measureCount; ++m)
 				{
 					m_resultDissimMatrix[r1][r2].avgDissim[m] = m_resultDissimMatrix[r2][r1].avgDissim[m];
 				}
