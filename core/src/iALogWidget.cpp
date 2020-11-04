@@ -35,7 +35,7 @@ void iALogWidget::log(iALogLevel lvl, QString const & text)
 	emit logSignal(lvl, text);
 }
 
-void iALogWidget::logSlot(iALogLevel lvl, QString const & text)
+void iALogWidget::logSlot(int lvl, QString const & text)
 {
 	// The log window prevents the whole application from shutting down
 	// if it is still open at the time the program should exit.
