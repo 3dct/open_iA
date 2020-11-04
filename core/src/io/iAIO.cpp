@@ -68,7 +68,6 @@
 #include <vtkRectilinearGrid.h>
 #include <vtkPointData.h>
 
-#include <QDateTime>
 #include <QFileDialog>
 #include <QRegularExpression>
 #include <QSettings>

@@ -28,7 +28,6 @@
 #include <vtkImageData.h>
 #include <vtkPolyData.h>
 
-#include <QLocale>
 #include <QMessageBox>
 
 iAAlgorithm::iAAlgorithm( QString fn, vtkImageData* idata, vtkPolyData* p, iALogger * logger, QObject *parent )

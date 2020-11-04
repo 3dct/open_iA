@@ -22,8 +22,6 @@
 
 #include <iAPerformanceHelper.h>
 
-#include <QDateTime>
-
 dlg_progress::dlg_progress(QWidget *parentWidget,
 	QSharedPointer<iADurationEstimator const> durationEstimator,
 	QSharedPointer<iAAbortListener> abortListener,

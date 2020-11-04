@@ -31,7 +31,6 @@
 #include <vtkMath.h>
 
 #include <QAction>
-#include <QDateTime>
 #include <QFileDialog>
 #include <QIcon>
 #include <QMenu>
