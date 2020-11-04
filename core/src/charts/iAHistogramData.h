@@ -2,7 +2,7 @@
 * **********   A tool for visual analysis and processing of 3D CT images   ********** *
 * *********************************************************************************** *
 * Copyright (C) 2016-2020  C. Heinzl, M. Reiter, A. Reh, W. Li, M. Arikan, Ar. &  Al. *
-*                          Amirkhanov, J. Weissenböck, B. Fröhler, M. Schiwarth       *
+*                 Amirkhanov, J. Weissenböck, B. Fröhler, M. Schiwarth, P. Weinberger *
 * *********************************************************************************** *
 * This program is free software: you can redistribute it and/or modify it under the   *
 * terms of the GNU General Public License as published by the Free Software           *
@@ -46,7 +46,7 @@ public:
 	static QSharedPointer<iAHistogramData> create(vtkImageData* img, size_t binCount, iAImageInfo* imageInfo = nullptr);
 	static QSharedPointer<iAHistogramData> create(DataType* data, size_t binCount, double space, DataType min, DataType max);
 	static QSharedPointer<iAHistogramData> create(const std::vector<DataType> &histData, size_t binCount,
-		iAValueType type = Continuous,
+		iAValueType type = iAValueType::Continuous,
 		DataType minValue=std::numeric_limits<double>::infinity(),
 		DataType maxValue=std::numeric_limits<double>::infinity());
 private:

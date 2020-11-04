@@ -2,7 +2,7 @@
 * **********   A tool for visual analysis and processing of 3D CT images   ********** *
 * *********************************************************************************** *
 * Copyright (C) 2016-2020  C. Heinzl, M. Reiter, A. Reh, W. Li, M. Arikan, Ar. &  Al. *
-*                          Amirkhanov, J. Weissenböck, B. Fröhler, M. Schiwarth       *
+*                 Amirkhanov, J. Weissenböck, B. Fröhler, M. Schiwarth, P. Weinberger *
 * *********************************************************************************** *
 * This program is free software: you can redistribute it and/or modify it under the   *
 * terms of the GNU General Public License as published by the Free Software           *
@@ -30,7 +30,7 @@ iAModalityExplorerAttachment::iAModalityExplorerAttachment(MainWindow * mainWnd,
 {
 	m_dlgModalitySPLOM = new dlg_modalitySPLOM();
 	m_dlgModalitySPLOM->SetData(child->modalities());
-	child->tabifyDockWidget(child->logDockWidget(), m_dlgModalitySPLOM);
+	child->tabifyDockWidget(child->renderDockWidget(), m_dlgModalitySPLOM);
 	/*
 	dlg_planeSlicer* planeSlicer = new dlg_planeSlicer();
 	mdiChild->splitDockWidget(renderWidget, planeSlicer, Qt::Horizontal);

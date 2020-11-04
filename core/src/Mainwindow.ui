@@ -55,7 +55,7 @@
      <x>0</x>
      <y>0</y>
      <width>800</width>
-     <height>22</height>
+     <height>21</height>
     </rect>
    </property>
    <property name="toolTipDuration">
@@ -140,6 +140,20 @@
     <property name="toolTipsVisible">
      <bool>true</bool>
     </property>
+    <widget class="QMenu" name="menuLayout">
+     <property name="title">
+      <string>Layout</string>
+     </property>
+     <addaction name="actionSaveLayout"/>
+     <addaction name="actionLoadLayout"/>
+     <addaction name="actionDeleteLayout"/>
+     <addaction name="actionResetLayout"/>
+    </widget>
+    <widget class="QMenu" name="menuDockWidgets">
+     <property name="title">
+      <string>Views</string>
+     </property>
+    </widget>
     <addaction name="actionXY"/>
     <addaction name="actionXZ"/>
     <addaction name="actionYZ"/>
@@ -154,13 +168,11 @@
     <addaction name="actionRawProfile"/>
     <addaction name="actionSnakeSlicer"/>
     <addaction name="separator"/>
-    <addaction name="actionSaveLayout"/>
-    <addaction name="actionLoadLayout"/>
-    <addaction name="actionResetLayout"/>
-    <addaction name="actionDeleteLayout"/>
+    <addaction name="menuDockWidgets"/>
+    <addaction name="menuLayout"/>
     <addaction name="separator"/>
     <addaction name="actionEnableInteraction"/>
-    <addaction name="actionShowConsole"/>
+    <addaction name="actionShowLog"/>
     <addaction name="actionMainWindowStatusBar"/>
     <addaction name="actionShowToolbar"/>
     <addaction name="actionFullScreenMode"/>
@@ -848,7 +860,7 @@
      <normaloff>:/images/layout_export.png</normaloff>:/images/layout_export.png</iconset>
    </property>
    <property name="text">
-    <string>Save Layout</string>
+    <string>Save</string>
    </property>
    <property name="toolTip">
     <string>Save current layout of the child window</string>
@@ -860,7 +872,7 @@
      <normaloff>:/images/layout_load.png</normaloff>:/images/layout_load.png</iconset>
    </property>
    <property name="text">
-    <string>Load Layout</string>
+    <string>Load</string>
    </property>
    <property name="toolTip">
     <string>Load previously saved layout of the child window</string>
@@ -872,7 +884,7 @@
      <normaloff>:/images/layout_delete.png</normaloff>:/images/layout_delete.png</iconset>
    </property>
    <property name="text">
-    <string>Delete Layout</string>
+    <string>Delete</string>
    </property>
    <property name="toolTip">
     <string>Delete currently selected layout</string>
@@ -900,7 +912,7 @@
     </iconset>
    </property>
    <property name="text">
-    <string>Reset Layout</string>
+    <string>Reset</string>
    </property>
    <property name="toolTip">
     <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;Resets the Layout of the current mdichild&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
@@ -1045,12 +1057,12 @@
     <enum>Qt::ApplicationShortcut</enum>
    </property>
   </action>
-  <action name="actionShowConsole">
+  <action name="actionShowLog">
    <property name="checkable">
     <bool>true</bool>
    </property>
    <property name="text">
-    <string>Show Console</string>
+    <string>Show Log</string>
    </property>
   </action>
   <action name="actionBuildInformation">

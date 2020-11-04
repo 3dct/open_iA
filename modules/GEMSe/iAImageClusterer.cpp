@@ -2,7 +2,7 @@
 * **********   A tool for visual analysis and processing of 3D CT images   ********** *
 * *********************************************************************************** *
 * Copyright (C) 2016-2020  C. Heinzl, M. Reiter, A. Reh, W. Li, M. Arikan, Ar. &  Al. *
-*                          Amirkhanov, J. Weissenböck, B. Fröhler, M. Schiwarth       *
+*                 Amirkhanov, J. Weissenböck, B. Fröhler, M. Schiwarth, P. Weinberger *
 * *********************************************************************************** *
 * This program is free software: you can redistribute it and/or modify it under the   *
 * terms of the GNU General Public License as published by the Free Software           *
@@ -27,7 +27,7 @@
 #include "iARepresentative.h"
 #include "iASingleResult.h"
 
-#include <iAConsole.h>
+#include <iALog.h>
 #include <iAImageComparisonMetrics.h>
 
 #include <itkLabelOverlapMeasuresImageFilter.h>
@@ -82,12 +82,12 @@ double CalcDistance(ClusterImageType img1, ClusterImageType img2)
 	}
 	catch (itk::ExceptionObject & e)
 	{
-		DEBUG_LOG(QString("itk Exception: %1\n").arg(e.GetDescription()));
+		LOG(lvlError, QString("itk Exception: %1\n").arg(e.GetDescription()));
 		return 0.0;
 	}
 	if (qIsNaN(meanOverlap))
 	{
-		DEBUG_LOG("ERROR: CalcDistance -> NAN!");
+		LOG(lvlError, "ERROR: CalcDistance -> NAN!");
 		return 1.0;
 	}
 	return 1-meanOverlap;
@@ -118,7 +118,7 @@ public:
 	{
 		if (x < 0 || x >= m_side || y < 0 || y > m_side)
 		{
-			DEBUG_LOG(QString("Clusterer::DiagonalMatrix: GetValue - index %1, %2  outside of valid range 0..%3\n")
+			LOG(lvlError, QString("Clusterer::DiagonalMatrix: GetValue - index %1, %2  outside of valid range 0..%3\n")
 				.arg(x)
 				.arg(y)
 				.arg(m_side - 1) );
@@ -126,7 +126,7 @@ public:
 		}
 		if (x == y)
 		{
-			DEBUG_LOG(QString("Clusterer::DiagonalMatrix: SetValue - Invalid access: diagonal! x==y==\n")
+			LOG(lvlError, QString("Clusterer::DiagonalMatrix: SetValue - Invalid access: diagonal! x==y==\n")
 				.arg(x));
 			return false;
 		}
@@ -156,7 +156,7 @@ public:
 	{
 		if (idx < 0 || idx >= m_side)
 		{
-			DEBUG_LOG(QString("Clusterer::DiagonalMatrix: Remove - index %1 outside of valid range 0..%2!\n")
+			LOG(lvlError, QString("Clusterer::DiagonalMatrix: Remove - index %1 outside of valid range 0..%2!\n")
 				.arg(idx)
 				.arg(m_side - 1));
 			return;
@@ -195,7 +195,7 @@ public:
 		}
 		if (minIdx.first == minIdx.second)
 		{
-			DEBUG_LOG(QString("Clusterer::DiagonalMatrix: GetMinimum - DiagonalMatrix seems to be empty already (m_side=%1)!\n")
+			LOG(lvlWarn, QString("Clusterer::DiagonalMatrix: GetMinimum - DiagonalMatrix seems to be empty already (m_side=%1)!\n")
 				.arg(m_side));
 		}
 		return minIdx;
@@ -273,13 +273,13 @@ namespace {
 bool IsEmpty(DiagonalMatrix<float> & distances, int idx, int cnt)
 {
 	bool result = true;
-	DEBUG_LOG(QString("%1 -> ").arg(idx));
+	LOG(lvlInfo, QString("%1 -> ").arg(idx));
 	for (int i=0; i<cnt; ++i)
 	{
 		if (i == idx) continue;
 		if (distances.GetValue(i, idx) != std::numeric_limits<float>::max())
 		{
-			DEBUG_LOG(QString("%1:%2 ")
+			LOG(lvlInfo, QString("%1:%2 ")
 				.arg(i)
 				.arg(distances.GetValue(i, idx)));
 			result = false;
@@ -288,7 +288,7 @@ bool IsEmpty(DiagonalMatrix<float> & distances, int idx, int cnt)
 	}
 	if (result)
 	{
-		DEBUG_LOG(QString("%1 is empty!").arg(idx));
+		LOG(lvlWarn, QString("%1 is empty!").arg(idx));
 	}
 	return true;
 }
@@ -319,7 +319,7 @@ void iAImageClusterer::run()
 			float distance = 1.0;
 			if (!img1 || !img2)
 			{
-				DEBUG_LOG(QString("Could not load label image for result with id %1 or %2. Aborting clustering!").arg(m_currImage).arg(j));
+				LOG(lvlError, QString("Could not load label image for result with id %1 or %2. Aborting clustering!").arg(m_currImage).arg(j));
 				m_aborted = true;
 				return;
 			}
@@ -329,7 +329,7 @@ void iAImageClusterer::run()
 			}
 			if (qIsNaN(distance))
 			{
-				DEBUG_LOG(QString("ERROR: %1, %2 -> NAN!")
+				LOG(lvlError, QString("ERROR: %1, %2 -> NAN!")
 					.arg(m_currImage)
 					.arg(j));
 				distance = 1.0;
@@ -369,7 +369,7 @@ void iAImageClusterer::run()
 		{
 			if (idx.first == 0)
 			{
-				DEBUG_LOG(QString("Premature exit with %1 nodes remaining: ").arg(m_remainingNodes));
+				LOG(lvlError, QString("Premature exit with %1 nodes remaining: ").arg(m_remainingNodes));
 				for (int i=0; i<m_images.size(); ++i)
 				{
 					if (!m_images[i].isNull())
@@ -377,20 +377,20 @@ void iAImageClusterer::run()
 						IsEmpty(distances, i, m_images.size());
 					}
 				}
-				DEBUG_LOG("\n");
+				LOG(lvlError, "\n");
 				break;
 			}
-			DEBUG_LOG(QString("Clustering: Two times %1 is not a valid pair!").arg(idx.first));
+			LOG(lvlError, QString("Clustering: Two times %1 is not a valid pair!").arg(idx.first));
 			distances.Remove(idx.first);
 			continue;
 		}
 
 		if (!m_images[idx.first] || !m_images[idx.second])
 		{
-			DEBUG_LOG(QString("Clustering: One or both of images to cluster already clustered (%1, %2)")
+			LOG(lvlError, QString("Clustering: One or both of images to cluster already clustered (%1, %2)")
 				.arg(m_images[idx.first] ? "first set" : "!first NOT set!")
 				.arg(m_images[idx.second] ? "second set" : "!second NOT set!"));
-			DEBUG_LOG(QString("Premature exit with %1 nodes remaining!").arg(m_remainingNodes));
+			LOG(lvlError, QString("Premature exit with %1 nodes remaining!").arg(m_remainingNodes));
 			for (int i=0; i<m_images.size(); ++i)
 			{
 				if (!m_images[i].isNull())

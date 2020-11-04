@@ -2,7 +2,7 @@
 * **********   A tool for visual analysis and processing of 3D CT images   ********** *
 * *********************************************************************************** *
 * Copyright (C) 2016-2020  C. Heinzl, M. Reiter, A. Reh, W. Li, M. Arikan, Ar. &  Al. *
-*                          Amirkhanov, J. Weissenböck, B. Fröhler, M. Schiwarth       *
+*                 Amirkhanov, J. Weissenböck, B. Fröhler, M. Schiwarth, P. Weinberger *
 * *********************************************************************************** *
 * This program is free software: you can redistribute it and/or modify it under the   *
 * terms of the GNU General Public License as published by the Free Software           *
@@ -18,30 +18,43 @@
 * Contact: FH OÖ Forschungs & Entwicklungs GmbH, Campus Wels, CT-Gruppe,              *
 *          Stelzhamerstraße 23, 4600 Wels / Austria, Email: c.heinzl@fh-wels.at       *
 * ************************************************************************************/
-#include "dlg_console.h"
+#include "iAChartFunction.h"
 
-#include <QString>
+#include "iAChartWithFunctionsWidget.h"
 
-#include <iostream>
+#include <QPainter>
 
-dlg_console::dlg_console()
+iAChartFunction::iAChartFunction(iAChartWithFunctionsWidget* chart) : m_chart(chart) { }
+
+void iAChartFunction::changeColor()
+{}
+
+bool iAChartFunction::isColored() const
 {
-	setupUi(this);
-	connect(pbClearLog, &QPushButton::clicked, this, &dlg_console::clear);
+	return false;
 }
 
-void dlg_console::log(QString text)
+void iAChartFunction::mouseReleaseEvent(QMouseEvent*)
+{}
+
+void iAChartFunction::mouseReleaseEventAfterNewPoint(QMouseEvent*)
+{}
+
+int iAChartFunction::pointRadius(bool selected)
 {
-	consoleTextEdit->append(text);
+	return selected ? PointRadiusSelected : PointRadius;
 }
 
-void dlg_console::clear()
-{
-	consoleTextEdit->clear();
-}
+const QColor iAChartFunction::DefaultColor(255, 128, 0, 255);
 
-void dlg_console::closeEvent(QCloseEvent *event)
+void drawPoint(QPainter& painter, int x, int y, bool selected, QColor const& color, double sizeFactor)
 {
-	emit onClose();
-	QMainWindow::closeEvent(event);
+	QPen pointPen = painter.pen();
+	pointPen.setColor(iAChartFunction::DefaultColor); pointPen.setWidth(iAChartFunction::LineWidthUnselected);
+	QPen pointPenSel = painter.pen();
+	pointPenSel.setColor(Qt::red); pointPenSel.setWidth(iAChartFunction::LineWidthSelected);
+	painter.setPen(selected ? pointPenSel : pointPen);
+	painter.setBrush(QBrush(color));
+	int radius = iAChartFunction::pointRadius(selected) * sizeFactor;
+	painter.drawEllipse(x - radius, y - radius, 2*radius, 2*radius);
 }

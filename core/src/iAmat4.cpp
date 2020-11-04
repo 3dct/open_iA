@@ -2,7 +2,7 @@
 * **********   A tool for visual analysis and processing of 3D CT images   ********** *
 * *********************************************************************************** *
 * Copyright (C) 2016-2020  C. Heinzl, M. Reiter, A. Reh, W. Li, M. Arikan, Ar. &  Al. *
-*                          Amirkhanov, J. Weissenböck, B. Fröhler, M. Schiwarth       *
+*                 Amirkhanov, J. Weissenböck, B. Fröhler, M. Schiwarth, P. Weinberger *
 * *********************************************************************************** *
 * This program is free software: you can redistribute it and/or modify it under the   *
 * terms of the GNU General Public License as published by the Free Software           *
@@ -261,6 +261,7 @@ iAMat4 scale ( const iAVec3f & v )
 	return res;
 }
 
+/*
 iAMat4 rotateX ( float angle )
 {
 	iAMat4 res ( 1 );
@@ -302,6 +303,7 @@ iAMat4 rotateZ ( float angle )
 
 	return res;
 }
+*/
 
 iAMat4 rotation ( const iAVec3f & axis, float angle )
 {
@@ -349,6 +351,7 @@ iAMat4 rotationZ ( float angle )
 	iAVec3f axis(0,0,1);
 	return rotation(axis, angle);
 }
+/*
 
 iAMat4 mirrorX ()
 {
@@ -492,3 +495,4 @@ iAMat4 frProjectXZ3(float focus)
 	res.x[3][2] = -1/focus;
 	return res;
 }
+*/

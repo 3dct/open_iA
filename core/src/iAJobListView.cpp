@@ -2,7 +2,7 @@
 * **********   A tool for visual analysis and processing of 3D CT images   ********** *
 * *********************************************************************************** *
 * Copyright (C) 2016-2020  C. Heinzl, M. Reiter, A. Reh, W. Li, M. Arikan, Ar. &  Al. *
-*                          Amirkhanov, J. Weissenböck, B. Fröhler, M. Schiwarth       *
+*                 Amirkhanov, J. Weissenböck, B. Fröhler, M. Schiwarth, P. Weinberger *
 * *********************************************************************************** *
 * This program is free software: you can redistribute it and/or modify it under the   *
 * terms of the GNU General Public License as published by the Free Software           *
@@ -21,14 +21,13 @@
 #include "iAJobListView.h"
 
 #include "iAAbortListener.h"
-#include "iAConsole.h"
+#include "iALog.h"
 #include "iAProgress.h"
 
 //#include <QHBoxLayout>
 #include <QLabel>
 #include <QProgressBar>
 #include <QToolButton>
-#include <QThread>
 #include <QVariant>
 #include <QVBoxLayout>
 
@@ -46,9 +45,8 @@ iAJobListView::iAJobListView():
 	layout()->addWidget(m_insideWidget);
 }
 
-void iAJobListView::addJob(QString name, iAProgress * p, QThread * t, iAAbortListener* abortListener)
+QWidget* iAJobListView::addJobWidget(QString name, iAProgress* p, iAAbortListener* abortListener)
 {
-	m_runningJobs.fetchAndAddOrdered(1);
 	auto titleLabel = new QLabel(name);
 	titleLabel->setProperty("qssClass", "titleLabel");
 
@@ -87,25 +85,23 @@ void iAJobListView::addJob(QString name, iAProgress * p, QThread * t, iAAbortLis
 	m_insideWidget->layout()->addWidget(jobWidget);
 
 	// connections
-	connect(p, &iAProgress::progress, progressBar, &QProgressBar::setValue);
-	connect(p, &iAProgress::statusChanged, statusLabel, &QLabel::setText);
-	connect(t, &QThread::finished, [this, jobWidget]()
+	if (p)
 	{
-		int oldJobCount = m_runningJobs.fetchAndAddOrdered(-1);
-		if (oldJobCount == 1)
-		{
-			emit allJobsDone();
-		}
-		jobWidget->deleteLater();
-	});
+		connect(p, &iAProgress::progress, progressBar, &QProgressBar::setValue);
+		connect(p, &iAProgress::statusChanged, statusLabel, &QLabel::setText);
+	}
 	if (abortListener)
 	{
 		connect(abortButton, &QToolButton::clicked, [=]()
 			{
 				abortButton->setEnabled(false);
 				statusLabel->setText("Aborting...");
-				QObject::disconnect(p, &iAProgress::statusChanged, statusLabel, &QLabel::setText);
+				if (p)
+				{
+					QObject::disconnect(p, &iAProgress::statusChanged, statusLabel, &QLabel::setText);
+				}
 				abortListener->abort();
 			});
 	}
+	return jobWidget;
 }

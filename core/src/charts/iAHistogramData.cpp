@@ -2,7 +2,7 @@
 * **********   A tool for visual analysis and processing of 3D CT images   ********** *
 * *********************************************************************************** *
 * Copyright (C) 2016-2020  C. Heinzl, M. Reiter, A. Reh, W. Li, M. Arikan, Ar. &  Al. *
-*                          Amirkhanov, J. Weissenböck, B. Fröhler, M. Schiwarth       *
+*                 Amirkhanov, J. Weissenböck, B. Fröhler, M. Schiwarth, P. Weinberger *
 * *********************************************************************************** *
 * This program is free software: you can redistribute it and/or modify it under the   *
 * terms of the GNU General Public License as published by the Free Software           *
@@ -20,7 +20,7 @@
 * ************************************************************************************/
 #include "iAHistogramData.h"
 
-#include "iAConsole.h"
+#include "iALog.h"
 #include "iAImageInfo.h"
 #include "iAMathUtility.h"
 #include "iAVtkDataTypeMapper.h"
@@ -32,7 +32,7 @@
 
 
 iAHistogramData::iAHistogramData()
-	: m_binCount(0), m_rawData(nullptr), m_accSpacing(0), m_type(Continuous)
+	: m_binCount(0), m_rawData(nullptr), m_accSpacing(0), m_type(iAValueType::Continuous)
 {
 	m_xBounds[0] = m_xBounds[1] = 0;
 	m_yBounds[0] = m_yBounds[1] = 0;
@@ -69,7 +69,7 @@ QSharedPointer<iAHistogramData> iAHistogramData::create(vtkImageData* img, size_
 	double * const scalarRange = img->GetScalarRange();
 	if (binCount > std::numeric_limits<int>::max())
 	{
-		DEBUG_LOG(QString("iAHistogramData::create: Only up to %1 bins supported, but requested %2! Bin number will be set to %1!")
+		LOG(lvlWarn, QString("iAHistogramData::create: Only up to %1 bins supported, but requested %2! Bin number will be set to %1!")
 			.arg(std::numeric_limits<int>::max()).arg(binCount));
 		binCount = std::numeric_limits<int>::max();
 	}   // check above guarantees that binCount is smaller than int max, so cast below is safe!
@@ -103,8 +103,8 @@ QSharedPointer<iAHistogramData> iAHistogramData::create(vtkImageData* img, size_
 	}
 	result->setMaxFreq();
 	result->m_type = (img && (img->GetScalarType() != VTK_FLOAT) && (img->GetScalarType() != VTK_DOUBLE))
-		? Discrete
-		: Continuous;
+		? iAValueType::Discrete
+		: iAValueType::Continuous;
 	if (info)
 	{
 		*info = iAImageInfo(accumulate->GetVoxelCount(),

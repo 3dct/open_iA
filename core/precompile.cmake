@@ -12,9 +12,9 @@ SET (OPENIA_PRECOMPILE_HEADERS
 	<iAChannelData.h>
 	<iAChannelSlicerData.h>
 	<iAConnector.h>
-	<iAConsole.h>
 	<iAFilter.h>
 	<iAFilterRunnerGUI.h>
+	<iALog.h>
 	<iALogger.h>
 	<iALookupTable.h>
 	<iAMapper.h>
@@ -94,7 +94,6 @@ SET (OPENIA_PRECOMPILE_HEADERS
 
 	<QColor>
 	<QComboBox>
-	<QDateTime>
 	<QDir>
 	<QDockWidget>
 	<QFile>

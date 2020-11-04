@@ -2,7 +2,7 @@
 * **********   A tool for visual analysis and processing of 3D CT images   ********** *
 * *********************************************************************************** *
 * Copyright (C) 2016-2020  C. Heinzl, M. Reiter, A. Reh, W. Li, M. Arikan, Ar. &  Al. *
-*                          Amirkhanov, J. Weissenböck, B. Fröhler, M. Schiwarth       *
+*                 Amirkhanov, J. Weissenböck, B. Fröhler, M. Schiwarth, P. Weinberger *
 * *********************************************************************************** *
 * This program is free software: you can redistribute it and/or modify it under the   *
 * terms of the GNU General Public License as published by the Free Software           *
@@ -20,6 +20,7 @@
 * ************************************************************************************/
 #include "iAModuleInterface.h"
 
+#include "iALog.h"
 #include "iAModuleDispatcher.h"
 #include "iAModuleAttachmentToChild.h"
 #include "mainwindow.h"
@@ -75,11 +76,6 @@ void iAModuleInterface::PrepareActiveChild()
 	}
 }
 
-QMenu * iAModuleInterface::getMenuWithTitle( QMenu * parentMenu, QString const & title, bool isDisablable /*= true*/  )
-{
-	return m_dispatcher->getMenuWithTitle(parentMenu, title, isDisablable);
-}
-
 void iAModuleInterface::SaveSettings() const {}
 
 void iAModuleInterface::ChildCreated(MdiChild * /*child*/)
@@ -132,9 +128,9 @@ bool iAModuleInterface::isAttached()
 	return false;
 }
 
-void iAModuleInterface::AddActionToMenuAlphabeticallySorted( QMenu * menu, QAction * action, bool isDisablable /*= true */ )
+void iAModuleInterface::makeActionChildDependent(QAction * action)
 {
-	m_dispatcher->AddActionToMenuAlphabeticallySorted(menu, action, isDisablable);
+	m_dispatcher->makeActionChildDependent(action);
 }
 
 iAModuleAttachmentToChild * iAModuleInterface::CreateAttachment( MainWindow * /*mainWnd*/, MdiChild * /*child*/ )
@@ -165,10 +161,43 @@ bool iAModuleInterface::AttachToMdiChild( MdiChild * child )
 	}
 	catch( itk::ExceptionObject &excep )
 	{  // check why we catch an ITK exception here! in the attachment initialization, no ITK filters should be called...
-		child->addMsg( tr("%1 in File %2, Line %3").arg( excep.GetDescription() )
+		LOG(lvlError, tr("%1 in File %2, Line %3").arg( excep.GetDescription() )
 			.arg( excep.GetFile() )
 			.arg( excep.GetLine() ) );
 		return false;
 	}
 	return true;
+}
+
+QMenu* getOrAddSubMenu(QMenu* parentMenu, QString const& title, bool addSeparator)
+{
+	QList<QMenu*> submenus = parentMenu->findChildren<QMenu*>();
+	for (int i = 0; i < submenus.size(); ++i)
+	{
+		if (submenus.at(i)->title() == title)
+		{
+			if (addSeparator && !submenus.at(i)->isEmpty())
+			{
+				submenus.at(i)->addSeparator();
+			}
+			return submenus.at(i);
+		}
+	}
+	QMenu* result = new QMenu(parentMenu);
+	result->setTitle(title);
+	addToMenuSorted(parentMenu, result->menuAction());
+	return result;
+}
+
+void addToMenuSorted(QMenu* menu, QAction* action)
+{
+	for (QAction* curAct : menu->actions())
+	{
+		if (curAct->text() > action->text())
+		{
+			menu->insertAction(curAct, action);
+			return;
+		}
+	}
+	menu->addAction(action);
 }

@@ -2,7 +2,7 @@
 * **********   A tool for visual analysis and processing of 3D CT images   ********** *
 * *********************************************************************************** *
 * Copyright (C) 2016-2020  C. Heinzl, M. Reiter, A. Reh, W. Li, M. Arikan, Ar. &  Al. *
-*                          Amirkhanov, J. Weissenböck, B. Fröhler, M. Schiwarth       *
+*                 Amirkhanov, J. Weissenböck, B. Fröhler, M. Schiwarth, P. Weinberger *
 * *********************************************************************************** *
 * This program is free software: you can redistribute it and/or modify it under the   *
 * terms of the GNU General Public License as published by the Free Software           *
@@ -18,9 +18,9 @@
 * Contact: FH OÖ Forschungs & Entwicklungs GmbH, Campus Wels, CT-Gruppe,              *
 *          Stelzhamerstraße 23, 4600 Wels / Austria, Email: c.heinzl@fh-wels.at       *
 * ************************************************************************************/
-#include "iAConsole.h"
+#include "iALogWidget.h"
 
-#include "dlg_console.h"
+#include "iALogLevelMappings.h"
 #include "iARedirectVtkOutput.h"
 #include "iARedirectItkOutput.h"
 #include "io/iAFileUtils.h"
@@ -30,58 +30,45 @@
 #include <fstream>
 
 
-// iAGlobalLogger
-
-iALogger* iAGlobalLogger::m_globalLogger(nullptr);
-
-void iAGlobalLogger::setLogger(iALogger* logger)
+void iALogWidget::log(iALogLevel lvl, QString const & text)
 {
-	m_globalLogger = logger;
+	if (lvl >= m_logLevel || lvl >= m_fileLogLevel)
+	{
+		emit logSignal(lvl, text);
+	}
 }
 
-iALogger* iAGlobalLogger::get()
-
-{
-	return m_globalLogger;
-}
-
-
-// iAConsole
-
-void iAConsole::log(QString const & text)
-{
-	emit logSignal(text);
-}
-
-void iAConsole::logSlot(QString const & text)
+void iALogWidget::logSlot(int lvl, QString const & text)
 {
 	// The log window prevents the whole application from shutting down
 	// if it is still open at the time the program should exit.
 	// Therefore, we don't reopen the console after the close() method
 	// has been called. This allows the program to exit properly.
-	if (!m_closed)
+	QString msg = QString("%1 %2 %3")
+		.arg(QLocale().toString(QDateTime::currentDateTime(), QLocale::ShortFormat))
+		.arg(logLevelToString(static_cast<iALogLevel>(lvl)))
+		.arg(text);
+	if (!m_closed && lvl >= m_logLevel)
 	{
-		if (!m_console->isVisible())
+		if (!isVisible())
 		{
-			m_console->show();
-			emit consoleVisibilityChanged(true);
+			show();
+			emit logVisibilityChanged(true);
 		}
-		m_console->log(text);
+		logTextEdit->append(msg);
 	}
-	if (m_logToFile)
+	if (m_logToFile && lvl >= m_fileLogLevel)
 	{
 		std::ofstream logfile( getLocalEncodingFileName(m_logFileName).c_str(), std::ofstream::out | std::ofstream::app);
-		logfile << QString("%1 %2\n")
-			.arg(QLocale().toString(
-				QDateTime::currentDateTime(),
-				QLocale::ShortFormat))
-			.arg(text)
-			.toStdString();
+		logfile << msg.toStdString() << std::endl;
 		logfile.flush();
 		logfile.close();
 		if (logfile.bad())
 		{
-			m_console->log(QString("Could not write to logfile '%1', file output will be disabled for now.").arg(m_logFileName));
+			if (!m_closed)
+			{
+				logTextEdit->append(QString("Could not write to logfile '%1', file output will be disabled for now.").arg(m_logFileName));
+			}
 			m_fileLogError = true;
 			m_logToFile = false;
 		}
@@ -92,125 +79,96 @@ void iAConsole::logSlot(QString const & text)
 	}
 }
 
-void iAConsole::setVisible(bool visible)
-{
-	if (m_closed)
-		return;
-	m_console->setVisible(visible);
-}
-
-void iAConsole::setLogToFile(bool value, QString const & fileName, bool verbose)
+void iALogWidget::setLogToFile(bool value, QString const & fileName, bool verbose)
 {
 	if (verbose && m_logToFile != value)
 	{
-		logSlot(QString("%1 logging to file '%2'...").arg(value ? "Enabling" : "Disabling").arg(m_logFileName));
+		logSlot(lvlInfo, QString("%1 logging to file '%2'...").arg(value ? "Enabling" : "Disabling").arg(m_logFileName));
 	}
 	m_logToFile = value;
 	m_logFileName = fileName;
 }
 
-bool iAConsole::isLogToFileOn() const
+void iALogWidget::setFileLogLevel(iALogLevel lvl)
+{
+	m_fileLogLevel = lvl;
+}
+
+iALogLevel iALogWidget::fileLogLevel() const
+{
+	return m_fileLogLevel;
+}
+
+bool iALogWidget::isLogToFileOn() const
 {
 	return m_logToFile;
 }
 
-bool iAConsole::isFileLogError() const
+bool iALogWidget::isFileLogError() const
 {
 	return m_fileLogError;
 }
 
-bool iAConsole::isVisible() const
-{
-	return m_console->isVisible();
-}
-
-QString iAConsole::logFileName() const
+QString iALogWidget::logFileName() const
 {
 	return m_logFileName;
 }
 
-iAConsole::iAConsole() :
+iALogWidget::iALogWidget() :
 	m_logFileName("debug.log"),
-	m_console(new dlg_console()),
 	m_logToFile(false),
 	m_closed(false),
 	m_fileLogError(false)
 {
+	setupUi(this);
+	setAttribute(Qt::WA_DeleteOnClose, false);
 	// redirect VTK and ITK output to console window:
 	m_vtkOutputWindow = vtkSmartPointer<iARedirectVtkOutput>::New();
 	m_itkOutputWindow = iARedirectItkOutput::New();
 	vtkOutputWindow::SetInstance(m_vtkOutputWindow);
 	itk::OutputWindow::SetInstance(m_itkOutputWindow);
+	cmbboxLogLevel->addItems(AvailableLogLevels());
 
-	connect(this, &iAConsole::logSignal, this, &iAConsole::logSlot);
-	connect(m_console, &dlg_console::onClose, this, &iAConsole::consoleClosed);
+	connect(pbClearLog, &QPushButton::clicked, this, &iALogWidget::clear);
+	connect(cmbboxLogLevel, QOverload<int>::of(&QComboBox::currentIndexChanged), this, &iALogWidget::setLogLevelSlot);
+	connect(this, &iALogWidget::logSignal, this, &iALogWidget::logSlot);
 }
 
-iAConsole::~iAConsole()
+iALogWidget::~iALogWidget()
 {
-	delete m_console;
 }
 
-iAConsole* iAConsole::instance()
+iALogWidget* iALogWidget::get()
 {
-	static iAConsole s_instance;
-	return &s_instance;
+	static iALogWidget* instance(new iALogWidget);
+	return instance;
 }
 
-void iAConsole::consoleClosed()
+void iALogWidget::shutdown()
 {
-	emit consoleVisibilityChanged(false);
+	get()->m_closed = true;
+	get()->close();
 }
 
-void iAConsole::close()
+void iALogWidget::clear()
 {
-	m_closed = true;
-	m_console->close();
+	logTextEdit->clear();
 }
 
-void iAConsole::closeInstance()
+void iALogWidget::closeEvent(QCloseEvent* event)
 {
-	instance()->close();
+	emit logVisibilityChanged(false);
+	QDockWidget::closeEvent(event);
 }
 
-
-// iALogger
-
-iALogger::~iALogger()
-{}
-
-
-
-// iAConsoleLogger
-
-void iAConsoleLogger::log(QString const & msg)
+void iALogWidget::setLogLevel(iALogLevel lvl)
 {
-	iAConsole::instance()->log(msg);
+	QSignalBlocker sb(cmbboxLogLevel);
+	cmbboxLogLevel->setCurrentIndex(lvl - 1);
+	iALogger::setLogLevel(lvl);
 }
 
-iAConsoleLogger * iAConsoleLogger::get()
+void iALogWidget::setLogLevelSlot(int selectedIdx)
 {
-	static iAConsoleLogger GlobalConsoleLogger;
-	return &GlobalConsoleLogger;
+	iALogger::setLogLevel(static_cast<iALogLevel>(selectedIdx + 1));
 }
-
-iAConsoleLogger::iAConsoleLogger()
-{}
-
-
-
-// iAStdOutLogger
-
-void iAStdOutLogger::log(QString const & msg)
-{
-	std::cout << msg.toStdString() << std::endl;
-}
-
-iAStdOutLogger * iAStdOutLogger::get()
-{
-	static iAStdOutLogger GlobalStdOutLogger;
-	return &GlobalStdOutLogger;
-}
-
-iAStdOutLogger::iAStdOutLogger()
-{}

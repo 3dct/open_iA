@@ -2,7 +2,7 @@
 * **********   A tool for visual analysis and processing of 3D CT images   ********** *
 * *********************************************************************************** *
 * Copyright (C) 2016-2020  C. Heinzl, M. Reiter, A. Reh, W. Li, M. Arikan, Ar. &  Al. *
-*                          Amirkhanov, J. Weissenböck, B. Fröhler, M. Schiwarth       *
+*                 Amirkhanov, J. Weissenböck, B. Fröhler, M. Schiwarth, P. Weinberger *
 * *********************************************************************************** *
 * This program is free software: you can redistribute it and/or modify it under the   *
 * terms of the GNU General Public License as published by the Free Software           *
@@ -76,14 +76,18 @@ void iAHistogramTriangle::initialize(QString const /*names*/[3])
 
 	QWidget *widget = new QWidget(this);
 	QLayout *layout = new QHBoxLayout(widget);
-	for (int i = 0; i < 3; i++) {
+	for (int i = 0; i < 3; i++)
+	{
 		layout->addWidget(m_tmw->w_slicer(i)->getSlicer());
 
 		// The following call will make sure that
 		// m_tmw->m_slicerWidgets[i]->getSlicer()->widget()->isValid()
 		// returns true (see isValid() definition 19/04/2019)
 		// That prevents a "Framebuffer incomplete attachment" warning
+#ifdef CHART_OPENGL
+// TODO: Find way to do this without OpenGL!
 		m_tmw->w_slicer(i)->getSlicer()->GRAB_FRAMEBUFFER();
+#endif
 	}
 
 	//QLayout *thisLayout = new QHBoxLayout(this);
@@ -498,8 +502,10 @@ void iAHistogramTriangle::paintSlicers(QPainter &p)
 
 			p.setClipPath(m_slicerClipPaths[i]);
 			p.setTransform(m_transformSlicers[i]);
-
+#ifdef CHART_OPENGL
+// TODO: Find way to do this without OpenGL!
 			img = m_tmw->w_slicer(i)->getSlicer()->GRAB_FRAMEBUFFER();
+#endif
 
 			QSize size = m_tmw->w_slicer(i)->getSlicer()->size();
 			//qDebug() << "Slicer framebuffer valid?" << m_tmw->m_slicerWidgets[i]->getSlicer()->widget()->isValid();

@@ -2,7 +2,7 @@
 * **********   A tool for visual analysis and processing of 3D CT images   ********** *
 * *********************************************************************************** *
 * Copyright (C) 2016-2020  C. Heinzl, M. Reiter, A. Reh, W. Li, M. Arikan, Ar. &  Al. *
-*                          Amirkhanov, J. Weissenböck, B. Fröhler, M. Schiwarth       *
+*                 Amirkhanov, J. Weissenböck, B. Fröhler, M. Schiwarth, P. Weinberger *
 * *********************************************************************************** *
 * This program is free software: you can redistribute it and/or modify it under the   *
 * terms of the GNU General Public License as published by the Free Software           *
@@ -29,7 +29,7 @@
 #include <iABoxPlotData.h>
 #include <iAChanData.h>
 #include <iAChannelData.h>
-#include <iAConsole.h>
+#include <iALog.h>
 #include <iACSVToQTableWidgetConverter.h>
 #include <iARenderer.h>
 #include <iASlicer.h>
@@ -138,7 +138,10 @@ void iASSView::updateSettings()
 void iASSView::BuildDefaultTF( vtkSmartPointer<vtkImageData> & imgData, vtkSmartPointer<vtkColorTransferFunction> & tf, QColor color )
 {
 	if (!imgData)
-		DEBUG_LOG("Image data is nullptr!");
+	{
+		LOG(lvlError, "Image data is nullptr!");
+		return;
+	}
 	tf->RemoveAllPoints();
 	tf->AddRGBPoint( imgData->GetScalarRange()[0], 0.0, 0.0, 0.0 );
 	tf->AddRGBPoint( imgData->GetScalarRange()[1], color.redF(), color.greenF(), color.blueF() );

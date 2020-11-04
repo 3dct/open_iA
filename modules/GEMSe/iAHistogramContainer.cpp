@@ -2,7 +2,7 @@
 * **********   A tool for visual analysis and processing of 3D CT images   ********** *
 * *********************************************************************************** *
 * Copyright (C) 2016-2020  C. Heinzl, M. Reiter, A. Reh, W. Li, M. Arikan, Ar. &  Al. *
-*                          Amirkhanov, J. Weissenböck, B. Fröhler, M. Schiwarth       *
+*                 Amirkhanov, J. Weissenböck, B. Fröhler, M. Schiwarth, P. Weinberger *
 * *********************************************************************************** *
 * This program is free software: you can redistribute it and/or modify it under the   *
 * terms of the GNU General Public License as published by the Free Software           *
@@ -30,7 +30,7 @@
 #include "iAQtCaptionWidget.h"
 
 #include <iAAttributeDescriptor.h>
-#include <iAConsole.h>
+#include <iALog.h>
 
 #include <QCheckBox>
 #include <QDialogButtonBox>
@@ -120,7 +120,7 @@ void iAHistogramContainer::CreateCharts()
 			numBin);
 		if (!paramData)
 		{
-			DEBUG_LOG(QString("ERROR: Creating chart #%1 data for attribute %2 failed!").arg(chartID)
+			LOG(lvlError, QString("Creating chart #%1 data for attribute %2 failed!").arg(chartID)
 				.arg(attrib->name()));
 			continue;
 		}
@@ -421,7 +421,7 @@ void iAHistogramContainer::ChartDblClicked()
 	assert(slider);
 	if (!slider)
 	{
-		DEBUG_LOG("ChartDblClicked called from non-slider widget.");
+		LOG(lvlError, "ChartDblClicked called from non-slider widget.");
 		return;
 	}
 	int chartID = slider->GetID();
@@ -435,7 +435,7 @@ void iAHistogramContainer::FilterChanged(double min, double max)
 	assert(slider);
 	if (!slider)
 	{
-		DEBUG_LOG("FilterChanged called from non-slider widget.");
+		LOG(lvlError, "FilterChanged called from non-slider widget.");
 		return;
 	}
 	int chartID = slider->GetID();

@@ -2,7 +2,7 @@
 * **********   A tool for visual analysis and processing of 3D CT images   ********** *
 * *********************************************************************************** *
 * Copyright (C) 2016-2020  C. Heinzl, M. Reiter, A. Reh, W. Li, M. Arikan, Ar. &  Al. *
-*                          Amirkhanov, J. Weissenböck, B. Fröhler, M. Schiwarth       *
+*                 Amirkhanov, J. Weissenböck, B. Fröhler, M. Schiwarth, P. Weinberger *
 * *********************************************************************************** *
 * This program is free software: you can redistribute it and/or modify it under the   *
 * terms of the GNU General Public License as published by the Free Software           *
@@ -33,7 +33,7 @@
 #include <iAAttributeDescriptor.h>
 #include <iAChannelData.h>
 #include <iAConnector.h>
-#include <iAConsole.h>
+#include <iALog.h>
 #include <iAModality.h>
 #include <iAModalityList.h>
 #include <iAModalityTransfer.h>
@@ -346,8 +346,8 @@ QString attrValueStr(double value, QSharedPointer<iAAttributes> attributes, int 
 {
 	switch(attributes->at(id)->valueType())
 	{
-		case Discrete:    return QString::number(static_cast<int>(value)); break;
-		case Categorical: return attributes->at(id)->nameMapper()->name(static_cast<int>(value)); break;
+		case iAValueType::Discrete:    return QString::number(static_cast<int>(value)); break;
+		case iAValueType::Categorical: return attributes->at(id)->nameMapper()->name(static_cast<int>(value)); break;
 		default:          return QString::number(value); break;
 	}
 }
@@ -390,7 +390,7 @@ void iADetailView::SetNode(iAImageTreeNode const * node,
 		{
 			for (int chartID = 0; chartID < allAttributes->size(); ++chartID)
 			{
-				if (allAttributes->at(chartID)->valueType() != Categorical)
+				if (allAttributes->at(chartID)->valueType() != iAValueType::Categorical)
 				{
 					double min,	max;
 					GetClusterMinMax(node, chartID, min, max, mapper);
@@ -503,7 +503,7 @@ void iADetailView::SetCorrectnessUncertaintyOverlay(bool enabled)
 {
 	if (!m_refImg)
 	{
-		DEBUG_LOG("Reference image must be set!");
+		LOG(lvlError, "Reference image must be set!");
 		return;
 	}
 	m_correctnessUncertaintyOverlayEnabled = enabled;
@@ -640,7 +640,7 @@ void iADetailView::SlicerMouseMove(int x, int y, int z, int /*c*/)
 		AddResultFilterPixel(x, y, z);
 		if (!m_resultFilterTriggerThread)
 			m_MouseButtonDown = false;
-			//DEBUG_LOG("Result Filter Trigger not yet started....");
+			//LOG(lvlError, "Result Filter Trigger not yet started....");
 		else
 			m_resultFilterTriggerThread->restart();
 	}

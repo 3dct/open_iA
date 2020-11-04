@@ -2,7 +2,7 @@
 * **********   A tool for visual analysis and processing of 3D CT images   ********** *
 * *********************************************************************************** *
 * Copyright (C) 2016-2020  C. Heinzl, M. Reiter, A. Reh, W. Li, M. Arikan, Ar. &  Al. *
-*                          Amirkhanov, J. Weissenböck, B. Fröhler, M. Schiwarth       *
+*                 Amirkhanov, J. Weissenböck, B. Fröhler, M. Schiwarth, P. Weinberger *
 * *********************************************************************************** *
 * This program is free software: you can redistribute it and/or modify it under the   *
 * terms of the GNU General Public License as published by the Free Software           *
@@ -20,7 +20,7 @@
 * ************************************************************************************/
 #include "iAXmlSettings.h"
 
-#include "iAConsole.h"
+#include "iALog.h"
 #include "iATransferFunction.h"
 
 #include <vtkPiecewiseFunction.h>
@@ -108,7 +108,7 @@ void iAXmlSettings::loadTransferFunction(QDomNode const & functionsNode, iATrans
 	QDomNode transferNode = functionsNode.namedItem("transfer");
 	if (!transferNode.isElement())
 	{
-		DEBUG_LOG("'transfer' node not found in given XML file, aborting load of transfer function!");
+		LOG(lvlError, "'transfer' node not found in given XML file, aborting load of transfer function!");
 		return;
 	}
 	transferFunction->opacityTF()->RemoveAllPoints();

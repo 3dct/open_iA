@@ -2,7 +2,7 @@
 * **********   A tool for visual analysis and processing of 3D CT images   ********** *
 * *********************************************************************************** *
 * Copyright (C) 2016-2020  C. Heinzl, M. Reiter, A. Reh, W. Li, M. Arikan, Ar. &  Al. *
-*                          Amirkhanov, J. Weissenböck, B. Fröhler, M. Schiwarth       *
+*                 Amirkhanov, J. Weissenböck, B. Fröhler, M. Schiwarth, P. Weinberger *
 * *********************************************************************************** *
 * This program is free software: you can redistribute it and/or modify it under the   *
 * terms of the GNU General Public License as published by the Free Software           *
@@ -34,7 +34,7 @@
 #include <dlg_imageproperty.h>
 #include <dlg_slicer.h>
 #include <iAConnector.h>
-#include <iAConsole.h>
+#include <iALog.h>
 #include <iALookupTable.h>
 #include <iASlicerMode.h>
 #include <iAStringHelper.h>
@@ -101,13 +101,13 @@ bool iAUncertaintyAttachment::LoadEnsemble(QString const & fileName)
 	m_ensembleFile = QSharedPointer<iAEnsembleDescriptorFile>(new iAEnsembleDescriptorFile(fileName));
 	if (!m_ensembleFile->good())
 	{
-		DEBUG_LOG("Ensemble: Given data file could not be read.");
+		LOG(lvlError, "Ensemble: Given data file could not be read.");
 		return false;
 	}
 	connect(m_child, &MdiChild::fileLoaded, this, &iAUncertaintyAttachment::ContinueEnsembleLoading);
 	if (!m_child->loadFile(m_ensembleFile->ModalityFileName(), false))
 	{
-		DEBUG_LOG(QString("Failed to load project '%1'").arg(m_ensembleFile->ModalityFileName()));
+		LOG(lvlError, QString("Failed to load project '%1'").arg(m_ensembleFile->ModalityFileName()));
 		return false;
 	}
 	return true;
@@ -156,7 +156,7 @@ void iAUncertaintyAttachment::CalculateNewSubEnsemble()
 	auto memberIDs = m_memberView->SelectedMemberIDs();
 	if (memberIDs.empty())
 	{
-		DEBUG_LOG("No members selected!");
+		LOG(lvlError, "No members selected!");
 		return;
 	}
 	QSharedPointer<iAEnsemble> mainEnsemble = m_ensembleView->Ensembles()[0];
@@ -196,7 +196,7 @@ void iAUncertaintyAttachment::EnsembleSelected(QSharedPointer<iAEnsemble> ensemb
 	m_scatterplotView->SetDatasets(ensemble);
 	m_memberView->SetEnsemble(ensemble);
 	m_labelDistributionView->Clear();
-	auto labelDistributionHistogram = createHistogram<int>(ensemble->GetLabelDistribution(), ensemble->LabelCount(), 0, ensemble->LabelCount()-1, Discrete);
+	auto labelDistributionHistogram = createHistogram<int>(ensemble->GetLabelDistribution(), ensemble->LabelCount(), 0, ensemble->LabelCount()-1, iAValueType::Discrete);
 	double lutRange[2];
 	lutRange[0] = 0;
 	lutRange[1] = m_currentEnsemble->LabelCount();
@@ -219,7 +219,7 @@ void iAUncertaintyAttachment::EnsembleSelected(QSharedPointer<iAEnsemble> ensemb
 	QSharedPointer<iALookupTable> labelLookup(new iALookupTable(m_labelLut));
 	m_labelDistributionView->AddChart("Label", labelDistributionHistogram, iAUncertaintyColors::LabelDistributionBase, labelLookup);
 	m_uncertaintyDistributionView->Clear();
-	auto entropyHistogram = iASimpleHistogramData::create(0, 1, ensemble->EntropyBinCount(), ensemble->EntropyHistogram(), Continuous);
+	auto entropyHistogram = iASimpleHistogramData::create(0, 1, ensemble->EntropyBinCount(), ensemble->EntropyHistogram(), iAValueType::Continuous);
 	m_uncertaintyDistributionView->AddChart("Algorithm Uncertainty", entropyHistogram, iAUncertaintyColors::UncertaintyDistribution);
 	m_spatialView->SetDatasets(ensemble, m_labelLut);
 }

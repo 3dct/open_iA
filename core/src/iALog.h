@@ -2,7 +2,7 @@
 * **********   A tool for visual analysis and processing of 3D CT images   ********** *
 * *********************************************************************************** *
 * Copyright (C) 2016-2020  C. Heinzl, M. Reiter, A. Reh, W. Li, M. Arikan, Ar. &  Al. *
-*                          Amirkhanov, J. Weissenböck, B. Fröhler, M. Schiwarth       *
+*                 Amirkhanov, J. Weissenböck, B. Fröhler, M. Schiwarth, P. Weinberger *
 * *********************************************************************************** *
 * This program is free software: you can redistribute it and/or modify it under the   *
 * terms of the GNU General Public License as published by the Free Software           *
@@ -20,18 +20,27 @@
 * ************************************************************************************/
 #pragma once
 
-#include "ui_Console.h"
+#include "open_iA_Core_export.h"
 
-class dlg_console : public QMainWindow, public Ui_Console
+#include "iALogger.h"
+
+//! Singleton providing access to the global logger object.
+//! Before first access (via get()), a specific logger needs to be set
+//! via setLogger(...). See classes derived from iALogger
+class open_iA_Core_API iALog
 {
-	Q_OBJECT
 public:
-	dlg_console();
-	void log(QString text);
-private slots:
-	void clear();
+    //! Set the class to perform the actual logging
+    //! @param logger a concrete implementation of the iALogger interface
+    static void setLogger(iALogger* logger);
+    //! Retrieve the global logger implementation
+    static iALogger* get();
 private:
-	void closeEvent(QCloseEvent *event) override;
-signals:
-	void onClose();
+    static iALogger* m_globalLogger;
+    //! @{ Prevent copy construction and assignment
+    iALog(iALog const&) = delete;
+    void operator=(iALog const&) = delete;
+    //! @}
 };
+
+#define LOG(l, t) { if (iALog::get()) iALog::get()->log(l, t); }

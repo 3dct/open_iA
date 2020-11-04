@@ -2,7 +2,7 @@
 * **********   A tool for visual analysis and processing of 3D CT images   ********** *
 * *********************************************************************************** *
 * Copyright (C) 2016-2020  C. Heinzl, M. Reiter, A. Reh, W. Li, M. Arikan, Ar. &  Al. *
-*                          Amirkhanov, J. Weissenböck, B. Fröhler, M. Schiwarth       *
+*                 Amirkhanov, J. Weissenböck, B. Fröhler, M. Schiwarth, P. Weinberger *
 * *********************************************************************************** *
 * This program is free software: you can redistribute it and/or modify it under the   *
 * terms of the GNU General Public License as published by the Free Software           *
@@ -22,7 +22,7 @@
 
 #include "iAAttributeDescriptor.h"
 #include "iAFilterSelectionDlg.h"
-#include "iAConsole.h"
+#include "iALog.h"
 #include "iAFilter.h"
 #include "iAFilterRegistry.h"
 #include "iAFilterRunnerGUI.h"
@@ -38,6 +38,7 @@
 #include <QLabel>
 #include <QLineEdit>
 #include <QPlainTextEdit>
+#include <QPushButton>
 #include <QSpinBox>
 #include <QScrollArea>
 #include <QTextBrowser>
@@ -56,8 +57,8 @@ dlg_commoninput::dlg_commoninput(QWidget *parent, QString const & title, QString
 	setupUi(this);
 	if (title.isEmpty())
 	{
-		DEBUG_LOG("No window title entered. Please give a window title");
-		auto lbl = new QLabel("No window title entered. Please give a window title");
+		LOG(lvlError, "Implementation Error: No window title entered. Please give a window title");
+		auto lbl = new QLabel("Implementation Error: No window title entered. Please give a window title");
 		gridLayout->addWidget(lbl, 0, 0);
 		buttonBox->button(QDialogButtonBox::Ok)->setEnabled(false);
 		gridLayout->addWidget(buttonBox, 1, 0);
@@ -65,7 +66,7 @@ dlg_commoninput::dlg_commoninput(QWidget *parent, QString const & title, QString
 	}
 	if (labels.size() != values.size())
 	{
-		DEBUG_LOG("Implementation Error: The number of of parameter descriptions and the number of given values does not match. "
+		LOG(lvlError, "Implementation Error: The number of of parameter descriptions and the number of given values does not match. "
 			"Please report this message to the developers, along with the action you were trying to perform when it occured!");
 		auto lbl = new QLabel("Implementation Error: The number of of parameter descriptions and the number of given values does not match. "
 			"Please report this message to the developers, along with the action you were trying to perform when it occured!");
@@ -162,7 +163,7 @@ dlg_commoninput::dlg_commoninput(QWidget *parent, QString const & title, QString
 				newWidget = new iAFileChooserWidget(m_container, iAFileChooserWidget::Folder);
 				break;
 			default:
-				DEBUG_LOG(QString("Unknown widget prefix '%1' for label \"%2\"").arg(labels[i][0]).arg(tStr));
+				LOG(lvlError, QString("Unknown widget prefix '%1' for label \"%2\"").arg(labels[i][0]).arg(tStr));
 				continue;
 		}
 		m_widgetList[i] = newWidget;
@@ -242,10 +243,10 @@ void dlg_commoninput::SelectFilter()
 				paramStr += (paramStr.isEmpty() ? "" : " ");
 				switch (param->valueType())
 				{
-				case Boolean:
+				case iAValueType::Boolean:
 					paramStr += paramValues[param->name()].toBool() ? "true" : "false"; break;
-				case Discrete:
-				case Continuous:
+				case iAValueType::Discrete:
+				case iAValueType::Continuous:
 					paramStr += paramValues[param->name()].toString(); break;
 				default:
 					paramStr += quoteString(paramValues[param->name()].toString()); break;
@@ -259,7 +260,7 @@ void dlg_commoninput::SelectFilter()
 			}
 			else
 			{
-				DEBUG_LOG(QString("Parameter string %1 could not be set!").arg(paramStr));
+				LOG(lvlWarn, QString("Parameter string %1 could not be set!").arg(paramStr));
 			}
 		}
 		sender->setText(filterName);
@@ -353,7 +354,7 @@ void dlg_commoninput::showROI()
 {
 	if (!m_sourceMdiChild)
 	{
-		DEBUG_LOG("You need to call setSourceMDI before show ROI!");
+		LOG(lvlError, "You need to call setSourceMDI before show ROI!");
 		return;
 	}
 	QObjectList children = m_container->children();
@@ -419,7 +420,7 @@ int dlg_commoninput::getIntValue(int index) const
 {
 	if (index < 0 || index >= m_widgetList.size())
 	{
-		DEBUG_LOG(QString("dlg_commoninput::getIntValue: index=%1 out of bounds(0..%2").arg(index).arg(m_widgetList.size() - 1));
+		LOG(lvlError, QString("dlg_commoninput::getIntValue: index=%1 out of bounds(0..%2").arg(index).arg(m_widgetList.size() - 1));
 		return 0;
 	}
 	QSpinBox *t = qobject_cast<QSpinBox*>(m_widgetList[index]);
@@ -428,7 +429,7 @@ int dlg_commoninput::getIntValue(int index) const
 	QLineEdit *t2 = qobject_cast<QLineEdit*>(m_widgetList[index]);
 	if (t2)
 		return t2->text().toInt();
-	DEBUG_LOG(QString("dlg_commoninput::getIntValue(%1) Not a SpinBox/ LineEdit!").arg(index));
+	LOG(lvlError, QString("dlg_commoninput::getIntValue(%1) Not a SpinBox/ LineEdit!").arg(index));
 	return 0;
 }
 
@@ -436,7 +437,7 @@ double dlg_commoninput::getDblValue(int index) const
 {
 	if (index < 0 || index >= m_widgetList.size())
 	{
-		DEBUG_LOG(QString("dlg_commoninput::getDblValue: index=%1 out of bounds(0..%2").arg(index).arg(m_widgetList.size() - 1));
+		LOG(lvlError, QString("dlg_commoninput::getDblValue: index=%1 out of bounds(0..%2").arg(index).arg(m_widgetList.size() - 1));
 		return 0.0;
 	}
 	QDoubleSpinBox *t = qobject_cast<QDoubleSpinBox*>(m_widgetList[index]);
@@ -445,7 +446,7 @@ double dlg_commoninput::getDblValue(int index) const
 	QLineEdit *t2 = qobject_cast<QLineEdit*>(m_widgetList[index]);
 	if (t2)
 		return t2->text().toDouble();
-	DEBUG_LOG(QString("dlg_commoninput::getDblValue(%1) Not a Double SpinBox / LineEdit!").arg(index));
+	LOG(lvlError, QString("dlg_commoninput::getDblValue(%1) Not a Double SpinBox / LineEdit!").arg(index));
 	return 0.0;
 }
 
@@ -453,13 +454,13 @@ int dlg_commoninput::getCheckValue(int index) const
 {
 	if (index < 0 || index >= m_widgetList.size())
 	{
-		DEBUG_LOG(QString("dlg_commoninput::getCheckValue: index=%1 out of bounds(0..%2").arg(index).arg(m_widgetList.size() - 1));
+		LOG(lvlError, QString("dlg_commoninput::getCheckValue: index=%1 out of bounds(0..%2").arg(index).arg(m_widgetList.size() - 1));
 		return false;
 	}
 	QCheckBox *t = qobject_cast<QCheckBox*>(m_widgetList[index]);
 	if (t)
 		return t->checkState();
-	DEBUG_LOG(QString("dlg_commoninput::getCheckValue(%1) Not a CheckBox!").arg(index));
+	LOG(lvlError, QString("dlg_commoninput::getCheckValue(%1) Not a CheckBox!").arg(index));
 	return false;
 }
 
@@ -467,13 +468,13 @@ QString dlg_commoninput::getComboBoxValue(int index) const
 {
 	if (index < 0 || index >= m_widgetList.size())
 	{
-		DEBUG_LOG(QString("dlg_commoninput::getComboBoxValue: index=%1 out of bounds(0..%2").arg(index).arg(m_widgetList.size() - 1));
+		LOG(lvlError, QString("dlg_commoninput::getComboBoxValue: index=%1 out of bounds(0..%2").arg(index).arg(m_widgetList.size() - 1));
 		return QString();
 	}
 	QComboBox *t = qobject_cast<QComboBox*>(m_widgetList[index]);
 	if (t)
 		return t->currentText();
-	DEBUG_LOG(QString("dlg_commoninput::getComboBoxValue(%1) Not a ComboBox!").arg(index));
+	LOG(lvlError, QString("dlg_commoninput::getComboBoxValue(%1) Not a ComboBox!").arg(index));
 	return QString();
 }
 
@@ -481,13 +482,13 @@ int dlg_commoninput::getComboBoxIndex(int index) const
 {
 	if (index < 0 || index >= m_widgetList.size())
 	{
-		DEBUG_LOG(QString("dlg_commoninput::getComboBoxIndex: index=%1 out of bounds(0..%2").arg(index).arg(m_widgetList.size() - 1));
+		LOG(lvlError, QString("dlg_commoninput::getComboBoxIndex: index=%1 out of bounds(0..%2").arg(index).arg(m_widgetList.size() - 1));
 		return -1;
 	}
 	QComboBox *t = qobject_cast<QComboBox*>(m_widgetList[index]);
 	if (t)
 		return t->currentIndex();
-	DEBUG_LOG(QString("dlg_commoninput::getComboBoxIndex(%1) Not a ComboBox!").arg(index));
+	LOG(lvlError, QString("dlg_commoninput::getComboBoxIndex(%1) Not a ComboBox!").arg(index));
 	return -1;
 }
 
@@ -495,7 +496,7 @@ QString dlg_commoninput::getText(int index) const
 {
 	if (index < 0 || index >= m_widgetList.size())
 	{
-		DEBUG_LOG(QString("dlg_commoninput::getText: index=%1 out of bounds(0..%2").arg(index).arg(m_widgetList.size() - 1));
+		LOG(lvlError, QString("dlg_commoninput::getText: index=%1 out of bounds(0..%2").arg(index).arg(m_widgetList.size() - 1));
 		return QString();
 	}
 	QLineEdit *t = qobject_cast<QLineEdit*>(m_widgetList[index]);
@@ -515,7 +516,7 @@ QString dlg_commoninput::getText(int index) const
 	if (t5)
 		return t5->currentText();
 
-	DEBUG_LOG(QString("dlg_commoninput::getText(%1) called on value which is no text!").arg(index));
+	LOG(lvlError, QString("dlg_commoninput::getText(%1) called on value which is no text!").arg(index));
 	return QString();
 }
 

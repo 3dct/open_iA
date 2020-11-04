@@ -2,7 +2,7 @@
 * **********   A tool for visual analysis and processing of 3D CT images   ********** *
 * *********************************************************************************** *
 * Copyright (C) 2016-2020  C. Heinzl, M. Reiter, A. Reh, W. Li, M. Arikan, Ar. &  Al. *
-*                          Amirkhanov, J. Weissenböck, B. Fröhler, M. Schiwarth       *
+*                 Amirkhanov, J. Weissenböck, B. Fröhler, M. Schiwarth, P. Weinberger *
 * *********************************************************************************** *
 * This program is free software: you can redistribute it and/or modify it under the   *
 * terms of the GNU General Public License as published by the Free Software           *
@@ -55,7 +55,9 @@ void iACsvVtkTableCreator::addRow(size_t row, QStringList const & values)
 {
 	m_table->SetValue(row, 0, values[0].toInt()); // ID
 	for (int col = 1; col < values.size() - 1; ++col)
+	{
 		m_table->SetValue(row, col, values[col].toFloat());
+	}
 	m_table->SetValue(row, values.size() - 1, values[values.size() - 1].toFloat()); // class
 }
 

@@ -2,7 +2,7 @@
 * **********   A tool for visual analysis and processing of 3D CT images   ********** *
 * *********************************************************************************** *
 * Copyright (C) 2016-2020  C. Heinzl, M. Reiter, A. Reh, W. Li, M. Arikan, Ar. &  Al. *
-*                          Amirkhanov, J. Weissenböck, B. Fröhler, M. Schiwarth       *
+*                 Amirkhanov, J. Weissenböck, B. Fröhler, M. Schiwarth, P. Weinberger *
 * *********************************************************************************** *
 * This program is free software: you can redistribute it and/or modify it under the   *
 * terms of the GNU General Public License as published by the Free Software           *
@@ -66,18 +66,21 @@ typedef vnl_vector<double> VectorType;
 
 namespace
 {
-	typedef itk::Image<int, DIM> LabelImageType;
-	typedef itk::Image<double, DIM> ProbImageType;
+	typedef itk::Image<unsigned char, DIM> LabelImageType;
 	typedef QMap<iAVertexIndexType, iAVertexIndexType> IndexMap;
 
-	iAITKIO::ImagePointer CreateLabelImage(
+
+	template <class T>
+	void CreateLabelImage(
 		int const dim[3],
 		double const spacing[3],
-		QVector<iAITKIO::ImagePointer> const & probabilityImages,
-		int labelCount)
+		QVector<iAITKIO::ImagePointer> const & probabilityImages, 
+		int labelCount, 
+		iAITKIO::ImagePointer& labelImgP)
 	{
+		typedef itk::Image<T, DIM> ProbImageType;
 		// create labelled image (as value at k = arg l max(p_l^k) for each pixel k)
-		iAITKIO::ImagePointer labelImgP = allocateImage(dim, spacing, itk::ImageIOBase::INT);
+		labelImgP = allocateImage(dim, spacing, itk::ImageIOBase::UCHAR);
 		LabelImageType* labelImg = dynamic_cast<LabelImageType*>(labelImgP.GetPointer());
 		QVector<ProbImageType*> probImgs;
 		for (int i = 0; i < labelCount; ++i)
@@ -93,7 +96,7 @@ namespace
 				{
 					double maxProb = 0;
 					int maxProbLabel = -1;
-					ProbImageType::IndexType idx;
+					typename ProbImageType::IndexType idx;
 					idx[0] = x;
 					idx[1] = y;
 					idx[2] = z;
@@ -110,14 +113,17 @@ namespace
 				}
 			}
 		}
-		return labelImgP;
 	}
 
+	template <class T>
 	void SetIndexMapValues(iAITKIO::ImagePointer image,
 		VectorType const & values,
 		IndexMap const & indexMap,
 		iAImageCoordConverter const & conv)
 	{
+
+		typedef itk::Image<T, DIM> ProbImageType;
+
 		ProbImageType* pImg = dynamic_cast<ProbImageType*>(image.GetPointer());
 		for (IndexMap::const_iterator it = indexMap.begin(); it != indexMap.end(); ++it)
 		{
@@ -127,7 +133,7 @@ namespace
 			double imgVal = values[it.value()];
 #endif
 			iAImageCoordinate coord = conv.coordinatesFromIndex(it.key());
-			ProbImageType::IndexType pixelIndex;
+			typename ProbImageType::IndexType pixelIndex;
 			pixelIndex[0] = coord.x;
 			pixelIndex[1] = coord.y;
 			pixelIndex[2] = coord.z;
@@ -216,9 +222,9 @@ namespace
 		QStringList normalizeFunctions;
 		for (int j = 0; j < nmCount; j++)
 			normalizeFunctions << GetNormalizerNames()[j];
-		filter->addParameter("Beta", Continuous, 100);
-		filter->addParameter("Distance Function", Categorical, distanceFunctions);
-		filter->addParameter("Normalizer", Categorical, normalizeFunctions);
+		filter->addParameter("Beta", iAValueType::Continuous, 100);
+		filter->addParameter("Distance Function", iAValueType::Categorical, distanceFunctions);
+		filter->addParameter("Normalizer", iAValueType::Categorical, normalizeFunctions);
 	}
 	QString CommonRWParameterDescription("The <em>Distance Function</em> "
 		"determines how the distance between two data points is calculated."
@@ -241,13 +247,15 @@ iARandomWalker::iARandomWalker() :
 		"(inventor of the algorithm)</a>")
 {
 	AddCommonRWParameters(this);
-	addParameter("Seeds", Text, "");
+	addParameter("Seeds", iAValueType::Text, "");
 }
 
 IAFILTER_CREATE(iARandomWalker)
 
 void iARandomWalker::performWork(QMap<QString, QVariant> const & parameters)
 {
+
+
 	int const * dim = input()[0]->vtkImage()->GetDimensions();
 	double const * spc = input()[0]->vtkImage()->GetSpacing();
 	QVector<iARWInputChannel> inputChannels;
@@ -410,11 +418,12 @@ void iARandomWalker::performWork(QMap<QString, QVariant> const & parameters)
 #endif
 		// put values into probability image
 		iAITKIO::ImagePointer pImg = allocateImage(dim, spc, itk::ImageIOBase::DOUBLE);
-		SetIndexMapValues(pImg, x, unlabeledMap, imageGraph.converter());
-		SetIndexMapValues(pImg, boundary, seedMap, imageGraph.converter());
+		ITK_TYPED_CALL(SetIndexMapValues, input()[0]->itkScalarPixelType(), pImg, x, unlabeledMap, imageGraph.converter());
+		ITK_TYPED_CALL(SetIndexMapValues, input()[0]->itkScalarPixelType(), pImg, boundary, seedMap, imageGraph.converter());
 		probImgs.push_back(pImg);
 	}
-	auto labelImg = CreateLabelImage(dim, spc, probImgs, labelCount);
+	iAITKIO::ImagePointer labelImg;
+	ITK_TYPED_CALL(CreateLabelImage, input()[0]->itkScalarPixelType(), dim, spc, probImgs, labelCount, labelImg );
 	addOutput(labelImg);
 	setOutputName(0u, "Label Image");
 	for (int i = 0; i < labelCount; ++i)
@@ -447,8 +456,8 @@ iAExtendedRandomWalker::iAExtendedRandomWalker() :
 		"(inventor of the algorithm)</a>", 2)
 {
 	AddCommonRWParameters(this);
-	addParameter("Maximum Iterations", Discrete, 100);
-	addParameter("Gamma", Continuous, 1);
+	addParameter("Maximum Iterations", iAValueType::Discrete, 100);
+	addParameter("Gamma", iAValueType::Continuous, 1);
 }
 
 IAFILTER_CREATE(iAExtendedRandomWalker)
@@ -609,11 +618,13 @@ void iAExtendedRandomWalker::performWork(QMap<QString, QVariant> const & paramet
 #endif
 		// put values into probability image
 		iAITKIO::ImagePointer pImg = allocateImage(dim, spc, itk::ImageIOBase::DOUBLE);
-		SetIndexMapValues(pImg, x, fullMap, imageGraph.converter());
+		ITK_TYPED_CALL(SetIndexMapValues, input()[0]->itkScalarPixelType(), pImg, x, fullMap, imageGraph.converter());
 		probImgs.push_back(pImg);
 	}
 	// create labelled image (as value at k = arg l max(p_l^k) for each pixel k)
-	auto labelImg = CreateLabelImage(dim, spc, probImgs, labelCount);
+
+	iAITKIO::ImagePointer labelImg;
+	ITK_TYPED_CALL(CreateLabelImage, input()[0]->itkScalarPixelType(), dim, spc, probImgs, labelCount, labelImg);
 	addOutput(labelImg);
 	setOutputName(0u, "Label Image");
 	for (int i = 0; i < labelCount; ++i)
@@ -628,7 +639,8 @@ iAMaximumDecisionRule::iAMaximumDecisionRule() :
 	iAFilter("Maximum Decision Rule", "Segmentation",
 		"Assign each pixel the label with maximum probability.<br/>"
 		"Applies the maximum decision rule to a multichannel input which "
-		"represents a probability distribution over labels.")
+		"represents a probability distribution over labels. <br/>"
+		"Output is an unsigned char (256 classes possible)")
 {
 }
 
@@ -647,7 +659,8 @@ void iAMaximumDecisionRule::performWork(QMap<QString, QVariant> const & /*parame
 	{
 		probImgs.push_back(input()[i]->itkImage());
 	}
-	auto labelImg = CreateLabelImage(dim, spc, probImgs, input().size());
+	iAITKIO::ImagePointer labelImg;
+	ITK_TYPED_CALL(CreateLabelImage, input()[0]->itkScalarPixelType(), dim, spc, probImgs, input().size(), labelImg);
 	addOutput(labelImg);
 }
 
@@ -661,7 +674,7 @@ iALabelImageToSeeds::iALabelImageToSeeds() :
 		"This text file can be used as input for segmentation algorithms such as"
 		"Random Walker or (Probabilistic) Support Vector Machines.", 1, 0)
 {
-	addParameter("File name", FileNameSave, ".txt");
+	addParameter("File name", iAValueType::FileNameSave, ".txt");
 }
 
 IAFILTER_CREATE(iALabelImageToSeeds)
@@ -672,7 +685,7 @@ void iALabelImageToSeeds::performWork(QMap<QString, QVariant> const& parameters)
 	QFile f(fileName);
 	if (!f.open(QIODevice::WriteOnly))
 	{
-		DEBUG_LOG(QString("Couldn't open file %1").arg(fileName));
+		LOG(lvlError, QString("Couldn't open file %1").arg(fileName));
 		return;
 	}
 	QTextStream out(&f);

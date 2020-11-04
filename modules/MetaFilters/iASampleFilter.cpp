@@ -2,7 +2,7 @@
 * **********   A tool for visual analysis and processing of 3D CT images   ********** *
 * *********************************************************************************** *
 * Copyright (C) 2016-2020  C. Heinzl, M. Reiter, A. Reh, W. Li, M. Arikan, Ar. &  Al. *
-*                          Amirkhanov, J. Weissenböck, B. Fröhler, M. Schiwarth       *
+*                 Amirkhanov, J. Weissenböck, B. Fröhler, M. Schiwarth, P. Weinberger *
 * *********************************************************************************** *
 * This program is free software: you can redistribute it and/or modify it under the   *
 * terms of the GNU General Public License as published by the Free Software           *
@@ -25,7 +25,7 @@
 #include "iASamplingMethodImpl.h"
 #include "iAParameterNames.h"
 
-#include <iAConsole.h>
+#include <iALog.h>
 #include <iAModalityList.h>
 #include <iAModality.h>
 #include <iAProgress.h>
@@ -44,31 +44,31 @@ iASampleFilter::iASampleFilter() :
 		1, 0),
 	m_sampler(nullptr)
 {
-	addParameter(spnAlgorithmName, String, "");
+	addParameter(spnAlgorithmName, iAValueType::String, "");
 	QStringList algorithmTypes;
 	algorithmTypes << atBuiltIn << atExternal;
-	addParameter(spnAlgorithmType, Categorical, algorithmTypes);
-	addParameter(spnFilter, FilterName, "Image Quality");
-	addParameter(spnExecutable, FileNameOpen, "");
-	addParameter(spnParameterDescriptor, FileNameOpen, "");
-	addParameter(spnAdditionalArguments, String, "");
+	addParameter(spnAlgorithmType, iAValueType::Categorical, algorithmTypes);
+	addParameter(spnFilter, iAValueType::FilterName, "Image Quality");
+	addParameter(spnExecutable, iAValueType::FileNameOpen, "");
+	addParameter(spnParameterDescriptor, iAValueType::FileNameOpen, "");
+	addParameter(spnAdditionalArguments, iAValueType::String, "");
 	QStringList samplingMethods(samplingMethodNames());
-	addParameter(spnSamplingMethod, Categorical, samplingMethods);
-	addParameter(spnNumberOfSamples, Discrete, 100);
-	addParameter(spnOutputFolder, Folder, "C:/sampling");
-	addParameter(spnBaseName, String, "sample.mhd");
-	addParameter(spnOverwriteOutput, Boolean, false);
-	addParameter(spnSubfolderPerSample, Boolean, false);
-	addParameter(spnComputeDerivedOutput, Boolean, false);
-	addParameter(spnContinueOnError, Boolean, false);
-	addParameter(spnCompressOutput, Boolean, true);
-	addParameter(spnNumberOfLabels, Discrete, 2);
+	addParameter(spnSamplingMethod, iAValueType::Categorical, samplingMethods);
+	addParameter(spnNumberOfSamples, iAValueType::Discrete, 100);
+	addParameter(spnOutputFolder, iAValueType::Folder, "C:/sampling");
+	addParameter(spnBaseName, iAValueType::String, "sample.mhd");
+	addParameter(spnOverwriteOutput, iAValueType::Boolean, false);
+	addParameter(spnSubfolderPerSample, iAValueType::Boolean, false);
+	addParameter(spnComputeDerivedOutput, iAValueType::Boolean, false);
+	addParameter(spnContinueOnError, iAValueType::Boolean, false);
+	addParameter(spnCompressOutput, iAValueType::Boolean, true);
+	addParameter(spnNumberOfLabels, iAValueType::Discrete, 2);
 	
 	samplingMethods.removeAll(iASamplingMethodName::GlobalSensitivity);
 	// parameters only required for "Global sensitivity (star)" sampling:
-	addParameter(spnBaseSamplingMethod, Categorical, samplingMethods);
-	addParameter(spnSensitivityDelta, Continuous, 0.1);
-	addParameter(spnSamplesPerPoint, Discrete, 0);
+	addParameter(spnBaseSamplingMethod, iAValueType::Categorical, samplingMethods);
+	addParameter(spnSensitivityDelta, iAValueType::Continuous, 0.1);
+	addParameter(spnSamplesPerPoint, iAValueType::Discrete, 0);
 }
 
 void iASampleFilter::performWork(QMap<QString, QVariant> const& parameters)
@@ -135,12 +135,13 @@ bool iASampleFilterRunnerGUI::askForParameters(QSharedPointer<iAFilter> filter, 
 	iASampleFilter* sampleFilter = dynamic_cast<iASampleFilter*>(filter.data());
 	if (!sampleFilter)
 	{
-		DEBUG_LOG("Invalid use of iASampleFilterRunnerGUI for a filter other than Sample Filter!");
+		LOG(lvlError, "Invalid use of iASampleFilterRunnerGUI for a filter other than Sample Filter!");
 		return false;
 	}
 	iASamplingSettingsDlg dlg(mainWnd, sourceMdi->modalities()->size(), parameters);
 	if (dlg.exec() != QDialog::Accepted)
 	{
+		LOG(lvlInfo, "Aborted sampling.")
 		return false;
 	}
 
@@ -149,7 +150,7 @@ bool iASampleFilterRunnerGUI::askForParameters(QSharedPointer<iAFilter> filter, 
 	outputFolder.mkpath(".");
 	if (parameters[spnComputeDerivedOutput].toBool() && parameters[spnNumberOfLabels].toInt() < 2)
 	{
-		DEBUG_LOG("'Number of labels' must not be smaller than 2!");
+		LOG(lvlError, "'Number of labels' must not be smaller than 2!");
 		return false;
 	}
 	auto parameterRanges = dlg.parameterRanges();

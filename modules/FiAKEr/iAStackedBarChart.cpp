@@ -2,7 +2,7 @@
 * **********   A tool for visual analysis and processing of 3D CT images   ********** *
 * *********************************************************************************** *
 * Copyright (C) 2016-2020  C. Heinzl, M. Reiter, A. Reh, W. Li, M. Arikan, Ar. &  Al. *
-*                          Amirkhanov, J. Weissenböck, B. Fröhler, M. Schiwarth       *
+*                 Amirkhanov, J. Weissenböck, B. Fröhler, M. Schiwarth, P. Weinberger *
 * *********************************************************************************** *
 * This program is free software: you can redistribute it and/or modify it under the   *
 * terms of the GNU General Public License as published by the Free Software           *
@@ -21,7 +21,7 @@
 #include "iAStackedBarChart.h"
 
 #include <iAColorTheme.h>
-#include <iAConsole.h>
+#include <iALog.h>
 #include <iAMathUtility.h>
 
 #include <QAction>
@@ -199,7 +199,7 @@ void iAStackedBarChart::mouseMoveEvent(QMouseEvent* ev)
 		{
 			if (!(ev->buttons() & Qt::LeftButton))  // left button was released without being in the window?
 			{
-				DEBUG_LOG("iAStackedBarChart: resizedBar set but left button not pressed! Resetting...");
+				LOG(lvlError, "iAStackedBarChart: resizedBar set but left button not pressed! Resetting...");
 				m_resizeBar = NoBar;
 			}
 			else
@@ -208,13 +208,13 @@ void iAStackedBarChart::mouseMoveEvent(QMouseEvent* ev)
 				double newWidth = clamp(1.0, static_cast<double>(geometry().width() - m_bars.size() + 1), m_resizeWidth + xOfs);
 				double oldRestWidth = geometry().width() - m_resizeWidth;
 				double newRestWidth = geometry().width() - newWidth;
-				//DEBUG_LOG(QString("width: %1; resize bar: %2; old width: %3, newWidth: %4, old rest width: %5, new rest width: %6")
+				//LOG(lvlInfo, QString("width: %1; resize bar: %2; old width: %3, newWidth: %4, old rest width: %5, new rest width: %6")
 				//	.arg(geometry().width()).arg(m_resizeBar).arg(m_resizeWidth).arg(newWidth).arg(oldRestWidth).arg(newRestWidth));
 				for (size_t barID = 0; barID < m_bars.size(); ++barID)
 				{
 					m_bars[barID].weight = std::max(MinimumWeight, m_resizeBars[barID].weight *
 						((barID == m_resizeBar)? (newWidth / m_resizeWidth) : (newRestWidth / oldRestWidth)) );
-					//DEBUG_LOG(QString("    Bar %1: %2").arg(barID).arg(m_bars[barID].weight));
+					//LOG(lvlInfo, QString("    Bar %1: %2").arg(barID).arg(m_bars[barID].weight));
 				}
 				update();
 			}

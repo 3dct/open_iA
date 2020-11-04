@@ -2,7 +2,7 @@
 * **********   A tool for visual analysis and processing of 3D CT images   ********** *
 * *********************************************************************************** *
 * Copyright (C) 2016-2020  C. Heinzl, M. Reiter, A. Reh, W. Li, M. Arikan, Ar. &  Al. *
-*                          Amirkhanov, J. Weissenböck, B. Fröhler, M. Schiwarth       *
+*                 Amirkhanov, J. Weissenböck, B. Fröhler, M. Schiwarth, P. Weinberger *
 * *********************************************************************************** *
 * This program is free software: you can redistribute it and/or modify it under the   *
 * terms of the GNU General Public License as published by the Free Software           *
@@ -27,12 +27,13 @@
 void iABoneThicknessModuleInterface::Initialize( )
 {
 	if (!m_mainWnd)
+	{
 		return;
-	QMenu* toolsMenu (m_mainWnd->toolsMenu());
-
-	QAction* pBoneThickness (new QAction(QApplication::translate("MainWindows", "Bone thickness", 0), m_mainWnd));
-	connect(pBoneThickness, &QAction::triggered, this, &iABoneThicknessModuleInterface::slotBoneThickness);
-	AddActionToMenuAlphabeticallySorted(toolsMenu, pBoneThickness);
+	}
+	QAction* actionBoneThickness = new QAction(tr("Bone thickness"), m_mainWnd);
+	connect(actionBoneThickness, &QAction::triggered, this, &iABoneThicknessModuleInterface::slotBoneThickness);
+	makeActionChildDependent(actionBoneThickness);
+	addToMenuSorted(m_mainWnd->toolsMenu(), actionBoneThickness);
 }
 
 void iABoneThicknessModuleInterface::slotBoneThickness()

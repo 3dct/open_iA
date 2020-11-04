@@ -2,7 +2,7 @@
 * **********   A tool for visual analysis and processing of 3D CT images   ********** *
 * *********************************************************************************** *
 * Copyright (C) 2016-2020  C. Heinzl, M. Reiter, A. Reh, W. Li, M. Arikan, Ar. &  Al. *
-*                          Amirkhanov, J. Weissenböck, B. Fröhler, M. Schiwarth       *
+*                 Amirkhanov, J. Weissenböck, B. Fröhler, M. Schiwarth, P. Weinberger *
 * *********************************************************************************** *
 * This program is free software: you can redistribute it and/or modify it under the   *
 * terms of the GNU General Public License as published by the Free Software           *
@@ -73,10 +73,12 @@
 #include <itkTriangleThresholdImageFilter.h>
 #include <itkYenThresholdImageFilter.h>
 
+#include <QDateTime>
 #include <QDebug>
 #include <QDir>
 #include <QDirIterator>
 #include <QElapsedTimer>
+#include <QLocale>
 #include <QMessageBox>
 #include <QTime>
 
@@ -395,7 +397,7 @@ void computeParamFree( ImagePointer & image, PorosityFilterID filterId, RunInfo 
 			break;
 		}
 		default:
-			DEBUG_LOG(QString("Invalid algorithm selection (%1 is not a parameterless method)!").arg(filterId));
+			LOG(lvlError, QString("Invalid algorithm selection (%1 is not a parameterless method)!").arg(filterId));
 			break;
 	}
 

@@ -2,7 +2,7 @@
 * **********   A tool for visual analysis and processing of 3D CT images   ********** *
 * *********************************************************************************** *
 * Copyright (C) 2016-2020  C. Heinzl, M. Reiter, A. Reh, W. Li, M. Arikan, Ar. &  Al. *
-*                          Amirkhanov, J. Weissenböck, B. Fröhler, M. Schiwarth       *
+*                 Amirkhanov, J. Weissenböck, B. Fröhler, M. Schiwarth, P. Weinberger *
 * *********************************************************************************** *
 * This program is free software: you can redistribute it and/or modify it under the   *
 * terms of the GNU General Public License as published by the Free Software           *
@@ -20,7 +20,7 @@
 * ************************************************************************************/
 #include "iAChartWidget.h"
 
-#include "iAConsole.h"
+#include "iALog.h"
 #include "iAMapperImpl.h"
 #include "iAMathUtility.h"
 #include "iAPlot.h"
@@ -31,12 +31,13 @@
 #include <vtkMath.h>
 
 #include <QAction>
-#include <QDateTime>
 #include <QFileDialog>
 #include <QIcon>
 #include <QMenu>
+#ifdef CHART_OPENGL
 #include <QOpenGLFramebufferObject>
 #include <QOpenGLPaintDevice>
+#endif
 #include <QPainter>
 #include <QRubberBand>
 #include <QtGlobal> // for QT_VERSION
@@ -94,7 +95,7 @@ namespace
 		{
 			if (warn)
 			{
-				DEBUG_LOG(QString("range [%1..%2] invalid (min~=max), enlarging it by %3").arg(bounds[0]).arg(bounds[1]).arg(offset));
+				LOG(lvlWarn, QString("range [%1..%2] invalid (min~=max), enlarging it by %3").arg(bounds[0]).arg(bounds[1]).arg(offset));
 			}
 			bounds[0] -= offset;
 			bounds[1] += offset;
@@ -103,7 +104,7 @@ namespace
 }
 
 iAChartWidget::iAChartWidget(QWidget* parent, QString const & xLabel, QString const & yLabel):
-	iAQGLWidget(parent),
+	iAChartParentWidget(parent),
 	m_xCaption(xLabel),
 	m_yCaption(yLabel),
 	m_xZoom(1.0),
@@ -129,7 +130,9 @@ iAChartWidget::iAChartWidget(QWidget* parent, QString const & xLabel, QString co
 	m_maxXAxisSteps(AxisTicksXDefault),
 	m_drawXAxisAtZero(false)
 {
+#ifdef CHART_OPENGL
 	setFormat(defaultOpenGLFormat());
+#endif
 	updateBounds();
 	setMouseTracking(true);
 	setFocusPolicy(Qt::WheelFocus);
@@ -303,6 +306,16 @@ iAMapper const & iAChartWidget::yMapper() const
 	return *m_yMapper.data();
 }
 
+int iAChartWidget::data2MouseX(double dataX)
+{
+	return xMapper().srcToDst(dataX) + xShift();
+}
+
+double iAChartWidget::mouse2DataX(int mouseX)
+{
+	return xMapper().dstToSrc(mouseX - xShift());
+}
+
 void iAChartWidget::createMappers()
 {
 	m_xMapper = QSharedPointer<iAMapper>(new iALinearMapper(m_xBounds[0], m_xBounds[1], 0, (chartWidth() - 1)*m_xZoom));
@@ -315,7 +328,7 @@ void iAChartWidget::createMappers()
 		m_yMapper = QSharedPointer<iAMapper>(new iALogarithmicMapper(m_yBounds[0] > 0 ? m_yBounds[0] : LogYMapModeMin, m_yBounds[1], 0, (chartHeight() - 1)*m_yZoom));
 		if (m_yBounds[0] < 0)
 		{
-			DEBUG_LOG(QString("Invalid y bounds in chart for logarithmic mapping: minimum=%1 is < 0, using %2 instead.")
+			LOG(lvlWarn, QString("Invalid y bounds in chart for logarithmic mapping: minimum=%1 is < 0, using %2 instead.")
 				.arg(m_yBounds[0]).arg(LogYMapModeMin));
 		}
 	}
@@ -342,7 +355,7 @@ QString iAChartWidget::xAxisTickMarkLabel(double value, double stepWidth)
 {
 	int placesBeforeComma = requiredDigits(value);
 	int placesAfterComma = (stepWidth < 10) ? requiredDigits(10 / stepWidth) : 0;
-	if ((!m_plots.empty() && m_plots[0]->data()->valueType() == Continuous) || placesAfterComma > 1)
+	if ((!m_plots.empty() && m_plots[0]->data()->valueType() == iAValueType::Continuous) || placesAfterComma > 1)
 	{
 		QString result = QString::number(value, 'g', ((value > 0) ? placesBeforeComma + placesAfterComma : placesAfterComma));
 		if (result.contains("e")) // only 4 digits for scientific notation:
@@ -367,7 +380,7 @@ bool iAChartWidget::categoricalAxis() const
 {
 	if (!m_plots.empty())
 	{
-		return (m_plots[0]->data()->valueType() == Categorical);
+		return (m_plots[0]->data()->valueType() == iAValueType::Categorical);
 	}
 	else
 	{
@@ -459,12 +472,17 @@ void iAChartWidget::drawXAxis(QPainter &painter)
 		}
 		QString text = xAxisTickMarkLabel(value, stepWidth);
 		int markerX = markerPos(static_cast<int>(m_xMapper->srcToDst(value)), i, stepCount);
-		painter.drawLine(markerX, TickWidth, markerX, -1);
+		if (markerX >= m_translationX + leftMargin())
+		{
+			painter.drawLine(markerX, TickWidth, markerX, -1);
+		}
+		int textWidth =
 #if QT_VERSION >= QT_VERSION_CHECK(5, 11, 0)
-		int textX = textPos(markerX, i, stepCount, fm.horizontalAdvance(text));
+			fm.horizontalAdvance(text);
 #else
-		int textX = textPos(markerX, i, stepCount, fm.width(text));
+			fm.width(text);
 #endif
+		int textX = textPos(markerX, i, stepCount, textWidth);
 		int textY = fm.height() + TextAxisDistance;
 		painter.translate(textX, textY);
 		painter.drawText(0, 0, text);
@@ -505,6 +523,12 @@ void iAChartWidget::drawYAxis(QPainter &painter)
 	}
 	painter.save();
 	painter.translate(-m_translationX, 0);
+	QColor bgColor(m_bgColor);
+	if (!bgColor.isValid())
+	{
+		bgColor = QWidget::palette().color(QWidget::backgroundRole());
+	}
+	painter.fillRect(QRect(-leftMargin(), -chartHeight(), leftMargin(), geometry().height()), bgColor);
 	QFontMetrics fm = painter.fontMetrics();
 	int aheight = chartHeight() - 1;
 	painter.setPen(QWidget::palette().color(QPalette::Text));
@@ -609,8 +633,8 @@ void iAChartWidget::updateXBounds(size_t startPlot)
 		for (size_t curPlot = std::max(static_cast<size_t>(0), startPlot); curPlot < m_plots.size(); ++curPlot)
 		{
 			auto d = m_plots[curPlot]->data();
-			m_xBounds[0] = std::min(m_xBounds[0], d->xBounds()[0] - ((d->valueType() == Discrete) ? 0.5 : 0) );
-			m_xBounds[1] = std::max(m_xBounds[1], d->xBounds()[1] + ((d->valueType() == Discrete) ? 0.5 : 0) );
+			m_xBounds[0] = std::min(m_xBounds[0], d->xBounds()[0] - ((d->valueType() == iAValueType::Discrete) ? 0.5 : 0) );
+			m_xBounds[1] = std::max(m_xBounds[1], d->xBounds()[1] + ((d->valueType() == iAValueType::Discrete) ? 0.5 : 0) );
 			m_xTickBounds[0] = std::min(m_xTickBounds[0], d->xBounds()[0]);
 			m_xTickBounds[1] = std::max(m_xTickBounds[1], d->xBounds()[1]);
 			m_maxXAxisSteps = std::max(m_maxXAxisSteps, d->numBin() );
@@ -751,8 +775,8 @@ bool iAChartWidget::isDrawnDiscrete() const
 {
 	for (auto plot : m_plots)
 	{
-		if (!((plot->data()->valueType() == Discrete && (xRange() <= plot->data()->numBin()))
-			  || plot->data()->valueType() == Categorical))
+		if (!((plot->data()->valueType() == iAValueType::Discrete && (xRange() <= plot->data()->numBin()))
+			  || plot->data()->valueType() == iAValueType::Categorical))
 		{
 			return false;
 		}
@@ -805,12 +829,12 @@ void iAChartWidget::drawPlots(QPainter &painter)
 			};
 			ensureNonZeroRange(plotVisXBounds);
 			double plotStepWidth = (plotXBounds[1] - plotXBounds[0]
-				+ (((*it)->data()->valueType() == Discrete)?1:0) ) / (*it)->data()->numBin();
+				+ (((*it)->data()->valueType() == iAValueType::Discrete)?1:0) ) / (*it)->data()->numBin();
 			size_t plotStartBin = static_cast<size_t>(clamp(0.0, static_cast<double>(plotNumBin - 1), (plotVisXBounds[0] - (*it)->data()->xBounds()[0]) / plotStepWidth - 1));
 			size_t plotEndBin = static_cast<size_t>(clamp(0.0, static_cast<double>(plotNumBin - 1), (plotVisXBounds[1] - (*it)->data()->xBounds()[0]) / plotStepWidth + 1));
 			double plotPixelBinWidth = m_xMapper->srcToDst(xBounds()[0] + plotStepWidth);
 			iALinearMapper plotXMapper;
-			plotXMapper.update(-1, plotNumBin + (((*it)->data()->valueType() == Continuous) ? 1 : 0),
+			plotXMapper.update(-1, plotNumBin + (((*it)->data()->valueType() == iAValueType::Continuous) ? 1 : 0),
 				m_xMapper->srcToDst((*it)->data()->xBounds()[0] - plotStepWidth),
 				m_xMapper->srcToDst((*it)->data()->xBounds()[1] + plotStepWidth));
 			(*it)->draw(painter, plotPixelBinWidth, plotStartBin, plotEndBin, plotXMapper, *m_yMapper.data());
@@ -822,7 +846,7 @@ bool iAChartWidget::event(QEvent *event)
 {
 	if (event->type() != QEvent::ToolTip)
 	{
-		return iAQGLWidget::event(event);
+		return iAChartParentWidget::event(event);
 	}
 
 	if (m_plots.empty() || !m_showTooltip)
@@ -1050,6 +1074,7 @@ void iAChartWidget::mouseMoveEvent(QMouseEvent *event)
 
 QImage iAChartWidget::drawOffscreen()
 {
+#ifdef CHART_OPENGL
 	QSurfaceFormat format;
 	format.setMajorVersion(3);
 	format.setMinorVersion(3);
@@ -1071,13 +1096,23 @@ QImage iAChartWidget::drawOffscreen()
 	QOpenGLFramebufferObject fbo(drawRectSize, fboFormat);
 	fbo.bind();
 	QOpenGLPaintDevice device(drawRectSize);
+#else
+	QImage image(width(), height(), QImage::Format_RGB32);
+#endif
 	QPainter p;
+#ifdef CHART_OPENGL
 	p.begin(&device);
+#else
+	p.begin(&image);
+#endif
+
 	drawAll(p);
 	p.end();
+#ifdef CHART_OPENGL
 	fbo.release();
 	QImage image = fbo.toImage();
 	context.doneCurrent();
+#endif
 	return image;
 }
 
@@ -1087,7 +1122,11 @@ void iAChartWidget::setBackgroundColor(QColor const & color)
 	update();
 }
 
+#ifdef CHART_OPENGL
 void iAChartWidget::paintGL()
+#else
+void iAChartWidget::paintEvent(QPaintEvent* /*event*/)
+#endif
 {
 	QPainter p(this);
 	drawAll(p);

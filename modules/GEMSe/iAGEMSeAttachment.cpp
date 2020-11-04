@@ -2,7 +2,7 @@
 * **********   A tool for visual analysis and processing of 3D CT images   ********** *
 * *********************************************************************************** *
 * Copyright (C) 2016-2020  C. Heinzl, M. Reiter, A. Reh, W. Li, M. Arikan, Ar. &  Al. *
-*                          Amirkhanov, J. Weissenböck, B. Fröhler, M. Schiwarth       *
+*                 Amirkhanov, J. Weissenböck, B. Fröhler, M. Schiwarth, P. Weinberger *
 * *********************************************************************************** *
 * This program is free software: you can redistribute it and/or modify it under the   *
 * terms of the GNU General Public License as published by the Free Software           *
@@ -27,7 +27,7 @@
 #include "iAGEMSeProject.h"
 
 #include <dlg_modalities.h>
-#include <iAConsole.h>
+#include <iALog.h>
 #include <iAColorTheme.h>
 #include <iALogger.h>
 #include <iAModality.h>
@@ -52,20 +52,20 @@ iAGEMSeAttachment* iAGEMSeAttachment::create(MainWindow * mainWnd, MdiChild * ch
 	QString defaultThemeName("Brewer Set3 (max. 12)");
 	iAColorTheme const * colorTheme = iAColorThemeManager::instance().theme(defaultThemeName);
 
-	newAttachment->m_dlgGEMSe = new dlg_GEMSe(child, child->logger(), colorTheme);
+	newAttachment->m_dlgGEMSe = new dlg_GEMSe(child, iALog::get(), colorTheme);
 
 	newAttachment->m_dlgLabels = new dlg_labels(child, colorTheme);
 	newAttachment->m_dlgSamplings = new dlg_samplings();
 	newAttachment->m_dlgGEMSeControl = new dlg_GEMSeControl(
 		child,
 		newAttachment->m_dlgGEMSe,
-		child->modalitiesDockWidget(),
+		child->dataDockWidget(),
 		newAttachment->m_dlgLabels,
 		newAttachment->m_dlgSamplings,
 		colorTheme
 	);
-	child->splitDockWidget(child->logDockWidget(), newAttachment->m_dlgGEMSe, Qt::Vertical);
-	child->splitDockWidget(child->logDockWidget(), newAttachment->m_dlgGEMSeControl, Qt::Horizontal);
+	child->splitDockWidget(child->renderDockWidget(), newAttachment->m_dlgGEMSe, Qt::Vertical);
+	child->splitDockWidget(child->renderDockWidget(), newAttachment->m_dlgGEMSeControl, Qt::Horizontal);
 	child->splitDockWidget(newAttachment->m_dlgGEMSeControl, newAttachment->m_dlgLabels, Qt::Vertical);
 	child->splitDockWidget(newAttachment->m_dlgGEMSeControl, newAttachment->m_dlgSamplings, Qt::Vertical);
 

@@ -2,7 +2,7 @@
 * **********   A tool for visual analysis and processing of 3D CT images   ********** *
 * *********************************************************************************** *
 * Copyright (C) 2016-2020  C. Heinzl, M. Reiter, A. Reh, W. Li, M. Arikan, Ar. &  Al. *
-*                          Amirkhanov, J. Weissenböck, B. Fröhler, M. Schiwarth       *
+*                 Amirkhanov, J. Weissenböck, B. Fröhler, M. Schiwarth, P. Weinberger *
 * *********************************************************************************** *
 * This program is free software: you can redistribute it and/or modify it under the   *
 * terms of the GNU General Public License as published by the Free Software           *
@@ -26,7 +26,7 @@
 #include "iAPreviewWidgetPool.h"
 #include "iAGEMSeConstants.h"
 
-#include <iAConsole.h>
+#include <iALog.h>
 #include <iAMathUtility.h>
 
 #include <QGridLayout>
@@ -172,7 +172,7 @@ void iAExampleImageWidget::UpdateImages()
 
 	if (m_nodes.size() > m_rootNode->GetFilteredSize() )
 	{
-		DEBUG_LOG(QString("Found more images (%1) than there are images in the cluster (%2)\n")
+		LOG(lvlError, QString("Found more images (%1) than there are images in the cluster (%2)\n")
 			.arg(m_nodes.size())
 			.arg(m_rootNode->GetFilteredSize()));
 	}
@@ -201,14 +201,14 @@ void iAExampleImageWidget::ImageClicked()
 	assert(imgWdgt);
 	if (!imgWdgt)
 	{
-		DEBUG_LOG("ExampleWidget click: sender not an image widget!\n");
+		LOG(lvlError, "ExampleWidget click: sender not an image widget!\n");
 		return;
 	}
 	int idx = m_gridWidget->m_previews.indexOf(imgWdgt);
 	assert(idx != -1);
 	if (idx == -1)
 	{
-		DEBUG_LOG("ExampleWidget click: didn't find originating image widget!\n");
+		LOG(lvlError, "ExampleWidget click: didn't find originating image widget!\n");
 		// something wrong...
 		return;
 	}
@@ -226,14 +226,14 @@ void iAExampleImageWidget::ImageRightClicked()
 	assert(imgWdgt);
 	if (!imgWdgt)
 	{
-		DEBUG_LOG("ExampleWidget click: sender not an image widget!\n");
+		LOG(lvlError, "ExampleWidget click: sender not an image widget!\n");
 		return;
 	}
 	int idx = m_gridWidget->m_previews.indexOf(imgWdgt);
 	assert(idx != -1);
 	if (idx == -1)
 	{
-		DEBUG_LOG("ExampleWidget click: didn't find originating image widget!\n");
+		LOG(lvlError, "ExampleWidget click: didn't find originating image widget!\n");
 		// something wrong...
 		return;
 	}

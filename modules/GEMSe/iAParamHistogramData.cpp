@@ -2,7 +2,7 @@
 * **********   A tool for visual analysis and processing of 3D CT images   ********** *
 * *********************************************************************************** *
 * Copyright (C) 2016-2020  C. Heinzl, M. Reiter, A. Reh, W. Li, M. Arikan, Ar. &  Al. *
-*                          Amirkhanov, J. Weissenböck, B. Fröhler, M. Schiwarth       *
+*                 Amirkhanov, J. Weissenböck, B. Fröhler, M. Schiwarth, P. Weinberger *
 * *********************************************************************************** *
 * This program is free software: you can redistribute it and/or modify it under the   *
 * terms of the GNU General Public License as published by the Free Software           *
@@ -24,7 +24,7 @@
 #include "iAChartAttributeMapper.h"
 #include "iAImageTreeLeaf.h"
 
-#include <iAConsole.h>
+#include <iALog.h>
 #include <iAMapperImpl.h>    // for LogFunc -> TODO: use iAMapper-derived classes here!
 #include <iAMathUtility.h>
 
@@ -156,8 +156,8 @@ iAParamHistogramData::iAParamHistogramData(size_t numBin, double min, double max
 	assert(!m_log || min > 0);
 	if (m_log && min <= 0)
 	{
-		DEBUG_LOG("Need to define minimum bigger than 0 for logarithmic scale!");
 		min = 0.000001;
+		LOG(lvlWarn, QString("Need to define minimum bigger than 0 for logarithmic scale, setting to %1!").arg(min));
 	}
 	reset();
 	m_xBounds[0] = min;

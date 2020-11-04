@@ -2,7 +2,7 @@
 * **********   A tool for visual analysis and processing of 3D CT images   ********** *
 * *********************************************************************************** *
 * Copyright (C) 2016-2020  C. Heinzl, M. Reiter, A. Reh, W. Li, M. Arikan, Ar. &  Al. *
-*                          Amirkhanov, J. Weissenböck, B. Fröhler, M. Schiwarth       *
+*                 Amirkhanov, J. Weissenböck, B. Fröhler, M. Schiwarth, P. Weinberger *
 * *********************************************************************************** *
 * This program is free software: you can redistribute it and/or modify it under the   *
 * terms of the GNU General Public License as published by the Free Software           *
@@ -22,7 +22,7 @@
 
 #include "iACsvConfig.h"
 
-#include <iAConsole.h>
+#include <iALog.h>
 
 #include <vtkActor.h>
 #include <vtkLine.h>
@@ -102,7 +102,7 @@ void iA3DLineObjectVis::updateValues(std::vector<std::vector<double> > const & v
 {
 	if (2*values.size()+1 >= static_cast<size_t>(std::numeric_limits<vtkIdType>::max()))
 	{
-		DEBUG_LOG(QString("More values (current number: %1) than VTK can handle (limit: %2)")
+		LOG(lvlError, QString("More values (current number: %1) than VTK can handle (limit: %2)")
 			.arg(2 * values.size() + 1)
 			.arg(std::numeric_limits<vtkIdType>::max()));
 	}
@@ -118,7 +118,7 @@ void iA3DLineObjectVis::updateValues(std::vector<std::vector<double> > const & v
 		{
 			if (f == 0 && static_cast<IndexType>(values[f].size()) / 3 != m_objectPointMap[f].second)
 			{
-				DEBUG_LOG(QString("For fiber %1, number of points given "
+				LOG(lvlWarn, QString("For fiber %1, number of points given "
 					"doesn't match number of existing points; expected %2, got %3. "
 					"The visualization will probably contain errors as some old points "
 					"might be continued to show, or some new points might not be shown!")
@@ -134,7 +134,7 @@ void iA3DLineObjectVis::updateValues(std::vector<std::vector<double> > const & v
 		}
 		else
 		{
-			DEBUG_LOG(QString("Invalid straightOrCurved value (%1) in updateValues, expected 1 or 2").arg(straightOrCurved));
+			LOG(lvlError, QString("Invalid straightOrCurved value (%1) in updateValues, expected 1 or 2").arg(straightOrCurved));
 		}
 	}
 	m_points->Modified();

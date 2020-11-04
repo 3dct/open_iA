@@ -2,7 +2,7 @@
 * **********   A tool for visual analysis and processing of 3D CT images   ********** *
 * *********************************************************************************** *
 * Copyright (C) 2016-2020  C. Heinzl, M. Reiter, A. Reh, W. Li, M. Arikan, Ar. &  Al. *
-*                          Amirkhanov, J. Weissenböck, B. Fröhler, M. Schiwarth       *
+*                 Amirkhanov, J. Weissenböck, B. Fröhler, M. Schiwarth, P. Weinberger *
 * *********************************************************************************** *
 * This program is free software: you can redistribute it and/or modify it under the   *
 * terms of the GNU General Public License as published by the Free Software           *
@@ -27,7 +27,7 @@
 
 // Core:
 #include <charts/iASPLOMData.h>
-#include <iAConsole.h>
+#include <iALog.h>
 #include <iAStringHelper.h>
 #include <iAvec3.h>
 
@@ -63,7 +63,7 @@ namespace
 		}
 		if (!cacheFile.open(QFile::ReadOnly))
 		{
-			DEBUG_LOG(QString("Couldn't open file %1 for reading!").arg(cacheFile.fileName()));
+			LOG(lvlWarn, QString("Couldn't open file %1 for reading!").arg(cacheFile.fileName()));
 			return false;
 		}
 		return true;
@@ -99,7 +99,7 @@ bool iARefDistCompute::setMeasuresToCompute(std::vector<std::pair<int, bool>> co
 	auto optMeasItNew = std::find(m_measuresToCompute.begin(), m_measuresToCompute.end(), std::make_pair(optimizationMeasure, true));
 	if (optMeasIt == m_data->m_measures.end() || optMeasItNew != m_measuresToCompute.end())
 	{
-		DEBUG_LOG("Measure to use for optimization not found, or uses optimization itself!");
+		LOG(lvlError, "Measure to use for optimization not found, or uses optimization itself!");
 		return false;
 	}
 	else
@@ -109,7 +109,7 @@ bool iARefDistCompute::setMeasuresToCompute(std::vector<std::pair<int, bool>> co
 	auto it = std::find(m_data->m_measures.begin(), m_data->m_measures.end(), bestMeasure);
 	if (it == m_data->m_measures.end())
 	{
-		DEBUG_LOG("Selected best measure not found!");
+		LOG(lvlError, "Selected best measure not found!");
 		return false;
 	}
 	else
@@ -140,7 +140,7 @@ void getBestMatches(iAFiberData const& fiber,
 		bool optimize = measuresToCompute[d].second;
 		if (optimize && (optimizationMeasureIdx < 0 || optimizationMeasureIdx >= d))
 		{
-			DEBUG_LOG(QString("Invalid optimization measure base: Index %1 is outside of valid range 0 .. %2; disabling optimization!")
+			LOG(lvlWarn, QString("Invalid optimization measure base: Index %1 is outside of valid range 0 .. %2; disabling optimization!")
 				.arg(optimizationMeasureIdx)
 				.arg(d - 1));
 			optimize = false;
@@ -225,7 +225,7 @@ void iARefDistCompute::run()
 		auto& d = m_data->result[resultID];
 		if (resultID != m_referenceID && readCacheResult && d.avgDifference.size() == 0)
 		{
-			DEBUG_LOG(QString("FIAKER cache file %1: The average differences have size 0, probably due to a previous bug in FIAKER."
+			LOG(lvlWarn, QString("FIAKER cache file %1: The average differences have size 0, probably due to a previous bug in FIAKER."
 				" Triggering re-computation to fix this; to fix this permanently, please delete the 'cache' subfolder!")
 				.arg(resultCacheFileName)
 			);
@@ -238,8 +238,8 @@ void iARefDistCompute::run()
 		}
 		if (m_measuresToCompute.size() == 0)
 		{
-			DEBUG_LOG(QString("Tried to set reference without specifying which measure to use. "
-				"This might happen if you use an old project file. In this case, please select the reference again"))
+			LOG(lvlWarn, QString("Tried to set reference without specifying which measure to use. "
+				"This might happen if you use an old project file. In this case, please select the reference again."))
 			return;
 		}
 		writeResultCache[resultID] = true;
@@ -439,7 +439,7 @@ void iARefDistCompute::run()
 	for (int fiberID = 0; fiberID < static_cast<int>(ref.fiberCount); ++fiberID)
 	{
 		m_data->result[m_referenceID].table->SetValue(fiberID, colID, m_data->avgRefFiberMatch[fiberID]);
-		//DEBUG_LOG(QString("Fiber %1: matches=%2, similarity sum=%3, average=%4")
+		//LOG(lvlInfo, QString("Fiber %1: matches=%2, similarity sum=%3, average=%4")
 		//	.arg(fiberID).arg(refDistSum[fiberID]).arg(refMatchCount[fiberID]).arg(value));
 	}
 }
@@ -450,14 +450,14 @@ bool iARefDistCompute::readResultRefComparison(QFile& cacheFile, size_t resultID
 	{
 		return false;
 	}
-	DEBUG_LOG(QString("Reading FIAKER cache file '%1'...").arg(cacheFile.fileName()));
+	LOG(lvlInfo, QString("Reading FIAKER cache file '%1'...").arg(cacheFile.fileName()));
 	QDataStream in(&cacheFile);
 	in.setVersion(CacheFileQtDataStreamVersion);
 	QString identifier;
 	in >> identifier;
 	if (identifier != ResultCacheFileIdentifier)
 	{
-		DEBUG_LOG(QString("FIAKER cache file '%1': Unknown cache file format - found identifier %2 does not match expected identifier %3.")
+		LOG(lvlError, QString("FIAKER cache file '%1': Unknown cache file format - found identifier %2 does not match expected identifier %3.")
 			.arg(cacheFile.fileName())
 			.arg(identifier).arg(ResultCacheFileIdentifier));
 		return false;
@@ -466,13 +466,13 @@ bool iARefDistCompute::readResultRefComparison(QFile& cacheFile, size_t resultID
 	in >> version;
 	if (version == 1)
 	{
-		DEBUG_LOG(QString("FIAKER cache file '%1': Found file of version 1 which is known to have wrong dc1 and do3 computations. "
+		LOG(lvlWarn, QString("FIAKER cache file '%1': Found file of version 1 which is known to have wrong dc1 and do3 computations. "
 			"If you want to recompute with correct values, please delete the 'cache' subfolder!")
 			.arg(cacheFile.fileName()));
 	}
 	if (version > CacheFileVersion)
 	{
-		DEBUG_LOG(QString("FIAKER cache file '%1': Invalid or too high version number (%2), expected %3 or less.")
+		LOG(lvlError, QString("FIAKER cache file '%1': Invalid or too high version number (%2), expected %3 or less.")
 			.arg(cacheFile.fileName())
 			.arg(version).arg(CacheFileVersion));
 		return false;
@@ -495,7 +495,8 @@ bool iARefDistCompute::readResultRefComparison(QFile& cacheFile, size_t resultID
 		{
 			if (!cachedMeasures.contains(m.first))
 			{
-				DEBUG_LOG(QString("Measure %1 not contained in cache file, triggering full recomputation").arg(m.first));
+				LOG(lvlWarn, QString("FIAKER cache file '%1': Measure %2 not contained in cache file, triggering full recomputation")
+					.arg(cacheFile.fileName()).arg(m.first));
 				return false;
 			}
 		}
@@ -535,10 +536,10 @@ bool iARefDistCompute::readResultRefComparison(QFile& cacheFile, size_t resultID
 
 void iARefDistCompute::writeResultRefComparison(QFile& cacheFile, size_t resultID)
 {
-	DEBUG_LOG(QString("Writing FIAKER cache file '%1'...").arg(cacheFile.fileName()));
+	LOG(lvlInfo, QString("Writing FIAKER cache file '%1'...").arg(cacheFile.fileName()));
 	if (!cacheFile.open(QFile::WriteOnly))
 	{
-		DEBUG_LOG(QString("Couldn't open file %1 for writing!").arg(cacheFile.fileName()));
+		LOG(lvlError, QString("FIAKER cache file '%1': Couldn't open file for writing!").arg(cacheFile.fileName()));
 		return;
 	}
 	QDataStream out(&cacheFile);
@@ -555,10 +556,10 @@ void iARefDistCompute::writeResultRefComparison(QFile& cacheFile, size_t resultI
 
 void iARefDistCompute::writeAverageMeasures(QFile& cacheFile)
 {
-	DEBUG_LOG(QString("Writing FIAKER cache file '%1'...").arg(cacheFile.fileName()));
+	LOG(lvlInfo, QString("Writing FIAKER cache file '%1'...").arg(cacheFile.fileName()));
 	if (!cacheFile.open(QFile::WriteOnly))
 	{
-		DEBUG_LOG(QString("Couldn't open file %1 for writing!").arg(cacheFile.fileName()));
+		LOG(lvlError, QString("FIAKER cache file '%1': Couldn't open file for writing!").arg(cacheFile.fileName()));
 		return;
 	}
 	QDataStream out(&cacheFile);
@@ -579,14 +580,14 @@ bool iARefDistCompute::readAverageMeasures(QFile& cacheFile)
 	{
 		return false;
 	}
-	DEBUG_LOG(QString("Reading FIAKER cache file '%1'...").arg(cacheFile.fileName()));
+	LOG(lvlInfo, QString("Reading FIAKER cache file '%1'...").arg(cacheFile.fileName()));
 	QDataStream in(&cacheFile);
 	in.setVersion(CacheFileQtDataStreamVersion);
 	QString identifier;
 	in >> identifier;
 	if (identifier != AverageCacheFileIdentifier)
 	{
-		DEBUG_LOG(QString("FIAKER cache file '%1': Unknown cache file format - found identifier %2 does not match expected identifier %3.")
+		LOG(lvlError, QString("FIAKER cache file '%1': Unknown cache file format - found identifier %2 does not match expected identifier %3.")
 			.arg(cacheFile.fileName()).arg(identifier).arg(AverageCacheFileIdentifier));
 		return false;
 	}
@@ -594,7 +595,7 @@ bool iARefDistCompute::readAverageMeasures(QFile& cacheFile)
 	in >> version;
 	if (version > CacheFileVersion)
 	{
-		DEBUG_LOG(QString("FIAKER cache file '%1': Invalid or too high version number (%2), expected %3 or less.")
+		LOG(lvlError, QString("FIAKER cache file '%1': Invalid or too high version number (%2), expected %3 or less.")
 			.arg(cacheFile.fileName()).arg(version).arg(CacheFileVersion));
 		return false;
 	}
@@ -602,7 +603,7 @@ bool iARefDistCompute::readAverageMeasures(QFile& cacheFile)
 	in >> numberOfResults;
 	if (numberOfResults != m_data->result.size())
 	{
-		DEBUG_LOG(QString("FIAKER cache file '%1': Number of results stored there (%2) is not the same as currently loaded (%3)! Recomputing all averages")
+		LOG(lvlWarn, QString("FIAKER cache file '%1': Number of results stored there (%2) is not the same as currently loaded (%3)! Recomputing all averages")
 			.arg(cacheFile.fileName()).arg(numberOfResults).arg(m_data->result.size()));
 		return false;
 	}

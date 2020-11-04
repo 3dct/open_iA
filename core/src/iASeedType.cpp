@@ -2,7 +2,7 @@
 * **********   A tool for visual analysis and processing of 3D CT images   ********** *
 * *********************************************************************************** *
 * Copyright (C) 2016-2020  C. Heinzl, M. Reiter, A. Reh, W. Li, M. Arikan, Ar. &  Al. *
-*                          Amirkhanov, J. Weissenböck, B. Fröhler, M. Schiwarth       *
+*                 Amirkhanov, J. Weissenböck, B. Fröhler, M. Schiwarth, P. Weinberger *
 * *********************************************************************************** *
 * This program is free software: you can redistribute it and/or modify it under the   *
 * terms of the GNU General Public License as published by the Free Software           *
@@ -20,7 +20,7 @@
 * ************************************************************************************/
 #include "iASeedType.h"
 
-#include "iAConsole.h"
+#include "iALog.h"
 #include "iAImageCoordinate.h"
 
 #include <utility>     // for std::make_pair
@@ -86,7 +86,7 @@ QSharedPointer<iASeedVector> ExtractSeedVector(QString const & seedString, int w
 	}
 	if (parseErrors.size() > 0)
 	{
-		DEBUG_LOG(QString("Error(s) in seed file: %1").arg(parseErrors));
+		LOG(lvlError, QString("Error(s) in seed file: %1").arg(parseErrors));
 	}
 	return result;
 }

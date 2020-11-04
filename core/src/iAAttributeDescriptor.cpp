@@ -2,7 +2,7 @@
 * **********   A tool for visual analysis and processing of 3D CT images   ********** *
 * *********************************************************************************** *
 * Copyright (C) 2016-2020  C. Heinzl, M. Reiter, A. Reh, W. Li, M. Arikan, Ar. &  Al. *
-*                          Amirkhanov, J. Weissenböck, B. Fröhler, M. Schiwarth       *
+*                 Amirkhanov, J. Weissenböck, B. Fröhler, M. Schiwarth, P. Weinberger *
 * *********************************************************************************** *
 * This program is free software: you can redistribute it and/or modify it under the   *
 * terms of the GNU General Public License as published by the Free Software           *
@@ -20,7 +20,7 @@
 * ************************************************************************************/
 #include "iAAttributeDescriptor.h"
 
-#include "iAConsole.h"
+#include "iALog.h"
 #include "iAListNameMapper.h"
 #include "iAStringHelper.h"
 
@@ -52,7 +52,7 @@ iAAttributeDescriptor::iAAttributeType Str2AttribType(QString const & str)
 	}
 	else
 	{
-		DEBUG_LOG(QString("Unknown attribute descriptor '%1'\n").arg(str));
+		LOG(lvlWarn, QString("Unknown attribute descriptor '%1'\n").arg(str));
 		return iAAttributeDescriptor::None;
 	}
 }
@@ -75,20 +75,20 @@ QSharedPointer<iAAttributeDescriptor> iAAttributeDescriptor::create(QString cons
 	QStringList defTokens = def.split(AttributeSplitString);
 	if (defTokens.size() < 3)
 	{
-		DEBUG_LOG(QString("Not enough tokens in attribute descriptor '%1'").arg(def));
+		LOG(lvlWarn, QString("Not enough tokens in attribute descriptor '%1'").arg(def));
 		return QSharedPointer<iAAttributeDescriptor>();
 	}
 	QSharedPointer<iAAttributeDescriptor> result(new iAAttributeDescriptor(
 			defTokens[0], Str2AttribType(defTokens[1]), Str2ValueType(defTokens[2])
 	));
-	int requiredTokens = (result->valueType() == Boolean) ? 3 :
-		((result->valueType() == Categorical) ? 4 : 5);
+	int requiredTokens = (result->valueType() == iAValueType::Boolean) ? 3 :
+		((result->valueType() == iAValueType::Categorical) ? 4 : 5);
 	if (defTokens.size() < requiredTokens)
 	{
-		DEBUG_LOG(QString("Not enough tokens in attribute descriptor '%1'").arg(def));
+		LOG(lvlWarn, QString("Not enough tokens in attribute descriptor '%1'").arg(def));
 		return QSharedPointer<iAAttributeDescriptor>();
 	}
-	if (result->valueType() == Continuous || result->valueType() == Discrete)
+	if (result->valueType() == iAValueType::Continuous || result->valueType() == iAValueType::Discrete)
 	{
 		result->m_logarithmic = false;
 		bool minOk = true, maxOk = true;
@@ -96,7 +96,7 @@ QSharedPointer<iAAttributeDescriptor> iAAttributeDescriptor::create(QString cons
 		result->m_max = iAConverter<double>::toT(defTokens[4], &maxOk);
 		if (!minOk || !maxOk)
 		{
-			DEBUG_LOG(QString("Minimum or maximum of attribute couldn't be parsed in line %1\n").arg(def));
+			LOG(lvlWarn, QString("Minimum or maximum of attribute couldn't be parsed in line %1\n").arg(def));
 			return QSharedPointer<iAAttributeDescriptor>();
 		}
 		if (defTokens.size() >= 6)
@@ -105,10 +105,10 @@ QSharedPointer<iAAttributeDescriptor> iAAttributeDescriptor::create(QString cons
 		}
 		if (defTokens.size() > 6)
 		{
-			DEBUG_LOG(QString("Superfluous tokens in attribute descriptor %1\n").arg(def));
+			LOG(lvlWarn, QString("Superfluous tokens in attribute descriptor %1\n").arg(def));
 		}
 	}
-	else if (result->valueType() == Categorical)
+	else if (result->valueType() == iAValueType::Categorical)
 	{
 		QStringList categories = defTokens[3].split(CategoricalValueSplitString);
 		result->m_min = 0;
@@ -116,7 +116,7 @@ QSharedPointer<iAAttributeDescriptor> iAAttributeDescriptor::create(QString cons
 		result->m_defaultValue = categories;
 		if (defTokens.size() > 5)
 		{
-			DEBUG_LOG(QString("Superfluous tokens in attribute descriptor %1\n").arg(def));
+			LOG(lvlWarn, QString("Superfluous tokens in attribute descriptor %1\n").arg(def));
 		}
 	}
 	return result;
@@ -127,8 +127,8 @@ QSharedPointer<iAAttributeDescriptor> iAAttributeDescriptor::createParam(
 	QVariant defaultValue, double min, double max)
 {
 	auto result = QSharedPointer<iAAttributeDescriptor>(new iAAttributeDescriptor(name, Parameter, valueType));
-	result->m_min = valueType == Categorical ? 0 : min;
-	result->m_max = valueType == Categorical ? defaultValue.toStringList().size()-1 : max;
+	result->m_min = valueType == iAValueType::Categorical ? 0 : min;
+	result->m_max = valueType == iAValueType::Categorical ? defaultValue.toStringList().size()-1 : max;
 	result->m_defaultValue = defaultValue;
 	return result;
 }
@@ -149,7 +149,7 @@ QString iAAttributeDescriptor::toString() const
 	QString result = name() + AttributeSplitString +
 		AttribType2Str(attribType()) + AttributeSplitString +
 		ValueType2Str(valueType()) + AttributeSplitString;
-	if (valueType() == Continuous || valueType() == Discrete)
+	if (valueType() == iAValueType::Continuous || valueType() == iAValueType::Discrete)
 	{
 		result += QString::number(min()) + AttributeSplitString + QString::number(max()) + AttributeSplitString + (m_logarithmic ? LogarithmicStr : LinearStr);
 	}
@@ -219,7 +219,7 @@ QVariant iAAttributeDescriptor::defaultValue() const
 void iAAttributeDescriptor::setDefaultValue(QVariant v)
 {
 	m_defaultValue = v;
-	if (valueType() == Categorical)
+	if (valueType() == iAValueType::Categorical)
 	{
 		m_min = 0;
 		m_max = v.toStringList().size() - 1;

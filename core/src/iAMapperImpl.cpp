@@ -2,7 +2,7 @@
 * **********   A tool for visual analysis and processing of 3D CT images   ********** *
 * *********************************************************************************** *
 * Copyright (C) 2016-2020  C. Heinzl, M. Reiter, A. Reh, W. Li, M. Arikan, Ar. &  Al. *
-*                          Amirkhanov, J. Weissenböck, B. Fröhler, M. Schiwarth       *
+*                 Amirkhanov, J. Weissenböck, B. Fröhler, M. Schiwarth, P. Weinberger *
 * *********************************************************************************** *
 * This program is free software: you can redistribute it and/or modify it under the   *
 * terms of the GNU General Public License as published by the Free Software           *
@@ -20,7 +20,7 @@
 * ************************************************************************************/
 #include "iAMapperImpl.h"
 
-#include "iAConsole.h"
+#include "iALog.h"
 #include "iAMathUtility.h"
 
 #include <typeinfo>    // for typeid
@@ -90,7 +90,7 @@ double iALogarithmicMapper::srcToDst(double srcVal) const
 {
 	if (srcVal <= 0)
 	{
-		//DEBUG_LOG(QString("Value %1 cannot be logarithmically mapped as it is <= 0!").arg(srcVal));
+		//LOG(lvlWarn, QString("Value %1 cannot be logarithmically mapped as it is <= 0!").arg(srcVal));
 		return 0;
 	}
 	double srcLog = clamp(m_srcMinLog, m_srcMaxLog, LogFunc(srcVal));
@@ -114,7 +114,7 @@ void iALogarithmicMapper::update(double srcMin, double srcMax, double dstMin, do
 {
 	if (srcMin <= 0 || srcMax <= 0)
 	{
-		DEBUG_LOG(QString("Invalid logarithmic mapping, can only map values > 0 (was given range [%1, %2])").arg(srcMin).arg(srcMax));
+		LOG(lvlWarn, QString("Invalid logarithmic mapping, can only map values > 0 (was given range [%1, %2])").arg(srcMin).arg(srcMax));
 		return;
 	}
 	m_srcMinLog = LogFunc(srcMin);

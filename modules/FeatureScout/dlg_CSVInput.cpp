@@ -2,7 +2,7 @@
 * **********   A tool for visual analysis and processing of 3D CT images   ********** *
 * *********************************************************************************** *
 * Copyright (C) 2016-2020  C. Heinzl, M. Reiter, A. Reh, W. Li, M. Arikan, Ar. &  Al. *
-*                          Amirkhanov, J. Weissenböck, B. Fröhler, M. Schiwarth       *
+*                 Amirkhanov, J. Weissenböck, B. Fröhler, M. Schiwarth, P. Weinberger *
 * *********************************************************************************** *
 * This program is free software: you can redistribute it and/or modify it under the   *
 * terms of the GNU General Public License as published by the Free Software           *
@@ -23,8 +23,9 @@
 #include "iACsvIO.h"
 #include "iACsvConfig.h"
 #include "iACsvQTableCreator.h"
+#include "iACsvVectorTableCreator.h"
 
-#include <iAConsole.h>
+#include <iALog.h>
 
 #include <QFileDialog>
 #include <QKeyEvent>
@@ -219,11 +220,10 @@ void dlg_CSVInput::visualizationTypeChanged(int newType)
 void dlg_CSVInput::exportTable()
 {
 	iACsvIO io;
-	QTableWidget tw;
-	iACsvQTableCreator creator(&tw);
+	iACsvVectorTableCreator creator;
 	if (!io.loadCSV(creator, m_confParams, std::numeric_limits<size_t>::max()))
 	{
-		DEBUG_LOG("Error loading csv file.");
+		LOG(lvlError, QString("Error loading CSV file '%1'.").arg(m_confParams.fileName));
 		return;
 	}
 
@@ -231,7 +231,8 @@ void dlg_CSVInput::exportTable()
 	QFile origCSV(origCSVFileName);
 	if (!origCSV.open(QIODevice::ReadOnly))
 	{
-		DEBUG_LOG("Error loading csv file, file does not exist.");
+		LOG(lvlError, QString("Could not open CSV file '%1' for reading! "
+			"It probably does not exist!").arg(origCSVFileName));
 		return;
 	}
 	QStringList origCSVInfo;
@@ -245,33 +246,34 @@ void dlg_CSVInput::exportTable()
 		m_path, "CSV file (*.csv);;");
 	if (exportCSVFileName.isEmpty())
 	{
-		DEBUG_LOG("Error, file name is empty.");
+		LOG(lvlInfo, "Selected file name is empty or selection cancelled, aborting!");
 		return;
 	}
 
 	QFile csvExport(exportCSVFileName);
 	if (!csvExport.open(QIODevice::WriteOnly | QIODevice::Text))
 	{
-		DEBUG_LOG("Error loading csv file, file does not exist.");
+		LOG(lvlError, QString("Could not open file '%1' for writing; "
+			"maybe it is locked by another program or the folder does not exist yet?").arg(exportCSVFileName));
 		return;
 	}
 
 	QTextStream ts(&csvExport);
 	for (int i = 0; i < origCSVInfo.size(); ++i)
+	{
 		ts << origCSVInfo[i] + "\n";
+	}
 	QStringList outputHeaders = io.getOutputHeaders();
 	outputHeaders.removeLast();	// without ClassID
 	ts << outputHeaders.join(",") + ",\n";
-	QStringList strList;
-	for (int r = 0; r < tw.rowCount(); ++r)
-	{
-		strList.clear();
-		for (int c = 0; c < tw.columnCount()-1; ++c)
+	for (int r=0; r < creator.table()[0].size(); ++r)
+	{   // values are stored in col-row order
+		QStringList strList;
+		for (int c = 0; c < creator.table().size()-1; ++c)
 		{
-			if (tw.item(r, c))
-				strList << tw.item(r, c)->text();
+			strList << QString::number(creator.table()[c][r]);
 		}
-		ts << strList.join(",") + (r == tw.rowCount() - 1 ? "," : ",\n");
+		ts << strList.join(",") + (r == creator.table().size() - 1 ? "," : ",\n");
 	}
 	csvExport.close();
 
@@ -482,7 +484,7 @@ void dlg_CSVInput::showConfigParams()
 		m_confParams.skipLinesEnd > std::numeric_limits<int>::max() ||
 		m_confParams.segmentSkip > std::numeric_limits<int>::max())
 	{
-		DEBUG_LOG("Skip Line start/end or segment skip number is too high for display in this dialog!");
+		LOG(lvlWarn, "Skip Line start/end or segment skip number is too high to be displayed in this dialog!");
 	}
 	int index = cmbbox_ObjectType->findText(MapObjectTypeToString(m_confParams.objectType), Qt::MatchContains);
 	cmbbox_ObjectType->setCurrentIndex(index);
@@ -549,7 +551,7 @@ void dlg_CSVInput::assignFormatSettings()
 		{
 			if (usedColumns.contains(m_mappingBoxes[i]->currentText()))
 			{
-				DEBUG_LOG(QString("Column '%1' used more than once!").arg(m_mappingBoxes[i]->currentText()));
+				LOG(lvlWarn, QString("Invalid column mapping: Column '%1' is used more than once!").arg(m_mappingBoxes[i]->currentText()));
 			}
 			else
 				usedColumns.insert(m_mappingBoxes[i]->currentText());
@@ -640,18 +642,30 @@ void dlg_CSVInput::showSelectedCols()
 	{
 		int idx = m_confParams.currentHeaders.indexOf(selected);
 		if (idx >= 0 && idx < list_ColumnSelection->count())
+		{
 			list_ColumnSelection->item(idx)->setSelected(true);
+		}
 		else
-			DEBUG_LOG(QString("Header entry %1 not found, skipping its selection.").arg(selected));
+		{
+			LOG(lvlWarn, QString("Header entry '%1' not found, skipping its selection!").arg(selected));
+		}
 	}
 	if (m_confParams.addAutoID)
+	{
 		ed_col_ID->setText(iACsvIO::ColNameAutoID);
+	}
 	else if (m_confParams.selectedHeaders.size() > 0)
+	{
 		ed_col_ID->setText(m_confParams.selectedHeaders[0]);
+	}
 	else if (m_confParams.currentHeaders.size() > 0)
+	{
 		ed_col_ID->setText(m_confParams.currentHeaders[0]);
+	}
 	else
+	{
 		ed_col_ID->setText("NONE");
+	}
 }
 
 void dlg_CSVInput::saveGeneralSetting(QString const & settingName, QVariant value)

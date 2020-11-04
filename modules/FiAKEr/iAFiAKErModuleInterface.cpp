@@ -2,7 +2,7 @@
 * **********   A tool for visual analysis and processing of 3D CT images   ********** *
 * *********************************************************************************** *
 * Copyright (C) 2016-2020  C. Heinzl, M. Reiter, A. Reh, W. Li, M. Arikan, Ar. &  Al. *
-*                          Amirkhanov, J. Weissenböck, B. Fröhler, M. Schiwarth       *
+*                 Amirkhanov, J. Weissenböck, B. Fröhler, M. Schiwarth, P. Weinberger *
 * *********************************************************************************** *
 * This program is free software: you can redistribute it and/or modify it under the   *
 * terms of the GNU General Public License as published by the Free Software           *
@@ -63,7 +63,7 @@ public:
 		*/
 		if (!m_mdiChild)
 		{
-			DEBUG_LOG(QString("Invalid FIAKER project file '%1': FIAKER requires an MdiChild, "
+			LOG(lvlError, QString("Invalid FIAKER project file '%1': FIAKER requires an MdiChild, "
 				"but UseMdiChild was apparently not specified in this project, as no MdiChild available! "
 				"Please report this error, along with the project file, to the open_iA developers!").arg(fileName));
 			return;
@@ -106,16 +106,18 @@ void iAFiAKErModuleInterface::Initialize()
 		return;
 	}
 	iAProjectRegistry::addProject<iAFIAKERProject>(iAFiAKErController::FIAKERProjectID);
-	QMenu * toolsMenu = m_mainWnd->toolsMenu();
-	QMenu * fiakerMenu = getMenuWithTitle(toolsMenu, tr("FiAKEr"), false);
-	QAction * actionFiAKEr = new QAction( "Open Results Folder", nullptr );
+
+	QAction * actionFiAKEr = new QAction(tr("Open Results Folder"), m_mainWnd);
 	actionFiAKEr->setShortcut(QKeySequence(Qt::ALT + Qt::Key_R, Qt::Key_O));
-	AddActionToMenuAlphabeticallySorted(fiakerMenu, actionFiAKEr, false );
 	connect(actionFiAKEr, &QAction::triggered, this, &iAFiAKErModuleInterface::startFiAKEr );
-	QAction * actionFiAKErProject = new QAction("Load Project (for .fpf; for .iaproj use File->Open)", nullptr);
+
+	QAction * actionFiAKErProject = new QAction(tr("Load Project (for .fpf; for .iaproj use File->Open)"), m_mainWnd);
 	actionFiAKErProject->setShortcut(QKeySequence(Qt::ALT + Qt::Key_R, Qt::Key_P));
-	AddActionToMenuAlphabeticallySorted(fiakerMenu, actionFiAKErProject, false);
 	connect(actionFiAKErProject, &QAction::triggered, this, &iAFiAKErModuleInterface::loadFiAKErProject);
+
+	QMenu* fiakerMenu = getOrAddSubMenu(m_mainWnd->toolsMenu(), tr("FiAKEr"), false);
+	fiakerMenu->addAction(actionFiAKEr);
+	fiakerMenu->addAction(actionFiAKErProject);
 
 	QSettings s;
 	m_lastFormat = s.value(LastFormatKey, "").toString();
@@ -126,7 +128,7 @@ void iAFiAKErModuleInterface::Initialize()
 	m_lastTimeStepOffset = s.value(LastTimeStepOffsetKey, 0).toDouble(&ok);
 	if (!ok)
 	{
-		DEBUG_LOG("FIAKER start: Invalid m_lastTimeStepOffset stored in settings!");
+		LOG(lvlError, "FIAKER start: Invalid m_lastTimeStepOffset stored in settings!");
 	}
 }
 

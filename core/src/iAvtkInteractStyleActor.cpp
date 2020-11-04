@@ -2,7 +2,7 @@
 * **********   A tool for visual analysis and processing of 3D CT images   ********** *
 * *********************************************************************************** *
 * Copyright (C) 2016-2020  C. Heinzl, M. Reiter, A. Reh, W. Li, M. Arikan, Ar. &  Al. *
-*                          Amirkhanov, J. Weissenböck, B. Fröhler, M. Schiwarth       *
+*                 Amirkhanov, J. Weissenböck, B. Fröhler, M. Schiwarth, P. Weinberger *
 * *********************************************************************************** *
 * This program is free software: you can redistribute it and/or modify it under the   *
 * terms of the GNU General Public License as published by the Free Software           *
@@ -21,7 +21,7 @@
 #include "iAvtkInteractStyleActor.h"
 
 #include "iAChannelSlicerData.h"
-#include "iAConsole.h"
+#include "iALog.h"
 #include "iASlicerMode.h"
 #include "iAVolumeRenderer.h"
 #include "mdichild.h"
@@ -153,7 +153,7 @@ void iAvtkInteractStyleActor::initialize(vtkImageData* img, iAVolumeRenderer* vo
 {
 	if (!img)
 	{
-		DEBUG_LOG("no valid image!");
+		LOG(lvlInfo, "no valid image!");
 	}
 
 	m_image = img;
@@ -166,7 +166,7 @@ void iAvtkInteractStyleActor::initialize(vtkImageData* img, iAVolumeRenderer* vo
 	m_is3D = (m_currentSliceMode == iASlicerMode::SlicerCount);
 	if (!mdiChild)
 	{
-		DEBUG_LOG("MdiChild not set!");
+		LOG(lvlInfo, "MdiChild not set!");
 	}
 	m_mdiChild = mdiChild;
 	m_image->GetSpacing(m_imageSpacing);
@@ -308,7 +308,7 @@ void iAvtkInteractStyleActor::rotate2D()
 	vtkRenderWindowInteractor* rwi = this->Interactor;
 	if (!m_image)
 	{
-		DEBUG_LOG(QString("Error on rotation %1").arg(m_currentSliceMode));
+		LOG(lvlInfo, QString("Error on rotation %1").arg(m_currentSliceMode));
 		return;
 	}
 
@@ -329,7 +329,7 @@ void iAvtkInteractStyleActor::rotate2D()
 	switch (m_currentSliceMode)
 	{
 	default:
-		DEBUG_LOG("Invalid slicer mode, defaulting to YZ.");
+		LOG(lvlInfo, "Invalid slicer mode, defaulting to YZ.");
 #if __cplusplus >= 201703L
 		[[fallthrough]];
 #endif

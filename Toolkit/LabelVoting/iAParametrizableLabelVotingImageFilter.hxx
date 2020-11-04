@@ -2,7 +2,7 @@
 * **********   A tool for visual analysis and processing of 3D CT images   ********** *
 * *********************************************************************************** *
 * Copyright (C) 2016-2020  C. Heinzl, M. Reiter, A. Reh, W. Li, M. Arikan, Ar. &  Al. *
-*                          Amirkhanov, J. Weissenböck, B. Fröhler, M. Schiwarth       *
+*                 Amirkhanov, J. Weissenböck, B. Fröhler, M. Schiwarth, P. Weinberger *
 * *********************************************************************************** *
 * This program is free software: you can redistribute it and/or modify it under the   *
 * terms of the GNU General Public License as published by the Free Software           *
@@ -47,7 +47,7 @@
 
 #include "iAParametrizableLabelVotingImageFilter.h"
 
-#include <iAConsole.h>
+#include <iALog.h>
 #include <iAMathUtility.h>
 
 #include <itkImageRegionIterator.h>
@@ -135,7 +135,7 @@ iAParametrizableLabelVotingImageFilter< TInputImage, TOutputImage >
 	{
 		if (this->m_TotalLabelCount > itk::NumericTraits<OutputPixelType>::max())
 		{
-			DEBUG_LOG("No label left for undecided pixels, using zero.");
+			LOG(lvlWarn, "No label left for undecided pixels, using zero.");
 			this->m_LabelForUndecidedPixels = 0;
 		}
 		this->m_LabelForUndecidedPixels = static_cast<OutputPixelType>(this->m_TotalLabelCount);
@@ -158,14 +158,14 @@ iAParametrizableLabelVotingImageFilter< TInputImage, TOutputImage >
 		m_MaxPixelEntropy = -1;
 		if (m_weightType == Certainty || m_weightType == FBGSBGDiff)
 		{
-			DEBUG_LOG("Weight Type set to Certainty/FBGSBGDiff, but no probability images given! Using equal weights.");
+			LOG(lvlWarn, "Weight Type set to Certainty/FBGSBGDiff, but no probability images given! Using equal weights.");
 			m_weightType = Equal;
 		}
 	}
 
 	if (m_inputLabelWeightMap.empty() && m_weightType == LabelBased)
 	{
-		DEBUG_LOG("Weight Type is set to LabelBased, but no input/label to weight map given! Using equal weights.");
+		LOG(lvlWarn, "Weight Type is set to LabelBased, but no input/label to weight map given! Using equal weights.");
 		m_weightType = Equal;
 	}
 }
@@ -243,7 +243,7 @@ void iAParametrizableLabelVotingImageFilter<TInputImage, TOutputImage>::Threaded
 				{
 					if (probIt[i][l].IsAtEnd())
 					{
-						DEBUG_LOG("Prob It at end.");
+						LOG(lvlInfo, "Prob It at end.");
 					}
 					const double probValue = probIt[i][l].Get();
 					++(probIt[i][l]);

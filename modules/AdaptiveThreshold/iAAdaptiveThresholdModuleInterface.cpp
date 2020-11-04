@@ -2,7 +2,7 @@
 * **********   A tool for visual analysis and processing of 3D CT images   ********** *
 * *********************************************************************************** *
 * Copyright (C) 2016-2020  C. Heinzl, M. Reiter, A. Reh, W. Li, M. Arikan, Ar. &  Al. *
-*                          Amirkhanov, J. Weissenböck, B. Fröhler, M. Schiwarth       *
+*                 Amirkhanov, J. Weissenböck, B. Fröhler, M. Schiwarth, P. Weinberger *
 * *********************************************************************************** *
 * This program is free software: you can redistribute it and/or modify it under the   *
 * terms of the GNU General Public License as published by the Free Software           *
@@ -26,7 +26,7 @@
 #include <charts/iAChartWithFunctionsWidget.h>
 #include <charts/iAPlot.h>
 #include <charts/iAPlotData.h>
-#include <iAConsole.h>
+#include <iALog.h>
 #include <mainwindow.h>
 #include <mdichild.h>
 
@@ -40,11 +40,10 @@ void iAAdaptiveThresholdModuleInterface::Initialize()
 	{
 		return;
 	}
-	QMenu * toolsMenu = m_mainWnd->toolsMenu();
-	QAction * determineThreshold = new QAction( m_mainWnd );
-	determineThreshold->setText( QApplication::translate( "MainWindow", "Adaptive Thresholding", 0 ) );
-	AddActionToMenuAlphabeticallySorted(toolsMenu,  determineThreshold, true);
-	connect(determineThreshold, &QAction::triggered, this, &iAAdaptiveThresholdModuleInterface::determineThreshold);
+	QAction * determineThresholdAction = new QAction(tr("Adaptive Thresholding"), m_mainWnd);
+	connect(determineThresholdAction, &QAction::triggered, this, &iAAdaptiveThresholdModuleInterface::determineThreshold);
+	makeActionChildDependent(determineThresholdAction);
+	addToMenuSorted(m_mainWnd->toolsMenu(), determineThresholdAction);
 }
 
 /*
@@ -63,14 +62,14 @@ void iAAdaptiveThresholdModuleInterface::determineThreshold()
 {
 	if (!m_mainWnd->activeMdiChild())
 	{
-		DEBUG_LOG("No dataset avaiable, please load a dataset before.");
+		LOG(lvlInfo, "No dataset avaiable, please load a dataset before.");
 		return;
 	}
 
 	auto hist = m_mainWnd->activeMdiChild()->histogram();
 	if (!hist || hist->plots().empty())
 	{
-		DEBUG_LOG("Current data does not have a histogram or histogram not ready");
+		LOG(lvlInfo, "Current data does not have a histogram or histogram not ready");
 		return;
 	}
 	try
@@ -99,6 +98,6 @@ void iAAdaptiveThresholdModuleInterface::determineThreshold()
 	}
 	catch (std::exception& ex)
 	{
-		DEBUG_LOG(ex.what());
+		LOG(lvlError, ex.what());
 	}
 }

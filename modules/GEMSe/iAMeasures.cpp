@@ -2,7 +2,7 @@
 * **********   A tool for visual analysis and processing of 3D CT images   ********** *
 * *********************************************************************************** *
 * Copyright (C) 2016-2020  C. Heinzl, M. Reiter, A. Reh, W. Li, M. Arikan, Ar. &  Al. *
-*                          Amirkhanov, J. Weissenböck, B. Fröhler, M. Schiwarth       *
+*                 Amirkhanov, J. Weissenböck, B. Fröhler, M. Schiwarth, P. Weinberger *
 * *********************************************************************************** *
 * This program is free software: you can redistribute it and/or modify it under the   *
 * terms of the GNU General Public License as published by the Free Software           *
@@ -20,7 +20,7 @@
 * ************************************************************************************/
 #include "iAMeasures.h"
 
-#include <iAConsole.h>
+#include <iALog.h>
 
 #include <itkImageRegionConstIterator.h>
 #include <itkLabelOverlapMeasuresImageFilter.h>
@@ -48,7 +48,7 @@ public:
 	{
 		if (r < 0 || c < 0 || r >= rowCount || c >= colCount)
 		{
-			DEBUG_LOG(QString("Invalid Matrix access (%1, %2), matrix dimensions (%3, %4)").arg(r).arg(c).arg(rowCount).arg(colCount));
+			LOG(lvlError, QString("Invalid Matrix access (%1, %2), matrix dimensions (%3, %4)").arg(r).arg(c).arg(rowCount).arg(colCount));
 		}
 		return data[r*colCount + c];
 	}
@@ -159,7 +159,7 @@ void CalculateMeasures(LabelImagePointer refImg, LabelImagePointer curImg, int l
 
 	if (reportUndecided)
 	{
-		// DEBUG_LOG(QString("Encountered %1 pixel values out of valid range (0, %2)").arg(outsideValues).arg(labelCount));
+		// LOG(lvlWarn, QString("Encountered %1 pixel values out of valid range (0, %2)").arg(outsideValues).arg(labelCount));
 		measures.push_back(outsideValues);
 	}
 	delete[] actTot;

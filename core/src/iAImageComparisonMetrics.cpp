@@ -2,7 +2,7 @@
 * **********   A tool for visual analysis and processing of 3D CT images   ********** *
 * *********************************************************************************** *
 * Copyright (C) 2016-2020  C. Heinzl, M. Reiter, A. Reh, W. Li, M. Arikan, Ar. &  Al. *
-*                          Amirkhanov, J. Weissenböck, B. Fröhler, M. Schiwarth       *
+*                 Amirkhanov, J. Weissenböck, B. Fröhler, M. Schiwarth, P. Weinberger *
 * *********************************************************************************** *
 * This program is free software: you can redistribute it and/or modify it under the   *
 * terms of the GNU General Public License as published by the Free Software           *
@@ -33,7 +33,7 @@ void compareImg_tmpl(iAITKIO::ImagePointer imgB, iAITKIO::ImagePointer refB, iAI
 	ImgType * ref = dynamic_cast<ImgType*>(refB.GetPointer());
 	if (!img || !ref)
 	{
-		DEBUG_LOG("compareImg_tmpl: One of the images to be compared is nullptr!");
+		LOG(lvlError, "compareImg_tmpl: One of the images to be compared is nullptr!");
 		result.equalPixelRate = 0;
 		return;
 	}

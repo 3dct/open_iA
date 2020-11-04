@@ -2,7 +2,7 @@
 * **********   A tool for visual analysis and processing of 3D CT images   ********** *
 * *********************************************************************************** *
 * Copyright (C) 2016-2020  C. Heinzl, M. Reiter, A. Reh, W. Li, M. Arikan, Ar. &  Al. *
-*                          Amirkhanov, J. Weissenböck, B. Fröhler, M. Schiwarth       *
+*                 Amirkhanov, J. Weissenböck, B. Fröhler, M. Schiwarth, P. Weinberger *
 * *********************************************************************************** *
 * This program is free software: you can redistribute it and/or modify it under the   *
 * terms of the GNU General Public License as published by the Free Software           *
@@ -20,7 +20,7 @@
 * ************************************************************************************/
 #include "iAScatterPlotWidget.h"
 
-#include "iAConsole.h"
+#include "iALog.h"
 #include "iALookupTable.h"
 #include "iAScatterPlot.h"
 #include "iAScatterPlotSelectionHandler.h"
@@ -98,7 +98,7 @@ iAScatterPlotWidget::iAScatterPlotWidget(QSharedPointer<iASPLOMData> data) :
 	data->updateRanges();
 	if (data->numPoints() > std::numeric_limits<int>::max())
 	{
-		DEBUG_LOG(QString("Number of points (%1) larger than supported (%2)")
+		LOG(lvlWarn, QString("Number of points (%1) larger than supported (%2)")
 			.arg(data->numPoints())
 			.arg(std::numeric_limits<int>::max()));
 	}

@@ -2,7 +2,7 @@
 * **********   A tool for visual analysis and processing of 3D CT images   ********** *
 * *********************************************************************************** *
 * Copyright (C) 2016-2020  C. Heinzl, M. Reiter, A. Reh, W. Li, M. Arikan, Ar. &  Al. *
-*                          Amirkhanov, J. Weissenböck, B. Fröhler, M. Schiwarth       *
+*                 Amirkhanov, J. Weissenböck, B. Fröhler, M. Schiwarth, P. Weinberger *
 * *********************************************************************************** *
 * This program is free software: you can redistribute it and/or modify it under the   *
 * terms of the GNU General Public License as published by the Free Software           *
@@ -42,16 +42,6 @@ class QAction;
 class QFileInfo;
 class QMenu;
 
-//! Data for menu actions created automatically for filters.
-struct iAModuleAction
-{
-	iAModuleAction(): action(nullptr), isDisablable(true) {}
-	iAModuleAction( QAction * _action, bool _isDisablable ) : action( _action ), isDisablable( _isDisablable ) {}
-
-	QAction * action;
-	bool isDisablable;
-};
-
 class iAModuleInterface;
 
 #ifdef _WIN32
@@ -81,20 +71,18 @@ public:
 	void InitializeModules(iALogger* logger);
 	void SaveModulesSettings() const;
 	MainWindow * GetMainWnd() const;
-	void AddModuleAction(QAction * action, bool isDisablable);
 	void SetModuleActionsEnabled( bool isEnabled );
 	template <typename T> T* GetModule();
 	void ChildCreated(MdiChild* child);
-	QMenu * getMenuWithTitle(QMenu * parentMenu, QString const & title, bool isDisablable = true);
-	void AddActionToMenuAlphabeticallySorted(QMenu * menu, QAction * action, bool isDisablable = true);
+	void makeActionChildDependent(QAction * action);
 private slots:
 	void executeFilter();
 	void removeFilter();
 	void selectAndRunFilter();
 private:
 	MainWindow * m_mainWnd;
-	QVector < iAModuleAction > m_moduleActions;
-	QVector < iALoadedModule > m_loadedModules;
+	QVector< QAction* > m_childDependentActions;
+	QVector< iALoadedModule > m_loadedModules;
 	QVector< QSharedPointer<iAFilterRunnerGUI> > m_runningFilters;
 	QString m_rootPath;
 	iAModuleInterface* loadModuleAndInterface(QFileInfo fi, QStringList & errorMessages);

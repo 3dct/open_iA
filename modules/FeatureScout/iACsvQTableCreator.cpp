@@ -2,7 +2,7 @@
 * **********   A tool for visual analysis and processing of 3D CT images   ********** *
 * *********************************************************************************** *
 * Copyright (C) 2016-2020  C. Heinzl, M. Reiter, A. Reh, W. Li, M. Arikan, Ar. &  Al. *
-*                          Amirkhanov, J. Weissenböck, B. Fröhler, M. Schiwarth       *
+*                 Amirkhanov, J. Weissenböck, B. Fröhler, M. Schiwarth, P. Weinberger *
 * *********************************************************************************** *
 * This program is free software: you can redistribute it and/or modify it under the   *
 * terms of the GNU General Public License as published by the Free Software           *
@@ -20,7 +20,7 @@
 * ************************************************************************************/
 #include "iACsvQTableCreator.h"
 
-#include <iAConsole.h>
+#include <iALog.h>
 
 #include <QTableWidget>
 
@@ -32,7 +32,7 @@ void iACsvQTableCreator::initialize(QStringList const & headers, size_t const ro
 {
 	if (rowCount > std::numeric_limits<int>::max())
 	{
-		DEBUG_LOG(QString("iACsvQTableCreator: More rows (%1) than I can handle (%2)").arg(rowCount).arg(std::numeric_limits<int>::max()));
+		LOG(lvlWarn, QString("iACsvQTableCreator: More rows (%1) than I can handle (%2)").arg(rowCount).arg(std::numeric_limits<int>::max()));
 	}
 	m_table->setColumnCount(headers.size());
 	m_table->setRowCount(static_cast<int>(rowCount));

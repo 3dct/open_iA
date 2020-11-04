@@ -2,7 +2,7 @@
 * **********   A tool for visual analysis and processing of 3D CT images   ********** *
 * *********************************************************************************** *
 * Copyright (C) 2016-2020  C. Heinzl, M. Reiter, A. Reh, W. Li, M. Arikan, Ar. &  Al. *
-*                          Amirkhanov, J. Weissenböck, B. Fröhler, M. Schiwarth       *
+*                 Amirkhanov, J. Weissenböck, B. Fröhler, M. Schiwarth, P. Weinberger *
 * *********************************************************************************** *
 * This program is free software: you can redistribute it and/or modify it under the   *
 * terms of the GNU General Public License as published by the Free Software           *
@@ -46,6 +46,7 @@
 #include <iAColorTheme.h>
 #include <iAConnector.h>
 #include <iAFunctionalBoxplot.h>
+#include <iALog.h>
 #include <iAMathUtility.h>
 #include <iARenderer.h>
 #include <iASlicer.h>
@@ -192,9 +193,7 @@ void dlg_InSpectr::init(double minEnergy, double maxEnergy, bool haveEnergyLevel
 	spectrumChartContainer->setContentsMargins(0, 0, 0, 0);
 
 	InitCommonGUI(widgetAddHelper);
-	widgetAddHelper.m_mdiChild->logDockWidget()->show();
-	widgetAddHelper.SplitWidget(spectrumChartContainer, widgetAddHelper.m_mdiChild->logDockWidget(), Qt::Vertical);
-	widgetAddHelper.m_mdiChild->logDockWidget()->hide();
+	widgetAddHelper.SplitWidget(spectrumChartContainer, widgetAddHelper.m_mdiChild->renderDockWidget(), Qt::Vertical);
 	widgetAddHelper.SplitWidget(m_pieChartContainer, spectrumChartContainer);
 
 	m_ctfChanged  = true;
@@ -623,13 +622,13 @@ void dlg_InSpectr::decomposeElements()
 {
 	if (!m_refSpectraLib)
 	{
-		(dynamic_cast<MdiChild*>(parent()))->addMsg(tr("Reference spectra have to be loaded!"));
+		LOG(lvlWarn, tr("Reference spectra have to be loaded!"));
 		return;
 	}
 	if (m_decompositionCalculator)
 	{
 		m_decompositionCalculator->Stop();
-		(dynamic_cast<MdiChild*>(parent()))->addMsg(tr("Decomposition was aborted by user."));
+		LOG(lvlInfo, tr("Decomposition was aborted by user."));
 		return;
 	}
 	m_elementConcentrations = QSharedPointer<iAElementConcentrations>(new iAElementConcentrations());
@@ -649,7 +648,7 @@ void dlg_InSpectr::decomposeElements()
 	if (m_decompositionCalculator->ElementCount() == 0)
 	{
 		m_decompositionCalculator.clear();
-		(dynamic_cast<MdiChild*>(parent()))->addMsg(tr("You have to select at least one element from the reference spectra list!"));
+		LOG(lvlWarn, tr("You have to select at least one element from the reference spectra list!"));
 		return;
 	}
 	pb_decompose->setText("Stop");
@@ -657,12 +656,12 @@ void dlg_InSpectr::decomposeElements()
 	connect(m_decompositionCalculator.data(), &iADecompositionCalculator::finished, this, &dlg_InSpectr::decompositionFinished);
 	connect(m_decompositionCalculator.data(), &iADecompositionCalculator::progress, dynamic_cast<MdiChild*>(parent()), &MdiChild::updateProgressBar);
 	m_decompositionCalculator->start();
-	(dynamic_cast<MdiChild*>(parent()))->addMsg(tr("Decomposition calculation started..."));
+	LOG(lvlInfo, tr("Decomposition calculation started..."));
 }
 
 void dlg_InSpectr::decompositionSuccess()
 {
-	(dynamic_cast<MdiChild*>(parent()))->addMsg(tr("Decomposition calculation successful."));
+	LOG(lvlInfo, tr("Decomposition calculation successful."));
 	decompositionAvailable();
 }
 
@@ -686,7 +685,7 @@ void dlg_InSpectr::loadDecomposition()
 {
 	if (!m_refSpectraLib)
 	{
-		(dynamic_cast<MdiChild*>(parent()))->addMsg(tr("Reference spectra have to be loaded!"));
+		LOG(lvlWarn, tr("Reference spectra have to be loaded!"));
 		return;
 	}
 	QString fileName = QFileDialog::getOpenFileName(
@@ -708,9 +707,7 @@ void dlg_InSpectr::loadDecomposition()
 		m_elementConcentrations->clear();
 	}
 
-	iAIO io(
-		(dynamic_cast<MdiChild*>(parent()))->logger(),
-		dynamic_cast<MdiChild*>(parent()),
+	iAIO io(iALog::get(), dynamic_cast<MdiChild*>(parent()),
 		m_elementConcentrations->getImageListPtr()
 	);
 	io.setupIO(VOLUME_STACK_VOLSTACK_READER, fileName);
@@ -755,9 +752,7 @@ void dlg_InSpectr::storeDecomposition()
 		}
 	}
 
-	iAIO io(
-		(dynamic_cast<MdiChild*>(parent()))->logger(),
-		dynamic_cast<MdiChild*>(parent()),
+	iAIO io(iALog::get(), dynamic_cast<MdiChild*>(parent()),
 		m_elementConcentrations->getImageListPtr());
 
 	io.setupIO(VOLUME_STACK_VOLSTACK_WRITER, fileName);
@@ -1215,7 +1210,7 @@ void dlg_InSpectr::computeSimilarityMap()
 	}
 	catch (itk::ExceptionObject & excp)
 	{
-		(dynamic_cast<MdiChild*>(parent()))->addMsg( "Exception in computeSimilarityMap(): " + QString(excp.GetDescription()) );
+		LOG(lvlError, "Exception in computeSimilarityMap(): " + QString(excp.GetDescription()) );
 	}
 
 	delete [] connectors;
@@ -1224,8 +1219,10 @@ void dlg_InSpectr::computeSimilarityMap()
 	mdiChild->hideProgressBar();
 	QCoreApplication::processEvents();
 
-	for (int i=0; i<errorCount; ++i)
-		(dynamic_cast<MdiChild*>(parent()))->addMsg("Exception in computeSimilarityMap(): " + errDescr[i]);
+	for (int i = 0; i < errorCount; ++i)
+	{
+		LOG(lvlError, "Exception in computeSimilarityMap(): " + errDescr[i]);
+	}
 }
 
 void dlg_InSpectr::energyBinsSelected( int binX, int binY )

@@ -2,7 +2,7 @@
 * **********   A tool for visual analysis and processing of 3D CT images   ********** *
 * *********************************************************************************** *
 * Copyright (C) 2016-2020  C. Heinzl, M. Reiter, A. Reh, W. Li, M. Arikan, Ar. &  Al. *
-*                          Amirkhanov, J. Weissenböck, B. Fröhler, M. Schiwarth       *
+*                 Amirkhanov, J. Weissenböck, B. Fröhler, M. Schiwarth, P. Weinberger *
 * *********************************************************************************** *
 * This program is free software: you can redistribute it and/or modify it under the   *
 * terms of the GNU General Public License as published by the Free Software           *
@@ -41,7 +41,7 @@ iAQGLFormat defaultOpenGLFormat()
 	fmt.setAlphaBufferSize(8);
 	fmt.setStencilBufferSize(0);
 	/*
-	DEBUG_LOG(QString("Default GL format: version: %1.%2;"
+	LOG(lvlInfo, QString("Default GL format: version: %1.%2;"
 		" buffer sizes r: %3, g: %4, b: %5, a: %6, d: %7, s: %8; stereo: %9, samples: %10, hasAlpha: %11")
 		.arg(fmt.majorVersion())
 		.arg(fmt.minorVersion())

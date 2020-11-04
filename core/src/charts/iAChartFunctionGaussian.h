@@ -2,7 +2,7 @@
 * **********   A tool for visual analysis and processing of 3D CT images   ********** *
 * *********************************************************************************** *
 * Copyright (C) 2016-2020  C. Heinzl, M. Reiter, A. Reh, W. Li, M. Arikan, Ar. &  Al. *
-*                          Amirkhanov, J. Weissenböck, B. Fröhler, M. Schiwarth       *
+*                 Amirkhanov, J. Weissenböck, B. Fröhler, M. Schiwarth, P. Weinberger *
 * *********************************************************************************** *
 * This program is free software: you can redistribute it and/or modify it under the   *
 * terms of the GNU General Public License as published by the Free Software           *
@@ -36,14 +36,12 @@ public:
 	void draw(QPainter &painter) override;
 	void draw(QPainter &painter, QColor color, int lineWidth) override;
 	void drawOnTop(QPainter&) override {}
-	int selectPoint(QMouseEvent *event, int *x = nullptr) override;
+	int selectPoint(int mouseX, int mouseY) override;
 	int getSelectedPoint() const override { return 0; }
 	int addPoint(int, int) override { return 0; }
 	void addColorPoint(int, double, double, double) override {}
 	void removePoint(int) override {}
 	void moveSelectedPoint(int x, int y) override;
-	void changeColor(QMouseEvent *) override {}
-	bool isColored() const override { return false; }
 	bool isEndPoint(int) const override { return true; }
 	bool isDeletable(int) const override { return false; }
 	void reset() override;

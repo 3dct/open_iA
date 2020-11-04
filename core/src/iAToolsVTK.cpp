@@ -2,7 +2,7 @@
 * **********   A tool for visual analysis and processing of 3D CT images   ********** *
 * *********************************************************************************** *
 * Copyright (C) 2016-2020  C. Heinzl, M. Reiter, A. Reh, W. Li, M. Arikan, Ar. &  Al. *
-*                          Amirkhanov, J. Weissenböck, B. Fröhler, M. Schiwarth       *
+*                 Amirkhanov, J. Weissenböck, B. Fröhler, M. Schiwarth, P. Weinberger *
 * *********************************************************************************** *
 * This program is free software: you can redistribute it and/or modify it under the   *
 * terms of the GNU General Public License as published by the Free Software           *
@@ -21,7 +21,7 @@
 #include "iAToolsVTK.h"
 
 #include "iAConnector.h"
-#include "iAConsole.h"
+#include "iALog.h"
 #include "iAVtkDraw.h"
 #include "io/iAITKIO.h"
 
@@ -106,7 +106,7 @@ void writeSingleSliceImage(QString const & filename, vtkImageData* imageData)
 	}
 	else
 	{
-		DEBUG_LOG("Could not write image: Filename has an unknown extension!");
+		LOG(lvlError, "Could not write image: Filename has an unknown extension!");
 		return;
 	}
 	writer->SetFileName( getLocalEncodingFileName(filename).c_str() );

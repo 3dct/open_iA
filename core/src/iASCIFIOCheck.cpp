@@ -2,7 +2,7 @@
 * **********   A tool for visual analysis and processing of 3D CT images   ********** *
 * *********************************************************************************** *
 * Copyright (C) 2016-2020  C. Heinzl, M. Reiter, A. Reh, W. Li, M. Arikan, Ar. &  Al. *
-*                          Amirkhanov, J. Weissenböck, B. Fröhler, M. Schiwarth       *
+*                 Amirkhanov, J. Weissenböck, B. Fröhler, M. Schiwarth, P. Weinberger *
 * *********************************************************************************** *
 * This program is free software: you can redistribute it and/or modify it under the   *
 * terms of the GNU General Public License as published by the Free Software           *
@@ -20,7 +20,7 @@
 * ************************************************************************************/
 #include "iASCIFIOCheck.h"
 
-#include "iAConsole.h"
+#include "iALog.h"
 
 #include <QCoreApplication>
 #include <QFileInfo>
@@ -45,7 +45,7 @@ void CheckSCIFIO(QString const &
 	QString scifioPath(fi.absoluteFilePath() + "/scifio_jars");
 	if (!QFile::exists(scifioPath))
 	{
-		DEBUG_LOG(QString("ITK was built with SCIFIO, SCIFIO_PATH environment variable is not set, and scifio_jars directory (%1) was not found."
+		LOG(lvlWarn, QString("ITK was built with SCIFIO, SCIFIO_PATH environment variable is not set, and scifio_jars directory (%1) was not found."
 			"You might not be able to load files!").arg(scifioPath));
 		return;
 	}

@@ -2,7 +2,7 @@
 * **********   A tool for visual analysis and processing of 3D CT images   ********** *
 * *********************************************************************************** *
 * Copyright (C) 2016-2020  C. Heinzl, M. Reiter, A. Reh, W. Li, M. Arikan, Ar. &  Al. *
-*                          Amirkhanov, J. Weissenböck, B. Fröhler, M. Schiwarth       *
+*                 Amirkhanov, J. Weissenböck, B. Fröhler, M. Schiwarth, P. Weinberger *
 * *********************************************************************************** *
 * This program is free software: you can redistribute it and/or modify it under the   *
 * terms of the GNU General Public License as published by the Free Software           *
@@ -20,7 +20,9 @@
 * ************************************************************************************/
 #pragma once
 
-enum iAValueType
+#include "open_iA_Core_export.h"
+
+enum class iAValueType
 {
 	Invalid = -1,
 	Continuous,
@@ -40,5 +42,5 @@ enum iAValueType
 
 class QString;
 
-QString ValueType2Str(iAValueType type);
+open_iA_Core_API QString ValueType2Str(iAValueType type);
 iAValueType Str2ValueType(QString const & str);

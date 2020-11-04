@@ -2,7 +2,7 @@
 * **********   A tool for visual analysis and processing of 3D CT images   ********** *
 * *********************************************************************************** *
 * Copyright (C) 2016-2020  C. Heinzl, M. Reiter, A. Reh, W. Li, M. Arikan, Ar. &  Al. *
-*                          Amirkhanov, J. Weissenböck, B. Fröhler, M. Schiwarth       *
+*                 Amirkhanov, J. Weissenböck, B. Fröhler, M. Schiwarth, P. Weinberger *
 * *********************************************************************************** *
 * This program is free software: you can redistribute it and/or modify it under the   *
 * terms of the GNU General Public License as published by the Free Software           *
@@ -66,17 +66,13 @@ protected:
 	void PrepareResultChild( int childInd, QString const & title );
 	//! Set the currently active child as "current".
 	void PrepareActiveChild();
-	//! Retrieve the menu with the given title (or creates it if it doesn't exist yet).
-	QMenu * getMenuWithTitle(QMenu * parentMenu, QString const & title, bool isDisablable = true);
 	//! Return true if attached to current mdi child.
 	//! @note: current mdi child is determined through m_mdiChild member
 	//!       which is _not_ automatically updated to the active mdi child!
 	bool isAttached();
-	//! Add an action to a given menu ensuring alphabetic order.
-	//! @param menu the menu to add the entry to (see e.g. MainWindow::getToolMenu())
-	//! @param action the action to add to the menu
-	//! @param isDisablable whether the action should be disabled when no child is currently open
-	void AddActionToMenuAlphabeticallySorted( QMenu * menu, QAction * action, bool isDisablable = true );
+	//! State that an action should be enabled or disabled depending on whether a child window is open or not
+	//! @param action the action to enable/disable
+	void makeActionChildDependent(QAction * action);
 	//! Create a new attachment for the given child.
 	virtual iAModuleAttachmentToChild * CreateAttachment( MainWindow* mainWnd, MdiChild * child );
 	//! Get an attachment of the current mdi child.
@@ -103,6 +99,11 @@ protected slots:
 	void detach();
 };
 
+//! In the given menu, search for a menu with the given title; if it doesn't exist, add (alphabetically sorted).
+open_iA_Core_API QMenu* getOrAddSubMenu(QMenu* parentMenu, QString const& title, bool addSeparator=false);
+
+//! Add a given action to a menu, such that the (previously sorted) menu stays alphabetically sorted.
+open_iA_Core_API void addToMenuSorted(QMenu* menu, QAction* action);
 
 template <class T>
 T* iAModuleInterface::GetAttachment()

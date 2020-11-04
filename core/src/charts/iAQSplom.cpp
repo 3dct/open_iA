@@ -2,7 +2,7 @@
 * **********   A tool for visual analysis and processing of 3D CT images   ********** *
 * *********************************************************************************** *
 * Copyright (C) 2016-2020  C. Heinzl, M. Reiter, A. Reh, W. Li, M. Arikan, Ar. &  Al. *
-*                          Amirkhanov, J. Weissenböck, B. Fröhler, M. Schiwarth       *
+*                 Amirkhanov, J. Weissenböck, B. Fröhler, M. Schiwarth, P. Weinberger *
 * *********************************************************************************** *
 * This program is free software: you can redistribute it and/or modify it under the   *
 * terms of the GNU General Public License as published by the Free Software           *
@@ -22,7 +22,7 @@
 
 #include "iAChartWidget.h"
 #include "iAColorTheme.h"
-#include "iAConsole.h"
+#include "iALog.h"
 #include "iAHistogramData.h"
 #include "iALookupTable.h"
 #include "iAMathUtility.h"
@@ -219,7 +219,7 @@ void iAQSplom::selectionModeRectangle()
 }
 
 iAQSplom::iAQSplom(QWidget * parent):
-	iAQGLWidget(parent),
+	iAChartParentWidget(parent),
 	settings(),
 	m_lut(new iALookupTable()),
 	m_colorLookupParam(0),
@@ -238,7 +238,9 @@ iAQSplom::iAQSplom(QWidget * parent):
 	m_contextMenu(new QMenu(this)),
 	m_settingsDlg(new iASPMSettings(this))
 {
+#ifdef CHART_OPENGL
 	setFormat(defaultOpenGLFormat());
+#endif
 	setMouseTracking( true );
 	setFocusPolicy( Qt::StrongFocus );
 	setBackgroundRole(QPalette::Base);
@@ -401,9 +403,11 @@ void iAQSplom::updateFilter()
 	update();
 }
 
+#ifdef CHART_OPENGL
 void iAQSplom::initializeGL()
 {
 }
+#endif
 
 iAQSplom::~iAQSplom()
 {
@@ -417,13 +421,13 @@ void iAQSplom::setData( QSharedPointer<iASPLOMData> data, std::vector<char> cons
 {
 	if (data->numPoints() > std::numeric_limits<int>::max())
 	{
-		DEBUG_LOG(QString("Number of points (%1) larger than currently supported (%2).")
+		LOG(lvlWarn, QString("Number of points (%1) larger than currently supported (%2).")
 			.arg(data->numPoints())
 			.arg(std::numeric_limits<int>::max()));
 	}
 	if (data->numParams() > std::numeric_limits<int>::max())
 	{
-		DEBUG_LOG(QString("Number of parameters (%1) larger than currently supported (%2).")
+		LOG(lvlWarn, QString("Number of parameters (%1) larger than currently supported (%2).")
 			.arg(data->numParams())
 			.arg(std::numeric_limits<int>::max()));
 	}
@@ -582,7 +586,7 @@ void iAQSplom::setParameterVisibility(std::vector<char> const & visibility)
 {
 	if (visibility.size() != m_paramVisibility.size())
 	{
-		DEBUG_LOG("Call to setParameterVisibility with vector of invalid size!");
+		LOG(lvlWarn, "Call to setParameterVisibility with vector of invalid size!");
 		return;
 	}
 	m_paramVisibility = visibility;
@@ -982,7 +986,7 @@ void iAQSplom::contextMenuEvent(QContextMenuEvent * event)
 		size_t paramIdx = m_splomData->paramIndex(col->text());
 		if (paramIdx >= m_splomData->numParams())
 		{
-			DEBUG_LOG(QString("Invalid menu entry %1 in column pick submenu - there is currently no such column!").arg(col->text()));
+			LOG(lvlWarn, QString("Invalid menu entry %1 in column pick submenu - there is currently no such column!").arg(col->text()));
 			continue;
 		}
 		QSignalBlocker toggleBlock(col);
@@ -1072,19 +1076,28 @@ int iAQSplom::invert( int val ) const
 	return ( getVisibleParametersCount() - val - 1 );
 }
 
+#ifdef CHART_OPENGL
 void iAQSplom::paintGL()
+#else
+void iAQSplom::paintEvent(QPaintEvent* event)
+#endif
 {
 	QPainter painter( this );
 	painter.setRenderHint(QPainter::Antialiasing);
-	painter.beginNativePainting();
-	QColor bg(settings.backgroundColor);
-	if (!bg.isValid())
+	QColor bgColor(settings.backgroundColor);
+	if (!bgColor.isValid())
 	{
-		bg = QWidget::palette().color(QWidget::backgroundRole());
+		bgColor = QWidget::palette().color(QWidget::backgroundRole());
 	}
-	glClearColor(bg.redF(), bg.greenF(), bg.blueF(), bg.alphaF());
+#ifdef CHART_OPENGL
+	painter.beginNativePainting();
+	glClearColor(bgColor.redF(), bgColor.greenF(), bgColor.blueF(), bgColor.alphaF());
 	glClear(GL_COLOR_BUFFER_BIT);
 	painter.endNativePainting();
+#else
+	Q_UNUSED(event);
+	painter.fillRect(rect(), bgColor);
+#endif
 	painter.setPen(QWidget::palette().color(QPalette::Text));
 	if (m_visiblePlots.size() < 2)
 	{
@@ -1162,6 +1175,7 @@ void iAQSplom::paintGL()
 	{
 		return;
 	}
+	painter.setPen(QWidget::palette().color(QPalette::Text));
 	// Draw scalar bar:
 	// maybe reuse code from iALinearColorGradientBar (DynamicVolumeLines)
 	QPoint topLeft = getMaxRect().topLeft();
@@ -1196,9 +1210,14 @@ void iAQSplom::paintGL()
 #endif
 	// Draw color bar / name of parameter used for coloring
 	int colorBarTextX = topLeft.x() - (textWidth + settings.plotsSpacing);
-	painter.drawText(colorBarTextX, topLeft.y() + fm.height(), maxStr);
-	painter.drawText(colorBarTextX, height() - settings.plotsSpacing, minStr);
-	int textHeight = height() - (topLeft.y() + 2 * fm.height() + 2*settings.plotsSpacing);
+	if (settings.colorMode != cmAllPointsSame)
+	{
+		painter.drawText(colorBarTextX, topLeft.y() + fm.height(), maxStr);
+		painter.drawText(colorBarTextX, height() - settings.plotsSpacing, minStr);
+	}
+	int textHeight = height() - (topLeft.y() +
+		((settings.colorMode != cmAllPointsSame) ? 2 * fm.height() : 0)
+		+ 2*settings.plotsSpacing);
 	textWidth = std::max(textWidth, fm.height()); // guarantee that label has at least text height
 	QString scalarBarCaption;
 	switch (settings.colorMode)
@@ -1212,7 +1231,8 @@ void iAQSplom::paintGL()
 	default:              scalarBarCaption = "Unknown"; break;
 	}
 	painter.save();
-	painter.translate(colorBarTextX - settings.plotsSpacing, topLeft.y() + fm.height() + settings.plotsSpacing + textHeight);
+	painter.translate(colorBarTextX - settings.plotsSpacing, topLeft.y() +
+		((settings.colorMode != cmAllPointsSame)? fm.height() : 0) + settings.plotsSpacing + textHeight);
 	painter.rotate(-90);
 	painter.drawText(QRect(0, 0, textHeight, textWidth), Qt::AlignHCenter | Qt::AlignBottom, scalarBarCaption);
 	painter.restore();
@@ -1339,7 +1359,7 @@ iAScatterPlot * iAQSplom::getScatterplotAt( QPoint pos )
 void iAQSplom::resizeEvent( QResizeEvent * event )
 {
 	updateSPLOMLayout();
-	iAQGLWidget::resizeEvent( event );
+	iAChartParentWidget::resizeEvent( event );
 }
 
 void iAQSplom::updatePlotGridParams()
@@ -1706,7 +1726,7 @@ void iAQSplom::setParameterToColorCode(int paramIndex)
 	size_t unsignedParamIndex = static_cast<size_t>(paramIndex);
 	if (paramIndex < 0 || unsignedParamIndex >= m_splomData->numParams())
 	{
-		DEBUG_LOG(QString("setParameterToColorCode: Invalid paramIndex (%1) given!").arg(paramIndex));
+		LOG(lvlWarn, QString("setParameterToColorCode: Invalid paramIndex (%1) given!").arg(paramIndex));
 		return;
 	}
 	m_colorLookupParam = unsignedParamIndex;
@@ -1754,7 +1774,7 @@ void iAQSplom::updateLookupTable()
 			}
 			else
 			{
-				DEBUG_LOG("Invalid color state!");
+				LOG(lvlWarn, "Invalid color state!");
 			}
 #if __cplusplus >= 201703L
 			[[fallthrough]];
@@ -1961,7 +1981,7 @@ void iAQSplom::loadSettings(iASettings const & config)
 	double newPointRadius = config.value(CfgKeyPointRadius, settings.pointRadius).toDouble(&ok);
 	if (!ok)
 	{
-		DEBUG_LOG(QString("Invalid value for 'PointRadius' setting ('%1') in Scatter Plot Matrix settings")
+		LOG(lvlWarn, QString("Invalid value for 'PointRadius' setting ('%1') in Scatter Plot Matrix settings")
 			.arg(config.value(CfgKeyPointRadius).toString()));
 	}
 	if (settings.pointRadius != newPointRadius)
@@ -2021,12 +2041,12 @@ void iAQSplom::loadSettings(iASettings const & config)
 			size_t idx = idxStr.toULongLong(&ok);
 			if (!ok)
 			{
-				DEBUG_LOG(QString("Invalid index %1 in VisibleParameter Scatter Plot Matrix setting.").arg(idxStr));
+				LOG(lvlWarn, QString("Invalid index %1 in VisibleParameter Scatter Plot Matrix setting.").arg(idxStr));
 				continue;
 			}
 			if (idx >= newParamVis.size())
 			{
-				DEBUG_LOG(QString("Index %1 in VisibleParameter settings is larger than currently available number of parameters (%2); "
+				LOG(lvlWarn, QString("Index %1 in VisibleParameter settings is larger than currently available number of parameters (%2); "
 					"probably these settings were stored for a different Scatter Plot Matrix!").arg(idx).arg(newParamVis.size()));
 			}
 			else
@@ -2076,7 +2096,7 @@ void iAQSplom::loadSettings(iASettings const & config)
 	}
 	else
 	{
-		DEBUG_LOG(QString("Stored index of parameter to color by (%1) exceeds valid range (0..%2)")
+		LOG(lvlWarn, QString("Stored index of parameter to color by (%1) exceeds valid range (0..%2)")
 			.arg(tmpColorLookupParam)
 			.arg(m_splomData->numParams()));
 	}
@@ -2102,7 +2122,7 @@ void iAQSplom::loadSettings(iASettings const & config)
 		QStringList strInds = config[CfgKeyMaximizedPlot].toString().split(",");
 		if (strInds.size() != 2)
 		{
-			DEBUG_LOG(QString("Expected two indices separated by comma in %1 setting, but got %2")
+			LOG(lvlWarn, QString("Expected two indices separated by comma in %1 setting, but got %2")
 				.arg(CfgKeyMaximizedPlot)
 				.arg(config[CfgKeyMaximizedPlot].toString()));
 		}
@@ -2113,7 +2133,7 @@ void iAQSplom::loadSettings(iASettings const & config)
 			size_t idx2 = strInds[1].toULongLong(&ok2);
 			if (!ok1 || !ok2 || idx1 >= m_splomData->numParams() || idx2 >= m_splomData->numParams())
 			{
-				DEBUG_LOG(QString("Cannot create maximized plot from setting %1, invalid or out-of-range indices: %2")
+				LOG(lvlWarn, QString("Cannot create maximized plot from setting %1, invalid or out-of-range indices: %2")
 					.arg(CfgKeyMaximizedPlot)
 					.arg(config[CfgKeyMaximizedPlot].toString()));
 			}
@@ -2123,7 +2143,7 @@ void iAQSplom::loadSettings(iASettings const & config)
 				auto idx2VisIt = std::find(m_visibleIndices.begin(), m_visibleIndices.end(), idx2);
 				if (idx1VisIt == m_visibleIndices.end() || idx1VisIt == m_visibleIndices.end())
 				{
-					DEBUG_LOG(QString("Cannot create maximized plot from setting %1, given parameter indices %2, %3 were not among visible plots!")
+					LOG(lvlWarn, QString("Cannot create maximized plot from setting %1, given parameter indices %2, %3 were not among visible plots!")
 						.arg(CfgKeyMaximizedPlot)
 						.arg(idx1)
 						.arg(idx2));
@@ -2155,7 +2175,7 @@ void iAQSplom::colorModeChanged(int colorMode)
 {
 	if (!settings.enableColorSettings)
 	{
-		DEBUG_LOG("setColorMode called despite enableColorSettings being false!");
+		LOG(lvlWarn, "setColorMode called despite enableColorSettings being false!");
 		return;
 	}
 	if (colorMode == cmCustom)

@@ -2,7 +2,7 @@
 * **********   A tool for visual analysis and processing of 3D CT images   ********** *
 * *********************************************************************************** *
 * Copyright (C) 2016-2020  C. Heinzl, M. Reiter, A. Reh, W. Li, M. Arikan, Ar. &  Al. *
-*                          Amirkhanov, J. Weissenböck, B. Fröhler, M. Schiwarth       *
+*                 Amirkhanov, J. Weissenböck, B. Fröhler, M. Schiwarth, P. Weinberger *
 * *********************************************************************************** *
 * This program is free software: you can redistribute it and/or modify it under the   *
 * terms of the GNU General Public License as published by the Free Software           *
@@ -20,7 +20,7 @@
 * ************************************************************************************/
 #pragma once
 
-#include "iAConsole.h"
+#include "iALog.h"
 #include "iAItkVersion.h"
 #include "io/iAITKIO.h"
 #include "open_iA_Core_export.h"
@@ -146,7 +146,7 @@ void storeImageOfType(TImage * image, QString const & filename, bool useCompress
 	}
 	catch (itk::ExceptionObject const & e)
 	{
-		DEBUG_LOG(QString("Error while writing image file '%1': %2")
+		LOG(lvlError, QString("Error while writing image file '%1': %2")
 			.arg(filename)
 			.arg(e.what()));
 	}
@@ -193,7 +193,7 @@ iAITKIO::ImagePointer castImageTo(iAITKIO::ImagePointer img)
 		case itk::ImageIOBase::FLOAT:
 			return internalCastImageTo<itk::Image<float, 3>, itk::Image<ResultPixelType, 3> >(img);
 		default:
-			DEBUG_LOG("ERROR: Invalid/Unknown itk pixel datatype in rescale!");
+			LOG(lvlError, "Invalid/Unknown itk pixel datatype in rescale!");
 #if __cplusplus >= 201703L
 			[[fallthrough]];
 #else
@@ -247,7 +247,7 @@ iAITKIO::ImagePointer rescaleImageTo(iAITKIO::ImagePointer img, double min, doub
 	case itk::ImageIOBase::FLOAT:
 		return internalRescaleImageTo<itk::Image<float, 3>, itk::Image<ResultPixelType, 3> >(img, min, max);
 	default:
-		DEBUG_LOG("ERROR: Invalid/Unknown itk pixel datatype in rescale!");
+		LOG(lvlError, "Invalid/Unknown itk pixel datatype in rescale!");
 #if __cplusplus >= 201703L
 			[[fallthrough]];
 #else

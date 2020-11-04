@@ -2,7 +2,7 @@
 * **********   A tool for visual analysis and processing of 3D CT images   ********** *
 * *********************************************************************************** *
 * Copyright (C) 2016-2020  C. Heinzl, M. Reiter, A. Reh, W. Li, M. Arikan, Ar. &  Al. *
-*                          Amirkhanov, J. Weissenböck, B. Fröhler, M. Schiwarth       *
+*                 Amirkhanov, J. Weissenböck, B. Fröhler, M. Schiwarth, P. Weinberger *
 * *********************************************************************************** *
 * This program is free software: you can redistribute it and/or modify it under the   *
 * terms of the GNU General Public License as published by the Free Software           *
@@ -21,7 +21,7 @@
 #include "iASampleBuiltInFilterOperation.h"
 
 #include <iAConnector.h>
-#include <iAConsole.h>
+#include <iALog.h>
 #include <iAFilter.h>
 #include <iAFilterRegistry.h>
 #include <iAProgress.h>
@@ -60,7 +60,7 @@ void iASampleBuiltInFilterOperation::performWork()
 	if (!filter)
 	{
 		QString msg = QString("Filter '%1' does not exist!").arg(m_filterName);
-		DEBUG_LOG(msg);
+		LOG(lvlError, msg);
 		return;
 	}
 	assert(m_input.size() == m_inputFileNames.size());
@@ -70,12 +70,12 @@ void iASampleBuiltInFilterOperation::performWork()
 	}
 	for (auto param: filter->parameters())
 	{
-		if (param->valueType() == FileNameSave)
+		if (param->valueType() == iAValueType::FileNameSave)
 		{	// all output file names need to be adapted to output file name
 			auto value = pathFileBaseName(m_outputFileName) + param->defaultValue().toString();
 			if (QFile::exists(value) && !m_overwriteOutput)
 			{
-				DEBUG_LOG(QString("Output file '%1' already exists! Aborting. "
+				LOG(lvlError, QString("Output file '%1' already exists! Aborting. "
 					"Check 'Overwrite output' to overwrite existing files.").arg(value));
 				return;
 			}
@@ -103,11 +103,11 @@ void iASampleBuiltInFilterOperation::performWork()
 		if (QFile(outFileName).exists() && !m_overwriteOutput)
 		{
 			// TODO: check at beginning to avoid aborting after long operation? But output count might not be known then...
-			DEBUG_LOG(QString("Output file '%1' already exists! Aborting. "
+			LOG(lvlError, QString("Output file '%1' already exists! Aborting. "
 				"Check 'Overwrite output' to overwrite existing files.").arg(outFileName));
 			return;
 		}
-		DEBUG_LOG(QString("Writing output %1 to file: '%2' (compression: %3)")
+		LOG(lvlInfo, QString("Writing output %1 to file: '%2' (compression: %3)")
 				.arg(o).arg(outFileName).arg(m_compressOutput ? "on" : "off"))
 		iAITKIO::writeFile(outFileName, filter->output()[o]->itkImage(), filter->output()[o]->itkScalarPixelType(), m_compressOutput);
 	}

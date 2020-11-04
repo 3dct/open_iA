@@ -2,7 +2,7 @@
 * **********   A tool for visual analysis and processing of 3D CT images   ********** *
 * *********************************************************************************** *
 * Copyright (C) 2016-2020  C. Heinzl, M. Reiter, A. Reh, W. Li, M. Arikan, Ar. &  Al. *
-*                          Amirkhanov, J. Weissenböck, B. Fröhler, M. Schiwarth       *
+*                 Amirkhanov, J. Weissenböck, B. Fröhler, M. Schiwarth, P. Weinberger *
 * *********************************************************************************** *
 * This program is free software: you can redistribute it and/or modify it under the   *
 * terms of the GNU General Public License as published by the Free Software           *
@@ -22,7 +22,7 @@
 
 #include <defines.h>          // for DIM
 #include <iAConnector.h>
-#include <iAConsole.h>
+#include <iALog.h>
 #include <iAProgress.h>
 #include <iAToolsVTK.h>
 #include <iAVtkDraw.h>
@@ -36,21 +36,21 @@ iACSVtoMHD::iACSVtoMHD() : iAFilter("CSV to MHD", "Uncertainty",
 	"Read a CSV file and reshape it into an image of the given dimensions", 0, 1)
 {
 	QStringList pixelTypes (readableDataTypeList(false));
-	addParameter("CSV FileName", String, "");
-	addParameter("Output fileName", String, "");
-	//addParameter("Field separator", String, ";");
-	addParameter("Pixel Type", Categorical, pixelTypes);
-	addParameter("Size X", Discrete, 1);
-	addParameter("Size Y", Discrete, 1);
-	addParameter("Size Z", Discrete, 1);
-	addParameter("Spacing X", Continuous, 1);
-	addParameter("Spacing Y", Continuous, 1);
-	addParameter("Spacing Z", Continuous, 1);
+	addParameter("CSV FileName", iAValueType::String, "");
+	addParameter("Output fileName", iAValueType::String, "");
+	//addParameter("Field separator", iAValueType::String, ";");
+	addParameter("Pixel Type", iAValueType::Categorical, pixelTypes);
+	addParameter("Size X", iAValueType::Discrete, 1);
+	addParameter("Size Y", iAValueType::Discrete, 1);
+	addParameter("Size Z", iAValueType::Discrete, 1);
+	addParameter("Spacing X", iAValueType::Continuous, 1);
+	addParameter("Spacing Y", iAValueType::Continuous, 1);
+	addParameter("Spacing Z", iAValueType::Continuous, 1);
 	QStringList coordOrders;
 	coordOrders
 		<< "XYZ"
 		<< "ZYX";
-	addParameter("Coordinate Order", Categorical, coordOrders);
+	addParameter("Coordinate Order", iAValueType::Categorical, coordOrders);
 }
 
 IAFILTER_CREATE(iACSVtoMHD)
@@ -72,7 +72,7 @@ void iACSVtoMHD::performWork(QMap<QString, QVariant> const & parameters)
 	if (!in.open(QIODevice::ReadOnly | QIODevice::Text) ||
 		!in.isOpen())
 	{
-		DEBUG_LOG(QString("Couldn't open %1 for reading!").arg(fileName));
+		LOG(lvlError, QString("Couldn't open %1 for reading!").arg(fileName));
 		return;
 	}
 	//QString fieldSeparator(parameters["Field separator"].toString());
@@ -87,7 +87,7 @@ void iACSVtoMHD::performWork(QMap<QString, QVariant> const & parameters)
 		double val = line.toDouble(&ok);
 		if (!ok)
 		{
-			DEBUG_LOG(QString("Error converting string '%1' to numeric in %2: %3!").arg(line).arg(fileName).arg(curLine));
+			LOG(lvlError, QString("Error converting string '%1' to numeric in %2: %3!").arg(line).arg(fileName).arg(curLine));
 		}
 		//drawPixel(img, x, y, z, val);
 		img->SetScalarComponentFromDouble(x, y, z, 0, val);
@@ -105,7 +105,7 @@ void iACSVtoMHD::performWork(QMap<QString, QVariant> const & parameters)
 					++x;
 					if (x >= dim[0])
 					{
-						DEBUG_LOG(QString("CSV content exceeds given dimensions, stopping conversion at line %1!").arg(curLine));
+						LOG(lvlError, QString("CSV content exceeds given dimensions, stopping conversion at line %1!").arg(curLine));
 						break;
 					}
 				}
@@ -124,7 +124,7 @@ void iACSVtoMHD::performWork(QMap<QString, QVariant> const & parameters)
 					++z;
 					if (z >= dim[2])
 					{
-						DEBUG_LOG(QString("CSV content exceeds given dimensions, stopping conversion at line %1!").arg(curLine));
+						LOG(lvlWarn, QString("CSV content exceeds given dimensions, stopping conversion at line %1!").arg(curLine));
 						break;
 					}
 				}
@@ -132,7 +132,7 @@ void iACSVtoMHD::performWork(QMap<QString, QVariant> const & parameters)
 		}
 		else
 		{
-			DEBUG_LOG("Invalid Coordinate Order.");
+			LOG(lvlError, "Invalid Coordinate Order.");
 			return;
 		}
 	}

@@ -2,7 +2,7 @@
 * **********   A tool for visual analysis and processing of 3D CT images   ********** *
 * *********************************************************************************** *
 * Copyright (C) 2016-2020  C. Heinzl, M. Reiter, A. Reh, W. Li, M. Arikan, Ar. &  Al. *
-*                          Amirkhanov, J. Weissenböck, B. Fröhler, M. Schiwarth       *
+*                 Amirkhanov, J. Weissenböck, B. Fröhler, M. Schiwarth, P. Weinberger *
 * *********************************************************************************** *
 * This program is free software: you can redistribute it and/or modify it under the   *
 * terms of the GNU General Public License as published by the Free Software           *
@@ -23,7 +23,13 @@
 #include "open_iA_Core_export.h"
 
 #include "iAPlotData.h"
+#ifdef CHART_OPENGL
 #include "qthelper/iAQGLWidget.h"
+using iAChartParentWidget = iAQGLWidget;
+#else
+#include <QWidget>
+using iAChartParentWidget = QWidget;
+#endif
 
 #include <vector>
 
@@ -37,7 +43,7 @@ class QMenu;
 class QRubberBand;
 
 //! A chart widget which can show an arbitrary number of plots.
-class open_iA_Core_API iAChartWidget : public iAQGLWidget
+class open_iA_Core_API iAChartWidget : public iAChartParentWidget
 {
 	Q_OBJECT
 public:
@@ -69,6 +75,10 @@ public:
 	iAMapper const & xMapper() const;
 	iAMapper const & yMapper() const;
 	//! @}
+	//! @{ Convert mouse X coordinates (in chart already, i.e. without left/bottom margin) to chart x coordinates and vice versa
+	int data2MouseX(double dataX);
+	double mouse2DataX(int mouseX);
+	//! @}
 	//! @{ Get x/y bounds as array of size 2 (minimum, maximum)
 	virtual iAPlotData::DataType const * yBounds() const;
 	virtual double const * xBounds() const;
@@ -80,19 +90,19 @@ public:
 	//! Get the maximum zoom factor in x direction that can be in use.
 	double maxXZoom() const;
 	//! Convert an x screen coordinate to a bin space index;
-	//! Note that there are three different spaces to consider: <ol>
+	//! Note that there are (at least) four different coordinate spaces to consider: <ol>
 	//! <li>the data space (i.e., a coordinate between the minimum/maximum specified by the x bounds),</li>
 	//! <li>the bin space (i.e., an index in the data bin array)</li>
-	//! <li>the screen space (i.e., a pixel x coordinate on the screen)</li></ol>
+	//! <li>the screen space (i.e., a pixel coordinate on the screen)</li>
+	//! <li>the mouse space (i.e., a pixel coordinate on the currently visible part of the chart) </ol>
 	//! @param x the x screen coordinate to convert
 	//! @return the bin index for the given x coordinate.
+	//! @see xMapper, yMapper, data2MouseX, mouse2DataX
 	long screenX2DataBin(int x) const;
 	//! Convert a bin number to a screen coordinate.
 	//! @param x the bin space index; see screenX2DataBin for details
 	//! @return the screen space coordinate for the given bin space index
 	int  dataBin2ScreenX(long x) const;
-	//! Check whether currently a context menu is shown.
-	bool isContextMenuVisible() const;
 	//! Check whether currently tooltips are enabled.
 	bool isTooltipShown() const;
 	//! Get the position where the context menu was last shown.
@@ -201,7 +211,11 @@ protected:
 	void mouseDoubleClickEvent(QMouseEvent *event) override;
 	void wheelEvent(QWheelEvent *event) override;
 	void leaveEvent(QEvent *event) override;
+#ifdef CHART_OPENGL
 	void paintGL() override;
+#else
+	void paintEvent(QPaintEvent *event) override;
+#endif
 	void contextMenuEvent(QContextMenuEvent *event) override;
 	bool event(QEvent *event) override;
 	//! @}

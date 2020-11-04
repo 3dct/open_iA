@@ -2,7 +2,7 @@
 * **********   A tool for visual analysis and processing of 3D CT images   ********** *
 * *********************************************************************************** *
 * Copyright (C) 2016-2020  C. Heinzl, M. Reiter, A. Reh, W. Li, M. Arikan, Ar. &  Al. *
-*                          Amirkhanov, J. Weissenböck, B. Fröhler, M. Schiwarth       *
+*                 Amirkhanov, J. Weissenböck, B. Fröhler, M. Schiwarth, P. Weinberger *
 * *********************************************************************************** *
 * This program is free software: you can redistribute it and/or modify it under the   *
 * terms of the GNU General Public License as published by the Free Software           *
@@ -22,7 +22,7 @@
 
 #include "iAParameterExplorerAttachment.h"
 
-#include <iAConsole.h>
+#include <iALog.h>
 #include <io/iAFileUtils.h>
 #include <mainwindow.h>
 #include <mdichild.h>
@@ -36,18 +36,17 @@ void iAParameterExplorerModuleInterface::Initialize()
 	{
 		return;
 	}
-
-	QMenu * toolsMenu = m_mainWnd->toolsMenu();
-	QMenu * menuEnsembles = getMenuWithTitle( toolsMenu, QString( "Image Ensembles" ), false );
-	QAction * actionExplore = new QAction( m_mainWnd );
-	actionExplore->setText(QApplication::translate("MainWindow", "Parameter Explorer", 0));
-	AddActionToMenuAlphabeticallySorted(menuEnsembles, actionExplore, true);
+	QAction * actionExplore = new QAction(tr("Parameter Explorer"), m_mainWnd);
+	makeActionChildDependent(actionExplore);
 	connect(actionExplore, &QAction::triggered, this, &iAParameterExplorerModuleInterface::StartParameterExplorer);
 
-	QAction * actionLoad = new QAction(m_mainWnd);
-	actionLoad->setText(QApplication::translate("MainWindow", "Load Parameter Explorer State", 0));
-	AddActionToMenuAlphabeticallySorted(menuEnsembles, actionLoad, false);
+	QAction * actionLoad = new QAction(tr("Load Parameter Explorer State"), m_mainWnd);
+	makeActionChildDependent(actionLoad);
 	connect(actionLoad, &QAction::triggered, this, &iAParameterExplorerModuleInterface::LoadState);
+
+	QMenu* submenu = getOrAddSubMenu(m_mainWnd->toolsMenu(), tr("Image Ensembles"), true);
+	submenu->addAction(actionExplore);
+	submenu->addAction(actionLoad);
 }
 
 void iAParameterExplorerModuleInterface::SetupToolBar()
@@ -73,7 +72,7 @@ void iAParameterExplorerModuleInterface::ToggleDockWidgetTitleBars()
 	iAParameterExplorerAttachment* attach = GetAttachment<iAParameterExplorerAttachment>();
 	if (!attach)
 	{
-		DEBUG_LOG("ParameterExplorer was not loaded properly!");
+		LOG(lvlError, "ParameterExplorer was not loaded properly!");
 		return;
 	}
 	attach->ToggleDockWidgetTitleBars();
@@ -85,7 +84,7 @@ void iAParameterExplorerModuleInterface::ToggleSettings()
 	iAParameterExplorerAttachment* attach = GetAttachment<iAParameterExplorerAttachment>();
 	if (!attach)
 	{
-		DEBUG_LOG("ParameterExplorer was not loaded properly!");
+		LOG(lvlError, "ParameterExplorer was not loaded properly!");
 		return;
 	}
 	attach->ToggleSettings(m_toolBar->action_ToggleSettings->isChecked());
@@ -95,7 +94,9 @@ void iAParameterExplorerModuleInterface::StartParameterExplorer()
 {
 	PrepareActiveChild();
 	if (!m_mdiChild)
+	{
 		return;
+	}
 	QString csvFileName = QFileDialog::getOpenFileName(m_mainWnd,
 		tr("Select CSV File"), m_mdiChild->filePath(), tr("CSV Files (*.csv);;"));
 	if (csvFileName.isEmpty())
@@ -111,7 +112,7 @@ void iAParameterExplorerModuleInterface::SaveState()
 	iAParameterExplorerAttachment* attach = GetAttachment<iAParameterExplorerAttachment>();
 	if (!attach)
 	{
-		DEBUG_LOG("ParameterExplorer was not loaded properly!");
+		LOG(lvlError, "ParameterExplorer was not loaded properly!");
 		return;
 	}
 	QString stateFileName = QFileDialog::getSaveFileName(m_mainWnd, "Save Parameter Explorer State",
@@ -144,7 +145,7 @@ void iAParameterExplorerModuleInterface::LoadState()
 	connect(child, &MdiChild::fileLoaded, this, &iAParameterExplorerModuleInterface::ContinueStateLoading);
 	if (!child->loadFile(refFileName, false))
 	{
-		DEBUG_LOG(QString("Could not load reference file %1.").arg(refFileName));
+		LOG(lvlError, QString("Could not load reference file %1.").arg(refFileName));
 		return;
 	}
 }
@@ -156,7 +157,7 @@ void iAParameterExplorerModuleInterface::ContinueStateLoading()
 	iAParameterExplorerAttachment* attach = GetAttachment<iAParameterExplorerAttachment>();
 	if (!child || attach)
 	{
-		DEBUG_LOG("ParameterExplorer: Invalid state - child null or Parameter Explorer already attached!");
+		LOG(lvlError, "ParameterExplorer: Invalid state - child null or Parameter Explorer already attached!");
 		return;
 	}
 	QString stateFileName = m_stateFiles[child];
@@ -170,7 +171,7 @@ void iAParameterExplorerModuleInterface::ContinueStateLoading()
 	attach = GetAttachment<iAParameterExplorerAttachment>();
 	if (!attach)
 	{
-		DEBUG_LOG("ParameterExplorer was not loaded properly!");
+		LOG(lvlError, "ParameterExplorer was not loaded properly!");
 		return;
 	}
 	attach->LoadSettings(stateFileSettings);
@@ -190,7 +191,7 @@ bool iAParameterExplorerModuleInterface::CreateAttachment(QString const & csvFil
 	iAParameterExplorerAttachment* attach = GetAttachment<iAParameterExplorerAttachment>();
 	if (!attach)
 	{
-		DEBUG_LOG("ParameterExplorer was not loaded properly!");
+		LOG(lvlError, "ParameterExplorer was not loaded properly!");
 		return false;
 	}
 	attach->LoadCSV(csvFileName);

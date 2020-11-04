@@ -2,7 +2,7 @@
 * **********   A tool for visual analysis and processing of 3D CT images   ********** *
 * *********************************************************************************** *
 * Copyright (C) 2016-2020  C. Heinzl, M. Reiter, A. Reh, W. Li, M. Arikan, Ar. &  Al. *
-*                          Amirkhanov, J. Weissenböck, B. Fröhler, M. Schiwarth       *
+*                 Amirkhanov, J. Weissenböck, B. Fröhler, M. Schiwarth, P. Weinberger *
 * *********************************************************************************** *
 * This program is free software: you can redistribute it and/or modify it under the   *
 * terms of the GNU General Public License as published by the Free Software           *
@@ -28,6 +28,7 @@
 
 #include <Hilbert.hpp>
 
+#include <QDir>
 
 template<class T>
 void getIntensities(iAProgress &imp, PathID m_pathID, ImagePointer &image, QList<icData> &intensityList,
@@ -59,20 +60,30 @@ void getIntensities(iAProgress &imp, PathID m_pathID, ImagePointer &image, QList
 				for (int i = 0; i < DIM; ++i)
 					nbOfBitsPerDim[i] = ceil(sqrt((size[i] - 1)));
 
-				for (unsigned int h = 0; h < HilbertCnt; ++h)
+				#pragma omp parallel for 
+				for (long h = 0; h < HilbertCnt; ++h)
 				{
-					CFixBitVec *coordPtr = new CFixBitVec[HilbertCnt];
+					CFixBitVec *coordPtr = new CFixBitVec[DIM];
 					CFixBitVec compHilbertIdx;
 					compHilbertIdx = (FBV_UINT)h;
 					Hilbert::compactIndexToCoords(coordPtr,
 						nbOfBitsPerDim, DIM, compHilbertIdx);
 
-					for (int i = 0; i < DIM; i++)
-						coord[i] = coordPtr[i].rack();
 
-					delete[] coordPtr;
-					coordList.append(coord);
-					imp.emitProgress((h + 1) * 100 / HilbertCnt);
+					#pragma omp critical
+					{
+					for (int i = 0; i < DIM; i++)
+					{
+						coord[i] = coordPtr[i].rack();
+					}
+					
+						delete[] coordPtr;
+						coordList.append(coord);
+						if (coordList.size() % 64 == 0)
+						{
+							imp.emitProgress(coordList.size() * 100 / HilbertCnt);
+						}
+					}
 				}
 			}
 

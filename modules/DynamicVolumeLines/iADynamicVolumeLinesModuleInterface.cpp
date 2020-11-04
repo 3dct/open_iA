@@ -2,7 +2,7 @@
 * **********   A tool for visual analysis and processing of 3D CT images   ********** *
 * *********************************************************************************** *
 * Copyright (C) 2016-2020  C. Heinzl, M. Reiter, A. Reh, W. Li, M. Arikan, Ar. &  Al. *
-*                          Amirkhanov, J. Weissenböck, B. Fröhler, M. Schiwarth       *
+*                 Amirkhanov, J. Weissenböck, B. Fröhler, M. Schiwarth, P. Weinberger *
 * *********************************************************************************** *
 * This program is free software: you can redistribute it and/or modify it under the   *
 * terms of the GNU General Public License as published by the Free Software           *
@@ -34,10 +34,10 @@ void iADynamicVolumeLinesModuleInterface::Initialize()
 	{
 		return;
 	}
-	QMenu * toolsMenu = m_mainWnd->toolsMenu();
-	QAction * actionDynamicVolumeLines = new QAction(QApplication::translate("MainWindow", "Dynamic Volume Lines", 0), m_mainWnd);
-	AddActionToMenuAlphabeticallySorted(toolsMenu, actionDynamicVolumeLines);
+	QAction * actionDynamicVolumeLines = new QAction(tr("Dynamic Volume Lines"), m_mainWnd);
 	connect(actionDynamicVolumeLines, &QAction::triggered, this, &iADynamicVolumeLinesModuleInterface::DynamicVolumeLines);
+	makeActionChildDependent(actionDynamicVolumeLines);
+	addToMenuSorted(m_mainWnd->toolsMenu(), actionDynamicVolumeLines);
 }
 
 void iADynamicVolumeLinesModuleInterface::DynamicVolumeLines()

@@ -2,7 +2,7 @@
 * **********   A tool for visual analysis and processing of 3D CT images   ********** *
 * *********************************************************************************** *
 * Copyright (C) 2016-2020  C. Heinzl, M. Reiter, A. Reh, W. Li, M. Arikan, Ar. &  Al. *
-*                          Amirkhanov, J. Weissenböck, B. Fröhler, M. Schiwarth       *
+*                 Amirkhanov, J. Weissenböck, B. Fröhler, M. Schiwarth, P. Weinberger *
 * *********************************************************************************** *
 * This program is free software: you can redistribute it and/or modify it under the   *
 * terms of the GNU General Public License as published by the Free Software           *
@@ -48,7 +48,7 @@ iAVRAttachment::iAVRAttachment( MainWindow * mainWnd, MdiChild* child )
 	m_toggleVR = new QPushButton("Start VR");
 	iADockWidgetWrapper* vrDockWidget = new iADockWidgetWrapper(m_toggleVR, "VR", "vrDockWidget");
 	connect(m_toggleVR, &QPushButton::clicked, this, &iAVRAttachment::toggleVR);
-	child->splitDockWidget(child->logDockWidget(), vrDockWidget, Qt::Horizontal);
+	child->splitDockWidget(child->renderDockWidget(), vrDockWidget, Qt::Horizontal);
 }
 
 void iAVRAttachment::toggleVR()

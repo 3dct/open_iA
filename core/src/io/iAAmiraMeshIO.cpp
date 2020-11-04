@@ -2,7 +2,7 @@
 * **********   A tool for visual analysis and processing of 3D CT images   ********** *
 * *********************************************************************************** *
 * Copyright (C) 2016-2020  C. Heinzl, M. Reiter, A. Reh, W. Li, M. Arikan, Ar. &  Al. *
-*                          Amirkhanov, J. Weissenböck, B. Fröhler, M. Schiwarth       *
+*                 Amirkhanov, J. Weissenböck, B. Fröhler, M. Schiwarth, P. Weinberger *
 * *********************************************************************************** *
 * This program is free software: you can redistribute it and/or modify it under the   *
 * terms of the GNU General Public License as published by the Free Software           *
@@ -20,7 +20,7 @@
 * ************************************************************************************/
 #include "iAAmiraMeshIO.h"
 
-#include <iAConsole.h>
+#include <iALog.h>
 #include <io/iAFileUtils.h>
 
 #include <vtkImageData.h>
@@ -73,7 +73,7 @@ int decodeRLE(RawDataType* in, size_t inLength, RawDataType* out, size_t maxOutL
 
 		if ((curOutStart + len) >= maxOutLength)
 		{
-			DEBUG_LOG("decodeRLE: More data in encoded array than fits into output!");
+			LOG(lvlWarn, "decodeRLE: More data in encoded array than fits into output!");
 			break;
 		}
 
@@ -130,18 +130,18 @@ vtkSmartPointer<vtkImageData> iAAmiraMeshIO::Load(QString const & fileName)
 	//Find the Lattice definition, i.e., the dimensions of the uniform grid
 	int xDim(0), yDim(0), zDim(0);
 	sscanf(FindAndJump(buffer, DefineLatticeToken), "%d %d %d", &xDim, &yDim, &zDim);
-	//DEBUG_LOG(QString("Grid Dimensions: %1 %2 %3").arg(xDim).arg(yDim).arg(zDim));
+	//LOG(lvlInfo, QString("Grid Dimensions: %1 %2 %3").arg(xDim).arg(yDim).arg(zDim));
 
 	//Find the BoundingBox
 	float xmin(1.0f), ymin(1.0f), zmin(1.0f);
 	float xmax(-1.0f), ymax(-1.0f), zmax(-1.0f);
 	sscanf(FindAndJump(buffer, BoundingBoxToken), "%g %g %g %g %g %g", &xmin, &xmax, &ymin, &ymax, &zmin, &zmax);
-	//DEBUG_LOG(QString("BoundingBox: x=[%1...%2], y=[%3...%4], z=[%5...%6]")
+	//LOG(lvlInfo, QString("BoundingBox: x=[%1...%2], y=[%3...%4], z=[%5...%6]")
 	//	.arg(xmin).arg(xmax).arg(ymin).arg(ymax).arg(zmin).arg(zmax));
 
 	//Is it a uniform grid? We need this only for the sanity check below.
 	const bool bIsUniform = (strstr(buffer, "CoordType \"uniform\"") != nullptr);
-	//DEBUG_LOG(QString("GridType: %1").arg(bIsUniform ? "uniform" : "UNKNOWN"));
+	//LOG(lvlInfo, QString("GridType: %1").arg(bIsUniform ? "uniform" : "UNKNOWN"));
 
 	//Type of the field: scalar, vector
 	int NumComponents(0);
@@ -188,7 +188,7 @@ vtkSmartPointer<vtkImageData> iAAmiraMeshIO::Load(QString const & fileName)
 	{
 		if (latticeTokens.size() < 6)
 		{
-			DEBUG_LOG(QString("Expected at least 6 tokens in lattice line, only found %1.").arg(latticeTokens.size()));
+			LOG(lvlWarn, QString("Expected at least 6 tokens in lattice line, only found %1.").arg(latticeTokens.size()));
 		}
 		int pos = latticeTokens[5].indexOf(RLEMarker);
 		//int latticeLength = latticeTokens[5].length();
@@ -196,9 +196,9 @@ vtkSmartPointer<vtkImageData> iAAmiraMeshIO::Load(QString const & fileName)
 		int sizeLen = latticeTokens[5].length() - pos - RLEMarker.length() - 2;
 		QString dataLenStr = latticeTokens[5].mid(sizePos, sizeLen);
 		rawDataSize = dataLenStr.toInt();
-		DEBUG_LOG(QString("RLE encoded (%1 compressed bytes)").arg(rawDataSize));
+		LOG(lvlInfo, QString("RLE encoded (%1 compressed bytes)").arg(rawDataSize));
 	}
-	//DEBUG_LOG(QString("Number of Components: %1").arg(NumComponents));
+	//LOG(lvlInfo, QString("Number of Components: %1").arg(NumComponents));
 
 	vtkImageData* imageData = vtkImageData::New();
 	imageData->SetDimensions(xDim, yDim, zDim);

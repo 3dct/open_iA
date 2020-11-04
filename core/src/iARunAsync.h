@@ -2,7 +2,7 @@
 * **********   A tool for visual analysis and processing of 3D CT images   ********** *
 * *********************************************************************************** *
 * Copyright (C) 2016-2020  C. Heinzl, M. Reiter, A. Reh, W. Li, M. Arikan, Ar. &  Al. *
-*                          Amirkhanov, J. Weissenböck, B. Fröhler, M. Schiwarth       *
+*                 Amirkhanov, J. Weissenböck, B. Fröhler, M. Schiwarth, P. Weinberger *
 * *********************************************************************************** *
 * This program is free software: you can redistribute it and/or modify it under the   *
 * terms of the GNU General Public License as published by the Free Software           *
@@ -18,16 +18,17 @@
 * Contact: FH OÖ Forschungs & Entwicklungs GmbH, Campus Wels, CT-Gruppe,              *
 *          Stelzhamerstraße 23, 4600 Wels / Austria, Email: c.heinzl@fh-wels.at       *
 * ************************************************************************************/
-#include "iAMdiChildLogger.h"
+#pragma once
 
-#include "mdichild.h"
+#include <QtConcurrent>
 
-iAMdiChildLogger::iAMdiChildLogger(MdiChild* mdiChild)
+template <typename RunnerT, typename FinishT>
+QFutureWatcher<void>* runAsync(RunnerT runner, FinishT finish)
 {
-	connect(this, &iAMdiChildLogger::logSignal, mdiChild, &MdiChild::addMsg);
-}
-
-void iAMdiChildLogger::log(QString const & msg)
-{
-	emit logSignal(msg);
+	auto futureWatcher = new QFutureWatcher<void>();
+	QObject::connect(futureWatcher, &QFutureWatcher<void>::finished, finish);
+	QObject::connect(futureWatcher, &QFutureWatcher<void>::finished, futureWatcher, &QFutureWatcher<void>::deleteLater);
+	auto future = QtConcurrent::run(runner);
+	futureWatcher->setFuture(future);
+	return futureWatcher;
 }

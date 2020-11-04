@@ -2,7 +2,7 @@
 * **********   A tool for visual analysis and processing of 3D CT images   ********** *
 * *********************************************************************************** *
 * Copyright (C) 2016-2020  C. Heinzl, M. Reiter, A. Reh, W. Li, M. Arikan, Ar. &  Al. *
-*                          Amirkhanov, J. Weissenböck, B. Fröhler, M. Schiwarth       *
+*                 Amirkhanov, J. Weissenböck, B. Fröhler, M. Schiwarth, P. Weinberger *
 * *********************************************************************************** *
 * This program is free software: you can redistribute it and/or modify it under the   *
 * terms of the GNU General Public License as published by the Free Software           *
@@ -30,10 +30,10 @@ void iAFoamCharacterizationModuleInterface::Initialize( )
 	{
 		return;
 	}
-	QMenu* toolsMenu (m_mainWnd->toolsMenu());
-	QAction* pFoamCharacterization(new QAction(QApplication::translate("MainWindows", "Foam characterization", 0), m_mainWnd));
-	connect(pFoamCharacterization, &QAction::triggered, this, &iAFoamCharacterizationModuleInterface::slotFoamCharacterization);
-	AddActionToMenuAlphabeticallySorted(toolsMenu, pFoamCharacterization);
+	QAction* actionFoamCharacterization(new QAction(tr("Foam characterization"), m_mainWnd));
+	connect(actionFoamCharacterization, &QAction::triggered, this, &iAFoamCharacterizationModuleInterface::slotFoamCharacterization);
+	makeActionChildDependent(actionFoamCharacterization);
+	addToMenuSorted(m_mainWnd->toolsMenu(), actionFoamCharacterization);
 }
 
 void iAFoamCharacterizationModuleInterface::slotFoamCharacterization()

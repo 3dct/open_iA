@@ -2,7 +2,7 @@
 * **********   A tool for visual analysis and processing of 3D CT images   ********** *
 * *********************************************************************************** *
 * Copyright (C) 2016-2020  C. Heinzl, M. Reiter, A. Reh, W. Li, M. Arikan, Ar. &  Al. *
-*                          Amirkhanov, J. Weissenböck, B. Fröhler, M. Schiwarth       *
+*                 Amirkhanov, J. Weissenböck, B. Fröhler, M. Schiwarth, P. Weinberger *
 * *********************************************************************************** *
 * This program is free software: you can redistribute it and/or modify it under the   *
 * terms of the GNU General Public License as published by the Free Software           *
@@ -20,7 +20,7 @@
 * ************************************************************************************/
 #include "iAVolumeRenderer.h"
 
-#include "iAConsole.h"
+#include "iALog.h"
 #include "iATransferFunction.h"
 #include "iAVolumeSettings.h"
 
@@ -189,7 +189,7 @@ void iAVolumeRenderer::remove()
 	{
 		if (!m_isFlat)
 		{
-			DEBUG_LOG("RemoveFromWindow called on VolumeRenderer which was not attached to a window!");
+			LOG(lvlWarn, "RemoveFromWindow called on VolumeRenderer which was not attached to a window!");
 		}
 		return;
 	}

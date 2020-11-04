@@ -2,7 +2,7 @@
 * **********   A tool for visual analysis and processing of 3D CT images   ********** *
 * *********************************************************************************** *
 * Copyright (C) 2016-2020  C. Heinzl, M. Reiter, A. Reh, W. Li, M. Arikan, Ar. &  Al. *
-*                          Amirkhanov, J. Weissenböck, B. Fröhler, M. Schiwarth       *
+*                 Amirkhanov, J. Weissenböck, B. Fröhler, M. Schiwarth, P. Weinberger *
 * *********************************************************************************** *
 * This program is free software: you can redistribute it and/or modify it under the   *
 * terms of the GNU General Public License as published by the Free Software           *
@@ -24,7 +24,7 @@
 
 #include <iAAttributes.h>
 #include <iAAttributeDescriptor.h>
-#include <iAConsole.h>
+#include <iALog.h>
 #include <iAMathUtility.h>
 #include <iAStringHelper.h>
 
@@ -156,15 +156,15 @@ QSharedPointer<iARandomGenerator> createRandomGenerator(QSharedPointer<iAAttribu
 {
 	switch (a->valueType())
 	{
-	case Boolean:
+	case iAValueType::Boolean:
 #if __cplusplus >= 201703L
 		[[fallthrough]];
 #endif
-	case Categorical:
+	case iAValueType::Categorical:
 		return QSharedPointer<iARandomGenerator>(new iACategoryRandom(a->defaultValue().toStringList()));
-	case Discrete:
+	case iAValueType::Discrete:
 		return QSharedPointer<iARandomGenerator>(new iAIntRandom(a->min(), a->max(), a->isLogScale()));
-	case Continuous:
+	case iAValueType::Continuous:
 		return QSharedPointer<iARandomGenerator>(new iADblRandom(a->min(), a->max(), a->isLogScale()));
 	default:
 		return QSharedPointer<iARandomGenerator>(new iAFixedDummyRandom(a->defaultValue()));
@@ -226,12 +226,12 @@ QSharedPointer<iARange> createRange(bool log, double min, double max, int count,
 {
 	if (log)
 	{
-		assert(valueType != Categorical);
-		return QSharedPointer<iARange>(new iALogRange(min, max + ((valueType == Discrete) ? 0.999999 : 0), count));
+		assert(valueType != iAValueType::Categorical);
+		return QSharedPointer<iARange>(new iALogRange(min, max + ((valueType == iAValueType::Discrete) ? 0.999999 : 0), count));
 	}
 	else
 	{
-		return QSharedPointer<iARange>(new iALinRange(min, max + ((valueType == Categorical || valueType == Discrete) ? 0.999999 : 0), count));
+		return QSharedPointer<iARange>(new iALinRange(min, max + ((valueType == iAValueType::Categorical || valueType == iAValueType::Discrete) ? 0.999999 : 0), count));
 	}
 }
 
@@ -298,7 +298,7 @@ iAParameterSetsPointer iALatinHypercubeSamplingMethod::parameterSets(QSharedPoin
 		auto param = parameter->at(p);
 		iAValueType valueType = param->valueType();
 		sampleValues.push_back(iAParameterSet());
-		if (valueType == Continuous || valueType == Discrete)
+		if (valueType == iAValueType::Continuous || valueType == iAValueType::Discrete)
 		{
 			QSharedPointer<iARange> range = createRange(param->isLogScale(),
 				param->min(), param->max(), sampleCount, valueType);
@@ -307,14 +307,14 @@ iAParameterSetsPointer iALatinHypercubeSamplingMethod::parameterSets(QSharedPoin
 			{
 				// TODO: special handling for log? otherwise within the piece, we have linear distribution
 				double value = dblRand.next(range->min(s), range->max(s));
-				if (valueType == Discrete)
+				if (valueType == iAValueType::Discrete)
 				{
 					value = static_cast<int>(value);
 				}
 				sampleValues[p].push_back(value);
 			}
 		}
-		else if(valueType == Boolean || valueType == Categorical)
+		else if(valueType == iAValueType::Boolean || valueType == iAValueType::Categorical)
 		{
 			auto options = param->defaultValue().toStringList();
 			int maxOptIdx = options.size();
@@ -326,8 +326,8 @@ iAParameterSetsPointer iALatinHypercubeSamplingMethod::parameterSets(QSharedPoin
 		}
 		else
 		{
-			DEBUG_LOG(QString("Sampling not supported for value type %1, using default value %2")
-				.arg(valueType).arg(param->defaultValue().toString()));
+			LOG(lvlWarn, QString("Sampling not supported for value type %1, using default value %2")
+				.arg(ValueType2Str(valueType)).arg(param->defaultValue().toString()));
 			for (int s = 0; s < sampleCount; ++s)
 			{
 				sampleValues[p].push_back(param->defaultValue());
@@ -366,7 +366,7 @@ iAParameterSetsPointer iACartesianGridSamplingMethod::parameterSets(QSharedPoint
 	// maybe get sample count per parameter?
 	int actualSampleCount = std::pow(samplesPerParameter, parameters->size());
 /*
-	DEBUG_LOG(QString("param. count: %1, samples/param.: %2, targeted samples: %3, actual samples: %4")
+	LOG(lvlInfo, QString("param. count: %1, samples/param.: %2, targeted samples: %3, actual samples: %4")
 		.arg(parameter->size())
 		.arg(samplesPerParameter)
 		.arg(sampleCount)
@@ -397,14 +397,14 @@ iAParameterSetsPointer iACartesianGridSamplingMethod::parameterSets(QSharedPoint
 		{
 			double value = ranges[p]->min(parameterRangeIdx[p]);
 			iAValueType valueType = parameters->at(p)->valueType();
-			if (valueType == Discrete || valueType == Categorical)
+			if (valueType == iAValueType::Discrete || valueType == iAValueType::Categorical)
 			{
 				value = static_cast<int>(value);
 			}
 			set.push_back(value);
 		}
 		result->append(set);
-		//DEBUG_LOG(QString("%1: %2").arg(joinAsString(parameterRangeIdx, ",")).arg(joinAsString(result->at(result->size() - 1), ",")));
+		//LOG(lvlInfo, QString("%1: %2").arg(joinAsString(parameterRangeIdx, ",")).arg(joinAsString(result->at(result->size() - 1), ",")));
 
 		// increase indices into the parameter range:
 		++parameterRangeIdx[0];
@@ -469,9 +469,9 @@ iAParameterSetsPointer iALocalSensitivitySamplingMethod::parameterSets(QSharedPo
 	{
 		allValues[p].resize(samplesPerParameter);
 		iAValueType valueType = parameters->at(p)->valueType();
-		if (valueType != Continuous)
+		if (valueType != iAValueType::Continuous)
 		{
-			DEBUG_LOG("Sensitivity Parameter Generator only works for Continuous parameters!");
+			LOG(lvlError, "Sensitivity Parameter Generator only works for Continuous parameters!");
 			return result;
 		}
 
@@ -496,7 +496,7 @@ iAParameterSetsPointer iALocalSensitivitySamplingMethod::parameterSets(QSharedPo
 			set.push_back(allValues[p][parameterRangeIdx[p]]);
 		}
 		result->append(set);
-		//DEBUG_LOG(QString("%1: %2").arg(joinAsString(parameterRangeIdx, ",")).arg(joinAsString(result->at(result->size() - 1), ",")));
+		//LOG(lvlInfo, QString("%1: %2").arg(joinAsString(parameterRangeIdx, ",")).arg(joinAsString(result->at(result->size() - 1), ",")));
 
 		// increase indices into the parameter range:
 		++parameterRangeIdx[0];
@@ -597,13 +597,13 @@ QSharedPointer<iASamplingMethod> createSamplingMethod(iASettings const& paramete
 		newParams[spnSamplingMethod] = parameters[spnBaseSamplingMethod];
 		if (newParams[spnSamplingMethod] == iASamplingMethodName::GlobalSensitivity)
 		{
-			DEBUG_LOG(QString("Cannot generate global sensitivity sampling: Base sampling method must not also be '%1'").arg(iASamplingMethodName::GlobalSensitivity));
+			LOG(lvlError, QString("Cannot generate global sensitivity sampling: Base sampling method must not also be '%1'").arg(iASamplingMethodName::GlobalSensitivity));
 			return QSharedPointer<iASamplingMethod>();
 		}
 		double delta = parameters[spnSensitivityDelta].toDouble();
 		auto otherSamplingMethod = createSamplingMethod(parameters);
 		return QSharedPointer<iASamplingMethod>(new iAGlobalSensitivitySamplingMethod(otherSamplingMethod, delta));
 	}
-	DEBUG_LOG(QString("Could not find sampling method '%1'").arg(methodName));
+	LOG(lvlError, QString("Could not find sampling method '%1'").arg(methodName));
 	return QSharedPointer<iASamplingMethod>();
 }

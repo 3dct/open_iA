@@ -2,7 +2,7 @@
 * **********   A tool for visual analysis and processing of 3D CT images   ********** *
 * *********************************************************************************** *
 * Copyright (C) 2016-2020  C. Heinzl, M. Reiter, A. Reh, W. Li, M. Arikan, Ar. &  Al. *
-*                          Amirkhanov, J. Weissenböck, B. Fröhler, M. Schiwarth       *
+*                 Amirkhanov, J. Weissenböck, B. Fröhler, M. Schiwarth, P. Weinberger *
 * *********************************************************************************** *
 * This program is free software: you can redistribute it and/or modify it under the   *
 * terms of the GNU General Public License as published by the Free Software           *
@@ -35,9 +35,9 @@
 iAChartFunctionBezier::iAChartFunctionBezier(iAChartWithFunctionsWidget *chart, QColor &color, bool res):
 	iAChartFunction(chart),
 	m_color(color),
-	m_selectedPoint(-1)
+	m_selectedPoint(-1),
+	m_controlDist(m_chart->xRange() / 8)
 {
-	m_controlDist = chart->xRange() / 8;
 	if (res)
 	{
 		reset();
@@ -92,70 +92,58 @@ void iAChartFunctionBezier::draw(QPainter &painter, QColor penColor, int lineWid
 		}
 	}
 
+	if (!functionActive)
+	{
+		return;
+	}
 
 	// draw point lines
-	if (functionActive)
+	int hue, sat, val, alpha;
+	QColor newPenColor = penColor;
+	newPenColor.getHsv(&hue, &sat, &val, &alpha);
+	val >>= 1;
+	newPenColor.setHsv(hue, sat, val, alpha);
+
+	pen.setColor(newPenColor);
+	pen.setWidth(1);
+
+	painter.setPen(pen);
+
+	for(int l = 0; l < pointNumber; l+=3)
 	{
-		int hue, sat, val, alpha;
-		QColor newPenColor = penColor;
-		newPenColor.getHsv(&hue, &sat, &val, &alpha);
-		val >>= 1;
-		newPenColor.setHsv(hue, sat, val, alpha);
-
-		pen.setColor(newPenColor);
-		pen.setWidth(1);
-
-		painter.setPen(pen);
-
-		for(int l = 0; l < pointNumber; l+=3)
+		int x = m_chart->xMapper().srcToDst(m_realPoints[l].x());
+		int y = m_chart->yMapper().srcToDst(m_realPoints[l].y());
+		if (l-1 > 0)
 		{
-			int x = m_chart->xMapper().srcToDst(m_realPoints[l].x());
-			int y = m_chart->yMapper().srcToDst(m_realPoints[l].y());
-			if (l-1 > 0)
-			{
-				int x1 = m_chart->xMapper().srcToDst(m_realPoints[l-1].x());
-				int y1 = m_chart->yMapper().srcToDst(m_realPoints[l-1].y());
-				painter.drawLine(x, y, x1, y1);
-			}
-			if (l+1 < pointNumber)
-			{
-				int x1 = m_chart->xMapper().srcToDst(m_realPoints[l+1].x());
-				int y1 = m_chart->yMapper().srcToDst(m_realPoints[l+1].y());
-				painter.drawLine(x, y, x1, y1);
-			}
+			int x1 = m_chart->xMapper().srcToDst(m_realPoints[l-1].x());
+			int y1 = m_chart->yMapper().srcToDst(m_realPoints[l-1].y());
+			painter.drawLine(x, y, x1, y1);
 		}
-
-		// draw points
-		QColor redColor = QColor(255, 0, 0, 255);
-		painter.setBrush(QBrush(penColor));
-		painter.setPen(pen);
-
-		int selectionCenter = ((m_selectedPoint+1) / 3) * 3; // center of selected triple of points
-		for(int l = 0; l < pointNumber; l++)
+		if (l+1 < pointNumber)
 		{
-			bool selected = std::abs(l - selectionCenter) <= 1;
-			bool isFunctionPoint = (l % 3 == 0); // is it a function point? (if false: control point)
-			QColor currentColor = selected ? redColor : penColor;
-			int sizeRadiusDenominator = isFunctionPoint ? 1 : 2; // control points only shown with half size
-			int radius = (selected ? iAChartWithFunctionsWidget::SELECTED_POINT_RADIUS : iAChartWithFunctionsWidget::POINT_RADIUS) / sizeRadiusDenominator;
-			int size   = (selected ? iAChartWithFunctionsWidget::SELECTED_POINT_SIZE   : iAChartWithFunctionsWidget::POINT_SIZE) / sizeRadiusDenominator;
-			int penWidth = isFunctionPoint ? 1 : 3;
-			double pointX = isFunctionPoint ? m_realPoints[l].x() : m_viewPoints[l].x();
-			double pointY = isFunctionPoint ? m_realPoints[l].y() : m_viewPoints[l].y();
-			int x = m_chart->xMapper().srcToDst(pointX);
-			int y = m_chart->yMapper().srcToDst(pointY);
-			pen.setWidth(penWidth);
-			pen.setColor(currentColor);
-			painter.setPen(pen);
-			painter.drawEllipse(x-radius, y-radius, size, size);
+			int x1 = m_chart->xMapper().srcToDst(m_realPoints[l+1].x());
+			int y1 = m_chart->yMapper().srcToDst(m_realPoints[l+1].y());
+			painter.drawLine(x, y, x1, y1);
 		}
+	}
+
+	// draw points
+	int selectionCenter = ((m_selectedPoint+1) / 3) * 3; // center of selected triple of points
+	for(int l = 0; l < pointNumber; l++)
+	{
+		bool selected = std::abs(l - selectionCenter) <= 1;
+		bool isFunctionPoint = (l % 3 == 0); // is it a function point? (if false: control point)
+		double sizeFactor = isFunctionPoint ? 1 : 0.5; // control points only shown with half size
+		double pointX = isFunctionPoint ? m_realPoints[l].x() : m_viewPoints[l].x();
+		double pointY = isFunctionPoint ? m_realPoints[l].y() : m_viewPoints[l].y();
+		int x = m_chart->xMapper().srcToDst(pointX);
+		int y = m_chart->yMapper().srcToDst(pointY);
+		drawPoint(painter, x, y, selected, penColor, sizeFactor);
 	}
 }
 
-int iAChartFunctionBezier::selectPoint(QMouseEvent *event, int *x)
+int iAChartFunctionBezier::selectPoint(int mouseX, int mouseY)
 {
-	int lx = event->x() - m_chart->leftMargin() - m_chart->xShift();
-	int ly = m_chart->chartHeight() - event->y();
 	int index = -1;
 	assert(m_realPoints.size() < std::numeric_limits<int>::max());
 	assert(m_viewPoints.size() < std::numeric_limits<int>::max());
@@ -164,69 +152,23 @@ int iAChartFunctionBezier::selectPoint(QMouseEvent *event, int *x)
 	for (size_t pointIndex = 0; pointIndex < m_viewPoints.size(); ++pointIndex)
 	{
 		bool selected = std::abs(static_cast<int>(pointIndex) - selectionCenter) <= 1;
-		int viewX = m_chart->xMapper().srcToDst(m_viewPoints[pointIndex].x()) + m_chart->xShift();
+		int viewX = m_chart->data2MouseX(m_viewPoints[pointIndex].x());
 		int viewY = m_chart->yMapper().srcToDst(m_viewPoints[pointIndex].y());
-		int pointRadius = (selected ? iAChartWithFunctionsWidget::SELECTED_POINT_RADIUS : iAChartWithFunctionsWidget::POINT_RADIUS)
-			/ ((pointIndex % 3 == 0) ? 1 : 2);
-		if (std::abs(lx - viewX) <= pointRadius && std::abs(ly - viewY) <= pointRadius)
+		int pointRadius = iAChartFunction::pointRadius(selected) / ((pointIndex % 3 == 0) ? 1 : 2);
+		if (std::abs(mouseX - viewX) <= pointRadius && std::abs(mouseY - viewY) <= pointRadius)
 		{
 			index = static_cast<int>(pointIndex);
 			break;
 		}
-
-		if (x != nullptr)
-		{
-			if (*x == viewX)
-			{
-				*x = lx + 1;
-			}
-			else
-			{
-				*x = lx;
-			}
-		}
 	}
 
 	m_selectedPoint = index;
-	m_length = 0;
-	if (index != -1)
-	{
-		m_length = getLength(m_viewPoints[index], m_realPoints[index]);
-
-		int functionPointIndex = getFunctionPointIndex(index);
-
-		//is control point?
-		if (functionPointIndex != index)
-		{
-			int oppositePointIndex;
-			if (functionPointIndex + 1 == m_selectedPoint)
-			{
-				oppositePointIndex = functionPointIndex - 1;
-			}
-			else
-			{
-				oppositePointIndex = functionPointIndex + 1;
-			}
-
-			QPointF functionPoint = m_realPoints[functionPointIndex];
-
-			if (oppositePointIndex >= 0 && oppositePointIndex < static_cast<int>(m_realPoints.size()))
-			{
-				QPointF oppositePoint = m_realPoints[oppositePointIndex];
-				m_oppositeLength = getLength(functionPoint, oppositePoint);
-			}
-			else
-			{
-				m_oppositeLength = 0;
-			}
-		}
-	}
 	return index;
 }
 
-int iAChartFunctionBezier::addPoint(int x, int y)
+int iAChartFunctionBezier::addPoint(int mouseX, int mouseY)
 {
-	double xf = m_chart->xMapper().dstToSrc(x - m_chart->xShift());
+	double xf = m_chart->mouse2DataX(mouseX);
 
 	int index = 0;
 
@@ -237,7 +179,7 @@ int iAChartFunctionBezier::addPoint(int x, int y)
 		it+=3;
 	}
 
-	insert(index, x, y);
+	insert(index, mouseX, mouseY);
 
 	m_selectedPoint = index*3;
 
@@ -260,16 +202,16 @@ void iAChartFunctionBezier::removePoint(int index)
 	}
 }
 
-void iAChartFunctionBezier::moveSelectedPoint(int x, int y)
+void iAChartFunctionBezier::moveSelectedPoint(int mouseX, int mouseY)
 {
 	assert(m_realPoints.size() < std::numeric_limits<int>::max());
 	if (isFunctionPoint(m_selectedPoint))
 	{
-		x = clamp(0, m_chart->geometry().width() - 1, x);
-		y = clamp(0, static_cast<int>((m_chart->chartHeight() - 1)*m_chart->yZoom()), y);
+		mouseX = clamp(0, m_chart->chartWidth(), mouseX);
+		mouseY = clamp(0, m_chart->chartHeight(), mouseY);
 		if (isEndPoint(m_selectedPoint))
 		{
-			y = 0;
+			mouseY = 0;
 		}
 	}
 
@@ -280,15 +222,14 @@ void iAChartFunctionBezier::moveSelectedPoint(int x, int y)
 
 	if (dLength != 0)
 	{
-		dx = (m_chart->xMapper().srcToDst(m_viewPoints[m_selectedPoint].x()) - m_chart->xMapper().srcToDst(m_viewPoints[functionPointIndex].x())) / dLength;
-		dy = (m_chart->yMapper().srcToDst(m_viewPoints[m_selectedPoint].y()) - m_chart->yMapper().srcToDst(m_viewPoints[functionPointIndex].y())) / dLength;
+		dx = m_viewPoints[m_selectedPoint].x() - m_viewPoints[functionPointIndex].x();
+		dy = m_viewPoints[m_selectedPoint].y() - m_viewPoints[functionPointIndex].y();
 	}
 
-	double vx = m_chart->xMapper().dstToSrc(x - m_chart->xShift());
-	double vy = m_chart->yMapper().dstToSrc(y);
-	double fx = m_chart->xMapper().dstToSrc(x - m_chart->xShift() + dx * m_length);
-	double fy = m_chart->yMapper().dstToSrc(y + dy * m_length);
-
+	double vx = m_chart->mouse2DataX(mouseX);
+	double vy = m_chart->yMapper().dstToSrc(mouseY);
+	double fx = vx + dx;
+	double fy = vy + dy;
 	QPointF &selPoint = m_realPoints[m_selectedPoint];
 	bool functionPoint = isFunctionPoint(m_selectedPoint);
 	if (functionPoint)
@@ -322,12 +263,11 @@ void iAChartFunctionBezier::moveSelectedPoint(int x, int y)
 			setViewPoint(m_selectedPoint+1);
 		}
 	}
-
 	selPoint.setX(fx);
 	selPoint.setY(fy);
-	m_viewPoints[m_selectedPoint].setX(vx);
-	m_viewPoints[m_selectedPoint].setY(vy);
-
+	m_realPoints[m_selectedPoint].setX(vx);
+	m_realPoints[m_selectedPoint].setY(vy);
+	setViewPoint(m_selectedPoint);
 	if (!functionPoint)
 	{
 		setOppositeViewPoint(m_selectedPoint);
@@ -349,18 +289,17 @@ void iAChartFunctionBezier::reset()
 {
 	double start = m_chart->xBounds()[0];
 	double end = m_chart->xBounds()[1];
-
 	m_viewPoints.clear();
 	m_realPoints.clear();
 
 	m_viewPoints.push_back(QPointF(start, 0));
 	m_viewPoints.push_back(QPointF(start+ m_controlDist, 0.0));
-	m_viewPoints.push_back(QPointF(end- m_controlDist, 0.0));
+	m_viewPoints.push_back(QPointF(end  - m_controlDist, 0.0));
 	m_viewPoints.push_back(QPointF(end, 0.0));
 
 	m_realPoints.push_back(QPointF(start, 0));
 	m_realPoints.push_back(QPointF(start+ m_controlDist, 0.0));
-	m_realPoints.push_back(QPointF(end- m_controlDist, 0.0));
+	m_realPoints.push_back(QPointF(end  - m_controlDist, 0.0));
 	m_realPoints.push_back(QPointF(end, 0.0));
 
 	m_selectedPoint = -1;
@@ -400,10 +339,10 @@ bool iAChartFunctionBezier::isControlPoint(int point)
 	return !isFunctionPoint(point);
 }
 
-void iAChartFunctionBezier::insert(unsigned int index, unsigned int x, unsigned int y)
+void iAChartFunctionBezier::insert(unsigned int index, unsigned int mouseX, unsigned int mouseY)
 {
-	double xf = m_chart->xMapper().dstToSrc(x - m_chart->xShift());
-	double yf = m_chart->yMapper().dstToSrc(y);
+	double xf = m_chart->mouse2DataX(mouseX);
+	double yf = m_chart->yMapper().dstToSrc(mouseY);
 
 	if (m_realPoints.size() == 0)
 	{
@@ -411,100 +350,87 @@ void iAChartFunctionBezier::insert(unsigned int index, unsigned int x, unsigned 
 	}
 	else
 	{
-		std::vector<QPointF>::iterator vit = m_viewPoints.begin();
-		std::vector<QPointF>::iterator rit = m_realPoints.begin();
-		m_viewPoints.insert(vit+index*3-1, QPointF(xf-m_controlDist/m_chart->xZoom(), yf));
-		m_realPoints.insert(rit+index*3-1, QPointF(xf-m_controlDist/m_chart->xZoom(), yf));
-		vit = m_viewPoints.begin();
-		rit = m_realPoints.begin();
-		m_viewPoints.insert(vit+index*3, QPointF(xf, yf));
-		m_realPoints.insert(rit+index*3, QPointF(xf, yf));
-		vit = m_viewPoints.begin();
-		rit = m_realPoints.begin();
-		m_viewPoints.insert(vit+index*3+1, QPointF(xf+m_controlDist/m_chart->xZoom(), yf));
-		m_realPoints.insert(rit+index*3+1, QPointF(xf+m_controlDist/m_chart->xZoom(), yf));
+		m_viewPoints.insert(m_viewPoints.begin()+index*3-1, QPointF(xf-m_controlDist/m_chart->xZoom(), yf));
+		m_realPoints.insert(m_realPoints.begin()+index*3-1, QPointF(xf-m_controlDist/m_chart->xZoom(), yf));
+		m_viewPoints.insert(m_viewPoints.begin()+index*3,   QPointF(xf, yf));
+		m_realPoints.insert(m_realPoints.begin()+index*3,   QPointF(xf, yf));
+		m_viewPoints.insert(m_viewPoints.begin()+index*3+1, QPointF(xf+m_controlDist/m_chart->xZoom(), yf));
+		m_realPoints.insert(m_realPoints.begin()+index*3+1, QPointF(xf+m_controlDist/m_chart->xZoom(), yf));
 	}
 }
 
-void iAChartFunctionBezier::setViewPoint(int selectedPoint)
+void iAChartFunctionBezier::setViewPoint(int selPntIdx)
 {
-	if (selectedPoint != -1)
-	{
-		QPointF realPoint = m_realPoints[selectedPoint];
-
-		double pointX = realPoint.x();
-		double pointY = realPoint.y();
-
-		int functionPointIndex = getFunctionPointIndex(selectedPoint);
-		if (functionPointIndex == selectedPoint)
-		{
-			m_viewPoints[selectedPoint] = realPoint;
-		}
-		else
-		{
-			QPointF functionPoint = m_realPoints[functionPointIndex];
-
-			if (pointX < m_chart->xBounds()[0] || pointY < 0 || pointX > m_chart->xBounds()[1] || pointY > m_chart->yBounds()[1]/m_chart->yZoom())
-			{
-				//calculate intersection with horizontal borders
-				double dx = m_realPoints[selectedPoint].x() -functionPoint.x();
-				double dy = m_realPoints[selectedPoint].y() -functionPoint.y();
-
-				double t = ((pointY < 0 ? 0.0 : m_chart->yBounds()[1]/m_chart->yZoom())-functionPoint.y())/dy;
-				double x = functionPoint.x() +t*dx;
-
-				//calculate intersection with vertical borders
-				double y = functionPoint.y() +((pointX < m_chart->xBounds()[0] ? m_chart->xBounds()[0] : m_chart->xBounds()[1])-functionPoint.x())/dx*dy;
-
-				if (x >= m_chart->xBounds()[0] && x <= m_chart->xBounds()[1] && t > 0)
-				{
-					m_viewPoints[selectedPoint].setX(x);
-					m_viewPoints[selectedPoint].setY(pointY < 0 ? 0.0: m_chart->yBounds()[1]/ m_chart->yZoom());
-				}
-				else
-				{
-					m_viewPoints[selectedPoint].setX(pointX < m_chart->xBounds()[0] ? m_chart->xBounds()[0] : m_chart->xBounds()[1]);
-					m_viewPoints[selectedPoint].setY(y);
-				}
-			}
-			else
-			{
-				m_viewPoints[selectedPoint] = realPoint;
-			}
-		}
-	}
-}
-
-void iAChartFunctionBezier::setOppositeViewPoint(int selectedPoint)
-{
-	int functionPointIndex = getFunctionPointIndex(selectedPoint);
-	int oppositePointIndex = functionPointIndex + ((functionPointIndex + 1 == selectedPoint) ? -1 : 1);
-
-	if (oppositePointIndex < 0 || oppositePointIndex >= static_cast<int>(m_realPoints.size()))
+	if (selPntIdx == -1)
 	{
 		return;
 	}
-	QPointF functionPoint = m_realPoints[functionPointIndex];
-	QPointF point = m_realPoints[selectedPoint];
-	QPointF oppositePoint = m_realPoints[oppositePointIndex];
+	QPointF realPoint = m_realPoints[selPntIdx];
 
-	point.setX(m_chart->xMapper().srcToDst(point.x()));
-	functionPoint.setX(m_chart->xMapper().srcToDst(functionPoint.x()));
-	oppositePoint.setX(m_chart->xMapper().srcToDst(oppositePoint.x()));
-	point.setY(m_chart->yMapper().srcToDst(point.y()));
-	functionPoint.setY(m_chart->yMapper().srcToDst(functionPoint.y()));
-	oppositePoint.setY(m_chart->yMapper().srcToDst(oppositePoint.y()));
+	double pointX = realPoint.x();
+	double pointY = realPoint.y();
 
+	int functionPointIndex = getFunctionPointIndex(selPntIdx);
+	if (functionPointIndex == selPntIdx)
+	{
+		m_viewPoints[selPntIdx] = realPoint;
+	}
+	else
+	{
+		QPointF functionPoint = m_realPoints[functionPointIndex];
 
-	double curLength = sqrt(pow(point.x() -functionPoint.x(), 2) +pow(point.y() -functionPoint.y(), 2));
-	double dx = -(point.x() -functionPoint.x()) / curLength;
-	double dy = -(point.y() -functionPoint.y()) / curLength;
+		if (pointX < m_chart->xBounds()[0] || pointY < 0 || pointX > m_chart->xBounds()[1] || pointY > m_chart->yBounds()[1]/m_chart->yZoom())
+		{
+			//calculate intersection with horizontal borders
+			double dx = m_realPoints[selPntIdx].x() -functionPoint.x();
+			double dy = m_realPoints[selPntIdx].y() -functionPoint.y();
 
-	m_realPoints[oppositePointIndex].setX(
-		m_chart->xMapper().dstToSrc(functionPoint.x() + dx * m_oppositeLength - m_chart->xShift()));
-	m_realPoints[oppositePointIndex].setY(m_chart->yMapper().dstToSrc(functionPoint.y() + dy * m_oppositeLength));
+			double t = ((pointY < 0 ? 0.0 : m_chart->yBounds()[1]/m_chart->yZoom())-functionPoint.y())/dy;
+			double x = functionPoint.x() +t*dx;
 
-	setViewPoint(oppositePointIndex);
+			//calculate intersection with vertical borders
+			double y = functionPoint.y() +((pointX < m_chart->xBounds()[0] ? m_chart->xBounds()[0] : m_chart->xBounds()[1])-functionPoint.x())/dx*dy;
+
+			if (x >= m_chart->xBounds()[0] && x <= m_chart->xBounds()[1] && t > 0)
+			{
+				m_viewPoints[selPntIdx].setX(x);
+				m_viewPoints[selPntIdx].setY(pointY < 0 ? 0.0: m_chart->yBounds()[1]/ m_chart->yZoom());
+			}
+			else
+			{
+				m_viewPoints[selPntIdx].setX(pointX < m_chart->xBounds()[0] ? m_chart->xBounds()[0] : m_chart->xBounds()[1]);
+				m_viewPoints[selPntIdx].setY(y);
+			}
+		}
+		else
+		{
+			m_viewPoints[selPntIdx] = realPoint;
+		}
+	}
+}
+
+void iAChartFunctionBezier::setOppositeViewPoint(int selPntIdx)
+{
+	int fctPntIdx = getFunctionPointIndex(selPntIdx);
+	int oppPntIdx = fctPntIdx + ((fctPntIdx + 1 == selPntIdx) ? -1 : 1);
+	if (oppPntIdx < 0 || oppPntIdx >= static_cast<int>(m_realPoints.size()))
+	{
+		return;
+	}
+	// due to anisotropic x/y mapping in chart, we need to do the set the opposite point in pixel space:
+	QPointF fctPnt = m_realPoints[fctPntIdx];
+	fctPnt.setX(m_chart->xMapper().srcToDst(fctPnt.x()));
+	fctPnt.setY(m_chart->yMapper().srcToDst(fctPnt.y()));
+	QPointF selPnt = m_realPoints[selPntIdx];
+	selPnt.setX(m_chart->xMapper().srcToDst(selPnt.x()));
+	selPnt.setY(m_chart->yMapper().srcToDst(selPnt.y()));
+	QPointF oppPnt = m_realPoints[oppPntIdx];
+	oppPnt.setX(m_chart->xMapper().srcToDst(oppPnt.x()));
+	oppPnt.setY(m_chart->yMapper().srcToDst(oppPnt.y()));
+	QPointF newPnt = fctPnt - ((selPnt - fctPnt) / getLength(selPnt, fctPnt) * getLength(fctPnt, oppPnt));
+	m_realPoints[oppPntIdx].setX(m_chart->xMapper().dstToSrc(newPnt.x()));
+	m_realPoints[oppPntIdx].setY(m_chart->yMapper().dstToSrc(newPnt.y()));
+	setViewPoint(oppPntIdx);
 }
 
 int iAChartFunctionBezier::getFunctionPointIndex(int index)
@@ -521,6 +447,5 @@ int iAChartFunctionBezier::getFunctionPointIndex(int index)
 
 double iAChartFunctionBezier::getLength(QPointF start, QPointF end)
 {
-	return sqrt(pow(m_chart->xMapper().srcToDst(end.x()) - m_chart->xMapper().srcToDst(start.x()), 2)+
-				pow(m_chart->yMapper().srcToDst(end.y()) - m_chart->yMapper().srcToDst(start.y()), 2));
+	return sqrt(pow(end.x() - start.x(), 2)+pow(end.y() - start.y(), 2));
 }

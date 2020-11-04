@@ -2,7 +2,7 @@
 * **********   A tool for visual analysis and processing of 3D CT images   ********** *
 * *********************************************************************************** *
 * Copyright (C) 2016-2020  C. Heinzl, M. Reiter, A. Reh, W. Li, M. Arikan, Ar. &  Al. *
-*                          Amirkhanov, J. Weissenböck, B. Fröhler, M. Schiwarth       *
+*                 Amirkhanov, J. Weissenböck, B. Fröhler, M. Schiwarth, P. Weinberger *
 * *********************************************************************************** *
 * This program is free software: you can redistribute it and/or modify it under the   *
 * terms of the GNU General Public License as published by the Free Software           *
@@ -161,7 +161,7 @@ private slots:
 	void linkViews();
 	void linkMDIs();
 	void enableInteraction();
-	void toggleConsole();
+	void toggleLog();
 	void toggleFullScreen();
 	void toggleMenu();
 	void renderSettings();
@@ -183,6 +183,7 @@ private slots:
 	void raycasterLoadCameraSettings();
 	void openRecentFile();
 	void childClosed();
+	void listDockWidgetsInMenu();
 	void toggleMainWindowStatusBar();
 	void toggleChildStatusBar();
 	void toggleToolbar();
@@ -200,7 +201,7 @@ private slots:
 	void noPointSelected();
 	void endPointSelected();
 	void setHistogramFocus();
-	void consoleVisibilityChanged(bool newVisibility);
+	void logVisibilityChanged(bool newVisibility);
 
 private:
 	void connectSignalsToSlots();
@@ -238,7 +239,9 @@ private:
 	double m_owdtcoutmin, m_owdtcoutmax, m_owdtcmin, m_owdtcmax;
 	//! @}
 
+	//! which settings to load from an XML settings file:
 	bool m_lpCamera, m_lpSliceViews, m_lpTransferFunction, m_lpProbabilityFunctions, m_lpPreferences, m_lpRenderSettings, m_lpSlicerSettings;
+	//! which settings to save to an XML settings file:
 	bool m_spCamera, m_spSliceViews, m_spTransferFunction, m_spProbabilityFunctions, m_spPreferences, m_spRenderSettings, m_spSlicerSettings;
 
 	QString m_defaultLayout;

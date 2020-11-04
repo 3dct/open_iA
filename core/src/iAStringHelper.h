@@ -2,7 +2,7 @@
 * **********   A tool for visual analysis and processing of 3D CT images   ********** *
 * *********************************************************************************** *
 * Copyright (C) 2016-2020  C. Heinzl, M. Reiter, A. Reh, W. Li, M. Arikan, Ar. &  Al. *
-*                          Amirkhanov, J. Weissenböck, B. Fröhler, M. Schiwarth       *
+*                 Amirkhanov, J. Weissenböck, B. Fröhler, M. Schiwarth, P. Weinberger *
 * *********************************************************************************** *
 * This program is free software: you can redistribute it and/or modify it under the   *
 * terms of the GNU General Public License as published by the Free Software           *
@@ -58,6 +58,19 @@ struct iAConverter<int>
 		return str.toInt(ok);
 	}
 	static QString toString(int n)
+	{
+		return QString::number(n);
+	}
+};
+
+template <>
+struct iAConverter<unsigned short>
+{
+	static int toT(QString str, bool* ok)
+	{
+		return str.toUShort(ok);
+	}
+	static QString toString(unsigned short n)
 	{
 		return QString::number(n);
 	}

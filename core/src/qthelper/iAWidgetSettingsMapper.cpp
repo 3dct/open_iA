@@ -2,7 +2,7 @@
 * **********   A tool for visual analysis and processing of 3D CT images   ********** *
 * *********************************************************************************** *
 * Copyright (C) 2016-2020  C. Heinzl, M. Reiter, A. Reh, W. Li, M. Arikan, Ar. &  Al. *
-*                          Amirkhanov, J. Weissenböck, B. Fröhler, M. Schiwarth       *
+*                 Amirkhanov, J. Weissenböck, B. Fröhler, M. Schiwarth, P. Weinberger *
 * *********************************************************************************** *
 * This program is free software: you can redistribute it and/or modify it under the   *
 * terms of the GNU General Public License as published by the Free Software           *
@@ -20,7 +20,7 @@
 * ************************************************************************************/
 #include "iAWidgetSettingsMapper.h"
 
-#include <iAConsole.h>
+#include <iALog.h>
 #include <io/iAFileChooserWidget.h>
 
 #include <QComboBox>
@@ -45,7 +45,7 @@ void loadSettings(iASettings const& settings, iAWidgetMap const& settingsWidgetM
 				}
 				else
 				{
-					DEBUG_LOG(QString("Invalid value '%1' for input '%2'").arg(settings.value(key).toString()).arg(key));
+					LOG(lvlWarn, QString("Invalid value '%1' for input '%2'").arg(settings.value(key).toString()).arg(key));
 				}
 			}
 			else if (qobject_cast<QCheckBox*>(w))
@@ -58,7 +58,7 @@ void loadSettings(iASettings const& settings, iAWidgetMap const& settingsWidgetM
 				int value = settings.value(key).toInt(&ok);
 				if (!ok)
 				{
-					DEBUG_LOG(QString("Invalid value '%1' for input '%2': cannot convert to int!").arg(settings.value(key).toString()).arg(key));
+					LOG(lvlWarn, QString("Invalid value '%1' for input '%2': cannot convert to int!").arg(settings.value(key).toString()).arg(key));
 					continue;
 				}
 				qobject_cast<QSlider*>(w)->setValue(value);
@@ -69,7 +69,7 @@ void loadSettings(iASettings const& settings, iAWidgetMap const& settingsWidgetM
 				double value = settings.value(key).toDouble(&ok);
 				if (!ok)
 				{
-					DEBUG_LOG(QString("Invalid value '%1' for input '%2': cannot convert to double!").arg(settings.value(key).toString()).arg(key));
+					LOG(lvlWarn, QString("Invalid value '%1' for input '%2': cannot convert to double!").arg(settings.value(key).toString()).arg(key));
 					continue;
 				}
 				qobject_cast<QDoubleSpinBox*>(w)->setValue(value);
@@ -80,7 +80,7 @@ void loadSettings(iASettings const& settings, iAWidgetMap const& settingsWidgetM
 				int value = settings.value(key).toInt(&ok);
 				if (!ok)
 				{
-					DEBUG_LOG(QString("Invalid value '%1' for input '%2': cannot convert to int!").arg(settings.value(key).toString()).arg(key));
+					LOG(lvlWarn, QString("Invalid value '%1' for input '%2': cannot convert to int!").arg(settings.value(key).toString()).arg(key));
 					continue;
 				}
 				qobject_cast<QSpinBox*>(w)->setValue(value);
@@ -104,7 +104,7 @@ void loadSettings(iASettings const& settings, iAWidgetMap const& settingsWidgetM
 				QStringList values = settings.value(key).toString().split(",");
 				if (values.size() != lineEditVector.size())
 				{
-					DEBUG_LOG(QString("Invalid value '%1' for key=%2 - should be able to split that into %3 values, but encountered %4")
+					LOG(lvlWarn, QString("Invalid value '%1' for key=%2 - should be able to split that into %3 values, but encountered %4")
 						.arg(settings.value(key).toString())
 						.arg(key)
 						.arg(lineEditVector.size())
@@ -134,7 +134,7 @@ void loadSettings(iASettings const& settings, iAWidgetMap const& settingsWidgetM
 					int idx = v.toInt(&ok);
 					if (!ok || idx < 0 || idx > checkBoxVector.size())
 					{
-						DEBUG_LOG(QString("Invalid value '%1' for key=%2; entry %3 is either not convertible to int or outside of valid range 0..%4.")
+						LOG(lvlWarn, QString("Invalid value '%1' for key=%2; entry %3 is either not convertible to int or outside of valid range 0..%4.")
 							.arg(settings.value(key).toString())
 							.arg(key)
 							.arg(idx)
@@ -157,12 +157,12 @@ void loadSettings(iASettings const& settings, iAWidgetMap const& settingsWidgetM
 			}
 			else
 			{
-				DEBUG_LOG(QString("Widget type for key=%1 unknown!").arg(key));
+				LOG(lvlWarn, QString("Widget type for key=%1 unknown!").arg(key));
 			}
 		}
 		else
 		{
-			DEBUG_LOG(QString("No value found for key=%1 in settings.").arg(key));
+			LOG(lvlWarn, QString("No value found for key=%1 in settings.").arg(key));
 		}
 	}
 }
@@ -277,7 +277,7 @@ void internalSaveSettings(iAInternalSettingsWrapper& settings, iAWidgetMap const
 		}
 		else
 		{
-			DEBUG_LOG(QString("Widget type for key=%1 unknown!").arg(key));
+			LOG(lvlWarn, QString("Widget type for key=%1 unknown!").arg(key));
 		}
 	}
 }

@@ -2,7 +2,7 @@
 * **********   A tool for visual analysis and processing of 3D CT images   ********** *
 * *********************************************************************************** *
 * Copyright (C) 2016-2020  C. Heinzl, M. Reiter, A. Reh, W. Li, M. Arikan, Ar. &  Al. *
-*                          Amirkhanov, J. Weissenböck, B. Fröhler, M. Schiwarth       *
+*                 Amirkhanov, J. Weissenböck, B. Fröhler, M. Schiwarth, P. Weinberger *
 * *********************************************************************************** *
 * This program is free software: you can redistribute it and/or modify it under the   *
 * terms of the GNU General Public License as published by the Free Software           *
@@ -129,7 +129,7 @@ iABoneThicknessAttachment::iABoneThicknessAttachment(MainWindow* mainWnd, MdiChi
 	pGridLayout->addWidget(pGroupBoxSettings, 3, 0, 1, 2);
 
 	iADockWidgetWrapper* pDockWidgetWrapper(new iADockWidgetWrapper(pWidget, tr("Bone thickness"), "BoneThickness"));
-	m_child->tabifyDockWidget(m_child->logDockWidget(), pDockWidgetWrapper);
+	m_child->tabifyDockWidget(m_child->renderDockWidget(), pDockWidgetWrapper);
 
 	pDockWidgetWrapper->adjustSize();
 	m_pBoneThicknessChartBar->resize(pBoneThicknessSplitter->width() / 2, pBoneThicknessSplitter->height());

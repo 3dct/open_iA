@@ -2,7 +2,7 @@
 * **********   A tool for visual analysis and processing of 3D CT images   ********** *
 * *********************************************************************************** *
 * Copyright (C) 2016-2020  C. Heinzl, M. Reiter, A. Reh, W. Li, M. Arikan, Ar. &  Al. *
-*                          Amirkhanov, J. Weissenböck, B. Fröhler, M. Schiwarth       *
+*                 Amirkhanov, J. Weissenböck, B. Fröhler, M. Schiwarth, P. Weinberger *
 * *********************************************************************************** *
 * This program is free software: you can redistribute it and/or modify it under the   *
 * terms of the GNU General Public License as published by the Free Software           *
@@ -26,7 +26,7 @@
 
 #include <iAFilterSelectionDlg.h>
 #include <iAAttributeDescriptor.h>
-#include <iAConsole.h>
+#include <iALog.h>
 #include <iAFilter.h>
 #include <iAFilterRegistry.h>
 #include <iAListNameMapper.h>
@@ -182,8 +182,8 @@ namespace
 	{
 		QSharedPointer<iAParameterInputs> result;
 		// merge with common input / iAParameter dlg ?
-		bool isCategorical = descriptor->valueType() == Categorical;
-		if (isCategorical || descriptor->valueType() == Boolean)
+		bool isCategorical = descriptor->valueType() == iAValueType::Categorical;
+		if (isCategorical || descriptor->valueType() == iAValueType::Boolean)
 		{
 			auto categoryInputs = new iACategoryParameterInputs();
 			QWidget* w = new QWidget();
@@ -203,17 +203,17 @@ namespace
 			gridLay->addWidget(w, curGridLine, 1, 1, 3);
 			result = QSharedPointer<iAParameterInputs>(categoryInputs);
 		}
-		else if (descriptor->valueType() == Continuous || descriptor->valueType() == Discrete)
+		else if (descriptor->valueType() == iAValueType::Continuous || descriptor->valueType() == iAValueType::Discrete)
 		{
 			auto numberInputs = new iANumberParameterInputs();
 			numberInputs->from = new QLineEdit(QString::number(
 				descriptor->min() == std::numeric_limits<double>::lowest()? 0 : descriptor->min(),
-				descriptor->valueType() != Continuous ? 'd' : 'g',
-				descriptor->valueType() != Continuous ? 0 : ContinuousPrecision));
+				descriptor->valueType() != iAValueType::Continuous ? 'd' : 'g',
+				descriptor->valueType() != iAValueType::Continuous ? 0 : ContinuousPrecision));
 			numberInputs->to = new QLineEdit(QString::number(
 				descriptor->max() == std::numeric_limits<double>::max() ? 0 : descriptor->max(),
-				descriptor->valueType() != Continuous ? 'd' : 'g',
-				descriptor->valueType() != Continuous ? 0 : ContinuousPrecision));
+				descriptor->valueType() != iAValueType::Continuous ? 'd' : 'g',
+				descriptor->valueType() != iAValueType::Continuous ? 0 : ContinuousPrecision));
 			gridLay->addWidget(numberInputs->from, curGridLine, 1);
 			gridLay->addWidget(numberInputs->to, curGridLine, 2);
 			numberInputs->logScale = new QCheckBox("Log Scale");
@@ -224,12 +224,12 @@ namespace
 		else
 		{
 			auto otherInputs = new iAOtherParameterInputs();
-			otherInputs->m_valueEdit->setText(descriptor->valueType() == FileNameSave ? "" :
+			otherInputs->m_valueEdit->setText(descriptor->valueType() == iAValueType::FileNameSave ? "" :
 				descriptor->defaultValue().toString());
-			otherInputs->m_valueEdit->setReadOnly(descriptor->valueType() == FileNameSave);
+			otherInputs->m_valueEdit->setReadOnly(descriptor->valueType() == iAValueType::FileNameSave);
 			gridLay->addWidget(otherInputs->m_valueEdit, curGridLine, 1, 1, 3);
 			result = QSharedPointer<iAParameterInputs>(otherInputs);
-			// DEBUG_LOG(QString("Don't know how to handle parameters with type %1").arg(descriptor->valueType()));
+			// LOG(lvlWarn, QString("Don't know how to handle parameters with type %1").arg(descriptor->valueType()));
 		}
 		result->label = new QLabel(pName);
 		gridLay->addWidget(result->label, curGridLine, 0);
@@ -289,14 +289,14 @@ void adjustMinMax(QSharedPointer<iAAttributeDescriptor> desc, QString valueText)
 {
 	bool ok;
 	double value = valueText.toDouble(&ok);
-	if (desc->valueType() == Categorical ||
-		desc->valueType() == Discrete)
+	if (desc->valueType() == iAValueType::Categorical ||
+		desc->valueType() == iAValueType::Discrete)
 	{
 		/*int value =*/ valueText.toInt(&ok);
 	}
 	if (!ok)
 	{
-		DEBUG_LOG(QString("Value '%1' for parameter %2 is not valid!").arg(valueText).arg(desc->name()));
+		LOG(lvlError, QString("Value '%1' for parameter %2 is not valid!").arg(valueText).arg(desc->name()));
 		return;
 	}
 	desc->adjustMinMax(value);
@@ -304,7 +304,7 @@ void adjustMinMax(QSharedPointer<iAAttributeDescriptor> desc, QString valueText)
 
 QSharedPointer<iAAttributeDescriptor> iANumberParameterInputs::currentDescriptor()
 {
-	assert(descriptor->valueType() == Discrete || descriptor->valueType() == Continuous);
+	assert(descriptor->valueType() == iAValueType::Discrete || descriptor->valueType() == iAValueType::Continuous);
 	QString pName(label->text());
 	QSharedPointer<iAAttributeDescriptor> desc(new iAAttributeDescriptor(
 		pName,
@@ -372,14 +372,14 @@ void iACategoryParameterInputs::changeInputValues(iASettings const & values)
 	}
 	if (curOption != enabledOptions.size())
 	{
-		DEBUG_LOG(QString("Inconsistent state: not all stored, enabled options found for parameter '%1'").arg(name));
+		LOG(lvlError, QString("Inconsistent state: not all stored, enabled options found for parameter '%1'").arg(name));
 	}
 }
 
 QSharedPointer<iAAttributeDescriptor> iACategoryParameterInputs::currentDescriptor()
 {
 	QString pName(label->text());
-	assert(descriptor->valueType() == Categorical || descriptor->valueType() == Boolean);
+	assert(descriptor->valueType() == iAValueType::Categorical || descriptor->valueType() == iAValueType::Boolean);
 	QSharedPointer<iAAttributeDescriptor> desc(new iAAttributeDescriptor(
 		pName,
 		iAAttributeDescriptor::Parameter,
@@ -507,7 +507,7 @@ void iASamplingSettingsDlg::saveSettings()
 	QFile file(fileName);
 	if (!file.open(QIODevice::WriteOnly))
 	{
-		DEBUG_LOG(QString("Cannot open file '%1' for writing!").arg(fileName));
+		LOG(lvlError, QString("Cannot open file '%1' for writing!").arg(fileName));
 		return;
 	}
 	QTextStream stream(&file);
@@ -536,7 +536,7 @@ void iASamplingSettingsDlg::loadSettings()
 	QFile file(fileName);
 	if (!file.open(QIODevice::ReadOnly))
 	{
-		DEBUG_LOG(QString("Cannot open file '%1' for reading!").arg(fileName));
+		LOG(lvlError, QString("Cannot open file '%1' for reading!").arg(fileName));
 		return;
 	}
 	QTextStream in(&file);
@@ -546,7 +546,7 @@ void iASamplingSettingsDlg::loadSettings()
 		int sepPos = line.indexOf(KeyValueSeparator);
 		if (sepPos == -1)
 		{
-			DEBUG_LOG(QString("Invalid line '%1'").arg(line));
+			LOG(lvlError, QString("Invalid line '%1'").arg(line));
 		}
 		QString key = line.left(sepPos);
 		QString value = line.right(line.length() - (sepPos + KeyValueSeparator.length()));
@@ -576,7 +576,7 @@ void iASamplingSettingsDlg::outputBaseChanged()
 	}
 	for (int p = 0; p < m_paramSpecs->size(); ++p)
 	{
-		if (m_paramSpecs->at(p)->valueType() == FileNameSave)
+		if (m_paramSpecs->at(p)->valueType() == iAValueType::FileNameSave)
 		{
 			auto inputs = dynamic_cast<iAOtherParameterInputs*>(m_paramInputs[p].data());
 			assert(inputs);
@@ -634,7 +634,7 @@ void iASamplingSettingsDlg::setParametersFromFile(QString const& fileName)
 	QFile file(fileName);
 	if (!file.open(QIODevice::ReadOnly | QIODevice::Text))
 	{
-		DEBUG_LOG(QString("Couldn't open parameter descriptor file '%1'\n").arg(fileName));
+		LOG(lvlError, QString("Couldn't open parameter descriptor file '%1'\n").arg(fileName));
 		return;
 	}
 	QTextStream in(&file);
@@ -737,7 +737,7 @@ void iASamplingSettingsDlg::runClicked()
 	for (int l = 0; l < m_paramInputs.size(); ++l)
 	{
 		auto desc = m_paramInputs[l]->currentDescriptor();
-		if (desc->valueType() == Continuous || desc->valueType() == Discrete)
+		if (desc->valueType() == iAValueType::Continuous || desc->valueType() == iAValueType::Discrete)
 		{
 			auto curMinStr = QString::number(desc->min(), 'g'),
 			     curMaxStr = QString::number(desc->max(), 'g');
@@ -764,7 +764,7 @@ void iASamplingSettingsDlg::runClicked()
 					.arg(m_paramSpecs->at(l)->min()).arg(m_paramSpecs->at(l)->max());
 			}
 		}
-		if (desc->valueType() == Categorical && desc->defaultValue().toString().size() == 0)
+		if (desc->valueType() == iAValueType::Categorical && desc->defaultValue().toString().size() == 0)
 		{
 			msg += QString("Parameter '%1': Currently, no value is selected; you must select at least one value!").arg(desc->name());
 		}

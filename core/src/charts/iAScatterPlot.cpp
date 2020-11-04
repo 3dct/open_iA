@@ -2,7 +2,7 @@
 * **********   A tool for visual analysis and processing of 3D CT images   ********** *
 * *********************************************************************************** *
 * Copyright (C) 2016-2020  C. Heinzl, M. Reiter, A. Reh, W. Li, M. Arikan, Ar. &  Al. *
-*                          Amirkhanov, J. Weissenböck, B. Fröhler, M. Schiwarth       *
+*                 Amirkhanov, J. Weissenböck, B. Fröhler, M. Schiwarth, P. Weinberger *
 * *********************************************************************************** *
 * This program is free software: you can redistribute it and/or modify it under the   *
 * terms of the GNU General Public License as published by the Free Software           *
@@ -20,13 +20,14 @@
 * ************************************************************************************/
 #include "iAScatterPlot.h"
 
-#include "iAConsole.h"
+#include "iALog.h"
 #include "iALookupTable.h"
 #include "iAMathUtility.h"
 #include "iAScatterPlotSelectionHandler.h"
 #include "iASPLOMData.h"
+#ifdef CHART_OPENGL
 #include "qthelper/iAQGLWidget.h"
-#include "qthelper/iAQGLBuffer.h"
+#endif
 
 #include <QAbstractTextDocumentLayout>
 #include <QColor>
@@ -73,11 +74,15 @@ iAScatterPlot::Settings::Settings() :
 
 size_t iAScatterPlot::NoPointIndex = std::numeric_limits<size_t>::max();
 
-iAScatterPlot::iAScatterPlot(iAScatterPlotSelectionHandler * splom, iAQGLWidget * parent, int numTicks /*= 5*/, bool isMaximizedPlot /*= false */):
+iAScatterPlot::iAScatterPlot(iAScatterPlotSelectionHandler * splom, iAChartParentWidget* parent,
+	int numTicks /*= 5*/, bool isMaximizedPlot /*= false */):
 	QObject(parent),
 	settings(),
 	m_parentWidget(parent),
+#ifdef CHART_OPENGL
 	m_pointsBuffer(nullptr),
+	m_pointsOutdated(true),
+#endif
 	m_splom( splom ),
 	m_colInd(0),
 	m_lut( new iALookupTable() ),
@@ -92,7 +97,6 @@ iAScatterPlot::iAScatterPlot(iAScatterPlotSelectionHandler * splom, iAQGLWidget 
 	m_isPreviewPlot( false ),
 	m_curVisiblePts ( 0 ),
 	m_dragging(false),
-	m_pointsOutdated(true),
 	m_pcc(0),
 	m_scc(0),
 	m_pccValid(false),
@@ -104,6 +108,7 @@ iAScatterPlot::iAScatterPlot(iAScatterPlotSelectionHandler * splom, iAQGLWidget 
 
 iAScatterPlot::~iAScatterPlot()
 {
+#ifdef CHART_OPENGL
 	if (m_pointsBuffer)
 	{
 		m_pointsBuffer->bind();
@@ -111,6 +116,7 @@ iAScatterPlot::~iAScatterPlot()
 		m_pointsBuffer->release();
 		delete m_pointsBuffer;
 	}
+#endif
 }
 
 void iAScatterPlot::setData( size_t x, size_t y, QSharedPointer<iASPLOMData> &splomData )
@@ -145,7 +151,9 @@ bool iAScatterPlot::hasData() const
 
 void iAScatterPlot::updatePoints()
 {
+#ifdef CHART_OPENGL
 	m_pointsOutdated = true;
+#endif
 }
 
 void iAScatterPlot::setLookupTable( QSharedPointer<iALookupTable> &lut, size_t colInd )
@@ -269,6 +277,7 @@ void iAScatterPlot::paintOnParent( QPainter & painter )
 	{
 		return;
 	}
+#ifdef CHART_OPENGL
 	if (!m_pointsBuffer)
 	{
 		createVBO();
@@ -281,6 +290,7 @@ void iAScatterPlot::paintOnParent( QPainter & painter )
 	{
 		fillVBO();
 	}
+#endif
 	painter.save();
 	painter.translate( m_globRect.x(), m_globRect.y());
 	QColor bg(settings.backgroundColor);
@@ -803,19 +813,36 @@ QPoint iAScatterPlot::cropLocalPos( QPoint locPos ) const
 	return res;
 }
 
+#ifndef CHART_OPENGL
+void iAScatterPlot::drawPoint(QPainter& painter, double ptX, double ptY, int radius, QColor const & color)
+{
+	int tx = p2x(ptX);
+	int ty = p2y(ptY);
+	if (tx < 0 || tx > m_globRect.width() ||
+		ty < 0 || ty > m_globRect.height())
+	{ // point outside current screen
+		return;
+	}
+	int size = 2 * radius;
+	painter.setBrush(color);
+	painter.drawEllipse(tx - radius, ty - radius, size, size);
+}
+#endif
+
 void iAScatterPlot::drawPoints( QPainter &painter )
 {
 	if (!m_splomData)
 	{
 		return;
 	}
+	painter.save();
+#ifdef CHART_OPENGL
 	// all points
-	int pwidth  = m_parentWidget->width();
+	int pwidth = m_parentWidget->width();
 	int pheight = m_parentWidget->height();
 
-	painter.save();
 	double ptRad = getPointRadius();
-	double ptSize =2 * ptRad;
+	double ptSize = 2 * ptRad;
 	painter.beginNativePainting();
 	int y = pheight - m_globRect.bottom() - 1; //Qt and OpenGL have inverted Y axes
 
@@ -835,7 +862,7 @@ void iAScatterPlot::drawPoints( QPainter &painter )
 	glEnable( GL_SCISSOR_TEST );
 	if (!m_pointsBuffer->bind())//TODO: proper handling (exceptions?)
 	{
-		DEBUG_LOG("Failed to bind points buffer!");
+		LOG(lvlWarn, "Failed to bind points buffer!");
 		return;
 	}
 	glEnable( GL_POINT_SMOOTH );
@@ -926,6 +953,38 @@ void iAScatterPlot::drawPoints( QPainter &painter )
 
 	glPopMatrix();
 	painter.endNativePainting();
+#else
+	if (!m_lut->initialized())
+	{
+		return;
+	}
+	m_curVisiblePts = 0;
+	painter.setPen(Qt::NoPen);
+	for (size_t i = 0; i < m_splomData->numPoints(); ++i)
+	{
+		if (!m_splomData->matchesFilter(i))
+		{
+			continue;
+		}
+		QColor color(m_lut->getQColor(m_splomData->paramData(m_colInd)[i]));
+		drawPoint(painter, m_splomData->paramData(m_paramIndices[0])[i], m_splomData->paramData(m_paramIndices[1])[i], getPointRadius(), color);
+		++m_curVisiblePts;
+	}
+	auto const& selInds = m_splom->getFilteredSelection();
+	for (size_t idx : selInds)
+	{
+		drawPoint(painter, m_splomData->paramData(m_paramIndices[0])[idx], m_splomData->paramData(m_paramIndices[1])[idx],
+			getPointRadius(),
+			settings.selectionColor);
+	}
+	/*
+	// not sure what highlighted points are, leave them out for the moment...
+	auto const& highlightedPoints = m_splom->getHighlightedPoints();
+	for (auto ind : highlightedPoints)
+	{
+	}
+	*/
+#endif
 	painter.restore();
 }
 
@@ -1012,6 +1071,7 @@ void iAScatterPlot::drawMaximizedLabels( QPainter &painter )
 	painter.restore();
 }
 
+#ifdef CHART_OPENGL
 void iAScatterPlot::createVBO()
 {
 	if (!m_parentWidget->isVisible())
@@ -1030,7 +1090,7 @@ void iAScatterPlot::createVBO()
 	bool res = m_pointsBuffer->bind();
 	if (!res)
 	{
-		DEBUG_LOG("Binding points buffer failed!");
+		LOG(lvlWarn, "Binding points buffer failed!");
 		return;
 	}
 	m_pointsBuffer->setUsagePattern(iAQGLBuffer::DynamicDraw);
@@ -1049,7 +1109,7 @@ void iAScatterPlot::fillVBO()
 	bool res = m_pointsBuffer->bind();
 	if (!res)
 	{
-		DEBUG_LOG("Binding points buffer failed!");
+		LOG(lvlWarn, "Binding points buffer failed!");
 		return;
 	}
 
@@ -1083,12 +1143,13 @@ void iAScatterPlot::fillVBO()
 	bool res2 = m_pointsBuffer->unmap();
 	if (!res2)
 	{
-		DEBUG_LOG("Unbinding points buffer failed!");
+		LOG(lvlWarn, "Unbinding points buffer failed!");
 		return;
 	}
 	m_pointsBuffer->release();
 	m_pointsOutdated = false;
 }
+#endif
 
 void iAScatterPlot::setSelectionColor(QColor selCol)
 {

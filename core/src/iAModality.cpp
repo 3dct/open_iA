@@ -2,7 +2,7 @@
 * **********   A tool for visual analysis and processing of 3D CT images   ********** *
 * *********************************************************************************** *
 * Copyright (C) 2016-2020  C. Heinzl, M. Reiter, A. Reh, W. Li, M. Arikan, Ar. &  Al. *
-*                          Amirkhanov, J. Weissenböck, B. Fröhler, M. Schiwarth       *
+*                 Amirkhanov, J. Weissenböck, B. Fröhler, M. Schiwarth, P. Weinberger *
 * *********************************************************************************** *
 * This program is free software: you can redistribute it and/or modify it under the   *
 * terms of the GNU General Public License as published by the Free Software           *
@@ -21,7 +21,7 @@
 #include "iAModality.h"
 
 #include "defines.h"  // for NotExistingChannel
-#include "iAConsole.h"
+#include "iALog.h"
 #include "iAImageCoordinate.h"
 #include "iAModalityTransfer.h"
 #include "iAXmlSettings.h"
@@ -185,7 +185,7 @@ void iAModality::loadTransferFunction()
 	iAXmlSettings s;
 	if (!s.read(m_tfFileName))
 	{
-		DEBUG_LOG(QString("Failed to read transfer function from file %1").arg(m_tfFileName));
+		LOG(lvlWarn, QString("Failed to read transfer function from file %1").arg(m_tfFileName));
 		return;
 	}
 	s.loadTransferFunction(transfer().data());
@@ -302,31 +302,3 @@ void iAModality::setChannelID(uint channelID)
 {
 	m_channelID = channelID;
 }
-
-// iAStatisticsUpdater
-
-void iAStatisticsUpdater::run()
-{
-	m_modality->computeImageStatistics();
-	emit StatisticsReady(m_modalityIdx);
-}
-
-iAStatisticsUpdater::iAStatisticsUpdater(int modalityIdx, QSharedPointer<iAModality> modality) :
-	m_modalityIdx(modalityIdx),
-	m_modality(modality)
-{}
-
-
-// iAHistogramUpdater
-
-void iAHistogramUpdater::run()
-{
-	m_modality->computeHistogramData(m_binCount);
-	emit HistogramReady(m_modalityIdx);
-}
-
-iAHistogramUpdater::iAHistogramUpdater(int modalityIdx, QSharedPointer<iAModality> modality, size_t binCount) :
-	m_modalityIdx(modalityIdx),
-	m_modality(modality),
-	m_binCount(binCount)
-{}

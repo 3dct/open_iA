@@ -2,7 +2,7 @@
 * **********   A tool for visual analysis and processing of 3D CT images   ********** *
 * *********************************************************************************** *
 * Copyright (C) 2016-2020  C. Heinzl, M. Reiter, A. Reh, W. Li, M. Arikan, Ar. &  Al. *
-*                          Amirkhanov, J. Weissenböck, B. Fröhler, M. Schiwarth       *
+*                 Amirkhanov, J. Weissenböck, B. Fröhler, M. Schiwarth, P. Weinberger *
 * *********************************************************************************** *
 * This program is free software: you can redistribute it and/or modify it under the   *
 * terms of the GNU General Public License as published by the Free Software           *
@@ -20,7 +20,7 @@
 * ************************************************************************************/
 #include "iARedirectItkOutput.h"
 
-#include "iAConsole.h"
+#include "iALog.h"
 
 iARedirectItkOutput::Pointer iARedirectItkOutput::m_instance;
 
@@ -36,27 +36,27 @@ iARedirectItkOutput::Pointer iARedirectItkOutput::New()
 
 void iARedirectItkOutput::DisplayDebugText(const char *t)
 {
-	DEBUG_LOG(QString("ITK %1").arg(t));
+	LOG(lvlDebug, QString("ITK %1").arg(t));
 }
 
 void iARedirectItkOutput::DisplayErrorText(const char *t)
 {
-	DEBUG_LOG(QString("ITK %1").arg(t));
+	LOG(lvlError, QString("ITK %1").arg(t));
 }
 
 void iARedirectItkOutput::DisplayGenericOutputText(const char *t)
 {
-	DEBUG_LOG(QString("ITK %1").arg(t));
+	LOG(lvlInfo, QString("ITK %1").arg(t));
 }
 
 void iARedirectItkOutput::DisplayText(const char * t)
 {
-	DEBUG_LOG(QString("ITK %1").arg(t));
+	LOG(lvlInfo, QString("ITK %1").arg(t));
 }
 
 void iARedirectItkOutput::DisplayWarningText(const char *t)
 {
-	DEBUG_LOG(QString("ITK %1").arg(t));
+	LOG(lvlWarn, QString("ITK %1").arg(t));
 }
 
 void iARedirectItkOutput::SetPromptUser(bool /*arg*/)

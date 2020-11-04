@@ -2,7 +2,7 @@
 * **********   A tool for visual analysis and processing of 3D CT images   ********** *
 * *********************************************************************************** *
 * Copyright (C) 2016-2020  C. Heinzl, M. Reiter, A. Reh, W. Li, M. Arikan, Ar. &  Al. *
-*                          Amirkhanov, J. Weissenböck, B. Fröhler, M. Schiwarth       *
+*                 Amirkhanov, J. Weissenböck, B. Fröhler, M. Schiwarth, P. Weinberger *
 * *********************************************************************************** *
 * This program is free software: you can redistribute it and/or modify it under the   *
 * terms of the GNU General Public License as published by the Free Software           *
@@ -33,11 +33,9 @@ void iADreamCasterModuleInterface::Initialize()
 	{
 		return;
 	}
-	QMenu * toolsMenu = m_mainWnd->toolsMenu();
-	QAction * actionDreamcaster_Open_file = new QAction( m_mainWnd );
-	actionDreamcaster_Open_file->setText( QApplication::translate( "MainWindow", "DreamCaster", 0 ) );
-	AddActionToMenuAlphabeticallySorted( toolsMenu,  actionDreamcaster_Open_file, false );
-	connect( actionDreamcaster_Open_file, &QAction::triggered, this, &iADreamCasterModuleInterface::dreamcasterOpenFile);
+	QAction * actionDreamcaster_Open_file = new QAction(tr("DreamCaster"), m_mainWnd);
+	connect(actionDreamcaster_Open_file, &QAction::triggered, this, &iADreamCasterModuleInterface::dreamcasterOpenFile);
+	addToMenuSorted(m_mainWnd->toolsMenu(), actionDreamcaster_Open_file);
 }
 
 void iADreamCasterModuleInterface::dreamcasterOpenFile()

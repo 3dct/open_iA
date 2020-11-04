@@ -2,7 +2,7 @@
 * **********   A tool for visual analysis and processing of 3D CT images   ********** *
 * *********************************************************************************** *
 * Copyright (C) 2016-2020  C. Heinzl, M. Reiter, A. Reh, W. Li, M. Arikan, Ar. &  Al. *
-*                          Amirkhanov, J. Weissenböck, B. Fröhler, M. Schiwarth       *
+*                 Amirkhanov, J. Weissenböck, B. Fröhler, M. Schiwarth, P. Weinberger *
 * *********************************************************************************** *
 * This program is free software: you can redistribute it and/or modify it under the   *
 * terms of the GNU General Public License as published by the Free Software           *
@@ -335,10 +335,10 @@ iACalcFeatureCharacteristics::iACalcFeatureCharacteristics():
 		"Label Image to Shape Label Map Filter </a> "
 		"in the ITK documentation.", 1, 0)
 {
-	addParameter("Output CSV filename", FileNameSave, ".csv");
-	addParameter("Calculate Feret Diameter", Boolean, false);
-	addParameter("Calculate roundness", Boolean, false);
-	addParameter("Calculate advanced void parameters", Boolean, false);
+	addParameter("Output CSV filename", iAValueType::FileNameSave, ".csv");
+	addParameter("Calculate Feret Diameter", iAValueType::Boolean, false);
+	addParameter("Calculate roundness", iAValueType::Boolean, false);
+	addParameter("Calculate advanced void parameters", iAValueType::Boolean, false);
 }
 
 IAFILTER_CREATE(iACalcFeatureCharacteristics)

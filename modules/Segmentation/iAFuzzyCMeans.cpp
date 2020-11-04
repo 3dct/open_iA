@@ -2,7 +2,7 @@
 * **********   A tool for visual analysis and processing of 3D CT images   ********** *
 * *********************************************************************************** *
 * Copyright (C) 2016-2020  C. Heinzl, M. Reiter, A. Reh, W. Li, M. Arikan, Ar. &  Al. *
-*                          Amirkhanov, J. Weissenböck, B. Fröhler, M. Schiwarth       *
+*                 Amirkhanov, J. Weissenböck, B. Fröhler, M. Schiwarth, P. Weinberger *
 * *********************************************************************************** *
 * This program is free software: you can redistribute it and/or modify it under the   *
 * terms of the GNU General Public License as published by the Free Software           *
@@ -22,7 +22,7 @@
 
 #include <defines.h>    // for DIM
 #include <iAConnector.h>
-#include <iAConsole.h>
+#include <iALog.h>
 #include <iAProgress.h>
 #include <iATypedCallHelper.h>
 #include <io/iAITKIO.h>
@@ -63,24 +63,24 @@ namespace
 
 	void addFCMParameters(iAFilter & filter)
 	{
-		filter.addParameter("Maximum Iterations", Discrete, 500, 1);
-		filter.addParameter("Maximum Error", Continuous, 0.0001);
-		filter.addParameter("M", Continuous, 2, 1.0+std::numeric_limits<double>::epsilon());	// must be larger than 1.0, 1.0 would cause division by zero
-		filter.addParameter("Number of Classes", Discrete, 2, 1);
-		filter.addParameter("Centroids", String, "0 1");
-		filter.addParameter("Ignore Background", Boolean, false);
-		filter.addParameter("Background Value", Continuous, 0);
-		filter.addParameter("Number of Threads", Discrete, 4, 1);
+		filter.addParameter("Maximum Iterations", iAValueType::Discrete, 500, 1);
+		filter.addParameter("Maximum Error", iAValueType::Continuous, 0.0001);
+		filter.addParameter("M", iAValueType::Continuous, 2, 1.0+std::numeric_limits<double>::epsilon());	// must be larger than 1.0, 1.0 would cause division by zero
+		filter.addParameter("Number of Classes", iAValueType::Discrete, 2, 1);
+		filter.addParameter("Centroids", iAValueType::String, "0 1");
+		filter.addParameter("Ignore Background", iAValueType::Boolean, false);
+		filter.addParameter("Background Value", iAValueType::Continuous, 0);
+		filter.addParameter("Number of Threads", iAValueType::Discrete, 4, 1);
 	}
 
 	void addKFCMParameters(iAFilter & filter)
 	{
 		addFCMParameters(filter);
-		filter.addParameter("Alpha", Continuous, 1);
-		filter.addParameter("Sigma", Continuous, 1);
-		filter.addParameter("StructRadius X", Discrete, 1, 1);
-		filter.addParameter("StructRadius Y", Discrete, 1, 1);
-		filter.addParameter("StructRadius Z", Discrete, 1, 1);	// (Vector Type ? )
+		filter.addParameter("Alpha", iAValueType::Continuous, 1);
+		filter.addParameter("Sigma", iAValueType::Continuous, 1);
+		filter.addParameter("StructRadius X", iAValueType::Discrete, 1, 1);
+		filter.addParameter("StructRadius Y", iAValueType::Discrete, 1, 1);
+		filter.addParameter("StructRadius Z", iAValueType::Discrete, 1, 1);	// (Vector Type ? )
 	}
 
 	bool convertStringToCentroids(QString centroidString, unsigned int numberOfClasses, QVector<double> & centroids)
@@ -88,7 +88,7 @@ namespace
 		auto centroidStringList = centroidString.split(" ");
 		if (centroidStringList.size() < 0 || static_cast<unsigned int>(centroidStringList.size()) != numberOfClasses)
 		{
-			DEBUG_LOG("Number of classes doesn't match the count of centroids specified!");
+			LOG(lvlError, "Number of classes doesn't match the count of centroids specified!");
 			return false;
 		}
 		for (auto c : centroidStringList)
@@ -97,7 +97,7 @@ namespace
 			double centroid = c.toDouble(&ok);
 			if (!ok)
 			{
-				DEBUG_LOG(QString("Could not convert string in centroid list to double: '%1' !").arg(c));
+				LOG(lvlError, QString("Could not convert string in centroid list to double: '%1' !").arg(c));
 				return false;
 			}
 			centroids.push_back(centroid);
@@ -286,8 +286,8 @@ iAMSKFCMFilter::iAMSKFCMFilter() :
 		"On Inf.Tech. and Appl.in Biom., Corfu, Greece, 2010).")
 {
 	addKFCMParameters(*this);
-	addParameter("P", Continuous, 2);
-	addParameter("Q", Continuous, 1);
+	addParameter("P", iAValueType::Continuous, 2);
+	addParameter("Q", iAValueType::Continuous, 1);
 }
 
 bool iAMSKFCMFilter::checkParameters(QMap<QString, QVariant> & parameters)

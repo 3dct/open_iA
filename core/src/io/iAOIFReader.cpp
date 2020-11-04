@@ -2,7 +2,7 @@
 * **********   A tool for visual analysis and processing of 3D CT images   ********** *
 * *********************************************************************************** *
 * Copyright (C) 2016-2020  C. Heinzl, M. Reiter, A. Reh, W. Li, M. Arikan, Ar. &  Al. *
-*                          Amirkhanov, J. Weissenböck, B. Fröhler, M. Schiwarth       *
+*                 Amirkhanov, J. Weissenböck, B. Fröhler, M. Schiwarth, P. Weinberger *
 * *********************************************************************************** *
 * This program is free software: you can redistribute it and/or modify it under the   *
 * terms of the GNU General Public License as published by the Free Software           *
@@ -21,7 +21,7 @@
 #include "iAOIFReader.h"
 
 #include "iAConnector.h"
-#include "iAConsole.h"
+#include "iALog.h"
 #include "iAItkVersion.h"
 #include "io/iAFileUtils.h"
 
@@ -910,7 +910,7 @@ iAOIFReaderHelper::TiffImgPtr iAOIFReaderHelper::ReadTiffImage(QString const & f
 
 	if (!imageIO)
 	{
-		DEBUG_LOG(QString("OIF Reader: Could not open file %1, aborting loading (error message: %2).")
+		LOG(lvlError, QString("OIF Reader: Could not open file %1, aborting loading (error message: %2).")
 			.arg(file_name)
 			.arg(errorMsg));
 		return iAOIFReaderHelper::TiffImgPtr();
@@ -939,13 +939,13 @@ iAOIFReaderHelper::TiffImgPtr iAOIFReaderHelper::ReadTiffImage(QString const & f
 		case itk::ImageIOBase::DOUBLE:	return read_image_template(file_name, static_cast<double>(0));  break;
 		case itk::ImageIOBase::UNKNOWNCOMPONENTTYPE:
 		default:
-			DEBUG_LOG("OIF Reader: Unknown component type");
+			LOG(lvlError, "OIF Reader: Unknown component type");
 			return iAOIFReaderHelper::TiffImgPtr();
 		}
 	}
 	catch (itk::ExceptionObject &excep)
 	{
-		DEBUG_LOG(QString("OIF Reader: Exception %1").arg(excep.what()));
+		LOG(lvlError, QString("OIF Reader: Exception %1").arg(excep.what()));
 	}
 	return iAOIFReaderHelper::TiffImgPtr();
 }
@@ -1055,6 +1055,6 @@ void readOIF(QString const & filename, iAConnector* con, int channel,
 	}
 	else
 	{
-		DEBUG_LOG("OIF reader: Neither channel number nor volume vector given!");
+		LOG(lvlError, "OIF reader: Neither channel number nor volume vector given!");
 	}
 }

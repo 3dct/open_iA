@@ -2,7 +2,7 @@
 * **********   A tool for visual analysis and processing of 3D CT images   ********** *
 * *********************************************************************************** *
 * Copyright (C) 2016-2020  C. Heinzl, M. Reiter, A. Reh, W. Li, M. Arikan, Ar. &  Al. *
-*                          Amirkhanov, J. Weissenböck, B. Fröhler, M. Schiwarth       *
+*                 Amirkhanov, J. Weissenböck, B. Fröhler, M. Schiwarth, P. Weinberger *
 * *********************************************************************************** *
 * This program is free software: you can redistribute it and/or modify it under the   *
 * terms of the GNU General Public License as published by the Free Software           *
@@ -21,7 +21,7 @@
 #include "iAMagicLens.h"
 
 #include "defines.h"    // for DefaultMagicLensSize
-#include "iAConsole.h"
+#include "iALog.h"
 #include "iAMathUtility.h"
 
 #include <QVTKInteractor.h>
@@ -148,7 +148,7 @@ void iALensData::setLensVisible(bool enabled)
 {
 	if (!m_renderWindow)
 	{
-		DEBUG_LOG("ERROR in Magic Lens: No render window set!");
+		LOG(lvlError, "Magic Lens: No render window set!");
 		return;
 	}
 	if (enabled)

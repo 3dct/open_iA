@@ -2,7 +2,7 @@
 * **********   A tool for visual analysis and processing of 3D CT images   ********** *
 * *********************************************************************************** *
 * Copyright (C) 2016-2020  C. Heinzl, M. Reiter, A. Reh, W. Li, M. Arikan, Ar. &  Al. *
-*                          Amirkhanov, J. Weissenböck, B. Fröhler, M. Schiwarth       *
+*                 Amirkhanov, J. Weissenböck, B. Fröhler, M. Schiwarth, P. Weinberger *
 * *********************************************************************************** *
 * This program is free software: you can redistribute it and/or modify it under the   *
 * terms of the GNU General Public License as published by the Free Software           *
@@ -24,7 +24,7 @@
 #include "iAImageWidget.h"
 
 #include <iAChannelData.h>
-#include <iAConsole.h>
+#include <iALog.h>
 #include <iASlicer.h>
 #include <iASlicerMode.h>
 #include <iATransferFunction.h>
@@ -176,7 +176,7 @@ void iASpatialView::AddImageDisplay(int idx)
 {
 	if (m_guiElements.contains(idx))
 	{
-		DEBUG_LOG(QString("Image %1 already shown!").arg(idx));
+		LOG(lvlWarn, QString("Image %1 already shown!").arg(idx));
 		return;
 	}
 	ImageGUIElements gui;
@@ -187,7 +187,9 @@ void iASpatialView::AddImageDisplay(int idx)
 
 	vtkScalarsToColors* colors = m_labelImgLut;
 	if (m_images[idx].caption.contains("Uncertainty"))
+	{
 		colors = m_uncertaintyLut;
+	}
 	gui.imageWidget = new iAImageWidget(m_images[idx].image, colors);
 	auto label = new QLabel(m_images[idx].caption);
 	label->setSizePolicy(QSizePolicy::MinimumExpanding, QSizePolicy::Fixed);
@@ -313,7 +315,7 @@ void iASpatialView::AddMemberImage(QString const & caption, vtkImagePointer img,
 {
 	if (!img)
 	{
-		DEBUG_LOG("Image was null!");
+		LOG(lvlError, "Image was null!");
 		return;
 	}
 	if (!keep)
