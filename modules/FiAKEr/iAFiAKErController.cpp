@@ -121,8 +121,9 @@ namespace
 {
 	const int ControlSpacing = 4;
 	const int ResultListMargin = 2;
-	const int HistogramMinWidth = 80;
-	const int StackedBarMinWidth = 70;
+	const int HistogramMinWidth = 40;
+	const int StackedBarMinWidth = 40;
+	const int SPMMinWidth = 150;
 	const int DefaultPlayDelay = 1000;
 	const int DefaultHistogramBins = 20;
 	const double MinDiameterFactor = 0.02;
@@ -870,7 +871,7 @@ void iAFiAKErController::loadStateAndShow()
 	addInteraction(QString("Loaded %1 results in folder %2.").arg(m_data->result.size()).arg(m_data->folder));
 
 	// SPM needs an active OpenGL Context (it must be visible when setData is called):
-	m_spm->setMinimumWidth(200);
+	m_spm->setMinimumWidth(SPMMinWidth);
 	m_spm->showAllPlots(false);
 	//auto np = m_data->spmData->numParams();
 	std::vector<char> v(m_data->spmData->numParams(), false);
