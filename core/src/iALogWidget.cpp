@@ -44,7 +44,7 @@ void iALogWidget::logSlot(int lvl, QString const & text)
 	// if it is still open at the time the program should exit.
 	// Therefore, we don't reopen the console after the close() method
 	// has been called. This allows the program to exit properly.
-	QString msg = QString("%1 %2 %3\n")
+	QString msg = QString("%1 %2 %3")
 		.arg(QLocale().toString(QDateTime::currentDateTime(), QLocale::ShortFormat))
 		.arg(logLevelToString(static_cast<iALogLevel>(lvl)))
 		.arg(text);
@@ -60,7 +60,7 @@ void iALogWidget::logSlot(int lvl, QString const & text)
 	if (m_logToFile && lvl >= m_fileLogLevel)
 	{
 		std::ofstream logfile( getLocalEncodingFileName(m_logFileName).c_str(), std::ofstream::out | std::ofstream::app);
-		logfile << msg.toStdString();
+		logfile << msg.toStdString() << std::endl;
 		logfile.flush();
 		logfile.close();
 		if (logfile.bad())
