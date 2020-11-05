@@ -29,7 +29,15 @@
 class iASPLOMData;
 class iAScatterPlotStandaloneHandler;
 
+//! class for providing information on a point in the scatter plot (used in tooltips)
+class iAScatterPlotPointInfo
+{
+public:
+	virtual QString text(const size_t paramIdx[2], size_t pointIdx) =0;
+};
+
 //! Widget for using a single scatter plot (outside of a SPLOM)
+// TODO: minimize duplication between iAScatterPlotWidget and iAQSplom!
 class open_iA_Core_API iAScatterPlotWidget : public iAQGLWidget
 {
 	Q_OBJECT
@@ -47,8 +55,13 @@ public:
 	void setSelectionMode(iAScatterPlot::SelectionMode mode);
 	void setPointRadius(double pointRadius);
 	void setFixPointsEnabled(bool enabled);
+	void setPointInfo(QSharedPointer<iAScatterPlotPointInfo> pointInfo);
 protected:
-	void paintEvent(QPaintEvent * event) override;
+#ifdef CHART_OPENGL
+	void paintGL() override;
+#else
+	void paintEvent(QPaintEvent* event) override;
+#endif
 	void resizeEvent(QResizeEvent* event) override;
 	void wheelEvent(QWheelEvent * event) override;
 	void mousePressEvent(QMouseEvent * event) override;
@@ -59,10 +72,13 @@ public:
 	iAScatterPlot* m_scatterplot;
 private:
 	void adjustScatterPlotSize();
+	void drawTooltip(QPainter& painter);
+
 	QSharedPointer<iASPLOMData> m_data;
 	QSharedPointer<iAScatterPlotStandaloneHandler> m_scatterPlotHandler;
 	int m_fontHeight, m_maxTickLabelWidth;
 	bool m_fixPointsEnabled;
+	QSharedPointer<iAScatterPlotPointInfo> m_pointInfo;
 signals:
 	void pointHighlighted(size_t ptIdx, bool state);
 };

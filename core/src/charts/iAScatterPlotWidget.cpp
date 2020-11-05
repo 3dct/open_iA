@@ -32,6 +32,10 @@
 #include <QMouseEvent>
 #include <QPainter>
 
+// for popup / tooltip:
+#include <QAbstractTextDocumentLayout>
+#include <QTextDocument>
+
 iAScatterPlotSelectionHandler::~iAScatterPlotSelectionHandler()
 {}
 
@@ -87,6 +91,23 @@ private:
 	SelectionType m_selection;
 };
 
+class iADefaultScatterPlotPointInfo : public iAScatterPlotPointInfo
+{
+public:
+	iADefaultScatterPlotPointInfo(QSharedPointer<iASPLOMData> data) :
+		m_data(data)
+	{}
+	QString text(const size_t paramIdx[2], size_t pointIdx) override
+	{
+		return m_data->parameterName(paramIdx[0]) + ": " +
+			QString::number(m_data->paramData(paramIdx[0])[pointIdx]) + "<br>" +
+			m_data->parameterName(paramIdx[1]) + ": " +
+			QString::number(m_data->paramData(paramIdx[1])[pointIdx]);
+	}
+private:
+	QSharedPointer<iASPLOMData> m_data;
+};
+
 namespace
 {
 	const int PaddingLeftBase = 2;
@@ -102,7 +123,8 @@ iAScatterPlotWidget::iAScatterPlotWidget(QSharedPointer<iASPLOMData> data) :
 	m_scatterPlotHandler(new iAScatterPlotStandaloneHandler()),
 	m_fontHeight(0),
 	m_maxTickLabelWidth(0),
-	m_fixPointsEnabled(false)
+	m_fixPointsEnabled(false),
+	m_pointInfo(new iADefaultScatterPlotPointInfo(data))
 {
 	setMouseTracking(true);
 	setFocusPolicy(Qt::StrongFocus);
@@ -131,7 +153,11 @@ void iAScatterPlotWidget::setPlotColor(QColor const & c, double rangeMin, double
 	m_scatterplot->setLookupTable(lut, 0);
 }
 
-void iAScatterPlotWidget::paintEvent(QPaintEvent * /*event*/)
+#ifdef CHART_OPENGL
+void iAScatterPlotWidget::paintGL()
+#else
+void iAScatterPlotWidget::paintEvent(QPaintEvent* event)
+#endif
 {
 	QPainter painter(this);
 	QFontMetrics fm = painter.fontMetrics();
@@ -157,6 +183,7 @@ void iAScatterPlotWidget::paintEvent(QPaintEvent * /*event*/)
 	glClear(GL_COLOR_BUFFER_BIT);
 	painter.endNativePainting();
 #else
+	Q_UNUSED(event);
 	painter.fillRect(rect(), bgColor);
 #endif
 	m_scatterplot->paintOnParent(painter);
@@ -190,6 +217,54 @@ void iAScatterPlotWidget::paintEvent(QPaintEvent * /*event*/)
 			Qt::AlignHCenter | Qt::AlignTop, m_data->parameterName(0));
 	painter.rotate(-90);
 	painter.drawText(QRectF(-height(), 0, height(), fm.height()), Qt::AlignCenter | Qt::AlignTop, m_data->parameterName(1));
+	painter.restore();
+
+	drawTooltip(painter);
+}
+
+void iAScatterPlotWidget::drawTooltip(QPainter& painter)
+{
+	size_t curInd = m_scatterplot->getCurrentPoint();
+	if (curInd == iAScatterPlot::NoPointIndex)
+	{
+		return;
+	}
+	const size_t* pInds = m_scatterplot->getIndices();
+
+	painter.save();
+	QPointF popupPos = m_scatterplot->getPointPosition(curInd);
+	double pPM = m_scatterplot->settings.pickedPointMagnification;
+	double ptRad = m_scatterplot->getPointRadius();
+	popupPos.setY(popupPos.y() - pPM * ptRad);
+	QColor popupFillColor(palette().color(QPalette::Window));
+	painter.setBrush(popupFillColor);
+	QColor popupBorderColor(palette().color(QPalette::Dark));
+	painter.setPen(popupBorderColor);
+	painter.translate(popupPos);
+	QString text = "<b>#" + QString::number(curInd) + "</b><br> " +
+		m_pointInfo->text(pInds, curInd);
+	QTextDocument doc;
+	doc.setHtml(text);
+	doc.setTextWidth(150);	// = settings.popupWidth
+	double tipDim[2] = { 5, 10 }; // = settings.popupTipDim
+	double popupWidthHalf = 90; // settings.popupWidth / 2
+	auto popupHeight = doc.size().height();
+	QPointF points[7] = {
+		QPointF(0, 0),
+		QPointF(-tipDim[0], -tipDim[1]),
+		QPointF(-popupWidthHalf, -tipDim[1]),
+		QPointF(-popupWidthHalf, -popupHeight - tipDim[1]),
+		QPointF(popupWidthHalf, -popupHeight - tipDim[1]),
+		QPointF(popupWidthHalf, -tipDim[1]),
+		QPointF(tipDim[0], -tipDim[1]),
+	};
+	painter.drawPolygon(points, 7);
+
+	painter.translate(-popupWidthHalf, -popupHeight - tipDim[1]);
+	QAbstractTextDocumentLayout::PaintContext ctx;
+	QColor popupTextColor(palette().color(QPalette::ToolTipText) ); // = settings.popupTextColor;
+	ctx.palette.setColor(QPalette::Text, popupTextColor);
+	doc.documentLayout()->draw(&painter, ctx); //doc.drawContents( &painter );
 	painter.restore();
 }
 
@@ -320,4 +395,9 @@ void iAScatterPlotWidget::setPointRadius(double pointRadius)
 void iAScatterPlotWidget::setFixPointsEnabled(bool enabled)
 {
 	m_fixPointsEnabled = enabled;
+}
+
+void iAScatterPlotWidget::setPointInfo(QSharedPointer<iAScatterPlotPointInfo> pointInfo)
+{
+	m_pointInfo = pointInfo;
 }
