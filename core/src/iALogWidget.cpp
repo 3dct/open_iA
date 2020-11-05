@@ -44,7 +44,7 @@ void iALogWidget::logSlot(int lvl, QString const & text)
 	// if it is still open at the time the program should exit.
 	// Therefore, we don't reopen the console after the close() method
 	// has been called. This allows the program to exit properly.
-	QString msg = QString("%1 %2 %3\n")
+	QString msg = QString("%1 %2 %3")
 		.arg(QLocale().toString(QDateTime::currentDateTime(), QLocale::ShortFormat))
 		.arg(logLevelToString(static_cast<iALogLevel>(lvl)))
 		.arg(text);
@@ -53,14 +53,14 @@ void iALogWidget::logSlot(int lvl, QString const & text)
 		if (!isVisible())
 		{
 			show();
-			emit consoleVisibilityChanged(true);
+			emit logVisibilityChanged(true);
 		}
 		logTextEdit->append(msg);
 	}
 	if (m_logToFile && lvl >= m_fileLogLevel)
 	{
 		std::ofstream logfile( getLocalEncodingFileName(m_logFileName).c_str(), std::ofstream::out | std::ofstream::app);
-		logfile << msg.toStdString();
+		logfile << msg.toStdString() << std::endl;
 		logfile.flush();
 		logfile.close();
 		if (logfile.bad())
@@ -127,8 +127,10 @@ iALogWidget::iALogWidget() :
 	m_itkOutputWindow = iARedirectItkOutput::New();
 	vtkOutputWindow::SetInstance(m_vtkOutputWindow);
 	itk::OutputWindow::SetInstance(m_itkOutputWindow);
+	cmbboxLogLevel->addItems(AvailableLogLevels());
 
 	connect(pbClearLog, &QPushButton::clicked, this, &iALogWidget::clear);
+	connect(cmbboxLogLevel, QOverload<int>::of(&QComboBox::currentIndexChanged), this, &iALogWidget::setLogLevelSlot);
 	connect(this, &iALogWidget::logSignal, this, &iALogWidget::logSlot);
 }
 
@@ -155,6 +157,18 @@ void iALogWidget::clear()
 
 void iALogWidget::closeEvent(QCloseEvent* event)
 {
-	emit consoleVisibilityChanged(false);
+	emit logVisibilityChanged(false);
 	QDockWidget::closeEvent(event);
+}
+
+void iALogWidget::setLogLevel(iALogLevel lvl)
+{
+	QSignalBlocker sb(cmbboxLogLevel);
+	cmbboxLogLevel->setCurrentIndex(lvl - 1);
+	iALogger::setLogLevel(lvl);
+}
+
+void iALogWidget::setLogLevelSlot(int selectedIdx)
+{
+	iALogger::setLogLevel(static_cast<iALogLevel>(selectedIdx + 1));
 }

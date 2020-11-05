@@ -956,9 +956,9 @@ void MainWindow::enableInteraction()
 	}
 }
 
-void MainWindow::toggleConsole()
+void MainWindow::toggleLog()
 {
-	iALogWidget::get()->setVisible(actionShowConsole->isChecked());
+	iALogWidget::get()->setVisible(actionShowLog->isChecked());
 }
 
 void MainWindow::toggleFullScreen()
@@ -1782,7 +1782,7 @@ void MainWindow::connectSignalsToSlots()
 	connect(actionLinkViews, &QAction::triggered, this, &MainWindow::linkViews);
 	connect(actionLinkMdis, &QAction::triggered, this, &MainWindow::linkMDIs);
 	connect(actionEnableInteraction, &QAction::triggered, this, &MainWindow::enableInteraction);
-	connect(actionShowConsole, &QAction::triggered, this, &MainWindow::toggleConsole);
+	connect(actionShowLog, &QAction::triggered, this, &MainWindow::toggleLog);
 	connect(actionFullScreenMode, &QAction::triggered, this, &MainWindow::toggleFullScreen);
 	connect(actionShowMenu, &QAction::triggered, this, &MainWindow::toggleMenu);
 	connect(actionShowToolbar, &QAction::triggered, this, &MainWindow::toggleToolbar);
@@ -1847,8 +1847,7 @@ void MainWindow::connectSignalsToSlots()
 
 	connect(mdiArea, &QMdiArea::subWindowActivated, this, &MainWindow::updateMenus);
 
-	consoleVisibilityChanged(iALogWidget::get()->isVisible());
-	connect(iALogWidget::get(), &iALogWidget::consoleVisibilityChanged, this, &MainWindow::consoleVisibilityChanged);
+	connect(iALogWidget::get(), &iALogWidget::logVisibilityChanged, this, &MainWindow::logVisibilityChanged);
 }
 
 void MainWindow::readSettings()
@@ -1929,8 +1928,7 @@ void MainWindow::readSettings()
 	m_spRenderSettings = settings.value("Parameters/spRenderSettings").toBool();
 	m_spSlicerSettings = settings.value("Parameters/spSlicerSettings").toBool();
 
-	actionShowConsole->setChecked(settings.value("Parameters/ShowConsole", false).toBool());
-	toggleConsole();
+	actionShowLog->setChecked(settings.value("Parameters/ShowLog", false).toBool());
 	actionShowToolbar->setChecked(settings.value("Parameters/ShowToolbar", true).toBool());
 	toggleToolbar();
 	actionMainWindowStatusBar->setChecked(settings.value("Parameters/ShowMainStatusBar", true).toBool());
@@ -2040,7 +2038,7 @@ void MainWindow::writeSettings()
 	settings.setValue("Parameters/spRenderSettings", m_spRenderSettings);
 	settings.setValue("Parameters/spSlicerSettings", m_spSlicerSettings);
 
-	settings.setValue("Parameters/ShowConsole", actionShowConsole->isChecked());
+	settings.setValue("Parameters/ShowLog", actionShowLog->isChecked());
 	settings.setValue("Parameters/ShowToolbar", actionShowToolbar->isChecked());
 	settings.setValue("Parameters/ShowMainStatusBar", actionMainWindowStatusBar->isChecked());
 
@@ -2208,10 +2206,10 @@ void MainWindow::setHistogramFocus()
 	}
 }
 
-void MainWindow::consoleVisibilityChanged(bool newVisibility)
+void MainWindow::logVisibilityChanged(bool newVisibility)
 {
-	QSignalBlocker block(actionShowConsole);
-	actionShowConsole->setChecked(newVisibility);
+	QSignalBlocker block(actionShowLog);
+	actionShowLog->setChecked(newVisibility);
 }
 
 QList<MdiChild*> MainWindow::mdiChildList(QMdiArea::WindowOrder order)
@@ -2620,5 +2618,6 @@ int MainWindow::runGUI(int argc, char * argv[], QString const & appName, QString
 		app.setWindowIcon(QIcon(QPixmap(":/images/Xmas.png")));
 	}
 	mainWin.show();
+	mainWin.toggleLog();
 	return app.exec();
 }
