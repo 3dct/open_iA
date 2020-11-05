@@ -483,6 +483,9 @@ void iAFiAKErController::setupSettingsView()
 	m_settingsView->cmbboxResultColors->addItems(iAColorThemeManager::instance().availableThemes());
 	m_settingsView->cmbboxResultColors->setCurrentText(DefaultResultColorTheme);
 
+	m_settingsView->cbShowPreviews->setChecked(m_showPreviews);
+	m_settingsView->cbShowCharts->setChecked(m_showCharts);
+
 	connect(m_settingsView->slOpacityDefault, &QSlider::valueChanged, this, &iAFiAKErController::mainOpacityChanged);
 	connect(m_settingsView->slOpacityContext, &QSlider::valueChanged, this, &iAFiAKErController::contextOpacityChanged);
 	connect(m_settingsView->slDiameterFactorDefault, &QSlider::valueChanged, this, &iAFiAKErController::diameterFactorChanged);
