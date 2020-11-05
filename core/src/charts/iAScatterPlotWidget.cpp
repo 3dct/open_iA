@@ -62,6 +62,10 @@ public:
 	{
 		m_highlight.push_back(idx);
 	}
+	bool isHighlighted(size_t idx) const
+	{
+		return std::find(m_highlight.begin(), m_highlight.end(), idx) != m_highlight.end();
+	}
 	void removeHighlightedPoint(size_t idx)
 	{
 		m_highlight.erase(std::find(m_highlight.begin(), m_highlight.end(), idx));
@@ -98,8 +102,7 @@ iAScatterPlotWidget::iAScatterPlotWidget(QSharedPointer<iASPLOMData> data) :
 	m_scatterPlotHandler(new iAScatterPlotStandaloneHandler()),
 	m_fontHeight(0),
 	m_maxTickLabelWidth(0),
-	m_fixPointsEnabled(false),
-	m_curFixPoint(iAScatterPlot::NoPointIndex)
+	m_fixPointsEnabled(false)
 {
 	setMouseTracking(true);
 	setFocusPolicy(Qt::StrongFocus);
@@ -245,15 +248,17 @@ void iAScatterPlotWidget::mousePressEvent(QMouseEvent * event)
 	if (m_fixPointsEnabled)
 	{
 		auto curPoint = m_scatterplot->getCurrentPoint();
-		if (curPoint != iAScatterPlot::NoPointIndex && curPoint != m_curFixPoint)
+		if (curPoint != iAScatterPlot::NoPointIndex && !m_scatterPlotHandler->isHighlighted(curPoint))
 		{
-			if (m_curFixPoint != iAScatterPlot::NoPointIndex)
+			if (!event->modifiers().testFlag(Qt::ControlModifier))
 			{
-				m_scatterPlotHandler->removeHighlightedPoint(m_curFixPoint);
-				emit pointHighlighted(curPoint, false);
+				for (auto idx : m_scatterPlotHandler->getHighlightedPoints())
+				{
+					m_scatterPlotHandler->removeHighlightedPoint(idx);
+					emit pointHighlighted(idx, false);
+				}
 			}
 			m_scatterPlotHandler->addHighlightedPoint(curPoint);
-			m_curFixPoint = curPoint;
 			emit pointHighlighted(curPoint, true);
 			update();
 		}

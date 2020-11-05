@@ -1015,7 +1015,7 @@ void iASensitivityInfo::createGUI()
 	m_gui->m_scatterPlot->setPointRadius(5);
 	m_gui->m_scatterPlot->setFixPointsEnabled(true);
 	auto dwScatterPlot = new iADockWidgetWrapper(m_gui->m_scatterPlot, "Results Overview", "foeScatterPlot");
-	connect(m_gui->m_scatterPlot, &iAScatterPlotWidget::pointSelected, this, &iASensitivityInfo::resultSelected);
+	connect(m_gui->m_scatterPlot, &iAScatterPlotWidget::pointHighlighted, this, &iASensitivityInfo::resultSelected);
 	m_child->splitDockWidget(dwParamInfluence, dwScatterPlot, Qt::Vertical);
 
 	updateDissimilarity();

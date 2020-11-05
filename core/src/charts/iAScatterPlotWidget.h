@@ -63,7 +63,6 @@ private:
 	QSharedPointer<iAScatterPlotStandaloneHandler> m_scatterPlotHandler;
 	int m_fontHeight, m_maxTickLabelWidth;
 	bool m_fixPointsEnabled;
-	size_t m_curFixPoint;
 signals:
 	void pointHighlighted(size_t ptIdx, bool state);
 };
