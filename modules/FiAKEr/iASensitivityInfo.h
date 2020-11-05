@@ -187,6 +187,7 @@ private:
 	bool m_aborted;
 signals:
 	void aborted();
+	void resultSelected(size_t resultIdx, bool state);
 public slots:
 	void changeAggregation(int newAggregation);
 	void changeMeasure(int newMeasure);

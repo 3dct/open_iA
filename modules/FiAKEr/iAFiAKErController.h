@@ -202,6 +202,7 @@ private slots:
 	void dissimMatrixMeasureChanged(int);
 	void dissimMatrixParameterChanged(int);
 	void dissimMatrixColorMapChanged(int);
+	void showMainVis(size_t resultID, bool state);
 private:
 	bool loadReferenceInternal(iASettings settings);
 	void changeDistributionSource(int index);
@@ -228,7 +229,6 @@ private:
 	void hideSamplePointsPrivate();
 	void showSpatialOverview();
 	void setReference(size_t referenceID, std::vector<std::pair<int, bool>> measures, int optimizationMeasure, int bestMeasure);
-	void showMainVis(size_t resultID, int state);
 	void updateRefDistPlots();
 	bool matchQualityVisActive() const;
 	void updateFiberContext();

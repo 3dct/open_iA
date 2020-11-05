@@ -1365,6 +1365,7 @@ void iAFiAKErController::computeSensitivity()
 	m_sensitivityInfo = iASensitivityInfo::create(m_mdiChild, m_data, m_views[ResultListView],
 		m_mdiChild->jobsList(), m_histogramBins);
 	connect(m_sensitivityInfo.data(), &iASensitivityInfo::aborted, this, &iAFiAKErController::resetSensitivity);
+	connect(m_sensitivityInfo.data(), &iASensitivityInfo::resultSelected, this, &iAFiAKErController::showMainVis);
 }
 
 void iAFiAKErController::resetSensitivity()
@@ -1794,7 +1795,7 @@ void iAFiAKErController::toggleVis(int state)
 {
 	size_t resultID = QObject::sender()->property("resultID").toULongLong();
 	addInteraction(QString("Toggle visibility of %1 to %2.").arg(resultName(resultID)).arg(state?"on":"off"));
-	showMainVis(resultID, state);
+	showMainVis(resultID, state == Qt::Checked);
 }
 
 void iAFiAKErController::ensureMain3DViewCreated(size_t resultID)
@@ -1815,11 +1816,11 @@ void iAFiAKErController::ensureMain3DViewCreated(size_t resultID)
 	}
 }
 
-void iAFiAKErController::showMainVis(size_t resultID, int state)
+void iAFiAKErController::showMainVis(size_t resultID, bool state)
 {
 	auto & d = m_data->result[resultID];
 	auto & ui = m_resultUIs[resultID];
-	if (state == Qt::Checked)
+	if (state)
 	{
 		ensureMain3DViewCreated(resultID);
 		ui.main3DVis->setSelectionOpacity(m_selectionOpacity);
@@ -2761,7 +2762,7 @@ void iAFiAKErController::refDistAvailable()
 	m_distributionChoice->setCurrentIndex(m_data->spmData->numParams() - 1);
 	QSignalBlocker cbColorByBlock(m_colorByDistribution);
 	m_colorByDistribution->setChecked(true);
-	showMainVis(m_referenceID, Qt::Checked);
+	showMainVis(m_referenceID, true);
 	changeDistributionSource(m_data->spmData->numParams() - 1);
 
 	emit referenceComputed();
