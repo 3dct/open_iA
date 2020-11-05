@@ -265,7 +265,8 @@ std::vector<std::vector<double>> computeMDS(std::vector<std::vector<double>> con
 
 		auto vecDiff = vectorDiff(Z, X);
 		diffSum = matrixSum(vecDiff);
-		LOG(lvlDebug, QString("diff Z-X (sum=%1): %2").arg(diffSum).arg(matrixToString(vecDiff)));
+		//LOG(lvlDebug, QString("diff Z-X: %1").arg(matrixToString(vecDiff)));
+		LOG(lvlDebug, QString("sum (diff Z-X): %1").arg(diffSum));
 		Z = X;
 	}
 	return X;
