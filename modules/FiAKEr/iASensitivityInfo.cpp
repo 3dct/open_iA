@@ -1045,15 +1045,29 @@ void iASensitivityInfo::createGUI()
 	std::vector<QString> paramNames;
 	paramNames.push_back("X");
 	paramNames.push_back("Y");
+	paramNames.push_back("id");
 	m_gui->m_mdsData->setParameterNames(paramNames, m_data->result.size());
 	m_gui->m_mdsData->data()[0].resize(m_data->result.size());
 	m_gui->m_mdsData->data()[1].resize(m_data->result.size());
+	m_gui->m_mdsData->data()[2].resize(m_data->result.size());
+	for (size_t i = 0; i < m_data->result.size(); ++i)
+	{
+		m_gui->m_mdsData->data()[2][i] = i;
+	}
 	m_gui->m_scatterPlot = new iAScatterPlotWidget(m_gui->m_mdsData);
 	m_gui->m_scatterPlot->setPointRadius(5);
 	m_gui->m_scatterPlot->setFixPointsEnabled(true);
+	QSharedPointer<iALookupTable> lut(new iALookupTable());
+	lut->setRange(0, m_data->result.size());
+	lut->allocate(m_data->result.size());
+	for (size_t i = 0; i < m_data->result.size(); ++i)
+	{
+		lut->setColor(i, (i % m_starGroupSize == 0) ? QColor(0, 0, 255, 255) : QColor(128, 128, 128, 128));
+	}
+	m_gui->m_scatterPlot->setLookupTable(lut, 2);
 	m_gui->m_scatterPlot->setPointInfo(QSharedPointer<iAScatterPlotPointInfo>(new iASPParamPointInfo(*this, *m_data.data())));
 	auto dwScatterPlot = new iADockWidgetWrapper(m_gui->m_scatterPlot, "Results Overview", "foeScatterPlot");
-	connect(m_gui->m_scatterPlot, &iAScatterPlotWidget::pointHighlighted, this, &iASensitivityInfo::resultSelected);
+	connect(m_gui->m_scatterPlot, &iAScatterPlotWidget::pointHighlighted, this, &iASensitivityInfo::resultSelectedSP);
 	m_child->splitDockWidget(dwParamInfluence, dwScatterPlot, Qt::Vertical);
 
 	updateDissimilarity();
@@ -1166,5 +1180,5 @@ void iASensitivityInfo::updateDissimilarity()
 		LOG(lvlInfo, QString("%1: %2, %3").arg(i).arg(mds[i][0]).arg(mds[i][1]));
 	}
 	m_gui->m_mdsData->updateRanges();
-	m_gui->m_scatterPlot->setPlotColor(QColor(0, 0, 255), m_gui->m_mdsData->paramRange(0)[0], m_gui->m_mdsData->paramRange(0)[1]);
+	//m_gui->m_scatterPlot->setPlotColor(QColor(0, 0, 255), m_gui->m_mdsData->paramRange(0)[0], m_gui->m_mdsData->paramRange(0)[1]);
 }
