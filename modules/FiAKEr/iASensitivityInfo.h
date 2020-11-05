@@ -196,6 +196,7 @@ public slots:
 	void changeStackedBarColors();
 	void updateOutputControls();
 	void updateDissimilarity();
+	void resultSelectedSP(size_t resultIdx, bool state);
 	void createGUI();
 };
 

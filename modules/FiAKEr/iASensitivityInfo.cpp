@@ -1163,14 +1163,19 @@ void iASensitivityInfo::updateDissimilarity()
 {
 	int dissimIdx = m_gui->m_settings->cmbboxDissimilarity->currentIndex();
 	iAMatrixType distMatrix(m_data->result.size(), std::vector<double>(m_data->result.size()));
+	LOG(lvlDebug, "Distance Matrix:");
 	for (int r1 = 0; r1 < distMatrix.size(); ++r1)
 	{
+		QString line;
 		for (int r2 = 0; r2 < distMatrix.size(); ++r2)
 		{
 			distMatrix[r1][r2] = m_resultDissimMatrix[r1][r2].avgDissim[dissimIdx];
+			line += " " + QString::number(distMatrix[r1][r2], 'f', 2).rightJustified(5);
 		}
+		LOG(lvlDebug, QString("%1:%2").arg(r1).arg(line));
 	}
 	auto mds = computeMDS(distMatrix, 2, 10);
+	LOG(lvlDebug, "MDS:");
 	for (int i = 0; i < mds.size(); ++i)
 	{
 		for (int c = 0; c < mds[0].size(); ++c)
@@ -1181,4 +1186,10 @@ void iASensitivityInfo::updateDissimilarity()
 	}
 	m_gui->m_mdsData->updateRanges();
 	//m_gui->m_scatterPlot->setPlotColor(QColor(0, 0, 255), m_gui->m_mdsData->paramRange(0)[0], m_gui->m_mdsData->paramRange(0)[1]);
+}
+
+void iASensitivityInfo::resultSelectedSP(size_t resultIdx, bool state)
+{
+	// setResultMarkers(resultIdx, state); // where to set?
+	emit resultSelected(resultIdx, state);
 }
