@@ -245,9 +245,10 @@ void iAScatterPlotWidget::drawTooltip(QPainter& painter)
 		m_pointInfo->text(pInds, curInd);
 	QTextDocument doc;
 	doc.setHtml(text);
-	doc.setTextWidth(150);	// = settings.popupWidth
+	int popupWidth = 200;	// = settings.popupWidth
+	doc.setTextWidth(popupWidth);
 	double tipDim[2] = { 5, 10 }; // = settings.popupTipDim
-	double popupWidthHalf = 90; // settings.popupWidth / 2
+	double popupWidthHalf = popupWidth / 2; // settings.popupWidth / 2
 	auto popupHeight = doc.size().height();
 	QPointF points[7] = {
 		QPointF(0, 0),
