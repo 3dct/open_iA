@@ -978,12 +978,18 @@ public:
 	//! scatter plot for the MDS plot of all results
 	iAScatterPlotWidget* m_scatterPlot;
 
+	iADockWidgetWrapper* m_dwParamInfluence;
+
 	QSharedPointer<iASPLOMData> m_mdsData;
 };
 
 QString iASensitivityInfo::charactName(int charIdx) const
 {
-	return m_data->spmData->parameterName(charactIndex[charIdx]);
+	return m_data->spmData->parameterName(charactIndex[charIdx])
+		.replace("[µm]", "")
+		.replace("[µm²]", "")
+		.replace("[µm³]", "")
+		.replace("[°]", "");
 }
 
 class iASPParamPointInfo: public iAScatterPlotPointInfo
@@ -1030,16 +1036,16 @@ void iASensitivityInfo::createGUI()
 	m_child->splitDockWidget(m_nextToDW, dwSettings, Qt::Horizontal);
 
 	m_gui->m_paramInfluenceView = new iAParameterInfluenceView(this);
-	auto dwParamInfluence = new iADockWidgetWrapper(m_gui->m_paramInfluenceView, "Parameter Influence", "foeParamInfluence");
+	m_gui->m_dwParamInfluence = new iADockWidgetWrapper(m_gui->m_paramInfluenceView, "Parameter Influence", "foeParamInfluence");
 	connect(m_gui->m_paramInfluenceView, &iAParameterInfluenceView::parameterChanged, this, &iASensitivityInfo::paramChanged);
 	connect(m_gui->m_paramInfluenceView, &iAParameterInfluenceView::characteristicSelected, this, &iASensitivityInfo::charactChanged);
 	connect(m_gui->m_settings->cmbboxCharacteristic, QOverload<int>::of(&QComboBox::currentIndexChanged),
 		m_gui->m_paramInfluenceView, &iAParameterInfluenceView::selectStackedBar);
-	m_child->splitDockWidget(dwSettings, dwParamInfluence, Qt::Vertical);
+	m_child->splitDockWidget(dwSettings, m_gui->m_dwParamInfluence, Qt::Vertical);
 
 	m_gui->m_paramDetails = new QCustomPlot(m_child);
 	auto dwParamDetails = new iADockWidgetWrapper(m_gui->m_paramDetails, "Parameter Details", "foeParamDetails");
-	m_child->splitDockWidget(dwParamInfluence, dwParamDetails, Qt::Vertical);
+	m_child->splitDockWidget(m_gui->m_dwParamInfluence, dwParamDetails, Qt::Vertical);
 
 	m_gui->m_mdsData = QSharedPointer<iASPLOMData>(new iASPLOMData());
 	std::vector<QString> paramNames;
@@ -1068,7 +1074,7 @@ void iASensitivityInfo::createGUI()
 	m_gui->m_scatterPlot->setPointInfo(QSharedPointer<iAScatterPlotPointInfo>(new iASPParamPointInfo(*this, *m_data.data())));
 	auto dwScatterPlot = new iADockWidgetWrapper(m_gui->m_scatterPlot, "Results Overview", "foeScatterPlot");
 	connect(m_gui->m_scatterPlot, &iAScatterPlotWidget::pointHighlighted, this, &iASensitivityInfo::resultSelectedSP);
-	m_child->splitDockWidget(dwParamInfluence, dwScatterPlot, Qt::Vertical);
+	m_child->splitDockWidget(m_gui->m_dwParamInfluence, dwScatterPlot, Qt::Vertical);
 
 	updateDissimilarity();
 }
@@ -1096,6 +1102,8 @@ void iASensitivityInfo::paramChanged()
 	int charIdx = m_gui->m_settings->charIdx();
 	int measureIdx = m_gui->m_paramInfluenceView->selectedMeasure();
 	int aggrType = m_gui->m_paramInfluenceView->selectedAggrType();
+
+	m_gui->m_dwParamInfluence->setWindowTitle("Parameter Influence (by " + DistributionDifferenceMeasureNames()[measureIdx] + ")");
 
 	auto& plot = m_gui->m_paramDetails;
 	plot->clearGraphs();

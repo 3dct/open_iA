@@ -297,8 +297,8 @@ void iAParameterInfluenceView::updateStackedBars()
 
 QString iAParameterInfluenceView::columnName(int charactIdx) const
 {
-	return charactIdx < m_sensInf->aggregatedSensitivities.size() ?
-		m_sensInf->charactName(charactIdx) : "Fiber Count";
+	return QString("Variation ") + (charactIdx < m_sensInf->aggregatedSensitivities.size() ?
+		 m_sensInf->charactName(charactIdx) : " Fiber Count");
 }
 
 void iAParameterInfluenceView::addStackedBar(int charactIdx)
