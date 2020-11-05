@@ -50,6 +50,7 @@ public:
 	iAScatterPlotWidget(QSharedPointer<iASPLOMData> data);
 	std::vector<size_t> & selection();
 	void setSelection(std::vector<size_t> const & selection);
+	void setLookupTable(QSharedPointer<iALookupTable> lut, size_t paramIdx);
 	void setPlotColor(QColor const & c, double rangeMin, double rangeMax);
 	void setSelectionColor(QColor const & c);
 	void setSelectionMode(iAScatterPlot::SelectionMode mode);

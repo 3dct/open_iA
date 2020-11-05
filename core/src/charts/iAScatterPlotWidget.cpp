@@ -153,6 +153,11 @@ void iAScatterPlotWidget::setPlotColor(QColor const & c, double rangeMin, double
 	m_scatterplot->setLookupTable(lut, 0);
 }
 
+void iAScatterPlotWidget::setLookupTable(QSharedPointer<iALookupTable> lut, size_t paramIdx)
+{
+	m_scatterplot->setLookupTable(lut, paramIdx);
+}
+
 #ifdef CHART_OPENGL
 void iAScatterPlotWidget::paintGL()
 #else
