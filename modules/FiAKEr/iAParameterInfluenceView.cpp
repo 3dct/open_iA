@@ -305,7 +305,7 @@ void iAParameterInfluenceView::addStackedBar(int charactIdx)
 {
 	m_visibleCharacts.push_back(charactIdx);
 	auto title(columnName(charactIdx));
-	LOG(lvlInfo, QString("Showing stacked bar for characteristic %1").arg(title));
+	LOG(lvlDebug, QString("Showing stacked bar for characteristic %1").arg(title));
 	m_stackedHeader->addBar(title, 1, 1);
 	auto const& d = (charactIdx < m_sensInf->aggregatedSensitivities.size()) ?
 		m_sensInf->aggregatedSensitivities[charactIdx][m_measureIdx][m_aggrType] :
@@ -333,7 +333,7 @@ void iAParameterInfluenceView::removeStackedBar(int charactIdx)
 	}
 	m_visibleCharacts.remove(visibleIdx);
 	auto title(columnName(charactIdx));
-	LOG(lvlInfo, QString("Removing stacked bar for characteristic %1").arg(title));
+	LOG(lvlDebug, QString("Removing stacked bar for characteristic %1").arg(title));
 	m_stackedHeader->removeBar(title);
 	for (auto stackedChart : m_stackedCharts)
 	{
