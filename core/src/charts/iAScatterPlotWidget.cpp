@@ -197,7 +197,7 @@ void iAScatterPlotWidget::paintEvent(QPaintEvent* event)
 	for (long i = 0; i < ticksY.size(); ++i)
 	{
 		double t = ticksY[i]; QString text = textY[i];
-		QRectF textRect(-PaddingLeft(), t - tOfs.y(), tOfs.x() - tSpc, 2 * tOfs.y());
+		QRectF textRect(0, t - tOfs.y(), tOfs.x() - tSpc, 2 * tOfs.y());
 		//LOG(lvlInfo, QString("text rect: %1,%2, %3x%4").arg(textRect.left()).arg(textRect.top()).arg(textRect.width()).arg(textRect.height()));
 		painter.drawText(textRect, Qt::AlignRight | Qt::AlignVCenter, text);
 	}
