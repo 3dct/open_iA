@@ -250,10 +250,11 @@ void iAScatterPlotWidget::mousePressEvent(QMouseEvent * event)
 			if (m_curFixPoint != iAScatterPlot::NoPointIndex)
 			{
 				m_scatterPlotHandler->removeHighlightedPoint(m_curFixPoint);
+				emit pointHighlighted(curPoint, false);
 			}
 			m_scatterPlotHandler->addHighlightedPoint(curPoint);
 			m_curFixPoint = curPoint;
-			emit pointSelected(curPoint, true);
+			emit pointHighlighted(curPoint, true);
 			update();
 		}
 	}

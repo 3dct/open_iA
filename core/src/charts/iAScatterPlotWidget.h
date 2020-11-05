@@ -65,5 +65,5 @@ private:
 	bool m_fixPointsEnabled;
 	size_t m_curFixPoint;
 signals:
-	void pointSelected(size_t ptIdx, bool state);
+	void pointHighlighted(size_t ptIdx, bool state);
 };
