@@ -264,7 +264,7 @@ QSharedPointer<iASensitivityInfo> iASensitivityInfo::create(QMainWindow* child,
 	}
 	sensitivity->charactIndex = dlg.selectedCharacteristics();
 	sensitivity->charDiffMeasure = dlg.selectedDiffMeasures();
-	sensitivity->dissimMeasure = dlg.selectedMeasures();
+	//sensitivity->dissimMeasure = dlg.selectedMeasures();
 	sensitivity->m_histogramBins = histogramBins;
 	if (sensitivity->charactIndex.size() == 0 || sensitivity->charDiffMeasure.size() == 0)
 	{
@@ -745,7 +745,15 @@ void iASensitivityInfo::compute()
 	m_progress.setStatus("Computing dissimilarity between all result pairs.");
 	QVector<int> measures;
 
-	if (!readDissimilarityMatrixCache(measures))
+	if (readDissimilarityMatrixCache(measures))
+	{
+		m_resultDissimMeasures.clear();
+		for (auto m : measures)
+		{
+			m_resultDissimMeasures.push_back(std::make_pair(m, true));
+		}
+	}
+	else
 	{
 		int measureCount = static_cast<int>(m_resultDissimMeasures.size());
 		int resultCount = static_cast<int>(m_data->result.size());

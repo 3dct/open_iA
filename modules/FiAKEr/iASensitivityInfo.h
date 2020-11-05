@@ -63,7 +63,7 @@ public:
 	//! which difference measures were used for distribution comparison
 	QVector<int> charDiffMeasure;
 	//! for which dissimilarity measure sensitivity was computed
-	QVector<int> dissimMeasure;
+	//QVector<int> dissimMeasure;
 
 	QVector<                //! For each result,
 		QVector<	        //! for each characteristic,
