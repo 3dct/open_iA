@@ -1270,8 +1270,6 @@ bool iAQSplom::drawPopup( QPainter& painter )
 	painter.setBrush( col );
 	col = settings.popupBorderColor; col.setAlpha( col.alpha()* anim );
 	painter.setPen( col );
-	//painter.setBrush( settings.popupFillColor );
-	//painter.setPen( settings.popupBorderColor );
 	painter.translate( popupPos );
 
 	QString text = "<center><b>#" + QString::number(curInd) + "</b><br> " + \
@@ -1299,8 +1297,6 @@ bool iAQSplom::drawPopup( QPainter& painter )
 
 	painter.translate( -popupWidthHalf, -m_popupHeight - tipDim[1] );
 	QAbstractTextDocumentLayout::PaintContext ctx;
-	col = settings.popupTextColor; col.setAlpha( col.alpha()* anim );
-	ctx.palette.setColor( QPalette::Text, col );
 	ctx.palette.setColor( QPalette::Text, settings.popupTextColor );
 	doc.documentLayout()->draw( &painter, ctx ); //doc.drawContents( &painter );
 
