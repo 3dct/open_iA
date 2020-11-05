@@ -58,6 +58,14 @@ public:
 	{
 		return m_highlight;
 	}
+	void addHighlightedPoint(size_t idx)
+	{
+		m_highlight.push_back(idx);
+	}
+	void removeHighlightedPoint(size_t idx)
+	{
+		m_highlight.erase(std::find(m_highlight.begin(), m_highlight.end(), idx));
+	}
 	int getVisibleParametersCount() const override
 	{
 		return 2;
@@ -89,7 +97,9 @@ iAScatterPlotWidget::iAScatterPlotWidget(QSharedPointer<iASPLOMData> data) :
 	m_data(data),
 	m_scatterPlotHandler(new iAScatterPlotStandaloneHandler()),
 	m_fontHeight(0),
-	m_maxTickLabelWidth(0)
+	m_maxTickLabelWidth(0),
+	m_fixPointsEnabled(false),
+	m_curFixPoint(iAScatterPlot::NoPointIndex)
 {
 	setMouseTracking(true);
 	setFocusPolicy(Qt::StrongFocus);
@@ -232,6 +242,21 @@ void iAScatterPlotWidget::mousePressEvent(QMouseEvent * event)
 	{
 		m_scatterplot->SPLOMMousePressEvent(event);
 	}
+	if (m_fixPointsEnabled)
+	{
+		auto curPoint = m_scatterplot->getCurrentPoint();
+		if (curPoint != iAScatterPlot::NoPointIndex && curPoint != m_curFixPoint)
+		{
+			if (m_curFixPoint != iAScatterPlot::NoPointIndex)
+			{
+				m_scatterPlotHandler->removeHighlightedPoint(m_curFixPoint);
+			}
+			m_scatterPlotHandler->addHighlightedPoint(curPoint);
+			m_curFixPoint = curPoint;
+			emit pointSelected(curPoint, true);
+			update();
+		}
+	}
 }
 
 void iAScatterPlotWidget::mouseReleaseEvent(QMouseEvent * event)
@@ -284,4 +309,9 @@ void iAScatterPlotWidget::setSelectionMode(iAScatterPlot::SelectionMode mode)
 void iAScatterPlotWidget::setPointRadius(double pointRadius)
 {
 	m_scatterplot->setPointRadius(pointRadius);
+}
+
+void iAScatterPlotWidget::setFixPointsEnabled(bool enabled)
+{
+	m_fixPointsEnabled = enabled;
 }

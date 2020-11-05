@@ -32,6 +32,7 @@ class iAScatterPlotStandaloneHandler;
 //! Widget for using a single scatter plot (outside of a SPLOM)
 class open_iA_Core_API iAScatterPlotWidget : public iAQGLWidget
 {
+	Q_OBJECT
 public:
 	static const int PaddingTop;
 	static const int PaddingRight;
@@ -45,6 +46,7 @@ public:
 	void setSelectionColor(QColor const & c);
 	void setSelectionMode(iAScatterPlot::SelectionMode mode);
 	void setPointRadius(double pointRadius);
+	void setFixPointsEnabled(bool enabled);
 protected:
 	void paintEvent(QPaintEvent * event) override;
 	void resizeEvent(QResizeEvent* event) override;
@@ -60,4 +62,8 @@ private:
 	QSharedPointer<iASPLOMData> m_data;
 	QSharedPointer<iAScatterPlotStandaloneHandler> m_scatterPlotHandler;
 	int m_fontHeight, m_maxTickLabelWidth;
+	bool m_fixPointsEnabled;
+	size_t m_curFixPoint;
+signals:
+	void pointSelected(size_t ptIdx, bool state);
 };
