@@ -986,6 +986,36 @@ QString iASensitivityInfo::charactName(int charIdx) const
 	return m_data->spmData->parameterName(charactIndex[charIdx]);
 }
 
+class iASPParamPointInfo: public iAScatterPlotPointInfo
+{
+public:
+	iASPParamPointInfo(iASensitivityInfo const & data, iAFiberResultsCollection const & results) :
+		m_data(data),
+		m_results(results)
+	{}
+	QString text(const size_t paramIdx[2], size_t pointIdx) override
+	{
+		Q_UNUSED(paramIdx);
+		QString result(QString("Fiber Count: %1<br/>").arg(m_results.result[pointIdx].fiberCount));
+		for (int i = 0; i < m_data.variedParams.size(); ++i)
+		{
+			result +=
+				m_data.m_paramNames[m_data.variedParams[i]] + ": " +
+				QString::number(m_data.m_paramValues[m_data.variedParams[i]][pointIdx], 'f', 3) + "<br/>";
+				/*
+				m_data->parameterName(paramIdx[0]) + ": " +
+				QString::number(m_data->paramData(paramIdx[0])[pointIdx]) + "<br>" +
+				m_data->parameterName(paramIdx[1]) + ": " +
+				QString::number(m_data->paramData(paramIdx[1])[pointIdx])
+				*/
+		}
+		return result;
+	}
+private:
+	iASensitivityInfo const & m_data;
+	iAFiberResultsCollection const& m_results;
+};
+
 void iASensitivityInfo::createGUI()
 {
 	if (m_aborted)
@@ -1011,7 +1041,6 @@ void iASensitivityInfo::createGUI()
 	auto dwParamDetails = new iADockWidgetWrapper(m_gui->m_paramDetails, "Parameter Details", "foeParamDetails");
 	m_child->splitDockWidget(dwParamInfluence, dwParamDetails, Qt::Vertical);
 
-
 	m_gui->m_mdsData = QSharedPointer<iASPLOMData>(new iASPLOMData());
 	std::vector<QString> paramNames;
 	paramNames.push_back("X");
@@ -1022,6 +1051,7 @@ void iASensitivityInfo::createGUI()
 	m_gui->m_scatterPlot = new iAScatterPlotWidget(m_gui->m_mdsData);
 	m_gui->m_scatterPlot->setPointRadius(5);
 	m_gui->m_scatterPlot->setFixPointsEnabled(true);
+	m_gui->m_scatterPlot->setPointInfo(QSharedPointer<iAScatterPlotPointInfo>(new iASPParamPointInfo(*this, *m_data.data())));
 	auto dwScatterPlot = new iADockWidgetWrapper(m_gui->m_scatterPlot, "Results Overview", "foeScatterPlot");
 	connect(m_gui->m_scatterPlot, &iAScatterPlotWidget::pointHighlighted, this, &iASensitivityInfo::resultSelected);
 	m_child->splitDockWidget(dwParamInfluence, dwScatterPlot, Qt::Vertical);
