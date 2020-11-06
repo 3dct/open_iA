@@ -1269,4 +1269,11 @@ void iASensitivityInfo::updateDissimilarity()
 void iASensitivityInfo::spHighlightChanged()
 {
 	m_gui->updateScatterPlotLUT(m_starGroupSize, m_numOfSTARSteps, m_data->result.size());
+	auto const& hp = m_gui->m_scatterPlot->highlightedPoints();
+	if (hp.size() == 2)
+	{
+		emit resultSelected(hp[0], false);
+		emit resultSelected(hp[1], false);
+		emit viewDifference(hp[0], hp[1]);
+	}
 }

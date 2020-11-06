@@ -70,6 +70,9 @@
 #include <qthelper/iASignallingWidget.h>
 #include <qthelper/iAVtkQtWidget.h>
 
+//#include <vtkBooleanOperationPolyDataFilter.h>
+#include "vtkPolyDataBooleanFilter.h"
+
 #include <vtkCamera.h>
 #include <vtkColorTransferFunction.h>
 #include <vtkCubeSource.h>
@@ -1371,6 +1374,7 @@ void iAFiAKErController::computeSensitivity()
 		m_mdiChild->jobsList(), m_histogramBins);
 	connect(m_sensitivityInfo.data(), &iASensitivityInfo::aborted, this, &iAFiAKErController::resetSensitivity);
 	connect(m_sensitivityInfo.data(), &iASensitivityInfo::resultSelected, this, &iAFiAKErController::showMainVis);
+	connect(m_sensitivityInfo.data(), &iASensitivityInfo::viewDifference, this, &iAFiAKErController::showDifference);
 }
 
 void iAFiAKErController::resetSensitivity()
@@ -1956,6 +1960,40 @@ void iAFiAKErController::showMainVis(size_t resultID, bool state)
 		}
 	}
 	changeReferenceDisplay();
+	update3D();
+}
+
+void iAFiAKErController::showDifference(size_t r1, size_t r2)
+{
+	ensureMain3DViewCreated(r1);
+	ensureMain3DViewCreated(r2);
+	vtkSmartPointer<vtkPolyData> input1 = m_resultUIs[r1].main3DVis->finalPoly();
+	vtkSmartPointer<vtkPolyData> input2 = m_resultUIs[r2].main3DVis->finalPoly();
+	const double* b1 = input1->GetBounds();
+	const double* b2 = input2->GetBounds();
+	LOG(lvlDebug, QString("in1: %1, %2, %3, %4; in2: %5, %6, %7, %8")
+		.arg(b1[0]).arg(b1[1]).arg(b1[2]).arg(b1[3])
+		.arg(b2[0]).arg(b2[1]).arg(b2[2]).arg(b2[3])
+	);
+	auto diffOp = vtkSmartPointer<vtkPolyDataBooleanFilter>::New();
+	//auto diffOp = vtkSmartPointer<vtkBooleanOperationPolyDataFilter>::New();
+	diffOp->SetInputData(0, input1);
+	diffOp->SetInputData(1, input2);
+	//diffOp->SetOperationToDifference();
+	diffOp->SetOperModeToDifference();
+	diffOp->Update();
+	m_diffData = diffOp->GetOutput();
+	auto diffMapper = vtkSmartPointer<vtkPolyDataMapper>::New();
+	diffMapper->SetInputData(m_diffData);
+	m_diffActor = vtkSmartPointer<vtkActor>::New();
+	m_diffActor->SetMapper(diffMapper);
+	diffMapper->Update();
+	//m_diffActor->GetProperty()->SetPointSize(2);
+#if VTK_VERSION_NUMBER < VTK_VERSION_CHECK(9, 0, 0)
+	m_main3DWidget->GetRenderWindow()->GetRenderers()->GetFirstRenderer()->AddActor(m_diffActor);
+#else
+	m_main3DWidget->renderWindow()->GetRenderers()->GetFirstRenderer()->AddActor(m_diffActor);
+#endif
 	update3D();
 }
 

@@ -203,6 +203,7 @@ private slots:
 	void dissimMatrixParameterChanged(int);
 	void dissimMatrixColorMapChanged(int);
 	void showMainVis(size_t resultID, bool state);
+	void showDifference(size_t r1, size_t r2);
 private:
 	bool loadReferenceInternal(iASettings settings);
 	void changeDistributionSource(int index);
@@ -275,7 +276,6 @@ private:
 
 	QSharedPointer<iA3DCylinderObjectVis> m_nearestReferenceVis;
 
-	vtkSmartPointer<vtkActor> m_sampleActor;
 	QTimer * m_playTimer;
 	iARefDistCompute* m_refDistCompute;
 	iAWidgetMap m_settingsWidgetMap;
@@ -296,6 +296,9 @@ private:
 	QWidget* m_showReferenceWidget;
 	std::vector<vtkSmartPointer<vtkActor> > m_contextActors;
 	iAMapper* m_diameterFactorMapper;
+	vtkSmartPointer<vtkActor> m_sampleActor;
+	vtkSmartPointer<vtkPolyData> m_diffData;
+	vtkSmartPointer<vtkActor> m_diffActor;
 
 	vtkSmartPointer<vtkCubeSource> m_customBoundingBoxSource;
 	vtkSmartPointer<vtkPolyDataMapper> m_customBoundingBoxMapper;

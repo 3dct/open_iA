@@ -188,6 +188,7 @@ private:
 signals:
 	void aborted();
 	void resultSelected(size_t resultIdx, bool state);
+	void viewDifference(size_t result1, size_t result2);
 public slots:
 	void changeAggregation(int newAggregation);
 	void changeMeasure(int newMeasure);
