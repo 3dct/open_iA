@@ -81,6 +81,16 @@ private:
 	bool m_fixPointsEnabled;
 	QSharedPointer<iAScatterPlotPointInfo> m_pointInfo;
 signals:
+	//! emitted for each single point that was highlighted (or un-highlighted)
+	//! The parameters reflect the new highlight state for the given point.
+	//! Note: When this function is called, the highlightedPoints() might
+	//! not be at the most up-to-date state (e.g. ptIdx might still be
+	//! contained in the returned vector, if state parameter here is false).
+	//! If you need a consistent, up-to-date state of all highlighted points,
+	//! attach to the highlightChanged signal instead!
 	void pointHighlighted(size_t ptIdx, bool state);
+	//! Emitted once after the internal state of highlights has been fully updated
+	//! to represent the new highlight situation after a user interaction.
+	void highlightChanged();
 	void selectionModified();
 };

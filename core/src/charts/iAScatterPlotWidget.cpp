@@ -357,6 +357,7 @@ void iAScatterPlotWidget::mousePressEvent(QMouseEvent * event)
 			m_scatterPlotHandler->addHighlightedPoint(curPoint);
 			emit pointHighlighted(curPoint, true);
 		}
+		emit highlightChanged();
 		update();
 	}
 }
