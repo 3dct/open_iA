@@ -1365,6 +1365,8 @@ void iAFiAKErController::computeSensitivity()
 		LOG(lvlWarn, "Already started!");
 		return;
 	}
+	// "hack" go get results all to have same color; TODO: set in settings / use resultColorThemeChanged?
+	m_resultColorTheme = iAColorThemeManager::instance().theme("Gray");
 	m_sensitivityInfo = iASensitivityInfo::create(m_mdiChild, m_data, m_views[ResultListView],
 		m_mdiChild->jobsList(), m_histogramBins);
 	connect(m_sensitivityInfo.data(), &iASensitivityInfo::aborted, this, &iAFiAKErController::resetSensitivity);
