@@ -45,6 +45,10 @@
 #include "iARefDistCompute.h"
 #include "iASensitivityDialog.h"
 
+#include <vtkSmartPointer.h>
+#include <vtkTable.h>
+#include <vtkVariant.h>
+
 #include <QDialog>
 #include <QDialogButtonBox>
 #include <QFile>
@@ -58,9 +62,7 @@
 #include <QTextStream>
 #include <QVBoxLayout>
 
-#include <vtkSmartPointer.h>
-#include <vtkTable.h>
-#include <vtkVariant.h>
+#include <set>
 
 namespace
 {
@@ -984,6 +986,55 @@ public:
 
 	QSharedPointer<iASPLOMData> m_mdsData;
 
+	void updateScatterPlotLUT(int starGroupSize, int numOfSTARSteps, size_t resultCount)
+	{
+		std::set<int> hiGrp;
+		std::set<std::pair<int, int> > hiGrpParam;
+		auto const& hp = m_scatterPlot->highlightedPoints();
+		for (auto ptIdx : hp)
+		{
+			int groupID = ptIdx / starGroupSize;
+			if (ptIdx % starGroupSize == 0)
+			{
+				hiGrp.insert(groupID);
+			}
+			else
+			{
+				int paramID = ((ptIdx % starGroupSize) - 1) / numOfSTARSteps;
+				hiGrpParam.insert(std::make_pair(groupID, paramID));
+			}
+		}
+		for (size_t i = 0; i < resultCount; ++i)
+		{
+			int groupID = static_cast<int>(i / starGroupSize);
+			bool highlightGroup = hiGrp.find(groupID) != hiGrp.end();
+			QColor c;
+			if (i % starGroupSize == 0)
+			{
+				highlightGroup = highlightGroup ||
+					// highlight center also if any of its param subgroups is highlighted:
+					std::find_if(hiGrpParam.begin(), hiGrpParam.end(), [groupID](std::pair<int, int> a)
+					{
+						return a.first == groupID;
+					}) != hiGrpParam.end();
+				c = QColor(0, 0, highlightGroup ? 255: 192, highlightGroup ? 255 : 128);
+				LOG(lvlDebug, QString("Point %1 (group=%2) : Color=%3, %4, %5, %6")
+					.arg(i).arg(groupID).arg(c.red()).arg(c.green()).arg(c.blue()).arg(c.alpha()));
+			}
+			else
+			{
+				int paramID = ((i % starGroupSize) - 1) / numOfSTARSteps;
+				bool highlightParam = hiGrpParam.find(std::make_pair(groupID, paramID)) != hiGrpParam.end();
+				int colVal = (highlightParam || highlightGroup) ? 128 : 192;
+				int redVal = 192;
+				c = QColor(redVal, colVal, colVal, highlightGroup ? 192 : 128);
+				LOG(lvlDebug, QString("Point %1 (group=%2, paramID=%3) : Color=%4, %5, %6, %7")
+					.arg(i).arg(groupID).arg(paramID).arg(c.red()).arg(c.green()).arg(c.blue()).arg(c.alpha()));
+			}
+			m_lut->setColor(i, c);
+		}
+		m_scatterPlot->setLookupTable(m_lut, 2);
+	}
 };
 
 QString iASensitivityInfo::charactName(int charIdx) const
@@ -1069,14 +1120,11 @@ void iASensitivityInfo::createGUI()
 	m_gui->m_lut.reset(new iALookupTable());
 	m_gui->m_lut->setRange(0, m_data->result.size());
 	m_gui->m_lut->allocate(m_data->result.size());
-	for (size_t i = 0; i < m_data->result.size(); ++i)
-	{
-		m_gui->m_lut->setColor(i, (i % m_starGroupSize == 0) ? QColor(0, 0, 255, 255) : QColor(128, 128, 128, 128));
-	}
-	m_gui->m_scatterPlot->setLookupTable(m_gui->m_lut, 2);
+	m_gui->updateScatterPlotLUT(m_starGroupSize, m_numOfSTARSteps, m_data->result.size());
 	m_gui->m_scatterPlot->setPointInfo(QSharedPointer<iAScatterPlotPointInfo>(new iASPParamPointInfo(*this, *m_data.data())));
 	auto dwScatterPlot = new iADockWidgetWrapper(m_gui->m_scatterPlot, "Results Overview", "foeScatterPlot");
-	connect(m_gui->m_scatterPlot, &iAScatterPlotWidget::pointHighlighted, this, &iASensitivityInfo::resultSelectedSP);
+	connect(m_gui->m_scatterPlot, &iAScatterPlotWidget::pointHighlighted, this, &iASensitivityInfo::resultSelected);
+	connect(m_gui->m_scatterPlot, &iAScatterPlotWidget::highlightChanged, this, &iASensitivityInfo::spHighlightChanged);
 	m_child->splitDockWidget(m_gui->m_dwParamInfluence, dwScatterPlot, Qt::Vertical);
 
 	updateDissimilarity();
@@ -1196,49 +1244,9 @@ void iASensitivityInfo::updateDissimilarity()
 		LOG(lvlInfo, QString("%1: %2, %3").arg(i).arg(mds[i][0]).arg(mds[i][1]));
 	}
 	m_gui->m_mdsData->updateRanges();
-	//m_gui->m_scatterPlot->setPlotColor(QColor(0, 0, 255), m_gui->m_mdsData->paramRange(0)[0], m_gui->m_mdsData->paramRange(0)[1]);
 }
 
-#include <set>
-
-void iASensitivityInfo::resultSelectedSP(size_t resultIdx, bool state)
+void iASensitivityInfo::spHighlightChanged()
 {
-	std::set<int> highlightedGroups;
-	std::set<std::pair<int, int> > highlightedGroupParams;
-	auto const & hp = m_gui->m_scatterPlot->highlightedPoints();
-	for (auto ptIdx: hp)
-	{
-		int groupID = ptIdx / m_starGroupSize;
-		if (ptIdx % m_starGroupSize == 0)
-		{
-			highlightedGroups.insert(groupID);
-		}
-		else
-		{
-			int paramID = ((ptIdx % m_starGroupSize) - 1) / m_numOfSTARSteps;
-			highlightedGroupParams.insert(std::make_pair(groupID, paramID));
-		}
-	}
-	for (size_t i = 0; i < m_data->result.size(); ++i)
-	{
-		int groupID = i / m_starGroupSize;
-		bool highlightGroup = highlightedGroups.find(groupID) != highlightedGroups.end();
-		QColor c;
-		if (i % m_starGroupSize == 0)
-		{
-			c = QColor(0, 0, 255, highlightGroup ? 255 : 128);
-			LOG(lvlDebug, QString("Point %1 (group=%2) : Color= %3, %4, %").arg()
-		}
-		else
-		{
-			int paramID = ((i % m_starGroupSize) - 1) / m_numOfSTARSteps;
-			bool highlightParam = highlightedGroupParams.find(std::make_pair(groupID, paramID)) != highlightedGroupParams.end();
-			int colVal = highlightParam ? 64 : 192;
-			c = QColor(colVal, colVal, colVal, highlightGroup ? 192 : 64);
-		}
-		m_gui->m_lut->setColor(i, c);
-	}
-	m_gui->m_scatterPlot->setLookupTable(m_gui->m_lut, 2);
-	// setResultMarkers(resultIdx, state); // where to set?
-	emit resultSelected(resultIdx, state);
+	m_gui->updateScatterPlotLUT(m_starGroupSize, m_numOfSTARSteps, m_data->result.size());
 }
