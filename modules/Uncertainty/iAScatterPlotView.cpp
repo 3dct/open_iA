@@ -126,7 +126,7 @@ void iAScatterPlotView::AddPlot(vtkImagePointer imgX, vtkImagePointer imgY, QStr
 	m_scatterPlotWidget->setSelection(selection);
 	m_scatterPlotWidget->setMinimumWidth(width() / 2);
 	m_scatterPlotContainer->layout()->addWidget(m_scatterPlotWidget);
-	connect(m_scatterPlotWidget->m_scatterplot, &iAScatterPlot::selectionModified, this, &iAScatterPlotView::SelectionUpdated);
+	connect(m_scatterPlotWidget, &iAScatterPlotWidget::selectionModified, this, &iAScatterPlotView::SelectionUpdated);
 }
 
 

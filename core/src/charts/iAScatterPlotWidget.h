@@ -69,12 +69,11 @@ protected:
 	void mouseReleaseEvent(QMouseEvent * event) override;
 	void mouseMoveEvent(QMouseEvent * event) override;
 	void keyPressEvent(QKeyEvent * event) override;
-public:
-	iAScatterPlot* m_scatterplot;
 private:
 	void adjustScatterPlotSize();
 	void drawTooltip(QPainter& painter);
 
+	iAScatterPlot* m_scatterplot;
 	QSharedPointer<iASPLOMData> m_data;
 	QSharedPointer<iAScatterPlotStandaloneHandler> m_scatterPlotHandler;
 	int m_fontHeight, m_maxTickLabelWidth;
@@ -82,4 +81,5 @@ private:
 	QSharedPointer<iAScatterPlotPointInfo> m_pointInfo;
 signals:
 	void pointHighlighted(size_t ptIdx, bool state);
+	void selectionModified();
 };

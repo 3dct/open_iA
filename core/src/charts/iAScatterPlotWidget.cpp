@@ -138,6 +138,7 @@ iAScatterPlotWidget::iAScatterPlotWidget(QSharedPointer<iASPLOMData> data) :
 			.arg(std::numeric_limits<int>::max()));
 	}
 	m_scatterplot->setData(0, 1, data);
+	connect(m_scatterplot, &iAScatterPlot::selectionModified, this, &iAScatterPlotWidget::selectionModified);
 }
 
 void iAScatterPlotWidget::setPlotColor(QColor const & c, double rangeMin, double rangeMax)
@@ -329,16 +330,26 @@ void iAScatterPlotWidget::mousePressEvent(QMouseEvent * event)
 	if (m_fixPointsEnabled)
 	{
 		auto curPoint = m_scatterplot->getCurrentPoint();
-		if (curPoint != iAScatterPlot::NoPointIndex && !m_scatterPlotHandler->isHighlighted(curPoint))
-		{
-			if (!event->modifiers().testFlag(Qt::ControlModifier))
+		if (!event->modifiers().testFlag(Qt::ControlModifier))
+		{	// if Ctrl key not pressed, deselect all highlighted points on any click
+			for (auto idx : m_scatterPlotHandler->getHighlightedPoints())
 			{
-				for (auto idx : m_scatterPlotHandler->getHighlightedPoints())
-				{
-					m_scatterPlotHandler->removeHighlightedPoint(idx);
-					emit pointHighlighted(idx, false);
-				}
+				m_scatterPlotHandler->removeHighlightedPoint(idx);
+				emit pointHighlighted(idx, false);
 			}
+		}
+		if (curPoint == iAScatterPlot::NoPointIndex)
+		{
+			return;
+		}
+		auto wasHighlighted = m_scatterPlotHandler->isHighlighted(curPoint);
+		if (event->modifiers().testFlag(Qt::ControlModifier) && wasHighlighted)
+		{   // remove just the highlight of current point if Ctrl _is_ pressed
+			m_scatterPlotHandler->removeHighlightedPoint(curPoint);
+			emit pointHighlighted(curPoint, false);
+		}
+		if (!wasHighlighted)
+		{   // if current point was not highlighted, add it
 			m_scatterPlotHandler->addHighlightedPoint(curPoint);
 			emit pointHighlighted(curPoint, true);
 			update();
