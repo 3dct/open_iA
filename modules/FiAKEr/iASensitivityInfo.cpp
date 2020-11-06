@@ -1253,7 +1253,7 @@ void iASensitivityInfo::updateDissimilarity()
 		}
 		LOG(lvlDebug, QString("%1:%2").arg(r1).arg(line));
 	}
-	auto mds = computeMDS(distMatrix, 2, 10);
+	auto mds = computeMDS(distMatrix, 2, 100);
 	LOG(lvlDebug, "MDS:");
 	for (int i = 0; i < mds.size(); ++i)
 	{

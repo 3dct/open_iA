@@ -34,7 +34,7 @@ namespace
 
 	double matrixSum(iAMatrixType const& input)
 	{
-		return std::accumulate(input.cbegin(), input.cend(), 0,
+		return std::accumulate(input.cbegin(), input.cend(), 0.0,
 			[](double val, std::vector<double> const& vec)
 			{
 				return std::accumulate(vec.cbegin(), vec.cend(), val);
@@ -44,7 +44,7 @@ namespace
 	//! mean of a 2D matrix (inequal column/row sizes are accounted for)
 	double matrixMean(iAMatrixType const& input)
 	{
-		size_t num = std::accumulate(input.cbegin(), input.cend(), 0,
+		size_t num = std::accumulate(input.cbegin(), input.cend(), 0.0,
 			[](double val, std::vector<double> const& vec)
 			{
 				return val + vec.size();
