@@ -52,7 +52,8 @@ public:
 	void setContextOpacity(int contextAlpha);
 	bool visible() const;
 	vtkSmartPointer<vtkActor> getActor();
-	virtual vtkPolyData* getPolyData() =0;
+	virtual vtkPolyData* getPolyData() = 0;
+	virtual vtkPolyData* finalPoly() = 0;
 	//!  @{ bounding box / bounds
 	void showBoundingBox();
 	void hideBoundingBox();

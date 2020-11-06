@@ -142,3 +142,9 @@ void iA3DCylinderObjectVis::setShowLines(bool lines)
 		m_mapper->SetInputConnection(m_tubeFilter->GetOutputPort());
 	}
 }
+
+vtkPolyData* iA3DCylinderObjectVis::finalPoly()
+{
+	m_tubeFilter->Update();
+	return m_tubeFilter->GetOutput();
+}

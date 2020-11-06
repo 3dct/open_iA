@@ -57,6 +57,7 @@ iA3DEllipseObjectVis::iA3DEllipseObjectVis(vtkRenderer* ren, vtkTable* objectTab
 		fullPolySource->AddInputData(ellipsoidSrc->GetOutput());
 	}
 	fullPolySource->Update();
+	// TODO: color updates etc. don't work because of this "static" mapping!
 	m_fullPoly = fullPolySource->GetOutput();
 	setupColors();
 	m_fullPoly->GetPointData()->AddArray(m_colors);
@@ -72,6 +73,11 @@ double const * iA3DEllipseObjectVis::bounds()
 }
 
 vtkPolyData* iA3DEllipseObjectVis::getPolyData()
+{
+	return m_fullPoly;
+}
+
+vtkPolyData* iA3DEllipseObjectVis::finalPoly()
 {
 	return m_fullPoly;
 }

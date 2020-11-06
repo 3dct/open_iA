@@ -36,6 +36,7 @@ public:
 		QColor const & color, std::map<size_t, std::vector<iAVec3f> > const & curvedFiberData, size_t segmentSkip );
 	void updateValues( std::vector<std::vector<double> > const & values, int straightOrCurved);
 	vtkPolyData* getPolyData() override;
+	vtkPolyData* finalPoly() override;
 	QString visualizationStatistics() const override;
 protected:
 	IndexType objectStartPointIdx(IndexType objIdx) const override;

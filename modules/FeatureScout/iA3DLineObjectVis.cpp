@@ -146,6 +146,11 @@ vtkPolyData* iA3DLineObjectVis::getPolyData()
 	return m_linePolyData;
 }
 
+vtkPolyData* iA3DLineObjectVis::finalPoly()
+{
+	return m_linePolyData;
+}
+
 QString iA3DLineObjectVis::visualizationStatistics() const
 {
 	return QString("# lines: %1; # line segments: %2; # points: %3")
