@@ -70,7 +70,7 @@ public:
 		QVector<double>>>   //! a histogram.
 		charHistograms;
 
-	int numOfSTARSteps, m_starGroupSize;
+	int m_numOfSTARSteps, m_starGroupSize;
 	int m_histogramBins;
 	QVector<double> paramStep;  //!< per varied parameter, the size of step performed for the STAR
 

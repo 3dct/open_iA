@@ -248,10 +248,10 @@ QSharedPointer<iASensitivityInfo> iASensitivityInfo::create(QMainWindow* child,
 		++row;
 	}
 	sensitivity->m_starGroupSize = row - 1;
-	sensitivity->numOfSTARSteps = (sensitivity->m_starGroupSize - 1) / sensitivity->variedParams.size();
+	sensitivity->m_numOfSTARSteps = (sensitivity->m_starGroupSize - 1) / sensitivity->variedParams.size();
 	//LOG(lvlInfo,QString("Determined that there are groups of size: %1; number of STAR points per parameter: %2")
 	//	.arg(sensitivity->m_starGroupSize)
-	//	.arg(sensitivity->numOfSTARSteps)
+	//	.arg(sensitivity->m_numOfSTARSteps)
 	//);
 
 	// select output features to compute sensitivity for:
@@ -401,7 +401,7 @@ void iASensitivityInfo::compute()
 				for (int paramSetIdx = 0; paramSetIdx < paramSetValues.size(); ++paramSetIdx)
 				{
 					int resultIdxGroupStart = m_starGroupSize * paramSetIdx;
-					int resultIdxParamStart = resultIdxGroupStart + 1 + paramIdx * numOfSTARSteps;
+					int resultIdxParamStart = resultIdxGroupStart + 1 + paramIdx * m_numOfSTARSteps;
 
 					// first - then + steps (both skipped if value +/- step exceeds bounds
 					double groupStartParamVal = m_paramValues[origParamColIdx][resultIdxGroupStart];
@@ -430,7 +430,7 @@ void iASensitivityInfo::compute()
 					}
 
 					int k = 1;
-					while (paramDiff > 0 && k < numOfSTARSteps)
+					while (paramDiff > 0 && k < m_numOfSTARSteps)
 					{
 						double paramVal = m_paramValues[origParamColIdx][resultIdxParamStart + k];
 						paramDiff = paramStartParamVal - paramVal;
@@ -450,7 +450,7 @@ void iASensitivityInfo::compute()
 					}
 					double sumTotal = 0;
 					bool wasSmaller = true;
-					for (int i = 0; i < numOfSTARSteps; ++i)
+					for (int i = 0; i < m_numOfSTARSteps; ++i)
 					{
 						int compareIdx = (i==0)? resultIdxGroupStart : (resultIdxParamStart + i - 1);
 						double paramVal = m_paramValues[origParamColIdx][resultIdxParamStart + i];
@@ -466,12 +466,12 @@ void iASensitivityInfo::compute()
 						sumTotal += difference;
 					}
 					numAllLeftRight += numLeftRight;
-					numAllTotal += numOfSTARSteps;
+					numAllTotal += m_numOfSTARSteps;
 					double meanLeftRightVar = (leftVar + rightVar) / numLeftRight;
-					double meanTotal = sumTotal / numOfSTARSteps;
+					double meanTotal = sumTotal / m_numOfSTARSteps;
 					//LOG(lvlDebug, QString("        (left+right)/(numLeftRight=%1) = %2").arg(numLeftRight).arg(meanLeftRightVar));
-					//LOG(lvlDebug, QString("        (sum total var = %1) / (numOfSTARSteps = %2)  = %3")
-					//	.arg(sumTotal).arg(numOfSTARSteps).arg(meanTotal));
+					//LOG(lvlDebug, QString("        (sum total var = %1) / (m_numOfSTARSteps = %2)  = %3")
+					//	.arg(sumTotal).arg(m_numOfSTARSteps).arg(meanTotal));
 					field[0][paramIdx][paramSetIdx] = meanLeftRightVar;
 					field[1][paramIdx][paramSetIdx] = leftVar;
 					field[2][paramIdx][paramSetIdx] = rightVar;
@@ -522,7 +522,7 @@ void iASensitivityInfo::compute()
 		for (int paramSetIdx = 0; paramSetIdx < paramSetValues.size(); ++paramSetIdx)
 		{
 			int resultIdxGroupStart = m_starGroupSize * paramSetIdx;
-			int resultIdxParamStart = resultIdxGroupStart + 1 + paramIdx * numOfSTARSteps;
+			int resultIdxParamStart = resultIdxGroupStart + 1 + paramIdx * m_numOfSTARSteps;
 
 			// first - then + steps (both skipped if value +/- step exceeds bounds
 			double groupStartParamVal = m_paramValues[origParamColIdx][resultIdxGroupStart];
@@ -549,7 +549,7 @@ void iASensitivityInfo::compute()
 			}
 
 			int k = 1;
-			while (paramDiff > 0 && k < numOfSTARSteps)
+			while (paramDiff > 0 && k < m_numOfSTARSteps)
 			{
 				double paramVal = m_paramValues[origParamColIdx][resultIdxParamStart + k];
 				paramDiff = paramStartParamVal - paramVal;
@@ -567,7 +567,7 @@ void iASensitivityInfo::compute()
 			}
 			double sumTotal = 0;
 			bool wasSmaller = true;
-			for (int i = 0; i < numOfSTARSteps; ++i)
+			for (int i = 0; i < m_numOfSTARSteps; ++i)
 			{
 				int compareIdx = (i == 0) ? resultIdxGroupStart : (resultIdxParamStart + i - 1);
 				double paramVal = m_paramValues[origParamColIdx][resultIdxParamStart + i];
@@ -581,12 +581,12 @@ void iASensitivityInfo::compute()
 				sumTotal += difference;
 			}
 			numAllLeftRight += numLeftRight;
-			numAllTotal += numOfSTARSteps;
+			numAllTotal += m_numOfSTARSteps;
 			double meanLeftRightVar = (leftVar + rightVar) / numLeftRight;
-			double meanTotal = sumTotal / numOfSTARSteps;
+			double meanTotal = sumTotal / m_numOfSTARSteps;
 			//LOG(lvlDebug, QString("        (left+right)/(numLeftRight=%1) = %2").arg(numLeftRight).arg(meanLeftRightVar));
-			//LOG(lvlDebug, QString("        (sum total var = %1) / (numOfSTARSteps = %2)  = %3")
-			//	.arg(sumTotal).arg(numOfSTARSteps).arg(meanTotal));
+			//LOG(lvlDebug, QString("        (sum total var = %1) / (m_numOfSTARSteps = %2)  = %3")
+			//	.arg(sumTotal).arg(m_numOfSTARSteps).arg(meanTotal));
 			sensitivityFiberCount[0][paramIdx][paramSetIdx] = meanLeftRightVar;
 			sensitivityFiberCount[1][paramIdx][paramSetIdx] = leftVar;
 			sensitivityFiberCount[2][paramIdx][paramSetIdx] = rightVar;
@@ -643,7 +643,7 @@ void iASensitivityInfo::compute()
 				for (int paramSetIdx = 0; paramSetIdx < paramSetValues.size(); ++paramSetIdx)
 				{
 					int resultIdxGroupStart = m_starGroupSize * paramSetIdx;
-					int resultIdxParamStart = resultIdxGroupStart + 1 + paramIdx * numOfSTARSteps;
+					int resultIdxParamStart = resultIdxGroupStart + 1 + paramIdx * m_numOfSTARSteps;
 					/*
 					for (int aggIdx = 0; aggIdx < NumOfVarianceAggregation && !m_aborted; ++aggIdx)
 					{
@@ -687,7 +687,7 @@ void iASensitivityInfo::compute()
 					}
 
 					int k = 1;
-					while (paramDiff > 0 && k < numOfSTARSteps)
+					while (paramDiff > 0 && k < m_numOfSTARSteps)
 					{
 						double paramVal = m_paramValues[origParamColIdx][resultIdxParamStart + k];
 						paramDiff = paramStartParamVal - paramVal;
@@ -712,8 +712,8 @@ void iASensitivityInfo::compute()
 					charHistVar[charIdx][2][paramIdx][bin][paramSetIdx] /= numLeftRight;
 					bool wasSmaller = true;
 					charHistVar[charIdx][3][paramIdx][bin][paramSetIdx] = 0;
-					numAllTotal += numOfSTARSteps;
-					for (int i = 0; i < numOfSTARSteps; ++i)
+					numAllTotal += m_numOfSTARSteps;
+					for (int i = 0; i < m_numOfSTARSteps; ++i)
 					{
 						//charHistHist[charIdx][3][paramIdx][bin][paramSetIdx].push_back(charHistograms[resultIdxParamStart + i][charIdx][bin]);
 						int compareIdx = (i == 0) ? resultIdxGroupStart : (resultIdxParamStart + i - 1);
@@ -726,10 +726,10 @@ void iASensitivityInfo::compute()
 						charHistVar[charIdx][3][paramIdx][bin][paramSetIdx] +=
 							std::abs(charHistograms[compareIdx][charIdx][bin] - charHistograms[resultIdxParamStart + i][charIdx][bin]);
 					}
-					charHistVar[charIdx][3][paramIdx][bin][paramSetIdx] /= numOfSTARSteps;//charHistHist[charIdx][3][paramIdx][bin][paramSetIdx].size();
+					charHistVar[charIdx][3][paramIdx][bin][paramSetIdx] /= m_numOfSTARSteps;//charHistHist[charIdx][3][paramIdx][bin][paramSetIdx].size();
 					charHistVarAgg[charIdx][3][paramIdx][bin] += charHistVar[charIdx][3][paramIdx][bin][paramSetIdx];
 				}
-				assert(numAllTotal == paramSetValues.size() * numOfSTARSteps);
+				assert(numAllTotal == paramSetValues.size() * m_numOfSTARSteps);
 				charHistVarAgg[charIdx][0][paramIdx][bin] /= numAllLeft;
 				charHistVarAgg[charIdx][1][paramIdx][bin] /= numAllRight;
 				charHistVarAgg[charIdx][2][paramIdx][bin] /= (numAllLeft + numAllRight);
@@ -977,10 +977,13 @@ public:
 
 	//! scatter plot for the MDS plot of all results
 	iAScatterPlotWidget* m_scatterPlot;
+	//! lookup table for points in scatter plot
+	QSharedPointer<iALookupTable> m_lut;
 
 	iADockWidgetWrapper* m_dwParamInfluence;
 
 	QSharedPointer<iASPLOMData> m_mdsData;
+
 };
 
 QString iASensitivityInfo::charactName(int charIdx) const
@@ -1063,14 +1066,14 @@ void iASensitivityInfo::createGUI()
 	m_gui->m_scatterPlot = new iAScatterPlotWidget(m_gui->m_mdsData);
 	m_gui->m_scatterPlot->setPointRadius(5);
 	m_gui->m_scatterPlot->setFixPointsEnabled(true);
-	QSharedPointer<iALookupTable> lut(new iALookupTable());
-	lut->setRange(0, m_data->result.size());
-	lut->allocate(m_data->result.size());
+	m_gui->m_lut.reset(new iALookupTable());
+	m_gui->m_lut->setRange(0, m_data->result.size());
+	m_gui->m_lut->allocate(m_data->result.size());
 	for (size_t i = 0; i < m_data->result.size(); ++i)
 	{
-		lut->setColor(i, (i % m_starGroupSize == 0) ? QColor(0, 0, 255, 255) : QColor(128, 128, 128, 128));
+		m_gui->m_lut->setColor(i, (i % m_starGroupSize == 0) ? QColor(0, 0, 255, 255) : QColor(128, 128, 128, 128));
 	}
-	m_gui->m_scatterPlot->setLookupTable(lut, 2);
+	m_gui->m_scatterPlot->setLookupTable(m_gui->m_lut, 2);
 	m_gui->m_scatterPlot->setPointInfo(QSharedPointer<iAScatterPlotPointInfo>(new iASPParamPointInfo(*this, *m_data.data())));
 	auto dwScatterPlot = new iADockWidgetWrapper(m_gui->m_scatterPlot, "Results Overview", "foeScatterPlot");
 	connect(m_gui->m_scatterPlot, &iAScatterPlotWidget::pointHighlighted, this, &iASensitivityInfo::resultSelectedSP);
@@ -1196,8 +1199,46 @@ void iASensitivityInfo::updateDissimilarity()
 	//m_gui->m_scatterPlot->setPlotColor(QColor(0, 0, 255), m_gui->m_mdsData->paramRange(0)[0], m_gui->m_mdsData->paramRange(0)[1]);
 }
 
+#include <set>
+
 void iASensitivityInfo::resultSelectedSP(size_t resultIdx, bool state)
 {
+	std::set<int> highlightedGroups;
+	std::set<std::pair<int, int> > highlightedGroupParams;
+	auto const & hp = m_gui->m_scatterPlot->highlightedPoints();
+	for (auto ptIdx: hp)
+	{
+		int groupID = ptIdx / m_starGroupSize;
+		if (ptIdx % m_starGroupSize == 0)
+		{
+			highlightedGroups.insert(groupID);
+		}
+		else
+		{
+			int paramID = ((ptIdx % m_starGroupSize) - 1) / m_numOfSTARSteps;
+			highlightedGroupParams.insert(std::make_pair(groupID, paramID));
+		}
+	}
+	for (size_t i = 0; i < m_data->result.size(); ++i)
+	{
+		int groupID = i / m_starGroupSize;
+		bool highlightGroup = highlightedGroups.find(groupID) != highlightedGroups.end();
+		QColor c;
+		if (i % m_starGroupSize == 0)
+		{
+			c = QColor(0, 0, 255, highlightGroup ? 255 : 128);
+			LOG(lvlDebug, QString("Point %1 (group=%2) : Color= %3, %4, %").arg()
+		}
+		else
+		{
+			int paramID = ((i % m_starGroupSize) - 1) / m_numOfSTARSteps;
+			bool highlightParam = highlightedGroupParams.find(std::make_pair(groupID, paramID)) != highlightedGroupParams.end();
+			int colVal = highlightParam ? 64 : 192;
+			c = QColor(colVal, colVal, colVal, highlightGroup ? 192 : 64);
+		}
+		m_gui->m_lut->setColor(i, c);
+	}
+	m_gui->m_scatterPlot->setLookupTable(m_gui->m_lut, 2);
 	// setResultMarkers(resultIdx, state); // where to set?
 	emit resultSelected(resultIdx, state);
 }
