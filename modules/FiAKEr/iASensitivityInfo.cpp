@@ -988,6 +988,7 @@ public:
 
 	void updateScatterPlotLUT(int starGroupSize, int numOfSTARSteps, size_t resultCount)
 	{
+		LOG(lvlDebug, "\nNEW LUT:");
 		std::set<int> hiGrp;
 		std::set<std::pair<int, int> > hiGrpParam;
 		auto const& hp = m_scatterPlot->highlightedPoints();
@@ -996,11 +997,13 @@ public:
 			int groupID = ptIdx / starGroupSize;
 			if (ptIdx % starGroupSize == 0)
 			{
+				LOG(lvlDebug, QString("Selected GROUP: %1").arg(groupID));
 				hiGrp.insert(groupID);
 			}
 			else
 			{
 				int paramID = ((ptIdx % starGroupSize) - 1) / numOfSTARSteps;
+				LOG(lvlDebug, QString("Selected PARAM: %1, %2").arg(groupID).arg(paramID));
 				hiGrpParam.insert(std::make_pair(groupID, paramID));
 			}
 		}
@@ -1033,7 +1036,7 @@ public:
 			}
 			m_lut->setColor(i, c);
 		}
-		m_scatterPlot->setLookupTable(m_lut, 2);
+		m_scatterPlot->setLookupTable(m_lut, m_mdsData->numParams()-1);
 	}
 };
 
@@ -1102,19 +1105,36 @@ void iASensitivityInfo::createGUI()
 	m_child->splitDockWidget(m_gui->m_dwParamInfluence, dwParamDetails, Qt::Vertical);
 
 	m_gui->m_mdsData = QSharedPointer<iASPLOMData>(new iASPLOMData());
-	std::vector<QString> paramNames;
-	paramNames.push_back("X");
-	paramNames.push_back("Y");
-	paramNames.push_back("id");
-	m_gui->m_mdsData->setParameterNames(paramNames, m_data->result.size());
-	m_gui->m_mdsData->data()[0].resize(m_data->result.size());
-	m_gui->m_mdsData->data()[1].resize(m_data->result.size());
-	m_gui->m_mdsData->data()[2].resize(m_data->result.size());
-	for (size_t i = 0; i < m_data->result.size(); ++i)
+	std::vector<QString> spParamNames;
+	for (auto p: variedParams)
 	{
-		m_gui->m_mdsData->data()[2][i] = i;
+		spParamNames.push_back(m_paramNames[p]);
 	}
-	m_gui->m_scatterPlot = new iAScatterPlotWidget(m_gui->m_mdsData);
+	spParamNames.push_back("MDS X");
+	spParamNames.push_back("MDS Y");
+	spParamNames.push_back("ID");
+	size_t resultCount = m_data->result.size();
+	m_gui->m_mdsData->setParameterNames(spParamNames, resultCount);
+	for (int c = 0; c < spParamNames.size(); ++c)
+	{
+		m_gui->m_mdsData->data()[c].resize(resultCount);
+	}
+	for (int p=0; p<variedParams.size(); ++p)
+	{	// set parameter values:
+		int origParamIdx = variedParams[p];
+		for (int r = 0; r < resultCount; ++r)
+		{
+			m_gui->m_mdsData->data()[p][r] = m_paramValues[origParamIdx][r];
+		}
+	}
+	for (size_t i = 0; i < resultCount; ++i)
+	{
+		m_gui->m_mdsData->data()[spParamNames.size() - 3][i] = 0.0;  // MDS X
+		m_gui->m_mdsData->data()[spParamNames.size() - 2][i] = 0.0;  // MDS Y
+		m_gui->m_mdsData->data()[spParamNames.size() - 1][i] = i;    // ID
+	}
+	m_gui->m_mdsData->updateRanges();
+	m_gui->m_scatterPlot = new iAScatterPlotWidget(m_gui->m_mdsData, true);
 	m_gui->m_scatterPlot->setPointRadius(5);
 	m_gui->m_scatterPlot->setFixPointsEnabled(true);
 	m_gui->m_lut.reset(new iALookupTable());
@@ -1239,9 +1259,9 @@ void iASensitivityInfo::updateDissimilarity()
 	{
 		for (int c = 0; c < mds[0].size(); ++c)
 		{
-			m_gui->m_mdsData->data()[c][i] = mds[i][c];
+			m_gui->m_mdsData->data()[m_gui->m_mdsData->numParams() - 3 + c][i] = mds[i][c];
 		}
-		LOG(lvlInfo, QString("%1: %2, %3").arg(i).arg(mds[i][0]).arg(mds[i][1]));
+		LOG(lvlDebug, QString("%1: %2, %3").arg(i).arg(mds[i][0]).arg(mds[i][1]));
 	}
 	m_gui->m_mdsData->updateRanges();
 }
