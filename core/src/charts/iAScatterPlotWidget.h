@@ -57,6 +57,7 @@ public:
 	void setPointRadius(double pointRadius);
 	void setFixPointsEnabled(bool enabled);
 	void setPointInfo(QSharedPointer<iAScatterPlotPointInfo> pointInfo);
+	std::vector<size_t> const& highlightedPoints() const;
 protected:
 #ifdef CHART_OPENGL
 	void paintGL() override;

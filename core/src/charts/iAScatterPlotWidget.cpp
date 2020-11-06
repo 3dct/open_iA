@@ -62,6 +62,10 @@ public:
 	{
 		return m_highlight;
 	}
+	void clearHighlighted()
+	{
+		m_highlight.clear();
+	}
 	void addHighlightedPoint(size_t idx)
 	{
 		m_highlight.push_back(idx);
@@ -334,9 +338,9 @@ void iAScatterPlotWidget::mousePressEvent(QMouseEvent * event)
 		{	// if Ctrl key not pressed, deselect all highlighted points on any click
 			for (auto idx : m_scatterPlotHandler->getHighlightedPoints())
 			{
-				m_scatterPlotHandler->removeHighlightedPoint(idx);
 				emit pointHighlighted(idx, false);
 			}
+			m_scatterPlotHandler->clearHighlighted();
 		}
 		if (curPoint == iAScatterPlot::NoPointIndex)
 		{
@@ -348,12 +352,12 @@ void iAScatterPlotWidget::mousePressEvent(QMouseEvent * event)
 			m_scatterPlotHandler->removeHighlightedPoint(curPoint);
 			emit pointHighlighted(curPoint, false);
 		}
-		if (!wasHighlighted)
-		{   // if current point was not highlighted, add it
+		else if (!wasHighlighted)
+		{   // if current point was not highlighted before, add it
 			m_scatterPlotHandler->addHighlightedPoint(curPoint);
 			emit pointHighlighted(curPoint, true);
-			update();
 		}
+		update();
 	}
 }
 
@@ -417,4 +421,9 @@ void iAScatterPlotWidget::setFixPointsEnabled(bool enabled)
 void iAScatterPlotWidget::setPointInfo(QSharedPointer<iAScatterPlotPointInfo> pointInfo)
 {
 	m_pointInfo = pointInfo;
+}
+
+std::vector<size_t> const& iAScatterPlotWidget::highlightedPoints() const
+{
+	return m_scatterPlotHandler->getHighlightedPoints();
 }
