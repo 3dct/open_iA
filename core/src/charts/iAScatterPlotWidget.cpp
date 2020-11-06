@@ -29,6 +29,7 @@
 #include <vtkLookupTable.h>
 #include <vtkSmartPointer.h>
 
+#include <QMenu>
 #include <QMouseEvent>
 #include <QPainter>
 
@@ -122,13 +123,14 @@ const int iAScatterPlotWidget::PaddingRight = 5;
 const int iAScatterPlotWidget::TextPadding = 5;
 
 
-iAScatterPlotWidget::iAScatterPlotWidget(QSharedPointer<iASPLOMData> data) :
+iAScatterPlotWidget::iAScatterPlotWidget(QSharedPointer<iASPLOMData> data, bool columnSelection) :
 	m_data(data),
 	m_scatterPlotHandler(new iAScatterPlotStandaloneHandler()),
 	m_fontHeight(0),
 	m_maxTickLabelWidth(0),
 	m_fixPointsEnabled(false),
-	m_pointInfo(new iADefaultScatterPlotPointInfo(data))
+	m_pointInfo(new iADefaultScatterPlotPointInfo(data)),
+	m_contextMenu(nullptr)
 {
 	setMouseTracking(true);
 	setFocusPolicy(Qt::StrongFocus);
@@ -141,8 +143,48 @@ iAScatterPlotWidget::iAScatterPlotWidget(QSharedPointer<iASPLOMData> data) :
 			.arg(data->numPoints())
 			.arg(std::numeric_limits<int>::max()));
 	}
+	if (columnSelection)
+	{
+		m_contextMenu = new QMenu(this);
+		auto xMenu = m_contextMenu->addMenu("X Parameter");
+		auto yMenu = m_contextMenu->addMenu("Y Parameter");
+		auto xActGrp = new QActionGroup(m_contextMenu);
+		auto yActGrp = new QActionGroup(m_contextMenu);
+		for (size_t p = 0; p < data->numParams(); ++p)
+		{
+			auto xShowAct = new QAction(data->parameterName(p), this);
+			xShowAct->setCheckable(true);
+			xShowAct->setChecked(p == 0);
+			xShowAct->setActionGroup(xActGrp);
+			xShowAct->setProperty("idx", static_cast<unsigned long long>(p));
+			connect(xShowAct, &QAction::triggered, this, &iAScatterPlotWidget::xParamChanged);
+			xMenu->addAction(xShowAct);
+
+			auto yShowAct = new QAction(data->parameterName(p), this);
+			yShowAct->setCheckable(true);
+			yShowAct->setChecked(p == 1);
+			yShowAct->setActionGroup(yActGrp);
+			yShowAct->setProperty("idx", static_cast<unsigned long long>(p));
+			connect(yShowAct, &QAction::triggered, this, &iAScatterPlotWidget::yParamChanged);
+			yMenu->addAction(yShowAct);
+		}
+	}
 	m_scatterplot->setData(0, 1, data);
 	connect(m_scatterplot, &iAScatterPlot::selectionModified, this, &iAScatterPlotWidget::selectionModified);
+}
+
+void iAScatterPlotWidget::xParamChanged()
+{
+	size_t idx = sender()->property("idx").toULongLong();
+	m_scatterplot->setIndices(idx, m_scatterplot->getIndices()[1]);
+	update();
+}
+
+void iAScatterPlotWidget::yParamChanged()
+{
+	size_t idx = sender()->property("idx").toULongLong();
+	m_scatterplot->setIndices(m_scatterplot->getIndices()[0], idx);
+	update();
 }
 
 void iAScatterPlotWidget::setPlotColor(QColor const & c, double rangeMin, double rangeMax)
@@ -161,6 +203,7 @@ void iAScatterPlotWidget::setPlotColor(QColor const & c, double rangeMin, double
 void iAScatterPlotWidget::setLookupTable(QSharedPointer<iALookupTable> lut, size_t paramIdx)
 {
 	m_scatterplot->setLookupTable(lut, paramIdx);
+	update();
 }
 
 #ifdef CHART_OPENGL
@@ -224,9 +267,9 @@ void iAScatterPlotWidget::paintEvent(QPaintEvent* event)
 	painter.save();
 	painter.setPen(m_scatterplot->settings.tickLabelColor);
 	painter.drawText(QRectF(-PaddingLeft(), height() - fm.height() - TextPadding, width(), fm.height()),
-			Qt::AlignHCenter | Qt::AlignTop, m_data->parameterName(0));
+			Qt::AlignHCenter | Qt::AlignTop, m_data->parameterName(m_scatterplot->getIndices()[0]));
 	painter.rotate(-90);
-	painter.drawText(QRectF(-height(), 0, height(), fm.height()), Qt::AlignCenter | Qt::AlignTop, m_data->parameterName(1));
+	painter.drawText(QRectF(-height(), 0, height(), fm.height()), Qt::AlignCenter | Qt::AlignTop, m_data->parameterName(m_scatterplot->getIndices()[1]));
 	painter.restore();
 
 	drawTooltip(painter);
@@ -386,6 +429,14 @@ void iAScatterPlotWidget::keyPressEvent(QKeyEvent * event)
 	if (event->key() == Qt::Key_R) //if R is pressed, reset all the applied transformation as offset and scaling
 	{
 		m_scatterplot->setTransform(1.0, QPointF(0.0f, 0.0f));
+	}
+}
+
+void iAScatterPlotWidget::contextMenuEvent(QContextMenuEvent* event)
+{
+	if (m_contextMenu)
+	{
+		m_contextMenu->exec(event->globalPos());
 	}
 }
 

@@ -29,6 +29,8 @@
 class iASPLOMData;
 class iAScatterPlotStandaloneHandler;
 
+class QMenu;
+
 //! class for providing information on a point in the scatter plot (used in tooltips)
 class iAScatterPlotPointInfo
 {
@@ -47,7 +49,7 @@ public:
 	int PaddingBottom();
 	int PaddingLeft();
 	static const int TextPadding;
-	iAScatterPlotWidget(QSharedPointer<iASPLOMData> data);
+	iAScatterPlotWidget(QSharedPointer<iASPLOMData> data, bool columnSelection = false);
 	std::vector<size_t> & selection();
 	void setSelection(std::vector<size_t> const & selection);
 	void setLookupTable(QSharedPointer<iALookupTable> lut, size_t paramIdx);
@@ -70,6 +72,7 @@ protected:
 	void mouseReleaseEvent(QMouseEvent * event) override;
 	void mouseMoveEvent(QMouseEvent * event) override;
 	void keyPressEvent(QKeyEvent * event) override;
+	void contextMenuEvent(QContextMenuEvent* event) override;
 private:
 	void adjustScatterPlotSize();
 	void drawTooltip(QPainter& painter);
@@ -80,6 +83,7 @@ private:
 	int m_fontHeight, m_maxTickLabelWidth;
 	bool m_fixPointsEnabled;
 	QSharedPointer<iAScatterPlotPointInfo> m_pointInfo;
+	QMenu* m_contextMenu;  //!< the context menu for picking the two visible parameters
 signals:
 	//! emitted for each single point that was highlighted (or un-highlighted)
 	//! The parameters reflect the new highlight state for the given point.
@@ -93,4 +97,7 @@ signals:
 	//! to represent the new highlight situation after a user interaction.
 	void highlightChanged();
 	void selectionModified();
+private slots:
+	void xParamChanged();
+	void yParamChanged();
 };

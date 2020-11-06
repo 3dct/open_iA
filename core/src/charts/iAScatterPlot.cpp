@@ -119,20 +119,25 @@ iAScatterPlot::~iAScatterPlot()
 #endif
 }
 
-void iAScatterPlot::setData( size_t x, size_t y, QSharedPointer<iASPLOMData> &splomData )
+void iAScatterPlot::setData(size_t x, size_t y, QSharedPointer<iASPLOMData>& splomData)
 {
 	if (m_splomData)
 	{
 		return;
 	}
 
-	m_paramIndices[0] = x; m_paramIndices[1] = y;
 	m_splomData = splomData;
 	connect(m_splomData.data(), &iASPLOMData::dataChanged, this, &iAScatterPlot::dataChanged);
 	if (!hasData())
 	{
 		return;
 	}
+	setIndices(x, y);
+}
+
+void iAScatterPlot::setIndices(size_t x, size_t y)
+{
+	m_paramIndices[0] = x; m_paramIndices[1] = y;
 	m_pccValid = false;
 	m_sccValid = false;
 	applyMarginToRanges();

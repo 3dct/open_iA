@@ -414,7 +414,6 @@ iAQSplom::~iAQSplom()
 	delete m_maximizedPlot;
 	delete m_animationIn;
 	delete m_animationOut;
-	delete m_contextMenu;
 }
 
 void iAQSplom::setData( QSharedPointer<iASPLOMData> data, std::vector<char> const & visibility )

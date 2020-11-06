@@ -64,6 +64,7 @@ public:
 	~iAScatterPlot();
 
 	void setData(size_t x, size_t y, QSharedPointer<iASPLOMData> &splomData ); //!< Set data to the scatter plot using indices of X and Y parameters and the raw SPLOM data
+	void setIndices(size_t x, size_t y);                             //!< Set the indices of the parameters to view
 	bool hasData() const;                                            //!< Check if data is already set to the plot
 	//! Set color lookup table and the name of a color-coded parameter
 	void setLookupTable( QSharedPointer<iALookupTable> &lut, size_t colInd );
