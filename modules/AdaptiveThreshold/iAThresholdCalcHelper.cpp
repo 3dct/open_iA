@@ -45,7 +45,7 @@ namespace
 	}
 
 	const double dblEpsilon = 0.0000000001;
-	const float  fltEpsilon = 0.0000000001;
+	const float  fltEpsilon = 0.0000000001f;
 }
 
 double iAThresholdCalcHelper::findMaxPeak(std::vector<double>& v_ind) const

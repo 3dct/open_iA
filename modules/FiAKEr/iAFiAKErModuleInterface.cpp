@@ -279,9 +279,9 @@ void iAFiAKErModuleInterface::loadProject(MdiChild* mdiChild, QSettings const& p
 	project->setController(controller);
 	m_mainWnd->setPath(m_lastPath);
 	iASettings projectSettings = mapFromQSettings(projectFile);
-	connect(controller, &iAFiAKErController::setupFinished, [controller, projectSettings]
+	connect(controller, &iAFiAKErController::setupFinished, [controller, projectSettings, fileName]
 		{
-			controller->loadReference(projectSettings);
+			controller->loadAdditionalData(projectSettings, fileName);
 		});
 	controller->loadProject(projectFile, fileName);
 }

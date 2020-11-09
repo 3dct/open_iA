@@ -982,13 +982,15 @@ void iAScatterPlot::drawPoints( QPainter &painter )
 			getPointRadius(),
 			settings.selectionColor);
 	}
-	/*
+	
 	// not sure what highlighted points are, leave them out for the moment...
 	auto const& highlightedPoints = m_splom->getHighlightedPoints();
-	for (auto ind : highlightedPoints)
+	for (auto idx : highlightedPoints)
 	{
+		QColor color(m_lut->getQColor(m_splomData->paramData(m_colInd)[idx]));
+		drawPoint(painter, m_splomData->paramData(m_paramIndices[0])[idx], m_splomData->paramData(m_paramIndices[1])[idx],
+			getPointRadius() * settings.pickedPointMagnification, color);
 	}
-	*/
 #endif
 	painter.restore();
 }

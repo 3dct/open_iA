@@ -24,6 +24,7 @@
 
 #include <iAAbortListener.h>
 #include <iAProgress.h>
+#include <iASettings.h>
 
 #include <QFuture>
 #include <QFutureWatcher>
@@ -46,8 +47,17 @@ class iASensitivityInfo: public QObject, public iAAbortListener
 public:
 	static QSharedPointer<iASensitivityInfo> create(QMainWindow* child,
 		QSharedPointer<iAFiberResultsCollection> data, QDockWidget* nextToDW,
-		iAJobListView* jobListView, int histogramBins);
+		iAJobListView* jobListView, int histogramBins,
+		QString parameterSetFileName = QString(), QVector<int> const& charSelected = QVector<int>(),
+		QVector<int> const& charDiffMeasure = QVector<int>());
+	static QSharedPointer<iASensitivityInfo> load(QMainWindow* child,
+		QSharedPointer<iAFiberResultsCollection> data, QDockWidget* nextToDW,
+		iAJobListView* jobListView, int histogramBins, iASettings const & projectFile,
+		QString const& projectFileName);
+	static bool hasData(iASettings const& settings);
 	QString charactName(int charactIdx) const;
+
+	void saveProject(QSettings& projectFile, QString  const& fileName);
 
 	QSharedPointer<iAFiberResultsCollection> m_data;
 	QStringList m_paramNames;
@@ -59,9 +69,9 @@ public:
 	// TODO: unify index order?
 	std::vector<std::vector<double>> m_paramValues;
 	//! indices of features for which sensitivity was computed
-	QVector<int> charactIndex;
+	QVector<int> m_charSelected;
 	//! which difference measures were used for distribution comparison
-	QVector<int> charDiffMeasure;
+	QVector<int> m_charDiffMeasure;
 	//! for which dissimilarity measure sensitivity was computed
 	//QVector<int> dissimMeasure;
 
@@ -85,8 +95,8 @@ public:
 
 	//! "sensitivity field":
 	//! characteristic / parameter space point / parameter / diff measure
-	QVector<    // characteristic (index in charactIndex)
-		QVector<    // characteristics difference measure index (index in charDiffMeasure)
+	QVector<    // characteristic (index in m_charSelected)
+		QVector<    // characteristics difference measure index (index in m_charDiffMeasure)
 		QVector<    // variation aggregation (see iASensitivityInfo::create)
 		QVector<    // parameter index (second index in paramSetValues / allParamValues)
 		QVector<    // parameter set index (first index in paramSetValues)

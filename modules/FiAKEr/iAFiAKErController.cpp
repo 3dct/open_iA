@@ -563,9 +563,14 @@ namespace
 	{
 		switch (objectType)
 		{
-		case iACsvConfig::Ellipses:  return QSharedPointer<iA3DColoredPolyObjectVis>(new iA3DEllipseObjectVis(renderer, table, mapping, color));
+		case iACsvConfig::Ellipses: return QSharedPointer<iA3DColoredPolyObjectVis>(
+			new iA3DEllipseObjectVis(renderer, table, mapping, color));
 		default:
-		case iACsvConfig::Cylinders: return QSharedPointer<iA3DColoredPolyObjectVis>(new iA3DCylinderObjectVis(renderer, table, mapping, color, curvedFiberData));
+#if __cplusplus >= 201703L
+			[[fallthrough]];
+#endif
+		case iACsvConfig::Cylinders: return QSharedPointer<iA3DColoredPolyObjectVis>(
+			new iA3DCylinderObjectVis(renderer, table, mapping, color, curvedFiberData, 6, 3));
 		}
 	}
 }
@@ -1363,6 +1368,17 @@ void iAFiAKErController::dissimMatrixColorMapChanged(int idx)
 	m_parameterListView->dissimMatrixColorMapChanged(idx);
 }
 
+void iAFiAKErController::connectSensitivity()
+{
+	if (!m_sensitivityInfo)
+	{
+		return;
+	}
+	connect(m_sensitivityInfo.data(), &iASensitivityInfo::aborted, this, &iAFiAKErController::resetSensitivity);
+	connect(m_sensitivityInfo.data(), &iASensitivityInfo::resultSelected, this, &iAFiAKErController::showMainVis);
+	connect(m_sensitivityInfo.data(), &iASensitivityInfo::viewDifference, this, &iAFiAKErController::showDifference);
+}
+
 void iAFiAKErController::computeSensitivity()
 {
 	if (m_sensitivityInfo)
@@ -1374,16 +1390,13 @@ void iAFiAKErController::computeSensitivity()
 	m_resultColorTheme = iAColorThemeManager::instance().theme("Gray");
 	m_sensitivityInfo = iASensitivityInfo::create(m_mdiChild, m_data, m_views[ResultListView],
 		m_mdiChild->jobsList(), m_histogramBins);
-	connect(m_sensitivityInfo.data(), &iASensitivityInfo::aborted, this, &iAFiAKErController::resetSensitivity);
-	connect(m_sensitivityInfo.data(), &iASensitivityInfo::resultSelected, this, &iAFiAKErController::showMainVis);
-	connect(m_sensitivityInfo.data(), &iASensitivityInfo::viewDifference, this, &iAFiAKErController::showDifference);
+	connectSensitivity();
 }
 
 void iAFiAKErController::resetSensitivity()
 {
 	m_sensitivityInfo.clear();
 }
-
 
 void iAFiAKErController::stackedBarColorThemeChanged(int index)
 {
@@ -2698,10 +2711,24 @@ bool iAFiAKErController::loadReferenceInternal(iASettings settings)
 	return true;
 }
 
-void iAFiAKErController::loadReference(iASettings settings)
+void iAFiAKErController::loadAdditionalData(iASettings settings, QString projectFileName)
 {
-	if (!loadReferenceInternal(settings))
-	{   // if no reference set, load settings directly
+	bool directlyLoadSettings = true;
+	if (settings.contains(ProjectFileReference))
+	{
+		directlyLoadSettings = !loadReferenceInternal(settings);
+	}
+	if (iASensitivityInfo::hasData(settings))
+	{
+		m_sensitivityInfo = iASensitivityInfo::load(m_mdiChild, m_data, m_views[ResultListView],
+			m_mdiChild->jobsList(), m_histogramBins, settings, projectFileName);
+		connectSensitivity();
+		// don't change direct loading of settings here, the settings loaded below
+		// probably don't really affect sensitivity things (TODO: to be checked - if it doesn't crash it should be fine)
+	}
+	// if no further data loaded, load settings directly
+	if (directlyLoadSettings)
+	{
 		loadSettings(settings);
 	}
 }
@@ -3349,6 +3376,10 @@ void iAFiAKErController::saveProject(QSettings & projectFile, QString  const & f
 	projectFile.setValue(ProjectShowPreviews, m_showPreviews);
 	projectFile.setValue(ProjectShowCharts, m_showCharts);
 	saveSettings(projectFile);
+	if (m_sensitivityInfo)
+	{
+		m_sensitivityInfo->saveProject(projectFile, fileName);
+	}
 }
 
 void iAFiAKErController::update3D()
