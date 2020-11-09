@@ -558,9 +558,14 @@ namespace
 	{
 		switch (objectType)
 		{
-		case iACsvConfig::Ellipses:  return QSharedPointer<iA3DColoredPolyObjectVis>(new iA3DEllipseObjectVis(renderer, table, mapping, color));
+		case iACsvConfig::Ellipses: return QSharedPointer<iA3DColoredPolyObjectVis>(
+			new iA3DEllipseObjectVis(renderer, table, mapping, color));
 		default:
-		case iACsvConfig::Cylinders: return QSharedPointer<iA3DColoredPolyObjectVis>(new iA3DCylinderObjectVis(renderer, table, mapping, color, curvedFiberData));
+#if __cplusplus >= 201703L
+			[[fallthrough]];
+#endif
+		case iACsvConfig::Cylinders: return QSharedPointer<iA3DColoredPolyObjectVis>(
+			new iA3DCylinderObjectVis(renderer, table, mapping, color, curvedFiberData, 6, 3));
 		}
 	}
 }
