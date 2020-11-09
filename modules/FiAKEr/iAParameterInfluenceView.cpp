@@ -65,7 +65,7 @@ iAParameterInfluenceView::iAParameterInfluenceView(iASensitivityInfo* sensInf) :
 	m_paramListLayout(new QGridLayout())
 {
 	setLayout(new QHBoxLayout);
-	layout()->setContentsMargins(0, 0, 0, 0);
+	layout()->setContentsMargins(1, 0, 1, 0);
 	auto paramScrollArea = new QScrollArea();
 	paramScrollArea->setWidgetResizable(true);
 	auto paramList = new QWidget();
