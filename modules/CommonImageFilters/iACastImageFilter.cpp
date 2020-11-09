@@ -283,6 +283,7 @@ void iAConvertToRGBAFilter::performWork(QMap<QString, QVariant> const & params)
 template <class T>
 void fillHistogramm(iAFilter* filter, QMap<QString, QVariant> const& params)
 {
+	Q_UNUSED(params);
 	std::map<T, T> histogramm;
 	typedef itk::Image<T, DIM> ImageType;
 	ImageType::Pointer im = dynamic_cast<ImageType*>(filter->input()[0]->itkImage());
