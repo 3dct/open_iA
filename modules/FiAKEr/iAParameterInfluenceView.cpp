@@ -90,12 +90,12 @@ iAParameterInfluenceView::iAParameterInfluenceView(iASensitivityInfo* sensInf) :
 	// which encapsulates updating weights, showing columns, unified data interface (table?)
 	// for all characteristics, add column to stacked bar charts
 
-	for (int charactIdx = 0; charactIdx < sensInf->charactIndex.size(); ++charactIdx)
+	for (int charactIdx = 0; charactIdx < sensInf->m_charSelected.size(); ++charactIdx)
 	{
 		addColumnAction(sensInf->charactName(charactIdx), charactIdx, this, m_stackedHeader, charactIdx == 0);
 	}
-	addColumnAction("Fiber Count", sensInf->charactIndex.size() + 1, this, m_stackedHeader, false);
-	//LOG(lvlDebug, QString("Adding lines for %1 characteristics").arg(sensInf->charactIndex.size()));
+	addColumnAction("Fiber Count", sensInf->m_charSelected.size() + 1, this, m_stackedHeader, false);
+	//LOG(lvlDebug, QString("Adding lines for %1 characteristics").arg(sensInf->m_charSelected.size()));
 
 	// headers:
 	addHeaderLabel(m_paramListLayout, colParamName, "Parameter");

@@ -133,9 +133,9 @@ public:
 	//! @param settings needs to be passed by value, as it's used in a lambda!
 	void loadSettings(iASettings settings);
 	void saveSettings(QSettings & settings);
-	//! Load potential reference.
+	//! Load additional data/state - a potentially set reference or sensitivity data
 	//! @param settings needs to be passed by value, as it's used in a lambda!
-	void loadReference(iASettings settings);
+	void loadAdditionalData(iASettings settings, QString projectFileName);
 	void saveProject(QSettings& projectFile, QString  const& fileName);
 signals:
 	void setupFinished();
@@ -350,6 +350,7 @@ private:
 	iAMatrixWidget* m_matrixWidget;
 	iAParameterListView* m_parameterListView;
 	QSharedPointer<iASensitivityInfo> m_sensitivityInfo;
+	void connectSensitivity();
 
 	QString dissimilarityMatrixCacheFileName();
 	bool readDissimilarityMatrixCache(QVector<int>& measures);

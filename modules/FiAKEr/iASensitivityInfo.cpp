@@ -24,6 +24,7 @@
 #include <charts/iASPLOMData.h>
 #include <charts/qcustomplot.h>
 #include <charts/iAScatterPlotWidget.h>
+#include <io/iAFileUtils.h>
 #include <iAJobListView.h>
 #include <iALog.h>
 #include <iAMathUtility.h>
@@ -167,17 +168,23 @@ void iASensitivityInfo::abort()
 
 QSharedPointer<iASensitivityInfo> iASensitivityInfo::create(QMainWindow* child,
 	QSharedPointer<iAFiberResultsCollection> data, QDockWidget* nextToDW,
-	iAJobListView* jobListView, int histogramBins)
+	iAJobListView* jobListView, int histogramBins,
+	QString parameterSetFileName, QVector<int> const & charSelected,
+	QVector<int> const & charDiffMeasure)
 {
-	QString fileName = QFileDialog::getOpenFileName(child,
-		"Sensitivity: Parameter Sets file", data->folder,
-		"Comma-Separated Values (*.csv);;");
-	if (fileName.isEmpty())
+	if (parameterSetFileName.isEmpty())
 	{
+		parameterSetFileName = QFileDialog::getOpenFileName(child,
+			"Sensitivity: Parameter Sets file", data->folder,
+			"Comma-Separated Values (*.csv);;");
+	}
+	if (parameterSetFileName.isEmpty())
+	{
+		LOG(lvlInfo, "Empty parameter set filename / aborted.");
 		return QSharedPointer<iASensitivityInfo>();
 	}
 	iACsvVectorTableCreator tblCreator;
-	if (!readParameterCSV(fileName, "UTF-8", ",", tblCreator, data->result.size()))
+	if (!readParameterCSV(parameterSetFileName, "UTF-8", ",", tblCreator, data->result.size()))
 	{
 		return QSharedPointer<iASensitivityInfo>();
 	}
@@ -196,7 +203,7 @@ QSharedPointer<iASensitivityInfo> iASensitivityInfo::create(QMainWindow* child,
 	}
 	// data in m_paramValues is indexed [col(=parameter index)][row(=parameter set index)]
 	QSharedPointer<iASensitivityInfo> sensitivity(
-		new iASensitivityInfo(data, fileName, paramNames, paramValues, child, nextToDW));
+		new iASensitivityInfo(data, parameterSetFileName, paramNames, paramValues, child, nextToDW));
 
 	// find min/max, for all columns except ID and filename (maybe we could reuse SPM data ranges here?)
 	QVector<double> valueMin(static_cast<int>(paramValues.size() - 2));
@@ -259,28 +266,38 @@ QSharedPointer<iASensitivityInfo> iASensitivityInfo::create(QMainWindow* child,
 	// select output features to compute sensitivity for:
 	// - the loaded and computed ones (length, orientation, ...)
 	// - dissimilarity measure(s)
-	iASensitivityDialog dlg(data);
-	if (dlg.exec() != QDialog::Accepted)
+	if (charSelected.isEmpty())
 	{
-		return QSharedPointer<iASensitivityInfo>();
+		iASensitivityDialog dlg(data);
+		if (dlg.exec() != QDialog::Accepted)
+		{
+			return QSharedPointer<iASensitivityInfo>();
+		}
+		sensitivity->m_charSelected = dlg.selectedCharacteristics();
+		sensitivity->m_charDiffMeasure = dlg.selectedDiffMeasures();
 	}
-	sensitivity->charactIndex = dlg.selectedCharacteristics();
-	sensitivity->charDiffMeasure = dlg.selectedDiffMeasures();
+	else
+	{
+		sensitivity->m_charSelected = charSelected;
+		sensitivity->m_charDiffMeasure = charDiffMeasure;
+	}
 	//sensitivity->dissimMeasure = dlg.selectedMeasures();
 	sensitivity->m_histogramBins = histogramBins;
-	if (sensitivity->charactIndex.size() == 0 || sensitivity->charDiffMeasure.size() == 0)
+	if (sensitivity->m_charSelected.size() == 0 || sensitivity->m_charDiffMeasure.size() == 0)
 	{
 		QMessageBox::warning(child, "Sensitivity", "You have to select at least one characteristic and at least one measure!", QMessageBox::Ok);
 		return QSharedPointer<iASensitivityInfo>();
 	}
-	iAMeasureSelectionDlg selectMeasure;
-	if (selectMeasure.exec() != QDialog::Accepted)
+	if (!QFile::exists(sensitivity->dissimilarityMatrixCacheFileName()))
 	{
-		return QSharedPointer<iASensitivityInfo>();
+		iAMeasureSelectionDlg selectMeasure;
+		if (selectMeasure.exec() != QDialog::Accepted)
+		{
+			return QSharedPointer<iASensitivityInfo>();
+		}
+		sensitivity->m_resultDissimMeasures = selectMeasure.measures();
+		sensitivity->m_resultDissimOptimMeasureIdx = selectMeasure.optimizeMeasureIdx();
 	}
-
-	sensitivity->m_resultDissimMeasures = selectMeasure.measures();
-	sensitivity->m_resultDissimOptimMeasureIdx = selectMeasure.optimizeMeasureIdx();
 	auto futureWatcher = runAsync([sensitivity]
 		{
 			sensitivity->compute();
@@ -361,17 +378,17 @@ void iASensitivityInfo::compute()
 	const int NumOfVarianceAggregation = 4;
 
 	paramStep.fill(0.0, variedParams.size());
-	sensitivityField.resize(charactIndex.size());
-	aggregatedSensitivities.resize(charactIndex.size());
-	for (int charIdx = 0; charIdx < charactIndex.size() && !m_aborted; ++charIdx)
+	sensitivityField.resize(m_charSelected.size());
+	aggregatedSensitivities.resize(m_charSelected.size());
+	for (int charIdx = 0; charIdx < m_charSelected.size() && !m_aborted; ++charIdx)
 	{
-		m_progress.emitProgress(100 * charIdx / charactIndex.size());
-		//int charactID = charactIndex[charIdx];
+		m_progress.emitProgress(100 * charIdx / m_charSelected.size());
+		//int charactID = m_charSelected[charIdx];
 		//auto charactName = m_data->spmData->parameterName(charactID);
 		//LOG(lvlDebug, QString("Characteristic %1 (%2):").arg(charIdx).arg(charactName));
-		sensitivityField[charIdx].resize(charDiffMeasure.size());
-		aggregatedSensitivities[charIdx].resize(charDiffMeasure.size());
-		for (int diffMeasure = 0; diffMeasure < charDiffMeasure.size(); ++diffMeasure)
+		sensitivityField[charIdx].resize(m_charDiffMeasure.size());
+		aggregatedSensitivities[charIdx].resize(m_charDiffMeasure.size());
+		for (int diffMeasure = 0; diffMeasure < m_charDiffMeasure.size(); ++diffMeasure)
 		{
 			//LOG(lvlDebug, QString("    Difference Measure %1 (%2)").arg(diffMeasure).arg(DistributionDifferenceMeasureNames()[diffMeasure]));
 			auto& field = sensitivityField[charIdx][diffMeasure];
@@ -606,12 +623,12 @@ void iASensitivityInfo::compute()
 	}
 
 	m_progress.setStatus("Compute variation histogram");
-	//charHistHist.resize(charactIndex.size());
-	charHistVar.resize(charactIndex.size());
-	charHistVarAgg.resize(charactIndex.size());
-	for (int charIdx = 0; charIdx < charactIndex.size() && !m_aborted; ++charIdx)
+	//charHistHist.resize(m_charSelected.size());
+	charHistVar.resize(m_charSelected.size());
+	charHistVarAgg.resize(m_charSelected.size());
+	for (int charIdx = 0; charIdx < m_charSelected.size() && !m_aborted; ++charIdx)
 	{
-		m_progress.emitProgress(100 * charIdx / charactIndex.size());
+		m_progress.emitProgress(100 * charIdx / m_charSelected.size());
 		//charHistHist[charIdx].resize(NumOfVarianceAggregation);
 		charHistVar[charIdx].resize(NumOfVarianceAggregation);
 		charHistVarAgg[charIdx].resize(NumOfVarianceAggregation);
@@ -868,7 +885,7 @@ bool iASensitivityInfo::readDissimilarityMatrixCache(QVector<int>& measures)
 	in >> identifier;
 	if (identifier != DissimilarityMatrixCacheFileIdentifier)
 	{
-		LOG(lvlError, QString("FIAKER cache file '%1': Unknown cache file format - found identifier %2 does not match expected identifier %3.")
+		LOG(lvlError, QString("FIAKER cache file '%1': Unknown cache file format - found identifier %2 does not match expected identifier %3. Please delete file and let it be recreated!")
 			.arg(cacheFile.fileName())
 			.arg(identifier).arg(DissimilarityMatrixCacheFileIdentifier));
 		return false;
@@ -877,13 +894,14 @@ bool iASensitivityInfo::readDissimilarityMatrixCache(QVector<int>& measures)
 	in >> version;
 	if (version > DissimilarityMatrixCacheFileVersion)
 	{
-		LOG(lvlError, QString("FIAKER cache file '%1': Invalid or too high version number (%2), expected %3 or less.")
+		LOG(lvlError, QString("FIAKER cache file '%1': Invalid or too high version number (%2), expected %3 or less. Please delete file and let it be recreated!")
 			.arg(cacheFile.fileName())
 			.arg(version).arg(DissimilarityMatrixCacheFileVersion));
 		return false;
 	}
 	in >> measures;
 	in >> m_resultDissimMatrix;
+	cacheFile.close();
 	return true;
 }
 
@@ -930,7 +948,7 @@ public:
 		cmbboxMeasure->addItems(DistributionDifferenceMeasureNames());
 		cmbboxAggregation->addItems(AggregationNames());
 		QStringList characteristics;
-		for (int charIdx = 0; charIdx < sensInf->charactIndex.size(); ++charIdx)
+		for (int charIdx = 0; charIdx < sensInf->m_charSelected.size(); ++charIdx)
 		{
 			characteristics << sensInf->charactName(charIdx);
 		}
@@ -1042,11 +1060,67 @@ public:
 
 QString iASensitivityInfo::charactName(int charIdx) const
 {
-	return m_data->spmData->parameterName(charactIndex[charIdx])
+	return m_data->spmData->parameterName(m_charSelected[charIdx])
 		.replace("[µm]", "")
 		.replace("[µm²]", "")
 		.replace("[µm³]", "")
 		.replace("[°]", "");
+}
+
+namespace
+{
+	const QString ProjectParameterFile("ParameterSetsFile");
+	const QString ProjectCharacteristics("Characteristics");
+	const QString ProjectCharDiffMeasures("CharacteristicDifferenceMeasures");
+	//const QString ProjectResultDissimilarityMeasure("ResultDissimilarityMeasures");
+}
+
+void iASensitivityInfo::saveProject(QSettings& projectFile, QString  const& fileName)
+{
+	projectFile.setValue(ProjectParameterFile, MakeRelative(QFileInfo(fileName).absolutePath(), m_parameterFileName));
+	projectFile.setValue(ProjectCharacteristics, joinNumbersAsString(m_charSelected, ","));
+	projectFile.setValue(ProjectCharDiffMeasures, joinNumbersAsString(m_charDiffMeasure, ","));
+	// stored in cache file:
+	//projectFile.setValue(ProjectResultDissimilarityMeasure, joinAsString(m_resultDissimMeasures, ",",
+	//	[](std::pair<int, bool> const& a) {return QString::number(a.first)+":"+(a.second?"true":"false"); }));
+}
+
+bool iASensitivityInfo::hasData(iASettings const& settings)
+{
+	return settings.contains(ProjectParameterFile);
+}
+
+
+namespace
+{
+	// there should be a function like this already somewhere?
+	QVector<int> stringToIntVector(QString const& listAsString)
+	{
+		QStringList strList = listAsString.split(",");
+		QVector<int> result(strList.size());
+		for (auto str : strList)
+		{
+			bool ok;
+			result.push_back(str.toInt(&ok));
+			if (!ok)
+			{
+				LOG(lvlWarn, QString("Invalid value %1 in stringToInt conversion!").arg(str));
+			}
+		}
+		return result;
+	}
+}
+
+QSharedPointer<iASensitivityInfo> iASensitivityInfo::load(QMainWindow* child,
+	QSharedPointer<iAFiberResultsCollection> data, QDockWidget* nextToDW,
+	iAJobListView* jobListView, int histogramBins, iASettings const & projectFile,
+	QString const& projectFileName)
+{
+	QString parameterSetFileName = MakeAbsolute(QFileInfo(projectFileName).absolutePath(), projectFile.value(ProjectParameterFile).toString());
+	QVector<int> charsSelected = stringToIntVector(projectFile.value(ProjectCharacteristics).toString());
+	QVector<int> charDiffMeasure = stringToIntVector(projectFile.value(ProjectCharDiffMeasures).toString());
+	return iASensitivityInfo::create(child, data, nextToDW, jobListView, histogramBins, parameterSetFileName,
+		charsSelected, charDiffMeasure);
 }
 
 class iASPParamPointInfo: public iAScatterPlotPointInfo
@@ -1216,7 +1290,7 @@ void iASensitivityInfo::paramChanged()
 void iASensitivityInfo::charactChanged(int charIdx)
 {
 	QSignalBlocker block1(m_gui->m_settings->cmbboxOutput);
-	if (charIdx < charactIndex.size())
+	if (charIdx < m_charSelected.size())
 	{
 		m_gui->m_settings->cmbboxOutput->setCurrentIndex(0);
 		QSignalBlocker block2(m_gui->m_settings->cmbboxCharacteristic);
