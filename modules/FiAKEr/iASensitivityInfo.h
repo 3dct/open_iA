@@ -84,7 +84,7 @@ public:
 	int m_histogramBins;
 	QVector<double> paramStep;  //!< per varied parameter, the size of step performed for the STAR
 
-	QVector<int> variedParams;  //!< indices of the parameters that were varied
+	QVector<int> m_variedParams;  //!< indices of the parameters that were varied
 
 	// for each characteristic
 	//     for each selected characteristics difference measure
@@ -187,6 +187,7 @@ private:
 	QString dissimilarityMatrixCacheFileName() const;
 	bool readDissimilarityMatrixCache(QVector<int>& measures);
 	void writeDissimilarityMatrixCache(QVector<int> const& measures) const;
+	QWidget* setupMatrixView(QVector<int> const& measures);
 
 	QString m_parameterFileName;
 	QMainWindow* m_child;
@@ -208,6 +209,10 @@ public slots:
 	void updateDissimilarity();
 	void spHighlightChanged();
 	void createGUI();
+private slots:
+	void dissimMatrixMeasureChanged(int);
+	void dissimMatrixParameterChanged(int);
+	void dissimMatrixColorMapChanged(int);
 };
 
 // Factor out as generic CSV reading class also used by iACsvIO?

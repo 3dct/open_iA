@@ -105,19 +105,19 @@ iAParameterInfluenceView::iAParameterInfluenceView(iASensitivityInfo* sensInf) :
 	m_paramListLayout->addWidget(m_stackedHeader, 0, colStackedBar);
 	addHeaderLabel(m_paramListLayout, colHistogram, "Difference Distribution");
 
-	for (int paramIdx = 0; paramIdx < sensInf->variedParams.size(); ++paramIdx)
+	for (int paramIdx = 0; paramIdx < sensInf->m_variedParams.size(); ++paramIdx)
 	{
-		m_stackedCharts.push_back(new iAStackedBarChart(colorTheme, false, paramIdx == sensInf->variedParams.size()-1));
+		m_stackedCharts.push_back(new iAStackedBarChart(colorTheme, false, paramIdx == sensInf->m_variedParams.size()-1));
 		connect(m_stackedHeader, &iAStackedBarChart::weightsChanged, m_stackedCharts[paramIdx], &iAStackedBarChart::setWeights);
 		m_stackedCharts[paramIdx]->setProperty("paramIdx", paramIdx);
 		connect(m_stackedCharts[paramIdx], &iAStackedBarChart::clicked, this, &iAParameterInfluenceView::paramChangedSlot);
 		connect(m_stackedHeader, &iAStackedBarChart::normalizeModeChanged, m_stackedCharts[paramIdx], &iAStackedBarChart::setNormalizeMode);
 		connect(m_stackedHeader, &iAStackedBarChart::switchedStackMode, m_stackedCharts[paramIdx], &iAStackedBarChart::setDoStack);
-		auto const& paramVec = sensInf->m_paramValues[sensInf->variedParams[paramIdx]];
+		auto const& paramVec = sensInf->m_paramValues[sensInf->m_variedParams[paramIdx]];
 		double minVal = *std::min_element(paramVec.begin(), paramVec.end()),
 			maxVal = *std::max_element(paramVec.begin(), paramVec.end());
 		iAClickableLabel* labels[4];
-		labels[colParamName] = new iAClickableLabel(sensInf->m_paramNames[sensInf->variedParams[paramIdx]]);
+		labels[colParamName] = new iAClickableLabel(sensInf->m_paramNames[sensInf->m_variedParams[paramIdx]]);
 		labels[colMin] = new iAClickableLabel(QString::number(minVal));
 		labels[colMax] = new iAClickableLabel(QString::number(maxVal));
 		labels[colStep] = new iAClickableLabel(QString::number(sensInf->paramStep[paramIdx]));
@@ -182,7 +182,7 @@ void iAParameterInfluenceView::showDifferenceDistribution(int outputIdx, int cha
 		return;
 	}
 	const int numBins = m_sensInf->m_histogramBins;
-	for (int paramIdx=0; paramIdx < m_sensInf->variedParams.size(); ++paramIdx)
+	for (int paramIdx=0; paramIdx < m_sensInf->m_variedParams.size(); ++paramIdx)
 	{	// improve iAHistogramData to directly take QVector/std::vector data?
 		double * myHisto = new double[numBins];
 		for (int bin = 0; bin < numBins; ++bin)
@@ -253,7 +253,7 @@ void iAParameterInfluenceView::paramChangedSlot()
 {
 	auto source = qobject_cast<QWidget*>(QObject::sender());
 	m_selectedRow = source->property("paramIdx").toInt();
-	for (int paramIdx = 0; paramIdx < m_sensInf->variedParams.size(); ++paramIdx)
+	for (int paramIdx = 0; paramIdx < m_sensInf->m_variedParams.size(); ++paramIdx)
 	{
 		QColor color = palette().color(paramIdx == m_selectedRow ? QPalette::AlternateBase : backgroundRole());
 		for (int col = colParamName; col <= colStep; ++col)
@@ -277,19 +277,19 @@ void iAParameterInfluenceView::updateStackedBars()
 		// TODO: unify with addStackedBar
 		auto title(columnName(charactIdx));
 		double maxValue = std::numeric_limits<double>::lowest();
-		for (int paramIdx = 0; paramIdx < m_sensInf->variedParams.size(); ++paramIdx)
+		for (int paramIdx = 0; paramIdx < m_sensInf->m_variedParams.size(); ++paramIdx)
 		{
 			if (d[paramIdx] > maxValue)
 			{
 				maxValue = d[paramIdx];
 			}
 		}
-		for (int paramIdx = 0; paramIdx < m_sensInf->variedParams.size(); ++paramIdx)
+		for (int paramIdx = 0; paramIdx < m_sensInf->m_variedParams.size(); ++paramIdx)
 		{
 			m_stackedCharts[paramIdx]->updateBar(title, d[paramIdx], maxValue);
 		}
 	}
-	for (int paramIdx = 0; paramIdx < m_sensInf->variedParams.size(); ++paramIdx)
+	for (int paramIdx = 0; paramIdx < m_sensInf->m_variedParams.size(); ++paramIdx)
 	{
 		m_stackedCharts[paramIdx]->update();
 	}
@@ -311,14 +311,14 @@ void iAParameterInfluenceView::addStackedBar(int charactIdx)
 		m_sensInf->aggregatedSensitivities[charactIdx][m_measureIdx][m_aggrType] :
 		m_sensInf->aggregatedSensitivitiesFiberCount[m_aggrType];
 	double maxValue = std::numeric_limits<double>::lowest();
-	for (int paramIdx = 0; paramIdx < m_sensInf->variedParams.size(); ++paramIdx)
+	for (int paramIdx = 0; paramIdx < m_sensInf->m_variedParams.size(); ++paramIdx)
 	{
 		if (d[paramIdx] > maxValue)
 		{
 			maxValue = d[paramIdx];
 		}
 	}
-	for (int paramIdx = 0; paramIdx < m_sensInf->variedParams.size(); ++paramIdx)
+	for (int paramIdx = 0; paramIdx < m_sensInf->m_variedParams.size(); ++paramIdx)
 	{
 		m_stackedCharts[paramIdx]->addBar(title, d[paramIdx], maxValue);
 	}

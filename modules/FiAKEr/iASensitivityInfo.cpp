@@ -27,6 +27,7 @@
 #include <io/iAFileUtils.h>
 #include <iAJobListView.h>
 #include <iALog.h>
+#include <iALUT.h>
 #include <iAMathUtility.h>
 #include <iARunAsync.h>
 #include <iAStringHelper.h>
@@ -43,8 +44,10 @@
 #include "iAFiberData.h"
 #include "iAMeasureSelectionDlg.h"
 #include "iAMultidimensionalScaling.h"
+#include "iAParameterInfluenceView.h"
 #include "iARefDistCompute.h"
 #include "iASensitivityDialog.h"
+#include "ui_DissimilarityMatrix.h"
 
 #include <vtkSmartPointer.h>
 #include <vtkTable.h>
@@ -67,7 +70,6 @@
 
 namespace
 {
-	const int LayoutMargin = 4;
 	const int LayoutSpacing = 4;
 	const QString DefaultStackedBarColorTheme("Brewer Accent (max. 8)");
 	QStringList const& AggregationNames()
@@ -220,17 +222,17 @@ QSharedPointer<iASensitivityInfo> iASensitivityInfo::create(QMainWindow* child,
 	{
 		if (valueMin[p] != valueMax[p])
 		{
-			sensitivity->variedParams.push_back(p + 1); // +1 because valueMin/valueMax don't contain ID
+			sensitivity->m_variedParams.push_back(p + 1); // +1 because valueMin/valueMax don't contain ID
 		}
 	}
-	if (sensitivity->variedParams.size() == 0)
+	if (sensitivity->m_variedParams.size() == 0)
 	{
 		LOG(lvlError, "Invalid sampling: No parameter was varied!");
 		return QSharedPointer<iASensitivityInfo>();
 	}
 	//LOG(lvlInfo, QString("Found the following parameters to vary (number: %1): %2")
-	//	.arg(sensitivity->variedParams.size())
-	//	.arg(joinAsString(sensitivity->variedParams, ",", [&paramNames](int const& i) { return paramNames[i]; })));
+	//	.arg(sensitivity->m_variedParams.size())
+	//	.arg(joinAsString(sensitivity->m_variedParams, ",", [&paramNames](int const& i) { return paramNames[i]; })));
 
 	// find out how many additional parameter sets were added per STAR:
 	//   - go to first value row; take value of first varied parameter as v
@@ -238,26 +240,26 @@ QSharedPointer<iASensitivityInfo> iASensitivityInfo::create(QMainWindow* child,
 	//        first varied parameter has same value as v
 	//        or distance of current value of first varied parameter is a multiple
 	//        of the distance between its first row value and second row value
-	double checkValue0 = paramValues[sensitivity->variedParams[0]][0];
+	double checkValue0 = paramValues[sensitivity->m_variedParams[0]][0];
 	const double RemainderCheckEpsilon = 1e-12;
-	double curCheckValue = paramValues[sensitivity->variedParams[0]][1];
+	double curCheckValue = paramValues[sensitivity->m_variedParams[0]][1];
 	double diffCheck = std::abs(curCheckValue - checkValue0);
 	//LOG(lvlDebug, QString("checkValue0=%1, curCheckValue=%2, diffCheck=%3").arg(checkValue0).arg(curCheckValue).arg(diffCheck));
 	double remainder = 0;
 	int row = 2;
-	while (row < paramValues[sensitivity->variedParams[0]].size() &&
+	while (row < paramValues[sensitivity->m_variedParams[0]].size() &&
 		(remainder < RemainderCheckEpsilon || 	// "approximately a multiple" is not so easy with double
 			(std::abs(diffCheck - remainder) < RemainderCheckEpsilon) || // remainder could also be close to but smaller than diffCheck
 			(dblApproxEqual(curCheckValue, checkValue0))))
 	{
-		curCheckValue = paramValues[sensitivity->variedParams[0]][row];
+		curCheckValue = paramValues[sensitivity->m_variedParams[0]][row];
 		remainder = std::abs(std::fmod(std::abs(curCheckValue - checkValue0), diffCheck));
 		//LOG(lvlDebug, QString("Row %1: curCheckValue=%2, checkValue0=%3, remainder=%4")
 		//	.arg(row).arg(curCheckValue).arg(checkValue0).arg(remainder));
 		++row;
 	}
 	sensitivity->m_starGroupSize = row - 1;
-	sensitivity->m_numOfSTARSteps = (sensitivity->m_starGroupSize - 1) / sensitivity->variedParams.size();
+	sensitivity->m_numOfSTARSteps = (sensitivity->m_starGroupSize - 1) / sensitivity->m_variedParams.size();
 	//LOG(lvlInfo,QString("Determined that there are groups of size: %1; number of STAR points per parameter: %2")
 	//	.arg(sensitivity->m_starGroupSize)
 	//	.arg(sensitivity->m_numOfSTARSteps)
@@ -377,7 +379,7 @@ void iASensitivityInfo::compute()
 	m_progress.setStatus("Computing characteristics sensitivities.");
 	const int NumOfVarianceAggregation = 4;
 
-	paramStep.fill(0.0, variedParams.size());
+	paramStep.fill(0.0, m_variedParams.size());
 	sensitivityField.resize(m_charSelected.size());
 	aggregatedSensitivities.resize(m_charSelected.size());
 	for (int charIdx = 0; charIdx < m_charSelected.size() && !m_aborted; ++charIdx)
@@ -397,19 +399,19 @@ void iASensitivityInfo::compute()
 			agg.resize(NumOfVarianceAggregation);
 			for (int i = 0; i < NumOfVarianceAggregation; ++i)
 			{
-				field[i].resize(variedParams.size());
-				agg[i].fill(0.0, variedParams.size());
+				field[i].resize(m_variedParams.size());
+				agg[i].fill(0.0, m_variedParams.size());
 			}
-			for (int paramIdx = 0; paramIdx < variedParams.size(); ++paramIdx)
+			for (int paramIdx = 0; paramIdx < m_variedParams.size(); ++paramIdx)
 			{
 				for (int i = 0; i < NumOfVarianceAggregation; ++i)
 				{
 					field[i][paramIdx].resize(paramSetValues.size());
 				}
 				// TODO: unify with other loops over STARs
-				//QString paramName(m_paramNames[variedParams[paramIdx]]);
+				//QString paramName(m_paramNames[m_variedParams[paramIdx]]);
 				//LOG(lvlDebug, QString("  Parameter %1 (%2):").arg(paramIdx).arg(paramName));
-				int origParamColIdx = variedParams[paramIdx];
+				int origParamColIdx = m_variedParams[paramIdx];
 				// aggregation types:
 				//     - for now: one step average, left only, right only, average over all steps
 				//     - future: overall (weighted) average, values over multiples of step size, ...
@@ -523,13 +525,13 @@ void iASensitivityInfo::compute()
 	aggregatedSensitivitiesFiberCount.resize(NumOfVarianceAggregation);
 	for (int i = 0; i < NumOfVarianceAggregation; ++i)
 	{
-		sensitivityFiberCount[i].resize(variedParams.size());
-		aggregatedSensitivitiesFiberCount[i].fill(0.0, variedParams.size());
+		sensitivityFiberCount[i].resize(m_variedParams.size());
+		aggregatedSensitivitiesFiberCount[i].fill(0.0, m_variedParams.size());
 	}
-	for (int paramIdx = 0; paramIdx < variedParams.size() && !m_aborted; ++paramIdx)
+	for (int paramIdx = 0; paramIdx < m_variedParams.size() && !m_aborted; ++paramIdx)
 	{
-		m_progress.emitProgress(100 * paramIdx / variedParams.size());
-		int origParamColIdx = variedParams[paramIdx];
+		m_progress.emitProgress(100 * paramIdx / m_variedParams.size());
+		int origParamColIdx = m_variedParams[paramIdx];
 		for (int i = 0; i < NumOfVarianceAggregation; ++i)
 		{
 			sensitivityFiberCount[i][paramIdx].resize(paramSetValues.size());
@@ -634,11 +636,11 @@ void iASensitivityInfo::compute()
 		charHistVarAgg[charIdx].resize(NumOfVarianceAggregation);
 		for (int aggIdx = 0; aggIdx < NumOfVarianceAggregation && !m_aborted; ++aggIdx)
 		{
-			//charHistHist[charIdx][aggIdx].resize(variedParams.size());
-			charHistVar[charIdx][aggIdx].resize(variedParams.size());
-			charHistVarAgg[charIdx][aggIdx].resize(variedParams.size());
+			//charHistHist[charIdx][aggIdx].resize(m_variedParams.size());
+			charHistVar[charIdx][aggIdx].resize(m_variedParams.size());
+			charHistVarAgg[charIdx][aggIdx].resize(m_variedParams.size());
 		}
-		for (int paramIdx = 0; paramIdx < variedParams.size() && !m_aborted; ++paramIdx)
+		for (int paramIdx = 0; paramIdx < m_variedParams.size() && !m_aborted; ++paramIdx)
 		{
 			for (int aggIdx = 0; aggIdx < NumOfVarianceAggregation && !m_aborted; ++aggIdx)
 			{
@@ -647,7 +649,7 @@ void iASensitivityInfo::compute()
 				charHistVarAgg[charIdx][aggIdx][paramIdx].fill(0.0, m_histogramBins);
 			}
 			// TODO: unify with other loops over STARs?
-			int origParamColIdx = variedParams[paramIdx];
+			int origParamColIdx = m_variedParams[paramIdx];
 
 			for (int bin = 0; bin < m_histogramBins; ++bin)
 			{
@@ -979,7 +981,70 @@ public:
 };
 
 
-#include "iAParameterInfluenceView.h"
+
+class iAParameterListView : public QWidget
+{
+public:
+	iAParameterListView(QStringList const& paramNames,
+		std::vector<std::vector<double>> const& paramValues,
+		QVector<int> variedParams,
+		iADissimilarityMatrixType const& dissimMatrix)
+	{
+		auto paramScrollArea = new QScrollArea();
+		paramScrollArea->setWidgetResizable(true);
+		auto paramList = new QWidget();
+		paramScrollArea->setWidget(paramList);
+		paramScrollArea->setContentsMargins(0, 0, 0, 0);
+		auto paramListLayout = new QGridLayout();
+		paramListLayout->setSpacing(LayoutSpacing);
+		paramListLayout->setContentsMargins(1, 0, 1, 0);
+		paramListLayout->setColumnStretch(0, 1);
+		paramListLayout->setColumnStretch(1, 2);
+
+		enum ParamColumns
+		{
+			NameCol = 0,
+			MatrixCol
+		};
+		addHeaderLabel(paramListLayout, NameCol, "Parameter");
+		addHeaderLabel(paramListLayout, MatrixCol, "Sensitivity Matrix");
+		for (auto p : variedParams)
+		{
+			auto paramNameLabel = new QLabel(paramNames[p]);
+			paramNameLabel->setSizePolicy(QSizePolicy::Expanding, QSizePolicy::Expanding);
+			paramListLayout->addWidget(paramNameLabel, p + 1, NameCol);
+
+			auto paramMatrix = new iAMatrixWidget(dissimMatrix, paramValues, false, false);
+			paramMatrix->setSortParameter(p);
+			paramMatrix->setSizePolicy(QSizePolicy::Expanding, QSizePolicy::Expanding);
+			paramMatrix->setData(0);
+			paramMatrix->setLookupTable(iALUT::Build(paramMatrix->range(), iALUT::GetColorMapNames()[0], 255, 255));
+			m_matrixPerParam.push_back(paramMatrix);
+			paramListLayout->addWidget(paramMatrix, p + 1, MatrixCol);
+		}
+		setLayout(paramListLayout);
+	}
+
+	void dissimMatrixMeasureChanged(int idx)
+	{
+		for (auto paramMatrix : m_matrixPerParam)
+		{
+			paramMatrix->setData(idx);
+			paramMatrix->update();
+		}
+	}
+
+	void dissimMatrixColorMapChanged(int idx)
+	{
+		for (auto paramMatrix : m_matrixPerParam)
+		{
+			paramMatrix->setLookupTable(iALUT::Build(paramMatrix->range(), iALUT::GetColorMapNames()[idx], 255, 255));
+			paramMatrix->update();
+		}
+	}
+private:
+	std::vector<iAMatrixWidget*> m_matrixPerParam;
+};
 
 class iASensitivityGUI
 {
@@ -1003,6 +1068,10 @@ public:
 	iADockWidgetWrapper* m_dwParamInfluence;
 
 	QSharedPointer<iASPLOMData> m_mdsData;
+
+	iADissimilarityMatrixType m_dissimilarityMatrix;
+	iAMatrixWidget* m_matrixWidget;
+	iAParameterListView* m_parameterListView;
 
 	void updateScatterPlotLUT(int starGroupSize, int numOfSTARSteps, size_t resultCount)
 	{
@@ -1057,6 +1126,54 @@ public:
 		m_scatterPlot->setLookupTable(m_lut, m_mdsData->numParams()-1);
 	}
 };
+
+using iADissimilarityMatrixDockContent = iAQTtoUIConnector<QWidget, Ui_DissimilarityMatrix>;
+
+QWidget* iASensitivityInfo::setupMatrixView(QVector<int> const& measures)
+{
+	iADissimilarityMatrixDockContent* dissimDockContent = new iADissimilarityMatrixDockContent();
+	auto measureNames = getAvailableDissimilarityMeasureNames();
+	QStringList computedMeasureNames;
+	for (int m = 0; m < measures.size(); ++m)
+	{
+		computedMeasureNames << measureNames[measures[m]];
+	}
+	dissimDockContent->cbMeasure->addItems(computedMeasureNames);
+	dissimDockContent->cbParameter->addItems(m_paramNames);
+	dissimDockContent->cbColorMap->addItems(iALUT::GetColorMapNames());
+	connect(dissimDockContent->cbMeasure, QOverload<int>::of(&QComboBox::currentIndexChanged),
+		this, &iASensitivityInfo::dissimMatrixMeasureChanged);
+	connect(dissimDockContent->cbParameter, QOverload<int>::of(&QComboBox::currentIndexChanged),
+		this, &iASensitivityInfo::dissimMatrixParameterChanged);
+	connect(dissimDockContent->cbColorMap, QOverload<int>::of(&QComboBox::currentIndexChanged),
+		this, &iASensitivityInfo::dissimMatrixColorMapChanged);                          // showAxes currently buggy - crashes!
+	m_gui->m_matrixWidget = new iAMatrixWidget(m_resultDissimMatrix, m_paramValues, true, false);
+	m_gui->m_matrixWidget->setSortParameter(0);
+	m_gui->m_matrixWidget->setData(0);
+	m_gui->m_matrixWidget->setLookupTable(iALUT::Build(m_gui->m_matrixWidget->range(), iALUT::GetColorMapNames()[0], 255, 255));
+	dissimDockContent->matrix->layout()->addWidget(m_gui->m_matrixWidget);
+	return dissimDockContent;
+}
+
+void iASensitivityInfo::dissimMatrixMeasureChanged(int idx)
+{
+	m_gui->m_matrixWidget->setData(idx);
+	m_gui->m_matrixWidget->update();
+	m_gui->m_parameterListView->dissimMatrixMeasureChanged(idx);
+}
+
+void iASensitivityInfo::dissimMatrixParameterChanged(int idx)
+{
+	m_gui->m_matrixWidget->setSortParameter(idx);
+	m_gui->m_matrixWidget->update();
+}
+
+void iASensitivityInfo::dissimMatrixColorMapChanged(int idx)
+{
+	m_gui->m_matrixWidget->setLookupTable(iALUT::Build(m_gui->m_matrixWidget->range(), iALUT::GetColorMapNames()[idx], 255, 255));
+	m_gui->m_matrixWidget->update();
+	m_gui->m_parameterListView->dissimMatrixColorMapChanged(idx);
+}
 
 QString iASensitivityInfo::charactName(int charIdx) const
 {
@@ -1134,11 +1251,11 @@ public:
 	{
 		Q_UNUSED(paramIdx);
 		QString result(QString("Fiber Count: %1<br/>").arg(m_results.result[pointIdx].fiberCount));
-		for (int i = 0; i < m_data.variedParams.size(); ++i)
+		for (int i = 0; i < m_data.m_variedParams.size(); ++i)
 		{
 			result +=
-				m_data.m_paramNames[m_data.variedParams[i]] + ": " +
-				QString::number(m_data.m_paramValues[m_data.variedParams[i]][pointIdx], 'f', 3) + "<br/>";
+				m_data.m_paramNames[m_data.m_variedParams[i]] + ": " +
+				QString::number(m_data.m_paramValues[m_data.m_variedParams[i]][pointIdx], 'f', 3) + "<br/>";
 				/*
 				m_data->parameterName(paramIdx[0]) + ": " +
 				QString::number(m_data->paramData(paramIdx[0])[pointIdx]) + "<br>" +
@@ -1178,9 +1295,22 @@ void iASensitivityInfo::createGUI()
 	auto dwParamDetails = new iADockWidgetWrapper(m_gui->m_paramDetails, "Parameter Details", "foeParamDetails");
 	m_child->splitDockWidget(m_gui->m_dwParamInfluence, dwParamDetails, Qt::Vertical);
 
+	QVector<int> measures;
+	for (auto d : m_resultDissimMeasures)
+	{
+		measures.push_back(d.first);
+	}
+	QWidget* dissimDockContent = setupMatrixView(measures);
+	auto dwDissimMatrix = new iADockWidgetWrapper(dissimDockContent, "Dissimilarity Matrix", "foeMatrix");
+	m_child->splitDockWidget(m_gui->m_dwParamInfluence, dwDissimMatrix, Qt::Vertical);
+
+	m_gui->m_parameterListView = new iAParameterListView(m_paramNames, m_paramValues, m_variedParams, m_resultDissimMatrix);
+	auto dwParamView = new iADockWidgetWrapper(m_gui->m_parameterListView, "Parameter View", "foeParameters");
+	m_child->splitDockWidget(m_gui->m_dwParamInfluence, dwParamView, Qt::Vertical);
+
 	m_gui->m_mdsData = QSharedPointer<iASPLOMData>(new iASPLOMData());
 	std::vector<QString> spParamNames;
-	for (auto p: variedParams)
+	for (auto p: m_variedParams)
 	{
 		spParamNames.push_back(m_paramNames[p]);
 	}
@@ -1193,9 +1323,9 @@ void iASensitivityInfo::createGUI()
 	{
 		m_gui->m_mdsData->data()[c].resize(resultCount);
 	}
-	for (int p=0; p<variedParams.size(); ++p)
+	for (int p=0; p<m_variedParams.size(); ++p)
 	{	// set parameter values:
-		int origParamIdx = variedParams[p];
+		int origParamIdx = m_variedParams[p];
 		for (int r = 0; r < resultCount; ++r)
 		{
 			m_gui->m_mdsData->data()[p][r] = m_paramValues[origParamIdx][r];
@@ -1261,7 +1391,7 @@ void iASensitivityInfo::paramChanged()
 	QVector<double> x(data.size()), y(data.size());
 	for (int i = 0; i < data.size(); ++i)
 	{
-		x[i] = paramSetValues[i][variedParams[paramIdx]];
+		x[i] = paramSetValues[i][m_variedParams[paramIdx]];
 		y[i] = data[i];
 	}
 	// configure right and top axis to show ticks but no labels:
@@ -1270,7 +1400,7 @@ void iASensitivityInfo::paramChanged()
 	plot->xAxis2->setTickLabels(false);
 	plot->yAxis2->setVisible(true);
 	plot->yAxis2->setTickLabels(false);
-	plot->xAxis->setLabel(m_paramNames[variedParams[paramIdx]]);
+	plot->xAxis->setLabel(m_paramNames[m_variedParams[paramIdx]]);
 	plot->yAxis->setLabel( ((outputIdx == outCharacteristic) ?
 		"Sensitivity " + (charactName(charIdx) + " (" + DistributionDifferenceMeasureNames()[measureIdx]+") ") :
 		"Fiber Count ") + AggregationNames()[aggrType]  );
