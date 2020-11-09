@@ -52,6 +52,7 @@
 #include <iAMapperImpl.h>
 #include <iAMathUtility.h>
 #include <iAModuleDispatcher.h>
+#include <iAPerformanceHelper.h>
 #include <iARenderer.h>
 #include <iARendererManager.h>
 #include <iAStringHelper.h>
@@ -70,8 +71,8 @@
 #include <qthelper/iASignallingWidget.h>
 #include <qthelper/iAVtkQtWidget.h>
 
-//#include <vtkBooleanOperationPolyDataFilter.h>
-#include "vtkPolyDataBooleanFilter.h"
+#include <vtkBooleanOperationPolyDataFilter.h>
+//#include "vtkPolyDataBooleanFilter.h"
 
 #include <vtkCamera.h>
 #include <vtkColorTransferFunction.h>
@@ -88,6 +89,7 @@
 #include <vtkRendererCollection.h>
 #include <vtkRenderer.h>
 #include <vtkTable.h>
+#include <vtkTriangleFilter.h>
 #include <vtkUnsignedCharArray.h>
 #include <vtkVertexGlyphFilter.h>
 
@@ -1965,6 +1967,7 @@ void iAFiAKErController::showMainVis(size_t resultID, bool state)
 
 void iAFiAKErController::showDifference(size_t r1, size_t r2)
 {
+	iATimeGuard timer("ShowDifference");
 	ensureMain3DViewCreated(r1);
 	ensureMain3DViewCreated(r2);
 	vtkSmartPointer<vtkPolyData> input1 = m_resultUIs[r1].main3DVis->finalPoly();
@@ -1975,12 +1978,19 @@ void iAFiAKErController::showDifference(size_t r1, size_t r2)
 		.arg(b1[0]).arg(b1[1]).arg(b1[2]).arg(b1[3])
 		.arg(b2[0]).arg(b2[1]).arg(b2[2]).arg(b2[3])
 	);
-	auto diffOp = vtkSmartPointer<vtkPolyDataBooleanFilter>::New();
-	//auto diffOp = vtkSmartPointer<vtkBooleanOperationPolyDataFilter>::New();
-	diffOp->SetInputData(0, input1);
-	diffOp->SetInputData(1, input2);
-	//diffOp->SetOperationToDifference();
-	diffOp->SetOperModeToDifference();
+
+	auto i1triangle = vtkSmartPointer<vtkTriangleFilter>::New();
+	i1triangle->SetInputData(input1);
+	i1triangle->Update();
+	auto i2triangle = vtkSmartPointer<vtkTriangleFilter>::New();
+	i2triangle->SetInputData(input2);
+	i2triangle->Update();
+	//auto diffOp = vtkSmartPointer<vtkPolyDataBooleanFilter>::New();
+	auto diffOp = vtkSmartPointer<vtkBooleanOperationPolyDataFilter>::New();
+	diffOp->SetInputConnection(0, i1triangle->GetOutputPort());
+	diffOp->SetInputConnection(1, i2triangle->GetOutputPort());
+	diffOp->SetOperationToDifference();
+	//diffOp->SetOperModeToDifference();
 	diffOp->Update();
 	m_diffData = diffOp->GetOutput();
 	auto diffMapper = vtkSmartPointer<vtkPolyDataMapper>::New();
