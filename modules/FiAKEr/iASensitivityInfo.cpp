@@ -1134,7 +1134,6 @@ public:
 		m_scatterPlot->setLookupTable(m_lut, m_mdsData->numParams() - 1);
 
 		m_scatterPlot->clearLines();
-		LOG(lvlInfo, QString("Param Count: %1; groupAll: %2").arg(variedParams.size()).arg(hiGrpAll.size()));
 		// we want to build a separate line for each parameter (i.e. in each branch "direction" of the STAR
 		// easiest way is to collect all parameter values in a group (done in the vector of size_t/double pairs),
 		// then sort this by the parameter values (since we don't know else how many are smaller or larger than
