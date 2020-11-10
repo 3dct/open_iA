@@ -451,6 +451,7 @@ void iASensitivityInfo::compute()
 					if (paramStep[paramIdx] == 0)
 					{
 						paramStep[paramIdx] = std::abs(paramDiff);
+						LOG(lvlInfo, QString("Param Step (param %1): %2").arg(paramIdx).arg(paramStep[paramIdx]));
 					}
 
 					double leftVar = 0;

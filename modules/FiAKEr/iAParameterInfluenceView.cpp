@@ -117,7 +117,8 @@ iAParameterInfluenceView::iAParameterInfluenceView(iASensitivityInfo* sensInf) :
 		double minVal = *std::min_element(paramVec.begin(), paramVec.end()),
 			maxVal = *std::max_element(paramVec.begin(), paramVec.end());
 		iAClickableLabel* labels[4];
-		labels[colParamName] = new iAClickableLabel(sensInf->m_paramNames[sensInf->m_variedParams[paramIdx]]);
+		QString paramName = sensInf->m_paramNames[sensInf->m_variedParams[paramIdx]];
+		labels[colParamName] = new iAClickableLabel(paramName);
 		labels[colMin] = new iAClickableLabel(QString::number(minVal));
 		labels[colMax] = new iAClickableLabel(QString::number(maxVal));
 		labels[colStep] = new iAClickableLabel(QString::number(sensInf->paramStep[paramIdx]));
@@ -129,7 +130,7 @@ iAParameterInfluenceView::iAParameterInfluenceView(iASensitivityInfo* sensInf) :
 		}
 		m_paramListLayout->addWidget(m_stackedCharts[paramIdx], 1 + paramIdx, colStackedBar);
 
-		m_diffChart.push_back(new iAChartWidget(this, "Characteristics distribution", "Variation"));
+		m_diffChart.push_back(new iAChartWidget(this, "Characteristics distribution", "Var. from "+ paramName));
 		m_paramListLayout->addWidget(m_diffChart[paramIdx], 1 + paramIdx, colHistogram);
 	}
 	// default stacked bar content/settings:
@@ -194,6 +195,7 @@ void iAParameterInfluenceView::showDifferenceDistribution(int outputIdx, int sel
 		m_diffChart[paramIdx]->addPlot(QSharedPointer<iAPlot>(new iABarGraphPlot(
 			iAHistogramData::create(myHisto, numBins,
 			(cMax-cMin)/numBins, cMin, cMax), QColor(80, 80, 80) )));
+		m_diffChart[paramIdx]->setXCaption(m_sensInf->charactName(selCharIdx));
 		m_diffChart[paramIdx]->update();
 	}
 }
