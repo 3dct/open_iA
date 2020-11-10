@@ -1083,7 +1083,7 @@ public:
 
 	void updateScatterPlotLUT(int starGroupSize, int numOfSTARSteps, size_t resultCount)
 	{
-		LOG(lvlDebug, "\nNEW LUT:");
+		//LOG(lvlDebug, "\nNEW LUT:");
 		std::set<int> hiGrp;
 		std::set<std::pair<int, int> > hiGrpParam;
 		auto const& hp = m_scatterPlot->highlightedPoints();
@@ -1092,13 +1092,13 @@ public:
 			int groupID = ptIdx / starGroupSize;
 			if (ptIdx % starGroupSize == 0)
 			{
-				LOG(lvlDebug, QString("Selected GROUP: %1").arg(groupID));
+				//LOG(lvlDebug, QString("Selected GROUP: %1").arg(groupID));
 				hiGrp.insert(groupID);
 			}
 			else
 			{
 				int paramID = ((ptIdx % starGroupSize) - 1) / numOfSTARSteps;
-				LOG(lvlDebug, QString("Selected PARAM: %1, %2").arg(groupID).arg(paramID));
+				//LOG(lvlDebug, QString("Selected PARAM: %1, %2").arg(groupID).arg(paramID));
 				hiGrpParam.insert(std::make_pair(groupID, paramID));
 			}
 		}
@@ -1116,8 +1116,8 @@ public:
 						return a.first == groupID;
 					}) != hiGrpParam.end();
 				c = QColor(0, 0, highlightGroup ? 255: 192, highlightGroup ? 255 : 128);
-				LOG(lvlDebug, QString("Point %1 (group=%2) : Color=%3, %4, %5, %6")
-					.arg(i).arg(groupID).arg(c.red()).arg(c.green()).arg(c.blue()).arg(c.alpha()));
+				//LOG(lvlDebug, QString("Point %1 (group=%2) : Color=%3, %4, %5, %6")
+				//	.arg(i).arg(groupID).arg(c.red()).arg(c.green()).arg(c.blue()).arg(c.alpha()));
 			}
 			else
 			{
@@ -1126,8 +1126,8 @@ public:
 				int colVal = (highlightParam || highlightGroup) ? 128 : 192;
 				int redVal = 192;
 				c = QColor(redVal, colVal, colVal, highlightGroup ? 192 : 128);
-				LOG(lvlDebug, QString("Point %1 (group=%2, paramID=%3) : Color=%4, %5, %6, %7")
-					.arg(i).arg(groupID).arg(paramID).arg(c.red()).arg(c.green()).arg(c.blue()).arg(c.alpha()));
+				//LOG(lvlDebug, QString("Point %1 (group=%2, paramID=%3) : Color=%4, %5, %6, %7")
+				//	.arg(i).arg(groupID).arg(paramID).arg(c.red()).arg(c.green()).arg(c.blue()).arg(c.alpha()));
 			}
 			m_lut->setColor(i, c);
 		}
