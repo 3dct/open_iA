@@ -1084,6 +1084,8 @@ void iAFiAKErController::connectSensitivity()
 	{
 		return;
 	}
+	// "hack" go get results all to have same color; TODO: set in settings / use resultColorThemeChanged?
+	m_resultColorTheme = iAColorThemeManager::instance().theme("Gray");
 	connect(m_sensitivityInfo.data(), &iASensitivityInfo::aborted, this, &iAFiAKErController::resetSensitivity);
 	connect(m_sensitivityInfo.data(), &iASensitivityInfo::resultSelected, this, &iAFiAKErController::showMainVis);
 	//connect(m_sensitivityInfo.data(), &iASensitivityInfo::viewDifference, this, &iAFiAKErController::showDifference);
@@ -1096,8 +1098,6 @@ void iAFiAKErController::computeSensitivity()
 		LOG(lvlWarn, "Already started!");
 		return;
 	}
-	// "hack" go get results all to have same color; TODO: set in settings / use resultColorThemeChanged?
-	m_resultColorTheme = iAColorThemeManager::instance().theme("Gray");
 	m_sensitivityInfo = iASensitivityInfo::create(m_mdiChild, m_data, m_views[ResultListView],
 		m_mdiChild->jobsList(), m_histogramBins);
 	connectSensitivity();
