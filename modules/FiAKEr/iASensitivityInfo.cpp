@@ -25,12 +25,15 @@
 #include <charts/qcustomplot.h>
 #include <charts/iAScatterPlotWidget.h>
 #include <io/iAFileUtils.h>
+#include <iAColorTheme.h>
 #include <iAJobListView.h>
 #include <iALog.h>
 #include <iALUT.h>
 #include <iAMathUtility.h>
 #include <iARunAsync.h>
 #include <iAStringHelper.h>
+#include <qthelper/iADockWidgetWrapper.h>
+#include <qthelper/iAQTtoUIConnector.h>
 
 // FeatureScout
 #include "iACsvVectorTableCreator.h"
@@ -48,6 +51,7 @@
 #include "iARefDistCompute.h"
 #include "iASensitivityDialog.h"
 #include "ui_DissimilarityMatrix.h"
+#include "ui_SensitivitySettings.h"
 
 #include <vtkSmartPointer.h>
 #include <vtkTable.h>
@@ -60,6 +64,7 @@
 #include <QLabel>
 #include <QMainWindow>
 #include <QMessageBox>
+#include <QScrollArea>
 #include <QSpinBox>
 #include <QTableView>
 #include <QtConcurrent>
@@ -348,7 +353,9 @@ void iASensitivityInfo::compute()
 	{
 		double rangeMin = m_data->spmData->paramRange(charIdx)[0];
 		double rangeMax = m_data->spmData->paramRange(charIdx)[1];
-		LOG(lvlInfo, QString("%1: %2-%3").arg(charIdx).arg(rangeMin).arg(rangeMax));
+		LOG(lvlInfo, QString("Characteristic %1 (%2): %3-%4")
+			.arg(charIdx).arg(charactName(charIdx))
+			.arg(rangeMin).arg(rangeMax));
 	}
 
 	for (int rIdx = 0; rIdx < m_data->result.size(); ++rIdx)
@@ -932,18 +939,6 @@ void iASensitivityInfo::writeDissimilarityMatrixCache(QVector<int> const& measur
 	out << measures;
 	out << m_resultDissimMatrix;
 }
-
-#include <charts/iAChartWidget.h>
-#include <iAColorTheme.h>
-#include <iAStackedBarChart.h>
-#include <qthelper/iADockWidgetWrapper.h>
-#include <qthelper/iAQTtoUIConnector.h>
-
-#include "ui_SensitivitySettings.h"
-
-#include <QMainWindow>
-#include <QMenu>
-#include <QScrollArea>
 
 typedef iAQTtoUIConnector<QWidget, Ui_SensitivitySettings> iASensitivitySettingsUI;
 
