@@ -1223,13 +1223,13 @@ namespace
 	{
 		QStringList strList = listAsString.split(",");
 		QVector<int> result(strList.size());
-		for (auto str : strList)
+		for (auto i=0; i<strList.size(); ++i)
 		{
 			bool ok;
-			result.push_back(str.toInt(&ok));
+			result[i] = strList[i].toInt(&ok);
 			if (!ok)
 			{
-				LOG(lvlWarn, QString("Invalid value %1 in stringToInt conversion!").arg(str));
+				LOG(lvlWarn, QString("Invalid value %1 in stringToInt conversion!").arg(strList[i]));
 			}
 		}
 		return result;
