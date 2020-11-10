@@ -1078,11 +1078,13 @@ public:
 	iAMatrixWidget* m_matrixWidget;
 	iAParameterListView* m_parameterListView;
 
-	void updateScatterPlotLUT(int starGroupSize, int numOfSTARSteps, size_t resultCount)
+	void updateScatterPlotLUT(int starGroupSize, int numOfSTARSteps, size_t resultCount,
+		QVector<int> const & variedParams)
 	{
 		//LOG(lvlDebug, "\nNEW LUT:");
 		std::set<int> hiGrp;
 		std::set<std::pair<int, int> > hiGrpParam;
+		std::set<int> hiGrpAll;
 		auto const& hp = m_scatterPlot->highlightedPoints();
 		for (auto ptIdx : hp)
 		{
@@ -1098,6 +1100,7 @@ public:
 				//LOG(lvlDebug, QString("Selected PARAM: %1, %2").arg(groupID).arg(paramID));
 				hiGrpParam.insert(std::make_pair(groupID, paramID));
 			}
+			hiGrpAll.insert(groupID);
 		}
 		for (size_t i = 0; i < resultCount; ++i)
 		{
@@ -1128,7 +1131,42 @@ public:
 			}
 			m_lut->setColor(i, c);
 		}
-		m_scatterPlot->setLookupTable(m_lut, m_mdsData->numParams()-1);
+		m_scatterPlot->setLookupTable(m_lut, m_mdsData->numParams() - 1);
+
+		m_scatterPlot->clearLines();
+		LOG(lvlInfo, QString("Param Count: %1; groupAll: %2").arg(variedParams.size()).arg(hiGrpAll.size()));
+		// we want to build a separate line for each parameter (i.e. in each branch "direction" of the STAR
+		// easiest way is to collect all parameter values in a group (done in the vector of size_t/double pairs),
+		// then sort this by the parameter values (since we don't know else how many are smaller or larger than
+		// the center value), then take the point indices from this ordered vector to form the line.
+		for (auto groupID : hiGrpAll)
+		{
+			auto groupStart = groupID * starGroupSize;
+			for (int parIdx = 0; parIdx < variedParams.size(); ++parIdx)
+			{
+				using PtData = std::pair<size_t, double>;
+				std::vector<PtData> linePtParVal;
+				double centerValue = m_mdsData->paramData(parIdx)[groupStart];
+				linePtParVal.push_back(std::make_pair(groupStart, centerValue));
+				auto paraStart = groupStart + 1 + parIdx * numOfSTARSteps;
+				for (int inParaIdx = 0; inParaIdx < numOfSTARSteps; ++inParaIdx)
+				{
+					size_t ptIdx = paraStart + inParaIdx;
+					double paramValue = m_mdsData->paramData(parIdx)[ptIdx];
+					linePtParVal.push_back(std::make_pair(ptIdx, paramValue));
+				}
+				std::sort(linePtParVal.begin(), linePtParVal.end(), [](PtData const& a, PtData const& b)
+					{
+						return a.second < b.second;
+					});
+				std::vector<size_t> linePoints(linePtParVal.size());
+				for (size_t i = 0; i < linePoints.size(); ++i)
+				{
+					linePoints[i] = linePtParVal[i].first;
+				}
+				m_scatterPlot->addLine(linePoints);
+			}
+		}
 	}
 };
 
@@ -1180,9 +1218,9 @@ void iASensitivityInfo::dissimMatrixColorMapChanged(int idx)
 	m_gui->m_parameterListView->dissimMatrixColorMapChanged(idx);
 }
 
-QString iASensitivityInfo::charactName(int charIdx) const
+QString iASensitivityInfo::charactName(int selCharIdx) const
 {
-	return m_data->spmData->parameterName(m_charSelected[charIdx])
+	return m_data->spmData->parameterName(m_charSelected[selCharIdx])
 		.replace("[µm]", "")
 		.replace("[µm²]", "")
 		.replace("[µm³]", "")
@@ -1349,7 +1387,7 @@ void iASensitivityInfo::createGUI()
 	m_gui->m_lut.reset(new iALookupTable());
 	m_gui->m_lut->setRange(0, m_data->result.size());
 	m_gui->m_lut->allocate(m_data->result.size());
-	m_gui->updateScatterPlotLUT(m_starGroupSize, m_numOfSTARSteps, m_data->result.size());
+	m_gui->updateScatterPlotLUT(m_starGroupSize, m_numOfSTARSteps, m_data->result.size(), m_variedParams);
 	m_gui->m_scatterPlot->setPointInfo(QSharedPointer<iAScatterPlotPointInfo>(new iASPParamPointInfo(*this, *m_data.data())));
 	auto dwScatterPlot = new iADockWidgetWrapper(m_gui->m_scatterPlot, "Results Overview", "foeScatterPlot");
 	connect(m_gui->m_scatterPlot, &iAScatterPlotWidget::pointHighlighted, this, &iASensitivityInfo::resultSelected);
@@ -1477,5 +1515,5 @@ void iASensitivityInfo::updateDissimilarity()
 
 void iASensitivityInfo::spHighlightChanged()
 {
-	m_gui->updateScatterPlotLUT(m_starGroupSize, m_numOfSTARSteps, m_data->result.size());
+	m_gui->updateScatterPlotLUT(m_starGroupSize, m_numOfSTARSteps, m_data->result.size(), m_variedParams);
 }

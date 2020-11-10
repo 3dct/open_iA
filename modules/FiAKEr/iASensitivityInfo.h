@@ -55,7 +55,7 @@ public:
 		iAJobListView* jobListView, int histogramBins, iASettings const & projectFile,
 		QString const& projectFileName);
 	static bool hasData(iASettings const& settings);
-	QString charactName(int charactIdx) const;
+	QString charactName(int selCharIdx) const;
 
 	void saveProject(QSettings& projectFile, QString  const& fileName);
 
