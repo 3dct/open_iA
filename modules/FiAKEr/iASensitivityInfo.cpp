@@ -350,12 +350,12 @@ void iASensitivityInfo::compute()
 	m_charHistograms.resize(static_cast<int>(m_data->result.size()));
 
 	int numCharSelected = m_charSelected.size();
-	for (auto charIdx : m_charSelected)
+	for (auto selCharIdx = 0; selCharIdx < m_charSelected.size(); ++selCharIdx)
 	{
-		double rangeMin = m_data->spmData->paramRange(charIdx)[0];
-		double rangeMax = m_data->spmData->paramRange(charIdx)[1];
-		LOG(lvlInfo, QString("Characteristic %1 (%2): %3-%4")
-			.arg(charIdx).arg(charactName(charIdx))
+		double rangeMin = m_data->spmData->paramRange(m_charSelected[selCharIdx])[0];
+		double rangeMax = m_data->spmData->paramRange(m_charSelected[selCharIdx])[1];
+		LOG(lvlInfo, QString("Characteristic idx=%1, charIdx=%2 (%3): %4-%5")
+			.arg(selCharIdx).arg(m_charSelected[selCharIdx]).arg(charactName(selCharIdx))
 			.arg(rangeMin).arg(rangeMax));
 	}
 
@@ -1378,7 +1378,7 @@ void iASensitivityInfo::paramChanged()
 {
 	int outputIdx = m_gui->m_settings->outputIdx();
 	int paramIdx = m_gui->m_paramInfluenceView->selectedRow();
-	int charIdx = m_gui->m_settings->charIdx();
+	int selCharIdx = m_gui->m_settings->charIdx();
 	int measureIdx = m_gui->m_paramInfluenceView->selectedMeasure();
 	int aggrType = m_gui->m_paramInfluenceView->selectedAggrType();
 
@@ -1390,7 +1390,7 @@ void iASensitivityInfo::paramChanged()
 	plot->graph(0)->setPen(QPen(Qt::blue));
 
 	auto const& data = (outputIdx == outCharacteristic) ?
-		sensitivityField[charIdx][measureIdx][paramIdx][aggrType]:
+		sensitivityField[selCharIdx][measureIdx][paramIdx][aggrType]:
 		sensitivityFiberCount[paramIdx][aggrType];
 	QVector<double> x(data.size()), y(data.size());
 	for (int i = 0; i < data.size(); ++i)
@@ -1406,7 +1406,7 @@ void iASensitivityInfo::paramChanged()
 	plot->yAxis2->setTickLabels(false);
 	plot->xAxis->setLabel(m_paramNames[m_variedParams[paramIdx]]);
 	plot->yAxis->setLabel( ((outputIdx == outCharacteristic) ?
-		"Sensitivity " + (charactName(charIdx) + " (" + DistributionDifferenceMeasureNames()[measureIdx]+") ") :
+		"Sensitivity " + (charactName(selCharIdx) + " (" + DistributionDifferenceMeasureNames()[measureIdx]+") ") :
 		"Fiber Count ") + AggregationNames()[aggrType]  );
 	// make left and bottom axes always transfer their ranges to right and top axes:
 	connect(plot->xAxis, SIGNAL(rangeChanged(QCPRange)), plot->xAxis2, SLOT(setRange(QCPRange)));
@@ -1418,7 +1418,7 @@ void iASensitivityInfo::paramChanged()
 	plot->setInteractions(QCP::iRangeDrag | QCP::iRangeZoom | QCP::iSelectPlottables);
 	plot->replot();
 
-	m_gui->m_paramInfluenceView->showDifferenceDistribution(outputIdx, charIdx, aggrType);
+	m_gui->m_paramInfluenceView->showDifferenceDistribution(outputIdx, selCharIdx, aggrType);
 }
 
 void iASensitivityInfo::charactChanged(int charIdx)

@@ -48,7 +48,7 @@ public:
 	int selectedRow() const;
 	int selectedCol() const;
 	void setColorTheme(iAColorTheme const * colorTheme);
-	void showDifferenceDistribution(int outputIdx, int charIdx, int aggrType);
+	void showDifferenceDistribution(int outputIdx, int selCharIdx, int aggrType);
 public slots:
 	void showStackedBar();
 	void selectStackedBar(int idx);

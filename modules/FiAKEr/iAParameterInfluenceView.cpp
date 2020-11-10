@@ -171,7 +171,7 @@ void iAParameterInfluenceView::setColorTheme(iAColorTheme const * colorTheme)
 	}
 }
 
-void iAParameterInfluenceView::showDifferenceDistribution(int outputIdx, int charIdx, int aggrType)
+void iAParameterInfluenceView::showDifferenceDistribution(int outputIdx, int selCharIdx, int aggrType)
 {
 	for (auto chart : m_diffChart)
 	{
@@ -187,10 +187,10 @@ void iAParameterInfluenceView::showDifferenceDistribution(int outputIdx, int cha
 		double * myHisto = new double[numBins];
 		for (int bin = 0; bin < numBins; ++bin)
 		{
-			myHisto[bin] = m_sensInf->charHistVarAgg[charIdx][aggrType][paramIdx][bin];
+			myHisto[bin] = m_sensInf->charHistVarAgg[selCharIdx][aggrType][paramIdx][bin];
 		}
-		double cMin = m_sensInf->m_data->spmData->paramRange(charIdx)[0],
-			cMax = m_sensInf->m_data->spmData->paramRange(charIdx)[1];
+		double cMin = m_sensInf->m_data->spmData->paramRange(m_sensInf->m_charSelected[selCharIdx])[0],
+			cMax = m_sensInf->m_data->spmData->paramRange(m_sensInf->m_charSelected[selCharIdx])[1];
 		m_diffChart[paramIdx]->addPlot(QSharedPointer<iAPlot>(new iABarGraphPlot(
 			iAHistogramData::create(myHisto, numBins,
 			(cMax-cMin)/numBins, cMin, cMax), QColor(80, 80, 80) )));
