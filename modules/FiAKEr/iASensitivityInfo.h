@@ -78,7 +78,7 @@ public:
 	QVector<                //! For each result,
 		QVector<	        //! for each characteristic,
 		QVector<double>>>   //! a histogram.
-		charHistograms;
+		m_charHistograms;
 
 	int m_numOfSTARSteps, m_starGroupSize;
 	int m_histogramBins;

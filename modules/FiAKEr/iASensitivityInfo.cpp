@@ -341,27 +341,35 @@ void iASensitivityInfo::compute()
 
 	m_progress.setStatus("Computing characteristics distribution (histogram) for all results.");
 	// TODO: common storage for that in data!
-	charHistograms.resize(static_cast<int>(m_data->result.size()));
+	m_charHistograms.resize(static_cast<int>(m_data->result.size()));
+
+	int numCharSelected = m_charSelected.size();
+	for (auto charIdx : m_charSelected)
+	{
+		double rangeMin = m_data->spmData->paramRange(charIdx)[0];
+		double rangeMax = m_data->spmData->paramRange(charIdx)[1];
+		LOG(lvlInfo, QString("%1: %2-%3").arg(charIdx).arg(rangeMin).arg(rangeMax));
+	}
+
 	for (int rIdx = 0; rIdx < m_data->result.size(); ++rIdx)
 	{
 		m_progress.emitProgress(static_cast<int>(100 * rIdx / m_data->result.size()));
 		auto const& r = m_data->result[rIdx];
-		int numCharact = static_cast<int>(m_data->spmData->numParams());
 		// TODO: skip some columns? like ID...
-		charHistograms[rIdx].reserve(numCharact);
-		for (int c = 0; c < numCharact; ++c)
+		m_charHistograms[rIdx].reserve(numCharSelected);
+		for (auto charIdx: m_charSelected)
 		{
 			// make sure of all histograms for the same characteristic have the same range
-			double rangeMin = m_data->spmData->paramRange(c)[0];
-			double rangeMax = m_data->spmData->paramRange(c)[1];
+			double rangeMin = m_data->spmData->paramRange(charIdx)[0];
+			double rangeMax = m_data->spmData->paramRange(charIdx)[1];
 			std::vector<double> fiberData(r.fiberCount);
 			for (size_t fiberID = 0; fiberID < r.fiberCount; ++fiberID)
 			{
-				fiberData[fiberID] = r.table->GetValue(fiberID, c).ToDouble();
+				fiberData[fiberID] = r.table->GetValue(fiberID, charIdx).ToDouble();
 			}
 			auto histogram = createHistogram(
 				fiberData, m_histogramBins, rangeMin, rangeMax);
-			charHistograms[rIdx].push_back(histogram);
+			m_charHistograms[rIdx].push_back(histogram);
 		}
 	}
 	if (m_aborted)
@@ -380,22 +388,22 @@ void iASensitivityInfo::compute()
 	const int NumOfVarianceAggregation = 4;
 
 	paramStep.fill(0.0, m_variedParams.size());
-	sensitivityField.resize(m_charSelected.size());
-	aggregatedSensitivities.resize(m_charSelected.size());
-	for (int charIdx = 0; charIdx < m_charSelected.size() && !m_aborted; ++charIdx)
+	sensitivityField.resize(numCharSelected);
+	aggregatedSensitivities.resize(numCharSelected);
+	for (int charIdx = 0; charIdx < numCharSelected && !m_aborted; ++charIdx)
 	{
-		m_progress.emitProgress(100 * charIdx / m_charSelected.size());
+		m_progress.emitProgress(100 * charIdx / numCharSelected);
 		//int charactID = m_charSelected[charIdx];
 		//auto charactName = m_data->spmData->parameterName(charactID);
 		//LOG(lvlDebug, QString("Characteristic %1 (%2):").arg(charIdx).arg(charactName));
 		sensitivityField[charIdx].resize(m_charDiffMeasure.size());
 		aggregatedSensitivities[charIdx].resize(m_charDiffMeasure.size());
-		for (int diffMeasure = 0; diffMeasure < m_charDiffMeasure.size(); ++diffMeasure)
+		for (int diffMeasureIdx = 0; diffMeasureIdx < m_charDiffMeasure.size(); ++diffMeasureIdx)
 		{
 			//LOG(lvlDebug, QString("    Difference Measure %1 (%2)").arg(diffMeasure).arg(DistributionDifferenceMeasureNames()[diffMeasure]));
-			auto& field = sensitivityField[charIdx][diffMeasure];
+			auto& field = sensitivityField[charIdx][diffMeasureIdx];
 			field.resize(NumOfVarianceAggregation);
-			auto& agg = aggregatedSensitivities[charIdx][diffMeasure];
+			auto& agg = aggregatedSensitivities[charIdx][diffMeasureIdx];
 			agg.resize(NumOfVarianceAggregation);
 			for (int i = 0; i < NumOfVarianceAggregation; ++i)
 			{
@@ -442,9 +450,9 @@ void iASensitivityInfo::compute()
 					if (paramDiff > 0)
 					{
 						leftVar = distributionDifference(
-							charHistograms[resultIdxGroupStart][charIdx],
-							charHistograms[resultIdxParamStart][charIdx],
-							diffMeasure);
+							m_charHistograms[resultIdxGroupStart][charIdx],
+							m_charHistograms[resultIdxParamStart][charIdx],
+							m_charDiffMeasure[diffMeasureIdx]);
 						//LOG(lvlDebug, QString("        Left var available: %1").arg(leftVar));
 						++numLeftRight;
 						++numAllLeft;
@@ -462,9 +470,9 @@ void iASensitivityInfo::compute()
 					{
 						int firstPosStepIdx = resultIdxParamStart + (k - 1);
 						rightVar = distributionDifference(
-							charHistograms[resultIdxGroupStart][charIdx],
-							charHistograms[firstPosStepIdx][charIdx],
-							diffMeasure);
+							m_charHistograms[resultIdxGroupStart][charIdx],
+							m_charHistograms[firstPosStepIdx][charIdx],
+							m_charDiffMeasure[diffMeasureIdx]);
 						//LOG(lvlDebug, QString("        Right var available: %1").arg(rightVar));
 						++numLeftRight;
 						++numAllRight;
@@ -481,9 +489,9 @@ void iASensitivityInfo::compute()
 							compareIdx = resultIdxGroupStart;
 						}
 						double difference = distributionDifference(
-							charHistograms[compareIdx][charIdx],
-							charHistograms[resultIdxParamStart + i][charIdx],
-							diffMeasure);
+							m_charHistograms[compareIdx][charIdx],
+							m_charHistograms[resultIdxParamStart + i][charIdx],
+							m_charDiffMeasure[diffMeasureIdx]);
 						sumTotal += difference;
 					}
 					numAllLeftRight += numLeftRight;
@@ -625,12 +633,12 @@ void iASensitivityInfo::compute()
 	}
 
 	m_progress.setStatus("Compute variation histogram");
-	//charHistHist.resize(m_charSelected.size());
-	charHistVar.resize(m_charSelected.size());
-	charHistVarAgg.resize(m_charSelected.size());
-	for (int charIdx = 0; charIdx < m_charSelected.size() && !m_aborted; ++charIdx)
+	//charHistHist.resize(numCharSelected);
+	charHistVar.resize(numCharSelected);
+	charHistVarAgg.resize(numCharSelected);
+	for (int charIdx = 0; charIdx < numCharSelected && !m_aborted; ++charIdx)
 	{
-		m_progress.emitProgress(100 * charIdx / m_charSelected.size());
+		m_progress.emitProgress(100 * charIdx / numCharSelected);
 		//charHistHist[charIdx].resize(NumOfVarianceAggregation);
 		charHistVar[charIdx].resize(NumOfVarianceAggregation);
 		charHistVarAgg[charIdx].resize(NumOfVarianceAggregation);
@@ -688,18 +696,18 @@ void iASensitivityInfo::compute()
 					/*
 					for (int agg = 0; agg < NumOfVarianceAggregation; ++agg)
 					{
-						charHistHist[charIdx][agg][paramIdx][bin][paramSetIdx].push_back(charHistograms[resultIdxGroupStart][charIdx][bin]);
+						charHistHist[charIdx][agg][paramIdx][bin][paramSetIdx].push_back(m_charHistograms[resultIdxGroupStart][charIdx][bin]);
 					}
 					*/
 					charHistVar[charIdx][0][paramIdx][bin][paramSetIdx] = 0;
 					if (paramDiff > 0)
 					{
 						// left-only:
-						//charHistHist[charIdx][0][paramIdx][bin][paramSetIdx].push_back(charHistograms[resultIdxParamStart][charIdx][bin]);
+						//charHistHist[charIdx][0][paramIdx][bin][paramSetIdx].push_back(m_charHistograms[resultIdxParamStart][charIdx][bin]);
 						// left+right:
-						//charHistHist[charIdx][2][paramIdx][bin][paramSetIdx].push_back(charHistograms[resultIdxGroupStart][charIdx][bin]);
+						//charHistHist[charIdx][2][paramIdx][bin][paramSetIdx].push_back(m_charHistograms[resultIdxGroupStart][charIdx][bin]);
 						charHistVar[charIdx][0][paramIdx][bin][paramSetIdx] =
-							std::abs(charHistograms[resultIdxGroupStart][charIdx][bin] - charHistograms[resultIdxParamStart][charIdx][bin]);
+							std::abs(m_charHistograms[resultIdxGroupStart][charIdx][bin] - m_charHistograms[resultIdxParamStart][charIdx][bin]);
 						charHistVarAgg[charIdx][0][paramIdx][bin] += charHistVar[charIdx][0][paramIdx][bin][paramSetIdx];
 						charHistVarAgg[charIdx][2][paramIdx][bin] += charHistVar[charIdx][0][paramIdx][bin][paramSetIdx];
 						//LOG(lvlDebug, QString("        Left var available: %1").arg(leftVar));
@@ -719,11 +727,11 @@ void iASensitivityInfo::compute()
 					{
 						int firstPosStepIdx = resultIdxParamStart + (k - 1);
 						// left-only:
-						//charHistHist[charIdx][1][paramIdx][bin][paramSetIdx].push_back(charHistograms[firstPosStepIdx][charIdx][bin]);
+						//charHistHist[charIdx][1][paramIdx][bin][paramSetIdx].push_back(m_charHistograms[firstPosStepIdx][charIdx][bin]);
 						// left+right:
-						//charHistHist[charIdx][2][paramIdx][bin][paramSetIdx].push_back(charHistograms[firstPosStepIdx][charIdx][bin]);
+						//charHistHist[charIdx][2][paramIdx][bin][paramSetIdx].push_back(m_charHistograms[firstPosStepIdx][charIdx][bin]);
 						charHistVar[charIdx][1][paramIdx][bin][paramSetIdx] =
-							std::abs(charHistograms[resultIdxGroupStart][charIdx][bin] - charHistograms[firstPosStepIdx][charIdx][bin]);
+							std::abs(m_charHistograms[resultIdxGroupStart][charIdx][bin] - m_charHistograms[firstPosStepIdx][charIdx][bin]);
 						charHistVarAgg[charIdx][1][paramIdx][bin] += charHistVar[charIdx][1][paramIdx][bin][paramSetIdx];
 						charHistVarAgg[charIdx][2][paramIdx][bin] += charHistVar[charIdx][1][paramIdx][bin][paramSetIdx];
 						//LOG(lvlDebug, QString("        Right var available: %1").arg(rightVar));
@@ -736,7 +744,7 @@ void iASensitivityInfo::compute()
 					numAllTotal += m_numOfSTARSteps;
 					for (int i = 0; i < m_numOfSTARSteps; ++i)
 					{
-						//charHistHist[charIdx][3][paramIdx][bin][paramSetIdx].push_back(charHistograms[resultIdxParamStart + i][charIdx][bin]);
+						//charHistHist[charIdx][3][paramIdx][bin][paramSetIdx].push_back(m_charHistograms[resultIdxParamStart + i][charIdx][bin]);
 						int compareIdx = (i == 0) ? resultIdxGroupStart : (resultIdxParamStart + i - 1);
 						double paramVal = m_paramValues[origParamColIdx][resultIdxParamStart + i];
 						if (paramVal > paramStartParamVal && wasSmaller)
@@ -745,7 +753,7 @@ void iASensitivityInfo::compute()
 							compareIdx = resultIdxGroupStart;
 						}
 						charHistVar[charIdx][3][paramIdx][bin][paramSetIdx] +=
-							std::abs(charHistograms[compareIdx][charIdx][bin] - charHistograms[resultIdxParamStart + i][charIdx][bin]);
+							std::abs(m_charHistograms[compareIdx][charIdx][bin] - m_charHistograms[resultIdxParamStart + i][charIdx][bin]);
 					}
 					charHistVar[charIdx][3][paramIdx][bin][paramSetIdx] /= m_numOfSTARSteps;//charHistHist[charIdx][3][paramIdx][bin][paramSetIdx].size();
 					charHistVarAgg[charIdx][3][paramIdx][bin] += charHistVar[charIdx][3][paramIdx][bin][paramSetIdx];
