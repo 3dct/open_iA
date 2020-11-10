@@ -26,6 +26,7 @@
 //! Class providing a few selection/highlight/settings details to a single scatterplot
 //! implemented by iAQSplom, but can also be implemented separately to e.g. allow a
 //! standalone scatterplot
+//! TODO: should be member of iAQSPlom, not parent
 class iAScatterPlotSelectionHandler
 {
 public:
@@ -35,7 +36,13 @@ public:
 	virtual SelectionType const & getSelection() const = 0;
 	virtual SelectionType const & getFilteredSelection() const = 0;
 	virtual SelectionType const & getHighlightedPoints() const = 0;
+	std::vector<SelectionType> const& lines() const
+	{
+		return m_lines;
+	}
 	virtual int getVisibleParametersCount() const = 0;
 	virtual double getAnimIn() const = 0;
 	virtual double getAnimOut() const = 0;
+protected:
+	std::vector<SelectionType> m_lines;
 };

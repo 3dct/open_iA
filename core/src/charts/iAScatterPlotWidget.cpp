@@ -91,6 +91,14 @@ public:
 	{
 		return 0.0;
 	}
+	void addLine(SelectionType const& linePoints)
+	{
+		m_lines.push_back(linePoints);
+	}
+	void clearLines()
+	{
+		m_lines.clear();
+	}
 private:
 	SelectionType m_highlight;
 	SelectionType m_selection;
@@ -478,4 +486,15 @@ void iAScatterPlotWidget::setPointInfo(QSharedPointer<iAScatterPlotPointInfo> po
 std::vector<size_t> const& iAScatterPlotWidget::highlightedPoints() const
 {
 	return m_scatterPlotHandler->getHighlightedPoints();
+}
+
+
+void iAScatterPlotWidget::addLine(std::vector<size_t> linePoints)
+{
+	return m_scatterPlotHandler->addLine(linePoints);
+}
+
+void iAScatterPlotWidget::clearLines()
+{
+	return m_scatterPlotHandler->clearLines();
 }

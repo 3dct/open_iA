@@ -50,8 +50,6 @@ public:
 	int PaddingLeft();
 	static const int TextPadding;
 	iAScatterPlotWidget(QSharedPointer<iASPLOMData> data, bool columnSelection = false);
-	std::vector<size_t> & selection();
-	void setSelection(std::vector<size_t> const & selection);
 	void setLookupTable(QSharedPointer<iALookupTable> lut, size_t paramIdx);
 	void setPlotColor(QColor const & c, double rangeMin, double rangeMax);
 	void setSelectionColor(QColor const & c);
@@ -59,7 +57,12 @@ public:
 	void setPointRadius(double pointRadius);
 	void setFixPointsEnabled(bool enabled);
 	void setPointInfo(QSharedPointer<iAScatterPlotPointInfo> pointInfo);
+	//! proxy methods for selection handler:
+	std::vector<size_t>& selection();
+	void setSelection(std::vector<size_t> const& selection);
 	std::vector<size_t> const& highlightedPoints() const;
+	void addLine(std::vector<size_t> linePoints);
+	void clearLines();
 protected:
 #ifdef CHART_OPENGL
 	void paintGL() override;
