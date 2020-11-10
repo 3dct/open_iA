@@ -31,6 +31,7 @@
 #include <iALUT.h>
 #include <iAMathUtility.h>
 #include <iARunAsync.h>
+#include <iAStackedBarChart.h>    // for add HeaderLabel
 #include <iAStringHelper.h>
 #include <qthelper/iADockWidgetWrapper.h>
 #include <qthelper/iAQTtoUIConnector.h>
