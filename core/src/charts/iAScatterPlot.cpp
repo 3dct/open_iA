@@ -843,6 +843,22 @@ void iAScatterPlot::drawPoints( QPainter &painter )
 	auto const& p0d = m_splomData->paramData(m_paramIndices[0]);
 	auto const& p1d = m_splomData->paramData(m_paramIndices[1]);
 	painter.save();
+
+	// Draw connecting lines between points
+	auto const& lines = m_splom->lines();
+	painter.setPen( /*settings.tickLabelColor*/ m_parentWidget->palette().color(QPalette::Text));
+	for (auto line : lines)
+	{
+		for (int ptIdx = 0; ptIdx < line.size() - 1; ++ptIdx)
+		{
+			int x1 = p2x(p0d[line[ptIdx]]),
+				x2 = p2x(p0d[line[ptIdx + 1]]),
+				y1 = p2y(p1d[line[ptIdx]]),
+				y2 = p2y(p1d[line[ptIdx + 1]]);
+			// TODO: cut off lines at borders!
+			painter.drawLine(x1, y1, x2, y2);
+		}
+	}
 #ifdef CHART_OPENGL
 	// all points
 	int pwidth = m_parentWidget->width();
@@ -868,21 +884,24 @@ void iAScatterPlot::drawPoints( QPainter &painter )
 	glScissor( m_globRect.left(), y, m_globRect.width(), m_globRect.height() );
 	glEnable( GL_SCISSOR_TEST );
 
+	/* NOT WORKING - FIND OUT WHY:
 	// Draw connecting lines between points
 	auto const& lines = m_splom->lines();
 	QColor c(m_parentWidget->palette().color(QPalette::Text));
+	glLineWidth(1.0);
 	glColor4f(c.redF(), c.greenF(), c.blueF(), 1.0);
 	for (auto line : lines)
 	{
-		glBegin(GL_LINES);
+		glBegin(GL_LINE_STRIP);
 		for (int ptIdx = 0; ptIdx < line.size(); ++ptIdx)
 		{
 			double tx = p2x(p0d[line[ptIdx]]),
 				ty = p2y(p1d[line[ptIdx]]);
 			glVertex3f(tx, ty, 0.0f);
 		}
-		glEnd(); // GL_LINES
+		glEnd(); // GL_LINE_STRIP
 	}
+	*/
 
 	// Draw points:
 	if (!m_pointsBuffer->bind())//TODO: proper handling (exceptions?)
@@ -901,9 +920,9 @@ void iAScatterPlot::drawPoints( QPainter &painter )
 	assert(m_curVisiblePts < std::numeric_limits<GLsizei>::max());
 	glDrawArrays( GL_POINTS, 0, static_cast<GLsizei>(m_curVisiblePts) );//glDrawElements( GL_POINTS, m_pointsBuffer->size(), GL_UNSIGNED_INT, 0 );
 	glDisableClientState( GL_COLOR_ARRAY );
-	glColor3f( settings.selectionColor.red() / 255.0, settings.selectionColor.green() / 255.0, settings.selectionColor.blue() / 255.0 );
 
-	// Draw selection:
+	// Draw selection:	
+	glColor3f( settings.selectionColor.red() / 255.0, settings.selectionColor.green() / 255.0, settings.selectionColor.blue() / 255.0 );
 	auto const & selInds = m_splom->getFilteredSelection();
 	std::vector<uint> uintSelInds;
 	for (size_t idx : selInds)
@@ -983,25 +1002,9 @@ void iAScatterPlot::drawPoints( QPainter &painter )
 	{
 		return;
 	}
-	m_curVisiblePts = 0;
-
-	// Draw connecting lines between points
-	auto const& lines = m_splom->lines();
-	painter.setPen( /*settings.tickLabelColor*/ m_parentWidget->palette().color(QPalette::Text));
-	for (auto line : lines)
-	{
-		for (int ptIdx = 0; ptIdx < line.size() - 1; ++ptIdx)
-		{
-			int x1 = p2x(p0d[line[ptIdx]]),
-				x2 = p2x(p0d[line[ptIdx + 1]]),
-				y1 = p2y(p1d[line[ptIdx]]),
-				y2 = p2y(p1d[line[ptIdx + 1]]);
-			// TODO: cut off lines at borders!
-			painter.drawLine(x1, y1, x2, y2);
-		}
-	}
 
 	// Draw points:
+	m_curVisiblePts = 0;
 	painter.setPen(Qt::NoPen);
 	for (size_t i = 0; i < m_splomData->numPoints(); ++i)
 	{

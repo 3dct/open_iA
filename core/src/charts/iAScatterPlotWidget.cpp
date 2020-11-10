@@ -488,7 +488,6 @@ std::vector<size_t> const& iAScatterPlotWidget::highlightedPoints() const
 	return m_scatterPlotHandler->getHighlightedPoints();
 }
 
-
 void iAScatterPlotWidget::addLine(std::vector<size_t> linePoints)
 {
 	return m_scatterPlotHandler->addLine(linePoints);
