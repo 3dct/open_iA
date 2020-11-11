@@ -20,6 +20,12 @@
 * ************************************************************************************/
 #pragma once
 
+#ifdef NO_DLL_LINKAGE
+// Log output support in tests
+#include <iostream>
+#define LOG(lvlInfo, msg) std::cout << msg.toStdString() << std::endl;
+#else
+
 #include "open_iA_Core_export.h"
 
 #include "iALogger.h"
@@ -44,3 +50,5 @@ private:
 };
 
 #define LOG(l, t) { if (iALog::get()) iALog::get()->log(l, t); }
+
+#endif
