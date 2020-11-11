@@ -843,6 +843,9 @@ void iAScatterPlot::drawPoints( QPainter &painter )
 	auto const& p0d = m_splomData->paramData(m_paramIndices[0]);
 	auto const& p1d = m_splomData->paramData(m_paramIndices[1]);
 	painter.save();
+	
+	painter.setClipRegion(QRect(0, 0, m_globRect.width(), m_globRect.height()), Qt::ReplaceClip);
+	painter.setClipping(true);
 
 	// Draw connecting lines between points
 	auto const& lines = m_splom->lines();
@@ -859,6 +862,7 @@ void iAScatterPlot::drawPoints( QPainter &painter )
 			painter.drawLine(x1, y1, x2, y2);
 		}
 	}
+
 #ifdef CHART_OPENGL
 	// all points
 	int pwidth = m_parentWidget->width();
@@ -884,6 +888,7 @@ void iAScatterPlot::drawPoints( QPainter &painter )
 	glScissor( m_globRect.left(), y, m_globRect.width(), m_globRect.height() );
 	glEnable( GL_SCISSOR_TEST );
 
+	// Draw connecting lines between points
 	/* NOT WORKING - FIND OUT WHY:
 	// Draw connecting lines between points
 	auto const& lines = m_splom->lines();
@@ -1002,7 +1007,6 @@ void iAScatterPlot::drawPoints( QPainter &painter )
 	{
 		return;
 	}
-
 	// Draw points:
 	m_curVisiblePts = 0;
 	painter.setPen(Qt::NoPen);
