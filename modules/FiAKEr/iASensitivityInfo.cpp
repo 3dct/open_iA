@@ -125,8 +125,7 @@ bool readParameterCSV(QString const& fileName, QString const& encoding, QString 
 		{
 			continue;
 		}
-		auto values = line.split(columnSeparator);
-		tblCreator.addRow(row, values);
+		tblCreator.addRow(row, stringToVector<std::vector<double>, double>(line, columnSeparator));
 		++row;
 	}
 	if (!in.atEnd())

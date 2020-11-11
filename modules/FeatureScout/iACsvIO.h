@@ -45,7 +45,7 @@ class iACsvTableCreator
 {
 public:
 	virtual void initialize(QStringList const & headers, size_t const rowCount) = 0;
-	virtual void addRow(size_t row, QStringList const & values) = 0;
+	virtual void addRow(size_t row, std::vector<double> const & values) = 0;
 };
 
 //! class for reading a csv into a table, using given options
