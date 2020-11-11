@@ -1428,8 +1428,8 @@ void iASensitivityInfo::paramChanged()
 	plot->graph(0)->setPen(QPen(Qt::blue));
 
 	auto const& data = (outputIdx == outCharacteristic) ?
-		sensitivityField[selCharIdx][measureIdx][paramIdx][aggrType]:
-		sensitivityFiberCount[paramIdx][aggrType];
+		sensitivityField[selCharIdx][measureIdx][aggrType][paramIdx]:
+		sensitivityFiberCount[aggrType][paramIdx];
 	QVector<double> x(data.size()), y(data.size());
 	for (int i = 0; i < data.size(); ++i)
 	{
