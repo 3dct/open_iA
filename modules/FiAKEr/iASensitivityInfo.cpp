@@ -1250,34 +1250,14 @@ bool iASensitivityInfo::hasData(iASettings const& settings)
 }
 
 
-namespace
-{
-	// there should be a function like this already somewhere?
-	QVector<int> stringToIntVector(QString const& listAsString)
-	{
-		QStringList strList = listAsString.split(",");
-		QVector<int> result(strList.size());
-		for (auto i=0; i<strList.size(); ++i)
-		{
-			bool ok;
-			result[i] = strList[i].toInt(&ok);
-			if (!ok)
-			{
-				LOG(lvlWarn, QString("Invalid value %1 in stringToInt conversion!").arg(strList[i]));
-			}
-		}
-		return result;
-	}
-}
-
 QSharedPointer<iASensitivityInfo> iASensitivityInfo::load(QMainWindow* child,
 	QSharedPointer<iAFiberResultsCollection> data, QDockWidget* nextToDW,
 	iAJobListView* jobListView, int histogramBins, iASettings const & projectFile,
 	QString const& projectFileName)
 {
 	QString parameterSetFileName = MakeAbsolute(QFileInfo(projectFileName).absolutePath(), projectFile.value(ProjectParameterFile).toString());
-	QVector<int> charsSelected = stringToIntVector(projectFile.value(ProjectCharacteristics).toString());
-	QVector<int> charDiffMeasure = stringToIntVector(projectFile.value(ProjectCharDiffMeasures).toString());
+	QVector<int> charsSelected = stringToVector<QVector<int>, int>(projectFile.value(ProjectCharacteristics).toString());
+	QVector<int> charDiffMeasure = stringToVector<QVector<int>, int>(projectFile.value(ProjectCharDiffMeasures).toString());
 	return iASensitivityInfo::create(child, data, nextToDW, jobListView, histogramBins, parameterSetFileName,
 		charsSelected, charDiffMeasure);
 }
