@@ -72,8 +72,6 @@ public:
 		fiaker->setupToolBar();
 		fiaker->loadProject(m_mdiChild, projectFile, fileName, this);
 	}
-	//! not required at the moment, since this is currently done by
-	//! iAFiAKErController::doSaveProject overwriting iASavableProject::doSaveProject
 	void saveProject(QSettings & projectFile, QString const & fileName) override
 	{
 		m_controller->saveProject(projectFile, fileName);
