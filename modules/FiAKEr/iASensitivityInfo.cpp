@@ -330,6 +330,69 @@ iASensitivityInfo::iASensitivityInfo(QSharedPointer<iAFiberResultsCollection> da
 {
 }
 
+void getBestMatches2(iAFiberData const& fiber, std::vector<iAFiberData> const & otherFibers,
+	QVector<QVector<iAFiberSimilarity>>& bestMatches,
+	double diagonalLength, double maxLength, std::vector<std::pair<int, bool>>& measuresToCompute,
+	int optimizationMeasureIdx)
+{
+	int bestMatchesStartIdx = bestMatches.size();
+	assert(measuresToCompute.size() < std::numeric_limits<int>::max());
+	assert(bestMatchesStartIdx + measuresToCompute.size() < std::numeric_limits<int>::max());
+	int numOfNewMeasures = static_cast<int>(measuresToCompute.size());
+	bestMatches.resize(bestMatchesStartIdx + numOfNewMeasures);
+	auto maxNumberOfCloseFibers = std::min(
+		iARefDistCompute::MaxNumberOfCloseFibers, static_cast<iARefDistCompute::ContainerSizeType>(otherFibers.size()));
+	for (int d = 0; d < numOfNewMeasures; ++d)
+	{
+		QVector<iAFiberSimilarity> similarities;
+		bool optimize = measuresToCompute[d].second;
+		if (optimize && (optimizationMeasureIdx < 0 || optimizationMeasureIdx >= d))
+		{
+			LOG(lvlWarn,
+				QString("Invalid optimization measure base: Index %1 is outside of valid range 0 .. %2; disabling "
+						"optimization!")
+					.arg(optimizationMeasureIdx)
+					.arg(d - 1));
+			optimize = false;
+		}
+		if (!optimize)
+		{
+			similarities.resize(static_cast<iARefDistCompute::ContainerSizeType>(otherFibers.size()));
+			for (iARefDistCompute::ContainerSizeType refFiberID = 0; refFiberID < otherFibers.size(); ++refFiberID)
+			{
+				similarities[refFiberID].index = refFiberID;
+				double curDissimilarity = getDissimilarity(
+					fiber, otherFibers[refFiberID], measuresToCompute[d].first, diagonalLength, maxLength);
+				if (std::isnan(curDissimilarity))
+				{
+					curDissimilarity = 0;
+				}
+				similarities[refFiberID].dissimilarity = curDissimilarity;
+			}
+		}
+		else
+		{  // compute overlap measures only for the best-matching fibers according to a simpler metric:
+			auto& otherMatches = bestMatches[bestMatchesStartIdx + optimizationMeasureIdx];
+			similarities.resize(otherMatches.size());
+			for (iARefDistCompute::ContainerSizeType bestMatchID = 0; bestMatchID < otherMatches.size(); ++bestMatchID)
+			{
+				size_t refFiberID = otherMatches[bestMatchID].index;
+				similarities[bestMatchID].index = refFiberID;
+				double curDissimilarity =
+					getDissimilarity(fiber, otherFibers[refFiberID], measuresToCompute[d].first, diagonalLength, maxLength);
+				if (std::isnan(curDissimilarity))
+				{
+					curDissimilarity = 0;
+				}
+				similarities[bestMatchID].dissimilarity = curDissimilarity;
+			}
+		}
+		std::sort(similarities.begin(), similarities.end());
+		std::copy(similarities.begin(), similarities.begin() + maxNumberOfCloseFibers,
+			std::back_inserter(bestMatches[bestMatchesStartIdx + d]));
+	}
+}
+
 void iASensitivityInfo::compute()
 {
 	m_progress.setStatus("Storing parameter set values");
@@ -801,12 +864,28 @@ void iASensitivityInfo::compute()
 		{
 			measures.push_back(m_resultDissimMeasures[m].first);
 		}
+		std::vector<std::vector<iAFiberData>> m_resFib(resultCount);
+		for (int resultID = 0; resultID < resultCount && !m_aborted; ++resultID)
+		{
+			auto& result = m_data->result[resultID];
+			auto const& mapping = *result.mapping.data();
+			std::vector<iAFiberData> fiberData(result.fiberCount);
+			for (size_t fiberID=0; fiberID < result.fiberCount; ++fiberID)
+			{
+				auto it = result.curveInfo.find(fiberID);
+				iAFiberData fiber(result.table, fiberID, mapping,
+					(it != result.curveInfo.end()) ? it->second : std::vector<iAVec3f>());
+			}
+			m_resFib[resultID] = fiberData;
+		}
+
 		// fill "upper" half
 		for (int r1 = 0; r1 < resultCount - 1 && !m_aborted; ++r1)
 		{
 			m_progress.emitProgress(100 * r1 / resultCount);
 			auto& res1 = m_data->result[r1];
 			auto const& mapping = *res1.mapping.data();
+			// TODO: only center -> should use bounding box instead!
 			double const* cxr = m_data->spmData->paramRange(mapping[iACsvConfig::CenterX]),
 				* cyr = m_data->spmData->paramRange(mapping[iACsvConfig::CenterY]),
 				* czr = m_data->spmData->paramRange(mapping[iACsvConfig::CenterZ]);
@@ -823,16 +902,14 @@ void iASensitivityInfo::compute()
 					mat.avgDissim[m] = 0;
 				}
 				auto& res2 = m_data->result[r2];
-				qint64 const fiberCount = res2.table->GetNumberOfRows();
 				auto& dissimilarities = mat.fiberDissim;
-				dissimilarities.resize(fiberCount);
+				dissimilarities.resize(static_cast<int>(res2.fiberCount));
+				// not ideal: for loop seems to be not ideally parallelizable,
+				// one spike where 100% is used, then going down to nearly 0, until next loop starts
 #pragma omp parallel for
-				for (int fiberID = 0; fiberID < static_cast<int>(fiberCount); ++fiberID)
+				for (int fiberID = 0; fiberID < static_cast<int>(res2.fiberCount); ++fiberID)
 				{
-					auto it = res2.curveInfo.find(fiberID);
-					// find the best-matching fibers in reference & compute difference:
-					iAFiberData fiber(res2.table, fiberID, mapping, (it != res2.curveInfo.end()) ? it->second : std::vector<iAVec3f>());
-					getBestMatches(fiber, mapping, res1.table, dissimilarities[fiberID], res1.curveInfo,
+					getBestMatches2(m_resFib[r2][fiberID], m_resFib[r1], dissimilarities[fiberID],
 						diagonalLength, maxLength, m_resultDissimMeasures, m_resultDissimOptimMeasureIdx);
 					for (int m = 0; m < measureCount; ++m)
 					{
