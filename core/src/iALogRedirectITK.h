@@ -20,45 +20,67 @@
 * ************************************************************************************/
 #pragma once
 
-#include <vtkOutputWindow.h>
-#include <vtkObjectFactory.h>
+#include <itkOutputWindow.h>
 
-class iARedirectVtkOutput : public vtkOutputWindow
+class iALogRedirectITK : public itk::OutputWindow
 {
 public:
-	vtkTypeMacro(iARedirectVtkOutput, vtkOutputWindow);
-	void PrintSelf(ostream& os, vtkIndent indent) override
+	typedef iALogRedirectITK                Self;
+	typedef itk::OutputWindow               Superclass;
+	typedef itk::SmartPointer< Self >       Pointer;
+	typedef itk::SmartPointer< const Self > ConstPointer;
+	itkTypeMacro(iALogRedirectITK, itk::OutputWindow);
+
+	Pointer New()
 	{
-		this->Superclass::PrintSelf(os, indent);
-	}
-	static iARedirectVtkOutput * New();
-	void DisplayText(const char*) override
-	{
-		iALogLevel lvl = lvlWarn;
-	#if VTK_VERSION_NUMBER >= VTK_VERSION_CHECK(8,2,0)
-		switch (GetCurrentMessageType())
+		if (!m_instance)
 		{
-		case MESSAGE_TYPE_TEXT           : lvl = lvlInfo;  break;
-		case MESSAGE_TYPE_ERROR          : lvl = lvlError; break;
-		default:
-	#if __cplusplus >= 201703L
-			[[fallthrough]];
-	#endif
-		case MESSAGE_TYPE_WARNING        :
-	#if __cplusplus >= 201703L
-			[[fallthrough]];
-	#endif
-		case MESSAGE_TYPE_GENERIC_WARNING: lvl = lvlWarn;  break;
-		case MESSAGE_TYPE_DEBUG          : lvl = lvlDebug; break;
+			iALogRedirectITK::m_instance = new iALogRedirectITK;
+			iALogRedirectITK::m_instance->UnRegister();
 		}
-	#endif
-		LOG(lvl, someText);
+		return m_instance;
 	}
-private:
-	iARedirectVtkOutput()
+
+	void DisplayDebugText(const char *t)
+	{
+		LOG(lvlDebug, QString("ITK %1").arg(t));
+	}
+
+	void DisplayErrorText(const char *t)
+	{
+		LOG(lvlError, QString("ITK %1").arg(t));
+	}
+
+	void DisplayGenericOutputText(const char *t)
+	{
+		LOG(lvlInfo, QString("ITK %1").arg(t));
+	}
+
+	void DisplayText(const char * t)
+	{
+		LOG(lvlInfo, QString("ITK %1").arg(t));
+	}
+
+	void DisplayWarningText(const char *t)
+	{
+		LOG(lvlWarn, QString("ITK %1").arg(t));
+	}
+
+	void SetPromptUser(bool /*arg*/)
 	{}
-	iARedirectVtkOutput(const iARedirectVtkOutput &) = delete;
-	void operator=(const iARedirectVtkOutput &) = delete;
+
+	bool GetPromptUser() const
+	{
+		return false;
+	}
+
+	void PromptUserOn()
+	{}
+
+	void PromptUserOff()
+	{}
+private:
+	static Pointer m_instance;
 };
 
-vtkStandardNewMacro(iARedirectVtkOutput);
+iALogRedirectITK::Pointer iALogRedirectITK::m_instance;
