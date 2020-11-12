@@ -30,16 +30,57 @@ public:
 	typedef itk::SmartPointer< Self >       Pointer;
 	typedef itk::SmartPointer< const Self > ConstPointer;
 	itkTypeMacro(iARedirectItkOutput, itk::OutputWindow);
-	static Pointer New();
-	void DisplayDebugText(const char *t) override;
-	void DisplayErrorText(const char *t) override;
-	void DisplayGenericOutputText(const char *t) override;
-	void DisplayText(const char *) override;
-	void DisplayWarningText(const char *t) override;
-	void SetPromptUser(bool arg) override;
-	bool GetPromptUser() const override;
-	void PromptUserOn() override;
-	void PromptUserOff() override;
+
+	Pointer New()
+	{
+		if (!m_instance)
+		{
+			iARedirectItkOutput::m_instance = new iARedirectItkOutput;
+			iARedirectItkOutput::m_instance->UnRegister();
+		}
+		return m_instance;
+	}
+
+	void DisplayDebugText(const char *t)
+	{
+		LOG(lvlDebug, QString("ITK %1").arg(t));
+	}
+
+	void DisplayErrorText(const char *t)
+	{
+		LOG(lvlError, QString("ITK %1").arg(t));
+	}
+
+	void DisplayGenericOutputText(const char *t)
+	{
+		LOG(lvlInfo, QString("ITK %1").arg(t));
+	}
+
+	void DisplayText(const char * t)
+	{
+		LOG(lvlInfo, QString("ITK %1").arg(t));
+	}
+
+	void DisplayWarningText(const char *t)
+	{
+		LOG(lvlWarn, QString("ITK %1").arg(t));
+	}
+
+	void SetPromptUser(bool /*arg*/)
+	{}
+
+	bool GetPromptUser() const
+	{
+		return false;
+	}
+
+	void PromptUserOn()
+	{}
+
+	void PromptUserOff()
+	{}
 private:
 	static Pointer m_instance;
 };
+
+iARedirectItkOutput::Pointer iARedirectItkOutput::m_instance;
