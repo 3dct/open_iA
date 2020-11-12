@@ -32,7 +32,7 @@ public:
 		this->Superclass::PrintSelf(os, indent);
 	}
 	static iALogRedirectVTK * New();
-	void DisplayText(const char*) override
+	void DisplayText(const char* someText) override
 	{
 		iALogLevel lvl = lvlWarn;
 	#if VTK_VERSION_NUMBER >= VTK_VERSION_CHECK(8,2,0)

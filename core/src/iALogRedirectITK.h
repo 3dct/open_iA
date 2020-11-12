@@ -31,11 +31,12 @@ public:
 	typedef itk::SmartPointer< const Self > ConstPointer;
 	itkTypeMacro(iALogRedirectITK, itk::OutputWindow);
 
-	Pointer New()
+	static Pointer New()
 	{
 		if (!m_instance)
 		{
 			iALogRedirectITK::m_instance = new iALogRedirectITK;
+			iALogRedirectITK::m_instance->SetPromptUser(false);
 			iALogRedirectITK::m_instance->UnRegister();
 		}
 		return m_instance;
@@ -66,19 +67,6 @@ public:
 		LOG(lvlWarn, QString("ITK %1").arg(t));
 	}
 
-	void SetPromptUser(bool /*arg*/)
-	{}
-
-	bool GetPromptUser() const
-	{
-		return false;
-	}
-
-	void PromptUserOn()
-	{}
-
-	void PromptUserOff()
-	{}
 private:
 	static Pointer m_instance;
 };
