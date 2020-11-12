@@ -20,51 +20,55 @@
 * ************************************************************************************/
 #pragma once
 
-#include "iALog.h"
+#include <itkOutputWindow.h>
 
-#include <vtkOutputWindow.h>
-#include <vtkObjectFactory.h>
-
-class iARedirectVtkOutput : public vtkOutputWindow
+class iALogRedirectITK : public itk::OutputWindow
 {
 public:
-	vtkTypeMacro(iARedirectVtkOutput, vtkOutputWindow);
-	void PrintSelf(ostream& os, vtkIndent indent) override;
-	static iARedirectVtkOutput * New();
-	void DisplayText(const char*) override;
+	typedef iALogRedirectITK                Self;
+	typedef itk::OutputWindow               Superclass;
+	typedef itk::SmartPointer< Self >       Pointer;
+	typedef itk::SmartPointer< const Self > ConstPointer;
+	itkTypeMacro(iALogRedirectITK, itk::OutputWindow);
+
+	static Pointer New()
+	{
+		if (!m_instance)
+		{
+			iALogRedirectITK::m_instance = new iALogRedirectITK;
+			iALogRedirectITK::m_instance->SetPromptUser(false);
+			iALogRedirectITK::m_instance->UnRegister();
+		}
+		return m_instance;
+	}
+
+	void DisplayDebugText(const char *t)
+	{
+		LOG(lvlDebug, QString("ITK %1").arg(t));
+	}
+
+	void DisplayErrorText(const char *t)
+	{
+		LOG(lvlError, QString("ITK %1").arg(t));
+	}
+
+	void DisplayGenericOutputText(const char *t)
+	{
+		LOG(lvlInfo, QString("ITK %1").arg(t));
+	}
+
+	void DisplayText(const char * t)
+	{
+		LOG(lvlInfo, QString("ITK %1").arg(t));
+	}
+
+	void DisplayWarningText(const char *t)
+	{
+		LOG(lvlWarn, QString("ITK %1").arg(t));
+	}
+
 private:
-	iARedirectVtkOutput();
-	iARedirectVtkOutput(const iARedirectVtkOutput &) = delete;
-	void operator=(const iARedirectVtkOutput &) = delete;
+	static Pointer m_instance;
 };
 
-vtkStandardNewMacro(iARedirectVtkOutput);
-
-iARedirectVtkOutput::iARedirectVtkOutput() {}
-
-void iARedirectVtkOutput::DisplayText(const char* someText)
-{
-	iALogLevel lvl = lvlWarn;
-	switch (GetCurrentMessageType())
-	{
-	case MESSAGE_TYPE_TEXT           : lvl = lvlInfo;  break;
-	case MESSAGE_TYPE_ERROR          : lvl = lvlError; break;
-	default:
-#if __cplusplus >= 201703L
-		[[fallthrough]];
-#endif
-	case MESSAGE_TYPE_WARNING        :
-#if __cplusplus >= 201703L
-		[[fallthrough]];
-#endif
-	case MESSAGE_TYPE_GENERIC_WARNING: lvl = lvlWarn;  break;
-	case MESSAGE_TYPE_DEBUG          : lvl = lvlDebug; break;
-	}
-	LOG(lvl, someText);
-}
-
-//----------------------------------------------------------------------------
-void iARedirectVtkOutput::PrintSelf(ostream& os, vtkIndent indent)
-{
-	this->Superclass::PrintSelf(os, indent);
-}
+iALogRedirectITK::Pointer iALogRedirectITK::m_instance;

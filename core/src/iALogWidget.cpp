@@ -21,8 +21,8 @@
 #include "iALogWidget.h"
 
 #include "iALogLevelMappings.h"
-#include "iARedirectVtkOutput.h"
-#include "iARedirectItkOutput.h"
+#include "iALogRedirectVTK.h"
+#include "iALogRedirectITK.h"
 #include "io/iAFileUtils.h"
 
 #include <QDateTime>
@@ -123,10 +123,10 @@ iALogWidget::iALogWidget() :
 	setupUi(this);
 	setAttribute(Qt::WA_DeleteOnClose, false);
 	// redirect VTK and ITK output to console window:
-	m_vtkOutputWindow = vtkSmartPointer<iARedirectVtkOutput>::New();
-	m_itkOutputWindow = iARedirectItkOutput::New();
-	vtkOutputWindow::SetInstance(m_vtkOutputWindow);
-	itk::OutputWindow::SetInstance(m_itkOutputWindow);
+	m_redirectVTK = vtkSmartPointer<iALogRedirectVTK>::New();
+	m_redirectITK = iALogRedirectITK::New();
+	vtkOutputWindow::SetInstance(m_redirectVTK);
+	itk::OutputWindow::SetInstance(m_redirectITK);
 	cmbboxLogLevel->addItems(AvailableLogLevels());
 
 	connect(pbClearLog, &QPushButton::clicked, this, &iALogWidget::clear);

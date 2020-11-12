@@ -18,57 +18,47 @@
 * Contact: FH OÖ Forschungs & Entwicklungs GmbH, Campus Wels, CT-Gruppe,              *
 *          Stelzhamerstraße 23, 4600 Wels / Austria, Email: c.heinzl@fh-wels.at       *
 * ************************************************************************************/
-#include "iARedirectItkOutput.h"
+#pragma once
 
-#include "iALog.h"
+#include <vtkOutputWindow.h>
+#include <vtkObjectFactory.h>
 
-iARedirectItkOutput::Pointer iARedirectItkOutput::m_instance;
-
-iARedirectItkOutput::Pointer iARedirectItkOutput::New()
+class iALogRedirectVTK : public vtkOutputWindow
 {
-	if (!m_instance)
+public:
+	vtkTypeMacro(iALogRedirectVTK, vtkOutputWindow);
+	void PrintSelf(ostream& os, vtkIndent indent) override
 	{
-		iARedirectItkOutput::m_instance = new iARedirectItkOutput;
-		iARedirectItkOutput::m_instance->UnRegister();
+		this->Superclass::PrintSelf(os, indent);
 	}
-	return m_instance;
-}
+	static iALogRedirectVTK * New();
+	void DisplayText(const char* someText) override
+	{
+		iALogLevel lvl = lvlWarn;
+	#if VTK_VERSION_NUMBER >= VTK_VERSION_CHECK(8,2,0)
+		switch (GetCurrentMessageType())
+		{
+		case MESSAGE_TYPE_TEXT           : lvl = lvlInfo;  break;
+		case MESSAGE_TYPE_ERROR          : lvl = lvlError; break;
+		default:
+	#if __cplusplus >= 201703L
+			[[fallthrough]];
+	#endif
+		case MESSAGE_TYPE_WARNING        :
+	#if __cplusplus >= 201703L
+			[[fallthrough]];
+	#endif
+		case MESSAGE_TYPE_GENERIC_WARNING: lvl = lvlWarn;  break;
+		case MESSAGE_TYPE_DEBUG          : lvl = lvlDebug; break;
+		}
+	#endif
+		LOG(lvl, someText);
+	}
+private:
+	iALogRedirectVTK()
+	{}
+	iALogRedirectVTK(const iALogRedirectVTK &) = delete;
+	void operator=(const iALogRedirectVTK &) = delete;
+};
 
-void iARedirectItkOutput::DisplayDebugText(const char *t)
-{
-	LOG(lvlDebug, QString("ITK %1").arg(t));
-}
-
-void iARedirectItkOutput::DisplayErrorText(const char *t)
-{
-	LOG(lvlError, QString("ITK %1").arg(t));
-}
-
-void iARedirectItkOutput::DisplayGenericOutputText(const char *t)
-{
-	LOG(lvlInfo, QString("ITK %1").arg(t));
-}
-
-void iARedirectItkOutput::DisplayText(const char * t)
-{
-	LOG(lvlInfo, QString("ITK %1").arg(t));
-}
-
-void iARedirectItkOutput::DisplayWarningText(const char *t)
-{
-	LOG(lvlWarn, QString("ITK %1").arg(t));
-}
-
-void iARedirectItkOutput::SetPromptUser(bool /*arg*/)
-{}
-
-bool iARedirectItkOutput::GetPromptUser() const
-{
-	return false;
-}
-
-void iARedirectItkOutput::PromptUserOn()
-{}
-
-void iARedirectItkOutput::PromptUserOff()
-{}
+vtkStandardNewMacro(iALogRedirectVTK);

@@ -3010,31 +3010,6 @@ QString iAFiAKErController::resultName(size_t resultID) const
 	return QFileInfo(m_data->result[resultID].fileName).baseName();
 }
 
-/*
-void iAFiAKErController::doSaveProject()
-{
-	// somehow move that part out into the core?
-	// { e.g. into iASavableProject ?
-	QString fileName = QFileDialog::getSaveFileName(
-	QApplication::activeWindow(),
-		tr("Select Output File"),
-		m_data->folder,
-		iAIOProvider::NewProjectFileTypeFilter);
-	if (fileName.isEmpty())
-	{
-		return;
-	}
-	QSettings projectFile(fileName, QSettings::IniFormat);
-	projectFile.setIniCodec("UTF-8");
-	projectFile.beginGroup(FIAKERProjectID);
-	saveProject(projectFile, fileName);
-	projectFile.endGroup();
-	projectFile.sync(); // make sure file is written here...
-	m_mainWnd->setCurrentFile(fileName); // ...because otherwise it won't get added to recent list here
-	addInteraction(QString("Saved as Project '%1'.").arg(fileName));
-}
-*/
-
 void iAFiAKErController::saveProject(QSettings & projectFile, QString  const & fileName)
 {
 	projectFile.setValue(ProjectFileFolder, MakeRelative(QFileInfo(fileName).absolutePath(), m_data->folder));
