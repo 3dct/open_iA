@@ -29,6 +29,7 @@
 #include "iAExceptionThrowingErrorObserver.h"
 #include "iAExtendedTypedCallHelper.h"
 #include "iAFileUtils.h"
+#include "iAJobListView.h"
 #include "iAModalityList.h"
 #include "iAOIFReader.h"
 #include "iAProgress.h"
@@ -190,6 +191,7 @@ void iAIO::init(QWidget *par)
 	m_fileName = "";
 	m_fileNameArray = vtkStringArray::New();
 	m_ioID = 0;
+	iAJobListView::get()->addJob("Loading file(s)", ProgressObserver(), this);
 	loadIOSettings();
 }
 
