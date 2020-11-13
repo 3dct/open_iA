@@ -184,3 +184,17 @@ QSharedPointer<QObject> iAJobListView::addJob(QString name, iAProgress* p,
 	addJob(name, p, result.data(), abortListener, estimator);
 	return result;
 }
+
+iASimpleAbortListener::iASimpleAbortListener() : m_aborted(false)
+{
+}
+
+void iASimpleAbortListener::abort()
+{
+	m_aborted = true;
+}
+
+bool iASimpleAbortListener::isAborted() const
+{
+	return m_aborted;
+}

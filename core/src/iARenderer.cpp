@@ -21,6 +21,7 @@
 #include "iARenderer.h"
 
 #include "defines.h"
+#include "iAAbortListener.h"
 #include "iALog.h"
 #include "iAChannelData.h"
 #include "iAJobListView.h"
@@ -733,7 +734,7 @@ void iARenderer::setSlicePlaneOpacity(float opc)
 	m_slicePlaneOpacity = opc;
 }
 
-void iARenderer::saveMovie( const QString& fileName, int mode, int qual /*= 2*/ )
+void iARenderer::saveMovie(const QString& fileName, int mode, int qual /*= 2*/)
 {
 	auto movieWriter = GetMovieWriter(fileName, qual);
 
@@ -742,7 +743,8 @@ void iARenderer::saveMovie( const QString& fileName, int mode, int qual /*= 2*/ 
 		return;
 	}
 	iAProgress p;
-	auto jobHandle = iAJobListView::get()->addJob("Exporting Movie", &p);
+	iASimpleAbortListener aborter;
+	auto jobHandle = iAJobListView::get()->addJob("Exporting Movie", &p, &aborter);
 	LOG(lvlInfo, tr("Movie export started, output file name: %1").arg(fileName));
 	// save current state and disable interaction:
 	m_interactor->Disable();
@@ -767,47 +769,47 @@ void iARenderer::saveMovie( const QString& fileName, int mode, int qual /*= 2*/ 
 	movieWriter->SetInputConnection(windowToImage->GetOutputPort());
 	movieWriter->Start();
 
-	int numRenderings = 360;//TODO
+	int numRenderings = 360;  //TODO
 	auto rot = vtkSmartPointer<vtkTransform>::New();
-	m_cam->SetFocalPoint( 0,0,0 );
+	m_cam->SetFocalPoint(0, 0, 0);
 	double view[3];
 	double point[3];
 	if (mode == 0)
-	{ // YZ
-		double _view[3]  = { 0, 0, -1 };
-		double _point[3] = { 1, 0,  0 };
-		for (int ind=0; ind<3; ind++)
+	{  // YZ
+		double _view[3] = {0, 0, -1};
+		double _point[3] = {1, 0, 0};
+		for (int ind = 0; ind < 3; ind++)
 		{
 			view[ind] = _view[ind];
 			point[ind] = _point[ind];
 		}
-		rot->RotateZ(360/numRenderings);
+		rot->RotateZ(360 / numRenderings);
 	}
 	else if (mode == 1)
-	{ // XY
-		double _view[3]  = { 0, 0, -1 };
-		double _point[3] = { 0, 1,  0 };
-		for (int ind=0; ind<3; ind++)
+	{  // XY
+		double _view[3] = {0, 0, -1};
+		double _point[3] = {0, 1, 0};
+		for (int ind = 0; ind < 3; ind++)
 		{
 			view[ind] = _view[ind];
 			point[ind] = _point[ind];
 		}
-		rot->RotateX(360/numRenderings);
+		rot->RotateX(360 / numRenderings);
 	}
 	else if (mode == 2)
-	{ // XZ
-		double _view[3]  = { 0, 1, 0 };
-		double _point[3] = { 0, 0, 1 };
-		for (int ind=0; ind<3; ind++)
+	{  // XZ
+		double _view[3] = {0, 1, 0};
+		double _point[3] = {0, 0, 1};
+		for (int ind = 0; ind < 3; ind++)
 		{
 			view[ind] = _view[ind];
 			point[ind] = _point[ind];
 		}
-		rot->RotateY(360/numRenderings);
+		rot->RotateY(360 / numRenderings);
 	}
-	m_cam->SetViewUp ( view );
-	m_cam->SetPosition ( point );
-	for (int i =0; i < numRenderings; i++ )
+	m_cam->SetViewUp(view);
+	m_cam->SetPosition(point);
+	for (int i = 0; i < numRenderings && !aborter.isAborted(); i++)
 	{
 		m_ren->ResetCamera();
 		m_renWin->Render();
@@ -819,7 +821,7 @@ void iARenderer::saveMovie( const QString& fileName, int mode, int qual /*= 2*/ 
 			LOG(lvlError, movieWriter->GetStringFromErrorCode(movieWriter->GetErrorCode()));
 			break;
 		}
-		p.emitProgress( (i+1) * 100.0 / numRenderings);
+		p.emitProgress((i + 1) * 100.0 / numRenderings);
 		m_cam->ApplyTransform(rot);
 		QCoreApplication::processEvents();
 	}
@@ -828,14 +830,7 @@ void iARenderer::saveMovie( const QString& fileName, int mode, int qual /*= 2*/ 
 	movieWriter->End();
 	m_interactor->Enable();
 
-	if (movieWriter->GetError())
-	{
-		LOG(lvlError, tr("Movie export failed."));
-	}
-	else
-	{
-		LOG(lvlInfo, tr("Movie export completed."));
-	}
+	printFinalLogMessage(movieWriter, aborter);
 }
 
 void iARenderer::mouseRightButtonReleasedSlot()
