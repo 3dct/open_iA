@@ -333,7 +333,7 @@ void iAFilterRunnerGUI::run(QSharedPointer<iAFilter> filter, MainWindow* mainWnd
 	}
 	connectThreadSignals(mdiChild, thread);
 	mdiChild->addStatusMsg(filter->name());
-	mdiChild->jobsList()->addJob(filter->name(), thread->ProgressObserver(), thread, filter->canAbort() ? thread : nullptr);
+	iAJobListView::get()->addJob(filter->name(), thread->ProgressObserver(), thread, filter->canAbort() ? thread : nullptr);
 	mainWnd->statusBar()->showMessage(filter->name(), 5000);
 	thread->start();
 }

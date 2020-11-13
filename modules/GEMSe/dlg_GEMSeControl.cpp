@@ -218,7 +218,7 @@ void dlg_GEMSeControl::startSampling()
 			&m_progress
 		));
 		MdiChild* mdiChild = dynamic_cast<MdiChild*>(parent());
-		mdiChild->jobsList()->addJob("Sampling Progress", &m_progress, m_sampler.data(), m_sampler.data());
+		iAJobListView::get()->addJob("Sampling Progress", &m_progress, m_sampler.data(), m_sampler.data());
 		connect(m_sampler.data(), &iAImageSampler::finished, this, &dlg_GEMSeControl::samplingFinished);
 
 		// trigger parameter set creation & sampling (in foreground with progress bar for now)
@@ -378,8 +378,7 @@ void dlg_GEMSeControl::calculateClustering()
 		return;
 	}
 	m_clusterer = QSharedPointer<iAImageClusterer>(new iAImageClusterer(m_simpleLabelInfo->count(), cacheDir, &m_progress));
-	MdiChild* mdiChild = dynamic_cast<MdiChild*>(parent());
-	mdiChild->jobsList()->addJob("Clustering Progress", &m_progress, m_clusterer.data(), m_clusterer.data());
+	iAJobListView::get()->addJob("Clustering Progress", &m_progress, m_clusterer.data(), m_clusterer.data());
 	for (int samplingIdx=0; samplingIdx<m_dlgSamplings->SamplingCount(); ++samplingIdx)
 	{
 		QSharedPointer<iASamplingResults> sampling = m_dlgSamplings->GetSampling(samplingIdx);

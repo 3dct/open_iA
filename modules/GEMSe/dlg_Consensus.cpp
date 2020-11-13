@@ -1028,7 +1028,7 @@ void dlg_Consensus::StartNextSampler()
 	m_currentSampler = m_queuedSamplers.takeFirst();
 	connect(m_currentSampler.data(), &iAImageSampler::finished, this, &dlg_Consensus::samplerFinished);
 
-	m_mdiChild->jobsList()->addJob("Sampling Progress", &m_progress, m_currentSampler.data(), m_currentSampler.data());
+	iAJobListView::get()->addJob("Sampling Progress", &m_progress, m_currentSampler.data(), m_currentSampler.data());
 
 	m_currentSampler->start();
 }

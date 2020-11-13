@@ -35,13 +35,15 @@ class open_iA_Core_API iAJobListView : public QWidget
 {
 	Q_OBJECT
 public:
-	iAJobListView();
+	static iAJobListView* get();
 	template <typename TaskT>
 	void addJob(QString name, iAProgress* p, TaskT* t, iAAbortListener* abortListener = nullptr,
 		QSharedPointer<iADurationEstimator> estimator =	QSharedPointer<iADurationEstimator>());
 signals:
 	void allJobsDone();
+	void jobAdded();
 private:
+	iAJobListView();
 	QWidget* addJobWidget(QString name, iAProgress* p, iAAbortListener* abortListener,
 		QSharedPointer<iADurationEstimator> estimator);
 	
@@ -66,5 +68,5 @@ void iAJobListView::addJob(QString name, iAProgress* p, TaskT* t, iAAbortListene
 			m_estimators.remove(jobWidget);
 			jobWidget->deleteLater();
 		});
-	show();
+	emit jobAdded();
 }

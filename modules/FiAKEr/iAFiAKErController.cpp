@@ -266,7 +266,7 @@ void iAFiAKErController::start(QString const & path, iACsvConfig const & config,
 	auto resultsLoader = new iAFiberResultsLoader(m_data, path, m_config, stepShift);
 	connect(resultsLoader, &iAFiberResultsLoader::success, this, &iAFiAKErController::resultsLoaded);
 	connect(resultsLoader, &iAFiberResultsLoader::failed,  this, &iAFiAKErController::resultsLoadFailed);
-	m_mdiChild->jobsList()->addJob("Loading results...", resultsLoader->progress(), resultsLoader);
+	iAJobListView::get()->addJob("Loading results...", resultsLoader->progress(), resultsLoader);
 	resultsLoader->start();
 }
 
@@ -2746,7 +2746,7 @@ void iAFiAKErController::setReference(size_t referenceID, std::vector<std::pair<
 		m_refDistCompute->setMeasuresToCompute(measures, optimizationMeasure, bestMeasure);
 	}
 	connect(m_refDistCompute, &QThread::finished, this, &iAFiAKErController::refDistAvailable);
-	m_mdiChild->jobsList()->addJob("Computing Reference Similarities", m_refDistCompute->progress(), m_refDistCompute);
+	iAJobListView::get()->addJob("Computing Reference Similarities", m_refDistCompute->progress(), m_refDistCompute);
 	m_refDistCompute->start();
 }
 

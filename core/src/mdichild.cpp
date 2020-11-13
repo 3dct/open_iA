@@ -37,7 +37,6 @@
 #include "iALog.h"
 #include "iARunAsync.h"
 #include "qthelper/iADockWidgetWrapper.h"
-#include "iAJobListView.h"
 #include "iAModality.h"
 #include "iAModalityList.h"
 #include "iAModalityTransfer.h"
@@ -115,9 +114,7 @@ MdiChild::MdiChild(MainWindow* mainWnd, iAPreferences const& prefs, bool unsaved
 	m_volumeStack(new iAVolumeStack),
 	m_ioThread(nullptr),
 	m_histogram(new iAChartWithFunctionsWidget(nullptr, this, " Histogram", "Frequency")),
-	m_jobs(new iAJobListView()),
 	m_dwHistogram(new iADockWidgetWrapper(m_histogram, "Histogram", "Histogram")),
-	m_dwJobs(new iADockWidgetWrapper(m_jobs, "Jobs", "Jobs")),
 	m_dwImgProperty(nullptr),
 	m_dwProfile(nullptr),
 	m_nextChannelID(0),
@@ -157,9 +154,6 @@ MdiChild::MdiChild(MainWindow* mainWnd, iAPreferences const& prefs, bool unsaved
 	splitDockWidget(m_dwRenderer, m_dwSlicer[iASlicerMode::XZ], Qt::Horizontal);
 	splitDockWidget(m_dwRenderer, m_dwSlicer[iASlicerMode::YZ], Qt::Vertical);
 	splitDockWidget(m_dwSlicer[iASlicerMode::XZ], m_dwSlicer[iASlicerMode::XY], Qt::Vertical);
-	splitDockWidget(m_dwRenderer, m_dwJobs, Qt::Horizontal);
-	m_dwJobs->hide();
-	connect(m_jobs, &iAJobListView::allJobsDone, m_dwJobs, &QDockWidget::hide);
 
 	setAttribute(Qt::WA_DeleteOnClose);
 
@@ -175,7 +169,6 @@ MdiChild::MdiChild(MainWindow* mainWnd, iAPreferences const& prefs, bool unsaved
 	m_dwModalities = new dlg_modalities(m_dwRenderer->vtkWidgetRC, m_renderer->renderer(), this);
 	QSharedPointer<iAModalityList> modList(new iAModalityList);
 	setModalities(modList);
-	splitDockWidget(m_dwJobs, m_dwModalities, Qt::Vertical);
 	applyViewerPreferences();
 	connectSignalsToSlots();
 	m_pbar->setValue(100);
@@ -2612,11 +2605,6 @@ dlg_modalities* MdiChild::dataDockWidget()
 	return m_dwModalities;
 }
 
-iAJobListView* MdiChild::jobsList()
-{
-	return m_jobs;
-}
-
 QSharedPointer<iAModalityList> MdiChild::modalities()
 {
 	return m_dwModalities->modalities();
@@ -2913,21 +2901,6 @@ void MdiChild::saveFinished()
 	m_mainWnd->setCurrentFile(m_ioThread->fileName());
 	setWindowModified(modalities()->hasUnsavedModality());
 }
-
-/*
-void MdiChild::splitDockWidget(QDockWidget* ref, QDockWidget* newWidget, Qt::Orientation orientation)
-{
-	QList<QDockWidget*> tabified = m_mainWnd->tabifiedDockWidgets(ref);
-	if (tabified.size() > 0)
-	{
-		tabifyDockWidget(ref, newWidget);
-	}
-	else
-	{
-		splitDockWidget(ref, newWidget, orientation);
-	}
-}
-*/
 
 bool MdiChild::isFullyLoaded() const
 {

@@ -60,6 +60,11 @@ private:
 	std::chrono::system_clock::time_point m_start;
 };
 
+iAJobListView* iAJobListView::get()
+{
+	static iAJobListView* jobList = new iAJobListView();
+	return jobList;
+}
 
 iAJobListView::iAJobListView():
 	m_insideWidget(new QWidget)
