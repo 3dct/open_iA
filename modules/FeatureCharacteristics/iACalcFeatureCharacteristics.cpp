@@ -311,7 +311,7 @@ template<class T> void calcFeatureCharacteristics_template(iAConnector *image, i
 		}
 		fout << '\n';
 
-		progress->emitProgress(static_cast<int>(labelValue * 100 / allLabels.size()));
+		progress->emitProgress(labelValue * 100.0 / allLabels.size());
 	}
 
 	fout.close();

@@ -528,7 +528,7 @@ bool iAFiberResultsCollection::loadData(QString const & path, iACsvConfig const 
 			optimStepMax = thisResultStepMax;
 		}
 		++resultID;
-		progress->emitProgress((100 * resultID) / csvFileNames.size());
+		progress->emitProgress(resultID * 100.0 / csvFileNames.size());
 		if (abort)
 		{
 			return false;

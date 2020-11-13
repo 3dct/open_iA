@@ -44,7 +44,6 @@
 
 class iAFiberResultsCollection;
 class iAFiberCharUIData;
-class iAJobListView;
 class iAStackedBarChart;
 
 class iA3DColoredPolyObjectVis;

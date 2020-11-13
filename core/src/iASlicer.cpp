@@ -23,20 +23,23 @@
 #include "defines.h"    // for NotExistingChannel
 #include "dlg_commoninput.h"
 #include "dlg_slicer.h"
-#include "iASlicerProfileHandles.h"
+#include "iAAbortListener.h"
 #include "iAChannelData.h"
 #include "iAChannelSlicerData.h"
 #include "iAConnector.h"
+#include "iAJobListView.h"
 #include "iALog.h"
 #include "iAMagicLens.h"
 #include "iAMathUtility.h"
 #include "iAModality.h"
 #include "iAModalityList.h"
 #include "iAMovieHelper.h"
+#include "iAProgress.h"
 #include "iARulerWidget.h"
 #include "iARulerRepresentation.h"
 #include "iASlicer.h"
 #include "iASlicerProfile.h"
+#include "iASlicerProfileHandles.h"
 #include "iASlicerSettings.h"
 #include "iASnakeSpline.h"
 #include "iAStringHelper.h"
@@ -983,6 +986,10 @@ void iASlicer::saveSliceMovie(QString const& fileName, int qual /*= 2*/)
 	{
 		return;
 	}
+	iAProgress p;
+	iASimpleAbortListener aborter;
+	auto jobHandle = iAJobListView::get()->addJob("Exporting Movie", &p, &aborter);
+	LOG(lvlInfo, tr("Movie export started, output file name: %1.").arg(fileName));
 	m_interactor->Disable();
 
 	auto windowToImage = vtkSmartPointer<vtkWindowToImageFilter>::New();
@@ -1007,8 +1014,6 @@ void iASlicer::saveSliceMovie(QString const& fileName, int qual /*= 2*/)
 	double const * imgOrigin = m_channels[0]->input()->GetOrigin();
 	double const * imgSpacing = m_channels[0]->input()->GetSpacing();
 
-	LOG(lvlInfo, tr("Movie export started, output file name: %1.").arg(fileName));
-
 	double oldResliceAxesOrigin[3];
 	m_channels[0]->resliceAxesOrigin(oldResliceAxesOrigin);
 
@@ -1020,7 +1025,7 @@ void iASlicer::saveSliceMovie(QString const& fileName, int qual /*= 2*/)
 	int const sliceZAxisIdx = mapSliceToGlobalAxis(m_mode, iAAxisIndex::Z);
 	int const sliceFrom = imgExtent[sliceZAxisIdx * 2];
 	int const sliceTo = imgExtent[sliceZAxisIdx * 2 + 1];
-	for (int slice = sliceFrom; slice <= sliceTo; slice++)
+	for (int slice = sliceFrom; slice <= sliceTo && !aborter.isAborted(); slice++)
 	{
 		movingOrigin[sliceZAxisIdx] = imgOrigin[sliceZAxisIdx] + slice * imgSpacing[sliceZAxisIdx];
 		m_channels[0]->setResliceAxesOrigin(movingOrigin[0], movingOrigin[1], movingOrigin[2]);
@@ -1034,21 +1039,15 @@ void iASlicer::saveSliceMovie(QString const& fileName, int qual /*= 2*/)
 			LOG(lvlError, movieWriter->GetStringFromErrorCode(movieWriter->GetErrorCode()));
 			break;
 		}
-		emit progress(100 * (slice - sliceFrom) / (sliceTo - sliceFrom));
+		p.emitProgress((slice - sliceFrom) * 100.0 / (sliceTo - sliceFrom));
+		QCoreApplication::processEvents();
 	}
 	m_channels[0]->setResliceAxesOrigin(oldResliceAxesOrigin[0], oldResliceAxesOrigin[1], oldResliceAxesOrigin[2]);
 	update();
 	movieWriter->End();
 	m_interactor->Enable();
 
-	if (movieWriter->GetError())
-	{
-		LOG(lvlError, tr("Movie export failed."));
-	}
-	else
-	{
-		LOG(lvlInfo, tr("Movie export completed."));
-	}
+	printFinalLogMessage(movieWriter, aborter);
 }
 
 void iASlicer::saveAsImage()
@@ -1200,12 +1199,15 @@ void iASlicer::saveImageStack()
 			" or 'From Slice Number' or 'To Slice Number' are outside of valid region [0..%1]!").arg(sliceMax));
 		return;
 	}
+	iAProgress p;
+	iASimpleAbortListener aborter;
+	auto jobHandle = iAJobListView::get()->addJob("Exporting Movie", &p, &aborter);
 	m_interactor->Disable();
 	double movingOrigin[3];
 	imageData->GetOrigin(movingOrigin);
 	double const * imgOrigin = imageData->GetOrigin();
 	auto reslicer = m_channels[0]->reslicer();
-	for (int slice = sliceFrom; slice <= sliceTo; slice++)
+	for (int slice = sliceFrom; slice <= sliceTo && !aborter.isAborted(); slice++)
 	{
 		movingOrigin[sliceZAxisIdx] = imgOrigin[sliceZAxisIdx] + slice * imgSpacing[sliceZAxisIdx];
 		setResliceAxesOrigin(movingOrigin[0], movingOrigin[1], movingOrigin[2]);
@@ -1237,7 +1239,8 @@ void iASlicer::saveImageStack()
 			windowToImage->Update();
 			img = windowToImage->GetOutput();
 		}
-		emit progress(100 * (slice-sliceFrom) / (sliceTo - sliceFrom) );
+		p.emitProgress((slice - sliceFrom) * 100.0 / (sliceTo - sliceFrom));
+		QCoreApplication::processEvents();
 
 		QString newFileName(QString("%1%2.%3").arg(baseName).arg(slice).arg(fileInfo.suffix()));
 		writeSingleSliceImage(newFileName, img);
@@ -1245,6 +1248,10 @@ void iASlicer::saveImageStack()
 	m_interactor->Enable();
 	LOG(lvlInfo, tr("Image stack saved in folder: %1")
 		.arg(fileInfo.absoluteDir().absolutePath()));
+	if (aborter.isAborted())
+	{
+		LOG(lvlInfo, "Note that since you aborted saving, the stack is probably not complete!");
+	}
 }
 
 void iASlicer::updatePositionMarkerExtent()

@@ -36,6 +36,7 @@
 #include <iAModality.h>
 #include <iAModalityList.h>
 #include <iANameMapper.h>
+#include <iAProgress.h>
 #include <iAStringHelper.h>
 
 #include <QDir>
@@ -47,10 +48,18 @@ const int CONCURRENT_COMPUTATION_RUNS = 1;
 
 iAPerformanceTimer m_computationTimer;
 
-iAImageSampler::iAImageSampler(QSharedPointer<iAModalityList> dataset, QMap<QString, QVariant> const& parameters,
-	QSharedPointer<iAAttributes> parameterRanges, QSharedPointer<iAAttributes> parameterSpecs,
-	QSharedPointer<iASamplingMethod> samplingMethod, QString const& parameterRangeFile, QString const& parameterSetFile,
-	QString const& derivedOutputFile, int samplingID, iALogger* logger) :
+iAImageSampler::iAImageSampler(
+		QSharedPointer<iAModalityList> dataset,
+		QMap<QString, QVariant> const & parameters,
+		QSharedPointer<iAAttributes> parameterRanges,
+		QSharedPointer<iAAttributes> parameterSpecs,
+		QSharedPointer<iASamplingMethod> samplingMethod,
+		QString const & parameterRangeFile,
+		QString const & parameterSetFile,
+		QString const & derivedOutputFile,
+		int samplingID,
+		iALogger * logger,
+		iAProgress * progress) :
 	m_datasets(dataset),
 	m_parameters(parameters),
 	m_parameterRanges(parameterRanges),
@@ -64,18 +73,14 @@ iAImageSampler::iAImageSampler(QSharedPointer<iAModalityList> dataset, QMap<QStr
 	m_computationDuration(0),
 	m_derivedOutputDuration(0),
 	m_samplingID(samplingID),
-	m_logger(logger)
+	m_logger(logger),
+	m_progress(progress)
 {
 }
 
 void iAImageSampler::statusMsg(QString const & msg)
 {
-	QString statusMsg(msg);
-	if (statusMsg.length() > 105)
-	{
-		statusMsg = statusMsg.left(100) + "...";
-	}
-	emit status(statusMsg);
+	m_progress->setStatus(msg);
 	LOG(lvlInfo, msg);
 }
 
@@ -348,7 +353,7 @@ void iAImageSampler::computationFinished()
 		QString parameterSetFile = m_parameters[spnOutputFolder].toString() + "/" + m_parameterSetFile;
 		QString derivedOutputFile = m_parameters[spnOutputFolder].toString() + "/" + m_derivedOutputFile;
 		m_results->addResult(result);
-		emit progress((100 * m_results->size()) / m_parameterSets->size());
+		m_progress->emitProgress(m_results->size() * 100.0 / m_parameterSets->size());
 		if (!m_results->store(sampleMetaFile, parameterSetFile, derivedOutputFile))
 		{
 			statusMsg("Error writing parameter file.");
@@ -381,7 +386,7 @@ void iAImageSampler::derivedOutputFinished()
 	QString parameterSetFile  = m_parameters[spnOutputFolder].toString() + "/" + m_parameterSetFile;
 	QString derivedOutputFile = m_parameters[spnOutputFolder].toString() + "/" + m_derivedOutputFile;
 	m_results->addResult(result);
-	emit progress((100*m_results->size()) / m_parameterSets->size());
+	m_progress->emitProgress(m_results->size() * 100.0 / m_parameterSets->size());
 	if (!m_results->store(sampleMetaFile, parameterSetFile, derivedOutputFile))
 	{
 		statusMsg("Error writing parameter file.");
@@ -396,8 +401,9 @@ double iAImageSampler::elapsed() const
 	return m_overallTimer.elapsed();
 }
 
-double iAImageSampler::estimatedTimeRemaining() const
+double iAImageSampler::estimatedTimeRemaining(int percent) const
 {
+	Q_UNUSED(percent);
 	return
 		(m_overallTimer.elapsed()/(m_curSample +1)) // average duration of one cycle
 		* static_cast<double>(m_parameterSets->size()- m_curSample -1) // remaining cycles

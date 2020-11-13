@@ -29,6 +29,7 @@
 #include "iAExceptionThrowingErrorObserver.h"
 #include "iAExtendedTypedCallHelper.h"
 #include "iAFileUtils.h"
+#include "iAJobListView.h"
 #include "iAModalityList.h"
 #include "iAOIFReader.h"
 #include "iAProgress.h"
@@ -190,6 +191,7 @@ void iAIO::init(QWidget *par)
 	m_fileName = "";
 	m_fileNameArray = vtkStringArray::New();
 	m_ioID = 0;
+	iAJobListView::get()->addJob("Loading file(s)", ProgressObserver(), this);
 	loadIOSettings();
 }
 
@@ -1135,7 +1137,7 @@ void iAIO::readVolumeMHDStack()
 		if (m_fileNames_volstack)
 			m_fileNames_volstack->push_back(m_fileName);
 
-		int progress = (m_fileNameArray->GetMaxId() == 0) ? 100 : (m * 100) / m_fileNameArray->GetMaxId();
+		double progress = (m_fileNameArray->GetMaxId() == 0) ? 100 : m * 100.0 / m_fileNameArray->GetMaxId();
 		ProgressObserver()->emitProgress(progress);
 	}
 	addMsg(tr("Loading volume stack completed."));
@@ -1158,8 +1160,7 @@ void iAIO::readVolumeStack()
 		{
 			m_fileNames_volstack->push_back(m_fileName);
 		}
-		int progress = (m * 100) / m_fileNameArray->GetMaxId();
-		ProgressObserver()->emitProgress(progress);
+		ProgressObserver()->emitProgress(m * 100.0 / m_fileNameArray->GetMaxId());
 	}
 	addMsg(tr("Loading volume stack completed."));
 	storeIOSettings();
@@ -1189,8 +1190,7 @@ void iAIO::writeVolumeStack()
 	for (int m=0; m <= m_fileNameArray->GetMaxId(); m++)
 	{
 		writeMetaImage(m_volumes->at(m).GetPointer(), m_fileNameArray->GetValue(m).c_str());
-		int progress = (m * 100) / m_fileNameArray->GetMaxId();
-		ProgressObserver()->emitProgress(progress);
+		ProgressObserver()->emitProgress(m * 100.0 / m_fileNameArray->GetMaxId());
 	}
 }
 

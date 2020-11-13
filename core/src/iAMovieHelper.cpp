@@ -20,6 +20,8 @@
 * ************************************************************************************/
 #include "iAMovieHelper.h"
 
+#include "iAAbortListener.h"
+#include "iALog.h"
 #include "io/iAFileUtils.h"
 
 #ifdef _WIN32
@@ -75,4 +77,20 @@ QString GetAvailableMovieFormats()
 	movie_file_types += "AVI (*.avi);;";
 #endif
 	return movie_file_types;
+}
+
+void printFinalLogMessage(vtkGenericMovieWriter * movieWriter, iASimpleAbortListener const & aborter)
+{
+	if (movieWriter->GetError())
+	{
+		LOG(lvlError, "Movie export failed.");
+	}
+	else if (aborter.isAborted())
+	{
+		LOG(lvlWarn, "Movie export aborted; half-finished file needs to be deleted manually!");
+	}
+	else
+	{
+		LOG(lvlInfo, "Movie export completed.");
+	}
 }

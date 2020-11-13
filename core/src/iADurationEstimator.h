@@ -20,30 +20,15 @@
 * ************************************************************************************/
 #pragma once
 
-#include "ui_progress.h"
-
-#include "iAAbortListener.h"
-#include "iADurationEstimator.h"
-
-#include <qthelper/iAQTtoUIConnector.h>
-
-typedef iAQTtoUIConnector<QDockWidget, Ui_progress> dlg_progressUI;
-
-//! Class to display progress of a task running in the background
-//! ToDo: Merge with iAJobListView in FIAKER!
-class dlg_progress : public dlg_progressUI
+//! Interface for operations providing elapsed time and estimated remaining duration.
+class iADurationEstimator
 {
-	Q_OBJECT
 public:
-	dlg_progress(QWidget *parentWidget,
-		QSharedPointer<iADurationEstimator const> estimator,
-		QSharedPointer<iAAbortListener> abort,
-		QString const & caption);
-public slots:
-	void setProgress(int progress);
-	void setStatus(QString const & status);
-	void abort();
-private:
-	QSharedPointer<iADurationEstimator const> m_durationEstimator;
-	QSharedPointer<iAAbortListener> m_abortListener;
+	//! Get the time that has elapsed since start of the operation.
+	//! @return elapsed time in seconds
+	virtual double elapsed() const =0;
+	//! Get the estimated, still required time to finish the operation.
+	//! @return the estimated remaining time in seconds
+	//!         -1 if remaining time still unknown
+	virtual double estimatedTimeRemaining(int percent) const =0;
 };

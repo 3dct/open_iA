@@ -21,6 +21,7 @@
 #include "iATLGICTLoader.h"
 
 #include "dlg_commoninput.h"
+#include "iAJobListView.h"
 #include "iALog.h"
 #include "iAModality.h"
 #include "iAModalityList.h"
@@ -42,7 +43,7 @@
 
 
 iATLGICTLoader::iATLGICTLoader():
-	m_multiStepObserver(0)
+	m_multiStepObserver(nullptr)
 {}
 
 
@@ -94,27 +95,21 @@ bool iATLGICTLoader::setup(QString const & baseDirectory, QWidget* parent)
 	return true;
 }
 
-
 void iATLGICTLoader::start(MdiChild* child)
 {
 	m_multiStepObserver = new iAMultiStepProgressObserver(m_subDirs.size());
 	m_child = child;
 	m_child->show();
 	LOG(lvlInfo, tr("Loading TLGI-CT data."));
-
-	connect(m_multiStepObserver, &iAMultiStepProgressObserver::progress, m_child, &MdiChild::updateProgressBar);
-	connect(this, &iATLGICTLoader::started, m_child, &MdiChild::initProgressBar);
-	connect(this, &iATLGICTLoader::finished, m_child, &MdiChild::hideProgressBar);
+	iAJobListView::get()->addJob("Loading TLGI-CT data.", m_multiStepObserver->progressObject(), this);
 	connect(this, &iATLGICTLoader::finished, this, &iATLGICTLoader::finishUp);		// this needs to be last, as it deletes this object!
 	QThread::start();
 }
-
 
 iATLGICTLoader::~iATLGICTLoader()
 {
 	delete m_multiStepObserver;
 }
-
 
 void iATLGICTLoader::run()
 {
@@ -130,6 +125,7 @@ void iATLGICTLoader::run()
 		QFileInfoList imgFiles = subDir.entryInfoList();
 		QString fileNameBase;
 		// determine most common file name base
+		// TODO: merge with image stack file name guessing!
 		for (QFileInfo imgFileInfo : imgFiles)
 		{
 			if (fileNameBase.isEmpty())
@@ -235,7 +231,7 @@ void iATLGICTLoader::run()
 		reader->SetFileNames(fileNames);
 		reader->SetDataOrigin(m_origin);
 		reader->SetDataSpacing(m_spacing);
-		reader->AddObserver(vtkCommand::ProgressEvent, m_multiStepObserver);		// intercept progress and divide by number of images!
+		m_multiStepObserver->observe(reader);		// intercept progress and divide by number of images!
 		reader->Update();
 		vtkSmartPointer<vtkImageData> img = reader->GetOutput();
 
@@ -243,7 +239,7 @@ void iATLGICTLoader::run()
 		QString modName = subDirFileInfo.baseName();
 		modName = modName.left(modName.length() - 4); // 4 => length of "_rec"
 		m_modList->add(QSharedPointer<iAModality>(new iAModality(modName, subDirFileInfo.absoluteFilePath(), -1, img, 0)));
-		m_multiStepObserver->SetCompletedSteps(++completedDirs);
+		m_multiStepObserver->setCompletedSteps(++completedDirs);
 	}
 	if (m_modList->size() == 0)
 	{

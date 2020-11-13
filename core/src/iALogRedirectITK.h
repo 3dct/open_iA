@@ -42,27 +42,27 @@ public:
 		return m_instance;
 	}
 
-	void DisplayDebugText(const char *t)
+	void DisplayDebugText(const char *t) override
 	{
 		LOG(lvlDebug, QString("ITK %1").arg(t));
 	}
 
-	void DisplayErrorText(const char *t)
+	void DisplayErrorText(const char* t) override
 	{
 		LOG(lvlError, QString("ITK %1").arg(t));
 	}
 
-	void DisplayGenericOutputText(const char *t)
+	void DisplayGenericOutputText(const char* t) override
 	{
 		LOG(lvlInfo, QString("ITK %1").arg(t));
 	}
 
-	void DisplayText(const char * t)
+	void DisplayText(const char* t) override
 	{
 		LOG(lvlInfo, QString("ITK %1").arg(t));
 	}
 
-	void DisplayWarningText(const char *t)
+	void DisplayWarningText(const char* t) override
 	{
 		LOG(lvlWarn, QString("ITK %1").arg(t));
 	}

@@ -21,15 +21,50 @@
 #include "iAJobListView.h"
 
 #include "iAAbortListener.h"
+#include "iADurationEstimator.h"
 #include "iALog.h"
+#include "iAPerformanceHelper.h"
 #include "iAProgress.h"
 
-//#include <QHBoxLayout>
 #include <QLabel>
 #include <QProgressBar>
 #include <QToolButton>
 #include <QVariant>
 #include <QVBoxLayout>
+
+#include <chrono>
+
+//! Simple estimator: starts the clock as soon as it is created,
+//! and estimates remaining time by percentage of completion and elapsed time.
+class iAPercentBasedEstimator : public iADurationEstimator
+{
+public:
+	iAPercentBasedEstimator():
+		m_start(std::chrono::system_clock::now())
+	{
+	}
+	double elapsed() const override
+	{
+		return std::chrono::duration_cast<std::chrono::microseconds>(
+			std::chrono::system_clock::now() - m_start).count() / 1e6;
+	}
+	double estimatedTimeRemaining(int percent) const override
+	{
+		if (percent == 0 || elapsed() == 0)
+		{
+			return -1;
+		}
+		return elapsed() * (100 - percent) / percent;
+	}
+private:
+	std::chrono::system_clock::time_point m_start;
+};
+
+iAJobListView* iAJobListView::get()
+{
+	static iAJobListView* jobList = new iAJobListView();
+	return jobList;
+}
 
 iAJobListView::iAJobListView():
 	m_insideWidget(new QWidget)
@@ -45,22 +80,25 @@ iAJobListView::iAJobListView():
 	layout()->addWidget(m_insideWidget);
 }
 
-QWidget* iAJobListView::addJobWidget(QString name, iAProgress* p, iAAbortListener* abortListener)
+QWidget* iAJobListView::addJobWidget(QString name, iAProgress* p, iAAbortListener* abortListener,
+	QSharedPointer<iADurationEstimator> estimator)
 {
 	auto titleLabel = new QLabel(name);
 	titleLabel->setProperty("qssClass", "titleLabel");
 
 	auto progressBar = new QProgressBar();
-	progressBar->setRange(0, 100);
+	progressBar->setRange(0, 1000);
 	progressBar->setValue(0);
 
 	auto statusLabel = new QLabel("");
+	auto elapsedLabel = new QLabel("Elapsed: - (estimated remaining: unknown)");
 
 	auto statusWidget = new QWidget();
 	statusWidget->setLayout(new QVBoxLayout);
 	statusWidget->layout()->setContentsMargins(0, 0, 0, 0);
 	statusWidget->layout()->setSpacing(2);
 	statusWidget->layout()->addWidget(statusLabel);
+	statusWidget->layout()->addWidget(elapsedLabel);
 	statusWidget->layout()->addWidget(progressBar);
 
 	auto abortButton = new QToolButton();
@@ -83,11 +121,27 @@ QWidget* iAJobListView::addJobWidget(QString name, iAProgress* p, iAAbortListene
 	jobWidget->layout()->addWidget(contentWidget);
 
 	m_insideWidget->layout()->addWidget(jobWidget);
+	
+	if (!estimator)
+	{
+		estimator = QSharedPointer<iADurationEstimator>(new iAPercentBasedEstimator());
+	}
+	m_estimators.insert(jobWidget, estimator);
 
 	// connections
 	if (p)
 	{
-		connect(p, &iAProgress::progress, progressBar, &QProgressBar::setValue);
+		connect(p, &iAProgress::progress, jobWidget, [progressBar, elapsedLabel, estimator](double value)
+			{
+				progressBar->setValue(value*10);
+				// TODO: occasionally update elapsed time even without progress signal?
+				double estRem = estimator->estimatedTimeRemaining(value);
+				elapsedLabel->setText(
+					QString("Elapsed: %1 (estimated remaining: %2)")
+						.arg(formatDuration(estimator->elapsed()))
+						.arg((estRem == -1) ? "unknown" : formatDuration(estRem))
+					);
+			});
 		connect(p, &iAProgress::statusChanged, statusLabel, &QLabel::setText);
 	}
 	if (abortListener)
@@ -104,4 +158,43 @@ QWidget* iAJobListView::addJobWidget(QString name, iAProgress* p, iAAbortListene
 			});
 	}
 	return jobWidget;
+}
+
+void iAJobListView::addJob(QString name, iAProgress* p, QObject* t, iAAbortListener* abortListener,
+	QSharedPointer<iADurationEstimator> estimator)
+{
+	m_runningJobs.fetchAndAddOrdered(1);
+	auto jobWidget = addJobWidget(name, p, abortListener, estimator);
+	connect(t, &QObject::destroyed, [this, jobWidget]() {
+		int oldJobCount = m_runningJobs.fetchAndAddOrdered(-1);
+		if (oldJobCount == 1)
+		{
+			emit allJobsDone();
+		}
+		m_estimators.remove(jobWidget);
+		jobWidget->deleteLater();
+	});
+	emit jobAdded();
+}
+
+QSharedPointer<QObject> iAJobListView::addJob(QString name, iAProgress* p,
+	iAAbortListener* abortListener,	QSharedPointer<iADurationEstimator> estimator)
+{
+	QSharedPointer<QObject> result(new QObject);
+	addJob(name, p, result.data(), abortListener, estimator);
+	return result;
+}
+
+iASimpleAbortListener::iASimpleAbortListener() : m_aborted(false)
+{
+}
+
+void iASimpleAbortListener::abort()
+{
+	m_aborted = true;
+}
+
+bool iASimpleAbortListener::isAborted() const
+{
+	return m_aborted;
 }

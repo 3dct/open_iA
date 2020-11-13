@@ -154,29 +154,33 @@
       <string>Views</string>
      </property>
     </widget>
-    <addaction name="actionXY"/>
-    <addaction name="actionXZ"/>
-    <addaction name="actionYZ"/>
-    <addaction name="action3D"/>
-    <addaction name="actionMultiViews"/>
+    <widget class="QMenu" name="menuMaximize_View">
+     <property name="title">
+      <string>Focus</string>
+     </property>
+     <addaction name="actionXY"/>
+     <addaction name="actionXZ"/>
+     <addaction name="actionYZ"/>
+     <addaction name="action3D"/>
+     <addaction name="actionMultiViews"/>
+    </widget>
+    <addaction name="menuDockWidgets"/>
+    <addaction name="menuMaximize_View"/>
+    <addaction name="menuLayout"/>
     <addaction name="separator"/>
     <addaction name="actionLinkViews"/>
     <addaction name="actionLinkMdis"/>
+    <addaction name="actionEnableInteraction"/>
     <addaction name="separator"/>
     <addaction name="actionMagicLens2D"/>
     <addaction name="actionMagicLens3D"/>
     <addaction name="actionRawProfile"/>
     <addaction name="actionSnakeSlicer"/>
     <addaction name="separator"/>
-    <addaction name="menuDockWidgets"/>
-    <addaction name="menuLayout"/>
-    <addaction name="separator"/>
-    <addaction name="actionEnableInteraction"/>
-    <addaction name="actionShowLog"/>
-    <addaction name="actionMainWindowStatusBar"/>
     <addaction name="actionShowToolbar"/>
     <addaction name="actionFullScreenMode"/>
     <addaction name="actionShowMenu"/>
+    <addaction name="actionChildStatusBar"/>
    </widget>
    <widget class="QMenu" name="menuWindow">
     <property name="title">
@@ -194,7 +198,8 @@
     <addaction name="actionNextWindow"/>
     <addaction name="actionPrevWindow"/>
     <addaction name="separator"/>
-    <addaction name="actionChildStatusBar"/>
+    <addaction name="actionShowLog"/>
+    <addaction name="actionMainWindowStatusBar"/>
    </widget>
    <widget class="QMenu" name="menuHelp">
     <property name="title">
@@ -631,15 +636,6 @@
     <string>Reset view</string>
    </property>
   </action>
-  <action name="actionUpdateViews">
-   <property name="icon">
-    <iconset resource="../open_iA.qrc">
-     <normaloff>:/images/update.png</normaloff>:/images/update.png</iconset>
-   </property>
-   <property name="text">
-    <string>Update Views</string>
-   </property>
-  </action>
   <action name="actionResetFunction">
    <property name="icon">
     <iconset resource="../open_iA.qrc">
@@ -647,15 +643,6 @@
    </property>
    <property name="text">
     <string>Reset function</string>
-   </property>
-  </action>
-  <action name="actionSaveScreen">
-   <property name="icon">
-    <iconset resource="../open_iA.qrc">
-     <normaloff>:/images/savescreen.png</normaloff>:/images/savescreen.png</iconset>
-   </property>
-   <property name="text">
-    <string>Save Screen...</string>
    </property>
   </action>
   <action name="actionLoadSettings">
@@ -949,11 +936,6 @@
   <action name="actionOpenTLGICTData">
    <property name="text">
     <string>Open TLGI-CT Data...</string>
-   </property>
-  </action>
-  <action name="actionOpenProject">
-   <property name="text">
-    <string>Open Project...</string>
    </property>
   </action>
   <action name="actionSaveProject">

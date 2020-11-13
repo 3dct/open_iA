@@ -285,7 +285,7 @@ void iAFiAKErController::start(QString const & path, iACsvConfig const & config,
 			}
 			m_mdiChild->parent()->deleteLater(); // deletes QMdiSubWindow which this widget is child of
 		});
-	m_mdiChild->addJob("Loading results...", resultsLoader->progress(), resultsLoader, resultsLoader);
+	iAJobListView::get()->addJob("Loading results...", resultsLoader->progress(), resultsLoader, resultsLoader);
 	resultsLoader->start();
 }
 
@@ -2335,7 +2335,7 @@ void iAFiAKErController::setReference(size_t referenceID, std::vector<std::pair<
 		m_refDistCompute->setMeasuresToCompute(measures, optimizationMeasure, bestMeasure);
 	}
 	connect(m_refDistCompute, &QThread::finished, this, &iAFiAKErController::refDistAvailable);
-	m_mdiChild->addJob("Computing Reference Similarities", m_refDistCompute->progress(), m_refDistCompute);
+	iAJobListView::get()->addJob("Computing Reference Similarities", m_refDistCompute->progress(), m_refDistCompute);
 	m_refDistCompute->start();
 }
 
