@@ -47,7 +47,9 @@ private:
 void iAProgress::processEvent( itk::Object * caller, const itk::EventObject & event )
 {
 	if (typeid(event) != typeid(itk::ProgressEvent))
+	{
 		return;
+	}
 	auto process = dynamic_cast<itk::ProcessObject *>(caller);
 	emitProgress(static_cast<int>(process->GetProgress() * 100));
 }

@@ -23,9 +23,11 @@
 #include "open_iA_Core_export.h"
 
 #include <QAtomicInteger>
+#include <QMap>
 #include <QWidget>
 
 class iAAbortListener;
+class iADurationEstimator;
 class iAProgress;
 
 //! A simple widget showing a list of currently running jobs and their progress.
@@ -35,20 +37,25 @@ class open_iA_Core_API iAJobListView : public QWidget
 public:
 	iAJobListView();
 	template <typename TaskT>
-	void addJob(QString name, iAProgress* p, TaskT* t, iAAbortListener* abortListener = nullptr);
+	void addJob(QString name, iAProgress* p, TaskT* t, iAAbortListener* abortListener = nullptr,
+		QSharedPointer<iADurationEstimator> estimator =	QSharedPointer<iADurationEstimator>());
 signals:
 	void allJobsDone();
 private:
-	QWidget* addJobWidget(QString name, iAProgress* p, iAAbortListener* abortListener = nullptr);
+	QWidget* addJobWidget(QString name, iAProgress* p, iAAbortListener* abortListener,
+		QSharedPointer<iADurationEstimator> estimator);
+	
 	QAtomicInteger<int> m_runningJobs;
 	QWidget* m_insideWidget;
+	QMap<QWidget*, QSharedPointer<iADurationEstimator>> m_estimators;
 };
 
 template <typename TaskT>
-void iAJobListView::addJob(QString name, iAProgress* p, TaskT* t, iAAbortListener* abortListener)
+void iAJobListView::addJob(QString name, iAProgress* p, TaskT* t, iAAbortListener* abortListener,
+	QSharedPointer<iADurationEstimator> estimator)
 {
 	m_runningJobs.fetchAndAddOrdered(1);
-	auto jobWidget = addJobWidget(name, p, abortListener);
+	auto jobWidget = addJobWidget(name, p, abortListener, estimator);
 	connect(t, &TaskT::finished, [this, jobWidget]()
 		{
 			int oldJobCount = m_runningJobs.fetchAndAddOrdered(-1);
@@ -56,6 +63,8 @@ void iAJobListView::addJob(QString name, iAProgress* p, TaskT* t, iAAbortListene
 			{
 				emit allJobsDone();
 			}
+			m_estimators.remove(jobWidget);
 			jobWidget->deleteLater();
 		});
+	show();
 }

@@ -1099,12 +1099,6 @@ void MdiChild::maximizeSlicer(int mode)
 	resizeDockWidget(m_dwSlicer[mode]);
 }
 
-void MdiChild::addJob(QString name, iAProgress* p, QThread* t, iAAbortListener* abortListener)
-{
-	m_dwJobs->show();
-	m_jobs->addJob(name, p, t, abortListener);
-}
-
 void MdiChild::maximizeRC()
 {
 	resizeDockWidget(m_dwRenderer);

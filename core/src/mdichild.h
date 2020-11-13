@@ -302,9 +302,6 @@ public:
 	//! maximize slicer dockwidget with the given mode
 	void maximizeSlicer(int mode);
 
-	//! makes job status window visible and adds the given job there.
-	void addJob(QString name, iAProgress* p, QThread* t, iAAbortListener* abortListener = nullptr);
-
 signals:
 	void rendererDeactivated(int c);
 	void pointSelected();

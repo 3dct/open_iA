@@ -31,6 +31,7 @@
 
 class iAImageTree;
 class iAImageTreeNode;
+class iAProgress;
 class iASingleResult;
 
 class iAImageClusterer: public QThread, public iADurationEstimator, public iAAbortListener
@@ -38,7 +39,7 @@ class iAImageClusterer: public QThread, public iADurationEstimator, public iAAbo
 	Q_OBJECT
 public:
 
-	iAImageClusterer(int labelCount, QString const & outputDirectory);
+	iAImageClusterer(int labelCount, QString const & outputDirectory, iAProgress* progress);
 	void AddImage(QSharedPointer<iASingleResult> singleResult);
 
 	QSharedPointer<iAImageTree > GetResult();
@@ -46,10 +47,7 @@ public:
 	void abort() override;
 	bool IsAborted();
 	double elapsed() const override;
-	double estimatedTimeRemaining() const override;
-signals:
-	void Progress(int);
-	void Status(QString const &);
+	double estimatedTimeRemaining(int percent) const override;
 private:
 	void run() override;
 	QVector<QSharedPointer<iAImageTreeNode> > m_images;
@@ -61,4 +59,5 @@ private:
 	int m_currImage;
 	iAPerformanceTimer::DurationType m_imageDistCalcDuration;
 	QString m_outputDirectory;
+	iAProgress* m_progress;
 };

@@ -36,6 +36,7 @@
 
 #include <dlg_commoninput.h>
 #include <iAColorTheme.h>
+#include <iAJobListView.h>
 #include <iALog.h>
 #include <iALookupTable.h>
 #include <iAParameterNames.h>
@@ -141,7 +142,6 @@ dlg_Consensus::dlg_Consensus(MdiChild* mdiChild, dlg_GEMSe* dlgGEMSe, int labelC
 	m_dlgGEMSe(dlgGEMSe),
 	m_labelCount(labelCount),
 	m_folder(folder),
-	m_dlgProgress(nullptr),
 	m_comparisonWeightType(Equal),
 	m_dlgSamplings(dlgSamplings)
 {
@@ -847,7 +847,6 @@ namespace
 	}
 }
 
-#include "dlg_progress.h"
 #include "iAAttributeDescriptor.h"
 #include "iAImageSampler.h"
 #include "iAMeasures.h"
@@ -1015,7 +1014,8 @@ void dlg_Consensus::LoadConfig()
 			iASEAFile::DefaultSPSFileName,
 			iASEAFile::DefaultCHRFileName,
 			lastSamplingID+s,
-			iALog::get()
+			iALog::get(),
+			&m_progress
 		));
 		m_queuedSamplers.push_back(sampler);
 	}
@@ -1028,10 +1028,7 @@ void dlg_Consensus::StartNextSampler()
 	m_currentSampler = m_queuedSamplers.takeFirst();
 	connect(m_currentSampler.data(), &iAImageSampler::finished, this, &dlg_Consensus::samplerFinished);
 
-	m_dlgProgress = new dlg_progress(this, m_currentSampler, m_currentSampler, "Sampling Progress");
-	connect(m_currentSampler.data(), &iAImageSampler::progress, m_dlgProgress, &dlg_progress::setProgress);
-	connect(m_currentSampler.data(), &iAImageSampler::status, m_dlgProgress, &dlg_progress::setStatus);
-	m_mdiChild->tabifyDockWidget(this, m_dlgProgress);
+	m_mdiChild->jobsList()->addJob("Sampling Progress", &m_progress, m_currentSampler.data(), m_currentSampler.data());
 
 	m_currentSampler->start();
 }
@@ -1039,8 +1036,6 @@ void dlg_Consensus::StartNextSampler()
 
 void dlg_Consensus::samplerFinished()
 {
-	delete m_dlgProgress;
-	m_dlgProgress = 0;
 	// insert result in sampling list?
 	iAImageSampler* sender = qobject_cast<iAImageSampler*> (QObject::sender());
 	if (!sender)
