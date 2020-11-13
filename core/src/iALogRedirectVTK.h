@@ -23,15 +23,17 @@
 #include <vtkOutputWindow.h>
 #include <vtkObjectFactory.h>
 
+#include <iAVtkVersion.h>
+
 class iALogRedirectVTK : public vtkOutputWindow
 {
 public:
 	vtkTypeMacro(iALogRedirectVTK, vtkOutputWindow);
+	static iALogRedirectVTK* New();
 	void PrintSelf(ostream& os, vtkIndent indent) override
 	{
 		this->Superclass::PrintSelf(os, indent);
 	}
-	static iALogRedirectVTK * New();
 	void DisplayText(const char* someText) override
 	{
 		iALogLevel lvl = lvlWarn;
