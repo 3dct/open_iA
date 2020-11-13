@@ -159,3 +159,21 @@ QWidget* iAJobListView::addJobWidget(QString name, iAProgress* p, iAAbortListene
 	}
 	return jobWidget;
 }
+
+QSharedPointer<QObject> iAJobListView::addJob(QString name, iAProgress* p)
+{
+	m_runningJobs.fetchAndAddOrdered(1);
+	auto jobWidget = addJobWidget(name, p, nullptr, nullptr);
+	QSharedPointer<QObject> result(new QObject);
+	connect(result.data(), &QObject::destroyed, [this, jobWidget]() {
+		int oldJobCount = m_runningJobs.fetchAndAddOrdered(-1);
+		if (oldJobCount == 1)
+		{
+			emit allJobsDone();
+		}
+		m_estimators.remove(jobWidget);
+		jobWidget->deleteLater();
+	});
+	emit jobAdded();
+	return result;
+}

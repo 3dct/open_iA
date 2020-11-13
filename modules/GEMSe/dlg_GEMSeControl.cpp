@@ -217,7 +217,6 @@ void dlg_GEMSeControl::startSampling()
 			iALog::get(),
 			&m_progress
 		));
-		MdiChild* mdiChild = dynamic_cast<MdiChild*>(parent());
 		iAJobListView::get()->addJob("Sampling Progress", &m_progress, m_sampler.data(), m_sampler.data());
 		connect(m_sampler.data(), &iAImageSampler::finished, this, &dlg_GEMSeControl::samplingFinished);
 

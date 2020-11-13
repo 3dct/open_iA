@@ -30,25 +30,88 @@ class iAAbortListener;
 class iADurationEstimator;
 class iAProgress;
 
-//! A simple widget showing a list of currently running jobs and their progress.
+//! A list of currently running jobs and their progress.
+//! Implemented as singleton, since there is only one such list per program instance.
 class open_iA_Core_API iAJobListView : public QWidget
 {
 	Q_OBJECT
 public:
+	//! Access to the single instance of this class
 	static iAJobListView* get();
+	//! Typical way of adding a job via its name, the progress observer,
+	//! the task (to whose finished signal the removal of the entry is connected),
+	//! and optional abort listener and progress estimator
+	//! @param name the name of the job/operation that is run;
+	//!        it is always shown at the top of the list entry, in bold
+	//! @param p the progress observer that reports on the job's progress;
+	//!        its progress signal connects to the job entries' progress bar,
+	//!        and the setStatus signal connects to a secondary text information
+	//!        shown below the name of the task (in non-bold font)
+	//! @param t a "handle" of the job - templated so that any type which has a
+	//!        "finished" signal can be passed in; this could be a QThread,
+	//!        or a QFuture as returned by runAsync (see iARunAsync.h)
+	//! @param abortListener optional listener to presses of the abort button;
+	//!        the abort button will be disabled if the default nullptr value is passed here
+	//! @param estimator an iADurationEstimator derived class providing information
+	//!        on both the elapsed time as well as the estimated remaining time.
+	//!        By default, a simple estimation based on the current finished percentage
+	//!        and the time elapsed so far will be used.
 	template <typename TaskT>
 	void addJob(QString name, iAProgress* p, TaskT* t, iAAbortListener* abortListener = nullptr,
-		QSharedPointer<iADurationEstimator> estimator =	QSharedPointer<iADurationEstimator>());
+		QSharedPointer<iADurationEstimator> estimator = QSharedPointer<iADurationEstimator>());
+	//! Add a job bound to the life time of the returned object;
+	//! useful for situations where no finished signal can be connected
+	//! (e.g. if a synchronous operation is run)
+	//! the job will stay in the list as long as somebody holds a reference
+	//! to the returned QObject; in a typical use case, this method will be
+	//! called at the start of the method performing the operation, and when
+	//! the variable holding the returned pointer goes out of scope at the
+	//! end of the method, the job will be removed automatically from the list.
+	//! Example:
+	//! #include "iAJobListView.h"
+	//! #include "iAProgress.h"
+	//! ...
+	//! void myComputeMethod()
+	//! {
+	//!     iAProgress p;
+	//!     auto jobListHandle = iAJobListView::get()->addJob("Compute Job", &p);
+	//!     while (computing)
+	//!     {
+	//!         // ... do computation
+	//!         p.emitProgress(percent);
+	//!     }
+	//! }  // here, jobListHandle goes out of scope, and the job will be automatically
+	//! removed from the list!
+	//! @param name the name of the job/operation that is run;
+	//!         it is always shown at the top of the list entry, in bold
+	//! @param p the progress observer that reports on the job's progress;
+	//!        its progress signal connects to the job entries' progress bar,
+	//!        and the setStatus signal connects to a secondary text information
+	//!        shown below the name of the task (in non-bold font)
+	//! @return an object which will keep the job in the list, as long it's alive
+	//!         therefore marked as nondiscard (because if not stored, the job is
+	//!         removed immediately again)
+#if __cplusplus >= 201703L
+	[[nodiscard]]
+#endif
+	QSharedPointer<QObject>	addJob(QString name, iAProgress* p);
 signals:
+	//! emitted when all jobs are done; is used in main window to hide widget
+	//! as it means that no more jobs are currently running.
 	void allJobsDone();
+	//! emitted when a job is added; used in main window to show widget, as it
+	//! indicates that there is at least on currently running job.
 	void jobAdded();
 private:
+	//! prevent creation - singleton pattern
 	iAJobListView();
 	QWidget* addJobWidget(QString name, iAProgress* p, iAAbortListener* abortListener,
 		QSharedPointer<iADurationEstimator> estimator);
-	
+	//! number of currently running jobs
 	QAtomicInteger<int> m_runningJobs;
+	//! the container widget for all job entries
 	QWidget* m_insideWidget;
+	//! pointers to the duration estimators (to keep them alive while the job is running)
 	QMap<QWidget*, QSharedPointer<iADurationEstimator>> m_estimators;
 };
 
@@ -56,6 +119,8 @@ template <typename TaskT>
 void iAJobListView::addJob(QString name, iAProgress* p, TaskT* t, iAAbortListener* abortListener,
 	QSharedPointer<iADurationEstimator> estimator)
 {
+	// TODO: avoid duplication with other addJob method!
+	//  TRY: link to destroyed signal in any case? then also no template required
 	m_runningJobs.fetchAndAddOrdered(1);
 	auto jobWidget = addJobWidget(name, p, abortListener, estimator);
 	connect(t, &TaskT::finished, [this, jobWidget]()

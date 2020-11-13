@@ -852,7 +852,7 @@ void dlg_FeatureScout::RenderSelection(std::vector<size_t> const& selInds)
 
 void dlg_FeatureScout::RenderMeanObject()
 {
-	// TODO: compute in background!
+	// TODO: compute in background! -> runAsync?
 	if (m_visualization != iACsvConfig::UseVolume)
 	{
 		QMessageBox::warning(this, "FeatureScout", "Mean objects feature only available for the Labelled Volume visualization at the moment!");
@@ -1023,7 +1023,7 @@ void dlg_FeatureScout::RenderMeanObject()
 
 			double percentage = round((currClass - 1) * 100.0 / (classCount - 1) +
 				(progress + 1.0) * (100.0 / (classCount - 1)) / meanObjectIds->size());
-			// some iAProgress:: emitProgress(percentage);
+			//p.emitProgress(percentage);
 			QCoreApplication::processEvents();
 			++progress;
 		}

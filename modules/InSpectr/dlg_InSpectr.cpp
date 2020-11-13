@@ -1079,6 +1079,15 @@ void dlg_InSpectr::showRefLineChanged( int show )
 	m_spectrumDiagram->update();
 }
 
+const int Dimensions = 3;  //2;
+typedef float ScalarType;
+typedef itk::Image<ScalarType, 3> ImageType3D;
+typedef itk::Image<ScalarType, Dimensions> ImageType;
+typedef itk::MutualInformationImageToImageMetric<ImageType, ImageType> MutualInformationMetricType;
+typedef MutualInformationMetricType MetricType;
+typedef itk::LinearInterpolateImageFunction<ImageType, double> InterpolatorType;
+typedef itk::IdentityTransform<double, Dimensions> TransformType;
+
 void dlg_InSpectr::computeSimilarityMap()
 {
 
@@ -1104,14 +1113,6 @@ void dlg_InSpectr::computeSimilarityMap()
 		double* similarityData = static_cast<double*>(similarityImageData->GetScalarPointer());
 
 		//initialization
-		const int Dimensions = 3;  //2;
-		typedef float ScalarType;
-		typedef itk::Image<ScalarType, 3> ImageType3D;
-		typedef itk::Image<ScalarType, Dimensions> ImageType;
-		typedef itk::MutualInformationImageToImageMetric<ImageType, ImageType> MutualInformationMetricType;
-		typedef MutualInformationMetricType MetricType;
-		typedef itk::LinearInterpolateImageFunction<ImageType, double> InterpolatorType;
-		typedef itk::IdentityTransform<double, Dimensions> TransformType;
 
 		iAConnector* connectors = new iAConnector[numEBins];
 		ImageType3D** images = new ImageType3D*[numEBins];

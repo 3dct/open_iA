@@ -23,9 +23,11 @@
 #include "defines.h"
 #include "iALog.h"
 #include "iAChannelData.h"
+#include "iAJobListView.h"
 #include "iALineSegment.h"
 #include "iAMovieHelper.h"
 #include "iAProfileColors.h"
+#include "iAProgress.h"
 #include "iARenderObserver.h"
 #include "iARenderSettings.h"
 #include "iASlicerMode.h"
@@ -739,6 +741,9 @@ void iARenderer::saveMovie( const QString& fileName, int mode, int qual /*= 2*/ 
 	{
 		return;
 	}
+	iAProgress p;
+	auto jobHandle = iAJobListView::get()->addJob("Exporting Movie", &p);
+	LOG(lvlInfo, tr("Movie export started, output file name: %1").arg(fileName));
 	// save current state and disable interaction:
 	m_interactor->Disable();
 	auto oldCam = vtkSmartPointer<vtkCamera>::New();
@@ -761,8 +766,6 @@ void iARenderer::saveMovie( const QString& fileName, int mode, int qual /*= 2*/ 
 	windowToImage->ReadFrontBufferOff();
 	movieWriter->SetInputConnection(windowToImage->GetOutputPort());
 	movieWriter->Start();
-
-	LOG(lvlInfo, tr("Movie export started, output file name: %1").arg(fileName));
 
 	int numRenderings = 360;//TODO
 	auto rot = vtkSmartPointer<vtkTransform>::New();
@@ -816,10 +819,9 @@ void iARenderer::saveMovie( const QString& fileName, int mode, int qual /*= 2*/ 
 			LOG(lvlError, movieWriter->GetStringFromErrorCode(movieWriter->GetErrorCode()));
 			break;
 		}
-		// maybe use iAJobListView to report progress; but we would need something
-		// to emit a finished signal to remove entry again!
-		// emit progress( 100 * (i+1) / numRenderings);
+		p.emitProgress( (i+1) * 100.0 / numRenderings);
 		m_cam->ApplyTransform(rot);
+		QCoreApplication::processEvents();
 	}
 
 	m_cam->DeepCopy(oldCam);

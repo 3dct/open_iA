@@ -27,12 +27,14 @@
 #include "iAChannelData.h"
 #include "iAChannelSlicerData.h"
 #include "iAConnector.h"
+#include "iAJobListView.h"
 #include "iALog.h"
 #include "iAMagicLens.h"
 #include "iAMathUtility.h"
 #include "iAModality.h"
 #include "iAModalityList.h"
 #include "iAMovieHelper.h"
+#include "iAProgress.h"
 #include "iARulerWidget.h"
 #include "iARulerRepresentation.h"
 #include "iASlicer.h"
@@ -983,6 +985,9 @@ void iASlicer::saveSliceMovie(QString const& fileName, int qual /*= 2*/)
 	{
 		return;
 	}
+	iAProgress p;
+	auto jobHandle = iAJobListView::get()->addJob("Exporting Movie", &p);
+	LOG(lvlInfo, tr("Movie export started, output file name: %1.").arg(fileName));
 	m_interactor->Disable();
 
 	auto windowToImage = vtkSmartPointer<vtkWindowToImageFilter>::New();
@@ -1006,8 +1011,6 @@ void iASlicer::saveSliceMovie(QString const& fileName, int qual /*= 2*/)
 	int const * imgExtent = m_channels[0]->input()->GetExtent();
 	double const * imgOrigin = m_channels[0]->input()->GetOrigin();
 	double const * imgSpacing = m_channels[0]->input()->GetSpacing();
-
-	LOG(lvlInfo, tr("Movie export started, output file name: %1.").arg(fileName));
 
 	double oldResliceAxesOrigin[3];
 	m_channels[0]->resliceAxesOrigin(oldResliceAxesOrigin);
@@ -1034,9 +1037,8 @@ void iASlicer::saveSliceMovie(QString const& fileName, int qual /*= 2*/)
 			LOG(lvlError, movieWriter->GetStringFromErrorCode(movieWriter->GetErrorCode()));
 			break;
 		}
-		// maybe use iAJobListView to report progress; but we would need something
-		// to emit a finished signal to remove entry again!
-		//emit progress(100 * (slice - sliceFrom) / (sliceTo - sliceFrom));
+		p.emitProgress((slice - sliceFrom) * 100.0 / (sliceTo - sliceFrom));
+		QCoreApplication::processEvents();
 	}
 	m_channels[0]->setResliceAxesOrigin(oldResliceAxesOrigin[0], oldResliceAxesOrigin[1], oldResliceAxesOrigin[2]);
 	update();
@@ -1202,6 +1204,8 @@ void iASlicer::saveImageStack()
 			" or 'From Slice Number' or 'To Slice Number' are outside of valid region [0..%1]!").arg(sliceMax));
 		return;
 	}
+	iAProgress p;
+	auto jobHandle = iAJobListView::get()->addJob("Exporting Movie", &p);
 	m_interactor->Disable();
 	double movingOrigin[3];
 	imageData->GetOrigin(movingOrigin);
@@ -1239,9 +1243,8 @@ void iASlicer::saveImageStack()
 			windowToImage->Update();
 			img = windowToImage->GetOutput();
 		}
-		// maybe use iAJobListView to report progress; but we would need something
-		// to emit a finished signal to remove entry again!
-		//emit progress(100 * (slice-sliceFrom) / (sliceTo - sliceFrom) );
+		p.emitProgress((slice - sliceFrom) * 100.0 / (sliceTo - sliceFrom));
+		QCoreApplication::processEvents();
 
 		QString newFileName(QString("%1%2.%3").arg(baseName).arg(slice).arg(fileInfo.suffix()));
 		writeSingleSliceImage(newFileName, img);
