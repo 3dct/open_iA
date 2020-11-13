@@ -82,7 +82,7 @@ QWidget* iAJobListView::addJobWidget(QString name, iAProgress* p, iAAbortListene
 	titleLabel->setProperty("qssClass", "titleLabel");
 
 	auto progressBar = new QProgressBar();
-	progressBar->setRange(0, 100);
+	progressBar->setRange(0, 1000);
 	progressBar->setValue(0);
 
 	auto statusLabel = new QLabel("");
@@ -126,9 +126,9 @@ QWidget* iAJobListView::addJobWidget(QString name, iAProgress* p, iAAbortListene
 	// connections
 	if (p)
 	{
-		connect(p, &iAProgress::progress, jobWidget, [progressBar, elapsedLabel, estimator](int value)
+		connect(p, &iAProgress::progress, jobWidget, [progressBar, elapsedLabel, estimator](double value)
 			{
-				progressBar->setValue(value);
+				progressBar->setValue(value*10);
 				// TODO: occasionally update elapsed time even without progress signal?
 				double estRem = estimator->estimatedTimeRemaining(value);
 				elapsedLabel->setText(

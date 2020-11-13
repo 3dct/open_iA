@@ -321,7 +321,7 @@ void iAImageSampler::computationFinished()
 		QString parameterSetFile = m_parameters[spnOutputFolder].toString() + "/" + m_parameterSetFile;
 		QString derivedOutputFile = m_parameters[spnOutputFolder].toString() + "/" + m_derivedOutputFile;
 		m_results->addResult(result);
-		m_progress->emitProgress((100 * m_results->size()) / m_parameterSets->size());
+		m_progress->emitProgress(m_results->size() * 100.0 / m_parameterSets->size());
 		if (!m_results->store(sampleMetaFile, parameterSetFile, derivedOutputFile))
 		{
 			statusMsg("Error writing parameter file.");
@@ -354,7 +354,7 @@ void iAImageSampler::derivedOutputFinished()
 	QString parameterSetFile  = m_parameters[spnOutputFolder].toString() + "/" + m_parameterSetFile;
 	QString derivedOutputFile = m_parameters[spnOutputFolder].toString() + "/" + m_derivedOutputFile;
 	m_results->addResult(result);
-	m_progress->emitProgress((100 * m_results->size()) / m_parameterSets->size());
+	m_progress->emitProgress(m_results->size() * 100.0 / m_parameterSets->size());
 	if (!m_results->store(sampleMetaFile, parameterSetFile, derivedOutputFile))
 	{
 		statusMsg("Error writing parameter file.");

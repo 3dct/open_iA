@@ -409,8 +409,7 @@ void executeDNN(iAFilter* filter, QMap<QString, QVariant> const & parameters)
 					outputChannel++;
 				}
 				count++;
-				int progress =(count * 100) / (sizeX / sizeDNNout * sizeY / sizeDNNout * sizeZ/sizeDNNout);
-
+				double progress = count * 100.0 / (sizeX / sizeDNNout * sizeY / sizeDNNout * sizeZ/sizeDNNout);
 				progressPrediction->emitProgress(progress);
 			}
 		}

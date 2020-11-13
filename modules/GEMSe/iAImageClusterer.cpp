@@ -259,8 +259,8 @@ private:
 };
 
 namespace {
-	const int FullProgress = 100;
-	const int SplitFactorDistanceCalc = 50;
+	const double FullProgress = 100;
+	const double SplitFactorDistanceCalc = 50;
 
 	long sumUpTo(int n)
 	{
