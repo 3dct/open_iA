@@ -56,8 +56,7 @@ public:
 	//!        on both the elapsed time as well as the estimated remaining time.
 	//!        By default, a simple estimation based on the current finished percentage
 	//!        and the time elapsed so far will be used.
-	template <typename TaskT>
-	void addJob(QString name, iAProgress* p, TaskT* t, iAAbortListener* abortListener = nullptr,
+	void addJob(QString name, iAProgress* p, QObject* t, iAAbortListener* abortListener = nullptr,
 		QSharedPointer<iADurationEstimator> estimator = QSharedPointer<iADurationEstimator>());
 	//! Add a job bound to the life time of the returned object;
 	//! useful for situations where no finished signal can be connected
@@ -94,7 +93,8 @@ public:
 #if __cplusplus >= 201703L
 	[[nodiscard]]
 #endif
-	QSharedPointer<QObject>	addJob(QString name, iAProgress* p);
+	QSharedPointer<QObject>	addJob(QString name, iAProgress* p, iAAbortListener* abortListener = nullptr,
+		QSharedPointer<iADurationEstimator> estimator = QSharedPointer<iADurationEstimator>());
 signals:
 	//! emitted when all jobs are done; is used in main window to hide widget
 	//! as it means that no more jobs are currently running.
@@ -114,24 +114,3 @@ private:
 	//! pointers to the duration estimators (to keep them alive while the job is running)
 	QMap<QWidget*, QSharedPointer<iADurationEstimator>> m_estimators;
 };
-
-template <typename TaskT>
-void iAJobListView::addJob(QString name, iAProgress* p, TaskT* t, iAAbortListener* abortListener,
-	QSharedPointer<iADurationEstimator> estimator)
-{
-	// TODO: avoid duplication with other addJob method!
-	//  TRY: link to destroyed signal in any case? then also no template required
-	m_runningJobs.fetchAndAddOrdered(1);
-	auto jobWidget = addJobWidget(name, p, abortListener, estimator);
-	connect(t, &TaskT::finished, [this, jobWidget]()
-		{
-			int oldJobCount = m_runningJobs.fetchAndAddOrdered(-1);
-			if (oldJobCount == 1)
-			{
-				emit allJobsDone();
-			}
-			m_estimators.remove(jobWidget);
-			jobWidget->deleteLater();
-		});
-	emit jobAdded();
-}
