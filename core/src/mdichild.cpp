@@ -86,7 +86,6 @@
 #include <QFileDialog>
 #include <QMainWindow>
 #include <QMessageBox>
-#include <QProgressBar>
 #include <QSettings>
 #include <QSpinBox>
 #include <QToolButton>
@@ -144,10 +143,6 @@ MdiChild::MdiChild(MainWindow* mainWnd, iAPreferences const& prefs, bool unsaved
 		m_dwSlicer[i] = new dlg_slicer(m_slicer[i]);
 	}
 
-	m_pbar = new QProgressBar(this);
-	m_pbar->setMaximumSize(350, 17);
-	statusBar()->addPermanentWidget(m_pbar);
-	m_pbarMaxVal = m_pbar->maximum();
 	addDockWidget(Qt::LeftDockWidgetArea, m_dwRenderer);
 	m_initialLayoutState = saveState();
 
@@ -171,7 +166,6 @@ MdiChild::MdiChild(MainWindow* mainWnd, iAPreferences const& prefs, bool unsaved
 	setModalities(modList);
 	applyViewerPreferences();
 	connectSignalsToSlots();
-	m_pbar->setValue(100);
 
 	m_worldProfilePoints->Allocate(2);
 	connect(mainWnd, &MainWindow::fullScreenToggled, this, &MdiChild::toggleFullScreen);
@@ -268,7 +262,6 @@ void MdiChild::connectSignalsToSlots()
 		connect(m_slicer[s], &iASlicer::sliceNumberChanged, this, &MdiChild::setSlice);
 
 		connect(m_slicer[s], &iASlicer::oslicerPos, this, &MdiChild::updatePositionMarker);
-		connect(m_slicer[s], &iASlicer::progress, this, &MdiChild::updateProgressBar);
 	}
 
 	connect(m_histogram, &iAChartWithFunctionsWidget::updateViews, this, &MdiChild::updateViews);
@@ -299,9 +292,6 @@ void MdiChild::connectIOThreadSignals(iAIO* thread)
 
 void MdiChild::connectAlgorithmSignalsToChildSlots(iAAlgorithm* thread)
 {
-	connect(thread, &iAAlgorithm::aprogress, this, &MdiChild::updateProgressBar);
-	connect(thread, &iAAlgorithm::started, this, &MdiChild::initProgressBar);
-	connect(thread, &iAAlgorithm::finished, this, &MdiChild::hideProgressBar);
 	addAlgorithm(thread);
 }
 
@@ -401,12 +391,6 @@ void MdiChild::modalityTFChanged()
 		m_slicer[s]->updateMagicLensColors();
 	}
 	emit transferFunctionChanged();
-}
-
-void MdiChild::updateProgressBar(int i)
-{
-	m_pbar->show();
-	m_pbar->setValue(i);
 }
 
 void MdiChild::updatePositionMarker(int x, int y, int z, int mode)
@@ -2321,17 +2305,6 @@ void MdiChild::resizeDockWidget(QDockWidget* dw)
 	{
 		maximizeDockWidget(dw);
 	}
-}
-
-void MdiChild::hideProgressBar()
-{
-	m_pbar->hide();
-	m_pbar->setMaximum(m_pbarMaxVal);
-}
-
-void MdiChild::initProgressBar()
-{
-	updateProgressBar(m_pbar->minimum());
 }
 
 void MdiChild::ioFinished()

@@ -305,12 +305,6 @@ iARenderer::iARenderer(QObject *par)  :  QObject( par ),
 		m_slicePlaneActor[s]->SetPickable(false);
 		m_slicePlaneActor[s]->SetDragable(false);
 	}
-
-	MdiChild * mdi_parent = dynamic_cast<MdiChild*>(parent());
-	if (mdi_parent)
-	{
-		connect(this, &iARenderer::progress, mdi_parent, &MdiChild::updateProgressBar);
-	}
 }
 
 iARenderer::~iARenderer(void)
@@ -822,7 +816,9 @@ void iARenderer::saveMovie( const QString& fileName, int mode, int qual /*= 2*/ 
 			LOG(lvlError, movieWriter->GetStringFromErrorCode(movieWriter->GetErrorCode()));
 			break;
 		}
-		emit progress( 100 * (i+1) / numRenderings);
+		// maybe use iAJobListView to report progress; but we would need something
+		// to emit a finished signal to remove entry again!
+		// emit progress( 100 * (i+1) / numRenderings);
 		m_cam->ApplyTransform(rot);
 	}
 

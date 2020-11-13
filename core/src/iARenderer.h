@@ -163,7 +163,6 @@ public:
 	void emitNoSelectedCells();
 
 signals:
-	void progress(int);
 	void cellsSelected(vtkPoints* selCellPoints);
 	void noCellsSelected();
 	void reInitialized();

@@ -40,8 +40,6 @@
 
 #include <vector>
 
-class QProgressBar;
-
 class vtkAbstractTransform;
 class vtkActor;
 class vtkColorTransferFunction;
@@ -71,7 +69,6 @@ class iAModality;
 class iAModalityList;
 class iAParametricSpline;
 class iAPlot;
-class iAProgress;
 struct iAProfileProbe;
 class iAProjectBase;
 class iARenderer;
@@ -313,9 +310,6 @@ signals:
 
 public slots:
 	void maximizeRC();
-	void updateProgressBar(int i);
-	void hideProgressBar();
-	void initProgressBar();
 	void disableRenderWindows(int ch);
 	void enableRenderWindows();
 	void updateSlicer(int index);
@@ -429,7 +423,6 @@ private:
 
 	QByteArray m_beforeMaximizeState;
 	QDockWidget* m_whatMaximized;
-	int m_pbarMaxVal;
 
 	iARenderSettings m_renderSettings;
 	iAVolumeSettings m_volumeSettings;
@@ -479,8 +472,6 @@ private:
 	dlg_modalities * m_dwModalities;
 	dlg_renderer * m_dwRenderer;
 	//! @}
-
-	QProgressBar * m_pbar;
 
 	std::vector<iAAlgorithm*> m_workingAlgorithms;
 

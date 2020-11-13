@@ -1034,7 +1034,9 @@ void iASlicer::saveSliceMovie(QString const& fileName, int qual /*= 2*/)
 			LOG(lvlError, movieWriter->GetStringFromErrorCode(movieWriter->GetErrorCode()));
 			break;
 		}
-		emit progress(100 * (slice - sliceFrom) / (sliceTo - sliceFrom));
+		// maybe use iAJobListView to report progress; but we would need something
+		// to emit a finished signal to remove entry again!
+		//emit progress(100 * (slice - sliceFrom) / (sliceTo - sliceFrom));
 	}
 	m_channels[0]->setResliceAxesOrigin(oldResliceAxesOrigin[0], oldResliceAxesOrigin[1], oldResliceAxesOrigin[2]);
 	update();
@@ -1237,7 +1239,9 @@ void iASlicer::saveImageStack()
 			windowToImage->Update();
 			img = windowToImage->GetOutput();
 		}
-		emit progress(100 * (slice-sliceFrom) / (sliceTo - sliceFrom) );
+		// maybe use iAJobListView to report progress; but we would need something
+		// to emit a finished signal to remove entry again!
+		//emit progress(100 * (slice-sliceFrom) / (sliceTo - sliceFrom) );
 
 		QString newFileName(QString("%1%2.%3").arg(baseName).arg(slice).arg(fileInfo.suffix()));
 		writeSingleSliceImage(newFileName, img);

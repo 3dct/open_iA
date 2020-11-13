@@ -40,13 +40,15 @@
 #include <dlg_modalities.h>
 #include <dlg_slicer.h>
 #include <iAConnector.h>
+#include <iAJobListView.h>
 #include <iALog.h>
 #include <iALookupTable.h>
 #include <iAmat4.h>
 #include <iAModalityTransfer.h>
 #include <iAMovieHelper.h>
-#include <iAProgress.h>
+#include <iAMultiStepProgressObserver.h>
 #include <iARenderer.h>
+#include <iARunAsync.h>
 #include <iAToolsITK.h>
 #include <iAVtkWidget.h>
 #include <io/iAFileUtils.h>
@@ -850,6 +852,7 @@ void dlg_FeatureScout::RenderSelection(std::vector<size_t> const& selInds)
 
 void dlg_FeatureScout::RenderMeanObject()
 {
+	// TODO: compute in background!
 	if (m_visualization != iACsvConfig::UseVolume)
 	{
 		QMessageBox::warning(this, "FeatureScout", "Mean objects feature only available for the Labelled Volume visualization at the moment!");
@@ -862,7 +865,6 @@ void dlg_FeatureScout::RenderMeanObject()
 		return;
 	}
 	m_renderMode = rmMeanObject;
-	m_activeChild->initProgressBar();
 
 	// Delete old mean object data lists
 	for (int i = 0; i < m_MOData.moHistogramList.size(); ++i)
@@ -1021,7 +1023,7 @@ void dlg_FeatureScout::RenderMeanObject()
 
 			double percentage = round((currClass - 1) * 100.0 / (classCount - 1) +
 				(progress + 1.0) * (100.0 / (classCount - 1)) / meanObjectIds->size());
-			m_activeChild->updateProgressBar(percentage);
+			// some iAProgress:: emitProgress(percentage);
 			QCoreApplication::processEvents();
 			++progress;
 		}
@@ -1284,35 +1286,29 @@ void dlg_FeatureScout::saveStl()
 		QMessageBox::warning(this, "FeatureScout", "No save file destination specified.");
 		return;
 	}
-	m_activeChild->initProgressBar();
 
-	iAProgress marCubProgress;
-	iAProgress stlWriProgress;
-	connect(&marCubProgress, &iAProgress::progress, this, &dlg_FeatureScout::updateMarProgress);
-	connect(&stlWriProgress, &iAProgress::progress, this, &dlg_FeatureScout::updateStlProgress);
+	iAMultiStepProgressObserver* progress = new iAMultiStepProgressObserver(2);
+	auto job = runAsync([this, progress]
+		{
+			auto moSurface = vtkSmartPointer<vtkMarchingCubes>::New();
+			progress->observe(moSurface);
+			moSurface->SetInputData(m_MOData.moImageDataList[m_dwMO->cb_Classes->currentIndex()]);
+			moSurface->ComputeNormalsOn();
+			moSurface->ComputeGradientsOn();
+			moSurface->SetValue(0, m_dwMO->dsb_IsoValue->value());
 
-	auto moSurface = vtkSmartPointer<vtkMarchingCubes>::New();
-	marCubProgress.observe(moSurface);
-	moSurface->SetInputData(m_MOData.moImageDataList[m_dwMO->cb_Classes->currentIndex()]);
-	moSurface->ComputeNormalsOn();
-	moSurface->ComputeGradientsOn();
-	moSurface->SetValue(0, m_dwMO->dsb_IsoValue->value());
-
-	auto stlWriter = vtkSmartPointer<vtkSTLWriter>::New();
-	stlWriProgress.observe(stlWriter);
-	stlWriter->SetFileName(getLocalEncodingFileName(m_dwMO->le_StlPath->text()).c_str());
-	stlWriter->SetInputConnection(moSurface->GetOutputPort());
-	stlWriter->Write();
-}
-
-void dlg_FeatureScout::updateMarProgress(int i)
-{
-	m_activeChild->updateProgressBar(i / 2);
-}
-
-void dlg_FeatureScout::updateStlProgress(int i)
-{
-	m_activeChild->updateProgressBar(50 + i / 2);
+			progress->setCompletedSteps(1);
+			auto stlWriter = vtkSmartPointer<vtkSTLWriter>::New();
+			progress->observe(stlWriter);
+			stlWriter->SetFileName(getLocalEncodingFileName(m_dwMO->le_StlPath->text()).c_str());
+			stlWriter->SetInputConnection(moSurface->GetOutputPort());
+			stlWriter->Write();
+		},
+		[progress]
+		{
+			delete progress;
+		});
+	iAJobListView::get()->addJob("Saving STL", progress->progressObject(), job);
 }
 
 void CheckBounds(double color_out[3])
