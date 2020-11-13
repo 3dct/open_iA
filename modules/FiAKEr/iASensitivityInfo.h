@@ -36,8 +36,6 @@ class iACsvTableCreator;
 class iAFiberResultsCollection;
 class iASensitivityGUI;
 
-class iAJobListView;
-
 class QDockWidget;
 class QMainWindow;
 
@@ -47,12 +45,12 @@ class iASensitivityInfo: public QObject, public iAAbortListener
 public:
 	static QSharedPointer<iASensitivityInfo> create(QMainWindow* child,
 		QSharedPointer<iAFiberResultsCollection> data, QDockWidget* nextToDW,
-		iAJobListView* jobListView, int histogramBins,
-		QString parameterSetFileName = QString(), QVector<int> const& charSelected = QVector<int>(),
+		int histogramBins, QString parameterSetFileName = QString(),
+		QVector<int> const& charSelected = QVector<int>(),
 		QVector<int> const& charDiffMeasure = QVector<int>());
 	static QSharedPointer<iASensitivityInfo> load(QMainWindow* child,
 		QSharedPointer<iAFiberResultsCollection> data, QDockWidget* nextToDW,
-		iAJobListView* jobListView, int histogramBins, iASettings const & projectFile,
+		int histogramBins, iASettings const & projectFile,
 		QString const& projectFileName);
 	static bool hasData(iASettings const& settings);
 	QString charactName(int selCharIdx) const;

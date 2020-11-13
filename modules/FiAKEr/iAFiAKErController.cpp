@@ -1098,8 +1098,7 @@ void iAFiAKErController::computeSensitivity()
 		LOG(lvlWarn, "Already started!");
 		return;
 	}
-	m_sensitivityInfo = iASensitivityInfo::create(m_mdiChild, m_data, m_views[ResultListView],
-		m_mdiChild->jobsList(), m_histogramBins);
+	m_sensitivityInfo = iASensitivityInfo::create(m_mdiChild, m_data, m_views[ResultListView], m_histogramBins);
 	connectSensitivity();
 }
 
@@ -2389,7 +2388,7 @@ void iAFiAKErController::loadAdditionalData(iASettings settings, QString project
 	if (iASensitivityInfo::hasData(settings))
 	{
 		m_sensitivityInfo = iASensitivityInfo::load(m_mdiChild, m_data, m_views[ResultListView],
-			m_mdiChild->jobsList(), m_histogramBins, settings, projectFileName);
+			m_histogramBins, settings, projectFileName);
 		connectSensitivity();
 		// don't change direct loading of settings here, the settings loaded below
 		// probably don't really affect sensitivity things (TODO: to be checked - if it doesn't crash it should be fine)

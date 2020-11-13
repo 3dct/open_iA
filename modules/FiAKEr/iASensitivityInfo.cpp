@@ -175,8 +175,7 @@ void iASensitivityInfo::abort()
 
 QSharedPointer<iASensitivityInfo> iASensitivityInfo::create(QMainWindow* child,
 	QSharedPointer<iAFiberResultsCollection> data, QDockWidget* nextToDW,
-	iAJobListView* jobListView, int histogramBins,
-	QString parameterSetFileName, QVector<int> const & charSelected,
+	int histogramBins, QString parameterSetFileName, QVector<int> const & charSelected,
 	QVector<int> const & charDiffMeasure)
 {
 	if (parameterSetFileName.isEmpty())
@@ -313,7 +312,7 @@ QSharedPointer<iASensitivityInfo> iASensitivityInfo::create(QMainWindow* child,
 		{
 			sensitivity->createGUI();
 		});
-	jobListView->addJob("Sensitivity computation", &sensitivity->m_progress, futureWatcher, sensitivity.data());
+	iAJobListView::get()->addJob("Sensitivity computation", &sensitivity->m_progress, futureWatcher, sensitivity.data());
 	return sensitivity;
 }
 
@@ -1328,13 +1327,13 @@ bool iASensitivityInfo::hasData(iASettings const& settings)
 
 QSharedPointer<iASensitivityInfo> iASensitivityInfo::load(QMainWindow* child,
 	QSharedPointer<iAFiberResultsCollection> data, QDockWidget* nextToDW,
-	iAJobListView* jobListView, int histogramBins, iASettings const & projectFile,
+	int histogramBins, iASettings const & projectFile,
 	QString const& projectFileName)
 {
 	QString parameterSetFileName = MakeAbsolute(QFileInfo(projectFileName).absolutePath(), projectFile.value(ProjectParameterFile).toString());
 	QVector<int> charsSelected = stringToVector<QVector<int>, int>(projectFile.value(ProjectCharacteristics).toString());
 	QVector<int> charDiffMeasure = stringToVector<QVector<int>, int>(projectFile.value(ProjectCharDiffMeasures).toString());
-	return iASensitivityInfo::create(child, data, nextToDW, jobListView, histogramBins, parameterSetFileName,
+	return iASensitivityInfo::create(child, data, nextToDW, histogramBins, parameterSetFileName,
 		charsSelected, charDiffMeasure);
 }
 
