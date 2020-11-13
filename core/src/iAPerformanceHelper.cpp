@@ -243,6 +243,11 @@ iAPerformanceTimer::DurationType iATimeGuard::elapsed() const
 	return m_perfHelper.elapsed();
 }
 
+QString formatSingularPlural(long part, QString caption)
+{
+	return QString::number(part) + " " + caption + ((part != 1) ? "s" : "") + " ";
+}
+
 QString formatDuration(double duration)
 {
 	long secondsLong = static_cast<long>(duration);
@@ -253,21 +258,21 @@ QString formatDuration(double duration)
 	{
 		result = QString::number(milliSeconds)+QString(" ms");
 	}
-	result = QString::number(secondPart)+QString(" seconds ")+result;
+	result = formatSingularPlural(secondPart, "second")+result;
 	if (secondsLong >= 60)
 	{
 		long minutesLong = secondsLong / 60;
 		long minutesPart = minutesLong % 60;
-		result = QString::number(minutesPart)+QString(" minutes ")+result;
+		result = formatSingularPlural(minutesPart, "minute") + result;
 		if (minutesLong >= 60)
 		{
 			long hoursLong = minutesLong / 60;
 			long hoursPart = hoursLong % 24;
-			result = QString::number(hoursPart)+QString(" hours ")+result;
+			result = formatSingularPlural(hoursPart, "hour") + result;
 			if (hoursLong >= 24)
 			{
 				long daysLong = hoursLong / 24;
-				result = QString::number(daysLong)+QString(" days ")+result;
+				result = formatSingularPlural(daysLong, "day")+result;
 			}
 		}
 	}
