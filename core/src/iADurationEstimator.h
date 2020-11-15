@@ -24,6 +24,7 @@
 class iADurationEstimator
 {
 public:
+	virtual ~iADurationEstimator();
 	//! Get the time that has elapsed since start of the operation.
 	//! @return elapsed time in seconds
 	virtual double elapsed() const =0;
