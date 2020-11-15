@@ -20,8 +20,10 @@
 * ************************************************************************************/
 #pragma once
 
+#include "open_iA_Core_export.h"
+
 //! Interface for operations providing elapsed time and estimated remaining duration.
-class iADurationEstimator
+class open_iA_Core_API iADurationEstimator
 {
 public:
 	virtual ~iADurationEstimator();
