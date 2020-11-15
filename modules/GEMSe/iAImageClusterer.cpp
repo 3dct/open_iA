@@ -479,6 +479,7 @@ double iAImageClusterer::elapsed() const
 
 double iAImageClusterer::estimatedTimeRemaining(int percent) const
 {
+	Q_UNUSED(percent);
 	// estimated time given until current step (image distance calc / clustering) finished, not whole operation
 	if (m_imageDistCalcDuration == 0.0)
 	{
