@@ -172,7 +172,7 @@ double distributionDifference(HistogramType const& distr1, HistogramType const& 
 
 namespace
 {
-std::array<iAVec3f, 2> computeFiberBBox(std::vector<iAVec3f> const & points, float diameter)
+std::array<iAVec3f, 2> computeFiberBBox(std::vector<iAVec3f> const& points, float radius)
 {
 	std::array<iAVec3f, 2> result;
 	result[0].fill(std::numeric_limits<float>::max());
@@ -182,8 +182,8 @@ std::array<iAVec3f, 2> computeFiberBBox(std::vector<iAVec3f> const & points, flo
 		auto const & pt = points[p].data();
 		for (int i = 0; i < 3; ++i)
 		{
-			result[0][i] = std::min(result[0][i], pt[i] - diameter);
-			result[1][i] = std::max(result[1][i], pt[i] + diameter);
+			result[0][i] = std::min(result[0][i], pt[i] - radius);
+			result[1][i] = std::max(result[1][i], pt[i] + radius);
 		}
 	}
 	return result;
@@ -939,7 +939,7 @@ void iASensitivityInfo::compute()
 					resFib[resultID][fiberID].curvedPoints.size() > 0 ?
 						resFib[resultID][fiberID].curvedPoints:
 						resFib[resultID][fiberID].pts,
-					resFib[resultID][fiberID].diameter);
+					resFib[resultID][fiberID].diameter / 2.0);
 			}
 			fiberBoundingBox[resultID] = fibersBBox;
 		}
@@ -971,6 +971,8 @@ void iASensitivityInfo::compute()
 				int r2FibCount = static_cast<int>(m_data->result[r2].fiberCount);
 				auto& dissimilarities = mat.fiberDissim;
 				dissimilarities.resize(r2FibCount);
+				// not ideal: for loop seems to be not ideally parallelizable,
+				// one spike where 100% is used, then going down to nearly 0, until next loop starts
 				int noCanDo = 0;
 				size_t candSum = 0;
 #pragma omp parallel for reduction(+ : noCanDo, candSum)
