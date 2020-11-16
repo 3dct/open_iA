@@ -33,5 +33,5 @@ public:
 	//! Get the estimated, still required time to finish the operation.
 	//! @return the estimated remaining time in seconds
 	//!         -1 if remaining time still unknown
-	virtual double estimatedTimeRemaining(int percent) const =0;
+	virtual double estimatedTimeRemaining(double percent) const =0;
 };

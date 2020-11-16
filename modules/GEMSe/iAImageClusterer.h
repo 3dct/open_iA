@@ -47,7 +47,7 @@ public:
 	void abort() override;
 	bool IsAborted();
 	double elapsed() const override;
-	double estimatedTimeRemaining(int percent) const override;
+	double estimatedTimeRemaining(double percent) const override;
 private:
 	void run() override;
 	QVector<QSharedPointer<iAImageTreeNode> > m_images;

@@ -61,7 +61,7 @@ public:
 	QSharedPointer<iASamplingResults> results();
 	void start();
 	double elapsed() const override;
-	double estimatedTimeRemaining(int percent) const override;
+	double estimatedTimeRemaining(double percent) const override;
 	void abort() override;
 	bool isAborted();
 signals:

@@ -369,7 +369,7 @@ double iAImageSampler::elapsed() const
 	return m_overallTimer.elapsed();
 }
 
-double iAImageSampler::estimatedTimeRemaining(int percent) const
+double iAImageSampler::estimatedTimeRemaining(double percent) const
 {
 	Q_UNUSED(percent);
 	return

@@ -48,7 +48,7 @@ public:
 		return std::chrono::duration_cast<std::chrono::microseconds>(
 			std::chrono::system_clock::now() - m_start).count() / 1e6;
 	}
-	double estimatedTimeRemaining(int percent) const override
+	double estimatedTimeRemaining(double percent) const override
 	{
 		if (percent == 0 || elapsed() == 0)
 		{
