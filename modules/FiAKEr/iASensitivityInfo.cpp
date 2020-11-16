@@ -33,6 +33,7 @@
 #include <iARunAsync.h>
 #include <iAStackedBarChart.h>    // for add HeaderLabel
 #include <iAStringHelper.h>
+#include <iAvec3.h>
 #include <qthelper/iADockWidgetWrapper.h>
 #include <qthelper/iAQTtoUIConnector.h>
 
@@ -72,6 +73,7 @@
 #include <QTextStream>
 #include <QVBoxLayout>
 
+#include <array>
 #include <set>
 
 namespace
@@ -166,6 +168,50 @@ double distributionDifference(HistogramType const& distr1, HistogramType const& 
 		LOG(lvlError, QString("invalid diffType %1").arg(diffType));
 		return 0;
 	}
+}
+
+namespace
+{
+std::array<iAVec3f, 2> computeFiberBBox(std::vector<iAVec3f> const & points, float diameter)
+{
+	std::array<iAVec3f, 2> result;
+	result[0].fill(std::numeric_limits<float>::max());
+	result[1].fill(std::numeric_limits<float>::lowest());
+	for (int p = 0; p < points.size(); ++p)
+	{
+		auto const & pt = points[p].data();
+		for (int i = 0; i < 3; ++i)
+		{
+			result[0][i] = std::min(result[0][i], pt[i] - diameter);
+			result[1][i] = std::max(result[1][i], pt[i] + diameter);
+		}
+	}
+	return result;
+}
+using FiberBBT = std::array<iAVec3f, 2>;
+
+inline bool boundingBoxesIntersect(FiberBBT const& bb1, FiberBBT const& bb2)
+{
+	const int MinIdx = 0, MaxIdx = 1;
+	return
+		bb1[MaxIdx].x() > bb2[MinIdx].x() && bb2[MaxIdx].x() > bb1[MinIdx].x() &&
+		bb1[MaxIdx].y() > bb2[MinIdx].y() && bb2[MaxIdx].y() > bb1[MinIdx].y() &&
+		bb1[MaxIdx].z() > bb2[MinIdx].z() && bb2[MaxIdx].z() > bb1[MinIdx].z();
+}
+
+std::vector<int> intersectingBoundingBox(FiberBBT const& fixedFiberBB, std::vector<FiberBBT> const& otherFiberBBs)
+{
+	std::vector<int> resultIDs;
+	for (int r = 0; r < otherFiberBBs.size(); ++r)
+	{
+		if (boundingBoxesIntersect(fixedFiberBB, otherFiberBBs[r]))
+		{
+			resultIDs.push_back(r);
+		}
+	}
+	return resultIDs;
+}
+
 }
 
 void iASensitivityInfo::abort()
@@ -329,10 +375,10 @@ iASensitivityInfo::iASensitivityInfo(QSharedPointer<iAFiberResultsCollection> da
 {
 }
 
-void getBestMatches2(iAFiberData const& fiber, std::vector<iAFiberData> const & otherFibers,
-	QVector<QVector<iAFiberSimilarity>>& bestMatches,
-	double diagonalLength, double maxLength, std::vector<std::pair<int, bool>>& measuresToCompute,
-	int optimizationMeasureIdx)
+void getBestMatches2(iAFiberData const& fiber, std::vector<iAFiberData> const& otherFibers,
+	QVector<QVector<iAFiberSimilarity>>& bestMatches, std::vector<int> const& candidates,
+	double diagonalLength, double maxLength, std::vector<std::pair<int, bool>>& measuresToCompute
+	/*, int optimizationMeasureIdx*/)
 {
 	int bestMatchesStartIdx = bestMatches.size();
 	assert(measuresToCompute.size() < std::numeric_limits<int>::max());
@@ -344,6 +390,7 @@ void getBestMatches2(iAFiberData const& fiber, std::vector<iAFiberData> const & 
 	for (int d = 0; d < numOfNewMeasures; ++d)
 	{
 		QVector<iAFiberSimilarity> similarities;
+		/*
 		bool optimize = measuresToCompute[d].second;
 		if (optimize && (optimizationMeasureIdx < 0 || optimizationMeasureIdx >= d))
 		{
@@ -371,11 +418,12 @@ void getBestMatches2(iAFiberData const& fiber, std::vector<iAFiberData> const & 
 		}
 		else
 		{  // compute overlap measures only for the best-matching fibers according to a simpler metric:
-			auto& otherMatches = bestMatches[bestMatchesStartIdx + optimizationMeasureIdx];
-			similarities.resize(otherMatches.size());
-			for (iARefDistCompute::ContainerSizeType bestMatchID = 0; bestMatchID < otherMatches.size(); ++bestMatchID)
+		*/
+			//auto& otherMatches = bestMatches[bestMatchesStartIdx + optimizationMeasureIdx];
+			similarities.resize(candidates.size());
+			for (iARefDistCompute::ContainerSizeType bestMatchID = 0; bestMatchID < candidates.size(); ++bestMatchID)
 			{
-				size_t refFiberID = otherMatches[bestMatchID].index;
+				size_t refFiberID = candidates[bestMatchID];
 				similarities[bestMatchID].index = refFiberID;
 				double curDissimilarity =
 					getDissimilarity(fiber, otherFibers[refFiberID], measuresToCompute[d].first, diagonalLength, maxLength);
@@ -385,7 +433,7 @@ void getBestMatches2(iAFiberData const& fiber, std::vector<iAFiberData> const & 
 				}
 				similarities[bestMatchID].dissimilarity = curDissimilarity;
 			}
-		}
+		//}
 		std::sort(similarities.begin(), similarities.end());
 		std::copy(similarities.begin(), similarities.begin() + maxNumberOfCloseFibers,
 			std::back_inserter(bestMatches[bestMatchesStartIdx + d]));
@@ -880,6 +928,22 @@ void iASensitivityInfo::compute()
 			resFib[resultID] = fiberData;
 		}
 
+		m_progress.setStatus("Computing bounding boxes for all fibers.");
+		std::vector<std::vector<FiberBBT>> fiberBoundingBox(resultCount);
+		for (int resultID = 0; resultID < resultCount && !m_aborted; ++resultID)
+		{
+			std::vector<FiberBBT> fibersBBox(m_data->result[resultID].fiberCount);
+			for (size_t fiberID = 0; fiberID < fibersBBox.size(); ++fiberID)
+			{
+				fibersBBox[fiberID] = computeFiberBBox(
+					resFib[resultID][fiberID].curvedPoints.size() > 0 ?
+						resFib[resultID][fiberID].curvedPoints:
+						resFib[resultID][fiberID].pts,
+					resFib[resultID][fiberID].diameter);
+			}
+			fiberBoundingBox[resultID] = fibersBBox;
+		}
+
 		m_progress.setStatus("Computing dissimilarity between all result pairs.");
 		// fill "upper" half
 		double overallComparisons = resultCount * resultCount / 2 - resultCount;
@@ -907,18 +971,27 @@ void iASensitivityInfo::compute()
 				int r2FibCount = static_cast<int>(m_data->result[r2].fiberCount);
 				auto& dissimilarities = mat.fiberDissim;
 				dissimilarities.resize(r2FibCount);
-				// not ideal: for loop seems to be not ideally parallelizable,
-				// one spike where 100% is used, then going down to nearly 0, until next loop starts
-#pragma omp parallel for
+				int noCanDo = 0;
+				size_t candSum = 0;
+#pragma omp parallel for reduction(+ : noCanDo, candSum)
 				for (int fiberID = 0; fiberID < r2FibCount; ++fiberID)
 				{
+					auto candidates =
+						intersectingBoundingBox(fiberBoundingBox[r2][fiberID], fiberBoundingBox[r1]);
+					if (candidates.size() == 0)
+					{
+						++noCanDo; // thread-safe
+					}
+					candSum += candidates.size();
 					getBestMatches2(resFib[r2][fiberID], resFib[r1], dissimilarities[fiberID],
-						diagonalLength, maxLength, m_resultDissimMeasures, m_resultDissimOptimMeasureIdx);
+						candidates, diagonalLength, maxLength, m_resultDissimMeasures);
 					for (int m = 0; m < measureCount; ++m)
 					{
 						mat.avgDissim[m] += dissimilarities[fiberID][m][0].dissimilarity;
 					}
 				}
+				LOG(lvlInfo, QString("Result %1x%2: %3 candidates on average, %4 with no bounding box intersections out of %5")
+					.arg(r1).arg(r2).arg(candSum / r2FibCount).arg(noCanDo).arg(r2FibCount));
 				for (int m = 0; m < measureCount; ++m)
 				{
 					mat.avgDissim[m] /= r2FibCount;
