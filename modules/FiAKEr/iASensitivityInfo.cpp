@@ -882,9 +882,10 @@ void iASensitivityInfo::compute()
 
 		m_progress.setStatus("Computing dissimilarity between all result pairs.");
 		// fill "upper" half
+		double overallComparisons = resultCount * resultCount / 2 - resultCount;
+		size_t curCheckedPairs = 0;
 		for (int r1 = 0; r1 < resultCount - 1 && !m_aborted; ++r1)
 		{
-			m_progress.emitProgress(100 * r1 / resultCount);
 			auto& res1 = m_data->result[r1];
 			auto const& mapping = *res1.mapping.data();
 			// TODO: only center -> should use bounding box instead!
@@ -922,6 +923,8 @@ void iASensitivityInfo::compute()
 				{
 					mat.avgDissim[m] /= r2FibCount;
 				}
+				++curCheckedPairs;
+				m_progress.emitProgress(curCheckedPairs * 100.0 / overallComparisons);
 			}
 		}
 		// fill diagonal with 0
