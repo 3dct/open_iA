@@ -841,7 +841,7 @@ void iASensitivityInfo::compute()
 		return;
 	}
 
-	m_progress.setStatus("Computing dissimilarity between all result pairs.");
+	m_progress.setStatus("Loading cached dissimilarities between all result pairs.");
 	QVector<int> measures;
 
 	if (readDissimilarityMatrixCache(measures))
@@ -863,7 +863,9 @@ void iASensitivityInfo::compute()
 		{
 			measures.push_back(m_resultDissimMeasures[m].first);
 		}
-		std::vector<std::vector<iAFiberData>> m_resFib(resultCount);
+
+		m_progress.setStatus("Creating fiber data objects.");
+		std::vector<std::vector<iAFiberData>> resFib(resultCount);
 		for (int resultID = 0; resultID < resultCount && !m_aborted; ++resultID)
 		{
 			auto& result = m_data->result[resultID];
@@ -872,12 +874,13 @@ void iASensitivityInfo::compute()
 			for (size_t fiberID=0; fiberID < result.fiberCount; ++fiberID)
 			{
 				auto it = result.curveInfo.find(fiberID);
-				iAFiberData fiber(result.table, fiberID, mapping,
+				fiberData[fiberID] = iAFiberData(result.table, fiberID, mapping,
 					(it != result.curveInfo.end()) ? it->second : std::vector<iAVec3f>());
 			}
-			m_resFib[resultID] = fiberData;
+			resFib[resultID] = fiberData;
 		}
 
+		m_progress.setStatus("Computing dissimilarity between all result pairs.");
 		// fill "upper" half
 		for (int r1 = 0; r1 < resultCount - 1 && !m_aborted; ++r1)
 		{
@@ -900,15 +903,15 @@ void iASensitivityInfo::compute()
 				{
 					mat.avgDissim[m] = 0;
 				}
-				auto& res2 = m_data->result[r2];
+				int r2FibCount = static_cast<int>(m_data->result[r2].fiberCount);
 				auto& dissimilarities = mat.fiberDissim;
-				dissimilarities.resize(static_cast<int>(res2.fiberCount));
+				dissimilarities.resize(r2FibCount);
 				// not ideal: for loop seems to be not ideally parallelizable,
 				// one spike where 100% is used, then going down to nearly 0, until next loop starts
 #pragma omp parallel for
-				for (int fiberID = 0; fiberID < static_cast<int>(res2.fiberCount); ++fiberID)
+				for (int fiberID = 0; fiberID < r2FibCount; ++fiberID)
 				{
-					getBestMatches2(m_resFib[r2][fiberID], m_resFib[r1], dissimilarities[fiberID],
+					getBestMatches2(resFib[r2][fiberID], resFib[r1], dissimilarities[fiberID],
 						diagonalLength, maxLength, m_resultDissimMeasures, m_resultDissimOptimMeasureIdx);
 					for (int m = 0; m < measureCount; ++m)
 					{
@@ -917,7 +920,7 @@ void iASensitivityInfo::compute()
 				}
 				for (int m = 0; m < measureCount; ++m)
 				{
-					mat.avgDissim[m] /= res2.fiberCount;
+					mat.avgDissim[m] /= r2FibCount;
 				}
 			}
 		}
