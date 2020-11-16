@@ -78,7 +78,6 @@ iAStackedBarChart::iAStackedBarChart(iAColorTheme const * theme, bool header, bo
 		m_contextMenu->addAction(resetWeightsAction);
 		m_contextMenu->addSeparator();
 	}
-
 }
 
 void iAStackedBarChart::addBar(QString const & name, double value, double maxValue)

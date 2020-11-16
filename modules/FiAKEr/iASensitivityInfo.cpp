@@ -946,7 +946,7 @@ void iASensitivityInfo::compute()
 
 		m_progress.setStatus("Computing dissimilarity between all result pairs.");
 		// fill "upper" half
-		double overallComparisons = resultCount * resultCount / 2 - resultCount;
+		double overallPairs = resultCount * (resultCount + 1) / 2;
 		size_t curCheckedPairs = 0;
 		for (int r1 = 0; r1 < resultCount - 1 && !m_aborted; ++r1)
 		{
@@ -999,7 +999,7 @@ void iASensitivityInfo::compute()
 					mat.avgDissim[m] /= r2FibCount;
 				}
 				++curCheckedPairs;
-				m_progress.emitProgress(curCheckedPairs * 100.0 / overallComparisons);
+				m_progress.emitProgress(curCheckedPairs * 100.0 / overallPairs);
 			}
 		}
 		// fill diagonal with 0
