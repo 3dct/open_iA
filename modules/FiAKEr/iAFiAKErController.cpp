@@ -2163,8 +2163,8 @@ void iAFiAKErController::updateFiberContext()
 				double radius = diameter / 2;
 				if (!m_mergeContextBoxes)
 				{
-					minCoord = std::numeric_limits<double>::max();
-					maxCoord = std::numeric_limits<double>::lowest();
+					minCoord.fill(std::numeric_limits<double>::max());
+					maxCoord.fill(std::numeric_limits<double>::lowest());
 				}
 				for (int i = 0; i < 3; ++i)
 				{
