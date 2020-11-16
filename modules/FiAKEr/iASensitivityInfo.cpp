@@ -385,8 +385,8 @@ void getBestMatches2(iAFiberData const& fiber, std::vector<iAFiberData> const& o
 	assert(bestMatchesStartIdx + measuresToCompute.size() < std::numeric_limits<int>::max());
 	int numOfNewMeasures = static_cast<int>(measuresToCompute.size());
 	bestMatches.resize(bestMatchesStartIdx + numOfNewMeasures);
-	auto maxNumberOfCloseFibers = std::min(
-		iARefDistCompute::MaxNumberOfCloseFibers, static_cast<iARefDistCompute::ContainerSizeType>(otherFibers.size()));
+	auto maxNumberOfCloseFibers = std::min(static_cast<int>(candidates.size()),
+		std::min(iARefDistCompute::MaxNumberOfCloseFibers, static_cast<iARefDistCompute::ContainerSizeType>(otherFibers.size())));
 	for (int d = 0; d < numOfNewMeasures; ++d)
 	{
 		QVector<iAFiberSimilarity> similarities;
