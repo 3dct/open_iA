@@ -103,8 +103,6 @@ public:
 	QWidget* topFiller, * bottomFiller;
 	//! index where the plots for this result start
 	size_t startPlotIdx;
-	//! bounding box of the 3D data:
-	double bounds[6];
 };
 
 class iAFiAKErController: public QObject, public iASelectionProvider

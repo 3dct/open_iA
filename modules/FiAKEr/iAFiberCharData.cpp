@@ -174,6 +174,36 @@ void addColumn(vtkSmartPointer<vtkTable> table, double value, char const * colum
 	table->AddColumn(arrX);
 }
 
+//! compute result bounding box from its value table
+//! only considers start and end points, not curved points at the moment
+//! relies on StartX, StartY, StartZ & EndX, EndY, EndZ constant defines being in sequence.
+//! @param box[out] contains minX, maxX, minY, maxY, minZ, maxZ
+void computeBoundingBox(vtkSmartPointer<vtkTable> tbl, QMap<uint, uint> const& mapping, double box[6])
+{
+	box[0] = box[2] = box[4] = std::numeric_limits<double>::max();
+	box[1] = box[3] = box[5] = std::numeric_limits<double>::lowest();
+	for (vtkIdType f = 0; f < tbl->GetNumberOfRows(); ++f)
+	{
+		for (int i = 0; i < 3; ++i)
+		{
+			double pts[2];
+			pts[0] = tbl->GetValue(f, mapping[iACsvConfig::StartX + i]).ToDouble();
+			pts[1] = tbl->GetValue(f, mapping[iACsvConfig::EndX + i]).ToDouble();
+			for (int j = 0; j < 2; ++j)
+			{
+				if (pts[j] < box[2 * i])
+				{
+					box[2 * i] = pts[j];
+				}
+				if (pts[j] > box[2 * i + 1])
+				{
+					box[2 * i + 1] = pts[j];
+				}
+			}
+		}
+	}
+}
+
 iAFiberResultsCollection::iAFiberResultsCollection():
 	spmData(new iASPLOMData()),
 	minFiberCount(std::numeric_limits<size_t>::max()),
@@ -240,6 +270,7 @@ bool iAFiberResultsCollection::loadData(QString const & path, iACsvConfig const 
 		{
 			maxFiberCount = curData.fiberCount;
 		}
+		computeBoundingBox(curData.table, *curData.mapping.data(), curData.boundingBox);
 
 		if (result.empty())
 		{

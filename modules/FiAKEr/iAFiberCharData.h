@@ -107,6 +107,8 @@ public:
 	QVector<iARefDiffFiberData> refDiffFiber;
 	//! for each similarity measure, the average over all fibers
 	QVector<double> avgDifference;  // rename -> avgDissimilarity
+	//! bounding box
+	double boundingBox[6];
 };
 
 //! A collection of multiple results from one or more fiber reconstruction algorithms.

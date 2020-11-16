@@ -568,36 +568,6 @@ namespace
 	}
 }
 
-//! compute result bounding box from its value table
-//! only considers start and end points, not curved points at the moment
-//! relies on StartX, StartY, StartZ & EndX, EndY, EndZ constant defines being in sequence.
-//! @param box[out] contains minX, maxX, minY, maxY, minZ, maxZ
-void computeBoundingBox(vtkSmartPointer<vtkTable> tbl, QMap<uint, uint> const & mapping, double box[6])
-{
-	box[0] = box[2] = box[4] = std::numeric_limits<double>::max();
-	box[1] = box[3] = box[5] = std::numeric_limits<double>::lowest();
-	for (vtkIdType f = 0; f < tbl->GetNumberOfRows(); ++f)
-	{
-		for (int i = 0; i < 3; ++i)
-		{
-			double pts[2];
-			pts[0] = tbl->GetValue(f, mapping[iACsvConfig::StartX + i]).ToDouble();
-			pts[1] = tbl->GetValue(f, mapping[iACsvConfig::EndX + i]).ToDouble();
-			for (int j = 0; j < 2; ++j)
-			{
-				if (pts[j] < box[2 * i])
-				{
-					box[2 * i] = pts[j];
-				}
-				if (pts[j] > box[2 * i + 1])
-				{
-					box[2 * i + 1] = pts[j];
-				}
-			}
-		}
-	}
-}
-
 std::map<size_t, std::vector<iAVec3f> > getCurvedStepInfo(iAFiberCharData const & d)
 {
 	std::map<size_t, std::vector<iAVec3f> > curvedStepInfo;
@@ -792,10 +762,10 @@ QWidget* iAFiAKErController::setupResultListView()
 			connect(ui.previewWidget, &iASignallingWidget::clicked, this, &iAFiAKErController::previewMouseClick);
 			connect(ui.mini3DVis.data(), &iA3DObjectVis::updated, ui.vtkWidget, &iAVtkQtWidget::updateAll);
 		}
-		computeBoundingBox(d.table, *d.mapping.data(), ui.bounds);
-		QString bbox = QString("Bounding box: (x: %1..%2, y: %3..%4, z: %5..%6)")
-			.arg(ui.bounds[0]).arg(ui.bounds[1]).arg(ui.bounds[2]).arg(ui.bounds[3]).arg(ui.bounds[4]).arg(ui.bounds[5]);
-		ui.nameActions->setToolTip(bbox + "\n"
+		QString bboxText = QString("Bounding box: (x: %1..%2, y: %3..%4, z: %5..%6)")
+			.arg(d.boundingBox[0]).arg(d.boundingBox[1]).arg(d.boundingBox[2])
+			.arg(d.boundingBox[3]).arg(d.boundingBox[4]).arg(d.boundingBox[5]);
+		ui.nameActions->setToolTip(bboxText + "\n"
 			"Filename: " + d.fileName + "\n");
 
 		ui.stackedBars->setProperty("resultID", static_cast<qulonglong>(resultID));
@@ -2310,7 +2280,7 @@ void iAFiAKErController::setReference(size_t referenceID, std::vector<std::pair<
 		m_showResultVis[m_referenceID]->setText(m_showResultVis[m_referenceID]->text().left(m_showResultVis[m_referenceID]->text().length()-RefMarker.length()));
 	}
 	addInteraction(QString("Reference set to %1.").arg(resultName(referenceID)));
-	auto & bounds = m_resultUIs[referenceID].bounds;
+	auto & bounds = m_data->result[referenceID].boundingBox;
 	bool setBB = true;
 	for (int i = 0; i < 6; ++i)
 	{
