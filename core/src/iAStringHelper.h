@@ -22,6 +22,8 @@
 
 #include "open_iA_Core_export.h"
 
+#include "iALog.h"
+
 #include <QStringList>
 #include <QVariant>
 #include <QVector>
@@ -156,6 +158,24 @@ void valuesFromString(T& val, QString const & str, QString const & sep = " ")
 		}
 	}
 	// else report error?
+}
+
+// there should be a function like this already somewhere?
+template <typename ContainerT, typename ElementT>
+ContainerT stringToVector(QString const& listAsString, QString const& separator=",")
+{
+	QStringList strList = listAsString.split(separator);
+	ContainerT result(strList.size());
+	for (auto i = 0; i < strList.size(); ++i)
+	{
+		bool ok;
+		result[i] = iAConverter<ElementT>::toT(strList[i], &ok);
+		if (!ok)
+		{
+			LOG(lvlWarn, QString("Invalid value %1 in stringToInt conversion!").arg(strList[i]));
+		}
+	}
+	return result;
 }
 
 //! Pads or truncates the given string to the given size.

@@ -27,8 +27,9 @@
 #include "iARepresentative.h"
 #include "iASingleResult.h"
 
-#include <iALog.h>
 #include <iAImageComparisonMetrics.h>
+#include <iALog.h>
+#include <iAProgress.h>
 
 #include <itkLabelOverlapMeasuresImageFilter.h>
 
@@ -36,13 +37,14 @@
 
 #include <utility>
 
-iAImageClusterer::iAImageClusterer(int labelCount, QString const & outputDirectory):
+iAImageClusterer::iAImageClusterer(int labelCount, QString const& outputDirectory, iAProgress* progress) :
 	m_labelCount(labelCount),
 	m_aborted(false),
 	m_remainingNodes(0),
 	m_currImage(-1),
 	m_imageDistCalcDuration(0.0),
-	m_outputDirectory(outputDirectory)
+	m_outputDirectory(outputDirectory),
+	m_progress(progress)
 {
 }
 
@@ -257,8 +259,8 @@ private:
 };
 
 namespace {
-	const int FullProgress = 100;
-	const int SplitFactorDistanceCalc = 50;
+	const double FullProgress = 100;
+	const double SplitFactorDistanceCalc = 50;
 
 	long sumUpTo(int n)
 	{
@@ -297,14 +299,15 @@ void iAImageClusterer::run()
 {
 	m_remainingNodes = m_images.size();
 	m_perfTimer.start();
-	emit Status("Calculating distances for all image pairs");
+	m_progress->setStatus("Calculating distances for all image pairs");
 	DiagonalMatrix<float> distances((m_images.size()*2)-1);
 #ifdef CLUSTER_DEBUGGING
 	std::ofstream distFile("cluster-debugging.txt");
 #endif
 	for (m_currImage=0; m_currImage<m_images.size() && !m_aborted; ++m_currImage)
 	{
-		emit Status(QString("Calculating distances for image pairs, image ")+QString::number(m_currImage) +" of " +QString::number(m_images.size()) );
+		m_progress->setStatus(QString("Calculating distances for image pairs, image ") + QString::number(m_currImage) +
+			" of " + QString::number(m_images.size()));
 		// assuming here that the metric is symmetric
 #ifdef CLUSTER_DEBUGGING
 		std::ostringstream distFileLine;
@@ -348,19 +351,20 @@ void iAImageClusterer::run()
 #ifdef CLUSTER_DEBUGGING
 		distFile << distFileLine.str() << std::endl;
 #endif
-		emit Progress(SplitFactorDistanceCalc *
+		m_progress->emitProgress(SplitFactorDistanceCalc *
 			(static_cast<double>(sumUpToDiff(m_images.size(), m_currImage))/ sumUpTo(m_images.size())) );
 	}
 	//distances.prettyPrint();
 	m_imageDistCalcDuration = m_perfTimer.elapsed();
 	m_perfTimer.start();
-	emit Status("Hierarchical clustering.");
+	m_progress->setStatus("Hierarchical clustering.");
 	assert(m_images.size() > 0);
 	QSharedPointer<iAImageTreeNode> lastNode = m_images[0];
 	int clusterID = m_remainingNodes;
 	while (m_remainingNodes > 1 && !m_aborted) // we need to do n-1 merges
 	{
-		emit Status(QString("Hierarchical clustering (")+QString::number(m_remainingNodes)+" remaining nodes)");
+		m_progress->setStatus(
+			QString("Hierarchical clustering (") + QString::number(m_remainingNodes) + " remaining nodes)");
 		// get minimum distance pair:
 		std::pair<int, int> idx = distances.GetMinimum();
 		assert (idx.first != idx.second);
@@ -447,7 +451,7 @@ void iAImageClusterer::run()
 		m_images[idx.second] = QSharedPointer<iAImageTreeNode>();
 
 		--m_remainingNodes;
-		emit Progress(
+		m_progress->emitProgress(
 			SplitFactorDistanceCalc +
 			(FullProgress-SplitFactorDistanceCalc) * (m_images.size()-m_remainingNodes)/m_images.size()
 		);
@@ -473,8 +477,9 @@ double iAImageClusterer::elapsed() const
 	return m_imageDistCalcDuration + m_perfTimer.elapsed();
 }
 
-double iAImageClusterer::estimatedTimeRemaining() const
+double iAImageClusterer::estimatedTimeRemaining(double percent) const
 {
+	Q_UNUSED(percent);
 	// estimated time given until current step (image distance calc / clustering) finished, not whole operation
 	if (m_imageDistCalcDuration == 0.0)
 	{

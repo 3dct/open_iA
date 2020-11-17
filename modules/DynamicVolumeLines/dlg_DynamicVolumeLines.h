@@ -86,7 +86,6 @@ public slots:
 	void setSubHistBinCntFlag();
 	void updateHistColorMap(vtkSmartPointer<vtkLookupTable> LUT);
 	void compLevelRangeChanged();
-	void updateIntensityMapperProgress(int);
 
 signals:
 	void compLevelRangeChanged(QVector<double> compRange);

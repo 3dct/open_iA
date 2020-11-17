@@ -88,15 +88,13 @@ void iASampleFilter::performWork(QMap<QString, QVariant> const& parameters)
 		m_parameterSetFile,
 		m_derivedOutFile,
 		m_samplingID,
-		logger()
+		logger(),
+		progress()
 	);
-	QObject::connect(m_sampler, &iAImageSampler::progress, progress(), &iAProgress::emitProgress);
-	QObject::connect(m_sampler, &iAImageSampler::status, progress(), &iAProgress::setStatus);
-	//connect(&sampler, &iAImageSampler::status, ...);
 	QEventLoop loop;
 	QObject::connect(m_sampler, &iAImageSampler::finished, &loop, &QEventLoop::quit);
 	m_sampler->start();  //< returns as soon as first sampling run is started,
-	loop.exec();	  //< so wait for finished event
+	loop.exec();	     //< so wait for finished event
 }
 
 void iASampleFilter::setParameters(QSharedPointer<iAModalityList> input, QSharedPointer<iAAttributes> parameterRanges,

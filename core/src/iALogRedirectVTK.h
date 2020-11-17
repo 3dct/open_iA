@@ -20,30 +20,47 @@
 * ************************************************************************************/
 #pragma once
 
-#include "ui_progress.h"
+#include <vtkOutputWindow.h>
+#include <vtkObjectFactory.h>
 
-#include "iAAbortListener.h"
-#include "iADurationEstimator.h"
+#include <iAVtkVersion.h>
 
-#include <qthelper/iAQTtoUIConnector.h>
-
-typedef iAQTtoUIConnector<QDockWidget, Ui_progress> dlg_progressUI;
-
-//! Class to display progress of a task running in the background
-//! ToDo: Merge with iAJobListView in FIAKER!
-class dlg_progress : public dlg_progressUI
+class iALogRedirectVTK : public vtkOutputWindow
 {
-	Q_OBJECT
 public:
-	dlg_progress(QWidget *parentWidget,
-		QSharedPointer<iADurationEstimator const> estimator,
-		QSharedPointer<iAAbortListener> abort,
-		QString const & caption);
-public slots:
-	void setProgress(int progress);
-	void setStatus(QString const & status);
-	void abort();
+	vtkTypeMacro(iALogRedirectVTK, vtkOutputWindow);
+	static iALogRedirectVTK* New();
+	void PrintSelf(ostream& os, vtkIndent indent) override
+	{
+		this->Superclass::PrintSelf(os, indent);
+	}
+	void DisplayText(const char* someText) override
+	{
+		iALogLevel lvl = lvlWarn;
+	#if VTK_VERSION_NUMBER >= VTK_VERSION_CHECK(8,2,0)
+		switch (GetCurrentMessageType())
+		{
+		case MESSAGE_TYPE_TEXT           : lvl = lvlInfo;  break;
+		case MESSAGE_TYPE_ERROR          : lvl = lvlError; break;
+		default:
+	#if __cplusplus >= 201703L
+			[[fallthrough]];
+	#endif
+		case MESSAGE_TYPE_WARNING        :
+	#if __cplusplus >= 201703L
+			[[fallthrough]];
+	#endif
+		case MESSAGE_TYPE_GENERIC_WARNING: lvl = lvlWarn;  break;
+		case MESSAGE_TYPE_DEBUG          : lvl = lvlDebug; break;
+		}
+	#endif
+		LOG(lvl, someText);
+	}
 private:
-	QSharedPointer<iADurationEstimator const> m_durationEstimator;
-	QSharedPointer<iAAbortListener> m_abortListener;
+	iALogRedirectVTK()
+	{}
+	iALogRedirectVTK(const iALogRedirectVTK &) = delete;
+	void operator=(const iALogRedirectVTK &) = delete;
 };
+
+vtkStandardNewMacro(iALogRedirectVTK);

@@ -136,8 +136,6 @@ private slots:
 	void updateMOView();
 	void browseFolderDialog();
 	void saveStl();
-	void updateStlProgress(int i);
-	void updateMarProgress(int i);
 	void renderLUTChanges(QSharedPointer<iALookupTable> lut, size_t colInd);
 private:
 	//create labelled output image based on defined classes

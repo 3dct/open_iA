@@ -1,12 +1,5 @@
 #include "iAMultidimensionalScaling.h"
 
-#ifdef NO_DLL_LINKAGE
-// TODO: Log output support in tests!
-#include <iostream>
-#define LOG(lvlInfo, msg) std::cout << msg.toStdString() << std::endl;
-#else
-#include "iALog.h"
-#endif
 #include "iAStringHelper.h"
 
 #include <algorithm>

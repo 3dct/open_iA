@@ -24,13 +24,14 @@
 
 #include "iAImageTreeNode.h"    // for LabelImagePointer
 
+#include <iAProgress.h>
+
 #include <qthelper/iAQTtoUIConnector.h>
 
 #include <vtkSmartPointer.h>
 
 struct ChartWidgetData;
 class dlg_GEMSe;
-class dlg_progress;
 class dlg_samplings;
 class iAColorTheme;
 class iAImageSampler;
@@ -103,7 +104,7 @@ private:
 	QVector<QSharedPointer<iAImageSampler> > m_queuedSamplers;
 	QVector<QMap<QString, QVariant> > m_samplerParameters;
 	QSharedPointer<iAImageSampler> m_currentSampler;
-	dlg_progress * m_dlgProgress;
+	iAProgress m_progress;
 	QVector<QSharedPointer<iASamplingResults> > m_comparisonSamplingResults;
 	QVector<QVector<int> > m_comparisonBestIDs;
 	QVector<QVector<int> > m_comparisonMVIDs;

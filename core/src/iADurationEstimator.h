@@ -20,51 +20,18 @@
 * ************************************************************************************/
 #pragma once
 
-#include "iALog.h"
+#include "open_iA_Core_export.h"
 
-#include <vtkOutputWindow.h>
-#include <vtkObjectFactory.h>
-
-class iARedirectVtkOutput : public vtkOutputWindow
+//! Interface for operations providing elapsed time and estimated remaining duration.
+class open_iA_Core_API iADurationEstimator
 {
 public:
-	vtkTypeMacro(iARedirectVtkOutput, vtkOutputWindow);
-	void PrintSelf(ostream& os, vtkIndent indent) override;
-	static iARedirectVtkOutput * New();
-	void DisplayText(const char*) override;
-private:
-	iARedirectVtkOutput();
-	iARedirectVtkOutput(const iARedirectVtkOutput &) = delete;
-	void operator=(const iARedirectVtkOutput &) = delete;
+	virtual ~iADurationEstimator();
+	//! Get the time that has elapsed since start of the operation.
+	//! @return elapsed time in seconds
+	virtual double elapsed() const =0;
+	//! Get the estimated, still required time to finish the operation.
+	//! @return the estimated remaining time in seconds
+	//!         -1 if remaining time still unknown
+	virtual double estimatedTimeRemaining(double percent) const =0;
 };
-
-vtkStandardNewMacro(iARedirectVtkOutput);
-
-iARedirectVtkOutput::iARedirectVtkOutput() {}
-
-void iARedirectVtkOutput::DisplayText(const char* someText)
-{
-	iALogLevel lvl = lvlWarn;
-	switch (GetCurrentMessageType())
-	{
-	case MESSAGE_TYPE_TEXT           : lvl = lvlInfo;  break;
-	case MESSAGE_TYPE_ERROR          : lvl = lvlError; break;
-	default:
-#if __cplusplus >= 201703L
-		[[fallthrough]];
-#endif
-	case MESSAGE_TYPE_WARNING        :
-#if __cplusplus >= 201703L
-		[[fallthrough]];
-#endif
-	case MESSAGE_TYPE_GENERIC_WARNING: lvl = lvlWarn;  break;
-	case MESSAGE_TYPE_DEBUG          : lvl = lvlDebug; break;
-	}
-	LOG(lvl, someText);
-}
-
-//----------------------------------------------------------------------------
-void iARedirectVtkOutput::PrintSelf(ostream& os, vtkIndent indent)
-{
-	this->Superclass::PrintSelf(os, indent);
-}

@@ -301,7 +301,7 @@ bool iAModalityList::load(QString const & filename, iAProgress& progress)
 			emit added(mod[0]);
 		}
 		++currIdx;
-		progress.emitProgress((100 * currIdx) / maxIdx);
+		progress.emitProgress(100.0 * currIdx / maxIdx);
 	}
 	m_fileName = filename;
 	return true;

@@ -22,8 +22,6 @@
 
 // FiAKEr:
 #include "iAFiberCharData.h"            // for iAFiberSimilarity -> REFACTOR!!!
-#include "iAMatrixWidget.h"
-#include "iASavableProject.h"
 #include "iASelectionInteractorStyle.h" // for iASelectionProvider
 #include "ui_FiAKErSettings.h"
 
@@ -46,12 +44,7 @@
 
 class iAFiberResultsCollection;
 class iAFiberCharUIData;
-class iAJobListView;
 class iAStackedBarChart;
-
-// Sensitivity:
-class iAMatrixWidget;
-class iAParameterListView;
 
 class iA3DColoredPolyObjectVis;
 class iA3DCylinderObjectVis;
@@ -110,8 +103,6 @@ public:
 	QWidget* topFiller, * bottomFiller;
 	//! index where the plots for this result start
 	size_t startPlotIdx;
-	//! bounding box of the 3D data:
-	double bounds[6];
 };
 
 class iAFiAKErController: public QObject, public iASelectionProvider
@@ -196,12 +187,9 @@ private slots:
 	void update3D();
 	void applyRenderSettings();
 	// sensitivity:
-	void computeDissimilarityMatrix();
 	void computeSensitivity();
 	void resetSensitivity();
-	void dissimMatrixMeasureChanged(int);
-	void dissimMatrixParameterChanged(int);
-	void dissimMatrixColorMapChanged(int);
+	// 3D view:
 	void showMainVis(size_t resultID, bool state);
 	void showDifference(size_t r1, size_t r2);
 private:
@@ -243,7 +231,6 @@ private:
 	QWidget* setupResultListView();
 	QWidget* setupProtocolView();
 	QWidget* setupSelectionView();
-	QWidget* setupMatrixView(QStringList paramNames, std::vector<std::vector<double>> const& paramValues, QVector<int> const & measures);
 
 	//! all data about the fiber characteristics optimization results that are analyzed
 	QSharedPointer<iAFiberResultsCollection> m_data;
@@ -349,13 +336,6 @@ private:
 	std::vector<SelectionType> m_selections;
 
 	// Sensitivity
-	iADissimilarityMatrixType m_dissimilarityMatrix;
-	iAMatrixWidget* m_matrixWidget;
-	iAParameterListView* m_parameterListView;
 	QSharedPointer<iASensitivityInfo> m_sensitivityInfo;
 	void connectSensitivity();
-
-	QString dissimilarityMatrixCacheFileName();
-	bool readDissimilarityMatrixCache(QVector<int>& measures);
-	void writeDissimilarityMatrixCache(QVector<int> const& measures);
 };

@@ -54,7 +54,7 @@ public:
 public slots:
 	//! Trigger a progress event manually.
 	//! @param p the current percentage of progress (number between 0 and 100)
-	void emitProgress(int p);
+	void emitProgress(double p);
 	//! Set additional status information.
 	//! @param status the new status to report to the user
 	void setStatus(QString const & status);
@@ -62,7 +62,7 @@ signals:
 	//! Signal emitted whenever the progress has changed.
 	//! Connect this to a method that updates the indication of the current progression to the user.
 	//! @param p the current percentage of progress (number between 0 and 100)
-	void progress(int p);
+	void progress(double p);
 	//! Signal emitted whenever the status has changed.
 	//! Connect this to a method that updates the output of the status to the user.
 	//! @param status the new status.

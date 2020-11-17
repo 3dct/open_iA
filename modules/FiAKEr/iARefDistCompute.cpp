@@ -231,7 +231,7 @@ void iARefDistCompute::run()
 			);
 			recomputeAverages = true;
 		}
-		m_progress.emitProgress(static_cast<int>(100.0 * resultID / m_data->result.size()));
+		m_progress.emitProgress(resultID * 100.0 / m_data->result.size());
 		if (skip)
 		{
 			continue;

@@ -31,7 +31,7 @@ class FeatureScout_API iACsvQTableCreator : public iACsvTableCreator
 public:
 	iACsvQTableCreator(QTableWidget* tblWidget);
 	void initialize(QStringList const & headers, size_t const rowCount) override;
-	void addRow(size_t row, QStringList const & values) override;
+	void addRow(size_t row, std::vector<double> const & values) override;
 	QTableWidget* table();
 private:
 	QTableWidget* m_table;

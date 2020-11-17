@@ -21,8 +21,8 @@
 #include "iALogWidget.h"
 
 #include "iALogLevelMappings.h"
-#include "iARedirectVtkOutput.h"
-#include "iARedirectItkOutput.h"
+#include "iALogRedirectVTK.h"
+#include "iALogRedirectITK.h"
 #include "io/iAFileUtils.h"
 
 #include <QDateTime>
@@ -44,10 +44,6 @@ void iALogWidget::logSlot(int lvl, QString const & text)
 	// if it is still open at the time the program should exit.
 	// Therefore, we don't reopen the console after the close() method
 	// has been called. This allows the program to exit properly.
-	QString msg = QString("%1 %2 %3")
-		.arg(QLocale().toString(QDateTime::currentDateTime(), QLocale::ShortFormat))
-		.arg(logLevelToString(static_cast<iALogLevel>(lvl)))
-		.arg(text);
 	if (!m_closed && lvl >= m_logLevel)
 	{
 		if (!isVisible())
@@ -55,10 +51,18 @@ void iALogWidget::logSlot(int lvl, QString const & text)
 			show();
 			emit logVisibilityChanged(true);
 		}
+		QString msg = QString("%1 %2 %3")
+			.arg(QLocale().toString(QTime::currentTime(), QLocale::ShortFormat))
+			.arg(logLevelToString(static_cast<iALogLevel>(lvl)).left(1))
+			.arg(text);
 		logTextEdit->append(msg);
 	}
 	if (m_logToFile && lvl >= m_fileLogLevel)
 	{
+		QString msg = QString("%1 %2 %3")
+			.arg(QLocale().toString(QDateTime::currentDateTime(), QLocale::ShortFormat))
+			.arg(logLevelToString(static_cast<iALogLevel>(lvl)))
+			.arg(text);
 		std::ofstream logfile( getLocalEncodingFileName(m_logFileName).c_str(), std::ofstream::out | std::ofstream::app);
 		logfile << msg.toStdString() << std::endl;
 		logfile.flush();
@@ -123,10 +127,10 @@ iALogWidget::iALogWidget() :
 	setupUi(this);
 	setAttribute(Qt::WA_DeleteOnClose, false);
 	// redirect VTK and ITK output to console window:
-	m_vtkOutputWindow = vtkSmartPointer<iARedirectVtkOutput>::New();
-	m_itkOutputWindow = iARedirectItkOutput::New();
-	vtkOutputWindow::SetInstance(m_vtkOutputWindow);
-	itk::OutputWindow::SetInstance(m_itkOutputWindow);
+	m_redirectVTK = vtkSmartPointer<iALogRedirectVTK>::New();
+	m_redirectITK = iALogRedirectITK::New();
+	vtkOutputWindow::SetInstance(m_redirectVTK);
+	itk::OutputWindow::SetInstance(m_redirectITK);
 	cmbboxLogLevel->addItems(AvailableLogLevels());
 
 	connect(pbClearLog, &QPushButton::clicked, this, &iALogWidget::clear);

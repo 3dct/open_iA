@@ -27,7 +27,6 @@
 #include "iARefDistCompute.h"
 #include "iASensitivityInfo.h"
 #include "iAStackedBarChart.h"
-#include "ui_DissimilarityMatrix.h"
 
 // FeatureScout:
 #include "iA3DCylinderObjectVis.h"
@@ -279,6 +278,7 @@ void iAFiAKErController::start(QString const & path, iACsvConfig const & config,
 	m_data = QSharedPointer<iAFiberResultsCollection>(new iAFiberResultsCollection());
 	auto resultsLoader = new iAFiberResultsLoader(m_data, path, m_config, stepShift);
 	connect(resultsLoader, &iAFiberResultsLoader::success, this, &iAFiAKErController::resultsLoaded);
+	connect(resultsLoader, &iAFiberResultsLoader::finished, resultsLoader, &QObject::deleteLater);
 	connect(resultsLoader, &iAFiberResultsLoader::failed, [this, resultsLoader, path]
 		{
 			if (!resultsLoader->isAborted())
@@ -291,7 +291,7 @@ void iAFiAKErController::start(QString const & path, iACsvConfig const & config,
 			}
 			m_mdiChild->parent()->deleteLater(); // deletes QMdiSubWindow which this widget is child of
 		});
-	m_mdiChild->addJob("Loading results...", resultsLoader->progress(), resultsLoader, resultsLoader);
+	iAJobListView::get()->addJob("Loading results...", resultsLoader->progress(), resultsLoader, resultsLoader);
 	resultsLoader->start();
 }
 
@@ -519,7 +519,6 @@ void iAFiAKErController::setupSettingsView()
 		this, &iAFiAKErController::distributionColorThemeChanged);
 	connect(m_settingsView->cmbboxResultColors, QOverload<int>::of(&QComboBox::currentIndexChanged),
 		this, &iAFiAKErController::resultColorThemeChanged);
-	connect(m_settingsView->pbDissimilarityMatrix, &QPushButton::clicked, this, &iAFiAKErController::computeDissimilarityMatrix);
 	connect(m_settingsView->pbSensitivity, &QPushButton::clicked, this, &iAFiAKErController::computeSensitivity);
 }
 
@@ -571,36 +570,6 @@ namespace
 #endif
 		case iACsvConfig::Cylinders: return QSharedPointer<iA3DColoredPolyObjectVis>(
 			new iA3DCylinderObjectVis(renderer, table, mapping, color, curvedFiberData, 6, 3));
-		}
-	}
-}
-
-//! compute result bounding box from its value table
-//! only considers start and end points, not curved points at the moment
-//! relies on StartX, StartY, StartZ & EndX, EndY, EndZ constant defines being in sequence.
-//! @param box[out] contains minX, maxX, minY, maxY, minZ, maxZ
-void computeBoundingBox(vtkSmartPointer<vtkTable> tbl, QMap<uint, uint> const & mapping, double box[6])
-{
-	box[0] = box[2] = box[4] = std::numeric_limits<double>::max();
-	box[1] = box[3] = box[5] = std::numeric_limits<double>::lowest();
-	for (vtkIdType f = 0; f < tbl->GetNumberOfRows(); ++f)
-	{
-		for (int i = 0; i < 3; ++i)
-		{
-			double pts[2];
-			pts[0] = tbl->GetValue(f, mapping[iACsvConfig::StartX + i]).ToDouble();
-			pts[1] = tbl->GetValue(f, mapping[iACsvConfig::EndX + i]).ToDouble();
-			for (int j = 0; j < 2; ++j)
-			{
-				if (pts[j] < box[2 * i])
-				{
-					box[2 * i] = pts[j];
-				}
-				if (pts[j] > box[2 * i + 1])
-				{
-					box[2 * i + 1] = pts[j];
-				}
-			}
 		}
 	}
 }
@@ -799,10 +768,10 @@ QWidget* iAFiAKErController::setupResultListView()
 			connect(ui.previewWidget, &iASignallingWidget::clicked, this, &iAFiAKErController::previewMouseClick);
 			connect(ui.mini3DVis.data(), &iA3DObjectVis::updated, ui.vtkWidget, &iAVtkQtWidget::updateAll);
 		}
-		computeBoundingBox(d.table, *d.mapping.data(), ui.bounds);
-		QString bbox = QString("Bounding box: (x: %1..%2, y: %3..%4, z: %5..%6)")
-			.arg(ui.bounds[0]).arg(ui.bounds[1]).arg(ui.bounds[2]).arg(ui.bounds[3]).arg(ui.bounds[4]).arg(ui.bounds[5]);
-		ui.nameActions->setToolTip(bbox + "\n"
+		QString bboxText = QString("Bounding box: (x: %1..%2, y: %3..%4, z: %5..%6)")
+			.arg(d.boundingBox[0]).arg(d.boundingBox[1]).arg(d.boundingBox[2])
+			.arg(d.boundingBox[3]).arg(d.boundingBox[4]).arg(d.boundingBox[5]);
+		ui.nameActions->setToolTip(bboxText + "\n"
 			"Filename: " + d.fileName + "\n");
 
 		ui.stackedBars->setProperty("resultID", static_cast<qulonglong>(resultID));
@@ -1085,295 +1054,14 @@ void iAFiAKErController::resultColorThemeChanged(int index)
 	// main3DVis automatically updated through SPM
 }
 
-using iADissimilarityMatrixDockContent = iAQTtoUIConnector<QWidget, Ui_DissimilarityMatrix>;
-
-QWidget* iAFiAKErController::setupMatrixView(QStringList paramNames, std::vector<std::vector<double>> const& paramValues, QVector<int> const & measures)
-{
-	iADissimilarityMatrixDockContent* dissimDockContent = new iADissimilarityMatrixDockContent();
-	auto measureNames = getAvailableDissimilarityMeasureNames();
-	QStringList computedMeasureNames;
-	for (int m = 0; m < measures.size(); ++m)
-	{
-		computedMeasureNames << measureNames[measures[m]];
-	}
-	dissimDockContent->cbMeasure->addItems(computedMeasureNames);
-	dissimDockContent->cbParameter->addItems(paramNames);
-	dissimDockContent->cbColorMap->addItems(iALUT::GetColorMapNames());
-	connect(dissimDockContent->cbMeasure, QOverload<int>::of(&QComboBox::currentIndexChanged), this, &iAFiAKErController::dissimMatrixMeasureChanged);
-	connect(dissimDockContent->cbParameter, QOverload<int>::of(&QComboBox::currentIndexChanged), this, &iAFiAKErController::dissimMatrixParameterChanged);
-	connect(dissimDockContent->cbColorMap, QOverload<int>::of(&QComboBox::currentIndexChanged), this, &iAFiAKErController::dissimMatrixColorMapChanged);
-	m_matrixWidget = new iAMatrixWidget(m_dissimilarityMatrix, paramValues, true, true);
-	m_matrixWidget->setSortParameter(0);
-	m_matrixWidget->setData(0);
-	m_matrixWidget->setLookupTable(iALUT::Build(m_matrixWidget->range(), iALUT::GetColorMapNames()[0], 255, 255));
-	dissimDockContent->matrix->layout()->addWidget(m_matrixWidget);
-	return dissimDockContent;
-}
-
-class iAParameterListView : public QWidget
-{
-public:
-	iAParameterListView(QStringList const& paramNames,
-		std::vector<std::vector<double>> const& paramValues,
-		iADissimilarityMatrixType const& dissimMatrix)
-	{
-		auto paramScrollArea = new QScrollArea();
-		paramScrollArea->setWidgetResizable(true);
-		auto paramList = new QWidget();
-		paramScrollArea->setWidget(paramList);
-		paramScrollArea->setContentsMargins(0, 0, 0, 0);
-		auto paramListLayout = new QGridLayout();
-		paramListLayout->setSpacing(ControlSpacing);
-		paramListLayout->setContentsMargins(ResultListMargin, ResultListMargin, ResultListMargin, ResultListMargin);
-		paramListLayout->setColumnStretch(0, 1);
-		paramListLayout->setColumnStretch(1, 2);
-
-		enum ParamColumns
-		{
-			NameCol = 0,
-			MatrixCol
-		};
-		addHeaderLabel(paramListLayout, NameCol, "Parameter");
-		addHeaderLabel(paramListLayout, MatrixCol, "Sensitivity Matrix");
-		for (int p = 0; p < paramNames.size(); ++p)
-		{
-			auto paramNameLabel = new QLabel(paramNames[p]);
-			paramNameLabel->setSizePolicy(QSizePolicy::Expanding, QSizePolicy::Expanding);
-			paramListLayout->addWidget(paramNameLabel, p + 1, NameCol);
-
-			auto paramMatrix = new iAMatrixWidget(dissimMatrix, paramValues, false, false);
-			paramMatrix->setSortParameter(p);
-			paramMatrix->setSizePolicy(QSizePolicy::Expanding, QSizePolicy::Expanding);
-			paramMatrix->setData(0);
-			paramMatrix->setLookupTable(iALUT::Build(paramMatrix->range(), iALUT::GetColorMapNames()[0], 255, 255));
-			m_matrixPerParam.push_back(paramMatrix);
-			paramListLayout->addWidget(paramMatrix, p + 1, MatrixCol);
-		}
-		setLayout(paramListLayout);
-	}
-
-	void dissimMatrixMeasureChanged(int idx)
-	{
-		for (auto paramMatrix : m_matrixPerParam)
-		{
-			paramMatrix->setData(idx);
-			paramMatrix->update();
-		}
-	}
-
-	void dissimMatrixColorMapChanged(int idx)
-	{
-		for (auto paramMatrix : m_matrixPerParam)
-		{
-			paramMatrix->setLookupTable(iALUT::Build(paramMatrix->range(), iALUT::GetColorMapNames()[idx], 255, 255));
-			paramMatrix->update();
-		}
-	}
-private:
-	std::vector<iAMatrixWidget*> m_matrixPerParam;
-};
-
-QDataStream& operator<<(QDataStream& out, const iAResultPairInfo& pairInfo)
-{
-	out << pairInfo.avgDissim;
-	out << pairInfo.fiberDissim;
-	return out;
-}
-
-QDataStream& operator>>(QDataStream& in, iAResultPairInfo& pairInfo)
-{
-	in >> pairInfo.avgDissim;
-	in >> pairInfo.fiberDissim;
-	return in;
-}
-
-QString iAFiAKErController::dissimilarityMatrixCacheFileName()
-{
-	return m_data->folder + "/cache/dissimilarityMatrix.cache";
-}
-
-namespace
-{
-	const QString DissimilarityMatrixCacheFileIdentifier("DissimilarityMatrixCache");
-	const quint32 DissimilarityMatrixCacheFileVersion(1);
-}
-
-bool iAFiAKErController::readDissimilarityMatrixCache(QVector<int>& measures)
-{
-	QFile cacheFile(dissimilarityMatrixCacheFileName());
-	// unify with verifyOpenCacheFile?
-	if (!cacheFile.exists())
-	{
-		return false;
-	}
-	if (!cacheFile.open(QFile::ReadOnly))
-	{
-		LOG(lvlWarn, QString("FIAKER cache file '%1': Couldn't open for reading!").arg(cacheFile.fileName()));
-		return false;
-	}
-	// unify with readResultRefComparison / common cache file version/identifier pattern?
-	QDataStream in(&cacheFile);
-	in.setVersion(CacheFileQtDataStreamVersion);
-	QString identifier;
-	in >> identifier;
-	if (identifier != DissimilarityMatrixCacheFileIdentifier)
-	{
-		LOG(lvlWarn, QString("FIAKER cache file '%1': Unknown cache file format - found identifier %2 does not match expected identifier %3.")
-			.arg(cacheFile.fileName())
-			.arg(identifier).arg(DissimilarityMatrixCacheFileIdentifier));
-		return false;
-	}
-	quint32 version;
-	in >> version;
-	if (version > DissimilarityMatrixCacheFileVersion)
-	{
-		LOG(lvlWarn, QString("FIAKER cache file '%1': Invalid or too high version number (%2), expected %3 or less.")
-			.arg(cacheFile.fileName())
-			.arg(version).arg(DissimilarityMatrixCacheFileVersion));
-		return false;
-	}
-	in >> measures;
-	in >> m_dissimilarityMatrix;
-	return true;
-}
-
-void iAFiAKErController::writeDissimilarityMatrixCache(QVector<int> const& measures)
-{
-	QFile cacheFile(dissimilarityMatrixCacheFileName());
-	if (!cacheFile.open(QFile::WriteOnly))
-	{
-		LOG(lvlWarn, QString("FIAKER cache file '%1': Couldn't open for writing!").arg(cacheFile.fileName()));
-		return;
-	}
-	QDataStream out(&cacheFile);
-	out.setVersion(CacheFileQtDataStreamVersion);
-	// write header:
-	out << DissimilarityMatrixCacheFileIdentifier;
-	out << DissimilarityMatrixCacheFileVersion;
-
-	out << measures;
-	out << m_dissimilarityMatrix;
-}
-
-void iAFiAKErController::computeDissimilarityMatrix()
-{
-	QString fileName = QFileDialog::getOpenFileName(m_mainWnd, iAFiAKErController::FIAKERProjectID, m_data->folder, "Comma-Separated Values (*.csv);;");
-	if (fileName.isEmpty())
-	{
-		return;
-	}
-	iACsvVectorTableCreator tblCreator;
-	if (!readParameterCSV(fileName, "UTF-8", ",", tblCreator, m_data->result.size()))
-	{
-		return;
-	}
-	assert(tblCreator.table().size() > 0 && tblCreator.table()[0].size() == m_data->result.size());
-	m_paramValues = tblCreator.table();
-	m_parameterFile = fileName;
-	// compute pairwise dissimilarities between results:
-	QVector<int> measures;
-
-	if (!readDissimilarityMatrixCache(measures))
-	{
-		iAMeasureSelectionDlg selectMeasure;
-		if (selectMeasure.exec() != QDialog::Accepted)
-		{
-			return;
-		}
-		auto measuresComputed = selectMeasure.measures();
-		auto optimizationMeasureIdx = selectMeasure.optimizeMeasureIdx();
-
-		m_dissimilarityMatrix = iADissimilarityMatrixType(m_data->result.size(),
-			QVector<iAResultPairInfo>(m_data->result.size(),
-				iAResultPairInfo(measuresComputed.size())));
-		for (size_t m = 0; m < measuresComputed.size(); ++m)
-		{
-			measures.push_back(measuresComputed[m].first);
-		}
-
-		for (size_t resultID1 = 0; resultID1 < m_data->result.size(); ++resultID1)
-		{
-			auto& res1 = m_data->result[resultID1];
-			auto const& mapping = *res1.mapping.data();
-			double const* cxr = m_data->spmData->paramRange(mapping[iACsvConfig::CenterX]),
-				* cyr = m_data->spmData->paramRange(mapping[iACsvConfig::CenterY]),
-				* czr = m_data->spmData->paramRange(mapping[iACsvConfig::CenterZ]);
-			double a = cxr[1] - cxr[0], b = cyr[1] - cyr[0], c = czr[1] - czr[0];
-			double diagonalLength = std::sqrt(std::pow(a, 2) + std::pow(b, 2) + std::pow(c, 2));
-			double const* lengthRange = m_data->spmData->paramRange(mapping[iACsvConfig::Length]);
-			double maxLength = lengthRange[1] - lengthRange[0];
-			for (size_t resultID2 = 0; resultID2 < m_data->result.size(); ++resultID2)
-			{
-				for (size_t m = 0; m < measuresComputed.size(); ++m)
-				{
-					m_dissimilarityMatrix[resultID1][resultID2].avgDissim[m] = 0;
-				}
-				if (resultID1 == resultID2)
-				{
-					continue;
-				}
-				auto& res2 = m_data->result[resultID2];
-				qint64 const fiberCount = res2.table->GetNumberOfRows();
-				auto& dissimilarities = m_dissimilarityMatrix[resultID1][resultID2].fiberDissim;
-				dissimilarities.resize(fiberCount);
-#pragma omp parallel for
-				for (qint64 fiberID = 0; fiberID < fiberCount; ++fiberID)
-				{
-					auto it = res2.curveInfo.find(fiberID);
-					// find the best-matching fibers in reference & compute difference:
-					iAFiberData fiber(res2.table, fiberID, mapping, (it != res2.curveInfo.end()) ? it->second : std::vector<iAVec3f>());
-					getBestMatches(fiber, mapping, res1.table, dissimilarities[fiberID], res1.curveInfo,
-						diagonalLength, maxLength, measuresComputed, optimizationMeasureIdx);
-					for (size_t m = 0; m < measuresComputed.size(); ++m)
-					{
-						m_dissimilarityMatrix[resultID1][resultID2].avgDissim[m] += dissimilarities[fiberID][m][0].dissimilarity;
-					}
-				}
-				for (size_t m = 0; m < measuresComputed.size(); ++m)
-				{
-					m_dissimilarityMatrix[resultID1][resultID2].avgDissim[m] /= res2.fiberCount;
-				}
-			}
-		}
-		writeDissimilarityMatrixCache(measures);
-	}
-	QWidget* dissimDockContent = setupMatrixView(tblCreator.header(), m_paramValues, measures);
-	m_views.push_back(new iADockWidgetWrapper(dissimDockContent, "Dissimilarity Matrix", "foeMatrix"));
-	m_mdiChild->splitDockWidget(m_views[ResultListView], m_views[m_views.size()-1], Qt::Vertical);
-
-	m_parameterListView = new iAParameterListView(tblCreator.header(), m_paramValues, m_dissimilarityMatrix);
-	m_views.push_back(new iADockWidgetWrapper(m_parameterListView, "Parameter View", "foeParameters"));
-	m_mdiChild->splitDockWidget(m_views[ResultListView], m_views[m_views.size() - 1], Qt::Vertical);
-
-	dissimMatrixMeasureChanged(0);
-}
-
-void iAFiAKErController::dissimMatrixMeasureChanged(int idx)
-{
-	m_matrixWidget->setData(idx);
-	m_matrixWidget->update();
-	m_parameterListView->dissimMatrixMeasureChanged(idx);
-}
-
-void iAFiAKErController::dissimMatrixParameterChanged(int idx)
-{
-	m_matrixWidget->setSortParameter(idx);
-	m_matrixWidget->update();
-}
-
-void iAFiAKErController::dissimMatrixColorMapChanged(int idx)
-{
-	m_matrixWidget->setLookupTable(iALUT::Build(m_matrixWidget->range(), iALUT::GetColorMapNames()[idx], 255, 255));
-	m_matrixWidget->update();
-	m_parameterListView->dissimMatrixColorMapChanged(idx);
-}
-
 void iAFiAKErController::connectSensitivity()
 {
 	if (!m_sensitivityInfo)
 	{
 		return;
 	}
+	// "hack" go get results all to have same color; TODO: set in settings / use resultColorThemeChanged?
+	m_resultColorTheme = iAColorThemeManager::instance().theme("Gray");
 	connect(m_sensitivityInfo.data(), &iASensitivityInfo::aborted, this, &iAFiAKErController::resetSensitivity);
 	connect(m_sensitivityInfo.data(), &iASensitivityInfo::resultSelected, this, &iAFiAKErController::showMainVis);
 	connect(m_sensitivityInfo.data(), &iASensitivityInfo::viewDifference, this, &iAFiAKErController::showDifference);
@@ -1386,10 +1074,7 @@ void iAFiAKErController::computeSensitivity()
 		LOG(lvlWarn, "Already started!");
 		return;
 	}
-	// "hack" go get results all to have same color; TODO: set in settings / use resultColorThemeChanged?
-	m_resultColorTheme = iAColorThemeManager::instance().theme("Gray");
-	m_sensitivityInfo = iASensitivityInfo::create(m_mdiChild, m_data, m_views[ResultListView],
-		m_mdiChild->jobsList(), m_histogramBins);
+	m_sensitivityInfo = iASensitivityInfo::create(m_mdiChild, m_data, m_views[ResultListView], m_histogramBins);
 	connectSensitivity();
 }
 
@@ -2526,8 +2211,8 @@ void iAFiAKErController::updateFiberContext()
 				double radius = diameter / 2;
 				if (!m_mergeContextBoxes)
 				{
-					minCoord = std::numeric_limits<double>::max();
-					maxCoord = std::numeric_limits<double>::lowest();
+					minCoord.fill(std::numeric_limits<double>::max());
+					maxCoord.fill(std::numeric_limits<double>::lowest());
 				}
 				for (int i = 0; i < 3; ++i)
 				{
@@ -2643,7 +2328,7 @@ void iAFiAKErController::setReference(size_t referenceID, std::vector<std::pair<
 		m_showResultVis[m_referenceID]->setText(m_showResultVis[m_referenceID]->text().left(m_showResultVis[m_referenceID]->text().length()-RefMarker.length()));
 	}
 	addInteraction(QString("Reference set to %1.").arg(resultName(referenceID)));
-	auto & bounds = m_resultUIs[referenceID].bounds;
+	auto & bounds = m_data->result[referenceID].boundingBox;
 	bool setBB = true;
 	for (int i = 0; i < 6; ++i)
 	{
@@ -2667,7 +2352,7 @@ void iAFiAKErController::setReference(size_t referenceID, std::vector<std::pair<
 		m_refDistCompute->setMeasuresToCompute(measures, optimizationMeasure, bestMeasure);
 	}
 	connect(m_refDistCompute, &QThread::finished, this, &iAFiAKErController::refDistAvailable);
-	m_mdiChild->addJob("Computing Reference Similarities", m_refDistCompute->progress(), m_refDistCompute);
+	iAJobListView::get()->addJob("Computing Reference Similarities", m_refDistCompute->progress(), m_refDistCompute);
 	m_refDistCompute->start();
 }
 
@@ -2721,7 +2406,7 @@ void iAFiAKErController::loadAdditionalData(iASettings settings, QString project
 	if (iASensitivityInfo::hasData(settings))
 	{
 		m_sensitivityInfo = iASensitivityInfo::load(m_mdiChild, m_data, m_views[ResultListView],
-			m_mdiChild->jobsList(), m_histogramBins, settings, projectFileName);
+			m_histogramBins, settings, projectFileName);
 		connectSensitivity();
 		// don't change direct loading of settings here, the settings loaded below
 		// probably don't really affect sensitivity things (TODO: to be checked - if it doesn't crash it should be fine)
@@ -3341,31 +3026,6 @@ QString iAFiAKErController::resultName(size_t resultID) const
 {
 	return QFileInfo(m_data->result[resultID].fileName).baseName();
 }
-
-/*
-void iAFiAKErController::doSaveProject()
-{
-	// somehow move that part out into the core?
-	// { e.g. into iASavableProject ?
-	QString fileName = QFileDialog::getSaveFileName(
-	QApplication::activeWindow(),
-		tr("Select Output File"),
-		m_data->folder,
-		iAIOProvider::NewProjectFileTypeFilter);
-	if (fileName.isEmpty())
-	{
-		return;
-	}
-	QSettings projectFile(fileName, QSettings::IniFormat);
-	projectFile.setIniCodec("UTF-8");
-	projectFile.beginGroup(FIAKERProjectID);
-	saveProject(projectFile, fileName);
-	projectFile.endGroup();
-	projectFile.sync(); // make sure file is written here...
-	m_mainWnd->setCurrentFile(fileName); // ...because otherwise it won't get added to recent list here
-	addInteraction(QString("Saved as Project '%1'.").arg(fileName));
-}
-*/
 
 void iAFiAKErController::saveProject(QSettings & projectFile, QString  const & fileName)
 {

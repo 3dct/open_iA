@@ -36,8 +36,6 @@ class iACsvTableCreator;
 class iAFiberResultsCollection;
 class iASensitivityGUI;
 
-class iAJobListView;
-
 class QDockWidget;
 class QMainWindow;
 
@@ -47,15 +45,15 @@ class iASensitivityInfo: public QObject, public iAAbortListener
 public:
 	static QSharedPointer<iASensitivityInfo> create(QMainWindow* child,
 		QSharedPointer<iAFiberResultsCollection> data, QDockWidget* nextToDW,
-		iAJobListView* jobListView, int histogramBins,
-		QString parameterSetFileName = QString(), QVector<int> const& charSelected = QVector<int>(),
+		int histogramBins, QString parameterSetFileName = QString(),
+		QVector<int> const& charSelected = QVector<int>(),
 		QVector<int> const& charDiffMeasure = QVector<int>());
 	static QSharedPointer<iASensitivityInfo> load(QMainWindow* child,
 		QSharedPointer<iAFiberResultsCollection> data, QDockWidget* nextToDW,
-		iAJobListView* jobListView, int histogramBins, iASettings const & projectFile,
+		int histogramBins, iASettings const & projectFile,
 		QString const& projectFileName);
 	static bool hasData(iASettings const& settings);
-	QString charactName(int charactIdx) const;
+	QString charactName(int selCharIdx) const;
 
 	void saveProject(QSettings& projectFile, QString  const& fileName);
 
@@ -78,13 +76,13 @@ public:
 	QVector<                //! For each result,
 		QVector<	        //! for each characteristic,
 		QVector<double>>>   //! a histogram.
-		charHistograms;
+		m_charHistograms;
 
 	int m_numOfSTARSteps, m_starGroupSize;
 	int m_histogramBins;
 	QVector<double> paramStep;  //!< per varied parameter, the size of step performed for the STAR
 
-	QVector<int> variedParams;  //!< indices of the parameters that were varied
+	QVector<int> m_variedParams;  //!< indices of the parameters that were varied
 
 	// for each characteristic
 	//     for each selected characteristics difference measure
@@ -187,6 +185,7 @@ private:
 	QString dissimilarityMatrixCacheFileName() const;
 	bool readDissimilarityMatrixCache(QVector<int>& measures);
 	void writeDissimilarityMatrixCache(QVector<int> const& measures) const;
+	QWidget* setupMatrixView(QVector<int> const& measures);
 
 	QString m_parameterFileName;
 	QMainWindow* m_child;
@@ -209,6 +208,10 @@ public slots:
 	void updateDissimilarity();
 	void spHighlightChanged();
 	void createGUI();
+private slots:
+	void dissimMatrixMeasureChanged(int);
+	void dissimMatrixParameterChanged(int);
+	void dissimMatrixColorMapChanged(int);
 };
 
 // Factor out as generic CSV reading class also used by iACsvIO?

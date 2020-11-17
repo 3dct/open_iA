@@ -30,8 +30,8 @@
 
 #include <QString>
 
-class iARedirectVtkOutput;
-class iARedirectItkOutput;
+class iALogRedirectVTK;
+class iALogRedirectITK;
 
 class QDockWidget;
 
@@ -70,7 +70,7 @@ private slots:
 private:
 	//! private constructor - retrieve (single) instance via get!
 	iALogWidget();
-	//! virtual destructor, explicitly implemented to avoid having to include iARedirectItkOutput
+	//! virtual destructor, explicitly implemented to avoid having to include iALogRedirectITK
 	virtual ~iALogWidget();
 	//! @{ prevent copying:
 	iALogWidget(iALogWidget const&)    = delete;
@@ -83,6 +83,6 @@ private:
 	iALogLevel m_fileLogLevel;
 	bool m_closed;
 	bool m_fileLogError;
-	vtkSmartPointer<iARedirectVtkOutput> m_vtkOutputWindow;
-	itk::SmartPointer<iARedirectItkOutput> m_itkOutputWindow;
+	vtkSmartPointer<iALogRedirectVTK> m_redirectVTK;
+	itk::SmartPointer<iALogRedirectITK> m_redirectITK;
 };

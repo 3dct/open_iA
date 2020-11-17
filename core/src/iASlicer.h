@@ -274,7 +274,6 @@ signals:
 	void ctrlMouseWheel(int angle);
 	void clicked();
 	void dblClicked();
-	void progress(int);
 	void updateSignal();
 	void leftClicked(int x, int y, int z);
 	void rightClicked(int x, int y, int z);

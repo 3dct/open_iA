@@ -330,7 +330,7 @@ void iABatchFilter::performWork(QMap<QString, QVariant> const & parameters)
 				throw e;
 			}
 		}
-		progress()->emitProgress( static_cast<int>(100 * (curLine - 1.0) / files.size()) );
+		progress()->emitProgress( (curLine - 1.0) * 100.0 / files.size() );
 		if (m_aborted)
 		{
 			break;

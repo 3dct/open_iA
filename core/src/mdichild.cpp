@@ -37,7 +37,6 @@
 #include "iALog.h"
 #include "iARunAsync.h"
 #include "qthelper/iADockWidgetWrapper.h"
-#include "iAJobListView.h"
 #include "iAModality.h"
 #include "iAModalityList.h"
 #include "iAModalityTransfer.h"
@@ -87,7 +86,6 @@
 #include <QFileDialog>
 #include <QMainWindow>
 #include <QMessageBox>
-#include <QProgressBar>
 #include <QSettings>
 #include <QSpinBox>
 #include <QToolButton>
@@ -115,9 +113,7 @@ MdiChild::MdiChild(MainWindow* mainWnd, iAPreferences const& prefs, bool unsaved
 	m_volumeStack(new iAVolumeStack),
 	m_ioThread(nullptr),
 	m_histogram(new iAChartWithFunctionsWidget(nullptr, this, " Histogram", "Frequency")),
-	m_jobs(new iAJobListView()),
 	m_dwHistogram(new iADockWidgetWrapper(m_histogram, "Histogram", "Histogram")),
-	m_dwJobs(new iADockWidgetWrapper(m_jobs, "Jobs", "Jobs")),
 	m_dwImgProperty(nullptr),
 	m_dwProfile(nullptr),
 	m_nextChannelID(0),
@@ -147,19 +143,12 @@ MdiChild::MdiChild(MainWindow* mainWnd, iAPreferences const& prefs, bool unsaved
 		m_dwSlicer[i] = new dlg_slicer(m_slicer[i]);
 	}
 
-	m_pbar = new QProgressBar(this);
-	m_pbar->setMaximumSize(350, 17);
-	statusBar()->addPermanentWidget(m_pbar);
-	m_pbarMaxVal = m_pbar->maximum();
 	addDockWidget(Qt::LeftDockWidgetArea, m_dwRenderer);
 	m_initialLayoutState = saveState();
 
 	splitDockWidget(m_dwRenderer, m_dwSlicer[iASlicerMode::XZ], Qt::Horizontal);
 	splitDockWidget(m_dwRenderer, m_dwSlicer[iASlicerMode::YZ], Qt::Vertical);
 	splitDockWidget(m_dwSlicer[iASlicerMode::XZ], m_dwSlicer[iASlicerMode::XY], Qt::Vertical);
-	splitDockWidget(m_dwRenderer, m_dwJobs, Qt::Horizontal);
-	m_dwJobs->hide();
-	connect(m_jobs, &iAJobListView::allJobsDone, m_dwJobs, &QDockWidget::hide);
 
 	setAttribute(Qt::WA_DeleteOnClose);
 
@@ -175,10 +164,8 @@ MdiChild::MdiChild(MainWindow* mainWnd, iAPreferences const& prefs, bool unsaved
 	m_dwModalities = new dlg_modalities(m_dwRenderer->vtkWidgetRC, m_renderer->renderer(), this);
 	QSharedPointer<iAModalityList> modList(new iAModalityList);
 	setModalities(modList);
-	splitDockWidget(m_dwJobs, m_dwModalities, Qt::Vertical);
 	applyViewerPreferences();
 	connectSignalsToSlots();
-	m_pbar->setValue(100);
 
 	m_worldProfilePoints->Allocate(2);
 	connect(mainWnd, &MainWindow::fullScreenToggled, this, &MdiChild::toggleFullScreen);
@@ -275,7 +262,6 @@ void MdiChild::connectSignalsToSlots()
 		connect(m_slicer[s], &iASlicer::sliceNumberChanged, this, &MdiChild::setSlice);
 
 		connect(m_slicer[s], &iASlicer::oslicerPos, this, &MdiChild::updatePositionMarker);
-		connect(m_slicer[s], &iASlicer::progress, this, &MdiChild::updateProgressBar);
 	}
 
 	connect(m_histogram, &iAChartWithFunctionsWidget::updateViews, this, &MdiChild::updateViews);
@@ -306,9 +292,6 @@ void MdiChild::connectIOThreadSignals(iAIO* thread)
 
 void MdiChild::connectAlgorithmSignalsToChildSlots(iAAlgorithm* thread)
 {
-	connect(thread, &iAAlgorithm::aprogress, this, &MdiChild::updateProgressBar);
-	connect(thread, &iAAlgorithm::started, this, &MdiChild::initProgressBar);
-	connect(thread, &iAAlgorithm::finished, this, &MdiChild::hideProgressBar);
 	addAlgorithm(thread);
 }
 
@@ -408,12 +391,6 @@ void MdiChild::modalityTFChanged()
 		m_slicer[s]->updateMagicLensColors();
 	}
 	emit transferFunctionChanged();
-}
-
-void MdiChild::updateProgressBar(int i)
-{
-	m_pbar->show();
-	m_pbar->setValue(i);
 }
 
 void MdiChild::updatePositionMarker(int x, int y, int z, int mode)
@@ -1097,12 +1074,6 @@ int MdiChild::visibility() const
 void MdiChild::maximizeSlicer(int mode)
 {
 	resizeDockWidget(m_dwSlicer[mode]);
-}
-
-void MdiChild::addJob(QString name, iAProgress* p, QThread* t, iAAbortListener* abortListener)
-{
-	m_dwJobs->show();
-	m_jobs->addJob(name, p, t, abortListener);
 }
 
 void MdiChild::maximizeRC()
@@ -2336,17 +2307,6 @@ void MdiChild::resizeDockWidget(QDockWidget* dw)
 	}
 }
 
-void MdiChild::hideProgressBar()
-{
-	m_pbar->hide();
-	m_pbar->setMaximum(m_pbarMaxVal);
-}
-
-void MdiChild::initProgressBar()
-{
-	updateProgressBar(m_pbar->minimum());
-}
-
 void MdiChild::ioFinished()
 {
 	m_ioThread = nullptr;
@@ -2616,11 +2576,6 @@ void MdiChild::setModalities(QSharedPointer<iAModalityList> modList)
 dlg_modalities* MdiChild::dataDockWidget()
 {
 	return m_dwModalities;
-}
-
-iAJobListView* MdiChild::jobsList()
-{
-	return m_jobs;
 }
 
 QSharedPointer<iAModalityList> MdiChild::modalities()
@@ -2919,21 +2874,6 @@ void MdiChild::saveFinished()
 	m_mainWnd->setCurrentFile(m_ioThread->fileName());
 	setWindowModified(modalities()->hasUnsavedModality());
 }
-
-/*
-void MdiChild::splitDockWidget(QDockWidget* ref, QDockWidget* newWidget, Qt::Orientation orientation)
-{
-	QList<QDockWidget*> tabified = m_mainWnd->tabifiedDockWidgets(ref);
-	if (tabified.size() > 0)
-	{
-		tabifyDockWidget(ref, newWidget);
-	}
-	else
-	{
-		splitDockWidget(ref, newWidget, orientation);
-	}
-}
-*/
 
 bool MdiChild::isFullyLoaded() const
 {
