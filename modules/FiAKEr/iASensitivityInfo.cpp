@@ -890,6 +890,7 @@ void iASensitivityInfo::compute()
 	}
 
 	m_progress.setStatus("Loading cached dissimilarities between all result pairs.");
+	m_progress.emitProgress(0);
 	QVector<int> measures;
 
 	if (readDissimilarityMatrixCache(measures))
