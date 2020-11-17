@@ -584,15 +584,19 @@ herr_t op_func(hid_t loc_id, const char *name, const H5L_info_t * /*info*/,
 	H5O_info_t      infobuf;
 	struct opdata   *od = (struct opdata *) operator_data;
 	status = H5Oget_info_by_name(loc_id, name, &infobuf, H5P_DEFAULT);
+	if (status < 0)
+	{
+		LOG(lvlWarn, QString("H5Oget_info_by_name failed with code %1!").arg(status));
+	}
 	QString caption;
-	bool group = false;
+	//bool group = false;
 	int vtkType = -1;
 	int rank = 0;
 	switch (infobuf.type)
 	{
 	case H5O_TYPE_GROUP:
 		caption = QString("Group: %1").arg(name);
-		group = true;
+		//group = true;
 		break;
 	case H5O_TYPE_DATASET:
 		{
