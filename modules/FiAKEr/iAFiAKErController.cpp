@@ -74,8 +74,10 @@
 //#include "vtkPolyDataBooleanFilter.h"
 
 #include <vtkCamera.h>
+#include <vtkCleanPolyData.h>
 #include <vtkColorTransferFunction.h>
 #include <vtkCubeSource.h>
+#include <vtkDecimatePro.h>
 #include <vtkGenericOpenGLRenderWindow.h>
 #include <vtkIdTypeArray.h>
 #include <vtkImageData.h>
@@ -84,6 +86,7 @@
 #include <vtkPointData.h>
 #include <vtkPolyData.h>
 #include <vtkPolyDataMapper.h>
+#include <vtkPolyDataNormals.h>
 #include <vtkProperty.h>
 #include <vtkRendererCollection.h>
 #include <vtkRenderer.h>
@@ -1663,6 +1666,22 @@ void iAFiAKErController::showMainVis(size_t resultID, bool state)
 	update3D();
 }
 
+namespace
+{
+void logMeshSize(QString const& name, vtkSmartPointer<vtkPolyData> mesh)
+{
+	const double* b1 = mesh->GetBounds();
+	LOG(lvlDebug,
+		QString(name + ": %1, %2, %3, %4 (mesh: %5 cells, %6 points)")
+			.arg(b1[0])
+			.arg(b1[1])
+			.arg(b1[2])
+			.arg(b1[3])
+			.arg(mesh->GetNumberOfCells())
+			.arg(mesh->GetNumberOfPoints()));
+}
+}
+
 void iAFiAKErController::showDifference(size_t r1, size_t r2)
 {
 	iATimeGuard timer("ShowDifference");
@@ -1670,27 +1689,61 @@ void iAFiAKErController::showDifference(size_t r1, size_t r2)
 	ensureMain3DViewCreated(r2);
 	vtkSmartPointer<vtkPolyData> input1 = m_resultUIs[r1].main3DVis->finalPoly();
 	vtkSmartPointer<vtkPolyData> input2 = m_resultUIs[r2].main3DVis->finalPoly();
-	const double* b1 = input1->GetBounds();
-	const double* b2 = input2->GetBounds();
-	LOG(lvlDebug, QString("in1: %1, %2, %3, %4; in2: %5, %6, %7, %8")
-		.arg(b1[0]).arg(b1[1]).arg(b1[2]).arg(b1[3])
-		.arg(b2[0]).arg(b2[1]).arg(b2[2]).arg(b2[3])
-	);
+	logMeshSize(QString("Result %1").arg(r1), input1);
+	logMeshSize(QString("Result %1").arg(r2), input2);
 
-	auto i1triangle = vtkSmartPointer<vtkTriangleFilter>::New();
-	i1triangle->SetInputData(input1);
-	i1triangle->Update();
-	auto i2triangle = vtkSmartPointer<vtkTriangleFilter>::New();
-	i2triangle->SetInputData(input2);
-	i2triangle->Update();
-	//auto diffOp = vtkSmartPointer<vtkPolyDataBooleanFilter>::New();
+	double DecimationTarget = 0.5;
+
+	vtkNew<vtkTriangleFilter> tri1;
+	tri1->SetInputData(input1);
+	tri1->Update();
+	logMeshSize("Tri 1", tri1->GetOutput());
+	/*
+	vtkNew<vtkDecimatePro> dec1;
+	dec1->SetTargetReduction(DecimationTarget);
+	dec1->SetPreserveTopology(true);
+	dec1->SetSplitting(false);
+	dec1->SetInputConnection(tri1->GetOutputPort());
+	dec1->Update();
+	*/
+
+	vtkNew<vtkCleanPolyData> clean1;
+	clean1->SetInputConnection(tri1->GetOutputPort());
+	clean1->Update();
+	vtkNew<vtkPolyDataNormals> norm1;
+	norm1->SetInputConnection(clean1->GetOutputPort());
+	norm1->Update();
+	//m_diffData = dec1->GetOutput();
+	//logMeshSize("Dec 1", norm1->GetOutput());
+
+	vtkNew<vtkTriangleFilter> tri2;
+	tri2->SetInputData(input2);
+	tri2->Update();
+	//logMeshSize("Tri 2", tri2->GetOutput());
+	/*
+	vtkNew<vtkDecimatePro> dec2;
+	dec2->SetTargetReduction(DecimationTarget);
+	dec2->SetPreserveTopology(true);
+	dec2->SetSplitting(false);
+	dec2->SetInputConnection(tri2->GetOutputPort());
+	logMeshSize("Dec 2", dec2->GetOutput());
+	*/
+	vtkNew<vtkCleanPolyData> clean2;
+	clean2->SetInputConnection(tri2->GetOutputPort());
+	clean2->Update();
+	vtkNew<vtkPolyDataNormals> norm2;
+	norm2->SetInputConnection(clean2->GetOutputPort());
+	norm2->Update();
+
 	auto diffOp = vtkSmartPointer<vtkBooleanOperationPolyDataFilter>::New();
-	diffOp->SetInputConnection(0, i1triangle->GetOutputPort());
-	diffOp->SetInputConnection(1, i2triangle->GetOutputPort());
+	diffOp->SetInputConnection(0, norm1->GetOutputPort());
+	diffOp->SetInputConnection(1, norm2->GetOutputPort());
 	diffOp->SetOperationToDifference();
-	//diffOp->SetOperModeToDifference();
 	diffOp->Update();
 	m_diffData = diffOp->GetOutput();
+
+	//auto diffOp = vtkSmartPointer<vtkPolyDataBooleanFilter>::New();
+	//diffOp->SetOperModeToDifference();
 	auto diffMapper = vtkSmartPointer<vtkPolyDataMapper>::New();
 	diffMapper->SetInputData(m_diffData);
 	m_diffActor = vtkSmartPointer<vtkActor>::New();
