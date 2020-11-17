@@ -946,7 +946,7 @@ void iASensitivityInfo::compute()
 
 		m_progress.setStatus("Computing dissimilarity between all result pairs.");
 		// fill "upper" half
-		double overallPairs = resultCount * (resultCount + 1) / 2;
+		double overallPairs = resultCount * (resultCount - 1) / 2;
 		size_t curCheckedPairs = 0;
 		for (int r1 = 0; r1 < resultCount - 1 && !m_aborted; ++r1)
 		{
