@@ -20,6 +20,8 @@
 * ************************************************************************************/
 #include "iAStringHelper.h"
 
+#include "iAMathUtility.h"
+
 #include <QRegularExpression>
 
 
@@ -89,12 +91,19 @@ namespace
 
 QString dblToStringWithUnits(double value)
 {
-	// values between -1 and +1:
+	if (dblApproxEqual(value, 0.0))
+	{
+		return "0";
+	}
 	if (value >= -1.0 && value < 1.0)
 	{
+		if (std::abs(value) > 0.01)
+		{
+			return QString::number(value, 'f', 2);
+		}
 		for (size_t u = 0; u < UnitCount; ++u)
 		{
-			if (value < UnitPrefixSmallVal[u]*OneKilo)
+			if (value < UnitPrefixSmallVal[u]*10)
 			{
 				return QString::number(value * UnitPrefixLargeVal[u], 'f',
 					(value < 10 * UnitPrefixSmallVal[u]) ? 2 : ((value < 100 * UnitPrefixSmallVal[u]) ? 1 : 0)) + UnitPrefixSmall[u];
