@@ -41,7 +41,9 @@
 
 namespace// merge with iASensitivityinfo!
 {
-	enum ColumnIndices { colParamName = 0, colMin = 1, colMax = 2, colStep = 3, colStackedBar = 4, colHistogram = 5 };
+	enum ColumnIndices { colParamName = 0, colMin = 1, colMax = 2, colStep = 3, colStackedBar = 4
+		//, colHistogram = 5 
+	};
 	int LayoutSpacing = 0; int LayoutMargin = 4;
 	const QString DefaultStackedBarColorTheme("Brewer Accent (max. 8)");
 
@@ -81,7 +83,7 @@ iAParameterInfluenceView::iAParameterInfluenceView(iASensitivityInfo* sensInf) :
 	m_paramListLayout->setColumnStretch(colMax, 1);
 	m_paramListLayout->setColumnStretch(colStep, 1);
 	m_paramListLayout->setColumnStretch(colStackedBar, 10);
-	m_paramListLayout->setColumnStretch(colHistogram, 10);
+	//m_paramListLayout->setColumnStretch(colHistogram, 10);
 
 	auto colorTheme = iAColorThemeManager::instance().theme(DefaultStackedBarColorTheme);
 	m_stackedHeader = new iAStackedBarChart(colorTheme, true);
@@ -103,11 +105,13 @@ iAParameterInfluenceView::iAParameterInfluenceView(iASensitivityInfo* sensInf) :
 	addHeaderLabel(m_paramListLayout, colMax, "Max");
 	addHeaderLabel(m_paramListLayout, colStep, "Step");
 	m_paramListLayout->addWidget(m_stackedHeader, 0, colStackedBar);
-	addHeaderLabel(m_paramListLayout, colHistogram, "Difference Distribution");
+	//addHeaderLabel(m_paramListLayout, colHistogram, "Difference Distribution");
 
 	for (int paramIdx = 0; paramIdx < sensInf->m_variedParams.size(); ++paramIdx)
 	{
-		m_stackedCharts.push_back(new iAStackedBarChart(colorTheme, false, paramIdx == sensInf->m_variedParams.size()-1));
+		QString paramName = sensInf->m_paramNames[sensInf->m_variedParams[paramIdx]];
+		m_stackedCharts.push_back(new iAStackedBarChart(colorTheme, false,
+			paramIdx == sensInf->m_variedParams.size() - 1, true, "Var. from " + paramName));
 		connect(m_stackedHeader, &iAStackedBarChart::weightsChanged, m_stackedCharts[paramIdx], &iAStackedBarChart::setWeights);
 		m_stackedCharts[paramIdx]->setProperty("paramIdx", paramIdx);
 		connect(m_stackedCharts[paramIdx], &iAStackedBarChart::clicked, this, &iAParameterInfluenceView::paramChangedSlot);
@@ -117,7 +121,6 @@ iAParameterInfluenceView::iAParameterInfluenceView(iASensitivityInfo* sensInf) :
 		double minVal = *std::min_element(paramVec.begin(), paramVec.end()),
 			maxVal = *std::max_element(paramVec.begin(), paramVec.end());
 		iAClickableLabel* labels[4];
-		QString paramName = sensInf->m_paramNames[sensInf->m_variedParams[paramIdx]];
 		labels[colParamName] = new iAClickableLabel(paramName);
 		labels[colMin] = new iAClickableLabel(QString::number(minVal));
 		labels[colMax] = new iAClickableLabel(QString::number(maxVal));
@@ -130,8 +133,8 @@ iAParameterInfluenceView::iAParameterInfluenceView(iASensitivityInfo* sensInf) :
 		}
 		m_paramListLayout->addWidget(m_stackedCharts[paramIdx], 1 + paramIdx, colStackedBar);
 
-		m_diffChart.push_back(new iAChartWidget(this, "Characteristics distribution", "Var. from "+ paramName));
-		m_paramListLayout->addWidget(m_diffChart[paramIdx], 1 + paramIdx, colHistogram);
+		//m_diffChart.push_back(new iAChartWidget(this, "Characteristics distribution", ));
+		//m_paramListLayout->addWidget(m_diffChart[paramIdx], 1 + paramIdx, colHistogram);
 	}
 	// default stacked bar content/settings:
 	addStackedBar(0);
@@ -169,34 +172,6 @@ void iAParameterInfluenceView::setColorTheme(iAColorTheme const * colorTheme)
 	for (auto stackedChart : m_stackedCharts)
 	{
 		stackedChart->setColorTheme(colorTheme);
-	}
-}
-
-void iAParameterInfluenceView::showDifferenceDistribution(int outputIdx, int selCharIdx, int aggrType)
-{
-	for (auto chart : m_diffChart)
-	{
-		chart->clearPlots();
-	}
-	if (outputIdx == outFiberCount)
-	{
-		return;
-	}
-	const int numBins = m_sensInf->m_histogramBins;
-	for (int paramIdx=0; paramIdx < m_sensInf->m_variedParams.size(); ++paramIdx)
-	{	// improve iAHistogramData to directly take QVector/std::vector data?
-		double * myHisto = new double[numBins];
-		for (int bin = 0; bin < numBins; ++bin)
-		{
-			myHisto[bin] = m_sensInf->charHistVarAgg[selCharIdx][aggrType][paramIdx][bin];
-		}
-		double cMin = m_sensInf->m_data->spmData->paramRange(m_sensInf->m_charSelected[selCharIdx])[0],
-			cMax = m_sensInf->m_data->spmData->paramRange(m_sensInf->m_charSelected[selCharIdx])[1];
-		m_diffChart[paramIdx]->addPlot(QSharedPointer<iAPlot>(new iABarGraphPlot(
-			iAHistogramData::create(myHisto, numBins,
-			(cMax-cMin)/numBins, cMin, cMax), QColor(80, 80, 80) )));
-		m_diffChart[paramIdx]->setXCaption(m_sensInf->charactName(selCharIdx));
-		m_diffChart[paramIdx]->update();
 	}
 }
 
@@ -289,6 +264,7 @@ void iAParameterInfluenceView::updateStackedBars()
 		for (int paramIdx = 0; paramIdx < m_sensInf->m_variedParams.size(); ++paramIdx)
 		{
 			m_stackedCharts[paramIdx]->updateBar(title, d[paramIdx], maxValue);
+			updateStackedBarHistogram(title, paramIdx, charactIdx);
 		}
 	}
 	for (int paramIdx = 0; paramIdx < m_sensInf->m_variedParams.size(); ++paramIdx)
@@ -301,6 +277,30 @@ QString iAParameterInfluenceView::columnName(int charactIdx) const
 {
 	return QString("Variation ") + (charactIdx < m_sensInf->aggregatedSensitivities.size() ?
 		 m_sensInf->charactName(charactIdx) : " Fiber Count");
+}
+
+void iAParameterInfluenceView::updateStackedBarHistogram(QString const & barName, int paramIdx, int charactIdx)
+{
+	int barIdx = m_stackedCharts[paramIdx]->barIndex(barName);
+	auto chart = m_stackedCharts[paramIdx]->chart(barIdx);
+	if (charactIdx == m_sensInf->m_charSelected.size())
+	{
+		return;
+	}
+	chart->clearPlots();
+	const int numBins = m_sensInf->m_histogramBins;
+	// improve iAHistogramData to directly take QVector/std::vector data?
+	double* myHisto = new double[numBins];
+	for (int bin = 0; bin < numBins; ++bin)
+	{
+		myHisto[bin] = m_sensInf->charHistVarAgg[charactIdx][m_aggrType][paramIdx][bin];
+	}
+	double cMin = m_sensInf->m_data->spmData->paramRange(m_sensInf->m_charSelected[charactIdx])[0],
+		   cMax = m_sensInf->m_data->spmData->paramRange(m_sensInf->m_charSelected[charactIdx])[1];
+	chart->addPlot(QSharedPointer<iAPlot>(new iABarGraphPlot(
+		iAHistogramData::create(myHisto, numBins, (cMax - cMin) / numBins, cMin, cMax), QColor(80, 80, 80, 128))));
+	chart->setXCaption(m_sensInf->charactName(charactIdx));
+	chart->update();
 }
 
 void iAParameterInfluenceView::addStackedBar(int charactIdx)
@@ -323,6 +323,7 @@ void iAParameterInfluenceView::addStackedBar(int charactIdx)
 	for (int paramIdx = 0; paramIdx < m_sensInf->m_variedParams.size(); ++paramIdx)
 	{
 		m_stackedCharts[paramIdx]->addBar(title, d[paramIdx], maxValue);
+		updateStackedBarHistogram(title, paramIdx, charactIdx);
 	}
 }
 

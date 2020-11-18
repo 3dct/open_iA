@@ -20,23 +20,12 @@
 * ************************************************************************************/
 #include "qthelper/iASignallingWidget.h"
 
-class iABarData;
+#include <charts/iAChartWidget.h>
 
+class iABarData;
 class iAColorTheme;
 
 class QMenu;
-
-class iABarData
-{
-public:
-	iABarData(): name(""), value(0), maxValue(1), weight(1.0)
-	{}
-	iABarData(QString const & name, double value, double maxValue, double weight):
-		name(name), value(value), maxValue(maxValue), weight(weight)
-	{}
-	QString name;
-	double value, maxValue, weight;
-};
 
 class iAStackedBarChart: public iASignallingWidget
 {
@@ -44,7 +33,8 @@ class iAStackedBarChart: public iASignallingWidget
 public:
 	const int MaxBarHeight = 100;
 	const int TextPadding = 5;
-	iAStackedBarChart(iAColorTheme const * theme, bool header = false, bool last = false);
+	iAStackedBarChart(iAColorTheme const* theme, bool header = false, bool last = false, bool chart = false,
+		QString const & yLabelName = QString());
 	void addBar(QString const & name, double value, double maxValue);
 	void updateBar(QString const& name, double value, double maxValue);
 	void removeBar(QString const & name);
@@ -57,6 +47,7 @@ public:
 	double weightedSum() const;
 	void setSelectedBar(int barIdx);
 	QString barName(int barIdx) const;
+	iAChartWidget* chart(int barIdx);
 signals:
 	void switchedStackMode(bool mode);
 	void weightsChanged(std::vector<double> const & weights);
@@ -79,15 +70,17 @@ private:
 	void mouseReleaseEvent(QMouseEvent* ev) override;
 	void mouseMoveEvent(QMouseEvent* ev) override;
 	void mouseDoubleClickEvent(QMouseEvent* e) override;
+	//void resizeEvent(QResizeEvent* e) override;
 	//! @}
 
 	size_t dividerWithinRange(int x) const;
 	double weightAndNormalize(iABarData const& bar) const;
-	int barWidth(iABarData const & bar) const;
+	int barWidth(iABarData const & bar, int fullWidth) const;
 	void normalizeWeights();
 	void updateOverallMax();
+	void updateChartBars();
 
-	std::vector<iABarData> m_bars;
+	std::vector<QSharedPointer<iABarData>> m_bars;
 	std::vector<int> m_dividers;
 	iAColorTheme const * m_theme;
 	QMenu* m_contextMenu;
@@ -95,11 +88,13 @@ private:
 	size_t m_resizeBar;
 	int m_resizeStartX;
 	double m_resizeWidth;
-	std::vector<iABarData> m_resizeBars;
+	std::vector<QSharedPointer<iABarData>> m_resizeBars;
 	QColor m_bgColor;
 	bool m_normalizePerBar;
 	double m_overallMaxValue;
 	int m_selectedBar;
+	bool m_showChart;
+	QString m_yLabelName;
 };
 
 class QGridLayout;

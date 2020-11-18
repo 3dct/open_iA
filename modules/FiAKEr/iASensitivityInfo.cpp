@@ -420,7 +420,7 @@ void getBestMatches2(iAFiberData const& fiber, std::vector<iAFiberData> const& o
 		{  // compute overlap measures only for the best-matching fibers according to a simpler metric:
 		*/
 			//auto& otherMatches = bestMatches[bestMatchesStartIdx + optimizationMeasureIdx];
-			similarities.resize(candidates.size());
+			similarities.resize(static_cast<int>(candidates.size()));
 			for (iARefDistCompute::ContainerSizeType bestMatchID = 0; bestMatchID < candidates.size(); ++bestMatchID)
 			{
 				size_t refFiberID = candidates[bestMatchID];
@@ -1593,7 +1593,7 @@ void iASensitivityInfo::paramChanged()
 	plot->setInteractions(QCP::iRangeDrag | QCP::iRangeZoom | QCP::iSelectPlottables);
 	plot->replot();
 
-	m_gui->m_paramInfluenceView->showDifferenceDistribution(outputIdx, selCharIdx, aggrType);
+	//m_gui->m_paramInfluenceView->showDifferenceDistribution(outputIdx, selCharIdx, aggrType);
 }
 
 void iASensitivityInfo::charactChanged(int charIdx)

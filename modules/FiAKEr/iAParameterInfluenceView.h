@@ -48,7 +48,6 @@ public:
 	int selectedRow() const;
 	int selectedCol() const;
 	void setColorTheme(iAColorTheme const * colorTheme);
-	void showDifferenceDistribution(int outputIdx, int selCharIdx, int aggrType);
 public slots:
 	void showStackedBar();
 	void selectStackedBar(int idx);
@@ -60,12 +59,14 @@ private:
 	void updateStackedBars();
 	void addStackedBar(int charactIdx);
 	void removeStackedBar(int charactIdx);
+	void updateStackedBarHistogram(QString const & barName, int paramIdx, int charactIdx);
+
 	QString columnName(int charactIdx) const;
 
 	QVector<int> m_visibleCharacts;
 	//! stacked bar charts (one per parameter)
 	QVector<iAStackedBarChart*> m_stackedCharts;
-	QVector<iAChartWidget*> m_diffChart;
+	//QVector<iAChartWidget*> m_diffChart;
 	iAStackedBarChart* m_stackedHeader;
 	//! sensitivity information
 	iASensitivityInfo* m_sensInf;

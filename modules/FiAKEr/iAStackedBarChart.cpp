@@ -20,6 +20,7 @@
 * ************************************************************************************/
 #include "iAStackedBarChart.h"
 
+#include <charts/iAChartWidget.h>
 #include <iAColorTheme.h>
 #include <iALog.h>
 #include <iAMathUtility.h>
@@ -41,11 +42,37 @@ namespace
 	const int DividerRange = 2;
 	const int BarSpacing = 1;
 	size_t NoBar = std::numeric_limits<size_t>::max();
+	const int MaxChartWidth = 150;
 }
 
-iAStackedBarChart::iAStackedBarChart(iAColorTheme const * theme, bool header, bool last):
+class iABarData
+{
+public:
+	iABarData() : name(""), value(0), maxValue(1), weight(1.0), m_chart(nullptr)
+	{
+	}
+	iABarData(QString const& name, double value, double maxValue, double weight, bool showChart, QWidget* parent,
+		QString const& xLabel, QString const& yLabel) :
+		name(name),
+		value(value),
+		maxValue(maxValue),
+		weight(weight),
+		m_chart(showChart ? new iAChartWidget(parent, xLabel, yLabel) : nullptr)
+	{
+	}
+	~iABarData()
+	{
+		delete m_chart;
+	}
+	QString name;
+	double value, maxValue, weight;
+	iAChartWidget* m_chart;
+};
+
+iAStackedBarChart::iAStackedBarChart(
+	iAColorTheme const* theme, bool header, bool last, bool chart, QString const& yLabelName) :
 	m_theme(theme),
-	m_contextMenu(header ? new QMenu(this): nullptr),
+	m_contextMenu(header ? new QMenu(this) : nullptr),
 	m_header(header),
 	m_last(last),
 	m_stack(true),
@@ -53,7 +80,9 @@ iAStackedBarChart::iAStackedBarChart(iAColorTheme const * theme, bool header, bo
 	m_resizeStartX(0),
 	m_resizeWidth(0),
 	m_normalizePerBar(true),
-	m_selectedBar(-1)
+	m_selectedBar(-1),
+	m_showChart(chart),
+	m_yLabelName(yLabelName)
 {
 	setMouseTracking(true);
 	setContextMenuPolicy(Qt::DefaultContextMenu);
@@ -78,11 +107,21 @@ iAStackedBarChart::iAStackedBarChart(iAColorTheme const * theme, bool header, bo
 		m_contextMenu->addAction(resetWeightsAction);
 		m_contextMenu->addSeparator();
 	}
+	if (m_showChart)
+	{
+		setLayout(new QHBoxLayout());
+	}
 }
 
 void iAStackedBarChart::addBar(QString const & name, double value, double maxValue)
 {
-	m_bars.push_back(iABarData(name, value, maxValue, (m_bars.size()==0) ? 1 : 1.0/m_bars.size()));
+	m_bars.push_back(QSharedPointer<iABarData>(new iABarData(name, value, maxValue, (m_bars.size()==0) ? 1 : 1.0/m_bars.size(),
+		m_showChart, this, name, (m_bars.size() == 0) ? m_yLabelName : "")));
+	if (m_showChart)
+	{
+		updateChartBars();
+		layout()->addWidget(m_bars[m_bars.size()-1]->m_chart);
+	}
 	normalizeWeights();
 	update();
 }
@@ -90,31 +129,33 @@ void iAStackedBarChart::addBar(QString const & name, double value, double maxVal
 void iAStackedBarChart::updateBar(QString const& name, double value, double maxValue)
 {
 	auto it = std::find_if(m_bars.begin(), m_bars.end(),
-		[name](iABarData const& d) { return d.name == name; });
+		[name](QSharedPointer<iABarData> d) { return d->name == name; });
 	if (it != m_bars.end())
 	{
-		it->value = value;
-		it->maxValue = maxValue;
+		(*it)->value = value;
+		(*it)->maxValue = maxValue;
 	}
 	updateOverallMax();
+	updateChartBars();
 }
 
 void iAStackedBarChart::removeBar(QString const & name)
 {
 	auto it = std::find_if(m_bars.begin(), m_bars.end(),
-		[name](iABarData const & d){ return d.name == name; });
+		[name](QSharedPointer<iABarData> d){ return d->name == name; });
 	if (it != m_bars.end())
 	{
 		m_bars.erase(it);
 	}
 	normalizeWeights();
+	updateChartBars();
 	update();
 }
 
 int iAStackedBarChart::barIndex(QString const& name) const
 {
 	auto it = std::find_if(m_bars.begin(), m_bars.end(),
-		[name](iABarData const& d) { return d.name == name; });
+		[name](QSharedPointer<iABarData> d) { return d->name == name; });
 	return it == m_bars.end() ? -1 : it - m_bars.begin();
 }
 
@@ -165,7 +206,7 @@ double iAStackedBarChart::weightedSum() const
 	double result = 0;
 	for (auto const & b: m_bars)
 	{
-		result += weightAndNormalize(b);
+		result += weightAndNormalize(*b.data());
 	}
 	return result;
 }
@@ -178,7 +219,12 @@ void iAStackedBarChart::setSelectedBar(int barIdx)
 
 QString iAStackedBarChart::barName(int barIdx) const
 {
-	return m_bars[barIdx].name;
+	return m_bars[barIdx]->name;
+}
+
+iAChartWidget* iAStackedBarChart::chart(int barIdx)
+{
+	return m_bars[barIdx]->m_chart;
 }
 
 void iAStackedBarChart::setBackgroundColor(QColor const & color)
@@ -195,8 +241,24 @@ void iAStackedBarChart::switchStackMode()
 	emit switchedStackMode(sender->isChecked());
 }
 
-void iAStackedBarChart::paintEvent(QPaintEvent* /*ev*/)
+/*
+void iAStackedBarChart::resizeEvent(QResizeEvent* e)
 {
+	QWidget::resizeEvent(e);
+	if (!m_showChart || !m_bars[0].m_chart || !isVisible())
+	{
+		return;
+	}
+}
+*/
+
+void iAStackedBarChart::paintEvent(QPaintEvent* ev)
+{
+	if (m_showChart)
+	{
+		QWidget::paintEvent(ev);
+		return;
+	}
 	m_dividers.clear();
 	QPainter painter(this);
 	painter.setPen(QWidget::palette().color(QPalette::Text));
@@ -212,14 +274,14 @@ void iAStackedBarChart::paintEvent(QPaintEvent* /*ev*/)
 	for (size_t barID = 0; barID < m_bars.size(); ++barID)
 	{
 		auto & bar = m_bars[barID];
-		int bWidth = barWidth(bar);
+		int bWidth = barWidth(*bar.data(), geometry().width());
 		QRect barRect(accumulatedWidth, topY, bWidth, barHeight);
 		QBrush barBrush(m_theme->color(barID));
 		painter.fillRect(barRect, barBrush);
 		if (m_selectedBar == barID)
 		{
 			QRect box(accumulatedWidth, 0,
-				(m_stack ? bWidth : static_cast<int>(bar.weight * geometry().width())) - 1, geometry().height());
+				(m_stack ? bWidth : static_cast<int>(bar->weight * geometry().width())) - 1, geometry().height());
 			if (m_header)
 			{
 				painter.drawLine(box.topLeft(), box.topRight());
@@ -233,9 +295,9 @@ void iAStackedBarChart::paintEvent(QPaintEvent* /*ev*/)
 		}
 		barRect.adjust(TextPadding, 0, -TextPadding, 0);
 		painter.drawText(barRect, Qt::AlignVCenter,
-			(m_header ? bar.name : QString("%1").arg(bar.value)));
+			(m_header ? bar->name : QString("%1").arg(bar->value)));
 		m_dividers.push_back(accumulatedWidth + bWidth);
-		accumulatedWidth += m_stack ? bWidth : static_cast<int>(bar.weight * geometry().width());
+		accumulatedWidth += m_stack ? bWidth : static_cast<int>(bar->weight * geometry().width());
 	}
 }
 
@@ -265,11 +327,11 @@ void iAStackedBarChart::normalizeWeights()
 	double weightSum = 0;
 	for (auto& bar : m_bars)
 	{
-		weightSum += bar.weight;
+		weightSum += bar->weight;
 	}
 	for (auto& bar : m_bars)
 	{
-		bar.weight = std::max(MinimumWeight, bar.weight / weightSum);
+		bar->weight = std::max(MinimumWeight, bar->weight / weightSum);
 	}
 }
 
@@ -278,17 +340,55 @@ void iAStackedBarChart::updateOverallMax()
 	m_overallMaxValue = std::numeric_limits<double>::lowest();
 	for (auto& bar : m_bars)
 	{
-		if (bar.maxValue > m_overallMaxValue)
+		if (bar->maxValue > m_overallMaxValue)
 		{
-			m_overallMaxValue = bar.maxValue;
+			m_overallMaxValue = bar->maxValue;
 		}
 	}
 }
 
-int iAStackedBarChart::barWidth(iABarData const & bar) const
+void iAStackedBarChart::updateChartBars()
+{
+	if (!m_showChart)
+	{
+		return;
+	}
+	// paint bars in chart:
+	//LOG(lvlDebug, QString("UpdateChartBars: Width = ").arg(geometry().width()));
+	int fullWidth = geometry().width() - m_bars[0]->m_chart->leftMargin();
+	for (size_t barID = 0; barID < m_bars.size(); ++barID)
+	{
+		auto& bar = m_bars[barID];
+		int bWidth = barWidth(*bar.data(), fullWidth);
+		int chartWidth = bar->weight * fullWidth;
+		bar->m_chart->clearImageOverlays();
+		QSharedPointer<QImage> pImage(new QImage(chartWidth, 1, QImage::Format_ARGB32));
+		pImage->fill(qRgba(0, 0, 0, 0)); // transparent...
+		QPainter p(pImage.data());
+		QRect barRect(0, 0, bWidth, 1);
+		QBrush barBrush(m_theme->color(barID));
+		p.fillRect(barRect, barBrush);
+		bar->m_chart->addImageOverlay(pImage, false);
+	}
+	// resize charts according to weights:
+	/*
+	QString fullLog("Chart Width - ");
+	for (size_t barID = 0; barID < m_bars.size(); ++barID)
+	{
+		auto& bar = m_bars[barID];
+		int chartWidth = std::min(MaxChartWidth, static_cast<int>(bar->weight * fullWidth));
+		int fullChartWidth = chartWidth + ((barID == 0) ? m_bars[0]->m_chart->leftMargin() : 0);
+		bar->m_chart->setFixedWidth(fullChartWidth);
+		fullLog += QString("%1: %2  ").arg(barID).arg(fullChartWidth);
+	}
+	LOG(lvlDebug, fullLog);
+	*/
+}
+
+int iAStackedBarChart::barWidth(iABarData const & bar, int fullWidth) const
 {
 	return std::max(MinimumPixelBarWidth,
-		static_cast<int>(weightAndNormalize(bar) * geometry().width()) );
+		static_cast<int>(weightAndNormalize(bar) * fullWidth) );
 }
 
 void iAStackedBarChart::mouseMoveEvent(QMouseEvent* ev)
@@ -312,7 +412,7 @@ void iAStackedBarChart::mouseMoveEvent(QMouseEvent* ev)
 				//	.arg(geometry().width()).arg(m_resizeBar).arg(m_resizeWidth).arg(newWidth).arg(oldRestWidth).arg(newRestWidth));
 				for (size_t barID = 0; barID < m_bars.size(); ++barID)
 				{
-					m_bars[barID].weight = std::max(MinimumWeight, m_resizeBars[barID].weight *
+					m_bars[barID]->weight = std::max(MinimumWeight, m_resizeBars[barID]->weight *
 						((barID == m_resizeBar)? (newWidth / m_resizeWidth) : (newRestWidth / oldRestWidth)) );
 					//LOG(lvlInfo, QString("    Bar %1: %2").arg(barID).arg(m_bars[barID].weight));
 				}
@@ -335,7 +435,8 @@ void iAStackedBarChart::mouseMoveEvent(QMouseEvent* ev)
 		if (curBar < m_bars.size())
 		{
 			auto & b = m_bars[curBar];
-			QToolTip::showText(ev->globalPos(), QString("%1: %2 (weight: %3)").arg(b.name).arg(b.value).arg(b.weight), this);
+			QToolTip::showText(ev->globalPos(), QString("%1: %2 (weight: %3)")
+				.arg(b->name).arg(b->value).arg(b->weight), this);
 		}
 	}
 }
@@ -349,7 +450,7 @@ void iAStackedBarChart::mousePressEvent(QMouseEvent* ev)
 		{
 			m_resizeBar = barID;
 			m_resizeStartX = ev->x();
-			m_resizeWidth = barWidth(m_bars[barID]);
+			m_resizeWidth = barWidth(*m_bars[barID].data(), geometry().width());
 			m_resizeBars = m_bars;
 		}
 	}
@@ -363,7 +464,7 @@ void iAStackedBarChart::mouseReleaseEvent(QMouseEvent* /*ev*/)
 		std::vector<double> weights(m_bars.size());
 		for (size_t b = 0; b < m_bars.size(); ++b)
 		{
-			weights[b] = m_bars[b].weight;
+			weights[b] = m_bars[b]->weight;
 		}
 		emit weightsChanged(weights);
 	}
@@ -395,7 +496,7 @@ void iAStackedBarChart::setWeights(std::vector<double> const & weights)
 {
 	for (size_t b = 0; b < m_bars.size(); ++b)
 	{
-		m_bars[b].weight = weights[b];
+		m_bars[b]->weight = weights[b];
 	}
 	update();
 }
@@ -405,7 +506,7 @@ void iAStackedBarChart::resetWeights()
 	std::vector<double> weights(m_bars.size(), 1.0 / m_bars.size());
 	for (size_t b = 0; b < m_bars.size(); ++b)
 	{
-		m_bars[b].weight = weights[b];
+		m_bars[b]->weight = weights[b];
 	}
 	update();
 	emit weightsChanged(weights);
