@@ -283,7 +283,7 @@ void iAParameterInfluenceView::updateStackedBarHistogram(QString const & barName
 {
 	int barIdx = m_stackedCharts[paramIdx]->barIndex(barName);
 	auto chart = m_stackedCharts[paramIdx]->chart(barIdx);
-	if (charactIdx == m_sensInf->m_charSelected.size())
+	if (charactIdx >= m_sensInf->m_charSelected.size())
 	{
 		return;
 	}
@@ -325,6 +325,7 @@ void iAParameterInfluenceView::addStackedBar(int charactIdx)
 		m_stackedCharts[paramIdx]->addBar(title, d[paramIdx], maxValue);
 		updateStackedBarHistogram(title, paramIdx, charactIdx);
 	}
+	m_stackedHeader->setLeftMargin(m_stackedCharts[0]->chart(0)->leftMargin());
 }
 
 void iAParameterInfluenceView::removeStackedBar(int charactIdx)

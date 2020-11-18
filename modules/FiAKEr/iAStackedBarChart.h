@@ -48,6 +48,7 @@ public:
 	void setSelectedBar(int barIdx);
 	QString barName(int barIdx) const;
 	iAChartWidget* chart(int barIdx);
+	void setLeftMargin(int leftMargin);
 signals:
 	void switchedStackMode(bool mode);
 	void weightsChanged(std::vector<double> const & weights);
@@ -95,6 +96,7 @@ private:
 	int m_selectedBar;
 	bool m_showChart;
 	QString m_yLabelName;
+	int m_leftMargin;
 };
 
 class QGridLayout;
