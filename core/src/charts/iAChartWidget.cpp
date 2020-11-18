@@ -543,7 +543,7 @@ void iAChartWidget::drawYAxis(QPainter &painter)
 		double pos = step * i;
 		int y = -static_cast<int>(pos * aheight * m_yZoom) - 1;
 		double yValue = m_yMapper->dstToSrc(-y-1);
-		QString text = dblToStringWithUnits(yValue);
+		QString text = dblToStringWithUnits(yValue, 10);
 		painter.drawLine(static_cast<int>(-TickWidth), y, 0, y);	// indicator line
 #if QT_VERSION >= QT_VERSION_CHECK(5, 11, 0)
 		painter.drawText( - ( fm.horizontalAdvance(text) + TickWidth),

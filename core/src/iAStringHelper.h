@@ -172,7 +172,7 @@ open_iA_Core_API QString padOrTruncate(QString const & str, int size);
 open_iA_Core_API QString stripHTML(QString const & html);
 
 //! returns the value converted to string, with units (K, M, G, T, P) applied for every 10³ factor over 1000
-open_iA_Core_API QString dblToStringWithUnits(double value);
+open_iA_Core_API QString dblToStringWithUnits(double value, double switchFactor = 1000);
 
 //! join an iterable collection of numeric elements to a string
 //!

@@ -79,6 +79,11 @@ BEGIN_TEST
 	TestEqual(dblToStringWithUnits(1.5353), QString("1.54"));
 	TestEqual(dblToStringWithUnits(12.32), QString("12.3"));
 	TestEqual(dblToStringWithUnits(323), QString("323"));
+	TestEqual(dblToStringWithUnits(0.323, 100), QString("0.32"));
+	TestEqual(dblToStringWithUnits(0.09, 100), QString("90.0m"));
+	TestEqual(dblToStringWithUnits(0.009, 10), QString("9.00m"));
+	TestEqual(dblToStringWithUnits(0.000323, 100), QString("0.32m"));
+	TestEqual(dblToStringWithUnits(0.000323), QString("323µ"));
 	TestEqual(dblToStringWithUnits(5323), QString("5.32K"));
 	TestEqual(dblToStringWithUnits(6306403), QString("6.31M"));
 	TestEqual(dblToStringWithUnits(92314300), QString("92.3M"));
