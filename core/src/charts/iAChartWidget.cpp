@@ -337,6 +337,7 @@ void iAChartWidget::createMappers()
 void iAChartWidget::drawImageOverlays(QPainter& painter)
 {
 	QRect targetRect = geometry();
+	QRect chartRect = QRect(-m_translationX, bottomMargin(), chartWidth(), chartHeight());
 	int yTranslate = static_cast<int>(-(m_yZoom - 1) * (targetRect.height()));
 	targetRect.setHeight(targetRect.height() - targetRect.top() - 1);
 	targetRect.setWidth(static_cast<int>((targetRect.width() - leftMargin()) * m_xZoom));
@@ -344,7 +345,9 @@ void iAChartWidget::drawImageOverlays(QPainter& painter)
 	targetRect.setLeft(0);
 	for (int i = 0; i < m_overlays.size(); ++i)
 	{
-		painter.drawImage(targetRect, *(m_overlays[i].data()), m_overlays[i]->rect());
+		painter.drawImage(m_overlays[i].second ? // stretch to full chart area?
+			targetRect : chartRect,
+			*(m_overlays[i].first.data()), m_overlays[i].first->rect());
 	}
 }
 
@@ -784,21 +787,26 @@ bool iAChartWidget::isDrawnDiscrete() const
 	return !m_plots.empty();
 }
 
-void iAChartWidget::addImageOverlay(QSharedPointer<QImage> imgOverlay)
+void iAChartWidget::addImageOverlay(QSharedPointer<QImage> imgOverlay, bool stretch)
 {
-	m_overlays.push_back(imgOverlay);
+	m_overlays.push_back(std::make_pair(imgOverlay, stretch));
 }
 
 void iAChartWidget::removeImageOverlay(QImage * imgOverlay)
 {
-	for (int i = 0; i < m_overlays.size(); ++i)
+	for (auto it = m_overlays.begin(); it != m_overlays.end(); ++it)
 	{
-		if (m_overlays.at(i).data() == imgOverlay)
+		if (it->first.data() == imgOverlay)
 		{
-			m_overlays.removeAt(i);
-			return;
+			m_overlays.erase(it);
+			break;
 		}
 	}
+}
+
+void iAChartWidget::clearImageOverlays()
+{
+	m_overlays.clear();
 }
 
 void iAChartWidget::setSelectionMode(SelectionMode mode)

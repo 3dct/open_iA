@@ -136,9 +136,11 @@ public:
 	//! plot is continuous, it will report false.
 	bool isDrawnDiscrete() const;
 	//! Add an image overlay to the chart.
-	void addImageOverlay(QSharedPointer<QImage> imgOverlay);
+	void addImageOverlay(QSharedPointer<QImage> imgOverlay, bool stretch=true);
 	//! Remove an image overlay from the chart.
 	void removeImageOverlay(QImage * imgOverlay);
+	//! Clear all image overlays:
+	void clearImageOverlays();
 	//! Determine how a selection works; see SelectionMode: either disable selection,
 	//! or allow selection of single plots.
 	void setSelectionMode(SelectionMode mode);
@@ -235,8 +237,8 @@ private:
 	double visibleXStart() const;
 	double visibleXEnd() const;
 
-	std::vector< QSharedPointer< iAPlot > >	m_plots;
-	QList< QSharedPointer< QImage > > m_overlays;
+	std::vector<QSharedPointer<iAPlot> >	m_plots;
+	std::vector<std::pair<QSharedPointer<QImage>, bool> > m_overlays;
 	QMenu* m_contextMenu;
 	QPoint m_contextPos;
 	bool m_showTooltip;
