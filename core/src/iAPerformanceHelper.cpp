@@ -248,13 +248,13 @@ QString formatSingularPlural(long part, QString caption)
 	return QString::number(part) + " " + caption + ((part != 1) ? "s" : "") + " ";
 }
 
-QString formatDuration(double duration)
+QString formatDuration(double duration, bool showMS)
 {
 	long secondsLong = static_cast<long>(duration);
 	long secondPart = secondsLong % 60;
 	long milliSeconds = (duration - secondsLong) * 1000;
 	QString result;
-	if (secondsLong < 10)
+	if (showMS && secondsLong < 10)
 	{
 		result = QString::number(milliSeconds)+QString(" ms");
 	}

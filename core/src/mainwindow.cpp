@@ -2609,6 +2609,7 @@ int MainWindow::runGUI(int argc, char * argv[], QString const & appName, QString
 	mainWin.addDockWidget(Qt::RightDockWidgetArea, iALogWidget::get());
 	auto dwJobs = new iADockWidgetWrapper(iAJobListView::get(), "Jobs", "Jobs");
 	mainWin.splitDockWidget(iALogWidget::get(), dwJobs, Qt::Vertical);
+	dwJobs->setFeatures(dwJobs->features() & ~QDockWidget::DockWidgetVerticalTitleBar);
 	dwJobs->hide();
 	connect(iAJobListView::get(), &iAJobListView::jobAdded, dwJobs, &QDockWidget::show);
 	connect(iAJobListView::get(), &iAJobListView::allJobsDone, dwJobs, &QDockWidget::hide);
