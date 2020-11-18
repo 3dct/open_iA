@@ -28,6 +28,7 @@
 
 #include <QLabel>
 #include <QProgressBar>
+#include <QTimer>
 #include <QToolButton>
 #include <QVariant>
 #include <QVBoxLayout>
@@ -91,7 +92,13 @@ QWidget* iAJobListView::addJobWidget(QString name, iAProgress* p, iAAbortListene
 	progressBar->setValue(0);
 
 	auto statusLabel = new QLabel("");
-	auto elapsedLabel = new QLabel("Elapsed: - (estimated remaining: unknown)");
+	statusLabel->setSizePolicy(QSizePolicy::Ignored, QSizePolicy::Fixed);
+
+	auto elapsedLabel = new QLabel("Elapsed: -");
+	elapsedLabel->setSizePolicy(QSizePolicy::Ignored, QSizePolicy::Fixed);
+
+	auto remainingLabel = new QLabel("Estimated remaining: unknown");
+	remainingLabel->setSizePolicy(QSizePolicy::Ignored, QSizePolicy::Fixed);
 
 	auto statusWidget = new QWidget();
 	statusWidget->setLayout(new QVBoxLayout);
@@ -99,6 +106,7 @@ QWidget* iAJobListView::addJobWidget(QString name, iAProgress* p, iAAbortListene
 	statusWidget->layout()->setSpacing(2);
 	statusWidget->layout()->addWidget(statusLabel);
 	statusWidget->layout()->addWidget(elapsedLabel);
+	statusWidget->layout()->addWidget(remainingLabel);
 	statusWidget->layout()->addWidget(progressBar);
 
 	auto abortButton = new QToolButton();
@@ -127,20 +135,20 @@ QWidget* iAJobListView::addJobWidget(QString name, iAProgress* p, iAAbortListene
 		estimator = QSharedPointer<iADurationEstimator>(new iAPercentBasedEstimator());
 	}
 	m_estimators.insert(jobWidget, estimator);
+	QTimer* timer = new QTimer(jobWidget);
+	connect(timer, &QTimer::timeout, jobWidget, [elapsedLabel, estimator] {
+		elapsedLabel->setText(QString("Elapsed: %1").arg(formatDuration(estimator->elapsed(), false)));
+	});
+	timer->start(500);
 
-	// connections
 	if (p)
 	{
-		connect(p, &iAProgress::progress, jobWidget, [progressBar, elapsedLabel, estimator](double value)
+		connect(p, &iAProgress::progress, jobWidget, [progressBar, estimator, remainingLabel](double value)
 			{
 				progressBar->setValue(value*10);
-				// TODO: occasionally update elapsed time even without progress signal?
 				double estRem = estimator->estimatedTimeRemaining(value);
-				elapsedLabel->setText(
-					QString("Elapsed: %1 (estimated remaining: %2)")
-						.arg(formatDuration(estimator->elapsed()))
-						.arg((estRem == -1) ? "unknown" : formatDuration(estRem))
-					);
+				remainingLabel->setText(
+					QString("Estimated remaining: %1").arg((estRem == -1) ? "unknown" : formatDuration(estRem, false)));
 			});
 		connect(p, &iAProgress::statusChanged, statusLabel, &QLabel::setText);
 	}
