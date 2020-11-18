@@ -47,13 +47,13 @@ const char * EnergyLineNames[9] =
 	"Mα1"
 };
 
-iAEnergySpectrumWidget::iAEnergySpectrumWidget(QWidget *parent, MdiChild *mdiChild,
+iAEnergySpectrumWidget::iAEnergySpectrumWidget(QWidget *parent,
 		QSharedPointer<iAAccumulatedXRFData> data,
 		vtkPiecewiseFunction* oTF,
 		vtkColorTransferFunction* cTF,
 		iASpectrumFilterListener* filterListener,
 		QString const & xLabel)
-	: iAChartWithFunctionsWidget(parent, mdiChild, xLabel, "Count"),
+	: iAChartWithFunctionsWidget(parent, xLabel, "Count"),
 	m_data(data),
 	selectionRubberBand(new QRubberBand(QRubberBand::Rectangle, this)),
 	filterListener(filterListener)

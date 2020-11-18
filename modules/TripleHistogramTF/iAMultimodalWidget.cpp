@@ -485,7 +485,7 @@ void iAMultimodalWidget::updateModalities()
 		vtkPiecewiseFunction *opFuncCopy = vtkPiecewiseFunction::New();
 		m_copyTFs[i] = createCopyTf(i, colorFuncCopy, opFuncCopy);
 
-		m_histograms[i] = QSharedPointer<iAChartWithFunctionsWidget>(new iAChartWithFunctionsWidget(nullptr, m_mdiChild, m_modalitiesActive[i]->name()+" gray value", "Frequency"));
+		m_histograms[i] = QSharedPointer<iAChartWithFunctionsWidget>(new iAChartWithFunctionsWidget(nullptr, m_modalitiesActive[i]->name()+" gray value", "Frequency"));
 		QSharedPointer<iAPlot> histogramPlot = QSharedPointer<iAPlot>(
 			new	iABarGraphPlot(m_modalitiesActive[i]->histogramData(), QColor(70, 70, 70, 255)));
 		m_histograms[i]->addPlot(histogramPlot);

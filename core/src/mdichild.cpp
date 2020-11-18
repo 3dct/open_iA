@@ -112,7 +112,7 @@ MdiChild::MdiChild(MainWindow* mainWnd, iAPreferences const& prefs, bool unsaved
 	m_slicerTransform(vtkTransform::New()),
 	m_volumeStack(new iAVolumeStack),
 	m_ioThread(nullptr),
-	m_histogram(new iAChartWithFunctionsWidget(nullptr, this, " Histogram", "Frequency")),
+	m_histogram(new iAChartWithFunctionsWidget(nullptr, " Histogram", "Frequency")),
 	m_dwHistogram(new iADockWidgetWrapper(m_histogram, "Histogram", "Histogram")),
 	m_dwImgProperty(nullptr),
 	m_dwProfile(nullptr),
