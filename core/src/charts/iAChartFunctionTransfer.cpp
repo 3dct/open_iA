@@ -24,7 +24,6 @@
 #include "iALog.h"
 #include "iAMapper.h"
 #include "iAMathUtility.h"
-#include "mdichild.h"
 
 #include <vtkColorTransferFunction.h>
 #include <vtkImageData.h>

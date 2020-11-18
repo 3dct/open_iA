@@ -70,11 +70,11 @@ private:
 };
 
 
-iARangeSliderDiagramWidget::iARangeSliderDiagramWidget( QWidget *parent, MdiChild *mdiChild,
+iARangeSliderDiagramWidget::iARangeSliderDiagramWidget( QWidget *parent,
 	vtkPiecewiseFunction* oTF, vtkColorTransferFunction* cTF, QSharedPointer<iARangeSliderDiagramData> data,
 	QMap<double, QList<double> > *histogramMap, const QTableWidget *rawTable,
 	QString const & xlabel, QString const & yLabel):
-	iAChartWithFunctionsWidget(parent, mdiChild, xlabel, yLabel),
+	iAChartWithFunctionsWidget(parent, xlabel, yLabel),
 	m_data(data),
 	m_selectionOrigin(QPoint(0, 0)),
 	m_selectionRubberBand(new QRubberBand(QRubberBand::Rectangle, this)),

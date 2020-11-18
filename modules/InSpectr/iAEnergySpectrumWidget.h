@@ -34,7 +34,7 @@ class QRubberBand;
 class iAEnergySpectrumWidget: public iAChartWithFunctionsWidget
 {
 public:
-	iAEnergySpectrumWidget(QWidget *parent, MdiChild *mdiChild,
+	iAEnergySpectrumWidget(QWidget *parent,
 		QSharedPointer<iAAccumulatedXRFData> data,
 		vtkPiecewiseFunction* oTF,
 		vtkColorTransferFunction* cTF,
