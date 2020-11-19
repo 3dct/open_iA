@@ -1625,7 +1625,7 @@ void iASensitivityInfo::updateDissimilarity()
 {
 	int dissimIdx = m_gui->m_settings->cmbboxDissimilarity->currentIndex();
 	iAMatrixType distMatrix(m_data->result.size(), std::vector<double>(m_data->result.size()));
-	LOG(lvlDebug, "Distance Matrix:");
+	//LOG(lvlDebug, "Distance Matrix:");
 	for (int r1 = 0; r1 < distMatrix.size(); ++r1)
 	{
 		QString line;
@@ -1634,17 +1634,17 @@ void iASensitivityInfo::updateDissimilarity()
 			distMatrix[r1][r2] = m_resultDissimMatrix[r1][r2].avgDissim[dissimIdx];
 			line += " " + QString::number(distMatrix[r1][r2], 'f', 2).rightJustified(5);
 		}
-		LOG(lvlDebug, QString("%1:%2").arg(r1).arg(line));
+		//LOG(lvlDebug, QString("%1:%2").arg(r1).arg(line));
 	}
 	auto mds = computeMDS(distMatrix, 2, 100);
-	LOG(lvlDebug, "MDS:");
+	//LOG(lvlDebug, "MDS:");
 	for (int i = 0; i < mds.size(); ++i)
 	{
 		for (int c = 0; c < mds[0].size(); ++c)
 		{
 			m_gui->m_mdsData->data()[m_gui->m_mdsData->numParams() - 3 + c][i] = mds[i][c];
 		}
-		LOG(lvlDebug, QString("%1: %2, %3").arg(i).arg(mds[i][0]).arg(mds[i][1]));
+		//LOG(lvlDebug, QString("%1: %2, %3").arg(i).arg(mds[i][0]).arg(mds[i][1]));
 	}
 	m_gui->m_mdsData->updateRanges();
 }

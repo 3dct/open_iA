@@ -307,7 +307,6 @@ void iAParameterInfluenceView::updateStackedBarHistogram(QString const & barName
 	for (size_t barID = 0; barID < s->numberOfBars(); ++barID)
 	{
 		double const* yRange = s->chart(barID)->yBounds();
-		LOG(lvlDebug, QString("Range: %1-%2").arg(yRange[0]).arg(yRange[1]));
 		if (yRange[0] < maxYRange[0])
 		{
 			maxYRange[0] = yRange[0];
@@ -317,7 +316,6 @@ void iAParameterInfluenceView::updateStackedBarHistogram(QString const & barName
 			maxYRange[1] = yRange[1];
 		}
 	}
-	LOG(lvlDebug, QString("Range: %1-%2").arg(maxYRange[0]).arg(maxYRange[1]));
 	for (size_t barID = 0; barID < s->numberOfBars(); ++barID)
 	{
 		s->chart(barID)->setYBounds(maxYRange[0], maxYRange[1]);
