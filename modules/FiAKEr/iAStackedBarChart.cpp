@@ -155,7 +155,7 @@ void iAStackedBarChart::removeBar(QString const & name)
 			gL->removeWidget(m_bars[i]->m_chart);
 			gL->addWidget(m_bars[i]->m_chart, 0, i);
 		}
-		gL->setColumnStretch(m_bars.size(), 0);
+		gL->setColumnStretch(static_cast<int>(m_bars.size()), 0);
 	}
 	normalizeWeights();
 	updateChartBars();
@@ -227,12 +227,12 @@ void iAStackedBarChart::setSelectedBar(int barIdx)
 	update();
 }
 
-QString iAStackedBarChart::barName(int barIdx) const
+QString iAStackedBarChart::barName(size_t barIdx) const
 {
 	return m_bars[barIdx]->name;
 }
 
-iAChartWidget* iAStackedBarChart::chart(int barIdx)
+iAChartWidget* iAStackedBarChart::chart(size_t barIdx)
 {
 	return m_bars[barIdx]->m_chart;
 }
@@ -397,7 +397,7 @@ void iAStackedBarChart::updateChartBars()
 		auto& bar = m_bars[barID];
 		int chartStretch = std::min(MaxChartWidth, static_cast<int>(bar->weight * fullWidth))
 			+ ((barID == 0) ? m_bars[0]->m_chart->leftMargin() : 0);
-		qobject_cast<QGridLayout*>(layout())->setColumnStretch(barID, chartStretch);
+		qobject_cast<QGridLayout*>(layout())->setColumnStretch(static_cast<int>(barID), chartStretch);
 		//fullLog += QString("%1: %2  ").arg(barID).arg(fullChartWidth);
 	}
 	//LOG(lvlDebug, fullLog);

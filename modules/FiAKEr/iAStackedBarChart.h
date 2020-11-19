@@ -46,8 +46,8 @@ public:
 	void setBackgroundColor(QColor const & color);
 	double weightedSum() const;
 	void setSelectedBar(int barIdx);
-	QString barName(int barIdx) const;
-	iAChartWidget* chart(int barIdx);
+	QString barName(size_t barIdx) const;
+	iAChartWidget* chart(size_t barIdx);
 	void setLeftMargin(int leftMargin);
 signals:
 	void switchedStackMode(bool mode);
