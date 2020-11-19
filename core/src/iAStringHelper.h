@@ -160,13 +160,12 @@ void valuesFromString(T& val, QString const & str, QString const & sep = " ")
 	// else report error?
 }
 
-// there should be a function like this already somewhere?
 template <typename ContainerT, typename ElementT>
-ContainerT stringToVector(QString const& listAsString, QString const& separator=",")
+ContainerT stringToVector(QString const& listAsString, QString const& separator=",", int maxItems=std::numeric_limits<int>::max())
 {
 	QStringList strList = listAsString.split(separator);
 	ContainerT result(strList.size());
-	for (auto i = 0; i < strList.size(); ++i)
+	for (auto i = 0; i < strList.size() && i < maxItems; ++i)
 	{
 		bool ok;
 		result[i] = iAConverter<ElementT>::toT(strList[i], &ok);
