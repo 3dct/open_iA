@@ -102,7 +102,8 @@ namespace
 }
 
 // Factor out as generic CSV reading class also used by iACsvIO?
-bool readParameterCSV(QString const& fileName, QString const& encoding, QString const& columnSeparator, iACsvTableCreator& tblCreator, size_t resultCount)
+bool readParameterCSV(QString const& fileName, QString const& encoding, QString const& columnSeparator,
+	iACsvTableCreator& tblCreator, size_t resultCount, int numColumns)
 {
 	if (!QFile::exists(fileName))
 	{
@@ -127,7 +128,7 @@ bool readParameterCSV(QString const& fileName, QString const& encoding, QString 
 		{
 			continue;
 		}
-		tblCreator.addRow(row, stringToVector<std::vector<double>, double>(line, columnSeparator));
+		tblCreator.addRow(row, stringToVector<std::vector<double>, double>(line, columnSeparator, numColumns));
 		++row;
 	}
 	if (!in.atEnd())
@@ -222,7 +223,7 @@ void iASensitivityInfo::abort()
 QSharedPointer<iASensitivityInfo> iASensitivityInfo::create(QMainWindow* child,
 	QSharedPointer<iAFiberResultsCollection> data, QDockWidget* nextToDW,
 	int histogramBins, QString parameterSetFileName, QVector<int> const & charSelected,
-	QVector<int> const & charDiffMeasure)
+	QVector<int> const & charDiffMeasure, int maxColumns)
 {
 	if (parameterSetFileName.isEmpty())
 	{
@@ -236,7 +237,7 @@ QSharedPointer<iASensitivityInfo> iASensitivityInfo::create(QMainWindow* child,
 		return QSharedPointer<iASensitivityInfo>();
 	}
 	iACsvVectorTableCreator tblCreator;
-	if (!readParameterCSV(parameterSetFileName, "UTF-8", ",", tblCreator, data->result.size()))
+	if (!readParameterCSV(parameterSetFileName, "UTF-8", ",", tblCreator, data->result.size(), maxColumns))
 	{
 		return QSharedPointer<iASensitivityInfo>();
 	}
@@ -1388,6 +1389,7 @@ namespace
 	const QString ProjectParameterFile("ParameterSetsFile");
 	const QString ProjectCharacteristics("Characteristics");
 	const QString ProjectCharDiffMeasures("CharacteristicDifferenceMeasures");
+	const QString ProjectMaxParameterCSVColumns("MaxParameterCSVColumns");
 	//const QString ProjectResultDissimilarityMeasure("ResultDissimilarityMeasures");
 }
 
@@ -1415,8 +1417,8 @@ QSharedPointer<iASensitivityInfo> iASensitivityInfo::load(QMainWindow* child,
 	QString parameterSetFileName = MakeAbsolute(QFileInfo(projectFileName).absolutePath(), projectFile.value(ProjectParameterFile).toString());
 	QVector<int> charsSelected = stringToVector<QVector<int>, int>(projectFile.value(ProjectCharacteristics).toString());
 	QVector<int> charDiffMeasure = stringToVector<QVector<int>, int>(projectFile.value(ProjectCharDiffMeasures).toString());
-	return iASensitivityInfo::create(child, data, nextToDW, histogramBins, parameterSetFileName,
-		charsSelected, charDiffMeasure);
+	int maxColumns = projectFile.value(ProjectMaxParameterCSVColumns, std::numeric_limits<int>::max()).toInt();
+	return iASensitivityInfo::create(child, data, nextToDW, histogramBins, parameterSetFileName, charsSelected, charDiffMeasure, maxColumns);
 }
 
 class iASPParamPointInfo: public iAScatterPlotPointInfo

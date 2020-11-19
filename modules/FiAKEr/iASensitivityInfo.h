@@ -47,7 +47,8 @@ public:
 		QSharedPointer<iAFiberResultsCollection> data, QDockWidget* nextToDW,
 		int histogramBins, QString parameterSetFileName = QString(),
 		QVector<int> const& charSelected = QVector<int>(),
-		QVector<int> const& charDiffMeasure = QVector<int>());
+		QVector<int> const& charDiffMeasure = QVector<int>(),
+		int maxColumns = std::numeric_limits<int>::max());
 	static QSharedPointer<iASensitivityInfo> load(QMainWindow* child,
 		QSharedPointer<iAFiberResultsCollection> data, QDockWidget* nextToDW,
 		int histogramBins, iASettings const & projectFile,
@@ -214,4 +215,5 @@ private slots:
 };
 
 // Factor out as generic CSV reading class also used by iACsvIO?
-bool readParameterCSV(QString const& fileName, QString const& encoding, QString const& columnSeparator, iACsvTableCreator& tblCreator, size_t resultCount);
+//bool readParameterCSV(QString const& fileName, QString const& encoding, QString const& columnSeparator,
+//	iACsvTableCreator& tblCreator, size_t resultCount, int numColumns);
