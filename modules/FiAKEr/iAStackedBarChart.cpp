@@ -110,7 +110,10 @@ iAStackedBarChart::iAStackedBarChart(
 	}
 	if (m_showChart)
 	{
-		setLayout(new QGridLayout());
+		auto gL = new QGridLayout();
+		setContentsMargins(0, 0, 0, 0);
+		gL->setSpacing(2);
+		setLayout(gL);
 	}
 }
 
