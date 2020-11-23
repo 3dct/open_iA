@@ -48,6 +48,7 @@ public:
 	int selectedRow() const;
 	int selectedCol() const;
 	void setColorTheme(iAColorTheme const * colorTheme);
+	void setSelectedParam(int param);
 public slots:
 	void showStackedBar();
 	void selectStackedBar(int idx);

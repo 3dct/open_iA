@@ -1528,7 +1528,7 @@ void iASensitivityInfo::createGUI()
 	m_gui->updateScatterPlotLUT(m_starGroupSize, m_numOfSTARSteps, m_data->result.size(), m_variedParams);
 	m_gui->m_scatterPlot->setPointInfo(QSharedPointer<iAScatterPlotPointInfo>(new iASPParamPointInfo(*this, *m_data.data())));
 	auto dwScatterPlot = new iADockWidgetWrapper(m_gui->m_scatterPlot, "Results Overview", "foeScatterPlot");
-	connect(m_gui->m_scatterPlot, &iAScatterPlotWidget::pointHighlighted, this, &iASensitivityInfo::resultSelected);
+	connect(m_gui->m_scatterPlot, &iAScatterPlotWidget::pointHighlighted, this, &iASensitivityInfo::spPointHighlighted);
 	connect(m_gui->m_scatterPlot, &iAScatterPlotWidget::highlightChanged, this, &iASensitivityInfo::spHighlightChanged);
 	m_child->splitDockWidget(m_gui->m_dwParamInfluence, dwScatterPlot, Qt::Vertical);
 
@@ -1555,6 +1555,11 @@ void iASensitivityInfo::paramChanged()
 {
 	int outputIdx = m_gui->m_settings->outputIdx();
 	int paramIdx = m_gui->m_paramInfluenceView->selectedRow();
+	if (paramIdx == -1)
+	{
+		LOG(lvlInfo, "No parameter selected.");
+		return;
+	}
 	int selCharIdx = m_gui->m_settings->charIdx();
 	int measureIdx = m_gui->m_paramInfluenceView->selectedMeasure();
 	int aggrType = m_gui->m_paramInfluenceView->selectedAggrType();
@@ -1649,6 +1654,17 @@ void iASensitivityInfo::updateDissimilarity()
 		//LOG(lvlDebug, QString("%1: %2, %3").arg(i).arg(mds[i][0]).arg(mds[i][1]));
 	}
 	m_gui->m_mdsData->updateRanges();
+}
+
+void iASensitivityInfo::spPointHighlighted(size_t resultIdx, bool state)
+{
+	int paramID = -1;
+	if (state && resultIdx % m_starGroupSize != 0)
+	{	// specific parameter "branch" selected:
+		paramID = ((resultIdx % m_starGroupSize) - 1) / m_numOfSTARSteps;
+	}
+	m_gui->m_paramInfluenceView->setSelectedParam(paramID);
+	emit resultSelected(resultIdx, state);
 }
 
 void iASensitivityInfo::spHighlightChanged()

@@ -62,7 +62,7 @@ iAParameterInfluenceView::iAParameterInfluenceView(iASensitivityInfo* sensInf) :
 	m_sensInf(sensInf),
 	m_measureIdx(0),
 	m_aggrType(0),
-	m_selectedRow(0),
+	m_selectedRow(-1),
 	m_selectedCol(-1),
 	m_paramListLayout(new QGridLayout())
 {
@@ -229,10 +229,17 @@ void iAParameterInfluenceView::selectMeasure(int measureIdx)
 void iAParameterInfluenceView::paramChangedSlot()
 {
 	auto source = qobject_cast<QWidget*>(QObject::sender());
-	m_selectedRow = source->property("paramIdx").toInt();
+	setSelectedParam(source->property("paramIdx").toInt());
+}
+
+void iAParameterInfluenceView::setSelectedParam(int param)
+{
+	m_selectedRow = param;
 	for (int paramIdx = 0; paramIdx < m_sensInf->m_variedParams.size(); ++paramIdx)
 	{
-		QColor color = palette().color(paramIdx == m_selectedRow ? QPalette::AlternateBase : backgroundRole());
+		// QPalette::Highlight / QPalette::HighlightedText
+		QColor color = palette().color(paramIdx == m_selectedRow ? QPalette::Mid : backgroundRole());
+		//QColor textColor = palette().color(paramIdx == m_selectedRow ?  : QPalette::Text);
 		for (int col = colParamName; col <= colStep; ++col)
 		{
 			m_paramListLayout->itemAtPosition(paramIdx+1, col)->widget()->setStyleSheet(

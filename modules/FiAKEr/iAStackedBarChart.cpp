@@ -248,6 +248,13 @@ void iAStackedBarChart::setLeftMargin(int leftMargin)
 void iAStackedBarChart::setBackgroundColor(QColor const & color)
 {
 	m_bgColor = color;
+	if (m_showChart)
+	{
+		for (auto & bar: m_bars)
+		{
+			bar->m_chart->setBackgroundColor(color);
+		}
+	}
 	update();
 }
 
@@ -272,23 +279,23 @@ void iAStackedBarChart::resizeEvent(QResizeEvent* e)
 
 void iAStackedBarChart::paintEvent(QPaintEvent* ev)
 {
-	if (m_showChart)
-	{
-		QWidget::paintEvent(ev);
-		return;
-	}
-	m_dividers.clear();
 	QPainter painter(this);
-	painter.setPen(QWidget::palette().color(QPalette::Text));
-	int accumulatedWidth = 0;
-	int barHeight = std::min(geometry().height(), MaxBarHeight) - (m_header? 0 : 2*BarSpacing);
-	int topY = geometry().height() / 2 - barHeight / 2;
 	QColor bg(m_bgColor);
 	if (!bg.isValid())
 	{
 		bg = QWidget::palette().color(QWidget::backgroundRole());
 	}
 	painter.fillRect(rect(), QBrush(bg));
+	if (m_showChart)
+	{
+		QWidget::paintEvent(ev);
+		return;
+	}
+	m_dividers.clear();
+	painter.setPen(QWidget::palette().color(QPalette::Text));
+	int accumulatedWidth = 0;
+	int barHeight = std::min(geometry().height(), MaxBarHeight) - (m_header? 0 : 2*BarSpacing);
+	int topY = geometry().height() / 2 - barHeight / 2;
 	int chartWidth = geometry().width() - m_leftMargin;
 	for (size_t barID = 0; barID < m_bars.size(); ++barID)
 	{

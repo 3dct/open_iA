@@ -207,6 +207,7 @@ public slots:
 	void updateOutputControls();
 	void updateDissimilarity();
 	void spHighlightChanged();
+	void spPointHighlighted(size_t resultIdx, bool state);
 	void createGUI();
 private slots:
 	void dissimMatrixMeasureChanged(int);
