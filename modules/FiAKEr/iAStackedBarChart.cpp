@@ -123,7 +123,9 @@ void iAStackedBarChart::addBar(QString const & name, double value, double maxVal
 		m_showChart, this, name, (m_bars.size() == 0) ? m_yLabelName : "")));
 	if (m_showChart)
 	{
-		qobject_cast<QGridLayout*>(layout())->addWidget(m_bars[m_bars.size() - 1]->m_chart, 0, static_cast<int>(m_bars.size() - 1));
+		auto chart = m_bars[m_bars.size() - 1]->m_chart;
+		chart->setBackgroundColor(m_bgColor);
+		qobject_cast<QGridLayout*>(layout())->addWidget(chart, 0, static_cast<int>(m_bars.size() - 1));
 		updateChartBars();
 	}
 	normalizeWeights();
