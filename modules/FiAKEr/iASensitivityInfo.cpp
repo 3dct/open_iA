@@ -1255,8 +1255,18 @@ public:
 
 		connect(cmbboxDissimilarity, QOverload<int>::of(&QComboBox::currentIndexChanged), sensInf, &iASensitivityInfo::updateDissimilarity);
 	}
-	int charIdx() const { return cmbboxCharacteristic->currentIndex(); }
-	int outputIdx() const { return cmbboxOutput->currentIndex(); }
+	int charIdx() const
+	{
+		return cmbboxCharacteristic->currentIndex();
+	}
+	int outputIdx() const
+	{
+		return cmbboxOutput->currentIndex();
+	}
+	int dissimMeasIdx() const
+	{
+		return cmbboxDissimilarity->currentIndex();
+	}
 };
 
 
@@ -1583,9 +1593,10 @@ void iASensitivityInfo::createGUI()
 	m_gui->m_paramInfluenceView = new iAParameterInfluenceView(this);
 	m_gui->m_dwParamInfluence = new iADockWidgetWrapper(m_gui->m_paramInfluenceView, "Parameter Influence", "foeParamInfluence");
 	connect(m_gui->m_paramInfluenceView, &iAParameterInfluenceView::parameterChanged, this, &iASensitivityInfo::paramChanged);
-	connect(m_gui->m_paramInfluenceView, &iAParameterInfluenceView::characteristicSelected, this, &iASensitivityInfo::charactChanged);
+	connect(m_gui->m_paramInfluenceView, &iAParameterInfluenceView::outputSelected, this,
+		&iASensitivityInfo::outputChanged);
 	connect(m_gui->m_settings->cmbboxCharacteristic, QOverload<int>::of(&QComboBox::currentIndexChanged),
-		m_gui->m_paramInfluenceView, &iAParameterInfluenceView::selectStackedBar);
+		this, &iASensitivityInfo::characteristicChanged);
 	m_child->splitDockWidget(dwSettings, m_gui->m_dwParamInfluence, Qt::Vertical);
 
 	m_gui->m_paramDetails = new QCustomPlot(m_child);
@@ -1653,12 +1664,12 @@ void iASensitivityInfo::createGUI()
 
 void iASensitivityInfo::changeMeasure(int newMeasure)
 {
-	m_gui->m_paramInfluenceView->changeMeasure(newMeasure);
+	m_gui->m_paramInfluenceView->setMeasure(newMeasure);
 }
 
 void iASensitivityInfo::changeAggregation(int newAggregation)
 {
-	m_gui->m_paramInfluenceView->changeAggregation(newAggregation);
+	m_gui->m_paramInfluenceView->setAggregation(newAggregation);
 }
 
 void iASensitivityInfo::changeStackedBarColors()
@@ -1679,6 +1690,7 @@ void iASensitivityInfo::paramChanged()
 	int selCharIdx = m_gui->m_settings->charIdx();
 	int measureIdx = m_gui->m_paramInfluenceView->selectedMeasure();
 	int aggrType = m_gui->m_paramInfluenceView->selectedAggrType();
+	int dissimMeasIdx = m_gui->m_settings->dissimMeasIdx();
 
 	m_gui->m_dwParamInfluence->setWindowTitle("Parameter Influence (by " + DistributionDifferenceMeasureNames()[measureIdx] + ")");
 
@@ -1687,9 +1699,10 @@ void iASensitivityInfo::paramChanged()
 	plot->addGraph();
 	plot->graph(0)->setPen(QPen(Qt::blue));
 
-	auto const& data = (outputIdx == outCharacteristic) ?
-		sensitivityField[selCharIdx][measureIdx][aggrType][paramIdx]:
-		sensitivityFiberCount[aggrType][paramIdx];
+	auto const& data = (
+		(outputIdx == outCharacteristic) ?  sensitivityField[selCharIdx][measureIdx][aggrType]
+		  : (outputIdx == outFiberCount) ?  sensitivityFiberCount[aggrType]
+	  /* (outputIdx == outDissimilarity)*/: sensDissimField[dissimMeasIdx][aggrType])[paramIdx];
 	QVector<double> x(data.size()), y(data.size());
 	for (int i = 0; i < data.size(); ++i)
 	{
@@ -1719,20 +1732,27 @@ void iASensitivityInfo::paramChanged()
 	//m_gui->m_paramInfluenceView->showDifferenceDistribution(outputIdx, selCharIdx, aggrType);
 }
 
-void iASensitivityInfo::charactChanged(int charIdx)
+void iASensitivityInfo::outputChanged(int outType, int outIdx)
 {
 	QSignalBlocker block1(m_gui->m_settings->cmbboxOutput);
-	if (charIdx < m_charSelected.size())
+	m_gui->m_settings->cmbboxOutput->setCurrentIndex(outType);
+	if (outType == outCharacteristic)
 	{
-		m_gui->m_settings->cmbboxOutput->setCurrentIndex(0);
 		QSignalBlocker block2(m_gui->m_settings->cmbboxCharacteristic);
-		m_gui->m_settings->cmbboxCharacteristic->setCurrentIndex(charIdx);
+		m_gui->m_settings->cmbboxCharacteristic->setCurrentIndex(outIdx);
 	}
-	else
+	else if (outType == outDissimilarity)
 	{
-		m_gui->m_settings->cmbboxOutput->setCurrentIndex(1);
+		QSignalBlocker block2(m_gui->m_settings->cmbboxDissimilarity);
+		m_gui->m_settings->cmbboxDissimilarity->setCurrentIndex(outIdx);
 	}
 	paramChanged();
+}
+
+void iASensitivityInfo::characteristicChanged(int charIdx)
+{
+	assert(m_gui->m_settings->cmbboxOutput->currentIndex() == outCharacteristic);
+	m_gui->m_paramInfluenceView->selectStackedBar(outCharacteristic, charIdx);
 }
 
 void iASensitivityInfo::updateOutputControls()

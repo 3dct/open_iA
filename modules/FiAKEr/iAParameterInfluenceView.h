@@ -41,30 +41,31 @@ class iAParameterInfluenceView : public QWidget
 	Q_OBJECT
 public:
 	iAParameterInfluenceView(iASensitivityInfo* sensInf);
-	void changeMeasure(int newMeasure);
-	void changeAggregation(int newAggregation);
+	void setMeasure(int newMeasure);
+	void setAggregation(int newAggregation);
+	void setSelectedParam(int param);
 	int selectedMeasure() const;
 	int selectedAggrType() const;
 	int selectedRow() const;
 	int selectedCol() const;
 	void setColorTheme(iAColorTheme const * colorTheme);
-	void setSelectedParam(int param);
 public slots:
 	void showStackedBar();
-	void selectStackedBar(int idx);
+	void selectStackedBar(int outputType, int idx);
 	void stackedBarDblClicked(int idx);
 private slots:
 	void selectMeasure(int measureIdx);
 	void paramChangedSlot();
 private:
 	void updateStackedBars();
-	void addStackedBar(int charactIdx);
-	void removeStackedBar(int charactIdx);
-	void updateStackedBarHistogram(QString const & barName, int paramIdx, int charactIdx);
+	void addStackedBar(int outputType, int outIdx);
+	void removeStackedBar(int outputType, int outIdx);
+	void updateStackedBarHistogram(QString const& barName, int paramIdx, int outType, int outIdx);
+	void addColumnAction(int outType, int outIdx, bool checked);
+	QString columnName(int outputType, int outTypeIdx) const;
 
-	QString columnName(int charactIdx) const;
-
-	QVector<int> m_visibleCharacts;
+	// pair output type / index
+	QVector<QPair<int,int>> m_visibleCharacts;
 	//! stacked bar charts (one per parameter)
 	QVector<iAStackedBarChart*> m_stackedCharts;
 	//QVector<iAChartWidget*> m_diffChart;
@@ -79,5 +80,5 @@ private:
 	QGridLayout* m_paramListLayout;
 signals:
 	void parameterChanged();
-	void characteristicSelected(int charIdx);
+	void outputSelected(int outType, int outTypeIdx);
 };

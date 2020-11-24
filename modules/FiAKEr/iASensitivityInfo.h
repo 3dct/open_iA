@@ -205,13 +205,14 @@ public slots:
 	void changeAggregation(int newAggregation);
 	void changeMeasure(int newMeasure);
 	void paramChanged();
-	void charactChanged(int charIdx);
+	void outputChanged(int outType, int outIdx);
 	void changeStackedBarColors();
 	void updateOutputControls();
 	void updateDissimilarity();
 	void spHighlightChanged();
 	void spPointHighlighted(size_t resultIdx, bool state);
 	void createGUI();
+	void characteristicChanged(int charIdx);
 private slots:
 	void dissimMatrixMeasureChanged(int);
 	void dissimMatrixParameterChanged(int);

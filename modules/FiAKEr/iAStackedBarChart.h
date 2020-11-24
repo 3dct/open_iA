@@ -23,6 +23,7 @@
 #include <charts/iAChartWidget.h>
 
 class iABarData;
+class iABarsWidget;
 class iAColorTheme;
 
 class QMenu;
@@ -31,8 +32,8 @@ class iAStackedBarChart: public iASignallingWidget
 {
 	Q_OBJECT
 public:
-	const int MaxBarHeight = 100;
-	const int TextPadding = 5;
+	static const int MaxBarHeight = 100;
+	static const int TextPadding = 5;
 	iAStackedBarChart(iAColorTheme const* theme, bool header = false, bool last = false, bool chart = false,
 		QString const & yLabelName = QString());
 	void addBar(QString const & name, double value, double maxValue);
@@ -65,11 +66,7 @@ private slots:
 	void toggleNormalizeMode();
 private:
 	//! @{ Event Handlers:
-	void paintEvent(QPaintEvent* ev) override;
 	void contextMenuEvent(QContextMenuEvent *ev) override;
-	void mousePressEvent(QMouseEvent* ev) override;
-	void mouseReleaseEvent(QMouseEvent* ev) override;
-	void mouseMoveEvent(QMouseEvent* ev) override;
 	void mouseDoubleClickEvent(QMouseEvent* e) override;
 	//void resizeEvent(QResizeEvent* e) override;
 	//! @}
@@ -97,6 +94,10 @@ private:
 	bool m_showChart;
 	QString m_yLabelName;
 	int m_leftMargin;
+
+	iABarsWidget* m_barsWidget;
+
+	friend class iABarsWidget;
 };
 
 class QGridLayout;
