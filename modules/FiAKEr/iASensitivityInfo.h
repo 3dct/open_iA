@@ -85,30 +85,20 @@ public:
 
 	QVector<int> m_variedParams;  //!< indices of the parameters that were varied
 
-	// for each characteristic
-	//     for each selected characteristics difference measure
-	//         for variation aggregation (see iASensitivityInfo::create)
-	//             for each varied parameter
-	//                 for each point in parameter space (of base sampling method)
-	//                     compute local change by that difference measure
-
-	//! "sensitivity field":
-	//! characteristic / parameter space point / parameter / diff measure
+	//! sensitivity "field" for characteristics
 	QVector<    // characteristic (index in m_charSelected)
 		QVector<    // characteristics difference measure index (index in m_charDiffMeasure)
 		QVector<    // variation aggregation (see iASensitivityInfo::create)
 		QVector<    // parameter index (second index in paramSetValues / allParamValues)
 		QVector<    // parameter set index (first index in paramSetValues)
-		double
-	>>>>> sensitivityField;
+		double>>>>> sensitivityField;
 
 	//! averages over all parameter-sets of above field ("global sensitivity" for a parameter)
 	QVector<		// characteristis
 		QVector<    // difference measure
 		QVector<    // variation aggregation
 		QVector<    // parameter index
-		double
-	>>>> aggregatedSensitivities;
+		double>>>> aggregatedSensitivities;
 
 	//! sensitivity at each parameter regarding fiber count
 	QVector<        // variation aggregation
@@ -119,6 +109,19 @@ public:
 	QVector<        // variation aggregation
 		QVector<    // parameter index
 		double>> aggregatedSensitivitiesFiberCount;
+
+	//! sensitivity "field" for dissimilarity measures
+	QVector<        // dissimilarity measure (index in m_resultDissimMeasures)
+		QVector<    // variation aggregation (see iASensitivityInfo::create)
+		QVector<    // parameter index (second index in paramSetValues / allParamValues)
+		QVector<    // parameter set index (first index in paramSetValues)
+		double>>>> sensDissimField;
+
+	//! averages over all parameter-sets of above field ("global sensitivity" for a parameter by dissimilarity measures)
+	QVector<        // dissimilarity measure (index in m_resultDissimMeasures)
+		QVector<    // variation aggregation
+		QVector<    // parameter index
+		double>>> aggregatedSensDissim;
 
 	// Histogram "variation" (i.e. average of differences in frequency)
 	// TODO: think about other measures (variation, ...) for differences between bins?

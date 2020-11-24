@@ -1029,6 +1029,122 @@ void iASensitivityInfo::compute()
 		}
 		writeDissimilarityMatrixCache(measures);
 	}
+
+	if (m_aborted)
+	{
+		return;
+	}
+
+	// dissimilarity measure (index in m_resultDissimMeasures)
+	// variation aggregation (see iASensitivityInfo::create)
+	// parameter index (second index in paramSetValues / allParamValues)
+	// parameter set index (first index in paramSetValues)
+	//sensDissimField;
+	//aggregatedSensDissim;
+
+	int measureCount = static_cast<int>(m_resultDissimMeasures.size());
+		// TODO: unify with other loops over STARs
+	sensDissimField.resize(measureCount);
+	aggregatedSensDissim.resize(measureCount);
+
+	for (int m = 0; m < measureCount && !m_aborted; ++m)
+	{
+		sensDissimField[m].resize(NumOfVarianceAggregation);
+		aggregatedSensDissim[m].resize(NumOfVarianceAggregation);
+		for (int a = 0; a < NumOfVarianceAggregation; ++a)
+		{
+			sensDissimField[m][a].resize(m_variedParams.size());
+			aggregatedSensDissim[m][a].fill(0.0, m_variedParams.size());
+		}
+		for (int paramIdx = 0; paramIdx < m_variedParams.size() && !m_aborted; ++paramIdx)
+		{
+			m_progress.emitProgress(100 * paramIdx / m_variedParams.size());
+			int origParamColIdx = m_variedParams[paramIdx];
+			for (int a = 0; a < NumOfVarianceAggregation; ++a)
+			{
+				sensDissimField[m][a][paramIdx].resize(paramSetValues.size());
+			}
+			int numAllLeft = 0, numAllRight = 0, numAllLeftRight = 0, numAllTotal = 0;
+			for (int paramSetIdx = 0; paramSetIdx < paramSetValues.size(); ++paramSetIdx)
+			{
+				int resultIdxGroupStart = m_starGroupSize * paramSetIdx;
+				int resultIdxParamStart = resultIdxGroupStart + 1 + paramIdx * m_numOfSTARSteps;
+
+				// first - then + steps (both skipped if value +/- step exceeds bounds
+				double groupStartParamVal = m_paramValues[origParamColIdx][resultIdxGroupStart];
+				double paramStartParamVal = m_paramValues[origParamColIdx][resultIdxParamStart];
+				double paramDiff = paramStartParamVal - groupStartParamVal;
+				//LOG(lvlDebug, QString("      Parameter Set %1; start: %2 (value %3), param start: %4 (value %5); diff: %6")
+				//	.arg(paramSetIdx).arg(resultIdxGroupStart).arg(groupStartParamVal)
+				//	.arg(resultIdxParamStart).arg(paramStartParamVal).arg(paramDiff));
+
+				if (paramStep[paramIdx] == 0)
+				{
+					paramStep[paramIdx] = std::abs(paramDiff);
+				}
+
+				double leftVar = 0;
+				int numLeftRight = 0;
+				if (paramDiff > 0)
+				{
+					leftVar = m_resultDissimMatrix[resultIdxGroupStart][resultIdxParamStart].avgDissim[m];
+						//std::abs(static_cast<double>(m_data->result[resultIdxGroupStart].fiberCount) - m_data->result[resultIdxParamStart].fiberCount);
+					//LOG(lvlDebug, QString("        Left var available: %1").arg(leftVar));
+					++numLeftRight;
+					++numAllLeft;
+				}
+
+				int k = 1;
+				while (paramDiff > 0 && k < m_numOfSTARSteps)
+				{
+					double paramVal = m_paramValues[origParamColIdx][resultIdxParamStart + k];
+					paramDiff = paramStartParamVal - paramVal;
+					++k;
+				}
+				double rightVar = 0;
+				if (paramDiff < 0)  // additional check required??
+				{
+					int firstPosStepIdx = resultIdxParamStart + (k - 1);
+					rightVar = m_resultDissimMatrix[resultIdxGroupStart][firstPosStepIdx].avgDissim[m];
+						// std::abs(static_cast<double>(m_data->result[resultIdxGroupStart].fiberCount) -m_data->result[firstPosStepIdx].fiberCount);
+					//LOG(lvlDebug, QString("        Right var available: %1").arg(rightVar));
+					++numLeftRight;
+					++numAllRight;
+				}
+				double sumTotal = 0;
+				bool wasSmaller = true;
+				for (int i = 0; i < m_numOfSTARSteps; ++i)
+				{
+					int compareIdx = (i == 0) ? resultIdxGroupStart : (resultIdxParamStart + i - 1);
+					double paramVal = m_paramValues[origParamColIdx][resultIdxParamStart + i];
+					if (paramVal > paramStartParamVal && wasSmaller)
+					{
+						wasSmaller = false;
+						compareIdx = resultIdxGroupStart;
+					}
+					double difference = m_resultDissimMatrix[compareIdx][resultIdxParamStart + i].avgDissim[m];
+						//std::abs(static_cast<double>(m_data->result[compareIdx].fiberCount) -	m_data->result[resultIdxParamStart + i].fiberCount);
+					sumTotal += difference;
+				}
+				numAllLeftRight += numLeftRight;
+				numAllTotal += m_numOfSTARSteps;
+				double meanLeftRightVar = (leftVar + rightVar) / numLeftRight;
+				double meanTotal = sumTotal / m_numOfSTARSteps;
+				//LOG(lvlDebug, QString("        (left+right)/(numLeftRight=%1) = %2").arg(numLeftRight).arg(meanLeftRightVar));
+				//LOG(lvlDebug, QString("        (sum total var = %1) / (m_numOfSTARSteps = %2)  = %3")
+				//	.arg(sumTotal).arg(m_numOfSTARSteps).arg(meanTotal));
+				sensDissimField[m][0][paramIdx][paramSetIdx] = meanLeftRightVar;
+				sensDissimField[m][1][paramIdx][paramSetIdx] = leftVar;
+				sensDissimField[m][2][paramIdx][paramSetIdx] = rightVar;
+				sensDissimField[m][3][paramIdx][paramSetIdx] = meanTotal;
+
+				aggregatedSensDissim[m][0][paramIdx] += meanLeftRightVar;
+				aggregatedSensDissim[m][1][paramIdx] += leftVar;
+				aggregatedSensDissim[m][2][paramIdx] += rightVar;
+				aggregatedSensDissim[m][3][paramIdx] += meanTotal;
+			}
+		}
+	}
 }
 
 QString iASensitivityInfo::dissimilarityMatrixCacheFileName() const
