@@ -87,7 +87,6 @@ public:
 	{
 		setSizePolicy(QSizePolicy::Expanding, QSizePolicy::Fixed);
 	}
-public:
 	QSize sizeHint() const
 	{
 		return QSize(10, fontMetrics().lineSpacing());  // font height?
@@ -98,6 +97,8 @@ private:
 	void mousePressEvent(QMouseEvent* ev) override;
 	void mouseReleaseEvent(QMouseEvent* ev) override;
 	void mouseMoveEvent(QMouseEvent* ev) override;
+
+	void drawBar(QPainter& painter, size_t barID, int left, int top, int fullWidth, int barHeight);
 
 private:
 	iAStackedBarChart* m_s;
@@ -345,6 +346,32 @@ void iAStackedBarChart::resizeEvent(QResizeEvent* e)
 }
 */
 
+void iABarsWidget::drawBar(QPainter& painter, size_t barID, int left, int top, int fullWidth, int barHeight)
+{
+	auto& bar = m_s->m_bars[barID];
+	int bWidth = m_s->barWidth(*bar.data());
+	QRect barRect(left, top, bWidth, barHeight);
+	QBrush barBrush(m_s->m_theme->color(barID));
+	painter.fillRect(barRect, barBrush);
+	if (m_s->m_selectedBar == barID)
+	{
+		QRect box(left, 0,
+			(m_s->m_stack ? bWidth : static_cast<int>(bar->weight * fullWidth)) - 1, geometry().height());
+		if (m_s->m_header)
+		{
+			painter.drawLine(box.topLeft(), box.topRight());
+		}
+		painter.drawLine(box.topLeft(), box.bottomLeft());
+		painter.drawLine(box.topRight(), box.bottomRight());
+		if (m_s->m_last)
+		{
+			painter.drawLine(box.bottomLeft(), box.bottomRight());
+		}
+	}
+	barRect.adjust(iAStackedBarChart::TextPadding, 0, -iAStackedBarChart::TextPadding, 0);
+	painter.drawText(barRect, Qt::AlignVCenter, (m_s->m_header ? bar->name : QString("%1").arg(bar->value)));
+}
+
 void iABarsWidget::paintEvent(QPaintEvent* ev)
 {
 	Q_UNUSED(ev);
@@ -361,34 +388,14 @@ void iABarsWidget::paintEvent(QPaintEvent* ev)
 	int barHeight =
 		std::min(geometry().height(), iAStackedBarChart::MaxBarHeight) - (m_s->m_header ? 0 : 2 * BarVSpacing);
 	int topY = geometry().height() / 2 - barHeight / 2;
-	int chartWidth = geometry().width() - m_s->m_leftMargin;
+	int fullWidth = m_s->geometry().width() - m_s->m_leftMargin;
 	for (size_t barID = 0; barID < m_s->m_bars.size(); ++barID)
 	{
 		auto& bar = m_s->m_bars[barID];
-		int bWidth = m_s->barWidth(*bar.data(), chartWidth);
-		QRect barRect(accumulatedWidth + m_s->m_leftMargin, topY, bWidth, barHeight);
-		QBrush barBrush(m_s->m_theme->color(barID));
-		painter.fillRect(barRect, barBrush);
-		if (m_s->m_selectedBar == barID)
-		{
-			QRect box(m_s->m_leftMargin + accumulatedWidth, 0,
-				(m_s->m_stack ? bWidth : static_cast<int>(bar->weight * chartWidth)) - 1, geometry().height());
-			if (m_s->m_header)
-			{
-				painter.drawLine(box.topLeft(), box.topRight());
-			}
-			painter.drawLine(box.topLeft(), box.bottomLeft());
-			painter.drawLine(box.topRight(), box.bottomRight());
-			if (m_s->m_last)
-			{
-				painter.drawLine(box.bottomLeft(), box.bottomRight());
-			}
-		}
-		barRect.adjust(iAStackedBarChart::TextPadding, 0, -iAStackedBarChart::TextPadding, 0);
-		painter.drawText(barRect, Qt::AlignVCenter,
-			(m_s->m_header ? bar->name : QString("%1").arg(bar->value)));
+		int bWidth = m_s->barWidth(*bar.data());
+		drawBar(painter, barID, accumulatedWidth + m_s->m_leftMargin, topY, fullWidth, barHeight);
+		accumulatedWidth += m_s->m_stack ? bWidth : static_cast<int>(bar->weight * fullWidth);
 		m_s->m_dividers.push_back(m_s->m_leftMargin + accumulatedWidth + bWidth);
-		accumulatedWidth += m_s->m_stack ? bWidth : static_cast<int>(bar->weight * chartWidth);
 	}
 }
 
@@ -480,10 +487,10 @@ void iAStackedBarChart::updateChartBars()
 	//LOG(lvlDebug, fullLog);
 }
 
-int iAStackedBarChart::barWidth(iABarData const & bar, int fullWidth) const
+int iAStackedBarChart::barWidth(iABarData const & bar) const
 {
-	return std::max(MinimumPixelBarWidth,
-		static_cast<int>(weightAndNormalize(bar) * fullWidth) );
+	return std::max(MinimumPixelBarWidth, static_cast<int>(
+		weightAndNormalize(bar) * (geometry().width() - m_leftMargin) ));
 }
 
 void iABarsWidget::mouseMoveEvent(QMouseEvent* ev)
@@ -547,7 +554,7 @@ void iABarsWidget::mousePressEvent(QMouseEvent* ev)
 		{
 			m_s->m_resizeBar = barID;
 			m_s->m_resizeStartX = ev->x();
-			m_s->m_resizeWidth = m_s->barWidth(*m_s->m_bars[barID].data(), geometry().width() - m_s->m_leftMargin);
+			m_s->m_resizeWidth = m_s->barWidth(*m_s->m_bars[barID].data());
 			m_s->m_resizeBars = m_s->m_bars;
 		}
 	}

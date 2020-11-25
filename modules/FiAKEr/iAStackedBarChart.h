@@ -75,7 +75,7 @@ private:
 
 	size_t dividerWithinRange(int x) const;
 	double weightAndNormalize(iABarData const& bar) const;
-	int barWidth(iABarData const & bar, int fullWidth) const;
+	int barWidth(iABarData const & bar) const;
 	void normalizeWeights();
 	void updateOverallMax();
 	void updateChartBars();
