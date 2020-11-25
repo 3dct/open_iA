@@ -280,7 +280,37 @@ void iAStackedBarChart::setLeftMargin(int leftMargin)
 	m_leftMargin = leftMargin;
 }
 
-void iAStackedBarChart::setBackgroundColor(QColor const & color)
+double iAStackedBarChart::maxYValue() const
+{
+	if (!m_showChart)
+	{
+		return -1;
+	}
+	double yMax = std::numeric_limits<double>::lowest();
+	for (auto& bar : m_bars)
+	{
+		if (bar->m_chart->yBounds()[1] > yMax)
+		{
+			yMax = bar->m_chart->yBounds()[1];
+		}
+	}
+	return yMax;
+}
+
+void iAStackedBarChart::setChartYRange(double yMin, double yMax)
+{
+	if (!m_showChart)
+	{
+		return;
+	}
+	for (auto& bar : m_bars)
+	{
+		bar->m_chart->setYBounds(yMin, yMax);
+		bar->m_chart->update();
+	}
+}
+
+void iAStackedBarChart::setBackgroundColor(QColor const& color)
 {
 	m_bgColor = color;
 	if (m_showChart)

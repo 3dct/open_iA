@@ -50,6 +50,8 @@ public:
 	QString barName(size_t barIdx) const;
 	iAChartWidget* chart(size_t barIdx);
 	void setLeftMargin(int leftMargin);
+	double maxYValue() const;
+	void setChartYRange(double yMin, double yMax);
 signals:
 	void switchedStackMode(bool mode);
 	void weightsChanged(std::vector<double> const & weights);

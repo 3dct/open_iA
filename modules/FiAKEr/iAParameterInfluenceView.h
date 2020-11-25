@@ -63,6 +63,7 @@ private:
 	void updateStackedBarHistogram(QString const& barName, int paramIdx, int outType, int outIdx);
 	void addColumnAction(int outType, int outIdx, bool checked);
 	QString columnName(int outputType, int outTypeIdx) const;
+	void updateChartY();
 
 	// pair output type / index
 	QVector<QPair<int,int>> m_visibleCharacts;

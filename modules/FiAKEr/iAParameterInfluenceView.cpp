@@ -342,6 +342,19 @@ void iAParameterInfluenceView::updateStackedBarHistogram(QString const & barName
 	}
 }
 
+void iAParameterInfluenceView::updateChartY()
+{
+	double yMin = 0, yMax = std::numeric_limits<double>::lowest();
+	for (auto stackedChart : m_stackedCharts)
+	{
+		yMax = std::max(yMax, stackedChart->maxYValue());
+	}
+	for (auto stackedChart : m_stackedCharts)
+	{
+		stackedChart->setChartYRange(yMin, yMax);
+	}
+}
+
 void iAParameterInfluenceView::addStackedBar(int outType, int outIdx)
 {
 	m_visibleCharacts.push_back(qMakePair(outType, outIdx));
@@ -367,6 +380,7 @@ void iAParameterInfluenceView::addStackedBar(int outType, int outIdx)
 		updateStackedBarHistogram(title, paramIdx, outType, outIdx);
 		m_stackedCharts[paramIdx]->setLeftMargin(m_stackedCharts[0]->chart(0)->leftMargin());
 	}
+	updateChartY();
 	m_stackedHeader->setLeftMargin(m_stackedCharts[0]->chart(0)->leftMargin());
 }
 
@@ -385,4 +399,5 @@ void iAParameterInfluenceView::removeStackedBar(int outType, int outIdx)
 	{
 		stackedChart->removeBar(title);
 	}
+	updateChartY();
 }
