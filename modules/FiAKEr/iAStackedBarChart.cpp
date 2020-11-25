@@ -65,7 +65,10 @@ public:
 		weight(weight),
 		m_chart(showChart ? new iAChartWidget(parent, xLabel, yLabel) : nullptr)
 	{
-		m_chart->setEmptyText("");
+		if (showChart)
+		{
+			m_chart->setEmptyText("");
+		}
 	}
 	~iABarData()
 	{
@@ -344,6 +347,7 @@ void iAStackedBarChart::resizeEvent(QResizeEvent* e)
 
 void iABarsWidget::paintEvent(QPaintEvent* ev)
 {
+	Q_UNUSED(ev);
 	QPainter painter(this);
 	QColor bg(m_s->m_bgColor);
 	if (!bg.isValid())
