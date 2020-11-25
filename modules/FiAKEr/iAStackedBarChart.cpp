@@ -65,6 +65,7 @@ public:
 		weight(weight),
 		m_chart(showChart ? new iAChartWidget(parent, xLabel, yLabel) : nullptr)
 	{
+		m_chart->setEmptyText("");
 	}
 	~iABarData()
 	{

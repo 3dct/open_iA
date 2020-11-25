@@ -162,6 +162,8 @@ public:
 	QImage drawOffscreen();
 	//! Sets the background color of the whole chart.
 	void setBackgroundColor(QColor const & color);
+	//! Set text shown when no plot available
+	void setEmptyText(QString const& text);
 
 public slots:
 	//! Reset view (zoom and shift in x and y direction) such that all plots are fully visible.
@@ -256,4 +258,5 @@ private:
 	size_t m_maxXAxisSteps;
 	bool m_drawXAxisAtZero;
 	QColor m_bgColor;
+	QString m_emptyText;
 };

@@ -128,7 +128,8 @@ iAChartWidget::iAChartWidget(QWidget* parent, QString const & xLabel, QString co
 	m_selectionMode(SelectionDisabled),
 	m_selectionBand(new QRubberBand(QRubberBand::Rectangle, this)),
 	m_maxXAxisSteps(AxisTicksXDefault),
-	m_drawXAxisAtZero(false)
+	m_drawXAxisAtZero(false),
+	m_emptyText("Chart not (yet) available.")
 {
 #ifdef CHART_OPENGL
 	setFormat(defaultOpenGLFormat());
@@ -1123,6 +1124,11 @@ void iAChartWidget::setBackgroundColor(QColor const & color)
 	update();
 }
 
+void iAChartWidget::setEmptyText(QString const& text)
+{
+	m_emptyText = text;
+}
+
 #ifdef CHART_OPENGL
 void iAChartWidget::paintGL()
 #else
@@ -1139,7 +1145,7 @@ void iAChartWidget::drawAll(QPainter & painter)
 	drawBackground(painter);
 	if (m_plots.empty())
 	{
-		painter.drawText(QRect(0, 0, width(), height()), Qt::AlignCenter, "Chart not (yet) available.");
+		painter.drawText(QRect(0, 0, width(), height()), Qt::AlignCenter, m_emptyText);
 		return;
 	}
 	if (chartWidth() <= 1 || chartHeight() <= 1)
