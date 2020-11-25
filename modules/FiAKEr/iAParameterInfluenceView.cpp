@@ -133,7 +133,6 @@ iAParameterInfluenceView::iAParameterInfluenceView(iASensitivityInfo* sensInf) :
 		//m_paramListLayout->addWidget(m_diffChart[paramIdx], 1 + paramIdx, colHistogram);
 	}
 	// default stacked bar content/settings:
-	addStackedBar(outCharacteristic, 0);
 	m_stackedHeader->setDoStack(false);
 	m_stackedHeader->setNormalizeMode(false);
 	for (auto chart : m_stackedCharts)
@@ -141,6 +140,7 @@ iAParameterInfluenceView::iAParameterInfluenceView(iASensitivityInfo* sensInf) :
 		chart->setNormalizeMode(false);
 		chart->setDoStack(false);
 	}
+	addStackedBar(outCharacteristic, 0);
 }
 
 void iAParameterInfluenceView::addColumnAction(int objectType, int charactIdx, bool checked)

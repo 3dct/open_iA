@@ -70,8 +70,14 @@ private:
 	//! @{ Event Handlers:
 	void contextMenuEvent(QContextMenuEvent *ev) override;
 	void mouseDoubleClickEvent(QMouseEvent* e) override;
-	//void resizeEvent(QResizeEvent* e) override;
+	void resizeEvent(QResizeEvent* e) override;
+	void mousePressEvent(QMouseEvent* ev) override;
+	void mouseReleaseEvent(QMouseEvent* ev) override;
+	void mouseMoveEvent(QMouseEvent* ev) override;
 	//! @}
+	
+	void drawBar(QPainter& painter, size_t barID, int left, int top, int fullWidth, int barHeight);
+	int barHeight() const;
 
 	size_t dividerWithinRange(int x) const;
 	double weightAndNormalize(iABarData const& bar) const;
@@ -79,6 +85,7 @@ private:
 	void normalizeWeights();
 	void updateOverallMax();
 	void updateChartBars();
+	void updateDividers();
 
 	std::vector<QSharedPointer<iABarData>> m_bars;
 	std::vector<int> m_dividers;
@@ -100,6 +107,7 @@ private:
 	iABarsWidget* m_barsWidget;
 
 	friend class iABarsWidget;
+	friend class iABarWidget;
 };
 
 class QGridLayout;
