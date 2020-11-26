@@ -20,9 +20,11 @@
 * ************************************************************************************/
 #include "iAChartWidget.h"
 
+#include "iAAttributeDescriptor.h"
 #include "iALog.h"
 #include "iAMapperImpl.h"
 #include "iAMathUtility.h"
+#include "iAParameterDlg.h"
 #include "iAPlot.h"
 #include "iAPlotData.h"
 #include "iAStringHelper.h"
@@ -1157,12 +1159,23 @@ void iAChartWidget::contextMenuEvent(QContextMenuEvent *event)
 
 void iAChartWidget::exportData()
 {
-	// TODO: Allow choosing which plot to export!
 	if (m_plots.empty())
 	{
 		return;
 	}
-	QString filePath = ""; //(activeChild) ? activeChild->getFilePath() : "";
+	int plotIdx = 0;
+	if (m_plots.size() > 1)
+	{
+		QVector<QSharedPointer<iAAttributeDescriptor>> params;
+		params.push_back(iAAttributeDescriptor::createParam("Plot index", iAValueType::Discrete, 0, 0, m_plots.size()));
+		iAParameterDlg dlg(this, "Choose plot", params, "More than one plot available - please choose which one you want to export!");
+		if (dlg.exec() != QDialog::Accepted)
+		{
+			return;
+		}
+		plotIdx = dlg.parameterValues()["Plot index"].toInt();
+	}
+	QString filePath = QDir::currentPath();
 	QString fileName = QFileDialog::getSaveFileName(
 		this,
 		tr("Save File"),
@@ -1173,20 +1186,12 @@ void iAChartWidget::exportData()
 		return;
 	}
 	std::ofstream out( getLocalEncodingFileName(fileName));
-	out << tr("Start of Bin").toStdString();
-	for (size_t p = 0; p < m_plots.size(); ++p)
+	out << m_xCaption.toStdString() << "," << QString("%1%2").arg(m_yCaption).arg(plotIdx).toStdString() << "\n";
+	for (size_t idx = 0; idx < m_plots[plotIdx]->data()->valueCount(); ++idx)
 	{
-		out << "," << QString("%1%2").arg(m_yCaption).arg(p).toStdString();
-	}
-	out << std::endl;
-	for (size_t idx = 0; idx < m_plots[0]->data()->valueCount(); ++idx)
-	{
-		out << QString::number(m_plots[0]->data()->xValue(idx), 'g', 15).toStdString();
-		for (size_t p = 0; p < m_plots.size(); ++p)
-		{
-			out << "," << QString::number(m_plots[p]->data()->yValue(idx), 'g', 15).toStdString();
-		}
-		out << std::endl;
+		out << QString::number(m_plots[plotIdx]->data()->xValue(idx), 'g', 15).toStdString()
+			<< "," << QString::number(m_plots[plotIdx]->data()->yValue(idx), 'g', 15).toStdString()
+			<< "\n";
 	}
 	out.close();
 }
