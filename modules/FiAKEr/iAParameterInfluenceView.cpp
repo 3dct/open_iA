@@ -228,13 +228,6 @@ void iAParameterInfluenceView::stackedBarDblClicked(int barIdx)
 	emit outputSelected(selected.first, selected.second);
 }
 
-void iAParameterInfluenceView::selectMeasure(int measureIdx)
-{
-	m_measureIdx = measureIdx;
-	//updateStackedBars();
-	emit parameterChanged();
-}
-
 void iAParameterInfluenceView::paramChangedSlot()
 {
 	auto source = qobject_cast<QWidget*>(QObject::sender());
@@ -288,6 +281,7 @@ void iAParameterInfluenceView::updateStackedBars()
 	{
 		m_stackedCharts[paramIdx]->update();
 	}
+	updateChartY();
 }
 
 QString iAParameterInfluenceView::columnName(int outType, int outIdx) const
@@ -321,25 +315,6 @@ void iAParameterInfluenceView::updateStackedBarHistogram(QString const & barName
 		iAHistogramData::create(myHisto, numBins, (cMax - cMin) / numBins, cMin, cMax), QColor(80, 80, 80, 128))));
 	chart->setXCaption(m_sensInf->charactName(outIdx));
 	chart->update();
-
-	auto& s = m_stackedCharts[paramIdx];
-	double maxYRange[2] = {s->chart(0)->yBounds()[0], s->chart(0)->yBounds()[1]};
-	for (size_t barID = 0; barID < s->numberOfBars(); ++barID)
-	{
-		double const* yRange = s->chart(barID)->yBounds();
-		if (yRange[0] < maxYRange[0])
-		{
-			maxYRange[0] = yRange[0];
-		}
-		if (yRange[1] > maxYRange[1])
-		{
-			maxYRange[1] = yRange[1];
-		}
-	}
-	for (size_t barID = 0; barID < s->numberOfBars(); ++barID)
-	{
-		s->chart(barID)->setYBounds(maxYRange[0], maxYRange[1]);
-	}
 }
 
 void iAParameterInfluenceView::updateChartY()

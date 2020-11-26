@@ -57,8 +57,8 @@ public:
 	iABarData() : name(""), value(0), maxValue(1), weight(1.0), m_chart(nullptr)
 	{
 	}
-	iABarData(QString const& name, double value, double maxValue, double weight, bool showChart, QWidget* parent,
-		QString const& xLabel, QString const& yLabel) :
+	iABarData(QString const& name, double value, double maxValue, double weight,
+		bool showChart, QWidget* parent, QString const& xLabel, QString const& yLabel) :
 		name(name),
 		value(value),
 		maxValue(maxValue),
@@ -114,10 +114,15 @@ private:
 	void paintEvent(QPaintEvent* ev) override
 	{
 		Q_UNUSED(ev);
+		if (m_barID >= m_s->m_bars.size())
+		{
+			LOG(lvlDebug, QString("iABarWidget::paintEvent %1 (>= # bars=%2) still part of layout!").arg(m_barID).arg(m_s->m_bars.size()));
+			return;
+		}
 		QPainter p(this);
 		m_s->drawBar(p, m_barID, 0, 0, m_s->geometry().width() - m_s->m_leftMargin,
 			std::min(geometry().height(), iAStackedBarChart::MaxBarHeight) - (m_s->m_header ? 0 : 2 * BarVSpacing)
-			);
+		);
 	}
 	int m_barID;
 	iAStackedBarChart* m_s;
@@ -228,18 +233,13 @@ void iAStackedBarChart::removeBar(QString const & name)
 	if (m_stack)
 	{
 		// update row span of bars widget:
-		qobject_cast<QGridLayout*>(layout())->addWidget(m_barsWidget, BarRow, 0, 1, m_bars.size());
+		gL->addWidget(m_barsWidget, BarRow, 0, 1, m_bars.size());
 	}
 	else
-	{
-		auto* w = qobject_cast<QGridLayout*>(layout())->itemAtPosition(BarRow, barIdx)->widget();
-		qobject_cast<QGridLayout*>(layout())->removeWidget(w);
+	{	// always delete last -> just the bar IDs need to be ordered, then the correct data is shown
+		auto* w = gL->itemAtPosition(BarRow, m_bars.size())->widget();
+		gL->removeWidget(w);
 		delete w;
-		for (int i = barIdx; i < m_bars.size(); ++i)
-		{
-			auto* moveW = qobject_cast<QGridLayout*>(layout())->itemAtPosition(BarRow, barIdx + 1)->widget();
-			gL->addWidget(moveW, BarRow, i);
-		}
 	}
 	normalizeWeights();
 	updateChartBars();
@@ -401,6 +401,14 @@ void iAStackedBarChart::resizeEvent(QResizeEvent* e)
 
 void iAStackedBarChart::drawBar(QPainter& painter, size_t barID, int left, int top, int fullWidth, int barHeight)
 {
+	if (barID >= m_bars.size())
+	{
+		LOG(lvlDebug,
+			QString("iAStackedBarChart::drawBar: barID=%1 (>= # bars=%2) still drawn!")
+				.arg(barID)
+				.arg(m_bars.size()));
+		return;
+	}
 	auto& bar = m_bars[barID];
 	int bWidth = barWidth(*bar.data());
 	QRect barRect(left, top, bWidth, barHeight);
