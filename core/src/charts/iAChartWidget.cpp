@@ -1175,12 +1175,8 @@ void iAChartWidget::exportData()
 		}
 		plotIdx = dlg.parameterValues()["Plot index"].toInt();
 	}
-	QString filePath = QDir::currentPath();
 	QString fileName = QFileDialog::getSaveFileName(
-		this,
-		tr("Save File"),
-		filePath, tr("CSV (*.csv)")
-	);
+		this, tr("Save File"), QDir::currentPath(), tr("CSV (*.csv)"));
 	if (fileName.isEmpty())
 	{
 		return;
