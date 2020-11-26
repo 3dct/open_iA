@@ -31,19 +31,19 @@ class iAVectorPlotData : public iAPlotData
 {
 public:
 	iAVectorPlotData(QVector<double> const & data);
-	DataType const * rawData() const override;
-	size_t numBin() const override;
+	DataType const* rawData() const override;
+	double const* xBounds() const override;
+	DataType const* yBounds() const override;
+
 	double spacing() const override;
-	double const * xBounds() const override;
-	DataType const * yBounds() const override;
+	size_t numBin() const override;
 	iAValueType valueType() const override;
-	QString toolTipText(double dataX) const override;
+	
 	void setXDataType(iAValueType);
 	QVector<double> & data();
 	void updateBounds();
 
 private:
-	size_t dataX2Bin(double dataX) const;
 	QVector<double> m_data;
 	iAValueType m_xDataType;
 	double m_xBounds[2];

@@ -78,28 +78,12 @@ void iAVectorPlotData::updateBounds()
 	for (int i = 0; i < m_data.size(); ++i)
 	{
 		if (m_data[i] < m_yBounds[0])
+		{
 			m_yBounds[0] = m_data[i];
+		}
 		if (m_data[i] > m_yBounds[1])
+		{
 			m_yBounds[1] = m_data[i];
+		}
 	}
-}
-
-size_t iAVectorPlotData::dataX2Bin(double dataX) const
-{
-	double binRng[2] = {0, numBin()};
-	return clamp(static_cast<size_t>(0), numBin() - 1, static_cast<size_t>(mapValue(m_xBounds, binRng, dataX)));
-}
-
-QString iAVectorPlotData::toolTipText(double dataX) const
-{
-	size_t binNr = dataX2Bin(dataX);
-	double bStart = binStart(binNr);
-	double bEnd = binStart(binNr + 1);
-	if (m_xDataType == iAValueType::Discrete || m_xDataType == iAValueType::Categorical)
-	{
-		bStart = static_cast<int>(bStart);
-		bEnd = static_cast<int>(bEnd - 1);
-	}
-	double freq = m_data[binNr];
-	return QString("%1-%2: %3").arg(bStart).arg(bEnd).arg(freq);
 }

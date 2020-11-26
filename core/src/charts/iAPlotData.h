@@ -34,16 +34,16 @@ public:
 	typedef double DataType;
 	virtual ~iAPlotData();
 	virtual DataType const * rawData() const =0;
-	virtual double spacing() const = 0;
 	virtual double const * xBounds() const = 0;
 	virtual DataType const * yBounds() const = 0;
 	// TODO: make abstract
 	virtual QString toolTipText(double dataX) const;
 
 	// TODO: move down to iAHistogramData
+	virtual double spacing() const = 0;
 	virtual size_t numBin() const = 0;
-	virtual double binStart(size_t binNr) const;  // default: assume constant (i.e. linear) spacing
 	virtual iAValueType valueType() const;
+	virtual double binStart(size_t binNr) const;  // default: assume constant (i.e. linear) spacing
 private:
 	size_t dataX2Bin(double dataX) const;
 };

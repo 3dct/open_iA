@@ -36,11 +36,12 @@ class open_iA_Core_API iAHistogramData: public iAPlotData
 {
 public:
 	~iAHistogramData();
+	DataType const* rawData() const override;
+	double const* xBounds() const override;
+	DataType const* yBounds() const override;
+
 	double spacing() const override;
-	double const * xBounds() const override;
-	DataType const * rawData() const override;
 	size_t numBin() const override;
-	DataType const * yBounds() const override;
 	iAValueType valueType() const override;
 
 	static QSharedPointer<iAHistogramData> create(vtkImageData* img, size_t binCount, iAImageInfo* imageInfo = nullptr);
@@ -53,10 +54,10 @@ private:
 	iAHistogramData();
 	void setMaxFreq();
 
-	size_t m_binCount;
-	iAPlotData::DataType* m_rawData;
-	iAPlotData::DataType m_yBounds[2];
-	double m_accSpacing;
+	iAPlotData::DataType* m_data;
 	double m_xBounds[2];
-	iAValueType m_type;
+	iAPlotData::DataType m_yBounds[2];
+	size_t m_numBin;
+	iAValueType m_valueType;
+	double m_spacing;
 };

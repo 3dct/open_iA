@@ -32,7 +32,7 @@
 
 
 iAHistogramData::iAHistogramData()
-	: m_binCount(0), m_rawData(nullptr), m_accSpacing(0), m_type(iAValueType::Continuous)
+	: m_numBin(0), m_data(nullptr), m_spacing(0), m_valueType(iAValueType::Continuous)
 {
 	m_xBounds[0] = m_xBounds[1] = 0;
 	m_yBounds[0] = m_yBounds[1] = 0;
@@ -40,12 +40,12 @@ iAHistogramData::iAHistogramData()
 
 iAHistogramData::~iAHistogramData()
 {
-	delete[] m_rawData;
+	delete[] m_data;
 }
 
 double iAHistogramData::spacing() const
 {
-	return m_accSpacing;
+	return m_spacing;
 }
 
 double const * iAHistogramData::xBounds() const
@@ -55,7 +55,7 @@ double const * iAHistogramData::xBounds() const
 
 iAHistogramData::DataType const * iAHistogramData::rawData() const
 {
-	return m_rawData;
+	return m_data;
 }
 
 QSharedPointer<iAHistogramData> iAHistogramData::create(vtkImageData* img, size_t binCount,
@@ -98,15 +98,15 @@ QSharedPointer<iAHistogramData> iAHistogramData::create(vtkImageData* img, size_
 	caster->Update();
 	auto rawImg = caster->GetOutput();
 
-	result->m_binCount = binCount;
+	result->m_numBin = binCount;
 	result->m_xBounds[0] = scalarRange[0];
 	result->m_xBounds[1] = scalarRange[0] + histRange;
-	result->m_rawData = new double[result->m_binCount];
+	result->m_data = new double[result->m_numBin];
 	auto vtkRawData = static_cast<DataType*>(rawImg->GetScalarPointer());
-	std::copy(vtkRawData, vtkRawData + result->m_binCount, result->m_rawData);
-	result->m_accSpacing = histRange / result->m_binCount;
+	std::copy(vtkRawData, vtkRawData + result->m_numBin, result->m_data);
+	result->m_spacing = histRange / result->m_numBin;
 	result->setMaxFreq();
-	result->m_type = (img && (img->GetScalarType() != VTK_FLOAT) && (img->GetScalarType() != VTK_DOUBLE))
+	result->m_valueType = (img && (img->GetScalarType() != VTK_FLOAT) && (img->GetScalarType() != VTK_DOUBLE))
 		? iAValueType::Discrete
 		: iAValueType::Continuous;
 	if (info)
@@ -124,9 +124,9 @@ QSharedPointer<iAHistogramData> iAHistogramData::create(
 	iAPlotData::DataType min, iAPlotData::DataType max)
 {
 	auto result = QSharedPointer<iAHistogramData>(new iAHistogramData);
-	result->m_rawData = data;
-	result->m_binCount = bins;
-	result->m_accSpacing = space;
+	result->m_data = data;
+	result->m_numBin = bins;
+	result->m_spacing = space;
 	result->m_xBounds[0] = min;
 	result->m_xBounds[1] = max;
 	result->setMaxFreq();
@@ -161,23 +161,23 @@ QSharedPointer<iAHistogramData> iAHistogramData::create(const std::vector<DataTy
 	}
 	result->m_xBounds[0] = minValue;
 	result->m_xBounds[1] = maxValue;
-	result->m_type = type;
+	result->m_valueType = type;
 	if (dblApproxEqual(minValue, maxValue))
 	{   // if min == max, there is only one bin - one in which all values are contained!
-		result->m_binCount = 1;
-		result->m_rawData = new DataType[result->m_binCount];
-		result->m_rawData[0] = histData.size();
+		result->m_numBin = 1;
+		result->m_data = new DataType[result->m_numBin];
+		result->m_data[0] = histData.size();
 	}
 	else
 	{
-		result->m_binCount = binCount;
-		result->m_rawData = new DataType[binCount];
-		result->m_accSpacing = (maxValue - minValue) / binCount;
-		std::fill(result->m_rawData, result->m_rawData + binCount, 0.0);
+		result->m_numBin = binCount;
+		result->m_data = new DataType[binCount];
+		result->m_spacing = (maxValue - minValue) / binCount;
+		std::fill(result->m_data, result->m_data + binCount, 0.0);
 		for (DataType d : histData)
 		{
 			size_t bin = clamp(static_cast<size_t>(0), binCount - 1, mapValue(minValue, maxValue, static_cast<size_t>(0), binCount, d));
-			++result->m_rawData[bin];
+			++result->m_data[bin];
 		}
 	}
 	result->setMaxFreq();
@@ -186,23 +186,23 @@ QSharedPointer<iAHistogramData> iAHistogramData::create(const std::vector<DataTy
 
 void iAHistogramData::setMaxFreq()
 {
-	if (!m_rawData)
+	if (!m_data)
 	{
 		return;
 	}
 	m_yBounds[1] = 1;
-	for (size_t i = 0; i < m_binCount; i++)
+	for (size_t i = 0; i < m_numBin; i++)
 	{
-		if (m_rawData[i] > m_yBounds[1])
+		if (m_data[i] > m_yBounds[1])
 		{
-			m_yBounds[1] = m_rawData[i];
+			m_yBounds[1] = m_data[i];
 		}
 	}
 }
 
 size_t iAHistogramData::numBin() const
 {
-	return m_binCount;
+	return m_numBin;
 }
 
 iAPlotData::DataType const * iAHistogramData::yBounds() const
@@ -212,5 +212,5 @@ iAPlotData::DataType const * iAHistogramData::yBounds() const
 
 iAValueType iAHistogramData::valueType() const
 {
-	return m_type;
+	return m_valueType;
 }

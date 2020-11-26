@@ -71,7 +71,9 @@ void iASimpleHistogramData::setBin(size_t binIdx, DataType value)
 {
 	m_data[binIdx] = value;
 	if (value > m_yBounds[1])
+	{
 		m_yBounds[1] = value;
+	}
 }
 
 iASimpleHistogramData::iASimpleHistogramData(DataType minX, DataType maxX, size_t numBin, iAValueType xValueType) :

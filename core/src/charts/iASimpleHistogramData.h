@@ -28,25 +28,27 @@
 #include <itkImage.h>
 #include <itkImageRegionConstIterator.h>
 
+// merge with iAHistogramData!
 class open_iA_Core_API iASimpleHistogramData : public iAPlotData
 {
 public:
 	virtual ~iASimpleHistogramData();
-	static QSharedPointer<iASimpleHistogramData> create(DataType minX, DataType maxX, size_t numBin, iAValueType xValueType);
-	static QSharedPointer<iASimpleHistogramData> create(DataType minX, DataType maxX, size_t numBin, double * data, iAValueType xValueType);
-	static QSharedPointer<iASimpleHistogramData> create(DataType minX, DataType maxX, std::vector<double> const & data, iAValueType xValueType);
+	DataType const* rawData() const override;
+	double const* xBounds() const override;
+	DataType const* yBounds() const override;
 
-	// Inherited via iAAbstractDiagramRangedData
-	DataType const * rawData() const override;
-	size_t numBin() const override;
 	double spacing() const override;
-	double const * xBounds() const override;
-	DataType const * yBounds() const override;
+	size_t numBin() const override;
 	iAValueType valueType() const override;
 
 	void setBin(size_t binIdx, DataType value);
-	//void AddValue(DataType value);
-	//void AdjustYBounds()
+
+	static QSharedPointer<iASimpleHistogramData> create(
+		DataType minX, DataType maxX, size_t numBin, iAValueType xValueType);
+	static QSharedPointer<iASimpleHistogramData> create(
+		DataType minX, DataType maxX, size_t numBin, double* data, iAValueType xValueType);
+	static QSharedPointer<iASimpleHistogramData> create(
+		DataType minX, DataType maxX, std::vector<double> const& data, iAValueType xValueType);
 private:
 	iASimpleHistogramData(DataType minX, DataType maxX, size_t numBin, iAValueType xValueType);
 	iASimpleHistogramData(DataType minX, DataType maxX, size_t numBin, double* data, iAValueType xValueType);
@@ -59,7 +61,8 @@ private:
 	bool m_dataOwner;
 };
 
-
+// specific histogram for a collection of binary images (one for each label)
+// the created histogram has one bin per label
 template <typename PixelT>
 QSharedPointer<iASimpleHistogramData> createHistogram(QVector<typename itk::Image<PixelT, 3>::Pointer> const & imgs, size_t numBin, PixelT min, PixelT max, iAValueType xValueType)
 {
