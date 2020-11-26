@@ -685,7 +685,7 @@ void iALabelImageToSeeds::performWork(QMap<QString, QVariant> const& parameters)
 	QFile f(fileName);
 	if (!f.open(QIODevice::WriteOnly))
 	{
-		DEBUG_LOG(QString("Couldn't open file %1").arg(fileName));
+		LOG(lvlError, QString("Couldn't open file %1").arg(fileName));
 		return;
 	}
 	QTextStream out(&f);

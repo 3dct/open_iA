@@ -20,7 +20,7 @@
 * ************************************************************************************/
 #include "iAThreshMinMaxHelper.h"
 
-#include <iAConsole.h>
+#include <iALog.h>
 
 #include <QPointF>
 #include <QTextEdit>

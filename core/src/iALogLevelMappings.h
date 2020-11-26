@@ -20,26 +20,12 @@
 * ************************************************************************************/
 #pragma once
 
-#include <itkOutputWindow.h>
+#include "iALog.h"
 
-class iARedirectItkOutput : public itk::OutputWindow
-{
-public:
-	typedef iARedirectItkOutput             Self;
-	typedef itk::OutputWindow               Superclass;
-	typedef itk::SmartPointer< Self >       Pointer;
-	typedef itk::SmartPointer< const Self > ConstPointer;
-	itkTypeMacro(iARedirectItkOutput, itk::OutputWindow);
-	static Pointer New();
-	void DisplayDebugText(const char *t) override;
-	void DisplayErrorText(const char *t) override;
-	void DisplayGenericOutputText(const char *t) override;
-	void DisplayText(const char *) override;
-	void DisplayWarningText(const char *t) override;
-	void SetPromptUser(bool arg) override;
-	bool GetPromptUser() const override;
-	void PromptUserOn() override;
-	void PromptUserOff() override;
-private:
-	static Pointer m_instance;
-};
+#include <QStringList>
+
+open_iA_Core_API QString logLevelToString(iALogLevel lvl);
+open_iA_Core_API iALogLevel stringToLogLevel(QString const& str, bool& ok);
+QStringList AvailableLogLevels();
+
+// implementation in iALog.cpp

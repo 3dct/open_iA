@@ -18,44 +18,49 @@
 * Contact: FH OÖ Forschungs & Entwicklungs GmbH, Campus Wels, CT-Gruppe,              *
 *          Stelzhamerstraße 23, 4600 Wels / Austria, Email: c.heinzl@fh-wels.at       *
 * ************************************************************************************/
-#include "dlg_progress.h"
+#pragma once
 
-#include <iAPerformanceHelper.h>
+#include <vtkOutputWindow.h>
+#include <vtkObjectFactory.h>
 
-#include <QDateTime>
+#include <iAVtkVersion.h>
 
-dlg_progress::dlg_progress(QWidget *parentWidget,
-	QSharedPointer<iADurationEstimator const> durationEstimator,
-	QSharedPointer<iAAbortListener> abortListener,
-	QString const & caption):
-	dlg_progressUI(parentWidget),
-	m_durationEstimator(durationEstimator),
-	m_abortListener(abortListener)
+class iALogRedirectVTK : public vtkOutputWindow
 {
-	connect(pbAbort, &QPushButton::clicked, this, &dlg_progress::abort);
-	setWindowTitle(caption);
-}
-
-void dlg_progress::setProgress(int progress)
-{
-	progressBar->setValue(progress);
-	if (m_durationEstimator->elapsed() > 0)
+public:
+	vtkTypeMacro(iALogRedirectVTK, vtkOutputWindow);
+	static iALogRedirectVTK* New();
+	void PrintSelf(ostream& os, vtkIndent indent) override
 	{
-		double estimatedRemaining = m_durationEstimator->estimatedTimeRemaining();
-		lbElapsed->setText(QString("Elapsed: ")+
-			formatDuration(m_durationEstimator->elapsed()));
-		lbETR->setText(QString("Estimated Time Remaining: ")+
-			((estimatedRemaining == -1) ? "unknown" : formatDuration(estimatedRemaining)));
+		this->Superclass::PrintSelf(os, indent);
 	}
-}
+	void DisplayText(const char* someText) override
+	{
+		iALogLevel lvl = lvlWarn;
+	#if VTK_VERSION_NUMBER >= VTK_VERSION_CHECK(8,2,0)
+		switch (GetCurrentMessageType())
+		{
+		case MESSAGE_TYPE_TEXT           : lvl = lvlInfo;  break;
+		case MESSAGE_TYPE_ERROR          : lvl = lvlError; break;
+		default:
+	#if __cplusplus >= 201703L
+			[[fallthrough]];
+	#endif
+		case MESSAGE_TYPE_WARNING        :
+	#if __cplusplus >= 201703L
+			[[fallthrough]];
+	#endif
+		case MESSAGE_TYPE_GENERIC_WARNING: lvl = lvlWarn;  break;
+		case MESSAGE_TYPE_DEBUG          : lvl = lvlDebug; break;
+		}
+	#endif
+		LOG(lvl, someText);
+	}
+private:
+	iALogRedirectVTK()
+	{}
+	iALogRedirectVTK(const iALogRedirectVTK &) = delete;
+	void operator=(const iALogRedirectVTK &) = delete;
+};
 
-void dlg_progress::setStatus(QString const & status)
-{
-	lbStatus->setText(QString("Status: ")+status);
-}
-
-
-void dlg_progress::abort()
-{
-	m_abortListener->abort();
-}
+vtkStandardNewMacro(iALogRedirectVTK);

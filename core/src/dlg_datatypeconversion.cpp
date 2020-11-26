@@ -184,6 +184,7 @@ template<class T> void DataTypeConversion_template(QString const & filename, iAR
 	// TODO: use itk methods instead?
 	typedef itk::Image< T, 3 >   InputImageType;
 
+	LOG(lvlInfo, QString("Reading file '%1':").arg(filename));
 	FILE * pFile = openFile(filename);
 
 	typename InputImageType::Pointer itkimage = InputImageType::New();
@@ -219,7 +220,25 @@ template<class T> void DataTypeConversion_template(QString const & filename, iAR
 	std::fill(histptr, histptr + static_cast<size_t>(numBins), 0);
 	while (loop)
 	{
-		/*size_t result =*/ fread (reinterpret_cast<char*>(&buffer),datatypesize, elemCount, pFile);
+		size_t result = fread (reinterpret_cast<char*>(&buffer),datatypesize, elemCount, pFile);
+		if (result != elemCount)
+		{
+			if (feof(pFile))
+			{
+				LOG(lvlError, QString("Unexpected end of file '%1'!").arg(filename));
+			}
+			else if (ferror(pFile))
+			{
+				LOG(lvlError, QString("Error while reading file '%1'!").arg(filename));
+			}
+			else
+			{
+				LOG(lvlError, QString("Could not read a full chunk of size %1 (bytes) while reading file '%2'!")
+						  .arg(datatypesize*elemCount)
+						  .arg(filename));
+			}
+			loop = false;
+		}
 		size_t binIdx = clamp(static_cast<size_t>(0), numBins-1, static_cast<size_t>((buffer-minVal)/discretization));
 		iter.Set(buffer);
 		++iter;
@@ -231,9 +250,14 @@ template<class T> void DataTypeConversion_template(QString const & filename, iAR
 			numsliceread++;
 			size_t skipmemory = slicesize*datatypesize * zSkip * numsliceread;
 			if ( skipmemory < totalsize )
+			{
+				LOG(lvlDebug, QString("Skipping ahead to %1.").arg(skipmemory));
 				fseek ( pFile , static_cast<long>(skipmemory) , SEEK_SET );
+			}
 			else
+			{
 				loop = false;
+			}
 		}
 	}
 	fclose(pFile);

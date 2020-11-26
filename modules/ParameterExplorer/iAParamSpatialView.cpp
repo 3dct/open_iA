@@ -28,7 +28,7 @@
 #include <charts/iAChartWithFunctionsWidget.h>
 #include <charts/iAPlotTypes.h>
 #include <iAConnector.h>
-#include <iAConsole.h>
+#include <iALog.h>
 #include <iASlicerMode.h>
 #include <io/iAFileUtils.h>
 
@@ -101,7 +101,7 @@ void iAParamSpatialView::setImage(size_t id)
 		assert(m_table->Table()->rowCount() >= 0);
 		if (id >= static_cast<size_t>(m_table->Table()->rowCount()))
 		{
-			DEBUG_LOG("Invalid column index!");
+			LOG(lvlError, "Invalid column index!");
 			return;
 		}
 		QString fileName = m_table->Table()->item(id, 0)->text();	// assumes filename is in column 0!
@@ -118,7 +118,7 @@ void iAParamSpatialView::setImage(size_t id)
 		}
 		catch (std::exception & e)
 		{
-			DEBUG_LOG(QString("Could not load image %1: %2").arg(fileName).arg(e.what()));
+			LOG(lvlError, QString("Could not load image %1: %2").arg(fileName).arg(e.what()));
 			return;
 		}
 	}

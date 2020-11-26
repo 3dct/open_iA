@@ -22,7 +22,7 @@
 
 #include "iAVRInteractor.h"
 
-#include <iAConsole.h>
+#include <iALog.h>
 
 #include <vtkOpenVRRenderer.h>
 #include <vtkOpenVRRenderWindow.h>
@@ -45,7 +45,7 @@ void iAVREnvironment::start()
 	// "poor man's" check for trying to run two VR sessions in parallel:
 	if (runningInstances >= 1)
 	{
-		DEBUG_LOG("Cannot start more than one VR session in parallel!");
+		LOG(lvlWarn, "Cannot start more than one VR session in parallel!");
 		emit finished();
 		return;
 	}

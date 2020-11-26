@@ -25,10 +25,11 @@
 #include "dlg_openfile_sizecheck.h"
 #include "iAAmiraMeshIO.h"
 #include "iAConnector.h"
-#include "iAConsole.h"
+#include "iALog.h"
 #include "iAExceptionThrowingErrorObserver.h"
 #include "iAExtendedTypedCallHelper.h"
 #include "iAFileUtils.h"
+#include "iAJobListView.h"
 #include "iAModalityList.h"
 #include "iAOIFReader.h"
 #include "iAProgress.h"
@@ -68,7 +69,6 @@
 #include <vtkRectilinearGrid.h>
 #include <vtkPointData.h>
 
-#include <QDateTime>
 #include <QFileDialog>
 #include <QRegularExpression>
 #include <QSettings>
@@ -191,6 +191,7 @@ void iAIO::init(QWidget *par)
 	m_fileName = "";
 	m_fileNameArray = vtkStringArray::New();
 	m_ioID = 0;
+	iAJobListView::get()->addJob("Loading file(s)", ProgressObserver(), this);
 	loadIOSettings();
 }
 
@@ -289,7 +290,7 @@ herr_t errorfunc(unsigned /*n*/, const H5E_error2_t *err, void * /*client_data*/
 	const char	*file_name;	file in which error occurred
 	const char	*desc;
 	*/
-	DEBUG_LOG(QString("HDF5 error: class=%1 maj_num=%2(%3) min_num=%4(%5) file=%6:%7 func=%8 desc=%9")
+	LOG(lvlError, QString("HDF5 error: class=%1 maj_num=%2(%3) min_num=%4(%5) file=%6:%7 func=%8 desc=%9")
 		.arg(err->cls_id)
 		.arg(err->maj_num)
 		.arg(H5Eget_major(err->maj_num))
@@ -355,7 +356,7 @@ void iAIO::readHDF5File()
 		caption += QString::number(hdf5Dims[i]);
 		if (i < rank - 1) caption += " x ";
 	}
-	DEBUG_LOG(caption);
+	//LOG(lvlInfo, caption);
 	status = H5Sclose(space);
 	if (vtkType == InvalidHDF5Type)
 	{
@@ -583,15 +584,19 @@ herr_t op_func(hid_t loc_id, const char *name, const H5L_info_t * /*info*/,
 	H5O_info_t      infobuf;
 	struct opdata   *od = (struct opdata *) operator_data;
 	status = H5Oget_info_by_name(loc_id, name, &infobuf, H5P_DEFAULT);
+	if (status < 0)
+	{
+		LOG(lvlWarn, QString("H5Oget_info_by_name failed with code %1!").arg(status));
+	}
 	QString caption;
-	bool group = false;
+	//bool group = false;
 	int vtkType = -1;
 	int rank = 0;
 	switch (infobuf.type)
 	{
 	case H5O_TYPE_GROUP:
 		caption = QString("Group: %1").arg(name);
-		group = true;
+		//group = true;
 		break;
 	case H5O_TYPE_DATASET:
 		{
@@ -822,7 +827,7 @@ bool iAIO::setupIO( iAIOType type, QString f, bool c, int channel)
 			if (file_id < 0)
 			{
 				printHDF5ErrorsToConsole();
-				DEBUG_LOG("H5open returned value < 0!");
+				LOG(lvlError, "H5open returned value < 0!");
 				return false;
 			}
 			m_isITKHDF5 = IsHDF5ITKImage(file_id);
@@ -866,7 +871,7 @@ bool iAIO::setupIO( iAIOType type, QString f, bool c, int channel)
 			QModelIndex idx;
 			if (curItem && curItem->data(Qt::UserRole + 1) == DATASET)
 			{
-				DEBUG_LOG("File only contains one dataset, loading that with default spacing of 1,1,1!");
+				LOG(lvlInfo, "File only contains one dataset, loading that with default spacing of 1,1,1!");
 				idx = curItem->index();
 				m_hdf5Spacing[0] = 1;
 				m_hdf5Spacing[1] = 1;
@@ -914,10 +919,10 @@ bool iAIO::setupIO( iAIOType type, QString f, bool c, int channel)
 				idx = idx.parent();
 			}
 			while (idx != QModelIndex());
-			DEBUG_LOG(QString("Path: %1").arg(m_hdf5Path.size()));
+			LOG(lvlInfo, QString("Path: %1").arg(m_hdf5Path.size()));
 			for (int i = 0; i < m_hdf5Path.size(); ++i)
 			{
-				DEBUG_LOG(QString("    %1").arg(m_hdf5Path[i]));
+				LOG(lvlInfo, QString("    %1").arg(m_hdf5Path[i]));
 			}
 			if (m_hdf5Path.size() < 2)
 			{
@@ -932,7 +937,7 @@ bool iAIO::setupIO( iAIOType type, QString f, bool c, int channel)
 			[[fallthrough]];
 #endif
 		default:
-			DEBUG_LOG(QString("Unknown IO type '%1' for file '%2'!").arg(m_ioID).arg(f));
+			LOG(lvlError, QString("Unknown IO type '%1' for file '%2'!").arg(m_ioID).arg(f));
 			addMsg(tr("Unknown IO type"));
 			return false;
 	}
@@ -1023,7 +1028,7 @@ void iAIO::readVTKFile()
 	// All of the standard data types can be checked and obtained like this:
 	if (reader->IsFilePolyData())
 	{
-		DEBUG_LOG("output is a polydata");
+		LOG(lvlInfo, "output is a polydata");
 
 		getVtkPolyData()->DeepCopy(reader->GetPolyDataOutput());
 		printSTLFileInfos();
@@ -1052,13 +1057,13 @@ void iAIO::readVTKFile()
 			int extentSize = extent[i * 2 + 1] - extent[i * 2] + 1;
 			if (numComp != 1 || numValues != extentSize)
 			{
-				DEBUG_LOG(QString("Don't know how to handle situation where number of components is %1 "
+				LOG(lvlWarn, QString("Don't know how to handle situation where number of components is %1 "
 					"and number of values=%2 not equal to extentSize=%3")
 					.arg(numComp).arg(numValues).arg(extentSize))
 			}
 			if (numValues < 2)
 			{
-				DEBUG_LOG(QString("Dimension %1 has dimensions of less than 2, cannot compute proper spacing, using 1 instead!"));
+				LOG(lvlWarn, QString("Dimension %1 has dimensions of less than 2, cannot compute proper spacing, using 1 instead!"));
 				spacing[i] = 1;
 			}
 			else
@@ -1069,7 +1074,7 @@ void iAIO::readVTKFile()
 					double actSpacing = coords[i]->GetComponent(j, 0) - coords[i]->GetComponent(j - 1, 0);
 					if (actSpacing != spacing[i])
 					{
-						DEBUG_LOG(QString("Spacing for cordinate %1 not the same as between 0..1 (%2) at index %3 (%4).")
+						LOG(lvlWarn, QString("Spacing for cordinate %1 not the same as between 0..1 (%2) at index %3 (%4).")
 							.arg(i)
 							.arg(spacing[i])
 							.arg(j)
@@ -1136,7 +1141,7 @@ void iAIO::readVolumeMHDStack()
 		if (m_fileNames_volstack)
 			m_fileNames_volstack->push_back(m_fileName);
 
-		int progress = (m_fileNameArray->GetMaxId() == 0) ? 100 : (m * 100) / m_fileNameArray->GetMaxId();
+		double progress = (m_fileNameArray->GetMaxId() == 0) ? 100 : m * 100.0 / m_fileNameArray->GetMaxId();
 		ProgressObserver()->emitProgress(progress);
 	}
 	addMsg(tr("Loading volume stack completed."));
@@ -1159,8 +1164,7 @@ void iAIO::readVolumeStack()
 		{
 			m_fileNames_volstack->push_back(m_fileName);
 		}
-		int progress = (m * 100) / m_fileNameArray->GetMaxId();
-		ProgressObserver()->emitProgress(progress);
+		ProgressObserver()->emitProgress(m * 100.0 / m_fileNameArray->GetMaxId());
 	}
 	addMsg(tr("Loading volume stack completed."));
 	storeIOSettings();
@@ -1190,8 +1194,7 @@ void iAIO::writeVolumeStack()
 	for (int m=0; m <= m_fileNameArray->GetMaxId(); m++)
 	{
 		writeMetaImage(m_volumes->at(m).GetPointer(), m_fileNameArray->GetValue(m).c_str());
-		int progress = (m * 100) / m_fileNameArray->GetMaxId();
-		ProgressObserver()->emitProgress(progress);
+		ProgressObserver()->emitProgress(m * 100.0 / m_fileNameArray->GetMaxId());
 	}
 }
 
@@ -1434,7 +1437,7 @@ bool iAIO::setupPARSReader( QString const & f )
 	file.setFileName(m_fileName);
 	if (!file.open(QIODevice::ReadOnly))
 	{
-		DEBUG_LOG(QString("PARS reader: Cannot open data file '%1'!").arg(m_fileName));
+		LOG(lvlError, QString("PARS reader: Cannot open data file '%1'!").arg(m_fileName));
 		return false;
 	}
 	else file.close();
@@ -1455,7 +1458,7 @@ bool iAIO::setupVGIReader( QString const & f )
 	}
 	if ((m_rawFileParams.m_size[0] == 0) || (m_rawFileParams.m_size[1] == 0) || (m_rawFileParams.m_size[2] == 0))
 	{
-		DEBUG_LOG("VGI reader: One of the 3 dimensions has size 0!");
+		LOG(lvlError, "VGI reader: One of the 3 dimensions has size 0!");
 		return false;
 	}
 	m_rawFileParams.m_spacing[0] = getParameterValues(f,"resolution", 0, "[geometry]", "=").toDouble();
@@ -1470,7 +1473,7 @@ bool iAIO::setupVGIReader( QString const & f )
 	if (elementSize == 0) elementSize = getParameterValues(f,"BitsPerElement", 0, "[file1]", "=").toInt();
 	if (elementSize == 0)
 	{
-		DEBUG_LOG("VGI reader: BitsPerElement is 0!");
+		LOG(lvlError, "VGI reader: BitsPerElement is 0!");
 		return false;
 	}
 
@@ -1502,7 +1505,7 @@ bool iAIO::setupVGIReader( QString const & f )
 	file.setFileName(m_fileName);
 	if (!file.open(QIODevice::ReadOnly))
 	{
-		DEBUG_LOG(QString("VGI reader: Cannot open data file '%1'!").arg(m_fileName));
+		LOG(lvlError, QString("VGI reader: Cannot open data file '%1'!").arg(m_fileName));
 		return false;
 	}
 	else file.close();
@@ -1539,7 +1542,7 @@ bool iAIO::setupNKCReader(QString const& f)
 	}
 
 	m_rawFileParams.m_size[2] = 1;
-	m_rawFileParams.m_scalarType = VTK_SHORT;
+	m_rawFileParams.m_scalarType = VTK_TYPE_UINT16;
 	m_rawFileParams.m_byteOrder = VTK_FILE_BYTE_ORDER_BIG_ENDIAN;
 
 	m_rawFileParams.m_headersize = file.size() - (m_rawFileParams.m_size[0] * m_rawFileParams.m_size[1] * 2);

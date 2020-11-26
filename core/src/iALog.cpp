@@ -18,17 +18,70 @@
 * Contact: FH OÖ Forschungs & Entwicklungs GmbH, Campus Wels, CT-Gruppe,              *
 *          Stelzhamerstraße 23, 4600 Wels / Austria, Email: c.heinzl@fh-wels.at       *
 * ************************************************************************************/
-#pragma once
+#include "iALog.h"
+#include "iALogLevelMappings.h"
 
-//! Interface for operations providing elapsed time and estimated remaining duration.
-class iADurationEstimator
+iALogger* iALog::m_globalLogger(nullptr);
+
+void iALog::setLogger(iALogger* logger)
 {
-public:
-	//! Get the time that has elapsed since start of the operation.
-	//! @return elapsed time in seconds
-	virtual double elapsed() const =0;
-	//! Get the estimated, still required time to finish the operation.
-	//! @return the estimated remaining time in seconds
-	//!         -1 if remaining time still unknown
-	virtual double estimatedTimeRemaining() const =0;
-};
+	m_globalLogger = logger;
+}
+
+iALogger* iALog::get()
+{
+	return m_globalLogger;
+}
+
+// iALogger - move to separate iALogger.cpp?
+
+QStringList AvailableLogLevels()
+{
+	static QStringList logLevelStrings;
+	if (logLevelStrings.isEmpty())
+	{
+		logLevelStrings << "DEBUG" << "INFO " << "WARN " << "ERROR" << "FATAL";
+	}
+	return logLevelStrings;
+}
+
+
+QString logLevelToString(iALogLevel lvl)
+{
+	if (lvl < lvlDebug && lvl > lvlFatal)
+	{
+		return "?????";
+	}
+	return AvailableLogLevels()[lvl - 1];
+}
+
+open_iA_Core_API iALogLevel stringToLogLevel(QString const& str, bool& ok)
+{
+	ok = true;
+	for (int l = 0; l < AvailableLogLevels().size(); ++l)
+	{
+		if (str == AvailableLogLevels()[l])
+		{
+			return static_cast<iALogLevel>(l+1);
+		}
+	}
+	ok = false;
+	return lvlInfo;
+}
+
+iALogger::iALogger():
+	m_logLevel(lvlInfo)
+{}
+
+iALogger::~iALogger()
+{}
+
+void iALogger::setLogLevel(iALogLevel level)
+{
+	m_logLevel = level;
+}
+
+iALogLevel iALogger::logLevel() const
+{
+	return m_logLevel;
+}

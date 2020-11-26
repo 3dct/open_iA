@@ -22,9 +22,10 @@
 
 #include "iAAttributeDescriptor.h"
 #include "iAConnector.h"
-#include "iAConsole.h"
 #include "iAFilter.h"
 #include "iAFilterRegistry.h"
+#include "iALoggerStdOut.h"
+#include "iALogLevelMappings.h"
 #include "iAMathUtility.h"
 #include "iAModuleDispatcher.h"
 #include "iAProgress.h"
@@ -78,6 +79,7 @@ namespace
 	void PrintListOfAvailableFilters()
 	{
 		auto filterFactories = iAFilterRegistry::filterFactories();
+		// sort filters by name?
 		std::cout << "Available filters:" << std::endl;
 		for (auto factory : filterFactories)
 		{
@@ -219,13 +221,17 @@ namespace
 			<< "           -c   compress output" << std::endl
 			<< "           -f   overwrite output if it exists" << std::endl
 			<< "           -s n separate input starts at nth filename given under -i" << std::endl // (required for some filters, e.g. Extended Random Walker)
+			<< "           -v n specify the log level (how verbose output should be). " << std::endl
+			<< "                Can be " << AvailableLogLevels().join(", ").toStdString()
+			                             << " or a numeric value (" << lvlDebug << ".." << lvlFatal << ")" << std::endl
+			<< "                between 1 and 5 (1=DEBUG, ...). Default is WARN." << std::endl
 			<< "         Note: Only image output is written to the filename(s) specified after -o," << std::endl
 			<< "           filters returning one or more output values write those values to the command line." << std::endl
 			<< "     -p FilterName" << std::endl
 			<< "         Output the Parameter Descriptor for the given filter (required for sampling)." << std::endl;
 	}
 
-	enum ParseMode { None, Input, Output, Parameter, InvalidParameter, Quiet, Compress, Overwrite, InputSeparation};
+	enum ParseMode { None, Input, Output, Parameter, InvalidParameter, Quiet, Compress, Overwrite, InputSeparation, LogLevel };
 
 	ParseMode GetMode(QString arg)
 	{
@@ -236,6 +242,7 @@ namespace
 		else if (arg == "-c") return Compress;
 		else if (arg == "-f") return Overwrite;
 		else if (arg == "-s") return InputSeparation;
+		else if (arg == "-v") return LogLevel;
 		else return InvalidParameter;
 	}
 
@@ -266,7 +273,8 @@ namespace
 			case Overwrite:
 				mode = GetMode(args[a]);
 				break;
-			case InputSeparation: {
+			case InputSeparation:
+			{
 				bool ok;
 				int inputSeparation = args[a].toInt(&ok);
 				if (!ok)
@@ -276,6 +284,30 @@ namespace
 					return 1;
 				}
 				filter->setFirstInputChannels(inputSeparation);
+				mode = None;
+				break;
+			}
+			case LogLevel:
+			{
+				bool ok;
+				int intLevel = args[a].toInt(&ok);
+				if (!ok)
+				{
+					iALogLevel logLevel = stringToLogLevel(args[a], ok);
+					if (!ok)
+					{
+						std::cout << "Invalid value '" << args[a].toStdString()
+							<< "' for log level, expected an int between 1 and 5!" << std::endl;
+					}
+					else
+					{
+						iALog::get()->setLogLevel(logLevel);
+					}
+				}
+				else
+				{
+					iALog::get()->setLogLevel(static_cast<iALogLevel>(intLevel));
+				}
 				mode = None;
 				break;
 			}
@@ -447,7 +479,7 @@ namespace
 int ProcessCommandLine(int argc, char const * const * argv, const char * version)
 {
 	auto dispatcher = new iAModuleDispatcher(QFileInfo(argv[0]).absolutePath());
-	dispatcher->InitializeModules(iAStdOutLogger::get());
+	dispatcher->InitializeModules(iALoggerStdOut::get());
 	if (argc > 1 && QString(argv[1]) == "-l")
 	{
 		PrintListOfAvailableFilters();

@@ -20,7 +20,6 @@
 * ************************************************************************************/
 #pragma once
 
-//#include "defines.h"
 #include "qthelper/iAQTtoUIConnector.h"
 #include "iAPreferences.h"
 #include "iARenderSettings.h"
@@ -28,7 +27,6 @@
 #include "iASlicerSettings.h"
 #include "iAVolumeSettings.h"
 #include "open_iA_Core_export.h"
-#include "ui_logs.h"
 #include "ui_Mdichild.h"
 #include "ui_renderer.h"
 
@@ -41,8 +39,6 @@
 #include <QSharedPointer>
 
 #include <vector>
-
-class QProgressBar;
 
 class vtkAbstractTransform;
 class vtkActor;
@@ -69,13 +65,10 @@ class iAChannelData;
 class iAChartWithFunctionsWidget;
 class iADockWidgetWrapper;
 class iAIO;
-class iAJobListView;
-class iALogger;
 class iAModality;
 class iAModalityList;
 class iAParametricSpline;
 class iAPlot;
-class iAProgress;
 struct iAProfileProbe;
 class iAProjectBase;
 class iARenderer;
@@ -84,7 +77,6 @@ class iAVolumeStack;
 class MainWindow;
 
 typedef iAQTtoUIConnector<QDockWidget, Ui_renderer>  dlg_renderer;
-typedef iAQTtoUIConnector<QDockWidget, Ui_logs>   dlg_logs;
 
 //! Child window of MainWindow's mdi area for showing a volume or mesh dataset.
 //! Some tools in the modules attach to MdiChild's to enhance their functionality.
@@ -136,7 +128,6 @@ public:
 	void setRenderSettings(iARenderSettings const & rs, iAVolumeSettings const & vs);
 	void setupSlicers(iASlicerSettings const & ss, bool init);
 	void check2DMode();
-	iALogger * logger();
 	iARenderSettings const & renderSettings() const;
 	iAVolumeSettings const & volumeSettings() const;
 	iASlicerSettings const & slicerSettings() const;
@@ -181,14 +172,10 @@ public:
 	dlg_imageproperty * imagePropertyDockWidget();
 	//! Access to line profile dock widget
 	dlg_profile * profileDockWidget();
-	//! Access to log message dock widget
-	dlg_logs * logDockWidget();
 	//! Access to histogram dock widget
 	iADockWidgetWrapper* histogramDockWidget();
 	//! Access to modalities dock widget
-	dlg_modalities* modalitiesDockWidget();
-	//! Access to the jobs dock widget
-	iAJobListView* jobsList();
+	dlg_modalities* dataDockWidget();
 
 	void setReInitializeRenderWindows(bool reInit);
 	vtkTransform* slicerTransform();
@@ -267,10 +254,6 @@ public:
 	//! (currently used for determining which modality to save)
 	int chooseComponentNr(int modalityNr);
 
-	//! workaround for bug in splitDockWidget (see https://bugreports.qt.io/browse/QTBUG-60093)
-	//! splitDockWidget would makes ref and newWidget disappear if ref is tabbed at the moment
-	//void splitDockWidget(QDockWidget* ref, QDockWidget* newWidget, Qt::Orientation orientation);
-
 	//! Checks whether the main image data is fully loaded.
 	bool isFullyLoaded() const;
 	//! Store current situation in the given project file:
@@ -309,9 +292,6 @@ public:
 	//! maximize slicer dockwidget with the given mode
 	void maximizeSlicer(int mode);
 
-	//! makes job status window visible and adds the given job there.
-	void addJob(QString name, iAProgress* p, QThread* t, iAAbortListener* abortListener = nullptr);
-
 signals:
 	void rendererDeactivated(int c);
 	void pointSelected();
@@ -330,16 +310,12 @@ signals:
 
 public slots:
 	void maximizeRC();
-	void updateProgressBar(int i);
-	void hideProgressBar();
-	void initProgressBar();
 	void disableRenderWindows(int ch);
 	void enableRenderWindows();
 	void updateSlicer(int index);
 	void updateSlicers();
 	void updateViews();
-	void addMsg(QString txt);
-	void addStatusMsg(QString txt);
+	void addStatusMsg(QString const & txt);
 	void setupView(bool active = false);
 	void setupStackView(bool active = false);
 	void setupProject(bool active = false);
@@ -371,7 +347,6 @@ private slots:
 	void toggleProfileHandles(bool isChecked);
 	void ioFinished();
 	void updateImageProperties();
-	void clearLogs();
 	void modalityTFChanged();
 	void histogramDataAvailable(int modalityIdx);
 	void statisticsAvailable(int modalityIdx);
@@ -448,7 +423,6 @@ private:
 
 	QByteArray m_beforeMaximizeState;
 	QDockWidget* m_whatMaximized;
-	int m_pbarMaxVal;
 
 	iARenderSettings m_renderSettings;
 	iAVolumeSettings m_volumeSettings;
@@ -489,19 +463,15 @@ private:
 	iAChartWithFunctionsWidget * m_histogram;
 	QSharedPointer<iAPlot> m_histogramPlot;
 
-	iAJobListView* m_jobs;
 	//! @{ dock widgets
-	iADockWidgetWrapper * m_dwHistogram, * m_dwJobs;
+	iADockWidgetWrapper * m_dwHistogram;
 	dlg_imageproperty * m_dwImgProperty;
 	dlg_volumePlayer * m_dwVolumePlayer;
 	dlg_profile* m_dwProfile;
 	dlg_slicer * m_dwSlicer[3];
 	dlg_modalities * m_dwModalities;
 	dlg_renderer * m_dwRenderer;
-	dlg_logs * m_dwLog;
 	//! @}
-
-	QProgressBar * m_pbar;
 
 	std::vector<iAAlgorithm*> m_workingAlgorithms;
 
@@ -510,8 +480,7 @@ private:
 	uint m_magicLensChannel;
 
 	int m_previousIndexOfVolume;
-
-	iALogger* m_logger;
+	
 	QByteArray m_initialLayoutState;
 	QString m_layout;
 	//! temporary smart pointer to image currently being saved

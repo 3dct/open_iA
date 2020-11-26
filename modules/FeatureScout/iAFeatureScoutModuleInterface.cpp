@@ -27,7 +27,7 @@
 #include "iAFeatureScoutToolbar.h"
 #include "ui_CsvInput.h"
 
-#include <iAConsole.h>
+#include <iALog.h>
 #include <iAModalityList.h>
 #include <iAModuleDispatcher.h> // TODO: Refactor; it shouldn't be required to go via iAModuleDispatcher to retrieve one's own module
 #include <iAProjectBase.h>
@@ -74,7 +74,7 @@ void iAFeatureScoutProject::loadProject(QSettings & projectFile, QString const &
 {
 	if (!m_mdiChild)
 	{
-		DEBUG_LOG(QString("Invalid FeatureScout project file '%1': FeatureScout requires an MdiChild, "
+		LOG(lvlError, QString("Invalid FeatureScout project file '%1': FeatureScout requires an MdiChild, "
 			"but UseMdiChild was apparently not specified in this project, as no MdiChild available! "
 			"Please report this error, along with the project file, to the open_iA developers!").arg(fileName));
 		return;
@@ -85,7 +85,7 @@ void iAFeatureScoutProject::loadProject(QSettings & projectFile, QString const &
 	QString csvFileName = projectFile.value("CSVFileName").toString();
 	if (csvFileName.isEmpty())
 	{
-		DEBUG_LOG(QString("Invalid FeatureScout project file '%1': Empty or missing 'CSVFileName'!").arg(fileName));
+		LOG(lvlError, QString("Invalid FeatureScout project file '%1': Empty or missing 'CSVFileName'!").arg(fileName));
 		return;
 	}
 	m_config.fileName = MakeAbsolute(path, csvFileName);
@@ -217,7 +217,7 @@ void iAFeatureScoutModuleInterface::LoadFeatureScoutWithParams(QString const & c
 	auto type = guessFeatureType(csvFileName);
 	if (type == InvalidObjectType)
 	{
-		m_mdiChild->addMsg("CSV-file could not be opened or not a valid FeatureScout file!");
+		LOG(lvlError, "CSV-file could not be opened or not a valid FeatureScout file!");
 		return;
 	}
 	iACsvConfig csvConfig = (type != Voids) ?
@@ -277,7 +277,7 @@ bool iAFeatureScoutModuleInterface::startFeatureScout(iACsvConfig const & csvCon
 	iAFeatureScoutAttachment* attach = GetAttachment<iAFeatureScoutAttachment>();
 	if (!attach)
 	{
-		m_mdiChild->addMsg("Error while attaching FeatureScout to mdi child window!");
+		LOG(lvlError, "Error while attaching FeatureScout to mdi child window!");
 		return false;
 	}
 	std::map<size_t, std::vector<iAVec3f> > curvedFiberInfo;
@@ -289,11 +289,11 @@ bool iAFeatureScoutModuleInterface::startFeatureScout(iACsvConfig const & csvCon
 		curvedFiberInfo, csvConfig.cylinderQuality, csvConfig.segmentSkip);
 	SetupToolbar();
 	m_mdiChild->addStatusMsg(QString("FeatureScout started (csv: %1)").arg(csvConfig.fileName));
-	m_mdiChild->addMsg(QString("FeatureScout started (csv: %1)").arg(csvConfig.fileName));
+	LOG(lvlInfo, QString("FeatureScout started (csv: %1)").arg(csvConfig.fileName));
 	if (csvConfig.visType == iACsvConfig::UseVolume)
 	{
 		setFeatureScoutRenderSettings();
-		m_mdiChild->addMsg("The render settings of the current child window have been adapted for the volume visualization of FeatureScout!");
+		LOG(lvlInfo, "The render settings of the current child window have been adapted for the volume visualization of FeatureScout!");
 	}
 	auto project = QSharedPointer<iAFeatureScoutProject>::create();
 	project->setOptions(csvConfig);
@@ -307,7 +307,7 @@ void iAFeatureScoutModuleInterface::FeatureScout_Options()
 	iAFeatureScoutAttachment* attach = GetAttachment<iAFeatureScoutAttachment>();
 	if ( !attach )
 	{
-		DEBUG_LOG( "No FeatureScout attachment in current MdiChild!" );
+		LOG(lvlInfo,  "No FeatureScout attachment in current MdiChild!" );
 		return;
 	}
 	QString actionText = qobject_cast<QAction *>(sender())->text();

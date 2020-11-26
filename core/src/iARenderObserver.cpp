@@ -91,10 +91,9 @@ void iARenderObserver::Execute(vtkObject * caller,
 {
 	char keyCode = m_pIren->GetKeyCode();
 	char* keySym = m_pIren->GetKeySym();
-	// TODO: check original intention of this code
-	//       VTK seems to have done a major change to how keycode works...
 	switch (eid)
 	{
+		/*
 		case vtkCommand::LeftButtonPressEvent:
 		{
 			if (!m_pImageData)
@@ -108,6 +107,7 @@ void iARenderObserver::Execute(vtkObject * caller,
 			emit clicked(x, y, z);
 			break;
 		}
+		*/
 		case vtkCommand::KeyPressEvent:
 		{
 			emit keyPressed(keyCode);
@@ -157,7 +157,9 @@ void iARenderObserver::Execute(vtkObject * caller,
 				}
 				break;
 				}
+				m_pIren->Render();
 			}
+			// ability to move second coordinate axis; required for registration
 			else if (mode == 1)
 			{
 				if (m_pIren->GetControlKey())
@@ -254,8 +256,6 @@ void iARenderObserver::Execute(vtkObject * caller,
 	{
 		listener->Execute(caller, eid, callData);
 	}
-	m_pRen->Render();
-	m_pIren->Render();
 }
 
 

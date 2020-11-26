@@ -26,7 +26,7 @@
 #include <iAChannelSlicerData.h>
 #include <iAColorTheme.h>
 #include <iAConnector.h>
-#include <iAConsole.h>
+#include <iALog.h>
 #include <iASlicer.h>
 #include <iASlicerSettings.h>
 
@@ -203,7 +203,7 @@ void iAImagePreviewWidget::setImage(iAITKIO::ImagePointer const img, bool empty,
 {
 	if (!img)
 	{
-		DEBUG_LOG("iAImagePreviewWidget::setImage called with nullptr image!\n");
+		LOG(lvlError, "iAImagePreviewWidget::setImage called with nullptr image!\n");
 		return;
 	}
 	if (!m_conn)
@@ -218,7 +218,7 @@ void iAImagePreviewWidget::addNoMapperChannel(vtkSmartPointer<vtkImageData> img)
 {
 	if (m_addChannelImgActor)
 	{
-		DEBUG_LOG("Failsafe Remove Actor required");
+		LOG(lvlError, "Failsafe Remove Actor required");
 		m_slicer->removeImageActor(m_addChannelImgActor);
 	}
 	m_addChannelImgActor = vtkSmartPointer<vtkImageActor>::New();

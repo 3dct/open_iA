@@ -21,7 +21,7 @@
 #include "iASegmentationMetrics.h"
 
 #include <iAConnector.h>
-#include <iAConsole.h>
+#include <iALog.h>
 #include <iATypedCallHelper.h>
 
 #include <itkLabelOverlapMeasuresImageFilter.h>
@@ -37,7 +37,7 @@ void CalculateSegmentationMetrics(iAFilter* filter)
 	ImagePointer segmentedPtr = dynamic_cast<ImageType*>(filter->input()[1]->itkImage());
 	if (!groundTruthPtr || !segmentedPtr)
 	{
-		DEBUG_LOG("Input images do not have the same type, but are required to!");
+		LOG(lvlError, "Input images do not have the same type, but are required to!");
 		return;
 	}
 	diceFilter->SetSourceImage(groundTruthPtr);

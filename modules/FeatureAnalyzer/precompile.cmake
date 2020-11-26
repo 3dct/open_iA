@@ -1,9 +1,9 @@
 SET (FeatureAnalyzer_PRECOMPILE_INCLUDES <defines.h>
 <FeatureAnalyzerHelpers.h>
-<iAConsole.h>
 <iACSVToQTableWidgetConverter.h>
 <iAFeatureAnalyzerModuleInterface.h>
 <iAFeatureAnalyzerProject.h>
+<iALog.h>
 <iALUT.h>
 <iARangeSliderDiagramData.h>
 <iASegm3DView.h>

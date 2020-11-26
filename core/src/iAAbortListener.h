@@ -25,3 +25,17 @@ class iAAbortListener
 public:
 	virtual void abort() =0;
 };
+
+//! a simple implementation of an iAAbortListener -
+//! it holds a boolean flag that is set by the abort method.
+//! Users can determine whether abort was called through the isAborted method
+//! Implementation can be found in iAJobListView.cpp
+class iASimpleAbortListener: public iAAbortListener
+{
+public:
+	iASimpleAbortListener();
+	void abort() override;
+	bool isAborted() const;
+private:
+	bool m_aborted;
+};

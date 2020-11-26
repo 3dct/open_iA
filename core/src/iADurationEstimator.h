@@ -20,20 +20,18 @@
 * ************************************************************************************/
 #pragma once
 
-#include "iALogger.h"
+#include "open_iA_Core_export.h"
 
-#include <QObject>
-
-class MdiChild;
-
-//! simple wrapper class to decouple logging from the GUI
-//! regarding threads
-class iAMdiChildLogger : public QObject, public iALogger
+//! Interface for operations providing elapsed time and estimated remaining duration.
+class open_iA_Core_API iADurationEstimator
 {
-	Q_OBJECT
 public:
-	iAMdiChildLogger(MdiChild* mdiChild);
-	void log(QString const & msg) override;
-signals:
-	void logSignal(QString msg);
+	virtual ~iADurationEstimator();
+	//! Get the time that has elapsed since start of the operation.
+	//! @return elapsed time in seconds
+	virtual double elapsed() const =0;
+	//! Get the estimated, still required time to finish the operation.
+	//! @return the estimated remaining time in seconds
+	//!         -1 if remaining time still unknown
+	virtual double estimatedTimeRemaining(double percent) const =0;
 };

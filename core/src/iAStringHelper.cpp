@@ -20,6 +20,8 @@
 * ************************************************************************************/
 #include "iAStringHelper.h"
 
+#include "iAMathUtility.h"
+
 #include <QRegularExpression>
 
 
@@ -87,14 +89,22 @@ namespace
 	const QString UnitPrefixSmall[UnitCount] = { "f", "p", "n", "µ", "m" };
 }
 
-QString dblToStringWithUnits(double value)
+QString dblToStringWithUnits(double value, double switchFactor)
 {
-	// values between -1 and +1:
+	if (dblApproxEqual(value, 0.0))
+	{
+		return "0";
+	}
 	if (value >= -1.0 && value < 1.0)
 	{
+		if (std::abs(value) > 0.001 * switchFactor)
+		{
+			return QString::number(value, 'f', 2);
+		}
+		switchFactor = clamp(1.0, 1000.0, switchFactor);
 		for (size_t u = 0; u < UnitCount; ++u)
 		{
-			if (value < UnitPrefixSmallVal[u]*OneKilo)
+			if (value < UnitPrefixSmallVal[u] * switchFactor)
 			{
 				return QString::number(value * UnitPrefixLargeVal[u], 'f',
 					(value < 10 * UnitPrefixSmallVal[u]) ? 2 : ((value < 100 * UnitPrefixSmallVal[u]) ? 1 : 0)) + UnitPrefixSmall[u];

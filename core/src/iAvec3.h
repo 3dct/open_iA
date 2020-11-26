@@ -43,7 +43,7 @@ public:
 	//! assign another vector
 	template <typename ParamType> iAVec3T<T>& operator= (const iAVec3T<ParamType>& v);
 	//! assign a single value to all components
-	template <typename ParamType> iAVec3T<T>& operator= (ParamType d);
+	template <typename ParamType> iAVec3T<T>& fill (ParamType d);
 
 	//! access the x component of the vector
 	T x() const { return values[0]; }
@@ -160,33 +160,41 @@ iAVec3T<T>::iAVec3T(T val)
 template <typename T>
 iAVec3T<T>::iAVec3T(T data[3])
 {
-	for (int i = 0; i<3; ++i)
+	for (int i = 0; i < 3; ++i)
+	{
 		values[i] = static_cast<T>(data[i]);
+	}
 }
 
 template <typename T>
 template <typename ParamType>
 iAVec3T<T>::iAVec3T(const iAVec3T<ParamType>& v)
 {
-	for (int i = 0; i<3; ++i)
+	for (int i = 0; i < 3; ++i)
+	{
 		values[i] = static_cast<T>(v[i]);
+	}
 }
 
 template <typename T>
 template <typename ParamType>
 iAVec3T<T>& iAVec3T<T>::operator= (const iAVec3T<ParamType>& v)
 {
-	for (int i = 0; i<3; ++i)
+	for (int i = 0; i < 3; ++i)
+	{
 		values[i] = static_cast<T>(v.values[i]);
+	}
 	return *this;
 }
 
 template <typename T>
 template <typename ParamType>
-iAVec3T<T>& iAVec3T<T>::operator= (ParamType d)
+iAVec3T<T>& iAVec3T<T>::fill(ParamType d)
 {
 	for (int i = 0; i < 3; ++i)
+	{
 		values[i] = static_cast<T>(d);
+	}
 	return *this;
 }
 
@@ -230,8 +238,10 @@ template <typename T>
 template <typename ParamType>
 iAVec3T<T>& iAVec3T<T>::operator+= (const iAVec3T<ParamType>& v)
 {
-	for (int i = 0; i<3; ++i)
+	for (int i = 0; i < 3; ++i)
+	{
 		values[i] += static_cast<T>(v.values[i]);
+	}
 	return *this;
 }
 
@@ -239,8 +249,10 @@ template <typename T>
 template <typename ParamType>
 iAVec3T<T>& iAVec3T<T>::operator-= (const iAVec3T<ParamType>& v)
 {
-	for (int i = 0; i<3; ++i)
+	for (int i = 0; i < 3; ++i)
+	{
 		values[i] -= static_cast<T>(v.values[i]);
+	}
 	return *this;
 }
 
@@ -248,8 +260,10 @@ template <typename T>
 template <typename ParamType>
 iAVec3T<T>& iAVec3T<T>::operator*= (const iAVec3T<ParamType>& v)
 {
-	for (int i = 0; i<3; ++i)
+	for (int i = 0; i < 3; ++i)
+	{
 		values[i] *= static_cast<T>(v.values[i]);
+	}
 	return *this;
 }
 
@@ -257,8 +271,10 @@ template <typename T>
 template <typename ParamType>
 iAVec3T<T>& iAVec3T<T>::operator*= (ParamType f)
 {
-	for (int i = 0; i<3; ++i)
+	for (int i = 0; i < 3; ++i)
+	{
 		values[i] *= static_cast<T>(f);
+	}
 	return *this;
 }
 
@@ -266,8 +282,10 @@ template <typename T>
 template <typename ParamType>
 iAVec3T<T>& iAVec3T<T>::operator/= (const iAVec3T<ParamType>& v)
 {
-	for (int i = 0; i<3; ++i)
+	for (int i = 0; i < 3; ++i)
+	{
 		values[i] /= static_cast<T>(v.values[i]);
+	}
 	return *this;
 }
 

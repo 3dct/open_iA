@@ -20,7 +20,7 @@
 * ************************************************************************************/
 #include "iAPlotTypes.h"
 
-#include  "iAConsole.h"
+#include  "iALog.h"
 #include "iALookupTable.h"
 #include "iAMapper.h"
 #include "iAPlotData.h"
@@ -244,7 +244,7 @@ void iAPlotCollection::add(QSharedPointer<iAPlot> drawer)
 			m_drawers[0]->data()->numBin() != drawer->data()->numBin() ||
 			m_drawers[0]->data()->valueType() != drawer->data()->valueType())
 		{
-			DEBUG_LOG("iAPlotCollection::add - ERROR - Incompatible drawer added!");
+			LOG(lvlError, "iAPlotCollection::add - ERROR - Incompatible drawer added!");
 		}
 	}
 	m_drawers.push_back(drawer);
@@ -263,7 +263,7 @@ QSharedPointer<iAPlotData> iAPlotCollection::data()
 	}
 	else
 	{
-		DEBUG_LOG("iAPlotCollection::data() called before any plots were added!");
+		LOG(lvlWarn, "iAPlotCollection::data() called before any plots were added!");
 		return QSharedPointer<iAPlotData>();
 	}
 }

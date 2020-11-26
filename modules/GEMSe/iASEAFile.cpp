@@ -20,7 +20,7 @@
 * ************************************************************************************/
 #include "iASEAFile.h"
 
-#include <iAConsole.h>
+#include <iALog.h>
 #include <io/iAFileUtils.h>
 
 #include <QFile>
@@ -77,8 +77,9 @@ iASEAFile::iASEAFile(QString const & fileName):
 	m_good(false)
 {
 	QFile file(fileName);
-	if (!file.exists()) {
-		DEBUG_LOG(QString("Load precalculated GEMSe data: File '%1' doesn't exist!").arg(fileName));
+	if (!file.exists())
+	{
+		LOG(lvlError, QString("Load precalculated GEMSe data: File '%1' doesn't exist!").arg(fileName));
 		return;
 	}
 	QSettings metaFile(fileName, QSettings::IniFormat );
@@ -119,12 +120,12 @@ void iASEAFile::load(QSettings const & metaFile, QString const & fileName, bool 
 	m_fileName = fileName;
 	if (metaFile.status() != QSettings::NoError)
 	{
-		DEBUG_LOG(QString("Loading GEMSe data from file '%1' failed!").arg(fileName));
+		LOG(lvlError, QString("Loading GEMSe data from file '%1' failed!").arg(fileName));
 		return;
 	}
 	if (!metaFile.contains(FileVersionKey) || metaFile.value(FileVersionKey).toString() != FileVersionValue)
 	{
-		DEBUG_LOG(QString("Loading GEMSe data from file (%1) failed: Invalid or missing version descriptor ('%2' expected, '%3' found)!")
+		LOG(lvlError, QString("Loading GEMSe data from file (%1) failed: Invalid or missing version descriptor ('%2' expected, '%3' found)!")
 			.arg(fileName)
 			.arg(FileVersionValue)
 			.arg((metaFile.contains(FileVersionKey) ? "'" + metaFile.value(FileVersionKey).toString() + "'" : "none")));
@@ -140,7 +141,7 @@ void iASEAFile::load(QSettings const & metaFile, QString const & fileName, bool 
 	AddIfEmpty(datasetKeys, missingKeys, SamplingDataKey);
 	if (missingKeys.size() > 0)
 	{
-		DEBUG_LOG(QString("Loading GEMSe data from file (%1) failed: Required setting(s) %2 missing or empty!").arg(fileName).arg(missingKeys));
+		LOG(lvlError, QString("Loading GEMSe data from file (%1) failed: Required setting(s) %2 missing or empty!").arg(fileName).arg(missingKeys));
 		return;
 	}
 	QFileInfo fi(fileName);
@@ -151,7 +152,7 @@ void iASEAFile::load(QSettings const & metaFile, QString const & fileName, bool 
 	m_labelCount = metaFile.value(LabelCountKey).toString().toInt(&labelCountOK);
 	if (!labelCountOK)
 	{
-		DEBUG_LOG(QString("Loading GEMSe data from file (%1) failed: Value '%2' is not a valid label count!")
+		LOG(lvlError, QString("Loading GEMSe data from file (%1) failed: Value '%2' is not a valid label count!")
 			.arg(fileName).arg(metaFile.value(LabelCountKey).toString()));
 		return;
 	}
@@ -165,7 +166,7 @@ void iASEAFile::load(QSettings const & metaFile, QString const & fileName, bool 
 		}
 		if (!ok)
 		{
-			DEBUG_LOG(QString("Loading GEMSe data from file (%1) failed: Invalid Dataset identifier: %2 (maybe missing number, ID part: %3?).")
+			LOG(lvlError, QString("Loading GEMSe data from file (%1) failed: Invalid Dataset identifier: %2 (maybe missing number, ID part: %3?).")
 				.arg(fileName).arg(keyStr).arg(key));
 			return;
 		}
@@ -175,7 +176,7 @@ void iASEAFile::load(QSettings const & metaFile, QString const & fileName, bool 
 	std::sort(keys.begin(), keys.end());
 	if (keys[0] != 0 || keys[keys.size() - 1] != keys.size() - 1)
 	{
-		DEBUG_LOG(QString("Loading GEMSe data from file (%1) failed: Incoherent sampling indices, or not starting at 0: [%1..%2].")
+		LOG(lvlError, QString("Loading GEMSe data from file (%1) failed: Incoherent sampling indices, or not starting at 0: [%1..%2].")
 			.arg(fileName).arg(keys[0]).arg(keys[keys.size() - 1]));
 		return;
 	}
@@ -235,7 +236,7 @@ void iASEAFile::save(QSettings & metaFile, QString const & fileName)
 	metaFile.sync();
 	if (metaFile.status() != QSettings::NoError)
 	{
-		DEBUG_LOG(QString("Storing GEMSe data: File '%1' couldn't be written.").arg(fileName));
+		LOG(lvlError, QString("Storing GEMSe data: File '%1' couldn't be written.").arg(fileName));
 	}
 }
 

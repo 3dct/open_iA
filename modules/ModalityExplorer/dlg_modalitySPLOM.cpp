@@ -22,7 +22,7 @@
 
 #include <charts/iAQSplom.h>
 #include <iAChannelData.h>
-#include <iAConsole.h>
+#include <iALog.h>
 #include <iAModality.h>
 #include <iAModalityList.h>
 #include <iAPerformanceHelper.h>
@@ -159,7 +159,7 @@ void dlg_modalitySPLOM::SetData(QSharedPointer<iAModalityList> modalities)
 	{
 		if (modalities->get(imgIdx)->image()->GetScalarType() != VTK_UNSIGNED_SHORT)
 		{
-			DEBUG_LOG(QString("Modality %1 is not of type unsigned short (which is "
+			LOG(lvlError, QString("Modality %1 is not of type unsigned short (which is "
 				"currently the only supported type for Modality SPLOM)!")
 				.arg(modalities->get(imgIdx)->name()));
 			return;

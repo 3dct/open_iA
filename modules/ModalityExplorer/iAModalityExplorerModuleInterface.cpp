@@ -22,7 +22,7 @@
 
 #include "iAModalityExplorerAttachment.h"
 
-#include <iAConsole.h>
+#include <iALog.h>
 #include <mainwindow.h>
 #include <mdichild.h>
 
@@ -55,6 +55,6 @@ void iAModalityExplorerModuleInterface::ModalitySPLOM()
 	iAModalityExplorerAttachment* attach = GetAttachment<iAModalityExplorerAttachment>();
 	if (!result || !attach)
 	{
-		DEBUG_LOG("ModalityExplorer could not be initialized!");
+		LOG(lvlError, "ModalityExplorer could not be initialized!");
 	}
 }

@@ -21,7 +21,8 @@
 #include "iATLGICTLoader.h"
 
 #include "dlg_commoninput.h"
-#include "iAConsole.h"
+#include "iAJobListView.h"
+#include "iALog.h"
 #include "iAModality.h"
 #include "iAModalityList.h"
 #include "iAMultiStepProgressObserver.h"
@@ -37,13 +38,12 @@
 #include <vtkJPEGReader.h>
 #include <vtkStringArray.h>
 
-#include <QDateTime>
 #include <QDir>
 #include <QSettings>
 
 
 iATLGICTLoader::iATLGICTLoader():
-	m_multiStepObserver(0)
+	m_multiStepObserver(nullptr)
 {}
 
 
@@ -61,7 +61,7 @@ bool iATLGICTLoader::setup(QString const & baseDirectory, QWidget* parent)
 	m_subDirs = dir.entryInfoList(nameFilter, QDir::Dirs | QDir::NoDotAndDotDot);
 	if (m_subDirs.size() == 0)
 	{
-		DEBUG_LOG("No data found (expected to find subfolders with _Rec suffix).");
+		LOG(lvlError, "No data found (expected to find subfolders with _Rec suffix).");
 		return false;
 	}
 
@@ -70,7 +70,7 @@ bool iATLGICTLoader::setup(QString const & baseDirectory, QWidget* parent)
 	QFileInfoList logFiles = dir.entryInfoList(logFileFilter, QDir::Files);
 	if (logFiles.size() == 0)
 	{
-		DEBUG_LOG("No log file found (expected to find a file with .log suffix).");
+		LOG(lvlError, "No log file found (expected to find a file with .log suffix).");
 		return false;
 	}
 	QSettings iniLog(logFiles[0].absoluteFilePath(), QSettings::IniFormat);
@@ -95,27 +95,21 @@ bool iATLGICTLoader::setup(QString const & baseDirectory, QWidget* parent)
 	return true;
 }
 
-
 void iATLGICTLoader::start(MdiChild* child)
 {
 	m_multiStepObserver = new iAMultiStepProgressObserver(m_subDirs.size());
 	m_child = child;
 	m_child->show();
-	m_child->addMsg(tr("Loading TLGI-CT data, please wait..."));
-
-	connect(m_multiStepObserver, &iAMultiStepProgressObserver::progress, m_child, &MdiChild::updateProgressBar);
-	connect(this, &iATLGICTLoader::started, m_child, &MdiChild::initProgressBar);
-	connect(this, &iATLGICTLoader::finished, m_child, &MdiChild::hideProgressBar);
+	LOG(lvlInfo, tr("Loading TLGI-CT data."));
+	iAJobListView::get()->addJob("Loading TLGI-CT data.", m_multiStepObserver->progressObject(), this);
 	connect(this, &iATLGICTLoader::finished, this, &iATLGICTLoader::finishUp);		// this needs to be last, as it deletes this object!
 	QThread::start();
 }
-
 
 iATLGICTLoader::~iATLGICTLoader()
 {
 	delete m_multiStepObserver;
 }
-
 
 void iATLGICTLoader::run()
 {
@@ -131,6 +125,7 @@ void iATLGICTLoader::run()
 		QFileInfoList imgFiles = subDir.entryInfoList();
 		QString fileNameBase;
 		// determine most common file name base
+		// TODO: merge with image stack file name guessing!
 		for (QFileInfo imgFileInfo : imgFiles)
 		{
 			if (fileNameBase.isEmpty())
@@ -157,7 +152,7 @@ void iATLGICTLoader::run()
 			/*int myNum =*/ lastDigit.toInt(&ok);
 			if (!ok)
 			{
-				//DEBUG_LOG(QString("Skipping image with no number at end '%1'.").arg(imgFileName));
+				//LOG(lvlInfo, QString("Skipping image with no number at end '%1'.").arg(imgFileName));
 				continue;
 			}
 			if (ext.isEmpty())
@@ -168,7 +163,7 @@ void iATLGICTLoader::run()
 			{
 				if (ext != completeSuffix)
 				{
-					DEBUG_LOG(QString("Inconsistent file suffix: %1 has %2, previous files had %3.").arg(imgFileName).arg(completeSuffix).arg(ext));
+					LOG(lvlInfo, QString("Inconsistent file suffix: %1 has %2, previous files had %3.").arg(imgFileName).arg(completeSuffix).arg(ext));
 					return;
 				}
 			}
@@ -182,7 +177,7 @@ void iATLGICTLoader::run()
 			int num = numStr.toInt(&ok);
 			if (!ok)
 			{
-				DEBUG_LOG(QString("Invalid, non-numeric part (%1) in image file name '%2'.").arg(numStr).arg(imgFileName));
+				LOG(lvlInfo, QString("Invalid, non-numeric part (%1) in image file name '%2'.").arg(numStr).arg(imgFileName));
 				return;
 			}
 			if (num < min)
@@ -197,7 +192,7 @@ void iATLGICTLoader::run()
 
 		if (max - min + 1 > imgFiles.size())
 		{
-			DEBUG_LOG(QString("Stack loading: not all indices in the interval [%1, %2] are used for base name %3.").arg(min).arg(max).arg(fileNameBase));
+			LOG(lvlInfo, QString("Stack loading: not all indices in the interval [%1, %2] are used for base name %3.").arg(min).arg(max).arg(fileNameBase));
 			return;
 		}
 
@@ -230,13 +225,13 @@ void iATLGICTLoader::run()
 		}
 		else
 		{
-			DEBUG_LOG(QString("Unknown or undefined image extension (%1)!").arg(ext));
+			LOG(lvlError, QString("Unknown or undefined image extension (%1)!").arg(ext));
 			return;
 		}
 		reader->SetFileNames(fileNames);
 		reader->SetDataOrigin(m_origin);
 		reader->SetDataSpacing(m_spacing);
-		reader->AddObserver(vtkCommand::ProgressEvent, m_multiStepObserver);		// intercept progress and divide by number of images!
+		m_multiStepObserver->observe(reader);		// intercept progress and divide by number of images!
 		reader->Update();
 		vtkSmartPointer<vtkImageData> img = reader->GetOutput();
 
@@ -244,21 +239,19 @@ void iATLGICTLoader::run()
 		QString modName = subDirFileInfo.baseName();
 		modName = modName.left(modName.length() - 4); // 4 => length of "_rec"
 		m_modList->add(QSharedPointer<iAModality>(new iAModality(modName, subDirFileInfo.absoluteFilePath(), -1, img, 0)));
-		m_multiStepObserver->SetCompletedSteps(++completedDirs);
+		m_multiStepObserver->setCompletedSteps(++completedDirs);
 	}
 	if (m_modList->size() == 0)
 	{
-		DEBUG_LOG("No modalities loaded!");
+		LOG(lvlError, "No modalities loaded!");
 		return;
 	}
 }
-
-
 
 void iATLGICTLoader::finishUp()
 {
 	m_child->setCurrentFile(m_baseDirectory);
 	m_child->setModalities(m_modList);
-	m_child->addMsg(tr("Loading sequence completed; directory: %1.").arg(m_baseDirectory));
+	LOG(lvlInfo, tr("Loading sequence completed; directory: %1.").arg(m_baseDirectory));
 	delete this;
 }

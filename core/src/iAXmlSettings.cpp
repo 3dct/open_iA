@@ -20,7 +20,7 @@
 * ************************************************************************************/
 #include "iAXmlSettings.h"
 
-#include "iAConsole.h"
+#include "iALog.h"
 #include "iATransferFunction.h"
 
 #include <vtkPiecewiseFunction.h>
@@ -108,7 +108,7 @@ void iAXmlSettings::loadTransferFunction(QDomNode const & functionsNode, iATrans
 	QDomNode transferNode = functionsNode.namedItem("transfer");
 	if (!transferNode.isElement())
 	{
-		DEBUG_LOG("'transfer' node not found in given XML file, aborting load of transfer function!");
+		LOG(lvlError, "'transfer' node not found in given XML file, aborting load of transfer function!");
 		return;
 	}
 	transferFunction->opacityTF()->RemoveAllPoints();

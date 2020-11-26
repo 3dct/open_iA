@@ -20,7 +20,7 @@
 * ************************************************************************************/
 #include "iAPreviewMaker.h"
 
-#include <iAConsole.h>
+#include <iALog.h>
 #include <io/iAFileUtils.h>
 
 #include <itkImage.h>
@@ -60,7 +60,7 @@ void iAPreviewMaker::makeUsingType( QString fileName, QString thumbFileName )
 		break;
 	}
 	default:
-		DEBUG_LOG("Image pixel type not supported!");
+		LOG(lvlWarn, "Image pixel type not supported!");
 		break;
 	}
 }

@@ -22,7 +22,7 @@
 
 #include "dlg_commoninput.h"
 #include "iAChannelData.h"
-#include "iAConsole.h"
+#include "iALog.h"
 #include "iARenderer.h"
 #include "iASlicer.h"
 #include "iAVolumeStack.h"
@@ -53,7 +53,7 @@ dlg_volumePlayer::dlg_volumePlayer(QWidget *parent, iAVolumeStack* volumeStack)
 	m_mdiChild = dynamic_cast<MdiChild*>(parent);
 	if (m_volumeStack->numberOfVolumes() > std::numeric_limits<int>::max())
 	{
-		DEBUG_LOG(QString("WARNING: More Volumes (%1) in volume player than supported (%2)!")
+		LOG(lvlWarn, QString("More Volumes (%1) in volume player than supported (%2)!")
 			.arg(m_volumeStack->numberOfVolumes())
 			.arg(std::numeric_limits<int>::max()));
 	}

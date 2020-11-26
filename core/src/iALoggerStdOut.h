@@ -20,30 +20,19 @@
 * ************************************************************************************/
 #pragma once
 
-#include "ui_progress.h"
+#include "iALogger.h"
 
-#include "iAAbortListener.h"
-#include "iADurationEstimator.h"
-
-#include <qthelper/iAQTtoUIConnector.h>
-
-typedef iAQTtoUIConnector<QDockWidget, Ui_progress> dlg_progressUI;
-
-//! Class to display progress of a task running in the background
-//! ToDo: Merge with iAJobListView in FIAKER!
-class dlg_progress : public dlg_progressUI
+//! A logger whose output is written to standard output.
+class open_iA_Core_API iALoggerStdOut : public iALogger
 {
-	Q_OBJECT
 public:
-	dlg_progress(QWidget *parentWidget,
-		QSharedPointer<iADurationEstimator const> estimator,
-		QSharedPointer<iAAbortListener> abort,
-		QString const & caption);
-public slots:
-	void setProgress(int progress);
-	void setStatus(QString const & status);
-	void abort();
+	void log(iALogLevel lvl, QString const& msg) override;
+	static iALoggerStdOut* get();
 private:
-	QSharedPointer<iADurationEstimator const> m_durationEstimator;
-	QSharedPointer<iAAbortListener> m_abortListener;
+	//! make default constructor private
+	iALoggerStdOut() =default;
+	//! @{ don't allow copying / copy-assingment
+	iALoggerStdOut(iALoggerStdOut const&) =delete;
+	void operator=(iALoggerStdOut const&) =delete;
+	//! @}
 };

@@ -26,7 +26,7 @@
 
 #include <charts/iASPLOMData.h>
 #include <charts/iAScatterPlot.h>
-#include <iAConsole.h>
+#include <iALog.h>
 #include <iAMathUtility.h>
 #include <iAModuleDispatcher.h>
 
@@ -422,7 +422,7 @@ void iAFAQSplom::sendToFeatureScout()
 	connect(m_mdiChild, &MdiChild::histogramAvailable, this, &iAFAQSplom::startFeatureScout);
 	if (!m_mdiChild->loadFile(mhdName, false))
 	{
-		DEBUG_LOG(QString("File '%1' could not be loaded!").arg(mhdName));
+		LOG(lvlError, QString("File '%1' could not be loaded!").arg(mhdName));
 		m_mdiChild->close();
 		return;
 	}

@@ -32,7 +32,7 @@
 #include "iATreeView.h"
 #include "FeatureAnalyzerHelpers.h"
 
-#include <iAConsole.h>
+#include <iALog.h>
 #include <iACSVToQTableWidgetConverter.h>
 #include <io/iAITKIO.h>
 #include <io/iAIOProvider.h>
@@ -417,7 +417,7 @@ bool iAFeatureAnalyzer::doSaveProject(QString const& projectFileName)
 	
 	if (!projectFileName.toLower().endsWith(iAIOProvider::NewProjectFileExtension))
 	{
-		DEBUG_LOG(QString("Only extension %1 is supported!").arg(iAIOProvider::NewProjectFileExtension));
+		LOG(lvlError, QString("Only extension %1 is supported!").arg(iAIOProvider::NewProjectFileExtension));
 		return false;
 	}
 	// TODO: Unify with MdiChild::doSaveProject

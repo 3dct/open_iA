@@ -54,6 +54,11 @@ void iADecompositionCalculator::Stop()
 	wait();
 }
 
+iAProgress* iADecompositionCalculator::progress()
+{
+	return &m_progress;
+}
+
 void iADecompositionCalculator::run()
 {
 	int threshold = m_accumulatedXRF->yBounds()[1]/20;
@@ -106,8 +111,7 @@ void iADecompositionCalculator::run()
 					m_data->m_ElementConcentration[i]->SetScalarComponentFromDouble(x, y, z, 0, concentration[i]);
 				}
 			}
-			int percent = static_cast<int>(static_cast<double>(x*height*depth + y*depth)/pixelCount*100);
-			progress(percent);
+			m_progress.emitProgress((x * height * depth + y * depth) * 100.0 / pixelCount);
 		}
 	}
 	if (!m_stopped)

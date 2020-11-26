@@ -21,11 +21,14 @@
 #include "iARenderer.h"
 
 #include "defines.h"
-#include "iAConsole.h"
+#include "iAAbortListener.h"
+#include "iALog.h"
 #include "iAChannelData.h"
+#include "iAJobListView.h"
 #include "iALineSegment.h"
 #include "iAMovieHelper.h"
 #include "iAProfileColors.h"
+#include "iAProgress.h"
 #include "iARenderObserver.h"
 #include "iARenderSettings.h"
 #include "iASlicerMode.h"
@@ -73,9 +76,7 @@
 
 #include <QApplication>
 #include <QColor>
-#include <QDateTime>
 #include <QImage>
-#include <QLocale>
 #include <QtGlobal> // for QT_VERSION
 
 #include <cassert>
@@ -306,13 +307,6 @@ iARenderer::iARenderer(QObject *par)  :  QObject( par ),
 		m_slicePlaneActor[s]->GetProperty()->LightingOff();
 		m_slicePlaneActor[s]->SetPickable(false);
 		m_slicePlaneActor[s]->SetDragable(false);
-	}
-
-	MdiChild * mdi_parent = dynamic_cast<MdiChild*>(parent());
-	if (mdi_parent)
-	{
-		connect(this, &iARenderer::msg, mdi_parent, &MdiChild::addMsg);
-		connect(this, &iARenderer::progress, mdi_parent, &MdiChild::updateProgressBar);
 	}
 }
 
@@ -733,14 +727,14 @@ void iARenderer::setSlicePlaneOpacity(float opc)
 {
 	if ((opc > 1.0) || (opc < 0.0f))
 	{
-		DEBUG_LOG(QString("Invalid slice plane opacity %1").arg(opc));
+		LOG(lvlWarn, QString("Invalid slice plane opacity %1").arg(opc));
 		return;
 	}
 
 	m_slicePlaneOpacity = opc;
 }
 
-void iARenderer::saveMovie( const QString& fileName, int mode, int qual /*= 2*/ )
+void iARenderer::saveMovie(const QString& fileName, int mode, int qual /*= 2*/)
 {
 	auto movieWriter = GetMovieWriter(fileName, qual);
 
@@ -748,6 +742,10 @@ void iARenderer::saveMovie( const QString& fileName, int mode, int qual /*= 2*/ 
 	{
 		return;
 	}
+	iAProgress p;
+	iASimpleAbortListener aborter;
+	auto jobHandle = iAJobListView::get()->addJob("Exporting Movie", &p, &aborter);
+	LOG(lvlInfo, tr("Movie export started, output file name: %1").arg(fileName));
 	// save current state and disable interaction:
 	m_interactor->Disable();
 	auto oldCam = vtkSmartPointer<vtkCamera>::New();
@@ -771,49 +769,47 @@ void iARenderer::saveMovie( const QString& fileName, int mode, int qual /*= 2*/ 
 	movieWriter->SetInputConnection(windowToImage->GetOutputPort());
 	movieWriter->Start();
 
-	emit msg(tr("Movie export started, output file name: %1").arg(fileName));
-
-	int numRenderings = 360;//TODO
+	int numRenderings = 360;  //TODO
 	auto rot = vtkSmartPointer<vtkTransform>::New();
-	m_cam->SetFocalPoint( 0,0,0 );
+	m_cam->SetFocalPoint(0, 0, 0);
 	double view[3];
 	double point[3];
 	if (mode == 0)
-	{ // YZ
-		double _view[3]  = { 0, 0, -1 };
-		double _point[3] = { 1, 0,  0 };
-		for (int ind=0; ind<3; ind++)
+	{  // YZ
+		double _view[3] = {0, 0, -1};
+		double _point[3] = {1, 0, 0};
+		for (int ind = 0; ind < 3; ind++)
 		{
 			view[ind] = _view[ind];
 			point[ind] = _point[ind];
 		}
-		rot->RotateZ(360/numRenderings);
+		rot->RotateZ(360 / numRenderings);
 	}
 	else if (mode == 1)
-	{ // XY
-		double _view[3]  = { 0, 0, -1 };
-		double _point[3] = { 0, 1,  0 };
-		for (int ind=0; ind<3; ind++)
+	{  // XY
+		double _view[3] = {0, 0, -1};
+		double _point[3] = {0, 1, 0};
+		for (int ind = 0; ind < 3; ind++)
 		{
 			view[ind] = _view[ind];
 			point[ind] = _point[ind];
 		}
-		rot->RotateX(360/numRenderings);
+		rot->RotateX(360 / numRenderings);
 	}
 	else if (mode == 2)
-	{ // XZ
-		double _view[3]  = { 0, 1, 0 };
-		double _point[3] = { 0, 0, 1 };
-		for (int ind=0; ind<3; ind++)
+	{  // XZ
+		double _view[3] = {0, 1, 0};
+		double _point[3] = {0, 0, 1};
+		for (int ind = 0; ind < 3; ind++)
 		{
 			view[ind] = _view[ind];
 			point[ind] = _point[ind];
 		}
-		rot->RotateY(360/numRenderings);
+		rot->RotateY(360 / numRenderings);
 	}
-	m_cam->SetViewUp ( view );
-	m_cam->SetPosition ( point );
-	for (int i =0; i < numRenderings; i++ )
+	m_cam->SetViewUp(view);
+	m_cam->SetPosition(point);
+	for (int i = 0; i < numRenderings && !aborter.isAborted(); i++)
 	{
 		m_ren->ResetCamera();
 		m_renWin->Render();
@@ -822,25 +818,19 @@ void iARenderer::saveMovie( const QString& fileName, int mode, int qual /*= 2*/ 
 		movieWriter->Write();
 		if (movieWriter->GetError())
 		{
-			emit msg(movieWriter->GetStringFromErrorCode(movieWriter->GetErrorCode()));
+			LOG(lvlError, movieWriter->GetStringFromErrorCode(movieWriter->GetErrorCode()));
 			break;
 		}
-		emit progress( 100 * (i+1) / numRenderings);
+		p.emitProgress((i + 1) * 100.0 / numRenderings);
 		m_cam->ApplyTransform(rot);
+		QCoreApplication::processEvents();
 	}
 
 	m_cam->DeepCopy(oldCam);
 	movieWriter->End();
 	m_interactor->Enable();
 
-	if (movieWriter->GetError())
-	{
-		emit msg(tr("Movie export failed."));
-	}
-	else
-	{
-		emit msg(tr("Movie export completed."));
-	}
+	printFinalLogMessage(movieWriter, aborter);
 }
 
 void iARenderer::mouseRightButtonReleasedSlot()
@@ -1043,7 +1033,7 @@ void iARenderer::updateSlicePlanes(double const * newSpacing)
 {
 	if (!newSpacing)
 	{
-		DEBUG_LOG("Spacing is nullptr");
+		LOG(lvlWarn, "Spacing is nullptr");
 		return;
 	}
 	double const * spc = newSpacing;

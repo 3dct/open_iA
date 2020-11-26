@@ -18,30 +18,23 @@
 * Contact: FH OÖ Forschungs & Entwicklungs GmbH, Campus Wels, CT-Gruppe,              *
 *          Stelzhamerstraße 23, 4600 Wels / Austria, Email: c.heinzl@fh-wels.at       *
 * ************************************************************************************/
-#include "dlg_console.h"
+#include "iALoggerStdOut.h"
 
-#include <QString>
+#include "iALogLevelMappings.h"
 
 #include <iostream>
 
-dlg_console::dlg_console()
+void iALoggerStdOut::log(iALogLevel lvl, QString const& msg)
 {
-	setupUi(this);
-	connect(pbClearLog, &QPushButton::clicked, this, &dlg_console::clear);
+	if (lvl < m_logLevel)
+	{
+		return;
+	}
+	std::cout << logLevelToString(lvl).toStdString() << ": " << msg.toStdString() << std::endl;
 }
 
-void dlg_console::log(QString text)
+iALoggerStdOut* iALoggerStdOut::get()
 {
-	consoleTextEdit->append(text);
-}
-
-void dlg_console::clear()
-{
-	consoleTextEdit->clear();
-}
-
-void dlg_console::closeEvent(QCloseEvent *event)
-{
-	emit onClose();
-	QDockWidget::closeEvent(event);
+	static iALoggerStdOut GlobalStdOutLogger;
+	return &GlobalStdOutLogger;
 }

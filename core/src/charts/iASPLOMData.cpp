@@ -20,7 +20,7 @@
 * ************************************************************************************/
 #include "iASPLOMData.h"
 
-#include "iAConsole.h"
+#include "iALog.h"
 #include "iAMathUtility.h"
 
 iASPLOMData::iASPLOMData()
@@ -135,7 +135,7 @@ void iASPLOMData::addFilter(size_t paramIndex, double value)
 {
 	if (paramIndex >= numParams())
 	{
-		DEBUG_LOG(QString("Invalid filter column ID %1!").arg(paramIndex));
+		LOG(lvlWarn, QString("Invalid filter column ID %1!").arg(paramIndex));
 		return;
 	}
 	m_filters.push_back(std::make_pair(paramIndex, value));

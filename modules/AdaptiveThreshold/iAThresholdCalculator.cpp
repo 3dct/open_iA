@@ -23,7 +23,7 @@
 #include "iAChartVisHelper.h"
 #include "iAThresholdDefinitions.h"
 
-#include <iAConsole.h>
+#include <iALog.h>
 
 #include <numeric>
 #include <algorithm>
@@ -37,7 +37,7 @@ void iAThresholdCalculator::testPeakDetect()
 {
 	std::vector<double> data{ 6.1, 8.0, 9.0, 14.1, 10.0,14.3, 12.1, 14.4 };
 	double res = m_calcHelper.findMaxPeak(data);
-	DEBUG_LOG(QString("max peak %1").arg(res))
+	LOG(lvlInfo, QString("max peak %1").arg(res))
 }
 
 threshold_defs::iAThresIndx iAThresholdCalculator::testFindIndex(double value) {
@@ -54,7 +54,7 @@ void iAThresholdCalculator::testSpecifyRange(const std::vector<double> &v_inRang
 	double x_max = 8.0;
 
 	this->specifyRange(v_inRange, v_elements, outputRanges, x_min, x_max);
-	DEBUG_LOG(QString("Limits(min, max) %1 %2").arg(x_min).arg(x_max));
+	LOG(lvlInfo, QString("Limits(min, max) %1 %2").arg(x_min).arg(x_max));
 }
 
 void iAThresholdCalculator::determinIso50(const threshold_defs::iAParametersRanges& inRanges, threshold_defs::iAThresMinMax& inVals)
@@ -72,11 +72,11 @@ void iAThresholdCalculator::doubleTestSum()
 	std::vector<double> vals = { 1, 2, 3, 4, 5, 6, 7, 8, 9 };
 	double tmp = 0.0f;
 	tmp = m_calcHelper.vectorSum(vals, 0, 2);
-	DEBUG_LOG(QString("su 0, 2: %1").arg(tmp));
+	LOG(lvlInfo, QString("su 0, 2: %1").arg(tmp));
 	tmp = m_calcHelper.vectorSum(vals, 1, 4);
-	DEBUG_LOG(QString("su 1, 4 %1").arg(tmp));
+	LOG(lvlInfo, QString("su 1, 4 %1").arg(tmp));
 	tmp = m_calcHelper.vectorSum(vals, 4, 6);
-	DEBUG_LOG(QString("su 4, 6 %1").arg(tmp));
+	LOG(lvlInfo, QString("su 4, 6 %1").arg(tmp));
 
 }
 
@@ -112,7 +112,7 @@ void iAThresholdCalculator::specifyRange(const std::vector<double>& v_inRef, con
 	}
 	else if ( (xmin < 0) || xmax <= 0)
 	{
-		DEBUG_LOG(QString("size vec1 %1 size vec2 %2 xmin %3 xmax %4").arg(v_inRef.size()).
+		LOG(lvlInfo, QString("size vec1 %1 size vec2 %2 xmin %3 xmax %4").arg(v_inRef.size()).
 			arg(vals.size()).arg(xmin).arg(xmax));
 		throw std::invalid_argument("invalid parameter input");
 	}
@@ -151,10 +151,10 @@ void iAThresholdCalculator::rangeFromParamRanges(const threshold_defs::iAParamet
 
 void iAThresholdCalculator::calculateMovingAverage(const std::vector<double> &v_in, std::vector<double> &v_out, unsigned int count)
 {
-	//DEBUG_LOG("Calculate average");
+	//LOG(lvlInfo, "Calculate average");
 	if (v_in.size() == 0)
 	{
-		DEBUG_LOG("input length values are zero");
+		LOG(lvlInfo, "input length values are zero");
 		return;
 	}
 
@@ -163,7 +163,7 @@ void iAThresholdCalculator::calculateMovingAverage(const std::vector<double> &v_
 
 	if ((count % 2) != 1 || count > maxLen || count < 3)
 	{
-		DEBUG_LOG(QString("Moving average size was specified as %1, but it must be >= 3, < %2 and odd!").arg(count).arg(maxLen));
+		LOG(lvlInfo, QString("Moving average size was specified as %1, but it must be >= 3, < %2 and odd!").arg(count).arg(maxLen));
 		return;
 	}
 

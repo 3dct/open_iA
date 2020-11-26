@@ -23,8 +23,9 @@
 #include "dlg_modalities.h"
 #include "iAAttributeDescriptor.h"
 #include "iAConnector.h"
-#include "iAConsole.h"
+#include "iALog.h"
 #include "iAFilter.h"
+#include "iAJobListView.h"
 #include "iALogger.h"
 #include "iAModality.h"
 #include "iAModalityList.h"
@@ -51,7 +52,7 @@ class vtkImageData;
 
 iAFilterRunnerGUIThread::iAFilterRunnerGUIThread(QSharedPointer<iAFilter> filter,
 	QMap<QString, QVariant> paramValues, MdiChild* mdiChild, QString const & fileName) :
-	iAAlgorithm(filter->name(), mdiChild->imagePointer(), mdiChild->polyData(), mdiChild->logger(), mdiChild),
+	iAAlgorithm(filter->name(), mdiChild->imagePointer(), mdiChild->polyData(), iALog::get(), mdiChild),
 	m_filter(filter),
 	m_paramValues(paramValues),
 	m_aborted(false)
@@ -69,7 +70,7 @@ void iAFilterRunnerGUIThread::performWork()
 	}
 	if (!m_filter->run(m_paramValues))
 	{
-		m_filter->logger()->log("Running filter failed!");
+		m_filter->logger()->log(lvlError, "Running filter failed!");
 		return;
 	}
 	if (m_aborted)
@@ -149,7 +150,7 @@ void iAFilterRunnerGUI::storeParameters(QSharedPointer<iAFilter> filter, QMap<QS
 	{
 		if (!paramValues.contains(param->name()))
 		{
-			DEBUG_LOG(QString("No value for parameter '%1'").arg(param->name()));
+			LOG(lvlError, QString("No value for parameter '%1'").arg(param->name()));
 		}
 	}
 }
@@ -260,8 +261,6 @@ void iAFilterRunnerGUI::run(QSharedPointer<iAFilter> filter, MainWindow* mainWnd
 		emit finished();
 		return;
 	}
-
-	filter->setLogger(sourceMdi->logger());
 	QMap<QString, QVariant> paramValues = loadParameters(filter, sourceMdi);
 
 	if (!askForParameters(filter, paramValues, sourceMdi, mainWnd, true))
@@ -281,9 +280,9 @@ void iAFilterRunnerGUI::run(QSharedPointer<iAFilter> filter, MainWindow* mainWnd
 	QString oldTitle(sourceMdi->windowTitle());
 	oldTitle = oldTitle.replace("[*]", "").trimmed();
 	auto mdiChild = filter->outputCount() > 0 ?
-		mainWnd->resultChild(sourceMdi, filter->outputName(0, filter->name() + " " + oldTitle)) :
+		mainWnd->resultChild(sourceMdi, filter->outputName(0, filter->name()) + " " + oldTitle) :
 		sourceMdi;
-	filter->setLogger(mdiChild->logger());
+
 	if (!mdiChild)
 	{
 		mainWnd->statusBar()->showMessage("Cannot create result child!", 5000);
@@ -310,14 +309,14 @@ void iAFilterRunnerGUI::run(QSharedPointer<iAFilter> filter, MainWindow* mainWnd
 	}
 	if (thread->Connectors().size() < filter->requiredInputs())
 	{
-		mdiChild->addMsg(QString("Not enough inputs specified, filter %1 requires %2 input images!")
+		LOG(lvlError, QString("Not enough inputs specified, filter %1 requires %2 input images!")
 			.arg(filter->name()).arg(filter->requiredInputs()));
 		emit finished();
 		return;
 	}
 	if (mdiChild->preferences().PrintParameters && !filter->parameters().isEmpty())
 	{
-		mdiChild->addMsg(QString("Starting %1 filter with parameters:").arg(thread->filter()->name()));
+		LOG(lvlInfo, QString("Starting %1 filter with parameters:").arg(thread->filter()->name()));
 		for (int p = 0; p < thread->filter()->parameters().size(); ++p)
 		{
 			auto paramDescriptor = thread->filter()->parameters()[p];
@@ -325,16 +324,16 @@ void iAFilterRunnerGUI::run(QSharedPointer<iAFilter> filter, MainWindow* mainWnd
 			QString paramValue = paramDescriptor->valueType() == iAValueType::Boolean ?
 				(paramValues[paramName].toBool() ? "yes" : "no")
 				: paramValues[paramName].toString();
-			mdiChild->addMsg(QString("    %1 = %2").arg(paramName).arg(paramValue));
+			LOG(lvlInfo, QString("    %1 = %2").arg(paramName).arg(paramValue));
 		}
 	}
 	else
 	{
-		mdiChild->addMsg(QString("Starting %1 filter.").arg(thread->filter()->name()));
+		LOG(lvlInfo, QString("Starting %1 filter.").arg(thread->filter()->name()));
 	}
 	connectThreadSignals(mdiChild, thread);
 	mdiChild->addStatusMsg(filter->name());
-	mdiChild->addJob(filter->name(), thread->ProgressObserver(), thread, filter->canAbort() ? thread : nullptr);
+	iAJobListView::get()->addJob(filter->name(), thread->ProgressObserver(), thread, filter->canAbort() ? thread : nullptr);
 	mainWnd->statusBar()->showMessage(filter->name(), 5000);
 	thread->start();
 }
@@ -367,12 +366,12 @@ void iAFilterRunnerGUI::filterFinished()
 			QSharedPointer<iAModality> mod(new iAModality(thread->filter()->outputName(p, QString("Extra Out %1").arg(p)), "", -1, img, 0));
 			mdiChild->modalities()->add(mod);
 			// signal to add it to list automatically is created to late to be effective here, we have to add it to list ourselves:
-			mdiChild->modalitiesDockWidget()->modalityAdded(mod);
+			mdiChild->dataDockWidget()->modalityAdded(mod);
 		}
 	}
 	for (auto outputValue : thread->filter()->outputValues())
 	{
-		mdiChild->addMsg(QString("%1: %2").arg(outputValue.first).arg(outputValue.second.toString()));
+		LOG(lvlImportant, QString("%1: %2").arg(outputValue.first).arg(outputValue.second.toString()));
 	}
 
 	emit finished();

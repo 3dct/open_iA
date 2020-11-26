@@ -50,8 +50,6 @@
 #include <itkTriangleThresholdImageFilter.h>
 #include <itkYenThresholdImageFilter.h>
 
-#include <QLocale>
-
 // No operation (simply pass-through image)
 
 IAFILTER_CREATE(iACopy)

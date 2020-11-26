@@ -21,7 +21,7 @@
 #include "iASegm3DView.h"
 
 #include <defines.h>
-#include <iAConsole.h>
+#include <iALog.h>
 #include <iAFast3DMagicLensWidget.h>
 #include <iARenderer.h>
 #include <iARendererManager.h>
@@ -67,7 +67,8 @@ void iASegm3DView::SetDataToVisualize( QList<vtkImageData*> imgData, QList<vtkPo
 	{
 		if (!i)
 		{
-			DEBUG_LOG("Image data is nullptr!");
+			LOG(lvlError, "Image data is nullptr!");
+			return;
 		}
 	}
 	m_range = 0.0;
@@ -255,7 +256,8 @@ void iASegm3DViewData::SetDataToVisualize( vtkImageData * imgData, vtkPolyData *
 {
 	if (!imgData)
 	{
-		DEBUG_LOG("Image data is nullptr!");
+		LOG(lvlError, "Image data is nullptr!");
+		return;
 	}
 	iASimpleTransferFunction tf(ctf, otf);
 	if( !m_rendInitialized )

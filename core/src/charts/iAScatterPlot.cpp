@@ -20,7 +20,7 @@
 * ************************************************************************************/
 #include "iAScatterPlot.h"
 
-#include "iAConsole.h"
+#include "iALog.h"
 #include "iALookupTable.h"
 #include "iAMathUtility.h"
 #include "iAScatterPlotSelectionHandler.h"
@@ -862,7 +862,7 @@ void iAScatterPlot::drawPoints( QPainter &painter )
 	glEnable( GL_SCISSOR_TEST );
 	if (!m_pointsBuffer->bind())//TODO: proper handling (exceptions?)
 	{
-		DEBUG_LOG("Failed to bind points buffer!");
+		LOG(lvlWarn, "Failed to bind points buffer!");
 		return;
 	}
 	glEnable( GL_POINT_SMOOTH );
@@ -1090,7 +1090,7 @@ void iAScatterPlot::createVBO()
 	bool res = m_pointsBuffer->bind();
 	if (!res)
 	{
-		DEBUG_LOG("Binding points buffer failed!");
+		LOG(lvlWarn, "Binding points buffer failed!");
 		return;
 	}
 	m_pointsBuffer->setUsagePattern(iAQGLBuffer::DynamicDraw);
@@ -1109,7 +1109,7 @@ void iAScatterPlot::fillVBO()
 	bool res = m_pointsBuffer->bind();
 	if (!res)
 	{
-		DEBUG_LOG("Binding points buffer failed!");
+		LOG(lvlWarn, "Binding points buffer failed!");
 		return;
 	}
 
@@ -1143,7 +1143,7 @@ void iAScatterPlot::fillVBO()
 	bool res2 = m_pointsBuffer->unmap();
 	if (!res2)
 	{
-		DEBUG_LOG("Unbinding points buffer failed!");
+		LOG(lvlWarn, "Unbinding points buffer failed!");
 		return;
 	}
 	m_pointsBuffer->release();

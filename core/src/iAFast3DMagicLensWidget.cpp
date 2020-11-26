@@ -20,7 +20,6 @@
 * ************************************************************************************/
 #include "iAFast3DMagicLensWidget.h"
 
-#include "iAConsole.h"
 #include "iAVtkVersion.h"
 
 #include <QVTKInteractor.h>

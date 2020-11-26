@@ -40,13 +40,15 @@
 #include <dlg_modalities.h>
 #include <dlg_slicer.h>
 #include <iAConnector.h>
-#include <iAConsole.h>
+#include <iAJobListView.h>
+#include <iALog.h>
 #include <iALookupTable.h>
 #include <iAmat4.h>
 #include <iAModalityTransfer.h>
 #include <iAMovieHelper.h>
-#include <iAProgress.h>
+#include <iAMultiStepProgressObserver.h>
 #include <iARenderer.h>
+#include <iARunAsync.h>
 #include <iAToolsITK.h>
 #include <iAVtkWidget.h>
 #include <io/iAFileUtils.h>
@@ -850,6 +852,8 @@ void dlg_FeatureScout::RenderSelection(std::vector<size_t> const& selInds)
 
 void dlg_FeatureScout::RenderMeanObject()
 {
+	iAProgress p;
+	auto jobHandle = iAJobListView::get()->addJob("Compute Mean Object", &p);
 	if (m_visualization != iACsvConfig::UseVolume)
 	{
 		QMessageBox::warning(this, "FeatureScout", "Mean objects feature only available for the Labelled Volume visualization at the moment!");
@@ -862,7 +866,6 @@ void dlg_FeatureScout::RenderMeanObject()
 		return;
 	}
 	m_renderMode = rmMeanObject;
-	m_activeChild->initProgressBar();
 
 	// Delete old mean object data lists
 	for (int i = 0; i < m_MOData.moHistogramList.size(); ++i)
@@ -1021,7 +1024,7 @@ void dlg_FeatureScout::RenderMeanObject()
 
 			double percentage = round((currClass - 1) * 100.0 / (classCount - 1) +
 				(progress + 1.0) * (100.0 / (classCount - 1)) / meanObjectIds->size());
-			m_activeChild->updateProgressBar(percentage);
+			p.emitProgress(percentage);
 			QCoreApplication::processEvents();
 			++progress;
 		}
@@ -1284,35 +1287,29 @@ void dlg_FeatureScout::saveStl()
 		QMessageBox::warning(this, "FeatureScout", "No save file destination specified.");
 		return;
 	}
-	m_activeChild->initProgressBar();
 
-	iAProgress marCubProgress;
-	iAProgress stlWriProgress;
-	connect(&marCubProgress, &iAProgress::progress, this, &dlg_FeatureScout::updateMarProgress);
-	connect(&stlWriProgress, &iAProgress::progress, this, &dlg_FeatureScout::updateStlProgress);
+	iAMultiStepProgressObserver* progress = new iAMultiStepProgressObserver(2);
+	auto job = runAsync([this, progress]
+		{
+			auto moSurface = vtkSmartPointer<vtkMarchingCubes>::New();
+			progress->observe(moSurface);
+			moSurface->SetInputData(m_MOData.moImageDataList[m_dwMO->cb_Classes->currentIndex()]);
+			moSurface->ComputeNormalsOn();
+			moSurface->ComputeGradientsOn();
+			moSurface->SetValue(0, m_dwMO->dsb_IsoValue->value());
 
-	auto moSurface = vtkSmartPointer<vtkMarchingCubes>::New();
-	marCubProgress.observe(moSurface);
-	moSurface->SetInputData(m_MOData.moImageDataList[m_dwMO->cb_Classes->currentIndex()]);
-	moSurface->ComputeNormalsOn();
-	moSurface->ComputeGradientsOn();
-	moSurface->SetValue(0, m_dwMO->dsb_IsoValue->value());
-
-	auto stlWriter = vtkSmartPointer<vtkSTLWriter>::New();
-	stlWriProgress.observe(stlWriter);
-	stlWriter->SetFileName(getLocalEncodingFileName(m_dwMO->le_StlPath->text()).c_str());
-	stlWriter->SetInputConnection(moSurface->GetOutputPort());
-	stlWriter->Write();
-}
-
-void dlg_FeatureScout::updateMarProgress(int i)
-{
-	m_activeChild->updateProgressBar(i / 2);
-}
-
-void dlg_FeatureScout::updateStlProgress(int i)
-{
-	m_activeChild->updateProgressBar(50 + i / 2);
+			progress->setCompletedSteps(1);
+			auto stlWriter = vtkSmartPointer<vtkSTLWriter>::New();
+			progress->observe(stlWriter);
+			stlWriter->SetFileName(getLocalEncodingFileName(m_dwMO->le_StlPath->text()).c_str());
+			stlWriter->SetInputConnection(moSurface->GetOutputPort());
+			stlWriter->Write();
+		},
+		[progress]
+		{
+			delete progress;
+		});
+	iAJobListView::get()->addJob("Saving STL", progress->progressObject(), job);
 }
 
 void CheckBounds(double color_out[3])
@@ -1703,7 +1700,7 @@ void dlg_FeatureScout::ClassAddButton()
 
 		if (kIdx.contains(v.ToInt()))
 		{
-			DEBUG_LOG(QString("Tried to add objID=%1, v=%2 to class which is already contained in other class!").arg(objID).arg(v.ToInt()));
+			LOG(lvlWarn, QString("Tried to add objID=%1, v=%2 to class which is already contained in other class!").arg(objID).arg(v.ToInt()));
 		}
 		else
 		{
@@ -2235,7 +2232,7 @@ void dlg_FeatureScout::CreateLabelledOutputMask(iAConnector& con, const QString&
 		++out;
 	}
 	storeImage(out_img, fOutPath, m_activeChild->preferences().Compression);
-	m_activeChild->addMsg("Stored image of of classes.");
+	LOG(lvlInfo, "Stored image of of classes.");
 }
 
 void dlg_FeatureScout::ClassSaveButton()
@@ -2380,7 +2377,7 @@ void dlg_FeatureScout::ClassLoadButton()
 	}
 	if (reader.hasError())
 	{
-		DEBUG_LOG(QString("Error while parsing XML: %1").arg(reader.errorString()));
+		LOG(lvlError, QString("Error while parsing XML: %1").arg(reader.errorString()));
 	}
 	m_splom->classesChanged();
 
@@ -3433,7 +3430,7 @@ void dlg_FeatureScout::updatePolarPlotView(vtkTable* it)
 {
 	if (!m_columnMapping->contains(iACsvConfig::Phi) || !m_columnMapping->contains(iACsvConfig::Theta))
 	{
-		DEBUG_LOG("It wasn't defined in which columns the angles phi and theta can be found, cannot set up polar plot view.");
+		LOG(lvlWarn, "It wasn't defined in which columns the angles phi and theta can be found, cannot set up polar plot view.");
 		return;
 	}
 	m_dwPP->setWindowTitle("Orientation Distribution");
@@ -3767,12 +3764,12 @@ void dlg_FeatureScout::initFeatureScoutUI()
 		m_activeChild->imagePropertyDockWidget()->hide();
 	}
 	m_activeChild->hideHistogram();
-	m_activeChild->logDockWidget()->hide();
+	m_activeChild->renderDockWidget()->hide();
 	for (int i = 0; i < 3; ++i)
 	{
 		m_activeChild->slicerDockWidget(i)->hide();
 	}
-	m_activeChild->modalitiesDockWidget()->hide();
+	m_activeChild->dataDockWidget()->hide();
 }
 
 void dlg_FeatureScout::changeFeatureScout_Options(int idx)
@@ -3816,7 +3813,7 @@ void dlg_FeatureScout::updateAxisProperties()
 		vtkAxis* axis = m_pcChart->GetAxis(i);
 		if (!axis)
 		{
-			DEBUG_LOG(QString("Invalid axis %1 in Parallel Coordinates!").arg(i));
+			LOG(lvlWarn, QString("Invalid axis %1 in Parallel Coordinates!").arg(i));
 			continue;
 		}
 		axis->GetLabelProperties()->SetFontSize(m_pcFontSize);

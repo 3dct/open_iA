@@ -138,7 +138,7 @@ iAMultimodalWidget::iAMultimodalWidget(MdiChild* mdiChild, NumOfMod num):
 	connect(mdiChild, &MdiChild::renderSettingsChanged, this, &iAMultimodalWidget::applyVolumeSettings);
 	connect(mdiChild, &MdiChild::slicerSettingsChanged, this, &iAMultimodalWidget::applySlicerSettings);
 
-	connect(m_mdiChild->modalitiesDockWidget(), &dlg_modalities::modalitiesChanged, this, &iAMultimodalWidget::modalitiesChangedSlot);
+	connect(m_mdiChild->dataDockWidget(), &dlg_modalities::modalitiesChanged, this, &iAMultimodalWidget::modalitiesChangedSlot);
 
 	connect(m_timer_updateVisualizations, &QTimer::timeout, this, &iAMultimodalWidget::onUpdateVisualizationsTimeout);
 
@@ -485,7 +485,7 @@ void iAMultimodalWidget::updateModalities()
 		vtkPiecewiseFunction *opFuncCopy = vtkPiecewiseFunction::New();
 		m_copyTFs[i] = createCopyTf(i, colorFuncCopy, opFuncCopy);
 
-		m_histograms[i] = QSharedPointer<iAChartWithFunctionsWidget>(new iAChartWithFunctionsWidget(nullptr, m_mdiChild, m_modalitiesActive[i]->name()+" gray value", "Frequency"));
+		m_histograms[i] = QSharedPointer<iAChartWithFunctionsWidget>(new iAChartWithFunctionsWidget(nullptr, m_modalitiesActive[i]->name()+" gray value", "Frequency"));
 		QSharedPointer<iAPlot> histogramPlot = QSharedPointer<iAPlot>(
 			new	iABarGraphPlot(m_modalitiesActive[i]->histogramData(), QColor(70, 70, 70, 255)));
 		m_histograms[i]->addPlot(histogramPlot);
@@ -560,7 +560,7 @@ void iAMultimodalWidget::alertWeightIsZero(QSharedPointer<iAModality> modality)
 
 void iAMultimodalWidget::originalHistogramChanged()
 {
-	QSharedPointer<iAModality> selected = m_mdiChild->modality(m_mdiChild->modalitiesDockWidget()->selected());
+	QSharedPointer<iAModality> selected = m_mdiChild->modality(m_mdiChild->dataDockWidget()->selected());
 	for (int i = 0; i < m_numOfMod; i++) {
 		if (selected == getModality(i)) {
 			updateCopyTransferFunction(i);

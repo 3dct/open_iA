@@ -63,7 +63,7 @@ public:
 		*/
 		if (!m_mdiChild)
 		{
-			DEBUG_LOG(QString("Invalid FIAKER project file '%1': FIAKER requires an MdiChild, "
+			LOG(lvlError, QString("Invalid FIAKER project file '%1': FIAKER requires an MdiChild, "
 				"but UseMdiChild was apparently not specified in this project, as no MdiChild available! "
 				"Please report this error, along with the project file, to the open_iA developers!").arg(fileName));
 			return;
@@ -72,8 +72,6 @@ public:
 		fiaker->setupToolBar();
 		fiaker->loadProject(m_mdiChild, projectFile, fileName, this);
 	}
-	//! not required at the moment, since this is currently done by
-	//! iAFiAKErController::doSaveProject overwriting iASavableProject::doSaveProject
 	void saveProject(QSettings & projectFile, QString const & fileName) override
 	{
 		m_controller->saveProject(projectFile, fileName);
@@ -128,7 +126,7 @@ void iAFiAKErModuleInterface::Initialize()
 	m_lastTimeStepOffset = s.value(LastTimeStepOffsetKey, 0).toDouble(&ok);
 	if (!ok)
 	{
-		DEBUG_LOG("FIAKER start: Invalid m_lastTimeStepOffset stored in settings!");
+		LOG(lvlError, "FIAKER start: Invalid m_lastTimeStepOffset stored in settings!");
 	}
 }
 

@@ -39,7 +39,7 @@ class iARangeSliderDiagramWidget : public iAChartWithFunctionsWidget
 	Q_OBJECT
 
 public:
-	iARangeSliderDiagramWidget( QWidget *parent, MdiChild *mdiChild,
+	iARangeSliderDiagramWidget( QWidget *parent,
 								vtkPiecewiseFunction* oTF,
 								vtkColorTransferFunction* cTF,
 								QSharedPointer<iARangeSliderDiagramData> data,

@@ -22,7 +22,7 @@
 
 #include <defines.h>          // for DIM
 #include <iAConnector.h>
-#include <iAConsole.h>
+#include <iALog.h>
 #include <iAProgress.h>
 #include <iAToolsVTK.h>
 #include <iAVtkDraw.h>
@@ -72,7 +72,7 @@ void iACSVtoMHD::performWork(QMap<QString, QVariant> const & parameters)
 	if (!in.open(QIODevice::ReadOnly | QIODevice::Text) ||
 		!in.isOpen())
 	{
-		DEBUG_LOG(QString("Couldn't open %1 for reading!").arg(fileName));
+		LOG(lvlError, QString("Couldn't open %1 for reading!").arg(fileName));
 		return;
 	}
 	//QString fieldSeparator(parameters["Field separator"].toString());
@@ -87,7 +87,7 @@ void iACSVtoMHD::performWork(QMap<QString, QVariant> const & parameters)
 		double val = line.toDouble(&ok);
 		if (!ok)
 		{
-			DEBUG_LOG(QString("Error converting string '%1' to numeric in %2: %3!").arg(line).arg(fileName).arg(curLine));
+			LOG(lvlError, QString("Error converting string '%1' to numeric in %2: %3!").arg(line).arg(fileName).arg(curLine));
 		}
 		//drawPixel(img, x, y, z, val);
 		img->SetScalarComponentFromDouble(x, y, z, 0, val);
@@ -105,7 +105,7 @@ void iACSVtoMHD::performWork(QMap<QString, QVariant> const & parameters)
 					++x;
 					if (x >= dim[0])
 					{
-						DEBUG_LOG(QString("CSV content exceeds given dimensions, stopping conversion at line %1!").arg(curLine));
+						LOG(lvlError, QString("CSV content exceeds given dimensions, stopping conversion at line %1!").arg(curLine));
 						break;
 					}
 				}
@@ -124,7 +124,7 @@ void iACSVtoMHD::performWork(QMap<QString, QVariant> const & parameters)
 					++z;
 					if (z >= dim[2])
 					{
-						DEBUG_LOG(QString("CSV content exceeds given dimensions, stopping conversion at line %1!").arg(curLine));
+						LOG(lvlWarn, QString("CSV content exceeds given dimensions, stopping conversion at line %1!").arg(curLine));
 						break;
 					}
 				}
@@ -132,7 +132,7 @@ void iACSVtoMHD::performWork(QMap<QString, QVariant> const & parameters)
 		}
 		else
 		{
-			DEBUG_LOG("Invalid Coordinate Order.");
+			LOG(lvlError, "Invalid Coordinate Order.");
 			return;
 		}
 	}

@@ -22,7 +22,7 @@
 
 #include "iAAttributeDescriptor.h"
 #include "iAFilterSelectionDlg.h"
-#include "iAConsole.h"
+#include "iALog.h"
 #include "iAFilter.h"
 #include "iAFilterRegistry.h"
 #include "iAFilterRunnerGUI.h"
@@ -38,6 +38,7 @@
 #include <QLabel>
 #include <QLineEdit>
 #include <QPlainTextEdit>
+#include <QPushButton>
 #include <QSpinBox>
 #include <QScrollArea>
 #include <QTextBrowser>
@@ -81,7 +82,7 @@ iAParameterDlg::iAParameterDlg(QWidget* parent, QString const& title, QVector<QS
 	setupUi(this);
 	if (title.isEmpty())
 	{
-		DEBUG_LOG("No window title entered. Please give a window title");
+		LOG(lvlError, "No window title entered. Please give a window title");
 		auto lbl = new QLabel("No window title entered. Please give a window title");
 		gridLayout->addWidget(lbl, 0, 0);
 		buttonBox->button(QDialogButtonBox::Ok)->setEnabled(false);
@@ -326,7 +327,7 @@ void iAParameterDlg::selectFilter()
 			}
 			else
 			{
-				DEBUG_LOG(QString("Parameter string %1 could not be set!").arg(paramStr));
+				LOG(lvlError, QString("Parameter string %1 could not be set!").arg(paramStr));
 			}
 		}
 		sender->setText(filterName);
@@ -337,7 +338,7 @@ void iAParameterDlg::showROI()
 {
 	if (!m_sourceMdiChild)
 	{
-		DEBUG_LOG("You need to call setSourceMDI before show ROI!");
+		LOG(lvlError, "You need to call setSourceMDI before show ROI!");
 		return;
 	}
 	QObjectList children = m_container->children();

@@ -28,7 +28,6 @@
 #include <vtkImageData.h>
 #include <vtkPolyData.h>
 
-#include <QLocale>
 #include <QMessageBox>
 
 iAAlgorithm::iAAlgorithm( QString fn, vtkImageData* idata, vtkPolyData* p, iALogger * logger, QObject *parent )
@@ -125,7 +124,7 @@ void iAAlgorithm::addMsg(QString txt)
 {
 	if (m_logger)
 	{
-		m_logger->log(txt);
+		m_logger->log(lvlInfo, txt);
 	}
 }
 

@@ -20,7 +20,7 @@
 * ************************************************************************************/
 #include "iAChartWidget.h"
 
-#include "iAConsole.h"
+#include "iALog.h"
 #include "iAMapperImpl.h"
 #include "iAMathUtility.h"
 #include "iAPlot.h"
@@ -31,7 +31,6 @@
 #include <vtkMath.h>
 
 #include <QAction>
-#include <QDateTime>
 #include <QFileDialog>
 #include <QIcon>
 #include <QMenu>
@@ -96,7 +95,7 @@ namespace
 		{
 			if (warn)
 			{
-				DEBUG_LOG(QString("range [%1..%2] invalid (min~=max), enlarging it by %3").arg(bounds[0]).arg(bounds[1]).arg(offset));
+				LOG(lvlWarn, QString("range [%1..%2] invalid (min~=max), enlarging it by %3").arg(bounds[0]).arg(bounds[1]).arg(offset));
 			}
 			bounds[0] -= offset;
 			bounds[1] += offset;
@@ -335,7 +334,7 @@ void iAChartWidget::createMappers()
 		m_yMapper = QSharedPointer<iAMapper>(new iALogarithmicMapper(m_yBounds[0] > 0 ? m_yBounds[0] : LogYMapModeMin, m_yBounds[1], 0, (chartHeight() - 1)*m_yZoom));
 		if (m_yBounds[0] < 0)
 		{
-			DEBUG_LOG(QString("Invalid y bounds in chart for logarithmic mapping: minimum=%1 is < 0, using %2 instead.")
+			LOG(lvlWarn, QString("Invalid y bounds in chart for logarithmic mapping: minimum=%1 is < 0, using %2 instead.")
 				.arg(m_yBounds[0]).arg(LogYMapModeMin));
 		}
 	}
@@ -550,7 +549,7 @@ void iAChartWidget::drawYAxis(QPainter &painter)
 		double pos = step * i;
 		int y = -static_cast<int>(pos * aheight * m_yZoom) - 1;
 		double yValue = m_yMapper->dstToSrc(-y-1);
-		QString text = dblToStringWithUnits(yValue);
+		QString text = dblToStringWithUnits(yValue, 10);
 		painter.drawLine(static_cast<int>(-TickWidth), y, 0, y);	// indicator line
 #if QT_VERSION >= QT_VERSION_CHECK(5, 11, 0)
 		painter.drawText( - ( fm.horizontalAdvance(text) + TickWidth),

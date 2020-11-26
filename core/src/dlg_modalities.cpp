@@ -24,7 +24,7 @@
 #include "dlg_modalityProperties.h"
 #include "iAChannelData.h"
 #include "iAChannelSlicerData.h"
-#include "iAConsole.h"
+#include "iALog.h"
 #include "iAFast3DMagicLensWidget.h"
 #include "iAModality.h"
 #include "iAModalityList.h"
@@ -120,7 +120,7 @@ void dlg_modalities::addClicked()
 		dlg_commoninput splitInput(this, "Multi-channel input", inList, inPara, descr);
 		if (splitInput.exec() != QDialog::Accepted)
 		{
-			DEBUG_LOG("Aborted by user.");
+			LOG(lvlInfo, "Aborted by user.");
 			return;
 		}
 		split = splitInput.getCheckValue(0);
@@ -196,7 +196,7 @@ void dlg_modalities::removeClicked()
 	int idx = lwModalities->currentRow();
 	if (idx < 0 || idx >= m_modalities->size())
 	{
-		DEBUG_LOG(QString("Index out of range (%1)").arg(idx));
+		LOG(lvlError, QString("Index out of range (%1)").arg(idx));
 		return;
 	}
 	m_mdiChild->clearHistogram();
@@ -232,14 +232,14 @@ void dlg_modalities::editClicked()
 	int idx = lwModalities->currentRow();
 	if (idx < 0 || idx >= m_modalities->size())
 	{
-		DEBUG_LOG(QString("Index out of range (%1).").arg(idx));
+		LOG(lvlError, QString("Index out of range (%1).").arg(idx));
 		return;
 	}
 	int renderFlagsBefore = m_modalities->get(idx)->renderFlags();
 	QSharedPointer<iAModality> editModality(m_modalities->get(idx));
 	if (!editModality->renderer())
 	{
-		DEBUG_LOG(QString("Volume renderer not yet initialized, please wait..."));
+		LOG(lvlWarn, QString("Volume renderer not yet initialized, please wait..."));
 		return;
 	}
 	dlg_modalityProperties prop(this, editModality);
@@ -320,7 +320,7 @@ void dlg_modalities::setInteractionMode(bool manualRegistration)
 		int idx = lwModalities->currentRow();
 		if (idx < 0 || idx >= m_modalities->size())
 		{
-			DEBUG_LOG(QString("Index out of range (%1).").arg(idx));
+			LOG(lvlError, QString("Index out of range (%1).").arg(idx));
 			return;
 		}
 		QSharedPointer<iAModality> editModality(m_modalities->get(idx));
@@ -329,7 +329,7 @@ void dlg_modalities::setInteractionMode(bool manualRegistration)
 
 		if (!editModality->renderer())
 		{
-			DEBUG_LOG(QString("Volume renderer not yet initialized, please wait..."));
+			LOG(lvlWarn, QString("Volume renderer not yet initialized, please wait..."));
 			return;
 		}
 
@@ -355,7 +355,7 @@ void dlg_modalities::setInteractionMode(bool manualRegistration)
 	}
 	catch (std::invalid_argument &ivae)
 	{
-		DEBUG_LOG(ivae.what());
+		LOG(lvlError, ivae.what());
 	}
 }
 
@@ -366,7 +366,7 @@ void dlg_modalities::configureInterActorStyles(QSharedPointer<iAModality> editMo
 	//vtkProp3D *PropVol_3d = volRend->GetVolume().Get();
 	if (!img)
 	{
-		DEBUG_LOG("img is null!");
+		LOG(lvlError, "img is null!");
 		return;
 	}
 	uint chID = editModality->channelID();
@@ -377,7 +377,7 @@ void dlg_modalities::configureInterActorStyles(QSharedPointer<iAModality> editMo
 	{
 		if (!m_mdiChild->slicer(i)->hasChannel(chID))
 		{
-			DEBUG_LOG("This modality cannot be moved as it isn't active in slicer, please select another one!")
+			LOG(lvlWarn, "This modality cannot be moved as it isn't active in slicer, please select another one!")
 			return;
 		}
 		else
@@ -417,7 +417,7 @@ void dlg_modalities::setModalitySelectionMovable(int selectedRow)
 		QSharedPointer<iAModality> mod = m_modalities->get(i);
 		if (!mod->renderer())
 		{
-			DEBUG_LOG(QString("Renderer for modality %1 not yet created. Please try again later!").arg(i));
+			LOG(lvlWarn, QString("Renderer for modality %1 not yet created. Please try again later!").arg(i));
 			continue;
 		}
 
@@ -480,7 +480,7 @@ void dlg_modalities::changeRenderSettings(iAVolumeSettings const & rs, const boo
 		QSharedPointer<iAVolumeRenderer> renderer = m_modalities->get(i)->renderer();
 		if (!renderer)
 		{
-			DEBUG_LOG("ChangeRenderSettings: No Renderer set!");
+			LOG(lvlWarn, "ChangeRenderSettings: No Renderer set!");
 			return;
 		}
 		//load volume settings from file otherwise use default rs
@@ -519,7 +519,7 @@ void dlg_modalities::showSlicers(bool enabled, vtkPlane* plane1, vtkPlane* plane
 		QSharedPointer<iAVolumeRenderer> renderer = m_modalities->get(i)->renderer();
 		if (!renderer)
 		{
-			DEBUG_LOG("ShowSlicePlanes: No Renderer set!");
+			LOG(lvlWarn, "ShowSlicePlanes: No Renderer set!");
 			return;
 		}
 		if (enabled)

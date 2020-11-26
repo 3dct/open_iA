@@ -20,7 +20,7 @@
 * ************************************************************************************/
 #include "iAModalityList.h"
 
-#include "iAConsole.h"
+#include "iALog.h"
 #include "iAMathUtility.h"
 #include "iAModality.h"
 #include "iAModalityTransfer.h"
@@ -57,7 +57,7 @@ namespace
 			dest = false;
 		else
 		{
-			DEBUG_LOG(QString("Invalid value='%1' for parameter='%2', default=%3 is applied")
+			LOG(lvlWarn, QString("Invalid value='%1' for parameter='%2', default=%3 is applied")
 				.arg(str).arg(paramName).arg(defaultVal));
 			dest = defaultVal;
 		}
@@ -71,7 +71,7 @@ namespace
 			dest = returnVal;
 		else
 		{
-			DEBUG_LOG(QString("Invalid value='%1' for parameter='%2', default=%3 is applied")
+			LOG(lvlWarn, QString("Invalid value='%1' for parameter='%2', default=%3 is applied")
 				.arg(str).arg(paramName).arg(defaultVal));
 			dest = defaultVal;
 		}
@@ -209,13 +209,13 @@ bool iAModalityList::load(QString const & filename, iAProgress& progress)
 {
 	if (filename.isEmpty())
 	{
-		DEBUG_LOG("No project file given.");
+		LOG(lvlError, "No project file given.");
 		return false;
 	}
 	QFileInfo fi(filename);
 	if (!fi.exists())
 	{
-		DEBUG_LOG(QString("Given project file '%1' does not exist.").arg(filename));
+		LOG(lvlError, QString("Given project file '%1' does not exist.").arg(filename));
 		return false;
 	}
 	QSettings settings(filename, QSettings::IniFormat);
@@ -224,7 +224,7 @@ bool iAModalityList::load(QString const & filename, iAProgress& progress)
 	if (!settings.contains(FileVersionKey) ||
 		settings.value(FileVersionKey).toString() != ModFileVersion)
 	{
-		DEBUG_LOG(QString("Invalid project file version (was %1, expected %2)! Trying to parse anyway, but expect failures.")
+		LOG(lvlError, QString("Invalid project file version (was %1, expected %2)! Trying to parse anyway, but expect failures.")
 			.arg(settings.contains(FileVersionKey) ? settings.value(FileVersionKey).toString() : "not set")
 			.arg(ModFileVersion));
 		return false;
@@ -233,7 +233,7 @@ bool iAModalityList::load(QString const & filename, iAProgress& progress)
 		!stringToArray<double>(settings.value(CameraFocalPointKey).toString(), m_camFocalPoint, 3) ||
 		!stringToArray<double>(settings.value(CameraViewUpKey).toString(), m_camViewUp, 3))
 	{
-		//DEBUG_LOG(QString("Invalid or missing camera information."));
+		//LOG(lvlWarn, QString("Invalid or missing camera information."));
 	}
 	else
 	{
@@ -280,7 +280,7 @@ bool iAModalityList::load(QString const & filename, iAProgress& progress)
 		}
 		if (modalityExists(modalityFile, channel))
 		{
-			DEBUG_LOG(QString("Modality (name=%1, filename=%2, channel=%3) already exists!").arg(modalityName).arg(modalityFile).arg(channel));
+			LOG(lvlWarn, QString("Modality (name=%1, filename=%2, channel=%3) already exists!").arg(modalityName).arg(modalityFile).arg(channel));
 		}
 		else
 		{
@@ -292,7 +292,7 @@ bool iAModalityList::load(QString const & filename, iAProgress& progress)
 			ModalityCollection mod = iAModalityList::load(modalityFile, modalityName, channel, false, renderFlags);
 			if (mod.size() != 1) // we expect to load exactly one modality
 			{
-				DEBUG_LOG(QString("Invalid state: More or less than one modality loaded from file '%1'").arg(modalityFile));
+				LOG(lvlWarn, QString("Invalid state: More or less than one modality loaded from file '%1'").arg(modalityFile));
 				return false;
 			}
 			mod[0]->setStringSettings(positionSettings, orientationSettings, tfFileName);
@@ -301,7 +301,7 @@ bool iAModalityList::load(QString const & filename, iAProgress& progress)
 			emit added(mod[0]);
 		}
 		++currIdx;
-		progress.emitProgress((100 * currIdx) / maxIdx);
+		progress.emitProgress(100.0 * currIdx / maxIdx);
 	}
 	m_fileName = filename;
 	return true;
@@ -384,7 +384,7 @@ ModalityCollection iAModalityList::load(QString const & filename, QString const 
 	ModalityCollection result;
 	if (!QFileInfo(filename).exists())
 	{
-		DEBUG_LOG(QString("Error: File %1 does not exist!").arg(filename));
+		LOG(lvlError, QString("File %1 does not exist!").arg(filename));
 		return result;
 	}
 	QFileInfo fileInfo(filename);
@@ -402,13 +402,13 @@ ModalityCollection iAModalityList::load(QString const & filename, QString const 
 		const mapQString2int * ext2id = &extensionToId;
 		if (ext2id->find(extension) == ext2id->end())
 		{
-			DEBUG_LOG("Unknown file type!");
+			LOG(lvlError, "Unknown file type!");
 			return result;
 		}
 		iAIOType id = ext2id->find(extension).value();
 		if (!io.setupIO(id, filename, false, channel))
 		{
-			DEBUG_LOG("Error while setting up modality loading!");
+			LOG(lvlError, "Could not set up modality loading!");
 			return result;
 		}
 	}
@@ -443,7 +443,7 @@ ModalityCollection iAModalityList::load(QString const & filename, QString const 
 		}
 		if (!img || img->GetDimensions()[0] == 0 || img->GetDimensions()[1] == 0)
 		{
-			DEBUG_LOG(QString("File '%1' could not be loaded!").arg(filename));
+			LOG(lvlError, QString("File '%1' could not be loaded!").arg(filename));
 			return result;
 		}
 		QSharedPointer<iAModality> newModality(new iAModality(

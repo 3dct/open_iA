@@ -178,7 +178,7 @@ void iA4DCTModuleInterface::defectClassification()
 //{
 //	PrepareActiveChild();
 //	/*m_densityMap = new dlg_densityMap(m_mainWnd, m_mdiChild);
-//	m_mdiChild->tabifyDockWidget(m_mdiChild->logDockWidget, m_densityMap);*/
+//	m_mdiChild->tabifyDockWidget(m_mdiChild->renderDockWidget, m_densityMap);*/
 //
 //	dlg_4dctRegistration* reg = new dlg_4dctRegistration();
 //	m_mainWnd->addSubWindow(reg);

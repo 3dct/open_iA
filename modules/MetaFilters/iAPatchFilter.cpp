@@ -25,7 +25,7 @@
 #include <defines.h>    // for DIM
 #include <iAAttributeDescriptor.h>
 #include <iAConnector.h>
-#include <iAConsole.h>
+#include <iALog.h>
 #include <iAFilterRegistry.h>
 #include <iAProgress.h>
 #include <iAStringHelper.h>
@@ -71,19 +71,19 @@ namespace
 		auto filter = iAFilterRegistry::filter(parameters[spnFilter].toString());
 		if (!filter)
 		{
-			patchFilter->addMsg(QString("Patch: Cannot run filter '%1', it does not exist!").arg(parameters[spnFilter].toString()));
+			LOG(lvlError, QString("Patch: Cannot run filter '%1', it does not exist!").arg(parameters[spnFilter].toString()));
 			return;
 		}
 		typedef itk::Image<T, DIM> InputImageType;
 		typedef itk::Image<double, DIM> OutputImageType;
 		auto size = dynamic_cast<InputImageType*>(patchFilter->input()[0]->itkImage())->GetLargestPossibleRegion().GetSize();
-		//DEBUG_LOG(QString("Size: (%1, %2, %3)").arg(size[0]).arg(size[1]).arg(size[2]));
+		//LOG(lvlInfo, QString("Size: (%1, %2, %3)").arg(size[0]).arg(size[1]).arg(size[2]));
 		auto inputSpacing = dynamic_cast<InputImageType*>(patchFilter->input()[0]->itkImage())->GetSpacing();
 
 		QStringList filterParamStrs = splitPossiblyQuotedString(parameters["Parameters"].toString());
 		if (filter->parameters().size() != filterParamStrs.size())
 		{
-			DEBUG_LOG(QString("PatchFilter: Invalid number of parameters: %1 expected, %2 given!")
+			LOG(lvlError, QString("PatchFilter: Invalid number of parameters: %1 expected, %2 given!")
 				.arg(filter->parameters().size())
 				.arg(filterParamStrs.size()));
 			return;
@@ -171,7 +171,7 @@ namespace
 					extractIndex[2] = getLeft(z, patchSizeHalf[2], center);
 					extractSize[2] = getSize(z, extractIndex[2], size[2], patchSizeHalf[2], patchSize[2], center);
 					/*
-					DEBUG_LOG(QString("Working on patch: upper left=(%1, %2, %3), dim=(%4, %5, %6), outIdx=(%10,%11,%12).")
+					LOG(lvlInfo, QString("Working on patch: upper left=(%1, %2, %3), dim=(%4, %5, %6), outIdx=(%10,%11,%12).")
 						.arg(extractParams["Index X"].toUInt())
 						.arg(extractParams["Index Y"].toUInt())
 						.arg(extractParams["Index Z"].toUInt())
@@ -184,7 +184,7 @@ namespace
 					// with a size of 1 in one dimension, so let's skip such patches for the moment...
 					if (extractSize[0] <= 1 || extractSize[1] <= 1 || extractSize[2] <= 1)
 					{
-						//DEBUG_LOG("    skipping because one side <= 1.");
+						//LOG(lvlInfo, "    skipping because one side <= 1.");
 						continue;
 					}
 					try
@@ -217,7 +217,7 @@ namespace
 								.arg(fi.completeSuffix());
 							if (QFile::exists(outFileName))
 							{
-								DEBUG_LOG(QString("Output file %1 already exists; if you want to overwrite it, "
+								LOG(lvlWarn, QString("Output file %1 already exists; if you want to overwrite it, "
 									"you need to set the '%2' parameter to true.")
 									.arg(outFileName).arg(spnOverwriteOutput));
 								if (!continueOnError)
@@ -262,7 +262,7 @@ namespace
 					{
 						if (continueOnError)
 						{
-							DEBUG_LOG(QString("Patch filter: An error has occurred: %1, continueing anyway.").arg(e.what()));
+							LOG(lvlError, QString("Patch filter: An error has occurred: %1, continueing anyway.").arg(e.what()));
 						}
 						else
 						{
@@ -270,7 +270,7 @@ namespace
 						}
 					}
 
-					patchFilter->progress()->emitProgress(static_cast<int>(100.0 * curOp / totalOps));
+					patchFilter->progress()->emitProgress(curOp * 100.0 / totalOps);
 					++curOp;
 					++outIdx[2];
 				}
@@ -286,7 +286,7 @@ namespace
 		QFile file(outputFile);
 		if (file.exists() && !overwrite)
 		{
-			DEBUG_LOG(QString("Output file %1 already exists; if you want to overwrite it, "
+			LOG(lvlError, QString("Output file %1 already exists; if you want to overwrite it, "
 				"you need to set the '%2' parameter to true.")
 				.arg(outputFile).arg(spnOverwriteOutput));
 		}
@@ -305,7 +305,7 @@ namespace
 		}
 		else
 		{
-			DEBUG_LOG(QString("Output file not specified, or could not be opened (%1)").arg(outputFile));
+			LOG(lvlError, QString("Output file not specified, or could not be opened (%1)").arg(outputFile));
 		}
 		for (int i = 0; i < outputImages.size(); ++i)
 		{
@@ -316,7 +316,7 @@ namespace
 				.arg(outputNames[i])
 				.arg(fi.completeSuffix());
 			storeImage(outputImages[i], outFileName, compress);
-			//DEBUG_LOG(QString("Storing output for '%1' in file '%2'").arg(outputNames[i]).arg(outFileName));
+			//LOG(lvlInfo, QString("Storing output for '%1' in file '%2'").arg(outputNames[i]).arg(outFileName));
 		}
 	}
 }

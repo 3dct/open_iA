@@ -3,10 +3,10 @@ SET (FeatureScout_PRECOMPILE_INCLUDES <iA3DColoredPolyObjectVis.h>
 <iA3DObjectVis.h>
 <iABlobCluster.h>
 <iABlobManager.h>
-<iAConsole.h>
 <iACsvConfig.h>
 <iACsvIO.h>
 <iAFeatureScoutObjectType.h>
+<iALog.h>
 <iALookupTable.h>
 <iARenderer.h>
 <iAvec3.h>

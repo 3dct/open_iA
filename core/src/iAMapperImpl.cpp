@@ -20,7 +20,7 @@
 * ************************************************************************************/
 #include "iAMapperImpl.h"
 
-#include "iAConsole.h"
+#include "iALog.h"
 #include "iAMathUtility.h"
 
 #include <typeinfo>    // for typeid
@@ -90,7 +90,7 @@ double iALogarithmicMapper::srcToDst(double srcVal) const
 {
 	if (srcVal <= 0)
 	{
-		//DEBUG_LOG(QString("Value %1 cannot be logarithmically mapped as it is <= 0!").arg(srcVal));
+		//LOG(lvlWarn, QString("Value %1 cannot be logarithmically mapped as it is <= 0!").arg(srcVal));
 		return 0;
 	}
 	double srcLog = clamp(m_srcMinLog, m_srcMaxLog, LogFunc(srcVal));
@@ -114,7 +114,7 @@ void iALogarithmicMapper::update(double srcMin, double srcMax, double dstMin, do
 {
 	if (srcMin <= 0 || srcMax <= 0)
 	{
-		DEBUG_LOG(QString("Invalid logarithmic mapping, can only map values > 0 (was given range [%1, %2])").arg(srcMin).arg(srcMax));
+		LOG(lvlWarn, QString("Invalid logarithmic mapping, can only map values > 0 (was given range [%1, %2])").arg(srcMin).arg(srcMax));
 		return;
 	}
 	m_srcMinLog = LogFunc(srcMin);

@@ -48,7 +48,7 @@ iAVRAttachment::iAVRAttachment( MainWindow * mainWnd, MdiChild* child )
 	m_toggleVR = new QPushButton("Start VR");
 	iADockWidgetWrapper* vrDockWidget = new iADockWidgetWrapper(m_toggleVR, "VR", "vrDockWidget");
 	connect(m_toggleVR, &QPushButton::clicked, this, &iAVRAttachment::toggleVR);
-	child->splitDockWidget(child->logDockWidget(), vrDockWidget, Qt::Horizontal);
+	child->splitDockWidget(child->renderDockWidget(), vrDockWidget, Qt::Horizontal);
 }
 
 void iAVRAttachment::toggleVR()

@@ -24,9 +24,12 @@
 
 #include <vtkSmartPointer.h>
 
+class iASimpleAbortListener;
+
 class vtkGenericMovieWriter;
 
 class QString;
 
 open_iA_Core_API QString GetAvailableMovieFormats();
 open_iA_Core_API vtkSmartPointer<vtkGenericMovieWriter> GetMovieWriter(QString const & fileName, int quality);
+void printFinalLogMessage(vtkGenericMovieWriter * movieWriter, iASimpleAbortListener const& abortListener);

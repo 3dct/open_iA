@@ -326,8 +326,8 @@ void iARangeSliderDiagramView::setupHistogram()
 	m_oTFList.append( oTF );
 	m_cTFList.append( cTF );
 
-	iARangeSliderDiagramWidget *rangeSliderDiagramWidget = new iARangeSliderDiagramWidget( dynamic_cast<QWidget*> ( parent() ), nullptr, m_oTFList.at( 0 ),
-													 m_cTFList.at( 0 ), m_rangeSliderData, &m_histogramMap, m_rawTable,"Porosity", "Frequency" );
+	auto *rangeSliderDiagramWidget = new iARangeSliderDiagramWidget( dynamic_cast<QWidget*> ( parent() ), m_oTFList.at( 0 ),
+		m_cTFList.at( 0 ), m_rangeSliderData, &m_histogramMap, m_rawTable,"Porosity", "Frequency" );
 
 	rangeSliderDiagramWidget->addPlot( m_rangeSliderDiagramDrawer );
 	m_widgetList.append( rangeSliderDiagramWidget );
@@ -372,9 +372,8 @@ void iARangeSliderDiagramView::setupDiagrams()
 		m_oTFList.append( oTF );
 		m_cTFList.append( cTF );
 
-		iARangeSliderDiagramWidget* rangeSliderDiagramWidget = new iARangeSliderDiagramWidget( dynamic_cast<QWidget*> ( parent() ), nullptr,
-															m_oTFList.last(), m_cTFList.last(), m_rangeSliderData,
-															&m_histogramMap, m_rawTable, mapIt.key(), m_cbPorDev->currentText() );
+		auto * rangeSliderDiagramWidget = new iARangeSliderDiagramWidget(dynamic_cast<QWidget*>(parent()),
+				m_oTFList.last(), m_cTFList.last(), m_rangeSliderData, &m_histogramMap, m_rawTable, mapIt.key(), m_cbPorDev->currentText() );
 
 		connect( m_widgetList[0], &iARangeSliderDiagramWidget::selected, rangeSliderDiagramWidget,    &iARangeSliderDiagramWidget::selectSlot);
 		connect( m_widgetList[0], &iARangeSliderDiagramWidget::deselected, rangeSliderDiagramWidget,  &iARangeSliderDiagramWidget::deleteSlot);
