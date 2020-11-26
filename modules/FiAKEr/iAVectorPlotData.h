@@ -26,6 +26,7 @@
 
 #include <QVector>
 
+// merge with iAHistogramData!
 class iAVectorPlotData : public iAPlotData
 {
 public:
@@ -36,10 +37,13 @@ public:
 	double const * xBounds() const override;
 	DataType const * yBounds() const override;
 	iAValueType valueType() const override;
+	QString toolTipText(double dataX) const override;
 	void setXDataType(iAValueType);
 	QVector<double> & data();
 	void updateBounds();
+
 private:
+	size_t dataX2Bin(double dataX) const;
 	QVector<double> m_data;
 	iAValueType m_xDataType;
 	double m_xBounds[2];

@@ -50,6 +50,7 @@ public:
 private:
 	iASimpleHistogramData(DataType minX, DataType maxX, size_t numBin, iAValueType xValueType);
 	iASimpleHistogramData(DataType minX, DataType maxX, size_t numBin, double* data, iAValueType xValueType);
+
 	double * m_data;
 	double m_xBounds[2];
 	double m_yBounds[2];

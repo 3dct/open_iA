@@ -133,10 +133,6 @@ public:
 	void clearPlots();
 	//! Retrieve all plots currently in the chart.
 	std::vector< QSharedPointer< iAPlot > > const & plots();
-	//! Check whether all plots currently in the chart have discrete
-	//! (categorical also counts as discrete for this purpose). If a single
-	//! plot is continuous, it will report false.
-	bool isDrawnDiscrete() const;
 	//! Add an image overlay to the chart.
 	void addImageOverlay(QSharedPointer<QImage> imgOverlay);
 	//! Remove an image overlay from the chart.

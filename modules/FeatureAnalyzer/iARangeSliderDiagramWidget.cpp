@@ -63,6 +63,7 @@ public:
 	{
 		return m_other->yBounds();
 	}
+
 private:
 	DataType* m_data;
 	size_t m_size;

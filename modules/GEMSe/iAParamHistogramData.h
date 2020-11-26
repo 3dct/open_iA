@@ -67,10 +67,6 @@ public:
 	double mapBinToValue(double bin) const;
 	iAValueType valueType() const override;
 	bool isLogarithmic() const;
-	double minX() const override;
-	double maxX() const override;
-	void setMinX(double x);
-	void setMaxX(double x);
 	void addValue(double value);
 private:
 	static void visitNode(iAImageTreeNode const * node,

@@ -32,21 +32,18 @@ class open_iA_Core_API iAPlotData
 {
 public:
 	typedef double DataType;
-	virtual ~iAPlotData() {}
+	virtual ~iAPlotData();
 	virtual DataType const * rawData() const =0;
-	virtual size_t numBin() const =0;
-	virtual double minX() const { return 0; }
-	virtual double maxX() const { return static_cast<double>(numBin()); }
 	virtual double spacing() const = 0;
 	virtual double const * xBounds() const = 0;
 	virtual DataType const * yBounds() const = 0;
+	// TODO: make abstract
+	virtual QString toolTipText(double dataX) const;
 
-	virtual double binStart(size_t binNr) const		// default: assume constant (i.e. linear) spacing
-	{
-		return spacing() * binNr + xBounds()[0];
-	}
-	virtual iAValueType valueType() const
-	{
-		return iAValueType::Continuous;
-	}
+	// TODO: move down to iAHistogramData
+	virtual size_t numBin() const = 0;
+	virtual double binStart(size_t binNr) const;  // default: assume constant (i.e. linear) spacing
+	virtual iAValueType valueType() const;
+private:
+	size_t dataX2Bin(double dataX) const;
 };

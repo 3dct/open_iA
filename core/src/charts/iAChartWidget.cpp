@@ -772,19 +772,6 @@ std::vector<QSharedPointer<iAPlot> > const & iAChartWidget::plots()
 	return m_plots;
 }
 
-bool iAChartWidget::isDrawnDiscrete() const
-{
-	for (auto plot : m_plots)
-	{
-		if (!((plot->data()->valueType() == iAValueType::Discrete && (xRange() == plot->data()->numBin()))
-			  || plot->data()->valueType() == iAValueType::Categorical))
-		{
-			return false;
-		}
-	}
-	return !m_plots.empty();
-}
-
 void iAChartWidget::addImageOverlay(QSharedPointer<QImage> imgOverlay)
 {
 	m_overlays.push_back(imgOverlay);
@@ -849,7 +836,7 @@ bool iAChartWidget::event(QEvent *event)
 	{
 		return iAChartParentWidget::event(event);
 	}
-
+	// maybe use mouseMove / setToolTip instead?
 	if (m_plots.empty() || !m_showTooltip)
 	{
 		QToolTip::hideText();
@@ -860,67 +847,20 @@ bool iAChartWidget::event(QEvent *event)
 	return true;
 }
 
-void iAChartWidget::showDataTooltip(QHelpEvent *event)
+void iAChartWidget::showDataTooltip(QHelpEvent* event)
 {
 	if (m_plots.empty())
 	{
 		return;
 	}
-	size_t numBin = m_plots[0]->data()->numBin();
-	assert(numBin > 0);
-	int xPos = clamp(0, geometry().width() - 1, event->x());
-	assert (chartWidth() >= 0);
-	size_t nthBin = screenX2DataBin(xPos);
-	/*
-		static_cast<size_t>(((static_cast<unsigned long>(xPos - m_translationX - leftMargin()) * numBin) / (static_cast<unsigned long>(chartWidth()))) / m_xZoom);
-	nthBin = clamp(static_cast<size_t>(0), numBin, nthBin);
-	if (xPos == geometry().width() - 1)
+	int mouseX = clamp(0, geometry().width(), event->x()) - leftMargin();
+	double dataX = mouse2DataX(mouseX);
+	QString toolTipText;
+	for (auto const & plot : m_plots)
 	{
-		nthBin = numBin - 1;
+		toolTipText += plot->data()->toolTipText(dataX) + "\n";
 	}
-	*/
-	QString toolTip;
-	double stepWidth = numBin >= 1 ? m_plots[0]->data()->binStart(1) - m_plots[0]->data()->binStart(0) : 0;
-	double binStart = m_plots[0]->data()->binStart(nthBin);
-	/*
-	if (isDrawnDiscrete())
-	{
-		binStart = static_cast<int>(binStart);
-	}*/
-	if (m_yCaption.isEmpty())
-	{
-		toolTip = QString("%1: ").arg(xAxisTickMarkLabel(binStart, stepWidth));
-	}
-	else
-	{
-		toolTip = QString("%1: %2\n%3: ").arg(m_xCaption).arg(xAxisTickMarkLabel(binStart, stepWidth)).arg(m_yCaption);
-	}
-	bool more = false;
-	const int MaxToolTipDataCount = 5;
-	int curTooltipDataCount = 1;
-	for (auto plot : m_plots)
-	{
-		if (!plot->data() || !plot->data()->rawData())
-		{
-			continue;
-		}
-		if (more)
-		{
-			toolTip += ", ";
-		}
-		else
-		{
-			more = true;
-		}
-		toolTip += QString::number(plot->data()->rawData()[nthBin], 'g', 15);
-		++curTooltipDataCount;
-		if (curTooltipDataCount > MaxToolTipDataCount)
-		{
-			toolTip += "...";
-			break;
-		}
-	}
-	QToolTip::showText(event->globalPos(), toolTip, this);
+	QToolTip::showText(event->globalPos(), toolTipText.trimmed(), this);
 }
 
 void iAChartWidget::changeMode(int newMode, QMouseEvent *event)
