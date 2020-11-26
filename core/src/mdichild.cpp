@@ -146,9 +146,9 @@ MdiChild::MdiChild(MainWindow* mainWnd, iAPreferences const& prefs, bool unsaved
 	addDockWidget(Qt::LeftDockWidgetArea, m_dwRenderer);
 	m_initialLayoutState = saveState();
 
-	splitDockWidget(m_dwRenderer, m_dwSlicer[iASlicerMode::XZ], Qt::Horizontal);
-	splitDockWidget(m_dwRenderer, m_dwSlicer[iASlicerMode::YZ], Qt::Vertical);
-	splitDockWidget(m_dwSlicer[iASlicerMode::XZ], m_dwSlicer[iASlicerMode::XY], Qt::Vertical);
+	splitDockWidget(m_dwRenderer, m_dwSlicer[iASlicerMode::XY], Qt::Horizontal);
+	splitDockWidget(m_dwSlicer[iASlicerMode::XY], m_dwSlicer[iASlicerMode::XZ], Qt::Vertical);
+	splitDockWidget(m_dwSlicer[iASlicerMode::XZ], m_dwSlicer[iASlicerMode::YZ], Qt::Vertical);
 
 	setAttribute(Qt::WA_DeleteOnClose);
 
@@ -163,6 +163,7 @@ MdiChild::MdiChild(MainWindow* mainWnd, iAPreferences const& prefs, bool unsaved
 
 	m_dwModalities = new dlg_modalities(m_dwRenderer->vtkWidgetRC, m_renderer->renderer(), this);
 	QSharedPointer<iAModalityList> modList(new iAModalityList);
+	splitDockWidget(m_dwRenderer, m_dwModalities, Qt::Vertical);
 	setModalities(modList);
 	applyViewerPreferences();
 	connectSignalsToSlots();
@@ -1857,7 +1858,7 @@ bool MdiChild::initView(QString const& title)
 		addImageProperty();
 		if (m_imageData->GetNumberOfScalarComponents() == 1)
 		{   // No histogram/profile for rgb, rgba or vector pixel type images
-			tabifyDockWidget(m_dwModalities, m_dwHistogram);
+			splitDockWidget(m_dwModalities, m_dwHistogram, Qt::Vertical);
 			addProfile();
 		}
 	}
@@ -1883,7 +1884,7 @@ void MdiChild::addImageProperty()
 		return;
 	}
 	m_dwImgProperty = new dlg_imageproperty(this);
-	tabifyDockWidget(m_dwModalities, m_dwImgProperty);
+	splitDockWidget(m_dwModalities, m_dwImgProperty, Qt::Horizontal);
 }
 
 void MdiChild::updateImageProperties()
@@ -1908,7 +1909,7 @@ void MdiChild::updateImageProperties()
 bool MdiChild::addVolumePlayer()
 {
 	m_dwVolumePlayer = new dlg_volumePlayer(this, m_volumeStack.data());
-	tabifyDockWidget(m_dwModalities, m_dwVolumePlayer);
+	splitDockWidget(m_dwModalities, m_dwVolumePlayer, Qt::Horizontal);
 	for (size_t id = 0; id < m_volumeStack->numberOfVolumes(); ++id)
 	{
 		m_checkedList.append(0);
@@ -2228,7 +2229,7 @@ void MdiChild::addProfile()
 	m_profileProbe->updateProbe(1, end);
 	m_profileProbe->updateData();
 	m_dwProfile = new dlg_profile(this, m_profileProbe->m_profileData, m_profileProbe->rayLength());
-	tabifyDockWidget(m_dwHistogram, m_dwProfile);
+	splitDockWidget(m_dwHistogram, m_dwProfile, Qt::Horizontal);
 	connect(m_dwProfile->profileMode, &QCheckBox::toggled, this, &MdiChild::toggleProfileHandles);
 }
 
@@ -2870,7 +2871,9 @@ vtkColorTransferFunction* MdiChild::colorTF()
 void MdiChild::saveFinished()
 {
 	if (m_storedModalityNr < modalities()->size() && m_ioThread->ioID() != STL_WRITER)
+	{
 		m_dwModalities->setFileName(m_storedModalityNr, m_ioThread->fileName());
+	}
 	m_mainWnd->setCurrentFile(m_ioThread->fileName());
 	setWindowModified(modalities()->hasUnsavedModality());
 }
