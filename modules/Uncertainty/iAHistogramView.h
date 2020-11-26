@@ -27,7 +27,7 @@
 
 class iAChartWidget;
 class iAEnsemble;
-class iASimpleHistogramData;
+class iAHistogramData;
 
 class iALookupTable;
 
@@ -37,7 +37,7 @@ class iAHistogramView : public QWidget
 public:
 	iAHistogramView();
 	void Clear();
-	void AddChart(QString const & caption, QSharedPointer<iASimpleHistogramData> data,
+	void AddChart(QString const& caption, QSharedPointer<iAHistogramData> data,
 			QColor const & color, QSharedPointer<iALookupTable> lut = QSharedPointer<iALookupTable>());
 private:
 	iAChartWidget* m_chart;

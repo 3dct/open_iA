@@ -44,20 +44,88 @@ public:
 	size_t numBin() const override;
 	iAValueType valueType() const override;
 
-	static QSharedPointer<iAHistogramData> create(vtkImageData* img, size_t binCount, iAImageInfo* imageInfo = nullptr);
-	static QSharedPointer<iAHistogramData> create(DataType* data, size_t binCount, double space, DataType min, DataType max);
-	static QSharedPointer<iAHistogramData> create(const std::vector<DataType> &histData, size_t binCount,
+	void setBin(size_t binIdx, DataType value);
+
+	//! create a histogram for a vtk image
+	static QSharedPointer<iAHistogramData> create(vtkImageData* img, size_t numBin, iAImageInfo* imageInfo = nullptr);
+	//! create a histogram for the given (raw) data array
+	static QSharedPointer<iAHistogramData> create(DataType* data, size_t numBin, double space, DataType min, DataType max);
+	//! create a histogram for the given (raw) data vector
+	static QSharedPointer<iAHistogramData> create(const std::vector<DataType>& data, size_t numBin,
 		iAValueType type = iAValueType::Continuous,
 		DataType minValue=std::numeric_limits<double>::infinity(),
 		DataType maxValue=std::numeric_limits<double>::infinity());
+	//! create an empty histogram (with numBin bins, initialized to 0, and the given range)
+	static QSharedPointer<iAHistogramData> create(DataType minX, DataType maxX, size_t numBin, iAValueType type);
+	//! create a histogram from the given histogram data, range
+	//! @param numBin the number of bins - the number of items contained in histoData
+	static QSharedPointer<iAHistogramData> create(
+		DataType minX, DataType maxX, size_t numBin, iAValueType type, double* histoData);
+	static QSharedPointer<iAHistogramData> create(
+		DataType minX, DataType maxX, std::vector<double> const& histoData, iAValueType type);
+
 private:
 	iAHistogramData();
+	//! create an empty histogram (with numBin bins, initialized to 0)
+	iAHistogramData(DataType minX, DataType maxX, size_t numBin, iAValueType type);
+	//! create a histogram with the given histogram data
+	iAHistogramData(DataType minX, DataType maxX, size_t numBin, iAValueType type, double* histoData);
 	void setMaxFreq();
 
-	iAPlotData::DataType* m_data;
+	iAPlotData::DataType* m_histoData;
 	double m_xBounds[2];
 	iAPlotData::DataType m_yBounds[2];
 	size_t m_numBin;
 	iAValueType m_valueType;
 	double m_spacing;
+	bool m_dataOwner;
 };
+
+#include <itkImage.h>
+#include <itkImageRegionConstIterator.h>
+
+// TODO: separate file for that ?
+// specific histogram for a collection of binary images (one for each label)
+// the created histogram has one bin per label
+template <typename PixelT>
+QSharedPointer<iAHistogramData> createHistogram(QVector<typename itk::Image<PixelT, 3>::Pointer> const& imgs,
+	size_t numBin, PixelT min, PixelT max, iAValueType xValueType)
+{
+	/*
+	img->ReleaseDataFlagOff();
+	itk::MinimumMaximumImageCalculator<TImage> minMaxCalc;
+	minMaxCalc->SetInput(img);
+	minMaxCalc->Compute();
+	auto result = iAHistogramData::Create(minMaxCalc->GetMinimum(), minMaxCalc->GetMaximum(), numBin);
+	*/
+	auto result = iAHistogramData::create(min, max, numBin, xValueType);
+	for (int i = 0; i < imgs.size(); ++i)
+	{
+		double sum = 0;
+		itk::ImageRegionConstIterator<itk::Image<PixelT, 3>> it(imgs[i], imgs[i]->GetLargestPossibleRegion());
+		it.GoToBegin();
+		while (!it.IsAtEnd())
+		{
+			sum += it.Get();
+			++it;
+		}
+		result->setBin(i, sum);
+	}
+	return result;
+}
+
+/*
+// for pixel probing:
+template <typename PixelT>
+QSharedPointer<iAHistogramData> CreateHistogram(QVector<typename itk::Image<PixelT, 3>::Pointer> const & imgs, size_t numBin, int index[3], PixelT min, PixelT max, iAValueType xValueType)
+{
+	auto result = iAHistogramData::Create(min, max, numBin, xValueType);
+	itk::Index<3> idx;
+	for (int i = 0; i < 3; ++i) { idx[i] = index[i]; }
+	for (int m=0; m<imgs.size(); ++m)
+	{
+		result->SetBin(m, imgs[m]->GetPixel(idx));
+	}
+	return result;
+}
+*/

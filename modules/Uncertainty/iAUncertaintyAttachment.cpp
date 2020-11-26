@@ -30,7 +30,7 @@
 #include "iASpatialView.h"
 #include "iAUncertaintyColors.h"
 
-#include <charts/iASimpleHistogramData.h>
+#include <charts/iAHistogramData.h>
 #include <dlg_imageproperty.h>
 #include <dlg_slicer.h>
 #include <iAConnector.h>
@@ -219,7 +219,7 @@ void iAUncertaintyAttachment::EnsembleSelected(QSharedPointer<iAEnsemble> ensemb
 	QSharedPointer<iALookupTable> labelLookup(new iALookupTable(m_labelLut));
 	m_labelDistributionView->AddChart("Label", labelDistributionHistogram, iAUncertaintyColors::LabelDistributionBase, labelLookup);
 	m_uncertaintyDistributionView->Clear();
-	auto entropyHistogram = iASimpleHistogramData::create(0, 1, ensemble->EntropyBinCount(), ensemble->EntropyHistogram(), iAValueType::Continuous);
+	auto entropyHistogram = iAHistogramData::create(0, 1, ensemble->EntropyBinCount(), iAValueType::Continuous, ensemble->EntropyHistogram());
 	m_uncertaintyDistributionView->AddChart("Algorithm Uncertainty", entropyHistogram, iAUncertaintyColors::UncertaintyDistribution);
 	m_spatialView->SetDatasets(ensemble, m_labelLut);
 }

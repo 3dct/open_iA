@@ -31,16 +31,52 @@
 #include <vtkImageData.h>
 
 
-iAHistogramData::iAHistogramData()
-	: m_numBin(0), m_data(nullptr), m_spacing(0), m_valueType(iAValueType::Continuous)
+iAHistogramData::iAHistogramData() :
+	m_numBin(0), m_histoData(nullptr), m_spacing(0), m_valueType(iAValueType::Continuous), m_dataOwner(true)
 {
 	m_xBounds[0] = m_xBounds[1] = 0;
 	m_yBounds[0] = m_yBounds[1] = 0;
 }
 
+
+iAHistogramData::iAHistogramData(DataType minX, DataType maxX, size_t numBin, iAValueType type) :
+	m_numBin(numBin), m_valueType(type), m_dataOwner(true)
+{
+	m_histoData = new DataType[numBin];
+	std::fill(m_histoData, m_histoData + m_numBin, 0);
+	m_xBounds[0] = minX;
+	m_xBounds[1] = maxX;
+	m_spacing = (m_xBounds[1] - m_xBounds[0] + ((valueType() == iAValueType::Discrete) ? 1 : 0)) / m_numBin;
+	m_yBounds[0] = 0;
+	m_yBounds[1] = 0;
+}
+
+iAHistogramData::iAHistogramData(DataType minX, DataType maxX, size_t numBin, iAValueType type, double* histoData) :
+	m_numBin(numBin), m_valueType(type), m_dataOwner(false)
+{
+	m_histoData = histoData;
+	m_xBounds[0] = minX;
+	m_xBounds[1] = maxX;
+	m_spacing = (m_xBounds[1] - m_xBounds[0] + ((valueType() == iAValueType::Discrete) ? 1 : 0)) / m_numBin;
+	m_yBounds[0] = *std::min_element(m_histoData, m_histoData + numBin);
+	m_yBounds[1] = *std::max_element(m_histoData, m_histoData + numBin);
+}
+
 iAHistogramData::~iAHistogramData()
 {
-	delete[] m_data;
+	if (m_dataOwner)
+	{
+		delete[] m_histoData;
+	}
+}
+
+void iAHistogramData::setBin(size_t binIdx, DataType value)
+{
+	m_histoData[binIdx] = value;
+	if (value > m_yBounds[1])
+	{
+		m_yBounds[1] = value;
+	}
 }
 
 double iAHistogramData::spacing() const
@@ -55,13 +91,43 @@ double const * iAHistogramData::xBounds() const
 
 iAHistogramData::DataType const * iAHistogramData::rawData() const
 {
-	return m_data;
+	return m_histoData;
 }
 
-QSharedPointer<iAHistogramData> iAHistogramData::create(vtkImageData* img, size_t binCount,
+void iAHistogramData::setMaxFreq()
+{
+	if (!m_histoData)
+	{
+		return;
+	}
+	m_yBounds[1] = 1;
+	for (size_t i = 0; i < m_numBin; i++)
+	{
+		if (m_histoData[i] > m_yBounds[1])
+		{
+			m_yBounds[1] = m_histoData[i];
+		}
+	}
+}
+
+size_t iAHistogramData::numBin() const
+{
+	return m_numBin;
+}
+
+iAPlotData::DataType const* iAHistogramData::yBounds() const
+{
+	return m_yBounds;
+}
+
+iAValueType iAHistogramData::valueType() const
+{
+	return m_valueType;
+}
+
+QSharedPointer<iAHistogramData> iAHistogramData::create(vtkImageData* img, size_t numBin,
 	iAImageInfo* info)
 {
-	auto result = QSharedPointer<iAHistogramData>(new iAHistogramData);
 	auto accumulate = vtkSmartPointer<vtkImageAccumulate>::New();
 	accumulate->ReleaseDataFlagOn();
 	accumulate->SetInputData(img);
@@ -69,25 +135,25 @@ QSharedPointer<iAHistogramData> iAHistogramData::create(vtkImageData* img, size_
 	double * const scalarRange = img->GetScalarRange();
 	double valueRange = scalarRange[1] - scalarRange[0];
 	double histRange = valueRange;
-	if (binCount > std::numeric_limits<int>::max())
+	if (numBin > std::numeric_limits<int>::max())
 	{
 		LOG(lvlWarn, QString("iAHistogramData::create: Only up to %1 bins supported, but requested %2! Bin number will be set to %1!")
-			.arg(std::numeric_limits<int>::max()).arg(binCount));
-		binCount = std::numeric_limits<int>::max();
+				.arg(std::numeric_limits<int>::max()).arg(numBin));
+		numBin = std::numeric_limits<int>::max();
 	}
 	if (isVtkIntegerType(static_cast<vtkImageData*>(accumulate->GetInput())->GetScalarType()))
 	{   // make sure we have bins of integer step size:
-		double stepSize = std::ceil(valueRange / binCount);
-		double newMax = scalarRange[0] + static_cast<int>(stepSize * binCount);
+		double stepSize = std::ceil(valueRange / numBin);
+		double newMax = scalarRange[0] + static_cast<int>(stepSize * numBin);
 		histRange = newMax - scalarRange[0];
-	}   // check above guarantees that binCount is smaller than int max, so cast below is safe!
-	accumulate->SetComponentExtent(0, static_cast<int>(binCount - 1), 0, 0, 0, 0);
+	}   // check above guarantees that numBin is smaller than int max, so cast below is safe!
+	accumulate->SetComponentExtent(0, static_cast<int>(numBin - 1), 0, 0, 0, 0);
 	if (dblApproxEqual(valueRange, histRange))
 	{  // to put max values in max bin (as vtkImageAccumulate otherwise would cut off with < max)
 		const double RangeEnlargeFactor = 1 + 1e-10;
 		histRange = valueRange * RangeEnlargeFactor;
 	}
-	accumulate->SetComponentSpacing(histRange / binCount, 0.0, 0.0);
+	accumulate->SetComponentSpacing(histRange / numBin, 0.0, 0.0);
 	accumulate->Update();
 
 	int extent[6];
@@ -98,17 +164,15 @@ QSharedPointer<iAHistogramData> iAHistogramData::create(vtkImageData* img, size_
 	caster->Update();
 	auto rawImg = caster->GetOutput();
 
-	result->m_numBin = binCount;
-	result->m_xBounds[0] = scalarRange[0];
-	result->m_xBounds[1] = scalarRange[0] + histRange;
-	result->m_data = new double[result->m_numBin];
-	auto vtkRawData = static_cast<DataType*>(rawImg->GetScalarPointer());
-	std::copy(vtkRawData, vtkRawData + result->m_numBin, result->m_data);
-	result->m_spacing = histRange / result->m_numBin;
-	result->setMaxFreq();
-	result->m_valueType = (img && (img->GetScalarType() != VTK_FLOAT) && (img->GetScalarType() != VTK_DOUBLE))
+	auto valueType = (img && (img->GetScalarType() != VTK_FLOAT) && (img->GetScalarType() != VTK_DOUBLE))
 		? iAValueType::Discrete
 		: iAValueType::Continuous;
+	auto result = QSharedPointer<iAHistogramData>(new iAHistogramData(scalarRange[0], scalarRange[0]+histRange, numBin, valueType));
+
+	auto vtkRawData = static_cast<DataType*>(rawImg->GetScalarPointer());
+	std::copy(vtkRawData, vtkRawData + result->m_numBin, result->m_histoData);
+	result->m_spacing = histRange / result->m_numBin;
+	result->setMaxFreq();
 	if (info)
 	{
 		*info = iAImageInfo(accumulate->GetVoxelCount(),
@@ -121,19 +185,19 @@ QSharedPointer<iAHistogramData> iAHistogramData::create(vtkImageData* img, size_
 
 QSharedPointer<iAHistogramData> iAHistogramData::create(
 	iAPlotData::DataType* data, size_t bins, double space,
-	iAPlotData::DataType min, iAPlotData::DataType max)
+	iAPlotData::DataType minX, iAPlotData::DataType maxX)
 {
 	auto result = QSharedPointer<iAHistogramData>(new iAHistogramData);
-	result->m_data = data;
+	result->m_histoData = data;
 	result->m_numBin = bins;
 	result->m_spacing = space;
-	result->m_xBounds[0] = min;
-	result->m_xBounds[1] = max;
+	result->m_xBounds[0] = minX;
+	result->m_xBounds[1] = maxX;
 	result->setMaxFreq();
 	return result;
 }
 
-QSharedPointer<iAHistogramData> iAHistogramData::create(const std::vector<DataType>& histData, size_t binCount, iAValueType type,
+QSharedPointer<iAHistogramData> iAHistogramData::create(const std::vector<DataType>& histData, size_t numBin, iAValueType type,
 	DataType minValue, DataType maxValue)
 {
 	auto result = QSharedPointer<iAHistogramData>(new iAHistogramData);
@@ -165,52 +229,46 @@ QSharedPointer<iAHistogramData> iAHistogramData::create(const std::vector<DataTy
 	if (dblApproxEqual(minValue, maxValue))
 	{   // if min == max, there is only one bin - one in which all values are contained!
 		result->m_numBin = 1;
-		result->m_data = new DataType[result->m_numBin];
-		result->m_data[0] = histData.size();
+		result->m_histoData = new DataType[result->m_numBin];
+		result->m_histoData[0] = histData.size();
 	}
 	else
 	{
-		result->m_numBin = binCount;
-		result->m_data = new DataType[binCount];
-		result->m_spacing = (maxValue - minValue) / binCount;
-		std::fill(result->m_data, result->m_data + binCount, 0.0);
+		result->m_numBin = numBin;
+		result->m_histoData = new DataType[numBin];
+		result->m_spacing = (maxValue - minValue) / numBin;
+		std::fill(result->m_histoData, result->m_histoData + numBin, 0.0);
 		for (DataType d : histData)
 		{
-			size_t bin = clamp(static_cast<size_t>(0), binCount - 1, mapValue(minValue, maxValue, static_cast<size_t>(0), binCount, d));
-			++result->m_data[bin];
+			size_t bin = clamp(
+				static_cast<size_t>(0), numBin - 1, mapValue(minValue, maxValue, static_cast<size_t>(0), numBin, d));
+			++result->m_histoData[bin];
 		}
 	}
 	result->setMaxFreq();
 	return result;
 }
 
-void iAHistogramData::setMaxFreq()
+QSharedPointer<iAHistogramData> iAHistogramData::create(DataType minX, DataType maxX, size_t numBin, iAValueType type)
 {
-	if (!m_data)
+	return QSharedPointer<iAHistogramData>(new iAHistogramData(minX, maxX, numBin, type));
+}
+
+QSharedPointer<iAHistogramData> iAHistogramData::create(
+	DataType minX, DataType maxX, size_t numBin, iAValueType type, double* histoData)
+{
+	return QSharedPointer<iAHistogramData>(new iAHistogramData(minX, maxX, numBin, type, histoData));
+}
+
+QSharedPointer<iAHistogramData> iAHistogramData::create(
+	DataType minX, DataType maxX, std::vector<double> const& histoData, iAValueType type)
+{
+	double* dataArr = new double[histoData.size()];
+	for (size_t i = 0; i < histoData.size(); ++i)
 	{
-		return;
+		dataArr[i] = histoData[i];
 	}
-	m_yBounds[1] = 1;
-	for (size_t i = 0; i < m_numBin; i++)
-	{
-		if (m_data[i] > m_yBounds[1])
-		{
-			m_yBounds[1] = m_data[i];
-		}
-	}
-}
-
-size_t iAHistogramData::numBin() const
-{
-	return m_numBin;
-}
-
-iAPlotData::DataType const * iAHistogramData::yBounds() const
-{
-	return m_yBounds;
-}
-
-iAValueType iAHistogramData::valueType() const
-{
-	return m_valueType;
+	auto result = QSharedPointer<iAHistogramData>(new iAHistogramData(minX, maxX, histoData.size(), type, dataArr));
+	result->m_dataOwner = true;
+	return result;
 }
