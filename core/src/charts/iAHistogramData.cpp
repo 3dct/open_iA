@@ -260,15 +260,29 @@ QSharedPointer<iAHistogramData> iAHistogramData::create(
 	return QSharedPointer<iAHistogramData>(new iAHistogramData(minX, maxX, numBin, type, histoData));
 }
 
-QSharedPointer<iAHistogramData> iAHistogramData::create(
-	DataType minX, DataType maxX, std::vector<double> const& histoData, iAValueType type)
+template <typename ContT> double* createArrayFromContainer(ContT const & cont)
 {
-	double* dataArr = new double[histoData.size()];
-	for (size_t i = 0; i < histoData.size(); ++i)
+	double* dataArr = new double[cont.size()];
+	for (size_t i = 0; i < cont.size(); ++i)
 	{
-		dataArr[i] = histoData[i];
+		dataArr[i] = cont[i];
 	}
-	auto result = QSharedPointer<iAHistogramData>(new iAHistogramData(minX, maxX, histoData.size(), type, dataArr));
+	return dataArr;
+}
+
+QSharedPointer<iAHistogramData> iAHistogramData::create(
+	DataType minX, DataType maxX, iAValueType type, std::vector<double> const& histoData)
+{
+	auto result = QSharedPointer<iAHistogramData>(new iAHistogramData(minX, maxX, histoData.size(), type, createArrayFromContainer(histoData)));
+	result->m_dataOwner = true;
+	return result;
+}
+
+
+QSharedPointer<iAHistogramData> iAHistogramData::create(
+	DataType minX, DataType maxX, iAValueType type, QVector<double> const& histoData)
+{
+	auto result = QSharedPointer<iAHistogramData>(new iAHistogramData(minX, maxX, histoData.size(), type, createArrayFromContainer(histoData)));
 	result->m_dataOwner = true;
 	return result;
 }

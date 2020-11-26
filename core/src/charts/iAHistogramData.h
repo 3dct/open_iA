@@ -62,7 +62,9 @@ public:
 	static QSharedPointer<iAHistogramData> create(
 		DataType minX, DataType maxX, size_t numBin, iAValueType type, double* histoData);
 	static QSharedPointer<iAHistogramData> create(
-		DataType minX, DataType maxX, std::vector<double> const& histoData, iAValueType type);
+		DataType minX, DataType maxX, iAValueType type, std::vector<double> const& histoData);
+	static QSharedPointer<iAHistogramData> create(
+		DataType minX, DataType maxX, iAValueType type, QVector<double> const& histoData);
 
 private:
 	iAHistogramData();

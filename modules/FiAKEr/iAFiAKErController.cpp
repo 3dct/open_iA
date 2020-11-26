@@ -34,7 +34,6 @@
 #include "iACsvConfig.h"
 #include "iACsvVectorTableCreator.h"
 #include "iAFeatureScoutModuleInterface.h"
-#include "iAVectorPlotData.h"
 
 // Core:
 #include <charts/iAChartWidget.h>
@@ -1901,12 +1900,12 @@ void iAFiAKErController::toggleOptimStepChart(size_t chartID, bool visible)
 			}
 			for (size_t fiberID = 0; fiberID < d.fiberCount; ++fiberID)
 			{
-				QSharedPointer<iAVectorPlotData> plotData;
+				QVector<double>* histoData(nullptr);
 				if (chartID < m_chartCount - 1)
 				{
 					if (chartID < static_cast<size_t>(d.refDiffFiber[fiberID].diff.size()))
 					{
-						plotData = QSharedPointer<iAVectorPlotData>(new iAVectorPlotData(d.refDiffFiber[fiberID].diff[chartID].step));
+						histoData = &d.refDiffFiber[fiberID].diff[chartID].step;
 					}
 					else
 					{
@@ -1916,9 +1915,9 @@ void iAFiAKErController::toggleOptimStepChart(size_t chartID, bool visible)
 				}
 				else
 				{
-					plotData = QSharedPointer<iAVectorPlotData>(new iAVectorPlotData(d.projectionError[fiberID]));
+					histoData = &d.projectionError[fiberID];
 				}
-				plotData->setXDataType(iAValueType::Discrete);
+				auto plotData = iAHistogramData::create(0, histoData->size(), iAValueType::Discrete, *histoData);
 				m_optimStepChart[chartID]->addPlot(QSharedPointer<iALinePlot>(new iALinePlot(plotData, getResultColor(resultID))));
 			}
 		}
