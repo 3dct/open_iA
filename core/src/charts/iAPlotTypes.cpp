@@ -77,16 +77,17 @@ void iASelectedBinPlot::setPosition( int position )
 
 namespace
 {
-	bool buildLinePolygon(QPolygon & poly, iAPlotData::DataType const * rawData, size_t startBin, size_t endBin, iAMapper const & xMapper, iAMapper const & yMapper)
+	bool buildLinePolygon(QPolygon& poly, QSharedPointer<iAPlotData> data, size_t startBin, size_t endBin,
+	iAMapper const& xMapper, iAMapper const& yMapper)
 	{
-		if (!rawData)
+		if (!data)
 		{
 			return false;
 		}
 		for (size_t curBin = startBin; curBin <= endBin; ++curBin)
 		{
-			int curX = xMapper.srcToDst(curBin);
-			int curY = yMapper.srcToDst(rawData[curBin]);
+			int curX = xMapper.srcToDst(data->xValue(curBin));
+			int curY = yMapper.srcToDst(data->yValue(curBin));
 			poly.push_back(QPoint(curX, curY));
 		}
 		return true;
@@ -107,7 +108,7 @@ void iALinePlot::setLineWidth(int width)
 void iALinePlot::draw(QPainter& painter, double /*binWidth*/, size_t startBin, size_t endBin, iAMapper const & xMapper, iAMapper const & yMapper) const
 {
 	QPolygon poly;
-	if (!buildLinePolygon(poly, m_data->rawData(), startBin, endBin, xMapper, yMapper))
+	if (!buildLinePolygon(poly, m_data, startBin, endBin, xMapper, yMapper))
 	{
 		return;
 	}
@@ -133,7 +134,7 @@ QColor iAFilledLinePlot::getFillColor() const
 void iAFilledLinePlot::draw(QPainter& painter, double /*binWidth*/, size_t startBin, size_t endBin, iAMapper const & xMapper, iAMapper const & yMapper) const
 {
 	QPolygon poly;
-	if (!buildLinePolygon(poly, m_data->rawData(), startBin, endBin, xMapper, yMapper))
+	if (!buildLinePolygon(poly, m_data, startBin, endBin, xMapper, yMapper))
 	{
 		return;
 	}
@@ -160,18 +161,13 @@ QColor iAStepFunctionPlot::getFillColor() const
 void iAStepFunctionPlot::draw(QPainter& painter, double /*binWidth*/, size_t startBin, size_t endBin, iAMapper const & xMapper, iAMapper const & yMapper) const
 {
 	QPainterPath tmpPath;
-	iAPlotData::DataType const * rawData = m_data->rawData();
-	if (!rawData)
-	{
-		return;
-	}
 	QPolygon poly;
 	poly.push_back(QPoint(xMapper.srcToDst(startBin), 0));
-	for (size_t curBin = startBin; curBin <= endBin; ++curBin)
+	for (size_t idx = startBin; idx <= endBin; ++idx)
 	{
-		int curX1 = xMapper.srcToDst(curBin);
-		int curX2 = xMapper.srcToDst(curBin + 1);
-		int curY = yMapper.srcToDst(rawData[curBin]);
+		int curX1 = xMapper.srcToDst(m_data->xValue(idx));
+		int curX2 = xMapper.srcToDst(m_data->xValue(idx + 1));
+		int curY = yMapper.srcToDst(m_data->yValue(idx));
 		poly.push_back(QPoint(curX1, curY));
 		poly.push_back(QPoint(curX2, curY));
 	}
@@ -189,21 +185,16 @@ iABarGraphPlot::iABarGraphPlot(QSharedPointer<iAPlotData> data, QColor const & c
 
 void iABarGraphPlot::draw(QPainter& painter, double binWidth, size_t startBin, size_t endBin, iAMapper const & xMapper, iAMapper const & yMapper) const
 {
-	iAPlotData::DataType const * rawData = m_data->rawData();
-	if (!rawData)
-	{
-		return;
-	}
 	int barWidth = static_cast<int>(std::ceil(binWidth)) - m_margin;
 	QColor fillColor = getColor();
-	for (size_t curBin = startBin; curBin <= endBin; ++curBin)
+	for (size_t idx = startBin; idx <= endBin; ++idx)
 	{
-		int x = xMapper.srcToDst(curBin);
-		int h = yMapper.srcToDst(rawData[curBin]);
+		int x = xMapper.srcToDst(m_data->xValue(idx));
+		int h = yMapper.srcToDst(m_data->yValue(idx));
 		if (m_lut)
 		{
 			double rgba[4];
-			m_lut->getColor(curBin, rgba);
+			m_lut->getColor(idx, rgba);
 			fillColor = QColor(rgba[0]*255, rgba[1]*255, rgba[2]*255, rgba[3]*255);
 		}
 		painter.fillRect(QRect(x, 1, barWidth, h), fillColor);
@@ -241,7 +232,7 @@ void iAPlotCollection::add(QSharedPointer<iAPlot> drawer)
 	{
 		if (m_drawers[0]->data()->xBounds()[0] != drawer->data()->xBounds()[0] ||
 			m_drawers[0]->data()->xBounds()[1] != drawer->data()->xBounds()[1] ||
-			m_drawers[0]->data()->numBin() != drawer->data()->numBin() ||
+			m_drawers[0]->data()->valueCount() != drawer->data()->valueCount() ||
 			m_drawers[0]->data()->valueType() != drawer->data()->valueType())
 		{
 			LOG(lvlError, "iAPlotCollection::add - ERROR - Incompatible drawer added!");

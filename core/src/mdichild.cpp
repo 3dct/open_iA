@@ -2681,7 +2681,7 @@ void MdiChild::displayHistogram(int modalityIdx)
 	{
 		newBinCount = std::min(newBinCount, static_cast<size_t>(scalarRange[1] - scalarRange[0] + 1));
 	}
-	if (histData && histData->numBin() == newBinCount)
+	if (histData && histData->valueCount() == newBinCount)
 	{
 		if (modalityIdx != m_currentHistogramModality)
 		{

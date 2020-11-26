@@ -57,12 +57,12 @@ public:
 		iAValueType rangeType);
 	void reset();
 	virtual ~iAParamHistogramData();
-	DataType const* rawData() const override;
+	DataType yValue(size_t idx) const override;
+	double xValue(size_t idx) const override;
 	double const* xBounds() const override;
 	DataType const* yBounds() const override;
-	size_t numBin() const override;
+	size_t valueCount() const override;
 	double spacing() const override;
-	double binStart(size_t binNr) const override;
 	double mapValueToBin(double value) const;
 	double mapBinToValue(double bin) const;
 	iAValueType valueType() const override;

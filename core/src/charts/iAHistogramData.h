@@ -36,15 +36,17 @@ class open_iA_Core_API iAHistogramData: public iAPlotData
 {
 public:
 	~iAHistogramData();
-	DataType const* rawData() const override;
+	DataType yValue(size_t idx) const override;
 	double const* xBounds() const override;
 	DataType const* yBounds() const override;
 
 	double spacing() const override;
-	size_t numBin() const override;
+	size_t valueCount() const override;
 	iAValueType valueType() const override;
 
 	void setBin(size_t binIdx, DataType value);
+	void setSpacing(double spacing);
+	void setYBounds(double yMin, double yMax);
 
 	//! create a histogram for a vtk image
 	static QSharedPointer<iAHistogramData> create(vtkImageData* img, size_t numBin, iAImageInfo* imageInfo = nullptr);
@@ -131,3 +133,8 @@ QSharedPointer<iAHistogramData> CreateHistogram(QVector<typename itk::Image<Pixe
 	return result;
 }
 */
+
+//! Returns histogram with given data mapped from specified source to target range.
+open_iA_Core_API QSharedPointer<iAHistogramData> createMappedHistogramData(iAPlotData::DataType const* data,
+	size_t srcNumBin, double srcMinX, double srcMaxX, size_t targetNumBin, double targetMinX, double targetMaxX,
+	iAPlotData::DataType const maxValue);

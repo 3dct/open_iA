@@ -50,7 +50,7 @@ iAAccumulatedXRFData::iAAccumulatedXRFData(QSharedPointer<iAXRFData> data, doubl
 
 double iAAccumulatedXRFData::spacing() const
 {
-	return (m_xBounds[1] - m_xBounds[0]) / numBin();
+	return (m_xBounds[1] - m_xBounds[0]) / valueCount();
 }
 
 double const * iAAccumulatedXRFData::xBounds() const
@@ -58,21 +58,21 @@ double const * iAAccumulatedXRFData::xBounds() const
 	return m_xBounds;
 }
 
-iAAccumulatedXRFData::DataType const * iAAccumulatedXRFData::rawData() const
+iAAccumulatedXRFData::DataType  iAAccumulatedXRFData::yValue(size_t idx) const
 {
 	switch (m_accumulateFct)
 	{
 	case fctAvg:
-		return m_average;
+		return m_average[idx];
 	case fctMin:
-		return m_minimum;
+		return m_minimum[idx];
 	default:
 	case fctMax:
-		return m_maximum;
+		return m_maximum[idx];
 	}
 }
 
-size_t iAAccumulatedXRFData::numBin() const
+size_t iAAccumulatedXRFData::valueCount() const
 {
 	return m_xrfData->size();
 }

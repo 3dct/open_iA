@@ -31,6 +31,10 @@
 #include <vtkImageData.h>
 
 
+#include <algorithm>
+#include <cassert>
+#include <cmath>
+
 iAHistogramData::iAHistogramData() :
 	m_numBin(0), m_histoData(nullptr), m_spacing(0), m_valueType(iAValueType::Continuous), m_dataOwner(true)
 {
@@ -79,6 +83,17 @@ void iAHistogramData::setBin(size_t binIdx, DataType value)
 	}
 }
 
+void iAHistogramData::setSpacing(double spacing)
+{
+	m_spacing = spacing;
+}
+
+void iAHistogramData::setYBounds(double yMin, double yMax)
+{
+	m_yBounds[0] = yMin;
+	m_yBounds[1] = yMax;
+}
+
 double iAHistogramData::spacing() const
 {
 	return m_spacing;
@@ -89,9 +104,10 @@ double const * iAHistogramData::xBounds() const
 	return m_xBounds;
 }
 
-iAHistogramData::DataType const * iAHistogramData::rawData() const
+iAHistogramData::DataType iAHistogramData::yValue(size_t idx) const
 {
-	return m_histoData;
+	assert(m_histoData);
+	return m_histoData[idx];
 }
 
 void iAHistogramData::setMaxFreq()
@@ -110,7 +126,7 @@ void iAHistogramData::setMaxFreq()
 	}
 }
 
-size_t iAHistogramData::numBin() const
+size_t iAHistogramData::valueCount() const
 {
 	return m_numBin;
 }
@@ -284,5 +300,44 @@ QSharedPointer<iAHistogramData> iAHistogramData::create(
 {
 	auto result = QSharedPointer<iAHistogramData>(new iAHistogramData(minX, maxX, histoData.size(), type, createArrayFromContainer(histoData)));
 	result->m_dataOwner = true;
+	return result;
+}
+
+
+// TODO: Check if this can be replaced with vtkMath::Round
+#if (defined(_MSC_VER) && _MSC_VER < 1800)
+static inline double Round(double val)
+{
+	return floor(val + 0.5);
+}
+#else
+#define Round std::round
+#endif
+
+QSharedPointer<iAHistogramData> createMappedHistogramData(iAPlotData::DataType const* data, size_t srcNumBin,
+	double srcMinX, double srcMaxX, size_t targetNumBin, double targetMinX, double targetMaxX,
+	iAPlotData::DataType const maxValue)
+{
+	auto result = iAHistogramData::create(targetMinX, targetMaxX, targetNumBin, iAValueType::Continuous);
+	assert(srcNumBin > 1 && targetNumBin > 1);
+	double srcSpacing = (srcMaxX - srcMinX) / (srcNumBin - 1);
+	double targetSpacing = (targetMaxX - targetMinX) / (targetNumBin - 1);
+	result->setSpacing(targetSpacing); // TODO: check whether we need this or whether automatic computation in iAHistogram constructor is the same!
+	// get scale factor from all source data
+	iAHistogramData::DataType myMax = *std::max_element(data, data + srcNumBin);
+	double scaleFactor = static_cast<double>(maxValue) / myMax;
+
+	// map source data to target indices:
+	for (size_t i = 0; i < targetNumBin; ++i)
+	{
+		double sourceIdxDbl = ((i * targetSpacing) + targetMinX - srcMinX) / srcSpacing;
+		int sourceIdx = static_cast<int>(Round(sourceIdxDbl));
+
+		result->setBin(i,
+			(sourceIdx >= 0 && static_cast<size_t>(sourceIdx) < srcNumBin)
+				? static_cast<iAHistogramData::DataType>(data[sourceIdx] * scaleFactor)
+				: 0);
+	}
+	result->setYBounds(0, maxValue);  // TODO: use updateBounds here?
 	return result;
 }

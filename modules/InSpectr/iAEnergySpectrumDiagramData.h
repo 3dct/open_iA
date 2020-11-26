@@ -26,14 +26,15 @@
 
 class iAXRFData;
 
+// TODO: merge with iAHistogramData
 class iAEnergySpectrumDiagramData: public iAPlotData
 {
 public:
 	iAEnergySpectrumDiagramData(iAXRFData * xrfData, iAPlotData* other);
 	~iAEnergySpectrumDiagramData();
 	void updateEnergyFunction(int x, int y, int z);
-	DataType const * rawData() const override;
-	size_t numBin() const override;
+	DataType yValue(size_t idx) const override;
+	size_t valueCount() const override;
 	double spacing() const override;
 	double const * xBounds() const override;
 	DataType const * yBounds() const override;

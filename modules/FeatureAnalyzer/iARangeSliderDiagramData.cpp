@@ -45,18 +45,23 @@ void iARangeSliderDiagramData::updateRangeSliderFunction()
 	{
 		m_rangeSliderFunction[i] = m_rangeSliderData.at( i );
 		if (m_rangeSliderData.at(i) > m_yBounds[1])
+		{
 			m_yBounds[1] = m_rangeSliderData.at(i);
+		}
 		if (m_rangeSliderData.at(i) < m_yBounds[0])
+		{
 			m_yBounds[0] = m_rangeSliderData.at(i);
+		}
 	}
 }
 
-iAPlotData::DataType const * iARangeSliderDiagramData::rawData() const
+iAPlotData::DataType iARangeSliderDiagramData::yValue(size_t idx) const
 {
-	return m_rangeSliderFunction;
+	assert(m_rangeSliderFunction);
+	return m_rangeSliderFunction[idx];
 }
 
-size_t iARangeSliderDiagramData::numBin() const
+size_t iARangeSliderDiagramData::valueCount() const
 {
 	return m_rangeSliderData.size();
 }

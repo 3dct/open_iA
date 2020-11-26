@@ -60,12 +60,12 @@ void iAEnergySpectrumDiagramData::updateEnergyFunction(int x, int y, int z)
 	}
 }
 
-iAPlotData::DataType const * iAEnergySpectrumDiagramData::rawData() const
+iAPlotData::DataType iAEnergySpectrumDiagramData::yValue(size_t idx) const
 {
-	return m_energyFunction;
+	return m_energyFunction[idx];
 }
 
-size_t iAEnergySpectrumDiagramData::numBin() const
+size_t iAEnergySpectrumDiagramData::valueCount() const
 {
 	return m_xrfData_ext->size();
 }

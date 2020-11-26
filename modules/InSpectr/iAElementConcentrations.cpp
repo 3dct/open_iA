@@ -46,7 +46,7 @@ bool iAElementConcentrations::calculateAverageConcentration(
 	int threshold = accumulatedXRF->yBounds()[1]/20;
 
 	iAEnergySpectrum unknownSpectrum;
-	for (size_t i=0; i<accumulatedXRF->numBin(); ++i)
+	for (size_t i=0; i<accumulatedXRF->valueCount(); ++i)
 	{
 		unknownSpectrum.push_back(accumulatedXRF->avgData()[i]);
 	}

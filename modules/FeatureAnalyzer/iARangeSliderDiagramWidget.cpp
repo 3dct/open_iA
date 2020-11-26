@@ -26,28 +26,29 @@
 
 #include <cassert>
 
-
+// TODO: merge with iAHistogramData?
 class iAFilteringDiagramData : public iAPlotData
 {
 public:
 	iAFilteringDiagramData(QSharedPointer<iAPlotData> other, int min, int max):
-		m_data(new double[other->numBin()]),
-		m_size(other->numBin()),
+		m_data(new double[other->valueCount()]),
+		m_size(other->valueCount()),
 		m_other(other)
 	{
 		assert(other->numBin() < std::numeric_limits<int>::max());
-		for (int i = 0; i < static_cast<int>(other->numBin()); ++i)
+		for (int i = 0; i < static_cast<int>(other->valueCount()); ++i)
 		{
-			m_data[i] = (i >= min && i <= max) ? other->rawData()[i] : 0;
+			m_data[i] = (i >= min && i <= max) ? other->yValue(i) : 0;
 		}
 	}
 
-	DataType const* rawData() const override
+	DataType yValue(size_t idx) const override
 	{
-		return m_data;
+		assert(m_data);
+		return m_data[idx];
 	}
 
-	size_t numBin() const override
+	size_t valueCount() const override
 	{
 		return m_size;
 	}
@@ -319,12 +320,10 @@ void iARangeSliderDiagramWidget::contextMenuEvent( QContextMenuEvent * /*event*/
 
 int iARangeSliderDiagramWidget::getBin( QMouseEvent *event )
 {
-	iAPlotData::DataType const * rawData = m_data->rawData();
-	if ( !rawData )	return -1;
 	int nthBin =  screenX2DataBin(event->x());
 	QString text( tr( "%1: %2 %\n%3: %4" )
 				  .arg( m_yLabel )
-				  .arg( rawData[nthBin] )
+				  .arg( m_data->yValue(nthBin) )
 				  .arg( m_xLabel )
 				  .arg( (m_data->spacing() * nthBin + xBounds()[0] ) ) );
 	QToolTip::showText( event->globalPos(), text, this );

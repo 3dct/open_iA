@@ -40,11 +40,11 @@ double iAParamHistogramData::mapValueToBin(double value) const
 		valueLog = clamp(minLog, maxLog, valueLog);
 		return mapValue(
 			minLog, maxLog,
-			0.0, static_cast<double>(numBin()),
+			0.0, static_cast<double>(valueCount()),
 			valueLog
 		);
 	}
-	return mapValue(xBounds()[0], xBounds()[1], 0.0, static_cast<double>(numBin()), value);
+	return mapValue(xBounds()[0], xBounds()[1], 0.0, static_cast<double>(valueCount()), value);
 }
 
 double iAParamHistogramData::mapBinToValue(double bin) const
@@ -60,7 +60,7 @@ double iAParamHistogramData::mapBinToValue(double bin) const
 			);
 		return std::pow(LogBase, yLog);
 	}
-	return mapValue(0.0, static_cast<double>(numBin()), xBounds()[0], xBounds()[1], bin);
+	return mapValue(0.0, static_cast<double>(valueCount()), xBounds()[0], xBounds()[1], bin);
 }
 
 void iAParamHistogramData::countNodeBin(iAImageTreeLeaf const* leaf,
@@ -101,15 +101,15 @@ void iAParamHistogramData::visitNode(iAImageTreeNode const * node,
 	});
 }
 
-double iAParamHistogramData::binStart(size_t binNr) const
+double iAParamHistogramData::xValue(size_t idx) const
 {
 	if (!m_log)
 	{
-		return iAPlotData::binStart(binNr);
+		return iAPlotData::xValue(idx);
 	}
 	double minLog = std::floor(LogFunc(m_xBounds[0]));
 	double maxLog = std::ceil (LogFunc(m_xBounds[1]));
-	double valueLog = mapValue(static_cast<size_t>(0), m_numBin, minLog, maxLog, binNr);
+	double valueLog = mapValue(static_cast<size_t>(0), m_numBin, minLog, maxLog, idx);
 	return std::pow(LogBase, valueLog);
 }
 
@@ -172,12 +172,13 @@ iAParamHistogramData::~iAParamHistogramData()
 	delete [] m_data;
 }
 
-iAParamHistogramData::DataType const * iAParamHistogramData::rawData() const
+iAParamHistogramData::DataType iAParamHistogramData::yValue(size_t idx) const
 {
-	return m_data;
+	assert(idx);
+	return m_data[idx];
 }
 
-size_t iAParamHistogramData::numBin() const
+size_t iAParamHistogramData::valueCount() const
 {
 	return m_numBin;
 }

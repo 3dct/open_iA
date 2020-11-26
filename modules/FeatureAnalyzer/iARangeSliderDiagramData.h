@@ -24,6 +24,7 @@
 
 #include <QSharedPointer>
 
+// TODO: merge with iAHistogramData
 class iARangeSliderDiagramData : public iAPlotData
 {
 public:
@@ -31,15 +32,16 @@ public:
 	~iARangeSliderDiagramData();
 	void updateRangeSliderFunction();
 
-	DataType const * rawData() const override;
-	size_t numBin() const override;
+	DataType yValue(size_t idx) const override;
+	size_t valueCount() const override;
 
 	double spacing() const override
 	{
-		if ( numBin() <= 1 )
+		if (valueCount() <= 1 )
+		{
 			return 0.0;
-
-		return ( m_xBounds[1] - m_xBounds[0] ) / (numBin() - 1.0);
+		}
+		return ( m_xBounds[1] - m_xBounds[0] ) / (valueCount() - 1.0);
 	}
 
 	double const * xBounds() const override

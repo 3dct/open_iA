@@ -39,8 +39,8 @@
 #include "iAXRFOverlay.h"
 
 #include <charts/iAChartFunctionTransfer.h>
+#include <charts/iAHistogramData.h>
 #include <charts/iAPlotTypes.h>
-#include <charts/iAMappingDiagramData.h>
 #include <iAChannelData.h>
 #include <iAChannelSlicerData.h>
 #include <iAColorTheme.h>
@@ -1327,11 +1327,11 @@ void dlg_InSpectr::AddReferenceSpectrum(int modelIdx)
 		RemoveReferenceSpectrum(modelIdx);
 	}
 	QVector<float> const & energies = m_refSpectraLib->spectra[modelIdx].GetEnergyData();
-	QSharedPointer<iAMappingDiagramData> plotData(new iAMappingDiagramData(
+	auto plotData = createMappedHistogramData(
 		&m_refSpectraLib->spectra[modelIdx].GetCountsData()[0],
 		energies.size(), energies[0], energies[energies.size()-1],
 		m_xrfData->size(), m_xrfData->GetMinEnergy(), m_xrfData->GetMaxEnergy(),
-		m_accumulatedXRF->yBounds()[1]));
+		m_accumulatedXRF->yBounds()[1]);
 	QColor color = m_refSpectraLib->getElementColor(modelIdx);
 	QSharedPointer<iAStepFunctionPlot> drawable(new iAStepFunctionPlot(plotData, color));
 	m_refSpectraDrawers.insert(modelIdx, drawable);

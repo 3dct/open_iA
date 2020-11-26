@@ -36,6 +36,7 @@ template <typename ArgType, typename ValType>
 class iAFunctionalBoxplot;
 typedef iAFunctionalBoxplot<size_t, unsigned int> FunctionalBoxPlot;
 
+// TODO: merge with iAHistogramData?
 class iAAccumulatedXRFData: public iAPlotData
 {
 public:
@@ -51,8 +52,8 @@ public:
 	double spacing() const override;
 	double const * xBounds() const override;
 	DataType const * yBounds() const override;
-	DataType const * rawData() const override;
-	size_t numBin() const override;
+	DataType yValue(size_t idx) const override;
+	size_t valueCount() const override;
 	void setFct(int fctIdx);
 	void retrieveHistData(long numBin_in, DataType * &data_out, size_t &numHist_out, DataType &maxValue_out);
 	CountType spectraHistogramMax() const;

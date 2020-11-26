@@ -639,7 +639,7 @@ void iAChartWidget::updateXBounds(size_t startPlot)
 			auto d = m_plots[curPlot]->data();
 			m_xBounds[0] = std::min(m_xBounds[0], d->xBounds()[0] /*- ((d->valueType() == iAValueType::Discrete) ? 0.5 : 0)*/ );
 			m_xBounds[1] = std::max(m_xBounds[1], d->xBounds()[1] /*+ ((d->valueType() == iAValueType::Discrete) ? 0.5 : 0)*/ );
-			m_maxXAxisSteps = std::max(m_maxXAxisSteps, d->numBin() );
+			m_maxXAxisSteps = std::max(m_maxXAxisSteps, d->valueCount() );
 		}
 		ensureNonZeroRange(m_xBounds);
 	}
@@ -678,7 +678,7 @@ long iAChartWidget::screenX2DataBin(int x) const
 	{
 		return x;
 	}
-	double numBin = m_plots[0]->data()->numBin();
+	double numBin = m_plots[0]->data()->valueCount();
 	double dBinX = clamp(0.0, numBin-1, static_cast<double>(x - m_translationX - leftMargin()) * numBin / fullChartWidth());
 	long binX = static_cast<long>(dBinX);
 	return binX;
@@ -691,7 +691,7 @@ int iAChartWidget::dataBin2ScreenX(long x) const
 		assert(x > std::numeric_limits<int>::lowest() && x < std::numeric_limits<int>::max());
 		return static_cast<int>(x);
 	}
-	double numBin = m_plots[0]->data()->numBin();
+	double numBin = m_plots[0]->data()->valueCount();
 	double screenX = static_cast<double>(x) * fullChartWidth() / (numBin);
 	screenX = clamp(0.0, fullChartWidth(), screenX);
 	return static_cast<int>(screenX);
@@ -713,8 +713,8 @@ double iAChartWidget::maxXZoom() const
 	{
 		return ZoomXMaxEmpty;
 	}
-	double numBin = m_plots[0]->data()->numBin();
-	return std::max(std::min(ZoomXMax, numBin), 1.0);
+	double valueCount = m_plots[0]->data()->valueCount();
+	return std::max(std::min(ZoomXMax, valueCount), 1.0);
 }
 
 void iAChartWidget::setYMappingMode(AxisMappingType drawMode)
@@ -808,8 +808,8 @@ void iAChartWidget::drawPlots(QPainter &painter)
 	{
 		if ((*it)->visible())
 		{
-			// TODO: make agnostic of whether we draw histogram or not -> move numBin computations to PlotData
-			size_t plotNumBin = (*it)->data()->numBin();
+			// TODO: make agnostic of whether we draw histogram or not -> move index computations to PlotData
+			size_t plotNumBin = (*it)->data()->valueCount();
 			double plotXBounds[2] = {(*it)->data()->xBounds()[0], (*it)->data()->xBounds()[1]};
 			ensureNonZeroRange(plotXBounds);
 			double plotVisXBounds[2] = {
@@ -817,15 +817,11 @@ void iAChartWidget::drawPlots(QPainter &painter)
 				clamp((*it)->data()->xBounds()[0], (*it)->data()->xBounds()[1], xEnd)
 			};
 			ensureNonZeroRange(plotVisXBounds);
-			double plotStepWidth = (plotXBounds[1] - plotXBounds[0]) / (*it)->data()->numBin();
+			double plotStepWidth = (plotXBounds[1] - plotXBounds[0]) / (*it)->data()->valueCount();
 			size_t plotStartBin = static_cast<size_t>(clamp(0.0, static_cast<double>(plotNumBin - 1), (plotVisXBounds[0] - (*it)->data()->xBounds()[0]) / plotStepWidth - 1));
 			size_t plotEndBin = static_cast<size_t>(clamp(0.0, static_cast<double>(plotNumBin - 1), (plotVisXBounds[1] - (*it)->data()->xBounds()[0]) / plotStepWidth + 1));
 			double plotPixelBinWidth = m_xMapper->srcToDst(xBounds()[0] + plotStepWidth);
-			iALinearMapper plotXMapper;
-			plotXMapper.update(-1, plotNumBin + 1,
-				m_xMapper->srcToDst((*it)->data()->xBounds()[0] - plotStepWidth),
-				m_xMapper->srcToDst((*it)->data()->xBounds()[1] + plotStepWidth));
-			(*it)->draw(painter, plotPixelBinWidth, plotStartBin, plotEndBin, plotXMapper, *m_yMapper.data());
+			(*it)->draw(painter, plotPixelBinWidth, plotStartBin, plotEndBin, *m_xMapper.data(), *m_yMapper.data());
 		}
 	}
 }
@@ -902,6 +898,7 @@ void iAChartWidget::mouseReleaseEvent(QMouseEvent *event)
 			}
 			m_selectedPlots.clear();
 			double yMin = diagramRect.top(), yMax = diagramRect.bottom();
+			// move to iAPlotData:
 			for (size_t plotIdx=0; plotIdx<m_plots.size(); ++plotIdx)
 			{
 				if (!m_plots[plotIdx]->visible())
@@ -910,7 +907,7 @@ void iAChartWidget::mouseReleaseEvent(QMouseEvent *event)
 				}
 				for (int bin=static_cast<int>(diagramRect.left()); bin <= static_cast<int>(diagramRect.right()); ++bin)
 				{
-					double binYValue = m_plots[plotIdx]->data()->rawData()[bin];
+					double binYValue = m_plots[plotIdx]->data()->yValue(bin);
 					if (yMin < binYValue && binYValue < yMax)
 					{
 						m_selectedPlots.push_back(plotIdx);
@@ -1182,12 +1179,12 @@ void iAChartWidget::exportData()
 		out << "," << QString("%1%2").arg(m_yCaption).arg(p).toStdString();
 	}
 	out << std::endl;
-	for (size_t b = 0; b < m_plots[0]->data()->numBin(); ++b)
+	for (size_t idx = 0; idx < m_plots[0]->data()->valueCount(); ++idx)
 	{
-		out << QString::number(m_plots[0]->data()->binStart(b), 'g', 15).toStdString();
+		out << QString::number(m_plots[0]->data()->xValue(idx), 'g', 15).toStdString();
 		for (size_t p = 0; p < m_plots.size(); ++p)
 		{
-			out << "," << QString::number(m_plots[p]->data()->rawData()[b], 'g', 15).toStdString();
+			out << "," << QString::number(m_plots[p]->data()->yValue(idx), 'g', 15).toStdString();
 		}
 		out << std::endl;
 	}
