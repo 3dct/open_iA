@@ -107,6 +107,7 @@ void iAEnergySpectrumWidget::mouseReleaseEvent(QMouseEvent *event)
 	iAChartWithFunctionsWidget::mouseReleaseEvent(&eventCopy);
 	if (selectionRubberBand->isVisible())
 	{
+		// TODO: avoid duplication with iAChartWidget!
 		selectionRubberBand->hide();
 		QRect diagramRect;
 		QRect selectionRect(selectionRubberBand->geometry());     // height-y because we are drawing reversed from actual y direction

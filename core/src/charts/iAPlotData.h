@@ -39,6 +39,7 @@ public:
 	virtual DataType const* yBounds() const = 0;
 	virtual iAValueType valueType() const;
 	virtual size_t valueCount() const = 0;
+	size_t nearestIdx(double dataX) const;  // assumes constant spacing at the moment!
 	
 	// TODO: make abstract (?)
 	virtual QString toolTipText(double dataX) const;
@@ -46,5 +47,4 @@ public:
 	// TODO: move down to iAHistogramData
 	virtual double spacing() const = 0;
 private:
-	size_t nearestIdx(double dataX) const; // assumes constant spacing at the moment!
 };

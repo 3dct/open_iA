@@ -883,34 +883,36 @@ void iAChartWidget::mouseReleaseEvent(QMouseEvent *event)
 		if (m_selectionBand->isVisible())
 		{
 			m_selectionBand->hide();
-			QRectF diagramRect;
+			QRectF dataRect;
 			QRectF selectionRect(m_selectionBand->geometry());     // height-y because we are drawing reversed from actual y direction
-			diagramRect.setTop(    yMapper().dstToSrc(chartHeight() - selectionRect.bottom()) );
-			diagramRect.setBottom( yMapper().dstToSrc(chartHeight() - selectionRect.top()   ) );
-			diagramRect.setLeft(   screenX2DataBin(static_cast<int>(selectionRect.left())  ) );
-			diagramRect.setRight(  screenX2DataBin(static_cast<int>(selectionRect.right()) ) );
-			diagramRect = diagramRect.normalized();
-			if (diagramRect.top() < yBounds()[0])
+			dataRect.setTop(   yMapper().dstToSrc(chartHeight() - selectionRect.bottom()) );
+			dataRect.setBottom(yMapper().dstToSrc(chartHeight() - selectionRect.top()   ) );
+			dataRect.setLeft(  mouse2DataX(static_cast<int>(selectionRect.left()-leftMargin())  ) );
+			dataRect.setRight( mouse2DataX(static_cast<int>(selectionRect.right()-leftMargin()) ) );
+			dataRect = dataRect.normalized();
+			if (dataRect.top() < yBounds()[0])
 			{
-				diagramRect.setTop(yBounds()[0]);
+				dataRect.setTop(yBounds()[0]);
 			}
-			if (diagramRect.bottom() > yBounds()[1])
+			if (dataRect.bottom() > yBounds()[1])
 			{
-				diagramRect.setBottom(yBounds()[1]);
+				dataRect.setBottom(yBounds()[1]);
 			}
 			m_selectedPlots.clear();
-			double yMin = diagramRect.top(), yMax = diagramRect.bottom();
-			// move to iAPlotData:
+			double yMin = dataRect.top(), yMax = dataRect.bottom();
+			// move to iAPlotData?
 			for (size_t plotIdx=0; plotIdx<m_plots.size(); ++plotIdx)
 			{
 				if (!m_plots[plotIdx]->visible())
 				{
 					continue;
 				}
-				for (int bin=static_cast<int>(diagramRect.left()); bin <= static_cast<int>(diagramRect.right()); ++bin)
+				size_t startIdx = std::max(static_cast<size_t>(0), m_plots[plotIdx]->data()->nearestIdx(dataRect.left()));
+				size_t endIdx = std::min(m_plots[plotIdx]->data()->valueCount(), m_plots[plotIdx]->data()->nearestIdx(dataRect.right()+1));
+				for (size_t idx = startIdx; idx < endIdx; ++idx)
 				{
-					double binYValue = m_plots[plotIdx]->data()->yValue(bin);
-					if (yMin < binYValue && binYValue < yMax)
+					double yValue = m_plots[plotIdx]->data()->yValue(idx);
+					if (yMin < yValue && yValue < yMax)
 					{
 						m_selectedPlots.push_back(plotIdx);
 						break;

@@ -320,7 +320,7 @@ void iARangeSliderDiagramWidget::contextMenuEvent( QContextMenuEvent * /*event*/
 
 int iARangeSliderDiagramWidget::getBin( QMouseEvent *event )
 {
-	int nthBin =  screenX2DataBin(event->x());
+	int nthBin = m_data->nearestIdx(mouse2DataX(event->x() - leftMargin()));
 	QString text( tr( "%1: %2 %\n%3: %4" )
 				  .arg( m_yLabel )
 				  .arg( m_data->yValue(nthBin) )
