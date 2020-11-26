@@ -637,7 +637,7 @@ QWidget* iAFiAKErController::setupResultListView()
 	}
 
 	auto colorTheme = iAColorThemeManager::instance().theme(DefaultStackedBarColorTheme);
-	m_stackedBarsHeaders = new iAStackedBarChart(colorTheme, true);
+	m_stackedBarsHeaders = new iAStackedBarChart(colorTheme, m_resultsListLayout, 0, m_stackedBarColumn, true);
 	m_stackedBarsHeaders->setMinimumWidth(StackedBarMinWidth);
 
 	QAction* exportDissimilarities = new QAction("Export Dissimilarities", nullptr);
@@ -717,7 +717,7 @@ QWidget* iAFiAKErController::setupResultListView()
 		ui.nameActions->layout()->addWidget(m_showResultBox[resultID]);
 		ui.nameActions->layout()->addWidget(ui.bottomFiller);
 
-		ui.stackedBars = new iAStackedBarChart(colorTheme);
+		ui.stackedBars = new iAStackedBarChart(colorTheme, m_resultsListLayout, 1 + resultID, m_stackedBarColumn);
 		ui.stackedBars->setMinimumWidth(StackedBarMinWidth);
 		ui.stackedBars->setSizePolicy(QSizePolicy::Expanding, QSizePolicy::Expanding);
 		connect(m_stackedBarsHeaders, &iAStackedBarChart::weightsChanged, ui.stackedBars, &iAStackedBarChart::setWeights);
