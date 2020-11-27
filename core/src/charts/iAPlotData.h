@@ -33,18 +33,30 @@ class open_iA_Core_API iAPlotData
 public:
 	typedef double DataType;
 	virtual ~iAPlotData();
-	virtual double xValue(size_t idx) const; // TODO: current implementation assumes constant spacing!
+	//! Value on the x axis for a datum with given index.
+	//! @param idx data index
+	virtual double xValue(size_t idx) const = 0;
+	//! Value on the y axis for a datum with given index.
+	//! @param idx data index
 	virtual DataType yValue(size_t idx) const = 0;
-	virtual double const * xBounds() const = 0;
+	//! The range of values for x; i.e. xBounds()[0] is the minimum of all xValue(...), xBounds()[1] is the maximum.
+	virtual double const* xBounds() const = 0;
+	//! The range of values for y; i.e. yBounds()[0] is the minimum of all yValue(...), yBounds()[1] is the maximum.
 	virtual DataType const* yBounds() const = 0;
+	//! The type of the values held by this data object.
 	virtual iAValueType valueType() const;
+	//! The number of available data elements (i.e. in xValue/yValue, idx can go from 0 to valueCount()-1).
 	virtual size_t valueCount() const = 0;
-	size_t nearestIdx(double dataX) const;  // assumes constant spacing at the moment!
+	//! Retrieve the index closest to the given x data value.
+	//! @param dataX the value (on the x axis) for which to search the closest datapoint in this data object.
+	//! @return the index (such as can be passed to xValue/yValue) of the datapoint closest to dataX
+	//!         calling xValue on the returned index will always give a value lower than or equal to dataX.
+	size_t nearestIdx(double dataX) const;  // TODO: make abstract - current implementation assumes constant spacing!
 	
+	//! The tooltip text for this data when the user is currently hovering over the given x position.
+	//! Note that currently only the x axis position of the user is considered.
+	//! @param dataX the value (on the x axis) the user currently is hovering over.
+	//! @return a description of the datapoint that the user currrently is over/closest to.
 	// TODO: make abstract (?)
 	virtual QString toolTipText(double dataX) const;
-
-	// TODO: move down to iAHistogramData
-	virtual double spacing() const = 0;
-private:
 };

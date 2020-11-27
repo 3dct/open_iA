@@ -36,53 +36,82 @@ class open_iA_Core_API iAHistogramData: public iAPlotData
 {
 public:
 	~iAHistogramData();
+	//! @{ overriden from iAPlotData, check description there!
 	DataType yValue(size_t idx) const override;
+	double xValue(size_t idx) const override;
 	double const* xBounds() const override;
 	DataType const* yBounds() const override;
 
-	double spacing() const override;
 	size_t valueCount() const override;
 	iAValueType valueType() const override;
-
+	//! @}
+	double spacing() const;
+	
+	//! Set the value for a given bin index.
+	//! Also updates y bounds
+	//! @param binIdx the index of the bin that should be changed
+	//! @param value the new value for the bin
 	void setBin(size_t binIdx, DataType value);
+	//! Sets all histogram frequencies back to 0
+	void clear();
+
+	//! Sets custom spacing.
+	//! @deprecated should be set automatically - if not it's a bug that needs to be fixed inside the class, not by setting it from externally
 	void setSpacing(double spacing);
+	//! Sets custom y bounds.
+	//! @deprecated should be set automatically - if not it's a bug that needs to be fixed inside the class, not by setting it from externally
 	void setYBounds(double yMin, double yMax);
 
 	//! create a histogram for a vtk image
 	static QSharedPointer<iAHistogramData> create(vtkImageData* img, size_t numBin, iAImageInfo* imageInfo = nullptr);
-	//! create a histogram for the given (raw) data array
-	static QSharedPointer<iAHistogramData> create(DataType* data, size_t numBin, double space, DataType min, DataType max);
 	//! create a histogram for the given (raw) data vector
 	static QSharedPointer<iAHistogramData> create(const std::vector<DataType>& data, size_t numBin,
 		iAValueType type = iAValueType::Continuous,
 		DataType minValue=std::numeric_limits<double>::infinity(),
 		DataType maxValue=std::numeric_limits<double>::infinity());
-	//! create an empty histogram (with numBin bins, initialized to 0, and the given range)
+	//! Create an empty histogram (with numBin bins, initialized to 0, and the given range).
+	//! Useful if you need a custom way of creating a histogram; use setBin to populate the values.
 	static QSharedPointer<iAHistogramData> create(DataType minX, DataType maxX, size_t numBin, iAValueType type);
-	//! create a histogram from the given histogram data, range
+	//! Create from already computed histogram data.
+	//! @deprecated (because of data ownership issues, see below)
 	//! @param numBin the number of bins - the number of items contained in histoData
+	//! @param histoData the histogram frequencies. note that the class DOES NOT take ownership of the given array:
+	//!        you have to delete the array manually!
 	static QSharedPointer<iAHistogramData> create(
 		DataType minX, DataType maxX, size_t numBin, iAValueType type, double* histoData);
+	//! Create from already computed histogram data in a std::vector.
 	static QSharedPointer<iAHistogramData> create(
 		DataType minX, DataType maxX, iAValueType type, std::vector<double> const& histoData);
+	//! Create from already computed histogram data in a QVector.
 	static QSharedPointer<iAHistogramData> create(
 		DataType minX, DataType maxX, iAValueType type, QVector<double> const& histoData);
 
-private:
-	iAHistogramData();
-	//! create an empty histogram (with numBin bins, initialized to 0)
+protected:
+	//! Create an empty histogram (with numBin bins, initialized to 0).
 	iAHistogramData(DataType minX, DataType maxX, size_t numBin, iAValueType type);
-	//! create a histogram with the given histogram data
-	iAHistogramData(DataType minX, DataType maxX, size_t numBin, iAValueType type, double* histoData);
-	void setMaxFreq();
 
+private:
+	//! Create with the given, already computed histogram data.
+	iAHistogramData(DataType minX, DataType maxX, size_t numBin, iAValueType type, double* histoData);
+	//! Set y value range from current data.
+	void updateYBounds();
+	void setXBounds(DataType minX, DataType maxX);
+
+	//! The frequency values for each histogram bin.
 	iAPlotData::DataType* m_histoData;
-	double m_xBounds[2];
-	iAPlotData::DataType m_yBounds[2];
-	size_t m_numBin;
-	iAValueType m_valueType;
-	double m_spacing;
+	//! Whether this object is owner of the data array (m_histoData).
+	//! TODO: rethink - easy to cause mistakes; maybe always take ownership, but don't provide constructors passing in a raw pointer?
 	bool m_dataOwner;
+	//! Number of bins in the histogram (i.e. size of m_histoData).
+	size_t m_numBin;
+	//! The data range covered by the histogram.
+	double m_xBounds[2];
+	//! The range of frequency values contained in the histogram (i.e. min and max element in m_histoData)
+	iAPlotData::DataType m_yBounds[2];
+	//! The width of a single bin in the histogram.
+	double m_spacing;
+	//! The type of the values that were used as input to compute the histogram.
+	iAValueType m_valueType;
 };
 
 #include <itkImage.h>

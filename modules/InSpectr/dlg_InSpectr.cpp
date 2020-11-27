@@ -28,7 +28,6 @@
 #include "iAElementConcentrations.h"
 #include "iAElementConstants.h"
 #include "iAElementStatisticsInfo.h"
-#include "iAEnergySpectrumDiagramData.h"
 #include "iAEnergySpectrumWidget.h"
 #include "iAFunctionalBoxplotQtDrawer.h"
 #include "iAPeriodicTableListener.h"
@@ -181,7 +180,8 @@ void dlg_InSpectr::init(double minEnergy, double maxEnergy, bool haveEnergyLevel
 	m_cTF->Build();
 	m_xrfData->SetEnergyRange(minEnergy, maxEnergy);
 	m_accumulatedXRF = QSharedPointer<iAAccumulatedXRFData>(new iAAccumulatedXRFData(m_xrfData, minEnergy, maxEnergy));
-	m_voxelEnergy = QSharedPointer<iAEnergySpectrumDiagramData>(new iAEnergySpectrumDiagramData(m_xrfData.data(), m_accumulatedXRF.data()));
+	m_voxelEnergy = iAHistogramData::create(m_accumulatedXRF->xBounds()[0],
+		m_accumulatedXRF->xBounds()[1], m_xrfData->size(), m_accumulatedXRF->valueType());
 	m_voxelSpectrumDrawer = QSharedPointer<iAStepFunctionPlot>(new iAStepFunctionPlot(m_voxelEnergy, QColor(150, 0, 0)));
 	m_spectrumDiagram = new iAEnergySpectrumWidget(this, m_accumulatedXRF, m_oTF, m_cTF, this,
 		haveEnergyLevels ? "Energy (keV)" : "Energy (bins)");
@@ -355,9 +355,43 @@ void dlg_InSpectr::updateComposition(QVector<double> const & concentration)
 	m_pieChart->update();
 }
 
+namespace
+{
+int findCharEnergy(QVector<iACharacteristicEnergy> const& energies, QString const& symbol)
+{
+	for (int i = 0; i < energies.size(); ++i)
+	{
+		if (energies[i].symbol == symbol)
+		{
+			return i;
+		}
+	}
+	return -1;
+}
+
+void updateSpectrumData(QSharedPointer<iAHistogramData> histData, QSharedPointer<iAXRFData> xrfData, int x, int y, int z)
+{
+	int extent[6];
+	xrfData->GetExtent(extent);
+	if (x < extent[0] || x > extent[1] || y < extent[2] || y > extent[3] || z < extent[4] || z > extent[5])
+	{
+		histData->clear();
+		return;
+	}
+	iAXRFData::Iterator it = xrfData->begin();
+	int idx = 0;
+	while (it != xrfData->end())
+	{
+		histData->setBin(idx, static_cast<iAPlotData::DataType>((*it)->GetScalarComponentAsFloat(x, y, z, 0)));
+		++it;
+		++idx;
+	}
+}
+}
+
 void dlg_InSpectr::UpdateVoxelSpectrum(int x, int y, int z)
 {
-	m_voxelEnergy->updateEnergyFunction(x, y, z);
+	updateSpectrumData(m_voxelEnergy, m_xrfData, x, y, z);
 	m_spectrumDiagram->update();
 }
 
@@ -411,8 +445,9 @@ void dlg_InSpectr::initSpectraLinesDrawer()
 		{
 			for (int z=extent[4]; z<=extent[5]; z += step)
 			{
-				QSharedPointer<iAEnergySpectrumDiagramData> dataset(new iAEnergySpectrumDiagramData(m_xrfData.data(), m_accumulatedXRF.data()));
-				dataset->updateEnergyFunction(x, y, z);
+				auto dataset = iAHistogramData::create(m_accumulatedXRF->xBounds()[0], m_accumulatedXRF->xBounds()[1],
+					m_xrfData->size(), m_accumulatedXRF->valueType());
+				updateSpectrumData(dataset, m_xrfData, x, y, z);
 
 				bool isSelected = m_activeFilter.empty() ||
 					m_xrfData->CheckFilters(x, y, z, m_activeFilter, static_cast<iAFilterMode>(comB_spectrumSelectionMode->currentIndex()));
@@ -550,20 +585,6 @@ void dlg_InSpectr::ReferenceSpectrumDoubleClicked( const QModelIndex &index )
 				InitElementRenderer(m_elementRenderers[i], index.row());
 			}
 		}
-	}
-}
-
-namespace {
-	int findCharEnergy(QVector<iACharacteristicEnergy> const & energies, QString const & symbol)
-	{
-		for (int i=0; i<energies.size(); ++i)
-		{
-			if (energies[i].symbol == symbol)
-			{
-				return i;
-			}
-		}
-		return -1;
 	}
 }
 

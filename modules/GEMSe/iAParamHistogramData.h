@@ -22,7 +22,7 @@
 
 #include "iAGEMSeConstants.h"
 
-#include <charts/iAPlotData.h>
+#include <charts/iAHistogramData.h>
 
 #include <QSharedPointer>
 
@@ -33,39 +33,32 @@ class iAChartAttributeMapper;
 class iAImageTreeNode;
 class iAImageTreeLeaf;
 
-class iAParamHistogramData: public iAPlotData
+class iAParamHistogramData : public iAHistogramData
 {
 public:
 	// TODO: extract creation?
 	static QSharedPointer<iAParamHistogramData> create(iAImageTreeNode const * ,
 		int chartID,
 		iAValueType rangeType,
-		double min, double max,
+		double minX, double maxX,
 		bool log,
 		iAChartAttributeMapper const & chartAttrMap,
 		int numBin);
 	static QSharedPointer<iAParamHistogramData> create(iAImageTreeNode const * ,
 		int chartID,
 		iAValueType rangeType,
-		double min, double max,
+		double minX, double maxX,
 		bool log,
 		iAChartAttributeMapper const & chartAttrMap,
 		iAChartFilter const & attributeFilter,
 		int numBin);
 	iAParamHistogramData(size_t numBin,
-		double min, double max, bool log,
-		iAValueType rangeType);
+		double minX, double maxX, bool log,
+		iAValueType type);
 	void reset();
-	virtual ~iAParamHistogramData();
-	DataType yValue(size_t idx) const override;
 	double xValue(size_t idx) const override;
-	double const* xBounds() const override;
-	DataType const* yBounds() const override;
-	size_t valueCount() const override;
-	double spacing() const override;
 	double mapValueToBin(double value) const;
 	double mapBinToValue(double bin) const;
-	iAValueType valueType() const override;
 	bool isLogarithmic() const;
 	void addValue(double value);
 private:
@@ -82,13 +75,7 @@ private:
 		QSharedPointer<iAParamHistogramData> data,
 		int chartID,
 		iAChartAttributeMapper const & chartAttrMap);
-
-	DataType * m_data;
-	size_t m_numBin;
-	double m_xBounds[2];
-	DataType m_yBounds[2];
-	DataType m_spacing;
-	iAValueType m_rangeType;
+	
 	bool m_log;
 	double m_minX, m_maxX;
 };

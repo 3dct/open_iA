@@ -32,8 +32,3 @@ size_t iAPlotData::nearestIdx(double dataX) const
 	double binRng[2] = { 0, static_cast<double>(valueCount()) };
 	return clamp(static_cast<size_t>(0), valueCount() - 1, static_cast<size_t>(mapValue(xBounds(), binRng, dataX)));
 }
-
-double iAPlotData::xValue(size_t idx) const
-{
-	return xBounds()[0] + spacing() * idx;
-}

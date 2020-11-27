@@ -61,6 +61,11 @@ iAPlotData::DataType iARangeSliderDiagramData::yValue(size_t idx) const
 	return m_rangeSliderFunction[idx];
 }
 
+double iARangeSliderDiagramData::xValue(size_t idx) const
+{
+	return xBounds()[0] + spacing() * idx;
+}
+
 size_t iARangeSliderDiagramData::valueCount() const
 {
 	return m_rangeSliderData.size();

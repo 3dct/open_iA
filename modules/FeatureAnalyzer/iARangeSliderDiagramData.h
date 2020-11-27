@@ -33,9 +33,10 @@ public:
 	void updateRangeSliderFunction();
 
 	DataType yValue(size_t idx) const override;
+	double xValue(size_t idx) const override;
 	size_t valueCount() const override;
 
-	double spacing() const override
+	double spacing() const
 	{
 		if (valueCount() <= 1 )
 		{

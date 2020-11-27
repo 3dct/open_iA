@@ -35,35 +35,20 @@
 #include <cassert>
 #include <cmath>
 
-iAHistogramData::iAHistogramData() :
-	m_numBin(0), m_histoData(nullptr), m_spacing(0), m_valueType(iAValueType::Continuous), m_dataOwner(true)
-{
-	m_xBounds[0] = m_xBounds[1] = 0;
-	m_yBounds[0] = m_yBounds[1] = 0;
-}
-
-
 iAHistogramData::iAHistogramData(DataType minX, DataType maxX, size_t numBin, iAValueType type) :
-	m_numBin(numBin), m_valueType(type), m_dataOwner(true)
+	m_histoData(new DataType[numBin]), m_dataOwner(true), m_numBin(numBin), m_valueType(type)
 {
-	m_histoData = new DataType[numBin];
-	std::fill(m_histoData, m_histoData + m_numBin, 0);
-	m_xBounds[0] = minX;
-	m_xBounds[1] = maxX;
-	m_spacing = (m_xBounds[1] - m_xBounds[0] + ((valueType() == iAValueType::Discrete) ? 1 : 0)) / m_numBin;
+	clear();
+	setXBounds(minX, maxX);
 	m_yBounds[0] = 0;
 	m_yBounds[1] = 0;
 }
 
 iAHistogramData::iAHistogramData(DataType minX, DataType maxX, size_t numBin, iAValueType type, double* histoData) :
-	m_numBin(numBin), m_valueType(type), m_dataOwner(false)
+	m_histoData(histoData), m_dataOwner(false), m_numBin(numBin), m_valueType(type)
 {
-	m_histoData = histoData;
-	m_xBounds[0] = minX;
-	m_xBounds[1] = maxX;
-	m_spacing = (m_xBounds[1] - m_xBounds[0] + ((valueType() == iAValueType::Discrete) ? 1 : 0)) / m_numBin;
-	m_yBounds[0] = *std::min_element(m_histoData, m_histoData + numBin);
-	m_yBounds[1] = *std::max_element(m_histoData, m_histoData + numBin);
+	setXBounds(minX, maxX);
+	updateYBounds();
 }
 
 iAHistogramData::~iAHistogramData()
@@ -77,10 +62,19 @@ iAHistogramData::~iAHistogramData()
 void iAHistogramData::setBin(size_t binIdx, DataType value)
 {
 	m_histoData[binIdx] = value;
+	if (value < m_yBounds[0])
+	{
+		m_yBounds[0] = value;
+	}
 	if (value > m_yBounds[1])
 	{
 		m_yBounds[1] = value;
 	}
+}
+
+void iAHistogramData::clear()
+{
+	std::fill(m_histoData, m_histoData + m_numBin, 0);
 }
 
 void iAHistogramData::setSpacing(double spacing)
@@ -110,20 +104,23 @@ iAHistogramData::DataType iAHistogramData::yValue(size_t idx) const
 	return m_histoData[idx];
 }
 
-void iAHistogramData::setMaxFreq()
+double iAHistogramData::xValue(size_t idx) const
 {
-	if (!m_histoData)
-	{
-		return;
-	}
-	m_yBounds[1] = 1;
-	for (size_t i = 0; i < m_numBin; i++)
-	{
-		if (m_histoData[i] > m_yBounds[1])
-		{
-			m_yBounds[1] = m_histoData[i];
-		}
-	}
+	return xBounds()[0] + spacing() * idx;
+}
+
+void iAHistogramData::updateYBounds()
+{
+	assert(!m_histoData);
+	m_yBounds[0] = *std::min_element(m_histoData, m_histoData + m_numBin);
+	m_yBounds[1] = *std::max_element(m_histoData, m_histoData + m_numBin);
+}
+
+void iAHistogramData::setXBounds(DataType minX, DataType maxX)
+{
+	m_xBounds[0] = minX;
+	m_xBounds[1] = maxX;
+	m_spacing = (m_xBounds[1] - m_xBounds[0] + ((valueType() == iAValueType::Discrete) ? 1 : 0)) / m_numBin;
 }
 
 size_t iAHistogramData::valueCount() const
@@ -188,81 +185,45 @@ QSharedPointer<iAHistogramData> iAHistogramData::create(vtkImageData* img, size_
 	auto vtkRawData = static_cast<DataType*>(rawImg->GetScalarPointer());
 	std::copy(vtkRawData, vtkRawData + result->m_numBin, result->m_histoData);
 	result->m_spacing = histRange / result->m_numBin;
-	result->setMaxFreq();
+	result->updateYBounds();
 	if (info)
 	{
 		*info = iAImageInfo(accumulate->GetVoxelCount(),
 			*accumulate->GetMin(), *accumulate->GetMax(),
 			*accumulate->GetMean(), *accumulate->GetStandardDeviation());
 	}
-
 	return result;
 }
 
-QSharedPointer<iAHistogramData> iAHistogramData::create(
-	iAPlotData::DataType* data, size_t bins, double space,
-	iAPlotData::DataType minX, iAPlotData::DataType maxX)
+QSharedPointer<iAHistogramData> iAHistogramData::create(const std::vector<DataType>& data, size_t numBin, iAValueType type,
+	DataType minX, DataType maxX)
 {
-	auto result = QSharedPointer<iAHistogramData>(new iAHistogramData);
-	result->m_histoData = data;
-	result->m_numBin = bins;
-	result->m_spacing = space;
-	result->m_xBounds[0] = minX;
-	result->m_xBounds[1] = maxX;
-	result->setMaxFreq();
-	return result;
-}
-
-QSharedPointer<iAHistogramData> iAHistogramData::create(const std::vector<DataType>& histData, size_t numBin, iAValueType type,
-	DataType minValue, DataType maxValue)
-{
-	auto result = QSharedPointer<iAHistogramData>(new iAHistogramData);
-	if (std::isinf(minValue))
+	if (std::isinf(minX))
 	{
-		minValue = std::numeric_limits<DataType>::max();
-		for (DataType d : histData)
-		{
-			if (d < minValue)
-			{
-				minValue = d;
-			}
-		}
+		minX = *std::min_element(data.begin(), data.end());
 	}
-	if (std::isinf(maxValue))
+	if (std::isinf(maxX))
 	{
-		maxValue = std::numeric_limits<DataType>::lowest();
-		for (DataType d : histData)
-		{
-			if (d > maxValue)
-			{
-				maxValue = d;
-			}
-		}
+		maxX = *std::max_element(data.begin(), data.end());
 	}
-	result->m_xBounds[0] = minValue;
-	result->m_xBounds[1] = maxValue;
-	result->m_valueType = type;
-	if (dblApproxEqual(minValue, maxValue))
+	DataType* histoData;
+	if (dblApproxEqual(minX, maxX))
 	{   // if min == max, there is only one bin - one in which all values are contained!
-		result->m_numBin = 1;
-		result->m_histoData = new DataType[result->m_numBin];
-		result->m_histoData[0] = histData.size();
+		numBin = 1;
+		histoData = new DataType[numBin];
+		histoData[0] = data.size();
 	}
 	else
 	{
-		result->m_numBin = numBin;
-		result->m_histoData = new DataType[numBin];
-		result->m_spacing = (maxValue - minValue) / numBin;
-		std::fill(result->m_histoData, result->m_histoData + numBin, 0.0);
-		for (DataType d : histData)
+		histoData = new DataType[numBin];
+		std::fill(histoData, histoData + numBin, 0.0);
+		for (DataType d : data)
 		{
-			size_t bin = clamp(
-				static_cast<size_t>(0), numBin - 1, mapValue(minValue, maxValue, static_cast<size_t>(0), numBin, d));
-			++result->m_histoData[bin];
+			size_t bin = clamp(static_cast<size_t>(0), numBin - 1, mapValue(minX, maxX, static_cast<size_t>(0), numBin, d));
+			++histoData[bin];
 		}
 	}
-	result->setMaxFreq();
-	return result;
+	return QSharedPointer<iAHistogramData>(new iAHistogramData(minX, maxX, numBin, type, histoData));
 }
 
 QSharedPointer<iAHistogramData> iAHistogramData::create(DataType minX, DataType maxX, size_t numBin, iAValueType type)

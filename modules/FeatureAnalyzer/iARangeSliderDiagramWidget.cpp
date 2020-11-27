@@ -21,56 +21,23 @@
 #include "iARangeSliderDiagramWidget.h"
 
 #include <charts/iAChartFunctionTransfer.h>
+#include <charts/iAHistogramData.h>
 #include <iACSVToQTableWidgetConverter.h>
 #include <iAMathUtility.h>
 
 #include <cassert>
 
-// TODO: merge with iAHistogramData?
-class iAFilteringDiagramData : public iAPlotData
+QSharedPointer<iAHistogramData> createFilteredPlotData(
+	QSharedPointer<iAPlotData> other, int firstBin, int lastBin)
 {
-public:
-	iAFilteringDiagramData(QSharedPointer<iAPlotData> other, int min, int max):
-		m_data(new double[other->valueCount()]),
-		m_size(other->valueCount()),
-		m_other(other)
+	auto result = iAHistogramData::create(other->xBounds()[0], other->xBounds()[1], other->valueCount(), other->valueType());
+	assert(other->valueCount() < std::numeric_limits<int>::max());
+	for (int i = 0; i < static_cast<int>(other->valueCount()); ++i)
 	{
-		assert(other->numBin() < std::numeric_limits<int>::max());
-		for (int i = 0; i < static_cast<int>(other->valueCount()); ++i)
-		{
-			m_data[i] = (i >= min && i <= max) ? other->yValue(i) : 0;
-		}
+		result->setBin(i, (i >= firstBin && i <= lastBin) ? other->yValue(i) : 0);
 	}
-
-	DataType yValue(size_t idx) const override
-	{
-		assert(m_data);
-		return m_data[idx];
-	}
-
-	size_t valueCount() const override
-	{
-		return m_size;
-	}
-	double spacing() const override
-	{
-		return m_other->spacing();
-	}
-	double const* xBounds() const override
-	{
-		return m_other->xBounds();
-	}
-	DataType const* yBounds() const override
-	{
-		return m_other->yBounds();
-	}
-
-private:
-	DataType* m_data;
-	size_t m_size;
-	QSharedPointer<iAPlotData> m_other;
-};
-
+	return result;
+}
 
 iARangeSliderDiagramWidget::iARangeSliderDiagramWidget( QWidget *parent,
 	vtkPiecewiseFunction* oTF, vtkColorTransferFunction* cTF, QSharedPointer<iARangeSliderDiagramData> data,
@@ -332,7 +299,7 @@ int iARangeSliderDiagramWidget::getBin( QMouseEvent *event )
 
 void iARangeSliderDiagramWidget::setupSelectionDrawer()
 {
-	m_selectedData  = QSharedPointer<iAPlotData>( new iAFilteringDiagramData( m_data, m_firstSelectedBin, m_lastSelectedBin ) );
+	m_selectedData = createFilteredPlotData( m_data, m_firstSelectedBin, m_lastSelectedBin );
 
 	if ( m_selectionDrawer )
 		removePlot( m_selectionDrawer );
@@ -385,9 +352,7 @@ void iARangeSliderDiagramWidget::selectSlot()
 	while ( it.hasNext() )
 	{
 		int row = it.next();
-
-		QSharedPointer<iAPlotData> selectedData = QSharedPointer<iAPlotData>(
-			new iAFilteringDiagramData( m_data, row - 1, row - 1 ) );	//-1 cause of DiagramData
+		auto selectedData = createFilteredPlotData( m_data, row - 1, row - 1 );	//-1 cause of DiagramData
 
 		QSharedPointer<iAStepFunctionPlot> selectionDrawer = QSharedPointer<iAStepFunctionPlot>(
 			new iAStepFunctionPlot( selectedData, QColor( Qt::yellow ) ) );

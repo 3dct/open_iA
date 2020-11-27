@@ -58,7 +58,7 @@ double const * iAAccumulatedXRFData::xBounds() const
 	return m_xBounds;
 }
 
-iAAccumulatedXRFData::DataType  iAAccumulatedXRFData::yValue(size_t idx) const
+iAAccumulatedXRFData::DataType iAAccumulatedXRFData::yValue(size_t idx) const
 {
 	switch (m_accumulateFct)
 	{
@@ -70,6 +70,11 @@ iAAccumulatedXRFData::DataType  iAAccumulatedXRFData::yValue(size_t idx) const
 	case fctMax:
 		return m_maximum[idx];
 	}
+}
+
+double iAAccumulatedXRFData::xValue(size_t idx) const
+{
+	return xBounds()[0] + spacing() * idx;
 }
 
 size_t iAAccumulatedXRFData::valueCount() const

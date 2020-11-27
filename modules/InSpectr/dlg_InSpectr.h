@@ -45,7 +45,6 @@ class dlg_RefSpectra;
 class iAAccumulatedXRFData;
 class iADecompositionCalculator;
 class iAElementConcentrations;
-class iAEnergySpectrumDiagramData;
 class iAEnergySpectrumWidget;
 class iAPieChartGlyph;
 class iAPieChartWidget;
@@ -53,6 +52,7 @@ class iAReferenceSpectraLibrary;
 class iAPeriodicTableListener;
 class iAXRFData;
 
+class iAHistogramData;
 class iAPlot;
 class iAPlotCollection;
 class iASelectedBinPlot;
@@ -179,7 +179,7 @@ private:
 	vtkSmartPointer<vtkPiecewiseFunction>          m_oTF;
 	vtkSmartPointer<vtkColorTransferFunction>      m_cTF;
 	QSharedPointer<iAXRFData>                      m_xrfData;
-	QSharedPointer<iAEnergySpectrumDiagramData>    m_voxelEnergy;
+	QSharedPointer<iAHistogramData>                m_voxelEnergy;
 	QSharedPointer<iAAccumulatedXRFData>           m_accumulatedXRF;
 	QMap<int, QSharedPointer<iAStepFunctionPlot> > m_refSpectraDrawers;
 	QSharedPointer<iAReferenceSpectraLibrary>      m_refSpectraLib;

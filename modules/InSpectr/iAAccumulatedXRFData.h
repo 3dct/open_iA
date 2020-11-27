@@ -49,10 +49,11 @@ public:
 		fctDefault = fctMax,
 	};
 	iAAccumulatedXRFData(QSharedPointer<iAXRFData> data, double minEnergy, double maxEnergy);
-	double spacing() const override;
+	double spacing() const;
 	double const * xBounds() const override;
 	DataType const * yBounds() const override;
 	DataType yValue(size_t idx) const override;
+	double xValue(size_t idx) const override;
 	size_t valueCount() const override;
 	void setFct(int fctIdx);
 	void retrieveHistData(long numBin_in, DataType * &data_out, size_t &numHist_out, DataType &maxValue_out);
