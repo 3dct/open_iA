@@ -20,9 +20,10 @@
 * ************************************************************************************/
 #include "iARangeSliderDiagramView.h"
 
-#include "iARangeSliderDiagramData.h"
 #include "iARangeSliderDiagramWidget.h"
 #include "FeatureAnalyzerHelpers.h"
+
+#include <charts/iAHistogramData.h>
 
 #include <vtkIdTypeArray.h>
 
@@ -30,6 +31,21 @@
 #include <QFrame>
 #include <QLabel>
 #include <QTableWidget>
+
+namespace
+{
+QSharedPointer<iAHistogramData> createRangeSliderData(QList<double> m_rangeSliderData, double min, double max)
+{
+	auto data = iAHistogramData::create(min, max, m_rangeSliderData.size(), iAValueType::Continuous);
+	size_t idx = 0;
+	for (double val : m_rangeSliderData)
+	{
+		data->setBin(idx, val);
+		++idx;
+	}
+	return data;
+}
+}
 
 iARangeSliderDiagramView::iARangeSliderDiagramView( QWidget * parent /*= 0*/, Qt::WindowFlags f /*= 0 */ ):
 	RangeSliderDiagramViewConnector( parent, f ),
@@ -312,8 +328,7 @@ void iARangeSliderDiagramView::setupHistogram()
 		binList.append( mapIt.value().size() );
 	}
 
-	m_rangeSliderData = QSharedPointer<iARangeSliderDiagramData>( new iARangeSliderDiagramData( binList, 0.0, 99.9 ) );
-	m_rangeSliderData->updateRangeSliderFunction();
+	m_rangeSliderData = createRangeSliderData( binList, 0.0, 99.9);
 
 	m_rangeSliderDiagramDrawer = QSharedPointer<iABarGraphPlot>( new iABarGraphPlot( m_rangeSliderData, QColor(70, 70, 70, 255)) );
 	vtkSmartPointer<vtkPiecewiseFunction> oTF = vtkSmartPointer<vtkPiecewiseFunction>::New();
@@ -357,10 +372,7 @@ void iARangeSliderDiagramView::setupDiagrams()
 
 		double min = m_rawTable->item( 1, paramColumnPos )->text().toDouble();
 		double max = m_rawTable->item( m_rawTable->rowCount() - 1, paramColumnPos )->text().toDouble();
-		m_rangeSliderData = QSharedPointer<iARangeSliderDiagramData>( new iARangeSliderDiagramData( mapIt.value(), min, max ) );
-
-		m_rangeSliderData->updateRangeSliderFunction();
-
+		m_rangeSliderData = createRangeSliderData(mapIt.value(), min, max);
 		m_rangeSliderDiagramDrawer = QSharedPointer<iABarGraphPlot>( new iABarGraphPlot( m_rangeSliderData, QColor(70, 70, 70, 255)) );
 		vtkSmartPointer<vtkPiecewiseFunction> oTF = vtkSmartPointer<vtkPiecewiseFunction>::New();
 		vtkSmartPointer<vtkColorTransferFunction> cTF = vtkSmartPointer<vtkColorTransferFunction>::New();;

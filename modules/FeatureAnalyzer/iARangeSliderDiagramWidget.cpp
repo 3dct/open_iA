@@ -40,7 +40,7 @@ QSharedPointer<iAHistogramData> createFilteredPlotData(
 }
 
 iARangeSliderDiagramWidget::iARangeSliderDiagramWidget( QWidget *parent,
-	vtkPiecewiseFunction* oTF, vtkColorTransferFunction* cTF, QSharedPointer<iARangeSliderDiagramData> data,
+	vtkPiecewiseFunction* oTF, vtkColorTransferFunction* cTF, QSharedPointer<iAHistogramData> data,
 	QMap<double, QList<double> > *histogramMap, const QTableWidget *rawTable,
 	QString const & xlabel, QString const & yLabel):
 	iAChartWithFunctionsWidget(parent, xlabel, yLabel),
