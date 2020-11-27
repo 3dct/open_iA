@@ -37,7 +37,7 @@ iAAccumulatedXRFData::iAAccumulatedXRFData(QSharedPointer<iAXRFData> data, doubl
 	m_minimum(new CountType[m_xrfData->size()]),
 	m_maximum(new CountType[m_xrfData->size()]),
 	m_average(new CountType[m_xrfData->size()]),
-	m_functionalBoxplotData(0),
+	m_functionalBoxplotData(nullptr),
 	m_spectraHistograms(new iASpectraHistograms(data))
 {
 	m_xBounds[0] = minEnergy;

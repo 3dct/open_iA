@@ -26,7 +26,6 @@
 
 class iAAccumulatedXRFData;
 struct iACharacteristicEnergy;
-class iAPlotData;
 class iASpectrumFilterListener;
 
 class QRubberBand;
