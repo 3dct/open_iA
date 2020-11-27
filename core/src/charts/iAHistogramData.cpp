@@ -111,7 +111,7 @@ double iAHistogramData::xValue(size_t idx) const
 
 void iAHistogramData::updateYBounds()
 {
-	assert(!m_histoData);
+	assert(m_histoData);
 	m_yBounds[0] = *std::min_element(m_histoData, m_histoData + m_numBin);
 	m_yBounds[1] = *std::max_element(m_histoData, m_histoData + m_numBin);
 }
