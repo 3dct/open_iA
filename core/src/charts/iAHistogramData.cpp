@@ -100,7 +100,11 @@ double const * iAHistogramData::xBounds() const
 
 iAHistogramData::DataType iAHistogramData::yValue(size_t idx) const
 {
-	assert(m_histoData);
+	assert(m_histoData && idx < valueCount());
+	if (idx >= valueCount())
+	{
+		return 0;
+	}
 	return m_histoData[idx];
 }
 

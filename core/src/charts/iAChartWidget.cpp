@@ -806,24 +806,13 @@ void iAChartWidget::drawPlots(QPainter &painter)
 		return;
 	}
 	double xStart = visibleXStart(), xEnd = visibleXEnd();
-	for (auto it = m_plots.begin(); it != m_plots.end(); ++it)
+	for (auto plot: m_plots)
 	{
-		if ((*it)->visible())
+		if (plot->visible())
 		{
-			// TODO: make agnostic of whether we draw histogram or not -> move index computations to PlotData
-			size_t plotNumBin = (*it)->data()->valueCount();
-			double plotXBounds[2] = {(*it)->data()->xBounds()[0], (*it)->data()->xBounds()[1]};
-			ensureNonZeroRange(plotXBounds);
-			double plotVisXBounds[2] = {
-				clamp((*it)->data()->xBounds()[0], (*it)->data()->xBounds()[1], xStart),
-				clamp((*it)->data()->xBounds()[0], (*it)->data()->xBounds()[1], xEnd)
-			};
-			ensureNonZeroRange(plotVisXBounds);
-			double plotStepWidth = (plotXBounds[1] - plotXBounds[0]) / (*it)->data()->valueCount();
-			size_t plotStartBin = static_cast<size_t>(clamp(0.0, static_cast<double>(plotNumBin - 1), (plotVisXBounds[0] - (*it)->data()->xBounds()[0]) / plotStepWidth - 1));
-			size_t plotEndBin = static_cast<size_t>(clamp(0.0, static_cast<double>(plotNumBin - 1), (plotVisXBounds[1] - (*it)->data()->xBounds()[0]) / plotStepWidth + 1));
-			double plotPixelBinWidth = m_xMapper->srcToDst(xBounds()[0] + plotStepWidth);
-			(*it)->draw(painter, plotPixelBinWidth, plotStartBin, plotEndBin, *m_xMapper.data(), *m_yMapper.data());
+			size_t startIdx = clamp(static_cast<size_t>(0), plot->data()->valueCount()-1, plot->data()->nearestIdx(xStart));
+			size_t endIdx = clamp(static_cast<size_t>(0), plot->data()->valueCount()-1, plot->data()->nearestIdx(xEnd)+1);
+			plot->draw(painter, startIdx, endIdx, *m_xMapper.data(), *m_yMapper.data());
 		}
 	}
 }
@@ -856,7 +845,10 @@ void iAChartWidget::showDataTooltip(QHelpEvent* event)
 	QString toolTipText;
 	for (auto const & plot : m_plots)
 	{
-		toolTipText += plot->data()->toolTipText(dataX) + "\n";
+		if (plot->visible())
+		{
+			toolTipText += plot->data()->toolTipText(dataX) + "\n";
+		}
 	}
 	QToolTip::showText(event->globalPos(), toolTipText.trimmed(), this);
 }

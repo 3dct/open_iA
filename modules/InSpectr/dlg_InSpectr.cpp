@@ -1258,8 +1258,8 @@ void dlg_InSpectr::computeSimilarityMap()
 
 void dlg_InSpectr::energyBinsSelected( int binX, int binY )
 {
-	m_selectedBinXDrawer->setPosition( binX );
-	m_selectedBinYDrawer->setPosition( binY );
+	m_selectedBinXDrawer->setSelectedBin( binX );
+	m_selectedBinYDrawer->setSelectedBin( binY );
 	m_spectrumDiagram->update();
 }
 
