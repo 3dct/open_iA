@@ -180,7 +180,7 @@ QSharedPointer<iAHistogramData> iAHistogramData::create(vtkImageData* img, size_
 	auto valueType = (img && (img->GetScalarType() != VTK_FLOAT) && (img->GetScalarType() != VTK_DOUBLE))
 		? iAValueType::Discrete
 		: iAValueType::Continuous;
-	auto result = QSharedPointer<iAHistogramData>(new iAHistogramData(scalarRange[0], scalarRange[0]+histRange, numBin, valueType));
+	auto result = iAHistogramData::create(scalarRange[0], scalarRange[0]+histRange, numBin, valueType);
 
 	auto vtkRawData = static_cast<DataType*>(rawImg->GetScalarPointer());
 	std::copy(vtkRawData, vtkRawData + result->m_numBin, result->m_histoData);
