@@ -241,11 +241,11 @@ void iAStackedBarChart::removeBar(QString const & name)
 	if (m_stack)
 	{
 		// update row span of bars widget:
-		m_gL->addWidget(m_barsWidget, m_row + BarRow, m_col, 1, m_bars.size());
+		m_gL->addWidget(m_barsWidget, m_row + BarRow, m_col, 1, static_cast<int>(m_bars.size()));
 	}
 	else
 	{	// always delete last -> just the bar IDs need to be ordered, then the correct data is shown
-		auto w = m_gL->itemAtPosition(m_row + BarRow, m_col + m_bars.size())->widget();
+		auto w = m_gL->itemAtPosition(m_row + BarRow, static_cast<int>(m_col + m_bars.size()))->widget();
 		m_gL->removeWidget(w);
 		delete w;
 	}
@@ -282,7 +282,7 @@ void iAStackedBarChart::setDoStack(bool doStack)
 	if (m_stack)
 	{
 		// update row span of bars widget:
-		m_gL->addWidget(m_barsWidget, m_row + BarRow, m_col, 1, m_bars.size());
+		m_gL->addWidget(m_barsWidget, m_row + BarRow, m_col, 1, static_cast<int>(m_bars.size()));
 	}
 	else
 	{
