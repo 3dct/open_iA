@@ -5,7 +5,6 @@ SET (FeatureAnalyzer_PRECOMPILE_INCLUDES <defines.h>
 <iAFeatureAnalyzerProject.h>
 <iALog.h>
 <iALUT.h>
-<iARangeSliderDiagramData.h>
 <iASegm3DView.h>
 <iASelection.h>
 <iAVtkWidget.h>
