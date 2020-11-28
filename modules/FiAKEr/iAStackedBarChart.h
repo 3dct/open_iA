@@ -26,6 +26,7 @@ class iABarData;
 class iABarsWidget;
 class iAColorTheme;
 
+class QGridLayout;
 class QMenu;
 
 class iAStackedBarChart: public iASignallingWidget
@@ -34,7 +35,8 @@ class iAStackedBarChart: public iASignallingWidget
 public:
 	static const int MaxBarHeight = 100;
 	static const int TextPadding = 5;
-	iAStackedBarChart(iAColorTheme const* theme, bool header = false, bool last = false, bool chart = false,
+	iAStackedBarChart(iAColorTheme const* theme, QGridLayout* gL, int row, int col,
+		bool header = false, bool last = false, bool chart = false,
 		QString const & yLabelName = QString());
 	void addBar(QString const & name, double value, double maxValue);
 	void updateBar(QString const& name, double value, double maxValue);
@@ -76,12 +78,13 @@ private:
 	void mouseMoveEvent(QMouseEvent* ev) override;
 	//! @}
 	
-	void drawBar(QPainter& painter, size_t barID, int left, int top, int fullWidth, int barHeight);
+	void drawBar(QPainter& painter, size_t barID, int left, int top, int barHeight);
 	int barHeight() const;
+	void updateBars();
 
 	size_t dividerWithinRange(int x) const;
 	double weightAndNormalize(iABarData const& bar) const;
-	int barWidth(iABarData const & bar) const;
+	int barWidth(iABarData const& bar) const;
 	void normalizeWeights();
 	void updateOverallMax();
 	void updateChartBars();
@@ -103,6 +106,9 @@ private:
 	bool m_showChart;
 	QString m_yLabelName;
 	int m_leftMargin;
+	QGridLayout* m_gL;
+	int m_row, m_col;
+	int m_chartAreaPixelWidth;
 
 	iABarsWidget* m_barsWidget;
 

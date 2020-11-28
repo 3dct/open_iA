@@ -54,7 +54,6 @@ public slots:
 	void selectStackedBar(int outputType, int idx);
 	void stackedBarDblClicked(int idx);
 private slots:
-	void selectMeasure(int measureIdx);
 	void paramChangedSlot();
 private:
 	void updateStackedBars();
@@ -69,7 +68,7 @@ private:
 	QVector<QPair<int,int>> m_visibleCharacts;
 	//! stacked bar charts (one per parameter)
 	QVector<iAStackedBarChart*> m_stackedCharts;
-	//QVector<iAChartWidget*> m_diffChart;
+	//! stacked bar headers
 	iAStackedBarChart* m_stackedHeader;
 	//! sensitivity information
 	iASensitivityInfo* m_sensInf;
