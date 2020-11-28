@@ -43,6 +43,16 @@ T clamp(T const minVal, T const maxVal, T const value)
 	return (value < minVal) ? minVal : ((value > maxVal) ? maxVal : value);
 }
 
+//! Check whether a value is in a given range.
+//! @param range the range given as minimum (stored at index 0) and maximum (stored at index 1)
+//! @param value the value to be checked.
+//! return true if value in range (bounds included, i.e. returns true if equal to minimum or maximum), false otherwise
+template <typename T>
+bool inRange(T const* range, T const value)
+{
+	return range[0] <= value && value <= range[1];
+}
+
 //! Map value from given interval to "norm" interval [0..1].
 //! if min is bigger than max, a reverse mapping is applied
 //! @param minSrcVal minimum value of source interval

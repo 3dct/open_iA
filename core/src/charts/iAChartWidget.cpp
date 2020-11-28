@@ -846,7 +846,7 @@ void iAChartWidget::showDataTooltip(QHelpEvent* event)
 	QString toolTipText;
 	for (auto const & plot : m_plots)
 	{
-		if (plot->visible())
+		if (plot->visible() && inRange(plot->data()->xBounds(), dataX) )
 		{
 			toolTipText += plot->data()->toolTipText(dataX) + "\n";
 		}
