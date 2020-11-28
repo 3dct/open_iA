@@ -38,13 +38,14 @@ public:
 	~iAHistogramData();
 	//! @{ overriden from iAPlotData, check description there!
 	DataType yValue(size_t idx) const override;
-	double xValue(size_t idx) const override;
-	double const* xBounds() const override;
+	DataType xValue(size_t idx) const override;
+	DataType const* xBounds() const override;
 	DataType const* yBounds() const override;
-
 	size_t valueCount() const override;
-	iAValueType valueType() const override;
+	size_t nearestIdx(DataType dataX) const override;
+	QString toolTipText(DataType dataX) const override;
 	//! @}
+	//! Get the spacing (the witdh of a bin)
 	double spacing() const;
 	
 	//! Set the value for a given bin index.
@@ -110,8 +111,6 @@ private:
 	iAPlotData::DataType m_yBounds[2];
 	//! The width of a single bin in the histogram.
 	double m_spacing;
-	//! The type of the values that were used as input to compute the histogram.
-	iAValueType m_valueType;
 };
 
 #include <itkImage.h>

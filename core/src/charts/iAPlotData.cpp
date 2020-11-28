@@ -4,31 +4,28 @@
 
 #include <QString>
 
-iAPlotData ::~iAPlotData()
+
+iAPlotData::iAPlotData(iAValueType type): m_valueType(type)
+{
+}
+
+iAPlotData::~iAPlotData()
 {
 }
 
 iAValueType iAPlotData::valueType() const
 {
-	return iAValueType::Continuous;
+	return m_valueType;
 }
 
-QString iAPlotData::toolTipText(double dataX) const
+void adaptBounds(iAPlotData::DataType bounds[2], iAPlotData::DataType value)
 {
-	size_t idx = nearestIdx(dataX);
-	double bStart = xValue(idx);
-	double bEnd = xValue(idx + 1);
-	if (valueType() == iAValueType::Discrete || valueType() == iAValueType::Categorical)
+	if (value < bounds[0])
 	{
-		bStart = static_cast<int>(bStart);
-		bEnd = static_cast<int>(bEnd - 1);
+		bounds[0] = value;
 	}
-	double freq = yValue(idx);
-	return QString("%1-%2: %3").arg(bStart).arg(bEnd).arg(freq);
-}
-
-size_t iAPlotData::nearestIdx(double dataX) const
-{
-	double binRng[2] = { 0, static_cast<double>(valueCount()) };
-	return clamp(static_cast<size_t>(0), valueCount() - 1, static_cast<size_t>(mapValue(xBounds(), binRng, dataX)));
+	if (value > bounds[1])
+	{
+		bounds[1] = value;
+	}
 }

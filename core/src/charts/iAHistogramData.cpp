@@ -36,7 +36,7 @@
 #include <cmath>
 
 iAHistogramData::iAHistogramData(DataType minX, DataType maxX, size_t numBin, iAValueType type) :
-	m_histoData(new DataType[numBin]), m_dataOwner(true), m_numBin(numBin), m_valueType(type)
+	iAPlotData(type), m_histoData(new DataType[numBin]), m_dataOwner(true), m_numBin(numBin)
 {
 	clear();
 	setXBounds(minX, maxX);
@@ -45,7 +45,7 @@ iAHistogramData::iAHistogramData(DataType minX, DataType maxX, size_t numBin, iA
 }
 
 iAHistogramData::iAHistogramData(DataType minX, DataType maxX, size_t numBin, iAValueType type, double* histoData) :
-	m_histoData(histoData), m_dataOwner(false), m_numBin(numBin), m_valueType(type)
+	iAPlotData(type), m_histoData(histoData), m_dataOwner(false), m_numBin(numBin)
 {
 	setXBounds(minX, maxX);
 	updateYBounds();
@@ -62,14 +62,7 @@ iAHistogramData::~iAHistogramData()
 void iAHistogramData::setBin(size_t binIdx, DataType value)
 {
 	m_histoData[binIdx] = value;
-	if (value < m_yBounds[0])
-	{
-		m_yBounds[0] = value;
-	}
-	if (value > m_yBounds[1])
-	{
-		m_yBounds[1] = value;
-	}
+	adaptBounds(m_yBounds, value);
 }
 
 void iAHistogramData::clear()
@@ -96,6 +89,11 @@ double iAHistogramData::spacing() const
 double const * iAHistogramData::xBounds() const
 {
 	return m_xBounds;
+}
+
+iAPlotData::DataType const* iAHistogramData::yBounds() const
+{
+	return m_yBounds;
 }
 
 iAHistogramData::DataType iAHistogramData::yValue(size_t idx) const
@@ -132,14 +130,24 @@ size_t iAHistogramData::valueCount() const
 	return m_numBin;
 }
 
-iAPlotData::DataType const* iAHistogramData::yBounds() const
+size_t iAHistogramData::nearestIdx(double dataX) const
 {
-	return m_yBounds;
+	double binRng[2] = {0, static_cast<double>(valueCount())};
+	return clamp(static_cast<size_t>(0), valueCount() - 1, static_cast<size_t>(mapValue(xBounds(), binRng, dataX)));
 }
 
-iAValueType iAHistogramData::valueType() const
+QString iAHistogramData::toolTipText(iAPlotData::DataType dataX) const
 {
-	return m_valueType;
+	size_t idx = nearestIdx(dataX);
+	auto bStart = xValue(idx);
+	auto bEnd = xValue(idx + 1);
+	if (valueType() == iAValueType::Discrete || valueType() == iAValueType::Categorical)
+	{
+		bStart = static_cast<int>(bStart);
+		bEnd = static_cast<int>(bEnd - 1);
+	}
+	auto freq = yValue(idx);
+	return QString("%1-%2: %3").arg(bStart).arg(bEnd).arg(freq);
 }
 
 QSharedPointer<iAHistogramData> iAHistogramData::create(vtkImageData* img, size_t numBin,

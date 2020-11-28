@@ -24,6 +24,7 @@
 #include "iAXRFData.h"
 
 #include <iAFunctionalBoxplot.h>
+#include <iAMathUtility.h>
 #include <iATypedCallHelper.h>
 
 #include <vtkImageData.h>
@@ -33,6 +34,7 @@
 #include <limits>
 
 iAAccumulatedXRFData::iAAccumulatedXRFData(QSharedPointer<iAXRFData> data, double minEnergy, double maxEnergy) :
+	iAPlotData(iAValueType::Continuous),
 	m_xrfData(data),
 	m_minimum(new CountType[m_xrfData->size()]),
 	m_maximum(new CountType[m_xrfData->size()]),
@@ -85,6 +87,26 @@ size_t iAAccumulatedXRFData::valueCount() const
 iAAccumulatedXRFData::DataType const * iAAccumulatedXRFData::yBounds() const
 {
 	return m_yBounds;
+}
+
+size_t iAAccumulatedXRFData::nearestIdx(double dataX) const
+{
+	double binRng[2] = {0, static_cast<double>(valueCount())};
+	return clamp(static_cast<size_t>(0), valueCount() - 1, static_cast<size_t>(mapValue(xBounds(), binRng, dataX)));
+}
+
+QString iAAccumulatedXRFData::toolTipText(iAPlotData::DataType dataX) const
+{
+	size_t idx = nearestIdx(dataX);
+	auto bStart = xValue(idx);
+	auto bEnd = xValue(idx + 1);
+	if (valueType() == iAValueType::Discrete || valueType() == iAValueType::Categorical)
+	{
+		bStart = static_cast<int>(bStart);
+		bEnd = static_cast<int>(bEnd - 1);
+	}
+	auto freq = yValue(idx);
+	return QString("%1-%2: %3").arg(bStart).arg(bEnd).arg(freq);
 }
 
 CountType iAAccumulatedXRFData::spectraHistogramMax() const
