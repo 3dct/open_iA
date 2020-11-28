@@ -745,6 +745,12 @@ void iAChartWidget::addPlot(QSharedPointer<iAPlot> plot)
 	assert(plot);
 	if (!plot)
 	{
+		LOG(lvlInfo, "Trying to add empty plot!");
+		return;
+	}
+	if (std::find(m_plots.begin(), m_plots.end(), plot) != m_plots.end())
+	{
+		LOG(lvlInfo, "Trying to add plot a second time!");
 		return;
 	}
 	m_plots.push_back(plot);
