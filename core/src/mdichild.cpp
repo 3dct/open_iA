@@ -2677,7 +2677,7 @@ void MdiChild::displayHistogram(int modalityIdx)
 	size_t newBinCount = m_preferences.HistogramBins;
 	auto img = modality(modalityIdx)->image();
 	auto scalarRange = img->GetScalarRange();
-	if (isVtkIntegerType(modality(modalityIdx)->image()->GetScalarType()))
+	if (isVtkIntegerImage(modality(modalityIdx)->image()))
 	{
 		newBinCount = std::min(newBinCount, static_cast<size_t>(scalarRange[1] - scalarRange[0] + 1));
 	}

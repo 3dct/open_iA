@@ -60,7 +60,7 @@ open_iA_Core_API vtkSmartPointer<vtkImageData> allocateImage(int vtkType, int co
 //! @param image the image to store
 //! @param filename the name of the file to write to.
 //! @param useCompression whether the file should be compressed (.zraw) or not (.raw) in case we are storing .mhd files
-open_iA_Core_API void storeImage(vtkSmartPointer<vtkImageData> image, QString const & filename, bool useCompression = true);
+open_iA_Core_API void storeImage(vtkSmartPointer<vtkImageData> img, QString const & filename, bool useCompression = true);
 
 //! Read an image from disk into a VTK image.
 //! @param filename the name of the file to read.
@@ -72,7 +72,7 @@ open_iA_Core_API vtkSmartPointer<vtkImageData> readImage(QString const & filenam
 //! @param filename the name of the file to write to; this is expected to have an extension of tif, png, jpg or bmp;
 //!        the type of the file written will be chosen according to this extension
 //! @param imageData the image to write; this already needs to be a 2D image (i.e., size in Z dimension = 1)
-open_iA_Core_API void writeSingleSliceImage(QString const & filename, vtkImageData* imageData);
+open_iA_Core_API void writeSingleSliceImage(QString const & filename, vtkImageData* img);
 
 //! Returns the size (in bytes) of the given VTK type.
 //! @param vtkType a VTK type identifier (VTK_INT, VTK_UNSIGNED_CHAR, ...)
@@ -80,11 +80,11 @@ open_iA_Core_API void writeSingleSliceImage(QString const & filename, vtkImageDa
 //!        or 0 if it's an unknown type
 open_iA_Core_API size_t mapVTKTypeToSize(int vtkType);
 
-//! Check whether the given type is integer.
-//! @param type a VTK type identifier (VTK_INT, VTK_UNSIGNED_CHAR, ...)
-//! @return true if the given VTK type holds integer numbers,
+//! Check whether the given image holds integer numbers.
+//! @param img a VTK image
+//! @return true if the values in the given VTK image are integer numbers,
 //!        false if it holds floating point numbers
-open_iA_Core_API bool isVtkIntegerType(int type);
+open_iA_Core_API bool isVtkIntegerImage(vtkImageData* img);
 
 //! Returns a human-readable list of available data types for a single pixel/voxel.
 //! @param withLongLongTypes

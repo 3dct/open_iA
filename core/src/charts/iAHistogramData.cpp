@@ -173,8 +173,9 @@ QSharedPointer<iAHistogramData> iAHistogramData::create(QString const& name,
 				.arg(std::numeric_limits<int>::max()).arg(numBin));
 		numBin = std::numeric_limits<int>::max();
 	}
-	if (isVtkIntegerType(static_cast<vtkImageData*>(accumulate->GetInput())->GetScalarType()))
-	{   // make sure we have bins of integer step size:
+	auto valueType = isVtkIntegerImage(img) ? iAValueType::Discrete : iAValueType::Continuous;
+	if (valueType == iAValueType::Discrete)
+	{	// make sure we have bins of integer step size:
 		double stepSize = std::ceil(valueRange / numBin);
 		double newMax = scalarRange[0] + static_cast<int>(stepSize * numBin);
 		histRange = newMax - scalarRange[0];
@@ -195,10 +196,6 @@ QSharedPointer<iAHistogramData> iAHistogramData::create(QString const& name,
 	caster->SetOutputScalarType(iAVtkDataType<DataType>::value);
 	caster->Update();
 	auto rawImg = caster->GetOutput();
-
-	auto valueType = (img && (img->GetScalarType() != VTK_FLOAT) && (img->GetScalarType() != VTK_DOUBLE))
-		? iAValueType::Discrete
-		: iAValueType::Continuous;
 	auto result = iAHistogramData::create(name, valueType, scalarRange[0], scalarRange[0]+histRange, numBin);
 
 	auto vtkRawData = static_cast<DataType*>(rawImg->GetScalarPointer());
