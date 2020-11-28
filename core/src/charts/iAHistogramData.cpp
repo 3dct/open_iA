@@ -44,7 +44,7 @@ iAHistogramData::iAHistogramData(DataType minX, DataType maxX, size_t numBin, iA
 	m_yBounds[1] = 0;
 }
 
-iAHistogramData::iAHistogramData(DataType minX, DataType maxX, size_t numBin, iAValueType type, double* histoData) :
+iAHistogramData::iAHistogramData(DataType minX, DataType maxX, size_t numBin, iAValueType type, DataType* histoData) :
 	iAPlotData(type), m_histoData(histoData), m_dataOwner(false), m_numBin(numBin)
 {
 	setXBounds(minX, maxX);
@@ -70,23 +70,23 @@ void iAHistogramData::clear()
 	std::fill(m_histoData, m_histoData + m_numBin, 0);
 }
 
-void iAHistogramData::setSpacing(double spacing)
+void iAHistogramData::setSpacing(DataType spacing)
 {
 	m_spacing = spacing;
 }
 
-void iAHistogramData::setYBounds(double yMin, double yMax)
+void iAHistogramData::setYBounds(DataType yMin, DataType yMax)
 {
 	m_yBounds[0] = yMin;
 	m_yBounds[1] = yMax;
 }
 
-double iAHistogramData::spacing() const
+iAPlotData::DataType iAHistogramData::spacing() const
 {
 	return m_spacing;
 }
 
-double const * iAHistogramData::xBounds() const
+iAPlotData::DataType const* iAHistogramData::xBounds() const
 {
 	return m_xBounds;
 }
@@ -96,7 +96,7 @@ iAPlotData::DataType const* iAHistogramData::yBounds() const
 	return m_yBounds;
 }
 
-iAHistogramData::DataType iAHistogramData::yValue(size_t idx) const
+iAPlotData::DataType iAHistogramData::yValue(size_t idx) const
 {
 	assert(m_histoData && idx < valueCount());
 	if (idx >= valueCount())
@@ -106,7 +106,7 @@ iAHistogramData::DataType iAHistogramData::yValue(size_t idx) const
 	return m_histoData[idx];
 }
 
-double iAHistogramData::xValue(size_t idx) const
+iAPlotData::DataType iAHistogramData::xValue(size_t idx) const
 {
 	return xBounds()[0] + spacing() * idx;
 }
@@ -130,13 +130,13 @@ size_t iAHistogramData::valueCount() const
 	return m_numBin;
 }
 
-size_t iAHistogramData::nearestIdx(double dataX) const
+size_t iAHistogramData::nearestIdx(DataType dataX) const
 {
-	double binRng[2] = {0, static_cast<double>(valueCount())};
+	DataType binRng[2] = {0, static_cast<DataType>(valueCount())};
 	return clamp(static_cast<size_t>(0), valueCount() - 1, static_cast<size_t>(mapValue(xBounds(), binRng, dataX)));
 }
 
-QString iAHistogramData::toolTipText(iAPlotData::DataType dataX) const
+QString iAHistogramData::toolTipText(DataType dataX) const
 {
 	size_t idx = nearestIdx(dataX);
 	auto bStart = xValue(idx);
@@ -244,7 +244,7 @@ QSharedPointer<iAHistogramData> iAHistogramData::create(DataType minX, DataType 
 }
 
 QSharedPointer<iAHistogramData> iAHistogramData::create(
-	DataType minX, DataType maxX, size_t numBin, iAValueType type, double* histoData)
+	DataType minX, DataType maxX, size_t numBin, iAValueType type, DataType* histoData)
 {
 	return QSharedPointer<iAHistogramData>(new iAHistogramData(minX, maxX, numBin, type, histoData));
 }
@@ -297,7 +297,7 @@ QSharedPointer<iAHistogramData> createMappedHistogramData(iAPlotData::DataType c
 	double targetSpacing = (targetMaxX - targetMinX) / (targetNumBin - 1);
 	result->setSpacing(targetSpacing); // TODO: check whether we need this or whether automatic computation in iAHistogram constructor is the same!
 	// get scale factor from all source data
-	iAHistogramData::DataType myMax = *std::max_element(data, data + srcNumBin);
+	iAPlotData::DataType myMax = *std::max_element(data, data + srcNumBin);
 	double scaleFactor = static_cast<double>(maxValue) / myMax;
 
 	// map source data to target indices:
@@ -308,7 +308,7 @@ QSharedPointer<iAHistogramData> createMappedHistogramData(iAPlotData::DataType c
 
 		result->setBin(i,
 			(sourceIdx >= 0 && static_cast<size_t>(sourceIdx) < srcNumBin)
-				? static_cast<iAHistogramData::DataType>(data[sourceIdx] * scaleFactor)
+				? static_cast<iAPlotData::DataType>(data[sourceIdx] * scaleFactor)
 				: 0);
 	}
 	result->setYBounds(0, maxValue);  // TODO: use updateBounds here?
