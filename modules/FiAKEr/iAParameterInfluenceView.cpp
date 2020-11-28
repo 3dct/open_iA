@@ -309,16 +309,10 @@ void iAParameterInfluenceView::updateStackedBarHistogram(QString const & barName
 	}
 	chart->clearPlots();
 	const int numBins = m_sensInf->m_histogramBins;
-	// improve iAHistogramData to directly take QVector/std::vector data?
-	double* myHisto = new double[numBins];
-	for (int bin = 0; bin < numBins; ++bin)
-	{
-		myHisto[bin] = m_sensInf->charHistVarAgg[outIdx][m_aggrType][paramIdx][bin];
-	}
-	double cMin = m_sensInf->m_data->spmData->paramRange(m_sensInf->m_charSelected[outIdx])[0],
-		   cMax = m_sensInf->m_data->spmData->paramRange(m_sensInf->m_charSelected[outIdx])[1];
-	chart->addPlot(QSharedPointer<iAPlot>(new iABarGraphPlot(
-		iAHistogramData::create(myHisto, numBins, (cMax - cMin) / numBins, cMin, cMax), QColor(80, 80, 80, 128))));
+	auto const rng = m_sensInf->m_data->spmData->paramRange(m_sensInf->m_charSelected[outIdx]);
+	auto data = iAHistogramData::create(barName, iAValueType::Continuous, rng[0], rng[1],
+		m_sensInf->charHistVarAgg[outIdx][m_aggrType][paramIdx]);
+	chart->addPlot(QSharedPointer<iAPlot>(new iABarGraphPlot(data, QColor(80, 80, 80, 128))));
 	chart->setXCaption(m_sensInf->charactName(outIdx));
 	chart->update();
 
