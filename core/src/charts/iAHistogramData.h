@@ -24,6 +24,7 @@
 #include "open_iA_Core_export.h"
 
 #include <QSharedPointer>
+#include <QVector>
 
 #include <vector>
 
