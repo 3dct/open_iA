@@ -359,6 +359,7 @@ void iAChartWidget::drawImageOverlays(QPainter& painter)
 void iAChartWidget::drawAfterPlots(QPainter& /*painter*/)
 {}
 
+// TODO: unify with dblToStringWithUnits...?
 QString iAChartWidget::xAxisTickMarkLabel(double value, double stepWidth)
 {
 	int placesBeforeComma = requiredDigits(value);
@@ -373,8 +374,8 @@ QString iAChartWidget::xAxisTickMarkLabel(double value, double stepWidth)
 		return result;
 	}
 	else
-	{
-		return QString::number(value, 'g', 15);
+	{ // not ideal;
+		return QString::number(value, 'f', 0);
 	}
 }
 
