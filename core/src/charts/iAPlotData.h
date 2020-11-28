@@ -24,6 +24,8 @@
 
 #include "iAValueType.h"
 
+#include <QString>
+
 #include <cstddef> // for size_t
 #include <cmath>   // for log
 
@@ -31,9 +33,17 @@
 class open_iA_Core_API iAPlotData
 {
 public:
-	typedef double DataType;
-	iAPlotData(iAValueType type);
+	//! Data type used for x and y values.
+	using DataType=double;
+	//! Construct a plot data object.
+	//! @param name the name of the data series that this object holds.
+	//! @param type  type of the values held by this data object, see iAValueType
+	iAPlotData(QString const & name, iAValueType type);
 	virtual ~iAPlotData();
+	//! The name of the data series that this object holds.
+	QString const& name() const;
+	//! The type of the values held by this data object.
+	virtual iAValueType valueType() const;
 	//! Value on the x axis for a datum with given index.
 	//! @param idx data index
 	virtual DataType xValue(size_t idx) const = 0;
@@ -44,8 +54,6 @@ public:
 	virtual DataType const* xBounds() const = 0;
 	//! The range of values for y; i.e. yBounds()[0] is the minimum of all yValue(...), yBounds()[1] is the maximum.
 	virtual DataType const* yBounds() const = 0;
-	//! The type of the values held by this data object.
-	virtual iAValueType valueType() const;
 	//! The number of available data elements (i.e. in xValue/yValue, idx can go from 0 to valueCount()-1).
 	virtual size_t valueCount() const = 0;
 	//! Retrieve the index closest to the given x data value.
@@ -63,6 +71,8 @@ public:
 private:
 	//! The type of the values that were used as input to compute the histogram.
 	iAValueType m_valueType;
+	//! The name of the data series that this object holds.
+	QString m_name;
 };
 
 //! helper function for adapting bounds to a given value

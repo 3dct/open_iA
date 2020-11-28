@@ -36,7 +36,7 @@ namespace
 {
 QSharedPointer<iAHistogramData> createRangeSliderData(QList<double> m_rangeSliderData, double min, double max)
 {
-	auto data = iAHistogramData::create(min, max, m_rangeSliderData.size(), iAValueType::Continuous);
+	auto data = iAHistogramData::create("Frequency", iAValueType::Continuous, min, max, m_rangeSliderData.size());
 	size_t idx = 0;
 	for (double val : m_rangeSliderData)
 	{

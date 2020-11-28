@@ -588,7 +588,7 @@ void dlg_datatypeconversion::updatevalues(double* inPara)
 void dlg_datatypeconversion::createHistogram(iAPlotData::DataType* histbinlist, double minVal, double maxVal, int bins)
 {
 	iAChartWidget* chart = new iAChartWidget(nullptr, "Histogram (Intensities)", "Frequency");
-	auto histogramData = iAHistogramData::create(minVal, maxVal, bins, iAValueType::Continuous, histbinlist);
+	auto histogramData = iAHistogramData::create("Frequency", iAValueType::Continuous, minVal, maxVal, bins, histbinlist);
 	chart->addPlot(QSharedPointer<iAPlot>(new iABarGraphPlot(histogramData, QColor(70, 70, 70, 255))));
 	chart->update();
 	chart->setMinimumHeight(80);

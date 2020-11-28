@@ -5,12 +5,15 @@
 #include <QString>
 
 
-iAPlotData::iAPlotData(iAValueType type): m_valueType(type)
-{
-}
+iAPlotData::iAPlotData(QString const & name, iAValueType type): m_name(name), m_valueType(type)
+{}
 
 iAPlotData::~iAPlotData()
+{}
+
+QString const& iAPlotData::name() const
 {
+	return m_name;
 }
 
 iAValueType iAPlotData::valueType() const

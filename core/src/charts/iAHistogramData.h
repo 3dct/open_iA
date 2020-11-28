@@ -64,36 +64,38 @@ public:
 	void setYBounds(DataType yMin, DataType yMax);
 
 	//! create a histogram for a vtk image
-	static QSharedPointer<iAHistogramData> create(vtkImageData* img, size_t numBin, iAImageInfo* imageInfo = nullptr);
+	static QSharedPointer<iAHistogramData> create(QString const& name,
+		vtkImageData* img, size_t numBin, iAImageInfo* imageInfo = nullptr);
 	//! create a histogram for the given (raw) data vector
-	static QSharedPointer<iAHistogramData> create(const std::vector<DataType>& data, size_t numBin,
-		iAValueType type = iAValueType::Continuous,
+	static QSharedPointer<iAHistogramData> create(QString const& name, iAValueType type,
+		const std::vector<DataType>& data, size_t numBin,
 		DataType minValue=std::numeric_limits<DataType>::infinity(),
 		DataType maxValue=std::numeric_limits<DataType>::infinity());
 	//! Create an empty histogram (with numBin bins, initialized to 0, and the given range).
 	//! Useful if you need a custom way of creating a histogram; use setBin to populate the values.
-	static QSharedPointer<iAHistogramData> create(DataType minX, DataType maxX, size_t numBin, iAValueType type);
+	static QSharedPointer<iAHistogramData> create(QString const& name, iAValueType type,
+		DataType minX, DataType maxX, size_t numBin);
 	//! Create from already computed histogram data.
 	//! @deprecated (because of data ownership issues, see below)
 	//! @param numBin the number of bins - the number of items contained in histoData
 	//! @param histoData the histogram frequencies. note that the class DOES NOT take ownership of the given array:
 	//!        you have to delete the array manually!
-	static QSharedPointer<iAHistogramData> create(
-		DataType minX, DataType maxX, size_t numBin, iAValueType type, DataType* histoData);
+	static QSharedPointer<iAHistogramData> create(QString const& name, iAValueType type,
+		DataType minX, DataType maxX, size_t numBin, DataType* histoData);
 	//! Create from already computed histogram data in a std::vector.
-	static QSharedPointer<iAHistogramData> create(
-		DataType minX, DataType maxX, iAValueType type, std::vector<DataType> const& histoData);
+	static QSharedPointer<iAHistogramData> create(QString const& name, iAValueType type,
+		DataType minX, DataType maxX, std::vector<DataType> const& histoData);
 	//! Create from already computed histogram data in a QVector.
-	static QSharedPointer<iAHistogramData> create(
-		DataType minX, DataType maxX, iAValueType type, QVector<DataType> const& histoData);
+	static QSharedPointer<iAHistogramData> create(QString const& name, iAValueType type,
+		DataType minX, DataType maxX, QVector<DataType> const& histoData);
 
 protected:
 	//! Create an empty histogram (with numBin bins, initialized to 0).
-	iAHistogramData(DataType minX, DataType maxX, size_t numBin, iAValueType type);
+	iAHistogramData(QString const& name, iAValueType type, DataType minX, DataType maxX, size_t numBin);
 
 private:
 	//! Create with the given, already computed histogram data.
-	iAHistogramData(DataType minX, DataType maxX, size_t numBin, iAValueType type, DataType* histoData);
+	iAHistogramData(QString const& name, iAValueType type, DataType minX, DataType maxX, size_t numBin, DataType* histoData);
 	//! Set y value range from current data.
 	void updateYBounds();
 	void setXBounds(DataType minX, DataType maxX);
@@ -120,8 +122,8 @@ private:
 // specific histogram for a collection of binary images (one for each label)
 // the created histogram has one bin per label
 template <typename PixelT>
-QSharedPointer<iAHistogramData> createHistogram(QVector<typename itk::Image<PixelT, 3>::Pointer> const& imgs,
-	size_t numBin, PixelT min, PixelT max, iAValueType xValueType)
+QSharedPointer<iAHistogramData> createHistogram(QString const& name, iAValueType xValueType,
+	QVector<typename itk::Image<PixelT, 3>::Pointer> const& imgs, size_t numBin, PixelT min, PixelT max)
 {
 	/*
 	img->ReleaseDataFlagOff();
@@ -130,7 +132,7 @@ QSharedPointer<iAHistogramData> createHistogram(QVector<typename itk::Image<Pixe
 	minMaxCalc->Compute();
 	auto result = iAHistogramData::Create(minMaxCalc->GetMinimum(), minMaxCalc->GetMaximum(), numBin);
 	*/
-	auto result = iAHistogramData::create(min, max, numBin, xValueType);
+	auto result = iAHistogramData::create(name, xValueType, min, max, numBin);
 	for (int i = 0; i < imgs.size(); ++i)
 	{
 		double sum = 0;
@@ -163,6 +165,6 @@ QSharedPointer<iAHistogramData> CreateHistogram(QVector<typename itk::Image<Pixe
 */
 
 //! Returns histogram with given data mapped from specified source to target range.
-open_iA_Core_API QSharedPointer<iAHistogramData> createMappedHistogramData(iAPlotData::DataType const* data,
-	size_t srcNumBin, double srcMinX, double srcMaxX, size_t targetNumBin, double targetMinX, double targetMaxX,
-	iAPlotData::DataType const maxValue);
+open_iA_Core_API QSharedPointer<iAHistogramData> createMappedHistogramData(QString const& name,
+	iAPlotData::DataType const* data, size_t srcNumBin, double srcMinX, double srcMaxX,
+	size_t targetNumBin, double targetMinX, double targetMaxX, iAPlotData::DataType const maxValue);

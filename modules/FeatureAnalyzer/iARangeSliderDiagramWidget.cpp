@@ -30,7 +30,8 @@
 QSharedPointer<iAHistogramData> createFilteredPlotData(
 	QSharedPointer<iAPlotData> other, int firstBin, int lastBin)
 {
-	auto result = iAHistogramData::create(other->xBounds()[0], other->xBounds()[1], other->valueCount(), other->valueType());
+	auto result = iAHistogramData::create("Filtered "+other->name(), other->valueType(),
+		other->xBounds()[0], other->xBounds()[1], other->valueCount());
 	assert(other->valueCount() < std::numeric_limits<int>::max());
 	for (int i = 0; i < static_cast<int>(other->valueCount()); ++i)
 	{

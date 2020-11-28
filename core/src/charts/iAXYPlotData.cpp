@@ -96,13 +96,13 @@ QString iAXYPlotData::toolTipText(iAPlotData::DataType dataX) const
 	return QString("%1: %2").arg(valueX).arg(valueY);
 }
 
-QSharedPointer<iAXYPlotData> iAXYPlotData::create(iAValueType type, size_t valueCount)
+QSharedPointer<iAXYPlotData> iAXYPlotData::create(QString const& name, iAValueType type, size_t valueCount)
 {
-	return QSharedPointer<iAXYPlotData>(new iAXYPlotData(type, valueCount));
+	return QSharedPointer<iAXYPlotData>(new iAXYPlotData(name, type, valueCount));
 }
 
-iAXYPlotData::iAXYPlotData(iAValueType type, size_t valueCount) :
-	iAPlotData(type),
+iAXYPlotData::iAXYPlotData(QString const& name, iAValueType type, size_t valueCount) :
+	iAPlotData(name, type),
 	m_values(valueCount, std::make_pair(0.0, 0.0)),
 	m_xBounds{std::numeric_limits<double>::lowest(), std::numeric_limits<double>::max()},
 	m_yBounds{std::numeric_limits<double>::lowest(), std::numeric_limits<double>::max()}

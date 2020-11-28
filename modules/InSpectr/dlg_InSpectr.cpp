@@ -180,8 +180,8 @@ void dlg_InSpectr::init(double minEnergy, double maxEnergy, bool haveEnergyLevel
 	m_cTF->Build();
 	m_xrfData->SetEnergyRange(minEnergy, maxEnergy);
 	m_accumulatedXRF = QSharedPointer<iAAccumulatedXRFData>(new iAAccumulatedXRFData(m_xrfData, minEnergy, maxEnergy));
-	m_voxelEnergy = iAHistogramData::create(m_accumulatedXRF->xBounds()[0],
-		m_accumulatedXRF->xBounds()[1], m_xrfData->size(), m_accumulatedXRF->valueType());
+	m_voxelEnergy = iAHistogramData::create("Voxel Energy", m_accumulatedXRF->valueType(), m_accumulatedXRF->xBounds()[0],
+		m_accumulatedXRF->xBounds()[1], m_xrfData->size());
 	m_voxelSpectrumDrawer = QSharedPointer<iAStepFunctionPlot>(new iAStepFunctionPlot(m_voxelEnergy, QColor(150, 0, 0)));
 	m_spectrumDiagram = new iAEnergySpectrumWidget(this, m_accumulatedXRF, m_oTF, m_cTF, this,
 		haveEnergyLevels ? "Energy (keV)" : "Energy (bins)");
@@ -445,8 +445,9 @@ void dlg_InSpectr::initSpectraLinesDrawer()
 		{
 			for (int z=extent[4]; z<=extent[5]; z += step)
 			{
-				auto dataset = iAHistogramData::create(m_accumulatedXRF->xBounds()[0], m_accumulatedXRF->xBounds()[1],
-					m_xrfData->size(), m_accumulatedXRF->valueType());
+				auto dataset = iAHistogramData::create(QString("Spectrum Line %1,%2,%3").arg(x).arg(y).arg(z),
+					m_accumulatedXRF->valueType(),
+					m_accumulatedXRF->xBounds()[0],	m_accumulatedXRF->xBounds()[1],	m_xrfData->size());
 				updateSpectrumData(dataset, m_xrfData, x, y, z);
 
 				bool isSelected = m_activeFilter.empty() ||
@@ -1348,7 +1349,7 @@ void dlg_InSpectr::AddReferenceSpectrum(int modelIdx)
 		RemoveReferenceSpectrum(modelIdx);
 	}
 	QVector<float> const & energies = m_refSpectraLib->spectra[modelIdx].GetEnergyData();
-	auto plotData = createMappedHistogramData(
+	auto plotData = createMappedHistogramData(QString("Spectrum %1").arg(m_refSpectraLib->spectra[modelIdx].name()),
 		&m_refSpectraLib->spectra[modelIdx].GetCountsData()[0],
 		energies.size(), energies[0], energies[energies.size()-1],
 		m_xrfData->size(), m_xrfData->GetMinEnergy(), m_xrfData->GetMaxEnergy(),

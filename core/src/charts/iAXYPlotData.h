@@ -45,9 +45,10 @@ public:
 	//! Adds a new x/y pair. Note that entries need to be added in order of their x component
 	void addValue(DataType x, DataType y);
 	//! Create an empty data object
-	static QSharedPointer<iAXYPlotData> create(iAValueType type, size_t valueCount);
+	static QSharedPointer<iAXYPlotData> create(QString const& name, iAValueType type, size_t valueCount);
+
 private:
-	iAXYPlotData(iAValueType type, size_t valueCount);
+	iAXYPlotData(QString const& name, iAValueType type, size_t valueCount);
 	std::vector<std::pair<DataType, DataType>> m_values;
 	DataType m_xBounds[2], m_yBounds[2];
 };

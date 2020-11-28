@@ -34,7 +34,7 @@
 #include <limits>
 
 iAAccumulatedXRFData::iAAccumulatedXRFData(QSharedPointer<iAXRFData> data, double minEnergy, double maxEnergy) :
-	iAPlotData(iAValueType::Continuous),
+	iAPlotData("Accumulated Spectrum", iAValueType::Continuous),
 	m_xrfData(data),
 	m_minimum(new CountType[m_xrfData->size()]),
 	m_maximum(new CountType[m_xrfData->size()]),

@@ -196,7 +196,8 @@ void iAUncertaintyAttachment::EnsembleSelected(QSharedPointer<iAEnsemble> ensemb
 	m_scatterplotView->SetDatasets(ensemble);
 	m_memberView->SetEnsemble(ensemble);
 	m_labelDistributionView->Clear();
-	auto labelDistributionHistogram = createHistogram<int>(ensemble->GetLabelDistribution(), ensemble->LabelCount(), 0, ensemble->LabelCount()-1, iAValueType::Discrete);
+	auto labelDistributionHistogram = createHistogram<int>("Label Frequency", iAValueType::Discrete, ensemble->GetLabelDistribution(),
+		ensemble->LabelCount(), 0, ensemble->LabelCount() - 1);
 	double lutRange[2];
 	lutRange[0] = 0;
 	lutRange[1] = m_currentEnsemble->LabelCount();
@@ -219,7 +220,8 @@ void iAUncertaintyAttachment::EnsembleSelected(QSharedPointer<iAEnsemble> ensemb
 	QSharedPointer<iALookupTable> labelLookup(new iALookupTable(m_labelLut));
 	m_labelDistributionView->AddChart("Label", labelDistributionHistogram, iAUncertaintyColors::LabelDistributionBase, labelLookup);
 	m_uncertaintyDistributionView->Clear();
-	auto entropyHistogram = iAHistogramData::create(0, 1, ensemble->EntropyBinCount(), iAValueType::Continuous, ensemble->EntropyHistogram());
+	auto entropyHistogram = iAHistogramData::create("Frequency (Pixels)", iAValueType::Continuous,
+		0, 1, ensemble->EntropyBinCount(), ensemble->EntropyHistogram());
 	m_uncertaintyDistributionView->AddChart("Algorithm Uncertainty", entropyHistogram, iAUncertaintyColors::UncertaintyDistribution);
 	m_spatialView->SetDatasets(ensemble, m_labelLut);
 }
