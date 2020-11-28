@@ -50,9 +50,11 @@ void iAModalityTransfer::reset()
 
 void iAModalityTransfer::computeHistogramData(vtkSmartPointer<vtkImageData> imgData, size_t binCount)
 {
-	if (imgData->GetNumberOfScalarComponents() != 1 || (m_histogramData && m_histogramData->numBin() == binCount))
+	if (imgData->GetNumberOfScalarComponents() != 1 || (m_histogramData && m_histogramData->valueCount() == binCount))
+	{
 		return;
-	m_histogramData = iAHistogramData::create(imgData, binCount, &m_imageInfo);
+	}
+	m_histogramData = iAHistogramData::create("Frequency", imgData, binCount, &m_imageInfo);
 }
 
 QSharedPointer<iAHistogramData> const iAModalityTransfer::histogramData() const

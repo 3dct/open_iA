@@ -36,11 +36,11 @@ class QPolygon;
 class open_iA_Core_API iASelectedBinPlot : public iAPlot
 {
 public:
-	iASelectedBinPlot(QSharedPointer<iAPlotData> proxyData, int position = 0, QColor const & color = Qt::red );
-	void setPosition( int position );
-	void draw(QPainter& painter, double binWidth, size_t startBin, size_t endBin, iAMapper const & xMapper, iAMapper const & yMapper) const override;
+	iASelectedBinPlot(QSharedPointer<iAPlotData> proxyData, size_t idx = 0, QColor const & color = Qt::red );
+	void setSelectedBin(size_t idx);
+	void draw(QPainter& painter, size_t startIdx, size_t endIdx, iAMapper const & xMapper, iAMapper const & yMapper) const override;
 private:
-	int m_position;
+	size_t m_idx;
 };
 
 //! Plots the given data as a line.
@@ -53,7 +53,7 @@ public:
 	void setLineWidth(int width);
 private:
 	int m_lineWidth;
-	void draw(QPainter& painter, double binWidth, size_t startBin, size_t endBin, iAMapper const & xMapper, iAMapper const & yMapper) const override;
+	void draw(QPainter& painter, size_t startIdx, size_t endIdx, iAMapper const& xMapper, iAMapper const& yMapper) const override;
 };
 
 //! Plots each data point as a rectangular bar, all the bars are horizontally connected via a line.
@@ -63,7 +63,7 @@ class open_iA_Core_API iAStepFunctionPlot : public iAPlot
 public:
 	iAStepFunctionPlot(QSharedPointer<iAPlotData> data, QColor const & color);
 private:
-	void draw(QPainter& painter, double binWidth, size_t startBin, size_t endBin, iAMapper const & xMapper, iAMapper const & yMapper) const override;
+	void draw(QPainter& painter, size_t startIdx, size_t endIdx, iAMapper const & xMapper, iAMapper const & yMapper) const override;
 	QColor getFillColor() const;
 };
 
@@ -75,7 +75,7 @@ class open_iA_Core_API iAFilledLinePlot : public iAPlot
 public:
 	iAFilledLinePlot(QSharedPointer<iAPlotData> data, QColor const & color);
 private:
-	void draw(QPainter& painter, double binWidth, size_t startBin, size_t endBin, iAMapper const & xMapper, iAMapper const & yMapper) const override;
+	void draw(QPainter& painter, size_t startIdx, size_t endIdx, iAMapper const & xMapper, iAMapper const & yMapper) const override;
 	QColor getFillColor() const;
 };
 
@@ -85,7 +85,7 @@ class open_iA_Core_API iABarGraphPlot: public iAPlot
 {
 public:
 	iABarGraphPlot(QSharedPointer<iAPlotData> data, QColor const & color, int margin=0);
-	void draw(QPainter& painter, double binWidth, size_t startBin, size_t endBin, iAMapper const & xMapper, iAMapper const & yMapper) const override;
+	void draw(QPainter& painter, size_t startIdx, size_t endIdx, iAMapper const& xMapper, iAMapper const& yMapper) const override;
 	void setLookupTable(QSharedPointer<iALookupTable> lut);
 private:
 	QSharedPointer<iALookupTable> m_lut;
@@ -97,7 +97,7 @@ class open_iA_Core_API iAPlotCollection: public iAPlot
 {
 public:
 	iAPlotCollection();
-	void draw(QPainter& painter, double binWidth, size_t startBin, size_t endBin, iAMapper const & xMapper, iAMapper const & yMapper) const override;
+	void draw(QPainter& painter, size_t startIdx, size_t endIdx, iAMapper const& xMapper, iAMapper const& yMapper) const override;
 	void add (QSharedPointer<iAPlot> plot);
 	void clear();
 	void setColor(QColor const & color) override;

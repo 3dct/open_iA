@@ -79,6 +79,7 @@ iAJobListView::iAJobListView():
 	layout()->setContentsMargins(1, 0, 1, 0);
 	layout()->setSpacing(0);
 	layout()->addWidget(m_insideWidget);
+	connect(this, &iAJobListView::newJobSignal, this, &iAJobListView::newJobSlot, Qt::QueuedConnection); // make sure widgets are created in GUI thread
 }
 
 QWidget* iAJobListView::addJobWidget(QString name, iAProgress* p, iAAbortListener* abortListener,
@@ -168,10 +169,9 @@ QWidget* iAJobListView::addJobWidget(QString name, iAProgress* p, iAAbortListene
 	return jobWidget;
 }
 
-void iAJobListView::addJob(QString name, iAProgress* p, QObject* t, iAAbortListener* abortListener,
+void iAJobListView::newJobSlot(QString name, iAProgress* p, QObject* t, iAAbortListener* abortListener,
 	QSharedPointer<iADurationEstimator> estimator)
 {
-	m_runningJobs.fetchAndAddOrdered(1);
 	auto jobWidget = addJobWidget(name, p, abortListener, estimator);
 	connect(t, &QObject::destroyed, [this, jobWidget]() {
 		int oldJobCount = m_runningJobs.fetchAndAddOrdered(-1);
@@ -183,6 +183,13 @@ void iAJobListView::addJob(QString name, iAProgress* p, QObject* t, iAAbortListe
 		jobWidget->deleteLater();
 	});
 	emit jobAdded();
+}
+
+void iAJobListView::addJob(QString name, iAProgress* p, QObject* t, iAAbortListener* abortListener,
+	QSharedPointer<iADurationEstimator> estimator)
+{
+	m_runningJobs.fetchAndAddOrdered(1);
+	emit newJobSignal(name, p, t, abortListener, estimator);
 }
 
 QSharedPointer<QObject> iAJobListView::addJob(QString name, iAProgress* p,

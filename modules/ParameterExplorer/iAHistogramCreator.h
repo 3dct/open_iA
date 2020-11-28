@@ -28,6 +28,7 @@
 #include <QSharedPointer>
 #include <QThread>
 
+// TODO: use runAsync instead!
 class iAHistogramCreator : public QThread
 {
 	Q_OBJECT
@@ -39,7 +40,7 @@ public:
 	{}
 	virtual void run()
 	{
-		m_histogramData = iAHistogramData::create(m_img, m_binCount, nullptr);
+		m_histogramData = iAHistogramData::create("Frequency", m_img, m_binCount, nullptr);
 	}
 	QSharedPointer<iAHistogramData> GetData()
 	{

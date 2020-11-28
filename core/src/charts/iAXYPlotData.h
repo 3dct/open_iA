@@ -20,42 +20,35 @@
 * ************************************************************************************/
 #pragma once
 
-#include <charts/iAPlotData.h>
+#include "open_iA_Core_export.h"
+
+#include "iAPlotData.h"
 
 #include <QSharedPointer>
 
-class iARangeSliderDiagramData : public iAPlotData
+#include <utility> // for pair
+#include <vector>
+
+class open_iA_Core_API iAXYPlotData : public iAPlotData
 {
 public:
-	iARangeSliderDiagramData( QList<double> m_rangeSliderData, double min, double max );
-	~iARangeSliderDiagramData();
-	void updateRangeSliderFunction();
+	//! @{
+	//! overriding methods from iAPlotData
+	DataType xValue(size_t idx) const override;
+	DataType yValue(size_t idx) const override;
+	DataType const* xBounds() const override;
+	DataType const* yBounds() const override;
+	size_t valueCount() const override;
+	size_t nearestIdx(DataType dataX) const override;
+	QString toolTipText(DataType dataX) const override;
 
-	DataType const * rawData() const override;
-	size_t numBin() const override;
-
-	double spacing() const override
-	{
-		if ( numBin() <= 1 )
-			return 0.0;
-
-		return ( m_xBounds[1] - m_xBounds[0] ) / (numBin() - 1.0);
-	}
-
-	double const * xBounds() const override
-	{
-		return m_xBounds;
-	}
-
-	DataType const * yBounds() const override
-	{
-		return m_yBounds;
-	}
+	//! Adds a new x/y pair. Note that entries need to be added in order of their x component
+	void addValue(DataType x, DataType y);
+	//! Create an empty data object
+	static QSharedPointer<iAXYPlotData> create(QString const& name, iAValueType type, size_t valueCount);
 
 private:
-	DataType* m_rangeSliderFunction;
-	QList<double> m_rangeSliderData;
-
-	double m_xBounds[2];
-	DataType m_yBounds[2];
+	iAXYPlotData(QString const& name, iAValueType type, size_t valueCount);
+	std::vector<std::pair<DataType, DataType>> m_values;
+	DataType m_xBounds[2], m_yBounds[2];
 };

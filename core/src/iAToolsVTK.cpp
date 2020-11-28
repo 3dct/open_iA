@@ -67,10 +67,10 @@ vtkSmartPointer<vtkImageData> allocateImage(vtkSmartPointer<vtkImageData> img)
 }
 
 
-void storeImage(vtkSmartPointer<vtkImageData> image, QString const & filename, bool useCompression)
+void storeImage(vtkSmartPointer<vtkImageData> img, QString const & filename, bool useCompression)
 {
 	iAConnector con;
-	con.setImage(image);
+	con.setImage(img);
 	iAITKIO::ScalarPixelType pixelType = con.itkScalarPixelType();
 	iAITKIO::writeFile(filename, con.itkImage(), pixelType, useCompression);
 }
@@ -84,7 +84,7 @@ vtkSmartPointer<vtkImageData> readImage(QString const & filename, bool releaseFl
 	return con.vtkImage();
 }
 
-void writeSingleSliceImage(QString const & filename, vtkImageData* imageData)
+void writeSingleSliceImage(QString const & filename, vtkImageData* img)
 {
 	QFileInfo fi(filename);
 	vtkSmartPointer<vtkImageWriter> writer;
@@ -110,19 +110,13 @@ void writeSingleSliceImage(QString const & filename, vtkImageData* imageData)
 		return;
 	}
 	writer->SetFileName( getLocalEncodingFileName(filename).c_str() );
-	writer->SetInputData(imageData);
+	writer->SetInputData(img);
 	writer->Write();
 }
 
-
-bool isVtkIntegerType(int type)
+bool isVtkIntegerImage(vtkImageData* img)
 {
-	return
-		type == VTK_UNSIGNED_CHAR      || type == VTK_SIGNED_CHAR || type == VTK_CHAR ||
-		type == VTK_UNSIGNED_SHORT     || type == VTK_SHORT       ||
-		type == VTK_UNSIGNED_INT       || type == VTK_INT         ||
-		type == VTK_UNSIGNED_LONG      || type == VTK_LONG        ||
-		type == VTK_UNSIGNED_LONG_LONG || type == VTK_LONG_LONG;
+	return img->GetScalarType() != VTK_FLOAT && img->GetScalarType() != VTK_DOUBLE;
 }
 
 size_t mapVTKTypeToSize(int vtkType)

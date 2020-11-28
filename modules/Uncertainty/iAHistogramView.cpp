@@ -24,7 +24,7 @@
 
 #include <charts/iAChartWidget.h>
 #include <charts/iAPlotTypes.h>
-#include <charts/iASimpleHistogramData.h>
+#include <charts/iAHistogramData.h>
 
 #include <vtkColorTransferFunction.h>
 #include <vtkPiecewiseFunction.h>
@@ -37,7 +37,7 @@ iAHistogramView::iAHistogramView()
 	setLayout(new QHBoxLayout());
 }
 
-void iAHistogramView::AddChart(QString const & caption, QSharedPointer<iASimpleHistogramData> histoData,
+void iAHistogramView::AddChart(QString const & caption, QSharedPointer<iAHistogramData> histoData,
 		QColor const & color, QSharedPointer<iALookupTable> lut)
 {
 	m_chart = new iAChartWidget(this, caption, "Frequency (Pixels)");

@@ -56,10 +56,10 @@ iAFilterChart::iAFilterChart(QWidget* parent,
 {
 	addPlot(GetDrawer(m_data, DefaultColors::AllDataChartColor));
 	m_minSliderPos = m_data->mapBinToValue(0);
-	m_maxSliderPos = m_data->mapBinToValue(m_data->numBin());
+	m_maxSliderPos = m_data->mapBinToValue(m_data->valueCount());
 	setCaptionPosition(Qt::AlignLeft | Qt::AlignTop);
 	setShowXAxisLabel(showCaption);
-	for (size_t i = 0; i < m_data->numBin(); ++i)
+	for (size_t i = 0; i < m_data->valueCount(); ++i)
 	{
 		m_binColors.push_back(QColor(0, 0, 0, 0));
 	}
@@ -78,7 +78,7 @@ double iAFilterChart::mapValueToBin(double value) const
 QSharedPointer<iAPlot> iAFilterChart::GetDrawer(QSharedPointer<iAParamHistogramData> newData, QColor color)
 {
 	return (newData->valueType() == iAValueType::Categorical ||
-		(newData->valueType() == iAValueType::Discrete && ((newData->xBounds()[1]- newData->xBounds()[0])  <= newData->numBin())))
+		(newData->valueType() == iAValueType::Discrete && ((newData->xBounds()[1]- newData->xBounds()[0])  <= newData->valueCount())))
 		? QSharedPointer<iAPlot>(new iABarGraphPlot(newData, color, 2))
 		: QSharedPointer<iAPlot>(new iAFilledLinePlot(newData, color));
 }
@@ -109,14 +109,14 @@ void iAFilterChart::drawAxes(QPainter& painter)
 	{
 		double y1 =  0;
 		double y2 =  ChartColoringHeight;
-		int binWidth = static_cast<int>(std::ceil(mapValue(0.0, static_cast<double>(m_data->numBin()), 0.0, chartWidth()*m_xZoom, static_cast<double>(1))));
-		for (size_t b = 0; b < m_data->numBin(); ++b)
+		int binWidth = static_cast<int>(std::ceil(mapValue(0.0, static_cast<double>(m_data->valueCount()), 0.0, chartWidth()*m_xZoom, static_cast<double>(1))));
+		for (size_t b = 0; b < m_data->valueCount(); ++b)
 		{
 			if (m_binColors[b].alpha() == 0)
 			{
 				continue;
 			}
-			double x1 = mapValue(0.0, static_cast<double>(m_data->numBin()), 0.0, chartWidth()*m_xZoom, static_cast<double>(b));
+			double x1 = mapValue(0.0, static_cast<double>(m_data->valueCount()), 0.0, chartWidth()*m_xZoom, static_cast<double>(b));
 
 			QRect rect(x1, y1, binWidth, y2);
 			painter.fillRect(rect, m_binColors[b]);
@@ -135,7 +135,7 @@ void iAFilterChart::drawAxes(QPainter& painter)
 
 void iAFilterChart::SetBinColor(int bin, QColor const & color)
 {
-	assert(bin >= 0 && static_cast<size_t>(bin) < m_data->numBin());
+	assert(bin >= 0 && static_cast<size_t>(bin) < m_data->valueCount());
 	m_binColors[bin] = color;
 }
 
@@ -157,13 +157,13 @@ iAValueType iAFilterChart::GetRangeType() const
 
 double iAFilterChart::GetMinVisibleBin() const
 {
-	double minVisXBin = mapValue(0.0, chartWidth()*xZoom(), 0.0, static_cast<double>(m_data->numBin()), static_cast<double>(-m_translationX));
+	double minVisXBin = mapValue(0.0, chartWidth()*xZoom(), 0.0, static_cast<double>(m_data->valueCount()), static_cast<double>(-m_translationX));
 	return minVisXBin;
 }
 
 double iAFilterChart::GetMaxVisibleBin() const
 {
-	double maxVisXBin = mapValue(0.0, chartWidth()*xZoom(), 0.0, static_cast<double>(m_data->numBin()), static_cast<double>(chartWidth()-m_translationX));
+	double maxVisXBin = mapValue(0.0, chartWidth()*xZoom(), 0.0, static_cast<double>(m_data->valueCount()), static_cast<double>(chartWidth()-m_translationX));
 	return maxVisXBin;
 }
 

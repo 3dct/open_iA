@@ -20,9 +20,11 @@
 * ************************************************************************************/
 #include "iAChartWidget.h"
 
+#include "iAAttributeDescriptor.h"
 #include "iALog.h"
 #include "iAMapperImpl.h"
 #include "iAMathUtility.h"
+#include "iAParameterDlg.h"
 #include "iAPlot.h"
 #include "iAPlotData.h"
 #include "iAStringHelper.h"
@@ -201,7 +203,7 @@ void iAChartWidget::zoomAlongX(double value, int x, bool deltaMode)
 		return;
 	}
 	int absoluteX = x-m_translationX-leftMargin();
-	double absoluteXRatio = static_cast<double>(absoluteX)/((chartWidth()-1)*m_xZoom);
+	double absoluteXRatio = static_cast<double>(absoluteX)/fullChartWidth();
 	if (deltaMode)
 	{
 		if (value /* = delta */ > 0)
@@ -220,7 +222,7 @@ void iAChartWidget::zoomAlongX(double value, int x, bool deltaMode)
 
 	m_xZoom = clamp(ZoomXMin, maxXZoom(), m_xZoom);
 
-	int absXAfterZoom = static_cast<int>(chartWidth()*m_xZoom*absoluteXRatio);
+	int absXAfterZoom = static_cast<int>(fullChartWidth()*absoluteXRatio);
 
 	m_translationX = clamp(-static_cast<int>(chartWidth() * (m_xZoom-1)), 0,
 		-absXAfterZoom +x -leftMargin());
@@ -234,6 +236,12 @@ void iAChartWidget::zoomAlongX(double value, int x, bool deltaMode)
 int iAChartWidget::chartWidth() const
 {
 	return geometry().width() - leftMargin();
+}
+
+//! width in pixels that the chart would have if it were fully shown (considering current zoom level)k
+double iAChartWidget::fullChartWidth() const
+{
+	return chartWidth() * m_xZoom;
 }
 
 int iAChartWidget::chartHeight() const
@@ -319,7 +327,7 @@ double iAChartWidget::mouse2DataX(int mouseX)
 
 void iAChartWidget::createMappers()
 {
-	m_xMapper = QSharedPointer<iAMapper>(new iALinearMapper(m_xBounds[0], m_xBounds[1], 0, (chartWidth() - 1)*m_xZoom));
+	m_xMapper = QSharedPointer<iAMapper>(new iALinearMapper(m_xBounds[0], m_xBounds[1], 0, fullChartWidth()));
 	if (m_yMappingMode == Linear)
 	{
 		m_yMapper = QSharedPointer<iAMapper>(new iALinearMapper(m_yBounds[0], m_yBounds[1], 0, (chartHeight()-1)*m_yZoom));
@@ -355,6 +363,7 @@ void iAChartWidget::drawImageOverlays(QPainter& painter)
 void iAChartWidget::drawAfterPlots(QPainter& /*painter*/)
 {}
 
+// TODO: unify with dblToStringWithUnits...?
 QString iAChartWidget::xAxisTickMarkLabel(double value, double stepWidth)
 {
 	int placesBeforeComma = requiredDigits(value);
@@ -369,8 +378,8 @@ QString iAChartWidget::xAxisTickMarkLabel(double value, double stepWidth)
 		return result;
 	}
 	else
-	{
-		return QString::number(static_cast<long long>(value), 'g', 15);
+	{ // not ideal;
+		return QString::number(value, 'f', 0);
 	}
 }
 
@@ -394,7 +403,7 @@ bool iAChartWidget::categoricalAxis() const
 
 double iAChartWidget::visibleXStart() const
 {
-	return xBounds()[0] + (((static_cast<double>(-m_translationX)) / (chartWidth()*m_xZoom)) * xRange());
+	return xBounds()[0] + (((static_cast<double>(-m_translationX)) / fullChartWidth()) * xRange());
 }
 
 double iAChartWidget::visibleXEnd() const
@@ -410,8 +419,8 @@ void iAChartWidget::drawXAxis(QPainter &painter)
 	QFontMetrics fm = painter.fontMetrics();
 	size_t stepCount = m_maxXAxisSteps;
 	double stepWidth;
-	double startXVal = clamp(m_xTickBounds[0], m_xTickBounds[1], visibleXStart());
-	double endXVal = clamp(m_xTickBounds[0], m_xTickBounds[1], visibleXEnd());
+	double startXVal = clamp(m_xBounds[0], m_xBounds[1], visibleXStart());
+	double endXVal = clamp(m_xBounds[0], m_xBounds[1], visibleXEnd());
 	if (!categoricalAxis())
 	{
 		// check for overlap:
@@ -422,8 +431,8 @@ void iAChartWidget::drawXAxis(QPainter &painter)
 			overlap = false;
 			for (size_t i = 0; i<stepCount && !overlap; ++i)
 			{
-				double value = m_xTickBounds[0] + static_cast<double>(i) * stepWidth;
-				double nextValue = m_xTickBounds[0] + static_cast<double>(i+1) * stepWidth;
+				double value = m_xBounds[0] + static_cast<double>(i) * stepWidth;
+				double nextValue = m_xBounds[0] + static_cast<double>(i+1) * stepWidth;
 				if (value < startXVal)
 				{
 					continue;
@@ -465,7 +474,7 @@ void iAChartWidget::drawXAxis(QPainter &painter)
 	stepCount = std::max(static_cast<size_t>(1), stepCount); // at least one step
 	for (size_t i = 0; i <= stepCount; ++i)
 	{
-		double value = m_xTickBounds[0] + static_cast<double>(i) * stepWidth;
+		double value = m_xBounds[0] + static_cast<double>(i) * stepWidth;
 		if (value < startXVal)
 		{
 			continue;
@@ -579,8 +588,8 @@ void iAChartWidget::setXBounds(double valMin, double valMax)
 	m_customXBounds = true;
 	m_xBounds[0] = valMin;
 	m_xBounds[1] = valMax;
-	m_xTickBounds[0] = valMin;
-	m_xTickBounds[1] = valMax;
+	//m_xTickBounds[0] = valMin;
+	//m_xTickBounds[1] = valMax;
 	ensureNonZeroRange(m_xBounds, true);
 }
 
@@ -631,20 +640,15 @@ void iAChartWidget::updateXBounds(size_t startPlot)
 	{                             // update   partial            full
 		m_xBounds[0]     = (startPlot != 0) ? m_xBounds[0]     : std::numeric_limits<double>::max();
 		m_xBounds[1]     = (startPlot != 0) ? m_xBounds[1]     : std::numeric_limits<double>::lowest();
-		m_xTickBounds[0] = (startPlot != 0) ? m_xTickBounds[0] : std::numeric_limits<double>::max();
-		m_xTickBounds[1] = (startPlot != 0) ? m_xTickBounds[1] : std::numeric_limits<double>::lowest();
 		m_maxXAxisSteps = 0;
 		for (size_t curPlot = std::max(static_cast<size_t>(0), startPlot); curPlot < m_plots.size(); ++curPlot)
 		{
 			auto d = m_plots[curPlot]->data();
-			m_xBounds[0] = std::min(m_xBounds[0], d->xBounds()[0] - ((d->valueType() == iAValueType::Discrete) ? 0.5 : 0) );
-			m_xBounds[1] = std::max(m_xBounds[1], d->xBounds()[1] + ((d->valueType() == iAValueType::Discrete) ? 0.5 : 0) );
-			m_xTickBounds[0] = std::min(m_xTickBounds[0], d->xBounds()[0]);
-			m_xTickBounds[1] = std::max(m_xTickBounds[1], d->xBounds()[1]);
-			m_maxXAxisSteps = std::max(m_maxXAxisSteps, d->numBin() );
+			m_xBounds[0] = std::min(m_xBounds[0], d->xBounds()[0] /*- ((d->valueType() == iAValueType::Discrete) ? 0.5 : 0)*/ );
+			m_xBounds[1] = std::max(m_xBounds[1], d->xBounds()[1] /*+ ((d->valueType() == iAValueType::Discrete) ? 0.5 : 0)*/ );
+			m_maxXAxisSteps = std::max(m_maxXAxisSteps, d->valueCount() );
 		}
 		ensureNonZeroRange(m_xBounds);
-		ensureNonZeroRange(m_xTickBounds);
 	}
 }
 
@@ -681,10 +685,10 @@ long iAChartWidget::screenX2DataBin(int x) const
 	{
 		return x;
 	}
-	double numBin = m_plots[0]->data()->numBin();
-	double diagX = static_cast<double>(x - m_translationX - leftMargin()) * numBin / (chartWidth() * m_xZoom);
-	diagX = clamp(0.0, numBin, diagX);
-	return static_cast<long>(round(diagX));
+	double numBin = m_plots[0]->data()->valueCount();
+	double dBinX = clamp(0.0, numBin-1, static_cast<double>(x - m_translationX - leftMargin()) * numBin / fullChartWidth());
+	long binX = static_cast<long>(dBinX);
+	return binX;
 }
 
 int iAChartWidget::dataBin2ScreenX(long x) const
@@ -694,10 +698,10 @@ int iAChartWidget::dataBin2ScreenX(long x) const
 		assert(x > std::numeric_limits<int>::lowest() && x < std::numeric_limits<int>::max());
 		return static_cast<int>(x);
 	}
-	double numBin = m_plots[0]->data()->numBin();
-	double screenX = static_cast<double>(x) * chartWidth() * m_xZoom / (numBin);
-	screenX = clamp(0.0, chartWidth()*m_xZoom, screenX);
-	return static_cast<int>(round(screenX));
+	double numBin = m_plots[0]->data()->valueCount();
+	double screenX = static_cast<double>(x) * fullChartWidth() / (numBin);
+	screenX = clamp(0.0, fullChartWidth(), screenX);
+	return static_cast<int>(screenX);
 }
 
 bool iAChartWidget::isTooltipShown() const
@@ -716,8 +720,8 @@ double iAChartWidget::maxXZoom() const
 	{
 		return ZoomXMaxEmpty;
 	}
-	double numBin = m_plots[0]->data()->numBin();
-	return std::max(std::min(ZoomXMax, numBin), 1.0);
+	double valueCount = m_plots[0]->data()->valueCount();
+	return std::max(std::min(ZoomXMax, valueCount), 1.0);
 }
 
 void iAChartWidget::setYMappingMode(AxisMappingType drawMode)
@@ -745,6 +749,12 @@ void iAChartWidget::addPlot(QSharedPointer<iAPlot> plot)
 	assert(plot);
 	if (!plot)
 	{
+		LOG(lvlInfo, "Trying to add empty plot!");
+		return;
+	}
+	if (std::find(m_plots.begin(), m_plots.end(), plot) != m_plots.end())
+	{
+		LOG(lvlInfo, "Trying to add plot a second time!");
 		return;
 	}
 	m_plots.push_back(plot);
@@ -773,19 +783,6 @@ void iAChartWidget::clearPlots()
 std::vector<QSharedPointer<iAPlot> > const & iAChartWidget::plots()
 {
 	return m_plots;
-}
-
-bool iAChartWidget::isDrawnDiscrete() const
-{
-	for (auto plot : m_plots)
-	{
-		if (!((plot->data()->valueType() == iAValueType::Discrete && (xRange() <= plot->data()->numBin()))
-			  || plot->data()->valueType() == iAValueType::Categorical))
-		{
-			return false;
-		}
-	}
-	return !m_plots.empty();
 }
 
 void iAChartWidget::addImageOverlay(QSharedPointer<QImage> imgOverlay, bool stretch)
@@ -818,28 +815,13 @@ void iAChartWidget::setSelectionMode(SelectionMode mode)
 void iAChartWidget::drawPlots(QPainter &painter)
 {
 	double xStart = visibleXStart(), xEnd = visibleXEnd();
-	for (auto it = m_plots.begin(); it != m_plots.end(); ++it)
+	for (auto plot: m_plots)
 	{
-		if ((*it)->visible())
+		if (plot->visible())
 		{
-			size_t plotNumBin = (*it)->data()->numBin();
-			double plotXBounds[2] = {(*it)->data()->xBounds()[0], (*it)->data()->xBounds()[1]};
-			ensureNonZeroRange(plotXBounds);
-			double plotVisXBounds[2] = {
-				clamp((*it)->data()->xBounds()[0], (*it)->data()->xBounds()[1], xStart),
-				clamp((*it)->data()->xBounds()[0], (*it)->data()->xBounds()[1], xEnd)
-			};
-			ensureNonZeroRange(plotVisXBounds);
-			double plotStepWidth = (plotXBounds[1] - plotXBounds[0]
-				+ (((*it)->data()->valueType() == iAValueType::Discrete)?1:0) ) / (*it)->data()->numBin();
-			size_t plotStartBin = static_cast<size_t>(clamp(0.0, static_cast<double>(plotNumBin - 1), (plotVisXBounds[0] - (*it)->data()->xBounds()[0]) / plotStepWidth - 1));
-			size_t plotEndBin = static_cast<size_t>(clamp(0.0, static_cast<double>(plotNumBin - 1), (plotVisXBounds[1] - (*it)->data()->xBounds()[0]) / plotStepWidth + 1));
-			double plotPixelBinWidth = m_xMapper->srcToDst(xBounds()[0] + plotStepWidth);
-			iALinearMapper plotXMapper;
-			plotXMapper.update(-1, plotNumBin + (((*it)->data()->valueType() == iAValueType::Continuous) ? 1 : 0),
-				m_xMapper->srcToDst((*it)->data()->xBounds()[0] - plotStepWidth),
-				m_xMapper->srcToDst((*it)->data()->xBounds()[1] + plotStepWidth));
-			(*it)->draw(painter, plotPixelBinWidth, plotStartBin, plotEndBin, plotXMapper, *m_yMapper.data());
+			size_t startIdx = clamp(static_cast<size_t>(0), plot->data()->valueCount()-1, plot->data()->nearestIdx(xStart));
+			size_t endIdx = clamp(static_cast<size_t>(0), plot->data()->valueCount()-1, plot->data()->nearestIdx(xEnd)+1);
+			plot->draw(painter, startIdx, endIdx, *m_xMapper.data(), *m_yMapper.data());
 		}
 	}
 }
@@ -850,7 +832,7 @@ bool iAChartWidget::event(QEvent *event)
 	{
 		return iAChartParentWidget::event(event);
 	}
-
+	// maybe use mouseMove / setToolTip instead?
 	if (m_plots.empty() || !m_showTooltip)
 	{
 		QToolTip::hideText();
@@ -861,63 +843,23 @@ bool iAChartWidget::event(QEvent *event)
 	return true;
 }
 
-void iAChartWidget::showDataTooltip(QHelpEvent *event)
+void iAChartWidget::showDataTooltip(QHelpEvent* event)
 {
 	if (m_plots.empty())
 	{
 		return;
 	}
-	size_t numBin = m_plots[0]->data()->numBin();
-	assert(numBin > 0);
-	int xPos = clamp(0, geometry().width() - 1, event->x());
-	assert (chartWidth() >= 0);
-	size_t nthBin = static_cast<size_t>(((static_cast<unsigned long>(xPos - m_translationX - leftMargin()) * numBin) / (static_cast<unsigned long>(chartWidth()))) / m_xZoom);
-	nthBin = clamp(static_cast<size_t>(0), numBin, nthBin);
-	if (xPos == geometry().width() - 1)
+	int mouseX = clamp(0, geometry().width(), event->x()) - leftMargin();
+	double dataX = mouse2DataX(mouseX);
+	QString toolTipText;
+	for (auto const & plot : m_plots)
 	{
-		nthBin = numBin - 1;
-	}
-	QString toolTip;
-	double stepWidth = numBin >= 1 ? m_plots[0]->data()->binStart(1) - m_plots[0]->data()->binStart(0) : 0;
-	double binStart = m_plots[0]->data()->binStart(nthBin);
-	if (isDrawnDiscrete())
-	{
-		binStart = static_cast<int>(binStart);
-	}
-	if (m_yCaption.isEmpty())
-	{
-		toolTip = QString("%1: ").arg(xAxisTickMarkLabel(binStart, stepWidth));
-	}
-	else
-	{
-		toolTip = QString("%1: %2\n%3: ").arg(m_xCaption).arg(xAxisTickMarkLabel(binStart, stepWidth)).arg(m_yCaption);
-	}
-	bool more = false;
-	const int MaxToolTipDataCount = 5;
-	int curTooltipDataCount = 1;
-	for (auto plot : m_plots)
-	{
-		if (!plot->data() || !plot->data()->rawData())
+		if (plot->visible() && inRange(plot->data()->xBounds(), dataX) )
 		{
-			continue;
-		}
-		if (more)
-		{
-			toolTip += ", ";
-		}
-		else
-		{
-			more = true;
-		}
-		toolTip += QString::number(plot->data()->rawData()[nthBin], 'g', 15);
-		++curTooltipDataCount;
-		if (curTooltipDataCount > MaxToolTipDataCount)
-		{
-			toolTip += "...";
-			break;
+			toolTipText += plot->data()->toolTipText(dataX) + "\n";
 		}
 	}
-	QToolTip::showText(event->globalPos(), toolTip, this);
+	QToolTip::showText(event->globalPos(), toolTipText.trimmed(), this);
 }
 
 void iAChartWidget::changeMode(int newMode, QMouseEvent *event)
@@ -942,33 +884,36 @@ void iAChartWidget::mouseReleaseEvent(QMouseEvent *event)
 		if (m_selectionBand->isVisible())
 		{
 			m_selectionBand->hide();
-			QRectF diagramRect;
+			QRectF dataRect;
 			QRectF selectionRect(m_selectionBand->geometry());     // height-y because we are drawing reversed from actual y direction
-			diagramRect.setTop(    yMapper().dstToSrc(chartHeight() - selectionRect.bottom()) );
-			diagramRect.setBottom( yMapper().dstToSrc(chartHeight() - selectionRect.top()   ) );
-			diagramRect.setLeft(   screenX2DataBin(static_cast<int>(selectionRect.left())  ) );
-			diagramRect.setRight(  screenX2DataBin(static_cast<int>(selectionRect.right()) ) );
-			diagramRect = diagramRect.normalized();
-			if (diagramRect.top() < yBounds()[0])
+			dataRect.setTop(   yMapper().dstToSrc(chartHeight() - selectionRect.bottom()) );
+			dataRect.setBottom(yMapper().dstToSrc(chartHeight() - selectionRect.top()   ) );
+			dataRect.setLeft(  mouse2DataX(static_cast<int>(selectionRect.left()-leftMargin())  ) );
+			dataRect.setRight( mouse2DataX(static_cast<int>(selectionRect.right()-leftMargin()) ) );
+			dataRect = dataRect.normalized();
+			if (dataRect.top() < yBounds()[0])
 			{
-				diagramRect.setTop(yBounds()[0]);
+				dataRect.setTop(yBounds()[0]);
 			}
-			if (diagramRect.bottom() > yBounds()[1])
+			if (dataRect.bottom() > yBounds()[1])
 			{
-				diagramRect.setBottom(yBounds()[1]);
+				dataRect.setBottom(yBounds()[1]);
 			}
 			m_selectedPlots.clear();
-			double yMin = diagramRect.top(), yMax = diagramRect.bottom();
+			double yMin = dataRect.top(), yMax = dataRect.bottom();
+			// move to iAPlotData?
 			for (size_t plotIdx=0; plotIdx<m_plots.size(); ++plotIdx)
 			{
 				if (!m_plots[plotIdx]->visible())
 				{
 					continue;
 				}
-				for (int bin=static_cast<int>(diagramRect.left()); bin <= static_cast<int>(diagramRect.right()); ++bin)
+				size_t startIdx = std::max(static_cast<size_t>(0), m_plots[plotIdx]->data()->nearestIdx(dataRect.left()));
+				size_t endIdx = std::min(m_plots[plotIdx]->data()->valueCount(), m_plots[plotIdx]->data()->nearestIdx(dataRect.right()+1));
+				for (size_t idx = startIdx; idx < endIdx; ++idx)
 				{
-					double binYValue = m_plots[plotIdx]->data()->rawData()[bin];
-					if (yMin < binYValue && binYValue < yMax)
+					double yValue = m_plots[plotIdx]->data()->yValue(idx);
+					if (yMin < yValue && yValue < yMax)
 					{
 						m_selectedPlots.push_back(plotIdx);
 						break;
@@ -1156,7 +1101,7 @@ void iAChartWidget::drawAll(QPainter & painter)
 	{
 		createMappers();
 	}
-	m_xMapper->update(m_xBounds[0], m_xBounds[1], 0, m_xZoom*(chartWidth()-1));
+	m_xMapper->update(m_xBounds[0], m_xBounds[1], 0, fullChartWidth());
 	m_yMapper->update(m_yMappingMode == Logarithmic && m_yBounds[0] <= 0 ? LogYMapModeMin : m_yBounds[0], m_yBounds[1], 0, m_yZoom*(chartHeight()-1));
 	QFontMetrics fm = painter.fontMetrics();
 	m_fontHeight = fm.height();
@@ -1227,36 +1172,35 @@ void iAChartWidget::contextMenuEvent(QContextMenuEvent *event)
 
 void iAChartWidget::exportData()
 {
-	// TODO: Allow choosing which plot to export!
 	if (m_plots.empty())
 	{
 		return;
 	}
-	QString filePath = ""; //(activeChild) ? activeChild->getFilePath() : "";
+	int plotIdx = 0;
+	if (m_plots.size() > 1)
+	{
+		QVector<QSharedPointer<iAAttributeDescriptor>> params;
+		params.push_back(iAAttributeDescriptor::createParam("Plot index", iAValueType::Discrete, 0, 0, m_plots.size()));
+		iAParameterDlg dlg(this, "Choose plot", params, "More than one plot available - please choose which one you want to export!");
+		if (dlg.exec() != QDialog::Accepted)
+		{
+			return;
+		}
+		plotIdx = dlg.parameterValues()["Plot index"].toInt();
+	}
 	QString fileName = QFileDialog::getSaveFileName(
-		this,
-		tr("Save File"),
-		filePath, tr("CSV (*.csv)")
-	);
+		this, tr("Save File"), QDir::currentPath(), tr("CSV (*.csv)"));
 	if (fileName.isEmpty())
 	{
 		return;
 	}
 	std::ofstream out( getLocalEncodingFileName(fileName));
-	out << tr("Start of Bin").toStdString();
-	for (size_t p = 0; p < m_plots.size(); ++p)
+	out << m_xCaption.toStdString() << "," << QString("%1%2").arg(m_yCaption).arg(plotIdx).toStdString() << "\n";
+	for (size_t idx = 0; idx < m_plots[plotIdx]->data()->valueCount(); ++idx)
 	{
-		out << "," << QString("%1%2").arg(m_yCaption).arg(p).toStdString();
-	}
-	out << std::endl;
-	for (size_t b = 0; b < m_plots[0]->data()->numBin(); ++b)
-	{
-		out << QString::number(m_plots[0]->data()->binStart(b), 'g', 15).toStdString();
-		for (size_t p = 0; p < m_plots.size(); ++p)
-		{
-			out << "," << QString::number(m_plots[p]->data()->rawData()[b], 'g', 15).toStdString();
-		}
-		out << std::endl;
+		out << QString::number(m_plots[plotIdx]->data()->xValue(idx), 'g', 15).toStdString()
+			<< "," << QString::number(m_plots[plotIdx]->data()->yValue(idx), 'g', 15).toStdString()
+			<< "\n";
 	}
 	out.close();
 }

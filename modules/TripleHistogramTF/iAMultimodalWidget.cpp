@@ -474,7 +474,8 @@ void iAMultimodalWidget::updateModalities()
 		// TODO: Don't duplicate code from mdichild, call it instead!
 		// Histogram {
 		size_t newHistBins = m_mdiChild->preferences().HistogramBins;
-		if (!m_modalitiesActive[i]->histogramData() || m_modalitiesActive[i]->histogramData()->numBin() != newHistBins)
+		if (!m_modalitiesActive[i]->histogramData() ||
+			m_modalitiesActive[i]->histogramData()->valueCount() != newHistBins)
 		{
 			m_modalitiesActive[i]->computeImageStatistics();
 			m_modalitiesActive[i]->computeHistogramData(newHistBins);

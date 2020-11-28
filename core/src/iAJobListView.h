@@ -102,6 +102,11 @@ signals:
 	//! emitted when a job is added; used in main window to show widget, as it
 	//! indicates that there is at least on currently running job.
 	void jobAdded();
+	void newJobSignal(QString name, iAProgress* p, QObject* t, iAAbortListener* abortListener,
+		QSharedPointer<iADurationEstimator> estimator);
+private slots:
+	void newJobSlot(QString name, iAProgress* p, QObject* t, iAAbortListener* abortListener,
+		QSharedPointer<iADurationEstimator> estimator);
 private:
 	//! prevent creation - singleton pattern
 	iAJobListView();

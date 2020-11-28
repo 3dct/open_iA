@@ -65,6 +65,8 @@ public:
 	virtual int leftMargin() const;
 	//! Retrieve width (in pixels) of the actual chart, i.e. the region where plots are drawn, without space for margins / axes.
 	virtual int chartWidth()  const;
+	//! width in pixels that the chart would have if it were fully shown (considering current zoom level)k
+	double fullChartWidth() const;
 	//! Retrieve height (in pixels) of the actual chart, i.e. the region where plots are drawn, without space for the margins / axes.
 	virtual int chartHeight() const;
 	//! @{ Retrieve minimum/maximum y data value.
@@ -131,10 +133,6 @@ public:
 	void clearPlots();
 	//! Retrieve all plots currently in the chart.
 	std::vector< QSharedPointer< iAPlot > > const & plots();
-	//! Check whether all plots currently in the chart have discrete
-	//! (categorical also counts as discrete for this purpose). If a single
-	//! plot is continuous, it will report false.
-	bool isDrawnDiscrete() const;
 	//! Add an image overlay to the chart.
 	void addImageOverlay(QSharedPointer<QImage> imgOverlay, bool stretch=true);
 	//! Remove an image overlay from the chart.
@@ -248,7 +246,7 @@ private:
 	int  m_fontHeight;
 	int  m_yMaxTickLabelWidth;
 	bool m_customXBounds, m_customYBounds;
-	double m_xBounds[2], m_yBounds[2], m_xTickBounds[2];
+	double m_xBounds[2], m_yBounds[2]/*, m_xTickBounds[2]*/;
 	QFlags<Qt::AlignmentFlag> m_captionPosition;
 	SelectionMode m_selectionMode;
 	QRubberBand* m_selectionBand;

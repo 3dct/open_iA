@@ -21,57 +21,27 @@
 #include "iARangeSliderDiagramWidget.h"
 
 #include <charts/iAChartFunctionTransfer.h>
+#include <charts/iAHistogramData.h>
 #include <iACSVToQTableWidgetConverter.h>
 #include <iAMathUtility.h>
 
 #include <cassert>
 
-
-class iAFilteringDiagramData : public iAPlotData
+QSharedPointer<iAHistogramData> createFilteredPlotData(
+	QSharedPointer<iAPlotData> other, int firstBin, int lastBin)
 {
-public:
-	iAFilteringDiagramData(QSharedPointer<iAPlotData> other, int min, int max):
-		m_data(new double[other->numBin()]),
-		m_size(other->numBin()),
-		m_other(other)
+	auto result = iAHistogramData::create("Filtered "+other->name(), other->valueType(),
+		other->xBounds()[0], other->xBounds()[1], other->valueCount());
+	assert(other->valueCount() < std::numeric_limits<int>::max());
+	for (int i = 0; i < static_cast<int>(other->valueCount()); ++i)
 	{
-		assert(other->numBin() < std::numeric_limits<int>::max());
-		for (int i = 0; i < static_cast<int>(other->numBin()); ++i)
-		{
-			m_data[i] = (i >= min && i <= max) ? other->rawData()[i] : 0;
-		}
+		result->setBin(i, (i >= firstBin && i <= lastBin) ? other->yValue(i) : 0);
 	}
-
-	DataType const* rawData() const override
-	{
-		return m_data;
-	}
-
-	size_t numBin() const override
-	{
-		return m_size;
-	}
-	double spacing() const override
-	{
-		return m_other->spacing();
-	}
-	double const* xBounds() const override
-	{
-		return m_other->xBounds();
-	}
-	DataType const* yBounds() const override
-	{
-		return m_other->yBounds();
-	}
-private:
-	DataType* m_data;
-	size_t m_size;
-	QSharedPointer<iAPlotData> m_other;
-};
-
+	return result;
+}
 
 iARangeSliderDiagramWidget::iARangeSliderDiagramWidget( QWidget *parent,
-	vtkPiecewiseFunction* oTF, vtkColorTransferFunction* cTF, QSharedPointer<iARangeSliderDiagramData> data,
+	vtkPiecewiseFunction* oTF, vtkColorTransferFunction* cTF, QSharedPointer<iAHistogramData> data,
 	QMap<double, QList<double> > *histogramMap, const QTableWidget *rawTable,
 	QString const & xlabel, QString const & yLabel):
 	iAChartWithFunctionsWidget(parent, xlabel, yLabel),
@@ -318,12 +288,10 @@ void iARangeSliderDiagramWidget::contextMenuEvent( QContextMenuEvent * /*event*/
 
 int iARangeSliderDiagramWidget::getBin( QMouseEvent *event )
 {
-	iAPlotData::DataType const * rawData = m_data->rawData();
-	if ( !rawData )	return -1;
-	int nthBin =  screenX2DataBin(event->x());
+	int nthBin = m_data->nearestIdx(mouse2DataX(event->x() - leftMargin()));
 	QString text( tr( "%1: %2 %\n%3: %4" )
 				  .arg( m_yLabel )
-				  .arg( rawData[nthBin] )
+				  .arg( m_data->yValue(nthBin) )
 				  .arg( m_xLabel )
 				  .arg( (m_data->spacing() * nthBin + xBounds()[0] ) ) );
 	QToolTip::showText( event->globalPos(), text, this );
@@ -332,7 +300,7 @@ int iARangeSliderDiagramWidget::getBin( QMouseEvent *event )
 
 void iARangeSliderDiagramWidget::setupSelectionDrawer()
 {
-	m_selectedData  = QSharedPointer<iAPlotData>( new iAFilteringDiagramData( m_data, m_firstSelectedBin, m_lastSelectedBin ) );
+	m_selectedData = createFilteredPlotData( m_data, m_firstSelectedBin, m_lastSelectedBin );
 
 	if ( m_selectionDrawer )
 		removePlot( m_selectionDrawer );
@@ -385,9 +353,7 @@ void iARangeSliderDiagramWidget::selectSlot()
 	while ( it.hasNext() )
 	{
 		int row = it.next();
-
-		QSharedPointer<iAPlotData> selectedData = QSharedPointer<iAPlotData>(
-			new iAFilteringDiagramData( m_data, row - 1, row - 1 ) );	//-1 cause of DiagramData
+		auto selectedData = createFilteredPlotData( m_data, row - 1, row - 1 );	//-1 cause of DiagramData
 
 		QSharedPointer<iAStepFunctionPlot> selectionDrawer = QSharedPointer<iAStepFunctionPlot>(
 			new iAStepFunctionPlot( selectedData, QColor( Qt::yellow ) ) );

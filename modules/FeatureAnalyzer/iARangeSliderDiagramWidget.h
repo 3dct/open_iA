@@ -20,8 +20,6 @@
 * ************************************************************************************/
 #pragma once
 
-#include "iARangeSliderDiagramData.h"
-
 #include <charts/iAChartWithFunctionsWidget.h>
 #include <charts/iAPlotTypes.h>
 
@@ -33,6 +31,7 @@
 #include <QToolTip>
 #include <QTableWidget>
 
+class iAHistogramData;
 
 class iARangeSliderDiagramWidget : public iAChartWithFunctionsWidget
 {
@@ -42,7 +41,7 @@ public:
 	iARangeSliderDiagramWidget( QWidget *parent,
 								vtkPiecewiseFunction* oTF,
 								vtkColorTransferFunction* cTF,
-								QSharedPointer<iARangeSliderDiagramData> data,
+								QSharedPointer<iAHistogramData> data,
 								QMap<double, QList<double> > *,
 								const QTableWidget * rawTable,
 								QString const & xlabel = "Greyvalue",
@@ -67,7 +66,7 @@ public slots:
 	void deleteSlot();
 
 private:
-	QSharedPointer<iARangeSliderDiagramData> m_data;
+	QSharedPointer<iAHistogramData> m_data;
 	QSharedPointer<iAPlotData> m_selectedData;
 	QSharedPointer<iAStepFunctionPlot> m_selectionDrawer;
 	QList<QSharedPointer<iAStepFunctionPlot> > m_histogramDrawerList;

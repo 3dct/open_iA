@@ -39,7 +39,7 @@ public:
 	iAPlot(QSharedPointer<iAPlotData> data, QColor const & color);
 	virtual ~iAPlot();
 	//! Draws the plot
-	virtual void draw(QPainter& painter, double binWidth, size_t startBin, size_t endBin, iAMapper const & xMapper, iAMapper const & yMapper) const = 0;
+	virtual void draw(QPainter& painter, size_t startBin, size_t endBin, iAMapper const & xMapper, iAMapper const & yMapper) const = 0;
 	//! Retrieves the data used for drawing
 	virtual QSharedPointer<iAPlotData> data();
 	//! Whether the plot is currently being drawn
