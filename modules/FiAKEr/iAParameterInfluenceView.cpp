@@ -48,6 +48,7 @@ namespace// merge with iASensitivityinfo!
 	const int GridSpacing = 2;
 	const int LayoutMargin = 4;
 	const QString DefaultStackedBarColorTheme("Brewer Accent (max. 8)");
+	const int RowsPerParam = 2;
 }
 
 iAParameterInfluenceView::iAParameterInfluenceView(iASensitivityInfo* sensInf) :
@@ -107,7 +108,8 @@ iAParameterInfluenceView::iAParameterInfluenceView(iASensitivityInfo* sensInf) :
 	for (int paramIdx = 0; paramIdx < sensInf->m_variedParams.size(); ++paramIdx)
 	{
 		QString paramName = sensInf->m_paramNames[sensInf->m_variedParams[paramIdx]];
-		m_stackedCharts.push_back(new iAStackedBarChart(colorTheme, m_paramListLayout, 1 + paramIdx * 2, colStackedBar,
+		int rowIdx = 1 + RowsPerParam * paramIdx;
+		m_stackedCharts.push_back(new iAStackedBarChart(colorTheme, m_paramListLayout, rowIdx, colStackedBar,
 			false, paramIdx == sensInf->m_variedParams.size() - 1, true, "Var. from " + paramName));
 		connect(m_stackedHeader, &iAStackedBarChart::weightsChanged, m_stackedCharts[paramIdx], &iAStackedBarChart::setWeights);
 		m_stackedCharts[paramIdx]->setProperty("paramIdx", paramIdx);
@@ -122,11 +124,10 @@ iAParameterInfluenceView::iAParameterInfluenceView(iASensitivityInfo* sensInf) :
 		labels[colMin] = new iAClickableLabel(QString::number(minVal));
 		labels[colMax] = new iAClickableLabel(QString::number(maxVal));
 		labels[colStep] = new iAClickableLabel(QString::number(sensInf->paramStep[paramIdx]));
-		int rowIdx = 1 + 2 * paramIdx;
 		for (int i = colParamName; i <= colStep; ++i)
 		{
 			labels[i]->setProperty("paramIdx", paramIdx);
-			m_paramListLayout->addWidget(labels[i], rowIdx, i);
+			m_paramListLayout->addWidget(labels[i], rowIdx, i, RowsPerParam, 1);
 			connect(labels[i], &iAClickableLabel::clicked, this, &iAParameterInfluenceView::paramChangedSlot);
 		}
 		//m_paramListLayout->addWidget(m_stackedCharts[paramIdx], rowIdx, colStackedBar);
@@ -242,12 +243,17 @@ void iAParameterInfluenceView::setSelectedParam(int param)
 	for (int paramIdx = 0; paramIdx < m_sensInf->m_variedParams.size(); ++paramIdx)
 	{
 		// QPalette::Highlight / QPalette::HighlightedText
-		QColor color = palette().color(paramIdx == m_selectedRow ? QPalette::Mid : backgroundRole());
+		QColor color = palette().color(paramIdx == m_selectedRow ? QPalette::Midlight : backgroundRole());
 		//QColor textColor = palette().color(paramIdx == m_selectedRow ?  : QPalette::Text);
 		for (int col = colParamName; col <= colStep; ++col)
 		{
-			m_paramListLayout->itemAtPosition(paramIdx+1, col)->widget()->setStyleSheet(
-				"QLabel { background-color : " + color.name() + "; }");
+			auto item = m_paramListLayout->itemAtPosition(RowsPerParam*paramIdx + 1, col);
+			if (!item)
+			{
+				LOG(lvlWarn, "Invalid - empty item!");
+				continue;
+			}
+			item->widget()->setStyleSheet("QLabel { background-color : " + color.name() + "; }");
 		}
 		m_stackedCharts[paramIdx]->setBackgroundColor(color);
 		m_stackedCharts[paramIdx]->update();

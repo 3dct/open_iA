@@ -131,8 +131,14 @@ private:
 	void paintEvent(QPaintEvent* ev) override
 	{
 		Q_UNUSED(ev);
-		QPainter p(this);
-		m_s->drawBar(p, m_barID, m_barID == 0 ? m_s->m_leftMargin: 0, 0,
+		QPainter painter(this);
+		QColor bg(m_s->m_bgColor);
+		if (!bg.isValid())
+		{
+			bg = QWidget::palette().color(QWidget::backgroundRole());
+		}
+		painter.fillRect(rect(), QBrush(bg));
+		m_s->drawBar(painter, m_barID, m_barID == 0 ? m_s->m_leftMargin : 0, 0,
 			std::min(geometry().height(), iAStackedBarChart::MaxBarHeight) - (m_s->m_header ? 0 : 2 * BarVSpacing)
 		);
 	}
