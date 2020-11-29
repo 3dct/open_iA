@@ -258,7 +258,7 @@ QSharedPointer<iAHistogramData> iAHistogramData::create(QString const& name, iAV
 template <typename ContT> double* createArrayFromContainer(ContT const & cont)
 {
 	double* dataArr = new double[cont.size()];
-	for (size_t i = 0; i < cont.size(); ++i)
+	for (typename ContT::size_type i = 0; i < cont.size(); ++i)
 	{
 		dataArr[i] = cont[i];
 	}

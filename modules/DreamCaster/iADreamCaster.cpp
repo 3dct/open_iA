@@ -1480,7 +1480,7 @@ void iADreamCaster::ShowRangeRays()
 	//////////////////////////////////////////////////////////////////////////
 	//if(ui.cb_rangeParameter->currentIndex()!=1)//av. penetration parameter choosed
 	{
-		const unsigned int numValues = (const unsigned int) curRender->rays.size();
+		const unsigned int numValues = static_cast<unsigned int>(curRender->rays.size());
 		double rmin = ui.sb_range_min->value();
 		double rmax = ui.sb_range_max->value();
 		vtkPoints *raysPts = vtkPoints::New();
