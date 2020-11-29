@@ -139,7 +139,7 @@ QSharedPointer<iAParamHistogramData> iAParamHistogramData::create(iAImageTreeNod
 }
 
 iAParamHistogramData::iAParamHistogramData(size_t numBin, double minX, double maxX, bool log, iAValueType type) :
-	iAHistogramData("Frequency", type, m_log && minX <= 0 ? 0.000001 : minX,
+	iAHistogramData("Frequency", type, log && minX <= 0 ? 0.000001 : minX,
 		(minX == maxX) ? minX + 1 : maxX, numBin > 0 ? numBin : 1),
 	m_log(log)
 {
