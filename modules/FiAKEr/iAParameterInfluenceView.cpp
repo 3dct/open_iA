@@ -316,6 +316,7 @@ void iAParameterInfluenceView::updateStackedBarHistogram(QString const & barName
 	auto plotData = iAHistogramData::create(barName, iAValueType::Continuous, rng[0], rng[1],
 		m_sensInf->charHistVarAgg[outIdx][m_aggrType][paramIdx]);
 	chart->addPlot(QSharedPointer<iAPlot>(new iABarGraphPlot(plotData, QColor(80, 80, 80, 128))));
+	chart->resetYBounds();
 	chart->setXCaption(m_sensInf->charactName(outIdx));
 	chart->update();
 }
@@ -376,6 +377,11 @@ void iAParameterInfluenceView::removeStackedBar(int outType, int outIdx)
 	for (auto stackedChart : m_stackedCharts)
 	{
 		stackedChart->removeBar(title);
+		for (int b=0; b<stackedChart->numberOfBars(); ++b)
+		{
+			auto chart = stackedChart->chart(b);
+			chart->resetYBounds();
+		}
 	}
 	updateChartY();
 }
