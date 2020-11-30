@@ -121,6 +121,7 @@ iAParameterInfluenceView::iAParameterInfluenceView(iASensitivityInfo* sensInf) :
 			maxVal = *std::max_element(paramVec.begin(), paramVec.end());
 		iAClickableLabel* labels[4];
 		labels[colParamName] = new iAClickableLabel(paramName);
+		labels[colParamName]->setStyleSheet("QLabel { background-color : " + QColor(150, 150, 255, 255).name() + "; }");
 		labels[colMin] = new iAClickableLabel(QString::number(minVal));
 		labels[colMax] = new iAClickableLabel(QString::number(maxVal));
 		labels[colStep] = new iAClickableLabel(QString::number(sensInf->paramStep[paramIdx]));
@@ -245,7 +246,7 @@ void iAParameterInfluenceView::setSelectedParam(int param)
 		// QPalette::Highlight / QPalette::HighlightedText
 		QColor color = palette().color(paramIdx == m_selectedRow ? QPalette::Midlight : backgroundRole());
 		//QColor textColor = palette().color(paramIdx == m_selectedRow ?  : QPalette::Text);
-		for (int col = colParamName; col <= colStep; ++col)
+		for (int col = colMin; col <= colStep; ++col)
 		{
 			auto item = m_paramListLayout->itemAtPosition(RowsPerParam*paramIdx + 1, col);
 			if (!item)

@@ -99,7 +99,9 @@ namespace
 		in >> pairInfo.fiberDissim;
 		return in;
 	}
-}
+	QColor ParamColor(150, 150, 255, 255);
+	QColor CharactColor(255, 200, 200, 255);
+	}
 
 // Factor out as generic CSV reading class also used by iACsvIO?
 bool readParameterCSV(QString const& fileName, QString const& encoding, QString const& columnSeparator,
@@ -1343,8 +1345,9 @@ public:
 	static const int VMargin = 5;
 	static const int HMargin = 10;
 	static const int ArrowHeadSize = 5;
-	static const int ArrowTextDistance = 1;
+	static const int ArrowTextDistance = 3;
 	static const int ArrowTextLeft = 5;
+	static const int RoundedCornerRadius = 3;
 	iAAlgorithmInfo(QString const& name, QStringList const& inNames, QStringList const& outNames) :
 		m_name(name), m_inNames(inNames), m_outNames(outNames)
 	{
@@ -1357,24 +1360,34 @@ public:
 	{
 		return geometry().height() - 2 * VMargin;
 	}
-	void drawArrow(QPainter& p, int left, int top, int width, QString const& text)
+	void drawArrow(QPainter& p, int left, int top, int width, QString const& text, QColor const & color)
 	{
 		int right = left + width;
 		p.drawLine(left, top, right, top);
 		p.drawLine(right - ArrowHeadSize, top - ArrowHeadSize, right, top);
 		p.drawLine(right - ArrowHeadSize, top + ArrowHeadSize, right, top);
-		p.drawText(QRect(left + ArrowTextLeft, top - p.fontMetrics().height() + ArrowTextDistance,
-					   width - ArrowTextLeft - ArrowHeadSize,
-					   p.fontMetrics().height()),
-			Qt::AlignLeft, text);
+		QRect textRect(left + ArrowTextLeft, top - p.fontMetrics().height() - ArrowTextDistance,
+			width - ArrowTextLeft - ArrowHeadSize, p.fontMetrics().height());
+
+		QPainterPath path;
+#if QT_VERSION >= QT_VERSION_CHECK(5, 11, 0)
+		int textWidth = p.fontMetrics().horizontalAdvance(text);
+#else
+		int textWidth = p.fontMetrics().width(text);
+#endif
+		textRect.setWidth(textWidth);
+		path.addRoundedRect(textRect, RoundedCornerRadius, RoundedCornerRadius);
+		p.fillPath(path, color);
+
+		p.drawText(textRect, Qt::AlignLeft, text);
 	}
-	void drawConnections(QPainter& p, int left, QStringList const& strings)
+	void drawConnections(QPainter& p, int left, QStringList const& strings, QColor const& color)
 	{
 		int inHeight = boxHeight() / (strings.size() + 1);
 		int baseTop = VMargin + inHeight;
 		for (int inIdx = 0; inIdx < strings.size(); ++inIdx)
 		{
-			drawArrow(p, left, baseTop + inIdx * inHeight, boxWidth(), strings[inIdx]);
+			drawArrow(p, left, baseTop + inIdx * inHeight, boxWidth(), strings[inIdx], color);
 		}
 	}
 	void paintEvent(QPaintEvent* ev)
@@ -1386,8 +1399,8 @@ public:
 		p.drawRect(algoBox);
 		p.drawText(algoBox, Qt::AlignCenter, m_name);
 
-		drawConnections(p, HMargin, m_inNames);
-		drawConnections(p, HMargin + 2 * boxWidth(), m_outNames);
+		drawConnections(p, HMargin, m_inNames, ParamColor);
+		drawConnections(p, HMargin + 2 * boxWidth(), m_outNames, CharactColor);
 	}
 
 private:
