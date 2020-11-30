@@ -434,23 +434,23 @@ void iAStackedBarChart::drawBar(QPainter& painter, size_t barID, int left, int t
 	QRect barRect(left, top, bWidth, barHeight);
 	QBrush barBrush(m_theme->color(barID));
 	painter.fillRect(barRect, barBrush);
+	int segmentWidth = (m_stack ? bWidth : static_cast<int>(bar->weight * (m_chartAreaPixelWidth - m_leftMargin))) - 1;
+	QRect segmentBox(left, 0, segmentWidth, barHeight);
 	if (m_selectedBar == barID)
 	{
-		QRect box(left, 0,
-			(m_stack ? bWidth : static_cast<int>(bar->weight * (m_chartAreaPixelWidth - m_leftMargin))) - 1, barHeight);
 		if (m_header)
 		{
-			painter.drawLine(box.topLeft(), box.topRight());
+			painter.drawLine(segmentBox.topLeft(), segmentBox.topRight());
 		}
-		painter.drawLine(box.topLeft(), box.bottomLeft());
-		painter.drawLine(box.topRight(), box.bottomRight());
+		painter.drawLine(segmentBox.topLeft(), segmentBox.bottomLeft());
+		painter.drawLine(segmentBox.topRight(), segmentBox.bottomRight());
 		if (m_last)
 		{
-			painter.drawLine(box.bottomLeft(), box.bottomRight());
+			painter.drawLine(segmentBox.bottomLeft(), segmentBox.bottomRight());
 		}
 	}
-	barRect.adjust(iAStackedBarChart::TextPadding, 0, -iAStackedBarChart::TextPadding, 0);
-	painter.drawText(barRect, Qt::AlignVCenter, (m_header ? bar->name : QString("%1").arg(bar->value)));
+	segmentBox.adjust(iAStackedBarChart::TextPadding, 0, -iAStackedBarChart::TextPadding, 0);
+	painter.drawText(segmentBox, Qt::AlignVCenter, (m_header ? bar->name : QString("%1").arg(bar->value)));
 }
 
 void iABarsWidget::paintEvent(QPaintEvent* ev)
