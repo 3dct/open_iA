@@ -69,10 +69,10 @@ public:
 	virtual QString toolTipText(DataType dataX) const =0;
 
 private:
-	//! The type of the values that were used as input to compute the histogram.
-	iAValueType m_valueType;
 	//! The name of the data series that this object holds.
 	QString m_name;
+	//! The type of the values that were used as input to compute the histogram.
+	iAValueType m_valueType;
 };
 
 //! helper function for adapting bounds to a given value

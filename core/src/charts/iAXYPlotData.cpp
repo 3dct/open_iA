@@ -22,6 +22,8 @@
 
 #include "iALog.h"
 
+#include <cassert>
+
 iAPlotData::DataType iAXYPlotData::xValue(size_t idx) const
 {
 	assert(idx < m_values.size());

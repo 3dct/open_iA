@@ -21,6 +21,7 @@
 #include "iAFeatureTracking.h"
 
 #include <io/iAFileUtils.h>
+#include <iALog.h>
 
 #include <vtkTable.h>
 #include <vtkTypeUInt32Array.h>
@@ -97,7 +98,10 @@ vtkSmartPointer<vtkTable> iAFeatureTracking::readTableFromFile(const QString& fi
 					dimYVxArray->InsertNextValue(stoi(splittedRow.at(11)));
 					dimZVxArray->InsertNextValue(stoi(splittedRow.at(12)));
 				}
-				catch (std::exception) {}
+				catch (std::exception& e)
+				{
+					LOG(lvlDebug, e.what());
+				}
 			}
 		}
 	}
