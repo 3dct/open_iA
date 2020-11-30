@@ -1335,6 +1335,66 @@ private:
 	std::vector<iAMatrixWidget*> m_matrixPerParam;
 };
 
+
+
+class iAAlgorithmInfo : public QWidget
+{
+public:
+	static const int VMargin = 5;
+	static const int HMargin = 10;
+	static const int ArrowHeadSize = 5;
+	static const int ArrowTextDistance = 1;
+	static const int ArrowTextLeft = 5;
+	iAAlgorithmInfo(QString const& name, QStringList const& inNames, QStringList const& outNames) :
+		m_name(name), m_inNames(inNames), m_outNames(outNames)
+	{
+	}
+	int boxWidth() const
+	{
+		return (geometry().width() - 2 * HMargin) / 3;
+	}
+	int boxHeight() const
+	{
+		return geometry().height() - 2 * VMargin;
+	}
+	void drawArrow(QPainter& p, int left, int top, int width, QString const& text)
+	{
+		int right = left + width;
+		p.drawLine(left, top, right, top);
+		p.drawLine(right - ArrowHeadSize, top - ArrowHeadSize, right, top);
+		p.drawLine(right - ArrowHeadSize, top + ArrowHeadSize, right, top);
+		p.drawText(QRect(left + ArrowTextLeft, top - p.fontMetrics().height() + ArrowTextDistance,
+					   width - ArrowTextLeft - ArrowHeadSize,
+					   p.fontMetrics().height()),
+			Qt::AlignLeft, text);
+	}
+	void drawConnections(QPainter& p, int left, QStringList const& strings)
+	{
+		int inHeight = boxHeight() / (strings.size() + 1);
+		int baseTop = VMargin + inHeight;
+		for (int inIdx = 0; inIdx < strings.size(); ++inIdx)
+		{
+			drawArrow(p, left, baseTop + inIdx * inHeight, boxWidth(), strings[inIdx]);
+		}
+	}
+	void paintEvent(QPaintEvent* ev)
+	{
+		Q_UNUSED(ev);
+		QPainter p(this);
+
+		QRect algoBox(HMargin + boxWidth(), VMargin, boxWidth(), boxHeight());
+		p.drawRect(algoBox);
+		p.drawText(algoBox, Qt::AlignCenter, m_name);
+
+		drawConnections(p, HMargin, m_inNames);
+		drawConnections(p, HMargin + 2 * boxWidth(), m_outNames);
+	}
+
+private:
+	QString m_name;
+	QStringList m_inNames, m_outNames;
+};
+
 class iASensitivityGUI
 {
 public:
@@ -1361,6 +1421,7 @@ public:
 	iADissimilarityMatrixType m_dissimilarityMatrix;
 	iAMatrixWidget* m_matrixWidget;
 	iAParameterListView* m_parameterListView;
+	iAAlgorithmInfo* m_algoInfo;
 
 	void updateScatterPlotLUT(int starGroupSize, int numOfSTARSteps, size_t resultCount,
 		QVector<int> const & variedParams)
@@ -1602,6 +1663,20 @@ void iASensitivityInfo::createGUI()
 	m_gui->m_paramDetails = new QCustomPlot(m_child);
 	auto dwParamDetails = new iADockWidgetWrapper(m_gui->m_paramDetails, "Parameter Details", "foeParamDetails");
 	m_child->splitDockWidget(m_gui->m_dwParamInfluence, dwParamDetails, Qt::Vertical);
+
+	QStringList algoInNames;
+	for (auto p : m_variedParams)
+	{
+		algoInNames.push_back(m_paramNames[p]);
+	}
+	QStringList algoOutNames;
+	for (int charIdx = 0; charIdx < m_charSelected.size(); ++charIdx)
+	{
+		algoOutNames << charactName(charIdx);
+	}
+	m_gui->m_algoInfo = new iAAlgorithmInfo("Fiber Reconstruction", algoInNames, algoOutNames);
+	auto dwAlgoInfo = new iADockWidgetWrapper(m_gui->m_algoInfo, "Algorithm Details", "foeAlgorithmInfo");
+	m_child->splitDockWidget(dwSettings, dwAlgoInfo, Qt::Horizontal);
 
 	QVector<int> measures;
 	for (auto d : m_resultDissimMeasures)
