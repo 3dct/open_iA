@@ -206,7 +206,6 @@ public slots:
 	void changeMeasure(int newMeasure);
 	void paramChanged();
 	void outputChanged(int outType, int outIdx);
-	void changeStackedBarColors();
 	void updateOutputControls();
 	void updateDissimilarity();
 	void spHighlightChanged();

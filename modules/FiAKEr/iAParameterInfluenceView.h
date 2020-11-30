@@ -23,9 +23,9 @@
 #include <QWidget>
 
 class iAChartWidget;
-class iAColorTheme;
 class iAStackedBarChart;
 class iASensitivityInfo;
+class iASingleColorTheme;
 
 class QGridLayout;
 
@@ -40,7 +40,7 @@ class iAParameterInfluenceView : public QWidget
 {
 	Q_OBJECT
 public:
-	iAParameterInfluenceView(iASensitivityInfo* sensInf);
+	iAParameterInfluenceView(iASensitivityInfo* sensInf, QColor const& paramColor, QColor const& outputColor);
 	void setMeasure(int newMeasure);
 	void setAggregation(int newAggregation);
 	void setSelectedParam(int param);
@@ -48,7 +48,6 @@ public:
 	int selectedAggrType() const;
 	int selectedRow() const;
 	int selectedCol() const;
-	void setColorTheme(iAColorTheme const * colorTheme);
 public slots:
 	void showStackedBar();
 	void selectStackedBar(int outputType, int idx);
@@ -78,6 +77,7 @@ private:
 	int m_aggrType;
 	int m_selectedRow, m_selectedCol;
 	QGridLayout* m_paramListLayout;
+	QSharedPointer<iASingleColorTheme> m_stackedBarTheme;
 signals:
 	void parameterChanged();
 	void outputSelected(int outType, int outTypeIdx);

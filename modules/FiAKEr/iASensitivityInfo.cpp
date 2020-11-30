@@ -100,7 +100,7 @@ namespace
 		return in;
 	}
 	QColor ParamColor(150, 150, 255, 255);
-	QColor CharactColor(255, 200, 200, 255);
+	QColor OutputColor(255, 200, 200, 255);
 	}
 
 // Factor out as generic CSV reading class also used by iACsvIO?
@@ -1225,9 +1225,6 @@ class iASensitivitySettingsView: public iASensitivitySettingsUI
 public:
 	iASensitivitySettingsView(iASensitivityInfo* sensInf)
 	{
-		cmbboxStackedBarChartColors->addItems(iAColorThemeManager::instance().availableThemes());
-		cmbboxStackedBarChartColors->setCurrentText(DefaultStackedBarColorTheme);
-
 		cmbboxMeasure->addItems(DistributionDifferenceMeasureNames());
 		cmbboxAggregation->addItems(AggregationNames());
 		QStringList characteristics;
@@ -1246,8 +1243,6 @@ public:
 
 		connect(cmbboxMeasure, QOverload<int>::of(&QComboBox::currentIndexChanged), sensInf, &iASensitivityInfo::changeMeasure);
 		connect(cmbboxAggregation, QOverload<int>::of(&QComboBox::currentIndexChanged), sensInf, &iASensitivityInfo::changeAggregation);
-		connect(cmbboxStackedBarChartColors, QOverload<int>::of(&QComboBox::currentIndexChanged),
-			sensInf, &iASensitivityInfo::changeStackedBarColors);
 
 		connect(cmbboxAggregation, QOverload<int>::of(&QComboBox::currentIndexChanged), sensInf, &iASensitivityInfo::paramChanged);
 		connect(cmbboxCharacteristic, QOverload<int>::of(&QComboBox::currentIndexChanged), sensInf, &iASensitivityInfo::paramChanged);
@@ -1400,7 +1395,7 @@ public:
 		p.drawText(algoBox, Qt::AlignCenter, m_name);
 
 		drawConnections(p, HMargin, m_inNames, ParamColor);
-		drawConnections(p, HMargin + 2 * boxWidth(), m_outNames, CharactColor);
+		drawConnections(p, HMargin + 2 * boxWidth(), m_outNames, OutputColor);
 	}
 
 private:
@@ -1664,7 +1659,7 @@ void iASensitivityInfo::createGUI()
 	auto dwSettings = new iADockWidgetWrapper(m_gui->m_settings, "Sensitivity Settings", "foeSensitivitySettings");
 	m_child->splitDockWidget(m_nextToDW, dwSettings, Qt::Horizontal);
 
-	m_gui->m_paramInfluenceView = new iAParameterInfluenceView(this);
+	m_gui->m_paramInfluenceView = new iAParameterInfluenceView(this, ParamColor, OutputColor);
 	m_gui->m_dwParamInfluence = new iADockWidgetWrapper(m_gui->m_paramInfluenceView, "Parameter Influence", "foeParamInfluence");
 	connect(m_gui->m_paramInfluenceView, &iAParameterInfluenceView::parameterChanged, this, &iASensitivityInfo::paramChanged);
 	connect(m_gui->m_paramInfluenceView, &iAParameterInfluenceView::outputSelected, this,
@@ -1758,12 +1753,6 @@ void iASensitivityInfo::changeMeasure(int newMeasure)
 void iASensitivityInfo::changeAggregation(int newAggregation)
 {
 	m_gui->m_paramInfluenceView->setAggregation(newAggregation);
-}
-
-void iASensitivityInfo::changeStackedBarColors()
-{
-	iAColorTheme const* theme = iAColorThemeManager::instance().theme(m_gui->m_settings->cmbboxStackedBarChartColors->currentText());
-	m_gui->m_paramInfluenceView->setColorTheme(theme);
 }
 
 void iASensitivityInfo::paramChanged()
