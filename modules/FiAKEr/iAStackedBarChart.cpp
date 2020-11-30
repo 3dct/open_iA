@@ -100,6 +100,19 @@ public:
 		QWidget::resizeEvent(e);
 		m_s->updateDividers();
 	}
+	void mouseDoubleClickEvent(QMouseEvent* event) override
+	{
+		size_t barID = m_s->getBarAt(event->x());
+		LOG(lvlDebug, QString("DblClicked on bar %1").arg(barID));
+		m_s->emitBarClick(barID);
+	}
+	void mousePressEvent(QMouseEvent* event) override
+	{
+		size_t barID = m_s->getBarAt(event->x());
+		LOG(lvlDebug, QString("Clicked on bar %1").arg(barID));
+		m_s->emitBarDblClick(barID);
+	}
+
 private:
 	void paintEvent(QPaintEvent* ev) override;
 
@@ -127,7 +140,16 @@ public:
 		QWidget::resizeEvent(e);
 		m_s->updateDividers();
 	}
-private:
+	void mouseDoubleClickEvent(QMouseEvent* ev) override
+	{
+		Q_UNUSED(ev);
+		m_s->emitBarClick(m_barID);
+	}
+	void mousePressEvent(QMouseEvent* ev) override
+	{
+		Q_UNUSED(ev);
+		m_s->emitBarDblClick(m_barID);
+	}
 	void paintEvent(QPaintEvent* ev) override
 	{
 		Q_UNUSED(ev);
@@ -215,6 +237,18 @@ void iAStackedBarChart::addBar(QString const & name, double value, double maxVal
 	updateChartBars();
 	normalizeWeights();
 	updateDividers();
+}
+
+void iAStackedBarChart::emitBarClick(size_t barID)
+{
+	emit clicked();
+	emit barClicked(barID);
+}
+
+void iAStackedBarChart::emitBarDblClick(size_t barID)
+{
+	emit dblClicked();
+	emit barDblClicked(barID);
 }
 
 void iAStackedBarChart::updateBar(QString const& name, double value, double maxValue)
@@ -324,6 +358,16 @@ void iAStackedBarChart::updateBars()
 			m_gL->itemAtPosition(m_row + BarRow, m_col + i)->widget()->update();
 		}
 	}
+}
+
+size_t iAStackedBarChart::getBarAt(int x) const
+{
+	size_t barID = 0;
+	while (barID < m_dividers.size() && x > m_dividers[barID])
+	{
+		++barID;
+	}
+	return barID;
 }
 
 size_t iAStackedBarChart::numberOfBars() const
@@ -482,9 +526,16 @@ void iABarsWidget::paintEvent(QPaintEvent* ev)
 
 void iAStackedBarChart::updateDividers()
 {
+	m_dividers.clear();
 	if (m_stack)
 	{
 		m_chartAreaPixelWidth = m_barsWidget->geometry().width();
+		int accumulatedWidth = m_leftMargin;
+		for (size_t barID = 0; barID < m_bars.size(); ++barID)
+		{
+			accumulatedWidth += barWidth(*m_bars[barID].data());
+			m_dividers.push_back(accumulatedWidth);
+		}
 	}
 	else
 	{
@@ -494,14 +545,7 @@ void iAStackedBarChart::updateDividers()
 			m_chartAreaPixelWidth += m_gL->itemAtPosition(m_row + BarRow, m_col + i)->widget()->geometry().width();
 		}
 	}
-	m_dividers.clear();
-	int accumulatedWidth = 0;
-	for (size_t barID = 0; barID < m_bars.size(); ++barID)
-	{
-		auto& bar = m_bars[barID];
-		int bWidth = barWidth(*bar.data());
-		m_dividers.push_back(m_leftMargin + accumulatedWidth + bWidth);
-	}
+
 }
 
 void iAStackedBarChart::contextMenuEvent(QContextMenuEvent *ev)
@@ -609,11 +653,7 @@ void iAStackedBarChart::mouseMoveEvent(QMouseEvent* ev)
 	}
 	else
 	{
-		size_t curBar = 0;
-		while (curBar < m_dividers.size() && ev->x() > m_dividers[curBar])
-		{
-			++curBar;
-		}
+		size_t curBar = getBarAt(ev->x());
 		if (curBar < m_bars.size())
 		{
 			auto& b = m_bars[curBar];
@@ -653,24 +693,6 @@ void iAStackedBarChart::mouseReleaseEvent(QMouseEvent* /*ev*/)
 	else
 	{
 		//emit clicked();
-	}
-}
-
-void iAStackedBarChart::mouseDoubleClickEvent(QMouseEvent* ev)
-{
-	emit doubleClicked();
-	int x = ev->x();
-	int barID = -1;
-	for (size_t divID = 0; divID < m_dividers.size(); ++divID)
-	{
-		if (x >= ((divID > 0) ? m_dividers[divID - 1] : 0) && x < m_dividers[divID])
-		{
-			barID = static_cast<int>(divID);
-		}
-	}
-	if (barID != -1)
-	{
-		emit barDblClicked(barID);
 	}
 }
 

@@ -56,10 +56,11 @@ public:
 	void setChartYRange(double yMin, double yMax);
 signals:
 	void switchedStackMode(bool mode);
-	void weightsChanged(std::vector<double> const & weights);
+	void weightsChanged(std::vector<double> const& weights);
 	void clicked();
 	void doubleClicked();
-	void barDblClicked(int barID);
+	void barClicked(size_t barID);
+	void barDblClicked(size_t barID);
 	void normalizeModeChanged(bool normalizePerBar);
 public slots:
 	void setWeights(std::vector<double> const & weights);
@@ -71,7 +72,6 @@ private slots:
 private:
 	//! @{ Event Handlers:
 	void contextMenuEvent(QContextMenuEvent *ev) override;
-	void mouseDoubleClickEvent(QMouseEvent* e) override;
 	void resizeEvent(QResizeEvent* e) override;
 	void mousePressEvent(QMouseEvent* ev) override;
 	void mouseReleaseEvent(QMouseEvent* ev) override;
@@ -81,6 +81,7 @@ private:
 	void drawBar(QPainter& painter, size_t barID, int left, int top, int barHeight);
 	int barHeight() const;
 	void updateBars();
+	size_t getBarAt(int x) const;
 
 	size_t dividerWithinRange(int x) const;
 	double weightAndNormalize(iABarData const& bar) const;
@@ -89,6 +90,9 @@ private:
 	void updateOverallMax();
 	void updateChartBars();
 	void updateDividers();
+
+	void emitBarClick(size_t barID);
+	void emitBarDblClick(size_t barID);
 
 	std::vector<QSharedPointer<iABarData>> m_bars;
 	std::vector<int> m_dividers;
