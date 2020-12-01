@@ -116,6 +116,10 @@ public:
 		}
 		QWidget::mousePressEvent(ev);
 	}
+	void mouseMoveEvent(QMouseEvent* ev) override
+	{
+		m_s->mouseMoveEvent(ev);
+	}
 
 private:
 	void paintEvent(QPaintEvent* ev) override;
