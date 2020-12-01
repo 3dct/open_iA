@@ -55,6 +55,10 @@ public slots:
 	void toggleCharacteristic(int charactIdx);
 private slots:
 	void paramChangedSlot();
+	void setBarWeights(std::vector<double> const& weights);
+	void setBarNormalizeMode(bool normalizePerBar);
+	void setBarDoStack(bool doStack);
+
 private:
 	void updateStackedBars();
 	void addStackedBar(int outputType, int outIdx);
@@ -67,10 +71,8 @@ private:
 
 	// pair output type / index
 	QVector<QPair<int,int>> m_visibleCharacts;
-	//! stacked bar charts (one per parameter)
-	QVector<iAStackedBarChart*> m_stackedCharts;
-	//! stacked bar headers
-	iAStackedBarChart* m_stackedHeader;
+	//! stacked bar headers + charts (one per parameter)
+	QVector<QPair<iAStackedBarChart*, iAStackedBarChart*>> m_stackedBars;
 	//! sensitivity information
 	iASensitivityInfo* m_sensInf;
 	//! measure to use 
