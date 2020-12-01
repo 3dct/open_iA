@@ -83,6 +83,7 @@ private:
 	QGridLayout* m_paramListLayout;
 	QSharedPointer<iASingleColorTheme> m_stackedBarTheme;
 	QVector<QVector<iAChartWidget*>> m_outHistoCharts;
+	QVector<QVector<iAChartWidget*>> m_paramCharts;
 signals:
 	void parameterChanged();
 	void outputSelected(int outType, int outTypeIdx);

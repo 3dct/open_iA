@@ -1696,7 +1696,7 @@ void iASensitivityInfo::changeAggregation(int newAggregation)
 
 void iASensitivityInfo::paramChanged()
 {
-	int outputIdx = m_gui->m_settings->outputIdx();
+	int outType = m_gui->m_settings->outputIdx();
 	int paramIdx = m_gui->m_paramInfluenceView->selectedRow();
 	m_gui->m_algoInfo->setSelectedInput(paramIdx);
 	if (paramIdx == -1)
@@ -1717,9 +1717,9 @@ void iASensitivityInfo::paramChanged()
 	plot->graph(0)->setPen(QPen(Qt::blue));
 
 	auto const& data = (
-		(outputIdx == outCharacteristic) ?  sensitivityField[selCharIdx][measureIdx][aggrType]
-		  : (outputIdx == outFiberCount) ?  sensitivityFiberCount[aggrType]
-	  /* (outputIdx == outDissimilarity)*/: sensDissimField[dissimMeasIdx][aggrType])[paramIdx];
+		(outType == outCharacteristic) ?  sensitivityField[selCharIdx][measureIdx][aggrType]
+		  : (outType == outFiberCount) ? sensitivityFiberCount[aggrType]
+	  /* (outType == outDissimilarity)*/: sensDissimField[dissimMeasIdx][aggrType])[paramIdx];
 	QVector<double> x(data.size()), y(data.size());
 	for (int i = 0; i < data.size(); ++i)
 	{
@@ -1733,7 +1733,7 @@ void iASensitivityInfo::paramChanged()
 	plot->yAxis2->setVisible(true);
 	plot->yAxis2->setTickLabels(false);
 	plot->xAxis->setLabel(m_paramNames[m_variedParams[paramIdx]]);
-	plot->yAxis->setLabel( ((outputIdx == outCharacteristic) ?
+	plot->yAxis->setLabel( ((outType == outCharacteristic) ?
 		"Sensitivity " + (charactName(selCharIdx) + " (" + DistributionDifferenceMeasureNames()[measureIdx]+") ") :
 		"Fiber Count ") + AggregationNames()[aggrType]  );
 	// make left and bottom axes always transfer their ranges to right and top axes:

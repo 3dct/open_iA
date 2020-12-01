@@ -30,6 +30,7 @@
 #include <charts/iAHistogramData.h>
 #include <charts/iAPlotTypes.h>
 #include <charts/iASPLOMData.h>
+#include <charts/iAXYPlotData.h>
 #include <iAColorTheme.h>
 #include <iALog.h>
 
@@ -47,7 +48,7 @@ namespace
 	};
 	const int GridSpacing = 2;
 	const int LayoutMargin = 4;
-	const int RowsPerParam = 3;
+	const int RowsPerParam = 4;
 
 	enum
 	{
@@ -56,6 +57,26 @@ namespace
 		RowOutputChart = 2,
 		RowParamChart = 3
 	};
+
+	void updateChartY(QVector<QVector<iAChartWidget*>> & charts)
+	{
+		double yMin = 0, yMax = std::numeric_limits<double>::lowest();
+		for (auto chartRow : charts)
+		{
+			for (auto chart : chartRow)
+			{
+				yMax = std::max(yMax, chart->yBounds()[1]);
+			}
+		}
+		for (auto chartRow : charts)
+		{
+			for (auto chart : chartRow)
+			{
+				chart->setYBounds(yMin, yMax);
+				chart->update();
+			}
+		}
+	}
 }
 
 iAParameterInfluenceView::iAParameterInfluenceView(iASensitivityInfo* sensInf, QColor const & paramColor, QColor const & outputColor) :
@@ -66,7 +87,8 @@ iAParameterInfluenceView::iAParameterInfluenceView(iASensitivityInfo* sensInf, Q
 	m_selectedCol(-1),
 	m_paramListLayout(new QGridLayout()),
 	m_stackedBarTheme(new iASingleColorTheme("OneOutputColorTheme", outputColor)),
-	m_outHistoCharts(sensInf->m_variedParams.size())
+	m_outHistoCharts(sensInf->m_variedParams.size()),
+	m_paramCharts(sensInf->m_variedParams.size())
 {
 	setLayout(new QHBoxLayout);
 	layout()->setContentsMargins(1, 0, 1, 0);
@@ -299,6 +321,8 @@ void iAParameterInfluenceView::setSelectedParam(int param)
 		{
 			m_outHistoCharts[paramIdx][barIdx]->setBackgroundColor(color);
 			m_outHistoCharts[paramIdx][barIdx]->update();
+			m_paramCharts[paramIdx][barIdx]->setBackgroundColor(color);
+			m_paramCharts[paramIdx][barIdx]->update();
 		}
 	}
 	emit parameterChanged();
@@ -362,39 +386,40 @@ QString iAParameterInfluenceView::columnName(int outType, int outIdx) const
 void iAParameterInfluenceView::updateStackedBarHistogram(QString const & barName, int paramIdx, int outType, int outIdx)
 {
 	int barIdx = m_stackedBars[paramIdx].second->barIndex(barName);
-	auto chart = m_outHistoCharts[paramIdx][barIdx];
 	if (outType != outCharacteristic)
 	{
 		return;
 	}
-	chart->clearPlots();
+	auto outChart = m_outHistoCharts[paramIdx][barIdx];
+	outChart->clearPlots();
 	const int numBins = m_sensInf->m_histogramBins;
 	auto const rng = m_sensInf->m_data->spmData->paramRange(m_sensInf->m_charSelected[outIdx]);
-	auto plotData = iAHistogramData::create(barName, iAValueType::Continuous, rng[0], rng[1],
+	auto histData = iAHistogramData::create(barName, iAValueType::Continuous, rng[0], rng[1],
 		m_sensInf->charHistVarAgg[outIdx][m_aggrType][paramIdx]);
-	chart->addPlot(QSharedPointer<iAPlot>(new iABarGraphPlot(plotData, QColor(80, 80, 80, 128))));
-	chart->resetYBounds();
-	chart->update();
+	outChart->resetYBounds();
+	outChart->addPlot(QSharedPointer<iABarGraphPlot>::create(histData, QColor(80, 80, 80, 128)));
+	outChart->update();
+
+	auto parChart = m_paramCharts[paramIdx][barIdx];
+	parChart->clearPlots();
+	auto const& d = ((outType == outCharacteristic) ? m_sensInf->sensitivityField[outIdx][m_measureIdx][m_aggrType]
+			: (outType == outFiberCount) ? m_sensInf->sensitivityFiberCount[m_aggrType]
+										/* (outputIdx == outDissimilarity)*/
+										 : m_sensInf->sensDissimField[outIdx][m_aggrType])[paramIdx];
+	auto plotData = iAXYPlotData::create("Sensitivity " + columnName(outType, outIdx), iAValueType::Continuous, d.size());
+	for (int i = 0; i < d.size(); ++i)
+	{
+		plotData->addValue(m_sensInf->paramSetValues[i][m_sensInf->m_variedParams[paramIdx]], d[i]);
+	}
+	parChart->resetYBounds();
+	parChart->addPlot(QSharedPointer<iALinePlot>::create(plotData, QColor(80, 80, 80, 255)));
+	parChart->update();
 }
 
 void iAParameterInfluenceView::updateChartY()
 {
-	double yMin = 0, yMax = std::numeric_limits<double>::lowest();
-	for (auto chartRow : m_outHistoCharts)
-	{
-		for (auto chart : chartRow)
-		{
-			yMax = std::max(yMax, chart->yBounds()[1]);
-		}
-	}
-	for (auto chartRow : m_outHistoCharts)
-	{
-		for (auto chart : chartRow)
-		{
-			chart->setYBounds(yMin, yMax);
-			chart->update();
-		}
-	}
+	::updateChartY(m_outHistoCharts);
+	::updateChartY(m_paramCharts);
 }
 
 void iAParameterInfluenceView::addStackedBar(int outType, int outIdx)
@@ -412,13 +437,20 @@ void iAParameterInfluenceView::addStackedBar(int outType, int outIdx)
 	for (int paramIdx = 0; paramIdx < params.size(); ++paramIdx)
 	{
 		auto paramName = m_sensInf->m_paramNames[paramIdx];
-		auto chart = new iAChartWidget(this, "", (curBarIdx == 0) ? "Var. from " + paramName: "");
-		chart->setShowXAxisLabel(false);
-		chart->setEmptyText("");
 		QColor color = palette().color(paramIdx == m_selectedRow ? QPalette::Midlight : backgroundRole());
-		chart->setBackgroundColor(color);
-		m_paramListLayout->addWidget(chart, 1+RowsPerParam * paramIdx + RowOutputChart, colStackedBar + curBarIdx);
-		m_outHistoCharts[paramIdx].push_back(chart);
+
+		auto outChart = new iAChartWidget(this, "", (curBarIdx == 0) ? "Var. from " + paramName: "");
+		outChart->setShowXAxisLabel(false);
+		outChart->setEmptyText("");
+		outChart->setBackgroundColor(color);
+		m_paramListLayout->addWidget(outChart, 1 + RowsPerParam * paramIdx + RowOutputChart, colStackedBar + curBarIdx);
+		m_outHistoCharts[paramIdx].push_back(outChart);
+
+		auto parChart = new iAChartWidget(this, paramName, (curBarIdx == 0) ? "Sensitivity " + title : "");
+		parChart->setEmptyText("HERE I AM!");
+		parChart->setBackgroundColor(color);
+		m_paramListLayout->addWidget(parChart, 1 + RowsPerParam * paramIdx + RowParamChart, colStackedBar + curBarIdx);
+		m_paramCharts[paramIdx].push_back(parChart);
 	}
 	double maxVal, minValDiff;
 	getParamMaxMinDiffVal(d, maxVal, minValDiff);
@@ -457,6 +489,8 @@ void iAParameterInfluenceView::removeStackedBar(int outType, int outIdx)
 		{   // addWidget automatically removes it from position where it was before
 			m_paramListLayout->addWidget(m_outHistoCharts[paramIdx][i],
 				1+RowsPerParam * paramIdx + RowOutputChart, colStackedBar + i);
+			m_paramListLayout->addWidget(m_paramCharts[paramIdx][i],
+				1+RowsPerParam * paramIdx + RowParamChart, colStackedBar + i);
 		}
 		for (int b = 0; b < newNumBars; ++b)
 		{
