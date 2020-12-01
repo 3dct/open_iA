@@ -120,7 +120,7 @@ iAChartWidget::iAChartWidget(QWidget* parent, QString const & xLabel, QString co
 	m_yMaxTickLabelWidth(0),
 	m_customXBounds(false),
 	m_customYBounds(false),
-	m_captionPosition(Qt::AlignCenter | Qt::AlignBottom),
+	m_captionPosition(Qt::AlignCenter | Qt::AlignBottom),	// should probably be AlignHCenter (AlignCenter is both V and H) - but check below!
 	m_selectionMode(SelectionDisabled),
 	m_selectionBand(new QRubberBand(QRubberBand::Rectangle, this)),
 	m_maxXAxisSteps(AxisTicksXDefault),
@@ -506,6 +506,7 @@ void iAChartWidget::drawXAxis(QPainter &painter)
 	if (m_showXAxisLabel)
 	{
 		//write the x axis label
+		// TODO: replace by Qt alignment via text rect and Qt::Align flags?
 		QPointF textPos(
 			m_captionPosition.testFlag(Qt::AlignCenter) ?
 #if QT_VERSION >= QT_VERSION_CHECK(5, 11, 0)
