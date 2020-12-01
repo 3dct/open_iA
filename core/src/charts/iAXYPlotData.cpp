@@ -53,16 +53,13 @@ size_t iAXYPlotData::valueCount() const
 
 void iAXYPlotData::addValue(iAPlotData::DataType x, iAPlotData::DataType y)
 {
-	// make sure elements can only be entered in an ordered way:
-	if (m_values[m_values.size()-1].first >= x)
+	// find position to insert:
+	size_t idx = 0;
+	while (idx < m_values.size() && x < m_values[idx].first)
 	{
-		LOG(lvlWarn, QString("Values have to be entered with ascending x component"
-			", but given x=%1 is not larger than previous x=%2!")
-			.arg(x)
-			.arg(m_values[m_values.size() - 1].first));
-		return;
+		++idx;
 	}
-	m_values.push_back(std::make_pair(x, y));
+	m_values.insert(m_values.begin() + idx, std::make_pair(x, y));
 	adaptBounds(m_xBounds, x);
 	adaptBounds(m_yBounds, y);
 }
@@ -98,15 +95,15 @@ QString iAXYPlotData::toolTipText(iAPlotData::DataType dataX) const
 	return QString("%1: %2").arg(valueX).arg(valueY);
 }
 
-QSharedPointer<iAXYPlotData> iAXYPlotData::create(QString const& name, iAValueType type, size_t valueCount)
+QSharedPointer<iAXYPlotData> iAXYPlotData::create(QString const& name, iAValueType type, size_t reservedSize)
 {
-	return QSharedPointer<iAXYPlotData>(new iAXYPlotData(name, type, valueCount));
+	return QSharedPointer<iAXYPlotData>(new iAXYPlotData(name, type, reservedSize));
 }
 
-iAXYPlotData::iAXYPlotData(QString const& name, iAValueType type, size_t valueCount) :
+iAXYPlotData::iAXYPlotData(QString const& name, iAValueType type, size_t reservedSize) :
 	iAPlotData(name, type),
-	m_values(valueCount, std::make_pair(0.0, 0.0)),
-	m_xBounds{std::numeric_limits<double>::lowest(), std::numeric_limits<double>::max()},
-	m_yBounds{std::numeric_limits<double>::lowest(), std::numeric_limits<double>::max()}
+	m_yBounds{std::numeric_limits<double>::max(), std::numeric_limits<double>::lowest()},
+	m_xBounds{std::numeric_limits<double>::max(), std::numeric_limits<double>::lowest()}
 {
+	m_values.reserve(reservedSize);
 }
