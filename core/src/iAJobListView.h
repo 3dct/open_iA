@@ -24,10 +24,12 @@
 
 #include <QAtomicInteger>
 #include <QMap>
+#include <QStack>
 #include <QWidget>
 
 class iAAbortListener;
 class iADurationEstimator;
+class iAJobPending;
 class iAProgress;
 
 //! A list of currently running jobs and their progress.
@@ -82,40 +84,43 @@ public:
 	//! }  // here, jobListHandle goes out of scope, and the job will be automatically
 	//! removed from the list!
 	//! @param name the name of the job/operation that is run;
-	//!         it is always shown at the top of the list entry, in bold
+	//!        it is always shown at the top of the list entry, in bold
 	//! @param p the progress observer that reports on the job's progress;
 	//!        its progress signal connects to the job entries' progress bar,
 	//!        and the setStatus signal connects to a secondary text information
 	//!        shown below the name of the task (in non-bold font)
 	//! @return an object which will keep the job in the list, as long it's alive
-	//!         therefore marked as nondiscard (because if not stored, the job is
-	//!         removed immediately again)
+	//!        therefore marked as nondiscard (because if not stored, the job is
+	//!        removed immediately again)
 #if __cplusplus >= 201703L
 	[[nodiscard]]
 #endif
 	QSharedPointer<QObject>	addJob(QString name, iAProgress* p, iAAbortListener* abortListener = nullptr,
 		QSharedPointer<iADurationEstimator> estimator = QSharedPointer<iADurationEstimator>());
 signals:
-	//! emitted when all jobs are done; is used in main window to hide widget
+	//! Emitted when all jobs are done; is used in main window to hide widget
 	//! as it means that no more jobs are currently running.
 	void allJobsDone();
-	//! emitted when a job is added; used in main window to show widget, as it
+	//! Emitted when a job is added; used in main window to show widget, as it
 	//! indicates that there is at least on currently running job.
 	void jobAdded();
-	void newJobSignal(QString name, iAProgress* p, QObject* t, iAAbortListener* abortListener,
-		QSharedPointer<iADurationEstimator> estimator);
+	//! Used to link the GUI part of adding a job to the backend part.
+	//! required for decoupling these two to allow adding jobs from a backend thread
+	void newJobSignal();
 private slots:
-	void newJobSlot(QString name, iAProgress* p, QObject* t, iAAbortListener* abortListener,
-		QSharedPointer<iADurationEstimator> estimator);
+	//! Linked to newJobSignal, does the GUI part of adding a new job.
+	void newJobSlot();
 private:
-	//! prevent creation - singleton pattern
+	//! Prevent creation - singleton pattern
 	iAJobListView();
 	QWidget* addJobWidget(QString name, iAProgress* p, iAAbortListener* abortListener,
 		QSharedPointer<iADurationEstimator> estimator);
-	//! number of currently running jobs
+	//! Number of currently running jobs
 	QAtomicInteger<int> m_runningJobs;
-	//! the container widget for all job entries
+	//! The container widget for all job entries
 	QWidget* m_insideWidget;
-	//! pointers to the duration estimators (to keep them alive while the job is running)
+	//! Pointers to the duration estimators (to keep them alive while the job is running)
 	QMap<QWidget*, QSharedPointer<iADurationEstimator>> m_estimators;
+	//! List of jobs pending to be added (needed to be able to add jobs also from non-GUI-threads
+	QStack<QSharedPointer<iAJobPending>> m_pendingJobs;
 };
