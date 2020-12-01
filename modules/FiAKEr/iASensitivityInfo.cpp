@@ -906,6 +906,7 @@ void iASensitivityInfo::compute()
 	}
 	else
 	{
+		m_progress.setStatus("Computing dissimilarities between all result pairs.");
 		int measureCount = static_cast<int>(m_resultDissimMeasures.size());
 		int resultCount = static_cast<int>(m_data->result.size());
 		m_resultDissimMatrix = iADissimilarityMatrixType(resultCount,
@@ -916,7 +917,7 @@ void iASensitivityInfo::compute()
 			measures.push_back(m_resultDissimMeasures[m].first);
 		}
 
-		m_progress.setStatus("Creating fiber data objects.");
+		//m_progress.setStatus("Creating fiber data objects.");
 		std::vector<std::vector<iAFiberData>> resFib(resultCount);
 		for (int resultID = 0; resultID < resultCount && !m_aborted; ++resultID)
 		{
@@ -932,7 +933,7 @@ void iASensitivityInfo::compute()
 			resFib[resultID] = fiberData;
 		}
 
-		m_progress.setStatus("Computing bounding boxes for all fibers.");
+		//m_progress.setStatus("Computing bounding boxes for all fibers.");
 		std::vector<std::vector<FiberBBT>> fiberBoundingBox(resultCount);
 		for (int resultID = 0; resultID < resultCount && !m_aborted; ++resultID)
 		{
