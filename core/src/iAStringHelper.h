@@ -239,3 +239,10 @@ open_iA_Core_API QString greatestCommonPrefix(QString const & str1, QString cons
 
 open_iA_Core_API int greatestCommonSuffixLength(QString const & str1, QString const & str2);
 open_iA_Core_API QString greatestCommonSuffix(QString const & str1, QString const & str2);
+
+//! Get the number of digits required for the given number (before the comma).
+open_iA_Core_API int requiredDigits(double value);
+
+//! Get the number of digits required after the comma,
+//! given the difference to other values it should be distinguishable from
+open_iA_Core_API int digitsAfterComma(double minResolvableDifference);

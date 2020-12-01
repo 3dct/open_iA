@@ -64,4 +64,3 @@ namespace iASamplingMethodName
 QString getOutputFolder(QString const& baseFolder, bool createSubFolder, int sampleNr, int numDigits);
 QString getOutputFileName(QString const& outputFolder, QString const& baseName,
 	bool createSubFolder, int sampleNr, int numDigits);
-int requiredDigits(int largestNumber);

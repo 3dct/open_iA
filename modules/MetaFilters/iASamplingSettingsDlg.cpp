@@ -33,6 +33,7 @@
 #include <iAModality.h>
 #include <iAModalityList.h>
 #include <iANameMapper.h>
+#include <iAStringHelper.h>
 #include <mainwindow.h>
 #include <mdichild.h>
 #include <qthelper/iAQFlowLayout.h>

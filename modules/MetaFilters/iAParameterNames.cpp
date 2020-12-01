@@ -96,8 +96,3 @@ QString getOutputFileName(QString const& outputFolder, QString const& baseName,
 			fi.suffix().size() > 0 ? QString(".%1").arg(fi.suffix()) : QString(""))
 		);
 }
-
-int requiredDigits(int largestNumber)
-{  // number of required digits for number >= 1
-	return std::floor(std::log10(std::abs(largestNumber))) + 1;
-}

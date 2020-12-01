@@ -67,12 +67,6 @@ namespace
 
 	const double LogYMapModeMin = 0.5;
 
-	int requiredDigits(double value)
-	{
-		return (value >= -1.0 && value < 1.0) ?
-			1 : static_cast<int>(std::floor(std::log10(std::abs(value))) + 1);
-	}
-
 	int markerPos(int x, size_t step, size_t stepCount)
 	{
 		if (step == stepCount)
