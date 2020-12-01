@@ -104,7 +104,7 @@ iAParameterInfluenceView::iAParameterInfluenceView(iASensitivityInfo* sensInf, Q
 
 	for (int paramIdx = 0; paramIdx < sensInf->m_variedParams.size(); ++paramIdx)
 	{
-		int rowIdx = RowsPerParam * paramIdx;
+		int rowIdx = 1 + RowsPerParam * paramIdx;
 		auto header = new iAStackedBarChart(m_stackedBarTheme.data(), m_paramListLayout,
 			rowIdx + RowStackedHeader, colStackedBar, true);
 		header->setDoStack(false);
@@ -199,10 +199,6 @@ void iAParameterInfluenceView::showStackedBar()
 void iAParameterInfluenceView::selectStackedBar(int outputType, int outTypeIdx)
 {
 	int barIdx = m_stackedBars[0].first->barIndex(columnName(outputType, outTypeIdx));
-	if (barIdx == -1)
-	{
-		return;
-	}
 	m_selectedCol = barIdx;
 	for (auto bars : m_stackedBars)
 	{
@@ -289,7 +285,7 @@ void iAParameterInfluenceView::setSelectedParam(int param)
 		//QColor textColor = palette().color(paramIdx == m_selectedRow ?  : QPalette::Text);
 		for (int col = colMin; col <= colStep; ++col)
 		{
-			auto item = m_paramListLayout->itemAtPosition(RowsPerParam*paramIdx, col);
+			auto item = m_paramListLayout->itemAtPosition(1+RowsPerParam*paramIdx, col);
 			if (!item)
 			{
 				LOG(lvlWarn, "Invalid - empty item!");
@@ -421,7 +417,7 @@ void iAParameterInfluenceView::addStackedBar(int outType, int outIdx)
 		chart->setEmptyText("");
 		QColor color = palette().color(paramIdx == m_selectedRow ? QPalette::Midlight : backgroundRole());
 		chart->setBackgroundColor(color);
-		m_paramListLayout->addWidget(chart, RowsPerParam * paramIdx + RowOutputChart, colStackedBar + curBarIdx);
+		m_paramListLayout->addWidget(chart, 1+RowsPerParam * paramIdx + RowOutputChart, colStackedBar + curBarIdx);
 		m_outHistoCharts[paramIdx].push_back(chart);
 	}
 	double maxVal, minValDiff;
@@ -460,7 +456,7 @@ void iAParameterInfluenceView::removeStackedBar(int outType, int outIdx)
 		for (int i = barIdx; i < newNumBars; ++i)
 		{   // addWidget automatically removes it from position where it was before
 			m_paramListLayout->addWidget(m_outHistoCharts[paramIdx][i],
-				RowsPerParam * paramIdx + RowOutputChart, colStackedBar + i);
+				1+RowsPerParam * paramIdx + RowOutputChart, colStackedBar + i);
 		}
 		for (int b = 0; b < newNumBars; ++b)
 		{
