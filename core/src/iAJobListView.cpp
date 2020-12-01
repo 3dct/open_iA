@@ -35,6 +35,20 @@
 
 #include <chrono>
 
+class iAJobPending
+{
+public:
+	iAJobPending(QString n, iAProgress* p, QObject* o, iAAbortListener* a, QSharedPointer<iADurationEstimator> e):
+		name(n), prog(p), obj(o), abrt(a), est(e)
+	{
+	}
+	QString name;
+	iAProgress* prog;
+	QObject* obj;
+	iAAbortListener* abrt;
+	QSharedPointer<iADurationEstimator> est;
+};
+
 //! Simple estimator: starts the clock as soon as it is created,
 //! and estimates remaining time by percentage of completion and elapsed time.
 class iAPercentBasedEstimator : public iADurationEstimator
@@ -169,11 +183,11 @@ QWidget* iAJobListView::addJobWidget(QString name, iAProgress* p, iAAbortListene
 	return jobWidget;
 }
 
-void iAJobListView::newJobSlot(QString name, iAProgress* p, QObject* t, iAAbortListener* abortListener,
-	QSharedPointer<iADurationEstimator> estimator)
+void iAJobListView::newJobSlot()
 {
-	auto jobWidget = addJobWidget(name, p, abortListener, estimator);
-	connect(t, &QObject::destroyed, [this, jobWidget]() {
+	auto j = m_pendingJobs.pop();
+	auto jobWidget = addJobWidget(j->name, j->prog, j->abrt, j->est);
+	connect(j->obj, &QObject::destroyed, [this, jobWidget]() {
 		int oldJobCount = m_runningJobs.fetchAndAddOrdered(-1);
 		if (oldJobCount == 1)
 		{
@@ -189,7 +203,8 @@ void iAJobListView::addJob(QString name, iAProgress* p, QObject* t, iAAbortListe
 	QSharedPointer<iADurationEstimator> estimator)
 {
 	m_runningJobs.fetchAndAddOrdered(1);
-	emit newJobSignal(name, p, t, abortListener, estimator);
+	m_pendingJobs.push(QSharedPointer<iAJobPending>::create(name, p, t, abortListener, estimator));
+	emit newJobSignal();
 }
 
 QSharedPointer<QObject> iAJobListView::addJob(QString name, iAProgress* p,
