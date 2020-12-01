@@ -80,6 +80,7 @@ private:
 	int m_selectedRow, m_selectedCol;
 	QGridLayout* m_paramListLayout;
 	QSharedPointer<iASingleColorTheme> m_stackedBarTheme;
+	QVector<QVector<iAChartWidget*>> m_outHistoCharts;
 signals:
 	void parameterChanged();
 	void outputSelected(int outType, int outTypeIdx);

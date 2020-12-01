@@ -20,8 +20,6 @@
 * ************************************************************************************/
 #include "qthelper/iASignallingWidget.h"
 
-#include <charts/iAChartWidget.h>
-
 class iABarData;
 class iABarsWidget;
 class iAColorTheme;
@@ -36,11 +34,10 @@ public:
 	static const int MaxBarHeight = 100;
 	static const int TextPadding = 5;
 	iAStackedBarChart(iAColorTheme const* theme, QGridLayout* gL, int row, int col,
-		bool header = false, bool last = false, bool chart = false,
-		QString const & yLabelName = QString());
+		bool header = false, bool last = false);
 	void addBar(QString const& name, double value, double maxValue, double minValDiff);
 	void updateBar(QString const& name, double value, double maxValue, double minValDiff);
-	void removeBar(QString const & name);
+	int removeBar(QString const & name);
 	int barIndex(QString const& name) const;
 	void setColorTheme(iAColorTheme const * theme);
 	QMenu* contextMenu();
@@ -50,10 +47,9 @@ public:
 	double weightedSum() const;
 	void setSelectedBar(int barIdx);
 	QString barName(size_t barIdx) const;
-	iAChartWidget* chart(size_t barIdx);
 	void setLeftMargin(int leftMargin);
-	double maxYValue() const;
-	void setChartYRange(double yMin, double yMax);
+	//double maxYValue() const;
+	//void setChartYRange(double yMin, double yMax);
 signals:
 	void switchedStackMode(bool mode);
 	void weightsChanged(std::vector<double> const& weights);
@@ -79,7 +75,6 @@ private:
 	//! @}
 	
 	void drawBar(QPainter& painter, size_t barID, int left, int top, int barHeight);
-	int barHeight() const;
 	void updateBars();
 	size_t getBarAt(int x) const;
 
@@ -88,7 +83,7 @@ private:
 	int barWidth(iABarData const& bar) const;
 	void normalizeWeights();
 	void updateOverallMax();
-	void updateChartBars();
+	void updateColumnStretch();
 	void updateDividers();
 
 	void emitBarClick(size_t barID);
@@ -107,8 +102,6 @@ private:
 	bool m_normalizePerBar;
 	double m_overallMaxValue;
 	int m_selectedBar;
-	bool m_showChart;
-	QString m_yLabelName;
 	int m_leftMargin;
 	QGridLayout* m_gL;
 	int m_row, m_col;

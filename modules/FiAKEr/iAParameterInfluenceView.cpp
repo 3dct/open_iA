@@ -48,6 +48,12 @@ namespace// merge with iASensitivityinfo!
 	const int GridSpacing = 2;
 	const int LayoutMargin = 4;
 	const int RowsPerParam = 2;
+
+	enum
+	{
+		OutputChartRow = 1,
+		ParamChartRow = 2
+	};
 }
 
 iAParameterInfluenceView::iAParameterInfluenceView(iASensitivityInfo* sensInf, QColor const & paramColor, QColor const & outputColor) :
@@ -57,7 +63,8 @@ iAParameterInfluenceView::iAParameterInfluenceView(iASensitivityInfo* sensInf, Q
 	m_selectedRow(-1),
 	m_selectedCol(-1),
 	m_paramListLayout(new QGridLayout()),
-	m_stackedBarTheme(new iASingleColorTheme("OneOutputColorTheme", outputColor))
+	m_stackedBarTheme(new iASingleColorTheme("OneOutputColorTheme", outputColor)),
+	m_outHistoCharts(sensInf->m_variedParams.size())
 {
 	setLayout(new QHBoxLayout);
 	layout()->setContentsMargins(1, 0, 1, 0);
@@ -110,7 +117,7 @@ iAParameterInfluenceView::iAParameterInfluenceView(iASensitivityInfo* sensInf, Q
 		int rowIdx = 1 + RowsPerParam * paramIdx;
 		m_stackedCharts.push_back(new iAStackedBarChart(m_stackedBarTheme.data(),
 			m_paramListLayout, rowIdx,	colStackedBar, false,
-			paramIdx == sensInf->m_variedParams.size() - 1, true, "Var. from " + paramName));
+			paramIdx == sensInf->m_variedParams.size() - 1));
 		connect(m_stackedHeader, &iAStackedBarChart::weightsChanged, m_stackedCharts[paramIdx], &iAStackedBarChart::setWeights);
 		m_stackedCharts[paramIdx]->setProperty("paramIdx", paramIdx);
 		connect(m_stackedCharts[paramIdx], &iAStackedBarChart::clicked, this, &iAParameterInfluenceView::paramChangedSlot);
@@ -259,7 +266,11 @@ void iAParameterInfluenceView::setSelectedParam(int param)
 			item->widget()->setStyleSheet("QLabel { background-color : " + color.name() + "; }");
 		}
 		m_stackedCharts[paramIdx]->setBackgroundColor(color);
-		m_stackedCharts[paramIdx]->update();
+		for (int barIdx = 0; barIdx < m_outHistoCharts[paramIdx].size(); ++barIdx)
+		{
+			m_outHistoCharts[paramIdx][barIdx]->setBackgroundColor(color);
+			m_outHistoCharts[paramIdx][barIdx]->update();
+		}
 	}
 	emit parameterChanged();
 }
@@ -322,7 +333,7 @@ QString iAParameterInfluenceView::columnName(int outType, int outIdx) const
 void iAParameterInfluenceView::updateStackedBarHistogram(QString const & barName, int paramIdx, int outType, int outIdx)
 {
 	int barIdx = m_stackedCharts[paramIdx]->barIndex(barName);
-	auto chart = m_stackedCharts[paramIdx]->chart(barIdx);
+	auto chart = m_outHistoCharts[paramIdx][barIdx];
 	if (outType != outCharacteristic)
 	{
 		return;
@@ -341,13 +352,20 @@ void iAParameterInfluenceView::updateStackedBarHistogram(QString const & barName
 void iAParameterInfluenceView::updateChartY()
 {
 	double yMin = 0, yMax = std::numeric_limits<double>::lowest();
-	for (auto stackedChart : m_stackedCharts)
+	for (auto chartRow : m_outHistoCharts)
 	{
-		yMax = std::max(yMax, stackedChart->maxYValue());
+		for (auto chart : chartRow)
+		{
+			yMax = std::max(yMax, chart->yBounds()[1]);
+		}
 	}
-	for (auto stackedChart : m_stackedCharts)
+	for (auto chartRow : m_outHistoCharts)
 	{
-		stackedChart->setChartYRange(yMin, yMax);
+		for (auto chart : chartRow)
+		{
+			chart->setYBounds(yMin, yMax);
+			chart->update();
+		}
 	}
 }
 
@@ -362,16 +380,28 @@ void iAParameterInfluenceView::addStackedBar(int outType, int outIdx)
 		      ((outType == outFiberCount)  ? m_sensInf->aggregatedSensitivitiesFiberCount
 		/*(col.first == outDissimilarity)*/: m_sensInf->aggregatedSensDissim[outIdx]))[m_aggrType];
 
+	int curBarIdx = static_cast<int>(m_stackedHeader->numberOfBars() - 1);
+	auto params = m_sensInf->m_variedParams;
+	for (int paramIdx = 0; paramIdx < params.size(); ++paramIdx)
+	{
+		auto paramName = m_sensInf->m_paramNames[paramIdx];
+		auto chart = new iAChartWidget(this, "", (curBarIdx == 0) ? "Var. from " + paramName: "");
+		chart->setEmptyText("");
+		QColor color = palette().color(paramIdx == m_selectedRow ? QPalette::Midlight : backgroundRole());
+		chart->setBackgroundColor(color);
+		m_paramListLayout->addWidget(chart, 1 + RowsPerParam * paramIdx + OutputChartRow, colStackedBar + curBarIdx);
+		m_outHistoCharts[paramIdx].push_back(chart);
+	}
 	double maxVal, minValDiff;
 	getParamMaxMinDiffVal(d, maxVal, minValDiff);
 	for (int paramIdx = 0; paramIdx < m_sensInf->m_variedParams.size(); ++paramIdx)
 	{
 		m_stackedCharts[paramIdx]->addBar(title, d[paramIdx], maxVal, minValDiff);
 		updateStackedBarHistogram(title, paramIdx, outType, outIdx);
-		m_stackedCharts[paramIdx]->setLeftMargin(m_stackedCharts[0]->chart(0)->leftMargin());
+		m_stackedCharts[paramIdx]->setLeftMargin(m_outHistoCharts[paramIdx][0]->leftMargin());
 	}
 	updateChartY();
-	m_stackedHeader->setLeftMargin(m_stackedCharts[0]->chart(0)->leftMargin());
+	m_stackedHeader->setLeftMargin(m_outHistoCharts[0][0]->leftMargin());
 	emit barAdded(outType, outIdx);
 }
 
@@ -386,13 +416,21 @@ void iAParameterInfluenceView::removeStackedBar(int outType, int outIdx)
 	auto title(columnName(outType, outIdx));
 	LOG(lvlDebug, QString("Removing stacked bar for characteristic %1").arg(title));
 	m_stackedHeader->removeBar(title);
-	for (auto stackedChart : m_stackedCharts)
+	for (int paramIdx = 0; paramIdx < m_stackedCharts.size(); ++paramIdx)
 	{
-		stackedChart->removeBar(title);
-		for (int b=0; b<stackedChart->numberOfBars(); ++b)
+		int barIdx = m_stackedCharts[paramIdx]->removeBar(title);
+		auto w = m_outHistoCharts[paramIdx][barIdx];
+		m_outHistoCharts[paramIdx].remove(barIdx);
+		delete w;
+		m_outHistoCharts[paramIdx][0]->setYCaption("Var. from " + m_sensInf->m_paramNames[paramIdx]); // to make sure if first chart is removed that new first gets caption
+		for (int i = barIdx; i < m_stackedCharts[paramIdx]->numberOfBars(); ++i)
+		{   // addWidget automatically removes it from position where it was before
+			m_paramListLayout->addWidget(m_outHistoCharts[paramIdx][i],
+				1 + RowsPerParam * paramIdx + OutputChartRow, colStackedBar + i);
+		}
+		for (int b = 0; b < m_stackedCharts[paramIdx]->numberOfBars(); ++b)
 		{
-			auto chart = stackedChart->chart(b);
-			chart->resetYBounds();
+			m_outHistoCharts[paramIdx][b]->resetYBounds();
 		}
 	}
 	updateChartY();

@@ -20,7 +20,6 @@
 * ************************************************************************************/
 #include "iAStackedBarChart.h"
 
-#include <charts/iAChartWidget.h>
 #include <iAColorTheme.h>
 #include <iALog.h>
 #include <iAMathUtility.h>
@@ -45,40 +44,27 @@ namespace
 	const int BarHSpacing = 2;
 	size_t NoBar = std::numeric_limits<size_t>::max();
 	const int MaxChartWidth = 150;
-	enum
-	{
-		BarRow = 0,
-		ChartRow= 1
-	};
 }
 
 class iABarData
 {
 public:
-	iABarData() : name(""), value(0), maxValue(1), minValDiff(1), weight(1.0), m_chart(nullptr)
+	iABarData() : name(""), value(0), maxValue(1), minValDiff(1), weight(1.0)
 	{
 	}
-	iABarData(QString const& name, double value, double maxValue, double minValDiff, double weight,
-		bool showChart, QWidget* parent, QString const& xLabel, QString const& yLabel) :
+	iABarData(QString const& name, double value, double maxValue, double minValDiff, double weight) :
 		name(name),
 		value(value),
 		maxValue(maxValue),
 		minValDiff(minValDiff),
-		weight(weight),
-		m_chart(showChart ? new iAChartWidget(parent, xLabel, yLabel) : nullptr)
+		weight(weight)
 	{
-		if (showChart)
-		{
-			m_chart->setEmptyText("");
-		}
 	}
 	~iABarData()
 	{
-		delete m_chart;
 	}
 	QString name;
 	double value, maxValue, minValDiff, weight;
-	iAChartWidget* m_chart;
 };
 
 class iABarsWidget: public QWidget
@@ -171,7 +157,7 @@ public:
 };
 
 iAStackedBarChart::iAStackedBarChart(iAColorTheme const* theme, QGridLayout* gL, int row, int col,
-	bool header, bool last,	bool chart, QString const& yLabelName) :
+	bool header, bool last) :
 	m_theme(theme),
 	m_contextMenu(header ? new QMenu(this) : nullptr),
 	m_header(header),
@@ -183,8 +169,6 @@ iAStackedBarChart::iAStackedBarChart(iAColorTheme const* theme, QGridLayout* gL,
 	m_normalizePerBar(true),
 	m_overallMaxValue(0),
 	m_selectedBar(-1),
-	m_showChart(chart),
-	m_yLabelName(yLabelName),
 	m_leftMargin(0),
 	m_barsWidget(new iABarsWidget(this)),
 	m_gL(gL),
@@ -218,25 +202,18 @@ iAStackedBarChart::iAStackedBarChart(iAColorTheme const* theme, QGridLayout* gL,
 
 void iAStackedBarChart::addBar(QString const & name, double value, double maxValue, double minValDiff)
 {
-	m_bars.push_back(QSharedPointer<iABarData>(new iABarData(name, value, maxValue, minValDiff, (m_bars.size()==0) ? 1 : 1.0/m_bars.size(),
-		m_showChart, this, name, (m_bars.size() == 0) ? m_yLabelName : "")));
-	if (m_showChart)
-	{
-		auto chart = m_bars[m_bars.size() - 1]->m_chart;
-		chart->setBackgroundColor(m_bgColor);
-		m_gL->addWidget(chart, m_row + ChartRow, m_col + static_cast<int>(m_bars.size() - 1));
-	}
+	m_bars.push_back(QSharedPointer<iABarData>::create(name, value, maxValue, minValDiff, (m_bars.size()==0) ? 1 : 1.0/m_bars.size()));
 	// add bars widget / update row span if it already is added:
 	if (m_stack)
 	{
-		m_gL->addWidget(m_barsWidget, m_row + BarRow, m_col, 1, static_cast<int>(m_bars.size()));
+		m_gL->addWidget(m_barsWidget, m_row, m_col, 1, static_cast<int>(m_bars.size()));
 	}
 	else
 	{
-		m_gL->addWidget(new iABarWidget(this, static_cast<int>(m_bars.size() - 1)), m_row + BarRow,
+		m_gL->addWidget(new iABarWidget(this, static_cast<int>(m_bars.size() - 1)), m_row,
 			m_col + static_cast<int>(m_bars.size() - 1));
 	}
-	updateChartBars();
+	updateColumnStretch();
 	normalizeWeights();
 	updateDividers();
 }
@@ -263,38 +240,32 @@ void iAStackedBarChart::updateBar(QString const& name, double value, double maxV
 		(*it)->maxValue = maxValue;
 		(*it)->minValDiff = minValDiff;
 	}
-	updateChartBars();
+	updateColumnStretch();
 	updateOverallMax();
 	updateDividers();
 }
 
-void iAStackedBarChart::removeBar(QString const & name)
+int iAStackedBarChart::removeBar(QString const & name)
 {
 	int barIdx = barIndex(name);
 	assert(barIdx != -1);
 	m_bars.erase(m_bars.begin() + barIdx);
-	if (m_showChart)
-	{
-		for (int i = barIdx; i < m_bars.size(); ++i)
-		{	// addWidget automatically removes it from position where it was before
-			m_gL->addWidget(m_bars[i]->m_chart, m_row + ChartRow, m_col + i);
-		}
-		m_gL->setColumnStretch(static_cast<int>(m_col + m_bars.size()), 0);
-	}
 	if (m_stack)
 	{
 		// update row span of bars widget:
-		m_gL->addWidget(m_barsWidget, m_row + BarRow, m_col, 1, static_cast<int>(m_bars.size()));
+		m_gL->addWidget(m_barsWidget, m_row, m_col, 1, static_cast<int>(m_bars.size()));
 	}
 	else
 	{	// always delete last -> just the bar IDs need to be ordered, then the correct data is shown
-		auto w = m_gL->itemAtPosition(m_row + BarRow, static_cast<int>(m_col + m_bars.size()))->widget();
+		auto w = m_gL->itemAtPosition(m_row, static_cast<int>(m_col + m_bars.size()))->widget();
 		m_gL->removeWidget(w);
+		m_gL->setColumnStretch(static_cast<int>(m_col + m_bars.size()), 0);
 		delete w;
 	}
 	normalizeWeights();
-	updateChartBars();
+	updateColumnStretch();
 	updateDividers();
+	return barIdx;
 }
 
 int iAStackedBarChart::barIndex(QString const& name) const
@@ -325,14 +296,14 @@ void iAStackedBarChart::setDoStack(bool doStack)
 	if (m_stack)
 	{
 		// update row span of bars widget:
-		m_gL->addWidget(m_barsWidget, m_row + BarRow, m_col, 1, static_cast<int>(m_bars.size()));
+		m_gL->addWidget(m_barsWidget, m_row, m_col, 1, static_cast<int>(m_bars.size()));
 	}
 	else
 	{
 		m_gL->removeWidget(m_barsWidget);
 		for (int i = 0; i < m_bars.size(); ++i)
 		{
-			m_gL->addWidget(new iABarWidget(this, i), m_row + BarRow, m_col + i);
+			m_gL->addWidget(new iABarWidget(this, i), m_row, m_col + i);
 		}
 	}
 	updateBars();
@@ -358,7 +329,7 @@ void iAStackedBarChart::updateBars()
 	{
 		for (int i = 0; i < m_bars.size(); ++i)
 		{
-			m_gL->itemAtPosition(m_row + BarRow, m_col + i)->widget()->update();
+			m_gL->itemAtPosition(m_row, m_col + i)->widget()->update();
 		}
 	}
 }
@@ -405,56 +376,14 @@ QString iAStackedBarChart::barName(size_t barIdx) const
 	return m_bars[barIdx]->name;
 }
 
-iAChartWidget* iAStackedBarChart::chart(size_t barIdx)
-{
-	return m_bars[barIdx]->m_chart;
-}
-
 void iAStackedBarChart::setLeftMargin(int leftMargin)
 {
 	m_leftMargin = leftMargin;
 }
 
-double iAStackedBarChart::maxYValue() const
-{
-	if (!m_showChart)
-	{
-		return -1;
-	}
-	double yMax = std::numeric_limits<double>::lowest();
-	for (auto& bar : m_bars)
-	{
-		if (bar->m_chart->yBounds()[1] > yMax)
-		{
-			yMax = bar->m_chart->yBounds()[1];
-		}
-	}
-	return yMax;
-}
-
-void iAStackedBarChart::setChartYRange(double yMin, double yMax)
-{
-	if (!m_showChart)
-	{
-		return;
-	}
-	for (auto& bar : m_bars)
-	{
-		bar->m_chart->setYBounds(yMin, yMax);
-		bar->m_chart->update();
-	}
-}
-
 void iAStackedBarChart::setBackgroundColor(QColor const& color)
 {
 	m_bgColor = color;
-	if (m_showChart)
-	{
-		for (auto & bar: m_bars)
-		{
-			bar->m_chart->setBackgroundColor(color);
-		}
-	}
 	updateBars();
 }
 
@@ -546,7 +475,7 @@ void iAStackedBarChart::updateDividers()
 		m_chartAreaPixelWidth = 0;
 		for (int i = 0; i < m_bars.size(); ++i)
 		{
-			m_chartAreaPixelWidth += m_gL->itemAtPosition(m_row + BarRow, m_col + i)->widget()->geometry().width();
+			m_chartAreaPixelWidth += m_gL->itemAtPosition(m_row, m_col + i)->widget()->geometry().width();
 		}
 	}
 
@@ -598,17 +527,13 @@ void iAStackedBarChart::updateOverallMax()
 	}
 }
 
-void iAStackedBarChart::updateChartBars()
+void iAStackedBarChart::updateColumnStretch()
 {
-	if (m_showChart)
-	{
-		m_bars[0]->m_chart->setYCaption(m_yLabelName);
-	}
 	for (size_t barID = 0; barID < m_bars.size(); ++barID)
 	{
 		auto& bar = m_bars[barID];
 		int chartStretch = std::min(MaxChartWidth, static_cast<int>(bar->weight * m_chartAreaPixelWidth))
-			+ ((barID == 0 && m_showChart) ? m_bars[0]->m_chart->leftMargin() : 0);
+			+ ((barID == 0) ? m_leftMargin : 0);
 		m_gL->setColumnStretch(static_cast<int>(m_col+barID), chartStretch);
 	}
 }
