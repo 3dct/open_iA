@@ -43,7 +43,6 @@ public:
 	iAParameterInfluenceView(iASensitivityInfo* sensInf, QColor const& paramColor, QColor const& outputColor);
 	void setMeasure(int newMeasure);
 	void setAggregation(int newAggregation);
-	void setSelectedParam(int param);
 	int selectedMeasure() const;
 	int selectedAggrType() const;
 	int selectedRow() const;
@@ -52,6 +51,8 @@ public slots:
 	void showStackedBar();
 	void selectStackedBar(int outputType, int idx);
 	void stackedBarDblClicked(int idx);
+	void setSelectedParam(int param);
+	void toggleCharacteristic(int charactIdx);
 private slots:
 	void paramChangedSlot();
 private:
@@ -62,6 +63,7 @@ private:
 	void addColumnAction(int outType, int outIdx, bool checked);
 	QString columnName(int outputType, int outTypeIdx) const;
 	void updateChartY();
+	void toggleBar(bool show, int outType, int outIdx);
 
 	// pair output type / index
 	QVector<QPair<int,int>> m_visibleCharacts;
@@ -81,4 +83,6 @@ private:
 signals:
 	void parameterChanged();
 	void outputSelected(int outType, int outTypeIdx);
+	void barAdded(int outType, int outIdx);
+	void barRemoved(int outType, int outIdx);
 };

@@ -212,6 +212,8 @@ public slots:
 	void spPointHighlighted(size_t resultIdx, bool state);
 	void createGUI();
 	void characteristicChanged(int charIdx);
+	void outputBarAdded(int outType, int outIdx);
+	void outputBarRemoved(int outType, int outIdx);
 private slots:
 	void dissimMatrixMeasureChanged(int);
 	void dissimMatrixParameterChanged(int);

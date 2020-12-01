@@ -144,7 +144,7 @@ iAParameterInfluenceView::iAParameterInfluenceView(iASensitivityInfo* sensInf, Q
 		chart->setNormalizeMode(false);
 		chart->setDoStack(false);
 	}
-	addStackedBar(outCharacteristic, 0);
+	addStackedBar(outCharacteristic, 0);  // reflected in iAAlgorithmInfo construction in iASensitivity -> put in common place?
 }
 
 void iAParameterInfluenceView::addColumnAction(int objectType, int charactIdx, bool checked)
@@ -182,14 +182,7 @@ void iAParameterInfluenceView::showStackedBar()
 	auto source = qobject_cast<QAction*>(QObject::sender());
 	int objectType = source->property("objectType").toInt();
 	int charactIdx = source->property("charactIdx").toInt();
-	if (source->isChecked())
-	{
-		addStackedBar(objectType, charactIdx);
-	}
-	else
-	{
-		removeStackedBar(objectType, charactIdx);
-	}
+	toggleBar(source->isChecked(), objectType, charactIdx);
 }
 
 void iAParameterInfluenceView::selectStackedBar(int outputType, int outTypeIdx)
@@ -204,6 +197,24 @@ void iAParameterInfluenceView::selectStackedBar(int outputType, int outTypeIdx)
 	for (auto stackedChart: m_stackedCharts)
 	{
 		stackedChart->setSelectedBar(m_selectedCol);
+	}
+}
+
+void iAParameterInfluenceView::toggleCharacteristic(int charactIdx)
+{
+	bool shown = m_visibleCharacts.indexOf(qMakePair(outCharacteristic, charactIdx)) != -1;
+	toggleBar(!shown, outCharacteristic, charactIdx);
+}
+
+void iAParameterInfluenceView::toggleBar(bool show, int outType, int outIdx)
+{
+	if (show)
+	{
+		addStackedBar(outType, outIdx);
+	}
+	else
+	{
+		removeStackedBar(outType, outIdx);
 	}
 }
 
@@ -361,6 +372,7 @@ void iAParameterInfluenceView::addStackedBar(int outType, int outIdx)
 	}
 	updateChartY();
 	m_stackedHeader->setLeftMargin(m_stackedCharts[0]->chart(0)->leftMargin());
+	emit barAdded(outType, outIdx);
 }
 
 void iAParameterInfluenceView::removeStackedBar(int outType, int outIdx)
@@ -384,4 +396,5 @@ void iAParameterInfluenceView::removeStackedBar(int outType, int outIdx)
 		}
 	}
 	updateChartY();
+	emit barRemoved(outType, outIdx);
 }
