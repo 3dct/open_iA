@@ -155,3 +155,15 @@ QString greatestCommonSuffix(QString const & str1, QString const & str2)
 {
 	return str1.right(greatestCommonSuffixLength(str1, str2));
 }
+
+int requiredDigits(double value)
+{
+	return (value >= -1.0 && value < 1.0) ? 1 :
+		static_cast<int>(std::floor(std::log10(std::abs(value))) + 1);
+}
+
+int digitsAfterComma(double minResolvableDifference)
+{
+	//(stepWidth < 10) ? requiredDigits(10 / stepWidth) : 0;
+	return requiredDigits(1 / minResolvableDifference) - 1;
+}
