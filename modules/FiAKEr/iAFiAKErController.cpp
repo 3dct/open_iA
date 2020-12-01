@@ -877,22 +877,39 @@ QString iAFiAKErController::stackedBarColName(int index) const
 void iAFiAKErController::addStackedBar(int index)
 {
 	QString title = stackedBarColName(index);
-	m_stackedBarsHeaders->addBar(title, 1, 1);
+	m_stackedBarsHeaders->addBar(title, 1, 1, 1);
+	double maxValue, minValDiff;
+	if (index == 0)
+	{
+		maxValue = m_data->maxFiberCount;
+		minValDiff = 1;
+	}
+	else
+	{
+		minValDiff = std::numeric_limits<double>::max();
+		maxValue = m_data->maxAvgDifference.size() > 0 ? m_data->maxAvgDifference[index - 1] : 1;
+		for (size_t r1 = 0; r1 < m_resultUIs.size(); ++r1)
+		{
+			auto const& d1 = m_data->result[r1];
+			double v1 = d1.avgDifference.size() > 0 ? d1.avgDifference[index - 1] : 0;
+			for (size_t r2 = r1+1; r2 < m_resultUIs.size(); ++r2)
+			{
+				auto const& d2 = m_data->result[r2];
+				double v2 = d2.avgDifference.size() > 0 ? d2.avgDifference[index - 1] : 0;
+				double diff = std::abs(v1 - v2);
+				if (diff < minValDiff)
+				{
+					minValDiff = diff;
+				}
+			}
+		}
+	}
 	for (size_t resultID=0; resultID<m_resultUIs.size(); ++resultID)
 	{
-		double value, maxValue;
-		if (index == 0)
-		{
-			value = m_data->result[resultID].fiberCount;
-			maxValue = m_data->maxFiberCount;
-		}
-		else
-		{
-			value = m_data->result[resultID].avgDifference.size() > 0 ?
-			        m_data->result[resultID].avgDifference[index-1] : 0;
-			maxValue = m_data->maxAvgDifference[index-1];
-		}
-		m_resultUIs[resultID].stackedBars->addBar(title, value, maxValue);
+		auto const& d = m_data->result[resultID];
+		double value = (index == 0) ? d.fiberCount :
+			(d.avgDifference.size() > 0 ? d.avgDifference[index-1] : 0);
+		m_resultUIs[resultID].stackedBars->addBar(title, value, maxValue, minValDiff);
 	}
 	m_resultsListLayout->setColumnStretch(m_stackedBarColumn, static_cast<int>(m_stackedBarsHeaders->numberOfBars()* m_data->result.size()) );
 }

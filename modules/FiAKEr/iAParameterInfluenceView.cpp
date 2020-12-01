@@ -122,8 +122,8 @@ iAParameterInfluenceView::iAParameterInfluenceView(iASensitivityInfo* sensInf, Q
 		iAClickableLabel* labels[4];
 		labels[colParamName] = new iAClickableLabel(paramName);
 		labels[colParamName]->setStyleSheet("QLabel { background-color : " + paramColor.name() + "; }");
-		labels[colMin] = new iAClickableLabel(QString::number(minVal));
-		labels[colMax] = new iAClickableLabel(QString::number(maxVal));
+		labels[colMin] = new iAClickableLabel(QString::number(minVal, 'f', digitsAfterComma(sensInf->paramStep[paramIdx])));
+		labels[colMax] = new iAClickableLabel(QString::number(maxVal, 'f', digitsAfterComma(sensInf->paramStep[paramIdx])));
 		labels[colStep] = new iAClickableLabel(QString::number(sensInf->paramStep[paramIdx]));
 		for (int i = colParamName; i <= colStep; ++i)
 		{
@@ -253,6 +253,27 @@ void iAParameterInfluenceView::setSelectedParam(int param)
 	emit parameterChanged();
 }
 
+void getParamMaxMinDiffVal(QVector<double> const & d, double & maxVal, double & minValDiff)
+{
+	maxVal = std::numeric_limits<double>::lowest();
+	minValDiff = std::numeric_limits<double>::max();
+	for (int paramIdx = 0; paramIdx < d.size(); ++paramIdx)
+	{
+		if (d[paramIdx] > maxVal)
+		{
+			maxVal = d[paramIdx];
+		}
+		for (int p2 = paramIdx + 1; p2 < d.size(); ++p2)
+		{
+			auto curDiff = std::abs(d[paramIdx] - d[p2]);
+			if (curDiff < minValDiff)
+			{
+				minValDiff = curDiff;
+			}
+		}
+	}
+}
+
 void iAParameterInfluenceView::updateStackedBars()
 {
 	for (auto col : m_visibleCharacts)
@@ -263,17 +284,11 @@ void iAParameterInfluenceView::updateStackedBars()
 		 /*(col.first == outDissimilarity)*/: m_sensInf->aggregatedSensDissim[col.second]))[m_aggrType];
 		// TODO: unify with addStackedBar
 		auto title(columnName(col.first, col.second));
-		double maxValue = std::numeric_limits<double>::lowest();
+		double maxVal, minValDiff;
+		getParamMaxMinDiffVal(d, maxVal, minValDiff);
 		for (int paramIdx = 0; paramIdx < m_sensInf->m_variedParams.size(); ++paramIdx)
 		{
-			if (d[paramIdx] > maxValue)
-			{
-				maxValue = d[paramIdx];
-			}
-		}
-		for (int paramIdx = 0; paramIdx < m_sensInf->m_variedParams.size(); ++paramIdx)
-		{
-			m_stackedCharts[paramIdx]->updateBar(title, d[paramIdx], maxValue);
+			m_stackedCharts[paramIdx]->updateBar(title, d[paramIdx], maxVal, minValDiff);
 			updateStackedBarHistogram(title, paramIdx, col.first, col.second);
 		}
 	}
@@ -330,23 +345,17 @@ void iAParameterInfluenceView::addStackedBar(int outType, int outIdx)
 	m_visibleCharacts.push_back(qMakePair(outType, outIdx));
 	auto title(columnName(outType, outIdx));
 	LOG(lvlDebug, QString("Showing stacked bar for characteristic %1").arg(title));
-	m_stackedHeader->addBar(title, 1, 1);
+	m_stackedHeader->addBar(title, 1, 1, 1);
 	auto const& d = (
 		   (outType == outCharacteristic)  ? m_sensInf->aggregatedSensitivities[outIdx][m_measureIdx]:
 		      ((outType == outFiberCount)  ? m_sensInf->aggregatedSensitivitiesFiberCount
 		/*(col.first == outDissimilarity)*/: m_sensInf->aggregatedSensDissim[outIdx]))[m_aggrType];
 
-	double maxValue = std::numeric_limits<double>::lowest();
+	double maxVal, minValDiff;
+	getParamMaxMinDiffVal(d, maxVal, minValDiff);
 	for (int paramIdx = 0; paramIdx < m_sensInf->m_variedParams.size(); ++paramIdx)
 	{
-		if (d[paramIdx] > maxValue)
-		{
-			maxValue = d[paramIdx];
-		}
-	}
-	for (int paramIdx = 0; paramIdx < m_sensInf->m_variedParams.size(); ++paramIdx)
-	{
-		m_stackedCharts[paramIdx]->addBar(title, d[paramIdx], maxValue);
+		m_stackedCharts[paramIdx]->addBar(title, d[paramIdx], maxVal, minValDiff);
 		updateStackedBarHistogram(title, paramIdx, outType, outIdx);
 		m_stackedCharts[paramIdx]->setLeftMargin(m_stackedCharts[0]->chart(0)->leftMargin());
 	}

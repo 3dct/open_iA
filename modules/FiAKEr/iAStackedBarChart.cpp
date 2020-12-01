@@ -24,6 +24,7 @@
 #include <iAColorTheme.h>
 #include <iALog.h>
 #include <iAMathUtility.h>
+#include <iAStringHelper.h>
 
 #include <QAction>
 #include <QGridLayout>
@@ -54,14 +55,15 @@ namespace
 class iABarData
 {
 public:
-	iABarData() : name(""), value(0), maxValue(1), weight(1.0), m_chart(nullptr)
+	iABarData() : name(""), value(0), maxValue(1), minValDiff(1), weight(1.0), m_chart(nullptr)
 	{
 	}
-	iABarData(QString const& name, double value, double maxValue, double weight,
+	iABarData(QString const& name, double value, double maxValue, double minValDiff, double weight,
 		bool showChart, QWidget* parent, QString const& xLabel, QString const& yLabel) :
 		name(name),
 		value(value),
 		maxValue(maxValue),
+		minValDiff(minValDiff),
 		weight(weight),
 		m_chart(showChart ? new iAChartWidget(parent, xLabel, yLabel) : nullptr)
 	{
@@ -75,7 +77,7 @@ public:
 		delete m_chart;
 	}
 	QString name;
-	double value, maxValue, weight;
+	double value, maxValue, minValDiff, weight;
 	iAChartWidget* m_chart;
 };
 
@@ -214,9 +216,9 @@ iAStackedBarChart::iAStackedBarChart(iAColorTheme const* theme, QGridLayout* gL,
 	}
 }
 
-void iAStackedBarChart::addBar(QString const & name, double value, double maxValue)
+void iAStackedBarChart::addBar(QString const & name, double value, double maxValue, double minValDiff)
 {
-	m_bars.push_back(QSharedPointer<iABarData>(new iABarData(name, value, maxValue, (m_bars.size()==0) ? 1 : 1.0/m_bars.size(),
+	m_bars.push_back(QSharedPointer<iABarData>(new iABarData(name, value, maxValue, minValDiff, (m_bars.size()==0) ? 1 : 1.0/m_bars.size(),
 		m_showChart, this, name, (m_bars.size() == 0) ? m_yLabelName : "")));
 	if (m_showChart)
 	{
@@ -251,7 +253,7 @@ void iAStackedBarChart::emitBarDblClick(size_t barID)
 	emit barDblClicked(barID);
 }
 
-void iAStackedBarChart::updateBar(QString const& name, double value, double maxValue)
+void iAStackedBarChart::updateBar(QString const& name, double value, double maxValue, double minValDiff)
 {
 	auto it = std::find_if(m_bars.begin(), m_bars.end(),
 		[name](QSharedPointer<iABarData> d) { return d->name == name; });
@@ -259,6 +261,7 @@ void iAStackedBarChart::updateBar(QString const& name, double value, double maxV
 	{
 		(*it)->value = value;
 		(*it)->maxValue = maxValue;
+		(*it)->minValDiff = minValDiff;
 	}
 	updateChartBars();
 	updateOverallMax();
@@ -494,7 +497,8 @@ void iAStackedBarChart::drawBar(QPainter& painter, size_t barID, int left, int t
 		}
 	}
 	segmentBox.adjust(iAStackedBarChart::TextPadding, 0, -iAStackedBarChart::TextPadding, 0);
-	painter.drawText(segmentBox, Qt::AlignVCenter, (m_header ? bar->name : QString("%1").arg(bar->value)));
+	painter.drawText(segmentBox, Qt::AlignVCenter,
+		(m_header ? bar->name : QString::number(bar->value, 'f', digitsAfterComma(bar->minValDiff))));
 }
 
 void iABarsWidget::paintEvent(QPaintEvent* ev)

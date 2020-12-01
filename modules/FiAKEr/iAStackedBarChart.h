@@ -38,8 +38,8 @@ public:
 	iAStackedBarChart(iAColorTheme const* theme, QGridLayout* gL, int row, int col,
 		bool header = false, bool last = false, bool chart = false,
 		QString const & yLabelName = QString());
-	void addBar(QString const & name, double value, double maxValue);
-	void updateBar(QString const& name, double value, double maxValue);
+	void addBar(QString const& name, double value, double maxValue, double minValDiff);
+	void updateBar(QString const& name, double value, double maxValue, double minValDiff);
 	void removeBar(QString const & name);
 	int barIndex(QString const& name) const;
 	void setColorTheme(iAColorTheme const * theme);
