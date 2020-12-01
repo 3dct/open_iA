@@ -2489,7 +2489,7 @@ bool MdiChild::isVolumeDataLoaded() const
 
 void MdiChild::changeMagicLensModality(int chg)
 {
-	if (!m_isMagicLensEnabled)
+	if (!m_isMagicLensEnabled || modalities()->size() == 0)
 	{
 		return;
 	}
