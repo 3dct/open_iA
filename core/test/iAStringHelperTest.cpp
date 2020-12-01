@@ -31,6 +31,9 @@ std::ostream& operator<<(std::ostream& o, const QString & s)
 }
 
 BEGIN_TEST
+
+	// TEST splitPossiblyQuotedString
+
 	// special case: empty quote at beginning
 	QStringList split = splitPossiblyQuotedString("\"\" a b");
 	TestEqual(split.size(), 3);
@@ -70,6 +73,9 @@ BEGIN_TEST
 	TestEqual(split6.at(0), QString("a"));
 	TestEqual(split6.at(1), QString(""));
 	TestEqual(split6.at(2), QString("b"));
+
+
+	// TEST dblToStringWithUnits
 	
 	TestEqual(dblToStringWithUnits(0.000000000000001234), QString("1.23f"));
 	TestEqual(dblToStringWithUnits(0.00000001234), QString("12.3n"));
@@ -87,6 +93,31 @@ BEGIN_TEST
 	TestEqual(dblToStringWithUnits(5323), QString("5.32K"));
 	TestEqual(dblToStringWithUnits(6306403), QString("6.31M"));
 	TestEqual(dblToStringWithUnits(92314300), QString("92.3M"));
+
+
+	// TEST requiredDigits
+	TestEqual(requiredDigits(0.00000002), 1);
+	TestEqual(requiredDigits(0.25674), 1);
+	TestEqual(requiredDigits(0.2), 1);
+	TestEqual(requiredDigits(9.9999), 1);
+	TestEqual(requiredDigits(10), 2);
+
+	TestEqual(requiredDigits(1000000), 7);
+	TestEqual(requiredDigits(9999999.99), 7);
+	TestEqual(requiredDigits(123456789), 9);
+
+
+	// TEST digitsAfterComma
+
+	TestEqual(digitsAfterComma(10.5) , 0);  // -> debatable whether that's "correct", but that's the way it's currently implemented
+	TestEqual(digitsAfterComma(9.95) , 1);
+	TestEqual(digitsAfterComma(2.5)  , 1);
+	TestEqual(digitsAfterComma(1)    , 0);
+	TestEqual(digitsAfterComma(0.02) , 2);
+	TestEqual(digitsAfterComma(0.025), 3);
+	TestEqual(digitsAfterComma(0.001), 3);
+	TestEqual(digitsAfterComma(0.0011), 4);
+
 
 	std::vector<double> vecDbl = { 0.5, 1.222, 5, 3.33443 };
 	TestEqual(QString("0.5, 1.222, 5, 3.33443"), joinNumbersAsString(vecDbl, ", "));

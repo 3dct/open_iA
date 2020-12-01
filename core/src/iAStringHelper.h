@@ -244,5 +244,14 @@ open_iA_Core_API QString greatestCommonSuffix(QString const & str1, QString cons
 open_iA_Core_API int requiredDigits(double value);
 
 //! Get the number of digits required after the comma,
-//! given the difference to other values it should be distinguishable from
-open_iA_Core_API int digitsAfterComma(double minResolvableDifference);
+//! given the difference to other values it should be distinguishable from.
+//! TODO: introduce "number of relevant digits" parameter / automatic determination?
+//!      e.g. 9.125 -> 3, 9.98 -> 2, 9.5 -> 1; but what about e.g. 9.995 (->close enough to 10 to discard after comma?)
+//! Examples:
+//! resolvableDiff  result
+//! >= 10           0
+//! 9.9999 - 1.0    0-1 (0 if resolvableDiff is exactly 1,6,4,... depending on whether resolvableDiff is 1.2,6.323, or )
+//! 0.9999 - 0.1    1-2 (depending on whether resolvableDiff is 0.15,0.22,0.9333,... or exactly 0.1,0.4,...)
+//! 0.0999 - 0.01   2-3
+//! 0.0099 - 0.001  3-4
+open_iA_Core_API int digitsAfterComma(double resolvableDiff);

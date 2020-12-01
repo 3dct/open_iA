@@ -177,12 +177,28 @@ QString greatestCommonSuffix(QString const & str1, QString const & str2)
 
 int requiredDigits(double value)
 {
-	return (value >= -1.0 && value < 1.0) ? 1 :
+	return (std::abs(value) <= 1.0) ? 1 :
 		static_cast<int>(std::floor(std::log10(std::abs(value))) + 1);
 }
 
-int digitsAfterComma(double minResolvableDifference)
+int digitsAfterComma(double resolvableDiff)
 {
-	//(stepWidth < 10) ? requiredDigits(10 / stepWidth) : 0;
-	return requiredDigits(1 / minResolvableDifference) - 1;
+	double diff = std::abs(resolvableDiff);
+	if (diff >= 10)
+	{
+		return 0;
+	}
+	double logVal = std::log10(1 / diff);
+	// ceil instead of floor here (in contrast to requiredDigits above),
+	// because corner cases go in other direction:
+	// i.e. while 10 already requires 2 digits, 1/10=0.1 still only requires 1 digit
+	int digits = static_cast<int>(std::ceil(logVal));
+	double tenFactor = std::pow(10, static_cast<int>(digits));
+	double multiplied = resolvableDiff * tenFactor;
+	// 0.01 as epsilon because they just have to roughly match, we won't show more than 1 additional digit in any case:
+	if (!dblApproxEqual(multiplied, std::round(multiplied), 0.01 ))
+	{	// for differences like 0.15 (in contrast to a round 0.1) we want to add an extra digit:
+		++digits;
+	}
+	return digits;
 }
