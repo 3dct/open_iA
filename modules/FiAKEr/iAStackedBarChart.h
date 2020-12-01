@@ -41,15 +41,12 @@ public:
 	int barIndex(QString const& name) const;
 	void setColorTheme(iAColorTheme const * theme);
 	QMenu* contextMenu();
-	void setDoStack(bool doStack);
 	size_t numberOfBars() const;
 	void setBackgroundColor(QColor const & color);
 	double weightedSum() const;
 	void setSelectedBar(int barIdx);
 	QString barName(size_t barIdx) const;
 	void setLeftMargin(int leftMargin);
-	//double maxYValue() const;
-	//void setChartYRange(double yMin, double yMax);
 signals:
 	void switchedStackMode(bool mode);
 	void weightsChanged(std::vector<double> const& weights);
@@ -61,6 +58,7 @@ signals:
 public slots:
 	void setWeights(std::vector<double> const & weights);
 	void setNormalizeMode(bool normalizePerBar);
+	void setDoStack(bool doStack);
 private slots:
 	void switchStackMode();
 	void resetWeights();

@@ -88,17 +88,33 @@ public:
 		QWidget::resizeEvent(e);
 		m_s->updateDividers();
 	}
-	void mouseDoubleClickEvent(QMouseEvent* event) override
+	void mouseDoubleClickEvent(QMouseEvent* ev) override
 	{
-		size_t barID = m_s->getBarAt(event->x());
-		LOG(lvlDebug, QString("DblClicked on bar %1").arg(barID));
-		m_s->emitBarClick(barID);
+		if (ev->button() == Qt::LeftButton)
+		{
+			size_t barID = m_s->getBarAt(ev->x());
+			if (barID != NoBar)
+			{
+				//LOG(lvlDebug, QString("DblClicked on bar %1").arg(barID));
+				m_s->emitBarClick(barID);
+				return;
+			}
+		}
+		QWidget::mouseDoubleClickEvent(ev);
 	}
-	void mousePressEvent(QMouseEvent* event) override
+	void mousePressEvent(QMouseEvent* ev) override
 	{
-		size_t barID = m_s->getBarAt(event->x());
-		LOG(lvlDebug, QString("Clicked on bar %1").arg(barID));
-		m_s->emitBarDblClick(barID);
+		if (ev->button() == Qt::LeftButton)
+		{
+			size_t barID = m_s->getBarAt(ev->x());
+			if (barID != NoBar)
+			{
+				//LOG(lvlDebug, QString("Clicked on bar %1").arg(barID));
+				m_s->emitBarDblClick(barID);
+				return;
+			}
+		}
+		QWidget::mousePressEvent(ev);
 	}
 
 private:
@@ -130,13 +146,21 @@ public:
 	}
 	void mouseDoubleClickEvent(QMouseEvent* ev) override
 	{
-		Q_UNUSED(ev);
-		m_s->emitBarClick(m_barID);
+		if (ev->button() == Qt::LeftButton)
+		{
+			m_s->emitBarClick(m_barID);
+			return;
+		}
+		QWidget::mouseDoubleClickEvent(ev);
 	}
 	void mousePressEvent(QMouseEvent* ev) override
 	{
-		Q_UNUSED(ev);
-		m_s->emitBarDblClick(m_barID);
+		if (ev->button() == Qt::LeftButton)
+		{
+			m_s->emitBarDblClick(m_barID);
+			return;
+		}
+		QWidget::mousePressEvent(ev);
 	}
 	void paintEvent(QPaintEvent* ev) override
 	{
@@ -341,7 +365,7 @@ size_t iAStackedBarChart::getBarAt(int x) const
 	{
 		++barID;
 	}
-	return barID;
+	return barID >= m_dividers.size() ? NoBar : barID;
 }
 
 size_t iAStackedBarChart::numberOfBars() const
@@ -583,7 +607,7 @@ void iAStackedBarChart::mouseMoveEvent(QMouseEvent* ev)
 	else
 	{
 		size_t curBar = getBarAt(ev->x());
-		if (curBar < m_bars.size())
+		if (curBar != NoBar)
 		{
 			auto& b = m_bars[curBar];
 			QToolTip::showText(ev->globalPos(), QString("%1: %2 (weight: %3)")
