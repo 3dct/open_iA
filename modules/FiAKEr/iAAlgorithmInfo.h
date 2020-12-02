@@ -24,6 +24,7 @@
 
 // could go into .cpp if separated:
 #include <iALog.h>
+#include <iAMathUtility.h>
 
 #include <QMouseEvent>
 #include <QPainter>
@@ -38,8 +39,9 @@ public:
 	static const int ArrowTextDistance = 3;
 	static const int ArrowTextLeft = 5;
 	static const int RoundedCornerRadius = 3;
-	static const int TextHPadding = 2;
+	static const int TextHPadding = 3;
 	static const int TextVPadding = 1;
+	static const int ArrowMinBottomDist = 1;
 	iAAlgorithmInfo(QString const& name, QStringList const& inNames, QStringList const& outNames,
 		QColor const & inColor, QColor const & outColor):
 		m_name(name), m_inNames(inNames), m_outNames(outNames), m_inColor(inColor), m_outColor(outColor),
@@ -87,7 +89,12 @@ public:
 		QColor const& color, int selected, QVector<int> const & shown)
 	{
 		rects.clear();
-		int oneHeight = boxHeight() / (strings.size() + 1);
+		int bottomDistance = boxHeight() / (strings.size() + 1);
+		double fontToBoxRatio = static_cast<double>(bottomDistance) / (p.fontMetrics().height()+2*TextVPadding+ArrowTextDistance);
+		int arrowBottomDistance = clamp(ArrowMinBottomDist, bottomDistance,
+			static_cast<int>(mapValue(1.0, 4.0,	ArrowMinBottomDist, bottomDistance, fontToBoxRatio)));
+		//int arrowBottomDistance = ArrowBottomDist;
+		int oneHeight = (boxHeight() - arrowBottomDistance) / strings.size();
 		int baseTop = VMargin + oneHeight;
 		for (int idx = 0; idx < strings.size(); ++idx)
 		{
