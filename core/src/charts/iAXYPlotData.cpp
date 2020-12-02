@@ -102,8 +102,8 @@ QSharedPointer<iAXYPlotData> iAXYPlotData::create(QString const& name, iAValueTy
 
 iAXYPlotData::iAXYPlotData(QString const& name, iAValueType type, size_t reservedSize) :
 	iAPlotData(name, type),
-	m_xBounds{std::numeric_limits<double>::max(), std::numeric_limits<double>::lowest()}
-	m_yBounds{std::numeric_limits<double>::max(), std::numeric_limits<double>::lowest()},
+	m_xBounds{std::numeric_limits<double>::max(), std::numeric_limits<double>::lowest()},
+	m_yBounds{std::numeric_limits<double>::max(), std::numeric_limits<double>::lowest()}
 {
 	m_values.reserve(reservedSize);
 }
