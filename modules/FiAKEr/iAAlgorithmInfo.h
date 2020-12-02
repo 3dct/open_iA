@@ -46,7 +46,9 @@ public:
 		QColor const & inColor, QColor const & outColor):
 		m_name(name), m_inNames(inNames), m_outNames(outNames), m_inColor(inColor), m_outColor(outColor),
 		m_selectedIn(-1)
-	{}
+	{
+		setSizePolicy(QSizePolicy::Expanding, QSizePolicy::MinimumExpanding);
+	}
 	int boxWidth() const
 	{
 		return (geometry().width() - 2 * HMargin) / 3;
@@ -54,6 +56,10 @@ public:
 	int boxHeight() const
 	{
 		return geometry().height() - 2 * VMargin;
+	}
+	int oneEntryHeight() const
+	{
+		return fontMetrics().height() + 2 * TextVPadding + ArrowTextDistance;
 	}
 	void drawArrow(QPainter& p, int left, int top, int width, int height, QString const& text,
 		QVector<QRect>& rects, QColor const& color, bool selected, bool useColor)
@@ -90,7 +96,7 @@ public:
 	{
 		rects.clear();
 		int bottomDistance = boxHeight() / (strings.size() + 1);
-		double fontToBoxRatio = static_cast<double>(bottomDistance) / (p.fontMetrics().height()+2*TextVPadding+ArrowTextDistance);
+		double fontToBoxRatio = static_cast<double>(bottomDistance) / oneEntryHeight();
 		int arrowBottomDistance = clamp(ArrowMinBottomDist, bottomDistance,
 			static_cast<int>(mapValue(1.0, 4.0,	ArrowMinBottomDist, bottomDistance, fontToBoxRatio)));
 		//int arrowBottomDistance = ArrowBottomDist;
@@ -152,6 +158,10 @@ public:
 			return;
 		}
 		m_shownOut.remove(idx);
+	}
+	QSize sizeHint() const override
+	{
+		return QSize(1, oneEntryHeight() * std::max(m_inNames.size(), m_outNames.size()));
 	}
 signals:
 	void inputClicked(int inIdx);

@@ -1253,6 +1253,12 @@ public:
 		connect(cmbboxOutput, QOverload<int>::of(&QComboBox::currentIndexChanged), sensInf, &iASensitivityInfo::updateOutputControls);
 
 		connect(cmbboxDissimilarity, QOverload<int>::of(&QComboBox::currentIndexChanged), sensInf, &iASensitivityInfo::updateDissimilarity);
+		
+		cmbboxAggregation->setMinimumWidth(80);
+		cmbboxMeasure->setMinimumWidth(80);
+		cmbboxDissimilarity->setMinimumWidth(80);
+		cmbboxMeasure->setMinimumWidth(80);
+		cmbboxOutput->setMinimumWidth(80);
 	}
 	int charIdx() const
 	{
