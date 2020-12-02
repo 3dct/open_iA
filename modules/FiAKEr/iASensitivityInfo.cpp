@@ -381,8 +381,7 @@ iASensitivityInfo::iASensitivityInfo(QSharedPointer<iAFiberResultsCollection> da
 
 void getBestMatches2(iAFiberData const& fiber, std::vector<iAFiberData> const& otherFibers,
 	QVector<QVector<iAFiberSimilarity>>& bestMatches, std::vector<int> const& candidates,
-	double diagonalLength, double maxLength, std::vector<std::pair<int, bool>>& measuresToCompute
-	/*, int optimizationMeasureIdx*/)
+	double diagonalLength, double maxLength, std::vector<std::pair<int, bool>>& measuresToCompute)
 {
 	int bestMatchesStartIdx = bestMatches.size();
 	assert(measuresToCompute.size() < std::numeric_limits<int>::max());
@@ -390,54 +389,24 @@ void getBestMatches2(iAFiberData const& fiber, std::vector<iAFiberData> const& o
 	int numOfNewMeasures = static_cast<int>(measuresToCompute.size());
 	bestMatches.resize(bestMatchesStartIdx + numOfNewMeasures);
 	auto maxNumberOfCloseFibers = std::min(static_cast<int>(candidates.size()),
-		std::min(iARefDistCompute::MaxNumberOfCloseFibers, static_cast<iARefDistCompute::ContainerSizeType>(otherFibers.size())));
+		std::min(iARefDistCompute::MaxNumberOfCloseFibers,
+			static_cast<iARefDistCompute::ContainerSizeType>(otherFibers.size())));
 	for (int d = 0; d < numOfNewMeasures; ++d)
 	{
 		QVector<iAFiberSimilarity> similarities;
-		/*
-		bool optimize = measuresToCompute[d].second;
-		if (optimize && (optimizationMeasureIdx < 0 || optimizationMeasureIdx >= d))
+		similarities.resize(static_cast<int>(candidates.size()));
+		for (iARefDistCompute::ContainerSizeType bestMatchID = 0; bestMatchID < candidates.size(); ++bestMatchID)
 		{
-			LOG(lvlWarn,
-				QString("Invalid optimization measure base: Index %1 is outside of valid range 0 .. %2; disabling "
-						"optimization!")
-					.arg(optimizationMeasureIdx)
-					.arg(d - 1));
-			optimize = false;
-		}
-		if (!optimize)
-		{
-			similarities.resize(static_cast<iARefDistCompute::ContainerSizeType>(otherFibers.size()));
-			for (iARefDistCompute::ContainerSizeType refFiberID = 0; refFiberID < otherFibers.size(); ++refFiberID)
+			size_t refFiberID = candidates[bestMatchID];
+			similarities[bestMatchID].index = refFiberID;
+			double curDissimilarity =
+				getDissimilarity(fiber, otherFibers[refFiberID], measuresToCompute[d].first, diagonalLength, maxLength);
+			if (std::isnan(curDissimilarity))
 			{
-				similarities[refFiberID].index = refFiberID;
-				double curDissimilarity = getDissimilarity(
-					fiber, otherFibers[refFiberID], measuresToCompute[d].first, diagonalLength, maxLength);
-				if (std::isnan(curDissimilarity))
-				{
-					curDissimilarity = 0;
-				}
-				similarities[refFiberID].dissimilarity = curDissimilarity;
+				curDissimilarity = 0;
 			}
+			similarities[bestMatchID].dissimilarity = curDissimilarity;
 		}
-		else
-		{  // compute overlap measures only for the best-matching fibers according to a simpler metric:
-		*/
-			//auto& otherMatches = bestMatches[bestMatchesStartIdx + optimizationMeasureIdx];
-			similarities.resize(static_cast<int>(candidates.size()));
-			for (iARefDistCompute::ContainerSizeType bestMatchID = 0; bestMatchID < candidates.size(); ++bestMatchID)
-			{
-				size_t refFiberID = candidates[bestMatchID];
-				similarities[bestMatchID].index = refFiberID;
-				double curDissimilarity =
-					getDissimilarity(fiber, otherFibers[refFiberID], measuresToCompute[d].first, diagonalLength, maxLength);
-				if (std::isnan(curDissimilarity))
-				{
-					curDissimilarity = 0;
-				}
-				similarities[bestMatchID].dissimilarity = curDissimilarity;
-			}
-		//}
 		std::sort(similarities.begin(), similarities.end());
 		std::copy(similarities.begin(), similarities.begin() + maxNumberOfCloseFibers,
 			std::back_inserter(bestMatches[bestMatchesStartIdx + d]));
