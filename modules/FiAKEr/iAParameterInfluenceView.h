@@ -84,6 +84,8 @@ private:
 	QSharedPointer<iASingleColorTheme> m_stackedBarTheme;
 	QVector<iAParTableRow> m_table;
 	QVector<int> m_sort;
+	int m_sortLastOut;
+	bool m_sortLastDesc;
 signals:
 	void parameterChanged();
 	void outputSelected(int outType, int outTypeIdx);

@@ -79,7 +79,9 @@ iAParameterInfluenceView::iAParameterInfluenceView(iASensitivityInfo* sensInf, Q
 	m_paramListLayout(new QGridLayout()),
 	m_stackedBarTheme(new iASingleColorTheme("OneOutputColorTheme", outputColor)),
 	m_table(sensInf->m_variedParams.size()),
-	m_sort(sensInf->m_variedParams.size())
+	m_sort(sensInf->m_variedParams.size()),
+	m_sortLastOut(-1),
+	m_sortLastDesc(true)
 {
 	for (int i=0; i<m_sort.size(); ++i)
 	{
@@ -264,9 +266,16 @@ void iAParameterInfluenceView::toggleBar(bool show, int outType, int outIdx)
 
 void iAParameterInfluenceView::stackedBarDblClicked(int barIdx)
 {
+	if (m_sortLastOut == barIdx)
+	{
+		m_sortLastDesc = !m_sortLastDesc;
+	}
+	m_sortLastOut = barIdx;
 	std::sort(m_sort.begin(), m_sort.end(), [this, barIdx](int r1, int r2)
 	{
-		return m_table[r1].bars->barValue(barIdx) < m_table[r2].bars->barValue(barIdx);
+		double v1 = m_table[r1].bars->barValue(barIdx),
+			v2 = m_table[r2].bars->barValue(barIdx);
+		return m_sortLastDesc ? v1 > v2 : v1 < v2;
 	});
 	LOG(lvlDebug, joinNumbersAsString(m_sort, ","));
 	updateTableOrder();
@@ -483,6 +492,7 @@ void iAParameterInfluenceView::addStackedBar(int outType, int outIdx)
 		parChart->setBackgroundColor(color);
 		m_table[paramIdx].par.push_back(parChart);
 	}
+	updateTableOrder();
 	double maxVal, minValDiff;
 	getParamMaxMinDiffVal(d, maxVal, minValDiff);
 	for (int paramIdx = 0; paramIdx < m_sensInf->m_variedParams.size(); ++paramIdx)
