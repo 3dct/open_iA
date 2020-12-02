@@ -77,7 +77,7 @@ public:
 	}
 	QSize sizeHint() const
 	{
-		return QSize(10, fontMetrics().lineSpacing());  // font height?
+		return QSize(10, fontMetrics().lineSpacing()+2*BarVSpacing);  // font height?
 	}
 	void contextMenuEvent(QContextMenuEvent* ev) override
 	{
@@ -137,7 +137,7 @@ public:
 	}
 	QSize sizeHint() const
 	{
-		return QSize(10, fontMetrics().lineSpacing());  // font height?
+		return QSize(10, fontMetrics().lineSpacing() + 2 * BarVSpacing);  // font height?
 	}
 	void contextMenuEvent(QContextMenuEvent* ev) override
 	{

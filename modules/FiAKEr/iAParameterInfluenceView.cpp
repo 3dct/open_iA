@@ -478,7 +478,7 @@ void iAParameterInfluenceView::addStackedBar(int outType, int outIdx)
 	auto params = m_sensInf->m_variedParams;
 	for (int paramIdx = 0; paramIdx < params.size(); ++paramIdx)
 	{
-		auto paramName = m_sensInf->m_paramNames[paramIdx];
+		auto paramName = m_sensInf->m_paramNames[m_sensInf->m_variedParams[paramIdx]];
 		QColor color = palette().color(paramIdx == m_selectedParam ? QPalette::Midlight : backgroundRole());
 
 		auto outChart = new iAChartWidget(this, "", (curBarIdx == 0) ? "Var. from " + paramName: "");
@@ -487,7 +487,7 @@ void iAParameterInfluenceView::addStackedBar(int outType, int outIdx)
 		outChart->setBackgroundColor(color);
 		m_table[paramIdx].out.push_back(outChart);
 
-		auto parChart = new iAChartWidget(this, paramName, (curBarIdx == 0) ? "Sensitivity " + title : "");
+		auto parChart = new iAChartWidget(this, paramName, (curBarIdx == 0) ? "Sens. " + title : "");
 		parChart->setEmptyText("");
 		parChart->setBackgroundColor(color);
 		m_table[paramIdx].par.push_back(parChart);

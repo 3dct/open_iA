@@ -36,7 +36,7 @@ public:
 	static const int VMargin = 5;
 	static const int HMargin = 5;
 	static const int ArrowHeadSize = 5;
-	static const int ArrowTextDistance = 3;
+	static const int ArrowTextDistance = 1;
 	static const int ArrowTextLeft = 5;
 	static const int RoundedCornerRadius = 3;
 	static const int TextHPadding = 3;
