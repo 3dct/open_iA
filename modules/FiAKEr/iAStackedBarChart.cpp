@@ -96,7 +96,7 @@ public:
 			if (barID != NoBar)
 			{
 				//LOG(lvlDebug, QString("DblClicked on bar %1").arg(barID));
-				m_s->emitBarClick(barID);
+				m_s->emitBarDblClick(barID);
 				return;
 			}
 		}
@@ -110,7 +110,7 @@ public:
 			if (barID != NoBar)
 			{
 				//LOG(lvlDebug, QString("Clicked on bar %1").arg(barID));
-				m_s->emitBarDblClick(barID);
+				m_s->emitBarClick(barID);
 				return;
 			}
 		}
@@ -152,7 +152,7 @@ public:
 	{
 		if (ev->button() == Qt::LeftButton)
 		{
-			m_s->emitBarClick(m_barID);
+			m_s->emitBarDblClick(m_barID);
 			return;
 		}
 		QWidget::mouseDoubleClickEvent(ev);
@@ -161,7 +161,7 @@ public:
 	{
 		if (ev->button() == Qt::LeftButton)
 		{
-			m_s->emitBarDblClick(m_barID);
+			m_s->emitBarClick(m_barID);
 			return;
 		}
 		QWidget::mousePressEvent(ev);
@@ -232,15 +232,11 @@ void iAStackedBarChart::addBar(QString const & name, double value, double maxVal
 {
 	m_bars.push_back(QSharedPointer<iABarData>::create(name, value, maxValue, minValDiff, (m_bars.size()==0) ? 1 : 1.0/m_bars.size()));
 	// add bars widget / update row span if it already is added:
-	if (m_stack)
+	if (!m_stack)
 	{
-		m_gL->addWidget(m_barsWidget, m_row, m_col, 1, static_cast<int>(m_bars.size()));
+		m_barWidgets.push_back(new iABarWidget(this, static_cast<int>(m_bars.size() - 1)));
 	}
-	else
-	{
-		m_gL->addWidget(new iABarWidget(this, static_cast<int>(m_bars.size() - 1)), m_row,
-			m_col + static_cast<int>(m_bars.size() - 1));
-	}
+	updateLayout(); // slightly overkill (as it re-adds all m_barWidgets if !stack), but less code
 	updateColumnStretch();
 	normalizeWeights();
 	updateDividers();
@@ -285,10 +281,8 @@ int iAStackedBarChart::removeBar(QString const & name)
 	}
 	else
 	{	// always delete last -> just the bar IDs need to be ordered, then the correct data is shown
-		auto w = m_gL->itemAtPosition(m_row, static_cast<int>(m_col + m_bars.size()))->widget();
-		m_gL->removeWidget(w);
+		deleteBar(static_cast<int>(m_bars.size()));
 		m_gL->setColumnStretch(static_cast<int>(m_col + m_bars.size()), 0);
-		delete w;
 	}
 	normalizeWeights();
 	updateColumnStretch();
@@ -323,17 +317,20 @@ void iAStackedBarChart::setDoStack(bool doStack)
 	m_stack = doStack;
 	if (m_stack)
 	{
-		// update row span of bars widget:
-		m_gL->addWidget(m_barsWidget, m_row, m_col, 1, static_cast<int>(m_bars.size()));
+		for (int i=static_cast<int>(m_bars.size()-1); i>=0; --i)
+		{	// don't use size_t in for above, or overflow!
+			deleteBar(i);
+		}
 	}
 	else
 	{
 		m_gL->removeWidget(m_barsWidget);
-		for (int i = 0; i < m_bars.size(); ++i)
+		for (size_t i = 0; i < m_bars.size(); ++i)
 		{
-			m_gL->addWidget(new iABarWidget(this, i), m_row, m_col + i);
+			m_barWidgets.push_back(new iABarWidget(this, static_cast<int>(i)));
 		}
 	}
+	updateLayout();
 	updateBars();
 }
 
@@ -393,6 +390,11 @@ double iAStackedBarChart::weightedSum() const
 	return result;
 }
 
+double iAStackedBarChart::barValue(int barIdx) const
+{
+	return weightAndNormalize(*m_bars[barIdx].data());
+}
+
 void iAStackedBarChart::setSelectedBar(int barIdx)
 {
 	m_selectedBar = barIdx;
@@ -407,6 +409,13 @@ QString iAStackedBarChart::barName(size_t barIdx) const
 void iAStackedBarChart::setLeftMargin(int leftMargin)
 {
 	m_leftMargin = leftMargin;
+}
+
+void iAStackedBarChart::setPos(int row, int col)
+{
+	m_row = row;
+	m_col = col;
+	updateLayout();
 }
 
 void iAStackedBarChart::setBackgroundColor(QColor const& color)
@@ -506,7 +515,29 @@ void iAStackedBarChart::updateDividers()
 			m_chartAreaPixelWidth += m_gL->itemAtPosition(m_row, m_col + i)->widget()->geometry().width();
 		}
 	}
+}
 
+void iAStackedBarChart::updateLayout()
+{
+	if (m_stack)
+	{	// update row span of bars widget:
+		m_gL->addWidget(m_barsWidget, m_row, m_col, 1, static_cast<int>(m_bars.size()));
+	}
+	else
+	{
+		for (int i = 0; i < m_barWidgets.size(); ++i)
+		{
+			m_gL->addWidget(m_barWidgets[i], m_row, m_col + i);
+		}
+	}
+}
+
+void iAStackedBarChart::deleteBar(int barID)
+{
+	auto w = m_barWidgets[barID];
+	m_gL->removeWidget(w);
+	m_barWidgets.remove(barID);
+	delete w;
 }
 
 void iAStackedBarChart::contextMenuEvent(QContextMenuEvent *ev)

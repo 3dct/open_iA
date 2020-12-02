@@ -21,6 +21,7 @@
 #include "qthelper/iASignallingWidget.h"
 
 class iABarData;
+class iABarWidget;
 class iABarsWidget;
 class iAColorTheme;
 
@@ -44,9 +45,11 @@ public:
 	size_t numberOfBars() const;
 	void setBackgroundColor(QColor const & color);
 	double weightedSum() const;
+	double barValue(int barIdx) const;
 	void setSelectedBar(int barIdx);
 	QString barName(size_t barIdx) const;
 	void setLeftMargin(int leftMargin);
+	void setPos(int row, int col);
 signals:
 	void switchedStackMode(bool mode);
 	void weightsChanged(std::vector<double> const& weights);
@@ -83,6 +86,8 @@ private:
 	void updateOverallMax();
 	void updateColumnStretch();
 	void updateDividers();
+	void updateLayout();
+	void deleteBar(int barID);
 
 	void emitBarClick(size_t barID);
 	void emitBarDblClick(size_t barID);
@@ -106,6 +111,7 @@ private:
 	int m_chartAreaPixelWidth;
 
 	iABarsWidget* m_barsWidget;
+	QVector<iABarWidget*> m_barWidgets;
 
 	friend class iABarsWidget;
 	friend class iABarWidget;

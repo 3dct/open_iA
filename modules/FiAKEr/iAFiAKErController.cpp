@@ -225,8 +225,8 @@ iAFiAKErController::iAFiAKErController(MainWindow* mainWnd, MdiChild* mdiChild) 
 	m_contextDiameterFactor(DefaultContextDiameterFactor),
 	m_nameActionColumn(0),
 	m_previewColumn(1),
-	m_stackedBarColumn(2),
-	m_histogramColumn(3),
+	m_histogramColumn(2),
+	m_stackedBarColumn(3),
 	m_playTimer(new QTimer(mainWnd)),
 	m_refDistCompute(nullptr),
 	m_cameraInitialized(false),
@@ -597,8 +597,8 @@ QWidget* iAFiAKErController::setupResultListView()
 {
 	if (!m_showPreviews)
 	{
-		m_stackedBarColumn = 1;
-		m_histogramColumn = 2;
+		m_histogramColumn  = 1;
+		m_stackedBarColumn = 2;
 	}
 	int commonPrefixLength = 0, commonSuffixLength = 0;
 	QString baseName0;
@@ -930,6 +930,7 @@ void iAFiAKErController::updateResultList()
 	for (size_t resultID = 0; resultID < m_resultUIs.size(); ++resultID)
 	{
 		auto& ui = m_resultUIs[resultID];
+		/*
 		m_resultsListLayout->removeWidget(ui.nameActions);
 		if (ui.previewWidget)
 		{
@@ -940,13 +941,13 @@ void iAFiAKErController::updateResultList()
 		{
 			m_resultsListLayout->removeWidget(ui.histoChart);
 		}
+		*/
 		m_resultsListLayout->addWidget(ui.nameActions, m_resultListSorting[resultID] + 1, m_nameActionColumn);
 		if (ui.previewWidget)
 		{
 			m_resultsListLayout->addWidget(ui.previewWidget, m_resultListSorting[resultID] + 1, m_previewColumn);
 		}
-		m_resultsListLayout->addWidget(ui.stackedBars, m_resultListSorting[resultID] + 1, m_stackedBarColumn);
-
+		ui.stackedBars->setPos(m_resultListSorting[resultID] + 1, m_stackedBarColumn);
 		if (ui.histoChart)
 		{
 			m_resultsListLayout->addWidget(ui.histoChart, m_resultListSorting[resultID] + 1, m_histogramColumn);

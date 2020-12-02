@@ -26,6 +26,7 @@ class iAChartWidget;
 class iAStackedBarChart;
 class iASensitivityInfo;
 class iASingleColorTheme;
+class iAParTableRow;
 
 class QGridLayout;
 
@@ -68,22 +69,21 @@ private:
 	QString columnName(int outputType, int outTypeIdx) const;
 	void updateChartY();
 	void toggleBar(bool show, int outType, int outIdx);
+	void updateTableOrder();
 
 	// pair output type / index
 	QVector<QPair<int,int>> m_visibleCharacts;
-	//! stacked bar headers + charts (one per parameter)
-	QVector<QPair<iAStackedBarChart*, iAStackedBarChart*>> m_stackedBars;
 	//! sensitivity information
 	iASensitivityInfo* m_sensInf;
 	//! measure to use 
 	int m_measureIdx;
 	//! aggregation type
 	int m_aggrType;
-	int m_selectedRow, m_selectedCol;
+	int m_selectedParam, m_selectedCol;
 	QGridLayout* m_paramListLayout;
 	QSharedPointer<iASingleColorTheme> m_stackedBarTheme;
-	QVector<QVector<iAChartWidget*>> m_outHistoCharts;
-	QVector<QVector<iAChartWidget*>> m_paramCharts;
+	QVector<iAParTableRow> m_table;
+	QVector<int> m_sort;
 signals:
 	void parameterChanged();
 	void outputSelected(int outType, int outTypeIdx);
