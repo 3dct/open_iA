@@ -76,7 +76,7 @@ namespace
 	}
 }
 
-iARefDistCompute::ContainerSizeType iARefDistCompute::MaxNumberOfCloseFibers = 5;
+iARefDistCompute::ContainerSizeType iARefDistCompute::MaxNumberOfCloseFibers = 3;
 
 iARefDistCompute::iARefDistCompute(QSharedPointer<iAFiberResultsCollection> data, size_t referenceID) :
 	m_data(data),
