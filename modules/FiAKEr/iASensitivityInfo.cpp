@@ -944,6 +944,7 @@ void iASensitivityInfo::compute()
 					mat.avgDissim[m] = 0;
 				}
 				int r2FibCount = static_cast<int>(m_data->result[r2].fiberCount);
+				std::vector<int> r2MatchCount(measureCount, 0);
 				auto& dissimilarities = mat.fiberDissim;
 				dissimilarities.resize(r2FibCount);
 				// not ideal: for loop seems to be not ideally parallelizable,
@@ -958,20 +959,25 @@ void iASensitivityInfo::compute()
 					if (candidates.size() == 0)
 					{
 						++noCanDo; // thread-safe
+						continue;
 					}
 					candSum += candidates.size();
 					getBestMatches2(resFib[r2][fiberID], resFib[r1], dissimilarities[fiberID],
 						candidates, diagonalLength, maxLength, m_resultDissimMeasures);
 					for (int m = 0; m < measureCount; ++m)
 					{
-						mat.avgDissim[m] += dissimilarities[fiberID][m][0].dissimilarity;
+						if (dissimilarities[fiberID][m].size() > 0)
+						{
+							++r2MatchCount[m];
+							mat.avgDissim[m] += dissimilarities[fiberID][m][0].dissimilarity;
+						}
 					}
 				}
-				LOG(lvlInfo, QString("Result %1x%2: %3 candidates on average, %4 with no bounding box intersections out of %5")
+				LOG(lvlDebug, QString("Result %1x%2: %3 candidates on average, %4 with no bounding box intersections out of %5")
 					.arg(r1).arg(r2).arg(candSum / r2FibCount).arg(noCanDo).arg(r2FibCount));
 				for (int m = 0; m < measureCount; ++m)
 				{
-					mat.avgDissim[m] /= r2FibCount;
+					mat.avgDissim[m] /= r2MatchCount[m];
 				}
 				++curCheckedPairs;
 				m_progress.emitProgress(curCheckedPairs * 100.0 / overallPairs);
@@ -1009,6 +1015,10 @@ void iASensitivityInfo::compute()
 		return;
 	}
 
+	if (m_resultDissimMatrix.size() == 0)
+	{
+		LOG(lvlWarn, "Dissimilarity matrix not available!");
+	}
 	// dissimilarity measure (index in m_resultDissimMeasures)
 	// variation aggregation (see iASensitivityInfo::create)
 	// parameter index (second index in paramSetValues / allParamValues)
@@ -1129,7 +1139,11 @@ QString iASensitivityInfo::dissimilarityMatrixCacheFileName() const
 namespace
 {
 	const QString DissimilarityMatrixCacheFileIdentifier("DissimilarityMatrixCache");
-	const quint32 DissimilarityMatrixCacheFileVersion(1);
+	const quint32 DissimilarityMatrixCacheFileVersion(2);
+	// change from v1 to v2:
+	//   - changed data types in iAFiberSimilarity:
+	//     - index        : quint64 -> quint32
+	//     - dissimilarity: double -> float
 }
 
 bool iASensitivityInfo::readDissimilarityMatrixCache(QVector<int>& measures)
@@ -1159,6 +1173,15 @@ bool iASensitivityInfo::readDissimilarityMatrixCache(QVector<int>& measures)
 	}
 	quint32 version;
 	in >> version;
+	if (version < 2)
+	{
+		LOG(lvlError, QString("FIAKER cache file '%1': Too old cache version %2; "
+					"with version 2 the cache file format changed in an incompatible way! "
+					"Ask a developer how you even could have such an old file...")
+				.arg(cacheFile.fileName())
+				.arg(version));
+		return false;
+	}
 	if (version > DissimilarityMatrixCacheFileVersion)
 	{
 		LOG(lvlError, QString("FIAKER cache file '%1': Invalid or too high version number (%2), expected %3 or less. Please delete file and let it be recreated!")
