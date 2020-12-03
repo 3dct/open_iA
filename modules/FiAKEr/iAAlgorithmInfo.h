@@ -28,6 +28,7 @@
 
 #include <QMouseEvent>
 #include <QPainter>
+#include <QPainterPath>
 
 class iAAlgorithmInfo : public QWidget
 {

@@ -985,6 +985,7 @@ void iASensitivityInfo::compute()
 				m_resultDissimMatrix[r][r].avgDissim[m] = 0;
 			}
 		}
+		// TODO: save memory by not storing this?
 		// copy other half triangle:
 		for (int r1 = 1; r1 < resultCount && !m_aborted; ++r1)
 		{
