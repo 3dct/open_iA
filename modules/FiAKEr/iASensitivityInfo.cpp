@@ -1197,8 +1197,8 @@ bool iASensitivityInfo::readDissimilarityMatrixCache(QVector<int>& measures)
 
 void iASensitivityInfo::writeDissimilarityMatrixCache(QVector<int> const& measures) const
 {
-	QFileInfo fi(dissimilarityMatrixCacheFileName());
-	if (!QDir(fi.absoluteFilePath()).mkpath("."))
+	QFileInfo fi (QFileInfo(dissimilarityMatrixCacheFileName()).absolutePath());
+	if ( (fi.exists() && !fi.isDir()) || !QDir(fi.absoluteFilePath()).mkpath("."))
 	{
 		LOG(lvlError, QString("Could not create output directory '%1'").arg(fi.absoluteFilePath()));
 		return;
