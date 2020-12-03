@@ -46,8 +46,8 @@ class QCheckBox;
 class iAFiberSimilarity
 {
 public:
-	quint64 index;
-	double dissimilarity;
+	quint32 index;
+	float dissimilarity;
 	friend bool operator<(iAFiberSimilarity const & a, iAFiberSimilarity const & b);
 };
 
@@ -59,7 +59,7 @@ class iARefDiffFiberStepData
 {
 public:
 	//! diff of fibervalues (+similarity measures)
-	QVector<double> step;
+	QVector<float> step;
 };
 
 QDataStream &operator<<(QDataStream &out, const iARefDiffFiberStepData &s);
