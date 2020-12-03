@@ -170,7 +170,7 @@ void getBestMatches(iAFiberData const& fiber,
 				size_t refFiberID = otherMatches[bestMatchID].index;
 				auto it = refCurveInfo.find(refFiberID);
 				iAFiberData refFiber(refTable, refFiberID, mapping, (it != refCurveInfo.end()) ? it->second : std::vector<iAVec3f>());
-				similarities[bestMatchID].index = refFiberID;
+				similarities[bestMatchID].index = static_cast<quint32>(refFiberID);
 				double curDissimilarity = getDissimilarity(fiber, refFiber, measuresToCompute[d].first, diagonalLength, maxLength);
 				if (std::isnan(curDissimilarity))
 				{

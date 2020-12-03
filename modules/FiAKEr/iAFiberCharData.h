@@ -59,7 +59,7 @@ class iARefDiffFiberStepData
 {
 public:
 	//! diff of fibervalues (+similarity measures)
-	QVector<float> step;
+	QVector<double> step;
 };
 
 QDataStream &operator<<(QDataStream &out, const iARefDiffFiberStepData &s);

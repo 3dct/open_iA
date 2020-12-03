@@ -398,7 +398,7 @@ void getBestMatches2(iAFiberData const& fiber, std::vector<iAFiberData> const& o
 		for (iARefDistCompute::ContainerSizeType bestMatchID = 0; bestMatchID < candidates.size(); ++bestMatchID)
 		{
 			size_t refFiberID = candidates[bestMatchID];
-			similarities[bestMatchID].index = refFiberID;
+			similarities[bestMatchID].index = static_cast<quint32>(refFiberID);
 			double curDissimilarity =
 				getDissimilarity(fiber, otherFibers[refFiberID], measuresToCompute[d].first, diagonalLength, maxLength);
 			if (std::isnan(curDissimilarity))
