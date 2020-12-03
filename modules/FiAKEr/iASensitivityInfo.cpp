@@ -1706,7 +1706,7 @@ void iASensitivityInfo::paramChanged()
 	m_gui->m_algoInfo->setSelectedInput(paramIdx);
 	if (paramIdx == -1)
 	{
-		LOG(lvlInfo, "No parameter selected.");
+		LOG(lvlDebug, "No parameter selected.");
 		return;
 	}
 	int selCharIdx = m_gui->m_settings->charIdx();
