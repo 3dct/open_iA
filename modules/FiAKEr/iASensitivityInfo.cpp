@@ -1544,13 +1544,13 @@ bool iASensitivityInfo::hasData(iASettings const& settings)
 
 QSharedPointer<iASensitivityInfo> iASensitivityInfo::load(QMainWindow* child,
 	QSharedPointer<iAFiberResultsCollection> data, QDockWidget* nextToDW,
-	int histogramBins, iASettings const & projectFile,
-	QString const& projectFileName)
+	iASettings const & projectFile, QString const& projectFileName)
 {
 	QString parameterSetFileName = MakeAbsolute(QFileInfo(projectFileName).absolutePath(), projectFile.value(ProjectParameterFile).toString());
 	QVector<int> charsSelected = stringToVector<QVector<int>, int>(projectFile.value(ProjectCharacteristics).toString());
 	QVector<int> charDiffMeasure = stringToVector<QVector<int>, int>(projectFile.value(ProjectCharDiffMeasures).toString());
 	int maxColumns = projectFile.value(ProjectMaxParameterCSVColumns, std::numeric_limits<int>::max()).toInt();
+	int histogramBins = projectFile.value("DistributionHistogramBins", 20).toInt();
 	return iASensitivityInfo::create(child, data, nextToDW, histogramBins, parameterSetFileName, charsSelected, charDiffMeasure, maxColumns);
 }
 

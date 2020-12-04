@@ -51,8 +51,7 @@ public:
 		int maxColumns = std::numeric_limits<int>::max());
 	static QSharedPointer<iASensitivityInfo> load(QMainWindow* child,
 		QSharedPointer<iAFiberResultsCollection> data, QDockWidget* nextToDW,
-		int histogramBins, iASettings const & projectFile,
-		QString const& projectFileName);
+		iASettings const & projectFile, QString const& projectFileName);
 	static bool hasData(iASettings const& settings);
 	QString charactName(int selCharIdx) const;
 

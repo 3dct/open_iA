@@ -2376,7 +2376,7 @@ void iAFiAKErController::loadAdditionalData(iASettings settings, QString project
 	if (iASensitivityInfo::hasData(settings))
 	{
 		m_sensitivityInfo = iASensitivityInfo::load(m_mdiChild, m_data, m_views[ResultListView],
-			m_histogramBins, settings, projectFileName);
+			settings, projectFileName);
 		connectSensitivity();
 		// don't change direct loading of settings here, the settings loaded below
 		// probably don't really affect sensitivity things (TODO: to be checked - if it doesn't crash it should be fine)
@@ -2416,6 +2416,7 @@ void iAFiAKErController::loadSettings(iASettings settings)
 {
 	m_spm->loadSettings(settings);
 	::loadSettings(settings, m_settingsWidgetMap);
+	m_histogramBins = m_settingsView->sbHistogramBins->value();
 
 	auto cam = m_ren->GetActiveCamera();
 	setCameraParameter(settings, CameraPosition, cam, &vtkCamera::SetPosition);
