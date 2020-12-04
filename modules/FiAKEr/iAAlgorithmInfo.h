@@ -34,8 +34,8 @@ class iAAlgorithmInfo : public QWidget
 {
 	Q_OBJECT
 public:
-	static const int VMargin = 0;
-	static const int HMargin = 0;
+	static const int VMargin = 1;
+	static const int HMargin = 1;
 	static const int ArrowHeadSize = 5;
 	static const int ArrowTextDistance = 1;
 	static const int ArrowTextLeft = 5;
