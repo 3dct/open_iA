@@ -521,7 +521,9 @@ void iAParameterInfluenceView::removeStackedBar(int outType, int outIdx)
 		auto pw = m_table[rowIdx].par[barIdx];
 		m_table[rowIdx].par.remove(barIdx);
 		delete pw;
-		m_table[rowIdx].out[0]->setYCaption("Var. from " + m_sensInf->m_paramNames[m_sort[rowIdx]]); // to make sure if first chart is removed that new first gets caption
+		auto paramName = m_sensInf->m_paramNames[m_sensInf->m_variedParams[m_sort[rowIdx]]];
+		m_table[rowIdx].out[0]->setYCaption("Var. from " + paramName); // to make sure if first chart is removed that new first gets caption
+		m_table[rowIdx].out[0]->setYCaption("Sens. " + m_table[rowIdx].bars->barName(0));
 		int newNumBars = m_table[rowIdx].bars->numberOfBars();
 		for (int i = barIdx; i < newNumBars; ++i)
 		{   // addWidget automatically removes it from position where it was before
