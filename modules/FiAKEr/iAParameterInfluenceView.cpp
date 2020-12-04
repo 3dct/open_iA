@@ -277,7 +277,7 @@ void iAParameterInfluenceView::stackedBarDblClicked(int barIdx)
 			v2 = m_table[r2].bars->barValue(barIdx);
 		return m_sortLastDesc ? v1 > v2 : v1 < v2;
 	});
-	LOG(lvlDebug, joinNumbersAsString(m_sort, ","));
+	//LOG(lvlDebug, joinNumbersAsString(m_sort, ","));
 	updateTableOrder();
 }
 
@@ -477,12 +477,14 @@ void iAParameterInfluenceView::addStackedBar(int outType, int outIdx)
 		outChart->setShowXAxisLabel(false);
 		outChart->setEmptyText("");
 		outChart->setBackgroundColor(color);
+		outChart->setMinimumHeight(120);
 		m_table[paramIdx].out.push_back(outChart);
 
 		auto parChart = new iAChartWidget(this, paramName, (curBarIdx == 0) ? "Sens. " + title : "");
 		parChart->setEmptyText("");
 		parChart->setBackgroundColor(color);
 		m_table[paramIdx].par.push_back(parChart);
+		parChart->setMinimumHeight(120);
 	}
 	updateTableOrder();
 	double maxVal, minValDiff;

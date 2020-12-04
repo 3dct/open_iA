@@ -1405,7 +1405,8 @@ public:
 					{
 						return a.first == groupID;
 					}) != hiGrpParam.end();
-				c = QColor(0, 0, highlightGroup ? 255: 192, highlightGroup ? 255 : 128);
+				int colVal = highlightGroup ? 0 : 64;
+				c = QColor(colVal, colVal, colVal, highlightGroup ? 255 : 128);
 				//LOG(lvlDebug, QString("Point %1 (group=%2) : Color=%3, %4, %5, %6")
 				//	.arg(i).arg(groupID).arg(c.red()).arg(c.green()).arg(c.blue()).arg(c.alpha()));
 			}
@@ -1414,8 +1415,8 @@ public:
 				int paramID = ((i % starGroupSize) - 1) / numOfSTARSteps;
 				bool highlightParam = hiGrpParam.find(std::make_pair(groupID, paramID)) != hiGrpParam.end();
 				int colVal = (highlightParam || highlightGroup) ? 128 : 192;
-				int redVal = 192;
-				c = QColor(redVal, colVal, colVal, highlightGroup ? 192 : 128);
+				int blueVal = 192;
+				c = QColor(colVal, colVal, blueVal, (highlightParam || highlightGroup) ? 192 : 128);
 				//LOG(lvlDebug, QString("Point %1 (group=%2, paramID=%3) : Color=%4, %5, %6, %7")
 				//	.arg(i).arg(groupID).arg(paramID).arg(c.red()).arg(c.green()).arg(c.blue()).arg(c.alpha()));
 			}
@@ -1674,7 +1675,8 @@ void iASensitivityInfo::createGUI()
 	}
 	m_gui->m_mdsData->updateRanges();
 	m_gui->m_scatterPlot = new iAScatterPlotWidget(m_gui->m_mdsData, true);
-	m_gui->m_scatterPlot->setPointRadius(5);
+	m_gui->m_scatterPlot->setPointRadius(4);
+	m_gui->m_scatterPlot->setPickedPointFactor(1.5);
 	m_gui->m_scatterPlot->setFixPointsEnabled(true);
 	m_gui->m_lut.reset(new iALookupTable());
 	m_gui->m_lut->setRange(0, m_data->result.size());
@@ -1706,7 +1708,7 @@ void iASensitivityInfo::paramChanged()
 	m_gui->m_algoInfo->setSelectedInput(paramIdx);
 	if (paramIdx == -1)
 	{
-		LOG(lvlDebug, "No parameter selected.");
+		//LOG(lvlDebug, "No parameter selected.");
 		return;
 	}
 	int selCharIdx = m_gui->m_settings->charIdx();
