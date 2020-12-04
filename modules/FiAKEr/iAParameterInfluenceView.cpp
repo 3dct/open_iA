@@ -320,18 +320,10 @@ void iAParameterInfluenceView::setSelectedParam(int param)
 	m_selectedParam = param;
 	for (int paramIdx = 0; paramIdx < m_sensInf->m_variedParams.size(); ++paramIdx)
 	{
-		// QPalette::Highlight / QPalette::HighlightedText
-		QColor color = palette().color(paramIdx == m_selectedParam ? QPalette::Midlight : backgroundRole());
-		//QColor textColor = palette().color(paramIdx == m_selectedRow ?  : QPalette::Text);
+		QColor color = (paramIdx == m_selectedParam) ? palette().color(QPalette::Midlight): QColor(245, 245, 245);
 		for (int col = colMin; col <= colStep; ++col)
 		{
-			auto item = m_paramListLayout->itemAtPosition(1+RowsPerParam*paramIdx, col);
-			if (!item)
-			{
-				LOG(lvlWarn, "Invalid - empty item!");
-				continue;
-			}
-			item->widget()->setStyleSheet("QLabel { background-color : " + color.name() + "; }");
+			m_table[paramIdx].labels[col]->setStyleSheet("QLabel { background-color : " + color.name() + "; }");
 		}
 		m_table[paramIdx].head->setBackgroundColor(color);
 		m_table[paramIdx].bars->setBackgroundColor(color);
@@ -479,7 +471,7 @@ void iAParameterInfluenceView::addStackedBar(int outType, int outIdx)
 	for (int paramIdx = 0; paramIdx < params.size(); ++paramIdx)
 	{
 		auto paramName = m_sensInf->m_paramNames[m_sensInf->m_variedParams[paramIdx]];
-		QColor color = palette().color(paramIdx == m_selectedParam ? QPalette::Midlight : backgroundRole());
+		QColor color = (paramIdx == m_selectedParam) ? palette().color(QPalette::Midlight) : QColor(245, 245, 245);
 
 		auto outChart = new iAChartWidget(this, "", (curBarIdx == 0) ? "Var. from " + paramName: "");
 		outChart->setShowXAxisLabel(false);
