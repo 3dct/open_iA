@@ -54,6 +54,7 @@ public:
 	void setPlotColor(QColor const & c, double rangeMin, double rangeMax);
 	void setSelectionColor(QColor const & c);
 	void setSelectionMode(iAScatterPlot::SelectionMode mode);
+	void setPickedPointFactor(double factor);
 	void setPointRadius(double pointRadius);
 	void setFixPointsEnabled(bool enabled);
 	void setPointInfo(QSharedPointer<iAScatterPlotPointInfo> pointInfo);

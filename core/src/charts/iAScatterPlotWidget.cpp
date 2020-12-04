@@ -468,6 +468,11 @@ void iAScatterPlotWidget::setSelectionMode(iAScatterPlot::SelectionMode mode)
 	m_scatterplot->settings.selectionMode = mode;
 }
 
+void iAScatterPlotWidget::setPickedPointFactor(double factor)
+{
+	m_scatterplot->settings.pickedPointMagnification = factor;
+}
+
 void iAScatterPlotWidget::setPointRadius(double pointRadius)
 {
 	m_scatterplot->setPointRadius(pointRadius);
