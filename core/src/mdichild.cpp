@@ -34,9 +34,9 @@
 #include "iAAlgorithm.h"
 #include "iAChannelData.h"
 #include "iAChannelSlicerData.h"
+#include "iAJobListView.h"
 #include "iALog.h"
 #include "iARunAsync.h"
-#include "qthelper/iADockWidgetWrapper.h"
 #include "iAModality.h"
 #include "iAModalityList.h"
 #include "iAModalityTransfer.h"
@@ -60,6 +60,7 @@
 #include "io/iAIO.h"
 #include "io/iAIOProvider.h"
 #include "mainwindow.h"
+#include "qthelper/iADockWidgetWrapper.h"
 
 #include <vtkCamera.h>
 #include <vtkColorTransferFunction.h>
@@ -2620,12 +2621,10 @@ void MdiChild::setHistogramModality(int modalityIdx)
 	{
 		return;
 	}
-	LOG(lvlDebug, QString("Computing statistics for modality %1...")
-		.arg(modality(modalityIdx)->name()));
 	modality(modalityIdx)->transfer()->info().setComputing();
 	updateImageProperties();
 
-	runAsync([this, modalityIdx]
+	auto fw = runAsync([this, modalityIdx]
 		{
 			modality(modalityIdx)->computeImageStatistics();
 		},
@@ -2633,6 +2632,8 @@ void MdiChild::setHistogramModality(int modalityIdx)
 		{
 			statisticsAvailable(modalityIdx);
 		});
+	iAJobListView::get()->addJob(QString("Computing statistics for modality %1...")
+		.arg(modality(modalityIdx)->name()), nullptr, fw);
 }
 
 void MdiChild::modalityAdded(int modalityIdx)
@@ -2700,16 +2701,17 @@ void MdiChild::displayHistogram(int modalityIdx)
 		return;
 	}
 
-	LOG(lvlDebug, QString("Computing histogram for modality %1...")
-		.arg(modality(modalityIdx)->name()));
-	runAsync([this, modalityIdx, newBinCount]
+	auto fw = runAsync([this, modalityIdx, newBinCount]
 		{   // run computation of histogram...
 			modality(modalityIdx)->computeHistogramData(newBinCount);
-		},  // ... and on finished signal, trigger histogramDataAvailable
+		},
 		[this, modalityIdx]
-		{
+		{  // ... and on finished signal, trigger histogramDataAvailable
 			histogramDataAvailable(modalityIdx);
 		});
+		// TODO: find way of terminating computation in case modality is deleted/application closed!
+	iAJobListView::get()->addJob(QString("Computing histogram for modality %1...")
+		.arg(modality(modalityIdx)->name()), nullptr, fw);
 }
 
 void MdiChild::clearHistogram()
