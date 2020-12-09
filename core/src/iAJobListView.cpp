@@ -165,12 +165,17 @@ QWidget* iAJobListView::addJobWidget(QString name, iAProgress* p, iAAbortListene
 				remainingLabel->setText(
 					QString("Estimated remaining: %1").arg((estRem == -1) ? "unknown" : formatDuration(estRem, false)));
 			});
-		connect(p, &iAProgress::statusChanged, statusLabel, &QLabel::setText);
+		connect(p, &iAProgress::statusChanged, [statusLabel, name](QString const & msg)
+			{
+				LOG(lvlDebug, QString("Job '%1': %2").arg(name).arg(msg));
+				statusLabel->setText(msg);
+			});
 	}
 	if (abortListener)
 	{
 		connect(abortButton, &QToolButton::clicked, [=]()
 			{
+				LOG(lvlDebug, QString("Job '%1': Aborted.").arg(name));
 				abortButton->setEnabled(false);
 				statusLabel->setText("Aborting...");
 				if (p)
@@ -186,8 +191,12 @@ QWidget* iAJobListView::addJobWidget(QString name, iAProgress* p, iAAbortListene
 void iAJobListView::newJobSlot()
 {
 	auto j = m_pendingJobs.pop();
-	auto jobWidget = addJobWidget(j->name, j->prog, j->abrt, j->est);
-	connect(j->obj, &QObject::destroyed, [this, jobWidget]() {
+	QString jobName = j->name;
+	auto jobWidget = addJobWidget(jobName, j->prog, j->abrt, j->est);
+	LOG(lvlDebug, QString("Job added: %1").arg(jobName));
+	connect(j->obj, &QObject::destroyed, [this, jobWidget, jobName]()
+	{
+		LOG(lvlDebug, QString("Job '%1': Done.").arg(jobName));
 		int oldJobCount = m_runningJobs.fetchAndAddOrdered(-1);
 		if (oldJobCount == 1)
 		{
