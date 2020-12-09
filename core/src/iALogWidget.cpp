@@ -52,7 +52,7 @@ void iALogWidget::logSlot(int lvl, QString const & text)
 			emit logVisibilityChanged(true);
 		}
 		QString msg = QString("%1 %2 %3")
-			.arg(QLocale().toString(QTime::currentTime(), QLocale::ShortFormat))
+			.arg(QLocale().toString(QTime::currentTime(), QLocale::LongFormat))
 			.arg(logLevelToString(static_cast<iALogLevel>(lvl)).left(1))
 			.arg(text);
 		logTextEdit->append(msg);
