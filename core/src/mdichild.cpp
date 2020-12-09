@@ -2650,6 +2650,11 @@ void MdiChild::modalityAdded(int modalityIdx)
 
 void MdiChild::histogramDataAvailable(int modalityIdx)
 {
+	if (modalityIdx < 0 || modalityIdx >= modalities()->size())
+	{
+		LOG(lvlWarn, QString("histogramDataAvailable: Modality %1 not available!").arg(modalityIdx));
+		return;
+	}
 	QString modalityName = modality(modalityIdx)->name();
 	m_currentHistogramModality = modalityIdx;
 	LOG(lvlDebug, QString("Displaying histogram for modality %1.").arg(modalityName));
@@ -2673,6 +2678,11 @@ void MdiChild::histogramDataAvailable(int modalityIdx)
 
 void MdiChild::displayHistogram(int modalityIdx)
 {
+	if (modalityIdx < 0 || modalityIdx >= modalities()->size())
+	{
+		LOG(lvlWarn, QString("displayHistogram: Modality %1 not available!").arg(modalityIdx));
+		return;
+	}
 	auto histData = modality(modalityIdx)->transfer()->histogramData();
 	size_t newBinCount = m_preferences.HistogramBins;
 	auto img = modality(modalityIdx)->image();
@@ -2712,6 +2722,11 @@ void MdiChild::clearHistogram()
 
 void MdiChild::statisticsAvailable(int modalityIdx)
 {
+	if (modalityIdx < 0 || modalityIdx >= modalities()->size())
+	{
+		LOG(lvlWarn, QString("statisticsAvailable: Modality %1 not available!").arg(modalityIdx));
+		return;
+	}
 	displayHistogram(modalityIdx);
 	// TODO: only initialize volume renderer of modalityIdx modality here!
 	initVolumeRenderers();
