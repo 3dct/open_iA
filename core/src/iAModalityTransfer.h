@@ -43,11 +43,12 @@ class open_iA_Core_API iAModalityTransfer : public iATransferFunction
 {
 public:
 	iAImageInfo const & info() const;
-	iAModalityTransfer(double range[2]);
+	iAModalityTransfer(double const range[2]);
 	QSharedPointer<iAHistogramData> const histogramData() const;
 	void computeStatistics(vtkSmartPointer<vtkImageData> img);
 	void computeHistogramData(vtkSmartPointer<vtkImageData> imgData, size_t binCount);
-	void reset();
+	void resetHistogram();
+	void resetFunctions();
 	bool statisticsComputed() const;
 
 	// should return vtkSmartPointer, but can't at the moment because iAChartTransferFunction doesn't have smart pointers:
@@ -60,4 +61,6 @@ private:
 	vtkSmartPointer<vtkColorTransferFunction> m_ctf;
 	vtkSmartPointer<vtkPiecewiseFunction> m_otf;
 	bool m_statisticsComputed;
+	bool m_opacityRamp;  //! whether to use a varying opacity in default TF
+	double m_range[2];
 };

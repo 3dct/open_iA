@@ -32,7 +32,9 @@
 #include <QTableWidget>
 
 class iAHistogramData;
+class iATransferFunction;
 
+// TODO: Merge with GEMSE: iAFilterChart
 class iARangeSliderDiagramWidget : public iAChartWithFunctionsWidget
 {
 	Q_OBJECT
@@ -82,6 +84,7 @@ private:
 
 	QMap<double, QList<double> > * m_histogramMap;
 	const QTableWidget * m_rawTable;
+	QSharedPointer<iATransferFunction> m_tf;
 
 	int getBin( QMouseEvent *event );
 	void setupSelectionDrawer();

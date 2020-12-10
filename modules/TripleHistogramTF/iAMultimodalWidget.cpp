@@ -490,7 +490,7 @@ void iAMultimodalWidget::updateModalities()
 		QSharedPointer<iAPlot> histogramPlot = QSharedPointer<iAPlot>(
 			new	iABarGraphPlot(m_modalitiesActive[i]->histogramData(), QColor(70, 70, 70, 255)));
 		m_histograms[i]->addPlot(histogramPlot);
-		m_histograms[i]->setTransferFunctions(m_copyTFs[i]->colorTF(), m_copyTFs[i]->opacityTF());
+		m_histograms[i]->setTransferFunction(m_copyTFs[i].data());
 		m_histograms[i]->updateTrf();
 		// }
 

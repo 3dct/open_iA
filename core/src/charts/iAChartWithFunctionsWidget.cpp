@@ -462,24 +462,24 @@ void iAChartWithFunctionsWidget::loadTransferFunction()
 		LOG(lvlError, QString("Failed to read transfer function from file %1").arg(fileName));
 		return;
 	}
-	s.loadTransferFunction((iAChartTransferFunction*)m_functions[0]);
+	s.loadTransferFunction(dynamic_cast<iAChartTransferFunction*>(m_functions[0])->tf());
 	newTransferFunction();
 }
 
 void iAChartWithFunctionsWidget::loadTransferFunction(QDomNode functionsNode)
 {
-	iAXmlSettings::loadTransferFunction(functionsNode, (iAChartTransferFunction*)m_functions[0]);
+	iAXmlSettings::loadTransferFunction(functionsNode, dynamic_cast<iAChartTransferFunction*>(m_functions[0])->tf());
 	newTransferFunction();
 }
 
 void iAChartWithFunctionsWidget::saveTransferFunction()
 {
-	iAChartTransferFunction *transferFunction = (iAChartTransferFunction*)m_functions[0];
+	iATransferFunction* tf = dynamic_cast<iAChartTransferFunction*>(m_functions[0])->tf();
 	QString fileName = QFileDialog::getSaveFileName(this, tr("Save File"), QDir::currentPath(), tr("XML (*.xml)"));
 	if (!fileName.isEmpty())
 	{
 		iAXmlSettings s;
-		s.saveTransferFunction(transferFunction);
+		s.saveTransferFunction(tf);
 		s.save(fileName);
 	}
 }
@@ -680,15 +680,14 @@ void iAChartWithFunctionsWidget::removeFunction()
 	emit updateViews();
 }
 
-void iAChartWithFunctionsWidget::setTransferFunctions(vtkColorTransferFunction* ctf, vtkPiecewiseFunction* pwf)
+void iAChartWithFunctionsWidget::setTransferFunction(iATransferFunction* f)
 {
-	m_showFunctions = ctf && pwf;
+	m_showFunctions = f;
 	if (!m_showFunctions)
 	{
 		return;
 	}
-	((iAChartTransferFunction*)m_functions[0])->setColorFunction(ctf);
-	((iAChartTransferFunction*)m_functions[0])->setOpacityFunction(pwf);
+	dynamic_cast<iAChartTransferFunction*>(m_functions[0])->setTF(f);
 	newTransferFunction();
 }
 

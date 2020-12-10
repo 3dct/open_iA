@@ -20,18 +20,14 @@
 * ************************************************************************************/
 #pragma once
 
-#include "ui_TFTable.h"
 #include "qthelper/iAQTtoUIConnector.h"
-
-#include <vtkSmartPointer.h>
+#include "ui_TFTable.h"
 
 class iAChartFunction;
 class iAChartWithFunctionsWidget;
+class iATransferFunction;
 
-class vtkPiecewiseFunction;
-class vtkColorTransferFunction;
-
-typedef iAQTtoUIConnector<QDialog, Ui_TFTableWidget>  iATFTableWidgetConnector;
+typedef iAQTtoUIConnector<QDialog, Ui_TFTableWidget> iATFTableWidgetConnector;
 
 //! Dialog for editing the precise values of a transfer function.
 class iATFTableDlg : public iATFTableWidgetConnector
@@ -39,22 +35,21 @@ class iATFTableDlg : public iATFTableWidgetConnector
 	Q_OBJECT
 
 public:
-	iATFTableDlg( iAChartWithFunctionsWidget * parent, iAChartFunction* func );
+	iATFTableDlg(iAChartWithFunctionsWidget* parent, iAChartFunction* func);
 
 public slots:
 	void changeColor();
 	void addPoint();
 	void removeSelectedPoint();
 	void updateHistogram();
-	void itemClicked( QTableWidgetItem * );
-	void cellValueChanged( int, int );
+	void itemClicked(QTableWidgetItem*);
+	void cellValueChanged(int, int);
 	void updateTable();
 
 private:
 	bool isValueXValid(double xVal, int row = -1);
 
-	vtkSmartPointer<vtkPiecewiseFunction> m_oTF;
-	vtkSmartPointer<vtkColorTransferFunction> m_cTF;
+	iATransferFunction* m_tf;
 	QColor m_newPointColor;
 	double m_xRange[2];
 	double m_oldItemValue;

@@ -484,7 +484,7 @@ bool MdiChild::displayResult(QString const& title, vtkImageData* image, vtkPolyD
 void MdiChild::prepareForResult()
 {
 	setWindowModified(true);
-	modality(0)->transfer()->reset();
+	modality(0)->transfer()->resetFunctions();
 }
 
 bool MdiChild::setupLoadIO(QString const& f, bool isStack)
@@ -2665,8 +2665,7 @@ void MdiChild::histogramDataAvailable(int modalityIdx)
 			QWidget::palette().color(QPalette::Shadow)));
 	m_histogram->addPlot(m_histogramPlot);
 	m_histogram->setXCaption("Histogram " + modalityName);
-	m_histogram->setTransferFunctions(modality(modalityIdx)->transfer()->colorTF(),
-		modality(modalityIdx)->transfer()->opacityTF());
+	m_histogram->setTransferFunction(modality(modalityIdx)->transfer().data());
 	m_histogram->updateTrf();	// will also redraw() the histogram
 	updateImageProperties();
 	if (!findChild<iADockWidgetWrapper*>("Histogram"))
@@ -2718,7 +2717,7 @@ void MdiChild::clearHistogram()
 {
 	m_histogram->removePlot(m_histogramPlot);
 	m_histogramPlot = nullptr;
-	m_histogram->setTransferFunctions(nullptr, nullptr);
+	m_histogram->setTransferFunction(nullptr);
 	m_histogram->update();
 }
 

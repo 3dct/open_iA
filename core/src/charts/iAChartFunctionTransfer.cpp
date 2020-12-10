@@ -40,8 +40,7 @@ iAChartTransferFunction::iAChartTransferFunction(iAChartWithFunctionsWidget *cha
 	m_rangeSliderHandles(false),
 	m_selectedPoint(-1),
 	m_color(color),
-	m_opacityTF(nullptr),
-	m_colorTF(nullptr)
+	m_tf(nullptr)
 {
 	m_gradient.setSpread(QGradient::PadSpread);
 }
@@ -65,18 +64,18 @@ void iAChartTransferFunction::draw(QPainter &painter, QColor color, int lineWidt
 	m_gradient.setFinalStop(gradientWidth, 0);
 
 	// draw opacity and color tf
-	if (m_opacityTF->GetSize() != m_colorTF->GetSize())
+	if (m_tf->opacityTF()->GetSize() != m_tf->colorTF()->GetSize())
 	{
 		LOG(lvlWarn, QString("Definition mismatch: opacity TF has %1 positions, color TF %2!")
-			.arg(m_opacityTF->GetSize())
-			.arg(m_colorTF->GetSize()));
+			.arg(m_tf->opacityTF()->GetSize())
+			.arg(m_tf->colorTF()->GetSize()));
 		return;
 	}
 	double opacityTFValue[4];
 	double colorTFValue[6];
 
-	m_opacityTF->GetNodeValue(0, opacityTFValue);
-	m_colorTF->GetNodeValue(0, colorTFValue);
+	m_tf->opacityTF()->GetNodeValue(0, opacityTFValue);
+	m_tf->colorTF()->GetNodeValue(0, colorTFValue);
 
 	int x1 = m_chart->xMapper().srcToDst(opacityTFValue[0]);
 	int y1 = opacity2PixelY(opacityTFValue[1]);
@@ -85,10 +84,10 @@ void iAChartTransferFunction::draw(QPainter &painter, QColor color, int lineWidt
 	m_gradient.setColorAt(static_cast<double>(x1) / gradientWidth, c );
 
 	int lastX = x1;
-	for ( int i = 1; i < m_opacityTF->GetSize(); i++)
+	for ( int i = 1; i < m_tf->opacityTF()->GetSize(); i++)
 	{
-		m_opacityTF->GetNodeValue(i, opacityTFValue);
-		m_colorTF->GetNodeValue(i, colorTFValue);
+		m_tf->opacityTF()->GetNodeValue(i, opacityTFValue);
+		m_tf->colorTF()->GetNodeValue(i, colorTFValue);
 
 		int x2 = m_chart->xMapper().srcToDst(opacityTFValue[0]);
 		if (x2 == lastX)
@@ -134,7 +133,7 @@ void iAChartTransferFunction::draw(QPainter &painter, QColor color, int lineWidt
 	// draw last point:
 	if (active && !m_rangeSliderHandles)
 	{
-		drawPoint(painter, x1, y1, m_selectedPoint == m_opacityTF->GetSize() - 1, c);
+		drawPoint(painter, x1, y1, m_selectedPoint == m_tf->opacityTF()->GetSize() - 1, c);
 	}
 }
 
@@ -145,7 +144,7 @@ void iAChartTransferFunction::draw(QPainter &painter)
 
 void iAChartTransferFunction::drawOnTop(QPainter &painter)
 {
-	if (m_opacityTF->GetSize() == m_colorTF->GetSize())
+	if (m_tf->opacityTF()->GetSize() == m_tf->colorTF()->GetSize())
 	{
 		double gradientWidth = m_chart->chartWidth()*m_chart->xZoom();
 
@@ -157,9 +156,9 @@ int iAChartTransferFunction::selectPoint(int mouseX, int mouseY)
 {
 	int index = -1;
 	double pointValue[4];
-	for (int pointIndex = 0; pointIndex < m_opacityTF->GetSize(); pointIndex++)
+	for (int pointIndex = 0; pointIndex < m_tf->opacityTF()->GetSize(); pointIndex++)
 	{
-		m_opacityTF->GetNodeValue(pointIndex, pointValue);
+		m_tf->opacityTF()->GetNodeValue(pointIndex, pointValue);
 		int pointX = m_chart->data2MouseX(pointValue[0]);
 		int pointY = opacity2PixelY(pointValue[1]);
 		int pointRadius = iAChartFunction::pointRadius(pointIndex == m_selectedPoint);
@@ -195,7 +194,7 @@ int iAChartTransferFunction::selectPoint(int mouseX, int mouseY)
 
 int iAChartTransferFunction::addPoint(int mouseX, int mouseY)
 {
-	m_selectedPoint = m_opacityTF->AddPoint(m_chart->mouse2DataX(mouseX), pixelY2Opacity(mouseY));
+	m_selectedPoint = m_tf->opacityTF()->AddPoint(m_chart->mouse2DataX(mouseX), pixelY2Opacity(mouseY));
 	return m_selectedPoint;
 }
 
@@ -240,25 +239,25 @@ void iAChartTransferFunction::addColorPoint(int x, double red, double green, dou
 		blue = (firstColor.blue()*firstWeight +secondColor.blue()*secondWeight)/255.0;
 	}
 
-	m_colorTF->AddRGBPoint(m_chart->mouse2DataX(x), red, green, blue);
-	m_colorTF->Build();
+	m_tf->colorTF()->AddRGBPoint(m_chart->mouse2DataX(x), red, green, blue);
+	m_tf->colorTF()->Build();
 	triggerOnChange();
 }
 
 void iAChartTransferFunction::removePoint(int index)
 {
-	if (m_opacityTF->GetSize() < 2)
+	if (m_tf->opacityTF()->GetSize() < 2)
 	{
 		return;
 	}
 	double values[4];
-	m_opacityTF->GetNodeValue(index, values);
+	m_tf->opacityTF()->GetNodeValue(index, values);
 
 	double cvalues[6];
-	m_colorTF->GetNodeValue(index, cvalues);
-	m_opacityTF->RemovePoint(values[0]);
-	m_colorTF->RemovePoint(values[0]);
-	m_colorTF->Build();
+	m_tf->colorTF()->GetNodeValue(index, cvalues);
+	m_tf->opacityTF()->RemovePoint(values[0]);
+	m_tf->colorTF()->RemovePoint(values[0]);
+	m_tf->colorTF()->Build();
 	triggerOnChange();
 }
 
@@ -269,13 +268,13 @@ void iAChartTransferFunction::moveSelectedPoint(int mouseX, int mouseY)
 	mouseY = clamp(0, m_chart->chartHeight() - 1, mouseY);
 
 	double dataX = m_chart->mouse2DataX(mouseX);
-	if (m_selectedPoint != 0 && m_selectedPoint != m_opacityTF->GetSize()-1)
+	if (m_selectedPoint != 0 && m_selectedPoint != m_tf->opacityTF()->GetSize()-1)
 	{
 		double nextOpacityTFValue[4];
 		double prevOpacityTFValue[4];
 
-		m_opacityTF->GetNodeValue(m_selectedPoint+1, nextOpacityTFValue);
-		m_opacityTF->GetNodeValue(m_selectedPoint-1, prevOpacityTFValue);
+		m_tf->opacityTF()->GetNodeValue(m_selectedPoint+1, nextOpacityTFValue);
+		m_tf->opacityTF()->GetNodeValue(m_selectedPoint-1, prevOpacityTFValue);
 		int newX = mouseX;
 		if (dataX >= nextOpacityTFValue[0])
 		{
@@ -287,7 +286,7 @@ void iAChartTransferFunction::moveSelectedPoint(int mouseX, int mouseY)
 		}
 		setPointOpacity(m_selectedPoint, newX, mouseY);
 		double colorTFValue[6];
-		m_colorTF->GetNodeValue(m_selectedPoint, colorTFValue);
+		m_tf->colorTF()->GetNodeValue(m_selectedPoint, colorTFValue);
 		double chartX = m_chart->mouse2DataX(newX);
 		setPointColor(m_selectedPoint, chartX, colorTFValue[1], colorTFValue[2], colorTFValue[3]);
 	}
@@ -306,7 +305,7 @@ void iAChartTransferFunction::changeColor()
 		return;
 	}
 	double colorTFValue[6];
-	m_colorTF->GetNodeValue(m_selectedPoint, colorTFValue);
+	m_tf->colorTF()->GetNodeValue(m_selectedPoint, colorTFValue);
 	QColorDialog colorDlg;
 	colorDlg.setCurrentColor(QColor(colorTFValue[1]*255, colorTFValue[2]*255, colorTFValue[3]*255));
 	if (colorDlg.exec() != QDialog::Accepted)
@@ -316,14 +315,14 @@ void iAChartTransferFunction::changeColor()
 
 	QColor col = colorDlg.selectedColor();
 	setPointColor(m_selectedPoint, colorTFValue[0], col.redF(), col.greenF(), col.blueF());
-	m_colorTF->Modified();
-	m_colorTF->Build();
+	m_tf->colorTF()->Modified();
+	m_tf->colorTF()->Build();
 	triggerOnChange();
 }
 
 bool iAChartTransferFunction::isEndPoint(int index) const
 {
-	return index == 0 || index == m_opacityTF->GetSize()-1;
+	return index == 0 || index == m_tf->opacityTF()->GetSize()-1;
 }
 
 bool iAChartTransferFunction::isDeletable(int index) const
@@ -333,58 +332,49 @@ bool iAChartTransferFunction::isDeletable(int index) const
 
 QString iAChartTransferFunction::name() const
 {
-	return QString("Transfer function (%1 points)").arg(m_opacityTF->GetSize());
+	return QString("Transfer function (%1 points)").arg(m_tf->opacityTF()->GetSize());
 }
 
 void iAChartTransferFunction::reset()
 {
-	if (m_opacityTF && m_colorTF)
+	if (m_tf)
 	{
-		m_opacityTF->RemoveAllPoints();
-		m_opacityTF->AddPoint(m_chart->xBounds()[0], 0.0 );
-		m_opacityTF->AddPoint(m_chart->xBounds()[1], 1.0 );
-		m_colorTF->RemoveAllPoints();
-		m_colorTF->AddRGBPoint(m_chart->xBounds()[0], 0.0, 0.0, 0.0 );
-		m_colorTF->AddRGBPoint(m_chart->xBounds()[1], 1.0, 1.0, 1.0 );
-		m_colorTF->Build();
+		m_tf->resetFunctions();
 		triggerOnChange();
 	}
 }
 
-#include "iAPlot.h"
-#include "iAPlotData.h"
-
 void iAChartTransferFunction::TranslateToNewRange(double const oldXRange[2])
 {
 	double newXRange[2];
-	m_opacityTF->GetRange(newXRange);
+	m_tf->opacityTF()->GetRange(newXRange);
 	if (dblApproxEqual(newXRange[0], oldXRange[0]) &&
 		dblApproxEqual(newXRange[1], oldXRange[1]))
 	{
 		return;
 	}
-	assert(m_opacityTF->GetSize() == m_colorTF->GetSize());
-	for (int i = 0; i < m_opacityTF->GetSize(); ++i)
+	assert(m_tf->opacityTF()->GetSize() == m_tf->colorTF()->GetSize());
+	for (int i = 0; i < m_tf->opacityTF()->GetSize(); ++i)
 	{
 		double opacity[4];
-		m_opacityTF->GetNodeValue(i, opacity);
+		m_tf->opacityTF()->GetNodeValue(i, opacity);
 		double color[6];
-		m_colorTF->GetNodeValue(i, color);
+		m_tf->colorTF()->GetNodeValue(i, color);
 		assert(opacity[0] == color[0]);
 		double newX = mapValue(oldXRange, newXRange, opacity[0]);
 		color[0] = opacity[0] = clamp(newXRange[0], newXRange[1], newX);
-		m_opacityTF->SetNodeValue(i, opacity);
-		m_colorTF->SetNodeValue(i, color);
+		m_tf->opacityTF()->SetNodeValue(i, opacity);
+		m_tf->colorTF()->SetNodeValue(i, color);
 	}
-	m_colorTF->Modified();
-	m_colorTF->Build();
+	m_tf->colorTF()->Modified();
+	m_tf->colorTF()->Build();
 	triggerOnChange();
 }
 
 void iAChartTransferFunction::mouseReleaseEventAfterNewPoint(QMouseEvent *)
 {
 	double colorTFValue[6];
-	m_colorTF->GetNodeValue(m_selectedPoint, colorTFValue);
+	m_tf->colorTF()->GetNodeValue(m_selectedPoint, colorTFValue);
 	QColorDialog colorDlg;
 	colorDlg.setCurrentColor(QColor(colorTFValue[1]*255, colorTFValue[2]*255, colorTFValue[3]*255));
 	if (colorDlg.exec() == QDialog::Accepted)
@@ -392,7 +382,7 @@ void iAChartTransferFunction::mouseReleaseEventAfterNewPoint(QMouseEvent *)
 		QColor col = colorDlg.selectedColor();
 		setPointColor(m_selectedPoint, colorTFValue[0], (double)col.red()/255.0, (double)col.green()/255.0, (double)col.blue()/255.0 );
 	}
-	else if (m_selectedPoint > 0 && m_selectedPoint < m_opacityTF->GetSize()-1)
+	else if (m_selectedPoint > 0 && m_selectedPoint < m_tf->opacityTF()->GetSize()-1)
 	{
 		removePoint(m_selectedPoint);
 	}
@@ -401,25 +391,25 @@ void iAChartTransferFunction::mouseReleaseEventAfterNewPoint(QMouseEvent *)
 void iAChartTransferFunction::setPointColor(int selectedPoint, double x, double red, double green, double blue)
 {
 	double colorVal[6] = { x, red, green, blue, 0.5, 0.0 };
-	m_colorTF->SetNodeValue(selectedPoint, colorVal);
-	m_colorTF->Modified();
-	m_colorTF->Build();
+	m_tf->colorTF()->SetNodeValue(selectedPoint, colorVal);
+	m_tf->colorTF()->Modified();
+	m_tf->colorTF()->Build();
 	triggerOnChange();
 }
 
 void iAChartTransferFunction::setPointOpacity(int selectedPoint, int pixelX, int pixelY)
 {
 	double opacityVal[4] = { m_chart->mouse2DataX(pixelX), pixelY2Opacity(pixelY), 0.0, 0.0 };
-	m_opacityTF->SetNodeValue(selectedPoint, opacityVal);
+	m_tf->opacityTF()->SetNodeValue(selectedPoint, opacityVal);
 }
 
 void iAChartTransferFunction::setPointOpacity(int selectedPoint, int pixelY)
 {
 	double opacityTFValues[4];
-	m_opacityTF->GetNodeValue(selectedPoint, opacityTFValues);
+	m_tf->opacityTF()->GetNodeValue(selectedPoint, opacityTFValues);
 
 	opacityTFValues[1] = pixelY2Opacity(pixelY);
-	m_opacityTF->SetNodeValue(selectedPoint, opacityTFValues);
+	m_tf->opacityTF()->SetNodeValue(selectedPoint, opacityTFValues);
 }
 
 double iAChartTransferFunction::pixelY2Opacity(int pixelY)
@@ -439,7 +429,17 @@ void iAChartTransferFunction::triggerOnChange()
 
 size_t iAChartTransferFunction::numPoints() const
 {
-	return m_opacityTF->GetSize();
+	return m_tf->opacityTF()->GetSize();
+}
+
+iATransferFunction* iAChartTransferFunction::tf()
+{
+	return m_tf;
+}
+
+void iAChartTransferFunction::setTF(iATransferFunction* tf)
+{
+	m_tf = tf;
 }
 
 void iAChartTransferFunction::enableRangeSliderHandles( bool rangeSliderHandles )

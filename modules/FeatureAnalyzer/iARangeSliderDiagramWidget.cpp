@@ -24,6 +24,7 @@
 #include <charts/iAHistogramData.h>
 #include <iACSVToQTableWidgetConverter.h>
 #include <iAMathUtility.h>
+#include <iATransferFunction.h>
 
 #include <cassert>
 
@@ -40,10 +41,9 @@ QSharedPointer<iAHistogramData> createFilteredPlotData(
 	return result;
 }
 
-iARangeSliderDiagramWidget::iARangeSliderDiagramWidget( QWidget *parent,
-	vtkPiecewiseFunction* oTF, vtkColorTransferFunction* cTF, QSharedPointer<iAHistogramData> data,
-	QMap<double, QList<double> > *histogramMap, const QTableWidget *rawTable,
-	QString const & xlabel, QString const & yLabel):
+iARangeSliderDiagramWidget::iARangeSliderDiagramWidget(QWidget* parent, vtkPiecewiseFunction* oTF,
+	vtkColorTransferFunction* cTF, QSharedPointer<iAHistogramData> data, QMap<double, QList<double>>* histogramMap,
+	const QTableWidget* rawTable, QString const& xlabel, QString const& yLabel) :
 	iAChartWithFunctionsWidget(parent, xlabel, yLabel),
 	m_data(data),
 	m_selectionOrigin(QPoint(0, 0)),
@@ -54,9 +54,10 @@ iARangeSliderDiagramWidget::iARangeSliderDiagramWidget( QWidget *parent,
 	m_firstSelectedBin(-1),
 	m_lastSelectedBin(-1),
 	m_histogramMap(histogramMap),
-	m_rawTable(rawTable)
+	m_rawTable(rawTable),
+	m_tf(new iASimpleTransferFunction(cTF, oTF))
 {
-	setTransferFunctions(cTF, oTF);
+	setTransferFunction(m_tf.data());
 	addPlot(QSharedPointer<iAPlot>(new iABarGraphPlot(m_data, QColor(70, 70, 70, 255))));
 	m_selectionRubberBand->hide();
 	( (iAChartTransferFunction*) m_functions[0] )->enableRangeSliderHandles( true );

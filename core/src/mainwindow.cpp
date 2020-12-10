@@ -473,7 +473,7 @@ bool MainWindow::saveSettings()
 			}
 			if (m_spTransferFunction && activeMdiChild()->histogram())
 			{
-				xml.saveTransferFunction(dynamic_cast<iAChartTransferFunction*>(activeMdiChild()->functions()[0]));
+				xml.saveTransferFunction(dynamic_cast<iAChartTransferFunction*>(activeMdiChild()->functions()[0])->tf());
 			}
 			if (m_spProbabilityFunctions && activeMdiChild()->histogram())
 			{
@@ -712,7 +712,7 @@ void MainWindow::loadSliceViews(QDomNode sliceViewsNode)
 	}
 }
 
-void MainWindow::saveTransferFunction(QDomDocument &doc, iAChartTransferFunction* transferFunction)
+void MainWindow::saveTransferFunction(QDomDocument &doc, iATransferFunction* tf)
 {
 	// does functions node exist
 	QDomNode functionsNode = doc.documentElement().namedItem("functions");
@@ -725,12 +725,12 @@ void MainWindow::saveTransferFunction(QDomDocument &doc, iAChartTransferFunction
 	// add new function node
 	QDomElement transferElement = doc.createElement("transfer");
 
-	for (int i = 0; i < transferFunction->opacityTF()->GetSize(); i++)
+	for (int i = 0; i < tf->opacityTF()->GetSize(); i++)
 	{
 		double opacityTFValue[4];
 		double colorTFValue[6];
-		transferFunction->opacityTF()->GetNodeValue(i, opacityTFValue);
-		transferFunction->colorTF()->GetNodeValue(i, colorTFValue);
+		tf->opacityTF()->GetNodeValue(i, opacityTFValue);
+		tf->colorTF()->GetNodeValue(i, colorTFValue);
 
 		QDomElement nodeElement = doc.createElement("node");
 		nodeElement.setAttribute("value",   tr("%1").arg(opacityTFValue[0]));
