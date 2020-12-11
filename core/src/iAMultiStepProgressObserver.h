@@ -20,22 +20,27 @@
 * ************************************************************************************/
 #pragma once
 
+#include "open_iA_Core_export.h"
+
+#include "iAProgress.h"
+
 #include <vtkCommand.h>
 
 #include <QObject>
 
 //! Enables Observing the progress of multiple vtk algorithms executed sequentially via signals.
 // TODO: should be merged/consolidated with iAProgress!
-class iAMultiStepProgressObserver : public QObject, public vtkCommand
+class open_iA_Core_API iAMultiStepProgressObserver : public QObject, public vtkCommand
 {
 	Q_OBJECT
 public:
 	iAMultiStepProgressObserver(double overallSteps);
-	void SetCompletedSteps(int steps);
-signals:
-	void progress(int progress);
+	void setCompletedSteps(int steps);
+	void observe(vtkAlgorithm* caller);
+	iAProgress* progressObject();
 private:
 	virtual void Execute(vtkObject *caller, unsigned long, void*);
 	double m_currentStep;
 	double m_overallSteps;
+	iAProgress m_progress;
 };

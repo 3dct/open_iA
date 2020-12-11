@@ -29,6 +29,7 @@
 #include "iAExceptionThrowingErrorObserver.h"
 #include "iAExtendedTypedCallHelper.h"
 #include "iAFileUtils.h"
+#include "iAJobListView.h"
 #include "iAModalityList.h"
 #include "iAOIFReader.h"
 #include "iAProgress.h"
@@ -190,6 +191,7 @@ void iAIO::init(QWidget *par)
 	m_fileName = "";
 	m_fileNameArray = vtkStringArray::New();
 	m_ioID = 0;
+	iAJobListView::get()->addJob("Loading file(s)", ProgressObserver(), this);
 	loadIOSettings();
 }
 
@@ -582,15 +584,19 @@ herr_t op_func(hid_t loc_id, const char *name, const H5L_info_t * /*info*/,
 	H5O_info_t      infobuf;
 	struct opdata   *od = (struct opdata *) operator_data;
 	status = H5Oget_info_by_name(loc_id, name, &infobuf, H5P_DEFAULT);
+	if (status < 0)
+	{
+		LOG(lvlWarn, QString("H5Oget_info_by_name failed with code %1!").arg(status));
+	}
 	QString caption;
-	bool group = false;
+	//bool group = false;
 	int vtkType = -1;
 	int rank = 0;
 	switch (infobuf.type)
 	{
 	case H5O_TYPE_GROUP:
 		caption = QString("Group: %1").arg(name);
-		group = true;
+		//group = true;
 		break;
 	case H5O_TYPE_DATASET:
 		{
@@ -1135,7 +1141,7 @@ void iAIO::readVolumeMHDStack()
 		if (m_fileNames_volstack)
 			m_fileNames_volstack->push_back(m_fileName);
 
-		int progress = (m_fileNameArray->GetMaxId() == 0) ? 100 : (m * 100) / m_fileNameArray->GetMaxId();
+		double progress = (m_fileNameArray->GetMaxId() == 0) ? 100 : m * 100.0 / m_fileNameArray->GetMaxId();
 		ProgressObserver()->emitProgress(progress);
 	}
 	addMsg(tr("Loading volume stack completed."));
@@ -1158,8 +1164,7 @@ void iAIO::readVolumeStack()
 		{
 			m_fileNames_volstack->push_back(m_fileName);
 		}
-		int progress = (m * 100) / m_fileNameArray->GetMaxId();
-		ProgressObserver()->emitProgress(progress);
+		ProgressObserver()->emitProgress(m * 100.0 / m_fileNameArray->GetMaxId());
 	}
 	addMsg(tr("Loading volume stack completed."));
 	storeIOSettings();
@@ -1189,8 +1194,7 @@ void iAIO::writeVolumeStack()
 	for (int m=0; m <= m_fileNameArray->GetMaxId(); m++)
 	{
 		writeMetaImage(m_volumes->at(m).GetPointer(), m_fileNameArray->GetValue(m).c_str());
-		int progress = (m * 100) / m_fileNameArray->GetMaxId();
-		ProgressObserver()->emitProgress(progress);
+		ProgressObserver()->emitProgress(m * 100.0 / m_fileNameArray->GetMaxId());
 	}
 }
 

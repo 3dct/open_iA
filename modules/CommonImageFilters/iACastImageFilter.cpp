@@ -286,7 +286,7 @@ void fillHistogramm(iAFilter* filter, QMap<QString, QVariant> const& params)
 	Q_UNUSED(params);
 	std::map<T, T> histogramm;
 	typedef itk::Image<T, DIM> ImageType;
-	ImageType::Pointer im = dynamic_cast<ImageType*>(filter->input()[0]->itkImage());
+	typename ImageType::Pointer im = dynamic_cast<ImageType*>(filter->input()[0]->itkImage());
 
 	using IteratorType = itk::ImageRegionIterator< ImageType >;
 

@@ -24,6 +24,7 @@
 #include "open_iA_Core_export.h"
 
 #include <QSharedPointer>
+#include <QVector>
 
 #include <vector>
 
@@ -36,27 +37,135 @@ class open_iA_Core_API iAHistogramData: public iAPlotData
 {
 public:
 	~iAHistogramData();
-	double spacing() const override;
-	double const * xBounds() const override;
-	DataType const * rawData() const override;
-	size_t numBin() const override;
-	DataType const * yBounds() const override;
-	iAValueType valueType() const override;
+	//! @{ overriden from iAPlotData, check description there!
+	DataType yValue(size_t idx) const override;
+	DataType xValue(size_t idx) const override;
+	DataType const* xBounds() const override;
+	DataType const* yBounds() const override;
+	size_t valueCount() const override;
+	size_t nearestIdx(DataType dataX) const override;
+	QString toolTipText(DataType dataX) const override;
+	//! @}
+	//! Get the spacing (the witdh of a bin)
+	iAPlotData::DataType spacing() const;
+	
+	//! Set the value for a given bin index.
+	//! Also updates y bounds
+	//! @param binIdx the index of the bin that should be changed
+	//! @param value the new value for the bin
+	void setBin(size_t binIdx, DataType value);
+	//! Sets all histogram frequencies back to 0
+	void clear();
 
-	static QSharedPointer<iAHistogramData> create(vtkImageData* img, size_t binCount, iAImageInfo* imageInfo = nullptr);
-	static QSharedPointer<iAHistogramData> create(DataType* data, size_t binCount, double space, DataType min, DataType max);
-	static QSharedPointer<iAHistogramData> create(const std::vector<DataType> &histData, size_t binCount,
-		iAValueType type = iAValueType::Continuous,
-		DataType minValue=std::numeric_limits<double>::infinity(),
-		DataType maxValue=std::numeric_limits<double>::infinity());
+	//! Sets custom spacing.
+	//! @deprecated should be set automatically - if not it's a bug that needs to be fixed inside the class, not by setting it from externally
+	void setSpacing(DataType spacing);
+	//! Sets custom y bounds.
+	//! @deprecated should be set automatically - if not it's a bug that needs to be fixed inside the class, not by setting it from externally
+	void setYBounds(DataType yMin, DataType yMax);
+
+	//! create a histogram for a vtk image
+	static QSharedPointer<iAHistogramData> create(QString const& name,
+		vtkImageData* img, size_t numBin, iAImageInfo* imageInfo = nullptr);
+	//! create a histogram for the given (raw) data vector
+	static QSharedPointer<iAHistogramData> create(QString const& name, iAValueType type,
+		const std::vector<DataType>& data, size_t numBin,
+		DataType minValue=std::numeric_limits<DataType>::infinity(),
+		DataType maxValue=std::numeric_limits<DataType>::infinity());
+	//! Create an empty histogram (with numBin bins, initialized to 0, and the given range).
+	//! Useful if you need a custom way of creating a histogram; use setBin to populate the values.
+	static QSharedPointer<iAHistogramData> create(QString const& name, iAValueType type,
+		DataType minX, DataType maxX, size_t numBin);
+	//! Create from already computed histogram data.
+	//! @deprecated (because of data ownership issues, see below)
+	//! @param numBin the number of bins - the number of items contained in histoData
+	//! @param histoData the histogram frequencies. note that the class DOES NOT take ownership of the given array:
+	//!        you have to delete the array manually!
+	static QSharedPointer<iAHistogramData> create(QString const& name, iAValueType type,
+		DataType minX, DataType maxX, size_t numBin, DataType* histoData);
+	//! Create from already computed histogram data in a std::vector.
+	static QSharedPointer<iAHistogramData> create(QString const& name, iAValueType type,
+		DataType minX, DataType maxX, std::vector<DataType> const& histoData);
+	//! Create from already computed histogram data in a QVector.
+	static QSharedPointer<iAHistogramData> create(QString const& name, iAValueType type,
+		DataType minX, DataType maxX, QVector<DataType> const& histoData);
+
+protected:
+	//! Create an empty histogram (with numBin bins, initialized to 0).
+	iAHistogramData(QString const& name, iAValueType type, DataType minX, DataType maxX, size_t numBin);
+
 private:
-	iAHistogramData();
-	void setMaxFreq();
+	//! Create with the given, already computed histogram data.
+	iAHistogramData(QString const& name, iAValueType type, DataType minX, DataType maxX, size_t numBin, DataType* histoData);
+	//! Set y value range from current data.
+	void updateYBounds();
+	void setXBounds(DataType minX, DataType maxX);
 
-	size_t m_binCount;
-	iAPlotData::DataType* m_rawData;
-	iAPlotData::DataType m_yBounds[2];
-	double m_accSpacing;
-	double m_xBounds[2];
-	iAValueType m_type;
+	//! The frequency values for each histogram bin.
+	DataType* m_histoData;
+	//! Whether this object is owner of the data array (m_histoData).
+	//! TODO: rethink - easy to cause mistakes; maybe always take ownership, but don't provide constructors passing in a raw pointer?
+	bool m_dataOwner;
+	//! Number of bins in the histogram (i.e. size of m_histoData).
+	size_t m_numBin;
+	//! The data range covered by the histogram.
+	DataType m_xBounds[2];
+	//! The range of frequency values contained in the histogram (i.e. min and max element in m_histoData)
+	DataType m_yBounds[2];
+	//! The width of a single bin in the histogram.
+	DataType m_spacing;
 };
+
+#include <itkImage.h>
+#include <itkImageRegionConstIterator.h>
+
+// TODO: separate file for that ?
+// specific histogram for a collection of binary images (one for each label)
+// the created histogram has one bin per label
+template <typename PixelT>
+QSharedPointer<iAHistogramData> createHistogram(QString const& name, iAValueType xValueType,
+	QVector<typename itk::Image<PixelT, 3>::Pointer> const& imgs, size_t numBin, PixelT min, PixelT max)
+{
+	/*
+	img->ReleaseDataFlagOff();
+	itk::MinimumMaximumImageCalculator<TImage> minMaxCalc;
+	minMaxCalc->SetInput(img);
+	minMaxCalc->Compute();
+	auto result = iAHistogramData::Create(minMaxCalc->GetMinimum(), minMaxCalc->GetMaximum(), numBin);
+	*/
+	auto result = iAHistogramData::create(name, xValueType, min, max, numBin);
+	for (int i = 0; i < imgs.size(); ++i)
+	{
+		double sum = 0;
+		itk::ImageRegionConstIterator<itk::Image<PixelT, 3>> it(imgs[i], imgs[i]->GetLargestPossibleRegion());
+		it.GoToBegin();
+		while (!it.IsAtEnd())
+		{
+			sum += it.Get();
+			++it;
+		}
+		result->setBin(i, sum);
+	}
+	return result;
+}
+
+/*
+// for pixel probing:
+template <typename PixelT>
+QSharedPointer<iAHistogramData> CreateHistogram(QVector<typename itk::Image<PixelT, 3>::Pointer> const & imgs, size_t numBin, int index[3], PixelT min, PixelT max, iAValueType xValueType)
+{
+	auto result = iAHistogramData::Create(min, max, numBin, xValueType);
+	itk::Index<3> idx;
+	for (int i = 0; i < 3; ++i) { idx[i] = index[i]; }
+	for (int m=0; m<imgs.size(); ++m)
+	{
+		result->SetBin(m, imgs[m]->GetPixel(idx));
+	}
+	return result;
+}
+*/
+
+//! Returns histogram with given data mapped from specified source to target range.
+open_iA_Core_API QSharedPointer<iAHistogramData> createMappedHistogramData(QString const& name,
+	iAPlotData::DataType const* data, size_t srcNumBin, double srcMinX, double srcMaxX,
+	size_t targetNumBin, double targetMinX, double targetMaxX, iAPlotData::DataType const maxValue);

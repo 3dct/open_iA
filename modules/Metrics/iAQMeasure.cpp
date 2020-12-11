@@ -21,7 +21,7 @@
 #include "iAQMeasure.h"
 
 #include <charts/iAChartWithFunctionsWidget.h>
-#include <charts/iASimpleHistogramData.h>
+#include <charts/iAHistogramData.h>
 #include <charts/iAPlotTypes.h>
 #include <defines.h>    // for DIM
 #include <iAConnector.h>
@@ -122,7 +122,7 @@ void computeQ(iAQMeasure* filter, vtkSmartPointer<vtkImageData> img, QMap<QStrin
 
 	if (filter->m_chart)
 	{
-		auto histoPlotData = iASimpleHistogramData::create(minVal, maxVal, vecHist, iAValueType::Continuous);
+		auto histoPlotData = iAHistogramData::create("Frequency", iAValueType::Continuous, minVal, maxVal, vecHist);
 		filter->m_chart->addPlot(QSharedPointer<iAPlot>(new iABarGraphPlot(histoPlotData, QColor(180, 90, 90, 127))));
 	}
 
@@ -132,7 +132,7 @@ void computeQ(iAQMeasure* filter, vtkSmartPointer<vtkImageData> img, QMap<QStrin
 
 	if (filter->m_chart)
 	{
-		auto smoothedHistoPlotData = iASimpleHistogramData::create(minVal, maxVal, smoothedHist, iAValueType::Continuous);
+		auto smoothedHistoPlotData = iAHistogramData::create("Smoothed Frequency", iAValueType::Continuous, minVal, maxVal, smoothedHist);
 		filter->m_chart->addPlot(QSharedPointer<iAPlot>(new iABarGraphPlot(smoothedHistoPlotData, QColor(90, 180, 90, 127))));
 	}
 
@@ -141,7 +141,7 @@ void computeQ(iAQMeasure* filter, vtkSmartPointer<vtkImageData> img, QMap<QStrin
 	auto smoothedDeriv = gaussianSmoothing(firstDeriv, derivSigma, 5);
 	if (filter->m_chart)
 	{
-		auto firstDerivPlotData = iASimpleHistogramData::create(minVal, maxVal, smoothedDeriv, iAValueType::Continuous);
+		auto firstDerivPlotData = iAHistogramData::create("Smoothed Derivative", iAValueType::Continuous, minVal, maxVal, smoothedDeriv);
 		filter->m_chart->addPlot(QSharedPointer<iAPlot>(new iABarGraphPlot(firstDerivPlotData, QColor(90, 90, 180, 127))));
 	}
 
@@ -210,7 +210,7 @@ void computeQ(iAQMeasure* filter, vtkSmartPointer<vtkImageData> img, QMap<QStrin
 		auto smoothedHistoMin = gaussianSmoothing(vecHist, minSigma, 10);
 		if (filter->m_chart)
 		{
-			//auto smoothedHisto2PlotData = iASimpleHistogramData::Create(minVal, maxVal, smoothedHistoMin, iAValueType::Continuous);
+			//auto smoothedHisto2PlotData = iAHistogramData::create(minVal, maxVal, smoothedHistoMin, iAValueType::Continuous);
 			//filter->m_chart->AddPlot(QSharedPointer<iAPlot>(new iABarGraphPlot(smoothedHisto2PlotData, QColor(90, 180, 180, 127))));
 		}
 		int minIdx = peaks[m].first;

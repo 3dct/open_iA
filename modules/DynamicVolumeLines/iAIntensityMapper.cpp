@@ -81,7 +81,7 @@ void getIntensities(iAProgress &imp, PathID m_pathID, ImagePointer &image, QList
 						coordList.append(coord);
 						if (coordList.size() % 64 == 0)
 						{
-							imp.emitProgress(coordList.size() * 100 / HilbertCnt);
+							imp.emitProgress(coordList.size() * 100.0 / HilbertCnt);
 						}
 					}
 				}

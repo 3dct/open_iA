@@ -47,9 +47,9 @@ class QSplashScreen;
 class vtkCamera;
 class vtkImageData;
 
-class iAChartTransferFunction;
 class iAModalityList;
 class iAModuleDispatcher;
+class iATransferFunction;
 class iAXmlSettings;
 class MdiChild;
 
@@ -79,7 +79,7 @@ public:
 	void saveSliceViews(iAXmlSettings & xml);
 	void saveSliceView(QDomDocument &doc, QDomNode &sliceViewsNode, vtkCamera *ren, QString const & elemStr);
 	void loadSliceViews(QDomNode sliceViewsNode);
-	void saveTransferFunction(QDomDocument &doc, iAChartTransferFunction* transferFunction);
+	void saveTransferFunction(QDomDocument& doc, iATransferFunction* transferFunction);
 	void savePreferences(iAXmlSettings &xml);
 	void loadPreferences(QDomNode preferencesNode);
 	void saveRenderSettings(iAXmlSettings &xml);

@@ -56,40 +56,41 @@ void iAPlot::setVisible(bool visible)
 
 
 
-iASelectedBinPlot::iASelectedBinPlot(QSharedPointer<iAPlotData> proxyData, int position /*= 0*/, QColor const & color /*= Qt::red */ )
-: iAPlot(proxyData, color ), m_position( position )
+iASelectedBinPlot::iASelectedBinPlot(QSharedPointer<iAPlotData> proxyData, size_t idx /*= 0*/, QColor const & color /*= Qt::red */ ) :
+	iAPlot(proxyData, color), m_idx(idx)
 {}
 
-void iASelectedBinPlot::draw(QPainter& painter, double binWidth, size_t /*startBin*/, size_t /*endBin*/, iAMapper const & xMapper, iAMapper const & /*yMapper*/) const
+void iASelectedBinPlot::draw(QPainter& painter, size_t startIdx, size_t endIdx, iAMapper const & xMapper, iAMapper const & /*yMapper*/) const
 {
-	int x = xMapper.srcToDst(m_position) - ((m_data->valueType() == iAValueType::Discrete) ? binWidth/2 : 0);
+	if (m_idx < startIdx || m_idx > endIdx)
+	{
+		return;
+	}
+	int x = xMapper.srcToDst(m_data->xValue(m_idx));
+	int barWidth = xMapper.srcToDst(m_data->xValue(m_idx + 1)) - x;
 	int h = painter.device()->height();
 	painter.setPen(getColor());
-	painter.drawRect( QRect( x, 0, binWidth, h ) );
+	painter.drawRect(QRect(x, 0, barWidth, h));
 }
 
-void iASelectedBinPlot::setPosition( int position )
+void iASelectedBinPlot::setSelectedBin(size_t idx)
 {
-	m_position = position;
+	m_idx = idx;
 }
 
 
 
 namespace
 {
-	bool buildLinePolygon(QPolygon & poly, iAPlotData::DataType const * rawData, size_t startBin, size_t endBin, iAMapper const & xMapper, iAMapper const & yMapper)
+	void buildLinePolygon(QPolygon& poly, QSharedPointer<iAPlotData> data, size_t startIdx, size_t endIdx,
+		iAMapper const& xMapper, iAMapper const& yMapper)
 	{
-		if (!rawData)
+		for (size_t idx = startIdx; idx <= endIdx; ++idx)
 		{
-			return false;
-		}
-		for (size_t curBin = startBin; curBin <= endBin; ++curBin)
-		{
-			int curX = xMapper.srcToDst(curBin);
-			int curY = yMapper.srcToDst(rawData[curBin]);
+			int curX = xMapper.srcToDst(data->xValue(idx));
+			int curY = yMapper.srcToDst(data->yValue(idx));
 			poly.push_back(QPoint(curX, curY));
 		}
-		return true;
 	}
 }
 
@@ -104,13 +105,14 @@ void iALinePlot::setLineWidth(int width)
 	m_lineWidth = width;
 }
 
-void iALinePlot::draw(QPainter& painter, double /*binWidth*/, size_t startBin, size_t endBin, iAMapper const & xMapper, iAMapper const & yMapper) const
+void iALinePlot::draw(QPainter& painter, size_t startIdx, size_t endIdx, iAMapper const & xMapper, iAMapper const & yMapper) const
 {
-	QPolygon poly;
-	if (!buildLinePolygon(poly, m_data->rawData(), startBin, endBin, xMapper, yMapper))
+	if (!m_data)
 	{
 		return;
 	}
+	QPolygon poly;
+	buildLinePolygon(poly, m_data, startIdx, endIdx, xMapper, yMapper);
 	QPen pen(painter.pen());
 	pen.setWidth(m_lineWidth);
 	pen.setColor(getColor());
@@ -130,15 +132,18 @@ QColor iAFilledLinePlot::getFillColor() const
 	return fillColor;
 }
 
-void iAFilledLinePlot::draw(QPainter& painter, double /*binWidth*/, size_t startBin, size_t endBin, iAMapper const & xMapper, iAMapper const & yMapper) const
+void iAFilledLinePlot::draw(QPainter& painter, size_t startIdx, size_t endIdx, iAMapper const & xMapper, iAMapper const & yMapper) const
 {
-	QPolygon poly;
-	if (!buildLinePolygon(poly, m_data->rawData(), startBin, endBin, xMapper, yMapper))
+	if (!m_data)
 	{
 		return;
 	}
-	poly.insert(0, QPoint(xMapper.srcToDst(startBin - (startBin > 0 ? 1 : 0)), 0));
-	poly.push_back(QPoint(xMapper.srcToDst(endBin), 0));
+	QPolygon poly;
+	int pt1x = xMapper.srcToDst(m_data->xValue(startIdx - (startIdx > 0 ? 1 : 0)));
+	int pt2x = xMapper.srcToDst(m_data->xValue(endIdx + (endIdx >= m_data->valueCount() ? 1 : 0)));
+	poly.push_back(QPoint(pt1x, 0));
+	buildLinePolygon(poly, m_data, startIdx, endIdx, xMapper, yMapper);
+	poly.push_back(QPoint(pt2x, 0));
 	QPainterPath tmpPath;
 	tmpPath.addPolygon(poly);
 	painter.fillPath(tmpPath, QBrush(getFillColor()));
@@ -157,25 +162,20 @@ QColor iAStepFunctionPlot::getFillColor() const
 	return fillColor;
 }
 
-void iAStepFunctionPlot::draw(QPainter& painter, double /*binWidth*/, size_t startBin, size_t endBin, iAMapper const & xMapper, iAMapper const & yMapper) const
+void iAStepFunctionPlot::draw(QPainter& painter, size_t startIdx, size_t endIdx, iAMapper const & xMapper, iAMapper const & yMapper) const
 {
 	QPainterPath tmpPath;
-	iAPlotData::DataType const * rawData = m_data->rawData();
-	if (!rawData)
-	{
-		return;
-	}
 	QPolygon poly;
-	poly.push_back(QPoint(xMapper.srcToDst(startBin), 0));
-	for (size_t curBin = startBin; curBin <= endBin; ++curBin)
+	poly.push_back(QPoint(xMapper.srcToDst(m_data->xValue(startIdx)), 0));
+	for (size_t idx = startIdx; idx <= endIdx; ++idx)
 	{
-		int curX1 = xMapper.srcToDst(curBin - ((m_data->valueType() == iAValueType::Discrete) ? 0.5 : 0));
-		int curX2 = xMapper.srcToDst(curBin + ((m_data->valueType() == iAValueType::Discrete) ? 0.5 : 1));
-		int curY = yMapper.srcToDst(rawData[curBin]);
+		int curX1 = xMapper.srcToDst(m_data->xValue(idx));
+		int curX2 = xMapper.srcToDst(m_data->xValue(idx + 1));
+		int curY = yMapper.srcToDst(m_data->yValue(idx));
 		poly.push_back(QPoint(curX1, curY));
 		poly.push_back(QPoint(curX2, curY));
 	}
-	poly.push_back(QPoint(xMapper.srcToDst(endBin + ((m_data->valueType() == iAValueType::Discrete) ? 0.5 : 1)), 0));
+	poly.push_back(QPoint(xMapper.srcToDst(m_data->xValue(endIdx + 1)), 0));
 	tmpPath.addPolygon(poly);
 	painter.fillPath(tmpPath, QBrush(getFillColor()));
 }
@@ -187,23 +187,18 @@ iABarGraphPlot::iABarGraphPlot(QSharedPointer<iAPlotData> data, QColor const & c
 	m_margin(margin)
 {}
 
-void iABarGraphPlot::draw(QPainter& painter, double binWidth, size_t startBin, size_t endBin, iAMapper const & xMapper, iAMapper const & yMapper) const
+void iABarGraphPlot::draw(QPainter& painter, size_t startIdx, size_t endIdx, iAMapper const & xMapper, iAMapper const & yMapper) const
 {
-	iAPlotData::DataType const * rawData = m_data->rawData();
-	if (!rawData)
-	{
-		return;
-	}
-	int barWidth = static_cast<int>(std::ceil(binWidth)) - m_margin;
 	QColor fillColor = getColor();
-	for (size_t curBin = startBin; curBin <= endBin; ++curBin)
+	for (size_t idx = startIdx; idx <= endIdx; ++idx)
 	{
-		int x = xMapper.srcToDst(curBin) - ((m_data->valueType() == iAValueType::Discrete || m_data->numBin() == 1) ? barWidth/2 : 0);
-		int h = yMapper.srcToDst(rawData[curBin]);
+		int x = xMapper.srcToDst(m_data->xValue(idx));
+		int barWidth = xMapper.srcToDst(m_data->xValue(idx + 1)) - x - m_margin;
+		int h = yMapper.srcToDst(m_data->yValue(idx));
 		if (m_lut)
 		{
 			double rgba[4];
-			m_lut->getColor(curBin, rgba);
+			m_lut->getColor(idx, rgba);
 			fillColor = QColor(rgba[0]*255, rgba[1]*255, rgba[2]*255, rgba[3]*255);
 		}
 		painter.fillRect(QRect(x, 1, barWidth, h), fillColor);
@@ -221,7 +216,7 @@ iAPlotCollection::iAPlotCollection():
 	iAPlot(QSharedPointer<iAPlotData>(), QColor())
 {}
 
-void iAPlotCollection::draw(QPainter& painter, double binWidth, size_t startBin, size_t endBin, iAMapper const & xMapper, iAMapper const & yMapper) const
+void iAPlotCollection::draw(QPainter& painter, size_t startIdx, size_t endIdx, iAMapper const & xMapper, iAMapper const & yMapper) const
 {
 	qreal oldPenWidth = painter.pen().widthF();
 	QPen pen = painter.pen();
@@ -229,7 +224,7 @@ void iAPlotCollection::draw(QPainter& painter, double binWidth, size_t startBin,
 	painter.setPen(pen);
 	for(auto drawer: m_drawers)
 	{
-		drawer->draw(painter, binWidth, startBin, endBin, xMapper, yMapper);
+		drawer->draw(painter, startIdx, endIdx, xMapper, yMapper);
 	}
 	pen.setWidthF(oldPenWidth);
 	painter.setPen(pen);
@@ -241,7 +236,7 @@ void iAPlotCollection::add(QSharedPointer<iAPlot> drawer)
 	{
 		if (m_drawers[0]->data()->xBounds()[0] != drawer->data()->xBounds()[0] ||
 			m_drawers[0]->data()->xBounds()[1] != drawer->data()->xBounds()[1] ||
-			m_drawers[0]->data()->numBin() != drawer->data()->numBin() ||
+			m_drawers[0]->data()->valueCount() != drawer->data()->valueCount() ||
 			m_drawers[0]->data()->valueType() != drawer->data()->valueType())
 		{
 			LOG(lvlError, "iAPlotCollection::add - ERROR - Incompatible drawer added!");

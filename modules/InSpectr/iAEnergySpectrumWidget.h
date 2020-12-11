@@ -26,15 +26,18 @@
 
 class iAAccumulatedXRFData;
 struct iACharacteristicEnergy;
-class iAPlotData;
+class iASimpleTransferFunction;
 class iASpectrumFilterListener;
+
+class vtkColorTransferFunction;
+class vtkPiecewiseFunction;
 
 class QRubberBand;
 
 class iAEnergySpectrumWidget: public iAChartWithFunctionsWidget
 {
 public:
-	iAEnergySpectrumWidget(QWidget *parent, MdiChild *mdiChild,
+	iAEnergySpectrumWidget(QWidget *parent,
 		QSharedPointer<iAAccumulatedXRFData> data,
 		vtkPiecewiseFunction* oTF,
 		vtkColorTransferFunction* cTF,
@@ -57,4 +60,5 @@ private:
 	QVector<QRect> selectionRects;
 	iASpectrumFilterListener* filterListener;
 	QMap<iACharacteristicEnergy*, QColor> m_elementEnergies;
+	QSharedPointer<iASimpleTransferFunction> m_tf;
 };

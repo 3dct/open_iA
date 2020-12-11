@@ -179,7 +179,7 @@ template <class T> void extractSliceImage(typename itk::Image<T, 3>::Pointer itk
 }
 
 template<class T> void DataTypeConversion_template(QString const & filename, iARawFileParameters const & p, unsigned int zSkip, size_t numBins,
-	iAPlotData::DataType * histptr, double & minVal, double & maxVal, double & discretization, iAConnector* xyimage, iAConnector* xzimage, iAConnector* yzimage)
+	iAPlotData::DataType * histptr, double & minVal, double & maxVal, iAConnector* xyimage, iAConnector* xzimage, iAConnector* yzimage)
 {
 	// TODO: use itk methods instead?
 	typedef itk::Image< T, 3 >   InputImageType;
@@ -208,7 +208,7 @@ template<class T> void DataTypeConversion_template(QString const & filename, iAR
 	size_t totalsize = slicesize * p.m_size[2] * datatypesize;
 
 	getFileMinMax<typename InputImageType::PixelType>(pFile, minVal, maxVal);
-	discretization = (maxVal - minVal) / numBins;
+	double discretization = (maxVal - minVal) / numBins;
 
 	// copy the file into the buffer and create histogram:
 	typedef itk::ImageRegionIterator<InputImageType> iteratortype;
@@ -269,7 +269,7 @@ template<class T> void DataTypeConversion_template(QString const & filename, iAR
 
 void dlg_datatypeconversion::loadPreview(QString const & filename, iARawFileParameters const & p, unsigned int zSkip, size_t numBins)
 {
-	VTK_TYPED_CALL(DataTypeConversion_template, p.m_scalarType, filename, p, zSkip, numBins, m_histbinlist, m_min, m_max, m_dis, m_xyimage, m_xzimage, m_yzimage);
+	VTK_TYPED_CALL(DataTypeConversion_template, p.m_scalarType, filename, p, zSkip, numBins, m_histbinlist, m_min, m_max, m_xyimage, m_xzimage, m_yzimage);
 }
 
 //roi conversion
@@ -417,7 +417,7 @@ dlg_datatypeconversion::dlg_datatypeconversion(QWidget *parent, QString const & 
 
 	//read raw file
 	m_spacing[0] = p.m_spacing[0]; m_spacing[1] = p.m_spacing[1];	m_spacing[2] = p.m_spacing[2];
-	m_min = 0; m_max = 0; m_dis = 0;
+	m_min = 0; m_max = 0;
 	m_roi[0] = m_roi[1] = m_roi[2]= 0;
 	m_roi[3] = p.m_size[0];
 	m_roi[4] = p.m_size[1];
@@ -427,7 +427,7 @@ dlg_datatypeconversion::dlg_datatypeconversion(QWidget *parent, QString const & 
 
 	loadPreview(filename, p, zSkip, numBins);
 
-	createHistogram(m_histbinlist, m_min, m_max, numBins, m_dis);
+	createHistogram(m_histbinlist, m_min, m_max, numBins);
 
 	auto xyboxlayout = setupSliceWidget(m_xyWidget, m_xyroiSource, m_xyimage, "XY");
 	auto xzboxlayout = setupSliceWidget(m_xzWidget, m_xzroiSource, m_xzimage, "XZ");
@@ -563,7 +563,7 @@ dlg_datatypeconversion::dlg_datatypeconversion(QWidget *parent, QString const & 
 
 dlg_datatypeconversion::~dlg_datatypeconversion()
 {
-	//delete[] m_histbinlist;  // gets deleted in iAHistogramData !
+	delete[] m_histbinlist;
 }
 
 void dlg_datatypeconversion::updatevalues(double* inPara)
@@ -585,10 +585,10 @@ void dlg_datatypeconversion::updatevalues(double* inPara)
 	leZSize->setText(str[10].toString());
 }
 
-void dlg_datatypeconversion::createHistogram(iAPlotData::DataType* histbinlist, double minVal, double maxVal, int bins, double discretization )
+void dlg_datatypeconversion::createHistogram(iAPlotData::DataType* histbinlist, double minVal, double maxVal, int bins)
 {
 	iAChartWidget* chart = new iAChartWidget(nullptr, "Histogram (Intensities)", "Frequency");
-	auto histogramData = iAHistogramData::create(histbinlist, bins, discretization, minVal, maxVal);
+	auto histogramData = iAHistogramData::create("Frequency", iAValueType::Continuous, minVal, maxVal, bins, histbinlist);
 	chart->addPlot(QSharedPointer<iAPlot>(new iABarGraphPlot(histogramData, QColor(70, 70, 70, 255))));
 	chart->update();
 	chart->setMinimumHeight(80);

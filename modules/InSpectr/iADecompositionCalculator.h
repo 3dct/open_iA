@@ -20,6 +20,8 @@
 * ************************************************************************************/
 #pragma once
 
+#include <iAProgress.h>
+
 #include <QSharedPointer>
 #include <QThread>
 #include <QVector>
@@ -41,13 +43,14 @@ public:
 	int ElementCount() const;
 	void Stop();
 	virtual void run();
+	iAProgress* progress();
 private:
 	QSharedPointer<iAElementConcentrations> m_data;
 	QSharedPointer<iAXRFData const> m_xrfData;
 	QSharedPointer<iAAccumulatedXRFData const> m_accumulatedXRF;
 	QVector<iAElementSpectralInfo*> m_elements;
 	bool m_stopped;
+	iAProgress m_progress;
 signals:
 	void success();
-	void progress(int percent);
 };

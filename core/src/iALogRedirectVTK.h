@@ -20,51 +20,47 @@
 * ************************************************************************************/
 #pragma once
 
-#include "iALog.h"
-
 #include <vtkOutputWindow.h>
 #include <vtkObjectFactory.h>
 
-class iARedirectVtkOutput : public vtkOutputWindow
+#include <iAVtkVersion.h>
+
+class iALogRedirectVTK : public vtkOutputWindow
 {
 public:
-	vtkTypeMacro(iARedirectVtkOutput, vtkOutputWindow);
-	void PrintSelf(ostream& os, vtkIndent indent) override;
-	static iARedirectVtkOutput * New();
-	void DisplayText(const char*) override;
+	vtkTypeMacro(iALogRedirectVTK, vtkOutputWindow);
+	static iALogRedirectVTK* New();
+	void PrintSelf(ostream& os, vtkIndent indent) override
+	{
+		this->Superclass::PrintSelf(os, indent);
+	}
+	void DisplayText(const char* someText) override
+	{
+		iALogLevel lvl = lvlWarn;
+	#if VTK_VERSION_NUMBER >= VTK_VERSION_CHECK(8,2,0)
+		switch (GetCurrentMessageType())
+		{
+		case MESSAGE_TYPE_TEXT           : lvl = lvlInfo;  break;
+		case MESSAGE_TYPE_ERROR          : lvl = lvlError; break;
+		default:
+	#if __cplusplus >= 201703L
+			[[fallthrough]];
+	#endif
+		case MESSAGE_TYPE_WARNING        :
+	#if __cplusplus >= 201703L
+			[[fallthrough]];
+	#endif
+		case MESSAGE_TYPE_GENERIC_WARNING: lvl = lvlWarn;  break;
+		case MESSAGE_TYPE_DEBUG          : lvl = lvlDebug; break;
+		}
+	#endif
+		LOG(lvl, someText);
+	}
 private:
-	iARedirectVtkOutput();
-	iARedirectVtkOutput(const iARedirectVtkOutput &) = delete;
-	void operator=(const iARedirectVtkOutput &) = delete;
+	iALogRedirectVTK()
+	{}
+	iALogRedirectVTK(const iALogRedirectVTK &) = delete;
+	void operator=(const iALogRedirectVTK &) = delete;
 };
 
-vtkStandardNewMacro(iARedirectVtkOutput);
-
-iARedirectVtkOutput::iARedirectVtkOutput() {}
-
-void iARedirectVtkOutput::DisplayText(const char* someText)
-{
-	iALogLevel lvl = lvlWarn;
-	switch (GetCurrentMessageType())
-	{
-	case MESSAGE_TYPE_TEXT           : lvl = lvlInfo;  break;
-	case MESSAGE_TYPE_ERROR          : lvl = lvlError; break;
-	default:
-#if __cplusplus >= 201703L
-		[[fallthrough]];
-#endif
-	case MESSAGE_TYPE_WARNING        :
-#if __cplusplus >= 201703L
-		[[fallthrough]];
-#endif
-	case MESSAGE_TYPE_GENERIC_WARNING: lvl = lvlWarn;  break;
-	case MESSAGE_TYPE_DEBUG          : lvl = lvlDebug; break;
-	}
-	LOG(lvl, someText);
-}
-
-//----------------------------------------------------------------------------
-void iARedirectVtkOutput::PrintSelf(ostream& os, vtkIndent indent)
-{
-	this->Superclass::PrintSelf(os, indent);
-}
+vtkStandardNewMacro(iALogRedirectVTK);

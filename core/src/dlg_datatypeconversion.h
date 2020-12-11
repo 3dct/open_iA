@@ -72,12 +72,12 @@ private slots:
 private:
 	void loadPreview(QString const & filename, iARawFileParameters const & p, unsigned int zSkip, size_t numBins);
 	void DataTypeConversionROI(QString const & filename, iARawFileParameters const & p, double *roi);
-	void createHistogram(iAPlotData::DataType* histbinlist, double minVal, double maxVal, int m_bins, double discretization);
+	void createHistogram(iAPlotData::DataType* histbinlist, double minVal, double maxVal, int bins);
 	void updatevalues(double* inPara);
 	void updateROI();
 
 	iAPlotData::DataType * m_histbinlist;
-	double m_min, m_max, m_dis;
+	double m_min, m_max;
 	vtkSmartPointer<vtkPlaneSource> m_xyroiSource, m_xzroiSource, m_yzroiSource;
 	iAConnector *m_roiimage, *m_xyimage, *m_xzimage, *m_yzimage;
 	iAVtkWidget* m_xyWidget, *m_xzWidget, *m_yzWidget;

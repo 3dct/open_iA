@@ -23,7 +23,6 @@
 #include "dlg_GEMSe.h"
 #include "dlg_labels.h"
 #include "dlg_Consensus.h"
-#include "dlg_progress.h"
 #include "dlg_samplings.h"
 #include "iAGEMSeConstants.h"
 #include "iAImageTree.h"
@@ -46,6 +45,7 @@
 #include <iAAttributeDescriptor.h>
 #include <iAColorTheme.h>
 #include <iAConnector.h>
+#include <iAJobListView.h>
 #include <iALog.h>
 #include <iAModality.h>
 #include <iAModalityList.h>
@@ -132,13 +132,11 @@ dlg_GEMSeControl::dlg_GEMSeControl(
 	dlg_GEMSeControlUI(parentWidget),
 	m_dlgModalities(dlgModalities),
 	m_dlgSamplingSettings(nullptr),
-	m_dlgProgress(nullptr),
 	m_dlgGEMSe(dlgGEMSe),
 	m_dlgLabels(dlgLabels),
 	m_dlgSamplings(dlgSamplings),
 	m_dlgConsensus(nullptr),
 	m_simpleLabelInfo(new iASimpleLabelInfo())
-
 {
 	connect(m_dlgSamplings, &dlg_samplings::AddSampling, this, &dlg_GEMSeControl::loadSamplingSlot);
 	dlgLabels->hide();
@@ -216,14 +214,11 @@ void dlg_GEMSeControl::startSampling()
 			iASEAFile::DefaultSPSFileName,
 			iASEAFile::DefaultCHRFileName,
 			m_dlgSamplings->GetSamplings()->size(),
-			iALog::get()
+			iALog::get(),
+			&m_progress
 		));
-		m_dlgProgress = new dlg_progress(this, m_sampler, m_sampler, "Sampling Progress");
-		MdiChild* mdiChild = dynamic_cast<MdiChild*>(parent());
-		mdiChild->tabifyDockWidget(this, m_dlgProgress);
+		iAJobListView::get()->addJob("Sampling Progress", &m_progress, m_sampler.data(), m_sampler.data());
 		connect(m_sampler.data(), &iAImageSampler::finished, this, &dlg_GEMSeControl::samplingFinished);
-		connect(m_sampler.data(), &iAImageSampler::progress, m_dlgProgress, &dlg_progress::setProgress);
-		connect(m_sampler.data(), &iAImageSampler::status, m_dlgProgress, &dlg_progress::setStatus);
 
 		// trigger parameter set creation & sampling (in foreground with progress bar for now)
 		m_sampler->start();
@@ -284,8 +279,6 @@ void dlg_GEMSeControl::samplingFinished()
 {
 	// retrieve results from sampler
 	QSharedPointer<iASamplingResults> samplingResults = m_sampler->results();
-	delete m_dlgProgress;
-	m_dlgProgress = 0;
 
 	if (!samplingResults || m_sampler->isAborted())
 	{
@@ -370,12 +363,6 @@ void dlg_GEMSeControl::calculateClustering()
 		LOG(lvlError, "No Sampling Results available!");
 		return;
 	}
-	assert( !m_dlgProgress );
-	if (m_dlgProgress)
-	{
-		LOG(lvlError, "Other operation still running?");
-		return;
-	}
 	m_outputFolder = QFileDialog::getExistingDirectory(this, tr("Output Directory"), m_outputFolder);
 	if (m_outputFolder.isEmpty())
 	{
@@ -389,8 +376,8 @@ void dlg_GEMSeControl::calculateClustering()
 		LOG(lvlError, QString("Can't create representative directory %1!").arg(cacheDir));
 		return;
 	}
-	m_clusterer = QSharedPointer<iAImageClusterer>(new iAImageClusterer(m_simpleLabelInfo->count(), cacheDir));
-	m_dlgProgress = new dlg_progress(this, m_clusterer, m_clusterer, "Clustering Progress");
+	m_clusterer = QSharedPointer<iAImageClusterer>(new iAImageClusterer(m_simpleLabelInfo->count(), cacheDir, &m_progress));
+	iAJobListView::get()->addJob("Clustering Progress", &m_progress, m_clusterer.data(), m_clusterer.data());
 	for (int samplingIdx=0; samplingIdx<m_dlgSamplings->SamplingCount(); ++samplingIdx)
 	{
 		QSharedPointer<iASamplingResults> sampling = m_dlgSamplings->GetSampling(samplingIdx);
@@ -399,18 +386,12 @@ void dlg_GEMSeControl::calculateClustering()
 			m_clusterer->AddImage(sampling->get(sampleIdx));
 		}
 	}
-	MdiChild* mdiChild = dynamic_cast<MdiChild*>(parent());
-	mdiChild->tabifyDockWidget(this, m_dlgProgress);
 	connect(m_clusterer.data(), &iAImageClusterer::finished, this, &dlg_GEMSeControl::clusteringFinished);
-	connect(m_clusterer.data(), &iAImageClusterer::Progress, m_dlgProgress, &dlg_progress::setProgress);
-	connect(m_clusterer.data(), &iAImageClusterer::Status, m_dlgProgress, &dlg_progress::setStatus);
 	m_clusterer->start();
 }
 
 void dlg_GEMSeControl::clusteringFinished()
 {
-	delete m_dlgProgress;
-	m_dlgProgress = 0;
 	MdiChild* mdiChild = dynamic_cast<MdiChild*>(parent());
 	vtkSmartPointer<vtkImageData> originalImage = mdiChild->imagePointer();
 

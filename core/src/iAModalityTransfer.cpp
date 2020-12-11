@@ -26,33 +26,49 @@
 
 #include <cassert>
 
-iAModalityTransfer::iAModalityTransfer(double range[2]):
-	m_statisticsComputed(false)
+iAModalityTransfer::iAModalityTransfer(double const range[2]):
+	m_ctf(vtkSmartPointer<vtkColorTransferFunction>::New()),
+	m_otf(vtkSmartPointer<vtkPiecewiseFunction>::New()),
+	m_statisticsComputed(false),
+	m_opacityRamp(true)
 {
-	m_ctf = defaultColorTF(range);
-	m_otf = defaultOpacityTF(range, true);
+	m_range[0] = range[0];
+	m_range[1] = range[1];
+	resetFunctions();
 }
 
 void iAModalityTransfer::computeStatistics(vtkSmartPointer<vtkImageData> img)
 {
-	if (m_statisticsComputed)	// already calculated
+	if (m_statisticsComputed)  // already calculated
+	{
 		return;
-	defaultColorTF(m_ctf, img->GetScalarRange()); // Set range of rgb, rgba or vector pixel type images to fully opaque
-	defaultOpacityTF(m_otf, img->GetScalarRange(), img->GetNumberOfScalarComponents() == 1);
+	}
+	// Set rgb, rgba or vector pixel type images to fully opaque
+	m_opacityRamp = img->GetNumberOfScalarComponents() == 1;
+	img->GetScalarRange(m_range);
+	resetFunctions();
 	m_statisticsComputed = true;
 }
 
-void iAModalityTransfer::reset()
+void iAModalityTransfer::resetHistogram()
 {
 	m_statisticsComputed = false;
 	m_histogramData.clear();
 }
 
+void iAModalityTransfer::resetFunctions()
+{
+	defaultColorTF(m_ctf, m_range);
+	defaultOpacityTF(m_otf, m_range, m_opacityRamp);
+}
+
 void iAModalityTransfer::computeHistogramData(vtkSmartPointer<vtkImageData> imgData, size_t binCount)
 {
-	if (imgData->GetNumberOfScalarComponents() != 1 || (m_histogramData && m_histogramData->numBin() == binCount))
+	if (imgData->GetNumberOfScalarComponents() != 1 || (m_histogramData && m_histogramData->valueCount() == binCount))
+	{
 		return;
-	m_histogramData = iAHistogramData::create(imgData, binCount, &m_imageInfo);
+	}
+	m_histogramData = iAHistogramData::create("Frequency", imgData, binCount, &m_imageInfo);
 }
 
 QSharedPointer<iAHistogramData> const iAModalityTransfer::histogramData() const

@@ -18,57 +18,57 @@
 * Contact: FH OÖ Forschungs & Entwicklungs GmbH, Campus Wels, CT-Gruppe,              *
 *          Stelzhamerstraße 23, 4600 Wels / Austria, Email: c.heinzl@fh-wels.at       *
 * ************************************************************************************/
-#include "iARedirectItkOutput.h"
+#pragma once
 
-#include "iALog.h"
+#include <itkOutputWindow.h>
 
-iARedirectItkOutput::Pointer iARedirectItkOutput::m_instance;
-
-iARedirectItkOutput::Pointer iARedirectItkOutput::New()
+class iALogRedirectITK : public itk::OutputWindow
 {
-	if (!m_instance)
+public:
+	typedef iALogRedirectITK                Self;
+	typedef itk::OutputWindow               Superclass;
+	typedef itk::SmartPointer< Self >       Pointer;
+	typedef itk::SmartPointer< const Self > ConstPointer;
+	itkTypeMacro(iALogRedirectITK, itk::OutputWindow);
+
+	static Pointer New()
 	{
-		iARedirectItkOutput::m_instance = new iARedirectItkOutput;
-		iARedirectItkOutput::m_instance->UnRegister();
+		if (!m_instance)
+		{
+			iALogRedirectITK::m_instance = new iALogRedirectITK;
+			iALogRedirectITK::m_instance->SetPromptUser(false);
+			iALogRedirectITK::m_instance->UnRegister();
+		}
+		return m_instance;
 	}
-	return m_instance;
-}
 
-void iARedirectItkOutput::DisplayDebugText(const char *t)
-{
-	LOG(lvlDebug, QString("ITK %1").arg(t));
-}
+	void DisplayDebugText(const char *t) override
+	{
+		LOG(lvlDebug, QString("ITK %1").arg(t));
+	}
 
-void iARedirectItkOutput::DisplayErrorText(const char *t)
-{
-	LOG(lvlError, QString("ITK %1").arg(t));
-}
+	void DisplayErrorText(const char* t) override
+	{
+		LOG(lvlError, QString("ITK %1").arg(t));
+	}
 
-void iARedirectItkOutput::DisplayGenericOutputText(const char *t)
-{
-	LOG(lvlInfo, QString("ITK %1").arg(t));
-}
+	void DisplayGenericOutputText(const char* t) override
+	{
+		LOG(lvlInfo, QString("ITK %1").arg(t));
+	}
 
-void iARedirectItkOutput::DisplayText(const char * t)
-{
-	LOG(lvlInfo, QString("ITK %1").arg(t));
-}
+	void DisplayText(const char* t) override
+	{
+		LOG(lvlInfo, QString("ITK %1").arg(t));
+	}
 
-void iARedirectItkOutput::DisplayWarningText(const char *t)
-{
-	LOG(lvlWarn, QString("ITK %1").arg(t));
-}
+	void DisplayWarningText(const char* t) override
+	{
+		LOG(lvlWarn, QString("ITK %1").arg(t));
+	}
 
-void iARedirectItkOutput::SetPromptUser(bool /*arg*/)
-{}
+private:
+	static Pointer m_instance;
+};
 
-bool iARedirectItkOutput::GetPromptUser() const
-{
-	return false;
-}
-
-void iARedirectItkOutput::PromptUserOn()
-{}
-
-void iARedirectItkOutput::PromptUserOff()
-{}
+iALogRedirectITK::Pointer iALogRedirectITK::m_instance;

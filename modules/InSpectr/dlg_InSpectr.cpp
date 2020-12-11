@@ -28,7 +28,6 @@
 #include "iAElementConcentrations.h"
 #include "iAElementConstants.h"
 #include "iAElementStatisticsInfo.h"
-#include "iAEnergySpectrumDiagramData.h"
 #include "iAEnergySpectrumWidget.h"
 #include "iAFunctionalBoxplotQtDrawer.h"
 #include "iAPeriodicTableListener.h"
@@ -39,16 +38,18 @@
 #include "iAXRFOverlay.h"
 
 #include <charts/iAChartFunctionTransfer.h>
+#include <charts/iAHistogramData.h>
 #include <charts/iAPlotTypes.h>
-#include <charts/iAMappingDiagramData.h>
 #include <iAChannelData.h>
 #include <iAChannelSlicerData.h>
 #include <iAColorTheme.h>
 #include <iAConnector.h>
 #include <iAFunctionalBoxplot.h>
+#include <iAJobListView.h>
 #include <iALog.h>
 #include <iAMathUtility.h>
 #include <iARenderer.h>
+#include <iARunAsync.h>
 #include <iASlicer.h>
 #include <iAVtkWidget.h>
 #include <io/iAFileUtils.h>
@@ -179,9 +180,10 @@ void dlg_InSpectr::init(double minEnergy, double maxEnergy, bool haveEnergyLevel
 	m_cTF->Build();
 	m_xrfData->SetEnergyRange(minEnergy, maxEnergy);
 	m_accumulatedXRF = QSharedPointer<iAAccumulatedXRFData>(new iAAccumulatedXRFData(m_xrfData, minEnergy, maxEnergy));
-	m_voxelEnergy = QSharedPointer<iAEnergySpectrumDiagramData>(new iAEnergySpectrumDiagramData(m_xrfData.data(), m_accumulatedXRF.data()));
+	m_voxelEnergy = iAHistogramData::create("Voxel Energy", m_accumulatedXRF->valueType(), m_accumulatedXRF->xBounds()[0],
+		m_accumulatedXRF->xBounds()[1], m_xrfData->size());
 	m_voxelSpectrumDrawer = QSharedPointer<iAStepFunctionPlot>(new iAStepFunctionPlot(m_voxelEnergy, QColor(150, 0, 0)));
-	m_spectrumDiagram = new iAEnergySpectrumWidget(this, dynamic_cast<MdiChild*>(parent()), m_accumulatedXRF, m_oTF, m_cTF, this,
+	m_spectrumDiagram = new iAEnergySpectrumWidget(this, m_accumulatedXRF, m_oTF, m_cTF, this,
 		haveEnergyLevels ? "Energy (keV)" : "Energy (bins)");
 	m_spectrumDiagram->setObjectName(QString::fromUtf8("EnergySpectrum"));
 
@@ -353,9 +355,43 @@ void dlg_InSpectr::updateComposition(QVector<double> const & concentration)
 	m_pieChart->update();
 }
 
+namespace
+{
+int findCharEnergy(QVector<iACharacteristicEnergy> const& energies, QString const& symbol)
+{
+	for (int i = 0; i < energies.size(); ++i)
+	{
+		if (energies[i].symbol == symbol)
+		{
+			return i;
+		}
+	}
+	return -1;
+}
+
+void updateSpectrumData(QSharedPointer<iAHistogramData> histData, QSharedPointer<iAXRFData> xrfData, int x, int y, int z)
+{
+	int extent[6];
+	xrfData->GetExtent(extent);
+	if (x < extent[0] || x > extent[1] || y < extent[2] || y > extent[3] || z < extent[4] || z > extent[5])
+	{
+		histData->clear();
+		return;
+	}
+	iAXRFData::Iterator it = xrfData->begin();
+	int idx = 0;
+	while (it != xrfData->end())
+	{
+		histData->setBin(idx, static_cast<iAPlotData::DataType>((*it)->GetScalarComponentAsFloat(x, y, z, 0)));
+		++it;
+		++idx;
+	}
+}
+}
+
 void dlg_InSpectr::UpdateVoxelSpectrum(int x, int y, int z)
 {
-	m_voxelEnergy->updateEnergyFunction(x, y, z);
+	updateSpectrumData(m_voxelEnergy, m_xrfData, x, y, z);
 	m_spectrumDiagram->update();
 }
 
@@ -409,8 +445,10 @@ void dlg_InSpectr::initSpectraLinesDrawer()
 		{
 			for (int z=extent[4]; z<=extent[5]; z += step)
 			{
-				QSharedPointer<iAEnergySpectrumDiagramData> dataset(new iAEnergySpectrumDiagramData(m_xrfData.data(), m_accumulatedXRF.data()));
-				dataset->updateEnergyFunction(x, y, z);
+				auto dataset = iAHistogramData::create(QString("Spectrum Line %1,%2,%3").arg(x).arg(y).arg(z),
+					m_accumulatedXRF->valueType(),
+					m_accumulatedXRF->xBounds()[0],	m_accumulatedXRF->xBounds()[1],	m_xrfData->size());
+				updateSpectrumData(dataset, m_xrfData, x, y, z);
 
 				bool isSelected = m_activeFilter.empty() ||
 					m_xrfData->CheckFilters(x, y, z, m_activeFilter, static_cast<iAFilterMode>(comB_spectrumSelectionMode->currentIndex()));
@@ -551,20 +589,6 @@ void dlg_InSpectr::ReferenceSpectrumDoubleClicked( const QModelIndex &index )
 	}
 }
 
-namespace {
-	int findCharEnergy(QVector<iACharacteristicEnergy> const & energies, QString const & symbol)
-	{
-		for (int i=0; i<energies.size(); ++i)
-		{
-			if (energies[i].symbol == symbol)
-			{
-				return i;
-			}
-		}
-		return -1;
-	}
-}
-
 void dlg_InSpectr::ReferenceSpectrumItemChanged( QStandardItem * item )
 {
 	QModelIndex index = item->index();
@@ -637,6 +661,8 @@ void dlg_InSpectr::decomposeElements()
 		m_xrfData,
 		m_accumulatedXRF));
 	m_decomposeSelectedElements.clear();
+	iAJobListView::get()->addJob("Computing elemental decomposition",
+		m_decompositionCalculator->progress(), m_decompositionCalculator.data());
 	for (size_t i=0; i<m_refSpectraLib->spectra.size(); ++i)
 	{
 		if (m_refSpectraLib->getItemModel()->item(i)->checkState() == Qt::Checked)
@@ -654,7 +680,6 @@ void dlg_InSpectr::decomposeElements()
 	pb_decompose->setText("Stop");
 	connect(m_decompositionCalculator.data(), &iADecompositionCalculator::success, this, &dlg_InSpectr::decompositionSuccess);
 	connect(m_decompositionCalculator.data(), &iADecompositionCalculator::finished, this, &dlg_InSpectr::decompositionFinished);
-	connect(m_decompositionCalculator.data(), &iADecompositionCalculator::progress, dynamic_cast<MdiChild*>(parent()), &MdiChild::updateProgressBar);
 	m_decompositionCalculator->start();
 	LOG(lvlInfo, tr("Decomposition calculation started..."));
 }
@@ -677,7 +702,6 @@ void dlg_InSpectr::decompositionAvailable()
 void dlg_InSpectr::decompositionFinished()
 {
 	m_decompositionCalculator.clear();
-	(dynamic_cast<MdiChild*>(parent()))->hideProgressBar();
 	pb_decompose->setText("Calculate");
 }
 
@@ -1077,6 +1101,15 @@ void dlg_InSpectr::showRefLineChanged( int show )
 	m_spectrumDiagram->update();
 }
 
+const int Dimensions = 3;  //2;
+typedef float ScalarType;
+typedef itk::Image<ScalarType, 3> ImageType3D;
+typedef itk::Image<ScalarType, Dimensions> ImageType;
+typedef itk::MutualInformationImageToImageMetric<ImageType, ImageType> MutualInformationMetricType;
+typedef MutualInformationMetricType MetricType;
+typedef itk::LinearInterpolateImageFunction<ImageType, double> InterpolatorType;
+typedef itk::IdentityTransform<double, Dimensions> TransformType;
+
 void dlg_InSpectr::computeSimilarityMap()
 {
 
@@ -1090,145 +1123,144 @@ void dlg_InSpectr::computeSimilarityMap()
 	{
 		return;
 	}
-	//init resulting similarity map
-	int numEBins = (int)m_xrfData->size();
-	vtkSmartPointer<vtkImageData> similarityImageData = vtkSmartPointer<vtkImageData>::New();
-	similarityImageData->SetDimensions(numEBins, numEBins, 1);
-	similarityImageData->AllocateScalars(VTK_DOUBLE, 1);
-
-	double * similarityData = static_cast <double*> ( similarityImageData->GetScalarPointer() );
-
-	//initialization
-	const int Dimensions = 3;//2;
-	typedef float ScalarType;
-	typedef itk::Image < ScalarType, 3 >  ImageType3D;
-	typedef itk::Image < ScalarType, Dimensions >  ImageType;
-	typedef itk::MutualInformationImageToImageMetric < ImageType, ImageType >  MutualInformationMetricType;
-	typedef MutualInformationMetricType MetricType;
-	typedef itk::LinearInterpolateImageFunction < ImageType, double > InterpolatorType;
-	typedef itk::IdentityTransform<double, Dimensions>  TransformType;
-
-	iAConnector * connectors = new iAConnector[numEBins];
-	ImageType3D ** images = new ImageType3D*[numEBins];
-	for (int i=0; i<numEBins; ++i)
+	iAProgress* progress = new iAProgress();
+	auto job = runAsync([this, progress, fileName]
 	{
-		connectors[i].setImage( ( *m_xrfData->GetDataPtr() )[i] );
-		connectors[i].modified();
-		images[i] = dynamic_cast <ImageType3D*> ( connectors[i].itkImage() );
-	}
+		//init resulting similarity map
+		int numEBins = (int)m_xrfData->size();
+		vtkSmartPointer<vtkImageData> similarityImageData = vtkSmartPointer<vtkImageData>::New();
+		similarityImageData->SetDimensions(numEBins, numEBins, 1);
+		similarityImageData->AllocateScalars(VTK_DOUBLE, 1);
 
-// 	//extract slice from 3D
-// 	ExtractImageType::Pointer extractSliceFilter1, extractSliceFilter2;
-// 	ImageType3D::RegionType desiredRegion;
-// 	try
-// 	{
-// 		ImageType3D::IndexType desiredStart;
-// 		desiredStart.Fill(0);
-// 		ImageType3D::SizeType desiredSize;
-// 		desiredSize[0] = ( *m_xrfData->GetDataPtr() )[0]->GetDimensions()[0];
-// 		desiredSize[1] = ( *m_xrfData->GetDataPtr() )[0]->GetDimensions()[1];
-// 		desiredSize[2] = 0;
-// 		desiredRegion = ImageType3D::RegionType(desiredStart, desiredSize);
-//
-// 		extractSliceFilter1 = ExtractImageType::New();
-// 		extractSliceFilter2 = ExtractImageType::New();
-// 		extractSliceFilter1->SetDirectionCollapseToIdentity();
-// 		extractSliceFilter2->SetDirectionCollapseToIdentity();
-// 	}
-// 	catch (itk::ExceptionObject & excp)
-// 	{
-// 		(dynamic_cast<MdiChild*>(parent()))->addMsg("Exception in computeSimilarityMap(): " + QString(excp.GetDescription()));
-// 		delete [] connectors;
-// 		delete [] images;
-// 		return;
-// 	}
+		double* similarityData = static_cast<double*>(similarityImageData->GetScalarPointer());
 
+		//initialization
 
-	const unsigned int numSamples = 2500;
-	MdiChild * mdiChild = dynamic_cast <MdiChild*> ( parent() );
-	double numIterations = numEBins * numEBins * 0.5;
-	double curIteration = 0.0; int percentage = 0;
-	mdiChild->addStatusMsg("Computing Similarity Map");
-	mdiChild->initProgressBar();
-	QCoreApplication::processEvents();
-	int errorCount = 0;
-	QStringList errDescr;
-
-	//iteration
-	//#pragma omp parallel for shared(similarityData)
-	for (int i=0; i<numEBins; ++i)
-	{
-		try
+		iAConnector* connectors = new iAConnector[numEBins];
+		ImageType3D** images = new ImageType3D*[numEBins];
+		for (int i = 0; i < numEBins; ++i)
 		{
-			MetricType::Pointer metric = MetricType::New();
-			InterpolatorType::Pointer interpolator = InterpolatorType::New();
-			TransformType::Pointer transform = TransformType::New();
-			TransformType::ParametersType params(transform->GetNumberOfParameters());
+			connectors[i].setImage((*m_xrfData->GetDataPtr())[i]);
+			connectors[i].modified();
+			images[i] = dynamic_cast<ImageType3D*>(connectors[i].itkImage());
+		}
 
-			similarityData[i + i*numEBins] = 1.0f;
-			params.Fill(0.0);
-			//extractSliceFilter1->SetInput( images[i] ); extractSliceFilter1->SetExtractionRegion(desiredRegion); extractSliceFilter1->Update();
-			//interpolator->SetInputImage( extractSliceFilter1->GetOutput() );
-			interpolator->SetInputImage( images[i] );
-			interpolator->Modified();
+		// 	//extract slice from 3D
+		// 	ExtractImageType::Pointer extractSliceFilter1, extractSliceFilter2;
+		// 	ImageType3D::RegionType desiredRegion;
+		// 	try
+		// 	{
+		// 		ImageType3D::IndexType desiredStart;
+		// 		desiredStart.Fill(0);
+		// 		ImageType3D::SizeType desiredSize;
+		// 		desiredSize[0] = ( *m_xrfData->GetDataPtr() )[0]->GetDimensions()[0];
+		// 		desiredSize[1] = ( *m_xrfData->GetDataPtr() )[0]->GetDimensions()[1];
+		// 		desiredSize[2] = 0;
+		// 		desiredRegion = ImageType3D::RegionType(desiredStart, desiredSize);
+		//
+		// 		extractSliceFilter1 = ExtractImageType::New();
+		// 		extractSliceFilter2 = ExtractImageType::New();
+		// 		extractSliceFilter1->SetDirectionCollapseToIdentity();
+		// 		extractSliceFilter2->SetDirectionCollapseToIdentity();
+		// 	}
+		// 	catch (itk::ExceptionObject & excp)
+		// 	{
+		// 		(dynamic_cast<MdiChild*>(parent()))->addMsg("Exception in computeSimilarityMap(): " + QString(excp.GetDescription()));
+		// 		delete [] connectors;
+		// 		delete [] images;
+		// 		return;
+		// 	}
 
-			for (int j=0; j<i; ++j)
+		const unsigned int numSamples = 2500;
+		MdiChild* mdiChild = dynamic_cast<MdiChild*>(parent());
+		double numIterations = numEBins * numEBins * 0.5;
+		double curIteration = 0.0;
+		int percentage = 0;
+		mdiChild->addStatusMsg("Computing Similarity Map");
+
+		int errorCount = 0;
+		QStringList errDescr;
+
+		//iteration
+		//#pragma omp parallel for shared(similarityData)
+		for (int i = 0; i < numEBins; ++i)
+		{
+			try
 			{
-				//extractSliceFilter2->SetInput( images[j] ); extractSliceFilter2->SetExtractionRegion(desiredRegion); extractSliceFilter2->Update();
-				metric->SetNumberOfSpatialSamples(numSamples);
-				metric->SetFixedImage ( images[i] );//metric->SetFixedImage ( extractSliceFilter1->GetOutput() );
-				metric->SetMovingImage( images[j] );//metric->SetMovingImage ( extractSliceFilter2->GetOutput() );
-				metric->SetFixedImageRegion( images[i]->GetLargestPossibleRegion() );//metric->SetFixedImageRegion( extractSliceFilter1->GetOutput()->GetLargestPossibleRegion() );
-				metric->SetTransform(transform);
-				metric->SetInterpolator(interpolator);
-				metric->Initialize();
-				double metricValue = metric->GetValue(params);
-				similarityData[i + j*numEBins] = similarityData[j + i*numEBins] = metricValue;
-				curIteration++; int newPercentage = 100 * curIteration / numIterations;
-				if(newPercentage != percentage)
+				MetricType::Pointer metric = MetricType::New();
+				InterpolatorType::Pointer interpolator = InterpolatorType::New();
+				TransformType::Pointer transform = TransformType::New();
+				TransformType::ParametersType params(transform->GetNumberOfParameters());
+
+				similarityData[i + i * numEBins] = 1.0f;
+				params.Fill(0.0);
+				//extractSliceFilter1->SetInput( images[i] ); extractSliceFilter1->SetExtractionRegion(desiredRegion); extractSliceFilter1->Update();
+				//interpolator->SetInputImage( extractSliceFilter1->GetOutput() );
+				interpolator->SetInputImage(images[i]);
+				interpolator->Modified();
+
+				for (int j = 0; j < i; ++j)
 				{
-					percentage = newPercentage;
-					mdiChild->updateProgressBar( percentage );
-					QCoreApplication::processEvents();
+					//extractSliceFilter2->SetInput( images[j] ); extractSliceFilter2->SetExtractionRegion(desiredRegion); extractSliceFilter2->Update();
+					metric->SetNumberOfSpatialSamples(numSamples);
+					metric->SetFixedImage(images[i]);   //metric->SetFixedImage ( extractSliceFilter1->GetOutput() );
+					metric->SetMovingImage(images[j]);  //metric->SetMovingImage ( extractSliceFilter2->GetOutput() );
+					metric->SetFixedImageRegion(
+						images[i]
+							->GetLargestPossibleRegion());  //metric->SetFixedImageRegion( extractSliceFilter1->GetOutput()->GetLargestPossibleRegion() );
+					metric->SetTransform(transform);
+					metric->SetInterpolator(interpolator);
+					metric->Initialize();
+					double metricValue = metric->GetValue(params);
+					similarityData[i + j * numEBins] = similarityData[j + i * numEBins] = metricValue;
+					curIteration++;
+					int newPercentage = 100 * curIteration / numIterations;
+					if (newPercentage != percentage)
+					{
+						percentage = newPercentage;
+						progress->emitProgress(percentage);
+					}
 				}
 			}
+			catch (itk::ExceptionObject& excp)
+			{
+				errorCount++;
+				errDescr.append(QString(excp.GetDescription()));
+			}
 		}
-		catch (itk::ExceptionObject & excp)
+		try
 		{
-			errorCount++;
-			errDescr.append( QString(excp.GetDescription()) );
+			vtkSmartPointer<vtkMetaImageWriter> writer = vtkSmartPointer<vtkMetaImageWriter>::New();
+			writer->SetCompression(false);
+			writer->SetInputData(similarityImageData);
+			writer->SetFileName(getLocalEncodingFileName(fileName).c_str());
+			writer->Write();
+			writer->Update();
 		}
-	}
-	try
-	{
-		vtkSmartPointer<vtkMetaImageWriter> writer = vtkSmartPointer<vtkMetaImageWriter>::New();
-		writer->SetCompression(false);
-		writer->SetInputData(similarityImageData);
-		writer->SetFileName( getLocalEncodingFileName(fileName).c_str() );
-		writer->Write();
-		writer->Update();
-	}
-	catch (itk::ExceptionObject & excp)
-	{
-		LOG(lvlError, "Exception in computeSimilarityMap(): " + QString(excp.GetDescription()) );
-	}
+		catch (itk::ExceptionObject& excp)
+		{
+			LOG(lvlError, "Exception in computeSimilarityMap(): " + QString(excp.GetDescription()));
+		}
 
-	delete [] connectors;
-	delete [] images;
+		delete[] connectors;
+		delete[] images;
 
-	mdiChild->hideProgressBar();
-	QCoreApplication::processEvents();
-
-	for (int i = 0; i < errorCount; ++i)
+		for (int i = 0; i < errorCount; ++i)
+		{
+			LOG(lvlError, "Exception in computeSimilarityMap(): " + errDescr[i]);
+		}
+	},
+	[progress]()
 	{
-		LOG(lvlError, "Exception in computeSimilarityMap(): " + errDescr[i]);
-	}
+			delete progress;
+	});
+	iAJobListView::get()->addJob("Compute Similarity Map", progress, job);
 }
 
 void dlg_InSpectr::energyBinsSelected( int binX, int binY )
 {
-	m_selectedBinXDrawer->setPosition( binX );
-	m_selectedBinYDrawer->setPosition( binY );
+	m_selectedBinXDrawer->setSelectedBin( binX );
+	m_selectedBinYDrawer->setSelectedBin( binY );
 	m_spectrumDiagram->update();
 }
 
@@ -1317,11 +1349,11 @@ void dlg_InSpectr::AddReferenceSpectrum(int modelIdx)
 		RemoveReferenceSpectrum(modelIdx);
 	}
 	QVector<float> const & energies = m_refSpectraLib->spectra[modelIdx].GetEnergyData();
-	QSharedPointer<iAMappingDiagramData> plotData(new iAMappingDiagramData(
+	auto plotData = createMappedHistogramData(QString("Spectrum %1").arg(m_refSpectraLib->spectra[modelIdx].name()),
 		&m_refSpectraLib->spectra[modelIdx].GetCountsData()[0],
 		energies.size(), energies[0], energies[energies.size()-1],
 		m_xrfData->size(), m_xrfData->GetMinEnergy(), m_xrfData->GetMaxEnergy(),
-		m_accumulatedXRF->yBounds()[1]));
+		m_accumulatedXRF->yBounds()[1]);
 	QColor color = m_refSpectraLib->getElementColor(modelIdx);
 	QSharedPointer<iAStepFunctionPlot> drawable(new iAStepFunctionPlot(plotData, color));
 	m_refSpectraDrawers.insert(modelIdx, drawable);

@@ -30,7 +30,7 @@
 #include <QSharedPointer>
 
 
-class iARangeSliderDiagramData;
+class iAHistogramData;
 class iABarGraphPlot;
 class iARangeSliderDiagramWidget;
 
@@ -65,7 +65,7 @@ signals:
 	void selectionModified( vtkIdTypeArray * );
 
 private:
-	QSharedPointer<iARangeSliderDiagramData> m_rangeSliderData;
+	QSharedPointer<iAHistogramData> m_rangeSliderData;
 	QSharedPointer<iABarGraphPlot> m_rangeSliderDiagramDrawer;
 	QList<double> m_data;
 	QList<vtkSmartPointer<vtkPiecewiseFunction> > m_oTFList;

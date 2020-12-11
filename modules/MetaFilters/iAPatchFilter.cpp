@@ -270,7 +270,7 @@ namespace
 						}
 					}
 
-					patchFilter->progress()->emitProgress(static_cast<int>(100.0 * curOp / totalOps));
+					patchFilter->progress()->emitProgress(curOp * 100.0 / totalOps);
 					++curOp;
 					++outIdx[2];
 				}

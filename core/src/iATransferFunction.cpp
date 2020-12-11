@@ -20,6 +20,8 @@
 * ************************************************************************************/
 #include "iATransferFunction.h"
 
+#include <iALog.h>
+
 #include <vtkColorTransferFunction.h>
 #include <vtkImageData.h>
 #include <vtkPiecewiseFunction.h>
@@ -43,11 +45,9 @@ vtkPiecewiseFunction * iASimpleTransferFunction::opacityTF()
 	return m_otf;
 }
 
-vtkSmartPointer<vtkColorTransferFunction> defaultColorTF(double const range[2])
+void iASimpleTransferFunction::resetFunctions()
 {
-	auto cTF = vtkSmartPointer<vtkColorTransferFunction>::New();
-	defaultColorTF(cTF, range);
-	return cTF;
+	LOG(lvlWarn, "iASimpleTransferFunction::resetFunctions called!");
 }
 
 void defaultColorTF(vtkSmartPointer<vtkColorTransferFunction> cTF, double const range[2])
@@ -58,19 +58,23 @@ void defaultColorTF(vtkSmartPointer<vtkColorTransferFunction> cTF, double const 
 	cTF->Build();
 }
 
-vtkSmartPointer<vtkPiecewiseFunction> defaultOpacityTF(double const range[2], bool opaqueRamp)
-{
-	auto pWF = vtkSmartPointer<vtkPiecewiseFunction>::New();
-	defaultOpacityTF(pWF, range, opaqueRamp);
-	return pWF;
-}
-
-void defaultOpacityTF(vtkSmartPointer<vtkPiecewiseFunction> pWF, double const range[2], bool opaqueRamp)
+void defaultOpacityTF(vtkSmartPointer<vtkPiecewiseFunction> pWF, double const range[2], bool opacityRamp)
 {
 	pWF->RemoveAllPoints();
-	if (opaqueRamp)
-		pWF->AddPoint ( range[0], 0.0 );
-	else
-		pWF->AddPoint( range[0], 1.0 );
+	pWF->AddPoint(range[0], opacityRamp ? 0.0 : 1.0);
 	pWF->AddPoint(range[1], 1.0);
+}
+
+vtkSmartPointer<vtkColorTransferFunction> defaultColorTF(double const range[2])
+{
+	auto cTF = vtkSmartPointer<vtkColorTransferFunction>::New();
+	defaultColorTF(cTF, range);
+	return cTF;
+}
+
+vtkSmartPointer<vtkPiecewiseFunction> defaultOpacityTF(double const range[2], bool opacityRamp)
+{
+	auto pWF = vtkSmartPointer<vtkPiecewiseFunction>::New();
+	defaultOpacityTF(pWF, range, opacityRamp);
+	return pWF;
 }

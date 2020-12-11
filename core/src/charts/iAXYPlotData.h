@@ -20,30 +20,35 @@
 * ************************************************************************************/
 #pragma once
 
-#include "ui_progress.h"
+#include "open_iA_Core_export.h"
 
-#include "iAAbortListener.h"
-#include "iADurationEstimator.h"
+#include "iAPlotData.h"
 
-#include <qthelper/iAQTtoUIConnector.h>
+#include <QSharedPointer>
 
-typedef iAQTtoUIConnector<QDockWidget, Ui_progress> dlg_progressUI;
+#include <utility> // for pair
+#include <vector>
 
-//! Class to display progress of a task running in the background
-//! ToDo: Merge with iAJobListView in FIAKER!
-class dlg_progress : public dlg_progressUI
+class open_iA_Core_API iAXYPlotData : public iAPlotData
 {
-	Q_OBJECT
 public:
-	dlg_progress(QWidget *parentWidget,
-		QSharedPointer<iADurationEstimator const> estimator,
-		QSharedPointer<iAAbortListener> abort,
-		QString const & caption);
-public slots:
-	void setProgress(int progress);
-	void setStatus(QString const & status);
-	void abort();
+	//! @{
+	//! overriding methods from iAPlotData
+	DataType xValue(size_t idx) const override;
+	DataType yValue(size_t idx) const override;
+	DataType const* xBounds() const override;
+	DataType const* yBounds() const override;
+	size_t valueCount() const override;
+	size_t nearestIdx(DataType dataX) const override;
+	QString toolTipText(DataType dataX) const override;
+
+	//! Adds a new x/y pair. Note that entries need to be added in order of their x component
+	void addValue(DataType x, DataType y);
+	//! Create an empty data object
+	static QSharedPointer<iAXYPlotData> create(QString const& name, iAValueType type, size_t reservedSize);
+
 private:
-	QSharedPointer<iADurationEstimator const> m_durationEstimator;
-	QSharedPointer<iAAbortListener> m_abortListener;
+	iAXYPlotData(QString const& name, iAValueType type, size_t reservedSize);
+	std::vector<std::pair<DataType, DataType>> m_values;
+	DataType m_xBounds[2], m_yBounds[2];
 };

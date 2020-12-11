@@ -26,6 +26,7 @@
 
 #include <charts/iAPlotTypes.h>
 #include <iAMapper.h>
+#include <iATransferFunction.h>
 
 #include <QFontMetrics>
 #include <QMap>
@@ -47,18 +48,19 @@ const char * EnergyLineNames[9] =
 	"Mα1"
 };
 
-iAEnergySpectrumWidget::iAEnergySpectrumWidget(QWidget *parent, MdiChild *mdiChild,
+iAEnergySpectrumWidget::iAEnergySpectrumWidget(QWidget *parent,
 		QSharedPointer<iAAccumulatedXRFData> data,
 		vtkPiecewiseFunction* oTF,
 		vtkColorTransferFunction* cTF,
 		iASpectrumFilterListener* filterListener,
 		QString const & xLabel)
-	: iAChartWithFunctionsWidget(parent, mdiChild, xLabel, "Count"),
+	: iAChartWithFunctionsWidget(parent, xLabel, "Count"),
 	m_data(data),
 	selectionRubberBand(new QRubberBand(QRubberBand::Rectangle, this)),
-	filterListener(filterListener)
+	filterListener(filterListener),
+	m_tf(new iASimpleTransferFunction(cTF, oTF))
 {
-	setTransferFunctions(cTF, oTF);
+	setTransferFunction(m_tf.data());
 	addPlot(QSharedPointer<iAPlot>(new iAStepFunctionPlot(m_data, QColor(70, 70, 70, 255))));
 	selectionRubberBand->hide();
 	setAllowTrfReset(false);
@@ -107,6 +109,7 @@ void iAEnergySpectrumWidget::mouseReleaseEvent(QMouseEvent *event)
 	iAChartWithFunctionsWidget::mouseReleaseEvent(&eventCopy);
 	if (selectionRubberBand->isVisible())
 	{
+		// TODO: avoid duplication with iAChartWidget!
 		selectionRubberBand->hide();
 		QRect diagramRect;
 		QRect selectionRect(selectionRubberBand->geometry());     // height-y because we are drawing reversed from actual y direction

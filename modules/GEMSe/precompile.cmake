@@ -4,7 +4,6 @@ SET (GEMSe_PRECOMPILE_INCLUDES <cassert>
 <dlg_GEMSe.h>
 <dlg_labels.h>
 <dlg_modalities.h>
-<dlg_progress.h>
 <dlg_samplings.h>
 <iAAttitudes.h>
 <iAAttributeDescriptor.h>

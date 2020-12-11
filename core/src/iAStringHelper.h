@@ -172,7 +172,7 @@ open_iA_Core_API QString padOrTruncate(QString const & str, int size);
 open_iA_Core_API QString stripHTML(QString const & html);
 
 //! returns the value converted to string, with units (K, M, G, T, P) applied for every 10³ factor over 1000
-open_iA_Core_API QString dblToStringWithUnits(double value);
+open_iA_Core_API QString dblToStringWithUnits(double value, double switchFactor = 1000);
 
 //! join an iterable collection of numeric elements to a string
 //!
@@ -208,3 +208,19 @@ open_iA_Core_API QString greatestCommonPrefix(QString const & str1, QString cons
 
 open_iA_Core_API int greatestCommonSuffixLength(QString const & str1, QString const & str2);
 open_iA_Core_API QString greatestCommonSuffix(QString const & str1, QString const & str2);
+
+//! Get the number of digits required for the given number (before the comma).
+open_iA_Core_API int requiredDigits(double value);
+
+//! Get the number of digits required after the comma,
+//! given the difference to other values it should be distinguishable from.
+//! TODO: introduce "number of relevant digits" parameter / automatic determination?
+//!      e.g. 9.125 -> 3, 9.98 -> 2, 9.5 -> 1; but what about e.g. 9.995 (->close enough to 10 to discard after comma?)
+//! Examples:
+//! resolvableDiff  result
+//! >= 10           0
+//! 9.9999 - 1.0    0-1 (0 if resolvableDiff is exactly 1,6,4,... depending on whether resolvableDiff is 1.2,6.323, or )
+//! 0.9999 - 0.1    1-2 (depending on whether resolvableDiff is 0.15,0.22,0.9333,... or exactly 0.1,0.4,...)
+//! 0.0999 - 0.01   2-3
+//! 0.0099 - 0.001  3-4
+open_iA_Core_API int digitsAfterComma(double resolvableDiff);

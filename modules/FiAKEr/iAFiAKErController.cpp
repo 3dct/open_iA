@@ -34,7 +34,6 @@
 #include "iACsvConfig.h"
 #include "iACsvVectorTableCreator.h"
 #include "iAFeatureScoutModuleInterface.h"
-#include "iAVectorPlotData.h"
 
 // Core:
 #include <charts/iAChartWidget.h>
@@ -266,7 +265,7 @@ void iAFiAKErController::start(QString const & path, iACsvConfig const & config,
 	auto resultsLoader = new iAFiberResultsLoader(m_data, path, m_config, stepShift);
 	connect(resultsLoader, &iAFiberResultsLoader::success, this, &iAFiAKErController::resultsLoaded);
 	connect(resultsLoader, &iAFiberResultsLoader::failed,  this, &iAFiAKErController::resultsLoadFailed);
-	m_mdiChild->addJob("Loading results...", resultsLoader->progress(), resultsLoader);
+	iAJobListView::get()->addJob("Loading results...", resultsLoader->progress(), resultsLoader);
 	resultsLoader->start();
 }
 
@@ -1585,7 +1584,7 @@ void iAFiAKErController::changeDistributionSource(int index)
 			fiberData[fiberID] = matchQualityVisActive() ? m_data->avgRefFiberMatch[fiberID]
 				: d.table->GetValue(fiberID, index).ToDouble();
 		}
-		auto histogramData = iAHistogramData::create(fiberData, m_histogramBins, iAValueType::Continuous, range[0], range[1]);
+		auto histogramData = iAHistogramData::create("Frequency", iAValueType::Continuous, fiberData, m_histogramBins, range[0], range[1]);
 		QSharedPointer<iAPlot> histogramPlot =
 			(m_settingsView->cmbboxDistributionPlotType->currentIndex() == 0) ?
 			QSharedPointer<iAPlot>(new iABarGraphPlot(histogramData, getResultColor(resultID)))
@@ -1901,12 +1900,12 @@ void iAFiAKErController::toggleOptimStepChart(size_t chartID, bool visible)
 			}
 			for (size_t fiberID = 0; fiberID < d.fiberCount; ++fiberID)
 			{
-				QSharedPointer<iAVectorPlotData> plotData;
+				QVector<double>* histoData(nullptr);
 				if (chartID < m_chartCount - 1)
 				{
 					if (chartID < static_cast<size_t>(d.refDiffFiber[fiberID].diff.size()))
 					{
-						plotData = QSharedPointer<iAVectorPlotData>(new iAVectorPlotData(d.refDiffFiber[fiberID].diff[chartID].step));
+						histoData = &d.refDiffFiber[fiberID].diff[chartID].step;
 					}
 					else
 					{
@@ -1916,9 +1915,9 @@ void iAFiAKErController::toggleOptimStepChart(size_t chartID, bool visible)
 				}
 				else
 				{
-					plotData = QSharedPointer<iAVectorPlotData>(new iAVectorPlotData(d.projectionError[fiberID]));
+					histoData = &d.projectionError[fiberID];
 				}
-				plotData->setXDataType(iAValueType::Discrete);
+				auto plotData = iAHistogramData::create(diffName(chartID), iAValueType::Discrete, 0, histoData->size(), *histoData);
 				m_optimStepChart[chartID]->addPlot(QSharedPointer<iALinePlot>(new iALinePlot(plotData, getResultColor(resultID))));
 			}
 		}
@@ -2608,8 +2607,8 @@ void iAFiAKErController::updateFiberContext()
 				double radius = diameter / 2;
 				if (!m_mergeContextBoxes)
 				{
-					minCoord = std::numeric_limits<double>::max();
-					maxCoord = std::numeric_limits<double>::lowest();
+					minCoord.fill(std::numeric_limits<double>::max());
+					maxCoord.fill(std::numeric_limits<double>::lowest());
 				}
 				for (int i = 0; i < 3; ++i)
 				{
@@ -2746,7 +2745,7 @@ void iAFiAKErController::setReference(size_t referenceID, std::vector<std::pair<
 		m_refDistCompute->setMeasuresToCompute(measures, optimizationMeasure, bestMeasure);
 	}
 	connect(m_refDistCompute, &QThread::finished, this, &iAFiAKErController::refDistAvailable);
-	m_mdiChild->addJob("Computing Reference Similarities", m_refDistCompute->progress(), m_refDistCompute);
+	iAJobListView::get()->addJob("Computing Reference Similarities", m_refDistCompute->progress(), m_refDistCompute);
 	m_refDistCompute->start();
 }
 
@@ -3406,31 +3405,6 @@ QString iAFiAKErController::resultName(size_t resultID) const
 {
 	return QFileInfo(m_data->result[resultID].fileName).baseName();
 }
-
-/*
-void iAFiAKErController::doSaveProject()
-{
-	// somehow move that part out into the core?
-	// { e.g. into iASavableProject ?
-	QString fileName = QFileDialog::getSaveFileName(
-	QApplication::activeWindow(),
-		tr("Select Output File"),
-		m_data->folder,
-		iAIOProvider::NewProjectFileTypeFilter);
-	if (fileName.isEmpty())
-	{
-		return;
-	}
-	QSettings projectFile(fileName, QSettings::IniFormat);
-	projectFile.setIniCodec("UTF-8");
-	projectFile.beginGroup(FIAKERProjectID);
-	saveProject(projectFile, fileName);
-	projectFile.endGroup();
-	projectFile.sync(); // make sure file is written here...
-	m_mainWnd->setCurrentFile(fileName); // ...because otherwise it won't get added to recent list here
-	addInteraction(QString("Saved as Project '%1'.").arg(fileName));
-}
-*/
 
 void iAFiAKErController::saveProject(QSettings & projectFile, QString  const & fileName)
 {

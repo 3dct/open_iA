@@ -20,42 +20,18 @@
 * ************************************************************************************/
 #pragma once
 
-#include <charts/iAPlotData.h>
+#include "open_iA_Core_export.h"
 
-#include <QSharedPointer>
-
-class iARangeSliderDiagramData : public iAPlotData
+//! Interface for operations providing elapsed time and estimated remaining duration.
+class open_iA_Core_API iADurationEstimator
 {
 public:
-	iARangeSliderDiagramData( QList<double> m_rangeSliderData, double min, double max );
-	~iARangeSliderDiagramData();
-	void updateRangeSliderFunction();
-
-	DataType const * rawData() const override;
-	size_t numBin() const override;
-
-	double spacing() const override
-	{
-		if ( numBin() <= 1 )
-			return 0.0;
-
-		return ( m_xBounds[1] - m_xBounds[0] ) / (numBin() - 1.0);
-	}
-
-	double const * xBounds() const override
-	{
-		return m_xBounds;
-	}
-
-	DataType const * yBounds() const override
-	{
-		return m_yBounds;
-	}
-
-private:
-	DataType* m_rangeSliderFunction;
-	QList<double> m_rangeSliderData;
-
-	double m_xBounds[2];
-	DataType m_yBounds[2];
+	virtual ~iADurationEstimator();
+	//! Get the time that has elapsed since start of the operation.
+	//! @return elapsed time in seconds
+	virtual double elapsed() const =0;
+	//! Get the estimated, still required time to finish the operation.
+	//! @return the estimated remaining time in seconds
+	//!         -1 if remaining time still unknown
+	virtual double estimatedTimeRemaining(double percent) const =0;
 };

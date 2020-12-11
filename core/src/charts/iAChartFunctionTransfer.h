@@ -33,13 +33,14 @@ class vtkColorTransferFunction;
 
 //! Class representing a transfer function in a histogram chart.
 //! Draws itself, and allows adding, removing and modifying point (color and opacity).
-class open_iA_Core_API iAChartTransferFunction : public iAChartFunction, public iATransferFunction
+class open_iA_Core_API iAChartTransferFunction : public iAChartFunction
 {
 Q_OBJECT
 
 public:
 	iAChartTransferFunction(iAChartWithFunctionsWidget *histogram, QColor color);
 
+	// overrides from iAChartFunction:
 	void draw(QPainter &painter) override;
 	void draw(QPainter &painter, QColor color, int lineWidth) override;
 	void drawOnTop(QPainter &painter) override;
@@ -58,16 +59,20 @@ public:
 	virtual QString name() const override;
 	size_t numPoints() const override;
 
-	vtkPiecewiseFunction* opacityTF() override { return m_opacityTF; }
-	vtkColorTransferFunction* colorTF() override { return m_colorTF; }
-
-	void TranslateToNewRange(double const oldDataRange[2]);
-	void enableRangeSliderHandles( bool rangeSliderHandles );
-	void setOpacityFunction(vtkPiecewiseFunction *opacityTF) { m_opacityTF = opacityTF; }
-	void setColorFunction(vtkColorTransferFunction *colorTF) { m_colorTF = colorTF; }
+	iATransferFunction* tf();
+	void setTF(iATransferFunction* tf);
+	
 	void triggerOnChange();
+
+	// TODO: remove?
+	void TranslateToNewRange(double const oldDataRange[2]);
+
+	// TODO: remove / move to iAFilterChart/iARangeSliderDiagramWidget!
+	void enableRangeSliderHandles( bool rangeSliderHandles );
+
 signals:
 	void changed();
+
 private:
 	void setPointColor(int selectedPoint, double chartX, double red, double green, double blue);
 	void setPointOpacity(int selectedPoint, int pixelX, int pixelY);
@@ -79,12 +84,13 @@ private:
 	//! convert from opacity [0..1] to pixel coordinate on chart [0..maxDiagPixelHeight]
 	int opacity2PixelY(double opacity);
 
+	// TODO: remove / move to iAFilterChart/iARangeSliderDiagramWidget!
 	bool m_rangeSliderHandles;
+
 	int m_selectedPoint;
 	QColor m_color;
 	QLinearGradient m_gradient;
-	vtkPiecewiseFunction* m_opacityTF;
-	vtkColorTransferFunction* m_colorTF;
+	iATransferFunction* m_tf;
 
 	static const int PIE_RADIUS = 16;
 	static const int PIE_SIZE = 2 * PIE_RADIUS;

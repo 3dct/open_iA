@@ -20,6 +20,7 @@
 * ************************************************************************************/
 #include "iAChartWithFunctionsWidget.h"
 
+#include "defines.h"    // for PredefinedColors
 #include "iATFTableDlg.h"
 #include "iAChartFunctionBezier.h"
 #include "iAChartFunctionGaussian.h"
@@ -29,7 +30,6 @@
 #include "iAMathUtility.h"
 #include "iAPlotData.h"
 #include "iAXmlSettings.h"
-#include "mdichild.h"
 
 #include <vtkColorTransferFunction.h>
 #include <vtkMath.h>
@@ -43,10 +43,9 @@
 
 #include <cassert>
 
-iAChartWithFunctionsWidget::iAChartWithFunctionsWidget(QWidget *parent, MdiChild *mdiChild,
+iAChartWithFunctionsWidget::iAChartWithFunctionsWidget(QWidget *parent,
 	QString const & xLabel, QString const & yLabel) :
 	iAChartWidget(parent, xLabel, yLabel),
-	m_activeChild(mdiChild),
 	m_selectedFunction(0),
 	m_showFunctions(false),
 	m_allowTrfReset(true),
@@ -452,8 +451,7 @@ void iAChartWithFunctionsWidget::newTransferFunction()
 
 void iAChartWithFunctionsWidget::loadTransferFunction()
 {
-	QString filePath = (m_activeChild) ? m_activeChild->filePath() : "";
-	QString fileName = QFileDialog::getOpenFileName(this, tr("Open File"), filePath ,tr("XML (*.xml)"));
+	QString fileName = QFileDialog::getOpenFileName(this, tr("Open File"), QDir::currentPath(), tr("XML (*.xml)"));
 	if (fileName.isEmpty())
 	{
 		return;
@@ -464,25 +462,24 @@ void iAChartWithFunctionsWidget::loadTransferFunction()
 		LOG(lvlError, QString("Failed to read transfer function from file %1").arg(fileName));
 		return;
 	}
-	s.loadTransferFunction((iAChartTransferFunction*)m_functions[0]);
+	s.loadTransferFunction(dynamic_cast<iAChartTransferFunction*>(m_functions[0])->tf());
 	newTransferFunction();
 }
 
 void iAChartWithFunctionsWidget::loadTransferFunction(QDomNode functionsNode)
 {
-	iAXmlSettings::loadTransferFunction(functionsNode, (iAChartTransferFunction*)m_functions[0]);
+	iAXmlSettings::loadTransferFunction(functionsNode, dynamic_cast<iAChartTransferFunction*>(m_functions[0])->tf());
 	newTransferFunction();
 }
 
 void iAChartWithFunctionsWidget::saveTransferFunction()
 {
-	iAChartTransferFunction *transferFunction = (iAChartTransferFunction*)m_functions[0];
-	QString filePath = (m_activeChild) ? m_activeChild->filePath() : "";
-	QString fileName = QFileDialog::getSaveFileName(this, tr("Save File"), filePath ,tr("XML (*.xml)"));
+	iATransferFunction* tf = dynamic_cast<iAChartTransferFunction*>(m_functions[0])->tf();
+	QString fileName = QFileDialog::getSaveFileName(this, tr("Save File"), QDir::currentPath(), tr("XML (*.xml)"));
 	if (!fileName.isEmpty())
 	{
 		iAXmlSettings s;
-		s.saveTransferFunction(transferFunction);
+		s.saveTransferFunction(tf);
 		s.save(fileName);
 	}
 }
@@ -529,8 +526,7 @@ void iAChartWithFunctionsWidget::addGaussianFunction(double mean, double sigma, 
 
 void iAChartWithFunctionsWidget::loadFunctions()
 {
-	QString filePath = m_activeChild ? m_activeChild->filePath(): "";
-	QString fileName = QFileDialog::getOpenFileName(this, tr("Open File"), filePath ,tr("XML (*.xml)"));
+	QString fileName = QFileDialog::getOpenFileName(this, tr("Open File"), QDir::currentPath(), tr("XML (*.xml)"));
 	if (fileName.isEmpty())
 	{
 		return;
@@ -663,8 +659,7 @@ void iAChartWithFunctionsWidget::saveProbabilityFunctions(iAXmlSettings &xml)
 
 void iAChartWithFunctionsWidget::saveFunctions()
 {
-	QString filePath = m_activeChild ? m_activeChild->filePath(): "";
-	QString fileName = QFileDialog::getSaveFileName(this, tr("Save File"), filePath ,tr("XML (*.xml)"));
+	QString fileName = QFileDialog::getSaveFileName(this, tr("Save File"), QDir::currentPath() ,tr("XML (*.xml)"));
 	if (fileName.isEmpty())
 	{
 		return;
@@ -685,15 +680,14 @@ void iAChartWithFunctionsWidget::removeFunction()
 	emit updateViews();
 }
 
-void iAChartWithFunctionsWidget::setTransferFunctions(vtkColorTransferFunction* ctf, vtkPiecewiseFunction* pwf)
+void iAChartWithFunctionsWidget::setTransferFunction(iATransferFunction* f)
 {
-	m_showFunctions = ctf && pwf;
+	m_showFunctions = f;
 	if (!m_showFunctions)
 	{
 		return;
 	}
-	((iAChartTransferFunction*)m_functions[0])->setColorFunction(ctf);
-	((iAChartTransferFunction*)m_functions[0])->setOpacityFunction(pwf);
+	dynamic_cast<iAChartTransferFunction*>(m_functions[0])->setTF(f);
 	newTransferFunction();
 }
 

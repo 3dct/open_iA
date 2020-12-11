@@ -29,6 +29,7 @@
 #include "iAColorTheme.h"
 #include "iAFunction.h"
 #include "iAFunctionalBoxplot.h"
+#include "iAJobListView.h"
 #include "iALUT.h"
 #include "iARenderer.h"
 #include "iATransferFunction.h"
@@ -93,7 +94,6 @@ dlg_DynamicVolumeLines::dlg_DynamicVolumeLines(QWidget *parent /*= 0*/, QDir dat
 	m_mrvBGRen(vtkSmartPointer<vtkRenderer>::New()),
 	m_mrvTxtAct(vtkSmartPointer<vtkTextActor>::New())
 {
-	connect(&m_iMProgress, &iAProgress::progress, this, &dlg_DynamicVolumeLines::updateIntensityMapperProgress);
 	m_mdiChild->renderer()->setAreaPicker();
 
 	m_nonlinearScaledPlot->setObjectName("nonlinear");
@@ -312,10 +312,10 @@ void dlg_DynamicVolumeLines::setupMultiRendererView()
 
 void dlg_DynamicVolumeLines::generateHilbertIdx()
 {
-	m_mdiChild->initProgressBar();
 	QThread *thread = new QThread;
 	iAIntensityMapper *im = new iAIntensityMapper(m_iMProgress, m_datasetsDir, PathNameToId[cb_Paths->currentText()],
 		m_DatasetIntensityMap, m_imgDataList, m_minEnsembleIntensity, m_maxEnsembleIntensity);
+	iAJobListView::get()->addJob("Running Intensity mapper", &m_iMProgress, thread);
 	im->moveToThread(thread);
 	connect(thread, &QThread::started, im, &iAIntensityMapper::process);
 	connect(im, &iAIntensityMapper::finished, thread, &QThread::quit);
@@ -323,11 +323,6 @@ void dlg_DynamicVolumeLines::generateHilbertIdx()
 	connect(thread, &QThread::finished, thread, &QThread::deleteLater);
 	connect(thread, &QThread::finished, this, &dlg_DynamicVolumeLines::visualize);
 	thread->start();
-}
-
-void dlg_DynamicVolumeLines::updateIntensityMapperProgress(int progress)
-{
-	m_mdiChild->updateProgressBar(progress);
 }
 
 void dlg_DynamicVolumeLines::visualizePath()
@@ -367,8 +362,6 @@ void dlg_DynamicVolumeLines::visualizePath()
 
 void dlg_DynamicVolumeLines::visualize()
 {
-	m_mdiChild->hideProgressBar();
-
 	//TODO: refactor!?
 	m_nonlinearScaledPlot->clearGraphs();
 	m_nonlinearScaledPlot->clearItems();

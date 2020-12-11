@@ -1092,7 +1092,7 @@ void iADreamCaster::UpdateHistogramSlot()
 		app->processEvents();
 	}
 	hist->clearPlots();
-	auto histData = iAHistogramData::create(values, numBins, iAValueType::Continuous, min_x, max_x);
+	auto histData = iAHistogramData::create("Frequency", iAValueType::Continuous, values, numBins, min_x, max_x);
 	auto histPlot = QSharedPointer<iAPlot>(new iABarGraphPlot(histData, QColor(0, 0, 255, 255)));
 	hist->addPlot(histPlot);
 	hist->update();
@@ -1480,7 +1480,7 @@ void iADreamCaster::ShowRangeRays()
 	//////////////////////////////////////////////////////////////////////////
 	//if(ui.cb_rangeParameter->currentIndex()!=1)//av. penetration parameter choosed
 	{
-		const unsigned int numValues = (const unsigned int) curRender->rays.size();
+		const unsigned int numValues = static_cast<unsigned int>(curRender->rays.size());
 		double rmin = ui.sb_range_min->value();
 		double rmax = ui.sb_range_max->value();
 		vtkPoints *raysPts = vtkPoints::New();

@@ -34,10 +34,9 @@
 #include "iAAlgorithm.h"
 #include "iAChannelData.h"
 #include "iAChannelSlicerData.h"
+#include "iAJobListView.h"
 #include "iALog.h"
 #include "iARunAsync.h"
-#include "qthelper/iADockWidgetWrapper.h"
-#include "iAJobListView.h"
 #include "iAModality.h"
 #include "iAModalityList.h"
 #include "iAModalityTransfer.h"
@@ -61,6 +60,7 @@
 #include "io/iAIO.h"
 #include "io/iAIOProvider.h"
 #include "mainwindow.h"
+#include "qthelper/iADockWidgetWrapper.h"
 
 #include <vtkCamera.h>
 #include <vtkColorTransferFunction.h>
@@ -87,7 +87,6 @@
 #include <QFileDialog>
 #include <QMainWindow>
 #include <QMessageBox>
-#include <QProgressBar>
 #include <QSettings>
 #include <QSpinBox>
 #include <QToolButton>
@@ -114,10 +113,8 @@ MdiChild::MdiChild(MainWindow* mainWnd, iAPreferences const& prefs, bool unsaved
 	m_slicerTransform(vtkTransform::New()),
 	m_volumeStack(new iAVolumeStack),
 	m_ioThread(nullptr),
-	m_histogram(new iAChartWithFunctionsWidget(nullptr, this, " Histogram", "Frequency")),
-	m_jobs(new iAJobListView()),
+	m_histogram(new iAChartWithFunctionsWidget(nullptr, " Histogram", "Frequency")),
 	m_dwHistogram(new iADockWidgetWrapper(m_histogram, "Histogram", "Histogram")),
-	m_dwJobs(new iADockWidgetWrapper(m_jobs, "Jobs", "Jobs")),
 	m_dwImgProperty(nullptr),
 	m_dwProfile(nullptr),
 	m_nextChannelID(0),
@@ -147,19 +144,12 @@ MdiChild::MdiChild(MainWindow* mainWnd, iAPreferences const& prefs, bool unsaved
 		m_dwSlicer[i] = new dlg_slicer(m_slicer[i]);
 	}
 
-	m_pbar = new QProgressBar(this);
-	m_pbar->setMaximumSize(350, 17);
-	statusBar()->addPermanentWidget(m_pbar);
-	m_pbarMaxVal = m_pbar->maximum();
 	addDockWidget(Qt::LeftDockWidgetArea, m_dwRenderer);
 	m_initialLayoutState = saveState();
 
-	splitDockWidget(m_dwRenderer, m_dwSlicer[iASlicerMode::XZ], Qt::Horizontal);
-	splitDockWidget(m_dwRenderer, m_dwSlicer[iASlicerMode::YZ], Qt::Vertical);
-	splitDockWidget(m_dwSlicer[iASlicerMode::XZ], m_dwSlicer[iASlicerMode::XY], Qt::Vertical);
-	splitDockWidget(m_dwRenderer, m_dwJobs, Qt::Horizontal);
-	m_dwJobs->hide();
-	connect(m_jobs, &iAJobListView::allJobsDone, m_dwJobs, &QDockWidget::hide);
+	splitDockWidget(m_dwRenderer, m_dwSlicer[iASlicerMode::XY], Qt::Horizontal);
+	splitDockWidget(m_dwSlicer[iASlicerMode::XY], m_dwSlicer[iASlicerMode::XZ], Qt::Vertical);
+	splitDockWidget(m_dwSlicer[iASlicerMode::XZ], m_dwSlicer[iASlicerMode::YZ], Qt::Vertical);
 
 	setAttribute(Qt::WA_DeleteOnClose);
 
@@ -174,11 +164,10 @@ MdiChild::MdiChild(MainWindow* mainWnd, iAPreferences const& prefs, bool unsaved
 
 	m_dwModalities = new dlg_modalities(m_dwRenderer->vtkWidgetRC, m_renderer->renderer(), this);
 	QSharedPointer<iAModalityList> modList(new iAModalityList);
+	splitDockWidget(m_dwRenderer, m_dwModalities, Qt::Vertical);
 	setModalities(modList);
-	splitDockWidget(m_dwJobs, m_dwModalities, Qt::Vertical);
 	applyViewerPreferences();
 	connectSignalsToSlots();
-	m_pbar->setValue(100);
 
 	m_worldProfilePoints->Allocate(2);
 	connect(mainWnd, &MainWindow::fullScreenToggled, this, &MdiChild::toggleFullScreen);
@@ -275,7 +264,6 @@ void MdiChild::connectSignalsToSlots()
 		connect(m_slicer[s], &iASlicer::sliceNumberChanged, this, &MdiChild::setSlice);
 
 		connect(m_slicer[s], &iASlicer::oslicerPos, this, &MdiChild::updatePositionMarker);
-		connect(m_slicer[s], &iASlicer::progress, this, &MdiChild::updateProgressBar);
 	}
 
 	connect(m_histogram, &iAChartWithFunctionsWidget::updateViews, this, &MdiChild::updateViews);
@@ -306,9 +294,6 @@ void MdiChild::connectIOThreadSignals(iAIO* thread)
 
 void MdiChild::connectAlgorithmSignalsToChildSlots(iAAlgorithm* thread)
 {
-	connect(thread, &iAAlgorithm::aprogress, this, &MdiChild::updateProgressBar);
-	connect(thread, &iAAlgorithm::started, this, &MdiChild::initProgressBar);
-	connect(thread, &iAAlgorithm::finished, this, &MdiChild::hideProgressBar);
 	addAlgorithm(thread);
 }
 
@@ -410,12 +395,6 @@ void MdiChild::modalityTFChanged()
 	emit transferFunctionChanged();
 }
 
-void MdiChild::updateProgressBar(int i)
-{
-	m_pbar->show();
-	m_pbar->setValue(i);
-}
-
 void MdiChild::updatePositionMarker(int x, int y, int z, int mode)
 {
 	m_position[0] = x; m_position[1] = y; m_position[2] = z;
@@ -505,7 +484,7 @@ bool MdiChild::displayResult(QString const& title, vtkImageData* image, vtkPolyD
 void MdiChild::prepareForResult()
 {
 	setWindowModified(true);
-	modality(0)->transfer()->reset();
+	modality(0)->transfer()->resetFunctions();
 }
 
 bool MdiChild::setupLoadIO(QString const& f, bool isStack)
@@ -1097,12 +1076,6 @@ int MdiChild::visibility() const
 void MdiChild::maximizeSlicer(int mode)
 {
 	resizeDockWidget(m_dwSlicer[mode]);
-}
-
-void MdiChild::addJob(QString name, iAProgress* p, QThread* t, iAAbortListener* abortListener)
-{
-	m_dwJobs->show();
-	m_jobs->addJob(name, p, t, abortListener);
 }
 
 void MdiChild::maximizeRC()
@@ -1886,7 +1859,7 @@ bool MdiChild::initView(QString const& title)
 		addImageProperty();
 		if (m_imageData->GetNumberOfScalarComponents() == 1)
 		{   // No histogram/profile for rgb, rgba or vector pixel type images
-			tabifyDockWidget(m_dwModalities, m_dwHistogram);
+			splitDockWidget(m_dwModalities, m_dwHistogram, Qt::Vertical);
 			addProfile();
 		}
 	}
@@ -1912,7 +1885,7 @@ void MdiChild::addImageProperty()
 		return;
 	}
 	m_dwImgProperty = new dlg_imageproperty(this);
-	tabifyDockWidget(m_dwModalities, m_dwImgProperty);
+	splitDockWidget(m_dwModalities, m_dwImgProperty, Qt::Horizontal);
 }
 
 void MdiChild::updateImageProperties()
@@ -1937,7 +1910,7 @@ void MdiChild::updateImageProperties()
 bool MdiChild::addVolumePlayer()
 {
 	m_dwVolumePlayer = new dlg_volumePlayer(this, m_volumeStack.data());
-	tabifyDockWidget(m_dwModalities, m_dwVolumePlayer);
+	splitDockWidget(m_dwModalities, m_dwVolumePlayer, Qt::Horizontal);
 	for (size_t id = 0; id < m_volumeStack->numberOfVolumes(); ++id)
 	{
 		m_checkedList.append(0);
@@ -2257,7 +2230,7 @@ void MdiChild::addProfile()
 	m_profileProbe->updateProbe(1, end);
 	m_profileProbe->updateData();
 	m_dwProfile = new dlg_profile(this, m_profileProbe->m_profileData, m_profileProbe->rayLength());
-	tabifyDockWidget(m_dwHistogram, m_dwProfile);
+	splitDockWidget(m_dwHistogram, m_dwProfile, Qt::Horizontal);
 	connect(m_dwProfile->profileMode, &QCheckBox::toggled, this, &MdiChild::toggleProfileHandles);
 }
 
@@ -2334,17 +2307,6 @@ void MdiChild::resizeDockWidget(QDockWidget* dw)
 	{
 		maximizeDockWidget(dw);
 	}
-}
-
-void MdiChild::hideProgressBar()
-{
-	m_pbar->hide();
-	m_pbar->setMaximum(m_pbarMaxVal);
-}
-
-void MdiChild::initProgressBar()
-{
-	updateProgressBar(m_pbar->minimum());
 }
 
 void MdiChild::ioFinished()
@@ -2528,7 +2490,7 @@ bool MdiChild::isVolumeDataLoaded() const
 
 void MdiChild::changeMagicLensModality(int chg)
 {
-	if (!m_isMagicLensEnabled)
+	if (!m_isMagicLensEnabled || modalities()->size() == 0)
 	{
 		return;
 	}
@@ -2618,11 +2580,6 @@ dlg_modalities* MdiChild::dataDockWidget()
 	return m_dwModalities;
 }
 
-iAJobListView* MdiChild::jobsList()
-{
-	return m_jobs;
-}
-
 QSharedPointer<iAModalityList> MdiChild::modalities()
 {
 	return m_dwModalities->modalities();
@@ -2664,12 +2621,10 @@ void MdiChild::setHistogramModality(int modalityIdx)
 	{
 		return;
 	}
-	LOG(lvlDebug, QString("Computing statistics for modality %1...")
-		.arg(modality(modalityIdx)->name()));
 	modality(modalityIdx)->transfer()->info().setComputing();
 	updateImageProperties();
 
-	runAsync([this, modalityIdx]
+	auto fw = runAsync([this, modalityIdx]
 		{
 			modality(modalityIdx)->computeImageStatistics();
 		},
@@ -2677,6 +2632,8 @@ void MdiChild::setHistogramModality(int modalityIdx)
 		{
 			statisticsAvailable(modalityIdx);
 		});
+	iAJobListView::get()->addJob(QString("Computing statistics for modality %1...")
+		.arg(modality(modalityIdx)->name()), nullptr, fw);
 }
 
 void MdiChild::modalityAdded(int modalityIdx)
@@ -2694,6 +2651,11 @@ void MdiChild::modalityAdded(int modalityIdx)
 
 void MdiChild::histogramDataAvailable(int modalityIdx)
 {
+	if (modalityIdx < 0 || modalityIdx >= modalities()->size())
+	{
+		LOG(lvlWarn, QString("histogramDataAvailable: Modality %1 not available!").arg(modalityIdx));
+		return;
+	}
 	QString modalityName = modality(modalityIdx)->name();
 	m_currentHistogramModality = modalityIdx;
 	LOG(lvlDebug, QString("Displaying histogram for modality %1.").arg(modalityName));
@@ -2703,8 +2665,7 @@ void MdiChild::histogramDataAvailable(int modalityIdx)
 			QWidget::palette().color(QPalette::Shadow)));
 	m_histogram->addPlot(m_histogramPlot);
 	m_histogram->setXCaption("Histogram " + modalityName);
-	m_histogram->setTransferFunctions(modality(modalityIdx)->transfer()->colorTF(),
-		modality(modalityIdx)->transfer()->opacityTF());
+	m_histogram->setTransferFunction(modality(modalityIdx)->transfer().data());
 	m_histogram->updateTrf();	// will also redraw() the histogram
 	updateImageProperties();
 	if (!findChild<iADockWidgetWrapper*>("Histogram"))
@@ -2717,15 +2678,20 @@ void MdiChild::histogramDataAvailable(int modalityIdx)
 
 void MdiChild::displayHistogram(int modalityIdx)
 {
+	if (modalityIdx < 0 || modalityIdx >= modalities()->size())
+	{
+		LOG(lvlWarn, QString("displayHistogram: Modality %1 not available!").arg(modalityIdx));
+		return;
+	}
 	auto histData = modality(modalityIdx)->transfer()->histogramData();
 	size_t newBinCount = m_preferences.HistogramBins;
 	auto img = modality(modalityIdx)->image();
 	auto scalarRange = img->GetScalarRange();
-	if (isVtkIntegerType(modality(modalityIdx)->image()->GetScalarType()))
+	if (isVtkIntegerImage(modality(modalityIdx)->image()))
 	{
 		newBinCount = std::min(newBinCount, static_cast<size_t>(scalarRange[1] - scalarRange[0] + 1));
 	}
-	if (histData && histData->numBin() == newBinCount)
+	if (histData && histData->valueCount() == newBinCount)
 	{
 		if (modalityIdx != m_currentHistogramModality)
 		{
@@ -2734,28 +2700,34 @@ void MdiChild::displayHistogram(int modalityIdx)
 		return;
 	}
 
-	LOG(lvlDebug, QString("Computing histogram for modality %1...")
-		.arg(modality(modalityIdx)->name()));
-	runAsync([this, modalityIdx, newBinCount]
+	auto fw = runAsync([this, modalityIdx, newBinCount]
 		{   // run computation of histogram...
 			modality(modalityIdx)->computeHistogramData(newBinCount);
-		},  // ... and on finished signal, trigger histogramDataAvailable
+		},
 		[this, modalityIdx]
-		{
+		{  // ... and on finished signal, trigger histogramDataAvailable
 			histogramDataAvailable(modalityIdx);
 		});
+		// TODO: find way of terminating computation in case modality is deleted/application closed!
+	iAJobListView::get()->addJob(QString("Computing histogram for modality %1...")
+		.arg(modality(modalityIdx)->name()), nullptr, fw);
 }
 
 void MdiChild::clearHistogram()
 {
 	m_histogram->removePlot(m_histogramPlot);
 	m_histogramPlot = nullptr;
-	m_histogram->setTransferFunctions(nullptr, nullptr);
+	m_histogram->setTransferFunction(nullptr);
 	m_histogram->update();
 }
 
 void MdiChild::statisticsAvailable(int modalityIdx)
 {
+	if (modalityIdx < 0 || modalityIdx >= modalities()->size())
+	{
+		LOG(lvlWarn, QString("statisticsAvailable: Modality %1 not available!").arg(modalityIdx));
+		return;
+	}
 	displayHistogram(modalityIdx);
 	// TODO: only initialize volume renderer of modalityIdx modality here!
 	initVolumeRenderers();
@@ -2915,25 +2887,12 @@ vtkColorTransferFunction* MdiChild::colorTF()
 void MdiChild::saveFinished()
 {
 	if (m_storedModalityNr < modalities()->size() && m_ioThread->ioID() != STL_WRITER)
+	{
 		m_dwModalities->setFileName(m_storedModalityNr, m_ioThread->fileName());
+	}
 	m_mainWnd->setCurrentFile(m_ioThread->fileName());
 	setWindowModified(modalities()->hasUnsavedModality());
 }
-
-/*
-void MdiChild::splitDockWidget(QDockWidget* ref, QDockWidget* newWidget, Qt::Orientation orientation)
-{
-	QList<QDockWidget*> tabified = m_mainWnd->tabifiedDockWidgets(ref);
-	if (tabified.size() > 0)
-	{
-		tabifyDockWidget(ref, newWidget);
-	}
-	else
-	{
-		splitDockWidget(ref, newWidget, orientation);
-	}
-}
-*/
 
 bool MdiChild::isFullyLoaded() const
 {

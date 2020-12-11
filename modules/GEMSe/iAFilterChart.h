@@ -26,6 +26,7 @@
 class iAParamHistogramData;
 class iANameMapper;
 
+// TODO: Merge with FeatureAnalyzer: iARangeSliderDiagramWidget
 class iAFilterChart: public iAChartWidget
 {
 	Q_OBJECT

@@ -266,10 +266,10 @@ void dlg_CSVInput::exportTable()
 	QStringList outputHeaders = io.getOutputHeaders();
 	outputHeaders.removeLast();	// without ClassID
 	ts << outputHeaders.join(",") + ",\n";
-	for (int r=0; r < creator.table()[0].size(); ++r)
+	for (size_t r=0; r < creator.table()[0].size(); ++r)
 	{   // values are stored in col-row order
 		QStringList strList;
-		for (int c = 0; c < creator.table().size()-1; ++c)
+		for (size_t c = 0; c < creator.table().size()-1; ++c)
 		{
 			strList << QString::number(creator.table()[c][r]);
 		}

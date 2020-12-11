@@ -48,7 +48,7 @@ QStringList AvailableLogLevels()
 
 QString logLevelToString(iALogLevel lvl)
 {
-	if (lvl < lvlDebug && lvl > lvlFatal)
+	if (lvl < lvlDebug || lvl > lvlFatal)
 	{
 		return "?????";
 	}

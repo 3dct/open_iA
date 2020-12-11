@@ -474,7 +474,8 @@ void iAMultimodalWidget::updateModalities()
 		// TODO: Don't duplicate code from mdichild, call it instead!
 		// Histogram {
 		size_t newHistBins = m_mdiChild->preferences().HistogramBins;
-		if (!m_modalitiesActive[i]->histogramData() || m_modalitiesActive[i]->histogramData()->numBin() != newHistBins)
+		if (!m_modalitiesActive[i]->histogramData() ||
+			m_modalitiesActive[i]->histogramData()->valueCount() != newHistBins)
 		{
 			m_modalitiesActive[i]->computeImageStatistics();
 			m_modalitiesActive[i]->computeHistogramData(newHistBins);
@@ -485,11 +486,11 @@ void iAMultimodalWidget::updateModalities()
 		vtkPiecewiseFunction *opFuncCopy = vtkPiecewiseFunction::New();
 		m_copyTFs[i] = createCopyTf(i, colorFuncCopy, opFuncCopy);
 
-		m_histograms[i] = QSharedPointer<iAChartWithFunctionsWidget>(new iAChartWithFunctionsWidget(nullptr, m_mdiChild, m_modalitiesActive[i]->name()+" gray value", "Frequency"));
+		m_histograms[i] = QSharedPointer<iAChartWithFunctionsWidget>(new iAChartWithFunctionsWidget(nullptr, m_modalitiesActive[i]->name()+" gray value", "Frequency"));
 		QSharedPointer<iAPlot> histogramPlot = QSharedPointer<iAPlot>(
 			new	iABarGraphPlot(m_modalitiesActive[i]->histogramData(), QColor(70, 70, 70, 255)));
 		m_histograms[i]->addPlot(histogramPlot);
-		m_histograms[i]->setTransferFunctions(m_copyTFs[i]->colorTF(), m_copyTFs[i]->opacityTF());
+		m_histograms[i]->setTransferFunction(m_copyTFs[i].data());
 		m_histograms[i]->updateTrf();
 		// }
 

@@ -35,13 +35,10 @@ class QMenu;
 class QPaintEvent;
 class QPainter;
 
-class vtkPiecewiseFunction;
-class vtkColorTransferFunction;
-
 class iAChartFunction;
-class iAXmlSettings;
 class iATFTableDlg;
-class MdiChild;
+class iATransferFunction;
+class iAXmlSettings;
 
 //! A chart widget that can also show functions overlaid over the chart area (transfer function, Gaussian and Bezier curves)
 class open_iA_Core_API iAChartWithFunctionsWidget : public iAChartWidget
@@ -51,7 +48,7 @@ class open_iA_Core_API iAChartWithFunctionsWidget : public iAChartWidget
 public:
 	enum AdditionalMode { MOVE_NEW_POINT_MODE=Y_ZOOM_MODE+1, MOVE_POINT_MODE};
 
-	iAChartWithFunctionsWidget(QWidget *parent, MdiChild *mdiChild,
+	iAChartWithFunctionsWidget(QWidget *parent,
 		QString const & label = "Greyvalue", QString const & yLabel = "");
 	virtual ~iAChartWithFunctionsWidget();
 
@@ -59,7 +56,7 @@ public:
 	int selectedFuncPoint() const;
 	bool isFuncEndPoint(int index) const;
 	//! Set the transfer functions to be displayed on top of the chart.
-	void setTransferFunctions(vtkColorTransferFunction* ctf, vtkPiecewiseFunction* pwf);
+	void setTransferFunction(iATransferFunction* f);
 	//! Get the currently selected function.
 	iAChartFunction * selectedFunction();
 	//! Get all functions currently defined in this chart.
@@ -92,13 +89,12 @@ protected:
 
 	virtual void drawFunctions(QPainter &painter);
 
-	MdiChild* m_activeChild;
 	std::vector<iAChartFunction*> m_functions;
 	size_t m_selectedFunction;
 	bool m_showFunctions;
 
 signals:
-	void updateViews();
+	void updateViews();  // TODO: this "knowledge" of when some other views should be updated should probably be somewhere else (mdichild?)
 	void pointSelected();
 	void noPointSelected();
 	void endPointSelected();

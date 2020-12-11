@@ -308,7 +308,9 @@ namespace
 				{
 					iALog::get()->setLogLevel(static_cast<iALogLevel>(intLevel));
 				}
-			};
+				mode = None;
+				break;
+			}
 			case Input:
 			case Output:
 			case Parameter:
