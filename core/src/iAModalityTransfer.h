@@ -48,12 +48,13 @@ public:
 	void computeStatistics(vtkSmartPointer<vtkImageData> img);
 	void computeHistogramData(vtkSmartPointer<vtkImageData> imgData, size_t binCount);
 	void resetHistogram();
-	void resetFunctions();
 	bool statisticsComputed() const;
 
-	// should return vtkSmartPointer, but can't at the moment because iAChartTransferFunction doesn't have smart pointers:
+	//! @{ functions overridden from iATransferFunction:
 	vtkPiecewiseFunction* opacityTF() override;
 	vtkColorTransferFunction* colorTF() override;
+	void resetFunctions() override;
+	//! @}
 
 private:
 	iAImageInfo m_imageInfo;
