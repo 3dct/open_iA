@@ -55,8 +55,8 @@ typedef itk::ImageRegionIterator<ImageType> 			    IteratorType;
 
 namespace
 {
-	const size_t sizeDNNin = 132;
-	const size_t sizeDNNout = 122;
+	const int sizeDNNin = 132;
+	const int sizeDNNout = 122;
 }
 
 typename ImageType::Pointer Normalize(typename ImageType::Pointer itk_img)
