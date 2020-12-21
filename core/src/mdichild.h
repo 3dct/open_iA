@@ -182,7 +182,6 @@ public:
 	bool resultInNewWindow() const;
 	bool linkedMDIs() const;    //!< Whether this child has the linked MDIs feature enabled
 	bool linkedViews() const;   //!< Whether this child has the linked views feature enabled
-	std::vector<iAChartFunction*> &functions();
 	void redrawHistogram();
 	iAChartWithFunctionsWidget* histogram();
 

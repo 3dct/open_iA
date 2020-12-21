@@ -425,8 +425,12 @@ void MainWindow::saveAs()
 	}
 }
 
-bool MainWindow::saveSettings()
+void MainWindow::saveSettings()
 {
+	if (!activeMdiChild())
+	{
+		return;
+	}
 	QString filePath = activeMdiChild()->currentFile();
 	filePath.truncate(filePath.lastIndexOf('/'));
 	QString fileName = QFileDialog::getSaveFileName(this, tr("Save File"), filePath ,tr("XML (*.xml)"));
@@ -473,7 +477,7 @@ bool MainWindow::saveSettings()
 			}
 			if (m_spTransferFunction && activeMdiChild()->histogram())
 			{
-				xml.saveTransferFunction(dynamic_cast<iAChartTransferFunction*>(activeMdiChild()->functions()[0])->tf());
+				xml.saveTransferFunction(dynamic_cast<iAChartTransferFunction*>(activeMdiChild()->histogram()->functions()[0])->tf());
 			}
 			if (m_spProbabilityFunctions && activeMdiChild()->histogram())
 			{
@@ -494,11 +498,14 @@ bool MainWindow::saveSettings()
 			xml.save(fileName);
 		}
 	}
-	return true;
 }
 
 void MainWindow::loadSettings()
 {
+	if (!activeMdiChild())
+	{
+		return;
+	}
 	QString filePath = activeMdiChild()->currentFile();
 	filePath.truncate(filePath.lastIndexOf('/'));
 	QString fileName = QFileDialog::getOpenFileName(this, tr("Open File"), filePath, tr("XML (*.xml)"));
@@ -558,16 +565,6 @@ void MainWindow::loadSettings()
 	if (renderSettings) { dlg.getCheckValue(index++) == 0 ? m_lpRenderSettings = false : m_lpRenderSettings = true; }
 	if (slicerSettings) { dlg.getCheckValue(index++) == 0 ? m_lpSlicerSettings = false : m_lpSlicerSettings = true; }
 
-	if (m_lpProbabilityFunctions)
-	{
-		std::vector<iAChartFunction*>& functions = activeMdiChild()->functions();
-		for (unsigned int i = 1; i < functions.size(); i++)
-		{
-			delete functions.back();
-			functions.pop_back();
-		}
-	}
-
 	if (m_lpCamera)
 	{
 		loadCamera(xml);
@@ -578,6 +575,15 @@ void MainWindow::loadSettings()
 	}
 	if (activeMdiChild()->histogram())
 	{
+		if (m_lpProbabilityFunctions)
+		{
+			std::vector<iAChartFunction*>& functions = activeMdiChild()->histogram()->functions();
+			for (unsigned int i = 1; i < functions.size(); i++)
+			{
+				delete functions.back();
+				functions.pop_back();
+			}
+		}
 		if (m_lpTransferFunction)
 		{
 			activeMdiChild()->histogram()->loadTransferFunction(xml.documentElement().namedItem("functions"));
@@ -1490,7 +1496,7 @@ MdiChild * MainWindow::resultChild(int childInd, QString const & f)
 
 void MainWindow::copyFunctions(MdiChild* oldChild, MdiChild* newChild)
 {
-	std::vector<iAChartFunction*> const & oldChildFunctions = oldChild->functions();
+	std::vector<iAChartFunction*> const & oldChildFunctions = oldChild->histogram()->functions();
 	for (unsigned int i = 1; i < oldChildFunctions.size(); ++i)
 	{
 		// TODO: implement a "clone" function to avoid dynamic_cast here?
@@ -1502,7 +1508,7 @@ void MainWindow::copyFunctions(MdiChild* oldChild, MdiChild* newChild)
 			newGaussian->setMean(oldGaussian->getMean());
 			newGaussian->setMultiplier(oldGaussian->getMultiplier());
 			newGaussian->setSigma(oldGaussian->getSigma());
-			newChild->functions().push_back(newGaussian);
+			newChild->histogram()->functions().push_back(newGaussian);
 		}
 		else if (dynamic_cast<iAChartFunctionBezier*>(curFunc))
 		{
@@ -1512,7 +1518,7 @@ void MainWindow::copyFunctions(MdiChild* oldChild, MdiChild* newChild)
 			{
 				newBezier->addPoint(oldBezier->getPoints()[j].x(), oldBezier->getPoints()[j].y());
 			}
-			newChild->functions().push_back(newBezier);
+			newChild->histogram()->functions().push_back(newBezier);
 		}
 		// otherwise: unknown function type, do nothing
 	}

@@ -1603,20 +1603,6 @@ void MdiChild::resetTrf()
 	}
 	m_histogram->resetTrf();
 	LOG(lvlInfo, tr("Resetting Transfer Functions."));
-	LOG(lvlInfo, tr("  Adding transfer function point: %1.   Opacity: 0.0,   Color: 0, 0, 0")
-		.arg(m_histogram->xBounds()[0]));
-	LOG(lvlInfo, tr("  Adding transfer function point: %1.   Opacity: 1.0,   Color: 255, 255, 255")
-		.arg(m_histogram->xBounds()[1]));
-}
-
-std::vector<iAChartFunction*>& MdiChild::functions()
-{
-	if (!m_histogram)
-	{
-		static std::vector<iAChartFunction*> nullVec;
-		return nullVec;
-	}
-	return m_histogram->functions();
 }
 
 iAChartWithFunctionsWidget* MdiChild::histogram()
