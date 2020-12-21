@@ -2652,7 +2652,7 @@ void MdiChild::histogramDataAvailable(int modalityIdx)
 	m_histogram->addPlot(m_histogramPlot);
 	m_histogram->setXCaption("Histogram " + modalityName);
 	m_histogram->setTransferFunction(modality(modalityIdx)->transfer().data());
-	m_histogram->updateTrf();	// will also redraw() the histogram
+	m_histogram->update();
 	updateImageProperties();
 	if (!findChild<iADockWidgetWrapper*>("Histogram"))
 	{

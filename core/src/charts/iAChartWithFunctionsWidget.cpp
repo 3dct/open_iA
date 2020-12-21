@@ -437,12 +437,6 @@ void iAChartWithFunctionsWidget::resetTrf()
 	emit updateViews();
 }
 
-void iAChartWithFunctionsWidget::updateTrf()
-{
-	((iAChartTransferFunction*)m_functions[0])->TranslateToNewRange(xBounds());
-	update();
-}
-
 void iAChartWithFunctionsWidget::newTransferFunction()
 {
 	update();

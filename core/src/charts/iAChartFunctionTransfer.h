@@ -64,9 +64,6 @@ public:
 	
 	void triggerOnChange();
 
-	// TODO: remove?
-	void TranslateToNewRange(double const oldDataRange[2]);
-
 	// TODO: remove / move to iAFilterChart/iARangeSliderDiagramWidget!
 	void enableRangeSliderHandles( bool rangeSliderHandles );
 

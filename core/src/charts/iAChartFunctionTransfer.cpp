@@ -353,33 +353,6 @@ void iAChartTransferFunction::reset()
 	}
 }
 
-void iAChartTransferFunction::TranslateToNewRange(double const oldXRange[2])
-{
-	double newXRange[2];
-	m_tf->opacityTF()->GetRange(newXRange);
-	if (dblApproxEqual(newXRange[0], oldXRange[0]) &&
-		dblApproxEqual(newXRange[1], oldXRange[1]))
-	{
-		return;
-	}
-	assert(m_tf->opacityTF()->GetSize() == m_tf->colorTF()->GetSize());
-	for (int i = 0; i < m_tf->opacityTF()->GetSize(); ++i)
-	{
-		double opacity[4];
-		m_tf->opacityTF()->GetNodeValue(i, opacity);
-		double color[6];
-		m_tf->colorTF()->GetNodeValue(i, color);
-		assert(opacity[0] == color[0]);
-		double newX = mapValue(oldXRange, newXRange, opacity[0]);
-		color[0] = opacity[0] = clamp(newXRange[0], newXRange[1], newX);
-		m_tf->opacityTF()->SetNodeValue(i, opacity);
-		m_tf->colorTF()->SetNodeValue(i, color);
-	}
-	m_tf->colorTF()->Modified();
-	m_tf->colorTF()->Build();
-	triggerOnChange();
-}
-
 void iAChartTransferFunction::mouseReleaseEventAfterNewPoint(QMouseEvent *)
 {
 	double colorTFValue[6];

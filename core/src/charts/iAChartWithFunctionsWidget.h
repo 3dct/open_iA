@@ -106,7 +106,6 @@ public slots:
 	int deletePoint();
 	void changeColor(QMouseEvent *event = nullptr);
 	void resetTrf();
-	void updateTrf();
 	void loadTransferFunction();
 	void loadTransferFunction(QDomNode functionsNode);
 	void saveTransferFunction();
