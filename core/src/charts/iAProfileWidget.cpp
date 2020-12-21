@@ -57,13 +57,13 @@ void iAProfileWidget::initialize(vtkPolyData* profData, double rayLength)
 
 void iAProfileWidget::showDataTooltip(QHelpEvent *event)
 {
-	if (!m_scalars)
+	if (!m_scalars || !m_xMapper)
 	{
 		return;
 	}
 	int xPos = clamp(0, chartWidth() - 1, event->x() - leftMargin());
-	int nthBin = static_cast<int>((((xPos-m_translationX) * m_numBin) / chartWidth()) / m_xZoom);
-	double len = (((xPos-m_translationX) * m_rayLen) / chartWidth()) / m_xZoom;
+	int nthBin = static_cast<int>((((xPos + m_xMapper->srcToDst(m_xShift)) * m_numBin) / chartWidth()) / m_xZoom);
+	double len = (((xPos + m_xMapper->srcToDst(m_xShift)) * m_rayLen) / chartWidth()) / m_xZoom;
 	if (nthBin >= m_numBin || xPos == chartWidth() - 1)
 	{
 		nthBin = m_numBin - 1;
