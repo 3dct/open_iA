@@ -56,7 +56,6 @@ public:
 	//! @{ Get x/y zoom and shift.
 	double xZoom()  const { return m_xZoom;        }
 	double yZoom()  const { return m_yZoom;        }
-	int    xShift() const { return m_translationX; }
 	int    yShift() const { return m_translationY; }
 	//! @}
 	//! Retrieve bottom margin (in pixels).
@@ -183,8 +182,8 @@ protected:
 	double m_xZoom, m_yZoom;
 	double m_xZoomStart, m_yZoomStart;
 
-	int m_translationX, m_translationY;
-	int m_translationStartX, m_translationStartY;
+	double m_xShift, m_xShiftStart;
+	int m_translationY, m_translationStartY;
 	int m_dragStartPosX, m_dragStartPosY;
 	int m_mode;
 	//! Main mappers from diagram coordinates to pixel coordinates, for each axis:
@@ -232,6 +231,7 @@ private:
 	virtual void drawYAxis(QPainter &painter);
 	double visibleXStart() const;
 	double visibleXEnd() const;
+	double limitXShift(double newXShift);
 
 	std::vector< QSharedPointer< iAPlot > >	m_plots;
 	QList< QSharedPointer< QImage > > m_overlays;

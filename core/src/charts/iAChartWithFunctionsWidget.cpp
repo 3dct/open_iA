@@ -144,7 +144,6 @@ void iAChartWithFunctionsWidget::mousePressEvent(QMouseEvent *event)
 			}
 			else if ((event->modifiers() & Qt::ShiftModifier) == Qt::ShiftModifier)
 			{
-				m_translationStartX = m_translationX;
 				changeMode(MOVE_VIEW_MODE, event);
 			}
 			else
@@ -503,7 +502,7 @@ void iAChartWithFunctionsWidget::addBezierFunction()
 
 void iAChartWithFunctionsWidget::addGaussianFunction()
 {
-	double mean = m_xMapper->dstToSrc(contextMenuPos().x() - leftMargin() - xShift());
+	double mean = mouse2DataX(contextMenuPos().x() - leftMargin());
 	double sigma = m_xMapper->dstToSrc(geometry().width() / 20) - xBounds()[0];
 	int contextYHeight = chartHeight() - contextMenuPos().y();
 	double multiplier = yMapper().dstToSrc(contextYHeight) * (sigma * sqrt(2 * vtkMath::Pi()));

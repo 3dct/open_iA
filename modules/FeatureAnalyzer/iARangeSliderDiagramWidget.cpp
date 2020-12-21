@@ -23,6 +23,7 @@
 #include <charts/iAChartFunctionTransfer.h>
 #include <charts/iAHistogramData.h>
 #include <iACSVToQTableWidgetConverter.h>
+#include <iAMapper.h>
 #include <iAMathUtility.h>
 #include <iATransferFunction.h>
 
@@ -134,8 +135,8 @@ void iARangeSliderDiagramWidget::mousePressEvent( QMouseEvent *event )
 				m_addedHandles.clear();
 				func->removePoint( 1 );
 				func->removePoint( 1 );
-				selectedPoint = func->addPoint( dataBin2ScreenX( m_firstSelectedBin ) + m_translationX, 0 );
-				func->addColorPoint( dataBin2ScreenX( m_firstSelectedBin ) + m_translationX );
+				selectedPoint = func->addPoint(dataBin2ScreenX(m_firstSelectedBin) - m_xMapper->srcToDst(m_xShift), 0);
+				func->addColorPoint(dataBin2ScreenX(m_firstSelectedBin) - m_xMapper->srcToDst(m_xShift));
 				m_addedHandles.append( m_firstSelectedBin );
 			}
 		}
@@ -156,8 +157,6 @@ void iARangeSliderDiagramWidget::mousePressEvent( QMouseEvent *event )
 		}
 		else if ( ( event->modifiers() & Qt::ShiftModifier ) == Qt::ShiftModifier )
 		{
-			m_translationStartX = m_translationX;
-			m_translationStartY = m_translationY;
 			iAChartWidget::changeMode( MOVE_VIEW_MODE, event );
 		}
 	}
@@ -192,8 +191,8 @@ void iARangeSliderDiagramWidget::mouseReleaseEvent( QMouseEvent *event )
 
 			if ( selectedPoint == -1 )
 			{
-				selectedPoint = func->addPoint( dataBin2ScreenX( m_lastSelectedBin + 1 ) + m_translationX, 0 );
-				func->addColorPoint( dataBin2ScreenX( m_lastSelectedBin + 1 ) + m_translationX );
+				selectedPoint =	func->addPoint(dataBin2ScreenX(m_lastSelectedBin + 1) - m_xMapper->srcToDst(m_xShift), 0);
+				func->addColorPoint(dataBin2ScreenX(m_lastSelectedBin + 1) - m_xMapper->srcToDst(m_xShift));
 				m_addedHandles.append( m_lastSelectedBin );
 
 				if ( m_firstSelectedBin > m_lastSelectedBin )
@@ -202,16 +201,18 @@ void iARangeSliderDiagramWidget::mouseReleaseEvent( QMouseEvent *event )
 				setupSelectionDrawer();
 
 				//Handle snap
-				func->moveSelectedPoint( dataBin2ScreenX( m_firstSelectedBin ) + m_translationX, 0 );
-				func->moveSelectedPoint( dataBin2ScreenX( m_lastSelectedBin + 1 ) + m_translationX, 0 );
+				func->moveSelectedPoint(dataBin2ScreenX(m_firstSelectedBin) - m_xMapper->srcToDst(m_xShift), 0);
+				func->moveSelectedPoint(dataBin2ScreenX(m_lastSelectedBin + 1) - m_xMapper->srcToDst(m_xShift), 0);
 			}
 		}
 		else if ( event->y() > geometry().height() - bottomMargin() - m_translationY )	// mouse event below X-axis
 		{
 			if ( m_addedHandles.size() == 2 )	// there are two handles draw a selection
 			{
-				if ( m_firstSelectedBin > m_lastSelectedBin )
-					std::swap( m_firstSelectedBin, m_lastSelectedBin );
+				if (m_firstSelectedBin > m_lastSelectedBin)
+				{
+					std::swap(m_firstSelectedBin, m_lastSelectedBin);
+				}
 				setupSelectionDrawer();
 				emit selectionRelesedSignal();
 				emit selected();
@@ -221,11 +222,15 @@ void iARangeSliderDiagramWidget::mouseReleaseEvent( QMouseEvent *event )
 			iAChartFunction *func = *( it + m_selectedFunction );
 
 			//Handle snap
-			if ( func->getSelectedPoint() == 1 )
-				func->moveSelectedPoint( dataBin2ScreenX( m_firstSelectedBin ) + m_translationX, 0 );
+			if (func->getSelectedPoint() == 1)
+			{
+				func->moveSelectedPoint(dataBin2ScreenX(m_firstSelectedBin) - m_xMapper->srcToDst(m_xShift), 0);
+			}
 
-			if ( func->getSelectedPoint() == 2 )
-				func->moveSelectedPoint( dataBin2ScreenX( m_lastSelectedBin + 1 ) + m_translationX, 0 );
+			if (func->getSelectedPoint() == 2)
+			{
+				func->moveSelectedPoint(dataBin2ScreenX(m_lastSelectedBin + 1) - m_xMapper->srcToDst(m_xShift), 0);
+			}
 		}
 	}
 }
@@ -236,9 +241,10 @@ void iARangeSliderDiagramWidget::mouseMoveEvent( QMouseEvent *event )
 	{
 		if ( ( event->modifiers() & Qt::ControlModifier ) == Qt::ControlModifier )
 		{
-			if ( !m_selectionRubberBand->isVisible() || getBin( event ) == -1 )
+			if (!m_selectionRubberBand->isVisible() || getBin(event) == -1)
+			{
 				return;
-
+			}
 			m_selectionRubberBand->setGeometry( QRect( m_selectionOrigin, event->pos() ).normalized() );
 		}
 		else if ( event->y() > geometry().height() - bottomMargin() - m_translationY
@@ -260,15 +266,18 @@ void iARangeSliderDiagramWidget::mouseMoveEvent( QMouseEvent *event )
 
 				if ( m_addedHandles.size() == 2 )
 				{
-					if ( selectedPoint == 1 && getBin( event ) != m_firstSelectedBin )
-						m_firstSelectedBin = getBin( event );
-
-					if ( selectedPoint == 2 && getBin( event ) != m_lastSelectedBin )
-						m_lastSelectedBin = getBin( event );
-
-					if ( m_firstSelectedBin >= m_lastSelectedBin )
-						std::swap( m_firstSelectedBin, m_lastSelectedBin );
-
+					if (selectedPoint == 1 && getBin(event) != m_firstSelectedBin)
+					{
+						m_firstSelectedBin = getBin(event);
+					}
+					if (selectedPoint == 2 && getBin(event) != m_lastSelectedBin)
+					{
+						m_lastSelectedBin = getBin(event);
+					}
+					if (m_firstSelectedBin >= m_lastSelectedBin)
+					{
+						std::swap(m_firstSelectedBin, m_lastSelectedBin);
+					}
 					setupSelectionDrawer();
 					emit selected();
 				}
@@ -302,10 +311,10 @@ int iARangeSliderDiagramWidget::getBin( QMouseEvent *event )
 void iARangeSliderDiagramWidget::setupSelectionDrawer()
 {
 	m_selectedData = createFilteredPlotData( m_data, m_firstSelectedBin, m_lastSelectedBin );
-
-	if ( m_selectionDrawer )
-		removePlot( m_selectionDrawer );
-
+	if (m_selectionDrawer)
+	{
+		removePlot(m_selectionDrawer);
+	}
 	m_selectionDrawer = QSharedPointer<iAStepFunctionPlot>( new iAStepFunctionPlot( m_selectedData, m_selectionColor ) );
 	addPlot( m_selectionDrawer );
 }
@@ -316,9 +325,10 @@ void iARangeSliderDiagramWidget::selectSlot()
 	int f = diagram->m_firstSelectedBin;
 	int l = diagram->m_lastSelectedBin;
 
-	if ( f == -1 && l == -1 )
+	if (f == -1 && l == -1)
+	{
 		return;
-
+	}
 	QMap<double, QList<double> > map = *m_histogramMap;
 
 	QSet<double> set;
@@ -344,9 +354,10 @@ void iARangeSliderDiagramWidget::selectSlot()
 	if ( m_histogramDrawerList.size() )
 	{
 		QListIterator<QSharedPointer<iAStepFunctionPlot> > it( m_histogramDrawerList );
-		while ( it.hasNext() )
-			removePlot( it.next() );
-
+		while (it.hasNext())
+		{
+			removePlot(it.next());
+		}
 		m_histogramDrawerList.clear();
 	}
 
@@ -370,9 +381,10 @@ void iARangeSliderDiagramWidget::deleteSlot()
 	if ( m_histogramDrawerList.size() )
 	{
 		QListIterator<QSharedPointer<iAStepFunctionPlot> > it( m_histogramDrawerList );
-		while ( it.hasNext() )
-			removePlot( it.next() );
-
+		while (it.hasNext())
+		{
+			removePlot(it.next());
+		}
 		m_histogramDrawerList.clear();
 	}
 	update();
@@ -387,9 +399,10 @@ QList<int> iARangeSliderDiagramWidget::getSelectedRawTableRows()
 {
 	QList<int> selectedRawTableRows;
 
-	if ( m_firstSelectedBin == -1 || m_lastSelectedBin == -1 )
+	if (m_firstSelectedBin == -1 || m_lastSelectedBin == -1)
+	{
 		return selectedRawTableRows;
-
+	}
 	QString parameterName = this->m_xLabel;
 	int paramColumn = 0;
 	for ( int j = 0; j < m_rawTable->columnCount(); ++j )

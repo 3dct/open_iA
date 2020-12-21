@@ -21,6 +21,7 @@
 #include "iAProfileWidget.h"
 
 #include "iAMathUtility.h"
+#include "iAMapper.h"
 
 #include <QPainter>
 #include <QToolTip>
