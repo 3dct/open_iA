@@ -87,6 +87,12 @@ void iAFilter::setFirstInputChannels(unsigned int c)
 
 void iAFilter::addOutputValue(QString const & name, QVariant value)
 {
+	if (m_outputValueNames.indexOf(name) == -1)
+	{
+		LOG(lvlDebug,QString("Please consider calling addOutputValue('%1') "
+			"in filter constructor, otherwise some filters (e.g. patch filter) "
+			"might not work as expected!").arg(name));
+	}
 	m_outputValues.push_back(qMakePair(name, value));
 }
 
