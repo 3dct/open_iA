@@ -354,6 +354,10 @@ void iAChartWithFunctionsWidget::changeMode(int newMode, QMouseEvent *event)
 				size_t numPointsBefore = func->numPoints();
 				// if point's x is the same as for an existing point, that point will be selected, instead of a new one created:
 				selectedPoint = func->addPoint(mouseX, mouseY);
+				if (selectedPoint == -1)
+				{
+					return;
+				}
 				// to know whether really a point was added, we need to check whether the number of points has increased:
 				added = numPointsBefore < func->numPoints();
 			}

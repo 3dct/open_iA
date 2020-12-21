@@ -194,7 +194,16 @@ int iAChartTransferFunction::selectPoint(int mouseX, int mouseY)
 
 int iAChartTransferFunction::addPoint(int mouseX, int mouseY)
 {
-	m_selectedPoint = m_tf->opacityTF()->AddPoint(m_chart->mouse2DataX(mouseX), pixelY2Opacity(mouseY));
+	double dataX = m_chart->mouse2DataX(mouseX);
+	double const * tfRange = m_tf->opacityTF()->GetRange();
+	if (dataX < tfRange[0] || dataX > tfRange[1])
+	{
+		LOG(lvlDebug, QString("Will not add point at %1, because it is outside transfer function range (%2, %3)")
+			.arg(dataX).arg(tfRange[0]).arg(tfRange[1]));
+		m_selectedPoint = -1;
+		return -1;
+	}
+	m_selectedPoint = m_tf->opacityTF()->AddPoint(dataX, pixelY2Opacity(mouseY));
 	return m_selectedPoint;
 }
 
