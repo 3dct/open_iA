@@ -20,7 +20,7 @@
 * ************************************************************************************/
 #pragma once
 
-#include "open_iA_Core_export.h"
+#include "base_export.h"
 
 #include "iAGenericFactory.h"
 
@@ -45,7 +45,7 @@ template <typename iAFilterDerived> using iAFilterFactory = iASpecificFactory<iA
 //! execution of the filter with the currently active window as input.
 //! The class is meant to be used statically (Follows the singleton pattern),
 //! the creation of objects of this class is thus prohibited.
-class open_iA_Core_API iAFilterRegistry
+class base_API iAFilterRegistry
 {
 public:
 	//! Adds a given filter factory to the registry, which will be run with the default

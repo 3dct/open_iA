@@ -18,42 +18,20 @@
 * Contact: FH OÖ Forschungs & Entwicklungs GmbH, Campus Wels, CT-Gruppe,              *
 *          Stelzhamerstraße 23, 4600 Wels / Austria, Email: c.heinzl@fh-wels.at       *
 * ************************************************************************************/
-#include "iAFilterRegistry.h"
+#pragma once
 
-#include "iALog.h"
-#include "iAFilter.h"
-#include "iAFilterRunnerGUI.h"
+#include "base_export.h"
 
-void iAFilterRegistry::addFilterFactory(QSharedPointer<iAIFilterFactory> factory)
-{
-	m_filters.push_back(factory);
-}
+#include "iAAttributeDescriptor.h"
 
-QVector<QSharedPointer<iAIFilterFactory>> const & iAFilterRegistry::filterFactories()
-{
-	return m_filters;
-}
+#include <QVector>
+#include <QSharedPointer>
 
-QSharedPointer<iAFilter> iAFilterRegistry::filter(QString const & name)
-{
-	int id = filterID(name);
-	return id == -1 ? QSharedPointer<iAFilter>() : m_filters[id]->create();
-}
+class QTextStream;
 
-int iAFilterRegistry::filterID(QString const & name)
-{
-	int cur = 0;
-	for (auto filterFactory : m_filters)
-	{
-		auto filter = filterFactory->create();
-		if (filter->name() == name)
-		{
-			return cur;
-		}
-		++cur;
-	}
-	LOG(lvlError, QString("Filter '%1' not found!").arg(name));
-	return -1;
-}
+using iAAttributes = QVector<QSharedPointer<iAAttributeDescriptor>>;
 
-QVector<QSharedPointer<iAIFilterFactory> > iAFilterRegistry::m_filters;
+base_API QSharedPointer<iAAttributes> createAttributes(QTextStream& in);
+base_API void storeAttributes(QTextStream& out, iAAttributes const& attributes);
+base_API int findAttribute(iAAttributes const& attributes, QString const& name);
+base_API int countAttributes(iAAttributes const& attributes, iAAttributeDescriptor::iAAttributeType type = iAAttributeDescriptor::None);

@@ -20,7 +20,7 @@
 * ************************************************************************************/
 #pragma once
 
-#include "open_iA_Core_export.h"
+#include "base_export.h"
 
 #include "iAAbortListener.h"
 #include "iAAttributes.h"
@@ -49,7 +49,7 @@ class iAProgress;
 //!     - override the SetParameters method to transfer the parameters to the actual algorithm
 //!     - override the Run method to perform the actual calculations
 //!       on m_inImg and (allocate and) store the result in m_outImg
-class open_iA_Core_API iAFilter: public iAAbortListener
+class base_API iAFilter: public iAAbortListener
 {
 public:
 	//! Constructor initializing name, category and description of the filter

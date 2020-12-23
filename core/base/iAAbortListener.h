@@ -20,18 +20,24 @@
 * ************************************************************************************/
 #pragma once
 
-#include "open_iA_Core_export.h"
+#include "base_export.h"
 
-#include <iAAttributeDescriptor.h>
+class base_API iAAbortListener
+{
+public:
+	virtual void abort() =0;
+};
 
-#include <QVector>
-#include <QSharedPointer>
-
-class QTextStream;
-
-using iAAttributes = QVector<QSharedPointer<iAAttributeDescriptor>>;
-
-open_iA_Core_API QSharedPointer<iAAttributes> createAttributes(QTextStream& in);
-open_iA_Core_API void storeAttributes(QTextStream& out, iAAttributes const& attributes);
-open_iA_Core_API int findAttribute(iAAttributes const& attributes, QString const& name);
-open_iA_Core_API int countAttributes(iAAttributes const& attributes, iAAttributeDescriptor::iAAttributeType type = iAAttributeDescriptor::None);
+//! a simple implementation of an iAAbortListener -
+//! it holds a boolean flag that is set by the abort method.
+//! Users can determine whether abort was called through the isAborted method
+//! Implementation can be found in iAJobListView.cpp
+class base_API iASimpleAbortListener : public iAAbortListener
+{
+public:
+	iASimpleAbortListener();
+	void abort() override;
+	bool isAborted() const;
+private:
+	bool m_aborted;
+};
