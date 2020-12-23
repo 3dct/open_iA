@@ -40,7 +40,7 @@ void iAPolygonPrimitivesModuleInterface::Initialize()
 	}
 	QAction* actionAddObject = new QAction(Title, m_mainWnd);
 	connect(actionAddObject, &QAction::triggered, this, &iAPolygonPrimitivesModuleInterface::addObject);
-	makeActionChildDependent(actionAddObject);
+	m_mainWnd->makeActionChildDependent(actionAddObject);
 	addToMenuSorted(m_mainWnd->toolsMenu(), actionAddObject);
 }
 

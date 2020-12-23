@@ -116,7 +116,6 @@ MainWindow::MainWindow(QString const & appName, QString const & version, QString
 
 	createRecentFileActions();
 	connectSignalsToSlots();
-	updateMenus();
 	m_slicerToolsGroup = new QActionGroup(this);
 	m_slicerToolsGroup->setExclusive(false);
 	m_slicerToolsGroup->addAction(actionSnakeSlicer);
@@ -142,7 +141,7 @@ MainWindow::MainWindow(QString const & appName, QString const & version, QString
 	this->layoutToolbar->insertWidget(this->actionSaveLayout, m_layout);
 
 	m_moduleDispatcher->InitializeModules(iALogWidget::get());
-	setModuleActionsEnabled( false );
+	updateMenus();
 	statusBar()->showMessage(tr("Ready"));
 }
 
@@ -1682,6 +1681,7 @@ void MainWindow::updateMenus()
 		actionDeletePoint->setEnabled(false);
 		actionChangeColor->setEnabled(false);
 	}
+	setModuleActionsEnabled(hasMdiChild);
 }
 
 void MainWindow::updateMagicLens2DCheckState(bool enabled)
@@ -1735,8 +1735,6 @@ MdiChild* MainWindow::createMdiChild(bool unsavedChanges)
 	connect(child, &MdiChild::endPointSelected, this, &MainWindow::endPointSelected);
 	connect(child, &MdiChild::active, this, &MainWindow::setHistogramFocus);
 	connect(child, &MdiChild::closed, this, &MainWindow::childClosed);
-
-	setModuleActionsEnabled( true );
 
 	m_moduleDispatcher->ChildCreated(child);
 	return child;
@@ -2377,9 +2375,22 @@ QMdiSubWindow* MainWindow::addSubWindow( QWidget * child )
 	return mdiArea->addSubWindow( child );
 }
 
+void MainWindow::makeActionChildDependent(QAction* action)
+{
+	m_childDependentActions.push_back(action);
+}
+
 void MainWindow::setModuleActionsEnabled( bool isEnabled )
 {
-	m_moduleDispatcher->SetModuleActionsEnabled(isEnabled);
+	for (int i = 0; i < m_childDependentActions.size(); ++i)
+	{
+		m_childDependentActions[i]->setEnabled(isEnabled);
+		QMenu* actMenu = m_childDependentActions[i]->menu();
+		if (actMenu)
+		{
+			actMenu->setEnabled(isEnabled);
+		}
+	}
 }
 
 void MainWindow::childClosed()
@@ -2391,6 +2402,7 @@ void MainWindow::childClosed()
 	}
 	// magic lens size can be modified in the slicers as well; make sure to store this change:
 	m_defaultPreferences.MagicLensSize = sender->magicLensSize();
+	/*
 	if( mdiArea->subWindowList().size() == 1 )
 	{
 		MdiChild * child = dynamic_cast<MdiChild*> ( mdiArea->subWindowList().at( 0 )->widget() );
@@ -2403,6 +2415,7 @@ void MainWindow::childClosed()
 			setModuleActionsEnabled(false);
 		}
 	}
+	*/
 }
 
 void MainWindow::saveProject()

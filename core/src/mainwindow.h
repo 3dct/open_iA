@@ -125,6 +125,7 @@ public:
 	void closeAllSubWindows();
 	void updateInteractionModeControls(int mode);
 	void updateMagicLens2DCheckState(bool enabled);
+	void makeActionChildDependent(QAction* action);
 
 public slots:
 	void loadLayout();
@@ -249,6 +250,8 @@ private:
 	QTimer *m_splashTimer, *m_quitTimer;
 	QComboBox * m_layout;
 	QScopedPointer<iAModuleDispatcher> m_moduleDispatcher;
+	//! actions from modules which should only be enabled when a child is active:
+	QVector<QAction*> m_childDependentActions;
 	QStringList m_layoutNames;
 	QString m_gitVersion, m_buildInformation;
 };

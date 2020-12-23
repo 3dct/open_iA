@@ -32,7 +32,7 @@ void iABoneThicknessModuleInterface::Initialize( )
 	}
 	QAction* actionBoneThickness = new QAction(tr("Bone thickness"), m_mainWnd);
 	connect(actionBoneThickness, &QAction::triggered, this, &iABoneThicknessModuleInterface::slotBoneThickness);
-	makeActionChildDependent(actionBoneThickness);
+	m_mainWnd->makeActionChildDependent(actionBoneThickness);
 	addToMenuSorted(m_mainWnd->toolsMenu(), actionBoneThickness);
 }
 

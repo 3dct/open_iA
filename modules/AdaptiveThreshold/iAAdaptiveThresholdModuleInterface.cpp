@@ -42,7 +42,7 @@ void iAAdaptiveThresholdModuleInterface::Initialize()
 	}
 	QAction * determineThresholdAction = new QAction(tr("Adaptive Thresholding"), m_mainWnd);
 	connect(determineThresholdAction, &QAction::triggered, this, &iAAdaptiveThresholdModuleInterface::determineThreshold);
-	makeActionChildDependent(determineThresholdAction);
+	m_mainWnd->makeActionChildDependent(determineThresholdAction);
 	addToMenuSorted(m_mainWnd->toolsMenu(), determineThresholdAction);
 }
 

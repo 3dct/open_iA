@@ -88,7 +88,7 @@ void iAGEMSeModuleInterface::Initialize()
 	iAProjectRegistry::addProject<iAGEMSeProject>(iAGEMSeProject::ID);
 
 	QAction * actionGEMSe = new QAction(tr("GEMSe"), m_mainWnd);
-	makeActionChildDependent(actionGEMSe);
+	m_mainWnd->makeActionChildDependent(actionGEMSe);
 	connect(actionGEMSe, &QAction::triggered, this, &iAGEMSeModuleInterface::startGEMSe);
 
 	QAction * actionPreCalculated = new QAction(tr("GEMSe - Load Ensemble (old)"), m_mainWnd);

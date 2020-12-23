@@ -32,7 +32,7 @@ void iAFoamCharacterizationModuleInterface::Initialize( )
 	}
 	QAction* actionFoamCharacterization(new QAction(tr("Foam characterization"), m_mainWnd));
 	connect(actionFoamCharacterization, &QAction::triggered, this, &iAFoamCharacterizationModuleInterface::slotFoamCharacterization);
-	makeActionChildDependent(actionFoamCharacterization);
+	m_mainWnd->makeActionChildDependent(actionFoamCharacterization);
 	addToMenuSorted(m_mainWnd->toolsMenu(), actionFoamCharacterization);
 }
 

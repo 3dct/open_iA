@@ -38,7 +38,6 @@ class iALogger;
 class MdiChild;
 class MainWindow;
 
-class QAction;
 class QFileInfo;
 class QMenu;
 
@@ -71,17 +70,14 @@ public:
 	void InitializeModules(iALogger* logger);
 	void SaveModulesSettings() const;
 	MainWindow * GetMainWnd() const;
-	void SetModuleActionsEnabled( bool isEnabled );
 	template <typename T> T* GetModule();
 	void ChildCreated(MdiChild* child);
-	void makeActionChildDependent(QAction * action);
 private slots:
 	void executeFilter();
 	void removeFilter();
 	void selectAndRunFilter();
 private:
 	MainWindow * m_mainWnd;
-	QVector< QAction* > m_childDependentActions;
 	QVector< iALoadedModule > m_loadedModules;
 	QVector< QSharedPointer<iAFilterRunnerGUI> > m_runningFilters;
 	QString m_rootPath;

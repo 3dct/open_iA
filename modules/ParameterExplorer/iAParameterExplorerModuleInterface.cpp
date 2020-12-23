@@ -37,11 +37,11 @@ void iAParameterExplorerModuleInterface::Initialize()
 		return;
 	}
 	QAction * actionExplore = new QAction(tr("Parameter Explorer"), m_mainWnd);
-	makeActionChildDependent(actionExplore);
+	m_mainWnd->makeActionChildDependent(actionExplore);
 	connect(actionExplore, &QAction::triggered, this, &iAParameterExplorerModuleInterface::StartParameterExplorer);
 
 	QAction * actionLoad = new QAction(tr("Load Parameter Explorer State"), m_mainWnd);
-	makeActionChildDependent(actionLoad);
+	m_mainWnd->makeActionChildDependent(actionLoad);
 	connect(actionLoad, &QAction::triggered, this, &iAParameterExplorerModuleInterface::LoadState);
 
 	QMenu* submenu = getOrAddSubMenu(m_mainWnd->toolsMenu(), tr("Image Ensembles"), true);

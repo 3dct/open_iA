@@ -26,7 +26,6 @@
 #include <QObject>
 #include <QVector>
 
-class iAModuleDispatcher;
 class MainWindow;
 class MdiChild;
 
@@ -50,8 +49,6 @@ public:
 	virtual ~iAModuleInterface();
 	//! Called by the module dispatcher on module initialization. There should be no need to call this method from user code
 	void SetMainWindow( MainWindow * mainWnd );
-	//! Called by the module dispatcher on module initialization. There should be no need to call this method from user code
-	void SetDispatcher( iAModuleDispatcher * dispatcher );
 	//! Override to add references to the module in the core code, for example menu entries.
 	virtual void Initialize() = 0;		// TODO: split up into GUI part and other?
 	//! Override to store custom settings of this module; called when program is shut down.
@@ -70,9 +67,6 @@ protected:
 	//! @note: current mdi child is determined through m_mdiChild member
 	//!       which is _not_ automatically updated to the active mdi child!
 	bool isAttached();
-	//! State that an action should be enabled or disabled depending on whether a child window is open or not
-	//! @param action the action to enable/disable
-	void makeActionChildDependent(QAction * action);
 	//! Create a new attachment for the given child.
 	virtual iAModuleAttachmentToChild * CreateAttachment( MainWindow* mainWnd, MdiChild * child );
 	//! Get an attachment of the current mdi child.
@@ -83,7 +77,6 @@ protected:
 	bool AttachToMdiChild( MdiChild * child );
 
 	MainWindow * m_mainWnd;            //!< access to the main window
-	iAModuleDispatcher * m_dispatcher; //!< access to the module dispatcher
 	//! "current" mdi child
 	//! @deprecated use direct access via MainWindow methods
 	MdiChild * m_mdiChild;

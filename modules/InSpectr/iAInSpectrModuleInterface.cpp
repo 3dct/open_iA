@@ -33,7 +33,7 @@ void iAInSpectrModuleInterface::Initialize()
 	}
 	QAction * actionInSpectr = new QAction(tr("InSpectr"), m_mainWnd);
 	connect(actionInSpectr, &QAction::triggered, this, &iAInSpectrModuleInterface::startInSpectr);
-	makeActionChildDependent(actionInSpectr);
+	m_mainWnd->makeActionChildDependent(actionInSpectr);
 	addToMenuSorted(m_mainWnd->toolsMenu(), actionInSpectr);
 }
 

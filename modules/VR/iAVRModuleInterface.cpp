@@ -51,7 +51,7 @@ void iAVRModuleInterface::Initialize()
 
 	QAction * actionVRRender = new QAction(tr("Rendering"), m_mainWnd);
 	connect(actionVRRender, &QAction::triggered, this, &iAVRModuleInterface::render);
-	makeActionChildDependent(actionVRRender);
+	m_mainWnd->makeActionChildDependent(actionVRRender);
 
 	m_actionVRShowFibers = new QAction(tr("Show Fibers"), m_mainWnd);
 	connect(m_actionVRShowFibers, &QAction::triggered, this, &iAVRModuleInterface::showFibers);

@@ -35,7 +35,7 @@ void iAFuzzyFeatureTrackingModuleInterface::Initialize()
 	}
 	QAction * actionFuzzyFeatureTracking = new QAction(tr("Fuzzy Feature Tracking"), m_mainWnd);
 	connect(actionFuzzyFeatureTracking, &QAction::triggered, this, &iAFuzzyFeatureTrackingModuleInterface::start_FuzzyFeatureTracking);
-	makeActionChildDependent(actionFuzzyFeatureTracking);
+	m_mainWnd->makeActionChildDependent(actionFuzzyFeatureTracking);
 	QMenu* featureAnalysisMenu = getOrAddSubMenu(m_mainWnd->toolsMenu(), tr("Feature Analysis"), true);
 	featureAnalysisMenu->addAction(actionFuzzyFeatureTracking);
 }

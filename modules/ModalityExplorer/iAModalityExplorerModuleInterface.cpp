@@ -34,7 +34,7 @@ void iAModalityExplorerModuleInterface::Initialize()
 	}
 	QAction * actionModalitySPLOM = new QAction(tr("Modality SPLOM"), m_mainWnd);
 	connect(actionModalitySPLOM, &QAction::triggered, this, &iAModalityExplorerModuleInterface::ModalitySPLOM);
-	makeActionChildDependent(actionModalitySPLOM);
+	m_mainWnd->makeActionChildDependent(actionModalitySPLOM);
 
 	QMenu* submenu = getOrAddSubMenu(m_mainWnd->toolsMenu(), tr("Multi-Modal/-Channel Images"));
 	addToMenuSorted(submenu, actionModalitySPLOM);

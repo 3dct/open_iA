@@ -167,7 +167,6 @@ iAModuleDispatcher::~iAModuleDispatcher()
 void iAModuleDispatcher::initializeModuleInterface(iAModuleInterface* m)
 {
 	m->SetMainWindow(m_mainWnd);
-	m->SetDispatcher(this);
 	m->Initialize();
 }
 
@@ -232,7 +231,7 @@ void iAModuleDispatcher::InitializeModules(iALogger* logger)
 		}
 		QAction * filterAction = new QAction(tr(filter->name().toStdString().c_str()), m_mainWnd);
 		addToMenuSorted(filterMenu, filterAction);
-		makeActionChildDependent(filterAction);
+		m_mainWnd->makeActionChildDependent(filterAction);
 		filterAction->setData(i);
 		connect(filterAction, &QAction::triggered, this, &iAModuleDispatcher::executeFilter);
 	}
@@ -244,7 +243,7 @@ void iAModuleDispatcher::InitializeModules(iALogger* logger)
 	{
 		QMenu * filterMenu = m_mainWnd->filtersMenu();
 		QAction * selectAndRunFilterAction = new QAction(tr("Select and Run Filter..."), m_mainWnd);
-		makeActionChildDependent(selectAndRunFilterAction);
+		m_mainWnd->makeActionChildDependent(selectAndRunFilterAction);
 		filterMenu->insertAction(filterMenu->actions()[0], selectAndRunFilterAction);
 		connect(selectAndRunFilterAction, &QAction::triggered, this, &iAModuleDispatcher::selectAndRunFilter);
 	}
@@ -303,19 +302,6 @@ MainWindow * iAModuleDispatcher::GetMainWnd() const
 	return m_mainWnd;
 }
 
-void iAModuleDispatcher::SetModuleActionsEnabled( bool isEnabled )
-{
-	for (int i = 0; i < m_childDependentActions.size(); ++i)
-	{
-		m_childDependentActions[i]->setEnabled(isEnabled);
-		QMenu* actMenu = m_childDependentActions[i]->menu();
-		if (actMenu)
-		{
-			actMenu->setEnabled(isEnabled);
-		}
-	}
-}
-
 void iAModuleDispatcher::ChildCreated(MdiChild* child)
 {
 	// notify all modules that a new child was created:
@@ -323,9 +309,4 @@ void iAModuleDispatcher::ChildCreated(MdiChild* child)
 	{
 		m.moduleInterface->ChildCreated(child);
 	}
-}
-
-void  iAModuleDispatcher::makeActionChildDependent(QAction* action)
-{
-	m_childDependentActions.push_back(action);
 }

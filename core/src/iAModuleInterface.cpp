@@ -21,7 +21,6 @@
 #include "iAModuleInterface.h"
 
 #include "iALog.h"
-#include "iAModuleDispatcher.h"
 #include "iAModuleAttachmentToChild.h"
 #include "mainwindow.h"
 #include "mdichild.h"
@@ -55,14 +54,8 @@ void iAModuleInterface::SetMainWindow( MainWindow * mainWnd )
 	m_mainWnd = mainWnd;
 }
 
-void iAModuleInterface::SetDispatcher( iAModuleDispatcher * dispatcher )
-{
-	m_dispatcher = dispatcher;
-}
-
 iAModuleInterface::iAModuleInterface():
 	m_mainWnd(nullptr),
-	m_dispatcher(nullptr),
 	m_mdiChild(nullptr)
 {}
 
@@ -122,15 +115,12 @@ bool iAModuleInterface::isAttached()
 	//check if already attached
 	for( int i = 0; i < m_attachments.size(); ++i )
 	{
-		if( m_attachments[i]->getMdiChild() == m_mdiChild )
+		if (m_attachments[i]->getMdiChild() == m_mdiChild)
+		{
 			return true;
+		}
 	}
 	return false;
-}
-
-void iAModuleInterface::makeActionChildDependent(QAction * action)
-{
-	m_dispatcher->makeActionChildDependent(action);
 }
 
 iAModuleAttachmentToChild * iAModuleInterface::CreateAttachment( MainWindow * /*mainWnd*/, MdiChild * /*child*/ )
