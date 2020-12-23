@@ -26,6 +26,6 @@
 
 open_iA_Core_API QString logLevelToString(iALogLevel lvl);
 open_iA_Core_API iALogLevel stringToLogLevel(QString const& str, bool& ok);
-QStringList AvailableLogLevels();
+open_iA_Core_API QStringList AvailableLogLevels();
 
 // implementation in iALog.cpp

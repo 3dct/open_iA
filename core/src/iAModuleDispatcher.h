@@ -61,7 +61,7 @@ struct open_iA_Core_API iALoadedModule
 };
 
 //! Responsible for managing (i.e. loading, initializing and properly shutting down) all modules existing in the plugin folder.
-class iAModuleDispatcher: public QObject
+class open_iA_Core_API iAModuleDispatcher : public QObject
 {
 	Q_OBJECT
 public:

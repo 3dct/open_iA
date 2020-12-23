@@ -20,8 +20,6 @@
 * ************************************************************************************/
 #pragma once
 
-#include "open_iA_Core_export.h"
-
 #include <QObject>
 
 class iACommandLineProgressIndicator : public QObject
@@ -37,4 +35,4 @@ private:
 	bool m_quiet;
 };
 
-open_iA_Core_API int ProcessCommandLine(int argc, char const * const * argv, const char * version);
+int ProcessCommandLine(int argc, char const * const * argv, const char * version);
