@@ -23,6 +23,7 @@
 #include "iAGraphWeights.h"
 #include "iAImageGraph.h"
 #include "iANormalizerImpl.h"
+#include "iASeedType.h"
 #include "iAVectorArrayImpl.h"
 #include "iAVectorDistanceImpl.h"
 
@@ -31,13 +32,11 @@
 #ifndef NDEBUG
 #include <iAMathUtility.h>    // for dblApproxEqual used in assert
 #endif
-#include <iASeedType.h>
+#include <iAToolsVTK.h>
 #include <iATypedCallHelper.h>
 #include <iAToolsITK.h>
 
 #include <vtkImageData.h>
-
-#include <QSet>
 
 #ifdef USE_EIGEN
 
@@ -59,9 +58,10 @@ typedef vnl_sparse_matrix<double> MatrixType;
 typedef vnl_vector<double> VectorType;
 
 #endif
-#include "iAToolsVTK.h"
-#include "QFile"
-#include "QTextStream"
+
+#include <QFile>
+#include <QSet>
+#include <QTextStream>
 
 
 namespace
