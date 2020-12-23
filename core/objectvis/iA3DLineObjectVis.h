@@ -20,29 +20,31 @@
 * ************************************************************************************/
 #pragma once
 
-#include "iA3DLineObjectVis.h"
+#include "iA3DColoredPolyObjectVis.h"
 
-class iAvtkTubeFilter;
+#include <iAVec3.h>
 
-class FeatureScout_API iA3DCylinderObjectVis: public iA3DLineObjectVis
+#include <vtkSmartPointer.h>
+
+class vtkPoints;
+
+class objectvis_API iA3DLineObjectVis : public iA3DColoredPolyObjectVis
 {
-private:
-	vtkSmartPointer<iAvtkTubeFilter> m_tubeFilter;
-	float* m_contextFactors;
-	IndexType m_objectCount;
-	float m_contextDiameterFactor;
-	std::map<size_t, std::vector<iAVec3f> > m_curvedFiberData;
-	bool m_lines;
 public:
-	static const int DefaultNumberOfCylinderSides = 12;
-	iA3DCylinderObjectVis(vtkRenderer* ren, vtkTable* objectTable, QSharedPointer<QMap<uint, uint> > columnMapping,
-		QColor const & color, std::map<size_t, std::vector<iAVec3f> > const & curvedFiberData,
-		int numberOfCylinderSides = DefaultNumberOfCylinderSides, size_t segmentSkip = 1);
-	virtual ~iA3DCylinderObjectVis();
-	void setDiameterFactor(double diameterFactor);
-	void setContextDiameterFactor(double contextDiameterFactor);
-	void setSelection(std::vector<size_t> const & sortedSelInds, bool selectionActive) override;
+	// TODO: unify curved fiber data between here and updateValues!
+	iA3DLineObjectVis(vtkRenderer* ren, vtkTable* objectTable, QSharedPointer<QMap<uint, uint> > columnMapping,
+		QColor const & color, std::map<size_t, std::vector<iAVec3f> > const & curvedFiberData, size_t segmentSkip );
+	void updateValues( std::vector<std::vector<double> > const & values, int straightOrCurved);
+	vtkPolyData* getPolyData() override;
 	QString visualizationStatistics() const override;
-	void setShowLines(bool lines) override;
+protected:
+	IndexType objectStartPointIdx(IndexType objIdx) const override;
+	IndexType objectPointCount(IndexType objIdx) const override;
+	vtkSmartPointer<vtkPolyData> m_linePolyData;
+	vtkSmartPointer<vtkPoints> m_points;
+private:
+	//! maps the object ID to (first=) the first index in the points array that belongs to this object, and (second=) the number of points
+	std::vector<std::pair<IndexType, IndexType>> m_objectPointMap;
+	IndexType m_totalNumOfSegments;
 };
 

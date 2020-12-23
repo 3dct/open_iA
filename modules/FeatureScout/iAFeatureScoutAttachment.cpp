@@ -22,7 +22,7 @@
 
 #include "dlg_FeatureScout.h"
 #include "iABlobCluster.h"
-#include "iAFeatureScoutObjectType.h"
+#include "iAObjectType.h"
 
 #include <iARenderer.h>
 #include <mainwindow.h>
@@ -44,7 +44,7 @@ void iAFeatureScoutAttachment::init(int filterID, QString const & fileName, vtkS
 	int visType, QSharedPointer<QMap<uint, uint> > columnMapping, std::map<size_t,
 	std::vector<iAVec3f> > & curvedFiberInfo, int cylinderQuality, size_t segmentSkip)
 {
-	imgFS = new dlg_FeatureScout(m_child, static_cast<iAFeatureScoutObjectType>(filterID),
+	imgFS = new dlg_FeatureScout(m_child, static_cast<iAObjectType>(filterID),
 		fileName, m_child->renderer()->renderer(), csvtbl, visType, columnMapping, curvedFiberInfo, cylinderQuality, segmentSkip);
 }
 

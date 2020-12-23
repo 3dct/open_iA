@@ -23,10 +23,8 @@
 #include "iAVREnvironment.h"
 
 // FeatureScout - 3D cylinder visualization
-#include "dlg_CSVInput.h"
 #include "iA3DCylinderObjectVis.h"
 #include "iACsvConfig.h"
-#include "iACsvVtkTableCreator.h"
 
 #include <qthelper/iADockWidgetWrapper.h>
 #include <iAModality.h>

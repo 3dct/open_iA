@@ -22,17 +22,21 @@
 
 #include "iACsvIO.h"
 
-#include "FeatureScout_export.h"
+#include "objectvis_export.h"
 
-class QTableWidget;
+#include <vector>
 
-class FeatureScout_API iACsvQTableCreator : public iACsvTableCreator
+class objectvis_API iACsvVectorTableCreator : public iACsvTableCreator
 {
 public:
-	iACsvQTableCreator(QTableWidget* tblWidget);
+	using ValueType = double;
+	using TableType = std::vector<std::vector<ValueType>>;
+	iACsvVectorTableCreator();
 	void initialize(QStringList const & headers, size_t const rowCount) override;
 	void addRow(size_t row, QStringList const & values) override;
-	QTableWidget* table();
+	TableType const & table();
+	QStringList const& header();
 private:
-	QTableWidget* m_table;
+	QStringList m_header;
+	TableType m_values;   //!< output values
 };

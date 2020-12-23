@@ -35,7 +35,7 @@ class vtkPolyData;
 class vtkPolyDataMapper;
 class vtkUnsignedCharArray;
 
-class FeatureScout_API iA3DColoredPolyObjectVis : public iA3DObjectVis
+class objectvis_API iA3DColoredPolyObjectVis : public iA3DObjectVis
 {
 public:
 	static const int DefaultContextOpacity = 8;

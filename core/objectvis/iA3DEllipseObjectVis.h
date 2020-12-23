@@ -20,15 +20,25 @@
 * ************************************************************************************/
 #pragma once
 
-#include <QString>
+#include "iA3DColoredPolyObjectVis.h"
 
-enum iAFeatureScoutObjectType
+#include <vtkSmartPointer.h>
+
+class vtkPolyData;
+
+class objectvis_API iA3DEllipseObjectVis : public iA3DColoredPolyObjectVis
 {
-	InvalidObjectType = -1,
-	Fibers,
-	Voids,
-	Other
+public:
+	static const int DefaultPhiRes = 10;
+	static const int DefaultThetaRes = 10;
+	iA3DEllipseObjectVis(vtkRenderer* ren, vtkTable* objectTable, QSharedPointer<QMap<uint, uint> > columnMapping,
+		QColor const & color, int phiRes = DefaultPhiRes, int thetaRes = DefaultThetaRes);
+	double const * bounds() override;
+	vtkPolyData* getPolyData() override;
+	QString visualizationStatistics() const override;
+private:
+	vtkSmartPointer<vtkPolyData> m_fullPoly;
+	IndexType m_pointsPerEllipse;
+	IndexType objectStartPointIdx(IndexType objIdx) const override;
+	IndexType objectPointCount(IndexType objIdx) const override;
 };
-
-QString MapObjectTypeToString(int objectType);
-iAFeatureScoutObjectType MapStringToObjectType(QString const & objectTypeName);

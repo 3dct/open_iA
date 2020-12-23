@@ -27,7 +27,7 @@
 #include <iAPerformanceHelper.h>
 #include <iAToolsVTK.h>
 #include <iATypedCallHelper.h>
-#include <iAvec3.h>
+#include <iAVec3.h>
 #include <mainwindow.h>
 #include <mdichild.h>
 

@@ -18,23 +18,20 @@
 * Contact: FH OÖ Forschungs & Entwicklungs GmbH, Campus Wels, CT-Gruppe,              *
 *          Stelzhamerstraße 23, 4600 Wels / Austria, Email: c.heinzl@fh-wels.at       *
 * ************************************************************************************/
-#include "iAFeatureScoutObjectType.h"
+#pragma once
 
-QString MapObjectTypeToString(int objectType)
-{
-	return (objectType == iAFeatureScoutObjectType::Fibers) ? "Fibers" :
-		(objectType == iAFeatureScoutObjectType::Voids) ? "Voids" :
-		(objectType == iAFeatureScoutObjectType::Other) ? "Other" : "Invalid";
-}
+#include "iA3DObjectVis.h"
 
-iAFeatureScoutObjectType MapStringToObjectType(QString const & objectTypeName)
+class objectvis_API iA3DNoVis : public iA3DObjectVis
 {
-	if (objectTypeName == "Voids")
-		return iAFeatureScoutObjectType::Voids;
-	else if (objectTypeName == "Fibers")
-		return iAFeatureScoutObjectType::Fibers;
-	else if (objectTypeName == "Other")
-		return iAFeatureScoutObjectType::Other;
-	else
-		return iAFeatureScoutObjectType::InvalidObjectType;
-}
+public:
+	iA3DNoVis();
+	void renderSelection(std::vector<size_t> const & sortedSelInds, int classID, QColor const & classColor, QStandardItem* activeClassItem) override;
+	void renderSingle(IndexType selectedObjID, int classID, QColor const & classColor, QStandardItem* activeClassItem) override;
+	void multiClassRendering(QList<QColor> const & classColors, QStandardItem* rootItem, double alpha) override;
+	void renderOrientationDistribution(vtkImageData* oi) override;
+	void renderLengthDistribution(vtkColorTransferFunction* cTFun, vtkFloatArray* extents, double halfInc, int filterID, double const * range) override;
+	double const * bounds() override;
+private:
+	double m_dummyBounds[6];
+};

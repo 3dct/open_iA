@@ -31,7 +31,7 @@
 #include "iABlobManager.h"
 #include "iACsvIO.h"
 #include "iAFeatureScoutSPLOM.h"
-#include "iAFeatureScoutObjectType.h"
+#include "iAObjectType.h"
 #include "iAMeanObjectTFView.h"
 
 #include <dlg_commoninput.h>
@@ -246,7 +246,7 @@ ColormapFuncPtr colormapsIndex[] =
 
 const int dlg_FeatureScout::PCMinTicksCount = 2;
 
-dlg_FeatureScout::dlg_FeatureScout(MdiChild* parent, iAFeatureScoutObjectType fid, QString const& fileName, vtkRenderer* blobRen,
+dlg_FeatureScout::dlg_FeatureScout(MdiChild* parent, iAObjectType fid, QString const& fileName, vtkRenderer* blobRen,
 	vtkSmartPointer<vtkTable> csvtbl, int vis, QSharedPointer<QMap<uint, uint> > columnMapping,
 	std::map<size_t, std::vector<iAVec3f> >& curvedFiberInfo, int cylinderQuality, size_t segmentSkip) :
 	QDockWidget(parent),
@@ -422,7 +422,7 @@ void dlg_FeatureScout::initColumnVisibility()
 {
 	m_columnVisibility.resize(m_elementCount);
 	std::fill(m_columnVisibility.begin(), m_columnVisibility.end(), false);
-	if (m_filterID == iAFeatureScoutObjectType::Fibers) // Fibers - (a11, a22, a33,) theta, phi, xm, ym, zm, straightlength, diameter(, volume)
+	if (m_filterID == iAObjectType::Fibers) // Fibers - (a11, a22, a33,) theta, phi, xm, ym, zm, straightlength, diameter(, volume)
 	{
 		m_columnVisibility[(*m_columnMapping)[iACsvConfig::Theta]] =
 			m_columnVisibility[(*m_columnMapping)[iACsvConfig::Phi]] =
@@ -432,7 +432,7 @@ void dlg_FeatureScout::initColumnVisibility()
 			m_columnVisibility[(*m_columnMapping)[iACsvConfig::Length]] =
 			m_columnVisibility[(*m_columnMapping)[iACsvConfig::Diameter]] = true;
 	}
-	else if (m_filterID == iAFeatureScoutObjectType::Voids) // Pores - (volume, dimx, dimy, dimz,) posx, posy, posz(, shapefactor)
+	else if (m_filterID == iAObjectType::Voids) // Pores - (volume, dimx, dimy, dimz,) posx, posy, posz(, shapefactor)
 	{
 		m_columnVisibility[(*m_columnMapping)[iACsvConfig::CenterX]] =
 			m_columnVisibility[(*m_columnMapping)[iACsvConfig::CenterY]] =
@@ -1062,7 +1062,7 @@ void dlg_FeatureScout::RenderMeanObject()
 		m_MOData.moHistogramList.append(moHistogram);
 
 		// Create MObject default Transfer Tunctions
-		if (m_filterID == iAFeatureScoutObjectType::Fibers) // Fibers
+		if (m_filterID == iAObjectType::Fibers) // Fibers
 		{
 			m_MOData.moHistogramList[currClass - 1]->colorTF()->AddRGBPoint(0.0, 0.0, 0.0, 0.0);
 			m_MOData.moHistogramList[currClass - 1]->colorTF()->AddRGBPoint(0.01, 1.0, 1.0, 0.0);
@@ -1547,7 +1547,7 @@ void dlg_FeatureScout::RenderLengthDistribution()
 	auto length = vtkDataArray::SafeDownCast(m_csvTable->GetColumn(m_columnMapping->value(iACsvConfig::Length)));
 	QString title = QString("%1 Frequency Distribution").arg(m_csvTable->GetColumnName(m_columnMapping->value(iACsvConfig::Length)));
 	m_dwPP->setWindowTitle(title);
-	int numberOfBins = (m_filterID == iAFeatureScoutObjectType::Fibers) ? 8 : 3;  // TODO: setting?
+	int numberOfBins = (m_filterID == iAObjectType::Fibers) ? 8 : 3;  // TODO: setting?
 
 	length->GetRange(range);
 	if (range[0] == range[1])
@@ -1602,7 +1602,7 @@ void dlg_FeatureScout::RenderLengthDistribution()
 	//Create a transfer function mapping scalar value to color
 	auto cTFun = vtkSmartPointer<vtkColorTransferFunction>::New();
 	cTFun->SetColorSpaceToRGB();
-	if (m_filterID == iAFeatureScoutObjectType::Fibers)
+	if (m_filterID == iAObjectType::Fibers)
 	{
 		cTFun->AddRGBPoint(range[0], 1.0, 0.6, 0.0);	//orange
 		cTFun->AddRGBPoint(extents->GetValue(0) + halfInc, 1.0, 0.0, 0.0); //red
@@ -1626,7 +1626,7 @@ void dlg_FeatureScout::RenderLengthDistribution()
 	// plot length distribution
 	auto chart = vtkSmartPointer<vtkChartXY>::New();
 	chart->SetTitle(title.toUtf8().constData());
-	chart->GetTitleProperties()->SetFontSize((m_filterID == iAFeatureScoutObjectType::Fibers) ? 15 : 12); // TODO: setting?
+	chart->GetTitleProperties()->SetFontSize((m_filterID == iAObjectType::Fibers) ? 15 : 12); // TODO: setting?
 	vtkPlot* plot = chart->AddPlot(vtkChartXY::BAR);
 	plot->SetInputData(fldTable, 0, 1);
 	plot->GetXAxis()->SetTitle("Length in microns");
@@ -1765,7 +1765,7 @@ void dlg_FeatureScout::writeWisetex(QXmlStreamWriter* writer)
 	//check if it is a class item
 	if (m_classTreeModel->invisibleRootItem()->hasChildren())
 	{
-		if (m_filterID == iAFeatureScoutObjectType::Fibers)
+		if (m_filterID == iAObjectType::Fibers)
 		{
 			writer->writeStartElement("FibreClasses"); //start FibreClasses tag
 
@@ -1808,7 +1808,7 @@ void dlg_FeatureScout::writeWisetex(QXmlStreamWriter* writer)
 			}
 			writer->writeEndElement(); //end FibreClasses tag
 		}
-		else if (m_filterID == iAFeatureScoutObjectType::Voids)
+		else if (m_filterID == iAObjectType::Voids)
 		{
 			writer->writeStartElement("VoidClasses"); //start FibreClasses tag
 
@@ -2298,7 +2298,7 @@ void dlg_FeatureScout::ClassLoadButton()
 	QXmlStreamReader checker(&file);
 	checker.readNext(); // skip xml tag?
 	checker.readNext(); // read IFV_Class_Tree element
-	QString IDColumnName = (m_filterID == iAFeatureScoutObjectType::Fibers) ? LabelAttribute : LabelAttributePore;
+	QString IDColumnName = (m_filterID == iAObjectType::Fibers) ? LabelAttribute : LabelAttributePore;
 	if (checker.name() == IFVTag)
 	{
 		// if the object number is not correct, stop the load process
@@ -3757,7 +3757,7 @@ void dlg_FeatureScout::initFeatureScoutUI()
 	m_activeChild->addDockWidget(Qt::RightDockWidgetArea, m_dwPC);
 	m_activeChild->addDockWidget(Qt::RightDockWidgetArea, m_dwPP);
 	m_dwPP->colorMapSelection->hide();
-	if (m_filterID == iAFeatureScoutObjectType::Voids)
+	if (m_filterID == iAObjectType::Voids)
 	{
 		m_dwPP->hide();
 	}

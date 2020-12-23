@@ -20,31 +20,19 @@
 * ************************************************************************************/
 #pragma once
 
-#include "iA3DColoredPolyObjectVis.h"
+#include "iACsvIO.h"
 
-#include <iAvec3.h>
+#include "objectvis_export.h"
 
-#include <vtkSmartPointer.h>
+class QTableWidget;
 
-class vtkPoints;
-
-class FeatureScout_API iA3DLineObjectVis: public iA3DColoredPolyObjectVis
+class objectvis_API iACsvQTableCreator : public iACsvTableCreator
 {
 public:
-	// TODO: unify curved fiber data between here and updateValues!
-	iA3DLineObjectVis(vtkRenderer* ren, vtkTable* objectTable, QSharedPointer<QMap<uint, uint> > columnMapping,
-		QColor const & color, std::map<size_t, std::vector<iAVec3f> > const & curvedFiberData, size_t segmentSkip );
-	void updateValues( std::vector<std::vector<double> > const & values, int straightOrCurved);
-	vtkPolyData* getPolyData() override;
-	QString visualizationStatistics() const override;
-protected:
-	IndexType objectStartPointIdx(IndexType objIdx) const override;
-	IndexType objectPointCount(IndexType objIdx) const override;
-	vtkSmartPointer<vtkPolyData> m_linePolyData;
-	vtkSmartPointer<vtkPoints> m_points;
+	iACsvQTableCreator(QTableWidget* tblWidget);
+	void initialize(QStringList const & headers, size_t const rowCount) override;
+	void addRow(size_t row, QStringList const & values) override;
+	QTableWidget* table();
 private:
-	//! maps the object ID to (first=) the first index in the points array that belongs to this object, and (second=) the number of points
-	std::vector<std::pair<IndexType, IndexType>> m_objectPointMap;
-	IndexType m_totalNumOfSegments;
+	QTableWidget* m_table;
 };
-

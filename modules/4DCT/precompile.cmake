@@ -16,7 +16,7 @@ SET (4DCT_PRECOMPILE_INCLUDES <dlg_4DCTFileOpen.h>
 <iAPlaneVisModule.h>
 <iARegionVisModule.h>
 <iAStageView.h>
-<iAvec3.h>
+<iAVec3.h>
 <iAVisModule.h>
 <iAVisModuleItem.h>
 <iAVisModulesCollection.h>

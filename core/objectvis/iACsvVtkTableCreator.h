@@ -22,21 +22,20 @@
 
 #include "iACsvIO.h"
 
-#include "FeatureScout_export.h"
+#include "objectvis_export.h"
 
-#include <vector>
+#include <vtkSmartPointer.h>
 
-class FeatureScout_API iACsvVectorTableCreator: public iACsvTableCreator
+class vtkTable;
+
+class objectvis_API iACsvVtkTableCreator : public iACsvTableCreator
 {
 public:
-	using ValueType = double;
-	using TableType = std::vector<std::vector<ValueType>>;
-	iACsvVectorTableCreator();
+	iACsvVtkTableCreator();
 	void initialize(QStringList const & headers, size_t const rowCount) override;
 	void addRow(size_t row, QStringList const & values) override;
-	TableType const & table();
-	QStringList const& header();
+	vtkSmartPointer<vtkTable> table();
 private:
-	QStringList m_header;
-	TableType m_values;   //!< output values
+	vtkSmartPointer<vtkTable> m_table;   //!< output vtk table
+	//void debugTable(const bool useTabSeparator); //! <debugTable)
 };

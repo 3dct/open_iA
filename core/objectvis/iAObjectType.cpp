@@ -18,27 +18,23 @@
 * Contact: FH OÖ Forschungs & Entwicklungs GmbH, Campus Wels, CT-Gruppe,              *
 *          Stelzhamerstraße 23, 4600 Wels / Austria, Email: c.heinzl@fh-wels.at       *
 * ************************************************************************************/
-#pragma once
+#include "iAObjectType.h"
 
-#include "iA3DObjectVis.h"
-
-class vtkPiecewiseFunction;
-class vtkColorTransferFunction;
-
-class iA3DLabelledVolumeVis: public iA3DObjectVis
+QString MapObjectTypeToString(int objectType)
 {
-public:
-	iA3DLabelledVolumeVis(vtkRenderer* ren, vtkColorTransferFunction* color, vtkPiecewiseFunction* opac,
-		vtkTable* objectTable, QSharedPointer<QMap<uint, uint> > columnMapping, double const * bounds );
-	void renderSelection(std::vector<size_t> const & sortedSelInds, int classID, QColor const & classColor, QStandardItem* activeClassItem ) override;
-	void renderSingle(IndexType selectedObjID, int classID, QColor const & classColor, QStandardItem* activeClassItem ) override;
-	void multiClassRendering(QList<QColor> const & classColors, QStandardItem* rootItem, double alpha ) override;
-	void renderOrientationDistribution(vtkImageData* oi ) override;
-	void renderLengthDistribution(vtkColorTransferFunction* ctFun, vtkFloatArray* extents, double halfInc, int filterID, double const * range ) override;
-	double const * bounds() override;
-private:
-	vtkPiecewiseFunction     *oTF;
-	vtkColorTransferFunction *cTF;
-	double m_bounds[6];
-};
+	return (objectType == iAObjectType::Fibers) ? "Fibers" :
+		(objectType == iAObjectType::Voids) ? "Voids" :
+		(objectType == iAObjectType::Other) ? "Other" : "Invalid";
+}
 
+iAObjectType MapStringToObjectType(QString const & objectTypeName)
+{
+	if (objectTypeName == "Voids")
+		return iAObjectType::Voids;
+	else if (objectTypeName == "Fibers")
+		return iAObjectType::Fibers;
+	else if (objectTypeName == "Other")
+		return iAObjectType::Other;
+	else
+		return iAObjectType::InvalidObjectType;
+}

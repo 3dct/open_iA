@@ -20,9 +20,9 @@
 * ************************************************************************************/
 #pragma once
 
-#include "FeatureScout_export.h"
+#include "objectvis_export.h"
 
-#include <iAvec3.h>
+#include <iAVec3.h>
 
 #include <vtkType.h>
 
@@ -43,7 +43,7 @@ class QStandardItem;
 
 //! Base class for 3D visualizations of objects (e.g. fibers or pores) defined in a table
 //! use the factory method create3DObjectVis to create a specific instance!
-class FeatureScout_API iA3DObjectVis: public QObject
+class objectvis_API iA3DObjectVis: public QObject
 {
 	Q_OBJECT
 public:

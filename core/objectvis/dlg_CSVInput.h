@@ -22,7 +22,8 @@
 
 #include "ui_CsvInput.h"
 #include "iACsvConfig.h"
-#include "FeatureScout_export.h"
+
+#include "objectvis_export.h"
 
 class iACsvIO;
 
@@ -30,7 +31,7 @@ class QSettings;
 
 //! Loads custom csv file with data preview
 //! Settings can be adapted and saved under a specified format name
-class FeatureScout_API dlg_CSVInput : public QDialog, public Ui_CsvInput
+class objectvis_API dlg_CSVInput : public QDialog, public Ui_CsvInput
 {
 Q_OBJECT
 public:

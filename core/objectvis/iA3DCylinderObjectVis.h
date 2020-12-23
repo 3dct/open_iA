@@ -20,25 +20,29 @@
 * ************************************************************************************/
 #pragma once
 
-#include "iA3DColoredPolyObjectVis.h"
+#include "iA3DLineObjectVis.h"
 
-#include <vtkSmartPointer.h>
+class iAvtkTubeFilter;
 
-class vtkPolyData;
-
-class FeatureScout_API iA3DEllipseObjectVis: public iA3DColoredPolyObjectVis
+class objectvis_API iA3DCylinderObjectVis : public iA3DLineObjectVis
 {
-public:
-	static const int DefaultPhiRes = 10;
-	static const int DefaultThetaRes = 10;
-	iA3DEllipseObjectVis(vtkRenderer* ren, vtkTable* objectTable, QSharedPointer<QMap<uint, uint> > columnMapping,
-		QColor const & color, int phiRes = DefaultPhiRes, int thetaRes = DefaultThetaRes);
-	double const * bounds() override;
-	vtkPolyData* getPolyData() override;
-	QString visualizationStatistics() const override;
 private:
-	vtkSmartPointer<vtkPolyData> m_fullPoly;
-	IndexType m_pointsPerEllipse;
-	IndexType objectStartPointIdx(IndexType objIdx) const override;
-	IndexType objectPointCount(IndexType objIdx) const override;
+	vtkSmartPointer<iAvtkTubeFilter> m_tubeFilter;
+	float* m_contextFactors;
+	IndexType m_objectCount;
+	float m_contextDiameterFactor;
+	std::map<size_t, std::vector<iAVec3f> > m_curvedFiberData;
+	bool m_lines;
+public:
+	static const int DefaultNumberOfCylinderSides = 12;
+	iA3DCylinderObjectVis(vtkRenderer* ren, vtkTable* objectTable, QSharedPointer<QMap<uint, uint> > columnMapping,
+		QColor const & color, std::map<size_t, std::vector<iAVec3f> > const & curvedFiberData,
+		int numberOfCylinderSides = DefaultNumberOfCylinderSides, size_t segmentSkip = 1);
+	virtual ~iA3DCylinderObjectVis();
+	void setDiameterFactor(double diameterFactor);
+	void setContextDiameterFactor(double contextDiameterFactor);
+	void setSelection(std::vector<size_t> const & sortedSelInds, bool selectionActive) override;
+	QString visualizationStatistics() const override;
+	void setShowLines(bool lines) override;
 };
+

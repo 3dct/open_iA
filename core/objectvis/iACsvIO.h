@@ -20,12 +20,12 @@
 * ************************************************************************************/
 #pragma once
 
-#include "iAFeatureScoutObjectType.h"
+#include "iAObjectType.h"
 #include "iACsvConfig.h"
 
-#include <iAvec3.h>
+#include "objectvis_export.h"
 
-#include "FeatureScout_export.h"
+#include <iAVec3.h>
 
 #include <QMap>
 #include <QSharedPointer>
@@ -49,7 +49,7 @@ public:
 };
 
 //! class for reading a csv into a table, using given options
-class FeatureScout_API iACsvIO
+class objectvis_API iACsvIO
 {
 public:
 	static const char * ColNameAutoID;  //!< name of the auto ID column (inserted optionally)
@@ -80,4 +80,4 @@ private:
 };
 
 //! read the curved fiber info file
-FeatureScout_API bool readCurvedFiberInfo(QString const & fileName, std::map<size_t, std::vector<iAVec3f> > & outMap);
+objectvis_API bool readCurvedFiberInfo(QString const& fileName, std::map<size_t, std::vector<iAVec3f>>& outMap);

@@ -20,9 +20,9 @@
 * ************************************************************************************/
 #pragma once
 
-#include "iAFeatureScoutObjectType.h"
+#include "iAObjectType.h"
 
-#include "FeatureScout_export.h"
+#include "objectvis_export.h"
 
 #include <QMap>
 #include <QString>
@@ -31,7 +31,7 @@
 class QSettings;
 
 //! parameters for csv loading configuraton
-struct FeatureScout_API iACsvConfig
+struct objectvis_API iACsvConfig
 {
 	static const QString LegacyFiberFormat;
 	static const QString LegacyVoidFormat;
@@ -66,7 +66,7 @@ struct FeatureScout_API iACsvConfig
 	QString columnSeparator;                //!< string separating the columns in the csv
 	QString decimalSeparator;               //!< string separating the integer from the fractional part in the numbers
 	bool addAutoID;                         //!< whether to add an automatic ID column
-	iAFeatureScoutObjectType objectType;    //!< type of objects to be analyzed
+	iAObjectType objectType;    //!< type of objects to be analyzed
 	QString unit;                           //!< unit of measurement for the values given in the csv
 	float spacing;                          //!< volume spacing to be used, currently unused
 	QStringList currentHeaders;             //!< current headers of the table
@@ -95,5 +95,5 @@ struct FeatureScout_API iACsvConfig
 	bool load(QSettings const & settings, const QString & formatName);
 };
 
-QString MapVisType2Str(iACsvConfig::VisualizationType visType);
-iACsvConfig::VisualizationType MapStr2VisType(QString name);
+objectvis_API QString MapVisType2Str(iACsvConfig::VisualizationType visType);
+objectvis_API iACsvConfig::VisualizationType MapStr2VisType(QString name);

@@ -1,5 +1,4 @@
 FILE( GLOB_RECURSE open_iA_base_SRCS "*.cpp" "*.h" )
-FILE( GLOB_RECURSE open_iA_base_UI "*.ui" )
 
 SET (LIB_TYPE SHARED)
 SET (BASE_LIBRARY_NAME base)

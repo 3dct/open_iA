@@ -110,7 +110,7 @@ namespace
 		config.columnSeparator = ",";
 		config.decimalSeparator = ".";
 		config.addAutoID = false;
-		config.objectType = iAFeatureScoutObjectType::Fibers;
+		config.objectType = iAObjectType::Fibers;
 		config.computeLength = false;
 		config.computeAngles = false;
 		config.computeTensors = false;

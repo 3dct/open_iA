@@ -155,7 +155,7 @@ private slots:
 	void toggleVis(int);
 	void toggleBoundingBox(int);
 	void referenceToggled();
-	void previewMouseClick(Qt::MouseButton buttons, Qt::KeyboardModifiers modifiers);
+	//void previewMouseClick(Qt::MouseButton buttons, Qt::KeyboardModifiers modifiers);
 	void optimStepSliderChanged(int);
 	void mainOpacityChanged(int);
 	void contextOpacityChanged(int);
@@ -242,7 +242,7 @@ private:
 	void updateRefDistPlots();
 	bool matchQualityVisActive() const;
 	void updateFiberContext();
-	void startFeatureScout(int resultID, MdiChild* newChild);
+	//void startFeatureScout(int resultID, MdiChild* newChild);
 	void visitAllVisibleVis(std::function<void(QSharedPointer<iA3DColoredPolyObjectVis>, size_t resultID)> func);
 	void setClippingPlanes(QSharedPointer<iA3DColoredPolyObjectVis> vis);
 

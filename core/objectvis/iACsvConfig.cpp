@@ -93,7 +93,7 @@ iACsvConfig::iACsvConfig() :
 	columnSeparator(";"),
 	decimalSeparator("."),
 	addAutoID(false),
-	objectType(iAFeatureScoutObjectType::Voids),
+	objectType(iAObjectType::Voids),
 	unit("microns"),
 	spacing(0.0f),
 	computeLength(false),
@@ -204,7 +204,7 @@ iACsvConfig const & iACsvConfig::getLegacyFiberFormat(QString const & fileName)
 	LegacyFormat.columnSeparator = ",";
 	LegacyFormat.decimalSeparator = ".";
 	LegacyFormat.addAutoID = false;
-	LegacyFormat.objectType = iAFeatureScoutObjectType::Fibers;
+	LegacyFormat.objectType = iAObjectType::Fibers;
 	LegacyFormat.computeLength = false;
 	LegacyFormat.computeAngles = true;
 	LegacyFormat.computeTensors = true;
@@ -250,7 +250,7 @@ iACsvConfig const & iACsvConfig::getLegacyPoreFormat(QString const & fileName)
 	LegacyFormat.columnSeparator = ",";
 	LegacyFormat.decimalSeparator = ".";
 	LegacyFormat.addAutoID = false;
-	LegacyFormat.objectType = iAFeatureScoutObjectType::Voids;
+	LegacyFormat.objectType = iAObjectType::Voids;
 	LegacyFormat.computeLength = false;
 	LegacyFormat.computeAngles = false;
 	LegacyFormat.computeTensors = false;

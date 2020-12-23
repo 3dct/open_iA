@@ -22,9 +22,10 @@
 
 #include "iACsvConfig.h"
 
+#include "vtkEllipsoidSource.h"
+
 #include <vtkActor.h>
 #include <vtkAppendPolyData.h>
-#include <vtkEllipsoidSource.h>
 #include <vtkPolyData.h>
 #include <vtkPolyDataMapper.h>
 #include <vtkPointData.h>

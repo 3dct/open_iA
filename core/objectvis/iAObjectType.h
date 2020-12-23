@@ -20,22 +20,17 @@
 * ************************************************************************************/
 #pragma once
 
-#include "iACsvIO.h"
+#include "objectvis_export.h"
 
-#include "FeatureScout_export.h"
+#include <QString>
 
-#include <vtkSmartPointer.h>
-
-class vtkTable;
-
-class FeatureScout_API iACsvVtkTableCreator: public iACsvTableCreator
+enum iAObjectType
 {
-public:
-	iACsvVtkTableCreator();
-	void initialize(QStringList const & headers, size_t const rowCount) override;
-	void addRow(size_t row, QStringList const & values) override;
-	vtkSmartPointer<vtkTable> table();
-private:
-	vtkSmartPointer<vtkTable> m_table;   //!< output vtk table
-	//void debugTable(const bool useTabSeparator); //! <debugTable)
+	InvalidObjectType = -1,
+	Fibers,
+	Voids,
+	Other
 };
+
+objectvis_API QString MapObjectTypeToString(int objectType);
+objectvis_API iAObjectType MapStringToObjectType(QString const& objectTypeName);

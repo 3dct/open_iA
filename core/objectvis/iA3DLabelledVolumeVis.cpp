@@ -21,7 +21,7 @@
 #include "iA3DLabelledVolumeVis.h"
 
 #include "iACsvConfig.h"
-#include "iAFeatureScoutObjectType.h"
+#include "iAObjectType.h"
 
 #include <vtkColorTransferFunction.h>
 #include <vtkFloatArray.h>
@@ -468,7 +468,7 @@ void iA3DLabelledVolumeVis::renderLengthDistribution( vtkColorTransferFunction* 
 		double ll = m_objectTable->GetValue(objID, m_columnMapping->value(iACsvConfig::Length)).ToDouble();
 		QColor color = getLengthColor( ctFun, objID );
 
-		if ( filterID == iAFeatureScoutObjectType::Fibers )
+		if ( filterID == iAObjectType::Fibers )
 		{
 			if ( ll >= range[0] && ll < extents->GetValue( 0 ) + halfInc )
 			{

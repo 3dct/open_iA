@@ -20,7 +20,7 @@
 * ************************************************************************************/
 
 #include "iASimpleTester.h"
-#include "iAvec3.h"
+#include "iAVec3.h"
 
 BEGIN_TEST
 	iAVec3i vec1(0, 1, 2);

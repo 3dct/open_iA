@@ -22,7 +22,7 @@
 
 #include <iALog.h>
 #include <iARenderer.h>
-#include <iAvec3.h>
+#include <iAVec3.h>
 #include <mdichild.h>
 
 #include <vtkLineSource.h>

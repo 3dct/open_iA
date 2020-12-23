@@ -10,6 +10,9 @@ QT5_ADD_RESOURCES( open_iA_core_SRCS ${open_iA_core_QRC} )
 ADD_SUBDIRECTORY(base)
 ADD_SUBDIRECTORY(charts)
 
+# TODO: make configurable!
+ADD_SUBDIRECTORY(objectvis)
+
 SET (LIB_TYPE SHARED)
 
 # Generate core dll file / shared object:

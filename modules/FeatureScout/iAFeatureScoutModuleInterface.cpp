@@ -190,7 +190,7 @@ void iAFeatureScoutModuleInterface::FeatureScout()
 	}
 }
 
-iAFeatureScoutObjectType iAFeatureScoutModuleInterface::guessFeatureType(QString const & csvFileName)
+iAObjectType iAFeatureScoutModuleInterface::guessFeatureType(QString const & csvFileName)
 {
 	QFile file( csvFileName );
 	if (!file.open(QIODevice::ReadOnly | QIODevice::Text))

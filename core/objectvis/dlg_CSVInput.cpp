@@ -353,12 +353,12 @@ void dlg_CSVInput::fixedDiameterChanged()
 
 void dlg_CSVInput::updateColumnMappingInputs()
 {
-	lbl_col_dimensionX->setEnabled(m_confParams.objectType == iAFeatureScoutObjectType::Voids);
-	lbl_col_dimensionY->setEnabled(m_confParams.objectType == iAFeatureScoutObjectType::Voids);
-	lbl_col_dimensionZ->setEnabled(m_confParams.objectType == iAFeatureScoutObjectType::Voids);
-	cmbbox_col_DimensionX->setEnabled( m_confParams.objectType == iAFeatureScoutObjectType::Voids );
-	cmbbox_col_DimensionY->setEnabled( m_confParams.objectType == iAFeatureScoutObjectType::Voids );
-	cmbbox_col_DimensionZ->setEnabled( m_confParams.objectType == iAFeatureScoutObjectType::Voids );
+	lbl_col_dimensionX->setEnabled(m_confParams.objectType == iAObjectType::Voids);
+	lbl_col_dimensionY->setEnabled(m_confParams.objectType == iAObjectType::Voids);
+	lbl_col_dimensionZ->setEnabled(m_confParams.objectType == iAObjectType::Voids);
+	cmbbox_col_DimensionX->setEnabled( m_confParams.objectType == iAObjectType::Voids );
+	cmbbox_col_DimensionY->setEnabled( m_confParams.objectType == iAObjectType::Voids );
+	cmbbox_col_DimensionZ->setEnabled( m_confParams.objectType == iAObjectType::Voids );
 
 	bool computeStartEnd = cb_ComputeStartEnd->isChecked();
 	cmbbox_col_PosStartX->setEnabled(!computeStartEnd);

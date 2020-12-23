@@ -5,11 +5,11 @@ SET (FeatureScout_PRECOMPILE_INCLUDES <iA3DColoredPolyObjectVis.h>
 <iABlobManager.h>
 <iACsvConfig.h>
 <iACsvIO.h>
-<iAFeatureScoutObjectType.h>
+<iAObjectType.h>
 <iALog.h>
 <iALookupTable.h>
 <iARenderer.h>
-<iAvec3.h>
+<iAVec3.h>
 <map>
 <mdichild.h>
 <QColor>

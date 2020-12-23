@@ -23,7 +23,7 @@
 #include "iABlobManager.h"
 
 #include <iAModuleAttachmentToChild.h>
-#include <iAvec3.h>
+#include <iAVec3.h>
 
 #include <QList>
 

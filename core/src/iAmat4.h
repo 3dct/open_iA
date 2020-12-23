@@ -20,7 +20,7 @@
 * ************************************************************************************/
 #pragma once
 
-#include "iAvec3.h"
+#include "iAVec3.h"
 #include "open_iA_Core_export.h"
 
 //! Class representing a 4x4 float matrix.

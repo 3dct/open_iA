@@ -20,7 +20,7 @@
 * ************************************************************************************/
 #pragma once
 
-#include "iAFeatureScoutObjectType.h"
+#include "iAObjectType.h"
 #include "FeatureScout_export.h"
 #include "iACsvConfig.h"
 
@@ -41,7 +41,7 @@ private slots:
 	void FeatureScout_Options();
 	void onChildClose();
 private:
-	iAFeatureScoutObjectType guessFeatureType(QString const & csvFileName);
+	iAObjectType guessFeatureType(QString const & csvFileName);
 	iAModuleAttachmentToChild * CreateAttachment(MainWindow* mainWnd, MdiChild * child) override;
 	void SetupToolbar();
 	void setFeatureScoutRenderSettings();

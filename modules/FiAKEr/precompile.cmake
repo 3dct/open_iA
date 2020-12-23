@@ -6,7 +6,7 @@ SET (FiAKEr_PRECOMPILE_INCLUDES <charts/iASPLOMData.h>
 <iALog.h>
 <iAMathUtility.h>
 <iARefDistCompute.h>
-<iAvec3.h>
+<iAVec3.h>
 <QMap>
 <QMessageBox>
 <QSettings>

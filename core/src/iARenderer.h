@@ -22,7 +22,7 @@
 
 #include "open_iA_Core_export.h"
 
-#include "iAvec3.h"
+#include "iAVec3.h"
 
 #include <vtkGenericOpenGLRenderWindow.h>
 #include <vtkSmartPointer.h>

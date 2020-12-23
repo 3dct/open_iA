@@ -33,7 +33,7 @@
 #include "iA3DEllipseObjectVis.h"
 #include "iACsvConfig.h"
 #include "iACsvVectorTableCreator.h"
-#include "iAFeatureScoutModuleInterface.h"
+//#include "iAFeatureScoutModuleInterface.h"
 
 // Core:
 #include <iAChartWidget.h>
@@ -738,7 +738,7 @@ QWidget* iAFiAKErController::setupResultListView()
 			ren->ResetCamera();
 			ui.previewWidget->setProperty("resultID", static_cast<qulonglong>(resultID));
 			connect(ui.previewWidget, &iASignallingWidget::dblClicked, this, &iAFiAKErController::referenceToggled);
-			connect(ui.previewWidget, &iASignallingWidget::clicked, this, &iAFiAKErController::previewMouseClick);
+			//connect(ui.previewWidget, &iASignallingWidget::clicked, this, &iAFiAKErController::previewMouseClick);
 			connect(ui.mini3DVis.data(), &iA3DObjectVis::updated, ui.vtkWidget, &iAVtkQtWidget::updateAll);
 		}
 		ui.main3DVis = create3DVis(m_ren, d.table, d.mapping, resultColor, m_data->objectType, curveInfo);
@@ -2353,6 +2353,7 @@ void iAFiAKErController::selectionOptimStepChartChanged(std::vector<size_t> cons
 	}
 }
 
+/*
 void iAFiAKErController::previewMouseClick(Qt::MouseButton button, Qt::KeyboardModifiers modifiers)
 {	// require Ctrl + Left mouse click:
 	if (button != Qt::LeftButton || !modifiers.testFlag(Qt::ControlModifier))
@@ -2367,7 +2368,6 @@ void iAFiAKErController::previewMouseClick(Qt::MouseButton button, Qt::KeyboardM
 	// TODO: Replace by connection to a signal which is emitted when MdiChild initialization done
 	QTimer::singleShot(1000, [this, resultID, newChild] { startFeatureScout(resultID, newChild); });
 }
-
 void iAFiAKErController::startFeatureScout(int resultID, MdiChild* newChild)
 {
 	iACsvConfig config(m_config);
@@ -2378,6 +2378,7 @@ void iAFiAKErController::startFeatureScout(int resultID, MdiChild* newChild)
 	featureScout->LoadFeatureScout(config, newChild);
 	//newChild->loadLayout("FeatureScout");
 }
+*/
 
 void iAFiAKErController::optimStepSliderChanged(int optimStep)
 {

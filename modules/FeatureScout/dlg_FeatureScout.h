@@ -21,12 +21,12 @@
 #pragma once
 
 #include "iAFeatureScoutModuleInterface.h"
-#include "iAFeatureScoutObjectType.h"
+#include "iAObjectType.h"
 #include "ui_FeatureScoutClassExplorer.h"
 #include "ui_FeatureScoutPolarPlot.h"
 #include "ui_FeatureScoutMeanObjectView.h"
 
-#include <iAvec3.h>
+#include <iAVec3.h>
 #include <iAVtkWidgetFwd.h>
 #include <qthelper/iAQTtoUIConnector.h>
 
@@ -99,7 +99,7 @@ class dlg_FeatureScout : public QDockWidget, public Ui_FeatureScoutCE
 {
 	Q_OBJECT
 public:
-	dlg_FeatureScout( MdiChild *parent, iAFeatureScoutObjectType fid, QString const & fileName, vtkRenderer* blobRen,
+	dlg_FeatureScout( MdiChild *parent, iAObjectType fid, QString const & fileName, vtkRenderer* blobRen,
 		vtkSmartPointer<vtkTable> csvtbl, int vis, QSharedPointer<QMap<uint, uint> > columnMapping, std::map<size_t,
 		std::vector<iAVec3f> > & curvedFiberInfo, int cylinderQuality, size_t segmentSkip);
 	~dlg_FeatureScout();
@@ -197,7 +197,7 @@ private:
 
 	int m_elementCount;                             //!< Number of elements(=columns) in csv inputTable
 	int m_objectCount;                             //!< Number of objects in the specimen
-	iAFeatureScoutObjectType m_filterID;            //!< Type of objects that are shown
+	iAObjectType m_filterID;            //!< Type of objects that are shown
 	bool m_draw3DPolarPlot;                         //!< Whether the polar plot is drawn in 3D, set only in constructor, default false
 	int m_renderMode;                               //!< Indicates what is currently shown: single classes, or special rendering (multi-class, orientation, ...)
 	bool m_singleObjectSelected;                    //!< Indicates whether a single object or a whole class is selected (if m_renderMode is rmSingleClass)

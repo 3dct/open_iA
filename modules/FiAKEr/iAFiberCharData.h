@@ -23,7 +23,7 @@
 #include "iACsvConfig.h"
 
 #include <iAProgress.h>
-#include <iAvec3.h>
+#include <iAVec3.h>
 
 #include <vtkSmartPointer.h>
 
