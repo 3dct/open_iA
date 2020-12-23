@@ -20,8 +20,8 @@
 * ************************************************************************************/
 #pragma once
 
-#include <charts/iAChartWithFunctionsWidget.h>
-#include <charts/iAPlotTypes.h>
+#include <iAChartWithFunctionsWidget.h>
+#include <iAPlotTypes.h>
 
 #include <vtkPiecewiseFunction.h>
 #include <vtkColorTransferFunction.h>

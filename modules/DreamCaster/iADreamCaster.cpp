@@ -32,11 +32,11 @@
 #include "iAPaintWidget.h"
 #include "iAStabilityWidget.h"
 
-#include <charts/iAPlotTypes.h>
-#include <charts/iAChartWidget.h>
-#include <charts/iAHistogramData.h>
+#include <iAPlotTypes.h>
+#include <iAChartWidget.h>
+#include <iAHistogramData.h>
 #include <iAVtkWidget.h>
-#include <io/iAFileUtils.h>
+#include <iAFileUtils.h>
 
 #include <itkMacro.h>    // for itk::ExceptionObject
 

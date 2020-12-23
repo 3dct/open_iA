@@ -20,9 +20,11 @@
 * ************************************************************************************/
 #include "iAMovieHelper.h"
 
-#include "iAAbortListener.h"
+// base
 #include "iALog.h"
-#include "io/iAFileUtils.h"
+#include "iAFileUtils.h"
+
+#include "iAAbortListener.h"
 
 #ifdef _WIN32
 #include <vtkAVIWriter.h>

@@ -21,10 +21,11 @@
 #include "iAConnectedComponentFilters.h"
 
 #include <defines.h> // for DIM
-#include <iAConnector.h>
 #include <iAProgress.h>
+
+#include <iAConnector.h>
+#include <iAFileUtils.h>
 #include <iATypedCallHelper.h>
-#include <io/iAFileUtils.h>
 
 #include <itkConnectedComponentImageFilter.h>
 #include <itkScalarConnectedComponentImageFilter.h>

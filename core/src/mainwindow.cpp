@@ -20,33 +20,38 @@
 * ************************************************************************************/
 #include "mainwindow.h"
 
-#include "charts/iAChartFunctionBezier.h"
-#include "charts/iAChartFunctionGaussian.h"
-#include "charts/iAChartFunctionTransfer.h"
-#include "charts/iAChartWithFunctionsWidget.h"
 #include "defines.h"
 #include "dlg_commoninput.h"
 #include "dlg_datatypeconversion.h"
 #include "dlg_openfile_sizecheck.h"
 #include "iACheckOpenGL.h"
 #include "iAJobListView.h"
-#include "iALog.h"
-#include "iALogLevelMappings.h"
 #include "iALogWidget.h"
-#include "iAMathUtility.h"
 #include "iAModuleDispatcher.h"
 #include "iAProjectBase.h"
 #include "iAProjectRegistry.h"
 #include "iARenderer.h"
 #include "iASavableProject.h"
 #include "iASlicer.h"
-#include "iAToolsVTK.h"
-#include "iAXmlSettings.h"
-#include "io/iAFileUtils.h"    // for fileNameOnly
 #include "io/iAIOProvider.h"
 #include "io/iATLGICTLoader.h"
 #include "mdichild.h"
 #include "qthelper/iADockWidgetWrapper.h"
+
+// charts
+#include "iAChartFunctionBezier.h"
+#include "iAChartFunctionGaussian.h"
+#include "iAChartFunctionTransfer.h"
+#include "iAChartWithFunctionsWidget.h"
+#include "iAFunctionColors.h"
+
+// base
+#include "iAFileUtils.h"    // for fileNameOnly
+#include "iALog.h"
+#include "iALogLevelMappings.h"
+#include "iAMathUtility.h"
+#include "iAToolsVTK.h"
+#include "iAXmlSettings.h"
 
 #include <vtkCamera.h>
 #include <vtkColorTransferFunction.h>
@@ -1504,7 +1509,7 @@ void MainWindow::copyFunctions(MdiChild* oldChild, MdiChild* newChild)
 		if (dynamic_cast<iAChartFunctionGaussian*>(curFunc))
 		{
 			auto oldGaussian = dynamic_cast<iAChartFunctionGaussian*>(curFunc);
-			auto newGaussian = new iAChartFunctionGaussian(newChild->histogram(), PredefinedColors()[i % 7]);
+			auto newGaussian = new iAChartFunctionGaussian(newChild->histogram(), FunctionColors()[i % 7]);
 			newGaussian->setMean(oldGaussian->getMean());
 			newGaussian->setMultiplier(oldGaussian->getMultiplier());
 			newGaussian->setSigma(oldGaussian->getSigma());
@@ -1513,7 +1518,7 @@ void MainWindow::copyFunctions(MdiChild* oldChild, MdiChild* newChild)
 		else if (dynamic_cast<iAChartFunctionBezier*>(curFunc))
 		{
 			auto oldBezier = dynamic_cast<iAChartFunctionBezier*>(curFunc);
-			auto newBezier = new iAChartFunctionBezier(newChild->histogram(), PredefinedColors()[i % 7]);
+			auto newBezier = new iAChartFunctionBezier(newChild->histogram(), FunctionColors()[i % 7]);
 			for (unsigned int j = 0; j < oldBezier->getPoints().size(); ++j)
 			{
 				newBezier->addPoint(oldBezier->getPoints()[j].x(), oldBezier->getPoints()[j].y());

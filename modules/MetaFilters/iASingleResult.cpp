@@ -27,8 +27,8 @@
 #include <iALog.h>
 #include <iANameMapper.h>
 #include <iAToolsITK.h>
-#include <io/iAFileUtils.h>
-#include <io/iAITKIO.h>
+#include <iAFileUtils.h>
+#include <iAITKIO.h>
 
 #include <QFile>
 #include <QFileInfo>

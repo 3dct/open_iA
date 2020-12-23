@@ -20,7 +20,8 @@
 * ************************************************************************************/
 #include "iAModalityTransfer.h"
 
-#include "charts/iAHistogramData.h"
+// charts
+#include "iAHistogramData.h"
 
 #include <vtkImageData.h>
 

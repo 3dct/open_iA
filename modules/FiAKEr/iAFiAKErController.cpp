@@ -36,12 +36,12 @@
 #include "iAFeatureScoutModuleInterface.h"
 
 // Core:
-#include <charts/iAChartWidget.h>
-#include <charts/iAHistogramData.h>
-#include <charts/iAPlotTypes.h>
-#include <charts/iAScatterPlot.h> // for selection mode: iAScatterPlot::Rectangle
-#include <charts/iAQSplom.h>
-#include <charts/iASPLOMData.h>
+#include <iAChartWidget.h>
+#include <iAHistogramData.h>
+#include <iAPlotTypes.h>
+#include <iAScatterPlot.h> // for selection mode: iAScatterPlot::Rectangle
+#include <iAQSplom.h>
+#include <iASPLOMData.h>
 #include <iAColorTheme.h>
 #include <iAConnector.h>
 #include <iALog.h>
@@ -58,7 +58,7 @@
 #include <iAVolumeRenderer.h>
 #include <iAVtkVersion.h>
 #include <io/iAIOProvider.h>
-#include <io/iAITKIO.h>
+#include <iAITKIO.h>
 #include <mainwindow.h>
 #include <mdichild.h>
 #include <qthelper/iADockWidgetWrapper.h>

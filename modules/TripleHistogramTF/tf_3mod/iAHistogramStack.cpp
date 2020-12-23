@@ -27,7 +27,7 @@
 #include "iAHistogramStackGrid.h"
 
 #include <iATransferFunction.h>
-#include <charts/iAChartWithFunctionsWidget.h>
+#include <iAChartWithFunctionsWidget.h>
 
 #include <QComboBox>
 #include <QHBoxLayout>

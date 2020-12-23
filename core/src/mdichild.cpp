@@ -20,11 +20,6 @@
 * ************************************************************************************/
 #include "mdichild.h"
 
-#include "charts/iAHistogramData.h"
-#include "charts/iAChartFunctionTransfer.h"
-#include "charts/iAChartWithFunctionsWidget.h"
-#include "charts/iAPlotTypes.h"
-#include "charts/iAProfileWidget.h"
 #include "dlg_commoninput.h"
 #include "dlg_imageproperty.h"
 #include "dlg_modalities.h"
@@ -35,7 +30,6 @@
 #include "iAChannelData.h"
 #include "iAChannelSlicerData.h"
 #include "iAJobListView.h"
-#include "iALog.h"
 #include "iARunAsync.h"
 #include "iAModality.h"
 #include "iAModalityList.h"
@@ -51,16 +45,26 @@
 #include "iARenderObserver.h"
 #include "iARenderSettings.h"
 #include "iASlicer.h"
-#include "iAToolsVTK.h"
 #include "iATransferFunction.h"
 #include "iAVolumeStack.h"
 #include "iAVtkVersion.h"
 #include "io/extension2id.h"
-#include "io/iAFileUtils.h"    // for fileNameOnly
 #include "io/iAIO.h"
 #include "io/iAIOProvider.h"
 #include "mainwindow.h"
 #include "qthelper/iADockWidgetWrapper.h"
+
+// charts
+#include "iAHistogramData.h"
+#include "iAChartFunctionTransfer.h"
+#include "iAChartWithFunctionsWidget.h"
+#include "iAPlotTypes.h"
+#include "iAProfileWidget.h"
+
+// base
+#include "iAFileUtils.h"    // for fileNameOnly
+#include "iALog.h"
+#include "iAToolsVTK.h"
 
 #include <vtkCamera.h>
 #include <vtkColorTransferFunction.h>

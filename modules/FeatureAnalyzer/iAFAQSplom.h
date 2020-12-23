@@ -20,7 +20,7 @@
 * ************************************************************************************/
 #pragma once
 
-#include <charts/iAQSplom.h>
+#include <iAQSplom.h>
 #include <mainwindow.h>
 #include <mdichild.h>
 

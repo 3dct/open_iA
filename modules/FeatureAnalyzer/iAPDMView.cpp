@@ -23,7 +23,7 @@
 #include "iABPMData.h"
 #include "iAHMData.h"
 
-#include <charts/qcustomplot.h>
+#include <qcustomplot.h>
 #include <defines.h>
 #include <iALUT.h>
 #include <iAVtkWidget.h>

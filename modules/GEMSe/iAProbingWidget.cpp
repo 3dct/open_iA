@@ -24,8 +24,8 @@
 #include "iALabelInfo.h"
 #include "iAParamHistogramData.h"
 
-#include <charts/iAChartWidget.h>
-#include <charts/iAPlotTypes.h>
+#include <iAChartWidget.h>
+#include <iAPlotTypes.h>
 #include <iALog.h>
 #include <iAMathUtility.h>
 #include <iASlicerMode.h>

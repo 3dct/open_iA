@@ -24,7 +24,7 @@
 #include "iACharacteristicEnergy.h"
 #include "iASpectrumFilter.h"
 
-#include <charts/iAPlotTypes.h>
+#include <iAPlotTypes.h>
 #include <iAMapper.h>
 #include <iATransferFunction.h>
 

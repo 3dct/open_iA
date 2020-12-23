@@ -20,7 +20,7 @@
 * ************************************************************************************/
 
 #include "iAIntensityMapper.h"
-#include "io/iAITKIO.h"
+#include "iAITKIO.h"
 #include "iATypedCallHelper.h"
 
 #include <itkImageRegionIteratorWithIndex.h>

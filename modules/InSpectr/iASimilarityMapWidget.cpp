@@ -21,7 +21,7 @@
 #include "iASimilarityMapWidget.h"
 
 //#include <iAMathUtility.h>
-#include <io/iAFileUtils.h>
+#include <iAFileUtils.h>
 
 #include <vtkImageData.h>
 #include <vtkMetaImageReader.h>

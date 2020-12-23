@@ -6,6 +6,10 @@ SET( open_iA_core_QRC open_iA.qrc)
 QT5_WRAP_UI( open_iA_core_SRCS ${open_iA_core_UI})
 QT5_ADD_RESOURCES( open_iA_core_SRCS ${open_iA_core_QRC} )
 
+
+ADD_SUBDIRECTORY(base)
+ADD_SUBDIRECTORY(charts)
+
 SET (LIB_TYPE SHARED)
 
 # Generate core dll file / shared object:
@@ -20,7 +24,7 @@ IF ("${VTK_VIDEO_SUPPORT}" STREQUAL "ogg")
 	TARGET_COMPILE_DEFINITIONS(${CORE_LIBRARY_NAME} PRIVATE VTK_USE_OGGTHEORA_ENCODER)
 ENDIF()
 # TODO: only link against libraries actually needed by core?
-TARGET_LINK_LIBRARIES(${CORE_LIBRARY_NAME} PUBLIC ${QT_LIBRARIES} ${VTK_LIBRARIES} ${ITK_LIBRARIES})
+TARGET_LINK_LIBRARIES(${CORE_LIBRARY_NAME} PUBLIC base charts)
 IF (HDF5_FOUND)
 	# as HDF5 is required only in core, we could link privately, but under Linux this leads
 	# to gui and cmd also requiring linking to it separately, it's easier to link PUBLIC here:
@@ -62,7 +66,8 @@ ENDIF (APPLE)
 INCLUDE(Modules)
 MODULE_GENERATE_EXPORT_HEADER ( ${CORE_LIBRARY_NAME} )
 
-TARGET_INCLUDE_DIRECTORIES(${CORE_LIBRARY_NAME} PUBLIC ${CMAKE_CURRENT_SOURCE_DIR}/src ${CMAKE_CURRENT_BINARY_DIR})
+# not sure why charts required - should be pulled in via link library?
+TARGET_INCLUDE_DIRECTORIES(${CORE_LIBRARY_NAME} PUBLIC ${CMAKE_CURRENT_SOURCE_DIR}/charts ${CMAKE_CURRENT_SOURCE_DIR}/src ${CMAKE_CURRENT_BINARY_DIR})
 
 IF (openiA_PRECOMPILE)
 	IF (CMAKE_MAJOR_VERSION GREATER 4 OR
@@ -75,11 +80,11 @@ ENDIF()
 
 IF (openiA_TESTING_ENABLED)
 
-	# CMAKE_CURRENT_BINARY_DIR include required for open_iA_Core_export.h
+	# CMAKE_CURRENT_BINARY_DIR/base include required for open_iA_Core_export.h
 
 	# StringHelperTest
-	ADD_EXECUTABLE(StringHelperTest test/iAStringHelperTest.cpp src/iAStringHelper.cpp)
-	TARGET_INCLUDE_DIRECTORIES(StringHelperTest PRIVATE ${CMAKE_CURRENT_SOURCE_DIR}/src ${CMAKE_CURRENT_BINARY_DIR})
+	ADD_EXECUTABLE(StringHelperTest test/iAStringHelperTest.cpp base/iAStringHelper.cpp)
+	TARGET_INCLUDE_DIRECTORIES(StringHelperTest PRIVATE ${CMAKE_CURRENT_SOURCE_DIR}/base ${CMAKE_CURRENT_BINARY_DIR}/base)
 	TARGET_LINK_LIBRARIES(StringHelperTest PRIVATE ${QT_LIBRARIES})
 	target_compile_definitions(StringHelperTest PRIVATE NO_DLL_LINKAGE)
 	ADD_TEST(NAME StringHelperTest COMMAND StringHelperTest)
@@ -91,18 +96,18 @@ IF (openiA_TESTING_ENABLED)
 
 	# Vec3Test
 	ADD_EXECUTABLE(Vec3Test test/iAVec3Test.cpp)
-	TARGET_INCLUDE_DIRECTORIES(Vec3Test PRIVATE ${CMAKE_CURRENT_SOURCE_DIR}/src)
+	TARGET_INCLUDE_DIRECTORIES(Vec3Test PRIVATE ${CMAKE_CURRENT_SOURCE_DIR}/base ${CMAKE_CURRENT_SOURCE_DIR}/src)
 	target_compile_definitions(Vec3Test PRIVATE NO_DLL_LINKAGE)
 	ADD_TEST(NAME Vec3Test COMMAND Vec3Test)
 	
-	ADD_EXECUTABLE(MathUtilTest test/iAMathUtilityTest.cpp src/iAMathUtility.cpp)
-	TARGET_INCLUDE_DIRECTORIES(MathUtilTest PRIVATE ${CMAKE_CURRENT_SOURCE_DIR}/src ${CMAKE_CURRENT_BINARY_DIR})
+	ADD_EXECUTABLE(MathUtilTest test/iAMathUtilityTest.cpp base/iAMathUtility.cpp)
+	TARGET_INCLUDE_DIRECTORIES(MathUtilTest PRIVATE ${CMAKE_CURRENT_SOURCE_DIR}/base ${CMAKE_CURRENT_BINARY_DIR}/base)
 	TARGET_LINK_LIBRARIES(MathUtilTest PRIVATE ${VTK_LIBRARIES})
 	target_compile_definitions(MathUtilTest PRIVATE NO_DLL_LINKAGE)
 	ADD_TEST(NAME MathUtilTest COMMAND MathUtilTest)
 
 	ADD_EXECUTABLE(FunctionalBoxplotTest test/iAFunctionalBoxplotTest.cpp)
-	TARGET_INCLUDE_DIRECTORIES(FunctionalBoxplotTest PRIVATE ${CMAKE_CURRENT_SOURCE_DIR}/src)
+	TARGET_INCLUDE_DIRECTORIES(FunctionalBoxplotTest PRIVATE ${CMAKE_CURRENT_SOURCE_DIR}/base ${CMAKE_CURRENT_SOURCE_DIR}/src)
 	target_compile_definitions(FunctionalBoxplotTest PRIVATE NO_DLL_LINKAGE)
 	ADD_TEST(NAME FunctionalBoxplotTest COMMAND FunctionalBoxplotTest)
 

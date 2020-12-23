@@ -21,7 +21,7 @@
 #pragma once
 
 #include <iASlicerMode.h>
-#include <io/iAITKIO.h> // TODO: replace?
+#include <iAITKIO.h> // TODO: replace?
 
 #include <QGridLayout>
 #include <QSharedPointer>

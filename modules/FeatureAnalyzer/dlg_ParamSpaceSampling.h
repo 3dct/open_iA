@@ -22,7 +22,7 @@
 
 #include "ui_ParamSpaceSampling.h"
 
-#include <charts/qcustomplot.h>
+#include <qcustomplot.h>
 
 #include <QDialog>
 #include <QString>

@@ -20,7 +20,6 @@
 * ************************************************************************************/
 #pragma once
 
-#include <QColor>
 #include <QString>
 
 #include "open_iA_Core_export.h"
@@ -79,8 +78,5 @@ enum iAIOType
 const int DefaultMagicLensSize = 120;
 const int MinimumMagicLensSize = 40;
 const int MaximumMagicLensSize = 8192;
-
-// define preset colors
-open_iA_Core_API QColor * PredefinedColors();
 
 const uint NotExistingChannel = std::numeric_limits<uint>::max();

@@ -20,18 +20,19 @@
 * ************************************************************************************/
 #include "iACommandLineProcessor.h"
 
-#include "iAAttributeDescriptor.h"
-#include "iAConnector.h"
 #include "iAFilter.h"
 #include "iAFilterRegistry.h"
 #include "iALoggerStdOut.h"
+
+#include "iAAttributeDescriptor.h"
+#include "iAConnector.h"
+#include "iAITKIO.h"
 #include "iALogLevelMappings.h"
 #include "iAMathUtility.h"
 #include "iAModuleDispatcher.h"
 #include "iAProgress.h"
 #include "iAStringHelper.h"
 #include "iAValueType.h"
-#include "io/iAITKIO.h"
 
 #include <QFileInfo>
 #include <QTextStream>

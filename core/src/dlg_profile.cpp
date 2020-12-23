@@ -20,7 +20,8 @@
 * ************************************************************************************/
 #include "dlg_profile.h"
 
-#include "charts/iAProfileWidget.h"
+// charts
+#include "iAProfileWidget.h"
 
 #include <QGridLayout>
 

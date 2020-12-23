@@ -20,9 +20,9 @@
 * ************************************************************************************/
 #include "iAQMeasure.h"
 
-#include <charts/iAChartWithFunctionsWidget.h>
-#include <charts/iAHistogramData.h>
-#include <charts/iAPlotTypes.h>
+#include <iAChartWithFunctionsWidget.h>
+#include <iAHistogramData.h>
+#include <iAPlotTypes.h>
 #include <defines.h>    // for DIM
 #include <iAConnector.h>
 #include <iALog.h>

@@ -27,7 +27,7 @@
 #include "iASimpleSlicerWidget.h"
 #include "iARightBorderLayout.h"
 
-#include <charts/iAChartWithFunctionsWidget.h>
+#include <iAChartWithFunctionsWidget.h>
 #include <iAModality.h>
 
 #include <QComboBox>

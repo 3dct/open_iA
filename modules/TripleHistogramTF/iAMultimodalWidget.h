@@ -24,7 +24,7 @@
 
 #include "iASimpleSlicerWidget.h"
 
-#include <charts/iAChartWithFunctionsWidget.h>
+#include <iAChartWithFunctionsWidget.h>
 #include <iATransferFunction.h>
 
 #include <vtkSmartPointer.h>

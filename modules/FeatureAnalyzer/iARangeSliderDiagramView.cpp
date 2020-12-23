@@ -23,7 +23,7 @@
 #include "iARangeSliderDiagramWidget.h"
 #include "FeatureAnalyzerHelpers.h"
 
-#include <charts/iAHistogramData.h>
+#include <iAHistogramData.h>
 
 #include <vtkIdTypeArray.h>
 

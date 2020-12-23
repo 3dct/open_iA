@@ -22,7 +22,7 @@
 
 #include "iA4DCTVisWin.h"
 
-#include <io/iAFileUtils.h>
+#include <iAFileUtils.h>
 
 #include <itkDiscreteGaussianImageFilter.h>
 #include <itkImageFileReader.h>

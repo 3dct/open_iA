@@ -23,7 +23,7 @@
 #include "iAThresholdCalcHelper.h"
 #include "iAThreshMinMaxHelper.h"
 
-#include <charts/iAPlotData.h>
+#include <iAPlotData.h>
 
 #include <QSharedPointer>
 #include <QtCharts>

@@ -37,9 +37,9 @@
 #include "iAXRFData.h"
 #include "iAXRFOverlay.h"
 
-#include <charts/iAChartFunctionTransfer.h>
-#include <charts/iAHistogramData.h>
-#include <charts/iAPlotTypes.h>
+#include <iAChartFunctionTransfer.h>
+#include <iAHistogramData.h>
+#include <iAPlotTypes.h>
 #include <iAChannelData.h>
 #include <iAChannelSlicerData.h>
 #include <iAColorTheme.h>
@@ -52,7 +52,7 @@
 #include <iARunAsync.h>
 #include <iASlicer.h>
 #include <iAVtkWidget.h>
-#include <io/iAFileUtils.h>
+#include <iAFileUtils.h>
 #include <io/iAIO.h>
 #include <qthelper/iAWidgetAddHelper.h>
 #include <mdichild.h>

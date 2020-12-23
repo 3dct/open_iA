@@ -23,9 +23,9 @@
 #include "iAAdaptiveThresholdDlg.h"
 #include "iAImageProcessingHelper.h"
 
-#include <charts/iAChartWithFunctionsWidget.h>
-#include <charts/iAPlot.h>
-#include <charts/iAPlotData.h>
+#include <iAChartWithFunctionsWidget.h>
+#include <iAPlot.h>
+#include <iAPlotData.h>
 #include <iALog.h>
 #include <mainwindow.h>
 #include <mdichild.h>

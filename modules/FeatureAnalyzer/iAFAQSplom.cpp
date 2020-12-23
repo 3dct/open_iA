@@ -24,8 +24,8 @@
 
 #include "iAFeatureScoutModuleInterface.h"
 
-#include <charts/iASPLOMData.h>
-#include <charts/iAScatterPlot.h>
+#include <iASPLOMData.h>
+#include <iAScatterPlot.h>
 #include <iALog.h>
 #include <iAMathUtility.h>
 #include <iAModuleDispatcher.h>

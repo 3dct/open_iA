@@ -25,7 +25,7 @@
 
 #include <iAAttributeDescriptor.h>
 #include <iALog.h>
-#include <io/iAFileUtils.h>
+#include <iAFileUtils.h>
 
 #include <QFile>
 #include <QTextStream>

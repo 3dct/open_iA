@@ -29,7 +29,7 @@
 #include <iALog.h>
 #include <iASlicer.h>
 #include <iASlicerSettings.h>
-#include <io/iAITKIO.h>
+#include <iAITKIO.h>
 
 #include <itkAddImageFilter.h>
 #include <itkCastImageFilter.h>

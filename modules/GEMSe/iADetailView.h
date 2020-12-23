@@ -24,7 +24,7 @@
 #include "iAImageTreeNode.h" // for LabelImagePointer
 
 #include <iAAttributes.h>
-#include <io/iAITKIO.h> // TODO: replace?
+#include <iAITKIO.h> // TODO: replace?
 
 #include <vtkSmartPointer.h>
 

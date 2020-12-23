@@ -27,7 +27,7 @@
 #include "iAModalityList.h"
 #include "iAMultiStepProgressObserver.h"
 #include "iAStringHelper.h"
-#include "io/iAFileUtils.h"
+#include "iAFileUtils.h"
 #include "mdichild.h"
 
 #include <vtkImageData.h>

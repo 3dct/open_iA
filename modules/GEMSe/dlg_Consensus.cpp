@@ -42,7 +42,7 @@
 #include <iAParameterNames.h>
 #include <iAToolsITK.h>
 #include <iAVtkWidget.h>
-#include <io/iAFileUtils.h>
+#include <iAFileUtils.h>
 #include <io/iAIOProvider.h>
 #include <mdichild.h>
 #include <qthelper/iADockWidgetWrapper.h>

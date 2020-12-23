@@ -31,7 +31,7 @@
 #include <iAStringHelper.h>
 #include <iAToolsITK.h>
 #include <iATypedCallHelper.h>
-#include <io/iAITKIO.h>
+#include <iAITKIO.h>
 
 #include <itkImage.h>
 

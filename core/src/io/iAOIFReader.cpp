@@ -23,7 +23,7 @@
 #include "iAConnector.h"
 #include "iALog.h"
 #include "iAItkVersion.h"
-#include "io/iAFileUtils.h"
+#include "iAFileUtils.h"
 
 #include <itkImage.h>
 #include <itkImageFileReader.h>

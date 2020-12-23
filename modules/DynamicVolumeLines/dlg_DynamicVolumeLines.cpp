@@ -25,17 +25,19 @@
 #include "iAOrientationWidget.h"
 #include "iASegmentTree.h"
 
-#include "charts/iAChartWithFunctionsWidget.h"
-#include "iAColorTheme.h"
-#include "iAFunction.h"
-#include "iAFunctionalBoxplot.h"
-#include "iAJobListView.h"
-#include "iALUT.h"
-#include "iARenderer.h"
-#include "iATransferFunction.h"
-#include "iATypedCallHelper.h"
-#include "iAVolumeRenderer.h"
-#include "iAVtkWidget.h"
+#include <iAFunction.h>
+#include <iAFunctionalBoxplot.h>
+#include <iAJobListView.h>
+#include <iALUT.h>
+#include <iARenderer.h>
+#include <iAVolumeRenderer.h>
+#include <iAVtkWidget.h>
+
+#include <iAChartWithFunctionsWidget.h>
+
+#include <iAColorTheme.h>
+#include <iATransferFunction.h>
+#include <iATypedCallHelper.h>
 
 #include <vtkAbstractVolumeMapper.h>
 #include <vtkActor.h>

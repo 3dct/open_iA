@@ -24,7 +24,7 @@
 #include "iAFiberCharacteristics.h"
 #include "iA4DCTDefects.h"
 
-#include <io/iAFileUtils.h>
+#include <iAFileUtils.h>
 
 #include <vtkMath.h>
 

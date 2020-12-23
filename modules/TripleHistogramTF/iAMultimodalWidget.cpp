@@ -23,11 +23,11 @@
 
 #include "iASimpleSlicerWidget.h"
 
-#include <charts/iAChartFunctionTransfer.h>
-#include <charts/iAChartWithFunctionsWidget.h>
-#include <charts/iAHistogramData.h>
-#include <charts/iAPlotTypes.h>
-#include <charts/iAProfileWidget.h>
+#include <iAChartFunctionTransfer.h>
+#include <iAChartWithFunctionsWidget.h>
+#include <iAHistogramData.h>
+#include <iAPlotTypes.h>
+#include <iAProfileWidget.h>
 #include <dlg_modalities.h>
 #include <dlg_slicer.h>
 #include <iAChannelData.h>

@@ -22,7 +22,7 @@
 
 #include "iAParamHistogramData.h"
 
-#include <charts/iAPlotTypes.h>
+#include <iAPlotTypes.h>
 #include <iAMapper.h>
 #include <iAMathUtility.h>
 #include <iANameMapper.h>

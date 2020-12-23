@@ -31,7 +31,7 @@
 #include <iAModalityList.h>
 #include <iAToolsVTK.h>
 #include <iAVtkDraw.h>
-#include <io/iAFileUtils.h>
+#include <iAFileUtils.h>
 #include <mdichild.h>
 
 #include <vtkImageData.h>

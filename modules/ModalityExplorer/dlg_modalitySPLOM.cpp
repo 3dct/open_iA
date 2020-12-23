@@ -20,13 +20,13 @@
 * ************************************************************************************/
 #include "dlg_modalitySPLOM.h"
 
-#include <charts/iAQSplom.h>
+#include <iAQSplom.h>
 #include <iAChannelData.h>
 #include <iALog.h>
 #include <iAModality.h>
 #include <iAModalityList.h>
 #include <iAPerformanceHelper.h>
-#include <charts/iASPLOMData.h>
+#include <iASPLOMData.h>
 #include <mdichild.h>
 
 #include <vtkColorTransferFunction.h>

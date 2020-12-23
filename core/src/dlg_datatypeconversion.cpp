@@ -20,9 +20,15 @@
 * ************************************************************************************/
 #include "dlg_datatypeconversion.h"
 
-#include "charts/iAChartWidget.h"
-#include "charts/iAHistogramData.h"
-#include "charts/iAPlotTypes.h"
+#include "iAVtkWidget.h"
+#include "io/iARawFileParameters.h"
+
+// charts
+#include "iAChartWidget.h"
+#include "iAHistogramData.h"
+#include "iAPlotTypes.h"
+
+// base
 #include "iAConnector.h"
 #include "iAMathUtility.h"
 #include "iAToolsITK.h"
@@ -30,8 +36,6 @@
 #include "iATransferFunction.h"    // for GetDefault... functions
 #include "iATypedCallHelper.h"
 #include "iAVtkVersion.h"
-#include "iAVtkWidget.h"
-#include "io/iARawFileParameters.h"
 
 #include <itkChangeInformationImageFilter.h>
 #include <itkExtractImageFilter.h>

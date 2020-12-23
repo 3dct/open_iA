@@ -24,7 +24,7 @@
 #include "iASelection.h"
 #include "FeatureAnalyzerHelpers.h"
 
-#include <charts/iASPLOMData.h>
+#include <iASPLOMData.h>
 #include <iALookupTable.h>
 #include <iALUT.h>
 #include <iAQtVTKBindings.h>

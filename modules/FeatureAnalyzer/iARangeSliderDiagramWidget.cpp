@@ -20,8 +20,8 @@
 * ************************************************************************************/
 #include "iARangeSliderDiagramWidget.h"
 
-#include <charts/iAChartFunctionTransfer.h>
-#include <charts/iAHistogramData.h>
+#include <iAChartFunctionTransfer.h>
+#include <iAHistogramData.h>
 #include <iACSVToQTableWidgetConverter.h>
 #include <iAMapper.h>
 #include <iAMathUtility.h>

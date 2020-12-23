@@ -30,7 +30,7 @@
 #include <iAModuleDispatcher.h>
 #include <iAProjectBase.h>
 #include <iAProjectRegistry.h>
-#include <io/iAFileUtils.h>
+#include <iAFileUtils.h>
 #include <mainwindow.h>
 #include <mdichild.h>
 

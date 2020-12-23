@@ -29,7 +29,7 @@
 #include <iAModalityList.h>
 #include <iAModality.h>
 #include <iAProgress.h>
-#include <io/iAFileUtils.h>
+#include <iAFileUtils.h>
 #include <mainwindow.h>
 #include <mdichild.h>
 

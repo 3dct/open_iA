@@ -26,7 +26,7 @@
 #include "iACsvConfig.h"
 
 // Core:
-#include <charts/iASPLOMData.h>
+#include <iASPLOMData.h>
 #include <iALog.h>
 #include <iAStringHelper.h>
 #include <iAvec3.h>

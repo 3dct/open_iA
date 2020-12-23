@@ -34,7 +34,7 @@
 
 #include <iALog.h>
 #include <iACSVToQTableWidgetConverter.h>
-#include <io/iAITKIO.h>
+#include <iAITKIO.h>
 #include <io/iAIOProvider.h>
 
 #include <vtkIdTypeArray.h>

@@ -34,7 +34,6 @@
 #include "iAFeatureScoutObjectType.h"
 #include "iAMeanObjectTFView.h"
 
-#include <charts/iAChartWithFunctionsWidget.h>
 #include <dlg_commoninput.h>
 #include <dlg_imageproperty.h>
 #include <dlg_modalities.h>
@@ -49,12 +48,17 @@
 #include <iAMultiStepProgressObserver.h>
 #include <iARenderer.h>
 #include <iARunAsync.h>
-#include <iAToolsITK.h>
 #include <iAVtkWidget.h>
-#include <io/iAFileUtils.h>
 #include <iAModalityList.h>
 #include <mdichild.h>
 #include <qthelper/iADockWidgetWrapper.h>
+
+// charts:
+#include <iAChartWithFunctionsWidget.h>
+
+// base:
+#include <iAToolsITK.h>
+#include <iAFileUtils.h>
 
 #include <itkAddImageFilter.h>
 #include <itkBinaryThresholdImageFilter.h>

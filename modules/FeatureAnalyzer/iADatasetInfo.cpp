@@ -25,7 +25,7 @@
 
 #include <iAItkVersion.h>
 #include <iAToolsITK.h>
-#include <io/iAITKIO.h>
+#include <iAITKIO.h>
 
 #include <itkExtractImageFilter.h>
 #include <itkImageDuplicator.h>

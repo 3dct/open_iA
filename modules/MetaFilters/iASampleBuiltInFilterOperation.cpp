@@ -25,7 +25,7 @@
 #include <iAFilter.h>
 #include <iAFilterRegistry.h>
 #include <iAProgress.h>
-#include <io/iAITKIO.h>
+#include <iAITKIO.h>
 
 #include <QFileInfo>
 

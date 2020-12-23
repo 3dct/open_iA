@@ -20,7 +20,9 @@
 * ************************************************************************************/
 #pragma once
 
-#include "charts/iAPlotData.h"
+// charts
+#include "iAPlotData.h"
+
 #include "iAVtkWidgetFwd.h"
 #include "ui_DataTypeConversion.h"
 

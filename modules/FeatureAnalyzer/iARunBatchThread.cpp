@@ -25,7 +25,7 @@
 
 #include <defines.h>
 #include <iATypedCallHelper.h>
-#include <io/iAITKIO.h>
+#include <iAITKIO.h>
 
 // from Maximum Distance Toolkit
 #include <iAMaximumDistanceFilter.h>

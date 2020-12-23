@@ -20,17 +20,19 @@
 * ************************************************************************************/
 #include "iAFilterRunnerGUI.h"
 
-#include "dlg_modalities.h"
+// base
 #include "iAAttributeDescriptor.h"
+#include "iAFileUtils.h"
+#include "iALogger.h"
+
+#include "dlg_modalities.h"
 #include "iAConnector.h"
 #include "iALog.h"
 #include "iAFilter.h"
 #include "iAJobListView.h"
-#include "iALogger.h"
 #include "iAModality.h"
 #include "iAModalityList.h"
 #include "iAParameterDlg.h"
-#include "io/iAFileUtils.h"
 #include "mainwindow.h"
 #include "mdichild.h"
 

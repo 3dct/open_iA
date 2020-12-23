@@ -23,7 +23,7 @@
 #include "iAEnergySpectrum.h"
 #include "iASpectrumFunction.h"
 
-#include <charts/iAPlotData.h>
+#include <iAPlotData.h>
 
 #include <QSharedPointer>
 

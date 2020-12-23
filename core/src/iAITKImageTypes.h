@@ -20,7 +20,7 @@
 * ************************************************************************************/
 #pragma once
 
-#include <io/iAITKIO.h>
+#include <iAITKIO.h>
 
 // TODO: Replace with some other definition / template?
 const int Dimensions = 3;

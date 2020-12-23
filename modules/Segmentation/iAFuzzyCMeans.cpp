@@ -21,11 +21,13 @@
 #include "iAFuzzyCMeans.h"
 
 #include <defines.h>    // for DIM
+#include <iAProgress.h>
+
+// base
 #include <iAConnector.h>
 #include <iALog.h>
-#include <iAProgress.h>
 #include <iATypedCallHelper.h>
-#include <io/iAITKIO.h>
+#include <iAITKIO.h>
 
 #include <itkConfigure.h>    // for ITK_VERSION...
 #include <itkFCMClassifierInitializationImageFilter.h>

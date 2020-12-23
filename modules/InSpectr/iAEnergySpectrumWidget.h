@@ -20,7 +20,7 @@
 * ************************************************************************************/
 #pragma once
 
-#include <charts/iAChartWithFunctionsWidget.h>
+#include <iAChartWithFunctionsWidget.h>
 
 #include <QMap>
 

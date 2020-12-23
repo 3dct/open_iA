@@ -32,7 +32,7 @@
 #include <iAModuleDispatcher.h> // TODO: Refactor; it shouldn't be required to go via iAModuleDispatcher to retrieve one's own module
 #include <iAProjectBase.h>
 #include <iAProjectRegistry.h>
-#include <io/iAFileUtils.h>
+#include <iAFileUtils.h>
 #include <mainwindow.h>
 #include <mdichild.h>
 

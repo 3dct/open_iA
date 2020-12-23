@@ -21,7 +21,7 @@
 #include "../include/iASTLLoader.h"
 #include "../../iADreamCaster.h"
 
-#include <io/iAFileUtils.h>
+#include <iAFileUtils.h>
 
 #include <vtksys/SystemTools.hxx>
 

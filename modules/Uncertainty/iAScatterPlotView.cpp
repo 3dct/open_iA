@@ -22,9 +22,9 @@
 
 #include "iAUncertaintyColors.h"
 
-#include <charts/iAScatterPlot.h>
-#include <charts/iAScatterPlotWidget.h>
-#include <charts/iASPLOMData.h>
+#include <iAScatterPlot.h>
+#include <iAScatterPlotWidget.h>
+#include <iASPLOMData.h>
 #include <iALog.h>
 #include <iAToolsVTK.h>
 #include <iAVtkDraw.h>

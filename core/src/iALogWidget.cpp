@@ -20,10 +20,13 @@
 * ************************************************************************************/
 #include "iALogWidget.h"
 
+// base
+#include "iAFileUtils.h"
 #include "iALogLevelMappings.h"
+
+// core
 #include "iALogRedirectVTK.h"
 #include "iALogRedirectITK.h"
-#include "io/iAFileUtils.h"
 
 #include <QDateTime>
 

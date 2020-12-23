@@ -34,7 +34,7 @@
 #include <iARenderer.h>
 #include <iASlicer.h>
 #include <iAVTKRendererManager.h>
-#include <io/iAFileUtils.h>
+#include <iAFileUtils.h>
 
 #include <vtkTransform.h>
 #include <vtkColorTransferFunction.h>

@@ -25,7 +25,7 @@
 #include "iATripleModalityWidget.h"
 #include "iASimpleSlicerWidget.h"
 
-#include <charts/iAChartWithFunctionsWidget.h>
+#include <iAChartWithFunctionsWidget.h>
 #include <iASlicer.h>
 
 #include <QApplication>

@@ -22,7 +22,7 @@
 
 #include "iAFeature.h"
 
-#include <io/iAFileUtils.h>
+#include <iAFileUtils.h>
 
 #include <itkImage.h>
 #include <itkImageRegionIterator.h>

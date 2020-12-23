@@ -22,14 +22,16 @@
 
 #include "iAParameterNames.h"
 
+#include <iAFilterRegistry.h>
+#include <iAProgress.h>
+
+// base
 #include <iAAttributeDescriptor.h>
 #include <iAConnector.h>
 #include <iALog.h>
-#include <iAFilterRegistry.h>
-#include <iAProgress.h>
+#include <iAITKIO.h>
+#include <iAFileUtils.h>
 #include <iAStringHelper.h>
-#include <io/iAITKIO.h>
-#include <io/iAFileUtils.h>
 
 #include <QDir>
 #include <QFile>

@@ -20,7 +20,7 @@
 * ************************************************************************************/
 #include "iAFeatureTracking.h"
 
-#include <io/iAFileUtils.h>
+#include <iAFileUtils.h>
 #include <iALog.h>
 
 #include <vtkTable.h>

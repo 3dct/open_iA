@@ -31,7 +31,7 @@
 #include "iAVolumeRenderer.h"
 #include "iAVolumeSettings.h"
 #include "io/extension2id.h"
-#include "io/iAFileUtils.h"
+#include "iAFileUtils.h"
 #include "io/iAIO.h"
 
 #include <vtkCamera.h>

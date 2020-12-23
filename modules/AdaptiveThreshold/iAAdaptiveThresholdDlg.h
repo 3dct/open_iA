@@ -23,7 +23,7 @@
 #include "ui_AdaptiveThreshold.h"
 #include "iAThresholdCalculator.h"
 
-#include <charts/iAPlotData.h>
+#include <iAPlotData.h>
 
 #include <QSharedPointer>
 #include <QDialog>
