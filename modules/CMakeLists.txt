@@ -27,6 +27,7 @@ option (openiA_DEPENDENCY_INFO "Whether detailed dependency information should b
 
 IF (MSVC)
 	SET (openiA_MODULE_LIB_DIR "${CMAKE_CURRENT_BINARY_DIR}/$(Configuration)")
+	option (openIA_MODULE_GUI_DEPENDENCY "Whether the modules should depend on the GUI application (enabling it makes it easier to develop, as then it becomes possible to set the module as active project, and still start the GUI application for debugging purposes directly; but enabling it also makes the build slightly slower)" ON)
 ELSE()
 	SET (openiA_MODULE_LIB_DIR "${CMAKE_CURRENT_BINARY_DIR}")
 ENDIF()
@@ -120,8 +121,14 @@ FOREACH( indx RANGE ${len} )
 		ENDIF()
 	ENDFOREACH()
 
+	if ("${BASE_LIBRARY}" STREQUAL "")
+		set (BASE_LIBRARY ${CORE_LIBRARY_NAME})
+	endif()
+	IF (openiA_DEPENDENCY_INFO)
+		MESSAGE(STATUS "    base: ${BASE_LIBRARY}")
+	ENDIF()
 	# also pulls in libraries defined in core interface (qt, vtk, itk):
-	TARGET_LINK_LIBRARIES(${module_name} PRIVATE ${CORE_LIBRARY_NAME})
+	TARGET_LINK_LIBRARIES(${module_name} PRIVATE ${BASE_LIBRARY})
 
 	# additional module (such as astra, eigen, OpenCL, ...)
 	IF (ADDITIONAL_MODULE_LIBRARIES)
@@ -185,8 +192,10 @@ FOREACH( indx RANGE ${len} )
 		# set up debugging command / environment dll paths
 		set_target_properties(${module_name} PROPERTIES VS_DEBUGGER_COMMAND "${CMAKE_BINARY_DIR}\\$(Platform)\\$(Configuration)\\${GUI_EXECUTABLE_FILE}")
 		set_target_properties(${module_name} PROPERTIES VS_DEBUGGER_ENVIRONMENT "PATH=${WinDLLPaths};%PATH%\nSCIFIO_PATH=${SCIFIO_PATH}")
-
-		add_dependencies(${module_name} ${GUI_EXECUTABLE_TARGET})       # dependency to GUI executable for triggering rebuild when starting module
+		
+		if (openIA_MODULE_GUI_DEPENDENCY)
+			add_dependencies(${module_name} ${GUI_EXECUTABLE_TARGET})       # dependency to GUI executable for triggering rebuild when starting module
+		endif()
 	ELSE()
 		IF (FLATPAK_BUILD)
 			INSTALL (TARGETS ${module_name} LIBRARY DESTINATION bin/plugins)

@@ -20,57 +20,63 @@
 * ************************************************************************************/
 #pragma once
 
-#include "open_iA_Core_export.h"
+#include <QString>
 
-// why is this not unsigned int?
-typedef int iAVoxelIndexType;
+#include "base_export.h"
 
-//! Helper for storing 3D image coordinates.
-class open_iA_Core_API iAImageCoordinate
+#define DIM 3
+
+base_API extern const QString organisationName;
+base_API extern const QString applicationName;
+
+enum iAIOType
 {
-public:
-	enum iAIndexOrdering
-	{
-		RowColDepMajor, // x, y(, z)
-		ColRowDepMajor, // y, x(, z)
-	};
-	iAImageCoordinate();
-	iAImageCoordinate(iAVoxelIndexType x, iAVoxelIndexType y, iAVoxelIndexType z);
-	iAVoxelIndexType x, y, z;
+	UNKNOWN_READER,
+	MHD_READER,
+	STL_READER,
+	RAW_READER,
+	PARS_READER,
+	VGI_READER,
+	TIF_STACK_READER,
+	JPG_STACK_READER,
+	PNG_STACK_READER,
+	BMP_STACK_READER,
+	MHD_WRITER,
+	STL_WRITER,
+	TIF_STACK_WRITER,
+	JPG_STACK_WRITER,
+	PNG_STACK_WRITER,
+	BMP_STACK_WRITER,
+	MPEG_WRITER,
+	OGV_WRITER,
+	AVI_WRITER,
+	CSV_READER,
+	XML_READER,
+	XML_WRITER,
+	VOLUME_STACK_READER,
+	VOLUME_STACK_MHD_READER,
+	VOLUME_STACK_VOLSTACK_READER,
+	VOLUME_STACK_VOLSTACK_WRITER,
+	VTK_READER,  //new for VTK Input
+	DCM_READER,
+	DCM_WRITER,
+//	NRRD_READER,     // see iAIOProvider.cpp why this is commented out
+	OIF_READER,
+	AM_READER,
+	AM_WRITER,
+	VTI_READER,
+	CSV_WRITER,
+#ifdef USE_HDF5
+	HDF5_READER,
+#endif
+	HDF5_WRITER,
+	PROJECT_READER,
+	PROJECT_WRITER,
+	NKC_READER
 };
 
-bool operator==(iAImageCoordinate const & a, iAImageCoordinate const & b);
+const int DefaultMagicLensSize = 120;
+const int MinimumMagicLensSize = 40;
+const int MaximumMagicLensSize = 8192;
 
-//! Utility class for converting (2D/)3D indices to a flat (1D) index
-class open_iA_Core_API iAImageCoordConverter
-{
-public:
-	iAImageCoordConverter(iAVoxelIndexType width,
-		iAVoxelIndexType height,
-		iAVoxelIndexType depth=1,
-		iAImageCoordinate::iAIndexOrdering ordering=iAImageCoordinate::RowColDepMajor
-	);
-	iAImageCoordinate coordinatesFromIndex(iAVoxelIndexType index) const;
-	iAVoxelIndexType indexFromCoordinates(iAImageCoordinate coords) const;
-	iAVoxelIndexType vertexCount() const;
-	static iAImageCoordinate coordinatesFromIndex(
-		iAVoxelIndexType index,
-		iAVoxelIndexType width,
-		iAVoxelIndexType height,
-		iAVoxelIndexType depth,
-		iAImageCoordinate::iAIndexOrdering ordering);
-	static iAVoxelIndexType indexFromCoordinates(
-		iAImageCoordinate coords,
-		iAVoxelIndexType width,
-		iAVoxelIndexType height,
-		iAVoxelIndexType depth,
-		iAImageCoordinate::iAIndexOrdering ordering);
-	iAVoxelIndexType width() const;
-	iAVoxelIndexType height() const;
-	iAVoxelIndexType depth() const;
-private:
-	iAVoxelIndexType m_width;
-	iAVoxelIndexType m_height;
-	iAVoxelIndexType m_depth;
-	iAImageCoordinate::iAIndexOrdering m_ordering;
-};
+const uint NotExistingChannel = std::numeric_limits<uint>::max();

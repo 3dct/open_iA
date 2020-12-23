@@ -20,9 +20,6 @@
 * ************************************************************************************/
 #include "iAaiFilters.h"
 
-#include<vector>
-#include <omp.h>
-
 #include "defines.h" // for DIM
 
 #include "iAConnector.h"
@@ -46,6 +43,9 @@
 	#include "dml_provider_factory.h"
 #endif
 
+#include <omp.h>
+
+#include <vector>
 
 typedef float                                 				PixelType;
 const unsigned int Dimension = 3;

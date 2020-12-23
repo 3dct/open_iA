@@ -20,8 +20,6 @@
 * ************************************************************************************/
 #pragma once
 
-#include "open_iA_Core_export.h"
-
 #include <QSharedPointer>
 #include <QString>
 #include <QVector>
@@ -32,4 +30,4 @@ typedef std::pair<iAImageCoordinate, int> iASeedType;
 typedef QVector<iASeedType> iASeedVector;
 typedef QSharedPointer<iASeedVector> iASeedsPointer;
 
-open_iA_Core_API iASeedsPointer ExtractSeedVector(QString const & seedString, int width, int height, int depth);
+iASeedsPointer ExtractSeedVector(QString const & seedString, int width, int height, int depth);

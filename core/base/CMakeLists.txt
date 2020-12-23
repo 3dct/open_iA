@@ -24,7 +24,7 @@ IF (openiA_PRECOMPILE)
 ENDIF()
 
 # ${CMAKE_CURRENT_SOURCE_DIR}/src 
-TARGET_INCLUDE_DIRECTORIES(${BASE_LIBRARY_NAME} PUBLIC ${CMAKE_CURRENT_BINARY_DIR}) # for export header
+TARGET_INCLUDE_DIRECTORIES(${BASE_LIBRARY_NAME} PUBLIC ${CMAKE_CURRENT_SOURCE_DIR} ${CMAKE_CURRENT_BINARY_DIR}) # current source dir for making all headers available to anyone who is linking to us, binary dir for export header
 
 IF (openiA_USE_IDE_FOLDERS)
 	SET_PROPERTY(TARGET ${BASE_LIBRARY_NAME} PROPERTY FOLDER "Libraries")

@@ -20,7 +20,7 @@
 * ************************************************************************************/
 #pragma once
 
-#include "open_iA_Core_export.h"
+#include "base_export.h"
 
 #include <itkCommand.h>
 
@@ -35,7 +35,7 @@ class vtkAlgorithm;
 //! Connects computation with progress listeners through signals.
 //! Can be used to track progress of vtk and itk filters,
 //! and provides an interface for manual progress tracking.
-class open_iA_Core_API iAProgress : public QObject
+class base_API iAProgress : public QObject
 {
 	Q_OBJECT
 public:
