@@ -18,42 +18,40 @@
 * Contact: FH OÖ Forschungs & Entwicklungs GmbH, Campus Wels, CT-Gruppe,              *
 *          Stelzhamerstraße 23, 4600 Wels / Austria, Email: c.heinzl@fh-wels.at       *
 * ************************************************************************************/
+#pragma once
+
+#include "open_iA_Core_export.h"
+
 #include "iAFilterRegistry.h"
 
-#include "iALog.h"
-#include "iAFilter.h"
-#include "iAFilterRunnerGUI.h"
+#include <QMap>
 
-void iAFilterRegistry::addFilterFactory(QSharedPointer<iAIFilterFactory> factory)
+class iAFilterRunnerGUI;
+//! For internal use in iAFilterRegistry and iAFilterFactory only.
+//! There should be no need to use this class directly; use REGISTER_FILTER or
+//! REGISTER_FILTER_WITH_RUNNER macros below instead!
+using iAIFilterRunnerGUIFactory = iAGenericFactory<iAFilterRunnerGUI>;
+template <typename FilterRunnerGUIType> using iAFilterRunnerGUIFactory = iASpecificFactory<FilterRunnerGUIType, iAFilterRunnerGUI>;
+
+class open_iA_Core_API iAFilterRunnerRegistry
 {
-	m_filters.push_back(factory);
-}
+public:
+	//! Retrieve the callback for a given factory (if the given factory does not
+	//! have a callback, nullptr is returned).
+	static QSharedPointer<iAIFilterRunnerGUIFactory> filterRunner(int filterID);
 
-QVector<QSharedPointer<iAIFilterFactory>> const & iAFilterRegistry::filterFactories()
-{
-	return m_filters;
-}
+	static void addFilterFactory(QSharedPointer<iAIFilterFactory> factory, QSharedPointer<iAIFilterRunnerGUIFactory> runner);
 
-QSharedPointer<iAFilter> iAFilterRegistry::filter(QString const & name)
-{
-	int id = filterID(name);
-	return id == -1 ? QSharedPointer<iAFilter>() : m_filters[id]->create();
-}
+private:
+	iAFilterRunnerRegistry() =delete;  //!< iAFilterRunnerRegistry is meant to be used statically only, thus prevent creation of objects
+	static QMap<int, QSharedPointer<iAIFilterRunnerGUIFactory>> m_runner;
+};
 
-int iAFilterRegistry::filterID(QString const & name)
-{
-	int cur = 0;
-	for (auto filterFactory : m_filters)
-	{
-		auto filter = filterFactory->create();
-		if (filter->name() == name)
-		{
-			return cur;
-		}
-		++cur;
-	}
-	LOG(lvlError, QString("Filter '%1' not found!").arg(name));
-	return -1;
-}
-
-QVector<QSharedPointer<iAIFilterFactory> > iAFilterRegistry::m_filters;
+//! Macro to register a class derived from iAFilter in the iAFilterRegistry,
+//! along with a runner. In comparison to the macro REGISTER_FILTER, you can provide your
+//! own runner class here (derived from iAFilterRunnerGUI to extend or modify the
+//! behavior of the filter when run from the GUI.
+//! See iAFilterRegistry for more details
+#define REGISTER_FILTER_WITH_RUNNER(FilterType, FilterRunnerType)                                           \
+	iAFilterRunnerRegistry::addFilterFactory(QSharedPointer<iAIFilterFactory>(new iAFilterFactory<FilterType>()), \
+		QSharedPointer<iAIFilterRunnerGUIFactory>(new iAFilterRunnerGUIFactory<FilterRunnerType>()));

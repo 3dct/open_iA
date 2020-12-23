@@ -22,7 +22,7 @@
 
 #include "iALog.h"
 #include "iAFilter.h"
-#include "iAFilterRegistry.h"
+#include "iAFilterRunnerRegistry.h"
 #include "iAFilterRunnerGUI.h"
 #include "iAFilterSelectionDlg.h"
 #include "iAGUIModuleInterface.h"
@@ -274,7 +274,7 @@ void iAModuleDispatcher::runFilter(int filterID)
 	{
 		return;
 	}
-	auto runner = iAFilterRegistry::filterRunner(filterID)->create();
+	auto runner = iAFilterRunnerRegistry::filterRunner(filterID)->create();
 	m_runningFilters.push_back(runner);
 	connect(runner.data(), &iAFilterRunnerGUI::finished, this, &iAModuleDispatcher::removeFilter);
 	runner->run(iAFilterRegistry::filterFactories()[filterID]->create(), m_mainWnd);

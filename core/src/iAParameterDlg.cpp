@@ -24,7 +24,7 @@
 #include "iAFilterSelectionDlg.h"
 #include "iALog.h"
 #include "iAFilter.h"
-#include "iAFilterRegistry.h"
+#include "iAFilterRunnerRegistry.h"
 #include "iAFilterRunnerGUI.h"
 #include "iAStringHelper.h"
 #include "io/iAFileChooserWidget.h"
@@ -298,7 +298,7 @@ void iAParameterDlg::selectFilter()
 		{
 			auto filter = iAFilterRegistry::filter(filterName);
 			int filterID = iAFilterRegistry::filterID(filterName);
-			auto runner = iAFilterRegistry::filterRunner(filterID)->create();
+			auto runner = iAFilterRunnerRegistry::filterRunner(filterID)->create();
 			QMap<QString, QVariant> paramValues = runner->loadParameters(filter, m_sourceMdiChild);
 			if (!runner->askForParameters(filter, paramValues, m_sourceMdiChild, m_mainWnd, false))
 			{

@@ -25,7 +25,7 @@
 #include "iASampleFilter.h"
 #include "iAStackReaderFilter.h"
 
-#include <iAFilterRegistry.h>
+#include <iAFilterRunnerRegistry.h>
 
 void iAMetaFiltersModuleInterface::Initialize()
 {

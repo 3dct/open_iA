@@ -18,42 +18,29 @@
 * Contact: FH OÖ Forschungs & Entwicklungs GmbH, Campus Wels, CT-Gruppe,              *
 *          Stelzhamerstraße 23, 4600 Wels / Austria, Email: c.heinzl@fh-wels.at       *
 * ************************************************************************************/
-#include "iAFilterRegistry.h"
+#include "iAFilterRunnerRegistry.h"
 
-#include "iALog.h"
 #include "iAFilter.h"
 #include "iAFilterRunnerGUI.h"
 
-void iAFilterRegistry::addFilterFactory(QSharedPointer<iAIFilterFactory> factory)
+void iAFilterRunnerRegistry::addFilterFactory(
+	QSharedPointer<iAIFilterFactory> factory, QSharedPointer<iAIFilterRunnerGUIFactory> runner)
 {
-	m_filters.push_back(factory);
+	iAFilterRegistry::addFilterFactory(factory);
+	int filterID = iAFilterRegistry::filterID(factory->create()->name());
+	m_runner.insert(filterID, runner);
 }
 
-QVector<QSharedPointer<iAIFilterFactory>> const & iAFilterRegistry::filterFactories()
+QSharedPointer<iAIFilterRunnerGUIFactory> iAFilterRunnerRegistry::filterRunner(int filterID)
 {
-	return m_filters;
-}
-
-QSharedPointer<iAFilter> iAFilterRegistry::filter(QString const & name)
-{
-	int id = filterID(name);
-	return id == -1 ? QSharedPointer<iAFilter>() : m_filters[id]->create();
-}
-
-int iAFilterRegistry::filterID(QString const & name)
-{
-	int cur = 0;
-	for (auto filterFactory : m_filters)
+	if (m_runner.contains(filterID))
 	{
-		auto filter = filterFactory->create();
-		if (filter->name() == name)
-		{
-			return cur;
-		}
-		++cur;
+		return m_runner[filterID];
 	}
-	LOG(lvlError, QString("Filter '%1' not found!").arg(name));
-	return -1;
+	else
+	{
+		return QSharedPointer<iAIFilterRunnerGUIFactory>(new iAFilterRunnerGUIFactory<iAFilterRunnerGUI>());
+	}
 }
 
-QVector<QSharedPointer<iAIFilterFactory> > iAFilterRegistry::m_filters;
+QMap<int, QSharedPointer<iAIFilterRunnerGUIFactory>> iAFilterRunnerRegistry::m_runner;

@@ -34,7 +34,7 @@
 #include "iASmoothing.h"
 #include "iATransformations.h"
 
-#include <iAFilterRegistry.h>
+#include <iAFilterRunnerRegistry.h>
 
 void iACommonImageFiltersModuleInterface::Initialize()
 {
