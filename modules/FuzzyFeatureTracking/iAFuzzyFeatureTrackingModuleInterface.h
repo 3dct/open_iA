@@ -20,9 +20,9 @@
 * ************************************************************************************/
 #pragma once
 
-#include <iAModuleInterface.h>
+#include <iAGUIModuleInterface.h>
 
-class iAFuzzyFeatureTrackingModuleInterface : public iAModuleInterface
+class iAFuzzyFeatureTrackingModuleInterface : public iAGUIModuleInterface
 {
 	Q_OBJECT
 

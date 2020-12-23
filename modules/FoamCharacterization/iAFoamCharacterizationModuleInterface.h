@@ -20,9 +20,9 @@
 * ************************************************************************************/
 #pragma once
 
-#include <iAModuleInterface.h>
+#include <iAGUIModuleInterface.h>
 
-class iAFoamCharacterizationModuleInterface : public iAModuleInterface
+class iAFoamCharacterizationModuleInterface : public iAGUIModuleInterface
 {
 	Q_OBJECT
 public:

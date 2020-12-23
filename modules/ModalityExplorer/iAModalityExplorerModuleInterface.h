@@ -20,11 +20,11 @@
 * ************************************************************************************/
 #pragma once
 
-#include <iAModuleInterface.h>
+#include <iAGUIModuleInterface.h>
 
 class iAModalityExplorerAttachment;
 
-class iAModalityExplorerModuleInterface : public iAModuleInterface
+class iAModalityExplorerModuleInterface : public iAGUIModuleInterface
 {
 	Q_OBJECT
 public:

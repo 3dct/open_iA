@@ -22,7 +22,7 @@
 
 #include "ui_GEMSeToolBar.h"
 
-#include <iAModuleInterface.h>
+#include <iAGUIModuleInterface.h>
 #include <qthelper/iAQTtoUIConnector.h>
 
 #include <QToolBar>
@@ -33,7 +33,7 @@ class QSettings;
 
 typedef iAQTtoUIConnector<QToolBar, Ui_GEMSeToolBar> iAGEMSeToolbar;
 
-class iAGEMSeModuleInterface : public iAModuleInterface
+class iAGEMSeModuleInterface : public iAGUIModuleInterface
 {
 	Q_OBJECT
 public:

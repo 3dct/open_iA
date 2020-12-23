@@ -20,9 +20,9 @@
 * ************************************************************************************/
 #pragma once
 
-#include "iAModuleInterface.h"
+#include "iAGUIModuleInterface.h"
 
-class iABoneThicknessModuleInterface : public iAModuleInterface
+class iABoneThicknessModuleInterface : public iAGUIModuleInterface
 {
 	Q_OBJECT
 public:

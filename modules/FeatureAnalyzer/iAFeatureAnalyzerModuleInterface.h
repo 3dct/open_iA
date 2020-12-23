@@ -23,11 +23,11 @@
 #include "ui_ComputeSegmentations.h"
 
 #include <defines.h>
-#include <iAModuleInterface.h>
+#include <iAGUIModuleInterface.h>
 
 class iAFeatureAnalyzer;
 
-class iAFeatureAnalyzerModuleInterface : public iAModuleInterface
+class iAFeatureAnalyzerModuleInterface : public iAGUIModuleInterface
 {
 	Q_OBJECT
 

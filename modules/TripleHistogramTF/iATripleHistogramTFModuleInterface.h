@@ -20,12 +20,12 @@
 * ************************************************************************************/
 #pragma once
 
-#include <iAModuleInterface.h>
+#include <iAGUIModuleInterface.h>
 
 class dlg_tf_2mod;
 class dlg_tf_3mod;
 
-class iATripleHistogramTFModuleInterface : public iAModuleInterface
+class iATripleHistogramTFModuleInterface : public iAGUIModuleInterface
 {
 	Q_OBJECT
 public:

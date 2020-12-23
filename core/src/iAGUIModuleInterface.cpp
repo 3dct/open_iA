@@ -18,7 +18,7 @@
 * Contact: FH OÖ Forschungs & Entwicklungs GmbH, Campus Wels, CT-Gruppe,              *
 *          Stelzhamerstraße 23, 4600 Wels / Austria, Email: c.heinzl@fh-wels.at       *
 * ************************************************************************************/
-#include "iAModuleInterface.h"
+#include "iAGUIModuleInterface.h"
 
 #include "iALog.h"
 #include "iAModuleAttachmentToChild.h"
@@ -29,7 +29,7 @@
 
 #include <QMessageBox>
 
-void iAModuleInterface::PrepareResultChild( QString const & title )
+void iAGUIModuleInterface::PrepareResultChild( QString const & title )
 {
 	m_mdiChild = m_mainWnd->resultChild( title + " " + m_mainWnd->activeMdiChild()->windowTitle().replace("[*]",""));
 	if( !m_mdiChild )
@@ -39,7 +39,7 @@ void iAModuleInterface::PrepareResultChild( QString const & title )
 	}
 }
 
-void iAModuleInterface::PrepareResultChild( int childInd, QString const & title )
+void iAGUIModuleInterface::PrepareResultChild( int childInd, QString const & title )
 {
 	m_mdiChild = m_mainWnd->resultChild( childInd, title );
 	if( !m_mdiChild )
@@ -49,17 +49,17 @@ void iAModuleInterface::PrepareResultChild( int childInd, QString const & title 
 	}
 }
 
-void iAModuleInterface::SetMainWindow( MainWindow * mainWnd )
+void iAGUIModuleInterface::SetMainWindow( MainWindow * mainWnd )
 {
 	m_mainWnd = mainWnd;
 }
 
-iAModuleInterface::iAModuleInterface():
+iAGUIModuleInterface::iAGUIModuleInterface():
 	m_mainWnd(nullptr),
 	m_mdiChild(nullptr)
 {}
 
-void iAModuleInterface::PrepareActiveChild()
+void iAGUIModuleInterface::PrepareActiveChild()
 {
 	m_mdiChild = m_mainWnd->activeMdiChild();
 	if( !m_mdiChild )
@@ -69,13 +69,13 @@ void iAModuleInterface::PrepareActiveChild()
 	}
 }
 
-void iAModuleInterface::SaveSettings() const {}
+void iAGUIModuleInterface::SaveSettings() const {}
 
-void iAModuleInterface::ChildCreated(MdiChild * /*child*/)
+void iAGUIModuleInterface::ChildCreated(MdiChild * /*child*/)
 {
 }
 
-iAModuleInterface::~iAModuleInterface()
+iAGUIModuleInterface::~iAGUIModuleInterface()
 {
 	for( int i = 0; i < m_attachments.size(); ++i )
 	{
@@ -84,7 +84,7 @@ iAModuleInterface::~iAModuleInterface()
 	}
 }
 
-void iAModuleInterface::detachChild(MdiChild* child)
+void iAGUIModuleInterface::detachChild(MdiChild* child)
 {
 	if( !child )
 		return;
@@ -98,19 +98,19 @@ void iAModuleInterface::detachChild(MdiChild* child)
 	}
 }
 
-void iAModuleInterface::attachedChildClosed()
+void iAGUIModuleInterface::attachedChildClosed()
 {
 	MdiChild * sender = dynamic_cast<MdiChild*> (QObject::sender());
 	detachChild(sender);
 }
 
-void iAModuleInterface::detach()
+void iAGUIModuleInterface::detach()
 {
 	iAModuleAttachmentToChild * attachment= dynamic_cast<iAModuleAttachmentToChild*> (QObject::sender());
 	detachChild(attachment->getMdiChild());
 }
 
-bool iAModuleInterface::isAttached()
+bool iAGUIModuleInterface::isAttached()
 {
 	//check if already attached
 	for( int i = 0; i < m_attachments.size(); ++i )
@@ -123,12 +123,12 @@ bool iAModuleInterface::isAttached()
 	return false;
 }
 
-iAModuleAttachmentToChild * iAModuleInterface::CreateAttachment( MainWindow * /*mainWnd*/, MdiChild * /*child*/ )
+iAModuleAttachmentToChild * iAGUIModuleInterface::CreateAttachment( MainWindow * /*mainWnd*/, MdiChild * /*child*/ )
 {
 	return nullptr;
 }
 
-bool iAModuleInterface::AttachToMdiChild( MdiChild * child )
+bool iAGUIModuleInterface::AttachToMdiChild( MdiChild * child )
 {
 	//check if already attached
 	m_mdiChild = child;
@@ -146,8 +146,8 @@ bool iAModuleInterface::AttachToMdiChild( MdiChild * child )
 		}
 		//add an attachment
 		m_attachments.push_back( attachment );
-		connect(child, &MdiChild::closed, this, &iAModuleInterface::attachedChildClosed);
-		connect(attachment, &iAModuleAttachmentToChild::detach, this, &iAModuleInterface::detach);
+		connect(child, &MdiChild::closed, this, &iAGUIModuleInterface::attachedChildClosed);
+		connect(attachment, &iAModuleAttachmentToChild::detach, this, &iAGUIModuleInterface::detach);
 	}
 	catch( itk::ExceptionObject &excep )
 	{  // check why we catch an ITK exception here! in the attachment initialization, no ITK filters should be called...

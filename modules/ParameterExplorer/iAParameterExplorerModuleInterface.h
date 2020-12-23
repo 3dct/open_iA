@@ -20,7 +20,7 @@
 * ************************************************************************************/
 #pragma once
 
-#include <iAModuleInterface.h>
+#include <iAGUIModuleInterface.h>
 #include <qthelper/iAQTtoUIConnector.h>
 
 #include "ui_ParamToolBar.h"
@@ -29,7 +29,7 @@
 
 typedef iAQTtoUIConnector<QToolBar, Ui_ParamToolBar> iAParamToolBar;
 
-class iAParameterExplorerModuleInterface : public iAModuleInterface
+class iAParameterExplorerModuleInterface : public iAGUIModuleInterface
 {
 	Q_OBJECT
 public:

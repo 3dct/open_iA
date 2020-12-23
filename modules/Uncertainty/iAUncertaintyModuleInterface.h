@@ -22,7 +22,7 @@
 
 #include "ui_UncertaintyToolBar.h"
 
-#include <iAModuleInterface.h>
+#include <iAGUIModuleInterface.h>
 #include <qthelper/iAQTtoUIConnector.h>
 
 #include <QToolBar>
@@ -32,7 +32,7 @@ class MainWindow;
 typedef iAQTtoUIConnector<QToolBar, Ui_UncertaintyToolBar> iAUncertaintyToolbar;
 
 
-class iAUncertaintyModuleInterface : public iAModuleInterface
+class iAUncertaintyModuleInterface : public iAGUIModuleInterface
 {
 	Q_OBJECT
 public:

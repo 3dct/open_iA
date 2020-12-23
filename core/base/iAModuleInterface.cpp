@@ -18,41 +18,9 @@
 * Contact: FH OÖ Forschungs & Entwicklungs GmbH, Campus Wels, CT-Gruppe,              *
 *          Stelzhamerstraße 23, 4600 Wels / Austria, Email: c.heinzl@fh-wels.at       *
 * ************************************************************************************/
-#pragma once
+#include "iAModuleInterface.h"
 
-#include "ui_FiAKErToolBar.h"
+void iAModuleInterface::SaveSettings() const {}
 
-#include "iAGUIModuleInterface.h"
-#include "qthelper/iAQTtoUIConnector.h"
-
-class iAFIAKERProject;
-
-class QSettings;
-
-typedef iAQTtoUIConnector<QToolBar, Ui_FiAKErToolBar> iAFiAKErToolBar;
-
-class iAFiAKErModuleInterface : public iAGUIModuleInterface
-{
-	Q_OBJECT
-public:
-	void Initialize() override;
-	void SaveSettings() const override;
-
-	void setupToolBar();
-	void loadProject(MdiChild* mdiChild, QSettings const& projectFile, QString const& fileName, iAFIAKERProject* project);
-protected:
-	iAModuleAttachmentToChild* CreateAttachment(MainWindow* mainWnd, MdiChild* child) override;
-private slots:
-	void startFiAKEr();
-
-	//! Method to load fiaker project (called on Tools->FIAKER->Load project)
-	//! Deprecated, use open_iA project feature instead!
-	void loadFiAKErProject();
-	void toggleDockWidgetTitleBars();
-	void toggleSettings();
-private:
-	iAFiAKErToolBar* m_toolbar = nullptr;
-	QString m_lastPath, m_lastFormat;
-	double m_lastTimeStepOffset;
-	bool m_lastUseStepData, m_lastShowPreviews;
-};
+iAModuleInterface::~iAModuleInterface()
+{}

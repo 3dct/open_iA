@@ -62,6 +62,7 @@ class vtkDataArray;
 class vtkEventQtSlotConnect;
 class vtkFixedPointVolumeRayCastMapper;
 class vtkIdTypeArray;
+class vtkImageData;
 class vtkLookupTable;
 class vtkObject;
 class vtkPiecewiseFunction;

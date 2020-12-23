@@ -24,12 +24,12 @@
 #include "FeatureScout_export.h"
 #include "iACsvConfig.h"
 
-#include <iAModuleInterface.h>
+#include <iAGUIModuleInterface.h>
 
 class dlg_FeatureScout;
 class iAFeatureScoutToolbar;
 
-class FeatureScout_API iAFeatureScoutModuleInterface : public iAModuleInterface
+class FeatureScout_API iAFeatureScoutModuleInterface : public iAGUIModuleInterface
 {
 	Q_OBJECT
 public:

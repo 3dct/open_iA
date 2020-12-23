@@ -19,11 +19,11 @@
 *          Stelzhamerstraße 23, 4600 Wels / Austria, Email: c.heinzl@fh-wels.at       *
 * ************************************************************************************/
 #pragma once
-#include "iAModuleInterface.h"
+#include "iAGUIModuleInterface.h"
 
 class iAGeometricObjectsDialog;
 
-class iAPolygonPrimitivesModuleInterface : public iAModuleInterface
+class iAPolygonPrimitivesModuleInterface : public iAGUIModuleInterface
 {
 	Q_OBJECT
 public:

@@ -20,39 +20,25 @@
 * ************************************************************************************/
 #pragma once
 
-#include "ui_FiAKErToolBar.h"
+#include "base_export.h"
 
-#include "iAGUIModuleInterface.h"
-#include "qthelper/iAQTtoUIConnector.h"
+#include <QObject>
 
-class iAFIAKERProject;
-
-class QSettings;
-
-typedef iAQTtoUIConnector<QToolBar, Ui_FiAKErToolBar> iAFiAKErToolBar;
-
-class iAFiAKErModuleInterface : public iAGUIModuleInterface
+//! Base class for a module interface.
+//! A class derived from this class (or any class derived from it, see e.g. iAGUIModuleInterface),
+//! and having a name in the form iA<ModuleName>ModuleInterface needs to be part of each module.
+//! E.g. the FeatureScout module needs to contain a class iAFeatureScoutModuleInterface.
+//! At least the Initialize method needs to be overriden in order to add the custom code of the module to open_iA.
+//! This can either be the addition of some filters, or adding an entry directly to open_iA's toolbar or menu.
+class base_API iAModuleInterface : public QObject
 {
 	Q_OBJECT
 public:
-	void Initialize() override;
-	void SaveSettings() const override;
+	virtual ~iAModuleInterface();
+	//! Override to add references to the module in the core code, for example menu entries.
+	virtual void Initialize() = 0;
+	//! Override to store custom settings of this module; called when program is shut down.
+	virtual void SaveSettings() const;
+	//! Called whenever an MdiChild object is created. Override to react on this.
 
-	void setupToolBar();
-	void loadProject(MdiChild* mdiChild, QSettings const& projectFile, QString const& fileName, iAFIAKERProject* project);
-protected:
-	iAModuleAttachmentToChild* CreateAttachment(MainWindow* mainWnd, MdiChild* child) override;
-private slots:
-	void startFiAKEr();
-
-	//! Method to load fiaker project (called on Tools->FIAKER->Load project)
-	//! Deprecated, use open_iA project feature instead!
-	void loadFiAKErProject();
-	void toggleDockWidgetTitleBars();
-	void toggleSettings();
-private:
-	iAFiAKErToolBar* m_toolbar = nullptr;
-	QString m_lastPath, m_lastFormat;
-	double m_lastTimeStepOffset;
-	bool m_lastUseStepData, m_lastShowPreviews;
 };

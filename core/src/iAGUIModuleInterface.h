@@ -23,16 +23,14 @@
 #include "iAModuleAttachmentToChild.h"
 #include "open_iA_Core_export.h"
 
+#include "iAModuleInterface.h"
+
 #include <QObject>
 #include <QVector>
 
 class MainWindow;
 class MdiChild;
 
-class vtkImageData;
-class vtkPolyData;
-
-class QDockWidget;
 class QMenu;
 class QAction;
 
@@ -41,12 +39,12 @@ class QAction;
 //! E.g. the FeatureScout module needs to contain a class iAFeatureScoutModuleInterface.
 //! At least the Initialize method needs to be overriden in order to add the custom code of the module to open_iA.
 //! This can either be the addition of some filters, or adding an entry directly to open_iA's toolbar or menu.
-class open_iA_Core_API iAModuleInterface : public QObject
+class open_iA_Core_API iAGUIModuleInterface : public iAModuleInterface
 {
 	Q_OBJECT
 public:
-	iAModuleInterface();
-	virtual ~iAModuleInterface();
+	iAGUIModuleInterface();
+	virtual ~iAGUIModuleInterface();
 	//! Called by the module dispatcher on module initialization. There should be no need to call this method from user code
 	void SetMainWindow( MainWindow * mainWnd );
 	//! Override to add references to the module in the core code, for example menu entries.
@@ -54,6 +52,7 @@ public:
 	//! Override to store custom settings of this module; called when program is shut down.
 	virtual void SaveSettings() const;
 	//! Called whenever an MdiChild object is created. Override to react on this.
+	// TODO: get rid of this, only one module is using it!
 	virtual void ChildCreated(MdiChild* child);
 
 protected:
@@ -99,7 +98,7 @@ open_iA_Core_API QMenu* getOrAddSubMenu(QMenu* parentMenu, QString const& title,
 open_iA_Core_API void addToMenuSorted(QMenu* menu, QAction* action);
 
 template <class T>
-T* iAModuleInterface::GetAttachment()
+T* iAGUIModuleInterface::GetAttachment()
 {
 	static_assert(std::is_base_of<iAModuleAttachmentToChild, T>::value, "GetAttachment: given type must inherit from iAModuleAttachmentToChild!");
 	for (int i = 0; i < m_attachments.size(); ++i)

@@ -25,6 +25,7 @@
 #include "iAFilterRegistry.h"
 #include "iAFilterRunnerGUI.h"
 #include "iAFilterSelectionDlg.h"
+#include "iAGUIModuleInterface.h"
 #include "iALogger.h"
 #include "iAModuleInterface.h"
 #include "mainwindow.h"
@@ -166,7 +167,10 @@ iAModuleDispatcher::~iAModuleDispatcher()
 
 void iAModuleDispatcher::initializeModuleInterface(iAModuleInterface* m)
 {
-	m->SetMainWindow(m_mainWnd);
+	if (dynamic_cast<iAGUIModuleInterface*>(m))
+	{
+		dynamic_cast<iAGUIModuleInterface*>(m)->SetMainWindow(m_mainWnd);
+	}
 	m->Initialize();
 }
 
@@ -307,6 +311,9 @@ void iAModuleDispatcher::ChildCreated(MdiChild* child)
 	// notify all modules that a new child was created:
 	for (iALoadedModule m : m_loadedModules)
 	{
-		m.moduleInterface->ChildCreated(child);
+		if (dynamic_cast<iAGUIModuleInterface*>(m.moduleInterface))
+		{
+			dynamic_cast<iAGUIModuleInterface*>(m.moduleInterface)->ChildCreated(child);
+		}
 	}
 }

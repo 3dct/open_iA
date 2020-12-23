@@ -20,9 +20,9 @@
 * ************************************************************************************/
 #pragma once
 
-#include "iAModuleInterface.h"
+#include "iAGUIModuleInterface.h"
 
-class iAAdaptiveThresholdModuleInterface : public iAModuleInterface
+class iAAdaptiveThresholdModuleInterface : public iAGUIModuleInterface
 {
 	Q_OBJECT
 public:

@@ -23,13 +23,13 @@
 // iA
 #include "iAFiberCharacteristics.h"
 
-#include "iAModuleInterface.h"
+#include "iAGUIModuleInterface.h"
 
 class vtkImageData;
 class dlg_densityMap;
 class iA4DCTMainWin;
 
-class iA4DCTModuleInterface : public iAModuleInterface
+class iA4DCTModuleInterface : public iAGUIModuleInterface
 {
 	Q_OBJECT
 

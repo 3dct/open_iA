@@ -20,9 +20,9 @@
 * ************************************************************************************/
 #pragma once
 
-#include <iAModuleInterface.h>
+#include <iAGUIModuleInterface.h>
 
-class iAInSpectrModuleInterface : public iAModuleInterface
+class iAInSpectrModuleInterface : public iAGUIModuleInterface
 {
 	Q_OBJECT
 public:
