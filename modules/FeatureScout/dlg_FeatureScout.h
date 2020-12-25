@@ -24,7 +24,6 @@
 #include "iAObjectType.h"
 #include "ui_FeatureScoutClassExplorer.h"
 #include "ui_FeatureScoutPolarPlot.h"
-#include "ui_FeatureScoutMeanObjectView.h"
 
 #include <iAVec3.h>
 #include <iAVtkWidgetFwd.h>
@@ -36,22 +35,23 @@
 #include <vector>
 
 typedef iAQTtoUIConnector<QDockWidget, Ui_FeatureScoutPP> dlg_PolarPlot;
-typedef iAQTtoUIConnector<QDockWidget, Ui_FeatureScoutMO> dlg_MeanObject;
 
-class iA3DObjectVis;
+class dlg_blobVisualization;
 class iABlobCluster;
 class iABlobManager;
-class iAConnector;
-class iADockWidgetWrapper;
 class iAFeatureScoutSPLOM;
-class iAMeanObjectTFView;
-class dlg_blobVisualization;
+class iAMeanObject;
 
-class iALookupTable;
+class iADockWidgetWrapper;
 class iAModalityTransfer;
 class iAQSplom;
 class iARenderer;
 class MdiChild;
+
+class iA3DObjectVis;
+
+class iAConnector;
+class iALookupTable;
 
 class vtkAxis;
 class vtkChartParallelCoordinates;
@@ -85,16 +85,6 @@ class QStandardItemModel;
 class QTreeView;
 class QTableView;
 class QXmlStreamWriter;
-
-struct moData
-{
-	QList<iAModalityTransfer *> moHistogramList;
-	QList<vtkSmartPointer<vtkVolume> > moVolumesList;
-	QList<vtkSmartPointer<vtkRenderer> > moRendererList;
-	QList<vtkSmartPointer<vtkFixedPointVolumeRayCastMapper> > moVolumeMapperList;
-	QList<vtkSmartPointer<vtkVolumeProperty> > moVolumePropertyList;
-	QList<vtkSmartPointer<vtkImageData> > moImageDataList;
-};
 
 class dlg_FeatureScout : public QDockWidget, public Ui_FeatureScoutCE
 {
@@ -133,10 +123,7 @@ private slots:
 	//! @{ parallel coordinate chart related methods:
 	void pcViewMouseButtonCallBack(vtkObject * obj, unsigned long, void * client_data, void*, vtkCommand * command);
 	//! @}
-	void modifyMeanObjectTF();
-	void updateMOView();
-	void browseFolderDialog();
-	void saveStl();
+
 	void renderLUTChanges(QSharedPointer<iALookupTable> lut, size_t colInd);
 private:
 	//create labelled output image based on defined classes
@@ -183,13 +170,6 @@ private:
 	void RenderSelection(std::vector<size_t> const & selInds); //!< render a selection (+ the class that contains it)
 	void RenderLengthDistribution();                      //!< render fiber-length distribution
 	void RenderMeanObject();                              //!< compute and render a mean object for each class
-	//! @}
-
-	//! @{ debug functions
-	void PrintVTKTable(const vtkSmartPointer<vtkTable> anyTable, const bool useTabSeparator, const QString &outputPath, const QString* fileName) const ; //!< print out a vtkTable
-	void PrintChartTable(const QString &outputPath);      //! < Print current chartTable
-	void PrintCSVTable(const QString &outputPath);	      //! <Print current CSVTable
-	void PrintTableList(const QList<vtkSmartPointer<vtkTable>> &OutTableList, QString &outputPath) const;
 	//! @}
 
 	//! @{ members referencing MdiChild, used for 3D rendering
@@ -253,7 +233,7 @@ private:
 
 	dlg_blobVisualization* m_blobVisDialog;
 
-	iAVtkOldWidget* m_pcWidget, *m_polarPlotWidget, * m_meanObjectWidget, *m_lengthDistrWidget;
+	iAVtkOldWidget* m_pcWidget, *m_polarPlotWidget, *m_lengthDistrWidget;
 
 	vtkSmartPointer<vtkContextView> m_dvContextView;
 
@@ -266,14 +246,10 @@ private:
 
 	iADockWidgetWrapper * m_dwPC, *m_dwDV, *m_dwSPM;
 	dlg_PolarPlot * m_dwPP;
-	dlg_MeanObject * m_dwMO;
-
-	//Mean Object Rendering
-	iAMeanObjectTFView* m_motfView;
-	moData m_MOData;
 
 	QSharedPointer<QMap<uint, uint>> m_columnMapping;
 
 	QSharedPointer<iAFeatureScoutSPLOM> m_splom;
 	QSharedPointer<iA3DObjectVis> m_3dvis;
+	QSharedPointer<iAMeanObject> m_meanObject;
 };

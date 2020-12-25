@@ -20,22 +20,45 @@
 * ************************************************************************************/
 #pragma once
 
-#include "ui_FeatureScoutMOTFView.h"
+#include <iAVtkWidgetFwd.h>
 
-#include <qthelper/iAQTtoUIConnector.h>
+#include <vtkSmartPointer.h>
 
-typedef iAQTtoUIConnector<QDialog, Ui_MOTFView>  iAMeanObjectTFViewConnector;
+#include <QList>
+#include <QObject>
+#include <QSharedPointer>
 
-class iAMeanObjectTFView : public iAMeanObjectTFViewConnector
+class iAMeanObjectData;
+class iAMeanObjectDockWidget;
+class iAMeanObjectTFView;
+
+class MdiChild;
+
+class vtkCamera;
+class vtkTable;
+
+class QColor;
+class QDockWidget;
+class QStandardItem;
+
+class iAMeanObject: public QObject
 {
 	Q_OBJECT
 public:
-#if QT_VERSION < QT_VERSION_CHECK(5,15,0)
-	iAMeanObjectTFView( QWidget * parent = nullptr, Qt::WindowFlags f = 0 )
-#else
-	iAMeanObjectTFView(QWidget* parent = nullptr, Qt::WindowFlags f = QFlags<Qt::WindowType>())
-#endif
-		: iAMeanObjectTFViewConnector( parent, f )
-	{}
-	~iAMeanObjectTFView() {}
+	iAMeanObject(MdiChild* activeChild, QString const& sourcePath);
+	void render(QStandardItem* root, int classCount, QList<vtkSmartPointer<vtkTable>> const & tableList,
+		int filterID, QDockWidget* nextToDW, vtkCamera* commonCamera, QList<QColor> const & classColor);
+private slots:
+	void modifyMeanObjectTF();
+	void updateMOView();
+	void browseFolderDialog();
+	void saveStl();
+private:
+	iAMeanObjectDockWidget* m_dwMO;
+	iAMeanObjectTFView* m_motfView;
+	QSharedPointer<iAMeanObjectData> m_MOData;
+	iAVtkOldWidget* m_meanObjectWidget;
+	MdiChild* m_activeChild;
+	int m_filterID;
+	QString m_sourcePath;
 };
