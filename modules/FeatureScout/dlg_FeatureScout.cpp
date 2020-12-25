@@ -178,7 +178,7 @@ namespace
 
 const int dlg_FeatureScout::PCMinTicksCount = 2;
 
-dlg_FeatureScout::dlg_FeatureScout(MdiChild* parent, iAObjectType fid, QString const& fileName, vtkRenderer* blobRen,
+dlg_FeatureScout::dlg_FeatureScout(MdiChild* parent, iAObjectType fid, QString const& fileName,
 	vtkSmartPointer<vtkTable> csvtbl, int vis, QSharedPointer<QMap<uint, uint> > columnMapping,
 	std::map<size_t, std::vector<iAVec3f> >& curvedFiberInfo, int cylinderQuality, size_t segmentSkip) :
 	QDockWidget(parent),
@@ -240,7 +240,7 @@ dlg_FeatureScout::dlg_FeatureScout(MdiChild* parent, iAObjectType fid, QString c
 	}
 	m_3dvis->show();
 	parent->renderer()->renderer()->ResetCamera();
-	m_blobManager->SetRenderers(blobRen, m_renderer->labelRenderer());
+	m_blobManager->SetRenderers(parent->renderer()->renderer(), m_renderer->labelRenderer());
 	m_blobManager->SetBounds(m_3dvis->bounds());
 	m_blobManager->SetProtrusion(1.5);
 	int dimens[3] = { 50, 50, 50 };

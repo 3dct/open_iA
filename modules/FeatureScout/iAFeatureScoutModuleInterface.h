@@ -22,11 +22,11 @@
 
 #include "iAObjectType.h"
 #include "FeatureScout_export.h"
+
 #include "iACsvConfig.h"
 
 #include <iAGUIModuleInterface.h>
 
-class dlg_FeatureScout;
 class iAFeatureScoutToolbar;
 
 class FeatureScout_API iAFeatureScoutModuleInterface : public iAGUIModuleInterface

@@ -20,12 +20,12 @@
 * ************************************************************************************/
 #include "iAFeatureScoutModuleInterface.h"
 
+#include "iAFeatureScoutAttachment.h"
+#include "iAFeatureScoutToolbar.h"
+
 #include "dlg_CSVInput.h"
 #include "iACsvIO.h"
 #include "iACsvVtkTableCreator.h"
-#include "iAFeatureScoutAttachment.h"
-#include "iAFeatureScoutToolbar.h"
-#include "ui_CsvInput.h"
 
 #include <iALog.h>
 #include <iAModalityList.h>

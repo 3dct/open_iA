@@ -21,63 +21,25 @@
 #include "iAFeatureScoutAttachment.h"
 
 #include "dlg_FeatureScout.h"
-#include "iABlobCluster.h"
-#include "iAObjectType.h"
-
-#include <iARenderer.h>
-#include <mainwindow.h>
-#include <mdichild.h>
-
-#include <vtkImageData.h>
-#include <vtkOpenGLRenderer.h>
 
 iAFeatureScoutAttachment::iAFeatureScoutAttachment(MainWindow* mainWnd, MdiChild * child) :
 	iAModuleAttachmentToChild(mainWnd, child)
 {
-	blobVisEnabled = false;
 }
-
-iAFeatureScoutAttachment::~iAFeatureScoutAttachment()
-{}
 
 void iAFeatureScoutAttachment::init(int filterID, QString const & fileName, vtkSmartPointer<vtkTable> csvtbl,
 	int visType, QSharedPointer<QMap<uint, uint> > columnMapping, std::map<size_t,
 	std::vector<iAVec3f> > & curvedFiberInfo, int cylinderQuality, size_t segmentSkip)
 {
 	imgFS = new dlg_FeatureScout(m_child, static_cast<iAObjectType>(filterID),
-		fileName, m_child->renderer()->renderer(), csvtbl, visType, columnMapping, curvedFiberInfo, cylinderQuality, segmentSkip);
-}
-
-void iAFeatureScoutAttachment::disableBlobVisualization()
-{
-	// we can't disable blob vis if it is already disabled
-	if (!blobVisEnabled) return;
-	blobVisEnabled = false;
-
-	while (!blobList.isEmpty())
-	{
-		delete blobList.takeFirst();
-	}
-}
-
-void iAFeatureScoutAttachment::enableBlobVisualization()
-{
-	// we can't initialize blob vis twice
-	if (blobVisEnabled) return;
-	blobVisEnabled = true;
-	vtkSmartPointer<vtkImageData> imageData = m_child->imagePointer();
-	/*
-	double size[3] = {
-		imageData->GetBounds()[1] - imageData->GetBounds()[0],
-		imageData->GetBounds()[3] - imageData->GetBounds()[2],
-		imageData->GetBounds()[5] - imageData->GetBounds()[4]
-	};
-	*/
+		fileName, csvtbl, visType, columnMapping, curvedFiberInfo, cylinderQuality, segmentSkip);
 }
 
 void iAFeatureScoutAttachment::FeatureScout_Options(int idx)
 {
 	if (!imgFS)
+	{
 		return;
+	}
 	imgFS->changeFeatureScout_Options(idx);
 }

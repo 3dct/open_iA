@@ -90,7 +90,7 @@ class dlg_FeatureScout : public QDockWidget, public Ui_FeatureScoutCE
 {
 	Q_OBJECT
 public:
-	dlg_FeatureScout( MdiChild *parent, iAObjectType fid, QString const & fileName, vtkRenderer* blobRen,
+	dlg_FeatureScout(MdiChild *parent, iAObjectType fid, QString const & fileName,
 		vtkSmartPointer<vtkTable> csvtbl, int vis, QSharedPointer<QMap<uint, uint> > columnMapping, std::map<size_t,
 		std::vector<iAVec3f> > & curvedFiberInfo, int cylinderQuality, size_t segmentSkip);
 	~dlg_FeatureScout();
