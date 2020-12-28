@@ -34,7 +34,7 @@ class iAFoamCharacterizationAttachment : public iAModuleAttachmentToChild
 	Q_OBJECT
 
 public:
-	iAFoamCharacterizationAttachment(MainWindow* mainWnd, MdiChild * child);
+	iAFoamCharacterizationAttachment(iAMainWindow* mainWnd, iAMdiChild * child);
 
 private:
 	vtkImageData* m_pImageData = nullptr;

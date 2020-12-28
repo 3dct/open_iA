@@ -36,7 +36,7 @@
 #include <QLabel>
 #include <QSpinBox>
 
-iATripleModalityWidget::iATripleModalityWidget(MdiChild *mdiChild) :
+iATripleModalityWidget::iATripleModalityWidget(iAMdiChild *mdiChild) :
 	iAMultimodalWidget(mdiChild, THREE)
 {
 	m_triangleRenderer = new iABarycentricContextRenderer();

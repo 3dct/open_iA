@@ -24,7 +24,7 @@
 
 class dlg_DynamicVolumeLines;
 
-class MdiChild;
+class iAMdiChild;
 
 class iADynamicVolumeLinesModuleInterface : public iAGUIModuleInterface
 {

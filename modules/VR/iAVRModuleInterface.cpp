@@ -30,13 +30,15 @@
 #include "iACsvVtkTableCreator.h"
 
 #include <iALog.h>
-#include <mainwindow.h>
+#include <iAMainWindow.h>
 
 #include <openvr.h>
 
 #include <vtkFloatArray.h>
 #include <vtkTable.h>
 
+#include <QAction>
+#include <QMenu>
 #include <QMessageBox>
 
 void iAVRModuleInterface::Initialize()
@@ -174,7 +176,7 @@ bool iAVRModuleInterface::vrAvailable()
 	return true;
 }
 
-iAModuleAttachmentToChild * iAVRModuleInterface::CreateAttachment( MainWindow* mainWnd, MdiChild* child)
+iAModuleAttachmentToChild * iAVRModuleInterface::CreateAttachment( iAMainWindow* mainWnd, iAMdiChild* child)
 {
 	return new iAVRAttachment( mainWnd, child );
 }

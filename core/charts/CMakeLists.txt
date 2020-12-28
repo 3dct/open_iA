@@ -1,14 +1,15 @@
 FILE( GLOB_RECURSE open_iA_chart_SRCS "*.cpp" "*.h" )
 FILE( GLOB_RECURSE open_iA_chart_UI "*.ui" )
+SET (open_iA_chart_QRC charts.qrc)
 
 QT5_WRAP_UI( open_iA_chart_SRCS ${open_iA_chart_UI})
-# QT5_ADD_RESOURCES( open_iA_chart_SRCS ${open_iA_chart_QRC} )  # no own resources at the moment
+QT5_ADD_RESOURCES( open_iA_chart_SRCS ${open_iA_chart_QRC} )
 
 SET (LIB_TYPE SHARED)
 SET (CHART_LIBRARY_NAME charts)
 
 # Generate core dll file / shared object:
-add_library(${CHART_LIBRARY_NAME} ${LIB_TYPE} ${open_iA_chart_SRCS} ) # ${open_iA_chart_QRC}
+add_library(${CHART_LIBRARY_NAME} ${LIB_TYPE} ${open_iA_chart_SRCS} ${open_iA_chart_QRC})
 
 TARGET_LINK_LIBRARIES(${CHART_LIBRARY_NAME} PRIVATE base)
 
@@ -23,7 +24,7 @@ IF (openiA_PRECOMPILE)
 	IF (CMAKE_MAJOR_VERSION GREATER 4 OR
 	(CMAKE_MAJOR_VERSION EQUAL 3 AND CMAKE_MINOR_VERSION GREATER 15))
 		INCLUDE(precompile.cmake)
-		target_precompile_headers(${BASE_LIBRARY_NAME} PRIVATE ${OPENIA_PRECOMPILE_HEADERS})
+		target_precompile_headers(${CHART_LIBRARY_NAME} PRIVATE ${OPENIA_PRECOMPILE_HEADERS})
 	ENDIF()
 ENDIF()
 
@@ -32,7 +33,10 @@ if (openiA_CHART_OPENGL)
 endif()
 
 # ${CMAKE_CURRENT_SOURCE_DIR}/src 
-TARGET_INCLUDE_DIRECTORIES(${CHART_LIBRARY_NAME} PUBLIC ${CMAKE_CURRENT_SOURCE_DIR}/../base ${CMAKE_CURRENT_BINARY_DIR}) # for export header
+TARGET_INCLUDE_DIRECTORIES(${CHART_LIBRARY_NAME} PUBLIC
+	${CMAKE_CURRENT_SOURCE_DIR}/../base
+	${CMAKE_CURRENT_SOURCE_DIR}
+	${CMAKE_CURRENT_BINARY_DIR}) # for export header
 
 IF (openiA_USE_IDE_FOLDERS)
 	SET_PROPERTY(TARGET ${CHART_LIBRARY_NAME} PROPERTY FOLDER "Libraries")

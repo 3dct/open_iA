@@ -36,7 +36,7 @@ class iAFeatureScoutAttachment : public iAModuleAttachmentToChild
 {
 	Q_OBJECT
 public:
-	iAFeatureScoutAttachment(MainWindow* mainWnd, MdiChild * child);
+	iAFeatureScoutAttachment(iAMainWindow* mainWnd, iAMdiChild * child);
 	void init(int filterID, QString const & fileName, vtkSmartPointer<vtkTable> csvtbl, int visType,
 		QSharedPointer<QMap<uint, uint> > columnMapping, std::map<size_t,
 		std::vector<iAVec3f> > & curvedFiberInfo, int cylinderQuality, size_t segmentSkip);

@@ -1,4 +1,5 @@
-SET (FeatureAnalyzer_PRECOMPILE_INCLUDES <defines.h>
+SET (FeatureAnalyzer_PRECOMPILE_INCLUDES
+<defines.h>
 <FeatureAnalyzerHelpers.h>
 <iACSVToQTableWidgetConverter.h>
 <iAFeatureAnalyzerModuleInterface.h>
@@ -9,9 +10,9 @@ SET (FeatureAnalyzer_PRECOMPILE_INCLUDES <defines.h>
 <iASelection.h>
 <iAVtkWidget.h>
 <iAVtkWidgetFwd.h>
-<io/iAITKIO.h>
+<iAITKIO.h>
 <itkImage.h>
-<mainwindow.h>
+<iAMainWindow.h>
 <QCheckBox>
 <QDebug>
 <QDir>

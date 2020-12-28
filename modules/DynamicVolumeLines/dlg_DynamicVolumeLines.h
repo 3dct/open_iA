@@ -26,9 +26,10 @@
 #include "ui_Multi3DView.h"
 
 #include <iAVtkWidgetFwd.h>
-#include <mdichild.h>
 #include <qthelper/iAQTtoUIConnector.h>
 #include <iAProgress.h>
+
+#include <vtkSmartPointer.h>
 
 #include <QDir>
 
@@ -36,8 +37,10 @@ class iANonLinearAxisTicker;
 class iAOrientationWidget;
 class iASegmentTree;
 
+class iAMdiChild;
 class iAVolumeRenderer;
 
+class vtkImageData;
 class vtkLookupTable;
 class vtkPoints;
 class vtkRenderer;
@@ -94,7 +97,7 @@ protected:
 	bool eventFilter(QObject * obj, QEvent * event) override;
 
 private:
-	MdiChild *m_mdiChild;
+	iAMdiChild *m_mdiChild;
 	QCustomPlot *m_nonlinearScaledPlot;
 	QCustomPlot *m_linearScaledPlot;
 	QCustomPlot *m_debugPlot;

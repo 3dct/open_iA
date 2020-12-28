@@ -35,12 +35,12 @@
 #include <vtkTable.h>
 
 // must be after vtk includes, otherwise -> #error:  gl.h included before glew.h
-#include <mdichild.h>
-#include <mainwindow.h>
+#include <iAMdiChild.h>
+#include <iAMainWindow.h>
 
 #include <QPushButton>
 
-iAVRAttachment::iAVRAttachment( MainWindow * mainWnd, MdiChild* child )
+iAVRAttachment::iAVRAttachment( iAMainWindow * mainWnd, iAMdiChild* child )
 	: iAModuleAttachmentToChild( mainWnd, child )
 {
 	m_toggleVR = new QPushButton("Start VR");

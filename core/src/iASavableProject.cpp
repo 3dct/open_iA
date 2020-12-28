@@ -30,7 +30,7 @@ bool iASavableProject::saveProject(QString const & basePath)
 {
 	QString projectFileName = QFileDialog::getSaveFileName(
 		QApplication::activeWindow(),
-		QCoreApplication::translate("MainWindow", "Select Output File"),
+		QCoreApplication::translate("iAMainWindow", "Select Output File"),
 		basePath,
 		iAIOProvider::NewProjectFileTypeFilter + iAIOProvider::ProjectFileTypeFilter);
 	if (projectFileName.isEmpty())

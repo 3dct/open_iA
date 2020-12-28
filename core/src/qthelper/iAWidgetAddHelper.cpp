@@ -20,9 +20,9 @@
 * ************************************************************************************/
 #include "iAWidgetAddHelper.h"
 
-#include "mdichild.h"
+#include "iAMdiChild.h"
 
-iAWidgetAddHelper::iAWidgetAddHelper(MdiChild* mdiChild, QDockWidget* dockWidget):
+iAWidgetAddHelper::iAWidgetAddHelper(iAMdiChild* mdiChild, QDockWidget* dockWidget):
 	m_mdiChild(mdiChild),
 	m_dockWidget(dockWidget)
 {}

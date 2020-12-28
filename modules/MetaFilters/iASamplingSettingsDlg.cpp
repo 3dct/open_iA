@@ -34,8 +34,8 @@
 #include <iAModalityList.h>
 #include <iANameMapper.h>
 #include <iAStringHelper.h>
-#include <mainwindow.h>
-#include <mdichild.h>
+#include <iAMainWindow.h>
+#include <iAMdiChild.h>
 #include <qthelper/iAQFlowLayout.h>
 
 #include <QCheckBox>
@@ -786,12 +786,12 @@ void iASamplingSettingsDlg::runClicked()
 			}
 			else
 			{
-				auto mainWnd = dynamic_cast<MainWindow*>(parentWidget());
+				auto mainWnd = dynamic_cast<iAMainWindow*>(parentWidget());
 				if (mainWnd)
 				{
-					auto child = mainWnd->activeChild<MdiChild>();
+					auto child = mainWnd->activeMdiChild();
 					int curChildInputCount = child->modalities()->size();
-					int childCount = mainWnd->childList<MdiChild>().size();
+					int childCount = mainWnd->mdiChildList().size();
 					int inputCount = (curChildInputCount + childCount - 1);
 					if (filter->requiredInputs() > inputCount)
 					{

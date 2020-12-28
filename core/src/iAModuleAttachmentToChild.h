@@ -24,24 +24,24 @@
 
 #include "open_iA_Core_export.h"
 
-class MainWindow;
-class MdiChild;
+class iAMainWindow;
+class iAMdiChild;
 
-//! Base class for data from a module that needs to be "attached" to a single MdiChild window.
+//! Base class for data from a module that needs to be "attached" to a single iAMdiChild window.
 //! Should only be created through iAModuleInterface::CreateAttachment, as this takes care
-//! of attaching it to the MdiChild properly.
+//! of attaching it to the iAMdiChild properly.
 class open_iA_Core_API iAModuleAttachmentToChild : public QObject
 {
 	Q_OBJECT
 
 public:
-	iAModuleAttachmentToChild( MainWindow * mainWnd, MdiChild * child ) : m_mainWnd(mainWnd), m_child(child) {}
+	iAModuleAttachmentToChild( iAMainWindow * mainWnd, iAMdiChild * child ) : m_mainWnd(mainWnd), m_child(child) {}
 	virtual ~iAModuleAttachmentToChild() {}
-	MdiChild * getMdiChild() const { return m_child; }
+	iAMdiChild * getMdiChild() const { return m_child; }
 signals:
 	//! emit this signal if you want the attachment to be removed from the current mdichild
 	void detach();
 protected:
-	MainWindow * m_mainWnd;
-	MdiChild * m_child;
+	iAMainWindow * m_mainWnd;
+	iAMdiChild * m_child;
 };

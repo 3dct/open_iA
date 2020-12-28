@@ -24,7 +24,7 @@
 #include "iALog.h"
 #include "iASlicerMode.h"
 #include "iAVolumeRenderer.h"
-#include "mdichild.h"
+#include "iAMdiChild.h"
 
 #include <vtkCamera.h>
 #include <vtkCellPicker.h>
@@ -149,7 +149,7 @@ void iAvtkInteractStyleActor::OnMouseMove()
 }
 
 void iAvtkInteractStyleActor::initialize(vtkImageData* img, iAVolumeRenderer* volRend,
-	iAChannelSlicerData* slicerChannel[3], int currentMode, MdiChild* mdiChild)
+	iAChannelSlicerData* slicerChannel[3], int currentMode, iAMdiChild* mdiChild)
 {
 	if (!img)
 	{
@@ -166,7 +166,7 @@ void iAvtkInteractStyleActor::initialize(vtkImageData* img, iAVolumeRenderer* vo
 	m_is3D = (m_currentSliceMode == iASlicerMode::SlicerCount);
 	if (!mdiChild)
 	{
-		LOG(lvlInfo, "MdiChild not set!");
+		LOG(lvlInfo, "iAMdiChild not set!");
 	}
 	m_mdiChild = mdiChild;
 	m_image->GetSpacing(m_imageSpacing);

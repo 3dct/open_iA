@@ -28,8 +28,8 @@
 #include <QObject>
 #include <QVector>
 
-class MainWindow;
-class MdiChild;
+class iAMainWindow;
+class iAMdiChild;
 
 class QMenu;
 class QAction;
@@ -46,45 +46,49 @@ public:
 	iAGUIModuleInterface();
 	virtual ~iAGUIModuleInterface();
 	//! Called by the module dispatcher on module initialization. There should be no need to call this method from user code
-	void SetMainWindow( MainWindow * mainWnd );
+	void SetMainWindow( iAMainWindow * mainWnd );
 	//! Override to add references to the module in the core code, for example menu entries.
 	virtual void Initialize() = 0;		// TODO: split up into GUI part and other?
 	//! Override to store custom settings of this module; called when program is shut down.
 	virtual void SaveSettings() const;
-	//! Called whenever an MdiChild object is created. Override to react on this.
+	//! Called whenever an iAMdiChild object is created. Override to react on this.
 	// TODO: get rid of this, only one module is using it!
-	virtual void ChildCreated(MdiChild* child);
+	virtual void ChildCreated(iAMdiChild* child);
 
 protected:
+
 	//! Create a new result child, with a title made from the given title + the previous title of the active child.
+	//! @deprecated. Use methods from iAMainWindow directly
 	void PrepareResultChild( QString const & title);
-	//! Create a new result child at the given index in the MdiChild list with the given title.
+	//! Create a new result child at the given index in the iAMdiChild list with the given title.
+	//! @deprecated. Use methods from iAMainWindow directly
 	void PrepareResultChild( int childInd, QString const & title );
 	//! Set the currently active child as "current".
+	//! @deprecated. Don't use m_mdichild mechanism, use activeMdiChild from iAMainWindow directly.
 	void PrepareActiveChild();
 	//! Return true if attached to current mdi child.
 	//! @note: current mdi child is determined through m_mdiChild member
 	//!       which is _not_ automatically updated to the active mdi child!
 	bool isAttached();
 	//! Create a new attachment for the given child.
-	virtual iAModuleAttachmentToChild * CreateAttachment( MainWindow* mainWnd, MdiChild * child );
+	virtual iAModuleAttachmentToChild * CreateAttachment( iAMainWindow* mainWnd, iAMdiChild * child );
 	//! Get an attachment of the current mdi child.
 	//! @note current mdi child is determined through m_mdiChild member
 	//!       which is _not_ automatically updated to the active mdi child, see m_mdiChild member!
 	template <class T> T* GetAttachment();
-	//! Sets up a new attachment for the given MdiChild via CreateAttachment and links the two.
-	bool AttachToMdiChild( MdiChild * child );
+	//! Sets up a new attachment for the given iAMdiChild via CreateAttachment and links the two.
+	bool AttachToMdiChild( iAMdiChild * child );
 
-	MainWindow * m_mainWnd;            //!< access to the main window
+	iAMainWindow * m_mainWnd;            //!< access to the main window
 	//! "current" mdi child
-	//! @deprecated use direct access via MainWindow methods
-	MdiChild * m_mdiChild;
+	//! @deprecated use direct access via iAMainWindow methods
+	iAMdiChild * m_mdiChild;
 	//! attachments of this module
 	QVector<iAModuleAttachmentToChild*> m_attachments;
 
 private:
-	//! called when an MdiChild is closing
-	void detachChild(MdiChild* child);
+	//! called when an iAMdiChild is closing
+	void detachChild(iAMdiChild* child);
 
 protected slots:
 	void attachedChildClosed();

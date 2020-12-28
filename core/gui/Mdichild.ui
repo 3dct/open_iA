@@ -40,7 +40,7 @@
    <string>Mdichild</string>
   </property>
   <property name="windowIcon">
-   <iconset resource="open_iA.qrc">
+   <iconset resource="open_iA_gui.qrc">
     <normaloff>:/images/ia.png</normaloff>:/images/ia.png</iconset>
   </property>
   <property name="layoutDirection">
@@ -64,7 +64,7 @@
   <widget class="QWidget" name="centralWidget"/>
  </widget>
  <resources>
-  <include location="open_iA.qrc"/>
+  <include location="open_iA_gui.qrc"/>
  </resources>
  <connections/>
 </ui>

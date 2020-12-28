@@ -391,9 +391,9 @@ void MdiChild::enableRenderWindows()	// = image data available
 
 void MdiChild::modalityTFChanged()
 {
-	updateChannelMappers();
 	for (int s = 0; s < 3; ++s)
 	{
+		m_slicer[s]->updateChannelMappers();
 		m_slicer[s]->updateMagicLensColors();
 	}
 	emit transferFunctionChanged();
@@ -628,6 +628,11 @@ vtkPolyData* MdiChild::polyData()
 iARenderer* MdiChild::renderer()
 {
 	return m_renderer;
+}
+
+iAVtkWidget* MdiChild::renderVtkWidget()
+{
+	return m_dwRenderer->vtkWidgetRC;
 }
 
 bool MdiChild::updateVolumePlayerView(int updateIndex, bool isApplyForAll)
@@ -1357,8 +1362,7 @@ bool MdiChild::editPrefs(iAPreferences const& prefs)
 	{
 		updateSlicers();
 	}
-
-	emit preferencesChanged();
+	//emit preferencesChanged();
 
 	return true;
 }
@@ -1589,14 +1593,6 @@ void MdiChild::setHistogramFocus()
 		return;
 	}
 	m_histogram->setFocus(Qt::OtherFocusReason);
-}
-
-void MdiChild::redrawHistogram()
-{
-	if (m_histogram)
-	{
-		m_histogram->update();
-	}
 }
 
 void MdiChild::resetTrf()
@@ -1856,16 +1852,11 @@ bool MdiChild::initView(QString const& title)
 	else
 	{	//Polygonal mesh is loaded
 		showPoly();
-		hideHistogram();
+		m_dwHistogram->hide();
 	}
 	updateLayout();
 
 	return true;
-}
-
-void MdiChild::hideHistogram()
-{
-	m_dwHistogram->hide();
 }
 
 void MdiChild::addImageProperty()
@@ -1960,7 +1951,7 @@ QString MdiChild::currentFile() const
 	return m_curFile;
 }
 
-QFileInfo MdiChild::fileInfo() const
+QFileInfo const & MdiChild::fileInfo() const
 {
 	return m_fileInfo;
 }
@@ -2317,22 +2308,17 @@ dlg_slicer* MdiChild::slicerDockWidget(int mode)
 	return m_dwSlicer[mode];
 }
 
-dlg_renderer* MdiChild::renderDockWidget()
+QDockWidget* MdiChild::renderDockWidget()
 {
 	return m_dwRenderer;
 }
 
-dlg_imageproperty* MdiChild::imagePropertyDockWidget()
+QDockWidget* MdiChild::imagePropertyDockWidget()
 {
 	return m_dwImgProperty;
 }
 
-dlg_profile* MdiChild::profileDockWidget()
-{
-	return m_dwProfile;
-}
-
-iADockWidgetWrapper* MdiChild::histogramDockWidget()
+QDockWidget* MdiChild::histogramDockWidget()
 {
 	return m_dwHistogram;
 }
@@ -2445,14 +2431,6 @@ int MdiChild::magicLensSize() const
 int MdiChild::magicLensFrameWidth() const
 {
 	return m_preferences.MagicLensFrameWidth;
-}
-
-void MdiChild::updateChannelMappers()
-{
-	for (int s = 0; s < 3; ++s)
-	{
-		m_slicer[s]->updateChannelMappers();
-	}
 }
 
 QString MdiChild::filePath() const
@@ -2611,7 +2589,7 @@ void MdiChild::setHistogramModality(int modalityIdx)
 	{
 		return;
 	}
-	modality(modalityIdx)->transfer()->info().setComputing();
+	modality(modalityIdx)->info().setComputing();
 	updateImageProperties();
 
 	auto fw = runAsync([this, modalityIdx]
@@ -2673,9 +2651,13 @@ void MdiChild::displayHistogram(int modalityIdx)
 		LOG(lvlWarn, QString("displayHistogram: Modality %1 not available!").arg(modalityIdx));
 		return;
 	}
-	auto histData = modality(modalityIdx)->transfer()->histogramData();
-	size_t newBinCount = m_preferences.HistogramBins;
 	auto img = modality(modalityIdx)->image();
+	if (img->GetNumberOfScalarComponents() != 1)
+	{
+		return;
+	}
+	auto histData = modality(modalityIdx)->histogramData();
+	size_t newBinCount = m_preferences.HistogramBins;
 	auto scalarRange = img->GetScalarRange();
 	if (isVtkIntegerImage(modality(modalityIdx)->image()))
 	{
@@ -2692,7 +2674,8 @@ void MdiChild::displayHistogram(int modalityIdx)
 
 	auto fw = runAsync([this, modalityIdx, newBinCount]
 		{   // run computation of histogram...
-			modality(modalityIdx)->computeHistogramData(newBinCount);
+			auto histData = iAHistogramData::create("Frequency", modality(modalityIdx)->image(), newBinCount, &modality(modalityIdx)->info());
+			modality(modalityIdx)->setHistogramData(histData);
 		},
 		[this, modalityIdx]
 		{  // ... and on finished signal, trigger histogramDataAvailable
@@ -2859,11 +2842,11 @@ void MdiChild::setMeshDataMovable(bool movable)
 	renderer()->polyActor()->SetDragable(movable);
 }
 
-MainWindow* MdiChild::mainWnd()
+iAMainWindow* MdiChild::mainWnd()
 {
 	return m_mainWnd;
 }
-
+/*
 vtkPiecewiseFunction* MdiChild::opacityTF()
 {
 	return modality(0)->transfer()->opacityTF();
@@ -2873,6 +2856,7 @@ vtkColorTransferFunction* MdiChild::colorTF()
 {
 	return modality(0)->transfer()->colorTF();
 }
+*/
 
 void MdiChild::saveFinished()
 {

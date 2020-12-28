@@ -22,8 +22,11 @@
 
 #include "iAInSpectrAttachment.h"
 
-#include <mainwindow.h>
-#include <mdichild.h>
+#include <iAMainWindow.h>
+#include <iAMdiChild.h>
+
+#include <QAction>
+#include <QMenu>
 
 void iAInSpectrModuleInterface::Initialize()
 {
@@ -43,7 +46,7 @@ bool iAInSpectrModuleInterface::startInSpectr()
 	return AttachToMdiChild( m_mdiChild );
 }
 
-iAModuleAttachmentToChild * iAInSpectrModuleInterface::CreateAttachment(MainWindow* mainWnd, MdiChild * child)
+iAModuleAttachmentToChild * iAInSpectrModuleInterface::CreateAttachment(iAMainWindow* mainWnd, iAMdiChild * child)
 {
 	return new iAInSpectrAttachment( mainWnd, child );
 }

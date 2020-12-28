@@ -27,7 +27,7 @@
 
 #include <QToolBar>
 
-class MainWindow;
+class iAMainWindow;
 
 typedef iAQTtoUIConnector<QToolBar, Ui_UncertaintyToolBar> iAUncertaintyToolbar;
 
@@ -38,7 +38,7 @@ class iAUncertaintyModuleInterface : public iAGUIModuleInterface
 public:
 	void Initialize() override;
 protected:
-	iAModuleAttachmentToChild* CreateAttachment(MainWindow* mainWnd, MdiChild * child) override;
+	iAModuleAttachmentToChild* CreateAttachment(iAMainWindow* mainWnd, iAMdiChild * child) override;
 private slots:
 	void UncertaintyExploration();
 	void ToggleDockWidgetTitleBars();

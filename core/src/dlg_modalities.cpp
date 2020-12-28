@@ -36,7 +36,7 @@
 #include "io/iAIO.h"
 #include "io/iAIOProvider.h"
 #include "io/extension2id.h"
-#include "mdichild.h"
+#include "iAMdiChild.h"
 
 #include <QVTKInteractor.h>
 #include <vtkColorTransferFunction.h>
@@ -54,7 +54,7 @@
 
 
 dlg_modalities::dlg_modalities(iAFast3DMagicLensWidget* magicLensWidget,
-	vtkRenderer* mainRenderer, MdiChild* mdiChild) :
+	vtkRenderer* mainRenderer, iAMdiChild* mdiChild) :
 
 	m_modalities(new iAModalityList),
 	m_magicLensWidget(magicLensWidget),
@@ -64,7 +64,7 @@ dlg_modalities::dlg_modalities(iAFast3DMagicLensWidget* magicLensWidget,
 	for (int i = 0; i <= iASlicerMode::SlicerCount; ++i)
 	{
 		m_manualMoveStyle[i] = vtkSmartPointer<iAvtkInteractStyleActor>::New();
-		connect(m_manualMoveStyle[i].Get(), &iAvtkInteractStyleActor::actorsUpdated, mdiChild, &MdiChild::updateViews);
+		connect(m_manualMoveStyle[i].Get(), &iAvtkInteractStyleActor::actorsUpdated, mdiChild, &iAMdiChild::updateViews);
 	}
 	connect(pbAdd,    &QPushButton::clicked, this, &dlg_modalities::addClicked);
 	connect(pbRemove, &QPushButton::clicked, this, &dlg_modalities::removeClicked);
@@ -400,7 +400,7 @@ void dlg_modalities::listClicked(QListWidgetItem* item)
 	{
 		return;
 	}
-	if (m_mdiChild->interactionMode() == MdiChild::imRegistration)
+	if (m_mdiChild->interactionMode() == iAMdiChild::imRegistration)
 	{
 		setModalitySelectionMovable(selectedRow);
 		configureInterActorStyles(m_modalities->get(selectedRow));

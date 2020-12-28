@@ -21,6 +21,7 @@
 #pragma once
 
 #include "open_iA_Core_export.h"
+#include "iAImageInfo.h"
 #include "iAVolumeSettings.h"
 
 #include <vtkImageData.h>
@@ -34,7 +35,6 @@
 
 class iAHistogramData;
 class iAImageCoordConverter;
-class iAImageInfo;
 class iAModalityTransfer;
 class iAVolumeRenderer;
 
@@ -78,7 +78,7 @@ public:
 	//! return the name of the given component
 	QString imageName(int componentIdx);
 	//! return statistical information about the image
-	iAImageInfo const & info() const;
+	iAImageInfo & info();
 	//! return ID of channel used in mdichild to represent this modality in slicer (don't confuse with channelID!)
 	uint channelID() const;
 	//! set ID of channel used in mdichild to represent this modality in slicer
@@ -121,7 +121,8 @@ public:
 	void setStringSettings(QString const & pos, QString const & ori, QString const & tfFile);
 	void setData(vtkSmartPointer<vtkImageData> imgData);
 	void computeImageStatistics();
-	void computeHistogramData(size_t numBin);
+
+	void setHistogramData(QSharedPointer<iAHistogramData> histoData);
 	QSharedPointer<iAHistogramData> const histogramData() const;
 
 	void setVolSettings(const iAVolumeSettings &volSettings);
@@ -162,6 +163,9 @@ private:
 	QSharedPointer<iAVolumeRenderer> m_renderer;
 	std::vector<vtkSmartPointer<vtkImageData>> m_imgs;  // TODO: implement lazy loading
 	vtkSmartPointer<vtkImageData> m_imgData;
+
+	QSharedPointer<iAHistogramData> m_histogramData;
+	iAImageInfo m_imageInfo;
 
 	// TODO: Refactor
 	QString m_positionSettings;

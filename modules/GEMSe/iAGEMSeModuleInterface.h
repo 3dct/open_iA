@@ -39,10 +39,10 @@ class iAGEMSeModuleInterface : public iAGUIModuleInterface
 public:
 	iAGEMSeModuleInterface();
 	void Initialize() override;
-	void loadProject(MdiChild* mdiChild, QSettings const & metaFile, QString const & fileName);
+	void loadProject(iAMdiChild* mdiChild, QSettings const & metaFile, QString const & fileName);
 	void saveProject(QSettings & metaFile, QString const & fileName);
 protected:
-	iAModuleAttachmentToChild* CreateAttachment(MainWindow* mainWnd, MdiChild * child) override;
+	iAModuleAttachmentToChild* CreateAttachment(iAMainWindow* mainWnd, iAMdiChild * child) override;
 private slots:
 	//! @{ Menu entries:
 	void startGEMSe();

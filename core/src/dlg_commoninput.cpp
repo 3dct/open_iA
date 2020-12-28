@@ -28,7 +28,7 @@
 #include "iAFilterRunnerGUI.h"
 #include "iAStringHelper.h"
 #include "io/iAFileChooserWidget.h"
-#include "mdichild.h"
+#include "iAMdiChild.h"
 
 #include <vtkImageData.h>
 
@@ -206,11 +206,11 @@ dlg_commoninput::dlg_commoninput(QWidget *parent, QString const & title, QString
 	updateValues(values);
 }
 
-void  dlg_commoninput::setSourceMdi(MdiChild* child, MainWindow* mainWnd)
+void  dlg_commoninput::setSourceMdi(iAMdiChild* child, iAMainWindow* mainWnd)
 {
 	m_sourceMdiChild = child;
 	m_mainWnd = mainWnd;
-	connect(child, &MdiChild::closed, this, &dlg_commoninput::SourceChildClosed);
+	connect(child, &iAMdiChild::closed, this, &dlg_commoninput::SourceChildClosed);
 }
 
 QVector<QWidget*> dlg_commoninput::widgetList()
@@ -527,7 +527,7 @@ int dlg_commoninput::exec()
 		return QDialog::Rejected;
 	if (m_sourceMdiChild)
 	{
-		disconnect(m_sourceMdiChild, &MdiChild::closed, this, &dlg_commoninput::SourceChildClosed);
+		disconnect(m_sourceMdiChild, &iAMdiChild::closed, this, &dlg_commoninput::SourceChildClosed);
 		m_sourceMdiChild->setROIVisible(false);
 	}
 	return result;

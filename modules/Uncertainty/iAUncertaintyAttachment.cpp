@@ -33,8 +33,8 @@
 #include <dlg_imageproperty.h>
 #include <dlg_slicer.h>
 #include <iASlicerMode.h>
-#include <mdichild.h>
-#include <mainwindow.h>
+#include <iAMdiChild.h>
+#include <iAMainWindow.h>
 #include <qthelper/iADockWidgetWrapper.h>
 
 #include <iAHistogramData.h>
@@ -50,7 +50,7 @@
 
 const int EntropyBinCount = 100;
 
-iAUncertaintyAttachment::iAUncertaintyAttachment(MainWindow * mainWnd, MdiChild * child):
+iAUncertaintyAttachment::iAUncertaintyAttachment(iAMainWindow * mainWnd, iAMdiChild * child):
 	iAModuleAttachmentToChild(mainWnd, child),
 	m_labelLut(vtkSmartPointer<vtkLookupTable>::New()),
 	m_newSubEnsembleID(1)
@@ -67,15 +67,15 @@ iAUncertaintyAttachment::iAUncertaintyAttachment(MainWindow * mainWnd, MdiChild 
 	m_dockWidgets.push_back(new iADockWidgetWrapper(m_labelDistributionView, "Label Distribution", "UncLabelDistrView"));
 	m_dockWidgets.push_back(new iADockWidgetWrapper(m_uncertaintyDistributionView, "Uncertainty Distribution", "UncUncertaintyDistrView"));
 	m_dockWidgets.push_back(new iADockWidgetWrapper(m_ensembleView, "Ensemble View", "UncEnsembleView"));
-	connect(mainWnd, &MainWindow::styleChanged, m_spatialView, &iASpatialView::StyleChanged);
-	connect(mainWnd, &MainWindow::styleChanged, m_memberView, &iAMemberView::StyleChanged);
+	connect(mainWnd, &iAMainWindow::styleChanged, m_spatialView, &iASpatialView::StyleChanged);
+	connect(mainWnd, &iAMainWindow::styleChanged, m_memberView, &iAMemberView::StyleChanged);
 	connect(m_scatterplotView, &iAScatterPlotView::SelectionChanged, m_spatialView, &iASpatialView::UpdateSelection);
 	connect(m_memberView, &iAMemberView::MemberSelected, this, &iAUncertaintyAttachment::MemberSelected);
 	connect(m_ensembleView, &iAEnsembleView::EnsembleSelected, this, &iAUncertaintyAttachment::EnsembleSelected);
 }
 
 
-iAUncertaintyAttachment* iAUncertaintyAttachment::Create(MainWindow * mainWnd, MdiChild * child)
+iAUncertaintyAttachment* iAUncertaintyAttachment::Create(iAMainWindow * mainWnd, iAMdiChild * child)
 {
 	iAUncertaintyAttachment * newAttachment = new iAUncertaintyAttachment(mainWnd, child);
 	return newAttachment;
@@ -106,7 +106,7 @@ bool iAUncertaintyAttachment::LoadEnsemble(QString const & fileName)
 		LOG(lvlError, "Ensemble: Given data file could not be read.");
 		return false;
 	}
-	connect(m_child, &MdiChild::fileLoaded, this, &iAUncertaintyAttachment::ContinueEnsembleLoading);
+	connect(m_child, &iAMdiChild::fileLoaded, this, &iAUncertaintyAttachment::ContinueEnsembleLoading);
 	if (!m_child->loadFile(m_ensembleFile->ModalityFileName(), false))
 	{
 		LOG(lvlError, QString("Failed to load project '%1'").arg(m_ensembleFile->ModalityFileName()));

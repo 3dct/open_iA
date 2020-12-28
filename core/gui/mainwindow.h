@@ -21,15 +21,15 @@
 #pragma once
 
 #include "ui_Mainwindow.h"
-#include "open_iA_Core_export.h"
+#include "open_iA_gui_export.h"
 
+#include "iAMainWindow.h"
 #include "iAPreferences.h"
 #include "iARenderSettings.h"
 #include "iASlicerSettings.h"
 #include "iAVolumeSettings.h"
 #include "io/iARawFileParameters.h"
 
-#include <QMainWindow>
 #include <QMdiSubWindow>
 #include <QSharedPointer>
 
@@ -47,14 +47,14 @@ class QSplashScreen;
 class vtkCamera;
 class vtkImageData;
 
+class MdiChild;
 class iAModalityList;
 class iAModuleDispatcher;
 class iATransferFunction;
 class iAXmlSettings;
-class MdiChild;
 
 //! Application main window, provides access to all global graphical user interface elements.
-class open_iA_Core_API MainWindow : public QMainWindow, public Ui_MainWindow
+class open_iA_gui_API MainWindow : public iAMainWindow, public Ui_MainWindow
 {
 	Q_OBJECT
 
@@ -65,13 +65,14 @@ public:
 		QString const & splashPath, QString const & iconPath);
 	static void initResources();
 
-	void setPath(QString const & p);
-	QString const & path();
+	void setPath(QString const & p) override;
+	QString const & path() const override;
 	void setCurrentFile(const QString &fileName);
-	QString const & currentFile();  //!< deprecated. Use a specific mdichilds, or even better, an mdichilds dlg_modalities methods instead!
+	//! @deprecated. Use a specific mdichilds, or even better, an mdichilds dlg_modalities methods instead!
+	QString const & currentFile() const override;
 
 	void loadFile(QString const & fileName);
-	void loadFile(QString fileName, bool isStack);
+	void loadFile(QString fileName, bool isStack) override;
 	void loadFiles(QStringList fileNames);
 
 	void saveCamera(iAXmlSettings & xml);
@@ -87,57 +88,52 @@ public:
 	void saveSlicerSettings(iAXmlSettings &xml);
 	void loadSlicerSettings(QDomNode slicerSettingsNode);
 	//! Get the File menu (can be used by modules to append entries to it).
-	QMenu * fileMenu();
+	QMenu * fileMenu() override;
 	//! Get the Filters menu (can be used by modules to append entries to it).
-	QMenu * filtersMenu();
+	QMenu* filtersMenu() override;
 	//! Get the Tools menu (can be used by modules to append entries to it).
-	QMenu * toolsMenu();
+	QMenu* toolsMenu() override;
 	//! Get the Help menu (can be used by modules to append entries to it).
-	QMenu * helpMenu();
+	QMenu* helpMenu() override;
 	//! @{ Get access to result child with the given title.
 	//! (depending on preferences, this will either open a new mdi child window, or reuse the currently active one)
-	MdiChild * resultChild( QString const & title );
-	MdiChild * resultChild( int childInd, QString const & title );
-	MdiChild * resultChild( MdiChild* oldChild, QString const & title );
+	iAMdiChild * resultChild( QString const & title ) override;
+	iAMdiChild * resultChild( int childInd, QString const & title ) override;
+	iAMdiChild * resultChild( iAMdiChild* oldChild, QString const & title ) override;
 	//! @}
 	//! Provides access to the currently active mdi child, if such is available.
 	//! @return pointer to the currently active mdi child, or nullptr if no child is currently open
-	MdiChild * activeMdiChild();
+	iAMdiChild * activeMdiChild() override;
 	//! Provides access to a second loaded mdi child, if such is available.
 	//! Will throw an error if none is available or more than two are loaded.
 	//! @deprecated instead of this method, in filters, use the facilities
 	//!     provided in iAFilter (via the requiredInputs parameter to the constructor) to specify multiple inputs
-	MdiChild * secondNonActiveChild();
+	iAMdiChild * secondNonActiveChild() override;
 	//! Get list of the titles of currently open MdiChild windows.
 	QList<QString> mdiWindowTitles();
 	//! Get the list of current MdiChild windows.
-	QList<MdiChild*> mdiChildList(QMdiArea::WindowOrder order = QMdiArea::CreationOrder);
+	QList<iAMdiChild*> mdiChildList() override;
 	//! Get the list of current child windows of type T.
 	template <typename T> QList<T*> childList(QMdiArea::WindowOrder order = QMdiArea::CreationOrder);
 	//! Get the active child window of type T.
 	template <typename T> T * activeChild();
-	QMdiSubWindow* addSubWindow(QWidget * child);
+	QMdiSubWindow* activeChild() override;
+	QMdiSubWindow* addSubWindow(QWidget * child) override;
 	void loadArguments(int argc, char** argv);
 	iAPreferences const & getDefaultPreferences() const;
 	iAModuleDispatcher& getModuleDispatcher() const;
-	MdiChild *createMdiChild(bool unsavedChanges);
-	void closeMdiChild(MdiChild* child);
-	void closeAllSubWindows();
+	iAMdiChild* createMdiChild(bool unsavedChanges) override;
+	void closeMdiChild(iAMdiChild* child) override;
+	void closeAllSubWindows() override;
 	void updateInteractionModeControls(int mode);
 	void updateMagicLens2DCheckState(bool enabled);
-	void makeActionChildDependent(QAction* action);
+	void makeActionChildDependent(QAction* action) override;
 
 public slots:
 	void loadLayout();
 
 signals:
-	void styleChanged();
 	void fullScreenToggled();
-
-protected:
-	void closeEvent(QCloseEvent *event) override;
-	void dragEnterEvent(QDragEnterEvent *e) override;
-	void dropEvent(QDropEvent *e) override;
 
 private slots:
 	void quitTimerSlot();
@@ -205,6 +201,11 @@ private slots:
 	void logVisibilityChanged(bool newVisibility);
 
 private:
+	//! internal retriever for MdiChild object (instead of iAMdiChild interface)
+	MdiChild* activeMDI();
+	void closeEvent(QCloseEvent *event) override;
+	void dragEnterEvent(QDragEnterEvent *e) override;
+	void dropEvent(QDropEvent *e) override;
 	void connectSignalsToSlots();
 	void readSettings();
 	void writeSettings();
@@ -217,7 +218,7 @@ private:
 	void copyFunctions(MdiChild* oldChild, MdiChild* newChild);
 	void loadTLGICTData(QString const & baseDirectory);
 	bool keepOpen();
-	MdiChild* findMdiChild(const QString &fileName);
+	//MdiChild* findMdiChild(const QString& fileName);
 
 	static const int MaxRecentFiles = 8;
 

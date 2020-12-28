@@ -20,7 +20,7 @@
 * ************************************************************************************/
 #pragma once
 
-#include "open_iA_Core_export.h"
+#include "open_iA_core_export.h"
 
 class QString;
 

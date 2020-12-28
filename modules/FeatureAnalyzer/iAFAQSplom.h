@@ -21,8 +21,8 @@
 #pragma once
 
 #include <iAQSplom.h>
-#include <mainwindow.h>
-#include <mdichild.h>
+#include <iAMainWindow.h>
+#include <iAMdiChild.h>
 
 #include <QStringList>
 
@@ -36,7 +36,7 @@ class iAFAQSplom : public iAQSplom
 {
 	Q_OBJECT
 public:
-	iAFAQSplom(MainWindow * mainWind,  QWidget * parent = nullptr);
+	iAFAQSplom(iAMainWindow * mainWind,  QWidget * parent = nullptr);
 public:
 	void setData( const QTableWidget * data );
 	void setPreviewSliceNumbers( QList<int> sliceNumber );
@@ -93,8 +93,8 @@ protected:
 	QString m_currPrevPipelineName;
 
 private:
-	MainWindow * m_mainWnd;
-	MdiChild * m_mdiChild;
+	iAMainWindow * m_mainWnd;
+	iAMdiChild * m_mdiChild;
 	QString m_csvName;
 
 };

@@ -22,7 +22,9 @@
 
 #include "iAFoamCharacterizationAttachment.h"
 
-#include <mainwindow.h>
+#include <iAMainWindow.h>
+
+#include <QAction>
 
 void iAFoamCharacterizationModuleInterface::Initialize( )
 {
@@ -46,7 +48,7 @@ void iAFoamCharacterizationModuleInterface::slotFoamCharacterization()
 	}
 }
 
-iAModuleAttachmentToChild* iAFoamCharacterizationModuleInterface::CreateAttachment(MainWindow* mainWnd, MdiChild * child)
+iAModuleAttachmentToChild* iAFoamCharacterizationModuleInterface::CreateAttachment(iAMainWindow* mainWnd, iAMdiChild * child)
 {
 	return new iAFoamCharacterizationAttachment(mainWnd, child);
 }

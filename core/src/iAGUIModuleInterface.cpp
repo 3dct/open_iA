@@ -22,12 +22,15 @@
 
 #include "iALog.h"
 #include "iAModuleAttachmentToChild.h"
-#include "mainwindow.h"
-#include "mdichild.h"
+#include "iAMainWindow.h"
+#include "iAMdiChild.h"
 
 #include <itkMacro.h>    // for itk::ExceptionObject
 
+#include <QMenu>
 #include <QMessageBox>
+#include <QStatusBar>
+#include <QString>
 
 void iAGUIModuleInterface::PrepareResultChild( QString const & title )
 {
@@ -49,7 +52,7 @@ void iAGUIModuleInterface::PrepareResultChild( int childInd, QString const & tit
 	}
 }
 
-void iAGUIModuleInterface::SetMainWindow( MainWindow * mainWnd )
+void iAGUIModuleInterface::SetMainWindow( iAMainWindow * mainWnd )
 {
 	m_mainWnd = mainWnd;
 }
@@ -71,7 +74,7 @@ void iAGUIModuleInterface::PrepareActiveChild()
 
 void iAGUIModuleInterface::SaveSettings() const {}
 
-void iAGUIModuleInterface::ChildCreated(MdiChild * /*child*/)
+void iAGUIModuleInterface::ChildCreated(iAMdiChild * /*child*/)
 {
 }
 
@@ -84,7 +87,7 @@ iAGUIModuleInterface::~iAGUIModuleInterface()
 	}
 }
 
-void iAGUIModuleInterface::detachChild(MdiChild* child)
+void iAGUIModuleInterface::detachChild(iAMdiChild* child)
 {
 	if( !child )
 		return;
@@ -100,7 +103,7 @@ void iAGUIModuleInterface::detachChild(MdiChild* child)
 
 void iAGUIModuleInterface::attachedChildClosed()
 {
-	MdiChild * sender = dynamic_cast<MdiChild*> (QObject::sender());
+	iAMdiChild * sender = dynamic_cast<iAMdiChild*> (QObject::sender());
 	detachChild(sender);
 }
 
@@ -123,12 +126,12 @@ bool iAGUIModuleInterface::isAttached()
 	return false;
 }
 
-iAModuleAttachmentToChild * iAGUIModuleInterface::CreateAttachment( MainWindow * /*mainWnd*/, MdiChild * /*child*/ )
+iAModuleAttachmentToChild * iAGUIModuleInterface::CreateAttachment( iAMainWindow * /*mainWnd*/, iAMdiChild * /*child*/ )
 {
 	return nullptr;
 }
 
-bool iAGUIModuleInterface::AttachToMdiChild( MdiChild * child )
+bool iAGUIModuleInterface::AttachToMdiChild( iAMdiChild * child )
 {
 	//check if already attached
 	m_mdiChild = child;
@@ -146,7 +149,7 @@ bool iAGUIModuleInterface::AttachToMdiChild( MdiChild * child )
 		}
 		//add an attachment
 		m_attachments.push_back( attachment );
-		connect(child, &MdiChild::closed, this, &iAGUIModuleInterface::attachedChildClosed);
+		connect(child, &iAMdiChild::closed, this, &iAGUIModuleInterface::attachedChildClosed);
 		connect(attachment, &iAModuleAttachmentToChild::detach, this, &iAGUIModuleInterface::detach);
 	}
 	catch( itk::ExceptionObject &excep )

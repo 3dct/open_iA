@@ -22,8 +22,11 @@
 
 #include "iAFuzzyFeatureTrackingAttachment.h"
 
-#include <mainwindow.h>
-#include <mdichild.h>
+#include <iAMainWindow.h>
+#include <iAMdiChild.h>
+
+#include <QAction>
+#include <QMenu>
 
 iAFuzzyFeatureTrackingModuleInterface::iAFuzzyFeatureTrackingModuleInterface() {}
 
@@ -46,7 +49,7 @@ bool iAFuzzyFeatureTrackingModuleInterface::start_FuzzyFeatureTracking()
 	return AttachToMdiChild( m_mdiChild );
 }
 
-iAModuleAttachmentToChild * iAFuzzyFeatureTrackingModuleInterface::CreateAttachment( MainWindow* mainWnd, MdiChild * child )
+iAModuleAttachmentToChild * iAFuzzyFeatureTrackingModuleInterface::CreateAttachment( iAMainWindow* mainWnd, iAMdiChild * child )
 {
 	return new iAFuzzyFeatureTrackingAttachment( mainWnd, child );
 }

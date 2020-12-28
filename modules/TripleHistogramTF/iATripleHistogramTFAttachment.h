@@ -28,11 +28,11 @@ class dlg_tf_3mod;
 class iATripleHistogramTFAttachment : public iAModuleAttachmentToChild
 {
 public:
-	static iATripleHistogramTFAttachment* create(MainWindow * mainWnd, MdiChild* child);
+	static iATripleHistogramTFAttachment* create(iAMainWindow * mainWnd, iAMdiChild* child);
 	void start2TF();
 	void start3TF();
 private:
-	iATripleHistogramTFAttachment(MainWindow * mainWnd, MdiChild* child);
+	iATripleHistogramTFAttachment(iAMainWindow * mainWnd, iAMdiChild* child);
 	dlg_tf_2mod *m_tf_2mod;
 	dlg_tf_3mod *m_tf_3mod;
 };

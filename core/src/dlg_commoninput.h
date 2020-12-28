@@ -26,8 +26,8 @@
 #include <QDialog>
 #include <QVector>
 
-class MainWindow;
-class MdiChild;
+class iAMainWindow;
+class iAMdiChild;
 class QWidget;
 class QErrorMessage;
 class QLabel;
@@ -72,14 +72,14 @@ public:
 	void showROI();
 	//! Show the dialog. This is just a wrapper around QDialog::exec, see there for more details on e.g. the return value
 	int exec() override;
-	void setSourceMdi(MdiChild* child, MainWindow* mainWnd);
+	void setSourceMdi(iAMdiChild* child, iAMainWindow* mainWnd);
 	QVector<QWidget*> widgetList();
 private:
 	QWidget * m_container;
 	int m_roi[6];
 	QVector<int> m_filterWithParameters;
-	MdiChild * m_sourceMdiChild;
-	MainWindow * m_mainWnd;
+	iAMdiChild * m_sourceMdiChild;
+	iAMainWindow * m_mainWnd;
 	bool m_sourceMdiChildClosed;
 	void updateValues(QList<QVariant>);
 	void UpdateROIPart(QString const & partName, QString const & value);

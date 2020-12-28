@@ -35,7 +35,7 @@
 #include <QVector>
 #include <QSharedPointer>
 
-class MdiChild;
+class iAMdiChild;
 
 class vtkCamera;
 class vtkColorTransferFunction;
@@ -64,7 +64,7 @@ private:
 	void setWeights(iABCoord bCoord, double t);
 
 public:
-	iAMultimodalWidget(MdiChild* mdiChild, NumOfMod num);
+	iAMultimodalWidget(iAMdiChild* mdiChild, NumOfMod num);
 
 	QSharedPointer<iAChartWithFunctionsWidget> w_histogram(int i) {
 		return m_histograms[i];
@@ -127,7 +127,7 @@ protected:
 		setWeightsProtected(bCoord, bCoord_to_t(bCoord));
 	}
 
-	MdiChild *m_mdiChild;
+	iAMdiChild *m_mdiChild;
 	QLayout *m_innerLayout;
 
 private:

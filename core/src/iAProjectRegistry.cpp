@@ -47,12 +47,12 @@ iAProjectBase::~iAProjectBase()
 {}
 
 
-void iAProjectBase::setChild(MdiChild* child)
+void iAProjectBase::setChild(iAMdiChild* child)
 {
 	m_mdiChild = child;
 }
 
-void iAProjectBase::setMainWindow(MainWindow* mainWindow)
+void iAProjectBase::setMainWindow(iAMainWindow* mainWindow)
 {
 	m_mainWindow = mainWindow;
 }

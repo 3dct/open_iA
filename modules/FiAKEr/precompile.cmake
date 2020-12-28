@@ -1,4 +1,5 @@
-SET (FiAKEr_PRECOMPILE_INCLUDES <charts/iASPLOMData.h>
+SET (FiAKEr_PRECOMPILE_INCLUDES
+<iASPLOMData.h>
 <iACsvConfig.h>
 <iAFiAKErController.h>
 <iAFiberCharData.h>

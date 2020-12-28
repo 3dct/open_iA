@@ -22,8 +22,8 @@
 
 #include "open_iA_Core_export.h"
 
-class MainWindow;
-class MdiChild;
+class iAMainWindow;
+class iAMdiChild;
 
 class QSettings;
 class QString;
@@ -36,9 +36,9 @@ public:
 	virtual ~iAProjectBase();
 	virtual void loadProject(QSettings & projectFile, QString const & fileName) =0;
 	virtual void saveProject(QSettings & projectFile, QString const & fileName) =0;
-	void setMainWindow(MainWindow* mainWindow);
-	void setChild(MdiChild* mdiChild);
+	void setMainWindow(iAMainWindow* mainWindow);
+	void setChild(iAMdiChild* mdiChild);
 protected:
-	MdiChild* m_mdiChild;
-	MainWindow* m_mainWindow;
+	iAMdiChild* m_mdiChild;
+	iAMainWindow* m_mainWindow;
 };

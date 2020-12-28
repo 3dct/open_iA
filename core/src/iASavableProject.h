@@ -31,9 +31,9 @@
 //!
 //! Refactoring ideas:
 //! - make this class the container for the open projects currently stored in
-//!   MdiChild::m_projects,
-//!   and move MdiChild::doSaveProject into saveProject (or into default implementation of
-//!   doSaveProject, as MdiChild probably into the forseeable future needs to do things
+//!   iAMdiChild::m_projects,
+//!   and move iAMdiChild::doSaveProject into saveProject (or into default implementation of
+//!   doSaveProject, as iAMdiChild probably into the forseeable future needs to do things
 //!   differently to be able to load .mod files)
 //! - rename to iAOpenProjects or something?
 class open_iA_Core_API iASavableProject

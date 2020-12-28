@@ -33,8 +33,8 @@
 #include <QVector>
 
 class iAFilter;
-class MainWindow;
-class MdiChild;
+class iAMainWindow;
+class iAMdiChild;
 
 class vtkImageData;
 
@@ -47,7 +47,7 @@ class open_iA_Core_API iAFilterRunnerGUIThread : public iAAlgorithm, public iAAb
 	Q_OBJECT
 public:
 	iAFilterRunnerGUIThread(QSharedPointer<iAFilter> filter,
-		QMap<QString, QVariant> paramValues, MdiChild* mdiChild, QString const& fileName);
+		QMap<QString, QVariant> paramValues, iAMdiChild* mdiChild, QString const& fileName);
 	void performWork() override;
 	QSharedPointer<iAFilter> filter();
 	void addInput(vtkImageData* img, QString const& fileName);
@@ -81,14 +81,14 @@ public:
 
 	//! do any potentially necessary GUI preparations (directly before the filter is run)
 	virtual void filterGUIPreparations(QSharedPointer<iAFilter> filter,
-		MdiChild* mdiChild, MainWindow* mainWnd, QMap<QString, QVariant> const& params);
+		iAMdiChild* mdiChild, iAMainWindow* mainWnd, QMap<QString, QVariant> const& params);
 
 	//! Main run method. Calls all the other (non-static) methods in this class.
 	//! Override only if you want to change the whole way the filter running works;
 	//! typically you will only want to override one of the methods below
 	//! @param filter the filter to run
 	//! @param mainWnd access to the main window
-	virtual void run(QSharedPointer<iAFilter> filter, MainWindow* mainWnd);
+	virtual void run(QSharedPointer<iAFilter> filter, iAMainWindow* mainWnd);
 
 	//! Prompts the user to adapt the parameters to his needs for the current filter run.
 	//! @param filter the filter that should be run
@@ -98,7 +98,7 @@ public:
 	//! @param askForAdditionalInput whether the parameter dialog should also ask for additional
 	//!     inputs if the filter requires more than 1
 	virtual bool askForParameters(QSharedPointer<iAFilter> filter, QMap<QString, QVariant> & paramValues,
-		MdiChild* sourceMdi, MainWindow* mainWnd, bool askForAdditionalInput);
+		iAMdiChild* sourceMdi, iAMainWindow* mainWnd, bool askForAdditionalInput);
 
 	//! Loads parameters from the platform-specific store.
 	//! @param filter the filter for which to load the parameters
@@ -107,7 +107,7 @@ public:
 	//!     properties of the input file, e.g. in the extract image filter it is used to get the size
 	//!     of the input image.
 	//! @return a map containing for each parameter name the stored value
-	virtual QMap<QString, QVariant> loadParameters(QSharedPointer<iAFilter> filter, MdiChild* sourceMdi);
+	virtual QMap<QString, QVariant> loadParameters(QSharedPointer<iAFilter> filter, iAMdiChild* sourceMdi);
 
 	//! Store parameters in the platform-specific store.
 	//! @param filter the filter for which to store the parameters
@@ -121,7 +121,7 @@ public:
 	//! the result gets updated in the mdi child
 	//! @param mdiChild the child window into which the results should go
 	//! @param thread the thread used to run the filter
-	virtual void connectThreadSignals(MdiChild* mdiChild, iAFilterRunnerGUIThread* thread);
+	virtual void connectThreadSignals(iAMdiChild* mdiChild, iAFilterRunnerGUIThread* thread);
 private slots:
 	void filterFinished();
 signals:

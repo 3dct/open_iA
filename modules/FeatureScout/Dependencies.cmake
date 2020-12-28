@@ -1,4 +1,5 @@
 SET (DEPENDENCIES_LIBRARIES
+	charts
 	objectvis
 )
 

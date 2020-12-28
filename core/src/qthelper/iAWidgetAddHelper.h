@@ -24,15 +24,15 @@
 
 #include "qnamespace.h"
 
-class MdiChild;
+class iAMdiChild;
 class QDockWidget;
 
 class open_iA_Core_API iAWidgetAddHelper
 {
 public:
-	iAWidgetAddHelper(MdiChild* mdiChild, QDockWidget* dockWidget);
+	iAWidgetAddHelper(iAMdiChild* mdiChild, QDockWidget* dockWidget);
 	void SplitWidget(QDockWidget* newSplit, QDockWidget* splitWidget, Qt::Orientation orient = Qt::Horizontal);
 	void TabWidget(QDockWidget* newTab, QDockWidget* other);
-	MdiChild* m_mdiChild;
+	iAMdiChild* m_mdiChild;
 	QDockWidget* m_dockWidget;
 };

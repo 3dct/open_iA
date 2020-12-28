@@ -48,8 +48,8 @@
 #include "iAVtkVersion.h"
 #include "iAVtkText.h"
 #include "io/iAIOProvider.h"
-#include "mainwindow.h"
-#include "mdichild.h"
+#include "iAMainWindow.h"
+#include "iAMdiChild.h"
 
 #include <vtkActor.h>
 #include <vtkAxisActor2D.h>
@@ -1529,10 +1529,10 @@ void iASlicer::printVoxelInformation()
 	}
 	if (m_linkedMdiChild)
 	{
-		QList<MdiChild*> mdiwindows = m_linkedMdiChild->mainWnd()->mdiChildList();
+		QList<iAMdiChild*> mdiwindows = m_linkedMdiChild->mainWnd()->mdiChildList();
 		for (int i = 0; i < mdiwindows.size(); i++)
 		{
-			MdiChild *tmpChild = mdiwindows.at(i);
+			iAMdiChild *tmpChild = mdiwindows.at(i);
 			if (m_linkedMdiChild == tmpChild)
 			{
 				continue;
@@ -2144,7 +2144,7 @@ void iASlicer::mousePressEvent(QMouseEvent *event)
 		if (m_snakeSpline->CalculateSelectedPoint(x, y) == iASnakeSpline::NoPointSelected)
 		{
 			m_snakeSpline->addPoint(x, y);
-			// add the point to the world point list only once because it is a member of MdiChild
+			// add the point to the world point list only once because it is a member of iAMdiChild
 			m_worldSnakePoints->InsertNextPoint(m_globalPt[0], m_globalPt[1], m_globalPt[2]);
 			// let other slices views know that a new point was created
 			emit addedPoint(m_globalPt[0], m_globalPt[1], m_globalPt[2]);
@@ -2194,7 +2194,7 @@ void iASlicer::mouseMoveEvent(QMouseEvent *event)
 
 		movePoint(m_snakeSpline->selectedPointIndex(), pos[0], pos[1], pos[2]);
 
-		// update world point list only once because it is a member of MdiChild
+		// update world point list only once because it is a member of iAMdiChild
 		m_worldSnakePoints->SetPoint(m_snakeSpline->selectedPointIndex(), pos[0], pos[1], pos[2]);
 
 		// let other slice views know that a point was moved
@@ -2429,7 +2429,7 @@ void iASlicer::setIndex(int x, int y, int z)
 	m_xInd = x; m_yInd = y; m_zInd = z;
 }
 
-void iASlicer::setLinkedMdiChild(MdiChild* mdiChild)
+void iASlicer::setLinkedMdiChild(iAMdiChild* mdiChild)
 {
 	m_linkedMdiChild = mdiChild;
 }

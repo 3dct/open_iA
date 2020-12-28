@@ -38,12 +38,13 @@
 //#include <iAPerformanceHelper.h>
 #include <iAPreferences.h>
 #include <iARenderer.h>
+#include <iARenderSettings.h>
 #include <iASlicer.h>
 #include <iASlicerMode.h>
 #include <iAToolsVTK.h>
 #include <iATransferFunction.h>
 #include <iAVolumeRenderer.h>
-#include <mdichild.h>
+#include <iAMdiChild.h>
 
 #include <vtkCamera.h>
 #include <vtkImageActor.h>
@@ -75,7 +76,7 @@ static const QString DISABLED_TEXT_COLOR = "rgb(0,0,0)"; // black
 static const QString DISABLED_BACKGROUND_COLOR = "rgba(255,255,255)"; // white
 static const int TIMER_UPDATE_VISUALIZATIONS_WAIT_MS = 250; // in milliseconds
 
-iAMultimodalWidget::iAMultimodalWidget(MdiChild* mdiChild, NumOfMod num):
+iAMultimodalWidget::iAMultimodalWidget(iAMdiChild* mdiChild, NumOfMod num):
 	m_mdiChild(mdiChild),
 	m_timer_updateVisualizations(new QTimer()),
 	m_slicerMode(iASlicerMode::XY),
@@ -134,9 +135,9 @@ iAMultimodalWidget::iAMultimodalWidget(MdiChild* mdiChild, NumOfMod num):
 	connect(mdiChild->slicerDockWidget(iASlicerMode::XZ)->sbSlice, QOverload<int>::of(&QSpinBox::valueChanged), this, &iAMultimodalWidget::onMainXZSliceNumberChanged);
 	connect(mdiChild->slicerDockWidget(iASlicerMode::YZ)->sbSlice, QOverload<int>::of(&QSpinBox::valueChanged), this, &iAMultimodalWidget::onMainYZSliceNumberChanged);
 
-	connect(mdiChild, &MdiChild::histogramAvailable, this, &iAMultimodalWidget::histogramAvailable);
-	connect(mdiChild, &MdiChild::renderSettingsChanged, this, &iAMultimodalWidget::applyVolumeSettings);
-	connect(mdiChild, &MdiChild::slicerSettingsChanged, this, &iAMultimodalWidget::applySlicerSettings);
+	connect(mdiChild, &iAMdiChild::histogramAvailable, this, &iAMultimodalWidget::histogramAvailable);
+	connect(mdiChild, &iAMdiChild::renderSettingsChanged, this, &iAMultimodalWidget::applyVolumeSettings);
+	connect(mdiChild, &iAMdiChild::slicerSettingsChanged, this, &iAMultimodalWidget::applySlicerSettings);
 
 	connect(m_mdiChild->dataDockWidget(), &dlg_modalities::modalitiesChanged, this, &iAMultimodalWidget::modalitiesChangedSlot);
 
@@ -197,7 +198,7 @@ void iAMultimodalWidget::updateVisualizationsNow()
 {
 	m_timer_updateVisualizations->stop();
 
-	m_mdiChild->redrawHistogram();
+	m_mdiChild->histogram()->update();
 	m_mdiChild->renderer()->update();
 
 	if (!m_mainSlicersInitialized)
@@ -415,7 +416,9 @@ void iAMultimodalWidget::applyVolumeSettings()
 	volProp->SetInterpolationType(vs.LinearInterpolation);
 	volProp->SetShade(vs.Shading);
 	if (vs.ScalarOpacityUnitDistance > 0)
+	{
 		volProp->SetScalarOpacityUnitDistance(vs.ScalarOpacityUnitDistance);
+	}
 	if (m_mdiChild->renderSettings().ShowSlicers)
 	{
 		m_combinedVolMapper->AddClippingPlane(m_mdiChild->renderer()->plane1());
@@ -443,24 +446,32 @@ void iAMultimodalWidget::applySlicerSettings()
 // When new modalities are added/removed
 void iAMultimodalWidget::updateModalities()
 {
-	if (m_mdiChild->modalities()->size() >= m_numOfMod) {
+	if (m_mdiChild->modalities()->size() >= m_numOfMod)
+	{
 		bool allModalitiesAreHere = true;
-		for (int i = 0; i < m_numOfMod; i++) {
-			if (/*NOT*/ ! containsModality(m_mdiChild->modality(i))) {
+		for (int i = 0; i < m_numOfMod; i++)
+		{
+			if (/*NOT*/ ! containsModality(m_mdiChild->modality(i)))
+			{
 				allModalitiesAreHere = false;
 				break;
 			}
 		}
-		if (allModalitiesAreHere) {
+		if (allModalitiesAreHere)
+		{
 			return; // No need to update modalities if all of them are already here!
 		}
 
-	} else {
+	}
+	else
+	{
 		int i = 0;
-		for (; i < m_numOfMod && i < m_mdiChild->modalities()->size(); ++i) {
+		for (; i < m_numOfMod && i < m_mdiChild->modalities()->size(); ++i)
+		{
 			m_modalitiesActive[i] = m_mdiChild->modality(i);
 		}
-		for (; i < m_numOfMod; i++) {
+		for (; i < m_numOfMod; i++)
+		{
 			m_modalitiesActive[i] = Q_NULLPTR;
 		}
 		return;
@@ -468,7 +479,8 @@ void iAMultimodalWidget::updateModalities()
 
 	m_channelID.clear();
 	// Initialize modalities being added
-	for (int i = 0; i < m_numOfMod; ++i) {
+	for (int i = 0; i < m_numOfMod; ++i)
+	{
 		m_modalitiesActive[i] = m_mdiChild->modality(i);
 
 		// TODO: Don't duplicate code from mdichild, call it instead!
@@ -478,7 +490,9 @@ void iAMultimodalWidget::updateModalities()
 			m_modalitiesActive[i]->histogramData()->valueCount() != newHistBins)
 		{
 			m_modalitiesActive[i]->computeImageStatistics();
-			m_modalitiesActive[i]->computeHistogramData(newHistBins);
+			auto histData = iAHistogramData::create(
+				"Frequency", m_modalitiesActive[i]->image(), newHistBins, &m_modalitiesActive[i]->info());
+			m_modalitiesActive[i]->setHistogramData(histData);
 		}
 		m_modalitiesHistogramAvailable[i] = true;
 
@@ -530,7 +544,8 @@ void iAMultimodalWidget::resetSlicer(int i)
 	m_slicerWidgets[i] = QSharedPointer<iASimpleSlicerWidget>(new iASimpleSlicerWidget(nullptr, true));
 	m_slicerWidgets[i]->applySettings(m_mdiChild->slicerSettings().SingleSlicer);
 	m_slicerWidgets[i]->setSizePolicy(QSizePolicy::Preferred, QSizePolicy::Expanding);
-	if (m_modalitiesActive[i]) {
+	if (m_modalitiesActive[i])
+	{
 		m_slicerWidgets[i]->changeModality(m_modalitiesActive[i]);
 	}
 }
@@ -562,8 +577,10 @@ void iAMultimodalWidget::alertWeightIsZero(QSharedPointer<iAModality> modality)
 void iAMultimodalWidget::originalHistogramChanged()
 {
 	QSharedPointer<iAModality> selected = m_mdiChild->modality(m_mdiChild->dataDockWidget()->selected());
-	for (int i = 0; i < m_numOfMod; i++) {
-		if (selected == getModality(i)) {
+	for (int i = 0; i < m_numOfMod; i++)
+	{
+		if (selected == getModality(i))
+		{
 			updateCopyTransferFunction(i);
 			updateTransferFunction(i);
 			updateVisualizationsLater();
@@ -574,9 +591,11 @@ void iAMultimodalWidget::originalHistogramChanged()
 
 void iAMultimodalWidget::updateCopyTransferFunction(int index)
 {
-	if (isReady()) {
+	if (isReady())
+	{
 		double weight = getWeight(index);
-		if (weight == 0) {
+		if (weight == 0)
+		{
 			updateOriginalTransferFunction(index); // Revert the changes made to the effective TF
 			//alertWeightIsZero(getModality(index));
 			// For now, just return silently. TODO: show alert?
@@ -598,7 +617,8 @@ void iAMultimodalWidget::updateCopyTransferFunction(int index)
 			effective->colorTF()->GetNodeValue(j, valCol);
 			effective->opacityTF()->GetNodeValue(j, valOp);
 
-			if (valOp[1] > weight) {
+			if (valOp[1] > weight)
+			{
 				valOp[1] = weight;
 			}
 			double copyOp = valOp[1] / weight;
@@ -613,7 +633,8 @@ void iAMultimodalWidget::updateCopyTransferFunction(int index)
 
 void iAMultimodalWidget::updateOriginalTransferFunction(int index)
 {
-	if (!isReady()) {
+	if (!isReady())
+	{
 		return;
 	}
 
@@ -644,8 +665,11 @@ void iAMultimodalWidget::updateOriginalTransferFunction(int index)
 void iAMultimodalWidget::applyWeights()
 {
 	if (!isReady())
+	{
 		return;
-	for (int i = 0; i < m_numOfMod; i++) {
+	}
+	for (int i = 0; i < m_numOfMod; i++)
+	{
 		vtkPiecewiseFunction *effective = m_modalitiesActive[i]->transfer()->opacityTF();
 		vtkPiecewiseFunction *copy = m_copyTFs[i]->opacityTF();
 
@@ -660,18 +684,11 @@ void iAMultimodalWidget::applyWeights()
 	}
 }
 
-namespace {
-	iASlicer* slicerForMode(MdiChild* mdiChild, int slicerMode)
-	{
-		return mdiChild->slicer(slicerMode);
-	}
-}
-
 void iAMultimodalWidget::setMainSlicerCamera()
 {
 	if (!m_checkBox_syncedCamera->isChecked())
 		return;
-	vtkCamera * mainCamera = slicerForMode(m_mdiChild, m_slicerMode)->camera();
+	vtkCamera * mainCamera = m_mdiChild->slicer(m_slicerMode)->camera();
 	for (int i = 0; i < m_numOfMod; ++i)
 	{
 		w_slicer(i)->setCamera(mainCamera);
@@ -697,7 +714,7 @@ void iAMultimodalWidget::connectMainSlicer()
 	{
 		return;
 	}
-	iASlicer* slicer = slicerForMode(m_mdiChild, m_slicerMode);
+	iASlicer* slicer = m_mdiChild->slicer(m_slicerMode);
 	for (int i = 0; i < m_numOfMod; ++i)
 	{
 		connect(slicer, &iASlicer::userInteraction, w_slicer(i).data(), &iASimpleSlicerWidget::update);
@@ -707,7 +724,7 @@ void iAMultimodalWidget::connectMainSlicer()
 
 void iAMultimodalWidget::disconnectMainSlicer()
 {
-	iASlicer* slicer = slicerForMode(m_mdiChild, m_slicerMode);
+	iASlicer* slicer = m_mdiChild->slicer(m_slicerMode);
 	for (int i = 0; i < m_numOfMod; ++i)
 	{
 		disconnect(slicer, &iASlicer::userInteraction, w_slicer(i).data(), &iASimpleSlicerWidget::update);

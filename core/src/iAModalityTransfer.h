@@ -20,7 +20,6 @@
 * ************************************************************************************/
 #pragma once
 
-#include "iAImageInfo.h"
 #include "iATransferFunction.h"
 #include "open_iA_Core_export.h"
 
@@ -29,9 +28,6 @@
 #include <vtkSmartPointer.h>
 
 #include <QSharedPointer>
-
-class iAHistogramData;
-class iAImageInfo;
 
 class vtkImageData;
 
@@ -42,12 +38,9 @@ class QString;
 class open_iA_Core_API iAModalityTransfer : public iATransferFunction
 {
 public:
-	iAImageInfo const & info() const;
 	iAModalityTransfer(double const range[2]);
-	QSharedPointer<iAHistogramData> const histogramData() const;
 	void computeStatistics(vtkSmartPointer<vtkImageData> img);
-	void computeHistogramData(vtkSmartPointer<vtkImageData> imgData, size_t binCount);
-	void resetHistogram();
+	//void resetHistogram();
 	bool statisticsComputed() const;
 
 	//! @{ functions overridden from iATransferFunction:
@@ -57,8 +50,6 @@ public:
 	//! @}
 
 private:
-	iAImageInfo m_imageInfo;
-	QSharedPointer<iAHistogramData> m_histogramData;
 	vtkSmartPointer<vtkColorTransferFunction> m_ctf;
 	vtkSmartPointer<vtkPiecewiseFunction> m_otf;
 	bool m_statisticsComputed;

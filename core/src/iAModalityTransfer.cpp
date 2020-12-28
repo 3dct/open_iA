@@ -20,9 +20,6 @@
 * ************************************************************************************/
 #include "iAModalityTransfer.h"
 
-// charts
-#include "iAHistogramData.h"
-
 #include <vtkImageData.h>
 
 #include <cassert>
@@ -51,30 +48,18 @@ void iAModalityTransfer::computeStatistics(vtkSmartPointer<vtkImageData> img)
 	m_statisticsComputed = true;
 }
 
+/*
 void iAModalityTransfer::resetHistogram()
 {
 	m_statisticsComputed = false;
 	m_histogramData.clear();
 }
+*/
 
 void iAModalityTransfer::resetFunctions()
 {
 	defaultColorTF(m_ctf, m_range);
 	defaultOpacityTF(m_otf, m_range, m_opacityRamp);
-}
-
-void iAModalityTransfer::computeHistogramData(vtkSmartPointer<vtkImageData> imgData, size_t binCount)
-{
-	if (imgData->GetNumberOfScalarComponents() != 1 || (m_histogramData && m_histogramData->valueCount() == binCount))
-	{
-		return;
-	}
-	m_histogramData = iAHistogramData::create("Frequency", imgData, binCount, &m_imageInfo);
-}
-
-QSharedPointer<iAHistogramData> const iAModalityTransfer::histogramData() const
-{
-	return m_histogramData;
 }
 
 vtkPiecewiseFunction* iAModalityTransfer::opacityTF()
@@ -88,12 +73,13 @@ vtkColorTransferFunction* iAModalityTransfer::colorTF()
 	assert(m_ctf);
 	return m_ctf;
 }
-
+/*
 iAImageInfo const & iAModalityTransfer::info() const
 {
 	// TODO: make sure image info is initialzed!
 	return m_imageInfo;
 }
+*/
 
 bool iAModalityTransfer::statisticsComputed() const
 {

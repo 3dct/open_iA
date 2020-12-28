@@ -20,14 +20,17 @@
 * ************************************************************************************/
 #pragma once
 
-#include <QDockWidget>
 #include "ui_ImageProperty.h"
+
+#include "open_iA_Core_export.h"
+
+#include <QDockWidget>
 
 class iAImageInfo;
 
 class vtkImageData;
 
-class dlg_imageproperty : public QDockWidget, public Ui_ImageProperty
+class open_iA_Core_API dlg_imageproperty : public QDockWidget, public Ui_ImageProperty
 {
 	Q_OBJECT
 

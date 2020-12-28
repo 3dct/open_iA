@@ -22,7 +22,7 @@
 
 #include "FeatureAnalyzerHelpers.h"
 
-#include <mdichild.h>
+#include <iAMdiChild.h>
 
 #include <itkImage.h>
 #include <itkImageRegionIterator.h>

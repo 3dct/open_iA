@@ -28,10 +28,11 @@
 #include "iAGUIModuleInterface.h"
 #include "iALogger.h"
 #include "iAModuleInterface.h"
-#include "mainwindow.h"
+#include "iAMainWindow.h"
 
 #include <QDir>
 #include <QFileInfo>
+#include <QMenu>
 
 #ifdef _MSC_VER
 #define CALLCONV __stdcall
@@ -68,7 +69,7 @@ iALoadedModule::iALoadedModule(QString const & n, MODULE_HANDLE h, iAModuleInter
 {}
 
 
-iAModuleDispatcher::iAModuleDispatcher(MainWindow * mainWnd)
+iAModuleDispatcher::iAModuleDispatcher(iAMainWindow * mainWnd)
 {
 	m_mainWnd = mainWnd;
 	m_rootPath = QCoreApplication::applicationDirPath();
@@ -301,12 +302,12 @@ void iAModuleDispatcher::SaveModulesSettings() const
 	}
 }
 
-MainWindow * iAModuleDispatcher::GetMainWnd() const
+iAMainWindow * iAModuleDispatcher::GetMainWnd() const
 {
 	return m_mainWnd;
 }
 
-void iAModuleDispatcher::ChildCreated(MdiChild* child)
+void iAModuleDispatcher::ChildCreated(iAMdiChild* child)
 {
 	// notify all modules that a new child was created:
 	for (iALoadedModule m : m_loadedModules)

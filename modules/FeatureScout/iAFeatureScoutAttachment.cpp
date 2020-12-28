@@ -22,7 +22,7 @@
 
 #include "dlg_FeatureScout.h"
 
-iAFeatureScoutAttachment::iAFeatureScoutAttachment(MainWindow* mainWnd, MdiChild * child) :
+iAFeatureScoutAttachment::iAFeatureScoutAttachment(iAMainWindow* mainWnd, iAMdiChild * child) :
 	iAModuleAttachmentToChild(mainWnd, child)
 {
 }

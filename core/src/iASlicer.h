@@ -43,7 +43,7 @@ class iASlicer;
 class iASlicerInteractorStyle;
 class iASnakeSpline;
 class iAVtkText;
-class MdiChild;
+class iAMdiChild;
 
 class vtkAbstractTransform;
 class vtkActor;
@@ -213,7 +213,7 @@ public:
 
 	void setIndex(int x, int y, int z);
 	//! in case the "linked mdi" feature is used, use this to set the mdi child this slicer is linked to.
-	void setLinkedMdiChild(MdiChild* mdiChild);
+	void setLinkedMdiChild(iAMdiChild* mdiChild);
 	//! call if the dimension of the input in direction of the slice axis has changed.
 	void triggerSliceRangeChange();
 public slots:
@@ -426,7 +426,7 @@ private:
 	QCursor m_mouseCursor;
 	bool m_cursorSet;
 
-	MdiChild* m_linkedMdiChild;  //! main window access for linked mdi childs feature - get rid of this somehow!
+	iAMdiChild* m_linkedMdiChild;  //! main window access for linked mdi childs feature - get rid of this somehow!
 
 	QSharedPointer<iAChannelSlicerData> createChannel(uint id, iAChannelData const & chData);
 	//! compute the voxel coordinates in the given channel for the current slicer coordinate point.

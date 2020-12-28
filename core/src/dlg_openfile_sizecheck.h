@@ -20,6 +20,8 @@
 * ************************************************************************************/
 #pragma once
 
+#include "open_iA_Core_export.h"
+
 #include <QObject>
 
 class dlg_commoninput;
@@ -27,7 +29,7 @@ struct iARawFileParameters;
 
 class QLabel;
 
-class dlg_openfile_sizecheck: public QObject
+class open_iA_Core_API dlg_openfile_sizecheck : public QObject
 {
 	Q_OBJECT
 

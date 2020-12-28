@@ -25,7 +25,7 @@
 #include <iAProgress.h>
 #include <iAToolsITK.h>
 #include <iATypedCallHelper.h>
-#include <mdichild.h>
+#include <iAMdiChild.h>
 
 #include <itkCastImageFilter.h>
 #include <itkExtractImageFilter.h>
@@ -323,7 +323,7 @@ QSharedPointer<iAFilterRunnerGUI> iASimilarityFilterRunner::create()
 	return QSharedPointer<iAFilterRunnerGUI>(new iASimilarityFilterRunner());
 }
 
-QMap<QString, QVariant> iASimilarityFilterRunner::loadParameters(QSharedPointer<iAFilter> filter, MdiChild* sourceMdi)
+QMap<QString, QVariant> iASimilarityFilterRunner::loadParameters(QSharedPointer<iAFilter> filter, iAMdiChild* sourceMdi)
 {
 	auto params = iAFilterRunnerGUI::loadParameters(filter, sourceMdi);
 	int const * dim = sourceMdi->imagePointer()->GetDimensions();

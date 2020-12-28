@@ -1,7 +1,7 @@
 SET (AdaptiveThreshold_PRECOMPILE_INCLUDES <algorithm>
-<charts/iAPlotData.h>
 <iAChartVisHelper.h>
 <iALog.h>
+<iAPlotData.h>
 <iAThresholdDefinitions.h>
 <QSharedPointer>
 <stdexcept>

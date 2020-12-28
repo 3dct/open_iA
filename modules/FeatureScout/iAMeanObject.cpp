@@ -29,7 +29,7 @@
 #include <iAModalityTransfer.h>
 #include <iAMultiStepProgressObserver.h>
 #include <iARunAsync.h>
-#include <mdichild.h>
+#include <iAMdiChild.h>
 #include <qthelper/iAQTtoUIConnector.h>
 #include <iAVtkWidget.h>
 
@@ -107,7 +107,7 @@ public:
 	QList<vtkSmartPointer<vtkImageData>> moImageDataList;
 };
 
-iAMeanObject::iAMeanObject(MdiChild* activeChild, QString const& sourcePath) :
+iAMeanObject::iAMeanObject(iAMdiChild* activeChild, QString const& sourcePath) :
 	m_dwMO(nullptr),
 	m_motfView(nullptr),
 	m_MOData(QSharedPointer<iAMeanObjectData>::create()),
@@ -150,7 +150,7 @@ void iAMeanObject::render(QStandardItem* root, int classCount, QList<vtkSmartPoi
 	}
 	else
 	{
-		vtkToItkConverter->SetInput(static_cast<MdiChild*>(m_activeChild)->imagePointer());
+		vtkToItkConverter->SetInput(static_cast<iAMdiChild*>(m_activeChild)->imagePointer());
 	}
 	vtkToItkConverter->Update();
 

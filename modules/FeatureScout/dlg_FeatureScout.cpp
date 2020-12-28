@@ -37,27 +37,31 @@
 #include "iAObjectType.h"
 
 #include <dlg_commoninput.h>
-#include <dlg_imageproperty.h>
+//#include <dlg_imageproperty.h>
 #include <dlg_modalities.h>
 #include <dlg_slicer.h>
-#include <iAConnector.h>
-#include <iALog.h>
-#include <iALookupTable.h>
 #include <iAmat4.h>
 #include <iAMovieHelper.h>
-#include <iAProgress.h>
 #include <iARenderer.h>
 #include <iAVtkWidget.h>
+#include <iAModality.h>
+#include <iAModalityTransfer.h>
 #include <iAModalityList.h>
-#include <mdichild.h>
+#include <iAMdiChild.h>
+#include <iAPreferences.h>
 #include <qthelper/iADockWidgetWrapper.h>
 
 // charts:
 #include <iAChartWithFunctionsWidget.h>
 
 // base:
-#include <iAToolsITK.h>
+#include <defines.h>    // for DIM
+#include <iAConnector.h>
 #include <iAFileUtils.h>
+#include <iALog.h>
+#include <iALookupTable.h>
+#include <iAProgress.h>
+#include <iAToolsITK.h>
 
 #include <itkImageRegionIterator.h>
 
@@ -154,7 +158,7 @@ namespace
 		rmMeanObject
 	};
 
-	QSharedPointer<iA3DObjectVis> create3DObjectVis(int visualization, MdiChild* mdi, vtkTable* table,
+	QSharedPointer<iA3DObjectVis> create3DObjectVis(int visualization, iAMdiChild* mdi, vtkTable* table,
 		QSharedPointer<QMap<uint, uint> > columnMapping, QColor const& color,
 		std::map<size_t, std::vector<iAVec3f> >& curvedFiberInfo, int numberOfCylinderSides, size_t segmentSkip)
 	{
@@ -162,8 +166,9 @@ namespace
 		{
 		default:
 		case iACsvConfig::UseVolume:
-			return QSharedPointer<iA3DObjectVis>(new iA3DLabelledVolumeVis(mdi->renderer()->renderer(), mdi->colorTF(),
-				mdi->opacityTF(), table, columnMapping, mdi->imagePointer()->GetBounds()));
+			return QSharedPointer<iA3DObjectVis>(new iA3DLabelledVolumeVis(mdi->renderer()->renderer(),
+				mdi->modality(0)->transfer()->colorTF(),
+				mdi->modality(0)->transfer()->opacityTF(), table, columnMapping, mdi->imagePointer()->GetBounds()));
 		case iACsvConfig::Lines:
 			return QSharedPointer<iA3DObjectVis>(new iA3DLineObjectVis(mdi->renderer()->renderer(), table, columnMapping, color, curvedFiberInfo, segmentSkip));
 		case iACsvConfig::Cylinders:
@@ -178,7 +183,7 @@ namespace
 
 const int dlg_FeatureScout::PCMinTicksCount = 2;
 
-dlg_FeatureScout::dlg_FeatureScout(MdiChild* parent, iAObjectType fid, QString const& fileName,
+dlg_FeatureScout::dlg_FeatureScout(iAMdiChild* parent, iAObjectType fid, QString const& fileName,
 	vtkSmartPointer<vtkTable> csvtbl, int vis, QSharedPointer<QMap<uint, uint> > columnMapping,
 	std::map<size_t, std::vector<iAVec3f> >& curvedFiberInfo, int cylinderQuality, size_t segmentSkip) :
 	QDockWidget(parent),
@@ -3130,7 +3135,7 @@ void dlg_FeatureScout::initFeatureScoutUI()
 	{
 		m_activeChild->imagePropertyDockWidget()->hide();
 	}
-	m_activeChild->hideHistogram();
+	m_activeChild->histogramDockWidget()->hide();
 	m_activeChild->renderDockWidget()->hide();
 	for (int i = 0; i < 3; ++i)
 	{

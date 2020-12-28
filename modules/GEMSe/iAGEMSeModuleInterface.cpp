@@ -32,10 +32,12 @@
 #include <iAFilterRegistry.h>
 #include <iAModality.h>
 #include <iAProjectRegistry.h>
-#include <mainwindow.h>
-#include <mdichild.h>
+#include <iAMainWindow.h>
+#include <iAMdiChild.h>
 
+#include <QAction>
 #include <QFileDialog>
+#include <QMenu>
 
 #include <cassert>
 
@@ -107,7 +109,7 @@ void iAGEMSeModuleInterface::startGEMSe()
 	AttachToMdiChild(m_mdiChild);
 }
 
-iAModuleAttachmentToChild* iAGEMSeModuleInterface::CreateAttachment(MainWindow* mainWnd, MdiChild * child)
+iAModuleAttachmentToChild* iAGEMSeModuleInterface::CreateAttachment(iAMainWindow* mainWnd, iAMdiChild * child)
 {
 	iAGEMSeAttachment* result = iAGEMSeAttachment::create( mainWnd, child);
 	if (result)
@@ -143,7 +145,7 @@ void iAGEMSeModuleInterface::loadOldGEMSeProject(QString const & fileName)
 		return;
 	}
 	m_mdiChild = m_mainWnd->createMdiChild(false);
-	connect(m_mdiChild, &MdiChild::fileLoaded, this, &iAGEMSeModuleInterface::loadGEMSe);
+	connect(m_mdiChild, &iAMdiChild::fileLoaded, this, &iAGEMSeModuleInterface::loadGEMSe);
 	if (!m_mdiChild->loadFile(m_seaFile->modalityFileName(), false))
 	{
 		LOG(lvlError, QString("Failed to load project '%1' referenced from precalculated GEMSe data file %2.")
@@ -154,7 +156,7 @@ void iAGEMSeModuleInterface::loadOldGEMSeProject(QString const & fileName)
 	}
 }
 
-void iAGEMSeModuleInterface::loadProject(MdiChild* mdiChild, QSettings const & metaFile, QString const & fileName)
+void iAGEMSeModuleInterface::loadProject(iAMdiChild* mdiChild, QSettings const & metaFile, QString const & fileName)
 {
 	m_mdiChild = mdiChild;
 	m_seaFile = QSharedPointer<iASEAFile>(new iASEAFile(metaFile, fileName));

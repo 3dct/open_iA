@@ -22,7 +22,9 @@
 
 #include "iABoneThicknessAttachment.h"
 
-#include <mainwindow.h>
+#include <iAMainWindow.h>
+
+#include <QAction>
 
 void iABoneThicknessModuleInterface::Initialize( )
 {
@@ -46,7 +48,7 @@ void iABoneThicknessModuleInterface::slotBoneThickness()
 	}
 }
 
-iAModuleAttachmentToChild* iABoneThicknessModuleInterface::CreateAttachment(MainWindow* mainWnd, MdiChild * child)
+iAModuleAttachmentToChild* iABoneThicknessModuleInterface::CreateAttachment(iAMainWindow* mainWnd, iAMdiChild * child)
 {
 	return new iABoneThicknessAttachment(mainWnd, child);
 }

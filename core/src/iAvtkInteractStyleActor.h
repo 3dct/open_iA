@@ -31,7 +31,7 @@
 
 class iAChannelSlicerData;
 class iAVolumeRenderer;
-class MdiChild;
+class iAMdiChild;
 class vtkProp3D;
 class vtkImageReslice;
 
@@ -71,7 +71,7 @@ public:
 	//! @}
 
 	void initialize(vtkImageData* img, iAVolumeRenderer* volRend, iAChannelSlicerData* slicerChannel[4],
-		int currentMode, MdiChild* mdiChild);
+		int currentMode, iAMdiChild* mdiChild);
 
 signals:
 	void actorsUpdated();
@@ -85,7 +85,7 @@ private:
 	iAvtkInteractStyleActor(const iAvtkInteractStyleActor&) = delete;
 	//! @}
 
-	MdiChild* m_mdiChild;
+	iAMdiChild* m_mdiChild;
 	iAVolumeRenderer* m_volumeRenderer;
 	bool m_is3D;  //!< true if style assigned to 3D renderer, false if assigned to a slicer
 	vtkImageData* m_image;

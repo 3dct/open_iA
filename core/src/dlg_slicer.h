@@ -22,12 +22,13 @@
 
 #include "iASlicerMode.h"
 #include "ui_slicer.h"
+#include "open_iA_Core_export.h"
 
 #include <QDockWidget>
 
 class iASlicer;
 
-class dlg_slicer : public QDockWidget, public Ui_slicer
+class open_iA_Core_API dlg_slicer : public QDockWidget, public Ui_slicer
 {
 Q_OBJECT
 

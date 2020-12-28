@@ -50,6 +50,7 @@
 #include <iAMapperImpl.h>
 #include <iAMathUtility.h>
 #include <iAModuleDispatcher.h>
+#include <iARenderSettings.h>
 #include <iARenderer.h>
 #include <iARendererManager.h>
 #include <iAStringHelper.h>
@@ -59,8 +60,8 @@
 #include <iAVtkVersion.h>
 #include <io/iAIOProvider.h>
 #include <iAITKIO.h>
-#include <mainwindow.h>
-#include <mdichild.h>
+#include <iAMainWindow.h>
+#include <iAMdiChild.h>
 #include <qthelper/iADockWidgetWrapper.h>
 #include <qthelper/iAFixedAspectWidget.h>
 #include <qthelper/iAQTtoUIConnector.h>
@@ -99,6 +100,7 @@
 #include <QMessageBox>
 #include <QModelIndex>
 #include <QMouseEvent>
+#include <QPainter>
 #include <QRadioButton>
 #include <QScrollArea>
 #include <QSettings>
@@ -200,7 +202,7 @@ iAResultPairInfo::iAResultPairInfo(int measureCount) :
 
 const QString iAFiAKErController::FIAKERProjectID("FIAKER");
 
-iAFiAKErController::iAFiAKErController(MainWindow* mainWnd, MdiChild* mdiChild) :
+iAFiAKErController::iAFiAKErController(iAMainWindow* mainWnd, iAMdiChild* mdiChild) :
 	m_renderManager(new iARendererManager()),
 	m_resultColorTheme(iAColorThemeManager::instance().theme(DefaultResultColorTheme)),
 	m_mainWnd(mainWnd),
@@ -259,7 +261,7 @@ void iAFiAKErController::start(QString const & path, iACsvConfig const & config,
 	m_useStepData = useStepData;
 	m_showPreviews = showPreviews;
 	m_views.resize(DockWidgetCount);
-	connect(m_mdiChild, &MdiChild::renderSettingsChanged, this, &iAFiAKErController::applyRenderSettings);
+	connect(m_mdiChild, &iAMdiChild::renderSettingsChanged, this, &iAFiAKErController::applyRenderSettings);
 
 	m_data = QSharedPointer<iAFiberResultsCollection>(new iAFiberResultsCollection());
 	auto resultsLoader = new iAFiberResultsLoader(m_data, path, m_config, stepShift);
@@ -343,7 +345,7 @@ void iAFiAKErController::resultsLoaded()
 
 void iAFiAKErController::setupMain3DView()
 {
-	m_main3DWidget = m_mdiChild->renderDockWidget()->vtkWidgetRC;
+	m_main3DWidget = m_mdiChild->renderVtkWidget();
 #if VTK_VERSION_NUMBER < VTK_VERSION_CHECK(9, 0, 0)
 	auto renWin = m_main3DWidget->GetRenderWindow();
 #else
@@ -2362,13 +2364,13 @@ void iAFiAKErController::previewMouseClick(Qt::MouseButton button, Qt::KeyboardM
 	}
 	size_t resultID = QObject::sender()->property("resultID").toULongLong();
 	addInteraction(QString("Started FiberScout for %1.").arg(resultName(resultID)));
-	MdiChild* newChild = m_mainWnd->createMdiChild(false);
+	iAMdiChild* newChild = m_mainWnd->createMdiChild(false);
 	newChild->show();
-	// wait a bit to make sure MdiChild is shown and all initialization is done
-	// TODO: Replace by connection to a signal which is emitted when MdiChild initialization done
+	// wait a bit to make sure iAMdiChild is shown and all initialization is done
+	// TODO: Replace by connection to a signal which is emitted when iAMdiChild initialization done
 	QTimer::singleShot(1000, [this, resultID, newChild] { startFeatureScout(resultID, newChild); });
 }
-void iAFiAKErController::startFeatureScout(int resultID, MdiChild* newChild)
+void iAFiAKErController::startFeatureScout(int resultID, iAMdiChild* newChild)
 {
 	iACsvConfig config(m_config);
 	// fails if config.visType is labelled volume

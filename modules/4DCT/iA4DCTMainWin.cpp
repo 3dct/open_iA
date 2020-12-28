@@ -30,7 +30,7 @@
 #include "iAStageView.h"
 
 #include <iALog.h>
-#include <mainwindow.h>
+#include <iAMainWindow.h>
 
 #include <itkImageFileReader.h>
 #include <itkImageRegionIterator.h>
@@ -56,7 +56,7 @@
 #include <QXmlSimpleReader>
 #include <QXmlStreamWriter>
 
-iA4DCTMainWin::iA4DCTMainWin( MainWindow* parent /*= 0*/ )
+iA4DCTMainWin::iA4DCTMainWin( iAMainWindow* parent /*= 0*/ )
 	: QMainWindow( parent )
 	, m_mainWnd( parent )
 {
@@ -138,11 +138,11 @@ void iA4DCTMainWin::addButtonClick( )
 
 void iA4DCTMainWin::openVisualizationWin( )
 {
-	MainWindow * mainWin = qobject_cast<MainWindow*>( qApp->activeWindow( ) );
+	iAMainWindow * mainWin = qobject_cast<iAMainWindow*>( qApp->activeWindow( ) );
 	iA4DCTVisWin* visWin = new iA4DCTVisWin( this );
 	visWin->setImageSize( m_size );
 	visWin->setNumberOfStages( m_stages.size( ) );
-	mainWin->mdiArea->addSubWindow( visWin );
+	mainWin->addSubWindow( visWin );
 	visWin->showMaximized( );
 }
 

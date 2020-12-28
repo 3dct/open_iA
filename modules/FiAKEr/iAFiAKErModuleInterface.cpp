@@ -31,11 +31,12 @@
 #include <iAProjectBase.h>
 #include <iAProjectRegistry.h>
 #include <iAFileUtils.h>
-#include <mainwindow.h>
-#include <mdichild.h>
+#include <iAMainWindow.h>
+#include <iAMdiChild.h>
 
 #include <QAction>
 #include <QFileDialog>
+#include <QMenu>
 #include <QMdiSubWindow>
 #include <QMessageBox>
 #include <QSettings>
@@ -51,8 +52,8 @@ public:
 	void loadProject(QSettings & projectFile, QString const & fileName) override
 	{
 		/*
-		// Remove UseMdiChild setting altogether, always open MdiChild?
-		if (projectFile.contains("UseMdiChild") && projectFile.value("UseMdiChild").toBool() == false)
+		// Remove UseiAMdiChild setting altogether, always open iAMdiChild?
+		if (projectFile.contains("UseiAMdiChild") && projectFile.value("UseiAMdiChild").toBool() == false)
 		{
 
 			QMessageBox::warning(nullptr, "FiAKEr", "Old project file detected (%1). "
@@ -63,8 +64,8 @@ public:
 		*/
 		if (!m_mdiChild)
 		{
-			LOG(lvlError, QString("Invalid FIAKER project file '%1': FIAKER requires an MdiChild, "
-				"but UseMdiChild was apparently not specified in this project, as no MdiChild available! "
+			LOG(lvlError, QString("Invalid FIAKER project file '%1': FIAKER requires an iAMdiChild, "
+				"but UseiAMdiChild was apparently not specified in this project, as no iAMdiChild available! "
 				"Please report this error, along with the project file, to the open_iA developers!").arg(fileName));
 			return;
 		}
@@ -143,7 +144,7 @@ void iAFiAKErModuleInterface::SaveSettings() const
 void iAFiAKErModuleInterface::startFiAKEr()
 {
 	setupToolBar();
-	MdiChild* mdiChild(nullptr);
+	iAMdiChild* mdiChild(nullptr);
 	bool createdMdi = false;
 	if (m_mainWnd->activeMdiChild() && QMessageBox::question(m_mainWnd, "FIAKER",
 		"Load FIAKER in currently active window (If you choose No, FIAKER will be opened in a new window)?",
@@ -244,7 +245,7 @@ void iAFiAKErModuleInterface::loadFiAKErProject()
 	{
 		return;
 	}
-	MdiChild* newChild = m_mainWnd->createMdiChild(false);
+	iAMdiChild* newChild = m_mainWnd->createMdiChild(false);
 	newChild->show();
 	QSettings projectFile(fileName, QSettings::IniFormat);
 	projectFile.setIniCodec("UTF-8");
@@ -255,7 +256,7 @@ void iAFiAKErModuleInterface::loadFiAKErProject()
 	newChild->addProject(iAFiAKErController::FIAKERProjectID, project);
 }
 
-void iAFiAKErModuleInterface::loadProject(MdiChild* mdiChild, QSettings const& projectFile, QString const& fileName, iAFIAKERProject* project)
+void iAFiAKErModuleInterface::loadProject(iAMdiChild* mdiChild, QSettings const& projectFile, QString const& fileName, iAFIAKERProject* project)
 {
 	if (mdiChild->modalities()->size() == 0)
 	{ // if no other data loaded yet, we need to make suare mdichild is initialized:
@@ -274,7 +275,7 @@ void iAFiAKErModuleInterface::loadProject(MdiChild* mdiChild, QSettings const& p
 	controller->loadProject(projectFile, fileName);
 }
 
-iAModuleAttachmentToChild* iAFiAKErModuleInterface::CreateAttachment(MainWindow* mainWnd, MdiChild* child)
+iAModuleAttachmentToChild* iAFiAKErModuleInterface::CreateAttachment(iAMainWindow* mainWnd, iAMdiChild* child)
 {
 	return new iAFiAKErAttachment(mainWnd, child);
 }

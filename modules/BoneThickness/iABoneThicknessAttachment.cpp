@@ -26,9 +26,10 @@
 
 #include <qthelper/iADockWidgetWrapper.h>
 #include <iARenderer.h>
-#include <mdichild.h>
-#include <mainwindow.h>
+#include <iAMdiChild.h>
+#include <iAMainWindow.h>
 
+#include <QApplication>
 #include <QCheckBox>
 #include <QFileDialog>
 #include <QGridLayout>
@@ -36,7 +37,7 @@
 #include <QLabel>
 #include <QPushButton>
 
-iABoneThicknessAttachment::iABoneThicknessAttachment(MainWindow* mainWnd, MdiChild * child):
+iABoneThicknessAttachment::iABoneThicknessAttachment(iAMainWindow* mainWnd, iAMdiChild * child):
 	iAModuleAttachmentToChild(mainWnd, child)
 {
 	QWidget* pWidget(new QWidget());

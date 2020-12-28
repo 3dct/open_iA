@@ -22,7 +22,7 @@
 
 #include <iAConnector.h>
 #include <iALogger.h>
-#include <mdichild.h>
+#include <iAMdiChild.h>
 #include <iAProgress.h>
 
 #include <vtkImageData.h>
@@ -40,9 +40,9 @@ iAAlgorithm::iAAlgorithm( QString fn, vtkImageData* idata, vtkPolyData* p, iALog
 	m_logger(logger)
 {
 	m_connectors.push_back(new iAConnector());
-	if (parent && qobject_cast<MdiChild*>(parent))
+	if (parent && qobject_cast<iAMdiChild*>(parent))
 	{
-		connect(qobject_cast<MdiChild*>(parent), &MdiChild::rendererDeactivated, this, &iAAlgorithm::updateVtkImageData);
+		connect(qobject_cast<iAMdiChild*>(parent), &iAMdiChild::rendererDeactivated, this, &iAAlgorithm::updateVtkImageData);
 	}
 	connect(m_progressObserver, &iAProgress::progress, this, &iAAlgorithm::aprogress );
 }

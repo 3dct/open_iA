@@ -11,7 +11,7 @@ SET (FeatureScout_PRECOMPILE_INCLUDES <iA3DColoredPolyObjectVis.h>
 <iARenderer.h>
 <iAVec3.h>
 <map>
-<mdichild.h>
+<iAMdiChild.h>
 <QColor>
 <QDialogButtonBox>
 <QFileDialog>

@@ -33,7 +33,7 @@
 #include <iACPUID.h>
 #include <iACSVToQTableWidgetConverter.h>
 #include <iAProjectRegistry.h>
-#include <mainwindow.h>
+#include <iAMainWindow.h>
 
 #include <QDebug>
 #include <QFileDialog>

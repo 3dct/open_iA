@@ -32,7 +32,7 @@ class iAMeanObjectData;
 class iAMeanObjectDockWidget;
 class iAMeanObjectTFView;
 
-class MdiChild;
+class iAMdiChild;
 
 class vtkCamera;
 class vtkTable;
@@ -45,7 +45,7 @@ class iAMeanObject: public QObject
 {
 	Q_OBJECT
 public:
-	iAMeanObject(MdiChild* activeChild, QString const& sourcePath);
+	iAMeanObject(iAMdiChild* activeChild, QString const& sourcePath);
 	void render(QStandardItem* root, int classCount, QList<vtkSmartPointer<vtkTable>> const & tableList,
 		int filterID, QDockWidget* nextToDW, vtkCamera* commonCamera, QList<QColor> const & classColor);
 private slots:
@@ -58,7 +58,7 @@ private:
 	iAMeanObjectTFView* m_motfView;
 	QSharedPointer<iAMeanObjectData> m_MOData;
 	iAVtkOldWidget* m_meanObjectWidget;
-	MdiChild* m_activeChild;
+	iAMdiChild* m_activeChild;
 	int m_filterID;
 	QString m_sourcePath;
 };

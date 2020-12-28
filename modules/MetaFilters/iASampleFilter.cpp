@@ -30,8 +30,8 @@
 #include <iAModality.h>
 #include <iAProgress.h>
 #include <iAFileUtils.h>
-#include <mainwindow.h>
-#include <mdichild.h>
+#include <iAMainWindow.h>
+#include <iAMdiChild.h>
 
 #include <QDir>
 
@@ -128,7 +128,7 @@ bool iASampleFilter::canAbort() const
 IAFILTER_RUNNER_CREATE(iASampleFilterRunnerGUI);
 
 bool iASampleFilterRunnerGUI::askForParameters(QSharedPointer<iAFilter> filter, QMap<QString, QVariant>& parameters,
-	MdiChild* sourceMdi, MainWindow* mainWnd, bool /*askForAdditionalInput*/)
+	iAMdiChild* sourceMdi, iAMainWindow* mainWnd, bool /*askForAdditionalInput*/)
 {
 	iASampleFilter* sampleFilter = dynamic_cast<iASampleFilter*>(filter.data());
 	if (!sampleFilter)

@@ -35,7 +35,7 @@ class iAParameterExplorerModuleInterface : public iAGUIModuleInterface
 public:
 	void Initialize() override;
 protected:
-	iAModuleAttachmentToChild* CreateAttachment(MainWindow* mainWnd, MdiChild * child) override;
+	iAModuleAttachmentToChild* CreateAttachment(iAMainWindow* mainWnd, iAMdiChild * child) override;
 private slots:
 	void StartParameterExplorer();
 	void ToggleDockWidgetTitleBars();
@@ -44,8 +44,8 @@ private slots:
 	void LoadState();
 	void ContinueStateLoading();
 private:
-	bool CreateAttachment(QString const & csvFileName, MdiChild* child);
+	bool CreateAttachment(QString const & csvFileName, iAMdiChild* child);
 	void SetupToolBar();
 	iAParamToolBar * m_toolBar;
-	QMap<MdiChild*, QString> m_stateFiles;
+	QMap<iAMdiChild*, QString> m_stateFiles;
 };

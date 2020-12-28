@@ -29,8 +29,8 @@
 #include <QVector>
 
 class iAAttributeDescriptor;
-class MainWindow;
-class MdiChild;
+class iAMainWindow;
+class iAMdiChild;
 
 class QWidget;
 class QString;
@@ -50,7 +50,7 @@ public:
 	QMap<QString, QVariant> parameterValues() const;
 	void showROI();
 	int exec() override;
-	void setSourceMdi(MdiChild* child, MainWindow* mainWnd);
+	void setSourceMdi(iAMdiChild* child, iAMainWindow* mainWnd);
 	QVector<QWidget*> widgetList();
 
 private slots:
@@ -62,8 +62,8 @@ private:
 	QWidget * m_container;
 	int m_roi[6];
 	QVector<int> m_filterWithParameters;
-	MdiChild * m_sourceMdiChild;
-	MainWindow * m_mainWnd;
+	iAMdiChild * m_sourceMdiChild;
+	iAMainWindow * m_mainWnd;
 	bool m_sourceMdiChildClosed;
 	QVector<QWidget*> m_widgetList;
 	QVector<QSharedPointer<iAAttributeDescriptor> > m_parameters;

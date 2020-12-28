@@ -22,7 +22,7 @@
 
 #include "dlg_InSpectr.h"
 
-#include <mdichild.h>
+#include <iAMdiChild.h>
 
 #include <QFileDialog>
 
@@ -64,7 +64,7 @@ void dlg_SimilarityMap::loadMap()
 	QString mapFileName = QFileDialog::getOpenFileName(
 		QApplication::activeWindow(),
 		tr("Open File"),
-		(dynamic_cast<MdiChild*>(parent()))->filePath(),
+		(dynamic_cast<iAMdiChild*>(parent()))->filePath(),
 		tr("MetaImages (*.mhd *.mha );;") );
 	if (mapFileName.isEmpty())
 	{

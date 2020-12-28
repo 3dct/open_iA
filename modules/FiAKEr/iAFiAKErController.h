@@ -64,8 +64,8 @@ class iARendererManager;
 class iARefDistCompute;
 class iASPLOMData;
 class iAVolumeRenderer;
-class MainWindow;
-class MdiChild;
+class iAMainWindow;
+class iAMdiChild;
 
 class vtkColorTransferFunction;
 class vtkCubeSource;
@@ -133,7 +133,7 @@ public:
 	typedef std::vector<std::vector<size_t> > SelectionType;
 	static const QString FIAKERProjectID;
 
-	iAFiAKErController(MainWindow* mainWnd, MdiChild* mdiChild);
+	iAFiAKErController(iAMainWindow* mainWnd, iAMdiChild* mdiChild);
 
 	void loadProject(QSettings const & projectFile, QString const & fileName);
 	void start(QString const & path, iACsvConfig const & config, double stepShift, bool useStepData, bool showPreview);
@@ -242,7 +242,7 @@ private:
 	void updateRefDistPlots();
 	bool matchQualityVisActive() const;
 	void updateFiberContext();
-	//void startFeatureScout(int resultID, MdiChild* newChild);
+	//void startFeatureScout(int resultID, iAMdiChild* newChild);
 	void visitAllVisibleVis(std::function<void(QSharedPointer<iA3DColoredPolyObjectVis>, size_t resultID)> func);
 	void setClippingPlanes(QSharedPointer<iA3DColoredPolyObjectVis> vis);
 
@@ -261,8 +261,8 @@ private:
 	QSharedPointer<iARendererManager> m_renderManager;
 	vtkSmartPointer<iASelectionInteractorStyle> m_style;
 	iAColorTheme const * m_resultColorTheme;
-	MainWindow* m_mainWnd;
-	MdiChild* m_mdiChild;
+	iAMainWindow* m_mainWnd;
+	iAMdiChild* m_mdiChild;
 	size_t m_referenceID;
 	SelectionType m_selection;
 	vtkSmartPointer<vtkTable> m_refVisTable;

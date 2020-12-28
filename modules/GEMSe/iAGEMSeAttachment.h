@@ -41,7 +41,7 @@ class iAGEMSeAttachment : public iAModuleAttachmentToChild
 {
 	Q_OBJECT
 public:
-	static iAGEMSeAttachment* create(MainWindow * mainWnd, MdiChild * child);
+	static iAGEMSeAttachment* create(iAMainWindow * mainWnd, iAMdiChild * child);
 	bool loadSampling(QString const & smpFileName, int labelCount, int datasetID);
 	bool loadClustering(QString const & fileName);
 	bool loadRefImg(QString const & refImgName);
@@ -57,7 +57,7 @@ public:
 	void exportRankings();
 	void importRankings();
 private:
-	iAGEMSeAttachment(MainWindow * mainWnd, MdiChild * child);
+	iAGEMSeAttachment(iAMainWindow * mainWnd, iAMdiChild * child);
 	dlg_labels*						  m_dlgLabels;
 	dlg_priors*                       m_dlgPriors;
 	dlg_GEMSeControl*                 m_dlgGEMSeControl;

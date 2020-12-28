@@ -46,7 +46,7 @@ class iADockWidgetWrapper;
 class iAModalityTransfer;
 class iAQSplom;
 class iARenderer;
-class MdiChild;
+class iAMdiChild;
 
 class iA3DObjectVis;
 
@@ -90,7 +90,7 @@ class dlg_FeatureScout : public QDockWidget, public Ui_FeatureScoutCE
 {
 	Q_OBJECT
 public:
-	dlg_FeatureScout(MdiChild *parent, iAObjectType fid, QString const & fileName,
+	dlg_FeatureScout(iAMdiChild *parent, iAObjectType fid, QString const & fileName,
 		vtkSmartPointer<vtkTable> csvtbl, int vis, QSharedPointer<QMap<uint, uint> > columnMapping, std::map<size_t,
 		std::vector<iAVec3f> > & curvedFiberInfo, int cylinderQuality, size_t segmentSkip);
 	~dlg_FeatureScout();
@@ -172,8 +172,8 @@ private:
 	void RenderMeanObject();                              //!< compute and render a mean object for each class
 	//! @}
 
-	//! @{ members referencing MdiChild, used for 3D rendering
-	MdiChild* m_activeChild;
+	//! @{ members referencing iAMdiChild, used for 3D rendering
+	iAMdiChild* m_activeChild;
 	//! @}
 
 	int m_elementCount;                             //!< Number of elements(=columns) in csv inputTable

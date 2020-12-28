@@ -30,5 +30,5 @@ public:
 private slots:
 	bool startInSpectr();
 private:
-	iAModuleAttachmentToChild * CreateAttachment(MainWindow* mainWnd, MdiChild * child) override;
+	iAModuleAttachmentToChild * CreateAttachment(iAMainWindow* mainWnd, iAMdiChild * child) override;
 };

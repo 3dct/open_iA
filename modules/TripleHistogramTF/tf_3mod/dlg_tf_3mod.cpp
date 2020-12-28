@@ -32,7 +32,7 @@
 #include <iAModalityTransfer.h>
 #include <iARenderer.h>
 #include <iAVolumeRenderer.h>
-#include <mdichild.h>
+#include <iAMdiChild.h>
 
 #include <vtkCamera.h>
 #include <vtkImageData.h>
@@ -51,7 +51,7 @@
 #include <QDebug>
 
 
-dlg_tf_3mod::dlg_tf_3mod(MdiChild * mdiChild /*= 0*/, Qt::WindowFlags f /*= 0 */)
+dlg_tf_3mod::dlg_tf_3mod(iAMdiChild * mdiChild /*= 0*/, Qt::WindowFlags f /*= 0 */)
 	:
 	//TripleHistogramTFConnector(mdiChild, f), m_mdiChild(mdiChild)
 	QDockWidget("Triple Histogram Transfer Function", mdiChild, f)

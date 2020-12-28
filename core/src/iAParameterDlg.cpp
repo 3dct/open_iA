@@ -28,7 +28,7 @@
 #include "iAFilterRunnerGUI.h"
 #include "iAStringHelper.h"
 #include "io/iAFileChooserWidget.h"
-#include "mdichild.h"
+#include "iAMdiChild.h"
 
 #include <vtkImageData.h>
 
@@ -273,11 +273,11 @@ iAParameterDlg::iAParameterDlg(QWidget* parent, QString const& title, QVector<QS
 	gridLayout->addWidget(buttonBox, 2, 0);  // add the ok and cancel button to the gridlayout
 }
 
-void  iAParameterDlg::setSourceMdi(MdiChild* child, MainWindow* mainWnd)
+void  iAParameterDlg::setSourceMdi(iAMdiChild* child, iAMainWindow* mainWnd)
 {
 	m_sourceMdiChild = child;
 	m_mainWnd = mainWnd;
-	connect(child, &MdiChild::closed, this, &iAParameterDlg::sourceChildClosed);
+	connect(child, &iAMdiChild::closed, this, &iAParameterDlg::sourceChildClosed);
 }
 
 QVector<QWidget*> iAParameterDlg::widgetList()
@@ -518,7 +518,7 @@ int iAParameterDlg::exec()
 	}
 	if (m_sourceMdiChild)
 	{
-		disconnect(m_sourceMdiChild, &MdiChild::closed, this, &iAParameterDlg::sourceChildClosed);
+		disconnect(m_sourceMdiChild, &iAMdiChild::closed, this, &iAParameterDlg::sourceChildClosed);
 		m_sourceMdiChild->setROIVisible(false);
 	}
 	return result;

@@ -99,7 +99,7 @@ signals:
 	void pointSelected();
 	void noPointSelected();
 	void endPointSelected();
-	void active();
+	void active(); // TODO: check use of this signal
 	void applyTFForAll();
 	void updateTFTable();
 

@@ -25,7 +25,7 @@
 #include <iAProgress.h>
 #include <iAToolsITK.h>
 #include <iATypedCallHelper.h>
-#include <mdichild.h>
+#include <iAMdiChild.h>
 
 #include <itkBSplineInterpolateImageFunction.h>
 #include <itkChangeInformationImageFilter.h>
@@ -135,7 +135,7 @@ QSharedPointer<iAFilterRunnerGUI> iASimpleResampleFilterRunner::create()
 	return QSharedPointer<iAFilterRunnerGUI>(new iASimpleResampleFilterRunner());
 }
 
-QMap<QString, QVariant> iASimpleResampleFilterRunner::loadParameters(QSharedPointer<iAFilter> filter, MdiChild* sourceMdi)
+QMap<QString, QVariant> iASimpleResampleFilterRunner::loadParameters(QSharedPointer<iAFilter> filter, iAMdiChild* sourceMdi)
 {
 	auto params = iAFilterRunnerGUI::loadParameters(filter, sourceMdi);
 
@@ -240,7 +240,7 @@ QSharedPointer<iAFilterRunnerGUI> iAResampleFilterRunner::create()
 	return QSharedPointer<iAFilterRunnerGUI>(new iAResampleFilterRunner());
 }
 
-QMap<QString, QVariant> iAResampleFilterRunner::loadParameters(QSharedPointer<iAFilter> filter, MdiChild* sourceMdi)
+QMap<QString, QVariant> iAResampleFilterRunner::loadParameters(QSharedPointer<iAFilter> filter, iAMdiChild* sourceMdi)
 {
 	auto params = iAFilterRunnerGUI::loadParameters(filter, sourceMdi);
 	params["Spacing X"] = sourceMdi->imagePointer()->GetSpacing()[0];
@@ -303,7 +303,7 @@ QSharedPointer<iAFilterRunnerGUI> iAExtractImageFilterRunner::create()
 	return QSharedPointer<iAFilterRunnerGUI>(new iAExtractImageFilterRunner());
 }
 
-QMap<QString, QVariant> iAExtractImageFilterRunner::loadParameters(QSharedPointer<iAFilter> filter, MdiChild* sourceMdi)
+QMap<QString, QVariant> iAExtractImageFilterRunner::loadParameters(QSharedPointer<iAFilter> filter, iAMdiChild* sourceMdi)
 {
 	auto params = iAFilterRunnerGUI::loadParameters(filter, sourceMdi);
 	int const * dim = sourceMdi->imagePointer()->GetDimensions();

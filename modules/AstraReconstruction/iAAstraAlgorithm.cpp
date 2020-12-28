@@ -28,8 +28,8 @@
 #include <iAToolsVTK.h>
 #include <iATypedCallHelper.h>
 #include <iAVec3.h>
-#include <mainwindow.h>
-#include <mdichild.h>
+#include <iAMainWindow.h>
+#include <iAMdiChild.h>
 
 #include <astra/CudaBackProjectionAlgorithm3D.h>
 #include <astra/CudaFDKAlgorithm3D.h>
@@ -582,7 +582,7 @@ namespace
 	}
 }
 
-void iAASTRAFilterRunner::run(QSharedPointer<iAFilter> filter, MainWindow* mainWnd)
+void iAASTRAFilterRunner::run(QSharedPointer<iAFilter> filter, iAMainWindow* mainWnd)
 {
 	if (!isCUDAAvailable())
 	{
@@ -601,11 +601,11 @@ void iAASTRAFilterRunner::run(QSharedPointer<iAFilter> filter, MainWindow* mainW
 }
 
 bool iAASTRAFilterRunner::askForParameters(QSharedPointer<iAFilter> filter, QMap<QString, QVariant> & parameters,
-	MdiChild* sourceMdi, MainWindow* mainWnd, bool /*askForAdditionalInput*/)
+	iAMdiChild* sourceMdi, iAMainWindow* mainWnd, bool /*askForAdditionalInput*/)
 {
 	dlg_ProjectionParameters dlg;
 	dlg.setWindowTitle(filter->name());
-	int const * inputDim = sourceMdi->imageData()->GetDimensions();
+	int const * inputDim = sourceMdi->imagePointer()->GetDimensions();
 	if (filter->name() == "ASTRA Forward Projection")
 	{
 		dlg.fillProjectionGeometryValues(

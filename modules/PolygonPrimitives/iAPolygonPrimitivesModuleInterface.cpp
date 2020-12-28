@@ -23,8 +23,10 @@
 #include "iAGeometricObjectsDialog.h"
 
 #include <iALog.h>
-#include <mainwindow.h>
+#include <iAMainWindow.h>
 
+#include <QAction>
+#include <QMenu>
 #include <QMessageBox>
 
 namespace

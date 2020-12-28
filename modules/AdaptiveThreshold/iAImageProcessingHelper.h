@@ -20,12 +20,12 @@
 * ************************************************************************************/
 #pragma once
 
-class MdiChild;
+class iAMdiChild;
 
 class iAImageProcessingHelper
 {
 public:
-	iAImageProcessingHelper(MdiChild* child);
+	iAImageProcessingHelper(iAMdiChild* child);
 	void performSegmentation(double greyThresholdMin, double greyThreshold);
 	void prepareFilter(double greyThresholdLower, double greyThresholdUpper);
 private:
@@ -33,6 +33,6 @@ private:
 
 	iAImageProcessingHelper(const iAImageProcessingHelper& other) = delete;
 	iAImageProcessingHelper() = delete;
-	MdiChild* m_child = nullptr;
+	iAMdiChild* m_child = nullptr;
 };
 

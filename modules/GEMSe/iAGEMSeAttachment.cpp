@@ -33,10 +33,10 @@
 #include <iAModality.h>
 #include <iARenderer.h>
 #include <iASlicer.h>
-#include <mdichild.h>
-#include <mainwindow.h>
+#include <iAMdiChild.h>
+#include <iAMainWindow.h>
 
-iAGEMSeAttachment::iAGEMSeAttachment(MainWindow * mainWnd, MdiChild * child):
+iAGEMSeAttachment::iAGEMSeAttachment(iAMainWindow * mainWnd, iAMdiChild * child):
 	iAModuleAttachmentToChild(mainWnd, child),
 	m_dummyTitleWidget(new QWidget())
 {
@@ -45,7 +45,7 @@ iAGEMSeAttachment::iAGEMSeAttachment(MainWindow * mainWnd, MdiChild * child):
 	child->addProject(iAGEMSeProject::ID, project);
 }
 
-iAGEMSeAttachment* iAGEMSeAttachment::create(MainWindow * mainWnd, MdiChild * child)
+iAGEMSeAttachment* iAGEMSeAttachment::create(iAMainWindow * mainWnd, iAMdiChild * child)
 {
 	iAGEMSeAttachment * newAttachment = new iAGEMSeAttachment(mainWnd, child);
 

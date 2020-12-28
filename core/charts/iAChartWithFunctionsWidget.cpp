@@ -232,7 +232,7 @@ void iAChartWithFunctionsWidget::mouseMoveEvent(QMouseEvent *event)
 
 void iAChartWithFunctionsWidget::enterEvent(QEvent*)
 {
-	emit active();
+	emit active(); // TODO: check use of th
 }
 
 void iAChartWithFunctionsWidget::keyPressEvent(QKeyEvent *event)

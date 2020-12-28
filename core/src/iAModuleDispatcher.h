@@ -35,8 +35,8 @@
 
 class iAFilterRunnerGUI;
 class iALogger;
-class MdiChild;
-class MainWindow;
+class iAMdiChild;
+class iAMainWindow;
 
 class QFileInfo;
 class QMenu;
@@ -64,20 +64,20 @@ class open_iA_Core_API iAModuleDispatcher : public QObject
 {
 	Q_OBJECT
 public:
-	iAModuleDispatcher( MainWindow * mainWnd );
+	iAModuleDispatcher( iAMainWindow * mainWnd );
 	iAModuleDispatcher(QString const & rootPath);
 	~iAModuleDispatcher();
 	void InitializeModules(iALogger* logger);
 	void SaveModulesSettings() const;
-	MainWindow * GetMainWnd() const;
+	iAMainWindow * GetMainWnd() const;
 	template <typename T> T* GetModule();
-	void ChildCreated(MdiChild* child);
+	void ChildCreated(iAMdiChild* child);
 private slots:
 	void executeFilter();
 	void removeFilter();
 	void selectAndRunFilter();
 private:
-	MainWindow * m_mainWnd;
+	iAMainWindow * m_mainWnd;
 	QVector< iALoadedModule > m_loadedModules;
 	QVector< QSharedPointer<iAFilterRunnerGUI> > m_runningFilters;
 	QString m_rootPath;

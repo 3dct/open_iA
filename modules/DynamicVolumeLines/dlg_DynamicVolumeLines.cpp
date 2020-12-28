@@ -29,6 +29,9 @@
 #include <iAFunctionalBoxplot.h>
 #include <iAJobListView.h>
 #include <iALUT.h>
+#include <iAMdiChild.h>
+#include <iAModality.h>
+#include <iAModalityTransfer.h>
 #include <iARenderer.h>
 #include <iAVolumeRenderer.h>
 #include <iAVtkWidget.h>
@@ -84,7 +87,7 @@ void winModCallback(vtkObject *caller, long unsigned int vtkNotUsed(eventId),
 dlg_DynamicVolumeLines::dlg_DynamicVolumeLines(QWidget *parent /*= 0*/, QDir datasetsDir, Qt::WindowFlags f /*= 0 */) :
 	DynamicVolumeLinesConnector(parent, f),
 	m_datasetsDir(datasetsDir),
-	m_mdiChild(static_cast<MdiChild*>(parent)),
+	m_mdiChild(static_cast<iAMdiChild*>(parent)),
 	m_nonlinearScaledPlot(new QCustomPlot(dockWidgetContents)),
 	m_linearScaledPlot(new QCustomPlot(dockWidgetContents)),
 	m_scalingWidget(nullptr),
@@ -1566,14 +1569,14 @@ void dlg_DynamicVolumeLines::setSelectionForRenderer(QList<QCPGraph *> visSelGra
 			visSelGraphList[i]->pen().color().blueF());
 
 		vtkSmartPointer<vtkColorTransferFunction> cTF = vtkSmartPointer<vtkColorTransferFunction>::New();
-		cTF->ShallowCopy(m_mdiChild->colorTF());
+		cTF->ShallowCopy(m_mdiChild->modality(0)->transfer()->colorTF());
 		int index = cTF->GetSize() - 1;
 		double val[6] = { 0.0, 0.0, 0.0, 0.0, 0.0, 0.0 };
 		cTF->GetNodeValue(index, val);
 		val[1] = 1.0;	val[2] = 0.0;	val[3] = 0.0;
 		cTF->SetNodeValue(index, val);
 		vtkSmartPointer<vtkPiecewiseFunction> oTF = vtkSmartPointer<vtkPiecewiseFunction>::New();
-		oTF->ShallowCopy(m_mdiChild->opacityTF());
+		oTF->ShallowCopy(m_mdiChild->modality(0)->transfer()->opacityTF());
 
 		iASimpleTransferFunction tf(cTF, oTF);
 		//iASimpleTransferFunction tf(m_mdiChild->colorTF(), m_mdiChild->opacityTF());

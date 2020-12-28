@@ -22,8 +22,8 @@
 
 #include "dlg_DynamicVolumeLines.h"
 
-#include <mainwindow.h>
-#include <mdichild.h>
+#include <iAMainWindow.h>
+#include <iAMdiChild.h>
 
 #include <QFileDialog>
 #include <QMessageBox>

@@ -23,7 +23,7 @@
 #include "iA4DCTSettings.h"
 #include "iAStageView.h"
 
-#include <mainwindow.h>
+#include <iAMainWindow.h>
 
 #include <QMenu>
 #include <QAction>
@@ -76,14 +76,14 @@ void iA4DCTListView::contextMenuEvent( QContextMenuEvent* event )
 
 void iA4DCTListView::openFile( )
 {
-	MainWindow* win = qobject_cast<MainWindow*>( QApplication::activeWindow( ) );
-
 	QModelIndexList indexes = this->selectionModel( )->selectedIndexes( );
-	if( indexes.size( ) > 1 ) {
+	if( indexes.size( ) > 1 )
+	{
 		return;
 	}
-
-	if( win != nullptr ) {
+	iAMainWindow* win = qobject_cast<iAMainWindow*>(QApplication::activeWindow());
+	if( win)
+	{
 		win->loadFile( m_data->at( indexes[0].row( ) ).Path, false );
 	}
 }

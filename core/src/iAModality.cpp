@@ -164,10 +164,9 @@ QString iAModality::imageName(int componentIdx)
 	return result;
 }
 
-iAImageInfo const & iAModality::info() const
+iAImageInfo & iAModality::info()
 {
-	assert(m_transfer);
-	return m_transfer->info();
+	return m_imageInfo;
 }
 
 bool iAModality::hasRenderFlag(RenderFlag loc) const
@@ -262,11 +261,6 @@ QString iAModality::positionString()
 	return m_renderer ? arrayToString(m_renderer->position(), 3) : QString();
 }
 
-void iAModality::computeHistogramData(size_t numBin)
-{
-	m_transfer->computeHistogramData(image(), numBin);
-}
-
 void iAModality::computeImageStatistics()
 {
 	m_transfer->computeStatistics(image());
@@ -277,9 +271,14 @@ void iAModality::computeImageStatistics()
 	}
 }
 
+void iAModality::setHistogramData(QSharedPointer<iAHistogramData> histogramData)
+{
+	m_histogramData = histogramData;
+}
+
 QSharedPointer<iAHistogramData> const iAModality::histogramData() const
 {
-	return m_transfer->histogramData();
+	return m_histogramData;
 }
 
 void iAModality::setVolSettings(const iAVolumeSettings &volSettings)

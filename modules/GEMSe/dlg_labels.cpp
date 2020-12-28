@@ -32,7 +32,7 @@
 #include <iAToolsVTK.h>
 #include <iAVtkDraw.h>
 #include <iAFileUtils.h>
-#include <mdichild.h>
+#include <iAMdiChild.h>
 
 #include <vtkImageData.h>
 #include <vtkLookupTable.h>
@@ -49,7 +49,7 @@
 #include <random>
 
 
-dlg_labels::dlg_labels(MdiChild* mdiChild, iAColorTheme const * colorTheme):
+dlg_labels::dlg_labels(iAMdiChild* mdiChild, iAColorTheme const * colorTheme):
 	m_itemModel(new QStandardItemModel()),
 	m_colorTheme(colorTheme),
 	m_maxColor(0),

@@ -1,7 +1,7 @@
 FILE( GLOB_RECURSE open_iA_core_SRCS "src/*.cpp" "src/*.h" )
 FILE( GLOB_RECURSE open_iA_core_UI "src/*.ui" )
 FILE( GLOB_RECURSE open_iA_core_test_srcs "test/*.cpp")
-SET( open_iA_core_QRC open_iA.qrc)
+SET( open_iA_core_QRC src/open_iA_core.qrc)
 
 QT5_WRAP_UI( open_iA_core_SRCS ${open_iA_core_UI})
 QT5_ADD_RESOURCES( open_iA_core_SRCS ${open_iA_core_QRC} )
@@ -27,7 +27,7 @@ IF ("${VTK_VIDEO_SUPPORT}" STREQUAL "ogg")
 	TARGET_COMPILE_DEFINITIONS(${CORE_LIBRARY_NAME} PRIVATE VTK_USE_OGGTHEORA_ENCODER)
 ENDIF()
 # TODO: only link against libraries actually needed by core?
-TARGET_LINK_LIBRARIES(${CORE_LIBRARY_NAME} PUBLIC base charts)
+TARGET_LINK_LIBRARIES(${CORE_LIBRARY_NAME} PUBLIC base)
 IF (HDF5_FOUND)
 	# as HDF5 is required only in core, we could link privately, but under Linux this leads
 	# to gui and cmd also requiring linking to it separately, it's easier to link PUBLIC here:
@@ -75,7 +75,7 @@ TARGET_INCLUDE_DIRECTORIES(${CORE_LIBRARY_NAME} PUBLIC ${CMAKE_CURRENT_SOURCE_DI
 IF (openiA_PRECOMPILE)
 	IF (CMAKE_MAJOR_VERSION GREATER 4 OR
 	(CMAKE_MAJOR_VERSION EQUAL 3 AND CMAKE_MINOR_VERSION GREATER 15))
-		INCLUDE(precompile.cmake)
+		INCLUDE(src/precompile.cmake)
 		target_precompile_headers(${CORE_LIBRARY_NAME} PRIVATE ${OPENIA_PRECOMPILE_HEADERS})
 	ENDIF()
 ENDIF()
@@ -145,3 +145,9 @@ IF (MSVC)
 	# Apply file grouping based on regular expressions for Visual Studio IDE.
 	SOURCE_GROUP("UI Files" REGULAR_EXPRESSION "[.](ui|qrc)$")
 ENDIF()
+
+IF (openiA_USE_IDE_FOLDERS)
+	SET_PROPERTY(TARGET ${CORE_LIBRARY_NAME} PROPERTY FOLDER "Libraries")
+ENDIF()
+
+ADD_SUBDIRECTORY(gui)

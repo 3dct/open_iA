@@ -33,7 +33,7 @@
 #include "iARenderSettings.h"
 #include "iASlicerMode.h"
 #include "iAToolsVTK.h"    // for setCamPos
-#include "mdichild.h"
+#include "iAMdiChild.h"
 
 #include <vtkActor.h>
 #include <vtkAnnotatedCubeActor.h>

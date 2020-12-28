@@ -22,7 +22,7 @@
 
 #include <QWidget>
 
-class MdiChild;
+class iAMdiChild;
 class iATripleModalityWidget;
 
 enum iAHistogramAbstractType {

@@ -22,12 +22,14 @@
 
 #include <iAQSplom.h>
 #include <iAChannelData.h>
-#include <iALog.h>
 #include <iAModality.h>
 #include <iAModalityList.h>
 #include <iAPerformanceHelper.h>
 #include <iASPLOMData.h>
-#include <mdichild.h>
+#include <iAMdiChild.h>
+
+#include "defines.h"    // for NotExistingChannel
+#include <iALog.h>
 
 #include <vtkColorTransferFunction.h>
 #include <vtkImageData.h>
@@ -91,7 +93,7 @@ void dlg_modalitySPLOM::SplomSelection(std::vector<size_t> const & selInds)
 		int z = static_cast<double>(m_data->data()[2][idx]);
 		result->SetScalarComponentFromFloat(x, y, z, 0, 1);
 	}
-	MdiChild* mdiChild = dynamic_cast<MdiChild*>(parent());
+	iAMdiChild* mdiChild = dynamic_cast<iAMdiChild*>(parent());
 	if (!m_selected)
 	{
 		mdiChild->setChannelRenderingEnabled(m_SPLOMSelectionChannelID, false);
@@ -100,7 +102,9 @@ void dlg_modalitySPLOM::SplomSelection(std::vector<size_t> const & selInds)
 	}
 
 	if (m_SPLOMSelectionChannelID == NotExistingChannel)
+	{
 		m_SPLOMSelectionChannelID = mdiChild->createChannel();
+	}
 	auto chData = mdiChild->channelData(m_SPLOMSelectionChannelID);
 	chData->setData(result, m_selection_ctf, m_selection_otf);
 	// TODO: initialize channel?
@@ -108,7 +112,6 @@ void dlg_modalitySPLOM::SplomSelection(std::vector<size_t> const & selInds)
 	mdiChild->updateChannelOpacity(m_SPLOMSelectionChannelID, 0.5);
 	mdiChild->updateViews();
 }
-
 
 dlg_modalitySPLOM::~dlg_modalitySPLOM()
 {

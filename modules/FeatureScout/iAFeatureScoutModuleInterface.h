@@ -34,15 +34,15 @@ class FeatureScout_API iAFeatureScoutModuleInterface : public iAGUIModuleInterfa
 	Q_OBJECT
 public:
 	void Initialize() override;
-	void LoadFeatureScoutWithParams(const QString &csvName, MdiChild *childWnd);
-	void LoadFeatureScout(iACsvConfig const & csvConfig, MdiChild *childWnd);
+	void LoadFeatureScoutWithParams(const QString &csvName, iAMdiChild *childWnd);
+	void LoadFeatureScout(iACsvConfig const & csvConfig, iAMdiChild *childWnd);
 private slots:
 	void FeatureScout();
 	void FeatureScout_Options();
 	void onChildClose();
 private:
 	iAObjectType guessFeatureType(QString const & csvFileName);
-	iAModuleAttachmentToChild * CreateAttachment(MainWindow* mainWnd, MdiChild * child) override;
+	iAModuleAttachmentToChild * CreateAttachment(iAMainWindow* mainWnd, iAMdiChild * child) override;
 	void SetupToolbar();
 	void setFeatureScoutRenderSettings();
 	bool startFeatureScout(iACsvConfig const & csvConfig);  //!< entry point for FeatureScout

@@ -23,9 +23,9 @@
 #include "dlg_modalitySPLOM.h"
 
 #include <iAModality.h>
-#include <mdichild.h>
+#include <iAMdiChild.h>
 
-iAModalityExplorerAttachment::iAModalityExplorerAttachment(MainWindow * mainWnd, MdiChild * child):
+iAModalityExplorerAttachment::iAModalityExplorerAttachment(iAMainWindow * mainWnd, iAMdiChild * child):
 	iAModuleAttachmentToChild(mainWnd, child)
 {
 	m_dlgModalitySPLOM = new dlg_modalitySPLOM();
@@ -38,7 +38,7 @@ iAModalityExplorerAttachment::iAModalityExplorerAttachment(MainWindow * mainWnd,
 	*/
 }
 
-iAModalityExplorerAttachment* iAModalityExplorerAttachment::create(MainWindow * mainWnd, MdiChild * child)
+iAModalityExplorerAttachment* iAModalityExplorerAttachment::create(iAMainWindow * mainWnd, iAMdiChild * child)
 {
 	iAModalityExplorerAttachment * newAttachment = new iAModalityExplorerAttachment(mainWnd, child);
 	return newAttachment;

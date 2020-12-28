@@ -28,7 +28,7 @@
 #include <iAVolumeRenderer.h>
 #include <iAVolumeStack.h>
 #include <iAVtkVersion.h>
-#include <mdichild.h>
+#include <iAMdiChild.h>
 #include <qthelper/iAQTtoUIConnector.h>
 #include <iAQVTKWidgetMouseReleaseWorkaround.h>
 
@@ -44,7 +44,7 @@ dlg_dataView4DCT::dlg_dataView4DCT(QWidget *parent, iAVolumeStack* volumeStack):
 	dlg_dataView4DCTContainer(parent),
 	m_axesTransform(vtkSmartPointer<vtkTransform>::New())
 {
-	m_mdiChild = dynamic_cast<MdiChild*>(parent);
+	m_mdiChild = dynamic_cast<iAMdiChild*>(parent);
 	m_volumeStack = volumeStack;
 
 	m_rendererManager.addToBundle(m_mdiChild->renderer()->renderer());

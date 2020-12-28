@@ -37,7 +37,7 @@ class iAColorTheme;
 class iAImageSampler;
 class iALookupTable;
 class iASamplingResults;
-class MdiChild;
+class iAMdiChild;
 
 class vtkChartXY;
 class vtkPlot;
@@ -51,7 +51,7 @@ class dlg_Consensus : public dlg_ConsensusUI
 {
 	Q_OBJECT
 public:
-	dlg_Consensus(MdiChild* mdiChild, dlg_GEMSe* dlgGEMSe, int labelCount,
+	dlg_Consensus(iAMdiChild* mdiChild, dlg_GEMSe* dlgGEMSe, int labelCount,
 			QString const & folder, dlg_samplings* dlgSamplings);
 	virtual ~dlg_Consensus();
 	void SetGroundTruthImage(LabelImagePointer groundTruthImage);
@@ -87,7 +87,7 @@ private:
 		QString const & name);
 	void StartNextSampler();
 
-	MdiChild*  m_mdiChild;
+	iAMdiChild*  m_mdiChild;
 	dlg_GEMSe* m_dlgGEMSe;
 	LabelImagePointer m_groundTruthImage;
 	int m_labelCount;

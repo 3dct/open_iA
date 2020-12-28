@@ -24,7 +24,7 @@
 
 #include "ui_PolygonPrimitives.h"
 
-class MdiChild;
+class iAMdiChild;
 
 class vtkOpenGLRenderer;
 
@@ -45,7 +45,7 @@ public:
 #else
 	iAGeometricObjectsDialog(QWidget* parent = nullptr, Qt::WindowFlags f = QFlags<Qt::WindowType>());
 #endif
-	void setMDIChild(MdiChild* child);
+	void setMDIChild(iAMdiChild* child);
 
 private slots:
 	void createObject();
@@ -57,6 +57,6 @@ private:
 	vtkSmartPointer<vtkPolyDataAlgorithm> createSphereSource();
 	vtkSmartPointer<vtkPolyDataAlgorithm> createCubeSource ();
 
-	MdiChild *m_child;
+	iAMdiChild *m_child;
 };
 

@@ -40,7 +40,7 @@ class iAModalityList;
 class iAVolumeRenderer;
 class iAVolumeSettings;
 class iAModalityTransfer;
-class MdiChild;
+class iAMdiChild;
 
 class vtkActor;
 class vtkColorTransferFunction;
@@ -55,7 +55,7 @@ class open_iA_Core_API dlg_modalities : public dlg_modalitiesUI
 {
 	Q_OBJECT
 public:
-	dlg_modalities(iAFast3DMagicLensWidget* renderer, vtkRenderer* mainRenderer, MdiChild* mdiChild);
+	dlg_modalities(iAFast3DMagicLensWidget* renderer, vtkRenderer* mainRenderer, iAMdiChild* mdiChild);
 	void setModalities(QSharedPointer<iAModalityList> modalities);
 	QSharedPointer<iAModalityList const> modalities() const;
 	QSharedPointer<iAModalityList> modalities();
@@ -106,7 +106,7 @@ private:
 	QString m_FileName;
 	iAFast3DMagicLensWidget* m_magicLensWidget;
 	vtkRenderer* m_mainRenderer;
-	MdiChild* m_mdiChild;
+	iAMdiChild* m_mdiChild;
 
 	vtkSmartPointer<iAvtkInteractStyleActor> m_manualMoveStyle[4];
 

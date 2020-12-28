@@ -24,7 +24,7 @@
 
 #include <iAMovieHelper.h>
 #include <iARenderer.h>
-#include <mdichild.h>
+#include <iAMdiChild.h>
 
 #include <itkImage.h>
 #include <itkImageFileReader.h>
@@ -727,11 +727,11 @@ void iABlobManager::SaveMovie( QWidget *activeChild,
 		//if(mode != 0)
 		//cam->ApplyTransform(rot);
 
-		MdiChild * mdiChild = static_cast<MdiChild*>( activeChild );
+		iAMdiChild * mdiChild = static_cast<iAMdiChild*>( activeChild );
 		//mdiChild->sXZ->spinBoxXZ->setValue( i );
 		//mdiChild->updateViews();
 
-		raycaster->plane2()->SetOrigin( 0, mdiChild->imageData()->GetSpacing()[0] * ( mdiChild->imageData()->GetDimensions()[1] - i ), 0 );
+		raycaster->plane2()->SetOrigin( 0, mdiChild->imagePointer()->GetSpacing()[0] * ( mdiChild->imagePointer()->GetDimensions()[1] - i ), 0 );
 		raycaster->update();
 		//mdiChild->updateViews();
 

@@ -22,7 +22,7 @@
 #include "iABimodalWidget.h"
 
 #include <iAModality.h>
-#include <mdichild.h>
+#include <iAMdiChild.h>
 
 #include "iAInterpolationSliderWidget.h"
 #include "iAHistogramStackGrid.h"
@@ -31,7 +31,7 @@
 #include <QHBoxLayout>
 #include <QSplitter>
 
-iABimodalWidget::iABimodalWidget(MdiChild *mdiChild):
+iABimodalWidget::iABimodalWidget(iAMdiChild *mdiChild):
 	iAMultimodalWidget(mdiChild, TWO)
 {
 	connect(this, &iABimodalWidget::modalitiesLoaded_beforeUpdate, this, &iABimodalWidget::modalitiesLoaded_beforeUpdateSlot);

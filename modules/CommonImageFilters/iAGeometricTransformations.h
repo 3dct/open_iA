@@ -32,19 +32,19 @@ class iASimpleResampleFilterRunner : public iAFilterRunnerGUI
 {
 public:
 	static QSharedPointer<iAFilterRunnerGUI> create();
-	QMap<QString, QVariant> loadParameters(QSharedPointer<iAFilter> filter, MdiChild* sourceMdi) override;
+	QMap<QString, QVariant> loadParameters(QSharedPointer<iAFilter> filter, iAMdiChild* sourceMdi) override;
 };
 
 class iAResampleFilterRunner : public iAFilterRunnerGUI
 {
 public:
 	static QSharedPointer<iAFilterRunnerGUI> create();
-	QMap<QString, QVariant> loadParameters(QSharedPointer<iAFilter> filter, MdiChild* sourceMdi) override;
+	QMap<QString, QVariant> loadParameters(QSharedPointer<iAFilter> filter, iAMdiChild* sourceMdi) override;
 };
 
 class iAExtractImageFilterRunner : public iAFilterRunnerGUI
 {
 public:
 	static QSharedPointer<iAFilterRunnerGUI> create();
-	QMap<QString, QVariant> loadParameters(QSharedPointer<iAFilter> filter, MdiChild* sourceMdi) override;
+	QMap<QString, QVariant> loadParameters(QSharedPointer<iAFilter> filter, iAMdiChild* sourceMdi) override;
 };

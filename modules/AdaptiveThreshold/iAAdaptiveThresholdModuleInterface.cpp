@@ -27,11 +27,12 @@
 #include <iAPlot.h>
 #include <iAPlotData.h>
 #include <iALog.h>
-#include <mainwindow.h>
-#include <mdichild.h>
+#include <iAMainWindow.h>
+#include <iAMdiChild.h>
 
 #include <vtkImageData.h>
 
+#include <QMenu>
 #include <QMessageBox>
 
 void iAAdaptiveThresholdModuleInterface::Initialize()

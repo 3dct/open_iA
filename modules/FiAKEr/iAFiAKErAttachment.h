@@ -28,7 +28,7 @@ class iAFiAKErAttachment : public iAModuleAttachmentToChild
 {
 	Q_OBJECT
 public:
-	iAFiAKErAttachment(MainWindow* mainWnd, MdiChild* child);
+	iAFiAKErAttachment(iAMainWindow* mainWnd, iAMdiChild* child);
 	virtual ~iAFiAKErAttachment();
 	iAFiAKErController* controller();
 private:

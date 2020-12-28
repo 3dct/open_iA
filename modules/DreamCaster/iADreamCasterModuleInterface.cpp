@@ -22,10 +22,13 @@
 
 #include "iADreamCaster.h"
 
-#include <mainwindow.h>
-#include <mdichild.h>
+#include <iAMainWindow.h>
+#include <iAMdiChild.h>
 
+#include <QAction>
 #include <QFileDialog>
+#include <QMenu>
+#include <QStatusBar>
 
 void iADreamCasterModuleInterface::Initialize()
 {

@@ -22,7 +22,7 @@
 
 #include "iAFiAKErController.h"
 
-iAFiAKErAttachment::iAFiAKErAttachment(MainWindow* mainWnd, MdiChild* child):
+iAFiAKErAttachment::iAFiAKErAttachment(iAMainWindow* mainWnd, iAMdiChild* child):
 	iAModuleAttachmentToChild(mainWnd, child),
 	m_controller(new iAFiAKErController(mainWnd, child))
 {

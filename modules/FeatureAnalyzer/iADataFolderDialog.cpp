@@ -21,7 +21,7 @@
 #include "iADataFolderDialog.h"
 
 #include <defines.h>
-#include <mainwindow.h>
+#include <iAMainWindow.h>
 
 #include <QFileDialog>
 #include <QMessageBox>

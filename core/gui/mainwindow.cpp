@@ -34,7 +34,7 @@
 #include "iASavableProject.h"
 #include "iASlicer.h"
 #include "io/iAIOProvider.h"
-#include "io/iATLGICTLoader.h"
+#include "iATLGICTLoader.h"
 #include "mdichild.h"
 #include "qthelper/iADockWidgetWrapper.h"
 
@@ -78,7 +78,6 @@
 const int MainWindow::MaxRecentFiles;
 
 MainWindow::MainWindow(QString const & appName, QString const & version, QString const & buildInformation, QString const & splashImage ):
-	QMainWindow(),
 	m_moduleDispatcher( new iAModuleDispatcher( this ) ),
 	m_gitVersion(version),
 	m_buildInformation(buildInformation)
@@ -170,7 +169,7 @@ void MainWindow::quitTimerSlot()
 bool MainWindow::keepOpen()
 {
 	bool childHasChanges = false;
-	for (MdiChild* mdiChild : mdiChildList())
+	for (iAMdiChild* mdiChild : mdiChildList())
 	{
 		childHasChanges |= mdiChild->isWindowModified();
 	}
@@ -185,7 +184,7 @@ bool MainWindow::keepOpen()
 		}
 		else
 		{ // avoid individual questions for each window
-			for (MdiChild* mdiChild : mdiChildList())
+			for (iAMdiChild* mdiChild : mdiChildList())
 			{
 				mdiChild->setWindowModified(false);
 			}
@@ -265,10 +264,10 @@ void MainWindow::openRaw()
 		return;
 	}
 
-	MdiChild *child = createMdiChild(false);
+	iAMdiChild *child = createMdiChild(false);
 	QString t; t = fileName; t.truncate(t.lastIndexOf('/'));
 	m_path = t;
-	if (child->loadRaw(fileName))
+	if (dynamic_cast<MdiChild*>(child)->loadRaw(fileName))
 	{
 		child->show();
 	}
@@ -350,11 +349,11 @@ void MainWindow::loadFile(QString fileName, bool isStack)
 			int ret = msgBox.exec();
 			if (ret == QMessageBox::Yes)
 			{
-				activeMdiChild()->loadFile(fileName, false);
+				activeMDI()->loadFile(fileName, false);
 			}
 			else if (ret == QMessageBox::No)
 			{
-				MdiChild *child = createMdiChild(false);
+				iAMdiChild* child = createMdiChild(false);
 				if (child->loadFile(fileName, false))
 				{
 					child->show();
@@ -393,7 +392,7 @@ void MainWindow::loadFile(QString fileName, bool isStack)
 		}
 	}
 	// Todo: hook for plugins?
-	MdiChild *child = createMdiChild(false);
+	iAMdiChild *child = createMdiChild(false);
 	if (child->loadFile(fileName, isStack))
 	{
 		child->show();
@@ -417,7 +416,7 @@ void MainWindow::save()
 {
 	if (activeMdiChild())
 	{
-		activeMdiChild()->save();
+		activeMDI()->save();
 	}
 }
 
@@ -425,7 +424,7 @@ void MainWindow::saveAs()
 {
 	if (activeMdiChild())
 	{
-		activeMdiChild()->saveAs();
+		activeMDI()->saveAs();
 	}
 }
 
@@ -470,6 +469,7 @@ void MainWindow::saveSettings()
 			m_spSlicerSettings = dlg.getCheckValue(6) != 0;
 
 			iAXmlSettings xml;
+			auto histogram = activeMDI()->histogram();
 
 			if (m_spCamera)
 			{
@@ -479,13 +479,13 @@ void MainWindow::saveSettings()
 			{
 				saveSliceViews(xml);
 			}
-			if (m_spTransferFunction && activeMdiChild()->histogram())
+			if (m_spTransferFunction && histogram)
 			{
-				xml.saveTransferFunction(dynamic_cast<iAChartTransferFunction*>(activeMdiChild()->histogram()->functions()[0])->tf());
+				xml.saveTransferFunction(dynamic_cast<iAChartTransferFunction*>(histogram->functions()[0])->tf());
 			}
-			if (m_spProbabilityFunctions && activeMdiChild()->histogram())
+			if (m_spProbabilityFunctions && histogram)
 			{
-				activeMdiChild()->histogram()->saveProbabilityFunctions(xml);
+				histogram->saveProbabilityFunctions(xml);
 			}
 			if (m_spPreferences)
 			{
@@ -577,11 +577,11 @@ void MainWindow::loadSettings()
 	{
 		loadSliceViews(xml.node("sliceViews"));
 	}
-	if (activeMdiChild()->histogram())
+	if (activeMDI()->histogram())
 	{
 		if (m_lpProbabilityFunctions)
 		{
-			std::vector<iAChartFunction*>& functions = activeMdiChild()->histogram()->functions();
+			std::vector<iAChartFunction*>& functions = activeMDI()->histogram()->functions();
 			for (unsigned int i = 1; i < functions.size(); i++)
 			{
 				delete functions.back();
@@ -590,13 +590,13 @@ void MainWindow::loadSettings()
 		}
 		if (m_lpTransferFunction)
 		{
-			activeMdiChild()->histogram()->loadTransferFunction(xml.documentElement().namedItem("functions"));
+			activeMDI()->histogram()->loadTransferFunction(xml.documentElement().namedItem("functions"));
 		}
 		if (m_lpProbabilityFunctions)
 		{
-			activeMdiChild()->histogram()->loadProbabilityFunctions(xml);
+			activeMDI()->histogram()->loadProbabilityFunctions(xml);
 		}
-		activeMdiChild()->redrawHistogram();
+		activeMDI()->histogram()->update();
 	}
 	if (m_lpPreferences && xml.hasElement("preferences"))
 	{
@@ -784,7 +784,7 @@ void MainWindow::loadPreferences(QDomNode preferencesNode)
 
 	iALogWidget::get()->setLogToFile(prefLogToFile, logFileName);
 
-	activeMdiChild()->editPrefs(m_defaultPreferences);
+	activeMDI()->editPrefs(m_defaultPreferences);
 }
 
 void MainWindow::saveRenderSettings(iAXmlSettings &xml)
@@ -838,7 +838,7 @@ void MainWindow::loadRenderSettings(QDomNode renderSettingsNode)
 	m_defaultVolumeSettings.SpecularPower = attributes.namedItem("specularPower").nodeValue().toDouble();
 	m_defaultVolumeSettings.RenderMode = attributes.namedItem("renderMode").nodeValue().toInt();
 
-	activeMdiChild()->editRendererSettings(m_defaultRenderSettings, m_defaultVolumeSettings);
+	activeMDI()->editRendererSettings(m_defaultRenderSettings, m_defaultVolumeSettings);
 }
 
 void MainWindow::saveSlicerSettings(iAXmlSettings &xml)
@@ -877,13 +877,13 @@ void MainWindow::loadSlicerSettings(QDomNode slicerSettingsNode)
 	m_defaultSlicerSettings.SingleSlicer.CursorMode = attributes.namedItem("cursorMode").nodeValue().toStdString().c_str();
 	m_defaultSlicerSettings.SingleSlicer.ToolTipFontSize = attributes.namedItem("toolTipFontSize").nodeValue().toInt();
 
-	activeMdiChild()->editSlicerSettings(m_defaultSlicerSettings);
+	activeMDI()->editSlicerSettings(m_defaultSlicerSettings);
 }
 
 QList<QString> MainWindow::mdiWindowTitles()
 {
 	QList<QString> windowTitles;
-	for (MdiChild* mdiChild : mdiChildList())
+	for (iAMdiChild* mdiChild : mdiChildList())
 	{
 		windowTitles.append(mdiChild->windowTitle());
 	}
@@ -894,7 +894,7 @@ void MainWindow::maxXY()
 {
 	if (activeMdiChild())
 	{
-		activeMdiChild()->maximizeSlicer(iASlicerMode::XY);
+		activeMDI()->maximizeSlicer(iASlicerMode::XY);
 	}
 }
 
@@ -902,7 +902,7 @@ void MainWindow::maxXZ()
 {
 	if (activeMdiChild())
 	{
-		activeMdiChild()->maximizeSlicer(iASlicerMode::XZ);
+		activeMDI()->maximizeSlicer(iASlicerMode::XZ);
 	}
 }
 
@@ -910,7 +910,7 @@ void MainWindow::maxYZ()
 {
 	if (activeMdiChild())
 	{
-		activeMdiChild()->maximizeSlicer(iASlicerMode::YZ);
+		activeMDI()->maximizeSlicer(iASlicerMode::YZ);
 	}
 }
 
@@ -918,7 +918,7 @@ void MainWindow::maxRC()
 {
 	if (activeMdiChild())
 	{
-		activeMdiChild()->maximizeRC();
+		activeMDI()->maximizeRC();
 	}
 }
 
@@ -926,7 +926,7 @@ void MainWindow::multi()
 {
 	if (activeMdiChild())
 	{
-		activeMdiChild()->multiview();
+		activeMDI()->multiview();
 	}
 }
 
@@ -935,7 +935,7 @@ void MainWindow::linkViews()
 	if (activeMdiChild())
 	{
 		m_defaultSlicerSettings.LinkViews = actionLinkViews->isChecked();
-		activeMdiChild()->linkViews(m_defaultSlicerSettings.LinkViews);
+		activeMDI()->linkViews(m_defaultSlicerSettings.LinkViews);
 
 		if (m_defaultSlicerSettings.LinkViews)
 		{
@@ -949,7 +949,7 @@ void MainWindow::linkMDIs()
 	if (activeMdiChild())
 	{
 		m_defaultSlicerSettings.LinkMDIs = actionLinkMdis->isChecked();
-		activeMdiChild()->linkMDIs(m_defaultSlicerSettings.LinkMDIs);
+		activeMDI()->linkMDIs(m_defaultSlicerSettings.LinkMDIs);
 
 		if (m_defaultSlicerSettings.LinkViews)
 		{
@@ -963,7 +963,7 @@ void MainWindow::enableInteraction()
 	if (activeMdiChild())
 	{
 		m_defaultSlicerSettings.InteractorsEnabled = actionEnableInteraction->isChecked();
-		activeMdiChild()->enableInteraction(m_defaultSlicerSettings.InteractorsEnabled);
+		activeMDI()->enableInteraction(m_defaultSlicerSettings.InteractorsEnabled);
 		statusBar()->showMessage(tr("Interaction %1").arg(m_defaultSlicerSettings.InteractorsEnabled?"Enabled":"Disabled"), 5000);
 	}
 }
@@ -1002,7 +1002,7 @@ void MainWindow::toggleMenu()
 
 void MainWindow::prefs()
 {
-	MdiChild *child = activeMdiChild();
+	iAMdiChild *child = activeMdiChild();
 
 	QStringList inList = (QStringList() << tr("#Histogram Bins")
 		<< tr("#Statistical extent")
@@ -1085,7 +1085,7 @@ void MainWindow::prefs()
 		m_defaultPreferences.MagicLensFrameWidth = std::max(0, static_cast<int>(dlg.getDblValue(i++)));
 		m_defaultPreferences.HistogramLogarithmicYAxis = dlg.getCheckValue(i++);
 
-		if (activeMdiChild() && activeMdiChild()->editPrefs(m_defaultPreferences))
+		if (activeMdiChild() && activeMDI()->editPrefs(m_defaultPreferences))
 		{
 			statusBar()->showMessage(tr("Edit preferences"), 5000);
 		}
@@ -1097,7 +1097,7 @@ void MainWindow::prefs()
 void MainWindow::renderSettings()
 {
 	QString dlgTitle = activeMdiChild()? (activeMdiChild()->windowTitle() + " - renderer setings") : "Default renderer settings";
-	iARenderSettings renderSettings = activeMdiChild() ? activeMdiChild()->renderSettings() : m_defaultRenderSettings;
+	iARenderSettings renderSettings = activeMdiChild() ? activeMDI()->renderSettings() : m_defaultRenderSettings;
 	iAVolumeSettings volumeSettings = activeMdiChild() ? activeMdiChild()->volumeSettings() : m_defaultVolumeSettings;
 
 	QStringList renderTypes;
@@ -1197,7 +1197,7 @@ void MainWindow::renderSettings()
 
 	if (activeMdiChild())
 	{
-		activeMdiChild()->editRendererSettings(m_defaultRenderSettings, m_defaultVolumeSettings);
+		activeMDI()->editRendererSettings(m_defaultRenderSettings, m_defaultVolumeSettings);
 	}
 	statusBar()->showMessage(tr("Changed renderer settings"), 5000);
 }
@@ -1229,7 +1229,7 @@ void MainWindow::slicerSettings()
 		);
 	
 	QString dlgTitle = activeMdiChild() ? (activeMdiChild()->windowTitle() + " - slicer setings") : "Default slicer settings";
-	iASlicerSettings const & slicerSettings = activeMdiChild() ? activeMdiChild()->slicerSettings() : m_defaultSlicerSettings;
+	iASlicerSettings const& slicerSettings = activeMDI() ? activeMDI()->slicerSettings() : m_defaultSlicerSettings;
 
 	QStringList mouseCursorTypes;
 	for (QString mode : mouseCursorModes)
@@ -1276,7 +1276,7 @@ void MainWindow::slicerSettings()
 
 	if (activeMdiChild())
 	{
-		activeMdiChild()->editSlicerSettings(m_defaultSlicerSettings);
+		activeMDI()->editSlicerSettings(m_defaultSlicerSettings);
 	}
 	statusBar()->showMessage(tr("Changed slicer settings"), 5000);
 }
@@ -1285,7 +1285,7 @@ void MainWindow::loadTransferFunction()
 {
 	if (activeMdiChild())
 	{
-		if (activeMdiChild()->loadTransferFunction())
+		if (activeMDI()->loadTransferFunction())
 		{
 			statusBar()->showMessage(tr("Loaded transfer function successfully"), 5000);
 		}
@@ -1300,7 +1300,7 @@ void MainWindow::saveTransferFunctionSlot()
 {
 	if (activeMdiChild())
 	{
-		if (activeMdiChild()->saveTransferFunction())
+		if (activeMDI()->saveTransferFunction())
 		{
 			statusBar()->showMessage(tr("Saved transfer function successfully"), 5000);
 		}
@@ -1315,7 +1315,7 @@ void MainWindow::deletePoint()
 {
 	if (activeMdiChild())
 	{
-		int point = activeMdiChild()->deletePoint();
+		int point = activeMDI()->deletePoint();
 		statusBar()->showMessage(tr("Deleted point %1").arg(point), 5000);
 	}
 }
@@ -1324,7 +1324,7 @@ void MainWindow::changeColor()
 {
 	if (activeMdiChild())
 	{
-		activeMdiChild()->changeColor();
+		activeMDI()->changeColor();
 	}
 }
 
@@ -1332,7 +1332,7 @@ void MainWindow::resetView()
 {
 	if (activeMdiChild())
 	{
-		activeMdiChild()->resetView();
+		activeMDI()->resetView();
 	}
 }
 
@@ -1340,7 +1340,7 @@ void MainWindow::resetTrf()
 {
 	if (activeMdiChild())
 	{
-		activeMdiChild()->resetTrf();
+		activeMDI()->resetTrf();
 	}
 }
 
@@ -1353,7 +1353,7 @@ void MainWindow::changeInteractionMode(bool isChecked)
 			(a == actionInteractionModeCamera) ?
 			(isChecked ? MdiChild::imCamera : MdiChild::imRegistration) :
 			(isChecked ? MdiChild::imRegistration : MdiChild::imCamera);
-		activeMdiChild()->setInteractionMode(mode);
+		activeMDI()->setInteractionMode(mode);
 	}
 }
 
@@ -1369,7 +1369,7 @@ void MainWindow::meshDataMovable(bool isChecked)
 {
 	if (activeMdiChild())
 	{
-		activeMdiChild()->setMeshDataMovable(isChecked);
+		activeMDI()->setMeshDataMovable(isChecked);
 	}
 }
 
@@ -1377,7 +1377,7 @@ void MainWindow::toggleSnakeSlicer(bool isChecked)
 {
 	if (activeMdiChild())
 	{
-		activeMdiChild()->toggleSnakeSlicer(isChecked);
+		activeMDI()->toggleSnakeSlicer(isChecked);
 	}
 }
 
@@ -1385,7 +1385,7 @@ void MainWindow::toggleSliceProfile(bool isChecked)
 {
 	if (activeMdiChild())
 	{
-		activeMdiChild()->toggleSliceProfile(isChecked);
+		activeMDI()->toggleSliceProfile(isChecked);
 	}
 }
 
@@ -1393,7 +1393,7 @@ void MainWindow::toggleMagicLens( bool isChecked )
 {
 	if (activeMdiChild())
 	{
-		activeMdiChild()->toggleMagicLens2D(isChecked);
+		activeMDI()->toggleMagicLens2D(isChecked);
 	}
 }
 
@@ -1401,7 +1401,7 @@ void MainWindow::toggleMagicLens3D(bool isChecked)
 {
 	if (activeMdiChild())
 	{
-		activeMdiChild()->toggleMagicLens3D(isChecked);
+		activeMDI()->toggleMagicLens3D(isChecked);
 	}
 }
 
@@ -1410,24 +1410,24 @@ void MainWindow::rendererCamPosition()
 	if (activeMdiChild())
 	{
 		int pos = sender()->property("camPosition").toInt();
-		activeMdiChild()->setCamPosition(pos);
+		activeMDI()->setCamPosition(pos);
 	}
 }
 
 void MainWindow::raycasterAssignIso()
 {
-	QList<MdiChild *> mdiwindows = mdiChildList();
+	QList<iAMdiChild *> mdiwindows = mdiChildList();
 	int sizeMdi = mdiwindows.size();
 	if (sizeMdi > 1)
 	{
 		double camOptions[10] = {0};
 		if (activeMdiChild())
 		{
-			activeMdiChild()->camPosition(camOptions);
+			activeMDI()->camPosition(camOptions);
 		}
 		for(int i = 0; i < sizeMdi; i++)
 		{
-			MdiChild *tmpChild = mdiwindows.at(i);
+			MdiChild *tmpChild = dynamic_cast<MdiChild*>(mdiwindows.at(i));
 
 			// check dimension and spacing here, if not the same with active mdichild, skip.
 			tmpChild->setCamPosition(camOptions, m_defaultRenderSettings.ParallelProjection);
@@ -1470,15 +1470,16 @@ void MainWindow::raycasterLoadCameraSettings()
 	raycasterAssignIso();
 }
 
-MdiChild* MainWindow::resultChild(MdiChild* oldChild, QString const & title)
+iAMdiChild* MainWindow::resultChild(iAMdiChild* iaOldChild, QString const & title)
 {
+	auto oldChild = dynamic_cast<MdiChild*>(iaOldChild);
 	if (oldChild->resultInNewWindow())
 	{
 		// TODO: copy all modality images, or don't copy anything here and use image from old child directly,
 		// or nothing at all until new image available!
 		// Note that filters currently get their input from this child already!
 		vtkSmartPointer<vtkImageData> imageData = oldChild->imagePointer();
-		MdiChild* newChild = createMdiChild(true);
+		MdiChild* newChild = dynamic_cast<MdiChild*>(createMdiChild(true));
 		newChild->show();
 		newChild->displayResult(title, imageData);
 		copyFunctions(oldChild, newChild);
@@ -1488,12 +1489,12 @@ MdiChild* MainWindow::resultChild(MdiChild* oldChild, QString const & title)
 	return oldChild;
 }
 
-MdiChild * MainWindow::resultChild(QString const & title)
+iAMdiChild * MainWindow::resultChild(QString const & title)
 {
 	return resultChild(activeMdiChild(), title);
 }
 
-MdiChild * MainWindow::resultChild(int childInd, QString const & f)
+iAMdiChild * MainWindow::resultChild(int childInd, QString const & f)
 {
 	return resultChild(mdiChildList().at(childInd), f);
 }
@@ -1632,7 +1633,7 @@ void MainWindow::updateMenus()
 	actionChildStatusBar->setEnabled(hasMdiChild);
 
 	// Update checked states of actions:
-	auto child = activeMdiChild();
+	auto child = activeMDI();
 	QSignalBlocker movableBlock(actionMeshDataMovable);
 	actionMeshDataMovable->setChecked(hasMdiChild && child->meshDataMovable());
 	QSignalBlocker interactionModeCameraBlock(actionInteractionModeCamera);
@@ -1651,13 +1652,13 @@ void MainWindow::updateMenus()
 
 	if (activeMdiChild())
 	{
-		int selectedFuncPoint = activeMdiChild()->selectedFuncPoint();
+		int selectedFuncPoint = activeMDI()->selectedFuncPoint();
 		if (selectedFuncPoint == -1)
 		{
 			actionDeletePoint->setEnabled(false);
 			actionChangeColor->setEnabled(false);
 		}
-		else if (activeMdiChild()->isFuncEndPoint(selectedFuncPoint))
+		else if (activeMDI()->isFuncEndPoint(selectedFuncPoint))
 		{
 			actionDeletePoint->setEnabled(false);
 			actionChangeColor->setEnabled(true);
@@ -1669,9 +1670,9 @@ void MainWindow::updateMenus()
 		}
 		// set current application working directory to the one where the file is in (as default directory, e.g. for file open)
 		// see also MdiChild::setCurrentFile
-		if (!activeMdiChild()->filePath().isEmpty())
+		if (!activeMDI()->filePath().isEmpty())
 		{
-			QDir::setCurrent(activeMdiChild()->filePath());
+			QDir::setCurrent(activeMDI()->filePath());
 		}
 		//??if (activeMdiChild())
 		//	histogramToolbar->setEnabled(activeMdiChild()->getTabIndex() == 1 && !activeMdiChild()->isMaximized());
@@ -1692,21 +1693,21 @@ void MainWindow::updateMagicLens2DCheckState(bool enabled)
 
 void MainWindow::updateWindowMenu()
 {
-	QList<MdiChild *> windows = mdiChildList();
+	QList<iAMdiChild *> windows = mdiChildList();
 
 	for (int i = 0; i < windows.size(); ++i)
 	{
-		MdiChild *child = windows.at(i);
+		iAMdiChild *child = windows.at(i);
 		QString text;
 		if (i < 9)
 		{
 			text = tr("&%1 %2").arg(i + 1)
-				.arg(child->userFriendlyCurrentFile());
+				.arg(dynamic_cast<MdiChild*>(child)->userFriendlyCurrentFile());
 		}
 		else
 		{
 			text = tr("%1 %2").arg(i + 1)
-				.arg(child->userFriendlyCurrentFile());
+				.arg(dynamic_cast<MdiChild*>(child)->userFriendlyCurrentFile());
 		}
 		QAction *action  = menuWindow->addAction(text);
 		action->setCheckable(true);
@@ -1715,7 +1716,7 @@ void MainWindow::updateWindowMenu()
 	}
 }
 
-MdiChild* MainWindow::createMdiChild(bool unsavedChanges)
+iAMdiChild* MainWindow::createMdiChild(bool unsavedChanges)
 {
 	MdiChild *child = new MdiChild(this, m_defaultPreferences, unsavedChanges);
 	QMdiSubWindow* subWin = mdiArea->addSubWindow(child);
@@ -1740,7 +1741,7 @@ MdiChild* MainWindow::createMdiChild(bool unsavedChanges)
 	return child;
 }
 
-void MainWindow::closeMdiChild(MdiChild* child)
+void MainWindow::closeMdiChild(iAMdiChild* child)
 {
 	if (!child)
 	{
@@ -2095,7 +2096,7 @@ void MainWindow::setCurrentFile(const QString &fileName)
 	updateRecentFileActions();
 }
 
-QString const & MainWindow::currentFile()
+QString const & MainWindow::currentFile() const
 {
 	return m_curFile;
 }
@@ -2105,7 +2106,7 @@ void MainWindow::setPath(QString const & p)
 	m_path = p;
 }
 
-QString const & MainWindow::path()
+QString const& MainWindow::path() const
 {
 	return m_path;
 }
@@ -2143,14 +2144,19 @@ void MainWindow::updateRecentFileActions()
 	m_separatorAct->setVisible(numRecentFiles > 0);
 }
 
-MdiChild* MainWindow::activeMdiChild()
+iAMdiChild* MainWindow::activeMdiChild()
+{
+	return activeMDI();
+}
+
+MdiChild* MainWindow::activeMDI()
 {
 	return activeChild<MdiChild>();
 }
 
-MdiChild * MainWindow::secondNonActiveChild()
+iAMdiChild * MainWindow::secondNonActiveChild()
 {
-	QList<MdiChild *> mdiwindows = mdiChildList();
+	QList<iAMdiChild *> mdiwindows = mdiChildList();
 	if (mdiwindows.size() > 2)
 	{
 		QMessageBox::warning(this, tr("Warning"),
@@ -2168,11 +2174,12 @@ MdiChild * MainWindow::secondNonActiveChild()
 		mdiwindows.at(1) : mdiwindows.at(0);
 }
 
+/*
 MdiChild* MainWindow::findMdiChild(const QString &fileName)
 {
 	QString canonicalFilePath = QFileInfo(fileName).canonicalFilePath();
 
-	for (MdiChild* mdiChild : mdiChildList())
+	for (iAMdiChild* mdiChild : mdiChildList())
 	{
 		if (mdiChild->currentFile() == canonicalFilePath)
 		{
@@ -2181,6 +2188,7 @@ MdiChild* MainWindow::findMdiChild(const QString &fileName)
 	}
 	return nullptr;
 }
+*/
 
 void MainWindow::setActiveSubWindow(QWidget *window)
 {
@@ -2213,7 +2221,7 @@ void MainWindow::setHistogramFocus()
 {
 	if (activeMdiChild())
 	{
-		activeMdiChild()->setHistogramFocus();
+		activeMDI()->setHistogramFocus();
 	}
 }
 
@@ -2223,9 +2231,9 @@ void MainWindow::logVisibilityChanged(bool newVisibility)
 	actionShowLog->setChecked(newVisibility);
 }
 
-QList<MdiChild*> MainWindow::mdiChildList(QMdiArea::WindowOrder order)
+QList<iAMdiChild*> MainWindow::mdiChildList()
 {
-	return childList<MdiChild>(order);
+	return childList<iAMdiChild>(QMdiArea::CreationOrder);
 }
 
 void MainWindow::applyQSS()
@@ -2244,7 +2252,7 @@ void MainWindow::applyQSS()
 
 void MainWindow::saveLayout()
 {
-	MdiChild *child = activeMdiChild();
+	iAMdiChild *child = activeMdiChild();
 	if(child)
 	{
 		QByteArray state = child->saveState(0);
@@ -2285,7 +2293,7 @@ void MainWindow::saveLayout()
 
 void MainWindow::loadLayout()
 {
-	MdiChild *child = activeMdiChild();
+	MdiChild* child = activeMDI();
 	assert(child);
 	if (!child)
 	{
@@ -2308,7 +2316,7 @@ void MainWindow::deleteLayout()
 
 void MainWindow::resetLayout()
 {
-	activeMdiChild()->resetLayout();
+	activeMDI()->resetLayout();
 }
 
 QMenu * MainWindow::fileMenu()
@@ -2368,6 +2376,11 @@ void MainWindow::toggleChildStatusBar()
 		return;
 	}
 	activeMdiChild()->statusBar()->setVisible(actionChildStatusBar->isChecked());
+}
+
+QMdiSubWindow* MainWindow::activeChild()
+{
+	return mdiArea->currentSubWindow();
 }
 
 QMdiSubWindow* MainWindow::addSubWindow( QWidget * child )
@@ -2563,7 +2576,7 @@ void MainWindow::loadTLGICTData(QString const & baseDirectory)
 	{
 		return;
 	}
-	tlgictLoader->start(createMdiChild(false));
+	tlgictLoader->start(dynamic_cast<MdiChild*>(createMdiChild(false)));
 	// tlgictLoader will delete itself when finished!
 }
 
@@ -2592,7 +2605,7 @@ public:
 
 void MainWindow::initResources()
 {
-	Q_INIT_RESOURCE(open_iA);
+	Q_INIT_RESOURCE(open_iA_gui);
 }
 
 int MainWindow::runGUI(int argc, char * argv[], QString const & appName, QString const & version,

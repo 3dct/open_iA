@@ -30,11 +30,12 @@
 #include "iALog.h"
 #include "iAFilter.h"
 #include "iAJobListView.h"
+#include "iAMainWindow.h"
+#include "iAMdiChild.h"
 #include "iAModality.h"
 #include "iAModalityList.h"
 #include "iAParameterDlg.h"
-#include "mainwindow.h"
-#include "mdichild.h"
+#include "iAPreferences.h"
 
 #include <vtkImageData.h>
 #include <vtkPolyData.h>
@@ -42,6 +43,7 @@
 #include <QMessageBox>
 #include <QSettings>
 #include <QSharedPointer>
+#include <QStatusBar>
 #include <QString>
 #include <QVariant>
 
@@ -53,7 +55,7 @@ class vtkImageData;
 // iAFilterRunnerGUIThread
 
 iAFilterRunnerGUIThread::iAFilterRunnerGUIThread(QSharedPointer<iAFilter> filter,
-	QMap<QString, QVariant> paramValues, MdiChild* mdiChild, QString const & fileName) :
+	QMap<QString, QVariant> paramValues, iAMdiChild* mdiChild, QString const & fileName) :
 	iAAlgorithm(filter->name(), mdiChild->imagePointer(), mdiChild->polyData(), iALog::get(), mdiChild),
 	m_filter(filter),
 	m_paramValues(paramValues),
@@ -123,7 +125,7 @@ QSharedPointer<iAFilterRunnerGUI> iAFilterRunnerGUI::create()
 	return QSharedPointer<iAFilterRunnerGUI>(new iAFilterRunnerGUI());
 }
 
-QMap<QString, QVariant> iAFilterRunnerGUI::loadParameters(QSharedPointer<iAFilter> filter, MdiChild* sourceMdi)
+QMap<QString, QVariant> iAFilterRunnerGUI::loadParameters(QSharedPointer<iAFilter> filter, iAMdiChild* sourceMdi)
 {
 	auto params = filter->parameters();
 	QMap<QString, QVariant> result;
@@ -158,7 +160,7 @@ void iAFilterRunnerGUI::storeParameters(QSharedPointer<iAFilter> filter, QMap<QS
 }
 
 bool iAFilterRunnerGUI::askForParameters(QSharedPointer<iAFilter> filter, QMap<QString, QVariant> & paramValues,
-	MdiChild* sourceMdi, MainWindow* mainWnd, bool askForAdditionalInput)
+	iAMdiChild* sourceMdi, iAMainWindow* mainWnd, bool askForAdditionalInput)
 {
 	iAAttributes dlgParams;
 	bool showROI = false;	// TODO: find better way to check this?
@@ -192,7 +194,7 @@ bool iAFilterRunnerGUI::askForParameters(QSharedPointer<iAFilter> filter, QMap<Q
 	{
 		return true;
 	}
-	QVector<MdiChild*> otherMdis;
+	QVector<iAMdiChild*> otherMdis;
 	for (auto mdi : mainWnd->mdiChildList())
 	{
 		if (mdi != sourceMdi)
@@ -250,13 +252,13 @@ bool iAFilterRunnerGUI::askForParameters(QSharedPointer<iAFilter> filter, QMap<Q
 }
 
 void iAFilterRunnerGUI::filterGUIPreparations(QSharedPointer<iAFilter> /*filter*/,
-	MdiChild* /*mdiChild*/, MainWindow* /*mainWnd*/, QMap<QString, QVariant> const & /*params*/)
+	iAMdiChild* /*mdiChild*/, iAMainWindow* /*mainWnd*/, QMap<QString, QVariant> const & /*params*/)
 {
 }
 
-void iAFilterRunnerGUI::run(QSharedPointer<iAFilter> filter, MainWindow* mainWnd)
+void iAFilterRunnerGUI::run(QSharedPointer<iAFilter> filter, iAMainWindow* mainWnd)
 {
-	MdiChild* sourceMdi = mainWnd->activeMdiChild();
+	iAMdiChild* sourceMdi = mainWnd->activeMdiChild();
 	if (filter->requiredInputs() > 0 && (!sourceMdi || !sourceMdi->isFullyLoaded()))
 	{
 		mainWnd->statusBar()->showMessage("Please wait until file is fully loaded!");
@@ -292,7 +294,7 @@ void iAFilterRunnerGUI::run(QSharedPointer<iAFilter> filter, MainWindow* mainWnd
 		return;
 	}
 	filterGUIPreparations(filter, mdiChild, mainWnd, paramValues);
-	iAFilterRunnerGUIThread* thread = new iAFilterRunnerGUIThread(filter, paramValues, mdiChild, mdiChild->fileName());
+	iAFilterRunnerGUIThread* thread = new iAFilterRunnerGUIThread(filter, paramValues, mdiChild, mdiChild->currentFile());
 	if (!thread)
 	{
 		mainWnd->statusBar()->showMessage("Cannot create result calculation thread!", 5000);
@@ -340,7 +342,7 @@ void iAFilterRunnerGUI::run(QSharedPointer<iAFilter> filter, MainWindow* mainWnd
 	thread->start();
 }
 
-void iAFilterRunnerGUI::connectThreadSignals(MdiChild* mdiChild, iAFilterRunnerGUIThread* thread)
+void iAFilterRunnerGUI::connectThreadSignals(iAMdiChild* mdiChild, iAFilterRunnerGUIThread* thread)
 {
 	connect(thread, &QThread::finished, this, &iAFilterRunnerGUI::filterFinished);
 	mdiChild->connectThreadSignalsToChildSlots(thread);
@@ -350,8 +352,8 @@ void iAFilterRunnerGUI::filterFinished()
 {
 	auto thread = qobject_cast<iAFilterRunnerGUIThread*>(sender());
 	// add additional output as additional modalities here
-	// "default" output 0 is handled elsewhere (via obscure MdiChild::rendererDeactivated / iAAlgorithm::updateVtkImageData)
-	auto mdiChild = qobject_cast<MdiChild*>(thread->parent());
+	// "default" output 0 is handled elsewhere (via obscure iAMdiChild::rendererDeactivated / iAAlgorithm::updateVtkImageData)
+	auto mdiChild = qobject_cast<iAMdiChild*>(thread->parent());
 	if (thread->filter()->polyOutput())
 	{
 		mdiChild->polyData()->DeepCopy(thread->filter()->polyOutput());

@@ -48,7 +48,7 @@
        <string/>
       </property>
       <property name="icon">
-       <iconset resource="../open_iA.qrc">
+       <iconset resource="open_iA_core.qrc">
         <normaloff>:/images/add.png</normaloff>:/images/add.png</iconset>
       </property>
      </widget>
@@ -62,7 +62,7 @@
        <string/>
       </property>
       <property name="icon">
-       <iconset resource="../open_iA.qrc">
+       <iconset resource="open_iA_core.qrc">
         <normaloff>:/images/document-edit.png</normaloff>:/images/document-edit.png</iconset>
       </property>
      </widget>
@@ -89,7 +89,7 @@
        <string/>
       </property>
       <property name="icon">
-       <iconset resource="../open_iA.qrc">
+       <iconset resource="open_iA_core.qrc">
         <normaloff>:/images/minus.png</normaloff>:/images/minus.png</iconset>
       </property>
      </widget>
@@ -108,7 +108,7 @@
   </widget>
  </widget>
  <resources>
-  <include location="../open_iA.qrc"/>
+  <include location="open_iA_core.qrc"/>
  </resources>
  <connections/>
 </ui>

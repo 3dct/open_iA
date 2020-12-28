@@ -23,7 +23,10 @@
 #include "iATripleHistogramTFAttachment.h"
 
 #include <iALog.h>
-#include <mainwindow.h>
+#include <iAMainWindow.h>
+
+#include <QAction>
+#include <QMenu>
 
 void iATripleHistogramTFModuleInterface::Initialize()
 {
@@ -45,7 +48,7 @@ void iATripleHistogramTFModuleInterface::Initialize()
 	submenu->addAction(action_3mod);
 }
 
-iAModuleAttachmentToChild* iATripleHistogramTFModuleInterface::CreateAttachment(MainWindow* mainWnd, MdiChild* child)
+iAModuleAttachmentToChild* iATripleHistogramTFModuleInterface::CreateAttachment(iAMainWindow* mainWnd, iAMdiChild* child)
 {
 	return iATripleHistogramTFAttachment::create(mainWnd, child);
 }
