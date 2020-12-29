@@ -20,21 +20,19 @@
 * ************************************************************************************/
 #pragma once
 
-#include "iASlicerMode.h"
 #include "ui_slicer.h"
-#include "open_iA_Core_export.h"
+
+#include "iASlicerMode.h"
 
 #include <QDockWidget>
 
 class iASlicer;
 
-class open_iA_Core_API dlg_slicer : public QDockWidget, public Ui_slicer
+class dlg_slicer : public QDockWidget, public Ui_slicer
 {
 Q_OBJECT
 
 public:
-	static const int BorderWidth;
-	static QColor slicerColor(iASlicerMode mode);
 	dlg_slicer(iASlicer* slicer);
 	void showBorder(bool show);
 private slots:
@@ -45,5 +43,7 @@ private slots:
 	void updateSlabCompositeMode(int compositeMode);
 	void updateSliceControls(int minIdx, int maxIdx);
 private:
+	static const int BorderWidth;
+	static QColor slicerColor(iASlicerMode mode);
 	iASlicer* m_slicer;
 };

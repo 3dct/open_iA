@@ -27,7 +27,6 @@
 #include "iAElementConcentrations.h"
 #include "iAXRFData.h"
 
-#include <dlg_slicer.h>
 #include <iAChannelData.h>
 #include <iASlicer.h>
 #include <io/extension2id.h>

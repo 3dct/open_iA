@@ -219,12 +219,7 @@ private slots:
 
 	void modalitiesChangedSlot(bool, double const *);
 
-	void onMainXYScrollBarPress();
-	void onMainXZScrollBarPress();
-	void onMainYZScrollBarPress();
-	void onMainXYSliceNumberChanged(int sliceNumberXY);
-	void onMainXZSliceNumberChanged(int sliceNumberXZ);
-	void onMainYZSliceNumberChanged(int sliceNumberYZ);
+	void onMainSliceNumberChanged(int mode, int sliceNumber);
 
 	//void modalitiesChanged();
 	void histogramAvailable();

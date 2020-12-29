@@ -20,9 +20,9 @@
 * ************************************************************************************/
 #pragma once
 
-#include <QDockWidget>
-
 #include "ui_Profile.h"
+
+#include <QDockWidget>
 
 class iAProfileWidget;
 

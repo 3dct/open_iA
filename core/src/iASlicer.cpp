@@ -22,7 +22,6 @@
 
 #include "defines.h"    // for NotExistingChannel
 #include "dlg_commoninput.h"
-#include "dlg_slicer.h"
 #include "iAAbortListener.h"
 #include "iAChannelData.h"
 #include "iAChannelSlicerData.h"
@@ -1549,7 +1548,7 @@ void iASlicer::printVoxelInformation()
 				slicerZAxisIdx = mapSliceToGlobalAxis(m_mode, iAAxisIndex::Z);
 			tmpChild->slicer(m_mode)->setIndex(tmpCoord[0], tmpCoord[1], tmpCoord[2]);
 			tmpChild->slicer(m_mode)->setPositionMarkerCenter(m_globalPt[slicerXAxisIdx], m_globalPt[slicerYAxisIdx], m_globalPt[slicerZAxisIdx]);
-			tmpChild->slicerDockWidget(m_mode)->sbSlice->setValue(tmpCoord[slicerZAxisIdx]);
+			tmpChild->slicer(m_mode)->setSliceNumber(tmpCoord[slicerZAxisIdx]);
 			tmpChild->slicer(m_mode)->update();
 			strDetails += filePixel(tmpChild->slicer(m_mode), tmpCoord, slicerXAxisIdx, slicerYAxisIdx);
 			tmpChild->update();

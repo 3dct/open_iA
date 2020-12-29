@@ -30,8 +30,7 @@ void CheckSCIFIO(QString const &
 	applicationPath
 #endif
 )
-{	// TODO: find better place for resource initialization!
-	Q_INIT_RESOURCE(open_iA_core);
+{
 #ifdef USE_SCIFIO
 	// Workaround for ITK requiring SCIFIO_PATH to be set when compiled with SCIFIO
 	const char* SCIFIO_PATH = "SCIFIO_PATH";

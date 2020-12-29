@@ -76,7 +76,6 @@ void dlg_slicer::showBorder(bool show)
 
 void dlg_slicer::setSliceSpinBox(int s)
 {
-
 	m_slicer->setSliceNumber(s);
 }
 

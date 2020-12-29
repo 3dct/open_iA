@@ -21,10 +21,13 @@
 #pragma once
 
 #include "ui_VolumePlayer.h"
+
+#include <vtkSmartPointer.h>
+
 #include <QtGui/QPalette>
 #include <QTimer>
+
 #include <vector>
-#include <vtkSmartPointer.h>
 
 class MdiChild;
 class iAVolumeStack;

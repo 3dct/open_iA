@@ -20,11 +20,12 @@
 * ************************************************************************************/
 #pragma once
 
+#include "ui_DataTypeConversion.h"
+
 // charts
 #include "iAPlotData.h"
 
 #include "iAVtkWidgetFwd.h"
-#include "ui_DataTypeConversion.h"
 
 #include <vtkSmartPointer.h>
 

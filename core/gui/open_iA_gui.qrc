@@ -8,6 +8,7 @@
     <file>images/Crosshair thin.png</file>
     <file>images/TFTableView.png</file>
     <file>images/Xmas.png</file>
+    <file>images/add.png</file>
     <file>images/addBezier.png</file>
     <file>images/addGaussian.png</file>
     <file>images/camera.png</file>
@@ -30,6 +31,7 @@
     <file>images/dockwidget-close_dark.svg</file>
     <file>images/dockwidget-float_bright.svg</file>
     <file>images/dockwidget-float_dark.svg</file>
+    <file>images/document-edit.png</file>
     <file>images/down_arrow.png</file>
     <file>images/fisheyeLens.png</file>
     <file>images/fhlogo.png</file>
@@ -44,11 +46,19 @@
     <file>images/loadtrf.png</file>
     <file>images/magicLens.png</file>
     <file>images/magicLens3D.png</file>
+    <file>images/mini_rect.png</file>
+    <file>images/minus.png</file>
     <file>images/modTF.png</file>
+    <file>images/mx.png</file>
+    <file>images/my.png</file>
+    <file>images/mz.png</file>
     <file>images/open.png</file>
     <file>images/openFkt.png</file>
     <file>images/paste.png</file>
     <file>images/profile.png</file>
+    <file>images/px.png</file>
+    <file>images/py.png</file>
+    <file>images/pz.png</file>
     <file>images/radiobutton_checked_dark.png</file>
     <file>images/radiobutton_checked_hover_dark.png</file>
     <file>images/radiobutton_checked_pressed_dark.png</file>
@@ -65,6 +75,9 @@
     <file>images/saveClass.png</file>
     <file>images/saveFkt.png</file>
     <file>images/saveas.png</file>
+    <file>images/savemov.png</file>
+    <file>images/savescreen.png</file>
+    <file>images/savestack.png</file>
     <file>images/savetrf.png</file>
     <file>images/settings.png</file>
     <file>images/settings_preferences.png</file>
@@ -74,6 +87,7 @@
     <file>images/snakeSlicer.png</file>
     <file>images/splashscreen.png</file>
     <file>images/stepbackward.png</file>
+    <file>images/stepforward.png</file>
     <file>images/toggle_titleBar.png</file>
     <file>images/transform-move.png</file>
     <file>images/undock_white.png</file>

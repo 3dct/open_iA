@@ -163,7 +163,7 @@ public:
 	int sliceNumber(int mode) const;
 	//! Access to slicer dock widget for the given mode
 	//! @param mode slicer to access - use constants from iASlicerMode enum
-	dlg_slicer * slicerDockWidget(int mode) override;
+	QDockWidget* slicerDockWidget(int mode) override;
 	//! Access to 3D renderer dock widget
 	QDockWidget* renderDockWidget() override;
 	//! Access to image property dock widget

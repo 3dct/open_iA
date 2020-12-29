@@ -30,7 +30,6 @@
 #include <QSharedPointer>
 
 class dlg_modalities;
-class dlg_slicer;
 class iAAlgorithm;
 class iAChannelData;
 class iAChartWithFunctionsWidget;
@@ -84,7 +83,7 @@ public:
 	//! Access to slicer dock widget for the given mode
 	//! @param mode slicer to access - use constants from iASlicerMode enum
 	//! (TODO: separate dock widget from rest of functionality)
-	virtual dlg_slicer* slicerDockWidget(int mode) = 0;
+	virtual QDockWidget* slicerDockWidget(int mode) = 0;
 	
 	//! Access to 3D renderer dock widget
 	virtual QDockWidget* renderDockWidget() = 0;

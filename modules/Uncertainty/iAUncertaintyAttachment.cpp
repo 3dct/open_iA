@@ -30,8 +30,6 @@
 #include "iASpatialView.h"
 #include "iAUncertaintyColors.h"
 
-#include <dlg_imageproperty.h>
-#include <dlg_slicer.h>
 #include <iASlicerMode.h>
 #include <iAMdiChild.h>
 #include <iAMainWindow.h>
@@ -47,6 +45,7 @@
 #include <vtkLookupTable.h>
 
 #include <QDir>
+#include <QGuiApplication>
 
 const int EntropyBinCount = 100;
 

@@ -2302,7 +2302,7 @@ iASlicer* MdiChild::slicer(int mode)
 	return m_slicer[mode];
 }
 
-dlg_slicer* MdiChild::slicerDockWidget(int mode)
+QDockWidget* MdiChild::slicerDockWidget(int mode)
 {
 	assert(0 <= mode && mode < iASlicerMode::SlicerCount);
 	return m_dwSlicer[mode];

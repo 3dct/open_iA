@@ -37,9 +37,7 @@
 #include "iAObjectType.h"
 
 #include <dlg_commoninput.h>
-//#include <dlg_imageproperty.h>
 #include <dlg_modalities.h>
-#include <dlg_slicer.h>
 #include <iAmat4.h>
 #include <iAMovieHelper.h>
 #include <iARenderer.h>

@@ -29,7 +29,6 @@
 #include <iAPlotTypes.h>
 #include <iAProfileWidget.h>
 #include <dlg_modalities.h>
-#include <dlg_slicer.h>
 #include <iAChannelData.h>
 #include <iAChannelSlicerData.h>
 #include <iAModality.h>
@@ -123,17 +122,10 @@ iAMultimodalWidget::iAMultimodalWidget(iAMdiChild* mdiChild, NumOfMod num):
 	connect(m_checkBox_weightByOpacity, &QCheckBox::stateChanged, this, &iAMultimodalWidget::checkBoxWeightByOpacityChanged);
 	connect(m_checkBox_syncedCamera,    &QCheckBox::stateChanged, this, &iAMultimodalWidget::checkBoxSyncedCameraChanged);
 
-	connect(mdiChild->slicerDockWidget(iASlicerMode::XY)->verticalScrollBar, &QSlider::valueChanged, this, &iAMultimodalWidget::onMainXYSliceNumberChanged);
-	connect(mdiChild->slicerDockWidget(iASlicerMode::XZ)->verticalScrollBar, &QSlider::valueChanged, this, &iAMultimodalWidget::onMainXZSliceNumberChanged);
-	connect(mdiChild->slicerDockWidget(iASlicerMode::YZ)->verticalScrollBar, &QSlider::valueChanged, this, &iAMultimodalWidget::onMainYZSliceNumberChanged);
-
-	connect(mdiChild->slicerDockWidget(iASlicerMode::XY)->verticalScrollBar, &QSlider::sliderPressed, this, &iAMultimodalWidget::onMainXYScrollBarPress);
-	connect(mdiChild->slicerDockWidget(iASlicerMode::XZ)->verticalScrollBar, &QSlider::sliderPressed, this, &iAMultimodalWidget::onMainXZScrollBarPress);
-	connect(mdiChild->slicerDockWidget(iASlicerMode::YZ)->verticalScrollBar, &QSlider::sliderPressed, this, &iAMultimodalWidget::onMainYZScrollBarPress);
-
-	connect(mdiChild->slicerDockWidget(iASlicerMode::XY)->sbSlice, QOverload<int>::of(&QSpinBox::valueChanged), this, &iAMultimodalWidget::onMainXYSliceNumberChanged);
-	connect(mdiChild->slicerDockWidget(iASlicerMode::XZ)->sbSlice, QOverload<int>::of(&QSpinBox::valueChanged), this, &iAMultimodalWidget::onMainXZSliceNumberChanged);
-	connect(mdiChild->slicerDockWidget(iASlicerMode::YZ)->sbSlice, QOverload<int>::of(&QSpinBox::valueChanged), this, &iAMultimodalWidget::onMainYZSliceNumberChanged);
+	for (int i = 0; i < 3; ++i)
+	{
+		connect(mdiChild->slicer(i), &iASlicer::sliceNumberChanged, this, &iAMultimodalWidget::onMainSliceNumberChanged);
+	}
 
 	connect(mdiChild, &iAMdiChild::histogramAvailable, this, &iAMultimodalWidget::histogramAvailable);
 	connect(mdiChild, &iAMdiChild::renderSettingsChanged, this, &iAMultimodalWidget::applyVolumeSettings);
@@ -804,32 +796,10 @@ void iAMultimodalWidget::checkBoxSyncedCameraChanged()
 	}
 }
 
-// SCROLLBARS (private SLOTS)
-void iAMultimodalWidget::onMainXYScrollBarPress() {
-	setSlicerMode(iASlicerMode::XY);
-}
-
-void iAMultimodalWidget::onMainXZScrollBarPress() {
-	setSlicerMode(iASlicerMode::XZ);
-}
-
-void iAMultimodalWidget::onMainYZScrollBarPress() {
-	setSlicerMode(iASlicerMode::YZ);
-}
-
-void iAMultimodalWidget::onMainXYSliceNumberChanged(int sliceNumberXY) {
-	setSlicerMode(iASlicerMode::XY);
-	setSliceNumber(sliceNumberXY);
-}
-
-void iAMultimodalWidget::onMainXZSliceNumberChanged(int sliceNumberXZ) {
-	setSlicerMode(iASlicerMode::XZ);
-	setSliceNumber(sliceNumberXZ);
-}
-
-void iAMultimodalWidget::onMainYZSliceNumberChanged(int sliceNumberYZ) {
-	setSlicerMode(iASlicerMode::YZ);
-	setSliceNumber(sliceNumberYZ);
+void iAMultimodalWidget::onMainSliceNumberChanged(int mode, int sliceNumber)
+{
+	setSlicerMode(static_cast<iASlicerMode>(mode));
+	setSliceNumber(sliceNumber);
 }
 
 QSharedPointer<iAModality> iAMultimodalWidget::getModality(int index)
@@ -837,7 +807,8 @@ QSharedPointer<iAModality> iAMultimodalWidget::getModality(int index)
 	return m_modalitiesActive[index];
 }
 
-vtkSmartPointer<vtkImageData> iAMultimodalWidget::getModalityImage(int index) {
+vtkSmartPointer<vtkImageData> iAMultimodalWidget::getModalityImage(int index)
+{
 	return getModality(index)->image();
 }
 
