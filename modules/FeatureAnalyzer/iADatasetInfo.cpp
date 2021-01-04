@@ -23,6 +23,7 @@
 #include "iAFeatureAnalyzerModuleInterface.h"
 #include "FeatureAnalyzerHelpers.h"
 
+#include <iAFileUtils.h>
 #include <iAItkVersion.h>
 #include <iAToolsITK.h>
 #include <iAITKIO.h>

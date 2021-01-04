@@ -55,9 +55,7 @@ class iA3DCylinderObjectVis;
 
 class iAChartWidget;
 class iAColorTheme;
-class iACsvVectorTableCreator;
 class iADockWidgetWrapper;
-class iAFileChooserWidget;
 class iAMapper;
 class iAQSplom;
 class iARendererManager;

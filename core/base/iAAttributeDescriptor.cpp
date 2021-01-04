@@ -22,7 +22,6 @@
 
 #include "iALog.h"
 #include "iAListNameMapper.h"
-#include "iAStringHelper.h"
 
 namespace
 {

@@ -35,7 +35,6 @@
 #include "iAvtkInteractStyleActor.h"
 #include "io/iAIO.h"
 #include "io/iAIOProvider.h"
-#include "io/extension2id.h"
 #include "iAMdiChild.h"
 
 #include <QVTKInteractor.h>

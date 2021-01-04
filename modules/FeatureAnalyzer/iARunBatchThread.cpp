@@ -24,8 +24,9 @@
 #include "iAFeatureAnalyzerModuleInterface.h"
 
 #include <defines.h>
-#include <iATypedCallHelper.h>
+#include <iAFileUtils.h>
 #include <iAITKIO.h>
+#include <iATypedCallHelper.h>
 
 // from Maximum Distance Toolkit
 #include <iAMaximumDistanceFilter.h>

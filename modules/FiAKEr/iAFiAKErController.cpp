@@ -36,30 +36,13 @@
 //#include "iAFeatureScoutModuleInterface.h"
 
 // Core:
-#include <iAChartWidget.h>
-#include <iAHistogramData.h>
-#include <iAPlotTypes.h>
-#include <iAScatterPlot.h> // for selection mode: iAScatterPlot::Rectangle
-#include <iAQSplom.h>
-#include <iASPLOMData.h>
-#include <iAColorTheme.h>
-#include <iAConnector.h>
-#include <iALog.h>
-#include <iALookupTable.h>
-#include <iALUT.h>
 #include <iAMapperImpl.h>
-#include <iAMathUtility.h>
 #include <iAModuleDispatcher.h>
 #include <iARenderSettings.h>
 #include <iARenderer.h>
 #include <iARendererManager.h>
-#include <iAStringHelper.h>
-#include <iAToolsVTK.h>    // for setCamPos
-#include <iATransferFunction.h>
 #include <iAVolumeRenderer.h>
-#include <iAVtkVersion.h>
 #include <io/iAIOProvider.h>
-#include <iAITKIO.h>
 #include <iAMainWindow.h>
 #include <iAMdiChild.h>
 #include <qthelper/iADockWidgetWrapper.h>
@@ -67,6 +50,28 @@
 #include <qthelper/iAQTtoUIConnector.h>
 #include <qthelper/iASignallingWidget.h>
 #include <qthelper/iAVtkQtWidget.h>
+
+// charts
+#include <iAChartWidget.h>
+#include <iAHistogramData.h>
+#include <iAPlotTypes.h>
+#include <iAScatterPlot.h> // for selection mode: iAScatterPlot::Rectangle
+#include <iAQSplom.h>
+#include <iASPLOMData.h>
+
+// base
+#include <iAColorTheme.h>
+#include <iAConnector.h>
+#include <iALookupTable.h>
+#include <iAFileUtils.h>
+#include <iAITKIO.h>
+#include <iALog.h>
+#include <iALUT.h>
+#include <iAMathUtility.h>
+#include <iAStringHelper.h>
+#include <iAToolsVTK.h>    // for setCamPos
+#include <iATransferFunction.h>
+#include <iAVtkVersion.h>
 
 #include <vtkCamera.h>
 #include <vtkColorTransferFunction.h>

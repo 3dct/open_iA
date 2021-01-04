@@ -22,6 +22,8 @@
 
 #include <iAITKIO.h>
 
+#include <itkImage.h>
+
 // TODO: Replace with some other definition / template?
 const int Dimensions = 3;
 typedef int LabelPixelType;

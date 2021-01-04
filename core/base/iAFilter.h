@@ -34,14 +34,15 @@
 #include <QMap>
 #include <QSharedPointer>
 #include <QString>
-#include <QVariant>
 #include <QVector>
-
-class vtkImageData;
 
 class iAConnector;
 class iALogger;
 class iAProgress;
+
+class vtkImageData;
+
+class QVariant;
 
 //! Base class for image filters.
 //! Derived classes should:

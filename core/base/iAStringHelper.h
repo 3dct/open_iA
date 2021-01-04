@@ -23,7 +23,6 @@
 #include "base_export.h"
 
 #include <QStringList>
-#include <QVector>
 
 #include <cassert>
 

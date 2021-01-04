@@ -22,7 +22,8 @@
 
 #include "iALog.h"
 
-#include <QStringList>
+class QString;
+class QStringList;
 
 base_API QString logLevelToString(iALogLevel lvl);
 base_API iALogLevel stringToLogLevel(QString const& str, bool& ok);

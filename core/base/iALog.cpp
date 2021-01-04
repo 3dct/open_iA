@@ -21,6 +21,8 @@
 #include "iALog.h"
 #include "iALogLevelMappings.h"
 
+#include <QStringList>
+
 iALogger* iALog::m_globalLogger(nullptr);
 
 void iALog::setLogger(iALogger* logger)

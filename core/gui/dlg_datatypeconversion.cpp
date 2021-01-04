@@ -24,18 +24,19 @@
 #include "io/iARawFileParameters.h"
 
 // charts
-#include "iAChartWidget.h"
-#include "iAHistogramData.h"
-#include "iAPlotTypes.h"
+#include <iAChartWidget.h>
+#include <iAHistogramData.h>
+#include <iAPlotTypes.h>
 
 // base
-#include "iAConnector.h"
-#include "iAMathUtility.h"
-#include "iAToolsITK.h"
-#include "iAToolsVTK.h"
-#include "iATransferFunction.h"    // for GetDefault... functions
-#include "iATypedCallHelper.h"
-#include "iAVtkVersion.h"
+#include <iAConnector.h>
+#include <iAFileUtils.h>
+#include <iAMathUtility.h>
+#include <iAToolsITK.h>
+#include <iAToolsVTK.h>
+#include <iATransferFunction.h>    // for GetDefault... functions
+#include <iATypedCallHelper.h>
+#include <iAVtkVersion.h>
 
 #include <itkChangeInformationImageFilter.h>
 #include <itkExtractImageFilter.h>

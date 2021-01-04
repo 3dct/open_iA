@@ -21,6 +21,7 @@
 #include "iAToolsVTK.h"
 
 #include "iAConnector.h"
+#include "iAFileUtils.h"
 #include "iALog.h"
 #include "iAVtkDraw.h"
 #include "iAITKIO.h"

@@ -26,7 +26,6 @@
 #include "iAHistogramStack.h"
 #include "iAHistogramTriangle.h"
 
-#include <dlg_modalities.h>
 #include <iAModality.h>
 #include <iAModalityList.h>
 #include <iAModalityTransfer.h>

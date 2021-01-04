@@ -29,7 +29,6 @@
 
 #include <iAChannelData.h>
 #include <iASlicer.h>
-#include <io/extension2id.h>
 #include <io/iAIO.h>
 #include <iALog.h>
 #include <iAMainWindow.h>
@@ -95,12 +94,12 @@ iAInSpectrAttachment::iAInSpectrAttachment( iAMainWindow * mainWnd, iAMdiChild *
 
 	QString extension = QFileInfo( f ).suffix();
 	extension = extension.toUpper();
-	if (extensionToIdStack.find(extension) == extensionToIdStack.end())
+	if (extensionToIdStack().find(extension) == extensionToIdStack().end())
 	{
 		throw itk::ExceptionObject(__FILE__, __LINE__, "Unsupported extension");
 	}
 
-	iAIOType id = extensionToIdStack.find( extension ).value();
+	iAIOType id = extensionToIdStack().find(extension).value();
 	if( !ioThread->setupIO( id, f ) )
 	{
 		xrfLoadingFailed();

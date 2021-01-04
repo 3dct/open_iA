@@ -31,8 +31,6 @@
 #include "qthelper/iAQTtoUIConnector.h"
 typedef iAQTtoUIConnector<QDockWidget, Ui_modalities> dlg_modalitiesUI;
 
-class dlg_planeSlicer;
-
 class iAvtkInteractStyleActor;
 class iAFast3DMagicLensWidget;
 class iAModality;
@@ -97,9 +95,10 @@ private slots:
 	void showChecked(QListWidgetItem* item);
 
 private:
-
-	//connects interactor styles  slicer to each other and with 3D renderer
+	//! connects interactor styles  slicer to each other and with 3D renderer
 	void configureInterActorStyles(QSharedPointer<iAModality> editModality);
+	//! add a modality to the list
+	void addToList(QSharedPointer<iAModality> mod);
 
 	// TODO: move modalities out of here (mdichild? common data repository?)
 	QSharedPointer<iAModalityList> m_modalities;
@@ -109,8 +108,4 @@ private:
 	iAMdiChild* m_mdiChild;
 
 	vtkSmartPointer<iAvtkInteractStyleActor> m_manualMoveStyle[4];
-
-	void addToList(QSharedPointer<iAModality> mod);
-	//! initialize a modality's transfer function
-	void initTransfer(QSharedPointer<iAModality> mod);
 };

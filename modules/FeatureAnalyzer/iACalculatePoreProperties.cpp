@@ -23,6 +23,7 @@
 #include "iACSVToQTableWidgetConverter.h"
 
 #include <defines.h>
+#include <iAFileUtils.h>
 #include <iAITKIO.h>
 
 #include <itkConnectedComponentImageFilter.h>

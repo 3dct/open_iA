@@ -20,7 +20,6 @@
 * ************************************************************************************/
 #pragma once
 
-#include <vtkSmartPointer.h>
 #include <vtkImageData.h>
 
 #include "base_export.h"

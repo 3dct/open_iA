@@ -20,17 +20,12 @@
 * ************************************************************************************/
 #pragma once
 
-#include "iATypedCallHelper.h"
-
-#include "iAFileUtils.h"
+#include "base_export.h"
 
 #include <itkImageBase.h>
 #include <itkImageIOBase.h>
-#include <itkImageIOFactory.h>
-#include <itkImageFileReader.h>
-#include <itkImageFileWriter.h>
 
-#include <QString>
+class QString;
 
 namespace iAITKIO
 {
@@ -41,65 +36,8 @@ namespace iAITKIO
 	typedef ImageBaseType* ImagePtr;
 	typedef itk::ImageIOBase::IOComponentType ScalarPixelType;
 
-	template<class T>
-	inline void read_image_template( QString const & f, ImagePointer & image, bool releaseFlag )
-	{
-		typedef itk::Image< T, m_DIM>   InputImageType;
-		typedef itk::ImageFileReader<InputImageType> ReaderType;
-		typename ReaderType::Pointer reader = ReaderType::New();
-
-		if (releaseFlag)
-		{
-			reader->ReleaseDataFlagOn();
-		}
-		reader->SetFileName( getLocalEncodingFileName(f) );
-		reader->Update();
-		image = reader->GetOutput();
-		image->Modified();
-	}
-
-	template<class T>
-	inline void write_image_template( bool comp, QString const & fileName, ImagePtr image )
-	{
-		typedef itk::Image< T, m_DIM>   InputImageType;
-		typedef itk::ImageFileWriter<InputImageType> WriterType;
-		typename WriterType::Pointer writer = WriterType::New();
-
-		writer->ReleaseDataFlagOn();
-		std::string encodedFileName = getLocalEncodingFileName(fileName);
-		if (encodedFileName.empty())
-		{
-			return;
-		}
-		writer->SetFileName( encodedFileName.c_str() );
-		writer->SetInput( dynamic_cast<InputImageType *> (image) );
-		writer->SetUseCompression( comp );
-		writer->Update();
-	}
 
 	// TODO: unify with mdichild::loadfile / iAIO!
-	inline ImagePointer readFile (QString const & fileName, ScalarPixelType & pixelType, bool releaseFlag)
-	{
-		itk::ImageIOBase::Pointer imageIO =
-		itk::ImageIOFactory::CreateImageIO( getLocalEncodingFileName(fileName).c_str(), itk::ImageIOFactory::ReadMode );
-
-		if (!imageIO)
-		{
-			throw itk::ExceptionObject( __FILE__, __LINE__, QString("iAITKIO: Could not open file %1, aborting loading.").arg(fileName).toStdString().c_str() );
-			//return ImagePointer();
-		}
-
-		imageIO->SetFileName( getLocalEncodingFileName(fileName) );
-		imageIO->ReadImageInformation();
-		pixelType = imageIO->GetComponentType();
-		ImagePointer image;
-		ITK_TYPED_CALL(read_image_template, pixelType, fileName, image, releaseFlag);
-
-		return image;
-	}
-
-	inline void writeFile (QString const & fileName, ImagePtr image, ScalarPixelType pixelType, bool useCompression = false )
-	{
-		ITK_TYPED_CALL(write_image_template, pixelType, useCompression, fileName, image);
-	}
-} // namespace iAITKIO
+	base_API ImagePointer readFile(QString const& fileName, ScalarPixelType& pixelType, bool releaseFlag);
+	base_API void writeFile(QString const& fileName, ImagePtr image, ScalarPixelType pixelType, bool useCompression = false);
+	} // namespace iAITKIO

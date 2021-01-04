@@ -47,6 +47,7 @@
 #include <iAModalityList.h>
 #include <iAMdiChild.h>
 #include <iAPreferences.h>
+#include <iATypedCallHelper.h>
 #include <qthelper/iADockWidgetWrapper.h>
 
 // charts:

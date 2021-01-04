@@ -24,11 +24,11 @@
 
 #include <vtkSmartPointer.h>
 
-#include <QString>
-
 class iALookupTable;
 
 class vtkLookupTable;
+
+class QString;
 
 namespace iALUT
 {

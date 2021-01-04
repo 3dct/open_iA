@@ -23,7 +23,6 @@
 #include "base_export.h"
 
 #include <QColor>
-#include <QList>
 #include <QMap>
 
 #include <vector>

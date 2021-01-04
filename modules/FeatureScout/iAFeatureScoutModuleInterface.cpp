@@ -23,9 +23,10 @@
 #include "iAFeatureScoutAttachment.h"
 #include "iAFeatureScoutToolbar.h"
 
-#include "dlg_CSVInput.h"
-#include "iACsvIO.h"
-#include "iACsvVtkTableCreator.h"
+#include <dlg_CSVInput.h>
+#include <iACsvConfig.h>
+#include <iACsvIO.h>
+#include <iACsvVtkTableCreator.h>
 
 #include <iALog.h>
 #include <iAModalityList.h>

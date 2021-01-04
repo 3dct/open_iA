@@ -25,11 +25,13 @@
 #include <iAChanData.h>
 #include <iAChannelData.h>
 #include <iAChannelSlicerData.h>
-#include <iAConnector.h>
-#include <iALog.h>
 #include <iASlicer.h>
 #include <iASlicerSettings.h>
+
+#include <iAConnector.h>
+#include <iAFileUtils.h>
 #include <iAITKIO.h>
+#include <iALog.h>
 
 #include <itkAddImageFilter.h>
 #include <itkCastImageFilter.h>

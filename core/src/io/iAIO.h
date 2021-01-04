@@ -28,6 +28,7 @@
 #include <vtkSmartPointer.h>
 
 #include <QDir>
+#include <QMap>
 #include <QString>
 #include <QSharedPointer>
 
@@ -39,6 +40,12 @@ class vtkPolyData;
 class vtkStringArray;
 
 class iAModalityList;
+
+typedef QMap<QString, iAIOType> mapQString2int;
+
+open_iA_Core_API mapQString2int const & extensionToId();
+open_iA_Core_API mapQString2int const & extensionToIdStack();
+open_iA_Core_API mapQString2int const & extensionToSaveId();
 
 //! Class currently containing most IO operations (file reading and writing).
 //! Should be split up into readers for specific formats!

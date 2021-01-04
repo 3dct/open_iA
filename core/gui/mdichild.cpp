@@ -48,7 +48,6 @@
 #include "iATransferFunction.h"
 #include "iAVolumeStack.h"
 #include "iAVtkVersion.h"
-#include "io/extension2id.h"
 #include "io/iAIO.h"
 #include "io/iAIOProvider.h"
 #include "mainwindow.h"
@@ -498,17 +497,13 @@ bool MdiChild::setupLoadIO(QString const& f, bool isStack)
 	// - iterate over file plugins; if one returns a match, use it
 	QString extension = m_fileInfo.suffix();
 	extension = extension.toUpper();
-	const mapQString2int* ext2id = &extensionToId;
-	if (isStack)
-	{
-		ext2id = &extensionToIdStack;
-	}
-	if (ext2id->find(extension) == ext2id->end())
+	mapQString2int const& ext2id = isStack ? extensionToIdStack() : extensionToId();
+	if (ext2id.find(extension) == ext2id.end())
 	{
 		LOG(lvlError, QString("Could not find loader for extension '%1' of file '%2'!").arg(extension).arg(f));
 		return false;
 	}
-	iAIOType id = ext2id->find(extension).value();
+	iAIOType id = ext2id.find(extension).value();
 	return m_ioThread->setupIO(id, f);
 }
 
@@ -1007,11 +1002,11 @@ bool MdiChild::setupSaveIO(QString const& f)
 				supportedPixelTypes.insert(JPG_STACK_WRITER, pngJpgBmpSupported);
 
 				QString suffix = fileInfo.suffix().toUpper();
-				if (!extensionToSaveId.contains(suffix))
+				if (!extensionToSaveId().contains(suffix))
 				{
 					return false;
 				}
-				iAIOType ioID = extensionToSaveId[suffix];
+				iAIOType ioID = extensionToSaveId()[suffix];
 				if (supportedPixelTypes.contains(ioID) &&
 					!supportedPixelTypes[ioID].contains(m_imageData->GetScalarType()))
 				{

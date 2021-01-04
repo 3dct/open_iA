@@ -30,7 +30,6 @@
 #include "iAToolsVTK.h"
 #include "iAVolumeRenderer.h"
 #include "iAVolumeSettings.h"
-#include "io/extension2id.h"
 #include "iAFileUtils.h"
 #include "io/iAIO.h"
 
@@ -399,13 +398,13 @@ ModalityCollection iAModalityList::load(QString const & filename, QString const 
 	{
 		QString extension = fileInfo.suffix();
 		extension = extension.toUpper();
-		const mapQString2int * ext2id = &extensionToId;
-		if (ext2id->find(extension) == ext2id->end())
+		mapQString2int const & ext2id = extensionToId();
+		if (ext2id.find(extension) == ext2id.end())
 		{
 			LOG(lvlError, "Unknown file type!");
 			return result;
 		}
-		iAIOType id = ext2id->find(extension).value();
+		iAIOType id = ext2id.find(extension).value();
 		if (!io.setupIO(id, filename, false, channel))
 		{
 			LOG(lvlError, "Could not set up modality loading!");

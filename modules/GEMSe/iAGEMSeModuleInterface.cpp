@@ -25,7 +25,6 @@
 #include "iARepresentative.h"
 #include "iASEAFile.h"
 
-#include <dlg_modalities.h>
 #include <iAConnector.h>
 #include <iALog.h>
 #include <iAFilter.h>

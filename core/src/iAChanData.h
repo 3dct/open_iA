@@ -23,6 +23,7 @@
 #include "open_iA_Core_export.h"
 
 #include <vtkSmartPointer.h>
+
 #include <QScopedPointer>
 #include <QColor>
 

@@ -26,7 +26,6 @@
 #include <itkVTKImageImport.h>
 #include <itkVTKImageExport.h>
 
-
 //! Connects the given itk::VTKImageExport filter to the given vtkImageImport filter.
 template <typename ITK_Exporter, typename VTK_Importer>
 void ConnectPipelines(ITK_Exporter exporter, VTK_Importer* importer)
@@ -137,7 +136,9 @@ void iAConnector::updateImageVTK()
 void iAConnector::setImage(vtkSmartPointer<vtkImageData> imageData)
 {
 	if (m_VTKImage == imageData)
+	{
 		return;
+	}
 	m_VTKImage = imageData;
 	updateImageITK();
 }

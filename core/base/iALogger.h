@@ -22,7 +22,7 @@
 
 #include "base_export.h"
 
-#include <QString>
+class QString;
 
 //! Severity of log entries.
 //! Values persisted to preferences (see mainwindow)

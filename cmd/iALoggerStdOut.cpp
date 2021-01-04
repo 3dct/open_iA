@@ -24,6 +24,8 @@
 
 #include <iostream>
 
+#include <QString>
+
 void iALoggerStdOut::log(iALogLevel lvl, QString const& msg)
 {
 	if (lvl < m_logLevel)

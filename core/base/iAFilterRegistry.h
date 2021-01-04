@@ -22,9 +22,8 @@
 
 #include "base_export.h"
 
-#include "iAGenericFactory.h"
+#include "iAGenericFactory.h"     // also includes QSharedPointer
 
-#include <QSharedPointer>
 #include <QVector>
 
 class iAFilter;
