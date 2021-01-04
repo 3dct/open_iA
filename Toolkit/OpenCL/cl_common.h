@@ -1,10 +1,13 @@
 #ifndef CL_COMMON_H
 #define CL_COMMON_H
 
+#include <iAVec3.h>
+
 #include <itkMacro.h>
+
 #include <QtGui>
 #include <QMessageBox>
-#include "iAmat4.h"
+
 
 // When the AMD OpenCL 1.2 installed, we need this line to do the work
 // if it does not work on your PC, just uncomment the following line 

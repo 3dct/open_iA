@@ -23,13 +23,11 @@
 // base:
 #include "iAITKIO.h" // for image type
 
-#include "open_iA_Core_export.h"
-
-struct open_iA_Core_API iAImageComparisonResult
+struct iAImageComparisonResult
 {
 	// double dice;
 	double equalPixelRate;
 };
 
 
-open_iA_Core_API iAImageComparisonResult CompareImages(iAITKIO::ImagePointer img, iAITKIO::ImagePointer reference);
+iAImageComparisonResult CompareImages(iAITKIO::ImagePointer img, iAITKIO::ImagePointer reference);
