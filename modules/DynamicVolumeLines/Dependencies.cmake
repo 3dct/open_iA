@@ -3,5 +3,5 @@ SET ( DEPENDENCIES_INCLUDE_DIRS
 )
 
 SET( DEPENDENCIES_LIBRARIES
-	charts    # for qcustomplot
+	iAcharts    # for qcustomplot
 )

@@ -25,7 +25,7 @@
 
 #include <iAGUIModuleInterface.h>
 
-class iACsvConfig;
+struct iACsvConfig;
 class iAFeatureScoutToolbar;
 
 class FeatureScout_API iAFeatureScoutModuleInterface : public iAGUIModuleInterface

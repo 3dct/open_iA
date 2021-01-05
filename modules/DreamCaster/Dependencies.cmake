@@ -9,7 +9,7 @@ SET( DEPENDENCIES_IA_TOOLKIT_DIRS
 
 SET( DEPENDENCIES_LIBRARIES
 	${OPENCL_LIBRARIES}
-	charts
+	iAcharts
 )
 
 # if OPENCL includes not set via ITK:

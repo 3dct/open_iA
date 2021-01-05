@@ -659,7 +659,7 @@ ENDIF()
 # Common Settings
 #-------------------------
 
-SET (CORE_LIBRARY_NAME open_iA_Core)
+SET (CORE_LIBRARY_NAME iAcore)
 
 option (openiA_USE_IDE_FOLDERS "Whether to group projects in subfolders in the IDE (mainly Visual Studio). Default: enabled." ON)
 IF (openiA_USE_IDE_FOLDERS)

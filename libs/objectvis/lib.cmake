@@ -1,0 +1,1 @@
+TARGET_LINK_LIBRARIES(${libname} PUBLIC iAbase)

@@ -9,7 +9,7 @@ ELSE()
 ENDIF()
 
 SET (DEPENDENCIES_LIBRARIES
-	objectvis
+	iAobjectvis
 	${OPENVR_LIBRARY}
 )
 
@@ -31,6 +31,6 @@ SET( DEPENDENCIES_COMPILE_DEFINITIONS
 	OPENVR_VERSION_MAJOR=${OPENVR_VERSION_MAJOR} OPENVR_VERSION_MINOR=${OPENVR_VERSION_MINOR} OPENVR_VERSION_BUILD=${OPENVR_VERSION_BUILD}
 )
 
-get_filename_component(ObjectVisSrcDir "../core/objectvis" REALPATH BASE_DIR "${CMAKE_CURRENT_SOURCE_DIR}")
-get_filename_component(ObjectVisBinDir "../core/objectvis" REALPATH BASE_DIR "${CMAKE_CURRENT_BINARY_DIR}")
-SET( DEPENDENCIES_INCLUDE_DIRS "${ObjectVisSrcDir}" "${ObjectVisBinDir}")
+#get_filename_component(ObjectVisSrcDir "../core/objectvis" REALPATH BASE_DIR "${CMAKE_CURRENT_SOURCE_DIR}")
+#get_filename_component(ObjectVisBinDir "../core/objectvis" REALPATH BASE_DIR "${CMAKE_CURRENT_BINARY_DIR}")
+#SET( DEPENDENCIES_INCLUDE_DIRS "${ObjectVisSrcDir}" "${ObjectVisBinDir}")
