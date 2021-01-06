@@ -26,6 +26,7 @@
 #include <vtkImageData.h>
 #include <vtkPiecewiseFunction.h>
 
+#include <QString>    // to be able to create QString from const char *
 
 iATransferFunction::~iATransferFunction()
 {}

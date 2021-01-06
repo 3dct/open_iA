@@ -29,6 +29,7 @@ class iALookupTable;
 class vtkLookupTable;
 
 class QString;
+class QStringList;
 
 namespace iALUT
 {

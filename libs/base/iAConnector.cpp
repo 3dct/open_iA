@@ -26,6 +26,8 @@
 #include <itkVTKImageImport.h>
 #include <itkVTKImageExport.h>
 
+#include <vtkImageData.h>
+
 //! Connects the given itk::VTKImageExport filter to the given vtkImageImport filter.
 template <typename ITK_Exporter, typename VTK_Importer>
 void ConnectPipelines(ITK_Exporter exporter, VTK_Importer* importer)

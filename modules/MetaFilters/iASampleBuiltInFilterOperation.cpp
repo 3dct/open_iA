@@ -21,11 +21,12 @@
 #include "iASampleBuiltInFilterOperation.h"
 
 #include <iAConnector.h>
-#include <iALog.h>
+#include <iAFileUtils.h>    // for pathFileBaseName
 #include <iAFilter.h>
 #include <iAFilterRegistry.h>
-#include <iAProgress.h>
+#include <iALog.h>
 #include <iAITKIO.h>
+#include <iAProgress.h>
 
 #include <QFileInfo>
 

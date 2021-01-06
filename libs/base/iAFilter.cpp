@@ -25,6 +25,8 @@
 #include "iALog.h"
 #include "iAStringHelper.h"
 
+#include <vtkImageData.h>
+
 #include <QColor>
 #include <QFileInfo>
 
