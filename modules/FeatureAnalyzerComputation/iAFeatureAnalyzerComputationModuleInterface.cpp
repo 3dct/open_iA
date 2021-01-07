@@ -117,6 +117,7 @@ void iAFeatureAnalyzerComputationModuleInterface::computeParameterSpace()
 	}
 	m_pipelineSlotsCount = minPipelineSlotsCount;
 
+	// TODO: Use layouts!
 	// Datasets box
 	QDir datasetDir( m_datasetsFolder );
 	datasetDir.setNameFilters( QStringList() << "*.mhd" );
