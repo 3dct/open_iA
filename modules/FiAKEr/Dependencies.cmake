@@ -1,5 +1,5 @@
-SET (DEPENDENCIES_LIBRARIES
-	iAcharts
+SET( DEPENDENCIES_LIBRARIES
+	iAcharts      # also pulls in required iAqthelper
 	iAobjectvis
-	# iAqthelper    # pulled in by charts automatically
+	iAcore
 )

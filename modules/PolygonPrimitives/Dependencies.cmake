@@ -1,4 +1,3 @@
 SET( DEPENDENCIES_LIBRARIES
 	iAcore
-	iAqthelper
 )

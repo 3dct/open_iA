@@ -1,6 +1,6 @@
 SET( DEPENDENCIES_LIBRARIES
-	iAcharts
-	# iAqthelper    # pulled in by charts automatically
+	iAcharts      # also pulls in required iAqthelper
+	iAcore
 )
 SET( DEPENDENCIES_IA_TOOLKIT_DIRS
 	FunctionalBoxplot

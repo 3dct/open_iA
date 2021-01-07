@@ -121,16 +121,7 @@ FOREACH( indx RANGE ${len} )
 		ENDIF()
 	ENDFOREACH()
 
-	if ("${BASE_LIBRARY}" STREQUAL "")
-		set (BASE_LIBRARY ${CORE_LIBRARY_NAME})
-	endif()
-	IF (openiA_DEPENDENCY_INFO)
-		MESSAGE(STATUS "    base: ${BASE_LIBRARY}")
-	ENDIF()
-	# also pulls in libraries defined in core interface (qt, vtk, itk):
-	TARGET_LINK_LIBRARIES(${module_name} PRIVATE ${BASE_LIBRARY})
-
-	# additional module (such as astra, eigen, OpenCL, ...)
+	# required libraries (either from libs folder, or external, such as astra, eigen, OpenCL, ...)
 	IF (ADDITIONAL_MODULE_LIBRARIES)
 		IF (openiA_DEPENDENCY_INFO)
 			MESSAGE(STATUS "    libs: ${ADDITIONAL_MODULE_LIBRARIES}")

@@ -1,7 +1,7 @@
-SET (DEPENDENCIES_IA_TOOLKIT_DIRS
-	MaximumDistance
-)
 SET( DEPENDENCIES_LIBRARIES
 	iAcharts
+	iAcore
 )
-#SET (DEPENDENCIES_BASE_LIBRARY iAcore) # for access to iAModuleInterfaceGUI
+SET( DEPENDENCIES_IA_TOOLKIT_DIRS
+	MaximumDistance
+)
