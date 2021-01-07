@@ -20,7 +20,7 @@
 * ************************************************************************************/
 #pragma once
 
-#include "iAbase_export.h"
+#include "iAqthelper_export.h"
 
 #include <QtGlobal>
 
@@ -48,4 +48,4 @@ typedef QGLFormat iAQGLFormat;
 
 #endif
 
-iAbase_API iAQGLFormat defaultOpenGLFormat();
+iAqthelper_API iAQGLFormat defaultOpenGLFormat();

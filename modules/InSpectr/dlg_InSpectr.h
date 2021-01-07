@@ -52,12 +52,13 @@ class iAReferenceSpectraLibrary;
 class iAPeriodicTableListener;
 class iAXRFData;
 
+class iAMdiChild;
+
 class iAHistogramData;
 class iAPlot;
 class iAPlotCollection;
 class iASelectedBinPlot;
 class iAStepFunctionPlot;
-class iAWidgetAddHelper;
 
 class vtkColorTransferFunction;
 class vtkImageData;
@@ -72,9 +73,8 @@ class dlg_InSpectr : public dlg_xrfContainer, public iASpectrumFilterListener
 	Q_OBJECT
 public:
 	dlg_InSpectr(QWidget *parentWidget, dlg_periodicTable* dlgPeriodicTable, dlg_RefSpectra* dlgRefSpectra);
-	void init(double minEnergy, double maxEnergy, bool haveEnergyLevels,
-		iAWidgetAddHelper& widgetAddHelper);
-	void InitElementMaps(iAWidgetAddHelper & widgetAddHelper);
+	void init(double minEnergy, double maxEnergy, bool haveEnergyLevels, iAMdiChild* child);
+	void InitElementMaps(iAMdiChild* child);
 
 	vtkSmartPointer<vtkImageData> GetCombinedVolume();
 	vtkSmartPointer<vtkColorTransferFunction> GetColorTransferFunction();
@@ -164,7 +164,7 @@ private:
 	void updateSelection();
 	void enableControlsNeedingDecompositionData();
 	void InitElementRenderer(dlg_elementRenderer * elemRend, size_t index);
-	void InitCommonGUI(iAWidgetAddHelper & widgetAddHelper);
+	void InitCommonGUI(iAMdiChild* child);
 
 	QSharedPointer<QImage>                         m_spectraHistogramImage;
 	QImage                                         m_spectraHistogramColormap;

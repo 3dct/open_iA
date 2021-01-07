@@ -1,5 +1,4 @@
 SET (OPENIA_PRECOMPILE_HEADERS
-
 <defines.h>
 <dlg_commoninput.h>
 <iAAbortListener.h>

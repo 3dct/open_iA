@@ -36,7 +36,9 @@
 #include "io/iAIOProvider.h"
 #include "iATLGICTLoader.h"
 #include "mdichild.h"
-#include "qthelper/iADockWidgetWrapper.h"
+
+// qthelper
+#include "iADockWidgetWrapper.h"
 
 // charts
 #include "iAChartFunctionBezier.h"

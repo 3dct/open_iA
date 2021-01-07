@@ -22,7 +22,7 @@
 
 #include "iAPlotData.h"
 #ifdef CHART_OPENGL
-#include "qthelper/iAQGLWidget.h"
+#include "iAQGLWidget.h"
 using iAChartParentWidget = iAQGLWidget;
 #else
 #include <QWidget>

@@ -45,7 +45,8 @@
 #include <iAFileUtils.h>
 #include <io/iAIOProvider.h>
 #include <iAMdiChild.h>
-#include <qthelper/iADockWidgetWrapper.h>
+
+#include <iADockWidgetWrapper.h>
 
 #include <vtkAxis.h>
 #include <vtkChartXY.h>

@@ -4,4 +4,5 @@ SET ( DEPENDENCIES_INCLUDE_DIRS
 
 SET( DEPENDENCIES_LIBRARIES
 	iAcharts    # for qcustomplot
+	# iAqthelper    # pulled in by charts automatically
 )

@@ -26,7 +26,10 @@
 #include "iA3DCylinderObjectVis.h"
 #include "iACsvConfig.h"
 
-#include <qthelper/iADockWidgetWrapper.h>
+// qthelper
+#include <iADockWidgetWrapper.h>
+
+// core
 #include <iAModality.h>
 #include <iAModalityTransfer.h>
 #include <iAVolumeRenderer.h>

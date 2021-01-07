@@ -29,7 +29,8 @@
 
 #include <iAMdiChild.h>
 #include <iAMainWindow.h>
-#include <qthelper/iADockWidgetWrapper.h>
+
+#include <iADockWidgetWrapper.h>
 
 #include <vtkImageData.h>
 

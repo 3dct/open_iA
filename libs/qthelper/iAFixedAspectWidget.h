@@ -20,20 +20,23 @@
 * ************************************************************************************/
 #pragma once
 
-#include <QtGlobal>
+#include "iAqthelper_export.h"
 
-#if (defined(VTK_OPENGL2_BACKEND) && QT_VERSION >= QT_VERSION_CHECK(5, 4, 0) )
+#include "iASignallingWidget.h"
+#include "iAVtkQtWidget.h"
 
-class QOpenGLBuffer;
-class QOpenGLWidget;
-typedef QOpenGLWidget iAQGLWidget;
-typedef QOpenGLBuffer iAQGLBuffer;
+class iAColoredWidget;
 
-#else
-
-class QGLBuffer;
-class QGLWidget;
-typedef QGLWidget iAQGLWidget;
-typedef QGLBuffer iAQGLBuffer;
-
-#endif
+//! Keeps the aspect ratio of a contained iAVtkQtWidget fixed
+//! by placing two other resizable widgets around it as padding.
+class iAqthelper_API iAFixedAspectWidget: public iASignallingWidget
+{
+	Q_OBJECT
+public:
+	iAFixedAspectWidget(double aspect=1.0, Qt::Alignment verticalAlign = Qt::AlignVCenter);
+	iAVtkQtWidget* vtkWidget();
+	void setBackgroundColor(QColor const & color);
+private:
+	iAVtkQtWidget* m_widget;
+	iAColoredWidget* m_fill1, * m_fill2;
+};

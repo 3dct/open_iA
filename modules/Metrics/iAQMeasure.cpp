@@ -33,7 +33,8 @@
 #include <iAToolsVTK.h>
 #include <iATypedCallHelper.h>
 #include <iAMdiChild.h>
-#include <qthelper/iADockWidgetWrapper.h>
+
+#include <iADockWidgetWrapper.h>
 
 #include <itkImage.h>
 #include <itkImageToHistogramFilter.h>

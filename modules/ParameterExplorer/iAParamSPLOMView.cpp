@@ -29,7 +29,8 @@
 #include <iAColorTheme.h>
 #include <iALog.h>
 #include <iALUT.h>
-#include <qthelper/iAQFlowLayout.h>
+
+#include <iAQFlowLayout.h>
 
 #include <vtkColorTransferFunction.h>
 #include <vtkLookupTable.h>

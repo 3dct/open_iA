@@ -28,7 +28,8 @@
 #include <iALog.h>
 #include <iAToolsVTK.h>
 #include <iAVtkDraw.h>
-#include <qthelper/iAQFlowLayout.h>
+
+#include <iAQFlowLayout.h>
 
 #include <vtkAxis.h>
 #include <vtkChartXY.h>

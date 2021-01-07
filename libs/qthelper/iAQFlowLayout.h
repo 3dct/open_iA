@@ -53,9 +53,9 @@
 #include <QRect>
 #include <QStyle>
 
-#include "iAcore_export.h"
+#include "iAqthelper_export.h"
 
-class iAcore_API iAQFlowLayout : public QLayout
+class iAqthelper_API iAQFlowLayout : public QLayout
 {
 public:
 	explicit iAQFlowLayout(QWidget *parent, int margin = -1, int hSpacing = -1, int vSpacing = -1);

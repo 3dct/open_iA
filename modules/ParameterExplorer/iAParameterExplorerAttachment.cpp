@@ -29,7 +29,8 @@
 
 #include <iAMdiChild.h>
 #include <iAPreferences.h>
-#include <qthelper/iADockWidgetWrapper.h>
+
+#include <iADockWidgetWrapper.h>
 
 #include <QFileInfo>
 

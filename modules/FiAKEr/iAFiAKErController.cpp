@@ -45,11 +45,13 @@
 #include <io/iAIOProvider.h>
 #include <iAMainWindow.h>
 #include <iAMdiChild.h>
-#include <qthelper/iADockWidgetWrapper.h>
-#include <qthelper/iAFixedAspectWidget.h>
 #include <qthelper/iAQTtoUIConnector.h>
-#include <qthelper/iASignallingWidget.h>
-#include <qthelper/iAVtkQtWidget.h>
+
+// qthelper:
+#include <iADockWidgetWrapper.h>
+#include <iAFixedAspectWidget.h>
+#include <iASignallingWidget.h>
+#include <iAVtkQtWidget.h>
 
 // charts
 #include <iAChartWidget.h>

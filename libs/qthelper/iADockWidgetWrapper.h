@@ -18,22 +18,22 @@
 * Contact: FH OÖ Forschungs & Entwicklungs GmbH, Campus Wels, CT-Gruppe,              *
 *          Stelzhamerstraße 23, 4600 Wels / Austria, Email: c.heinzl@fh-wels.at       *
 * ************************************************************************************/
-#include "iAWidgetAddHelper.h"
+#pragma once
 
-#include "iAMdiChild.h"
+#include "iAqthelper_export.h"
 
-iAWidgetAddHelper::iAWidgetAddHelper(iAMdiChild* mdiChild, QDockWidget* dockWidget):
-	m_mdiChild(mdiChild),
-	m_dockWidget(dockWidget)
-{}
+#include <QDockWidget>
 
-void iAWidgetAddHelper::TabWidget(QDockWidget* newTab, QDockWidget* other)
+class QString;
+
+//! Show any arbitrary widget inside of a QDockWidget.
+class iAqthelper_API iADockWidgetWrapper: public QDockWidget
 {
-	m_mdiChild->tabifyDockWidget(other, newTab);
-}
-
-
-void iAWidgetAddHelper::SplitWidget(QDockWidget* newSplit, QDockWidget* splitWidget, Qt::Orientation orient)
-{
-	m_mdiChild->splitDockWidget(splitWidget, newSplit, orient);
-}
+public:
+	iADockWidgetWrapper(QWidget* widget, QString const & windowTitle, QString const & objectName);
+	iADockWidgetWrapper(QString const & windowTitle, QString const & objectName);
+	void toggleTitleBar();
+	bool isTitleBarVisible() const;
+private:
+	QWidget* m_titleBar;
+};

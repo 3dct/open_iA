@@ -47,8 +47,8 @@
 #include <iASlicer.h>
 #include <iAVtkWidget.h>
 #include <io/iAIO.h>
-#include <qthelper/iAWidgetAddHelper.h>
-#include <qthelper/iADockWidgetWrapper.h>
+
+#include <iADockWidgetWrapper.h>
 
 #include <iAChartFunctionTransfer.h>
 #include <iAHistogramData.h>
@@ -169,7 +169,7 @@ void dlg_InSpectr::RemoveSimilarityMarkers()
 }
 
 void dlg_InSpectr::init(double minEnergy, double maxEnergy, bool haveEnergyLevels,
-		iAWidgetAddHelper & widgetAddHelper)
+		iAMdiChild* child)
 {
 	spectrumVisWidget->show();
 	// initialize functions
@@ -197,9 +197,9 @@ void dlg_InSpectr::init(double minEnergy, double maxEnergy, bool haveEnergyLevel
 	iADockWidgetWrapper* spectrumChartContainer = new iADockWidgetWrapper(m_spectrumDiagram, "Spectrum View", "SpectrumChartWidget");
 	spectrumChartContainer->setContentsMargins(0, 0, 0, 0);
 
-	InitCommonGUI(widgetAddHelper);
-	widgetAddHelper.SplitWidget(spectrumChartContainer, widgetAddHelper.m_mdiChild->renderDockWidget(), Qt::Vertical);
-	widgetAddHelper.SplitWidget(m_pieChartContainer, spectrumChartContainer);
+	InitCommonGUI(child);
+	child->splitDockWidget(spectrumChartContainer, child->renderDockWidget(), Qt::Vertical);
+	child->splitDockWidget(m_pieChartContainer, spectrumChartContainer, Qt::Horizontal);
 
 	m_ctfChanged  = true;
 	m_initialized = true;
@@ -249,13 +249,13 @@ void dlg_InSpectr::init(double minEnergy, double maxEnergy, bool haveEnergyLevel
 	pb_decompose->setEnabled(true);
 }
 
-void dlg_InSpectr::InitElementMaps(/* QSharedPointer<iAElementConcentrations> conc */iAWidgetAddHelper & widgetAddHelper)
+void dlg_InSpectr::InitElementMaps(/* QSharedPointer<iAElementConcentrations> conc */ iAMdiChild* child)
 {
-	InitCommonGUI(widgetAddHelper);
-	widgetAddHelper.SplitWidget(m_pieChartContainer, m_periodicTable, Qt::Vertical);
+	InitCommonGUI(child);
+	child->splitDockWidget(m_pieChartContainer, m_periodicTable, Qt::Vertical);
 }
 
-void dlg_InSpectr::InitCommonGUI(iAWidgetAddHelper & widgetAddHelper)
+void dlg_InSpectr::InitCommonGUI(iAMdiChild* child)
 {
 	m_periodicTable->setListener(m_periodicTableListener);
 
@@ -277,8 +277,8 @@ void dlg_InSpectr::InitCommonGUI(iAWidgetAddHelper & widgetAddHelper)
 	m_pieChartContainer = new iADockWidgetWrapper(m_pieChart, "Element Concentration", "PieChartWidget");
 	m_pieChartContainer->setContentsMargins(0, 0, 0, 0);
 	//m_pieChartContainer->hide();
-	widgetAddHelper.SplitWidget(m_periodicTable, this, Qt::Vertical);
-	widgetAddHelper.TabWidget(m_refSpectra, this);
+	child->splitDockWidget(m_periodicTable, this, Qt::Vertical);
+	child->tabifyDockWidget(m_refSpectra, this);
 }
 
 void dlg_InSpectr::setLogDrawMode(bool checked)

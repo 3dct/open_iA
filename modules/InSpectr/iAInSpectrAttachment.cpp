@@ -33,7 +33,6 @@
 #include <iALog.h>
 #include <iAMainWindow.h>
 #include <iAMdiChild.h>
-#include <qthelper/iAWidgetAddHelper.h>
 
 #include "defines.h"    // for NotExistingChannel
 
@@ -247,8 +246,7 @@ void iAInSpectrAttachment::xrfLoadingDone()
 			haveEnergyLevels = true;
 		}
 	}
-	iAWidgetAddHelper wdgtHelp(m_child, m_child->renderDockWidget());
-	dlgXRF->init( minEnergy, maxEnergy, haveEnergyLevels, wdgtHelp);
+	dlgXRF->init(minEnergy, maxEnergy, haveEnergyLevels, m_child);
 	connect( dlgXRF->cb_spectralColorImage, &QCheckBox::stateChanged, this, &iAInSpectrAttachment::visualizeXRF);
 	connect( dlgXRF->sl_peakOpacity, &QSlider::valueChanged, this, &iAInSpectrAttachment::updateXRFOpacity);
 	connect( dlgXRF->pb_compute, &QPushButton::clicked, this, &iAInSpectrAttachment::updateXRF);

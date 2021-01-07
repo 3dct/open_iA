@@ -21,7 +21,9 @@
 #pragma once
 
 #include <qcustomplot.h>
-#include <qthelper/iAQGLWidget.h>
+
+// qthelper
+#include <iAQGLWidget.h>
 
 #include <vtkSmartPointer.h>
 

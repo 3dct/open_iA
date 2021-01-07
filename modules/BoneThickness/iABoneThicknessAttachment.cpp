@@ -24,7 +24,8 @@
 #include "iABoneThicknessSplitter.h"
 #include "iABoneThicknessTable.h"
 
-#include <qthelper/iADockWidgetWrapper.h>
+#include <iADockWidgetWrapper.h>
+
 #include <iARenderer.h>
 #include <iAMdiChild.h>
 #include <iAMainWindow.h>

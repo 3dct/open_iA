@@ -26,7 +26,7 @@
 #include "iAScatterPlotSelectionHandler.h"
 #include "iASPLOMData.h"
 #ifdef CHART_OPENGL
-#include "qthelper/iAQGLWidget.h"
+#include "iAQGLWidget.h"
 #endif
 
 #include <QAbstractTextDocumentLayout>

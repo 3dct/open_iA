@@ -22,9 +22,9 @@
 
 #include "iAVtkWidget.h"
 
-#include "iAcore_export.h"
+#include "iAqthelper_export.h"
 
-class iAcore_API iAVtkQtWidget : public iAVtkWidget
+class iAqthelper_API iAVtkQtWidget : public iAVtkWidget
 {
 Q_OBJECT
 public slots:

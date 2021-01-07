@@ -20,19 +20,25 @@
 * ************************************************************************************/
 #pragma once
 
-#include "iAcore_export.h"
+#include "iAqthelper_export.h"
 
-#include "qnamespace.h"
+#include <QWidget>
 
-class iAMdiChild;
-class QDockWidget;
-
-class iAcore_API iAWidgetAddHelper
+//! Double-use widget: Allows setting background color, and will emit signal "dblClicked" when it is double clicked.
+//! TODO: replace by something more simple / not double-use
+class iAqthelper_API iASignallingWidget: public QWidget
 {
+	Q_OBJECT
 public:
-	iAWidgetAddHelper(iAMdiChild* mdiChild, QDockWidget* dockWidget);
-	void SplitWidget(QDockWidget* newSplit, QDockWidget* splitWidget, Qt::Orientation orient = Qt::Horizontal);
-	void TabWidget(QDockWidget* newTab, QDockWidget* other);
-	iAMdiChild* m_mdiChild;
-	QDockWidget* m_dockWidget;
+	void setBackgroundColor(QColor const & color);
+
+signals:
+	void dblClicked();
+	void clicked(Qt::MouseButton button, Qt::KeyboardModifiers modifiers);
+private:
+	void mouseDoubleClickEvent(QMouseEvent* ev) override;
+	void mouseReleaseEvent(QMouseEvent* ev) override;
+	void paintEvent(QPaintEvent* ev) override;
+
+	QColor m_bgColor;
 };

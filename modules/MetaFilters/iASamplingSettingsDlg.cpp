@@ -36,7 +36,8 @@
 #include <iAStringHelper.h>
 #include <iAMainWindow.h>
 #include <iAMdiChild.h>
-#include <qthelper/iAQFlowLayout.h>
+
+#include <iAQFlowLayout.h>
 
 #include <QCheckBox>
 #include <QFileDialog>

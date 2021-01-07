@@ -48,7 +48,9 @@
 #include <iAMdiChild.h>
 #include <iAPreferences.h>
 #include <iATypedCallHelper.h>
-#include <qthelper/iADockWidgetWrapper.h>
+
+// qthelper:
+#include <iADockWidgetWrapper.h>
 
 // charts:
 #include <iAChartWithFunctionsWidget.h>

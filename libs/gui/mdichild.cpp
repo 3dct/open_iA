@@ -20,6 +20,7 @@
 * ************************************************************************************/
 #include "mdichild.h"
 
+// core
 #include "dlg_commoninput.h"
 #include "dlg_imageproperty.h"
 #include "dlg_modalities.h"
@@ -51,14 +52,16 @@
 #include "io/iAIO.h"
 #include "io/iAIOProvider.h"
 #include "mainwindow.h"
-#include "qthelper/iADockWidgetWrapper.h"
+
+// qthelper
+#include <iADockWidgetWrapper.h>
 
 // charts
-#include "iAHistogramData.h"
-#include "iAChartFunctionTransfer.h"
-#include "iAChartWithFunctionsWidget.h"
-#include "iAPlotTypes.h"
-#include "iAProfileWidget.h"
+#include <iAHistogramData.h>
+#include <iAChartFunctionTransfer.h>
+#include <iAChartWithFunctionsWidget.h>
+#include <iAPlotTypes.h>
+#include <iAProfileWidget.h>
 
 // base
 #include "iAFileUtils.h"    // for fileNameOnly
