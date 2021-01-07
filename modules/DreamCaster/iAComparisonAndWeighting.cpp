@@ -50,7 +50,7 @@ void iAParamWidget::Init(int pxmpWidth, int pxmpHeight, QWidget *widget)
 	paintWidget->setCursor(widget->cursor());
 	QColor tempColor(250,250,0);
 	paintWidget->SetHighlightStyle(tempColor, 2.0);
-	buffer = 0;
+	buffer = nullptr;
 	initialized = true;
 }
 
@@ -69,10 +69,6 @@ int iAParamWidget::AllocateBuffer(int width, int height)
 	}
 	int s = width*height;
 	buffer = new unsigned int[s];
-	for (int i = 0; i < s; i++)
-	{
-		buffer[i] = 0;
-	}
 	std::fill(buffer, buffer+s, 0);
 	bufferWidth = width;
 	bufferHeight = height;
