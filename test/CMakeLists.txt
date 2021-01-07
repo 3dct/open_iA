@@ -25,7 +25,7 @@ target_compile_definitions(MathUtilTest PRIVATE NO_DLL_LINKAGE)
 ADD_TEST(NAME MathUtilTest COMMAND MathUtilTest)
 
 ADD_EXECUTABLE(FunctionalBoxplotTest iAFunctionalBoxplotTest.cpp)
-TARGET_INCLUDE_DIRECTORIES(FunctionalBoxplotTest PRIVATE ${CMAKE_CURRENT_SOURCE_DIR}/../libs/base ${CMAKE_CURRENT_SOURCE_DIR}/../libs/core)
+TARGET_INCLUDE_DIRECTORIES(FunctionalBoxplotTest PRIVATE ${CMAKE_CURRENT_SOURCE_DIR}/../libs/base ${CMAKE_CURRENT_SOURCE_DIR}/../Toolkit/FunctionalBoxplot)
 target_compile_definitions(FunctionalBoxplotTest PRIVATE NO_DLL_LINKAGE)
 ADD_TEST(NAME FunctionalBoxplotTest COMMAND FunctionalBoxplotTest)
 
