@@ -23,7 +23,6 @@
 #include "ui_TreeView.h"
 #include "iABPMData.h"
 #include "iAHMData.h"
-#include "FeatureAnalyzerHelpers.h"
 
 #include <qthelper/iAQTtoUIConnector.h>
 

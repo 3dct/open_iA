@@ -21,7 +21,7 @@
 #include "iARunBatchThread.h"
 
 #include "iACSVToQTableWidgetConverter.h"
-#include "iAFeatureAnalyzerModuleInterface.h"
+#include "iAFeatureAnalyzerComputationModuleInterface.h"
 
 #include <defines.h>
 #include <iAFileUtils.h>
@@ -91,6 +91,32 @@
 #endif
 
 #include <cassert>
+
+namespace
+{
+const QStringList computerCSVHeader = QStringList()\
+<< "Computer Name"\
+<< "CPU Spec"\
+<< "Algorithm Name"\
+<< "Dataset Name"\
+<< "Batches CSV";
+
+const QStringList runsCSVHeader = QStringList()\
+<< "Start Time"\
+<< "Elapsed Time"\
+<< "Porosity"\
+<< "Threshold"\
+<< "Mask MHD"\
+<< "False Positive Error"\
+<< "False Negative Error"\
+<< "Dice"\
+<< "FeatureCnt"\
+<< "AvgFeatureVol"\
+<< "avgFeaturePhi"\
+<< "avgFeatureTheta"\
+<< "avgFeatureRoundness"\
+<< "avgFeatureLength";
+}
 
 struct RunInfo
 {
@@ -1108,7 +1134,7 @@ void runBatch( const QList<PorosityFilterID> & filterIds, ImagePointer & image, 
 	}
 }
 
-void iARunBatchThread::Init(iAFeatureAnalyzerModuleInterface * pmi, QString datasetFolder,
+void iARunBatchThread::Init(iAFeatureAnalyzerComputationModuleInterface * pmi, QString datasetFolder,
 	bool rbNewPipelineDataNoPores, bool rbNewPipelineData)
 {
 	m_pmi = pmi;

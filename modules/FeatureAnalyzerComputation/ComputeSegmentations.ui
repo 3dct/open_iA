@@ -192,7 +192,7 @@
         <string>...</string>
        </property>
        <property name="icon">
-        <iconset resource="FeatureAnalyzer.qrc">
+        <iconset resource="FeatureAnalyzerComputation.qrc">
          <normaloff>:/images/preview.png</normaloff>:/images/preview.png</iconset>
        </property>
        <property name="iconSize">
@@ -348,7 +348,7 @@
         <string>...</string>
        </property>
        <property name="icon">
-        <iconset resource="FeatureAnalyzer.qrc">
+        <iconset resource="FeatureAnalyzerComputation.qrc">
          <normaloff>:/images/rem_sel.png</normaloff>:/images/rem_sel.png</iconset>
        </property>
        <property name="iconSize">
@@ -690,7 +690,7 @@
  </widget>
  <resources>
   <include location="../../core/open_iA.qrc"/>
-  <include location="FeatureAnalyzer.qrc"/>
+  <include location="FeatureAnalyzerComputation.qrc"/>
  </resources>
  <connections/>
 </ui>

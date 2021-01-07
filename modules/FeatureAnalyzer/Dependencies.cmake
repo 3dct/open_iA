@@ -7,6 +7,7 @@ SET( DEPENDENCIES_LIBRARIES
 	# iAqthelper    # pulled in by charts automatically
 )
 SET (DEPENDENCIES_MODULES
+	FeatureAnalyzerComputation  # mainly for FeatureAnalyzerHelper
 	FeatureScout
 )
 

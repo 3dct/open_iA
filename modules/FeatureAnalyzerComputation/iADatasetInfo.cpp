@@ -20,9 +20,10 @@
 * ************************************************************************************/
 #include "iADatasetInfo.h"
 
-#include "iAFeatureAnalyzerModuleInterface.h"
+#include "iAFeatureAnalyzerComputationModuleInterface.h"
 #include "FeatureAnalyzerHelpers.h"
 
+#include <defines.h>
 #include <iAFileUtils.h>
 #include <iAItkVersion.h>
 #include <iAToolsITK.h>
@@ -39,13 +40,13 @@
 #include <QDebug>
 
 
-iADatasetInfo::iADatasetInfo(iAFeatureAnalyzerModuleInterface* pmi, QObject* parent) :
+iADatasetInfo::iADatasetInfo(iAFeatureAnalyzerComputationModuleInterface* pmi, QObject* parent) :
 	QThread(parent),
 	m_pmi(pmi)
 {}
 
 template<class T> void iADatasetInfo::generateInfo( QString datasetPath, QString datasetName,
-												   ImagePointer & image, iAFeatureAnalyzerModuleInterface * pmi,
+												   ImagePointer & image, iAFeatureAnalyzerComputationModuleInterface * pmi,
 												   int totalFInfoNbToCreate, int currentFInfoNb )
 {
 	typedef itk::Image<T, DIM>  InputImageType;

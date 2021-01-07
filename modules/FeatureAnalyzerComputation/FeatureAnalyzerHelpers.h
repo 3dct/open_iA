@@ -64,29 +64,6 @@ const int gtPorosityColInd = 1;
 const int gtGTSegmColumnIndex = 3;
 const int maskPathColumnIndex = 11;
 
-const QStringList computerCSVHeader = QStringList()\
-<< "Computer Name"\
-<< "CPU Spec"\
-<< "Algorithm Name"\
-<< "Dataset Name"\
-<< "Batches CSV";
-
-const QStringList runsCSVHeader = QStringList()\
-<< "Start Time"\
-<< "Elapsed Time"\
-<< "Porosity"\
-<< "Threshold"\
-<< "Mask MHD"\
-<< "False Positive Error"\
-<< "False Negative Error"\
-<< "Dice"\
-<< "FeatureCnt"\
-<< "AvgFeatureVol"\
-<< "avgFeaturePhi"\
-<< "avgFeatureTheta"\
-<< "avgFeatureRoundness"\
-<< "avgFeatureLength";
-
 const QStringList filterNames = QStringList()\
 << "Binary Threshold"\
 << "Rats Threshold"\
@@ -121,15 +98,6 @@ const QStringList filterNames = QStringList()\
 << "Triangle Threshold"\
 << "General Threshold";
 
-const QString contextMenuStyle(
-	"QMenu{"
-	"font-size: 11px;"
-	"background-color: #9B9B9B;"
-	"border: 1px solid black;}"
-	"QMenu::separator{"
-	"height: 1px;"
-	"margin: 0px 2px 0px 2px;"
-	"background: gray}" );
 
 enum PorosityFilterID
 {

@@ -20,49 +20,69 @@
 * ************************************************************************************/
 #pragma once
 
-#include "ui_CalculatePoreProperties.h"
+#include "ui_ComputeSegmentations.h"
 
-#include <QThread>
-#include <QTableWidget>
+#include <iAGUIModuleInterface.h>
 
-const int numThreads = 4;
-
-class iACalculatePorePropertiesThread : public QThread
-{
-	Q_OBJECT
-public:
-	iACalculatePorePropertiesThread( QTableWidget * masks, QObject * parent = 0 ) : QThread( parent ), m_masks( masks ){};
-protected:
-	virtual void run();
-signals:
-	void totalProgress( int progress );
-protected:
-	QTableWidget * m_masks;
-};
-
-#include "qthelper/iAQTtoUIConnector.h"
-typedef iAQTtoUIConnector<QWidget, Ui_calculatePoreProperties> PorePropertiesConnector;
-
-class iACalculatePoreProperties : public PorePropertiesConnector
+class iAFeatureAnalyzerComputationModuleInterface : public iAGUIModuleInterface
 {
 	Q_OBJECT
 
 public:
-	iACalculatePoreProperties( QWidget * parent = 0, Qt::WindowFlags f = 0 );
-	void SetMasksCSVPath( QString masksCSVPath );
-	void CalculatePoreProperties();
-	virtual ~iACalculatePoreProperties();
+	void Initialize() override;
+	void SaveSettings() const override;
+	Ui::ComputeSegmentations * ui();
+	void log( QString text, bool appendToPrev = false );
+	QString DatasetFolder() const;
+	QString ResultsFolder() const;
+	QString CSVFile() const;
+	QString CpuVendor() const { return m_cpuVendor; }
+	QString CpuBrand() const { return m_cpuBrand; }
+	QString ComputerName() const;
 
-protected slots:
-	void totalProgressSlot( int progress );
+private slots:
+	void computeParameterSpace();
+	void loadCSV();
+	void saveCSV();
 	void browseCSV();
+	void browserResultsFolder();
+	void browserDatasetsFolder();
+	void runCalculations();
+	void showHideLogs();
+	void batchProgress(int progress);
+	void totalProgress(int progress);
+	void currentBatch( QString str );
+	void clearPipeline();
+	void addPipeline();
+	void resizePipeline();
+	void clearTableWidgetItem();
+	void generateDatasetPreviews();
+	void datasetPreviewThreadFinished();
+	void datasetPreviewThreadStarted();
+	void displayPipelineInSlots( QTableWidgetItem * );
+	void compNameChanged();
 
 protected:
-	void LoadSettings();
-	void SaveSettings();
+	void updateFromGUI() const;
+	void setupTableWidgetContextMenu();
+	void createTableWidgetActions();
 
-	iACalculatePorePropertiesThread * m_calcThread[numThreads];
-	QTableWidget m_splitMasks[numThreads];
-	QTableWidget m_masks;
-	QString m_masksCSVPath;
+protected:
+	QWidget * m_compSegmWidget;
+	Ui::ComputeSegmentations uiComputeSegm;
+	mutable QString m_computerName;
+	mutable QString m_resultsFolder;
+	mutable QString m_datasetsFolder;
+	mutable QString m_csvFile;
+	QString m_cpuVendor;
+	QString m_cpuBrand;
+	QAction *removeRowAction;
+	QAction *saveTableToCSVAction;
+	QAction *loadTableFromCSVAction;
+
+private:
+	int m_pipelineSlotsCount;
+	QSize m_pipelineSlotIconSize;
+
+	void removeGTDatasets( QStringList& list, const QStringList& toDelete );
 };
