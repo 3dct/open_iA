@@ -32,4 +32,4 @@ class QString;
 
 iAcore_API QString GetAvailableMovieFormats();
 iAcore_API vtkSmartPointer<vtkGenericMovieWriter> GetMovieWriter(QString const & fileName, int quality);
-void printFinalLogMessage(vtkGenericMovieWriter * movieWriter, iASimpleAbortListener const& abortListener);
+iAcore_API void printFinalLogMessage(vtkGenericMovieWriter* movieWriter, iASimpleAbortListener const& abortListener);

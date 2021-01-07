@@ -73,7 +73,7 @@ class iAPlot;
 struct iAProfileProbe;
 class iAProjectBase;
 class iARenderer;
-class iASlicer;
+class iASlicerImpl;
 class iAVolumeStack;
 class MainWindow;
 
@@ -431,7 +431,7 @@ private:
 	vtkTransform * m_axesTransform;
 	vtkTransform * m_slicerTransform;
 	iARenderer * m_renderer;
-	iASlicer * m_slicer[3];
+	iASlicerImpl * m_slicer[3];
 	QSharedPointer<iAProfileProbe> m_profileProbe;
 	QScopedPointer<iAVolumeStack> m_volumeStack;
 	QList<int> m_checkedList;

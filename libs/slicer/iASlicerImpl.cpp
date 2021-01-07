@@ -18,7 +18,7 @@
 * Contact: FH OÖ Forschungs & Entwicklungs GmbH, Campus Wels, CT-Gruppe,              *
 *          Stelzhamerstraße 23, 4600 Wels / Austria, Email: c.heinzl@fh-wels.at       *
 * ************************************************************************************/
-#include "iASlicer.h"
+#include "iASlicerImpl.h"
 
 #include "defines.h"    // for NotExistingChannel
 #include "dlg_commoninput.h"
@@ -36,7 +36,6 @@
 #include "iAProgress.h"
 #include "iARulerWidget.h"
 #include "iARulerRepresentation.h"
-#include "iASlicer.h"
 #include "iASlicerProfile.h"
 #include "iASlicerProfileHandles.h"
 #include "iASlicerSettings.h"
@@ -240,9 +239,9 @@ private:
 };
 
 
-iASlicer::iASlicer(QWidget * parent, const iASlicerMode mode,
+iASlicerImpl::iASlicerImpl(QWidget* parent, const iASlicerMode mode,
 	bool decorations /*= true*/, bool magicLensAvailable /*= true*/, vtkAbstractTransform *transform, vtkPoints* snakeSlicerPoints) :
-	iAVtkWidget(parent),
+	iASlicer(parent),
 	m_contextMenu(new QMenu(this)),
 	m_interactionMode(Normal),
 	m_xInd(0), m_yInd(0), m_zInd(0),
@@ -309,14 +308,14 @@ iASlicer::iASlicer(QWidget * parent, const iASlicerMode mode,
 
 	updateBackground();
 
-	m_actionLinearInterpolation = m_contextMenu->addAction(tr("Linear Interpolation"), this, &iASlicer::toggleLinearInterpolation);
+	m_actionLinearInterpolation = m_contextMenu->addAction(tr("Linear Interpolation"), this, &iASlicerImpl::toggleLinearInterpolation);
 	m_actionLinearInterpolation->setCheckable(true);
-	m_actionShowTooltip = m_contextMenu->addAction(tr("Show Tooltip"), this, &iASlicer::toggleShowTooltip);
+	m_actionShowTooltip = m_contextMenu->addAction(tr("Show Tooltip"), this, &iASlicerImpl::toggleShowTooltip);
 	m_actionShowTooltip->setCheckable(true);
-	m_actionToggleWindowLevelAdjust = m_contextMenu->addAction(tr("Adjust Window/Level via Mouse Click+Drag"), this, &iASlicer::toggleWindowLevelAdjust);
+	m_actionToggleWindowLevelAdjust = m_contextMenu->addAction(tr("Adjust Window/Level via Mouse Click+Drag"), this, &iASlicerImpl::toggleWindowLevelAdjust);
 	m_actionToggleWindowLevelAdjust->setCheckable(true);
 
-	m_actionFisheyeLens = m_contextMenu->addAction(QIcon(":/images/fisheyeLens.png"), tr("Fisheye Lens"), this, &iASlicer::fisheyeLensToggled);
+	m_actionFisheyeLens = m_contextMenu->addAction(QIcon(":/images/fisheyeLens.png"), tr("Fisheye Lens"), this, &iASlicerImpl::fisheyeLensToggled);
 	m_actionFisheyeLens->setShortcut(Qt::Key_O);
 	m_actionFisheyeLens->setCheckable(true);
 	m_actionFisheyeLens->setChecked(false);
@@ -327,16 +326,16 @@ iASlicer::iASlicer(QWidget * parent, const iASlicerMode mode,
 		m_magicLens->setRenderWindow(m_renWin);
 		// setup context menu for the magic lens view options
 		m_contextMenu->addSeparator();
-		m_actionMagicLens = m_contextMenu->addAction(QIcon(":/images/magicLens.png"), tr("Magic Lens"), this, &iASlicer::magicLensToggled);
+		m_actionMagicLens = m_contextMenu->addAction(QIcon(":/images/magicLens.png"), tr("Magic Lens"), this, &iASlicerImpl::magicLensToggled);
 		m_actionMagicLens->setCheckable(true);
 		m_actionMagicLens->setChecked(false);
 
 		QActionGroup * actionGr(new QActionGroup(this));
-		m_actionMagicLensCentered = m_contextMenu->addAction(tr("Centered Magic Lens"), this, &iASlicer::menuCenteredMagicLens);
+		m_actionMagicLensCentered = m_contextMenu->addAction(tr("Centered Magic Lens"), this, &iASlicerImpl::menuCenteredMagicLens);
 		m_actionMagicLensCentered->setCheckable(true);
 		m_actionMagicLensCentered->setChecked(true);
 		actionGr->addAction(m_actionMagicLensCentered);
-		m_actionMagicLensOffset = m_contextMenu->addAction(tr("Offseted Magic Lens"), this, &iASlicer::menuOffsetMagicLens);
+		m_actionMagicLensOffset = m_contextMenu->addAction(tr("Offseted Magic Lens"), this, &iASlicerImpl::menuOffsetMagicLens);
 		m_actionMagicLensOffset->setCheckable(true);
 		actionGr->addAction(m_actionMagicLensOffset);
 	}
@@ -345,7 +344,7 @@ iASlicer::iASlicer(QWidget * parent, const iASlicerMode mode,
 	{
 		m_snakeSpline = new iASnakeSpline;
 		m_contextMenu->addSeparator();
-		m_actionDeleteSnakeLine = m_contextMenu->addAction(QIcon(":/images/loadtrf.png"), tr("Delete Snake Line"), this, &iASlicer::menuDeleteSnakeLine);
+		m_actionDeleteSnakeLine = m_contextMenu->addAction(QIcon(":/images/loadtrf.png"), tr("Delete Snake Line"), this, &iASlicerImpl::menuDeleteSnakeLine);
 		m_sliceProfile = new iASlicerProfile();
 		m_sliceProfile->setVisibility(false);
 
@@ -488,7 +487,7 @@ iASlicer::iASlicer(QWidget * parent, const iASlicerMode mode,
 	m_ren->ResetCamera();
 }
 
-iASlicer::~iASlicer()
+iASlicerImpl::~iASlicerImpl()
 {
 	disconnect();
 
@@ -507,7 +506,7 @@ iASlicer::~iASlicer()
 	}
 }
 
-void iASlicer::toggleInteractorState()
+void iASlicerImpl::toggleInteractorState()
 {
 	if (m_interactor->GetEnabled())
 	{
@@ -521,7 +520,7 @@ void iASlicer::toggleInteractorState()
 	}
 }
 
-void iASlicer::setMode( const iASlicerMode mode )
+void iASlicerImpl::setMode( const iASlicerMode mode )
 {
 	m_mode = mode;
 	for (auto ch : m_channels)
@@ -531,23 +530,23 @@ void iASlicer::setMode( const iASlicerMode mode )
 	updateBackground();
 }
 
-iASlicerMode iASlicer::mode() const
+iASlicerMode iASlicerImpl::mode() const
 {
 	return m_mode;
 }
 
-void iASlicer::disableInteractor()
+void iASlicerImpl::disableInteractor()
 {
 	m_interactor->Disable();
 }
 
-void iASlicer::enableInteractor()
+void iASlicerImpl::enableInteractor()
 {
 	m_interactor->ReInitialize();
 	update();
 }
 
-void iASlicer::update()
+void iASlicerImpl::update()
 {
 	if (!isVisible())
 	{
@@ -570,7 +569,7 @@ void iASlicer::update()
 	emit updateSignal();
 }
 
-void iASlicer::saveMovie()
+void iASlicerImpl::saveMovie()
 {
 	QString movie_file_types = GetAvailableMovieFormats();
 	if( movie_file_types.isEmpty() )
@@ -585,7 +584,7 @@ void iASlicer::saveMovie()
 	saveSliceMovie( fileName );
 }
 
-void iASlicer::setSliceNumber( int sliceNumber )
+void iASlicerImpl::setSliceNumber( int sliceNumber )
 {
 	// TODO: set slice position (in scene coordinates) instead of number
 	//       then we wouldn'T need image spacing and origin below
@@ -612,7 +611,7 @@ void iASlicer::setSliceNumber( int sliceNumber )
 	emit sliceNumberChanged( m_mode, sliceNumber );
 }
 
-void iASlicer::setLinearInterpolation(bool enabled)
+void iASlicerImpl::setLinearInterpolation(bool enabled)
 {
 	for (auto channel: m_channels)
 	{
@@ -624,7 +623,7 @@ void iASlicer::setLinearInterpolation(bool enabled)
 	}
 }
 
-void iASlicer::setup( iASingleSlicerSettings const & settings )
+void iASlicerImpl::setup( iASingleSlicerSettings const & settings )
 {
 	m_settings = settings;
 	m_actionLinearInterpolation->setChecked(settings.LinearInterpolation);
@@ -648,7 +647,7 @@ void iASlicer::setup( iASingleSlicerSettings const & settings )
 	m_renWin->Render();
 }
 
-void iASlicer::setMagicLensEnabled( bool isEnabled )
+void iASlicerImpl::setMagicLensEnabled( bool isEnabled )
 {
 	if (!m_magicLens)
 	{
@@ -661,7 +660,7 @@ void iASlicer::setMagicLensEnabled( bool isEnabled )
 	updateMagicLens();
 }
 
-iAMagicLens * iASlicer::magicLens()
+iAMagicLens * iASlicerImpl::magicLens()
 {
 	if (!m_magicLens)
 	{
@@ -671,7 +670,7 @@ iAMagicLens * iASlicer::magicLens()
 	return m_magicLens.data();
 }
 
-void iASlicer::setMagicLensSize(int newSize)
+void iASlicerImpl::setMagicLensSize(int newSize)
 {
 	if (!m_magicLens)
 	{
@@ -682,12 +681,12 @@ void iASlicer::setMagicLensSize(int newSize)
 	updateMagicLens();
 }
 
-int iASlicer::magicLensSize() const
+int iASlicerImpl::magicLensSize() const
 {
 	return m_magicLens ? m_magicLens->size() : 0;
 }
 
-void iASlicer::setMagicLensFrameWidth(int newWidth)
+void iASlicerImpl::setMagicLensFrameWidth(int newWidth)
 {
 	if (!m_magicLens)
 	{
@@ -698,7 +697,7 @@ void iASlicer::setMagicLensFrameWidth(int newWidth)
 	updateMagicLens();
 }
 
-void iASlicer::setMagicLensCount(int count)
+void iASlicerImpl::setMagicLensCount(int count)
 {
 	if (!m_magicLens)
 	{
@@ -709,7 +708,7 @@ void iASlicer::setMagicLensCount(int count)
 	updateMagicLens();
 }
 
-void iASlicer::setMagicLensInput(uint id)
+void iASlicerImpl::setMagicLensInput(uint id)
 {
 	if (!m_magicLens)
 	{
@@ -727,12 +726,12 @@ void iASlicer::setMagicLensInput(uint id)
 	update();
 }
 
-uint iASlicer::magicLensInput() const
+uint iASlicerImpl::magicLensInput() const
 {
 	return m_magicLensInput;
 }
 
-void iASlicer::setMagicLensOpacity(double opacity)
+void iASlicerImpl::setMagicLensOpacity(double opacity)
 {
 	if (!m_magicLens)
 	{
@@ -743,32 +742,32 @@ void iASlicer::setMagicLensOpacity(double opacity)
 	update();
 }
 
-double iASlicer::magicLensOpacity() const
+double iASlicerImpl::magicLensOpacity() const
 {
 	return (m_magicLens) ? m_magicLens->opacity() : 0;
 }
 
-vtkGenericOpenGLRenderWindow * iASlicer::renderWindow()
+vtkGenericOpenGLRenderWindow * iASlicerImpl::renderWindow()
 {
 	return m_renWin;
 }
 
-vtkRenderer * iASlicer::renderer()
+vtkRenderer * iASlicerImpl::renderer()
 {
 	return m_ren;
 }
 
-vtkCamera * iASlicer::camera()
+vtkCamera * iASlicerImpl::camera()
 {
 	return m_camera;
 }
 
-vtkRenderWindowInteractor * iASlicer::interactor()
+vtkRenderWindowInteractor * iASlicerImpl::interactor()
 {
 	return m_interactor;
 }
 
-void iASlicer::addChannel(uint id, iAChannelData const & chData, bool enable)
+void iASlicerImpl::addChannel(uint id, iAChannelData const & chData, bool enable)
 {
 	assert(!m_channels.contains(id));
 	bool updateSpacing = m_channels.empty();
@@ -807,14 +806,14 @@ void iASlicer::addChannel(uint id, iAChannelData const & chData, bool enable)
 	}
 }
 
-void iASlicer::triggerSliceRangeChange()
+void iASlicerImpl::triggerSliceRangeChange()
 {
 	int axis = mapSliceToGlobalAxis(m_mode, iAAxisIndex::Z);
 	int const * ext = channel(0)->input()->GetExtent();
 	emit sliceRangeChanged(ext[axis * 2], ext[axis * 2 + 1]);
 }
 
-void iASlicer::updateMagicLensColors()
+void iASlicerImpl::updateMagicLensColors()
 {
 	if (m_magicLens)
 	{
@@ -822,7 +821,7 @@ void iASlicer::updateMagicLensColors()
 	}
 }
 
-void iASlicer::setTransform(vtkAbstractTransform * tr)
+void iASlicerImpl::setTransform(vtkAbstractTransform * tr)
 {
 	m_transform = tr;
 	for (auto ch : m_channels)
@@ -831,23 +830,23 @@ void iASlicer::setTransform(vtkAbstractTransform * tr)
 	}
 }
 
-void iASlicer::setDefaultInteractor()
+void iASlicerImpl::setDefaultInteractor()
 {
 	m_interactor = m_renWin->GetInteractor();
 	m_interactor->SetInteractorStyle(m_interactorStyle);
 }
 
-void iASlicer::addImageActor(vtkSmartPointer<vtkImageActor> imgActor)
+void iASlicerImpl::addImageActor(vtkSmartPointer<vtkImageActor> imgActor)
 {
 	m_ren->AddActor(imgActor);
 }
 
-void iASlicer::removeImageActor(vtkSmartPointer<vtkImageActor> imgActor)
+void iASlicerImpl::removeImageActor(vtkSmartPointer<vtkImageActor> imgActor)
 {
 	m_ren->RemoveActor(imgActor);
 }
 
-void iASlicer::blend(vtkAlgorithmOutput *data1, vtkAlgorithmOutput *data2,
+void iASlicerImpl::blend(vtkAlgorithmOutput *data1, vtkAlgorithmOutput *data2,
 	double opacity, double * range)
 {
 	if (!hasChannel(0))
@@ -876,7 +875,7 @@ void iASlicer::blend(vtkAlgorithmOutput *data1, vtkAlgorithmOutput *data2,
 	update();
 }
 
-void iASlicer::setROIVisible(bool visible)
+void iASlicerImpl::setROIVisible(bool visible)
 {
 	if (!m_decorations)
 	{
@@ -886,7 +885,7 @@ void iASlicer::setROIVisible(bool visible)
 	m_roiActor->SetVisibility(visible);
 }
 
-void iASlicer::updateROI(int const roi[6])
+void iASlicerImpl::updateROI(int const roi[6])
 {
 	if (!m_decorations || !m_roiActive || !hasChannel(0))
 	{
@@ -910,7 +909,7 @@ void iASlicer::updateROI(int const roi[6])
 	m_interactor->Render();
 }
 
-void iASlicer::setResliceAxesOrigin(double x, double y, double z)
+void iASlicerImpl::setResliceAxesOrigin(double x, double y, double z)
 {
 	if (m_interactor->GetEnabled())
 	{
@@ -922,7 +921,7 @@ void iASlicer::setResliceAxesOrigin(double x, double y, double z)
 	}
 }
 
-void iASlicer::setPositionMarkerCenter(double x, double y, double z)
+void iASlicerImpl::setPositionMarkerCenter(double x, double y, double z)
 {
 	if (!m_decorations)
 	{
@@ -946,7 +945,7 @@ void iASlicer::setPositionMarkerCenter(double x, double y, double z)
 	}
 }
 
-void iASlicer::showIsolines(bool s)
+void iASlicerImpl::showIsolines(bool s)
 {
 	if (!m_decorations)
 	{
@@ -958,7 +957,7 @@ void iASlicer::showIsolines(bool s)
 	}
 }
 
-void iASlicer::showPosition(bool s)
+void iASlicerImpl::showPosition(bool s)
 {
 	if (!m_decorations)
 	{
@@ -967,7 +966,7 @@ void iASlicer::showPosition(bool s)
 	m_showPositionMarker = s;
 }
 
-void iASlicer::saveSliceMovie(QString const& fileName, int qual /*= 2*/)
+void iASlicerImpl::saveSliceMovie(QString const& fileName, int qual /*= 2*/)
 {
 	// TODO: select channel / for all channels?
 	if (!hasChannel(0))
@@ -1049,7 +1048,7 @@ void iASlicer::saveSliceMovie(QString const& fileName, int qual /*= 2*/)
 	printFinalLogMessage(movieWriter, aborter);
 }
 
-void iASlicer::saveAsImage()
+void iASlicerImpl::saveAsImage()
 {
 	if (!hasChannel(0))
 	{
@@ -1140,7 +1139,7 @@ void iASlicer::saveAsImage()
 	writeSingleSliceImage(fileName, img);
 }
 
-void iASlicer::saveImageStack()
+void iASlicerImpl::saveImageStack()
 {
 	// TODO: allow selecting channel to export? export all channels?
 	if (!hasChannel(0))
@@ -1253,7 +1252,7 @@ void iASlicer::saveImageStack()
 	}
 }
 
-void iASlicer::updatePositionMarkerExtent()
+void iASlicerImpl::updatePositionMarkerExtent()
 {
 	if (m_channels.empty() || !m_positionMarkerSrc)
 	{
@@ -1266,13 +1265,13 @@ void iASlicer::updatePositionMarkerExtent()
 	m_positionMarkerSrc->SetZLength(0);
 }
 
-void iASlicer::setStatisticalExtent(int statExt)
+void iASlicerImpl::setStatisticalExtent(int statExt)
 {
 	m_ext = statExt;
 	updatePositionMarkerExtent();
 }
 
-void iASlicer::updateBackground()
+void iASlicerImpl::updateBackground()
 {
 	if (m_userSetBackground)
 	{
@@ -1288,7 +1287,7 @@ void iASlicer::updateBackground()
 	}
 }
 
-void iASlicer::setBackground(double r, double g, double b)
+void iASlicerImpl::setBackground(double r, double g, double b)
 {
 	m_userSetBackground = true;
 	m_backgroundRGB[0] = r;
@@ -1297,7 +1296,7 @@ void iASlicer::setBackground(double r, double g, double b)
 	updateBackground();
 }
 
-void iASlicer::execute(vtkObject * /*caller*/, unsigned long eventId, void * /*callData*/)
+void iASlicerImpl::execute(vtkObject * /*caller*/, unsigned long eventId, void * /*callData*/)
 {
 	if (m_channels.empty())
 	{
@@ -1337,7 +1336,7 @@ void iASlicer::execute(vtkObject * /*caller*/, unsigned long eventId, void * /*c
 	}
 	case vtkCommand::MouseMoveEvent:
 	{
-		//LOG(lvlInfo, "iASlicer::execute vtkCommand::MouseMoveEvent");
+		//LOG(lvlInfo, "iASlicerImpl::execute vtkCommand::MouseMoveEvent");
 		if (m_decorations)
 		{
 			m_positionMarkerActor->SetVisibility(false);
@@ -1370,7 +1369,7 @@ void iASlicer::execute(vtkObject * /*caller*/, unsigned long eventId, void * /*c
 	m_interactor->Render();
 }
 
-void iASlicer::updatePosition()
+void iASlicerImpl::updatePosition()
 {
 	// get slicer event position:
 	int const * epos = m_interactor->GetEventPosition();
@@ -1392,7 +1391,7 @@ void iASlicer::updatePosition()
 	resliceAxes->Delete();
 }
 
-void iASlicer::computeCoords(double * coord, uint channelID)
+void iASlicerImpl::computeCoords(double * coord, uint channelID)
 {
 	if (!hasChannel(channelID))
 	{
@@ -1459,7 +1458,7 @@ bool operator!=(QCursor const & a, QCursor const & b)
 }
 #endif
 
-void iASlicer::printVoxelInformation()
+void iASlicerImpl::printVoxelInformation()
 {
 	if (!m_decorations)
 	{
@@ -1547,7 +1546,7 @@ void iASlicer::printVoxelInformation()
 				slicerYAxisIdx = mapSliceToGlobalAxis(m_mode, iAAxisIndex::Y),
 				slicerZAxisIdx = mapSliceToGlobalAxis(m_mode, iAAxisIndex::Z);
 			tmpChild->slicer(m_mode)->setIndex(tmpCoord[0], tmpCoord[1], tmpCoord[2]);
-			tmpChild->slicer(m_mode)->setPositionMarkerCenter(m_globalPt[slicerXAxisIdx], m_globalPt[slicerYAxisIdx], m_globalPt[slicerZAxisIdx]);
+			dynamic_cast<iASlicerImpl*>(tmpChild->slicer(m_mode))->setPositionMarkerCenter(m_globalPt[slicerXAxisIdx], m_globalPt[slicerYAxisIdx], m_globalPt[slicerZAxisIdx]);
 			tmpChild->slicer(m_mode)->setSliceNumber(tmpCoord[slicerZAxisIdx]);
 			tmpChild->slicer(m_mode)->update();
 			strDetails += filePixel(tmpChild->slicer(m_mode), tmpCoord, slicerXAxisIdx, slicerYAxisIdx);
@@ -1573,7 +1572,7 @@ void iASlicer::printVoxelInformation()
 	m_positionMarkerMapper->Update();
 }
 
-void iASlicer::executeKeyPressEvent()
+void iASlicerImpl::executeKeyPressEvent()
 {
 	switch (m_interactor->GetKeyCode())
 	{
@@ -1603,7 +1602,7 @@ void iASlicer::executeKeyPressEvent()
 	}
 }
 /*
-void iASlicer::defaultOutput()
+void iASlicerImpl::defaultOutput()
 {
 	if (!m_decorations)
 	{
@@ -1618,7 +1617,7 @@ void iASlicer::defaultOutput()
 }
 */
 /*
-void iASlicer::snapToHighGradient(double &x, double &y)
+void iASlicerImpl::snapToHighGradient(double &x, double &y)
 {
 	double range[2];
 	imageData->GetScalarRange(range);
@@ -1806,7 +1805,7 @@ void iASlicer::snapToHighGradient(double &x, double &y)
 }
 */
 
-void iASlicer::setShowText(bool isVisible)
+void iASlicerImpl::setShowText(bool isVisible)
 {
 	if (!m_decorations)
 	{
@@ -1815,27 +1814,27 @@ void iASlicer::setShowText(bool isVisible)
 	m_textInfo->show(isVisible);
 }
 
-void iASlicer::enableChannel(uint id, bool enabled)
+void iASlicerImpl::enableChannel(uint id, bool enabled)
 {
 	channel(id)->setEnabled(m_ren, enabled);
 }
 
-void iASlicer::updateChannel(uint id, iAChannelData const & chData)
+void iASlicerImpl::updateChannel(uint id, iAChannelData const & chData)
 {
 	channel(id)->update(chData);
 }
 
-void iASlicer::setResliceChannelAxesOrigin(uint id, double x, double y, double z)
+void iASlicerImpl::setResliceChannelAxesOrigin(uint id, double x, double y, double z)
 {
 	channel(id)->setResliceAxesOrigin(x, y, z);
 }
 
-void iASlicer::setChannelOpacity(uint id, double opacity)
+void iASlicerImpl::setChannelOpacity(uint id, double opacity)
 {
 	channel(id)->setActorOpacity(opacity);
 }
 
-void iASlicer::setSlabThickness(int thickness)
+void iASlicerImpl::setSlabThickness(int thickness)
 {
 	m_slabThickness = thickness;
 	for (auto ch : m_channels)
@@ -1845,7 +1844,7 @@ void iASlicer::setSlabThickness(int thickness)
 	update();
 }
 
-void iASlicer::setSlabCompositeMode(int slabCompositeMode)
+void iASlicerImpl::setSlabCompositeMode(int slabCompositeMode)
 {
 	m_slabCompositeMode = slabCompositeMode;
 	for (auto ch : m_channels)
@@ -1855,7 +1854,7 @@ void iASlicer::setSlabCompositeMode(int slabCompositeMode)
 	update();
 }
 
-QSharedPointer<iAChannelSlicerData> iASlicer::createChannel(uint id, iAChannelData const & chData)
+QSharedPointer<iAChannelSlicerData> iASlicerImpl::createChannel(uint id, iAChannelData const & chData)
 {
 	if (m_channels.contains(id))
 	{
@@ -1871,7 +1870,7 @@ QSharedPointer<iAChannelSlicerData> iASlicer::createChannel(uint id, iAChannelDa
 	return newData;
 }
 
-iAChannelSlicerData * iASlicer::channel(uint id)
+iAChannelSlicerData * iASlicerImpl::channel(uint id)
 {
 	assert(m_channels.contains(id));
 	if (!m_channels.contains(id))
@@ -1881,7 +1880,7 @@ iAChannelSlicerData * iASlicer::channel(uint id)
 	return m_channels.find(id)->data();
 }
 
-void iASlicer::removeChannel(uint id)
+void iASlicerImpl::removeChannel(uint id)
 {
 	if (channel(id)->isEnabled())
 	{
@@ -1890,12 +1889,12 @@ void iASlicer::removeChannel(uint id)
 	m_channels.remove(id);
 }
 
-bool iASlicer::hasChannel(uint id) const
+bool iASlicerImpl::hasChannel(uint id) const
 {
 	return m_channels.contains(id);
 }
 
-void iASlicer::setCamera(vtkCamera* cam, bool camOwner /*=true*/)
+void iASlicerImpl::setCamera(vtkCamera* cam, bool camOwner /*=true*/)
 {
 	m_ren->SetActiveCamera(cam);
 	if (m_camera && m_cameraOwner)
@@ -1906,12 +1905,12 @@ void iASlicer::setCamera(vtkCamera* cam, bool camOwner /*=true*/)
 	m_camera = cam;
 }
 
-void iASlicer::resetCamera()
+void iASlicerImpl::resetCamera()
 {
 	m_ren->ResetCamera();
 }
 
-void iASlicer::updateChannelMappers()
+void iASlicerImpl::updateChannelMappers()
 {
 	for (auto chData: m_channels)
 	{
@@ -1920,7 +1919,7 @@ void iASlicer::updateChannelMappers()
 	}
 }
 
-void iASlicer::rotateSlice(double angle)
+void iASlicerImpl::rotateSlice(double angle)
 {
 	m_angle[mapSliceToGlobalAxis(m_mode, iAAxisIndex::Z)] = angle;
 
@@ -1964,7 +1963,7 @@ void iASlicer::rotateSlice(double angle)
 }
 
 /*
-void iASlicer::switchContourSourceToChannel(uint id )
+void iASlicerImpl::switchContourSourceToChannel(uint id )
 {
 	if (!m_decorations)
 		return;
@@ -1973,7 +1972,7 @@ void iASlicer::switchContourSourceToChannel(uint id )
 }
 */
 
-void iASlicer::setContours(int numberOfContours, double contourMin, double contourMax)
+void iASlicerImpl::setContours(int numberOfContours, double contourMin, double contourMax)
 {
 	if (!m_decorations)
 	{
@@ -1985,7 +1984,7 @@ void iASlicer::setContours(int numberOfContours, double contourMin, double conto
 	}
 }
 
-void iASlicer::setContours(int numberOfContours, double const * contourValues)
+void iASlicerImpl::setContours(int numberOfContours, double const * contourValues)
 {
 	if (!m_decorations)
 	{
@@ -1997,7 +1996,7 @@ void iASlicer::setContours(int numberOfContours, double const * contourValues)
 	}
 }
 
-void iASlicer::setMouseCursor(QString const & s)
+void iASlicerImpl::setMouseCursor(QString const & s)
 {
 	QString color = s.section(' ', -1);
 	if (color != "default")
@@ -2021,7 +2020,7 @@ void iASlicer::setMouseCursor(QString const & s)
 	m_cursorSet = true;
 }
 
-void iASlicer::setScalarBarTF(vtkScalarsToColors* ctf)
+void iASlicerImpl::setScalarBarTF(vtkScalarsToColors* ctf)
 {
 	if (!m_scalarBarWidget)
 	{
@@ -2031,19 +2030,19 @@ void iASlicer::setScalarBarTF(vtkScalarsToColors* ctf)
 	m_scalarBarWidget->SetEnabled(ctf != nullptr);
 }
 
-QCursor iASlicer::mouseCursor()
+QCursor iASlicerImpl::mouseCursor()
 {
 	return m_mouseCursor;
 }
 
-int iASlicer::sliceNumber() const
+int iASlicerImpl::sliceNumber() const
 {
 	return m_sliceNumber;
 }
 
-void iASlicer::keyPressEvent(QKeyEvent *event)
+void iASlicerImpl::keyPressEvent(QKeyEvent *event)
 {
-	// TODO: merge with iASlicer::execute, switch branch vtkCommand::KeyPressEvent ?
+	// TODO: merge with iASlicerImpl::execute, switch branch vtkCommand::KeyPressEvent ?
 	if (!hasChannel(0))
 	{
 		return;
@@ -2111,9 +2110,9 @@ void iASlicer::keyPressEvent(QKeyEvent *event)
 	iAVtkWidget::keyPressEvent(event);
 }
 
-void iASlicer::mousePressEvent(QMouseEvent *event)
+void iASlicerImpl::mousePressEvent(QMouseEvent *event)
 {
-	// TODO: merge with iASlicer::execute, switch branch vtkCommand::LeftButtonPressEvent ?
+	// TODO: merge with iASlicerImpl::execute, switch branch vtkCommand::LeftButtonPressEvent ?
 	if (m_channels.empty())
 	{
 		iAVtkWidget::mousePressEvent(event);
@@ -2152,9 +2151,9 @@ void iASlicer::mousePressEvent(QMouseEvent *event)
 	iAVtkWidget::mousePressEvent(event);
 }
 
-void iASlicer::mouseMoveEvent(QMouseEvent *event)
+void iASlicerImpl::mouseMoveEvent(QMouseEvent *event)
 {
-	// TODO: merge with iASlicer::execute, switch branch vtkCommand::MouseMoveEvent ?
+	// TODO: merge with iASlicerImpl::execute, switch branch vtkCommand::MouseMoveEvent ?
 	iAVtkWidget::mouseMoveEvent(event);
 
 	if (!hasChannel(0)) // nothing to do if no data
@@ -2226,7 +2225,7 @@ void iASlicer::mouseMoveEvent(QMouseEvent *event)
 	}
 }
 
-void iASlicer::deselectPoint()
+void iASlicerImpl::deselectPoint()
 {
 	if (!m_decorations)
 	{
@@ -2235,7 +2234,7 @@ void iASlicer::deselectPoint()
 	m_snakeSpline->deselectPoint();
 }
 
-void iASlicer::mouseReleaseEvent(QMouseEvent *event)
+void iASlicerImpl::mouseReleaseEvent(QMouseEvent *event)
 {
 	iAVtkWidget::mouseReleaseEvent(event);
 	if (m_decorations)
@@ -2245,7 +2244,7 @@ void iASlicer::mouseReleaseEvent(QMouseEvent *event)
 	}
 }
 
-void iASlicer::mouseDoubleClickEvent(QMouseEvent* event)
+void iASlicerImpl::mouseDoubleClickEvent(QMouseEvent* event)
 {
 	if (event->button() == Qt::LeftButton)
 	{
@@ -2253,7 +2252,7 @@ void iASlicer::mouseDoubleClickEvent(QMouseEvent* event)
 	}
 }
 
-void iASlicer::contextMenuEvent(QContextMenuEvent *event)
+void iASlicerImpl::contextMenuEvent(QContextMenuEvent *event)
 {
 	m_actionToggleWindowLevelAdjust->setChecked(m_interactorStyle->windowLevelAdjustEnabled());
 	m_actionShowTooltip->setChecked(m_textInfo->isShown());
@@ -2271,7 +2270,7 @@ void iASlicer::contextMenuEvent(QContextMenuEvent *event)
 	m_contextMenu->exec(event->globalPos());
 }
 
-void iASlicer::switchInteractionMode(int mode)
+void iASlicerImpl::switchInteractionMode(int mode)
 {
 	if (!m_decorations)
 	{
@@ -2282,7 +2281,7 @@ void iASlicer::switchInteractionMode(int mode)
 	m_renWin->GetInteractor()->Render();
 }
 
-void iASlicer::addPoint(double xPos, double yPos, double zPos)
+void iASlicerImpl::addPoint(double xPos, double yPos, double zPos)
 {
 	if (!m_decorations)
 	{
@@ -2303,7 +2302,7 @@ void iASlicer::addPoint(double xPos, double yPos, double zPos)
 #endif
 }
 
-void iASlicer::updateRawProfile(double posY)
+void iASlicerImpl::updateRawProfile(double posY)
 {
 	if (!hasChannel(0))
 	{
@@ -2323,12 +2322,12 @@ void iASlicer::updateRawProfile(double posY)
 #endif
 }
 
-bool iASlicer::setProfilePoint(int pointInd, double* Pos)
+bool iASlicerImpl::setProfilePoint(int pointInd, double* Pos)
 {
 	return setProfilePointWithClamp(pointInd, Pos, false);
 }
 
-bool iASlicer::setProfilePointWithClamp(int pointInd, double * Pos, bool doClamp)
+bool iASlicerImpl::setProfilePointWithClamp(int pointInd, double * Pos, bool doClamp)
 {
 	if (!m_decorations || !hasChannel(0))
 	{
@@ -2359,7 +2358,7 @@ bool iASlicer::setProfilePointWithClamp(int pointInd, double * Pos, bool doClamp
 	return true;
 }
 
-void iASlicer::movePoint(size_t selectedPointIndex, double xPos, double yPos, double zPos)
+void iASlicerImpl::movePoint(size_t selectedPointIndex, double xPos, double yPos, double zPos)
 {
 	if (!m_decorations)
 	{
@@ -2384,13 +2383,13 @@ void iASlicer::movePoint(size_t selectedPointIndex, double xPos, double yPos, do
 	}
 }
 
-void iASlicer::menuDeleteSnakeLine()
+void iASlicerImpl::menuDeleteSnakeLine()
 {
 	deleteSnakeLine();
 	emit deletedSnakeLine();
 }
 
-void iASlicer::deleteSnakeLine()
+void iASlicerImpl::deleteSnakeLine()
 {
 	if (!m_decorations)
 	{
@@ -2401,14 +2400,14 @@ void iASlicer::deleteSnakeLine()
 	m_renWin->GetInteractor()->Render();
 }
 
-void iASlicer::setSliceProfileOn(bool isOn)
+void iASlicerImpl::setSliceProfileOn(bool isOn)
 {
 	m_isSliceProfEnabled = isOn;
 	m_sliceProfile->setVisibility(m_isSliceProfEnabled);
 	updateRawProfile(channel(0)->output()->GetOrigin()[1]);
 }
 
-void iASlicer::setProfileHandlesOn(bool isOn)
+void iASlicerImpl::setProfileHandlesOn(bool isOn)
 {
 	if (!m_decorations)
 	{
@@ -2423,23 +2422,23 @@ void iASlicer::setProfileHandlesOn(bool isOn)
 #endif
 }
 
-void iASlicer::setIndex(int x, int y, int z)
+void iASlicerImpl::setIndex(int x, int y, int z)
 {
 	m_xInd = x; m_yInd = y; m_zInd = z;
 }
 
-void iASlicer::setLinkedMdiChild(iAMdiChild* mdiChild)
+void iASlicerImpl::setLinkedMdiChild(iAMdiChild* mdiChild)
 {
 	m_linkedMdiChild = mdiChild;
 }
 
-void iASlicer::resizeEvent(QResizeEvent * event)
+void iASlicerImpl::resizeEvent(QResizeEvent * event)
 {
 	updateMagicLens();
 	iAVtkWidget::resizeEvent(event);
 }
 
-void iASlicer::wheelEvent(QWheelEvent* event)
+void iASlicerImpl::wheelEvent(QWheelEvent* event)
 {
 	event->accept();
 	if (event->modifiers().testFlag(Qt::ControlModifier) && event->modifiers().testFlag(Qt::ShiftModifier) && receivers(SIGNAL(altMouseWheel(int))) > 0)
@@ -2469,7 +2468,7 @@ void iASlicer::wheelEvent(QWheelEvent* event)
 	updateMagicLens();
 }
 
-void iASlicer::menuCenteredMagicLens()
+void iASlicerImpl::menuCenteredMagicLens()
 {
 	if (!m_magicLens)
 	{
@@ -2479,7 +2478,7 @@ void iASlicer::menuCenteredMagicLens()
 	updateMagicLens();
 }
 
-void iASlicer::menuOffsetMagicLens()
+void iASlicerImpl::menuOffsetMagicLens()
 {
 	if (!m_magicLens)
 	{
@@ -2489,22 +2488,22 @@ void iASlicer::menuOffsetMagicLens()
 	updateMagicLens();
 }
 
-void iASlicer::toggleLinearInterpolation()
+void iASlicerImpl::toggleLinearInterpolation()
 {
 	setLinearInterpolation(m_actionLinearInterpolation->isChecked());
 }
 
-void iASlicer::toggleWindowLevelAdjust()
+void iASlicerImpl::toggleWindowLevelAdjust()
 {
 	m_interactorStyle->setWindowLevelAdjust(!m_interactorStyle->windowLevelAdjustEnabled());
 }
 
-void iASlicer::toggleShowTooltip()
+void iASlicerImpl::toggleShowTooltip()
 {
 	m_textInfo->show(m_actionShowTooltip->isChecked());
 }
 
-void iASlicer::fisheyeLensToggled(bool enabled)
+void iASlicerImpl::fisheyeLensToggled(bool enabled)
 {
 	m_fisheyeLensActivated = enabled;
 	vtkRenderer* ren = m_renWin->GetRenderers()->GetFirstRenderer();
@@ -2561,7 +2560,7 @@ void iASlicer::fisheyeLensToggled(bool enabled)
 	}
 }
 
-void iASlicer::initializeFisheyeLens(vtkImageReslice* reslicer)
+void iASlicerImpl::initializeFisheyeLens(vtkImageReslice* reslicer)
 {
 #if VTK_VERSION_NUMBER < VTK_VERSION_CHECK(9, 0, 0)
 	vtkRenderer * ren = GetRenderWindow()->GetRenderers()->GetFirstRenderer();
@@ -2634,7 +2633,7 @@ void iASlicer::initializeFisheyeLens(vtkImageReslice* reslicer)
 	}
 }
 
-void iASlicer::updateFisheyeTransform(double focalPt[3], vtkImageReslice* reslicer, double lensRadius, double innerLensRadius)
+void iASlicerImpl::updateFisheyeTransform(double focalPt[3], vtkImageReslice* reslicer, double lensRadius, double innerLensRadius)
 {
 	vtkImageData * reslicedImgData = reslicer->GetOutput();
 
@@ -2788,7 +2787,7 @@ void iASlicer::updateFisheyeTransform(double focalPt[3], vtkImageReslice* reslic
 	update();
 }
 
-void iASlicer::updateMagicLens()
+void iASlicerImpl::updateMagicLens()
 {
 	if (!m_magicLens || !m_magicLens->isEnabled())
 	{

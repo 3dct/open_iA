@@ -40,6 +40,7 @@
 #include <iARenderSettings.h>
 #include <iASlicer.h>
 #include <iASlicerMode.h>
+#include <iASlicerSettings.h>
 #include <iAToolsVTK.h>
 #include <iATransferFunction.h>
 #include <iAVolumeRenderer.h>

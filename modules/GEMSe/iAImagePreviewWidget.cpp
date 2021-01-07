@@ -27,7 +27,7 @@
 #include <iAColorTheme.h>
 #include <iAConnector.h>
 #include <iALog.h>
-#include <iASlicer.h>
+#include <iASlicerImpl.h>
 #include <iASlicerSettings.h>
 
 #include <vtkDiscretizableColorTransferFunction.h>
@@ -72,7 +72,7 @@ iAImagePreviewWidget::iAImagePreviewWidget(QString const & title, QWidget* paren
 	m_aspectRatio(1.0),
 	m_colorTheme(nullptr)
 {
-	m_slicer = new iASlicer(this, mode, false, magicLens, m_slicerTransform);
+	m_slicer = new iASlicerImpl(this, mode, false, magicLens, m_slicerTransform);
 	m_slicer->setup(iASingleSlicerSettings());
 	m_slicer->setBackground(SLICER_BACKGROUND_COLOR[0], SLICER_BACKGROUND_COLOR[1], SLICER_BACKGROUND_COLOR[2]);
 	if (m_sliceNumber == SliceNumberNotSet)

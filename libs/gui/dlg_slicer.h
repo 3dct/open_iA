@@ -26,14 +26,14 @@
 
 #include <QDockWidget>
 
-class iASlicer;
+class iASlicerImpl;
 
 class dlg_slicer : public QDockWidget, public Ui_slicer
 {
 Q_OBJECT
 
 public:
-	dlg_slicer(iASlicer* slicer);
+	dlg_slicer(iASlicerImpl* slicer);
 	void showBorder(bool show);
 private slots:
 	void setSliceSpinBox(int s);
@@ -45,5 +45,5 @@ private slots:
 private:
 	static const int BorderWidth;
 	static QColor slicerColor(iASlicerMode mode);
-	iASlicer* m_slicer;
+	iASlicerImpl* m_slicer;
 };

@@ -20,7 +20,7 @@
 * ************************************************************************************/
 #include "dlg_slicer.h"
 
-#include "iASlicer.h"
+#include "iASlicerImpl.h"
 
 const int dlg_slicer::BorderWidth = 3;
 
@@ -35,7 +35,7 @@ QColor dlg_slicer::slicerColor(iASlicerMode mode)
 	}
 }
 
-dlg_slicer::dlg_slicer(iASlicer* slicer):
+dlg_slicer::dlg_slicer(iASlicerImpl* slicer):
 	m_slicer(slicer)
 {
 	setupUi(this);
@@ -56,16 +56,16 @@ dlg_slicer::dlg_slicer(iASlicer* slicer):
 	cbSlabCompositeMode->hide();
 
 	connect(pbSave, &QToolButton::clicked, slicer, &iASlicer::saveAsImage);
-	connect(pbSaveStack, &QToolButton::clicked, slicer, &iASlicer::saveImageStack);
+	connect(pbSaveStack, &QToolButton::clicked, slicer, &iASlicerImpl::saveImageStack);
 	connect(pbMov, &QToolButton::clicked, slicer, &iASlicer::saveMovie);
-	connect(pbStop, &QToolButton::clicked, slicer, &iASlicer::toggleInteractorState);
+	connect(pbStop, &QToolButton::clicked, slicer, &iASlicerImpl::toggleInteractorState);
 	connect(dsbRotation, QOverload<double>::of(&QDoubleSpinBox::valueChanged), slicer, &iASlicer::rotateSlice);
 	connect(sbSlice, QOverload<int>::of(&QSpinBox::valueChanged), this, &dlg_slicer::setSliceSpinBox);
 	connect(verticalScrollBar, &QSlider::valueChanged, this, &dlg_slicer::setSliceScrollBar);
 	connect(cbSlabMode, &QCheckBox::toggled, this, &dlg_slicer::setSlabMode);
 	connect(sbSlabThickness, QOverload<int>::of(&QSpinBox::valueChanged), this, &dlg_slicer::updateSlabThickness);
 	connect(cbSlabCompositeMode, QOverload<int>::of(&QComboBox::currentIndexChanged), this, &dlg_slicer::updateSlabCompositeMode);
-	connect(m_slicer, &iASlicer::sliceRangeChanged, this, &dlg_slicer::updateSliceControls);
+	connect(m_slicer, &iASlicerImpl::sliceRangeChanged, this, &dlg_slicer::updateSliceControls);
 }
 
 void dlg_slicer::showBorder(bool show)

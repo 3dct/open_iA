@@ -20,6 +20,8 @@
 * ************************************************************************************/
 #pragma once
 
+#include "iAcore_export.h"
+
 #include <vtkObject.h>
 #include <vtkSmartPointer.h>
 
@@ -28,7 +30,7 @@ class vtkTextMapper;
 class vtkActor2D;
 
 //! Wraps the vtk classes required to display a text.
-class iAVtkText : public vtkObject {
+class iAcore_API iAVtkText : public vtkObject {
 
 public:
 	static iAVtkText* New();

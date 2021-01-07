@@ -724,5 +724,5 @@ void iAFeatureAnalyzerModuleInterface::datasetPreviewThreadStarted()
 
 void iAFeatureAnalyzerModuleInterface::compNameChanged()
 {
-	m_computerName = uiComputeSegm.computerName->text();;
+	m_computerName = uiComputeSegm.computerName->text();
 }

@@ -1,3 +1,4 @@
 SET( DEPENDENCIES_LIBRARIES
 	iAcharts
 )
+SET (DEPENDENCIES_BASE_LIBRARY iAslicer) # for access to iASlicerImpl

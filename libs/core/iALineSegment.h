@@ -20,6 +20,8 @@
 * ************************************************************************************/
 #pragma once
 
+#include "iAcore_export.h"
+
 class vtkPoints;
 class vtkActor;
 class vtkPolyDataMapper;
@@ -28,7 +30,7 @@ class vtkLineSource;
 #include <vtkSmartPointer.h>
 
 //! Collection of vtk classes required for displaying a line segment.
-struct iALineSegment
+struct iAcore_API iALineSegment
 {
 	iALineSegment();
 	void point(int idx, double * point_out);

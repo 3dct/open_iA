@@ -45,7 +45,7 @@
 #include "iARenderer.h"
 #include "iARenderObserver.h"
 #include "iARenderSettings.h"
-#include "iASlicer.h"
+#include "iASlicerImpl.h"
 #include "iATransferFunction.h"
 #include "iAVolumeStack.h"
 #include "iAVtkVersion.h"
@@ -146,7 +146,7 @@ MdiChild::MdiChild(MainWindow* mainWnd, iAPreferences const& prefs, bool unsaved
 	m_dwRenderer = new dlg_renderer(this);
 	for (int i = 0; i < 3; ++i)
 	{
-		m_slicer[i] = new iASlicer(this, static_cast<iASlicerMode>(i), true, true, m_slicerTransform, m_worldSnakePoints);
+		m_slicer[i] = new iASlicerImpl(this, static_cast<iASlicerMode>(i), true, true, m_slicerTransform, m_worldSnakePoints);
 		m_dwSlicer[i] = new dlg_slicer(m_slicer[i]);
 	}
 
@@ -266,7 +266,7 @@ void MdiChild::connectSignalsToSlots()
 		connect(m_slicer[s], &iASlicer::shiftMouseWheel, this, &MdiChild::changeMagicLensModality);
 		connect(m_slicer[s], &iASlicer::altMouseWheel, this, &MdiChild::changeMagicLensOpacity);
 		connect(m_slicer[s], &iASlicer::ctrlMouseWheel, this, &MdiChild::changeMagicLensSize);
-		connect(m_slicer[s], &iASlicer::sliceRotated, this, &MdiChild::slicerRotationChanged);
+		connect(m_slicer[s], &iASlicerImpl::sliceRotated, this, &MdiChild::slicerRotationChanged);
 		connect(m_slicer[s], &iASlicer::sliceNumberChanged, this, &MdiChild::setSlice);
 
 		connect(m_slicer[s], &iASlicer::oslicerPos, this, &MdiChild::updatePositionMarker);
@@ -1451,19 +1451,19 @@ void MdiChild::setupSlicers(iASlicerSettings const& ss, bool init)
 		// connect signals for making slicers update other views in snake slicers mode:
 		for (int i = 0; i < 3; ++i)
 		{
-			connect(m_slicer[i], &iASlicer::profilePointChanged, this, &MdiChild::updateProbe);
-			connect(m_slicer[i], &iASlicer::profilePointChanged, m_renderer, &iARenderer::setProfilePoint);
+			connect(m_slicer[i], &iASlicerImpl::profilePointChanged, this, &MdiChild::updateProbe);
+			connect(m_slicer[i], &iASlicerImpl::profilePointChanged, m_renderer, &iARenderer::setProfilePoint);
 			connect(m_slicer[i], &iASlicer::magicLensToggled, this, &MdiChild::toggleMagicLens2D);
 			for (int j = 0; j < 3; ++j)
 			{
 				if (i != j)	// connect each slicer's signals to the other slicer's slots, except for its own:
 				{
-					connect(m_slicer[i], &iASlicer::addedPoint, m_slicer[j], &iASlicer::addPoint);
-					connect(m_slicer[i], &iASlicer::movedPoint, m_slicer[j], &iASlicer::movePoint);
-					connect(m_slicer[i], &iASlicer::profilePointChanged, m_slicer[j], &iASlicer::setProfilePoint);
-					connect(m_slicer[i], &iASlicer::switchedMode, m_slicer[j], &iASlicer::switchInteractionMode);
-					connect(m_slicer[i], &iASlicer::deletedSnakeLine, m_slicer[j], &iASlicer::deleteSnakeLine);
-					connect(m_slicer[i], &iASlicer::deselectedPoint, m_slicer[j], &iASlicer::deselectPoint);
+					connect(m_slicer[i], &iASlicerImpl::addedPoint, m_slicer[j], &iASlicerImpl::addPoint);
+					connect(m_slicer[i], &iASlicerImpl::movedPoint, m_slicer[j], &iASlicerImpl::movePoint);
+					connect(m_slicer[i], &iASlicerImpl::profilePointChanged, m_slicer[j], &iASlicerImpl::setProfilePoint);
+					connect(m_slicer[i], &iASlicerImpl::switchedMode, m_slicer[j], &iASlicerImpl::switchInteractionMode);
+					connect(m_slicer[i], &iASlicerImpl::deletedSnakeLine, m_slicer[j], &iASlicerImpl::deleteSnakeLine);
+					connect(m_slicer[i], &iASlicerImpl::deselectedPoint, m_slicer[j], &iASlicerImpl::deselectPoint);
 				}
 			}
 		}
@@ -1673,7 +1673,7 @@ void MdiChild::toggleSnakeSlicer(bool isChecked)
 		for (int s = 0; s < 3; ++s)
 		{
 			m_savedSlicerTransform[s] = m_slicer[s]->channel(0)->reslicer()->GetResliceTransform();
-			m_slicer[s]->switchInteractionMode(iASlicer::SnakeShow);
+			m_slicer[s]->switchInteractionMode(iASlicerImpl::SnakeShow);
 			m_dwSlicer[s]->sbSlice->setValue(0);
 		}
 	}
@@ -1690,7 +1690,7 @@ void MdiChild::toggleSnakeSlicer(bool isChecked)
 			m_slicer[s]->channel(0)->reslicer()->SetOutputExtentToDefault();
 			m_slicer[s]->resetCamera();
 			m_slicer[s]->renderer()->Render();
-			m_slicer[s]->switchInteractionMode(iASlicer::Normal);
+			m_slicer[s]->switchInteractionMode(iASlicerImpl::Normal);
 		}
 		if (m_renderSettings.ShowSlicers)
 		{

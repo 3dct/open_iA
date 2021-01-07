@@ -22,253 +22,139 @@
 
 #include "iAcore_export.h"
 #include "iASlicerMode.h"
-#include "iASlicerSettings.h"    // for iASingleSlicerSettings
 #include "iAVtkWidget.h"
 
 #include <vtkSmartPointer.h>
 
-#include <QCursor>
-#include <QMap>
-#include <QSharedPointer>
-
-
-class iASlicerProfile;
-class iASlicerProfileHandles;
 class iAChannelData;
 class iAChannelSlicerData;
 class iAMagicLens;
-class iARulerWidget;
-class iASingleSlicerSettings;
-class iASlicer;
-class iASlicerInteractorStyle;
-class iASnakeSpline;
-class iAVtkText;
 class iAMdiChild;
+class iASingleSlicerSettings;
 
-class vtkAbstractTransform;
-class vtkActor;
 class vtkAlgorithmOutput;
 class vtkCamera;
-class vtkScalarsToColors;
-class vtkDiskSource;
 class vtkGenericOpenGLRenderWindow;
 class vtkImageActor;
-class vtkImageData;
-class vtkImageMapToColors;
-class vtkImageReslice;
-class vtkInteractorStyle;
-class vtkLineSource;
-class vtkLogoWidget;
-class vtkLogoRepresentation;
-class vtkMarchingContourFilter;
 class vtkObject;
-class vtkCubeSource;
-class vtkPoints;
-class vtkQImageToImageSource;
-class vtkPolyDataMapper;
-class vtkRegularPolygonSource;
 class vtkRenderer;
 class vtkRenderWindowInteractor;
-class vtkScalarBarWidget;
-class vtkTextProperty;
-class vtkTextActor3D;
-class vtkThinPlateSplineTransform;
-class vtkTransform;
-class vtkWorldPointPicker;
-
-class QAction;
-class QMenu;
-class QWidget;
+class vtkScalarsToColors;
 
 //! vtk-based slicer widget. "Channels" (i.e. image layers) are inserted via the addChannel method
 class iAcore_API iASlicer : public iAVtkWidget
 {
 	Q_OBJECT
 public:
-	enum InteractionMode {
-		Normal,
-		SnakeEdit,
-		SnakeShow
-	};
-	//! Creates a new slicer widget.
-	//! @param parent the parent widget; can be nullptr for no current parent.
-	//! @param mode determines which axis-aligned slice-plane is used for slicing.
-	//! @param decorations whether to show the scalar bar widget, the measure bar, the logo and the tooltip.
-	//! @param magicLensAvailable whether a magic lens should be available.
-	//! @param transform the basic transform the reslicers inside the channels of this slicer (should probably be removed here).
-	//! @param snakeSlicerPoints the array of points in the snake slicer (leave at default nullptr if you don't require snake slicer).
-	iASlicer(QWidget * parent, const iASlicerMode mode, bool decorations = true, bool magicLensAvailable = true,
-		vtkAbstractTransform *transform = nullptr, vtkPoints* snakeSlicerPoints = nullptr);
+	iASlicer(QWidget* parent):
+		iAVtkWidget(parent)
+	{}
 	//! Sets up the slicer with the given settings.
-	void setup(iASingleSlicerSettings const & settings);
-	virtual ~iASlicer();
+	virtual void setup(iASingleSlicerSettings const & settings) = 0;
+	virtual ~iASlicer(){};
 
 	//! @{ Magic Lens methods
-	void setMagicLensEnabled( bool isEnabled );
-	void setMagicLensSize(int newSize);
-	int  magicLensSize() const;
-	void setMagicLensFrameWidth(int newWidth);
-	void setMagicLensCount(int count);
-	void setMagicLensInput(uint id);
-	uint magicLensInput() const;
-	void setMagicLensOpacity(double opacity);
-	double magicLensOpacity() const;
-	void updateMagicLensColors();
-	void updateMagicLens();
-	iAMagicLens * magicLens();
+	virtual void setMagicLensEnabled( bool isEnabled ) = 0;
+	virtual void setMagicLensCount(int count) = 0;
+	virtual void setMagicLensInput(uint id) = 0;
+	virtual uint magicLensInput() const = 0;
+	virtual void setMagicLensOpacity(double opacity) = 0;
+	virtual double magicLensOpacity() const = 0;
+	virtual void updateMagicLensColors() = 0;
+	virtual void updateMagicLens() = 0;
+	virtual iAMagicLens* magicLens() = 0;
 	//! @}
 
-	void disableInteractor();
-	void enableInteractor(); //also updates widget
+	virtual void disableInteractor() = 0;
+	virtual void enableInteractor() = 0;  //also updates widget
 
 	//! @{ management of channels - each channel represents one "layer"
-	void addChannel(uint id, iAChannelData const & chData, bool enable);
-	void removeChannel(uint id);
-	void updateChannel(uint id, iAChannelData const & chData );
-	iAChannelSlicerData * channel(uint id);
-	void setChannelOpacity(uint id, double opacity);
-	void enableChannel(uint id, bool enabled);
+	virtual void addChannel(uint id, iAChannelData const& chData, bool enable) = 0;
+	virtual void removeChannel(uint id) = 0;
+	virtual void updateChannel(uint id, iAChannelData const& chData) = 0;
+	virtual iAChannelSlicerData* channel(uint id) = 0;
+	virtual void setChannelOpacity(uint id, double opacity) = 0;
+	virtual void enableChannel(uint id, bool enabled) = 0;
 	//size_t channelCount() const;
-	bool hasChannel(uint id) const;
+	virtual bool hasChannel(uint id) const = 0;
 	//! @}
 
 	// { TODO: check whether these can be removed somehow!
-	void addImageActor(vtkSmartPointer<vtkImageActor> imgActor);
-	void removeImageActor(vtkSmartPointer<vtkImageActor> imgActor);
+	virtual void addImageActor(vtkSmartPointer<vtkImageActor> imgActor) = 0;
+	virtual void removeImageActor(vtkSmartPointer<vtkImageActor> imgActor) = 0;
 	// }
 
 	//! @{ ROI rectangle
-	void setROIVisible(bool isVisible);
-	void updateROI(int const roi[6]);
+	virtual void setROIVisible(bool isVisible) = 0;
+	virtual void updateROI(int const roi[6]) = 0;
 	//! @}
 
-	void setResliceAxesOrigin(double x, double y, double z);
+	virtual void setResliceAxesOrigin(double x, double y, double z) = 0;
 	//! Access to the slicer's main renderer.
-	vtkRenderer * renderer();
+	virtual vtkRenderer* renderer() = 0;
 	//! Access to the slicer's render window.
-	vtkGenericOpenGLRenderWindow * renderWindow();
+	virtual vtkGenericOpenGLRenderWindow* renderWindow() = 0;
 	//! Access to the interactor of this slicer's render window.
-	vtkRenderWindowInteractor * interactor();
+	virtual vtkRenderWindowInteractor* interactor() = 0;
 	//! Access to the slicer's main renderer's camera.
-	vtkCamera * camera();
+	virtual vtkCamera* camera() = 0;
 
 	//! Get the slice mode (which axis-aligned slice-plane is used for slicing).
-	iASlicerMode mode() const;
+	virtual iASlicerMode mode() const = 0;
 	//! Sets the slice mode (which axis-aligned slice-plane to use for slicing).
-	void setMode(const iASlicerMode mode);
-
-	void setStatisticalExtent(int statExt);
+	virtual void setMode(const iASlicerMode mode) = 0;
 
 	//! Set the camera for the slicer's main renderer.
 	//! Use this if you want share the camera between multiple views (i.e. synchronize their viewing parameters)
 	//! @param camera the new camera to assing
 	//! @param camOwner whether the slicer should assume ownership of the camera. If true, Delete() will be called on it in the destructor
-	void setCamera(vtkCamera * camera, bool camOwner = true);
+	virtual void setCamera(vtkCamera* camera, bool camOwner = true) = 0;
 	//! Resets the slicer's main renderer's camera such that all channels in it are visible.
-	void resetCamera();
+	virtual void resetCamera() = 0;
 	//! Sets the background color of the slicer.
 	//! By default, background color is auto-determined via the slicer mode. If set manually
 	//! via this method, it will keep the given color indefinitely
 	//! @param r red color part (0..1)
 	//! @param g green color part (0..1)
 	//! @param b blue color part (0..1)
-	void setBackground(double r, double g, double b);
+	virtual void setBackground(double r, double g, double b) = 0;
 
-	void setTransform(vtkAbstractTransform * tr);
-
-	void setDefaultInteractor();
+	virtual void setDefaultInteractor() = 0;
 
 	//! Blend two images. Should probably be implemented in terms of two channels?
-	void blend(vtkAlgorithmOutput *data1, vtkAlgorithmOutput *data2, double opacity, double * range);
+	virtual void blend(vtkAlgorithmOutput* data1, vtkAlgorithmOutput* data2, double opacity, double* range) = 0;
 
 	//! Get current slice number
-	int sliceNumber() const;
-	//! Set the position of the position marker (in slicer coordinates).
-	void setPositionMarkerCenter(double x, double y, double z);
+	virtual int sliceNumber() const = 0;
 
-	//! Enable/disable contour lines.
-	void showIsolines(bool s);
 	//! @{ set contour line parameters.
-	void setContours(int numberOfContours, double contourMin, double contourMax);
-	void setContours(int numberOfContours, double const * contourValues);
+	virtual void setContours(int numberOfContours, double contourMin, double contourMax) = 0;
+	virtual void setContours(int numberOfContours, double const* contourValues) = 0;
 	//! @}
 
 	//! Enable/disable the tooltip text
-	void setShowText(bool isVisible);
-	void setMouseCursor(QString const & s);
+	virtual void setShowText(bool isVisible) = 0;
 
-	void showPosition(bool s);
-	void saveSliceMovie(QString const & fileName, int qual = 2);
+	virtual void execute(vtkObject* caller, unsigned long eventId, void* callData) = 0;
 
-	void execute(vtkObject * caller, unsigned long eventId, void * callData);
-
-	void updateChannelMappers();
+	virtual void updateChannelMappers() = 0;
 	//void switchContourSourceToChannel( uint id );
 
-	void setScalarBarTF(vtkScalarsToColors* ctf);
+	virtual void setScalarBarTF(vtkScalarsToColors* ctf) = 0;
 
-	QCursor mouseCursor();
-
-	void setRightButtonDragZoomEnabled(bool enabled);
-
-	void setIndex(int x, int y, int z);
+	virtual void setIndex(int x, int y, int z) = 0;
 	//! in case the "linked mdi" feature is used, use this to set the mdi child this slicer is linked to.
-	void setLinkedMdiChild(iAMdiChild* mdiChild);
-	//! call if the dimension of the input in direction of the slice axis has changed.
-	void triggerSliceRangeChange();
+	virtual void setLinkedMdiChild(iAMdiChild* mdiChild) = 0;
 public slots:
 	//! Save an image of the image viewer native resolution or the current view.
-	void saveAsImage();
-	//! Save an image stack of the current view.
-	void saveImageStack();
+	virtual void saveAsImage() = 0;
 	//! Save a movie of a full slice-through of the specimen from top to bottom
-	void saveMovie();
-	//! Toggle interactor state of this slicer between enabled/disabled
-	void toggleInteractorState();
-	void setSliceNumber(int sliceNumber);
-	void rotateSlice( double angle );
-	void setSlabThickness(int thickness);
-	void setSlabCompositeMode(int compositeMode);
-	void update();
-
-	//! Moves a point of the snake slicer to a new position.
-	void movePoint(size_t selectedPointIndex, double xPos, double yPos, double zPos);
-
-	//! Function to deselect points in snake slicer (necessary to avoid endless loops with signals and slots).
-	void deselectPoint();
-
-	//! Switches between interaction modi (normal, snake slicer view or editing)
-	//! @param mode mode which should be switched to  (see InteractionMode enum)
-	void switchInteractionMode(int mode);
-	//! Toggle the "raw" profile mode, i.e. whether the profile is shown on top of the slicer image
-	void setSliceProfileOn(bool isOn);
-	//! Toggle the possibility to move start and end point of the profile
-	void setProfileHandlesOn(bool isOn);
-	//! Sets coordinates for line profile
-	bool setProfilePoint(int pointInd, double* Pos);
-
-	//! Adds a new spline point to the end of the spline curve.
-	void addPoint(double x, double y, double z);
-	//! Deletes the current spline curve.
-	void deleteSnakeLine();
-	//! Called when the delete snake line menu is clicked.
-	void menuDeleteSnakeLine();
-
-private slots:
-	void menuCenteredMagicLens();
-	void menuOffsetMagicLens();
-	void toggleLinearInterpolation();
-	void toggleWindowLevelAdjust();
-	void toggleShowTooltip();
-	void fisheyeLensToggled(bool enabled);
+	virtual void saveMovie() = 0;
+	virtual void setSliceNumber(int sliceNumber) = 0;
+	virtual void rotateSlice( double angle ) = 0;
+	virtual void update() = 0;
 
 signals:
-	void addedPoint(double x, double y, double z);
-	void movedPoint(size_t selectedPointIndex, double xPos, double yPos, double zPos);
-	void profilePointChanged(int pointInd, double * Pos);
-	void deselectedPoint();
-	void switchedMode(int mode);
-	void deletedSnakeLine();
 	void shiftMouseWheel(int angle);
 	void altMouseWheel(int angle);
 	void ctrlMouseWheel(int angle);
@@ -281,167 +167,9 @@ signals:
 	void userInteraction();
 	void oslicerPos(int x, int y, int z, int mode); //!< triggered on mouse move
 	void pick();
-	void sliceRotated(); //!< triggered when slice was rotated
 	//! triggered when slice number changed.
 	//! @param mode slicer mode (=plane)
 	//! @param sliceNumber number of the slice that was switched to
 	void sliceNumberChanged(int mode, int sliceNumber);
-	void sliceRangeChanged(int minIdx, int maxIdx);
 	void magicLensToggled(bool enabled);
-
-protected:
-	QAction* m_actionLinearInterpolation, * m_actionToggleWindowLevelAdjust, * m_actionFisheyeLens,
-		* m_actionMagicLens, * m_actionMagicLensCentered, * m_actionMagicLensOffset,
-		* m_actionDeleteSnakeLine, * m_actionShowTooltip;
-	QMenu *         m_contextMenu;               //!< context menu
-	InteractionMode m_interactionMode;           //!< current edit mode
-	int             m_xInd, m_yInd, m_zInd;      //!< current position
-	iASnakeSpline * m_snakeSpline;				 //!< holds the visualization data for the points of the snake splicer
-	vtkPoints *     m_worldSnakePoints;          //!< points of the snake slicer (owned by mdichild, not by this slicer)
-	bool            m_isSliceProfEnabled;        //!< if slice profile mode is enabled
-	iASlicerProfile	* m_sliceProfile;            //!< a slice profile drawn directly on the slicer
-	bool            m_profileHandlesEnabled;     //!< if profile handles are enabled (shown)
-	iASlicerProfileHandles * m_profileHandles;   //!< handles for the start and end point of the profile plot
-
-	void keyPressEvent(QKeyEvent * event) override;
-	void mousePressEvent(QMouseEvent * event) override;
-	void mouseMoveEvent(QMouseEvent * event) override;
-	void mouseReleaseEvent(QMouseEvent * event) override;
-	void mouseDoubleClickEvent(QMouseEvent* event) override;
-	void contextMenuEvent(QContextMenuEvent * event) override;
-	void resizeEvent(QResizeEvent * event) override;
-	void wheelEvent(QWheelEvent*) override;
-
-	void updateBackground();
-	void printVoxelInformation();
-	void executeKeyPressEvent();
-	// defaultOutput currently unused - maybe remove? previously used when outside of image dimensions
-	// void defaultOutput();
-
-	//!	This function is used to check whether any agreeable maximum gradient is near the given point.
-	//!	The ROI is 2 voxels on all four direction. if yes move to the closest maximum gradient.
-	//!
-	//! Input is the cursor point. Calculate the gradient magnitude for varying "x" value with "y" constant.
-	//! The maximum gradient value is taken as H_maxCoord. If there are two same gradient magnitude values, the point
-	//! closer to the cursor point is taken as H_maxCoord. Apply the above procedure for constant "x" and varying "y"
-	//! to calculate V_maxCoord. Check whether H_maxCoord gradient magnitude and V_maxCoord gradient magnitude are
-	//! higher than an gradient threshold value (5% of max intensity in the image). If H_maxCoord gradient magnitude
-	//! is higher and V_maxCoord gradient magnitude is lesser than the threshold, take H_maxCoord as the closet
-	//! gradient to cursor point. And if it is vice versa take V_maxCoord take as closest gradient to the cursor point.
-	//! If point are higher than threshold, the point closest to the cursor point is take as the next point.
-	//! @param [in,out]	x	The x coordinate.
-	//! @param [in,out]	y	The y coordinate.
-	//void snapToHighGradient(double &x, double &y);
-
-private:
-	iASlicerMode m_mode;            //!< the (axis-aligned) slice plane this slicer views
-
-	bool m_decorations;             //!< whether "decorations" will be shown, i.e. scalar bar widget, text on hover, ...
-	bool m_userSetBackground;       //!< whether the user has set a background
-	bool m_showPositionMarker;      //!< whether the position marker is shown in the slicer
-
-	uint m_magicLensInput;
-	QSharedPointer<iAMagicLens> m_magicLens;
-
-	//! @{ fish-eye lens
-	void initializeFisheyeLens(vtkImageReslice* reslicer);
-	void updateFisheyeTransform(double focalPt[3], vtkImageReslice* reslicer, double lensRadius, double innerLensRadius);
-
-	bool m_fisheyeLensActivated;
-	double m_fisheyeRadius;
-	double m_innerFisheyeRadius;
-
-	// variables for transformation
-	vtkSmartPointer<vtkThinPlateSplineTransform> m_fisheyeTransform;
-	vtkSmartPointer<vtkPoints> m_pointsSource;
-	vtkSmartPointer<vtkPoints> m_pointsTarget;
-	// variables for lens appearance
-	vtkSmartPointer<vtkRegularPolygonSource> m_fisheye;
-	vtkSmartPointer<vtkPolyDataMapper> m_fisheyeMapper;
-	vtkSmartPointer<vtkActor> m_fisheyeActor;
-
-	QList<vtkSmartPointer<vtkRegularPolygonSource>> m_circle1List;
-	QList<vtkSmartPointer<vtkActor>> m_circle1ActList;
-	QList<vtkSmartPointer<vtkRegularPolygonSource>> m_circle2List;
-	QList<vtkSmartPointer<vtkActor>> m_circle2ActList;
-	//! @}
-
-	vtkRenderWindowInteractor * m_interactor;  //!< FIXME: only convenience to access interactor of underlying QVTKOpenGLNativeWidget!
-	iASlicerInteractorStyle * m_interactorStyle;
-	vtkSmartPointer<vtkGenericOpenGLRenderWindow> m_renWin;
-	vtkSmartPointer<vtkRenderer> m_ren;
-	vtkCamera * m_camera; // TODO: smart pointer?
-	bool m_cameraOwner;
-	vtkAbstractTransform * m_transform; // TODO: smart pointer?
-	vtkSmartPointer<vtkWorldPointPicker> m_pointPicker;
-	QMap<uint, QSharedPointer<iAChannelSlicerData> > m_channels;
-	vtkSmartPointer<vtkScalarBarWidget> m_scalarBarWidget;
-	vtkSmartPointer<vtkTextProperty> m_textProperty;
-
-	// TODO: extract/ unify with iARenderer
-	vtkSmartPointer<vtkLogoWidget> m_logoWidget;
-	vtkSmartPointer<vtkLogoRepresentation> m_logoRep;
-	vtkSmartPointer<vtkQImageToImageSource> m_logoImage;
-
-	vtkSmartPointer<iAVtkText> m_textInfo;
-	vtkSmartPointer<iARulerWidget> m_rulerWidget;
-
-	//! @{ position marker / statistical extent
-	vtkSmartPointer<vtkCubeSource> m_positionMarkerSrc;
-	vtkSmartPointer<vtkPolyDataMapper> m_positionMarkerMapper;
-	vtkSmartPointer<vtkActor> m_positionMarkerActor;
-	//! @}
-
-	iASingleSlicerSettings m_settings;
-	int m_slabThickness;       //! current slab thickness (default = 0, i.e. only a single voxel slice); TODO: move to iASingleslicerSettings?
-	int m_slabCompositeMode;   //! current slab mode (how to combine the voxels of the current slab into a single pixel); TODO: move to iASingleslicerSettings?
-
-	//! @{ for indicating current measurement ('m' key)
-	vtkSmartPointer<vtkLineSource> m_lineSource;
-	vtkSmartPointer<vtkPolyDataMapper> m_lineMapper;
-	vtkSmartPointer<vtkActor> m_lineActor;
-	vtkSmartPointer<vtkDiskSource> m_diskSource;
-	vtkSmartPointer<vtkPolyDataMapper> m_diskMapper;
-	vtkSmartPointer<vtkActor> m_diskActor;
-	//! @}
-
-	vtkSmartPointer<vtkCubeSource> m_roiSource;
-	vtkSmartPointer<vtkPolyDataMapper> m_roiMapper;
-	vtkSmartPointer<vtkActor> m_roiActor;
-	bool m_roiActive;
-	int m_roiSlice[2];
-
-	vtkSmartPointer<vtkTransform> m_axisTransform[2];
-	vtkSmartPointer<vtkTextActor3D> m_axisTextActor[2];
-
-	int m_ext;
-	double m_angle[3];          //!< current rotation angle
-	double m_backgroundRGB[3];  //!< manual background RGB
-	int m_sliceNumber;          //!< current slice
-
-	double m_slicerPt[3];       //!< point of last interaction in slicer coordinates
-	double m_globalPt[4];       //!< point of last interaction in global coordinates
-	double m_startMeasurePoint[2];
-
-	QCursor m_mouseCursor;
-	bool m_cursorSet;
-
-	iAMdiChild* m_linkedMdiChild;  //! main window access for linked mdi childs feature - get rid of this somehow!
-
-	QSharedPointer<iAChannelSlicerData> createChannel(uint id, iAChannelData const & chData);
-	//! compute the voxel coordinates in the given channel for the current slicer coordinate point.
-	//! @param xCoord x coordinate (pixel index) in channel
-	//! @param yCoord y coordinate (pixel index) in channel
-	//! @param zCoord z coordinate (pixel index) in channel
-	void computeCoords(double * coords, uint channelID);
-	void updatePositionMarkerExtent();
-	void setResliceChannelAxesOrigin(uint id, double x, double y, double z);
-	void updatePosition();
-
-	//! Update the position of the raw profile line.
-	void updateRawProfile(double posY);
-
-	//! Sets coordinates for line profile
-	bool setProfilePointWithClamp(int pointInd, double* Pos, bool doClamp);
-	void setLinearInterpolation(bool enabled);
 };
