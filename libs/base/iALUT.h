@@ -36,5 +36,5 @@ namespace iALUT
 	iAbase_API const QStringList&  GetColorMapNames();
 	iAbase_API int BuildLUT( vtkSmartPointer<vtkLookupTable> pLUT, double const * lutRange, QString colorMap, int numCols = 256 );
 	iAbase_API int BuildLUT( vtkSmartPointer<vtkLookupTable> pLUT, double rangeFrom, double rangeTo, QString colorMap, int numCols = 256 );
-	iALookupTable iAbase_API Build(double const* lutRange, QString colorMap, int numCols, double alpha);
+	iAbase_API iALookupTable Build(double const* lutRange, QString colorMap, int numCols, double alpha);
 }

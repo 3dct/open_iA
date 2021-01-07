@@ -27,7 +27,7 @@ option (openiA_DEPENDENCY_INFO "Whether detailed dependency information should b
 
 IF (MSVC)
 	SET (openiA_MODULE_LIB_DIR "${CMAKE_CURRENT_BINARY_DIR}/$(Configuration)")
-	option (openIA_MODULE_GUI_DEPENDENCY "Whether the modules should depend on the GUI application (enabling it makes it easier to develop, as then it becomes possible to set the module as active project, and still start the GUI application for debugging purposes directly; but enabling it also makes the build slightly slower)" ON)
+	option (openiA_MODULE_GUI_DEPENDENCY "Whether the modules should depend on the GUI application (enabling it makes it easier to develop, as then it becomes possible to set the module as active project, and still start the GUI application for debugging purposes directly; but enabling it also makes the build slightly slower)" ON)
 ELSE()
 	SET (openiA_MODULE_LIB_DIR "${CMAKE_CURRENT_BINARY_DIR}")
 ENDIF()
@@ -184,7 +184,7 @@ FOREACH( indx RANGE ${len} )
 		set_target_properties(${module_name} PROPERTIES VS_DEBUGGER_COMMAND "${CMAKE_BINARY_DIR}\\$(Platform)\\$(Configuration)\\${GUI_EXECUTABLE_FILE}")
 		set_target_properties(${module_name} PROPERTIES VS_DEBUGGER_ENVIRONMENT "PATH=${WinDLLPaths};%PATH%\nSCIFIO_PATH=${SCIFIO_PATH}")
 		
-		if (openIA_MODULE_GUI_DEPENDENCY)
+		if (openiA_MODULE_GUI_DEPENDENCY)
 			add_dependencies(${module_name} ${GUI_EXECUTABLE_TARGET})       # dependency to GUI executable for triggering rebuild when starting module
 		endif()
 	ELSE()

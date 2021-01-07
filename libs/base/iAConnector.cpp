@@ -94,7 +94,9 @@ void SetupPipelineITKtoVTK(
 
 	ImageType * image = dynamic_cast<ImageType *>(imageBase.GetPointer());
 	if (!image)
+	{
 		return;
+	}
 
 	ExportFilterPointer _exporter = ExportFilterType::New();
 	_exporter->SetInput(image);
@@ -120,8 +122,10 @@ iAConnector::iAConnector() :
 void iAConnector::setImage(ImageBaseType * image)
 {
 	m_isTypeInitialized = false;
-	if( this->m_ITKImage.GetPointer() == image )
+	if (this->m_ITKImage.GetPointer() == image)
+	{
 		return;
+	}
 	m_ITKImage = image;
 	updateImageVTK();
 }
@@ -174,7 +178,9 @@ void iAConnector::updateScalarType() const
 iAConnector::ITKScalarPixelType iAConnector::itkScalarPixelType() const
 {
 	if (!m_isTypeInitialized)
+	{
 		updateScalarType();
+	}
 	return m_itkScalarType;
 }
 
@@ -186,8 +192,10 @@ void iAConnector::updatePixelType() const
 
 iAConnector::ITKPixelType iAConnector::itkPixelType() const
 {
-	if ( !m_isPixelTypeInitialized )
+	if (!m_isPixelTypeInitialized)
+	{
 		updatePixelType();
+	}
 	return m_itkPixelType;
 }
 
