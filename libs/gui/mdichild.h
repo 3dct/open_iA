@@ -20,6 +20,11 @@
 * ************************************************************************************/
 #pragma once
 
+#include "ui_Mdichild.h"
+#include "ui_renderer.h"
+#include "iAgui_export.h"
+
+// core
 #include "qthelper/iAQTtoUIConnector.h"
 #include "iAMdiChild.h"
 #include "iAPreferences.h"
@@ -27,10 +32,6 @@
 #include "iASavableProject.h"
 #include "iASlicerSettings.h"
 #include "iAVolumeSettings.h"
-#include "ui_Mdichild.h"
-#include "ui_renderer.h"
-
-#include "iAgui_export.h"
 
 #include <vtkSmartPointer.h>
 
@@ -53,29 +54,35 @@ class vtkPolyData;
 class vtkScalarsToColors;
 class vtkTransform;
 
-class iAAbortListener;
-class iAChartFunction;
 class dlg_imageproperty;
-class dlg_modalities;
-class dlg_periodicTable;
 class dlg_profile;
 class dlg_slicer;
 class dlg_volumePlayer;
+class iAParametricSpline;
+struct iAProfileProbe;
+class MainWindow;
+
+// renderer
+class iARendererImpl;
+
+// slicer
+class iASlicerImpl;
+
+// charts
+class iAChartWithFunctionsWidget;
+class iAPlot;
+
+// core
+class iAAbortListener;
+class dlg_modalities;
 class iAAlgorithm;
 class iAChannelData;
-class iAChartWithFunctionsWidget;
 class iADockWidgetWrapper;
 class iAIO;
 class iAModality;
 class iAModalityList;
-class iAParametricSpline;
-class iAPlot;
-struct iAProfileProbe;
 class iAProjectBase;
-class iARenderer;
-class iASlicerImpl;
 class iAVolumeStack;
-class MainWindow;
 
 typedef iAQTtoUIConnector<QDockWidget, Ui_renderer>  dlg_renderer;
 
@@ -109,9 +116,6 @@ public:
 	bool loadTransferFunction();
 	bool saveTransferFunction();
 
-	//! Provides the possibility to save a raycaster movie of the given raycaster view.
-	//! @param [in] raycaster the VTK raycaster the movie shall be exported from.
-	void saveMovie(iARenderer& raycaster);
 	int  deletePoint();
 	void changeColor();
 	void resetView();
@@ -430,7 +434,7 @@ private:
 	vtkPolyData * m_polyData;
 	vtkTransform * m_axesTransform;
 	vtkTransform * m_slicerTransform;
-	iARenderer * m_renderer;
+	iARendererImpl * m_renderer;
 	iASlicerImpl * m_slicer[3];
 	QSharedPointer<iAProfileProbe> m_profileProbe;
 	QScopedPointer<iAVolumeStack> m_volumeStack;

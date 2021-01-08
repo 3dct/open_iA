@@ -46,6 +46,7 @@
 #include <vtkPolyDataMapper.h>
 #include <vtkPointLocator.h>
 #include <vtkProperty.h>
+#include <vtkRenderWindow.h>
 #include <vtkRenderWindowInteractor.h>
 #include <vtkSphereSource.h>
 #include <vtkTable.h>

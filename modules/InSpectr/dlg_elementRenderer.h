@@ -32,6 +32,8 @@ class iARenderer;
 class iAVolumeRenderer;
 class iAVolumeSettings;
 
+class iARendererImpl;
+
 class vtkColorTransferFunction;
 class vtkImageData;
 class vtkPiecewiseFunction;
@@ -54,7 +56,7 @@ public:
 	void ApplyVolumeSettings(iAVolumeSettings const & vs);
 
 private:
-	iARenderer * m_renderer;
+	iARendererImpl * m_renderer;
 	bool m_rendInitialized;
 	vtkSmartPointer<vtkTransform> m_axesTransform;
 	QSharedPointer<iAVolumeRenderer> m_volumeRenderer;

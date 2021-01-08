@@ -23,14 +23,15 @@
 #include <defines.h>
 #include <iALog.h>
 #include <iAFast3DMagicLensWidget.h>
-#include <iARenderer.h>
-#include <iARendererManager.h>
 #include <iALUT.h>
 #include <iARenderSettings.h>
 #include <iATransferFunction.h>
 #include <iAVolumeRenderer.h>
 #include <iAVolumeSettings.h>
 #include <iAVtkVersion.h>
+
+#include <iARendererImpl.h>
+#include <iARendererManager.h>
 
 #include <vtkActor.h>
 #include <vtkCamera.h>
@@ -178,7 +179,7 @@ void iASegm3DView::ShowWireframe( bool visible )
 
 
 iASegm3DViewData::iASegm3DViewData( double * rangeExt, QWidget * parent ) :
-	m_renderer( new iARenderer( parent ) ),
+	m_renderer( new iARendererImpl( parent ) ),
 	m_rendInitialized( false ),
 	m_axesTransform( vtkSmartPointer<vtkTransform>::New() ),
 	m_observedRenderer( 0 ),
@@ -233,8 +234,8 @@ iASegm3DViewData::iASegm3DViewData( double * rangeExt, QWidget * parent ) :
 #endif
 	m_renderer->setAxesTransform( m_axesTransform );
 
-	QObject::connect(m_wgt, &iAFast3DMagicLensWidget::rightButtonReleasedSignal, m_renderer, &iARenderer::mouseRightButtonReleasedSlot);
-	QObject::connect(m_wgt, &iAFast3DMagicLensWidget::leftButtonReleasedSignal, m_renderer, &iARenderer::mouseLeftButtonReleasedSlot);
+	QObject::connect(m_wgt, &iAFast3DMagicLensWidget::rightButtonReleasedSignal, m_renderer, &iARendererImpl::mouseRightButtonReleasedSlot);
+	QObject::connect(m_wgt, &iAFast3DMagicLensWidget::leftButtonReleasedSignal, m_renderer, &iARendererImpl::mouseLeftButtonReleasedSlot);
 }
 
 iASegm3DViewData::~iASegm3DViewData()

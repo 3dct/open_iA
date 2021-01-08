@@ -20,7 +20,7 @@
 * ************************************************************************************/
 #pragma once
 
-#include "iAcore_export.h"
+#include "iArenderer_export.h"
 
 #include <QVector>
 
@@ -29,7 +29,7 @@ class vtkObject;
 class vtkRenderer;
 
 //! Class synchronizing the camera between multiple renderers
-class iAcore_API iARendererManager
+class iArenderer_API iARendererManager
 {
 public:
 	iARendererManager();

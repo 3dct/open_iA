@@ -27,31 +27,7 @@
 #include "iARefDistCompute.h"
 #include "iAStackedBarChart.h"
 #include "ui_DissimilarityMatrix.h"
-
-// FeatureScout:
-#include "iA3DCylinderObjectVis.h"
-#include "iA3DEllipseObjectVis.h"
-#include "iACsvConfig.h"
-#include "iACsvVectorTableCreator.h"
 //#include "iAFeatureScoutModuleInterface.h"
-
-// Core:
-#include <iAMapperImpl.h>
-#include <iAModuleDispatcher.h>
-#include <iARenderSettings.h>
-#include <iARenderer.h>
-#include <iARendererManager.h>
-#include <iAVolumeRenderer.h>
-#include <io/iAIOProvider.h>
-#include <iAMainWindow.h>
-#include <iAMdiChild.h>
-#include <qthelper/iAQTtoUIConnector.h>
-
-// qthelper:
-#include <iADockWidgetWrapper.h>
-#include <iAFixedAspectWidget.h>
-#include <iASignallingWidget.h>
-#include <iAVtkQtWidget.h>
 
 // charts
 #include <iAChartWidget.h>
@@ -60,6 +36,32 @@
 #include <iAScatterPlot.h> // for selection mode: iAScatterPlot::Rectangle
 #include <iAQSplom.h>
 #include <iASPLOMData.h>
+
+// core
+#include <iAMapperImpl.h>
+#include <iAModuleDispatcher.h>
+#include <iARenderSettings.h>
+#include <iARenderer.h>
+#include <iAVolumeRenderer.h>
+#include <io/iAIOProvider.h>
+#include <iAMainWindow.h>
+#include <iAMdiChild.h>
+#include <qthelper/iAQTtoUIConnector.h>
+
+// objectvis
+#include "iA3DCylinderObjectVis.h"
+#include "iA3DEllipseObjectVis.h"
+#include "iACsvConfig.h"
+#include "iACsvVectorTableCreator.h"
+
+// qthelper
+#include <iADockWidgetWrapper.h>
+#include <iAFixedAspectWidget.h>
+#include <iASignallingWidget.h>
+#include <iAVtkQtWidget.h>
+
+// renderer
+#include <iARendererManager.h>
 
 // base
 #include <iAColorTheme.h>

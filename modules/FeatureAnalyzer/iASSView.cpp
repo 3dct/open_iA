@@ -20,6 +20,8 @@
 * ************************************************************************************/
 #include "iASSView.h"
 
+#include "iAChanData.h"
+#include "iACSVToQTableWidgetConverter.h"
 #include "iASegm3DView.h"
 #include "iASSSlicer.h"
 #include "iASSViewSetings.h"
@@ -27,14 +29,13 @@
 
 #include <defines.h>
 #include <iABoxPlotData.h>
-#include <iAChanData.h>
 #include <iAChannelData.h>
+#include <iAFileUtils.h>
 #include <iALog.h>
-#include <iACSVToQTableWidgetConverter.h>
 #include <iARenderer.h>
 #include <iASlicer.h>
+
 #include <iARendererManager.h>
-#include <iAFileUtils.h>
 
 #include <vtkTransform.h>
 #include <vtkColorTransferFunction.h>

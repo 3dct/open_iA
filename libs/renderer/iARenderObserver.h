@@ -20,7 +20,7 @@
 * ************************************************************************************/
 #pragma once
 
-#include "iAcore_export.h"
+#include "iArenderer_export.h"
 
 #include <QObject>
 
@@ -44,7 +44,7 @@ class vtkPlane;
 //! Observes the mouse movements in an iARenderer.
 //! This class servers the iARenderer class to observe mouse movement and to extract coordinates
 //! and the corresponding data "below" the mouse pointer.
-class iAcore_API iARenderObserver : public QObject, public vtkCommand
+class iArenderer_API iARenderObserver : public QObject, public vtkCommand
 {
 	Q_OBJECT
 

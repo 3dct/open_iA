@@ -20,7 +20,7 @@
 * ************************************************************************************/
 #pragma once
 
-#include "iAbase_export.h"
+#include "iAcharts_export.h"
 
 #include <vtkSmartPointer.h>
 
@@ -33,8 +33,8 @@ class QStringList;
 
 namespace iALUT
 {
-	iAbase_API const QStringList&  GetColorMapNames();
-	iAbase_API int BuildLUT( vtkSmartPointer<vtkLookupTable> pLUT, double const * lutRange, QString colorMap, int numCols = 256 );
-	iAbase_API int BuildLUT( vtkSmartPointer<vtkLookupTable> pLUT, double rangeFrom, double rangeTo, QString colorMap, int numCols = 256 );
-	iAbase_API iALookupTable Build(double const* lutRange, QString colorMap, int numCols, double alpha);
+	iAcharts_API const QStringList&  GetColorMapNames();
+	iAcharts_API int BuildLUT( vtkSmartPointer<vtkLookupTable> pLUT, double const * lutRange, QString colorMap, int numCols = 256 );
+	iAcharts_API int BuildLUT( vtkSmartPointer<vtkLookupTable> pLUT, double rangeFrom, double rangeTo, QString colorMap, int numCols = 256 );
+	iAcharts_API iALookupTable Build(double const* lutRange, QString colorMap, int numCols, double alpha);
 }

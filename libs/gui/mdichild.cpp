@@ -20,38 +20,40 @@
 * ************************************************************************************/
 #include "mdichild.h"
 
-// core
-#include "dlg_commoninput.h"
 #include "dlg_imageproperty.h"
-#include "dlg_modalities.h"
 #include "dlg_profile.h"
 #include "dlg_slicer.h"
 #include "dlg_volumePlayer.h"
-#include "iAAlgorithm.h"
-#include "iAChannelData.h"
-#include "iAChannelSlicerData.h"
-#include "iAJobListView.h"
-#include "iARunAsync.h"
-#include "iAModality.h"
-#include "iAModalityList.h"
-#include "iAModalityTransfer.h"
-#include "iAMovieHelper.h"
 #include "iAParametricSpline.h"
-#include "iAPreferences.h"
 #include "iAProfileProbe.h"
-#include "iAProgress.h"
-#include "iAProjectBase.h"
-#include "iAProjectRegistry.h"
-#include "iARenderer.h"
-#include "iARenderObserver.h"
-#include "iARenderSettings.h"
-#include "iASlicerImpl.h"
-#include "iATransferFunction.h"
-#include "iAVolumeStack.h"
-#include "iAVtkVersion.h"
-#include "io/iAIO.h"
-#include "io/iAIOProvider.h"
 #include "mainwindow.h"
+
+// renderer
+#include <iARendererImpl.h>
+#include <iARenderObserver.h>
+
+// slicer
+#include <iASlicerImpl.h>
+
+// core
+#include <dlg_commoninput.h>
+#include <dlg_modalities.h>
+#include <iAAlgorithm.h>
+#include <iAChannelData.h>
+#include <iAChannelSlicerData.h>
+#include <iAJobListView.h>
+#include <iAModality.h>
+#include <iAModalityList.h>
+#include <iAModalityTransfer.h>
+#include <iAMovieHelper.h>
+#include <iAPreferences.h>
+#include <iAProjectBase.h>
+#include <iAProjectRegistry.h>
+#include <iARenderSettings.h>
+#include <iARunAsync.h>
+#include <iAVolumeStack.h>
+#include <io/iAIO.h>
+#include <io/iAIOProvider.h>
 
 // qthelper
 #include <iADockWidgetWrapper.h>
@@ -64,9 +66,12 @@
 #include <iAProfileWidget.h>
 
 // base
-#include "iAFileUtils.h"    // for fileNameOnly
-#include "iALog.h"
-#include "iAToolsVTK.h"
+#include <iAFileUtils.h>    // for fileNameOnly
+#include <iALog.h>
+#include <iAProgress.h>
+#include <iAToolsVTK.h>
+#include <iATransferFunction.h>
+#include <iAVtkVersion.h>
 
 #include <vtkCamera.h>
 #include <vtkColorTransferFunction.h>
@@ -164,7 +169,7 @@ MdiChild::MdiChild(MainWindow* mainWnd, iAPreferences const& prefs, bool unsaved
 
 	m_parametricSpline->SetPoints(m_worldSnakePoints);
 
-	m_renderer = new iARenderer(this);
+	m_renderer = new iARendererImpl(this);
 	m_renderer->setAxesTransform(m_axesTransform);
 	m_dwRenderer->vtkWidgetRC->SetMainRenderWindow((vtkGenericOpenGLRenderWindow*)m_renderer->renderWindow());
 
@@ -257,8 +262,8 @@ void MdiChild::connectSignalsToSlots()
 	connect(m_dwRenderer->pushSaveRC, &QPushButton::clicked, this, &MdiChild::saveRC);
 	connect(m_dwRenderer->pushMovRC, &QPushButton::clicked, this, &MdiChild::saveMovRC);
 
-	connect(m_dwRenderer->vtkWidgetRC, &iAFast3DMagicLensWidget::rightButtonReleasedSignal, m_renderer, &iARenderer::mouseRightButtonReleasedSlot);
-	connect(m_dwRenderer->vtkWidgetRC, &iAFast3DMagicLensWidget::leftButtonReleasedSignal, m_renderer, &iARenderer::mouseLeftButtonReleasedSlot);
+	connect(m_dwRenderer->vtkWidgetRC, &iAFast3DMagicLensWidget::rightButtonReleasedSignal, m_renderer, &iARendererImpl::mouseRightButtonReleasedSlot);
+	connect(m_dwRenderer->vtkWidgetRC, &iAFast3DMagicLensWidget::leftButtonReleasedSignal, m_renderer, &iARendererImpl::mouseLeftButtonReleasedSlot);
 	connect(m_dwRenderer->spinBoxRC, QOverload<int>::of(&QSpinBox::valueChanged), this, &MdiChild::setChannel);
 
 	for (int s = 0; s < 3; ++s)
@@ -1107,7 +1112,37 @@ void MdiChild::saveRC()
 
 void MdiChild::saveMovRC()
 {
-	saveMovie(*m_renderer);
+	QString movie_file_types = GetAvailableMovieFormats();
+
+	// If VTK was built without video support, display error message and quit.
+	if (movie_file_types.isEmpty())
+	{
+		QMessageBox::information(this, "Movie Export", "Sorry, but movie export support is disabled.");
+		return;
+	}
+
+	QString mode;
+	int imode = 0;
+
+	QStringList modes = (QStringList() << tr("Rotate Z") << tr("Rotate X") << tr("Rotate Y"));
+	QStringList inList = (QStringList() << tr("+Rotation mode"));
+	QList<QVariant> inPara = (QList<QVariant>() << modes);
+	dlg_commoninput dlg(this, "Save movie options", inList, inPara,
+		"Creates a movie by rotating the object around a user-defined axis in the 3D renderer.");
+	if (dlg.exec() != QDialog::Accepted)
+	{
+		return;
+	}
+
+	mode = dlg.getComboBoxValue(0);
+	imode = dlg.getComboBoxIndex(0);
+
+	// Show standard save file dialog using available movie file types.
+	m_renderer->saveMovie(QFileDialog::getSaveFileName(this, tr("Export movie %1").arg(mode),
+							m_fileInfo.absolutePath() + "/" +
+								((mode.isEmpty()) ? m_fileInfo.baseName() : m_fileInfo.baseName() + "_" + mode),
+							movie_file_types),
+		imode);
 }
 
 void MdiChild::camPosition(double* camOptions)
@@ -1452,7 +1487,7 @@ void MdiChild::setupSlicers(iASlicerSettings const& ss, bool init)
 		for (int i = 0; i < 3; ++i)
 		{
 			connect(m_slicer[i], &iASlicerImpl::profilePointChanged, this, &MdiChild::updateProbe);
-			connect(m_slicer[i], &iASlicerImpl::profilePointChanged, m_renderer, &iARenderer::setProfilePoint);
+			connect(m_slicer[i], &iASlicerImpl::profilePointChanged, m_renderer, &iARendererImpl::setProfilePoint);
 			connect(m_slicer[i], &iASlicer::magicLensToggled, this, &MdiChild::toggleMagicLens2D);
 			for (int j = 0; j < 3; ++j)
 			{
@@ -1609,43 +1644,6 @@ iAChartWithFunctionsWidget* MdiChild::histogram()
 }
 
 // }
-
-void MdiChild::saveMovie(iARenderer& raycaster)
-{
-	QString movie_file_types = GetAvailableMovieFormats();
-
-	// If VTK was built without video support, display error message and quit.
-	if (movie_file_types.isEmpty())
-	{
-		QMessageBox::information(this, "Movie Export", "Sorry, but movie export support is disabled.");
-		return;
-	}
-
-	QString mode;
-	int imode = 0;
-
-	QStringList modes = (QStringList() << tr("Rotate Z") << tr("Rotate X") << tr("Rotate Y"));
-	QStringList inList = (QStringList() << tr("+Rotation mode"));
-	QList<QVariant> inPara = (QList<QVariant>() << modes);
-	dlg_commoninput dlg(this, "Save movie options", inList, inPara,
-		"Creates a movie by rotating the object around a user-defined axis in the 3D renderer.");
-	if (dlg.exec() != QDialog::Accepted)
-	{
-		return;
-	}
-
-	mode = dlg.getComboBoxValue(0);
-	imode = dlg.getComboBoxIndex(0);
-
-	// Show standard save file dialog using available movie file types.
-	raycaster.saveMovie(
-		QFileDialog::getSaveFileName(
-			this,
-			tr("Export movie %1").arg(mode),
-			m_fileInfo.absolutePath() + "/" + ((mode.isEmpty()) ? m_fileInfo.baseName() : m_fileInfo.baseName() + "_" + mode),
-			movie_file_types),
-		imode);
-}
 
 void MdiChild::toggleSnakeSlicer(bool isChecked)
 {
