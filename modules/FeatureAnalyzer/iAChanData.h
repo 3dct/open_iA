@@ -18,64 +18,31 @@
 * Contact: FH OÖ Forschungs & Entwicklungs GmbH, Campus Wels, CT-Gruppe,              *
 *          Stelzhamerstraße 23, 4600 Wels / Austria, Email: c.heinzl@fh-wels.at       *
 * ************************************************************************************/
-#include "iAVTKRendererManager.h"
+#pragma once
 
-#include <vtkCamera.h>
-#include <vtkCommand.h>
-#include <vtkObject.h>
-#include <vtkRenderer.h>
-#include <vtkRenderWindow.h>
-#include <vtkRenderWindowInteractor.h>
 #include <vtkSmartPointer.h>
 
-iAVTKRendererManager::iAVTKRendererManager() :
-	m_isRedrawn( false ),
-	m_commonCamera( 0 )
-{}
+#include <QScopedPointer>
+#include <QColor>
 
-void iAVTKRendererManager::addToBundle( vtkRenderer* renderer )
+class vtkImageData;
+class vtkColorTransferFunction;
+class vtkPiecewiseFunction;
+class iAChannelData;
+class vtkScalarBarWidget;
+
+struct iAChanData
 {
-	if( !m_commonCamera )
-		m_commonCamera = renderer->GetActiveCamera();
-	else
-		renderer->SetActiveCamera( m_commonCamera );
-	m_renderers.append( renderer );
-	renderer->GetRenderWindow()->AddObserver( vtkCommand::EndEvent, this, &iAVTKRendererManager::redrawOtherRenderers );
-}
+	iAChanData( QColor c1, QColor c2, uint chanId );
+	iAChanData( const QList<QColor> & colors, uint chanId );
+	void InitTFs();
 
-bool iAVTKRendererManager::removeFromBundle( vtkRenderer* renderer )
-{
-	if( !m_renderers.contains( renderer ) ) return false;
-
-	vtkSmartPointer<vtkCamera> newCam = vtkSmartPointer<vtkCamera>::New();
-	newCam->DeepCopy( renderer->GetActiveCamera() );
-	renderer->SetActiveCamera( newCam );
-	renderer->GetRenderWindow()->RemoveObserver( vtkCommand::EndEvent );
-	return true;
-}
-
-void iAVTKRendererManager::removeAll()
-{
-	m_commonCamera = 0;
-	for (vtkRenderer* r : m_renderers)
-	{
-		removeFromBundle(r);
-	}
-	m_renderers.clear();
-}
-
-void iAVTKRendererManager::redrawOtherRenderers( vtkObject* /*caller*/, long unsigned int /*eventId*/, void* callData )
-{
-	if( !m_isRedrawn )
-	{
-		m_isRedrawn = true;
-		for( int i = 0; i < m_renderers.count(); i++ )
-		{
-			if (m_renderers[i]->GetRenderWindow() != callData)
-			{
-				m_renderers[i]->GetRenderWindow()->Render();
-			}
-		}
-		m_isRedrawn = false;
-	}
-}
+	QScopedPointer<iAChannelData> visData;
+	vtkSmartPointer<vtkImageData> imgData;
+	vtkSmartPointer<vtkColorTransferFunction> tf;
+	vtkSmartPointer<vtkPiecewiseFunction> otf;
+	vtkSmartPointer<vtkPiecewiseFunction> vol_otf;
+	QList<QColor> cols;
+	const uint id;
+	vtkSmartPointer<vtkScalarBarWidget> scalarBarWgt;
+};

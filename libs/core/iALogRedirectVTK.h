@@ -20,11 +20,14 @@
 * ************************************************************************************/
 #pragma once
 
+#include <iALog.h>
+
 #include <vtkOutputWindow.h>
 #include <vtkObjectFactory.h>
 
 #include <iAVtkVersion.h>
 
+//! Redirects all log output from VTK to the LOG macro (i.e. iALog)
 class iALogRedirectVTK : public vtkOutputWindow
 {
 public:

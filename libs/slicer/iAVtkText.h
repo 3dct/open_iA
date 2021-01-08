@@ -20,31 +20,43 @@
 * ************************************************************************************/
 #pragma once
 
-#include "iAcore_export.h"
-
+#include <vtkObject.h>
 #include <vtkSmartPointer.h>
 
-#include <QScopedPointer>
-#include <QColor>
+class vtkRenderer;
+class vtkTextMapper;
+class vtkActor2D;
 
-class vtkImageData;
-class vtkColorTransferFunction;
-class vtkPiecewiseFunction;
-class iAChannelData;
-class vtkScalarBarWidget;
+//! Wraps the vtk classes required to display a text.
+class iAVtkText : public vtkObject {
 
-struct iAcore_API iAChanData
-{
-	iAChanData( QColor c1, QColor c2, uint chanId );
-	iAChanData( const QList<QColor> & colors, uint chanId );
-	void InitTFs();
+public:
+	static iAVtkText* New();
 
-	QScopedPointer<iAChannelData> visData;
-	vtkSmartPointer<vtkImageData> imgData;
-	vtkSmartPointer<vtkColorTransferFunction> tf;
-	vtkSmartPointer<vtkPiecewiseFunction> otf;
-	vtkSmartPointer<vtkPiecewiseFunction> vol_otf;
-	QList<QColor> cols;
-	const uint id;
-	vtkSmartPointer<vtkScalarBarWidget> scalarBarWgt;
+	//! Set the text to a fixed position in the scene.
+	void setPosition(double x, double y);
+
+	//! Add the text to the scene.
+	void addToScene(vtkRenderer* renderer);
+
+	//! Hide or show the text.
+	void show(bool show);
+
+	//! determine whether text is currently shown
+	bool isShown() const;
+
+	//! Set the text.
+	void setText(const char* text);
+
+	//! Set the size of the text
+	void setFontSize(int fontSize);
+
+private:
+	vtkSmartPointer<vtkTextMapper> m_textMapper;
+	vtkSmartPointer<vtkActor2D> m_actor;
+private:
+	iAVtkText(const iAVtkText&) = delete;
+	void operator=(const iAVtkText&) = delete;
+protected:
+	iAVtkText();
 };

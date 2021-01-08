@@ -20,31 +20,25 @@
 * ************************************************************************************/
 #include "iALabel3D.h"
 
+#include <vtkCaptionActor2D.h>
 #include <vtkCellArray.h>
 #include <vtkFloatArray.h>
 #include <vtkFollower.h>
 #include <vtkImageData.h>
+#include <vtkImageDataGeometryFilter.h>
+#include <vtkLegendBoxActor.h>
 #include <vtkLineSource.h>
 #include <vtkMath.h>
-#include <vtkPointData.h>
 #include <vtkPolyDataMapper.h>
-#include <vtkProperty.h>
+#include <vtkQImageToImageSource.h>
 #include <vtkQuad.h>
 #include <vtkRenderer.h>
 #include <vtkSmartPointer.h>
-#include <vtkTexture.h>
-#include <vtkTubeFilter.h>
-
-
-#include <vtkQImageToImageSource.h>
-#include <QPixmap>
-#include <vtkVectorText.h>
-#include <vtkAppendPolyData.h>
-#include <vtkImageDataGeometryFilter.h>
-#include <vtkCaptionActor2D.h>
-#include <vtkTextProperty.h>
-#include <vtkLegendBoxActor.h>
 #include <vtkSphereSource.h>
+#include <vtkTubeFilter.h>
+#include <vtkVectorText.h>
+
+#include <QPixmap>
 
 //appearance settings
 #define LABEL_SCALE 1.0//26.0
@@ -91,36 +85,14 @@ iALabel3D::iALabel3D(bool showLine) :
 	vtkSmartPointer<vtkVectorText> textSource = vtkSmartPointer<vtkVectorText>::New();
 	textSource->SetText("Hello");
 
-	//// apply the texture
-	//m_texture = vtkTexture::New();
-	//m_texture->SetInputData(m_imageData);//m_texture->SetInputConnection(labelImgSrc->GetOutputPort());
-	//m_texture->InterpolateOn();
-
-	//QImage* img = new QImage();
-	//img->load("C:/test.png");
-
-	//img->save("C:/testcopy.png");
-
-	////QString url = "C:/test.png";
-	////QPixmap img(url);
-
-	//vtkSmartPointer<vtkQImageToImageSource> qImageToVtk = vtkSmartPointer<vtkQImageToImageSource>::New();
-	//qImageToVtk->SetQImage(img);
-	//qImageToVtk->Update();
-
-	//vtkSmartPointer<vtkTexture> texture = vtkSmartPointer<vtkTexture>::New();
-	//texture->SetInputConnection(qImageToVtk->GetOutputPort());
-	//texture->Update();
-
 	// VTK mappers and actors
 	m_mapper = vtkPolyDataMapper::New();
 	m_mapper->SetInputConnection(textSource->GetOutputPort());
 	m_mapper->Update();
-	follower = vtkFollower::New();//follower = vtkActor::New();
+	follower = vtkFollower::New();
 	follower->SetMapper(m_mapper);
 	follower->GetProperty()->SetColor(0, 0, 0);
 	follower->SetScale(0.3, 0.3, 0.3);
-	//follower->SetTexture(m_texture);
 	m_lineSource = vtkLineSource::New();
 	m_lineTubeFilter = vtkTubeFilter::New();
 	m_lineTubeFilter->SetInputConnection(m_lineSource->GetOutputPort());
@@ -129,9 +101,6 @@ iALabel3D::iALabel3D(bool showLine) :
 	m_lineActor = vtkActor::New();
 	m_lineActor->SetMapper(m_lineMapper);
 	// appearance settings
-	//follower->GetProperty()->SetAmbientColor(1.0, 1.0, 1.0);
-	//follower->GetProperty()->SetAmbient(1.0);
-	//follower->SetScale(m_scale);
 	m_lineTubeFilter->CappingOn();
 	m_lineTubeFilter->SetRadius(m_tubeRadius);
 	m_lineTubeFilter->SetNumberOfSides(8);
@@ -147,7 +116,6 @@ iALabel3D::iALabel3D(bool showLine) :
 
 iALabel3D::~iALabel3D()
 {
-	m_texture->Delete();
 	m_mapper->Delete();
 	follower->Delete();
 	m_imageData->Delete();
@@ -183,7 +151,7 @@ void iALabel3D::AttachActorsToRenderers( vtkRenderer * ren, vtkRenderer * labelR
 {
 	ren->AddActor(m_lineActor);
 	follower->SetCamera(cam);
-	labelRen->AddViewProp(follower);//ren->AddActor(follower);
+	labelRen->AddViewProp(follower);
 
 	vtkSmartPointer<vtkCaptionActor2D> captionActor = vtkSmartPointer<vtkCaptionActor2D>::New();
 	captionActor->SetCaption("Test");
@@ -222,9 +190,11 @@ void iALabel3D::AttachActorsToRenderers( vtkRenderer * ren, vtkRenderer * labelR
 
 void iALabel3D::SetVisible( bool isVisible )
 {
-	follower->SetVisibility(isVisible);//follower->SetVisibility(0);
-	if(m_showLine)
-		m_lineActor->SetVisibility(isVisible);//m_lineActor->SetVisibility(0);
+	follower->SetVisibility(isVisible);
+	if (m_showLine)
+	{
+		m_lineActor->SetVisibility(isVisible);
+	}
 }
 
 void iALabel3D::SetLabeledPoint( double labeledPnt[3], double centerPnt[3])
@@ -254,7 +224,7 @@ void iALabel3D::UpdateImageData()
 {
 	int w = qImage.width();
 	int h = qImage.height();
-	if(m_imageData->GetDimensions()[0] != w ||
+	if (m_imageData->GetDimensions()[0] != w ||
 		m_imageData->GetDimensions()[1] != h)
 	{
 		m_imageData->SetDimensions(w, h, 1);
@@ -264,6 +234,7 @@ void iALabel3D::UpdateImageData()
 	{
 		memcpy(m_imageData->GetScalarPointer(), qImage.rgbSwapped().constBits(), w*h * 4);
 
+		// TODO: check - this looks hacky!
 		//qImage.save("C:/test.png");
 		QImage* img = new QImage();
 		img->load("C:/test.png");
@@ -275,15 +246,6 @@ void iALabel3D::UpdateImageData()
 		vtkSmartPointer<vtkImageDataGeometryFilter> imageDataGeometryFilter = vtkSmartPointer<vtkImageDataGeometryFilter>::New();
 		imageDataGeometryFilter->SetInputConnection(qImageToVtk->GetOutputPort());
 		imageDataGeometryFilter->Update();
-
-
-		//m_mapper->SetInputConnection(imageDataGeometryFilter->GetOutputPort());
-		//m_mapper->Update();
-
-		//m_imageData->Modified();
-		//m_texture->SetInputData(m_imageData);
-		//m_texture->Update();
-		//follower->SetTexture(texture);
 	}
 }
 

@@ -31,10 +31,10 @@
 
 #include <cassert>
 
-iARendererManager::iARendererManager()
+iARendererManager::iARendererManager():
+	m_isRedrawn(false),
+	m_commonCamera(nullptr)
 {
-	m_isRedrawn = false;
-	m_commonCamera = nullptr;
 }
 
 void iARendererManager::addToBundle(vtkRenderer* renderer)

@@ -20,8 +20,11 @@
 * ************************************************************************************/
 #pragma once
 
+#include <iALog.h>
+
 #include <itkOutputWindow.h>
 
+//! Redirects all log output from ITK to the LOG macro (i.e. iALog)
 class iALogRedirectITK : public itk::OutputWindow
 {
 public:

@@ -38,7 +38,7 @@ class iASSSlicer;
 class QHBoxLayout;
 class iASegm3DView;
 class vtkPolyData;
-class iAVTKRendererManager;
+class iARendererManager;
 
 typedef iAQTtoUIConnector<QDockWidget, Ui_SSView>  PorosityAnalyzerSSConnector;
 
@@ -93,7 +93,7 @@ protected:
 	QString m_datasetFile;
 
 	QList<iASSSlicer*> m_slicerViews;
-	QScopedPointer<iAVTKRendererManager> m_sliceMgr;
+	QScopedPointer<iARendererManager> m_sliceMgr;
 	vtkSmartPointer<vtkImageData> m_imgData;
 	QScopedPointer<QHBoxLayout> m_slicerViewsLayout;
 	iASegm3DView * m_segm3DViewExtrnl;

@@ -33,7 +33,7 @@
 #include <iACSVToQTableWidgetConverter.h>
 #include <iARenderer.h>
 #include <iASlicer.h>
-#include <iAVTKRendererManager.h>
+#include <iARendererManager.h>
 #include <iAFileUtils.h>
 
 #include <vtkTransform.h>
@@ -61,7 +61,7 @@ iASSView::iASSView( QWidget * parent /*= 0*/, Qt::WindowFlags f /*= 0 */ )
 	m_slicerTransform( vtkSmartPointer<vtkTransform>::New() ),
 	m_slicerTF( vtkSmartPointer<vtkColorTransferFunction>::New() ),
 	m_modeInd( 0 ),
-	m_sliceMgr( new iAVTKRendererManager ),
+	m_sliceMgr( new iARendererManager ),
 	m_imgData( vtkSmartPointer<vtkImageData>::New() ),
 	m_slicerViewsLayout( new QHBoxLayout(slicerWidget) ),
 	m_segm3DViewExtrnl( 0 ),

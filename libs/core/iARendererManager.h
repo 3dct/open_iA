@@ -24,12 +24,11 @@
 
 #include <QVector>
 
-class vtkRenderer;
-class vtkObject;
 class vtkCamera;
+class vtkObject;
+class vtkRenderer;
 
 //! Class synchronizing the camera between multiple renderers
-//!
 class iAcore_API iARendererManager
 {
 public:
