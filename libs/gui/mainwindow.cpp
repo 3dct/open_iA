@@ -32,7 +32,7 @@
 #include "iAProjectRegistry.h"
 #include "iARenderer.h"
 #include "iASavableProject.h"
-#include "iASlicer.h"
+#include "iASlicerImpl.h"    // for slicerModeToString
 #include "io/iAIOProvider.h"
 #include "iATLGICTLoader.h"
 #include "mdichild.h"

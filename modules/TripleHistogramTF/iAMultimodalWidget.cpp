@@ -23,11 +23,14 @@
 
 #include "iASimpleSlicerWidget.h"
 
+#include <iASlicerImpl.h>    // for slicerModeToString
+
 #include <iAChartFunctionTransfer.h>
 #include <iAChartWithFunctionsWidget.h>
 #include <iAHistogramData.h>
 #include <iAPlotTypes.h>
 #include <iAProfileWidget.h>
+
 #include <dlg_modalities.h>
 #include <iAChannelData.h>
 #include <iAChannelSlicerData.h>

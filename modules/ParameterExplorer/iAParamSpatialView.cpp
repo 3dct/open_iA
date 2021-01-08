@@ -25,8 +25,11 @@
 #include "iAHistogramCreator.h"
 #include "iAImageWidget.h"
 
+#include <iASlicerImpl.h>    // for mapSliceToGlobalAxis
+
 #include <iAChartWithFunctionsWidget.h>
 #include <iAPlotTypes.h>
+
 #include <iAConnector.h>
 #include <iALog.h>
 #include <iASlicerMode.h>

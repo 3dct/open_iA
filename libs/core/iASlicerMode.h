@@ -20,10 +20,6 @@
 * ************************************************************************************/
 #pragma once
 
-#include "iAcore_export.h"
-
-#include <QString>
-
 //! Index of the coordinate axes, to prevent "magic numbers" in code
 enum iAAxisIndex
 {
@@ -41,31 +37,3 @@ enum iASlicerMode
 	XY,  // slice along z-Axis
 	SlicerCount
 };
-
-// Helper functions for axes and slicer modes - defined in iASlicer.cpp!
-
-//! Get the name of the given axis
-//! @param axis the index of the axis (see iAAxisIndex)
-iAcore_API QString axisName(int axis);
-
-//! Get the "name" of the given slicer mode (i.e. the slicer plane, "XY" for iASlicerMode XY).
-iAcore_API QString slicerModeString(int mode);
-
-//! Map the index of an axis of the slicer to the index of the corresponding global axis.
-//! @param mode the slicer mode, @see iASlicerMode
-//! @param index the slicer axis index (x=0, y=1, z=2), @see iAAxisIndex
-//! @return the global axis index; for values of index = 0,1,2 it returns:
-//! - 1, 2, 0 for mode=YZ
-//! - 0, 2, 1 for mode=XZ
-//! - 0, 1, 2 for mode=XY
-iAcore_API int mapSliceToGlobalAxis(int mode, int index);
-
-// ! Map the index of a global axis to the index of the corresponding axis of the slicer.
-// ! @param mode the slicer mode, @see iASlicerMode
-// ! @param index the slicer axis index (x=0, y=1, z=2), @see iAAxisIndex
-// ! @return the slicer axis index; for values of index = 0,1,2 it returns:
-// ! - 2, 0, 1 for YZ
-// ! - 0, 2, 1 for XZ
-// ! - 0, 1, 2 for XY
-// Currently not used...
-// iAcore_API int mapGlobalToSliceAxis(int mode, int index);

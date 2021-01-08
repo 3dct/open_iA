@@ -20,6 +20,7 @@
 * ************************************************************************************/
 #pragma once
 
+#include "iAFileUtils.h"    // getLocalEncodingFileName
 #include "iALog.h"
 #include "iAItkVersion.h"
 #include "iAITKIO.h"

@@ -33,7 +33,7 @@ namespace iAITKIO
 {
 
 template <class T>
-inline void read_image_template(QString const& f, ImagePointer& image, bool releaseFlag)
+void read_image_template(QString const& f, ImagePointer& image, bool releaseFlag)
 {
 	typedef itk::Image<T, m_DIM> InputImageType;
 	typedef itk::ImageFileReader<InputImageType> ReaderType;
@@ -50,7 +50,7 @@ inline void read_image_template(QString const& f, ImagePointer& image, bool rele
 }
 
 template <class T>
-inline void write_image_template(bool comp, QString const& fileName, ImagePtr image)
+void write_image_template(bool comp, QString const& fileName, ImagePtr image)
 {
 	typedef itk::Image<T, m_DIM> InputImageType;
 	typedef itk::ImageFileWriter<InputImageType> WriterType;
@@ -69,7 +69,7 @@ inline void write_image_template(bool comp, QString const& fileName, ImagePtr im
 }
 
 // TODO: unify with mdichild::loadfile / iAIO!
-inline ImagePointer readFile(QString const& fileName, ScalarPixelType& pixelType, bool releaseFlag)
+ImagePointer readFile(QString const& fileName, ScalarPixelType& pixelType, bool releaseFlag)
 {
 	itk::ImageIOBase::Pointer imageIO =
 		itk::ImageIOFactory::CreateImageIO(getLocalEncodingFileName(fileName).c_str(), itk::ImageIOFactory::ReadMode);
@@ -90,7 +90,7 @@ inline ImagePointer readFile(QString const& fileName, ScalarPixelType& pixelType
 	return image;
 }
 
-inline void writeFile(QString const& fileName, ImagePtr image, ScalarPixelType pixelType, bool useCompression)
+void writeFile(QString const& fileName, ImagePtr image, ScalarPixelType pixelType, bool useCompression)
 {
 	ITK_TYPED_CALL(write_image_template, pixelType, useCompression, fileName, image);
 }
