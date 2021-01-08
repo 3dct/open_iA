@@ -96,7 +96,7 @@ public:
 	bool save();
 	bool saveAs();
 	bool saveFile(const QString &f, int modalityNr, int componentNr);
-	void updateLayout();
+	void updateLayout() override;
 
 	//! waits for the IO thread to finish in case any I/O operation is running; otherwise it will immediately exit
 	void waitForPreviousIO();
@@ -130,7 +130,7 @@ public:
 	iAPreferences    const & preferences()    const override;
 	iAVolumeStack * volumeStack() override;
 	void connectThreadSignalsToChildSlots(iAAlgorithm* thread) override;
-	void connectIOThreadSignals(iAIO* thread);
+	void connectIOThreadSignals(iAIO* thread) override;
 	void connectAlgorithmSignalsToChildSlots(iAAlgorithm* thread);
 
 	//! Access the opacity function of the "main image"
@@ -147,7 +147,7 @@ public:
 	vtkSmartPointer<vtkImageData> imagePointer() override;
 	//! Set "main image" - does not update views (see displayResult for a method that does)!
 	//! @deprecated all access to images should proceed via modalities (modality(int) / setModalities /...) or channels (createChannel/updateChannel)
-	void setImageData(vtkImageData * iData);
+	void setImageData(vtkImageData* iData) override;
 	//! @deprecated all access to images should proceed via modalities (modality(int) / setModalities /...) or channels (createChannel/updateChannel)
 	void setImageData(QString const & filename, vtkSmartPointer<vtkImageData> imgData);
 	//! Access to "main" polydata object (if any)
@@ -290,9 +290,9 @@ public slots:
 	void disableRenderWindows(int ch) override;
 	void enableRenderWindows() override;
 	void updateSlicer(int index);
-	void updateSlicers();
+	void updateSlicers() override;
 	void updateViews() override;
-	void addStatusMsg(QString const & txt);
+	void addStatusMsg(QString const& txt) override;
 	void setupView(bool active = false);
 	void setupStackView(bool active = false);
 	void setupProject(bool active = false);
