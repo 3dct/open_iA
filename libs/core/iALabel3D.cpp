@@ -32,9 +32,11 @@
 #include <vtkPolyDataMapper.h>
 #include <vtkQImageToImageSource.h>
 #include <vtkQuad.h>
+#include <vtkPointData.h>
 #include <vtkRenderer.h>
 #include <vtkSmartPointer.h>
 #include <vtkSphereSource.h>
+#include <vtkTextProperty.h>
 #include <vtkTubeFilter.h>
 #include <vtkVectorText.h>
 
