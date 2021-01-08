@@ -572,7 +572,7 @@ inline QList<PorosityFilterID> parseFiltersFromString( QString algName )
 	}
 	return filterIds;
 }
-
+// DUPLICATED FROM iAMathUtility?
 inline double median( std::vector<double> vec )
 {
 	typedef std::vector<double>::size_type vec_sz;
