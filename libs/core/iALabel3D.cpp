@@ -30,6 +30,7 @@
 #include <vtkLineSource.h>
 #include <vtkMath.h>
 #include <vtkPolyDataMapper.h>
+#include <vtkProperty.h>
 #include <vtkQImageToImageSource.h>
 #include <vtkQuad.h>
 #include <vtkPointData.h>
