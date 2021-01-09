@@ -266,6 +266,7 @@ void iAFilterRunnerGUI::run(QSharedPointer<iAFilter> filter, iAMainWindow* mainW
 		return;
 	}
 	QMap<QString, QVariant> paramValues = loadParameters(filter, sourceMdi);
+	filter->adaptParametersToInput(paramValues, sourceMdi->modality(0)->image());
 
 	if (!askForParameters(filter, paramValues, sourceMdi, mainWnd, true))
 	{

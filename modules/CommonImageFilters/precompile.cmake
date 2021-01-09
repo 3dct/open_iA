@@ -13,7 +13,6 @@ SET (CommonImageFilters_PRECOMPILE_INCLUDES
 <iAIntensity.h>
 <iAItkVersion.h>
 <iALog.h>
-<iAMdiChild.h>
 <iAMorphologyFilters.h>
 <iANoiseFilters.h>
 <iAProgress.h>

@@ -34,7 +34,7 @@
 #include "iASmoothing.h"
 #include "iATransformations.h"
 
-#include <iAFilterRunnerRegistry.h>
+#include <iAFilterRegistry.h>
 
 void iACommonImageFiltersModuleInterface::Initialize()
 {
@@ -63,9 +63,9 @@ void iACommonImageFiltersModuleInterface::Initialize()
 	REGISTER_FILTER(iAStreamedFFTCorrelation);
 
 	// Geometric transformations
-	REGISTER_FILTER_WITH_RUNNER(iASimpleResampleFilter, iASimpleResampleFilterRunner);
-	REGISTER_FILTER_WITH_RUNNER(iAResampleFilter, iAResampleFilterRunner);
-	REGISTER_FILTER_WITH_RUNNER(iAExtractImageFilter, iAExtractImageFilterRunner);
+	REGISTER_FILTER(iASimpleResampleFilter);
+	REGISTER_FILTER(iAResampleFilter);
+	REGISTER_FILTER(iAExtractImageFilter);
 	REGISTER_FILTER(iAPadImageFilter);
 
 	// Gradient filters:

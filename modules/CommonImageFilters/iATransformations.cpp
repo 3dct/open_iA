@@ -24,7 +24,6 @@
 #include <iAConnector.h>
 #include <iAProgress.h>
 #include <iATypedCallHelper.h>
-#include <iAMdiChild.h>
 
 #include <itkResampleImageFilter.h>
 #include <itkAffineTransform.h>

@@ -201,7 +201,13 @@ bool iAFilter::run(QMap<QString, QVariant> const & parameters)
 	return true;
 }
 
-bool iAFilter::checkParameters(QMap<QString, QVariant> & parameters)
+void iAFilter::adaptParametersToInput(QMap<QString, QVariant>& parameters, vtkSmartPointer<vtkImageData> img)
+{
+	Q_UNUSED(parameters);
+	Q_UNUSED(img);
+}
+
+bool iAFilter::checkParameters(QMap<QString, QVariant> const & parameters)
 {
 	bool ok;
 	for (auto param: m_parameters)

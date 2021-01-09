@@ -1,6 +1,6 @@
 SET( DEPENDENCIES_LIBRARIES
-	iAcore
+	iAbase
 )
 SET( DEPENDENCIES_IA_TOOLKIT_DIRS
-       RemovePeaksOtsu	# for itkFHWRescaleIntensityImageFilter
+	RemovePeaksOtsu    # for itkFHWRescaleIntensityImageFilter
 )

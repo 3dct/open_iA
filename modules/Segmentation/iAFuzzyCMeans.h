@@ -30,7 +30,7 @@ class iAFCMFilter : public iAFilter
 {
 public:
 	static QSharedPointer<iAFCMFilter> create();
-	bool checkParameters(QMap<QString, QVariant> & parameters) override;
+	bool checkParameters(QMap<QString, QVariant> const & parameters) override;
 	void performWork(QMap<QString, QVariant> const & parameters) override;
 private:
 	iAFCMFilter();
@@ -40,7 +40,7 @@ class iAKFCMFilter : public iAFilter
 {
 public:
 	static QSharedPointer<iAKFCMFilter> create();
-	bool checkParameters(QMap<QString, QVariant> & parameters) override;
+	bool checkParameters(QMap<QString, QVariant> const & parameters) override;
 	void performWork(QMap<QString, QVariant> const & parameters) override;
 private:
 	iAKFCMFilter();
@@ -51,7 +51,7 @@ class iAMSKFCMFilter : public iAFilter
 {
 public:
 	static QSharedPointer<iAMSKFCMFilter> create();
-	bool checkParameters(QMap<QString, QVariant> & parameters) override;
+	bool checkParameters(QMap<QString, QVariant> const & parameters) override;
 	void performWork(QMap<QString, QVariant> const & parameters) override;
 private:
 	iAMSKFCMFilter();

@@ -97,6 +97,11 @@ public:
 	void setLogger(iALogger* logger);
 	//! Set the facility for progress reporting.
 	void setProgress(iAProgress* progress);
+	//! if required, adapt (loaded/default) parameters to image
+	//! only used from GUI for the moment
+	//! if feature is implemented where parameters can be omitted (on command line),
+	//! this could later also be used to provide useful defaults for parameters that need to adapt to input image
+	virtual void adaptParametersToInput(QMap<QString, QVariant>& parameters, vtkSmartPointer<vtkImageData> img);
 	//! Check whether the filter can be run with the given parameters. If
 	//! you need to perform special checks on your parameters, override this
 	//! method. The standard implementation here just checks parameters with
@@ -105,7 +110,7 @@ public:
 	//!     be called with
 	//! @return true if the given parameters are acceptable for the filter, false
 	//!     otherwise
-	virtual bool checkParameters(QMap<QString, QVariant> & parameters);
+	virtual bool checkParameters(QMap<QString, QVariant> const & parameters);
 	//! Clears the list of input images to this filter.
 	//! Call this in case you are re-using a filter already called before,
 	//! and you want to call it with new input images
