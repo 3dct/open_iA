@@ -69,6 +69,7 @@
 
 #include <vtkColorTransferFunction.h>
 #include <vtkDiscretizableColorTransferFunction.h>
+#include <vtkGenericOpenGLRenderWindow.h>
 #include <vtkImageData.h>
 #include <vtkImageResample.h>
 #include <vtkInteractorStyleImage.h>
