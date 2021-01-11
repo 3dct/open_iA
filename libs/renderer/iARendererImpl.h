@@ -108,10 +108,10 @@ public:
 	//! sets opacity of the slicing planes
 	void setSlicePlaneOpacity(float opc);
 
-	void setAreaPicker();
+	void setAreaPicker() override;
 	void setPointPicker();
 
-	void update();
+	void update() override;
 	void showHelpers(bool show);
 	void showRPosition(bool show);
 	//! show or hide the slice plane for the given axis
@@ -140,8 +140,9 @@ public:
 	//! @}
 	//! @{ check for better way to get access to these in PickCallbackFunction
 	vtkActor* selectedActor() override;
-	vtkUnstructuredGrid* finalSelection() override;
-	vtkDataSetMapper* selectedMapper() override;
+	vtkUnstructuredGrid* finalSelection();
+	vtkDataSetMapper* selectedMapper();
+	//! @}
 
 	//sets bounds of the slicing volume, using the spacing of image
 	void setSlicingBounds(const int roi[6], const double *spacing);

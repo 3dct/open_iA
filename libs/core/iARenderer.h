@@ -31,8 +31,6 @@ class iARenderObserver;
 
 class vtkActor;
 class vtkCamera;
-class vtkDataSetMapper;
-class vtkImageData;
 class vtkOpenGLRenderer;
 class vtkPlane;
 class vtkPoints;
@@ -43,51 +41,75 @@ class vtkRenderWindow;
 class vtkRenderWindowInteractor;
 class vtkTextActor;
 class vtkTransform;
-class vtkUnstructuredGrid;
 
-//! Displays several helper widgets for a 3D vtk rendering window.
+//! Class encapsulating a main and a label renderer for displaying 3D objects,
+//! and displaying several helper widgets for a 3D vtk rendering window.
 class iAcore_API iARenderer: public QObject
 {
 	Q_OBJECT
 public:
 	iARenderer(QObject* parent) : QObject(parent) {}
 	virtual ~iARenderer() {}
-	virtual void setPolyData( vtkPolyData* pd ) = 0;
-
-	virtual void setDefaultInteractor() = 0;
-	virtual void setAxesTransform(vtkTransform* transform) = 0;
-	virtual void setCamera(vtkCamera* c) = 0;
+	
+	//! @{ Get/Set the VTK camera object (shared by main and label renderer)
 	virtual vtkCamera* camera() = 0;
+	virtual void setCamera(vtkCamera* c) = 0;
+	//! @}
 
-	virtual void setAreaPicker() = 0;
+	//! Update the view (to be called if something has changed in the underlying data
+	//! which requires VTK to redraw the scene).
 	virtual void update() = 0;
-	virtual void showHelpers(bool show) = 0;
 
+	//! @{ Access to the slice planes
 	virtual vtkPlane* plane1() = 0;
 	virtual vtkPlane* plane2() = 0;
 	virtual vtkPlane* plane3() = 0;
+	//! @}
+
+	//! Access to the render window interactor
 	virtual vtkRenderWindowInteractor* interactor() = 0;
+
+	//! Access to the render window.
 	virtual vtkRenderWindow* renderWindow() = 0;
+
+	//! Access to "main" VTK renderer, used for volumes etc.
 	virtual vtkOpenGLRenderer* renderer() = 0;
-	virtual vtkTransform* coordinateSystemTransform() = 0;
-	virtual vtkOpenGLRenderer * labelRenderer() = 0;
+
+	//! Access to "label" VTK renderer, used for text (which should be shown in front of volumes).
+	virtual vtkOpenGLRenderer* labelRenderer() = 0;
+
+	//! Adds a custom renderer to the render window.
+	virtual void addRenderer(vtkRenderer* renderer) = 0;
+
+	//! Apply the given settings to the renderer.
+	//! @param settings data holder for all settings.
+	//! @param slicePlaneVisibility initial visibility of the single slice planes (can be modified independently via showSlicePlanes as well).
+	virtual void applySettings(iARenderSettings const& settings, bool slicePlaneVisibility[3]) = 0;
+
+	// Methods with limited use / might be removed in the future:
+
+	virtual void setAreaPicker() = 0;
+	virtual void setDefaultInteractor() = 0;
+
 	//! @{ access to polydata rendering
 	//! TODO: remove from here! -> separate class similar to iAVolumeRenderer?
+	virtual void setPolyData(vtkPolyData* pd) = 0;
 	virtual vtkPolyData* polyData() = 0;
 	virtual vtkActor* polyActor() = 0;
 	virtual vtkPolyDataMapper* polyMapper() const = 0;
 	//! @}
-	//! @{ check for better way to get access to these in PickCallbackFunction
-	virtual vtkActor* selectedActor() = 0;
-	virtual vtkUnstructuredGrid* finalSelection() = 0;
-	virtual vtkDataSetMapper* selectedMapper() = 0;
 
+	//! Access to selected actor (when selection is enabled).
+	//! Currently only used in DynamicVolumeLines module)
+	virtual vtkActor* selectedActor() = 0;
+
+	//! @{ Access to the transform of the coordinate system axis actor.
+	virtual void setAxesTransform(vtkTransform* transform) = 0;
+	virtual vtkTransform* coordinateSystemTransform() = 0;
+	//! @}
+
+	//! Access to the renderer observer.
 	virtual iARenderObserver * getRenderObserver() = 0;
-	virtual void addRenderer(vtkRenderer* renderer) = 0;
-	//! apply the given settings to the renderer
-	//! @param settings data holder for all settings.
-	//! @param slicePlaneVisibility initial visibility of the single slice planes (can be modified independently via showSlicePlanes as well).
-	virtual void applySettings(iARenderSettings const & settings, bool slicePlaneVisibility[3]) = 0;
 
 signals:
 	void cellsSelected(vtkPoints* selCellPoints);
