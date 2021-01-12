@@ -8,15 +8,21 @@ do
 	then
 		echo "ChangeRPath.sh: $file not found!"
 	else
+		echo "Patching RPATH in $file"
 		patchelf --set-rpath '$ORIGIN' $file
 	fi
 done
 
+declare -a libarray=("iconengines/libqsvgicon.so" "imageformats/libqsvg.so" "platforms/libqxcb.so" "xcbglintegrations/libqxcb-glx-integration.so" "xcbglintegrations/libqxcb-egl-integration.so")
 
-if [ ! -f "platforms/libqxcb.so" ]
-then
-	echo "ChangeRPath.sh: platforms/libqxcb.so not found!"
-else
-	patchelf --set-rpath '$ORIGIN/..' platforms/libqxcb.so
-fi
+for lib in ${libarray[@]}
+do
+	if [ ! -f "${lib}" ]
+	then
+		echo "ChangeRPath.sh: ${lib} not found!"
+	else
+		echo "Patching RPATH in $lib"
+		patchelf --set-rpath '$ORIGIN/..' ${lib}
+	fi
+done
 

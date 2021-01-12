@@ -345,13 +345,23 @@ SET(QT_LIBRARIES ${Qt5Core_LIBRARIES} ${Qt5Concurrent_LIBRARIES} ${Qt5OpenGL_LIB
 STRING(REGEX REPLACE "/lib/cmake/Qt5" "" Qt5_BASEDIR ${Qt5_DIR})
 STRING(REGEX REPLACE "/cmake/Qt5" "" Qt5_BASEDIR ${Qt5_BASEDIR})	# on linux, lib is omitted if installed from package repos
 
+# List all Qt plugins:
+# foreach(plugin ${Qt5Gui_PLUGINS})
+# 	get_target_property(_loc ${plugin} LOCATION)
+# 	message("Plugin ${plugin} is at location ${_loc}")
+# endforeach()
+
 # Install svg imageformats plugin:
 IF (FLATPAK_BUILD)
-	INSTALL (FILES "$<TARGET_FILE:Qt5::QSvgPlugin>" DESTINATION bin/imageformats)
+	# I guess plugins should all be available on Flatpak?
+	#	INSTALL (FILES "$<TARGET_FILE:Qt5::QSvgPlugin>" DESTINATION bin/imageformats)
+	#	INSTALL (FILES "$<TARGET_FILE:Qt5::QSvgIconPlugin>" DESTINATION bin/iconengines)
 ELSE()
 	INSTALL (FILES "$<TARGET_FILE:Qt5::QSvgPlugin>" DESTINATION imageformats)
+	INSTALL (FILES "$<TARGET_FILE:Qt5::QSvgIconPlugin>" DESTINATION iconengines)
+	LIST (APPEND BUNDLE_LIBS "$<TARGET_FILE:Qt5::QSvgPlugin>")
+	LIST (APPEND BUNDLE_LIBS "$<TARGET_FILE:Qt5::QSvgIconPlugin>")
 ENDIF()
-LIST (APPEND BUNDLE_LIBS "$<TARGET_FILE:Qt5::QSvgPlugin>")
 IF (WIN32)
 	SET (QT_LIB_DIR "${Qt5_BASEDIR}/bin")
 	# use imported targets for windows plugin:
@@ -367,17 +377,9 @@ IF (UNIX AND NOT APPLE AND NOT FLATPAK_BUILD)
 	ENDIF()
 
 	# xcb platform plugin, and its plugins egl and glx:
-	# INSTALL (FILES "$<TARGET_FILE:Qt5::QXcbIntegrationPlugin>" DESTINATION platforms)
-	# 
-	IF (EXISTS ${Qt5_BASEDIR}/plugins)
-		INSTALL (FILES ${Qt5_BASEDIR}/plugins/platforms/libqxcb.so DESTINATION platforms)
-		INSTALL (DIRECTORY ${Qt5_BASEDIR}/plugins/xcbglintegrations DESTINATION .)
-	ELSEIF (EXISTS ${Qt5_BASEDIR}/qt5/plugins)
-		INSTALL (FILES ${Qt5_BASEDIR}/qt5/plugins/platforms/libqxcb.so DESTINATION platforms)
-		INSTALL (DIRECTORY ${Qt5_BASEDIR}/qt5/plugins/xcbglintegrations DESTINATION .)
-	ELSE()
-		MESSAGE(SEND_ERROR "Qt Installation: xcb platform plugin (File libqxcb.so and directory xcbglintegrations) not found!")
-	ENDIF()
+	INSTALL (FILES "$<TARGET_FILE:Qt5::QXcbIntegrationPlugin>" DESTINATION platforms)
+	INSTALL (FILES "$<TARGET_FILE:Qt5::QXcbEglIntegrationPlugin>" DESTINATION xcbglintegrations)
+	INSTALL (FILES "$<TARGET_FILE:Qt5::QXcbGlxIntegrationPlugin>" DESTINATION xcbglintegrations)
 
 	# install icu:
 	# TODO: find out whether Qt was built with icu library dependencies
