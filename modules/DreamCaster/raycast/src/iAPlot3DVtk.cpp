@@ -433,4 +433,5 @@ bool iAPlot3DVtk::setPicked( int indX, int indZ )
 	}
 	m_grid->GetPoints()->GetPoint(indX + indZ*m_sizeZ, pickData.pos);
 	HighlightPickedPoint();
+	return true;
 }
