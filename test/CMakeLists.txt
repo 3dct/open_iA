@@ -3,7 +3,7 @@
 # StringHelperTest
 ADD_EXECUTABLE(StringHelperTest iAStringHelperTest.cpp ../libs/base/iAStringHelper.cpp)
 TARGET_INCLUDE_DIRECTORIES(StringHelperTest PRIVATE ${CMAKE_CURRENT_SOURCE_DIR}/../libs/base ${CMAKE_CURRENT_BINARY_DIR}/../libs)
-TARGET_LINK_LIBRARIES(StringHelperTest PRIVATE ${QT_LIBRARIES})
+TARGET_LINK_LIBRARIES(StringHelperTest PRIVATE Qt5::Core)
 target_compile_definitions(StringHelperTest PRIVATE NO_DLL_LINKAGE)
 ADD_TEST(NAME StringHelperTest COMMAND StringHelperTest)
 IF (MSVC)
@@ -20,7 +20,12 @@ ADD_TEST(NAME Vec3Test COMMAND Vec3Test)
 
 ADD_EXECUTABLE(MathUtilTest iAMathUtilityTest.cpp ../libs/base/iAMathUtility.cpp)
 TARGET_INCLUDE_DIRECTORIES(MathUtilTest PRIVATE ${CMAKE_CURRENT_SOURCE_DIR}/../libs/base ${CMAKE_CURRENT_BINARY_DIR}/../libs)
-TARGET_LINK_LIBRARIES(MathUtilTest PRIVATE ${VTK_LIBRARIES})
+IF (VTK_VERSION VERSION_LESS "9.0.0")
+	SET (LibVtkCommonCore "vtkCommonCore")
+ELSE()
+	SET (LibVtkCommonCore "VTK::CommonCore")
+ENDIF()
+TARGET_LINK_LIBRARIES(MathUtilTest PRIVATE ${LibVtkCommonCore})
 target_compile_definitions(MathUtilTest PRIVATE NO_DLL_LINKAGE)
 ADD_TEST(NAME MathUtilTest COMMAND MathUtilTest)
 

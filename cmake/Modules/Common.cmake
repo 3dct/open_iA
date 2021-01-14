@@ -210,7 +210,7 @@ SET (VTK_COMPONENTS
 	${VTK_COMP_PREFIX}ImagingStatistics       # for vtkImageAccumulate
 	${VTK_COMP_PREFIX}IOGeometry              # for vtkSTLReader/Writer
 	${VTK_COMP_PREFIX}IOMovie                 # for vtkGenericMovieWriter
-	${VTK_COMP_PREFIX}RenderingAnnotation     # for vtkAnnotatedCubeActor, vtkScalarBarActor
+	${VTK_COMP_PREFIX}RenderingAnnotation     # for vtkAnnotatedCubeActor, vtkCaptionActor, vtkScalarBarActor
 	${VTK_COMP_PREFIX}RenderingContext${VTK_RENDERING_BACKEND} # required, otherwise 3D renderer CRASHES somewhere with a nullptr access in vtkContextActor::GetDevice !!!
 	${VTK_COMP_PREFIX}RenderingImage          # for vtkImageResliceMapper
 	${VTK_COMP_PREFIX}RenderingVolume${VTK_RENDERING_BACKEND}  # for volume rendering
