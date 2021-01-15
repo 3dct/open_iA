@@ -3,4 +3,5 @@ SET( DEPENDENCIES_LIBRARIES
 	iAcore
 	iAobjectvis
 	iArenderer    # for iARendererManager
+	${VTK_LIB_PREFIX}FiltersExtraction           # for vtkExtractGeometry used iASelectionInteractorStyle
 )

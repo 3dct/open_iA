@@ -1,13 +1,13 @@
 TARGET_LINK_LIBRARIES(${libname} PUBLIC
 	Qt5::Concurrent
-	VTK::FiltersGeometry         # VTK9, for vtkImageDataGeometryFilter, used in iALabel3D and vtkDataSetSurfaceFilter used in ExtractSurface - iAExtractSurfaceFilter
-	VTK::FiltersModeling
-	VTK::IOGeometry              # for vtkSTLReader/Writer
-	VTK::IOMovie                 # for vtkAVIWriter, vtkGenericMovieWriter
-	VTK::IOOggTheora             # for vtkOggTheoraWriter
-	VTK::IOXML                   # VTK9, for vtkXMLImageDataReader used in iAIO
-	VTK::RenderingAnnotation     # for vtkAnnotatedCubeActor, vtkCaptionActor, vtkScalarBarActor
-	VTK::RenderingQt             # for vtkQImageToImageSource, also pulls in vtkGUISupportQt (for QVTKWidgetOpenGL)
+	${VTK_LIB_PREFIX}FiltersGeometry         # VTK9, for vtkImageDataGeometryFilter, used in iALabel3D and vtkDataSetSurfaceFilter used in ExtractSurface - iAExtractSurfaceFilter
+	${VTK_LIB_PREFIX}FiltersModeling
+	${VTK_LIB_PREFIX}IOGeometry              # for vtkSTLReader/Writer
+	${VTK_LIB_PREFIX}IOMovie                 # for vtkAVIWriter, vtkGenericMovieWriter
+	${VTK_LIB_PREFIX}IOOggTheora             # for vtkOggTheoraWriter
+	${VTK_LIB_PREFIX}IOXML                   # VTK9, for vtkXMLImageDataReader used in iAIO
+	${VTK_LIB_PREFIX}RenderingAnnotation     # for vtkAnnotatedCubeActor, vtkCaptionActor, vtkScalarBarActor
+	${VTK_LIB_PREFIX}RenderingQt             # for vtkQImageToImageSource, also pulls in vtkGUISupportQt (for QVTKWidgetOpenGL)
 	iAbase)
 IF ("${VTK_VIDEO_SUPPORT}" STREQUAL "ogg")
 	TARGET_COMPILE_DEFINITIONS(${libname} PRIVATE VTK_USE_OGGTHEORA_ENCODER)

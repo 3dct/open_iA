@@ -1,19 +1,22 @@
 TARGET_LINK_LIBRARIES(${libname} PUBLIC
 
 	Qt5::Core Qt5::Xml
-	VTK::CommonCore VTK::CommonDataModel VTK::CommonExecutionModel
+	${VTK_LIB_PREFIX}CommonCore ${VTK_LIB_PREFIX}CommonDataModel ${VTK_LIB_PREFIX}CommonExecutionModel
 
 	# ToDo: Get rid of GUI stuff here, move down to core/...
 	Qt5::Gui
 
-	VTK::GUISupportQt
-	VTK::IOImage VTK::ImagingCore
-	VTK::RenderingCore VTK::RenderingOpenGL2 VTK::RenderingVolumeOpenGL2
-	VTK::InteractionStyle      # implements VTK::RenderingCore
-	VTK::RenderingFreeType     # implements VTK::RenderingCore
-	VTK::RenderingGL2PSOpenGL2 # implements VTK::RenderingOpenGL2
-	VTK::RenderingOpenVR       # implements VTK::RenderingCore
-	VTK::RenderingUI           # implements VTK::RenderingCore
+	${VTK_LIB_PREFIX}GUISupportQt
+	${VTK_LIB_PREFIX}IOImage
+	${VTK_LIB_PREFIX}ImagingCore
+	${VTK_LIB_PREFIX}RenderingCore
+	${VTK_LIB_PREFIX}RenderingOpenGL2
+	${VTK_LIB_PREFIX}RenderingVolumeOpenGL2
+	${VTK_LIB_PREFIX}InteractionStyle      # implements VTK::RenderingCore
+	${VTK_LIB_PREFIX}RenderingFreeType     # implements VTK::RenderingCore
+	${VTK_LIB_PREFIX}RenderingGL2PSOpenGL2 # implements VTK::RenderingOpenGL2
+	${VTK_LIB_PREFIX}RenderingOpenVR       # implements VTK::RenderingCore
+	${VTK_LIB_PREFIX}RenderingUI           # implements VTK::RenderingCore
 
 	${ITK_LIBRARIES}
 )

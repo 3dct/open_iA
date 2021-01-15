@@ -4,12 +4,10 @@ IF (openiA_TESTING_ENABLED)
 	ADD_EXECUTABLE(ImageGraphTest Segmentation/iAImageGraphTest.cpp Segmentation/iAImageGraph.cpp ${CoreSrcDir}/base/iAImageCoordinate.cpp)
 	ADD_EXECUTABLE(DistanceMeasureTest Segmentation/iADistanceMeasureTest.cpp Segmentation/iAVectorDistanceImpl.cpp Segmentation/iAVectorArrayImpl.cpp Segmentation/iAVectorTypeImpl.cpp ${CoreSrcDir}/base/iAImageCoordinate.cpp)
 	TARGET_LINK_LIBRARIES(ImageGraphTest PRIVATE Qt5::Core)
-IF (VTK_VERSION VERSION_LESS "9.0.0")
-	SET (LibVtkCommonDataModel "vtkCommonDataModel")
-ELSE()
-	SET (LibVtkCommonDataModel "VTK::CommonDataModel")
-ENDIF()
-	TARGET_LINK_LIBRARIES(DistanceMeasureTest PRIVATE Qt5::Core )
+	TARGET_LINK_LIBRARIES(DistanceMeasureTest PRIVATE Qt5::Core
+		${VTK_LIB_PREFIX}CommonCore      # for vtkSmartPointer
+		${VTK_LIB_PREFIX}CommonDataModel # for vtkImageData
+	)
 	TARGET_INCLUDE_DIRECTORIES(ImageGraphTest PRIVATE ${CoreSrcDir}/base  ${CoreBinDir})
 	TARGET_INCLUDE_DIRECTORIES(DistanceMeasureTest PRIVATE ${CoreSrcDir}/base ${CoreBinDir})
 	TARGET_COMPILE_DEFINITIONS(ImageGraphTest PRIVATE NO_DLL_LINKAGE)
