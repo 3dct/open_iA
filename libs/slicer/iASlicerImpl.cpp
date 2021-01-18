@@ -31,7 +31,6 @@
 #include "iAMagicLens.h"
 #include "iAMathUtility.h"
 #include "iAModality.h"
-#include "iAModalityList.h"
 #include "iAMovieHelper.h"
 #include "iAProgress.h"
 #include "iARulerWidget.h"
@@ -46,6 +45,8 @@
 #include "iAVtkVersion.h"
 #include "iAVtkText.h"
 #include "io/iAIOProvider.h"
+
+// need to get rid of these dependencies:
 #include "iAMainWindow.h"
 #include "iAMdiChild.h"
 

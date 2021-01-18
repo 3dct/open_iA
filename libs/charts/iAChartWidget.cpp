@@ -951,7 +951,7 @@ void iAChartWidget::mousePressEvent(QMouseEvent *event)
 	case Qt::RightButton:
 		update();
 		break;
-	case Qt::MidButton:
+	case Qt::MiddleButton:
 		changeMode(MOVE_VIEW_MODE, event);
 		break;
 	default:

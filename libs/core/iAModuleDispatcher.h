@@ -79,6 +79,8 @@ private slots:
 private:
 	iAMainWindow * m_mainWnd;
 	QVector< iALoadedModule > m_loadedModules;
+	//! list of running filters, required to keep track of used memory
+	//! could probably replaced by just new iAFilterRunnerGUI... followed by finished->deleteLater connection
 	QVector< QSharedPointer<iAFilterRunnerGUI> > m_runningFilters;
 	QString m_rootPath;
 	iAModuleInterface* loadModuleAndInterface(QFileInfo fi, QStringList & errorMessages);
