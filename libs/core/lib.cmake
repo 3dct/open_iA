@@ -36,3 +36,15 @@ ENDIF()
 if (openiA_CHART_OPENGL)
 	TARGET_COMPILE_DEFINITIONS(${libname} PUBLIC CHART_OPENGL)
 endif()
+
+SET(ITK_REQUIRED_LIBS
+	ITKIORAW           # probably only required by core? for itkRawImageIO
+)
+FOREACH(itklib ${ITK_REQUIRED_LIBS})
+	MESSAGE(STATUS "${itklib} - lib: ${${itklib}_LIBRARIES}, include: ${${itklib}_INCLUDE_DIRS}")
+	TARGET_LINK_LIBRARIES(${libname} PUBLIC ${${itklib}_LIBRARIES})
+	TARGET_INCLUDE_DIRECTORIES(${libname} PUBLIC ${${itklib}_INCLUDE_DIRS})
+ENDFOREACH()
+IF (MSVC)
+	TARGET_COMPILE_OPTIONS(${libname} PRIVATE "/bigobj")
+ENDIF()
