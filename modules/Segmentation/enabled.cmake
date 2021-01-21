@@ -8,6 +8,15 @@ IF (openiA_TESTING_ENABLED)
 		${VTK_LIB_PREFIX}CommonCore      # for vtkSmartPointer
 		${VTK_LIB_PREFIX}CommonDataModel # for vtkImageData
 	)
+	SET(ITK_REQUIRED_LIBS
+		ITKCommon
+		ITKVNL             # drawn in by itkVector
+	)
+	FOREACH(itklib ${ITK_REQUIRED_LIBS})
+		MESSAGE(STATUS "${itklib} - lib: ${${itklib}_LIBRARIES}, include: ${${itklib}_INCLUDE_DIRS}")
+		TARGET_LINK_LIBRARIES(DistanceMeasureTest PUBLIC ${${itklib}_LIBRARIES})
+		TARGET_INCLUDE_DIRECTORIES(DistanceMeasureTest PUBLIC ${${itklib}_INCLUDE_DIRS})
+	ENDFOREACH()
 	TARGET_INCLUDE_DIRECTORIES(ImageGraphTest PRIVATE ${CoreSrcDir}/base  ${CoreBinDir})
 	TARGET_INCLUDE_DIRECTORIES(DistanceMeasureTest PRIVATE ${CoreSrcDir}/base ${CoreBinDir})
 	TARGET_COMPILE_DEFINITIONS(ImageGraphTest PRIVATE NO_DLL_LINKAGE)

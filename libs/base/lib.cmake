@@ -28,6 +28,7 @@ SET(ITK_REQUIRED_LIBS
 	ITKCommon
 	ITKEigen3           # drawn in by some core math
 	ITKImageFilterBase  # for e.g. CastImageFilter
+	ITKImageFunction    # dependency of ITKImageGrid (even though not of all filters in it ...)
 	ITKImageGrid        # for e.g. ChangeInformationImageFilter
 	ITKImageIntensity   # for e.g. RescaleIntensityImageFilter
 	ITKImageStatistics  # for e.g. StatisticsImageFilter
@@ -49,7 +50,6 @@ SET(ITK_REQUIRED_LIBS
 	ITKIONIFTI
 	ITKIONRRD
 	ITKIOPNG
-	ITKIORAW           # probably only required by core? for itkRawImageIO
 	ITKIOTIFF
 	ITKIOVTK
 	ITKVNL             # drawn in by some core math

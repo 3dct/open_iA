@@ -6,6 +6,11 @@ SET( DEPENDENCIES_LIBRARIES
 	${VTK_LIB_PREFIX}RenderingContext${VTK_RENDERING_BACKEND}    # for implementation of RenderingContext2D (?)
 	${VTK_LIB_PREFIX}ViewsContext2D        # for vtkContextView
 )
+SET( DEPENDENCIES_ITK_MODULES
+	ITKLabelVoting            # for MultiLabelSTAPLEImageFilter
+	ITKImageCompare           # for STAPLEImageFilter
+	ITKImageStatistics        # for LabelStatisticsImageFilter
+)
 SET( DEPENDENCIES_IA_TOOLKIT_DIRS
 	LabelVoting
 )
