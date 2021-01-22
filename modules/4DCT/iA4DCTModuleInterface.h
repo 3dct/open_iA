@@ -20,9 +20,6 @@
 * ************************************************************************************/
 #pragma once
 
-// iA
-#include "iAFiberCharacteristics.h"
-
 #include "iAGUIModuleInterface.h"
 
 class vtkImageData;

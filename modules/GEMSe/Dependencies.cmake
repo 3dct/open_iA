@@ -7,9 +7,10 @@ SET( DEPENDENCIES_LIBRARIES
 	${VTK_LIB_PREFIX}ViewsContext2D        # for vtkContextView
 )
 SET( DEPENDENCIES_ITK_MODULES
-	ITKLabelVoting            # for MultiLabelSTAPLEImageFilter
 	ITKImageCompare           # for STAPLEImageFilter
 	ITKImageStatistics        # for LabelStatisticsImageFilter
+	ITKLabelVoting            # for MultiLabelSTAPLEImageFilter
+	ITKStatistics             # for Histogram
 )
 SET( DEPENDENCIES_IA_TOOLKIT_DIRS
 	LabelVoting

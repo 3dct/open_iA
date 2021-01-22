@@ -187,6 +187,7 @@ FOREACH( indx RANGE ${len} )
 		SOURCE_GROUP("UI Files" REGULAR_EXPRESSION "[.](ui|qrc)$")      # Apply file grouping based on regular expressions for Visual Studio IDE.
 		INSTALL (TARGETS ${module_name} RUNTIME DESTINATION plugins)    # install dll in plugins folder
 
+		TARGET_COMPILE_OPTIONS(${module_name} PRIVATE "/bigobj")
 		# set up debugging command / environment dll paths
 		set_target_properties(${module_name} PROPERTIES VS_DEBUGGER_COMMAND "${CMAKE_BINARY_DIR}\\$(Platform)\\$(Configuration)\\${GUI_EXECUTABLE_FILE}")
 		set_target_properties(${module_name} PROPERTIES VS_DEBUGGER_ENVIRONMENT "PATH=${WinDLLPaths};%PATH%\nSCIFIO_PATH=${SCIFIO_PATH}")

@@ -9,3 +9,9 @@ SET( DEPENDENCIES_LIBRARIES
 	${VTK_LIB_PREFIX}RenderingContext${VTK_RENDERING_BACKEND}    # for implementation of RenderingContext2D (?)
 	${VTK_LIB_PREFIX}ViewsContext2D        # for vtkContextView, vtkContextInteractorStyle
 )
+SET( DEPENDENCIES_ITK_MODULES
+	ITKLabelMap                            # for LabelImageToLabelMapFilter, LabelMapMaskImageFilter
+	ITKSmoothing                           # for DiscreteGaussianImageFilter
+	ITKThresholding                        # for BinaryThresholdImageFilter
+	ITKVtkGlue                             # for ImageToVTKImageFilter / VTKImageToImageFilter
+)
