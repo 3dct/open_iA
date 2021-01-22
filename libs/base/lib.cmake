@@ -1,30 +1,30 @@
 TARGET_LINK_LIBRARIES(${libname} PUBLIC
-
 	Qt5::Core Qt5::Xml
-	${VTK_LIB_PREFIX}CommonCore ${VTK_LIB_PREFIX}CommonDataModel ${VTK_LIB_PREFIX}CommonExecutionModel
-
 	# ToDo: Get rid of GUI stuff here, move down to core/...
 	Qt5::Gui
-
-	# ideally, base would not reference any VTK libraries as well
-	${VTK_LIB_PREFIX}GUISupportQt
-	${VTK_LIB_PREFIX}IOImage
-	${VTK_LIB_PREFIX}ImagingCore
-	${VTK_LIB_PREFIX}RenderingCore
-	${VTK_LIB_PREFIX}RenderingOpenGL2
-	${VTK_LIB_PREFIX}RenderingVolumeOpenGL2
-	${VTK_LIB_PREFIX}InteractionStyle      # implements VTK::RenderingCore
-	${VTK_LIB_PREFIX}RenderingFreeType     # implements VTK::RenderingCore
-	${VTK_LIB_PREFIX}RenderingGL2PSOpenGL2 # implements VTK::RenderingOpenGL2
-	${VTK_LIB_PREFIX}RenderingOpenVR       # implements VTK::RenderingCore
-	${VTK_LIB_PREFIX}RenderingUI           # implements VTK::RenderingCore
-
-#	${ITK_LIBRARIES}
+)
+SET (VTK_REQUIRED_LIBS_PUBLIC
+	CommonCore
+	CommonDataModel
+	CommonExecutionModel
+	# ideally, base would not reference any VTK libraries, but at least not GUI/Rendering libraries:
+	GUISupportQt
+	IOImage
+	ImagingCore
+	RenderingCore
+	RenderingOpenGL2
+	RenderingVolumeOpenGL2
+	InteractionStyle      # implements VTK::RenderingCore
+	RenderingFreeType     # implements VTK::RenderingCore
+	RenderingGL2PSOpenGL2 # implements VTK::RenderingOpenGL2
+	RenderingOpenVR       # implements VTK::RenderingCore
+	RenderingUI           # implements VTK::RenderingCore
 )
 
-# instead of ITK_LIBRARIES, ideally we could write something more specific like this:
+#	${ITK_LIBRARIES}
+# instead of linking all ITK_LIBRARIES:
 	# regarding ITKIO... dependencies to these are pulled in automatically by IO factories somehow:
-SET(ITK_REQUIRED_LIBS
+SET(ITK_REQUIRED_LIBS_PUBLIC
 	ITKCommon
 	ITKEigen3           # drawn in by some core math
 	ITKImageFilterBase  # for e.g. CastImageFilter
@@ -55,8 +55,3 @@ SET(ITK_REQUIRED_LIBS
 	ITKVNL             # drawn in by some core math
 	ITKVTK
 )
-FOREACH(itklib ${ITK_REQUIRED_LIBS})
-	MESSAGE(STATUS "${itklib} - lib: ${${itklib}_LIBRARIES}, include: ${${itklib}_INCLUDE_DIRS}")
-	TARGET_LINK_LIBRARIES(${libname} PUBLIC ${${itklib}_LIBRARIES})
-	TARGET_INCLUDE_DIRECTORIES(${libname} PUBLIC ${${itklib}_INCLUDE_DIRS})
-ENDFOREACH()

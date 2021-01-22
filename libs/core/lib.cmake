@@ -1,14 +1,20 @@
 TARGET_LINK_LIBRARIES(${libname} PUBLIC
 	Qt5::Concurrent
-	${VTK_LIB_PREFIX}FiltersGeometry         # VTK9, for vtkImageDataGeometryFilter, used in iALabel3D and vtkDataSetSurfaceFilter used in ExtractSurface - iAExtractSurfaceFilter
-	${VTK_LIB_PREFIX}FiltersModeling
-	${VTK_LIB_PREFIX}IOGeometry              # for vtkSTLReader/Writer
-	${VTK_LIB_PREFIX}IOMovie                 # for vtkAVIWriter, vtkGenericMovieWriter
-	${VTK_LIB_PREFIX}IOOggTheora             # for vtkOggTheoraWriter
-	${VTK_LIB_PREFIX}IOXML                   # VTK9, for vtkXMLImageDataReader used in iAIO
-	${VTK_LIB_PREFIX}RenderingAnnotation     # for vtkAnnotatedCubeActor, vtkCaptionActor, vtkScalarBarActor
-	${VTK_LIB_PREFIX}RenderingQt             # for vtkQImageToImageSource, also pulls in vtkGUISupportQt (for QVTKWidgetOpenGL)
-	iAbase)
+	iAbase
+)
+SET(VTK_REQUIRED_LIBS_PUBLIC
+	FiltersGeometry         # VTK9, for vtkImageDataGeometryFilter, used in iALabel3D and vtkDataSetSurfaceFilter used in ExtractSurface - iAExtractSurfaceFilter
+	FiltersModeling
+	IOGeometry              # for vtkSTLReader/Writer
+	IOMovie                 # for vtkAVIWriter, vtkGenericMovieWriter
+	IOOggTheora             # for vtkOggTheoraWriter
+	IOXML                   # VTK9, for vtkXMLImageDataReader used in iAIO
+	RenderingAnnotation     # for vtkAnnotatedCubeActor, vtkCaptionActor, vtkScalarBarActor
+	RenderingQt             # for vtkQImageToImageSource, also pulls in vtkGUISupportQt (for QVTKWidgetOpenGL)
+)
+SET(ITK_REQUIRED_LIBS_PUBLIC
+	ITKIORAW                # for RawImage... in iAIO
+)
 IF ("${VTK_VIDEO_SUPPORT}" STREQUAL "ogg")
 	TARGET_COMPILE_DEFINITIONS(${libname} PRIVATE VTK_USE_OGGTHEORA_ENCODER)
 ENDIF()
@@ -36,15 +42,6 @@ ENDIF()
 if (openiA_CHART_OPENGL)
 	TARGET_COMPILE_DEFINITIONS(${libname} PUBLIC CHART_OPENGL)
 endif()
-
-SET(ITK_REQUIRED_LIBS
-	ITKIORAW           # probably only required by core? for itkRawImageIO
-)
-FOREACH(itklib ${ITK_REQUIRED_LIBS})
-	MESSAGE(STATUS "${itklib} - lib: ${${itklib}_LIBRARIES}, include: ${${itklib}_INCLUDE_DIRS}")
-	TARGET_LINK_LIBRARIES(${libname} PUBLIC ${${itklib}_LIBRARIES})
-	TARGET_INCLUDE_DIRECTORIES(${libname} PUBLIC ${${itklib}_INCLUDE_DIRS})
-ENDFOREACH()
 IF (MSVC)
 	TARGET_COMPILE_OPTIONS(${libname} PRIVATE "/bigobj")
 ENDIF()

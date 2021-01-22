@@ -2,7 +2,9 @@ SET( DEPENDENCIES_LIBRARIES
 	${OPENCL_LIBRARIES}
 	iAcharts
 	iAcore
-	${VTK_LIB_PREFIX}FiltersHybrid    # for vtkDepthSortPolyData
+)
+SET( DEPENDENCIES_VTK_MODULES
+	FiltersHybrid    # for vtkDepthSortPolyData
 )
 SET( DEPENDENCIES_CMAKE
 	OPENCL_FOUND

@@ -1,5 +1,7 @@
 SET( DEPENDENCIES_LIBRARIES
 	iAcharts
 	iAcore
-	${VTK_LIB_PREFIX}RenderingImage    # for vtkImageResliceMapper
+)
+SET( DEPENDENCIES_VTK_MODULES
+	RenderingImage    # for vtkImageResliceMapper
 )

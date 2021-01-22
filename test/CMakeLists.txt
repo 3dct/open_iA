@@ -20,7 +20,7 @@ ADD_TEST(NAME Vec3Test COMMAND Vec3Test)
 
 ADD_EXECUTABLE(MathUtilTest iAMathUtilityTest.cpp ../libs/base/iAMathUtility.cpp)
 TARGET_INCLUDE_DIRECTORIES(MathUtilTest PRIVATE ${CMAKE_CURRENT_SOURCE_DIR}/../libs/base ${CMAKE_CURRENT_BINARY_DIR}/../libs)
-TARGET_LINK_LIBRARIES(MathUtilTest PRIVATE  ${VTK_LIB_PREFIX}CommonCore)
+ADD_VTK_LIBRARIES(MathUtilTest PRIVATE CommonCore)
 target_compile_definitions(MathUtilTest PRIVATE NO_DLL_LINKAGE)
 ADD_TEST(NAME MathUtilTest COMMAND MathUtilTest)
 

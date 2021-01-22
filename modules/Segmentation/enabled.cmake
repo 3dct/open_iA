@@ -4,19 +4,17 @@ IF (openiA_TESTING_ENABLED)
 	ADD_EXECUTABLE(ImageGraphTest Segmentation/iAImageGraphTest.cpp Segmentation/iAImageGraph.cpp ${CoreSrcDir}/base/iAImageCoordinate.cpp)
 	ADD_EXECUTABLE(DistanceMeasureTest Segmentation/iADistanceMeasureTest.cpp Segmentation/iAVectorDistanceImpl.cpp Segmentation/iAVectorArrayImpl.cpp Segmentation/iAVectorTypeImpl.cpp ${CoreSrcDir}/base/iAImageCoordinate.cpp)
 	TARGET_LINK_LIBRARIES(ImageGraphTest PRIVATE Qt5::Core)
-	TARGET_LINK_LIBRARIES(DistanceMeasureTest PRIVATE Qt5::Core
-		${VTK_LIB_PREFIX}CommonCore      # for vtkSmartPointer
-		${VTK_LIB_PREFIX}CommonDataModel # for vtkImageData
+	TARGET_LINK_LIBRARIES(DistanceMeasureTest PRIVATE Qt5::Core)
+	SET (VTK_REQUIRED_LIBS
+		CommonCore        # for vtkSmartPointer
+		CommonDataModel   # for vtkImageData
 	)
+	ADD_VTK_LIBRARIES(DistanceMeasureTest "PRIVATE" "${VTK_REQUIRED_LIBS}")
 	SET(ITK_REQUIRED_LIBS
 		ITKCommon
 		ITKVNL             # drawn in by itkVector
 	)
-	FOREACH(itklib ${ITK_REQUIRED_LIBS})
-		MESSAGE(STATUS "${itklib} - lib: ${${itklib}_LIBRARIES}, include: ${${itklib}_INCLUDE_DIRS}")
-		TARGET_LINK_LIBRARIES(DistanceMeasureTest PUBLIC ${${itklib}_LIBRARIES})
-		TARGET_INCLUDE_DIRECTORIES(DistanceMeasureTest PUBLIC ${${itklib}_INCLUDE_DIRS})
-	ENDFOREACH()
+	ADD_LEGACY_LIBRARIES(DistanceMeasureTest "" "PRIVATE" "${ITK_REQUIRED_LIBS}")
 	TARGET_INCLUDE_DIRECTORIES(ImageGraphTest PRIVATE ${CoreSrcDir}/base  ${CoreBinDir})
 	TARGET_INCLUDE_DIRECTORIES(DistanceMeasureTest PRIVATE ${CoreSrcDir}/base ${CoreBinDir})
 	TARGET_COMPILE_DEFINITIONS(ImageGraphTest PRIVATE NO_DLL_LINKAGE)

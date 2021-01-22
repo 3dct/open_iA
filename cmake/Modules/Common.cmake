@@ -299,9 +299,9 @@ IF (VTK_MAJOR_VERSION GREATER 8)
 	ENDIF()
 ENDIF()
 FIND_PACKAGE(VTK COMPONENTS ${VTK_COMPONENTS})
-IF (VTK_MAJOR_VERSION LESS 9)		# VTK >= 9.0 uses imported targets -> include directories are set by TARGET_LINK_LIBRARY(... VTK_LIBRARIES) call!
-	INCLUDE(${VTK_USE_FILE})
-ENDIF()
+#IF (VTK_MAJOR_VERSION LESS 9)		# VTK >= 9.0 uses imported targets -> include directories are set by TARGET_LINK_LIBRARY(... VTK_LIBRARIES) call!
+#	INCLUDE(${VTK_USE_FILE})
+#ENDIF()
 IF (MSVC)
 	SET (VTK_LIB_DIR "${VTK_DIR}/bin/Release")
 ELSE ()
@@ -698,3 +698,37 @@ IF (UNIX)
     SET(CMAKE_INSTALL_RPATH "\$ORIGIN")      # Set RunPath in all created libraries / executables to $ORIGIN
     #    SET (CMAKE_BUILD_RPATH_USE_ORIGIN ON)
 ENDIF()
+
+
+# Helper functions for adding libraries
+
+# "old style" libraries (e.g. ITK or VTK < 9, with no imported targets)
+FUNCTION (ADD_LEGACY_LIBRARIES libname libprefix pubpriv liblist)
+	FOREACH(lib ${liblist})
+		set (fulllib "${libprefix}${lib}")
+		IF (openiA_DEPENDENCY_INFO)
+			MESSAGE(STATUS "    ${fulllib} - libs: ${${fulllib}_LIBRARIES}, include: ${${fulllib}_INCLUDE_DIRS}")
+		ENDIF()
+		TARGET_INCLUDE_DIRECTORIES(${libname} ${pubpriv} ${${fulllib}_INCLUDE_DIRS})
+		TARGET_LINK_LIBRARIES(${libname} ${pubpriv} ${${fulllib}_LIBRARIES})
+	ENDFOREACH()
+ENDFUNCTION()
+
+# "new style" libraries that bring in all dependencies automatically, and that only need to be linked to
+FUNCTION (ADD_IMPORTEDTARGET_LIBRARIES libname libprefix pubpriv liblist)
+	FOREACH(lib ${liblist})
+		set (fulllib "${libprefix}${lib}")
+		IF (openiA_DEPENDENCY_INFO)
+			MESSAGE(STATUS "    ${fulllib}")
+		ENDIF()
+		TARGET_LINK_LIBRARIES(${libname} ${pubpriv} ${fulllib})
+	ENDFOREACH()
+ENDFUNCTION()
+
+FUNCTION (ADD_VTK_LIBRARIES libname pubpriv liblist)
+	IF (VTK_VERSION VERSION_LESS "9.0.0")
+		ADD_LEGACY_LIBRARIES(${libname} ${VTK_LIB_PREFIX} ${pubpriv} "${liblist}")
+	ELSE()
+		ADD_IMPORTEDTARGET_LIBRARIES(${libname} ${VTK_LIB_PREFIX} ${pubpriv} "${liblist}")
+	ENDIF()
+ENDFUNCTION()
