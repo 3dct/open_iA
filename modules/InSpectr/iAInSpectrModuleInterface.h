@@ -20,9 +20,9 @@
 * ************************************************************************************/
 #pragma once
 
-#include <iAModuleInterface.h>
+#include <iAGUIModuleInterface.h>
 
-class iAInSpectrModuleInterface : public iAModuleInterface
+class iAInSpectrModuleInterface : public iAGUIModuleInterface
 {
 	Q_OBJECT
 public:
@@ -30,5 +30,5 @@ public:
 private slots:
 	bool startInSpectr();
 private:
-	iAModuleAttachmentToChild * CreateAttachment(MainWindow* mainWnd, MdiChild * child) override;
+	iAModuleAttachmentToChild * CreateAttachment(iAMainWindow* mainWnd, iAMdiChild * child) override;
 };

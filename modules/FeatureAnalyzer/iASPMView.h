@@ -51,7 +51,7 @@ class vtkTable;
 class iAFAQSplom;
 struct iASelection;
 class iASPMSettings;
-class MainWindow;
+class iAMainWindow;
 
 typedef iAQTtoUIConnector<QDockWidget, Ui_SPMView> iAPorosityAnalyzerSPMConnector;
 
@@ -60,7 +60,7 @@ class iASPMView : public iAPorosityAnalyzerSPMConnector
 	Q_OBJECT
 
 public:
-	iASPMView(MainWindow *mWnd, QWidget * parent = 0, Qt::WindowFlags f = 0 );
+	iASPMView(iAMainWindow *mWnd, QWidget * parent = 0, Qt::WindowFlags f = 0 );
 	~iASPMView();
 	void setSelection( iASelection * sel );
 	void setDatasetsDir( QString datasetsDir );

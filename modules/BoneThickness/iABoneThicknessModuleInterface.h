@@ -20,15 +20,15 @@
 * ************************************************************************************/
 #pragma once
 
-#include "iAModuleInterface.h"
+#include "iAGUIModuleInterface.h"
 
-class iABoneThicknessModuleInterface : public iAModuleInterface
+class iABoneThicknessModuleInterface : public iAGUIModuleInterface
 {
 	Q_OBJECT
 public:
 	void Initialize() override;
 protected:
-	iAModuleAttachmentToChild* CreateAttachment(MainWindow* mainWnd, MdiChild * child) override;
+	iAModuleAttachmentToChild* CreateAttachment(iAMainWindow* mainWnd, iAMdiChild * child) override;
 private slots:
 	void slotBoneThickness();
 };

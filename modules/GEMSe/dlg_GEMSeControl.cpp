@@ -45,13 +45,14 @@
 #include <iAAttributeDescriptor.h>
 #include <iAColorTheme.h>
 #include <iAConnector.h>
+#include <iAFileUtils.h>    // for getLocalEncodingFileName
 #include <iAJobListView.h>
 #include <iALog.h>
 #include <iAModality.h>
 #include <iAModalityList.h>
 #include <iAToolsITK.h>
 #include <io/iAIOProvider.h>
-#include <mdichild.h>
+#include <iAMdiChild.h>
 
 #include <vtkImageData.h>
 
@@ -165,8 +166,8 @@ dlg_GEMSeControl::dlg_GEMSeControl(
 	connect(cbProbabilityProbing, &QCheckBox::stateChanged, this, &dlg_GEMSeControl::setProbabilityProbing);
 	connect(cbCorrectnessUncertainty, &QCheckBox::stateChanged, this, &dlg_GEMSeControl::setCorrectnessUncertainty);
 
-	MdiChild* mdiChild = dynamic_cast<MdiChild*>(parent());
-	connect(mdiChild, &MdiChild::transferFunctionChanged, this, &dlg_GEMSeControl::dataTFChanged);
+	iAMdiChild* mdiChild = dynamic_cast<iAMdiChild*>(parent());
+	connect(mdiChild, &iAMdiChild::transferFunctionChanged, this, &dlg_GEMSeControl::dataTFChanged);
 
 	dataAvailable();
 }
@@ -319,7 +320,7 @@ bool dlg_GEMSeControl::loadClustering(QString const & fileName)
 		LOG(lvlError, "No sampling data is available!");
 		return false;
 	}
-	MdiChild* mdiChild = dynamic_cast<MdiChild*>(parent());
+	iAMdiChild* mdiChild = dynamic_cast<iAMdiChild*>(parent());
 	vtkSmartPointer<vtkImageData> originalImage = mdiChild->imagePointer();
 	QSharedPointer<iAImageTree> tree = iAImageTree::Create(
 		fileName,
@@ -392,7 +393,7 @@ void dlg_GEMSeControl::calculateClustering()
 
 void dlg_GEMSeControl::clusteringFinished()
 {
-	MdiChild* mdiChild = dynamic_cast<MdiChild*>(parent());
+	iAMdiChild* mdiChild = dynamic_cast<iAMdiChild*>(parent());
 	vtkSmartPointer<vtkImageData> originalImage = mdiChild->imagePointer();
 
 	QSharedPointer<iAImageTree> tree = m_clusterer->GetResult();
@@ -465,7 +466,7 @@ void dlg_GEMSeControl::saveGEMSeProject(QString const & fileName, QString const 
 	{
 		samplingFilenames.insert(sampling->id(), sampling->fileName());
 	}
-	MdiChild* mdiChild = dynamic_cast<MdiChild*>(parent());
+	iAMdiChild* mdiChild = dynamic_cast<iAMdiChild*>(parent());
 	iASEAFile seaFile(
 		m_dlgModalities->modalities()->fileName(),
 		m_simpleLabelInfo->count(),
@@ -488,7 +489,7 @@ void dlg_GEMSeControl::saveProject(QSettings & metaFile, QString const & fileNam
 	{
 		samplingFilenames.insert(sampling->id(), sampling->fileName());
 	}
-	MdiChild* mdiChild = dynamic_cast<MdiChild*>(parent());
+	iAMdiChild* mdiChild = dynamic_cast<iAMdiChild*>(parent());
 	iASEAFile seaFile(
 		"", // don't store modalities here!
 		m_simpleLabelInfo->count(),
@@ -509,7 +510,7 @@ void dlg_GEMSeControl::EnableClusteringDependantUI()
 	pbSelectHistograms->setEnabled(true);
 	if (!m_dlgConsensus)
 	{
-		MdiChild* mdiChild = dynamic_cast<MdiChild*>(parent());
+		iAMdiChild* mdiChild = dynamic_cast<iAMdiChild*>(parent());
 		m_dlgConsensus = new dlg_Consensus(mdiChild, m_dlgGEMSe, m_simpleLabelInfo->count(), m_outputFolder,
 			m_dlgSamplings);
 		if (m_refImg)

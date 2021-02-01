@@ -25,12 +25,15 @@
 #include "iAHistogramCreator.h"
 #include "iAImageWidget.h"
 
-#include <charts/iAChartWithFunctionsWidget.h>
-#include <charts/iAPlotTypes.h>
+#include <iASlicerImpl.h>    // for mapSliceToGlobalAxis
+
+#include <iAChartWithFunctionsWidget.h>
+#include <iAPlotTypes.h>
+
 #include <iAConnector.h>
 #include <iALog.h>
 #include <iASlicerMode.h>
-#include <io/iAFileUtils.h>
+#include <iAFileUtils.h>
 
 #include <vtkImageData.h>
 

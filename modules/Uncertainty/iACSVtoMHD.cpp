@@ -26,10 +26,11 @@
 #include <iAProgress.h>
 #include <iAToolsVTK.h>
 #include <iAVtkDraw.h>
-#include <mdichild.h>
+#include <iAMdiChild.h>
 
 #include <vtkImageData.h>
 
+#include <QFile>
 #include <QTextStream>
 
 iACSVtoMHD::iACSVtoMHD() : iAFilter("CSV to MHD", "Uncertainty",

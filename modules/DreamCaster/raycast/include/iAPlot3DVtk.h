@@ -67,7 +67,8 @@ public:
 	void SetAxesParams(int showaxes, int showlabels, double color[3], long fontfactor);
 	void HighlightPickedPoint();
 	int GetNumberOfLookupTableValues();
-	void setPicked(int indX, int indZ);
+	//! return false if points not set
+	bool setPicked(int indX, int indZ);
 private:
 	int m_correctTransparency;
 	int m_showgrid;

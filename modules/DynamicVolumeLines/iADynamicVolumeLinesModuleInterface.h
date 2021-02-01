@@ -20,13 +20,13 @@
 * ************************************************************************************/
 #pragma once
 
-#include <iAModuleInterface.h>
+#include <iAGUIModuleInterface.h>
 
 class dlg_DynamicVolumeLines;
 
-class MdiChild;
+class iAMdiChild;
 
-class iADynamicVolumeLinesModuleInterface : public iAModuleInterface
+class iADynamicVolumeLinesModuleInterface : public iAGUIModuleInterface
 {
 	Q_OBJECT
 

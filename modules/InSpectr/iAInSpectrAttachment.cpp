@@ -27,15 +27,14 @@
 #include "iAElementConcentrations.h"
 #include "iAXRFData.h"
 
-#include <dlg_slicer.h>
 #include <iAChannelData.h>
 #include <iASlicer.h>
-#include <io/extension2id.h>
 #include <io/iAIO.h>
 #include <iALog.h>
-#include <mainwindow.h>
-#include <mdichild.h>
-#include <qthelper/iAWidgetAddHelper.h>
+#include <iAMainWindow.h>
+#include <iAMdiChild.h>
+
+#include "defines.h"    // for NotExistingChannel
 
 #include <itkMacro.h>    // for itk::ExceptionObject
 
@@ -46,14 +45,14 @@
 #include <QFileDialog>
 #include <QtMath>
 
-iAInSpectrAttachment::iAInSpectrAttachment( MainWindow * mainWnd, MdiChild * child ) : iAModuleAttachmentToChild( mainWnd, child ),
+iAInSpectrAttachment::iAInSpectrAttachment( iAMainWindow * mainWnd, iAMdiChild * child ) : iAModuleAttachmentToChild( mainWnd, child ),
 	dlgPeriodicTable(nullptr),
 	dlgSimilarityMap(nullptr),
 	dlgXRF(nullptr),
 	ioThread(nullptr),
 	m_xrfChannelID(NotExistingChannel)
 {
-	connect(m_child, &MdiChild::magicLensToggled, this, &iAInSpectrAttachment::magicLensToggled);
+	connect(m_child, &iAMdiChild::magicLensToggled, this, &iAInSpectrAttachment::magicLensToggled);
 	for (int i = 0; i < 3; ++i)
 	{
 		connect(m_child->slicer(i), &iASlicer::oslicerPos, this, &iAInSpectrAttachment::updateXRFVoxelEnergy);
@@ -94,12 +93,12 @@ iAInSpectrAttachment::iAInSpectrAttachment( MainWindow * mainWnd, MdiChild * chi
 
 	QString extension = QFileInfo( f ).suffix();
 	extension = extension.toUpper();
-	if (extensionToIdStack.find(extension) == extensionToIdStack.end())
+	if (extensionToIdStack().find(extension) == extensionToIdStack().end())
 	{
 		throw itk::ExceptionObject(__FILE__, __LINE__, "Unsupported extension");
 	}
 
-	iAIOType id = extensionToIdStack.find( extension ).value();
+	iAIOType id = extensionToIdStack().find(extension).value();
 	if( !ioThread->setupIO( id, f ) )
 	{
 		xrfLoadingFailed();
@@ -247,8 +246,7 @@ void iAInSpectrAttachment::xrfLoadingDone()
 			haveEnergyLevels = true;
 		}
 	}
-	iAWidgetAddHelper wdgtHelp(m_child, m_child->renderDockWidget());
-	dlgXRF->init( minEnergy, maxEnergy, haveEnergyLevels, wdgtHelp);
+	dlgXRF->init(minEnergy, maxEnergy, haveEnergyLevels, m_child);
 	connect( dlgXRF->cb_spectralColorImage, &QCheckBox::stateChanged, this, &iAInSpectrAttachment::visualizeXRF);
 	connect( dlgXRF->sl_peakOpacity, &QSlider::valueChanged, this, &iAInSpectrAttachment::updateXRFOpacity);
 	connect( dlgXRF->pb_compute, &QPushButton::clicked, this, &iAInSpectrAttachment::updateXRF);

@@ -149,11 +149,18 @@ FIND_PACKAGE(ITK COMPONENTS ${ITK_COMPONENTS})
 # apparently ITK (at least v5.0.0) adapts CMAKE_MODULE_PATH (bug?), reset it:
 SET(CMAKE_MODULE_PATH "${SAVED_CMAKE_MODULE_PATH}")
 INCLUDE(${ITK_USE_FILE})  # maybe avoid by using INCLUDE/LINK commands on targets instead?
+SET (ITK_BASE_DIR "${ITK_DIR}")
 IF (MSVC)
 	SET (ITK_LIB_DIR "${ITK_DIR}/bin/Release")
 ELSE()
-	SET (ITK_LIB_DIR "${ITK_DIR}/lib")
+	if (EXISTS "${ITK_DIR}/lib")
+		SET (ITK_LIB_DIR "${ITK_DIR}/lib")
+	else()
+		SET (ITK_BASE_DIR "${ITK_DIR}/../../..")
+		SET (ITK_LIB_DIR "${ITK_BASE_DIR}/lib")
+	endif()
 ENDIF()
+MESSAGE(STATUS "    ITK_LIB_DIR: ${ITK_LIB_DIR}")
 LIST (APPEND BUNDLE_DIRS "${ITK_LIB_DIR}")
 set (ITK_SCIFIO_INFO "disabled")
 IF (SCIFIO_LOADED)
@@ -163,7 +170,7 @@ IF (SCIFIO_LOADED)
        than the one you built it, the environment variable SCIFIO_PATH\n\
        has to be set to the path containing the SCIFIO jar files!\n\
        Otherwise loading images will fail!")
-	SET (SCIFIO_PATH "${ITK_DIR}/lib/jars")
+	SET (SCIFIO_PATH "${ITK_BASE_DIR}/lib/jars")
 	IF (MSVC)
 		# variable will be set to the debugging environment instead of copying (see gui/CMakeLists.txt)
 	ELSE()
@@ -296,8 +303,13 @@ ENDIF()
 IF (MSVC)
 	SET (VTK_LIB_DIR "${VTK_DIR}/bin/Release")
 ELSE ()
-	SET (VTK_LIB_DIR "${VTK_DIR}/lib")
+	if (EXISTS "${VTK_DIR}/lib")
+		SET (VTK_LIB_DIR "${VTK_DIR}/lib")
+	else()
+		SET (VTK_LIB_DIR "${VTK_DIR}/../../../lib")
+	endif()
 ENDIF()
+MESSAGE(STATUS "    VTK_LIB_DIR: ${VTK_LIB_DIR}")
 LIST (APPEND BUNDLE_DIRS "${VTK_LIB_DIR}")
 IF ( vtkoggtheora_LOADED OR vtkogg_LOADED OR
      (VTK_ogg_FOUND EQUAL 1 AND VTK_theora_FOUND EQUAL 1 AND VTK_IOOggTheora_FOUND EQUAL 1) )
@@ -333,13 +345,23 @@ SET(QT_LIBRARIES ${Qt5Core_LIBRARIES} ${Qt5Concurrent_LIBRARIES} ${Qt5OpenGL_LIB
 STRING(REGEX REPLACE "/lib/cmake/Qt5" "" Qt5_BASEDIR ${Qt5_DIR})
 STRING(REGEX REPLACE "/cmake/Qt5" "" Qt5_BASEDIR ${Qt5_BASEDIR})	# on linux, lib is omitted if installed from package repos
 
+# List all Qt plugins:
+# foreach(plugin ${Qt5Gui_PLUGINS})
+# 	get_target_property(_loc ${plugin} LOCATION)
+# 	message("Plugin ${plugin} is at location ${_loc}")
+# endforeach()
+
 # Install svg imageformats plugin:
 IF (FLATPAK_BUILD)
-	INSTALL (FILES "$<TARGET_FILE:Qt5::QSvgPlugin>" DESTINATION bin/imageformats)
+	# I guess plugins should all be available on Flatpak?
+	#	INSTALL (FILES "$<TARGET_FILE:Qt5::QSvgPlugin>" DESTINATION bin/imageformats)
+	#	INSTALL (FILES "$<TARGET_FILE:Qt5::QSvgIconPlugin>" DESTINATION bin/iconengines)
 ELSE()
 	INSTALL (FILES "$<TARGET_FILE:Qt5::QSvgPlugin>" DESTINATION imageformats)
+	INSTALL (FILES "$<TARGET_FILE:Qt5::QSvgIconPlugin>" DESTINATION iconengines)
+	LIST (APPEND BUNDLE_LIBS "$<TARGET_FILE:Qt5::QSvgPlugin>")
+	LIST (APPEND BUNDLE_LIBS "$<TARGET_FILE:Qt5::QSvgIconPlugin>")
 ENDIF()
-LIST (APPEND BUNDLE_LIBS "$<TARGET_FILE:Qt5::QSvgPlugin>")
 IF (WIN32)
 	SET (QT_LIB_DIR "${Qt5_BASEDIR}/bin")
 	# use imported targets for windows plugin:
@@ -355,17 +377,9 @@ IF (UNIX AND NOT APPLE AND NOT FLATPAK_BUILD)
 	ENDIF()
 
 	# xcb platform plugin, and its plugins egl and glx:
-	# INSTALL (FILES "$<TARGET_FILE:Qt5::QXcbIntegrationPlugin>" DESTINATION platforms)
-	# 
-	IF (EXISTS ${Qt5_BASEDIR}/plugins)
-		INSTALL (FILES ${Qt5_BASEDIR}/plugins/platforms/libqxcb.so DESTINATION platforms)
-		INSTALL (DIRECTORY ${Qt5_BASEDIR}/plugins/xcbglintegrations DESTINATION .)
-	ELSEIF (EXISTS ${Qt5_BASEDIR}/qt5/plugins)
-		INSTALL (FILES ${Qt5_BASEDIR}/qt5/plugins/platforms/libqxcb.so DESTINATION platforms)
-		INSTALL (DIRECTORY ${Qt5_BASEDIR}/qt5/plugins/xcbglintegrations DESTINATION .)
-	ELSE()
-		MESSAGE(SEND_ERROR "Qt Installation: xcb platform plugin (File libqxcb.so and directory xcbglintegrations) not found!")
-	ENDIF()
+	INSTALL (FILES "$<TARGET_FILE:Qt5::QXcbIntegrationPlugin>" DESTINATION platforms)
+	INSTALL (FILES "$<TARGET_FILE:Qt5::QXcbEglIntegrationPlugin>" DESTINATION xcbglintegrations)
+	INSTALL (FILES "$<TARGET_FILE:Qt5::QXcbGlxIntegrationPlugin>" DESTINATION xcbglintegrations)
 
 	# install icu:
 	# TODO: find out whether Qt was built with icu library dependencies
@@ -562,6 +576,12 @@ IF (CMAKE_COMPILER_IS_GNUCXX OR "${CMAKE_CXX_COMPILER_ID}" STREQUAL "Clang")
 
 	set ( CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -pipe -fpermissive -fopenmp -march=core2 -O2 -msse4.2 -mavx")
 	set ( CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -pipe -fopenmp -march=core2 -O2 -msse4.2 -mavx")
+
+	# we do need to set the RPATH to make lib load path recursive also be able to load dependent libraries from the rpath specified in the executables:
+	# see https://stackoverflow.com/questions/58997230/cmake-project-fails-to-find-shared-library
+	# strictly speaking, this is only needed for running the executables from the project folder
+	# (as in an install, the RPATH of all installed executables and libraries is adapted anyway)
+	SET(CMAKE_EXE_LINKER_FLAGS "${CMAKE_EXE_LINKER_FLAGS} -Wl,--disable-new-dtags")
 ENDIF()
 
 IF (${CMAKE_SYSTEM_NAME} MATCHES "Darwin")
@@ -636,10 +656,6 @@ IF (MSVC)
 		STRING(REGEX REPLACE "/" "\\\\" OPENVR_PATH_WIN ${OPENVR_LIB_PATH})
 		SET (WinDLLPaths "${OPENVR_PATH_WIN};${WinDLLPaths}")
 	ENDIF()
-	
-	IF (ELASTIX_LIBRARY_DIRS)
-		SET (WinDLLPaths "${ELASTIX_LIBRARY_DIRS}/$(Configuration);${WinDLLPaths}")
-	ENDIF()
 
 	IF (ONNX_RUNTIME_LIBRARIES)
 		get_filename_component(ONNX_LIB_DIR ${ONNX_RUNTIME_LIBRARIES} DIRECTORY)
@@ -651,6 +667,7 @@ IF (MSVC)
 ENDIF ()
 
 IF (ONNX_RUNTIME_LIBRARIES)
+	get_filename_component(ONNX_LIB_DIR ${ONNX_RUNTIME_LIBRARIES} DIRECTORY)
 	LIST (APPEND BUNDLE_DIRS "${ONNX_LIB_DIR}")
 ENDIF()
 
@@ -659,7 +676,7 @@ ENDIF()
 # Common Settings
 #-------------------------
 
-SET (CORE_LIBRARY_NAME open_iA_Core)
+SET (CORE_LIBRARY_NAME iAcore)
 
 option (openiA_USE_IDE_FOLDERS "Whether to group projects in subfolders in the IDE (mainly Visual Studio). Default: enabled." ON)
 IF (openiA_USE_IDE_FOLDERS)

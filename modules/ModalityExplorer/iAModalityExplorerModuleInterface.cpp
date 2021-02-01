@@ -23,8 +23,11 @@
 #include "iAModalityExplorerAttachment.h"
 
 #include <iALog.h>
-#include <mainwindow.h>
-#include <mdichild.h>
+#include <iAMainWindow.h>
+#include <iAMdiChild.h>
+
+#include <QAction>
+#include <QMenu>
 
 void iAModalityExplorerModuleInterface::Initialize()
 {
@@ -34,14 +37,14 @@ void iAModalityExplorerModuleInterface::Initialize()
 	}
 	QAction * actionModalitySPLOM = new QAction(tr("Modality SPLOM"), m_mainWnd);
 	connect(actionModalitySPLOM, &QAction::triggered, this, &iAModalityExplorerModuleInterface::ModalitySPLOM);
-	makeActionChildDependent(actionModalitySPLOM);
+	m_mainWnd->makeActionChildDependent(actionModalitySPLOM);
 
 	QMenu* submenu = getOrAddSubMenu(m_mainWnd->toolsMenu(), tr("Multi-Modal/-Channel Images"));
 	addToMenuSorted(submenu, actionModalitySPLOM);
 }
 
 
-iAModuleAttachmentToChild* iAModalityExplorerModuleInterface::CreateAttachment(MainWindow* mainWnd, MdiChild * child)
+iAModuleAttachmentToChild* iAModalityExplorerModuleInterface::CreateAttachment(iAMainWindow* mainWnd, iAMdiChild * child)
 {
 	iAModalityExplorerAttachment* result = iAModalityExplorerAttachment::create( mainWnd, child);
 	return result;

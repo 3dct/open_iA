@@ -22,8 +22,8 @@
 
 #include <iALog.h>
 #include <iARenderer.h>
-#include <iAvec3.h>
-#include <mdichild.h>
+#include <iAVec3.h>
+#include <iAMdiChild.h>
 
 #include <vtkLineSource.h>
 #include <vtkSphereSource.h>
@@ -97,10 +97,10 @@ iAGeometricObjectsDialog::iAGeometricObjectsDialog(QWidget* parent, Qt::WindowFl
 	updateControls();
 }
 
-void iAGeometricObjectsDialog::setMDIChild(MdiChild* child)
+void iAGeometricObjectsDialog::setMDIChild(iAMdiChild* child)
 {
 	m_child = child;
-	connect(m_child, &MdiChild::closed, [this]
+	connect(m_child, &iAMdiChild::closed, [this]
 	{   // if child is closed, disassociate with that child and close dialog
 		m_child = nullptr;
 		hide();

@@ -22,7 +22,9 @@
 
 #include "iAFoamCharacterizationAttachment.h"
 
-#include <mainwindow.h>
+#include <iAMainWindow.h>
+
+#include <QAction>
 
 void iAFoamCharacterizationModuleInterface::Initialize( )
 {
@@ -32,7 +34,7 @@ void iAFoamCharacterizationModuleInterface::Initialize( )
 	}
 	QAction* actionFoamCharacterization(new QAction(tr("Foam characterization"), m_mainWnd));
 	connect(actionFoamCharacterization, &QAction::triggered, this, &iAFoamCharacterizationModuleInterface::slotFoamCharacterization);
-	makeActionChildDependent(actionFoamCharacterization);
+	m_mainWnd->makeActionChildDependent(actionFoamCharacterization);
 	addToMenuSorted(m_mainWnd->toolsMenu(), actionFoamCharacterization);
 }
 
@@ -46,7 +48,7 @@ void iAFoamCharacterizationModuleInterface::slotFoamCharacterization()
 	}
 }
 
-iAModuleAttachmentToChild* iAFoamCharacterizationModuleInterface::CreateAttachment(MainWindow* mainWnd, MdiChild * child)
+iAModuleAttachmentToChild* iAFoamCharacterizationModuleInterface::CreateAttachment(iAMainWindow* mainWnd, iAMdiChild * child)
 {
 	return new iAFoamCharacterizationAttachment(mainWnd, child);
 }

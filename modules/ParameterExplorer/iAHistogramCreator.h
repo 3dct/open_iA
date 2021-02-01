@@ -20,7 +20,7 @@
 * ************************************************************************************/
 #pragma once
 
-#include "charts/iAHistogramData.h"
+#include <iAHistogramData.h>
 
 #include <vtkImageData.h>
 #include <vtkSmartPointer.h>

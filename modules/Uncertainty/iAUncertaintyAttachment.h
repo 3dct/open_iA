@@ -22,7 +22,7 @@
 
 #include "iAModuleAttachmentToChild.h"
 
-#include <io/iAITKIO.h>
+#include <iAITKIO.h>
 
 #include <vtkSmartPointer.h>
 
@@ -44,7 +44,7 @@ class iAUncertaintyAttachment : public iAModuleAttachmentToChild
 {
 	Q_OBJECT
 public:
-	static iAUncertaintyAttachment* Create(MainWindow * mainWnd, MdiChild * child);
+	static iAUncertaintyAttachment* Create(iAMainWindow * mainWnd, iAMdiChild * child);
 	void ToggleDockWidgetTitleBars();
 	void ToggleSettings();
 	void CalculateNewSubEnsemble();
@@ -55,7 +55,7 @@ private slots:
 	void EnsembleSelected(QSharedPointer<iAEnsemble> ensemble);
 	void ContinueEnsembleLoading();
 private:
-	iAUncertaintyAttachment(MainWindow * mainWnd, MdiChild * child);
+	iAUncertaintyAttachment(iAMainWindow * mainWnd, iAMdiChild * child);
 	iAHistogramView * m_labelDistributionView, * m_uncertaintyDistributionView;
 	iAMemberView* m_memberView;
 	iAScatterPlotView* m_scatterplotView;

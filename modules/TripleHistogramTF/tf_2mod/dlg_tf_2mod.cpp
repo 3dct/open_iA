@@ -23,9 +23,11 @@
 
 #include "iABimodalWidget.h"
 
-#include <mdichild.h>
+#include <iAMdiChild.h>
 
-dlg_tf_2mod::dlg_tf_2mod(MdiChild *mdiChild, Qt::WindowFlags f)
+#include <QHBoxLayout>
+
+dlg_tf_2mod::dlg_tf_2mod(iAMdiChild *mdiChild, Qt::WindowFlags f)
 	:
 	QDockWidget("Double Histogram Transfer Function", mdiChild, f),
 	m_mdiChild(mdiChild)

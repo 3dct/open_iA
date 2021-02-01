@@ -20,29 +20,28 @@
 * ************************************************************************************/
 #pragma once
 
-#include "iAFeatureScoutObjectType.h"
+#include "iAObjectType.h"
 #include "FeatureScout_export.h"
-#include "iACsvConfig.h"
 
-#include <iAModuleInterface.h>
+#include <iAGUIModuleInterface.h>
 
-class dlg_FeatureScout;
+struct iACsvConfig;
 class iAFeatureScoutToolbar;
 
-class FeatureScout_API iAFeatureScoutModuleInterface : public iAModuleInterface
+class FeatureScout_API iAFeatureScoutModuleInterface : public iAGUIModuleInterface
 {
 	Q_OBJECT
 public:
 	void Initialize() override;
-	void LoadFeatureScoutWithParams(const QString &csvName, MdiChild *childWnd);
-	void LoadFeatureScout(iACsvConfig const & csvConfig, MdiChild *childWnd);
+	void LoadFeatureScoutWithParams(const QString &csvName, iAMdiChild *childWnd);
+	void LoadFeatureScout(iACsvConfig const & csvConfig, iAMdiChild *childWnd);
 private slots:
 	void FeatureScout();
 	void FeatureScout_Options();
 	void onChildClose();
 private:
-	iAFeatureScoutObjectType guessFeatureType(QString const & csvFileName);
-	iAModuleAttachmentToChild * CreateAttachment(MainWindow* mainWnd, MdiChild * child) override;
+	iAObjectType guessFeatureType(QString const & csvFileName);
+	iAModuleAttachmentToChild * CreateAttachment(iAMainWindow* mainWnd, iAMdiChild * child) override;
 	void SetupToolbar();
 	void setFeatureScoutRenderSettings();
 	bool startFeatureScout(iACsvConfig const & csvConfig);  //!< entry point for FeatureScout

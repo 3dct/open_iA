@@ -20,7 +20,6 @@
 * ************************************************************************************/
 #include "iA4DCTVisWin.h"
 
-#include <iAMagicLens.h>
 #include <iAVtkVersion.h>
 
 #include "dlg_4DCTFileOpen.h"

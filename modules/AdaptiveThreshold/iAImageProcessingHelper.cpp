@@ -30,8 +30,8 @@
 #include <iAProgress.h>
 #include <iARenderer.h>
 #include <iASlicer.h>
-#include <mdichild.h>
-#include <mainwindow.h>
+#include <iAMdiChild.h>
+#include <iAMainWindow.h>
 
 #include <QScopedPointer>
 #include <QSharedPointer>
@@ -41,7 +41,7 @@
 #include <vtkImageData.h>
 #include <vtkScalarsToColors.h>
 
-iAImageProcessingHelper::iAImageProcessingHelper(MdiChild* child)
+iAImageProcessingHelper::iAImageProcessingHelper(iAMdiChild* child)
 	: m_child(child)
 {
 }
@@ -86,7 +86,7 @@ void iAImageProcessingHelper::prepareFilter(double greyThresholdLower, double gr
 	}
 
 	iAConnector con;
-	con.setImage(m_child->imageData());
+	con.setImage(m_child->imagePointer());
 
 	QScopedPointer<iAProgress> pObserver(new iAProgress());
 	//connect(pObserver.data(), &iAProgress::pprogress, this, &iAImageProcessingHelper::slotObserver);
@@ -96,7 +96,7 @@ void iAImageProcessingHelper::prepareFilter(double greyThresholdLower, double gr
 		throw std::invalid_argument("Could not retrieve Binary Thresholding filter. Make sure Segmentation plugin was loaded correctly!");
 	}
 	filter->setProgress(pObserver.data());
-	filter->addInput(&con, m_child->fileName());
+	filter->addInput(&con, m_child->currentFile());
 	QMap<QString, QVariant> parameters;
 	parameters["Lower threshold"] = greyThresholdLower;
 	parameters["Upper threshold"] = greyThresholdUpper;
@@ -104,7 +104,7 @@ void iAImageProcessingHelper::prepareFilter(double greyThresholdLower, double gr
 	parameters["Outside value"] = 0;
 	filter->run(parameters);
 
-	MdiChild* newChild = m_child->mainWnd()->createMdiChild(true);
+	iAMdiChild* newChild = m_child->mainWnd()->createMdiChild(true);
 	newChild->show();
 	newChild->displayResult("Adaptive Thresholding", filter->output()[0]->vtkImage());
 	newChild->enableRenderWindows();
@@ -116,7 +116,7 @@ void iAImageProcessingHelper::imageToReslicer()
 	QSharedPointer<iAModalityTransfer> modTrans = mod_0->transfer();  //m_childData->modality(0)->transfer();
 	for (int s = 0; s < 3; ++s)
 	{
-		m_child->getSlicer(s)->removeChannel(0);
+		m_child->slicer(s)->removeChannel(0);
 	}
 
 	uint channelID = m_child->createChannel();
@@ -127,9 +127,9 @@ void iAImageProcessingHelper::imageToReslicer()
 	for (int s = 0; s < 3; ++s)
 	{
 		auto channeldata = iAChannelData(mod_0->name(), mod_0->image(), dynamic_cast<vtkScalarsToColors*> (modTrans->colorTF()), nullptr);
-		m_child->getSlicer(s)->addChannel(0, channeldata, true);
-		m_child->getSlicer(s)->resetCamera();
-		m_child->getSlicer(s)->update();
-		//m_childData->getSlicer(s)->updateChannelMappers()
+		m_child->slicer(s)->addChannel(0, channeldata, true);
+		m_child->slicer(s)->resetCamera();
+		m_child->slicer(s)->update();
+		//m_child->slicer(s)->updateChannelMappers()
 	}
 }

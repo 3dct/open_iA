@@ -27,13 +27,15 @@
 
 #include <iALog.h>
 #include <iAVolumeStack.h>
-#include <mdichild.h>
+#include <iAMdiChild.h>
 
 #include <itkMacro.h>    // for itk::ExceptionObject
 
+#include <QFile>
+
 const int FOURDCT_MIN_NUMBER_OF_VOLUMES = 1;
 
-iAFuzzyFeatureTrackingAttachment::iAFuzzyFeatureTrackingAttachment( MainWindow * mainWnd, MdiChild * child ):
+iAFuzzyFeatureTrackingAttachment::iAFuzzyFeatureTrackingAttachment( iAMainWindow * mainWnd, iAMdiChild * child ):
 	iAModuleAttachmentToChild( mainWnd, child ),
 	trackingGraph(nullptr),
 	m_dlgDataView4DCT(nullptr),
@@ -41,7 +43,7 @@ iAFuzzyFeatureTrackingAttachment::iAFuzzyFeatureTrackingAttachment( MainWindow *
 	m_dlgEventExplorer(nullptr),
 	m_volumeStack(child->volumeStack())
 {
-	connect( child, &MdiChild::viewsUpdated, this, &iAFuzzyFeatureTrackingAttachment::updateViews);
+	connect( child, &iAMdiChild::viewsUpdated, this, &iAFuzzyFeatureTrackingAttachment::updateViews);
 
 	if (!create4DCTDataViewWidget())
 	{

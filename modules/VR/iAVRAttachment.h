@@ -27,7 +27,7 @@
 #include <QSharedPointer>
 
 class iAVolumeRenderer;
-class MainWindow;
+class iAMainWindow;
 
 class iA3DCylinderObjectVis;
 class iAVREnvironment;
@@ -40,7 +40,7 @@ class iAVRAttachment : public iAModuleAttachmentToChild
 {
 	Q_OBJECT
 public:
-	iAVRAttachment( MainWindow * mainWnd, MdiChild* child );
+	iAVRAttachment( iAMainWindow * mainWnd, iAMdiChild* child );
 private:
 	QSharedPointer<iAVolumeRenderer> m_volumeRenderer;
 	QSharedPointer<iAVREnvironment> m_vrEnv;

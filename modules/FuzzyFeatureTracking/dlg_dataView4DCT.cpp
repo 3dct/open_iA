@@ -21,16 +21,17 @@
 #include "dlg_dataView4DCT.h"
 
 #include "ui_DataView4DCT.h"
+#include "iAQVTKWidgetMouseReleaseWorkaround.h"
 
 #include <iAModalityTransfer.h>
-#include <iARenderer.h>
 #include <iATransferFunction.h>
 #include <iAVolumeRenderer.h>
 #include <iAVolumeStack.h>
 #include <iAVtkVersion.h>
-#include <mdichild.h>
+#include <iAMdiChild.h>
 #include <qthelper/iAQTtoUIConnector.h>
-#include <iAQVTKWidgetMouseReleaseWorkaround.h>
+
+#include <iARendererImpl.h>
 
 #include <vtkImageData.h>
 #include <vtkOpenGLRenderer.h>
@@ -44,7 +45,7 @@ dlg_dataView4DCT::dlg_dataView4DCT(QWidget *parent, iAVolumeStack* volumeStack):
 	dlg_dataView4DCTContainer(parent),
 	m_axesTransform(vtkSmartPointer<vtkTransform>::New())
 {
-	m_mdiChild = dynamic_cast<MdiChild*>(parent);
+	m_mdiChild = dynamic_cast<iAMdiChild*>(parent);
 	m_volumeStack = volumeStack;
 
 	m_rendererManager.addToBundle(m_mdiChild->renderer()->renderer());
@@ -52,12 +53,12 @@ dlg_dataView4DCT::dlg_dataView4DCT(QWidget *parent, iAVolumeStack* volumeStack):
 	// add widgets to window
 	size_t numOfVolumes = m_volumeStack->numberOfVolumes();
 	m_vtkWidgets = new iAQVTKWidgetMouseReleaseWorkaround*[numOfVolumes];
-	m_renderers = new iARenderer*[numOfVolumes];
+	m_renderers = new iARendererImpl*[numOfVolumes];
 	m_volumeRenderer = new iAVolumeRenderer*[numOfVolumes];
 	for(size_t i = 0; i < numOfVolumes; i++)
 	{
 		m_vtkWidgets[i] = new iAQVTKWidgetMouseReleaseWorkaround(this);
-		m_renderers[i] = new iARenderer(this);
+		m_renderers[i] = new iARendererImpl(this);
 		// TODO: VOLUME: check if this is working!
 		iASimpleTransferFunction transferFunction(
 			m_volumeStack->colorTF(i),

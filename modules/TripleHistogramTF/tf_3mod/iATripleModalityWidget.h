@@ -35,7 +35,7 @@ class iABarycentricContextRenderer;
 class iAChartWithFunctionsWidget;
 class iAModality;
 class iATransferFunction;
-class MdiChild;
+class iAMdiChild;
 
 class vtkColorTransferFunction;
 class vtkPiecewiseFunction;
@@ -50,7 +50,7 @@ class iATripleModalityWidget : public iAMultimodalWidget
 	Q_OBJECT
 
 public:
-	iATripleModalityWidget(MdiChild *mdiChild);
+	iATripleModalityWidget(iAMdiChild *mdiChild);
 	~iATripleModalityWidget();
 
 	iAHistogramAbstractType getLayoutTypeAt(int comboBoxIndex);

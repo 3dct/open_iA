@@ -20,13 +20,17 @@
 * ************************************************************************************/
 #pragma once
 
-#include <charts/iAChartWithFunctionsWidget.h>
+#include <iAChartWithFunctionsWidget.h>
 
 #include <QMap>
 
 class iAAccumulatedXRFData;
 struct iACharacteristicEnergy;
+class iASimpleTransferFunction;
 class iASpectrumFilterListener;
+
+class vtkColorTransferFunction;
+class vtkPiecewiseFunction;
 
 class QRubberBand;
 
@@ -56,4 +60,5 @@ private:
 	QVector<QRect> selectionRects;
 	iASpectrumFilterListener* filterListener;
 	QMap<iACharacteristicEnergy*, QColor> m_elementEnergies;
+	QSharedPointer<iASimpleTransferFunction> m_tf;
 };

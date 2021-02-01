@@ -25,7 +25,7 @@
 
 #include <iAAttributeDescriptor.h>
 #include <iALog.h>
-#include <io/iAFileUtils.h>
+#include <iAFileUtils.h>
 #include <iAStringHelper.h>
 #include <qthelper/iAQtEndl.h>
 

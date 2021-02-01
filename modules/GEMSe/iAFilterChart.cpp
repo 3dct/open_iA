@@ -22,7 +22,7 @@
 
 #include "iAParamHistogramData.h"
 
-#include <charts/iAPlotTypes.h>
+#include <iAPlotTypes.h>
 #include <iAMapper.h>
 #include <iAMathUtility.h>
 #include <iANameMapper.h>
@@ -85,7 +85,7 @@ QSharedPointer<iAPlot> iAFilterChart::GetDrawer(QSharedPointer<iAParamHistogramD
 
 void iAFilterChart::drawMarker(QPainter & painter, double markerLocation, QPen const & pen, QBrush const & brush)
 {
-	double diagX = xMapper().srcToDst(markerLocation)-m_translationX;
+	double diagX = xMapper().srcToDst(markerLocation) + m_xMapper->srcToDst(m_xShift);
 	QPolygon poly;
 	const int MarkerTop = 0;
 	poly.append(QPoint(diagX, MarkerTop));
@@ -157,13 +157,13 @@ iAValueType iAFilterChart::GetRangeType() const
 
 double iAFilterChart::GetMinVisibleBin() const
 {
-	double minVisXBin = mapValue(0.0, chartWidth()*xZoom(), 0.0, static_cast<double>(m_data->valueCount()), static_cast<double>(-m_translationX));
+	double minVisXBin = mapValue(0.0, chartWidth()*xZoom(), 0.0, static_cast<double>(m_data->valueCount()), static_cast<double>(m_xMapper->srcToDst(m_xShift)));
 	return minVisXBin;
 }
 
 double iAFilterChart::GetMaxVisibleBin() const
 {
-	double maxVisXBin = mapValue(0.0, chartWidth()*xZoom(), 0.0, static_cast<double>(m_data->valueCount()), static_cast<double>(chartWidth()-m_translationX));
+	double maxVisXBin = mapValue(0.0, chartWidth()*xZoom(), 0.0, static_cast<double>(m_data->valueCount()), static_cast<double>(chartWidth()+m_xMapper->srcToDst(m_xShift)));
 	return maxVisXBin;
 }
 
@@ -188,8 +188,6 @@ void iAFilterChart::mousePressEvent( QMouseEvent *event )
 		// horizontal + vertical panning:
 		if ( ( event->modifiers() & Qt::ShiftModifier ) == Qt::ShiftModifier )
 		{
-			m_translationStartX = m_translationX;
-			m_translationStartY = m_translationY;
 			iAChartWidget::changeMode( MOVE_VIEW_MODE, event );
 			return;
 		}
@@ -239,7 +237,7 @@ void iAFilterChart::mouseMoveEvent( QMouseEvent *event )
 			  m_selectedHandle != -1)
 	{
 		int x = event->x() - leftMargin() + m_selectionOffset;
-		if (x < 0 || x-m_translationX > static_cast<int>(chartWidth()*xZoom()) )
+		if (x < 0 || x + m_xMapper->srcToDst(m_xShift) > static_cast<int>(chartWidth() * xZoom()))
 		{
 			return;
 		}

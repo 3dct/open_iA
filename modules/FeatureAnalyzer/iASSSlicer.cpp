@@ -25,11 +25,13 @@
 #include <iAChanData.h>
 #include <iAChannelData.h>
 #include <iAChannelSlicerData.h>
-#include <iAConnector.h>
-#include <iALog.h>
-#include <iASlicer.h>
+#include <iASlicerImpl.h>
 #include <iASlicerSettings.h>
-#include <io/iAITKIO.h>
+
+#include <iAConnector.h>
+#include <iAFileUtils.h>
+#include <iAITKIO.h>
+#include <iALog.h>
 
 #include <itkAddImageFilter.h>
 #include <itkCastImageFilter.h>
@@ -131,7 +133,7 @@ iASSSlicer::iASSSlicer( const QString slicerName, vtkSmartPointer<vtkTransform> 
 	selTextLabel->setFixedHeight( 15 );
 	selTextLabel->setStyleSheet( "font-weight: bold;" );
 
-	slicer = new iASlicer( nullptr, iASlicerMode::XY, true, true, transform);
+	slicer = new iASlicerImpl( nullptr, iASlicerMode::XY, true, true, transform);
 
 	medContour->SetNumberOfContours( 1 );
 	medContour->SetValue( 0, contourValue );

@@ -23,7 +23,7 @@
 #include "iAFiberData.h"
 #include "iAFiberCharData.h"
 
-#include <charts/iASPLOMData.h>
+#include <iASPLOMData.h>
 
 #include <QStandardItemModel>
 

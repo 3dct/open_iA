@@ -34,7 +34,7 @@
 
 #include <iALog.h>
 #include <iACSVToQTableWidgetConverter.h>
-#include <io/iAITKIO.h>
+#include <iAITKIO.h>
 #include <io/iAIOProvider.h>
 
 #include <vtkIdTypeArray.h>
@@ -50,7 +50,7 @@
 #include <QStatusBar>
 #include <QTreeWidget>
 
-iAFeatureAnalyzer::iAFeatureAnalyzer(MainWindow *mWnd, const QString & resDir, const QString & datasetsDir, QWidget * parent /*= 0*/, Qt::WindowFlags f /*= 0 */ ):
+iAFeatureAnalyzer::iAFeatureAnalyzer(iAMainWindow *mWnd, const QString & resDir, const QString & datasetsDir, QWidget * parent /*= 0*/, Qt::WindowFlags f /*= 0 */ ):
 	FeatureAnalyzerConnector( parent, f ),
 	m_dataDir( resDir ),
 	m_datasetsDir( datasetsDir ),
@@ -420,10 +420,10 @@ bool iAFeatureAnalyzer::doSaveProject(QString const& projectFileName)
 		LOG(lvlError, QString("Only extension %1 is supported!").arg(iAIOProvider::NewProjectFileExtension));
 		return false;
 	}
-	// TODO: Unify with MdiChild::doSaveProject
+	// TODO: Unify with iAMdiChild::doSaveProject
 	QSettings projectFile(projectFileName, QSettings::IniFormat);
 	projectFile.setIniCodec("UTF-8");
-	projectFile.setValue("UseMdiChild", false);
+	projectFile.setValue("UseiAMdiChild", false);
 	projectFile.beginGroup(iAFeatureAnalyzerProject::ID);
 	project.saveProject(projectFile, projectFileName);
 	projectFile.endGroup();

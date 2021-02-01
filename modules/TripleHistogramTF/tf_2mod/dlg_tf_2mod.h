@@ -22,7 +22,7 @@
 
 #include <QDockWidget>
 
-class MdiChild;
+class iAMdiChild;
 class iATripleModalityWidget;
 class iABimodalWidget;
 
@@ -34,12 +34,12 @@ class dlg_tf_2mod : public QDockWidget//public TripleHistogramTFConnector
 
 public:
 #if QT_VERSION < QT_VERSION_CHECK(5, 15, 0)
-	dlg_tf_2mod(MdiChild* parent, Qt::WindowFlags f = 0);
+	dlg_tf_2mod(iAMdiChild* parent, Qt::WindowFlags f = 0);
 #else
-	dlg_tf_2mod(MdiChild* parent, Qt::WindowFlags f = QFlags<Qt::WindowType>());
+	dlg_tf_2mod(iAMdiChild* parent, Qt::WindowFlags f = QFlags<Qt::WindowType>());
 #endif
 
 private:
-	MdiChild *m_mdiChild;
+	iAMdiChild *m_mdiChild;
 	iABimodalWidget *m_bimodalWidget;
 };

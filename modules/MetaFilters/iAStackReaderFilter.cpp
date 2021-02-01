@@ -22,7 +22,7 @@
 
 #include <iALog.h>
 #include <iAExceptionThrowingErrorObserver.h>
-#include <io/iAFileUtils.h>
+#include <iAFileUtils.h>
 #include <iAProgress.h>
 #include <iAStringHelper.h>
 #include <iAToolsVTK.h>

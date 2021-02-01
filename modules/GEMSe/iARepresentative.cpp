@@ -21,6 +21,7 @@
 #include "iARepresentative.h"
 
 #include <iAToolsITK.h>
+#include <iATypedCallHelper.h>
 
 #include <QVector>
 

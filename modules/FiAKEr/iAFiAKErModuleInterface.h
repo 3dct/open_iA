@@ -22,7 +22,7 @@
 
 #include "ui_FiAKErToolBar.h"
 
-#include "iAModuleInterface.h"
+#include "iAGUIModuleInterface.h"
 #include "qthelper/iAQTtoUIConnector.h"
 
 class iAFIAKERProject;
@@ -31,7 +31,7 @@ class QSettings;
 
 typedef iAQTtoUIConnector<QToolBar, Ui_FiAKErToolBar> iAFiAKErToolBar;
 
-class iAFiAKErModuleInterface : public iAModuleInterface
+class iAFiAKErModuleInterface : public iAGUIModuleInterface
 {
 	Q_OBJECT
 public:
@@ -39,9 +39,9 @@ public:
 	void SaveSettings() const override;
 
 	void setupToolBar();
-	void loadProject(MdiChild* mdiChild, QSettings const& projectFile, QString const& fileName, iAFIAKERProject* project);
+	void loadProject(iAMdiChild* mdiChild, QSettings const& projectFile, QString const& fileName, iAFIAKERProject* project);
 protected:
-	iAModuleAttachmentToChild* CreateAttachment(MainWindow* mainWnd, MdiChild* child) override;
+	iAModuleAttachmentToChild* CreateAttachment(iAMainWindow* mainWnd, iAMdiChild* child) override;
 private slots:
 	void startFiAKEr();
 

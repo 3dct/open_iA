@@ -27,15 +27,19 @@
 #include "iAParamSpatialView.h"
 #include "iAParamTableView.h"
 
-#include <mdichild.h>
-#include <qthelper/iADockWidgetWrapper.h>
+#include <iAMdiChild.h>
+#include <iAPreferences.h>
 
-iAParameterExplorerAttachment* iAParameterExplorerAttachment::create(MainWindow * mainWnd, MdiChild * child)
+#include <iADockWidgetWrapper.h>
+
+#include <QFileInfo>
+
+iAParameterExplorerAttachment* iAParameterExplorerAttachment::create(iAMainWindow * mainWnd, iAMdiChild * child)
 {
 	return new iAParameterExplorerAttachment(mainWnd, child);
 }
 
-iAParameterExplorerAttachment::iAParameterExplorerAttachment(MainWindow * mainWnd, MdiChild * child)
+iAParameterExplorerAttachment::iAParameterExplorerAttachment(iAMainWindow * mainWnd, iAMdiChild * child)
 	:iAModuleAttachmentToChild(mainWnd, child)
 {
 }
@@ -58,12 +62,12 @@ void iAParameterExplorerAttachment::LoadCSV(QString const & csvFileName)
 	m_dockWidgets.push_back(new iADockWidgetWrapper(m_spatialView, "Spatial", "ParamSpatialView"));
 	m_dockWidgets.push_back(new iADockWidgetWrapper(m_SPLOMView, "Scatter Plot Matrix", "ParamSPLOMView"));
 	m_dockWidgets.push_back(new iADockWidgetWrapper(m_tableView, "Table", "ParamTableView"));
-	m_dockWidgets.push_back(m_child->histogramDockWidget());
 	m_dockWidgets.push_back(new iADockWidgetWrapper(m_featuresView, "Features", "ParamFeaturesView"));
+	//m_dockWidgets.push_back(m_child->histogramDockWidget());
 	m_child->splitDockWidget(m_child->renderDockWidget(), m_dockWidgets[0], Qt::Horizontal);
 	m_child->splitDockWidget(m_dockWidgets[0], m_dockWidgets[1], Qt::Horizontal);
 	m_child->splitDockWidget(m_dockWidgets[0], m_dockWidgets[2], Qt::Vertical);
-	m_child->splitDockWidget(m_dockWidgets[2], m_dockWidgets[4], Qt::Vertical);
+	m_child->splitDockWidget(m_dockWidgets[2], m_dockWidgets[3], Qt::Vertical);
 }
 
 void iAParameterExplorerAttachment::ToggleDockWidgetTitleBars()

@@ -15,7 +15,7 @@ INCLUDE(Common)
 # Subdirectories
 #-------------------------
 SET (TEST_DATA_DIR "${CMAKE_SOURCE_DIR}/test/data")
-ADD_SUBDIRECTORY(core)
+ADD_SUBDIRECTORY(libs)
 
 ADD_SUBDIRECTORY(cmd)     # Sets CMD test runner, used in modules
 
@@ -27,6 +27,10 @@ ADD_SUBDIRECTORY(modules)
 configure_file("${open_iA_SOURCE_DIR}/cmake/version.h.in" "${open_iA_BINARY_DIR}/version.h" @ONLY)
 	
 ADD_SUBDIRECTORY(gui)
+
+IF (openiA_TESTING_ENABLED)
+	ADD_SUBDIRECTORY(test)
+ENDIF()
 
 ADD_SUBDIRECTORY(xinst)
 

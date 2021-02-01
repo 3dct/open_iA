@@ -23,15 +23,15 @@
 #include "tf_2mod/dlg_tf_2mod.h"
 #include "tf_3mod/dlg_tf_3mod.h"
 
-#include <mdichild.h>
+#include <iAMdiChild.h>
 
-iATripleHistogramTFAttachment::iATripleHistogramTFAttachment(MainWindow * mainWnd, MdiChild* child) :
+iATripleHistogramTFAttachment::iATripleHistogramTFAttachment(iAMainWindow * mainWnd, iAMdiChild* child) :
 	iAModuleAttachmentToChild(mainWnd, child),
 	m_tf_2mod(nullptr),
 	m_tf_3mod(nullptr)
 {}
 
-iATripleHistogramTFAttachment* iATripleHistogramTFAttachment::create(MainWindow * mainWnd, MdiChild* child)
+iATripleHistogramTFAttachment* iATripleHistogramTFAttachment::create(iAMainWindow * mainWnd, iAMdiChild* child)
 {
 	auto newAttachment = new iATripleHistogramTFAttachment(mainWnd, child);
 	return newAttachment;

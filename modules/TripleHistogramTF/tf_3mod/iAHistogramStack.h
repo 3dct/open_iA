@@ -28,7 +28,7 @@
 class iAHistogramStackGrid;
 class iATripleModalityWidget;
 
-class MdiChild;
+class iAMdiChild;
 
 class QLabel;
 class QSplitter;

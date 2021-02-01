@@ -20,7 +20,7 @@
 * ************************************************************************************/
 #include "iA4DCTFileManager.h"
 
-#include "io/iAFileUtils.h"
+#include "iAFileUtils.h"
 
 #include <vtkMetaImageReader.h>
 #include <vtkImageData.h>

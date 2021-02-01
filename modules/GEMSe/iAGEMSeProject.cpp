@@ -23,7 +23,7 @@
 #include "iAGEMSeModuleInterface.h"
 
 #include <iAModuleDispatcher.h> // TODO: Refactor; it shouldn't be required to go via iAModuleDispatcher to retrieve one's own module
-#include <mainwindow.h>
+#include <iAMainWindow.h>
 
 const QString iAGEMSeProject::ID("GEMSe");
 

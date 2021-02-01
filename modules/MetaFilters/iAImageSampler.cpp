@@ -31,6 +31,7 @@
 
 #include <iAAttributeDescriptor.h>
 #include <iAConnector.h>
+#include <iAFileUtils.h>
 #include <iALog.h>
 #include <iAImageCoordinate.h>
 #include <iAModality.h>

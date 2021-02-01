@@ -28,6 +28,7 @@
 
 class iAFast3DMagicLensWidget;
 class iARenderer;
+class iARendererImpl;
 class iARendererManager;
 class iAVolumeRenderer;
 
@@ -63,7 +64,7 @@ protected:
 	void LoadAndApplySettings();
 	void UpdateColorCoding();
 protected:
-	iARenderer * m_renderer;
+	iARendererImpl * m_renderer;
 	QSharedPointer<iAVolumeRenderer> m_volumeRenderer;
 	bool m_rendInitialized;
 	vtkSmartPointer<vtkTransform> m_axesTransform;

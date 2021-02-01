@@ -23,7 +23,7 @@
 #include <iAChannelData.h>
 #include <iAChannelSlicerData.h>
 #include <iASlicerSettings.h>
-#include <iASlicer.h>
+#include <iASlicerImpl.h>
 #include <iATransferFunction.h>
 
 #include <vtkColorTransferFunction.h>
@@ -35,7 +35,7 @@
 iAImageWidget::iAImageWidget(vtkSmartPointer<vtkImageData> img):
 	m_transform(vtkSmartPointer<vtkTransform>::New())
 {
-	m_slicer = new iASlicer(this, iASlicerMode::XY, false, true, m_transform);
+	m_slicer = new iASlicerImpl(this, iASlicerMode::XY, false, true, m_transform);
 	setLayout(new QHBoxLayout());
 	layout()->setSpacing(0);
 	layout()->addWidget(m_slicer);

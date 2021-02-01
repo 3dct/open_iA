@@ -23,7 +23,7 @@
 #include "iAAstraAlgorithm.h"
 #include "iAFreeBeamCalculation.h"
 
-#include "iAFilterRegistry.h"
+#include "iAFilterRunnerRegistry.h"
 
 void iAAstraReconstructionModuleInterface::Initialize( )
 {

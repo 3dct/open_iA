@@ -53,5 +53,5 @@ class iASampleFilterRunnerGUI : public iAFilterRunnerGUI
 public:
 	static QSharedPointer<iAFilterRunnerGUI> create();
 	bool askForParameters(QSharedPointer<iAFilter> filter, QMap<QString, QVariant>& paramValues,
-		MdiChild* sourceMdi, MainWindow* mainWnd, bool askForAdditionalInput) override;
+		iAMdiChild* sourceMdi, iAMainWindow* mainWnd, bool askForAdditionalInput) override;
 };

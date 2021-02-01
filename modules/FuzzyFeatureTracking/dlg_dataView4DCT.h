@@ -29,17 +29,17 @@
 
 typedef iAQTtoUIConnector<QDockWidget, Ui_DataView4DCT>	dlg_dataView4DCTContainer;
 
+class iAQVTKWidgetMouseReleaseWorkaround;
 
-// forward declaration
+class iARendererImpl;
+
+class iAVolumeRenderer;
+class iAVolumeStack;
+class iAMdiChild;
+
 class vtkCamera;
 class vtkPolyData;
 class vtkTransform;
-
-class iARenderer;
-class iAVolumeRenderer;
-class iAVolumeStack;
-class MdiChild;
-class iAQVTKWidgetMouseReleaseWorkaround;
 
 class dlg_dataView4DCT : public dlg_dataView4DCTContainer
 {
@@ -50,11 +50,11 @@ public:
 	void update();
 
 private:
-	iAVolumeStack*						m_volumeStack;
+	iAVolumeStack* m_volumeStack;
 	iAQVTKWidgetMouseReleaseWorkaround** m_vtkWidgets;
-	iARenderer**						m_renderers;
-	iAVolumeRenderer**					m_volumeRenderer;
-	vtkSmartPointer<vtkTransform>		m_axesTransform;
-	MdiChild*							m_mdiChild;
-	iARendererManager					m_rendererManager;
+	iARendererImpl**  m_renderers;
+	iAVolumeRenderer** m_volumeRenderer;
+	vtkSmartPointer<vtkTransform> m_axesTransform;
+	iAMdiChild* m_mdiChild;
+	iARendererManager m_rendererManager;
 };

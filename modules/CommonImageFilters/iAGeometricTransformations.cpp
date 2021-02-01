@@ -25,7 +25,6 @@
 #include <iAProgress.h>
 #include <iAToolsITK.h>
 #include <iATypedCallHelper.h>
-#include <mdichild.h>
 
 #include <itkBSplineInterpolateImageFunction.h>
 #include <itkChangeInformationImageFilter.h>
@@ -130,19 +129,11 @@ iASimpleResampleFilter::iASimpleResampleFilter() :
 	addParameter("Interpolator", iAValueType::Categorical, interpolators);
 }
 
-QSharedPointer<iAFilterRunnerGUI> iASimpleResampleFilterRunner::create()
+void iASimpleResampleFilter::adaptParametersToInput(QMap<QString, QVariant>& params, vtkSmartPointer<vtkImageData> img)
 {
-	return QSharedPointer<iAFilterRunnerGUI>(new iASimpleResampleFilterRunner());
-}
-
-QMap<QString, QVariant> iASimpleResampleFilterRunner::loadParameters(QSharedPointer<iAFilter> filter, MdiChild* sourceMdi)
-{
-	auto params = iAFilterRunnerGUI::loadParameters(filter, sourceMdi);
-
-	params["Size X"] = sourceMdi->imagePointer()->GetDimensions()[0];
-	params["Size Y"] = sourceMdi->imagePointer()->GetDimensions()[1];
-	params["Size Z"] = sourceMdi->imagePointer()->GetDimensions()[2];
-	return params;
+	params["Size X"] = img->GetDimensions()[0];
+	params["Size Y"] = img->GetDimensions()[1];
+	params["Size Z"] = img->GetDimensions()[2];
 }
 
 
@@ -235,21 +226,14 @@ iAResampleFilter::iAResampleFilter() :
 	addParameter("Interpolator", iAValueType::Categorical, interpolators);
 }
 
-QSharedPointer<iAFilterRunnerGUI> iAResampleFilterRunner::create()
+void iAResampleFilter::adaptParametersToInput(QMap<QString, QVariant>& params, vtkSmartPointer<vtkImageData> img)
 {
-	return QSharedPointer<iAFilterRunnerGUI>(new iAResampleFilterRunner());
-}
-
-QMap<QString, QVariant> iAResampleFilterRunner::loadParameters(QSharedPointer<iAFilter> filter, MdiChild* sourceMdi)
-{
-	auto params = iAFilterRunnerGUI::loadParameters(filter, sourceMdi);
-	params["Spacing X"] = sourceMdi->imagePointer()->GetSpacing()[0];
-	params["Spacing Y"] = sourceMdi->imagePointer()->GetSpacing()[1];
-	params["Spacing Z"] = sourceMdi->imagePointer()->GetSpacing()[2];
-	params["Size X"] = sourceMdi->imagePointer()->GetDimensions()[0];
-	params["Size Y"] = sourceMdi->imagePointer()->GetDimensions()[1];
-	params["Size Z"] = sourceMdi->imagePointer()->GetDimensions()[2];
-	return params;
+	params["Spacing X"] = img->GetSpacing()[0];
+	params["Spacing Y"] = img->GetSpacing()[1];
+	params["Spacing Z"] = img->GetSpacing()[2];
+	params["Size X"]    = img->GetDimensions()[0];
+	params["Size Y"]    = img->GetDimensions()[1];
+	params["Size Z"]    = img->GetDimensions()[2];
 }
 
 
@@ -298,25 +282,24 @@ iAExtractImageFilter::iAExtractImageFilter() :
 	addParameter("Size Z", iAValueType::Discrete, 1, 1);
 }
 
-QSharedPointer<iAFilterRunnerGUI> iAExtractImageFilterRunner::create()
+void iAExtractImageFilter::adaptParametersToInput(QMap<QString, QVariant>& params, vtkSmartPointer<vtkImageData> img)
 {
-	return QSharedPointer<iAFilterRunnerGUI>(new iAExtractImageFilterRunner());
-}
-
-QMap<QString, QVariant> iAExtractImageFilterRunner::loadParameters(QSharedPointer<iAFilter> filter, MdiChild* sourceMdi)
-{
-	auto params = iAFilterRunnerGUI::loadParameters(filter, sourceMdi);
-	int const * dim = sourceMdi->imagePointer()->GetDimensions();
+	int const* dim = img->GetDimensions();
 	if (params["Index X"].toUInt() >= static_cast<unsigned int>(dim[0]))
+	{
 		params["Index X"] = 0;
+	}
 	if (params["Index Y"].toUInt() >= static_cast<unsigned int>(dim[1]))
+	{
 		params["Index Y"] = 0;
+	}
 	if (params["Index Z"].toUInt() >= static_cast<unsigned int>(dim[2]))
+	{
 		params["Index Z"] = 0;
+	}
 	params["Size X"] = std::min(params["Size X"].toUInt(), dim[0] - params["Index X"].toUInt());
 	params["Size Y"] = std::min(params["Size Y"].toUInt(), dim[1] - params["Index Y"].toUInt());
 	params["Size Z"] = std::min(params["Size Z"].toUInt(), dim[2] - params["Index Z"].toUInt());
-	return params;
 }
 
 

@@ -22,55 +22,55 @@
 
 #include "dlg_blobVisualization.h"
 #include "dlg_editPCClass.h"
+#include "iABlobCluster.h"
+#include "iABlobManager.h"
+#include "iAFeatureScoutSPLOM.h"
+#include "iAFSColorMaps.h"
+#include "iAMeanObject.h"
+
 #include "iA3DLabelledVolumeVis.h"
 #include "iA3DLineObjectVis.h"
 #include "iA3DCylinderObjectVis.h"
 #include "iA3DNoVis.h"
 #include "iA3DEllipseObjectVis.h"
-#include "iABlobCluster.h"
-#include "iABlobManager.h"
 #include "iACsvIO.h"
-#include "iAFeatureScoutSPLOM.h"
-#include "iAFeatureScoutObjectType.h"
-#include "iAMeanObjectTFView.h"
+#include "iAObjectType.h"
 
-#include <charts/iAChartWithFunctionsWidget.h>
 #include <dlg_commoninput.h>
-#include <dlg_imageproperty.h>
 #include <dlg_modalities.h>
-#include <dlg_slicer.h>
+#include <iAmat4.h>
+#include <iAMovieHelper.h>
+#include <iARenderer.h>
+#include <iAVtkWidget.h>
+#include <iAModality.h>
+#include <iAModalityTransfer.h>
+#include <iAModalityList.h>
+#include <iAMdiChild.h>
+#include <iAPreferences.h>
+#include <iATypedCallHelper.h>
+
+// qthelper:
+#include <iADockWidgetWrapper.h>
+
+// charts:
+#include <iAChartWithFunctionsWidget.h>
+
+// base:
+#include <defines.h>    // for DIM
 #include <iAConnector.h>
-#include <iAJobListView.h>
+#include <iAFileUtils.h>
 #include <iALog.h>
 #include <iALookupTable.h>
-#include <iAmat4.h>
-#include <iAModalityTransfer.h>
-#include <iAMovieHelper.h>
-#include <iAMultiStepProgressObserver.h>
-#include <iARenderer.h>
-#include <iARunAsync.h>
+#include <iAProgress.h>
 #include <iAToolsITK.h>
-#include <iAVtkWidget.h>
-#include <io/iAFileUtils.h>
-#include <iAModalityList.h>
-#include <mdichild.h>
-#include <qthelper/iADockWidgetWrapper.h>
 
-#include <itkAddImageFilter.h>
-#include <itkBinaryThresholdImageFilter.h>
-#include <itkCastImageFilter.h>
 #include <itkImageRegionIterator.h>
-#include <itkImageToVTKImageFilter.h>
-#include <itkLabelImageToLabelMapFilter.h>
-#include <itkLabelMapMaskImageFilter.h>
-#include <itkPasteImageFilter.h>
-#include <itkVTKImageToImageFilter.h>
 
 #include <vtkActor.h>
 #include <vtkActor2D.h>
 #include <vtkAnnotationLink.h>
 #include <vtkAxis.h>
-#include <vtkCamera.h>
+//#include <vtkCamera.h>
 #include <vtkCellData.h>
 #include <vtkChart.h>
 #include <vtkChartMatrix.h>
@@ -79,24 +79,17 @@
 #include <vtkColorTransferFunction.h>
 #include <vtkContextScene.h>
 #include <vtkContextView.h>
-#include <vtkCornerAnnotation.h>
-#include <vtkCubeAxesActor.h>
 #include <vtkDelaunay2D.h>
 #include <vtkDynamic2DLabelMapper.h>
 #include <vtkEventQtSlotConnect.h>
-#include <vtkFixedPointVolumeRayCastMapper.h>
 #include <vtkFloatArray.h>
 #include <vtkIdTypeArray.h>
-#include <vtkImageCast.h>
 #include <vtkIntArray.h>
-#include <vtkInteractorStyleTrackballCamera.h>
 #include <vtkLookupTable.h>
-#include <vtkMarchingCubes.h>
 #include <vtkMath.h>
 #include <vtkMathUtilities.h>
 #include <vtkNew.h>
 #include <vtkOpenGLRenderer.h>
-#include <vtkOutlineFilter.h>
 #include <vtkPen.h>
 #include <vtkPiecewiseFunction.h>
 #include <vtkPlot.h>
@@ -113,15 +106,12 @@
 #include <vtkScalarBarWidget.h>
 #include <vtkScalarBarRepresentation.h>
 #include <vtkScalarsToColors.h>
-#include <vtkSTLWriter.h>
 #include <vtkStringArray.h>
 #include <vtkStructuredGrid.h>
 #include <vtkStructuredGridGeometryFilter.h>
 #include <vtkTable.h>
 #include <vtkTextProperty.h>
 #include <vtkVariantArray.h>
-#include <vtkVolume.h>
-#include <vtkVolumeProperty.h>
 
 #include <QtMath>
 #include <QXmlStreamReader>
@@ -156,16 +146,6 @@ const QString IDColumnAttribute("IDColumn");
 const QString LabelAttribute("Label");
 const QString LabelAttributePore("LabelId");
 
-void ColormapRGB(const double normal[3], double color_out[3]);
-void ColormapCMY(const double normal[3], double color_out[3]);
-void ColormapCMYNormalized(const double normal[3], double color_out[3]);
-void ColormapRGBNormalized(const double normal[3], double color_out[3]);
-void ColormapCMYAbsolute(const double normal[3], double color_out[3]);
-void ColormapRGBAbsolute(const double normal[3], double color_out[3]);
-void ColormapCMYAbsoluteNormalized(const double normal[3], double color_out[3]);
-void ColormapRGBAbsoluteNormalized(const double normal[3], double color_out[3]);
-void ColormapRGBHalfSphere(const double normal[3], double color_out[3]);
-
 namespace
 {
 	QColor StandardSPLOMDotColor(128, 128, 128, 255);
@@ -179,29 +159,7 @@ namespace
 		rmMeanObject
 	};
 
-	//! returns the color for a given class id
-	//! TODO: use iAColorTheme?
-	QColor getClassColor(int cid)
-	{
-		// automatically select a predefined color
-		// (from the list of colors defined in the list of SVG
-		// color keyword names provided by the World Wide Web Consortium).
-		//http://www.w3.org/TR/SVG/types.html#ColorKeywords
-		if (cid > 7) { cid = 1; }
-		switch (cid)
-		{
-		default:
-		case 1: return QColor("cornflowerblue");
-		case 2: return QColor("darkorange");
-		case 3: return QColor("chartreuse");
-		case 4: return QColor("yellow");
-		case 5: return QColor("mediumvioletred");
-		case 6: return QColor("blue");
-		case 7: return QColor("green");
-		}
-	}
-
-	QSharedPointer<iA3DObjectVis> create3DObjectVis(int visualization, MdiChild* mdi, vtkTable* table,
+	QSharedPointer<iA3DObjectVis> create3DObjectVis(int visualization, iAMdiChild* mdi, vtkTable* table,
 		QSharedPointer<QMap<uint, uint> > columnMapping, QColor const& color,
 		std::map<size_t, std::vector<iAVec3f> >& curvedFiberInfo, int numberOfCylinderSides, size_t segmentSkip)
 	{
@@ -209,8 +167,9 @@ namespace
 		{
 		default:
 		case iACsvConfig::UseVolume:
-			return QSharedPointer<iA3DObjectVis>(new iA3DLabelledVolumeVis(mdi->renderer()->renderer(), mdi->colorTF(),
-				mdi->opacityTF(), table, columnMapping, mdi->imagePointer()->GetBounds()));
+			return QSharedPointer<iA3DObjectVis>(new iA3DLabelledVolumeVis(mdi->renderer()->renderer(),
+				mdi->modality(0)->transfer()->colorTF(),
+				mdi->modality(0)->transfer()->opacityTF(), table, columnMapping, mdi->imagePointer()->GetBounds()));
 		case iACsvConfig::Lines:
 			return QSharedPointer<iA3DObjectVis>(new iA3DLineObjectVis(mdi->renderer()->renderer(), table, columnMapping, color, curvedFiberInfo, segmentSkip));
 		case iACsvConfig::Cylinders:
@@ -221,28 +180,11 @@ namespace
 			return QSharedPointer<iA3DObjectVis>(new iA3DNoVis());
 		}
 	}
-
 }
-
-typedef void(*ColormapFuncPtr)(const double normal[3], double color_out[3]);
-ColormapFuncPtr colormapsIndex[] =
-{
-	ColormapRGB,
-	ColormapRGBNormalized,
-	ColormapRGBAbsolute,
-	ColormapRGBAbsoluteNormalized,
-
-	ColormapCMY,
-	ColormapCMYNormalized,
-	ColormapCMYAbsolute,
-	ColormapCMYAbsoluteNormalized,
-
-	ColormapRGBHalfSphere,
-};
 
 const int dlg_FeatureScout::PCMinTicksCount = 2;
 
-dlg_FeatureScout::dlg_FeatureScout(MdiChild* parent, iAFeatureScoutObjectType fid, QString const& fileName, vtkRenderer* blobRen,
+dlg_FeatureScout::dlg_FeatureScout(iAMdiChild* parent, iAObjectType fid, QString const& fileName,
 	vtkSmartPointer<vtkTable> csvtbl, int vis, QSharedPointer<QMap<uint, uint> > columnMapping,
 	std::map<size_t, std::vector<iAVec3f> >& curvedFiberInfo, int cylinderQuality, size_t segmentSkip) :
 	QDockWidget(parent),
@@ -270,7 +212,6 @@ dlg_FeatureScout::dlg_FeatureScout(MdiChild* parent, iAFeatureScoutObjectType fi
 	m_dwDV(nullptr),
 	m_dwSPM(nullptr),
 	m_dwPP(nullptr),
-	m_dwMO(nullptr),
 	m_columnMapping(columnMapping),
 	m_splom(new iAFeatureScoutSPLOM())
 {
@@ -305,7 +246,7 @@ dlg_FeatureScout::dlg_FeatureScout(MdiChild* parent, iAFeatureScoutObjectType fi
 	}
 	m_3dvis->show();
 	parent->renderer()->renderer()->ResetCamera();
-	m_blobManager->SetRenderers(blobRen, m_renderer->labelRenderer());
+	m_blobManager->SetRenderers(parent->renderer()->renderer(), m_renderer->labelRenderer());
 	m_blobManager->SetBounds(m_3dvis->bounds());
 	m_blobManager->SetProtrusion(1.5);
 	int dimens[3] = { 50, 50, 50 };
@@ -418,7 +359,7 @@ void dlg_FeatureScout::initColumnVisibility()
 {
 	m_columnVisibility.resize(m_elementCount);
 	std::fill(m_columnVisibility.begin(), m_columnVisibility.end(), false);
-	if (m_filterID == iAFeatureScoutObjectType::Fibers) // Fibers - (a11, a22, a33,) theta, phi, xm, ym, zm, straightlength, diameter(, volume)
+	if (m_filterID == iAObjectType::Fibers) // Fibers - (a11, a22, a33,) theta, phi, xm, ym, zm, straightlength, diameter(, volume)
 	{
 		m_columnVisibility[(*m_columnMapping)[iACsvConfig::Theta]] =
 			m_columnVisibility[(*m_columnMapping)[iACsvConfig::Phi]] =
@@ -428,7 +369,7 @@ void dlg_FeatureScout::initColumnVisibility()
 			m_columnVisibility[(*m_columnMapping)[iACsvConfig::Length]] =
 			m_columnVisibility[(*m_columnMapping)[iACsvConfig::Diameter]] = true;
 	}
-	else if (m_filterID == iAFeatureScoutObjectType::Voids) // Pores - (volume, dimx, dimy, dimz,) posx, posy, posz(, shapefactor)
+	else if (m_filterID == iAObjectType::Voids) // Pores - (volume, dimx, dimy, dimz,) posx, posy, posz(, shapefactor)
 	{
 		m_columnVisibility[(*m_columnMapping)[iACsvConfig::CenterX]] =
 			m_columnVisibility[(*m_columnMapping)[iACsvConfig::CenterY]] =
@@ -657,7 +598,7 @@ void dlg_FeatureScout::initClassTreeModel()
 }
 
 // BEGIN DEBUG FUNCTIONS
-
+/*
 void dlg_FeatureScout::PrintVTKTable(const vtkSmartPointer<vtkTable> anyTable, const bool useTabSeparator, const QString& outputPath, const QString* fileName) const
 {
 	std::string separator = (useTabSeparator) ? "\t" : ",";
@@ -735,7 +676,7 @@ void dlg_FeatureScout::PrintTableList(const QList<vtkSmartPointer<vtkTable>>& Ou
 		}
 	}
 }
-
+*/
 // END DEBUG FUNCTIONS
 
 float dlg_FeatureScout::calculateAverage(vtkDataArray* arr)
@@ -852,8 +793,6 @@ void dlg_FeatureScout::RenderSelection(std::vector<size_t> const& selInds)
 
 void dlg_FeatureScout::RenderMeanObject()
 {
-	iAProgress p;
-	auto jobHandle = iAJobListView::get()->addJob("Compute Mean Object", &p);
 	if (m_visualization != iACsvConfig::UseVolume)
 	{
 		QMessageBox::warning(this, "FeatureScout", "Mean objects feature only available for the Labelled Volume visualization at the moment!");
@@ -866,579 +805,13 @@ void dlg_FeatureScout::RenderMeanObject()
 		return;
 	}
 	m_renderMode = rmMeanObject;
-
-	// Delete old mean object data lists
-	for (int i = 0; i < m_MOData.moHistogramList.size(); ++i)
+	if (!m_meanObject)
 	{
-		delete m_MOData.moHistogramList[i];
+		m_meanObject.reset(new iAMeanObject(m_activeChild, m_sourcePath));
 	}
-	m_MOData.moVolumesList.clear();
-	m_MOData.moHistogramList.clear();
-	m_MOData.moRendererList.clear();
-	m_MOData.moVolumeMapperList.clear();
-	m_MOData.moVolumePropertyList.clear();
-	m_MOData.moImageDataList.clear();
-
-	// Casts image to long (if necessary) and convert it to an ITK image
-	typedef itk::Image< long, DIM > IType;
-	typedef itk::VTKImageToImageFilter<IType> VTKToITKConnector;
-	VTKToITKConnector::Pointer vtkToItkConverter = VTKToITKConnector::New();
-	if (m_activeChild->imagePointer()->GetScalarType() != 8)	// long type
-	{
-		auto cast = vtkSmartPointer<vtkImageCast>::New();
-		cast->SetInputData(m_activeChild->imagePointer());
-		cast->SetOutputScalarTypeToLong();
-		cast->Update();
-		vtkToItkConverter->SetInput(cast->GetOutput());
-	}
-	else
-	{
-		vtkToItkConverter->SetInput(static_cast<MdiChild*>(m_activeChild)->imagePointer());
-	}
-	vtkToItkConverter->Update();
-
-	IType::Pointer itkImageData = vtkToItkConverter->GetOutput();
-	itk::Size<DIM> itkImageDataSize = itkImageData->GetLargestPossibleRegion().GetSize();
-
-	typedef itk::BinaryThresholdImageFilter <IType, IType> BinaryThresholdImageFilterType;
-	BinaryThresholdImageFilterType::Pointer thresholdFilter = BinaryThresholdImageFilterType::New();
-	thresholdFilter->SetInput(itkImageData);
-	thresholdFilter->SetLowerThreshold(0);
-	thresholdFilter->SetUpperThreshold(0);
-	thresholdFilter->SetInsideValue(0);
-	thresholdFilter->SetOutsideValue(1);
-	thresholdFilter->Update();
-	typedef itk::LabelObject< long, DIM > LabelObjectType;
-	typedef itk::LabelMap< LabelObjectType > LabelMapType;
-	typedef itk::LabelImageToLabelMapFilter< IType, LabelMapType> I2LType;
-	I2LType::Pointer i2l = I2LType::New();
-	i2l->SetInput(itkImageData);
-
-	typedef itk::LabelMapMaskImageFilter< LabelMapType, IType > MaskType;
-	MaskType::Pointer mask = MaskType::New();
-	mask->SetInput(i2l->GetOutput());
-	mask->SetFeatureImage(thresholdFilter->GetOutput());
-	mask->SetBackgroundValue(0);
-	mask->SetCrop(true);
-
-	// Defines mean object output image
-	typedef long MObjectImagePixelType;
-	typedef itk::Image< MObjectImagePixelType, DIM > MObjectImageType;
-	MObjectImageType::RegionType outputRegion;
-	MObjectImageType::RegionType::IndexType outputStart;
-	outputStart[0] = 0; outputStart[1] = 0; outputStart[2] = 0;
-	itk::Size<DIM> moImgSize;
-	itk::Size<DIM> moImgCenter;
-	for (int i = 0; i < DIM; ++i)
-	{
-		itkImageDataSize[i] % 2 == 0 ?
-			moImgSize[i] = itkImageDataSize[i] + 1 :
-			moImgSize[i] = itkImageDataSize[i];
-		moImgCenter[i] = std::round(moImgSize[i] / 2.0);
-	}
-	outputRegion.SetSize(moImgSize);
-	outputRegion.SetIndex(outputStart);
-	MObjectImageType::Pointer mObjectITKImage = MObjectImageType::New();
-	mObjectITKImage->SetRegions(outputRegion);
-	const MObjectImageType::SpacingType& out_spacing = itkImageData->GetSpacing();
-	const MObjectImageType::PointType& inputOrigin = itkImageData->GetOrigin();
-	double outputOrigin[DIM];
-	for (unsigned int i = 0; i < DIM; ++i)
-	{
-		outputOrigin[i] = inputOrigin[i];
-	}
-	mObjectITKImage->SetSpacing(out_spacing);
-	mObjectITKImage->SetOrigin(outputOrigin);
-	mObjectITKImage->Allocate();
-
-	// Defines add image
-	typedef long addImagePixelType;
-	typedef itk::Image< addImagePixelType, DIM > addImageType;
-	addImageType::RegionType addoutputRegion;
-	addImageType::RegionType::IndexType addoutputStart;
-	addoutputStart[0] = 0; addoutputStart[1] = 0; addoutputStart[2] = 0;
-	addoutputRegion.SetSize(moImgSize);
-	addoutputRegion.SetIndex(outputStart);
-	addImageType::Pointer addImage = addImageType::New();
-	addImage->SetRegions(addoutputRegion);
-	const addImageType::SpacingType& addout_spacing = itkImageData->GetSpacing();
-	const addImageType::PointType& addinputOrigin = itkImageData->GetOrigin();
-	double addoutputOrigin[DIM];
-	for (unsigned int i = 0; i < DIM; ++i)
-	{
-		addoutputOrigin[i] = addinputOrigin[i];
-	}
-	addImage->SetSpacing(addout_spacing);
-	addImage->SetOrigin(addoutputOrigin);
-	addImage->Allocate();
-
-	for (int currClass = 1; currClass < classCount; ++currClass)
-	{
-		std::map<int, int>* meanObjectIds = new std::map<int, int>();
-		for (int j = 0; j < m_classTreeModel->invisibleRootItem()->child(currClass)->rowCount(); ++j)
-		{
-			meanObjectIds->operator[](m_tableList[currClass]->GetValue(j, 0).ToInt()) =
-				m_tableList[currClass]->GetValue(j, 0).ToFloat();
-		}
-
-		typedef itk::ImageRegionIterator< MObjectImageType> IteratorType;
-		IteratorType mOITKImgIt(mObjectITKImage, outputRegion);
-		for (mOITKImgIt.GoToBegin(); !mOITKImgIt.IsAtEnd(); ++mOITKImgIt)
-		{
-			mOITKImgIt.Set(0);
-		}
-
-		typedef itk::ImageRegionIterator< addImageType> IteratorType;
-		IteratorType addImgIt(addImage, addoutputRegion);
-		for (addImgIt.GoToBegin(); !addImgIt.IsAtEnd(); ++addImgIt)
-		{
-			addImgIt.Set(0);
-		}
-
-		int progress = 0;
-		std::map<int, int>::const_iterator it;
-		for (it = meanObjectIds->begin(); it != meanObjectIds->end(); ++it)
-		{
-			mask->SetLabel(it->first);
-			mask->Update();
-			itk::Size<DIM> maskSize;
-			maskSize = mask->GetOutput()->GetLargestPossibleRegion().GetSize();
-
-			IType::IndexType destinationIndex;
-			destinationIndex[0] = moImgCenter[0] - std::round(maskSize[0] / 2);
-			destinationIndex[1] = moImgCenter[1] - std::round(maskSize[1] / 2);
-			destinationIndex[2] = moImgCenter[2] - std::round(maskSize[2] / 2);
-			typedef itk::PasteImageFilter <IType, MObjectImageType > PasteImageFilterType;
-			PasteImageFilterType::Pointer pasteFilter = PasteImageFilterType::New();
-			pasteFilter->SetSourceImage(mask->GetOutput());
-			pasteFilter->SetDestinationImage(mObjectITKImage);
-			pasteFilter->SetSourceRegion(mask->GetOutput()->GetLargestPossibleRegion());
-			pasteFilter->SetDestinationIndex(destinationIndex);
-
-			typedef itk::AddImageFilter <MObjectImageType, MObjectImageType > AddImageFilterType;
-			AddImageFilterType::Pointer addFilter = AddImageFilterType::New();
-			addFilter->SetInput1(addImage);
-			addFilter->SetInput2(pasteFilter->GetOutput());
-			addFilter->Update();
-			addImage = addFilter->GetOutput();
-
-			double percentage = round((currClass - 1) * 100.0 / (classCount - 1) +
-				(progress + 1.0) * (100.0 / (classCount - 1)) / meanObjectIds->size());
-			p.emitProgress(percentage);
-			QCoreApplication::processEvents();
-			++progress;
-		}
-
-		// Normalize voxels values to 1
-		typedef itk::Image< float, DIM > moOutputImageType;
-		typedef itk::CastImageFilter< addImageType, moOutputImageType > CastFilterType;
-		CastFilterType::Pointer caster = CastFilterType::New();
-		caster->SetInput(addImage);
-		caster->Update();
-		typedef itk::ImageRegionIterator< moOutputImageType> casterIteratorType;
-		casterIteratorType casterImgIt(caster->GetOutput(), caster->GetOutput()->GetLargestPossibleRegion());
-		for (casterImgIt.GoToBegin(); !casterImgIt.IsAtEnd(); ++casterImgIt)
-		{
-			casterImgIt.Set(casterImgIt.Get() / meanObjectIds->size());
-		}
-
-		// Convert resulting MObject ITK image to an VTK image
-		typedef itk::ImageToVTKImageFilter<moOutputImageType> ITKTOVTKConverterType;
-		ITKTOVTKConverterType::Pointer itkToVTKConverter = ITKTOVTKConverterType::New();
-		itkToVTKConverter->SetInput(caster->GetOutput());
-		itkToVTKConverter->Update();
-		auto meanObjectImage = vtkSmartPointer<vtkImageData>::New();
-		meanObjectImage->DeepCopy(itkToVTKConverter->GetOutput());
-		m_MOData.moImageDataList.append(meanObjectImage);
-
-		// Create histogram and TFs for each MObject
-		QString moHistName = m_classTreeModel->invisibleRootItem()->child(currClass, 0)->text();
-		moHistName.append(QString(" %1 Mean Object").arg(MapObjectTypeToString(m_filterID)));
-		iAModalityTransfer* moHistogram = new iAModalityTransfer(m_MOData.moImageDataList[currClass - 1]->GetScalarRange());
-		m_MOData.moHistogramList.append(moHistogram);
-
-		// Create MObject default Transfer Tunctions
-		if (m_filterID == iAFeatureScoutObjectType::Fibers) // Fibers
-		{
-			m_MOData.moHistogramList[currClass - 1]->colorTF()->AddRGBPoint(0.0, 0.0, 0.0, 0.0);
-			m_MOData.moHistogramList[currClass - 1]->colorTF()->AddRGBPoint(0.01, 1.0, 1.0, 0.0);
-			m_MOData.moHistogramList[currClass - 1]->colorTF()->AddRGBPoint(0.095, 1.0, 1.0, 0.0);
-			m_MOData.moHistogramList[currClass - 1]->colorTF()->AddRGBPoint(0.1, 0.0, 0.0, 1.0);
-			m_MOData.moHistogramList[currClass - 1]->colorTF()->AddRGBPoint(1.00, 0.0, 0.0, 1.0);
-			m_MOData.moHistogramList[currClass - 1]->opacityTF()->AddPoint(0.0, 0.0);
-			m_MOData.moHistogramList[currClass - 1]->opacityTF()->AddPoint(0.01, 0.01);
-			m_MOData.moHistogramList[currClass - 1]->opacityTF()->AddPoint(0.095, 0.01);
-			m_MOData.moHistogramList[currClass - 1]->opacityTF()->AddPoint(0.1, 0.05);
-			m_MOData.moHistogramList[currClass - 1]->opacityTF()->AddPoint(1.00, 0.18);
-		}
-		else // Voids
-		{
-			m_MOData.moHistogramList[currClass - 1]->colorTF()->AddRGBPoint(0.0, 0.0, 0.0, 0.0);
-			m_MOData.moHistogramList[currClass - 1]->colorTF()->AddRGBPoint(0.0001, 0.0, 0.0, 0.0);
-			m_MOData.moHistogramList[currClass - 1]->colorTF()->AddRGBPoint(0.001, 1.0, 1.0, 0.0);
-			m_MOData.moHistogramList[currClass - 1]->colorTF()->AddRGBPoint(0.18, 1.0, 1.0, 0.0);
-			m_MOData.moHistogramList[currClass - 1]->colorTF()->AddRGBPoint(0.2, 0.0, 0.0, 1.0);
-			m_MOData.moHistogramList[currClass - 1]->colorTF()->AddRGBPoint(1.0, 0.0, 0.0, 1.0);
-			m_MOData.moHistogramList[currClass - 1]->opacityTF()->AddPoint(0.0, 0.0);
-			m_MOData.moHistogramList[currClass - 1]->opacityTF()->AddPoint(0.0001, 0.0);
-			m_MOData.moHistogramList[currClass - 1]->opacityTF()->AddPoint(0.001, 0.005);
-			m_MOData.moHistogramList[currClass - 1]->opacityTF()->AddPoint(0.18, 0.005);
-			m_MOData.moHistogramList[currClass - 1]->opacityTF()->AddPoint(0.2, 0.08);
-			m_MOData.moHistogramList[currClass - 1]->opacityTF()->AddPoint(1.0, 0.5);
-		}
-
-		// Create the property and attach the transfer functions
-		auto vProperty = vtkSmartPointer<vtkVolumeProperty>::New();
-		m_MOData.moVolumePropertyList.append(vProperty);
-		vProperty->SetColor(m_MOData.moHistogramList[currClass - 1]->colorTF());
-		vProperty->SetScalarOpacity(m_MOData.moHistogramList[currClass - 1]->opacityTF());
-		vProperty->SetInterpolationTypeToLinear();
-		vProperty->ShadeOff();
-
-		// Create volume and mapper and set input for mapper
-		auto volume = vtkSmartPointer<vtkVolume>::New();
-		m_MOData.moVolumesList.append(volume);
-		auto mapper = vtkSmartPointer<vtkFixedPointVolumeRayCastMapper>::New();
-		m_MOData.moVolumeMapperList.append(mapper);
-		mapper->SetAutoAdjustSampleDistances(1);
-		mapper->SetSampleDistance(1.0);
-		mapper->SetInputData(m_MOData.moImageDataList[currClass - 1]);
-		mapper->Update();
-		mapper->UpdateDataObject();
-		volume->SetProperty(m_MOData.moVolumePropertyList[currClass - 1]);
-		volume->SetMapper(m_MOData.moVolumeMapperList[currClass - 1]);
-		volume->Update();
-	}
-
-	// Create the outline for volume
-	auto outline = vtkSmartPointer<vtkOutlineFilter>::New();
-	outline->SetInputData(m_MOData.moVolumesList[0]->GetMapper()->GetDataObjectInput());
-	auto outlineMapper = vtkSmartPointer<vtkPolyDataMapper>::New();
-	outlineMapper->SetInputConnection(outline->GetOutputPort());
-	auto outlineActor = vtkSmartPointer<vtkActor>::New();
-	outlineActor->SetMapper(outlineMapper);
-	outlineActor->GetProperty()->SetColor(0, 0, 0);
-	outlineActor->GetProperty()->SetLineWidth(1.0);
-	outlineActor->GetProperty()->SetOpacity(0.1);
-
-	// Calculates the max dimension of the image
-	double maxDim = 0.0;
-	for (int i = 0; i < 6; ++i)
-	{
-		if (outlineActor->GetBounds()[i] > maxDim)
-		{
-			maxDim = outlineActor->GetBounds()[i];
-		}
-	}
-
-	// Setup Mean Object view
-	if (!m_dwMO)
-	{
-		m_dwMO = new dlg_MeanObject(this);
-		connect(m_dwMO->pb_ModTF, &QToolButton::clicked, this, &dlg_FeatureScout::modifyMeanObjectTF);
-		connect(m_dwMO->tb_OpenDataFolder, &QToolButton::clicked, this, &dlg_FeatureScout::browseFolderDialog);
-		connect(m_dwMO->tb_SaveStl, &QToolButton::clicked, this, &dlg_FeatureScout::saveStl);
-
-		// Create a render window and an interactor for all the MObjects
-		CREATE_OLDVTKWIDGET(m_meanObjectWidget);
-
-		m_dwMO->verticalLayout->addWidget(m_meanObjectWidget);
-		auto renderWindowInteractor = vtkSmartPointer<vtkRenderWindowInteractor>::New();
-#if VTK_VERSION_NUMBER < VTK_VERSION_CHECK(9, 0, 0)
-		renderWindowInteractor->SetRenderWindow(m_meanObjectWidget->GetRenderWindow());
-#else
-		renderWindowInteractor->SetRenderWindow(m_meanObjectWidget->renderWindow());
-#endif
-		auto style = vtkSmartPointer<vtkInteractorStyleTrackballCamera>::New();
-		renderWindowInteractor->SetInteractorStyle(style);
-
-		m_dwMO->setWindowTitle(QString("%1 Mean Object View").arg(MapObjectTypeToString(m_filterID)));
-	}
-
-	// Update MOClass comboBox
-	m_dwMO->cb_Classes->clear();
-	for (int i = 1; i < classCount; ++i)
-	{
-		m_dwMO->cb_Classes->addItem(m_classTreeModel->invisibleRootItem()->child(i, 0)->text());
-	}
-	m_activeChild->tabifyDockWidget(m_dwSPM ? m_dwSPM : (m_dwDV ? m_dwDV : m_dwPC), m_dwMO);
-	m_dwMO->show();
-	m_dwMO->raise();
-
-	// Remove old renderers
-#if VTK_VERSION_NUMBER < VTK_VERSION_CHECK(9, 0, 0)
-	m_meanObjectWidget->GetRenderWindow()->GetRenderers()->RemoveAllItems();
-#else
-	m_meanObjectWidget->renderWindow()->GetRenderers()->RemoveAllItems();
-#endif
-
-	// Define viewport variables
-	int numberOfMeanObjectVolumes = m_MOData.moVolumesList.size();
-	float viewportColumns = numberOfMeanObjectVolumes < 3 ? fmod(numberOfMeanObjectVolumes, 3.0) : 3.0;
-	float viewportRows = ceil(numberOfMeanObjectVolumes / viewportColumns);
-	float fieldLengthX = 1.0 / viewportColumns, fieldLengthY = 1.0 / viewportRows;
-	int numOfViewPorts = static_cast<int>(viewportColumns * viewportRows);
-	// Set up viewports
-	for (int i = 0; i < numOfViewPorts; ++i)
-	{
-		auto renderer = vtkSmartPointer<vtkRenderer>::New();
-		m_MOData.moRendererList.append(renderer);
-		renderer->GetActiveCamera()->ParallelProjectionOn();
-		renderer->SetBackground(1.0, 1.0, 1.0);
-#if VTK_VERSION_NUMBER < VTK_VERSION_CHECK(9, 0, 0)
-		m_meanObjectWidget->GetRenderWindow()->AddRenderer(m_MOData.moRendererList[i]);
-#else
-		m_meanObjectWidget->renderWindow()->AddRenderer(m_MOData.moRendererList[i]);
-#endif
-		renderer->SetViewport(fmod(i, viewportColumns) * fieldLengthX,
-			1 - (ceil((i + 1.0) / viewportColumns) / viewportRows),
-			fmod(i, viewportColumns) * fieldLengthX + fieldLengthX,
-			1 - (ceil((i + 1.0) / viewportColumns) / viewportRows) + fieldLengthY);
-
-		if (i < m_MOData.moVolumesList.size())
-		{
-			renderer->AddVolume(m_MOData.moVolumesList[i]);
-			renderer->SetActiveCamera(m_renderer->renderer()->GetActiveCamera());
-			renderer->GetActiveCamera()->SetParallelScale(maxDim);	//use maxDim for right scaling to fit the data in the viewports
-
-			auto cornerAnnotation = vtkSmartPointer<vtkCornerAnnotation>::New();
-			cornerAnnotation->SetLinearFontScaleFactor(2);
-			cornerAnnotation->SetNonlinearFontScaleFactor(1);
-			cornerAnnotation->SetMaximumFontSize(25);
-			cornerAnnotation->SetText(2, m_classTreeModel->invisibleRootItem()->child(i + 1, 0)->text().toStdString().c_str());
-			cornerAnnotation->GetTextProperty()->SetColor(m_colorList.at(i + 1).redF(), m_colorList.at(i + 1).greenF(), m_colorList.at(i + 1).blueF());
-			cornerAnnotation->GetTextProperty()->BoldOn();
-
-			auto cubeAxesActor = vtkSmartPointer<vtkCubeAxesActor>::New();
-			cubeAxesActor->SetBounds(outlineActor->GetBounds());
-			cubeAxesActor->SetCamera(renderer->GetActiveCamera());
-			cubeAxesActor->SetFlyModeToOuterEdges();
-			cubeAxesActor->SetTickLocationToOutside();
-			cubeAxesActor->SetScreenSize(10.0);	//changes axes font size
-			cubeAxesActor->SetGridLineLocation(vtkCubeAxesActor::VTK_GRID_LINES_FURTHEST);
-			cubeAxesActor->DrawXGridlinesOn();  cubeAxesActor->DrawYGridlinesOn(); 	cubeAxesActor->DrawZGridlinesOn();
-			cubeAxesActor->GetTitleTextProperty(0)->SetColor(1.0, 0.0, 0.0);
-			cubeAxesActor->GetLabelTextProperty(0)->SetColor(1.0, 0.0, 0.0);
-			cubeAxesActor->GetXAxesGridlinesProperty()->SetColor(0.3, 0.3, 0.3);
-			cubeAxesActor->SetXUnits("microns");
-			cubeAxesActor->GetTitleTextProperty(1)->SetColor(0.0, 1.0, 0.0);
-			cubeAxesActor->GetLabelTextProperty(1)->SetColor(0.0, 1.0, 0.0);
-			cubeAxesActor->GetYAxesGridlinesProperty()->SetColor(0.3, 0.3, 0.3);
-			cubeAxesActor->SetYUnits("microns");
-			cubeAxesActor->GetTitleTextProperty(2)->SetColor(0.0, 0.0, 1.0);
-			cubeAxesActor->GetLabelTextProperty(2)->SetColor(0.0, 0.0, 1.0);
-			cubeAxesActor->GetZAxesGridlinesProperty()->SetColor(0.3, 0.3, 0.3);
-			cubeAxesActor->SetZUnits("microns");
-			cubeAxesActor->XAxisLabelVisibilityOn(); cubeAxesActor->XAxisTickVisibilityOn(); cubeAxesActor->XAxisMinorTickVisibilityOff();
-			cubeAxesActor->GetXAxesLinesProperty()->SetColor(1.0, 0.0, 0.0);
-			cubeAxesActor->YAxisLabelVisibilityOn(); cubeAxesActor->YAxisTickVisibilityOn(); cubeAxesActor->YAxisMinorTickVisibilityOff();
-			cubeAxesActor->GetYAxesLinesProperty()->SetColor(0.0, 1.0, 0.0);
-			cubeAxesActor->ZAxisLabelVisibilityOn(); cubeAxesActor->ZAxisTickVisibilityOn(); cubeAxesActor->ZAxisMinorTickVisibilityOff();
-			cubeAxesActor->GetZAxesLinesProperty()->SetColor(0.0, 0.0, 1.0);
-
-			renderer->AddViewProp(cornerAnnotation);
-			renderer->AddActor(cubeAxesActor);
-			renderer->AddActor(outlineActor);
-		}
-#if VTK_VERSION_NUMBER < VTK_VERSION_CHECK(9, 0, 0)
-		m_meanObjectWidget->GetRenderWindow()->Render();
-#else
-		m_meanObjectWidget->renderWindow()->Render();
-#endif
-	}
-}
-
-void dlg_FeatureScout::modifyMeanObjectTF()
-{
-	m_motfView = new iAMeanObjectTFView(this);
-	m_motfView->setWindowTitle(QString("%1 %2 Mean Object Transfer Function")
-		.arg(m_dwMO->cb_Classes->itemText(m_dwMO->cb_Classes->currentIndex()))
-		.arg(MapObjectTypeToString(m_filterID)));
-	iAChartWithFunctionsWidget* histogram = m_activeChild->histogram();
-	connect(histogram, &iAChartWithFunctionsWidget::updateViews, this, &dlg_FeatureScout::updateMOView);
-	m_motfView->horizontalLayout->addWidget(histogram);
-	histogram->show();
-	m_motfView->show();
-}
-
-void dlg_FeatureScout::updateMOView()
-{
-#if VTK_VERSION_NUMBER < VTK_VERSION_CHECK(9, 0, 0)
-	m_meanObjectWidget->GetRenderWindow()->Render();
-#else
-	m_meanObjectWidget->renderWindow()->Render();
-#endif
-}
-
-void dlg_FeatureScout::browseFolderDialog()
-{
-	QString filename = QFileDialog::getSaveFileName(this, tr("Save STL File"), m_sourcePath, tr("STL Files (*.stl)"));
-	if (filename.isEmpty())
-	{
-		return;
-	}
-	m_dwMO->le_StlPath->setText(filename);
-}
-
-void dlg_FeatureScout::saveStl()
-{
-	if (m_dwMO->le_StlPath->text().isEmpty())
-	{
-		QMessageBox::warning(this, "FeatureScout", "No save file destination specified.");
-		return;
-	}
-
-	iAMultiStepProgressObserver* progress = new iAMultiStepProgressObserver(2);
-	auto job = runAsync([this, progress]
-		{
-			auto moSurface = vtkSmartPointer<vtkMarchingCubes>::New();
-			progress->observe(moSurface);
-			moSurface->SetInputData(m_MOData.moImageDataList[m_dwMO->cb_Classes->currentIndex()]);
-			moSurface->ComputeNormalsOn();
-			moSurface->ComputeGradientsOn();
-			moSurface->SetValue(0, m_dwMO->dsb_IsoValue->value());
-
-			progress->setCompletedSteps(1);
-			auto stlWriter = vtkSmartPointer<vtkSTLWriter>::New();
-			progress->observe(stlWriter);
-			stlWriter->SetFileName(getLocalEncodingFileName(m_dwMO->le_StlPath->text()).c_str());
-			stlWriter->SetInputConnection(moSurface->GetOutputPort());
-			stlWriter->Write();
-		},
-		[progress]
-		{
-			delete progress;
-		});
-	iAJobListView::get()->addJob("Saving STL", progress->progressObject(), job);
-}
-
-void CheckBounds(double color_out[3])
-{
-	for (int i = 0; i < 3; ++i)
-	{
-		if (color_out[i] < 0)
-		{
-			color_out[i] = 0;
-		}
-		if (color_out[i] > 1.0)
-		{
-			color_out[i] = 1.0;
-		}
-	}
-}
-
-void ColormapRGB(const double normal[3], double color_out[3])
-{
-	for (int i = 0; i < 3; ++i)
-	{
-		color_out[i] = 0.5 + 0.5 * normal[i];
-	}
-	CheckBounds(color_out);
-}
-
-void ColormapCMY(const double normal[3], double color_out[3])
-{
-	for (int i = 0; i < 3; ++i)
-	{
-		color_out[i] = 0.5 + 0.5 * normal[i];
-	}
-	CheckBounds(color_out);
-	for (int i = 0; i < 3; ++i)
-	{
-		color_out[i] = 1 - color_out[i];
-	}
-}
-
-void ColormapCMYNormalized(const double normal[3], double color_out[3])
-{
-	for (int i = 0; i < 3; ++i)
-	{
-		color_out[i] = 0.5 + 0.5 * normal[i];
-	}
-	CheckBounds(color_out);
-	for (int i = 0; i < 3; ++i)
-		color_out[i] = 1 - color_out[i];
-	vtkMath::Normalize(color_out);
-}
-
-void ColormapRGBNormalized(const double normal[3], double color_out[3])
-{
-	for (int i = 0; i < 3; ++i)
-	{
-		color_out[i] = 0.5 + 0.5 * normal[i];
-	}
-	CheckBounds(color_out);
-	vtkMath::Normalize(color_out);
-}
-
-void ColormapCMYAbsolute(const double normal[3], double color_out[3])
-{
-	for (int i = 0; i < 3; ++i)
-	{
-		color_out[i] = fabs(normal[i]);
-	}
-	CheckBounds(color_out);
-	for (int i = 0; i < 3; ++i)
-	{
-		color_out[i] = 1 - color_out[i];
-	}
-}
-
-void ColormapRGBAbsolute(const double normal[3], double color_out[3])
-{
-	for (int i = 0; i < 3; ++i)
-	{
-		color_out[i] = fabs(normal[i]);
-	}
-	CheckBounds(color_out);
-}
-
-void ColormapCMYAbsoluteNormalized(const double normal[3], double color_out[3])
-{
-	for (int i = 0; i < 3; ++i)
-	{
-		color_out[i] = fabs(normal[i]);
-	}
-	CheckBounds(color_out);
-	for (int i = 0; i < 3; ++i)
-	{
-		color_out[i] = 1 - color_out[i];
-	}
-	vtkMath::Normalize(color_out);
-}
-
-void ColormapRGBAbsoluteNormalized(const double normal[3], double color_out[3])
-{
-	for (int i = 0; i < 3; ++i)
-	{
-		color_out[i] = fabs(normal[i]);
-	}
-	CheckBounds(color_out);
-	vtkMath::Normalize(color_out);
-}
-
-void ColormapRGBHalfSphere(const double normal[3], double color_out[3])
-{
-	double longest = std::max(normal[0], normal[1]);
-	longest = std::max(normal[2], longest);
-	if (!longest)
-	{
-		longest = 0.00000000001;
-	}
-
-	double oneVec[3] = { 1.0, 1.0, 1.0 };
-	vtkMath::Normalize(oneVec);
-	int sign = 1;
-	if (vtkMath::Dot(oneVec, normal) < 0)
-	{
-		sign = -1;
-	}
-
-	for (int i = 0; i < 3; ++i)
-	{
-		color_out[i] = 0.5 + 0.5 * sign * normal[i];///longest;
-	}
-	CheckBounds(color_out);
+	m_meanObject->render(m_classTreeModel->invisibleRootItem(), classCount, m_tableList, m_filterID,
+		m_dwSPM ? m_dwSPM : (m_dwDV ? m_dwDV : m_dwPC), m_renderer->renderer()->GetActiveCamera(),
+		m_colorList);
 }
 
 void dlg_FeatureScout::RenderOrientation()
@@ -1466,7 +839,7 @@ void dlg_FeatureScout::RenderOrientation()
 				cos(theta_rad) };
 			double* p = static_cast<double*>(oi->GetScalarPointer(theta, phi, 0));
 			vtkMath::Normalize(recCoord);
-			colormapsIndex[m_dwPP->orientationColorMap->currentIndex()](recCoord, p);
+			getColorMap(m_dwPP->orientationColorMap->currentIndex())(recCoord, p);
 		}
 	}
 
@@ -1543,7 +916,7 @@ void dlg_FeatureScout::RenderLengthDistribution()
 	auto length = vtkDataArray::SafeDownCast(m_csvTable->GetColumn(m_columnMapping->value(iACsvConfig::Length)));
 	QString title = QString("%1 Frequency Distribution").arg(m_csvTable->GetColumnName(m_columnMapping->value(iACsvConfig::Length)));
 	m_dwPP->setWindowTitle(title);
-	int numberOfBins = (m_filterID == iAFeatureScoutObjectType::Fibers) ? 8 : 3;  // TODO: setting?
+	int numberOfBins = (m_filterID == iAObjectType::Fibers) ? 8 : 3;  // TODO: setting?
 
 	length->GetRange(range);
 	if (range[0] == range[1])
@@ -1598,7 +971,7 @@ void dlg_FeatureScout::RenderLengthDistribution()
 	//Create a transfer function mapping scalar value to color
 	auto cTFun = vtkSmartPointer<vtkColorTransferFunction>::New();
 	cTFun->SetColorSpaceToRGB();
-	if (m_filterID == iAFeatureScoutObjectType::Fibers)
+	if (m_filterID == iAObjectType::Fibers)
 	{
 		cTFun->AddRGBPoint(range[0], 1.0, 0.6, 0.0);	//orange
 		cTFun->AddRGBPoint(extents->GetValue(0) + halfInc, 1.0, 0.0, 0.0); //red
@@ -1622,7 +995,7 @@ void dlg_FeatureScout::RenderLengthDistribution()
 	// plot length distribution
 	auto chart = vtkSmartPointer<vtkChartXY>::New();
 	chart->SetTitle(title.toUtf8().constData());
-	chart->GetTitleProperties()->SetFontSize((m_filterID == iAFeatureScoutObjectType::Fibers) ? 15 : 12); // TODO: setting?
+	chart->GetTitleProperties()->SetFontSize((m_filterID == iAObjectType::Fibers) ? 15 : 12); // TODO: setting?
 	vtkPlot* plot = chart->AddPlot(vtkChartXY::BAR);
 	plot->SetInputData(fldTable, 0, 1);
 	plot->GetXAxis()->SetTitle("Length in microns");
@@ -1761,7 +1134,7 @@ void dlg_FeatureScout::writeWisetex(QXmlStreamWriter* writer)
 	//check if it is a class item
 	if (m_classTreeModel->invisibleRootItem()->hasChildren())
 	{
-		if (m_filterID == iAFeatureScoutObjectType::Fibers)
+		if (m_filterID == iAObjectType::Fibers)
 		{
 			writer->writeStartElement("FibreClasses"); //start FibreClasses tag
 
@@ -1804,7 +1177,7 @@ void dlg_FeatureScout::writeWisetex(QXmlStreamWriter* writer)
 			}
 			writer->writeEndElement(); //end FibreClasses tag
 		}
-		else if (m_filterID == iAFeatureScoutObjectType::Voids)
+		else if (m_filterID == iAObjectType::Voids)
 		{
 			writer->writeStartElement("VoidClasses"); //start FibreClasses tag
 
@@ -2078,7 +1451,7 @@ void dlg_FeatureScout::CsvDVSaveButton()
 			m_activeChild->addDockWidget(Qt::RightDockWidgetArea, m_dwDV);
 			m_dwDV->show();
 		}
-		m_activeChild->tabifyDockWidget(m_dwSPM ? m_dwSPM : (m_dwMO ? (QDockWidget*)m_dwMO : m_dwPC), m_dwDV);
+		m_activeChild->tabifyDockWidget(m_dwSPM ? m_dwSPM : m_dwPC, m_dwDV);
 		m_dwDV->show();
 		m_dwDV->raise();
 		m_dvContextView->GetScene()->AddItem(distributionChartMatrix.GetPointer());
@@ -2294,7 +1667,7 @@ void dlg_FeatureScout::ClassLoadButton()
 	QXmlStreamReader checker(&file);
 	checker.readNext(); // skip xml tag?
 	checker.readNext(); // read IFV_Class_Tree element
-	QString IDColumnName = (m_filterID == iAFeatureScoutObjectType::Fibers) ? LabelAttribute : LabelAttributePore;
+	QString IDColumnName = (m_filterID == iAObjectType::Fibers) ? LabelAttribute : LabelAttributePore;
 	if (checker.name() == IFVTag)
 	{
 		// if the object number is not correct, stop the load process
@@ -3753,7 +3126,7 @@ void dlg_FeatureScout::initFeatureScoutUI()
 	m_activeChild->addDockWidget(Qt::RightDockWidgetArea, m_dwPC);
 	m_activeChild->addDockWidget(Qt::RightDockWidgetArea, m_dwPP);
 	m_dwPP->colorMapSelection->hide();
-	if (m_filterID == iAFeatureScoutObjectType::Voids)
+	if (m_filterID == iAObjectType::Voids)
 	{
 		m_dwPP->hide();
 	}
@@ -3763,7 +3136,7 @@ void dlg_FeatureScout::initFeatureScoutUI()
 	{
 		m_activeChild->imagePropertyDockWidget()->hide();
 	}
-	m_activeChild->hideHistogram();
+	m_activeChild->histogramDockWidget()->hide();
 	m_activeChild->renderDockWidget()->hide();
 	for (int i = 0; i < 3; ++i)
 	{

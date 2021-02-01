@@ -20,7 +20,7 @@
 * ************************************************************************************/
 #pragma once
 
-#include <iAModuleInterface.h>
+#include <iAGUIModuleInterface.h>
 
 #include <vtkSmartPointer.h>
 
@@ -33,13 +33,13 @@ class vtkTable;
 
 class QAction;
 
-class iAVRModuleInterface : public iAModuleInterface
+class iAVRModuleInterface : public iAGUIModuleInterface
 {
 	Q_OBJECT
 public:
 	void Initialize() override;
 private:
-	iAModuleAttachmentToChild * CreateAttachment( MainWindow* mainWnd, MdiChild* child ) override;
+	iAModuleAttachmentToChild * CreateAttachment( iAMainWindow* mainWnd, iAMdiChild* child ) override;
 	bool vrAvailable();
 
 	QSharedPointer<iA3DCylinderObjectVis> m_cylinderVis;

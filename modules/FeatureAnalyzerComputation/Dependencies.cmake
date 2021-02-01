@@ -1,0 +1,7 @@
+SET( DEPENDENCIES_LIBRARIES
+	iAcharts
+	iAcore
+)
+SET( DEPENDENCIES_IA_TOOLKIT_DIRS
+	MaximumDistance
+)

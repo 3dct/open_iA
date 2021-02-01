@@ -23,7 +23,7 @@
 #include "iAFilterChart.h"
 #include "iAParamHistogramData.h"
 
-#include <charts/iAPlotTypes.h>
+#include <iAPlotTypes.h>
 #include <iAMathUtility.h>
 
 #include <QCheckBox>

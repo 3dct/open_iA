@@ -20,11 +20,12 @@
 * ************************************************************************************/
 #include "iASensitivityInfo.h"
 
-// Core
-#include <charts/iASPLOMData.h>
-#include <charts/qcustomplot.h>
-#include <charts/iAScatterPlotWidget.h>
-#include <io/iAFileUtils.h>
+// Charts
+#include <iASPLOMData.h>
+#include <qcustomplot.h>
+#include <iAScatterPlotWidget.h>
+
+#include <iAFileUtils.h>
 #include <iAColorTheme.h>
 #include <iAJobListView.h>
 #include <iALog.h>
@@ -34,8 +35,10 @@
 #include <iAStackedBarChart.h>    // for add HeaderLabel
 #include <iAStringHelper.h>
 #include <iAvec3.h>
-#include <qthelper/iADockWidgetWrapper.h>
 #include <qthelper/iAQTtoUIConnector.h>
+
+// qthelper:
+#include <iADockWidgetWrapper.h>
 
 // FeatureScout
 #include "iACsvVectorTableCreator.h"

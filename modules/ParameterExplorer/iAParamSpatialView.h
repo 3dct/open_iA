@@ -20,7 +20,7 @@
 * ************************************************************************************/
 #pragma once
 
-#include <io/iAITKIO.h>
+#include <iAITKIO.h>
 
 #include <vtkSmartPointer.h>
 

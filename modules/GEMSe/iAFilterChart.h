@@ -20,12 +20,14 @@
 * ************************************************************************************/
 #pragma once
 
-#include <charts/iAChartWidget.h>
+#include <iAChartWidget.h>
+
 #include <iAValueType.h>
 
 class iAParamHistogramData;
 class iANameMapper;
 
+// TODO: Merge with FeatureAnalyzer: iARangeSliderDiagramWidget
 class iAFilterChart: public iAChartWidget
 {
 	Q_OBJECT

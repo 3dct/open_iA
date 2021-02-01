@@ -24,15 +24,17 @@
 #include "iAFiberData.h" // for getAvailableDissimilarityMeasureNames
 #include "iASensitivityInfo.h"
 #include "iAStackedBarChart.h"
-#include "qthelper/iAClickableLabel.h"
+#include "iAClickableLabel.h"
 
-#include <charts/iAChartWidget.h>
-#include <charts/iAHistogramData.h>
-#include <charts/iAPlotTypes.h>
-#include <charts/iASPLOMData.h>
-#include <charts/iAXYPlotData.h>
 #include <iAColorTheme.h>
 #include <iALog.h>
+
+// charts:
+#include <iAChartWidget.h>
+#include <iAHistogramData.h>
+#include <iAPlotTypes.h>
+#include <iASPLOMData.h>
+#include <iAXYPlotData.h>
 
 #include <QAction>
 #include <QGridLayout>

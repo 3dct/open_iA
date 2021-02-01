@@ -28,7 +28,8 @@
 #include <iASlicer.h>
 #include <iASlicerMode.h>
 #include <iATransferFunction.h>
-#include <qthelper/iAQFlowLayout.h>
+
+#include <iAQFlowLayout.h>
 
 #include <vtkColorTransferFunction.h>
 #include <vtkPiecewiseFunction.h>

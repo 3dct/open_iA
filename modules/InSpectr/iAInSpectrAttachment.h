@@ -25,7 +25,7 @@
 
 #include <vtkSmartPointer.h>
 
-class MainWindow;
+class iAMainWindow;
 class dlg_periodicTable;
 class dlg_RefSpectra;
 class dlg_SimilarityMap;
@@ -42,7 +42,7 @@ class iAInSpectrAttachment : public iAModuleAttachmentToChild
 	Q_OBJECT
 
 public:
-	iAInSpectrAttachment( MainWindow * mainWnd, MdiChild * child );
+	iAInSpectrAttachment( iAMainWindow * mainWnd, iAMdiChild * child );
 	~iAInSpectrAttachment();
 
 private slots:

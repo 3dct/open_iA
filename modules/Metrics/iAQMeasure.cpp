@@ -20,19 +20,21 @@
 * ************************************************************************************/
 #include "iAQMeasure.h"
 
-#include <charts/iAChartWithFunctionsWidget.h>
-#include <charts/iAHistogramData.h>
-#include <charts/iAPlotTypes.h>
+#include <iAChartWithFunctionsWidget.h>
+#include <iAHistogramData.h>
+#include <iAPlotTypes.h>
 #include <defines.h>    // for DIM
 #include <iAConnector.h>
 #include <iALog.h>
 #include <iAMathUtility.h>
+#include <iAPreferences.h>
 #include <iAProgress.h>
 #include <iAToolsITK.h>
 #include <iAToolsVTK.h>
 #include <iATypedCallHelper.h>
-#include <mdichild.h>
-#include <qthelper/iADockWidgetWrapper.h>
+#include <iAMdiChild.h>
+
+#include <iADockWidgetWrapper.h>
 
 #include <itkImage.h>
 #include <itkImageToHistogramFilter.h>
@@ -432,7 +434,7 @@ iAQMeasure::iAQMeasure() :
 	addOutputValue("Q (orig, equ 1)");
 }
 
-void iAQMeasure::setupDebugGUI(iAChartWidget* chart, MdiChild* mdiChild)
+void iAQMeasure::setupDebugGUI(iAChartWidget* chart, iAMdiChild* mdiChild)
 {
 	m_chart = chart;
 	m_mdiChild = mdiChild;
@@ -442,7 +444,7 @@ void iAQMeasure::setupDebugGUI(iAChartWidget* chart, MdiChild* mdiChild)
 IAFILTER_RUNNER_CREATE(iAQMeasureRunner);
 
 void iAQMeasureRunner::filterGUIPreparations(QSharedPointer<iAFilter> filter,
-	MdiChild* mdiChild, MainWindow* /*mainWnd*/, QMap<QString, QVariant> const& params)
+	iAMdiChild* mdiChild, iAMainWindow* /*mainWnd*/, QMap<QString, QVariant> const& params)
 {
 	if (params["Analyze Peaks"].toBool())
 	{

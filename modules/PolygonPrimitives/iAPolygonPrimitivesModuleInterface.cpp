@@ -23,8 +23,10 @@
 #include "iAGeometricObjectsDialog.h"
 
 #include <iALog.h>
-#include <mainwindow.h>
+#include <iAMainWindow.h>
 
+#include <QAction>
+#include <QMenu>
 #include <QMessageBox>
 
 namespace
@@ -40,7 +42,7 @@ void iAPolygonPrimitivesModuleInterface::Initialize()
 	}
 	QAction* actionAddObject = new QAction(Title, m_mainWnd);
 	connect(actionAddObject, &QAction::triggered, this, &iAPolygonPrimitivesModuleInterface::addObject);
-	makeActionChildDependent(actionAddObject);
+	m_mainWnd->makeActionChildDependent(actionAddObject);
 	addToMenuSorted(m_mainWnd->toolsMenu(), actionAddObject);
 }
 

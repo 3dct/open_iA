@@ -25,9 +25,9 @@
 #include "iACsvIO.h"
 #include "iACsvVtkTableCreator.h"
 
-#include <charts/iASPLOMData.h>
+#include <iASPLOMData.h>
 #include <iALog.h>
-#include <io/iAFileUtils.h> // for FindFiles
+#include <iAFileUtils.h> // for FindFiles
 
 #include <vtkFloatArray.h>
 #include <vtkTable.h>
@@ -110,7 +110,7 @@ namespace
 		config.columnSeparator = ",";
 		config.decimalSeparator = ".";
 		config.addAutoID = false;
-		config.objectType = iAFeatureScoutObjectType::Fibers;
+		config.objectType = iAObjectType::Fibers;
 		config.computeLength = false;
 		config.computeAngles = false;
 		config.computeTensors = false;

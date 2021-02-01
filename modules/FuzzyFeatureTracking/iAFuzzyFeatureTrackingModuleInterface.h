@@ -20,9 +20,9 @@
 * ************************************************************************************/
 #pragma once
 
-#include <iAModuleInterface.h>
+#include <iAGUIModuleInterface.h>
 
-class iAFuzzyFeatureTrackingModuleInterface : public iAModuleInterface
+class iAFuzzyFeatureTrackingModuleInterface : public iAGUIModuleInterface
 {
 	Q_OBJECT
 
@@ -33,5 +33,5 @@ public:
 private slots:
 	bool start_FuzzyFeatureTracking();
 
-	iAModuleAttachmentToChild * CreateAttachment( MainWindow* mainWnd, MdiChild * child ) override;
+	iAModuleAttachmentToChild * CreateAttachment( iAMainWindow* mainWnd, iAMdiChild * child ) override;
 };

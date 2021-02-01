@@ -22,7 +22,7 @@
 
 #include "iAGEMSeConstants.h"
 
-#include <charts/iAHistogramData.h>
+#include <iAHistogramData.h>
 
 #include <QSharedPointer>
 

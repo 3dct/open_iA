@@ -23,7 +23,10 @@
 #include "iATripleHistogramTFAttachment.h"
 
 #include <iALog.h>
-#include <mainwindow.h>
+#include <iAMainWindow.h>
+
+#include <QAction>
+#include <QMenu>
 
 void iATripleHistogramTFModuleInterface::Initialize()
 {
@@ -34,18 +37,18 @@ void iATripleHistogramTFModuleInterface::Initialize()
 
 	QAction *action_2mod = new QAction(tr("Double Histogram Transfer Function"), m_mainWnd);
 	connect(action_2mod, &QAction::triggered, this, &iATripleHistogramTFModuleInterface::menuItemSelected_2mod);
-	makeActionChildDependent(action_2mod);
+	m_mainWnd->makeActionChildDependent(action_2mod);
 
 	QAction *action_3mod = new QAction(tr("Triple Histogram Transfer Function"), m_mainWnd);
 	connect(action_3mod, &QAction::triggered, this, &iATripleHistogramTFModuleInterface::menuItemSelected_3mod);
-	makeActionChildDependent(action_3mod);
+	m_mainWnd->makeActionChildDependent(action_3mod);
 
 	QMenu* submenu = getOrAddSubMenu(m_mainWnd->toolsMenu(), tr("Multi-Modal/-Channel Images"), true);
 	submenu->addAction(action_2mod);
 	submenu->addAction(action_3mod);
 }
 
-iAModuleAttachmentToChild* iATripleHistogramTFModuleInterface::CreateAttachment(MainWindow* mainWnd, MdiChild* child)
+iAModuleAttachmentToChild* iATripleHistogramTFModuleInterface::CreateAttachment(iAMainWindow* mainWnd, iAMdiChild* child)
 {
 	return iATripleHistogramTFAttachment::create(mainWnd, child);
 }

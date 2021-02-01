@@ -27,46 +27,56 @@
 #include "iARefDistCompute.h"
 #include "iASensitivityInfo.h"
 #include "iAStackedBarChart.h"
+//#include "iAFeatureScoutModuleInterface.h"
 
-// FeatureScout:
+// charts
+#include <iAChartWidget.h>
+#include <iAHistogramData.h>
+#include <iAPlotTypes.h>
+#include <iAScatterPlot.h> // for selection mode: iAScatterPlot::Rectangle
+#include <iAQSplom.h>
+#include <iASPLOMData.h>
+
+// core
+#include <iAMapperImpl.h>
+#include <iAModuleDispatcher.h>
+#include <iARenderSettings.h>
+#include <iARenderer.h>
+#include <iAVolumeRenderer.h>
+#include <io/iAIOProvider.h>
+#include <iAMainWindow.h>
+#include <iAMdiChild.h>
+#include <qthelper/iAQTtoUIConnector.h>
+#include <qthelper/iAQtEndl.h>
+
+// objectvis
 #include "iA3DCylinderObjectVis.h"
 #include "iA3DEllipseObjectVis.h"
 #include "iACsvConfig.h"
 #include "iACsvVectorTableCreator.h"
-#include "iAFeatureScoutModuleInterface.h"
 
-// Core:
-#include <charts/iAChartWidget.h>
-#include <charts/iAHistogramData.h>
-#include <charts/iAPlotTypes.h>
-#include <charts/iAScatterPlot.h> // for selection mode: iAScatterPlot::Rectangle
-#include <charts/iAQSplom.h>
-#include <charts/iASPLOMData.h>
+// qthelper
+#include <iADockWidgetWrapper.h>
+#include <iAFixedAspectWidget.h>
+#include <iASignallingWidget.h>
+#include <iAVtkQtWidget.h>
+
+// renderer
+#include <iARendererManager.h>
+
+// base
 #include <iAColorTheme.h>
 #include <iAConnector.h>
-#include <iALog.h>
 #include <iALookupTable.h>
+#include <iAFileUtils.h>
+#include <iAITKIO.h>
+#include <iALog.h>
 #include <iALUT.h>
-#include <iAMapperImpl.h>
 #include <iAMathUtility.h>
-#include <iAModuleDispatcher.h>
-#include <iARenderer.h>
-#include <iARendererManager.h>
 #include <iAStringHelper.h>
 #include <iAToolsVTK.h>    // for setCamPos
 #include <iATransferFunction.h>
-#include <iAVolumeRenderer.h>
 #include <iAVtkVersion.h>
-#include <io/iAIOProvider.h>
-#include <io/iAITKIO.h>
-#include <mainwindow.h>
-#include <mdichild.h>
-#include <qthelper/iADockWidgetWrapper.h>
-#include <qthelper/iAFixedAspectWidget.h>
-#include <qthelper/iAQtEndl.h>
-#include <qthelper/iAQTtoUIConnector.h>
-#include <qthelper/iASignallingWidget.h>
-#include <qthelper/iAVtkQtWidget.h>
 
 #include <vtkCamera.h>
 #include <vtkColorTransferFunction.h>
@@ -100,6 +110,7 @@
 #include <QMessageBox>
 #include <QModelIndex>
 #include <QMouseEvent>
+#include <QPainter>
 #include <QRadioButton>
 #include <QScrollArea>
 #include <QSettings>
@@ -203,7 +214,7 @@ iAResultPairInfo::iAResultPairInfo(int measureCount) :
 
 const QString iAFiAKErController::FIAKERProjectID("FIAKER");
 
-iAFiAKErController::iAFiAKErController(MainWindow* mainWnd, MdiChild* mdiChild) :
+iAFiAKErController::iAFiAKErController(iAMainWindow* mainWnd, iAMdiChild* mdiChild) :
 	m_renderManager(new iARendererManager()),
 	m_resultColorTheme(iAColorThemeManager::instance().theme(DefaultResultColorTheme)),
 	m_mainWnd(mainWnd),
@@ -267,7 +278,7 @@ void iAFiAKErController::start(QString const & path, iACsvConfig const & config,
 	m_showPreviews = showPreviews;
 	m_showCharts = createCharts;
 	m_views.resize(DockWidgetCount);
-	connect(m_mdiChild, &MdiChild::renderSettingsChanged, this, &iAFiAKErController::applyRenderSettings);
+	connect(m_mdiChild, &iAMdiChild::renderSettingsChanged, this, &iAFiAKErController::applyRenderSettings);
 
 	m_data = QSharedPointer<iAFiberResultsCollection>(new iAFiberResultsCollection());
 	auto resultsLoader = new iAFiberResultsLoader(m_data, path, m_config, stepShift);
@@ -353,7 +364,7 @@ void iAFiAKErController::resultsLoaded()
 
 void iAFiAKErController::setupMain3DView()
 {
-	m_main3DWidget = m_mdiChild->renderDockWidget()->vtkWidgetRC;
+	m_main3DWidget = m_mdiChild->renderVtkWidget();
 #if VTK_VERSION_NUMBER < VTK_VERSION_CHECK(9, 0, 0)
 	auto renWin = m_main3DWidget->GetRenderWindow();
 #else
@@ -759,7 +770,7 @@ QWidget* iAFiAKErController::setupResultListView()
 			ren->ResetCamera();
 			ui.previewWidget->setProperty("resultID", static_cast<qulonglong>(resultID));
 			connect(ui.previewWidget, &iASignallingWidget::dblClicked, this, &iAFiAKErController::referenceToggled);
-			connect(ui.previewWidget, &iASignallingWidget::clicked, this, &iAFiAKErController::previewMouseClick);
+			//connect(ui.previewWidget, &iASignallingWidget::clicked, this, &iAFiAKErController::previewMouseClick);
 			connect(ui.mini3DVis.data(), &iA3DObjectVis::updated, ui.vtkWidget, &iAVtkQtWidget::updateAll);
 		}
 		QString bboxText = QString("Bounding box: (x: %1..%2, y: %3..%4, z: %5..%6)")
@@ -1927,6 +1938,7 @@ void iAFiAKErController::selectionOptimStepChartChanged(std::vector<size_t> cons
 	}
 }
 
+/*
 void iAFiAKErController::previewMouseClick(Qt::MouseButton button, Qt::KeyboardModifiers modifiers)
 {	// require Ctrl + Left mouse click:
 	if (button != Qt::LeftButton || !modifiers.testFlag(Qt::ControlModifier))
@@ -1935,14 +1947,13 @@ void iAFiAKErController::previewMouseClick(Qt::MouseButton button, Qt::KeyboardM
 	}
 	size_t resultID = QObject::sender()->property("resultID").toULongLong();
 	addInteraction(QString("Started FiberScout for %1.").arg(resultName(resultID)));
-	MdiChild* newChild = m_mainWnd->createMdiChild(false);
+	iAMdiChild* newChild = m_mainWnd->createMdiChild(false);
 	newChild->show();
-	// wait a bit to make sure MdiChild is shown and all initialization is done
-	// TODO: Replace by connection to a signal which is emitted when MdiChild initialization done
+	// wait a bit to make sure iAMdiChild is shown and all initialization is done
+	// TODO: Replace by connection to a signal which is emitted when iAMdiChild initialization done
 	QTimer::singleShot(1000, [this, resultID, newChild] { startFeatureScout(resultID, newChild); });
 }
-
-void iAFiAKErController::startFeatureScout(int resultID, MdiChild* newChild)
+void iAFiAKErController::startFeatureScout(int resultID, iAMdiChild* newChild)
 {
 	iACsvConfig config(m_config);
 	// fails if config.visType is labelled volume
@@ -1952,6 +1963,7 @@ void iAFiAKErController::startFeatureScout(int resultID, MdiChild* newChild)
 	featureScout->LoadFeatureScout(config, newChild);
 	//newChild->loadLayout("FeatureScout");
 }
+*/
 
 void iAFiAKErController::optimStepSliderChanged(int optimStep)
 {

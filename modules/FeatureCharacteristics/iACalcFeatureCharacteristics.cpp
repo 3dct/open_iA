@@ -21,10 +21,12 @@
 #include "iACalcFeatureCharacteristics.h"
 
 #include <defines.h>          // for DIM
-#include <iAConnector.h>
 #include <iAProgress.h>
+
+// base
+#include <iAConnector.h>
 #include <iATypedCallHelper.h>
-#include <io/iAFileUtils.h>
+#include <iAFileUtils.h>
 
 #include <itkLabelImageToShapeLabelMapFilter.h>
 #include <itkLabelGeometryImageFilter.h>

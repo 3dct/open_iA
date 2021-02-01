@@ -22,7 +22,7 @@
 
 #include "ui_GEMSeToolBar.h"
 
-#include <iAModuleInterface.h>
+#include <iAGUIModuleInterface.h>
 #include <qthelper/iAQTtoUIConnector.h>
 
 #include <QToolBar>
@@ -33,16 +33,16 @@ class QSettings;
 
 typedef iAQTtoUIConnector<QToolBar, Ui_GEMSeToolBar> iAGEMSeToolbar;
 
-class iAGEMSeModuleInterface : public iAModuleInterface
+class iAGEMSeModuleInterface : public iAGUIModuleInterface
 {
 	Q_OBJECT
 public:
 	iAGEMSeModuleInterface();
 	void Initialize() override;
-	void loadProject(MdiChild* mdiChild, QSettings const & metaFile, QString const & fileName);
+	void loadProject(iAMdiChild* mdiChild, QSettings const & metaFile, QString const & fileName);
 	void saveProject(QSettings & metaFile, QString const & fileName);
 protected:
-	iAModuleAttachmentToChild* CreateAttachment(MainWindow* mainWnd, MdiChild * child) override;
+	iAModuleAttachmentToChild* CreateAttachment(iAMainWindow* mainWnd, iAMdiChild * child) override;
 private slots:
 	//! @{ Menu entries:
 	void startGEMSe();

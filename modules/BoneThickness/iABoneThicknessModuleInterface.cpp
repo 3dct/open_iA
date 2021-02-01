@@ -22,7 +22,9 @@
 
 #include "iABoneThicknessAttachment.h"
 
-#include <mainwindow.h>
+#include <iAMainWindow.h>
+
+#include <QAction>
 
 void iABoneThicknessModuleInterface::Initialize( )
 {
@@ -32,7 +34,7 @@ void iABoneThicknessModuleInterface::Initialize( )
 	}
 	QAction* actionBoneThickness = new QAction(tr("Bone thickness"), m_mainWnd);
 	connect(actionBoneThickness, &QAction::triggered, this, &iABoneThicknessModuleInterface::slotBoneThickness);
-	makeActionChildDependent(actionBoneThickness);
+	m_mainWnd->makeActionChildDependent(actionBoneThickness);
 	addToMenuSorted(m_mainWnd->toolsMenu(), actionBoneThickness);
 }
 
@@ -46,7 +48,7 @@ void iABoneThicknessModuleInterface::slotBoneThickness()
 	}
 }
 
-iAModuleAttachmentToChild* iABoneThicknessModuleInterface::CreateAttachment(MainWindow* mainWnd, MdiChild * child)
+iAModuleAttachmentToChild* iABoneThicknessModuleInterface::CreateAttachment(iAMainWindow* mainWnd, iAMdiChild * child)
 {
 	return new iABoneThicknessAttachment(mainWnd, child);
 }

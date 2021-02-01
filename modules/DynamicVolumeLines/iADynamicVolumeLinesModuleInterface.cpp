@@ -22,8 +22,8 @@
 
 #include "dlg_DynamicVolumeLines.h"
 
-#include <mainwindow.h>
-#include <mdichild.h>
+#include <iAMainWindow.h>
+#include <iAMdiChild.h>
 
 #include <QFileDialog>
 #include <QMessageBox>
@@ -36,7 +36,7 @@ void iADynamicVolumeLinesModuleInterface::Initialize()
 	}
 	QAction * actionDynamicVolumeLines = new QAction(tr("Dynamic Volume Lines"), m_mainWnd);
 	connect(actionDynamicVolumeLines, &QAction::triggered, this, &iADynamicVolumeLinesModuleInterface::DynamicVolumeLines);
-	makeActionChildDependent(actionDynamicVolumeLines);
+	m_mainWnd->makeActionChildDependent(actionDynamicVolumeLines);
 	addToMenuSorted(m_mainWnd->toolsMenu(), actionDynamicVolumeLines);
 }
 

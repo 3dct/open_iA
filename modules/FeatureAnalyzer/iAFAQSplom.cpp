@@ -24,8 +24,8 @@
 
 #include "iAFeatureScoutModuleInterface.h"
 
-#include <charts/iASPLOMData.h>
-#include <charts/iAScatterPlot.h>
+#include <iASPLOMData.h>
+#include <iAScatterPlot.h>
 #include <iALog.h>
 #include <iAMathUtility.h>
 #include <iAModuleDispatcher.h>
@@ -34,6 +34,7 @@
 #include <QDir>
 #include <QKeyEvent>
 #include <QMenu>
+#include <QPainter>
 
 // OpenMP
 #ifndef __APPLE__
@@ -44,7 +45,7 @@
 
 const int maskOpacity = 127;
 
-iAFAQSplom::iAFAQSplom( MainWindow *mWnd, QWidget * parent):
+iAFAQSplom::iAFAQSplom( iAMainWindow *mWnd, QWidget * parent):
 	iAQSplom(parent),
 	m_fixedPointInd(iAScatterPlot::NoPointIndex),
 	m_mainWnd(mWnd),
@@ -419,7 +420,7 @@ void iAFAQSplom::sendToFeatureScout()
 		return;
 	}
 	this->m_mdiChild->show();
-	connect(m_mdiChild, &MdiChild::histogramAvailable, this, &iAFAQSplom::startFeatureScout);
+	connect(m_mdiChild, &iAMdiChild::histogramAvailable, this, &iAFAQSplom::startFeatureScout);
 	if (!m_mdiChild->loadFile(mhdName, false))
 	{
 		LOG(lvlError, QString("File '%1' could not be loaded!").arg(mhdName));
@@ -447,7 +448,7 @@ void iAFAQSplom::startFeatureScout()
 		return;
 	}
 	featureScout->LoadFeatureScoutWithParams(m_csvName, m_mdiChild);
-	disconnect(m_mdiChild, &MdiChild::histogramAvailable, this, &iAFAQSplom::startFeatureScout);
+	disconnect(m_mdiChild, &iAMdiChild::histogramAvailable, this, &iAFAQSplom::startFeatureScout);
 }
 
 void iAFAQSplom::removeFixedPoint()

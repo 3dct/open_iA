@@ -21,7 +21,7 @@
 #include "iAPreviewMaker.h"
 
 #include <iALog.h>
-#include <io/iAFileUtils.h>
+#include <iAFileUtils.h>
 
 #include <itkImage.h>
 #include <itkImageFileReader.h>

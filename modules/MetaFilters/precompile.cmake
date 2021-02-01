@@ -1,6 +1,8 @@
-SET (MetaFilters_PRECOMPILE_INCLUDES <iAAttributeDescriptor.h>
+SET (MetaFilters_PRECOMPILE_INCLUDES
+<iAAttributeDescriptor.h>
 <iAAttributes.h>
 <iAConnector.h>
+<iAFileUtils.h>
 <iAFilter.h>
 <iAFilterRegistry.h>
 <iALog.h>
@@ -16,8 +18,7 @@ SET (MetaFilters_PRECOMPILE_INCLUDES <iAAttributeDescriptor.h>
 <iASingleResult.h>
 <iAStringHelper.h>
 <iAToolsITK.h>
-<io/iAFileUtils.h>
-<io/iAITKIO.h>
+<iAITKIO.h>
 <QDir>
 <QFile>
 <QFileInfo>

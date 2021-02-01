@@ -20,7 +20,7 @@
 * ************************************************************************************/
 #include "dlg_elementRenderer.h"
 
-#include <iARenderer.h>
+#include <iARendererImpl.h>
 #include <iATransferFunction.h>
 #include <iAVolumeRenderer.h>
 
@@ -34,7 +34,7 @@
 
 dlg_elementRenderer::dlg_elementRenderer(QWidget *parent):
 	dlg_elemRendererContainer(parent),
-	m_renderer( new iARenderer(this) ),
+	m_renderer( new iARendererImpl(this) ),
 	m_rendInitialized(false),
 	m_axesTransform( vtkSmartPointer<vtkTransform>::New() ),
 	m_observedRenderer(0),
@@ -49,8 +49,8 @@ dlg_elementRenderer::dlg_elementRenderer(QWidget *parent):
 	m_renderer->renderer()->InteractiveOff();
 	m_renderer->setAxesTransform(m_axesTransform);
 
-	connect(renContainer, &iAFast3DMagicLensWidget::rightButtonReleasedSignal, m_renderer, &iARenderer::mouseRightButtonReleasedSlot);
-	connect(renContainer, &iAFast3DMagicLensWidget::leftButtonReleasedSignal, m_renderer, &iARenderer::mouseLeftButtonReleasedSlot);
+	connect(renContainer, &iAFast3DMagicLensWidget::rightButtonReleasedSignal, m_renderer, &iARendererImpl::mouseRightButtonReleasedSlot);
+	connect(renContainer, &iAFast3DMagicLensWidget::leftButtonReleasedSignal, m_renderer, &iARendererImpl::mouseLeftButtonReleasedSlot);
 }
 
 

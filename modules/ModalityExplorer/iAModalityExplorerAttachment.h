@@ -28,8 +28,8 @@ class iAModalityExplorerAttachment : public iAModuleAttachmentToChild
 {
 	Q_OBJECT
 public:
-	static iAModalityExplorerAttachment* create(MainWindow * mainWnd, MdiChild * child);
+	static iAModalityExplorerAttachment* create(iAMainWindow * mainWnd, iAMdiChild * child);
 private:
-	iAModalityExplorerAttachment(MainWindow * mainWnd, MdiChild * child);
+	iAModalityExplorerAttachment(iAMainWindow * mainWnd, iAMdiChild * child);
 	dlg_modalitySPLOM* m_dlgModalitySPLOM;
 };

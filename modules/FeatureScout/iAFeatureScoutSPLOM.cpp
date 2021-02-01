@@ -20,9 +20,12 @@
 * ************************************************************************************/
 #include "iAFeatureScoutSPLOM.h"
 
-#include <charts/iAScatterPlot.h>
-#include <charts/iAQSplom.h>
-#include <charts/iASPLOMData.h>
+// charts
+#include <iAScatterPlot.h>
+#include <iAQSplom.h>
+#include <iASPLOMData.h>
+
+// base
 #include <iALookupTable.h>
 
 #include <vtkDataArray.h>

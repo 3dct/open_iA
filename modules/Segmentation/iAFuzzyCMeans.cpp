@@ -21,11 +21,13 @@
 #include "iAFuzzyCMeans.h"
 
 #include <defines.h>    // for DIM
+#include <iAProgress.h>
+
+// base
 #include <iAConnector.h>
 #include <iALog.h>
-#include <iAProgress.h>
 #include <iATypedCallHelper.h>
-#include <io/iAITKIO.h>
+#include <iAITKIO.h>
 
 #include <itkConfigure.h>    // for ITK_VERSION...
 #include <itkFCMClassifierInitializationImageFilter.h>
@@ -105,7 +107,7 @@ namespace
 		return true;
 	}
 
-	bool checkFCMParameters(QMap<QString, QVariant> parameters)
+	bool checkFCMParameters(QMap<QString, QVariant> const & parameters)
 	{
 		unsigned int numberOfClasses = parameters["Number of Classes"].toUInt();
 		QVector<double> centroids;
@@ -166,7 +168,7 @@ iAFCMFilter::iAFCMFilter() :
 	addFCMParameters(*this);
 }
 
-bool iAFCMFilter::checkParameters(QMap<QString, QVariant> & parameters)
+bool iAFCMFilter::checkParameters(QMap<QString, QVariant> const & parameters)
 {
 	return iAFilter::checkParameters(parameters) && checkFCMParameters(parameters);
 }
@@ -195,7 +197,7 @@ iAKFCMFilter::iAKFCMFilter() :
 	addKFCMParameters(*this);
 }
 
-bool iAKFCMFilter::checkParameters(QMap<QString, QVariant> & parameters)
+bool iAKFCMFilter::checkParameters(QMap<QString, QVariant> const & parameters)
 {
 	return iAFilter::checkParameters(parameters) && checkFCMParameters(parameters);
 }
@@ -290,7 +292,7 @@ iAMSKFCMFilter::iAMSKFCMFilter() :
 	addParameter("Q", iAValueType::Continuous, 1);
 }
 
-bool iAMSKFCMFilter::checkParameters(QMap<QString, QVariant> & parameters)
+bool iAMSKFCMFilter::checkParameters(QMap<QString, QVariant> const & parameters)
 {
 	return iAFilter::checkParameters(parameters) && checkFCMParameters(parameters);
 }

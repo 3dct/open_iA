@@ -285,4 +285,7 @@ public slots:
 	void maximizePlacements();
 	//! Maximize one area/show all areas
 	void maximizeBottom();
+
+	//! export full parameter placement matrices (avg. pen., max. pen., bad radon-area perc.) as csv
+	void exportCSVs();
 };

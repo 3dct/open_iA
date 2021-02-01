@@ -29,5 +29,5 @@ class iASimilarityFilterRunner : public iAFilterRunnerGUI
 {
 public:
 	static QSharedPointer<iAFilterRunnerGUI> create();
-	QMap<QString, QVariant> loadParameters(QSharedPointer<iAFilter> filter, MdiChild* sourceMdi) override;
+	QMap<QString, QVariant> loadParameters(QSharedPointer<iAFilter> filter, iAMdiChild* sourceMdi) override;
 };

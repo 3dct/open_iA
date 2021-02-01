@@ -23,11 +23,13 @@
 #include "iAParameterExplorerAttachment.h"
 
 #include <iALog.h>
-#include <io/iAFileUtils.h>
-#include <mainwindow.h>
-#include <mdichild.h>
+#include <iAFileUtils.h>
+#include <iAMainWindow.h>
+#include <iAMdiChild.h>
 
+#include <QAction>
 #include <QFileDialog>
+#include <QMenu>
 #include <QSettings>
 
 void iAParameterExplorerModuleInterface::Initialize()
@@ -37,11 +39,11 @@ void iAParameterExplorerModuleInterface::Initialize()
 		return;
 	}
 	QAction * actionExplore = new QAction(tr("Parameter Explorer"), m_mainWnd);
-	makeActionChildDependent(actionExplore);
+	m_mainWnd->makeActionChildDependent(actionExplore);
 	connect(actionExplore, &QAction::triggered, this, &iAParameterExplorerModuleInterface::StartParameterExplorer);
 
 	QAction * actionLoad = new QAction(tr("Load Parameter Explorer State"), m_mainWnd);
-	makeActionChildDependent(actionLoad);
+	m_mainWnd->makeActionChildDependent(actionLoad);
 	connect(actionLoad, &QAction::triggered, this, &iAParameterExplorerModuleInterface::LoadState);
 
 	QMenu* submenu = getOrAddSubMenu(m_mainWnd->toolsMenu(), tr("Image Ensembles"), true);
@@ -140,9 +142,9 @@ void iAParameterExplorerModuleInterface::LoadState()
 	QFileInfo stateFileInfo(stateFileName);
 	QSettings stateFileSettings(stateFileName, QSettings::IniFormat);
 	QString refFileName = MakeAbsolute(stateFileInfo.absolutePath(), stateFileSettings.value("Reference").toString());
-	MdiChild *child = m_mainWnd->createMdiChild(false);
+	iAMdiChild* child = m_mainWnd->createMdiChild(false);
 	m_stateFiles.insert(child, stateFileName);
-	connect(child, &MdiChild::fileLoaded, this, &iAParameterExplorerModuleInterface::ContinueStateLoading);
+	connect(child, &iAMdiChild::fileLoaded, this, &iAParameterExplorerModuleInterface::ContinueStateLoading);
 	if (!child->loadFile(refFileName, false))
 	{
 		LOG(lvlError, QString("Could not load reference file %1.").arg(refFileName));
@@ -152,7 +154,7 @@ void iAParameterExplorerModuleInterface::LoadState()
 
 void iAParameterExplorerModuleInterface::ContinueStateLoading()
 {
-	MdiChild* child = dynamic_cast<MdiChild*>(QObject::sender());
+	iAMdiChild* child = dynamic_cast<iAMdiChild*>(QObject::sender());
 	m_mdiChild = child;
 	iAParameterExplorerAttachment* attach = GetAttachment<iAParameterExplorerAttachment>();
 	if (!child || attach)
@@ -180,7 +182,7 @@ void iAParameterExplorerModuleInterface::ContinueStateLoading()
 	m_stateFiles.remove(child);
 }
 
-bool iAParameterExplorerModuleInterface::CreateAttachment(QString const & csvFileName, MdiChild* child)
+bool iAParameterExplorerModuleInterface::CreateAttachment(QString const & csvFileName, iAMdiChild* child)
 {
 	bool result = AttachToMdiChild(child);
 	m_mdiChild = child;
@@ -199,7 +201,7 @@ bool iAParameterExplorerModuleInterface::CreateAttachment(QString const & csvFil
 	return true;
 }
 
-iAModuleAttachmentToChild* iAParameterExplorerModuleInterface::CreateAttachment(MainWindow* mainWnd, MdiChild * child)
+iAModuleAttachmentToChild* iAParameterExplorerModuleInterface::CreateAttachment(iAMainWindow* mainWnd, iAMdiChild * child)
 {
 	return iAParameterExplorerAttachment::create( mainWnd, child);
 }

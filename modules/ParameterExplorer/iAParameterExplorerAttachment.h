@@ -34,7 +34,7 @@ class QSettings;
 class iAParameterExplorerAttachment : public iAModuleAttachmentToChild
 {
 public:
-	static iAParameterExplorerAttachment* create(MainWindow * mainWnd, MdiChild * child);
+	static iAParameterExplorerAttachment* create(iAMainWindow * mainWnd, iAMdiChild * child);
 	void LoadCSV(QString const & fileName);
 	void ToggleDockWidgetTitleBars();
 	void ToggleSettings(bool visible);
@@ -43,7 +43,7 @@ public:
 	void LoadSettings(QSettings const & settings);
 	QString const & CSVFileName() const;
 private:
-	iAParameterExplorerAttachment(MainWindow * mainWnd, MdiChild * child);
+	iAParameterExplorerAttachment(iAMainWindow * mainWnd, iAMdiChild * child);
 	iAParamSPLOMView* m_SPLOMView;
 	iAParamSpatialView* m_spatialView;
 	iAParamTableView* m_tableView;

@@ -23,7 +23,7 @@
 #include "iAScene.h"
 #include "../../iADreamCaster.h"
 
-#include <io/iAFileUtils.h>
+#include <iAFileUtils.h>
 
 #include <algorithm>
 #include <cassert>

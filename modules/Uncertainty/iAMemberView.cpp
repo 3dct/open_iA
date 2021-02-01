@@ -24,7 +24,7 @@
 #include "iAEnsemble.h"
 #include "iASingleResult.h"
 
-#include <charts/qcustomplot.h>
+#include <qcustomplot.h>
 
 #include <QGuiApplication>
 #include <QHBoxLayout>

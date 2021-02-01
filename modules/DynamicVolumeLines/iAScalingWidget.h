@@ -20,8 +20,9 @@
 * ************************************************************************************/
 #pragma once
 
-#include <charts/qcustomplot.h>
-#include <qthelper/iAQGLWidget.h>
+#include <qcustomplot.h>
+
+#include <iAQGLWidget.h>
 
 #include <vtkSmartPointer.h>
 

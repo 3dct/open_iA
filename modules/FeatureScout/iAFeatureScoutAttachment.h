@@ -20,37 +20,27 @@
 * ************************************************************************************/
 #pragma once
 
-#include "iABlobManager.h"
-
 #include <iAModuleAttachmentToChild.h>
-#include <iAvec3.h>
+#include <iAVec3.h>
 
-#include <QList>
+#include <vtkSmartPointer.h>
 
 #include <map>
 #include <vector>
 
 class dlg_FeatureScout;
-class iABlobCluster;
 
-class vtkOpenGLRenderer;
 class vtkTable;
 
 class iAFeatureScoutAttachment : public iAModuleAttachmentToChild
 {
 	Q_OBJECT
 public:
-	iAFeatureScoutAttachment(MainWindow* mainWnd, MdiChild * child);
-	~iAFeatureScoutAttachment();
+	iAFeatureScoutAttachment(iAMainWindow* mainWnd, iAMdiChild * child);
 	void init(int filterID, QString const & fileName, vtkSmartPointer<vtkTable> csvtbl, int visType,
 		QSharedPointer<QMap<uint, uint> > columnMapping, std::map<size_t,
 		std::vector<iAVec3f> > & curvedFiberInfo, int cylinderQuality, size_t segmentSkip);
-	void enableBlobVisualization();
-	void disableBlobVisualization();
 	void FeatureScout_Options(int idx);
 private:
-	bool blobVisEnabled;
-	iABlobManager m_blobManager;
-	QList<iABlobCluster*> blobList;
 	dlg_FeatureScout * imgFS;
 };

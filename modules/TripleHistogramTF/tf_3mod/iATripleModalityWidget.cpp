@@ -27,7 +27,7 @@
 #include "iASimpleSlicerWidget.h"
 #include "iARightBorderLayout.h"
 
-#include <charts/iAChartWithFunctionsWidget.h>
+#include <iAChartWithFunctionsWidget.h>
 #include <iAModality.h>
 
 #include <QComboBox>
@@ -36,7 +36,7 @@
 #include <QLabel>
 #include <QSpinBox>
 
-iATripleModalityWidget::iATripleModalityWidget(MdiChild *mdiChild) :
+iATripleModalityWidget::iATripleModalityWidget(iAMdiChild *mdiChild) :
 	iAMultimodalWidget(mdiChild, THREE)
 {
 	m_triangleRenderer = new iABarycentricContextRenderer();

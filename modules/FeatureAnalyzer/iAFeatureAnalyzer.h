@@ -50,7 +50,7 @@ struct iASelection;
 class iASegm3DView;
 class iAPreviewSPLOMView;
 class QButtonGroup;
-class MainWindow;
+class iAMainWindow;
 
 class iAFeatureAnalyzer : public FeatureAnalyzerConnector, public iASavableProject
 {
@@ -58,9 +58,9 @@ class iAFeatureAnalyzer : public FeatureAnalyzerConnector, public iASavableProje
 
 public:
 #if QT_VERSION < QT_VERSION_CHECK(5, 15, 0)
-	iAFeatureAnalyzer(MainWindow *mWnd, const QString & resDir, const QString & datasetsDir, QWidget * parent = nullptr, Qt::WindowFlags f = 0 );
+	iAFeatureAnalyzer(iAMainWindow *mWnd, const QString & resDir, const QString & datasetsDir, QWidget * parent = nullptr, Qt::WindowFlags f = 0 );
 #else
-	iAFeatureAnalyzer(MainWindow* mWnd, const QString& resDir, const QString& datasetsDir, QWidget* parent = nullptr, Qt::WindowFlags f = QFlags<Qt::WindowType>());
+	iAFeatureAnalyzer(iAMainWindow* mWnd, const QString& resDir, const QString& datasetsDir, QWidget* parent = nullptr, Qt::WindowFlags f = QFlags<Qt::WindowType>());
 #endif
 	~iAFeatureAnalyzer();
 	void LoadStateAndShow();

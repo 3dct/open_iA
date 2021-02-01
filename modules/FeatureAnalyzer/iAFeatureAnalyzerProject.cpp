@@ -23,7 +23,7 @@
 #include "iAFeatureAnalyzerModuleInterface.h"
 
 #include <iAModuleDispatcher.h>
-#include <mainwindow.h>
+#include <iAMainWindow.h>
 
 #include <QSettings>
 

@@ -20,9 +20,9 @@
 * ************************************************************************************/
 #pragma once
 
-#include <iAModuleInterface.h>
+#include <iAGUIModuleInterface.h>
 
-class iADreamCasterModuleInterface : public iAModuleInterface
+class iADreamCasterModuleInterface : public iAGUIModuleInterface
 {
 	Q_OBJECT
 public:

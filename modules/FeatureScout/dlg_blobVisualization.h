@@ -21,9 +21,9 @@
 #pragma once
 
 #include <QDialog>
-#include <QDialogButtonBox>
 
 class QCheckBox;
+class QDialogButtonBox;
 class QDoubleSpinBox;
 class QSpinBox;
 class QLabel;

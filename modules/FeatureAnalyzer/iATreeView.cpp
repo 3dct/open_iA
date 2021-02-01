@@ -33,6 +33,19 @@
 #include <QTreeWidget>
 #include <QPair>
 
+namespace
+{
+const QString contextMenuStyle(
+	"QMenu{"
+	"font-size: 11px;"
+	"background-color: #9B9B9B;"
+	"border: 1px solid black;}"
+	"QMenu::separator{"
+	"height: 1px;"
+	"margin: 0px 2px 0px 2px;"
+	"background: gray}" );
+}
+
 iATreeView::iATreeView( QWidget * parent /*= 0*/, Qt::WindowFlags f /*= 0 */ )
 	: TreeViewConnector( parent, f ),
 	m_contextMenu( new QMenu( this ) ),

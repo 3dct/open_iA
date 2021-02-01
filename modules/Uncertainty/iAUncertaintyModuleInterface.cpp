@@ -27,10 +27,11 @@
 #include <dlg_commoninput.h>
 #include <iALog.h>
 #include <iAFilterRegistry.h>
-#include <mainwindow.h>
-#include <mdichild.h>
+#include <iAMainWindow.h>
+#include <iAMdiChild.h>
 
 #include <QFileDialog>
+#include <QMenu>
 
 void iAUncertaintyModuleInterface::Initialize()
 {
@@ -48,7 +49,7 @@ void iAUncertaintyModuleInterface::Initialize()
 }
 
 
-iAModuleAttachmentToChild* iAUncertaintyModuleInterface::CreateAttachment(MainWindow* mainWnd, MdiChild * child)
+iAModuleAttachmentToChild* iAUncertaintyModuleInterface::CreateAttachment(iAMainWindow* mainWnd, iAMdiChild * child)
 {
 	iAUncertaintyAttachment* result = iAUncertaintyAttachment::Create( mainWnd, child);
 	return result;

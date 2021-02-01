@@ -27,7 +27,7 @@
 #include "iADefectClassifier.h"
 #include "iAClassifyDefectsDialog.h"
 
-#include <mainwindow.h>
+#include <iAMainWindow.h>
 
 #include <vtkMath.h>
 
@@ -47,6 +47,7 @@
 #include <QFileDialog>
 #include <QFileInfo>
 #include <QMdiSubWindow>
+#include <QMenu>
 #include <QMessageBox>
 #include <QObject>
 #include <QSettings>
@@ -113,20 +114,20 @@ void iA4DCTModuleInterface::openProj( )
 
 	iA4DCTMainWin* sv = new iA4DCTMainWin( m_mainWnd );
 	sv->load( fileName );
-	m_mainWnd->mdiArea->addSubWindow( sv );
+	m_mainWnd->addSubWindow( sv );
 	sv->show( );
 }
 
 void iA4DCTModuleInterface::newProj( )
 {
 	iA4DCTMainWin* sv = new iA4DCTMainWin( m_mainWnd );
-	m_mainWnd->mdiArea->addSubWindow( sv );
+	m_mainWnd->addSubWindow( sv );
 	sv->show( );
 }
 
 void iA4DCTModuleInterface::saveProj( )
 {
-	QMdiSubWindow* subWnd = m_mainWnd->mdiArea->currentSubWindow( );
+	QMdiSubWindow* subWnd = m_mainWnd->activeChild();
 	iA4DCTMainWin* stackView = qobject_cast<iA4DCTMainWin*>( subWnd->widget( ) );
 	if( stackView != nullptr ) {
 		stackView->save( );
@@ -178,16 +179,16 @@ void iA4DCTModuleInterface::defectClassification()
 //{
 //	PrepareActiveChild();
 //	/*m_densityMap = new dlg_densityMap(m_mainWnd, m_mdiChild);
-//	m_mdiChild->tabifyDockWidget(m_mdiChild->renderDockWidget, m_densityMap);*/
+//	m_mdiChild->tabifyDockWidget(m_mdiChild->renderDockWidget(), m_densityMap);*/
 //
 //	dlg_4dctRegistration* reg = new dlg_4dctRegistration();
 //	m_mainWnd->addSubWindow(reg);
 //	reg->show();
 //
-//	QList<QMdiSubWindow*> list = m_mainWnd->MdiChildList();
-//	foreach(QMdiSubWindow* window, m_mainWnd->MdiChildList())
+//	QList<QMdiSubWindow*> list = m_mainWnd->iAMdiChildList();
+//	foreach(QMdiSubWindow* window, m_mainWnd->iAMdiChildList())
 //	{
-//		MdiChild *mdiChild = qobject_cast<MdiChild *>(window->widget());
+//		iAMdiChild *mdiChild = qobject_cast<iAMdiChild *>(window->widget());
 //		mdiChild->slicer(iASlicerMode::XY)->set4DCTRegistration(reg);
 //		mdiChild->slicer(iASlicerMode::XZ)->set4DCTRegistration(reg);
 //		mdiChild->slicer(iASlicerMode::YZ)->set4DCTRegistration(reg);

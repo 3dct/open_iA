@@ -18,11 +18,11 @@
 * Contact: FH OÖ Forschungs & Entwicklungs GmbH, Campus Wels, CT-Gruppe,              *
 *          Stelzhamerstraße 23, 4600 Wels / Austria, Email: c.heinzl@fh-wels.at       *
 * ************************************************************************************/
-
 #include "iAHistogramStackGrid.h"
 
-#include "charts/iAChartWithFunctionsWidget.h"
 #include "iASimpleSlicerWidget.h"
+
+#include <iAChartWithFunctionsWidget.h>
 
 #include <QGridLayout>
 #include <QResizeEvent>

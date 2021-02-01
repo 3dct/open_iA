@@ -20,7 +20,7 @@
 * ************************************************************************************/
 #pragma once
 
-#include <qthelper/iAQGLWidget.h>
+#include <iAQGLWidget.h>
 
 #include <QPixmap>
 

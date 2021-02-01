@@ -23,7 +23,7 @@
 #include "iAMultimodalWidget.h"
 
 class iAInterpolationSliderWidget;
-class MdiChild;
+class iAMdiChild;
 
 class QLabel;
 
@@ -32,7 +32,7 @@ class iABimodalWidget : public iAMultimodalWidget
 	Q_OBJECT
 
 public:
-	iABimodalWidget(MdiChild *mdiChild);
+	iABimodalWidget(iAMdiChild *mdiChild);
 	void initialize();
 
 private:

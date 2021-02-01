@@ -42,10 +42,11 @@
 #include <iAParameterNames.h>
 #include <iAToolsITK.h>
 #include <iAVtkWidget.h>
-#include <io/iAFileUtils.h>
+#include <iAFileUtils.h>
 #include <io/iAIOProvider.h>
-#include <mdichild.h>
-#include <qthelper/iADockWidgetWrapper.h>
+#include <iAMdiChild.h>
+
+#include <iADockWidgetWrapper.h>
 
 #include <vtkAxis.h>
 #include <vtkChartXY.h>
@@ -109,7 +110,7 @@ struct ChartWidgetData
 };
 
 ChartWidgetData CreateChartWidget(const char * xTitle, const char * yTitle,
-		MdiChild* mdiChild)
+		iAMdiChild* mdiChild)
 {
 	ChartWidgetData result;
 	result.vtkWidget = new iAVtkWidget();
@@ -137,7 +138,7 @@ ChartWidgetData CreateChartWidget(const char * xTitle, const char * yTitle,
 	return result;
 }
 
-dlg_Consensus::dlg_Consensus(MdiChild* mdiChild, dlg_GEMSe* dlgGEMSe, int labelCount, QString const & folder, dlg_samplings* dlgSamplings) :
+dlg_Consensus::dlg_Consensus(iAMdiChild* mdiChild, dlg_GEMSe* dlgGEMSe, int labelCount, QString const & folder, dlg_samplings* dlgSamplings) :
 	m_mdiChild(mdiChild),
 	m_dlgGEMSe(dlgGEMSe),
 	m_labelCount(labelCount),

@@ -36,7 +36,7 @@ class iABoneThicknessAttachment : public iAModuleAttachmentToChild
 	Q_OBJECT
 
 	public:
-		iABoneThicknessAttachment(MainWindow* mainWnd, MdiChild * child);
+		iABoneThicknessAttachment(iAMainWindow* mainWnd, iAMdiChild * child);
 		void setStatistics();
 
 	private:

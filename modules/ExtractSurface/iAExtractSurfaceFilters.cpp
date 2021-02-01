@@ -20,11 +20,13 @@
 * ************************************************************************************/
 #include "iAExtractSurfaceFilters.h"
 
-#include "io/iAFileUtils.h"
+// core
+#include <iAProgress.h>
 
+// base
 #include <iAConnector.h>
 #include <iALog.h>
-#include <iAProgress.h>
+#include <iAFileUtils.h>
 
 //#include <vtkButterflySubdivisionFilter.h>
 #include <vtkCleanPolyData.h>

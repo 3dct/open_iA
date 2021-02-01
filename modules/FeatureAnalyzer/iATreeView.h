@@ -22,8 +22,8 @@
 
 #include "ui_TreeView.h"
 #include "iABPMData.h"
+#include "FeatureAnalyzerHelpers.h"    // for PorosityFilterID
 #include "iAHMData.h"
-#include "FeatureAnalyzerHelpers.h"
 
 #include <qthelper/iAQTtoUIConnector.h>
 

@@ -27,19 +27,21 @@
 #include "iAFoamCharacterizationItemWatershed.h"
 #include "iAFoamCharacterizationTable.h"
 
-#include <mdichild.h>
-#include <mainwindow.h>
-#include <qthelper/iADockWidgetWrapper.h>
+#include <iAMdiChild.h>
+#include <iAMainWindow.h>
+
+#include <iADockWidgetWrapper.h>
 
 #include <vtkImageData.h>
 
+#include <QApplication>
 #include <QFileDialog>
 #include <QGridLayout>
 #include <QGroupBox>
 #include <QMessageBox>
 #include <QPushButton>
 
-iAFoamCharacterizationAttachment::iAFoamCharacterizationAttachment(MainWindow* mainWnd, MdiChild * child)
+iAFoamCharacterizationAttachment::iAFoamCharacterizationAttachment(iAMainWindow* mainWnd, iAMdiChild * child)
 																			  : iAModuleAttachmentToChild(mainWnd, child)
 																			  , m_pImageData(child->imageData())
 {

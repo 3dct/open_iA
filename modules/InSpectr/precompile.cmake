@@ -13,7 +13,7 @@ SET (InSpectr_PRECOMPILE_INCLUDES <algorithm>
 <iASpectrumFilter.h>
 <iATypedCallHelper.h>
 <iAXRFData.h>
-<mdichild.h>
+<iAMdiChild.h>
 <QFileDialog>
 <QImage>
 <QMap>

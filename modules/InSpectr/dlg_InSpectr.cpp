@@ -37,26 +37,29 @@
 #include "iAXRFData.h"
 #include "iAXRFOverlay.h"
 
-#include <charts/iAChartFunctionTransfer.h>
-#include <charts/iAHistogramData.h>
-#include <charts/iAPlotTypes.h>
 #include <iAChannelData.h>
 #include <iAChannelSlicerData.h>
-#include <iAColorTheme.h>
-#include <iAConnector.h>
 #include <iAFunctionalBoxplot.h>
 #include <iAJobListView.h>
-#include <iALog.h>
-#include <iAMathUtility.h>
+#include <iAMdiChild.h>
 #include <iARenderer.h>
 #include <iARunAsync.h>
 #include <iASlicer.h>
 #include <iAVtkWidget.h>
-#include <io/iAFileUtils.h>
 #include <io/iAIO.h>
-#include <qthelper/iAWidgetAddHelper.h>
-#include <mdichild.h>
-#include <qthelper/iADockWidgetWrapper.h>
+
+#include <iADockWidgetWrapper.h>
+
+#include <iAChartFunctionTransfer.h>
+#include <iAHistogramData.h>
+#include <iAPlotTypes.h>
+
+#include "defines.h"    // for NotExistingChannel
+#include <iAColorTheme.h>
+#include <iAConnector.h>
+#include <iAFileUtils.h>
+#include <iALog.h>
+#include <iAMathUtility.h>
 
 #include <itkImageBase.h>
 #include <itkImage.h>
@@ -66,6 +69,7 @@
 
 #include <vtkColorTransferFunction.h>
 #include <vtkDiscretizableColorTransferFunction.h>
+#include <vtkGenericOpenGLRenderWindow.h>
 #include <vtkImageData.h>
 #include <vtkImageResample.h>
 #include <vtkInteractorStyleImage.h>
@@ -166,7 +170,7 @@ void dlg_InSpectr::RemoveSimilarityMarkers()
 }
 
 void dlg_InSpectr::init(double minEnergy, double maxEnergy, bool haveEnergyLevels,
-		iAWidgetAddHelper & widgetAddHelper)
+		iAMdiChild* child)
 {
 	spectrumVisWidget->show();
 	// initialize functions
@@ -194,9 +198,9 @@ void dlg_InSpectr::init(double minEnergy, double maxEnergy, bool haveEnergyLevel
 	iADockWidgetWrapper* spectrumChartContainer = new iADockWidgetWrapper(m_spectrumDiagram, "Spectrum View", "SpectrumChartWidget");
 	spectrumChartContainer->setContentsMargins(0, 0, 0, 0);
 
-	InitCommonGUI(widgetAddHelper);
-	widgetAddHelper.SplitWidget(spectrumChartContainer, widgetAddHelper.m_mdiChild->renderDockWidget(), Qt::Vertical);
-	widgetAddHelper.SplitWidget(m_pieChartContainer, spectrumChartContainer);
+	InitCommonGUI(child);
+	child->splitDockWidget(spectrumChartContainer, child->renderDockWidget(), Qt::Vertical);
+	child->splitDockWidget(m_pieChartContainer, spectrumChartContainer, Qt::Horizontal);
 
 	m_ctfChanged  = true;
 	m_initialized = true;
@@ -246,13 +250,13 @@ void dlg_InSpectr::init(double minEnergy, double maxEnergy, bool haveEnergyLevel
 	pb_decompose->setEnabled(true);
 }
 
-void dlg_InSpectr::InitElementMaps(/* QSharedPointer<iAElementConcentrations> conc */iAWidgetAddHelper & widgetAddHelper)
+void dlg_InSpectr::InitElementMaps(/* QSharedPointer<iAElementConcentrations> conc */ iAMdiChild* child)
 {
-	InitCommonGUI(widgetAddHelper);
-	widgetAddHelper.SplitWidget(m_pieChartContainer, m_periodicTable, Qt::Vertical);
+	InitCommonGUI(child);
+	child->splitDockWidget(m_pieChartContainer, m_periodicTable, Qt::Vertical);
 }
 
-void dlg_InSpectr::InitCommonGUI(iAWidgetAddHelper & widgetAddHelper)
+void dlg_InSpectr::InitCommonGUI(iAMdiChild* child)
 {
 	m_periodicTable->setListener(m_periodicTableListener);
 
@@ -274,8 +278,8 @@ void dlg_InSpectr::InitCommonGUI(iAWidgetAddHelper & widgetAddHelper)
 	m_pieChartContainer = new iADockWidgetWrapper(m_pieChart, "Element Concentration", "PieChartWidget");
 	m_pieChartContainer->setContentsMargins(0, 0, 0, 0);
 	//m_pieChartContainer->hide();
-	widgetAddHelper.SplitWidget(m_periodicTable, this, Qt::Vertical);
-	widgetAddHelper.TabWidget(m_refSpectra, this);
+	child->splitDockWidget(m_periodicTable, this, Qt::Vertical);
+	child->tabifyDockWidget(m_refSpectra, this);
 }
 
 void dlg_InSpectr::setLogDrawMode(bool checked)
@@ -715,7 +719,7 @@ void dlg_InSpectr::loadDecomposition()
 	QString fileName = QFileDialog::getOpenFileName(
 		QApplication::activeWindow(),
 		tr("Load File"),
-		(dynamic_cast<MdiChild*>(parent()))->filePath(),
+		(dynamic_cast<iAMdiChild*>(parent()))->filePath(),
 		tr("Volstack files (*.volstack);;")
 	);
 	if (fileName.isEmpty())
@@ -731,7 +735,7 @@ void dlg_InSpectr::loadDecomposition()
 		m_elementConcentrations->clear();
 	}
 
-	iAIO io(iALog::get(), dynamic_cast<MdiChild*>(parent()),
+	iAIO io(iALog::get(), dynamic_cast<iAMdiChild*>(parent()),
 		m_elementConcentrations->getImageListPtr()
 	);
 	io.setupIO(VOLUME_STACK_VOLSTACK_READER, fileName);
@@ -776,7 +780,7 @@ void dlg_InSpectr::storeDecomposition()
 		}
 	}
 
-	iAIO io(iALog::get(), dynamic_cast<MdiChild*>(parent()),
+	iAIO io(iALog::get(), dynamic_cast<iAMdiChild*>(parent()),
 		m_elementConcentrations->getImageListPtr());
 
 	io.setupIO(VOLUME_STACK_VOLSTACK_WRITER, fileName);
@@ -794,7 +798,7 @@ void dlg_InSpectr::combinedElementMaps(int show)
 	}
 
 	pieGlyphsVisualization( cb_pieChartGlyphs->isChecked() );
-	MdiChild * mdiChild = (dynamic_cast<MdiChild*>(parent()));
+	iAMdiChild * mdiChild = (dynamic_cast<iAMdiChild*>(parent()));
 	if (!show)
 	{
 		for (int i=0; i<m_enabledChannels; ++i)
@@ -913,7 +917,7 @@ void dlg_InSpectr::updateSelectionMode(int /*modeIdx*/)
 
 void dlg_InSpectr::updateSelection()
 {
-	MdiChild* mdiChild = dynamic_cast<MdiChild*>(parent());
+	iAMdiChild* mdiChild = dynamic_cast<iAMdiChild*>(parent());
 
 	if (m_activeFilter.empty())
 	{
@@ -924,7 +928,9 @@ void dlg_InSpectr::updateSelection()
 	vtkSmartPointer<vtkImageData> result = m_xrfData->FilterSpectrum(m_activeFilter, static_cast<iAFilterMode>(comB_spectrumSelectionMode->currentIndex()));
 
 	if (m_spectrumSelectionChannelID == NotExistingChannel)
+	{
 		m_spectrumSelectionChannelID = mdiChild->createChannel();
+	}
 	auto chData = mdiChild->channelData(m_spectrumSelectionChannelID);
 	chData->setData(result, m_selection_ctf, m_selection_otf);
 	// TODO: initialize channel?
@@ -947,7 +953,7 @@ void dlg_InSpectr::showLinkedElementMaps( int show )
 	{
 		return;
 	}
-	MdiChild * mdiChild = (dynamic_cast<MdiChild*>(parent()));
+	iAMdiChild * mdiChild = (dynamic_cast<iAMdiChild*>(parent()));
 
 	m_rendererManager.removeAll();
 	m_rendererManager.addToBundle(mdiChild->renderer()->renderer());
@@ -991,7 +997,7 @@ void dlg_InSpectr::showLinkedElementMaps( int show )
 
 void dlg_InSpectr::InitElementRenderer( dlg_elementRenderer * elemRend, size_t index )
 {
-	MdiChild * mdiChild = (dynamic_cast<MdiChild*>(parent()));
+	iAMdiChild * mdiChild = (dynamic_cast<iAMdiChild*>(parent()));
 
 	//Derive data needed for visualization
 	vtkSmartPointer<vtkImageData> chImgData = m_elementConcentrations->getImage(m_decomposeSelectedElements.indexOf(index));
@@ -1029,8 +1035,8 @@ void dlg_InSpectr::updateConcentrationOpacity(int newVal)
 	m_otf[channelIdx]->AddPoint(0.0, 0.0);
 	m_otf[channelIdx]->AddPoint(1.0, opacity);
 	vtkSmartPointer<vtkImageData> chImgData = m_elementConcentrations->getImage(channelIdx);
-	(dynamic_cast<MdiChild*>(parent()))->updateChannel(m_channelIDs[channelIdx], chImgData, m_ctf[channelIdx], m_otf[channelIdx], true);
-	(dynamic_cast<MdiChild*>(parent()))->updateViews();
+	(dynamic_cast<iAMdiChild*>(parent()))->updateChannel(m_channelIDs[channelIdx], chImgData, m_ctf[channelIdx], m_otf[channelIdx], true);
+	(dynamic_cast<iAMdiChild*>(parent()))->updateViews();
 }
 
 void dlg_InSpectr::ReferenceSpectrumClicked( const QModelIndex &index )
@@ -1165,14 +1171,14 @@ void dlg_InSpectr::computeSimilarityMap()
 		// 	}
 		// 	catch (itk::ExceptionObject & excp)
 		// 	{
-		// 		(dynamic_cast<MdiChild*>(parent()))->addMsg("Exception in computeSimilarityMap(): " + QString(excp.GetDescription()));
+		// 		(dynamic_cast<iAMdiChild*>(parent()))->addMsg("Exception in computeSimilarityMap(): " + QString(excp.GetDescription()));
 		// 		delete [] connectors;
 		// 		delete [] images;
 		// 		return;
 		// 	}
 
 		const unsigned int numSamples = 2500;
-		MdiChild* mdiChild = dynamic_cast<MdiChild*>(parent());
+		iAMdiChild* mdiChild = dynamic_cast<iAMdiChild*>(parent());
 		double numIterations = numEBins * numEBins * 0.5;
 		double curIteration = 0.0;
 		int percentage = 0;
@@ -1454,7 +1460,7 @@ void dlg_InSpectr::setSlicerPieGlyphsOn(bool isOn)
 	if (m_pieGlyphsEnabled == isOn)
 		return;
 	m_pieGlyphsEnabled = isOn;
-	auto child = dynamic_cast<MdiChild*>(parent());
+	auto child = dynamic_cast<iAMdiChild*>(parent());
 	for (int slicerMode = 0; slicerMode < iASlicerMode::SlicerCount; ++slicerMode)
 	{
 		if (isOn)
@@ -1476,7 +1482,7 @@ void dlg_InSpectr::updateAllPieGlyphs()
 void dlg_InSpectr::updatePieGlyphs(int slicerMode)
 {
 	const double EPSILON = 0.0015;
-	auto child = dynamic_cast<MdiChild*>(parent());
+	auto child = dynamic_cast<iAMdiChild*>(parent());
 	auto renWin = child->slicer(slicerMode)->renderWindow();
 	auto ren = renWin->GetRenderers()->GetFirstRenderer();
 	bool hasPieGlyphs = (m_pieGlyphs[slicerMode].size() > 0);
