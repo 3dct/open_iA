@@ -522,6 +522,7 @@ INCLUDE(${CMAKE_ROOT}/Modules/FindOpenMP.cmake)
 #-------------------------
 # Compiler Flags
 #-------------------------
+OPTION (openiA_ENABLE_AVX "Whether to enable AVX optimization. Default: enabled" ON)
 IF (MSVC)
 	SET (CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} /Zc:__cplusplus -wd4068")	# set correct __cplusplus, disable pragma warnings
 	# Reduce size of .pdb files:
@@ -532,7 +533,9 @@ IF (MSVC)
 		# only slightly decrease build sizes (89 -> 80 MB), and disables incremental linking:
 		#SET(CMAKE_SHARED_LINKER_FLAGS "${CMAKE_SHARED_LINKER_FLAGS} /OPT:REF /OPT:ICF")
 	ENDIF()
-	ADD_COMPILE_OPTIONS(/arch:AVX)                 # maybe /arch:AVX2 or /arch:AVX512 ?
+	IF (openiA_ENABLE_AVX)
+		ADD_COMPILE_OPTIONS(/arch:AVX)                 # maybe /arch:AVX2 or /arch:AVX512 ?
+	ENDIF()
 	SET(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} /MP")  # enable multi-processor compilation
 	ADD_DEFINITIONS(-D_CRT_SECURE_NO_WARNINGS)
 	ADD_DEFINITIONS(-D_SCL_SECURE_NO_WARNINGS)
@@ -574,8 +577,13 @@ IF (CMAKE_COMPILER_IS_GNUCXX OR "${CMAKE_CXX_COMPILER_ID}" STREQUAL "Clang")
 		MESSAGE(WARNING "The used compiler ${CMAKE_CXX_COMPILER} has no C++0x/11 support. Please use a newer C++ compiler.")
 	ENDIF()
 
-	set ( CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -pipe -fpermissive -fopenmp -march=core2 -O2 -msse4.2 -mavx")
-	set ( CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -pipe -fopenmp -march=core2 -O2 -msse4.2 -mavx")
+	set ( CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -pipe -fpermissive -fopenmp -march=core2 -O2 -msse4.2")
+	set ( CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -pipe -fopenmp -march=core2 -O2 -msse4.2")
+
+	if (openiA_ENABLE_AVX)
+		set ( CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -mavx")
+		set ( CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -mavx")
+	endif()
 
 	# we do need to set the RPATH to make lib load path recursive also be able to load dependent libraries from the rpath specified in the executables:
 	# see https://stackoverflow.com/questions/58997230/cmake-project-fails-to-find-shared-library
