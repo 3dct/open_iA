@@ -1,7 +1,7 @@
 /*************************************  open_iA  ************************************ *
 * **********   A tool for visual analysis and processing of 3D CT images   ********** *
 * *********************************************************************************** *
-* Copyright (C) 2016-2020  C. Heinzl, M. Reiter, A. Reh, W. Li, M. Arikan, Ar. &  Al. *
+* Copyright (C) 2016-2021  C. Heinzl, M. Reiter, A. Reh, W. Li, M. Arikan, Ar. &  Al. *
 *                 Amirkhanov, J. Weissenböck, B. Fröhler, M. Schiwarth, P. Weinberger *
 * *********************************************************************************** *
 * This program is free software: you can redistribute it and/or modify it under the   *
@@ -635,7 +635,7 @@ void iADreamCaster::RenderViewsSlot()
 	FILE *fptr = fopen( getLocalEncodingFileName(setFileName).c_str(),"wb");
 	if(!fptr)
 	{
-		log("Error! Cannot open set file for writing.");
+		log(QString("Error! Cannot open set file '%1' for writing.").arg(setFileName));
 		return;
 	}
 	float cur_minValX = ui.sb_min_x->value()/DEG_IN_PI;
@@ -1185,7 +1185,7 @@ void iADreamCaster::readRenderFromBinaryFile(unsigned int x, unsigned int y, uns
 	FILE *fptr = fopen( getLocalEncodingFileName(setFileName).c_str() ,"rb");
 	if(!fptr)
 	{
-		log("Error! Cannot open set file for reading.");
+		log(QString("Error! Cannot open set file '%1' for reading.").arg(setFileName));
 		return;
 	}
 
@@ -1595,7 +1595,7 @@ void iADreamCaster::UpdatePlotSlot()
 	FILE *fptr = fopen( getLocalEncodingFileName(setFileName).c_str(),"rb");
 	if(!fptr)
 	{
-		log("Error! Cannot open set file for reading.");
+		log(QString("Error! Cannot open set file '%1' for reading.").arg(setFileName));
 		return;
 	}
 	ClearPrevData();
@@ -1967,18 +1967,21 @@ void iADreamCaster::ShowResultsSlot()
 		break;
 	}
 	rstr+="Optimal parameter's value is: " + QString::number( (placementsParams[xind][zind])[curParamInd] )+"\n";
-	rstr+="Optimal X-rotation is: " + QString::number(rotations[xind][0][zind].rotX)+" (PI)\n";
-	rstr+="Optimal Z-rotation is: " + QString::number(rotations[xind][0][zind].rotZ)+" (PI)\n";
+	double xOpt = rotations[xind][0][zind].rotX;
+	double zOpt = rotations[xind][0][zind].rotZ;
+	rstr+= QString("Optimal X-rotation is: %1π rad (= %2° deg)\n").arg(xOpt).arg(xOpt * 180);
+	rstr+= QString("Optimal Z-rotation is: %1π rad (= %2° deg)\n").arg(zOpt).arg(zOpt * 180);
 	resUi.textEdit->setText(rstr);
 	res.show();
 }
 
 void iADreamCaster::SaveResultsSlot()
 {
-	QFile file(modelFileName+".result");
+	QString fileName(modelFileName+".result");
+	QFile file(fileName);
 	if (!file.open(QIODevice::WriteOnly))
 	{
-		log("Error: Cannot open file results.txt for writing!");
+		log(QString("Error: Cannot open file '%1' for writing!").arg(fileName));
 		return;
 	}
 	QTextStream out(&file);
