@@ -36,7 +36,8 @@
 #include <itkPatchBasedDenoisingImageFilter.h>
 #include <itkRecursiveGaussianImageFilter.h>
 #ifndef ITKNOGPU
-#define CL_TARGET_OPENCL_VERSION 220
+// now defined via CMake option:
+//#define CL_TARGET_OPENCL_VERSION 110
 #include <itkGPUImage.h>
 #include <itkGPUKernelManager.h>
 #include <itkGPUContextManager.h>

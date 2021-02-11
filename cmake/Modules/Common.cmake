@@ -468,7 +468,22 @@ ENDIF()
 # OpenCL
 FIND_PACKAGE(OpenCL)
 IF (OPENCL_FOUND)
+
+	set (openiA_OPENCL_VERSION_OPTIONS "1.1.0" "1.2.0" "2.0.0" "2.1.0"  "2.2.0")
+	list (FIND openiA_OPENCL_VERSION_OPTIONS "${openiA_OPENCL_VERSION}" opencl_version_index)
+	if (${opencl_version_index} EQUAL -1)
+		set (openiA_OPENCL_VERSION_DEFAULT "1.2.0")
+		if (DEFINED openiA_OPENCL_VERSION)
+			MESSAGE(WARNING "Invalid openiA_OPENCL_VERSION, resetting to default ${openiA_OPENCL_VERSION_DEFAULT}!")
+		endif()
+		set (openiA_OPENCL_VERSION "${openiA_OPENCL_VERSION_DEFAULT}" CACHE STRING "The version of OpenCL to target (default: ${openiA_OPENCL_VERSION_DEFAULT})" FORCE)
+		set_property(CACHE openiA_OPENCL_VERSION PROPERTY STRINGS ${openiA_OPENCL_VERSION_OPTIONS})
+	endif()
+	string(REPLACE "." "" CL_TARGET_OPENCL_VERSION "${openiA_OPENCL_VERSION}")
+	set (CL_HPP_TARGET_OPENCL_VERSION "${CL_TARGET_OPENCL_VERSION}")
+
 	MESSAGE(STATUS "OpenCL: include=${OPENCL_INCLUDE_DIRS}, libraries=${OPENCL_LIBRARIES}.")
+	set (BUILD_INFO "${BUILD_INFO}    \"OpenCL targeted version: ${openiA_OPENCL_VERSION}\\n\"\n")
 	IF (WIN32)
 		# Find path of OpenCL.dll to include in release:
 		get_filename_component(OPENCL_LIB_DIR "${OPENCL_LIBRARIES}" DIRECTORY)
@@ -522,7 +537,21 @@ INCLUDE(${CMAKE_ROOT}/Modules/FindOpenMP.cmake)
 #-------------------------
 # Compiler Flags
 #-------------------------
-OPTION (openiA_ENABLE_AVX "Whether to enable AVX optimization. Default: enabled" ON)
+
+set (openiA_AVX_SUPPORT_DISABLED "disabled")
+set (openiA_AVX_SUPPORT_OPTIONS "${openiA_AVX_SUPPORT_DISABLED}" "AVX" "AVX2")
+list (FIND openiA_AVX_SUPPORT_OPTIONS "${openiA_AVX_SUPPORT}" avx_support_index)
+if (${avx_support_index} EQUAL -1)
+	set (openiA_AVX_SUPPORT_DEFAULT "AVX")
+	if (DEFINED openiA_AVX_SUPPORT)
+		MESSAGE(WARNING "Invalid openiA_AVX_SUPPORT, resetting to default ${openiA_AVX_SUPPORT_DEFAULT}!")
+	endif()
+	set (openiA_AVX_SUPPORT "${openiA_AVX_SUPPORT_DEFAULT}" CACHE STRING
+		"AVX extensions to enable (default: ${openiA_AVX_SUPPORT_DEFAULT})." FORCE)
+	set_property(CACHE openiA_AVX_SUPPORT PROPERTY STRINGS ${openiA_AVX_SUPPORT_OPTIONS})
+endif()
+set (BUILD_INFO "${BUILD_INFO}    \"AVX: ${openiA_AVX_SUPPORT}\\n\"\n")
+
 IF (MSVC)
 	SET (CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} /Zc:__cplusplus -wd4068")	# set correct __cplusplus, disable pragma warnings
 	# Reduce size of .pdb files:
@@ -533,9 +562,10 @@ IF (MSVC)
 		# only slightly decrease build sizes (89 -> 80 MB), and disables incremental linking:
 		#SET(CMAKE_SHARED_LINKER_FLAGS "${CMAKE_SHARED_LINKER_FLAGS} /OPT:REF /OPT:ICF")
 	ENDIF()
-	IF (openiA_ENABLE_AVX)
-		ADD_COMPILE_OPTIONS(/arch:AVX)                 # maybe /arch:AVX2 or /arch:AVX512 ?
-	ENDIF()
+
+	if (NOT "${openiA_AVX_SUPPORT}" STREQUAL "${openiA_AVX_SUPPORT_DISABLED}")
+		ADD_COMPILE_OPTIONS(/arch:${openiA_AVX_SUPPORT})
+	endif()
 	SET(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} /MP")  # enable multi-processor compilation
 	ADD_DEFINITIONS(-D_CRT_SECURE_NO_WARNINGS)
 	ADD_DEFINITIONS(-D_SCL_SECURE_NO_WARNINGS)
@@ -580,9 +610,10 @@ IF (CMAKE_COMPILER_IS_GNUCXX OR "${CMAKE_CXX_COMPILER_ID}" STREQUAL "Clang")
 	set ( CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -pipe -fpermissive -fopenmp -march=core2 -O2 -msse4.2")
 	set ( CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -pipe -fopenmp -march=core2 -O2 -msse4.2")
 
-	if (openiA_ENABLE_AVX)
-		set ( CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -mavx")
-		set ( CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -mavx")
+	if (NOT "${openiA_AVX_SUPPORT}" STREQUAL "${openiA_AVX_SUPPORT_DISABLED}")
+		string(TOLOWER "${openiA_AVX_SUPPORT}" openiA_AVX_SUPPORT_LOWER)
+		set ( CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -m${openiA_AVX_SUPPORT_LOWER}")
+		set ( CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -m${openiA_AVX_SUPPORT_LOWER}")
 	endif()
 
 	# we do need to set the RPATH to make lib load path recursive also be able to load dependent libraries from the rpath specified in the executables:
