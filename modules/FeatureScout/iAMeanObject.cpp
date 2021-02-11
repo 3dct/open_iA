@@ -564,6 +564,6 @@ void iAMeanObject::saveStl()
 			stlWriter->SetInputConnection(moSurface->GetOutputPort());
 			stlWriter->Write();
 		},
-		[progress] { delete progress; });
+		[progress] { delete progress; }, m_dwMO);
 	iAJobListView::get()->addJob("Saving STL", progress->progressObject(), job);
 }

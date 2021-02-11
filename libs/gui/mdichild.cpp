@@ -2588,14 +2588,9 @@ void MdiChild::setHistogramModality(int modalityIdx)
 	modality(modalityIdx)->info().setComputing();
 	updateImageProperties();
 
-	auto fw = runAsync([this, modalityIdx]
-		{
-			modality(modalityIdx)->computeImageStatistics();
-		},
-		[this, modalityIdx]
-		{
-			statisticsAvailable(modalityIdx);
-		});
+	auto compute = [this, modalityIdx] { modality(modalityIdx)->computeImageStatistics(); };
+	auto finished = [this, modalityIdx] { statisticsAvailable(modalityIdx); };
+	auto fw = runAsync(compute, finished, this);
 	iAJobListView::get()->addJob(QString("Computing statistics for modality %1...")
 		.arg(modality(modalityIdx)->name()), nullptr, fw);
 }
@@ -2676,7 +2671,7 @@ void MdiChild::displayHistogram(int modalityIdx)
 		[this, modalityIdx]
 		{  // ... and on finished signal, trigger histogramDataAvailable
 			histogramDataAvailable(modalityIdx);
-		});
+		}, this);
 		// TODO: find way of terminating computation in case modality is deleted/application closed!
 	iAJobListView::get()->addJob(QString("Computing histogram for modality %1...")
 		.arg(modality(modalityIdx)->name()), nullptr, fw);
