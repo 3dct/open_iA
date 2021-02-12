@@ -43,7 +43,7 @@ public:
 #if QT_VERSION < QT_VERSION_CHECK(5, 15, 0)
 	iAGeometricObjectsDialog(QWidget* parent = nullptr, Qt::WindowFlags f = 0);
 #else
-	iAGeometricObjectsDialog(QWidget* parent = nullptr, Qt::WindowFlags f = QFlags<Qt::WindowType>());
+	iAGeometricObjectsDialog(QWidget* parent = nullptr, Qt::WindowFlags f = Qt::WindowFlags());
 #endif
 	void setMDIChild(iAMdiChild* child);
 

@@ -44,7 +44,7 @@ public:
 #if QT_VERSION < QT_VERSION_CHECK(5, 15, 0)
 	iABarycentricTriangleWidget(QWidget* parent = nullptr, Qt::WindowFlags f = 0);
 #else
-	iABarycentricTriangleWidget(QWidget* parent = nullptr, Qt::WindowFlags f = QFlags<Qt::WindowType>());
+	iABarycentricTriangleWidget(QWidget* parent = nullptr, Qt::WindowFlags f = Qt::WindowFlags());
 #endif
 
 	int getWidthForHeight(int height);

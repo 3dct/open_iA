@@ -36,7 +36,7 @@ public:
 #if QT_VERSION < QT_VERSION_CHECK(5, 15, 0)
 	dlg_tf_2mod(iAMdiChild* parent, Qt::WindowFlags f = 0);
 #else
-	dlg_tf_2mod(iAMdiChild* parent, Qt::WindowFlags f = QFlags<Qt::WindowType>());
+	dlg_tf_2mod(iAMdiChild* parent, Qt::WindowFlags f = Qt::WindowFlags());
 #endif
 
 private:

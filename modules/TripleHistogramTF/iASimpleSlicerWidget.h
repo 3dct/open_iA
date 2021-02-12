@@ -41,7 +41,7 @@ public:
 #if QT_VERSION < QT_VERSION_CHECK(5, 15, 0)
 	iASimpleSlicerWidget(QWidget* parent = nullptr, bool enableInteraction = false, Qt::WindowFlags f = 0);
 #else
-	iASimpleSlicerWidget(QWidget* parent = nullptr, bool enableInteraction = false, Qt::WindowFlags f = QFlags<Qt::WindowType>());
+	iASimpleSlicerWidget(QWidget* parent = nullptr, bool enableInteraction = false, Qt::WindowFlags f = Qt::WindowFlags());
 #endif
 	~iASimpleSlicerWidget();
 

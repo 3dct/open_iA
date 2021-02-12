@@ -35,7 +35,7 @@ public:
 #if QT_VERSION < QT_VERSION_CHECK(5,15,0)
 	explicit iAQWidgetToolbar(QWidget* parent = nullptr, Qt::WindowFlags f = 0) : QWidget(parent, f) {};
 #else
-	explicit iAQWidgetToolbar(QWidget* parent = nullptr, Qt::WindowFlags f = QFlags<Qt::WindowType>()) : QWidget(parent, f) {};
+	explicit iAQWidgetToolbar(QWidget* parent = nullptr, Qt::WindowFlags f = Qt::WindowFlags()) : QWidget(parent, f) {};
 #endif
 protected:
 

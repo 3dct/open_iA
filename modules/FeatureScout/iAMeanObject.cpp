@@ -78,7 +78,7 @@ public:
 #if QT_VERSION < QT_VERSION_CHECK(5, 15, 0)
 	iAMeanObjectTFView(QWidget* parent = nullptr, Qt::WindowFlags f = 0)
 #else
-	iAMeanObjectTFView(QWidget* parent = nullptr, Qt::WindowFlags f = QFlags<Qt::WindowType>())
+	iAMeanObjectTFView(QWidget* parent = nullptr, Qt::WindowFlags f = Qt::WindowFlags())
 #endif
 	: iAUIMeanObjectTFView(parent, f)
 	{}
@@ -90,7 +90,7 @@ public:
 #if QT_VERSION < QT_VERSION_CHECK(5, 15, 0)
 	iAMeanObjectDockWidget(QWidget* parent = nullptr, Qt::WindowFlags f = 0)
 #else
-	iAMeanObjectDockWidget(QWidget* parent = nullptr, Qt::WindowFlags f = QFlags<Qt::WindowType>())
+	iAMeanObjectDockWidget(QWidget* parent = nullptr, Qt::WindowFlags f = Qt::WindowFlags())
 #endif
 	: iAUIMeanObjectDockWidget(parent, f)
 	{}
