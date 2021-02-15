@@ -588,7 +588,7 @@ IF (MSVC)
 	add_compile_definitions(_CRT_SECURE_NO_WARNINGS _SCL_SECURE_NO_WARNINGS)
 	
 	# enable all warnings, disable selected:
-	ADD_COMPILE_OPTIONS(/W4 /wd4068 /wd4127 /wd4251 /wd451)
+	ADD_COMPILE_OPTIONS(/W4 /wd4068 /wd4127 /wd4251 /wd4515)
 	# disabled: C4068 - "unknown pragma - ignoring a pragma"
 	#           C4127 - caused by QVector
 	#           C4251 - "class requires dll interface"
