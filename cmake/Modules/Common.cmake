@@ -53,6 +53,8 @@ IF (MSVC)
 	MESSAGE(STATUS "Compiler: Visual C++ (MSVC_VERSION ${MSVC_VERSION} / ${CMAKE_CXX_COMPILER_VERSION})")
 	set (BUILD_INFO "${BUILD_INFO}    \"Compiler: Visual C++ (MSVC_VERSION ${MSVC_VERSION} / ${CMAKE_CXX_COMPILER_VERSION})\\n\"\n")
 	set (BUILD_INFO "${BUILD_INFO}    \"Windows SDK: ${CMAKE_VS_WINDOWS_TARGET_PLATFORM_VERSION}\\n\"\n")
+	# Apply file grouping based on regular expressions for Visual Studio IDE.
+	SOURCE_GROUP("UI Files" REGULAR_EXPRESSION "[.](ui|qrc)$")
 ELSEIF (CMAKE_CXX_COMPILER_ID MATCHES "Clang")
 	MESSAGE(STATUS "Compiler: Clang (${CMAKE_CXX_COMPILER_VERSION})")
 	set (BUILD_INFO "${BUILD_INFO}    \"Compiler: Clang (Version ${CMAKE_CXX_COMPILER_VERSION})\\n\"\n")
@@ -232,7 +234,7 @@ IF (VTK_MAJOR_VERSION GREATER_EQUAL 9)
 	)
 ENDIF()
 IF ("${VTK_RENDERING_BACKEND}" STREQUAL "OpenGL2")
-	ADD_DEFINITIONS(-DVTK_OPENGL2_BACKEND)
+	add_compile_definitions(VTK_OPENGL2_BACKEND)
 ELSE()
 	IF (MSVC)
 		ADD_COMPILE_OPTIONS(/wd4081)
@@ -240,7 +242,7 @@ ELSE()
 	LIST (APPEND VTK_COMPONENTS vtkGUISupportQtOpenGL)    # for QVTKWidget2
 ENDIF()
 IF ("${vtkRenderingOSPRay_LOADED}")
-	ADD_DEFINITIONS(-DVTK_OSPRAY_AVAILABLE)
+	add_compile_definitions(VTK_OSPRAY_AVAILABLE)
 ENDIF()
 
 FUNCTION (ExtractVersion filename identifier output_varname)
@@ -297,7 +299,7 @@ IF (VTK_MAJOR_VERSION GREATER 8)
 	ENDIF()
 ENDIF()
 FIND_PACKAGE(VTK COMPONENTS ${VTK_COMPONENTS})
-IF (VTK_MAJOR_VERSION LESS 9)		# VTK >= 9.0 uses imported targets -> include directories are set by TARGET_LINK_LIBRARY(... VTK_LIBRARIES) call!
+IF (VTK_MAJOR_VERSION LESS 9)		# VTK >= 9.0 uses imported targets -> include directories are set by TARGET_LINK_LIBRARIES(... VTK_LIBRARIES) call!
 	INCLUDE(${VTK_USE_FILE})
 ENDIF()
 IF (MSVC)
@@ -480,7 +482,16 @@ IF (OPENCL_FOUND)
 		set_property(CACHE openiA_OPENCL_VERSION PROPERTY STRINGS ${openiA_OPENCL_VERSION_OPTIONS})
 	endif()
 	string(REPLACE "." "" CL_TARGET_OPENCL_VERSION "${openiA_OPENCL_VERSION}")
-	set (CL_HPP_TARGET_OPENCL_VERSION "${CL_TARGET_OPENCL_VERSION}")
+	add_library(OpenCL INTERFACE)
+	target_compile_definitions(OpenCL INTERFACE __CL_ENABLE_EXCEPTIONS
+		CL_HPP_TARGET_OPENCL_VERSION=${CL_TARGET_OPENCL_VERSION}
+		CL_TARGET_OPENCL_VERSION=${CL_TARGET_OPENCL_VERSION})
+	target_link_libraries(OpenCL INTERFACE ${OPENCL_LIBRARIES})
+	target_include_directories(OpenCL INTERFACE ${Toolkit_DIR}/OpenCL)
+	# if OPENCL includes not set via ITK:
+	IF ("${ITKGPUCommon_LIBRARY_DIRS}" STREQUAL "")
+		target_include_directories(OpenCL INTERFACE ${OPENCL_INCLUDE_DIRS})
+	ENDIF()
 
 	MESSAGE(STATUS "OpenCL: include=${OPENCL_INCLUDE_DIRS}, libraries=${OPENCL_LIBRARIES}.")
 	set (BUILD_INFO "${BUILD_INFO}    \"OpenCL targeted version: ${openiA_OPENCL_VERSION}\\n\"\n")
@@ -553,7 +564,15 @@ endif()
 set (BUILD_INFO "${BUILD_INFO}    \"AVX: ${openiA_AVX_SUPPORT}\\n\"\n")
 
 IF (MSVC)
-	SET (CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} /Zc:__cplusplus -wd4068")	# set correct __cplusplus, disable pragma warnings
+	# /bigobj            increase the number of sections in .obj file (65,279 -> 2^32), exceeded by some compilations
+	# /Zc:__cplusplus    set correct value in __cplusplus macro (https://docs.microsoft.com/en-us/cpp/build/reference/zc-cplusplus)
+	# /MP                enable multi-processor compilation
+	SET (CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} /MP /bigobj /Zc:__cplusplus")
+	IF (MSVC_VERSION GREATER_EQUAL 1910)
+		# specify standard conformance mode (https://docs.microsoft.com/en-us/cpp/build/reference/permissive-standards-conformance)
+		SET(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} /permissive-")
+	ENDIF()
+
 	# Reduce size of .pdb files:
 	OPTION (openiA_COMPRESS_PDB "Whether to compress .pdb files to conserve disk space. Default: enabled." ON)
 	IF (openiA_COMPRESS_PDB)
@@ -566,13 +585,12 @@ IF (MSVC)
 	if (NOT "${openiA_AVX_SUPPORT}" STREQUAL "${openiA_AVX_SUPPORT_DISABLED}")
 		ADD_COMPILE_OPTIONS(/arch:${openiA_AVX_SUPPORT})
 	endif()
-	SET(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} /MP")  # enable multi-processor compilation
-	ADD_DEFINITIONS(-D_CRT_SECURE_NO_WARNINGS)
-	ADD_DEFINITIONS(-D_SCL_SECURE_NO_WARNINGS)
+	add_compile_definitions(_CRT_SECURE_NO_WARNINGS _SCL_SECURE_NO_WARNINGS)
 	
-	# enable all warnings:
-	ADD_COMPILE_OPTIONS(/W4 /wd4127 /wd4251 /wd4515)
-	# disabled: C4127 - caused by QVector
+	# enable all warnings, disable selected:
+	ADD_COMPILE_OPTIONS(/W4 /wd4068 /wd4127 /wd4251 /wd451)
+	# disabled: C4068 - "unknown pragma - ignoring a pragma"
+	#           C4127 - caused by QVector
 	#           C4251 - "class requires dll interface"
 	#           C4515 - "namespace uses itself" - caused by ITK/gdcm
 ELSE()
@@ -592,6 +610,7 @@ ELSE()
 	ADD_COMPILE_OPTIONS(-Wall -Wextra) # with -Wpedantic, lots of warnings about extra ';' in VTK/ITK code...
 ENDIF()
 
+# check: are CMAKE_C_FLAGS really required or are CMAKE_CXX_FLAGS alone enough?
 IF (CMAKE_COMPILER_IS_GNUCXX)
 	IF ("${CMAKE_BUILD_TYPE}" STREQUAL "Debug" OR "${CMAKE_BUILD_TYPE}" STREQUAL "RelWithDebInfo")
 		SET (CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -ggdb3")
@@ -601,6 +620,7 @@ ENDIF()
 
 IF (CMAKE_COMPILER_IS_GNUCXX OR "${CMAKE_CXX_COMPILER_ID}" STREQUAL "Clang")
 	# Make sure at least C++ 0x is supported:
+	# check if that is required with CMAKE_CXX_STANDARD definition above!
 	INCLUDE (CheckCXXCompilerFlag)
 	CHECK_CXX_COMPILER_FLAG("-std=c++0x" COMPILER_SUPPORTS_CXX0X)
 	IF (NOT COMPILER_SUPPORTS_CXX0X)
@@ -729,7 +749,7 @@ git_describe(openiA_VERSION openiA_HASH --tags)
 MESSAGE(STATUS "Build version: ${openiA_VERSION}")
 set (BUILD_INFO "${BUILD_INFO}    \"git revision: ${openiA_HASH}\\n\"\n")
 
-ADD_DEFINITIONS(-DUNICODE -D_UNICODE)    # Enable Unicode
+add_compile_definitions(UNICODE _UNICODE)    # Enable Unicode
 
 IF (UNIX)
     SET(CMAKE_INSTALL_RPATH "\$ORIGIN")      # Set RunPath in all created libraries / executables to $ORIGIN

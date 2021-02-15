@@ -36,7 +36,11 @@ class iAPreviewSPLOMView : public PreviewSPLOMConnector
 {
 	Q_OBJECT
 public:
+#if QT_VERSION < QT_VERSION_CHECK(5, 15, 0)
 	iAPreviewSPLOMView( QWidget * parent = 0, Qt::WindowFlags f = 0 );
+#else
+	iAPreviewSPLOMView(QWidget* parent = nullptr, Qt::WindowFlags f = Qt::WindowFlags());
+#endif
 	void SetDatasetsDir( const QString & datasetsFolder );
 	~iAPreviewSPLOMView();
 
