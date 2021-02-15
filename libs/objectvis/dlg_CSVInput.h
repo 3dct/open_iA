@@ -1,7 +1,7 @@
 /*************************************  open_iA  ************************************ *
 * **********   A tool for visual analysis and processing of 3D CT images   ********** *
 * *********************************************************************************** *
-* Copyright (C) 2016-2020  C. Heinzl, M. Reiter, A. Reh, W. Li, M. Arikan, Ar. &  Al. *
+* Copyright (C) 2016-2021  C. Heinzl, M. Reiter, A. Reh, W. Li, M. Arikan, Ar. &  Al. *
 *                 Amirkhanov, J. Weissenböck, B. Fröhler, M. Schiwarth, P. Weinberger *
 * *********************************************************************************** *
 * This program is free software: you can redistribute it and/or modify it under the   *
@@ -39,7 +39,7 @@ public:
 #if QT_VERSION < QT_VERSION_CHECK(5,15,0)
 	dlg_CSVInput(bool volumeDataAvailable, QWidget * parent = nullptr, Qt::WindowFlags f = 0);
 #else
-	dlg_CSVInput(bool volumeDataAvailable, QWidget* parent = nullptr, Qt::WindowFlags f = QFlags<Qt::WindowType>());
+	dlg_CSVInput(bool volumeDataAvailable, QWidget* parent = nullptr, Qt::WindowFlags f = Qt::WindowFlags());
 #endif
 	//! Set the internal path (used when choosing a csv file) to the one given as parameter
 	void setPath(QString const & path);

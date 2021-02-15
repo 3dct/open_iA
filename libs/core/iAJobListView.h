@@ -1,7 +1,7 @@
 /*************************************  open_iA  ************************************ *
 * **********   A tool for visual analysis and processing of 3D CT images   ********** *
 * *********************************************************************************** *
-* Copyright (C) 2016-2020  C. Heinzl, M. Reiter, A. Reh, W. Li, M. Arikan, Ar. &  Al. *
+* Copyright (C) 2016-2021  C. Heinzl, M. Reiter, A. Reh, W. Li, M. Arikan, Ar. &  Al. *
 *                 Amirkhanov, J. Weissenböck, B. Fröhler, M. Schiwarth, P. Weinberger *
 * *********************************************************************************** *
 * This program is free software: you can redistribute it and/or modify it under the   *
@@ -29,7 +29,7 @@
 
 class iAAbortListener;
 class iADurationEstimator;
-class iAJobPending;
+class iAJob;
 class iAProgress;
 
 //! A list of currently running jobs and their progress.
@@ -97,6 +97,9 @@ public:
 #endif
 	QSharedPointer<QObject>	addJob(QString name, iAProgress* p, iAAbortListener* abortListener = nullptr,
 		QSharedPointer<iADurationEstimator> estimator = QSharedPointer<iADurationEstimator>());
+	//! destructor; automatically cancels any still running jobs,
+	//! and even for jobs it's not able to cancel, removes their finish action
+	~iAJobListView();
 signals:
 	//! Emitted when all jobs are done; is used in main window to hide widget
 	//! as it means that no more jobs are currently running.
@@ -113,14 +116,11 @@ private slots:
 private:
 	//! Prevent creation - singleton pattern
 	iAJobListView();
-	QWidget* addJobWidget(QString name, iAProgress* p, iAAbortListener* abortListener,
-		QSharedPointer<iADurationEstimator> estimator);
-	//! Number of currently running jobs
-	QAtomicInteger<int> m_runningJobs;
+	QWidget* addJobWidget(QSharedPointer<iAJob> j);
 	//! The container widget for all job entries
 	QWidget* m_insideWidget;
-	//! Pointers to the duration estimators (to keep them alive while the job is running)
-	QMap<QWidget*, QSharedPointer<iADurationEstimator>> m_estimators;
 	//! List of jobs pending to be added (needed to be able to add jobs also from non-GUI-threads
-	QStack<QSharedPointer<iAJobPending>> m_pendingJobs;
+	QStack<QSharedPointer<iAJob>> m_pendingJobs;
+	//! Currently running jobs
+	QVector<QSharedPointer<iAJob>> m_jobs;
 };

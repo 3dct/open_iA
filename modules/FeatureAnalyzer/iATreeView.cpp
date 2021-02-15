@@ -1,7 +1,7 @@
 /*************************************  open_iA  ************************************ *
 * **********   A tool for visual analysis and processing of 3D CT images   ********** *
 * *********************************************************************************** *
-* Copyright (C) 2016-2020  C. Heinzl, M. Reiter, A. Reh, W. Li, M. Arikan, Ar. &  Al. *
+* Copyright (C) 2016-2021  C. Heinzl, M. Reiter, A. Reh, W. Li, M. Arikan, Ar. &  Al. *
 *                 Amirkhanov, J. Weissenböck, B. Fröhler, M. Schiwarth, P. Weinberger *
 * *********************************************************************************** *
 * This program is free software: you can redistribute it and/or modify it under the   *
@@ -611,7 +611,7 @@ bool iATreeView::updateSelectedHMData()
 		QString datasetName = m_selectedHMData.datasets.at( i );
 		double gtPorosity = ( *m_gtPorosityMap )[m_selectedHMData.datasets.at( i )];
 
-		m_selectedHMData.gtPorosityMap.insertMulti( datasetName, gtPorosity );
+		m_selectedHMData.gtPorosityMap.insert( datasetName, gtPorosity );    //gtPorosityMap is MultiMap, so if datasetName exists, a second entry will be created
 	}
 
 	for ( int i = 0; i < m_selectedHMData.filters.size(); ++i )

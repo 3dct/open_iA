@@ -119,7 +119,7 @@ Qt::Orientations iAQFlowLayout::expandingDirections() const
 #if QT_VERSION < QT_VERSION_CHECK(5, 15, 0)
 	return 0;
 #else
-	return QFlags<Qt::Orientation>();
+	return Qt::Orientations();
 #endif
 }
 

@@ -1,7 +1,7 @@
 /*************************************  open_iA  ************************************ *
 * **********   A tool for visual analysis and processing of 3D CT images   ********** *
 * *********************************************************************************** *
-* Copyright (C) 2016-2020  C. Heinzl, M. Reiter, A. Reh, W. Li, M. Arikan, Ar. &  Al. *
+* Copyright (C) 2016-2021  C. Heinzl, M. Reiter, A. Reh, W. Li, M. Arikan, Ar. &  Al. *
 *                 Amirkhanov, J. Weissenböck, B. Fröhler, M. Schiwarth, P. Weinberger *
 * *********************************************************************************** *
 * This program is free software: you can redistribute it and/or modify it under the   *
@@ -78,7 +78,7 @@ public:
 #if QT_VERSION < QT_VERSION_CHECK(5, 15, 0)
 	iAMeanObjectTFView(QWidget* parent = nullptr, Qt::WindowFlags f = 0)
 #else
-	iAMeanObjectTFView(QWidget* parent = nullptr, Qt::WindowFlags f = QFlags<Qt::WindowType>())
+	iAMeanObjectTFView(QWidget* parent = nullptr, Qt::WindowFlags f = Qt::WindowFlags())
 #endif
 	: iAUIMeanObjectTFView(parent, f)
 	{}
@@ -90,7 +90,7 @@ public:
 #if QT_VERSION < QT_VERSION_CHECK(5, 15, 0)
 	iAMeanObjectDockWidget(QWidget* parent = nullptr, Qt::WindowFlags f = 0)
 #else
-	iAMeanObjectDockWidget(QWidget* parent = nullptr, Qt::WindowFlags f = QFlags<Qt::WindowType>())
+	iAMeanObjectDockWidget(QWidget* parent = nullptr, Qt::WindowFlags f = Qt::WindowFlags())
 #endif
 	: iAUIMeanObjectDockWidget(parent, f)
 	{}
@@ -564,6 +564,6 @@ void iAMeanObject::saveStl()
 			stlWriter->SetInputConnection(moSurface->GetOutputPort());
 			stlWriter->Write();
 		},
-		[progress] { delete progress; });
+		[progress] { delete progress; }, m_dwMO);
 	iAJobListView::get()->addJob("Saving STL", progress->progressObject(), job);
 }

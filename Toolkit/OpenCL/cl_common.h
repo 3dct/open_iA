@@ -12,7 +12,9 @@
 // When the AMD OpenCL 1.2 installed, we need this line to do the work
 // if it does not work on your PC, just uncomment the following line 
 #define CL_USE_DEPRECATED_OPENCL_1_1_APIS
-#define CL_TARGET_OPENCL_VERSION 120
+// now defined via CMake option:
+//#define CL_TARGET_OPENCL_VERSION 120
+//#define CL_TARGET_OPENCL_VERSION 110
 
 #ifndef __APPLE__
 #ifndef __MACOSX

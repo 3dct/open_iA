@@ -1,7 +1,7 @@
 /*************************************  open_iA  ************************************ *
 * **********   A tool for visual analysis and processing of 3D CT images   ********** *
 * *********************************************************************************** *
-* Copyright (C) 2016-2020  C. Heinzl, M. Reiter, A. Reh, W. Li, M. Arikan, Ar. &  Al. *
+* Copyright (C) 2016-2021  C. Heinzl, M. Reiter, A. Reh, W. Li, M. Arikan, Ar. &  Al. *
 *                 Amirkhanov, J. Weissenböck, B. Fröhler, M. Schiwarth, P. Weinberger *
 * *********************************************************************************** *
 * This program is free software: you can redistribute it and/or modify it under the   *
@@ -724,9 +724,9 @@ void iAChartWidget::setYMappingMode(AxisMappingType drawMode)
 	createMappers();
 }
 
-void iAChartWidget::setCaptionPosition(QFlags<Qt::AlignmentFlag> captionPosition)
+void iAChartWidget::setCaptionPosition(Qt::Alignment captionAlignment)
 {
-	m_captionPosition = captionPosition;
+	m_captionPosition = captionAlignment;
 }
 
 void iAChartWidget::setShowXAxisLabel(bool show)

@@ -1,7 +1,7 @@
 /*************************************  open_iA  ************************************ *
 * **********   A tool for visual analysis and processing of 3D CT images   ********** *
 * *********************************************************************************** *
-* Copyright (C) 2016-2020  C. Heinzl, M. Reiter, A. Reh, W. Li, M. Arikan, Ar. &  Al. *
+* Copyright (C) 2016-2021  C. Heinzl, M. Reiter, A. Reh, W. Li, M. Arikan, Ar. &  Al. *
 *                 Amirkhanov, J. Weissenböck, B. Fröhler, M. Schiwarth, P. Weinberger *
 * *********************************************************************************** *
 * This program is free software: you can redistribute it and/or modify it under the   *
@@ -121,7 +121,7 @@ public:
 	//! Set either linear or logarithmic mapping mode.
 	void setYMappingMode(AxisMappingType drawMode);
 	//! Set position of x axis caption (Center/Left, Bottom/Top, via Qt::Align... flags).
-	void setCaptionPosition(QFlags<Qt::AlignmentFlag>);
+	void setCaptionPosition(Qt::Alignment captionAlignment);
 	//! Set whether x axis caption should be shown or not.
 	void setShowXAxisLabel(bool show);
 	//! Add a plot to the chart.
@@ -247,7 +247,7 @@ private:
 	int  m_yMaxTickLabelWidth;
 	bool m_customXBounds, m_customYBounds;
 	double m_xBounds[2], m_yBounds[2]/*, m_xTickBounds[2]*/;
-	QFlags<Qt::AlignmentFlag> m_captionPosition;
+	Qt::Alignment m_captionPosition;
 	SelectionMode m_selectionMode;
 	QRubberBand* m_selectionBand;
 	QPoint m_selectionOrigin;

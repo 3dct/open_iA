@@ -1,7 +1,7 @@
 /*************************************  open_iA  ************************************ *
 * **********   A tool for visual analysis and processing of 3D CT images   ********** *
 * *********************************************************************************** *
-* Copyright (C) 2016-2020  C. Heinzl, M. Reiter, A. Reh, W. Li, M. Arikan, Ar. &  Al. *
+* Copyright (C) 2016-2021  C. Heinzl, M. Reiter, A. Reh, W. Li, M. Arikan, Ar. &  Al. *
 *                 Amirkhanov, J. Weissenböck, B. Fröhler, M. Schiwarth, P. Weinberger *
 * *********************************************************************************** *
 * This program is free software: you can redistribute it and/or modify it under the   *
@@ -283,7 +283,7 @@ iASimilarity::iASimilarity() : iAFilter("Similarity", "Metrics",
 	"between the images results in small measure values.<br/>"
 	"More Information on Mutual Information is given in the "
 	"<a href=\"https://itk.org/ItkSoftwareGuide.pdf\">ITK Software Guide</a> in the sections '3.10.4 Mutual "
-	"Information Metric' (pp. 262-264) and '5.3.2 Information Theory' (pp. 462-471)."
+	"Information Metric' (pp. 262-264) and '5.3.2 Information Theory' (pp. 462-471). "
 	"The <em>Structural Similarity Index</em> Metric (SSIM) is a metric calculated from mean, variance and covariance "
 	"of the two compared images. For more details see e.g. the "
 	"<a href=\"https://en.wikipedia.org/wiki/Structural_similarity\">Structural Similarity index article in wikipedia</a>, "
