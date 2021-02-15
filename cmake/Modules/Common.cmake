@@ -482,7 +482,16 @@ IF (OPENCL_FOUND)
 		set_property(CACHE openiA_OPENCL_VERSION PROPERTY STRINGS ${openiA_OPENCL_VERSION_OPTIONS})
 	endif()
 	string(REPLACE "." "" CL_TARGET_OPENCL_VERSION "${openiA_OPENCL_VERSION}")
-	set (CL_HPP_TARGET_OPENCL_VERSION "${CL_TARGET_OPENCL_VERSION}")
+	add_library(OpenCL INTERFACE)
+	target_compile_definitions(OpenCL INTERFACE __CL_ENABLE_EXCEPTIONS
+		CL_HPP_TARGET_OPENCL_VERSION=${CL_TARGET_OPENCL_VERSION}
+		CL_TARGET_OPENCL_VERSION=${CL_TARGET_OPENCL_VERSION})
+	target_link_libraries(OpenCL INTERFACE ${OPENCL_LIBRARIES})
+	target_include_directories(OpenCL INTERFACE ${Toolkit_DIR}/OpenCL)
+	# if OPENCL includes not set via ITK:
+	IF ("${ITKGPUCommon_LIBRARY_DIRS}" STREQUAL "")
+		target_include_directories(OpenCL INTERFACE ${OPENCL_INCLUDE_DIRS})
+	ENDIF()
 
 	MESSAGE(STATUS "OpenCL: include=${OPENCL_INCLUDE_DIRS}, libraries=${OPENCL_LIBRARIES}.")
 	set (BUILD_INFO "${BUILD_INFO}    \"OpenCL targeted version: ${openiA_OPENCL_VERSION}\\n\"\n")
