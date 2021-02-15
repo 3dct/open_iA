@@ -283,7 +283,7 @@ iASimilarity::iASimilarity() : iAFilter("Similarity", "Metrics",
 	"between the images results in small measure values.<br/>"
 	"More Information on Mutual Information is given in the "
 	"<a href=\"https://itk.org/ItkSoftwareGuide.pdf\">ITK Software Guide</a> in the sections '3.10.4 Mutual "
-	"Information Metric' (pp. 262-264) and '5.3.2 Information Theory' (pp. 462-471)."
+	"Information Metric' (pp. 262-264) and '5.3.2 Information Theory' (pp. 462-471). "
 	"The <em>Structural Similarity Index</em> Metric (SSIM) is a metric calculated from mean, variance and covariance "
 	"of the two compared images. For more details see e.g. the "
 	"<a href=\"https://en.wikipedia.org/wiki/Structural_similarity\">Structural Similarity index article in wikipedia</a>, "
