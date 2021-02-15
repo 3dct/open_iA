@@ -611,7 +611,7 @@ bool iATreeView::updateSelectedHMData()
 		QString datasetName = m_selectedHMData.datasets.at( i );
 		double gtPorosity = ( *m_gtPorosityMap )[m_selectedHMData.datasets.at( i )];
 
-		m_selectedHMData.gtPorosityMap.insertMulti( datasetName, gtPorosity );
+		m_selectedHMData.gtPorosityMap.insert( datasetName, gtPorosity );    //gtPorosityMap is MultiMap, so if datasetName exists, a second entry will be created
 	}
 
 	for ( int i = 0; i < m_selectedHMData.filters.size(); ++i )

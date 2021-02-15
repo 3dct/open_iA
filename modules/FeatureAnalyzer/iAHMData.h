@@ -22,12 +22,14 @@
 
 #include "iAHistogramPlotData.h"
 
+#include <QMultiMap>
+
 struct iAHMData
 {
 	QList< QList< iAHistogramPlotData > > histogramPlots;
 	QStringList datasets;
 	QStringList filters;
-	QMap<QString, double> gtPorosityMap;
+	QMultiMap<QString, double> gtPorosityMap;
 	void clear()
 	{
 		histogramPlots.clear();

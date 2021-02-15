@@ -4904,7 +4904,11 @@ Qt::Alignment QCPLayoutInset::insetAlignment(int index) const
   else
   {
     qDebug() << Q_FUNC_INFO << "Invalid element index:" << index;
+#if QT_VERSION < QT_VERSION_CHECK(5, 15, 0)
     return 0;
+#else
+    return Qt::Alignment();
+#endif
   }
 }
 
@@ -6150,7 +6154,11 @@ double QCPAxisTickerDateTime::dateTimeToKey(const QDate date)
 # if QT_VERSION < QT_VERSION_CHECK(4, 7, 0)
   return QDateTime(date).toTime_t();
 # else
+#if QT_VERSION < QT_VERSION_CHECK(5, 15, 0)
   return QDateTime(date).toMSecsSinceEpoch()/1000.0;
+#else
+  return date.startOfDay().toMSecsSinceEpoch()/1000.0;
+#endif
 # endif
 }
 /* end of 'src/axis/axistickerdatetime.cpp' */
@@ -8941,9 +8949,13 @@ void QCPAxis::wheelEvent(QWheelEvent *event)
     return;
   }
   
-  const double wheelSteps = event->delta()/120.0; // a single step delta is +/-120 usually
+  const double wheelSteps = event->angleDelta().y()/120.0; // a single step delta is +/-120 usually
   const double factor = qPow(mAxisRect->rangeZoomFactor(orientation()), wheelSteps);
+#if QT_VERSION < QT_VERSION_CHECK(5, 15, 0)
   scaleRange(factor, pixelToCoord(orientation() == Qt::Horizontal ? event->pos().x() : event->pos().y()));
+#else
+  scaleRange(factor, pixelToCoord(orientation() == Qt::Horizontal ? event->position().x() : event->position().y()));
+#endif
   mParentPlot->replot();
 }
 
@@ -12877,7 +12889,11 @@ QCustomPlot::QCustomPlot(QWidget *parent) :
   mAutoAddPlottableToLegend(true),
   mAntialiasedElements(QCP::aeNone),
   mNotAntialiasedElements(QCP::aeNone),
+#if QT_VERSION < QT_VERSION_CHECK(5, 15, 0)
   mInteractions(0),
+#else
+  mInteractions(),
+#endif
   mSelectionTolerance(8),
   mNoAntialiasingOnDrag(false),
   mBackgroundBrush(Qt::white, Qt::SolidPattern),
@@ -14979,7 +14995,11 @@ void QCustomPlot::wheelEvent(QWheelEvent *event)
 {
   emit mouseWheel(event);
   // forward event to layerable under cursor:
+#if QT_VERSION < QT_VERSION_CHECK(5, 15, 0)
   QList<QCPLayerable*> candidates = layerableListAt(event->pos(), false);
+#else
+  QList<QCPLayerable*> candidates = layerableListAt(event->position(), false);
+#endif
   for (int i=0; i<candidates.size(); ++i)
   {
     event->accept(); // default impl of QCPLayerable's mouse events ignore the event, in that case propagate to next candidate in list
@@ -17943,14 +17963,18 @@ void QCPAxisRect::wheelEvent(QWheelEvent *event)
     if (mRangeZoom != 0)
     {
       double factor;
-      double wheelSteps = event->delta()/120.0; // a single step delta is +/-120 usually
+      double wheelSteps = event->angleDelta().y()/120.0; // a single step delta is +/-120 usually
       if (mRangeZoom.testFlag(Qt::Horizontal))
       {
         factor = qPow(mRangeZoomFactorHorz, wheelSteps);
         for (int i=0; i<mRangeZoomHorzAxis.size(); ++i)
         {
           if (!mRangeZoomHorzAxis.at(i).isNull())
+#if QT_VERSION < QT_VERSION_CHECK(5, 15, 0)
             mRangeZoomHorzAxis.at(i)->scaleRange(factor, mRangeZoomHorzAxis.at(i)->pixelToCoord(event->pos().x()));
+#else
+            mRangeZoomHorzAxis.at(i)->scaleRange(factor, mRangeZoomHorzAxis.at(i)->pixelToCoord(event->position().x()));
+#endif
         }
       }
       if (mRangeZoom.testFlag(Qt::Vertical))
@@ -17959,7 +17983,11 @@ void QCPAxisRect::wheelEvent(QWheelEvent *event)
         for (int i=0; i<mRangeZoomVertAxis.size(); ++i)
         {
           if (!mRangeZoomVertAxis.at(i).isNull())
+#if QT_VERSION < QT_VERSION_CHECK(5, 15, 0)
             mRangeZoomVertAxis.at(i)->scaleRange(factor, mRangeZoomVertAxis.at(i)->pixelToCoord(event->pos().y()));
+#else
+            mRangeZoomVertAxis.at(i)->scaleRange(factor, mRangeZoomVertAxis.at(i)->pixelToCoord(event->position().y()));
+#endif
         }
       }
       mParentPlot->replot();
@@ -19599,7 +19627,11 @@ void QCPColorScale::setRangeDrag(bool enabled)
   if (enabled)
     mAxisRect.data()->setRangeDrag(QCPAxis::orientation(mType));
   else
+#if QT_VERSION < QT_VERSION_CHECK(5, 15, 0)
     mAxisRect.data()->setRangeDrag(0);
+#else
+    mAxisRect.data()->setRangeDrag(Qt::Orientations());
+#endif
 }
 
 /*!
@@ -19619,7 +19651,11 @@ void QCPColorScale::setRangeZoom(bool enabled)
   if (enabled)
     mAxisRect.data()->setRangeZoom(QCPAxis::orientation(mType));
   else
+#if QT_VERSION < QT_VERSION_CHECK(5, 15, 0)
     mAxisRect.data()->setRangeZoom(0);
+#else
+    mAxisRect.data()->setRangeZoom(Qt::Orientations());
+#endif
 }
 
 /*!
