@@ -1,13 +1,3 @@
-# Compiler Flags
-IF (CMAKE_COMPILER_IS_GNUCXX OR "${CMAKE_CXX_COMPILER_ID}" STREQUAL "Clang")
-	# see Ulrich Drepper - How to write Shared Libraries
-	#   - fPIC vs. fpic
-	#   - why fvisibility=hidden
-	SET (CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -fpic -fvisibility=hidden")
-	SET (CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -fpic -fvisibility=hidden")
-ENDIF()
-
-
 SET (LIB_TYPE SHARED)
 INCLUDE(Modules)
 
@@ -103,20 +93,14 @@ FOREACH(libdir ${children})
 		ELSE ()
 			INSTALL (TARGETS ${libname} LIBRARY DESTINATION .)
 		ENDIF(WIN32)
+		# Compiler Flags
+		IF (CMAKE_COMPILER_IS_GNUCXX OR "${CMAKE_CXX_COMPILER_ID}" STREQUAL "Clang")
+			# see Ulrich Drepper - How to write Shared Libraries
+			#   (https://software.intel.com/sites/default/files/m/a/1/e/dsohowto.pdf)
+			#   (- fPIC vs. fpic) -> fPIC added automatically by CMake)
+			#   - why fvisibility=hidden
+			target_compile_options(${libname} PRIVATE -fvisibility=hidden)
+		ENDIF()
 	ENDIF()
 ENDFOREACH()
 
-# maybe enough to do this once for the whole project?
-IF (MSVC)
-	# Apply file grouping based on regular expressions for Visual Studio IDE.
-	SOURCE_GROUP("UI Files" REGULAR_EXPRESSION "[.](ui|qrc)$")
-ENDIF()
-
-#ADD_SUBDIRECTORY(base)
-#ADD_SUBDIRECTORY(charts)
-#ADD_SUBDIRECTORY(src)
-
-# TODO: make configurable!
-#ADD_SUBDIRECTORY(objectvis)
-
-#ADD_SUBDIRECTORY(gui)

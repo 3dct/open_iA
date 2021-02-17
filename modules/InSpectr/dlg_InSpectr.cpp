@@ -1256,10 +1256,7 @@ void dlg_InSpectr::computeSimilarityMap()
 			LOG(lvlError, "Exception in computeSimilarityMap(): " + errDescr[i]);
 		}
 	},
-	[progress]()
-	{
-			delete progress;
-	});
+	[progress]() { delete progress; }, this);
 	iAJobListView::get()->addJob("Compute Similarity Map", progress, job);
 }
 

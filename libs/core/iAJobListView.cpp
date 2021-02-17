@@ -34,19 +34,27 @@
 #include <QVBoxLayout>
 
 #include <chrono>
+#include <mutex>
 
-class iAJobPending
+namespace
+{
+	std::mutex jobsMutex;
+}
+
+class iAJob
 {
 public:
-	iAJobPending(QString n, iAProgress* p, QObject* o, iAAbortListener* a, QSharedPointer<iADurationEstimator> e):
-		name(n), prog(p), obj(o), abrt(a), est(e)
+	iAJob(QString n, iAProgress* p, QObject* o, iAAbortListener* a, QSharedPointer<iADurationEstimator> e) :
+		name(n), progress(p), object(o), abortListener(a), estimator(e)
 	{
 	}
+
+public:
 	QString name;
-	iAProgress* prog;
-	QObject* obj;
-	iAAbortListener* abrt;
-	QSharedPointer<iADurationEstimator> est;
+	iAProgress* progress;
+	QObject* object;
+	iAAbortListener* abortListener;
+	QSharedPointer<iADurationEstimator> estimator;
 };
 
 //! Simple estimator: starts the clock as soon as it is created,
@@ -96,10 +104,24 @@ iAJobListView::iAJobListView():
 	connect(this, &iAJobListView::newJobSignal, this, &iAJobListView::newJobSlot, Qt::QueuedConnection); // make sure widgets are created in GUI thread
 }
 
-QWidget* iAJobListView::addJobWidget(QString name, iAProgress* p, iAAbortListener* abortListener,
-	QSharedPointer<iADurationEstimator> estimator)
+iAJobListView::~iAJobListView()
 {
-	auto titleLabel = new QLabel(name);
+	for (auto j : m_jobs)
+	{
+		if (j->abortListener)
+		{
+			j->abortListener->abort();
+		}
+	}
+}
+
+QWidget* iAJobListView::addJobWidget(QSharedPointer<iAJob> j)
+{
+	{
+		std::lock_guard<std::mutex> guard(jobsMutex);
+		m_jobs.push_back(j);
+	}
+	auto titleLabel = new QLabel(j->name);
 	titleLabel->setProperty("qssClass", "titleLabel");
 
 	auto progressBar = new QProgressBar();
@@ -126,7 +148,7 @@ QWidget* iAJobListView::addJobWidget(QString name, iAProgress* p, iAAbortListene
 
 	auto abortButton = new QToolButton();
 	abortButton->setIcon(QIcon(":/images/remove.png"));
-	abortButton->setEnabled(abortListener);
+	abortButton->setEnabled(j->abortListener);
 
 	auto contentWidget = new QWidget();
 	contentWidget->setLayout(new QHBoxLayout);
@@ -145,44 +167,43 @@ QWidget* iAJobListView::addJobWidget(QString name, iAProgress* p, iAAbortListene
 
 	m_insideWidget->layout()->addWidget(jobWidget);
 	
-	if (!estimator)
+	if (!j->estimator)
 	{
-		estimator = QSharedPointer<iADurationEstimator>(new iAPercentBasedEstimator());
+		j->estimator = QSharedPointer<iADurationEstimator>(new iAPercentBasedEstimator());
 	}
-	m_estimators.insert(jobWidget, estimator);
 	QTimer* timer = new QTimer(jobWidget);
-	connect(timer, &QTimer::timeout, jobWidget, [elapsedLabel, estimator] {
-		elapsedLabel->setText(QString("Elapsed: %1").arg(formatDuration(estimator->elapsed(), false)));
+	connect(timer, &QTimer::timeout, jobWidget, [elapsedLabel, j] {
+		elapsedLabel->setText(QString("Elapsed: %1").arg(formatDuration(j->estimator->elapsed(), false)));
 	});
 	timer->start(500);
 
-	if (p)
+	if (j->progress)
 	{
-		connect(p, &iAProgress::progress, jobWidget, [progressBar, estimator, remainingLabel](double value)
+		connect(j->progress, &iAProgress::progress, jobWidget, [progressBar, j, remainingLabel](double value)
 			{
 				progressBar->setValue(value*10);
-				double estRem = estimator->estimatedTimeRemaining(value);
+				double estRem = j->estimator->estimatedTimeRemaining(value);
 				remainingLabel->setText(
 					QString("Estimated remaining: %1").arg((estRem == -1) ? "unknown" : formatDuration(estRem, false)));
 			});
-		connect(p, &iAProgress::statusChanged, [statusLabel, name](QString const & msg)
+		connect(j->progress, &iAProgress::statusChanged, [statusLabel, j](QString const& msg)
 			{
-				LOG(lvlDebug, QString("Job '%1': %2").arg(name).arg(msg));
+				LOG(lvlDebug, QString("Job '%1': %2").arg(j->name).arg(msg));
 				statusLabel->setText(msg);
 			});
 	}
-	if (abortListener)
+	if (j->abortListener)
 	{
 		connect(abortButton, &QToolButton::clicked, [=]()
 			{
-				LOG(lvlDebug, QString("Job '%1': Aborted.").arg(name));
+				LOG(lvlDebug, QString("Job '%1': Aborted.").arg(j->name));
 				abortButton->setEnabled(false);
 				statusLabel->setText("Aborting...");
-				if (p)
+				if (j->progress)
 				{
-					QObject::disconnect(p, &iAProgress::statusChanged, statusLabel, &QLabel::setText);
+					QObject::disconnect(j->progress, &iAProgress::statusChanged, statusLabel, &QLabel::setText);
 				}
-				abortListener->abort();
+				j->abortListener->abort();
 			});
 	}
 	return jobWidget;
@@ -191,18 +212,29 @@ QWidget* iAJobListView::addJobWidget(QString name, iAProgress* p, iAAbortListene
 void iAJobListView::newJobSlot()
 {
 	auto j = m_pendingJobs.pop();
-	QString jobName = j->name;
-	auto jobWidget = addJobWidget(jobName, j->prog, j->abrt, j->est);
-	LOG(lvlDebug, QString("Job added: %1").arg(jobName));
-	connect(j->obj, &QObject::destroyed, [this, jobWidget, jobName]()
+	auto jobWidget = addJobWidget(j);
+	LOG(lvlDebug, QString("Job added: %1").arg(j->name));
+	connect(j->object, &QObject::destroyed, [this, jobWidget, j]()
 	{
-		LOG(lvlDebug, QString("Job '%1': Done.").arg(jobName));
-		int oldJobCount = m_runningJobs.fetchAndAddOrdered(-1);
-		if (oldJobCount == 1)
+		LOG(lvlDebug, QString("Job '%1': Done.").arg(j->name));
+		int remainingJobs = 0;
+		{
+			std::lock_guard<std::mutex> guard(jobsMutex);
+			auto idx = m_jobs.indexOf(j);
+			if (idx != -1)
+			{
+				m_jobs.remove(idx);
+			}
+			else
+			{
+				LOG(lvlWarn, QString("Job '%1': Not found in list of running jobs!").arg(j->name));
+			}
+			remainingJobs = m_jobs.size();
+		}
+		if (remainingJobs == 0)
 		{
 			emit allJobsDone();
 		}
-		m_estimators.remove(jobWidget);
 		jobWidget->deleteLater();
 	});
 	emit jobAdded();
@@ -211,8 +243,7 @@ void iAJobListView::newJobSlot()
 void iAJobListView::addJob(QString name, iAProgress* p, QObject* t, iAAbortListener* abortListener,
 	QSharedPointer<iADurationEstimator> estimator)
 {
-	m_runningJobs.fetchAndAddOrdered(1);
-	m_pendingJobs.push(QSharedPointer<iAJobPending>::create(name, p, t, abortListener, estimator));
+	m_pendingJobs.push(QSharedPointer<iAJob>::create(name, p, t, abortListener, estimator));
 	emit newJobSignal();
 }
 

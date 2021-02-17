@@ -719,9 +719,9 @@ void iAChartWidget::setYMappingMode(AxisMappingType drawMode)
 	createMappers();
 }
 
-void iAChartWidget::setCaptionPosition(QFlags<Qt::AlignmentFlag> captionPosition)
+void iAChartWidget::setCaptionPosition(Qt::Alignment captionAlignment)
 {
-	m_captionPosition = captionPosition;
+	m_captionPosition = captionAlignment;
 }
 
 void iAChartWidget::setShowXAxisLabel(bool show)

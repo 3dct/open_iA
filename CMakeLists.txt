@@ -24,7 +24,7 @@ SET (GUI_EXECUTABLE_FILE "${GUI_EXECUTABLE_TARGET}${CMAKE_EXECUTABLE_SUFFIX}")  
 ADD_SUBDIRECTORY(modules)
 
 # modules might have added something to BUILD_INFO:
-configure_file("${open_iA_SOURCE_DIR}/cmake/version.h.in" "${open_iA_BINARY_DIR}/version.h" @ONLY)
+configure_file("${CMAKE_SOURCE_DIR}/cmake/version.h.in" "${CMAKE_BINARY_DIR}/version.h" @ONLY)
 	
 ADD_SUBDIRECTORY(gui)
 

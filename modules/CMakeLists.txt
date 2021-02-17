@@ -183,7 +183,6 @@ FOREACH( indx RANGE ${len} )
 	ENDIF()
 
 	IF (MSVC)
-		SOURCE_GROUP("UI Files" REGULAR_EXPRESSION "[.](ui|qrc)$")      # Apply file grouping based on regular expressions for Visual Studio IDE.
 		INSTALL (TARGETS ${module_name} RUNTIME DESTINATION plugins)    # install dll in plugins folder
 
 		TARGET_COMPILE_OPTIONS(${module_name} PRIVATE "/bigobj")
@@ -212,6 +211,10 @@ FOREACH( indx RANGE ${len} )
 		MESSAGE(STATUS "    Running ${module_full_path}/enabled.cmake...")
 		INCLUDE("${module_full_path}/enabled.cmake")
 	ENDIF()
+
+	IF (CMAKE_COMPILER_IS_GNUCXX OR "${CMAKE_CXX_COMPILER_ID}" STREQUAL "Clang")
+		target_compile_options(${module_name} PRIVATE -fvisibility=hidden)
+	ENDIF ()
 ENDFOREACH()
 SET (BUNDLE_LIBS "${BUNDLE_LIBS}" PARENT_SCOPE)
 
@@ -222,10 +225,4 @@ ELSEIF (NOT "${ENABLED_MODULE_NAMES}" STREQUAL "")
 	FOREACH (m ${ENABLED_MODULE_NAMES})
 		MESSAGE(STATUS "    ${m}")
 	ENDFOREACH()
-ENDIF ()
-
-# Compiler flags
-IF (CMAKE_COMPILER_IS_GNUCXX OR "${CMAKE_CXX_COMPILER_ID}" STREQUAL "Clang")
-	SET (CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -fpic -fvisibility=hidden")
-	SET (CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -fpic -fvisibility=hidden")
 ENDIF ()

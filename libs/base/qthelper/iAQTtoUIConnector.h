@@ -29,7 +29,7 @@ public:
 #if QT_VERSION < QT_VERSION_CHECK(5,15,0)
 	iAQTtoUIConnector( QWidget * parent = nullptr, Qt::WindowFlags f = 0 ) : QtContainerType( parent, f )
 #else
-	iAQTtoUIConnector(QWidget* parent = nullptr, Qt::WindowFlags f = QFlags<Qt::WindowType>()) : QtContainerType(parent, f)
+	iAQTtoUIConnector(QWidget* parent = nullptr, Qt::WindowFlags f = Qt::WindowFlags()) : QtContainerType(parent, f)
 #endif
 	{
 		this->setupUi(this);

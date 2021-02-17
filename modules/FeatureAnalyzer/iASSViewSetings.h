@@ -30,7 +30,11 @@ class iASSViewSettings : public SSSettingsConnector
 {
 	Q_OBJECT
 public:
+#if QT_VERSION < QT_VERSION_CHECK(5, 15, 0)
 	iASSViewSettings( QWidget * parent = 0, Qt::WindowFlags f = 0 )
+#else
+	iASSViewSettings(QWidget* parent = nullptr, Qt::WindowFlags f = Qt::WindowFlags())
+#endif
 		: SSSettingsConnector( parent, f )
 	{}
 	~iASSViewSettings() {}

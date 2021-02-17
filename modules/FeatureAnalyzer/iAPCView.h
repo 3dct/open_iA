@@ -39,7 +39,11 @@ class iAPCView : public PCViewConnector
 	Q_OBJECT
 
 public:
-	iAPCView( QWidget * parent = 0, Qt::WindowFlags f = 0 );
+#if QT_VERSION < QT_VERSION_CHECK(5, 15, 0)
+	iAPCView(QWidget * parent = nullptr, Qt::WindowFlags f = 0);
+#else
+	iAPCView(QWidget* parent = nullptr, Qt::WindowFlags f = Qt::WindowFlags());
+#endif
 	~iAPCView();
 
 public slots:

@@ -206,13 +206,11 @@ void MainWindow::closeEvent(QCloseEvent *event)
 	if (activeMdiChild())
 	{
 		event->ignore();
+		return;
 	}
-	else
-	{
-		writeSettings();
-		iALogWidget::shutdown();
-		event->accept();
-	}
+	writeSettings();
+	iALogWidget::shutdown();
+	event->accept();
 }
 
 void MainWindow::dragEnterEvent(QDragEnterEvent *e)

@@ -62,7 +62,7 @@ public:
 #if QT_VERSION < QT_VERSION_CHECK(5,15,0)
 	iADreamCaster(QWidget *parent = nullptr, Qt::WindowFlags flags = 0);
 #else
-	iADreamCaster(QWidget* parent = nullptr, Qt::WindowFlags flags = QFlags<Qt::WindowType>());
+	iADreamCaster(QWidget* parent = nullptr, Qt::WindowFlags flags = Qt::WindowFlags());
 #endif
 	~iADreamCaster();
 	//! Loging function. Adds string to log window.

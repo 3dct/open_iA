@@ -54,7 +54,7 @@ public:
 #if QT_VERSION < QT_VERSION_CHECK(5,15,0)
 	iAAdaptiveThresholdDlg(QWidget * parent = nullptr, Qt::WindowFlags f = 0);
 #else
-	iAAdaptiveThresholdDlg(QWidget* parent = nullptr, Qt::WindowFlags f = QFlags<Qt::WindowType>());
+	iAAdaptiveThresholdDlg(QWidget* parent = nullptr, Qt::WindowFlags f = Qt::WindowFlags());
 #endif
 	void setupUIActions();
 	void initAxes(double xmin, double xmax, double ymin, double yMax, bool setDefaultAxis);

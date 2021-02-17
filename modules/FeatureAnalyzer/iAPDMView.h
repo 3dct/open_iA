@@ -30,6 +30,7 @@
 #include <QDockWidget>
 #include <QList>
 #include <QMap>
+#include <QMultiMap>
 
 struct iABPMData;
 struct iAHMData;
@@ -54,7 +55,11 @@ class iAPDMView : public PorosityAnalyzerPDMConnector
 	Q_OBJECT
 
 public:
+#if QT_VERSION < QT_VERSION_CHECK(5, 15, 0)
 	iAPDMView( QWidget * parent = 0, Qt::WindowFlags f = 0 );
+#else
+	iAPDMView(QWidget* parent = nullptr, Qt::WindowFlags f = Qt::WindowFlags());
+#endif
 	~iAPDMView();
 
 	QModelIndexList SelectedIndices() const { return m_selectedIndices; }
@@ -87,7 +92,7 @@ protected:
 	const QStringList * m_datasets;
 	const QList< QList< iABoxPlotData > > * m_boxPlots;
 	const QList< QList< iAHistogramPlotData > > * m_histogramPlots;
-	const QMap<QString, double> * m_gtPorosityMap;
+	const QMultiMap<QString, double> * m_gtPorosityMap;
 	QMap<QObject*, QModelIndex> m_indices;
 	QModelIndexList m_selectedIndices;
 	iAVtkOldWidget * m_sbWidget;

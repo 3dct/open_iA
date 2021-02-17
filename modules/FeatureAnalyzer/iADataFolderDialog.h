@@ -29,7 +29,7 @@ public:
 #if QT_VERSION < QT_VERSION_CHECK(5, 15, 0)
 	iADataFolderDialog( QWidget * parent = nullptr, Qt::WindowFlags f = 0 );
 #else
-	iADataFolderDialog(QWidget* parent = nullptr, Qt::WindowFlags f = QFlags<Qt::WindowType>());
+	iADataFolderDialog(QWidget* parent = nullptr, Qt::WindowFlags f = Qt::WindowFlags());
 #endif
 	~iADataFolderDialog();
 	QString ResultsFolderName();

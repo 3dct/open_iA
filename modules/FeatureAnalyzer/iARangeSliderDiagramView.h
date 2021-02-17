@@ -53,7 +53,11 @@ class iARangeSliderDiagramView : public RangeSliderDiagramViewConnector
 	Q_OBJECT
 
 public:
+#if QT_VERSION < QT_VERSION_CHECK(5, 15, 0)
 	iARangeSliderDiagramView( QWidget * parent = 0, Qt::WindowFlags f = 0 );
+#else
+	iARangeSliderDiagramView(QWidget* parent = nullptr, Qt::WindowFlags f = Qt::WindowFlags());
+#endif
 
 public slots:
 	void setData( const QTableWidget * data );

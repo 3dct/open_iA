@@ -121,7 +121,7 @@ public:
 	//! Set either linear or logarithmic mapping mode.
 	void setYMappingMode(AxisMappingType drawMode);
 	//! Set position of x axis caption (Center/Left, Bottom/Top, via Qt::Align... flags).
-	void setCaptionPosition(QFlags<Qt::AlignmentFlag>);
+	void setCaptionPosition(Qt::Alignment captionAlignment);
 	//! Set whether x axis caption should be shown or not.
 	void setShowXAxisLabel(bool show);
 	//! Add a plot to the chart.
@@ -243,7 +243,7 @@ private:
 	int  m_yMaxTickLabelWidth;
 	bool m_customXBounds, m_customYBounds;
 	double m_xBounds[2], m_yBounds[2]/*, m_xTickBounds[2]*/;
-	QFlags<Qt::AlignmentFlag> m_captionPosition;
+	Qt::Alignment m_captionPosition;
 	SelectionMode m_selectionMode;
 	QRubberBand* m_selectionBand;
 	QPoint m_selectionOrigin;

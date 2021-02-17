@@ -133,6 +133,7 @@ public slots:
 	void loadLayout();
 
 signals:
+	void closing();
 	void fullScreenToggled();
 
 private slots:

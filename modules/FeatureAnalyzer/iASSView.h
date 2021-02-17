@@ -47,7 +47,11 @@ class iASSView : public PorosityAnalyzerSSConnector
 	Q_OBJECT
 
 public:
+#if QT_VERSION < QT_VERSION_CHECK(5, 15, 0)
 	iASSView( QWidget * parent = 0, Qt::WindowFlags f = 0 );
+#else
+	iASSView(QWidget* parent = nullptr, Qt::WindowFlags f = Qt::WindowFlags());
+#endif
 	~iASSView();
 	void attachSegm3DView( iASegm3DView * m_segm3DView );
 

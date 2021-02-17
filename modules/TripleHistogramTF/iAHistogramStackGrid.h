@@ -43,7 +43,7 @@ public:
 #if QT_VERSION < QT_VERSION_CHECK(5, 15, 0)
 		Qt::WindowFlags f = 0);
 #else
-		Qt::WindowFlags f = QFlags<Qt::WindowType>());
+		Qt::WindowFlags f = Qt::WindowFlags());
 #endif
 
 	void adjustStretch() { adjustStretch(size().width()); }
