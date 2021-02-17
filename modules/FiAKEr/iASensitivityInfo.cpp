@@ -364,7 +364,7 @@ QSharedPointer<iASensitivityInfo> iASensitivityInfo::create(QMainWindow* child,
 		[sensitivity]
 		{
 			sensitivity->createGUI();
-		});
+		}, child);
 	iAJobListView::get()->addJob("Sensitivity computation", &sensitivity->m_progress, futureWatcher, sensitivity.data());
 	return sensitivity;
 }
