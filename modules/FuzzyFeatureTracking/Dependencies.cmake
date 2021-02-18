@@ -9,3 +9,8 @@ SET( DEPENDENCIES_VTK_MODULES
 	ViewsContext2D        # for vtkContextView, vtkContextInteractorStyle
 	ViewsInfovis    # for vtkGraphItem
 )
+IF (VTK_VERSION VERSION_LESS "9.0.0")
+	LIST(APPEND DEPENDENCIES_VTK_MODULES
+		ViewsCore     # for vtkViewsCoreModule.h, required by vtkViewsInfovisModule.h
+	)
+ENDIF()

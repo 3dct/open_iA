@@ -27,6 +27,13 @@ SET( DEPENDENCIES_ITK_MODULES
 	ITKTestKernel                # for PipelineMonitorImageFilter
 	ITKTransform                 # for Transform, dependency of ResampleImageFilter
 )
+IF (ITK_VERSION VERSION_LESS "5.0.0" AND OPENCL_FOUND)
+	LIST(APPEND DEPENDENCIES_ITK_MODULES
+		ITKGPUCommon               # for itkGPUImage.h, required by iASmoothing
+		ITKGPUAnisotropicSmoothing # for itkGPUGradientAnisotropicDiffusionImageFilter
+		ITKGPUFiniteDifference     # for itkGPUDenseFiniteDifferenceImageFilter, required by itkGPUAnisotropicDiffusionImageFilter
+	)
+ENDIF()
 IF (HigherOrderAccurateGradient_LOADED)
 	LIST (APPEND DEPENDENCIES_ITK_MODULES HigherOrderAccurateGradient)
 ENDIF()
