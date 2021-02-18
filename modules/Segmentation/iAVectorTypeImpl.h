@@ -23,8 +23,6 @@
 #include "iAVectorType.h"	// for iAVectorDataType
 #include "iAVectorArray.h"
 
-#include <QSharedPointer>
-
 #include <vector>
 #include <cstddef> // for size_t
 

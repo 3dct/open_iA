@@ -23,7 +23,6 @@
 #include <QWidget>
 
 #include <QVector>
-#include <QSharedPointer>
 
 class iAChartWithFunctionsWidget;
 class iASimpleSlicerWidget;

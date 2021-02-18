@@ -706,7 +706,7 @@ void MdiChild::setupStackView(bool active)
 		m_volumeStack->addPiecewiseFunction(pWF);
 	}
 
-	QSharedPointer<iAModalityTransfer> modTrans = modality(0)->transfer();
+	auto modTrans = modality(0)->transfer();
 	modTrans->colorTF()->DeepCopy(m_volumeStack->colorTF(0));
 	modTrans->opacityTF()->DeepCopy(m_volumeStack->opacityTF(0));
 	addVolumePlayer();
@@ -1822,7 +1822,7 @@ bool MdiChild::initView(QString const& title)
 	}
 	if (m_channels.empty() && modalities()->size() > 0)
 	{
-		QSharedPointer<iAModalityTransfer> modTrans = modality(0)->transfer();
+		auto modTrans = modality(0)->transfer();
 		uint channelID = createChannel();
 		assert(channelID == 0); // first modality we create, there shouldn't be another channel yet!
 		modality(0)->setChannelID(channelID);
@@ -2088,7 +2088,7 @@ uint MdiChild::createChannel()
 {
 	uint newChannelID = m_nextChannelID;
 	++m_nextChannelID;
-	m_channels.insert(newChannelID, QSharedPointer<iAChannelData>(new iAChannelData()));
+	m_channels.insert(newChannelID, QSharedPointer<iAChannelData>::create());
 	return newChannelID;
 }
 
@@ -2186,7 +2186,7 @@ void MdiChild::cleanWorkingAlgorithms()
 
 void MdiChild::addProfile()
 {
-	m_profileProbe = QSharedPointer<iAProfileProbe>(new iAProfileProbe(m_imageData));
+	m_profileProbe = QSharedPointer<iAProfileProbe>::create(m_imageData);
 	double start[3];
 	m_imageData->GetOrigin(start);
 	int const* const dim = m_imageData->GetDimensions();
@@ -2619,9 +2619,9 @@ void MdiChild::histogramDataAvailable(int modalityIdx)
 	m_currentHistogramModality = modalityIdx;
 	LOG(lvlDebug, QString("Displaying histogram for modality %1.").arg(modalityName));
 	m_histogram->removePlot(m_histogramPlot);
-	m_histogramPlot = QSharedPointer<iAPlot>(new
-		iABarGraphPlot(modality(modalityIdx)->histogramData(),
-			QWidget::palette().color(QPalette::Shadow)));
+	m_histogramPlot = QSharedPointer<iABarGraphPlot>::create(
+		modality(modalityIdx)->histogramData(),
+		QWidget::palette().color(QPalette::Shadow));
 	m_histogram->addPlot(m_histogramPlot);
 	m_histogram->setXCaption("Histogram " + modalityName);
 	m_histogram->setTransferFunction(modality(modalityIdx)->transfer().data());

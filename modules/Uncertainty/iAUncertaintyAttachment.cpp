@@ -100,7 +100,7 @@ void iAUncertaintyAttachment::ToggleSettings()
 
 bool iAUncertaintyAttachment::LoadEnsemble(QString const & fileName)
 {
-	m_ensembleFile = QSharedPointer<iAEnsembleDescriptorFile>(new iAEnsembleDescriptorFile(fileName));
+	m_ensembleFile = QSharedPointer<iAEnsembleDescriptorFile>::create(fileName);
 	if (!m_ensembleFile->good())
 	{
 		LOG(lvlError, "Ensemble: Given data file could not be read.");

@@ -323,7 +323,7 @@ iASlicerImpl::iASlicerImpl(QWidget* parent, const iASlicerMode mode,
 
 	if (magicLensAvailable)
 	{
-		m_magicLens = QSharedPointer<iAMagicLens>(new iAMagicLens());
+		m_magicLens = QSharedPointer<iAMagicLens>::create();
 		m_magicLens->setRenderWindow(m_renWin);
 		// setup context menu for the magic lens view options
 		m_contextMenu->addSeparator();

@@ -88,7 +88,7 @@ void iAMemberView::SetEnsemble(QSharedPointer<iAEnsemble> ensemble)
 		++cnt;
 	}
 
-	QSharedPointer<QCPAxisTickerText> textTicker(new QCPAxisTickerText);
+	auto textTicker = QSharedPointer<QCPAxisTickerText>::create();
 	textTicker->addTicks(ticks, labels);
 	m_plot->xAxis->setTicker(textTicker);
 	m_plot->xAxis->setLabel("Member ID");

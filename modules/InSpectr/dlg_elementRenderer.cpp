@@ -67,7 +67,7 @@ void dlg_elementRenderer::SetDataToVisualize( vtkImageData * imgData, vtkPolyDat
 	if(!m_rendInitialized)
 	{
 		m_renderer->initialize(imgData, polyData);
-		m_volumeRenderer = QSharedPointer<iAVolumeRenderer>(new iAVolumeRenderer(&transferFunction, imgData));
+		m_volumeRenderer = QSharedPointer<iAVolumeRenderer>::create(&transferFunction, imgData);
 		m_volumeRenderer->addTo(m_renderer->renderer());
 		m_rendInitialized = true;
 	}
@@ -75,7 +75,7 @@ void dlg_elementRenderer::SetDataToVisualize( vtkImageData * imgData, vtkPolyDat
 	{
 		m_volumeRenderer->remove();
 		m_renderer->reInitialize(imgData, polyData);
-		m_volumeRenderer = QSharedPointer<iAVolumeRenderer>(new iAVolumeRenderer(&transferFunction, imgData));
+		m_volumeRenderer = QSharedPointer<iAVolumeRenderer>::create(&transferFunction, imgData);
 		m_volumeRenderer->addTo(m_renderer->renderer());
 	}
 }

@@ -78,9 +78,9 @@ QSharedPointer<iAAttributeDescriptor> iAAttributeDescriptor::create(QString cons
 		LOG(lvlWarn, QString("Not enough tokens in attribute descriptor '%1'").arg(def));
 		return QSharedPointer<iAAttributeDescriptor>();
 	}
-	QSharedPointer<iAAttributeDescriptor> result(new iAAttributeDescriptor(
+	auto result = QSharedPointer<iAAttributeDescriptor>::create(
 			defTokens[0], Str2AttribType(defTokens[1]), Str2ValueType(defTokens[2])
-	));
+	);
 	int requiredTokens = (result->valueType() == iAValueType::Boolean) ? 3 :
 		((result->valueType() == iAValueType::Categorical) ? 4 : 5);
 	if (defTokens.size() < requiredTokens)
@@ -126,7 +126,7 @@ QSharedPointer<iAAttributeDescriptor> iAAttributeDescriptor::createParam(
 	QString const & name, iAValueType valueType,
 	QVariant defaultValue, double min, double max)
 {
-	auto result = QSharedPointer<iAAttributeDescriptor>(new iAAttributeDescriptor(name, Parameter, valueType));
+	auto result = QSharedPointer<iAAttributeDescriptor>::create(name, Parameter, valueType);
 	result->m_min = valueType == iAValueType::Categorical ? 0 : min;
 	result->m_max = valueType == iAValueType::Categorical ? defaultValue.toStringList().size()-1 : max;
 	result->m_defaultValue = defaultValue;
@@ -135,7 +135,7 @@ QSharedPointer<iAAttributeDescriptor> iAAttributeDescriptor::createParam(
 
 QSharedPointer<iAAttributeDescriptor> iAAttributeDescriptor::clone() const
 {
-	auto result = QSharedPointer<iAAttributeDescriptor>(new iAAttributeDescriptor(m_name, m_attribType, m_valueType));
+	auto result = QSharedPointer<iAAttributeDescriptor>::create(m_name, m_attribType, m_valueType);
 	result->m_min = m_min;
 	result->m_max = m_max;
 	result->m_defaultValue = m_defaultValue;
@@ -250,7 +250,7 @@ QSharedPointer<iANameMapper> iAAttributeDescriptor::nameMapper() const
 {
 	if (!m_nameMapper)
 	{
-		m_nameMapper = QSharedPointer<iAListNameMapper>(new iAListNameMapper(m_defaultValue.toStringList()));
+		m_nameMapper = QSharedPointer<iAListNameMapper>::create(m_defaultValue.toStringList());
 	}
 	return m_nameMapper;
 }

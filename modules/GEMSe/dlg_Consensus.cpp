@@ -1006,7 +1006,7 @@ void dlg_Consensus::LoadConfig()
 		params.insert(spnContinueOnError, true);
 		params.insert(spnOverwriteOutput, true);
 		params.insert(spnCompressOutput, true);
-		auto sampler = QSharedPointer<iAImageSampler>(new iAImageSampler(
+		auto sampler = QSharedPointer<iAImageSampler>::create(
 			m_mdiChild->modalities(),
 			params,
 			samplingResults->attributes(),
@@ -1017,7 +1017,7 @@ void dlg_Consensus::LoadConfig()
 			lastSamplingID+s,
 			iALog::get(),
 			&m_progress
-		));
+		);
 		m_queuedSamplers.push_back(sampler);
 	}
 	StartNextSampler();
@@ -1070,23 +1070,23 @@ void dlg_Consensus::samplerFinished()
 		// do ref img comparison / measure calculation for the new samplings:
 		// TODO: remove duplication between here and dlg_GEMSe::CalcRefImgComp
 		QVector<QSharedPointer<iAAttributeDescriptor> > measures;
-		measures.push_back(QSharedPointer<iAAttributeDescriptor>(new iAAttributeDescriptor(
-			"Dice", iAAttributeDescriptor::DerivedOutput, iAValueType::Continuous)));
-		measures.push_back(QSharedPointer<iAAttributeDescriptor>(new iAAttributeDescriptor(
-			"Kappa", iAAttributeDescriptor::DerivedOutput, iAValueType::Continuous)));
-		measures.push_back(QSharedPointer<iAAttributeDescriptor>(new iAAttributeDescriptor(
-			"Overall Accuracy", iAAttributeDescriptor::DerivedOutput, iAValueType::Continuous)));
-		measures.push_back(QSharedPointer<iAAttributeDescriptor>(new iAAttributeDescriptor(
-			"Precision", iAAttributeDescriptor::DerivedOutput, iAValueType::Continuous)));
-		measures.push_back(QSharedPointer<iAAttributeDescriptor>(new iAAttributeDescriptor(
-			"Recall", iAAttributeDescriptor::DerivedOutput, iAValueType::Continuous)));
+		measures.push_back(QSharedPointer<iAAttributeDescriptor>::create(
+			"Dice", iAAttributeDescriptor::DerivedOutput, iAValueType::Continuous));
+		measures.push_back(QSharedPointer<iAAttributeDescriptor>::create(
+			"Kappa", iAAttributeDescriptor::DerivedOutput, iAValueType::Continuous));
+		measures.push_back(QSharedPointer<iAAttributeDescriptor>::create(
+			"Overall Accuracy", iAAttributeDescriptor::DerivedOutput, iAValueType::Continuous));
+		measures.push_back(QSharedPointer<iAAttributeDescriptor>::create(
+			"Precision", iAAttributeDescriptor::DerivedOutput, iAValueType::Continuous));
+		measures.push_back(QSharedPointer<iAAttributeDescriptor>::create(
+			"Recall", iAAttributeDescriptor::DerivedOutput, iAValueType::Continuous));
 		for (int i = 0; i<m_labelCount; ++i)
 		{
-			measures.push_back(QSharedPointer<iAAttributeDescriptor>(new iAAttributeDescriptor(
-				QString("Dice %1").arg(i), iAAttributeDescriptor::DerivedOutput, iAValueType::Continuous)));
+			measures.push_back(QSharedPointer<iAAttributeDescriptor>::create(
+				QString("Dice %1").arg(i), iAAttributeDescriptor::DerivedOutput, iAValueType::Continuous));
 		}
-		measures.push_back(QSharedPointer<iAAttributeDescriptor>(new iAAttributeDescriptor(
-			"Undecided Pixels", iAAttributeDescriptor::DerivedOutput, iAValueType::Discrete)));
+		measures.push_back(QSharedPointer<iAAttributeDescriptor>::create(
+			"Undecided Pixels", iAAttributeDescriptor::DerivedOutput, iAValueType::Discrete));
 		for (QSharedPointer<iAAttributeDescriptor> measure : measures)
 		{
 			measure->resetMinMax();

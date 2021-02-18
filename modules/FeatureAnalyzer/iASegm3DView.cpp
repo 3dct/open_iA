@@ -264,7 +264,7 @@ void iASegm3DViewData::SetDataToVisualize( vtkImageData * imgData, vtkPolyData *
 	if( !m_rendInitialized )
 	{
 		m_renderer->initialize( imgData, polyData );
-		m_volumeRenderer = QSharedPointer<iAVolumeRenderer>(new iAVolumeRenderer(&tf, imgData));
+		m_volumeRenderer = QSharedPointer<iAVolumeRenderer>::create(&tf, imgData);
 		m_volumeRenderer->addTo(m_renderer->renderer());
 		m_volumeRenderer->addBoundingBoxTo(m_renderer->renderer());
 		m_rendInitialized = true;

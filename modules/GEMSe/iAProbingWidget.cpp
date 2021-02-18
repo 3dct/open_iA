@@ -43,10 +43,9 @@ namespace
 
 QSharedPointer<iAParamHistogramData> CreateEmptyProbData(iAValueType type, double min, double max)
 {
-	QSharedPointer<iAParamHistogramData> result(new iAParamHistogramData(
+	return QSharedPointer<iAParamHistogramData>::create(
 		type == iAValueType::Discrete ? (max-min) : ProbabilityHistogramBinCount,
-		min, max, false, type));
-	return result;
+		min, max, false, type);
 }
 
 iAProbingWidget::iAProbingWidget(iALabelInfo const * labelInfo):
@@ -67,9 +66,8 @@ iAProbingWidget::iAProbingWidget(iALabelInfo const * labelInfo):
 	// entropy chart:
 	m_entropyChartData = CreateEmptyProbData(iAValueType::Continuous, 0, 1);
 	m_charts.push_back(new iAChartWidget(this, "Algorithmic Uncertainty", "Frequency (Members)"));
-	auto algoUncertaintyPlot = QSharedPointer<iAPlot>(
-		new iABarGraphPlot(m_entropyChartData,
-			QColor(117, 112, 179), BarMargin));
+	auto algoUncertaintyPlot = QSharedPointer<iABarGraphPlot>::create(
+		m_entropyChartData, QColor(117, 112, 179), BarMargin);
 	m_charts[0]->addPlot(algoUncertaintyPlot);
 
 	// label distribution chart:
@@ -80,9 +78,8 @@ iAProbingWidget::iAProbingWidget(iALabelInfo const * labelInfo):
 	m_charts.push_back(new iAChartWidget(this, "Label", "Frequency (Members)"));
 	for (int label = 0; label < m_labelInfo->count(); ++label)
 	{
-		m_drawers.push_back(QSharedPointer<iAPlot>(
-			new iABarGraphPlot(m_labelDistributionChartData[label],
-				m_labelInfo->color(label), BarMargin)));
+		m_drawers.push_back(QSharedPointer<iABarGraphPlot>::create(
+			m_labelDistributionChartData[label], m_labelInfo->color(label), BarMargin));
 		m_charts[1]->addPlot(m_drawers[m_drawers.size()-1]);
 	}
 
@@ -92,9 +89,8 @@ iAProbingWidget::iAProbingWidget(iALabelInfo const * labelInfo):
 	{
 		m_probabilitiesChartData.push_back(CreateEmptyProbData(iAValueType::Continuous, 0, 1));
 		m_charts.push_back(new iAChartWidget(this, QString("Probability Label %1").arg(l), "Frequency (Members)"));
-		auto plot = QSharedPointer<iAPlot>(
-			new iABarGraphPlot(m_probabilitiesChartData[l],
-				m_labelInfo->color(l), BarMargin));
+		auto plot = QSharedPointer<iABarGraphPlot>::create(m_probabilitiesChartData[l],
+			m_labelInfo->color(l), BarMargin);
 		m_charts[m_charts.size() - 1]->addPlot(plot);
 	}
 	for (int c = 0; c < m_charts.size(); ++c)

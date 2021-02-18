@@ -31,7 +31,6 @@
 #include "io/iARawFileParameters.h"
 
 #include <QMdiSubWindow>
-#include <QSharedPointer>
 
 class QAction;
 class QActionGroup;

@@ -494,7 +494,7 @@ void iAIO::readHDF5File()
 
 void iAIO::readProject()
 {
-	m_modalities = QSharedPointer<iAModalityList>(new iAModalityList());
+	m_modalities = QSharedPointer<iAModalityList>::create();
 	m_modalities->load(m_fileName, *ProgressObserver());
 }
 

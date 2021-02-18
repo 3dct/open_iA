@@ -237,14 +237,14 @@ void iAImageSampler::start()
 		m_parameterRanges->push_back(timeAttr);
 	}
 
-	m_results = QSharedPointer<iASamplingResults>(new iASamplingResults(
+	m_results = QSharedPointer<iASamplingResults>::create(
 		m_parameterRanges,
 		m_samplingMethod->name(),
 		m_parameters[spnOutputFolder].toString(),
 		m_parameters[spnExecutable].toString(),
 		m_parameters[spnAdditionalArguments].toString(),
 		m_parameters[spnAlgorithmName].toString(),
-		m_samplingID));
+		m_samplingID);
 
 	m_numDigits = requiredDigits(m_parameterSets->size());
 	for (int i = 0; i < CONCURRENT_COMPUTATION_RUNS; ++i)

@@ -55,7 +55,7 @@ size_t iAvtkPixelVectorArray::channelCount() const
 
 QSharedPointer<iAVectorType const> iAvtkPixelVectorArray::get(size_t voxelIdx) const
 {
-	return QSharedPointer<iAVectorType const>(new iAPixelVector(*this, voxelIdx));
+	return QSharedPointer<iAPixelVector>::create(*this, voxelIdx);
 }
 
 iAVectorDataType iAvtkPixelVectorArray::get(size_t voxelIdx, size_t channelIdx) const

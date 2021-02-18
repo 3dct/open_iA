@@ -107,12 +107,14 @@ iAScatterPlotWidget::iAScatterPlotWidget(QSharedPointer<iASPLOMData> data) :
 
 void iAScatterPlotWidget::SetPlotColor(QColor const & c, double rangeMin, double rangeMax)
 {
-	QSharedPointer<iALookupTable> lut(new iALookupTable());
+	auto lut = QSharedPointer<iALookupTable>::create();
 	double lutRange[2] = { rangeMin, rangeMax };
 	lut->setRange(lutRange);
 	lut->allocate(2);
 	for (int i = 0; i < 2; ++i)
+	{
 		lut->setColor(i, c);
+	}
 	m_scatterplot->setLookupTable(lut, 0);
 }
 

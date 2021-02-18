@@ -136,5 +136,5 @@ private:
 #define IAFILTER_RUNNER_CREATE(FilterRunnerName) \
 QSharedPointer<iAFilterRunnerGUI> FilterRunnerName::create() \
 { \
-	return QSharedPointer<FilterRunnerName>(new FilterRunnerName()); \
+	return QSharedPointer<FilterRunnerName>::create(); \
 }

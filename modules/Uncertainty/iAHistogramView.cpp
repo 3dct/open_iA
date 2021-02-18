@@ -42,7 +42,7 @@ void iAHistogramView::AddChart(QString const & caption, QSharedPointer<iAHistogr
 {
 	m_chart = new iAChartWidget(this, caption, "Frequency (Pixels)");
 	m_chart->setMinimumHeight(120);
-	QSharedPointer<iABarGraphPlot> barGraph(new iABarGraphPlot(histoData, color, 2));
+	auto barGraph = QSharedPointer<iABarGraphPlot>::create(histoData, color, 2);
 	barGraph->setLookupTable(lut);
 	m_chart->addPlot(barGraph);
 	layout()->setSpacing(0);

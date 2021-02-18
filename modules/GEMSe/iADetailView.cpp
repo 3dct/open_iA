@@ -676,7 +676,7 @@ void iADetailView::AddResultFilterPixel(int x, int y, int z)
 	iASlicer* slicer = m_previewWidget->slicer();
 	if (!m_resultFilterChannel)
 	{
-		m_resultFilterChannel = QSharedPointer<iAChannelData>(new iAChannelData("Result Filter", m_resultFilterImg, m_resultFilterOverlayLUT, m_resultFilterOverlayOTF));
+		m_resultFilterChannel = QSharedPointer<iAChannelData>::create("Result Filter", m_resultFilterImg, m_resultFilterOverlayLUT, m_resultFilterOverlayOTF);
 		slicer->addChannel(ResultFilterChannelID, *m_resultFilterChannel.data(), true);
 	}
 	slicer->update();

@@ -161,13 +161,13 @@ QSharedPointer<iARandomGenerator> createRandomGenerator(QSharedPointer<iAAttribu
 		[[fallthrough]];
 #endif
 	case iAValueType::Categorical:
-		return QSharedPointer<iARandomGenerator>(new iACategoryRandom(a->defaultValue().toStringList()));
+		return QSharedPointer<iACategoryRandom>::create(a->defaultValue().toStringList());
 	case iAValueType::Discrete:
-		return QSharedPointer<iARandomGenerator>(new iAIntRandom(a->min(), a->max(), a->isLogScale()));
+		return QSharedPointer<iAIntRandom>::create(a->min(), a->max(), a->isLogScale());
 	case iAValueType::Continuous:
-		return QSharedPointer<iARandomGenerator>(new iADblRandom(a->min(), a->max(), a->isLogScale()));
+		return QSharedPointer<iADblRandom>::create(a->min(), a->max(), a->isLogScale());
 	default:
-		return QSharedPointer<iARandomGenerator>(new iAFixedDummyRandom(a->defaultValue()));
+		return QSharedPointer<iAFixedDummyRandom>::create(a->defaultValue());
 	}
 }
 
@@ -227,11 +227,11 @@ QSharedPointer<iARange> createRange(bool log, double min, double max, int count,
 	if (log)
 	{
 		assert(valueType != iAValueType::Categorical);
-		return QSharedPointer<iARange>(new iALogRange(min, max + ((valueType == iAValueType::Discrete) ? 0.999999 : 0), count));
+		return QSharedPointer<iALogRange>::create(min, max + ((valueType == iAValueType::Discrete) ? 0.999999 : 0), count);
 	}
 	else
 	{
-		return QSharedPointer<iARange>(new iALinRange(min, max + ((valueType == iAValueType::Categorical || valueType == iAValueType::Discrete) ? 0.999999 : 0), count));
+		return QSharedPointer<iALinRange>::create(min, max + ((valueType == iAValueType::Categorical || valueType == iAValueType::Discrete) ? 0.999999 : 0), count);
 	}
 }
 
@@ -577,19 +577,19 @@ QSharedPointer<iASamplingMethod> createSamplingMethod(iASettings const& paramete
 	QString methodName = parameters[spnSamplingMethod].toString();
 	if (methodName == iASamplingMethodName::Random)
 	{
-		return QSharedPointer<iASamplingMethod>(new iARandomSamplingMethod);
+		return QSharedPointer<iARandomSamplingMethod>::create();
 	}
 	else if (methodName == iASamplingMethodName::LatinHypercube)
 	{
-		return QSharedPointer<iASamplingMethod>(new iALatinHypercubeSamplingMethod);
+		return QSharedPointer<iALatinHypercubeSamplingMethod>::create();
 	}
 	else if (methodName == iASamplingMethodName::CartesianGrid)
 	{
-		return QSharedPointer<iASamplingMethod>(new iACartesianGridSamplingMethod);
+		return QSharedPointer<iACartesianGridSamplingMethod>::create();
 	}
 	else if (methodName == iASamplingMethodName::LocalSensitivity)
 	{
-		return QSharedPointer<iASamplingMethod>(new iALocalSensitivitySamplingMethod);
+		return QSharedPointer<iALocalSensitivitySamplingMethod>::create();
 	}
 	else if (methodName == iASamplingMethodName::GlobalSensitivity)
 	{
@@ -602,7 +602,7 @@ QSharedPointer<iASamplingMethod> createSamplingMethod(iASettings const& paramete
 		}
 		double delta = parameters[spnSensitivityDelta].toDouble();
 		auto otherSamplingMethod = createSamplingMethod(parameters);
-		return QSharedPointer<iASamplingMethod>(new iAGlobalSensitivitySamplingMethod(otherSamplingMethod, delta));
+		return QSharedPointer<iAGlobalSensitivitySamplingMethod>::create(otherSamplingMethod, delta);
 	}
 	LOG(lvlError, QString("Could not find sampling method '%1'").arg(methodName));
 	return QSharedPointer<iASamplingMethod>();

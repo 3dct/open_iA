@@ -31,8 +31,6 @@
 #include <vtkVolume.h>
 #include <vtkVolumeProperty.h>
 
-#include <QSharedPointer>
-
 class iATransferFunction;
 
 class vtkImageData;

@@ -496,9 +496,8 @@ void iAMultimodalWidget::updateModalities()
 		vtkPiecewiseFunction *opFuncCopy = vtkPiecewiseFunction::New();
 		m_copyTFs[i] = createCopyTf(i, colorFuncCopy, opFuncCopy);
 
-		m_histograms[i] = QSharedPointer<iAChartWithFunctionsWidget>(new iAChartWithFunctionsWidget(nullptr, m_modalitiesActive[i]->name()+" gray value", "Frequency"));
-		QSharedPointer<iAPlot> histogramPlot = QSharedPointer<iAPlot>(
-			new	iABarGraphPlot(m_modalitiesActive[i]->histogramData(), QColor(70, 70, 70, 255)));
+		m_histograms[i] = QSharedPointer<iAChartWithFunctionsWidget>::create(nullptr, m_modalitiesActive[i]->name()+" gray value", "Frequency");
+		auto histogramPlot = QSharedPointer<iABarGraphPlot>::create(m_modalitiesActive[i]->histogramData(), QColor(70, 70, 70, 255));
 		m_histograms[i]->addPlot(histogramPlot);
 		m_histograms[i]->setTransferFunction(m_copyTFs[i].data());
 		m_histograms[i]->update();
@@ -537,7 +536,7 @@ void iAMultimodalWidget::resetSlicer(int i)
 	// Slicer is replaced here.
 	// Make sure there are no other references to the old iASimpleSlicerWidget
 	// referenced by the QSharedPointer!
-	m_slicerWidgets[i] = QSharedPointer<iASimpleSlicerWidget>(new iASimpleSlicerWidget(nullptr, true));
+	m_slicerWidgets[i] = QSharedPointer<iASimpleSlicerWidget>::create(nullptr, true);
 	m_slicerWidgets[i]->applySettings(m_mdiChild->slicerSettings().SingleSlicer);
 	m_slicerWidgets[i]->setSizePolicy(QSizePolicy::Preferred, QSizePolicy::Expanding);
 	if (m_modalitiesActive[i])
@@ -550,8 +549,7 @@ QSharedPointer<iATransferFunction> iAMultimodalWidget::createCopyTf(int index, v
 {
 	colorTf->DeepCopy(m_modalitiesActive[index]->transfer()->colorTF());
 	opacityFunction->DeepCopy(m_modalitiesActive[index]->transfer()->opacityTF());
-	return QSharedPointer<iATransferFunction>(
-		new iASimpleTransferFunction(colorTf, opacityFunction));
+	return QSharedPointer<iASimpleTransferFunction>::create(colorTf, opacityFunction);
 }
 
 void iAMultimodalWidget::alertWeightIsZero(QSharedPointer<iAModality> modality)

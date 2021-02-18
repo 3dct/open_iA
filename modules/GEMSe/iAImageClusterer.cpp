@@ -51,7 +51,7 @@ iAImageClusterer::iAImageClusterer(int labelCount, QString const& outputDirector
 
 void iAImageClusterer::AddImage(QSharedPointer<iASingleResult> singleResult)
 {
-	m_images.push_back(QSharedPointer<iAImageTreeNode>(new iAImageTreeLeaf(singleResult, m_labelCount)));
+	m_images.push_back(QSharedPointer<iAImageTreeLeaf>::create(singleResult, m_labelCount));
 }
 
 
@@ -405,13 +405,13 @@ void iAImageClusterer::run()
 			break;
 		}
 		// create merged node:
-		lastNode = QSharedPointer<iAImageTreeInternalNode>(new iAImageTreeInternalNode(
+		lastNode = QSharedPointer<iAImageTreeInternalNode>::create(
 			m_images[idx.first], m_images[idx.second],
 			m_labelCount,
 			m_outputDirectory,
 			clusterID++,
 			distances.GetValue(idx.first, idx.second)
-		));
+		);
 		m_images[idx.first ]->SetParent(lastNode);
 		m_images[idx.second]->SetParent(lastNode);
 		m_images[idx.first ]->DiscardDetails();
@@ -458,7 +458,7 @@ void iAImageClusterer::run()
 	}
 	if (!m_aborted)
 	{
-		m_tree = QSharedPointer<iAImageTree>(new iAImageTree(lastNode, m_labelCount));
+		m_tree = QSharedPointer<iAImageTree>::create(lastNode, m_labelCount);
 	}
 }
 

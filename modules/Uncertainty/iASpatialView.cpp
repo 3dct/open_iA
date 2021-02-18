@@ -293,7 +293,7 @@ void iASpatialView::SetupSelection(vtkImagePointer selectionImg)
 {
 	m_ctf = BuildLabelOverlayLUT();
 	m_otf = BuildLabelOverlayOTF();
-	m_selectionData = QSharedPointer<iAChannelData>(new iAChannelData);
+	m_selectionData = QSharedPointer<iAChannelData>::create();
 	m_selectionData->setData(selectionImg, m_ctf, m_otf);
 }
 

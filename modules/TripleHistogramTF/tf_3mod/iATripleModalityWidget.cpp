@@ -31,7 +31,6 @@
 #include <iAModality.h>
 
 #include <QComboBox>
-#include <QSharedPointer>
 #include <QCheckBox>
 #include <QLabel>
 #include <QSpinBox>

@@ -169,7 +169,7 @@ QWidget* iAJobListView::addJobWidget(QSharedPointer<iAJob> j)
 	
 	if (!j->estimator)
 	{
-		j->estimator = QSharedPointer<iADurationEstimator>(new iAPercentBasedEstimator());
+		j->estimator = QSharedPointer<iAPercentBasedEstimator>::create();
 	}
 	QTimer* timer = new QTimer(jobWidget);
 	connect(timer, &QTimer::timeout, jobWidget, [elapsedLabel, j] {

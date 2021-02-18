@@ -26,7 +26,6 @@
 #include "iAcharts_export.h"
 
 #include <QDomNode>
-#include <QSharedPointer>
 #include <QPoint>
 #include <QString>
 

@@ -32,7 +32,7 @@ QSharedPointer<iASeedVector> ExtractSeedVector(QString const & seedString, int w
 #else
 	QStringList lines = seedString.split(QRegExp("[\r\n]"), Qt::SkipEmptyParts);
 #endif
-	QSharedPointer<iASeedVector> result(new iASeedVector());
+	auto result = QSharedPointer<iASeedVector>::create();
 	QString parseErrors;
 	bool numberOK;
 	// convert seed string to vector:

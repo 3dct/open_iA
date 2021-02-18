@@ -59,7 +59,7 @@ iARangeSliderDiagramWidget::iARangeSliderDiagramWidget(QWidget* parent, vtkPiece
 	m_tf(new iASimpleTransferFunction(cTF, oTF))
 {
 	setTransferFunction(m_tf.data());
-	addPlot(QSharedPointer<iAPlot>(new iABarGraphPlot(m_data, QColor(70, 70, 70, 255))));
+	addPlot(QSharedPointer<iABarGraphPlot>::create(m_data, QColor(70, 70, 70, 255)));
 	m_selectionRubberBand->hide();
 	( (iAChartTransferFunction*) m_functions[0] )->enableRangeSliderHandles( true );
 }
@@ -315,7 +315,7 @@ void iARangeSliderDiagramWidget::setupSelectionDrawer()
 	{
 		removePlot(m_selectionDrawer);
 	}
-	m_selectionDrawer = QSharedPointer<iAStepFunctionPlot>( new iAStepFunctionPlot( m_selectedData, m_selectionColor ) );
+	m_selectionDrawer = QSharedPointer<iAStepFunctionPlot>::create(m_selectedData, m_selectionColor);
 	addPlot( m_selectionDrawer );
 }
 
@@ -367,8 +367,7 @@ void iARangeSliderDiagramWidget::selectSlot()
 		int row = it.next();
 		auto selectedData = createFilteredPlotData( m_data, row - 1, row - 1 );	//-1 cause of DiagramData
 
-		QSharedPointer<iAStepFunctionPlot> selectionDrawer = QSharedPointer<iAStepFunctionPlot>(
-			new iAStepFunctionPlot( selectedData, QColor( Qt::yellow ) ) );
+		auto selectionDrawer = QSharedPointer<iAStepFunctionPlot>::create( selectedData, QColor( Qt::yellow ) );
 
 		m_histogramDrawerList.append( selectionDrawer );
 		addPlot( selectionDrawer );

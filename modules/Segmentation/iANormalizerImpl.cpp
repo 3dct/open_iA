@@ -106,7 +106,7 @@ char const * iAGaussianNormalizer::name() const
 QSharedPointer<iANormalizer> CreateNormalizer(QString const & name, double beta)
 {
 	if (name == TransformNames[nmLinear])
-		return QSharedPointer<iANormalizer>(new iALinearNormalizer);
+		return QSharedPointer<iALinearNormalizer>::create();
 	else if (name == TransformNames[nmGaussian])
 	{
 		iAGaussianNormalizer* norm = new iAGaussianNormalizer;
@@ -114,7 +114,7 @@ QSharedPointer<iANormalizer> CreateNormalizer(QString const & name, double beta)
 		return QSharedPointer<iANormalizer>(norm);
 	}
 	else
-		return QSharedPointer<iANormalizer>(new iANoNormalizer);
+		return QSharedPointer<iANoNormalizer>::create();
 }
 
 

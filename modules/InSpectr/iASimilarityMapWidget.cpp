@@ -125,7 +125,7 @@ void iASimilarityMapWidget::updateQtImage()
 	m_numBins = dims[0];
 	ImageScalarType * scalPtr = (ImageScalarType*)m_vtkImageData->GetScalarPointer();
 	double windowRange[2] = { scalRange[1] * m_WindowRange[0], scalRange[1] * m_WindowRange[1] };
-	m_qtImage = QSharedPointer<QImage>( new QImage( dims[0], dims[1], QImage::Format_ARGB32 ) );
+	m_qtImage = QSharedPointer<QImage>::create( dims[0], dims[1], QImage::Format_ARGB32 );
 
 	for( int x = 0; x < dims[0]; ++x )
 	{

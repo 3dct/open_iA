@@ -320,7 +320,7 @@ void iASimilarity::performWork(QMap<QString, QVariant> const & parameters)
 
 QSharedPointer<iAFilterRunnerGUI> iASimilarityFilterRunner::create()
 {
-	return QSharedPointer<iAFilterRunnerGUI>(new iASimilarityFilterRunner());
+	return QSharedPointer<iASimilarityFilterRunner>::create();
 }
 
 QMap<QString, QVariant> iASimilarityFilterRunner::loadParameters(QSharedPointer<iAFilter> filter, iAMdiChild* sourceMdi)

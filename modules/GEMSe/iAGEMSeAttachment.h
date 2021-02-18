@@ -24,8 +24,6 @@
 
 #include <vtkSmartPointer.h>
 
-#include <QSharedPointer>
-
 class dlg_GEMSe;
 class dlg_GEMSeControl;
 class dlg_labels;

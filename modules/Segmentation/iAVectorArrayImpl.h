@@ -96,7 +96,7 @@ size_t iAitkPixelVectorArray<ImageType>::channelCount() const
 template <typename ImageType>
 QSharedPointer<iAVectorType const> iAitkPixelVectorArray<ImageType>::get(size_t voxelIdx) const
 {
-	return QSharedPointer<iAVectorType const>(new iAPixelVector(*this, voxelIdx));
+	return QSharedPointer<iAPixelVector>::create(*this, voxelIdx);
 }
 
 template <typename ImageType>
