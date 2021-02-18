@@ -625,7 +625,7 @@ void iAIO::run()
 	}
 	catch (std::exception & e)
 	{
-		addMsg(tr("IO operation failed: %1").arg(e.what()));
+		LOG(lvlError, tr("IO operation failed: %1").arg(e.what()));
 	}
 }
 
