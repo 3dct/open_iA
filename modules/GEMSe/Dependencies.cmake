@@ -13,12 +13,12 @@ IF (VTK_VERSION VERSION_LESS "9.0.0")
 		ViewsCore     # for vtkViewsCoreModule.h, required by vtkViewsContext2DModule.h (dlg_Consensus.cpp)
 	)
 ENDIF()
-SET( DEPENDENCIES_ITK_MODULES
-	ITKImageCompare           # for STAPLEImageFilter
-	ITKImageStatistics        # for LabelStatisticsImageFilter
-	ITKLabelVoting            # for MultiLabelSTAPLEImageFilter
-	ITKStatistics             # for Histogram
-)
+#SET( DEPENDENCIES_ITK_MODULES
+#	ITKImageCompare           # for STAPLEImageFilter
+#	ITKImageStatistics        # for LabelStatisticsImageFilter
+#	ITKLabelVoting            # for MultiLabelSTAPLEImageFilter
+#	ITKStatistics             # for Histogram
+#)
 SET( DEPENDENCIES_IA_TOOLKIT_DIRS
 	LabelVoting
 )

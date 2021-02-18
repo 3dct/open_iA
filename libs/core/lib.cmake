@@ -24,14 +24,14 @@ IF (VTK_VERSION VERSION_LESS "9.0.0")
 		InteractionWidgets     # for vtkLogoRepresentation.h, required by iARendererImpl.cpp
 	)
 ENDIF()
-SET(ITK_REQUIRED_LIBS_PUBLIC
-	ITKIORAW                # for RawImage... in iAIO
-)
-IF (ITK_VERSION VERSION_LESS "5.0.0")
-	LIST(APPEND ITK_REQUIRED_LIBS_PUBLIC
-		ITKGDCM         # for gdcmSerieHelper.h, required by itkGDCMSeriesFileNames.h (via iAIO)
-	)
-ENDIF()
+#SET(ITK_REQUIRED_LIBS_PUBLIC
+#	ITKIORAW                # for RawImage... in iAIO
+#)
+#IF (ITK_VERSION VERSION_LESS "5.0.0")
+#	LIST(APPEND ITK_REQUIRED_LIBS_PUBLIC
+#		ITKGDCM         # for gdcmSerieHelper.h, required by itkGDCMSeriesFileNames.h (via iAIO)
+#	)
+#ENDIF()
 IF ("${VTK_VIDEO_SUPPORT}" STREQUAL "ogg")
 	TARGET_COMPILE_DEFINITIONS(${libname} PRIVATE VTK_USE_OGGTHEORA_ENCODER)
 ENDIF()

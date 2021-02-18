@@ -16,9 +16,9 @@ IF (VTK_VERSION VERSION_LESS "9.0.0")
 		ViewsCore     # for vtkViewsCoreModule.h, required by vtkViewsContext2DModule.h (dlg_FeatureScout)
 	)
 ENDIF()
-SET( DEPENDENCIES_ITK_MODULES
-	ITKLabelMap                            # for LabelImageToLabelMapFilter, LabelMapMaskImageFilter
-	ITKSmoothing                           # for DiscreteGaussianImageFilter
-	ITKThresholding                        # for BinaryThresholdImageFilter
-	ITKVtkGlue                             # for ImageToVTKImageFilter / VTKImageToImageFilter
-)
+#SET( DEPENDENCIES_ITK_MODULES
+#	ITKLabelMap                            # for LabelImageToLabelMapFilter, LabelMapMaskImageFilter
+#	ITKSmoothing                           # for DiscreteGaussianImageFilter
+#	ITKThresholding                        # for BinaryThresholdImageFilter
+#	ITKVtkGlue                             # for ImageToVTKImageFilter / VTKImageToImageFilter
+#)
