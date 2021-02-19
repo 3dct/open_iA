@@ -227,11 +227,11 @@ IF (VTK_MAJOR_VERSION GREATER_EQUAL 9)
 	LIST (APPEND VTK_COMPONENTS         # components not pulled in automatically anymore in VTK >= 9:
 		ChartsCore                  # for vtkAxis, vtkChart, vtkChartParallelCoordinates, used in FeatureScout, FuzzyFeatureTracking, GEMSE, PorosityAnalyzer
 		CommonComputationalGeometry # for vtkParametricSpline, used in core - iASpline/iAParametricSpline
-		GUISupportQt                # for QVTKOpenGLNativeWidget
 		FiltersExtraction           # for vtkExtractGeometry, used in FIAKER - iASelectionInteractorStyle
 		FiltersGeometry             # for vtkImageDataGeometryFilter used in iALabel3D and vtkDataSetSurfaceFilter used in ExtractSurface - iAExtractSurfaceFilter
 		FiltersHybrid               # for vtkDepthSortPolyData used in 4DCT, DreamCaster, FeatureScout, vtkPolyDataSilhouette used in FeatureScout
 		FiltersStatistics           # for vtkDataSetSurfaceFilter used in BoneThickness - iABoneThickness
+		GUISupportQt                # for QVTKOpenGLNativeWidget
 		ImagingHybrid               # for vtkSampleFunction.h used in FeatureScout - iABlobCluster
 		IOXML                       # for vtkXMLImageDataReader used in iAIO
 		RenderingContext2D          # for making vtkContext2D::GetDevice return something else than nullptr
@@ -303,9 +303,9 @@ IF (VTK_MAJOR_VERSION GREATER 8)
 	ENDIF()
 ENDIF()
 FIND_PACKAGE(VTK COMPONENTS ${VTK_COMPONENTS})
-#IF (VTK_MAJOR_VERSION LESS 9)		# VTK >= 9.0 uses imported targets -> include directories are set by TARGET_LINK_LIBRARIES(... VTK_LIBRARIES) call!
-#	INCLUDE(${VTK_USE_FILE})
-#ENDIF()
+IF (VTK_MAJOR_VERSION LESS 9)		# VTK >= 9.0 uses imported targets -> include directories are set by TARGET_LINK_LIBRARIES(... VTK_LIBRARIES) call!
+	INCLUDE(${VTK_USE_FILE})
+ENDIF()
 IF (MSVC)
 	SET (VTK_LIB_DIR "${VTK_DIR}/bin/Release")
 ELSE ()
@@ -759,16 +759,17 @@ ENDIF()
 # Helper functions for adding libraries
 
 # "old style" libraries (e.g. ITK or VTK < 9, with no imported targets)
-FUNCTION (ADD_LEGACY_LIBRARIES libname libprefix pubpriv liblist)
-	FOREACH(lib ${liblist})
-		set (fulllib "${libprefix}${lib}")
-		IF (openiA_DEPENDENCY_INFO)
-			MESSAGE(STATUS "    ${fulllib} - libs: ${${fulllib}_LIBRARIES}, include: ${${fulllib}_INCLUDE_DIRS}")
-		ENDIF()
-		TARGET_INCLUDE_DIRECTORIES(${libname} ${pubpriv} ${${fulllib}_INCLUDE_DIRS})
-		TARGET_LINK_LIBRARIES(${libname} ${pubpriv} ${${fulllib}_LIBRARIES})
-	ENDFOREACH()
-ENDFUNCTION()
+# -> not working like this, since we have to use (I/V)TK_USE_FILE anyway for module autoinitialization
+#FUNCTION (ADD_LEGACY_LIBRARIES libname libprefix pubpriv liblist)
+#	FOREACH(lib ${liblist})
+#		set (fulllib "${libprefix}${lib}")
+#		IF (openiA_DEPENDENCY_INFO)
+#			MESSAGE(STATUS "    ${fulllib} - libs: ${${fulllib}_LIBRARIES}, include: ${${fulllib}_INCLUDE_DIRS}")
+#		ENDIF()
+#		TARGET_INCLUDE_DIRECTORIES(${libname} ${pubpriv} ${${fulllib}_INCLUDE_DIRS})
+#		TARGET_LINK_LIBRARIES(${libname} ${pubpriv} ${${fulllib}_LIBRARIES})
+#	ENDFOREACH()
+#ENDFUNCTION()
 
 # "new style" libraries that bring in all dependencies automatically, and that only need to be linked to
 FUNCTION (ADD_IMPORTEDTARGET_LIBRARIES libname libprefix pubpriv liblist)
@@ -783,8 +784,8 @@ ENDFUNCTION()
 
 FUNCTION (ADD_VTK_LIBRARIES libname pubpriv liblist)
 	IF (VTK_VERSION VERSION_LESS "9.0.0")
-		LIST (APPEND liblist ${VTK_BASE_LIB_LIST})
-		ADD_LEGACY_LIBRARIES(${libname} ${VTK_LIB_PREFIX} ${pubpriv} "${liblist}")
+		#LIST (APPEND liblist ${VTK_BASE_LIB_LIST})
+		#ADD_LEGACY_LIBRARIES(${libname} ${VTK_LIB_PREFIX} ${pubpriv} "${liblist}")
 	ELSE()
 		ADD_IMPORTEDTARGET_LIBRARIES(${libname} ${VTK_LIB_PREFIX} ${pubpriv} "${liblist}")
 	ENDIF()

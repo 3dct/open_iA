@@ -5,6 +5,7 @@ TARGET_LINK_LIBRARIES(${libname} PUBLIC
 
 	# ToDo: Get rid of GUI stuff here, move down to core/...
 	Qt5::Gui
+#	Qt5::Widgets # seems to be pulled in by vtk's GUISupportQt automatically
 )
 SET (VTK_REQUIRED_LIBS_PUBLIC
 	CommonCore
@@ -19,22 +20,26 @@ SET (VTK_REQUIRED_LIBS_PUBLIC
 	RenderingVolume${VTK_RENDERING_BACKEND}
 	InteractionStyle      # implements VTK::RenderingCore
 	RenderingFreeType     # implements VTK::RenderingCore
+	RenderingGL2PSOpenGL2 # implements VTK::RenderingOpenGL2
 	RenderingOpenVR       # implements VTK::RenderingCore
 	RenderingUI           # implements VTK::RenderingCore
 )
+# for VTK < 9 we have to use VTK_USE_FILE anyway for module autoinitialization
 IF (VTK_VERSION VERSION_LESS "9.0.0")
-	LIST(APPEND VTK_REQUIRED_LIBS_PUBLIC
-		CommonMath          # for vtkTuple.h, required by Common/DataModel/vtkVector.h
-		FiltersCore         # for vtkFiltersCoreModule.h, required by vtkRenderingCoreModule.h
-		GUISupportQtOpenGL  # for QVTKWidget2.h
-		RenderingVolume     # for vtkRenderingVolumeModule.h, required by vtkRenderingVolumeOpenGLModule.h
-	)
+#	LIST(APPEND VTK_REQUIRED_LIBS_PUBLIC
+#		CommonMath          # for vtkTuple.h, required by Common/DataModel/vtkVector.h
+#		FiltersCore         # for vtkFiltersCoreModule.h, required by vtkRenderingCoreModule.h
+#		GUISupportQtOpenGL  # for QVTKWidget2.h
+#		RenderingVolume     # for vtkRenderingVolumeModule.h, required by vtkRenderingVolumeOpenGLModule.h
+#	)
+	TARGET_LINK_LIBRARIES(${libname} PUBLIC ${VTK_LIBRARIES})
 ENDIF()
-IF ("${VTK_RENDERING_BACKEND}" STREQUAL "OpenGL2")
-	LIST(APPEND VTK_REQUIRED_LIBS_PUBLIC
-		RenderingGL2PSOpenGL2 # implements VTK::RenderingOpenGL2
-	)
-ENDIF()
+# VTK_REQUIRED_LIBS_PUBLIC above only used anyway on VTK >= 9, which only supports OpenGL2 backend...
+#IF ("${VTK_RENDERING_BACKEND}" STREQUAL "OpenGL2")
+#	LIST(APPEND VTK_REQUIRED_LIBS_PUBLIC
+#		RenderingGL2PSOpenGL2 # implements VTK::RenderingOpenGL2
+#	)
+#ENDIF()
 
 #	
 # instead of linking all ITK_LIBRARIES:

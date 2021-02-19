@@ -11,11 +11,12 @@ SET( DEPENDENCIES_VTK_MODULES
 	RenderingContext${VTK_RENDERING_BACKEND}    # for implementation of RenderingContext2D (?)
 	ViewsContext2D        # for vtkContextView, vtkContextInteractorStyle
 )
-IF (VTK_VERSION VERSION_LESS "9.0.0")
-	LIST(APPEND DEPENDENCIES_VTK_MODULES
-		ViewsCore     # for vtkViewsCoreModule.h, required by vtkViewsContext2DModule.h (dlg_FeatureScout)
-	)
-ENDIF()
+# for VTK < 9 we have to use VTK_USE_FILE anyway for module autoinitialization
+#IF (VTK_VERSION VERSION_LESS "9.0.0")
+#	LIST(APPEND DEPENDENCIES_VTK_MODULES
+#		ViewsCore     # for vtkViewsCoreModule.h, required by vtkViewsContext2DModule.h (dlg_FeatureScout)
+#	)
+#ENDIF()
 #SET( DEPENDENCIES_ITK_MODULES
 #	ITKLabelMap                            # for LabelImageToLabelMapFilter, LabelMapMaskImageFilter
 #	ITKSmoothing                           # for DiscreteGaussianImageFilter

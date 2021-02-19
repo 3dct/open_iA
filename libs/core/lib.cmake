@@ -12,18 +12,19 @@ SET(VTK_REQUIRED_LIBS_PUBLIC
 	RenderingAnnotation     # for vtkAnnotatedCubeActor, vtkCaptionActor, vtkScalarBarActor
 	RenderingQt             # for vtkQImageToImageSource, also pulls in vtkGUISupportQt (for QVTKWidgetOpenGL)
 )
-IF (VTK_VERSION VERSION_LESS "9.0.0")
-	LIST(APPEND VTK_REQUIRED_LIBS_PUBLIC
-		CommonMisc             # for vtkContourValues.h, required by vtkMarchingContourFilter.h
-		CommonTransforms       # for vtkTransform.h, required by iAChannel[Slicer]Data.cpp
-		FiltersGeneral         # for vtkFiltersGeneralModule.h, required by vtkFiltersModelingModule.h
-		FiltersSources         # for vtkLineSource.h, required by iALabel3D.cpp
-		IOCore                 # for vtkAbstractPolyDataReader.h, required by vtkSTLReader.h (iAIO)
-		IOLegacy               # for vtkGenericDataObjectReader.h, required by iAIO.cpp
-		RenderingLabel         # for vtkRenderingLabelModule.h, required by vtkRenderingQtModule.h (iALabel3D)
-		InteractionWidgets     # for vtkLogoRepresentation.h, required by iARendererImpl.cpp
-	)
-ENDIF()
+# for VTK < 9 we have to use VTK_USE_FILE anyway for module autoinitialization
+#IF (VTK_VERSION VERSION_LESS "9.0.0")
+#	LIST(APPEND VTK_REQUIRED_LIBS_PUBLIC
+#		CommonMisc             # for vtkContourValues.h, required by vtkMarchingContourFilter.h
+#		CommonTransforms       # for vtkTransform.h, required by iAChannel[Slicer]Data.cpp
+#		FiltersGeneral         # for vtkFiltersGeneralModule.h, required by vtkFiltersModelingModule.h
+#		FiltersSources         # for vtkLineSource.h, required by iALabel3D.cpp
+#		IOCore                 # for vtkAbstractPolyDataReader.h, required by vtkSTLReader.h (iAIO)
+#		IOLegacy               # for vtkGenericDataObjectReader.h, required by iAIO.cpp
+#		RenderingLabel         # for vtkRenderingLabelModule.h, required by vtkRenderingQtModule.h (iALabel3D)
+#		InteractionWidgets     # for vtkLogoRepresentation.h, required by iARendererImpl.cpp
+#	)
+#ENDIF()
 #SET(ITK_REQUIRED_LIBS_PUBLIC
 #	ITKIORAW                # for RawImage... in iAIO
 #)
