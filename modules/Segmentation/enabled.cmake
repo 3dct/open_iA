@@ -10,16 +10,16 @@ IF (openiA_TESTING_ENABLED)
 		CommonDataModel   # for vtkImageData
 	)
 	ADD_VTK_LIBRARIES(DistanceMeasureTest "PRIVATE" "${VTK_REQUIRED_LIBS}")
-	SET(ITK_REQUIRED_LIBS
-		ITKCommon
-		ITKVNL             # drawn in by itkVector
-	)
+	#SET(ITK_REQUIRED_LIBS
+	#	ITKCommon
+	#	ITKVNL             # drawn in by itkVector
+	#)
 	# version check needs to be verified, not sure if these dependencies were introduced exactly with v5.0.0
 	# currently known: they are required in ITK 4.10.0, but not in 5.1.0
-	IF (ITK_VERSION VERSION_LESS "5.0.0")
-		LIST(APPEND ITK_REQUIRED_LIBS ITKKWSys)
-	ENDIF()
-	ADD_LEGACY_LIBRARIES(DistanceMeasureTest "" "PRIVATE" "${ITK_REQUIRED_LIBS}")
+	#IF (ITK_VERSION VERSION_LESS "5.0.0")
+	#	LIST(APPEND ITK_REQUIRED_LIBS ITKKWSys)
+	#ENDIF()
+	#ADD_LEGACY_LIBRARIES(DistanceMeasureTest "" "PRIVATE" "${ITK_REQUIRED_LIBS}")
 	TARGET_INCLUDE_DIRECTORIES(ImageGraphTest PRIVATE ${CoreSrcDir}/base  ${CoreBinDir})
 	TARGET_INCLUDE_DIRECTORIES(DistanceMeasureTest PRIVATE ${CoreSrcDir}/base ${CoreBinDir})
 	TARGET_COMPILE_DEFINITIONS(ImageGraphTest PRIVATE NO_DLL_LINKAGE)
