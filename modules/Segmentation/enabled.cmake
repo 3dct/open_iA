@@ -6,7 +6,7 @@ IF (openiA_TESTING_ENABLED)
 	TARGET_LINK_LIBRARIES(ImageGraphTest PRIVATE Qt5::Core)
 	TARGET_LINK_LIBRARIES(DistanceMeasureTest PRIVATE Qt5::Core)
 	IF (VTK_MAJOR_VERSION LESS 9)
-		TARGET_LINK_LIBRARIES(DistanceMeasureTest ${VTK_LIBRARIES})
+		TARGET_LINK_LIBRARIES(DistanceMeasureTest PRIVATE ${VTK_LIBRARIES})
 	else()
 		SET (VTK_REQUIRED_LIBS
 			CommonCore        # for vtkSmartPointer
