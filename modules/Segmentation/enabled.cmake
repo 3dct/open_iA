@@ -5,11 +5,15 @@ IF (openiA_TESTING_ENABLED)
 	ADD_EXECUTABLE(DistanceMeasureTest Segmentation/iADistanceMeasureTest.cpp Segmentation/iAVectorDistanceImpl.cpp Segmentation/iAVectorArrayImpl.cpp Segmentation/iAVectorTypeImpl.cpp ${CoreSrcDir}/base/iAImageCoordinate.cpp)
 	TARGET_LINK_LIBRARIES(ImageGraphTest PRIVATE Qt5::Core)
 	TARGET_LINK_LIBRARIES(DistanceMeasureTest PRIVATE Qt5::Core)
-	SET (VTK_REQUIRED_LIBS
-		CommonCore        # for vtkSmartPointer
-		CommonDataModel   # for vtkImageData
-	)
-	ADD_VTK_LIBRARIES(DistanceMeasureTest "PRIVATE" "${VTK_REQUIRED_LIBS}")
+	IF (VTK_MAJOR_VERSION LESS 9)
+		TARGET_LINK_LIBRARIES(DistanceMeasureTest ${VTK_LIBRARIES})
+	else()
+		SET (VTK_REQUIRED_LIBS
+			CommonCore        # for vtkSmartPointer
+			CommonDataModel   # for vtkImageData
+		)
+		ADD_VTK_LIBRARIES(DistanceMeasureTest "PRIVATE" "${VTK_REQUIRED_LIBS}")
+	ENDIF()
 	#SET(ITK_REQUIRED_LIBS
 	#	ITKCommon
 	#	ITKVNL             # drawn in by itkVector
