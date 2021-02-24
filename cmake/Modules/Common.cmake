@@ -560,7 +560,7 @@ if (${avx_support_index} EQUAL -1)
 		"AVX extensions to enable (default: ${openiA_AVX_SUPPORT_DEFAULT})." FORCE)
 	set_property(CACHE openiA_AVX_SUPPORT PROPERTY STRINGS ${openiA_AVX_SUPPORT_OPTIONS})
 endif()
-set (BUILD_INFO "${BUILD_INFO}    \"AVX: ${openiA_AVX_SUPPORT}\\n\"\n")
+set (BUILD_INFO "${BUILD_INFO}    \"Advanced Vector Extensions support: ${openiA_AVX_SUPPORT}\\n\"\n")
 
 IF (MSVC)
 	# /bigobj            increase the number of sections in .obj file (65,279 -> 2^32), exceeded by some compilations
