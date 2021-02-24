@@ -106,7 +106,7 @@ signals:
 	void allJobsDone();
 	//! Emitted when a job is added; used in main window to show widget, as it
 	//! indicates that there is at least on currently running job.
-	void jobAdded();
+	void jobAdded(QObject* o);
 	//! Used to link the GUI part of adding a job to the backend part.
 	//! required for decoupling these two to allow adding jobs from a backend thread
 	void newJobSignal();
