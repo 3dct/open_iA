@@ -132,13 +132,13 @@ protected:
 
 private:
 	// User interface {
-	void updateDisabledLabel();
 	QVector<QSharedPointer<iAChartWithFunctionsWidget>> m_histograms;
 	QVector<QSharedPointer<iASimpleSlicerWidget>> m_slicerWidgets;
 	QVector<uint> m_channelID;
 	QStackedLayout *m_stackedLayout;
 	QCheckBox *m_checkBox_weightByOpacity;
 	QLabel *m_disabledLabel;
+	QString m_disabledReason;
 	QCheckBox *m_checkBox_syncedCamera;
 	// }
 	virtual void modalitiesChanged() =0;

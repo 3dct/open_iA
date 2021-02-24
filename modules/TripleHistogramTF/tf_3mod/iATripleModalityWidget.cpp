@@ -89,7 +89,9 @@ void iATripleModalityWidget::modalitiesChanged()
 {
 	QString names[3];
 	for (int i = 0; i < 3; ++i)
+	{
 		names[i] = getModality(i)->name();
+	}
 	m_triangleWidget->updateModalityNames(names);
 	m_histogramAbstract->updateModalityNames(names);
 }

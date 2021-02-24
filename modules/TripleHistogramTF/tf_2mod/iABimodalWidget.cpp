@@ -22,6 +22,7 @@
 #include "iABimodalWidget.h"
 
 #include <iAModality.h>
+#include <iAModalityList.h>
 #include <iAMdiChild.h>
 
 #include "iAInterpolationSliderWidget.h"
@@ -52,7 +53,8 @@ void iABimodalWidget::initialize()
 	QVector<iASimpleSlicerWidget*> slicers;
 	m_labels.clear();
 
-	for (int i = 0; i < 2; i++) {
+	for (int i = 0; i < 2; i++)
+	{
 		QLabel *l = new QLabel(m_mdiChild->modality(i)->name());
 		l->setStyleSheet("font-weight: bold");
 		l->setSizePolicy(QSizePolicy::Preferred, QSizePolicy::Fixed);
@@ -111,6 +113,8 @@ void iABimodalWidget::tChanged(double t)
 
 void iABimodalWidget::modalitiesChanged()
 {
-	for (int i = 0; i < 2; i++)
+	for (int i = 0; i < m_mdiChild->modalities()->size(); i++)
+	{
 		m_labels[i]->setText(m_mdiChild->modality(i)->name());
+	}
 }
