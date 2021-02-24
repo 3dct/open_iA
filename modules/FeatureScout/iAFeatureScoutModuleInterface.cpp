@@ -278,7 +278,7 @@ bool iAFeatureScoutModuleInterface::startFeatureScout(iACsvConfig const & csvCon
 	}
 	AttachToMdiChild(m_mdiChild);
 	connect(m_mdiChild, &iAMdiChild::closed, this, &iAFeatureScoutModuleInterface::onChildClose);
-	iAFeatureScoutAttachment* attach = GetAttachment<iAFeatureScoutAttachment>();
+	iAFeatureScoutAttachment* attach = GetAttachment<iAFeatureScoutAttachment>(m_mdiChild);
 	if (!attach)
 	{
 		LOG(lvlError, "Error while attaching FeatureScout to mdi child window!");
@@ -307,8 +307,7 @@ bool iAFeatureScoutModuleInterface::startFeatureScout(iACsvConfig const & csvCon
 
 void iAFeatureScoutModuleInterface::FeatureScout_Options()
 {
-	m_mdiChild = m_mainWnd->activeMdiChild();
-	iAFeatureScoutAttachment* attach = GetAttachment<iAFeatureScoutAttachment>();
+	iAFeatureScoutAttachment* attach = GetAttachment<iAFeatureScoutAttachment>(m_mainWnd->activeMdiChild());
 	if ( !attach )
 	{
 		LOG(lvlInfo,  "No FeatureScout attachment in current iAMdiChild!" );
@@ -329,12 +328,12 @@ void iAFeatureScoutModuleInterface::FeatureScout_Options()
 void iAFeatureScoutModuleInterface::onChildClose()
 {
 	if (!tlbFeatureScout)
-		return;
-	auto mdis = m_mainWnd->mdiChildList();
-	for (auto mdi : mdis)
 	{
-		m_mdiChild = mdi;
-		iAFeatureScoutAttachment* attach = GetAttachment<iAFeatureScoutAttachment>();
+		return;
+	}
+	for (auto mdi : m_mainWnd->mdiChildList())
+	{
+		iAFeatureScoutAttachment* attach = GetAttachment<iAFeatureScoutAttachment>(mdi);
 		if (attach)
 		{
 			return;

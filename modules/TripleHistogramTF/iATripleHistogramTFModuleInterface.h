@@ -25,13 +25,16 @@
 class dlg_tf_2mod;
 class dlg_tf_3mod;
 
+class iATripleHistogramTFAttachment;
+
 class iATripleHistogramTFModuleInterface : public iAGUIModuleInterface
 {
 	Q_OBJECT
 public:
 	void Initialize() override;
-protected:
+private:
 	iAModuleAttachmentToChild* CreateAttachment(iAMainWindow* mainWnd, iAMdiChild* child) override;
+	iATripleHistogramTFAttachment* getOrCreateAttachment();
 private slots:
 	void menuItemSelected_2mod();
 	void menuItemSelected_3mod();

@@ -70,8 +70,7 @@ void iAParameterExplorerModuleInterface::SetupToolBar()
 
 void iAParameterExplorerModuleInterface::ToggleDockWidgetTitleBars()
 {
-	m_mdiChild = m_mainWnd->activeMdiChild();
-	iAParameterExplorerAttachment* attach = GetAttachment<iAParameterExplorerAttachment>();
+	iAParameterExplorerAttachment* attach = GetAttachment<iAParameterExplorerAttachment>(m_mainWnd->activeMdiChild());
 	if (!attach)
 	{
 		LOG(lvlError, "ParameterExplorer was not loaded properly!");
@@ -82,8 +81,7 @@ void iAParameterExplorerModuleInterface::ToggleDockWidgetTitleBars()
 
 void iAParameterExplorerModuleInterface::ToggleSettings()
 {
-	m_mdiChild = m_mainWnd->activeMdiChild();
-	iAParameterExplorerAttachment* attach = GetAttachment<iAParameterExplorerAttachment>();
+	iAParameterExplorerAttachment* attach = GetAttachment<iAParameterExplorerAttachment>(m_mainWnd->activeMdiChild());
 	if (!attach)
 	{
 		LOG(lvlError, "ParameterExplorer was not loaded properly!");
@@ -111,7 +109,7 @@ void iAParameterExplorerModuleInterface::StartParameterExplorer()
 void iAParameterExplorerModuleInterface::SaveState()
 {
 	m_mdiChild = m_mainWnd->activeMdiChild();
-	iAParameterExplorerAttachment* attach = GetAttachment<iAParameterExplorerAttachment>();
+	iAParameterExplorerAttachment* attach = GetAttachment<iAParameterExplorerAttachment>(m_mainWnd->activeMdiChild());
 	if (!attach)
 	{
 		LOG(lvlError, "ParameterExplorer was not loaded properly!");
@@ -156,7 +154,7 @@ void iAParameterExplorerModuleInterface::ContinueStateLoading()
 {
 	iAMdiChild* child = dynamic_cast<iAMdiChild*>(QObject::sender());
 	m_mdiChild = child;
-	iAParameterExplorerAttachment* attach = GetAttachment<iAParameterExplorerAttachment>();
+	iAParameterExplorerAttachment* attach = GetAttachment<iAParameterExplorerAttachment>(m_mdiChild);
 	if (!child || attach)
 	{
 		LOG(lvlError, "ParameterExplorer: Invalid state - child null or Parameter Explorer already attached!");
@@ -170,7 +168,7 @@ void iAParameterExplorerModuleInterface::ContinueStateLoading()
 	{
 		return;
 	}
-	attach = GetAttachment<iAParameterExplorerAttachment>();
+	attach = GetAttachment<iAParameterExplorerAttachment>(m_mdiChild);
 	if (!attach)
 	{
 		LOG(lvlError, "ParameterExplorer was not loaded properly!");
@@ -185,12 +183,11 @@ void iAParameterExplorerModuleInterface::ContinueStateLoading()
 bool iAParameterExplorerModuleInterface::CreateAttachment(QString const & csvFileName, iAMdiChild* child)
 {
 	bool result = AttachToMdiChild(child);
-	m_mdiChild = child;
 	if (!result)
 	{
 		return false;
 	}
-	iAParameterExplorerAttachment* attach = GetAttachment<iAParameterExplorerAttachment>();
+	iAParameterExplorerAttachment* attach = GetAttachment<iAParameterExplorerAttachment>(child);
 	if (!attach)
 	{
 		LOG(lvlError, "ParameterExplorer was not loaded properly!");
