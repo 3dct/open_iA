@@ -61,7 +61,8 @@ iAHistogramTriangle::iAHistogramTriangle(iATripleModalityWidget* tripleModalityW
 {
 }
 
-void iAHistogramTriangle::glresized() {
+void iAHistogramTriangle::glresized()
+{
 	qDebug() << "GL RESIZED!";
 }
 
@@ -129,7 +130,8 @@ void iAHistogramTriangle::updateSlicers()
 
 void iAHistogramTriangle::updateHistograms()
 {
-	for (int i = 0; i < 3; i++) {
+	for (int i = 0; i < 3; i++)
+	{
 		m_fRenderHistogram[i] = true;
 	}
 	update();
@@ -142,20 +144,24 @@ void iAHistogramTriangle::forwardMouseEvent(QMouseEvent *event, MouseEventType e
 	WidgetType widgetType = NONE;
 	QPoint transformed = QPoint();
 	QWidget *target = nullptr;
-	if (m_draggedType == HISTOGRAM) {
+	if (m_draggedType == HISTOGRAM)
+	{
 		transformed = m_transformHistograms[m_lastIndex].inverted().map(event->pos());
-	} else if (m_draggedType == SLICER) {
+	} else if (m_draggedType == SLICER)
+	{
 		transformed = m_transformSlicers[m_lastIndex].inverted().map(event->pos());
 	}
 
-	if (m_draggedType == TRIANGLE || (m_draggedType == NONE && onTriangle(event->pos()))) {
+	if (m_draggedType == TRIANGLE || (m_draggedType == NONE && onTriangle(event->pos())))
+	{
 		m_fRenderTriangle = true;
 
 		widgetType = TRIANGLE;
 		target = m_tmw->w_triangle();
 	}
 
-	else if (m_draggedType == HISTOGRAM || (m_draggedType == NONE && (target = onHistogram(event->pos(), transformed).data()))) {
+	else if (m_draggedType == HISTOGRAM || (m_draggedType == NONE && (target = onHistogram(event->pos(), transformed).data())))
+	{
 		event->setLocalPos(transformed);
 		m_fRenderHistogram[m_lastIndex] = true; // m_lastIndex is affected by onHistogram function
 		m_fRenderSlicer[m_lastIndex] = true; // m_lastIndex is affected by onHistogram function
@@ -164,15 +170,16 @@ void iAHistogramTriangle::forwardMouseEvent(QMouseEvent *event, MouseEventType e
 		target = target ? target : m_draggedWidget;
 	}
 
-	else if (m_draggedType == SLICER || (m_draggedType == NONE && (target = onSlicer(event->pos(), transformed)))) {
+	else if (m_draggedType == SLICER || (m_draggedType == NONE && (target = onSlicer(event->pos(), transformed))))
+	{
 		event->setLocalPos(transformed);
 		m_fRenderSlicer[m_lastIndex] = true; // m_lastIndex is affected by onHistogram function
 
 		widgetType = SLICER;
 		target = target ? target : m_draggedWidget;
 	}
-
-	else {
+	else
+	{
 		// the triangle widget actually occupies the whole screen, despite the triangle
 		//     itself being smaller
 		// the modality labels, for example, are part of the triangle widget
@@ -184,10 +191,13 @@ void iAHistogramTriangle::forwardMouseEvent(QMouseEvent *event, MouseEventType e
 		//m_fRenderTriangle = true;
 	}
 
-	if (eventType == PRESS) {
+	if (eventType == PRESS)
+	{
 		m_draggedType = widgetType;
 		m_draggedWidget = target;
-	} else if (eventType == RELEASE) {
+	}
+	else if (eventType == RELEASE)
+	{
 		m_draggedType = NONE;
 		m_draggedWidget = nullptr;
 	}
@@ -237,9 +247,11 @@ void iAHistogramTriangle::forwardContextMenuEvent(QContextMenuEvent *e)
 
 QSharedPointer<iAChartWithFunctionsWidget> iAHistogramTriangle::onHistogram(QPoint p, QPoint &transformed)
 {
-	for (int i = 0; i < 3; i++) {
+	for (int i = 0; i < 3; i++)
+	{
 		transformed = m_transformHistograms[i].inverted().map(p);
-		if (m_histogramsRect.contains(transformed)) {
+		if (m_histogramsRect.contains(transformed))
+		{
 			m_lastIndex = i;
 			return m_tmw->w_histogram(i);
 		}
@@ -255,8 +267,10 @@ bool iAHistogramTriangle::onTriangle(QPoint p)
 
 iASlicer* iAHistogramTriangle::onSlicer(QPoint p, QPoint &transformed)
 {
-	for (int i = 0; i < 3; i++) {
-		if (m_slicerTriangles[i].contains(p.x(), p.y())) {
+	for (int i = 0; i < 3; i++)
+	{
+		if (m_slicerTriangles[i].contains(p.x(), p.y()))
+		{
 			transformed = m_transformSlicers[i].inverted().map(p);
 			m_lastIndex = i;
 			return m_tmw->w_slicer(i)->getSlicer();
@@ -279,10 +293,13 @@ void iAHistogramTriangle::calculatePositions(int totalWidth, int totalHeight)
 		int aw  = totalWidth - TRIANGLE_LEFT - TRIANGLE_RIGHT; // Available width for the triangle
 		int ah = totalHeight - TRIANGLE_TOP - TRIANGLE_BOTTOM;
 
-		if ((double)aw / (double)ah < TRIANGLE_WIDTH_RATIO) {
+		if ((double)aw / (double)ah < TRIANGLE_WIDTH_RATIO)
+		{
 			width = aw;
 			height = qRound(aw * TRIANGLE_HEIGHT_RATIO);
-		} else {
+		}
+		else
+		{
 			width = qRound(ah * TRIANGLE_WIDTH_RATIO);
 			height = ah;
 		}
@@ -440,7 +457,8 @@ void iAHistogramTriangle::paintEvent(QPaintEvent* /*event*/)
 	// many updates not occurring. Probably a consequence of the Qt hacks this class
 	// does... No idea how to fix that, so disable this system for now (=> m_fClear = true).
 	m_fClear = true;
-	if (m_fClear) {
+	if (m_fClear)
+	{
 		m_fRenderHistogram[0] = true;
 		m_fRenderHistogram[1] = true;
 		m_fRenderHistogram[2] = true;
@@ -458,7 +476,8 @@ void iAHistogramTriangle::paintEvent(QPaintEvent* /*event*/)
 	p.setRenderHints(QPainter::Antialiasing | QPainter::SmoothPixmapTransform);
 	//p.setClipPath(m_clipPath);
 
-	if (m_fRenderTriangle) {
+	if (m_fRenderTriangle)
+	{
 		m_tmw->w_triangle()->paintContext(p);
 	}
 
@@ -466,7 +485,8 @@ void iAHistogramTriangle::paintEvent(QPaintEvent* /*event*/)
 
 	paintHistograms(p);
 
-	if (m_fRenderHistogram[0] || m_fRenderHistogram[1] || m_fRenderHistogram[2]) {
+	if (m_fRenderHistogram[0] || m_fRenderHistogram[1] || m_fRenderHistogram[2])
+	{
 		//p.setClipping(false);
 		p.setPen(m_clipPathPen);
 		p.drawPath(m_clipPath);
@@ -495,8 +515,10 @@ void iAHistogramTriangle::paintSlicers(QPainter &p)
 	QPainterPath oldClipPath = p.clipPath();
 
 	QImage img;
-	for (int i = 0; i < 3; i++) {
-		if (m_fRenderSlicer[i]) {
+	for (int i = 0; i < 3; i++)
+	{
+		if (m_fRenderSlicer[i])
+		{
 			p.setClipping(false);
 			p.fillPath(m_slicerClipPaths[i], QBrush(Qt::black)); // TODO use m_slicerBackgroundBrush
 
@@ -517,9 +539,12 @@ void iAHistogramTriangle::paintSlicers(QPainter &p)
 		}
 	}
 
-	if (hasClipping) {
+	if (hasClipping)
+	{
 		p.setClipPath(oldClipPath);
-	} else {
+	}
+	else
+	{
 		p.setClipping(false);
 	}
 }
@@ -530,8 +555,10 @@ void iAHistogramTriangle::paintHistograms(QPainter &p)
 	//p.setPen(m_histogramsBorderPen);
 
 	// LEFT, RIGHT then BOTTOM
-	for (int i = 0; i < 3; i++) {
-		if (m_fRenderHistogram[i]) {
+	for (int i = 0; i < 3; i++)
+	{
+		if (m_fRenderHistogram[i])
+		{
 			p.setTransform(m_transformHistograms[i]);
 			auto img = m_tmw->w_histogram(i)->drawOffscreen();
 			p.drawImage(0, 0, img);

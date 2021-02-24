@@ -56,11 +56,13 @@ public:
 	iAHistogramAbstractType getLayoutTypeAt(int comboBoxIndex);
 	void setHistogramAbstractType(iAHistogramAbstractType type);
 
-	iABarycentricTriangleWidget* w_triangle() {
+	iABarycentricTriangleWidget* w_triangle()
+	{
 		return m_triangleWidget;
 	}
 
-	QComboBox* w_layoutComboBox() {
+	QComboBox* w_layoutComboBox()
+	{
 		return m_layoutComboBox;
 	}
 

@@ -48,52 +48,68 @@ class QLabel;
 class QStackedLayout;
 class QCheckBox;
 
-enum NumOfMod {
+enum NumOfMod
+{
 	UNDEFINED = -1,
 	TWO = 2,
 	THREE = 3
 };
 
-class iAMultimodalWidget : public QWidget {
+class iAMultimodalWidget : public QWidget
+{
 	Q_OBJECT
 
 // Private methods used by public/protected
 private:
-	double bCoord_to_t(iABCoord bCoord) { return bCoord[1]; }
-	iABCoord t_to_bCoord(double t) { return iABCoord(1-t, t); }
+	double bCoord_to_t(iABCoord bCoord)
+	{
+		return bCoord[1];
+	}
+	iABCoord t_to_bCoord(double t)
+	{
+		return iABCoord(1-t, t);
+	}
 	void setWeights(iABCoord bCoord, double t);
 
 public:
 	iAMultimodalWidget(iAMdiChild* mdiChild, NumOfMod num);
 
-	QSharedPointer<iAChartWithFunctionsWidget> w_histogram(int i) {
+	QSharedPointer<iAChartWithFunctionsWidget> w_histogram(int i)
+	{
 		return m_histograms[i];
 	}
 
-	QSharedPointer<iASimpleSlicerWidget> w_slicer(int i) {
+	QSharedPointer<iASimpleSlicerWidget> w_slicer(int i)
+	{
 		return m_slicerWidgets[i];
 	}
 
-	QCheckBox* w_checkBox_weightByOpacity() {
+	QCheckBox* w_checkBox_weightByOpacity()
+	{
 		return m_checkBox_weightByOpacity;
 	}
 
-	QCheckBox* w_checkBox_syncedCamera() {
+	QCheckBox* w_checkBox_syncedCamera()
+	{
 		return m_checkBox_syncedCamera;
 	}
 
-	QLabel* w_slicerModeLabel() {
+	QLabel* w_slicerModeLabel()
+	{
 		return m_slicerModeLabel;
 	}
 
-	QLabel* w_sliceNumberLabel() {
+	QLabel* w_sliceNumberLabel()
+	{
 		return m_sliceNumberLabel;
 	}
 
-	void setWeights(iABCoord bCoord) {
+	void setWeights(iABCoord bCoord)
+	{
 		setWeights(bCoord, bCoord_to_t(bCoord));
 	}
-	void setWeights(double t) {
+	void setWeights(double t)
+	{
 		setWeights(t_to_bCoord(t), t);
 	}
 	iABCoord getWeights();
@@ -119,11 +135,13 @@ protected:
 
 	void resetSlicer(int i);
 
-	void setWeightsProtected(double t) {
+	void setWeightsProtected(double t)
+	{
 		setWeightsProtected(t_to_bCoord(t), t);
 	}
 
-	void setWeightsProtected(iABCoord bCoord) {
+	void setWeightsProtected(iABCoord bCoord)
+	{
 		setWeightsProtected(bCoord, bCoord_to_t(bCoord));
 	}
 

@@ -50,8 +50,14 @@ public:
 	double getT();
 	void setT(double t);
 
-	void setWeightA(double t) { setT(1 - t); }
-	void setWeightB(double t) { setT(t); }
+	void setWeightA(double t)
+	{
+		setT(1 - t);
+	}
+	void setWeightB(double t)
+	{
+		setT(t);
+	}
 
 	void setTWaitingTimeMs(int waitingTimeMs);
 	void resetTWaitingTime();

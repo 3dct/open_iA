@@ -40,10 +40,12 @@ class iAHistogramTriangle : public iAHistogramAbstract
 	Q_OBJECT
 
 private:
-	enum MouseEventType {
+	enum MouseEventType
+	{
 		PRESS, MOVE, RELEASE
 	};
-	enum WidgetType {
+	enum WidgetType
+	{
 		NONE, HISTOGRAM, SLICER, TRIANGLE
 	};
 
@@ -75,7 +77,10 @@ private slots:
 	void glresized();
 
 private:
-	void calculatePositions() { calculatePositions(size().width(), size().height()); }
+	void calculatePositions()
+	{
+		calculatePositions(size().width(), size().height());
+	}
 	void calculatePositions(int w, int h);
 
 	void forwardMouseEvent(QMouseEvent *event, MouseEventType type);

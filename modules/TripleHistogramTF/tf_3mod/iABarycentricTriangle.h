@@ -31,7 +31,8 @@ class iABarycentricTriangle
 		iABarycentricTriangle(int xa, int ya, int xb, int yb, int xc, int yc);
 		iABarycentricTriangle();
 
-		iABarycentricTriangle operator- (QPoint p) {
+		iABarycentricTriangle operator- (QPoint p)
+		{
 			return iABarycentricTriangle(m_xa - p.x(), m_ya - p.y(), m_xb - p.x(), m_yb - p.y(), m_xc - p.x(), m_yc - p.y());
 		}
 

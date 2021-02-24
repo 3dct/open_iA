@@ -23,8 +23,10 @@
 #include "iAHistogramStack.h"
 #include "iAHistogramTriangle.h"
 
-iAHistogramAbstract* iAHistogramAbstract::buildHistogramAbstract(iAHistogramAbstractType type, iATripleModalityWidget *tmw) {
-	switch (type) {
+iAHistogramAbstract* iAHistogramAbstract::buildHistogramAbstract(iAHistogramAbstractType type, iATripleModalityWidget *tmw)
+{
+	switch (type)
+	{
 	case STACK:
 		return new iAHistogramStack(tmw);
 

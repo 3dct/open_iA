@@ -38,7 +38,8 @@ iAHistogramStackGrid::iAHistogramStackGrid(
 	: QWidget(parent, f)
 {
 	m_gridLayout = new QGridLayout(this);
-	for (int i = 0; i < histograms.size(); i++) {
+	for (int i = 0; i < histograms.size(); i++)
+	{
 		m_gridLayout->addWidget(histograms[i], i, 0);
 		m_gridLayout->addWidget(slicers[i], i, 1);
 		m_gridLayout->addWidget(labels[i], i, 2);

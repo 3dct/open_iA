@@ -59,7 +59,10 @@ public:
 
 	void setCamera(vtkCamera* camera);
 
-	iASlicer* getSlicer() { return m_slicer; }
+	iASlicer* getSlicer()
+	{
+		return m_slicer;
+	}
 
 public slots:
 	void update();

@@ -65,14 +65,32 @@ private:
 class BorderLayoutItemWrapper : iAIBorderLayoutItem
 {
 public:
-	BorderLayoutItemWrapper(iAIBorderItem* rbi, QLayoutItem *layoutItem) : m_rbi(rbi), m_layoutItem(layoutItem) {}
-	BorderLayoutItemWrapper(iAIBorderWidget* rbw) : m_rbi(rbw), m_layoutItem(new QWidgetItem(rbw->widget())) {}
-	BorderLayoutItemWrapper(iAIBorderLayoutItem* rbli) : m_rbi(rbli), m_layoutItem(rbli->layoutItem()) {}
-	bool hasWidthForHeight() { return m_rbi->hasWidthForHeight(); }
-	int getWidthForHeight(int height) { return m_rbi->getWidthForHeight(height); }
-	bool hasHeightForWidth() { return m_rbi->hasHeightForWidth();  }
-	int getHeightForWidth(int width) { return m_rbi->getHeightForWidth(width); }
-	QLayoutItem* layoutItem() { return m_layoutItem; }
+	BorderLayoutItemWrapper(iAIBorderItem* rbi, QLayoutItem *layoutItem) : m_rbi(rbi), m_layoutItem(layoutItem)
+	{}
+	BorderLayoutItemWrapper(iAIBorderWidget* rbw) : m_rbi(rbw), m_layoutItem(new QWidgetItem(rbw->widget()))
+	{}
+	BorderLayoutItemWrapper(iAIBorderLayoutItem* rbli) : m_rbi(rbli), m_layoutItem(rbli->layoutItem())
+	{}
+	bool hasWidthForHeight()
+	{
+		return m_rbi->hasWidthForHeight();
+	}
+	int getWidthForHeight(int height)
+	{
+		return m_rbi->getWidthForHeight(height);
+	}
+	bool hasHeightForWidth()
+	{
+		return m_rbi->hasHeightForWidth();
+	}
+	int getHeightForWidth(int width)
+	{
+		return m_rbi->getHeightForWidth(width);
+	}
+	QLayoutItem* layoutItem()
+	{
+		return m_layoutItem;
+	}
 
 private:
 	iAIBorderItem *m_rbi;
