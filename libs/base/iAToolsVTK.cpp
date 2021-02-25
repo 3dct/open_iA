@@ -192,11 +192,11 @@ QMap<int, QString> const & RenderModeMap()
 	static QMap<int, QString> renderModeMap;
 	if (renderModeMap.isEmpty())
 	{
-		renderModeMap.insert(vtkSmartVolumeMapper::DefaultRenderMode, "DefaultRenderMode");
-		renderModeMap.insert(vtkSmartVolumeMapper::RayCastRenderMode, "RayCastRenderMode");
-		renderModeMap.insert(vtkSmartVolumeMapper::GPURenderMode, "GPURenderMode");
+		renderModeMap.insert(vtkSmartVolumeMapper::DefaultRenderMode, "Default (GPU if available, else Software)");
+		renderModeMap.insert(vtkSmartVolumeMapper::RayCastRenderMode, "Software Ray-Casting");
+		renderModeMap.insert(vtkSmartVolumeMapper::GPURenderMode, "GPU");
 #if VTK_OSPRAY_AVAILABLE
-		renderModeMap.insert(vtkSmartVolumeMapper::OSPRayRenderMode, "OSPRayRenderer");
+		renderModeMap.insert(vtkSmartVolumeMapper::OSPRayRenderMode, "OSPRay");
 #endif
 	}
 	return renderModeMap;
