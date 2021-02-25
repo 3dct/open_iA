@@ -29,8 +29,11 @@ General
 	QTableCornerButton::section,
 	QHeaderView::section
 	{
+		border-top: none;
+		border-left: none;
+		border-right: 1px solid rgba(0, 0, 0, 255);
+		border-bottom: 1px solid rgba(0, 0, 0, 255);
 		background-color: rgba(40, 40, 40, 255);
-		border: 1px solid black;
 	}
 	QTableView::item,
 	QTableWidget::item,

@@ -23,9 +23,31 @@ General
 	{
 		background: none;
 	}
+	QTableView,
+	QTableWidget,
+	QTreeView
+	{
+		background-color: rgba(255, 255, 255, 255);
+	}
+	QHeaderView,
 	QMdiArea::background
 	{
 		background-color: rgba(215, 215, 215, 255);
+	}
+	QTableCornerButton::section,
+	QHeaderView::section
+	{
+		border-top: none;
+		border-left: none;
+		border-right: 1px solid rgba(255, 255, 255, 255);
+		border-bottom: 1px solid rgba(255, 255, 255, 255);
+		background-color: rgba(215, 215, 215, 255);
+	}
+	QTableView::item,
+	QTableWidget::item,
+	QTreeView::item
+	{
+		background-color: rgba(255, 255, 255, 255);
 	}
 	QLineEdit,
 	QSpinBox,
