@@ -10,7 +10,8 @@ General
 	{
 		background: transparent;
 	}
-	QFrame, QStackedWidget
+	QFrame,
+	QStackedWidget
 	{
 		background: none;
 	}
@@ -302,9 +303,6 @@ QPushButton
 QTabWidget
 QTabBar
 ****************************************************************************/
-	QTabWidget
-	{
-	}
 	QTabWidget::pane
 	{
 		/* The tab widget frame */
@@ -312,10 +310,6 @@ QTabBar
 		top: -1px;
 		border: 1px solid rgba(80, 80, 80, 255);
 		/*border-radius: 5px;*/
-	}
-	QTabWidget::tab-bar
-	{
-		alignment: center;
 	}
 	QTabBar
 	{
@@ -325,16 +319,9 @@ QTabBar
 	{
 		/* Style the tab using the tab sub-control. Note that it reads QTabBar _not_ QTabWidget */
 		color: rgba(230, 230, 230, 255);
-		background: qlineargradient(spread:pad,
-			x1:0, y1:0,
-			x2:0, y2:1,
-			stop:0 rgba(30, 30, 30, 255),
-			stop:0.617 rgba(23, 23, 23, 255),
-			stop:0.618 rgba(23, 23, 23, 255),
-			stop:1 rgba(20, 20, 20, 255)
-		);
-		min-width:36ex;
-		padding:1px 4px;
+		border-top-left-radius: 2px;
+		border-top-right-radius: 2px;
+		padding: 2px 12px 2px 12px;
 	}
 	QTabBar::tab:selected, QTabBar::tab:selected:hover
 	{
