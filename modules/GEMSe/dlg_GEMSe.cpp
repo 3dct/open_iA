@@ -759,6 +759,10 @@ void dlg_GEMSe::setMagicLensCount(int count)
 
 void dlg_GEMSe::freeMemory()
 {
+	if (!m_treeView)
+	{
+		return;
+	}
 	m_treeView->freeMemory(GetRoot(), false);
 }
 

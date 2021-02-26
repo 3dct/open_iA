@@ -508,6 +508,7 @@ void dlg_GEMSeControl::EnableClusteringDependantUI()
 {
 	pbClusteringStore->setEnabled(true);
 	pbSelectHistograms->setEnabled(true);
+	pbFreeMemory->setEnabled(true);
 	if (!m_dlgConsensus)
 	{
 		iAMdiChild* mdiChild = dynamic_cast<iAMdiChild*>(parent());
