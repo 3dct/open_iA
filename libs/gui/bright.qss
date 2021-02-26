@@ -109,19 +109,9 @@ QToolButton
 		background: transparent;
 		border: 0px;
 	}
-	QToolButton#qt_toolbar_ext_button
+	QToolButton:hover
 	{
-		background: qlineargradient(spread:pad,
-			x1:0, y1:0,
-			x2:0, y2:1,
-			stop:0 rgba(195, 195, 195, 255),
-			stop:0.617 rgba(170, 170, 170, 255),
-			stop:1 rgba(155, 155, 155, 255)
-		);
-	}
-	QToolButton:hover,
-	QToolButton#qt_toolbar_ext_button:hover
-	{
+		/* needs to be _before_ :pressed for some peculiar precedence reason (in dark.qss, it _only works_ in reverse order!). See also QPushButton */
 		background: qlineargradient(spread:pad,
 			x1:0, y1:0,
 			x2:0, y2:1,
@@ -130,8 +120,7 @@ QToolButton
 			stop:1 rgba(70, 122, 201, 255)
 		);
 	}
-	QToolButton:pressed,
-	QToolButton#qt_toolbar_ext_button:pressed
+	QToolButton:pressed
 	{
 		background: qlineargradient(spread:pad,
 			x1:0, y1:0,
@@ -141,11 +130,7 @@ QToolButton
 			stop:1 rgba(150, 186, 230, 255)
 		);
 	}
-	QToolButton:disabled
-	{
-	}
-	QToolButton:checked,
-	QToolButton#qt_toolbar_ext_button:checked
+	QToolButton:checked
 	{
 		background: qlineargradient(spread:pad,
 			x1:0, y1:0,
@@ -155,10 +140,6 @@ QToolButton
 			stop:1 rgba(185, 133, 54, 255)
 		);
 	}
-	QToolButton:flat
-	{
-	}
-
 	QToolBar::separator
 	{
 		margin-top: 5px;
@@ -241,6 +222,7 @@ QPushButton
 	}
 	QPushButton:hover
 	{
+		/* needs to be _before_ :pressed for some peculiar precedence reason (in dark.qss, it _only works_ in reverse order!). See also QToolButton */
 		border: 1px outset rgba(170, 206, 250, 255);
 		background: qlineargradient(spread:pad,
 			x1:0, y1:0,

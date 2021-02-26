@@ -120,18 +120,18 @@ QToolButton
 		background: transparent;
 		border: 0px;
 	}
-	QToolButton#qt_toolbar_ext_button
+	QToolButton:pressed
 	{
+		/* needs to be _before_ :hover for some peculiar precedence reason (in bright.qss, it _only works_ in reverse order!). See also QPushButton */
 		background: qlineargradient(spread:pad,
 			x1:0, y1:0,
 			x2:0, y2:1,
-			stop:0 rgba(100, 100, 100, 255),
-			stop:0.617 rgba(75, 75, 75, 255),
-			stop:1 rgba(60, 60, 60, 255)
+			stop:0 rgba(70, 122, 201, 255),
+			stop:0.381 rgba(100, 146, 212, 255),
+			stop:1 rgba(150, 186, 230, 255)
 		);
 	}
-	QToolButton:hover,
-	QToolButton#qt_toolbar_ext_button:hover
+	QToolButton:hover
 	{
 		background: qlineargradient(spread:pad,
 			x1:0, y1:0,
@@ -141,22 +141,7 @@ QToolButton
 			stop:1 rgba(70, 122, 201, 255)
 		);
 	}
-	QToolButton:pressed,
-	QToolButton#qt_toolbar_ext_button:pressed
-	{
-		background: qlineargradient(spread:pad,
-			x1:0, y1:0,
-			x2:0, y2:1,
-			stop:0 rgba(70, 122, 201, 255),
-			stop:0.381 rgba(100, 146, 212, 255),
-			stop:1 rgba(150, 186, 230, 255)
-		);
-	}
-	QToolButton:disabled
-	{
-	}
-	QToolButton:checked,
-	QToolButton#qt_toolbar_ext_button:checked
+	QToolButton:checked
 	{
 		background: qlineargradient(spread:pad,
 			x1:0, y1:0,
@@ -166,10 +151,6 @@ QToolButton
 			stop:1 rgba(185, 133, 54, 255)
 		);
 	}
-	QToolButton:flat
-	{
-	}
-
 	QToolBar::separator
 	{
 		margin-top: 5px;
@@ -237,14 +218,15 @@ QPushButton
 ****************************************************************************/
 	QPushButton
 	{
-		background-color: rgba(40, 40, 40, 255);
 		border: 1px outset rgba(50, 50, 50, 255);
 		padding: 0px 6px;
 		min-width: 2em;
 		min-height: 1.5em;
 		color: rgba(230, 230, 230, 255);
 		/* for some reason, background isn't working here... */
-		/*
+	}
+	QPushButton:!hover
+	{
 		background: qlineargradient(spread:pad,
 			x1:0, y1:0,
 			x2:0, y2:1,
@@ -252,7 +234,18 @@ QPushButton
 			stop:0.617 rgba(75, 75, 75, 255),
 			stop:1 rgba(60, 60, 60, 255)
 		);
-		*/
+	}
+	QPushButton:pressed
+	{
+		/* needs to be _before_ :hover for some peculiar precedence reason (in bright.qss, it _only works_ in reverse order!). See also QToolButton */
+		border: 1px inset rgba(170, 206, 250, 255);
+		background: qlineargradient(spread:pad,
+			x1:0, y1:0,
+			x2:0, y2:1,
+			stop:0 rgba(70, 122, 201, 255),
+			stop:0.381 rgba(100, 146, 212, 255),
+			stop:1 rgba(150, 186, 230, 255)
+		);
 	}
 	QPushButton:hover
 	{
@@ -263,18 +256,6 @@ QPushButton
 			stop:0 rgba(150, 186, 230, 255),
 			stop:0.617 rgba(100, 146, 212, 255),
 			stop:1 rgba(70, 122, 201, 255)
-		);
-	}
-	QPushButton:pressed
-	{
-		/* for some reason, background and border aren't working here... */
-		border: 1px inset rgba(170, 206, 250, 255);
-		background: qlineargradient(spread:pad,
-			x1:0, y1:0,
-			x2:0, y2:1,
-			stop:0 rgba(70, 122, 201, 255),
-			stop:0.381 rgba(100, 146, 212, 255),
-			stop:1 rgba(150, 186, 230, 255)
 		);
 	}
 	QPushButton:flat
