@@ -59,8 +59,7 @@ bool iAElementConcentrations::calculateAverageConcentration(
 	QVector<iAElementSpectralInfo*> const & elements,
 	QSharedPointer<iAAccumulatedXRFData const> accumulatedXRF)
 {
-	QSharedPointer<QVector<QSharedPointer<iAEnergySpectrum> > > adaptedElementSpectra =
-		GetAdaptedSpectra(xrfData, elements);
+	auto adaptedElementSpectra = GetAdaptedSpectra(xrfData, elements);
 	return calculateAverageConcentration(adaptedElementSpectra, accumulatedXRF);
 }
 
@@ -126,14 +125,13 @@ QSharedPointer<QVector<QSharedPointer<iAEnergySpectrum> > > iAElementConcentrati
 	QVector<iAElementSpectralInfo*> const & elements)
 {
 	// sample reference spectra to be in the same range as object's spectra
-	QSharedPointer<QVector<QSharedPointer<iAEnergySpectrum> > > adaptedElementSpectra
-		(new QVector<QSharedPointer<iAEnergySpectrum> >(elements.size()));
+	auto adaptedElementSpectra = QSharedPointer<QVector<QSharedPointer<iAEnergySpectrum>>>::create(elements.size());
 	int objSpectrumSize = static_cast<int>(xrfData->size());
 	double minObjEnergy = xrfData->GetMinEnergy();
 	double maxObjEnergy = xrfData->GetMaxEnergy();
 	for (int i=0; i<elements.size(); ++i)
 	{
-		QSharedPointer<iAEnergySpectrum> spectrum = QSharedPointer<iAEnergySpectrum>(new iAEnergySpectrum(objSpectrumSize));
+		auto spectrum = QSharedPointer<iAEnergySpectrum>::create(objSpectrumSize);
 
 		double minRefEnergy = elements[i]->GetEnergyData()[0];
 		double maxRefEnergy = elements[i]->GetEnergyData()[elements[i]->GetEnergyData().size()-1];

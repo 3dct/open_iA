@@ -62,7 +62,7 @@ void iAVRAttachment::toggleVR()
 	m_toggleVR->setText("Stop VR");
 	m_vrEnv.reset(new iAVREnvironment);
 	connect(m_vrEnv.data(), &iAVREnvironment::finished, this, &iAVRAttachment::vrDone);
-	m_volumeRenderer = QSharedPointer<iAVolumeRenderer>(new iAVolumeRenderer(m_child->modality(0)->transfer().data(), m_child->modality(0)->image()));
+	m_volumeRenderer = QSharedPointer<iAVolumeRenderer>::create(m_child->modality(0)->transfer().data(), m_child->modality(0)->image());
 	m_volumeRenderer->applySettings(m_child->volumeSettings());
 	m_volumeRenderer->addTo(m_vrEnv->renderer());
 	m_volumeRenderer->addBoundingBoxTo(m_vrEnv->renderer());

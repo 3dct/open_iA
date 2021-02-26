@@ -1094,7 +1094,7 @@ void iADreamCaster::UpdateHistogramSlot()
 	}
 	hist->clearPlots();
 	auto histData = iAHistogramData::create("Frequency", iAValueType::Continuous, values, numBins, min_x, max_x);
-	auto histPlot = QSharedPointer<iAPlot>(new iABarGraphPlot(histData, QColor(0, 0, 255, 255)));
+	auto histPlot = QSharedPointer<iABarGraphPlot>::create(histData, QColor(0, 0, 255, 255));
 	hist->addPlot(histPlot);
 	hist->update();
 }

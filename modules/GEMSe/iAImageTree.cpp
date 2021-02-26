@@ -138,9 +138,9 @@ QSharedPointer<iAImageTreeNode> iAImageTree::ReadNode(QTextStream & in,
 			LOG(lvlError, QString("Reading node: Invalid (non-integer) dataset ID in cluster file, line: '%1'").arg(currentLine));
 			return QSharedPointer<iAImageTreeNode>();
 		}
-		QVector<QSharedPointer<iASingleResult> > sampleResults = samplingResults->at(datasetID)->members();
-		QSharedPointer<iASingleResult> result = findResultWithID(sampleResults, id);
-		return QSharedPointer<iAImageTreeNode>(new iAImageTreeLeaf(result, labelCount) );
+		auto sampleResults = samplingResults->at(datasetID)->members();
+		auto result = findResultWithID(sampleResults, id);
+		return QSharedPointer<iAImageTreeLeaf>::create(result, labelCount);
 	}
 	else
 	{

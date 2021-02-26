@@ -113,7 +113,7 @@ iATLGICTLoader::~iATLGICTLoader()
 
 void iATLGICTLoader::run()
 {
-	m_modList = QSharedPointer<iAModalityList>(new iAModalityList);
+	m_modList = QSharedPointer<iAModalityList>::create();
 	QStringList imgFilter;
 	imgFilter << "*.tif" << "*.bmp" << "*.jpg" << "*.png";
 	int completedDirs = 0;
@@ -238,7 +238,7 @@ void iATLGICTLoader::run()
 		// add modality
 		QString modName = subDirFileInfo.baseName();
 		modName = modName.left(modName.length() - 4); // 4 => length of "_rec"
-		m_modList->add(QSharedPointer<iAModality>(new iAModality(modName, subDirFileInfo.absoluteFilePath(), -1, img, 0)));
+		m_modList->add(QSharedPointer<iAModality>::create(modName, subDirFileInfo.absoluteFilePath(), -1, img, 0));
 		m_multiStepObserver->setCompletedSteps(++completedDirs);
 	}
 	if (m_modList->size() == 0)

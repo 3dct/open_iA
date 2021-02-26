@@ -315,14 +315,15 @@ double iAChartWidget::mouse2DataX(int mouseX)
 
 void iAChartWidget::createMappers()
 {
-	m_xMapper = QSharedPointer<iAMapper>(new iALinearMapper(m_xBounds[0], m_xBounds[1], 0, fullChartWidth()));
+	m_xMapper = QSharedPointer<iALinearMapper>::create(m_xBounds[0], m_xBounds[1], 0, fullChartWidth());
 	if (m_yMappingMode == Linear)
 	{
-		m_yMapper = QSharedPointer<iAMapper>(new iALinearMapper(m_yBounds[0], m_yBounds[1], 0, (chartHeight()-1)*m_yZoom));
+		m_yMapper = QSharedPointer<iALinearMapper>::create(m_yBounds[0], m_yBounds[1], 0, (chartHeight() - 1) * m_yZoom);
 	}
 	else
 	{
-		m_yMapper = QSharedPointer<iAMapper>(new iALogarithmicMapper(m_yBounds[0] > 0 ? m_yBounds[0] : LogYMapModeMin, m_yBounds[1], 0, (chartHeight() - 1)*m_yZoom));
+		m_yMapper = QSharedPointer<iALogarithmicMapper>::create(
+			m_yBounds[0] > 0 ? m_yBounds[0] : LogYMapModeMin, m_yBounds[1], 0, (chartHeight() - 1) * m_yZoom);
 		if (m_yBounds[0] < 0)
 		{
 			LOG(lvlWarn, QString("Invalid y bounds in chart for logarithmic mapping: minimum=%1 is < 0, using %2 instead.")

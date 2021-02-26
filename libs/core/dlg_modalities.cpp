@@ -134,7 +134,7 @@ void dlg_modalities::addClicked()
 
 void dlg_modalities::initDisplay(QSharedPointer<iAModality> mod)
 {
-	QSharedPointer<iAVolumeRenderer> renderer(new iAVolumeRenderer(mod->transfer().data(), mod->image()));
+	auto renderer = QSharedPointer<iAVolumeRenderer>::create(mod->transfer().data(), mod->image());
 	mod->setRenderer(renderer);
 	renderer->applySettings(m_mdiChild->volumeSettings());
 	// TODO: Duplication between initDisplay / removeClicked / editClicked
@@ -534,7 +534,7 @@ void dlg_modalities::showSlicers(bool enabled, vtkPlane* plane1, vtkPlane* plane
 
 void dlg_modalities::addModality(vtkSmartPointer<vtkImageData> img, QString const & name)
 {
-	QSharedPointer<iAModality> newModality(new iAModality(name, "", -1, img, iAModality::MainRenderer));
+	auto newModality = QSharedPointer<iAModality>::create(name, "", -1, img, iAModality::MainRenderer);
 	m_modalities->add(newModality);
 }
 

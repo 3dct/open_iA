@@ -102,7 +102,8 @@ void iASimpleSlicerWidget::changeModality(QSharedPointer<iAModality> modality)
 	m_slicer->addChannel(0, iAChannelData(modality->name(), imageData, colorFunction), true);
 	m_slicer->disableInteractor();
 
-	if (!m_enableInteraction) {
+	if (!m_enableInteraction)
+	{
 		vtkInteractorStyle *dummyStyle = vtkInteractorStyle::New();
 		m_slicer->interactor()->SetInteractorStyle(dummyStyle);
 	}

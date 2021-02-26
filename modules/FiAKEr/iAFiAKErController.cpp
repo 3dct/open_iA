@@ -280,7 +280,7 @@ void iAFiAKErController::start(QString const & path, iACsvConfig const & config,
 	m_views.resize(DockWidgetCount);
 	connect(m_mdiChild, &iAMdiChild::renderSettingsChanged, this, &iAFiAKErController::applyRenderSettings);
 
-	m_data = QSharedPointer<iAFiberResultsCollection>(new iAFiberResultsCollection());
+	m_data = QSharedPointer<iAFiberResultsCollection>::create();
 	auto resultsLoader = new iAFiberResultsLoader(m_data, path, m_config, stepShift);
 	connect(resultsLoader, &iAFiberResultsLoader::success, this, &iAFiAKErController::resultsLoaded);
 	connect(resultsLoader, &iAFiberResultsLoader::finished, resultsLoader, &QObject::deleteLater);
@@ -567,14 +567,12 @@ namespace
 	{
 		switch (objectType)
 		{
-		case iACsvConfig::Ellipses: return QSharedPointer<iA3DColoredPolyObjectVis>(
-			new iA3DEllipseObjectVis(renderer, table, mapping, color));
+		case iACsvConfig::Ellipses: return QSharedPointer<iA3DEllipseObjectVis>::create(renderer, table, mapping, color);
 		default:
 #if __cplusplus >= 201703L
 			[[fallthrough]];
 #endif
-		case iACsvConfig::Cylinders: return QSharedPointer<iA3DColoredPolyObjectVis>(
-			new iA3DCylinderObjectVis(renderer, table, mapping, color, curvedFiberData, 6, 3));
+		case iACsvConfig::Cylinders: return QSharedPointer<iA3DCylinderObjectVis>::create(renderer, table, mapping, color, curvedFiberData, 6, 3);
 		}
 	}
 }
@@ -1188,7 +1186,7 @@ void iAFiAKErController::updateHistogramColors()
 	}
 	double range[2] = { 0.0, static_cast<double>(m_histogramBins) };
 	auto lut = m_colorByDistribution->isChecked() ?
-		QSharedPointer<iALookupTable>(new iALookupTable(iALUT::Build(range, m_colorByThemeName, 255, 1)))
+		QSharedPointer<iALookupTable>::create(iALUT::Build(range, m_colorByThemeName, 255, 1))
 		: QSharedPointer<iALookupTable>();
 	for (size_t resultID = 0; resultID < m_data->result.size(); ++resultID)
 	{
@@ -1483,7 +1481,7 @@ void iAFiAKErController::toggleOptimStepChart(size_t chartID, bool visible)
 					histoData = &d.projectionError[fiberID];
 				}
 				auto plotData = iAHistogramData::create(diffName(chartID), iAValueType::Discrete, 0, histoData->size(), *histoData);
-				m_optimStepChart[chartID]->addPlot(QSharedPointer<iALinePlot>(new iALinePlot(plotData, getResultColor(resultID))));
+				m_optimStepChart[chartID]->addPlot(QSharedPointer<iALinePlot>::create(plotData, getResultColor(resultID)));
 			}
 		}
 		connect(m_optimStepChart[chartID], &iAChartWidget::plotsSelected,
@@ -2690,8 +2688,8 @@ void iAFiAKErController::changeReferenceDisplay()
 		}
 	}
 
-	m_nearestReferenceVis = QSharedPointer<iA3DCylinderObjectVis>(new iA3DCylinderObjectVis(m_ren, m_refVisTable,
-		m_data->result[m_referenceID].mapping, QColor(0,0,0), refCurvedFiberInfo) );
+	m_nearestReferenceVis = QSharedPointer<iA3DCylinderObjectVis>::create(m_ren, m_refVisTable,
+		m_data->result[m_referenceID].mapping, QColor(0,0,0), refCurvedFiberInfo);
 	/*
 	QSharedPointer<iALookupTable> lut(new iALookupTable);
 	*lut.data() = iALUT::Build(m_data->spmData->paramRange(m_data->spmData->numParams()-iARefDistCompute::EndColumns-iARefDistCompute::SimilarityMeasureCount+similarityMeasure),

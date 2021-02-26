@@ -31,7 +31,6 @@
 // Qt
 #include <QDockWidget>
 #include <QMainWindow>
-#include <QSharedPointer>
 #include <QTimer>
 
 class QString;

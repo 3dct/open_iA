@@ -197,7 +197,7 @@ void iAScatterPlotWidget::yParamChanged()
 
 void iAScatterPlotWidget::setPlotColor(QColor const & c, double rangeMin, double rangeMax)
 {
-	QSharedPointer<iALookupTable> lut(new iALookupTable());
+	auto lut = QSharedPointer<iALookupTable>::create();
 	double lutRange[2] = { rangeMin, rangeMax };
 	lut->setRange(lutRange);
 	lut->allocate(2);

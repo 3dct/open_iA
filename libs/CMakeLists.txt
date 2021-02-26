@@ -6,6 +6,10 @@ FOREACH(libdir ${children})
 
 	# todo: add check on whether any module requires lib (for objectvis only ATM?)
 	IF(IS_DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR}/${libdir})
+
+		IF (openiA_DEPENDENCY_INFO)
+			MESSAGE(STATUS "Library ${libdir}:")
+		ENDIF()
 		FILE( GLOB_RECURSE lib_SRCS "${libdir}/*.cpp" "${libdir}/*.h" )
 
 		FILE( GLOB_RECURSE lib_UI "${libdir}/*.ui" )
@@ -24,8 +28,27 @@ FOREACH(libdir ${children})
 		# Generate core dll file / shared object:
 		add_library(${libname} ${LIB_TYPE} ${lib_SRCS} ${lib_QRC})
 		
+		SET(VTK_REQUIRED_LIBS_PUBLIC)
+		SET(VTK_REQUIRED_LIBS_PRIVATE)
+		#SET(ITK_REQUIRED_LIBS_PUBLIC)
+		#SET(ITK_REQUIRED_LIBS_PRIVATE)
 		# link libraries, compile definitions and included directories:
 		INCLUDE(${CMAKE_CURRENT_SOURCE_DIR}/${libdir}/lib.cmake)
+
+		# simplify / remove duplication ( if/endif / public/private ITK/VTK ) ?
+		if (VTK_REQUIRED_LIBS_PUBLIC)
+			ADD_VTK_LIBRARIES(${libname} "PUBLIC" "${VTK_REQUIRED_LIBS_PUBLIC}")
+		endif()
+		if (VTK_REQUIRED_LIBS_PRIVATE)
+			ADD_VTK_LIBRARIES(${libname} "PRIVATE" "${VTK_REQUIRED_LIBS_PRIVATE}")
+		endif()
+
+		#if (ITK_REQUIRED_LIBS_PUBLIC)
+		#	ADD_LEGACY_LIBRARIES(${libname} "" "PUBLIC" "${ITK_REQUIRED_LIBS_PUBLIC}")
+		#endif()
+		#if (ITK_REQUIRED_LIBS_PRIVATE)
+		#	ADD_LEGACY_LIBRARIES(${libname} "" "PRIVATE" "${ITK_REQUIRED_LIBS_PRIVATE}")
+		#endif()
 
 		MODULE_GENERATE_EXPORT_HEADER ( ${libname} )
 

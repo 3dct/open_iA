@@ -237,11 +237,11 @@ void iAModality::setData(vtkSmartPointer<vtkImageData> imgData)
 	m_imgs[0] = imgData;
 	int extent[6];
 	imgData->GetExtent(extent);
-	m_converter = QSharedPointer<iAImageCoordConverter>(new iAImageCoordConverter(
-		extent[1] - extent[0] + 1, extent[3] - extent[2] + 1, extent[5] - extent[4] + 1));
+	m_converter = QSharedPointer<iAImageCoordConverter>::create(
+		extent[1] - extent[0] + 1, extent[3] - extent[2] + 1, extent[5] - extent[4] + 1);
 	double maxRange[2];
 	VTK_TYPED_CALL(getTypeMinMaxRange, imgData->GetScalarType(), maxRange[0], maxRange[1])
-	m_transfer = QSharedPointer<iAModalityTransfer>(new iAModalityTransfer(maxRange));
+	m_transfer = QSharedPointer<iAModalityTransfer>::create(maxRange);
 }
 
 void iAModality::setStringSettings(QString const & pos, QString const & ori, QString const & tfFile)

@@ -494,7 +494,7 @@ void iAIO::readHDF5File()
 
 void iAIO::readProject()
 {
-	m_modalities = QSharedPointer<iAModalityList>(new iAModalityList());
+	m_modalities = QSharedPointer<iAModalityList>::create();
 	m_modalities->load(m_fileName, *ProgressObserver());
 }
 
@@ -625,7 +625,7 @@ void iAIO::run()
 	}
 	catch (std::exception & e)
 	{
-		addMsg(tr("IO operation failed: %1").arg(e.what()));
+		LOG(lvlError, tr("IO operation failed: %1").arg(e.what()));
 	}
 }
 

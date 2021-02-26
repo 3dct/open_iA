@@ -18,7 +18,7 @@
 =========================================================================*/
 #pragma once
 
-#include <vtkFiltersCoreModule.h> // For export macro
+//#include <vtkFiltersCoreModule.h> // For export macro
 #include <vtkPolyDataAlgorithm.h>
 
 #define VTK_VARY_RADIUS_OFF 0

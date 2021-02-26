@@ -59,7 +59,7 @@ QSharedPointer<QImage> CalculateSpectraHistogramImage(
 
 	double opacThreshold = 0.1 * threshVal / threshMax;
 	int width = abs(static_cast<int>(numHist));
-	QSharedPointer<QImage> result = QSharedPointer<QImage>( new QImage(width, numBin, QImage::Format_ARGB32) );
+	auto result = QSharedPointer<QImage>::create(width, numBin, QImage::Format_ARGB32);
 	for (size_t x = 0; x < numHist; ++x)
 	{
 		for(int y = 0; y < numBin; ++y)

@@ -80,17 +80,17 @@ namespace
 	};
 	QSharedPointer<iAVectorDistance> const Measure [dmCount+1] =
 	{
-		QSharedPointer<iAVectorDistance>(new iAL1NormDistance()),
-		QSharedPointer<iAVectorDistance>(new iAL2NormDistance()),
-		QSharedPointer<iAVectorDistance>(new iALInfNormDistance()),
-		QSharedPointer<iAVectorDistance>(new iASpectralAngularDistance()),
-		QSharedPointer<iAVectorDistance>(new iAJensenShannonDistance()),
-		QSharedPointer<iAVectorDistance>(new iAKullbackLeiblerDivergence()),
-		QSharedPointer<iAVectorDistance>(new iAChiSquareDistance()),
-		QSharedPointer<iAVectorDistance>(new iAEarthMoversDistance()),
-		QSharedPointer<iAVectorDistance>(new iASquaredDistance()),
+		QSharedPointer<iAL1NormDistance>::create(),
+		QSharedPointer<iAL2NormDistance>::create(),
+		QSharedPointer<iALInfNormDistance>::create(),
+		QSharedPointer<iASpectralAngularDistance>::create(),
+		QSharedPointer<iAJensenShannonDistance>::create(),
+		QSharedPointer<iAKullbackLeiblerDivergence>::create(),
+		QSharedPointer<iAChiSquareDistance>::create(),
+		QSharedPointer<iAEarthMoversDistance>::create(),
+		QSharedPointer<iASquaredDistance>::create(),
 		// ----------
-		QSharedPointer<iAVectorDistance>(new iANullDistance())
+		QSharedPointer<iANullDistance>::create()
 	};
 }
 

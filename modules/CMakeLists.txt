@@ -73,7 +73,7 @@ FOREACH( indx RANGE ${len} )
 	ENDIF()
 
 	IF (openiA_DEPENDENCY_INFO)
-		MESSAGE(STATUS "${module_name}:")
+		MESSAGE(STATUS "Module ${module_name}:")
 	ENDIF()
 	LIST(APPEND ENABLED_MODULE_NAMES ${module_name})
 
@@ -122,6 +122,12 @@ FOREACH( indx RANGE ${len} )
 	ENDFOREACH()
 
 	# required libraries (either from libs folder, or external, such as astra, eigen, OpenCL, ...)
+	if (ADDITIONAL_VTK_MODULES)
+		ADD_VTK_LIBRARIES(${module_name} "PUBLIC" "${ADDITIONAL_VTK_MODULES}")
+	endif()
+	#if (ADDITIONAL_ITK_MODULES)
+	#	ADD_LEGACY_LIBRARIES(${module_name} "" "PUBLIC" "${ADDITIONAL_ITK_MODULES}")
+	#endif()
 	IF (ADDITIONAL_MODULE_LIBRARIES)
 		IF (openiA_DEPENDENCY_INFO)
 			MESSAGE(STATUS "    libs: ${ADDITIONAL_MODULE_LIBRARIES}")
@@ -179,6 +185,7 @@ FOREACH( indx RANGE ${len} )
 	IF (MSVC)
 		INSTALL (TARGETS ${module_name} RUNTIME DESTINATION plugins)    # install dll in plugins folder
 
+		TARGET_COMPILE_OPTIONS(${module_name} PRIVATE "/bigobj")
 		# set up debugging command / environment dll paths
 		set_target_properties(${module_name} PROPERTIES VS_DEBUGGER_COMMAND "${CMAKE_BINARY_DIR}\\$(Platform)\\$(Configuration)\\${GUI_EXECUTABLE_FILE}")
 		set_target_properties(${module_name} PROPERTIES VS_DEBUGGER_ENVIRONMENT "PATH=${WinDLLPaths};%PATH%\nSCIFIO_PATH=${SCIFIO_PATH}")

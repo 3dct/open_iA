@@ -23,7 +23,6 @@
 #include <QWidget>
 
 #include <QVector>
-#include <QSharedPointer>
 
 class iAChartWithFunctionsWidget;
 class iASimpleSlicerWidget;
@@ -46,7 +45,10 @@ public:
 		Qt::WindowFlags f = Qt::WindowFlags());
 #endif
 
-	void adjustStretch() { adjustStretch(size().width()); }
+	void adjustStretch()
+	{
+		adjustStretch(size().width());
+	}
 protected:
 	void resizeEvent(QResizeEvent* event);
 private:

@@ -25,7 +25,8 @@
 class iAMdiChild;
 class iATripleModalityWidget;
 
-enum iAHistogramAbstractType {
+enum iAHistogramAbstractType
+{
 	STACK, TRIANGLE
 };
 

@@ -27,8 +27,6 @@
 #include <vtkPiecewiseFunction.h>
 #include <vtkSmartPointer.h>
 
-#include <QSharedPointer>
-
 class vtkImageData;
 
 class QString;

@@ -20,10 +20,12 @@
 * ************************************************************************************/
 #pragma once
 
+#include "iAbase_export.h"
+
 #include <QSharedPointer>
 
 //! Abstract base class for a mapping from a source- into a destination range.
-class iAMapper
+class iAbase_API iAMapper
 {
 public:
 	virtual ~iAMapper();

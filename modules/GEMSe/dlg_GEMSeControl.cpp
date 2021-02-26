@@ -205,7 +205,7 @@ void dlg_GEMSeControl::startSampling()
 		{
 			return;
 		}
-		m_sampler = QSharedPointer<iAImageSampler>(new iAImageSampler(
+		m_sampler = QSharedPointer<iAImageSampler>::create(
 			m_dlgModalities->modalities(),
 			m_samplingSettings,
 			m_dlgSamplingSettings->parameterRanges(),
@@ -217,7 +217,7 @@ void dlg_GEMSeControl::startSampling()
 			m_dlgSamplings->GetSamplings()->size(),
 			iALog::get(),
 			&m_progress
-		));
+		);
 		iAJobListView::get()->addJob("Sampling Progress", &m_progress, m_sampler.data(), m_sampler.data());
 		connect(m_sampler.data(), &iAImageSampler::finished, this, &dlg_GEMSeControl::samplingFinished);
 
@@ -377,7 +377,7 @@ void dlg_GEMSeControl::calculateClustering()
 		LOG(lvlError, QString("Can't create representative directory %1!").arg(cacheDir));
 		return;
 	}
-	m_clusterer = QSharedPointer<iAImageClusterer>(new iAImageClusterer(m_simpleLabelInfo->count(), cacheDir, &m_progress));
+	m_clusterer = QSharedPointer<iAImageClusterer>::create(m_simpleLabelInfo->count(), cacheDir, &m_progress);
 	iAJobListView::get()->addJob("Clustering Progress", &m_progress, m_clusterer.data(), m_clusterer.data());
 	for (int samplingIdx=0; samplingIdx<m_dlgSamplings->SamplingCount(); ++samplingIdx)
 	{
@@ -508,6 +508,7 @@ void dlg_GEMSeControl::EnableClusteringDependantUI()
 {
 	pbClusteringStore->setEnabled(true);
 	pbSelectHistograms->setEnabled(true);
+	pbFreeMemory->setEnabled(true);
 	if (!m_dlgConsensus)
 	{
 		iAMdiChild* mdiChild = dynamic_cast<iAMdiChild*>(parent());

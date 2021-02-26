@@ -50,7 +50,10 @@ public:
 	int getWidthForHeight(int height);
 	int getHeightForWidth(int width);
 
-	void recalculatePositions() { recalculatePositions(width(), height()); }
+	void recalculatePositions()
+	{
+		recalculatePositions(width(), height());
+	}
 	void recalculatePositions(int width, int height, iABarycentricTriangle triange);
 
 	iABCoord getWeight();
@@ -109,18 +112,21 @@ private:
 	void updateControlPoint(iABCoord bCoord, QPoint newPos, int a, int b, int c);
 	void moveControlPointTo(QPoint newPos);
 
-	void updateControlPointCoordinates(iABCoord bc) {
+	void updateControlPointCoordinates(iABCoord bc)
+	{
 		int a = bc[0] * 100;
 		int b = bc[1] * 100;
 		int c = 100 - a - b;
 		updateControlPointCoordinates(bc, a, b, c);
 	}
 
-	void updateControlPointCoordinates(iABCoord bCoord, int a, int b, int c) {
+	void updateControlPointCoordinates(iABCoord bCoord, int a, int b, int c)
+{
 		updateControlPoint(bCoord, m_triangle.getCartesianCoordinates(bCoord), a, b, c);
 	}
 
-	void updateControlPointPosition(QPoint newPos) {
+	void updateControlPointPosition(QPoint newPos)
+	{
 		auto bc = m_triangle.getBarycentricCoordinates(newPos.x(), newPos.y());
 		int a = bc[0] * 100;
 		int b = bc[1] * 100;
@@ -128,7 +134,8 @@ private:
 		updateControlPoint(bc, newPos, a, b, c);
 	}
 
-	void updateControlPointPosition() {
+	void updateControlPointPosition()
+	{
 		updateControlPointCoordinates(m_controlPointBCoord);
 	}
 

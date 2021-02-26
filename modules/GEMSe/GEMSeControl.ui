@@ -300,6 +300,9 @@
     </item>
     <item row="6" column="2" colspan="5">
      <widget class="QPushButton" name="pbFreeMemory">
+      <property name="enabled">
+       <bool>false</bool>
+      </property>
       <property name="text">
        <string>Free Memory</string>
       </property>

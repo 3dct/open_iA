@@ -95,7 +95,7 @@ void iAHistogramContainer::CreateCharts()
 	double maxValue = -1;
 	for (int chartID = 0; chartID != m_chartAttributes->size(); ++chartID)
 	{
-		QSharedPointer<iAAttributeDescriptor> attrib = m_chartAttributes->at(chartID);
+		auto attrib = m_chartAttributes->at(chartID);
 		if (attrib->min() == attrib->max() || m_disabledCharts.contains(chartID))
 		{
 			continue;
@@ -109,7 +109,7 @@ void iAHistogramContainer::CreateCharts()
 			(attrib->valueType() == iAValueType::Discrete || attrib->valueType() == iAValueType::Categorical) ?
 			std::min(static_cast<size_t>(attrib->max() - attrib->min() + 1), maxBin) :
 			maxBin;
-		QSharedPointer<iAParamHistogramData> paramData = iAParamHistogramData::create(
+		auto paramData = iAParamHistogramData::create(
 			m_root,
 			chartID,
 			attrib->valueType(),
@@ -184,7 +184,7 @@ void iAHistogramContainer::UpdateClusterChartData(QVector<QSharedPointer<iAImage
 		m_charts[chartID]->ClearClusterData();
 		for (auto const & node: selection)
 		{
-			QSharedPointer<iAAttributeDescriptor> attrib = m_chartAttributes->at(chartID);
+			auto attrib = m_chartAttributes->at(chartID);
 			m_charts[chartID]->AddClusterData(iAParamHistogramData::create(
 				node.data(), chartID,
 				attrib->valueType(),
@@ -216,7 +216,7 @@ void iAHistogramContainer::UpdateClusterFilteredChartData(
 		}
 		else
 		{
-			QSharedPointer<iAAttributeDescriptor> attrib = m_chartAttributes->at(chartID);
+			auto attrib = m_chartAttributes->at(chartID);
 			m_charts[chartID]->SetFilteredClusterData(iAParamHistogramData::create(
 				selectedNode, chartID,
 				attrib->valueType(),
@@ -240,7 +240,7 @@ void iAHistogramContainer::UpdateFilteredChartData(iAChartFilter const & chartFi
 			continue;
 		}
 		assert(m_charts[chartID]);
-		QSharedPointer<iAAttributeDescriptor> attrib = m_chartAttributes->at(chartID);
+		auto attrib = m_chartAttributes->at(chartID);
 		m_charts[chartID]->SetFilteredData(iAParamHistogramData::create(
 			m_root, chartID,
 			attrib->valueType(),

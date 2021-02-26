@@ -3,9 +3,8 @@ SET( DEPENDENCIES_LIBRARIES
 	iAcore
 	iAobjectvis
 	iArenderer    # for iARendererManager
-	Segmentation
+	Segmentation  # required for distance measures; maybe move these to core?
 )
-
-
-# Segmentation module required for distance measures
-# maybe move these to core?
+SET( DEPENDENCIES_VTK_MODULES
+	FiltersExtraction           # for vtkExtractGeometry used iASelectionInteractorStyle
+)

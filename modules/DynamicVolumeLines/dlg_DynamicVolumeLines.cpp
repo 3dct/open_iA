@@ -470,7 +470,7 @@ void dlg_DynamicVolumeLines::visualize()
 	auto nonlinearFBPData = new iAFunctionalBoxplot<double, double>(nonlinearFCPFunctions, &nl_measure, 2);
 	setupFBPGraphs(m_nonlinearScaledPlot, nonlinearFBPData);
 
-	m_nonlinearTicker = QSharedPointer<iANonLinearAxisTicker>(new iANonLinearAxisTicker);
+	m_nonlinearTicker = QSharedPointer<iANonLinearAxisTicker>::create();
 	m_nonlinearTicker->setTickData(m_nonlinearMappingVec);
 	m_nonlinearTicker->setAxis(m_nonlinearScaledPlot->xAxis);
 	m_nonlinearScaledPlot->xAxis->setTicker(m_nonlinearTicker);
@@ -1590,7 +1590,7 @@ void dlg_DynamicVolumeLines::setSelectionForRenderer(QList<QCPGraph *> visSelGra
 			1 - (ceil((i + 1.0) / viewportCols) / viewportRows) + fieldLengthY);
 		ren->AddViewProp(cornerAnnotation);
 		ren->ResetCamera();
-		m_volRen = QSharedPointer<iAVolumeRenderer>(new iAVolumeRenderer(&tf, m_imgDataList[datasetIdx]));
+		m_volRen = QSharedPointer<iAVolumeRenderer>::create(&tf, m_imgDataList[datasetIdx]);
 		m_volRen->applySettings(m_mdiChild->volumeSettings());
 		m_volRen->addTo(ren);
 		m_volRen->addBoundingBoxTo(ren);
@@ -1771,8 +1771,8 @@ void dlg_DynamicVolumeLines::setupDebugPlot()
 
 void dlg_DynamicVolumeLines::showDebugPlot()
 {
-	m_impFuncPlotData = QSharedPointer<QCPGraphDataContainer>(new QCPGraphDataContainer);
-	m_integralImpFuncPlotData = QSharedPointer<QCPGraphDataContainer>(new QCPGraphDataContainer);
+	m_impFuncPlotData = QSharedPointer<QCPGraphDataContainer>::create();
+	m_integralImpFuncPlotData = QSharedPointer<QCPGraphDataContainer>::create();
 	for (int i = 0; i < m_nonlinearMappingVec.size(); ++i)
 	{
 		m_impFuncPlotData->add(QCPGraphData(double(i), m_impFunctVec[i]));

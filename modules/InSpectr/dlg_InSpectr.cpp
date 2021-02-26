@@ -183,16 +183,16 @@ void dlg_InSpectr::init(double minEnergy, double maxEnergy, bool haveEnergyLevel
 	m_cTF->AddRGBPoint ( maxEnergy, 0.0, 0.0, 0.0 );
 	m_cTF->Build();
 	m_xrfData->SetEnergyRange(minEnergy, maxEnergy);
-	m_accumulatedXRF = QSharedPointer<iAAccumulatedXRFData>(new iAAccumulatedXRFData(m_xrfData, minEnergy, maxEnergy));
+	m_accumulatedXRF = QSharedPointer<iAAccumulatedXRFData>::create(m_xrfData, minEnergy, maxEnergy);
 	m_voxelEnergy = iAHistogramData::create("Voxel Energy", m_accumulatedXRF->valueType(), m_accumulatedXRF->xBounds()[0],
 		m_accumulatedXRF->xBounds()[1], m_xrfData->size());
-	m_voxelSpectrumDrawer = QSharedPointer<iAStepFunctionPlot>(new iAStepFunctionPlot(m_voxelEnergy, QColor(150, 0, 0)));
+	m_voxelSpectrumDrawer = QSharedPointer<iAStepFunctionPlot>::create(m_voxelEnergy, QColor(150, 0, 0));
 	m_spectrumDiagram = new iAEnergySpectrumWidget(this, m_accumulatedXRF, m_oTF, m_cTF, this,
 		haveEnergyLevels ? "Energy (keV)" : "Energy (bins)");
 	m_spectrumDiagram->setObjectName(QString::fromUtf8("EnergySpectrum"));
 
-	m_selectedBinXDrawer = QSharedPointer<iASelectedBinPlot>(new iASelectedBinPlot(m_voxelEnergy, 0, QColor(150, 0, 0, 50)));
-	m_selectedBinYDrawer = QSharedPointer<iASelectedBinPlot>(new iASelectedBinPlot(m_voxelEnergy, 0, QColor(0, 0, 150, 50)));
+	m_selectedBinXDrawer = QSharedPointer<iASelectedBinPlot>::create(m_voxelEnergy, 0, QColor(150, 0, 0, 50));
+	m_selectedBinYDrawer = QSharedPointer<iASelectedBinPlot>::create(m_voxelEnergy, 0, QColor(0, 0, 150, 50));
 
 	connect((iAChartTransferFunction*)(m_spectrumDiagram->functions()[0]), &iAChartTransferFunction::changed, this, &dlg_InSpectr::SpectrumTFChanged);
 	iADockWidgetWrapper* spectrumChartContainer = new iADockWidgetWrapper(m_spectrumDiagram, "Spectrum View", "SpectrumChartWidget");
@@ -263,8 +263,8 @@ void dlg_InSpectr::InitCommonGUI(iAMdiChild* child)
 
 	// load reference spectra & characteristic energy lines:
 	QString rootDir(QCoreApplication::applicationDirPath() + "/refSpectra/");
-	m_refSpectraLib = QSharedPointer<iAReferenceSpectraLibrary>(new iAReferenceSpectraLibrary(
-		rootDir + "elementSpectra/reference_library.reflib"));
+	m_refSpectraLib = QSharedPointer<iAReferenceSpectraLibrary>::create(
+		rootDir + "elementSpectra/reference_library.reflib");
 	m_refSpectra->getSpectraList()->setModel(m_refSpectraLib->getItemModel().data());
 	EnergyLoader::Load(rootDir + "characteristic-energies.cel", m_characteristicEnergies);
 	connect(m_refSpectra->getSpectraList(), &QListView::doubleClicked, this, &dlg_InSpectr::ReferenceSpectrumDoubleClicked, Qt::UniqueConnection);
@@ -437,7 +437,7 @@ void dlg_InSpectr::initSpectraLinesDrawer()
 	}
 	else
 	{
-		m_spectraLinesDrawer = QSharedPointer<iAPlotCollection>(new iAPlotCollection);
+		m_spectraLinesDrawer = QSharedPointer<iAPlotCollection>::create();
 	}
 
 	long numberOfSpectra = (extent[1]-extent[0]+1)*(extent[3]-extent[2]+1)*(extent[5]-extent[4]+1);
@@ -659,11 +659,11 @@ void dlg_InSpectr::decomposeElements()
 		LOG(lvlInfo, tr("Decomposition was aborted by user."));
 		return;
 	}
-	m_elementConcentrations = QSharedPointer<iAElementConcentrations>(new iAElementConcentrations());
-	m_decompositionCalculator = QSharedPointer<iADecompositionCalculator>(new iADecompositionCalculator(
+	m_elementConcentrations = QSharedPointer<iAElementConcentrations>::create();
+	m_decompositionCalculator = QSharedPointer<iADecompositionCalculator>::create(
 		m_elementConcentrations,
 		m_xrfData,
-		m_accumulatedXRF));
+		m_accumulatedXRF);
 	m_decomposeSelectedElements.clear();
 	iAJobListView::get()->addJob("Computing elemental decomposition",
 		m_decompositionCalculator->progress(), m_decompositionCalculator.data());
@@ -728,7 +728,7 @@ void dlg_InSpectr::loadDecomposition()
 	}
 	if (!m_elementConcentrations)
 	{
-		m_elementConcentrations = QSharedPointer<iAElementConcentrations>(new iAElementConcentrations());
+		m_elementConcentrations = QSharedPointer<iAElementConcentrations>::create();
 	}
 	else
 	{
@@ -1542,7 +1542,7 @@ void dlg_InSpectr::updatePieGlyphs(int slicerMode)
 
 				if (portion > EPSILON)
 				{
-					auto pieGlyph = QSharedPointer<iAPieChartGlyph>(new iAPieChartGlyph(angularRange[0], angularRange[1]));
+					auto pieGlyph = QSharedPointer<iAPieChartGlyph>::create(angularRange[0], angularRange[1]);
 					double pos[3] = { origin[0] + x * spacing[0], origin[1] + y * spacing[1], 1.0 };
 					pieGlyph->actor->SetPosition(pos);
 					pieGlyph->actor->SetScale((std::min)(spacing[0], spacing[1]) * m_pieGlyphSpacing);

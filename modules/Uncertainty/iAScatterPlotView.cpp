@@ -104,7 +104,7 @@ void iAScatterPlotView::AddPlot(vtkImagePointer imgX, vtkImagePointer imgY, QStr
 	m_voxelCount = static_cast<size_t>(dim[0]) * dim[1] * dim[2];
 	double* bufX = static_cast<double*>(imgX->GetScalarPointer());
 	double* bufY = static_cast<double*>(imgY->GetScalarPointer());
-	auto splomData = QSharedPointer<iASPLOMData>(new iASPLOMData());
+	auto splomData = QSharedPointer<iASPLOMData>::create();
 	splomData->paramNames().push_back(captionX);
 	splomData->paramNames().push_back(captionY);
 	std::vector<double> values0;

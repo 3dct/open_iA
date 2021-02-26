@@ -30,7 +30,7 @@ IncludeCategories:
     Priority: 3
   - Regex:    '^<vtk'
     Priority: 4
-  - Regex:    '^<(dlg_|charts/|iA|io/|qthelper/|mainwindow|mdichild)'
+  - Regex:    '^<(dlg_|iA|io/|qthelper/|mainwindow|mdichild)'
     Priority: 2
   - Regex:    '^<Q'
     Priority: 5
@@ -42,9 +42,11 @@ IndentCaseLabels: false
 IndentWidth: 4
 KeepEmptyLinesAtTheStartOfBlocks: false
 MaxEmptyLinesToKeep: 1
-DerivePointerAlignment: false
+NamespaceIndentation: All
+PenaltyBreakAssignment: 10
 PointerAlignment: Left
-PointerBindsToType: false
+DerivePointerAlignment: false
+# PointerBindsToType: false # seems to be an old setting (clang < 4)
 ReflowComments: false
 SortIncludes: true
 SpacesBeforeTrailingComments: 2
@@ -58,3 +60,8 @@ SpacesInParentheses: false
 SpacesInSquareBrackets: false
 TabWidth: 4
 UseTab: ForContinuationAndIndentation
+
+# existing pain points:
+# - messes up Macro definition (TypedCallHelper - adds unwanted indentation)
+# - breaks before each << symbol after the first (iALog.cpp -> AvailableLogLevels)
+# - most changes currently: alignment of */& -> should we maybe use PointerAlignment:Middle ?

@@ -23,6 +23,7 @@
 #include "iAModuleAttachmentToChild.h"
 #include "iAcore_export.h"
 
+#include "iALog.h"
 #include "iAModuleInterface.h"
 
 #include <QObject>
@@ -72,10 +73,10 @@ protected:
 	bool isAttached();
 	//! Create a new attachment for the given child.
 	virtual iAModuleAttachmentToChild * CreateAttachment( iAMainWindow* mainWnd, iAMdiChild * child );
-	//! Get an attachment of the current mdi child.
-	//! @note current mdi child is determined through m_mdiChild member
-	//!       which is _not_ automatically updated to the active mdi child, see m_mdiChild member!
-	template <class T> T* GetAttachment();
+	//! Get an attachment of an mdi child; the type of attachment is given by the templated type.
+	//! Call by explicitly specifying a type, e.g. `auto attach = GetAttachment<iAMyModuleAttachment>();`
+	//!     @param child the child window to check for attachments
+	template <class T> T* GetAttachment(iAMdiChild* child);
 	//! Sets up a new attachment for the given iAMdiChild via CreateAttachment and links the two.
 	bool AttachToMdiChild( iAMdiChild * child );
 
@@ -102,16 +103,22 @@ iAcore_API QMenu* getOrAddSubMenu(QMenu* parentMenu, QString const& title, bool 
 iAcore_API void addToMenuSorted(QMenu* menu, QAction* action);
 
 template <class T>
-T* iAGUIModuleInterface::GetAttachment()
+T* iAGUIModuleInterface::GetAttachment(iAMdiChild* child)
 {
-	static_assert(std::is_base_of<iAModuleAttachmentToChild, T>::value, "GetAttachment: given type must inherit from iAModuleAttachmentToChild!");
+	static_assert(std::is_base_of<iAModuleAttachmentToChild, T>::value,
+		"GetAttachment: given type must inherit from iAModuleAttachmentToChild!");
+	if (!child)
+	{
+		LOG(lvlError, "GetAttachment: child parameter is null!");
+		return nullptr;
+	}
 	for (int i = 0; i < m_attachments.size(); ++i)
 	{
-		if (m_attachments[i]->getMdiChild() == m_mdiChild &&
-			dynamic_cast<T*>(m_attachments[i]) != 0)
+		if (m_attachments[i]->getMdiChild() == child &&
+			dynamic_cast<T*>(m_attachments[i]) != nullptr)
 		{
 			return dynamic_cast<T*>(m_attachments[i]);
 		}
 	}
-	return 0;
+	return nullptr;
 }

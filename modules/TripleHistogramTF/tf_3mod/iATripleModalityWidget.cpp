@@ -31,7 +31,6 @@
 #include <iAModality.h>
 
 #include <QComboBox>
-#include <QSharedPointer>
 #include <QCheckBox>
 #include <QLabel>
 #include <QSpinBox>
@@ -72,7 +71,8 @@ void iATripleModalityWidget::layoutComboBoxIndexChanged(int newIndex)
 	setLayoutTypePrivate(getLayoutTypeAt(newIndex));
 }
 
-iAHistogramAbstractType iATripleModalityWidget::getLayoutTypeAt(int comboBoxIndex) {
+iAHistogramAbstractType iATripleModalityWidget::getLayoutTypeAt(int comboBoxIndex)
+{
 	return (iAHistogramAbstractType)m_layoutComboBox->itemData(comboBoxIndex).toInt();
 }
 
@@ -80,7 +80,9 @@ void iATripleModalityWidget::updateModalities()
 {
 	QString names[3];
 	for (int i = 0; i < 3; ++i)
+	{
 		names[i] = getModality(i)->name();
+	}
 	m_triangleWidget->setModalities(getModality(0)->image(), getModality(1)->image(), getModality(2)->image());
 	m_triangleWidget->updateModalityNames(names);
 	m_triangleWidget->update();
@@ -90,7 +92,9 @@ void iATripleModalityWidget::modalitiesChanged()
 {
 	QString names[3];
 	for (int i = 0; i < 3; ++i)
+	{
 		names[i] = getModality(i)->name();
+	}
 	m_triangleWidget->updateModalityNames(names);
 	m_histogramAbstract->updateModalityNames(names);
 }
@@ -102,33 +106,42 @@ void iATripleModalityWidget::triangleWeightChanged(iABCoord newWeight)
 
 void iATripleModalityWidget::weightsChangedSlot(iABCoord bCoord)
 {
-	if (bCoord != getWeights()) {
+	if (bCoord != getWeights())
+	{
 		m_triangleWidget->setWeight(bCoord);
 	}
 }
 
-void iATripleModalityWidget::modalitiesLoaded_beforeUpdateSlot() {
+void iATripleModalityWidget::modalitiesLoaded_beforeUpdateSlot()
+{
 	updateModalities();
 	QString names[3];
 	for (int i = 0; i < 3; ++i)
+	{
 		names[i] = getModality(i)->name();
+	}
 	m_histogramAbstract->initialize(names);
 }
 
-void iATripleModalityWidget::setHistogramAbstractType(iAHistogramAbstractType type) {
+void iATripleModalityWidget::setHistogramAbstractType(iAHistogramAbstractType type)
+{
 	setLayoutTypePrivate(type);
 	m_layoutComboBox->setCurrentIndex(m_layoutComboBox->findData(type));
 }
 
-void iATripleModalityWidget::setLayoutTypePrivate(iAHistogramAbstractType type) {
-	if (m_histogramAbstract && type == m_histogramAbstractType) {
+void iATripleModalityWidget::setLayoutTypePrivate(iAHistogramAbstractType type)
+{
+	if (m_histogramAbstract && type == m_histogramAbstractType)
+	{
 		return;
 	}
 
 	iAHistogramAbstract *histogramAbstract_new = iAHistogramAbstract::buildHistogramAbstract(type, this);
 
-	if (m_histogramAbstract) {
-		for (int i = 0; i < 3; i++) {
+	if (m_histogramAbstract)
+	{
+		for (int i = 0; i < 3; i++)
+		{
 			w_histogram(i)->setParent(nullptr);
 			w_slicer(i)->setParent(nullptr);
 			resetSlicer(i);
@@ -144,15 +157,20 @@ void iATripleModalityWidget::setLayoutTypePrivate(iAHistogramAbstractType type) 
 		m_innerLayout->replaceWidget(m_histogramAbstract, histogramAbstract_new, Qt::FindDirectChildrenOnly);
 
 		delete m_histogramAbstract;
-	} else {
+	}
+	else
+	{
 		m_innerLayout->addWidget(histogramAbstract_new);
 	}
 	m_histogramAbstract = histogramAbstract_new;
 
-	if (isReady()) {
+	if (isReady())
+	{
 		QString names[3];
 		for (int i = 0; i < 3; ++i)
+		{
 			names[i] = getModality(i)->name();
+		}
 		m_histogramAbstract->initialize(names);
 	}
 }

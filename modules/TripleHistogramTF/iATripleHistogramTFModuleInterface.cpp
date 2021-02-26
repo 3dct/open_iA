@@ -53,36 +53,36 @@ iAModuleAttachmentToChild* iATripleHistogramTFModuleInterface::CreateAttachment(
 	return iATripleHistogramTFAttachment::create(mainWnd, child);
 }
 
-void iATripleHistogramTFModuleInterface::menuItemSelected_2mod()
+iATripleHistogramTFAttachment* iATripleHistogramTFModuleInterface::getOrCreateAttachment()
 {
-	PrepareActiveChild();
-	auto attach = GetAttachment<iATripleHistogramTFAttachment>();
+	auto child = m_mainWnd->activeMdiChild();
+	auto attach = GetAttachment<iATripleHistogramTFAttachment>(child);
 	if (!attach)
 	{
-		AttachToMdiChild(m_mdiChild);
-		attach = GetAttachment<iATripleHistogramTFAttachment>();
+		AttachToMdiChild(child);
+		attach = GetAttachment<iATripleHistogramTFAttachment>(child);
 		if (!attach)
 		{
 			LOG(lvlError, "Attaching failed!");
-			return;
 		}
 	}
-	attach->start2TF();
+	return attach;
+}
+
+void iATripleHistogramTFModuleInterface::menuItemSelected_2mod()
+{
+	auto attach = getOrCreateAttachment();
+	if (attach)
+	{
+		attach->start2TF();
+	}
 }
 
 void iATripleHistogramTFModuleInterface::menuItemSelected_3mod()
 {
-	PrepareActiveChild();
-	auto attach = GetAttachment<iATripleHistogramTFAttachment>();
-	if (!attach)
+	auto attach = getOrCreateAttachment();
+	if (attach)
 	{
-		AttachToMdiChild(m_mdiChild);
-		attach = GetAttachment<iATripleHistogramTFAttachment>();
-		if (!attach)
-		{
-			LOG(lvlError, "Attaching failed!");
-			return;
-		}
+		attach->start3TF();
 	}
-	attach->start3TF();
 }

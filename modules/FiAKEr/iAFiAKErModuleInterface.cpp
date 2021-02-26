@@ -233,7 +233,7 @@ void iAFiAKErModuleInterface::startFiAKEr()
 	//cmbbox_Format->addItems(formatEntries);
 
 	AttachToMdiChild(mdiChild);
-	iAFiAKErAttachment* attach = GetAttachment<iAFiAKErAttachment>();
+	iAFiAKErAttachment* attach = GetAttachment<iAFiAKErAttachment>(mdiChild);
 	m_mainWnd->setPath(m_lastPath);
 	if (createdMdi)
 	{
@@ -273,7 +273,7 @@ void iAFiAKErModuleInterface::loadProject(iAMdiChild* mdiChild, QSettings const&
 		mdiChild->displayResult(mdiChild->windowTitle(), nullptr, nullptr);
 	}
 	AttachToMdiChild(mdiChild);
-	iAFiAKErAttachment* attach = GetAttachment<iAFiAKErAttachment>();
+	iAFiAKErAttachment* attach = GetAttachment<iAFiAKErAttachment>(mdiChild);
 	auto controller = attach->controller();
 	project->setController(controller);
 	m_mainWnd->setPath(m_lastPath);
@@ -304,8 +304,7 @@ void iAFiAKErModuleInterface::setupToolBar()
 
 void iAFiAKErModuleInterface::toggleDockWidgetTitleBars()
 {
-	m_mdiChild = m_mainWnd->activeMdiChild();
-	iAFiAKErAttachment* attach = GetAttachment<iAFiAKErAttachment>();
+	iAFiAKErAttachment* attach = GetAttachment<iAFiAKErAttachment>(m_mainWnd->activeMdiChild());
 	if (!attach)
 	{
 		return;
@@ -315,8 +314,7 @@ void iAFiAKErModuleInterface::toggleDockWidgetTitleBars()
 
 void iAFiAKErModuleInterface::toggleSettings()
 {
-	m_mdiChild = m_mainWnd->activeMdiChild();
-	iAFiAKErAttachment* attach = GetAttachment<iAFiAKErAttachment>();
+	iAFiAKErAttachment* attach = GetAttachment<iAFiAKErAttachment>(m_mainWnd->activeMdiChild());
 	if (!attach)
 	{
 		return;

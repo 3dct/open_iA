@@ -132,7 +132,7 @@ void iAParamSpatialView::setImage(size_t id)
 	}
 	else
 	{
-		auto creator = QSharedPointer<iAHistogramCreator>(new iAHistogramCreator(img, m_binCount, id));
+		auto creator = QSharedPointer<iAHistogramCreator>::create(img, m_binCount, id);
 		connect(creator.data(), &iAHistogramCreator::finished, this, &iAParamSpatialView::HistogramReady);
 		m_histogramCreaters.push_back(creator);
 		creator->start();
@@ -190,7 +190,7 @@ void iAParamSpatialView::SwitchToHistogram(int id)
 	m_chartWidget->removePlot(m_curHistogramPlot);
 	QColor histoChartColor(SPLOMDotQColor);
 	histoChartColor.setAlpha(96);
-	m_curHistogramPlot = QSharedPointer<iAPlot>(new iABarGraphPlot(m_histogramCache[id], histoChartColor, 2));
+	m_curHistogramPlot = QSharedPointer<iABarGraphPlot>::create(m_histogramCache[id], histoChartColor, 2);
 	m_chartWidget->addPlot(m_curHistogramPlot);
 	m_chartWidget->update();
 }

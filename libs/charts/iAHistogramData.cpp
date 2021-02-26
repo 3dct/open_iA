@@ -150,7 +150,8 @@ QString iAHistogramData::toolTipText(DataType dataX) const
 		bEnd = static_cast<int>(bEnd - 1);
 	}
 	auto freq = yValue(idx);
-	return QString("%1 (%2-%3): %4").arg(name()).arg(bStart).arg(bEnd).arg(freq);
+	auto range = (bStart == bEnd) ? QString::number(bStart) : QString("%1-%2").arg(bStart).arg(bEnd);
+	return QString("%1 (%2): %3").arg(name()).arg(range).arg(freq);
 }
 
 QSharedPointer<iAHistogramData> iAHistogramData::create(QString const& name,

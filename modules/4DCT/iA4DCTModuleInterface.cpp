@@ -29,30 +29,12 @@
 
 #include <iAMainWindow.h>
 
-#include <vtkMath.h>
-
-#include <itkConvolutionImageFilter.h>
-#include <itkEllipseSpatialObject.h>
-#include <itkImageFileWriter.h>
-#include <itkImageKernelOperator.h>
-#include <itkImageToVTKImageFilter.h>
-#include <itkLabelGeometryImageFilter.h>
-#include <itkNormalizedCorrelationImageFilter.h>
-#include <itkSpatialObjectToImageFilter.h>
-#include <itkSubtractImageFilter.h>
-#include <itkVTKImageToImageFilter.h>
-
-#include <QColor>
-#include <QDirIterator>
 #include <QFileDialog>
 #include <QFileInfo>
 #include <QMdiSubWindow>
 #include <QMenu>
-#include <QMessageBox>
-#include <QObject>
 #include <QSettings>
 
-#include <limits>
 
 #define RAD_TO_DEG 57.295779513082320876798154814105
 

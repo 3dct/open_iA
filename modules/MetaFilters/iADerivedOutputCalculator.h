@@ -20,6 +20,8 @@
 * ************************************************************************************/
 #pragma once
 
+// TODO: Replace by more generic way of executing filter-based derived output computations!
+
 #include <QSharedPointer>
 #include <QThread>
 

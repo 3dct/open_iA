@@ -48,7 +48,8 @@ iAHistogramStack::iAHistogramStack(iATripleModalityWidget* tripleModalityWidget)
 
 void iAHistogramStack::initialize(QString const names[3])
 {
-	for (int i = 0; i < 3; i++) {
+	for (int i = 0; i < 3; i++)
+	{
 		auto l = new QLabel(names[i]);
 		l->setStyleSheet("font-weight: bold; font-size: 10pt;");
 		l->setSizePolicy(QSizePolicy::Preferred, QSizePolicy::Fixed);
@@ -101,5 +102,7 @@ void iAHistogramStack::initialize(QString const names[3])
 void iAHistogramStack::updateModalityNames(QString const names[3])
 {
 	for (int i = 0; i < m_labels.size(); i++)
+	{
 		m_labels[i]->setText(names[i]);
+	}
 }

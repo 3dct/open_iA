@@ -345,7 +345,7 @@ void iAQSplom::updateHistogram(size_t paramIndex)
 	}
 
 	auto histogramData = iAHistogramData::create("Frequency", iAValueType::Continuous, hist_InputValues, settings.histogramBins);
-	auto histogramPlot = QSharedPointer<iABarGraphPlot>(new iABarGraphPlot(histogramData, QColor(70, 70, 70, 255)));
+	auto histogramPlot = QSharedPointer<iABarGraphPlot>::create(histogramData, QColor(70, 70, 70, 255));
 	m_histograms[paramIndex]->addPlot(histogramPlot);
 	m_histograms[paramIndex]->update();
 }

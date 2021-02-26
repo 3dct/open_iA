@@ -150,7 +150,8 @@ ENDIF()
 FIND_PACKAGE(ITK COMPONENTS ${ITK_COMPONENTS})
 # apparently ITK (at least v5.0.0) adapts CMAKE_MODULE_PATH (bug?), reset it:
 SET(CMAKE_MODULE_PATH "${SAVED_CMAKE_MODULE_PATH}")
-INCLUDE(${ITK_USE_FILE})  # maybe avoid by using INCLUDE/LINK commands on targets instead?
+INCLUDE(${ITK_USE_FILE}) # <- maybe avoid by using INCLUDE/LINK commands on targets instead?
+# problem: also does some factory initialization (IO), which cannot easily be called separately
 SET (ITK_BASE_DIR "${ITK_DIR}")
 IF (MSVC)
 	SET (ITK_LIB_DIR "${ITK_DIR}/bin/Release")
@@ -198,8 +199,11 @@ MESSAGE(STATUS "VTK: ${VTK_VERSION} in ${VTK_DIR}.")
 IF (VTK_VERSION VERSION_LESS "8.0.0")
 	MESSAGE(FATAL_ERROR "Your VTK version is too old. Please use VTK >= 8.0")
 ENDIF()
+SET (VTK_LIB_PREFIX "VTK::")
 IF (VTK_VERSION VERSION_LESS "9.0.0")
 	SET (VTK_COMP_PREFIX "vtk")
+	SET (VTK_BASE_LIB_LIST kwiml)
+SET (VTK_LIB_PREFIX "vtk")
 ELSE()
 	SET (VTK_RENDERING_BACKEND "OpenGL2")     # peculiarity about VTK 9: it sets VTK_RENDERING_BACKEND to "OpenGL", but for our purposes, it behaves exactly like when previously it was set to OpenGL2. The VTK_RENDERING_BACKEND also isn't exposed as user parameter anymore.
 	SET (VTK_COMP_PREFIX "")
@@ -212,7 +216,7 @@ SET (VTK_COMPONENTS
 	${VTK_COMP_PREFIX}ImagingStatistics       # for vtkImageAccumulate
 	${VTK_COMP_PREFIX}IOGeometry              # for vtkSTLReader/Writer
 	${VTK_COMP_PREFIX}IOMovie                 # for vtkGenericMovieWriter
-	${VTK_COMP_PREFIX}RenderingAnnotation     # for vtkAnnotatedCubeActor, vtkScalarBarActor
+	${VTK_COMP_PREFIX}RenderingAnnotation     # for vtkAnnotatedCubeActor, vtkCaptionActor, vtkScalarBarActor
 	${VTK_COMP_PREFIX}RenderingContext${VTK_RENDERING_BACKEND} # required, otherwise 3D renderer CRASHES somewhere with a nullptr access in vtkContextActor::GetDevice !!!
 	${VTK_COMP_PREFIX}RenderingImage          # for vtkImageResliceMapper
 	${VTK_COMP_PREFIX}RenderingVolume${VTK_RENDERING_BACKEND}  # for volume rendering
@@ -223,11 +227,11 @@ IF (VTK_MAJOR_VERSION GREATER_EQUAL 9)
 	LIST (APPEND VTK_COMPONENTS         # components not pulled in automatically anymore in VTK >= 9:
 		ChartsCore                  # for vtkAxis, vtkChart, vtkChartParallelCoordinates, used in FeatureScout, FuzzyFeatureTracking, GEMSE, PorosityAnalyzer
 		CommonComputationalGeometry # for vtkParametricSpline, used in core - iASpline/iAParametricSpline
-		GUISupportQt                # for QVTKOpenGLNativeWidget
 		FiltersExtraction           # for vtkExtractGeometry, used in FIAKER - iASelectionInteractorStyle
 		FiltersGeometry             # for vtkImageDataGeometryFilter used in iALabel3D and vtkDataSetSurfaceFilter used in ExtractSurface - iAExtractSurfaceFilter
 		FiltersHybrid               # for vtkDepthSortPolyData used in 4DCT, DreamCaster, FeatureScout, vtkPolyDataSilhouette used in FeatureScout
 		FiltersStatistics           # for vtkDataSetSurfaceFilter used in BoneThickness - iABoneThickness
+		GUISupportQt                # for QVTKOpenGLNativeWidget
 		ImagingHybrid               # for vtkSampleFunction.h used in FeatureScout - iABlobCluster
 		IOXML                       # for vtkXMLImageDataReader used in iAIO
 		RenderingContext2D          # for making vtkContext2D::GetDevice return something else than nullptr
@@ -487,12 +491,7 @@ IF (OPENCL_FOUND)
 		CL_HPP_TARGET_OPENCL_VERSION=${CL_TARGET_OPENCL_VERSION}
 		CL_TARGET_OPENCL_VERSION=${CL_TARGET_OPENCL_VERSION})
 	target_link_libraries(OpenCL INTERFACE ${OPENCL_LIBRARIES})
-	target_include_directories(OpenCL INTERFACE ${Toolkit_DIR}/OpenCL)
-	# if OPENCL includes not set via ITK:
-	IF ("${ITKGPUCommon_LIBRARY_DIRS}" STREQUAL "")
-		target_include_directories(OpenCL INTERFACE ${OPENCL_INCLUDE_DIRS})
-	ENDIF()
-
+	target_include_directories(OpenCL INTERFACE ${OPENCL_INCLUDE_DIRS} ${Toolkit_DIR}/OpenCL)
 	MESSAGE(STATUS "OpenCL: include=${OPENCL_INCLUDE_DIRS}, libraries=${OPENCL_LIBRARIES}.")
 	set (BUILD_INFO "${BUILD_INFO}    \"OpenCL targeted version: ${openiA_OPENCL_VERSION}\\n\"\n")
 	IF (WIN32)
@@ -561,7 +560,7 @@ if (${avx_support_index} EQUAL -1)
 		"AVX extensions to enable (default: ${openiA_AVX_SUPPORT_DEFAULT})." FORCE)
 	set_property(CACHE openiA_AVX_SUPPORT PROPERTY STRINGS ${openiA_AVX_SUPPORT_OPTIONS})
 endif()
-set (BUILD_INFO "${BUILD_INFO}    \"AVX: ${openiA_AVX_SUPPORT}\\n\"\n")
+set (BUILD_INFO "${BUILD_INFO}    \"Advanced Vector Extensions support: ${openiA_AVX_SUPPORT}\\n\"\n")
 
 IF (MSVC)
 	# /bigobj            increase the number of sections in .obj file (65,279 -> 2^32), exceeded by some compilations
@@ -755,3 +754,39 @@ IF (UNIX)
     SET(CMAKE_INSTALL_RPATH "\$ORIGIN")      # Set RunPath in all created libraries / executables to $ORIGIN
     #    SET (CMAKE_BUILD_RPATH_USE_ORIGIN ON)
 ENDIF()
+
+
+# Helper functions for adding libraries
+
+# "old style" libraries (e.g. ITK or VTK < 9, with no imported targets)
+# -> not working like this, since we have to use (I/V)TK_USE_FILE anyway for module autoinitialization
+#FUNCTION (ADD_LEGACY_LIBRARIES libname libprefix pubpriv liblist)
+#	FOREACH(lib ${liblist})
+#		set (fulllib "${libprefix}${lib}")
+#		IF (openiA_DEPENDENCY_INFO)
+#			MESSAGE(STATUS "    ${fulllib} - libs: ${${fulllib}_LIBRARIES}, include: ${${fulllib}_INCLUDE_DIRS}")
+#		ENDIF()
+#		TARGET_INCLUDE_DIRECTORIES(${libname} ${pubpriv} ${${fulllib}_INCLUDE_DIRS})
+#		TARGET_LINK_LIBRARIES(${libname} ${pubpriv} ${${fulllib}_LIBRARIES})
+#	ENDFOREACH()
+#ENDFUNCTION()
+
+# "new style" libraries that bring in all dependencies automatically, and that only need to be linked to
+FUNCTION (ADD_IMPORTEDTARGET_LIBRARIES libname libprefix pubpriv liblist)
+	FOREACH(lib ${liblist})
+		set (fulllib "${libprefix}${lib}")
+		IF (openiA_DEPENDENCY_INFO)
+			MESSAGE(STATUS "    ${fulllib}")
+		ENDIF()
+		TARGET_LINK_LIBRARIES(${libname} ${pubpriv} ${fulllib})
+	ENDFOREACH()
+ENDFUNCTION()
+
+FUNCTION (ADD_VTK_LIBRARIES libname pubpriv liblist)
+	IF (VTK_VERSION VERSION_LESS "9.0.0")
+		#LIST (APPEND liblist ${VTK_BASE_LIB_LIST})
+		#ADD_LEGACY_LIBRARIES(${libname} ${VTK_LIB_PREFIX} ${pubpriv} "${liblist}")
+	ELSE()
+		ADD_IMPORTEDTARGET_LIBRARIES(${libname} ${VTK_LIB_PREFIX} ${pubpriv} "${liblist}")
+	ENDIF()
+ENDFUNCTION()

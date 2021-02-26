@@ -24,19 +24,18 @@
 
 QSharedPointer<iAAttributes> createAttributes(QTextStream & in)
 {
-	QSharedPointer<iAAttributes> result(new iAAttributes);
+	auto result = QSharedPointer<iAAttributes>::create();
 	while (!in.atEnd())
 	{
 		QString line = in.readLine();
-		QSharedPointer<iAAttributeDescriptor> descriptor =
-			iAAttributeDescriptor::create(line);
+		auto descriptor = iAAttributeDescriptor::create(line);
 		if (descriptor)
 		{
 			result->push_back(descriptor);
 		}
 		else
 		{
-			return QSharedPointer<iAAttributes>(new iAAttributes);
+			return QSharedPointer<iAAttributes>::create();
 		}
 	}
 	return result;
