@@ -21,13 +21,13 @@
 #pragma once
 
 // Ui
-#include "ui_iA4DCTHeightlightDefectsDialog.h"
+#include "ui_iA4DCTHightlightDefectsDialog.h"
 // Qt
 #include <QDialog>
 
 class iA4DCTVisWin;
 
-class dlg_highlightDefects : public QDialog, public Ui::HeighlightDefectsDialog
+class dlg_highlightDefects : public QDialog, public Ui::HighlightDefectsDialog
 {
 	Q_OBJECT
 
