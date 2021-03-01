@@ -3,7 +3,7 @@ SET (FuzzyFeatureTracking_PRECOMPILE_INCLUDES <dlg_trackingGraph.h>
 <iAGraph.h>
 <iAVolumeStack.h>
 <map>
-<mdichild.h>
+<iAMdiChild.h>
 <vector>
 <vtkContextScene.h>
 <vtkDataSetAttributes.h>

@@ -1,7 +1,7 @@
 /*************************************  open_iA  ************************************ *
 * **********   A tool for visual analysis and processing of 3D CT images   ********** *
 * *********************************************************************************** *
-* Copyright (C) 2016-2020  C. Heinzl, M. Reiter, A. Reh, W. Li, M. Arikan, Ar. &  Al. *
+* Copyright (C) 2016-2021  C. Heinzl, M. Reiter, A. Reh, W. Li, M. Arikan, Ar. &  Al. *
 *                 Amirkhanov, J. Weissenböck, B. Fröhler, M. Schiwarth, P. Weinberger *
 * *********************************************************************************** *
 * This program is free software: you can redistribute it and/or modify it under the   *
@@ -20,9 +20,9 @@
 * ************************************************************************************/
 #include "iAEnsembleDescriptorFile.h"
 
-#include <iAConsole.h>
+#include <iALog.h>
 #include <iAStringHelper.h>
-#include <io/iAFileUtils.h>
+#include <iAFileUtils.h>
 
 #include <QFile>
 #include <QFileInfo>
@@ -83,18 +83,18 @@ iAEnsembleDescriptorFile::iAEnsembleDescriptorFile(QString const & fileName):
 	QFile file(fileName);
 	if (!file.exists())
 	{
-		DEBUG_LOG(QString("Ensemble loading: File '%1' doesn't exist!").arg(fileName));
+		LOG(lvlError, QString("Ensemble loading: File '%1' doesn't exist!").arg(fileName));
 		return;
 	}
 	QSettings metaFile(fileName, QSettings::IniFormat );
 	if (metaFile.status() != QSettings::NoError)
 	{
-		DEBUG_LOG(QString("Ensemble loading: Reading file '%1' failed!").arg(fileName));
+		LOG(lvlError, QString("Ensemble loading: Reading file '%1' failed!").arg(fileName));
 		return;
 	}
 	if (!metaFile.contains(FileVersionKey) || metaFile.value(FileVersionKey).toString() != FileVersionValue)
 	{
-		DEBUG_LOG(QString("Ensemble loading: Ensemble file: Invalid or missing version descriptor ('%1' expected, '%2' found)!")
+		LOG(lvlError, QString("Ensemble loading: Ensemble file: Invalid or missing version descriptor ('%1' expected, '%2' found)!")
 			.arg(FileVersionValue)
 			.arg((metaFile.contains(FileVersionKey) ? "'"+metaFile.value(FileVersionKey).toString()+"'" : "none")) );
 		return;
@@ -106,7 +106,7 @@ iAEnsembleDescriptorFile::iAEnsembleDescriptorFile(QString const & fileName):
 		AddIfMissing(metaFile, missingKeys, LayoutKey) ||
 		AddIfEmpty(datasetKeys, missingKeys, SamplingDataKey))
 	{
-		DEBUG_LOG(QString("Ensemble loading: Required setting(s) %1 missing in ensemble description file.").arg(missingKeys));
+		LOG(lvlError, QString("Ensemble loading: Required setting(s) %1 missing in ensemble description file.").arg(missingKeys));
 		return;
 	}
 	m_fileName = fileName;
@@ -116,7 +116,7 @@ iAEnsembleDescriptorFile::iAEnsembleDescriptorFile(QString const & fileName):
 	m_LabelCount		 = metaFile.value(LabelCountKey).toString().toInt(&labelCountOK);
 	if (!labelCountOK)
 	{
-		DEBUG_LOG("Ensemble loading: Label Count invalid!");
+		LOG(lvlError, "Ensemble loading: Label Count invalid!");
 		return;
 	}
 	for (QString keyStr : datasetKeys)
@@ -129,7 +129,7 @@ iAEnsembleDescriptorFile::iAEnsembleDescriptorFile(QString const & fileName):
 		}
 		if (!ok)
 		{
-			DEBUG_LOG(QString("Ensemble loading: Invalid Dataset identifier: %1 (maybe missing number, ID part: %2?)").arg(keyStr).arg(key));
+			LOG(lvlError, QString("Ensemble loading: Invalid Dataset identifier: %1 (maybe missing number, ID part: %2?)").arg(keyStr).arg(key));
 			return;
 		}
 		m_Samplings.insert(key, MakeAbsolute(fi.absolutePath(), metaFile.value(keyStr).toString()));
@@ -138,7 +138,7 @@ iAEnsembleDescriptorFile::iAEnsembleDescriptorFile(QString const & fileName):
 	std::sort(keys.begin(), keys.end());
 	if (keys[0] != 0 || keys[keys.size() - 1] != keys.size() - 1)
 	{
-		DEBUG_LOG(QString("Ensemble loading: Incoherent sampling indices, or not starting at 0: [%1..%2]").arg(keys[0]).arg(keys[keys.size() - 1]));
+		LOG(lvlError, QString("Ensemble loading: Incoherent sampling indices, or not starting at 0: [%1..%2]").arg(keys[0]).arg(keys[keys.size() - 1]));
 		return;
 	}
 	m_LayoutName         = metaFile.value(LayoutKey).toString();
@@ -167,7 +167,7 @@ iAEnsembleDescriptorFile::iAEnsembleDescriptorFile(QString const & fileName):
 		key = keyStr.right(keyStr.length() - SubEnsembleKey.length()).toInt(&ok);
 		if (!ok)
 		{
-			DEBUG_LOG(QString("Ensemble loading: Invalid Subset identifier: %1 (maybe missing number, ID part: %2?)").arg(keyStr).arg(key));
+			LOG(lvlError, QString("Ensemble loading: Invalid Subset identifier: %1 (maybe missing number, ID part: %2?)").arg(keyStr).arg(key));
 			return;
 		}
 		QStringList idStrings = metaFile.value(keyStr).toString().split(",");
@@ -177,7 +177,7 @@ iAEnsembleDescriptorFile::iAEnsembleDescriptorFile(QString const & fileName):
 			int val = idString.toInt(&ok);
 			if (!ok)
 			{
-				DEBUG_LOG(QString("Ensemble loading: Invalid Subset member ID: %1 (number part: %2)").arg(idString).arg(val));
+				LOG(lvlError, QString("Ensemble loading: Invalid Subset member ID: %1 (number part: %2)").arg(idString).arg(val));
 				return;
 			}
 			memberIDs.push_back(val);
@@ -250,7 +250,7 @@ void iAEnsembleDescriptorFile::Store(QString const & fileName)
 	metaFile.sync();
 	if (metaFile.status() != QSettings::NoError)
 	{
-		DEBUG_LOG(QString("Ensemble storing: File '%1' couldn't be written.").arg(fileName));
+		LOG(lvlError, QString("Ensemble storing: File '%1' couldn't be written.").arg(fileName));
 	}
 }
 

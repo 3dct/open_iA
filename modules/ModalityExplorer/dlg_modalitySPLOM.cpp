@@ -1,7 +1,7 @@
 /*************************************  open_iA  ************************************ *
 * **********   A tool for visual analysis and processing of 3D CT images   ********** *
 * *********************************************************************************** *
-* Copyright (C) 2016-2020  C. Heinzl, M. Reiter, A. Reh, W. Li, M. Arikan, Ar. &  Al. *
+* Copyright (C) 2016-2021  C. Heinzl, M. Reiter, A. Reh, W. Li, M. Arikan, Ar. &  Al. *
 *                 Amirkhanov, J. Weissenböck, B. Fröhler, M. Schiwarth, P. Weinberger *
 * *********************************************************************************** *
 * This program is free software: you can redistribute it and/or modify it under the   *
@@ -20,14 +20,16 @@
 * ************************************************************************************/
 #include "dlg_modalitySPLOM.h"
 
-#include <charts/iAQSplom.h>
+#include <iAQSplom.h>
 #include <iAChannelData.h>
-#include <iAConsole.h>
 #include <iAModality.h>
 #include <iAModalityList.h>
 #include <iAPerformanceHelper.h>
-#include <charts/iASPLOMData.h>
-#include <mdichild.h>
+#include <iASPLOMData.h>
+#include <iAMdiChild.h>
+
+#include "defines.h"    // for NotExistingChannel
+#include <iALog.h>
 
 #include <vtkColorTransferFunction.h>
 #include <vtkImageData.h>
@@ -91,7 +93,7 @@ void dlg_modalitySPLOM::SplomSelection(std::vector<size_t> const & selInds)
 		int z = static_cast<double>(m_data->data()[2][idx]);
 		result->SetScalarComponentFromFloat(x, y, z, 0, 1);
 	}
-	MdiChild* mdiChild = dynamic_cast<MdiChild*>(parent());
+	iAMdiChild* mdiChild = dynamic_cast<iAMdiChild*>(parent());
 	if (!m_selected)
 	{
 		mdiChild->setChannelRenderingEnabled(m_SPLOMSelectionChannelID, false);
@@ -100,7 +102,9 @@ void dlg_modalitySPLOM::SplomSelection(std::vector<size_t> const & selInds)
 	}
 
 	if (m_SPLOMSelectionChannelID == NotExistingChannel)
+	{
 		m_SPLOMSelectionChannelID = mdiChild->createChannel();
+	}
 	auto chData = mdiChild->channelData(m_SPLOMSelectionChannelID);
 	chData->setData(result, m_selection_ctf, m_selection_otf);
 	// TODO: initialize channel?
@@ -108,7 +112,6 @@ void dlg_modalitySPLOM::SplomSelection(std::vector<size_t> const & selInds)
 	mdiChild->updateChannelOpacity(m_SPLOMSelectionChannelID, 0.5);
 	mdiChild->updateViews();
 }
-
 
 dlg_modalitySPLOM::~dlg_modalitySPLOM()
 {
@@ -159,7 +162,7 @@ void dlg_modalitySPLOM::SetData(QSharedPointer<iAModalityList> modalities)
 	{
 		if (modalities->get(imgIdx)->image()->GetScalarType() != VTK_UNSIGNED_SHORT)
 		{
-			DEBUG_LOG(QString("Modality %1 is not of type unsigned short (which is "
+			LOG(lvlError, QString("Modality %1 is not of type unsigned short (which is "
 				"currently the only supported type for Modality SPLOM)!")
 				.arg(modalities->get(imgIdx)->name()));
 			return;

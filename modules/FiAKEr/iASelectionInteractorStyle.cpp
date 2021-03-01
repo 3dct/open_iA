@@ -1,7 +1,7 @@
 /*************************************  open_iA  ************************************ *
 * **********   A tool for visual analysis and processing of 3D CT images   ********** *
 * *********************************************************************************** *
-* Copyright (C) 2016-2020  C. Heinzl, M. Reiter, A. Reh, W. Li, M. Arikan, Ar. &  Al. *
+* Copyright (C) 2016-2021  C. Heinzl, M. Reiter, A. Reh, W. Li, M. Arikan, Ar. &  Al. *
 *                 Amirkhanov, J. Weissenböck, B. Fröhler, M. Schiwarth, P. Weinberger *
 * *********************************************************************************** *
 * This program is free software: you can redistribute it and/or modify it under the   *
@@ -20,7 +20,7 @@
 * ************************************************************************************/
 #include "iASelectionInteractorStyle.h"
 
-#include <iAConsole.h>
+#include <iALog.h>
 #include <iAMathUtility.h>
 
 #include <vtkAreaPicker.h>
@@ -137,7 +137,7 @@ void iASelectionInteractorStyle::pick()
 	}
 	if (!m_selectionProvider)
 	{
-		DEBUG_LOG("No selection provider given!");
+		LOG(lvlError, "No selection provider given!");
 		return;
 	}
 
@@ -279,7 +279,7 @@ void iASelectionInteractorStyle::OnLeftButtonDown()
 	{
 		if (!m_cellRenderer)
 		{
-			DEBUG_LOG("Cell renderer not set!");
+			LOG(lvlError, "Cell renderer not set!");
 			return;
 		}
 
@@ -304,7 +304,7 @@ void iASelectionInteractorStyle::OnLeftButtonDown()
 			}
 			if (pickedResultID == std::numeric_limits<size_t>::max())
 			{
-				DEBUG_LOG("Could not find picked result.");
+				LOG(lvlError, "Could not find picked result.");
 				return;
 			}
 			size_t objectID = (picker->GetCellId()) / 14;

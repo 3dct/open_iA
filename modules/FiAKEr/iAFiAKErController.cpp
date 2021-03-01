@@ -1,7 +1,7 @@
 /*************************************  open_iA  ************************************ *
 * **********   A tool for visual analysis and processing of 3D CT images   ********** *
 * *********************************************************************************** *
-* Copyright (C) 2016-2020  C. Heinzl, M. Reiter, A. Reh, W. Li, M. Arikan, Ar. &  Al. *
+* Copyright (C) 2016-2021  C. Heinzl, M. Reiter, A. Reh, W. Li, M. Arikan, Ar. &  Al. *
 *                 Amirkhanov, J. Weissenböck, B. Fröhler, M. Schiwarth, P. Weinberger *
 * *********************************************************************************** *
 * This program is free software: you can redistribute it and/or modify it under the   *
@@ -27,46 +27,55 @@
 #include "iARefDistCompute.h"
 #include "iAStackedBarChart.h"
 #include "ui_DissimilarityMatrix.h"
+//#include "iAFeatureScoutModuleInterface.h"
 
-// FeatureScout:
+// charts
+#include <iAChartWidget.h>
+#include <iAHistogramData.h>
+#include <iAPlotTypes.h>
+#include <iAScatterPlot.h> // for selection mode: iAScatterPlot::Rectangle
+#include <iAQSplom.h>
+#include <iASPLOMData.h>
+
+// core
+#include <iAMapperImpl.h>
+#include <iAModuleDispatcher.h>
+#include <iARenderSettings.h>
+#include <iARenderer.h>
+#include <iAVolumeRenderer.h>
+#include <io/iAIOProvider.h>
+#include <iAMainWindow.h>
+#include <iAMdiChild.h>
+#include <qthelper/iAQTtoUIConnector.h>
+
+// objectvis
 #include "iA3DCylinderObjectVis.h"
 #include "iA3DEllipseObjectVis.h"
 #include "iACsvConfig.h"
 #include "iACsvVectorTableCreator.h"
-#include "iAFeatureScoutModuleInterface.h"
-#include "iAVectorPlotData.h"
 
-// Core:
-#include <charts/iAChartWidget.h>
-#include <charts/iAHistogramData.h>
-#include <charts/iAPlotTypes.h>
-#include <charts/iAScatterPlot.h> // for selection mode: iAScatterPlot::Rectangle
-#include <charts/iAQSplom.h>
-#include <charts/iASPLOMData.h>
+// qthelper
+#include <iADockWidgetWrapper.h>
+#include <iAFixedAspectWidget.h>
+#include <iASignallingWidget.h>
+#include <iAVtkQtWidget.h>
+
+// renderer
+#include <iARendererManager.h>
+
+// base
 #include <iAColorTheme.h>
 #include <iAConnector.h>
-#include <iAConsole.h>
 #include <iALookupTable.h>
+#include <iAFileUtils.h>
+#include <iAITKIO.h>
+#include <iALog.h>
 #include <iALUT.h>
-#include <iAMapperImpl.h>
 #include <iAMathUtility.h>
-#include <iAModuleDispatcher.h>
-#include <iARenderer.h>
-#include <iARendererManager.h>
 #include <iAStringHelper.h>
 #include <iAToolsVTK.h>    // for setCamPos
 #include <iATransferFunction.h>
-#include <iAVolumeRenderer.h>
 #include <iAVtkVersion.h>
-#include <io/iAIOProvider.h>
-#include <io/iAITKIO.h>
-#include <mainwindow.h>
-#include <mdichild.h>
-#include <qthelper/iADockWidgetWrapper.h>
-#include <qthelper/iAFixedAspectWidget.h>
-#include <qthelper/iAQTtoUIConnector.h>
-#include <qthelper/iASignallingWidget.h>
-#include <qthelper/iAVtkQtWidget.h>
 
 #include <vtkCamera.h>
 #include <vtkColorTransferFunction.h>
@@ -100,6 +109,7 @@
 #include <QMessageBox>
 #include <QModelIndex>
 #include <QMouseEvent>
+#include <QPainter>
 #include <QRadioButton>
 #include <QScrollArea>
 #include <QSettings>
@@ -201,7 +211,7 @@ iAResultPairInfo::iAResultPairInfo(int measureCount) :
 
 const QString iAFiAKErController::FIAKERProjectID("FIAKER");
 
-iAFiAKErController::iAFiAKErController(MainWindow* mainWnd, MdiChild* mdiChild) :
+iAFiAKErController::iAFiAKErController(iAMainWindow* mainWnd, iAMdiChild* mdiChild) :
 	m_renderManager(new iARendererManager()),
 	m_resultColorTheme(iAColorThemeManager::instance().theme(DefaultResultColorTheme)),
 	m_mainWnd(mainWnd),
@@ -242,7 +252,7 @@ void iAFiAKErController::loadProject(QSettings const& projectFile, QString const
 	{  // load full format
 		if (!config.load(projectFile, ProjectFileSaveFormatName))
 		{
-			DEBUG_LOG("Could not load CSV format specification from project file!");
+			LOG(lvlError, "Could not load CSV format specification from project file!");
 			return;
 		}
 	}
@@ -260,13 +270,13 @@ void iAFiAKErController::start(QString const & path, iACsvConfig const & config,
 	m_useStepData = useStepData;
 	m_showPreviews = showPreviews;
 	m_views.resize(DockWidgetCount);
-	connect(m_mdiChild, &MdiChild::renderSettingsChanged, this, &iAFiAKErController::applyRenderSettings);
+	connect(m_mdiChild, &iAMdiChild::renderSettingsChanged, this, &iAFiAKErController::applyRenderSettings);
 
-	m_data = QSharedPointer<iAFiberResultsCollection>(new iAFiberResultsCollection());
+	m_data = QSharedPointer<iAFiberResultsCollection>::create();
 	auto resultsLoader = new iAFiberResultsLoader(m_data, path, m_config, stepShift);
 	connect(resultsLoader, &iAFiberResultsLoader::success, this, &iAFiAKErController::resultsLoaded);
 	connect(resultsLoader, &iAFiberResultsLoader::failed,  this, &iAFiAKErController::resultsLoadFailed);
-	m_mdiChild->addJob("Loading results...", resultsLoader->progress(), resultsLoader);
+	iAJobListView::get()->addJob("Loading results...", resultsLoader->progress(), resultsLoader);
 	resultsLoader->start();
 }
 
@@ -344,7 +354,7 @@ void iAFiAKErController::resultsLoaded()
 
 void iAFiAKErController::setupMain3DView()
 {
-	m_main3DWidget = m_mdiChild->renderDockWidget()->vtkWidgetRC;
+	m_main3DWidget = m_mdiChild->renderVtkWidget();
 #if VTK_VERSION_NUMBER < VTK_VERSION_CHECK(9, 0, 0)
 	auto renWin = m_main3DWidget->GetRenderWindow();
 #else
@@ -544,9 +554,9 @@ namespace
 	{
 		switch (objectType)
 		{
-		case iACsvConfig::Ellipses:  return QSharedPointer<iA3DColoredPolyObjectVis>(new iA3DEllipseObjectVis(renderer, table, mapping, color));
+		case iACsvConfig::Ellipses:  return QSharedPointer<iA3DEllipseObjectVis>::create(renderer, table, mapping, color);
 		default:
-		case iACsvConfig::Cylinders: return QSharedPointer<iA3DColoredPolyObjectVis>(new iA3DCylinderObjectVis(renderer, table, mapping, color, curvedFiberData));
+		case iACsvConfig::Cylinders: return QSharedPointer<iA3DCylinderObjectVis>::create(renderer, table, mapping, color, curvedFiberData);
 		}
 	}
 
@@ -739,7 +749,7 @@ QWidget* iAFiAKErController::setupResultListView()
 			ren->ResetCamera();
 			ui.previewWidget->setProperty("resultID", static_cast<qulonglong>(resultID));
 			connect(ui.previewWidget, &iASignallingWidget::dblClicked, this, &iAFiAKErController::referenceToggled);
-			connect(ui.previewWidget, &iASignallingWidget::clicked, this, &iAFiAKErController::previewMouseClick);
+			//connect(ui.previewWidget, &iASignallingWidget::clicked, this, &iAFiAKErController::previewMouseClick);
 			connect(ui.mini3DVis.data(), &iA3DObjectVis::updated, ui.vtkWidget, &iAVtkQtWidget::updateAll);
 		}
 		ui.main3DVis = create3DVis(m_ren, d.table, d.mapping, resultColor, m_data->objectType, curveInfo);
@@ -1031,13 +1041,13 @@ bool readParameterCSV(QString const& fileName, QString const & encoding, QString
 {
 	if (!QFile::exists(fileName))
 	{
-		DEBUG_LOG("Error loading csv file, file does not exist.");
+		LOG(lvlError, QString("Error loading csv file %1, file does not exist.").arg(fileName));
 		return false;
 	}
 	QFile file(fileName);
 	if (!file.open(QIODevice::ReadOnly | QIODevice::Text))
 	{
-		DEBUG_LOG(QString("Unable to open file '%1': %2").arg(fileName).arg(file.errorString()));
+		LOG(lvlError, QString("Unable to open file '%1': %2").arg(fileName).arg(file.errorString()));
 		return false;
 	}
 	QTextStream in(&file);
@@ -1378,7 +1388,7 @@ bool iAFiAKErController::readDissimilarityMatrixCache(QVector<int>& measures)
 	}
 	if (!cacheFile.open(QFile::ReadOnly))
 	{
-		DEBUG_LOG(QString("Couldn't open file %1 for reading!").arg(cacheFile.fileName()));
+		LOG(lvlWarn, QString("FIAKER cache file '%1': Couldn't open for reading!").arg(cacheFile.fileName()));
 		return false;
 	}
 	// unify with readResultRefComparison / common cache file version/identifier pattern?
@@ -1388,7 +1398,7 @@ bool iAFiAKErController::readDissimilarityMatrixCache(QVector<int>& measures)
 	in >> identifier;
 	if (identifier != DissimilarityMatrixCacheFileIdentifier)
 	{
-		DEBUG_LOG(QString("FIAKER cache file '%1': Unknown cache file format - found identifier %2 does not match expected identifier %3.")
+		LOG(lvlWarn, QString("FIAKER cache file '%1': Unknown cache file format - found identifier %2 does not match expected identifier %3.")
 			.arg(cacheFile.fileName())
 			.arg(identifier).arg(DissimilarityMatrixCacheFileIdentifier));
 		return false;
@@ -1397,7 +1407,7 @@ bool iAFiAKErController::readDissimilarityMatrixCache(QVector<int>& measures)
 	in >> version;
 	if (version > DissimilarityMatrixCacheFileVersion)
 	{
-		DEBUG_LOG(QString("FIAKER cache file '%1': Invalid or too high version number (%2), expected %3 or less.")
+		LOG(lvlWarn, QString("FIAKER cache file '%1': Invalid or too high version number (%2), expected %3 or less.")
 			.arg(cacheFile.fileName())
 			.arg(version).arg(DissimilarityMatrixCacheFileVersion));
 		return false;
@@ -1412,7 +1422,7 @@ void iAFiAKErController::writeDissimilarityMatrixCache(QVector<int> const& measu
 	QFile cacheFile(dissimilarityMatrixCacheFileName());
 	if (!cacheFile.open(QFile::WriteOnly))
 	{
-		DEBUG_LOG(QString("Couldn't open file %1 for writing!").arg(cacheFile.fileName()));
+		LOG(lvlWarn, QString("FIAKER cache file '%1': Couldn't open for writing!").arg(cacheFile.fileName()));
 		return;
 	}
 	QDataStream out(&cacheFile);
@@ -1554,7 +1564,7 @@ void iAFiAKErController::changeDistributionSource(int index)
 {
 	if (matchQualityVisActive() && m_referenceID == NoResult)
 	{
-		DEBUG_LOG(QString("You need to set a reference first!"));
+		LOG(lvlWarn, QString("You need to set a reference first!"));
 		return;
 	}
 	double range[2];
@@ -1585,7 +1595,7 @@ void iAFiAKErController::changeDistributionSource(int index)
 			fiberData[fiberID] = matchQualityVisActive() ? m_data->avgRefFiberMatch[fiberID]
 				: d.table->GetValue(fiberID, index).ToDouble();
 		}
-		auto histogramData = iAHistogramData::create(fiberData, m_histogramBins, iAValueType::Continuous, range[0], range[1]);
+		auto histogramData = iAHistogramData::create("Frequency", iAValueType::Continuous, fiberData, m_histogramBins, range[0], range[1]);
 		QSharedPointer<iAPlot> histogramPlot =
 			(m_settingsView->cmbboxDistributionPlotType->currentIndex() == 0) ?
 			QSharedPointer<iAPlot>(new iABarGraphPlot(histogramData, getResultColor(resultID)))
@@ -1612,7 +1622,7 @@ void iAFiAKErController::updateHistogramColors()
 {
 	double range[2] = { 0.0, static_cast<double>(m_histogramBins) };
 	auto lut = m_colorByDistribution->isChecked() ?
-		QSharedPointer<iALookupTable>(new iALookupTable(iALUT::Build(range, m_colorByThemeName, 255, 1)))
+		QSharedPointer<iALookupTable>::create(iALUT::Build(range, m_colorByThemeName, 255, 1))
 		: QSharedPointer<iALookupTable>();
 	for (size_t resultID = 0; resultID < m_data->result.size(); ++resultID)
 	{
@@ -1701,7 +1711,7 @@ void iAFiAKErController::exportDissimilarities()
 {
 	if (m_referenceID == NoResult)
 	{
-		DEBUG_LOG("No reference set, therefore there are no dissimilarities to export!");
+		LOG(lvlWarn, "No reference set, therefore there are no dissimilarities to export!");
 		return;
 	}
 	QString fileName = QFileDialog::getSaveFileName(m_mainWnd, iAFiAKErController::FIAKERProjectID, m_data->folder, "Comma-Separated Values (*.csv);;");
@@ -1712,7 +1722,7 @@ void iAFiAKErController::exportDissimilarities()
 	QFile outFile(fileName);
 	if (!outFile.open(QIODevice::WriteOnly))
 	{
-		DEBUG_LOG(QString("Cannot open file %1 for writing!").arg(fileName));
+		LOG(lvlError, QString("FIAKER Dissimilarities export: Cannot open file %1 for writing!").arg(fileName));
 		return;
 	}
 	QTextStream out(&outFile);
@@ -1759,7 +1769,7 @@ void iAFiAKErController::exportDissimilarities()
 		QFile resultOutFile(resultFileName);
 		if (!resultOutFile.open(QIODevice::WriteOnly))
 		{
-			DEBUG_LOG(QString("Cannot open file %1 for writing!").arg(fileName));
+			LOG(lvlError, QString("FIAKER Dissimilarities export: Cannot open file %1 for writing!").arg(fileName));
 			return;
 		}
 		const int NumOfMatchesToWrite = 3;
@@ -1864,7 +1874,7 @@ void iAFiAKErController::toggleOptimStepChart(size_t chartID, bool visible)
 	{
 		if (!m_optimStepChart[chartID])
 		{
-			DEBUG_LOG(QString("Step chart %1 toggled invisible, but not created yet.").arg(chartID));
+			LOG(lvlWarn, QString("Step chart %1 toggled invisible, but not created yet.").arg(chartID));
 			return;
 		}
 		m_optimStepChart[chartID]->setVisible(false);
@@ -1874,7 +1884,7 @@ void iAFiAKErController::toggleOptimStepChart(size_t chartID, bool visible)
 	{
 		if (chartID < m_chartCount-1 && m_referenceID == NoResult)
 		{
-			DEBUG_LOG(QString("You need to set a reference first!"));
+			LOG(lvlWarn, QString("You need to set a reference first!"));
 			return;
 		}
 		m_optimStepChart[chartID] = new iAChartWidget(nullptr, "Optimization Step", diffName(chartID));
@@ -1901,25 +1911,25 @@ void iAFiAKErController::toggleOptimStepChart(size_t chartID, bool visible)
 			}
 			for (size_t fiberID = 0; fiberID < d.fiberCount; ++fiberID)
 			{
-				QSharedPointer<iAVectorPlotData> plotData;
+				QVector<double>* histoData(nullptr);
 				if (chartID < m_chartCount - 1)
 				{
 					if (chartID < static_cast<size_t>(d.refDiffFiber[fiberID].diff.size()))
 					{
-						plotData = QSharedPointer<iAVectorPlotData>(new iAVectorPlotData(d.refDiffFiber[fiberID].diff[chartID].step));
+						histoData = &d.refDiffFiber[fiberID].diff[chartID].step;
 					}
 					else
 					{
-						DEBUG_LOG("Differences for this measure not computed (yet).");
+						LOG(lvlWarn, "Differences for this measure not computed (yet).");
 						return;
 					}
 				}
 				else
 				{
-					plotData = QSharedPointer<iAVectorPlotData>(new iAVectorPlotData(d.projectionError[fiberID]));
+					histoData = &d.projectionError[fiberID];
 				}
-				plotData->setXDataType(iAValueType::Discrete);
-				m_optimStepChart[chartID]->addPlot(QSharedPointer<iALinePlot>(new iALinePlot(plotData, getResultColor(resultID))));
+				auto plotData = iAHistogramData::create(diffName(chartID), iAValueType::Discrete, 0, histoData->size(), *histoData);
+				m_optimStepChart[chartID]->addPlot(QSharedPointer<iALinePlot>::create(plotData, getResultColor(resultID)));
 			}
 		}
 		connect(m_optimStepChart[chartID], &iAChartWidget::plotsSelected,
@@ -1945,7 +1955,7 @@ void iAFiAKErController::toggleOptimStepChart(size_t chartID, bool visible)
 			}
 			else
 			{
-				DEBUG_LOG("Tried to show/hide unavailable plot.");
+				LOG(lvlWarn, "Tried to show/hide unavailable plot.");
 				return;
 			}
 		}
@@ -2062,7 +2072,7 @@ void iAFiAKErController::showMainVis(size_t resultID, int state)
 						{
 							if (ui.startPlotIdx + p >= m_optimStepChart[c]->plots().size())
 							{
-								DEBUG_LOG(QString("Invalid chart access: access to plot %1, but only has %2")
+								LOG(lvlError, QString("Invalid chart access: access to plot %1, but only has %2")
 									.arg(ui.startPlotIdx + p)
 									.arg(m_optimStepChart[c]->plots().size()));
 							}
@@ -2136,7 +2146,7 @@ void iAFiAKErController::getResultFiberIDFromSpmID(size_t spmID, size_t & result
 	}
 	if (resultID == m_data->result.size())
 	{
-		DEBUG_LOG(QString("Invalid index in SPM: %1").arg(spmID));
+		LOG(lvlError, QString("Invalid index in SPM: %1").arg(spmID));
 		return;
 	}
 	fiberID = spmID - curStart;
@@ -2354,6 +2364,7 @@ void iAFiAKErController::selectionOptimStepChartChanged(std::vector<size_t> cons
 	}
 }
 
+/*
 void iAFiAKErController::previewMouseClick(Qt::MouseButton button, Qt::KeyboardModifiers modifiers)
 {	// require Ctrl + Left mouse click:
 	if (button != Qt::LeftButton || !modifiers.testFlag(Qt::ControlModifier))
@@ -2362,14 +2373,13 @@ void iAFiAKErController::previewMouseClick(Qt::MouseButton button, Qt::KeyboardM
 	}
 	size_t resultID = QObject::sender()->property("resultID").toULongLong();
 	addInteraction(QString("Started FiberScout for %1.").arg(resultName(resultID)));
-	MdiChild* newChild = m_mainWnd->createMdiChild(false);
+	iAMdiChild* newChild = m_mainWnd->createMdiChild(false);
 	newChild->show();
-	// wait a bit to make sure MdiChild is shown and all initialization is done
-	// TODO: Replace by connection to a signal which is emitted when MdiChild initialization done
+	// wait a bit to make sure iAMdiChild is shown and all initialization is done
+	// TODO: Replace by connection to a signal which is emitted when iAMdiChild initialization done
 	QTimer::singleShot(1000, [this, resultID, newChild] { startFeatureScout(resultID, newChild); });
 }
-
-void iAFiAKErController::startFeatureScout(int resultID, MdiChild* newChild)
+void iAFiAKErController::startFeatureScout(int resultID, iAMdiChild* newChild)
 {
 	iACsvConfig config(m_config);
 	// fails if config.visType is labelled volume
@@ -2379,6 +2389,7 @@ void iAFiAKErController::startFeatureScout(int resultID, MdiChild* newChild)
 	featureScout->LoadFeatureScout(config, newChild);
 	//newChild->loadLayout("FeatureScout");
 }
+*/
 
 void iAFiAKErController::optimStepSliderChanged(int optimStep)
 {
@@ -2545,12 +2556,12 @@ void iAFiAKErController::updateBoundingBox()
 		newBounds[i * 2] = m_teBoundingBox[i]->text().toDouble(&ok);
 		if (!ok)
 		{
-			DEBUG_LOG(QString("Invalid bounding box value: %1").arg(m_teBoundingBox[i]->text()))
+			LOG(lvlError, QString("Invalid bounding box value: %1").arg(m_teBoundingBox[i]->text()))
 		}
 		newBounds[i * 2 + 1] = m_teBoundingBox[i + 3]->text().toDouble(&ok);
 		if (!ok)
 		{
-			DEBUG_LOG(QString("Invalid bounding box value: %1").arg(m_teBoundingBox[i]->text()))
+			LOG(lvlError, QString("Invalid bounding box value: %1").arg(m_teBoundingBox[i]->text()))
 		}
 	}
 	m_customBoundingBoxSource->SetBounds(newBounds);
@@ -2608,8 +2619,8 @@ void iAFiAKErController::updateFiberContext()
 				double radius = diameter / 2;
 				if (!m_mergeContextBoxes)
 				{
-					minCoord = std::numeric_limits<double>::max();
-					maxCoord = std::numeric_limits<double>::lowest();
+					minCoord.fill(std::numeric_limits<double>::max());
+					maxCoord.fill(std::numeric_limits<double>::lowest());
 				}
 				for (int i = 0; i < 3; ++i)
 				{
@@ -2687,7 +2698,7 @@ void iAFiAKErController::referenceToggled()
 {
 	if (m_refDistCompute)
 	{
-		DEBUG_LOG("Another reference computation is currently running, please let that finish first!");
+		LOG(lvlWarn, "Another reference computation is currently running, please let that finish first!");
 		return;
 	}
 	size_t referenceID = QObject::sender()->property("resultID").toULongLong();
@@ -2704,7 +2715,7 @@ void iAFiAKErController::setReference(size_t referenceID, std::vector<std::pair<
 {
 	if (referenceID == m_referenceID)
 	{
-		DEBUG_LOG(QString("The selected result (%1) is already set as reference!").arg(referenceID));
+		LOG(lvlInfo, QString("The selected result (%1) is already set as reference!").arg(referenceID));
 		return;
 	}
 	if (m_referenceID != NoResult)
@@ -2746,7 +2757,7 @@ void iAFiAKErController::setReference(size_t referenceID, std::vector<std::pair<
 		m_refDistCompute->setMeasuresToCompute(measures, optimizationMeasure, bestMeasure);
 	}
 	connect(m_refDistCompute, &QThread::finished, this, &iAFiAKErController::refDistAvailable);
-	m_mdiChild->addJob("Computing Reference Similarities", m_refDistCompute->progress(), m_refDistCompute);
+	iAJobListView::get()->addJob("Computing Reference Similarities", m_refDistCompute->progress(), m_refDistCompute);
 	m_refDistCompute->start();
 }
 
@@ -2762,7 +2773,7 @@ bool iAFiAKErController::loadReferenceInternal(iASettings settings)
 	{
 		if (QFileInfo(m_data->result[resultID].fileName).completeBaseName() == refIDStr)
 		{
-			DEBUG_LOG(QString("Result %1, number=%2 will be used as reference!").arg(refIDStr).arg(resultID));
+			LOG(lvlInfo, QString("Result %1, number=%2 will be used as reference!").arg(refIDStr).arg(resultID));
 			referenceID = resultID;
 			break;
 		}
@@ -2773,13 +2784,13 @@ bool iAFiAKErController::loadReferenceInternal(iASettings settings)
 		referenceID = refIDStr.toULongLong(&ok);
 		if (!ok || referenceID >= m_data->result.size())
 		{
-			DEBUG_LOG(QString("Invalid reference specification '%1' in project file! "
+			LOG(lvlWarn, QString("Invalid reference specification '%1' in project file! "
 				"Expected either a file name (new format) or a result number (old format)").arg(refIDStr));
 			return false;
 		}
 		else
 		{
-			DEBUG_LOG(QString("Old style project file: result number %1 will be used as reference!").arg(referenceID));
+			LOG(lvlInfo, QString("Old style project file: result number %1 will be used as reference!").arg(referenceID));
 		}
 	}
 	connect(this, &iAFiAKErController::referenceComputed, [this, settings]
@@ -2815,7 +2826,7 @@ namespace
 		}
 		else
 		{
-			DEBUG_LOG(QString("Invalid value %1 for key=%2 couldn't be parsed as double array of size 3!")
+			LOG(lvlWarn, QString("Invalid value %1 for key=%2 couldn't be parsed as double array of size 3!")
 				.arg(settings.value(key).toString())
 				.arg(key));
 		}
@@ -3025,7 +3036,7 @@ void iAFiAKErController::changeReferenceDisplay()
 	}
 	if (m_referenceID == NoResult)
 	{
-		DEBUG_LOG(QString("You need to set a reference first!"));
+		LOG(lvlWarn, QString("You need to set a reference first!"));
 		return;
 	}
 	m_refVisTable = vtkSmartPointer<vtkTable>::New();
@@ -3042,7 +3053,7 @@ void iAFiAKErController::changeReferenceDisplay()
 
 	std::vector<iAFiberSimilarity> referenceIDsToShow;
 
-	//DEBUG_LOG("Showing reference fibers:");
+	//LOG(lvlInfo, "Showing reference fibers:");
 	for (size_t resultID=0; resultID < m_selection.size(); ++resultID)
 	{
 		if (resultID == m_referenceID || !resultSelected(m_resultUIs, resultID))
@@ -3086,8 +3097,8 @@ void iAFiAKErController::changeReferenceDisplay()
 		}
 	}
 
-	m_nearestReferenceVis = QSharedPointer<iA3DCylinderObjectVis>(new iA3DCylinderObjectVis(m_ren, m_refVisTable,
-		m_data->result[m_referenceID].mapping, QColor(0,0,0), refCurvedFiberInfo) );
+	m_nearestReferenceVis = QSharedPointer<iA3DCylinderObjectVis>::create(m_ren, m_refVisTable,
+		m_data->result[m_referenceID].mapping, QColor(0,0,0), refCurvedFiberInfo);
 	/*
 	QSharedPointer<iALookupTable> lut(new iALookupTable);
 	*lut.data() = iALUT::Build(m_data->spmData->paramRange(m_data->spmData->numParams()-iARefDistCompute::EndColumns-iARefDistCompute::SimilarityMeasureCount+similarityMeasure),
@@ -3260,7 +3271,7 @@ void iAFiAKErController::visualizeCylinderSamplePoints()
 	}
 	if (fiberID == NoPlotsIdx)
 	{
-		DEBUG_LOG("No fiber selected!");
+		LOG(lvlWarn, "No fiber selected!");
 		return;
 	}
 	addInteraction(QString("Visualized cylinder sampling for fiber %1 in %2.").arg(fiberID).arg(resultName(resultID)));
@@ -3406,31 +3417,6 @@ QString iAFiAKErController::resultName(size_t resultID) const
 {
 	return QFileInfo(m_data->result[resultID].fileName).baseName();
 }
-
-/*
-void iAFiAKErController::doSaveProject()
-{
-	// somehow move that part out into the core?
-	// { e.g. into iASavableProject ?
-	QString fileName = QFileDialog::getSaveFileName(
-	QApplication::activeWindow(),
-		tr("Select Output File"),
-		m_data->folder,
-		iAIOProvider::NewProjectFileTypeFilter);
-	if (fileName.isEmpty())
-	{
-		return;
-	}
-	QSettings projectFile(fileName, QSettings::IniFormat);
-	projectFile.setIniCodec("UTF-8");
-	projectFile.beginGroup(FIAKERProjectID);
-	saveProject(projectFile, fileName);
-	projectFile.endGroup();
-	projectFile.sync(); // make sure file is written here...
-	m_mainWnd->setCurrentFile(fileName); // ...because otherwise it won't get added to recent list here
-	addInteraction(QString("Saved as Project '%1'.").arg(fileName));
-}
-*/
 
 void iAFiAKErController::saveProject(QSettings & projectFile, QString  const & fileName)
 {

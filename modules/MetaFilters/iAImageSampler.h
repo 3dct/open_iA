@@ -1,7 +1,7 @@
 /*************************************  open_iA  ************************************ *
 * **********   A tool for visual analysis and processing of 3D CT images   ********** *
 * *********************************************************************************** *
-* Copyright (C) 2016-2020  C. Heinzl, M. Reiter, A. Reh, W. Li, M. Arikan, Ar. &  Al. *
+* Copyright (C) 2016-2021  C. Heinzl, M. Reiter, A. Reh, W. Li, M. Arikan, Ar. &  Al. *
 *                 Amirkhanov, J. Weissenböck, B. Fröhler, M. Schiwarth, P. Weinberger *
 * *********************************************************************************** *
 * This program is free software: you can redistribute it and/or modify it under the   *
@@ -41,6 +41,7 @@ class iASingleResult;
 
 class iALogger;
 class iAModalityList;
+class iAProgress;
 
 class MetaFilters_API iAImageSampler: public QObject, public iADurationEstimator, public iAAbortListener
 {
@@ -55,16 +56,15 @@ public:
 		QString const & parameterSetFile,
 		QString const & derivedOutputFile,
 		int samplingID,
-		iALogger * logger);
+		iALogger * logger,
+		iAProgress * progress);
 	QSharedPointer<iASamplingResults> results();
 	void start();
 	double elapsed() const override;
-	double estimatedTimeRemaining() const override;
+	double estimatedTimeRemaining(double percent) const override;
 	void abort() override;
 	bool isAborted();
 signals:
-	void progress(int);
-	void status(QString const &);
 	void finished();
 private:
 	//! @{
@@ -100,7 +100,8 @@ private:
 	
 	QStringList m_additionalArgumentList;
 	int m_numDigits;
-	iALogger * m_logger;
+	iALogger* m_logger;
+	iAProgress* m_progress;
 
 	void newSamplingRun();
 	void statusMsg(QString const & msg);

@@ -1,19 +1,14 @@
-# Modules which are used by the given module
-SET( DEPENDENCIES_MODULES
-)
-
-# Cmake defines which are used by the given module
-SET( DEPENDENCIES_CMAKE
-)
-
-# Libraries which are used by the module
 SET( DEPENDENCIES_LIBRARIES
+	iAcharts    # for qcustomplot, also pulls in required iAqthelper
+	iAcore
 )
-
-# Toolkit directories
+#SET( DEPENDENCIES_ITK_MODULES
+#	ITKVtkGlue       # for ImageToVTKImageFilter
+#	ITKStatistics    # for ImageToHistogramFilter
+#)
+SET( DEPENDENCIES_INCLUDE_DIRS
+	${CMAKE_CURRENT_SOURCE_DIR}/DynamicVolumeLines/CompactHilbert/include
+)
 SET( DEPENDENCIES_IA_TOOLKIT_DIRS
-)
-
-SET ( DEPENDENCIES_INCLUDE_DIRS
-  ${CMAKE_CURRENT_SOURCE_DIR}/DynamicVolumeLines/CompactHilbert/include
+	FunctionalBoxplot
 )

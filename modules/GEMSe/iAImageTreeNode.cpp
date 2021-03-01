@@ -1,7 +1,7 @@
 /*************************************  open_iA  ************************************ *
 * **********   A tool for visual analysis and processing of 3D CT images   ********** *
 * *********************************************************************************** *
-* Copyright (C) 2016-2020  C. Heinzl, M. Reiter, A. Reh, W. Li, M. Arikan, Ar. &  Al. *
+* Copyright (C) 2016-2021  C. Heinzl, M. Reiter, A. Reh, W. Li, M. Arikan, Ar. &  Al. *
 *                 Amirkhanov, J. Weissenböck, B. Fröhler, M. Schiwarth, P. Weinberger *
 * *********************************************************************************** *
 * This program is free software: you can redistribute it and/or modify it under the   *
@@ -20,7 +20,7 @@
 * ************************************************************************************/
 #include "iAImageTreeNode.h"
 
-#include <iAConsole.h>
+#include <iALog.h>
 
 iAImageTreeNode::iAImageTreeNode() :
 	m_attitude(NoPreference)
@@ -109,12 +109,12 @@ vtkSmartPointer<vtkImageData> iAImageTreeNode::GetCorrectnessEntropyImage(LabelI
 	auto entropyImg = dynamic_cast<ProbabilityImageType*>(GetRepresentativeImage(iARepresentativeType::AverageEntropy, refImg).GetPointer());
 	if (!correctnessImg)
 	{
-		DEBUG_LOG("Correctness image not available!");
+		LOG(lvlError, "Correctness image not available!");
 		return vtkSmartPointer<vtkImageData>();
 	}
 	if (!entropyImg)
 	{
-		DEBUG_LOG("Entropy image not available!");
+		LOG(lvlError, "Entropy image not available!");
 		return vtkSmartPointer<vtkImageData>();
 	}
 

@@ -1,7 +1,7 @@
 /*************************************  open_iA  ************************************ *
 * **********   A tool for visual analysis and processing of 3D CT images   ********** *
 * *********************************************************************************** *
-* Copyright (C) 2016-2020  C. Heinzl, M. Reiter, A. Reh, W. Li, M. Arikan, Ar. &  Al. *
+* Copyright (C) 2016-2021  C. Heinzl, M. Reiter, A. Reh, W. Li, M. Arikan, Ar. &  Al. *
 *                 Amirkhanov, J. Weissenböck, B. Fröhler, M. Schiwarth, P. Weinberger *
 * *********************************************************************************** *
 * This program is free software: you can redistribute it and/or modify it under the   *
@@ -24,7 +24,7 @@
 #include "iASelection.h"
 #include "FeatureAnalyzerHelpers.h"
 
-#include <charts/iASPLOMData.h>
+#include <iASPLOMData.h>
 #include <iALookupTable.h>
 #include <iALUT.h>
 #include <iAQtVTKBindings.h>
@@ -70,7 +70,7 @@
 const QString defaultColorParam = "Deviat. from Ref.";
 const int popupWidthRange[2] = { 80, 300 };
 
-iASPMView::iASPMView(MainWindow *mWnd,  QWidget * parent /*= 0*/, Qt::WindowFlags f /*= 0 */ ):
+iASPMView::iASPMView(iAMainWindow *mWnd,  QWidget * parent /*= 0*/, Qt::WindowFlags f /*= 0 */ ):
 	iAPorosityAnalyzerSPMConnector( parent, f ),
 	m_splom(new iAFAQSplom(mWnd, parent)),
 	m_SPLOMSelection( vtkSmartPointer<vtkIdTypeArray>::New() ),

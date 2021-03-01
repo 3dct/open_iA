@@ -1,7 +1,7 @@
 /*************************************  open_iA  ************************************ *
 * **********   A tool for visual analysis and processing of 3D CT images   ********** *
 * *********************************************************************************** *
-* Copyright (C) 2016-2020  C. Heinzl, M. Reiter, A. Reh, W. Li, M. Arikan, Ar. &  Al. *
+* Copyright (C) 2016-2021  C. Heinzl, M. Reiter, A. Reh, W. Li, M. Arikan, Ar. &  Al. *
 *                 Amirkhanov, J. Weissenböck, B. Fröhler, M. Schiwarth, P. Weinberger *
 * *********************************************************************************** *
 * This program is free software: you can redistribute it and/or modify it under the   *
@@ -20,11 +20,13 @@
 * ************************************************************************************/
 #include "iAExtractSurfaceFilters.h"
 
-#include "io/iAFileUtils.h"
-
-#include <iAConnector.h>
-#include <iAConsole.h>
+// core
 #include <iAProgress.h>
+
+// base
+#include <iAConnector.h>
+#include <iALog.h>
+#include <iAFileUtils.h>
 
 //#include <vtkButterflySubdivisionFilter.h>
 #include <vtkCleanPolyData.h>
@@ -50,7 +52,8 @@ namespace
 	{
 		if (!surfaceFilter)
 		{
-			DEBUG_LOG("Surface filter is null") return nullptr;
+			LOG(lvlError, "Surface filter is null");
+			return nullptr;
 		}
 
 		QString simplifyAlgoName = parameters["Simplification Algorithm"].toString();
@@ -91,7 +94,7 @@ namespace
 		}
 		else
 		{
-			DEBUG_LOG(QString("Unknown simplification algorithm '%1'").arg(simplifyAlgoName));
+			LOG(lvlError, QString("Unknown simplification algorithm '%1'").arg(simplifyAlgoName));
 			return nullptr;
 		}
 		Progress->observe(result);
@@ -103,7 +106,7 @@ namespace
 	{
 		if (!imgData)
 		{
-			DEBUG_LOG("input Image is null");
+			LOG(lvlError, "input Image is null");
 			return nullptr;
 		}
 		vtkSmartPointer<vtkPolyDataAlgorithm> result;
@@ -196,7 +199,7 @@ void iAExtractSurface::performWork(QMap<QString, QVariant> const & parameters)
 	auto surfaceFilter = createSurfaceFilter(parameters, input()[0]->vtkImage(), progress());
 	if (!surfaceFilter)
 	{
-		DEBUG_LOG("Generated surface filter is null");
+		LOG(lvlError, "Generated surface filter is null");
 		return;
 	}
 
@@ -269,7 +272,7 @@ void iATriangulation::performWork(QMap<QString, QVariant> const& parameters) {
 	auto surfaceFilter = createSurfaceFilter(parameters, input()[0]->vtkImage(), progress());
 	if (!surfaceFilter)
 	{
-		DEBUG_LOG("Generated surface filter is null");
+		LOG(lvlError, "Generated surface filter is null");
 		return;
 	}
 

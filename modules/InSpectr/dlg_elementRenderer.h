@@ -1,7 +1,7 @@
 /*************************************  open_iA  ************************************ *
 * **********   A tool for visual analysis and processing of 3D CT images   ********** *
 * *********************************************************************************** *
-* Copyright (C) 2016-2020  C. Heinzl, M. Reiter, A. Reh, W. Li, M. Arikan, Ar. &  Al. *
+* Copyright (C) 2016-2021  C. Heinzl, M. Reiter, A. Reh, W. Li, M. Arikan, Ar. &  Al. *
 *                 Amirkhanov, J. Weissenböck, B. Fröhler, M. Schiwarth, P. Weinberger *
 * *********************************************************************************** *
 * This program is free software: you can redistribute it and/or modify it under the   *
@@ -32,6 +32,8 @@ class iARenderer;
 class iAVolumeRenderer;
 class iAVolumeSettings;
 
+class iARendererImpl;
+
 class vtkColorTransferFunction;
 class vtkImageData;
 class vtkPiecewiseFunction;
@@ -54,7 +56,7 @@ public:
 	void ApplyVolumeSettings(iAVolumeSettings const & vs);
 
 private:
-	iARenderer * m_renderer;
+	iARendererImpl * m_renderer;
 	bool m_rendInitialized;
 	vtkSmartPointer<vtkTransform> m_axesTransform;
 	QSharedPointer<iAVolumeRenderer> m_volumeRenderer;

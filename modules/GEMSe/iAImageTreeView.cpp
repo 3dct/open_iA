@@ -1,7 +1,7 @@
 /*************************************  open_iA  ************************************ *
 * **********   A tool for visual analysis and processing of 3D CT images   ********** *
 * *********************************************************************************** *
-* Copyright (C) 2016-2020  C. Heinzl, M. Reiter, A. Reh, W. Li, M. Arikan, Ar. &  Al. *
+* Copyright (C) 2016-2021  C. Heinzl, M. Reiter, A. Reh, W. Li, M. Arikan, Ar. &  Al. *
 *                 Amirkhanov, J. Weissenböck, B. Fröhler, M. Schiwarth, P. Weinberger *
 * *********************************************************************************** *
 * This program is free software: you can redistribute it and/or modify it under the   *
@@ -25,7 +25,7 @@
 #include "iAImageTreeNode.h"
 #include "iAPreviewWidgetPool.h"
 
-#include <iAConsole.h>
+#include <iALog.h>
 
 #include <QLayout>
 #include <QMouseEvent>
@@ -159,7 +159,7 @@ void iAImageTreeView::UpdateSubtreeHighlight()
 		QSharedPointer<iAImageTreeNode> node = m_selectedNode[i];
 		if (!m_nodeWidgets.contains(node.data()))
 		{
-			DEBUG_LOG("ERROR in UpdateSubtreeHighlight: widget for selected node doesn't exist!");
+			LOG(lvlError, "UpdateSubtreeHighlight: widget for selected node doesn't exist!");
 			m_selectedNode.remove(m_selectedNode.indexOf(node));
 			if (m_selectedNode.empty())
 			{
@@ -225,12 +225,13 @@ int iAImageTreeView::LayoutNode(QSharedPointer<iAImageTreeNode > node, int nodeN
 	}
 	if (!m_nodeWidgets.contains(node.data()))
 	{
-		DEBUG_LOG("ERROR in LayoutNode: widget for current child node doesn't exist.");
+		LOG(lvlError, "LayoutNode: widget for current child node doesn't exist.");
 		return nodeNumber;
 	}
 	iAImageNodeWidget* nodeWidget = m_nodeWidgets[node.data()];
-	if (!nodeWidget) {
-		DEBUG_LOG("ERROR in LayoutNode: widget for current child node is nullptr.");
+	if (!nodeWidget)
+	{
+		LOG(lvlError, "LayoutNode: widget for current child node is nullptr.");
 		return nodeNumber;
 	}
 	nodeWidget->UpdateShrinkStatus(m_refImg);
@@ -266,13 +267,13 @@ void iAImageTreeView::UpdateRepresentative(QSharedPointer<iAImageTreeNode > node
 {
 	if (!m_nodeWidgets.contains(node.data()))
 	{
-		DEBUG_LOG("ERROR in UpdateRepresentative: widget for current child node doesn't exist.");
+		LOG(lvlError, "UpdateRepresentative: widget for current child node doesn't exist.");
 		return;
 	}
 	iAImageNodeWidget* nodeWidget = m_nodeWidgets[node.data()];
 	if (!nodeWidget)
 	{
-		DEBUG_LOG("ERROR in UpdateRepresentative: widget for current child node is nullptr.");
+		LOG(lvlError, "UpdateRepresentative: widget for current child node is nullptr.");
 		return;
 	}
 	if (!nodeWidget->IsShrinked())
@@ -309,7 +310,7 @@ void iAImageTreeView::CollapseNode(QSharedPointer<iAImageTreeNode > node, bool &
 		QSharedPointer<iAImageTreeNode> child = node->GetChild(i);
 		if (!m_nodeWidgets.contains(child.data()))
 		{
-			DEBUG_LOG("ERROR in CollapseNode: widget for expanded child doesn't exist.");
+			LOG(lvlError, "CollapseNode: widget for expanded child doesn't exist.");
 			return;
 		}
 		iAImageNodeWidget* childWidget = m_nodeWidgets[child.data()];
@@ -409,7 +410,7 @@ bool iAImageTreeView::JumpToNode(iAImageTreeNode const * cluster, int stepLimit)
 
 	if (!found)
 	{
-		DEBUG_LOG("JumpToNode: Couldn't find given cluster!");
+		LOG(lvlError, "JumpToNode: Couldn't find given cluster!");
 		return false;
 	}
 
@@ -542,13 +543,13 @@ bool iAImageTreeView::SetRepresentativeType(int representativeType, LabelImagePo
 		{
 			if (representativeType == AverageEntropy || representativeType == AverageLabel)
 			{
-				DEBUG_LOG("At least for one dataset, there are no probabilities available!");
+				LOG(lvlError, "At least for one dataset, there are no probabilities available!");
 				SetRepresentativeType(Difference, refImg);	// just to make sure everybody is back to the a common representative type
 				return false;
 			}
 			else
 			{
-				DEBUG_LOG("Unexpected error while setting representative type!");
+				LOG(lvlError, "Unexpected error while setting representative type!");
 			}
 		}
 	}

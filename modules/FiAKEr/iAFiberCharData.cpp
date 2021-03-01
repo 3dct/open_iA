@@ -1,7 +1,7 @@
 /*************************************  open_iA  ************************************ *
 * **********   A tool for visual analysis and processing of 3D CT images   ********** *
 * *********************************************************************************** *
-* Copyright (C) 2016-2020  C. Heinzl, M. Reiter, A. Reh, W. Li, M. Arikan, Ar. &  Al. *
+* Copyright (C) 2016-2021  C. Heinzl, M. Reiter, A. Reh, W. Li, M. Arikan, Ar. &  Al. *
 *                 Amirkhanov, J. Weissenböck, B. Fröhler, M. Schiwarth, P. Weinberger *
 * *********************************************************************************** *
 * This program is free software: you can redistribute it and/or modify it under the   *
@@ -25,9 +25,9 @@
 #include "iACsvIO.h"
 #include "iACsvVtkTableCreator.h"
 
-#include <charts/iASPLOMData.h>
-#include <iAConsole.h>
-#include <io/iAFileUtils.h> // for FindFiles
+#include <iASPLOMData.h>
+#include <iALog.h>
+#include <iAFileUtils.h> // for FindFiles
 
 #include <vtkFloatArray.h>
 #include <vtkTable.h>
@@ -110,7 +110,7 @@ namespace
 		config.columnSeparator = ",";
 		config.decimalSeparator = ".";
 		config.addAutoID = false;
-		config.objectType = iAFeatureScoutObjectType::Fibers;
+		config.objectType = iAObjectType::Fibers;
 		config.computeLength = false;
 		config.computeAngles = false;
 		config.computeTensors = false;
@@ -159,7 +159,7 @@ iACsvConfig getCsvConfig(QString const & formatName)
 		}
 		else
 		{
-			DEBUG_LOG(QString("Invalid format %1!").arg(formatName));
+			LOG(lvlError, QString("Invalid format %1!").arg(formatName));
 		}
 	}
 	return result;
@@ -197,7 +197,7 @@ bool iAFiberResultsCollection::loadData(QString const & path, iACsvConfig const 
 	const int MaxDatasetCount = 200;
 	if (csvFileNames.size() > MaxDatasetCount)
 	{
-		DEBUG_LOG(QString("The specified folder %1 contains %2 datasets; currently we only support loading up to %3 datasets!")
+		LOG(lvlError, QString("The specified folder %1 contains %2 datasets; currently we only support loading up to %3 datasets!")
 			.arg(path).arg(csvFileNames.size()).arg(MaxDatasetCount));
 		return false;
 	}
@@ -217,7 +217,7 @@ bool iAFiberResultsCollection::loadData(QString const & path, iACsvConfig const 
 		iACsvVtkTableCreator tableCreator;
 		if (!io.loadCSV(tableCreator, config))
 		{
-			DEBUG_LOG(QString("Could not load file '%1' - probably it's in a wrong format; skipping!").arg(csvFile));
+			LOG(lvlError, QString("Could not load file '%1' - probably it's in a wrong format; skipping!").arg(csvFile));
 			continue;
 		}
 
@@ -227,7 +227,7 @@ bool iAFiberResultsCollection::loadData(QString const & path, iACsvConfig const 
 		totalFiberCount += curData.fiberCount;
 		if (curData.fiberCount > std::numeric_limits<int>::max())
 		{
-			DEBUG_LOG(QString("Large number of objects (%1) detected - currently only up to %2 objects are supported!")
+			LOG(lvlError, QString("Large number of objects (%1) detected - currently only up to %2 objects are supported!")
 				.arg(curData.fiberCount).arg(std::numeric_limits<int>::max()));
 		}
 		curData.mapping = io.getOutputMapping();
@@ -255,7 +255,7 @@ bool iAFiberResultsCollection::loadData(QString const & path, iACsvConfig const 
 			{
 				if (curData.mapping->value(key) != result[0].mapping->value(key))
 				{
-					DEBUG_LOG(QString("Mapping does not match for result %1, column %2!").arg(csvFile).arg(curData.mapping->value(key)));
+					LOG(lvlError, QString("Mapping does not match for result %1, column %2!").arg(csvFile).arg(curData.mapping->value(key)));
 					return false;
 				}
 			}
@@ -272,7 +272,7 @@ bool iAFiberResultsCollection::loadData(QString const & path, iACsvConfig const 
 		curData.stepData = iAFiberCharData::NoStepData;
 		if (stepInfo.exists() && stepInfo.isDir())
 		{
-			// DEBUG_LOG("Looking for optimization step info in old format...");
+			// LOG(lvlInfo, "Looking for optimization step info in old format...");
 			// read projection error info:
 			QFile projErrorFile(stepInfo.absoluteFilePath() + "/projection_error.csv");
 
@@ -300,7 +300,7 @@ bool iAFiberResultsCollection::loadData(QString const & path, iACsvConfig const 
 					}
 					if (fiberID >= curData.fiberCount)
 					{
-						DEBUG_LOG(QString("Discrepancy: More lines in %1 file than there were fibers in the fiber description csv (%2).\n")
+						LOG(lvlError, QString("Discrepancy: More lines in %1 file than there were fibers in the fiber description csv (%2).\n")
 								  .arg(projErrorFile.fileName()).arg(curData.fiberCount));
 						break;
 					}
@@ -349,7 +349,7 @@ bool iAFiberResultsCollection::loadData(QString const & path, iACsvConfig const 
 						QStringList values = line.split(",");
 						if (values.size() != 6)
 						{
-							DEBUG_LOG(QString("Invalid line %1 in file %2, there should be 6 entries but there are %3 (line: %4).\n")
+							LOG(lvlError, QString("Invalid line %1 in file %2, there should be 6 entries but there are %3 (line: %4).\n")
 								.arg(lineNr)
 								.arg(fiberStepCsvInfo.fileName())
 								.arg(values.size())
@@ -387,7 +387,7 @@ bool iAFiberResultsCollection::loadData(QString const & path, iACsvConfig const 
 						stepValues[11] = values[5].toDouble();
 						stepValues[12] = curData.table->GetValue(curFiber, (*curData.mapping)[iACsvConfig::Diameter]).ToDouble();
 						/*
-						DEBUG_LOG(QString("Fiber %1, step %2: Start (%3, %4, %5) - End (%6, %7, %8)")
+						LOG(lvlInfo, QString("Fiber %1, step %2: Start (%3, %4, %5) - End (%6, %7, %8)")
 							.arg(curFiber)
 							.arg(singleFiberValues.size())
 							.arg(stepValues[0]).arg(stepValues[1]).arg(stepValues[2])
@@ -416,7 +416,7 @@ bool iAFiberResultsCollection::loadData(QString const & path, iACsvConfig const 
 
 			if (curData.stepData == iAFiberCharData::NoStepData)
 			{
-				//DEBUG_LOG("Looking for optimization step info in new (curved) format...");
+				//LOG(lvlInfo, "Looking for optimization step info in new (curved) format...");
 				// check if we can load new, curved step data:
 				curData.projectionError.resize(curData.fiberCount);
 				for (int curFiber = 0; static_cast<size_t>(curFiber) < curData.fiberCount; ++curFiber)
@@ -447,7 +447,7 @@ bool iAFiberResultsCollection::loadData(QString const & path, iACsvConfig const 
 						QStringList values = line.split(",");
 						if ((values.size()-1) %3 != 0)
 						{
-							DEBUG_LOG(QString("Invalid line %1 in file %2: The number of entries should be divisible by 3, but it's %3 (line: %4).")
+							LOG(lvlError, QString("Invalid line %1 in file %2: The number of entries should be divisible by 3, but it's %3 (line: %4).")
 								.arg(lineNr).arg(fiberStepCsvInfo.fileName()).arg(values.size()).arg(line));
 						}
 						std::vector<double> stepValues;
@@ -455,7 +455,7 @@ bool iAFiberResultsCollection::loadData(QString const & path, iACsvConfig const 
 						double projError = values[0].toDouble(&ok);
 						if (!ok)
 						{
-							DEBUG_LOG(QString("Invalid line %1 in file %2: projection error value %3 is not double!")
+							LOG(lvlError, QString("Invalid line %1 in file %2: projection error value %3 is not double!")
 								.arg(lineNr).arg(fiberStepCsvInfo.fileName()).arg(values[0]));
 						}
 						projErrFib.push_back(projError);
@@ -465,7 +465,7 @@ bool iAFiberResultsCollection::loadData(QString const & path, iACsvConfig const 
 							double curCoord = values[j].toDouble(&ok);
 							if (!ok)
 							{
-								DEBUG_LOG(QString("Invalid line %1 in file %2: coordinate value %3 (%4th in line) is not double!")
+								LOG(lvlError, QString("Invalid line %1 in file %2: coordinate value %3 (%4th in line) is not double!")
 									.arg(lineNr).arg(fiberStepCsvInfo.fileName()).arg(values[j]).arg(j));
 							}
 							stepValues.push_back(curCoord);
@@ -522,24 +522,24 @@ bool iAFiberResultsCollection::loadData(QString const & path, iACsvConfig const 
 		{
 			if (optimStepMax > 1)
 			{
-				DEBUG_LOG(QString("Result %1 has a new maximum number of steps %2 (was %3).")
+				LOG(lvlInfo, QString("Result %1 has a new maximum number of steps %2 (was %3).")
 					.arg(resultID).arg(thisResultStepMax).arg(optimStepMax));
 			}
 			optimStepMax = thisResultStepMax;
 		}
 		++resultID;
-		progress->emitProgress(resultID / csvFileNames.size());
+		progress->emitProgress(resultID * 100.0 / csvFileNames.size());
 		result.push_back(curData);
 	}
 
 	if (result.size() == 0)
 	{
-		DEBUG_LOG(QString("The specified folder %1 does not contain any valid csv files!").arg(path));
+		LOG(lvlError, QString("The specified folder %1 does not contain any valid csv files!").arg(path));
 		return false;
 	}
 	if (noStepFiberFiles.size() > 0)
 	{
-		DEBUG_LOG(QString("\nThere seems to be fiber data available for optimization/iteration steps, "
+		LOG(lvlWarn, QString("\nThere seems to be fiber data available for optimization/iteration steps, "
 			"but for files (%1) I could not find usable information. "
 			"Maybe this debug output is helpful: '%2'.\n"
 			"FIAKER expects:\n"

@@ -1,7 +1,7 @@
 /*************************************  open_iA  ************************************ *
 * **********   A tool for visual analysis and processing of 3D CT images   ********** *
 * *********************************************************************************** *
-* Copyright (C) 2016-2020  C. Heinzl, M. Reiter, A. Reh, W. Li, M. Arikan, Ar. &  Al. *
+* Copyright (C) 2016-2021  C. Heinzl, M. Reiter, A. Reh, W. Li, M. Arikan, Ar. &  Al. *
 *                 Amirkhanov, J. Weissenböck, B. Fröhler, M. Schiwarth, P. Weinberger *
 * *********************************************************************************** *
 * This program is free software: you can redistribute it and/or modify it under the   *
@@ -18,8 +18,9 @@
 * Contact: FH OÖ Forschungs & Entwicklungs GmbH, Campus Wels, CT-Gruppe,              *
 *          Stelzhamerstraße 23, 4600 Wels / Austria, Email: c.heinzl@fh-wels.at       *
 * ************************************************************************************/
-#include "iAConsole.h"
 #include "iACommandLineProcessor.h"
+#include "iALog.h"
+#include "iALoggerStdOut.h"
 #include "iASCIFIOCheck.h"
 #include "version.h"
 
@@ -27,7 +28,7 @@
 
 int main(int argc, char *argv[])
 {
-	iAGlobalLogger::setLogger(iAStdOutLogger::get());
+	iALog::setLogger(iALoggerStdOut::get());
 	QFileInfo fi(argv[0]);
 	CheckSCIFIO(fi.absolutePath());
 	return ProcessCommandLine(argc, argv, Open_iA_Version);

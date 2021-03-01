@@ -1,7 +1,7 @@
 /*************************************  open_iA  ************************************ *
 * **********   A tool for visual analysis and processing of 3D CT images   ********** *
 * *********************************************************************************** *
-* Copyright (C) 2016-2020  C. Heinzl, M. Reiter, A. Reh, W. Li, M. Arikan, Ar. &  Al. *
+* Copyright (C) 2016-2021  C. Heinzl, M. Reiter, A. Reh, W. Li, M. Arikan, Ar. &  Al. *
 *                 Amirkhanov, J. Weissenböck, B. Fröhler, M. Schiwarth, P. Weinberger *
 * *********************************************************************************** *
 * This program is free software: you can redistribute it and/or modify it under the   *
@@ -23,7 +23,7 @@
 #include "iAFilterChart.h"
 #include "iAParamHistogramData.h"
 
-#include <charts/iAPlotTypes.h>
+#include <iAPlotTypes.h>
 #include <iAMathUtility.h>
 
 #include <QCheckBox>
@@ -183,13 +183,13 @@ void iAClusterAttribChart::SetMaxYAxisValue(double val)
 void iAClusterAttribChart::ResetSpan()
 {
 	double dr0= m_charts->mapBinToValue(0);
-	double dr1= m_charts->mapBinToValue(m_charts->plots()[0]->data()->numBin());
+	double dr1= m_charts->mapBinToValue(m_charts->plots()[0]->data()->valueCount());
 	SetSpanValues(dr0, dr1);
 }
 
 size_t iAClusterAttribChart::GetNumBin() const
 {
-	return m_charts->plots()[0]->data()->numBin();
+	return m_charts->plots()[0]->data()->valueCount();
 }
 
 double iAClusterAttribChart::mapValueToBin(double value) const

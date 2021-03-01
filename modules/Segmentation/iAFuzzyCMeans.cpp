@@ -1,7 +1,7 @@
 /*************************************  open_iA  ************************************ *
 * **********   A tool for visual analysis and processing of 3D CT images   ********** *
 * *********************************************************************************** *
-* Copyright (C) 2016-2020  C. Heinzl, M. Reiter, A. Reh, W. Li, M. Arikan, Ar. &  Al. *
+* Copyright (C) 2016-2021  C. Heinzl, M. Reiter, A. Reh, W. Li, M. Arikan, Ar. &  Al. *
 *                 Amirkhanov, J. Weissenböck, B. Fröhler, M. Schiwarth, P. Weinberger *
 * *********************************************************************************** *
 * This program is free software: you can redistribute it and/or modify it under the   *
@@ -21,11 +21,13 @@
 #include "iAFuzzyCMeans.h"
 
 #include <defines.h>    // for DIM
-#include <iAConnector.h>
-#include <iAConsole.h>
 #include <iAProgress.h>
+
+// base
+#include <iAConnector.h>
+#include <iALog.h>
 #include <iATypedCallHelper.h>
-#include <io/iAITKIO.h>
+#include <iAITKIO.h>
 
 #include <itkConfigure.h>    // for ITK_VERSION...
 #include <itkFCMClassifierInitializationImageFilter.h>
@@ -88,7 +90,7 @@ namespace
 		auto centroidStringList = centroidString.split(" ");
 		if (centroidStringList.size() < 0 || static_cast<unsigned int>(centroidStringList.size()) != numberOfClasses)
 		{
-			DEBUG_LOG("Number of classes doesn't match the count of centroids specified!");
+			LOG(lvlError, "Number of classes doesn't match the count of centroids specified!");
 			return false;
 		}
 		for (auto c : centroidStringList)
@@ -97,7 +99,7 @@ namespace
 			double centroid = c.toDouble(&ok);
 			if (!ok)
 			{
-				DEBUG_LOG(QString("Could not convert string in centroid list to double: '%1' !").arg(c));
+				LOG(lvlError, QString("Could not convert string in centroid list to double: '%1' !").arg(c));
 				return false;
 			}
 			centroids.push_back(centroid);
@@ -105,7 +107,7 @@ namespace
 		return true;
 	}
 
-	bool checkFCMParameters(QMap<QString, QVariant> parameters)
+	bool checkFCMParameters(QMap<QString, QVariant> const & parameters)
 	{
 		unsigned int numberOfClasses = parameters["Number of Classes"].toUInt();
 		QVector<double> centroids;
@@ -166,7 +168,7 @@ iAFCMFilter::iAFCMFilter() :
 	addFCMParameters(*this);
 }
 
-bool iAFCMFilter::checkParameters(QMap<QString, QVariant> & parameters)
+bool iAFCMFilter::checkParameters(QMap<QString, QVariant> const & parameters)
 {
 	return iAFilter::checkParameters(parameters) && checkFCMParameters(parameters);
 }
@@ -195,7 +197,7 @@ iAKFCMFilter::iAKFCMFilter() :
 	addKFCMParameters(*this);
 }
 
-bool iAKFCMFilter::checkParameters(QMap<QString, QVariant> & parameters)
+bool iAKFCMFilter::checkParameters(QMap<QString, QVariant> const & parameters)
 {
 	return iAFilter::checkParameters(parameters) && checkFCMParameters(parameters);
 }
@@ -290,7 +292,7 @@ iAMSKFCMFilter::iAMSKFCMFilter() :
 	addParameter("Q", iAValueType::Continuous, 1);
 }
 
-bool iAMSKFCMFilter::checkParameters(QMap<QString, QVariant> & parameters)
+bool iAMSKFCMFilter::checkParameters(QMap<QString, QVariant> const & parameters)
 {
 	return iAFilter::checkParameters(parameters) && checkFCMParameters(parameters);
 }

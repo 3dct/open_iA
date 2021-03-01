@@ -1,7 +1,7 @@
 /*************************************  open_iA  ************************************ *
 * **********   A tool for visual analysis and processing of 3D CT images   ********** *
 * *********************************************************************************** *
-* Copyright (C) 2016-2020  C. Heinzl, M. Reiter, A. Reh, W. Li, M. Arikan, Ar. &  Al. *
+* Copyright (C) 2016-2021  C. Heinzl, M. Reiter, A. Reh, W. Li, M. Arikan, Ar. &  Al. *
 *                 Amirkhanov, J. Weissenböck, B. Fröhler, M. Schiwarth, P. Weinberger *
 * *********************************************************************************** *
 * This program is free software: you can redistribute it and/or modify it under the   *
@@ -24,8 +24,10 @@
 #include "iAGEMSeConstants.h"
 #include "iAQtCaptionWidget.h"
 
+#include <iASlicerImpl.h>    // for slicerModeToString
+
 #include <iAColorTheme.h>
-#include <iAConsole.h>
+#include <iALog.h>
 
 #include <vtkImageData.h>
 #include <vtkCamera.h>
@@ -183,7 +185,7 @@ void iACameraWidget::showImage(vtkSmartPointer<vtkImageData> imgData)
 {
 	if (!imgData)
 	{
-		DEBUG_LOG("CameraWidget: image data is nullptr!\n");
+		LOG(lvlError, "CameraWidget: image data is nullptr!\n");
 		return;
 	}
 

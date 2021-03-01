@@ -1,7 +1,7 @@
 /*************************************  open_iA  ************************************ *
 * **********   A tool for visual analysis and processing of 3D CT images   ********** *
 * *********************************************************************************** *
-* Copyright (C) 2016-2020  C. Heinzl, M. Reiter, A. Reh, W. Li, M. Arikan, Ar. &  Al. *
+* Copyright (C) 2016-2021  C. Heinzl, M. Reiter, A. Reh, W. Li, M. Arikan, Ar. &  Al. *
 *                 Amirkhanov, J. Weissenböck, B. Fröhler, M. Schiwarth, P. Weinberger *
 * *********************************************************************************** *
 * This program is free software: you can redistribute it and/or modify it under the   *
@@ -22,14 +22,16 @@
 
 #include "iAParameterNames.h"
 
-#include <iAAttributeDescriptor.h>
-#include <iAConnector.h>
-#include <iAConsole.h>
 #include <iAFilterRegistry.h>
 #include <iAProgress.h>
+
+// base
+#include <iAAttributeDescriptor.h>
+#include <iAConnector.h>
+#include <iALog.h>
+#include <iAITKIO.h>
+#include <iAFileUtils.h>
 #include <iAStringHelper.h>
-#include <io/iAITKIO.h>
-#include <io/iAFileUtils.h>
 
 #include <QDir>
 #include <QFile>
@@ -247,7 +249,7 @@ void iABatchFilter::performWork(QMap<QString, QVariant> const & parameters)
 					auto value = pathFileBaseName(fileName) + param->defaultValue().toString();
 					if (QFile::exists(value) && !overwrite)
 					{
-						DEBUG_LOG(QString("Output file '%1' already exists! Aborting. "
+						LOG(lvlError, QString("Output file '%1' already exists! Aborting. "
 							"Check '%2' to overwrite existing files.").arg(value).arg(spnOverwriteOutput));
 						return;
 					}
@@ -323,13 +325,13 @@ void iABatchFilter::performWork(QMap<QString, QVariant> const & parameters)
 		}
 		catch (std::exception & e)
 		{
-			DEBUG_LOG(QString("Batch processing: Error while processing file '%1': %2").arg(fileName).arg(e.what()));
+			LOG(lvlError, QString("Batch processing: Error while processing file '%1': %2").arg(fileName).arg(e.what()));
 			if (!parameters["Continue on error"].toBool())
 			{
 				throw e;
 			}
 		}
-		progress()->emitProgress( static_cast<int>(100 * (curLine - 1.0) / files.size()) );
+		progress()->emitProgress( (curLine - 1.0) * 100.0 / files.size() );
 		if (m_aborted)
 		{
 			break;

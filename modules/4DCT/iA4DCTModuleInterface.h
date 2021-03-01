@@ -1,7 +1,7 @@
 /*************************************  open_iA  ************************************ *
 * **********   A tool for visual analysis and processing of 3D CT images   ********** *
 * *********************************************************************************** *
-* Copyright (C) 2016-2020  C. Heinzl, M. Reiter, A. Reh, W. Li, M. Arikan, Ar. &  Al. *
+* Copyright (C) 2016-2021  C. Heinzl, M. Reiter, A. Reh, W. Li, M. Arikan, Ar. &  Al. *
 *                 Amirkhanov, J. Weissenböck, B. Fröhler, M. Schiwarth, P. Weinberger *
 * *********************************************************************************** *
 * This program is free software: you can redistribute it and/or modify it under the   *
@@ -20,16 +20,13 @@
 * ************************************************************************************/
 #pragma once
 
-// iA
-#include "iAFiberCharacteristics.h"
-#include "iAModuleInterface.h"
-#include "iAvec3.h"
+#include "iAGUIModuleInterface.h"
 
 class vtkImageData;
 class dlg_densityMap;
 class iA4DCTMainWin;
 
-class iA4DCTModuleInterface : public iAModuleInterface
+class iA4DCTModuleInterface : public iAGUIModuleInterface
 {
 	Q_OBJECT
 
@@ -44,10 +41,8 @@ private slots:
 	void				saveProj( );
 	void				extractFeaturesToFile();
 	void				defectClassification();
-	//void				enableDensityMap();
 
 private:
-	//float				distBetweenFiberAndPoint(FiberCharacteristics* f, iAVec3f const & p);
 
 	vtkImageData*		m_fracture;
 	int					m_labeImageChildInd;

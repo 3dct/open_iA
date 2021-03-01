@@ -1,7 +1,7 @@
 /*************************************  open_iA  ************************************ *
 * **********   A tool for visual analysis and processing of 3D CT images   ********** *
 * *********************************************************************************** *
-* Copyright (C) 2016-2020  C. Heinzl, M. Reiter, A. Reh, W. Li, M. Arikan, Ar. &  Al. *
+* Copyright (C) 2016-2021  C. Heinzl, M. Reiter, A. Reh, W. Li, M. Arikan, Ar. &  Al. *
 *                 Amirkhanov, J. Weissenböck, B. Fröhler, M. Schiwarth, P. Weinberger *
 * *********************************************************************************** *
 * This program is free software: you can redistribute it and/or modify it under the   *
@@ -20,7 +20,8 @@
 * ************************************************************************************/
 #include "iAFeatureTracking.h"
 
-#include <io/iAFileUtils.h>
+#include <iAFileUtils.h>
+#include <iALog.h>
 
 #include <vtkTable.h>
 #include <vtkTypeUInt32Array.h>
@@ -97,7 +98,10 @@ vtkSmartPointer<vtkTable> iAFeatureTracking::readTableFromFile(const QString& fi
 					dimYVxArray->InsertNextValue(stoi(splittedRow.at(11)));
 					dimZVxArray->InsertNextValue(stoi(splittedRow.at(12)));
 				}
-				catch (std::exception) {}
+				catch (std::exception& e)
+				{
+					LOG(lvlDebug, e.what());
+				}
 			}
 		}
 	}

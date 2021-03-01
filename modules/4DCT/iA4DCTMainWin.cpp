@@ -1,7 +1,7 @@
 /*************************************  open_iA  ************************************ *
 * **********   A tool for visual analysis and processing of 3D CT images   ********** *
 * *********************************************************************************** *
-* Copyright (C) 2016-2020  C. Heinzl, M. Reiter, A. Reh, W. Li, M. Arikan, Ar. &  Al. *
+* Copyright (C) 2016-2021  C. Heinzl, M. Reiter, A. Reh, W. Li, M. Arikan, Ar. &  Al. *
 *                 Amirkhanov, J. Weissenböck, B. Fröhler, M. Schiwarth, P. Weinberger *
 * *********************************************************************************** *
 * This program is free software: you can redistribute it and/or modify it under the   *
@@ -29,8 +29,8 @@
 #include "iAPreviewMaker.h"
 #include "iAStageView.h"
 
-#include <iAConsole.h>
-#include <mainwindow.h>
+#include <iALog.h>
+#include <iAMainWindow.h>
 
 #include <itkImageFileReader.h>
 #include <itkImageRegionIterator.h>
@@ -56,7 +56,7 @@
 #include <QXmlSimpleReader>
 #include <QXmlStreamWriter>
 
-iA4DCTMainWin::iA4DCTMainWin( MainWindow* parent /*= 0*/ )
+iA4DCTMainWin::iA4DCTMainWin( iAMainWindow* parent /*= 0*/ )
 	: QMainWindow( parent )
 	, m_mainWnd( parent )
 {
@@ -138,11 +138,11 @@ void iA4DCTMainWin::addButtonClick( )
 
 void iA4DCTMainWin::openVisualizationWin( )
 {
-	MainWindow * mainWin = qobject_cast<MainWindow*>( qApp->activeWindow( ) );
+	iAMainWindow * mainWin = qobject_cast<iAMainWindow*>( qApp->activeWindow( ) );
 	iA4DCTVisWin* visWin = new iA4DCTVisWin( this );
 	visWin->setImageSize( m_size );
 	visWin->setNumberOfStages( m_stages.size( ) );
-	mainWin->mdiArea->addSubWindow( visWin );
+	mainWin->addSubWindow( visWin );
 	visWin->showMaximized( );
 }
 

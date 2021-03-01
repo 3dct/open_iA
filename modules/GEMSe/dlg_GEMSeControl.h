@@ -1,7 +1,7 @@
 /*************************************  open_iA  ************************************ *
 * **********   A tool for visual analysis and processing of 3D CT images   ********** *
 * *********************************************************************************** *
-* Copyright (C) 2016-2020  C. Heinzl, M. Reiter, A. Reh, W. Li, M. Arikan, Ar. &  Al. *
+* Copyright (C) 2016-2021  C. Heinzl, M. Reiter, A. Reh, W. Li, M. Arikan, Ar. &  Al. *
 *                 Amirkhanov, J. Weissenböck, B. Fröhler, M. Schiwarth, P. Weinberger *
 * *********************************************************************************** *
 * This program is free software: you can redistribute it and/or modify it under the   *
@@ -24,6 +24,8 @@
 
 #include "iAImageTreeNode.h"    // for LabelImagePointer
 
+#include <iAProgress.h>
+
 #include <qthelper/iAQTtoUIConnector.h>
 
 #include <vtkSmartPointer.h>
@@ -37,7 +39,6 @@ class dlg_GEMSe;
 class dlg_labels;
 class dlg_Consensus;
 class dlg_modalities;
-class dlg_progress;
 class dlg_samplings;
 class iASamplingSettingsDlg;
 class iAColorTheme;
@@ -103,23 +104,19 @@ private:
 		QString const & attributeDescriptorOutputFileName,
 		QSharedPointer<iASamplingResults> results);
 
+	dlg_modalities* m_dlgModalities;
+	iASamplingSettingsDlg* m_dlgSamplingSettings;
+	dlg_GEMSe* m_dlgGEMSe;
+	dlg_labels* m_dlgLabels;
+	dlg_samplings* m_dlgSamplings;
+	dlg_Consensus* m_dlgConsensus;
 
-	dlg_modalities*                      m_dlgModalities;
-	iASamplingSettingsDlg*               m_dlgSamplingSettings;
-	dlg_progress*						 m_dlgProgress;
-	dlg_GEMSe*                           m_dlgGEMSe;
-	dlg_labels*                          m_dlgLabels;
-	dlg_samplings*                       m_dlgSamplings;
-	dlg_Consensus*                       m_dlgConsensus;
+	iAProgress m_progress;
+	QSharedPointer<iAImageSampler> m_sampler;
+	QSharedPointer<iAImageClusterer> m_clusterer;
 
-	QSharedPointer<iAImageSampler>       m_sampler;
-	QSharedPointer<iAImageClusterer>     m_clusterer;
-
-	QString								 m_outputFolder;
-
-	QString                              m_cltFile;
-	QString                              m_m_metaFileName;
-	QSharedPointer<iASimpleLabelInfo>    m_simpleLabelInfo;
-	LabelImagePointer                    m_refImg;
-	QMap<QString, QVariant>              m_samplingSettings;
+	QString m_outputFolder, m_cltFile, m_m_metaFileName;
+	QSharedPointer<iASimpleLabelInfo> m_simpleLabelInfo;
+	LabelImagePointer m_refImg;
+	QMap<QString, QVariant> m_samplingSettings;
 };

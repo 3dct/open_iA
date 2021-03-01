@@ -1,7 +1,7 @@
 /*************************************  open_iA  ************************************ *
 * **********   A tool for visual analysis and processing of 3D CT images   ********** *
 * *********************************************************************************** *
-* Copyright (C) 2016-2020  C. Heinzl, M. Reiter, A. Reh, W. Li, M. Arikan, Ar. &  Al. *
+* Copyright (C) 2016-2021  C. Heinzl, M. Reiter, A. Reh, W. Li, M. Arikan, Ar. &  Al. *
 *                 Amirkhanov, J. Weissenböck, B. Fröhler, M. Schiwarth, P. Weinberger *
 * *********************************************************************************** *
 * This program is free software: you can redistribute it and/or modify it under the   *
@@ -22,7 +22,7 @@
 
 #include <defines.h>          // for DIM
 #include <iAConnector.h>
-#include <iAConsole.h>
+#include <iALog.h>
 #include <iAToolsITK.h>
 #include <iATypedCallHelper.h>
 
@@ -71,7 +71,7 @@ void setSeeds(RegFilterT* filter, iAConnector::ImageBaseType* img)
 		case itk::ImageIOBase::FLOAT:  addSeeds(filter, dynamic_cast<itk::Image<         float, DIM>*>(img)); break;
 		case itk::ImageIOBase::DOUBLE: addSeeds(filter, dynamic_cast<itk::Image<        double, DIM>*>(img)); break;
 		default:
-			DEBUG_LOG("ERROR: Invalid/Unknown itk pixel datatype in setSeeds!"); break;
+			LOG(lvlError, "Invalid/Unknown itk pixel datatype in setSeeds!"); break;
 	}
 }
 }

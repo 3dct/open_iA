@@ -1,7 +1,7 @@
 /*************************************  open_iA  ************************************ *
 * **********   A tool for visual analysis and processing of 3D CT images   ********** *
 * *********************************************************************************** *
-* Copyright (C) 2016-2020  C. Heinzl, M. Reiter, A. Reh, W. Li, M. Arikan, Ar. &  Al. *
+* Copyright (C) 2016-2021  C. Heinzl, M. Reiter, A. Reh, W. Li, M. Arikan, Ar. &  Al. *
 *                 Amirkhanov, J. Weissenböck, B. Fröhler, M. Schiwarth, P. Weinberger *
 * *********************************************************************************** *
 * This program is free software: you can redistribute it and/or modify it under the   *
@@ -20,6 +20,8 @@
 * ************************************************************************************/
 #include "iASSView.h"
 
+#include "iAChanData.h"
+#include "iACSVToQTableWidgetConverter.h"
 #include "iASegm3DView.h"
 #include "iASSSlicer.h"
 #include "iASSViewSetings.h"
@@ -27,14 +29,13 @@
 
 #include <defines.h>
 #include <iABoxPlotData.h>
-#include <iAChanData.h>
 #include <iAChannelData.h>
-#include <iAConsole.h>
-#include <iACSVToQTableWidgetConverter.h>
+#include <iAFileUtils.h>
+#include <iALog.h>
 #include <iARenderer.h>
 #include <iASlicer.h>
-#include <iAVTKRendererManager.h>
-#include <io/iAFileUtils.h>
+
+#include <iARendererManager.h>
 
 #include <vtkTransform.h>
 #include <vtkColorTransferFunction.h>
@@ -61,7 +62,7 @@ iASSView::iASSView( QWidget * parent /*= 0*/, Qt::WindowFlags f /*= 0 */ )
 	m_slicerTransform( vtkSmartPointer<vtkTransform>::New() ),
 	m_slicerTF( vtkSmartPointer<vtkColorTransferFunction>::New() ),
 	m_modeInd( 0 ),
-	m_sliceMgr( new iAVTKRendererManager ),
+	m_sliceMgr( new iARendererManager ),
 	m_imgData( vtkSmartPointer<vtkImageData>::New() ),
 	m_slicerViewsLayout( new QHBoxLayout(slicerWidget) ),
 	m_segm3DViewExtrnl( 0 ),
@@ -138,7 +139,10 @@ void iASSView::updateSettings()
 void iASSView::BuildDefaultTF( vtkSmartPointer<vtkImageData> & imgData, vtkSmartPointer<vtkColorTransferFunction> & tf, QColor color )
 {
 	if (!imgData)
-		DEBUG_LOG("Image data is nullptr!");
+	{
+		LOG(lvlError, "Image data is nullptr!");
+		return;
+	}
 	tf->RemoveAllPoints();
 	tf->AddRGBPoint( imgData->GetScalarRange()[0], 0.0, 0.0, 0.0 );
 	tf->AddRGBPoint( imgData->GetScalarRange()[1], color.redF(), color.greenF(), color.blueF() );

@@ -1,7 +1,7 @@
 /*************************************  open_iA  ************************************ *
 * **********   A tool for visual analysis and processing of 3D CT images   ********** *
 * *********************************************************************************** *
-* Copyright (C) 2016-2020  C. Heinzl, M. Reiter, A. Reh, W. Li, M. Arikan, Ar. &  Al. *
+* Copyright (C) 2016-2021  C. Heinzl, M. Reiter, A. Reh, W. Li, M. Arikan, Ar. &  Al. *
 *                 Amirkhanov, J. Weissenböck, B. Fröhler, M. Schiwarth, P. Weinberger *
 * *********************************************************************************** *
 * This program is free software: you can redistribute it and/or modify it under the   *
@@ -29,8 +29,8 @@
 #include "iACsvConfig.h"
 #include "iACsvVtkTableCreator.h"
 
-#include <iAConsole.h>
-#include <mainwindow.h>
+#include <iALog.h>
+#include <iAMainWindow.h>
 
 
 #include <openvr.h>
@@ -38,6 +38,8 @@
 #include <vtkFloatArray.h>
 #include <vtkTable.h>
 
+#include <QAction>
+#include <QMenu>
 #include <QMessageBox>
 
 void iAVRModuleInterface::Initialize()
@@ -46,26 +48,27 @@ void iAVRModuleInterface::Initialize()
 	{
 		return;
 	}
-	QMenu * toolsMenu = m_mainWnd->toolsMenu();
-	QMenu* vrMenu = getMenuWithTitle(toolsMenu, tr("VR"), false);
 
-	QAction * actionVRInfo = new QAction(tr("Info"), nullptr);
-	AddActionToMenuAlphabeticallySorted(vrMenu, actionVRInfo, false);
+	QAction * actionVRInfo = new QAction(tr("Info"), m_mainWnd);
 	connect(actionVRInfo, &QAction::triggered, this, &iAVRModuleInterface::info);
 
-	QAction * actionVRRender = new QAction(tr("Rendering"), nullptr);
-	AddActionToMenuAlphabeticallySorted(vrMenu, actionVRRender, true);
+	QAction * actionVRRender = new QAction(tr("Rendering"), m_mainWnd);
 	connect(actionVRRender, &QAction::triggered, this, &iAVRModuleInterface::render);
+	m_mainWnd->makeActionChildDependent(actionVRRender);
 
-	m_actionVRShowFibers = new QAction(tr("Show Fibers"), nullptr);
-	AddActionToMenuAlphabeticallySorted(vrMenu, m_actionVRShowFibers, false);
+	m_actionVRShowFibers = new QAction(tr("Show Fibers"), m_mainWnd);
 	connect(m_actionVRShowFibers, &QAction::triggered, this, &iAVRModuleInterface::showFibers);
+
+	QMenu* vrMenu = getOrAddSubMenu(m_mainWnd->toolsMenu(), tr("VR"), false);
+	vrMenu->addAction(actionVRInfo);
+	vrMenu->addAction(actionVRRender);
+	vrMenu->addAction(m_actionVRShowFibers);
 }
 
 void iAVRModuleInterface::info()
 {
-	DEBUG_LOG(QString("VR Information:"));
-	DEBUG_LOG(QString("    Is Runtime installed: %1").arg(vr::VR_IsRuntimeInstalled() ? "yes" : "no"));
+	LOG(lvlInfo, QString("VR Information:"));
+	LOG(lvlInfo, QString("    Is Runtime installed: %1").arg(vr::VR_IsRuntimeInstalled() ? "yes" : "no"));
 	const uint32_t MaxRuntimePathLength = 1024;
 	uint32_t actualLength;
 #if OPENVR_VERSION_MAJOR > 1 || (OPENVR_VERSION_MAJOR == 1 && OPENVR_VERSION_MINOR > 3)
@@ -74,13 +77,13 @@ void iAVRModuleInterface::info()
 #else // OpenVR <= 1.3.22:
 	char const * runtimePath = vr::VR_RuntimePath();
 #endif
-	DEBUG_LOG(QString("    OpenVR runtime path: %1").arg(runtimePath));
-	DEBUG_LOG(QString("    Head-mounted display present: %1").arg(vr::VR_IsHmdPresent() ? "yes" : "no"));
+	LOG(lvlInfo, QString("    OpenVR runtime path: %1").arg(runtimePath));
+	LOG(lvlInfo, QString("    Head-mounted display present: %1").arg(vr::VR_IsHmdPresent() ? "yes" : "no"));
 	vr::EVRInitError eError = vr::VRInitError_None;
 	auto pHMD = vr::VR_Init(&eError, vr::VRApplication_Scene);
 	if (eError != vr::VRInitError_None)
 	{
-		DEBUG_LOG(QString("    Unable to init VR runtime: %1").arg(vr::VR_GetVRInitErrorAsEnglishDescription(eError)));
+		LOG(lvlError, QString("    Unable to init VR runtime: %1").arg(vr::VR_GetVRInitErrorAsEnglishDescription(eError)));
 	}
 	else
 	{
@@ -88,11 +91,11 @@ void iAVRModuleInterface::info()
 		{
 			uint32_t width, height;
 			pHMD->GetRecommendedRenderTargetSize(&width, &height);
-			DEBUG_LOG(QString("    Head-mounted display present, recommended render target size: %1x%2 ").arg(width).arg(height));
+			LOG(lvlInfo, QString("    Head-mounted display present, recommended render target size: %1x%2 ").arg(width).arg(height));
 		}
 		else
 		{
-			DEBUG_LOG(QString("    Head-mounted display could not be initialized: %1").arg(vr::VR_GetVRInitErrorAsEnglishDescription(eError)));
+			LOG(lvlInfo, QString("    Head-mounted display could not be initialized: %1").arg(vr::VR_GetVRInitErrorAsEnglishDescription(eError)));
 		}
 	}
 	vr::VR_Shutdown();
@@ -179,7 +182,7 @@ bool iAVRModuleInterface::vrAvailable()
 	return true;
 }
 
-iAModuleAttachmentToChild * iAVRModuleInterface::CreateAttachment( MainWindow* mainWnd, MdiChild* child)
+iAModuleAttachmentToChild * iAVRModuleInterface::CreateAttachment( iAMainWindow* mainWnd, iAMdiChild* child)
 {
 	return new iAVRAttachment( mainWnd, child );
 }

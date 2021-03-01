@@ -1,7 +1,7 @@
 /*************************************  open_iA  ************************************ *
 * **********   A tool for visual analysis and processing of 3D CT images   ********** *
 * *********************************************************************************** *
-* Copyright (C) 2016-2020  C. Heinzl, M. Reiter, A. Reh, W. Li, M. Arikan, Ar. &  Al. *
+* Copyright (C) 2016-2021  C. Heinzl, M. Reiter, A. Reh, W. Li, M. Arikan, Ar. &  Al. *
 *                 Amirkhanov, J. Weissenböck, B. Fröhler, M. Schiwarth, P. Weinberger *
 * *********************************************************************************** *
 * This program is free software: you can redistribute it and/or modify it under the   *
@@ -23,7 +23,7 @@
 #include "defines.h" // for DIM
 
 #include "iAConnector.h"
-#include "iAConsole.h"
+#include "iALog.h"
 #include "iAProgress.h"
 #include "iATypedCallHelper.h"
 
@@ -43,6 +43,9 @@
 	#include "dml_provider_factory.h"
 #endif
 
+#include <omp.h>
+
+#include <vector>
 
 typedef float                                 				PixelType;
 const unsigned int Dimension = 3;
@@ -52,8 +55,8 @@ typedef itk::ImageRegionIterator<ImageType> 			    IteratorType;
 
 namespace
 {
-	const size_t sizeDNNin = 132;
-	const size_t sizeDNNout = 122;
+	const int sizeDNNin = 132;
+	const int sizeDNNout = 122;
 }
 
 typename ImageType::Pointer Normalize(typename ImageType::Pointer itk_img)
@@ -122,7 +125,7 @@ bool itk2tensor(typename ImageType::Pointer itk_img, std::vector<float> &tensor_
 	return true;
 }
 
-bool tensor2itk(std::vector<Ort::Value> &tensor_img, typename ImageType::Pointer itk_img, int offsetX, int offsetY, int offsetZ)
+bool tensor2itk(std::vector<Ort::Value> &tensor_img, typename ImageType::Pointer itk_img, int offsetX, int offsetY, int offsetZ, int offset = 0, int chanels=1)
 {
 	ImageType::IndexType start;
 	start[0] = offsetX;  // first index on X
@@ -146,9 +149,11 @@ bool tensor2itk(std::vector<Ort::Value> &tensor_img, typename ImageType::Pointer
 
 	for (iter.GoToBegin(); !iter.IsAtEnd(); ++iter)
 	{
+		
+		count = count+offset;
 		float val = floatarr[count];
 		iter.Set(val);
-		++count;
+		count = count + ( chanels - offset);
 	}
 
 	return true;
@@ -181,42 +186,37 @@ typename ImageType::Pointer createImage(int X, int Y, int Z)
 template<class T>
 void executeDNN(iAFilter* filter, QMap<QString, QVariant> const & parameters)
 {
-	typename ImageType::Pointer itk_img;
-
 	typedef itk::Image<T, DIM> InputImageType;
 
-		using FilterType = itk::CastImageFilter<InputImageType, ImageType>;
-		typename FilterType::Pointer castFilter = FilterType::New();
-		castFilter->SetInput(dynamic_cast<InputImageType *>(filter->input()[0]->itkImage()));
-		castFilter->Update();
-		itk_img = castFilter->GetOutput();
-		
+	using FilterType = itk::CastImageFilter<InputImageType, ImageType>;
+	typename FilterType::Pointer castFilter = FilterType::New();
+	castFilter->SetInput(dynamic_cast<InputImageType *>(filter->input()[0]->itkImage()));
+	castFilter->Update();
+	auto itk_img = castFilter->GetOutput();
 
-		typename ImageType::Pointer itk_img_normalized = Normalize(itk_img);
-
-		typename ImageType::Pointer itk_img_normalized_padded = AddPadding(itk_img_normalized,(sizeDNNin - sizeDNNout)/2);
-
-
+	typename ImageType::Pointer itk_img_normalized = Normalize(itk_img);
+	typename ImageType::Pointer itk_img_normalized_padded = AddPadding(itk_img_normalized,(sizeDNNin - sizeDNNout)/2);
 
 	// initialize  enviroment...one enviroment per process
-// enviroment maintains thread pools and other state info
+	// enviroment maintains thread pools and other state info
 	Ort::Env env(ORT_LOGGING_LEVEL_WARNING, "test");
 
 	// initialize session options if needed
 	Ort::SessionOptions session_options;
-	//session_options.SetIntraOpNumThreads(1);
 
 	// If onnxruntime.dll is built with CUDA enabled, we can uncomment out this line to use CUDA for this
 	// session (we also need to include cuda_provider_factory.h above which defines it)
 	
-	#ifdef ONNX_CUDA
+	if (parameters["use GPU"].toBool())
+	{
+#ifdef ONNX_CUDA
 		Ort::ThrowOnError(OrtSessionOptionsAppendExecutionProvider_CUDA(session_options, 0));
-	#else
+#else
 		session_options.DisableMemPattern();
 		session_options.SetExecutionMode(ExecutionMode::ORT_SEQUENTIAL);
 		Ort::ThrowOnError(OrtSessionOptionsAppendExecutionProvider_DML(session_options, parameters["GPU"].toInt()));
-	#endif
-
+#endif
+	}
 	// Sets graph optimization level
 	// Available levels are
 	// ORT_DISABLE_ALL -> To disable all optimizations
@@ -237,7 +237,7 @@ void executeDNN(iAFilter* filter, QMap<QString, QVariant> const & parameters)
 		const char* model_path = modelPathStdString.c_str();
 	#endif
 
-	DEBUG_LOG(QString("Using Onnxruntime C++ API"));
+	LOG(lvlInfo, QString("Using Onnxruntime C++ API"));
 	Ort::Session session(env, model_path, session_options);
 
 	//*************************************************************************
@@ -250,14 +250,14 @@ void executeDNN(iAFilter* filter, QMap<QString, QVariant> const & parameters)
 	std::vector<int64_t> input_node_dims;  // simplify... this model has only 1 input node {1, 3, 224, 224}.
 										   // Otherwise need vector<vector<>>
 
-	DEBUG_LOG(QString("Number of inputs = %1").arg(num_input_nodes));
+	LOG(lvlInfo, QString("Number of inputs = %1").arg(num_input_nodes));
 
 	// iterate over all input nodes
 	for (size_t i = 0; i < num_input_nodes; i++)
 	{
 		// print input node names
 		char* input_name = session.GetInputName(i, allocator);
-		DEBUG_LOG(QString("Input %1 : name=%2").arg(i).arg(input_name));
+		LOG(lvlInfo, QString("Input %1 : name=%2").arg(i).arg(input_name));
 		input_node_names[i] = input_name;
 
 		// print input node types
@@ -265,17 +265,53 @@ void executeDNN(iAFilter* filter, QMap<QString, QVariant> const & parameters)
 		auto tensor_info = type_info.GetTensorTypeAndShapeInfo();
 
 		ONNXTensorElementDataType type = tensor_info.GetElementType();
-		DEBUG_LOG(QString("Input %1 : type=%2").arg(i).arg(type));
+		LOG(lvlInfo, QString("Input %1 : type=%2").arg(i).arg(type));
 
 		// print input shapes/dims
 		input_node_dims = tensor_info.GetShape();
-		DEBUG_LOG(QString("Input %1 : num_dims=%2").arg(i).arg(input_node_dims.size()));
+		LOG(lvlInfo, QString("Input %1 : num_dims=%2").arg(i).arg(input_node_dims.size()));
 		for (size_t j = 0; j < input_node_dims.size(); j++)
 		{
-			DEBUG_LOG(QString("Input %1 : dim %2=%3").arg(i).arg(j).arg(input_node_dims[j]));
+			LOG(lvlInfo, QString("Input %1 : dim %2=%3").arg(i).arg(j).arg(input_node_dims[j]));
 			if (input_node_dims[j] == -1)
 			{
 				input_node_dims[j] = 1;
+			}
+		}
+	}
+
+	// print number of model input nodes
+	size_t num_output_nodes = session.GetOutputCount();
+	std::vector<const char*> output_node_names(num_output_nodes);
+	std::vector<int64_t> output_node_dims;  // simplify... this model has only 1 input node {1, 3, 224, 224}.
+										   // Otherwise need vector<vector<>>
+
+	LOG(lvlInfo, QString("Number of outputs = %1").arg(num_output_nodes));
+
+	// iterate over all input nodes
+	for (size_t i = 0; i < num_output_nodes; i++)
+	{
+		// print input node names
+		char* output_name = session.GetOutputName(i, allocator);
+		LOG(lvlInfo, QString("Output %1 : name=%2").arg(i).arg(output_name));
+		output_node_names[i] = output_name;
+
+		// print input node types
+		Ort::TypeInfo type_info = session.GetOutputTypeInfo(i);
+		auto tensor_info = type_info.GetTensorTypeAndShapeInfo();
+
+		ONNXTensorElementDataType type = tensor_info.GetElementType();
+		LOG(lvlInfo, QString("Output %1 : type=%2").arg(i).arg(type));
+
+		// print input shapes/dims
+		output_node_dims = tensor_info.GetShape();
+		LOG(lvlInfo, QString("Output %1 : num_dims=%2").arg(i).arg(output_node_dims.size()));
+		for (size_t j = 0; j < output_node_dims.size(); j++)
+		{
+			LOG(lvlInfo, QString("Output %1 : dim %2=%3").arg(i).arg(j).arg(output_node_dims[j]));
+			if (output_node_dims[j] == -1)
+			{
+				output_node_dims[j] = 1;
 			}
 		}
 	}
@@ -302,49 +338,78 @@ void executeDNN(iAFilter* filter, QMap<QString, QVariant> const & parameters)
 	size_t input_tensor_size = sizeDNNin * sizeDNNin * sizeDNNin *1;  // simplify ... using known dim values to calculate size
 											   // use OrtGetTensorShapeElementCount() to get official size!
 
-	char* output_name = session.GetOutputName(0, allocator);
-
-	std::vector<const char*> output_node_names = { output_name };
-
 	ImageType::RegionType region = itk_img_normalized->GetLargestPossibleRegion();
 
 	ImageType::SizeType size = region.GetSize();
 
-	typename ImageType::Pointer outputImage = createImage(size[0], size[1], size[2]);
+	std::list<ImageType::Pointer> outputs; 
+
+	Ort::TypeInfo type_info = session.GetOutputTypeInfo(0);
+	auto tensor_info = type_info.GetTensorTypeAndShapeInfo();
+	for (int i = 0; i < tensor_info.GetShape()[output_node_dims.size()-1]; i++)
+	{
+		outputs.push_back(createImage(size[0], size[1], size[2]));
+	}
+
+	int sizeX = size[0];
+	int sizeY = size[1];
+	int sizeZ = size[2];
 
 	iAProgress *progressPrediction = filter->progress();
+	int count = 0;
 
-	for (size_t x = 0; x <= size[0] - sizeDNNout; x=x+sizeDNNout)
+	for (int x = 0; x <= sizeX; x = x + sizeDNNout)
 	{
-		for (size_t y = 0; y <= size[1] - sizeDNNout; y=y+sizeDNNout)
+		for (int y = 0; y <= sizeY; y = y + sizeDNNout)
 		{
-			for (size_t z = 0; z <= size[2] - sizeDNNout; z=z+sizeDNNout)
+			#pragma omp parallel for
+			for (int z = 0; z <= sizeZ; z = z + sizeDNNout)
 			{
 				std::vector<float> tensor_img;
 				
+				int tempX, tempY, tempZ;
+
+				tempX = (x <= sizeX - sizeDNNout) ? x : (x - (sizeDNNout - sizeX % sizeDNNout)); 
+				tempY = (y <= sizeY - sizeDNNout) ? y : (y - (sizeDNNout - sizeY % sizeDNNout)); 
+				tempZ = (z <= sizeZ - sizeDNNout) ? z : (z - (sizeDNNout - sizeZ % sizeDNNout)); 
+
 				size_t offset = (sizeDNNout - sizeDNNin)/2;
-				itk2tensor(itk_img_normalized_padded, tensor_img,x+ offset,y+ offset,z+ offset);
+				itk2tensor(itk_img_normalized_padded, tensor_img, tempX + offset, tempY + offset, tempZ + offset);
+
+				std::vector<Ort::Value> result;
+
 
 				// create input tensor object from data values
 				auto memory_info = Ort::MemoryInfo::CreateCpu(OrtArenaAllocator, OrtMemTypeDefault);
-				Ort::Value input_tensor = Ort::Value::CreateTensor<float>(memory_info, tensor_img.data(), input_tensor_size, input_node_dims.data(), 5);
+				Ort::Value input_tensor = Ort::Value::CreateTensor<float>(
+						memory_info, tensor_img.data(), input_tensor_size, input_node_dims.data(), 5);
 				assert(input_tensor.IsTensor());
+				#pragma omp critical
+				{
+					// score model & input tensor, get back output tensor
+					result = session.Run(Ort::RunOptions{nullptr}, input_node_names.data(), &input_tensor, 1,
+						output_node_names.data(), 1);
+				}
+					assert(result.size() == 1 && result.front().IsTensor());
 
-				// score model & input tensor, get back output tensor
-				auto result = session.Run(Ort::RunOptions{ nullptr }, input_node_names.data(), &input_tensor, 1, output_node_names.data(), 1);
-				assert(result.size() == 1 && result.front().IsTensor());
-
-
+				int outputChannel = 0;
 				//ImageType::Pointer outputImage = ImageType::New();
-
-				tensor2itk(result, outputImage,x,y,z);
-
-				progressPrediction->emitProgress(x*100/size[0]);
+				for (auto outputImage : outputs)
+				{
+					tensor2itk(result, outputImage, tempX, tempY, tempZ, outputChannel, outputs.size());
+					outputChannel++;
+				}
+				count++;
+				double progress = count * 100.0 / (sizeX / sizeDNNout * sizeY / sizeDNNout * sizeZ/sizeDNNout);
+				progressPrediction->emitProgress(progress);
 			}
 		}
 	}
-	outputImage->SetSpacing(filter->input()[0]->itkImage()->GetSpacing());
-	filter->addOutput(outputImage);
+	for (auto outputImage : outputs)
+	{
+		outputImage->SetSpacing(filter->input()[0]->itkImage()->GetSpacing());
+		filter->addOutput(outputImage);
+	}
 }
 
 IAFILTER_CREATE(iAai)
@@ -363,6 +428,8 @@ iAai::iAai() :
 {
 
 	addParameter("OnnxFile", iAValueType::FileNameOpen);
+	addParameter("use GPU", iAValueType::Boolean, true);
 	addParameter("GPU", iAValueType::Discrete,0);
+	
 }
 

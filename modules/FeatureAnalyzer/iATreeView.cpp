@@ -1,7 +1,7 @@
 /*************************************  open_iA  ************************************ *
 * **********   A tool for visual analysis and processing of 3D CT images   ********** *
 * *********************************************************************************** *
-* Copyright (C) 2016-2020  C. Heinzl, M. Reiter, A. Reh, W. Li, M. Arikan, Ar. &  Al. *
+* Copyright (C) 2016-2021  C. Heinzl, M. Reiter, A. Reh, W. Li, M. Arikan, Ar. &  Al. *
 *                 Amirkhanov, J. Weissenböck, B. Fröhler, M. Schiwarth, P. Weinberger *
 * *********************************************************************************** *
 * This program is free software: you can redistribute it and/or modify it under the   *
@@ -23,7 +23,7 @@
 #include "iACSVToQTableWidgetConverter.h"
 #include "iASelection.h"
 
-#include <iAConsole.h>
+#include <iALog.h>
 
 #include <vtkIdTypeArray.h>
 
@@ -32,6 +32,19 @@
 #include <QMenu>
 #include <QTreeWidget>
 #include <QPair>
+
+namespace
+{
+const QString contextMenuStyle(
+	"QMenu{"
+	"font-size: 11px;"
+	"background-color: #9B9B9B;"
+	"border: 1px solid black;}"
+	"QMenu::separator{"
+	"height: 1px;"
+	"margin: 0px 2px 0px 2px;"
+	"background: gray}" );
+}
 
 iATreeView::iATreeView( QWidget * parent /*= 0*/, Qt::WindowFlags f /*= 0 */ )
 	: TreeViewConnector( parent, f ),
@@ -159,7 +172,7 @@ bool iATreeView::calculatedSelectedRunsData( QList<QTreeWidgetItem*> selectedIte
 	//		if (j < finalItems[i]->columnCount() - 1);
 	//		s.append(",");
 	//	}
-	//	DEBUG_LOG(QString(s));
+	//	LOG(lvlInfo, QString(s));
 	//}
 
 	//insert header
@@ -598,7 +611,7 @@ bool iATreeView::updateSelectedHMData()
 		QString datasetName = m_selectedHMData.datasets.at( i );
 		double gtPorosity = ( *m_gtPorosityMap )[m_selectedHMData.datasets.at( i )];
 
-		m_selectedHMData.gtPorosityMap.insertMulti( datasetName, gtPorosity );
+		m_selectedHMData.gtPorosityMap.insert( datasetName, gtPorosity );    //gtPorosityMap is MultiMap, so if datasetName exists, a second entry will be created
 	}
 
 	for ( int i = 0; i < m_selectedHMData.filters.size(); ++i )

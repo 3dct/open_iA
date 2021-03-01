@@ -1,12 +1,13 @@
-SET (FiAKEr_PRECOMPILE_INCLUDES <charts/iASPLOMData.h>
-<iAConsole.h>
+SET (FiAKEr_PRECOMPILE_INCLUDES
+<iASPLOMData.h>
 <iACsvConfig.h>
 <iAFiAKErController.h>
 <iAFiberCharData.h>
 <iAFiberData.h>
+<iALog.h>
 <iAMathUtility.h>
 <iARefDistCompute.h>
-<iAvec3.h>
+<iAVec3.h>
 <QMap>
 <QMessageBox>
 <QSettings>

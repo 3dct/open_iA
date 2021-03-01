@@ -1,7 +1,7 @@
 /*************************************  open_iA  ************************************ *
 * **********   A tool for visual analysis and processing of 3D CT images   ********** *
 * *********************************************************************************** *
-* Copyright (C) 2016-2020  C. Heinzl, M. Reiter, A. Reh, W. Li, M. Arikan, Ar. &  Al. *
+* Copyright (C) 2016-2021  C. Heinzl, M. Reiter, A. Reh, W. Li, M. Arikan, Ar. &  Al. *
 *                 Amirkhanov, J. Weissenböck, B. Fröhler, M. Schiwarth, P. Weinberger *
 * *********************************************************************************** *
 * This program is free software: you can redistribute it and/or modify it under the   *
@@ -23,73 +23,21 @@
 #include "ui_ComputeSegmentations.h"
 
 #include <defines.h>
-#include <iAModuleInterface.h>
+#include <iAGUIModuleInterface.h>
 
 class iAFeatureAnalyzer;
 
-class iAFeatureAnalyzerModuleInterface : public iAModuleInterface
+class iAFeatureAnalyzerModuleInterface : public iAGUIModuleInterface
 {
 	Q_OBJECT
 
 public:
 	void Initialize() override;
-	void SaveSettings() const override;
-	Ui::ComputeSegmentations * ui();
-	void log( QString text, bool appendToPrev = false );
-	QString DatasetFolder() const;
-	QString ResultsFolder() const;
-	QString CSVFile() const;
-	QString CpuVendor() const { return m_cpuVendor; }
-	QString CpuBrand() const { return m_cpuBrand; }
-	QString ComputerName() const;
 	void startFeatureAnalyzer(QString const& resultsFolderName, QString const& datasetsFolderName);
 
 private slots:
-	void computeParameterSpace();
 	void launchFeatureAnalyzer();
-	//void launchCalcPoreProps();
-	void loadCSV();
-	void saveCSV();
-	void browseCSV();
-	void browserResultsFolder();
-	void browserDatasetsFolder();
-	void runCalculations();
-	void showHideLogs();
-	void batchProgress(int progress);
-	void totalProgress(int progress);
-	void currentBatch( QString str );
-	void clearPipeline();
-	void addPipeline();
-	void resizePipeline();
-	void clearTableWidgetItem();
-	void generateDatasetPreviews();
-	void datasetPreviewThreadFinished();
-	void datasetPreviewThreadStarted();
-	void displayPipelineInSlots( QTableWidgetItem * );
-	void compNameChanged();
-
-protected:
-	void updateFromGUI() const;
-	void setupTableWidgetContextMenu();
-	void createTableWidgetActions();
-
-protected:
-	QWidget * m_compSegmWidget;
-	Ui::ComputeSegmentations uiComputeSegm;
-	mutable QString m_computerName;
-	mutable QString m_resultsFolder;
-	mutable QString m_datasetsFolder;
-	mutable QString m_csvFile;
-	QString m_cpuVendor;
-	QString m_cpuBrand;
-	iAFeatureAnalyzer * m_featureAnalyzer;
-	QAction *removeRowAction;
-	QAction *saveTableToCSVAction;
-	QAction *loadTableFromCSVAction;
 
 private:
-	int m_pipelineSlotsCount;
-	QSize m_pipelineSlotIconSize;
-
-	void removeGTDatasets( QStringList& list, const QStringList& toDelete );
+	iAFeatureAnalyzer * m_featureAnalyzer;
 };

@@ -1,7 +1,7 @@
 /*************************************  open_iA  ************************************ *
 * **********   A tool for visual analysis and processing of 3D CT images   ********** *
 * *********************************************************************************** *
-* Copyright (C) 2016-2020  C. Heinzl, M. Reiter, A. Reh, W. Li, M. Arikan, Ar. &  Al. *
+* Copyright (C) 2016-2021  C. Heinzl, M. Reiter, A. Reh, W. Li, M. Arikan, Ar. &  Al. *
 *                 Amirkhanov, J. Weissenböck, B. Fröhler, M. Schiwarth, P. Weinberger *
 * *********************************************************************************** *
 * This program is free software: you can redistribute it and/or modify it under the   *
@@ -20,29 +20,28 @@
 * ************************************************************************************/
 #pragma once
 
-#include "iAFeatureScoutObjectType.h"
+#include "iAObjectType.h"
 #include "FeatureScout_export.h"
-#include "iACsvConfig.h"
 
-#include <iAModuleInterface.h>
+#include <iAGUIModuleInterface.h>
 
-class dlg_FeatureScout;
+struct iACsvConfig;
 class iAFeatureScoutToolbar;
 
-class FeatureScout_API iAFeatureScoutModuleInterface : public iAModuleInterface
+class FeatureScout_API iAFeatureScoutModuleInterface : public iAGUIModuleInterface
 {
 	Q_OBJECT
 public:
 	void Initialize() override;
-	void LoadFeatureScoutWithParams(const QString &csvName, MdiChild *childWnd);
-	void LoadFeatureScout(iACsvConfig const & csvConfig, MdiChild *childWnd);
+	void LoadFeatureScoutWithParams(const QString &csvName, iAMdiChild *childWnd);
+	void LoadFeatureScout(iACsvConfig const & csvConfig, iAMdiChild *childWnd);
 private slots:
 	void FeatureScout();
 	void FeatureScout_Options();
 	void onChildClose();
 private:
-	iAFeatureScoutObjectType guessFeatureType(QString const & csvFileName);
-	iAModuleAttachmentToChild * CreateAttachment(MainWindow* mainWnd, MdiChild * child) override;
+	iAObjectType guessFeatureType(QString const & csvFileName);
+	iAModuleAttachmentToChild * CreateAttachment(iAMainWindow* mainWnd, iAMdiChild * child) override;
 	void SetupToolbar();
 	void setFeatureScoutRenderSettings();
 	bool startFeatureScout(iACsvConfig const & csvConfig);  //!< entry point for FeatureScout

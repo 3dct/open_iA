@@ -1,7 +1,7 @@
 /*************************************  open_iA  ************************************ *
 * **********   A tool for visual analysis and processing of 3D CT images   ********** *
 * *********************************************************************************** *
-* Copyright (C) 2016-2020  C. Heinzl, M. Reiter, A. Reh, W. Li, M. Arikan, Ar. &  Al. *
+* Copyright (C) 2016-2021  C. Heinzl, M. Reiter, A. Reh, W. Li, M. Arikan, Ar. &  Al. *
 *                 Amirkhanov, J. Weissenböck, B. Fröhler, M. Schiwarth, P. Weinberger *
 * *********************************************************************************** *
 * This program is free software: you can redistribute it and/or modify it under the   *
@@ -24,8 +24,9 @@
 #include "iAEnsemble.h"
 #include "iASingleResult.h"
 
-#include <charts/qcustomplot.h>
+#include <qcustomplot.h>
 
+#include <QGuiApplication>
 #include <QHBoxLayout>
 
 #include <vector>
@@ -87,7 +88,7 @@ void iAMemberView::SetEnsemble(QSharedPointer<iAEnsemble> ensemble)
 		++cnt;
 	}
 
-	QSharedPointer<QCPAxisTickerText> textTicker(new QCPAxisTickerText);
+	auto textTicker = QSharedPointer<QCPAxisTickerText>::create();
 	textTicker->addTicks(ticks, labels);
 	m_plot->xAxis->setTicker(textTicker);
 	m_plot->xAxis->setLabel("Member ID");

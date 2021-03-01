@@ -1,7 +1,7 @@
 /*************************************  open_iA  ************************************ *
 * **********   A tool for visual analysis and processing of 3D CT images   ********** *
 * *********************************************************************************** *
-* Copyright (C) 2016-2020  C. Heinzl, M. Reiter, A. Reh, W. Li, M. Arikan, Ar. &  Al. *
+* Copyright (C) 2016-2021  C. Heinzl, M. Reiter, A. Reh, W. Li, M. Arikan, Ar. &  Al. *
 *                 Amirkhanov, J. Weissenböck, B. Fröhler, M. Schiwarth, P. Weinberger *
 * *********************************************************************************** *
 * This program is free software: you can redistribute it and/or modify it under the   *
@@ -24,8 +24,9 @@
 #include "iACharacteristicEnergy.h"
 #include "iASpectrumFilter.h"
 
-#include <charts/iAPlotTypes.h>
+#include <iAPlotTypes.h>
 #include <iAMapper.h>
+#include <iATransferFunction.h>
 
 #include <QFontMetrics>
 #include <QMap>
@@ -47,19 +48,20 @@ const char * EnergyLineNames[9] =
 	"Mα1"
 };
 
-iAEnergySpectrumWidget::iAEnergySpectrumWidget(QWidget *parent, MdiChild *mdiChild,
+iAEnergySpectrumWidget::iAEnergySpectrumWidget(QWidget *parent,
 		QSharedPointer<iAAccumulatedXRFData> data,
 		vtkPiecewiseFunction* oTF,
 		vtkColorTransferFunction* cTF,
 		iASpectrumFilterListener* filterListener,
 		QString const & xLabel)
-	: iAChartWithFunctionsWidget(parent, mdiChild, xLabel, "Count"),
+	: iAChartWithFunctionsWidget(parent, xLabel, "Count"),
 	m_data(data),
 	selectionRubberBand(new QRubberBand(QRubberBand::Rectangle, this)),
-	filterListener(filterListener)
+	filterListener(filterListener),
+	m_tf(new iASimpleTransferFunction(cTF, oTF))
 {
-	setTransferFunctions(cTF, oTF);
-	addPlot(QSharedPointer<iAPlot>(new iAStepFunctionPlot(m_data, QColor(70, 70, 70, 255))));
+	setTransferFunction(m_tf.data());
+	addPlot(QSharedPointer<iAStepFunctionPlot>::create(m_data, QColor(70, 70, 70, 255)));
 	selectionRubberBand->hide();
 	setAllowTrfReset(false);
 	setEnableAdditionalFunctions(false);
@@ -107,6 +109,7 @@ void iAEnergySpectrumWidget::mouseReleaseEvent(QMouseEvent *event)
 	iAChartWithFunctionsWidget::mouseReleaseEvent(&eventCopy);
 	if (selectionRubberBand->isVisible())
 	{
+		// TODO: avoid duplication with iAChartWidget!
 		selectionRubberBand->hide();
 		QRect diagramRect;
 		QRect selectionRect(selectionRubberBand->geometry());     // height-y because we are drawing reversed from actual y direction

@@ -1,7 +1,7 @@
 /*************************************  open_iA  ************************************ *
 * **********   A tool for visual analysis and processing of 3D CT images   ********** *
 * *********************************************************************************** *
-* Copyright (C) 2016-2020  C. Heinzl, M. Reiter, A. Reh, W. Li, M. Arikan, Ar. &  Al. *
+* Copyright (C) 2016-2021  C. Heinzl, M. Reiter, A. Reh, W. Li, M. Arikan, Ar. &  Al. *
 *                 Amirkhanov, J. Weissenböck, B. Fröhler, M. Schiwarth, P. Weinberger *
 * *********************************************************************************** *
 * This program is free software: you can redistribute it and/or modify it under the   *
@@ -22,7 +22,7 @@
 
 #include "iACsvConfig.h"
 
-#include <iAConsole.h>
+#include <iALog.h>
 
 #include <vtkMath.h>
 #include <vtkTable.h>
@@ -271,7 +271,7 @@ namespace
 		std::uniform_real_distribution<double> radiusRnd(0, 1);
 		std::uniform_real_distribution<double> posRnd(0, 1);
 		/*
-		DEBUG_LOG(QString("Sampling fiber (%1, %2, %3) - (%4, %5, %6), radius = %7")
+		LOG(lvlInfo, QString("Sampling fiber (%1, %2, %3) - (%4, %5, %6), radius = %7")
 		.arg(fiberStart[0]).arg(fiberStart[1]).arg(fiberStart[2])
 		.arg(fiberEnd[0]).arg(fiberEnd[1]).arg(fiberEnd[2]).arg(fiberRadius));
 		*/
@@ -290,7 +290,7 @@ namespace
 
 		std::uniform_int_distribution<size_t> angleRnd(0, perpDirs.size() - 1);
 		/*
-		DEBUG_LOG(QString("Normal Vectors: (%1, %2, %3), (%4, %5, %6)")
+		LOG(lvlInfo, QString("Normal Vectors: (%1, %2, %3), (%4, %5, %6)")
 		.arg(perpDir[0]).arg(perpDir[1]).arg(perpDir[2])
 		.arg(perpDir2[0]).arg(perpDir2[1]).arg(perpDir2[2]));
 		*/
@@ -301,7 +301,7 @@ namespace
 			double newRadius = radius * std::sqrt(radiusRnd(generator));
 			double t = posRnd(generator);
 			result.push_back(start + dir * t + perpDirs[angleIdx] * newRadius);
-			//DEBUG_LOG(QString("    Sampled point: (%1, %2, %3)").arg(result[i][0]).arg(result[i][1]).arg(result[i][2]));
+			//LOG(lvlInfo, QString("    Sampled point: (%1, %2, %3)").arg(result[i][0]).arg(result[i][1]).arg(result[i][2]));
 		}
 	}
 
@@ -455,7 +455,7 @@ double getDissimilarity(iAFiberData const & fiber1raw, iAFiberData const & fiber
 		double fiberAngle = angle(dir1, dir2);
 		if (fiberAngle > vtkMath::Pi() / 2) // still larger than 90° ? Then my calculations are wrong!
 		{
-			DEBUG_LOG(QString("Wrong angle computation: phi1=%1, theta1=%2, phi2=%3, theta2=%4 => angle=%5")
+			LOG(lvlInfo, QString("Wrong angle computation: phi1=%1, theta1=%2, phi2=%3, theta2=%4 => angle=%5")
 				.arg(fiber1.phi).arg(fiber1.theta).arg(fiber2.phi).arg(fiber2.theta).arg(fiberAngle));
 		}
 		*/

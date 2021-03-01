@@ -1,7 +1,7 @@
 /*************************************  open_iA  ************************************ *
 * **********   A tool for visual analysis and processing of 3D CT images   ********** *
 * *********************************************************************************** *
-* Copyright (C) 2016-2020  C. Heinzl, M. Reiter, A. Reh, W. Li, M. Arikan, Ar. &  Al. *
+* Copyright (C) 2016-2021  C. Heinzl, M. Reiter, A. Reh, W. Li, M. Arikan, Ar. &  Al. *
 *                 Amirkhanov, J. Weissenböck, B. Fröhler, M. Schiwarth, P. Weinberger *
 * *********************************************************************************** *
 * This program is free software: you can redistribute it and/or modify it under the   *
@@ -27,31 +27,14 @@
 #include "iADefectClassifier.h"
 #include "iAClassifyDefectsDialog.h"
 
-#include <mainwindow.h>
+#include <iAMainWindow.h>
 
-#include <vtkMath.h>
-
-#include <itkConvolutionImageFilter.h>
-#include <itkEllipseSpatialObject.h>
-#include <itkImageFileWriter.h>
-#include <itkImageKernelOperator.h>
-#include <itkImageToVTKImageFilter.h>
-#include <itkLabelGeometryImageFilter.h>
-#include <itkNormalizedCorrelationImageFilter.h>
-#include <itkSpatialObjectToImageFilter.h>
-#include <itkSubtractImageFilter.h>
-#include <itkVTKImageToImageFilter.h>
-
-#include <QColor>
-#include <QDirIterator>
 #include <QFileDialog>
 #include <QFileInfo>
 #include <QMdiSubWindow>
-#include <QMessageBox>
-#include <QObject>
+#include <QMenu>
 #include <QSettings>
 
-#include <limits>
 
 #define RAD_TO_DEG 57.295779513082320876798154814105
 
@@ -68,29 +51,28 @@ void iA4DCTModuleInterface::Initialize( )
 		return;
 	}
 	Q_INIT_RESOURCE(4DCT);
-	QMenu* toolsMenu = m_mainWnd->toolsMenu( );
-	QMenu* menu4DCT = getMenuWithTitle(toolsMenu, tr("4DCT"), false);
+	QMenu* menu4DCT = getOrAddSubMenu(m_mainWnd->toolsMenu(), tr("4DCT"), false);
 
-	QAction * newProj = new QAction(tr("New 4DCT project"), nullptr );
+	QAction * newProj = new QAction(tr("New 4DCT project"), m_mainWnd);
 	newProj->setShortcut(QKeySequence( Qt::ALT + Qt::Key_4, Qt::Key_N ));
 	connect( newProj, &QAction::triggered, this, &iA4DCTModuleInterface::newProj);
 	menu4DCT->addAction( newProj );
 
-	QAction * openProj = new QAction(tr("Open 4DCT project"), nullptr );
+	QAction * openProj = new QAction(tr("Open 4DCT project"), m_mainWnd);
 	openProj->setShortcut(QKeySequence( Qt::ALT + Qt::Key_4, Qt::Key_O ));
 	connect( openProj, &QAction::triggered, this, &iA4DCTModuleInterface::openProj);
 	menu4DCT->addAction( openProj );
 
-	QAction* saveProj = new QAction(tr("Save 4DCT project"), nullptr);
+	QAction* saveProj = new QAction(tr("Save 4DCT project"), m_mainWnd);
 	saveProj->setShortcut(QKeySequence( Qt::ALT + Qt::Key_4, Qt::Key_S ));
 	connect( saveProj, &QAction::triggered, this, &iA4DCTModuleInterface::saveProj);
 	menu4DCT->addAction( saveProj );
 
-	QAction* featureExtraction = new QAction(tr("Extract features to file"), nullptr);
+	QAction* featureExtraction = new QAction(tr("Extract features to file"), m_mainWnd);
 	connect( featureExtraction, &QAction::triggered, this, &iA4DCTModuleInterface::extractFeaturesToFile);
 	menu4DCT->addAction( featureExtraction );
 
-	QAction* defectClassification = new QAction(tr("Defect classification"), nullptr);
+	QAction* defectClassification = new QAction(tr("Defect classification"), m_mainWnd);
 	connect( defectClassification, &QAction::triggered, this, &iA4DCTModuleInterface::defectClassification);
 	menu4DCT->addAction( defectClassification );
 }
@@ -114,20 +96,20 @@ void iA4DCTModuleInterface::openProj( )
 
 	iA4DCTMainWin* sv = new iA4DCTMainWin( m_mainWnd );
 	sv->load( fileName );
-	m_mainWnd->mdiArea->addSubWindow( sv );
+	m_mainWnd->addSubWindow( sv );
 	sv->show( );
 }
 
 void iA4DCTModuleInterface::newProj( )
 {
 	iA4DCTMainWin* sv = new iA4DCTMainWin( m_mainWnd );
-	m_mainWnd->mdiArea->addSubWindow( sv );
+	m_mainWnd->addSubWindow( sv );
 	sv->show( );
 }
 
 void iA4DCTModuleInterface::saveProj( )
 {
-	QMdiSubWindow* subWnd = m_mainWnd->mdiArea->currentSubWindow( );
+	QMdiSubWindow* subWnd = m_mainWnd->activeChild();
 	iA4DCTMainWin* stackView = qobject_cast<iA4DCTMainWin*>( subWnd->widget( ) );
 	if( stackView != nullptr ) {
 		stackView->save( );
@@ -179,16 +161,16 @@ void iA4DCTModuleInterface::defectClassification()
 //{
 //	PrepareActiveChild();
 //	/*m_densityMap = new dlg_densityMap(m_mainWnd, m_mdiChild);
-//	m_mdiChild->tabifyDockWidget(m_mdiChild->logDockWidget, m_densityMap);*/
+//	m_mdiChild->tabifyDockWidget(m_mdiChild->renderDockWidget(), m_densityMap);*/
 //
 //	dlg_4dctRegistration* reg = new dlg_4dctRegistration();
 //	m_mainWnd->addSubWindow(reg);
 //	reg->show();
 //
-//	QList<QMdiSubWindow*> list = m_mainWnd->MdiChildList();
-//	foreach(QMdiSubWindow* window, m_mainWnd->MdiChildList())
+//	QList<QMdiSubWindow*> list = m_mainWnd->iAMdiChildList();
+//	foreach(QMdiSubWindow* window, m_mainWnd->iAMdiChildList())
 //	{
-//		MdiChild *mdiChild = qobject_cast<MdiChild *>(window->widget());
+//		iAMdiChild *mdiChild = qobject_cast<iAMdiChild *>(window->widget());
 //		mdiChild->slicer(iASlicerMode::XY)->set4DCTRegistration(reg);
 //		mdiChild->slicer(iASlicerMode::XZ)->set4DCTRegistration(reg);
 //		mdiChild->slicer(iASlicerMode::YZ)->set4DCTRegistration(reg);

@@ -1,7 +1,7 @@
 /*************************************  open_iA  ************************************ *
 * **********   A tool for visual analysis and processing of 3D CT images   ********** *
 * *********************************************************************************** *
-* Copyright (C) 2016-2020  C. Heinzl, M. Reiter, A. Reh, W. Li, M. Arikan, Ar. &  Al. *
+* Copyright (C) 2016-2021  C. Heinzl, M. Reiter, A. Reh, W. Li, M. Arikan, Ar. &  Al. *
 *                 Amirkhanov, J. Weissenböck, B. Fröhler, M. Schiwarth, P. Weinberger *
 * *********************************************************************************** *
 * This program is free software: you can redistribute it and/or modify it under the   *
@@ -100,9 +100,4 @@ QString getOutputFileName(QString const& outputFolder, QString const& baseName,
 		QString("%1%2%3").arg(fi.completeBaseName()).arg(sampleNr, numDigits, 10, QChar('0')).arg(
 			fi.suffix().size() > 0 ? QString(".%1").arg(fi.suffix()) : QString(""))
 		);
-}
-
-int requiredDigits(int largestNumber)
-{  // number of required digits for number >= 1
-	return std::floor(std::log10(std::abs(largestNumber))) + 1;
 }

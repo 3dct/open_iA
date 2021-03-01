@@ -1,7 +1,7 @@
 /*************************************  open_iA  ************************************ *
 * **********   A tool for visual analysis and processing of 3D CT images   ********** *
 * *********************************************************************************** *
-* Copyright (C) 2016-2020  C. Heinzl, M. Reiter, A. Reh, W. Li, M. Arikan, Ar. &  Al. *
+* Copyright (C) 2016-2021  C. Heinzl, M. Reiter, A. Reh, W. Li, M. Arikan, Ar. &  Al. *
 *                 Amirkhanov, J. Weissenböck, B. Fröhler, M. Schiwarth, P. Weinberger *
 * *********************************************************************************** *
 * This program is free software: you can redistribute it and/or modify it under the   *
@@ -22,7 +22,7 @@
 
 #include "iA4DCTVisWin.h"
 
-#include <io/iAFileUtils.h>
+#include <iAFileUtils.h>
 
 #include <itkDiscreteGaussianImageFilter.h>
 #include <itkImageFileReader.h>
@@ -168,11 +168,13 @@ void iAFractureVisModule::setData( vtkPoints* points, vtkCellArray* polys, vtkUn
 	vtkSmartPointer<vtkPolyData> polyData = vtkSmartPointer<vtkPolyData>::New( );
 	polyData->SetPoints( points );
 	polyData->SetPolys( polys );
-	if( colors != nullptr ) {
+	if( colors != nullptr )
+	{
 		polyData->GetPointData( )->SetScalars( colors );
 		m_surfMapper->SetScalarVisibility( 1 );
 	}
-	else {
+	else
+	{
 		m_surfMapper->SetScalarVisibility( 0 );
 	}
 	vtkSmartPointer<vtkDepthSortPolyData> depthSort = vtkSmartPointer<vtkDepthSortPolyData>::New( );
@@ -215,29 +217,37 @@ void iAFractureVisModule::calculateMap( MapType* map, QString fileName, MapName 
 	double previousValue = 0.5;
 	ImageType::IndexType ind;
 	assert(imgSize[0] <= static_cast<itk::SizeValueType>(std::numeric_limits<itk::IndexValueType>::max()));
-	for( ind[0] = 0u; static_cast<itk::SizeValueType>(ind[0]) < imgSize[0]; ind[0]++ ) {
-		for( ind[1] = 0u; static_cast<itk::SizeValueType>(ind[1]) < imgSize[1]; ind[1]++ ) {
+	for( ind[0] = 0u; static_cast<itk::SizeValueType>(ind[0]) < imgSize[0]; ind[0]++ )
+	{
+		for( ind[1] = 0u; static_cast<itk::SizeValueType>(ind[1]) < imgSize[1]; ind[1]++ )
+		{
 			QVector<unsigned int> ray;
 			//for (ind[2] = 0; ind[2] < imgSize[2]; ind[2]++) {
-			for( ind[2] = minZ; ind[2] < maxZ; ind[2]++ ) {
+			for( ind[2] = minZ; ind[2] < maxZ; ind[2]++ )
+			{
 				PixelType pixel = image->GetPixel( ind );
-				if( pixel > 0 ) {
+				if( pixel > 0 )
+				{
 					ray.push_back( ind[2] );
 				}
 			}
 
 			double value;
-			switch( mapName ) {
+			switch( mapName )
+			{
 			case MapName::Heightmap:
 				value = 0;
-				for( auto r : ray ) {
+				for( auto r : ray )
+				{
 					value += r;
 				}
-				if( ray.size( ) > 0 ) {
+				if( ray.size( ) > 0 )
+				{
 					value /= ( ray.size( ) * imgSize[2] );
 					previousValue = value;
 				}
-				else {
+				else
+				{
 					value = previousValue;
 				}
 				break;
@@ -274,8 +284,10 @@ void iAFractureVisModule::calculatePoints( vtkPoints* points, MapType* heightmap
 	int xSteps = heightmapSize[0] / Step;
 	int ySteps = heightmapSize[1] / Step;
 
-	for( int i = 0; i < xSteps; i++ ) {
-		for( int j = 0; j < ySteps; j++ ) {
+	for( int i = 0; i < xSteps; i++ )
+	{
+		for( int j = 0; j < ySteps; j++ )
+		{
 			heightmapInd[0] = i * Step; heightmapInd[1] = j * Step;
 			double val = bluredHeightmap->GetPixel( heightmapInd );
 			double pos[3];
@@ -298,8 +310,10 @@ void iAFractureVisModule::calculatePolys( vtkCellArray* polys, MapType* heightma
 	int ySteps = heightmapSize[1] / Step;
 	int skip[3] = { 60, 30 };
 
-	for( int i = skip[0]; i < xSteps - 1 - skip[0]; i++ ) {
-		for( int j = skip[1]; j < ySteps - 1 - skip[1]; j++ ) {
+	for( int i = skip[0]; i < xSteps - 1 - skip[0]; i++ )
+	{
+		for( int j = skip[1]; j < ySteps - 1 - skip[1]; j++ )
+		{
 			heightmapInd[0] = i * Step; heightmapInd[1] = j * Step;
 
 			int ind[4];
@@ -340,8 +354,10 @@ void iAFractureVisModule::calculateColors( vtkUnsignedCharArray* colors, MapType
 	imageCalcFilter->Compute( );
 	double colorRange = imageCalcFilter->GetMaximum( ) - imageCalcFilter->GetMinimum( );
 
-	for( int i = 0; i < xSteps; i++ ) {
-		for( int j = 0; j < ySteps; j++ ) {
+	for( int i = 0; i < xSteps; i++ )
+	{
+		for( int j = 0; j < ySteps; j++ )
+		{
 			heightmapInd[0] = i * Step; heightmapInd[1] = j * Step;
 			unsigned char col[3];
 			colormapInd[0] = (double)heightmapInd[0] / heightmapSize[0] * colormapSize[0];

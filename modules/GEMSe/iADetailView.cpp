@@ -1,7 +1,7 @@
 /*************************************  open_iA  ************************************ *
 * **********   A tool for visual analysis and processing of 3D CT images   ********** *
 * *********************************************************************************** *
-* Copyright (C) 2016-2020  C. Heinzl, M. Reiter, A. Reh, W. Li, M. Arikan, Ar. &  Al. *
+* Copyright (C) 2016-2021  C. Heinzl, M. Reiter, A. Reh, W. Li, M. Arikan, Ar. &  Al. *
 *                 Amirkhanov, J. Weissenböck, B. Fröhler, M. Schiwarth, P. Weinberger *
 * *********************************************************************************** *
 * This program is free software: you can redistribute it and/or modify it under the   *
@@ -33,7 +33,7 @@
 #include <iAAttributeDescriptor.h>
 #include <iAChannelData.h>
 #include <iAConnector.h>
-#include <iAConsole.h>
+#include <iALog.h>
 #include <iAModality.h>
 #include <iAModalityList.h>
 #include <iAModalityTransfer.h>
@@ -254,7 +254,7 @@ void iADetailView::dblClicked()
 
 void iADetailView::changeModality(int offset)
 {
-	// TOOD: refactor to remove duplication between here and MdiChild::changeModality!
+	// TOOD: refactor to remove duplication between here and iAMdiChild::changeModality!
 	m_magicLensCurrentComponent = (m_magicLensCurrentComponent + offset);
 	if (m_magicLensCurrentComponent < 0 || static_cast<size_t>(m_magicLensCurrentComponent) >= m_modalities->get(m_magicLensCurrentModality)->componentCount())
 	{
@@ -503,7 +503,7 @@ void iADetailView::SetCorrectnessUncertaintyOverlay(bool enabled)
 {
 	if (!m_refImg)
 	{
-		DEBUG_LOG("Reference image must be set!");
+		LOG(lvlError, "Reference image must be set!");
 		return;
 	}
 	m_correctnessUncertaintyOverlayEnabled = enabled;
@@ -640,7 +640,7 @@ void iADetailView::SlicerMouseMove(int x, int y, int z, int /*c*/)
 		AddResultFilterPixel(x, y, z);
 		if (!m_resultFilterTriggerThread)
 			m_MouseButtonDown = false;
-			//DEBUG_LOG("Result Filter Trigger not yet started....");
+			//LOG(lvlError, "Result Filter Trigger not yet started....");
 		else
 			m_resultFilterTriggerThread->restart();
 	}
@@ -676,7 +676,7 @@ void iADetailView::AddResultFilterPixel(int x, int y, int z)
 	iASlicer* slicer = m_previewWidget->slicer();
 	if (!m_resultFilterChannel)
 	{
-		m_resultFilterChannel = QSharedPointer<iAChannelData>(new iAChannelData("Result Filter", m_resultFilterImg, m_resultFilterOverlayLUT, m_resultFilterOverlayOTF));
+		m_resultFilterChannel = QSharedPointer<iAChannelData>::create("Result Filter", m_resultFilterImg, m_resultFilterOverlayLUT, m_resultFilterOverlayOTF);
 		slicer->addChannel(ResultFilterChannelID, *m_resultFilterChannel.data(), true);
 	}
 	slicer->update();

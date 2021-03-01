@@ -1,7 +1,7 @@
 /*************************************  open_iA  ************************************ *
 * **********   A tool for visual analysis and processing of 3D CT images   ********** *
 * *********************************************************************************** *
-* Copyright (C) 2016-2020  C. Heinzl, M. Reiter, A. Reh, W. Li, M. Arikan, Ar. &  Al. *
+* Copyright (C) 2016-2021  C. Heinzl, M. Reiter, A. Reh, W. Li, M. Arikan, Ar. &  Al. *
 *                 Amirkhanov, J. Weissenböck, B. Fröhler, M. Schiwarth, P. Weinberger *
 * *********************************************************************************** *
 * This program is free software: you can redistribute it and/or modify it under the   *
@@ -22,7 +22,7 @@
 
 #include "iAVRInteractor.h"
 
-#include <iAConsole.h>
+#include <iALog.h>
 
 #include <vtkOpenVRRenderer.h>
 #include <vtkOpenVRRenderWindow.h>
@@ -71,7 +71,7 @@ void iAVREnvironment::start()
 	// "poor man's" check for trying to run two VR sessions in parallel:
 	if (runningInstances >= 1)
 	{
-		DEBUG_LOG("Cannot start more than one VR session in parallel!");
+		LOG(lvlWarn, "Cannot start more than one VR session in parallel!");
 		emit finished();
 		return;
 	}

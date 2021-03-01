@@ -1,7 +1,7 @@
 /*************************************  open_iA  ************************************ *
 * **********   A tool for visual analysis and processing of 3D CT images   ********** *
 * *********************************************************************************** *
-* Copyright (C) 2016-2020  C. Heinzl, M. Reiter, A. Reh, W. Li, M. Arikan, Ar. &  Al. *
+* Copyright (C) 2016-2021  C. Heinzl, M. Reiter, A. Reh, W. Li, M. Arikan, Ar. &  Al. *
 *                 Amirkhanov, J. Weissenböck, B. Fröhler, M. Schiwarth, P. Weinberger *
 * *********************************************************************************** *
 * This program is free software: you can redistribute it and/or modify it under the   *
@@ -24,11 +24,11 @@
 #include "iASamplingResults.h"
 
 #include <iAAttributeDescriptor.h>
-#include <iAConsole.h>
+#include <iALog.h>
 #include <iANameMapper.h>
 #include <iAToolsITK.h>
-#include <io/iAFileUtils.h>
-#include <io/iAITKIO.h>
+#include <iAFileUtils.h>
+#include <iAITKIO.h>
 
 #include <QFile>
 #include <QFileInfo>
@@ -52,12 +52,12 @@ QSharedPointer<iASingleResult> iASingleResult::create(
 		id = tokens[0].toInt(&ok);
 		if (!ok)
 		{
-			DEBUG_LOG(QString("Invalid result ID: %1").arg(tokens[0]));
+			LOG(lvlError, QString("Invalid result ID: %1").arg(tokens[0]));
 			return QSharedPointer<iASingleResult>();
 		}
 		else
 		{
-			DEBUG_LOG("Legacy format .sps/.chr files detected, consider replacing ' ' by ',' in those files!");
+			LOG(lvlWarn, "Legacy format .sps/.chr files detected, consider replacing ' ' by ',' in those files!");
 		}
 	}
 	QSharedPointer<iASingleResult> result(new iASingleResult(
@@ -66,7 +66,7 @@ QSharedPointer<iASingleResult> iASingleResult::create(
 	));
 	if (tokens.size() < attributes->size()+1) // +1 for ID
 	{
-		DEBUG_LOG(QString("Invalid token count(=%1), expected %2").arg(tokens.size()).arg(attributes->size()+1));
+		LOG(lvlError, QString("Invalid token count(=%1), expected %2").arg(tokens.size()).arg(attributes->size()+1));
 		return QSharedPointer<iASingleResult>();
 	}
 	for (int i = 0; i < attributes->size(); ++i)
@@ -91,7 +91,7 @@ QSharedPointer<iASingleResult> iASingleResult::create(
 		}
 		if (!ok)
 		{
-			DEBUG_LOG(QString("Could not parse attribute value # %1: '%2' (type=%3).")
+			LOG(lvlError, QString("Could not parse attribute value # %1: '%2' (type=%3).")
 				.arg(i).arg(curToken).arg(ValueType2Str(valueType)));
 			return QSharedPointer<iASingleResult>();
 		}
@@ -125,7 +125,7 @@ QString iASingleResult::toString(QSharedPointer<iAAttributes> attributes, int ty
 	QString result;
 	if (attributes->size() != m_attributeValues.size())
 	{
-		DEBUG_LOG("Non-matching attribute list given (number of descriptors and number of values don't match).");
+		LOG(lvlError, "Non-matching attribute list given (number of descriptors and number of values don't match).");
 		return result;
 	}
 	for (int i = 0; i < m_attributeValues.size(); ++i)
@@ -177,7 +177,7 @@ bool iASingleResult::loadLabelImage()
 	QFileInfo f(labelPath());
 	if (!f.exists() || f.isDir())
 	{
-		DEBUG_LOG(QString("Label Image %1 does not exist, or is not a file!").arg(labelPath()));
+		LOG(lvlError, QString("Label Image %1 does not exist, or is not a file!").arg(labelPath()));
 		return false;
 	}
 	m_labelImg = iAITKIO::readFile(labelPath(), pixelType, false);
@@ -210,7 +210,7 @@ void iASingleResult::setAttribute(int id, double value)
 {
 	if (id >= m_attributeValues.size())
 	{
-		// DEBUG_LOG(QString("Set attribute idx (=%1) > current size (=%2)\n").arg(id).arg(m_attributeValues.size()));
+		// LOG(lvlWarn, QString("Set attribute idx (=%1) > current size (=%2)\n").arg(id).arg(m_attributeValues.size()));
 		m_attributeValues.resize(id + 1);
 	}
 	m_attributeValues[id] = value;

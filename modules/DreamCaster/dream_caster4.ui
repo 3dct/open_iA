@@ -185,7 +185,7 @@
                      <string/>
                     </property>
                     <property name="icon">
-                     <iconset resource="../../core/open_iA.qrc">
+                     <iconset resource="../../libs/gui/open_iA_gui.qrc">
                       <normaloff>:/images/mini_rect.png</normaloff>:/images/mini_rect.png</iconset>
                     </property>
                     <property name="iconSize">
@@ -301,7 +301,7 @@
                      <string/>
                     </property>
                     <property name="icon">
-                     <iconset resource="../../core/open_iA.qrc">
+                     <iconset resource="../../libs/gui/open_iA_gui.qrc">
                       <normaloff>:/images/mini_rect.png</normaloff>:/images/mini_rect.png</iconset>
                     </property>
                     <property name="iconSize">
@@ -692,7 +692,7 @@
                      <string/>
                     </property>
                     <property name="icon">
-                     <iconset resource="../../core/open_iA.qrc">
+                     <iconset resource="../../libs/gui/open_iA_gui.qrc">
                       <normaloff>:/images/mini_rect.png</normaloff>:/images/mini_rect.png</iconset>
                     </property>
                     <property name="iconSize">
@@ -1259,7 +1259,7 @@
                      <string/>
                     </property>
                     <property name="icon">
-                     <iconset resource="../../core/open_iA.qrc">
+                     <iconset resource="../../libs/gui/open_iA_gui.qrc">
                       <normaloff>:/images/mini_rect.png</normaloff>:/images/mini_rect.png</iconset>
                     </property>
                     <property name="iconSize">
@@ -1898,7 +1898,7 @@
               <string/>
              </property>
              <property name="icon">
-              <iconset resource="../../core/open_iA.qrc">
+              <iconset resource="../../libs/gui/open_iA_gui.qrc">
                <normaloff>:/images/mini_rect.png</normaloff>:/images/mini_rect.png</iconset>
              </property>
              <property name="iconSize">
@@ -4529,6 +4529,19 @@
                    </widget>
                   </item>
                   <item>
+                   <widget class="QPushButton" name="pbExportCSV">
+                    <property name="sizePolicy">
+                     <sizepolicy hsizetype="Fixed" vsizetype="Fixed">
+                      <horstretch>0</horstretch>
+                      <verstretch>0</verstretch>
+                     </sizepolicy>
+                    </property>
+                    <property name="text">
+                     <string>Export csv</string>
+                    </property>
+                   </widget>
+                  </item>
+                  <item>
                    <spacer name="verticalSpacer_7">
                     <property name="orientation">
                      <enum>Qt::Vertical</enum>
@@ -6799,7 +6812,7 @@
  <layoutdefault spacing="6" margin="11"/>
  <resources>
   <include location="dreamcaster.qrc"/>
-  <include location="../../core/open_iA.qrc"/>
+  <include location="../../libs/gui/open_iA_gui.qrc"/>
  </resources>
  <connections/>
  <slots>

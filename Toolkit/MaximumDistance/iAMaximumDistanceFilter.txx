@@ -1,7 +1,7 @@
 /*************************************  open_iA  ************************************ *
 * **********   A tool for visual analysis and processing of 3D CT images   ********** *
 * *********************************************************************************** *
-* Copyright (C) 2016-2020  C. Heinzl, M. Reiter, A. Reh, W. Li, M. Arikan, Ar. &  Al. *
+* Copyright (C) 2016-2021  C. Heinzl, M. Reiter, A. Reh, W. Li, M. Arikan, Ar. &  Al. *
 *                 Amirkhanov, J. Weissenböck, B. Fröhler, M. Schiwarth, P. Weinberger *
 * *********************************************************************************** *
 * This program is free software: you can redistribute it and/or modify it under the   *
@@ -22,7 +22,7 @@
 
 #include "iAMaximumDistanceFilter.h"
 
-#include <iAConsole.h>
+#include <iALog.h>
 
 template <class TImageType>
 iAMaximumDistanceFilter<TImageType>::iAMaximumDistanceFilter()
@@ -40,12 +40,12 @@ void iAMaximumDistanceFilter<TImageType>::GenerateData()
 {
 	if (std::numeric_limits<typename TImageType::PixelType>::lowest() < 0)
 	{
-		DEBUG_LOG("Signed pixel type not supported by maximum distance filter!");
+		LOG(lvlError, "Signed pixel type not supported by maximum distance filter!");
 		return;
 	}
 	if (!std::is_integral<typename TImageType::PixelType>::value)
 	{
-		DEBUG_LOG("Non-integral pixel type not supported by maximum distance filter!");
+		LOG(lvlError, "Non-integral pixel type not supported by maximum distance filter!");
 		return;
 	}
 	if (m_centre == 0)

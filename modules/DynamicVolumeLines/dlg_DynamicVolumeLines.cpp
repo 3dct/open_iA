@@ -1,7 +1,7 @@
 /*************************************  open_iA  ************************************ *
 * **********   A tool for visual analysis and processing of 3D CT images   ********** *
 * *********************************************************************************** *
-* Copyright (C) 2016-2020  C. Heinzl, M. Reiter, A. Reh, W. Li, M. Arikan, Ar. &  Al. *
+* Copyright (C) 2016-2021  C. Heinzl, M. Reiter, A. Reh, W. Li, M. Arikan, Ar. &  Al. *
 *                 Amirkhanov, J. Weissenböck, B. Fröhler, M. Schiwarth, P. Weinberger *
 * *********************************************************************************** *
 * This program is free software: you can redistribute it and/or modify it under the   *
@@ -25,16 +25,22 @@
 #include "iAOrientationWidget.h"
 #include "iASegmentTree.h"
 
-#include "charts/iAChartWithFunctionsWidget.h"
-#include "iAColorTheme.h"
-#include "iAFunction.h"
-#include "iAFunctionalBoxplot.h"
-#include "iALUT.h"
-#include "iARenderer.h"
-#include "iATransferFunction.h"
-#include "iATypedCallHelper.h"
-#include "iAVolumeRenderer.h"
-#include "iAVtkWidget.h"
+#include <iAFunction.h>
+#include <iAFunctionalBoxplot.h>
+#include <iAJobListView.h>
+#include <iALUT.h>
+#include <iAMdiChild.h>
+#include <iAModality.h>
+#include <iAModalityTransfer.h>
+#include <iARenderer.h>
+#include <iAVolumeRenderer.h>
+#include <iAVtkWidget.h>
+
+#include <iAChartWithFunctionsWidget.h>
+
+#include <iAColorTheme.h>
+#include <iATransferFunction.h>
+#include <iATypedCallHelper.h>
 
 #include <vtkAbstractVolumeMapper.h>
 #include <vtkActor.h>
@@ -60,6 +66,9 @@
 #include <vtkTextProperty.h>
 #include <vtkVolumeProperty.h>
 
+#include <QMessageBox>
+#include <QThread>
+
 const double impInitValue = 0.025;
 const double offsetY = 1000;
 const QString plotColor = "DVL-Metro Colors (max. 17)";	// Brewer Qualitaive 1 (max. 8) // DVL-Metro Colors (max. 17)
@@ -78,7 +87,7 @@ void winModCallback(vtkObject *caller, long unsigned int vtkNotUsed(eventId),
 dlg_DynamicVolumeLines::dlg_DynamicVolumeLines(QWidget *parent /*= 0*/, QDir datasetsDir, Qt::WindowFlags f /*= 0 */) :
 	DynamicVolumeLinesConnector(parent, f),
 	m_datasetsDir(datasetsDir),
-	m_mdiChild(static_cast<MdiChild*>(parent)),
+	m_mdiChild(static_cast<iAMdiChild*>(parent)),
 	m_nonlinearScaledPlot(new QCustomPlot(dockWidgetContents)),
 	m_linearScaledPlot(new QCustomPlot(dockWidgetContents)),
 	m_scalingWidget(nullptr),
@@ -90,7 +99,6 @@ dlg_DynamicVolumeLines::dlg_DynamicVolumeLines(QWidget *parent /*= 0*/, QDir dat
 	m_mrvBGRen(vtkSmartPointer<vtkRenderer>::New()),
 	m_mrvTxtAct(vtkSmartPointer<vtkTextActor>::New())
 {
-	connect(&m_iMProgress, &iAProgress::progress, this, &dlg_DynamicVolumeLines::updateIntensityMapperProgress);
 	m_mdiChild->renderer()->setAreaPicker();
 
 	m_nonlinearScaledPlot->setObjectName("nonlinear");
@@ -309,10 +317,10 @@ void dlg_DynamicVolumeLines::setupMultiRendererView()
 
 void dlg_DynamicVolumeLines::generateHilbertIdx()
 {
-	m_mdiChild->initProgressBar();
 	QThread *thread = new QThread;
 	iAIntensityMapper *im = new iAIntensityMapper(m_iMProgress, m_datasetsDir, PathNameToId[cb_Paths->currentText()],
 		m_DatasetIntensityMap, m_imgDataList, m_minEnsembleIntensity, m_maxEnsembleIntensity);
+	iAJobListView::get()->addJob("Running Intensity mapper", &m_iMProgress, thread);
 	im->moveToThread(thread);
 	connect(thread, &QThread::started, im, &iAIntensityMapper::process);
 	connect(im, &iAIntensityMapper::finished, thread, &QThread::quit);
@@ -320,11 +328,6 @@ void dlg_DynamicVolumeLines::generateHilbertIdx()
 	connect(thread, &QThread::finished, thread, &QThread::deleteLater);
 	connect(thread, &QThread::finished, this, &dlg_DynamicVolumeLines::visualize);
 	thread->start();
-}
-
-void dlg_DynamicVolumeLines::updateIntensityMapperProgress(int progress)
-{
-	m_mdiChild->updateProgressBar(progress);
 }
 
 void dlg_DynamicVolumeLines::visualizePath()
@@ -364,8 +367,6 @@ void dlg_DynamicVolumeLines::visualizePath()
 
 void dlg_DynamicVolumeLines::visualize()
 {
-	m_mdiChild->hideProgressBar();
-
 	//TODO: refactor!?
 	m_nonlinearScaledPlot->clearGraphs();
 	m_nonlinearScaledPlot->clearItems();
@@ -469,7 +470,7 @@ void dlg_DynamicVolumeLines::visualize()
 	auto nonlinearFBPData = new iAFunctionalBoxplot<double, double>(nonlinearFCPFunctions, &nl_measure, 2);
 	setupFBPGraphs(m_nonlinearScaledPlot, nonlinearFBPData);
 
-	m_nonlinearTicker = QSharedPointer<iANonLinearAxisTicker>(new iANonLinearAxisTicker);
+	m_nonlinearTicker = QSharedPointer<iANonLinearAxisTicker>::create();
 	m_nonlinearTicker->setTickData(m_nonlinearMappingVec);
 	m_nonlinearTicker->setAxis(m_nonlinearScaledPlot->xAxis);
 	m_nonlinearScaledPlot->xAxis->setTicker(m_nonlinearTicker);
@@ -1568,14 +1569,14 @@ void dlg_DynamicVolumeLines::setSelectionForRenderer(QList<QCPGraph *> visSelGra
 			visSelGraphList[i]->pen().color().blueF());
 
 		vtkSmartPointer<vtkColorTransferFunction> cTF = vtkSmartPointer<vtkColorTransferFunction>::New();
-		cTF->ShallowCopy(m_mdiChild->colorTF());
+		cTF->ShallowCopy(m_mdiChild->modality(0)->transfer()->colorTF());
 		int index = cTF->GetSize() - 1;
 		double val[6] = { 0.0, 0.0, 0.0, 0.0, 0.0, 0.0 };
 		cTF->GetNodeValue(index, val);
 		val[1] = 1.0;	val[2] = 0.0;	val[3] = 0.0;
 		cTF->SetNodeValue(index, val);
 		vtkSmartPointer<vtkPiecewiseFunction> oTF = vtkSmartPointer<vtkPiecewiseFunction>::New();
-		oTF->ShallowCopy(m_mdiChild->opacityTF());
+		oTF->ShallowCopy(m_mdiChild->modality(0)->transfer()->opacityTF());
 
 		iASimpleTransferFunction tf(cTF, oTF);
 		//iASimpleTransferFunction tf(m_mdiChild->colorTF(), m_mdiChild->opacityTF());
@@ -1589,7 +1590,7 @@ void dlg_DynamicVolumeLines::setSelectionForRenderer(QList<QCPGraph *> visSelGra
 			1 - (ceil((i + 1.0) / viewportCols) / viewportRows) + fieldLengthY);
 		ren->AddViewProp(cornerAnnotation);
 		ren->ResetCamera();
-		m_volRen = QSharedPointer<iAVolumeRenderer>(new iAVolumeRenderer(&tf, m_imgDataList[datasetIdx]));
+		m_volRen = QSharedPointer<iAVolumeRenderer>::create(&tf, m_imgDataList[datasetIdx]);
 		m_volRen->applySettings(m_mdiChild->volumeSettings());
 		m_volRen->addTo(ren);
 		m_volRen->addBoundingBoxTo(ren);
@@ -1770,8 +1771,8 @@ void dlg_DynamicVolumeLines::setupDebugPlot()
 
 void dlg_DynamicVolumeLines::showDebugPlot()
 {
-	m_impFuncPlotData = QSharedPointer<QCPGraphDataContainer>(new QCPGraphDataContainer);
-	m_integralImpFuncPlotData = QSharedPointer<QCPGraphDataContainer>(new QCPGraphDataContainer);
+	m_impFuncPlotData = QSharedPointer<QCPGraphDataContainer>::create();
+	m_integralImpFuncPlotData = QSharedPointer<QCPGraphDataContainer>::create();
 	for (int i = 0; i < m_nonlinearMappingVec.size(); ++i)
 	{
 		m_impFuncPlotData->add(QCPGraphData(double(i), m_impFunctVec[i]));

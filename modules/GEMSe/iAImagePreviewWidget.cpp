@@ -1,7 +1,7 @@
 /*************************************  open_iA  ************************************ *
 * **********   A tool for visual analysis and processing of 3D CT images   ********** *
 * *********************************************************************************** *
-* Copyright (C) 2016-2020  C. Heinzl, M. Reiter, A. Reh, W. Li, M. Arikan, Ar. &  Al. *
+* Copyright (C) 2016-2021  C. Heinzl, M. Reiter, A. Reh, W. Li, M. Arikan, Ar. &  Al. *
 *                 Amirkhanov, J. Weissenböck, B. Fröhler, M. Schiwarth, P. Weinberger *
 * *********************************************************************************** *
 * This program is free software: you can redistribute it and/or modify it under the   *
@@ -26,8 +26,8 @@
 #include <iAChannelSlicerData.h>
 #include <iAColorTheme.h>
 #include <iAConnector.h>
-#include <iAConsole.h>
-#include <iASlicer.h>
+#include <iALog.h>
+#include <iASlicerImpl.h>
 #include <iASlicerSettings.h>
 
 #include <vtkDiscretizableColorTransferFunction.h>
@@ -72,7 +72,7 @@ iAImagePreviewWidget::iAImagePreviewWidget(QString const & title, QWidget* paren
 	m_aspectRatio(1.0),
 	m_colorTheme(nullptr)
 {
-	m_slicer = new iASlicer(this, mode, false, magicLens, m_slicerTransform);
+	m_slicer = new iASlicerImpl(this, mode, false, magicLens, m_slicerTransform);
 	m_slicer->setup(iASingleSlicerSettings());
 	m_slicer->setBackground(SLICER_BACKGROUND_COLOR[0], SLICER_BACKGROUND_COLOR[1], SLICER_BACKGROUND_COLOR[2]);
 	if (m_sliceNumber == SliceNumberNotSet)
@@ -203,7 +203,7 @@ void iAImagePreviewWidget::setImage(iAITKIO::ImagePointer const img, bool empty,
 {
 	if (!img)
 	{
-		DEBUG_LOG("iAImagePreviewWidget::setImage called with nullptr image!\n");
+		LOG(lvlError, "iAImagePreviewWidget::setImage called with nullptr image!\n");
 		return;
 	}
 	if (!m_conn)
@@ -218,7 +218,7 @@ void iAImagePreviewWidget::addNoMapperChannel(vtkSmartPointer<vtkImageData> img)
 {
 	if (m_addChannelImgActor)
 	{
-		DEBUG_LOG("Failsafe Remove Actor required");
+		LOG(lvlError, "Failsafe Remove Actor required");
 		m_slicer->removeImageActor(m_addChannelImgActor);
 	}
 	m_addChannelImgActor = vtkSmartPointer<vtkImageActor>::New();

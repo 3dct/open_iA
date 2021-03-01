@@ -1,7 +1,7 @@
 /*************************************  open_iA  ************************************ *
 * **********   A tool for visual analysis and processing of 3D CT images   ********** *
 * *********************************************************************************** *
-* Copyright (C) 2016-2020  C. Heinzl, M. Reiter, A. Reh, W. Li, M. Arikan, Ar. &  Al. *
+* Copyright (C) 2016-2021  C. Heinzl, M. Reiter, A. Reh, W. Li, M. Arikan, Ar. &  Al. *
 *                 Amirkhanov, J. Weissenböck, B. Fröhler, M. Schiwarth, P. Weinberger *
 * *********************************************************************************** *
 * This program is free software: you can redistribute it and/or modify it under the   *
@@ -32,9 +32,9 @@
 #include "iATreeView.h"
 #include "FeatureAnalyzerHelpers.h"
 
-#include <iAConsole.h>
+#include <iALog.h>
 #include <iACSVToQTableWidgetConverter.h>
-#include <io/iAITKIO.h>
+#include <iAITKIO.h>
 #include <io/iAIOProvider.h>
 
 #include <vtkIdTypeArray.h>
@@ -50,7 +50,7 @@
 #include <QStatusBar>
 #include <QTreeWidget>
 
-iAFeatureAnalyzer::iAFeatureAnalyzer(MainWindow *mWnd, const QString & resDir, const QString & datasetsDir, QWidget * parent /*= 0*/, Qt::WindowFlags f /*= 0 */ ):
+iAFeatureAnalyzer::iAFeatureAnalyzer(iAMainWindow *mWnd, const QString & resDir, const QString & datasetsDir, QWidget * parent /*= 0*/, Qt::WindowFlags f /*= 0 */ ):
 	FeatureAnalyzerConnector( parent, f ),
 	m_dataDir( resDir ),
 	m_datasetsDir( datasetsDir ),
@@ -417,13 +417,13 @@ bool iAFeatureAnalyzer::doSaveProject(QString const& projectFileName)
 	
 	if (!projectFileName.toLower().endsWith(iAIOProvider::NewProjectFileExtension))
 	{
-		DEBUG_LOG(QString("Only extension %1 is supported!").arg(iAIOProvider::NewProjectFileExtension));
+		LOG(lvlError, QString("Only extension %1 is supported!").arg(iAIOProvider::NewProjectFileExtension));
 		return false;
 	}
-	// TODO: Unify with MdiChild::doSaveProject
+	// TODO: Unify with iAMdiChild::doSaveProject
 	QSettings projectFile(projectFileName, QSettings::IniFormat);
 	projectFile.setIniCodec("UTF-8");
-	projectFile.setValue("UseMdiChild", false);
+	projectFile.setValue("UseiAMdiChild", false);
 	projectFile.beginGroup(iAFeatureAnalyzerProject::ID);
 	project.saveProject(projectFile, projectFileName);
 	projectFile.endGroup();

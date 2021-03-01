@@ -1,7 +1,7 @@
 /*************************************  open_iA  ************************************ *
 * **********   A tool for visual analysis and processing of 3D CT images   ********** *
 * *********************************************************************************** *
-* Copyright (C) 2016-2020  C. Heinzl, M. Reiter, A. Reh, W. Li, M. Arikan, Ar. &  Al. *
+* Copyright (C) 2016-2021  C. Heinzl, M. Reiter, A. Reh, W. Li, M. Arikan, Ar. &  Al. *
 *                 Amirkhanov, J. Weissenböck, B. Fröhler, M. Schiwarth, P. Weinberger *
 * *********************************************************************************** *
 * This program is free software: you can redistribute it and/or modify it under the   *
@@ -25,7 +25,6 @@
 #include <iAProgress.h>
 #include <iAToolsITK.h>
 #include <iATypedCallHelper.h>
-#include <mdichild.h>
 
 #include <itkBSplineInterpolateImageFunction.h>
 #include <itkChangeInformationImageFilter.h>
@@ -46,19 +45,22 @@ namespace
 	const QString InterpWindowedSinc("Windowed Sinc");
 }
 
-template<typename T> void resampler(iAFilter* filter, QMap<QString, QVariant> const & parameters)
+template<typename T> void simpleResampler(iAFilter* filter, QMap<QString, QVariant> const & parameters)
 {
+
+	double VoxelScale = 0.999; //Used because otherwise is a one voxel border with 0
+
 	typedef itk::Image<T, DIM> InputImageType;
 	typedef itk::ResampleImageFilter<InputImageType, InputImageType> ResampleFilterType;
 	auto resampler = ResampleFilterType::New();
 	typename ResampleFilterType::OriginPointType origin;
-	origin[0] = parameters["Origin X"].toUInt();
-	origin[1] = parameters["Origin Y"].toUInt();
-	origin[2] = parameters["Origin Z"].toUInt();
+	origin[0] = filter->input()[0]->itkImage()->GetOrigin()[0];
+	origin[1] = filter->input()[0]->itkImage()->GetOrigin()[1];
+	origin[2] = filter->input()[0]->itkImage()->GetOrigin()[2];
 	typename ResampleFilterType::SpacingType spacing;
-	spacing[0] = parameters["Spacing X"].toDouble();
-	spacing[1] = parameters["Spacing Y"].toDouble();
-	spacing[2] = parameters["Spacing Z"].toDouble();
+	spacing[0] = filter->input()[0]->itkImage()->GetSpacing()[0] * ((double)filter->input()[0]->vtkImage()->GetDimensions()[0] / parameters["Size X"].toDouble() * VoxelScale);
+	spacing[1] = filter->input()[0]->itkImage()->GetSpacing()[1] * ((double)filter->input()[0]->vtkImage()->GetDimensions()[1] / parameters["Size Y"].toDouble() * VoxelScale);
+	spacing[2] = filter->input()[0]->itkImage()->GetSpacing()[2] * ((double)filter->input()[0]->vtkImage()->GetDimensions()[2] / parameters["Size Z"].toDouble() * VoxelScale);
 	typename ResampleFilterType::SizeType size;
 	size[0] = parameters["Size X"].toUInt();
 	size[1] = parameters["Size Y"].toUInt();
@@ -104,6 +106,94 @@ template<typename T> void resampler(iAFilter* filter, QMap<QString, QVariant> co
 	filter->addOutput( resampler->GetOutput() );
 }
 
+
+IAFILTER_CREATE(iASimpleResampleFilter)
+
+void iASimpleResampleFilter::performWork(QMap<QString, QVariant> const& parameters)
+{
+	ITK_TYPED_CALL(simpleResampler, inputPixelType(), this, parameters);
+}
+
+iASimpleResampleFilter::iASimpleResampleFilter() :
+	iAFilter("Simple Resample", "Geometric Transformations",
+		"Resample the image to a new size.<br/>"
+		"For more information, see the "
+		"<a href=\"https ://itk.org/Doxygen/html/classitk_1_1ResampleImageFilter.html\">"
+		"Resample Filter</a> in the ITK documentation.")
+{
+	addParameter("Size X", iAValueType::Discrete, 1, 1);
+	addParameter("Size Y", iAValueType::Discrete, 1, 1);
+	addParameter("Size Z", iAValueType::Discrete, 1, 1);
+	QStringList interpolators;
+	interpolators << InterpLinear << InterpNearestNeighbour << InterpBSpline << InterpWindowedSinc;
+	addParameter("Interpolator", iAValueType::Categorical, interpolators);
+}
+
+void iASimpleResampleFilter::adaptParametersToInput(QMap<QString, QVariant>& params, vtkSmartPointer<vtkImageData> img)
+{
+	params["Size X"] = img->GetDimensions()[0];
+	params["Size Y"] = img->GetDimensions()[1];
+	params["Size Z"] = img->GetDimensions()[2];
+}
+
+
+
+template <typename T>
+void resampler(iAFilter* filter, QMap<QString, QVariant> const& parameters)
+{
+	typedef itk::Image<T, DIM> InputImageType;
+	typedef itk::ResampleImageFilter<InputImageType, InputImageType> ResampleFilterType;
+	auto resampler = ResampleFilterType::New();
+	typename ResampleFilterType::OriginPointType origin;
+	origin[0] = parameters["Origin X"].toUInt();
+	origin[1] = parameters["Origin Y"].toUInt();
+	origin[2] = parameters["Origin Z"].toUInt();
+	typename ResampleFilterType::SpacingType spacing;
+	spacing[0] = parameters["Spacing X"].toDouble();
+	spacing[1] = parameters["Spacing Y"].toDouble();
+	spacing[2] = parameters["Spacing Z"].toDouble();
+	typename ResampleFilterType::SizeType size;
+	size[0] = parameters["Size X"].toUInt();
+	size[1] = parameters["Size Y"].toUInt();
+	size[2] = parameters["Size Z"].toUInt();
+	QString interpolatorName = parameters["Interpolator"].toString();
+	if (interpolatorName == InterpLinear)
+	{
+		typedef itk::LinearInterpolateImageFunction<InputImageType, double> InterpolatorType;
+		auto interpolator = InterpolatorType::New();
+		resampler->SetInterpolator(interpolator);
+	}
+	else if (interpolatorName == InterpNearestNeighbour)
+	{
+		typedef itk::NearestNeighborInterpolateImageFunction<InputImageType, double> InterpolatorType;
+		auto interpolator = InterpolatorType::New();
+		resampler->SetInterpolator(interpolator);
+	}
+	else if (interpolatorName == InterpBSpline)
+	{
+		typedef itk::BSplineInterpolateImageFunction<InputImageType, double> InterpolatorType;
+		auto interpolator = InterpolatorType::New();
+		resampler->SetInterpolator(interpolator);
+	}
+	else if (interpolatorName == InterpWindowedSinc)
+	{
+		typedef itk::Function::HammingWindowFunction<3> WindowFunctionType;
+		typedef itk::ZeroFluxNeumannBoundaryCondition<InputImageType> ConditionType;
+		typedef itk::WindowedSincInterpolateImageFunction<InputImageType, 3, WindowFunctionType, ConditionType, double>
+			InterpolatorType;
+		auto interpolator = InterpolatorType::New();
+		resampler->SetInterpolator(interpolator);
+	}
+	resampler->SetInput(dynamic_cast<InputImageType*>(filter->input()[0]->itkImage()));
+	resampler->SetOutputOrigin(origin);
+	resampler->SetOutputSpacing(spacing);
+	resampler->SetSize(size);
+	resampler->SetDefaultPixelValue(0);
+	filter->progress()->observe(resampler);
+	resampler->Update();
+	filter->addOutput(resampler->GetOutput());
+}
+
 IAFILTER_CREATE(iAResampleFilter)
 
 void iAResampleFilter::performWork(QMap<QString, QVariant> const & parameters)
@@ -136,21 +226,14 @@ iAResampleFilter::iAResampleFilter() :
 	addParameter("Interpolator", iAValueType::Categorical, interpolators);
 }
 
-QSharedPointer<iAFilterRunnerGUI> iAResampleFilterRunner::create()
+void iAResampleFilter::adaptParametersToInput(QMap<QString, QVariant>& params, vtkSmartPointer<vtkImageData> img)
 {
-	return QSharedPointer<iAFilterRunnerGUI>(new iAResampleFilterRunner());
-}
-
-QMap<QString, QVariant> iAResampleFilterRunner::loadParameters(QSharedPointer<iAFilter> filter, MdiChild* sourceMdi)
-{
-	auto params = iAFilterRunnerGUI::loadParameters(filter, sourceMdi);
-	params["Spacing X"] = sourceMdi->imagePointer()->GetSpacing()[0];
-	params["Spacing Y"] = sourceMdi->imagePointer()->GetSpacing()[1];
-	params["Spacing Z"] = sourceMdi->imagePointer()->GetSpacing()[2];
-	params["Size X"] = sourceMdi->imagePointer()->GetDimensions()[0];
-	params["Size Y"] = sourceMdi->imagePointer()->GetDimensions()[1];
-	params["Size Z"] = sourceMdi->imagePointer()->GetDimensions()[2];
-	return params;
+	params["Spacing X"] = img->GetSpacing()[0];
+	params["Spacing Y"] = img->GetSpacing()[1];
+	params["Spacing Z"] = img->GetSpacing()[2];
+	params["Size X"]    = img->GetDimensions()[0];
+	params["Size Y"]    = img->GetDimensions()[1];
+	params["Size Z"]    = img->GetDimensions()[2];
 }
 
 
@@ -199,25 +282,24 @@ iAExtractImageFilter::iAExtractImageFilter() :
 	addParameter("Size Z", iAValueType::Discrete, 1, 1);
 }
 
-QSharedPointer<iAFilterRunnerGUI> iAExtractImageFilterRunner::create()
+void iAExtractImageFilter::adaptParametersToInput(QMap<QString, QVariant>& params, vtkSmartPointer<vtkImageData> img)
 {
-	return QSharedPointer<iAFilterRunnerGUI>(new iAExtractImageFilterRunner());
-}
-
-QMap<QString, QVariant> iAExtractImageFilterRunner::loadParameters(QSharedPointer<iAFilter> filter, MdiChild* sourceMdi)
-{
-	auto params = iAFilterRunnerGUI::loadParameters(filter, sourceMdi);
-	int const * dim = sourceMdi->imagePointer()->GetDimensions();
+	int const* dim = img->GetDimensions();
 	if (params["Index X"].toUInt() >= static_cast<unsigned int>(dim[0]))
+	{
 		params["Index X"] = 0;
+	}
 	if (params["Index Y"].toUInt() >= static_cast<unsigned int>(dim[1]))
+	{
 		params["Index Y"] = 0;
+	}
 	if (params["Index Z"].toUInt() >= static_cast<unsigned int>(dim[2]))
+	{
 		params["Index Z"] = 0;
+	}
 	params["Size X"] = std::min(params["Size X"].toUInt(), dim[0] - params["Index X"].toUInt());
 	params["Size Y"] = std::min(params["Size Y"].toUInt(), dim[1] - params["Index Y"].toUInt());
 	params["Size Z"] = std::min(params["Size Z"].toUInt(), dim[2] - params["Index Z"].toUInt());
-	return params;
 }
 
 

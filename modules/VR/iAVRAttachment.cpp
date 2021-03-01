@@ -1,7 +1,7 @@
 /*************************************  open_iA  ************************************ *
 * **********   A tool for visual analysis and processing of 3D CT images   ********** *
 * *********************************************************************************** *
-* Copyright (C) 2016-2020  C. Heinzl, M. Reiter, A. Reh, W. Li, M. Arikan, Ar. &  Al. *
+* Copyright (C) 2016-2021  C. Heinzl, M. Reiter, A. Reh, W. Li, M. Arikan, Ar. &  Al. *
 *                 Amirkhanov, J. Weissenböck, B. Fröhler, M. Schiwarth, P. Weinberger *
 * *********************************************************************************** *
 * This program is free software: you can redistribute it and/or modify it under the   *
@@ -23,12 +23,13 @@
 #include "iAVREnvironment.h"
 
 // FeatureScout - 3D cylinder visualization
-#include "dlg_CSVInput.h"
 #include "iA3DCylinderObjectVis.h"
 #include "iACsvConfig.h"
-#include "iACsvVtkTableCreator.h"
 
-#include <qthelper/iADockWidgetWrapper.h>
+// qthelper
+#include <iADockWidgetWrapper.h>
+
+// core
 #include <iAModality.h>
 #include <iAModalityTransfer.h>
 #include <iAVolumeRenderer.h>
@@ -37,18 +38,18 @@
 #include <vtkTable.h>
 
 // must be after vtk includes, otherwise -> #error:  gl.h included before glew.h
-#include <mdichild.h>
-#include <mainwindow.h>
+#include <iAMdiChild.h>
+#include <iAMainWindow.h>
 
 #include <QPushButton>
 
-iAVRAttachment::iAVRAttachment( MainWindow * mainWnd, MdiChild* child )
+iAVRAttachment::iAVRAttachment( iAMainWindow * mainWnd, iAMdiChild* child )
 	: iAModuleAttachmentToChild( mainWnd, child )
 {
 	m_toggleVR = new QPushButton("Start VR");
 	iADockWidgetWrapper* vrDockWidget = new iADockWidgetWrapper(m_toggleVR, "VR", "vrDockWidget");
 	connect(m_toggleVR, &QPushButton::clicked, this, &iAVRAttachment::toggleVR);
-	child->splitDockWidget(child->logDockWidget(), vrDockWidget, Qt::Horizontal);
+	child->splitDockWidget(child->renderDockWidget(), vrDockWidget, Qt::Horizontal);
 }
 
 void iAVRAttachment::toggleVR()
@@ -61,7 +62,7 @@ void iAVRAttachment::toggleVR()
 	m_toggleVR->setText("Stop VR");
 	m_vrEnv.reset(new iAVREnvironment);
 	connect(m_vrEnv.data(), &iAVREnvironment::finished, this, &iAVRAttachment::vrDone);
-	m_volumeRenderer = QSharedPointer<iAVolumeRenderer>(new iAVolumeRenderer(m_child->modality(0)->transfer().data(), m_child->modality(0)->image()));
+	m_volumeRenderer = QSharedPointer<iAVolumeRenderer>::create(m_child->modality(0)->transfer().data(), m_child->modality(0)->image());
 	m_volumeRenderer->applySettings(m_child->volumeSettings());
 	m_volumeRenderer->addTo(m_vrEnv->renderer());
 	m_volumeRenderer->addBoundingBoxTo(m_vrEnv->renderer());
