@@ -331,3 +331,9 @@ a {
   display: inline-block;
   width: 8em;
 }
+#checkSumContainer {
+  display: none;
+}
+.checkSumLine {
+  margin-bottom: 1rem;
+}

@@ -26,13 +26,25 @@
         </ul>
         <div>
           <div class="line-heading">Windows (Full)</div>
-          <a href="https://github.com/3dct/open_iA/releases/download/2020.09/open_iA-2020.09_with_Cuda.exe" class="btn">Installer (.exe, 360MB)</a>
-          <a href="https://github.com/3dct/open_iA/releases/download/2020.09/open_iA-2020.09_with_Cuda.zip" class="btn">Portable (.zip, 518MB)</a>
+          <a href="https://github.com/3dct/open_iA/releases/download/2020.09/open_iA_with_Cuda-2020.09.exe" class="btn">Installer (.exe, 360MB)</a>
+          <a href="https://github.com/3dct/open_iA/releases/download/2020.09/open_iA_with_Cuda-2020.09.zip" class="btn">Portable (.zip, 518MB)</a>
           <span></span>
         </div><div>
           <div class="line-heading">Windows (Lite)</div>
           <a href="https://github.com/3dct/open_iA/releases/download/2020.09/open_iA-2020.09.exe" class="btn">Installer (.exe, 31MB)</a>
           <a href="https://github.com/3dct/open_iA/releases/download/2020.09/open_iA-2020.09.zip" class="btn">Portable (.zip, 41MB)</a>
+        </div><div class="checkSumLine">
+          <div>Checksums (SHA512) <a id="checkSumButton">&gt;</a></div>
+          <ul id="checkSumContainer">
+              <li>open_iA-2020.09.exe:
+<pre>ab2e4a3f1abe47891e46fa2ef3e3e77e8401a72dbc76ffe19faf0bc7b54d5bc78acc7e651412e550fbbddaa9ce5aa8486133308fc2b559e79e05ceb8c96c2d6c</pre></li>
+              <li>open_iA-2020.09.zip:
+<pre>6a74f7a2e4930ec2d2f816f9849cf904509e721a6d9d54189134b64fe592894ac5628d77e5018607802f39a86185ee0ec6c213ae20b1ee44fbb9a39d30fa417c</pre></li>
+              <li>open_iA_with_Cuda-2020.09.exe:
+<pre>29ded76a20ae10a1be0be4d3a69de1d4f765a77f86dd32085ed5a10426eb8b66967b71ed038f0eb2f2ea8da3f3a61642e7fd185aa6f32da72277123fa67a122e</pre></li>
+              <li>open_iA_with_Cuda-2020.09.zip:
+<pre>cbc656a4826982f784bdadc1844ff2df6cbfddd854f352253f6a0bd7d9e733c35241bc0d309b5bc3863ce57cfdd2b6067abefb92a2850ba2b89070256b86c80c</pre></li>
+          </ul>
         </div><div>
           <div class="line-heading">Linux</div>
           <a href="https://github.com/3dct/open_iA/wiki/Flatpak" class="btn">Flatpak</a>
@@ -62,5 +74,14 @@
         <span class="site-footer-credits">This page is using a modified version of the <a href="https://github.com/jasonlong/cayman-theme">Cayman theme</a> by <a href="https://twitter.com/jasonlong">Jason Long</a>.</span>
       </footer>
     </section>
+    <script type="text/javascript">
+    checkSumButton.addEventListener('click', function()
+    {
+        prevStyle = window.getComputedStyle(document.getElementById('checkSumContainer')).display;
+        console.log("display: '"+prevStyle+"'");
+        checkSumContainer.style['display'] = prevStyle === 'none'?'block':'none';
+        checkSumButton.innerText = prevStyle === 'none'? 'v' : '>';
+    });
+  </script>
   </body>
 </html>
