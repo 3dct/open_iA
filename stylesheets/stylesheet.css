@@ -117,7 +117,7 @@ a {
   }
 
 .project-tagline {
-  margin-bottom: 2rem;
+  margin-bottom: 0rem;
   font-weight: normal;
   opacity: 0.7;
 }
@@ -166,57 +166,19 @@ a {
 }
 
 .main-content pre {
-  padding: 0.8rem;
+  padding: 0.4rem;
   margin-top: 0;
   margin-bottom: 1rem;
-  font: 1rem Consolas, "Liberation Mono", Menlo, Courier, monospace;
+  font: 0.9rem Consolas, "Liberation Mono", Menlo, Courier, monospace;
+  font-size: 0.9rem;
   color: #567482;
   word-wrap: normal;
   background-color: #f3f6fa;
   border: solid 1px #dce6f0;
   border-radius: 0.3rem;
-}
-  .main-content pre > code {
-    padding: 0;
-    margin: 0;
-    font-size: 0.9rem;
-    color: #567482;
-    word-break: normal;
-    white-space: pre;
-    background: transparent;
-    border: 0;
-  }
-
-.main-content .highlight {
-  margin-bottom: 1rem;
-}
-  .main-content .highlight pre {
-    margin-bottom: 0;
-    word-break: normal;
-  }
-
-.main-content .highlight pre, .main-content pre {
-  padding: 0.8rem;
   overflow: auto;
-  font-size: 0.9rem;
-  line-height: 1.45;
-  border-radius: 0.3rem;
+  line-height: 1.1;
 }
-
-.main-content pre code, .main-content pre tt {
-  display: inline;
-  max-width: initial;
-  padding: 0;
-  margin: 0;
-  overflow: initial;
-  line-height: inherit;
-  word-wrap: normal;
-  background-color: transparent;
-  border: 0;
-}
-  .main-content pre code:before, .main-content pre code:after, .main-content pre tt:before, .main-content pre tt:after {
-    content: normal;
-  }
 
 .main-content ul, .main-content ol {
   margin-top: 0;
@@ -321,7 +283,7 @@ a {
   }
 
 .highlights {
-	margin: 5px auto 15px auto;
+	margin: 5px auto 5px auto;
 }
   .highlights a {
     font-weight: bold;
