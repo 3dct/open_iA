@@ -254,7 +254,6 @@ a {
 }
 
 .site-footer {
-  padding-top: 2rem;
   margin-top: 2rem;
   border-top: solid 1px #eff0f1;
 }
@@ -293,9 +292,12 @@ a {
   display: inline-block;
   width: 8em;
 }
-#checkSumContainer {
-  display: none;
-}
 .checkSumLine {
   margin-bottom: 1rem;
+}
+summary::-webkit-details-marker {
+  color: rgba(21, 153, 87, 0.8);
+}
+summary:focus {
+  outline-style: none;
 }
