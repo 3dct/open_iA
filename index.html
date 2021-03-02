@@ -8,6 +8,7 @@
     <link href='https://fonts.googleapis.com/css?family=Open+Sans:400,700' rel='stylesheet' type='text/css'>
     <link rel="stylesheet" type="text/css" href="stylesheets/stylesheet.css" media="screen">
     <link rel="stylesheet" type="text/css" href="stylesheets/github-light.css" media="screen">
+    <script type="text/javascript" src="code.js"></script>
   </head>
   <body>
     <section class="page-header">
@@ -74,14 +75,6 @@
         <span class="site-footer-credits">This page is using a modified version of the <a href="https://github.com/jasonlong/cayman-theme">Cayman theme</a> by <a href="https://twitter.com/jasonlong">Jason Long</a>.</span>
       </footer>
     </section>
-    <script type="text/javascript">
-    checkSumButton.addEventListener('click', function()
-    {
-        prevStyle = window.getComputedStyle(document.getElementById('checkSumContainer')).display;
-        console.log("display: '"+prevStyle+"'");
-        checkSumContainer.style['display'] = prevStyle === 'none'?'block':'none';
-        checkSumButton.innerText = prevStyle === 'none'? 'v' : '>';
-    });
   </script>
   </body>
 </html>
