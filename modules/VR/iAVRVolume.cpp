@@ -20,7 +20,7 @@
 * ************************************************************************************/
 #include "iAVRVolume.h"
 
-#include <iAConsole.h>
+#include <iALog.h>
 #include <iA3DCylinderObjectVis.h>
 #include <iAVRMetrics.h>
 

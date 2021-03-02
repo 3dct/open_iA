@@ -29,14 +29,13 @@
 #include "vtkUnsignedCharArray.h"
 #include "vtkLookupTable.h"
 #include "vtkColorTransferFunction.h"
-#include "vtkNamedColors.h"
 #include "vtkCellPicker.h"
 #include "vtkProp3DCollection.h"
 #include "vtkVertexGlyphFilter.h"
 #include <vtkAlgorithmOutput.h>
 #include <vtkCubeSource.h>
 
-#include <iAConsole.h>
+#include <iALog.h>
 #include <iAvec3.h>
 #include <math.h>
 

@@ -20,7 +20,7 @@
 * ************************************************************************************/
 #include "iAVRDistributionVis.h"
 
-#include <iAConsole.h>
+#include <iALog.h>
 #include <iAvec3.h>
 
 #include <vtkMath.h>
@@ -87,7 +87,7 @@ void iAVRDistributionVis::createVisualization(double* pos, double visSize, doubl
 {
 	if (regions->size() < 2)
 	{
-		DEBUG_LOG("Too few regions selected!");
+		LOG(lvlDebug,"Too few regions selected!");
 		return;
 	}
 	//Clean Up and start fresh
@@ -105,8 +105,8 @@ void iAVRDistributionVis::createVisualization(double* pos, double visSize, doubl
 	m_radius = visSize + offset;
 	m_offsetFromCenter = offset + (m_radius/offset);
 
-	//DEBUG_LOG(QString("m_radius = %1").arg(m_radius));
-	//DEBUG_LOG(QString("m_offsetFromCenter = %1").arg(m_offsetFromCenter));
+	//LOG(lvlDebug,QString("m_radius = %1").arg(m_radius));
+	//LOG(lvlDebug,QString("m_offsetFromCenter = %1").arg(m_offsetFromCenter));
 
 	// Create a circle
 	vtkSmartPointer<vtkRegularPolygonSource> polygonSource = vtkSmartPointer<vtkRegularPolygonSource>::New();

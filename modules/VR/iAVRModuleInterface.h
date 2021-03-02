@@ -35,15 +35,12 @@ class vtkTable;
 
 class QAction;
 
-
-class iAVRModuleInterface : public iAGUIModuleInterface
-{
+class iAVRModuleInterface : public iAGUIModuleInterface{
 	Q_OBJECT
 public:
 	void Initialize() override;
 private:
-
-	iAModuleAttachmentToChild * CreateAttachment( iAMainWindow* mainWnd, iAMdiChild* child ) override;
+	iAModuleAttachmentToChild* CreateAttachment(iAMainWindow* mainWnd, iAMdiChild* child) override;
 	bool vrAvailable();
 	QSharedPointer<iAVREnvironment> m_vrEnv;
 	iAVRMain* m_vrMain;

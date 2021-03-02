@@ -20,7 +20,7 @@
 * ************************************************************************************/
 #include "iAVRSlider.h"
 
-#include <iAConsole.h>
+#include <iALog.h>
 
 #include <vtkProperty.h>
 #include <vtkTransform.h>

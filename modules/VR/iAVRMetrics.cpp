@@ -20,7 +20,7 @@
 * ************************************************************************************/
 #include "iAVRMetrics.h"
 
-#include <iAConsole.h>
+#include <iALog.h>
 
 #include <vtkVariant.h>
 #include <vtkProperty2D.h>
@@ -85,18 +85,18 @@ void iAVRMetrics::calculateWeightedAverage(int octreeLevel, int feature)
 {
 	if(!isAlreadyCalculated->at(octreeLevel).at(feature)){
 
-		//DEBUG_LOG(QString("Possible Regions: %1\n").arg(m_fiberCoverage->at(octreeLevel).size()));
+		//LOG(lvlDebug,QString("Possible Regions: %1\n").arg(m_fiberCoverage->at(octreeLevel).size()));
 
 		for (int region = 0; region < m_fiberCoverage->at(octreeLevel).size(); region++)
 		{
 			double metricResultPerRegion = 0;
 			int fibersInRegion = 0;
-			//DEBUG_LOG(QString(">>> REGION %1 <<<\n").arg(region));
+			//LOG(lvlDebug,QString(">>> REGION %1 <<<\n").arg(region));
 
 
 			for (auto element : *m_fiberCoverage->at(octreeLevel).at(region))
 			{
-				//DEBUG_LOG(QString("[%1] --- %2 \%").arg(element.first).arg(element.second));
+				//LOG(lvlDebug,QString("[%1] --- %2 \%").arg(element.first).arg(element.second));
 				
 				//double fiberAttribute = m_objectTable->GetValue(element.first, m_io.getOutputMapping()->value(feature)).ToFloat();
 				double fiberAttribute = m_objectTable->GetValue(element.first, feature).ToFloat();
@@ -110,7 +110,7 @@ void iAVRMetrics::calculateWeightedAverage(int octreeLevel, int feature)
 				fibersInRegion = 1; // Prevent Division by zero
 			}
 			
-			//DEBUG_LOG(QString("Region [%1] --- %2 \%\n").arg(region).arg(metricResultPerRegion / fibersInRegion));
+			//LOG(lvlDebug,QString("Region [%1] --- %2 \%\n").arg(region).arg(metricResultPerRegion / fibersInRegion));
 			
 			m_calculatedStatistic->at(octreeLevel).at(feature).push_back(metricResultPerRegion / fibersInRegion);
 		}
@@ -143,7 +143,7 @@ std::vector<QColor>* iAVRMetrics::getHeatmapColoring(int octreeLevel, int featur
 	}
 	else
 	{
-		DEBUG_LOG(QString("Mapping type not found"));
+		LOG(lvlDebug,QString("Mapping type not found"));
 	}
 
 	calculateLUT(min, max, 8); //8 Colors
@@ -685,8 +685,8 @@ void iAVRMetrics::calculateJaccardIndex(int level, bool weighted)
 
 			m_jaccardValues->at(level).at(region).push_back(index);
 
-			//DEBUG_LOG(QString("jaccardValue for [%1][%2] is %3").arg(region).arg(region2).arg(test));
-			//DEBUG_LOG(QString("Weighted jaccardValue for [%1][%2] is %3\n").arg(region).arg(region2).arg(m_jaccardValues->at(level).at(region).at(region2)));
+			//LOG(lvlDebug,QString("jaccardValue for [%1][%2] is %3").arg(region).arg(region2).arg(test));
+			//LOG(lvlDebug,QString("Weighted jaccardValue for [%1][%2] is %3\n").arg(region).arg(region2).arg(m_jaccardValues->at(level).at(region).at(region2)));
 		}
 	}
 }

@@ -20,7 +20,7 @@
 * ************************************************************************************/
 #include "iAVRCubicRepresentation.h"
 
-#include <iAConsole.h>
+#include <iALog.h>
 
 #include "vtkCellPicker.h"
 #include "vtkIdTypeArray.h"
@@ -75,7 +75,7 @@ void iAVRCubicRepresentation::createCubeModel()
 	int leafNodes = m_octree->getOctree()->GetNumberOfLeafNodes();
 	if (leafNodes <= 0)
 	{
-		DEBUG_LOG(QString("The Octree has no leaf nodes!"));
+		LOG(lvlDebug,QString("The Octree has no leaf nodes!"));
 		return;
 	}
 
@@ -143,13 +143,13 @@ vtkIdType iAVRCubicRepresentation::getClosestCellID(double pos[3], double eventO
 	{
 		if (!glyph3D)
 		{
-			DEBUG_LOG("Glyph not set (yet)!");
+			LOG(lvlDebug,"Glyph not set (yet)!");
 			return -1;
 		}
 		auto inputPointIDs = dynamic_cast<vtkIdTypeArray*>(glyph3D->GetOutput()->GetPointData()->GetArray("InputPointIds"));
 		if (!inputPointIDs)
 		{
-			DEBUG_LOG("Input point IDs not set!");
+			LOG(lvlDebug,"Input point IDs not set!");
 			return -1;
 		}
 		vtkIdType regionId = inputPointIDs->GetValue(cellPicker->GetPointId());
@@ -355,7 +355,7 @@ void iAVRCubicRepresentation::applyLinearCubeOffset(double offset)
 {
 	if (m_cubePolyData == nullptr)
 	{
-		DEBUG_LOG(QString("No Points to apply offset"));
+		LOG(lvlDebug,QString("No Points to apply offset"));
 		return;
 	}
 
@@ -385,7 +385,7 @@ void iAVRCubicRepresentation::applyRelativeCubeOffset(double offset)
 {
 	if (m_cubePolyData == nullptr)
 	{
-		DEBUG_LOG(QString("No Points to apply offset"));
+		LOG(lvlDebug,QString("No Points to apply offset"));
 		return;
 	}
 
@@ -427,7 +427,7 @@ void iAVRCubicRepresentation::apply4RegionCubeOffset(double offset)
 {
 	if (m_cubePolyData == nullptr)
 	{
-		DEBUG_LOG(QString("No Points to apply offset"));
+		LOG(lvlDebug,QString("No Points to apply offset"));
 		return;
 	}
 

@@ -29,7 +29,7 @@
 #include <vtkCallbackCommand.h>
 #include <vtkProp3D.h>
 
-#include <iAConsole.h>
+#include <iALog.h>
 
 #include <QString>
 
@@ -48,8 +48,8 @@
 //		vtkSliderWidget* sliderWidget =
 //			reinterpret_cast<vtkSliderWidget*>(caller);
 //
-//		//DEBUG_LOG(QString("SLIDER WORKS and has Val: %1").arg(static_cast<vtkSliderRepresentation*>(sliderWidget->GetRepresentation())->GetValue()));
-//		DEBUG_LOG(QString("SLIDER WORKS with event: %1").arg(e));
+//		//LOG(lvlDebug,QString("SLIDER WORKS and has Val: %1").arg(static_cast<vtkSliderRepresentation*>(sliderWidget->GetRepresentation())->GetValue()));
+//		LOG(lvlDebug,QString("SLIDER WORKS with event: %1").arg(e));
 //
 //	}
 //

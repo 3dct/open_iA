@@ -20,7 +20,7 @@
 * ************************************************************************************/
 #include "iAVRInteractorStyle.h"
 
-#include <iAConsole.h>
+#include <iALog.h>
 #include <vtkObjectFactory.h>
 #include "vtkOpenVRRenderWindowInteractor.h"
 #include "vtkPropPicker.h"

@@ -25,7 +25,7 @@
 #include "vtkActor.h"
 #include "vtkProperty.h"
 #include "vtkIdTypeArray.h"
-#include <iAConsole.h>
+#include <iALog.h>
 
 
 iAVROctree::iAVROctree(vtkRenderer* ren, vtkDataSet* dataSet):m_renderer(ren),m_dataSet(dataSet),m_actor(vtkSmartPointer<vtkActor>::New()),

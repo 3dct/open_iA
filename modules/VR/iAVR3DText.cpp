@@ -20,7 +20,7 @@
 * ************************************************************************************/
 #include "iAVR3DText.h"
 
-#include <iAConsole.h>
+#include <iALog.h>
 #include <iAvec3.h>
 
 #include "vtkTextProperty.h"
@@ -94,70 +94,6 @@ void iAVR3DText::createSmall3DLabel(QString text)
 void iAVR3DText::setLabelPos(double pos[3])
 {
 	m_textActor3D->SetPosition(pos);
-}
-
-void iAVR3DText::drawInputTooltip(vtkEventDataDevice device, vtkEventDataDeviceInput input, vtkEventDataAction action, QString text)
-{
-	int deviceID = static_cast<int>(device); // Device
-	int inputID = static_cast<int>(input);  // Input Method
-	int actioniD = static_cast<int>(action);     // Action of Input Method
-
-	vtkStdString controlName = vtkStdString();
-	vtkStdString controlText = vtkStdString();
-	int drawSide = -1;
-	int buttonSide = -1;
-
-	// Clean already existing helpers
-	if (ControlsHelpers[deviceID][inputID] != nullptr)
-	{
-		if (m_renderer)
-		{
-			m_renderer->RemoveViewProp(ControlsHelpers[deviceID][inputID]);
-		}
-		ControlsHelpers[deviceID][inputID]->Delete();
-		ControlsHelpers[deviceID][inputID] = nullptr;
-	}
-
-	// Setup default text and layout
-	switch (input)
-	{
-	case vtkEventDataDeviceInput::Trigger:
-		controlName = "trigger";
-		drawSide = vtkOpenVRControlsHelper::Left;
-		buttonSide = vtkOpenVRControlsHelper::Back;
-		controlText = "Trigger :\n";
-		break;
-	case vtkEventDataDeviceInput::TrackPad:
-		controlName = "trackpad";
-		drawSide = vtkOpenVRControlsHelper::Right;
-		buttonSide = vtkOpenVRControlsHelper::Front;
-		controlText = "Trackpad :\n";
-		break;
-	case vtkEventDataDeviceInput::Grip:
-		controlName = "lgrip";
-		drawSide = vtkOpenVRControlsHelper::Right;
-		buttonSide = vtkOpenVRControlsHelper::Back;
-		controlText = "Grip :\n";
-		break;
-	case vtkEventDataDeviceInput::ApplicationMenu:
-		controlName = "button";
-		drawSide = vtkOpenVRControlsHelper::Left;
-		buttonSide = vtkOpenVRControlsHelper::Front;
-		controlText = "Application Menu :\n";
-		break;
-	}
-
-	if (text.toUtf8() != "")
-	{
-		controlText += text.toUtf8();
-	
-		// Create an input helper and add it to the renderer
-		vtkOpenVRControlsHelper* inputHelper = vtkOpenVRControlsHelper::New();
-		inputHelper->SetTooltipInfo(text.toUtf8(), buttonSide, drawSide, controlText.c_str());
-
-		ControlsHelpers[deviceID][inputID] = inputHelper;
-		ControlsHelpers[deviceID][inputID]->SetDevice(device);
-	}
 }
 
 void iAVR3DText::moveInEyeDir(double x, double y, double z)

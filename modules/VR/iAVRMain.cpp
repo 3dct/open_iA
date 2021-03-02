@@ -20,7 +20,7 @@
 * ************************************************************************************/
 #include "iAVRMain.h"
 
-#include <iAConsole.h>
+#include <iALog.h>
 #include "iAVRInteractor.h"
 #include "iAVRModelInMiniature.h"
 #include "iAVROctree.h"
@@ -187,7 +187,7 @@ void iAVRMain::startInteraction(vtkEventDataDevice3D* device, double eventPositi
 	int actioniD = static_cast<int>(device->GetAction()); // Action of Input Method
 	int optionID = getOptionForObject(pickedProp);
 	
-	//DEBUG_LOG(QString("Object Number: %1").arg(optionID));
+	//LOG(QString("Object Number: %1").arg(optionID));
 	//if (optionID == -1) return;
 
 	inputScheme* scheme = m_style->getInputScheme();
@@ -196,7 +196,7 @@ void iAVRMain::startInteraction(vtkEventDataDevice3D* device, double eventPositi
 	switch (iAVROperations(operation))
 	{
 	case iAVROperations::Unknown:
-		DEBUG_LOG(QString("Unknown Operation!"));
+		LOG(lvlDebug,QString("Unknown Operation!"));
 		break;
 	case iAVROperations::None:
 		break;
@@ -252,7 +252,7 @@ void iAVRMain::endInteraction(vtkEventDataDevice3D* device, double eventPosition
 	switch (iAVROperations(operation))
 	{
 	case iAVROperations::Unknown:
-		DEBUG_LOG(QString("Unknown Operation!"));
+		LOG(lvlDebug,QString("Unknown Operation!"));
 		break;
 	case iAVROperations::None:
 		//activeInput->at(deviceID) = static_cast<int>(iAVROperations::None); // For Multitouch
@@ -434,14 +434,14 @@ void iAVRMain::mapAllPointiDs()
 		m_csvIndexToPointID.insert(std::make_pair(row, m_volume->getVolumeData()->FindPoint(startPos)));
 		m_csvIndexToPointID.insert(std::make_pair(row, m_volume->getVolumeData()->FindPoint(endPos)));
 	}
-	DEBUG_LOG(QString("Volume Data loaded"));
+	LOG(lvlDebug, QString("Volume Data loaded"));
 
 	//Calculate Fibers in Region
 	for (int i = 0; i < m_octrees->size(); i++)
 	{
 		m_fiberCoverage->push_back(*m_octrees->at(i)->getfibersInRegionMapping(&m_pointIDToCsvIndex));
 	}
-	DEBUG_LOG(QString("Fibers in Region for every octree calculated"));
+	LOG(lvlDebug, QString("Fibers in Region for every octree calculated"));
 
 	fiberMetrics->setFiberCoverageData(m_fiberCoverage);
 	m_iDMappingThreadRunning = false; //Thread ended
@@ -508,7 +508,7 @@ void iAVRMain::mapAllPointiDsAndCalculateFiberCoverage()
 
 				if (intersectionPoints == nullptr)
 				{
-					DEBUG_LOG(QString("!! vtkPoints is null..."));
+					LOG(lvlDebug, QString("!! vtkPoints is null..."));
 				}
 			}
 		}
@@ -527,7 +527,7 @@ void iAVRMain::mapAllPointiDsAndCalculateFiberCoverage()
 		m_octrees->at(level)->getRegionsInLineOfRay();
 	}
 
-	DEBUG_LOG(QString("Volume Data loaded and Intersection test finished"));
+	LOG(lvlDebug, QString("Volume Data loaded and Intersection test finished"));
 	m_iDMappingThreadRunning = false; //Thread ended
 }
 
@@ -867,7 +867,7 @@ vtkIdType iAVRMain::getObjectiD(vtkIdType polyPoint)
 		}
 		else
 		{
-			DEBUG_LOG(QString("Point not found in csv"));
+			LOG(lvlDebug, QString("Point not found in csv"));
 			return -1;
 		}
 
@@ -893,7 +893,7 @@ void iAVRMain::generateOctrees(int maxLevel, int maxPointsPerRegion, vtkPolyData
 
 		m_octrees->push_back(tempOctree);
 	}
-	if(m_octrees->empty()) DEBUG_LOG(QString("NO OCTREE GENERATED"));
+	if(m_octrees->empty()) LOG(lvlDebug, QString("NO OCTREE GENERATED"));
 }
 
 void iAVRMain::calculateMetrics()
@@ -1026,7 +1026,7 @@ void iAVRMain::pickFibersinRegion(int leafRegion)
 
 	
 	for (auto fiber : *m_fiberCoverage->at(currentOctreeLevel).at(leafRegion)) {
-		//DEBUG_LOG(QString("Nr. [%1]").arg(fiber.first));
+		//LOG(QString("Nr. [%1]").arg(fiber.first));
 		selection.push_back(fiber.first);
 	}
 	std::sort(selection.begin(), selection.end());
@@ -1205,7 +1205,7 @@ void iAVRMain::pressLeftTouchpad()
 			switch (currentMiMDisplacementType)
 			{
 			case -1:
-				DEBUG_LOG(QString("Unknown Displacement!"));
+				LOG(lvlDebug, QString("Unknown Displacement!"));
 				break;
 			case 0:
 				m_modelInMiniature->applyRelativeCubeOffset(offsetMiM);

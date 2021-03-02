@@ -35,6 +35,7 @@
 #include <vtkLightKit.h>
 #include <vtkPickingManager.h>
 
+#include <qstring.h>
 #include <QCoreApplication>
 
 iAVREnvironment::iAVREnvironment():	m_renderer(vtkSmartPointer<vtkOpenVRRenderer>::New()), m_interactor(vtkSmartPointer<iAVRInteractor>::New()), 
@@ -114,7 +115,8 @@ double iAVREnvironment::getInitialWorldScale()
 
 void iAVREnvironment::createSkybox(int skyboxImage)
 {
-	const std::string chosenSkybox = QString("/skybox%1/").arg(skyboxImage).toUtf8();
+	//const std::string chosenSkybox = QString("/skybox%1/").arg(skyboxImage).toUtf8();
+	const std::string chosenSkybox = "/skybox" + std::to_string(skyboxImage) + "/";
 
 	// Load the skybox
 	// Read it again as there is no deep copy for vtkTexture
