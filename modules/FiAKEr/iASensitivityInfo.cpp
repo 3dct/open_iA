@@ -34,7 +34,7 @@
 #include <iARunAsync.h>
 #include <iAStackedBarChart.h>    // for add HeaderLabel
 #include <iAStringHelper.h>
-#include <iAvec3.h>
+#include <iAVec3.h>
 #include <qthelper/iAQTtoUIConnector.h>
 
 // qthelper:
@@ -80,6 +80,20 @@
 #include <array>
 #include <set>
 
+QDataStream& operator<<(QDataStream& out, const iAResultPairInfo& pairInfo)
+{
+	out << pairInfo.avgDissim;
+	out << pairInfo.fiberDissim;
+	return out;
+}
+
+QDataStream& operator>>(QDataStream& in, iAResultPairInfo& pairInfo)
+{
+	in >> pairInfo.avgDissim;
+	in >> pairInfo.fiberDissim;
+	return in;
+}
+
 namespace
 {
 	const int LayoutSpacing = 4;
@@ -90,19 +104,7 @@ namespace
 		return Names;
 	}
 
-	QDataStream& operator<<(QDataStream& out, const iAResultPairInfo& pairInfo)
-	{
-		out << pairInfo.avgDissim;
-		out << pairInfo.fiberDissim;
-		return out;
-	}
 
-	QDataStream& operator>>(QDataStream& in, iAResultPairInfo& pairInfo)
-	{
-		in >> pairInfo.avgDissim;
-		in >> pairInfo.fiberDissim;
-		return in;
-	}
 	QColor ParamColor(150, 150, 255, 255);
 	QColor OutputColor(255, 200, 200, 255);
 	}
@@ -1557,7 +1559,7 @@ QSharedPointer<iASensitivityInfo> iASensitivityInfo::load(QMainWindow* child,
 	return iASensitivityInfo::create(child, data, nextToDW, histogramBins, parameterSetFileName, charsSelected, charDiffMeasure, maxColumns);
 }
 
-class iASPParamPointInfo: public iAScatterPlotPointInfo
+class iASPParamPointInfo final: public iAScatterPlotPointInfo
 {
 public:
 	iASPParamPointInfo(iASensitivityInfo const & data, iAFiberResultsCollection const & results) :

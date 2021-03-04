@@ -82,7 +82,7 @@ private:
 	int m_selectedParam, m_selectedCol;
 	QGridLayout* m_paramListLayout;
 	QSharedPointer<iASingleColorTheme> m_stackedBarTheme;
-	QVector<iAParTableRow> m_table;
+	QVector<QSharedPointer<iAParTableRow>> m_table;
 	QVector<int> m_sort;
 	int m_sortLastOut;
 	bool m_sortLastDesc;

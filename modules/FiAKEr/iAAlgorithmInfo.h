@@ -109,7 +109,7 @@ public:
 				strings[idx], rects, color, selected == idx, shown.size() == 0 || shown.contains(idx));
 		}
 	}
-	void paintEvent(QPaintEvent* ev)
+	void paintEvent(QPaintEvent* ev) override
 	{
 		Q_UNUSED(ev);
 		QPainter p(this);
