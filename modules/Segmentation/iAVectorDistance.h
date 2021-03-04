@@ -25,7 +25,7 @@
 #include <QSharedPointer>
 
 //! abstract base class for the distance between two vectors of same length
-class iAVectorDistance
+class Segmentation_API iAVectorDistance
 {
 public:
 	static double EPSILON;
