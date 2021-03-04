@@ -89,8 +89,9 @@
 				break;                                                      \
 			default:                                                        \
 				throw itk::ExceptionObject( __FILE__, __LINE__,             \
-					QString( "Typed Call: Unknown scalar pixel type." ).    \
-					toStdString().c_str() );                                \
+					QString("Typed Call: Unknown scalar pixel type (%1).")  \
+					.arg(static_cast<int>(itk_scalar_type))                 \
+					.toStdString().c_str() );                               \
 		}                                                                   \
 	}                                                                       \
 	else if (itk_image_type == itk::ImageIOBase::RGB)                       \
@@ -135,8 +136,9 @@
 				break;                                                      \
 			default:                                                        \
 				throw itk::ExceptionObject( __FILE__, __LINE__,             \
-					QString( "Typed Call: Unknown scalar pixel type." ).    \
-					toLatin1().data() );                                    \
+					QString("Typed Call: Unknown scalar pixel type (%1).")  \
+					.arg(static_cast<int>(itk_scalar_type))                 \
+					.toLatin1().data() );                                   \
 		}                                                                   \
 	}                                                                       \
 	else if ( itk_image_type == itk::ImageIOBase::RGBA ||                   \
@@ -182,14 +184,16 @@
 				break;                                                      \
 			default:                                                        \
 				throw itk::ExceptionObject( __FILE__, __LINE__,             \
-					QString( "Typed Call: Unknown scalar pixel type." ).    \
-					toLatin1().data() );                                    \
+					QString("Typed Call: Unknown scalar pixel type (%1).")  \
+					.arg(static_cast<int>(itk_scalar_type))                 \
+					.toLatin1().data() );                                   \
 		}                                                                   \
 	}                                                                       \
 	else                                                                    \
 	{                                                                       \
 		throw itk::ExceptionObject(__FILE__, __LINE__,                      \
-			QString("Typed Call: Unknown pixel type.").toLatin1().data() ); \
+			QString("Typed Call: Unknown pixel type (%1).")                 \
+				.arg(static_cast<int>(itk_image_type)).toLatin1().data() ); \
 	}                                                                       \
 }
 #else
