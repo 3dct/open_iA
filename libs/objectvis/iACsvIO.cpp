@@ -54,10 +54,7 @@ namespace
 	const char* ColNameEndY = "Y2";
 	const char* ColNameEndZ = "Z2";
 	const char* ColNameDiameter = "Diameter";
-}
 
-namespace
-{
 	QString DblToString(double value)
 	{
 		return QString::number(value, 'f', 10);
@@ -109,6 +106,10 @@ namespace
 		}
 		return transformValue(value, index, config);
 	}
+	int getLineNumberForRow(iACsvConfig const& cfg, int row)
+	{
+		return cfg.skipLinesStart + (cfg.containsHeader ? 1 : 0) + row;
+	}
 }
 
 iACsvIO::iACsvIO():
@@ -120,7 +121,7 @@ bool iACsvIO::loadCSV(iACsvTableCreator & dstTbl, iACsvConfig const & cnfg_param
 	m_csvConfig = cnfg_params;
 	if (!QFile::exists(m_csvConfig.fileName))
 	{
-		LOG(lvlError, "Error loading csv file, file does not exist.");
+		LOG(lvlError, QString("Unable to open csv file '%1': File does not exist.").arg(m_csvConfig.fileName));
 		return false;
 	}
 	QFile file(m_csvConfig.fileName);
@@ -132,10 +133,11 @@ bool iACsvIO::loadCSV(iACsvTableCreator & dstTbl, iACsvConfig const & cnfg_param
 	QTextStream in(&file);
 	in.setCodec(m_csvConfig.encoding.toStdString().c_str());
 	size_t effectiveRowCount = std::min(rowCount,
-		calcRowCount(in, m_csvConfig.skipLinesStart + (cnfg_params.containsHeader ? 1 : 0), m_csvConfig.skipLinesEnd));
+		calcRowCount(in, getLineNumberForRow(m_csvConfig, 0), m_csvConfig.skipLinesEnd));
 	if (effectiveRowCount <= 0)
 	{
-		LOG(lvlError, "No rows to load in the csv file!");
+		LOG(lvlError, QString("Unable to open csv file '%1': No rows to load in the csv file!")
+			.arg(m_csvConfig.fileName));
 		return false;
 	}
 
@@ -175,15 +177,18 @@ bool iACsvIO::loadCSV(iACsvTableCreator & dstTbl, iACsvConfig const & cnfg_param
 		auto values = line.split(m_csvConfig.columnSeparator);
 		if (values.size() < m_csvConfig.currentHeaders.size())
 		{
-			LOG(lvlWarn, QString("Line %1 in file '%2' only contains %3 entries, expected %4. Skipping...")
-				.arg(row + m_csvConfig.skipLinesStart + (m_csvConfig.containsHeader ? 0 : 1)).arg(m_csvConfig.fileName)
+			LOG(lvlWarn, QString("Line %1 in file '%2' (row %3 of data) only contains %4 entries, expected %5. Skipping...")
+				.arg(getLineNumberForRow(m_csvConfig, row)).arg(m_csvConfig.fileName).arg(row)
 				.arg(values.size()).arg(m_csvConfig.currentHeaders.size()));
 			continue;
 		}
 		if (!m_csvConfig.addAutoID && values[0].toULongLong() != (row + 1))
 		{
-			LOG(lvlError, QString("ID column not ordered as expected in line %1 (needs to be consecutive, starting at 1)! "
-				"Please either fix the data in the CSV or use the 'Create ID' feature!").arg(row));
+			LOG(lvlError, QString("ID column: Unexpected value %1, expected %2 in line %3 of file '%4%'; "
+				"i.e. the values are not ordered as required, the ID values need to be consecutive, starting at 1)! "
+				"Please either fix the data in the CSV or use the 'Create ID' feature!")
+				.arg(values[0].toULongLong()).arg(row+1)
+				.arg(getLineNumberForRow(m_csvConfig, row)).arg(m_csvConfig.fileName));
 			return false;
 		}
 		for (int valIdx : selectedColIdx)
