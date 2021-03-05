@@ -106,7 +106,7 @@ namespace
 		}
 		return transformValue(value, index, config);
 	}
-	int getLineNumberForRow(iACsvConfig const& cfg, int row)
+	size_t getLineNumberForRow(iACsvConfig const& cfg, size_t row)
 	{
 		return cfg.skipLinesStart + (cfg.containsHeader ? 1 : 0) + row;
 	}
