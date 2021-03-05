@@ -3139,8 +3139,8 @@ void iAFiAKErController::styleChanged()
 {
 	for (size_t resultID = 0; resultID < m_resultUIs.size(); ++resultID)
 	{
-		QColor bgColor(m_mainWnd->palette().color((resultID == m_referenceID)
-				? QPalette::AlternateBase : QPalette::Window));
+		QColor bgColor(m_resultUIs[resultID].nameActions->palette().color(
+			(resultID == m_referenceID) ? QPalette::AlternateBase : QPalette::Window));
 		m_resultUIs[resultID].nameActions->setBackgroundColor(bgColor);
 	}
 }
