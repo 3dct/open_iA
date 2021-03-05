@@ -284,7 +284,7 @@ void iAFiAKErController::start(QString const & path, iACsvConfig const & config,
 	auto resultsLoader = new iAFiberResultsLoader(m_data, path, m_config, stepShift);
 	connect(resultsLoader, &iAFiberResultsLoader::success, this, &iAFiAKErController::resultsLoaded);
 	connect(resultsLoader, &iAFiberResultsLoader::finished, resultsLoader, &QObject::deleteLater);
-	connect(resultsLoader, &iAFiberResultsLoader::failed, [this, resultsLoader, path]
+	connect(resultsLoader, &iAFiberResultsLoader::failed, this, [this, resultsLoader, path]
 		{
 			if (!resultsLoader->isAborted())
 			{
