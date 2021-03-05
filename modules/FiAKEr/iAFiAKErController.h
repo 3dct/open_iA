@@ -190,6 +190,8 @@ private slots:
 	void resetSensitivity();
 	// 3D view:
 	void showMainVis(size_t resultID, bool state);
+
+	void styleChanged();
 private:
 	bool loadReferenceInternal(iASettings settings);
 	void changeDistributionSource(int index);

@@ -243,6 +243,7 @@ iAFiAKErController::iAFiAKErController(iAMainWindow* mainWnd, iAMdiChild* mdiChi
 	m_cameraInitialized(false),
 	m_spm(new iAQSplom())
 {
+	connect(mainWnd, &iAMainWindow::styleChanged, this, &iAFiAKErController::styleChanged);
 }
 
 void iAFiAKErController::loadProject(QSettings const& projectFile, QString const& fileName)
@@ -3132,4 +3133,14 @@ void iAFiAKErController::toggleDockWidgetTitleBars()
 void iAFiAKErController::toggleSettings()
 {
 	m_views[SettingsView]->setVisible(!m_views[SettingsView]->isVisible());
+}
+
+void iAFiAKErController::styleChanged()
+{
+	for (size_t resultID = 0; resultID < m_resultUIs.size(); ++resultID)
+	{
+		QColor bgColor(m_mainWnd->palette().color((resultID == m_referenceID)
+				? QPalette::AlternateBase : QPalette::Window));
+		m_resultUIs[resultID].nameActions->setBackgroundColor(bgColor);
+	}
 }
