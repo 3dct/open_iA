@@ -570,6 +570,15 @@ if (${avx_support_index} EQUAL -1)
 endif()
 set (BUILD_INFO "${BUILD_INFO}    \"Advanced Vector Extensions support: ${openiA_AVX_SUPPORT}\\n\"\n")
 
+#MESSAGE(STATUS "Aiming for C++20 support.")
+#SET(CMAKE_CXX_STANDARD 20)
+# Enabling C++20 can cause problems as e.g. ITK 5.0.1 is not yet fully C++20 compatible!
+MESSAGE(STATUS "Aiming for C++17 support.")
+SET(CMAKE_CXX_STANDARD 17)
+SET(CMAKE_CXX_EXTENSIONS OFF)
+# use CMAKE_CXX_STANDARD_REQUIRED? e.g.:
+# SET (CMAKE_CXX_STANDARD 11)
+# SET (CMAKE_CXX_STANDARD_REQUIRED ON)
 IF (MSVC)
 	# /bigobj            increase the number of sections in .obj file (65,279 -> 2^32), exceeded by some compilations
 	# /Zc:__cplusplus    set correct value in __cplusplus macro (https://docs.microsoft.com/en-us/cpp/build/reference/zc-cplusplus)
@@ -601,18 +610,6 @@ IF (MSVC)
 	#           C4251 - "class requires dll interface"
 	#           C4515 - "namespace uses itself" - caused by ITK/gdcm
 ELSE()
-	# on MSVC, setting CMAKE_CXX_STANDARD leads to RTK not to compile currently
-	# due to random_shuffle being used (deprecated in C++14, apparently removed in 17 or 20)
-	#MESSAGE(STATUS "Aiming for C++20 support.")
-	#SET(CMAKE_CXX_STANDARD 20)
-	# Enabling C++20 can cause problems as e.g. ITK 5.0.1 is not yet fully C++20 compatible!
-	MESSAGE(STATUS "Aiming for C++17 support.")
-	SET(CMAKE_CXX_STANDARD 17)
-	SET(CMAKE_CXX_EXTENSIONS OFF)
-	# use CMAKE_CXX_STANDARD_REQUIRED? e.g.:
-	# SET (CMAKE_CXX_STANDARD 11)
-	# SET (CMAKE_CXX_STANDARD_REQUIRED ON)
-
 	# enable all warnings:
 	ADD_COMPILE_OPTIONS(-Wall -Wextra) # with -Wpedantic, lots of warnings about extra ';' in VTK/ITK code...
 ENDIF()
