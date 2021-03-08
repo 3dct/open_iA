@@ -20,8 +20,6 @@
 * ************************************************************************************/
 #pragma once
 
-#include "ui_ComputeSegmentations.h"
-
 #include <defines.h>
 #include <iAGUIModuleInterface.h>
 

@@ -84,7 +84,7 @@ void iAHistogramStack::initialize(QString const names[3])
 	QWidget *leftWidget = new QWidget();
 	QVBoxLayout *leftWidgetLayout = new QVBoxLayout(leftWidget);
 	leftWidgetLayout->setSpacing(1);
-	leftWidgetLayout->setMargin(0);
+	leftWidgetLayout->setContentsMargins(0, 0, 0, 0);
 	leftWidgetLayout->addWidget(optionsContainer);
 	leftWidgetLayout->addWidget(m_grid);
 

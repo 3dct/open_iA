@@ -28,6 +28,7 @@
 #include <vtkImageData.h>
 
 #include <QDropEvent>
+#include <QFile>
 #include <QHeaderView>
 #include <QMessageBox>
 #include <QPainter>

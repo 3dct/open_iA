@@ -39,7 +39,7 @@ iAFavoriteWidget::iAFavoriteWidget(iAPreviewWidgetPool* previewPool) :
 	QWidget* favListWdgt = this;
 	QHBoxLayout* favListLayout = new QHBoxLayout();
 	favListLayout->setSpacing(0);
-	favListLayout->setMargin(0);
+	favListLayout->setContentsMargins(0, 0, 0, 0);
 	favListLayout->setAlignment(Qt::AlignTop | Qt::AlignCenter);
 	favListWdgt->setLayout(favListLayout);
 	favListWdgt->setSizePolicy(QSizePolicy::Expanding, QSizePolicy::Expanding);

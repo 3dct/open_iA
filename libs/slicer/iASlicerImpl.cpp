@@ -95,6 +95,7 @@
 #include <vtkWindowToImageFilter.h>
 #include <vtkWorldPointPicker.h>
 
+#include <QActionGroup>
 #include <QBitmap>
 #include <QFileDialog>
 #include <QIcon>

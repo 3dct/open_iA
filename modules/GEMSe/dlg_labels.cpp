@@ -309,11 +309,11 @@ bool dlg_labels::load(QString const & filename)
 	{
 		if (stream.isStartElement())
 		{
-			if (stream.name() == "Labels")
+			if (stream.name().toString() == "Labels")
 			{
 				// root element, no action required
 			}
-			else if (stream.name() == "Label")
+			else if (stream.name().toString() == "Label")
 			{
 				enableStoreBtn = true;
 				QString id = stream.attributes().value("id").toString();
@@ -326,7 +326,7 @@ bool dlg_labels::load(QString const & filename)
 						.arg(id) );
 				}
 			}
-			else if (stream.name() == "Seed")
+			else if (stream.name().toString() == "Seed")
 			{
 				if (curLabelRow == -1)
 				{

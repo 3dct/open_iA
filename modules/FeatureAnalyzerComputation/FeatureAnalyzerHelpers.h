@@ -587,7 +587,7 @@ inline double mean( std::vector<double> vec )
 	return std::accumulate( vec.begin(), vec.end(), 0.0 ) / vec.size();
 }
 
-inline QMap<double, QList<double> > calculateHistogram( QList<double> data, double minX = 0, double maxX = 0 )
+inline QMultiMap<double, QList<double> > calculateHistogram( QList<double> data, double minX = 0, double maxX = 0 )
 {
 	double minmax[2] = { minX, maxX };
 	int NumberOfBins = 1000;

@@ -33,7 +33,7 @@ iAPreviewSPLOMView::iAPreviewSPLOMView( QWidget * parent /*= 0*/, Qt::WindowFlag
 	m_datasetsLoaded( false )
 {
 	QHBoxLayout *layout = new QHBoxLayout( this );
-	layout->setMargin( 0 );
+	layout->setContentsMargins(0, 0, 0, 0);
 	layout->setSpacing( 0 );
 	layout->addWidget( m_preview );
 	sliceWidget->setLayout( layout );

@@ -1051,7 +1051,13 @@ bool readParameterCSV(QString const& fileName, QString const & encoding, QString
 		return false;
 	}
 	QTextStream in(&file);
+#if QT_VERSION < QT_VERSION_CHECK(5, 99, 0)
 	in.setCodec(encoding.toStdString().c_str());
+#else
+	auto encOpt = QStringConverter::encodingForName(encoding.toStdString().c_str());
+	QStringConverter::Encoding enc = encOpt.has_value() ? encOpt.value() : QStringConverter::Utf8;
+	in.setEncoding(enc);
+#endif
 	auto headers = in.readLine().split(columnSeparator);
 	tblCreator.initialize(headers, resultCount);
 	size_t row = 0;
@@ -3011,7 +3017,8 @@ void iAFiAKErController::showReferenceLinesToggled()
 
 void iAFiAKErController::changeReferenceDisplay()
 {
-	size_t similarityMeasure = clamp(0, m_data->m_measures.size(), m_settingsView->cmbboxSimilarityMeasure->currentIndex());
+	size_t similarityMeasure =
+		clamp(0, static_cast<int>(m_data->m_measures.size()), m_settingsView->cmbboxSimilarityMeasure->currentIndex());
 	bool showRef = m_chkboxShowReference->isChecked();
 	int refCount = std::min(iARefDistCompute::MaxNumberOfCloseFibers, m_spnboxReferenceCount->value());
 

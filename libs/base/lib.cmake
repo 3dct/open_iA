@@ -1,11 +1,9 @@
 TARGET_LINK_LIBRARIES(${libname} PUBLIC
-	Qt5::Core Qt5::Xml
-
 	${ITK_LIBRARIES}
-
+	Qt${QT_VERSION_MAJOR}::Core Qt${QT_VERSION_MAJOR}::Xml
 	# ToDo: Get rid of GUI stuff here, move down to core/...
-	Qt5::Gui
-#	Qt5::Widgets # seems to be pulled in by vtk's GUISupportQt automatically
+	Qt${QT_VERSION_MAJOR}::Gui
+	# ::Widgets # seems to be pulled in by vtk's GUISupportQt automatically
 )
 IF (VTK_VERSION VERSION_LESS "9.0.0")
 	TARGET_LINK_LIBRARIES(${libname} PUBLIC ${VTK_LIBRARIES})

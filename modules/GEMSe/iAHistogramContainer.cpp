@@ -62,7 +62,7 @@ iAHistogramContainer::iAHistogramContainer(
 	SetCaptionedContent(m_paramChartContainer, "Input Parameters", m_paramChartWidget);
 	m_derivedOutputChartWidget->setLayout(new QHBoxLayout());
 	m_derivedOutputChartWidget->layout()->setSpacing(ChartSpacing);
-	m_derivedOutputChartWidget->layout()->setMargin(0);
+	m_derivedOutputChartWidget->layout()->setContentsMargins(0, 0, 0, 0);
 	SetCaptionedContent(m_derivedOutputChartContainer, "Derived Output", m_derivedOutputChartWidget);
 }
 
@@ -71,7 +71,7 @@ void iAHistogramContainer::CreateGridLayout()
 	delete m_paramChartLayout;
 	m_paramChartLayout = new QGridLayout();
 	m_paramChartLayout->setSpacing(ChartSpacing);
-	m_paramChartLayout->setMargin(0);
+	m_paramChartLayout->setContentsMargins(0, 0, 0, 0);
 	m_paramChartWidget->setLayout(m_paramChartLayout);
 }
 

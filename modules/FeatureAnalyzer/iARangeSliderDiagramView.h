@@ -27,6 +27,7 @@
 #include <vtkSmartPointer.h>
 
 #include <QDockWidget>
+#include <QMultiMap>
 #include <QSharedPointer>
 
 
@@ -89,7 +90,7 @@ private:
 	QLabel * m_output;
 	QFrame * m_separator;
 	const QTableWidget * m_rawTable;
-	QMap<double, QList<double> > m_histogramMap;
+	QMultiMap<double, QList<double>> m_histogramMap;
 
 	QMultiMap<QString, QList<double> > prepareData( const QTableWidget * tableData, bool porOrDev, bool statisticMeasurements );
 	void addTitleLabel();

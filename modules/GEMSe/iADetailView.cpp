@@ -120,7 +120,7 @@ iADetailView::iADetailView(
 
 	QVBoxLayout* lay = new QVBoxLayout();
 	lay->setSpacing(1);
-	lay->setMargin(1);
+	lay->setContentsMargins(1, 1, 1, 1);
 	lay->addWidget(topSpacer);
 	lay->addWidget(prevWdgt);
 	lay->addWidget(buttonBar);
@@ -183,7 +183,7 @@ iADetailView::iADetailView(
 
 	QHBoxLayout* mainLay = new QHBoxLayout();
 	mainLay->setSpacing(1);
-	mainLay->setMargin(1);
+	mainLay->setContentsMargins(1, 1, 1, 1);
 	mainLay->addWidget(horzSplitter);
 
 	horzSplitter->addWidget(imgStuffWidget);

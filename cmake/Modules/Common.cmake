@@ -334,58 +334,66 @@ set (BUILD_INFO "${BUILD_INFO}    \"${BUILD_INFO_VTK}\\n\"\n")
 
 # Qt (>= 5)
 SET(CMAKE_AUTOMOC ON)
+set(CMAKE_AUTOUIC ON)
+set(CMAKE_AUTORCC ON)
 SET(QT_USE_QTXML TRUE)
-#IF (WIN32)
-#	SET( CMAKE_LIBRARY_PATH ${CMAKE_LIBRARY_PATH} "C:/Program Files (x86)/Windows Kits/8.1/Lib/winv6.3/um/x64" )
-#ENDIF (WIN32)
-FIND_PACKAGE(Qt5 COMPONENTS Concurrent Gui OpenGL Svg Widgets Xml REQUIRED)
-MESSAGE(STATUS "Qt: ${Qt5_VERSION} in ${Qt5_DIR}")
-set (BUILD_INFO "${BUILD_INFO}    \"Qt: ${Qt5_VERSION}\\n\"\n")
-IF (Qt5_VERSION VERSION_LESS "5.9.0")
+find_package(QT NAMES Qt6 Qt5 COMPONENTS Widgets OpenGLWidgets REQUIRED)
+FIND_PACKAGE(Qt${QT_VERSION_MAJOR} COMPONENTS Concurrent Gui OpenGL Svg Widgets Xml REQUIRED)
+MESSAGE(STATUS "Qt: ${QT_VERSION} in ${Qt${QT_VERSION_MAJOR}_DIR}")
+set (BUILD_INFO "${BUILD_INFO}    \"Qt: ${QT_VERSION}\\n\"\n")
+IF (QT_VERSION VERSION_LESS "5.9.0")
 	MESSAGE(FATAL_ERROR "Your Qt version is too old. Please use Qt >= 5.9")
 ENDIF()
-# Qt5OpenGL_INCLUDE_DIRS seems to be required on linux only, but doesn't hurt on Windows:
-INCLUDE_DIRECTORIES(${Qt5Widgets_INCLUDE_DIRS} ${Qt5OpenGL_INCLUDE_DIRS} )
-SET(QT_LIBRARIES ${Qt5Core_LIBRARIES} ${Qt5Concurrent_LIBRARIES} ${Qt5OpenGL_LIBRARIES} ${Qt5Xml_LIBRARIES})
+INCLUDE_DIRECTORIES(${Qt${QT_VERSION_MAJOR}Widgets_INCLUDE_DIRS} ${Qt${QT_VERSION_MAJOR}OpenGL_INCLUDE_DIRS} )
+SET(QT_LIBRARIES ${Qt${QT_VERSION_MAJOR}Core_LIBRARIES} ${Qt${QT_VERSION_MAJOR}Concurrent_LIBRARIES} ${Qt${QT_VERSION_MAJOR}OpenGL_LIBRARIES} ${Qt${QT_VERSION_MAJOR}Xml_LIBRARIES})
 
-STRING(REGEX REPLACE "/lib/cmake/Qt5" "" Qt5_BASEDIR ${Qt5_DIR})
-STRING(REGEX REPLACE "/cmake/Qt5" "" Qt5_BASEDIR ${Qt5_BASEDIR})	# on linux, lib is omitted if installed from package repos
+STRING(REGEX REPLACE "/lib/cmake/Qt${QT_VERSION_MAJOR}" "" Qt_BASEDIR ${Qt${QT_VERSION_MAJOR}_DIR})
+STRING(REGEX REPLACE "/cmake/Qt${QT_VERSION_MAJOR}" "" Qt_BASEDIR ${Qt_BASEDIR})	# on linux, lib is omitted if installed from package repos
 
 # List all Qt plugins:
 # foreach(plugin ${Qt5Gui_PLUGINS})
 # 	get_target_property(_loc ${plugin} LOCATION)
 # 	message("Plugin ${plugin} is at location ${_loc}")
 # endforeach()
+# list all variables:
+#get_cmake_property(_variableNames VARIABLES)
+#foreach (_variableName ${_variableNames})
+#    message(STATUS "${_variableName}=${${_variableName}}")
+#endforeach()
 
+IF (WIN32)
+	SET (QT_LIB_DIR "${Qt_BASEDIR}/bin")
+ENDIF()
 # Install svg imageformats plugin:
+IF (${QT_VERSION_MAJOR} LESS 6) # Qt6 does not expose plugins? at least not the same as in Qt 5
 IF (FLATPAK_BUILD)
 	# I guess plugins should all be available on Flatpak?
 	#	INSTALL (FILES "$<TARGET_FILE:Qt5::QSvgPlugin>" DESTINATION bin/imageformats)
 	#	INSTALL (FILES "$<TARGET_FILE:Qt5::QSvgIconPlugin>" DESTINATION bin/iconengines)
 ELSE()
-	INSTALL (FILES "$<TARGET_FILE:Qt5::QSvgPlugin>" DESTINATION imageformats)
-	INSTALL (FILES "$<TARGET_FILE:Qt5::QSvgIconPlugin>" DESTINATION iconengines)
-	LIST (APPEND BUNDLE_LIBS "$<TARGET_FILE:Qt5::QSvgPlugin>")
-	LIST (APPEND BUNDLE_LIBS "$<TARGET_FILE:Qt5::QSvgIconPlugin>")
+	INSTALL (FILES "$<TARGET_FILE:Qt${QT_VERSION_MAJOR}::QSvgIconPlugin>" DESTINATION iconengines)
+	LIST (APPEND BUNDLE_LIBS "$<TARGET_FILE:Qt${QT_VERSION_MAJOR}::QSvgIconPlugin>")
+		INSTALL (FILES "$<TARGET_FILE:Qt${QT_VERSION_MAJOR}::QSvgPlugin>" DESTINATION imageformats)
+	LIST (APPEND BUNDLE_LIBS "$<TARGET_FILE:Qt${QT_VERSION_MAJOR}::QSvgPlugin>")
 ENDIF()
 IF (WIN32)
-	SET (QT_LIB_DIR "${Qt5_BASEDIR}/bin")
 	# use imported targets for windows plugin:
-	INSTALL (FILES "$<TARGET_FILE:Qt5::QWindowsIntegrationPlugin>" DESTINATION platforms)
+	INSTALL (FILES "$<TARGET_FILE:Qt${QT_VERSION_MAJOR}::QWindowsIntegrationPlugin>" DESTINATION platforms)
 	# install windows vista style plugin:
-	INSTALL (FILES "$<TARGET_FILE:Qt5::QWindowsVistaStylePlugin>" DESTINATION styles)
+	INSTALL (FILES "$<TARGET_FILE:Qt${QT_VERSION_MAJOR}::QWindowsVistaStylePlugin>" DESTINATION styles)
+ENDIF()
 ENDIF()
 IF (UNIX AND NOT APPLE AND NOT FLATPAK_BUILD)
-	IF (EXISTS "${Qt5_BASEDIR}/lib")
-		SET (QT_LIB_DIR "${Qt5_BASEDIR}/lib")
+	IF (EXISTS "${Qt_BASEDIR}/lib")
+		SET (QT_LIB_DIR "${Qt_BASEDIR}/lib")
 	ELSE()
-		SET (QT_LIB_DIR "${Qt5_BASEDIR}")
+		SET (QT_LIB_DIR "${Qt_BASEDIR}")
 	ENDIF()
 
 	# xcb platform plugin, and its plugins egl and glx:
-	INSTALL (FILES "$<TARGET_FILE:Qt5::QXcbIntegrationPlugin>" DESTINATION platforms)
-	INSTALL (FILES "$<TARGET_FILE:Qt5::QXcbEglIntegrationPlugin>" DESTINATION xcbglintegrations)
-	INSTALL (FILES "$<TARGET_FILE:Qt5::QXcbGlxIntegrationPlugin>" DESTINATION xcbglintegrations)
+	INSTALL (FILES "$<TARGET_FILE:Qt${QT_VERSION_MAJOR}::QXcbIntegrationPlugin>" DESTINATION platforms)
+	INSTALL (FILES "$<TARGET_FILE:Qt${QT_VERSION_MAJOR}::QXcbEglIntegrationPlugin>" DESTINATION xcbglintegrations)
+	INSTALL (FILES "$<TARGET_FILE:Qt${QT_VERSION_MAJOR}::QXcbGlxIntegrationPlugin>" DESTINATION xcbglintegrations)
 
 	# install icu:
 	# TODO: find out whether Qt was built with icu library dependencies
@@ -658,8 +666,8 @@ IF (MSVC)
 	# Set up debugging/running environments	in Visual Studio to point to the correct dll files:
 	STRING(REGEX REPLACE "/" "\\\\" VTK_WIN_DIR ${VTK_DIR})
 	STRING(REGEX REPLACE "/" "\\\\" ITK_WIN_DIR ${ITK_DIR})
-	STRING(REGEX REPLACE "/" "\\\\" Qt5_WIN_DIR ${QT_LIB_DIR})
-	SET (WinDLLPaths "${VTK_WIN_DIR}\\bin\\$(Configuration);${ITK_WIN_DIR}\\bin\\$(Configuration);${Qt5_WIN_DIR}")
+	STRING(REGEX REPLACE "/" "\\\\" Qt_WIN_DIR ${QT_LIB_DIR})
+	SET (WinDLLPaths "${VTK_WIN_DIR}\\bin\\$(Configuration);${ITK_WIN_DIR}\\bin\\$(Configuration);${Qt_WIN_DIR}")
 	
 	IF (OPENCL_FOUND AND EXISTS "${OPENCL_DLL}")
 		STRING(REGEX REPLACE "/OpenCL.dll" "" OPENCL_WIN_DIR ${OPENCL_DLL})

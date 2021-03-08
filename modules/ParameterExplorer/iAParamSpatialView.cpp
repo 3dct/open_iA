@@ -82,7 +82,7 @@ iAParamSpatialView::iAParamSpatialView(iAParamTableView* table, QString const & 
 	sliceBar->layout()->addWidget(m_sliceControl);
 
 	m_settings->setLayout(new QHBoxLayout);
-	m_settings->layout()->setMargin(0);
+	m_settings->layout()->setContentsMargins(0, 0, 0, 0);
 	m_settings->layout()->setSpacing(2);
 	m_settings->setFixedHeight(24);
 	m_settings->layout()->addWidget(m_sliceControl);

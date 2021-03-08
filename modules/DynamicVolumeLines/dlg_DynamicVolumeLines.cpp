@@ -229,7 +229,7 @@ void dlg_DynamicVolumeLines::setupGUIElements()
 	connect(this, QOverload<QVector<double>>::of(&dlg_DynamicVolumeLines::compLevelRangeChanged),
 		compLvl_colorBar, &iALinearColorGradientBar::compLevelRangeChanged);
 	QVBoxLayout *compLvl_lutLayoutHB = new QVBoxLayout(this);
-	compLvl_lutLayoutHB->setMargin(0);
+	compLvl_lutLayoutHB->setContentsMargins(0, 0, 0, 0);
 	compLvl_lutLayoutHB->addWidget(compLvl_colorBar);
 	compLvl_lutLayoutHB->update();
 	scalarBarWidget->setLayout(compLvl_lutLayoutHB);
@@ -240,7 +240,7 @@ void dlg_DynamicVolumeLines::setupGUIElements()
 	connect(hist_colorBar, &iALinearColorGradientBar::colorMapChanged,
 		this, &dlg_DynamicVolumeLines::updateHistColorMap);
 	QVBoxLayout *hist_lutLayoutHB = new QVBoxLayout(this);
-	hist_lutLayoutHB->setMargin(0);
+	hist_lutLayoutHB->setContentsMargins(0, 0, 0, 0);
 	hist_lutLayoutHB->addWidget(hist_colorBar);
 	hist_lutLayoutHB->update();
 	histBarWidget->setLayout(hist_lutLayoutHB);

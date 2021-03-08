@@ -23,7 +23,7 @@
 #include <QFile>
 #include <QFileInfo>
 #include <QIODevice>
-#include <QRegExp>
+#include <QRegularExpression>
 #include <QStringList>
 
 #include <cassert>
@@ -35,7 +35,7 @@ iACharacteristicEnergy EnergyLoader::ConstructElement(QString line)
 {
 	iACharacteristicEnergy element;
 
-	QRegExp splitter("\\s+");
+	QRegularExpression splitter("\\s+");
 	QStringList stringList = line.split(splitter);
 	assert(stringList.size() > 2);
 	if (stringList.size() < 2)

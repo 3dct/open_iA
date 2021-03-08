@@ -73,7 +73,7 @@ iAFeatureAnalyzer::iAFeatureAnalyzer(iAMainWindow *mWnd, const QString & resDir,
 	m_visanMW->setParent( mainArea );
 
 	QVBoxLayout * visanLayout = new QVBoxLayout();
-	visanLayout->setMargin( 0 );
+	visanLayout->setContentsMargins(0, 0, 0, 0);
 	visanLayout->setSpacing( 0 );
 	visanLayout->addWidget( m_visanMW );
 	mainArea->setLayout( visanLayout );
@@ -352,7 +352,7 @@ void iAFeatureAnalyzer::ShowSelections( bool checked )
 
 		m_selView->setParent( selectionsExplorer );
 		QVBoxLayout * layout = new QVBoxLayout();
-		layout->setMargin( 0 );
+		layout->setContentsMargins(0, 0, 0, 0);
 		layout->setSpacing( 0 );
 		layout->addWidget( m_selView );
 		delete selectionsExplorer->layout();
@@ -376,7 +376,7 @@ void iAFeatureAnalyzer::ShowTreeView( bool checked )
 
 		m_treeView->setParent( selectionsExplorer );
 		QVBoxLayout * layout = new QVBoxLayout();
-		layout->setMargin( 0 );
+		layout->setContentsMargins(0, 0, 0, 0);
 		layout->setSpacing( 0 );
 		layout->addWidget( m_treeView );
 		delete selectionsExplorer->layout();
@@ -422,7 +422,9 @@ bool iAFeatureAnalyzer::doSaveProject(QString const& projectFileName)
 	}
 	// TODO: Unify with iAMdiChild::doSaveProject
 	QSettings projectFile(projectFileName, QSettings::IniFormat);
+#if QT_VERSION < QT_VERSION_CHECK(5, 99, 0)
 	projectFile.setIniCodec("UTF-8");
+#endif
 	projectFile.setValue("UseiAMdiChild", false);
 	projectFile.beginGroup(iAFeatureAnalyzerProject::ID);
 	project.saveProject(projectFile, projectFileName);

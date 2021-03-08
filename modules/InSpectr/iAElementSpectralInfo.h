@@ -23,6 +23,7 @@
 #include "iAEnergySpectrum.h"
 
 #include <QFileInfo>
+#include <QRegularExpression>
 #include <QStringList>
 
 #define LINES_IN_HEADER 11
@@ -48,7 +49,7 @@ public:
 
 			//read the data
 			QStringList stringList;
-			QRegExp splitter("\\s+");
+			QRegularExpression splitter("\\s+");
 			while (!file.atEnd())
 			{
 				stringList = QString(file.readLine()).trimmed().split(splitter);

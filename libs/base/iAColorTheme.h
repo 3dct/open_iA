@@ -28,7 +28,13 @@
 #include <vector>
 
 class QString;
+
+#if QT_VERSION < QT_VERSION_CHECK(5, 99, 0)
 class QStringList;
+#else
+#include <QList>
+using QStringList = QList<QString>;
+#endif
 
 //! A simple (qualitative) color theme. Holds a number of colors (which can be distinguished easily)
 class iAbase_API iAColorTheme

@@ -97,7 +97,7 @@ iAMultimodalWidget::iAMultimodalWidget(iAMdiChild* mdiChild, NumOfMod num):
 
 	QWidget *innerWidget = new QWidget(this);
 	m_innerLayout = new QHBoxLayout(innerWidget);
-	m_innerLayout->setMargin(0);
+	m_innerLayout->setContentsMargins(0, 0, 0, 0);
 
 	m_stackedLayout->addWidget(innerWidget);
 	m_stackedLayout->addWidget(m_disabledLabel);

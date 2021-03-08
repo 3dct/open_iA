@@ -53,7 +53,6 @@
 #include <QStringListModel>
 #include <QTextStream>
 #include <QVBoxLayout>
-#include <QXmlSimpleReader>
 #include <QXmlStreamWriter>
 
 iA4DCTMainWin::iA4DCTMainWin( iAMainWindow* parent /*= 0*/ )
