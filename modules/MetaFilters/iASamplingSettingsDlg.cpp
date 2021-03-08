@@ -506,6 +506,7 @@ void iASamplingSettingsDlg::saveSettings()
 	iASettings settings;
 	getValues(settings);
 
+	// use QSettings?
 	QFile file(fileName);
 	if (!file.open(QIODevice::WriteOnly))
 	{
