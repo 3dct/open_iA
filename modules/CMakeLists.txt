@@ -92,12 +92,13 @@ FOREACH( indx RANGE ${len} )
 	endif()
 	TARGET_INCLUDE_DIRECTORIES(${module_name} PRIVATE ${module_full_path} )
 	TARGET_INCLUDE_DIRECTORIES(${module_name} PRIVATE ${OpeniABinDir}/modules ) # _export files
+	# for generated ui_xxx.h includes:
 	IF (CMAKE_CONFIGURATION_TYPES)
 		TARGET_INCLUDE_DIRECTORIES(${module_name} PUBLIC
-			"${CMAKE_CURRENT_BINARY_DIR}/${module_name}_autogen/include_$(Configuration)"	# for generated ui_xxx.h includes.
-		)
+			"${CMAKE_CURRENT_BINARY_DIR}/${module_name}_autogen/include_$(Configuration)")
 	ELSE()
-		# unknown?
+		TARGET_INCLUDE_DIRECTORIES(${module_name} PUBLIC
+			"${CMAKE_CURRENT_BINARY_DIR}/${module_name}_autogen/include")
 	ENDIF()
 
 	IF (openiA_PRECOMPILE)

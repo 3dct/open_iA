@@ -58,12 +58,13 @@ FOREACH(libdir ${children})
 			${CMAKE_CURRENT_SOURCE_DIR}/${libdir}
 			${CMAKE_CURRENT_BINARY_DIR} # for export header
 		)
+		# for generated ui_xxx.h includes:
 		IF (CMAKE_CONFIGURATION_TYPES)
 			TARGET_INCLUDE_DIRECTORIES(${libname} PUBLIC
-				"${CMAKE_CURRENT_BINARY_DIR}/${libname}_autogen/include_$(Configuration)"	# for generated ui_xxx.h includes.
-			)
+				"${CMAKE_CURRENT_BINARY_DIR}/${libname}_autogen/include_$(Configuration)")
 		ELSE()
-			# unknown?
+			TARGET_INCLUDE_DIRECTORIES(${libname} PUBLIC
+				"${CMAKE_CURRENT_BINARY_DIR}/${libname}_autogen/include")
 		ENDIF()
 
 		IF (openiA_USE_IDE_FOLDERS)
