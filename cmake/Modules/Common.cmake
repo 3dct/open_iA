@@ -332,6 +332,7 @@ set (BUILD_INFO_VTK_DETAILS "${BUILD_INFO_VTK_DETAILS}OpenVR support: ${BUILD_IN
 set (BUILD_INFO_VTK "VTK: ${VTK_VERSION} (${BUILD_INFO_VTK_DETAILS})")
 set (BUILD_INFO "${BUILD_INFO}    \"${BUILD_INFO_VTK}\\n\"\n")
 
+
 # Qt (>= 5)
 SET(CMAKE_AUTOMOC ON)
 set(CMAKE_AUTOUIC ON)
@@ -350,38 +351,8 @@ SET(QT_LIBRARIES ${Qt${QT_VERSION_MAJOR}Core_LIBRARIES} ${Qt${QT_VERSION_MAJOR}C
 STRING(REGEX REPLACE "/lib/cmake/Qt${QT_VERSION_MAJOR}" "" Qt_BASEDIR ${Qt${QT_VERSION_MAJOR}_DIR})
 STRING(REGEX REPLACE "/cmake/Qt${QT_VERSION_MAJOR}" "" Qt_BASEDIR ${Qt_BASEDIR})	# on linux, lib is omitted if installed from package repos
 
-# List all Qt plugins:
-# foreach(plugin ${Qt5Gui_PLUGINS})
-# 	get_target_property(_loc ${plugin} LOCATION)
-# 	message("Plugin ${plugin} is at location ${_loc}")
-# endforeach()
-# list all variables:
-#get_cmake_property(_variableNames VARIABLES)
-#foreach (_variableName ${_variableNames})
-#    message(STATUS "${_variableName}=${${_variableName}}")
-#endforeach()
-
 IF (WIN32)
 	SET (QT_LIB_DIR "${Qt_BASEDIR}/bin")
-ENDIF()
-# Install svg imageformats plugin:
-IF (${QT_VERSION_MAJOR} LESS 6) # Qt6 does not expose plugins? at least not the same as in Qt 5
-IF (FLATPAK_BUILD)
-	# I guess plugins should all be available on Flatpak?
-	#	INSTALL (FILES "$<TARGET_FILE:Qt5::QSvgPlugin>" DESTINATION bin/imageformats)
-	#	INSTALL (FILES "$<TARGET_FILE:Qt5::QSvgIconPlugin>" DESTINATION bin/iconengines)
-ELSE()
-	INSTALL (FILES "$<TARGET_FILE:Qt${QT_VERSION_MAJOR}::QSvgIconPlugin>" DESTINATION iconengines)
-	LIST (APPEND BUNDLE_LIBS "$<TARGET_FILE:Qt${QT_VERSION_MAJOR}::QSvgIconPlugin>")
-		INSTALL (FILES "$<TARGET_FILE:Qt${QT_VERSION_MAJOR}::QSvgPlugin>" DESTINATION imageformats)
-	LIST (APPEND BUNDLE_LIBS "$<TARGET_FILE:Qt${QT_VERSION_MAJOR}::QSvgPlugin>")
-ENDIF()
-IF (WIN32)
-	# use imported targets for windows plugin:
-	INSTALL (FILES "$<TARGET_FILE:Qt${QT_VERSION_MAJOR}::QWindowsIntegrationPlugin>" DESTINATION platforms)
-	# install windows vista style plugin:
-	INSTALL (FILES "$<TARGET_FILE:Qt${QT_VERSION_MAJOR}::QWindowsVistaStylePlugin>" DESTINATION styles)
-ENDIF()
 ENDIF()
 IF (UNIX AND NOT APPLE AND NOT FLATPAK_BUILD)
 	IF (EXISTS "${Qt_BASEDIR}/lib")
@@ -389,11 +360,55 @@ IF (UNIX AND NOT APPLE AND NOT FLATPAK_BUILD)
 	ELSE()
 		SET (QT_LIB_DIR "${Qt_BASEDIR}")
 	ENDIF()
+ENDIF()
 
-	# xcb platform plugin, and its plugins egl and glx:
-	INSTALL (FILES "$<TARGET_FILE:Qt${QT_VERSION_MAJOR}::QXcbIntegrationPlugin>" DESTINATION platforms)
-	INSTALL (FILES "$<TARGET_FILE:Qt${QT_VERSION_MAJOR}::QXcbEglIntegrationPlugin>" DESTINATION xcbglintegrations)
-	INSTALL (FILES "$<TARGET_FILE:Qt${QT_VERSION_MAJOR}::QXcbGlxIntegrationPlugin>" DESTINATION xcbglintegrations)
+# Install svg imageformats plugin:
+IF (FLATPAK_BUILD)
+	# I guess plugins should all be available on Flatpak?
+	#	INSTALL (FILES "$<TARGET_FILE:Qt5::QSvgPlugin>" DESTINATION bin/imageformats)
+	#	INSTALL (FILES "$<TARGET_FILE:Qt5::QSvgIconPlugin>" DESTINATION bin/iconengines)
+ELSE()
+	IF (${QT_VERSION_MAJOR} GREATER_EQUAL 6) # Qt6 does not expose plugins? at least not the same as in Qt 5
+		MESSAGE(STATUS "Qt: ${Qt_BASEDIR}")
+		set (LIB_SvgIconPlugin "${Qt_BASEDIR}/plugins/iconengines/${CMAKE_SHARED_LIBRARY_PREFIX}qsvgicon${CMAKE_SHARED_LIBRARY_SUFFIX}")
+		set (LIB_SvgPlugin "${Qt_BASEDIR}/plugins/imageformats/${CMAKE_SHARED_LIBRARY_PREFIX}qsvg${CMAKE_SHARED_LIBRARY_SUFFIX}")
+		INSTALL (FILES "${LIB_SvgIconPlugin}" DESTINATION iconengines)
+		LIST (APPEND BUNDLE_LIBS "${LIB_SvgIconPlugin}")
+		INSTALL (FILES "${LIB_SvgPlugin}" DESTINATION imageformats)
+		LIST (APPEND BUNDLE_LIBS "${LIB_SvgPlugin}")
+	ELSE() # use imported targets & generator expressions:
+		INSTALL (FILES "$<TARGET_FILE:Qt${QT_VERSION_MAJOR}::QSvgIconPlugin>" DESTINATION iconengines)
+		LIST (APPEND BUNDLE_LIBS "$<TARGET_FILE:Qt${QT_VERSION_MAJOR}::QSvgIconPlugin>")
+		INSTALL (FILES "$<TARGET_FILE:Qt${QT_VERSION_MAJOR}::QSvgPlugin>" DESTINATION imageformats)
+		LIST (APPEND BUNDLE_LIBS "$<TARGET_FILE:Qt${QT_VERSION_MAJOR}::QSvgPlugin>")
+	ENDIF()
+ENDIF()
+# on windows, windows platform and vista style plugins are required:
+IF (WIN32)
+	IF (${QT_VERSION_MAJOR} GREATER_EQUAL 6) # Qt6 does not expose plugins? at least not the same as in Qt 5
+		set (LIB_WindowsPlatform "${Qt_BASEDIR}/plugins/platforms/qwindows.dll")
+		set (LIB_WindowsVistaStyle "${Qt_BASEDIR}/plugins/styles/qwindowsvistastyle.dll")
+		INSTALL (FILES "${LIB_WindowsPlatform}" DESTINATION platforms)
+		INSTALL (FILES "${LIB_WindowsVistaStyle}" DESTINATION styles)
+	ELSE() # use imported targets & generator expressions:
+		INSTALL (FILES "$<TARGET_FILE:Qt${QT_VERSION_MAJOR}::QWindowsIntegrationPlugin>" DESTINATION platforms)
+		INSTALL (FILES "$<TARGET_FILE:Qt${QT_VERSION_MAJOR}::QWindowsVistaStylePlugin>" DESTINATION styles)
+	ENDIF()
+ENDIF()
+# on linux/unix, xcb platform plugin, and its plugins egl and glx are required:
+IF (UNIX AND NOT APPLE AND NOT FLATPAK_BUILD)
+	IF (${QT_VERSION_MAJOR} GREATER_EQUAL 6) # Qt6 does not expose plugins? at least not the same as in Qt 5
+		set (LIB_XcbPlatform "${Qt_BASEDIR}/plugins/platforms/libqxcb.so")
+		set (LIB_XcbEglIntegration "${Qt_BASEDIR}/plugins/xcbglintegrations/libqxcb-egl-integration.so")
+		set (LIB_XcbGlxIntegration "${Qt_BASEDIR}/plugins/xcbglintegrations/libqxcb-glx-integration.so")
+		INSTALL (FILES "${LIB_XcbPlatform}" DESTINATION platforms)
+		INSTALL (FILES "${LIB_XcbEglIntegration}" DESTINATION xcbglintegrations)
+		INSTALL (FILES "${LIB_XcbGlxIntegration}" DESTINATION xcbglintegrations)
+	ELSE()
+		INSTALL (FILES "$<TARGET_FILE:Qt${QT_VERSION_MAJOR}::QXcbIntegrationPlugin>" DESTINATION platforms)
+		INSTALL (FILES "$<TARGET_FILE:Qt${QT_VERSION_MAJOR}::QXcbEglIntegrationPlugin>" DESTINATION xcbglintegrations)
+		INSTALL (FILES "$<TARGET_FILE:Qt${QT_VERSION_MAJOR}::QXcbGlxIntegrationPlugin>" DESTINATION xcbglintegrations)
+	ENDIF()
 
 	# install icu:
 	# TODO: find out whether Qt was built with icu library dependencies
