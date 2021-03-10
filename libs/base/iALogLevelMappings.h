@@ -22,8 +22,15 @@
 
 #include "iALog.h"
 
+#include <qglobal.h> // for QT_VERSION_CHECK
+
 class QString;
+#if QT_VERSION < QT_VERSION_CHECK(5, 99, 0)
 class QStringList;
+#else
+#include <QList>
+using QStringList = QList<QString>;
+#endif
 
 iAbase_API QString logLevelToString(iALogLevel lvl);
 iAbase_API iALogLevel stringToLogLevel(QString const& str, bool& ok);

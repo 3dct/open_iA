@@ -37,7 +37,12 @@ class vtkPolyData;
 struct iAChanData;
 class iASlicer;
 
+#if QT_VERSION < QT_VERSION_CHECK(5, 99, 0)
 class QStringList;
+#else
+#include <QList>
+using QStringList = QList<QString>;
+#endif
 class QWidget;
 class QVBoxLayout;
 

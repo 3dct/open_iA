@@ -124,10 +124,10 @@ iAParamSPLOMView::iAParamSPLOMView(iAParamTableView* tableView, iAParamSpatialVi
 	lutSourceLine->layout()->addWidget(new QLabel("LUT Source:"));
 	lutSourceLine->layout()->addWidget(lutSourceChoice);
 	lutSourceLine->setFixedHeight(24);
-	lutSourceLine->layout()->setMargin(0);
+	lutSourceLine->layout()->setContentsMargins(0, 0, 0, 0);
 	lutSourceLine->layout()->setSpacing(2);
 
-	m_settings->layout()->setMargin(0);
+	m_settings->layout()->setContentsMargins(0, 0, 0, 0);
 	m_settings->layout()->setSpacing(0);
 	m_settings->layout()->addWidget(lutSourceLine);
 

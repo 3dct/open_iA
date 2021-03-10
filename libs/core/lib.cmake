@@ -1,6 +1,6 @@
 TARGET_LINK_LIBRARIES(${libname} PUBLIC
-	Qt5::Concurrent
 	iAbase
+	Qt${QT_VERSION_MAJOR}::Concurrent
 )
 SET(VTK_REQUIRED_LIBS_PUBLIC
 	FiltersGeometry         # VTK9, for vtkImageDataGeometryFilter, used in iALabel3D and vtkDataSetSurfaceFilter used in ExtractSurface - iAExtractSurfaceFilter

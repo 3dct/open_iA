@@ -147,7 +147,7 @@ void iARangeSliderDiagramView::addTitleLabel()
 	m_mainContainer = new QWidget();
 	m_mainContainer->setMinimumHeight( 300 );
 	m_layoutVBMainContainer = new QVBoxLayout( this );
-	m_layoutVBMainContainer->setMargin( 0 );
+	m_layoutVBMainContainer->setContentsMargins(0, 0, 0, 0);
 
 	//Install event filter for main conatiner
 	m_mainContainer->installEventFilter( this );
@@ -213,7 +213,7 @@ void iARangeSliderDiagramView::addComboBoxes()
 	m_comboBoxContainer->setFixedHeight( 25 );
 	m_comboBoxContainer->setFixedWidth( 200 );
 	m_layoutHBComboBoxes = new QHBoxLayout(this);
-	m_layoutHBComboBoxes->setMargin( 0 );
+	m_layoutHBComboBoxes->setContentsMargins(0, 0, 0, 0);
 	m_layoutHBComboBoxes->setContentsMargins( 0, 0, 0, 0 );
 
 	m_cbPorDev = new QComboBox();
@@ -321,7 +321,11 @@ void iARangeSliderDiagramView::setupHistogram()
 
 	QList<double> binList;
 	m_histogramMap = calculateHistogram( porosityList, 0.0, 100.0 );
-	QMapIterator<double, QList<double> > mapIt( m_histogramMap );
+#if QT_VERSION < QT_VERSION_CHECK(5, 99, 0)
+	QMapIterator<double, QList<double>> mapIt(m_histogramMap);
+#else
+	QMultiMapIterator<double, QList<double>> mapIt(m_histogramMap);
+#endif
 	while ( mapIt.hasNext() )
 	{
 		mapIt.next();
@@ -355,8 +359,11 @@ void iARangeSliderDiagramView::setupDiagrams()
 	auto paramPorOrDevMap = prepareData( m_rawTable, m_cbPorDev->currentIndex(),
 																  m_cbStatisticMeasurements->currentIndex() );
 
-
-	QMapIterator<QString, QList<double> > mapIt( paramPorOrDevMap );
+#if QT_VERSION < QT_VERSION_CHECK(5, 99, 0)
+	QMapIterator<QString, QList<double>> mapIt(paramPorOrDevMap);
+#else
+	QMultiMapIterator<QString, QList<double>> mapIt(paramPorOrDevMap);
+#endif
 	while ( mapIt.hasNext() )
 	{
 		mapIt.next();

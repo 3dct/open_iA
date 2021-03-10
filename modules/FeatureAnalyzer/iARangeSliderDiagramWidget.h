@@ -44,7 +44,7 @@ public:
 								vtkPiecewiseFunction* oTF,
 								vtkColorTransferFunction* cTF,
 								QSharedPointer<iAHistogramData> data,
-								QMap<double, QList<double> > *,
+								QMultiMap<double, QList<double> > *,
 								const QTableWidget * rawTable,
 								QString const & xlabel = "Greyvalue",
 								QString const & yLabel = "Frequency" );
@@ -82,7 +82,7 @@ private:
 	int m_firstSelectedBin;
 	int m_lastSelectedBin;
 
-	QMap<double, QList<double> > * m_histogramMap;
+	QMultiMap<double, QList<double> > * m_histogramMap;
 	const QTableWidget * m_rawTable;
 	QSharedPointer<iATransferFunction> m_tf;
 

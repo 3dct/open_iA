@@ -42,7 +42,7 @@ protected:
 	void paintEvent(QPaintEvent *)//needed so that stylesheet can be applied
 	{
 		QStyleOption opt;
-		opt.init(this);
+		opt.initFrom(this);
 		QPainter p(this);
 		QWidget::style()->drawPrimitive(QStyle::PE_Widget, &opt, &p, this);
 	}

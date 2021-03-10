@@ -64,7 +64,7 @@ QString padOrTruncate(QString const & str, int size)
 QString stripHTML(QString const & html)
 {
 	QString result(html);
-	return result.remove(QRegExp("<[^>]*>"));
+	return result.remove(QRegularExpression("<[^>]*>"));
 }
 
 namespace

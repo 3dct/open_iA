@@ -32,6 +32,7 @@
 
 #include <QFile>
 #include <QFileInfo>
+#include <QRegularExpression>
 
 const QString iASingleResult::ValueSplitString(",");
 
@@ -48,7 +49,7 @@ QSharedPointer<iASingleResult> iASingleResult::create(
 	if (!ok)
 	{
 		// legacy format: split string " ":
-		QRegExp sep("(,| )");
+		QRegularExpression sep("(,| )");
 		tokens = line.split(sep);
 		id = tokens[0].toInt(&ok);
 		if (!ok)

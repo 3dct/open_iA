@@ -745,7 +745,7 @@ void dlg_InSpectr::loadDecomposition()
 	QString elementNames = io.additionalInfo();
 	QStringList elements = elementNames.split(",");
 
-	elements.replaceInStrings(QRegExp("^\\s+"), ""); // trim whitespaces
+	elements.replaceInStrings(QRegularExpression("^\\s+"), ""); // trim whitespaces
 	updateDecompositionGUI( elements );
 }
 

@@ -162,7 +162,11 @@ void iAHistogramTriangle::forwardMouseEvent(QMouseEvent *event, MouseEventType e
 
 	else if (m_draggedType == HISTOGRAM || (m_draggedType == NONE && (target = onHistogram(event->pos(), transformed).data())))
 	{
+#if QT_VERSION < QT_VERSION_CHECK(5, 99, 0)
 		event->setLocalPos(transformed);
+#else
+		// TODO: setLocalPos was removed (was undocumented before)
+#endif
 		m_fRenderHistogram[m_lastIndex] = true; // m_lastIndex is affected by onHistogram function
 		m_fRenderSlicer[m_lastIndex] = true; // m_lastIndex is affected by onHistogram function
 
@@ -172,7 +176,11 @@ void iAHistogramTriangle::forwardMouseEvent(QMouseEvent *event, MouseEventType e
 
 	else if (m_draggedType == SLICER || (m_draggedType == NONE && (target = onSlicer(event->pos(), transformed))))
 	{
+#if QT_VERSION < QT_VERSION_CHECK(5, 99, 0)
 		event->setLocalPos(transformed);
+#else
+		// TODO: setLocalPos was removed (was undocumented before)
+#endif
 		m_fRenderSlicer[m_lastIndex] = true; // m_lastIndex is affected by onHistogram function
 
 		widgetType = SLICER;

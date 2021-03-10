@@ -2603,7 +2603,8 @@ void iAFiAKErController::showReferenceLinesToggled()
 
 void iAFiAKErController::changeReferenceDisplay()
 {
-	size_t similarityMeasure = clamp(0, m_data->m_measures.size(), m_settingsView->cmbboxSimilarityMeasure->currentIndex());
+	size_t similarityMeasure =
+		clamp(0, static_cast<int>(m_data->m_measures.size()), m_settingsView->cmbboxSimilarityMeasure->currentIndex());
 	bool showRef = m_chkboxShowReference->isChecked();
 	int refCount = std::min(iARefDistCompute::MaxNumberOfCloseFibers, m_spnboxReferenceCount->value());
 

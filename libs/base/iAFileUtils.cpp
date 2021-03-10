@@ -156,7 +156,7 @@ void determineStackParameters(QString const& fullFileName,
 			}
 			QString numStr = imgFileName.mid(prefix.length(), len);
 			//LOG(lvlInfo, QString("  File %1: numStr=%2 (start=%3, len=%4)").arg(imgFileName).arg(numStr).arg(prefix.length()).arg(len));
-			digits = std::min(numStr.length(), digits);
+			digits = std::min(static_cast<int>(numStr.length()), digits);
 			bool ok;
 			int num = numStr.toInt(&ok);
 			if (!ok)

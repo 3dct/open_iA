@@ -40,7 +40,7 @@ public:
 
 		//read the data
 		QStringList stringList;
-		QRegExp splitter("\\s+");
+		QRegularExpression splitter("\\s+");
 		QFileInfo fi(fileName);
 		QString fileNamesBase = fi.absolutePath() + "/";
 		QString curFileName;

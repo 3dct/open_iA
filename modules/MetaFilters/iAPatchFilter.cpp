@@ -206,7 +206,7 @@ namespace
 						filter->run(filterParams);
 
 						// get output images and values from filter:
-						int outputCount = std::max(filter->outputCount(), filter->output().size());
+						int outputCount = std::max(filter->outputCount(), static_cast<int>(filter->output().size()));
 						for (int o = 0; o < outputCount; ++o)
 						{
 							QFileInfo fi(parameters["Output image base name"].toString());

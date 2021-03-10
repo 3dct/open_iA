@@ -59,12 +59,10 @@ FOREACH( indx RANGE ${len} )
 	FILE (GLOB_RECURSE module_hpp "${module_full_path}/*.hpp" )
 	LIST (APPEND module_hs ${module_hpp})
 	FILE (GLOB_RECURSE module_uis "${module_full_path}/*.ui" )
+	LIST (APPEND module_srcs ${module_uis})
 	FILE (GLOB_RECURSE module_qrc "${module_full_path}/*.qrc" )
-	QT5_WRAP_UI( module_srcs ${module_uis})
-	IF ( NOT "${module_qrc}" STREQUAL "" )
-		QT5_ADD_RESOURCES( module_srcs "${module_qrc}" )
-		LIST (APPEND module_srcs "${module_qrc}" )
-	ENDIF ()
+	LIST (APPEND module_srcs ${module_qrc})
+
 	# If there are dependencies do the check
 	MODULE_CHECK_DEPENDENCIES( ${module_option} ${module_full_path} )
 	# Module can be disabled in the course of the dependency check - if so, we need to skip the rest:
@@ -93,7 +91,15 @@ FOREACH( indx RANGE ${len} )
 		vtk_module_autoinit(TARGETS ${module_name} MODULES ${VTK_LIBRARIES})
 	endif()
 	TARGET_INCLUDE_DIRECTORIES(${module_name} PUBLIC ${module_full_path} )      # public so depending modules only need to link to the target
-	TARGET_INCLUDE_DIRECTORIES(${module_name} PRIVATE ${OpeniABinDir}/modules ) # ui files in module folders
+	TARGET_INCLUDE_DIRECTORIES(${module_name} PRIVATE ${OpeniABinDir}/modules ) # _export files
+	# for generated ui_xxx.h includes:
+	IF (CMAKE_CONFIGURATION_TYPES)
+		TARGET_INCLUDE_DIRECTORIES(${module_name} PUBLIC
+			"${CMAKE_CURRENT_BINARY_DIR}/${module_name}_autogen/include_$(Configuration)")
+	ELSE()
+		TARGET_INCLUDE_DIRECTORIES(${module_name} PUBLIC
+			"${CMAKE_CURRENT_BINARY_DIR}/${module_name}_autogen/include")
+	ENDIF()
 
 	IF (openiA_PRECOMPILE)
 		IF (CMAKE_VERSION VERSION_GREATER "3.15.99")

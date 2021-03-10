@@ -152,7 +152,9 @@ QSize iAQFlowLayout::minimumSize() const
 	{
 		size = size.expandedTo(item->minimumSize());
 	}
-	size += QSize(2 * margin(), 2 * margin());
+	int left, top, right, bottom;
+	getContentsMargins(&left, &top, &right, &bottom);
+	size += QSize(left+right, top+bottom);
 	return size;
 }
 

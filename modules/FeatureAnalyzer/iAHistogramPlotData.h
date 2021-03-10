@@ -30,7 +30,7 @@ public:
 	static int cmp( const void *px, const void *py );
 	void CalculateHistogramPlot( double * data, int dataSize );
 
-	QMap<double, QList<double> > histoBinMap;
+	QMultiMap<double, QList<double> > histoBinMap;
 	double min, max;
 	double range[2];
 };

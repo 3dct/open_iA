@@ -30,7 +30,12 @@ class vtkCamera;
 class vtkImageData;
 
 class QString;
+#if QT_VERSION < QT_VERSION_CHECK(5, 99, 0)
 class QStringList;
+#else
+#include <QList>
+using QStringList = QList<QString>;
+#endif
 
 //! Create a VTK image that has the same properties (type, size, spacing) as the given image.
 //! @param img image whose type, size and spacing will be used to create the result image;

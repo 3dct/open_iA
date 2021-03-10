@@ -27,6 +27,7 @@
 
 #include <QContiguousCache>
 #include <QImage>
+#include <QSharedPointer>
 
 class QWidget;
 

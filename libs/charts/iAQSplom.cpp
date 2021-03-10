@@ -36,6 +36,7 @@
 #include <vtkLookupTable.h>
 
 #include <QAbstractTextDocumentLayout>
+#include <QActionGroup>
 #include <QColorDialog>
 #include <QFileDialog>
 #include <QListWidgetItem>
@@ -1892,7 +1893,9 @@ void iAQSplom::saveSettingsSlot()
 		return;
 	}
 	QSettings iniFile(fileName, QSettings::IniFormat);
+#if QT_VERSION < QT_VERSION_CHECK(5, 99, 0)
 	iniFile.setIniCodec("UTF-8");
+#endif
 	saveSettings(iniFile);
 }
 
@@ -1905,7 +1908,9 @@ void iAQSplom::loadSettingsSlot()
 		return;
 	}
 	QSettings iniFile(fileName, QSettings::IniFormat);
+#if QT_VERSION < QT_VERSION_CHECK(5, 99, 0)
 	iniFile.setIniCodec("UTF-8");
+#endif
 	loadSettings(mapFromQSettings(iniFile));
 }
 

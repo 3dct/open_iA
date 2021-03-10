@@ -791,7 +791,9 @@ void MdiChild::setupProject(bool /*active*/)
 	{
 		// TODO: make asynchronous, put into iASavableProject?
 		QSettings projectFile(fileName, QSettings::IniFormat);
+#if QT_VERSION < QT_VERSION_CHECK(5, 99, 0)
 		projectFile.setIniCodec("UTF-8");
+#endif
 		auto registeredProjects = iAProjectRegistry::projectKeys();
 		auto projectFileGroups = projectFile.childGroups();
 		for (auto projectKey : registeredProjects)
@@ -2787,7 +2789,9 @@ bool MdiChild::doSaveProject(QString const & projectFileName)
 	if (projectFileName.toLower().endsWith(iAIOProvider::NewProjectFileExtension))
 	{
 		QSettings projectFile(projectFileName, QSettings::IniFormat);
+#if QT_VERSION < QT_VERSION_CHECK(5, 99, 0)
 		projectFile.setIniCodec("UTF-8");
+#endif
 		projectFile.setValue("UseMdiChild", true);
 		for (auto projectKey : m_projects.keys())
 		{

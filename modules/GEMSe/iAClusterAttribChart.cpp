@@ -45,7 +45,7 @@ iAClusterAttribChart::iAClusterAttribChart(
 	//double dr1= data->xBounds()[1];
 
 	QVBoxLayout* mainLayout = new QVBoxLayout();
-	mainLayout->setMargin(0);
+	mainLayout->setContentsMargins(0, 0, 0, 0);
 	mainLayout->setSpacing(5);
 
 	m_checkbox = new QCheckBox(caption);

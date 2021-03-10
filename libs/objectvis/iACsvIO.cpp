@@ -28,7 +28,11 @@
 #include <QFileInfo>
 #include <QIODevice>
 #include <QStringList>
+#if QT_VERSION < QT_VERSION_CHECK(5, 99, 0)
 #include <QTextCodec>
+#else
+#include <QStringConverter>
+#endif
 #include <QTextStream>
 
 const char* iACsvIO::ColNameAutoID = "Auto_ID";
@@ -131,7 +135,13 @@ bool iACsvIO::loadCSV(iACsvTableCreator & dstTbl, iACsvConfig const & cnfg_param
 		return false;
 	}
 	QTextStream in(&file);
+#if QT_VERSION < QT_VERSION_CHECK(5, 99, 0)
 	in.setCodec(m_csvConfig.encoding.toStdString().c_str());
+#else
+	auto encOpt = QStringConverter::encodingForName(m_csvConfig.encoding.toStdString().c_str());
+	QStringConverter::Encoding enc = encOpt.has_value() ? encOpt.value() : QStringConverter::Utf8;
+	in.setEncoding(enc);
+#endif
 	size_t effectiveRowCount = std::min(rowCount,
 		calcRowCount(in, getLineNumberForRow(m_csvConfig, 0), m_csvConfig.skipLinesEnd));
 	if (effectiveRowCount <= 0)

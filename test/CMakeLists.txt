@@ -3,7 +3,7 @@
 # StringHelperTest
 ADD_EXECUTABLE(StringHelperTest iAStringHelperTest.cpp ../libs/base/iAStringHelper.cpp)
 TARGET_INCLUDE_DIRECTORIES(StringHelperTest PRIVATE ${CMAKE_CURRENT_SOURCE_DIR}/../libs/base ${CMAKE_CURRENT_BINARY_DIR}/../libs)
-TARGET_LINK_LIBRARIES(StringHelperTest PRIVATE Qt5::Core)
+TARGET_LINK_LIBRARIES(StringHelperTest PRIVATE Qt${QT_VERSION_MAJOR}::Core)
 target_compile_definitions(StringHelperTest PRIVATE NO_DLL_LINKAGE)
 ADD_TEST(NAME StringHelperTest COMMAND StringHelperTest)
 IF (MSVC)

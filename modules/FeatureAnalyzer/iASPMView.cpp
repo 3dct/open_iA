@@ -80,7 +80,7 @@ iASPMView::iASPMView(iAMainWindow *mWnd,  QWidget * parent /*= 0*/, Qt::WindowFl
 {
 	CREATE_OLDVTKWIDGET(m_SBQVTKWidget);
 	QHBoxLayout *layoutHB2 = new QHBoxLayout( this );
-	layoutHB2->setMargin( 0 );
+	layoutHB2->setContentsMargins(0, 0, 0, 0);
 	layoutHB2->setSpacing( 0 );
 	layoutHB2->addWidget( m_splom );
 	SPLOMWidget->setLayout( layoutHB2 );
@@ -119,7 +119,7 @@ void iASPMView::initScalarBar()
 #endif
 	m_SBQVTKWidget->update();
 	QVBoxLayout *lutLayoutHB = new QVBoxLayout( this );
-	lutLayoutHB->setMargin( 0 );
+	lutLayoutHB->setContentsMargins(0, 0, 0, 0);
 	lutLayoutHB->addWidget( m_SBQVTKWidget );
 	lutLayoutHB->update();
 	scalarBarWidget->setLayout( lutLayoutHB );

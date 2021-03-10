@@ -30,7 +30,6 @@
 #include <vtkPiecewiseFunction.h>
 
 #include <QColorDialog>
-#include <QDesktopWidget>
 #include <QMouseEvent>
 #include <QPainter>
 #include <QPen>

@@ -311,7 +311,7 @@ LabelVotingType::Pointer GetLabelVotingFilter(
 	labelVotingFilter->SetWeightType(static_cast<WeightType>(weightType));
 	if (labelVoters > 0)
 	{
-		labelVoters = std::min(selection.size(), labelVoters);
+		labelVoters = std::min(static_cast<int>(selection.size()), labelVoters);
 		typedef std::pair<int, double> InputDice;
 		std::set<std::pair<int, int> > inputLabelVotersSet;
 		for (int l = 0; l<labelCount; ++l)
@@ -749,7 +749,9 @@ void dlg_Consensus::StoreConfig()
 	QFileInfo fi(fileName);
 	QString basePath(fi.absolutePath());
 	QSettings settings(fileName, QSettings::IniFormat);
+#if QT_VERSION < QT_VERSION_CHECK(5, 99, 0)
 	settings.setIniCodec("UTF-8");
+#endif
 	settings.setValue(FileFormatKey, FileVersion);
 	settings.setValue(LabelsKey, m_labelCount);
 
@@ -872,7 +874,9 @@ void dlg_Consensus::LoadConfig()
 	}
 	QFileInfo fi(fileName);
 	QSettings settings(fileName, QSettings::IniFormat);
+#if QT_VERSION < QT_VERSION_CHECK(5, 99, 0)
 	settings.setIniCodec("UTF-8");
+#endif
 	if (settings.value(FileFormatKey) != FileVersion)
 	{
 		QMessageBox::warning(this, "GEMSe",
@@ -1363,7 +1367,7 @@ void dlg_Consensus::Sample(QVector<QSharedPointer<iASingleResult> > const & sele
 		}
 		for (int i = 0; i < ResultCount; ++i)
 		{
-			AddResult(tables[i], "Sampling(method=" + titles[i] + ", weight=" + GetWeightName(weightType) + ", cluster=" + selectedClusterID);
+			AddResult(tables[i], "Sampling(method=" + titles[i] + ", weight=" + GetWeightName(weightType) + ", cluster=" + QString::number(selectedClusterID));
 		}
 	}
 	catch (std::exception & e)

@@ -247,7 +247,7 @@ void iABatchFilter::performWork(QMap<QString, QVariant> const & parameters)
 				if (param->valueType() == iAValueType::FileNameSave)
 				{	// all output file names need to be adapted to output file name;
 					// merge with code in iASampleBuiltInFilterOperation?
-					auto value = pathFileBaseName(fileName) + param->defaultValue().toString();
+					auto value = pathFileBaseName(QFileInfo(fileName)) + param->defaultValue().toString();
 					if (QFile::exists(value) && !overwrite)
 					{
 						LOG(lvlError, QString("Output file '%1' already exists! Aborting. "

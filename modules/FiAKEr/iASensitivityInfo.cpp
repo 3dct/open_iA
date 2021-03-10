@@ -125,7 +125,13 @@ bool readParameterCSV(QString const& fileName, QString const& encoding, QString 
 		return false;
 	}
 	QTextStream in(&file);
+#if QT_VERSION < QT_VERSION_CHECK(5, 99, 0)
 	in.setCodec(encoding.toStdString().c_str());
+#else
+	auto encOpt = QStringConverter::encodingForName(encoding.toStdString().c_str());
+	QStringConverter::Encoding enc = encOpt.has_value() ? encOpt.value() : QStringConverter::Utf8;
+	in.setEncoding(enc);
+#endif
 	auto headers = in.readLine().split(columnSeparator);
 	tblCreator.initialize(headers, resultCount);
 	size_t row = 0;
