@@ -145,10 +145,19 @@ bool readParameterCSV(QString const& fileName, QString const& encoding, QString 
 		tblCreator.addRow(row, stringToVector<std::vector<double>, double>(line, columnSeparator, numColumns));
 		++row;
 	}
-	if (!in.atEnd())
+	// check for extra content at end - but skip empty lines:
+	while (!in.atEnd())
 	{
-		LOG(lvlWarn, "Found additional rows at end...");
-		return false;
+		QString line = in.readLine();
+		if (!line.trimmed().isEmpty())
+		{
+			LOG(lvlError,
+				QString("Line %1: Expected no more lines, or only empty ones, but got line '%2' instead!")
+					.arg(line)
+					.arg(row));
+			return false;
+		}
+		++row;
 	}
 	return true;
 }
