@@ -153,8 +153,8 @@ bool readParameterCSV(QString const& fileName, QString const& encoding, QString 
 		{
 			LOG(lvlError,
 				QString("Line %1: Expected no more lines, or only empty ones, but got line '%2' instead!")
-					.arg(line)
-					.arg(row));
+					.arg(row)
+					.arg(line));
 			return false;
 		}
 		++row;
