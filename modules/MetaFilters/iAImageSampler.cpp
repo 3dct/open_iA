@@ -237,7 +237,7 @@ void iAImageSampler::start()
 					m_parameters[spnSubfolderPerSample].toBool(), paramSetIdx, m_numDigits));
 				QString outputFile(getOutputFileName(outputFolder, m_parameters[spnBaseName].toString(),
 					m_parameters[spnSubfolderPerSample].toBool(), paramSetIdx, m_numDigits));
-				auto value = pathFileBaseName(outputFile) + m_parameterSpecs->at(p)->defaultValue().toString();
+				auto value = pathFileBaseName(QFileInfo(outputFile)) + m_parameterSpecs->at(p)->defaultValue().toString();
 				if (QFile::exists(value) && !m_parameters[spnOverwriteOutput].toBool())
 				{
 					LOG(lvlError, QString("Output file '%1' already exists! Aborting. "
