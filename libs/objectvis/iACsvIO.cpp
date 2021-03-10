@@ -184,8 +184,8 @@ bool iACsvIO::loadCSV(iACsvTableCreator & dstTbl, iACsvConfig const & cnfg_param
 		}
 		if (!m_csvConfig.addAutoID && values[0].toULongLong() != (row + 1))
 		{
-			LOG(lvlError, QString("ID column: Unexpected value %1, expected %2 in line %3 of file '%4%'; "
-				"i.e. the values are not ordered as required, the ID values need to be consecutive, starting at 1)! "
+			LOG(lvlError, QString("ID column: Unexpected value %1, expected %2 in line %3 of file '%4' "
+				"(i.e. the values are not ordered as required, the ID values need to be consecutive, starting at 1)! "
 				"Please either fix the data in the CSV or use the 'Create ID' feature!")
 				.arg(values[0].toULongLong()).arg(row+1)
 				.arg(getLineNumberForRow(m_csvConfig, row)).arg(m_csvConfig.fileName));
