@@ -833,7 +833,7 @@ bool iAChartWidget::event(QEvent *event)
 
 void iAChartWidget::showDataTooltip(QHelpEvent* event)
 {
-	if (m_plots.empty())
+	if (m_plots.empty() || !m_xMapper)
 	{
 		return;
 	}
