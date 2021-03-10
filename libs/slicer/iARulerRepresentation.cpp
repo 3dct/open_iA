@@ -21,6 +21,7 @@
 #include "iARulerRepresentation.h"
 
 #include "iARulerActor.h"
+#include <iAVtkVersion.h>
 
 #include <vtkObjectFactory.h>
 #include <vtkPropCollection.h>

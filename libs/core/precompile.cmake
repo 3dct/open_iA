@@ -6,6 +6,10 @@ SET (OPENIA_PRECOMPILE_HEADERS
 <cstdio>
 <cstdlib>
 <cstring>
+<iostream>
+<string>
+<vector>
+
 <defines.h>
 <dlg_commoninput.h>
 <dlg_modalities.h>
@@ -52,10 +56,11 @@ SET (OPENIA_PRECOMPILE_HEADERS
 <iAVtkVersion.h>
 <iAVtkWidget.h>
 <iAXmlSettings.h>
-<iostream>
+
 <itkImage.h>
 <itkImageFileReader.h>
 <itkMacro.h>
+
 <QCheckBox>
 <QColor>
 <QComboBox>
@@ -89,11 +94,9 @@ SET (OPENIA_PRECOMPILE_HEADERS
 <QToolButton>
 <QVariant>
 <QVector>
-<QVTKInteractor.h>
 <QWidget>
-<string>
-<ui_CommonInput.h>
-<vector>
+
+<QVTKInteractor.h>
 <vtkActor.h>
 <vtkActor2D.h>
 <vtkCamera.h>
