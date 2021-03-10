@@ -29,6 +29,7 @@
 #include <vtkLookupTable.h>
 #include <vtkSmartPointer.h>
 
+#include <QActionGroup>
 #include <QMenu>
 #include <QMouseEvent>
 #include <QPainter>

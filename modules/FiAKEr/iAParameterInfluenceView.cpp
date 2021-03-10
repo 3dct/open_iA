@@ -254,7 +254,7 @@ void iAParameterInfluenceView::selectStackedBar(int outputType, int outTypeIdx)
 
 void iAParameterInfluenceView::toggleCharacteristic(int charactIdx)
 {
-	bool shown = m_visibleCharacts.indexOf(qMakePair(outCharacteristic, charactIdx)) != -1;
+	bool shown = m_visibleCharacts.indexOf(qMakePair(static_cast<int>(outCharacteristic), charactIdx)) != -1;
 	toggleBar(!shown, outCharacteristic, charactIdx);
 }
 
