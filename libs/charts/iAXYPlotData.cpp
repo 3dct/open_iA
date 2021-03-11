@@ -55,7 +55,7 @@ void iAXYPlotData::addValue(iAPlotData::DataType x, iAPlotData::DataType y)
 {
 	// find position to insert:
 	size_t idx = 0;
-	while (idx < m_values.size() && x < m_values[idx].first)
+	while (idx < m_values.size() && x > m_values[idx].first)
 	{
 		++idx;
 	}
