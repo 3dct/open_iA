@@ -1,5 +1,5 @@
 SET( DEPENDENCIES_LIBRARIES
-	iAcore
+	iAguibase
 	iArenderer         # for iARendererManager
 )
 SET( DEPENDENCIES_VTK_MODULES
