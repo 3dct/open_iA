@@ -172,7 +172,7 @@ ContainerT stringToVector(QString const& listAsString, QString const& separator=
 		result[i] = iAConverter<ElementT>::toT(strList[i], &ok);
 		if (!ok)
 		{
-			LOG(lvlWarn, QString("Invalid value %1 in stringToInt conversion!").arg(strList[i]));
+			LOG(lvlWarn, QString("Invalid value %1 in stringToVector conversion!").arg(strList[i]));
 		}
 	}
 	return result;
