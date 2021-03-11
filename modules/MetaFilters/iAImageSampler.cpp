@@ -248,7 +248,7 @@ void iAImageSampler::start()
 			}
 		}
 	}
-	LOG(lvlInfo, "Parameter combinations that will be sampled:");
+	LOG(lvlInfo, QString("Parameter combinations that will be sampled (%1):").arg(m_parameterSets->size()));
 	for (auto parameterSet: *m_parameterSets.data())
 	{
 		LOG(lvlInfo, QString(joinQVariantAsString(parameterSet, ",")));
