@@ -57,10 +57,10 @@ void iAFeatureAnalyzerComputationModuleInterface::Initialize()
 	qsrand(QTime::currentTime().msec());
 #endif
 
-	QAction * actionComputeSegmentations = new QAction(tr("Compute Segmentations"), m_mainWnd);
+	QAction * actionComputeSegmentations = new QAction(tr("Compute Segmentations (for Feature Analyzer)"), m_mainWnd);
 	connect(actionComputeSegmentations, &QAction::triggered, this, &iAFeatureAnalyzerComputationModuleInterface::computeParameterSpace);
 
-	QMenu* submenu = getOrAddSubMenu(m_mainWnd->toolsMenu(), tr("FeatureAnalyzer"));
+	QMenu* submenu = getOrAddSubMenu(m_mainWnd->toolsMenu(), tr("Feature Analysis"));
 	submenu->addAction( actionComputeSegmentations );
 
 	//Read settings
