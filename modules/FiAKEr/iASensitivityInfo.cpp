@@ -304,6 +304,10 @@ QSharedPointer<iASensitivityInfo> iASensitivityInfo::create(QMainWindow* child,
 		LOG(lvlError, "Invalid sampling: No parameter was varied!");
 		return QSharedPointer<iASensitivityInfo>();
 	}
+	else
+	{
+		LOG(lvlDebug, QString("Found %1 varying parameters").arg(sensitivity->m_variedParams.size()));
+	}
 	//LOG(lvlInfo, QString("Found the following parameters to vary (number: %1): %2")
 	//	.arg(sensitivity->m_variedParams.size())
 	//	.arg(joinAsString(sensitivity->m_variedParams, ",", [&paramNames](int const& i) { return paramNames[i]; })));
@@ -334,6 +338,13 @@ QSharedPointer<iASensitivityInfo> iASensitivityInfo::create(QMainWindow* child,
 	}
 	sensitivity->m_starGroupSize = row - 1;
 	sensitivity->m_numOfSTARSteps = (sensitivity->m_starGroupSize - 1) / sensitivity->m_variedParams.size();
+	if (paramValues[0].size() % sensitivity->m_starGroupSize != 0)
+	{
+		LOG(lvlError, QString("Expected a number of STAR groups of size %1; "
+			"but %2 (the number of samples) isn't divisible by that number!")
+			.arg(sensitivity->m_starGroupSize).arg(paramValues[0].size()));
+		return QSharedPointer<iASensitivityInfo>();
+	}
 	//LOG(lvlInfo,QString("Determined that there are groups of size: %1; number of STAR points per parameter: %2")
 	//	.arg(sensitivity->m_starGroupSize)
 	//	.arg(sensitivity->m_numOfSTARSteps)
