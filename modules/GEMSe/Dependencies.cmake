@@ -1,6 +1,6 @@
 SET( DEPENDENCIES_LIBRARIES
 	iAcharts      # also pulls in required iAqthelper
-	iAslicer      # for access to iASlicerImpl, also pulls in required iAcore
+	iAslicer      # for access to iASlicerImpl, also pulls in required iAguibase
 )
 SET( DEPENDENCIES_VTK_MODULES
 	ChartsCore  # for vtkAxis

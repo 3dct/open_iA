@@ -1,6 +1,6 @@
 SET (DEPENDENCIES_LIBRARIES
 	${OPENVR_LIBRARY}
-	iAcore
+	iAguibase
 	iAobjectvis
 	iAqthelper
 )
