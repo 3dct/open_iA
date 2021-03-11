@@ -255,7 +255,7 @@
                 <string/>
                </property>
                <property name="icon">
-                <iconset resource="../../core/open_iA.qrc">
+                <iconset resource="../../libs/core/core.qrc">
                  <normaloff>:/images/info.png</normaloff>:/images/info.png</iconset>
                </property>
                <property name="checkable">
@@ -722,7 +722,7 @@
          <string>Save Settings...</string>
         </property>
         <property name="icon">
-         <iconset resource="../../core/open_iA.qrc">
+         <iconset resource="../../libs/core/core.qrc">
           <normaloff>:/images/save.png</normaloff>:/images/save.png</iconset>
         </property>
         <property name="popupMode">
@@ -739,7 +739,7 @@
          <string>Load Settings...</string>
         </property>
         <property name="icon">
-         <iconset resource="../../core/open_iA.qrc">
+         <iconset resource="../../libs/core/core.qrc">
           <normaloff>:/images/open.png</normaloff>:/images/open.png</iconset>
         </property>
         <property name="popupMode">
@@ -753,7 +753,7 @@
          <string/>
         </property>
         <property name="icon">
-         <iconset resource="../../core/open_iA.qrc">
+         <iconset resource="../../libs/core/core.qrc">
           <normaloff>:/images/info.png</normaloff>:/images/info.png</iconset>
         </property>
         <property name="checkable">
@@ -807,7 +807,7 @@
   <tabstop>pbCancel</tabstop>
  </tabstops>
  <resources>
-  <include location="../../core/open_iA.qrc"/>
+  <include location="../../libs/core/core.qrc"/>
  </resources>
  <connections/>
 </ui>

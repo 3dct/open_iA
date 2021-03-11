@@ -46,7 +46,6 @@
     <file>images/mx.png</file>
     <file>images/my.png</file>
     <file>images/mz.png</file>
-    <file>images/open.png</file>
     <file>images/openFkt.png</file>
     <file>images/paste.png</file>
     <file>images/profile.png</file>
@@ -64,7 +63,6 @@
     <file>images/resetTrf.png</file>
     <file>images/resetView.png</file>
     <file>images/right_arrow.png</file>
-    <file>images/save.png</file>
     <file>images/saveCamera.png</file>
     <file>images/saveClass.png</file>
     <file>images/saveFkt.png</file>
