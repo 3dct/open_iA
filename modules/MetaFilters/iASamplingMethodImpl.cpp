@@ -517,10 +517,9 @@ iAParameterSetsPointer iALocalSensitivitySamplingMethod::parameterSets(QSharedPo
 
 
 iAGlobalSensitivitySamplingMethod::iAGlobalSensitivitySamplingMethod(
-	QSharedPointer<iASamplingMethod> otherGenerator, double delta, int samplesPerPoint):
+	QSharedPointer<iASamplingMethod> otherGenerator, double delta):
 	m_baseGenerator(otherGenerator),
-	m_delta(delta),
-	m_samplesPerPoint(samplesPerPoint)
+	m_delta(delta)
 {}
 
 QString iAGlobalSensitivitySamplingMethod::name() const
@@ -576,6 +575,68 @@ iAParameterSetsPointer iAGlobalSensitivitySamplingMethod::parameterSets(QSharedP
 }
 
 
+iAGlobalSensitivitySmallStarSamplingMethod::iAGlobalSensitivitySmallStarSamplingMethod(
+	QSharedPointer<iASamplingMethod> otherGenerator, double delta, int numSteps) :
+	m_baseGenerator(otherGenerator), m_delta(delta), m_numSteps(numSteps)
+{
+}
+
+QString iAGlobalSensitivitySmallStarSamplingMethod::name() const
+{
+	return iASamplingMethodName::GlobalSensitivitySmall;
+}
+
+iAParameterSetsPointer iAGlobalSensitivitySmallStarSamplingMethod::parameterSets(
+	QSharedPointer<iAAttributes> parameters, int sampleCount)
+{
+	// MAYBE: create "margin" around ranges to keep all samples from base generator in a sub-region
+	// such that one can go numSteps steps of width delta*(param range) from them and still
+	// stay in user-specified min/max range?
+	iAParameterSetsPointer baseParameterSets = m_baseGenerator->parameterSets(parameters, sampleCount);
+	iAParameterSetsPointer result(new iAParameterSets);
+
+	//int maxPerParameterValues = static_cast<int>(1.0 / m_delta);
+	//int perParameterValues = clamp(1, maxPerParameterValues, m_samplesPerPoint);
+
+	for (auto parameterSet : *baseParameterSets)
+	{
+		result->push_back(parameterSet);
+		for (int p = 0; p < parameters->size(); ++p)
+		{
+			auto param = parameters->at(p);
+			if (param->valueType() != iAValueType::Continuous && param->valueType() != iAValueType::Discrete)
+			{              // we only support sensitivity of numerical parameters currently
+				continue;  // TODO: supporting categorical would probably work too - but just if all values are tried
+			}
+			// re-use iARange here? slightly different use case:
+			//     - not just full range split by sample count, but fixed delta
+			//     - "centered" on given parameter set
+			auto range = param->max() - param->min();
+			if (range < std::numeric_limits<double>::epsilon())
+			{  // skip parameters which don't vary in our sampling
+				continue;
+			}
+			auto step = range * m_delta;
+			double paramValue = parameterSet[p].toDouble();
+			for (int count = 1; count <= m_numSteps; ++count)
+			{
+				iAParameterSet shiftedSet(parameterSet);
+				shiftedSet[p].setValue(paramValue - (count * step));
+				result->push_back(shiftedSet);
+			}
+			for (int count = 1; count <= m_numSteps; ++count)
+			{
+				iAParameterSet shiftedSet(parameterSet);
+				shiftedSet[p].setValue(paramValue + (count * step));
+				result->push_back(shiftedSet);
+			}
+		}
+	}
+	return result;
+}
+
+
+
 iASelectionSamplingMethod::iASelectionSamplingMethod(QString const & name, iAParameterSetsPointer parameterSets):
 	m_name(name),
 	m_parameterSets(parameterSets)
@@ -602,6 +663,7 @@ QStringList const& samplingMethodNames()
 		result.push_back(iASamplingMethodName::CartesianGrid);
 		result.push_back(iASamplingMethodName::LocalSensitivity);
 		result.push_back(iASamplingMethodName::GlobalSensitivity);
+		result.push_back(iASamplingMethodName::GlobalSensitivitySmall);
 	}
 	return result;
 }
@@ -625,7 +687,8 @@ QSharedPointer<iASamplingMethod> createSamplingMethod(iASettings const& paramete
 	{
 		return QSharedPointer<iALocalSensitivitySamplingMethod>::create();
 	}
-	else if (methodName == iASamplingMethodName::GlobalSensitivity)
+	else if (methodName == iASamplingMethodName::GlobalSensitivity ||
+		methodName == iASamplingMethodName::GlobalSensitivitySmall)
 	{
 		iASettings newParams(parameters);
 		newParams[spnSamplingMethod] = parameters[spnBaseSamplingMethod];
@@ -634,11 +697,19 @@ QSharedPointer<iASamplingMethod> createSamplingMethod(iASettings const& paramete
 			LOG(lvlError, QString("Cannot generate global sensitivity sampling: Base sampling method must not also be '%1'").arg(iASamplingMethodName::GlobalSensitivity));
 			return QSharedPointer<iASamplingMethod>();
 		}
-		double delta = parameters[spnSensitivityDelta].toDouble();
-		int samplesPerPoint = parameters[spnSensitivityDelta].toInt();
+		double delta = parameters[spnStarDelta].toDouble();
 		auto otherSamplingMethod = createSamplingMethod(newParams);
-		return QSharedPointer<iAGlobalSensitivitySamplingMethod>::create(
-			otherSamplingMethod, delta, samplesPerPoint);
+		if (methodName == iASamplingMethodName::GlobalSensitivity)
+		{
+			return QSharedPointer<iAGlobalSensitivitySamplingMethod>::create(
+				otherSamplingMethod, delta);
+		}
+		else
+		{
+			int stepNumber = parameters[spnStarStepNumber].toInt();
+			return QSharedPointer<iAGlobalSensitivitySmallStarSamplingMethod>::create(
+				otherSamplingMethod, delta, stepNumber);
+		}
 	}
 	LOG(lvlError, QString("Could not find sampling method '%1'").arg(methodName));
 	return QSharedPointer<iASamplingMethod>();

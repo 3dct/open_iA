@@ -114,7 +114,8 @@ iASamplingSettingsDlg::iASamplingSettingsDlg(QWidget *parentWdgt,
 	m_widgetMap.insert(spnNumberOfLabels, sbLabelCount);
 
 	m_widgetMap.insert(spnBaseSamplingMethod, cbBaseSamplingMethod);
-	m_widgetMap.insert(spnSensitivityDelta, sbSensitivityDelta);
+	m_widgetMap.insert(spnStarDelta, sbStarDelta);
+	m_widgetMap.insert(spnStarStepNumber, sbStarStepNumber);
 
 	m_startLine = parameterLayout->rowCount();
 
@@ -597,7 +598,11 @@ void iASamplingSettingsDlg::outputBaseChanged()
 
 void iASamplingSettingsDlg::samplingMethodChanged()
 {
-	globalSensitivitySettingsWidget->setVisible(cbSamplingMethod->currentText() == iASamplingMethodName::GlobalSensitivity);
+	globalSensitivitySettingsWidget->setVisible(
+		cbSamplingMethod->currentText() == iASamplingMethodName::GlobalSensitivity ||
+		cbSamplingMethod->currentText() == iASamplingMethodName::GlobalSensitivitySmall);
+	lbStarStepNumber->setVisible(cbSamplingMethod->currentText() == iASamplingMethodName::GlobalSensitivitySmall);
+	sbStarStepNumber->setVisible(cbSamplingMethod->currentText() == iASamplingMethodName::GlobalSensitivitySmall);
 }
 
 void iASamplingSettingsDlg::showAlgorithmInfo()

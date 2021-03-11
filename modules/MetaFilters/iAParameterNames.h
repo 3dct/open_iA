@@ -44,7 +44,8 @@ MetaFilters_API extern const QString spnNumberOfLabels;
 
 // Parameters for general sensitivity sampling method:
 MetaFilters_API extern const QString spnBaseSamplingMethod;
-MetaFilters_API extern const QString spnSensitivityDelta;
+MetaFilters_API extern const QString spnStarDelta;
+MetaFilters_API extern const QString spnStarStepNumber;
 
 // Valid values for algorithm type parameter:
 MetaFilters_API extern const QString atBuiltIn;
@@ -59,6 +60,7 @@ namespace iASamplingMethodName
 	MetaFilters_API extern const QString CartesianGrid;
 	MetaFilters_API extern const QString LocalSensitivity;
 	MetaFilters_API extern const QString GlobalSensitivity;
+	MetaFilters_API extern const QString GlobalSensitivitySmall;
 }
 
 QString getOutputFolder(QString const& baseFolder, bool createSubFolder, int sampleNr, int numDigits);
