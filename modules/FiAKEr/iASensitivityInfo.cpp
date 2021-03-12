@@ -142,7 +142,7 @@ bool readParameterCSV(QString const& fileName, QString const& encoding, QString 
 		{
 			continue;
 		}
-		tblCreator.addRow(row, stringToVector<std::vector<double>, double>(line, columnSeparator, numColumns));
+		tblCreator.addRow(row, stringToVector<std::vector<double>, double>(line, columnSeparator, numColumns, false));
 		++row;
 	}
 	// check for extra content at end - but skip empty lines:
@@ -304,10 +304,7 @@ QSharedPointer<iASensitivityInfo> iASensitivityInfo::create(QMainWindow* child,
 		LOG(lvlError, "Invalid sampling: No parameter was varied!");
 		return QSharedPointer<iASensitivityInfo>();
 	}
-	else
-	{
-		LOG(lvlDebug, QString("Found %1 varying parameters").arg(sensitivity->m_variedParams.size()));
-	}
+
 	//LOG(lvlInfo, QString("Found the following parameters to vary (number: %1): %2")
 	//	.arg(sensitivity->m_variedParams.size())
 	//	.arg(joinAsString(sensitivity->m_variedParams, ",", [&paramNames](int const& i) { return paramNames[i]; })));
@@ -345,6 +342,13 @@ QSharedPointer<iASensitivityInfo> iASensitivityInfo::create(QMainWindow* child,
 			.arg(sensitivity->m_starGroupSize).arg(paramValues[0].size()));
 		return QSharedPointer<iASensitivityInfo>();
 	}
+	
+	LOG(lvlDebug, QString("In %1 parameter sets, found %2 varying parameters, in STAR groups of %3 (parameter branch size: %4)")
+		.arg(paramValues[0].size())
+		.arg(sensitivity->m_variedParams.size())
+		.arg(sensitivity->m_starGroupSize)
+		.arg(sensitivity->m_numOfSTARSteps)
+	);
 	//LOG(lvlInfo,QString("Determined that there are groups of size: %1; number of STAR points per parameter: %2")
 	//	.arg(sensitivity->m_starGroupSize)
 	//	.arg(sensitivity->m_numOfSTARSteps)
@@ -467,9 +471,9 @@ void iASensitivityInfo::compute()
 	{
 		double rangeMin = m_data->spmData->paramRange(m_charSelected[selCharIdx])[0];
 		double rangeMax = m_data->spmData->paramRange(m_charSelected[selCharIdx])[1];
-		LOG(lvlInfo, QString("Characteristic idx=%1, charIdx=%2 (%3): %4-%5")
-			.arg(selCharIdx).arg(m_charSelected[selCharIdx]).arg(charactName(selCharIdx))
-			.arg(rangeMin).arg(rangeMax));
+		//LOG(lvlInfo, QString("Characteristic idx=%1, charIdx=%2 (%3): %4-%5")
+		//	.arg(selCharIdx).arg(m_charSelected[selCharIdx]).arg(charactName(selCharIdx))
+		//	.arg(rangeMin).arg(rangeMax));
 	}
 
 	for (int rIdx = 0; rIdx < m_data->result.size(); ++rIdx)
