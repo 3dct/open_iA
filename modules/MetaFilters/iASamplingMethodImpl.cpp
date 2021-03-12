@@ -326,8 +326,12 @@ iAParameterSetsPointer iALatinHypercubeSamplingMethod::parameterSets(QSharedPoin
 		}
 		else
 		{
-			LOG(lvlWarn, QString("Sampling not supported for value type %1, using default value %2")
-				.arg(ValueType2Str(valueType)).arg(param->defaultValue().toString()));
+			if (valueType != iAValueType::FileNameSave)
+			{
+				LOG(lvlWarn, QString("Sampling not supported for value type %1, using default value %2")
+						.arg(ValueType2Str(valueType))
+						.arg(param->defaultValue().toString()));
+			}
 			for (int s = 0; s < sampleCount; ++s)
 			{
 				sampleValues[p].push_back(param->defaultValue());
