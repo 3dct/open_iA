@@ -160,7 +160,7 @@ QString iASingleResult::toString(QSharedPointer<iAAttributes> attributes, int ty
 			}
 		}
 	}
-	if (type == iAAttributeDescriptor::DerivedOutput)
+	if (type == iAAttributeDescriptor::Parameter)
 	{
 		result += ValueSplitString + MakeRelative(m_sampling.path(), m_fileName);
 	}

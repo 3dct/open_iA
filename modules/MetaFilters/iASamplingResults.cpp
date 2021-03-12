@@ -192,9 +192,21 @@ bool iASamplingResults::storeAttributes(int type, QString const & fileName, bool
 	}
 	QTextStream outParamSet(&paramSetFile);
 	// header:
-	outParamSet << joinAsString((*m_attributes), ",",
-			[](QSharedPointer<iAAttributeDescriptor> const& attrib) { return attrib->name(); })
-		<< QTENDL;
+	if (id)
+	{
+		outParamSet << "ID" << iASingleResult::ValueSplitString;
+	}
+	// filter attributes for type:
+	iAAttributes typeAttribs;
+	std::copy_if(m_attributes->begin(), m_attributes->end(), std::back_inserter(typeAttribs),
+		[type](QSharedPointer<iAAttributeDescriptor> att) { return att->attribType() == type; });
+	outParamSet << joinAsString((typeAttribs), iASingleResult::ValueSplitString,
+		[](QSharedPointer<iAAttributeDescriptor> const& attrib) { return attrib->name(); });
+	if (type == iAAttributeDescriptor::Parameter)
+	{
+		outParamSet << iASingleResult::ValueSplitString << "Filename";
+	}
+	outParamSet << QTENDL;
 	// values:
 	for (int i = 0; i<m_results.size(); ++i)
 	{
