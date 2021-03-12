@@ -78,8 +78,8 @@ void iAFeatureScoutProject::loadProject(QSettings & projectFile, QString const &
 {
 	if (!m_mdiChild)
 	{
-		LOG(lvlError, QString("Invalid FeatureScout project file '%1': FeatureScout requires an iAMdiChild, "
-			"but UseiAMdiChild was apparently not specified in this project, as no iAMdiChild available! "
+		LOG(lvlError, QString("Invalid FeatureScout project file '%1': FeatureScout requires a child window, "
+			"but UseMdiChild was apparently not specified in this project, as no child window available! "
 			"Please report this error, along with the project file, to the open_iA developers!").arg(fileName));
 		return;
 	}

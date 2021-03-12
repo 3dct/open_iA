@@ -52,8 +52,8 @@ public:
 	void loadProject(QSettings & projectFile, QString const & fileName) override
 	{
 		/*
-		// Remove UseiAMdiChild setting altogether, always open iAMdiChild?
-		if (projectFile.contains("UseiAMdiChild") && projectFile.value("UseiAMdiChild").toBool() == false)
+		// Remove UseMdiChild setting altogether, always open iAMdiChild?
+		if (projectFile.contains("UseMdiChild") && projectFile.value("UseMdiChild").toBool() == false)
 		{
 
 			QMessageBox::warning(nullptr, "FiAKEr", "Old project file detected (%1). "
@@ -64,8 +64,8 @@ public:
 		*/
 		if (!m_mdiChild)
 		{
-			LOG(lvlError, QString("Invalid FIAKER project file '%1': FIAKER requires an iAMdiChild, "
-				"but UseiAMdiChild was apparently not specified in this project, as no iAMdiChild available! "
+			LOG(lvlError, QString("Invalid FIAKER project file '%1': FIAKER requires a child window, "
+				"but UseMdiChild was apparently not specified in this project, as no child window available! "
 				"Please report this error, along with the project file, to the open_iA developers!").arg(fileName));
 			return;
 		}
