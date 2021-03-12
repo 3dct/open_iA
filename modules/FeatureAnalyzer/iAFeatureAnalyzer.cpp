@@ -425,7 +425,7 @@ bool iAFeatureAnalyzer::doSaveProject(QString const& projectFileName)
 #if QT_VERSION < QT_VERSION_CHECK(5, 99, 0)
 	projectFile.setIniCodec("UTF-8");
 #endif
-	projectFile.setValue("UseiAMdiChild", false);
+	projectFile.setValue("UseMdiChild", false);
 	projectFile.beginGroup(iAFeatureAnalyzerProject::ID);
 	project.saveProject(projectFile, projectFileName);
 	projectFile.endGroup();
