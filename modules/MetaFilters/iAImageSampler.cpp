@@ -300,9 +300,9 @@ void iAImageSampler::computationFinished()
 	int id = m_runningComputation[op];
 	m_runningComputation.remove(op);
 	iAPerformanceTimer::DurationType computationTime = op->duration();
-	statusMsg(QString("Finished in %1 seconds. Output: %2\n")
+	statusMsg(QString("Finished in %1 seconds.%2\n")
 		.arg(QString::number(computationTime))
-		.arg(op->output()));
+		.arg(op->output().isEmpty() ? QString() : QString(" Output: %2").arg(op->output())) );
 	m_computationDuration += computationTime;
 	if (!op->success())
 	{
