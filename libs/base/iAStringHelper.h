@@ -162,7 +162,8 @@ void valuesFromString(T& val, QString const & str, QString const & sep = " ")
 }
 
 template <typename ContainerT, typename ElementT>
-ContainerT stringToVector(QString const& listAsString, QString const& separator=",", int maxItems=std::numeric_limits<int>::max())
+ContainerT stringToVector(QString const& listAsString, QString const& separator=",", int maxItems=std::numeric_limits<int>::max(),
+	bool warnWhenInvalid = true)
 {
 	QStringList strList = listAsString.split(separator);
 	ContainerT result(strList.size());
@@ -170,7 +171,7 @@ ContainerT stringToVector(QString const& listAsString, QString const& separator=
 	{
 		bool ok;
 		result[i] = iAConverter<ElementT>::toT(strList[i], &ok);
-		if (!ok)
+		if (!ok && warnWhenInvalid)
 		{
 			LOG(lvlWarn, QString("Invalid value %1 in stringToVector conversion!").arg(strList[i]));
 		}
