@@ -89,7 +89,7 @@ DEALINGS IN THE SOFTWARE.
 #include <ctype.h>
 #include <direct.h>
 #include <codecvt>
-
+/*
 inline std::wstring s2ws(const std::string& utf8) {
 	//    return std::wstring( str.begin(), str.end() );
 	std::wstring_convert<std::codecvt_utf8_utf16<wchar_t>, wchar_t> converter;
@@ -101,6 +101,7 @@ inline std::string ws2s(const std::wstring& utf16) {
 	std::wstring_convert<std::codecvt_utf8_utf16<wchar_t>, wchar_t> converter;
 	return converter.to_bytes(utf16);
 }
+*/
 
 inline int WSTOI(std::wstring s) { return _wtoi(s.c_str()); }
 
