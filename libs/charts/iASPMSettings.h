@@ -21,15 +21,13 @@
 #pragma once
 
 #include "ui_SPMSettings.h"
-#include "qthelper/iAQTtoUIConnector.h"
 
-typedef iAQTtoUIConnector<QDialog, Ui_SPMSettings>  SPMSettingsContainer;
-class iASPMSettings : public SPMSettingsContainer
+class iASPMSettings : public QDialog, public Ui_SPMSettings
 {
 	Q_OBJECT
 public:
-	iASPMSettings(QWidget * parent = nullptr)
-		: SPMSettingsContainer(parent)
+	iASPMSettings(QWidget * parent = nullptr) : QDialog(parent)
 	{
+		setupUi(this);
 	}
 };
