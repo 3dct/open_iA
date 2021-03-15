@@ -7,7 +7,7 @@
   </property>
   <action name="action_ToggleTitleBar">
    <property name="icon">
-    <iconset resource="../../core/open_iA.qrc">
+    <iconset resource="../../libs/guibase/guibase.qrc">
      <normaloff>:/images/GEMSe_toggle_titleBar.png</normaloff>:/images/GEMSe_toggle_titleBar.png</iconset>
    </property>
    <property name="text">
@@ -16,7 +16,7 @@
   </action>
   <action name="action_ToggleSettings">
    <property name="icon">
-    <iconset resource="../../core/open_iA.qrc">
+    <iconset resource="../../libs/guibase/guibase.qrc">
      <normaloff>:/images/settings.png</normaloff>:/images/settings.png</iconset>
    </property>
    <property name="text">
@@ -27,7 +27,7 @@
   <addaction name="action_ToggleSettings"/>
  </widget>
  <resources>
-  <include location="../../core/open_iA.qrc"/>
+  <include location="../../libs/guibase/guibase.qrc"/>
  </resources>
  <connections/>
 </ui>

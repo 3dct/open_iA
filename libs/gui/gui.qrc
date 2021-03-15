@@ -36,19 +36,15 @@
     <file>images/layout_load.png</file>
     <file>images/layout_reset.png</file>
     <file>images/left_arrow.png</file>
-    <file>images/load.png</file>
     <file>images/loadCamera.png</file>
     <file>images/loadtrf.png</file>
     <file>images/magicLens.png</file>
     <file>images/magicLens3D.png</file>
-    <file>images/mini_rect.png</file>
     <file>images/modTF.png</file>
     <file>images/mx.png</file>
     <file>images/my.png</file>
     <file>images/mz.png</file>
-    <file>images/open.png</file>
     <file>images/openFkt.png</file>
-    <file>images/paste.png</file>
     <file>images/profile.png</file>
     <file>images/px.png</file>
     <file>images/py.png</file>
@@ -64,16 +60,10 @@
     <file>images/resetTrf.png</file>
     <file>images/resetView.png</file>
     <file>images/right_arrow.png</file>
-    <file>images/save.png</file>
     <file>images/saveCamera.png</file>
-    <file>images/saveClass.png</file>
     <file>images/saveFkt.png</file>
     <file>images/saveas.png</file>
-    <file>images/savemov.png</file>
-    <file>images/savescreen.png</file>
-    <file>images/savestack.png</file>
     <file>images/savetrf.png</file>
-    <file>images/settings.png</file>
     <file>images/settings_preferences.png</file>
     <file>images/settings_renderer.png</file>
     <file>images/settings_slicer.png</file>
@@ -82,11 +72,9 @@
     <file>images/splashscreen.png</file>
     <file>images/stepbackward.png</file>
     <file>images/stepforward.png</file>
-    <file>images/toggle_titleBar.png</file>
     <file>images/transform-move.png</file>
     <file>images/undock_white.png</file>
     <file>images/up_arrow.png</file>
-    <file>images/update.png</file>
     <file>images/w2b_colormap.png</file>
     <file>images/w2r_colormap.png</file>
   </qresource>

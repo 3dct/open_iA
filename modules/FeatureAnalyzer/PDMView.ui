@@ -228,8 +228,6 @@
    </layout>
   </widget>
  </widget>
- <resources>
-  <include location="../../core/open_iA.qrc"/>
- </resources>
+ <resources/>
  <connections/>
 </ui>
