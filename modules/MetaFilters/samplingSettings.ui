@@ -742,7 +742,7 @@
          <string>Save Settings...</string>
         </property>
         <property name="icon">
-         <iconset resource="../../libs/core/core.qrc">
+         <iconset resource="../../libs/guibase/guibase.qrc">
           <normaloff>:/images/save.png</normaloff>:/images/save.png</iconset>
         </property>
         <property name="popupMode">
@@ -759,7 +759,7 @@
          <string>Load Settings...</string>
         </property>
         <property name="icon">
-         <iconset resource="../../libs/core/core.qrc">
+         <iconset resource="../../libs/guibase/guibase.qrc">
           <normaloff>:/images/open.png</normaloff>:/images/open.png</iconset>
         </property>
         <property name="popupMode">
@@ -827,7 +827,7 @@
   <tabstop>pbCancel</tabstop>
  </tabstops>
  <resources>
-  <include location="../../libs/core/core.qrc"/>
+  <include location="../../libs/guibase/guibase.qrc"/>
  </resources>
  <connections/>
 </ui>

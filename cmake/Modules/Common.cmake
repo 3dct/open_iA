@@ -616,7 +616,9 @@ IF (MSVC)
 	if (NOT "${openiA_AVX_SUPPORT}" STREQUAL "${openiA_AVX_SUPPORT_DISABLED}")
 		ADD_COMPILE_OPTIONS(/arch:${openiA_AVX_SUPPORT})
 	endif()
-	add_compile_definitions(_CRT_SECURE_NO_WARNINGS _SCL_SECURE_NO_WARNINGS)
+	add_compile_definitions(_CRT_SECURE_NO_WARNINGS _SCL_SECURE_NO_WARNINGS
+		_SILENCE_CXX17_ITERATOR_BASE_CLASS_DEPRECATION_WARNING	# silence warnings when compiling VTK (<= 9.0.1) with C++17
+	)
 	
 	# enable all warnings, disable selected:
 	ADD_COMPILE_OPTIONS(/W4 /wd4068 /wd4127 /wd4251 /wd4515)

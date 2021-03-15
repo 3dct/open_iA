@@ -20,17 +20,14 @@
 * ************************************************************************************/
 #pragma once
 
-#include "qthelper/iAQTtoUIConnector.h"
 #include "ui_TFTable.h"
 
 class iAChartFunction;
 class iAChartWithFunctionsWidget;
 class iATransferFunction;
 
-typedef iAQTtoUIConnector<QDialog, Ui_TFTableWidget> iATFTableWidgetConnector;
-
 //! Dialog for editing the precise values of a transfer function.
-class iATFTableDlg : public iATFTableWidgetConnector
+class iATFTableDlg : public QDialog, public Ui_TFTableWidget
 {
 	Q_OBJECT
 

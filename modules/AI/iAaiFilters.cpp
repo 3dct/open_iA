@@ -373,7 +373,7 @@ void executeDNN(iAFilter* filter, QMap<QString, QVariant> const & parameters)
 				tempY = (y <= sizeY - sizeDNNout) ? y : (y - (sizeDNNout - sizeY % sizeDNNout)); 
 				tempZ = (z <= sizeZ - sizeDNNout) ? z : (z - (sizeDNNout - sizeZ % sizeDNNout)); 
 
-				size_t offset = (sizeDNNout - sizeDNNin)/2;
+				int offset = (sizeDNNout - sizeDNNin)/2;
 				itk2tensor(itk_img_normalized_padded, tensor_img, tempX + offset, tempY + offset, tempZ + offset);
 
 				std::vector<Ort::Value> result;

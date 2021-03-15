@@ -26,6 +26,7 @@
 #include <vtkColorTransferFunction.h>
 #include <vtkPiecewiseFunction.h>
 
+#include <QAction>
 #include <QColorDialog>
 #include <QMessageBox>
 
@@ -42,11 +43,12 @@ public:
 };
 
 iATFTableDlg::iATFTableDlg(iAChartWithFunctionsWidget* parent, iAChartFunction* func) :
-	iATFTableWidgetConnector(parent),
+	QDialog(parent),
 	m_tf(dynamic_cast<iAChartTransferFunction*>(func)->tf()),
 	m_newPointColor(Qt::gray),
 	m_parent(parent)
 {
+	setupUi(this);
 	m_tf->opacityTF()->GetRange(m_xRange);
 	dsbNewPointX->setRange(m_xRange[0], m_xRange[1]);
 

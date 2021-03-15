@@ -2608,7 +2608,7 @@ public:
 
 void MainWindow::initResources()
 {
-	Q_INIT_RESOURCE(open_iA_gui);
+	Q_INIT_RESOURCE(gui);
 }
 
 int MainWindow::runGUI(int argc, char * argv[], QString const & appName, QString const & version,
