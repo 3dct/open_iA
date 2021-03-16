@@ -322,17 +322,27 @@ QSharedPointer<iASensitivityInfo> iASensitivityInfo::create(QMainWindow* child,
 	//LOG(lvlDebug, QString("checkValue0=%1, curCheckValue=%2, diffCheck=%3").arg(checkValue0).arg(curCheckValue).arg(diffCheck));
 	double remainder = 0;
 	int row = 2;
+	// first, continue, as long as first varied parameter is a multiple of diffCheck away from checkValue0:
 	while (row < paramValues[sensitivity->m_variedParams[0]].size() &&
+		!dblApproxEqual(curCheckValue, checkValue0) &&
 		(remainder < RemainderCheckEpsilon || 	// "approximately a multiple" is not so easy with double
-			(std::abs(diffCheck - remainder) < RemainderCheckEpsilon) || // remainder could also be close to but smaller than diffCheck
-			(dblApproxEqual(curCheckValue, checkValue0))))
+		(std::abs(diffCheck - remainder) < RemainderCheckEpsilon))) // remainder could also be close to but smaller than diffCheck
 	{
 		curCheckValue = paramValues[sensitivity->m_variedParams[0]][row];
 		remainder = std::abs(std::fmod(std::abs(curCheckValue - checkValue0), diffCheck));
-		//LOG(lvlDebug, QString("Row %1: curCheckValue=%2, checkValue0=%3, remainder=%4")
-		//	.arg(row).arg(curCheckValue).arg(checkValue0).arg(remainder));
+		//LOG(lvlDebug, QString("Row %1: curCheckValue=%2, remainder=%3")
+		//	.arg(row).arg(curCheckValue).arg(remainder));
 		++row;
 	}
+	// then, continue, as long as first varied parameter is (approximately) the same as checkValue0
+	while (row < paramValues[sensitivity->m_variedParams[0]].size()  &&
+		dblApproxEqual(curCheckValue, checkValue0) )
+	{
+		curCheckValue = paramValues[sensitivity->m_variedParams[0]][row];
+		//LOG(lvlDebug, QString("Row %1: curCheckValue=%2").arg(row).arg(curCheckValue));
+		++row;
+	}
+
 	sensitivity->m_starGroupSize = row - 1;
 	sensitivity->m_numOfSTARSteps = (sensitivity->m_starGroupSize - 1) / sensitivity->m_variedParams.size();
 	if (paramValues[0].size() % sensitivity->m_starGroupSize != 0)
@@ -467,14 +477,16 @@ void iASensitivityInfo::compute()
 	m_charHistograms.resize(static_cast<int>(m_data->result.size()));
 
 	int numCharSelected = m_charSelected.size();
+	/*
 	for (auto selCharIdx = 0; selCharIdx < m_charSelected.size(); ++selCharIdx)
 	{
 		double rangeMin = m_data->spmData->paramRange(m_charSelected[selCharIdx])[0];
 		double rangeMax = m_data->spmData->paramRange(m_charSelected[selCharIdx])[1];
-		//LOG(lvlInfo, QString("Characteristic idx=%1, charIdx=%2 (%3): %4-%5")
-		//	.arg(selCharIdx).arg(m_charSelected[selCharIdx]).arg(charactName(selCharIdx))
-		//	.arg(rangeMin).arg(rangeMax));
+		LOG(lvlInfo, QString("Characteristic idx=%1, charIdx=%2 (%3): %4-%5")
+			.arg(selCharIdx).arg(m_charSelected[selCharIdx]).arg(charactName(selCharIdx))
+			.arg(rangeMin).arg(rangeMax));
 	}
+	*/
 
 	for (int rIdx = 0; rIdx < m_data->result.size(); ++rIdx)
 	{
