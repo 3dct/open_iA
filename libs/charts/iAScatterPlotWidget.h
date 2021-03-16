@@ -20,7 +20,14 @@
 * ************************************************************************************/
 #pragma once
 
+#ifdef CHART_OPENGL
+#include "iAQGLBuffer.h"
 #include "iAQGLWidget.h"
+using iAChartParentWidget = iAQGLWidget;
+#else
+#include <QWidget>
+using iAChartParentWidget = QWidget;
+#endif
 
 #include "iAScatterPlot.h"	// for iAScatterPlot::SelectionMode
 
@@ -40,7 +47,7 @@ public:
 
 //! Widget for using a single scatter plot (outside of a SPLOM)
 // TODO: minimize duplication between iAScatterPlotWidget and iAQSplom!
-class iAcharts_API iAScatterPlotWidget : public iAQGLWidget
+class iAcharts_API iAScatterPlotWidget : public iAChartParentWidget
 {
 	Q_OBJECT
 public:

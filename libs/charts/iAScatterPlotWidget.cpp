@@ -347,7 +347,7 @@ void iAScatterPlotWidget::adjustScatterPlotSize()
 void iAScatterPlotWidget::resizeEvent(QResizeEvent* event)
 {
 	adjustScatterPlotSize();
-	iAQGLWidget::resizeEvent( event );
+	iAChartParentWidget::resizeEvent(event);
 }
 
 int iAScatterPlotWidget::PaddingLeft()
