@@ -28,6 +28,8 @@
 
 #include <QAction>
 #include <QColorDialog>
+#include <QItemDelegate>
+#include <QPainter>
 #include <QMessageBox>
 
 const QStringList columnNames = QStringList() << "X" << "Y" << "Color";
@@ -42,6 +44,17 @@ public:
 	}
 };
 
+// to unconditionally draw item in the specified color (no matter whether row is selected or not)
+class iAColorColumnDelegate : public QItemDelegate
+{
+	void paint(QPainter* painter, const QStyleOptionViewItem& option, const QModelIndex& index) const override
+	{
+		QColor c(index.data(Qt::DisplayRole).toString());
+		painter->fillRect(option.rect, c);
+	}
+};
+
+
 iATFTableDlg::iATFTableDlg(iAChartWithFunctionsWidget* parent, iAChartFunction* func) :
 	QDialog(parent),
 	m_tf(dynamic_cast<iAChartTransferFunction*>(func)->tf()),
@@ -51,6 +64,7 @@ iATFTableDlg::iATFTableDlg(iAChartWithFunctionsWidget* parent, iAChartFunction* 
 	setupUi(this);
 	m_tf->opacityTF()->GetRange(m_xRange);
 	dsbNewPointX->setRange(m_xRange[0], m_xRange[1]);
+	dsbNewPointX->setValue((m_xRange[0] + m_xRange[1]) / 2);
 
 	QPixmap pxMap(23, 23);
 	pxMap.fill(m_newPointColor);
@@ -70,6 +84,7 @@ iATFTableDlg::iATFTableDlg(iAChartWithFunctionsWidget* parent, iAChartFunction* 
 	table->horizontalHeader()->setSectionResizeMode(QHeaderView::Stretch);
 	table->verticalHeader()->setDefaultSectionSize(25);
 	table->setSelectionBehavior(QAbstractItemView::SelectRows);
+	table->setItemDelegateForColumn(2, new iAColorColumnDelegate());
 
 	connect(tbChangeColor, &QToolButton::clicked, this, &iATFTableDlg::changeColor);
 	connect(tbAddPoint, &QToolButton::clicked, this, &iATFTableDlg::addPoint);
@@ -101,7 +116,7 @@ void iATFTableDlg::updateTable()
 		iATableWidgetItem* colorItem = new iATableWidgetItem;
 		xItem->setData(Qt::DisplayRole, QString::number(pointValue[0]));
 		yItem->setData(Qt::DisplayRole, QString::number(pointValue[1]));
-		colorItem->setBackground(c);
+		colorItem->setData(Qt::DisplayRole, c.name());
 		if (i == 0 || i == m_tf->opacityTF()->GetSize() - 1)
 		{
 			xItem->setFlags(xItem->flags() & ~Qt::ItemIsEditable & ~Qt::ItemIsSelectable & ~Qt::ItemIsEnabled);
@@ -143,7 +158,7 @@ void iATFTableDlg::addPoint()
 	table->setSortingEnabled(false);
 	table->setItem(table->rowCount() - 1, 0, newXItem);
 	table->setItem(table->rowCount() - 1, 1, newYItem);
-	newColorItem->setBackground(m_newPointColor);
+	newColorItem->setData(Qt::DisplayRole, m_newPointColor.name());
 	table->setItem(table->rowCount() - 1, 2, newColorItem);
 	table->setSortingEnabled(true);
 	table->sortByColumn(0, Qt::AscendingOrder);
@@ -181,7 +196,7 @@ void iATFTableDlg::updateHistogram()
 	{
 		double x = table->item(i, 0)->data(Qt::DisplayRole).toDouble();
 		double y = table->item(i, 1)->data(Qt::DisplayRole).toDouble();
-		QColor c = table->item(i, 2)->background().color();
+		QColor c = QColor(table->item(i, 2)->data(Qt::DisplayRole).toString());
 		m_tf->opacityTF()->AddPoint(x, y);
 		m_tf->colorTF()->AddRGBPoint(x, c.redF(), c.greenF(), c.blueF());
 	}
@@ -194,11 +209,10 @@ void iATFTableDlg::itemClicked(QTableWidgetItem* item)
 	{
 		table->blockSignals(true);
 		QColor newItemColor = QColorDialog::getColor(Qt::gray, this, "Set Color", QColorDialog::ShowAlphaChannel);
-		if (!newItemColor.isValid())
+		if (newItemColor.isValid())
 		{
-			return;
+			item->setData(Qt::DisplayRole, newItemColor.name());
 		}
-		item->setBackground(newItemColor);
 		table->blockSignals(false);
 	}
 	else
