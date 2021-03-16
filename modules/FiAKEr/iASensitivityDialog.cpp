@@ -60,8 +60,7 @@ namespace
 
 iASensitivityDialog::iASensitivityDialog(QSharedPointer<iAFiberResultsCollection> data) :
 	m_characteristicsModel(new QStandardItemModel()),
-	m_diffMeasuresModel(new QStandardItemModel()),
-	m_measuresModel(new QStandardItemModel())
+	m_diffMeasuresModel(new QStandardItemModel())
 {
 	m_characteristicsModel->setHorizontalHeaderLabels(QStringList() << "Characteristic" << "Select");
 	for (int i = 0; i < static_cast<int>(data->m_resultIDColumn); ++i)
@@ -83,26 +82,11 @@ iASensitivityDialog::iASensitivityDialog(QSharedPointer<iAFiberResultsCollection
 	tvDiffMeasures->setModel(m_diffMeasuresModel);
 	tvDiffMeasures->horizontalHeader()->setSectionResizeMode(0, QHeaderView::Stretch);
 	tvDiffMeasures->horizontalHeader()->setSectionResizeMode(1, QHeaderView::ResizeToContents);
-
-	m_measuresModel->setHorizontalHeaderLabels(QStringList() << "Measure" << "Select");
-	auto measureNames = getAvailableDissimilarityMeasureNames();
-	for (int i = 0; i < measureNames.size(); ++i)
-	{
-		addCheckItem(m_measuresModel, i, measureNames[i]);
-	}
-	tvMeasures->setModel(m_measuresModel);
-	tvMeasures->horizontalHeader()->setSectionResizeMode(0, QHeaderView::Stretch);
-	tvMeasures->horizontalHeader()->setSectionResizeMode(1, QHeaderView::ResizeToContents);
 }
 
 QVector<int> iASensitivityDialog::selectedCharacteristics() const
 {
 	return selectedIndices(m_characteristicsModel);
-}
-
-QVector<int> iASensitivityDialog::selectedMeasures() const
-{
-	return selectedIndices(m_measuresModel);
 }
 
 QVector<int> iASensitivityDialog::selectedDiffMeasures() const
