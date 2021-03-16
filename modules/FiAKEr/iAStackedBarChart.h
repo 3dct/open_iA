@@ -54,7 +54,6 @@ signals:
 	void switchedStackMode(bool mode);
 	void weightsChanged(std::vector<double> const& weights);
 	void clicked();
-	void doubleClicked();
 	void barClicked(size_t barID);
 	void barDblClicked(size_t barID);
 	void normalizeModeChanged(bool normalizePerBar);

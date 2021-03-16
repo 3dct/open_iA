@@ -659,7 +659,7 @@ QWidget* iAFiAKErController::setupResultListView()
 	connect(headerFiberCountAction, &QAction::triggered, this, &iAFiAKErController::stackedColSelect);
 	m_stackedBarsHeaders->contextMenu()->addAction(headerFiberCountAction);
 	connect(m_stackedBarsHeaders, &iAStackedBarChart::switchedStackMode, this, &iAFiAKErController::switchStackMode);
-	connect(m_stackedBarsHeaders, &iAStackedBarChart::doubleClicked, this, &iAFiAKErController::sortByCurrentWeighting);
+	connect(m_stackedBarsHeaders, &iAStackedBarChart::dblClicked, this, &iAFiAKErController::sortByCurrentWeighting);
 	m_stackedBarsHeaders->contextMenu()->addSeparator();
 
 	m_distributionChoice = new QComboBox();
