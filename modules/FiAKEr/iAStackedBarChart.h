@@ -118,4 +118,4 @@ private:
 
 class QGridLayout;
 
-void addHeaderLabel(QGridLayout* layout, int column, QString const& text);
+void addHeaderLabel(QGridLayout* layout, int column, QString const& text, QSizePolicy::Policy horPolicy);

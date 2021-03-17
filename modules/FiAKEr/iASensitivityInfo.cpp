@@ -1357,8 +1357,8 @@ public:
 			NameCol = 0,
 			MatrixCol
 		};
-		addHeaderLabel(paramListLayout, NameCol, "Parameter");
-		addHeaderLabel(paramListLayout, MatrixCol, "Sensitivity Matrix");
+		addHeaderLabel(paramListLayout, NameCol, "Parameter", QSizePolicy::Fixed);
+		addHeaderLabel(paramListLayout, MatrixCol, "Sensitivity Matrix", QSizePolicy::Expanding);
 		for (auto p : variedParams)
 		{
 			auto paramNameLabel = new QLabel(paramNames[p]);

@@ -671,11 +671,11 @@ QWidget* iAFiAKErController::setupResultListView()
 	m_colorByDistribution = new QCheckBox("Color by");
 	connect(m_colorByDistribution, &QCheckBox::stateChanged, this, &iAFiAKErController::colorByDistrToggled);
 
-	addHeaderLabel(m_resultsListLayout, m_nameActionColumn, "Name/Actions");
+	addHeaderLabel(m_resultsListLayout, m_nameActionColumn, "Name/Actions", QSizePolicy::Fixed);
 	if (m_showPreviews)
 	{
 		m_resultsListLayout->setColumnStretch(m_previewColumn, 1);
-		addHeaderLabel(m_resultsListLayout, m_previewColumn, "Preview");
+		addHeaderLabel(m_resultsListLayout, m_previewColumn, "Preview", QSizePolicy::Fixed);
 	}
 	m_resultsListLayout->addWidget(m_stackedBarsHeaders, 0, m_stackedBarColumn);
 	if (m_showCharts)

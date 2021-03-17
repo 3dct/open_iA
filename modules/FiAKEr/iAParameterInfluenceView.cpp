@@ -105,27 +105,17 @@ iAParameterInfluenceView::iAParameterInfluenceView(iASensitivityInfo* sensInf, Q
 	paramList->setLayout(m_paramListLayout);
 	m_paramListLayout->setSpacing(GridSpacing);
 	m_paramListLayout->setContentsMargins(LayoutMargin, LayoutMargin, LayoutMargin, LayoutMargin);
-	m_paramListLayout->setColumnStretch(colParamName, 1);
-	m_paramListLayout->setColumnStretch(colMin, 1);
-	m_paramListLayout->setColumnStretch(colMax, 1);
-	m_paramListLayout->setColumnStretch(colStep, 1);
-	m_paramListLayout->setColumnStretch(colStackedBar, 10);
-	//m_paramListLayout->setColumnStretch(colHistogram, 10);
-
 	// TODO: Unify/Group stacked bar widgets here / in iAFIAKERController into a class
 	// which encapsulates updating weights, showing columns, unified data interface (table?)
 	// for all characteristics, add column to stacked bar charts
 
-
 	//LOG(lvlDebug, QString("Adding lines for %1 characteristics").arg(sensInf->m_charSelected.size()));
 
 	// headers:
-	addHeaderLabel(m_paramListLayout, colParamName, "Param.");
-	addHeaderLabel(m_paramListLayout, colMin, "Min");
-	addHeaderLabel(m_paramListLayout, colMax, "Max");
-	addHeaderLabel(m_paramListLayout, colStep, "Step");
-	//m_paramListLayout->addWidget(m_stackedHeader, 0, colStackedBar);
-	//addHeaderLabel(m_paramListLayout, colHistogram, "Difference Distribution");
+	addHeaderLabel(m_paramListLayout, colParamName, "Param.", QSizePolicy::Fixed);
+	addHeaderLabel(m_paramListLayout, colMin, "Min", QSizePolicy::Fixed);
+	addHeaderLabel(m_paramListLayout, colMax, "Max", QSizePolicy::Fixed);
+	addHeaderLabel(m_paramListLayout, colStep, "Step", QSizePolicy::Fixed);
 
 	for (int paramIdx = 0; paramIdx < sensInf->m_variedParams.size(); ++paramIdx)
 	{
@@ -158,6 +148,7 @@ iAParameterInfluenceView::iAParameterInfluenceView(iASensitivityInfo* sensInf, Q
 		for (int i = colParamName; i <= colStep; ++i)
 		{
 			row->labels[i]->setProperty("paramIdx", paramIdx);
+			row->labels[i]->setSizePolicy(QSizePolicy::Minimum, QSizePolicy::Minimum);
 			connect(row->labels[i], &iAClickableLabel::clicked, this, &iAParameterInfluenceView::paramChangedSlot);
 		}
 		//m_paramListLayout->addWidget(m_stackedCharts[paramIdx], rowIdx, colStackedBar);
@@ -495,14 +486,14 @@ void iAParameterInfluenceView::addStackedBar(int outType, int outIdx)
 		outChart->setShowXAxisLabel(false);
 		outChart->setEmptyText("");
 		outChart->setBackgroundColor(color);
-		outChart->setMinimumHeight(120);
+		outChart->setMinimumHeight(80);
 		m_table[paramIdx]->out.push_back(outChart);
 
 		auto parChart = new iAChartWidget(this, paramName, (curBarIdx == 0) ? "Sens. " + title : "");
 		parChart->setEmptyText("");
 		parChart->setBackgroundColor(color);
 		m_table[paramIdx]->par.push_back(parChart);
-		parChart->setMinimumHeight(120);
+		parChart->setMinimumHeight(80);
 	}
 	updateTableOrder();
 	double maxVal, minValDiff;

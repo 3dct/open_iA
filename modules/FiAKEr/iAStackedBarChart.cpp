@@ -711,9 +711,9 @@ void iAStackedBarChart::toggleNormalizeMode()
 	emit normalizeModeChanged(m_normalizePerBar);
 }
 
-void addHeaderLabel(QGridLayout* layout, int column, QString const& text)
+void addHeaderLabel(QGridLayout* layout, int column, QString const& text, QSizePolicy::Policy horPolicy)
 {
 	auto headerLabel = new QLabel(text);
-	headerLabel->setSizePolicy(QSizePolicy::Expanding, QSizePolicy::Fixed);
+	headerLabel->setSizePolicy(horPolicy, QSizePolicy::Fixed);
 	layout->addWidget(headerLabel, 0, column);
 }
