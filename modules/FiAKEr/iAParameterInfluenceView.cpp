@@ -120,7 +120,7 @@ iAParameterInfluenceView::iAParameterInfluenceView(iASensitivityInfo* sensInf, Q
 	//LOG(lvlDebug, QString("Adding lines for %1 characteristics").arg(sensInf->m_charSelected.size()));
 
 	// headers:
-	addHeaderLabel(m_paramListLayout, colParamName, "Parameter");
+	addHeaderLabel(m_paramListLayout, colParamName, "Param.");
 	addHeaderLabel(m_paramListLayout, colMin, "Min");
 	addHeaderLabel(m_paramListLayout, colMax, "Max");
 	addHeaderLabel(m_paramListLayout, colStep, "Step");
@@ -150,11 +150,11 @@ iAParameterInfluenceView::iAParameterInfluenceView(iASensitivityInfo* sensInf, Q
 		auto const& paramVec = sensInf->m_paramValues[sensInf->m_variedParams[paramIdx]];
 		double minVal = *std::min_element(paramVec.begin(), paramVec.end()),
 			maxVal = *std::max_element(paramVec.begin(), paramVec.end());
-		row->labels[colParamName] = new iAClickableLabel(paramName);
+		row->labels[colParamName] = new iAClickableLabel(paramName, true);
 		row->labels[colParamName]->setStyleSheet("QLabel { background-color : " + paramColor.name() + "; }");
-		row->labels[colMin] = new iAClickableLabel(QString::number(minVal, 'f', digitsAfterComma(sensInf->paramStep[paramIdx])));
-		row->labels[colMax] = new iAClickableLabel(QString::number(maxVal, 'f', digitsAfterComma(sensInf->paramStep[paramIdx])));
-		row->labels[colStep] = new iAClickableLabel(QString::number(sensInf->paramStep[paramIdx]));
+		row->labels[colMin] = new iAClickableLabel(QString::number(minVal, 'f', digitsAfterComma(sensInf->paramStep[paramIdx])), false);
+		row->labels[colMax] = new iAClickableLabel(QString::number(maxVal, 'f', digitsAfterComma(sensInf->paramStep[paramIdx])), false);
+		row->labels[colStep] = new iAClickableLabel(QString::number(sensInf->paramStep[paramIdx]), false);
 		for (int i = colParamName; i <= colStep; ++i)
 		{
 			row->labels[i]->setProperty("paramIdx", paramIdx);

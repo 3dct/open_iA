@@ -24,13 +24,18 @@
 
 class iAClickableLabel: public QLabel
 {
-       Q_OBJECT
+	Q_OBJECT
 public:
-       iAClickableLabel(QString const& text);
+	iAClickableLabel(QString const& text, bool vertical);
 signals:
-       void dblClicked();
-       void clicked();
+	void dblClicked();
+	void clicked();
 private:
-       void mouseDoubleClickEvent(QMouseEvent* ev) override;
-       void mouseReleaseEvent(QMouseEvent* ev) override;
+	void mouseDoubleClickEvent(QMouseEvent* ev) override;
+	void mouseReleaseEvent(QMouseEvent* ev) override;
+	void paintEvent(QPaintEvent*) override;
+	QSize sizeHint() const override;
+	QSize minimumSizeHint() const override;
+
+	bool m_vertical;
 };
