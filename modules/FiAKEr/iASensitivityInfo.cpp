@@ -376,6 +376,17 @@ QSharedPointer<iASensitivityInfo> iASensitivityInfo::create(QMainWindow* child,
 		}
 		sensitivity->m_charSelected = dlg.selectedCharacteristics();
 		sensitivity->m_charDiffMeasure = dlg.selectedDiffMeasures();
+		for (int j = sensitivity->m_charSelected.size() - 1; j >= 0; --j)
+		{
+			int charIdx = sensitivity->m_charSelected[j];
+			// make sure of all histograms for the same characteristic have the same range
+			if (data->spmData->paramRange(charIdx)[0] == data->spmData->paramRange(charIdx)[1])
+			{
+				LOG(lvlInfo, QString("Characteristic %1 does not vary, excluding from analysis!")
+					.arg(data->spmData->parameterName(charIdx)));
+				sensitivity->m_charSelected.remove(j);
+			}
+		}
 	}
 	else
 	{
