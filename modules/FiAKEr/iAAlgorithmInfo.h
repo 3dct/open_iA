@@ -34,12 +34,13 @@ class iAAlgorithmInfo : public QWidget
 {
 	Q_OBJECT
 public:
-	static const int VMargin = 1;
-	static const int HMargin = 1;
 	static const int ArrowHeadSize = 5;
 	static const int ArrowTextDistance = 1;
 	static const int ArrowTextLeft = 5;
 	static const int RoundedCornerRadius = 3;
+	static const int TopMargin = 1;
+	static const int BottomMargin = ArrowHeadSize;
+	static const int HMargin = 1;
 	static const int TextHPadding = 3;
 	static const int TextVPadding = 1;
 	static const int ArrowMinBottomDist = 1;
@@ -56,7 +57,7 @@ public:
 	}
 	int boxHeight() const
 	{
-		return geometry().height() - 2 * VMargin;
+		return geometry().height() - (TopMargin + BottomMargin);
 	}
 	int oneEntryHeight() const
 	{
@@ -102,7 +103,7 @@ public:
 			static_cast<int>(mapValue(1.0, 4.0,	ArrowMinBottomDist, bottomDistance, fontToBoxRatio)));
 		//int arrowBottomDistance = ArrowBottomDist;
 		int oneHeight = (boxHeight() - arrowBottomDistance) / strings.size();
-		int baseTop = VMargin + oneHeight;
+		int baseTop = TopMargin + oneHeight;
 		for (int idx = 0; idx < strings.size(); ++idx)
 		{
 			drawArrow(p, left, baseTop + idx * oneHeight, boxWidth(), oneHeight,
@@ -114,7 +115,7 @@ public:
 		Q_UNUSED(ev);
 		QPainter p(this);
 
-		QRect algoBox(HMargin + boxWidth(), VMargin, boxWidth(), boxHeight());
+		QRect algoBox(HMargin + boxWidth(), TopMargin, boxWidth(), boxHeight());
 		p.drawRect(algoBox);
 		p.drawText(algoBox, Qt::AlignCenter, m_name);
 
