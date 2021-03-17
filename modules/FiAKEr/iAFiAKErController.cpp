@@ -96,22 +96,17 @@
 #include <vtkUnsignedCharArray.h>
 #include <vtkVertexGlyphFilter.h>
 
-#include <QButtonGroup>
 #include <QCheckBox>
 #include <QComboBox>
 #include <QFileDialog>
 #include <QFileInfo>
 #include <QGridLayout>
-#include <QGroupBox>
 #include <QHBoxLayout>
 #include <QLineEdit>
 #include <QListView>
 #include <QMenu>
 #include <QMessageBox>
 #include <QModelIndex>
-#include <QMouseEvent>
-#include <QPainter>
-#include <QRadioButton>
 #include <QScrollArea>
 #include <QSettings>
 #include <QSlider>
