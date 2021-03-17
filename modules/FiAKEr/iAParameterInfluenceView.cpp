@@ -527,19 +527,23 @@ void iAParameterInfluenceView::removeStackedBar(int outType, int outIdx)
 		m_table[rowIdx]->par.remove(barIdx);
 		delete pw;
 		auto paramName = m_sensInf->m_paramNames[m_sensInf->m_variedParams[m_sort[rowIdx]]];
-		m_table[rowIdx]->out[0]->setYCaption("Var. from " + paramName); // to make sure if first chart is removed that new first gets caption
-		m_table[rowIdx]->out[0]->setYCaption("Sens. " + m_table[rowIdx]->bars->barName(0));
 		int newNumBars = m_table[rowIdx]->bars->numberOfBars();
-		for (int i = barIdx; i < newNumBars; ++i)
-		{   // addWidget automatically removes it from position where it was before
-			m_paramListLayout->addWidget(m_table[rowIdx]->out[i],
-				1+RowsPerParam * rowIdx + RowOutputChart, colStackedBar + i);
-			m_paramListLayout->addWidget(m_table[rowIdx]->par[i],
-				1+RowsPerParam * rowIdx + RowParamChart, colStackedBar + i);
-		}
-		for (int b = 0; b < newNumBars; ++b)
+		if (newNumBars > 0)
 		{
-			m_table[rowIdx]->out[b]->resetYBounds();
+			m_table[rowIdx]->out[0]->setYCaption(
+				"Var. from " + paramName);  // to make sure if first chart is removed that new first gets caption
+			m_table[rowIdx]->out[0]->setYCaption("Sens. " + m_table[rowIdx]->bars->barName(0));
+			for (int i = barIdx; i < newNumBars; ++i)
+			{  // addWidget automatically removes it from position where it was before
+				m_paramListLayout->addWidget(
+					m_table[rowIdx]->out[i], 1 + RowsPerParam * rowIdx + RowOutputChart, colStackedBar + i);
+				m_paramListLayout->addWidget(
+					m_table[rowIdx]->par[i], 1 + RowsPerParam * rowIdx + RowParamChart, colStackedBar + i);
+			}
+			for (int b = 0; b < newNumBars; ++b)
+			{
+				m_table[rowIdx]->out[b]->resetYBounds();
+			}
 		}
 	}
 	updateChartY();
