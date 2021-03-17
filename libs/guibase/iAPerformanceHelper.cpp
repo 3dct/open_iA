@@ -243,12 +243,12 @@ iAPerformanceTimer::DurationType iATimeGuard::elapsed() const
 	return m_perfHelper.elapsed();
 }
 
-QString formatSingularPlural(long part, QString caption)
+QString formatWithCaption(long part, QString const& caption, QString const& shortCap, bool useShort)
 {
-	return QString::number(part) + " " + caption + ((part != 1) ? "s" : "") + " ";
+	return QString::number(part) + " " + (useShort ? shortCap : caption + ((part != 1) ? "s" : "")) + " ";
 }
 
-QString formatDuration(double duration, bool showMS)
+QString formatDuration(double duration, bool showMS, bool shortNames)
 {
 	long secondsLong = static_cast<long>(duration);
 	long secondPart = secondsLong % 60;
@@ -258,21 +258,21 @@ QString formatDuration(double duration, bool showMS)
 	{
 		result = QString::number(milliSeconds)+QString(" ms");
 	}
-	result = formatSingularPlural(secondPart, "second")+result;
+	result = formatWithCaption(secondPart, "second", "s", shortNames) + result;
 	if (secondsLong >= 60)
 	{
 		long minutesLong = secondsLong / 60;
 		long minutesPart = minutesLong % 60;
-		result = formatSingularPlural(minutesPart, "minute") + result;
+		result = formatWithCaption(minutesPart, "minute", "m", shortNames) + result;
 		if (minutesLong >= 60)
 		{
 			long hoursLong = minutesLong / 60;
 			long hoursPart = hoursLong % 24;
-			result = formatSingularPlural(hoursPart, "hour") + result;
+			result = formatWithCaption(hoursPart, "hour", "h", shortNames) + result;
 			if (hoursLong >= 24)
 			{
 				long daysLong = hoursLong / 24;
-				result = formatSingularPlural(daysLong, "day")+result;
+				result = formatWithCaption(daysLong, "day", "d", shortNames) + result;
 			}
 		}
 	}

@@ -135,4 +135,4 @@ size_t getCurrentRSS();
 
 //! format the given time in a human-readable format
 //! @param duration the time to format (in seconds)
-iAguibase_API QString formatDuration(double duration, bool showMS=true);
+iAguibase_API QString formatDuration(double duration, bool showMS = true, bool shortNames=false);

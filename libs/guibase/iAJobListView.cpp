@@ -23,7 +23,7 @@
 #include "iAAbortListener.h"
 #include "iADurationEstimator.h"
 #include "iALog.h"
-#include "iAPerformanceHelper.h"
+#include "iAPerformanceHelper.h"    // for formatDuration
 #include "iAProgress.h"
 
 #include <QEventLoop>
@@ -136,17 +136,23 @@ QWidget* iAJobListView::addJobWidget(QSharedPointer<iAJob> j)
 	auto elapsedLabel = new QLabel("Elapsed: -");
 	elapsedLabel->setSizePolicy(QSizePolicy::Ignored, QSizePolicy::Fixed);
 
-	auto remainingLabel = new QLabel("Estimated remaining: unknown");
+	auto remainingLabel = new QLabel("Remaining: unknown");
 	remainingLabel->setSizePolicy(QSizePolicy::Ignored, QSizePolicy::Fixed);
 
+	auto timesLayout = new QHBoxLayout();
+	timesLayout->setContentsMargins(0, 0, 0, 0);
+	timesLayout->setSpacing(2);
+	timesLayout->addWidget(elapsedLabel);
+	timesLayout->addWidget(remainingLabel);
+
 	auto statusWidget = new QWidget();
-	statusWidget->setLayout(new QVBoxLayout);
-	statusWidget->layout()->setContentsMargins(0, 0, 0, 0);
-	statusWidget->layout()->setSpacing(2);
-	statusWidget->layout()->addWidget(statusLabel);
-	statusWidget->layout()->addWidget(elapsedLabel);
-	statusWidget->layout()->addWidget(remainingLabel);
-	statusWidget->layout()->addWidget(progressBar);
+	auto statusLayout = new QVBoxLayout();
+	statusWidget->setLayout(statusLayout);
+	statusLayout->setContentsMargins(0, 0, 0, 0);
+	statusLayout->setSpacing(2);
+	statusLayout->addWidget(statusLabel);
+	statusLayout->addLayout(timesLayout);
+	statusLayout->addWidget(progressBar);
 
 	auto abortButton = new QToolButton();
 	abortButton->setIcon(QIcon(":/images/remove.png"));
@@ -175,7 +181,7 @@ QWidget* iAJobListView::addJobWidget(QSharedPointer<iAJob> j)
 	}
 	QTimer* timer = new QTimer(jobWidget);
 	connect(timer, &QTimer::timeout, jobWidget, [elapsedLabel, j] {
-		elapsedLabel->setText(QString("Elapsed: %1").arg(formatDuration(j->estimator->elapsed(), false)));
+		elapsedLabel->setText(QString("Elapsed: %1").arg(formatDuration(j->estimator->elapsed(), false, true)));
 	});
 	timer->start(500);
 
@@ -186,7 +192,7 @@ QWidget* iAJobListView::addJobWidget(QSharedPointer<iAJob> j)
 				progressBar->setValue(value*10);
 				double estRem = j->estimator->estimatedTimeRemaining(value);
 				remainingLabel->setText(
-					QString("Estimated remaining: %1").arg((estRem == -1) ? "unknown" : formatDuration(estRem, false)));
+					QString("Remaining: %1").arg((estRem == -1) ? "unknown" : formatDuration(estRem, false, true)));
 			});
 		connect(j->progress, &iAProgress::statusChanged, [statusLabel, j](QString const& msg)
 			{
