@@ -45,10 +45,9 @@ class iASensitivityInfo: public QObject, public iAAbortListener
 public:
 	static QSharedPointer<iASensitivityInfo> create(QMainWindow* child,
 		QSharedPointer<iAFiberResultsCollection> data, QDockWidget* nextToDW,
-		int histogramBins, QString parameterSetFileName = QString(),
+		int histogramBins, int skipColumns, QString parameterSetFileName = QString(),
 		QVector<int> const& charSelected = QVector<int>(),
-		QVector<int> const& charDiffMeasure = QVector<int>(),
-		int maxColumns = std::numeric_limits<int>::max());
+		QVector<int> const& charDiffMeasure = QVector<int>());
 	static QSharedPointer<iASensitivityInfo> load(QMainWindow* child,
 		QSharedPointer<iAFiberResultsCollection> data, QDockWidget* nextToDW,
 		iASettings const & projectFile, QString const& projectFileName);
@@ -181,7 +180,7 @@ public:
 	void abort() override;
 private:
 	iASensitivityInfo(QSharedPointer<iAFiberResultsCollection> data,
-		QString const& parameterFileName, QStringList const& paramNames,
+		QString const& parameterFileName, int skipColumns, QStringList const& paramNames,
 		std::vector<std::vector<double>> const& paramValues,
 		QMainWindow* child, QDockWidget* nextToDW);
 	void compute();
@@ -191,6 +190,7 @@ private:
 	QWidget* setupMatrixView(QVector<int> const& measures);
 
 	QString m_parameterFileName;
+	int m_skipColumns;
 	QMainWindow* m_child;
 	QDockWidget* m_nextToDW;
 

@@ -111,8 +111,9 @@ namespace
 
 // Factor out as generic CSV reading class also used by iACsvIO?
 bool readParameterCSV(QString const& fileName, QString const& encoding, QString const& columnSeparator,
-	iACsvTableCreator& tblCreator, size_t resultCount, int numColumns)
+	iACsvTableCreator& tblCreator, size_t resultCount, int skipColumns)
 {
+	LOG(lvlDebug, QString("Reading file %1, skip %2 columns").arg(fileName).arg(skipColumns));
 	if (!QFile::exists(fileName))
 	{
 		LOG(lvlError, "Error loading csv file, file does not exist.");
@@ -133,6 +134,10 @@ bool readParameterCSV(QString const& fileName, QString const& encoding, QString 
 	in.setEncoding(enc);
 #endif
 	auto headers = in.readLine().split(columnSeparator);
+	for (int i = 0; i < skipColumns; ++i)
+	{
+		headers.removeAt(headers.size() - 1);
+	}
 	tblCreator.initialize(headers, resultCount);
 	size_t row = 0;
 	while (!in.atEnd() && row < resultCount)
@@ -142,7 +147,8 @@ bool readParameterCSV(QString const& fileName, QString const& encoding, QString 
 		{
 			continue;
 		}
-		tblCreator.addRow(row, stringToVector<std::vector<double>, double>(line, columnSeparator, numColumns, false));
+		tblCreator.addRow(row,
+			stringToVector<std::vector<double>, double>(line, columnSeparator, headers.size(), false));
 		++row;
 	}
 	// check for extra content at end - but skip empty lines:
@@ -245,8 +251,8 @@ void iASensitivityInfo::abort()
 
 QSharedPointer<iASensitivityInfo> iASensitivityInfo::create(QMainWindow* child,
 	QSharedPointer<iAFiberResultsCollection> data, QDockWidget* nextToDW,
-	int histogramBins, QString parameterSetFileName, QVector<int> const & charSelected,
-	QVector<int> const & charDiffMeasure, int maxColumns)
+	int histogramBins, int skipColumns, QString parameterSetFileName,
+	QVector<int> const & charSelected, QVector<int> const & charDiffMeasure)
 {
 	if (parameterSetFileName.isEmpty())
 	{
@@ -260,7 +266,7 @@ QSharedPointer<iASensitivityInfo> iASensitivityInfo::create(QMainWindow* child,
 		return QSharedPointer<iASensitivityInfo>();
 	}
 	iACsvVectorTableCreator tblCreator;
-	if (!readParameterCSV(parameterSetFileName, "UTF-8", ",", tblCreator, data->result.size(), maxColumns))
+	if (!readParameterCSV(parameterSetFileName, "UTF-8", ",", tblCreator, data->result.size(), skipColumns))
 	{
 		return QSharedPointer<iASensitivityInfo>();
 	}
@@ -268,10 +274,10 @@ QSharedPointer<iASensitivityInfo> iASensitivityInfo::create(QMainWindow* child,
 	auto const& paramNames = tblCreator.header();
 	// csv assumed to contain header line (names of parameters), and one row per parameter set;
 	// parameter set contains an ID as first column and a filename as last row
-	if (paramValues.size() <= 2 || paramValues[0].size() <= 3)
+	if (paramValues.size() <= 1 || paramValues[0].size() <= 3)
 	{
 		LOG(lvlError, QString("Invalid parameter set file: expected at least 2 data rows (actual: %1) "
-			"and at least 3 columns (ID, filename, and one parameter; actual: %2")
+			"and at least 2 columns (ID and one parameter; actual: %2")
 			.arg(paramValues.size() > 0 ? paramValues[0].size() : -1)
 			.arg(paramValues.size())
 		);
@@ -279,13 +285,13 @@ QSharedPointer<iASensitivityInfo> iASensitivityInfo::create(QMainWindow* child,
 	}
 	// data in m_paramValues is indexed [col(=parameter index)][row(=parameter set index)]
 	QSharedPointer<iASensitivityInfo> sensitivity(
-		new iASensitivityInfo(data, parameterSetFileName, paramNames, paramValues, child, nextToDW));
+		new iASensitivityInfo(data, parameterSetFileName, skipColumns, paramNames, paramValues, child, nextToDW));
 
-	// find min/max, for all columns except ID and filename (maybe we could reuse SPM data ranges here?)
-	QVector<double> valueMin(static_cast<int>(paramValues.size() - 2));
-	QVector<double> valueMax(static_cast<int>(paramValues.size() - 2));
+	// find min/max, for all columns except ID (maybe we could reuse SPM data ranges here?)
+	QVector<double> valueMin(static_cast<int>(paramValues.size() - 1));
+	QVector<double> valueMax(static_cast<int>(paramValues.size() - 1));
 	//LOG(lvlInfo, QString("Parameter values size: %1x%2").arg(paramValues.size()).arg(paramValues[0].size()));
-	for (int p = 1; p < paramValues.size() - 1; ++p)
+	for (int p = 1; p < paramValues.size(); ++p)
 	{           // - 1 because of skipping ID
 		valueMin[p - 1] = *std::min_element(paramValues[p].begin(), paramValues[p].end());
 		valueMax[p - 1] = *std::max_element(paramValues[p].begin(), paramValues[p].end());
@@ -423,12 +429,13 @@ QSharedPointer<iASensitivityInfo> iASensitivityInfo::create(QMainWindow* child,
 }
 
 iASensitivityInfo::iASensitivityInfo(QSharedPointer<iAFiberResultsCollection> data,
-	QString const& parameterFileName, QStringList const& paramNames,
+	QString const& parameterFileName, int skipColumns, QStringList const& paramNames,
 	std::vector<std::vector<double>> const & paramValues, QMainWindow* child, QDockWidget* nextToDW) :
 	m_data(data),
 	m_paramNames(paramNames),
 	m_paramValues(paramValues),
 	m_parameterFileName(parameterFileName),
+	m_skipColumns(skipColumns),
 	m_child(child),
 	m_nextToDW(nextToDW),
 	m_aborted(false)
@@ -914,7 +921,7 @@ void iASensitivityInfo::compute()
 				charHistVarAgg[charIdx][3][paramIdx][bin] /= numAllTotal;
 			}
 		}
-	}	
+	}
 	if (m_aborted)
 	{
 		return;
@@ -1077,6 +1084,7 @@ void iASensitivityInfo::compute()
 	{
 		LOG(lvlWarn, "Dissimilarity matrix not available!");
 	}
+
 	// dissimilarity measure (index in m_resultDissimMeasures)
 	// variation aggregation (see iASensitivityInfo::create)
 	// parameter index (second index in paramSetValues / allParamValues)
@@ -1580,13 +1588,15 @@ namespace
 	const QString ProjectParameterFile("ParameterSetsFile");
 	const QString ProjectCharacteristics("Characteristics");
 	const QString ProjectCharDiffMeasures("CharacteristicDifferenceMeasures");
-	const QString ProjectMaxParameterCSVColumns("MaxParameterCSVColumns");
+	const QString ProjectSkipParameterCSVColumns("SkipParameterCSVColumns");
+	const QString ProjectHistogramBins("DistributionHistogramBins"); // needs to match ProjectDistributionHistogramBins in iAFiAKErController.cpp
 	//const QString ProjectResultDissimilarityMeasure("ResultDissimilarityMeasures");
 }
 
 void iASensitivityInfo::saveProject(QSettings& projectFile, QString  const& fileName)
 {
 	projectFile.setValue(ProjectParameterFile, MakeRelative(QFileInfo(fileName).absolutePath(), m_parameterFileName));
+	projectFile.setValue(ProjectSkipParameterCSVColumns, m_skipColumns);
 	projectFile.setValue(ProjectCharacteristics, joinNumbersAsString(m_charSelected, ","));
 	projectFile.setValue(ProjectCharDiffMeasures, joinNumbersAsString(m_charDiffMeasure, ","));
 	// stored in cache file:
@@ -1607,9 +1617,9 @@ QSharedPointer<iASensitivityInfo> iASensitivityInfo::load(QMainWindow* child,
 	QString parameterSetFileName = MakeAbsolute(QFileInfo(projectFileName).absolutePath(), projectFile.value(ProjectParameterFile).toString());
 	QVector<int> charsSelected = stringToVector<QVector<int>, int>(projectFile.value(ProjectCharacteristics).toString());
 	QVector<int> charDiffMeasure = stringToVector<QVector<int>, int>(projectFile.value(ProjectCharDiffMeasures).toString());
-	int maxColumns = projectFile.value(ProjectMaxParameterCSVColumns, std::numeric_limits<int>::max()).toInt();
-	int histogramBins = projectFile.value("DistributionHistogramBins", 20).toInt();
-	return iASensitivityInfo::create(child, data, nextToDW, histogramBins, parameterSetFileName, charsSelected, charDiffMeasure, maxColumns);
+	int skipColumns = projectFile.value(ProjectSkipParameterCSVColumns, 1).toInt();
+	int histogramBins = projectFile.value(ProjectHistogramBins, 20).toInt();
+	return iASensitivityInfo::create(child, data, nextToDW, histogramBins, skipColumns, parameterSetFileName, charsSelected, charDiffMeasure);
 }
 
 class iASPParamPointInfo final: public iAScatterPlotPointInfo
