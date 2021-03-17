@@ -70,6 +70,7 @@ private:
 	void updateChartY();
 	void toggleBar(bool show, int outType, int outIdx);
 	void updateTableOrder();
+	void setActionChecked(int outType, int outIdx, bool checked);
 
 	// pair output type / index
 	QVector<QPair<int,int>> m_visibleCharacts;

@@ -461,8 +461,21 @@ void iAParameterInfluenceView::updateChartY()
 	}
 }
 
+void iAParameterInfluenceView::setActionChecked(int outType, int outIdx, bool checked)
+{
+	for (auto action : m_table[0]->head->contextMenu()->actions())
+	{
+		if (action->property("objectType").toInt() == outType && action->property("charactIdx").toInt() == outIdx)
+		{
+			QSignalBlocker b(action);
+			action->setChecked(checked);
+		}
+	}
+}
+
 void iAParameterInfluenceView::addStackedBar(int outType, int outIdx)
 {
+	setActionChecked(outType, outIdx, true);
 	m_visibleCharacts.push_back(qMakePair(outType, outIdx));
 	auto title(columnName(outType, outIdx));
 	LOG(lvlDebug, QString("Showing stacked bar for characteristic %1").arg(title));
@@ -508,6 +521,7 @@ void iAParameterInfluenceView::addStackedBar(int outType, int outIdx)
 
 void iAParameterInfluenceView::removeStackedBar(int outType, int outIdx)
 {
+	setActionChecked(outType, outIdx, false);
 	int visibleIdx = m_visibleCharacts.indexOf(qMakePair(outType, outIdx));
 	if (visibleIdx == -1)
 	{
