@@ -23,6 +23,7 @@
 #include <iAConnector.h>
 #include <iALogger.h>
 #include <iAMdiChild.h>
+#include <iAPerformanceHelper.h>    // for formatDuration
 #include <iAProgress.h>
 
 #include <vtkImageData.h>
@@ -68,25 +69,25 @@ void iAAlgorithm::run()
 	}
 	catch (itk::ExceptionObject &excep)
 	{
-		addMsg(tr("%1 terminated unexpectedly. Error: %2; in File %3, Line %4. Elapsed time: %5 ms.")
+		addMsg(tr("%1 terminated unexpectedly. Error: %2; in File %3, Line %4. Elapsed time: %5")
 			.arg(getFilterName())
 			.arg(excep.GetDescription())
 			.arg(excep.GetFile())
 			.arg(excep.GetLine())
-			.arg(Stop()));
+			.arg(formatDuration(Stop()/1000.0, true, false)));
 		return;
 	}
 	catch (const std::exception& e)
 	{
-		addMsg(tr("%1 terminated unexpectedly. Error: %2. Elapsed time: %3 ms.")
+		addMsg(tr("%1 terminated unexpectedly. Error: %2. Elapsed time: %3")
 			.arg(getFilterName())
 			.arg(e.what())
-			.arg(Stop()));
+			.arg(formatDuration(Stop()/1000.0, true, false)));
 		return;
 	}
-	addMsg(tr("%1 finished. Elapsed time: %2 ms.")
+	addMsg(tr("%1 finished. Elapsed time: %2")
 		.arg(getFilterName())
-		.arg(Stop()));
+		.arg(formatDuration(Stop()/1000.0, true, false)));
 	emit startUpdate();
 }
 
