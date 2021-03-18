@@ -38,6 +38,7 @@ public:
 	bool canAbort() const override;
 private:
 	void performWork(QMap<QString, QVariant> const& parameters) override;
+	bool checkParameters(QMap<QString, QVariant> const& parameters) override;
 	iASampleFilter();
 	QSharedPointer<iAModalityList> m_input;
 	QSharedPointer<iAAttributes> m_parameterRanges, m_parameterSpecs;

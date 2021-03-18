@@ -99,6 +99,24 @@ void iASampleFilter::performWork(QMap<QString, QVariant> const& parameters)
 	loop.exec();	     //< so wait for finished event
 }
 
+bool iASampleFilter::checkParameters(QMap<QString, QVariant> const& paramValues)
+{
+	for (auto const & param : parameters())
+	{
+		if ( (param->name() == spnFilter && paramValues[spnAlgorithmType].toString() == atExternal) ||
+			((param->name() == spnExecutable || param->name() == spnParameterDescriptor) &&
+				paramValues[spnAlgorithmType].toString() == atBuiltIn) )
+		{
+			continue;
+		}
+		if (!defaultParameterCheck(param, paramValues[param->name()]))
+		{
+			return false;
+		}
+	}
+	return true;
+}
+
 void iASampleFilter::setParameters(QSharedPointer<iAModalityList> input, QSharedPointer<iAAttributes> parameterRanges,
 	QSharedPointer<iAAttributes> parameterSpecs,
 	QString const& parameterRangeFile, QString const& parameterSetFile, QString const& derivedOutFile, int samplingID)
