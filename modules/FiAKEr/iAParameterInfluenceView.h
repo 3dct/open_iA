@@ -20,6 +20,7 @@
 * ************************************************************************************/
 #pragma once
 
+#include <QMap>
 #include <QWidget>
 
 class iAChartWidget;
@@ -27,6 +28,8 @@ class iAStackedBarChart;
 class iASensitivityInfo;
 class iASingleColorTheme;
 class iAParTableRow;
+
+class iAPlot;
 
 class QGridLayout;
 
@@ -61,6 +64,8 @@ private slots:
 	void setBarNormalizeMode(bool normalizePerBar);
 	void setBarDoStack(bool doStack);
 	void paramChartClicked(double x, Qt::KeyboardModifiers modifiers);
+	void paramChartAxisChanged();
+	void charactChartAxisChanged();
 
 private:
 	void updateStackedBars();
@@ -89,6 +94,7 @@ private:
 	QVector<int> m_sort;
 	int m_sortLastOut;
 	bool m_sortLastDesc;
+	QMap<QPair<size_t, int>, QSharedPointer<iAPlot>> m_resultHistoPlot;
 signals:
 	void parameterChanged();
 	void outputSelected(int outType, int outTypeIdx);

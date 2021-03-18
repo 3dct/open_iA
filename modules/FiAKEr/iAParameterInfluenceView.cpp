@@ -320,13 +320,34 @@ void iAParameterInfluenceView::setResultSelected(size_t resultIdx, bool state)
 		double paramValue = m_sensInf->m_paramValues[m_sensInf->m_variedParams[paramIdx]][resultIdx];
 		for (int barIdx = 0; barIdx < m_table[paramIdx]->out.size(); ++barIdx)
 		{
-			if (state)
+			if (m_visibleCharacts[barIdx].first == outCharacteristic)
 			{
-				m_table[paramIdx]->par[barIdx]->addXMarker(paramValue, ParamMarkerColor);
-			}
-			else
-			{
-				m_table[paramIdx]->par[barIdx]->removeXMarker(paramValue);
+				int charIdx = m_visibleCharacts[barIdx].second;
+				if (state)
+				{
+					m_table[paramIdx]->par[barIdx]->addXMarker(paramValue, ParamMarkerColor);
+					if (!m_resultHistoPlot.contains(qMakePair(resultIdx, charIdx)))
+					{
+						auto const rng = m_sensInf->m_data->spmData->paramRange(m_sensInf->m_charSelected[charIdx]);
+						auto histData = iAHistogramData::create(QString("Result %1").arg(resultIdx),
+							iAValueType::Continuous, rng[0], rng[1], m_sensInf->m_charHistograms[resultIdx][charIdx]);
+						m_resultHistoPlot.insert(qMakePair(resultIdx, charIdx),
+							QSharedPointer<iABarGraphPlot>::create(histData, QColor(180, 80, 80, 64)));
+					}
+					m_table[paramIdx]->out[barIdx]->addPlot(m_resultHistoPlot[qMakePair(resultIdx, charIdx)]);
+				}
+				else
+				{
+					m_table[paramIdx]->par[barIdx]->removeXMarker(paramValue);
+					if (!m_resultHistoPlot.contains(qMakePair(resultIdx, charIdx)))
+					{
+						LOG(lvlWarn, QString("Plot to be removed does not exist!"));
+					}
+					else
+					{
+						m_table[paramIdx]->out[barIdx]->removePlot(m_resultHistoPlot[qMakePair(resultIdx, charIdx)]);
+					}
+				}
 			}
 		}
 	}
