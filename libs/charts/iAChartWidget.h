@@ -56,7 +56,14 @@ public:
 	//! @{ Get x/y zoom and shift.
 	double xZoom()  const { return m_xZoom;        }
 	double yZoom()  const { return m_yZoom;        }
+	double xShift() const { return m_xShift;       }
 	int    yShift() const { return m_translationY; }
+	//! @}
+	//! @{
+	//! set the x zoom/shift:
+	void setXShift(double xShift);
+	void setXZoom(double xZoom);
+	void setYZoom(double yZoom);
 	//! @}
 	//! Retrieve bottom margin (in pixels).
 	virtual int bottomMargin() const;
@@ -171,9 +178,8 @@ public slots:
 	void setDrawXAxisAtZero(bool enable);
 
 signals:
-	//! Fires whenever the displayed x axis has changed
-	//! (i.e. if it has been shifted, zoomed, or reset).
-	void xAxisChanged();
+	//! Fires whenever the displayed x/y axis has changed (i.e. if it has been shifted, zoomed, or reset).
+	void axisChanged();
 	//! Fires whenever one or more plots are selected.
 	//! @param plotIDs the IDs of the selected plots
 	void plotsSelected(std::vector<size_t> const & plotIDs);

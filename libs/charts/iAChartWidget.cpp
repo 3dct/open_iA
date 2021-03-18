@@ -172,25 +172,26 @@ void iAChartWidget::zoomAlongY(double value, bool deltaMode)
 	{
 		if (value /* = delta */ > 0)
 		{
-			m_yZoom *= ZoomYStep;
+			value = m_yZoom * ZoomYStep;
 		}
 		else
 		{
-			m_yZoom /= ZoomYStep;
+			value = m_yZoom / ZoomYStep;
 		}
 	}
-	else
+	double yZoomBefore = m_yZoom;
+	m_yZoom = clamp(ZoomYMin, ZoomYMax, value);
+	if (!dblApproxEqual(yZoomBefore, m_yZoom))
 	{
-		m_yZoom = value;
+		emit axisChanged();
 	}
-	m_yZoom = clamp(ZoomYMin, ZoomYMax, m_yZoom);
 }
 
 void iAChartWidget::zoomAlongX(double value, int x, bool deltaMode)
 {
 	// don't do anything if we're already at the limit
-	if ( (deltaMode &&  ((value < 0    && m_xZoom == 1.0) || (value > 0           && dblApproxEqual(m_xZoom, maxXZoom()))))  ||
-		 (!deltaMode && ((value <= 1.0 && m_xZoom == 1.0) || (value >= maxXZoom() && dblApproxEqual(m_xZoom, maxXZoom())))) )
+	if ((deltaMode && ((value <  0   && m_xZoom == 1.0) || (value > 0           && dblApproxEqual(m_xZoom, maxXZoom())))) ||
+	   (!deltaMode && ((value <= 1.0 && m_xZoom == 1.0) || (value >= maxXZoom() && dblApproxEqual(m_xZoom, maxXZoom())))))
 	{
 		return;
 	}
@@ -201,24 +202,35 @@ void iAChartWidget::zoomAlongX(double value, int x, bool deltaMode)
 	{
 		if (value /* = delta */ > 0)
 		{
-			m_xZoom *= ZoomXStep;
+			value = m_xZoom * ZoomXStep;
 		}
 		else
 		{
-			m_xZoom /= ZoomXStep;
+			value = m_xZoom /= ZoomXStep;
 		}
 	}
-	else
-	{
-		m_xZoom = value;
-	}
-	m_xZoom = clamp(ZoomXMin, maxXZoom(), m_xZoom);
+	m_xZoom = clamp(ZoomXMin, maxXZoom(), value);
 	m_xMapper->update(m_xBounds[0], m_xBounds[1], 0, fullChartWidth());
 	m_xShift = limitXShift(fixedDataX - m_xMapper->dstToSrc(x - leftMargin()));
 	if (!dblApproxEqual(xZoomBefore, m_xZoom) || !dblApproxEqual(m_xShift, xShiftBefore))
 	{
-		emit xAxisChanged();
+		emit axisChanged();
 	}
+}
+
+void iAChartWidget::setXZoom(double xZoom)
+{
+	m_xZoom = xZoom;
+}
+
+void iAChartWidget::setXShift(double xShift)
+{
+	m_xShift = xShift;
+}
+
+void iAChartWidget::setYZoom(double yZoom)
+{
+	m_yZoom = yZoom;
 }
 
 int iAChartWidget::chartWidth() const
@@ -648,7 +660,7 @@ void iAChartWidget::resetView()
 	m_xShift = 0.0;
 	m_xZoom = 1.0;
 	m_yZoom = 1.0;
-	emit xAxisChanged();
+	emit axisChanged();
 	update();
 }
 
@@ -975,7 +987,7 @@ void iAChartWidget::mouseMoveEvent(QMouseEvent *event)
 		int xDelta = m_dragStartPosX - event->x();
 		double dataDelta = m_xMapper->dstToSrc(xDelta) - m_xBounds[0];
 		m_xShift = limitXShift(m_xShiftStart + dataDelta);
-		emit xAxisChanged();
+		emit axisChanged();
 		m_translationY = m_translationStartY + event->y() - m_dragStartPosY;
 		m_translationY = clamp(static_cast<int>(-(geometry().height() * m_yZoom - geometry().height())),
 				static_cast<int>(geometry().height() * m_yZoom - geometry().height()), m_translationY);
