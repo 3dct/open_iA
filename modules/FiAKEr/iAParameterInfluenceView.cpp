@@ -60,6 +60,8 @@ namespace
 		RowParamChart = 3
 	};
 	const int LabelCount = 4;
+
+	QColor ParamMarkerColor(235, 184, 31, 255);
 }
 
 class iAParTableRow
@@ -311,6 +313,18 @@ void iAParameterInfluenceView::setBarDoStack(bool doStack)
 	}
 }
 
+void iAParameterInfluenceView::setSelectedResult(int resultIdx)
+{
+	for (int paramIdx = 0; paramIdx < m_sensInf->m_variedParams.size(); ++paramIdx)
+	{
+		double paramValue = m_sensInf->m_paramValues[m_sensInf->m_variedParams[paramIdx]][resultIdx];
+		for (int barIdx = 0; barIdx < m_table[paramIdx]->out.size(); ++barIdx)
+		{
+			m_table[paramIdx]->par[barIdx]->clearMarkers();
+			m_table[paramIdx]->par[barIdx]->addXMarker(paramValue, ParamMarkerColor);
+		}
+	}
+}
 
 void iAParameterInfluenceView::setSelectedParam(int param)
 {

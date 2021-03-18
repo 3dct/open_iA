@@ -1909,6 +1909,7 @@ void iASensitivityInfo::spPointHighlighted(size_t resultIdx, bool state)
 	{	// specific parameter "branch" selected:
 		paramID = ((resultIdx % m_starGroupSize) - 1) / m_numOfSTARSteps;
 	}
+	m_gui->m_paramInfluenceView->setSelectedResult(resultIdx);
 	m_gui->m_paramInfluenceView->setSelectedParam(paramID);
 	emit resultSelected(resultIdx, state);
 }

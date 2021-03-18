@@ -59,6 +59,7 @@ public:
 	QSharedPointer<iAFiberResultsCollection> m_data;
 	QStringList m_paramNames;
 	//! "points" in parameter space at which the sensitivity was computed
+	//! (only the "centers" of the STARs)
 	//! first index: parameter set; second index: parameter
 	QVector<QVector<double>> paramSetValues;
 	//! all samples points (i.e. all values from paramSetValues + points sampled for STAR around these points)
