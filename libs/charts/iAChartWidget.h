@@ -181,8 +181,8 @@ signals:
 	void dblClicked();
 	//! Fires whenever the user clicks on the chart
 	//! @param x coordinate x of the click position, in chart coordinates
-	//! @param y coordinate y of the click position, in chart coordinates
-	void clicked(double x, double y);
+	//! @param modifiers modifier keys that were pressed at time of click
+	void clicked(double x, /*double y,*/ Qt::KeyboardModifiers modifiers);
 
 protected:
 	QString m_xCaption, m_yCaption;
