@@ -60,6 +60,7 @@ private slots:
 	void setBarWeights(std::vector<double> const& weights);
 	void setBarNormalizeMode(bool normalizePerBar);
 	void setBarDoStack(bool doStack);
+	void paramChartClicked(double x, Qt::KeyboardModifiers modifiers);
 
 private:
 	void updateStackedBars();
@@ -93,4 +94,5 @@ signals:
 	void outputSelected(int outType, int outTypeIdx);
 	void barAdded(int outType, int outIdx);
 	void barRemoved(int outType, int outIdx);
+	void resultSelected(size_t resultIdx, Qt::KeyboardModifiers modifiers);
 };

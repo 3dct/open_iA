@@ -209,7 +209,6 @@ public slots:
 	void updateOutputControls();
 	void updateDissimilarity();
 	void spHighlightChanged();
-	void spPointHighlighted(size_t resultIdx, bool state);
 	void createGUI();
 	void characteristicChanged(int charIdx);
 	void outputBarAdded(int outType, int outIdx);
@@ -218,6 +217,8 @@ private slots:
 	void dissimMatrixMeasureChanged(int);
 	void dissimMatrixParameterChanged(int);
 	void dissimMatrixColorMapChanged(int);
+	void spPointHighlighted(size_t resultIdx, bool state);
+	void parResultSelected(size_t resultIdx, Qt::KeyboardModifiers modifiers);
 };
 
 // Factor out as generic CSV reading class also used by iACsvIO?

@@ -332,6 +332,20 @@ void iAParameterInfluenceView::setResultSelected(int resultIdx, bool state)
 	}
 }
 
+void iAParameterInfluenceView::paramChartClicked(double x, Qt::KeyboardModifiers modifiers)
+{
+	// search for parameter value "closest" to clicked x;
+	auto chart = qobject_cast<iAChartWidget*>(QObject::sender());
+	int variedParamIdx = chart->property("paramIdx").toInt();
+	auto& paramValues = m_sensInf->m_paramValues[m_sensInf->m_variedParams[variedParamIdx]];
+	auto minDistElem = std::min_element(paramValues.begin(), paramValues.end(), [x](double a, double b) {
+		return std::abs(a - x) < std::abs(b - x);
+	});
+	// select the result that is closest to the currently selected one in the other parameters!
+	int resultIdx = minDistElem - paramValues.begin();
+	emit resultSelected(resultIdx, modifiers);
+}
+
 void iAParameterInfluenceView::setSelectedParam(int param)
 {
 	m_selectedParam = param;
@@ -512,7 +526,9 @@ void iAParameterInfluenceView::addStackedBar(int outType, int outIdx)
 		auto parChart = new iAChartWidget(this, paramName, (curBarIdx == 0) ? "Sens. " + title : "");
 		parChart->setEmptyText("");
 		parChart->setBackgroundColor(color);
+		parChart->setProperty("paramIdx", paramIdx);
 		m_table[paramIdx]->par.push_back(parChart);
+		connect(parChart, &iAChartWidget::clicked, this, &iAParameterInfluenceView::paramChartClicked);
 		parChart->setMinimumHeight(80);
 	}
 	updateTableOrder();

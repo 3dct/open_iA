@@ -1673,6 +1673,7 @@ void iASensitivityInfo::createGUI()
 		&iASensitivityInfo::outputChanged);
 	connect(m_gui->m_paramInfluenceView, &iAParameterInfluenceView::barAdded, this, &iASensitivityInfo::outputBarAdded);
 	connect(m_gui->m_paramInfluenceView, &iAParameterInfluenceView::barRemoved, this, &iASensitivityInfo::outputBarRemoved);
+	connect(m_gui->m_paramInfluenceView, &iAParameterInfluenceView::resultSelected, this, &iASensitivityInfo::parResultSelected);
 	connect(m_gui->m_settings->cmbboxCharacteristic, QOverload<int>::of(&QComboBox::currentIndexChanged),
 		this, &iASensitivityInfo::characteristicChanged);
 	m_child->splitDockWidget(dwSettings, m_gui->m_dwParamInfluence, Qt::Vertical);
@@ -1912,6 +1913,11 @@ void iASensitivityInfo::spPointHighlighted(size_t resultIdx, bool state)
 	m_gui->m_paramInfluenceView->setResultSelected(resultIdx, state);
 	m_gui->m_paramInfluenceView->setSelectedParam(paramID);
 	emit resultSelected(resultIdx, state);
+}
+
+void iASensitivityInfo::parResultSelected(size_t resultIdx, Qt::KeyboardModifiers modifiers)
+{
+	m_gui->m_scatterPlot->toggleHighlightedPoint(resultIdx, modifiers);
 }
 
 void iASensitivityInfo::spHighlightChanged()
