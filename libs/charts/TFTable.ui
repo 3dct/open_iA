@@ -6,12 +6,12 @@
    <rect>
     <x>0</x>
     <y>0</y>
-    <width>551</width>
-    <height>398</height>
+    <width>539</width>
+    <height>349</height>
    </rect>
   </property>
   <property name="windowTitle">
-   <string/>
+   <string></string>
   </property>
   <layout class="QVBoxLayout" name="verticalLayout_2">
    <property name="spacing">
@@ -157,29 +157,11 @@
      </item>
      <item>
       <widget class="QToolButton" name="tbAddPoint">
-       <property name="sizePolicy">
-        <sizepolicy hsizetype="Fixed" vsizetype="Fixed">
-         <horstretch>0</horstretch>
-         <verstretch>0</verstretch>
-        </sizepolicy>
-       </property>
-       <property name="minimumSize">
-        <size>
-         <width>83</width>
-         <height>23</height>
-        </size>
-       </property>
-       <property name="maximumSize">
-        <size>
-         <width>3</width>
-         <height>23</height>
-        </size>
-       </property>
        <property name="toolTip">
         <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;Adds a point to the table (shortcut: space)&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
        </property>
        <property name="text">
-        <string>Add Point</string>
+        <string>Add</string>
        </property>
        <property name="icon">
         <iconset resource="charts.qrc">
@@ -214,35 +196,11 @@
      </item>
      <item>
       <widget class="QToolButton" name="tbRemovePoint">
-       <property name="sizePolicy">
-        <sizepolicy hsizetype="Fixed" vsizetype="Fixed">
-         <horstretch>0</horstretch>
-         <verstretch>0</verstretch>
-        </sizepolicy>
-       </property>
-       <property name="minimumSize">
-        <size>
-         <width>101</width>
-         <height>23</height>
-        </size>
-       </property>
-       <property name="maximumSize">
-        <size>
-         <width>101</width>
-         <height>23</height>
-        </size>
-       </property>
-       <property name="sizeIncrement">
-        <size>
-         <width>0</width>
-         <height>0</height>
-        </size>
-       </property>
        <property name="toolTip">
         <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;Removes points from the table (shortcut: del)&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
        </property>
        <property name="text">
-        <string>Remove Point</string>
+        <string>Remove</string>
        </property>
        <property name="icon">
         <iconset resource="charts.qrc">
@@ -277,23 +235,11 @@
      </item>
      <item>
       <widget class="QToolButton" name="tbUpdateHisto">
-       <property name="minimumSize">
-        <size>
-         <width>120</width>
-         <height>23</height>
-        </size>
-       </property>
-       <property name="maximumSize">
-        <size>
-         <width>120</width>
-         <height>23</height>
-        </size>
-       </property>
        <property name="toolTip">
         <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;Updates the transferfunction of the histogram (shortcut: enter)&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
        </property>
        <property name="text">
-        <string>Update Histogram</string>
+        <string>Synchronize</string>
        </property>
        <property name="icon">
         <iconset resource="charts.qrc">
