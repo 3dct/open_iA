@@ -547,6 +547,7 @@ void iAParameterInfluenceView::addStackedBar(int outType, int outIdx)
 		outChart->setBackgroundColor(color);
 		outChart->setMinimumHeight(80);
 		m_table[paramIdx]->out.push_back(outChart);
+		connect(outChart, &iAChartWidget::axisChanged, this, &iAParameterInfluenceView::charactChartAxisChanged);
 
 		auto parChart = new iAChartWidget(this, paramName, (curBarIdx == 0) ? "Sens. " + title : "");
 		parChart->setEmptyText("");
@@ -558,6 +559,7 @@ void iAParameterInfluenceView::addStackedBar(int outType, int outIdx)
 		parChart->setXBounds(parMin - parPad, parMax + parPad);
 		m_table[paramIdx]->par.push_back(parChart);
 		connect(parChart, &iAChartWidget::clicked, this, &iAParameterInfluenceView::paramChartClicked);
+		connect(parChart, &iAChartWidget::axisChanged, this, &iAParameterInfluenceView::paramChartAxisChanged);
 		parChart->setMinimumHeight(80);
 	}
 	updateTableOrder();
@@ -574,6 +576,49 @@ void iAParameterInfluenceView::addStackedBar(int outType, int outIdx)
 	updateChartY();
 	emit barAdded(outType, outIdx);
 }
+
+// TODO: avoid duplication:
+
+void iAParameterInfluenceView::paramChartAxisChanged()
+{
+	auto inChart = qobject_cast<iAChartWidget*>(QObject::sender());
+	for (int rowIdx = 0; rowIdx < m_table.size(); ++rowIdx)
+	{
+		for (int i = 0; i < m_table[rowIdx]->par.size(); ++i)
+		{
+			auto chart = m_table[rowIdx]->par[i];
+			if (chart == inChart)
+			{
+				continue;
+			}
+			chart->setXZoom(inChart->xZoom());
+			chart->setXShift(inChart->xShift());
+			chart->setYZoom(inChart->yZoom());
+			chart->update();
+		}
+	}
+}
+
+void iAParameterInfluenceView::charactChartAxisChanged()
+{
+	auto inChart = qobject_cast<iAChartWidget*>(QObject::sender());
+	for (int rowIdx = 0; rowIdx < m_table.size(); ++rowIdx)
+	{
+		for (int i = 0; i < m_table[rowIdx]->out.size(); ++i)
+		{
+			auto chart = m_table[rowIdx]->out[i];
+			if (chart == inChart)
+			{
+				continue;
+			}
+			chart->setXZoom(inChart->xZoom());
+			chart->setXShift(inChart->xShift());
+			chart->setYZoom(inChart->yZoom());
+			chart->update();
+		}
+	}
+}
+
 
 void iAParameterInfluenceView::removeStackedBar(int outType, int outIdx)
 {
