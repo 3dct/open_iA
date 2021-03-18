@@ -134,7 +134,7 @@ QString GetRenderFlagString(QSharedPointer<iAModality> mod)
 	return result;
 }
 
-void iAModalityList::store(QString const & filename, vtkCamera* camera)
+bool iAModalityList::store(QString const & filename, vtkCamera* camera)
 {
 	m_fileName = filename;
 	QSettings settings(filename, QSettings::IniFormat);
@@ -158,7 +158,7 @@ void iAModalityList::store(QString const & filename, vtkCamera* camera)
 				// remove any half-written project file
 				QFile::remove(fi.absoluteFilePath());
 			}
-			return;
+			return false;
 		}
 		settings.setValue(GetModalityKey(i, "Name"), m_modalities[i]->name());
 		settings.setValue(GetModalityKey(i, "File"), MakeRelative(fi.absolutePath(), m_modalities[i]->fileName()));
@@ -202,6 +202,7 @@ void iAModalityList::store(QString const & filename, vtkCamera* camera)
 		s.saveTransferFunction(m_modalities[i]->transfer().data());
 		s.save(absoluteTFFileName);
 	}
+	return true;
 }
 
 bool iAModalityList::load(QString const & filename, iAProgress& progress)
