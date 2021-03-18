@@ -1428,6 +1428,16 @@ private:
 class iASensitivityGUI
 {
 public:
+	iASensitivityGUI():
+		m_paramInfluenceView(nullptr),
+		m_settings(nullptr),
+		m_paramDetails(nullptr),
+		m_scatterPlot(nullptr),
+		m_dwParamInfluence(nullptr),
+		m_matrixWidget(nullptr),
+		m_parameterListView(nullptr),
+		m_algoInfo(nullptr)
+	{}
 
 	//! @{ Param Influence List
 	iAParameterInfluenceView* m_paramInfluenceView;
@@ -1941,4 +1951,13 @@ void iASensitivityInfo::parResultSelected(size_t resultIdx, Qt::KeyboardModifier
 void iASensitivityInfo::spHighlightChanged()
 {
 	m_gui->updateScatterPlotLUT(m_starGroupSize, m_numOfSTARSteps, m_data->result.size(), m_variedParams);
+}
+
+std::vector<size_t> iASensitivityInfo::selectedResults() const
+{
+	if (!m_gui || !m_gui->m_scatterPlot)
+	{
+		return std::vector<size_t>();
+	}
+	return m_gui->m_scatterPlot->highlightedPoints();
 }

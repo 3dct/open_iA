@@ -535,6 +535,8 @@ void iAParameterInfluenceView::addStackedBar(int outType, int outIdx)
 
 	int curBarIdx = static_cast<int>(m_table[0]->head->numberOfBars());  // not yet added to bars here so no -1
 	auto params = m_sensInf->m_variedParams;
+
+	auto selectedResults = m_sensInf->selectedResults();
 	for (int paramIdx = 0; paramIdx < params.size(); ++paramIdx)
 	{
 		int varParIdx = m_sensInf->m_variedParams[paramIdx];
@@ -561,6 +563,11 @@ void iAParameterInfluenceView::addStackedBar(int outType, int outIdx)
 		connect(parChart, &iAChartWidget::clicked, this, &iAParameterInfluenceView::paramChartClicked);
 		connect(parChart, &iAChartWidget::axisChanged, this, &iAParameterInfluenceView::paramChartAxisChanged);
 		parChart->setMinimumHeight(80);
+		for (auto resultIdx : selectedResults)
+		{
+			double paramValue = m_sensInf->m_paramValues[m_sensInf->m_variedParams[paramIdx]][resultIdx];
+			parChart->addXMarker(paramValue, ParamMarkerColor);
+		}
 	}
 	updateTableOrder();
 	double maxVal, minValDiff;

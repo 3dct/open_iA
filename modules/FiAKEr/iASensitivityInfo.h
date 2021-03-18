@@ -56,6 +56,8 @@ public:
 
 	void saveProject(QSettings& projectFile, QString  const& fileName);
 
+	std::vector<size_t> selectedResults() const;
+
 	QSharedPointer<iAFiberResultsCollection> m_data;
 	//! the names of all parameters
 	QStringList m_paramNames;
