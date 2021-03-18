@@ -179,6 +179,10 @@ signals:
 	void plotsSelected(std::vector<size_t> const & plotIDs);
 	//! Fires whenever the user double-clicks on the chart.
 	void dblClicked();
+	//! Fires whenever the user clicks on the chart
+	//! @param x coordinate x of the click position, in chart coordinates
+	//! @param y coordinate y of the click position, in chart coordinates
+	void clicked(double x, double y);
 
 protected:
 	QString m_xCaption, m_yCaption;

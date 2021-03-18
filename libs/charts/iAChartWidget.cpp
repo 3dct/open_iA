@@ -952,6 +952,7 @@ void iAChartWidget::mousePressEvent(QMouseEvent *event)
 	default:
 		break;
 	}
+	emit clicked(mouse2DataX(event->x()-leftMargin()), yMapper().dstToSrc(event->y()));
 }
 
 double iAChartWidget::limitXShift(double newXShift)
