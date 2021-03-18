@@ -71,6 +71,8 @@ public:
 	std::vector<size_t> const& highlightedPoints() const;
 	void addLine(std::vector<size_t> linePoints);
 	void clearLines();
+	void toggleHighlightedPoint(size_t curPoint, Qt::KeyboardModifiers modifiers);
+
 protected:
 #ifdef CHART_OPENGL
 	void paintGL() override;

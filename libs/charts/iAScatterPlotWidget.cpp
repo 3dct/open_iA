@@ -385,33 +385,37 @@ void iAScatterPlotWidget::mousePressEvent(QMouseEvent * event)
 	}
 	if (m_fixPointsEnabled)
 	{
-		auto curPoint = m_scatterplot->getCurrentPoint();
-		if (!event->modifiers().testFlag(Qt::ControlModifier))
-		{	// if Ctrl key not pressed, deselect all highlighted points on any click
-			for (auto idx : m_scatterPlotHandler->getHighlightedPoints())
-			{
-				emit pointHighlighted(idx, false);
-			}
-			m_scatterPlotHandler->clearHighlighted();
-		}
-		if (curPoint == iAScatterPlot::NoPointIndex)
-		{
-			return;
-		}
-		auto wasHighlighted = m_scatterPlotHandler->isHighlighted(curPoint);
-		if (event->modifiers().testFlag(Qt::ControlModifier) && wasHighlighted)
-		{   // remove just the highlight of current point if Ctrl _is_ pressed
-			m_scatterPlotHandler->removeHighlightedPoint(curPoint);
-			emit pointHighlighted(curPoint, false);
-		}
-		else if (!wasHighlighted)
-		{   // if current point was not highlighted before, add it
-			m_scatterPlotHandler->addHighlightedPoint(curPoint);
-			emit pointHighlighted(curPoint, true);
-		}
-		emit highlightChanged();
-		update();
+		toggleHighlightedPoint(m_scatterplot->getCurrentPoint(), event->modifiers());
 	}
+}
+
+void iAScatterPlotWidget::toggleHighlightedPoint(size_t curPoint, Qt::KeyboardModifiers modifiers)
+{
+	if (!modifiers.testFlag(Qt::ControlModifier))
+	{  // if Ctrl key not pressed, deselect all highlighted points on any click
+		for (auto idx : m_scatterPlotHandler->getHighlightedPoints())
+		{
+			emit pointHighlighted(idx, false);
+		}
+		m_scatterPlotHandler->clearHighlighted();
+	}
+	if (curPoint == iAScatterPlot::NoPointIndex)
+	{
+		return;
+	}
+	auto wasHighlighted = m_scatterPlotHandler->isHighlighted(curPoint);
+	if (modifiers.testFlag(Qt::ControlModifier) && wasHighlighted)
+	{  // remove just the highlight of current point if Ctrl _is_ pressed
+		m_scatterPlotHandler->removeHighlightedPoint(curPoint);
+		emit pointHighlighted(curPoint, false);
+	}
+	else if (!wasHighlighted)
+	{  // if current point was not highlighted before, add it
+		m_scatterPlotHandler->addHighlightedPoint(curPoint);
+		emit pointHighlighted(curPoint, true);
+	}
+	emit highlightChanged();
+	update();
 }
 
 void iAScatterPlotWidget::mouseReleaseEvent(QMouseEvent * event)
