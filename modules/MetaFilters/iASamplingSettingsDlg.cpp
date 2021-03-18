@@ -835,6 +835,10 @@ void iASamplingSettingsDlg::runClicked()
 	{
 		msg += "External sampling: No executable and/or parameter descriptor chosen!";
 	}
+	else if (rbExternal->isChecked() && !QFileInfo(leExecutable->text()).exists())
+	{
+		msg += QString("External sampling: Executable '%1' doesn't exist!").arg(leExecutable->text());
+	}
 	if (!msg.isEmpty())
 	{
 		QMessageBox::warning(this, "Invalid configuration", msg);
