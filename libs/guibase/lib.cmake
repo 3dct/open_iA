@@ -42,7 +42,7 @@ IF (HDF5_FOUND)
 	TARGET_LINK_LIBRARIES(${libname} PUBLIC ${HDF5_LIBRARY})
 	# make sure HDF5 is included before itk (which brings its own hdf5 libraries in a different version):
 	TARGET_INCLUDE_DIRECTORIES(${libname} BEFORE PRIVATE ${HDF5_INCLUDE_DIR})
-	TARGET_COMPILE_DEFINITIONS(${libname} PRIVATE USE_HDF5)
+	TARGET_COMPILE_DEFINITIONS(${libname} PUBLIC USE_HDF5)	# must be public because used in header defines.h
 ENDIF()
 IF (SCIFIO_LOADED)
 	TARGET_COMPILE_DEFINITIONS(${libname} PRIVATE USE_SCIFIO)
