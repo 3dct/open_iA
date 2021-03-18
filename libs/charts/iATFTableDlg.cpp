@@ -103,7 +103,7 @@ iATFTableDlg::iATFTableDlg(iAChartWithFunctionsWidget* parent, iAChartFunction* 
 void iATFTableDlg::updateTable()
 {
 	table->setRowCount(m_tf->opacityTF()->GetSize());
-	table->blockSignals(true);
+	QSignalBlocker b(table);
 	for (int i = 0; i < m_tf->opacityTF()->GetSize(); ++i)
 	{
 		double pointValue[4], color[4];
@@ -127,7 +127,6 @@ void iATFTableDlg::updateTable()
 		table->setItem(i, 1, yItem);
 		table->setItem(i, 2, colorItem);
 	}
-	table->blockSignals(false);
 }
 
 void iATFTableDlg::changeColor()
@@ -149,7 +148,7 @@ void iATFTableDlg::addPoint()
 		return;
 	}
 	table->insertRow(table->rowCount());
-	table->blockSignals(true);
+	QSignalBlocker b(table);
 	iATableWidgetItem* newXItem = new iATableWidgetItem;
 	iATableWidgetItem* newYItem = new iATableWidgetItem;
 	iATableWidgetItem* newColorItem = new iATableWidgetItem;
@@ -162,7 +161,6 @@ void iATFTableDlg::addPoint()
 	table->setItem(table->rowCount() - 1, 2, newColorItem);
 	table->setSortingEnabled(true);
 	table->sortByColumn(0, Qt::AscendingOrder);
-	table->blockSignals(false);
 }
 
 void iATFTableDlg::removeSelectedPoint()
@@ -207,13 +205,12 @@ void iATFTableDlg::itemClicked(QTableWidgetItem* item)
 {
 	if (item->column() == 2)
 	{
-		table->blockSignals(true);
+		QSignalBlocker b(table);
 		QColor newItemColor = QColorDialog::getColor(Qt::gray, this, "Set Color", QColorDialog::ShowAlphaChannel);
 		if (newItemColor.isValid())
 		{
 			item->setData(Qt::DisplayRole, newItemColor.name());
 		}
-		table->blockSignals(false);
 	}
 	else
 	{
@@ -224,7 +221,7 @@ void iATFTableDlg::itemClicked(QTableWidgetItem* item)
 void iATFTableDlg::cellValueChanged(int changedRow, int changedColumn)
 {
 	double val = table->item(changedRow, changedColumn)->data(Qt::DisplayRole).toDouble();
-	table->blockSignals(true);
+	QSignalBlocker b(table);
 	switch (changedColumn)
 	{
 	case 0:
@@ -243,7 +240,6 @@ void iATFTableDlg::cellValueChanged(int changedRow, int changedColumn)
 		break;
 	}
 	table->sortByColumn(0, Qt::AscendingOrder);
-	table->blockSignals(false);
 }
 
 bool iATFTableDlg::isValueXValid(double xVal, int row)
