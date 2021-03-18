@@ -209,118 +209,140 @@ void iAFilter::adaptParametersToInput(QMap<QString, QVariant>& parameters, vtkSm
 
 bool iAFilter::checkParameters(QMap<QString, QVariant> const & parameters)
 {
-	bool ok;
 	for (auto param: m_parameters)
 	{
-		switch (param->valueType())
+		if (!defaultParameterCheck(param, parameters[param->name()]))
 		{
-		case iAValueType::Discrete: {
-			long long value = parameters[param->name()].toLongLong(&ok);
-			if (!ok)
-			{
-				addMsg(QString("Parameter %1: Expected integer value, %2 given.").arg(param->name()).arg(parameters[param->name()].toString()));
-				return false;
-			}
-			if (value < param->min() || value > param->max())
-			{
-				addMsg(QString("Parameter %1: Given value %2 outside of valid range [%3..%4].")
-					.arg(param->name())
-					.arg(parameters[param->name()].toString())
-					.arg(param->min()).arg(param->max()));
-				return false;
-			}
-			break;
+			return false;
 		}
-		case iAValueType::Continuous:
+	}
+	return true;
+}
+
+bool iAFilter::defaultParameterCheck(QSharedPointer<iAAttributeDescriptor> param, QVariant const& paramValue)
+{
+	bool ok;
+	switch (param->valueType())
+	{
+	case iAValueType::Discrete:
+	{
+		long long value = paramValue.toLongLong(&ok);
+		if (!ok)
 		{
-			double value = parameters[param->name()].toDouble(&ok);
-			if (!ok)
-			{
-				addMsg(QString("Parameter %1: Expected double value, %2 given.").arg(param->name()).arg(parameters[param->name()].toString()));
-				return false;
-			}
-			if (value < param->min() || value > param->max())
-			{
-				addMsg(QString("Parameter %1: Given value %2 outside of valid range [%3..%4].")
-					.arg(param->name())
-					.arg(parameters[param->name()].toString())
-					.arg(param->min()).arg(param->max()));
-				return false;
-			}
-			break;
+			addMsg(QString("Parameter %1: Expected integer value, %2 given.")
+					   .arg(param->name())
+					   .arg(paramValue.toString()));
+			return false;
 		}
-		case iAValueType::Categorical:
+		if (value < param->min() || value > param->max())
 		{
-			QStringList values = param->defaultValue().toStringList();
-			if (!values.contains(parameters[param->name()].toString()))
-			{
-				addMsg(QString("Parameter %1: Given value '%2' not in the list of valid values (%3).")
-					.arg(param->name())
-					.arg(parameters[param->name()].toString())
-					.arg(values.join(",")));
-				return false;
-			}
-			break;
+			addMsg(QString("Parameter %1: Given value %2 outside of valid range [%3..%4].")
+					   .arg(param->name())
+					   .arg(paramValue.toString())
+					   .arg(param->min())
+					   .arg(param->max()));
+			return false;
 		}
-		case iAValueType::FileNameOpen:
+		break;
+	}
+	case iAValueType::Continuous:
+	{
+		double value = paramValue.toDouble(&ok);
+		if (!ok)
 		{
-			QFileInfo file(parameters[param->name()].toString());
+			addMsg(QString("Parameter %1: Expected double value, %2 given.")
+					   .arg(param->name())
+					   .arg(paramValue.toString()));
+			return false;
+		}
+		if (value < param->min() || value > param->max())
+		{
+			addMsg(QString("Parameter %1: Given value %2 outside of valid range [%3..%4].")
+					   .arg(param->name())
+					   .arg(paramValue.toString())
+					   .arg(param->min())
+					   .arg(param->max()));
+			return false;
+		}
+		break;
+	}
+	case iAValueType::Categorical:
+	{
+		QStringList values = param->defaultValue().toStringList();
+		if (!values.contains(paramValue.toString()))
+		{
+			addMsg(QString("Parameter %1: Given value '%2' not in the list of valid values (%3).")
+					   .arg(param->name())
+					   .arg(paramValue.toString())
+					   .arg(values.join(",")));
+			return false;
+		}
+		break;
+	}
+	case iAValueType::FileNameOpen:
+	{
+		QFileInfo file(paramValue.toString());
+		if (!file.isFile() || !file.isReadable())
+		{
+			addMsg(QString("Parameter %1: Given filename '%2' either doesn't reference a file, "
+						   "the file does not exist, or it is not readable!")
+					   .arg(param->name())
+					   .arg(paramValue.toString()));
+			return false;
+		}
+		break;
+	}
+	case iAValueType::FileNamesOpen:
+	{
+		QStringList files = splitPossiblyQuotedString(paramValue.toString());
+		for (auto fileName : files)
+		{
+			QFileInfo file(fileName);
 			if (!file.isFile() || !file.isReadable())
 			{
-				addMsg(QString("Parameter %1: Given filename '%2' either doesn't reference a file, "
-					"the file does not exist, or it is not readable!").arg(param->name()).arg(parameters[param->name()].toString()));
-				return false;
-			}
-			break;
-		}
-		case iAValueType::FileNamesOpen:
-		{
-			QStringList files = splitPossiblyQuotedString(parameters[param->name()].toString());
-			for (auto fileName : files)
-			{
-				QFileInfo file(fileName);
-				if (!file.isFile() || !file.isReadable())
-				{
-					addMsg(QString("Parameter %1: Filename '%2' out of the given list '%3' either doesn't reference a file, "
-						"the file does not exist, or it is not readable!").arg(param->name())
+				addMsg(
+					QString("Parameter %1: Filename '%2' out of the given list '%3' either doesn't reference a file, "
+							"the file does not exist, or it is not readable!")
+						.arg(param->name())
 						.arg(fileName)
-						.arg(parameters[param->name()].toString()));
-					return false;
-				}
-			}
-			break;
-		}
-		case iAValueType::Folder:
-		{
-			// TODO: allow to specify whether the folder can be empty or not!
-			QFileInfo file(parameters[param->name()].toString());
-			if (!parameters[param->name()].toString().isEmpty() && !file.isDir())
-			{
-				addMsg(QString("Parameter '%1': Given value '%2' doesn't reference a folder!")
-					.arg(param->name()).arg(parameters[param->name()].toString()));
+						.arg(paramValue.toString()));
 				return false;
 			}
-			break;
 		}
-		case iAValueType::Color:
+		break;
+	}
+	case iAValueType::Folder:
+	{
+		// TODO: allow to specify whether the folder can be empty or not!
+		QFileInfo file(paramValue.toString());
+		if (!paramValue.toString().isEmpty() && !file.isDir())
 		{
-			QColor color(parameters[param->name()].toString());
-			if (!color.isValid())
-			{
-				addMsg(QString("Parameter '%1': '%2' is not a valid color value; "
-					"please either give a color name (e.g. blue, green, ...) "
-					"or a hexadecimal RGB specifier, like #RGB, #RRGGBB!")
-					.arg(param->name()).arg(parameters[param->name()].toString()));
-				return false;
-			}
-			break;
-		}
-		case iAValueType::Invalid:
-			addMsg(QString("Parameter '%1': Invalid parameter type (please contact developers!)!").arg(param->name()));
+			addMsg(QString("Parameter '%1': Given value '%2' doesn't reference a folder!")
+					   .arg(param->name())
+					   .arg(paramValue.toString()));
 			return false;
-		default:  // no checks
-			break;
 		}
+		break;
+	}
+	case iAValueType::Color:
+	{
+		QColor color(paramValue.toString());
+		if (!color.isValid())
+		{
+			addMsg(QString("Parameter '%1': '%2' is not a valid color value; "
+						   "please either give a color name (e.g. blue, green, ...) "
+						   "or a hexadecimal RGB specifier, like #RGB, #RRGGBB!")
+					   .arg(param->name())
+					   .arg(paramValue.toString()));
+			return false;
+		}
+		break;
+	}
+	case iAValueType::Invalid:
+		addMsg(QString("Parameter '%1': Invalid parameter type (please contact developers!)!").arg(param->name()));
+		return false;
+	default:  // no checks
+		break;
 	}
 	return true;
 }
