@@ -313,15 +313,21 @@ void iAParameterInfluenceView::setBarDoStack(bool doStack)
 	}
 }
 
-void iAParameterInfluenceView::setSelectedResult(int resultIdx)
+void iAParameterInfluenceView::setResultSelected(int resultIdx, bool state)
 {
 	for (int paramIdx = 0; paramIdx < m_sensInf->m_variedParams.size(); ++paramIdx)
 	{
 		double paramValue = m_sensInf->m_paramValues[m_sensInf->m_variedParams[paramIdx]][resultIdx];
 		for (int barIdx = 0; barIdx < m_table[paramIdx]->out.size(); ++barIdx)
 		{
-			m_table[paramIdx]->par[barIdx]->clearMarkers();
-			m_table[paramIdx]->par[barIdx]->addXMarker(paramValue, ParamMarkerColor);
+			if (state)
+			{
+				m_table[paramIdx]->par[barIdx]->addXMarker(paramValue, ParamMarkerColor);
+			}
+			else
+			{
+				m_table[paramIdx]->par[barIdx]->removeXMarker(paramValue);
+			}
 		}
 	}
 }

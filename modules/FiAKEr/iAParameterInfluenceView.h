@@ -44,7 +44,7 @@ public:
 	iAParameterInfluenceView(iASensitivityInfo* sensInf, QColor const& paramColor, QColor const& outputColor);
 	void setMeasure(int newMeasure);
 	void setAggregation(int newAggregation);
-	void setSelectedResult(int resultIdx);
+	void setResultSelected(int resultIdx, bool state);
 	int selectedMeasure() const;
 	int selectedAggrType() const;
 	int selectedRow() const;
