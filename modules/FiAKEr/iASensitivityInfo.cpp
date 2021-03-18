@@ -928,6 +928,24 @@ void iASensitivityInfo::compute()
 		return;
 	}
 
+	m_progress.setStatus("Computing average characteristics histogram.");
+	charHistAvg.resize(numCharSelected);
+	for (int charIdx = 0; charIdx < numCharSelected && !m_aborted; ++charIdx)
+	{
+		charHistAvg[charIdx].fill(0, m_histogramBins);
+		for (int resultIdx = 0; resultIdx < m_charHistograms.size(); ++resultIdx)
+		{
+			for (int bin = 0; bin < m_histogramBins; ++bin)
+			{
+				charHistAvg[charIdx][bin] += m_charHistograms[resultIdx][charIdx][bin];
+			}
+		}
+		for (int bin = 0; bin < m_histogramBins; ++bin)
+		{
+			charHistAvg[charIdx][bin] /= m_charHistograms.size();
+		}
+	}
+
 	m_progress.setStatus("Loading cached dissimilarities between all result pairs.");
 	m_progress.emitProgress(0);
 	QVector<int> measures;

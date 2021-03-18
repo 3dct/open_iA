@@ -313,7 +313,7 @@ void iAParameterInfluenceView::setBarDoStack(bool doStack)
 	}
 }
 
-void iAParameterInfluenceView::setResultSelected(int resultIdx, bool state)
+void iAParameterInfluenceView::setResultSelected(size_t resultIdx, bool state)
 {
 	for (int paramIdx = 0; paramIdx < m_sensInf->m_variedParams.size(); ++paramIdx)
 	{
@@ -433,11 +433,14 @@ void iAParameterInfluenceView::updateStackedBarHistogram(QString const & barName
 	}
 	auto outChart = m_table[paramIdx]->out[barIdx];
 	outChart->clearPlots();
-	auto const rng = m_sensInf->m_data->spmData->paramRange(m_sensInf->m_charSelected[outIdx]);
-	auto histData = iAHistogramData::create(barName, iAValueType::Continuous, rng[0], rng[1],
-		m_sensInf->charHistVarAgg[outIdx][m_aggrType][paramIdx]);
 	outChart->resetYBounds();
-	outChart->addPlot(QSharedPointer<iABarGraphPlot>::create(histData, QColor(80, 80, 80, 128)));
+	auto const rng = m_sensInf->m_data->spmData->paramRange(m_sensInf->m_charSelected[outIdx]);
+	auto varHistData = iAHistogramData::create(barName, iAValueType::Continuous, rng[0], rng[1],
+		m_sensInf->charHistVarAgg[outIdx][m_aggrType][paramIdx]);
+	outChart->addPlot(QSharedPointer<iABarGraphPlot>::create(varHistData, QColor(80, 80, 80, 128)));
+	auto avgHistData = iAHistogramData::create("Average", iAValueType::Continuous, rng[0], rng[1],
+		m_sensInf->charHistAvg[outIdx]);
+	outChart->addPlot(QSharedPointer<iABarGraphPlot>::create(avgHistData, QColor(80, 80, 80, 64)));
 	outChart->update();
 
 	auto parChart = m_table[paramIdx]->par[barIdx];

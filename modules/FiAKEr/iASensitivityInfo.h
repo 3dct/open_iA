@@ -154,6 +154,11 @@ public:
 		QVector<    // bin index
 		double>>>> charHistVarAgg;
 
+	//! aggregation of differences at each bin of characteristics distribution over all parameter sets above
+	QVector<      // characteristics index
+		QVector<  // bin index
+		double>> charHistAvg;
+
 	// per-object sensitivity:
 	// required: 1-1 match between fibers
 	// compute on the fly? spatial subdivision structure required...
