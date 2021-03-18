@@ -57,6 +57,7 @@ public:
 	void saveProject(QSettings& projectFile, QString  const& fileName);
 
 	QSharedPointer<iAFiberResultsCollection> m_data;
+	//! the names of all parameters
 	QStringList m_paramNames;
 	//! "points" in parameter space at which the sensitivity was computed
 	//! (only the "centers" of the STARs)
@@ -66,6 +67,8 @@ public:
 	//! NOTE: due to legacy reasons, swapped index order in comparison to paramSetValues!
 	// TODO: unify index order?
 	std::vector<std::vector<double>> m_paramValues;
+	//! range of each parameter
+	std::vector<double> m_paramMin, m_paramMax;
 	//! indices of features for which sensitivity was computed
 	QVector<int> m_charSelected;
 	//! which difference measures were used for distribution comparison

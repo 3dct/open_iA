@@ -46,7 +46,7 @@
 namespace
 {
 	enum ColumnIndices { colParamName = 0, colMin = 1, colMax = 2, colStep = 3, colStackedBar = 4
-		//, colHistogram = 5 
+		//, colHistogram = 5
 	};
 	const int GridSpacing = 2;
 	const int LayoutMargin = 4;
@@ -513,10 +513,11 @@ void iAParameterInfluenceView::addStackedBar(int outType, int outIdx)
 	auto params = m_sensInf->m_variedParams;
 	for (int paramIdx = 0; paramIdx < params.size(); ++paramIdx)
 	{
-		auto paramName = m_sensInf->m_paramNames[m_sensInf->m_variedParams[paramIdx]];
+		int varParIdx = m_sensInf->m_variedParams[paramIdx];
+		auto paramName = m_sensInf->m_paramNames[varParIdx];
 		QColor color = (paramIdx == m_selectedParam) ? palette().color(QPalette::Midlight) : QColor(245, 245, 245);
 
-		auto outChart = new iAChartWidget(this, "", (curBarIdx == 0) ? "Var. from " + paramName: "");
+		auto outChart = new iAChartWidget(this, "", (curBarIdx == 0) ? "Var. from " + paramName : "");
 		outChart->setShowXAxisLabel(false);
 		outChart->setEmptyText("");
 		outChart->setBackgroundColor(color);
@@ -527,6 +528,10 @@ void iAParameterInfluenceView::addStackedBar(int outType, int outIdx)
 		parChart->setEmptyText("");
 		parChart->setBackgroundColor(color);
 		parChart->setProperty("paramIdx", paramIdx);
+		double parMin = m_sensInf->m_paramMin[varParIdx],
+			parMax = m_sensInf->m_paramMax[varParIdx],
+			parPad = (parMax - parMin) / 100.0; // add 1% of range on both sides to make sure all markers will be visible
+		parChart->setXBounds(parMin - parPad, parMax + parPad);
 		m_table[paramIdx]->par.push_back(parChart);
 		connect(parChart, &iAChartWidget::clicked, this, &iAParameterInfluenceView::paramChartClicked);
 		parChart->setMinimumHeight(80);

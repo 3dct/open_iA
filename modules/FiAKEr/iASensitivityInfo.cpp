@@ -287,22 +287,22 @@ QSharedPointer<iASensitivityInfo> iASensitivityInfo::create(QMainWindow* child,
 	QSharedPointer<iASensitivityInfo> sensitivity(
 		new iASensitivityInfo(data, parameterSetFileName, skipColumns, paramNames, paramValues, child, nextToDW));
 
-	// find min/max, for all columns except ID (maybe we could reuse SPM data ranges here?)
-	QVector<double> valueMin(static_cast<int>(paramValues.size() - 1));
-	QVector<double> valueMax(static_cast<int>(paramValues.size() - 1));
+	// find min/max, for all columns
+	sensitivity->m_paramMin.resize(static_cast<int>(paramValues.size()));
+	sensitivity->m_paramMax.resize(static_cast<int>(paramValues.size()));
 	//LOG(lvlInfo, QString("Parameter values size: %1x%2").arg(paramValues.size()).arg(paramValues[0].size()));
-	for (int p = 1; p < paramValues.size(); ++p)
-	{           // - 1 because of skipping ID
-		valueMin[p - 1] = *std::min_element(paramValues[p].begin(), paramValues[p].end());
-		valueMax[p - 1] = *std::max_element(paramValues[p].begin(), paramValues[p].end());
+	for (int p = 0; p < paramValues.size(); ++p)
+	{
+		sensitivity->m_paramMin[p] = *std::min_element(paramValues[p].begin(), paramValues[p].end());
+		sensitivity->m_paramMax[p] = *std::max_element(paramValues[p].begin(), paramValues[p].end());
 	}
 
-	// countOfVariedParams = number of parameters for which min != max:
-	for (int p = 0; p < valueMin.size(); ++p)
+	// countOfVariedParams = number of parameters for which min != max (except column 0, which is the ID):
+	for (int p = 1; p < sensitivity->m_paramMin.size(); ++p)
 	{
-		if (valueMin[p] != valueMax[p])
+		if (sensitivity->m_paramMin[p] != sensitivity->m_paramMax[p])
 		{
-			sensitivity->m_variedParams.push_back(p + 1); // +1 because valueMin/valueMax don't contain ID
+			sensitivity->m_variedParams.push_back(p);
 		}
 	}
 	if (sensitivity->m_variedParams.size() == 0)
