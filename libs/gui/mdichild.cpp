@@ -2743,18 +2743,12 @@ void MdiChild::initVolumeRenderers()
 
 void MdiChild::saveProject(QString const& fileName)
 {
-	m_ioThread = new iAIO(modalities(), m_renderer->renderer()->GetActiveCamera(), iALog::get());
-	connectIOThreadSignals(m_ioThread);
-	QFileInfo fileInfo(fileName);
-	if (!m_ioThread->setupIO(PROJECT_WRITER, fileInfo.absoluteFilePath()))
-	{
-		ioFinished();
-		return;
-	}
 	LOG(lvlInfo, tr("Saving file '%1'.").arg(fileName));
-	m_ioThread->start();
-	// TODO: only set new project file name if saving succeeded
-	setCurrentFile(fileName);
+	QFileInfo fileInfo(fileName);
+	if (modalities()->store(fileInfo.absoluteFilePath(), m_renderer->renderer()->GetActiveCamera()))
+	{
+		setCurrentFile(fileName);
+	}
 }
 
 bool MdiChild::doSaveProject(QString const & projectFileName)

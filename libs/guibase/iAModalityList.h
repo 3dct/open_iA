@@ -39,7 +39,7 @@ class iAguibase_API iAModalityList : public QObject
 	Q_OBJECT
 public:
 	iAModalityList();
-	void store(QString const & filename, vtkCamera* cam);
+	bool store(QString const & filename, vtkCamera* cam);
 	bool load(QString const & filename, iAProgress& progress);
 	void applyCameraSettings(vtkCamera* cam);
 

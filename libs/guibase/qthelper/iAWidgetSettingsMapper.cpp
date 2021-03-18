@@ -44,8 +44,12 @@ void loadSettings(iASettings const& settings, iAWidgetMap const& settingsWidgetM
 					qobject_cast<QComboBox*>(w)->setCurrentIndex(idx);
 				}
 				else
-				{
-					LOG(lvlWarn, QString("Invalid value '%1' for input '%2'").arg(settings.value(key).toString()).arg(key));
+				{	// warn, but not if the combobox is empty and loaded value is an empty string
+					if (!settings.value(key).toString().isEmpty() || qobject_cast<QComboBox*>(w)->count() > 0)
+					{
+						LOG(lvlWarn,
+							QString("Invalid value '%1' for input '%2'").arg(settings.value(key).toString()).arg(key));
+					}
 				}
 			}
 			else if (qobject_cast<QCheckBox*>(w))

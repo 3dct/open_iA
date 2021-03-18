@@ -269,14 +269,6 @@ iAIO::iAIO( iALogger* logger, QWidget *par /*= 0*/, std::vector<vtkSmartPointer<
 	init(par);
 }
 
-iAIO::iAIO(QSharedPointer<iAModalityList> modalities, vtkCamera* cam, iALogger* logger):
-	iAAlgorithm( "IO", nullptr, nullptr, logger, nullptr ),
-	m_modalities(modalities),
-	m_camera(cam)
-{
-	init(nullptr);
-}
-
 void iAIO::init(QWidget *par)
 {
 	m_parent = par;
@@ -498,11 +490,6 @@ void iAIO::readProject()
 	m_modalities->load(m_fileName, *ProgressObserver());
 }
 
-void iAIO::writeProject()
-{
-	m_modalities->store(m_fileName, m_camera);
-}
-
 void iAIO::run()
 {
 	qApp->processEvents();
@@ -610,9 +597,6 @@ void iAIO::run()
 	#endif
 			case PROJECT_READER:
 				readProject();
-				break;
-			case PROJECT_WRITER:
-				writeProject();
 				break;
 			case UNKNOWN_READER:
 			default:
@@ -861,10 +845,6 @@ bool iAIO::setupIO( iAIOType type, QString f, bool c, int channel)
 			return setupVolumeStackVolStackWriter(f);
 
 		case PROJECT_READER:
-#if __cplusplus >= 201703L
-			[[fallthrough]];
-#endif
-		case PROJECT_WRITER:
 #if __cplusplus >= 201703L
 			[[fallthrough]];
 #endif

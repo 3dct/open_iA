@@ -34,7 +34,6 @@
 
 #include <vector>
 
-class vtkCamera;
 class vtkImageData;
 class vtkPolyData;
 class vtkStringArray;
@@ -57,7 +56,6 @@ public:
 
 	iAIO(vtkImageData* i, vtkPolyData* p, iALogger* logger, QWidget *parent = 0, std::vector<vtkSmartPointer<vtkImageData> > * volumes = 0, std::vector<QString> * fileNames = 0);
 	iAIO(iALogger* logger, QWidget *parent, std::vector<vtkSmartPointer<vtkImageData> > * volumes, std::vector<QString> * fileNames = 0);//TODO: QNDH for XRF volume stack loading
-	iAIO(QSharedPointer<iAModalityList> modalities, vtkCamera* cam, iALogger* logger);
 	virtual ~iAIO();
 	//! initialize variables
 	void init(QWidget *par);
@@ -113,13 +111,12 @@ private:
 	//! Reads an NRRD image. See iAIOProvider.cpp why this is commented out
 	//void readNRRD( );
 	void readHDF5File();
-	void readProject();
+	void readProject();		// writing project: see iAMdiChild::saveProject / iAModalities::store
 
 	void writeMetaImage(vtkSmartPointer<vtkImageData> imgToWrite, QString fileName);
 	void writeVolumeStack();
 	void writeSTL( );
 	void writeImageStack( );
-	void writeProject();
 
 	void postImageReadActions();
 	void printSTLFileInfos();
@@ -148,6 +145,4 @@ private:
 	QSharedPointer<iAModalityList> m_modalities;
 	bool m_isITKHDF5;
 	double m_hdf5Spacing[3];
-
-	vtkCamera* m_camera;
 };

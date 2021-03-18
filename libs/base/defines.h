@@ -71,7 +71,6 @@ enum iAIOType
 #endif
 	HDF5_WRITER,
 	PROJECT_READER,
-	PROJECT_WRITER,
 	NKC_READER
 };
 
