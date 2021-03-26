@@ -1081,6 +1081,9 @@ void iAFiAKErController::connectSensitivity()
 	m_resultColorTheme = iAColorThemeManager::instance().theme("Gray");
 	connect(m_sensitivityInfo.data(), &iASensitivityInfo::aborted, this, &iAFiAKErController::resetSensitivity);
 	connect(m_sensitivityInfo.data(), &iASensitivityInfo::resultSelected, this, &iAFiAKErController::showMainVis);
+	connect(this, &iAFiAKErController::fiberSelectionChanged, m_sensitivityInfo.data(), &iASensitivityInfo::fiberSelectionChanged);
+	connect(m_sensitivityInfo.data(), &iASensitivityInfo::fibersToSelect, this,
+		&iAFiAKErController::selectFibersFromSensitivity);
 	//connect(m_sensitivityInfo.data(), &iASensitivityInfo::viewDifference, this, &iAFiAKErController::showDifference);
 }
 
@@ -2950,6 +2953,13 @@ void iAFiAKErController::selectionFromListActivated(QModelIndex const & index)
 	showSelectionInPlots();
 	showSelectionInSPM();
 	changeReferenceDisplay();
+}
+
+void iAFiAKErController::selectFibersFromSensitivity(SelectionType const& selection)
+{
+	m_selection = selection;
+	// for now let's try with only updating 3D view:
+	showSelectionIn3DViews();
 }
 
 void iAFiAKErController::showSelectionDetail()

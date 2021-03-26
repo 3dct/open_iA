@@ -242,7 +242,41 @@ std::vector<int> intersectingBoundingBox(FiberBBT const& fixedFiberBB, std::vect
 	return resultIDs;
 }
 
+iAFiberData createFiberData(iAFiberCharData const& result, size_t fiberID)
+{
+	auto const& mapping = *result.mapping.data();
+	auto it = result.curveInfo.find(fiberID);
+	return iAFiberData(result.table, fiberID, mapping,
+		(it != result.curveInfo.end()) ? it->second : std::vector<iAVec3f>());
 }
+
+std::vector<iAFiberData> createResultFiberData(iAFiberCharData const& result)
+{
+	std::vector<iAFiberData> fiberData(result.fiberCount);
+	for (size_t fiberID=0; fiberID < result.fiberCount; ++fiberID)
+	{
+		fiberData[fiberID] = createFiberData(result, fiberID);
+	}
+	return fiberData;
+}
+
+FiberBBT boundingBoxForFiber(iAFiberData const & fiberData)
+{
+	return computeFiberBBox(fiberData.curvedPoints.size() > 0 ?
+		fiberData.curvedPoints : fiberData.pts, fiberData.diameter / 2.0);
+}
+
+std::vector<FiberBBT> boundingBoxesForFibers(std::vector<iAFiberData> const & resultFiberData)
+{
+	std::vector<FiberBBT> fibersBBox(resultFiberData.size());
+	for (size_t fiberID = 0; fiberID < fibersBBox.size(); ++fiberID)
+	{
+		fibersBBox[fiberID] = boundingBoxForFiber(resultFiberData[fiberID]);
+	}
+	return fibersBBox;
+}
+
+} // namespace
 
 void iASensitivityInfo::abort()
 {
@@ -975,32 +1009,14 @@ void iASensitivityInfo::compute()
 		std::vector<std::vector<iAFiberData>> resFib(resultCount);
 		for (int resultID = 0; resultID < resultCount && !m_aborted; ++resultID)
 		{
-			auto& result = m_data->result[resultID];
-			auto const& mapping = *result.mapping.data();
-			std::vector<iAFiberData> fiberData(result.fiberCount);
-			for (size_t fiberID=0; fiberID < result.fiberCount; ++fiberID)
-			{
-				auto it = result.curveInfo.find(fiberID);
-				fiberData[fiberID] = iAFiberData(result.table, fiberID, mapping,
-					(it != result.curveInfo.end()) ? it->second : std::vector<iAVec3f>());
-			}
-			resFib[resultID] = fiberData;
+			resFib[resultID] = createResultFiberData(m_data->result[resultID]);
 		}
 
 		//m_progress.setStatus("Computing bounding boxes for all fibers.");
 		std::vector<std::vector<FiberBBT>> fiberBoundingBox(resultCount);
 		for (int resultID = 0; resultID < resultCount && !m_aborted; ++resultID)
 		{
-			std::vector<FiberBBT> fibersBBox(m_data->result[resultID].fiberCount);
-			for (size_t fiberID = 0; fiberID < fibersBBox.size(); ++fiberID)
-			{
-				fibersBBox[fiberID] = computeFiberBBox(
-					resFib[resultID][fiberID].curvedPoints.size() > 0 ?
-						resFib[resultID][fiberID].curvedPoints:
-						resFib[resultID][fiberID].pts,
-					resFib[resultID][fiberID].diameter / 2.0);
-			}
-			fiberBoundingBox[resultID] = fibersBBox;
+			fiberBoundingBox[resultID] = boundingBoxesForFibers(resFib[resultID]);
 		}
 
 		m_progress.setStatus("Computing dissimilarity between all result pairs.");
@@ -1894,6 +1910,20 @@ void iASensitivityInfo::outputBarRemoved(int outType, int outIdx)
 	}
 }
 
+void iASensitivityInfo::fiberSelectionChanged(std::vector<std::vector<size_t>> const & selection)
+{
+	m_baseFiberSelection = selection;
+	m_currentFiberSelection = selection;
+
+	size_t selectedFibers = 0, resultCount = 0;
+	for (size_t resultID = 0; resultID < selection.size(); ++resultID)
+	{
+		selectedFibers += selection[resultID].size();
+		resultCount += (selection[resultID].size() > 0) ? 1 : 0;
+	}
+	LOG(lvlDebug, QString("New fiber selection: %1 selected fibers in %2 results").arg(selectedFibers).arg(resultCount));
+}
+
 void iASensitivityInfo::updateOutputControls()
 {
 	bool characteristics = m_gui->m_settings->cmbboxOutput->currentIndex() == 0;
@@ -1941,6 +1971,83 @@ void iASensitivityInfo::spPointHighlighted(size_t resultIdx, bool state)
 	m_gui->m_paramInfluenceView->setResultSelected(resultIdx, state);
 	m_gui->m_paramInfluenceView->setSelectedParam(paramID);
 	emit resultSelected(resultIdx, state);
+
+	// TODO: change detection - only trigger fibersToSelect if selection has changed?
+	if (m_currentFiberSelection.size() == 0)
+	{
+		return;
+	}
+
+	// in any case, remove all eventually selected fibers in result from current selection:
+	m_currentFiberSelection[resultIdx].clear();
+	if (state)
+	{	// add fibers matching the selection in m_baseFiberSelection to current selection:
+
+		// TODO: cache bounding boxes of all fibers (?)
+		auto& res1 = m_data->result[resultIdx];
+		auto const& mapping = *res1.mapping.data();
+		// TODO: only center -> should use bounding box instead!
+		double const *cxr = m_data->spmData->paramRange(mapping[iACsvConfig::CenterX]),
+					 *cyr = m_data->spmData->paramRange(mapping[iACsvConfig::CenterY]),
+					 *czr = m_data->spmData->paramRange(mapping[iACsvConfig::CenterZ]);
+		double a = cxr[1] - cxr[0], b = cyr[1] - cyr[0], c = czr[1] - czr[0];
+		double diagonalLength = std::sqrt(std::pow(a, 2) + std::pow(b, 2) + std::pow(c, 2));
+		double const* lengthRange = m_data->spmData->paramRange(mapping[iACsvConfig::Length]);
+		double maxLength = lengthRange[1] - lengthRange[0];
+		auto fiberData = createResultFiberData(m_data->result[resultIdx]);
+		auto fiberBBs = boundingBoxesForFibers(fiberData);
+		std::vector<std::pair<int, bool>> overlapMeasure;
+		overlapMeasure.push_back(std::make_pair(7, true));
+		for (int rSel = 0; rSel < m_baseFiberSelection.size(); ++rSel)
+		{
+			if (m_baseFiberSelection[rSel].size() == 0)
+			{
+				continue;
+			}
+			if (rSel == resultIdx)
+			{
+				m_currentFiberSelection[rSel] = m_baseFiberSelection[rSel];
+				continue;
+			}
+			LOG(lvlDebug, QString("Checking selected fibers in result %1 against toggled-on result %2:")
+				.arg(rSel).arg(resultIdx));
+			for (auto rSelFibID : m_baseFiberSelection[rSel])
+			{
+				auto selFibData = createFiberData(m_data->result[rSel], rSelFibID);
+				auto selFibBB = boundingBoxForFiber(selFibData);
+				auto candidates = intersectingBoundingBox(selFibBB, fiberBBs);
+				if (candidates.size() == 0)
+				{
+					continue;
+				}
+				QVector<QVector<iAFiberSimilarity>> result;
+				getBestMatches2(selFibData, fiberData, result, candidates, diagonalLength,
+					maxLength, overlapMeasure);
+				LOG(lvlDebug, QString("    %1 Candidates for fiber %2 in:")
+					.arg(result[0].size())
+					.arg(rSelFibID)
+				);
+				for (auto similarFiber: result[0])
+				{
+					LOG(lvlDebug,
+						QString("        Fiber %1, dissimilarity: %2%3")
+							.arg(similarFiber.index)
+							.arg(similarFiber.dissimilarity)
+							.arg(similarFiber.dissimilarity >= 1 ? " (skipped)":""));
+					if (similarFiber.dissimilarity < 1
+						&& std::find(m_currentFiberSelection[resultIdx].begin(),
+							m_currentFiberSelection[resultIdx].end(),
+							similarFiber.index) == m_currentFiberSelection[resultIdx].end()
+						)
+					{
+						m_currentFiberSelection[resultIdx].push_back(similarFiber.index);
+					}
+				}
+			}
+		}
+		std::sort(m_currentFiberSelection[resultIdx].begin(), m_currentFiberSelection[resultIdx].end());
+	}
+	emit fibersToSelect(m_currentFiberSelection);
 }
 
 void iASensitivityInfo::parResultSelected(size_t resultIdx, Qt::KeyboardModifiers modifiers)
