@@ -1734,17 +1734,13 @@ void iAFiAKErController::clearSelection()
 	}
 }
 
-void iAFiAKErController::sortSelection(QString const & source)
+void iAFiAKErController::newSelection(QString const& source)
 {
 	for (size_t resultID = 0; resultID < m_selection.size(); ++resultID)
 	{
 		std::sort(m_selection[resultID].begin(), m_selection[resultID].end());
 	}
-	newSelection(source);
-}
-
-void iAFiAKErController::newSelection(QString const & source)
-{
+	emit fiberSelectionChanged(m_selection);
 	size_t selSize = selectionSize();
 	if (selSize == 0 || (m_selections.size() > 0 && m_selection == m_selections[m_selections.size() - 1]))
 	{
@@ -1867,7 +1863,7 @@ void iAFiAKErController::showSelectionInSPM()
 void iAFiAKErController::selection3DChanged()
 {
 	addInteraction(QString("Selected %1 fibers in 3D view.").arg(selectionSize()));
-	sortSelection("3D view");
+	newSelection("3D view");
 	showSelectionIn3DViews();
 	showSelectionInPlots();
 	showSelectionInSPM();
@@ -1890,7 +1886,7 @@ void iAFiAKErController::selectionSPMChanged(std::vector<size_t> const & selecti
 		getResultFiberIDFromSpmID(spmID, resultID, fiberID);
 		m_selection[resultID].push_back(fiberID);
 	}
-	sortSelection("SPM");
+	newSelection("SPM");
 	showSelectionIn3DViews();
 	showSelectionInPlots();
 	changeReferenceDisplay();
@@ -1921,7 +1917,7 @@ void iAFiAKErController::selectionOptimStepChartChanged(std::vector<size_t> cons
 			}
 		}
 	}
-	sortSelection("Chart");
+	newSelection("Chart");
 	showSelectionInPlots();
 	showSelectionIn3DViews();
 	showSelectionInSPM();
