@@ -1,8 +1,8 @@
 /*************************************  open_iA  ************************************ *
 * **********   A tool for visual analysis and processing of 3D CT images   ********** *
 * *********************************************************************************** *
-* Copyright (C) 2016-2020  C. Heinzl, M. Reiter, A. Reh, W. Li, M. Arikan, Ar. &  Al. *
-*                          Amirkhanov, J. Weissenböck, B. Fröhler, M. Schiwarth       *
+* Copyright (C) 2016-2021  C. Heinzl, M. Reiter, A. Reh, W. Li, M. Arikan, Ar. &  Al. *
+*                 Amirkhanov, J. Weissenböck, B. Fröhler, M. Schiwarth, P. Weinberger *
 * *********************************************************************************** *
 * This program is free software: you can redistribute it and/or modify it under the   *
 * terms of the GNU General Public License as published by the Free Software           *
@@ -22,7 +22,7 @@
 
 #include <defines.h>    // for DIM
 #include <iAConnector.h>
-#include <iAConsole.h>
+#include <iALog.h>
 #include <iAProgress.h>
 #include <iATypedCallHelper.h>
 
@@ -119,8 +119,8 @@ iADilation::iADilation() :
 		"FlatStructuringElement (Box, Cross and Polygon)</a> "
 		"in the ITK documentation.")
 {
-	addParameter("Radius", Discrete, 1, 1);
-	addParameter(StructuringElementParamName, Categorical, structuringElementNames());
+	addParameter("Radius", iAValueType::Discrete, 1, 1);
+	addParameter(StructuringElementParamName, iAValueType::Categorical, structuringElementNames());
 }
 
 
@@ -152,8 +152,8 @@ iAErosion::iAErosion() :
 		"FlatStructuringElement (Box, Cross and Polygon)</a> "
 		"in the ITK documentation.")
 {
-	addParameter("Radius", Discrete, 1, 1);
-	addParameter(StructuringElementParamName, Categorical, structuringElementNames());
+	addParameter("Radius", iAValueType::Discrete, 1, 1);
+	addParameter(StructuringElementParamName, iAValueType::Categorical, structuringElementNames());
 }
 
 
@@ -185,8 +185,8 @@ iAMorphOpening::iAMorphOpening():
 		"FlatStructuringElement (Box, Cross and Polygon)</a> "
 		"in the ITK documentation.")
 {
-	addParameter("Radius", Discrete, 1, 1);
-	addParameter(StructuringElementParamName, Categorical, structuringElementNames());
+	addParameter("Radius", iAValueType::Discrete, 1, 1);
+	addParameter(StructuringElementParamName, iAValueType::Categorical, structuringElementNames());
 }
 
 
@@ -218,8 +218,8 @@ iAMorphClosing::iAMorphClosing() :
 		"FlatStructuringElement (Box, Cross and Polygon)</a> "
 		"in the ITK documentation.")
 {
-	addParameter("Radius", Discrete, 1, 1);
-	addParameter(StructuringElementParamName, Categorical, structuringElementNames());
+	addParameter("Radius", iAValueType::Discrete, 1, 1);
+	addParameter(StructuringElementParamName, iAValueType::Categorical, structuringElementNames());
 }
 
 
@@ -257,8 +257,8 @@ iAOpeningByReconstruction::iAOpeningByReconstruction() :
 		"FlatStructuringElement (Box, Cross and Polygon)</a> "
 		"in the ITK documentation.")
 {
-	addParameter("Radius", Discrete, 1, 1);
-	addParameter(StructuringElementParamName, Categorical, structuringElementNames());
+	addParameter("Radius", iAValueType::Discrete, 1, 1);
+	addParameter(StructuringElementParamName, iAValueType::Categorical, structuringElementNames());
 }
 
 
@@ -295,8 +295,8 @@ iAClosingByReconstruction::iAClosingByReconstruction() :
 		"FlatStructuringElement (Box, Cross and Polygon)</a> "
 		"in the ITK documentation.")
 {
-	addParameter("Radius", Discrete, 1, 1);
-	addParameter(StructuringElementParamName, Categorical, structuringElementNames());
+	addParameter("Radius", iAValueType::Discrete, 1, 1);
+	addParameter(StructuringElementParamName, iAValueType::Categorical, structuringElementNames());
 }
 
 
@@ -329,7 +329,7 @@ iAFillHole::iAFillHole() :
 		"<a href=\"https://itk.org/Doxygen/html/classitk_1_1GrayscaleFillholeImageFilter.html\">"
 		"GrayscaleFillholeImageFilter</a>")
 {
-	addParameter("Fully Connected", Boolean, false);
+	addParameter("Fully Connected", iAValueType::Boolean, false);
 }
 
 
@@ -367,5 +367,5 @@ iAVesselEnhancement::iAVesselEnhancement() :
 		"<a href=\"https://itk.org/Doxygen/html/classitk_1_1Hessian3DToVesselnessMeasureImageFilter.html\">"
 		"Hessian 3D to Vesselness Measure Filter</a> in the ITK documentation.")
 {
-	addParameter("Sigma", Continuous, 0);
+	addParameter("Sigma", iAValueType::Continuous, 0);
 }

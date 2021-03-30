@@ -1,8 +1,8 @@
 /*************************************  open_iA  ************************************ *
 * **********   A tool for visual analysis and processing of 3D CT images   ********** *
 * *********************************************************************************** *
-* Copyright (C) 2016-2020  C. Heinzl, M. Reiter, A. Reh, W. Li, M. Arikan, Ar. &  Al. *
-*                          Amirkhanov, J. Weissenböck, B. Fröhler, M. Schiwarth       *
+* Copyright (C) 2016-2021  C. Heinzl, M. Reiter, A. Reh, W. Li, M. Arikan, Ar. &  Al. *
+*                 Amirkhanov, J. Weissenböck, B. Fröhler, M. Schiwarth, P. Weinberger *
 * *********************************************************************************** *
 * This program is free software: you can redistribute it and/or modify it under the   *
 * terms of the GNU General Public License as published by the Free Software           *
@@ -34,7 +34,7 @@ class QSettings;
 class iAParameterExplorerAttachment : public iAModuleAttachmentToChild
 {
 public:
-	static iAParameterExplorerAttachment* create(MainWindow * mainWnd, MdiChild * child);
+	static iAParameterExplorerAttachment* create(iAMainWindow * mainWnd, iAMdiChild * child);
 	void LoadCSV(QString const & fileName);
 	void ToggleDockWidgetTitleBars();
 	void ToggleSettings(bool visible);
@@ -43,7 +43,7 @@ public:
 	void LoadSettings(QSettings const & settings);
 	QString const & CSVFileName() const;
 private:
-	iAParameterExplorerAttachment(MainWindow * mainWnd, MdiChild * child);
+	iAParameterExplorerAttachment(iAMainWindow * mainWnd, iAMdiChild * child);
 	iAParamSPLOMView* m_SPLOMView;
 	iAParamSpatialView* m_spatialView;
 	iAParamTableView* m_tableView;

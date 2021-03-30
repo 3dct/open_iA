@@ -1,8 +1,8 @@
 /*************************************  open_iA  ************************************ *
 * **********   A tool for visual analysis and processing of 3D CT images   ********** *
 * *********************************************************************************** *
-* Copyright (C) 2016-2020  C. Heinzl, M. Reiter, A. Reh, W. Li, M. Arikan, Ar. &  Al. *
-*                          Amirkhanov, J. Weissenböck, B. Fröhler, M. Schiwarth       *
+* Copyright (C) 2016-2021  C. Heinzl, M. Reiter, A. Reh, W. Li, M. Arikan, Ar. &  Al. *
+*                 Amirkhanov, J. Weissenböck, B. Fröhler, M. Schiwarth, P. Weinberger *
 * *********************************************************************************** *
 * This program is free software: you can redistribute it and/or modify it under the   *
 * terms of the GNU General Public License as published by the Free Software           *
@@ -23,30 +23,36 @@
 #include "dlg_GEMSe.h"
 #include "dlg_labels.h"
 #include "dlg_Consensus.h"
-#include "dlg_progress.h"
 #include "dlg_samplings.h"
-#include "dlg_samplingSettings.h"
-#include "iAAttributes.h"
 #include "iAGEMSeConstants.h"
 #include "iAImageTree.h"
 #include "iAImageTreeLeaf.h" // for VisitLeafs
-#include "iAImageSampler.h"
 #include "iALabelInfo.h"
 #include "iAImageClusterer.h"
-#include "iASamplingResults.h"
 #include "iASEAFile.h"
 
+// MetaFilters
+#include <iAImageSampler.h>
+#include <iASamplingMethodImpl.h>
+#include <iASamplingResults.h>
+#include <iAParameterNames.h>
+#include <iASamplingSettingsDlg.h>
+
+// core
 #include <dlg_commoninput.h>
 #include <dlg_modalities.h>
+#include <iAAttributes.h>
 #include <iAAttributeDescriptor.h>
 #include <iAColorTheme.h>
 #include <iAConnector.h>
-#include <iAConsole.h>
+#include <iAFileUtils.h>    // for getLocalEncodingFileName
+#include <iAJobListView.h>
+#include <iALog.h>
 #include <iAModality.h>
 #include <iAModalityList.h>
 #include <iAToolsITK.h>
 #include <io/iAIOProvider.h>
-#include <mdichild.h>
+#include <iAMdiChild.h>
 
 #include <vtkImageData.h>
 
@@ -127,13 +133,11 @@ dlg_GEMSeControl::dlg_GEMSeControl(
 	dlg_GEMSeControlUI(parentWidget),
 	m_dlgModalities(dlgModalities),
 	m_dlgSamplingSettings(nullptr),
-	m_dlgProgress(nullptr),
 	m_dlgGEMSe(dlgGEMSe),
 	m_dlgLabels(dlgLabels),
 	m_dlgSamplings(dlgSamplings),
 	m_dlgConsensus(nullptr),
 	m_simpleLabelInfo(new iASimpleLabelInfo())
-
 {
 	connect(m_dlgSamplings, &dlg_samplings::AddSampling, this, &dlg_GEMSeControl::loadSamplingSlot);
 	dlgLabels->hide();
@@ -162,8 +166,8 @@ dlg_GEMSeControl::dlg_GEMSeControl(
 	connect(cbProbabilityProbing, &QCheckBox::stateChanged, this, &dlg_GEMSeControl::setProbabilityProbing);
 	connect(cbCorrectnessUncertainty, &QCheckBox::stateChanged, this, &dlg_GEMSeControl::setCorrectnessUncertainty);
 
-	MdiChild* mdiChild = dynamic_cast<MdiChild*>(parent());
-	connect(mdiChild, &MdiChild::transferFunctionChanged, this, &dlg_GEMSeControl::dataTFChanged);
+	iAMdiChild* mdiChild = dynamic_cast<iAMdiChild*>(parent());
+	connect(mdiChild, &iAMdiChild::transferFunctionChanged, this, &dlg_GEMSeControl::dataTFChanged);
 
 	dataAvailable();
 }
@@ -172,58 +176,53 @@ void dlg_GEMSeControl::startSampling()
 {
 	if (!m_dlgModalities->modalities()->size())
 	{
-		DEBUG_LOG("No data available.");
+		LOG(lvlError, "No data available.");
 		return;
 	}
 	if (m_dlgSamplingSettings || m_sampler)
 	{
-		DEBUG_LOG("Cannot start sampling while another sampling is still running...");
+		LOG(lvlError, "Cannot start sampling while another sampling is still running...");
 		QMessageBox::warning(this, "GEMSe", "Another sampler still running / dialog is still open...");
 		return;
 	}
-	m_dlgSamplingSettings = new dlg_samplingSettings(this, m_dlgModalities->modalities(), m_samplingSettings);
+	m_dlgSamplingSettings = new iASamplingSettingsDlg(this, m_dlgModalities->modalities()->size(), m_samplingSettings);
 	if (m_dlgSamplingSettings->exec() == QDialog::Accepted)
 	{
-		// get parameter ranges
-		QSharedPointer<iAAttributes> parameters = m_dlgSamplingSettings->GetAttributes();
-		m_outputFolder = m_dlgSamplingSettings->GetOutputFolder();
+		QSharedPointer<iAAttributes> parameterRanges = m_dlgSamplingSettings->parameterRanges();
+		m_dlgSamplingSettings->getValues(m_samplingSettings);
+		m_outputFolder = m_samplingSettings[spnOutputFolder].toString();
 		QDir outputFolder(m_outputFolder);
 		outputFolder.mkpath(".");
-		if (m_dlgSamplingSettings->labelCount() < 2)
+		if (m_samplingSettings[spnComputeDerivedOutput].toBool() &&
+			m_samplingSettings[spnNumberOfLabels].toInt() < 2)
 		{
-			DEBUG_LOG("Label Count must not be smaller than 2!");
+			LOG(lvlError, "Label Count must not be smaller than 2!");
 			QMessageBox::warning(this, "GEMSe", "Label Count must not be smaller than 2!");
 			return;
 		}
-		m_simpleLabelInfo->setLabelCount(m_dlgSamplingSettings->labelCount());
-		m_sampler = QSharedPointer<iAImageSampler>(new iAImageSampler(
+		m_simpleLabelInfo->setLabelCount(m_samplingSettings[spnNumberOfLabels].toInt());
+		auto samplingMethod = createSamplingMethod(m_samplingSettings);
+		if (!samplingMethod)
+		{
+			return;
+		}
+		m_sampler = QSharedPointer<iAImageSampler>::create(
 			m_dlgModalities->modalities(),
-			parameters,
-			m_dlgSamplingSettings->GetGenerator(),
-			m_dlgSamplingSettings->GetSampleCount(),
-			m_dlgSamplingSettings->labelCount(),
-			m_outputFolder,
+			m_samplingSettings,
+			parameterRanges,
+			samplingMethod,
 			iASEAFile::DefaultSMPFileName,
 			iASEAFile::DefaultSPSFileName,
 			iASEAFile::DefaultCHRFileName,
-			m_dlgSamplingSettings->GetExecutable(),
-			m_dlgSamplingSettings->GetAdditionalArguments(),
-			m_dlgSamplingSettings->GetPipelineName(),
-			m_dlgSamplingSettings->GetImageBaseName(),
-			m_dlgSamplingSettings->GetSeparateFolder(),
-			m_dlgSamplingSettings->GetCalcChar(),
-			m_dlgSamplings->GetSamplings()->size()
-		));
-		m_dlgProgress = new dlg_progress(this, m_sampler, m_sampler, "Sampling Progress");
-		MdiChild* mdiChild = dynamic_cast<MdiChild*>(parent());
-		mdiChild->tabifyDockWidget(this, m_dlgProgress);
+			m_dlgSamplings->GetSamplings()->size(),
+			iALog::get(),
+			&m_progress
+		);
+		iAJobListView::get()->addJob("Sampling Progress", &m_progress, m_sampler.data(), m_sampler.data());
 		connect(m_sampler.data(), &iAImageSampler::finished, this, &dlg_GEMSeControl::samplingFinished);
-		connect(m_sampler.data(), &iAImageSampler::Progress, m_dlgProgress, &dlg_progress::setProgress );
-		connect(m_sampler.data(), &iAImageSampler::Status, m_dlgProgress, &dlg_progress::setStatus );
 
 		// trigger parameter set creation & sampling (in foreground with progress bar for now)
 		m_sampler->start();
-		m_dlgSamplingSettings->GetValues(m_samplingSettings);
 	}
 	delete m_dlgSamplingSettings;
 	m_dlgSamplingSettings = 0;
@@ -248,7 +247,7 @@ void dlg_GEMSeControl::loadSamplingSlot()
 		dlg_commoninput lblCountInput(this, "Label Count", inList, inPara, nullptr);
 		if (lblCountInput.exec() != QDialog::Accepted)
 		{
-			DEBUG_LOG("Cannot load sampling without label count input!");
+			LOG(lvlError, "Cannot load sampling without label count input!");
 			return;
 		}
 		labelCount = lblCountInput.getIntValue(0);
@@ -261,13 +260,13 @@ bool dlg_GEMSeControl::loadSampling(QString const & fileName, int labelCount, in
 	m_simpleLabelInfo->setLabelCount(labelCount);
 	if (fileName.isEmpty())
 	{
-		DEBUG_LOG("No filename given, not loading.");
+		LOG(lvlError, "No filename given, not loading.");
 		return false;
 	}
-	QSharedPointer<iASamplingResults> samplingResults = iASamplingResults::Load(fileName, datasetID);
+	QSharedPointer<iASamplingResults> samplingResults = iASamplingResults::load(fileName, datasetID);
 	if (!samplingResults)
 	{
-		DEBUG_LOG("Loading Sampling failed.");
+		LOG(lvlError, "Loading Sampling failed.");
 		return false;
 	}
 	m_dlgSamplings->Add(samplingResults);
@@ -280,18 +279,16 @@ bool dlg_GEMSeControl::loadSampling(QString const & fileName, int labelCount, in
 void dlg_GEMSeControl::samplingFinished()
 {
 	// retrieve results from sampler
-	QSharedPointer<iASamplingResults> samplingResults = m_sampler->GetResults();
-	delete m_dlgProgress;
-	m_dlgProgress = 0;
+	QSharedPointer<iASamplingResults> samplingResults = m_sampler->results();
 
-	if (!samplingResults || m_sampler->IsAborted())
+	if (!samplingResults || m_sampler->isAborted())
 	{
 		m_sampler.clear();
 		return;
 	}
 	m_sampler.clear();
 	m_dlgSamplings->Add(samplingResults);
-	samplingResults->Store(
+	samplingResults->store(
 		m_outputFolder + "/" + iASEAFile::DefaultSMPFileName,
 		m_outputFolder + "/" + iASEAFile::DefaultSPSFileName,
 		m_outputFolder + "/" + iASEAFile::DefaultCHRFileName);
@@ -314,16 +311,16 @@ bool dlg_GEMSeControl::loadClustering(QString const & fileName)
 {
 	if (m_simpleLabelInfo->count() < 2)
 	{
-		DEBUG_LOG("Label Count must not be smaller than 2!");
+		LOG(lvlError, "Label Count must not be smaller than 2!");
 		return false;
 	}
 	assert(m_dlgSamplings->SamplingCount() > 0);
 	if (m_dlgSamplings->SamplingCount() == 0 || fileName.isEmpty())
 	{
-		DEBUG_LOG("No sampling data is available!");
+		LOG(lvlError, "No sampling data is available!");
 		return false;
 	}
-	MdiChild* mdiChild = dynamic_cast<MdiChild*>(parent());
+	iAMdiChild* mdiChild = dynamic_cast<iAMdiChild*>(parent());
 	vtkSmartPointer<vtkImageData> originalImage = mdiChild->imagePointer();
 	QSharedPointer<iAImageTree> tree = iAImageTree::Create(
 		fileName,
@@ -332,7 +329,7 @@ bool dlg_GEMSeControl::loadClustering(QString const & fileName)
 	);
 	if (!tree)
 	{
-		DEBUG_LOG("Loading Clustering failed!");
+		LOG(lvlError, "Loading Clustering failed!");
 		return false;
 	}
 	double * origSpacing = originalImage->GetSpacing();
@@ -343,7 +340,7 @@ bool dlg_GEMSeControl::loadClustering(QString const & fileName)
 		origSpacing[1] != resultSpacing[1] ||
 		origSpacing[2] != resultSpacing[2])
 	{
-		DEBUG_LOG("Spacing of original images and of result images does not match!");
+		LOG(lvlError, "Spacing of original images and of result images does not match!");
 	}
 	m_dlgGEMSe->SetTree(
 		tree,
@@ -364,13 +361,7 @@ void dlg_GEMSeControl::calculateClustering()
 {
 	if (m_dlgSamplings->SamplingCount() == 0)
 	{
-		DEBUG_LOG("No Sampling Results available!");
-		return;
-	}
-	assert( !m_dlgProgress );
-	if (m_dlgProgress)
-	{
-		DEBUG_LOG("Other operation still running?");
+		LOG(lvlError, "No Sampling Results available!");
 		return;
 	}
 	m_outputFolder = QFileDialog::getExistingDirectory(this, tr("Output Directory"), m_outputFolder);
@@ -378,49 +369,43 @@ void dlg_GEMSeControl::calculateClustering()
 	{
 		return;
 	}
-	DEBUG_LOG(QString("Clustering and writing results to %1").arg(m_outputFolder));
+	LOG(lvlInfo, QString("Clustering and writing results to %1").arg(m_outputFolder));
 	QString cacheDir = m_outputFolder + "/representatives";
 	QDir qdir;
 	if (!qdir.mkpath(cacheDir))
 	{
-		DEBUG_LOG(QString("Can't create representative directory %1!").arg(cacheDir));
+		LOG(lvlError, QString("Can't create representative directory %1!").arg(cacheDir));
 		return;
 	}
-	m_clusterer = QSharedPointer<iAImageClusterer>(new iAImageClusterer(m_simpleLabelInfo->count(), cacheDir));
-	m_dlgProgress = new dlg_progress(this, m_clusterer, m_clusterer, "Clustering Progress");
+	m_clusterer = QSharedPointer<iAImageClusterer>::create(m_simpleLabelInfo->count(), cacheDir, &m_progress);
+	iAJobListView::get()->addJob("Clustering Progress", &m_progress, m_clusterer.data(), m_clusterer.data());
 	for (int samplingIdx=0; samplingIdx<m_dlgSamplings->SamplingCount(); ++samplingIdx)
 	{
 		QSharedPointer<iASamplingResults> sampling = m_dlgSamplings->GetSampling(samplingIdx);
 		for (int sampleIdx = 0; sampleIdx < sampling->size(); ++sampleIdx)
 		{
-			m_clusterer->AddImage(sampling->Get(sampleIdx));
+			m_clusterer->AddImage(sampling->get(sampleIdx));
 		}
 	}
-	MdiChild* mdiChild = dynamic_cast<MdiChild*>(parent());
-	mdiChild->tabifyDockWidget(this, m_dlgProgress);
 	connect(m_clusterer.data(), &iAImageClusterer::finished, this, &dlg_GEMSeControl::clusteringFinished);
-	connect(m_clusterer.data(), &iAImageClusterer::Progress, m_dlgProgress, &dlg_progress::setProgress);
-	connect(m_clusterer.data(), &iAImageClusterer::Status, m_dlgProgress, &dlg_progress::setStatus);
 	m_clusterer->start();
 }
 
 void dlg_GEMSeControl::clusteringFinished()
 {
-	delete m_dlgProgress;
-	m_dlgProgress = 0;
-	MdiChild* mdiChild = dynamic_cast<MdiChild*>(parent());
+	iAMdiChild* mdiChild = dynamic_cast<iAMdiChild*>(parent());
 	vtkSmartPointer<vtkImageData> originalImage = mdiChild->imagePointer();
 
 	QSharedPointer<iAImageTree> tree = m_clusterer->GetResult();
 	assert(m_dlgGEMSe);
 	if (!m_dlgGEMSe)
 	{
-		DEBUG_LOG("GEMSe not initialized!");
+		LOG(lvlError, "GEMSe not initialized!");
 		return;
 	}
 	if (m_clusterer->IsAborted() || !m_clusterer->GetResult())
 	{
-		DEBUG_LOG("Clusterer aborted / missing Clustering Result!");
+		LOG(lvlError, "Clusterer aborted / missing Clustering Result!");
 		return;
 	}
 	if (!m_outputFolder.isEmpty())
@@ -479,9 +464,9 @@ void dlg_GEMSeControl::saveGEMSeProject(QString const & fileName, QString const 
 	QMap<int, QString> samplingFilenames;
 	for (QSharedPointer<iASamplingResults> sampling : *m_dlgSamplings->GetSamplings())
 	{
-		samplingFilenames.insert(sampling->GetID(), sampling->GetFileName());
+		samplingFilenames.insert(sampling->id(), sampling->fileName());
 	}
-	MdiChild* mdiChild = dynamic_cast<MdiChild*>(parent());
+	iAMdiChild* mdiChild = dynamic_cast<iAMdiChild*>(parent());
 	iASEAFile seaFile(
 		m_dlgModalities->modalities()->fileName(),
 		m_simpleLabelInfo->count(),
@@ -502,9 +487,9 @@ void dlg_GEMSeControl::saveProject(QSettings & metaFile, QString const & fileNam
 	QMap<int, QString> samplingFilenames;
 	for (QSharedPointer<iASamplingResults> sampling : *m_dlgSamplings->GetSamplings())
 	{
-		samplingFilenames.insert(sampling->GetID(), sampling->GetFileName());
+		samplingFilenames.insert(sampling->id(), sampling->fileName());
 	}
-	MdiChild* mdiChild = dynamic_cast<MdiChild*>(parent());
+	iAMdiChild* mdiChild = dynamic_cast<iAMdiChild*>(parent());
 	iASEAFile seaFile(
 		"", // don't store modalities here!
 		m_simpleLabelInfo->count(),
@@ -523,13 +508,16 @@ void dlg_GEMSeControl::EnableClusteringDependantUI()
 {
 	pbClusteringStore->setEnabled(true);
 	pbSelectHistograms->setEnabled(true);
+	pbFreeMemory->setEnabled(true);
 	if (!m_dlgConsensus)
 	{
-		MdiChild* mdiChild = dynamic_cast<MdiChild*>(parent());
+		iAMdiChild* mdiChild = dynamic_cast<iAMdiChild*>(parent());
 		m_dlgConsensus = new dlg_Consensus(mdiChild, m_dlgGEMSe, m_simpleLabelInfo->count(), m_outputFolder,
 			m_dlgSamplings);
 		if (m_refImg)
+		{
 			m_dlgConsensus->SetGroundTruthImage(m_refImg);
+		}
 		mdiChild->splitDockWidget(this, m_dlgConsensus, Qt::Vertical);
 	}
 }
@@ -613,7 +601,9 @@ void dlg_GEMSeControl::loadRefImgSlot()
 		iAIOProvider::MetaImages
 	);
 	if (refFileName.isEmpty())
+	{
 		return;
+	}
 	loadRefImg(refFileName);
 }
 
@@ -634,7 +624,7 @@ bool dlg_GEMSeControl::loadRefImg(QString const & refImgName)
 	}
 	catch (std::exception & e)
 	{
-		DEBUG_LOG(QString("Could not load reference image, problem: %1").arg(e.what()));
+		LOG(lvlError, QString("Could not load reference image, problem: %1").arg(e.what()));
 		return false;
 	}
 	leRefImage->setText(refImgName);
@@ -672,14 +662,14 @@ void dlg_GEMSeControl::saveDerivedOutput(
 	QFile paramRangeFile(attributeDescriptorOutputFileName);
 	if (!paramRangeFile.open(QIODevice::WriteOnly | QIODevice::Text))
 	{
-		DEBUG_LOG(QString("Could not open parameter descriptor file '%1' for writing!").arg(attributeDescriptorOutputFileName));
+		LOG(lvlError, QString("Could not open parameter descriptor file '%1' for writing!").arg(attributeDescriptorOutputFileName));
 		return;
 	}
 	QTextStream out(&paramRangeFile);
-	results->GetAttributes()->store(out);
+	storeAttributes(out, *results->attributes().data());
 
 	// store derived output:
-	results->StoreAttributes(iAAttributeDescriptor::DerivedOutput, derivedOutputFileName, false);
+	results->storeAttributes(iAAttributeDescriptor::DerivedOutput, derivedOutputFileName, false);
 }
 
 void dlg_GEMSeControl::exportAttributeRangeRanking()
@@ -733,21 +723,27 @@ void dlg_GEMSeControl::freeMemory()
 void dlg_GEMSeControl::setProbabilityProbing(int state)
 {
 	if (!m_dlgGEMSe)
+	{
 		return;
+	}
 	m_dlgGEMSe->SetProbabilityProbing(state == Qt::Checked);
 }
 
 void dlg_GEMSeControl::setCorrectnessUncertainty(int state)
 {
 	if (!m_dlgGEMSe)
+	{
 		return;
+	}
 	m_dlgGEMSe->SetCorrectnessUncertaintyOverlay(state == Qt::Checked);
 }
 
 void dlg_GEMSeControl::dataTFChanged()
 {
 	if (!m_dlgGEMSe)
+	{
 		return;
+	}
 	m_dlgGEMSe->DataTFChanged();
 }
 

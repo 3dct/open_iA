@@ -1,8 +1,8 @@
 /*************************************  open_iA  ************************************ *
 * **********   A tool for visual analysis and processing of 3D CT images   ********** *
 * *********************************************************************************** *
-* Copyright (C) 2016-2020  C. Heinzl, M. Reiter, A. Reh, W. Li, M. Arikan, Ar. &  Al. *
-*                          Amirkhanov, J. Weissenböck, B. Fröhler, M. Schiwarth       *
+* Copyright (C) 2016-2021  C. Heinzl, M. Reiter, A. Reh, W. Li, M. Arikan, Ar. &  Al. *
+*                 Amirkhanov, J. Weissenböck, B. Fröhler, M. Schiwarth, P. Weinberger *
 * *********************************************************************************** *
 * This program is free software: you can redistribute it and/or modify it under the   *
 * terms of the GNU General Public License as published by the Free Software           *
@@ -21,16 +21,17 @@
 #include "iASegm3DView.h"
 
 #include <defines.h>
-#include <iAConsole.h>
+#include <iALog.h>
 #include <iAFast3DMagicLensWidget.h>
-#include <iARenderer.h>
-#include <iARendererManager.h>
 #include <iALUT.h>
 #include <iARenderSettings.h>
 #include <iATransferFunction.h>
 #include <iAVolumeRenderer.h>
 #include <iAVolumeSettings.h>
 #include <iAVtkVersion.h>
+
+#include <iARendererImpl.h>
+#include <iARendererManager.h>
 
 #include <vtkActor.h>
 #include <vtkCamera.h>
@@ -67,7 +68,8 @@ void iASegm3DView::SetDataToVisualize( QList<vtkImageData*> imgData, QList<vtkPo
 	{
 		if (!i)
 		{
-			DEBUG_LOG("Image data is nullptr!");
+			LOG(lvlError, "Image data is nullptr!");
+			return;
 		}
 	}
 	m_range = 0.0;
@@ -177,7 +179,7 @@ void iASegm3DView::ShowWireframe( bool visible )
 
 
 iASegm3DViewData::iASegm3DViewData( double * rangeExt, QWidget * parent ) :
-	m_renderer( new iARenderer( parent ) ),
+	m_renderer( new iARendererImpl( parent ) ),
 	m_rendInitialized( false ),
 	m_axesTransform( vtkSmartPointer<vtkTransform>::New() ),
 	m_observedRenderer( 0 ),
@@ -232,8 +234,8 @@ iASegm3DViewData::iASegm3DViewData( double * rangeExt, QWidget * parent ) :
 #endif
 	m_renderer->setAxesTransform( m_axesTransform );
 
-	QObject::connect(m_wgt, &iAFast3DMagicLensWidget::rightButtonReleasedSignal, m_renderer, &iARenderer::mouseRightButtonReleasedSlot);
-	QObject::connect(m_wgt, &iAFast3DMagicLensWidget::leftButtonReleasedSignal, m_renderer, &iARenderer::mouseLeftButtonReleasedSlot);
+	QObject::connect(m_wgt, &iAFast3DMagicLensWidget::rightButtonReleasedSignal, m_renderer, &iARendererImpl::mouseRightButtonReleasedSlot);
+	QObject::connect(m_wgt, &iAFast3DMagicLensWidget::leftButtonReleasedSignal, m_renderer, &iARendererImpl::mouseLeftButtonReleasedSlot);
 }
 
 iASegm3DViewData::~iASegm3DViewData()
@@ -255,13 +257,14 @@ void iASegm3DViewData::SetDataToVisualize( vtkImageData * imgData, vtkPolyData *
 {
 	if (!imgData)
 	{
-		DEBUG_LOG("Image data is nullptr!");
+		LOG(lvlError, "Image data is nullptr!");
+		return;
 	}
 	iASimpleTransferFunction tf(ctf, otf);
 	if( !m_rendInitialized )
 	{
 		m_renderer->initialize( imgData, polyData );
-		m_volumeRenderer = QSharedPointer<iAVolumeRenderer>(new iAVolumeRenderer(&tf, imgData));
+		m_volumeRenderer = QSharedPointer<iAVolumeRenderer>::create(&tf, imgData);
 		m_volumeRenderer->addTo(m_renderer->renderer());
 		m_volumeRenderer->addBoundingBoxTo(m_renderer->renderer());
 		m_rendInitialized = true;

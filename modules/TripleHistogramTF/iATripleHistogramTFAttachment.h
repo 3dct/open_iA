@@ -1,8 +1,8 @@
 /*************************************  open_iA  ************************************ *
 * **********   A tool for visual analysis and processing of 3D CT images   ********** *
 * *********************************************************************************** *
-* Copyright (C) 2016-2020  C. Heinzl, M. Reiter, A. Reh, W. Li, M. Arikan, Ar. &  Al. *
-*                          Amirkhanov, J. Weissenböck, B. Fröhler, M. Schiwarth       *
+* Copyright (C) 2016-2021  C. Heinzl, M. Reiter, A. Reh, W. Li, M. Arikan, Ar. &  Al. *
+*                 Amirkhanov, J. Weissenböck, B. Fröhler, M. Schiwarth, P. Weinberger *
 * *********************************************************************************** *
 * This program is free software: you can redistribute it and/or modify it under the   *
 * terms of the GNU General Public License as published by the Free Software           *
@@ -28,11 +28,11 @@ class dlg_tf_3mod;
 class iATripleHistogramTFAttachment : public iAModuleAttachmentToChild
 {
 public:
-	static iATripleHistogramTFAttachment* create(MainWindow * mainWnd, MdiChild* child);
+	static iATripleHistogramTFAttachment* create(iAMainWindow * mainWnd, iAMdiChild* child);
 	void start2TF();
 	void start3TF();
 private:
-	iATripleHistogramTFAttachment(MainWindow * mainWnd, MdiChild* child);
+	iATripleHistogramTFAttachment(iAMainWindow * mainWnd, iAMdiChild* child);
 	dlg_tf_2mod *m_tf_2mod;
 	dlg_tf_3mod *m_tf_3mod;
 };

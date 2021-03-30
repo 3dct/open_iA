@@ -43,6 +43,8 @@ IF (CMAKE_VERSION VERSION_GREATER "3.15.99")
 	ENDIF()
 ENDIF()
 
+option (openiA_CHART_OPENGL "Whether to use OpenGL in chart widgets (disable this if you see no text, which was observed on AMD graphics cards" ON)
+
 #------------------------------
 # Build / Compiler information
 #------------------------------
@@ -51,6 +53,8 @@ IF (MSVC)
 	MESSAGE(STATUS "Compiler: Visual C++ (MSVC_VERSION ${MSVC_VERSION} / ${CMAKE_CXX_COMPILER_VERSION})")
 	set (BUILD_INFO "${BUILD_INFO}    \"Compiler: Visual C++ (MSVC_VERSION ${MSVC_VERSION} / ${CMAKE_CXX_COMPILER_VERSION})\\n\"\n")
 	set (BUILD_INFO "${BUILD_INFO}    \"Windows SDK: ${CMAKE_VS_WINDOWS_TARGET_PLATFORM_VERSION}\\n\"\n")
+	# Apply file grouping based on regular expressions for Visual Studio IDE.
+	SOURCE_GROUP("UI Files" REGULAR_EXPRESSION "[.](ui|qrc)$")
 ELSEIF (CMAKE_CXX_COMPILER_ID MATCHES "Clang")
 	MESSAGE(STATUS "Compiler: Clang (${CMAKE_CXX_COMPILER_VERSION})")
 	set (BUILD_INFO "${BUILD_INFO}    \"Compiler: Clang (Version ${CMAKE_CXX_COMPILER_VERSION})\\n\"\n")
@@ -132,7 +136,6 @@ ENDIF()
 set (ITK_HGrad_INFO "disabled")
 IF (HigherOrderAccurateGradient_LOADED)
 	MESSAGE(STATUS "    HigherOrderAccurateGradient available as ITK module.")
-	ADD_DEFINITIONS(-DITKHigherOrderGradient)
 	set (ITK_HGrad_INFO "enabled")
 	LIST (APPEND ITK_COMPONENTS HigherOrderAccurateGradient)
 ENDIF()
@@ -147,23 +150,30 @@ ENDIF()
 FIND_PACKAGE(ITK COMPONENTS ${ITK_COMPONENTS})
 # apparently ITK (at least v5.0.0) adapts CMAKE_MODULE_PATH (bug?), reset it:
 SET(CMAKE_MODULE_PATH "${SAVED_CMAKE_MODULE_PATH}")
-INCLUDE(${ITK_USE_FILE})  # maybe avoid by using INCLUDE/LINK commands on targets instead?
+INCLUDE(${ITK_USE_FILE}) # <- maybe avoid by using INCLUDE/LINK commands on targets instead?
+# problem: also does some factory initialization (IO), which cannot easily be called separately
+SET (ITK_BASE_DIR "${ITK_DIR}")
 IF (MSVC)
 	SET (ITK_LIB_DIR "${ITK_DIR}/bin/Release")
 ELSE()
-	SET (ITK_LIB_DIR "${ITK_DIR}/lib")
+	if (EXISTS "${ITK_DIR}/lib")
+		SET (ITK_LIB_DIR "${ITK_DIR}/lib")
+	else()
+		SET (ITK_BASE_DIR "${ITK_DIR}/../../..")
+		SET (ITK_LIB_DIR "${ITK_BASE_DIR}/lib")
+	endif()
 ENDIF()
+MESSAGE(STATUS "    ITK_LIB_DIR: ${ITK_LIB_DIR}")
 LIST (APPEND BUNDLE_DIRS "${ITK_LIB_DIR}")
 set (ITK_SCIFIO_INFO "disabled")
 IF (SCIFIO_LOADED)
 	set (ITK_SCIFIO_INFO "enabled")
-	ADD_DEFINITIONS(-DUSE_SCIFIO)
 	MESSAGE(STATUS "    SCIFIO support enabled!\n\
        Notice that in order to run a build with this library on another machine\n\
        than the one you built it, the environment variable SCIFIO_PATH\n\
        has to be set to the path containing the SCIFIO jar files!\n\
        Otherwise loading images will fail!")
-	SET (SCIFIO_PATH "${ITK_DIR}/lib/jars")
+	SET (SCIFIO_PATH "${ITK_BASE_DIR}/lib/jars")
 	IF (MSVC)
 		# variable will be set to the debugging environment instead of copying (see gui/CMakeLists.txt)
 	ELSE()
@@ -179,7 +189,6 @@ ENDIF()
 set(ITK_GPU_INFO "enabled")
 IF ("${ITKGPUCommon_LIBRARY_DIRS}" STREQUAL "")
 	set(ITK_GPU_INFO "disabled")
-	ADD_DEFINITIONS(-DITKNOGPU)
 	MESSAGE(WARNING "ITK is built without GPU support (flag ITK_USE_GPU disabled). Some GPU-optimized functionality might not be available!")
 ENDIF()
 set (BUILD_INFO "${BUILD_INFO}    \"ITK: ${ITK_VERSION} (GPU: ${ITK_GPU_INFO}, SCIFIO: ${ITK_SCIFIO_INFO}, RTK: ${ITK_RTK_INFO}, HigherOrderGradient: ${ITK_HGrad_INFO})\\n\"\n")
@@ -190,8 +199,11 @@ MESSAGE(STATUS "VTK: ${VTK_VERSION} in ${VTK_DIR}.")
 IF (VTK_VERSION VERSION_LESS "8.0.0")
 	MESSAGE(FATAL_ERROR "Your VTK version is too old. Please use VTK >= 8.0")
 ENDIF()
+SET (VTK_LIB_PREFIX "VTK::")
 IF (VTK_VERSION VERSION_LESS "9.0.0")
 	SET (VTK_COMP_PREFIX "vtk")
+	SET (VTK_BASE_LIB_LIST kwiml)
+SET (VTK_LIB_PREFIX "vtk")
 ELSE()
 	SET (VTK_RENDERING_BACKEND "OpenGL2")     # peculiarity about VTK 9: it sets VTK_RENDERING_BACKEND to "OpenGL", but for our purposes, it behaves exactly like when previously it was set to OpenGL2. The VTK_RENDERING_BACKEND also isn't exposed as user parameter anymore.
 	SET (VTK_COMP_PREFIX "")
@@ -204,7 +216,7 @@ SET (VTK_COMPONENTS
 	${VTK_COMP_PREFIX}ImagingStatistics       # for vtkImageAccumulate
 	${VTK_COMP_PREFIX}IOGeometry              # for vtkSTLReader/Writer
 	${VTK_COMP_PREFIX}IOMovie                 # for vtkGenericMovieWriter
-	${VTK_COMP_PREFIX}RenderingAnnotation     # for vtkAnnotatedCubeActor, vtkScalarBarActor
+	${VTK_COMP_PREFIX}RenderingAnnotation     # for vtkAnnotatedCubeActor, vtkCaptionActor, vtkScalarBarActor
 	${VTK_COMP_PREFIX}RenderingContext${VTK_RENDERING_BACKEND} # required, otherwise 3D renderer CRASHES somewhere with a nullptr access in vtkContextActor::GetDevice !!!
 	${VTK_COMP_PREFIX}RenderingImage          # for vtkImageResliceMapper
 	${VTK_COMP_PREFIX}RenderingVolume${VTK_RENDERING_BACKEND}  # for volume rendering
@@ -216,18 +228,18 @@ IF (VTK_MAJOR_VERSION GREATER_EQUAL 9)
 		ChartsCore                  # for vtkAxis, vtkChart, vtkChartParallelCoordinates, used in FeatureScout, FuzzyFeatureTracking, GEMSE, PorosityAnalyzer
 		CommonColor                 # for vtkNamedColors, vtkColorSeries, used in CompVis
 		CommonComputationalGeometry # for vtkParametricSpline, used in core - iASpline/iAParametricSpline
-		GUISupportQt                # for QVTKOpenGLNativeWidget
 		FiltersExtraction           # for vtkExtractGeometry, used in FIAKER - iASelectionInteractorStyle
 		FiltersGeometry             # for vtkImageDataGeometryFilter used in iALabel3D and vtkDataSetSurfaceFilter used in ExtractSurface - iAExtractSurfaceFilter
 		FiltersHybrid               # for vtkDepthSortPolyData used in 4DCT, DreamCaster, FeatureScout, vtkPolyDataSilhouette used in FeatureScout
 		FiltersStatistics           # for vtkDataSetSurfaceFilter used in BoneThickness - iABoneThickness
+		GUISupportQt                # for QVTKOpenGLNativeWidget
 		ImagingHybrid               # for vtkSampleFunction.h used in FeatureScout - iABlobCluster
 		InfovisLayout               # for vtkGraphLayoutStrategy used in CompVis
 		IOXML                       # for vtkXMLImageDataReader used in iAIO
 	)
 ENDIF()
 IF ("${VTK_RENDERING_BACKEND}" STREQUAL "OpenGL2")
-	ADD_DEFINITIONS(-DVTK_OPENGL2_BACKEND)
+	add_compile_definitions(VTK_OPENGL2_BACKEND)
 ELSE()
 	IF (MSVC)
 		ADD_COMPILE_OPTIONS(/wd4081)
@@ -235,7 +247,7 @@ ELSE()
 	LIST (APPEND VTK_COMPONENTS vtkGUISupportQtOpenGL)    # for QVTKWidget2
 ENDIF()
 IF ("${vtkRenderingOSPRay_LOADED}")
-	ADD_DEFINITIONS(-DVTK_OSPRAY_AVAILABLE)
+	add_compile_definitions(VTK_OSPRAY_AVAILABLE)
 ENDIF()
 
 FUNCTION (ExtractVersion filename identifier output_varname)
@@ -292,82 +304,111 @@ IF (VTK_MAJOR_VERSION GREATER 8)
 	ENDIF()
 ENDIF()
 FIND_PACKAGE(VTK COMPONENTS ${VTK_COMPONENTS})
-IF (VTK_MAJOR_VERSION LESS 9)		# VTK >= 9.0 uses imported targets -> include directories are set by TARGET_LINK_LIBRARY(... VTK_LIBRARIES) call!
+IF (VTK_MAJOR_VERSION LESS 9)		# VTK >= 9.0 uses imported targets -> include directories are set by TARGET_LINK_LIBRARIES(... VTK_LIBRARIES) call!
 	INCLUDE(${VTK_USE_FILE})
 ENDIF()
 IF (MSVC)
 	SET (VTK_LIB_DIR "${VTK_DIR}/bin/Release")
 ELSE ()
-	SET (VTK_LIB_DIR "${VTK_DIR}/lib")
+	if (EXISTS "${VTK_DIR}/lib")
+		SET (VTK_LIB_DIR "${VTK_DIR}/lib")
+	else()
+		SET (VTK_LIB_DIR "${VTK_DIR}/../../../lib")
+	endif()
 ENDIF()
+MESSAGE(STATUS "    VTK_LIB_DIR: ${VTK_LIB_DIR}")
 LIST (APPEND BUNDLE_DIRS "${VTK_LIB_DIR}")
 IF ( vtkoggtheora_LOADED OR vtkogg_LOADED OR
      (VTK_ogg_FOUND EQUAL 1 AND VTK_theora_FOUND EQUAL 1 AND VTK_IOOggTheora_FOUND EQUAL 1) )
 	MESSAGE(STATUS "    Video: Ogg Theora Encoder available")
-	ADD_DEFINITIONS(-DVTK_USE_OGGTHEORA_ENCODER)
-	SET (BUILD_INFO_VTK_VIDEO_SUPPORT "ogg")
+	SET (VTK_VIDEO_SUPPORT "ogg")
 ELSE()
 	MESSAGE(WARNING "    Video: No encoder available! You will not be able to record videos.")
-	SET (BUILD_INFO_VTK_VIDEO_SUPPORT "disabled")
+	SET (VTK_VIDEO_SUPPORT "disabled")
 ENDIF()
 if (VTK_MAJOR_VERSION LESS 9)
 	set(BUILD_INFO_VTK_DETAILS "Backend: ${VTK_RENDERING_BACKEND}, ")
 endif ()
-set (BUILD_INFO_VTK_DETAILS "${BUILD_INFO_VTK_DETAILS}OpenVR support: ${BUILD_INFO_VTK_VR_SUPPORT}, Video support: ${BUILD_INFO_VTK_VIDEO_SUPPORT}")
+set (BUILD_INFO_VTK_DETAILS "${BUILD_INFO_VTK_DETAILS}OpenVR support: ${BUILD_INFO_VTK_VR_SUPPORT}, Video support: ${VTK_VIDEO_SUPPORT}")
 set (BUILD_INFO_VTK "VTK: ${VTK_VERSION} (${BUILD_INFO_VTK_DETAILS})")
 set (BUILD_INFO "${BUILD_INFO}    \"${BUILD_INFO_VTK}\\n\"\n")
 
+
 # Qt (>= 5)
 SET(CMAKE_AUTOMOC ON)
+set(CMAKE_AUTOUIC ON)
+set(CMAKE_AUTORCC ON)
 SET(QT_USE_QTXML TRUE)
-#IF (WIN32)
-#	SET( CMAKE_LIBRARY_PATH ${CMAKE_LIBRARY_PATH} "C:/Program Files (x86)/Windows Kits/8.1/Lib/winv6.3/um/x64" )
-#ENDIF (WIN32)
-FIND_PACKAGE(Qt5 COMPONENTS Widgets Xml Network Test OpenGL PrintSupport Svg REQUIRED)
-MESSAGE(STATUS "Qt: ${Qt5_VERSION} in ${Qt5_DIR}")
-set (BUILD_INFO "${BUILD_INFO}    \"Qt: ${Qt5_VERSION}\\n\"\n")
-IF (Qt5_VERSION VERSION_LESS "5.9.0")
+find_package(QT NAMES Qt6 Qt5 COMPONENTS Widgets OpenGLWidgets REQUIRED)
+FIND_PACKAGE(Qt${QT_VERSION_MAJOR} COMPONENTS Concurrent Gui OpenGL Svg Widgets Xml REQUIRED)
+MESSAGE(STATUS "Qt: ${QT_VERSION} in ${Qt${QT_VERSION_MAJOR}_DIR}")
+set (BUILD_INFO "${BUILD_INFO}    \"Qt: ${QT_VERSION}\\n\"\n")
+IF (QT_VERSION VERSION_LESS "5.9.0")
 	MESSAGE(FATAL_ERROR "Your Qt version is too old. Please use Qt >= 5.9")
 ENDIF()
-# Qt5OpenGL_INCLUDE_DIRS seems to be required on linux only, but doesn't hurt on Windows:
-INCLUDE_DIRECTORIES(${Qt5Widgets_INCLUDE_DIRS} ${Qt5OpenGL_INCLUDE_DIRS} )
-SET(QT_LIBRARIES ${Qt5Core_LIBRARIES} ${Qt5Xml_LIBRARIES} ${Qt5OpenGL_LIBRARIES} ${Qt5Network_LIBRARIES} ${Qt5PrintSupport_LIBRARIES})
+INCLUDE_DIRECTORIES(${Qt${QT_VERSION_MAJOR}Widgets_INCLUDE_DIRS} ${Qt${QT_VERSION_MAJOR}OpenGL_INCLUDE_DIRS} )
+SET(QT_LIBRARIES ${Qt${QT_VERSION_MAJOR}Core_LIBRARIES} ${Qt${QT_VERSION_MAJOR}Concurrent_LIBRARIES} ${Qt${QT_VERSION_MAJOR}OpenGL_LIBRARIES} ${Qt${QT_VERSION_MAJOR}Xml_LIBRARIES})
 
-STRING(REGEX REPLACE "/lib/cmake/Qt5" "" Qt5_BASEDIR ${Qt5_DIR})
-STRING(REGEX REPLACE "/cmake/Qt5" "" Qt5_BASEDIR ${Qt5_BASEDIR})	# on linux, lib is omitted if installed from package repos
+STRING(REGEX REPLACE "/lib/cmake/Qt${QT_VERSION_MAJOR}" "" Qt_BASEDIR ${Qt${QT_VERSION_MAJOR}_DIR})
+STRING(REGEX REPLACE "/cmake/Qt${QT_VERSION_MAJOR}" "" Qt_BASEDIR ${Qt_BASEDIR})	# on linux, lib is omitted if installed from package repos
+
+IF (WIN32)
+	SET (QT_LIB_DIR "${Qt_BASEDIR}/bin")
+ENDIF()
+IF (UNIX AND NOT APPLE AND NOT FLATPAK_BUILD)
+	IF (EXISTS "${Qt_BASEDIR}/lib")
+		SET (QT_LIB_DIR "${Qt_BASEDIR}/lib")
+	ELSE()
+		SET (QT_LIB_DIR "${Qt_BASEDIR}")
+	ENDIF()
+ENDIF()
 
 # Install svg imageformats plugin:
 IF (FLATPAK_BUILD)
-	INSTALL (FILES "$<TARGET_FILE:Qt5::QSvgPlugin>" DESTINATION bin/imageformats)
+	# I guess plugins should all be available on Flatpak?
+	#	INSTALL (FILES "$<TARGET_FILE:Qt5::QSvgPlugin>" DESTINATION bin/imageformats)
+	#	INSTALL (FILES "$<TARGET_FILE:Qt5::QSvgIconPlugin>" DESTINATION bin/iconengines)
 ELSE()
-	INSTALL (FILES "$<TARGET_FILE:Qt5::QSvgPlugin>" DESTINATION imageformats)
-ENDIF()
-LIST (APPEND BUNDLE_LIBS "$<TARGET_FILE:Qt5::QSvgPlugin>")
-IF (WIN32)
-	SET (QT_LIB_DIR "${Qt5_BASEDIR}/bin")
-	# use imported targets for windows plugin:
-	INSTALL (FILES "$<TARGET_FILE:Qt5::QWindowsIntegrationPlugin>" DESTINATION platforms)
-	# install windows vista style plugin:
-	INSTALL (FILES "$<TARGET_FILE:Qt5::QWindowsVistaStylePlugin>" DESTINATION styles)
-ENDIF()
-IF (UNIX AND NOT APPLE AND NOT FLATPAK_BUILD)
-	IF (EXISTS "${Qt5_BASEDIR}/lib")
-		SET (QT_LIB_DIR "${Qt5_BASEDIR}/lib")
-	ELSE()
-		SET (QT_LIB_DIR "${Qt5_BASEDIR}")
+	IF (${QT_VERSION_MAJOR} GREATER_EQUAL 6) # Qt6 does not expose plugins? at least not the same as in Qt 5
+		MESSAGE(STATUS "Qt: ${Qt_BASEDIR}")
+		set (LIB_SvgIconPlugin "${Qt_BASEDIR}/plugins/iconengines/${CMAKE_SHARED_LIBRARY_PREFIX}qsvgicon${CMAKE_SHARED_LIBRARY_SUFFIX}")
+		set (LIB_SvgPlugin "${Qt_BASEDIR}/plugins/imageformats/${CMAKE_SHARED_LIBRARY_PREFIX}qsvg${CMAKE_SHARED_LIBRARY_SUFFIX}")
+		INSTALL (FILES "${LIB_SvgIconPlugin}" DESTINATION iconengines)
+		LIST (APPEND BUNDLE_LIBS "${LIB_SvgIconPlugin}")
+		INSTALL (FILES "${LIB_SvgPlugin}" DESTINATION imageformats)
+		LIST (APPEND BUNDLE_LIBS "${LIB_SvgPlugin}")
+	ELSE() # use imported targets & generator expressions:
+		INSTALL (FILES "$<TARGET_FILE:Qt${QT_VERSION_MAJOR}::QSvgIconPlugin>" DESTINATION iconengines)
+		LIST (APPEND BUNDLE_LIBS "$<TARGET_FILE:Qt${QT_VERSION_MAJOR}::QSvgIconPlugin>")
+		INSTALL (FILES "$<TARGET_FILE:Qt${QT_VERSION_MAJOR}::QSvgPlugin>" DESTINATION imageformats)
+		LIST (APPEND BUNDLE_LIBS "$<TARGET_FILE:Qt${QT_VERSION_MAJOR}::QSvgPlugin>")
 	ENDIF()
-
-	# xcb platform plugin, and its plugins egl and glx:
-	# INSTALL (FILES "$<TARGET_FILE:Qt5::QXcbIntegrationPlugin>" DESTINATION platforms)
-	# 
-	IF (EXISTS ${Qt5_BASEDIR}/plugins)
-		INSTALL (FILES ${Qt5_BASEDIR}/plugins/platforms/libqxcb.so DESTINATION platforms)
-		INSTALL (DIRECTORY ${Qt5_BASEDIR}/plugins/xcbglintegrations DESTINATION .)
-	ELSEIF (EXISTS ${Qt5_BASEDIR}/qt5/plugins)
-		INSTALL (FILES ${Qt5_BASEDIR}/qt5/plugins/platforms/libqxcb.so DESTINATION platforms)
-		INSTALL (DIRECTORY ${Qt5_BASEDIR}/qt5/plugins/xcbglintegrations DESTINATION .)
+ENDIF()
+# on windows, windows platform and vista style plugins are required:
+IF (WIN32)
+	IF (${QT_VERSION_MAJOR} GREATER_EQUAL 6) # Qt6 does not expose plugins? at least not the same as in Qt 5
+		set (LIB_WindowsPlatform "${Qt_BASEDIR}/plugins/platforms/qwindows.dll")
+		set (LIB_WindowsVistaStyle "${Qt_BASEDIR}/plugins/styles/qwindowsvistastyle.dll")
+		INSTALL (FILES "${LIB_WindowsPlatform}" DESTINATION platforms)
+		INSTALL (FILES "${LIB_WindowsVistaStyle}" DESTINATION styles)
+	ELSE() # use imported targets & generator expressions:
+		INSTALL (FILES "$<TARGET_FILE:Qt${QT_VERSION_MAJOR}::QWindowsIntegrationPlugin>" DESTINATION platforms)
+		INSTALL (FILES "$<TARGET_FILE:Qt${QT_VERSION_MAJOR}::QWindowsVistaStylePlugin>" DESTINATION styles)
+	ENDIF()
+ENDIF()
+# on linux/unix, xcb platform plugin, and its plugins egl and glx are required:
+IF (UNIX AND NOT APPLE AND NOT FLATPAK_BUILD)
+	IF (${QT_VERSION_MAJOR} GREATER_EQUAL 6) # Qt6 does not expose plugins? at least not the same as in Qt 5
+		set (LIB_XcbPlatform "${Qt_BASEDIR}/plugins/platforms/libqxcb.so")
+		set (LIB_XcbEglIntegration "${Qt_BASEDIR}/plugins/xcbglintegrations/libqxcb-egl-integration.so")
+		set (LIB_XcbGlxIntegration "${Qt_BASEDIR}/plugins/xcbglintegrations/libqxcb-glx-integration.so")
+		INSTALL (FILES "${LIB_XcbPlatform}" DESTINATION platforms)
+		INSTALL (FILES "${LIB_XcbEglIntegration}" DESTINATION xcbglintegrations)
+		INSTALL (FILES "${LIB_XcbGlxIntegration}" DESTINATION xcbglintegrations)
 	ELSE()
-		MESSAGE(SEND_ERROR "Qt Installation: xcb platform plugin (File libqxcb.so and directory xcbglintegrations) not found!")
+		INSTALL (FILES "$<TARGET_FILE:Qt${QT_VERSION_MAJOR}::QXcbIntegrationPlugin>" DESTINATION platforms)
+		INSTALL (FILES "$<TARGET_FILE:Qt${QT_VERSION_MAJOR}::QXcbEglIntegrationPlugin>" DESTINATION xcbglintegrations)
+		INSTALL (FILES "$<TARGET_FILE:Qt${QT_VERSION_MAJOR}::QXcbGlxIntegrationPlugin>" DESTINATION xcbglintegrations)
 	ENDIF()
 
 	# install icu:
@@ -393,8 +434,6 @@ LIST (APPEND BUNDLE_DIRS "${QT_LIB_DIR}")
 # Eigen
 FIND_PACKAGE(Eigen3)
 IF (EIGEN3_FOUND)
-	ADD_DEFINITIONS(-DUSE_EIGEN)
-	INCLUDE_DIRECTORIES( ${EIGEN3_INCLUDE_DIR} )
 	MESSAGE(STATUS "Eigen: ${EIGEN3_VERSION} in ${EIGEN3_INCLUDE_DIR}")
 	set (BUILD_INFO "${BUILD_INFO}    \"Eigen: ${EIGEN3_VERSION}\\n\"\n")
 ENDIF()
@@ -459,7 +498,26 @@ ENDIF()
 # OpenCL
 FIND_PACKAGE(OpenCL)
 IF (OPENCL_FOUND)
+
+	set (openiA_OPENCL_VERSION_OPTIONS "1.1.0" "1.2.0" "2.0.0" "2.1.0"  "2.2.0")
+	list (FIND openiA_OPENCL_VERSION_OPTIONS "${openiA_OPENCL_VERSION}" opencl_version_index)
+	if (${opencl_version_index} EQUAL -1)
+		set (openiA_OPENCL_VERSION_DEFAULT "1.2.0")
+		if (DEFINED openiA_OPENCL_VERSION)
+			MESSAGE(WARNING "Invalid openiA_OPENCL_VERSION, resetting to default ${openiA_OPENCL_VERSION_DEFAULT}!")
+		endif()
+		set (openiA_OPENCL_VERSION "${openiA_OPENCL_VERSION_DEFAULT}" CACHE STRING "The version of OpenCL to target (default: ${openiA_OPENCL_VERSION_DEFAULT})" FORCE)
+		set_property(CACHE openiA_OPENCL_VERSION PROPERTY STRINGS ${openiA_OPENCL_VERSION_OPTIONS})
+	endif()
+	string(REPLACE "." "" CL_TARGET_OPENCL_VERSION "${openiA_OPENCL_VERSION}")
+	add_library(OpenCL INTERFACE)
+	target_compile_definitions(OpenCL INTERFACE __CL_ENABLE_EXCEPTIONS
+		CL_HPP_TARGET_OPENCL_VERSION=${CL_TARGET_OPENCL_VERSION}
+		CL_TARGET_OPENCL_VERSION=${CL_TARGET_OPENCL_VERSION})
+	target_link_libraries(OpenCL INTERFACE ${OPENCL_LIBRARIES})
+	target_include_directories(OpenCL INTERFACE ${OPENCL_INCLUDE_DIRS} ${Toolkit_DIR}/OpenCL)
 	MESSAGE(STATUS "OpenCL: include=${OPENCL_INCLUDE_DIRS}, libraries=${OPENCL_LIBRARIES}.")
+	set (BUILD_INFO "${BUILD_INFO}    \"OpenCL targeted version: ${openiA_OPENCL_VERSION}\\n\"\n")
 	IF (WIN32)
 		# Find path of OpenCL.dll to include in release:
 		get_filename_component(OPENCL_LIB_DIR "${OPENCL_LIBRARIES}" DIRECTORY)
@@ -490,7 +548,6 @@ FIND_PACKAGE(CUDA)
 IF (CUDA_FOUND)
 	MESSAGE(STATUS "CUDA: ${CUDA_VERSION} in ${CUDA_TOOLKIT_ROOT_DIR}.")
 	set (BUILD_INFO "${BUILD_INFO}    \"CUDA: ${CUDA_VERSION}\\n\"\n")
-	ADD_DEFINITIONS(-DASTRA_CUDA)
 	IF (WIN32)
 		SET (CUDA_LIB_DIR ${CUDA_TOOLKIT_ROOT_DIR}/bin)
 	ELSEIF(UNIX AND NOT APPLE)
@@ -507,34 +564,47 @@ ENDIF()
 
 # OpenMP
 INCLUDE(${CMAKE_ROOT}/Modules/FindOpenMP.cmake)
-# For CMake < 3.9, we need to make the target 'OpenMP::OpenMP_CXX' ourselves
-if(NOT TARGET OpenMP::OpenMP_CXX)
-    find_package(Threads REQUIRED)
-    add_library(OpenMP::OpenMP_CXX IMPORTED INTERFACE)
-    set_property(TARGET OpenMP::OpenMP_CXX
-                 PROPERTY INTERFACE_COMPILE_OPTIONS ${OpenMP_CXX_FLAGS})
-    # Only works if the same flag is passed to the linker; use CMake 3.9+ otherwise (Intel, AppleClang)
-    set_property(TARGET OpenMP::OpenMP_CXX
-                 PROPERTY INTERFACE_LINK_LIBRARIES ${OpenMP_CXX_FLAGS} Threads::Threads)
-endif()
+# Above imports the target 'OpenMP::OpenMP_CXX'; only for CMake >= 3.9,
+# but project-wide we require a higher version already anyway!
 
-# IF (Module_ElastixRegistration)
-	# find_package(Elastix REQUIRED)
-	# include(${ELASTIX_USE_FILE})
-	# #FOREACH (lib ${ELASTIX_LIBRARIES})
-	# #	LIST(APPEND FULL_ELASTIX_LIBS "${ELASTIX_LIBRARY_DIRS}/Debug/${lib}-5.0.lib")
-	# #ENDFOREACH()
-	# #LIST(APPEND FULL_ELASTIX_LIBS "${ELASTIX_LIBRARY_DIRS}/Debug/param-5.0.lib")
-	# #MESSAGE(STATUS "${FULL_ELASTIX_LIBS}")
-	# #SET (ELASTIX_LIBRARIES "${FULL_ELASTIX_LIBS}" PARENT_SCOPE)
-	# #SET (ELASTIX_INCLUDE_DIRS "${ELASTIX_INCLUDE_DIRS}" PARENT_SCOPE)
-# ENDIF()
 
 #-------------------------
 # Compiler Flags
 #-------------------------
+
+set (openiA_AVX_SUPPORT_DISABLED "disabled")
+set (openiA_AVX_SUPPORT_OPTIONS "${openiA_AVX_SUPPORT_DISABLED}" "AVX" "AVX2")
+list (FIND openiA_AVX_SUPPORT_OPTIONS "${openiA_AVX_SUPPORT}" avx_support_index)
+if (${avx_support_index} EQUAL -1)
+	set (openiA_AVX_SUPPORT_DEFAULT "AVX")
+	if (DEFINED openiA_AVX_SUPPORT)
+		MESSAGE(WARNING "Invalid openiA_AVX_SUPPORT, resetting to default ${openiA_AVX_SUPPORT_DEFAULT}!")
+	endif()
+	set (openiA_AVX_SUPPORT "${openiA_AVX_SUPPORT_DEFAULT}" CACHE STRING
+		"AVX extensions to enable (default: ${openiA_AVX_SUPPORT_DEFAULT})." FORCE)
+	set_property(CACHE openiA_AVX_SUPPORT PROPERTY STRINGS ${openiA_AVX_SUPPORT_OPTIONS})
+endif()
+set (BUILD_INFO "${BUILD_INFO}    \"Advanced Vector Extensions support: ${openiA_AVX_SUPPORT}\\n\"\n")
+
+#MESSAGE(STATUS "Aiming for C++20 support.")
+#SET(CMAKE_CXX_STANDARD 20)
+# Enabling C++20 can cause problems as e.g. ITK 5.0.1 is not yet fully C++20 compatible!
+MESSAGE(STATUS "Aiming for C++17 support.")
+SET(CMAKE_CXX_STANDARD 17)
+SET(CMAKE_CXX_EXTENSIONS OFF)
+# use CMAKE_CXX_STANDARD_REQUIRED? e.g.:
+# SET (CMAKE_CXX_STANDARD 11)
+# SET (CMAKE_CXX_STANDARD_REQUIRED ON)
 IF (MSVC)
-	SET (CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} /Zc:__cplusplus -wd4068")	# set correct __cplusplus, disable pragma warnings
+	# /bigobj            increase the number of sections in .obj file (65,279 -> 2^32), exceeded by some compilations
+	# /Zc:__cplusplus    set correct value in __cplusplus macro (https://docs.microsoft.com/en-us/cpp/build/reference/zc-cplusplus)
+	# /MP                enable multi-processor compilation
+	SET (CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} /MP /bigobj /Zc:__cplusplus")
+	IF (MSVC_VERSION GREATER_EQUAL 1910)
+		# specify standard conformance mode (https://docs.microsoft.com/en-us/cpp/build/reference/permissive-standards-conformance)
+		SET(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} /permissive-")
+	ENDIF()
+
 	# Reduce size of .pdb files:
 	OPTION (openiA_COMPRESS_PDB "Whether to compress .pdb files to conserve disk space. Default: enabled." ON)
 	IF (openiA_COMPRESS_PDB)
@@ -543,33 +613,26 @@ IF (MSVC)
 		# only slightly decrease build sizes (89 -> 80 MB), and disables incremental linking:
 		#SET(CMAKE_SHARED_LINKER_FLAGS "${CMAKE_SHARED_LINKER_FLAGS} /OPT:REF /OPT:ICF")
 	ENDIF()
-	ADD_COMPILE_OPTIONS(/arch:AVX)                 # maybe /arch:AVX2 or /arch:AVX512 ?
-	SET(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} /MP")  # enable multi-processor compilation
-	ADD_DEFINITIONS(-D_CRT_SECURE_NO_WARNINGS)
-	ADD_DEFINITIONS(-D_SCL_SECURE_NO_WARNINGS)
+
+	if (NOT "${openiA_AVX_SUPPORT}" STREQUAL "${openiA_AVX_SUPPORT_DISABLED}")
+		ADD_COMPILE_OPTIONS(/arch:${openiA_AVX_SUPPORT})
+	endif()
+	add_compile_definitions(_CRT_SECURE_NO_WARNINGS _SCL_SECURE_NO_WARNINGS
+		_SILENCE_CXX17_ITERATOR_BASE_CLASS_DEPRECATION_WARNING	# silence warnings when compiling VTK (<= 9.0.1) with C++17
+	)
 	
-	# enable all warnings:
-	ADD_COMPILE_OPTIONS(/W4 /wd4127 /wd4251 /wd4515)
-	# disabled: C4127 - caused by QVector
+	# enable all warnings, disable selected:
+	ADD_COMPILE_OPTIONS(/W4 /wd4068 /wd4127 /wd4251 /wd4515)
+	# disabled: C4068 - "unknown pragma - ignoring a pragma"
+	#           C4127 - caused by QVector
 	#           C4251 - "class requires dll interface"
 	#           C4515 - "namespace uses itself" - caused by ITK/gdcm
 ELSE()
-	# on MSVC, setting CMAKE_CXX_STANDARD leads to RTK not to compile currently
-	# due to random_shuffle being used (deprecated in C++14, apparently removed in 17 or 20)
-	#MESSAGE(STATUS "Aiming for C++20 support.")
-	#SET(CMAKE_CXX_STANDARD 20)
-	# Enabling C++20 can cause problems as e.g. ITK 5.0.1 is not yet fully C++20 compatible!
-	MESSAGE(STATUS "Aiming for C++17 support.")
-	SET(CMAKE_CXX_STANDARD 17)
-	SET(CMAKE_CXX_EXTENSIONS OFF)
-	# use CMAKE_CXX_STANDARD_REQUIRED? e.g.:
-	# SET (CMAKE_CXX_STANDARD 11)
-	# SET (CMAKE_CXX_STANDARD_REQUIRED ON)
-
 	# enable all warnings:
 	ADD_COMPILE_OPTIONS(-Wall -Wextra) # with -Wpedantic, lots of warnings about extra ';' in VTK/ITK code...
 ENDIF()
 
+# check: are CMAKE_C_FLAGS really required or are CMAKE_CXX_FLAGS alone enough?
 IF (CMAKE_COMPILER_IS_GNUCXX)
 	IF ("${CMAKE_BUILD_TYPE}" STREQUAL "Debug" OR "${CMAKE_BUILD_TYPE}" STREQUAL "RelWithDebInfo")
 		SET (CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -ggdb3")
@@ -579,14 +642,27 @@ ENDIF()
 
 IF (CMAKE_COMPILER_IS_GNUCXX OR "${CMAKE_CXX_COMPILER_ID}" STREQUAL "Clang")
 	# Make sure at least C++ 0x is supported:
+	# check if that is required with CMAKE_CXX_STANDARD definition above!
 	INCLUDE (CheckCXXCompilerFlag)
 	CHECK_CXX_COMPILER_FLAG("-std=c++0x" COMPILER_SUPPORTS_CXX0X)
 	IF (NOT COMPILER_SUPPORTS_CXX0X)
 		MESSAGE(WARNING "The used compiler ${CMAKE_CXX_COMPILER} has no C++0x/11 support. Please use a newer C++ compiler.")
 	ENDIF()
 
-	set ( CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -pipe -fpermissive -fopenmp -march=core2 -O2 -msse4.2 -mavx")
-	set ( CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -pipe -fopenmp -march=core2 -O2 -msse4.2 -mavx")
+	set ( CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -pipe -fpermissive -fopenmp -march=core2 -O2 -msse4.2")
+	set ( CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -pipe -fopenmp -march=core2 -O2 -msse4.2")
+
+	if (NOT "${openiA_AVX_SUPPORT}" STREQUAL "${openiA_AVX_SUPPORT_DISABLED}")
+		string(TOLOWER "${openiA_AVX_SUPPORT}" openiA_AVX_SUPPORT_LOWER)
+		set ( CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -m${openiA_AVX_SUPPORT_LOWER}")
+		set ( CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -m${openiA_AVX_SUPPORT_LOWER}")
+	endif()
+
+	# we do need to set the RPATH to make lib load path recursive also be able to load dependent libraries from the rpath specified in the executables:
+	# see https://stackoverflow.com/questions/58997230/cmake-project-fails-to-find-shared-library
+	# strictly speaking, this is only needed for running the executables from the project folder
+	# (as in an install, the RPATH of all installed executables and libraries is adapted anyway)
+	SET(CMAKE_EXE_LINKER_FLAGS "${CMAKE_EXE_LINKER_FLAGS} -Wl,--disable-new-dtags")
 ENDIF()
 
 IF (${CMAKE_SYSTEM_NAME} MATCHES "Darwin")
@@ -605,8 +681,8 @@ IF (MSVC)
 	# Set up debugging/running environments	in Visual Studio to point to the correct dll files:
 	STRING(REGEX REPLACE "/" "\\\\" VTK_WIN_DIR ${VTK_DIR})
 	STRING(REGEX REPLACE "/" "\\\\" ITK_WIN_DIR ${ITK_DIR})
-	STRING(REGEX REPLACE "/" "\\\\" Qt5_WIN_DIR ${QT_LIB_DIR})
-	SET (WinDLLPaths "${VTK_WIN_DIR}\\bin\\$(Configuration);${ITK_WIN_DIR}\\bin\\$(Configuration);${Qt5_WIN_DIR}")
+	STRING(REGEX REPLACE "/" "\\\\" Qt_WIN_DIR ${QT_LIB_DIR})
+	SET (WinDLLPaths "${VTK_WIN_DIR}\\bin\\$(Configuration);${ITK_WIN_DIR}\\bin\\$(Configuration);${Qt_WIN_DIR}")
 	
 	IF (OPENCL_FOUND AND EXISTS "${OPENCL_DLL}")
 		STRING(REGEX REPLACE "/OpenCL.dll" "" OPENCL_WIN_DIR ${OPENCL_DLL})
@@ -661,20 +737,25 @@ IF (MSVC)
 		STRING(REGEX REPLACE "/" "\\\\" OPENVR_PATH_WIN ${OPENVR_LIB_PATH})
 		SET (WinDLLPaths "${OPENVR_PATH_WIN};${WinDLLPaths}")
 	ENDIF()
-	
-	IF (ELASTIX_LIBRARY_DIRS)
-		SET (WinDLLPaths "${ELASTIX_LIBRARY_DIRS}/$(Configuration);${WinDLLPaths}")
+
+	IF (ONNX_RUNTIME_LIBRARIES)
+		get_filename_component(ONNX_LIB_DIR ${ONNX_RUNTIME_LIBRARIES} DIRECTORY)
+		STRING(REGEX REPLACE "/" "\\\\" ONNX_LIB_WIN_DIR ${ONNX_LIB_DIR})
+		SET (WinDLLPaths "${ONNX_LIB_WIN_DIR};${WinDLLPaths}")
 	ENDIF()
 
 	STRING(REGEX REPLACE "/" "\\\\" CMAKE_BINARY_WIN_DIR ${CMAKE_BINARY_DIR})
 ENDIF ()
 
+IF (ONNX_RUNTIME_LIBRARIES)
+	get_filename_component(ONNX_LIB_DIR ${ONNX_RUNTIME_LIBRARIES} DIRECTORY)
+	LIST (APPEND BUNDLE_DIRS "${ONNX_LIB_DIR}")
+ENDIF()
+
 
 #-------------------------
 # Common Settings
 #-------------------------
-
-SET (CORE_LIBRARY_NAME open_iA_Core)
 
 option (openiA_USE_IDE_FOLDERS "Whether to group projects in subfolders in the IDE (mainly Visual Studio). Default: enabled." ON)
 IF (openiA_USE_IDE_FOLDERS)
@@ -688,9 +769,45 @@ git_describe(openiA_VERSION openiA_HASH --tags)
 MESSAGE(STATUS "Build version: ${openiA_VERSION}")
 set (BUILD_INFO "${BUILD_INFO}    \"git revision: ${openiA_HASH}\\n\"\n")
 
-ADD_DEFINITIONS(-DUNICODE -D_UNICODE)    # Enable Unicode
+add_compile_definitions(UNICODE _UNICODE)    # Enable Unicode
 
 IF (UNIX)
     SET(CMAKE_INSTALL_RPATH "\$ORIGIN")      # Set RunPath in all created libraries / executables to $ORIGIN
     #    SET (CMAKE_BUILD_RPATH_USE_ORIGIN ON)
 ENDIF()
+
+
+# Helper functions for adding libraries
+
+# "old style" libraries (e.g. ITK or VTK < 9, with no imported targets)
+# -> not working like this, since we have to use (I/V)TK_USE_FILE anyway for module autoinitialization
+#FUNCTION (ADD_LEGACY_LIBRARIES libname libprefix pubpriv liblist)
+#	FOREACH(lib ${liblist})
+#		set (fulllib "${libprefix}${lib}")
+#		IF (openiA_DEPENDENCY_INFO)
+#			MESSAGE(STATUS "    ${fulllib} - libs: ${${fulllib}_LIBRARIES}, include: ${${fulllib}_INCLUDE_DIRS}")
+#		ENDIF()
+#		TARGET_INCLUDE_DIRECTORIES(${libname} ${pubpriv} ${${fulllib}_INCLUDE_DIRS})
+#		TARGET_LINK_LIBRARIES(${libname} ${pubpriv} ${${fulllib}_LIBRARIES})
+#	ENDFOREACH()
+#ENDFUNCTION()
+
+# "new style" libraries that bring in all dependencies automatically, and that only need to be linked to
+FUNCTION (ADD_IMPORTEDTARGET_LIBRARIES libname libprefix pubpriv liblist)
+	FOREACH(lib ${liblist})
+		set (fulllib "${libprefix}${lib}")
+		IF (openiA_DEPENDENCY_INFO)
+			MESSAGE(STATUS "    ${fulllib}")
+		ENDIF()
+		TARGET_LINK_LIBRARIES(${libname} ${pubpriv} ${fulllib})
+	ENDFOREACH()
+ENDFUNCTION()
+
+FUNCTION (ADD_VTK_LIBRARIES libname pubpriv liblist)
+	IF (VTK_VERSION VERSION_LESS "9.0.0")
+		#LIST (APPEND liblist ${VTK_BASE_LIB_LIST})
+		#ADD_LEGACY_LIBRARIES(${libname} ${VTK_LIB_PREFIX} ${pubpriv} "${liblist}")
+	ELSE()
+		ADD_IMPORTEDTARGET_LIBRARIES(${libname} ${VTK_LIB_PREFIX} ${pubpriv} "${liblist}")
+	ENDIF()
+ENDFUNCTION()

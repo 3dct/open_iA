@@ -1,8 +1,8 @@
 /*************************************  open_iA  ************************************ *
 * **********   A tool for visual analysis and processing of 3D CT images   ********** *
 * *********************************************************************************** *
-* Copyright (C) 2016-2020  C. Heinzl, M. Reiter, A. Reh, W. Li, M. Arikan, Ar. &  Al. *
-*                          Amirkhanov, J. Weissenböck, B. Fröhler, M. Schiwarth       *
+* Copyright (C) 2016-2021  C. Heinzl, M. Reiter, A. Reh, W. Li, M. Arikan, Ar. &  Al. *
+*                 Amirkhanov, J. Weissenböck, B. Fröhler, M. Schiwarth, P. Weinberger *
 * *********************************************************************************** *
 * This program is free software: you can redistribute it and/or modify it under the   *
 * terms of the GNU General Public License as published by the Free Software           *
@@ -20,10 +20,8 @@
 * ************************************************************************************/
 #pragma once
 
-#include "iARangeSliderDiagramData.h"
-
-#include <charts/iAChartWithFunctionsWidget.h>
-#include <charts/iAPlotTypes.h>
+#include <iAChartWithFunctionsWidget.h>
+#include <iAPlotTypes.h>
 
 #include <vtkPiecewiseFunction.h>
 #include <vtkColorTransferFunction.h>
@@ -33,17 +31,20 @@
 #include <QToolTip>
 #include <QTableWidget>
 
+class iAHistogramData;
+class iATransferFunction;
 
+// TODO: Merge with GEMSE: iAFilterChart
 class iARangeSliderDiagramWidget : public iAChartWithFunctionsWidget
 {
 	Q_OBJECT
 
 public:
-	iARangeSliderDiagramWidget( QWidget *parent, MdiChild *mdiChild,
+	iARangeSliderDiagramWidget( QWidget *parent,
 								vtkPiecewiseFunction* oTF,
 								vtkColorTransferFunction* cTF,
-								QSharedPointer<iARangeSliderDiagramData> data,
-								QMap<double, QList<double> > *,
+								QSharedPointer<iAHistogramData> data,
+								QMultiMap<double, QList<double> > *,
 								const QTableWidget * rawTable,
 								QString const & xlabel = "Greyvalue",
 								QString const & yLabel = "Frequency" );
@@ -67,7 +68,7 @@ public slots:
 	void deleteSlot();
 
 private:
-	QSharedPointer<iARangeSliderDiagramData> m_data;
+	QSharedPointer<iAHistogramData> m_data;
 	QSharedPointer<iAPlotData> m_selectedData;
 	QSharedPointer<iAStepFunctionPlot> m_selectionDrawer;
 	QList<QSharedPointer<iAStepFunctionPlot> > m_histogramDrawerList;
@@ -81,8 +82,9 @@ private:
 	int m_firstSelectedBin;
 	int m_lastSelectedBin;
 
-	QMap<double, QList<double> > * m_histogramMap;
+	QMultiMap<double, QList<double> > * m_histogramMap;
 	const QTableWidget * m_rawTable;
+	QSharedPointer<iATransferFunction> m_tf;
 
 	int getBin( QMouseEvent *event );
 	void setupSelectionDrawer();

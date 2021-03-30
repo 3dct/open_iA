@@ -1,0 +1,3 @@
+SET( DEPENDENCIES_LIBRARIES
+	iAguibase
+)

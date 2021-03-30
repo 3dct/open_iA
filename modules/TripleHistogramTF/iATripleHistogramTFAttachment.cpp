@@ -1,8 +1,8 @@
 /*************************************  open_iA  ************************************ *
 * **********   A tool for visual analysis and processing of 3D CT images   ********** *
 * *********************************************************************************** *
-* Copyright (C) 2016-2020  C. Heinzl, M. Reiter, A. Reh, W. Li, M. Arikan, Ar. &  Al. *
-*                          Amirkhanov, J. Weissenböck, B. Fröhler, M. Schiwarth       *
+* Copyright (C) 2016-2021  C. Heinzl, M. Reiter, A. Reh, W. Li, M. Arikan, Ar. &  Al. *
+*                 Amirkhanov, J. Weissenböck, B. Fröhler, M. Schiwarth, P. Weinberger *
 * *********************************************************************************** *
 * This program is free software: you can redistribute it and/or modify it under the   *
 * terms of the GNU General Public License as published by the Free Software           *
@@ -23,15 +23,15 @@
 #include "tf_2mod/dlg_tf_2mod.h"
 #include "tf_3mod/dlg_tf_3mod.h"
 
-#include <mdichild.h>
+#include <iAMdiChild.h>
 
-iATripleHistogramTFAttachment::iATripleHistogramTFAttachment(MainWindow * mainWnd, MdiChild* child) :
+iATripleHistogramTFAttachment::iATripleHistogramTFAttachment(iAMainWindow * mainWnd, iAMdiChild* child) :
 	iAModuleAttachmentToChild(mainWnd, child),
 	m_tf_2mod(nullptr),
 	m_tf_3mod(nullptr)
 {}
 
-iATripleHistogramTFAttachment* iATripleHistogramTFAttachment::create(MainWindow * mainWnd, MdiChild* child)
+iATripleHistogramTFAttachment* iATripleHistogramTFAttachment::create(iAMainWindow * mainWnd, iAMdiChild* child)
 {
 	auto newAttachment = new iATripleHistogramTFAttachment(mainWnd, child);
 	return newAttachment;
@@ -42,7 +42,7 @@ void iATripleHistogramTFAttachment::start2TF()
 	if (!m_tf_2mod)
 	{
 		m_tf_2mod = new dlg_tf_2mod(m_child);
-		m_child->tabifyDockWidget(m_child->logDockWidget(), m_tf_2mod);
+		m_child->tabifyDockWidget(m_child->renderDockWidget(), m_tf_2mod);
 	}
 	m_tf_2mod->show();
 	m_tf_2mod->raise();
@@ -53,7 +53,7 @@ void iATripleHistogramTFAttachment::start3TF()
 	if (!m_tf_3mod)
 	{
 		m_tf_3mod = new dlg_tf_3mod(m_child);
-		m_child->tabifyDockWidget(m_child->logDockWidget(), m_tf_3mod);
+		m_child->tabifyDockWidget(m_child->renderDockWidget(), m_tf_3mod);
 	}
 	m_tf_3mod->show();
 	m_tf_3mod->raise();

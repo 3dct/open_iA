@@ -1,8 +1,8 @@
 /*************************************  open_iA  ************************************ *
 * **********   A tool for visual analysis and processing of 3D CT images   ********** *
 * *********************************************************************************** *
-* Copyright (C) 2016-2020  C. Heinzl, M. Reiter, A. Reh, W. Li, M. Arikan, Ar. &  Al. *
-*                          Amirkhanov, J. Weissenböck, B. Fröhler, M. Schiwarth       *
+* Copyright (C) 2016-2021  C. Heinzl, M. Reiter, A. Reh, W. Li, M. Arikan, Ar. &  Al. *
+*                 Amirkhanov, J. Weissenböck, B. Fröhler, M. Schiwarth, P. Weinberger *
 * *********************************************************************************** *
 * This program is free software: you can redistribute it and/or modify it under the   *
 * terms of the GNU General Public License as published by the Free Software           *
@@ -22,13 +22,14 @@
 
 #include "iAUncertaintyColors.h"
 
-#include <charts/iAScatterPlot.h>
-#include <charts/iAScatterPlotWidget.h>
-#include <charts/iASPLOMData.h>
-#include <iAConsole.h>
+#include <iAScatterPlot.h>
+#include <iAScatterPlotWidget.h>
+#include <iASPLOMData.h>
+#include <iALog.h>
 #include <iAToolsVTK.h>
 #include <iAVtkDraw.h>
-#include <qthelper/iAQFlowLayout.h>
+
+#include <iAQFlowLayout.h>
 
 #include <vtkAxis.h>
 #include <vtkChartXY.h>
@@ -48,6 +49,8 @@
 #include <QToolButton>
 #include <QVariant>
 #include <QVBoxLayout>
+
+#include <set>
 
 iAScatterPlotView::iAScatterPlotView():
 	m_voxelCount(0),
@@ -101,7 +104,7 @@ void iAScatterPlotView::AddPlot(vtkImagePointer imgX, vtkImagePointer imgY, QStr
 	m_voxelCount = static_cast<size_t>(dim[0]) * dim[1] * dim[2];
 	double* bufX = static_cast<double*>(imgX->GetScalarPointer());
 	double* bufY = static_cast<double*>(imgY->GetScalarPointer());
-	auto splomData = QSharedPointer<iASPLOMData>(new iASPLOMData());
+	auto splomData = QSharedPointer<iASPLOMData>::create();
 	splomData->paramNames().push_back(captionX);
 	splomData->paramNames().push_back(captionY);
 	std::vector<double> values0;

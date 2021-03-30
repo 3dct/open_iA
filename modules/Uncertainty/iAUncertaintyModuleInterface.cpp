@@ -1,8 +1,8 @@
 /*************************************  open_iA  ************************************ *
 * **********   A tool for visual analysis and processing of 3D CT images   ********** *
 * *********************************************************************************** *
-* Copyright (C) 2016-2020  C. Heinzl, M. Reiter, A. Reh, W. Li, M. Arikan, Ar. &  Al. *
-*                          Amirkhanov, J. Weissenböck, B. Fröhler, M. Schiwarth       *
+* Copyright (C) 2016-2021  C. Heinzl, M. Reiter, A. Reh, W. Li, M. Arikan, Ar. &  Al. *
+*                 Amirkhanov, J. Weissenböck, B. Fröhler, M. Schiwarth, P. Weinberger *
 * *********************************************************************************** *
 * This program is free software: you can redistribute it and/or modify it under the   *
 * terms of the GNU General Public License as published by the Free Software           *
@@ -24,31 +24,32 @@
 #include "iACSVtoMHD.h"
 #include "iAUncertaintyAttachment.h"
 
-#include <iAConsole.h>
+#include <dlg_commoninput.h>
+#include <iALog.h>
 #include <iAFilterRegistry.h>
-#include <mainwindow.h>
-#include <mdichild.h>
+#include <iAMainWindow.h>
+#include <iAMdiChild.h>
 
 #include <QFileDialog>
+#include <QMenu>
 
 void iAUncertaintyModuleInterface::Initialize()
 {
 	REGISTER_FILTER(iAEntropy);
-
 	REGISTER_FILTER(iACSVtoMHD);
 	if (!m_mainWnd)
 	{
 		return;
 	}
-	QMenu * toolsMenu = m_mainWnd->toolsMenu();
-	QMenu * menuSegmentation = getMenuWithTitle( toolsMenu, QString( "Image Ensembles" ), false );
-	QAction * actionUncertainty = new QAction(QApplication::translate("MainWindow", "Uncertainty Exploration", 0), m_mainWnd );
-	AddActionToMenuAlphabeticallySorted(menuSegmentation, actionUncertainty, false);
+	QAction * actionUncertainty = new QAction(tr("Uncertainty Exploration"), m_mainWnd);
 	connect(actionUncertainty, &QAction::triggered, this, &iAUncertaintyModuleInterface::UncertaintyExploration);
+
+	QMenu* submenu = getOrAddSubMenu(m_mainWnd->toolsMenu(), tr("Image Ensembles"), true);
+	submenu->addAction(actionUncertainty);
 }
 
 
-iAModuleAttachmentToChild* iAUncertaintyModuleInterface::CreateAttachment(MainWindow* mainWnd, MdiChild * child)
+iAModuleAttachmentToChild* iAUncertaintyModuleInterface::CreateAttachment(iAMainWindow* mainWnd, iAMdiChild * child)
 {
 	iAUncertaintyAttachment* result = iAUncertaintyAttachment::Create( mainWnd, child);
 	return result;
@@ -70,15 +71,15 @@ void iAUncertaintyModuleInterface::UncertaintyExploration()
 void iAUncertaintyModuleInterface::LoadEnsemble(QString const & fileName)
 {
 	SetupToolBar();
-	m_mdiChild = m_mainWnd->createMdiChild(false);
-	bool result = AttachToMdiChild(m_mdiChild);
-	iAUncertaintyAttachment* attach = GetAttachment<iAUncertaintyAttachment>();
+	auto child = m_mainWnd->createMdiChild(false);
+	bool result = AttachToMdiChild(child);
+	iAUncertaintyAttachment* attach = GetAttachment<iAUncertaintyAttachment>(child);
 	if (!result || !attach)
 	{
-		DEBUG_LOG("Uncertainty exploration could not be initialized!");
+		LOG(lvlError, "Uncertainty exploration could not be initialized!");
 		return;
 	}
-	m_mdiChild->show();
+	child->show();
 	if (!attach->LoadEnsemble(fileName))
 	{
 		return;
@@ -103,10 +104,10 @@ void iAUncertaintyModuleInterface::SetupToolBar()
 
 void iAUncertaintyModuleInterface::ToggleDockWidgetTitleBars()
 {
-	iAUncertaintyAttachment* attach = GetAttachment<iAUncertaintyAttachment>();
+	iAUncertaintyAttachment* attach = GetAttachment<iAUncertaintyAttachment>(m_mainWnd->activeMdiChild());
 	if (!attach)
 	{
-		DEBUG_LOG("Uncertainty exploration was not loaded properly!");
+		LOG(lvlError, "Uncertainty exploration was not loaded properly!");
 		return;
 	}
 	attach->ToggleDockWidgetTitleBars();
@@ -114,10 +115,10 @@ void iAUncertaintyModuleInterface::ToggleDockWidgetTitleBars()
 
 void iAUncertaintyModuleInterface::ToggleSettings()
 {
-	iAUncertaintyAttachment* attach = GetAttachment<iAUncertaintyAttachment>();
+	iAUncertaintyAttachment* attach = GetAttachment<iAUncertaintyAttachment>(m_mainWnd->activeMdiChild());
 	if (!attach)
 	{
-		DEBUG_LOG("Uncertainty exploration was not loaded properly!");
+		LOG(lvlError, "Uncertainty exploration was not loaded properly!");
 		return;
 	}
 	attach->ToggleSettings();
@@ -125,23 +126,21 @@ void iAUncertaintyModuleInterface::ToggleSettings()
 
 void iAUncertaintyModuleInterface::CalculateNewSubEnsemble()
 {
-	iAUncertaintyAttachment* attach = GetAttachment<iAUncertaintyAttachment>();
+	iAUncertaintyAttachment* attach = GetAttachment<iAUncertaintyAttachment>(m_mainWnd->activeMdiChild());
 	if (!attach)
 	{
-		DEBUG_LOG("Uncertainty exploration was not loaded properly!");
+		LOG(lvlError, "Uncertainty exploration was not loaded properly!");
 		return;
 	}
 	attach->CalculateNewSubEnsemble();
 }
 
-#include "dlg_commoninput.h"
-
 void iAUncertaintyModuleInterface::WriteFullDataFile()
 {
-	iAUncertaintyAttachment* attach = GetAttachment<iAUncertaintyAttachment>();
+	iAUncertaintyAttachment* attach = GetAttachment<iAUncertaintyAttachment>(m_mainWnd->activeMdiChild());
 	if (!attach)
 	{
-		DEBUG_LOG("Uncertainty exploration was not loaded properly!");
+		LOG(lvlError, "Uncertainty exploration was not loaded properly!");
 		return;
 	}
 	QString fileName = QFileDialog::getSaveFileName(m_mainWnd,
@@ -149,7 +148,9 @@ void iAUncertaintyModuleInterface::WriteFullDataFile()
 		m_mainWnd->activeMdiChild() ? m_mainWnd->activeMdiChild()->filePath() : QString(),
 		tr("SVM file format (*.svm);;"));
 	if (fileName.isEmpty())
+	{
 		return;
+	}
 
 	QStringList params;
 	params
@@ -161,7 +162,9 @@ void iAUncertaintyModuleInterface::WriteFullDataFile()
 	values << true << true << true;
 	dlg_commoninput whatToStore(m_mainWnd, "Write parameters", params, values);
 	if (whatToStore.exec() != QDialog::Accepted)
+	{
 		return;
+	}
 	attach->WriteFullDataFile(fileName, whatToStore.getCheckValue(0), whatToStore.getCheckValue(1), whatToStore.getCheckValue(2), whatToStore.getCheckValue(3));
 
 }

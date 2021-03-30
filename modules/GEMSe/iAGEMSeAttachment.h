@@ -1,8 +1,8 @@
 /*************************************  open_iA  ************************************ *
 * **********   A tool for visual analysis and processing of 3D CT images   ********** *
 * *********************************************************************************** *
-* Copyright (C) 2016-2020  C. Heinzl, M. Reiter, A. Reh, W. Li, M. Arikan, Ar. &  Al. *
-*                          Amirkhanov, J. Weissenböck, B. Fröhler, M. Schiwarth       *
+* Copyright (C) 2016-2021  C. Heinzl, M. Reiter, A. Reh, W. Li, M. Arikan, Ar. &  Al. *
+*                 Amirkhanov, J. Weissenböck, B. Fröhler, M. Schiwarth, P. Weinberger *
 * *********************************************************************************** *
 * This program is free software: you can redistribute it and/or modify it under the   *
 * terms of the GNU General Public License as published by the Free Software           *
@@ -24,8 +24,6 @@
 
 #include <vtkSmartPointer.h>
 
-#include <QSharedPointer>
-
 class dlg_GEMSe;
 class dlg_GEMSeControl;
 class dlg_labels;
@@ -41,7 +39,7 @@ class iAGEMSeAttachment : public iAModuleAttachmentToChild
 {
 	Q_OBJECT
 public:
-	static iAGEMSeAttachment* create(MainWindow * mainWnd, MdiChild * child);
+	static iAGEMSeAttachment* create(iAMainWindow * mainWnd, iAMdiChild * child);
 	bool loadSampling(QString const & smpFileName, int labelCount, int datasetID);
 	bool loadClustering(QString const & fileName);
 	bool loadRefImg(QString const & refImgName);
@@ -57,7 +55,7 @@ public:
 	void exportRankings();
 	void importRankings();
 private:
-	iAGEMSeAttachment(MainWindow * mainWnd, MdiChild * child);
+	iAGEMSeAttachment(iAMainWindow * mainWnd, iAMdiChild * child);
 	dlg_labels*						  m_dlgLabels;
 	dlg_priors*                       m_dlgPriors;
 	dlg_GEMSeControl*                 m_dlgGEMSeControl;

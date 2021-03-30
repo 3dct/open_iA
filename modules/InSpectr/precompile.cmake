@@ -1,4 +1,4 @@
-SET (XRF_PRECOMPILE_INCLUDES <algorithm>
+SET (InSpectr_PRECOMPILE_INCLUDES <algorithm>
 <cassert>
 <dlg_InSpectr.h>
 <iAAccumulatedXRFData.h>
@@ -13,7 +13,7 @@ SET (XRF_PRECOMPILE_INCLUDES <algorithm>
 <iASpectrumFilter.h>
 <iATypedCallHelper.h>
 <iAXRFData.h>
-<mdichild.h>
+<iAMdiChild.h>
 <QFileDialog>
 <QImage>
 <QMap>

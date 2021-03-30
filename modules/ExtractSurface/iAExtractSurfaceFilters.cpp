@@ -1,8 +1,8 @@
 /*************************************  open_iA  ************************************ *
 * **********   A tool for visual analysis and processing of 3D CT images   ********** *
 * *********************************************************************************** *
-* Copyright (C) 2016-2020  C. Heinzl, M. Reiter, A. Reh, W. Li, M. Arikan, Ar. &  Al. *
-*                          Amirkhanov, J. Weissenböck, B. Fröhler, M. Schiwarth       *
+* Copyright (C) 2016-2021  C. Heinzl, M. Reiter, A. Reh, W. Li, M. Arikan, Ar. &  Al. *
+*                 Amirkhanov, J. Weissenböck, B. Fröhler, M. Schiwarth, P. Weinberger *
 * *********************************************************************************** *
 * This program is free software: you can redistribute it and/or modify it under the   *
 * terms of the GNU General Public License as published by the Free Software           *
@@ -20,11 +20,13 @@
 * ************************************************************************************/
 #include "iAExtractSurfaceFilters.h"
 
-#include "io/iAFileUtils.h"
-
-#include <iAConnector.h>
-#include <iAConsole.h>
+// core
 #include <iAProgress.h>
+
+// base
+#include <iAConnector.h>
+#include <iALog.h>
+#include <iAFileUtils.h>
 
 //#include <vtkButterflySubdivisionFilter.h>
 #include <vtkCleanPolyData.h>
@@ -50,7 +52,8 @@ namespace
 	{
 		if (!surfaceFilter)
 		{
-			DEBUG_LOG("Surface filter is null") return nullptr;
+			LOG(lvlError, "Surface filter is null");
+			return nullptr;
 		}
 
 		QString simplifyAlgoName = parameters["Simplification Algorithm"].toString();
@@ -91,7 +94,7 @@ namespace
 		}
 		else
 		{
-			DEBUG_LOG(QString("Unknown simplification algorithm '%1'").arg(simplifyAlgoName));
+			LOG(lvlError, QString("Unknown simplification algorithm '%1'").arg(simplifyAlgoName));
 			return nullptr;
 		}
 		Progress->observe(result);
@@ -103,7 +106,7 @@ namespace
 	{
 		if (!imgData)
 		{
-			DEBUG_LOG("input Image is null");
+			LOG(lvlError, "input Image is null");
 			return nullptr;
 		}
 		vtkSmartPointer<vtkPolyDataAlgorithm> result;
@@ -196,7 +199,7 @@ void iAExtractSurface::performWork(QMap<QString, QVariant> const & parameters)
 	auto surfaceFilter = createSurfaceFilter(parameters, input()[0]->vtkImage(), progress());
 	if (!surfaceFilter)
 	{
-		DEBUG_LOG("Generated surface filter is null");
+		LOG(lvlError, "Generated surface filter is null");
 		return;
 	}
 
@@ -238,30 +241,30 @@ iAExtractSurface::iAExtractSurface() :
 {
 	QStringList AlgorithmNames;
 	AlgorithmNames << "Marching Cubes" << "Flying Edges";
-	addParameter("Extraction Algorithm", Categorical, AlgorithmNames);
-	addParameter("Iso value", Continuous, 1);
-	addParameter("STL output filename", FileNameSave, "");
+	addParameter("Extraction Algorithm", iAValueType::Categorical, AlgorithmNames);
+	addParameter("Iso value", iAValueType::Continuous, 1);
+	addParameter("STL output filename", iAValueType::FileNameSave, ".stl");
 	QStringList SimplificationAlgorithms;
 	SimplificationAlgorithms << "Quadric Clustering" << "Decimate Pro" << "Windowed Sinc" << "None";
-	addParameter("Simplification Algorithm", Categorical, SimplificationAlgorithms);
+	addParameter("Simplification Algorithm", iAValueType::Categorical, SimplificationAlgorithms);
 
 	// Decimate Pro parameters:
-	addParameter("Preserve Topology", Boolean, true);
-	addParameter("Splitting", Boolean, true);
-	addParameter("Boundary Vertex Deletion", Boolean, true);
-	addParameter("Decimation Target", Continuous, 0.9);
+	addParameter("Preserve Topology", iAValueType::Boolean, true);
+	addParameter("Splitting", iAValueType::Boolean, true);
+	addParameter("Boundary Vertex Deletion", iAValueType::Boolean, true);
+	addParameter("Decimation Target", iAValueType::Continuous, 0.9);
 
 	// Quadric Clustering parameters:
-	addParameter("Cluster divisions", Discrete, 128);
+	addParameter("Cluster divisions", iAValueType::Discrete, 128);
 
 	// Windowed Sinc parameters:
-	addParameter("Number of Iterations", Discrete, 15);
-	addParameter("Boundary Smoothing", Boolean, false);
-	addParameter("Feature Edge Smoothing", Boolean, false);
-	addParameter("Feature Angle", Continuous, 120.0);
-	addParameter("Pass Band", Continuous, 0.001);
-	addParameter("Non-Manifold Smoothing", Boolean, true);
-	addParameter("Normalize Coordinates", Boolean, true);
+	addParameter("Number of Iterations", iAValueType::Discrete, 15);
+	addParameter("Boundary Smoothing", iAValueType::Boolean, false);
+	addParameter("Feature Edge Smoothing", iAValueType::Boolean, false);
+	addParameter("Feature Angle", iAValueType::Continuous, 120.0);
+	addParameter("Pass Band", iAValueType::Continuous, 0.001);
+	addParameter("Non-Manifold Smoothing", iAValueType::Boolean, true);
+	addParameter("Normalize Coordinates", iAValueType::Boolean, true);
 }
 
 void iATriangulation::performWork(QMap<QString, QVariant> const& parameters) {
@@ -269,7 +272,7 @@ void iATriangulation::performWork(QMap<QString, QVariant> const& parameters) {
 	auto surfaceFilter = createSurfaceFilter(parameters, input()[0]->vtkImage(), progress());
 	if (!surfaceFilter)
 	{
-		DEBUG_LOG("Generated surface filter is null");
+		LOG(lvlError, "Generated surface filter is null");
 		return;
 	}
 
@@ -332,19 +335,19 @@ iATriangulation::iATriangulation() :
 {
 	QStringList AlgorithmNames;
 	AlgorithmNames << "Marching Cubes" << "Flying Edges";
-	addParameter("Extraction Algorithm", Categorical, AlgorithmNames);
-	addParameter("Iso value", Continuous, 1);
-	addParameter("STL output filename", String, "");
+	addParameter("Extraction Algorithm", iAValueType::Categorical, AlgorithmNames);
+	addParameter("Iso value", iAValueType::Continuous, 1);
+	addParameter("STL output filename", iAValueType::String, "");
 	QStringList SimplificationAlgorithms;
 	SimplificationAlgorithms << "Quadric Clustering" << "Decimate Pro" << "None";
-	addParameter("Simplification Algorithm", Categorical, SimplificationAlgorithms);
-	addParameter("Preserve Topology", Boolean, true);
-	addParameter("Splitting", Boolean, true);
-	addParameter("Boundary Vertex Deletion", Boolean, true);
-	addParameter("Decimation Target", Continuous, 0.9);
-	addParameter("Cluster divisions", Discrete, 128);
-	addParameter("Alpha", Continuous, 0);
-	addParameter("Offset", Continuous, 0);
-	addParameter("Tolerance", Continuous, 0.001);
-	addParameter("CleanTolerance", Continuous, 0);
+	addParameter("Simplification Algorithm", iAValueType::Categorical, SimplificationAlgorithms);
+	addParameter("Preserve Topology", iAValueType::Boolean, true);
+	addParameter("Splitting", iAValueType::Boolean, true);
+	addParameter("Boundary Vertex Deletion", iAValueType::Boolean, true);
+	addParameter("Decimation Target", iAValueType::Continuous, 0.9);
+	addParameter("Cluster divisions", iAValueType::Discrete, 128);
+	addParameter("Alpha", iAValueType::Continuous, 0);
+	addParameter("Offset", iAValueType::Continuous, 0);
+	addParameter("Tolerance", iAValueType::Continuous, 0.001);
+	addParameter("CleanTolerance", iAValueType::Continuous, 0);
 }

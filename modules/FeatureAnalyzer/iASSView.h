@@ -1,8 +1,8 @@
 /*************************************  open_iA  ************************************ *
 * **********   A tool for visual analysis and processing of 3D CT images   ********** *
 * *********************************************************************************** *
-* Copyright (C) 2016-2020  C. Heinzl, M. Reiter, A. Reh, W. Li, M. Arikan, Ar. &  Al. *
-*                          Amirkhanov, J. Weissenböck, B. Fröhler, M. Schiwarth       *
+* Copyright (C) 2016-2021  C. Heinzl, M. Reiter, A. Reh, W. Li, M. Arikan, Ar. &  Al. *
+*                 Amirkhanov, J. Weissenböck, B. Fröhler, M. Schiwarth, P. Weinberger *
 * *********************************************************************************** *
 * This program is free software: you can redistribute it and/or modify it under the   *
 * terms of the GNU General Public License as published by the Free Software           *
@@ -38,7 +38,7 @@ class iASSSlicer;
 class QHBoxLayout;
 class iASegm3DView;
 class vtkPolyData;
-class iAVTKRendererManager;
+class iARendererManager;
 
 typedef iAQTtoUIConnector<QDockWidget, Ui_SSView>  PorosityAnalyzerSSConnector;
 
@@ -47,7 +47,11 @@ class iASSView : public PorosityAnalyzerSSConnector
 	Q_OBJECT
 
 public:
+#if QT_VERSION < QT_VERSION_CHECK(5, 15, 0)
 	iASSView( QWidget * parent = 0, Qt::WindowFlags f = 0 );
+#else
+	iASSView(QWidget* parent = nullptr, Qt::WindowFlags f = Qt::WindowFlags());
+#endif
 	~iASSView();
 	void attachSegm3DView( iASegm3DView * m_segm3DView );
 
@@ -93,7 +97,7 @@ protected:
 	QString m_datasetFile;
 
 	QList<iASSSlicer*> m_slicerViews;
-	QScopedPointer<iAVTKRendererManager> m_sliceMgr;
+	QScopedPointer<iARendererManager> m_sliceMgr;
 	vtkSmartPointer<vtkImageData> m_imgData;
 	QScopedPointer<QHBoxLayout> m_slicerViewsLayout;
 	iASegm3DView * m_segm3DViewExtrnl;

@@ -1,8 +1,8 @@
 /*************************************  open_iA  ************************************ *
 * **********   A tool for visual analysis and processing of 3D CT images   ********** *
 * *********************************************************************************** *
-* Copyright (C) 2016-2020  C. Heinzl, M. Reiter, A. Reh, W. Li, M. Arikan, Ar. &  Al. *
-*                          Amirkhanov, J. Weissenböck, B. Fröhler, M. Schiwarth       *
+* Copyright (C) 2016-2021  C. Heinzl, M. Reiter, A. Reh, W. Li, M. Arikan, Ar. &  Al. *
+*                 Amirkhanov, J. Weissenböck, B. Fröhler, M. Schiwarth, P. Weinberger *
 * *********************************************************************************** *
 * This program is free software: you can redistribute it and/or modify it under the   *
 * terms of the GNU General Public License as published by the Free Software           *
@@ -21,14 +21,15 @@
 #include "iAAstraAlgorithm.h"
 
 #include "dlg_ProjectionParameters.h"
-#include "iAConnector.h"
-#include "iAConsole.h"
-#include "iAPerformanceHelper.h"
-#include "iAToolsVTK.h"
-#include "iATypedCallHelper.h"
-#include "iAvec3.h"
-#include "mainwindow.h"
-#include "mdichild.h"
+
+#include <iAConnector.h>
+#include <iALog.h>
+#include <iAPerformanceHelper.h>
+#include <iAToolsVTK.h>
+#include <iATypedCallHelper.h>
+#include <iAVec3.h>
+#include <iAMainWindow.h>
+#include <iAMdiChild.h>
 
 #include <astra/CudaBackProjectionAlgorithm3D.h>
 #include <astra/CudaFDKAlgorithm3D.h>
@@ -212,7 +213,7 @@ namespace
 		{
 			cudaDeviceProp deviceProp;
 			cudaGetDeviceProperties(&deviceProp, dev);
-			DEBUG_LOG(QString("%1. Compute Capability: %2.%3. Clock Rate (kHz): %5. Memory Clock Rate (kHz): %6. Memory Bus Width (bits): %7. Concurrent kernels: %8. Total memory: %9.")
+			LOG(lvlInfo, QString("%1. Compute Capability: %2.%3. Clock Rate (kHz): %5. Memory Clock Rate (kHz): %6. Memory Bus Width (bits): %7. Concurrent kernels: %8. Total memory: %9.")
 				.arg(deviceProp.name)
 				.arg(deviceProp.major)
 				.arg(deviceProp.minor)
@@ -250,7 +251,9 @@ namespace
 	{
 		if (algorithmStrings().indexOf(algo) == -1)
 		{
-			DEBUG_LOG("Invalid Algorithm Type selection!");
+			LOG(lvlWarn, QString("Invalid algorithm string - "
+				"%1 is not in the list of valid algorithms (%2)!")
+				.arg(algo).arg(algorithmStrings().join(", ")) );
 			return FDK3D;
 		}
 		return algorithmStrings().indexOf(algo);
@@ -260,7 +263,9 @@ namespace
 	{
 		if (astraIndex < 0 || astraIndex >= algorithmStrings().size())
 		{
-			DEBUG_LOG("Invalid Algorithm Type selection!");
+			LOG(lvlWarn, QString("Invalid algorithm index - "
+				"%1 is not in the valid range (0..%2)!")
+				.arg(astraIndex).arg(algorithmStrings().size()-1));
 			return "Invalid";
 		}
 		return algorithmStrings()[astraIndex];
@@ -269,13 +274,13 @@ namespace
 	void addCommonForwardReconstructParams(iAFilter* filter)
 	{
 		QStringList projectionGeometries; projectionGeometries << "cone";
-		filter->addParameter(ProjGeometry, Categorical, projectionGeometries);
-		filter->addParameter(DetSpcX, Continuous, 1.0, 0.0);
-		filter->addParameter(DetSpcY, Continuous, 1.0, 0.0);
-		filter->addParameter(ProjAngleStart, Continuous, 0.0);
-		filter->addParameter(ProjAngleEnd, Continuous, 359.0);
-		filter->addParameter(DstOrigDet, Continuous, 1.0);
-		filter->addParameter(DstOrigSrc, Continuous, 1.0);
+		filter->addParameter(ProjGeometry, iAValueType::Categorical, projectionGeometries);
+		filter->addParameter(DetSpcX, iAValueType::Continuous, 1.0, 0.0);
+		filter->addParameter(DetSpcY, iAValueType::Continuous, 1.0, 0.0);
+		filter->addParameter(ProjAngleStart, iAValueType::Continuous, 0.0);
+		filter->addParameter(ProjAngleEnd, iAValueType::Continuous, 359.0);
+		filter->addParameter(DstOrigDet, iAValueType::Continuous, 1.0);
+		filter->addParameter(DstOrigSrc, iAValueType::Continuous, 1.0);
 	}
 }
 
@@ -288,9 +293,9 @@ iAASTRAForwardProject::iAASTRAForwardProject() :
 		"Forward Projection with the ASTRA Toolbox")
 {
 	addCommonForwardReconstructParams(this);
-	addParameter(DetRowCnt, Discrete, 512);
-	addParameter(DetColCnt, Discrete, 512);
-	addParameter(ProjAngleCnt, Discrete, 360);
+	addParameter(DetRowCnt, iAValueType::Discrete, 512);
+	addParameter(DetColCnt, iAValueType::Discrete, 512);
+	addParameter(ProjAngleCnt, iAValueType::Discrete, 360);
 }
 
 class CPPAstraCustomMemory: public astra::CFloat32CustomMemory
@@ -385,23 +390,23 @@ iAASTRAReconstruct::iAASTRAReconstruct() :
 		"Reconstruction with the ASTRA Toolbox")
 {
 	addCommonForwardReconstructParams(this);
-	addParameter(DetRowDim, Discrete, 1, 0, 5);
-	addParameter(DetColDim, Discrete, 3, 0, 5);
-	addParameter(ProjAngleDim, Discrete, 5, 0, 5);
+	addParameter(DetRowDim, iAValueType::Discrete, 1, 0, 5);
+	addParameter(DetColDim, iAValueType::Discrete, 3, 0, 5);
+	addParameter(ProjAngleDim, iAValueType::Discrete, 5, 0, 5);
 
-	addParameter(VolDimX, Discrete, 512, 1);
-	addParameter(VolDimY, Discrete, 512, 1);
-	addParameter(VolDimZ, Discrete, 512, 1);
-	addParameter(VolSpcX, Continuous, 1.0);
-	addParameter(VolSpcY, Continuous, 1.0);
-	addParameter(VolSpcZ, Continuous, 1.0);
+	addParameter(VolDimX, iAValueType::Discrete, 512, 1);
+	addParameter(VolDimY, iAValueType::Discrete, 512, 1);
+	addParameter(VolDimZ, iAValueType::Discrete, 512, 1);
+	addParameter(VolSpcX, iAValueType::Continuous, 1.0);
+	addParameter(VolSpcY, iAValueType::Continuous, 1.0);
+	addParameter(VolSpcZ, iAValueType::Continuous, 1.0);
 
-	addParameter(AlgoType, Categorical, algorithmStrings());
+	addParameter(AlgoType, iAValueType::Categorical, algorithmStrings());
 
-	addParameter(NumberOfIterations, Discrete, 100, 0);
-	addParameter(CenterOfRotCorr, Boolean, false);
-	addParameter(CenterOfRotOfs, Continuous, 0.0);
-	addParameter(InitWithFDK, Boolean, true);
+	addParameter(NumberOfIterations, iAValueType::Discrete, 100, 0);
+	addParameter(CenterOfRotCorr, iAValueType::Boolean, false);
+	addParameter(CenterOfRotOfs, iAValueType::Continuous, 0.0);
+	addParameter(InitWithFDK, iAValueType::Boolean, true);
 }
 
 
@@ -441,14 +446,14 @@ void iAASTRAReconstruct::performWork(QMap<QString, QVariant> const & parameters)
 	int * projDim = projImg->GetDimensions();
 	if (projDim[0] == 0 || projDim[1] == 0 || projDim[2] == 0)
 	{
-		DEBUG_LOG("File not fully loaded or invalid, at least one side is reported to have size 0.");
+		LOG(lvlError, "File not fully loaded or invalid, at least one side is reported to have size 0.");
 		return;
 	}
 	if (parameters[DetRowDim].toUInt() % 3 == parameters[DetColDim].toUInt() % 3 ||
 		parameters[DetRowDim].toUInt() % 3 == parameters[ProjAngleDim].toUInt() % 3 ||
 		parameters[ProjAngleDim].toUInt() % 3 == parameters[DetColDim].toUInt() % 3)
 	{
-		DEBUG_LOG("Invalid parameters: One dimension referenced multiple times!");
+		LOG(lvlError, "Invalid parameters: One dimension referenced multiple times!");
 		return;
 	}
 	size_t detRowCnt = projDim[parameters[DetRowDim].toUInt() % 3];
@@ -533,7 +538,7 @@ void iAASTRAReconstruct::performWork(QMap<QString, QVariant> const & parameters)
 			break;
 		}
 		default:
-			DEBUG_LOG("Unknown reconstruction algorithm selected!");
+			LOG(lvlError, "Unknown reconstruction algorithm selected!");
 	}
 
 	// retrieve result image:
@@ -567,17 +572,17 @@ IAFILTER_RUNNER_CREATE(iAASTRAFilterRunner);
 
 namespace
 {
-	void  astraLogCallback(const char *msg, size_t len)
+	void astraLogCallback(const char *msg, size_t len)
 	{
 		char * allMsg = new char[len + 1];
 		std::memcpy(allMsg, msg, len);
 		allMsg[len] = 0;
 		QString qtStr(allMsg);
-		DEBUG_LOG(qtStr.trimmed());
+		LOG(lvlInfo, qtStr.trimmed());
 	}
 }
 
-void iAASTRAFilterRunner::run(QSharedPointer<iAFilter> filter, MainWindow* mainWnd)
+void iAASTRAFilterRunner::run(QSharedPointer<iAFilter> filter, iAMainWindow* mainWnd)
 {
 	if (!isCUDAAvailable())
 	{
@@ -590,17 +595,17 @@ void iAASTRAFilterRunner::run(QSharedPointer<iAFilter> filter, MainWindow* mainW
 	bool success = astra::CLogger::setCallbackScreen(astraLogCallback);
 	if (!success)
 	{
-		DEBUG_LOG("Setting Astra log callback failed!");
+		LOG(lvlWarn, "Setting Astra log callback failed!");
 	}
 	iAFilterRunnerGUI::run(filter, mainWnd);
 }
 
 bool iAASTRAFilterRunner::askForParameters(QSharedPointer<iAFilter> filter, QMap<QString, QVariant> & parameters,
-	MdiChild* sourceMdi, MainWindow* mainWnd, bool /*askForAdditionalInput*/)
+	iAMdiChild* sourceMdi, iAMainWindow* mainWnd, bool /*askForAdditionalInput*/)
 {
 	dlg_ProjectionParameters dlg;
 	dlg.setWindowTitle(filter->name());
-	int const * inputDim = sourceMdi->imageData()->GetDimensions();
+	int const * inputDim = sourceMdi->imagePointer()->GetDimensions();
 	if (filter->name() == "ASTRA Forward Projection")
 	{
 		dlg.fillProjectionGeometryValues(

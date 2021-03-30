@@ -1,8 +1,8 @@
 /*************************************  open_iA  ************************************ *
 * **********   A tool for visual analysis and processing of 3D CT images   ********** *
 * *********************************************************************************** *
-* Copyright (C) 2016-2020  C. Heinzl, M. Reiter, A. Reh, W. Li, M. Arikan, Ar. &  Al. *
-*                          Amirkhanov, J. Weissenböck, B. Fröhler, M. Schiwarth       *
+* Copyright (C) 2016-2021  C. Heinzl, M. Reiter, A. Reh, W. Li, M. Arikan, Ar. &  Al. *
+*                 Amirkhanov, J. Weissenböck, B. Fröhler, M. Schiwarth, P. Weinberger *
 * *********************************************************************************** *
 * This program is free software: you can redistribute it and/or modify it under the   *
 * terms of the GNU General Public License as published by the Free Software           *
@@ -27,7 +27,7 @@
 #include "iAHistogramStackGrid.h"
 
 #include <iATransferFunction.h>
-#include <charts/iAChartWithFunctionsWidget.h>
+#include <iAChartWithFunctionsWidget.h>
 
 #include <QComboBox>
 #include <QHBoxLayout>
@@ -48,7 +48,8 @@ iAHistogramStack::iAHistogramStack(iATripleModalityWidget* tripleModalityWidget)
 
 void iAHistogramStack::initialize(QString const names[3])
 {
-	for (int i = 0; i < 3; i++) {
+	for (int i = 0; i < 3; i++)
+	{
 		auto l = new QLabel(names[i]);
 		l->setStyleSheet("font-weight: bold; font-size: 10pt;");
 		l->setSizePolicy(QSizePolicy::Preferred, QSizePolicy::Fixed);
@@ -83,7 +84,7 @@ void iAHistogramStack::initialize(QString const names[3])
 	QWidget *leftWidget = new QWidget();
 	QVBoxLayout *leftWidgetLayout = new QVBoxLayout(leftWidget);
 	leftWidgetLayout->setSpacing(1);
-	leftWidgetLayout->setMargin(0);
+	leftWidgetLayout->setContentsMargins(0, 0, 0, 0);
 	leftWidgetLayout->addWidget(optionsContainer);
 	leftWidgetLayout->addWidget(m_grid);
 
@@ -101,5 +102,7 @@ void iAHistogramStack::initialize(QString const names[3])
 void iAHistogramStack::updateModalityNames(QString const names[3])
 {
 	for (int i = 0; i < m_labels.size(); i++)
+	{
 		m_labels[i]->setText(names[i]);
+	}
 }

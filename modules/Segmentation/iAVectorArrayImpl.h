@@ -1,8 +1,8 @@
 /*************************************  open_iA  ************************************ *
 * **********   A tool for visual analysis and processing of 3D CT images   ********** *
 * *********************************************************************************** *
-* Copyright (C) 2016-2020  C. Heinzl, M. Reiter, A. Reh, W. Li, M. Arikan, Ar. &  Al. *
-*                          Amirkhanov, J. Weissenböck, B. Fröhler, M. Schiwarth       *
+* Copyright (C) 2016-2021  C. Heinzl, M. Reiter, A. Reh, W. Li, M. Arikan, Ar. &  Al. *
+*                 Amirkhanov, J. Weissenböck, B. Fröhler, M. Schiwarth, P. Weinberger *
 * *********************************************************************************** *
 * This program is free software: you can redistribute it and/or modify it under the   *
 * terms of the GNU General Public License as published by the Free Software           *
@@ -96,7 +96,7 @@ size_t iAitkPixelVectorArray<ImageType>::channelCount() const
 template <typename ImageType>
 QSharedPointer<iAVectorType const> iAitkPixelVectorArray<ImageType>::get(size_t voxelIdx) const
 {
-	return QSharedPointer<iAVectorType const>(new iAPixelVector(*this, voxelIdx));
+	return QSharedPointer<iAPixelVector>::create(*this, voxelIdx);
 }
 
 template <typename ImageType>

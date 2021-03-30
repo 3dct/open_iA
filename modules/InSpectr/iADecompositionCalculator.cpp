@@ -1,8 +1,8 @@
 /*************************************  open_iA  ************************************ *
 * **********   A tool for visual analysis and processing of 3D CT images   ********** *
 * *********************************************************************************** *
-* Copyright (C) 2016-2020  C. Heinzl, M. Reiter, A. Reh, W. Li, M. Arikan, Ar. &  Al. *
-*                          Amirkhanov, J. Weissenböck, B. Fröhler, M. Schiwarth       *
+* Copyright (C) 2016-2021  C. Heinzl, M. Reiter, A. Reh, W. Li, M. Arikan, Ar. &  Al. *
+*                 Amirkhanov, J. Weissenböck, B. Fröhler, M. Schiwarth, P. Weinberger *
 * *********************************************************************************** *
 * This program is free software: you can redistribute it and/or modify it under the   *
 * terms of the GNU General Public License as published by the Free Software           *
@@ -54,12 +54,16 @@ void iADecompositionCalculator::Stop()
 	wait();
 }
 
+iAProgress* iADecompositionCalculator::progress()
+{
+	return &m_progress;
+}
+
 void iADecompositionCalculator::run()
 {
 	int threshold = m_accumulatedXRF->yBounds()[1]/20;
 
-	QSharedPointer<QVector<QSharedPointer<iAEnergySpectrum> > >  adaptedElementSpectra =
-		m_data->GetAdaptedSpectra(m_xrfData, m_elements);
+	auto adaptedElementSpectra = m_data->GetAdaptedSpectra(m_xrfData, m_elements);
 
 	if (!m_data->calculateAverageConcentration(adaptedElementSpectra, m_accumulatedXRF))
 	{
@@ -106,8 +110,7 @@ void iADecompositionCalculator::run()
 					m_data->m_ElementConcentration[i]->SetScalarComponentFromDouble(x, y, z, 0, concentration[i]);
 				}
 			}
-			int percent = static_cast<int>(static_cast<double>(x*height*depth + y*depth)/pixelCount*100);
-			progress(percent);
+			m_progress.emitProgress((x * height * depth + y * depth) * 100.0 / pixelCount);
 		}
 	}
 	if (!m_stopped)

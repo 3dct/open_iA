@@ -1,8 +1,8 @@
 /*************************************  open_iA  ************************************ *
 * **********   A tool for visual analysis and processing of 3D CT images   ********** *
 * *********************************************************************************** *
-* Copyright (C) 2016-2020  C. Heinzl, M. Reiter, A. Reh, W. Li, M. Arikan, Ar. &  Al. *
-*                          Amirkhanov, J. Weissenböck, B. Fröhler, M. Schiwarth       *
+* Copyright (C) 2016-2021  C. Heinzl, M. Reiter, A. Reh, W. Li, M. Arikan, Ar. &  Al. *
+*                 Amirkhanov, J. Weissenböck, B. Fröhler, M. Schiwarth, P. Weinberger *
 * *********************************************************************************** *
 * This program is free software: you can redistribute it and/or modify it under the   *
 * terms of the GNU General Public License as published by the Free Software           *
@@ -24,9 +24,9 @@
 
 #include "iAFeatureScoutModuleInterface.h"
 
-#include <charts/iASPLOMData.h>
-#include <charts/iAScatterPlot.h>
-#include <iAConsole.h>
+#include <iASPLOMData.h>
+#include <iAScatterPlot.h>
+#include <iALog.h>
 #include <iAMathUtility.h>
 #include <iAModuleDispatcher.h>
 
@@ -34,6 +34,7 @@
 #include <QDir>
 #include <QKeyEvent>
 #include <QMenu>
+#include <QPainter>
 
 // OpenMP
 #ifndef __APPLE__
@@ -44,14 +45,13 @@
 
 const int maskOpacity = 127;
 
-iAFAQSplom::iAFAQSplom( MainWindow *mWnd, QWidget * parent, Qt::WindowFlags f /*= 0 */):
-	iAQSplom(parent, f),
+iAFAQSplom::iAFAQSplom( iAMainWindow *mWnd, QWidget * parent):
+	iAQSplom(parent),
 	m_fixedPointInd(iAScatterPlot::NoPointIndex),
 	m_mainWnd(mWnd),
 	m_mdiChild(nullptr),
 	m_csvName("")
 {
-	setWindowFlags(f);
 	m_fixAction = m_contextMenu->addAction( "Fix Point", this, &iAFAQSplom::fixPoint);
 	m_removeFixedAction = m_contextMenu->addAction( "Remove Fixed Point", this, &iAFAQSplom::removeFixedPoint);
 	m_detailsToFeatureScoutAction = m_contextMenu->addAction("Detailed View...", this, &iAFAQSplom::sendToFeatureScout);
@@ -420,10 +420,10 @@ void iAFAQSplom::sendToFeatureScout()
 		return;
 	}
 	this->m_mdiChild->show();
-	connect(m_mdiChild, &MdiChild::histogramAvailable, this, &iAFAQSplom::startFeatureScout);
+	connect(m_mdiChild, &iAMdiChild::histogramAvailable, this, &iAFAQSplom::startFeatureScout);
 	if (!m_mdiChild->loadFile(mhdName, false))
 	{
-		DEBUG_LOG(QString("File '%1' could not be loaded!").arg(mhdName));
+		LOG(lvlError, QString("File '%1' could not be loaded!").arg(mhdName));
 		m_mdiChild->close();
 		return;
 	}
@@ -448,7 +448,7 @@ void iAFAQSplom::startFeatureScout()
 		return;
 	}
 	featureScout->LoadFeatureScoutWithParams(m_csvName, m_mdiChild);
-	disconnect(m_mdiChild, &MdiChild::histogramAvailable, this, &iAFAQSplom::startFeatureScout);
+	disconnect(m_mdiChild, &iAMdiChild::histogramAvailable, this, &iAFAQSplom::startFeatureScout);
 }
 
 void iAFAQSplom::removeFixedPoint()

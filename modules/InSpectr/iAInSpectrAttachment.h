@@ -1,8 +1,8 @@
 /*************************************  open_iA  ************************************ *
 * **********   A tool for visual analysis and processing of 3D CT images   ********** *
 * *********************************************************************************** *
-* Copyright (C) 2016-2020  C. Heinzl, M. Reiter, A. Reh, W. Li, M. Arikan, Ar. &  Al. *
-*                          Amirkhanov, J. Weissenböck, B. Fröhler, M. Schiwarth       *
+* Copyright (C) 2016-2021  C. Heinzl, M. Reiter, A. Reh, W. Li, M. Arikan, Ar. &  Al. *
+*                 Amirkhanov, J. Weissenböck, B. Fröhler, M. Schiwarth, P. Weinberger *
 * *********************************************************************************** *
 * This program is free software: you can redistribute it and/or modify it under the   *
 * terms of the GNU General Public License as published by the Free Software           *
@@ -25,7 +25,7 @@
 
 #include <vtkSmartPointer.h>
 
-class MainWindow;
+class iAMainWindow;
 class dlg_periodicTable;
 class dlg_RefSpectra;
 class dlg_SimilarityMap;
@@ -42,7 +42,7 @@ class iAInSpectrAttachment : public iAModuleAttachmentToChild
 	Q_OBJECT
 
 public:
-	iAInSpectrAttachment( MainWindow * mainWnd, MdiChild * child );
+	iAInSpectrAttachment( iAMainWindow * mainWnd, iAMdiChild * child );
 	~iAInSpectrAttachment();
 
 private slots:

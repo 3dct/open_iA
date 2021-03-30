@@ -1,8 +1,8 @@
 /*************************************  open_iA  ************************************ *
 * **********   A tool for visual analysis and processing of 3D CT images   ********** *
 * *********************************************************************************** *
-* Copyright (C) 2016-2020  C. Heinzl, M. Reiter, A. Reh, W. Li, M. Arikan, Ar. &  Al. *
-*                          Amirkhanov, J. Weissenböck, B. Fröhler, M. Schiwarth       *
+* Copyright (C) 2016-2021  C. Heinzl, M. Reiter, A. Reh, W. Li, M. Arikan, Ar. &  Al. *
+*                 Amirkhanov, J. Weissenböck, B. Fröhler, M. Schiwarth, P. Weinberger *
 * *********************************************************************************** *
 * This program is free software: you can redistribute it and/or modify it under the   *
 * terms of the GNU General Public License as published by the Free Software           *
@@ -20,21 +20,11 @@
 * ************************************************************************************/
 #pragma once
 
-#include <iAITKIO.h> // TODO: replace?
-
-#include <itkImage.h>
+#include <iAITKImageTypes.h>
 
 #include <vtkSmartPointer.h>
 
 class vtkImageData;
-
-// TODO: data type -> short/char
-typedef int LabelPixelType;
-typedef itk::Image<LabelPixelType, 3> LabelImageType;
-typedef LabelImageType::Pointer LabelImagePointer;
-
-typedef itk::Image<double, 3> ProbabilityImageType;
-typedef ProbabilityImageType::Pointer ProbabilityImagePointer;
 
 /*
 typedef itk::Image<double, 3> PriorModelImageType;
@@ -42,8 +32,8 @@ typedef itk::SmartPointer<PriorModelImageType> PriorModelImagePointer;
 */
 typedef vtkSmartPointer<vtkImageData> PriorModelImagePointer;
 
-typedef int PreviewPixelType;
-typedef itk::Image<PreviewPixelType, 3> PreviewImageType;
-typedef PreviewImageType::Pointer PreviewImagePointer;
+//typedef int PreviewPixelType;
+//typedef itk::Image<PreviewPixelType, Dimensions> PreviewImageType;
+//typedef PreviewImageType::Pointer PreviewImagePointer;
 
-typedef iAITKIO::ImagePointer ClusterImageType;
+//typedef iAITKIO::ImagePointer ClusterImageType;

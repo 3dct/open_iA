@@ -1,8 +1,8 @@
 /*************************************  open_iA  ************************************ *
 * **********   A tool for visual analysis and processing of 3D CT images   ********** *
 * *********************************************************************************** *
-* Copyright (C) 2016-2020  C. Heinzl, M. Reiter, A. Reh, W. Li, M. Arikan, Ar. &  Al. *
-*                          Amirkhanov, J. Weissenböck, B. Fröhler, M. Schiwarth       *
+* Copyright (C) 2016-2021  C. Heinzl, M. Reiter, A. Reh, W. Li, M. Arikan, Ar. &  Al. *
+*                 Amirkhanov, J. Weissenböck, B. Fröhler, M. Schiwarth, P. Weinberger *
 * *********************************************************************************** *
 * This program is free software: you can redistribute it and/or modify it under the   *
 * terms of the GNU General Public License as published by the Free Software           *
@@ -31,7 +31,7 @@
 #include <QList>
 
 class iAColorTheme;
-class MdiChild;
+class iAMdiChild;
 
 class QStandardItem;
 class QStandardItemModel;
@@ -51,7 +51,7 @@ class dlg_labels : public dlg_labelUI, public iALabelInfo
 {
 	Q_OBJECT
 public:
-	dlg_labels(MdiChild* mdiChild, iAColorTheme const * theme);
+	dlg_labels(iAMdiChild* mdiChild, iAColorTheme const * theme);
 	int curLabelRow() const;
 	int seedCount(int labelIdx) const;
 	bool load(QString const & filename);
@@ -91,7 +91,7 @@ private:
 	vtkSmartPointer<iAvtkImageData> m_labelOverlayImg;
 	vtkSmartPointer<vtkLookupTable> m_labelOverlayLUT;
 	vtkSmartPointer<vtkPiecewiseFunction> m_labelOverlayOTF;
-	MdiChild* m_mdiChild;
+	iAMdiChild* m_mdiChild;
 	bool m_newOverlay;
 	uint m_labelChannelID;
 };

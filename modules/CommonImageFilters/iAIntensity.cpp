@@ -1,8 +1,8 @@
 /*************************************  open_iA  ************************************ *
 * **********   A tool for visual analysis and processing of 3D CT images   ********** *
 * *********************************************************************************** *
-* Copyright (C) 2016-2020  C. Heinzl, M. Reiter, A. Reh, W. Li, M. Arikan, Ar. &  Al. *
-*                          Amirkhanov, J. Weissenböck, B. Fröhler, M. Schiwarth       *
+* Copyright (C) 2016-2021  C. Heinzl, M. Reiter, A. Reh, W. Li, M. Arikan, Ar. &  Al. *
+*                 Amirkhanov, J. Weissenböck, B. Fröhler, M. Schiwarth, P. Weinberger *
 * *********************************************************************************** *
 * This program is free software: you can redistribute it and/or modify it under the   *
 * terms of the GNU General Public License as published by the Free Software           *
@@ -77,8 +77,8 @@ iAInvertIntensityFilter::iAInvertIntensityFilter() :
 		"<a href=\"https://itk.org/Doxygen/html/classitk_1_1InvertIntensityImageFilter.html\">"
 		"Invert Intensity Filter</a> in the ITK documentation.")
 {
-	addParameter("Set Maximum", Boolean, false);
-	addParameter("Maximum", Continuous, 65535);
+	addParameter("Set Maximum", iAValueType::Boolean, false);
+	addParameter("Maximum", iAValueType::Continuous, 65535);
 }
 
 
@@ -156,10 +156,10 @@ iAIntensityWindowingFilter::iAIntensityWindowingFilter() :
 		"<a href=\"https://itk.org/Doxygen/html/classitk_1_1IntensityWindowingImageFilter.html\">"
 		"Intensity Windowing Filter</a> in the ITK documentation.")
 {
-	addParameter("Window Minimum", Continuous, 0);
-	addParameter("Window Maximum", Continuous, 1);
-	addParameter("Output Minimum", Continuous, 0);
-	addParameter("Output Maximum", Continuous, 1);
+	addParameter("Window Minimum", iAValueType::Continuous, 0);
+	addParameter("Window Maximum", iAValueType::Continuous, 1);
+	addParameter("Output Minimum", iAValueType::Continuous, 0);
+	addParameter("Output Maximum", iAValueType::Continuous, 1);
 }
 
 
@@ -193,9 +193,9 @@ iAGeneralThreshold::iAGeneralThreshold() :
 		"<a href=\"https://itk.org/Doxygen/html/classitk_1_1ThresholdImageFilter.html\">"
 		"Threshold Filter</a> in the ITK documentation.")
 {
-	addParameter("Lower threshold", Continuous, 0);
-	addParameter("Upper threshold", Continuous, 1);
-	addParameter("Outside value", Continuous, 0);
+	addParameter("Lower threshold", iAValueType::Continuous, 0);
+	addParameter("Upper threshold", iAValueType::Continuous, 1);
+	addParameter("Outside value", iAValueType::Continuous, 0);
 }
 
 
@@ -241,8 +241,8 @@ iARescaleIntensityFilter::iARescaleIntensityFilter() :
 		"<a href=\"https://itk.org/Doxygen/html/classitk_1_1RescaleIntensityImageFilter.html\">"
 		"Rescale Intensity Filter</a> in the ITK documentation.")
 {
-	addParameter("Output Minimum", Continuous, 0);
-	addParameter("Output Maximum", Continuous, 1);
+	addParameter("Output Minimum", iAValueType::Continuous, 0);
+	addParameter("Output Maximum", iAValueType::Continuous, 1);
 }
 
 
@@ -280,8 +280,8 @@ iAShiftScaleIntensityFilter::iAShiftScaleIntensityFilter() :
 		"<a href=\"https://itk.org/Doxygen/html/classitk_1_1ShiftScaleImageFilter.html\">"
 		"Shift Scale Filter</a> in the ITK documentation.")
 {
-	addParameter("Shift", Continuous, 0);
-	addParameter("Scale", Continuous, 1);
+	addParameter("Shift", iAValueType::Continuous, 0);
+	addParameter("Scale", iAValueType::Continuous, 1);
 }
 
 
@@ -323,9 +323,9 @@ iAAdaptiveHistogramEqualization::iAAdaptiveHistogramEqualization() :
 		"<a href=\"https://itk.org/Doxygen/html/classitk_1_1AdaptiveHistogramEqualizationImageFilter.html\">"
 		"Adaptive Histogram Equalization Filter</a> in the ITK documentation.")
 {
-	addParameter("Alpha", Continuous, 0, 0, 1);
-	addParameter("Beta", Continuous, 0, 0, 1);
-	addParameter("Radius", Discrete, 5, 1);
+	addParameter("Alpha", iAValueType::Continuous, 0, 0, 1);
+	addParameter("Beta", iAValueType::Continuous, 0, 0, 1);
+	addParameter("Radius", iAValueType::Discrete, 5, 1);
 }
 
 
@@ -442,8 +442,8 @@ iADifferenceFilter::iADifferenceFilter() :
 		"<a href=\"https://itk.org/Doxygen/html/classitk_1_1Testing_1_1ComparisonImageFilter.html\">"
 		"Testing Comparison Filter</a> in the ITK documentation.", 2)
 {
-	addParameter("Difference threshold", Continuous, 0);
-	addParameter("Tolerance radius", Continuous, 0);
+	addParameter("Difference threshold", iAValueType::Continuous, 0);
+	addParameter("Tolerance radius", iAValueType::Continuous, 0);
 	setInputName(1u, "Additional image");
 }
 
@@ -542,8 +542,8 @@ iAHistogramMatchingFilter::iAHistogramMatchingFilter() :
 		"<a href=\"https://itk.org/Doxygen/html/classitk_1_1HistogramMatchingImageFilter.html\">"
 		"Histogram Matching Filter</a> in the ITK documentation.", 2)
 {
-	addParameter("Threshold at mean intensity", Boolean, true);
-	addParameter("Number of histogram levels", Continuous, 256);
-	addParameter("Number of match points", Continuous, 1);
+	addParameter("Threshold at mean intensity", iAValueType::Boolean, true);
+	addParameter("Number of histogram levels", iAValueType::Continuous, 256);
+	addParameter("Number of match points", iAValueType::Continuous, 1);
 	setInputName(1u, "Reference image");
 }

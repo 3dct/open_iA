@@ -1,8 +1,8 @@
 /*************************************  open_iA  ************************************ *
 * **********   A tool for visual analysis and processing of 3D CT images   ********** *
 * *********************************************************************************** *
-* Copyright (C) 2016-2020  C. Heinzl, M. Reiter, A. Reh, W. Li, M. Arikan, Ar. &  Al. *
-*                          Amirkhanov, J. Weissenböck, B. Fröhler, M. Schiwarth       *
+* Copyright (C) 2016-2021  C. Heinzl, M. Reiter, A. Reh, W. Li, M. Arikan, Ar. &  Al. *
+*                 Amirkhanov, J. Weissenböck, B. Fröhler, M. Schiwarth, P. Weinberger *
 * *********************************************************************************** *
 * This program is free software: you can redistribute it and/or modify it under the   *
 * terms of the GNU General Public License as published by the Free Software           *
@@ -25,11 +25,13 @@
 #include <iAChanData.h>
 #include <iAChannelData.h>
 #include <iAChannelSlicerData.h>
-#include <iAConnector.h>
-#include <iAConsole.h>
-#include <iASlicer.h>
+#include <iASlicerImpl.h>
 #include <iASlicerSettings.h>
-#include <io/iAITKIO.h>
+
+#include <iAConnector.h>
+#include <iAFileUtils.h>
+#include <iAITKIO.h>
+#include <iALog.h>
 
 #include <itkAddImageFilter.h>
 #include <itkCastImageFilter.h>
@@ -96,7 +98,7 @@ void loadImageData( QString const & fileName, vtkSmartPointer<vtkImageData> & im
 	imgData = reader->GetOutput();
 	if (!imgData)
 	{
-		DEBUG_LOG("Image data is nullptr!");
+		LOG(lvlError, "Image data is nullptr!");
 	}
 }
 
@@ -131,7 +133,7 @@ iASSSlicer::iASSSlicer( const QString slicerName, vtkSmartPointer<vtkTransform> 
 	selTextLabel->setFixedHeight( 15 );
 	selTextLabel->setStyleSheet( "font-weight: bold;" );
 
-	slicer = new iASlicer( nullptr, iASlicerMode::XY, true, true, transform);
+	slicer = new iASlicerImpl( nullptr, iASlicerMode::XY, true, true, transform);
 
 	medContour->SetNumberOfContours( 1 );
 	medContour->SetValue( 0, contourValue );

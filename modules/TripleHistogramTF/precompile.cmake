@@ -1,5 +1,5 @@
 SET (TripleHistogramTF_PRECOMPILE_INCLUDES
-<charts/iAChartWithFunctionsWidget.h>
+<iAChartWithFunctionsWidget.h>
 <iASimpleSlicerWidget.h>
 <QSharedPointer>
 <QWidget>)

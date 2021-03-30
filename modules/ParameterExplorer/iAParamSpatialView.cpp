@@ -1,8 +1,8 @@
 /*************************************  open_iA  ************************************ *
 * **********   A tool for visual analysis and processing of 3D CT images   ********** *
 * *********************************************************************************** *
-* Copyright (C) 2016-2020  C. Heinzl, M. Reiter, A. Reh, W. Li, M. Arikan, Ar. &  Al. *
-*                          Amirkhanov, J. Weissenböck, B. Fröhler, M. Schiwarth       *
+* Copyright (C) 2016-2021  C. Heinzl, M. Reiter, A. Reh, W. Li, M. Arikan, Ar. &  Al. *
+*                 Amirkhanov, J. Weissenböck, B. Fröhler, M. Schiwarth, P. Weinberger *
 * *********************************************************************************** *
 * This program is free software: you can redistribute it and/or modify it under the   *
 * terms of the GNU General Public License as published by the Free Software           *
@@ -25,12 +25,15 @@
 #include "iAHistogramCreator.h"
 #include "iAImageWidget.h"
 
-#include <charts/iAChartWithFunctionsWidget.h>
-#include <charts/iAPlotTypes.h>
+#include <iASlicerImpl.h>    // for mapSliceToGlobalAxis
+
+#include <iAChartWithFunctionsWidget.h>
+#include <iAPlotTypes.h>
+
 #include <iAConnector.h>
-#include <iAConsole.h>
+#include <iALog.h>
 #include <iASlicerMode.h>
-#include <io/iAFileUtils.h>
+#include <iAFileUtils.h>
 
 #include <vtkImageData.h>
 
@@ -79,7 +82,7 @@ iAParamSpatialView::iAParamSpatialView(iAParamTableView* table, QString const & 
 	sliceBar->layout()->addWidget(m_sliceControl);
 
 	m_settings->setLayout(new QHBoxLayout);
-	m_settings->layout()->setMargin(0);
+	m_settings->layout()->setContentsMargins(0, 0, 0, 0);
 	m_settings->layout()->setSpacing(2);
 	m_settings->setFixedHeight(24);
 	m_settings->layout()->addWidget(m_sliceControl);
@@ -101,7 +104,7 @@ void iAParamSpatialView::setImage(size_t id)
 		assert(m_table->Table()->rowCount() >= 0);
 		if (id >= static_cast<size_t>(m_table->Table()->rowCount()))
 		{
-			DEBUG_LOG("Invalid column index!");
+			LOG(lvlError, "Invalid column index!");
 			return;
 		}
 		QString fileName = m_table->Table()->item(id, 0)->text();	// assumes filename is in column 0!
@@ -118,7 +121,7 @@ void iAParamSpatialView::setImage(size_t id)
 		}
 		catch (std::exception & e)
 		{
-			DEBUG_LOG(QString("Could not load image %1: %2").arg(fileName).arg(e.what()));
+			LOG(lvlError, QString("Could not load image %1: %2").arg(fileName).arg(e.what()));
 			return;
 		}
 	}
@@ -129,7 +132,7 @@ void iAParamSpatialView::setImage(size_t id)
 	}
 	else
 	{
-		auto creator = QSharedPointer<iAHistogramCreator>(new iAHistogramCreator(img, m_binCount, id));
+		auto creator = QSharedPointer<iAHistogramCreator>::create(img, m_binCount, id);
 		connect(creator.data(), &iAHistogramCreator::finished, this, &iAParamSpatialView::HistogramReady);
 		m_histogramCreaters.push_back(creator);
 		creator->start();
@@ -187,7 +190,7 @@ void iAParamSpatialView::SwitchToHistogram(int id)
 	m_chartWidget->removePlot(m_curHistogramPlot);
 	QColor histoChartColor(SPLOMDotQColor);
 	histoChartColor.setAlpha(96);
-	m_curHistogramPlot = QSharedPointer<iAPlot>(new iABarGraphPlot(m_histogramCache[id], histoChartColor, 2));
+	m_curHistogramPlot = QSharedPointer<iABarGraphPlot>::create(m_histogramCache[id], histoChartColor, 2);
 	m_chartWidget->addPlot(m_curHistogramPlot);
 	m_chartWidget->update();
 }

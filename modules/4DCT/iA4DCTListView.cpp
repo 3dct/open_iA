@@ -1,8 +1,8 @@
 /*************************************  open_iA  ************************************ *
 * **********   A tool for visual analysis and processing of 3D CT images   ********** *
 * *********************************************************************************** *
-* Copyright (C) 2016-2020  C. Heinzl, M. Reiter, A. Reh, W. Li, M. Arikan, Ar. &  Al. *
-*                          Amirkhanov, J. Weissenböck, B. Fröhler, M. Schiwarth       *
+* Copyright (C) 2016-2021  C. Heinzl, M. Reiter, A. Reh, W. Li, M. Arikan, Ar. &  Al. *
+*                 Amirkhanov, J. Weissenböck, B. Fröhler, M. Schiwarth, P. Weinberger *
 * *********************************************************************************** *
 * This program is free software: you can redistribute it and/or modify it under the   *
 * terms of the GNU General Public License as published by the Free Software           *
@@ -22,7 +22,8 @@
 
 #include "iA4DCTSettings.h"
 #include "iAStageView.h"
-#include "mainwindow.h"
+
+#include <iAMainWindow.h>
 
 #include <QMenu>
 #include <QAction>
@@ -75,14 +76,14 @@ void iA4DCTListView::contextMenuEvent( QContextMenuEvent* event )
 
 void iA4DCTListView::openFile( )
 {
-	MainWindow* win = qobject_cast<MainWindow*>( QApplication::activeWindow( ) );
-
 	QModelIndexList indexes = this->selectionModel( )->selectedIndexes( );
-	if( indexes.size( ) > 1 ) {
+	if( indexes.size( ) > 1 )
+	{
 		return;
 	}
-
-	if( win != nullptr ) {
+	iAMainWindow* win = qobject_cast<iAMainWindow*>(QApplication::activeWindow());
+	if( win)
+	{
 		win->loadFile( m_data->at( indexes[0].row( ) ).Path, false );
 	}
 }

@@ -1,8 +1,8 @@
 /*************************************  open_iA  ************************************ *
 * **********   A tool for visual analysis and processing of 3D CT images   ********** *
 * *********************************************************************************** *
-* Copyright (C) 2016-2020  C. Heinzl, M. Reiter, A. Reh, W. Li, M. Arikan, Ar. &  Al. *
-*                          Amirkhanov, J. Weissenböck, B. Fröhler, M. Schiwarth       *
+* Copyright (C) 2016-2021  C. Heinzl, M. Reiter, A. Reh, W. Li, M. Arikan, Ar. &  Al. *
+*                 Amirkhanov, J. Weissenböck, B. Fröhler, M. Schiwarth, P. Weinberger *
 * *********************************************************************************** *
 * This program is free software: you can redistribute it and/or modify it under the   *
 * terms of the GNU General Public License as published by the Free Software           *
@@ -22,7 +22,6 @@
 
 // FiAKEr:
 #include "iAFiberCharData.h"            // for iAFiberSimilarity -> REFACTOR!!!
-#include "iASavableProject.h"
 #include "iASelectionInteractorStyle.h" // for iASelectionProvider
 #include "ui_FiAKErSettings.h"
 
@@ -33,6 +32,7 @@
 #include <iASettings.h>
 #include <iAVtkWidget.h>
 #include <qthelper/iAQTtoUIConnector.h>
+#include <qthelper/iAWidgetSettingsMapper.h>
 
 #include <vtkSmartPointer.h>
 
@@ -44,9 +44,11 @@
 
 class iAFiberResultsCollection;
 class iAFiberCharUIData;
-class iAJobListView;
-class iAMatrixWidget;
 class iAStackedBarChart;
+
+// Sensitivity:
+class iAMatrixWidget;
+class iAParameterListView;
 
 class iA3DColoredPolyObjectVis;
 class iA3DCylinderObjectVis;
@@ -54,15 +56,14 @@ class iA3DCylinderObjectVis;
 class iAChartWidget;
 class iAColorTheme;
 class iADockWidgetWrapper;
-class iAFileChooserWidget;
 class iAMapper;
 class iAQSplom;
 class iARendererManager;
 class iARefDistCompute;
 class iASPLOMData;
 class iAVolumeRenderer;
-class MainWindow;
-class MdiChild;
+class iAMainWindow;
+class iAMdiChild;
 
 class vtkColorTransferFunction;
 class vtkCubeSource;
@@ -86,10 +87,6 @@ class QStandardItemModel;
 class QTimer;
 class QTreeView;
 class QVBoxLayout;
-
-// To be able to put non-QObject derived class in settingsWidgetMap
-class iAQCheckBoxVector: public QObject, public QVector<QCheckBox*> { };
-class iAQLineEditVector: public QObject, public QVector<QLineEdit*> { };
 
 class iAVtkQtWidget;
 class iAFixedAspectWidget;
@@ -115,15 +112,16 @@ public:
 class iAResultPairInfo
 {
 public:
-	iAResultPairInfo(int measureCount) :
-		avgDissim(measureCount)
-	{}
+	iAResultPairInfo();
+	iAResultPairInfo(int measureCount);
 	// average dissimilarity, per dissimilarity measure
 	QVector<double> avgDissim;
 
 	// for every fiber, and every dissimilarity measure, the n best matching fibers (in descending match quality)
 	QVector<QVector<QVector<iAFiberSimilarity>>> fiberDissim;
 };
+
+using iADissimilarityMatrixType = QVector<QVector<iAResultPairInfo>>;
 
 class iAFiAKErController: public QObject, public iASelectionProvider
 {
@@ -133,7 +131,7 @@ public:
 	typedef std::vector<std::vector<size_t> > SelectionType;
 	static const QString FIAKERProjectID;
 
-	iAFiAKErController(MainWindow* mainWnd, MdiChild* mdiChild);
+	iAFiAKErController(iAMainWindow* mainWnd, iAMdiChild* mdiChild);
 
 	void loadProject(QSettings const & projectFile, QString const & fileName);
 	void start(QString const & path, iACsvConfig const & config, double stepShift, bool useStepData, bool showPreview);
@@ -155,7 +153,7 @@ private slots:
 	void toggleVis(int);
 	void toggleBoundingBox(int);
 	void referenceToggled();
-	void miniMouseEvent(QMouseEvent* ev);
+	//void previewMouseClick(Qt::MouseButton buttons, Qt::KeyboardModifiers modifiers);
 	void optimStepSliderChanged(int);
 	void mainOpacityChanged(int);
 	void contextOpacityChanged(int);
@@ -242,7 +240,7 @@ private:
 	void updateRefDistPlots();
 	bool matchQualityVisActive() const;
 	void updateFiberContext();
-	void startFeatureScout(int resultID, MdiChild* newChild);
+	//void startFeatureScout(int resultID, iAMdiChild* newChild);
 	void visitAllVisibleVis(std::function<void(QSharedPointer<iA3DColoredPolyObjectVis>, size_t resultID)> func);
 	void setClippingPlanes(QSharedPointer<iA3DColoredPolyObjectVis> vis);
 
@@ -252,6 +250,7 @@ private:
 	QWidget* setupResultListView();
 	QWidget* setupProtocolView();
 	QWidget* setupSelectionView();
+	QWidget* setupMatrixView(QStringList paramNames, std::vector<std::vector<double>> const& paramValues, QVector<int> const & measures);
 
 	//! all data about the fiber characteristics optimization results that are analyzed
 	QSharedPointer<iAFiberResultsCollection> m_data;
@@ -260,8 +259,8 @@ private:
 	QSharedPointer<iARendererManager> m_renderManager;
 	vtkSmartPointer<iASelectionInteractorStyle> m_style;
 	iAColorTheme const * m_resultColorTheme;
-	MainWindow* m_mainWnd;
-	MdiChild* m_mdiChild;
+	iAMainWindow* m_mainWnd;
+	iAMdiChild* m_mdiChild;
 	size_t m_referenceID;
 	SelectionType m_selection;
 	vtkSmartPointer<vtkTable> m_refVisTable;
@@ -271,18 +270,28 @@ private:
 	bool m_showFiberContext, m_mergeContextBoxes, m_showWireFrame, m_showLines;
 	double m_contextSpacing;
 	QString m_parameterFile; //! (.csv-)file containing eventual parameters used in creating the loaded results
+	std::vector<std::vector<double>> m_paramValues;
+
+	//! number of bins in histograms in result list
+	int m_histogramBins;
+	//! opacity (0..255) of current selection and of context
+	int m_selectionOpacity, m_contextOpacity;
+	//! factors for the diameter of the current selection and of the context (< 1 -> shrink, > 1 extend, = 1.0 no change)
+	double m_diameterFactor, m_contextDiameterFactor;
+	//! column index for the columns of the result list:
+	int m_nameActionColumn, m_previewColumn, m_stackedBarColumn, m_histogramColumn;
 
 	QSharedPointer<iA3DCylinderObjectVis> m_nearestReferenceVis;
 
 	vtkSmartPointer<vtkActor> m_sampleActor;
 	QTimer * m_playTimer;
 	iARefDistCompute* m_refDistCompute;
-	QMap<QString, QObject*> m_settingsWidgetMap;
+	iAWidgetMap m_settingsWidgetMap;
 
 	// The different views and their elements:
 	std::vector<iADockWidgetWrapper*> m_views;
 	enum {
-		JobView, ResultListView, OptimStepChart, SPMView, ProtocolView, SelectionView, SettingsView, DockWidgetCount
+		ResultListView, OptimStepChart, SPMView, ProtocolView, SelectionView, SettingsView, DockWidgetCount
 	};
 	// 3D View:
 	iAVtkWidget* m_main3DWidget;
@@ -332,9 +341,6 @@ private:
 	QVBoxLayout* m_optimChartLayout;
 	size_t m_chartCount;
 
-	// Jobs:
-	iAJobListView * m_jobs;
-
 	// Interaction Protocol:
 	QTreeView* m_interactionProtocol;
 	QStandardItemModel* m_interactionProtocolModel;
@@ -347,6 +353,11 @@ private:
 	std::vector<SelectionType> m_selections;
 
 	// Sensitivity
-	std::vector<std::vector<iAResultPairInfo>> m_dissimilarityMatrix;
+	iADissimilarityMatrixType m_dissimilarityMatrix;
 	iAMatrixWidget* m_matrixWidget;
+	iAParameterListView* m_parameterListView;
+
+	QString dissimilarityMatrixCacheFileName();
+	bool readDissimilarityMatrixCache(QVector<int>& measures);
+	void writeDissimilarityMatrixCache(QVector<int> const& measures);
 };

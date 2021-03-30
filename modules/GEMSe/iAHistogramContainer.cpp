@@ -1,8 +1,8 @@
 /*************************************  open_iA  ************************************ *
 * **********   A tool for visual analysis and processing of 3D CT images   ********** *
 * *********************************************************************************** *
-* Copyright (C) 2016-2020  C. Heinzl, M. Reiter, A. Reh, W. Li, M. Arikan, Ar. &  Al. *
-*                          Amirkhanov, J. Weissenböck, B. Fröhler, M. Schiwarth       *
+* Copyright (C) 2016-2021  C. Heinzl, M. Reiter, A. Reh, W. Li, M. Arikan, Ar. &  Al. *
+*                 Amirkhanov, J. Weissenböck, B. Fröhler, M. Schiwarth, P. Weinberger *
 * *********************************************************************************** *
 * This program is free software: you can redistribute it and/or modify it under the   *
 * terms of the GNU General Public License as published by the Free Software           *
@@ -30,7 +30,7 @@
 #include "iAQtCaptionWidget.h"
 
 #include <iAAttributeDescriptor.h>
-#include <iAConsole.h>
+#include <iALog.h>
 
 #include <QCheckBox>
 #include <QDialogButtonBox>
@@ -62,7 +62,7 @@ iAHistogramContainer::iAHistogramContainer(
 	SetCaptionedContent(m_paramChartContainer, "Input Parameters", m_paramChartWidget);
 	m_derivedOutputChartWidget->setLayout(new QHBoxLayout());
 	m_derivedOutputChartWidget->layout()->setSpacing(ChartSpacing);
-	m_derivedOutputChartWidget->layout()->setMargin(0);
+	m_derivedOutputChartWidget->layout()->setContentsMargins(0, 0, 0, 0);
 	SetCaptionedContent(m_derivedOutputChartContainer, "Derived Output", m_derivedOutputChartWidget);
 }
 
@@ -71,7 +71,7 @@ void iAHistogramContainer::CreateGridLayout()
 	delete m_paramChartLayout;
 	m_paramChartLayout = new QGridLayout();
 	m_paramChartLayout->setSpacing(ChartSpacing);
-	m_paramChartLayout->setMargin(0);
+	m_paramChartLayout->setContentsMargins(0, 0, 0, 0);
 	m_paramChartWidget->setLayout(m_paramChartLayout);
 }
 
@@ -95,7 +95,7 @@ void iAHistogramContainer::CreateCharts()
 	double maxValue = -1;
 	for (int chartID = 0; chartID != m_chartAttributes->size(); ++chartID)
 	{
-		QSharedPointer<iAAttributeDescriptor> attrib = m_chartAttributes->at(chartID);
+		auto attrib = m_chartAttributes->at(chartID);
 		if (attrib->min() == attrib->max() || m_disabledCharts.contains(chartID))
 		{
 			continue;
@@ -109,7 +109,7 @@ void iAHistogramContainer::CreateCharts()
 			(attrib->valueType() == iAValueType::Discrete || attrib->valueType() == iAValueType::Categorical) ?
 			std::min(static_cast<size_t>(attrib->max() - attrib->min() + 1), maxBin) :
 			maxBin;
-		QSharedPointer<iAParamHistogramData> paramData = iAParamHistogramData::create(
+		auto paramData = iAParamHistogramData::create(
 			m_root,
 			chartID,
 			attrib->valueType(),
@@ -120,7 +120,7 @@ void iAHistogramContainer::CreateCharts()
 			numBin);
 		if (!paramData)
 		{
-			DEBUG_LOG(QString("ERROR: Creating chart #%1 data for attribute %2 failed!").arg(chartID)
+			LOG(lvlError, QString("Creating chart #%1 data for attribute %2 failed!").arg(chartID)
 				.arg(attrib->name()));
 			continue;
 		}
@@ -182,9 +182,9 @@ void iAHistogramContainer::UpdateClusterChartData(QVector<QSharedPointer<iAImage
 			continue;
 		}
 		m_charts[chartID]->ClearClusterData();
-		for(QSharedPointer<iAImageTreeNode> const node: selection)
+		for (auto const & node: selection)
 		{
-			QSharedPointer<iAAttributeDescriptor> attrib = m_chartAttributes->at(chartID);
+			auto attrib = m_chartAttributes->at(chartID);
 			m_charts[chartID]->AddClusterData(iAParamHistogramData::create(
 				node.data(), chartID,
 				attrib->valueType(),
@@ -216,7 +216,7 @@ void iAHistogramContainer::UpdateClusterFilteredChartData(
 		}
 		else
 		{
-			QSharedPointer<iAAttributeDescriptor> attrib = m_chartAttributes->at(chartID);
+			auto attrib = m_chartAttributes->at(chartID);
 			m_charts[chartID]->SetFilteredClusterData(iAParamHistogramData::create(
 				selectedNode, chartID,
 				attrib->valueType(),
@@ -240,7 +240,7 @@ void iAHistogramContainer::UpdateFilteredChartData(iAChartFilter const & chartFi
 			continue;
 		}
 		assert(m_charts[chartID]);
-		QSharedPointer<iAAttributeDescriptor> attrib = m_chartAttributes->at(chartID);
+		auto attrib = m_chartAttributes->at(chartID);
 		m_charts[chartID]->SetFilteredData(iAParamHistogramData::create(
 			m_root, chartID,
 			attrib->valueType(),
@@ -421,7 +421,7 @@ void iAHistogramContainer::ChartDblClicked()
 	assert(slider);
 	if (!slider)
 	{
-		DEBUG_LOG("ChartDblClicked called from non-slider widget.");
+		LOG(lvlError, "ChartDblClicked called from non-slider widget.");
 		return;
 	}
 	int chartID = slider->GetID();
@@ -435,7 +435,7 @@ void iAHistogramContainer::FilterChanged(double min, double max)
 	assert(slider);
 	if (!slider)
 	{
-		DEBUG_LOG("FilterChanged called from non-slider widget.");
+		LOG(lvlError, "FilterChanged called from non-slider widget.");
 		return;
 	}
 	int chartID = slider->GetID();

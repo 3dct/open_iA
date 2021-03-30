@@ -1,0 +1,802 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<ui version="4.0">
+ <class>samplingSettings</class>
+ <widget class="QDialog" name="samplingSettings">
+  <property name="geometry">
+   <rect>
+    <x>0</x>
+    <y>0</y>
+    <width>674</width>
+    <height>645</height>
+   </rect>
+  </property>
+  <property name="windowTitle">
+   <string>Sampling Settings</string>
+  </property>
+  <layout class="QVBoxLayout" name="samplingSettingsLayout">
+   <property name="spacing">
+    <number>4</number>
+   </property>
+   <property name="leftMargin">
+    <number>4</number>
+   </property>
+   <property name="topMargin">
+    <number>4</number>
+   </property>
+   <property name="rightMargin">
+    <number>4</number>
+   </property>
+   <property name="bottomMargin">
+    <number>4</number>
+   </property>
+   <item>
+    <widget class="QWidget" name="mainSamplingSettingsWidget" native="true">
+     <layout class="QHBoxLayout" name="mainSamplingSettingsLayout">
+      <property name="spacing">
+       <number>0</number>
+      </property>
+      <property name="leftMargin">
+       <number>0</number>
+      </property>
+      <property name="topMargin">
+       <number>0</number>
+      </property>
+      <property name="rightMargin">
+       <number>0</number>
+      </property>
+      <property name="bottomMargin">
+       <number>0</number>
+      </property>
+      <item>
+       <widget class="QSplitter" name="mainSplitter">
+        <property name="orientation">
+         <enum>Qt::Horizontal</enum>
+        </property>
+        <property name="handleWidth">
+         <number>4</number>
+        </property>
+        <property name="childrenCollapsible">
+         <bool>false</bool>
+        </property>
+        <widget class="QWidget" name="samplingSettingsWithoutParametersWidget" native="true">
+         <layout class="QVBoxLayout" name="verticalLayout">
+          <property name="spacing">
+           <number>4</number>
+          </property>
+          <property name="leftMargin">
+           <number>0</number>
+          </property>
+          <property name="topMargin">
+           <number>0</number>
+          </property>
+          <property name="rightMargin">
+           <number>0</number>
+          </property>
+          <property name="bottomMargin">
+           <number>0</number>
+          </property>
+          <item>
+           <widget class="QGroupBox" name="gbAlgorithm">
+            <property name="title">
+             <string>Algorithm</string>
+            </property>
+            <layout class="QGridLayout" name="algorithmLayout">
+             <property name="leftMargin">
+              <number>4</number>
+             </property>
+             <property name="topMargin">
+              <number>4</number>
+             </property>
+             <property name="rightMargin">
+              <number>4</number>
+             </property>
+             <property name="bottomMargin">
+              <number>4</number>
+             </property>
+             <property name="spacing">
+              <number>4</number>
+             </property>
+             <item row="4" column="2">
+              <widget class="QLineEdit" name="leParamDescriptor">
+               <property name="toolTip">
+                <string>A descriptor of all parameters that the executable accepts. The file specified here should contain a single line per parameter, in the same format as the open_iA_cmd.exe tool prints when called with -p &quot;some filter name&quot; parameters.</string>
+               </property>
+               <property name="text">
+                <string/>
+               </property>
+              </widget>
+             </item>
+             <item row="3" column="1">
+              <widget class="QLabel" name="label">
+               <property name="text">
+                <string>Executable: </string>
+               </property>
+              </widget>
+             </item>
+             <item row="4" column="3">
+              <widget class="QToolButton" name="pbChooseParameterDescriptor">
+               <property name="text">
+                <string>...</string>
+               </property>
+              </widget>
+             </item>
+             <item row="1" column="2" colspan="2">
+              <widget class="QLineEdit" name="lePipelineName">
+               <property name="toolTip">
+                <string>The name of the sampled pipeline (mainly for future identification purposes, will be written to the overall output files)</string>
+               </property>
+               <property name="text">
+                <string/>
+               </property>
+              </widget>
+             </item>
+             <item row="5" column="1">
+              <widget class="QLabel" name="label_7">
+               <property name="text">
+                <string>Additional arguments: </string>
+               </property>
+              </widget>
+             </item>
+             <item row="4" column="1">
+              <widget class="QLabel" name="label_2">
+               <property name="text">
+                <string>Parameter descriptor: </string>
+               </property>
+              </widget>
+             </item>
+             <item row="5" column="0">
+              <spacer name="horizontalSpacer_3">
+               <property name="orientation">
+                <enum>Qt::Horizontal</enum>
+               </property>
+               <property name="sizeType">
+                <enum>QSizePolicy::Preferred</enum>
+               </property>
+               <property name="sizeHint" stdset="0">
+                <size>
+                 <width>40</width>
+                 <height>20</height>
+                </size>
+               </property>
+              </spacer>
+             </item>
+             <item row="3" column="3">
+              <widget class="QToolButton" name="pbChooseExecutable">
+               <property name="text">
+                <string>...</string>
+               </property>
+              </widget>
+             </item>
+             <item row="1" column="0" colspan="2">
+              <widget class="QLabel" name="label_14">
+               <property name="text">
+                <string>Pipeline Name: </string>
+               </property>
+              </widget>
+             </item>
+             <item row="4" column="0">
+              <spacer name="horizontalSpacer_2">
+               <property name="orientation">
+                <enum>Qt::Horizontal</enum>
+               </property>
+               <property name="sizeType">
+                <enum>QSizePolicy::Preferred</enum>
+               </property>
+               <property name="sizeHint" stdset="0">
+                <size>
+                 <width>40</width>
+                 <height>20</height>
+                </size>
+               </property>
+              </spacer>
+             </item>
+             <item row="2" column="0">
+              <widget class="QRadioButton" name="rbBuiltIn">
+               <property name="enabled">
+                <bool>true</bool>
+               </property>
+               <property name="text">
+                <string>Built-in</string>
+               </property>
+              </widget>
+             </item>
+             <item row="3" column="0">
+              <widget class="QRadioButton" name="rbExternal">
+               <property name="text">
+                <string>External</string>
+               </property>
+               <property name="checked">
+                <bool>true</bool>
+               </property>
+              </widget>
+             </item>
+             <item row="5" column="2" colspan="2">
+              <widget class="QLineEdit" name="leAdditionalArguments">
+               <property name="acceptDrops">
+                <bool>true</bool>
+               </property>
+               <property name="toolTip">
+                <string>Any additional arguments the given executable requires</string>
+               </property>
+               <property name="text">
+                <string/>
+               </property>
+              </widget>
+             </item>
+             <item row="3" column="2">
+              <widget class="QLineEdit" name="leExecutable">
+               <property name="toolTip">
+                <string>The external executable that is called once per parameter set</string>
+               </property>
+               <property name="text">
+                <string/>
+               </property>
+              </widget>
+             </item>
+             <item row="2" column="1" colspan="3">
+              <widget class="QPushButton" name="pbFilterSelect">
+               <property name="enabled">
+                <bool>false</bool>
+               </property>
+               <property name="toolTip">
+                <string>The built-in filter for which the parameter space should be sampled</string>
+               </property>
+               <property name="text">
+                <string>Select Filter ...</string>
+               </property>
+              </widget>
+             </item>
+            </layout>
+           </widget>
+          </item>
+          <item>
+           <widget class="QGroupBox" name="gbSampling">
+            <property name="title">
+             <string>Sampling</string>
+            </property>
+            <layout class="QGridLayout" name="samplingMethodLayout" columnstretch="1,0">
+             <property name="leftMargin">
+              <number>4</number>
+             </property>
+             <property name="topMargin">
+              <number>4</number>
+             </property>
+             <property name="rightMargin">
+              <number>4</number>
+             </property>
+             <property name="bottomMargin">
+              <number>4</number>
+             </property>
+             <property name="spacing">
+              <number>4</number>
+             </property>
+             <item row="1" column="1">
+              <widget class="QSpinBox" name="sbNumberOfSamples">
+               <property name="sizePolicy">
+                <sizepolicy hsizetype="Expanding" vsizetype="Fixed">
+                 <horstretch>0</horstretch>
+                 <verstretch>0</verstretch>
+                </sizepolicy>
+               </property>
+               <property name="toolTip">
+                <string>The overall number of samples</string>
+               </property>
+               <property name="maximum">
+                <number>999999999</number>
+               </property>
+               <property name="singleStep">
+                <number>10</number>
+               </property>
+               <property name="value">
+                <number>200</number>
+               </property>
+              </widget>
+             </item>
+             <item row="0" column="1">
+              <widget class="QComboBox" name="cbSamplingMethod">
+               <property name="sizePolicy">
+                <sizepolicy hsizetype="Expanding" vsizetype="Fixed">
+                 <horstretch>0</horstretch>
+                 <verstretch>0</verstretch>
+                </sizepolicy>
+               </property>
+               <property name="toolTip">
+                <string>The method used for generating the parameter sets from the ranges below</string>
+               </property>
+               <property name="currentText">
+                <string/>
+               </property>
+               <property name="currentIndex">
+                <number>-1</number>
+               </property>
+              </widget>
+             </item>
+             <item row="2" column="0" colspan="2">
+              <widget class="QWidget" name="globalSensitivitySettingsWidget" native="true">
+               <property name="enabled">
+                <bool>true</bool>
+               </property>
+               <layout class="QGridLayout" name="gobalSensitivityLayout">
+                <property name="leftMargin">
+                 <number>0</number>
+                </property>
+                <property name="topMargin">
+                 <number>0</number>
+                </property>
+                <property name="rightMargin">
+                 <number>0</number>
+                </property>
+                <property name="bottomMargin">
+                 <number>0</number>
+                </property>
+                <property name="spacing">
+                 <number>4</number>
+                </property>
+                <item row="0" column="1">
+                 <widget class="QComboBox" name="cbBaseSamplingMethod">
+                  <property name="sizePolicy">
+                   <sizepolicy hsizetype="Expanding" vsizetype="Fixed">
+                    <horstretch>0</horstretch>
+                    <verstretch>0</verstretch>
+                   </sizepolicy>
+                  </property>
+                  <property name="toolTip">
+                   <string>The method used for generating the parameter sets from the ranges below</string>
+                  </property>
+                  <property name="currentText">
+                   <string/>
+                  </property>
+                  <property name="currentIndex">
+                   <number>-1</number>
+                  </property>
+                 </widget>
+                </item>
+                <item row="1" column="0">
+                 <widget class="QLabel" name="lbStarDelta">
+                  <property name="sizePolicy">
+                   <sizepolicy hsizetype="Fixed" vsizetype="Preferred">
+                    <horstretch>0</horstretch>
+                    <verstretch>0</verstretch>
+                   </sizepolicy>
+                  </property>
+                  <property name="text">
+                   <string>Sensitivity delta</string>
+                  </property>
+                 </widget>
+                </item>
+                <item row="2" column="0">
+                 <widget class="QLabel" name="lbSamplesPerPoint">
+                  <property name="sizePolicy">
+                   <sizepolicy hsizetype="Fixed" vsizetype="Preferred">
+                    <horstretch>0</horstretch>
+                    <verstretch>0</verstretch>
+                   </sizepolicy>
+                  </property>
+                  <property name="text">
+                   <string>Samples per point</string>
+                  </property>
+                 </widget>
+                </item>
+                <item row="1" column="1">
+                 <widget class="QDoubleSpinBox" name="sbSensitivityDelta">
+                  <property name="decimals">
+                   <number>3</number>
+                  </property>
+                  <property name="minimum">
+                   <double>0.050000000000000</double>
+                  </property>
+                  <property name="maximum">
+                   <double>1.000000000000000</double>
+                  </property>
+                  <property name="singleStep">
+                   <double>0.010000000000000</double>
+                  </property>
+                 </widget>
+                </item>
+                <item row="2" column="1">
+                 <widget class="QSpinBox" name="sbSamplesPerPoint">
+                  <property name="minimum">
+                   <number>0</number>
+                  </property>
+                  <property name="maximum">
+                   <number>999</number>
+                  </property>
+                 </widget>
+                </item>
+                <item row="0" column="0">
+                 <widget class="QLabel" name="lbBaseSamplingMethod">
+                  <property name="sizePolicy">
+                   <sizepolicy hsizetype="Fixed" vsizetype="Preferred">
+                    <horstretch>0</horstretch>
+                    <verstretch>0</verstretch>
+                   </sizepolicy>
+                  </property>
+                  <property name="text">
+                   <string>Base Method</string>
+                  </property>
+                 </widget>
+                </item>
+                <item row="3" column="0" colspan="2">
+                 <widget class="QCheckBox" name="cbContinueOnError">
+                  <property name="toolTip">
+                   <string>If checked, sampling will continue in the case that an error occurs while producing a single sample. If unchecked, the whole sampling will be aborted when an error occurs.</string>
+                  </property>
+                  <property name="text">
+                   <string>Continue sampling on error</string>
+                  </property>
+                  <property name="checked">
+                   <bool>true</bool>
+                  </property>
+                 </widget>
+                </item>
+               </layout>
+              </widget>
+             </item>
+             <item row="0" column="0">
+              <widget class="QLabel" name="lbSamplingMethod">
+               <property name="sizePolicy">
+                <sizepolicy hsizetype="Fixed" vsizetype="Preferred">
+                 <horstretch>0</horstretch>
+                 <verstretch>0</verstretch>
+                </sizepolicy>
+               </property>
+               <property name="text">
+                <string>Method</string>
+               </property>
+              </widget>
+             </item>
+             <item row="1" column="0">
+              <widget class="QLabel" name="lbNumberOfSamples">
+               <property name="sizePolicy">
+                <sizepolicy hsizetype="Fixed" vsizetype="Preferred">
+                 <horstretch>0</horstretch>
+                 <verstretch>0</verstretch>
+                </sizepolicy>
+               </property>
+               <property name="text">
+                <string># of samples</string>
+               </property>
+              </widget>
+             </item>
+            </layout>
+           </widget>
+          </item>
+          <item>
+           <widget class="QGroupBox" name="gbOutput">
+            <property name="title">
+             <string>Output</string>
+            </property>
+            <layout class="QGridLayout" name="outputLayout">
+             <property name="leftMargin">
+              <number>4</number>
+             </property>
+             <property name="topMargin">
+              <number>4</number>
+             </property>
+             <property name="rightMargin">
+              <number>4</number>
+             </property>
+             <property name="bottomMargin">
+              <number>4</number>
+             </property>
+             <property name="spacing">
+              <number>4</number>
+             </property>
+             <item row="0" column="0">
+              <widget class="QLabel" name="lbOutFolder">
+               <property name="text">
+                <string>Output folder: </string>
+               </property>
+              </widget>
+             </item>
+             <item row="3" column="0">
+              <widget class="QLabel" name="lbOutBaseName">
+               <property name="text">
+                <string>Base name: </string>
+               </property>
+              </widget>
+             </item>
+             <item row="4" column="0" colspan="3">
+              <layout class="QHBoxLayout" name="horizontalLayout_3">
+               <property name="spacing">
+                <number>4</number>
+               </property>
+               <property name="leftMargin">
+                <number>0</number>
+               </property>
+               <property name="topMargin">
+                <number>0</number>
+               </property>
+               <item>
+                <widget class="QCheckBox" name="cbOverwriteOutput">
+                 <property name="toolTip">
+                  <string>If checked, overwrites any output files which might exist. If unchecked, any output file already existing will cause an error, and will cause the corresponding sample not to be computed; if 'Continue sampling on error' is unchecked, the whole sampling will be aborted</string>
+                 </property>
+                 <property name="text">
+                  <string>Overwrite output</string>
+                 </property>
+                </widget>
+               </item>
+               <item>
+                <widget class="QCheckBox" name="cbCompressOutput">
+                 <property name="toolTip">
+                  <string>If activated, all images produced by the filter will be written to .mhd+.zraw (instead of .mhd+raw if compression is disabled)</string>
+                 </property>
+                 <property name="text">
+                  <string>Compress output</string>
+                 </property>
+                </widget>
+               </item>
+               <item>
+                <widget class="QCheckBox" name="cbSeparateFolder">
+                 <property name="toolTip">
+                  <string>If activated, a separate subfolder is created per sample</string>
+                 </property>
+                 <property name="text">
+                  <string>Subfolder per sample</string>
+                 </property>
+                </widget>
+               </item>
+              </layout>
+             </item>
+             <item row="3" column="1" colspan="2">
+              <widget class="QLineEdit" name="leBaseName">
+               <property name="toolTip">
+                <string>Base name for all output files</string>
+               </property>
+               <property name="text">
+                <string>sample.mhd</string>
+               </property>
+              </widget>
+             </item>
+             <item row="0" column="2">
+              <widget class="QToolButton" name="pbChooseOutputFolder">
+               <property name="text">
+                <string>...</string>
+               </property>
+              </widget>
+             </item>
+             <item row="0" column="1">
+              <widget class="QLineEdit" name="leOutputFolder">
+               <property name="toolTip">
+                <string>The directory under which output files are stored</string>
+               </property>
+               <property name="text">
+                <string/>
+               </property>
+              </widget>
+             </item>
+            </layout>
+           </widget>
+          </item>
+          <item>
+           <widget class="QGroupBox" name="gbDerivedOutput">
+            <property name="title">
+             <string>Derived Output</string>
+            </property>
+            <layout class="QGridLayout" name="derivedOutputLayout">
+             <property name="leftMargin">
+              <number>4</number>
+             </property>
+             <property name="topMargin">
+              <number>4</number>
+             </property>
+             <property name="rightMargin">
+              <number>4</number>
+             </property>
+             <property name="bottomMargin">
+              <number>4</number>
+             </property>
+             <property name="spacing">
+              <number>4</number>
+             </property>
+             <item row="0" column="1">
+              <widget class="QCheckBox" name="cbCalcChar">
+               <property name="toolTip">
+                <string>In case your sampling produces a segmented image, and you want to compute the number of components that were segmented as well as an entropy image, then check this box</string>
+               </property>
+               <property name="text">
+                <string>Component count and entropy</string>
+               </property>
+              </widget>
+             </item>
+             <item row="0" column="2">
+              <widget class="QLabel" name="lbNumberOfLabels">
+               <property name="sizePolicy">
+                <sizepolicy hsizetype="Fixed" vsizetype="Preferred">
+                 <horstretch>0</horstretch>
+                 <verstretch>0</verstretch>
+                </sizepolicy>
+               </property>
+               <property name="text">
+                <string># of Labels</string>
+               </property>
+              </widget>
+             </item>
+             <item row="0" column="3">
+              <widget class="QSpinBox" name="sbLabelCount">
+               <property name="toolTip">
+                <string>Only relevant if the output is a segmentated image and the derived output is computed; then this needs to represent the number of labels present in the output</string>
+               </property>
+               <property name="minimum">
+                <number>2</number>
+               </property>
+               <property name="maximum">
+                <number>99999999</number>
+               </property>
+              </widget>
+             </item>
+            </layout>
+           </widget>
+          </item>
+          <item>
+           <widget class="QTextBrowser" name="textSamplingDescription"/>
+          </item>
+         </layout>
+        </widget>
+        <widget class="QGroupBox" name="parameterGroupBox">
+         <property name="title">
+          <string>Algorithm details &amp;&amp; parameter ranges</string>
+         </property>
+         <layout class="QGridLayout" name="parameterLayout">
+          <property name="leftMargin">
+           <number>4</number>
+          </property>
+          <property name="topMargin">
+           <number>4</number>
+          </property>
+          <property name="rightMargin">
+           <number>4</number>
+          </property>
+          <property name="bottomMargin">
+           <number>4</number>
+          </property>
+          <property name="spacing">
+           <number>4</number>
+          </property>
+          <item row="1" column="0">
+           <widget class="QLabel" name="lbParameterName">
+            <property name="text">
+             <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;&lt;span style=&quot; font-weight:600;&quot;&gt;Parameter&lt;/span&gt;&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
+            </property>
+            <property name="textFormat">
+             <enum>Qt::RichText</enum>
+            </property>
+           </widget>
+          </item>
+          <item row="1" column="1">
+           <widget class="QLabel" name="lbParameterFrom">
+            <property name="text">
+             <string>From</string>
+            </property>
+           </widget>
+          </item>
+          <item row="1" column="2">
+           <widget class="QLabel" name="lbParameterTo">
+            <property name="text">
+             <string>To</string>
+            </property>
+           </widget>
+          </item>
+          <item row="1" column="3">
+           <widget class="QLabel" name="lbParameterScale">
+            <property name="text">
+             <string>Scale</string>
+            </property>
+           </widget>
+          </item>
+          <item row="0" column="0" colspan="4">
+           <widget class="QTextBrowser" name="textAlgorithmDescription"/>
+          </item>
+         </layout>
+        </widget>
+       </widget>
+      </item>
+     </layout>
+    </widget>
+   </item>
+   <item>
+    <widget class="QWidget" name="samplingButtonBar" native="true">
+     <property name="sizePolicy">
+      <sizepolicy hsizetype="Preferred" vsizetype="Fixed">
+       <horstretch>0</horstretch>
+       <verstretch>0</verstretch>
+      </sizepolicy>
+     </property>
+     <layout class="QHBoxLayout" name="layoutButtonBar">
+      <property name="spacing">
+       <number>4</number>
+      </property>
+      <property name="leftMargin">
+       <number>0</number>
+      </property>
+      <property name="topMargin">
+       <number>0</number>
+      </property>
+      <property name="rightMargin">
+       <number>0</number>
+      </property>
+      <property name="bottomMargin">
+       <number>0</number>
+      </property>
+      <item>
+       <widget class="QToolButton" name="tbSaveSettings">
+        <property name="text">
+         <string>Save Settings...</string>
+        </property>
+        <property name="icon">
+         <iconset resource="../../libs/guibase/guibase.qrc">
+          <normaloff>:/images/save.png</normaloff>:/images/save.png</iconset>
+        </property>
+        <property name="popupMode">
+         <enum>QToolButton::InstantPopup</enum>
+        </property>
+        <property name="toolButtonStyle">
+         <enum>Qt::ToolButtonIconOnly</enum>
+        </property>
+       </widget>
+      </item>
+      <item>
+       <widget class="QToolButton" name="tbLoadSettings">
+        <property name="text">
+         <string>Load Settings...</string>
+        </property>
+        <property name="icon">
+         <iconset resource="../../libs/guibase/guibase.qrc">
+          <normaloff>:/images/open.png</normaloff>:/images/open.png</iconset>
+        </property>
+        <property name="popupMode">
+         <enum>QToolButton::InstantPopup</enum>
+        </property>
+       </widget>
+      </item>
+      <item>
+       <spacer name="horizontalSpacer">
+        <property name="orientation">
+         <enum>Qt::Horizontal</enum>
+        </property>
+        <property name="sizeHint" stdset="0">
+         <size>
+          <width>40</width>
+          <height>20</height>
+         </size>
+        </property>
+       </spacer>
+      </item>
+      <item>
+       <widget class="QPushButton" name="pbRun">
+        <property name="toolTip">
+         <string>Start the sampling procedure</string>
+        </property>
+        <property name="text">
+         <string>Run!</string>
+        </property>
+        <property name="default">
+         <bool>true</bool>
+        </property>
+       </widget>
+      </item>
+      <item>
+       <widget class="QPushButton" name="pbCancel">
+        <property name="toolTip">
+         <string>Cancel (no sampling is performed)</string>
+        </property>
+        <property name="text">
+         <string>Cancel</string>
+        </property>
+       </widget>
+      </item>
+     </layout>
+    </widget>
+   </item>
+  </layout>
+ </widget>
+ <tabstops>
+  <tabstop>pbRun</tabstop>
+  <tabstop>pbCancel</tabstop>
+ </tabstops>
+ <resources>
+  <include location="../../libs/guibase/guibase.qrc"/>
+ </resources>
+ <connections/>
+</ui>

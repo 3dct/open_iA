@@ -1,8 +1,8 @@
 /*************************************  open_iA  ************************************ *
 * **********   A tool for visual analysis and processing of 3D CT images   ********** *
 * *********************************************************************************** *
-* Copyright (C) 2016-2020  C. Heinzl, M. Reiter, A. Reh, W. Li, M. Arikan, Ar. &  Al. *
-*                          Amirkhanov, J. Weissenböck, B. Fröhler, M. Schiwarth       *
+* Copyright (C) 2016-2021  C. Heinzl, M. Reiter, A. Reh, W. Li, M. Arikan, Ar. &  Al. *
+*                 Amirkhanov, J. Weissenböck, B. Fröhler, M. Schiwarth, P. Weinberger *
 * *********************************************************************************** *
 * This program is free software: you can redistribute it and/or modify it under the   *
 * terms of the GNU General Public License as published by the Free Software           *
@@ -24,19 +24,20 @@
 
 #include "iAImageTreeNode.h"    // for LabelImagePointer
 
+#include <iAProgress.h>
+
 #include <qthelper/iAQTtoUIConnector.h>
 
 #include <vtkSmartPointer.h>
 
 struct ChartWidgetData;
 class dlg_GEMSe;
-class dlg_progress;
 class dlg_samplings;
 class iAColorTheme;
 class iAImageSampler;
 class iALookupTable;
 class iASamplingResults;
-class MdiChild;
+class iAMdiChild;
 
 class vtkChartXY;
 class vtkPlot;
@@ -50,7 +51,7 @@ class dlg_Consensus : public dlg_ConsensusUI
 {
 	Q_OBJECT
 public:
-	dlg_Consensus(MdiChild* mdiChild, dlg_GEMSe* dlgGEMSe, int labelCount,
+	dlg_Consensus(iAMdiChild* mdiChild, dlg_GEMSe* dlgGEMSe, int labelCount,
 			QString const & folder, dlg_samplings* dlgSamplings);
 	virtual ~dlg_Consensus();
 	void SetGroundTruthImage(LabelImagePointer groundTruthImage);
@@ -86,7 +87,7 @@ private:
 		QString const & name);
 	void StartNextSampler();
 
-	MdiChild*  m_mdiChild;
+	iAMdiChild*  m_mdiChild;
 	dlg_GEMSe* m_dlgGEMSe;
 	LabelImagePointer m_groundTruthImage;
 	int m_labelCount;
@@ -101,8 +102,9 @@ private:
 
 	// for hold-out validation:
 	QVector<QSharedPointer<iAImageSampler> > m_queuedSamplers;
+	QVector<QMap<QString, QVariant> > m_samplerParameters;
 	QSharedPointer<iAImageSampler> m_currentSampler;
-	dlg_progress * m_dlgProgress;
+	iAProgress m_progress;
 	QVector<QSharedPointer<iASamplingResults> > m_comparisonSamplingResults;
 	QVector<QVector<int> > m_comparisonBestIDs;
 	QVector<QVector<int> > m_comparisonMVIDs;

@@ -1,8 +1,8 @@
 /*************************************  open_iA  ************************************ *
 * **********   A tool for visual analysis and processing of 3D CT images   ********** *
 * *********************************************************************************** *
-* Copyright (C) 2016-2020  C. Heinzl, M. Reiter, A. Reh, W. Li, M. Arikan, Ar. &  Al. *
-*                          Amirkhanov, J. Weissenböck, B. Fröhler, M. Schiwarth       *
+* Copyright (C) 2016-2021  C. Heinzl, M. Reiter, A. Reh, W. Li, M. Arikan, Ar. &  Al. *
+*                 Amirkhanov, J. Weissenböck, B. Fröhler, M. Schiwarth, P. Weinberger *
 * *********************************************************************************** *
 * This program is free software: you can redistribute it and/or modify it under the   *
 * terms of the GNU General Public License as published by the Free Software           *
@@ -26,13 +26,13 @@
 #include <dlg_commoninput.h>
 #include <iAChannelData.h>
 #include <iAColorTheme.h>
-#include <iAConsole.h>
+#include <iALog.h>
 #include <iAModality.h>
 #include <iAModalityList.h>
 #include <iAToolsVTK.h>
 #include <iAVtkDraw.h>
-#include <io/iAFileUtils.h>
-#include <mdichild.h>
+#include <iAFileUtils.h>
+#include <iAMdiChild.h>
 
 #include <vtkImageData.h>
 #include <vtkLookupTable.h>
@@ -49,7 +49,7 @@
 #include <random>
 
 
-dlg_labels::dlg_labels(MdiChild* mdiChild, iAColorTheme const * colorTheme):
+dlg_labels::dlg_labels(iAMdiChild* mdiChild, iAColorTheme const * colorTheme):
 	m_itemModel(new QStandardItemModel()),
 	m_colorTheme(colorTheme),
 	m_maxColor(0),
@@ -297,7 +297,7 @@ bool dlg_labels::load(QString const & filename)
 	QFile file(filename);
 	if (!file.open(QIODevice::ReadOnly | QIODevice::Text))
 	{
-		DEBUG_LOG(QString("Seed file loading: Failed to open file '%1'!").arg(filename));
+		LOG(lvlError, QString("Seed file loading: Failed to open file '%1'!").arg(filename));
 		return false;
 	}
 	QXmlStreamReader stream(&file);
@@ -309,11 +309,11 @@ bool dlg_labels::load(QString const & filename)
 	{
 		if (stream.isStartElement())
 		{
-			if (stream.name() == "Labels")
+			if (stream.name().toString() == "Labels")
 			{
 				// root element, no action required
 			}
-			else if (stream.name() == "Label")
+			else if (stream.name().toString() == "Label")
 			{
 				enableStoreBtn = true;
 				QString id = stream.attributes().value("id").toString();
@@ -321,16 +321,16 @@ bool dlg_labels::load(QString const & filename)
 				curLabelRow = addLabelItem(name);
 				if (m_itemModel->rowCount()-1 != id.toInt())
 				{
-					DEBUG_LOG(QString("Inserting row: rowCount %1 <-> label id %2 mismatch!")
+					LOG(lvlError, QString("Inserting row: rowCount %1 <-> label id %2 mismatch!")
 						.arg(m_itemModel->rowCount())
 						.arg(id) );
 				}
 			}
-			else if (stream.name() == "Seed")
+			else if (stream.name().toString() == "Seed")
 			{
 				if (curLabelRow == -1)
 				{
-					DEBUG_LOG(QString("Error loading seed file '%1': Current label not set!")
+					LOG(lvlError, QString("Error loading seed file '%1': Current label not set!")
 						.arg(filename) );
 					return false;
 				}
@@ -346,14 +346,14 @@ bool dlg_labels::load(QString const & filename)
 	file.close();
 	if (stream.hasError())
 	{
-	   DEBUG_LOG(QString("Error: Failed to parse seed xml file '%1': %2")
+	   LOG(lvlError, QString("Error: Failed to parse seed xml file '%1': %2")
 		   .arg(filename)
 		   .arg(stream.errorString()) );
 	   return false;
 	}
 	else if (file.error() != QFile::NoError)
 	{
-		DEBUG_LOG(QString("Error: Cannot read file '%1': %2")
+		LOG(lvlError, QString("Error: Cannot read file '%1': %2")
 			.arg(filename )
 			.arg(file.errorString()) );
 	   return false;
@@ -462,7 +462,7 @@ void dlg_labels::Store()
 	dlg_commoninput extendedFormatInput(this, "Seed File Format", inList, inPara, nullptr);
 	if (extendedFormatInput.exec() != QDialog::Accepted)
 	{
-		DEBUG_LOG("Selection of format aborted, aborting seed file storing");
+		LOG(lvlError, "Selection of format aborted, aborting seed file storing");
 		return;
 	}
 	if (!store(fileName, extendedFormatInput.getCheckValue(0)))
@@ -546,7 +546,7 @@ void dlg_labels::Sample()
 		if ((histogram[i] * 3 / 4) < numOfSeedsPerLabel[i])
 		{
 			numOfSeedsPerLabel[i] = histogram[i] * 3 / 4;
-			DEBUG_LOG(QString("Reducing number of seeds for label %1 to %2 because it only has %3 pixels")
+			LOG(lvlWarn, QString("Reducing number of seeds for label %1 to %2 because it only has %3 pixels")
 				.arg(i).arg(numOfSeedsPerLabel[i]).arg(histogram[i]));
 		}
 		if (numOfSeedsPerLabel[i] < minNumOfSeeds)

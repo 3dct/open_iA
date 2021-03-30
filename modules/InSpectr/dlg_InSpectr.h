@@ -1,8 +1,8 @@
 /*************************************  open_iA  ************************************ *
 * **********   A tool for visual analysis and processing of 3D CT images   ********** *
 * *********************************************************************************** *
-* Copyright (C) 2016-2020  C. Heinzl, M. Reiter, A. Reh, W. Li, M. Arikan, Ar. &  Al. *
-*                          Amirkhanov, J. Weissenböck, B. Fröhler, M. Schiwarth       *
+* Copyright (C) 2016-2021  C. Heinzl, M. Reiter, A. Reh, W. Li, M. Arikan, Ar. &  Al. *
+*                 Amirkhanov, J. Weissenböck, B. Fröhler, M. Schiwarth, P. Weinberger *
 * *********************************************************************************** *
 * This program is free software: you can redistribute it and/or modify it under the   *
 * terms of the GNU General Public License as published by the Free Software           *
@@ -45,7 +45,6 @@ class dlg_RefSpectra;
 class iAAccumulatedXRFData;
 class iADecompositionCalculator;
 class iAElementConcentrations;
-class iAEnergySpectrumDiagramData;
 class iAEnergySpectrumWidget;
 class iAPieChartGlyph;
 class iAPieChartWidget;
@@ -53,11 +52,13 @@ class iAReferenceSpectraLibrary;
 class iAPeriodicTableListener;
 class iAXRFData;
 
+class iAMdiChild;
+
+class iAHistogramData;
 class iAPlot;
 class iAPlotCollection;
 class iASelectedBinPlot;
 class iAStepFunctionPlot;
-class iAWidgetAddHelper;
 
 class vtkColorTransferFunction;
 class vtkImageData;
@@ -72,9 +73,8 @@ class dlg_InSpectr : public dlg_xrfContainer, public iASpectrumFilterListener
 	Q_OBJECT
 public:
 	dlg_InSpectr(QWidget *parentWidget, dlg_periodicTable* dlgPeriodicTable, dlg_RefSpectra* dlgRefSpectra);
-	void init(double minEnergy, double maxEnergy, bool haveEnergyLevels,
-		iAWidgetAddHelper& widgetAddHelper);
-	void InitElementMaps(iAWidgetAddHelper & widgetAddHelper);
+	void init(double minEnergy, double maxEnergy, bool haveEnergyLevels, iAMdiChild* child);
+	void InitElementMaps(iAMdiChild* child);
 
 	vtkSmartPointer<vtkImageData> GetCombinedVolume();
 	vtkSmartPointer<vtkColorTransferFunction> GetColorTransferFunction();
@@ -164,7 +164,7 @@ private:
 	void updateSelection();
 	void enableControlsNeedingDecompositionData();
 	void InitElementRenderer(dlg_elementRenderer * elemRend, size_t index);
-	void InitCommonGUI(iAWidgetAddHelper & widgetAddHelper);
+	void InitCommonGUI(iAMdiChild* child);
 
 	QSharedPointer<QImage>                         m_spectraHistogramImage;
 	QImage                                         m_spectraHistogramColormap;
@@ -179,7 +179,7 @@ private:
 	vtkSmartPointer<vtkPiecewiseFunction>          m_oTF;
 	vtkSmartPointer<vtkColorTransferFunction>      m_cTF;
 	QSharedPointer<iAXRFData>                      m_xrfData;
-	QSharedPointer<iAEnergySpectrumDiagramData>    m_voxelEnergy;
+	QSharedPointer<iAHistogramData>                m_voxelEnergy;
 	QSharedPointer<iAAccumulatedXRFData>           m_accumulatedXRF;
 	QMap<int, QSharedPointer<iAStepFunctionPlot> > m_refSpectraDrawers;
 	QSharedPointer<iAReferenceSpectraLibrary>      m_refSpectraLib;

@@ -1,8 +1,8 @@
 /*************************************  open_iA  ************************************ *
 * **********   A tool for visual analysis and processing of 3D CT images   ********** *
 * *********************************************************************************** *
-* Copyright (C) 2016-2020  C. Heinzl, M. Reiter, A. Reh, W. Li, M. Arikan, Ar. &  Al. *
-*                          Amirkhanov, J. Weissenböck, B. Fröhler, M. Schiwarth       *
+* Copyright (C) 2016-2021  C. Heinzl, M. Reiter, A. Reh, W. Li, M. Arikan, Ar. &  Al. *
+*                 Amirkhanov, J. Weissenböck, B. Fröhler, M. Schiwarth, P. Weinberger *
 * *********************************************************************************** *
 * This program is free software: you can redistribute it and/or modify it under the   *
 * terms of the GNU General Public License as published by the Free Software           *
@@ -43,7 +43,7 @@
 #include "iASingleResult.h"
 
 #include <iAAttributeDescriptor.h>
-#include <iAConsole.h>
+#include <iALog.h>
 #include <iALogger.h>
 #include <iAMathUtility.h>
 #include <iAToolsITK.h>
@@ -140,7 +140,7 @@ void dlg_GEMSe::SetTree(
 
 	if (m_pipelineNames.size() != m_samplings->size())
 	{
-		DEBUG_LOG("Insufficient number of pipeline names specified!");
+		LOG(lvlError, "Insufficient number of pipeline names specified!");
 		return;
 	}
 	m_histogramContainer = new iAHistogramContainer(m_chartAttributes, m_chartAttributeMapper, GetRoot().data(), m_pipelineNames);
@@ -183,7 +183,7 @@ void dlg_GEMSe::SetTree(
 
 void dlg_GEMSe::CreateMapper()
 {
-	m_chartAttributes = QSharedPointer<iAAttributes>(new iAAttributes());
+	m_chartAttributes = QSharedPointer<iAAttributes>::create();
 	m_chartAttributeMapper.Clear();
 	int nextChartID = 0;
 	m_pipelineNames.clear();
@@ -191,8 +191,8 @@ void dlg_GEMSe::CreateMapper()
 	{
 		QSharedPointer<iASamplingResults> sampling = m_samplings->at(samplingIdx);
 		m_pipelineNames.push_back(sampling->name());
-		int datasetID = sampling->GetID();
-		QSharedPointer<iAAttributes> attributes = sampling->GetAttributes();
+		int datasetID = sampling->id();
+		QSharedPointer<iAAttributes> attributes = sampling->attributes();
 		for (int attributeID = 0; attributeID < attributes->size(); ++attributeID)
 		{
 			int chartID = -1;
@@ -203,7 +203,7 @@ void dlg_GEMSe::CreateMapper()
 				attribute->attribType() ==
 				iAAttributeDescriptor::DerivedOutput) // at the moment for derived output only
 			{
-				chartID = m_chartAttributes->find(attribute->name());
+				chartID = findAttribute(*m_chartAttributes.data(), attribute->name());
 			}
 			if (chartID != -1)
 			{	// reuse existing chart, only add mapping:
@@ -214,7 +214,7 @@ void dlg_GEMSe::CreateMapper()
 			}
 			else
 			{	// add chart and mapping:
-				m_chartAttributes->add(attribute);
+				m_chartAttributes->push_back(attribute);
 				chartID = nextChartID;
 				nextChartID++;
 				m_chartAttributeMapper.Add(datasetID, attributeID, chartID);
@@ -410,7 +410,7 @@ void dlg_GEMSe::ToggleHate()
 	iAImageTreeNode* node = (m_selectedLeaf) ? m_selectedLeaf : m_selectedCluster.data();
 	if (!node)
 	{
-		DEBUG_LOG("ToggleHate No node selected!");
+		LOG(lvlError, "ToggleHate: No node selected!");
 		return;
 	}
 	bool isHated = m_favoriteWidget->ToggleHate(node);
@@ -425,7 +425,7 @@ void dlg_GEMSe::ToggleLike()
 	iAImageTreeNode* node = (m_selectedLeaf) ? m_selectedLeaf : m_selectedCluster.data();
 	if (!node)
 	{
-		DEBUG_LOG("ToggleHate No node selected!");
+		LOG(lvlError, "ToggleLike: No node selected!");
 		return;
 	}
 	m_favoriteWidget->ToggleLike(node);
@@ -496,7 +496,7 @@ void dlg_GEMSe::JumpToNode(iAImageTreeNode * node, int stepLimit)
 {
 	if (!node)
 	{
-		DEBUG_LOG("JumpToNode: No node selected!");
+		LOG(lvlError, "JumpToNode: No node selected!");
 		return;
 	}
 	if (dynamic_cast<iAFakeTreeNode*>(node) || !m_treeView->JumpToNode(node, stepLimit))
@@ -536,7 +536,7 @@ void dlg_GEMSe::ShowImage(vtkSmartPointer<vtkImageData> imgData)
 {
 	if (!m_cameraWidget)
 	{
-		DEBUG_LOG("ShowImage: Camera Widget not set!");
+		LOG(lvlError, "ShowImage: Camera Widget not set!");
 		return;
 	}
 	m_cameraWidget->showImage(imgData);
@@ -587,7 +587,7 @@ void dlg_GEMSe::CalculateRefImgComp(QSharedPointer<iAImageTreeNode> node, LabelI
 				debugOut += QString("\t%1").arg(leaf->GetAttribute(i));
 			}
 		}
-		DEBUG_LOG(debugOut);
+		LOG(lvlDebug, debugOut);
 		*/
 		// }
 		for (int i=0; i<measures.size(); ++i)
@@ -611,7 +611,7 @@ void dlg_GEMSe::CalcRefImgComp(LabelImagePointer refImg)
 {
 	if (!refImg)
 	{
-		DEBUG_LOG("Reference image comparison calculate: nullptr reference image (maybe wrong image type?)!");
+		LOG(lvlError, "Reference image comparison calculate: nullptr reference image (maybe wrong image type?)!");
 		return;
 	}
 	if (!m_treeView)
@@ -619,37 +619,37 @@ void dlg_GEMSe::CalcRefImgComp(LabelImagePointer refImg)
 		return;
 	}
 	int labelCount = m_treeView->GetTree()->labelCount();
-	m_MeasureChartIDStart = m_chartAttributes->find("Dice");
+	m_MeasureChartIDStart = findAttribute(*m_chartAttributes.data(), "Dice");
 	if (m_MeasureChartIDStart == -1)
 	{
 		QVector<QSharedPointer<iAAttributeDescriptor> > measures;
-		measures.push_back(QSharedPointer<iAAttributeDescriptor>(new iAAttributeDescriptor(
-			"Dice", iAAttributeDescriptor::DerivedOutput, Continuous)));
-		measures.push_back(QSharedPointer<iAAttributeDescriptor>(new iAAttributeDescriptor(
-			"Kappa", iAAttributeDescriptor::DerivedOutput, Continuous)));
-		measures.push_back(QSharedPointer<iAAttributeDescriptor>(new iAAttributeDescriptor(
-			"Overall Accuracy", iAAttributeDescriptor::DerivedOutput, Continuous)));
-		measures.push_back(QSharedPointer<iAAttributeDescriptor>(new iAAttributeDescriptor(
-			"Precision", iAAttributeDescriptor::DerivedOutput, Continuous)));
-		measures.push_back(QSharedPointer<iAAttributeDescriptor>(new iAAttributeDescriptor(
-			"Recall", iAAttributeDescriptor::DerivedOutput, Continuous)));
+		measures.push_back(QSharedPointer<iAAttributeDescriptor>::create(
+			"Dice", iAAttributeDescriptor::DerivedOutput, iAValueType::Continuous));
+		measures.push_back(QSharedPointer<iAAttributeDescriptor>::create(
+			"Kappa", iAAttributeDescriptor::DerivedOutput, iAValueType::Continuous));
+		measures.push_back(QSharedPointer<iAAttributeDescriptor>::create(
+			"Overall Accuracy", iAAttributeDescriptor::DerivedOutput, iAValueType::Continuous));
+		measures.push_back(QSharedPointer<iAAttributeDescriptor>::create(
+			"Precision", iAAttributeDescriptor::DerivedOutput, iAValueType::Continuous));
+		measures.push_back(QSharedPointer<iAAttributeDescriptor>::create(
+			"Recall", iAAttributeDescriptor::DerivedOutput, iAValueType::Continuous));
 		for (int i=0; i<labelCount; ++i)
 		{
-			measures.push_back(QSharedPointer<iAAttributeDescriptor>(new iAAttributeDescriptor(
-				QString("Dice %1").arg(i), iAAttributeDescriptor::DerivedOutput, Continuous)));
+			measures.push_back(QSharedPointer<iAAttributeDescriptor>::create(
+				QString("Dice %1").arg(i), iAAttributeDescriptor::DerivedOutput, iAValueType::Continuous));
 		}
 		m_MeasureChartIDStart = m_chartAttributes->size();
 		for (QSharedPointer<iAAttributeDescriptor> measure : measures)
 		{
 			int chartID = m_chartAttributes->size();
-			m_chartAttributes->add(measure);
+			m_chartAttributes->push_back(measure);
 			// add mappings:
 			for (int sampleIdx = 0; sampleIdx < m_samplings->size(); ++sampleIdx)
 			{
-				QSharedPointer<iAAttributes> attribs = m_samplings->at(sampleIdx)->GetAttributes();
+				QSharedPointer<iAAttributes> attribs = m_samplings->at(sampleIdx)->attributes();
 				int attributeID = attribs->size();
-				int datasetID = m_samplings->at(sampleIdx)->GetID();
-				attribs->add(measure);
+				int datasetID = m_samplings->at(sampleIdx)->id();
+				attribs->push_back(measure);
 				m_chartAttributeMapper.Add(datasetID, attributeID, chartID);
 			}
 		}
@@ -659,7 +659,7 @@ void dlg_GEMSe::CalcRefImgComp(LabelImagePointer refImg)
 		m_chartAttributes->at(i)->resetMinMax();
 	}
 
-	//DEBUG_LOG("Measures for ENSEMBLE:");
+	//LOG(lvlInfo, "Measures for ENSEMBLE:");
 	CalculateRefImgComp(GetRoot(), refImg, labelCount);	// rewrite using VisitLeafs !
 	m_histogramContainer->CreateCharts();
 	UpdateClusterChartData();
@@ -759,6 +759,10 @@ void dlg_GEMSe::setMagicLensCount(int count)
 
 void dlg_GEMSe::freeMemory()
 {
+	if (!m_treeView)
+	{
+		return;
+	}
 	m_treeView->freeMemory(GetRoot(), false);
 }
 

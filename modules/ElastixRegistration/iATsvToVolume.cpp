@@ -1,22 +1,35 @@
+/*************************************  open_iA  ************************************ *
+* **********   A tool for visual analysis and processing of 3D CT images   ********** *
+* *********************************************************************************** *
+* Copyright (C) 2016-2021  C. Heinzl, M. Reiter, A. Reh, W. Li, M. Arikan, Ar. &  Al. *
+*                 Amirkhanov, J. Weissenböck, B. Fröhler, M. Schiwarth, P. Weinberger *
+* *********************************************************************************** *
+* This program is free software: you can redistribute it and/or modify it under the   *
+* terms of the GNU General Public License as published by the Free Software           *
+* Foundation, either version 3 of the License, or (at your option) any later version. *
+*                                                                                     *
+* This program is distributed in the hope that it will be useful, but WITHOUT ANY     *
+* WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS FOR A     *
+* PARTICULAR PURPOSE.  See the GNU General Public License for more details.           *
+*                                                                                     *
+* You should have received a copy of the GNU General Public License along with this   *
+* program.  If not, see http://www.gnu.org/licenses/                                  *
+* *********************************************************************************** *
+* Contact: FH OÖ Forschungs & Entwicklungs GmbH, Campus Wels, CT-Gruppe,              *
+*          Stelzhamerstraße 23, 4600 Wels / Austria, Email: c.heinzl@fh-wels.at       *
+* ************************************************************************************/
 #include "iATsvToVolume.h"
 
-#include "defines.h" // for DIM
-#include "iAConnector.h"
-#include "iAProgress.h"
-#include "iATypedCallHelper.h"
+#include <iAProgress.h>
+#include <iATypedCallHelper.h>
 
-#include "qtextstream.h"
-#include "qfile.h"
-#include "qregularexpression.h"
+#include <itkImage.h>
 
+#include <QFile>
+#include <QTextStream>
 
-#include <itkDerivativeImageFilter.h>
-
-
-
-
-QList<float> process_line(QStringList line) {
-
+QList<float> process_line(QStringList line)
+{
 	QList<float> data;
 	for(QString value : line)
 	{
@@ -26,8 +39,8 @@ QList<float> process_line(QStringList line) {
 	return data;
 }
 
-QList<float> getMax(QList<QList<float>> image) {
-
+QList<float> getMax(QList<QList<float>> image)
+{
 	QList<float> data;
 	float x=0, y=0, z=0;
 	for(QList<float> values : image)
@@ -36,16 +49,15 @@ QList<float> getMax(QList<QList<float>> image) {
 		y = y < values[2] ? values[2] : y;
 		z = z < values[3] ? values[3] : z;
 	}
-
 	data.append(x);
 	data.append(y);
 	data.append(z);
-
 	return data;
 }
 
 
-void createOutput(QList<QList<float>> data, QList<float> maxValues, float offset[3], float spacing[3], iAFilter* filter, int indexFile) {
+void createOutput(QList<QList<float>> data, QList<float> maxValues, float offset[3], float spacing[3], iAFilter* filter, int indexFile)
+{
 	using ImageType = itk::Image<float, 3>;
 	ImageType::Pointer image = ImageType::New();
 
@@ -62,12 +74,8 @@ void createOutput(QList<QList<float>> data, QList<float> maxValues, float offset
 	ImageType::RegionType region;
 	region.SetSize(size);
 	region.SetIndex(start);
-
-
-
 	image->SetRegions(region);
 	image->Allocate();
-
 	image->SetSpacing(spacing);
 	image->SetOrigin(offset);
 
@@ -85,15 +93,14 @@ void createOutput(QList<QList<float>> data, QList<float> maxValues, float offset
 	filter->addOutput(image.GetPointer());
 }
 
-
 template<class T>
 void runTransform(iAFilter* filter, QMap<QString, QVariant> const & params)
 {
-
 	QFile file(params["File"].toString());
 	if (!file.open(QIODevice::ReadOnly))
+	{
 		return;
-
+	}
 	
 	QList<QList<float>> data;
 
@@ -101,8 +108,8 @@ void runTransform(iAFilter* filter, QMap<QString, QVariant> const & params)
 	QString line = in.readLine();//Header
 
 	line = in.readLine();
-	while (!line.isNull()) {
-		
+	while (!line.isNull())
+	{
 		data.append(process_line(line.split("\t")));
 		line = in.readLine();
 	}
@@ -117,14 +124,11 @@ void runTransform(iAFilter* filter, QMap<QString, QVariant> const & params)
 	spacing[1] = data[1][3] - data[0][3];
 	spacing[2] = data[1][3] - data[0][3];
 
-	
 	QList<float> maxValues = getMax(data);
 
 	createOutput(data, maxValues, offset, spacing, filter, 4);
 	createOutput(data, maxValues, offset, spacing, filter, 5);
 	createOutput(data, maxValues, offset, spacing, filter, 6);
-
-
 }
 
 void iATsvToVolume::performWork(QMap<QString, QVariant> const & parameters)
@@ -138,7 +142,7 @@ iATsvToVolume::iATsvToVolume() :
 	iAFilter("TSV reader", "Input",
 		"Creates from a TSV file a volume.")
 {
-	addParameter("File", FileNameOpen, 0, 0);
+	addParameter("File", iAValueType::FileNameOpen, 0, 0);
 
 	setOutputName(0u, "Z Displacement");
 	setOutputName(1u, "Y Displacement");

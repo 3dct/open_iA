@@ -1,8 +1,8 @@
 /*************************************  open_iA  ************************************ *
 * **********   A tool for visual analysis and processing of 3D CT images   ********** *
 * *********************************************************************************** *
-* Copyright (C) 2016-2020  C. Heinzl, M. Reiter, A. Reh, W. Li, M. Arikan, Ar. &  Al. *
-*                          Amirkhanov, J. Weissenböck, B. Fröhler, M. Schiwarth       *
+* Copyright (C) 2016-2021  C. Heinzl, M. Reiter, A. Reh, W. Li, M. Arikan, Ar. &  Al. *
+*                 Amirkhanov, J. Weissenböck, B. Fröhler, M. Schiwarth, P. Weinberger *
 * *********************************************************************************** *
 * This program is free software: you can redistribute it and/or modify it under the   *
 * terms of the GNU General Public License as published by the Free Software           *
@@ -20,10 +20,10 @@
 * ************************************************************************************/
 #include "iAFreeBeamCalculation.h"
 
-#include "defines.h"        // for DIM
-#include "iAConnector.h"
-#include "iAProgress.h"
-#include "iATypedCallHelper.h"
+#include <defines.h>        // for DIM
+#include <iAConnector.h>
+#include <iAProgress.h>
+#include <iATypedCallHelper.h>
 
 #include <itkExtractImageFilter.h>
 #include <itkImageIOBase.h>
@@ -152,7 +152,7 @@ void freeBeamCalculation(QMap<QString, QVariant> const & params, iAFilter* filte
 			outputROISliceIt.GoToBegin();
 			inputROIIt.NextSlice();
 			++curSlice;
-			filter->progress()->emitProgress(static_cast<int>((100.0 * curSlice) / roiSize[2]));
+			filter->progress()->emitProgress(curSlice * 100.0 / roiSize[2]);
 		}
 		roiFilter->ReleaseDataFlagOn();
 	}
@@ -181,7 +181,7 @@ void freeBeamCalculation(QMap<QString, QVariant> const & params, iAFilter* filte
 			++curVoxel;
 			if (curVoxel > (lastProgressReportVoxel + progressVoxelDist))
 			{
-				filter->progress()->emitProgress(static_cast<int>((100.0 * curVoxel) / voxelCount));
+				filter->progress()->emitProgress(curVoxel * 100.0 / voxelCount);
 				lastProgressReportVoxel = curVoxel;
 			}
 		}
@@ -218,11 +218,11 @@ iAFreeBeamCalculation::iAFreeBeamCalculation() :
 		"If <em>Float output</em> is enabled, then the output will be in float "
 		"datatype, otherwise double will be used.")
 {
-	addParameter("Index X", Discrete, 0);
-	addParameter("Index Y", Discrete, 0);
-	addParameter("Size X", Discrete, 1, 1);
-	addParameter("Size Y", Discrete, 1, 1);
-	addParameter("Set I0 manually", Boolean, false);
-	addParameter("Manual I0", Continuous, 0);
-	addParameter("Float output", Boolean, true);
+	addParameter("Index X", iAValueType::Discrete, 0);
+	addParameter("Index Y", iAValueType::Discrete, 0);
+	addParameter("Size X", iAValueType::Discrete, 1, 1);
+	addParameter("Size Y", iAValueType::Discrete, 1, 1);
+	addParameter("Set I0 manually", iAValueType::Boolean, false);
+	addParameter("Manual I0", iAValueType::Continuous, 0);
+	addParameter("Float output", iAValueType::Boolean, true);
 }

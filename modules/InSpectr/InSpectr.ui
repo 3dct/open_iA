@@ -612,7 +612,7 @@
                <string>...</string>
               </property>
               <property name="icon">
-               <iconset resource="../../core/open_iA.qrc">
+               <iconset resource="../../libs/guibase/guibase.qrc">
                 <normaloff>:/images/settings.png</normaloff>:/images/settings.png</iconset>
               </property>
               <property name="iconSize">
@@ -821,7 +821,7 @@
             <string>...</string>
            </property>
            <property name="icon">
-            <iconset resource="../../core/open_iA.qrc">
+            <iconset resource="../../libs/guibase/guibase.qrc">
              <normaloff>:/images/settings.png</normaloff>:/images/settings.png</iconset>
            </property>
            <property name="iconSize">
@@ -883,7 +883,7 @@
   </widget>
  </widget>
  <resources>
-  <include location="../../core/open_iA.qrc"/>
+  <include location="../../libs/guibase/guibase.qrc"/>
  </resources>
  <connections/>
  <buttongroups>

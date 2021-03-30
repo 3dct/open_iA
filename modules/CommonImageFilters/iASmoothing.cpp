@@ -1,8 +1,8 @@
 /*************************************  open_iA  ************************************ *
 * **********   A tool for visual analysis and processing of 3D CT images   ********** *
 * *********************************************************************************** *
-* Copyright (C) 2016-2020  C. Heinzl, M. Reiter, A. Reh, W. Li, M. Arikan, Ar. &  Al. *
-*                          Amirkhanov, J. Weissenböck, B. Fröhler, M. Schiwarth       *
+* Copyright (C) 2016-2021  C. Heinzl, M. Reiter, A. Reh, W. Li, M. Arikan, Ar. &  Al. *
+*                 Amirkhanov, J. Weissenböck, B. Fröhler, M. Schiwarth, P. Weinberger *
 * *********************************************************************************** *
 * This program is free software: you can redistribute it and/or modify it under the   *
 * terms of the GNU General Public License as published by the Free Software           *
@@ -24,6 +24,7 @@
 #include <iAConnector.h>
 #include <iAProgress.h>
 #include <iAToolsITK.h>
+#include <iAItkVersion.h>
 #include <iATypedCallHelper.h>
 
 #include <itkBilateralImageFilter.h>
@@ -35,14 +36,14 @@
 #include <itkPatchBasedDenoisingImageFilter.h>
 #include <itkRecursiveGaussianImageFilter.h>
 #ifndef ITKNOGPU
-#define CL_TARGET_OPENCL_VERSION 220
-#include <itkConfigure.h>    // for ITK_VERSION...
+// now defined via CMake option:
+//#define CL_TARGET_OPENCL_VERSION 110
 #include <itkGPUImage.h>
 #include <itkGPUKernelManager.h>
 #include <itkGPUContextManager.h>
 #include <itkGPUImageToImageFilter.h>
 #include <itkGPUGradientAnisotropicDiffusionImageFilter.h>
-#if ITK_VERSION_MAJOR > 5 || (ITK_VERSION_MAJOR == 5 && ITK_VERSION_MINOR >= 1)
+#if ITK_VERSION_NUMBER >= ITK_VERSION_CHECK(5, 1, 0)
 // split into a separate file starting with ITK 5.1 (previously included in itkGPUGradientAnisotropicDiffusionImageFilter.h)
 #include <itkGPUGradientAnisotropicDiffusionImageFilterFactory.h>
 #endif
@@ -94,10 +95,10 @@ iAMedianFilter::iAMedianFilter() :
 		"<a href=\"https://itk.org/Doxygen/html/classitk_1_1MedianImageFilter.html\">"
 		"Median Image Filter</a> in the ITK documentation.")
 {
-	addParameter("Kernel radius X", Discrete, 1, 1);
-	addParameter("Kernel radius Y", Discrete, 1, 1);
-	addParameter("Kernel radius Z", Discrete, 1, 1);
-	addParameter("Convert back to input type", Boolean, false);
+	addParameter("Kernel radius X", iAValueType::Discrete, 1, 1);
+	addParameter("Kernel radius Y", iAValueType::Discrete, 1, 1);
+	addParameter("Kernel radius Z", iAValueType::Discrete, 1, 1);
+	addParameter("Convert back to input type", iAValueType::Boolean, false);
 }
 
 
@@ -151,8 +152,8 @@ iARecursiveGaussian::iARecursiveGaussian() :
 		"<a href=\"https://itk.org/Doxygen/html/classitk_1_1RecursiveGaussianImageFilter.html\">"
 		"Recursive Gaussian Filter</a> in the ITK documentation.")
 {
-	addParameter("Sigma", Continuous, 0.1, std::numeric_limits<double>::epsilon());
-	addParameter("Convert back to input type", Boolean, false);
+	addParameter("Sigma", iAValueType::Continuous, 0.1, std::numeric_limits<double>::epsilon());
+	addParameter("Convert back to input type", iAValueType::Boolean, false);
 }
 
 
@@ -170,9 +171,13 @@ void discreteGaussian(iAFilter* filter, QMap<QString, QVariant> const & params)
 	filter->progress()->observe(dgFilter);
 	dgFilter->Update();
 	if (params["Convert back to input type"].toBool())
+	{
 		filter->addOutput(castImageTo<T>(dgFilter->GetOutput()));
+	}
 	else
+	{
 		filter->addOutput(dgFilter->GetOutput());
+	}
 }
 
 IAFILTER_CREATE(iADiscreteGaussian)
@@ -193,17 +198,19 @@ iADiscreteGaussian::iADiscreteGaussian() :
 		"<a href=\"https://itk.org/Doxygen/html/classitk_1_1DiscreteGaussianImageFilter.html\">"
 		"Discrete Gaussian Filter</a> in the ITK documentation.")
 {
-	addParameter("Variance", Continuous, 0);
-	addParameter("Maximum error", Continuous, 0.01, 0 + std::numeric_limits<double>::epsilon(), 1 - std::numeric_limits<double>::epsilon());
-	addParameter("Convert back to input type", Boolean, false);
+	addParameter("Variance", iAValueType::Continuous, 0);
+	addParameter("Maximum error", iAValueType::Continuous, 0.01, 0 + std::numeric_limits<double>::epsilon(), 1 - std::numeric_limits<double>::epsilon());
+	addParameter("Convert back to input type", iAValueType::Boolean, false);
 }
 
+
 template<class T>
-void patchBasedDenoising(iAFilter* filter, QMap<QString, QVariant> const & params)
+void patchBasedDenoising(iAFilter* filter, QMap<QString, QVariant> const & params, itk::ProcessObject* & itkProcess)
 {
 	typedef itk::Image<T, DIM> ImageType;
 	typedef itk::PatchBasedDenoisingImageFilter<ImageType, ImageType> NonLocalMeansFilter;
 	auto nlmFilter(NonLocalMeansFilter::New());
+	itkProcess = nlmFilter.GetPointer();
 	nlmFilter->SetInput(dynamic_cast<ImageType*>(filter->input()[0]->itkImage()));
 	nlmFilter->SetNumberOfIterations(params["Number of iterations"].toDouble());
 	nlmFilter->SetKernelBandwidthEstimation(params["Kernel bandwidth estimation"].toBool());
@@ -217,11 +224,21 @@ IAFILTER_CREATE(iANonLocalMeans)
 
 void iANonLocalMeans::performWork(QMap<QString, QVariant> const & parameters)
 {
-	ITK_TYPED_CALL(patchBasedDenoising, inputPixelType(), this, parameters);
+	ITK_TYPED_CALL(patchBasedDenoising, inputPixelType(), this, parameters, m_itkProcess);
+}
+
+void iANonLocalMeans::abort()
+{
+	m_itkProcess->SetAbortGenerateData(true);
+}
+
+bool iANonLocalMeans::canAbort() const
+{
+	return true;
 }
 
 iANonLocalMeans::iANonLocalMeans() :
-	iAFilter("Non-Local Means", "Smoothing/",
+	iAFilter("Non-Local Means", "Smoothing",
 		"Performs a non-local means (= patch-based denoising) filtering.<br/>"
 		"Implements a denoising filter that uses iterative non-local, "
 		"or semi-local, weighted averaging of image patches for image denoising.<br/>"
@@ -233,26 +250,27 @@ iANonLocalMeans::iANonLocalMeans() :
 		//<em>Noise Sigma</em> specifies the sigma of the noise model, where appropriate (in percent of the image intensity range)."
 		"For more information, see the "
 		"<a href=\"https://itk.org/Doxygen/html/classitk_1_1PatchBasedDenoisingImageFilter.html\">"
-		"Patch Based Denoising Filter</a> in the ITK documentation.")
+		"Patch Based Denoising Filter</a> in the ITK documentation."),
+	m_itkProcess(nullptr)
 {
 	// parameters in base class:
 	// Patch Weights
-	addParameter("Patch radius", Discrete, 2, 0);
+	addParameter("Patch radius", iAValueType::Discrete, 2, 0);
 	// Noise Model
 	// Smoothing Weight
 	// Noise Model Fidelity Weight
-	addParameter("Kernel bandwidth estimation", Boolean, false);
+	addParameter("Kernel bandwidth estimation", iAValueType::Boolean, false);
 	// Kernel Bandwidth Update Frequency
-	addParameter("Number of iterations", Discrete, 1, 1);
+	addParameter("Number of iterations", iAValueType::Discrete, 1, 1);
 	// Always Treat Components as Euclidean
 
 	// in actual filter class:
-	// addParameter("Noise Sigma", Continuous, 5, 0, 100);
-	// Smooth Disc Patch Weigts, Boolean
-	// Kernel Bandwidth Sigma, Continuous
-	// Kernel Bandwitdh Fraction Pixels for Estimation, Continuous
-	// Compute Conditional Derivatives, Boolean
-	// Use Fast Tensor Computation, Boolean
+	// addParameter("Noise Sigma", iAValueType::Continuous, 5, 0, 100);
+	// Smooth Disc Patch Weigts, iAValueType::Boolean
+	// Kernel Bandwidth Sigma, iAValueType::Continuous
+	// Kernel Bandwitdh Fraction Pixels for Estimation, iAValueType::Continuous
+	// Compute Conditional Derivatives, iAValueType::Boolean
+	// Use Fast Tensor Computation, iAValueType::Boolean
 	// Kernel Bandwith Multiplication Factor
 	// Sampler
 }
@@ -272,9 +290,13 @@ void gradientAnisotropicDiffusion(iAFilter* filter, QMap<QString, QVariant> cons
 	filter->progress()->observe(gadFilter);
 	gadFilter->Update();
 	if (params["Convert back to input type"].toBool())
+	{
 		filter->addOutput(castImageTo<T>(gadFilter->GetOutput()));
+	}
 	else
+	{
 		filter->addOutput(gadFilter->GetOutput());
+	}
 }
 
 IAFILTER_CREATE(iAGradientAnisotropicDiffusion)
@@ -294,10 +316,10 @@ iAGradientAnisotropicDiffusion::iAGradientAnisotropicDiffusion() :
 		"<a href=\"https://itk.org/Doxygen/html/classitk_1_1GradientAnisotropicDiffusionImageFilter.html\">"
 		"Gradient Anisotropic Diffusion Filter</a> in the ITK documentation.")
 {
-	addParameter("Number of iterations", Discrete, 100, 1);
-	addParameter("Time step", Continuous, 0.0625);
-	addParameter("Conductance", Continuous, 1);
-	addParameter("Convert back to input type", Boolean, false);
+	addParameter("Number of iterations", iAValueType::Discrete, 100, 1);
+	addParameter("Time step", iAValueType::Continuous, 0.0625);
+	addParameter("Conductance", iAValueType::Continuous, 1);
+	addParameter("Convert back to input type", iAValueType::Boolean, false);
 }
 
 
@@ -322,9 +344,13 @@ void GPU_gradient_anisotropic_diffusion(iAFilter* filter, QMap<QString, QVariant
 	filter->progress()->observe(gadFilter);
 	gadFilter->Update();
 	if (params["Convert back to input type"].toBool())
+	{
 		filter->addOutput(castImageTo<T>(gadFilter->GetOutput()));
+	}
 	else
+	{
 		filter->addOutput(gadFilter->GetOutput());
+	}
 }
 
 void iAGPUEdgePreservingSmoothing::performWork(QMap<QString, QVariant> const & parameters)
@@ -341,21 +367,21 @@ iAGPUEdgePreservingSmoothing::iAGPUEdgePreservingSmoothing() :
 		"<a href=\"https://itk.org/Doxygen/html/classitk_1_1GPUGradientAnisotropicDiffusionImageFilter.html\">"
 		"GPU Gradient Anisotropic Diffusion Filter</a> in the ITK documentation.")
 {
-	addParameter("Number of iterations", Discrete, 100, 1);
-	addParameter("Time step", Continuous, 0.0625);
-	addParameter("Conductance", Continuous, 1);
-	addParameter("Convert back to input type", Boolean, false);
+	addParameter("Number of iterations", iAValueType::Discrete, 100, 1);
+	addParameter("Time step", iAValueType::Continuous, 0.0625);
+	addParameter("Conductance", iAValueType::Continuous, 1);
+	addParameter("Convert back to input type", iAValueType::Boolean, false);
 }
 
 #endif
 
 
 template<class T>
-void curvatureAnisotropicDiffusion(iAFilter* filter, QMap<QString, QVariant> const & params)
+void curvatureAnisotropicDiffusion(iAFilter* filter, QMap<QString, QVariant> const& params)
 {
 	typedef itk::Image<T, DIM> InputImageType;
 	typedef itk::CurvatureAnisotropicDiffusionImageFilter<RealImageType, RealImageType > CADIFType;
-	auto realImage = castImageTo<RealType>(dynamic_cast<InputImageType *>(filter->input()[0]->itkImage()));
+	auto realImage = castImageTo<RealType>(dynamic_cast<InputImageType*>(filter->input()[0]->itkImage()));
 	auto cadFilter = CADIFType::New();
 	cadFilter->SetNumberOfIterations(params["Number of iterations"].toUInt());
 	cadFilter->SetTimeStep(params["Time step"].toDouble());
@@ -364,9 +390,13 @@ void curvatureAnisotropicDiffusion(iAFilter* filter, QMap<QString, QVariant> con
 	filter->progress()->observe(cadFilter);
 	cadFilter->Update();
 	if (params["Convert back to input type"].toBool())
+	{
 		filter->addOutput(castImageTo<T>(cadFilter->GetOutput()));
+	}
 	else
+	{
 		filter->addOutput(cadFilter->GetOutput());
+	}
 }
 
 IAFILTER_CREATE(iACurvatureAnisotropicDiffusion)
@@ -386,10 +416,10 @@ iACurvatureAnisotropicDiffusion::iACurvatureAnisotropicDiffusion() :
 		"<a href=\"https://itk.org/Doxygen/html/classitk_1_1CurvatureAnisotropicDiffusionImageFilter.html\">"
 		"Curvature Anisotropic Diffusion Filter</a> in the ITK documentation.")
 {
-	addParameter("Number of iterations", Discrete, 100, 1);
-	addParameter("Time step", Continuous, 0.0625);
-	addParameter("Conductance", Continuous, 1);
-	addParameter("Convert back to input type", Boolean, false);
+	addParameter("Number of iterations", iAValueType::Discrete, 100, 1);
+	addParameter("Time step", iAValueType::Continuous, 0.0625);
+	addParameter("Conductance", iAValueType::Continuous, 1);
+	addParameter("Convert back to input type", iAValueType::Boolean, false);
 }
 
 
@@ -405,9 +435,13 @@ void curvatureFlow(iAFilter* filter, QMap<QString, QVariant> const & params)
 	filter->progress()->observe(cfFfilter);
 	cfFfilter->Update();
 	if (params["Convert back to input type"].toBool())
+	{
 		filter->addOutput(castImageTo<T>(cfFfilter->GetOutput()));
+	}
 	else
+	{
 		filter->addOutput(cfFfilter->GetOutput());
+	}
 }
 
 IAFILTER_CREATE(iACurvatureFlow)
@@ -427,9 +461,9 @@ iACurvatureFlow::iACurvatureFlow() :
 		"<a href=\"https://itk.org/Doxygen/html/classitk_1_1CurvatureFlowImageFilter.html\">"
 		"Curvature Flow Filter</a> in the ITK documentation.")
 {
-	addParameter("Number of iterations", Discrete, 100, 1);
-	addParameter("Time step", Continuous, 0.0625);
-	addParameter("Convert back to input type", Boolean, false);
+	addParameter("Number of iterations", iAValueType::Discrete, 100, 1);
+	addParameter("Time step", iAValueType::Continuous, 0.0625);
+	addParameter("Convert back to input type", iAValueType::Boolean, false);
 }
 
 
@@ -445,9 +479,13 @@ void bilateralFilter(iAFilter* filter, QMap<QString, QVariant> const & params)
 	filter->progress()->observe(biFilter);
 	biFilter->Update();
 	if (params["Convert back to input type"].toBool())
+	{
 		filter->addOutput(castImageTo<T>(biFilter->GetOutput()));
+	}
 	else
+	{
 		filter->addOutput(biFilter->GetOutput());
+	}
 }
 
 IAFILTER_CREATE(iABilateral)
@@ -470,7 +508,7 @@ iABilateral::iABilateral() :
 		"<a href=\"https://itk.org/Doxygen/html/classitk_1_1BilateralImageFilter.html\">"
 		"Bilateral Image Filter</a> in the ITK documentation.")
 {
-	addParameter("Range sigma", Continuous, 50);
-	addParameter("Domain sigma", Continuous, 4);
-	addParameter("Convert back to input type", Boolean, false);
+	addParameter("Range sigma", iAValueType::Continuous, 50);
+	addParameter("Domain sigma", iAValueType::Continuous, 4);
+	addParameter("Convert back to input type", iAValueType::Boolean, false);
 }

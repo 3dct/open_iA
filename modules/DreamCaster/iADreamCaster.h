@@ -1,8 +1,8 @@
 /*************************************  open_iA  ************************************ *
 * **********   A tool for visual analysis and processing of 3D CT images   ********** *
 * *********************************************************************************** *
-* Copyright (C) 2016-2020  C. Heinzl, M. Reiter, A. Reh, W. Li, M. Arikan, Ar. &  Al. *
-*                          Amirkhanov, J. Weissenböck, B. Fröhler, M. Schiwarth       *
+* Copyright (C) 2016-2021  C. Heinzl, M. Reiter, A. Reh, W. Li, M. Arikan, Ar. &  Al. *
+*                 Amirkhanov, J. Weissenböck, B. Fröhler, M. Schiwarth, P. Weinberger *
 * *********************************************************************************** *
 * This program is free software: you can redistribute it and/or modify it under the   *
 * terms of the GNU General Public License as published by the Free Software           *
@@ -62,7 +62,7 @@ public:
 #if QT_VERSION < QT_VERSION_CHECK(5,15,0)
 	iADreamCaster(QWidget *parent = nullptr, Qt::WindowFlags flags = 0);
 #else
-	iADreamCaster(QWidget* parent = nullptr, Qt::WindowFlags flags = QFlags<Qt::WindowType>());
+	iADreamCaster(QWidget* parent = nullptr, Qt::WindowFlags flags = Qt::WindowFlags());
 #endif
 	~iADreamCaster();
 	//! Loging function. Adds string to log window.
@@ -285,4 +285,7 @@ public slots:
 	void maximizePlacements();
 	//! Maximize one area/show all areas
 	void maximizeBottom();
+
+	//! export full parameter placement matrices (avg. pen., max. pen., bad radon-area perc.) as csv
+	void exportCSVs();
 };

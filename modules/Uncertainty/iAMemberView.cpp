@@ -1,8 +1,8 @@
 /*************************************  open_iA  ************************************ *
 * **********   A tool for visual analysis and processing of 3D CT images   ********** *
 * *********************************************************************************** *
-* Copyright (C) 2016-2020  C. Heinzl, M. Reiter, A. Reh, W. Li, M. Arikan, Ar. &  Al. *
-*                          Amirkhanov, J. Weissenböck, B. Fröhler, M. Schiwarth       *
+* Copyright (C) 2016-2021  C. Heinzl, M. Reiter, A. Reh, W. Li, M. Arikan, Ar. &  Al. *
+*                 Amirkhanov, J. Weissenböck, B. Fröhler, M. Schiwarth, P. Weinberger *
 * *********************************************************************************** *
 * This program is free software: you can redistribute it and/or modify it under the   *
 * terms of the GNU General Public License as published by the Free Software           *
@@ -22,10 +22,11 @@
 
 #include "iAUncertaintyColors.h"
 #include "iAEnsemble.h"
-#include "iAMember.h"
+#include "iASingleResult.h"
 
-#include <charts/qcustomplot.h>
+#include <qcustomplot.h>
 
+#include <QGuiApplication>
 #include <QHBoxLayout>
 
 #include <vector>
@@ -82,12 +83,12 @@ void iAMemberView::SetEnsemble(QSharedPointer<iAEnsemble> ensemble)
 	for (double idx : m_sortedIndices)
 	{
 		ticks << cnt;
-		labels << QString::number(static_cast<int>(ensemble->Member(idx)->ID()));
+		labels << QString::number(static_cast<int>(ensemble->Member(idx)->id()));
 		meanData << ensemble->MemberAttribute(iAEnsemble::UncertaintyMean)[idx];
 		++cnt;
 	}
 
-	QSharedPointer<QCPAxisTickerText> textTicker(new QCPAxisTickerText);
+	auto textTicker = QSharedPointer<QCPAxisTickerText>::create();
 	textTicker->addTicks(ticks, labels);
 	m_plot->xAxis->setTicker(textTicker);
 	m_plot->xAxis->setLabel("Member ID");
@@ -145,7 +146,7 @@ void iAMemberView::SelectionChanged(QCPDataSelection const & selection)
 	if (selection.dataRangeCount() == 1 && selection.dataRange(0).begin()+1 == selection.dataRange(0).end())
 	{
 		int barIdx = selection.dataRange(0).begin();
-		emit MemberSelected(m_ensemble->Member(m_sortedIndices[barIdx])->ID());
+		emit MemberSelected(m_ensemble->Member(m_sortedIndices[barIdx])->id());
 	}
 }
 
@@ -157,7 +158,7 @@ QVector<int > iAMemberView::SelectedMemberIDs() const
 	{
 		for (int barIdx = selection.dataRange(r).begin(); barIdx < selection.dataRange(r).end(); ++barIdx)
 		{
-			result.push_back(m_ensemble->Member(m_sortedIndices[barIdx])->ID());
+			result.push_back(m_ensemble->Member(m_sortedIndices[barIdx])->id());
 		}
 	}
 	return result;
