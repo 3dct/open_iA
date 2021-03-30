@@ -40,6 +40,7 @@
 #include <vtkImageData.h>
 #include <vtkPolyData.h>
 
+#include <QFileInfo>
 #include <QMessageBox>
 #include <QSettings>
 #include <QSharedPointer>
@@ -284,8 +285,9 @@ void iAFilterRunnerGUI::run(QSharedPointer<iAFilter> filter, iAMainWindow* mainW
 
 	QString oldTitle(sourceMdi->windowTitle());
 	oldTitle = oldTitle.replace("[*]", "").trimmed();
-	auto mdiChild = filter->outputCount() > 0 ?
-		mainWnd->resultChild(sourceMdi, filter->outputName(0, filter->name()) + " " + oldTitle) :
+	QString newTitle(filter->outputName(0, filter->name()) + " " + oldTitle);
+	m_sourceFileName = sourceMdi->modality(0)->fileName();
+	auto mdiChild = filter->outputCount() > 0 ? mainWnd->resultChild(sourceMdi, newTitle) :
 		sourceMdi;
 
 	if (!mdiChild)
@@ -355,6 +357,12 @@ void iAFilterRunnerGUI::filterFinished()
 	// add additional output as additional modalities here
 	// "default" output 0 is handled elsewhere (via obscure iAMdiChild::rendererDeactivated / iAAlgorithm::updateVtkImageData)
 	auto mdiChild = qobject_cast<iAMdiChild*>(thread->parent());
+	// set default file name suggestion
+	QFileInfo sourceFI(m_sourceFileName);
+	QString suggestedFileName = sourceFI.absolutePath() + "/" + sourceFI.completeBaseName() + "-" +
+		thread->filter()->name().replace(QRegularExpression("[\\\\/:*?\"<>| ]"), "_") + "." +
+		sourceFI.suffix();
+	mdiChild->modality(0)->setFileName(suggestedFileName);
 	if (thread->filter()->polyOutput())
 	{
 		mdiChild->polyData()->DeepCopy(thread->filter()->polyOutput());

@@ -911,7 +911,9 @@ bool MdiChild::saveAs(int modalityNr)
 		return false;
 	}
 	// TODO: ask for filename first, then for modality (if only one modality can be saved in chosen format)
-	QString filePath = (modalities()->size() > 0) ? QFileInfo(modality(modalityNr)->fileName()).absolutePath() : m_path;
+	QString filePath = (modalities()->size() > 0) ?
+		QFileInfo(modality(modalityNr)->fileName()).absoluteFilePath()
+		: m_path;
 	QString f = QFileDialog::getSaveFileName(
 		this,
 		tr("Save As"),
