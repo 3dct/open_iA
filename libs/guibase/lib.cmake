@@ -47,10 +47,9 @@ ENDIF()
 IF (SCIFIO_LOADED)
 	TARGET_COMPILE_DEFINITIONS(${libname} PRIVATE USE_SCIFIO)
 ENDIF()
-IF (WIN32)
-	# apparently required for VS 2015, and doesn't hurt for VS2013:
+IF (MSVC AND MSVC_VERSION GREATER_EQUAL 1910)               # apparently required for VS < 2019:
 	TARGET_LINK_LIBRARIES(${libname} PUBLIC Opengl32)
-ENDIF (WIN32)
+ENDIF ()
 IF(OpenMP_CXX_FOUND)
 	TARGET_LINK_LIBRARIES(${libname} PUBLIC OpenMP::OpenMP_CXX)
 	IF (MSVC)
