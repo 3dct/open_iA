@@ -284,7 +284,7 @@ int csvDataType::getColumns(ArrayType* input)
 		return input->at(0).size();
 	}
 
-	DEBUG_LOG("There is no column inside this row!");
+	LOG(lvlDebug,"There is no column inside this row!");
 
 	return -1;
 }
@@ -362,18 +362,18 @@ void csvDataType::debugArrayType(ArrayType* input)
 	QString output;
 
 	//DEBUG
-	DEBUG_LOG("Columns: " + QString::number(amountCols));
-	DEBUG_LOG("Rows: " + QString::number(amountRows));
+	LOG(lvlDebug,"Columns: " + QString::number(amountCols));
+	LOG(lvlDebug,"Rows: " + QString::number(amountRows));
 
-	DEBUG_LOG("Matrix: ");
+	LOG(lvlDebug,"Matrix: ");
 	for (int r1 = 0; r1 < amountRows; r1++)
 	{
-		//DEBUG_LOG("Row " + QString::number(r1) + ":");
+		//LOG(lvlDebug,"Row " + QString::number(r1) + ":");
 
 		for (int col1 = 0; col1 < amountCols; col1++)
 		{
-			//DEBUG_LOG("Column " + QString::number(col1) + ": " + QString::number(input->at(r1).at(col1)));
-			//DEBUG_LOG(QString("Column %1 : %2").arg(col1).arg(input->at(r1).at(col1)));
+			//LOG(lvlDebug,"Column " + QString::number(col1) + ": " + QString::number(input->at(r1).at(col1)));
+			//LOG(lvlDebug,QString("Column %1 : %2").arg(col1).arg(input->at(r1).at(col1)));
 			QString number = QString::number(input->at(r1).at(col1));
 			if(number.size() == 1)
 			{
@@ -386,6 +386,6 @@ void csvDataType::debugArrayType(ArrayType* input)
 		output += "\n";
 	}
 
-	DEBUG_LOG(output);
+	LOG(lvlDebug,output);
 }
 

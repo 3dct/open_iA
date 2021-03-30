@@ -11,7 +11,7 @@
 #include "vtkSmartPointer.h"
 #include "vtkCommand.h"
 
-class MainWindow;
+class iAMainWindow;
 class iACorrelationCoefficient;
 class iACsvDataStorage;
 class QVTKOpenGLNativeWidget;
@@ -34,7 +34,7 @@ class iACompCorrelationMap : public QDockWidget, public Ui_CompHistogramTable
 {
 	Q_OBJECT
    public:
-	iACompCorrelationMap(MainWindow* parent, iACorrelationCoefficient* corrCalculation, iACsvDataStorage* dataStorage, iACompVisMain* main);
+	iACompCorrelationMap(iAMainWindow* parent, iACorrelationCoefficient* corrCalculation, iACsvDataStorage* dataStorage, iACompVisMain* main);
 	void showEvent(QShowEvent* event);
 
 	void updateCorrelationMap(std::map<QString, Correlation::CorrelationStore>* correlations, std::map<int, std::vector<double>>* pickStatistic);

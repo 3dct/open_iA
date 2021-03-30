@@ -1,7 +1,7 @@
 #include "iACompVisMain.h"
 
 //testing
-#include "iAConsole.h"
+#include "iALog.h"
 
 //CompVis
 #include "dlg_CSVReader.h"
@@ -14,14 +14,11 @@
 #include "iACoefficientOfVariation.h"
 #include "iACorrelationCoefficient.h"
 
-//iA
-#include "charts/iAHistogramData.h"
-
 //QT
 #include <QMessageBox>
 #include <QBoxLayout>
 
-iACompVisMain::iACompVisMain(MainWindow* mainWin):
+iACompVisMain::iACompVisMain(iAMainWindow* mainWin):
 	m_mainWindow(mainWin)
 {
 	//load data
@@ -35,7 +32,7 @@ iACompVisMain::iACompVisMain(MainWindow* mainWin):
 	initializeVariationCoefficient();
 	initializeCorrelationCoefficient();
 
-	//open mainwindow with its dockWidgets
+	//open iAMainWindow with its dockWidgets
 	m_mainW = new dlg_VisMainWindow(m_dataStorage->getData(), m_mds, mainWin, this);
 
 	QVBoxLayout* layout1 = new QVBoxLayout;
@@ -90,7 +87,7 @@ bool iACompVisMain::loadData()
 
 void iACompVisMain::noDatasetChosenMessage()
 {
-	DEBUG_LOG(QString("No Dataset was chosen. Therefore the module CompVis closed."));
+	LOG(lvlDebug,QString("No Dataset was chosen. Therefore the module CompVis closed."));
 }
 
 /******************************************  Initialization Methods  **********************************/

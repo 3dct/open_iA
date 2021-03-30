@@ -6,16 +6,13 @@
 #include "iACompHistogramTableInteractorStyle.h"
 #include "iACompHistogramTableData.h"
 
-//iA
-#include "charts/iAHistogramData.h"
-
 //Qt
 #include <QDockWidget>
 #include "ui_CompHistogramTable.h"
 
 #include <vtkSmartPointer.h>
 
-class MainWindow;
+class iAMainWindow;
 class iACsvDataStorage;
 class iACompVisMain;
 class iACompHistogramTableData;
@@ -36,7 +33,7 @@ class iACompHistogramTable : public QDockWidget, public Ui_CompHistogramTable
 	Q_OBJECT
 
    public:
-	iACompHistogramTable(MainWindow* parent, iAMultidimensionalScaling* mds, iACsvDataStorage* m_dataStorage, iACompVisMain* main);
+	iACompHistogramTable(iAMainWindow* parent, iAMultidimensionalScaling* mds, iACsvDataStorage* m_dataStorage, iACompVisMain* main);
 	void showEvent(QShowEvent* event);
 
 	void reinitializeHistogramTable(iAMultidimensionalScaling* newMds);
@@ -137,7 +134,7 @@ class iACompHistogramTable : public QDockWidget, public Ui_CompHistogramTable
 	//add the name of the dataset left beside its correpsonding row
 	void addDatasetName(int currDataset, double* position);
 	//create correct label format
-	std::string iACompHistogramTable::initializeLegendLabels(std::string input);
+	std::string initializeLegendLabels(std::string input);
 	//create the interactionstyle
 	void initializeInteraction();
 	//initialize the order of the datasets from the last to the first

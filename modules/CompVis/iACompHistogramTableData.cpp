@@ -81,7 +81,7 @@ QList<bin::BinType*>* iACompHistogramTableData::calculateBins(int numberOfBins)
 					data->push_back(object);
 					//binsWithFiberIds->at(b) = data;
 
-					//DEBUG_LOG("fibers stored = " + QString::number(data->size()) + " --> at Bin: " + QString::number(b));
+					//LOG(lvlDebug,"fibers stored = " + QString::number(data->size()) + " --> at Bin: " + QString::number(b));
 
 					break;
 				}
@@ -96,7 +96,7 @@ QList<bin::BinType*>* iACompHistogramTableData::calculateBins(int numberOfBins)
 		binDataObjects->push_back(binsWithFiberIds);
 	}
 
-	/*DEBUG_LOG("");
+	/*LOG(lvlDebug,"");
 	//DEBUG
 	for(int i = 0; i < binDataObjects->size(); i++)
 	{ //datasets
@@ -107,13 +107,13 @@ QList<bin::BinType*>* iACompHistogramTableData::calculateBins(int numberOfBins)
 
 			for(int j = 0; j < data->size(); j++)
 			{
-				DEBUG_LOG("fiberLabelId = " + QString::number(data->at(j).at(0)) + " --> at Bin: " + QString::number(k));
+				LOG(lvlDebug,"fiberLabelId = " + QString::number(data->at(j).at(0)) + " --> at Bin: " + QString::number(k));
 			}
 			
 		}
 	}
-	DEBUG_LOG("");
-	DEBUG_LOG("#######################################################");
+	LOG(lvlDebug,"");
+	LOG(lvlDebug,"#######################################################");
 	*/
 	return binData;
 }
@@ -218,18 +218,18 @@ void bin::debugBinType(BinType* input)
 	int amountCols = input->size();
 
 	//DEBUG
-	DEBUG_LOG(" ");
-	DEBUG_LOG("Bins: " + QString::number(amountCols));
-	DEBUG_LOG("Bin Matrix: ");
+	LOG(lvlDebug," ");
+	LOG(lvlDebug,"Bins: " + QString::number(amountCols));
+	LOG(lvlDebug,"Bin Matrix: ");
 	for (int col1 = 0; col1 < amountCols; col1++)
 	{
-		DEBUG_LOG("Bin " + QString::number(col1) + ":");
+		LOG(lvlDebug,"Bin " + QString::number(col1) + ":");
 		for (int r1 = 0; r1 < input->at(col1).size(); r1++)
 		{
-			DEBUG_LOG("  Values " + QString::number(r1) + ": " + QString::number(input->at(col1).at(r1)));
+			LOG(lvlDebug,"  Values " + QString::number(r1) + ": " + QString::number(input->at(col1).at(r1)));
 		}
 	}
-	DEBUG_LOG(" ");
+	LOG(lvlDebug," ");
 }
 
 QList<bin::BinType*>* bin::DeepCopy(QList<bin::BinType*>* input)

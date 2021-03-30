@@ -50,13 +50,13 @@
 #include "vtkCoordinate.h"
 #include "vtkPen.h"
 
-#include "mainwindow.h"
+#include "iAMainWindow.h"
 #include <vector>
 #include <algorithm>
 
 vtkStandardNewMacro(iACompBarChart::BarChartInteractorStyle);
 
-iACompBarChart::iACompBarChart(MainWindow* parent, iACoefficientOfVariation* coeffVar, iACsvDataStorage* dataStorage) :
+iACompBarChart::iACompBarChart(iAMainWindow* parent, iACoefficientOfVariation* coeffVar, iACsvDataStorage* dataStorage) :
 	QDockWidget(parent), 
 	m_coeffVar(coeffVar),
 	m_dataStorage(dataStorage),
@@ -169,7 +169,7 @@ void iACompBarChart::initializeBarChart()
 	colorsOriginal->SetName(colorArrayName.c_str());
 	colorsOriginal->SetNumberOfComponents(3);
 
-	//DEBUG_LOG("numberOfBars = " + QString::number(numberOfBars));
+	//LOG(lvlDebug,"numberOfBars = " + QString::number(numberOfBars));
 
 	for (int i = 0; i < numberOfBars; i++)
 	{
@@ -179,7 +179,7 @@ void iACompBarChart::initializeBarChart()
 		//set position
 		barPositionsOriginal->InsertNextPoint(xi, yi, 0.0);
 
-		//DEBUG_LOG("scale at " + QString::number(i) + " = " + QString::number(coefficientsUnordered->at(orderedPositions->at(i))));
+		//LOG(lvlDebug,"scale at " + QString::number(i) + " = " + QString::number(coefficientsUnordered->at(orderedPositions->at(i))));
 
 		//set scale
 		scalesOriginal->InsertNextTuple3(m_barWidth, 2 * coefficientsUnordered->at(orderedPositions->at(i)), 1);
@@ -334,12 +334,12 @@ std::vector<double>* iACompBarChart::changeInterval(std::vector<double>* input, 
 	
 	std::vector<double>* result = new std::vector<double>(input->size(), 0);
 
-	/*DEBUG_LOG("oldMin = " + QString::number(oldMin));
-	DEBUG_LOG("oldMax = " + QString::number(oldMax));*/
+	/*LOG(lvlDebug,"oldMin = " + QString::number(oldMin));
+	LOG(lvlDebug,"oldMax = " + QString::number(oldMax));*/
 
 	for (int i = 0; i < input->size(); i++)
 	{
-		//DEBUG_LOG("input->at(i) = " + QString::number(input->at(i)));
+		//LOG(lvlDebug,"input->at(i) = " + QString::number(input->at(i)));
 		double val = iACompVisOptions::histogramNormalization(input->at(i), newMin, newMax, oldMin, oldMax);
 		result->at(i) = val;
 	}

@@ -1,7 +1,7 @@
 #include "iAMinkowskiDistance.h"
 
 //Debug
-#include "iAConsole.h"
+#include "iALog.h"
 
 #include <cmath>
 

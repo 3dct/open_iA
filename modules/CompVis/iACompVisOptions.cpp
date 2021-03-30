@@ -1,7 +1,7 @@
 //#include "iACompVisOptions.h"
 
 //Debug
-//#include "iAConsole.h"
+//#include "iALog.h"
 //
 //const unsigned char iACompVisOptions::BACKGROUNDCOLOR_GREY[3] = { 25, 25, 25 };//{128, 128, 128 };
 //const unsigned char iACompVisOptions::BACKGROUNDCOLOR_LIGHTGREY[3] = { 115, 115, 115 };

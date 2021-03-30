@@ -1,6 +1,6 @@
 #pragma once
 
-#include "mainwindow.h"
+#include "iAMainWindow.h"
 
 #include "iACsvDataStorage.h"
 #include "dlg_VisMainWindow.h"
@@ -24,7 +24,7 @@ class iAHistogramData;
 class iACompVisMain
 {
    public:
-	iACompVisMain(MainWindow* mainWin);
+	iACompVisMain(iAMainWindow*  mainWin);
 
 	//load the CSV datasets
 	//when nothing was loaded it returns false
@@ -65,7 +65,7 @@ class iACompVisMain
 
 
 	dlg_VisMainWindow* m_mainW;
-	MainWindow* m_mainWindow;
+	iAMainWindow* m_mainWindow;
 	iACsvDataStorage* m_dataStorage;
 
 	iAMultidimensionalScaling* m_mds;

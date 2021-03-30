@@ -12,7 +12,7 @@ void iAEuclideanDistance::calculateSimilarityDistance(
 
 	if (csvDataType::getRows(dataMatrix) != amountRows || csvDataType::getRows(dataMatrix) != amountCols)
 	{
-		DEBUG_LOG("Euclidean Distance Calculation: Invalid distance matrix dimension.\n");
+		LOG(lvlDebug,"Euclidean Distance Calculation: Invalid distance matrix dimension.\n");
 		return;
 	}
 
@@ -42,7 +42,7 @@ void iAEuclideanDistance::calculateSimilarityDistance(
 	}
 
 	//DEBUG
-	//DEBUG_LOG("Euclidean Distance:");
+	//LOG(lvlDebug,"Euclidean Distance:");
 	//csvDataType::debugArrayType(resultMatrix);
 
 }

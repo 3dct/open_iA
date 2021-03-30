@@ -4,12 +4,13 @@
 #include "iACompVisOptions.h"
 
 //iA
-#include "mainwindow.h"
+#include "iAMainWindow.h"
 #include "iAVtkVersion.h"
 
 //Qt
 #include "vtkGenericOpenGLRenderWindow.h"
 #include "QVTKOpenGLNativeWidget.h"
+#include "qboxlayout.h"
 
 //vtk
 #include "vtkRenderer.h"
@@ -58,7 +59,7 @@
 vtkStandardNewMacro(iACompBoxPlot::BoxPlotChart);
 vtkStandardNewMacro(iACompBoxPlot::BoxPlot);
 
-iACompBoxPlot::iACompBoxPlot(MainWindow* parent, iACsvDataStorage* dataStorage) : 
+iACompBoxPlot::iACompBoxPlot(iAMainWindow* parent, iACsvDataStorage* dataStorage) : 
 	QDockWidget(parent),
 	m_dataStorage(dataStorage),
 	maxValsAttr(new std::vector<double>()),
@@ -406,8 +407,8 @@ void iACompBoxPlot::initializeLegend(vtkSmartPointer<BoxPlotChart> chart)
 		m_legendAttributes->push_back(legend);
 
 		////TESTING
-		//DEBUG_LOG("chart->GetXPosition(i) = (" + QString::number(chart->GetXPosition(i)) + ")");
-		//DEBUG_LOG("(box->GetBoxWidth()) = (" + QString::number(BoxPlot::SafeDownCast(chart->GetPlot(0))->GetBoxWidth() * offset) + ")");
+		//LOG(lvlDebug,"chart->GetXPosition(i) = (" + QString::number(chart->GetXPosition(i)) + ")");
+		//LOG(lvlDebug,"(box->GetBoxWidth()) = (" + QString::number(BoxPlot::SafeDownCast(chart->GetPlot(0))->GetBoxWidth() * offset) + ")");
 
 		//vtkSmartPointer<vtkRegularPolygonSource> point = vtkSmartPointer<vtkRegularPolygonSource>::New();
 		//point->SetNumberOfSides(50);

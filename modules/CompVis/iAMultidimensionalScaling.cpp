@@ -7,7 +7,7 @@
 #include "iAEuclideanDistance.h"
 
 //Debug
-#include "iAConsole.h"
+#include "iALog.h"
 
 #include <algorithm>
 #include <iostream>
@@ -121,10 +121,10 @@ void iAMultidimensionalScaling::normalizeMatrix()
 	}
 
 	//DEBUG
-	/*DEBUG_LOG("");
-	DEBUG_LOG("m_matrixUNormalized");
+	/*LOG(lvlDebug,"");
+	LOG(lvlDebug,"m_matrixUNormalized");
 	csvDataType::debugArrayType(m_matrixUNormalized);
-	DEBUG_LOG("");*/
+	LOG(lvlDebug,"");*/
 }
 
 void iAMultidimensionalScaling::calculateProximityDistance()
@@ -136,10 +136,10 @@ void iAMultidimensionalScaling::calculateProximityDistance()
 		m_matrixProximityDis = pd.calculateProximityDistance();
 
 		//DEBUG
-		/*DEBUG_LOG("");
-		DEBUG_LOG("m_matrixProximityDis");
+		/*LOG(lvlDebug,"");
+		LOG(lvlDebug,"m_matrixProximityDis");
 		csvDataType::debugArrayType(m_matrixProximityDis);
-		DEBUG_LOG("");*/
+		LOG(lvlDebug,"");*/
 	}
 }
 
@@ -164,7 +164,7 @@ void iAMultidimensionalScaling::calculateMDS(int dim, int iterations)
 	int amountRowsProxM = csvDataType::getRows(m_matrixProximityDis);
 
 	////DEBUG
-	/*DEBUG_LOG(" \n m_matrixProximityDis");
+	/*LOG(lvlDebug," \n m_matrixProximityDis");
 	csvDataType::debugArrayType(m_matrixProximityDis);*/
 
 	//X - configuration of points in Euclidiean space
@@ -173,7 +173,7 @@ void iAMultidimensionalScaling::calculateMDS(int dim, int iterations)
 	csvDataType::initializeRandom(amountRowsProxM, dim, X);
 		
 	////DEBUG
-	/*DEBUG_LOG(" \n init X");
+	/*LOG(lvlDebug," \n init X");
 	csvDataType::debugArrayType(X);*/
 
 	// mean value of distance matrix
@@ -186,7 +186,7 @@ void iAMultidimensionalScaling::calculateMDS(int dim, int iterations)
 	csvDataType::multiplyNumberSelf(X, 0.1 * meanD / (1.0 / 3.0 * sqrt((double)dim)));
 
 	////DEBUG
-	/*DEBUG_LOG("X");
+	/*LOG(lvlDebug,"X");
 	csvDataType::debugArrayType(X);*/
 
 	csvDataType::ArrayType* Z = csvDataType::copy(X);
@@ -196,7 +196,7 @@ void iAMultidimensionalScaling::calculateMDS(int dim, int iterations)
 	csvDataType::ArrayType* B = new csvDataType::ArrayType();
 	csvDataType::initialize(amountRowsProxM, amountColsProxM, B);
 
-	/*DEBUG_LOG("\n init Z");
+	/*LOG(lvlDebug,"\n init Z");
 	csvDataType::debugArrayType(Z);*/
 
 	//calculate euclidean distance
@@ -204,7 +204,7 @@ void iAMultidimensionalScaling::calculateMDS(int dim, int iterations)
 	d->calculateSimilarityDistance(X, D_);
 
 	////DEBUG
-	/*DEBUG_LOG("\n D_");
+	/*LOG(lvlDebug,"\n D_");
 	csvDataType::debugArrayType(D_);*/
 
 	csvDataType::ArrayType oldX_ = *X;
@@ -214,7 +214,7 @@ void iAMultidimensionalScaling::calculateMDS(int dim, int iterations)
 	//MDS iteration
 	for (int it = 0; it < iterations; it++)
 	{
-		/*DEBUG_LOG(QString("\n old B number %1").arg(it));
+		/*LOG(lvlDebug,QString("\n old B number %1").arg(it));
 		csvDataType::debugArrayType(B);*/
 
 		// B = calc_B(D_,D);
@@ -233,7 +233,7 @@ void iAMultidimensionalScaling::calculateMDS(int dim, int iterations)
 			}
 		}
 
-		/*DEBUG_LOG(QString("\n middle B number %1").arg(it));
+		/*LOG(lvlDebug,QString("\n middle B number %1").arg(it));
 		csvDataType::debugArrayType(B);*/
 
 		double temp;
@@ -249,10 +249,10 @@ void iAMultidimensionalScaling::calculateMDS(int dim, int iterations)
 			B->at(c).at(c) = -temp;
 		}
 
-		/*DEBUG_LOG(QString("\n new B number %1").arg(it));
+		/*LOG(lvlDebug,QString("\n new B number %1").arg(it));
 		csvDataType::debugArrayType(B);
 
-		DEBUG_LOG(QString("\n old Z number %1").arg(it));
+		LOG(lvlDebug,QString("\n old Z number %1").arg(it));
 		csvDataType::debugArrayType(Z);*/
 
 		// X = B*Z/size(D,1);
@@ -274,20 +274,20 @@ void iAMultidimensionalScaling::calculateMDS(int dim, int iterations)
 		d->calculateSimilarityDistance(X, D_);
 
 		/*vectorDiff(X, &oldX_, result);
-		DEBUG_LOG(QString("\n X diff number %1 ").arg(it));
+		LOG(lvlDebug,QString("\n X diff number %1 ").arg(it));
 		csvDataType::debugArrayType(result);
 		oldX_ = *X;
 
-		//DEBUG_LOG(QString("\n new D number %1").arg(it));
+		//LOG(lvlDebug,QString("\n new D number %1").arg(it));
 		//csvDataType::debugArrayType(D_);	*/
 
 		//Z = X;
 		Z = csvDataType::elementCopy(X);
 
-		/*DEBUG_LOG(QString("\n new X number %1").arg(it));
+		/*LOG(lvlDebug,QString("\n new X number %1").arg(it));
 		csvDataType::debugArrayType(X);
 
-		DEBUG_LOG(QString("\n new Z number %1").arg(it));
+		LOG(lvlDebug,QString("\n new Z number %1").arg(it));
 		csvDataType::debugArrayType(Z);*/
 
 	}
@@ -295,7 +295,7 @@ void iAMultidimensionalScaling::calculateMDS(int dim, int iterations)
 	m_configuration = X;
 	
 	////DEBUG
-	//DEBUG_LOG("\n m_configuration");
+	//LOG(lvlDebug,"\n m_configuration");
 	//csvDataType::debugArrayType(m_configuration);
 }
 

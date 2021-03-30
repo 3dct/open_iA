@@ -8,7 +8,7 @@
 #include "vtkSmartPointer.h"
 #include "vtkContextInteractorStyle.h"
 
-class MainWindow;
+class iAMainWindow;
 class iACoefficientOfVariation;
 class iACsvDataStorage;
 class QVTKOpenGLNativeWidget;
@@ -36,7 +36,7 @@ class iACompBarChart : public QDockWidget, public Ui_CompBarChart
 {
 	Q_OBJECT
    public:
-	iACompBarChart(MainWindow* parent, iACoefficientOfVariation* coeffVar, iACsvDataStorage* dataStorage);
+	iACompBarChart(iAMainWindow* parent, iACoefficientOfVariation* coeffVar, iACsvDataStorage* dataStorage);
 
 	void showEvent(QShowEvent* event);
 	void renderWidget();

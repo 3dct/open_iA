@@ -1,5 +1,6 @@
 TARGET_LINK_LIBRARIES(${libname} PUBLIC
 	iAqthelper
+	Opengl32
 )
 SET(VTK_REQUIRED_LIBS_PRIVATE
 	ImagingStatistics       # for vtkImageAccumulate

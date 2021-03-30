@@ -1,7 +1,7 @@
 #pragma once
-#include "iAModuleInterface.h"
+#include <iAGUIModuleInterface.h>
 
-class iACompVisModuleInterface : public iAModuleInterface
+class iACompVisModuleInterface : public iAGUIModuleInterface
 {
 	Q_OBJECT
 public:

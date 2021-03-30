@@ -2,6 +2,7 @@
 
 //Qt
 #include <QDockWidget>
+
 #include "ui_CompHistogramTable.h"
 
 #include "vtkSmartPointer.h"
@@ -10,7 +11,7 @@
 #include <vtkChartBox.h>
 #include "vtkPlotBox.h"
 
-class MainWindow;
+class iAMainWindow;
 class QVTKOpenGLNativeWidget;
 class vtkContextView;
 class vtkTable;
@@ -24,7 +25,7 @@ class iACompBoxPlot : public QDockWidget, public Ui_CompHistogramTable
 {
 	Q_OBJECT
    public:
-	iACompBoxPlot(MainWindow* parent, iACsvDataStorage* dataStorage);
+	iACompBoxPlot(iAMainWindow* parent, iACsvDataStorage* dataStorage);
 	
 	void showEvent(QShowEvent* event);
 	

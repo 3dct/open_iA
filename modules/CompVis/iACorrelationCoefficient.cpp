@@ -57,7 +57,7 @@ std::map<QString, Correlation::CorrelationStore>* iACorrelationCoefficient::calc
 
 		/*for (Correlation::CorrelationStore::iterator it = corStore.begin(); it != corStore.end(); ++it)
 		{
-			DEBUG_LOG(it->first + " = " + QString::number(it->second));
+			LOG(lvlDebug,it->first + " = " + QString::number(it->second));
 		}*/
 
 		result->insert({ data->GetColumnName(c), corStore });
@@ -66,15 +66,15 @@ std::map<QString, Correlation::CorrelationStore>* iACorrelationCoefficient::calc
 	//DEBUG
 	/*for (std::map <QString, Correlation::CorrelationStore>::iterator it1 = result->begin(); it1 != result->end(); ++it1)
 	{
-		DEBUG_LOG("");
-		DEBUG_LOG(it1->first + " : ");
+		LOG(lvlDebug,"");
+		LOG(lvlDebug,it1->first + " : ");
 		Correlation::CorrelationStore aa = it1->second;
 		for (Correlation::CorrelationStore::iterator it = aa.begin(); it != aa.end(); ++it)
 		{
-			DEBUG_LOG(it->first + " = " + QString::number(it->second));
+			LOG(lvlDebug,it->first + " = " + QString::number(it->second));
 		}
-		DEBUG_LOG("");
-		DEBUG_LOG("#############################################################");
+		LOG(lvlDebug,"");
+		LOG(lvlDebug,"#############################################################");
 	}*/
 
 	return result;

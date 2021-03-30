@@ -1,24 +1,25 @@
 #include "dlg_VisMainWindow.h"
 
 //iA
-#include "mainwindow.h"
+#include "iAMainWindow.h"
 #include "iACompVisMain.h"
+#include "iAMdiChild.h"
 
-dlg_VisMainWindow::dlg_VisMainWindow(QList<csvFileData>* data, iAMultidimensionalScaling* mds, MainWindow* parent, iACompVisMain* main)
+dlg_VisMainWindow::dlg_VisMainWindow(QList<csvFileData>* data, iAMultidimensionalScaling* mds, iAMainWindow* parent, iACompVisMain* main)
 	:
 	QMainWindow(parent),
 	m_data(data),
 	m_mds(mds),
 	m_main(main)
 {
-	//setup mainwindow
-	parent->mdiArea->addSubWindow(this);
+	//setup iAMainWindow
+	parent->addSubWindow(this);
 	setupUi(this);
 
 	//start mds dialog
 	startMDSDialog();
 
-	//finish mainwindow setup
+	//finish iAMainWindow setup
 	createMenu();
 	this->showMaximized();
 }

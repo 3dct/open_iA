@@ -2,6 +2,7 @@
 
 //CompVis
 #include "iACsvDataStorage.h"
+#include "vtkIdTypeArray.h"
 #include "iAMultidimensionalScaling.h"
 
 //Qt

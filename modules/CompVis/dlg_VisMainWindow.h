@@ -11,7 +11,7 @@
 #include <QMainWindow>
 
 class iAMultidimensionalScaling;
-class MainWindow;
+class iAMainWindow;
 class iACompVisMain;
 
 class dlg_VisMainWindow : public QMainWindow, public Ui_CompVisMainWindow
@@ -19,7 +19,7 @@ class dlg_VisMainWindow : public QMainWindow, public Ui_CompVisMainWindow
 	Q_OBJECT
 
    public:
-	dlg_VisMainWindow(QList<csvFileData>* data, iAMultidimensionalScaling* mds, MainWindow* parent, iACompVisMain* main);
+	dlg_VisMainWindow(QList<csvFileData>* data, iAMultidimensionalScaling* mds, iAMainWindow* parent, iACompVisMain* main);
 	QList<csvFileData>* getData();
 	void startMDSDialog();
 

@@ -7,7 +7,7 @@
 #include "iACompVisMain.h"
 
 //iA
-#include "mainwindow.h"
+#include "iAMainWindow.h"
 #include "iAVtkVersion.h"
 
 //vtk
@@ -87,7 +87,7 @@
 vtkStandardNewMacro(iACompCorrelationMap::CorrelationGraphLayout);
 vtkStandardNewMacro(iACompCorrelationMap::GraphInteractorStyle);
 
-iACompCorrelationMap::iACompCorrelationMap(MainWindow* parent, iACorrelationCoefficient* corrCalculation, iACsvDataStorage* dataStorage, iACompVisMain* main) :
+iACompCorrelationMap::iACompCorrelationMap(iAMainWindow* parent, iACorrelationCoefficient* corrCalculation, iACsvDataStorage* dataStorage, iACompVisMain* main) :
 	QDockWidget(parent),
 	m_corrCalculation(corrCalculation),
 	m_main(main),
@@ -416,7 +416,7 @@ double iACompCorrelationMap::colorEdges(vtkIdType startVertex, vtkIdType endVert
 	Correlation::CorrelationStore::const_iterator pos1 = map.find(nameEndV);
 	if (pos1 == map.end()) return 0.0;
 
-	//DEBUG_LOG(nameStartV  + " to " + nameEndV + " with: " + QString::number(pos1->second));
+	//LOG(lvlDebug,nameStartV  + " to " + nameEndV + " with: " + QString::number(pos1->second));
 	
 	return pos1->second;	
 }
@@ -1544,9 +1544,9 @@ double iACompCorrelationMap::CorrelationGraphLayout::CoolDown(double t, double r
 double iACompCorrelationMap::CorrelationGraphLayout::forceAttract(double x, double k, double weight)
 {
 	double coefficient = std::abs(weight);
-	//DEBUG_LOG("coefficient = " + QString::number(coefficient));
-	//DEBUG_LOG("old fa = " + QString::number(((x * x) / k)));
-	//DEBUG_LOG("fa = " + QString::number(((x * x) / k) * (coefficient / 100)));
+	//LOG(lvlDebug,"coefficient = " + QString::number(coefficient));
+	//LOG(lvlDebug,"old fa = " + QString::number(((x * x) / k)));
+	//LOG(lvlDebug,"fa = " + QString::number(((x * x) / k) * (coefficient / 100)));
 
 	return ((x * x) / k) * coefficient; //(coefficient/100);
 }
@@ -1659,7 +1659,7 @@ void iACompCorrelationMap::CorrelationGraphLayout::Initialize()
 	//  cerr << endl;
 	//  }
 
-	//DEBUG_LOG("GraphBounds = " + QString::number(this->GraphBounds[0]) + ", " + QString::number(this->GraphBounds[1]) + "\n" +
+	//LOG(lvlDebug,"GraphBounds = " + QString::number(this->GraphBounds[0]) + ", " + QString::number(this->GraphBounds[1]) + "\n" +
 	//	QString::number(this->GraphBounds[2]) + ", " + QString::number(this->GraphBounds[3]) + "\n" +
 	//	QString::number(this->GraphBounds[4]) + ", " + QString::number(this->GraphBounds[5]) );
 
@@ -1668,7 +1668,7 @@ void iACompCorrelationMap::CorrelationGraphLayout::Initialize()
 		(this->GraphBounds[3] - this->GraphBounds[2]) *
 		(this->GraphBounds[5] - this->GraphBounds[4]);
 
-	//DEBUG_LOG("volume = " + QString::number(volume));
+	//LOG(lvlDebug,"volume = " + QString::number(volume));
 
 	this->Temp = sqrt((this->GraphBounds[1] - this->GraphBounds[0])*
 		(this->GraphBounds[1] - this->GraphBounds[0]) +
@@ -1682,7 +1682,7 @@ void iACompCorrelationMap::CorrelationGraphLayout::Initialize()
 		this->Temp = this->InitialTemperature;
 	}
 
-	//DEBUG_LOG("Temp = " + QString::number(volume));
+	//LOG(lvlDebug,"Temp = " + QString::number(volume));
 
 	// The optimal distance between vertices.
 	//this->optDist = pow(volume / numVertices, 0.33333);
@@ -1690,9 +1690,9 @@ void iACompCorrelationMap::CorrelationGraphLayout::Initialize()
 	this->minDist = optDist;//1 * std::sqrt(volume / numVertices); //pow(volume / numVertices, 2);
 	this->maxDist = 2*optDist;//3 * std::sqrt(volume / numVertices); //pow(volume / numVertices, 0.1);
 
-	//DEBUG_LOG("optDist = " + QString::number(optDist));
-	//DEBUG_LOG("maxDist = " + QString::number(maxDist));
-	//DEBUG_LOG("minDist = " + QString::number(minDist));
+	//LOG(lvlDebug,"optDist = " + QString::number(optDist));
+	//LOG(lvlDebug,"maxDist = " + QString::number(maxDist));
+	//LOG(lvlDebug,"minDist = " + QString::number(minDist));
 
 	// Set some vars
 	this->TotalIterations = 0;
@@ -1786,7 +1786,7 @@ void iACompCorrelationMap::CorrelationGraphLayout::Initialize()
 	//  cerr << endl;
 	//  }
 
-	DEBUG_LOG("GraphBounds = " + QString::number(this->GraphBounds[0]) + ", " + QString::number(this->GraphBounds[1]) + "\n" +
+	LOG(lvlDebug,"GraphBounds = " + QString::number(this->GraphBounds[0]) + ", " + QString::number(this->GraphBounds[1]) + "\n" +
 		QString::number(this->GraphBounds[2]) + ", " + QString::number(this->GraphBounds[3]) + "\n" +
 		QString::number(this->GraphBounds[4]) + ", " + QString::number(this->GraphBounds[5]));
 
@@ -1795,7 +1795,7 @@ void iACompCorrelationMap::CorrelationGraphLayout::Initialize()
 		(this->GraphBounds[3] - this->GraphBounds[2]) *
 		(this->GraphBounds[5] - this->GraphBounds[4]);
 
-	DEBUG_LOG("volume = " + QString::number(volume));
+	LOG(lvlDebug,"volume = " + QString::number(volume));
 
 	this->Temp = sqrt((this->GraphBounds[1] - this->GraphBounds[0])*
 		(this->GraphBounds[1] - this->GraphBounds[0]) +
@@ -1809,7 +1809,7 @@ void iACompCorrelationMap::CorrelationGraphLayout::Initialize()
 		this->Temp = this->InitialTemperature;
 	}
 
-	DEBUG_LOG("Temp = " + QString::number(volume));
+	LOG(lvlDebug,"Temp = " + QString::number(volume));
 
 	// The optimal distance between vertices.
 	//this->optDist = pow(volume / numVertices, 0.33333);
@@ -1817,9 +1817,9 @@ void iACompCorrelationMap::CorrelationGraphLayout::Initialize()
 	this->minDist = optDist; //1 * std::sqrt(volume / numVertices);//pow(volume / numVertices, 2);
 	this->maxDist = optDist; //3 * std::sqrt(volume / numVertices);//pow(volume / numVertices, 0.1);
 
-	DEBUG_LOG("optDist = " + QString::number(optDist));
-	DEBUG_LOG("maxDist = " + QString::number(maxDist));
-	DEBUG_LOG("minDist = " + QString::number(minDist));
+	LOG(lvlDebug,"optDist = " + QString::number(optDist));
+	LOG(lvlDebug,"maxDist = " + QString::number(maxDist));
+	LOG(lvlDebug,"minDist = " + QString::number(minDist));
 
 	// Set some vars
 	this->TotalIterations = 0;
@@ -1838,8 +1838,8 @@ void iACompCorrelationMap::CorrelationGraphLayout::Layout()
 	// Begin iterations.
 	double norm, fr, fa, minimum;
 	double diff[3];
-	//DEBUG_LOG("IterationsPerLayout: " + QString::number(IterationsPerLayout));
-	//DEBUG_LOG("intial Temp = " + QString::number(Temp));
+	//LOG(lvlDebug,"IterationsPerLayout: " + QString::number(IterationsPerLayout));
+	//LOG(lvlDebug,"intial Temp = " + QString::number(Temp));
 	for (int i = 0; i < this->IterationsPerLayout; i++)
 	{
 		// Calculate the repulsive forces.
@@ -1861,7 +1861,7 @@ void iACompCorrelationMap::CorrelationGraphLayout::Layout()
 					diff[2] = v[j].x[2] - v[l].x[2];
 					norm = vtkMath::Normalize(diff);
 				
-					//DEBUG_LOG("norm: " + QString::number(norm));
+					//LOG(lvlDebug,"norm: " + QString::number(norm));
 
 					if (norm > 2 * maxDist)
 					{
@@ -2046,8 +2046,8 @@ void iACompCorrelationMap::CorrelationGraphLayout::Layout()
 	double velocity = 0;
 	double oldTemp = this->Temp;
 	double displacement;
-	DEBUG_LOG("IterationsPerLayout: " + QString::number(IterationsPerLayout));
-	DEBUG_LOG("intial Temp = " + QString::number(Temp));
+	LOG(lvlDebug,"IterationsPerLayout: " + QString::number(IterationsPerLayout));
+	LOG(lvlDebug,"intial Temp = " + QString::number(Temp));
 	for (int i = 0; i < this->IterationsPerLayout; i++)
 	{
 		// Calculate the repulsive forces.
@@ -2069,7 +2069,7 @@ void iACompCorrelationMap::CorrelationGraphLayout::Layout()
 					diff[2] = v[j].x[2] - v[l].x[2];
 					norm = vtkMath::Normalize(diff);
 
-					//DEBUG_LOG("norm: " + QString::number(norm));
+					//LOG(lvlDebug,"norm: " + QString::number(norm));
 
 					if (norm > 2 * optDist)
 					{
@@ -2121,15 +2121,15 @@ void iACompCorrelationMap::CorrelationGraphLayout::Layout()
 /*		this->Temp = CoolDown(this->Temp, this->CoolDownRate);
 
 		double timeStep = oldTemp - this->Temp;//0.5; //
-		DEBUG_LOG("");
-		DEBUG_LOG("++++++++++++++++++++++++++++++++++++++++");
-		DEBUG_LOG("timeStep = " + QString::number(timeStep));
+		LOG(lvlDebug,"");
+		LOG(lvlDebug,"++++++++++++++++++++++++++++++++++++++++");
+		LOG(lvlDebug,"timeStep = " + QString::number(timeStep));
 		for (vtkIdType j = 0; j < numEdges; j++)
 		{
 			if (j == 0 || j == 1)
 			{
-				DEBUG_LOG("j = " + QString::number(j) );
-				DEBUG_LOG("Pos = " + QString::number(v[e[j].u].x[0]) + ", " + QString::number(v[e[j].u].x[1]) + ", " + QString::number(v[e[j].u].x[2]));
+				LOG(lvlDebug,"j = " + QString::number(j) );
+				LOG(lvlDebug,"Pos = " + QString::number(v[e[j].u].x[0]) + ", " + QString::number(v[e[j].u].x[1]) + ", " + QString::number(v[e[j].u].x[2]));
 			}
 
 			double weight = getWeightForEdge(e[j].u, e[j].t);
@@ -2154,12 +2154,12 @@ void iACompCorrelationMap::CorrelationGraphLayout::Layout()
 
 			if(j == 0 || j == 1)
 			{
-				DEBUG_LOG("weight = " + QString::number(weight));
-				DEBUG_LOG("displacement = " + QString::number(displacement));
-				DEBUG_LOG("fa = " + QString::number(fa));
-				DEBUG_LOG("acc = " + QString::number(acc));
-				DEBUG_LOG("velocity = " + QString::number(velocity));
-				DEBUG_LOG("new Pos = " + QString::number(v[e[j].u].x[0]) + ", " + QString::number(v[e[j].u].x[1]) + ", " + QString::number(v[e[j].u].x[2]));
+				LOG(lvlDebug,"weight = " + QString::number(weight));
+				LOG(lvlDebug,"displacement = " + QString::number(displacement));
+				LOG(lvlDebug,"fa = " + QString::number(fa));
+				LOG(lvlDebug,"acc = " + QString::number(acc));
+				LOG(lvlDebug,"velocity = " + QString::number(velocity));
+				LOG(lvlDebug,"new Pos = " + QString::number(v[e[j].u].x[0]) + ", " + QString::number(v[e[j].u].x[1]) + ", " + QString::number(v[e[j].u].x[2]));
 			}
 		}
 		DEBUG_LOG("");

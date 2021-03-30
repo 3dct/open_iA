@@ -1,7 +1,7 @@
 #include "dlg_MultidimensionalScalingDialog.h"
 
 //Debug
-#include "iAConsole.h"
+#include "iALog.h"
 
 //QT
 #include "qbuttongroup.h"

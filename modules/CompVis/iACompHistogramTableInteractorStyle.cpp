@@ -2,7 +2,7 @@
 #include <vtkObjectFactory.h> //for macro!
 
 //Debug
-#include "iAConsole.h"
+#include "iALog.h"
 
 //CompVis
 #include "iACompHistogramTable.h"
@@ -113,7 +113,7 @@ void iACompHistogramTableInteractorStyle::OnLeftButtonDown()
 	auto currentRenderer = this->GetDefaultRenderer();
 	if (currentRenderer == nullptr)
 	{
-		DEBUG_LOG("HistogramTableInteractorStyle: currentRenderer is null!!");
+		LOG(lvlDebug,"HistogramTableInteractorStyle: currentRenderer is null!!");
 		return;
 	}
 
@@ -585,7 +585,7 @@ csvDataType::ArrayType* iACompHistogramTableInteractorStyle::formatPickedObjects
 {
 	csvDataType::ArrayType* result = new csvDataType::ArrayType();
 
-	/*DEBUG_LOG("++++++++++++++++++++++++");
+	/*LOG(lvlDebug,"++++++++++++++++++++++++");
 	//DEBUG
 	for (int i = 0; i < zoomedRowData->size(); i++)
 	{ //datasets
@@ -596,12 +596,12 @@ csvDataType::ArrayType* iACompHistogramTableInteractorStyle::formatPickedObjects
 
 			for (int j = 0; j < data->size(); j++)
 			{
-				DEBUG_LOG("fiberLabelId = " + QString::number(data->at(j).at(0)) + " --> at Bin: " + QString::number(k));
+				LOG(lvlDebug,"fiberLabelId = " + QString::number(data->at(j).at(0)) + " --> at Bin: " + QString::number(k));
 			}
 
 		}
 	}
-	DEBUG_LOG("++++++++++++++++++++++++");*/
+	LOG(lvlDebug,"++++++++++++++++++++++++");*/
 
 	int amountDatasets = zoomedRowData->size();
 
@@ -640,7 +640,7 @@ csvDataType::ArrayType* iACompHistogramTableInteractorStyle::formatPickedObjects
 	/*for (int i = 0; i < result->size(); i++)
 	{
 		std::vector<double> attr = result->at(i);
-		DEBUG_LOG("Attr " + QString::number(i) + " has " + QString::number(attr.size()) + " fibers");
+		LOG(lvlDebug,"Attr " + QString::number(i) + " has " + QString::number(attr.size()) + " fibers");
 	}*/
 
 	return result;

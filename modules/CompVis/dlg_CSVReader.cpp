@@ -1,7 +1,7 @@
 #include "dlg_CSVReader.h"
 
 //Debug
-#include "iAConsole.h"
+#include "iALog.h"
 
 #include <QDirIterator.h>
 #include <QFileDialog.h>

@@ -1,14 +1,14 @@
 #include "iACompHistogramTable.h"
 
 //Debug
-#include "iAConsole.h"
+#include "iALog.h"
 
 //CompVis
 #include "iACompVisOptions.h"
 #include "iACompVisMain.h"
 
 //iA
-#include "mainwindow.h"
+#include "iAMainWindow.h"
 #include "iAVtkVersion.h"
 
 //Qt
@@ -79,7 +79,7 @@
 
 
 iACompHistogramTable::iACompHistogramTable(
-	MainWindow* parent, iAMultidimensionalScaling* mds, iACsvDataStorage* dataStorage, iACompVisMain* main) :
+	iAMainWindow* parent, iAMultidimensionalScaling* mds, iACsvDataStorage* dataStorage, iACompVisMain* main) :
 	QDockWidget(parent),
 	m_main(main),
 	m_mds(mds),
@@ -919,10 +919,10 @@ void iACompHistogramTable::redrawZoomedRow(int selectedBinNumber)
 		colorData->SetName("colors");
 		colorData->SetNumberOfComponents(3);
 
-		/*DEBUG_LOG("rowId = " + QString::number(rowId));
-		DEBUG_LOG("cellId = " + QString::number(cellId));
-		DEBUG_LOG("m_zoomedRowData->size() = " + QString::number(m_zoomedRowData->size()));
-		DEBUG_LOG("m_zoomedRowData->size() - 1 = " + QString::number(m_zoomedRowData->size() - 1));*/
+		/*LOG(lvlDebug,"rowId = " + QString::number(rowId));
+		LOG(lvlDebug,"cellId = " + QString::number(cellId));
+		LOG(lvlDebug,"m_zoomedRowData->size() = " + QString::number(m_zoomedRowData->size()));
+		LOG(lvlDebug,"m_zoomedRowData->size() - 1 = " + QString::number(m_zoomedRowData->size() - 1));*/
 
 		colorRowForZoom(colorData, cellId, m_zoomedRowData->at(rowId), selectedBinNumber);
 		plane->GetOutput()->GetCellData()->SetScalars(colorData);
@@ -1100,11 +1100,11 @@ void iACompHistogramTable::removePointRepresentation()
 vtkSmartPointer<vtkPoints> iACompHistogramTable::calculatePointPosition(std::vector<double> dataPoints, double newMinX, double newMaxX, double y, std::vector<double> currMinMax)
 {
 
-	/*DEBUG_LOG("dataPoints.size() = " + QString::number(dataPoints.size()));
+	/*LOG(lvlDebug,"dataPoints.size() = " + QString::number(dataPoints.size()));
 
 	for (int i = 0; i < dataPoints.size(); i++)
 	{
-		DEBUG_LOG("Point " + QString::number(i) + ": " + QString::number(dataPoints.at(i)));
+		LOG(lvlDebug,"Point " + QString::number(i) + ": " + QString::number(dataPoints.at(i)));
 	}*/
 
 	if(dataPoints.size() == 0)
@@ -1881,13 +1881,13 @@ std::tuple<QList<bin::BinType*>*, QList<std::vector<csvDataType::ArrayType*>*>*>
 	}
 
 	//DEBUG
-	/*DEBUG_LOG("DEBUGGING");
+	/*LOG(lvlDebug,"DEBUGGING");
 	for (int i = 0; i < thisZoomedRowData->size(); i++)
 	{
 		bin::debugBinType(thisZoomedRowData->at(i));
 	}*/
 
-	/*DEBUG_LOG("DEBUGGING");
+	/*LOG(lvlDebug,"DEBUGGING");
 	for (int i = 0; i < selectedObjects->size(); i++)
 	{
 		bin::debugBinType(selectedObjects->at(i));
