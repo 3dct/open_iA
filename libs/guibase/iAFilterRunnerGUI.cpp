@@ -297,7 +297,7 @@ void iAFilterRunnerGUI::run(QSharedPointer<iAFilter> filter, iAMainWindow* mainW
 		return;
 	}
 	filterGUIPreparations(filter, mdiChild, mainWnd, paramValues);
-	iAFilterRunnerGUIThread* thread = new iAFilterRunnerGUIThread(filter, paramValues, mdiChild, mdiChild->currentFile());
+	iAFilterRunnerGUIThread* thread = new iAFilterRunnerGUIThread(filter, paramValues, mdiChild, sourceMdi->modality(0)->fileName());
 	if (!thread)
 	{
 		mainWnd->statusBar()->showMessage("Cannot create result calculation thread!", 5000);
