@@ -123,7 +123,7 @@ private:
 // specific histogram for a collection of binary images (one for each label)
 // the created histogram has one bin per label
 template <typename PixelT>
-QSharedPointer<iAHistogramData> createHistogram(QString const& name, iAValueType xValueType,
+QSharedPointer<iAHistogramData> createHistogramData(QString const& name, iAValueType xValueType,
 	QVector<typename itk::Image<PixelT, 3>::Pointer> const& imgs, size_t numBin, PixelT min, PixelT max)
 {
 	/*

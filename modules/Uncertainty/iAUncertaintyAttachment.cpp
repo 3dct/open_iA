@@ -198,7 +198,7 @@ void iAUncertaintyAttachment::EnsembleSelected(QSharedPointer<iAEnsemble> ensemb
 	m_scatterplotView->SetDatasets(ensemble);
 	m_memberView->SetEnsemble(ensemble);
 	m_labelDistributionView->Clear();
-	auto labelDistributionHistogram = createHistogram<int>("Label Frequency", iAValueType::Discrete, ensemble->GetLabelDistribution(),
+	auto labelDistributionHistogram = createHistogramData<int>("Label Frequency", iAValueType::Discrete, ensemble->GetLabelDistribution(),
 		ensemble->LabelCount(), 0, ensemble->LabelCount() - 1);
 	double lutRange[2];
 	lutRange[0] = 0;

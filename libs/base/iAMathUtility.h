@@ -266,7 +266,8 @@ std::vector<size_t> sort_indexes(const std::vector<T>& v)
 //! compute histogram from given values
 // TODO: use in iAHistogramData::create
 template<typename OutContainerT=QVector<double>, typename ValueT=double, typename InContainerT>
-OutContainerT createHistogram(const InContainerT& inData, typename OutContainerT::size_type binCount, ValueT minValue, ValueT maxValue)
+OutContainerT createHistogram(const InContainerT& inData, typename OutContainerT::size_type binCount,
+	ValueT & minValue, ValueT & maxValue, bool discrete = false)
 {
 	if (std::isinf(minValue))
 	{
@@ -279,6 +280,10 @@ OutContainerT createHistogram(const InContainerT& inData, typename OutContainerT
 	if (dblApproxEqual(minValue, maxValue))
 	{   // if min == max, there is only one bin - one in which all values are contained!
 		return OutContainerT(1, inData.size());
+	}
+	if (discrete)
+	{
+		binCount = std::min(binCount, static_cast<typename OutContainerT::size_type>(maxValue - minValue + 1) );
 	}
 	OutContainerT result;
 	result.fill(0, binCount);
