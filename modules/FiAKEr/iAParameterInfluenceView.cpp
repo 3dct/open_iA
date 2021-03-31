@@ -448,19 +448,28 @@ QString iAParameterInfluenceView::columnName(int outType, int outIdx) const
 void iAParameterInfluenceView::updateStackedBarHistogram(QString const & barName, int paramIdx, int outType, int outIdx)
 {
 	int barIdx = m_table[paramIdx]->bars->barIndex(barName);
-	if (outType != outCharacteristic)
-	{
-		return;
-	}
+	/*
+
+	*/
 	auto outChart = m_table[paramIdx]->out[barIdx];
 	outChart->clearPlots();
 	outChart->resetYBounds();
-	auto const rng = m_sensInf->m_data->spmData->paramRange(m_sensInf->m_charSelected[outIdx]);
-	auto varHistData = iAHistogramData::create(barName, iAValueType::Continuous, rng[0], rng[1],
-		m_sensInf->charHistVarAgg[outIdx][m_aggrType][paramIdx]);
-	outChart->addPlot(QSharedPointer<iABarGraphPlot>::create(varHistData, QColor(80, 80, 80, 128)));
+	auto const rng = (outType == outCharacteristic)
+		? m_sensInf->m_data->spmData->paramRange(m_sensInf->m_charSelected[outIdx])
+		: ((outType == outFiberCount)
+			? m_sensInf->m_fiberCountRange
+			: nullptr
+		);
+	if (outType == outCharacteristic)
+	{
+		auto varHistData = iAHistogramData::create(barName, iAValueType::Continuous, rng[0], rng[1],
+			m_sensInf->charHistVarAgg[outIdx][m_aggrType][paramIdx]);
+		outChart->addPlot(QSharedPointer<iABarGraphPlot>::create(varHistData, QColor(80, 80, 80, 128)));
+	}
 	auto avgHistData = iAHistogramData::create("Average", iAValueType::Continuous, rng[0], rng[1],
-		m_sensInf->charHistAvg[outIdx]);
+		(outType == outCharacteristic)
+			? m_sensInf->charHistAvg[outIdx]
+			: m_sensInf->fiberCountHistogram);
 	outChart->addPlot(QSharedPointer<iABarGraphPlot>::create(avgHistData, QColor(80, 80, 80, 64)));
 	outChart->update();
 

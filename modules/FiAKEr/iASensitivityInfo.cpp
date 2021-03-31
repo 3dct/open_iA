@@ -523,8 +523,7 @@ void iASensitivityInfo::compute()
 			{
 				fiberData[fiberID] = r.table->GetValue(fiberID, charIdx).ToDouble();
 			}
-			auto histogram = createHistogram(
-				fiberData, m_histogramBins, rangeMin, rangeMax);
+			auto histogram = createHistogram(fiberData, m_histogramBins, rangeMin, rangeMax);
 			m_charHistograms[rIdx].push_back(histogram);
 		}
 	}
@@ -682,9 +681,22 @@ void iASensitivityInfo::compute()
 	{
 		return;
 	}
+	m_progress.setStatus("Computing fiber count histogram.");
+
+	QVector<double> fiberCounts;
+	for (int resultIdx = 0; resultIdx < m_data->result.size(); ++resultIdx)
+	{
+		fiberCounts.push_back(m_data->result[resultIdx].fiberCount);
+	}
+	m_fiberCountRange[0] = m_fiberCountRange[1] = std::numeric_limits<double>::infinity();
+	fiberCountHistogram = createHistogram(fiberCounts, m_histogramBins,
+		m_fiberCountRange[0], m_fiberCountRange[1], true);
+	if (m_aborted)
+	{
+		return;
+	}
 
 	m_progress.setStatus("Computing fiber count sensitivities.");
-
 	// TODO: unify with other loops over STARs
 	sensitivityFiberCount.resize(NumOfVarianceAggregation);
 	aggregatedSensitivitiesFiberCount.resize(NumOfVarianceAggregation);

@@ -114,6 +114,9 @@ public:
 		QVector<    // parameter index
 		double>> aggregatedSensitivitiesFiberCount;
 
+	double m_fiberCountRange[2];
+	QVector<double> fiberCountHistogram;
+
 	//! sensitivity "field" for dissimilarity measures
 	QVector<        // dissimilarity measure (index in m_resultDissimMeasures)
 		QVector<    // variation aggregation (see iASensitivityInfo::create)
