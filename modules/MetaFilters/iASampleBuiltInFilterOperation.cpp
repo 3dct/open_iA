@@ -73,7 +73,7 @@ void iASampleBuiltInFilterOperation::performWork()
 	{
 		if (param->valueType() == iAValueType::FileNameSave)
 		{	// all output file names need to be adapted to output file name
-			auto value = pathFileBaseName(m_outputFileName) + param->defaultValue().toString();
+			auto value = pathFileBaseName(QFileInfo(m_outputFileName)) + param->defaultValue().toString();
 			if (QFile::exists(value) && !m_overwriteOutput)
 			{
 				LOG(lvlError, QString("Output file '%1' already exists! Aborting. "

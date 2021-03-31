@@ -1,6 +1,6 @@
 SET( DEPENDENCIES_LIBRARIES
 	iAcharts
-	iAcore
+	iAguibase
 )
 #SET( DEPENDENCIES_ITK_MODULES
 #	ITKAnisotropicSmoothing    # for CurvatureAnisotropicDiffusionImageFilter, GradientAnisotropicDiffusionImageFilter

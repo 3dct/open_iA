@@ -26,7 +26,7 @@ iAIBorderItem::~iAIBorderItem()
 iARightBorderLayout::iARightBorderLayout(QWidget *parent, Position pos, int margin, int spacing)
 	: QLayout(parent), m_pos(pos)
 {
-	setMargin(margin);
+	setContentsMargins(margin, margin, margin, margin);
 	setSpacing(spacing);
 }
 

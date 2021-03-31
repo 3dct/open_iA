@@ -78,17 +78,17 @@
 #include <limits>
 #include <algorithm>
 #ifdef QCP_OPENGL_FBO
-#  include <QtGui/QOpenGLContext>
-#  include <QtGui/QOpenGLFramebufferObject>
+#  include <QOpenGLContext>
+#  include <QOpenGLFramebufferObject>
 #  ifdef QCP_OPENGL_OFFSCREENSURFACE
-#    include <QtGui/QOffscreenSurface>
+#    include <QOffscreenSurface>
 #  else
-#    include <QtGui/QWindow>
+#    include <QWindow>
 #  endif
 #endif
-#  include <QtGui/QOpenGLPaintDevice>
+#  include <QOpenGLPaintDevice>
 #ifdef QCP_OPENGL_PBUFFER
-#  include <QtOpenGL/QGLPixelBuffer>
+#  include <QGLPixelBuffer>
 #endif
 #if QT_VERSION < QT_VERSION_CHECK(5, 0, 0)
 #  include <qnumeric.h>
@@ -1747,23 +1747,23 @@ public:
   QCPAxisTickerText();
   
   // getters:
-  QMap<double, QString> &ticks() { return mTicks; }
+  QMultiMap<double, QString> &ticks() { return mTicks; }
   int subTickCount() const { return mSubTickCount; }
   
   // setters:
-  void setTicks(const QMap<double, QString> &ticks);
+  void setTicks(const QMultiMap<double, QString> & ticks);
   void setTicks(const QVector<double> &positions, const QVector<QString> &labels);
   void setSubTickCount(int subTicks);
   
   // non-virtual methods:
   void clear();
   void addTick(double position, const QString &label);
-  void addTicks(const QMap<double, QString> &ticks);
+  void addTicks(const QMultiMap<double, QString> &ticks);
   void addTicks(const QVector<double> &positions, const QVector<QString> &labels);
   
 protected:
   // property members:
-  QMap<double, QString> mTicks;
+  QMultiMap<double, QString> mTicks;
   int mSubTickCount;
   
   // reimplemented virtual methods:

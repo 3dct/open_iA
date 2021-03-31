@@ -1,4 +1,4 @@
-TARGET_LINK_LIBRARIES(${libname} PUBLIC iAcore)
+TARGET_LINK_LIBRARIES(${libname} PUBLIC iAguibase)
 SET( VTK_REQUIRED_LIBS_PRIVATE
 	CommonComputationalGeometry # for vtkParametricSpline used in iASpline
 )

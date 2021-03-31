@@ -43,7 +43,7 @@ QSharedPointer<iAHistogramData> createFilteredPlotData(
 }
 
 iARangeSliderDiagramWidget::iARangeSliderDiagramWidget(QWidget* parent, vtkPiecewiseFunction* oTF,
-	vtkColorTransferFunction* cTF, QSharedPointer<iAHistogramData> data, QMap<double, QList<double>>* histogramMap,
+	vtkColorTransferFunction* cTF, QSharedPointer<iAHistogramData> data, QMultiMap<double, QList<double>>* histogramMap,
 	const QTableWidget* rawTable, QString const& xlabel, QString const& yLabel) :
 	iAChartWithFunctionsWidget(parent, xlabel, yLabel),
 	m_data(data),
@@ -329,7 +329,7 @@ void iARangeSliderDiagramWidget::selectSlot()
 	{
 		return;
 	}
-	QMap<double, QList<double> > map = *m_histogramMap;
+	QMultiMap<double, QList<double> > map = *m_histogramMap;
 
 	QSet<double> set;
 	for ( int i = f; i <= l; ++i )

@@ -168,7 +168,7 @@ void iAFeatureAnalyzerComputationModuleInterface::computeParameterSpace()
 
 	QWidget *dropHintContainer = new QWidget( m_groupBoxPipeline );
 	QHBoxLayout *hLayoutDropHintContainer = new QHBoxLayout;
-	hLayoutDropHintContainer->setMargin( 0 );
+	hLayoutDropHintContainer->setContentsMargins(0, 0, 0, 0);
 	hLayoutDropHintContainer->setSpacing( 0 );
 	QTextEdit *lHint = new QTextEdit( dropHintContainer );
 	lHint->setFrameStyle( QFrame::StyledPanel | QFrame::Sunken );
@@ -187,7 +187,7 @@ void iAFeatureAnalyzerComputationModuleInterface::computeParameterSpace()
 	QWidget *dropModPipelineButtonsContainer = new QWidget( m_groupBoxPipeline );
 	QHBoxLayout *hLayoutDropModPipelineButtonsContainer = new QHBoxLayout;
 	hLayoutDropModPipelineButtonsContainer->setAlignment( Qt::AlignLeft );
-	hLayoutDropModPipelineButtonsContainer->setMargin( 0 );
+	hLayoutDropModPipelineButtonsContainer->setContentsMargins(0, 0, 0, 0);
 	QToolButton *btIncPipeline = new QToolButton( dropModPipelineButtonsContainer );
 	btIncPipeline->setObjectName( "incPipelineButton" );
 	QPixmap incImage( ":/images/add_pipe_slot.png" );
@@ -214,7 +214,7 @@ void iAFeatureAnalyzerComputationModuleInterface::computeParameterSpace()
 																		   m_pipelineSlotsCount, m_datasetsFolder, m_dropPipelineContainer );
 	m_dropPipelineWidget->setObjectName( "dropPipelineWidget" );
 	m_hLayoutDropPipelineContainer->addWidget( m_dropPipelineWidget );
-	m_hLayoutDropPipelineContainer->setMargin( 0 );
+	m_hLayoutDropPipelineContainer->setContentsMargins(0, 0, 0, 0);
 	m_hLayoutDropPipelineContainer->setSpacing( 0 );
 	m_dropPipelineContainer->setLayout( m_hLayoutDropPipelineContainer );
 	btIncPipeline->setIcon( QIcon( incImage ) );
@@ -222,7 +222,7 @@ void iAFeatureAnalyzerComputationModuleInterface::computeParameterSpace()
 	QWidget *dropAcceptPipelineButtonsContainer = new QWidget( m_groupBoxPipeline );
 	QHBoxLayout *hLayoutDropAcceptPipelineButtonsContainer = new QHBoxLayout;
 	hLayoutDropAcceptPipelineButtonsContainer->setAlignment( Qt::AlignRight );
-	hLayoutDropAcceptPipelineButtonsContainer->setMargin( 0 );
+	hLayoutDropAcceptPipelineButtonsContainer->setContentsMargins(0, 0, 0, 0);
 	QToolButton *btClearPipeline = new QToolButton( dropAcceptPipelineButtonsContainer );
 	QPixmap remImage( ":/images/rem_pipe.png" );
 	btClearPipeline->setIcon( QIcon( remImage ) );

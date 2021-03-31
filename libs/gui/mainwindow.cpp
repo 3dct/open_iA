@@ -62,6 +62,7 @@
 #include <vtkPiecewiseFunction.h>
 #include <vtkSmartVolumeMapper.h>
 
+#include <QActionGroup>
 #include <QCloseEvent>
 #include <QDragEnterEvent>
 #include <QDropEvent>
@@ -370,7 +371,9 @@ void MainWindow::loadFile(QString fileName, bool isStack)
 	if (fileName.toLower().endsWith(iAIOProvider::NewProjectFileExtension))
 	{
 		QSettings projectFile(fileName, QSettings::IniFormat);
+#if QT_VERSION < QT_VERSION_CHECK(5, 99, 0)
 		projectFile.setIniCodec("UTF-8");
+#endif
 		// TODO: asynchronous loading, merge with mdichild: loadFile project init parts
 		if (projectFile.contains("UseMdiChild") && !projectFile.value("UseMdiChild", false).toBool())
 		{
@@ -2605,7 +2608,7 @@ public:
 
 void MainWindow::initResources()
 {
-	Q_INIT_RESOURCE(open_iA_gui);
+	Q_INIT_RESOURCE(gui);
 }
 
 int MainWindow::runGUI(int argc, char * argv[], QString const & appName, QString const & version,

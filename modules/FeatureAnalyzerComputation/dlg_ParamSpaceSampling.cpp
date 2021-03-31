@@ -206,7 +206,7 @@ dlg_ParamSpaceSampling::dlg_ParamSpaceSampling(QWidget *parent, QString winTitle
 		{
 			QString nameStr(inList[i]);
 
-			if ( !nameStr.contains( QRegExp( "[$#+*^?]" ) ) )
+			if (!nameStr.contains(QRegularExpression("[$#+*^?]")))
 			{
 				eMessage->showMessage( QString( "Unknown widget prefix '" )
 					.append( inList[i][0] )

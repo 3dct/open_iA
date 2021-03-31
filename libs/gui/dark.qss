@@ -427,7 +427,10 @@ QProgressBar
 		border-top-left-radius: 0px;
 	}
 /****************************************************************************
-QListView
+QListView,
+QListWidget,
+QTableView,
+QTableWidget
 ****************************************************************************/
 	QListView,
 	QListWidget,
@@ -465,6 +468,12 @@ QListView
 	{
 		color: rgba(255, 255, 255, 255);
 		border: 1px solid rgba(120, 120, 120, 255);
+	}
+	QTableView::item:selected,
+	QTableWidget::item:selected
+	{
+		background-color: rgba(75, 75, 75, 255);
+		color: rgba(230, 230, 230, 255);
 	}
 /****************************************************************************
 QRadioButton

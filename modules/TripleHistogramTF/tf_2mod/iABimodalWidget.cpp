@@ -76,12 +76,12 @@ void iABimodalWidget::initialize()
 
 	//m_slider = new iAInterpolationSlider(Qt::Vertical, wmain);
 	m_slider = new iAInterpolationSliderWidget();
-	m_slider->setContentsMargins(QMargins(20, 20, 20, 20));
+	m_slider->setContentsMargins(20, 20, 20, 20);
 
 	QWidget *wleft = new QWidget();
 	QVBoxLayout *wleftl = new QVBoxLayout(wleft);
 	wleftl->setSpacing(1);
-	wleftl->setMargin(0);
+	wleftl->setContentsMargins(0, 0, 0, 0);
 
 	auto grid = new iAHistogramStackGrid(wleft, histograms, slicers, m_labels);
 

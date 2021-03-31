@@ -68,7 +68,7 @@ iASSView::iASSView( QWidget * parent /*= 0*/, Qt::WindowFlags f /*= 0 */ )
 	m_segm3DViewExtrnl( 0 ),
 	m_runsOffset( -10000 )
 {
-	m_slicerViewsLayout->setMargin( 0 );
+	m_slicerViewsLayout->setContentsMargins(0, 0, 0, 0);
 	QSettings settings( organisationName, applicationName );
 	m_datasetFolder = settings.value( "FeatureAnalyzer/GUI/datasetsFolder", "" ).toString();
 	m_resultsFolder = settings.value( "FeatureAnalyzer/GUI/resultsFolder", "" ).toString();

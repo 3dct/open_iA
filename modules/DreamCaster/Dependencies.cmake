@@ -1,7 +1,7 @@
 SET( DEPENDENCIES_LIBRARIES
 	OpenCL
 	iAcharts
-	iAcore
+	iAguibase
 )
 SET( DEPENDENCIES_VTK_MODULES
 	FiltersHybrid    # for vtkDepthSortPolyData

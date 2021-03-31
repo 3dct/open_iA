@@ -52,8 +52,8 @@ public:
 	void loadProject(QSettings & projectFile, QString const & fileName) override
 	{
 		/*
-		// Remove UseiAMdiChild setting altogether, always open iAMdiChild?
-		if (projectFile.contains("UseiAMdiChild") && projectFile.value("UseiAMdiChild").toBool() == false)
+		// Remove UseMdiChild setting altogether, always open iAMdiChild?
+		if (projectFile.contains("UseMdiChild") && projectFile.value("UseMdiChild").toBool() == false)
 		{
 
 			QMessageBox::warning(nullptr, "FiAKEr", "Old project file detected (%1). "
@@ -64,8 +64,8 @@ public:
 		*/
 		if (!m_mdiChild)
 		{
-			LOG(lvlError, QString("Invalid FIAKER project file '%1': FIAKER requires an iAMdiChild, "
-				"but UseiAMdiChild was apparently not specified in this project, as no iAMdiChild available! "
+			LOG(lvlError, QString("Invalid FIAKER project file '%1': FIAKER requires a child window, "
+				"but UseMdiChild was apparently not specified in this project, as no child window available! "
 				"Please report this error, along with the project file, to the open_iA developers!").arg(fileName));
 			return;
 		}
@@ -106,12 +106,20 @@ void iAFiAKErModuleInterface::Initialize()
 	}
 	iAProjectRegistry::addProject<iAFIAKERProject>(iAFiAKErController::FIAKERProjectID);
 
-	QAction * actionFiAKEr = new QAction(tr("Open Results Folder"), m_mainWnd);
+	QAction* actionFiAKEr = new QAction(tr("Open Results Folder"), m_mainWnd);
+#if QT_VERSION < QT_VERSION_CHECK(5, 99, 0)
 	actionFiAKEr->setShortcut(QKeySequence(Qt::ALT + Qt::Key_R, Qt::Key_O));
+#else
+	actionFiAKEr->setShortcut(QKeySequence(QKeyCombination(Qt::ALT, Qt::Key_R), QKeyCombination(Qt::Key_O)));
+#endif
 	connect(actionFiAKEr, &QAction::triggered, this, &iAFiAKErModuleInterface::startFiAKEr );
 
 	QAction * actionFiAKErProject = new QAction(tr("Load Project (for .fpf; for .iaproj use File->Open)"), m_mainWnd);
+#if QT_VERSION < QT_VERSION_CHECK(5, 99, 0)
 	actionFiAKErProject->setShortcut(QKeySequence(Qt::ALT + Qt::Key_R, Qt::Key_P));
+#else
+	actionFiAKErProject->setShortcut(QKeySequence(QKeyCombination(Qt::ALT, Qt::Key_R), QKeyCombination(Qt::Key_P)));
+#endif
 	connect(actionFiAKErProject, &QAction::triggered, this, &iAFiAKErModuleInterface::loadFiAKErProject);
 
 	QMenu* fiakerMenu = getOrAddSubMenu(m_mainWnd->toolsMenu(), tr("FiAKEr"), false);
@@ -248,7 +256,9 @@ void iAFiAKErModuleInterface::loadFiAKErProject()
 	iAMdiChild* newChild = m_mainWnd->createMdiChild(false);
 	newChild->show();
 	QSettings projectFile(fileName, QSettings::IniFormat);
+#if QT_VERSION < QT_VERSION_CHECK(5, 99, 0)
 	projectFile.setIniCodec("UTF-8");
+#endif
 	auto project = QSharedPointer<iAFIAKERProject>::create();
 	project->setMainWindow(m_mainWnd);
 	project->setChild(newChild);

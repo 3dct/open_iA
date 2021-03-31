@@ -40,7 +40,7 @@ iAPCView::iAPCView( QWidget * parent /*= 0*/, Qt::WindowFlags f /*= 0 */ )
 {
 	CREATE_OLDVTKWIDGET(m_widget);
 	QHBoxLayout *layoutHB = new QHBoxLayout( this );
-	layoutHB->setMargin( 0 );
+	layoutHB->setContentsMargins(0, 0, 0, 0);
 	layoutHB->addWidget( m_widget );
 	PCContainer->setLayout( layoutHB );
 

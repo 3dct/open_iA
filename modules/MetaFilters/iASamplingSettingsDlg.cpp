@@ -159,7 +159,7 @@ namespace
 	{
 		if (values.contains(name))
 		{
-			auto & v = values[name];
+			auto v = values[name];
 			QString txt = (v.type() == QVariant::Double) ? QString::number(v.toDouble(), 'g', ContinuousPrecision) : v.toString();
 			edit->setText(txt);
 			return true;
@@ -506,6 +506,7 @@ void iASamplingSettingsDlg::saveSettings()
 	iASettings settings;
 	getValues(settings);
 
+	// use QSettings?
 	QFile file(fileName);
 	if (!file.open(QIODevice::WriteOnly))
 	{

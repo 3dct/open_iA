@@ -1,3 +1,3 @@
 SET( DEPENDENCIES_LIBRARIES
-	iAcore
+	iAguibase
 )

@@ -115,7 +115,7 @@ iACsvConfig const & dlg_CSVInput::getConfig() const
 
 void dlg_CSVInput::initParameters()
 {
-	ed_FormatName->setValidator(new QRegExpValidator(QRegExp("[A-Za-z0-9_]{0,30}"), this)); // limit input to format names
+	ed_FormatName->setValidator(new QRegularExpressionValidator(QRegularExpression("[A-Za-z0-9_]{0,30}"), this)); // limit input to format names
 	QStringList formatEntries = iACsvConfig::getListFromRegistry();
 	if (!formatEntries.contains(iACsvConfig::LegacyFiberFormat))
 		formatEntries.append(iACsvConfig::LegacyFiberFormat);

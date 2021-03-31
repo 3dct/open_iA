@@ -1,5 +1,5 @@
 SET( DEPENDENCIES_LIBRARIES
-	iAcore
+	iAguibase
 	iAqthelper
 )
 SET( DEPENDENCIES_VTK_MODULES

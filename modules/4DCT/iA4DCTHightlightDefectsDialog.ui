@@ -188,7 +188,7 @@
   <connection>
    <sender>buttonBox</sender>
    <signal>accepted()</signal>
-   <receiver>HeighlightDefectsDialog</receiver>
+   <receiver>HighlightDefectsDialog</receiver>
    <slot>accept()</slot>
    <hints>
     <hint type="sourcelabel">
@@ -204,7 +204,7 @@
   <connection>
    <sender>buttonBox</sender>
    <signal>rejected()</signal>
-   <receiver>HeighlightDefectsDialog</receiver>
+   <receiver>HighlightDefectsDialog</receiver>
    <slot>reject()</slot>
    <hints>
     <hint type="sourcelabel">

@@ -1,6 +1,6 @@
 SET( DEPENDENCIES_LIBRARIES
 	iAcharts
-	iAcore
+	iAguibase
 )
 SET( DEPENDENCIES_VTK_MODULES
 	RenderingImage    # for vtkImageResliceMapper

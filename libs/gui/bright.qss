@@ -18,12 +18,6 @@ General
 	{
 		background: none;
 	}
-	QTableView,
-	QTableWidget,
-	QTreeView
-	{
-		background-color: rgba(255, 255, 255, 255);
-	}
 	QHeaderView,
 	QMdiArea::background
 	{
@@ -403,7 +397,10 @@ QProgressBar
 		border-top-left-radius: 0px;
 	}
 /****************************************************************************
-QListView
+QListView,
+QListWidget,
+QTableView,
+QTableWidget
 ****************************************************************************/
 	QListView,
 	QListWidget,
@@ -445,6 +442,12 @@ QListView
 	{
 		color: rgba(0, 0, 0, 255);
 		border: 1px solid rgba(135, 135, 135, 255);
+	}
+	QTableView::item:selected,
+	QTableWidget::item:selected
+	{
+		background-color: rgba(180, 180, 180, 255);
+		color: rgba(25, 25, 25, 255);
 	}
 /****************************************************************************
 QRadioButton

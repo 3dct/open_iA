@@ -229,8 +229,11 @@ void iAChartWithFunctionsWidget::mouseMoveEvent(QMouseEvent *event)
 			iAChartWidget::mouseMoveEvent(event);
 	}
 }
-
+#if QT_VERSION < QT_VERSION_CHECK(5, 99, 0)
 void iAChartWithFunctionsWidget::enterEvent(QEvent*)
+#else
+void iAChartWithFunctionsWidget::enterEvent(QEnterEvent*)
+#endif
 {
 	emit active(); // TODO: check use of th
 }

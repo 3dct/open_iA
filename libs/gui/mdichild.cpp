@@ -791,7 +791,9 @@ void MdiChild::setupProject(bool /*active*/)
 	{
 		// TODO: make asynchronous, put into iASavableProject?
 		QSettings projectFile(fileName, QSettings::IniFormat);
+#if QT_VERSION < QT_VERSION_CHECK(5, 99, 0)
 		projectFile.setIniCodec("UTF-8");
+#endif
 		auto registeredProjects = iAProjectRegistry::projectKeys();
 		auto projectFileGroups = projectFile.childGroups();
 		for (auto projectKey : registeredProjects)
@@ -909,7 +911,9 @@ bool MdiChild::saveAs(int modalityNr)
 		return false;
 	}
 	// TODO: ask for filename first, then for modality (if only one modality can be saved in chosen format)
-	QString filePath = (modalities()->size() > 0) ? QFileInfo(modality(modalityNr)->fileName()).absolutePath() : m_path;
+	QString filePath = (modalities()->size() > 0) ?
+		QFileInfo(modality(modalityNr)->fileName()).absoluteFilePath()
+		: m_path;
 	QString f = QFileDialog::getSaveFileName(
 		this,
 		tr("Save As"),
@@ -2741,18 +2745,12 @@ void MdiChild::initVolumeRenderers()
 
 void MdiChild::saveProject(QString const& fileName)
 {
-	m_ioThread = new iAIO(modalities(), m_renderer->renderer()->GetActiveCamera(), iALog::get());
-	connectIOThreadSignals(m_ioThread);
-	QFileInfo fileInfo(fileName);
-	if (!m_ioThread->setupIO(PROJECT_WRITER, fileInfo.absoluteFilePath()))
-	{
-		ioFinished();
-		return;
-	}
 	LOG(lvlInfo, tr("Saving file '%1'.").arg(fileName));
-	m_ioThread->start();
-	// TODO: only set new project file name if saving succeeded
-	setCurrentFile(fileName);
+	QFileInfo fileInfo(fileName);
+	if (modalities()->store(fileInfo.absoluteFilePath(), m_renderer->renderer()->GetActiveCamera()))
+	{
+		setCurrentFile(fileName);
+	}
 }
 
 bool MdiChild::doSaveProject(QString const & projectFileName)
@@ -2787,7 +2785,9 @@ bool MdiChild::doSaveProject(QString const & projectFileName)
 	if (projectFileName.toLower().endsWith(iAIOProvider::NewProjectFileExtension))
 	{
 		QSettings projectFile(projectFileName, QSettings::IniFormat);
+#if QT_VERSION < QT_VERSION_CHECK(5, 99, 0)
 		projectFile.setIniCodec("UTF-8");
+#endif
 		projectFile.setValue("UseMdiChild", true);
 		for (auto projectKey : m_projects.keys())
 		{

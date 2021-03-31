@@ -21,6 +21,7 @@
 #include "iARulerRepresentation.h"
 
 #include "iARulerActor.h"
+#include <iAVtkVersion.h>
 
 #include <vtkObjectFactory.h>
 #include <vtkPropCollection.h>
@@ -41,7 +42,12 @@ iARulerRepresentation::iARulerRepresentation()
 	actor->Delete();
 
 	this->SetShowBorder(vtkBorderRepresentation::BORDER_ACTIVE);
+#if VTK_VERSION_NUMBER < VTK_VERSION_CHECK(9, 0, 2)
 	this->BWActor->VisibilityOff();
+#else
+	this->BWActorEdges->VisibilityOff();
+	this->BWActorPolygon->VisibilityOff();
+#endif
 }
 
 

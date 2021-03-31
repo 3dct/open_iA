@@ -1,6 +1,6 @@
 SET( DEPENDENCIES_LIBRARIES
 	iAcharts    # for qcustomplot, also pulls in required iAqthelper
-	iAcore
+	iAguibase
 )
 #SET( DEPENDENCIES_ITK_MODULES
 #	ITKVtkGlue       # for ImageToVTKImageFilter

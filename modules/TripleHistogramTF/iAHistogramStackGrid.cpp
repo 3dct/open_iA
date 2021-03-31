@@ -45,7 +45,7 @@ iAHistogramStackGrid::iAHistogramStackGrid(
 		m_gridLayout->addWidget(labels[i], i, 2);
 	}
 	m_gridLayout->setSpacing(m_spacing);
-	m_gridLayout->setMargin(0);
+	m_gridLayout->setContentsMargins(0, 0, 0, 0);
 }
 
 void iAHistogramStackGrid::resizeEvent(QResizeEvent* event)

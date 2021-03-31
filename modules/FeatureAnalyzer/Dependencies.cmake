@@ -2,7 +2,7 @@ SET( DEPENDENCIES_LIBRARIES
 	iAcharts	          # also pulls in required iAqthelper
 	iAobjectvis
 	iArenderer            # for iARendererImpl and iARendererManager
-	iAslicer              # also pulls in iAcore
+	iAslicer              # also pulls in iAguibase
 )
 SET( DEPENDENCIES_VTK_MODULES
 	ChartsCore            # for vtkPlot

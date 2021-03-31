@@ -1,4 +1,4 @@
-TARGET_LINK_LIBRARIES(${libname} PUBLIC iAcore)
+TARGET_LINK_LIBRARIES(${libname} PUBLIC iAguibase)
 TARGET_LINK_LIBRARIES(${libname} PRIVATE
 	iAcharts iAqthelper iArenderer iAslicer
 )

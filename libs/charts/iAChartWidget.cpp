@@ -79,10 +79,10 @@ namespace
 	int textPos(int markerX, size_t step, size_t stepCount, int textWidth)
 	{
 		return (step == 0)
-			? markerX					// right aligned to indicator line
+			? markerX                  // right aligned to indicator line
 			: (step < stepCount)
-			? markerX - textWidth / 2	// centered to the indicator line
-			: markerX - textWidth;	// left aligned to the indicator line
+			? markerX - textWidth / 2  // centered to the indicator line
+			: markerX - textWidth;     // left aligned to the indicator line
 	}
 
 	void ensureNonZeroRange(double* bounds, bool warn = false, double offset = 0.1)
@@ -120,7 +120,7 @@ iAChartWidget::iAChartWidget(QWidget* parent, QString const & xLabel, QString co
 	m_yMaxTickLabelWidth(0),
 	m_customXBounds(false),
 	m_customYBounds(false),
-	m_captionPosition(Qt::AlignCenter | Qt::AlignBottom),
+	m_captionPosition(Qt::AlignHCenter | Qt::AlignBottom),
 	m_selectionMode(SelectionDisabled),
 	m_selectionBand(new QRubberBand(QRubberBand::Rectangle, this)),
 	m_maxXAxisSteps(AxisTicksXDefault),
@@ -400,7 +400,6 @@ double iAChartWidget::visibleXEnd() const
 void iAChartWidget::drawXAxis(QPainter &painter)
 {
 	painter.setPen(QWidget::palette().color(QPalette::Text));
-	const int TextAxisDistance = 2;
 	QFontMetrics fm = painter.fontMetrics();
 	size_t stepCount = m_maxXAxisSteps;
 	double stepWidth;
@@ -455,8 +454,6 @@ void iAChartWidget::drawXAxis(QPainter &painter)
 		fm = painter.fontMetrics();
 		stepWidth = xRange() / stepCount;
 	}
-
-	int translationX = - m_xMapper->srcToDst(m_xShift);
 	stepCount = std::max(static_cast<size_t>(1), stepCount); // at least one step
 	for (size_t i = 0; i <= stepCount; ++i)
 	{
@@ -471,10 +468,7 @@ void iAChartWidget::drawXAxis(QPainter &painter)
 		}
 		QString text = xAxisTickMarkLabel(value, stepWidth);
 		int markerX = markerPos(static_cast<int>(m_xMapper->srcToDst(value)), i, stepCount);
-		if (markerX >= translationX + leftMargin())
-		{
-			painter.drawLine(markerX, TickWidth, markerX, -1);
-		}
+		painter.drawLine(markerX, TickWidth, markerX, -1);
 		int textWidth =
 #if QT_VERSION >= QT_VERSION_CHECK(5, 11, 0)
 			fm.horizontalAdvance(text);
@@ -482,35 +476,26 @@ void iAChartWidget::drawXAxis(QPainter &painter)
 			fm.width(text);
 #endif
 		int textX = textPos(markerX, i, stepCount, textWidth);
-		int textY = fm.height() + TextAxisDistance;
-		painter.translate(textX, textY);
-		painter.drawText(0, 0, text);
-		painter.translate(-textX, -textY);
+		int textY = TickWidth;
+		painter.drawText(QRect(textX, textY, textWidth, m_fontHeight), text);
 	}
 
 	//draw the x axis
 	painter.setPen(QWidget::palette().color(QPalette::Text));
-	painter.drawLine(-translationX, -1, -translationX + chartWidth(), -1);
+	int xAxisStart = m_xMapper->srcToDst(visibleXStart());
+	painter.drawLine(xAxisStart, -1, xAxisStart+chartWidth(), -1);
 	if (m_drawXAxisAtZero && std::abs(-1.0-m_yMapper->srcToDst(0)) > 5) // if axis at bottom is at least 5 pixels away from zero point, draw additional line
 	{
-		painter.drawLine(-translationX, static_cast<int>(-m_yMapper->srcToDst(0)), -translationX + chartWidth(), static_cast<int>(-m_yMapper->srcToDst(0)));
+		painter.drawLine(xAxisStart, static_cast<int>(-m_yMapper->srcToDst(0)), xAxisStart+chartWidth(), static_cast<int>(-m_yMapper->srcToDst(0)));
 	}
 	if (m_showXAxisLabel)
 	{
-		//write the x axis label
-		QPointF textPos(
-			m_captionPosition.testFlag(Qt::AlignCenter) ?
-#if QT_VERSION >= QT_VERSION_CHECK(5, 11, 0)
-				/* Center */ static_cast<int>(chartWidth() * 0.5 - translationX - (0.5*fm.horizontalAdvance(m_xCaption)))
-#else
-				/* Center */ static_cast<int>(chartWidth() * 0.5 - translationX - (0.5*fm.width(m_xCaption)))
-#endif
-				/* Left   */ : 0 ,
-			m_captionPosition.testFlag(Qt::AlignBottom) ?
-				/* Bottom */ bottomMargin() - fm.descent() - 1 :
-				/* Top (of chart) */ -geometry().height() + bottomMargin() + m_fontHeight
-		);
-		painter.drawText(textPos, m_xCaption);
+		QRect textRect(0,
+			m_captionPosition.testFlag(Qt::AlignBottom)	?
+				bottomMargin() - m_fontHeight - 1 : // Bottom
+				-chartHeight(),                     // Top
+			chartWidth(), m_fontHeight);
+		painter.drawText(textRect, m_captionPosition.testFlag(Qt::AlignHCenter)? Qt::AlignHCenter: Qt::AlignLeft, m_xCaption);
 	}
 }
 
@@ -521,7 +506,7 @@ void iAChartWidget::drawYAxis(QPainter &painter)
 		return;
 	}
 	painter.save();
-	painter.translate(m_xMapper->srcToDst(m_xShift), 0);
+	painter.translate(m_xMapper->srcToDst(visibleXStart()), 0);
 	QColor bgColor(m_bgColor);
 	if (!bgColor.isValid())
 	{
@@ -833,7 +818,7 @@ bool iAChartWidget::event(QEvent *event)
 
 void iAChartWidget::showDataTooltip(QHelpEvent* event)
 {
-	if (m_plots.empty())
+	if (m_plots.empty() || !m_xMapper)
 	{
 		return;
 	}
@@ -978,7 +963,7 @@ void iAChartWidget::mouseMoveEvent(QMouseEvent *event)
 	case MOVE_VIEW_MODE:
 	{
 		int xDelta = m_dragStartPosX - event->x();
-		double dataDelta = m_xMapper->dstToSrc(xDelta);
+		double dataDelta = m_xMapper->dstToSrc(xDelta) - m_xBounds[0];
 		m_xShift = limitXShift(m_xShiftStart + dataDelta);
 		emit xAxisChanged();
 		m_translationY = m_translationStartY + event->y() - m_dragStartPosY;
@@ -1089,7 +1074,7 @@ void iAChartWidget::drawAll(QPainter & painter)
 #else
 	m_yMaxTickLabelWidth = fm.width("4.44M");
 #endif
-	painter.translate(-m_xMapper->srcToDst(m_xShift) + leftMargin(), -bottomMargin());
+	painter.translate(-m_xMapper->srcToDst(visibleXStart()) + leftMargin(), -bottomMargin());
 	drawImageOverlays(painter);
 	//change the origin of the window to left bottom
 	painter.translate(0, geometry().height());

@@ -11,18 +11,8 @@ FOREACH(libdir ${children})
 			MESSAGE(STATUS "Library ${libdir}:")
 		ENDIF()
 		FILE( GLOB_RECURSE lib_SRCS "${libdir}/*.cpp" "${libdir}/*.h" )
-
 		FILE( GLOB_RECURSE lib_UI "${libdir}/*.ui" )
-		list(LENGTH lib_UI uiLEN)
-		if (uiLEN GREATER 0)
-			QT5_WRAP_UI( lib_SRCS ${lib_UI})
-		endif()
-		
 		FILE( GLOB_RECURSE lib_QRC "${libdir}/*.qrc" )
-		list(LENGTH lib_QRC qrcLEN)
-		if (qrcLEN GREATER 0)
-			QT5_ADD_RESOURCES( lib_SRCS ${lib_QRC} )
-		endif()
 
 		set (libname "iA${libdir}")
 		# Generate core dll file / shared object:
@@ -66,7 +56,16 @@ FOREACH(libdir ${children})
 
 		TARGET_INCLUDE_DIRECTORIES(${libname} PUBLIC
 			${CMAKE_CURRENT_SOURCE_DIR}/${libdir}
-			${CMAKE_CURRENT_BINARY_DIR}) # for export header
+			${CMAKE_CURRENT_BINARY_DIR} # for export header
+		)
+		# for generated ui_xxx.h includes:
+		IF (CMAKE_CONFIGURATION_TYPES)
+			TARGET_INCLUDE_DIRECTORIES(${libname} PUBLIC
+				"${CMAKE_CURRENT_BINARY_DIR}/${libname}_autogen/include_$(Configuration)")
+		ELSE()
+			TARGET_INCLUDE_DIRECTORIES(${libname} PUBLIC
+				"${CMAKE_CURRENT_BINARY_DIR}/${libname}_autogen/include")
+		ENDIF()
 
 		IF (openiA_USE_IDE_FOLDERS)
 			SET_PROPERTY(TARGET ${libname} PROPERTY FOLDER "Libraries")
