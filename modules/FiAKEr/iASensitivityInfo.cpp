@@ -972,7 +972,7 @@ void iASensitivityInfo::compute()
 	}
 	else
 	{
-		m_progress.setStatus("Computing dissimilarities between all result pairs.");
+		m_progress.setStatus("Creating fiber data and bounding boxes for all results.");
 		int measureCount = static_cast<int>(m_resultDissimMeasures.size());
 		int resultCount = static_cast<int>(m_data->result.size());
 		m_resultDissimMatrix = iADissimilarityMatrixType(resultCount,
@@ -1114,6 +1114,7 @@ void iASensitivityInfo::compute()
 	if (m_resultDissimMatrix.size() == 0)
 	{
 		LOG(lvlWarn, "Dissimilarity matrix not available!");
+		return;
 	}
 
 	// dissimilarity measure (index in m_resultDissimMeasures)
@@ -1130,6 +1131,7 @@ void iASensitivityInfo::compute()
 
 	for (int m = 0; m < measureCount && !m_aborted; ++m)
 	{
+		QVector<double> dissimValuesUsed;
 		sensDissimField[m].resize(NumOfVarianceAggregation);
 		aggregatedSensDissim[m].resize(NumOfVarianceAggregation);
 		for (int a = 0; a < NumOfVarianceAggregation; ++a)
@@ -1204,6 +1206,7 @@ void iASensitivityInfo::compute()
 						compareIdx = resultIdxGroupStart;
 					}
 					double difference = m_resultDissimMatrix[compareIdx][resultIdxParamStart + i].avgDissim[m];
+					dissimValuesUsed.push_back(difference);
 						//std::abs(static_cast<double>(m_data->result[compareIdx].fiberCount) -	m_data->result[resultIdxParamStart + i].fiberCount);
 					sumTotal += difference;
 				}
@@ -1225,6 +1228,11 @@ void iASensitivityInfo::compute()
 				aggregatedSensDissim[m][3][paramIdx] += meanTotal;
 			}
 		}
+		QPair<double,double> dissimRange;
+		dissimRange.first = dissimRange.second = std::numeric_limits<double>::infinity();
+		auto dissimHistogram = createHistogram(dissimValuesUsed, m_histogramBins, dissimRange.first, dissimRange.second, false);
+		m_dissimRanges.push_back(dissimRange);
+		m_dissimHistograms.push_back(dissimHistogram);
 	}
 }
 

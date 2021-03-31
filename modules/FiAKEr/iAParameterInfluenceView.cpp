@@ -454,12 +454,23 @@ void iAParameterInfluenceView::updateStackedBarHistogram(QString const & barName
 	auto outChart = m_table[paramIdx]->out[barIdx];
 	outChart->clearPlots();
 	outChart->resetYBounds();
-	auto const rng = (outType == outCharacteristic)
-		? m_sensInf->m_data->spmData->paramRange(m_sensInf->m_charSelected[outIdx])
-		: ((outType == outFiberCount)
-			? m_sensInf->m_fiberCountRange
-			: nullptr
-		);
+	double rng[2];
+	if (outType == outCharacteristic)
+	{
+		auto r = m_sensInf->m_data->spmData->paramRange(m_sensInf->m_charSelected[outIdx]);
+		rng[0] = r[0];
+		rng[1] = r[1];
+	}
+	else if (outType == outFiberCount)
+	{
+		rng[0] = m_sensInf->m_fiberCountRange[0];
+		rng[1] = m_sensInf->m_fiberCountRange[1];
+	}
+	else /* outType == outDissimilarity */
+	{
+		rng[0] = m_sensInf->m_dissimRanges[outIdx].first;
+		rng[1] = m_sensInf->m_dissimRanges[outIdx].second;
+	}
 	if (outType == outCharacteristic)
 	{
 		auto varHistData = iAHistogramData::create(barName, iAValueType::Continuous, rng[0], rng[1],
@@ -469,16 +480,19 @@ void iAParameterInfluenceView::updateStackedBarHistogram(QString const & barName
 	auto avgHistData = iAHistogramData::create("Average", iAValueType::Continuous, rng[0], rng[1],
 		(outType == outCharacteristic)
 			? m_sensInf->charHistAvg[outIdx]
-			: m_sensInf->fiberCountHistogram);
+			: (outType == outFiberCount)
+				? m_sensInf->fiberCountHistogram
+				: /* outType == outDissimilarity */ m_sensInf->m_dissimHistograms[outIdx]);
 	outChart->addPlot(QSharedPointer<iABarGraphPlot>::create(avgHistData, QColor(80, 80, 80, 64)));
 	outChart->update();
 
 	auto parChart = m_table[paramIdx]->par[barIdx];
 	parChart->clearPlots();
-	auto const& d = ((outType == outCharacteristic) ? m_sensInf->sensitivityField[outIdx][m_measureIdx][m_aggrType]
-			: (outType == outFiberCount) ? m_sensInf->sensitivityFiberCount[m_aggrType]
-										/* (outputIdx == outDissimilarity)*/
-										 : m_sensInf->sensDissimField[outIdx][m_aggrType])[paramIdx];
+	auto const& d = ((outType == outCharacteristic)
+		? m_sensInf->sensitivityField[outIdx][m_measureIdx][m_aggrType]
+		: (outType == outFiberCount)
+			? m_sensInf->sensitivityFiberCount[m_aggrType]
+			: /* (outType == outDissimilarity)*/ m_sensInf->sensDissimField[outIdx][m_aggrType])[paramIdx];
 	auto plotData = iAXYPlotData::create("Sensitivity " + columnName(outType, outIdx), iAValueType::Continuous, d.size());
 	for (int i = 0; i < d.size(); ++i)
 	{

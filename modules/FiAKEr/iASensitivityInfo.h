@@ -114,7 +114,9 @@ public:
 		QVector<    // parameter index
 		double>> aggregatedSensitivitiesFiberCount;
 
+	//! range of the fiber counts over all results
 	double m_fiberCountRange[2];
+	//! histogram of the fiber counts over all results
 	QVector<double> fiberCountHistogram;
 
 	//! sensitivity "field" for dissimilarity measures
@@ -129,6 +131,11 @@ public:
 		QVector<    // variation aggregation
 		QVector<    // parameter index
 		double>>> aggregatedSensDissim;
+
+	//! ranges of dissimilarity metrics (index1: dissimilarity metric; index2: min/max)
+	QVector<QPair<double,double>> m_dissimRanges;
+	//! histograms of dissimilarity metrics (index1: dissimilarity metric; index2: bin)
+	QVector<QVector<double>> m_dissimHistograms;
 
 	// Histogram "variation" (i.e. average of differences in frequency)
 	// TODO: think about other measures (variation, ...) for differences between bins?
