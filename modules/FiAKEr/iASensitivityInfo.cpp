@@ -107,7 +107,10 @@ namespace
 
 	QColor ParamColor(150, 150, 255, 255);
 	QColor OutputColor(255, 200, 200, 255);
-	}
+	
+	// needs to match definition in iAParameterInfluenceView. Maybe unify somewhere:
+	QColor SelectedResultPlotColor(180, 80, 80, 255);
+}
 
 // Factor out as generic CSV reading class also used by iACsvIO?
 bool readParameterCSV(QString const& fileName, QString const& encoding, QString const& columnSeparator,
@@ -1796,6 +1799,7 @@ void iASensitivityInfo::createGUI()
 	m_gui->m_scatterPlot->setPointRadius(4);
 	m_gui->m_scatterPlot->setPickedPointFactor(1.5);
 	m_gui->m_scatterPlot->setFixPointsEnabled(true);
+	m_gui->m_scatterPlot->setHighlightColor(SelectedResultPlotColor);
 	m_gui->m_lut.reset(new iALookupTable());
 	m_gui->m_lut->setRange(0, m_data->result.size());
 	m_gui->m_lut->allocate(m_data->result.size());

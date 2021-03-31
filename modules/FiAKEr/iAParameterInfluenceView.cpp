@@ -61,7 +61,11 @@ namespace
 	};
 	const int LabelCount = 4;
 
-	QColor ParamMarkerColor(235, 184, 31, 255);
+	QColor VariationHistogramColor(50, 50, 50, 255);
+	QColor AverageHistogramColor(150, 150, 150, 255);
+	QColor ParamSensitivityPlotColor(80, 80, 80, 255);
+	QColor SelectedResultPlotColor(180, 80, 80, 255);  // 235, 184, 31, 255
+	QColor UnselectedParamRowBackgroundColor(245, 245, 245);
 }
 
 class iAParTableRow
@@ -325,14 +329,14 @@ void iAParameterInfluenceView::setResultSelected(size_t resultIdx, bool state)
 				int charIdx = m_visibleCharacts[barIdx].second;
 				if (state)
 				{
-					m_table[paramIdx]->par[barIdx]->addXMarker(paramValue, ParamMarkerColor);
+					m_table[paramIdx]->par[barIdx]->addXMarker(paramValue, SelectedResultPlotColor);
 					if (!m_resultHistoPlot.contains(qMakePair(resultIdx, charIdx)))
 					{
 						auto const rng = m_sensInf->m_data->spmData->paramRange(m_sensInf->m_charSelected[charIdx]);
 						auto histData = iAHistogramData::create(QString("Result %1").arg(resultIdx),
 							iAValueType::Continuous, rng[0], rng[1], m_sensInf->m_charHistograms[resultIdx][charIdx]);
 						m_resultHistoPlot.insert(qMakePair(resultIdx, charIdx),
-							QSharedPointer<iABarGraphPlot>::create(histData, QColor(180, 80, 80, 64)));
+							QSharedPointer<iALinePlot>::create(histData, SelectedResultPlotColor));
 					}
 					m_table[paramIdx]->out[barIdx]->addPlot(m_resultHistoPlot[qMakePair(resultIdx, charIdx)]);
 				}
@@ -372,7 +376,9 @@ void iAParameterInfluenceView::setSelectedParam(int param)
 	m_selectedParam = param;
 	for (int paramIdx = 0; paramIdx < m_sensInf->m_variedParams.size(); ++paramIdx)
 	{
-		QColor color = (paramIdx == m_selectedParam) ? palette().color(QPalette::Midlight): QColor(245, 245, 245);
+		QColor color = (paramIdx == m_selectedParam)
+			? palette().color(QPalette::Midlight)
+			: UnselectedParamRowBackgroundColor;
 		for (int col = colMin; col <= colStep; ++col)
 		{
 			m_table[paramIdx]->labels[col]->setStyleSheet("QLabel { background-color : " + color.name() + "; }");
@@ -475,7 +481,7 @@ void iAParameterInfluenceView::updateStackedBarHistogram(QString const & barName
 	{
 		auto varHistData = iAHistogramData::create(barName, iAValueType::Continuous, rng[0], rng[1],
 			m_sensInf->charHistVarAgg[outIdx][m_aggrType][paramIdx]);
-		outChart->addPlot(QSharedPointer<iABarGraphPlot>::create(varHistData, QColor(80, 80, 80, 128)));
+		outChart->addPlot(QSharedPointer<iALinePlot>::create(varHistData, VariationHistogramColor));
 	}
 	auto avgHistData = iAHistogramData::create("Average", iAValueType::Continuous, rng[0], rng[1],
 		(outType == outCharacteristic)
@@ -483,7 +489,7 @@ void iAParameterInfluenceView::updateStackedBarHistogram(QString const & barName
 			: (outType == outFiberCount)
 				? m_sensInf->fiberCountHistogram
 				: /* outType == outDissimilarity */ m_sensInf->m_dissimHistograms[outIdx]);
-	outChart->addPlot(QSharedPointer<iABarGraphPlot>::create(avgHistData, QColor(80, 80, 80, 64)));
+	outChart->addPlot(QSharedPointer<iALinePlot>::create(avgHistData, AverageHistogramColor));
 	outChart->update();
 
 	auto parChart = m_table[paramIdx]->par[barIdx];
@@ -499,7 +505,7 @@ void iAParameterInfluenceView::updateStackedBarHistogram(QString const & barName
 		plotData->addValue(m_sensInf->paramSetValues[i][m_sensInf->m_variedParams[paramIdx]], d[i]);
 	}
 	parChart->resetYBounds();
-	parChart->addPlot(QSharedPointer<iALinePlot>::create(plotData, QColor(80, 80, 80, 255)));
+	parChart->addPlot(QSharedPointer<iALinePlot>::create(plotData, ParamSensitivityPlotColor));
 	parChart->update();
 }
 
@@ -564,7 +570,7 @@ void iAParameterInfluenceView::addStackedBar(int outType, int outIdx)
 	{
 		int varParIdx = m_sensInf->m_variedParams[paramIdx];
 		auto paramName = m_sensInf->m_paramNames[varParIdx];
-		QColor color = (paramIdx == m_selectedParam) ? palette().color(QPalette::Midlight) : QColor(245, 245, 245);
+		QColor color = (paramIdx == m_selectedParam) ? palette().color(QPalette::Midlight) : UnselectedParamRowBackgroundColor;
 
 		auto outChart = new iAChartWidget(this, "", (curBarIdx == 0) ? "Var. from " + paramName : "");
 		outChart->setShowXAxisLabel(false);
@@ -589,7 +595,7 @@ void iAParameterInfluenceView::addStackedBar(int outType, int outIdx)
 		for (auto resultIdx : selectedResults)
 		{
 			double paramValue = m_sensInf->m_paramValues[m_sensInf->m_variedParams[paramIdx]][resultIdx];
-			parChart->addXMarker(paramValue, ParamMarkerColor);
+			parChart->addXMarker(paramValue, SelectedResultPlotColor);
 		}
 	}
 	updateTableOrder();
