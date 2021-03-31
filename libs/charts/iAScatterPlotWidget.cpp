@@ -418,6 +418,11 @@ void iAScatterPlotWidget::toggleHighlightedPoint(size_t curPoint, Qt::KeyboardMo
 	update();
 }
 
+void iAScatterPlotWidget::setHighlightColor(QColor hltCol)
+{
+	m_scatterplot->setHighlightColor(hltCol);
+}
+
 void iAScatterPlotWidget::mouseReleaseEvent(QMouseEvent * event)
 {
 	if (event->x() >= PaddingLeft() && event->x() <= (width() - PaddingRight) &&

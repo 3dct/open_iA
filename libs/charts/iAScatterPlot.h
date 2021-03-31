@@ -99,6 +99,7 @@ public:
 	void SPLOMMousePressEvent( QMouseEvent * event );
 	void SPLOMMouseReleaseEvent( QMouseEvent * event );
 	void setSelectionColor(QColor selCol);
+	void setHighlightColor(QColor hltCol);
 	//! @}
 
 protected:
@@ -176,6 +177,7 @@ public:
 		QColor tickLabelColor;
 		QColor backgroundColor;
 		QColor selectionColor;
+		QColor highlightColor;
 		SelectionMode selectionMode;
 		bool selectionEnabled;
 		bool showPCC, showSCC;

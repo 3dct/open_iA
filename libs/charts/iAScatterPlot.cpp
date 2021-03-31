@@ -66,6 +66,7 @@ iAScatterPlot::Settings::Settings() :
 	tickLineColor( QColor( 221, 221, 221 ) ),
 	tickLabelColor( QColor( 100, 100, 100 ) ),
 	selectionColor( QColor(0, 0, 0) ),
+	highlightColor(),  // invalid -> only used if set explicitly
 	selectionMode(Polygon),
 	selectionEnabled(false),
 	showPCC(false),
@@ -1034,7 +1035,9 @@ void iAScatterPlot::drawPoints( QPainter &painter )
 	auto const& highlightedPoints = m_splom->getHighlightedPoints();
 	for (auto idx : highlightedPoints)
 	{
-		QColor color(m_lut->getQColor(m_splomData->paramData(m_colInd)[idx]));
+		QColor color(settings.highlightColor.isValid()
+			? settings.highlightColor
+			: m_lut->getQColor(m_splomData->paramData(m_colInd)[idx]));
 		color.setAlpha(255);
 		drawPoint(painter, p0d[idx], m_splomData->paramData(m_paramIndices[1])[idx],
 			getPointRadius() * settings.pickedPointMagnification, color);
@@ -1211,11 +1214,18 @@ void iAScatterPlot::setSelectionColor(QColor selCol)
 	settings.selectionColor = selCol;
 }
 
+void iAScatterPlot::setHighlightColor(QColor hltCol)
+{
+	settings.highlightColor = hltCol;
+}
+
 double iAScatterPlot::getPointRadius() const
 {
 	double res = settings.pointRadius;
-	if ( m_isMaximizedPlot )
+	if (m_isMaximizedPlot)
+	{
 		res *= settings.maximizedPointMagnification;
+	}
 	return res;
 }
 

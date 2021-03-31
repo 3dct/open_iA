@@ -72,6 +72,7 @@ public:
 	void addLine(std::vector<size_t> linePoints);
 	void clearLines();
 	void toggleHighlightedPoint(size_t curPoint, Qt::KeyboardModifiers modifiers);
+	void setHighlightColor(QColor hltCol);
 
 protected:
 #ifdef CHART_OPENGL
