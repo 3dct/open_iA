@@ -131,6 +131,7 @@ signals:
 private:
 	QVector<vtkSmartPointer<vtkImageData> > m_additionalInput;
 	QVector<QString> m_additionalFileNames;
+	QString m_sourceFileName;
 };
 
 #define IAFILTER_RUNNER_CREATE(FilterRunnerName) \
