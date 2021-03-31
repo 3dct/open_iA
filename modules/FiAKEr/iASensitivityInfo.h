@@ -58,6 +58,9 @@ public:
 
 	std::vector<size_t> selectedResults() const;
 
+	// TODO: separate data from GUI code!
+
+	//! the "original" FIAKER data of all loaded results:
 	QSharedPointer<iAFiberResultsCollection> m_data;
 	//! the names of all parameters
 	QStringList m_paramNames;
@@ -198,6 +201,10 @@ public:
 	//! the GUI elements:
 	QSharedPointer<iASensitivityGUI> m_gui;
 
+	// for interaction:
+	std::vector<std::vector<size_t>> m_baseFiberSelection;
+	std::vector<std::vector<size_t>> m_currentFiberSelection;
+
 	void abort() override;
 private:
 	iASensitivityInfo(QSharedPointer<iAFiberResultsCollection> data,
@@ -221,6 +228,7 @@ private:
 signals:
 	void aborted();
 	void resultSelected(size_t resultIdx, bool state);
+	void fibersToSelect(std::vector<std::vector<size_t>> const & selection);
 public slots:
 	void changeAggregation(int newAggregation);
 	void changeMeasure(int newMeasure);
@@ -233,6 +241,7 @@ public slots:
 	void characteristicChanged(int charIdx);
 	void outputBarAdded(int outType, int outIdx);
 	void outputBarRemoved(int outType, int outIdx);
+	void fiberSelectionChanged(std::vector<std::vector<size_t>> const & selection);
 private slots:
 	void dissimMatrixMeasureChanged(int);
 	void dissimMatrixParameterChanged(int);

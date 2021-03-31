@@ -109,7 +109,7 @@ class iAFiAKErController: public QObject, public iASelectionProvider
 	Q_OBJECT
 public:
 	typedef iAQTtoUIConnector<QWidget, Ui_FIAKERSettings> iAFIAKERSettingsWidget;
-	typedef std::vector<std::vector<size_t> > SelectionType;
+	typedef std::vector<std::vector<size_t>> SelectionType;
 	static const QString FIAKERProjectID;
 
 	iAFiAKErController(iAMainWindow* mainWnd, iAMdiChild* mdiChild);
@@ -130,6 +130,7 @@ public:
 signals:
 	void setupFinished();
 	void referenceComputed();
+	void fiberSelectionChanged(SelectionType const& selection);
 private slots:
 	void toggleVis(int);
 	void toggleBoundingBox(int);
@@ -192,6 +193,8 @@ private slots:
 	void showMainVis(size_t resultID, bool state);
 
 	void styleChanged();
+	void selectFibersFromSensitivity(SelectionType const& selection);
+
 private:
 	bool loadReferenceInternal(iASettings settings);
 	void changeDistributionSource(int index);
@@ -201,7 +204,6 @@ private:
 	void clearSelection();
 	void newSelection(QString const & source);
 	size_t selectionSize() const;
-	void sortSelection(QString const & source);
 	void showSelectionInPlots();
 	void showSelectionInPlot(int chartID);
 	void showSelectionIn3DViews();
