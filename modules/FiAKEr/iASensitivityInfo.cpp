@@ -110,6 +110,8 @@ namespace
 	
 	// needs to match definition in iAParameterInfluenceView. Maybe unify somewhere:
 	QColor SelectedResultPlotColor(180, 80, 80, 255);
+
+	const int SelectedAggregationMeasureIdx = 3;
 }
 
 // Factor out as generic CSV reading class also used by iACsvIO?
@@ -1352,6 +1354,7 @@ public:
 	{
 		cmbboxMeasure->addItems(DistributionDifferenceMeasureNames());
 		cmbboxAggregation->addItems(AggregationNames());
+		cmbboxAggregation->setCurrentIndex(SelectedAggregationMeasureIdx);
 		QStringList characteristics;
 		for (int charIdx = 0; charIdx < sensInf->m_charSelected.size(); ++charIdx)
 		{
@@ -1827,6 +1830,7 @@ void iASensitivityInfo::createGUI()
 	m_child->splitDockWidget(m_gui->m_dwParamInfluence, dwScatterPlot, Qt::Vertical);
 
 	updateDissimilarity();
+	changeAggregation(SelectedAggregationMeasureIdx);
 }
 
 void iASensitivityInfo::changeMeasure(int newMeasure)
