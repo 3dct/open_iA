@@ -969,7 +969,12 @@ void iAScatterPlot::drawPoints( QPainter &painter )
 		double curPtSize = ptSize * settings.pickedPointMagnification;
 		glPointSize(curPtSize);
 		glBegin(GL_POINTS);
-		if (m_lut->initialized())
+		if (settings.highlightColor.isValid())
+		{
+			QColor c = settings.highlightColor;
+			glColor4f(c.redF(), c.greenF(), c.blueF(), c.alphaF());
+		}
+		else if (m_lut->initialized())
 		{
 			double val = m_splomData->paramData(m_colInd)[ind];
 			double rgba[4]; m_lut->getColor(val, rgba);
