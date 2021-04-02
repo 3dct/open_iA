@@ -1872,10 +1872,12 @@ void iAFiAKErController::selection3DChanged()
 	showSelectionInSPM();
 	changeReferenceDisplay();
 	updateFiberContext();
+	/*
 	if (isAnythingSelected() && !m_views[SelectionView]->isVisible())
 	{
 		m_views[SelectionView]->show();
 	}
+	*/
 }
 
 void iAFiAKErController::selectionSPMChanged(std::vector<size_t> const & selection)
@@ -1894,10 +1896,12 @@ void iAFiAKErController::selectionSPMChanged(std::vector<size_t> const & selecti
 	showSelectionInPlots();
 	changeReferenceDisplay();
 	updateFiberContext();
+	/*
 	if (isAnythingSelected() && !m_views[SelectionView]->isVisible())
 	{
 		m_views[SelectionView]->show();
 	}
+	*/
 }
 
 void iAFiAKErController::selectionOptimStepChartChanged(std::vector<size_t> const & selection)
@@ -1926,10 +1930,12 @@ void iAFiAKErController::selectionOptimStepChartChanged(std::vector<size_t> cons
 	showSelectionInSPM();
 	changeReferenceDisplay();
 	updateFiberContext();
+	/*
 	if (isAnythingSelected() && !m_views[SelectionView]->isVisible())
 	{
 		m_views[SelectionView]->show();
 	}
+	*/
 }
 
 /*
