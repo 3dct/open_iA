@@ -92,9 +92,9 @@ public:
 	{
 		return 0.0;
 	}
-	void addLine(SelectionType const& linePoints)
+	void addLine(SelectionType const& linePoints, QColor const & color)
 	{
-		m_lines.push_back(linePoints);
+		m_lines.push_back(std::make_pair(linePoints, color));
 	}
 	void clearLines()
 	{
@@ -503,9 +503,9 @@ std::vector<size_t> const& iAScatterPlotWidget::highlightedPoints() const
 	return m_scatterPlotHandler->getHighlightedPoints();
 }
 
-void iAScatterPlotWidget::addLine(std::vector<size_t> linePoints)
+void iAScatterPlotWidget::addLine(std::vector<size_t> linePoints, QColor const& color)
 {
-	return m_scatterPlotHandler->addLine(linePoints);
+	return m_scatterPlotHandler->addLine(linePoints, color);
 }
 
 void iAScatterPlotWidget::clearLines()

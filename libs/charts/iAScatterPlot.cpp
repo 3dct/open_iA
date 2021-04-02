@@ -850,15 +850,15 @@ void iAScatterPlot::drawPoints( QPainter &painter )
 
 	// Draw connecting lines between points
 	auto const& lines = m_splom->lines();
-	painter.setPen( /*settings.tickLabelColor*/ m_parentWidget->palette().color(QPalette::Text));
 	for (auto line : lines)
 	{
-		for (int ptIdx = 0; ptIdx < line.size() - 1; ++ptIdx)
+		painter.setPen(line.second);
+		for (int ptIdx = 0; ptIdx < line.first.size() - 1; ++ptIdx)
 		{
-			int x1 = p2x(p0d[line[ptIdx]]),
-				x2 = p2x(p0d[line[ptIdx + 1]]),
-				y1 = p2y(p1d[line[ptIdx]]),
-				y2 = p2y(p1d[line[ptIdx + 1]]);
+			int x1 = p2x(p0d[line.first[ptIdx]]),
+				x2 = p2x(p0d[line.first[ptIdx + 1]]),
+				y1 = p2y(p1d[line.first[ptIdx]]),
+				y2 = p2y(p1d[line.first[ptIdx + 1]]);
 			// TODO: cut off lines at borders!
 			painter.drawLine(x1, y1, x2, y2);
 		}

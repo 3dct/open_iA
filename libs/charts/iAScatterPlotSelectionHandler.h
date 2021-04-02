@@ -21,7 +21,10 @@
 #pragma once
 
 #include <cstddef>    // for size_t
+#include <utility>    // for std::pair
 #include <vector>
+
+#include <QColor>
 
 //! Class providing a few selection/highlight/settings details to a single scatterplot
 //! implemented by iAQSplom, but can also be implemented separately to e.g. allow a
@@ -36,7 +39,7 @@ public:
 	virtual SelectionType const & getSelection() const = 0;
 	virtual SelectionType const & getFilteredSelection() const = 0;
 	virtual SelectionType const & getHighlightedPoints() const = 0;
-	std::vector<SelectionType> const& lines() const
+	std::vector<std::pair<SelectionType, QColor>> const& lines() const
 	{
 		return m_lines;
 	}
@@ -44,5 +47,5 @@ public:
 	virtual double getAnimIn() const = 0;
 	virtual double getAnimOut() const = 0;
 protected:
-	std::vector<SelectionType> m_lines;
+	std::vector<std::pair<SelectionType, QColor>> m_lines;
 };

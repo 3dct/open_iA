@@ -69,7 +69,7 @@ public:
 	std::vector<size_t>& selection();
 	void setSelection(std::vector<size_t> const& selection);
 	std::vector<size_t> const& highlightedPoints() const;
-	void addLine(std::vector<size_t> linePoints);
+	void addLine(std::vector<size_t> linePoints, QColor const& color);
 	void clearLines();
 	void toggleHighlightedPoint(size_t curPoint, Qt::KeyboardModifiers modifiers);
 	void setHighlightColor(QColor hltCol);
