@@ -21,6 +21,7 @@
 #pragma once
 
 #include <QMap>
+#include <QSet>
 #include <QWidget>
 
 class iAChartWidget;
@@ -81,6 +82,7 @@ private:
 	void updateTableOrder();
 	void setActionChecked(int outType, int outIdx, bool checked);
 	QSharedPointer<iAPlot> createHistoPlot(QSharedPointer<iAHistogramData> data, QColor color);
+	void addResultHistoPlot(size_t resultIdx, int charIdx, int paramIdx);
 
 	// pair output type / index
 	QVector<QPair<int,int>> m_visibleCharacts;
@@ -97,7 +99,8 @@ private:
 	QVector<int> m_sort;
 	int m_sortLastOut;
 	bool m_sortLastDesc;
-	QMap<QPair<size_t, int>, QSharedPointer<iAPlot>> m_resultHistoPlot;
+	QMap<QPair<size_t, int>, QSharedPointer<iAPlot>> m_visibleResultHistoPlots;
+	QSet<size_t> m_visibleResults;
 	QString m_histogramChartType;
 signals:
 	void parameterChanged();
