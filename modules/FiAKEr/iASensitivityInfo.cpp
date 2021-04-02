@@ -1118,13 +1118,28 @@ void iASensitivityInfo::compute()
 		}
 		// TODO: save memory by not storing this?
 		// copy other half triangle:
+		m_resultDissimRanges.resize(measureCount);
+		for (int m = 0; m < measureCount; ++m)
+		{
+			m_resultDissimRanges[m].first = std::numeric_limits<double>::max();
+			m_resultDissimRanges[m].second = std::numeric_limits<double>::lowest();
+		}
 		for (int r1 = 1; r1 < resultCount && !m_aborted; ++r1)
 		{
 			for (int r2 = 0; r2 < r1; ++r2)
 			{
 				for (int m = 0; m < measureCount; ++m)
 				{
-					m_resultDissimMatrix[r1][r2].avgDissim[m] = m_resultDissimMatrix[r2][r1].avgDissim[m];
+					double dissim = m_resultDissimMatrix[r2][r1].avgDissim[m];
+					m_resultDissimMatrix[r1][r2].avgDissim[m] = dissim;
+					if (dissim < m_resultDissimRanges[m].first)
+					{
+						m_resultDissimRanges[m].first = dissim;
+					}
+					if (dissim > m_resultDissimRanges[m].second)
+					{
+						m_resultDissimRanges[m].second = dissim;
+					}
 				}
 			}
 		}
@@ -1577,7 +1592,8 @@ public:
 	iAAlgorithmInfo* m_algoInfo;
 
 	void updateScatterPlotLUT(int starGroupSize, int numOfSTARSteps, size_t resultCount, int numInputParams,
-		iADissimilarityMatrixType const & m_resultDissimMatrix, int measureIdx, QString const & colorScaleName)
+		iADissimilarityMatrixType const & resultDissimMatrix, QVector<QPair<double, double> > dissimRanges,
+		int measureIdx, QString const & colorScaleName)
 	{
 		//LOG(lvlDebug, "\nNEW LUT:");
 		std::set<int> hiGrp;
@@ -1640,10 +1656,13 @@ public:
 			for (size_t curResultIdx = 0; curResultIdx < resultCount; ++curResultIdx)
 			{
 				m_mdsData->data()[m_mdsData->numParams() - SPDissimilarityOffset][curResultIdx] =
-					m_resultDissimMatrix[static_cast<int>(selectedResultIdx)][static_cast<int>(curResultIdx)].avgDissim[measureIdx];
+					resultDissimMatrix[static_cast<int>(selectedResultIdx)][static_cast<int>(curResultIdx)].avgDissim[measureIdx];
 			}
 			m_mdsData->updateRanges();
-			auto rng = m_mdsData->paramRange(m_mdsData->numParams() - SPDissimilarityOffset);
+			//auto rng = m_mdsData->paramRange(m_mdsData->numParams() - SPDissimilarityOffset);
+			double rng[2];
+			rng[0] = dissimRanges[measureIdx].first;
+			rng[1] = dissimRanges[measureIdx].second;
 			*m_lut.data() = iALUT::Build(rng, colorScaleName, 255, 0);
 			m_scatterPlot->setLookupTable(m_lut, m_mdsData->numParams() - SPDissimilarityOffset);
 		}
@@ -1926,7 +1945,7 @@ void iASensitivityInfo::createGUI()
 	m_child->splitDockWidget(dwScatterPlot, dwColorMap, Qt::Horizontal);
 
 	m_gui->updateScatterPlotLUT(m_starGroupSize, m_numOfSTARSteps, m_data->result.size(), m_variedParams.size(),
-		m_resultDissimMatrix, 0, "");  // last 3 parameters not important here (no result selected here yet)
+		m_resultDissimMatrix, m_resultDissimRanges, 0, "");  // last 3 parameters not important here (no result selected here yet)
 	m_gui->m_scatterPlot->setPointInfo(
 		QSharedPointer<iAScatterPlotPointInfo>(new iASPParamPointInfo(*this, *m_data.data())));
 
@@ -2194,8 +2213,8 @@ void iASensitivityInfo::parResultSelected(size_t resultIdx, Qt::KeyboardModifier
 
 void iASensitivityInfo::spHighlightChanged()
 {
-	m_gui->updateScatterPlotLUT(
-		m_starGroupSize, m_numOfSTARSteps, m_data->result.size(), m_variedParams.size(), m_resultDissimMatrix, m_gui->m_settings->dissimMeasIdx(), m_gui->m_settings->spColorMap());
+	m_gui->updateScatterPlotLUT(m_starGroupSize, m_numOfSTARSteps, m_data->result.size(), m_variedParams.size(),
+		m_resultDissimMatrix, m_resultDissimRanges, m_gui->m_settings->dissimMeasIdx(), m_gui->m_settings->spColorMap());
 }
 
 std::vector<size_t> iASensitivityInfo::selectedResults() const

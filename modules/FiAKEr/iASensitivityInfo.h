@@ -196,6 +196,8 @@ public:
 	// dissimilarity pairs:
 	std::vector<std::pair<int, bool>> m_resultDissimMeasures;
 	iADissimilarityMatrixType m_resultDissimMatrix;
+
+	QVector<QPair<double, double>> m_resultDissimRanges;
 	int m_resultDissimOptimMeasureIdx;
 
 	//! the GUI elements:
