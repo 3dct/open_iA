@@ -89,7 +89,8 @@ iAParameterInfluenceView::iAParameterInfluenceView(iASensitivityInfo* sensInf, Q
 	m_table(sensInf->m_variedParams.size()),
 	m_sort(sensInf->m_variedParams.size()),
 	m_sortLastOut(-1),
-	m_sortLastDesc(true)
+	m_sortLastDesc(true),
+	m_histogramChartType("Bars")    // needs to match value from radio buttons in SensitivitySettings.ui
 {
 	for (int i=0; i<m_sort.size(); ++i)
 	{
@@ -336,7 +337,7 @@ void iAParameterInfluenceView::setResultSelected(size_t resultIdx, bool state)
 						auto histData = iAHistogramData::create(QString("Result %1").arg(resultIdx),
 							iAValueType::Continuous, rng[0], rng[1], m_sensInf->m_charHistograms[resultIdx][charIdx]);
 						m_resultHistoPlot.insert(qMakePair(resultIdx, charIdx),
-							QSharedPointer<iALinePlot>::create(histData, SelectedResultPlotColor));
+							createHistoPlot(histData, SelectedResultPlotColor));
 					}
 					m_table[paramIdx]->out[barIdx]->addPlot(m_resultHistoPlot[qMakePair(resultIdx, charIdx)]);
 				}
@@ -451,6 +452,25 @@ QString iAParameterInfluenceView::columnName(int outType, int outIdx) const
 			getAvailableDissimilarityMeasureNames()[m_sensInf->m_resultDissimMeasures[outIdx].first]);
 }
 
+QSharedPointer<iAPlot> iAParameterInfluenceView::createHistoPlot(QSharedPointer<iAHistogramData> histoData, QColor color)
+{	// m_histogramChartType values need to match values from SensitivitySettings.ui file
+	if (m_histogramChartType == "Bars")
+	{
+		QColor c(color);
+		c.setAlpha(64);		// we need a transparent color for bars
+		return QSharedPointer<iABarGraphPlot>::create(histoData, c);
+	}
+	else if (m_histogramChartType == "Lines")
+	{
+		return QSharedPointer<iALinePlot>::create(histoData, color);
+	}
+	else
+	{
+		LOG(lvlWarn, QString("Unknown chart type '%1'!").arg(m_histogramChartType));
+		return QSharedPointer<iAPlot>();
+	}
+}
+
 void iAParameterInfluenceView::updateStackedBarHistogram(QString const & barName, int paramIdx, int outType, int outIdx)
 {
 	int barIdx = m_table[paramIdx]->bars->barIndex(barName);
@@ -481,7 +501,7 @@ void iAParameterInfluenceView::updateStackedBarHistogram(QString const & barName
 	{
 		auto varHistData = iAHistogramData::create(barName, iAValueType::Continuous, rng[0], rng[1],
 			m_sensInf->charHistVarAgg[outIdx][m_aggrType][paramIdx]);
-		outChart->addPlot(QSharedPointer<iALinePlot>::create(varHistData, VariationHistogramColor));
+		outChart->addPlot(createHistoPlot(varHistData, VariationHistogramColor));
 	}
 	auto avgHistData = iAHistogramData::create("Average", iAValueType::Continuous, rng[0], rng[1],
 		(outType == outCharacteristic)
@@ -489,7 +509,7 @@ void iAParameterInfluenceView::updateStackedBarHistogram(QString const & barName
 			: (outType == outFiberCount)
 				? m_sensInf->fiberCountHistogram
 				: /* outType == outDissimilarity */ m_sensInf->m_dissimHistograms[outIdx]);
-	outChart->addPlot(QSharedPointer<iALinePlot>::create(avgHistData, AverageHistogramColor));
+	outChart->addPlot(createHistoPlot(avgHistData, AverageHistogramColor));
 	outChart->update();
 
 	auto parChart = m_table[paramIdx]->par[barIdx];
@@ -507,6 +527,12 @@ void iAParameterInfluenceView::updateStackedBarHistogram(QString const & barName
 	parChart->resetYBounds();
 	parChart->addPlot(QSharedPointer<iALinePlot>::create(plotData, ParamSensitivityPlotColor));
 	parChart->update();
+}
+
+void iAParameterInfluenceView::setHistogramChartType(QString const & chartType)
+{
+	m_histogramChartType = chartType;
+	updateStackedBars();
 }
 
 void iAParameterInfluenceView::updateChartY()

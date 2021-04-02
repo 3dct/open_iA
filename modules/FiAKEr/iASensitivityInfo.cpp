@@ -70,6 +70,7 @@
 #include <QLabel>
 #include <QMainWindow>
 #include <QMessageBox>
+#include <QRadioButton>
 #include <QScrollArea>
 #include <QSpinBox>
 #include <QTableView>
@@ -1380,10 +1381,12 @@ public:
 
 		connect(cmbboxDissimilarity, QOverload<int>::of(&QComboBox::currentIndexChanged), sensInf, &iASensitivityInfo::updateDissimilarity);
 		
+		connect(rbBar, &QRadioButton::toggled, sensInf, &iASensitivityInfo::histoChartTypeToggled);
+		connect(rbLines, &QRadioButton::toggled, sensInf, &iASensitivityInfo::histoChartTypeToggled);
+		
 		cmbboxAggregation->setMinimumWidth(80);
 		cmbboxMeasure->setMinimumWidth(80);
 		cmbboxDissimilarity->setMinimumWidth(80);
-		cmbboxMeasure->setMinimumWidth(80);
 		cmbboxOutput->setMinimumWidth(80);
 	}
 	int charIdx() const
@@ -2076,6 +2079,14 @@ void iASensitivityInfo::spPointHighlighted(size_t resultIdx, bool state)
 		std::sort(m_currentFiberSelection[resultIdx].begin(), m_currentFiberSelection[resultIdx].end());
 	}
 	emit fibersToSelect(m_currentFiberSelection);
+}
+
+void iASensitivityInfo::histoChartTypeToggled(bool checked)
+{
+	if (checked)
+	{
+		m_gui->m_paramInfluenceView->setHistogramChartType(qobject_cast<QRadioButton*>(QObject::sender())->text());
+	}
 }
 
 void iASensitivityInfo::parResultSelected(size_t resultIdx, Qt::KeyboardModifiers modifiers)

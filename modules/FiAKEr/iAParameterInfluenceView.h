@@ -24,6 +24,7 @@
 #include <QWidget>
 
 class iAChartWidget;
+class iAHistogramData;
 class iAStackedBarChart;
 class iASensitivityInfo;
 class iASingleColorTheme;
@@ -52,6 +53,7 @@ public:
 	int selectedAggrType() const;
 	int selectedRow() const;
 	int selectedCol() const;
+	void setHistogramChartType(QString const& chartType);
 public slots:
 	void showStackedBar();
 	void selectStackedBar(int outputType, int idx);
@@ -78,6 +80,7 @@ private:
 	void toggleBar(bool show, int outType, int outIdx);
 	void updateTableOrder();
 	void setActionChecked(int outType, int outIdx, bool checked);
+	QSharedPointer<iAPlot> createHistoPlot(QSharedPointer<iAHistogramData> data, QColor color);
 
 	// pair output type / index
 	QVector<QPair<int,int>> m_visibleCharacts;
@@ -95,6 +98,7 @@ private:
 	int m_sortLastOut;
 	bool m_sortLastDesc;
 	QMap<QPair<size_t, int>, QSharedPointer<iAPlot>> m_resultHistoPlot;
+	QString m_histogramChartType;
 signals:
 	void parameterChanged();
 	void outputSelected(int outType, int outTypeIdx);
