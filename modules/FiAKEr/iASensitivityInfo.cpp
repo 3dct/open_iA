@@ -110,7 +110,9 @@ namespace
 	QColor OutputColor(255, 200, 200, 255);
 	
 	// needs to match definition in iAParameterInfluenceView. Maybe unify somewhere:
-	QColor SelectedResultPlotColor(180, 80, 80, 255);
+	QColor SelectedResultPlotColor(235, 184, 31, 255);
+
+	QColor ScatterPlotPointColor(80, 80, 80, 128);
 
 	const int SelectedAggregationMeasureIdx = 3;
 }
@@ -1532,6 +1534,7 @@ public:
 			}
 			hiGrpAll.insert(groupID);
 		}
+		/*
 		for (size_t i = 0; i < resultCount; ++i)
 		{
 			int groupID = static_cast<int>(i / starGroupSize);
@@ -1563,6 +1566,9 @@ public:
 			m_lut->setColor(i, c);
 		}
 		m_scatterPlot->setLookupTable(m_lut, m_mdsData->numParams() - 1);
+		*/
+		m_scatterPlot->setPlotColor(ScatterPlotPointColor, 0, resultCount);
+
 
 		m_scatterPlot->clearLines();
 		// we want to build a separate line for each parameter (i.e. in each branch "direction" of the STAR
@@ -1594,7 +1600,7 @@ public:
 				{
 					linePoints[i] = linePtParVal[i].first;
 				}
-				m_scatterPlot->addLine(linePoints);
+				m_scatterPlot->addLine(linePoints, ParamColor);
 			}
 		}
 	}

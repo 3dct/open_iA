@@ -64,7 +64,10 @@ namespace
 	QColor VariationHistogramColor(50, 50, 50, 255);
 	QColor AverageHistogramColor(150, 150, 150, 255);
 	QColor ParamSensitivityPlotColor(80, 80, 80, 255);
-	QColor SelectedResultPlotColor(180, 80, 80, 255);  // 235, 184, 31, 255
+
+	// needs to match definition in iASensitivityInfo.cpp. Maybe unify somewhere:
+	QColor SelectedResultPlotColor(235, 184, 31, 255);
+
 	QColor UnselectedParamRowBackgroundColor(245, 245, 245);
 }
 
