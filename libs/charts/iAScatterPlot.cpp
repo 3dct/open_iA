@@ -169,6 +169,11 @@ void iAScatterPlot::setLookupTable( QSharedPointer<iALookupTable> &lut, size_t c
 	updatePoints();
 }
 
+QSharedPointer<iALookupTable> iAScatterPlot::lookupTable() const
+{
+	return m_lut;
+}
+
 void iAScatterPlot::setTransform( double scale, QPointF newOffset )
 {
 	bool isUpdate = false;

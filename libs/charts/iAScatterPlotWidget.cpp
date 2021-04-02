@@ -215,6 +215,11 @@ void iAScatterPlotWidget::setLookupTable(QSharedPointer<iALookupTable> lut, size
 	update();
 }
 
+QSharedPointer<iALookupTable> iAScatterPlotWidget::lookupTable() const
+{
+	return m_scatterplot->lookupTable();
+}
+
 #ifdef CHART_OPENGL
 void iAScatterPlotWidget::paintGL()
 #else

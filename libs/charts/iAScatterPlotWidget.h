@@ -58,6 +58,7 @@ public:
 	static const int TextPadding;
 	iAScatterPlotWidget(QSharedPointer<iASPLOMData> data, bool columnSelection = false);
 	void setLookupTable(QSharedPointer<iALookupTable> lut, size_t paramIdx);
+	QSharedPointer<iALookupTable> lookupTable() const;
 	void setPlotColor(QColor const & c, double rangeMin, double rangeMax);
 	void setSelectionColor(QColor const & c);
 	void setSelectionMode(iAScatterPlot::SelectionMode mode);

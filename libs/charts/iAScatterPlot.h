@@ -69,6 +69,7 @@ public:
 	bool hasData() const;                                            //!< Check if data is already set to the plot
 	//! Set color lookup table and the name of a color-coded parameter
 	void setLookupTable( QSharedPointer<iALookupTable> &lut, size_t colInd );
+	QSharedPointer<iALookupTable> lookupTable() const;
 	const size_t* getIndices() const { return m_paramIndices; }      //!< Get indices of X and Y parameters
 	void setTransform( double scale, QPointF newOffset );            //!< Set new transform: new scale and new offset
 	void setTransformDelta( double scale, QPointF deltaOffset );     //!< Set new transform: new scale and change in the offset (delta)
