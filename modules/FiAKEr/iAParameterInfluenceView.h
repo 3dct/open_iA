@@ -55,6 +55,7 @@ public:
 	int selectedRow() const;
 	int selectedCol() const;
 	void setHistogramChartType(QString const& chartType);
+	QSet<size_t> const & selectedResults() const;
 public slots:
 	void showStackedBar();
 	void selectStackedBar(int outputType, int idx);
@@ -99,8 +100,8 @@ private:
 	QVector<int> m_sort;
 	int m_sortLastOut;
 	bool m_sortLastDesc;
-	QMap<QPair<size_t, int>, QSharedPointer<iAPlot>> m_visibleResultHistoPlots;
-	QSet<size_t> m_visibleResults;
+	QMap<QPair<size_t, int>, QSharedPointer<iAPlot>> m_selectedResultHistoPlots;
+	QSet<size_t> m_selectedResults;
 	QString m_histogramChartType;
 signals:
 	void parameterChanged();

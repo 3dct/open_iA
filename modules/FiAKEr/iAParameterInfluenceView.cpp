@@ -331,8 +331,8 @@ void iAParameterInfluenceView::addResultHistoPlot(size_t resultIdx, int paramIdx
 	auto const rng = m_sensInf->m_data->spmData->paramRange(m_sensInf->m_charSelected[charIdx]);
 	auto histData = iAHistogramData::create(QString("Result %1").arg(resultIdx), iAValueType::Continuous, rng[0],
 		rng[1], m_sensInf->m_charHistograms[resultIdx][charIdx]);
-	m_visibleResultHistoPlots.insert(qMakePair(resultIdx, charIdx), createHistoPlot(histData, SelectedResultPlotColor));
-	m_table[paramIdx]->out[barIdx]->addPlot(m_visibleResultHistoPlots[qMakePair(resultIdx, charIdx)]);
+	m_selectedResultHistoPlots.insert(qMakePair(resultIdx, charIdx), createHistoPlot(histData, SelectedResultPlotColor));
+	m_table[paramIdx]->out[barIdx]->addPlot(m_selectedResultHistoPlots[qMakePair(resultIdx, charIdx)]);
 }
 
 void iAParameterInfluenceView::setResultSelected(size_t resultIdx, bool state)
@@ -347,9 +347,9 @@ void iAParameterInfluenceView::setResultSelected(size_t resultIdx, bool state)
 				int charIdx = m_visibleCharacts[barIdx].second;
 				if (state)
 				{
-					m_visibleResults.insert(resultIdx);
+					m_selectedResults.insert(resultIdx);
 					m_table[paramIdx]->par[barIdx]->addXMarker(paramValue, SelectedResultPlotColor);
-					if (m_visibleResultHistoPlots.contains(qMakePair(resultIdx, charIdx)))
+					if (m_selectedResultHistoPlots.contains(qMakePair(resultIdx, charIdx)))
 					{
 						LOG(lvlWarn, QString("Plot to be added already exists!"));
 					}
@@ -360,17 +360,17 @@ void iAParameterInfluenceView::setResultSelected(size_t resultIdx, bool state)
 				}
 				else
 				{
-					m_visibleResults.remove(resultIdx);
+					m_selectedResults.remove(resultIdx);
 					m_table[paramIdx]->par[barIdx]->removeXMarker(paramValue);
-					if (!m_visibleResultHistoPlots.contains(qMakePair(resultIdx, charIdx)))
+					if (!m_selectedResultHistoPlots.contains(qMakePair(resultIdx, charIdx)))
 					{
 						LOG(lvlWarn, QString("Plot to be removed does not exist!"));
 					}
 					else
 					{
 						m_table[paramIdx]->out[barIdx]->removePlot(
-							m_visibleResultHistoPlots[qMakePair(resultIdx, charIdx)]);
-						m_visibleResultHistoPlots.remove(qMakePair(resultIdx, charIdx));
+							m_selectedResultHistoPlots[qMakePair(resultIdx, charIdx)]);
+						m_selectedResultHistoPlots.remove(qMakePair(resultIdx, charIdx));
 					}
 				}
 			}
@@ -530,7 +530,7 @@ void iAParameterInfluenceView::updateStackedBarHistogram(QString const & barName
 				? m_sensInf->fiberCountHistogram
 				: /* outType == outDissimilarity */ m_sensInf->m_dissimHistograms[outIdx]);
 	outChart->addPlot(createHistoPlot(avgHistData, AverageHistogramColor));
-	for (auto resultIdx: m_visibleResults)
+	for (auto resultIdx: m_selectedResults)
 	{
 		addResultHistoPlot(resultIdx, paramIdx, barIdx);
 	}
@@ -557,6 +557,11 @@ void iAParameterInfluenceView::setHistogramChartType(QString const & chartType)
 {
 	m_histogramChartType = chartType;
 	updateStackedBars();
+}
+
+QSet<size_t> const & iAParameterInfluenceView::selectedResults() const
+{
+	return m_selectedResults;
 }
 
 void iAParameterInfluenceView::updateChartY()

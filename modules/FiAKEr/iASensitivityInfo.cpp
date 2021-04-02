@@ -115,6 +115,11 @@ namespace
 	QColor ScatterPlotPointColor(80, 80, 80, 128);
 
 	const int SelectedAggregationMeasureIdx = 3;
+
+	const int SPMDSXOffset          = 4;
+	const int SPMDSYOffset          = 3;
+	const int SPIDOffset            = 2;
+	const int SPDissimilarityOffset = 1;
 }
 
 // Factor out as generic CSV reading class also used by iACsvIO?
@@ -1372,6 +1377,8 @@ public:
 		}
 		cmbboxDissimilarity->addItems(dissimilarities);
 
+		cmbboxSPColorMap->addItems(iALUT::GetColorMapNames());
+
 		connect(cmbboxMeasure, QOverload<int>::of(&QComboBox::currentIndexChanged), sensInf, &iASensitivityInfo::changeMeasure);
 		connect(cmbboxAggregation, QOverload<int>::of(&QComboBox::currentIndexChanged), sensInf, &iASensitivityInfo::changeAggregation);
 
@@ -1402,6 +1409,10 @@ public:
 	int dissimMeasIdx() const
 	{
 		return cmbboxDissimilarity->currentIndex();
+	}
+	QString spColorMap() const
+	{
+		return cmbboxSPColorMap->currentText();
 	}
 };
 
@@ -1472,6 +1483,59 @@ private:
 };
 
 
+class iAColorMapWidget: public QWidget
+{
+public:
+	iAColorMapWidget()
+		: m_lut(new iALookupTable())
+	{	// create default lookup table:
+		m_lut->allocate(2);
+		m_lut->setColor(0, ScatterPlotPointColor);
+		m_lut->setColor(1, ScatterPlotPointColor);
+		m_lut->setRange(0, 1);
+	}
+	void setColorMap(QSharedPointer<iALookupTable> lut)
+	{
+		m_lut = lut;
+	}
+private:
+	const int ScalarBarPadding = 5;
+	QSharedPointer<iALookupTable> m_lut;
+	void paintEvent(QPaintEvent* ev) override
+	{
+		Q_UNUSED(ev);
+		QPainter p(this);
+		QString minStr = dblToStringWithUnits(m_lut->getRange()[0]);
+		QString maxStr = dblToStringWithUnits(m_lut->getRange()[1]);
+#if QT_VERSION >= QT_VERSION_CHECK(5, 11, 0)
+		int textWidth = std::max(p.fontMetrics().horizontalAdvance(minStr), p.fontMetrics().horizontalAdvance(maxStr));
+#else
+		int textWidth = std::max(fm.width(minStr), fm.width(maxStr));
+#endif
+		int scalarBarWidth = geometry().width() - 2 * ScalarBarPadding - textWidth;
+		// Draw scalar bar (duplicated from iAQSplom!)
+		QPoint topLeft(ScalarBarPadding+textWidth, ScalarBarPadding);
+
+		QRect colorBarRect(topLeft.x(), topLeft.y(), scalarBarWidth, height() - 2 * ScalarBarPadding);
+		QLinearGradient grad(topLeft.x(), topLeft.y(), topLeft.x(), topLeft.y() + colorBarRect.height());
+		QMap<double, QColor>::iterator it;
+		for (size_t i = 0; i < m_lut->numberOfValues(); ++i)
+		{
+			double rgba[4];
+			m_lut->getTableValue(i, rgba);
+			QColor color(rgba[0] * 255, rgba[1] * 255, rgba[2] * 255, rgba[3] * 255);
+			double key = 1 - (static_cast<double>(i) / (m_lut->numberOfValues() - 1));
+			grad.setColorAt(key, color);
+		}
+		p.fillRect(colorBarRect, grad);
+		p.drawRect(colorBarRect);
+		// Draw color bar / name of parameter used for coloring
+		int colorBarTextX = topLeft.x() - (textWidth + ScalarBarPadding);
+		p.drawText(colorBarTextX, topLeft.y() + p.fontMetrics().height(), maxStr);
+		p.drawText(colorBarTextX, height() - (p.fontMetrics().height() + ScalarBarPadding), minStr);
+	}
+};
+
 class iASensitivityGUI
 {
 public:
@@ -1480,6 +1544,7 @@ public:
 		m_settings(nullptr),
 		m_paramDetails(nullptr),
 		m_scatterPlot(nullptr),
+		m_colorMapWidget(nullptr),
 		m_dwParamInfluence(nullptr),
 		m_matrixWidget(nullptr),
 		m_parameterListView(nullptr),
@@ -1500,6 +1565,7 @@ public:
 	iAScatterPlotWidget* m_scatterPlot;
 	//! lookup table for points in scatter plot
 	QSharedPointer<iALookupTable> m_lut;
+	iAColorMapWidget* m_colorMapWidget;
 
 	iADockWidgetWrapper* m_dwParamInfluence;
 
@@ -1510,8 +1576,8 @@ public:
 	iAParameterListView* m_parameterListView;
 	iAAlgorithmInfo* m_algoInfo;
 
-	void updateScatterPlotLUT(int starGroupSize, int numOfSTARSteps, size_t resultCount,
-		QVector<int> const & variedParams)
+	void updateScatterPlotLUT(int starGroupSize, int numOfSTARSteps, size_t resultCount, int numInputParams,
+		iADissimilarityMatrixType const & m_resultDissimMatrix, int measureIdx, QString const & colorScaleName)
 	{
 		//LOG(lvlDebug, "\nNEW LUT:");
 		std::set<int> hiGrp;
@@ -1567,8 +1633,26 @@ public:
 		}
 		m_scatterPlot->setLookupTable(m_lut, m_mdsData->numParams() - 1);
 		*/
-		m_scatterPlot->setPlotColor(ScatterPlotPointColor, 0, resultCount);
 
+		if (m_paramInfluenceView->selectedResults().size() == 1)
+		{  // color by difference to currently selected result
+			size_t selectedResultIdx = *m_paramInfluenceView->selectedResults().begin();
+			for (size_t curResultIdx = 0; curResultIdx < resultCount; ++curResultIdx)
+			{
+				m_mdsData->data()[m_mdsData->numParams() - SPDissimilarityOffset][curResultIdx] =
+					m_resultDissimMatrix[static_cast<int>(selectedResultIdx)][static_cast<int>(curResultIdx)].avgDissim[measureIdx];
+			}
+			m_mdsData->updateRanges();
+			auto rng = m_mdsData->paramRange(m_mdsData->numParams() - SPDissimilarityOffset);
+			*m_lut.data() = iALUT::Build(rng, colorScaleName, 255, 0);
+			m_scatterPlot->setLookupTable(m_lut, m_mdsData->numParams() - SPDissimilarityOffset);
+		}
+		else
+		{  // color all points the same
+			m_scatterPlot->setPlotColor(ScatterPlotPointColor, 0, resultCount);
+		}
+		m_colorMapWidget->setColorMap(m_scatterPlot->lookupTable());
+		m_colorMapWidget->update();
 
 		m_scatterPlot->clearLines();
 		// we want to build a separate line for each parameter (i.e. in each branch "direction" of the STAR
@@ -1578,7 +1662,7 @@ public:
 		for (auto groupID : hiGrpAll)
 		{
 			auto groupStart = groupID * starGroupSize;
-			for (int parIdx = 0; parIdx < variedParams.size(); ++parIdx)
+			for (int parIdx = 0; parIdx < numInputParams; ++parIdx)
 			{
 				using PtData = std::pair<size_t, double>;
 				std::vector<PtData> linePtParVal;
@@ -1802,6 +1886,7 @@ void iASensitivityInfo::createGUI()
 	spParamNames.push_back("MDS X");
 	spParamNames.push_back("MDS Y");
 	spParamNames.push_back("ID");
+	spParamNames.push_back("Dissimilarity"); // dissimilarity according to currently selected result
 	size_t resultCount = m_data->result.size();
 	m_gui->m_mdsData->setParameterNames(spParamNames, resultCount);
 	for (int c = 0; c < spParamNames.size(); ++c)
@@ -1818,9 +1903,10 @@ void iASensitivityInfo::createGUI()
 	}
 	for (size_t i = 0; i < resultCount; ++i)
 	{
-		m_gui->m_mdsData->data()[spParamNames.size() - 3][i] = 0.0;  // MDS X
-		m_gui->m_mdsData->data()[spParamNames.size() - 2][i] = 0.0;  // MDS Y
-		m_gui->m_mdsData->data()[spParamNames.size() - 1][i] = i;    // ID
+		m_gui->m_mdsData->data()[spParamNames.size() - SPMDSXOffset][i] = 0.0;  // MDS X
+		m_gui->m_mdsData->data()[spParamNames.size() - SPMDSYOffset][i] = 0.0;  // MDS Y
+		m_gui->m_mdsData->data()[spParamNames.size() - SPIDOffset][i] = i;    // ID
+		m_gui->m_mdsData->data()[spParamNames.size() - SPDissimilarityOffset][i] = 0.0;  // Dissimilarity
 	}
 	m_gui->m_mdsData->updateRanges();
 	m_gui->m_scatterPlot = new iAScatterPlotWidget(m_gui->m_mdsData, true);
@@ -1831,12 +1917,18 @@ void iASensitivityInfo::createGUI()
 	m_gui->m_lut.reset(new iALookupTable());
 	m_gui->m_lut->setRange(0, m_data->result.size());
 	m_gui->m_lut->allocate(m_data->result.size());
-	m_gui->updateScatterPlotLUT(m_starGroupSize, m_numOfSTARSteps, m_data->result.size(), m_variedParams);
-	m_gui->m_scatterPlot->setPointInfo(QSharedPointer<iAScatterPlotPointInfo>(new iASPParamPointInfo(*this, *m_data.data())));
 	auto dwScatterPlot = new iADockWidgetWrapper(m_gui->m_scatterPlot, "Results Overview", "foeScatterPlot");
 	connect(m_gui->m_scatterPlot, &iAScatterPlotWidget::pointHighlighted, this, &iASensitivityInfo::spPointHighlighted);
 	connect(m_gui->m_scatterPlot, &iAScatterPlotWidget::highlightChanged, this, &iASensitivityInfo::spHighlightChanged);
 	m_child->splitDockWidget(m_gui->m_dwParamInfluence, dwScatterPlot, Qt::Vertical);
+	m_gui->m_colorMapWidget = new iAColorMapWidget();
+	auto dwColorMap = new iADockWidgetWrapper(m_gui->m_colorMapWidget, "Dissimilarity Color Map", "foeColorMap");
+	m_child->splitDockWidget(dwScatterPlot, dwColorMap, Qt::Horizontal);
+
+	m_gui->updateScatterPlotLUT(m_starGroupSize, m_numOfSTARSteps, m_data->result.size(), m_variedParams.size(),
+		m_resultDissimMatrix, 0, "");  // last 3 parameters not important here (no result selected here yet)
+	m_gui->m_scatterPlot->setPointInfo(
+		QSharedPointer<iAScatterPlotPointInfo>(new iASPParamPointInfo(*this, *m_data.data())));
 
 	updateDissimilarity();
 	changeAggregation(SelectedAggregationMeasureIdx);
@@ -1991,7 +2083,7 @@ void iASensitivityInfo::updateDissimilarity()
 	{
 		for (int c = 0; c < mds[0].size(); ++c)
 		{
-			m_gui->m_mdsData->data()[m_gui->m_mdsData->numParams() - 3 + c][i] = mds[i][c];
+			m_gui->m_mdsData->data()[m_gui->m_mdsData->numParams() - SPMDSXOffset + c][i] = mds[i][c];
 		}
 		//LOG(lvlDebug, QString("%1: %2, %3").arg(i).arg(mds[i][0]).arg(mds[i][1]));
 	}
@@ -2009,9 +2101,8 @@ void iASensitivityInfo::spPointHighlighted(size_t resultIdx, bool state)
 	m_gui->m_paramInfluenceView->setSelectedParam(paramID);
 	emit resultSelected(resultIdx, state);
 
-	// TODO: change detection - only trigger fibersToSelect if selection has changed?
 	if (m_currentFiberSelection.size() == 0)
-	{
+	{	// before first selection is made...
 		return;
 	}
 
@@ -2084,6 +2175,7 @@ void iASensitivityInfo::spPointHighlighted(size_t resultIdx, bool state)
 		}
 		std::sort(m_currentFiberSelection[resultIdx].begin(), m_currentFiberSelection[resultIdx].end());
 	}
+	// TODO: change detection - only trigger fibersToSelect if selection has changed?
 	emit fibersToSelect(m_currentFiberSelection);
 }
 
@@ -2102,7 +2194,8 @@ void iASensitivityInfo::parResultSelected(size_t resultIdx, Qt::KeyboardModifier
 
 void iASensitivityInfo::spHighlightChanged()
 {
-	m_gui->updateScatterPlotLUT(m_starGroupSize, m_numOfSTARSteps, m_data->result.size(), m_variedParams);
+	m_gui->updateScatterPlotLUT(
+		m_starGroupSize, m_numOfSTARSteps, m_data->result.size(), m_variedParams.size(), m_resultDissimMatrix, m_gui->m_settings->dissimMeasIdx(), m_gui->m_settings->spColorMap());
 }
 
 std::vector<size_t> iASensitivityInfo::selectedResults() const
