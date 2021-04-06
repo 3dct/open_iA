@@ -112,11 +112,8 @@ void derivative(iAFilter* filter, QMap<QString, QVariant> const & params)
 {
 	typedef itk::Image<T, DIM> InputImageType;
 	typedef itk::Image<float, DIM> RealImageType;
-	//typedef itk::CastImageFilter< InputImageType, RealImageType> CastToRealFilterType;
 	typedef itk::DerivativeImageFilter< InputImageType, RealImageType > DIFType;
 
-	//auto toReal = CastToRealFilterType::New();
-	//toReal->SetInput( dynamic_cast< InputImageType * >( image->itkImage() ) );
 	auto derFilter = DIFType::New();
 	derFilter->SetOrder(params["Order"].toUInt());
 	derFilter->SetDirection(params["Direction"].toUInt());
