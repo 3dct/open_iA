@@ -490,14 +490,18 @@ iAMaskIntensityFilter::iAMaskIntensityFilter() :
 template<class T>
 void histomatch(iAFilter* filter, QMap<QString, QVariant> const & parameters)
 {
-	using MatchPixelType = double;
-	using MatchImageType = itk::Image<MatchPixelType, DIM>;
+	using MatchImageType = itk::Image<T, DIM>;
 	using HistoMatchFilterType = itk::HistogramMatchingImageFilter<MatchImageType, MatchImageType>;
 
 	auto matcher = HistoMatchFilterType::New();
-	auto inImg  = castImageTo<MatchPixelType>(filter->input()[0]->itkImage());
-	auto refImg = castImageTo<MatchPixelType>(filter->input()[1]->itkImage());
-	matcher->SetInput(dynamic_cast<MatchImageType*>(inImg.GetPointer()));
+	if (itkScalarPixelType(filter->input()[0]->itkImage()) != itkScalarPixelType(filter->input()[1]->itkImage()))
+	{
+		LOG(lvlWarn, "Second image does not have the same pixel type as the first; I will try to typecast, "
+			"but the filter might not work properly if the data ranges are different.");
+	}
+	auto refImg = castImageTo<T>(filter->input()[1]->itkImage());
+
+	matcher->SetInput(dynamic_cast<MatchImageType*>(filter->input()[0]->itkImage()));
 	matcher->SetReferenceImage(dynamic_cast<MatchImageType*>(refImg.GetPointer()));
 	matcher->SetNumberOfHistogramLevels(parameters["Number of histogram levels"].toUInt() );
 	matcher->SetNumberOfMatchPoints(parameters["Number of match points"].toUInt());
@@ -570,6 +574,7 @@ void fillHistogramm(iAFilter* filter, QMap<QString, QVariant> const& params)
 		histogramm[element.first] = index;
 		index++;
 	}
+	filter->progress()->emitProgress(50);
 
 	it.GoToBegin();
 	while (!it.IsAtEnd())
@@ -580,7 +585,7 @@ void fillHistogramm(iAFilter* filter, QMap<QString, QVariant> const& params)
 }
 
 iAHistogramFill::iAHistogramFill() :
-	iAFilter("Histogramm Fill", "Intensity",
+	iAFilter("Histogram Fill", "Intensity",
 		"Packs a histogram so that consecutive values starting from 0 are used. "
 		"Only useful for integer images. For example, if you have an image containing the values "
 		"2, 5, 6 and 8, these would be translated to 0, 1, 2 and 3 respectively (2 -> 0, 5 -> 1, 6 -> 2, 8 -> 3).")
