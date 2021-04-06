@@ -547,3 +547,53 @@ iAHistogramMatchingFilter::iAHistogramMatchingFilter() :
 	addParameter("Number of match points", iAValueType::Continuous, 1);
 	setInputName(1u, "Reference image");
 }
+
+
+
+template <class T>
+void fillHistogramm(iAFilter* filter, QMap<QString, QVariant> const& params)
+{
+	Q_UNUSED(params);
+	std::map<T, T> histogramm;
+	using ImageType = itk::Image<T, DIM>;
+	typename ImageType::Pointer im = dynamic_cast<ImageType*>(filter->input()[0]->itkImage());
+
+	using IteratorType = itk::ImageRegionIterator<ImageType>;
+	IteratorType it(im, im->GetRequestedRegion());
+
+	it.GoToBegin();
+	while (!it.IsAtEnd())
+	{
+		histogramm[it.Value()] = it.Value();
+		++it;
+	}
+
+	int index = 0;
+	for (auto& element : histogramm)
+	{
+		histogramm[element.first] = index;
+		index++;
+	}
+
+	it.GoToBegin();
+	while (!it.IsAtEnd())
+	{
+		it.Set(histogramm[it.Value()]);
+		++it;
+	}
+}
+
+iAHistogramFill::iAHistogramFill() :
+	iAFilter("Histogramm Fill", "Intensity",
+		"Packs a histogram so that consecutive values starting from 0 are used. "
+		"Only useful for integer images. For example, if you have an image containing the values "
+		"2, 5, 6 and 8, these would be translated to 0, 1, 2 and 3 respectively (2 -> 0, 5 -> 1, 6 -> 2, 8 -> 3).")
+{
+}
+
+IAFILTER_CREATE(iAHistogramFill)
+
+void iAHistogramFill::performWork(QMap<QString, QVariant> const& params)
+{
+	ITK_TYPED_CALL(fillHistogramm, inputPixelType(), this, params);
+}
