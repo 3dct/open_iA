@@ -26,6 +26,7 @@
 #include <iATypedCallHelper.h>
 
 #include <itkCannyEdgeDetectionImageFilter.h>
+#include <itkSobelEdgeDetectionImageFilter.h>
 
 namespace
 {
@@ -70,4 +71,38 @@ iACannyEdgeDetection::iACannyEdgeDetection() :
 	addParameter("Maximum error", iAValueType::Continuous, 0.01, std::numeric_limits<double>::epsilon(), 1);
 	addParameter("Lower threshold", iAValueType::Continuous, 0);
 	addParameter("Upper threshold", iAValueType::Continuous, 1);
+}
+
+
+
+template <class T>
+void sobel_edge_detection(iAFilter* filter, QMap<QString, QVariant> const& parameters)
+{
+	Q_UNUSED(parameters);
+	using EdgeDetectionType = itk::SobelEdgeDetectionImageFilter<RealImageType, RealImageType> ;
+
+	auto inImg = castImageTo<RealPixelType>(filter->input()[0]->itkImage());
+	auto edgeDetector = EdgeDetectionType::New();
+	edgeDetector->SetInput(dynamic_cast<RealImageType*>(inImg.GetPointer()));
+	filter->progress()->observe(edgeDetector);
+	edgeDetector->Update();
+	filter->addOutput(edgeDetector->GetOutput());
+}
+
+IAFILTER_CREATE(iASobelEdgeDetection)
+
+void iASobelEdgeDetection::performWork(QMap<QString, QVariant> const& parameters)
+{
+	ITK_TYPED_CALL(sobel_edge_detection, inputPixelType(), this, parameters);
+}
+
+iASobelEdgeDetection::iASobelEdgeDetection() :
+	iAFilter("Sobel", "Edge detection",
+		"Sobel edge detector for scalar-valued images.<br/>"
+		"Uses the Sobel operator to calculate the image gradient and then finds the magnitude of this gradient vector."
+		" The Sobel gradient magnitude (square-root sum of squares) is an indication of edge strength.<br/>"
+		"For more information, see the "
+		"<a href=\"https://itk.org/Doxygen/html/classitk_1_1SobelEdgeDetectionImageFilter.html\">"
+		"Sobel Edge Detection Filter</a> in the ITK documentation.")
+{
 }

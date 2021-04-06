@@ -40,6 +40,7 @@ void iACommonImageFiltersModuleInterface::Initialize()
 {
 	// Edge detection:
 	REGISTER_FILTER(iACannyEdgeDetection);
+	REGISTER_FILTER(iASobelEdgeDetection);
 
 	// Casting / Datatype conversion:
 	REGISTER_FILTER(iACastImageFilter);
