@@ -181,6 +181,8 @@ template<> struct iAITKTypeMapper <long long>          { static const itk::Image
 template<> struct iAITKTypeMapper<float>               { static const itk::ImageIOBase::IOComponentType ID = itk::ImageIOBase::FLOAT; };
 template<> struct iAITKTypeMapper<double>              { static const itk::ImageIOBase::IOComponentType ID = itk::ImageIOBase::DOUBLE; };
 
+//! Cast pixel type of image to given ResultPixelType.
+//! If input image already has that pixel type, the given input image is returned.
 template<typename ResultPixelType>
 iAITKIO::ImagePointer castImageTo(iAITKIO::ImagePointer img)
 {

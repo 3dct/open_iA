@@ -58,7 +58,7 @@ void iAGradientMagnitude::performWork(QMap<QString, QVariant> const & parameters
 IAFILTER_CREATE(iAGradientMagnitude)
 
 iAGradientMagnitude::iAGradientMagnitude() :
-	iAFilter("Gradient Magnitude", "Gradients",
+	iAFilter("Gradient Magnitude", "Gradient/Derivative",
 		"Computes the gradient magnitude at each image element.<br/>"
 		"If <em>Use Image Spacing</em> is enabled, the gradient is calculated in the physical space; "
 		"if it not enabled, the gradient is calculated in pixel space.<br/>"
@@ -93,7 +93,7 @@ void iAGradientMagnitudeRecursiveGaussian::performWork(QMap<QString, QVariant> c
 IAFILTER_CREATE(iAGradientMagnitudeRecursiveGaussian)
 
 iAGradientMagnitudeRecursiveGaussian::iAGradientMagnitudeRecursiveGaussian() :
-	iAFilter("Gradient Magnitude RecursiveGaussian", "Gradients",
+	iAFilter("Gradient Magnitude RecursiveGaussian", "Gradient/Derivative",
 		"Computes the gradient magnitude at each image element.<br/>"
 		"If <em>Use Image Spacing</em> is enabled, the gradient is calculated in the physical space; "
 		"if it not enabled, the gradient is calculated in pixel space.<br/>"
@@ -131,7 +131,7 @@ void iADerivative::performWork(QMap<QString, QVariant> const & parameters)
 IAFILTER_CREATE(iADerivative)
 
 iADerivative::iADerivative() :
-	iAFilter("Derivative", "Gradients",
+	iAFilter("Derivative", "Gradient/Derivative",
 		"Computes the directional derivative for each image element.<br/>"
 		"The <em>order</em> of the derivative can be specified, as well as the desired <em>direction</em> (0=x, 1=y, 2=z).<br/>"
 		"For more information, see the "
@@ -171,7 +171,7 @@ void iAHigherOrderAccurateDerivative::performWork(QMap<QString, QVariant> const 
 IAFILTER_CREATE(iAHigherOrderAccurateDerivative)
 
 iAHigherOrderAccurateDerivative::iAHigherOrderAccurateDerivative() :
-	iAFilter("Higher Order Accurate Derivative", "Gradients",
+	iAFilter("Higher Order Accurate Derivative", "Gradient/Derivative",
 		"Computes the higher order accurate directional derivative of an image.<br/>"
 		"The <em>order</em> of the derivative can be specified, as well as the desired <em>direction</em> (0=x, 1=y, 2=z)."
 		"The approximation will be accurate to two times the <em>Order of Accuracy</em> in terms of Taylor series terms.<br/>"
