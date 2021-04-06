@@ -490,19 +490,15 @@ iAMaskIntensityFilter::iAMaskIntensityFilter() :
 template<class T>
 void histomatch(iAFilter* filter, QMap<QString, QVariant> const & parameters)
 {
-	typedef itk::Image< T, DIM > ImageType;
-	typedef double InternalPixelType;
-	typedef itk::Image< InternalPixelType, DIM > InternalImageType;
-	typedef itk::CastImageFilter< ImageType, InternalImageType > CasterType;
-	typedef itk::HistogramMatchingImageFilter<InternalImageType, InternalImageType > MatchingFilterType;
+	using MatchPixelType = double;
+	using MatchImageType = itk::Image<MatchPixelType, DIM>;
+	using HistoMatchFilterType = itk::HistogramMatchingImageFilter<MatchImageType, MatchImageType>;
 
-	auto fixedImageCaster = CasterType::New();
-	auto movingImageCaster = CasterType::New();
-	fixedImageCaster->SetInput( dynamic_cast< ImageType * >( filter->input()[0]->itkImage() ) );
-	movingImageCaster->SetInput( dynamic_cast< ImageType * >( filter->input()[1]->itkImage() ) );
-	auto matcher = MatchingFilterType::New();
-	matcher->SetInput( movingImageCaster->GetOutput() );
-	matcher->SetReferenceImage( fixedImageCaster->GetOutput() );
+	auto matcher = HistoMatchFilterType::New();
+	auto inImg  = castImageTo<MatchPixelType>(filter->input()[0]->itkImage());
+	auto refImg = castImageTo<MatchPixelType>(filter->input()[1]->itkImage());
+	matcher->SetInput(dynamic_cast<MatchImageType*>(inImg.GetPointer()));
+	matcher->SetReferenceImage(dynamic_cast<MatchImageType*>(refImg.GetPointer()));
 	matcher->SetNumberOfHistogramLevels(parameters["Number of histogram levels"].toUInt() );
 	matcher->SetNumberOfMatchPoints(parameters["Number of match points"].toUInt());
 	if (parameters["Threshold at mean intensity"].toBool())
