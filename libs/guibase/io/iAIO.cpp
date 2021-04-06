@@ -275,7 +275,6 @@ void iAIO::init(QWidget *par)
 	m_fileName = "";
 	m_fileNameArray = vtkStringArray::New();
 	m_ioID = 0;
-	iAJobListView::get()->addJob("Loading file(s)", ProgressObserver(), this);
 	loadIOSettings();
 }
 
@@ -794,6 +793,7 @@ bool iAIO::setupIO( iAIOType type, QString f, bool c, int channel)
 
 	m_fileDir = QFileInfo(f).absoluteDir();
 
+	iAJobListView::get()->addJob(QString("%1 file(s)").arg((m_ioID >= MHD_WRITER) ? "Writing":"Reading"), ProgressObserver(), this);
 	// TODO: hook for plugins!
 	switch (m_ioID)
 	{
@@ -810,7 +810,9 @@ bool iAIO::setupIO( iAIOType type, QString f, bool c, int channel)
 			[[fallthrough]];
 #endif
 		case STL_READER:
-			m_fileName = f; m_compression = c; break;
+#if __cplusplus >= 201703L
+			[[fallthrough]];
+#endif
 		case VTK_READER:
 			m_fileName = f; m_compression = c; break;
 		case RAW_READER:
