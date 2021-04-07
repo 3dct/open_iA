@@ -439,7 +439,7 @@ double iAVROctree::calculateDistanceOctCenterToFiber()
 
 //! Calculates which cubes a ray would traverse in x, y, z direction in an straight line
 //! The corresponding vector consists of an vector for each projection on an plane (x,y,z) and each grid cell.
-//! The start grid cells depend on the origin Point of the Plane drawn in iAVRMetrics.
+//! The start grid cells depend on the origin Point of the Plane drawn in iAVROctreeMetrics.
 //! For each cell a list of all traversed cubes is stored. Attention: In case a cube could not be splitted in later octree levels 
 //! the list will contain this region multiple times.
 void iAVROctree::calculateRayThroughCubeRow()

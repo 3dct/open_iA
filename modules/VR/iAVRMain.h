@@ -22,7 +22,7 @@
 
 #include "vtkSmartPointer.h"
 #include "iAVREnvironment.h"
-#include "iAVRMetrics.h"
+#include "iAVROctreeMetrics.h"
 #include "iAVR3DText.h"
 #include "iAVRColorLegend.h"
 #include "iAVRMip.h"
@@ -104,7 +104,7 @@ private:
 	iAVRColorLegend* m_MiMColorLegend;
 	iAVRMip* m_MiMMip;
 	iACsvIO m_io;
-	iAVRMetrics* fiberMetrics;
+	iAVROctreeMetrics* fiberMetrics;
 	iAVRDistributionVis* m_distributionVis;
 	int currentFeature;
 	int currentMiMDisplacementType;

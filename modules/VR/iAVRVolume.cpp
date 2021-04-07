@@ -22,7 +22,7 @@
 
 #include <iALog.h>
 #include <iA3DCylinderObjectVis.h>
-#include <iAVRMetrics.h>
+#include <iAVROctreeMetrics.h>
 
 #include <vtkVariantArray.h>
 #include <vtkFloatArray.h>
@@ -375,7 +375,7 @@ void iAVRVolume::createRegionLinks(std::vector<std::vector<std::vector<double>>>
 				l->GetPointIds()->SetId(1, pointID+1);
 				lines->InsertNextCell(l);
 
-				double lineThicknessLog = iAVRMetrics::histogramNormalizationExpo(radius, minRadius, maxRadius, 0.0, 1.0);
+				double lineThicknessLog = iAVROctreeMetrics::histogramNormalizationExpo(radius, minRadius, maxRadius, 0.0, 1.0);
 				tubeRadius->InsertNextTuple1(lineThicknessLog);
 				tubeRadius->InsertNextTuple1(lineThicknessLog);
 
@@ -445,7 +445,7 @@ void iAVRVolume::createRegionNodes(double maxFibersInRegions, double worldSize)
 		double rgb[3] = { 0,0,0 };
 		if(fibersInRegion > 0)
 		{
-			sizeLog = iAVRMetrics::histogramNormalizationExpo(fibersInRegion, min, max, 1, maxFibersInRegions);
+			sizeLog = iAVROctreeMetrics::histogramNormalizationExpo(fibersInRegion, min, max, 1, maxFibersInRegions);
 			m_lut->GetColor(sizeLog, rgb);
 		}
 		nodeGlyphScales->InsertNextTuple3(sizeLog, sizeLog, sizeLog);

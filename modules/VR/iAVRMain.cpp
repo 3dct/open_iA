@@ -87,7 +87,7 @@ iAVRMain::iAVRMain(iAVREnvironment* vrEnv, iAVRInteractorStyle* style, vtkTable*
 
 	//Initialize Metrics class
 	currentFeature = 1;
-	fiberMetrics = new iAVRMetrics(m_vrEnv->renderer(), m_objectTable, m_io, m_octrees);
+	fiberMetrics = new iAVROctreeMetrics(m_objectTable, m_io, m_octrees);
 	//map for the coverage of each fiber in every octree level and region
 	m_fiberCoverage = new std::vector<std::vector<std::unordered_map<vtkIdType, double>*>>();
 

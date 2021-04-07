@@ -29,7 +29,7 @@
 
 #include "iACsvIO.h"
 #include "iAVR3DText.h"
-#include "iAVRMetrics.h"
+#include "iAVROctreeMetrics.h"
 
 #include <unordered_map>
 #include <QColor>
@@ -38,7 +38,7 @@
 class iAVRDistributionVis
 {
 public:
-	iAVRDistributionVis(vtkRenderer* ren, iAVRMetrics* fiberMetric, vtkTable* objectTable, iACsvIO io);
+	iAVRDistributionVis(vtkRenderer* ren, iAVROctreeMetrics* fiberMetric, vtkTable* objectTable, iACsvIO io);
 	void createVisualization(double* pos, double visSize, double offset, int level, std::vector<vtkIdType>* regions, std::vector<int>* featureList);
 	vtkSmartPointer<vtkAssembly> getVisAssembly();
 	void show();
@@ -66,7 +66,7 @@ private:
 	//Stores for an [axis] its title
 	std::vector<iAVR3DText>* m_axisTitleActor;
 	iACsvIO m_io;
-	iAVRMetrics* m_fiberMetric;
+	iAVROctreeMetrics* m_fiberMetric;
 	//Stores the [axis] polydata with the 3 points which create a X axis and the y axis
 	std::vector<vtkSmartPointer<vtkPolyData>>* m_axesPoly;
 	//Stores for every [axis] and [direction] (x,y) the polydata with 2 points for each mark on an axis

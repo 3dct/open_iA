@@ -47,7 +47,7 @@
 #include <vtkSphereSource.h>
 
 
-iAVRDistributionVis::iAVRDistributionVis(vtkRenderer* ren, iAVRMetrics* fiberMetric, vtkTable* objectTable, iACsvIO io) :m_renderer(ren), m_fiberMetric(fiberMetric), m_sphereActor(vtkSmartPointer<vtkActor>::New()), m_objectTable(objectTable), m_io(io)
+iAVRDistributionVis::iAVRDistributionVis(vtkRenderer* ren, iAVROctreeMetrics* fiberMetric, vtkTable* objectTable, iACsvIO io) :m_renderer(ren), m_fiberMetric(fiberMetric), m_sphereActor(vtkSmartPointer<vtkActor>::New()), m_objectTable(objectTable), m_io(io)
 {
 	initialize();
 }

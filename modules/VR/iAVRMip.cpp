@@ -31,7 +31,7 @@
 
 iAVRMip::iAVRMip(vtkRenderer* renderer, std::vector<iAVROctree*>* octrees, iAVRColorLegend* colorLegend) :m_renderer(renderer), m_octrees(octrees), m_colorLegend(colorLegend)
 {
-
+	mipPlanes = std::vector<vtkPolyData*>();
 }
 
 void iAVRMip::addColorLegend(iAVRColorLegend* colorLegend)
