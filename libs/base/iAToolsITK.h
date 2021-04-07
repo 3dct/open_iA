@@ -164,7 +164,8 @@ iAITKIO::ImagePointer internalCastImageTo(iAITKIO::ImagePointer img)
 	return cast->GetOutput();
 }
 
-template<typename T> struct iAITKTypeMapper { static const itk::ImageIOBase::IOComponentType ID = -1; };
+// mapping from pixel type to itk component type ID:
+template<typename T> struct iAITKTypeMapper { static const itk::ImageIOBase::IOComponentType ID = itk::ImageIOBase::UNKNOWNCOMPONENTTYPE; };
 //template <>                   class iAITKTypeMapper { int ID; };
 template<> struct iAITKTypeMapper<unsigned char>       { static const itk::ImageIOBase::IOComponentType ID = itk::ImageIOBase::UCHAR; };
 template<> struct iAITKTypeMapper<char>                { static const itk::ImageIOBase::IOComponentType ID = itk::ImageIOBase::CHAR; };
