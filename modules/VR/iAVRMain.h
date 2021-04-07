@@ -1,8 +1,8 @@
 /*************************************  open_iA  ************************************ *
 * **********   A tool for visual analysis and processing of 3D CT images   ********** *
 * *********************************************************************************** *
-* Copyright (C) 2016-2020  C. Heinzl, M. Reiter, A. Reh, W. Li, M. Arikan, Ar. &  Al. *
-*                          Amirkhanov, J. Weissenböck, B. Fröhler, M. Schiwarth       *
+* Copyright (C) 2016-2021  C. Heinzl, M. Reiter, A. Reh, W. Li, M. Arikan, Ar. &  Al. *
+*                 Amirkhanov, J. Weissenböck, B. Fröhler, M. Schiwarth, P. Weinberger *
 * *********************************************************************************** *
 * This program is free software: you can redistribute it and/or modify it under the   *
 * terms of the GNU General Public License as published by the Free Software           *
@@ -24,6 +24,8 @@
 #include "iAVREnvironment.h"
 #include "iAVRMetrics.h"
 #include "iAVR3DText.h"
+#include "iAVRColorLegend.h"
+#include "iAVRMip.h"
 #include "iAVRDistributionVis.h"
 #include "iAVRVolume.h"
 #include "iACsvIO.h"
@@ -72,6 +74,8 @@ class iAVRModelInMiniature;
 class iAVROctree; 
 class iAVRInteractorStyle;
 class iAVRSlider;
+class iAVRColorLegend;
+class iAVRMip;
 
 //!
 class iAVRMain
@@ -97,6 +101,8 @@ private:
 	bool m_networkGraphMode;
 	std::vector<iAVR3DText*>* m_3DTextLabels;
 	iAVRSlider* m_slider;
+	iAVRColorLegend* m_MiMColorLegend;
+	iAVRMip* m_MiMMip;
 	iACsvIO m_io;
 	iAVRMetrics* fiberMetrics;
 	iAVRDistributionVis* m_distributionVis;

@@ -1,8 +1,8 @@
 /*************************************  open_iA  ************************************ *
 * **********   A tool for visual analysis and processing of 3D CT images   ********** *
 * *********************************************************************************** *
-* Copyright (C) 2016-2020  C. Heinzl, M. Reiter, A. Reh, W. Li, M. Arikan, Ar. &  Al. *
-*                          Amirkhanov, J. Weissenböck, B. Fröhler, M. Schiwarth       *
+* Copyright (C) 2016-2021  C. Heinzl, M. Reiter, A. Reh, W. Li, M. Arikan, Ar. &  Al. *
+*                 Amirkhanov, J. Weissenböck, B. Fröhler, M. Schiwarth, P. Weinberger *
 * *********************************************************************************** *
 * This program is free software: you can redistribute it and/or modify it under the   *
 * terms of the GNU General Public License as published by the Free Software           *
@@ -61,22 +61,14 @@ class iAVRMetrics
 public:
 	iAVRMetrics(vtkRenderer* renderer, vtkTable* objectTable, iACsvIO io, std::vector<iAVROctree*>* octrees);
 	void setFiberCoverageData(std::vector<std::vector<std::unordered_map<vtkIdType, double>*>>* fiberCoverage);
-	std::vector<QColor>* getHeatmapColoring(int octreeLevel, int feature, int valueMapping);
+	std::vector<std::vector<std::vector<double>>>* getRegionAverage(int octreeLevel, int feature);
 	vtkSmartPointer<vtkLookupTable> getLut();
 	std::vector<std::vector<std::vector<vtkIdType>>>* getMaxCoverageFiberPerRegion();
-	void calculateColorBarLegend(double physicalScale);
-	void showColorBarLegend();
-	void hideColorBarLegend();
+	std::vector<double> getMinMaxFiberValues(int feature);
+	std::vector<double> getMinMaxAvgRegionValues(int octreeLevel, int feature);
 	int getNumberOfFeatures();
 	QString getFeatureName(int feature);
-	void moveColorBarLegend(double *pos);
-	void rotateColorBarLegend(double x, double y, double z);
-	void resizeColorBarLegend(double scale);
-	void setLegendTitle(QString title);
 	std::vector<std::vector<std::vector<double>>>* getWeightedJaccardIndex(int level);
-	void createMIPPanels(int octreeLevel, int feature);
-	void createSingleMIPPanel(int octreeLevel, int feature, int viewDir, double physicalScale);
-	void hideMIPPanels();
 	double getMaxNumberOfFibersInRegion(int level);
 	int getMaxNumberOfHistogramBins(int level);
 	HistogramParameters* getHistogram(int level, std::vector<int>* featureList, int region1, int region2);
@@ -90,7 +82,7 @@ private:
 	//Stores for the [octree level] in an [octree region] the fibers which have the max coverage (Every Fiber can only be in one region)
 	std::vector<std::vector<std::vector<vtkIdType>>>* m_maxCoverage;
 	//Stores for an [octree level] for choosen [feature] for every [octree region] the metric value
-	std::vector<std::vector<std::vector<double>>>* m_calculatedStatistic;
+	std::vector<std::vector<std::vector<double>>>* m_calculatedAverage;
 	//Stores the for a [feature] the [0] min and the [1] max value from the csv file
 	std::vector<std::vector<double>>* m_minMaxValues;
 	//Stores for the [octree level] in an [octree region] its Jaccard index to another [octree region]
@@ -122,7 +114,6 @@ private:
 	double initialTextOffset;
 
 	void calculateWeightedAverage(int octreeLevel, int feature);
-	vtkSmartPointer<vtkLookupTable> calculateLUT(double min, double max, int tableSize);
 	void storeMinMaxValues();
 	void calculateMaxCoverageFiberPerRegion();
 	void findBiggestCoverage(int level, int fiber);
@@ -130,7 +121,6 @@ private:
 	double calculateJaccardIndex(int level, int region1, int region2);
 	double calculateWeightedJaccardIndex(int level, int region1, int region2);
 	double calculateJaccardDistance(int level, int region1, int region2);
-	std::vector<QColor>* calculateMIPColoring(int direction, int level, int feature);
 	void calculateMaxNumberOfFibersInRegion();
 	void calculateBinWidth(int level, std::vector<int>* featureList, int region1, int region2, std::vector<std::vector<std::vector<double>>>* regionValues);
 	void calculateHistogramValues(int level, std::vector<int>* featureList, int region1, int region2);

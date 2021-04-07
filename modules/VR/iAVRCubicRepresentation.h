@@ -30,6 +30,7 @@
 #include <vtkUnsignedCharArray.h>
 
 #include "iAVROctree.h"
+#include "iAVRColorLegend.h"
 
 #include <QColor>
 #include <unordered_map>

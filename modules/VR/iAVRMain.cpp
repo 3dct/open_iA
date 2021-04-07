@@ -1,8 +1,8 @@
 /*************************************  open_iA  ************************************ *
 * **********   A tool for visual analysis and processing of 3D CT images   ********** *
 * *********************************************************************************** *
-* Copyright (C) 2016-2020  C. Heinzl, M. Reiter, A. Reh, W. Li, M. Arikan, Ar. &  Al. *
-*                          Amirkhanov, J. Weissenböck, B. Fröhler, M. Schiwarth       *
+* Copyright (C) 2016-2021  C. Heinzl, M. Reiter, A. Reh, W. Li, M. Arikan, Ar. &  Al. *
+*                 Amirkhanov, J. Weissenböck, B. Fröhler, M. Schiwarth, P. Weinberger *
 * *********************************************************************************** *
 * This program is free software: you can redistribute it and/or modify it under the   *
 * terms of the GNU General Public License as published by the Free Software           *
@@ -108,6 +108,12 @@ iAVRMain::iAVRMain(iAVREnvironment* vrEnv, iAVRInteractorStyle* style, vtkTable*
 	m_3DTextLabels->push_back(new iAVR3DText(m_vrEnv->renderer()));// [0] for Octree level change
 	m_3DTextLabels->push_back(new iAVR3DText(m_vrEnv->renderer()));// [1] for feature change
 	m_3DTextLabels->push_back(new iAVR3DText(m_vrEnv->renderer()));// [2] for Alerts
+
+	//Initialize ColorLegend
+	m_MiMColorLegend = new iAVRColorLegend(m_vrEnv->renderer());
+
+	//Initialize ColorLegend
+	m_MiMMip = new iAVRMip(m_vrEnv->renderer(), m_octrees, m_MiMColorLegend);
 
 	//Initialize Slider
 	m_slider = new iAVRSlider(m_vrEnv->renderer(), m_vrEnv->interactor());
@@ -338,7 +344,7 @@ void iAVRMain::onMove(vtkEventDataDevice3D * device, double movePosition[3], dou
 			{
 				if(m_MIPPanelsVisible)
 				{
-					fiberMetrics->createSingleMIPPanel(currentOctreeLevel, currentFeature, viewDirection, m_vrEnv->getInitialWorldScale());
+					m_MiMMip->createSingleMIPPanel(currentOctreeLevel, currentFeature, viewDirection, m_vrEnv->getInitialWorldScale(), fiberMetrics->getRegionAverage(currentOctreeLevel, currentFeature));
 				}
 			}
 		}
@@ -353,9 +359,10 @@ void iAVRMain::onMove(vtkEventDataDevice3D * device, double movePosition[3], dou
 			m_modelInMiniature->setPos(cPos[deviceID][0] - (initialScale * 0.08), cPos[deviceID][1] + (initialScale * 0.075), cPos[deviceID][2] - (initialScale * 0.085));
 
 			double colorLegendlcPos[3] = { cPos[deviceID][0] + (initialScale * 0.04), cPos[deviceID][1] - (initialScale * 0.2), cPos[deviceID][2]};
-			fiberMetrics->moveColorBarLegend(colorLegendlcPos);
-			fiberMetrics->setLegendTitle(QString(" %1 ").arg(fiberMetrics->getFeatureName(currentFeature)).toUtf8());
-			fiberMetrics->showColorBarLegend();
+
+			m_MiMColorLegend->moveColorBarLegend(colorLegendlcPos);
+			m_MiMColorLegend->setLegendTitle(QString(" %1 ").arg(fiberMetrics->getFeatureName(currentFeature)).toUtf8());
+			m_MiMColorLegend->showColorBarLegend();
 		}
 
 		double lcPos[3] = { cPos[deviceID][0], cPos[deviceID][1] - (initialScale * 0.03), cPos[deviceID][2]};
@@ -394,7 +401,7 @@ void iAVRMain::onZoom()
 	auto scaleDiff = (1.0 / calculateWorldScaleFactor());
 
 	m_modelInMiniature->setScale(scaleDiff, scaleDiff, scaleDiff);
-	fiberMetrics->resizeColorBarLegend(scaleDiff);
+	m_MiMColorLegend->resizeColorBarLegend(scaleDiff);
 }
 
 void iAVRMain::onRotate(double angle)
@@ -527,7 +534,7 @@ void iAVRMain::mapAllPointiDsAndCalculateFiberCoverage()
 		m_octrees->at(level)->getRegionsInLineOfRay();
 	}
 
-	LOG(lvlDebug, QString("Volume Data loaded and Intersection test finished"));
+	LOG(lvlInfo, QString("Volume Data loaded and Intersection test finished"));
 	m_iDMappingThreadRunning = false; //Thread ended
 }
 
@@ -899,11 +906,14 @@ void iAVRMain::generateOctrees(int maxLevel, int maxPointsPerRegion, vtkPolyData
 void iAVRMain::calculateMetrics()
 {
 
-	fiberMetrics->hideColorBarLegend();
-	fiberMetrics->hideMIPPanels();
+	m_MiMColorLegend->hideColorBarLegend();
+	m_MiMMip->hideMIPPanels();
 
-	std::vector<QColor>* rgba = fiberMetrics->getHeatmapColoring(currentOctreeLevel, currentFeature, 1);
-	fiberMetrics->calculateColorBarLegend(m_vrEnv->getInitialWorldScale());
+	// NEW //
+	auto minMax = fiberMetrics->getMinMaxAvgRegionValues(currentOctreeLevel, currentFeature);
+	m_MiMColorLegend->createLut(minMax.at(0), minMax.at(1), 1);
+	std::vector<QColor>* rgba = m_MiMColorLegend->getColors(currentOctreeLevel, currentFeature, fiberMetrics->getRegionAverage(currentOctreeLevel, currentFeature));
+	m_MiMColorLegend->calculateColorBarLegend(m_vrEnv->getInitialWorldScale());
 
 	if (modelInMiniatureActive) 
 	{
@@ -912,10 +922,10 @@ void iAVRMain::calculateMetrics()
 		QString text = QString("Feature: %1").arg(fiberMetrics->getFeatureName(currentFeature));
 		m_3DTextLabels->at(1)->create3DLabel(text);
 
-		fiberMetrics->setLegendTitle(QString(" %1 ").arg(fiberMetrics->getFeatureName(currentFeature)).toUtf8());
+		m_MiMColorLegend->setLegendTitle(QString(" %1 ").arg(fiberMetrics->getFeatureName(currentFeature)).toUtf8());
 
 		m_MIPPanelsVisible = true;
-		fiberMetrics->createSingleMIPPanel(currentOctreeLevel, currentFeature,viewDirection, m_vrEnv->getInitialWorldScale());
+		m_MiMMip->createSingleMIPPanel(currentOctreeLevel, currentFeature,viewDirection, m_vrEnv->getInitialWorldScale(), fiberMetrics->getRegionAverage(currentOctreeLevel, currentFeature));
 	}
 	
 }
@@ -923,8 +933,8 @@ void iAVRMain::calculateMetrics()
 void iAVRMain::colorMiMCubes(std::vector<vtkIdType>* regionIDs)
 {
 
-	std::vector<QColor>* rgba = fiberMetrics->getHeatmapColoring(currentOctreeLevel, currentFeature, 1);
-	fiberMetrics->calculateColorBarLegend(m_vrEnv->getInitialWorldScale());
+	std::vector<QColor>* rgba = m_MiMColorLegend->getColors(currentOctreeLevel, currentFeature, fiberMetrics->getRegionAverage(currentOctreeLevel, currentFeature));
+	m_MiMColorLegend->calculateColorBarLegend(m_vrEnv->getInitialWorldScale());
 	m_modelInMiniature->applyHeatmapColoring(rgba); //Reset Color
 	
 	for (int i = 0; i < regionIDs->size(); i++)
@@ -1123,8 +1133,8 @@ void iAVRMain::resetSelection()
 	m_volume->removeHighlightedGlyphs();
 	if(modelInMiniatureActive)
 	{
-		std::vector<QColor>* rgba = fiberMetrics->getHeatmapColoring(currentOctreeLevel, currentFeature, 1);
-		fiberMetrics->calculateColorBarLegend(m_vrEnv->getInitialWorldScale());
+		std::vector<QColor>* rgba = m_MiMColorLegend->getColors(currentOctreeLevel, currentFeature, fiberMetrics->getRegionAverage(currentOctreeLevel, currentFeature));
+		m_MiMColorLegend->calculateColorBarLegend(m_vrEnv->getInitialWorldScale());
 		m_modelInMiniature->applyHeatmapColoring(rgba); //Reset Color
 		m_volume->resetNodeColor();
 		m_modelInMiniature->removeHighlightedGlyphs();
@@ -1158,9 +1168,9 @@ void iAVRMain::spawnModelInMiniature(double eventPosition[3], bool hide)
 		updateModelInMiniatureData();
 		onZoom(); //reset to current zoom
 		m_modelInMiniature->show();
-
-		fiberMetrics->moveColorBarLegend(eventPosition);
-		fiberMetrics->showColorBarLegend();
+	
+		m_MiMColorLegend->moveColorBarLegend(eventPosition);
+		m_MiMColorLegend->showColorBarLegend();
 	}
 	else
 	{
@@ -1169,8 +1179,8 @@ void iAVRMain::spawnModelInMiniature(double eventPosition[3], bool hide)
 		m_modelInMiniature->hide();
 		m_modelInMiniature->removeHighlightedGlyphs();
 		m_volume->removeHighlightedGlyphs();
-		fiberMetrics->hideColorBarLegend();
-		fiberMetrics->hideMIPPanels();
+		m_MiMColorLegend->hideColorBarLegend();
+		m_MiMMip->hideMIPPanels();
 		m_slider->hide();
 	}
 }
@@ -1185,7 +1195,7 @@ void iAVRMain::pressLeftTouchpad()
 	if (modelInMiniatureActive && currentOctreeLevel > 0)
 	{
 		m_MIPPanelsVisible = false;
-		fiberMetrics->hideMIPPanels();
+		m_MiMMip->hideMIPPanels();
 
 
 		if (touchpadPos == iAVRTouchpadPosition::Up || touchpadPos == iAVRTouchpadPosition::Down)
