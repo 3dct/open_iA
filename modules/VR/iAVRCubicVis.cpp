@@ -18,7 +18,7 @@
 * Contact: FH OÖ Forschungs & Entwicklungs GmbH, Campus Wels, CT-Gruppe,              *
 *          Stelzhamerstraße 23, 4600 Wels / Austria, Email: c.heinzl@fh-wels.at       *
 * ************************************************************************************/
-#include "iAVRCubicRepresentation.h"
+#include "iAVRCubicVis.h"
 
 #include <iALog.h>
 
@@ -33,7 +33,7 @@
 #include "vtkCubeSource.h"
 #include "iAVR3DText.h"
 
-iAVRCubicRepresentation::iAVRCubicRepresentation(vtkRenderer* ren) :m_renderer(ren), m_actor(vtkSmartPointer<vtkActor>::New()), m_activeActor(vtkSmartPointer<vtkActor>::New())
+iAVRCubicVis::iAVRCubicVis(vtkRenderer* ren) :m_renderer(ren), m_actor(vtkSmartPointer<vtkActor>::New()), m_activeActor(vtkSmartPointer<vtkActor>::New())
 {
 	defaultColor = QColor(0, 0, 200, 255);
 
@@ -56,12 +56,12 @@ iAVRCubicRepresentation::iAVRCubicRepresentation(vtkRenderer* ren) :m_renderer(r
 	glyphScales->SetNumberOfComponents(3);
 }
 
-void iAVRCubicRepresentation::setOctree(iAVROctree* octree)
+void iAVRCubicVis::setOctree(iAVROctree* octree)
 {
 	m_octree = octree;
 }
 
-void iAVRCubicRepresentation::createCubeModel()
+void iAVRCubicVis::createCubeModel()
 {
 	//RESET TO DEFAULT VALUES
 	if (m_actor->GetUserMatrix() != NULL)
@@ -97,7 +97,7 @@ void iAVRCubicRepresentation::createCubeModel()
 	m_actor->GetProperty()->SetColor(defaultColor.redF(), defaultColor.greenF(), defaultColor.blueF());
 }
 
-void iAVRCubicRepresentation::show()
+void iAVRCubicVis::show()
 {
 	if (m_visible)
 	{
@@ -107,7 +107,7 @@ void iAVRCubicRepresentation::show()
 	m_visible = true;
 }
 
-void iAVRCubicRepresentation::hide()
+void iAVRCubicVis::hide()
 {
 	if (!m_visible)
 	{
@@ -117,23 +117,23 @@ void iAVRCubicRepresentation::hide()
 	m_visible = false;
 }
 
-void iAVRCubicRepresentation::setFiberCoverageData(std::vector<std::vector<std::unordered_map<vtkIdType, double>*>>* fiberCoverage)
+void iAVRCubicVis::setFiberCoverageData(std::vector<std::vector<std::unordered_map<vtkIdType, double>*>>* fiberCoverage)
 {
 	m_fiberCoverage = fiberCoverage;
 }
 
-vtkSmartPointer<vtkActor> iAVRCubicRepresentation::getActor()
+vtkSmartPointer<vtkActor> iAVRCubicVis::getActor()
 {
 	return m_actor;
 }
 
-vtkSmartPointer<vtkPolyData> iAVRCubicRepresentation::getDataSet()
+vtkSmartPointer<vtkPolyData> iAVRCubicVis::getDataSet()
 {
 	return m_cubePolyData;
 }
 
 //! This Method returns the closest cell of the Cube which gets intersected by a ray  
-vtkIdType iAVRCubicRepresentation::getClosestCellID(double pos[3], double eventOrientation[3])
+vtkIdType iAVRCubicVis::getClosestCellID(double pos[3], double eventOrientation[3])
 {
 	vtkSmartPointer<vtkCellPicker> cellPicker = vtkSmartPointer<vtkCellPicker>::New();
 	cellPicker->AddPickList(m_actor);
@@ -161,7 +161,7 @@ vtkIdType iAVRCubicRepresentation::getClosestCellID(double pos[3], double eventO
 
 //! Sets the color (rgba) of one cube in the Miniature Model. The other colors stay the same.
 //! The region ID of the octree is used
-void iAVRCubicRepresentation::setCubeColor(QColor col, int regionID)
+void iAVRCubicVis::setCubeColor(QColor col, int regionID)
 {
 	unsigned char rgb[4] = { col.red(), col.green(), col.blue(), col.alpha() };
 
@@ -172,7 +172,7 @@ void iAVRCubicRepresentation::setCubeColor(QColor col, int regionID)
 
 //! Colors the whole miniature model with the given vector of rgba values ( between 0.0 and 1.0)
 //! Resets the current color of all cubes with the new colors!
-void iAVRCubicRepresentation::applyHeatmapColoring(std::vector<QColor>* colorPerRegion)
+void iAVRCubicVis::applyHeatmapColoring(std::vector<QColor>* colorPerRegion)
 {
 	//Remove possible highlights
 	removeHighlightedGlyphs();
@@ -190,7 +190,7 @@ void iAVRCubicRepresentation::applyHeatmapColoring(std::vector<QColor>* colorPer
 }
 
 //! Creates colored border around the given Cubes. If no/empty color vector or too few colors are given the additional border are black
-void iAVRCubicRepresentation::highlightGlyphs(std::vector<vtkIdType>* regionIDs, std::vector<QColor>* colorPerRegion)
+void iAVRCubicVis::highlightGlyphs(std::vector<vtkIdType>* regionIDs, std::vector<QColor>* colorPerRegion)
 {
 	if (!regionIDs->empty())
 	{
@@ -258,7 +258,7 @@ void iAVRCubicRepresentation::highlightGlyphs(std::vector<vtkIdType>* regionIDs,
 	}
 }
 
-void iAVRCubicRepresentation::removeHighlightedGlyphs()
+void iAVRCubicVis::removeHighlightedGlyphs()
 {
 	if (!m_highlightVisible)
 	{
@@ -271,19 +271,19 @@ void iAVRCubicRepresentation::removeHighlightedGlyphs()
 }
 
 //! Redraw the borders of the last selection in black color
-void iAVRCubicRepresentation::redrawHighlightedGlyphs()
+void iAVRCubicVis::redrawHighlightedGlyphs()
 {
 	highlightGlyphs(&activeRegions, &activeColors);
 }
 
-double* iAVRCubicRepresentation::getDefaultActorSize()
+double* iAVRCubicVis::getDefaultActorSize()
 {
 	return defaultActorSize;
 }
 
 //! This Method iterates through all leaf regions of the octree and stores its center point in an vtkPolyData
 //! It also calculates the region size and adds the scalar array for it
-void iAVRCubicRepresentation::calculateStartPoints()
+void iAVRCubicVis::calculateStartPoints()
 {
 	int count = 0;
 	vtkSmartPointer<vtkPoints> cubeStartPoints = vtkSmartPointer<vtkPoints>::New();
@@ -324,7 +324,7 @@ void iAVRCubicRepresentation::calculateStartPoints()
 }
 
 //! Test method inserts colored point at given Position
-void iAVRCubicRepresentation::drawPoint(std::vector<double*>* pos, QColor color)
+void iAVRCubicVis::drawPoint(std::vector<double*>* pos, QColor color)
 {
 	vtkSmartPointer<vtkPoints> points = vtkSmartPointer<vtkPoints>::New();
 
@@ -351,7 +351,7 @@ void iAVRCubicRepresentation::drawPoint(std::vector<double*>* pos, QColor color)
 
 //! This Method calculates the direction from the center to its single cubes and shifts the cubes from the center away
 //! The original (vtkPoint) values are taken (not the actors visible getPosition() values)
-void iAVRCubicRepresentation::applyLinearCubeOffset(double offset)
+void iAVRCubicVis::applyLinearCubeOffset(double offset)
 {
 	if (m_cubePolyData == nullptr)
 	{
@@ -381,7 +381,7 @@ void iAVRCubicRepresentation::applyLinearCubeOffset(double offset)
 //! This Method calculates the direction from the center to its single cubes and shifts the cubes from the center away
 //! The shifts is scaled non-linear by the length from the center to the cube
 //! The original (vtkPoint) values are taken (not the actors visible getPosition() values)
-void iAVRCubicRepresentation::applyRelativeCubeOffset(double offset)
+void iAVRCubicVis::applyRelativeCubeOffset(double offset)
 {
 	if (m_cubePolyData == nullptr)
 	{
@@ -423,7 +423,7 @@ void iAVRCubicRepresentation::applyRelativeCubeOffset(double offset)
 //! This Method calculates a position depending shift of the cubes from the center outwards.
 //! The cubes are moved in its 4 direction from the center (left, right, up, down).
 //! The original (vtkPoint) values are taken (not the actors visible getPosition() values)
-void iAVRCubicRepresentation::apply4RegionCubeOffset(double offset)
+void iAVRCubicVis::apply4RegionCubeOffset(double offset)
 {
 	if (m_cubePolyData == nullptr)
 	{

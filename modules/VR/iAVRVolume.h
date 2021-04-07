@@ -20,7 +20,7 @@
 * ************************************************************************************/
 #pragma once
 
-#include "iAVRCubicRepresentation.h"
+#include "iAVRCubicVis.h"
 #include "iACsvIO.h"
 
 #include <vtkTable.h>
@@ -34,7 +34,7 @@
 class iA3DCylinderObjectVis;
 
 //! Class which represents the rendered volume
-class iAVRVolume: public iAVRCubicRepresentation
+class iAVRVolume: public iAVRCubicVis
 {
 public:
 	iAVRVolume(vtkRenderer* ren, vtkTable* objectTable, iACsvIO io);

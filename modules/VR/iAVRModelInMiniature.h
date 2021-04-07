@@ -20,7 +20,7 @@
 * ************************************************************************************/
 #pragma once
 
-#include "iAVRCubicRepresentation.h"
+#include "iAVRCubicVis.h"
 
 #include <vtkPoints.h>
 #include <vtkPolyData.h>
@@ -28,7 +28,7 @@
 #include <QColor>
 
 //! Class for the abstract 3D Model in Miniature visualization
-class iAVRModelInMiniature: public iAVRCubicRepresentation
+class iAVRModelInMiniature: public iAVRCubicVis
 {
 public:
 	iAVRModelInMiniature(vtkRenderer* ren);

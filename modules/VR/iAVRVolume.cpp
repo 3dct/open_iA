@@ -40,7 +40,7 @@
 #include <vtkCleanPolyData.h>
 #include <vtkCubeSource.h>
 
-iAVRVolume::iAVRVolume(vtkRenderer* ren, vtkTable* objectTable, iACsvIO io) :m_objectTable(objectTable), m_io(io), iAVRCubicRepresentation{ren}
+iAVRVolume::iAVRVolume(vtkRenderer* ren, vtkTable* objectTable, iACsvIO io) :m_objectTable(objectTable), m_io(io), iAVRCubicVis{ren}
 {
 	defaultColor = QColor(126, 0, 223, 255);
 	m_volumeActor = vtkSmartPointer<vtkActor>::New();
@@ -157,7 +157,7 @@ vtkSmartPointer<vtkPolyData> iAVRVolume::getVolumeData()
 
 void iAVRVolume::createCubeModel()
 {
-	iAVRCubicRepresentation::createCubeModel();
+	iAVRCubicVis::createCubeModel();
 
 	//m_actor->GetMapper()->SetScalarVisibility(false);
 	m_actor->GetMapper()->ScalarVisibilityOn();

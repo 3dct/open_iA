@@ -36,10 +36,10 @@
 #include <unordered_map>
 
 //! Base class for Objects which are represented through cubes (octree shape)
-class iAVRCubicRepresentation
+class iAVRCubicVis
 {
 public:
-	iAVRCubicRepresentation(vtkRenderer* ren);
+	iAVRCubicVis(vtkRenderer* ren);
 	void setOctree(iAVROctree* octree);
 	virtual void createCubeModel();
 	void show();

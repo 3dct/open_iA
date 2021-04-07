@@ -39,7 +39,7 @@
 #include <iAvec3.h>
 #include <math.h>
 
-iAVRModelInMiniature::iAVRModelInMiniature(vtkRenderer* ren):iAVRCubicRepresentation{ren}
+iAVRModelInMiniature::iAVRModelInMiniature(vtkRenderer* ren):iAVRCubicVis{ren}
 {
 	defaultActorSize[0] = 0.18;
 	defaultActorSize[1] = 0.18;
@@ -49,7 +49,7 @@ iAVRModelInMiniature::iAVRModelInMiniature(vtkRenderer* ren):iAVRCubicRepresenta
 //! Creates for every region of the octree a cube glyph. The cubes are stored in one actor.
 void iAVRModelInMiniature::createCubeModel()
 {
-	iAVRCubicRepresentation::createCubeModel();
+	iAVRCubicVis::createCubeModel();
 
 	applyRelativeCubeOffset(2.9);
 
