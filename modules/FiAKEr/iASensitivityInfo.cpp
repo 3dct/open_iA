@@ -1118,28 +1118,13 @@ void iASensitivityInfo::compute()
 		}
 		// TODO: save memory by not storing this?
 		// copy other half triangle:
-		m_resultDissimRanges.resize(measureCount);
-		for (int m = 0; m < measureCount; ++m)
-		{
-			m_resultDissimRanges[m].first = std::numeric_limits<double>::max();
-			m_resultDissimRanges[m].second = std::numeric_limits<double>::lowest();
-		}
 		for (int r1 = 1; r1 < resultCount && !m_aborted; ++r1)
 		{
 			for (int r2 = 0; r2 < r1; ++r2)
 			{
 				for (int m = 0; m < measureCount; ++m)
 				{
-					double dissim = m_resultDissimMatrix[r2][r1].avgDissim[m];
-					m_resultDissimMatrix[r1][r2].avgDissim[m] = dissim;
-					if (dissim < m_resultDissimRanges[m].first)
-					{
-						m_resultDissimRanges[m].first = dissim;
-					}
-					if (dissim > m_resultDissimRanges[m].second)
-					{
-						m_resultDissimRanges[m].second = dissim;
-					}
+					m_resultDissimMatrix[r1][r2].avgDissim[m] = m_resultDissimMatrix[r2][r1].avgDissim[m];
 				}
 			}
 		}
@@ -1149,15 +1134,46 @@ void iASensitivityInfo::compute()
 		}
 		writeDissimilarityMatrixCache(measures);
 	}
-
-	if (m_aborted)
-	{
-		return;
-	}
-
 	if (m_resultDissimMatrix.size() == 0)
 	{
 		LOG(lvlWarn, "Dissimilarity matrix not available!");
+		return;
+	}
+
+	m_resultDissimRanges.resize(m_resultDissimMeasures.size());
+	for (int m = 0; m < m_resultDissimRanges.size(); ++m)
+	{
+		m_resultDissimRanges[m].first = std::numeric_limits<double>::max();
+		m_resultDissimRanges[m].second = std::numeric_limits<double>::lowest();
+	}
+	for (int r1 = 1; r1 < m_data->result.size() && !m_aborted; ++r1)
+	{
+		for (int r2 = 0; r2 < r1; ++r2)
+		{
+			for (int m = 0; m < m_resultDissimRanges.size(); ++m)
+			{
+				double dissim = m_resultDissimMatrix[r2][r1].avgDissim[m];
+				if (dissim < m_resultDissimRanges[m].first)
+				{
+					m_resultDissimRanges[m].first = dissim;
+				}
+				if (dissim > m_resultDissimRanges[m].second)
+				{
+					m_resultDissimRanges[m].second = dissim;
+				}
+			}
+		}
+	}
+	for (int m = 0; m < m_resultDissimRanges.size(); ++m)
+	{
+		LOG(lvlDebug,
+			QString("m: %1; range: %2..%3")
+				.arg(m)
+				.arg(m_resultDissimRanges[m].first)
+				.arg(m_resultDissimRanges[m].second));
+	}
+	if (m_aborted)
+	{
 		return;
 	}
 
@@ -1661,8 +1677,8 @@ public:
 			m_mdsData->updateRanges();
 			//auto rng = m_mdsData->paramRange(m_mdsData->numParams() - SPDissimilarityOffset);
 			double rng[2];
-			rng[0] = dissimRanges.size() > 0 ? dissimRanges[measureIdx].first: 0;
-			rng[1] = dissimRanges.size() > 0 ? dissimRanges[measureIdx].second: 1;
+			rng[0] = dissimRanges.size() > 0 ? dissimRanges[measureIdx].first  : 0;
+			rng[1] = dissimRanges.size() > 0 ? dissimRanges[measureIdx].second : 1;
 			*m_lut.data() = iALUT::Build(rng, colorScaleName, 255, 0);
 			m_scatterPlot->setLookupTable(m_lut, m_mdsData->numParams() - SPDissimilarityOffset);
 		}
