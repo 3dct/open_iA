@@ -1592,7 +1592,7 @@ public:
 	iAAlgorithmInfo* m_algoInfo;
 
 	void updateScatterPlotLUT(int starGroupSize, int numOfSTARSteps, size_t resultCount, int numInputParams,
-		iADissimilarityMatrixType const & resultDissimMatrix, QVector<QPair<double, double> > dissimRanges,
+		iADissimilarityMatrixType const & resultDissimMatrix, QVector<QPair<double, double> > const & dissimRanges,
 		int measureIdx, QString const & colorScaleName)
 	{
 		//LOG(lvlDebug, "\nNEW LUT:");
@@ -1661,8 +1661,8 @@ public:
 			m_mdsData->updateRanges();
 			//auto rng = m_mdsData->paramRange(m_mdsData->numParams() - SPDissimilarityOffset);
 			double rng[2];
-			rng[0] = dissimRanges[measureIdx].first;
-			rng[1] = dissimRanges[measureIdx].second;
+			rng[0] = dissimRanges.size() > 0 ? dissimRanges[measureIdx].first: 0;
+			rng[1] = dissimRanges.size() > 0 ? dissimRanges[measureIdx].second: 1;
 			*m_lut.data() = iALUT::Build(rng, colorScaleName, 255, 0);
 			m_scatterPlot->setLookupTable(m_lut, m_mdsData->numParams() - SPDissimilarityOffset);
 		}
