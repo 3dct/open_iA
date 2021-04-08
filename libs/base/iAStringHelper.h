@@ -154,7 +154,7 @@ void valuesFromString(T& val, QString const & str, QString const & sep = " ")
 	if (list.size() >= Nval)
 	{
 		for (int j = 0; j < Nval; j++)
-		{
+		{	// TODO: check why we don't use iAConverter<TVal>::toT here!
 			val[j] = static_cast<TVal>(list.at(j).toDouble());
 		}
 	}
@@ -194,7 +194,7 @@ iAbase_API QString padOrTruncate(QString const & str, int size);
 iAbase_API QString stripHTML(QString const & html);
 
 //! returns the value converted to string, with units (K, M, G, T, P) applied for every 10³ factor over 1000
-iAbase_API QString dblToStringWithUnits(double value, double switchFactor = 1000);
+iAbase_API QString dblToStringWithUnits(double value, double switchFactor = 10);
 
 //! join any list as string - the conversion of the single items happens via the passed-in lambda
 //! FnType is something like a function taking an Element parameter and has a QString(-compatible)
