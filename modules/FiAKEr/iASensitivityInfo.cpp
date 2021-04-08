@@ -1563,7 +1563,7 @@ private:
 		// Draw color bar / name of parameter used for coloring
 		int colorBarTextX = topLeft.x() - (textWidth + ScalarBarPadding);
 		p.drawText(colorBarTextX, topLeft.y() + p.fontMetrics().height(), maxStr);
-		p.drawText(colorBarTextX, height() - (p.fontMetrics().height() + ScalarBarPadding), minStr);
+		p.drawText(colorBarTextX, height() - ScalarBarPadding, minStr);
 	}
 };
 
