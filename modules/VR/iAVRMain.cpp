@@ -90,6 +90,7 @@ iAVRMain::iAVRMain(iAVREnvironment* vrEnv, iAVRInteractorStyle* style, vtkTable*
 	fiberMetrics = new iAVROctreeMetrics(m_objectTable, m_io, m_octrees);
 	//map for the coverage of each fiber in every octree level and region
 	m_fiberCoverage = new std::vector<std::vector<std::unordered_map<vtkIdType, double>*>>();
+	histogramMetrics = new iAVRHistogramMetric(m_objectTable, m_io, m_octrees);
 
 	//Thread
 	//m_iDMappingThread = std::thread(&iAVRMain::mapAllPointiDs, this);
@@ -120,7 +121,7 @@ iAVRMain::iAVRMain(iAVREnvironment* vrEnv, iAVRInteractorStyle* style, vtkTable*
 
 	//Initialize Distribution Vis
 	m_networkGraphMode = false;
-	m_distributionVis = new iAVRDistributionVis(m_vrEnv->renderer(), fiberMetrics, m_objectTable, m_io);
+	m_distributionVis = new iAVRHistogramPairVis(m_vrEnv->renderer(),histogramMetrics, fiberMetrics, m_objectTable, m_io);
 
 	//Add Input Mapping
 	//Press, Touch
@@ -527,6 +528,7 @@ void iAVRMain::mapAllPointiDsAndCalculateFiberCoverage()
 	m_volume->setFiberCoverageData(m_fiberCoverage);
 	m_modelInMiniature->setFiberCoverageData(m_fiberCoverage);
 	fiberMetrics->setFiberCoverageData(m_fiberCoverage);
+	histogramMetrics->setFiberCoverageData(m_fiberCoverage);
 	fiberMetrics->getMaxCoverageFiberPerRegion();
 
 	for (int level = 1; level < m_octrees->size(); level++)
@@ -1228,9 +1230,9 @@ void iAVRMain::pressLeftTouchpad()
 				m_volume->moveFibersByMaxCoverage(fiberMetrics->getMaxCoverageFiberPerRegion(), offsetVol, false);
 				break;
 			case 2:
-				m_modelInMiniature->apply4RegionCubeOffset(offsetMiM);
-				m_volume->apply4RegionCubeOffset(offsetVol);
-				m_volume->moveFibersby4Regions(fiberMetrics->getMaxCoverageFiberPerRegion(), offsetVol);
+				m_modelInMiniature->apply8RegionCubeOffset(offsetMiM);
+				m_volume->apply8RegionCubeOffset(offsetVol);
+				m_volume->moveFibersby8Regions(fiberMetrics->getMaxCoverageFiberPerRegion(), offsetVol);
 				break;
 			}
 
@@ -1251,7 +1253,7 @@ void iAVRMain::pressLeftTouchpad()
 			}
 		}
 
-		if (m_networkGraphMode)	m_volume->createRegionLinks(fiberMetrics->getWeightedJaccardIndex(currentOctreeLevel), fiberMetrics->getMaxNumberOfFibersInRegion(currentOctreeLevel), initWorldScale);
+		if (m_networkGraphMode)	m_volume->createRegionLinks(fiberMetrics->getJaccardIndex(currentOctreeLevel), fiberMetrics->getMaxNumberOfFibersInRegion(currentOctreeLevel), initWorldScale);
 	}
 }
 
@@ -1300,7 +1302,7 @@ void iAVRMain::displayNodeLinkD()
 	{
 		m_volume->hide();
 		m_volume->hideVolume();
-		m_volume->createRegionLinks(fiberMetrics->getWeightedJaccardIndex(currentOctreeLevel), fiberMetrics->getMaxNumberOfFibersInRegion(currentOctreeLevel), m_vrEnv->getInitialWorldScale());
+		m_volume->createRegionLinks(fiberMetrics->getJaccardIndex(currentOctreeLevel), fiberMetrics->getMaxNumberOfFibersInRegion(currentOctreeLevel), m_vrEnv->getInitialWorldScale());
 		m_volume->showRegionLinks();
 
 		m_slider->createSlider(0.0, 1.0, QString("Jaccard Index").toUtf8());

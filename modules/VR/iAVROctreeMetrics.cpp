@@ -22,29 +22,8 @@
 
 #include <iALog.h>
 
-#include <vtkVariant.h>
-#include <vtkProperty2D.h>
-#include <vtkTextProperty.h>
-#include <vtkAssembly.h>
-#include <vtkPlaneSource.h>
-#include <vtkPolyDataMapper.h>
-#include <vtkProperty.h>
-#include <vtkCamera.h>
-#include <vtkRenderWindow.h>
-#include <vtkWindowToImageFilter.h>
-#include <vtkPlaneSource.h>
-#include <vtkCellData.h>
-#include <vtkBillboardTextActor3D.h>
-#include <vtkGlyph3D.h>
-#include <vtkDoubleArray.h>
-#include <vtkPointData.h>
-#include <vtkAppendPolyData.h>
-#include <vtkDataSetMapper.h>
-#include <vtkTransform.h>
-#include <vtkTransformPolyDataFilter.h>
-
 iAVROctreeMetrics::iAVROctreeMetrics(vtkTable* objectTable, iACsvIO io, std::vector<iAVROctree*>* octrees) : iAVRMetrics(objectTable, io,
-octrees)
+	octrees)
 {
 	//Initialize vectors
 	isAlreadyCalculated = new std::vector<std::vector<bool>>(m_octrees->size(), std::vector<bool>(numberOfFeatures, false));
@@ -55,9 +34,6 @@ octrees)
 	m_maxCoverage = new std::vector<std::vector<std::vector<vtkIdType>>>();
 	m_jaccardValues = new std::vector<std::vector<std::vector<double>>>(m_octrees->size());
 	m_maxNumberOffibersInRegions = new std::vector<double>();
-	m_currentHistogram = new std::vector<std::vector<int>>();
-	m_histogramParameter = new HistogramParameters();
-
 }
 
 //! Calculates the weighted average of every octree region for a given feature at a given octree level.
@@ -107,6 +83,7 @@ std::vector<std::vector<std::vector<double>>>* iAVROctreeMetrics::getRegionAvera
 	return m_calculatedAverage;
 }
 
+//! Returns the fiber with the maximum coverage of each region (in every octree level)
 std::vector<std::vector<std::vector<vtkIdType>>>* iAVROctreeMetrics::getMaxCoverageFiberPerRegion()
 {
 	if (m_maxCoverage->empty()) {
@@ -119,6 +96,8 @@ std::vector<std::vector<std::vector<vtkIdType>>>* iAVROctreeMetrics::getMaxCover
 	}
 }
 
+//! Returns the min and max average for all regions (in one octree level and feature)
+//! Vector stores min [0] and max [1] value of the given feature.
 std::vector<double> iAVROctreeMetrics::getMinMaxAvgRegionValues(int octreeLevel, int feature)
 {
 	std::vector<double> minMax = std::vector<double>(2);
@@ -129,11 +108,12 @@ std::vector<double> iAVROctreeMetrics::getMinMaxAvgRegionValues(int octreeLevel,
 	return minMax;
 }
 
-std::vector<std::vector<std::vector<double>>>* iAVROctreeMetrics::getWeightedJaccardIndex(int level)
+//! Returns the jaccard index of an octree level. Stores previously computed level.
+std::vector<std::vector<std::vector<double>>>* iAVROctreeMetrics::getJaccardIndex(int level)
 {
 	if (m_jaccardValues->at(level).empty())
 	{
-		calculateJaccardIndex(level, true);
+		calculateJaccardIndex(level);
 		return m_jaccardValues;
 	}
 	else
@@ -142,6 +122,7 @@ std::vector<std::vector<std::vector<double>>>* iAVROctreeMetrics::getWeightedJac
 	}
 }
 
+//! Returns amount of fibers for the region with the most fibers (of a given octree level)
 double iAVROctreeMetrics::getMaxNumberOfFibersInRegion(int level)
 {
 	if (m_maxNumberOffibersInRegions->empty())
@@ -150,34 +131,6 @@ double iAVROctreeMetrics::getMaxNumberOfFibersInRegion(int level)
 	}
 
 	return m_maxNumberOffibersInRegions->at(level);
-}
-
-//! Calculates the number of needed bins through Sturge's Rule
-int iAVROctreeMetrics::getMaxNumberOfHistogramBins(int level)
-{
-	double bins = 1 + 3.322 * log(getMaxNumberOfFibersInRegion(level));
-	return round(bins);
-}
-
-//! Returns all parameters of the histogram calculation of the two given regions
-//! If no feature are choosen (nullptr or empty) all avaiable features are calculated
-HistogramParameters* iAVROctreeMetrics::getHistogram(int level, std::vector<int>* featureList, int region1, int region2)
-{
-	//If no feature is choosen, calculate all
-	if (featureList == nullptr || featureList->empty())
-	{
-		featureList = new std::vector<int>();
-
-		for (int f = 0; f < numberOfFeatures; f++)
-		{
-			featureList->push_back(f);
-		}
-	}
-	m_histogramParameter->featureList = featureList;
-
-	calculateHistogramValues(level, featureList, region1, region2);
-
-	return m_histogramParameter;
 }
 
 //! Returns a vector which stores for each fiber its region with the strongest coverage fo every level
@@ -232,7 +185,8 @@ void iAVROctreeMetrics::findBiggestCoverage(int level, int fiber)
 	m_maxCoverage->at(level).at(regionWithMaxCoverage).push_back(fiber);
 }
 
-void iAVROctreeMetrics::calculateJaccardIndex(int level, bool weighted)
+//! Iterates through all permutations of region pairs and calculates the jaccard index (calls calculateJaccardIndex with two distinct regions)
+void iAVROctreeMetrics::calculateJaccardIndex(int level)
 {
 	for (int region = 0; region < m_fiberCoverage->at(level).size(); region++)
 	{
@@ -249,15 +203,7 @@ void iAVROctreeMetrics::calculateJaccardIndex(int level, bool weighted)
 		{
 			double index = 0;
 
-			if (weighted)
-			{
-				//index = calculateWeightedJaccardIndex(level, region, region2);
-				index = calculateJaccardIndex(level, region, region2);
-			}
-			else
-			{
-				index = calculateJaccardIndex(level, region, region2);
-			}
+			index = calculateJaccardIndex(level, region, region2);
 
 			m_jaccardValues->at(level).at(region).push_back(index);
 
@@ -355,6 +301,7 @@ double iAVROctreeMetrics::calculateJaccardDistance(int level, int region1, int r
 	return 1 - calculateJaccardIndex(level, region1, region2);
 }
 
+//! Iterates through all regions in all level and counts the amount of fibers. The maximum amount of fibers in a region (in a level) is stored.
 void iAVROctreeMetrics::calculateMaxNumberOfFibersInRegion()
 {
 	for (int level = 0; level < m_octrees->size(); level++)
@@ -368,93 +315,5 @@ void iAVROctreeMetrics::calculateMaxNumberOfFibersInRegion()
 			if (numberOfFibers < fibers) numberOfFibers = fibers;
 		}
 		m_maxNumberOffibersInRegions->push_back(numberOfFibers);
-	}
-}
-
-//! Calculates the histogramm bin width for two octree regions
-//! Calculates further for every feature for both regions their (region)values
-//! The values get stored in the HistogramParameters struct
-void iAVROctreeMetrics::calculateBinWidth(int level, std::vector<int>* featureList, int region1, int region2, std::vector<std::vector<std::vector<double>>>* regionValues)
-{
-	m_histogramParameter->bins = getMaxNumberOfHistogramBins(level);
-
-	auto fibersInRegion1 = m_fiberCoverage->at(level).at(region1);
-	auto fibersInRegion2 = m_fiberCoverage->at(level).at(region2);
-
-	m_histogramParameter->histogramWidth = std::vector<double>(featureList->size(), 0);
-	m_histogramParameter->minValue = std::vector<double>(featureList->size(), std::numeric_limits<double>::infinity());
-	m_histogramParameter->maxValue = std::vector<double>(featureList->size(), -1);
-
-	for (int i = 0; i < featureList->size(); i++)
-	{
-		int feature = featureList->at(i);
-
-		regionValues->push_back(std::vector<std::vector<double>>());
-
-		//Region1
-		regionValues->at(i).push_back(std::vector<double>());
-		for (auto fiber : *fibersInRegion1)
-		{
-			auto value = m_objectTable->GetValue(fiber.first, feature).ToFloat();
-			regionValues->at(i).at(0).push_back(value);
-
-			if (value > m_histogramParameter->maxValue[i]) m_histogramParameter->maxValue[i] = value;
-			if (value < m_histogramParameter->minValue[i]) m_histogramParameter->minValue[i] = value;
-		}
-
-		//Region2
-		regionValues->at(i).push_back(std::vector<double>());
-		for (auto fiber : *fibersInRegion2)
-		{
-			auto value = m_objectTable->GetValue(fiber.first, feature).ToFloat();
-			regionValues->at(i).at(1).push_back(value);
-
-			if (value > m_histogramParameter->maxValue[i]) m_histogramParameter->maxValue[i] = value;
-			if (value < m_histogramParameter->minValue[i]) m_histogramParameter->minValue[i] = value;
-		}
-		double binWidth = (m_histogramParameter->maxValue[i] - m_histogramParameter->minValue[i]) / m_histogramParameter->bins;
-		if (binWidth <= 0) binWidth = 0.0001; // If min, max is 0 -> binWidth is 0 which would yield division by 0
-		m_histogramParameter->histogramWidth[i] = binWidth;
-	}
-}
-
-//! Calculates how many values of each region end up in which bin.
-//! The ranges of the bin are calculated like this [min,min+barWidth[ ; [min+barWidth,min+barWidth*2[ ; ... ; [min+barWidth*n,min+barWidth*(n+1)]
-//! So the max value is in the last bin included (and only in the last)
-void iAVROctreeMetrics::calculateHistogramValues(int level, std::vector<int>* featureList, int region1, int region2)
-{
-	m_currentHistogram->clear();
-	//Stores for every [feature] for both [regions] its values
-	std::vector<std::vector<std::vector<double>>>* regionValues = new std::vector< std::vector<std::vector<double>>>();
-
-	calculateBinWidth(level, featureList, region1, region2, regionValues);
-
-	//Stores for every [feature] the occurency in every [bin]
-	std::vector<int> binsInRegion1 = std::vector<int>(m_histogramParameter->bins, 0);
-	std::vector<int> binsInRegion2 = std::vector<int>(m_histogramParameter->bins, 0);
-	m_histogramParameter->histogramRegion1 = std::vector<std::vector<int>>(featureList->size(), binsInRegion1);
-	m_histogramParameter->histogramRegion2 = std::vector<std::vector<int>>(featureList->size(), binsInRegion2);
-
-	//CHANGE TO NOT RUN FROM 0 TO SIZE BUT USE VALUES IN (!!) FEATURELIST !!!
-	for (int i = 0; i < featureList->size(); i++)
-	{
-		auto fibersInRegion1 = regionValues->at(i).at(0);
-		auto fibersInRegion2 = regionValues->at(i).at(1);
-
-		//Region1
-		for (auto fiberVal : fibersInRegion1)
-		{
-			int bin = (int)floor((fiberVal - m_histogramParameter->minValue[i]) / m_histogramParameter->histogramWidth[i]);
-			if (bin > m_histogramParameter->bins - 1) bin = bin - 1; // max value is in last bin included
-			m_histogramParameter->histogramRegion1.at(i).at(bin) += 1;
-		}
-
-		//Region2
-		for (auto fiberVal : fibersInRegion2)
-		{
-			int bin = (int)floor((fiberVal - m_histogramParameter->minValue[i]) / m_histogramParameter->histogramWidth[i]);
-			if (bin > m_histogramParameter->bins - 1) bin = bin - 1;
-			m_histogramParameter->histogramRegion2.at(i).at(bin) += 1;
-		}
 	}
 }

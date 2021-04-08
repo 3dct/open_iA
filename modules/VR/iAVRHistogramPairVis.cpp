@@ -18,7 +18,7 @@
 * Contact: FH OÖ Forschungs & Entwicklungs GmbH, Campus Wels, CT-Gruppe,              *
 *          Stelzhamerstraße 23, 4600 Wels / Austria, Email: c.heinzl@fh-wels.at       *
 * ************************************************************************************/
-#include "iAVRDistributionVis.h"
+#include "iAVRHistogramPairVis.h"
 
 #include <iALog.h>
 #include <iAvec3.h>
@@ -46,13 +46,12 @@
 #include <vtkTransformFilter.h>
 #include <vtkSphereSource.h>
 
-
-iAVRDistributionVis::iAVRDistributionVis(vtkRenderer* ren, iAVROctreeMetrics* fiberMetric, vtkTable* objectTable, iACsvIO io) :m_renderer(ren), m_fiberMetric(fiberMetric), m_sphereActor(vtkSmartPointer<vtkActor>::New()), m_objectTable(objectTable), m_io(io)
+iAVRHistogramPairVis::iAVRHistogramPairVis(vtkRenderer* ren, iAVRHistogramMetric* histogramMetric, iAVROctreeMetrics* octreeMetric, vtkTable* objectTable, iACsvIO io) :m_renderer(ren), m_histogramMetric(histogramMetric), m_octreeMetric(octreeMetric), m_sphereActor(vtkSmartPointer<vtkActor>::New()), m_objectTable(objectTable), m_io(io)
 {
 	initialize();
 }
 
-void iAVRDistributionVis::initialize()
+void iAVRHistogramPairVis::initialize()
 {
 	m_visible = false;
 	m_axesPoly = new std::vector<vtkSmartPointer<vtkPolyData>>();
@@ -83,11 +82,11 @@ void iAVRDistributionVis::initialize()
 	barColorR2 = QColor(208, 28, 139);
 }
 
-void iAVRDistributionVis::createVisualization(double* pos, double visSize, double offset, int level, std::vector<vtkIdType>* regions, std::vector<int>* featureList)
+void iAVRHistogramPairVis::createVisualization(double* pos, double visSize, double offset, int level, std::vector<vtkIdType>* regions, std::vector<int>* featureList)
 {
 	if (regions->size() < 2)
 	{
-		LOG(lvlDebug,"Too few regions selected!");
+		LOG(lvlDebug, "Too few regions selected!");
 		return;
 	}
 	//Clean Up and start fresh
@@ -103,7 +102,7 @@ void iAVRDistributionVis::createVisualization(double* pos, double visSize, doubl
 	m_centerOfVis[2] = pos[2];
 
 	m_radius = visSize + offset;
-	m_offsetFromCenter = offset + (m_radius/offset);
+	m_offsetFromCenter = offset + (m_radius / offset);
 
 	//LOG(lvlDebug,QString("m_radius = %1").arg(m_radius));
 	//LOG(lvlDebug,QString("m_offsetFromCenter = %1").arg(m_offsetFromCenter));
@@ -129,7 +128,7 @@ void iAVRDistributionVis::createVisualization(double* pos, double visSize, doubl
 	boundingSphere->SetCenter(m_centerOfVis);
 	boundingSphere->SetRadius(m_radius);
 
-	vtkSmartPointer<vtkPolyDataMapper> outlineMapper =	vtkSmartPointer<vtkPolyDataMapper>::New();
+	vtkSmartPointer<vtkPolyDataMapper> outlineMapper = vtkSmartPointer<vtkPolyDataMapper>::New();
 	outlineMapper->SetInputConnection(boundingSphere->GetOutputPort());
 	outlineActor->SetMapper(outlineMapper);
 	outlineActor->GetProperty()->SetOpacity(0.0001);
@@ -141,20 +140,20 @@ void iAVRDistributionVis::createVisualization(double* pos, double visSize, doubl
 	m_histogramBars->clear();
 
 	//Calculate Histogram Values and Bins
-	m_histogramParameter = m_fiberMetric->getHistogram(level, featureList, regions->at(0), regions->at(1));
+	m_histogramParameter = m_histogramMetric->getHistogram(level, m_octreeMetric->getMaxNumberOfFibersInRegion(level), featureList, regions->at(0), regions->at(1));
 	m_numberOfXBins = m_histogramParameter->bins;
 	m_numberOfYBins = ceil(m_histogramParameter->bins / 2);
-	
+
 	//Lenght of the axes with offset from center
 	m_axisLength = calculateAxisLength(pos, m_radius);
-	
+
 	//start from new centerPos
 	double newCenterPos[3]{};
 
 	for (int i = 0; i < featureList->size(); i++)
 	{
 		double posOnCircle[3]{};
-		calculateAxisPositionInCircle(i, featureList->size()-1, pos, m_radius, posOnCircle);
+		calculateAxisPositionInCircle(i, featureList->size() - 1, pos, m_radius, posOnCircle);
 		calculateCenterOffsetPos(pos, posOnCircle, newCenterPos);
 		calculateAxis(newCenterPos, posOnCircle);
 		createAxisMarks(i);
@@ -164,12 +163,12 @@ void iAVRDistributionVis::createVisualization(double* pos, double visSize, doubl
 	}
 }
 
-vtkSmartPointer<vtkAssembly> iAVRDistributionVis::getVisAssembly()
+vtkSmartPointer<vtkAssembly> iAVRHistogramPairVis::getVisAssembly()
 {
 	return visualizationActor;
 }
 
-void iAVRDistributionVis::show()
+void iAVRHistogramPairVis::show()
 {
 	if (m_visible)
 	{
@@ -182,7 +181,7 @@ void iAVRDistributionVis::show()
 	m_visible = true;
 }
 
-void iAVRDistributionVis::hide()
+void iAVRHistogramPairVis::hide()
 {
 	if (!m_visible)
 	{
@@ -208,7 +207,7 @@ void iAVRDistributionVis::hide()
 }
 
 //! Determine which histogram is currently viewed by comparing the focal point and the direction of the histogram (plane)
-void iAVRDistributionVis::determineHistogramInView(double* viewDir)
+void iAVRHistogramPairVis::determineHistogramInView(double* viewDir)
 {
 	if (m_visible)
 	{
@@ -237,7 +236,7 @@ void iAVRDistributionVis::determineHistogramInView(double* viewDir)
 }
 
 //! Rotates the whole Visualization (and its labels) around the y axis
-void iAVRDistributionVis::rotateVisualization(double y)
+void iAVRHistogramPairVis::rotateVisualization(double y)
 {
 	if (m_visible)
 	{
@@ -273,7 +272,6 @@ void iAVRDistributionVis::rotateVisualization(double y)
 			transformFilter->Update();
 			m_histogramBars->at(i) = transformFilter->GetOutput();
 
-
 			auto currentTitleLabel = m_axisTitleActor->at(i).getTextActor();
 			currentTitleLabel->SetPosition(transform->TransformPoint(currentTitleLabel->GetPosition()));
 			currentTitleLabel->Modified();
@@ -287,7 +285,6 @@ void iAVRDistributionVis::rotateVisualization(double y)
 					currentLabel->Modified();
 				}
 			}
-
 		}
 
 		drawAxes(m_axisInView);
@@ -296,7 +293,7 @@ void iAVRDistributionVis::rotateVisualization(double y)
 }
 
 //! Flips the histogram ordered in an half circle in the given direction
-void iAVRDistributionVis::flipThroughHistograms(double flipDir)
+void iAVRHistogramPairVis::flipThroughHistograms(double flipDir)
 {
 	int currentFlip = -1;
 	//left flip
@@ -306,20 +303,20 @@ void iAVRDistributionVis::flipThroughHistograms(double flipDir)
 	vtkSmartPointer<vtkTransform> transformFront = vtkSmartPointer<vtkTransform>::New();
 	transformFront->PostMultiply(); //this is the key line
 	transformFront->Translate(-m_centerOfVis[0], -m_centerOfVis[1], -m_centerOfVis[2]);
-	transformFront->RotateY(180 *flipDir);
+	transformFront->RotateY(180 * flipDir);
 	transformFront->Translate(m_centerOfVis[0], m_centerOfVis[1], m_centerOfVis[2]);
-	
+
 	vtkSmartPointer<vtkTransform> transform = vtkSmartPointer<vtkTransform>::New();
 	transform->PostMultiply(); //this is the key line
 	transform->Translate(-m_centerOfVis[0], -m_centerOfVis[1], -m_centerOfVis[2]);
-	transform->RotateY(vtkMath::DegreesFromRadians(axisAngle)*flipDir); 
+	transform->RotateY(vtkMath::DegreesFromRadians(axisAngle) * flipDir);
 	transform->Translate(m_centerOfVis[0], m_centerOfVis[1], m_centerOfVis[2]);
 
 	for (int i = 0; i < m_axesPoly->size(); i++)
 	{
 		vtkSmartPointer<vtkTransformPolyDataFilter> transformFilter = vtkSmartPointer<vtkTransformPolyDataFilter>::New();
 
-		if(i == m_frontAxes[currentFlip]) //The axis with 0 or 180 degree angle
+		if (i == m_frontAxes[currentFlip]) //The axis with 0 or 180 degree angle
 		{
 			m_AxesViewDir->at(i) = iAVec3d(transformFront->TransformPoint(m_AxesViewDir->at(i).data()));
 
@@ -343,7 +340,6 @@ void iAVRDistributionVis::flipThroughHistograms(double flipDir)
 			transformFilter->Update();
 			m_histogramBars->at(i) = transformFilter->GetOutput();
 
-
 			auto currentTitleLabel = m_axisTitleActor->at(i).getTextActor();
 			currentTitleLabel->SetPosition(transformFront->TransformPoint(currentTitleLabel->GetPosition()));
 			currentTitleLabel->Modified();
@@ -357,7 +353,6 @@ void iAVRDistributionVis::flipThroughHistograms(double flipDir)
 					currentLabel->Modified();
 				}
 			}
-			
 		}
 		else
 		{
@@ -398,7 +393,6 @@ void iAVRDistributionVis::flipThroughHistograms(double flipDir)
 				}
 			}
 		}
-
 	}
 
 	m_frontAxes[0] += flipDir;
@@ -414,12 +408,12 @@ void iAVRDistributionVis::flipThroughHistograms(double flipDir)
 	drawHistogram(m_axisInView);
 }
 
-double iAVRDistributionVis::getRadius()
+double iAVRHistogramPairVis::getRadius()
 {
 	return m_radius;
 }
 
-std::vector<QColor> iAVRDistributionVis::getBarColors()
+std::vector<QColor> iAVRHistogramPairVis::getBarColors()
 {
 	std::vector<QColor> barCol = std::vector<QColor>();
 	barCol.push_back(barColorR1);
@@ -429,7 +423,7 @@ std::vector<QColor> iAVRDistributionVis::getBarColors()
 }
 
 //! Adds all actors (active and inactive) into one Assembly with the sphere as root
-void iAVRDistributionVis::mergeActors()
+void iAVRHistogramPairVis::mergeActors()
 {
 	visualizationActor->AddPart(m_sphereActor);
 	visualizationActor->AddPart(outlineActor);
@@ -442,7 +436,7 @@ void iAVRDistributionVis::mergeActors()
 
 //! Show the axis marks depending on the view direction
 //! Hide the last shown axis marks
-void iAVRDistributionVis::showHistogramInView()
+void iAVRHistogramPairVis::showHistogramInView()
 {
 	if (m_axisInView != -1 && m_axisInView != currentlyShownAxis)
 	{
@@ -473,14 +467,13 @@ void iAVRDistributionVis::showHistogramInView()
 		}
 
 		visualizationActor->Modified();
-
 	}
 	currentlyShownAxis = m_axisInView;
 }
 
 //! Calculates the point on the half circle for a specific Axis.
 //! The half circle with the given radius and centerPos gets equally divided and the position is return in pointOnCircle
-void iAVRDistributionVis::calculateAxisPositionInCircle(int axis, int numberOfAxes, double centerPos[3], double radius, double pointOnCircle[3])
+void iAVRHistogramPairVis::calculateAxisPositionInCircle(int axis, int numberOfAxes, double centerPos[3], double radius, double pointOnCircle[3])
 {
 	//axisAngle = (2.0 * vtkMath::Pi()) / double(numberOfAxes); // 360° = 2*PI
 	axisAngle = (vtkMath::Pi()) / double(numberOfAxes); // 180° = PI
@@ -492,7 +485,7 @@ void iAVRDistributionVis::calculateAxisPositionInCircle(int axis, int numberOfAx
 }
 
 //! Appends all Axes and its Marks to an active and an inactive Actor which can then be rendered (depends on focal point)
-void iAVRDistributionVis::drawAxes(int visibleAxis)
+void iAVRHistogramPairVis::drawAxes(int visibleAxis)
 {
 	if (visibleAxis != -1)
 	{
@@ -540,7 +533,7 @@ void iAVRDistributionVis::drawAxes(int visibleAxis)
 	}
 }
 
-void iAVRDistributionVis::drawHistogram(int visibleAxis)
+void iAVRHistogramPairVis::drawHistogram(int visibleAxis)
 {
 	if (visibleAxis != -1)
 	{
@@ -557,7 +550,6 @@ void iAVRDistributionVis::drawHistogram(int visibleAxis)
 			{
 				appendInactiveFilter->AddInputData(m_histogramBars->at(axis));
 			}
-
 		}
 
 		appendActiveFilter->Update();
@@ -587,7 +579,7 @@ void iAVRDistributionVis::drawHistogram(int visibleAxis)
 	}
 }
 
-void iAVRDistributionVis::createHistogramMapper(vtkSmartPointer<vtkGlyph3DMapper> glyphMapper)
+void iAVRHistogramPairVis::createHistogramMapper(vtkSmartPointer<vtkGlyph3DMapper> glyphMapper)
 {
 	vtkSmartPointer<vtkCubeSource> cubeSource = vtkSmartPointer<vtkCubeSource>::New();
 	cubeSource->SetXLength(1);
@@ -602,7 +594,7 @@ void iAVRDistributionVis::createHistogramMapper(vtkSmartPointer<vtkGlyph3DMapper
 	glyphMapper->SetOrientationModeToRotation();
 }
 
-void iAVRDistributionVis::calculateHistogram(int axis)
+void iAVRHistogramPairVis::calculateHistogram(int axis)
 {
 	vtkSmartPointer<vtkPoints> barPoints = vtkSmartPointer<vtkPoints>::New();
 	vtkSmartPointer<vtkPolyData> bars = vtkSmartPointer<vtkPolyData>::New();
@@ -627,7 +619,7 @@ void iAVRDistributionVis::calculateHistogram(int axis)
 	direction = iAVec3d(m_axesPoly->at(axis)->GetPoint(1)) - iAVec3d(m_axesPoly->at(axis)->GetPoint(0));
 	direction.normalize();
 	//iAVec3d cubeHalfSize = iAVec3d(cubeSize[0] / 2.0 ,cubeSize[1] / 2.0 ,cubeSize[2] / 2.0);
-	direction = direction * (cubeXZSize/2.0);
+	direction = direction * (cubeXZSize / 2.0);
 
 	int binCount = 0;
 	for (vtkIdType point = 0; point < m_axesMarksPoly->at(axis).at(0)->GetNumberOfPoints(); point += 2)
@@ -667,7 +659,7 @@ void iAVRDistributionVis::calculateHistogram(int axis)
 //! Calculates the 3 Points and their two lines which create a X and Y Axis and saves thm in a vector
 //! pos1 defines the start of the line, pos2 the end. The Y Axis starts at po2 and extends in the y direction in the size of the radius
 //! Stores the 3 points in an Vector
-void iAVRDistributionVis::calculateAxis(double pos1[3], double pos2[3])
+void iAVRHistogramPairVis::calculateAxis(double pos1[3], double pos2[3])
 {
 	m_axesPoly->push_back(vtkSmartPointer<vtkPolyData>::New());
 	vtkSmartPointer<vtkPoints> axesPoints = vtkSmartPointer<vtkPoints>::New();
@@ -693,7 +685,7 @@ void iAVRDistributionVis::calculateAxis(double pos1[3], double pos2[3])
 }
 
 //! Calculates and stores the new center position of an axes by adding an offset
-void iAVRDistributionVis::calculateCenterOffsetPos(double pos1[3], double pos2[3], double newPos[3])
+void iAVRHistogramPairVis::calculateCenterOffsetPos(double pos1[3], double pos2[3], double newPos[3])
 {
 	double direction[3]{};
 	vtkMath::Subtract(pos2, pos1, direction);
@@ -708,7 +700,7 @@ void iAVRDistributionVis::calculateCenterOffsetPos(double pos1[3], double pos2[3
 }
 
 //! Calculates the lenght between the startPoint (with offset) to the second point on the circle
-double iAVRDistributionVis::calculateAxisLength(double pos1[3], double radius)
+double iAVRHistogramPairVis::calculateAxisLength(double pos1[3], double radius)
 {
 	double pos2[3]{};
 	calculateAxisPositionInCircle(0, 1, pos1, radius, pos2); // axis and number of Axes are not important as we just want any point on the circle
@@ -726,7 +718,7 @@ double iAVRDistributionVis::calculateAxisLength(double pos1[3], double radius)
 //! Creates as many Marks on the axis as defined by m_numberOfXBins and m_numberOfYBins
 //! Y Range has m_numberOfYBins without the zero mark
 //! The Marks have 2% of the length of the axis
-void iAVRDistributionVis::createAxisMarks(int axis)
+void iAVRHistogramPairVis::createAxisMarks(int axis)
 {
 	m_axesMarksPoly->push_back(std::vector<vtkSmartPointer<vtkPolyData>>());
 
@@ -784,7 +776,7 @@ void iAVRDistributionVis::createAxisMarks(int axis)
 	//double markLengthY = rangeY * 0.02;
 	pointID = 0;
 
-	//Because Y Range starts at 0 we have +1 step in Y 
+	//Because Y Range starts at 0 we have +1 step in Y
 	int numberOfDrawnYBins = m_numberOfYBins + 1;
 
 	for (int y = 0; y < numberOfDrawnYBins; y++)
@@ -814,7 +806,7 @@ void iAVRDistributionVis::createAxisMarks(int axis)
 	m_axesMarksPoly->at(axis).push_back(markPoly);
 }
 
-void iAVRDistributionVis::createAxisLabels(int axis)
+void iAVRHistogramPairVis::createAxisLabels(int axis)
 {
 	m_axisTitleActor->push_back(iAVR3DText(m_renderer));
 	m_axisLabelActor->push_back(std::vector<std::vector<iAVR3DText>>());
@@ -863,15 +855,15 @@ void iAVRDistributionVis::createAxisLabels(int axis)
 	double titlePos[3]{};
 	auto height = m_axesMarksPoly->at(axis).at(1)->GetPoint(m_axesMarksPoly->at(axis).at(1)->GetNumberOfPoints() - 1)[1];
 
-	titlePos[0] = m_axesMarksPoly->at(axis).at(0)->GetPoint(m_axesMarksPoly->at(axis).at(0)->GetNumberOfPoints()/2)[0];
+	titlePos[0] = m_axesMarksPoly->at(axis).at(0)->GetPoint(m_axesMarksPoly->at(axis).at(0)->GetNumberOfPoints() / 2)[0];
 	titlePos[1] = height + (0.05 * height);
 	titlePos[2] = m_axesMarksPoly->at(axis).at(0)->GetPoint(m_axesMarksPoly->at(axis).at(0)->GetNumberOfPoints() / 2)[2];
-	m_axisTitleActor->at(axis).create3DLabel(QString("%1").arg(m_fiberMetric->getFeatureName(m_histogramParameter->featureList->at(axis))));
+	m_axisTitleActor->at(axis).create3DLabel(QString("%1").arg(m_histogramMetric->getFeatureName(m_histogramParameter->featureList->at(axis))));
 	m_axisTitleActor->at(axis).setLabelPos(titlePos);
 }
 
 //! Calculates with the 3 points of the two axes, the middle point of the plane which they create
-void iAVRDistributionVis::calculateAxesViewPoint(int axis)
+void iAVRHistogramPairVis::calculateAxesViewPoint(int axis)
 {
 	//Calc middle point of plane
 	iAVec3d pos1 = iAVec3d(m_axesPoly->at(axis)->GetPoint(0));
@@ -884,7 +876,7 @@ void iAVRDistributionVis::calculateAxesViewPoint(int axis)
 	m_AxesViewDir->insert(std::make_pair(axis, middlePoint));
 }
 
-void iAVRDistributionVis::calculateBarsWithCubes(double* markPos, double* cubeSize, int stackSize, vtkPoints* barPoints, vtkUnsignedCharArray* colorArray, QColor barColor)
+void iAVRHistogramPairVis::calculateBarsWithCubes(double* markPos, double* cubeSize, int stackSize, vtkPoints* barPoints, vtkUnsignedCharArray* colorArray, QColor barColor)
 {
 	//At least one cube (occurrence)
 	if (stackSize > 0)
@@ -907,12 +899,12 @@ void iAVRDistributionVis::calculateBarsWithCubes(double* markPos, double* cubeSi
 
 //! Calculates the cube (x,z) size based on the axis length and number of x bins
 //! X and Z are the same
-double iAVRDistributionVis::getXZCubeSize()
+double iAVRHistogramPairVis::getXZCubeSize()
 {
 	return (m_axisLength / m_numberOfXBins) / 2.2;
 }
 
-int iAVRDistributionVis::getMaxBinOccurrences(int axis)
+int iAVRHistogramPairVis::getMaxBinOccurrences(int axis)
 {
 	auto r1 = std::max_element(m_histogramParameter->histogramRegion1.at(axis).begin(), m_histogramParameter->histogramRegion1.at(axis).end());
 	auto r2 = std::max_element(m_histogramParameter->histogramRegion2.at(axis).begin(), m_histogramParameter->histogramRegion2.at(axis).end());
@@ -922,7 +914,7 @@ int iAVRDistributionVis::getMaxBinOccurrences(int axis)
 }
 
 //! Calculates the smallest y size by dividing the y axis length by the max occurences of that feature
-double iAVRDistributionVis::getMinYCubeSize(int axis)
+double iAVRHistogramPairVis::getMinYCubeSize(int axis)
 {
 	double ySize = (m_axisLength / (double)getMaxBinOccurrences(axis));
 	return ySize;
@@ -930,7 +922,7 @@ double iAVRDistributionVis::getMinYCubeSize(int axis)
 
 //! Calculates the shifted coordinates based on the vector between two points
 //! The point p2 is shifted in the direction of p1
-iAVec3d iAVRDistributionVis::applyShiftToVector(double point1[3], double point2[3], double shift[3])
+iAVec3d iAVRHistogramPairVis::applyShiftToVector(double point1[3], double point2[3], double shift[3])
 {
 	iAVec3d p1 = iAVec3d(point1);
 	iAVec3d p2 = iAVec3d(point2);

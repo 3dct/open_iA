@@ -23,10 +23,11 @@
 #include "vtkSmartPointer.h"
 #include "iAVREnvironment.h"
 #include "iAVROctreeMetrics.h"
+#include "iAVRHistogramMetric.h"
 #include "iAVR3DText.h"
 #include "iAVRColorLegend.h"
 #include "iAVRMip.h"
-#include "iAVRDistributionVis.h"
+#include "iAVRHistogramPairVis.h"
 #include "iAVRVolume.h"
 #include "iACsvIO.h"
 
@@ -105,7 +106,8 @@ private:
 	iAVRMip* m_MiMMip;
 	iACsvIO m_io;
 	iAVROctreeMetrics* fiberMetrics;
-	iAVRDistributionVis* m_distributionVis;
+	iAVRHistogramMetric* histogramMetrics;
+	iAVRHistogramPairVis* m_distributionVis;
 	int currentFeature;
 	int currentMiMDisplacementType;
 	std::vector<vtkIdType>* multiPickIDs;

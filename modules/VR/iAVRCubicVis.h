@@ -56,10 +56,9 @@ public:
 	double* getDefaultActorSize();
 	void applyLinearCubeOffset(double offset);
 	void applyRelativeCubeOffset(double offset);
-	void apply4RegionCubeOffset(double offset);
+	void apply8RegionCubeOffset(double offset);
 
 private:
-	
 
 protected:
 	vtkSmartPointer<vtkRenderer> m_renderer;

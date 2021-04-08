@@ -28,7 +28,7 @@
 #include <QColor>
 
 //! Class for the abstract 3D Model in Miniature visualization
-class iAVRModelInMiniature: public iAVRCubicVis
+class iAVRModelInMiniature : public iAVRCubicVis
 {
 public:
 	iAVRModelInMiniature(vtkRenderer* ren);
@@ -39,5 +39,4 @@ public:
 	void setOrientation(double x, double y, double z);
 
 private:
-
 };

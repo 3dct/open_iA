@@ -61,6 +61,7 @@ void iAVRCubicVis::setOctree(iAVROctree* octree)
 	m_octree = octree;
 }
 
+//! This method sets up the cubic representation of given points. The calculated points (from the octree) are displayed as glyphs (cubes) and saved in an actor.
 void iAVRCubicVis::createCubeModel()
 {
 	//RESET TO DEFAULT VALUES
@@ -75,7 +76,7 @@ void iAVRCubicVis::createCubeModel()
 	int leafNodes = m_octree->getOctree()->GetNumberOfLeafNodes();
 	if (leafNodes <= 0)
 	{
-		LOG(lvlDebug,QString("The Octree has no leaf nodes!"));
+		LOG(lvlDebug, QString("The Octree has no leaf nodes!"));
 		return;
 	}
 
@@ -97,6 +98,7 @@ void iAVRCubicVis::createCubeModel()
 	m_actor->GetProperty()->SetColor(defaultColor.redF(), defaultColor.greenF(), defaultColor.blueF());
 }
 
+//! Displays the cubes
 void iAVRCubicVis::show()
 {
 	if (m_visible)
@@ -107,6 +109,7 @@ void iAVRCubicVis::show()
 	m_visible = true;
 }
 
+//! Hides the cubes
 void iAVRCubicVis::hide()
 {
 	if (!m_visible)
@@ -117,22 +120,25 @@ void iAVRCubicVis::hide()
 	m_visible = false;
 }
 
+//! Sets the fiber coverage data, which is a vector for every octree level and each region, in which every fiber is stored with its coverage in that particular region.
 void iAVRCubicVis::setFiberCoverageData(std::vector<std::vector<std::unordered_map<vtkIdType, double>*>>* fiberCoverage)
 {
 	m_fiberCoverage = fiberCoverage;
 }
 
+//! Returns the Actor for the glyphs
 vtkSmartPointer<vtkActor> iAVRCubicVis::getActor()
 {
 	return m_actor;
 }
 
+//! Returns the vtkPolyData for the center points of the glyphs
 vtkSmartPointer<vtkPolyData> iAVRCubicVis::getDataSet()
 {
 	return m_cubePolyData;
 }
 
-//! This Method returns the closest cell of the Cube which gets intersected by a ray  
+//! This Method returns the closest cell of the Cube which gets intersected by a ray
 vtkIdType iAVRCubicVis::getClosestCellID(double pos[3], double eventOrientation[3])
 {
 	vtkSmartPointer<vtkCellPicker> cellPicker = vtkSmartPointer<vtkCellPicker>::New();
@@ -143,13 +149,13 @@ vtkIdType iAVRCubicVis::getClosestCellID(double pos[3], double eventOrientation[
 	{
 		if (!glyph3D)
 		{
-			LOG(lvlDebug,"Glyph not set (yet)!");
+			LOG(lvlDebug, "Glyph not set (yet)!");
 			return -1;
 		}
 		auto inputPointIDs = dynamic_cast<vtkIdTypeArray*>(glyph3D->GetOutput()->GetPointData()->GetArray("InputPointIds"));
 		if (!inputPointIDs)
 		{
-			LOG(lvlDebug,"Input point IDs not set!");
+			LOG(lvlDebug, "Input point IDs not set!");
 			return -1;
 		}
 		vtkIdType regionId = inputPointIDs->GetValue(cellPicker->GetPointId());
@@ -195,7 +201,7 @@ void iAVRCubicVis::highlightGlyphs(std::vector<vtkIdType>* regionIDs, std::vecto
 	if (!regionIDs->empty())
 	{
 		//Add black color if too few colors are given
-		if(regionIDs->size() > colorPerRegion->size())
+		if (regionIDs->size() > colorPerRegion->size())
 		{
 			for (int i = 0; i < colorPerRegion->size() - regionIDs->size(); i++)
 			{
@@ -258,6 +264,7 @@ void iAVRCubicVis::highlightGlyphs(std::vector<vtkIdType>* regionIDs, std::vecto
 	}
 }
 
+//! Removes the colored border around selected Cubes.
 void iAVRCubicVis::removeHighlightedGlyphs()
 {
 	if (!m_highlightVisible)
@@ -306,7 +313,7 @@ void iAVRCubicVis::calculateStartPoints()
 		//if(m_octree->getLevel() == 2) text.show();
 
 		//If regions have no coverage resize this 'empty' cube to zero
-		if (!m_fiberCoverage->at(m_octree->getLevel()).at(i)->empty()){
+		if (!m_fiberCoverage->at(m_octree->getLevel()).at(i)->empty()) {
 			double regionSize[3];
 			m_octree->calculateOctreeRegionSize(i, regionSize);
 			glyphScales->InsertNextTuple3(regionSize[0], regionSize[1], regionSize[2]);
@@ -318,7 +325,7 @@ void iAVRCubicVis::calculateStartPoints()
 		}
 		cubeStartPoints->InsertNextPoint(centerPoint[0], centerPoint[1], centerPoint[2]);
 	}
-	
+
 	m_cubePolyData->SetPoints(cubeStartPoints);
 	m_cubePolyData->GetPointData()->SetScalars(glyphScales);
 }
@@ -355,7 +362,7 @@ void iAVRCubicVis::applyLinearCubeOffset(double offset)
 {
 	if (m_cubePolyData == nullptr)
 	{
-		LOG(lvlDebug,QString("No Points to apply offset"));
+		LOG(lvlDebug, QString("No Points to apply offset"));
 		return;
 	}
 
@@ -385,7 +392,7 @@ void iAVRCubicVis::applyRelativeCubeOffset(double offset)
 {
 	if (m_cubePolyData == nullptr)
 	{
-		LOG(lvlDebug,QString("No Points to apply offset"));
+		LOG(lvlDebug, QString("No Points to apply offset"));
 		return;
 	}
 
@@ -423,11 +430,11 @@ void iAVRCubicVis::applyRelativeCubeOffset(double offset)
 //! This Method calculates a position depending shift of the cubes from the center outwards.
 //! The cubes are moved in its 4 direction from the center (left, right, up, down).
 //! The original (vtkPoint) values are taken (not the actors visible getPosition() values)
-void iAVRCubicVis::apply4RegionCubeOffset(double offset)
+void iAVRCubicVis::apply8RegionCubeOffset(double offset)
 {
 	if (m_cubePolyData == nullptr)
 	{
-		LOG(lvlDebug,QString("No Points to apply offset"));
+		LOG(lvlDebug, QString("No Points to apply offset"));
 		return;
 	}
 

@@ -54,7 +54,7 @@ public:
 	void renderSelection(std::vector<size_t> const& sortedSelInds, int classID, QColor const& classColor, QStandardItem* activeClassItem);
 	void moveFibersByMaxCoverage(std::vector<std::vector<std::vector<vtkIdType>>>* m_maxCoverage, double offset, bool relativMovement);
 	void moveFibersbyAllCoveredRegions(double offset, bool relativMovement);
-	void moveFibersby4Regions(std::vector<std::vector<std::vector<vtkIdType>>>* m_maxCoverage, double offset);
+	void moveFibersby8Regions(std::vector<std::vector<std::vector<vtkIdType>>>* m_maxCoverage, double offset);
 	void createRegionLinks(std::vector<std::vector<std::vector<double>>>* similarityMetric, double maxFibersInRegions, double worldSize);
 	void filterRegionLinks(int sign);
 	double getJaccardFilterVal();

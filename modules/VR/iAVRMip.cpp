@@ -34,6 +34,7 @@ iAVRMip::iAVRMip(vtkRenderer* renderer, std::vector<iAVROctree*>* octrees, iAVRC
 	mipPlanes = std::vector<vtkPolyData*>();
 }
 
+//! Adds a colorLegend for the LUT information
 void iAVRMip::addColorLegend(iAVRColorLegend* colorLegend)
 {
 	m_colorLegend = colorLegend;
@@ -131,7 +132,6 @@ void iAVRMip::createSingleMIPPanel(int octreeLevel, int feature, int viewDir, do
 
 	mipPlanes.push_back(plane->GetOutput());
 
-
 	vtkSmartPointer<vtkPolyDataMapper> mapper = vtkSmartPointer<vtkPolyDataMapper>::New();
 	mapper->SetInputData(plane->GetOutput());
 
@@ -145,6 +145,7 @@ void iAVRMip::createSingleMIPPanel(int octreeLevel, int feature, int viewDir, do
 	m_renderer->AddActor(mipPanel);
 }
 
+//! Hides the MIP panels from the user
 void iAVRMip::hideMIPPanels()
 {
 	m_renderer->RemoveActor(mipPanel);

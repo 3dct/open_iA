@@ -28,7 +28,7 @@ iAVRMetrics::iAVRMetrics(vtkTable* objectTable, iACsvIO io, std::vector<iAVROctr
 m_octrees(octrees)
 {
 	// Initialize these values only once
-	if(numberOfFeatures == 0)
+	if (numberOfFeatures == 0)
 	{
 		//numberOfFeatures = iACsvConfig::MappedCount;
 		numberOfFeatures = m_objectTable->GetNumberOfColumns();
@@ -37,20 +37,22 @@ m_octrees(octrees)
 	{
 		storeMinMaxValues();
 	}
-
 }
 
 //! Has to be called *before* getting any Metric data
+//! Sets the fiber coverage data, which is a vector for every octree level and each region, in which every fiber is stored with its coverage in that particular region. 
 void iAVRMetrics::setFiberCoverageData(std::vector<std::vector<std::unordered_map<vtkIdType, double>*>>* fiberCoverage)
 {
 	m_fiberCoverage = fiberCoverage;
 }
 
+//! Returns the number of features stored in the .csv
 int iAVRMetrics::getNumberOfFeatures()
 {
 	return numberOfFeatures;
 }
 
+//! Returns a string with the name of a feature from the .csv
 QString iAVRMetrics::getFeatureName(int feature)
 {
 	//QString featureName = m_objectTable->GetColumnName(m_io.getOutputMapping()->value(feature));
@@ -68,14 +70,13 @@ std::vector<double> iAVRMetrics::getMinMaxFiberValues(int feature)
 	return minMax;
 }
 
+//! Iterates through all values of each feature and stores the min and max value of each feature in a vector
 void iAVRMetrics::storeMinMaxValues()
 {
 	m_minMaxValues = new std::vector<std::vector<double>>();
 
-	//int numberOfFeatures = m_objectTable->GetNumberOfColumns();
-
-	std::vector<double> minAttribute = std::vector<double>(); //= m_objectTable->GetColumn(feature)->GetVariantValue(0).ToFloat();
-	std::vector<double> maxAttribute = std::vector<double>(); //= minAttribute;
+	std::vector<double> minAttribute = std::vector<double>();
+	std::vector<double> maxAttribute = std::vector<double>();
 
 	for (vtkIdType row = 0; row < m_objectTable->GetNumberOfRows(); ++row)
 	{
@@ -110,12 +111,14 @@ void iAVRMetrics::storeMinMaxValues()
 	}
 }
 
+//! Returns the result of a value in a user given new interval between newMin and newMax
 double iAVRMetrics::histogramNormalization(double value, double newMin, double newMax, double oldMin, double oldMax)
 {
 	double result = ((newMax - newMin) * ((value - oldMin) / (oldMax - oldMin))) + newMin;
 	return result;
 }
 
+//! Returns the result of a value in a user given new interval between newMin and newMax as exponential scale
 double iAVRMetrics::histogramNormalizationExpo(double value, double newMin, double newMax, double oldMin, double oldMax)
 {
 	newMin = log(newMin);

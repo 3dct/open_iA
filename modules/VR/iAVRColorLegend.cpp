@@ -30,7 +30,6 @@
 #include <vtkTextProperty.h>
 #include <vtkPlaneSource.h>
 
-
 iAVRColorLegend::iAVRColorLegend(vtkRenderer* renderer) :m_renderer(renderer)
 {
 	titleTextSource = vtkSmartPointer<vtkTextActor3D>::New();
@@ -63,9 +62,9 @@ vtkSmartPointer<vtkLookupTable> iAVRColorLegend::createLut(double min, double ma
 	}
 
 	return calculateLUT(min, max, scheme);
-
 }
 
+//! Returns for a value its color in the current LUT
 QColor iAVRColorLegend::getColor(double value)
 {
 	double rgba[3] = { 0,0,0 };
@@ -95,6 +94,8 @@ std::vector<QColor>* iAVRColorLegend::getColors(int octreeLevel, int feature, st
 	return colors;
 }
 
+//! Creates a color bar which acts as legend for the current LUT. The color Bar is sized based on the world physicalScale and gets
+//! calculated as plane with uniform division based on the available colors in the LUT. The function also creates the labels for the color sections.
 void iAVRColorLegend::calculateColorBarLegend(double physicalScale)
 {
 	auto width = physicalScale * 0.05; //5%
@@ -124,7 +125,6 @@ void iAVRColorLegend::calculateColorBarLegend(double physicalScale)
 
 	for (int i = 0; i < m_lut->GetNumberOfAvailableColors(); i++)
 	{
-
 		double rgba[4];
 		double value = max - (subRange * i);
 
@@ -165,7 +165,6 @@ void iAVRColorLegend::calculateColorBarLegend(double physicalScale)
 	titleTextSource->GetTextProperty()->SetBackgroundOpacity(1.0);
 	titleTextSource->GetTextProperty()->SetFontSize(30);
 
-
 	// Create text
 	textSource = vtkSmartPointer<vtkTextActor3D>::New();
 	textSource->SetInput(text.toUtf8());
@@ -192,6 +191,7 @@ void iAVRColorLegend::calculateColorBarLegend(double physicalScale)
 	}
 }
 
+//! Displays the color bar legend and its value labels
 void iAVRColorLegend::showColorBarLegend()
 {
 	if (m_colorLegendVisible)
@@ -204,6 +204,7 @@ void iAVRColorLegend::showColorBarLegend()
 	m_colorLegendVisible = true;
 }
 
+//! Hides the color bar legend and its value labels
 void iAVRColorLegend::hideColorBarLegend()
 {
 	if (!m_colorLegendVisible)
@@ -216,6 +217,7 @@ void iAVRColorLegend::hideColorBarLegend()
 	m_colorLegendVisible = false;
 }
 
+//! Moves the color bar legend and its value labels to the given pos
 void iAVRColorLegend::moveColorBarLegend(double* pos)
 {
 	m_colorLegend->SetPosition(pos);
@@ -225,9 +227,9 @@ void iAVRColorLegend::moveColorBarLegend(double* pos)
 
 	textSource->SetPosition(actorBounds[1] + initialTextOffset, actorBounds[2] + initialTextOffset, actorBounds[4]);
 	titleTextSource->SetPosition(actorBounds[0], actorBounds[3] + initialTextOffset, actorBounds[4]);
-
 }
 
+//! Rotates the color bar legend and its value labels around the given coordinates
 void iAVRColorLegend::rotateColorBarLegend(double x, double y, double z)
 {
 	m_colorLegend->AddOrientation(x, y, z);
@@ -235,6 +237,7 @@ void iAVRColorLegend::rotateColorBarLegend(double x, double y, double z)
 	textSource->AddOrientation(x, y, z);
 }
 
+//! Resizes the color bar legend and its value labels based on the given scale
 void iAVRColorLegend::resizeColorBarLegend(double scale)
 {
 	m_colorLegend->SetScale(scale);
@@ -242,14 +245,15 @@ void iAVRColorLegend::resizeColorBarLegend(double scale)
 	textSource->SetScale(scale * textFieldScale[0], scale * textFieldScale[1], scale * textFieldScale[2]);
 }
 
+//! Sets the title for the header of the color bar legend
 void iAVRColorLegend::setLegendTitle(QString title)
 {
 	titleTextSource->SetInput(title.toUtf8());
 }
 
+//! Calculates the Lookuptable (LUT) based on the range from min to max and a given color scheme
 vtkSmartPointer<vtkLookupTable> iAVRColorLegend::calculateLUT(double min, double max, std::vector<QColor> colorScheme)
 {
-	
 	int schemeSize = colorScheme.size();
 	m_lut = vtkSmartPointer<vtkLookupTable>::New();
 
@@ -260,7 +264,6 @@ vtkSmartPointer<vtkLookupTable> iAVRColorLegend::calculateLUT(double min, double
 	{
 		int temp = schemeSize - 1 - i;
 		m_lut->SetTableValue(i, colorScheme.at(temp).redF(), colorScheme.at(temp).greenF(), colorScheme.at(temp).blueF());
-
 	}
 
 	m_lut->SetTableRange(min, max);
@@ -270,11 +273,11 @@ vtkSmartPointer<vtkLookupTable> iAVRColorLegend::calculateLUT(double min, double
 	return m_lut;
 }
 
-// 8 color diverging Scheme: https://colorbrewer2.org/?type=diverging&scheme=RdYlBu&n=8 
+// Predefined 8 color diverging Scheme: https://colorbrewer2.org/?type=diverging&scheme=RdYlBu&n=8
 std::vector<QColor> iAVRColorLegend::colorScheme01()
 {
 	std::vector<QColor> colorScheme = std::vector<QColor>(8, QColor());
-	
+
 	colorScheme.at(0).setRgb(215, 48, 39, 255);
 	colorScheme.at(1).setRgb(244, 109, 67, 255);
 	colorScheme.at(2).setRgb(253, 174, 97, 255);
@@ -287,7 +290,7 @@ std::vector<QColor> iAVRColorLegend::colorScheme01()
 	return colorScheme;
 }
 
-// 4 color qualitative Scheme: https://colorbrewer2.org/?type=diverging&scheme=RdYlBu&n=8#type=qualitative&scheme=Set1&n=4 
+// Predefined 4 color qualitative Scheme: https://colorbrewer2.org/?type=diverging&scheme=RdYlBu&n=8#type=qualitative&scheme=Set1&n=4
 std::vector<QColor> iAVRColorLegend::colorScheme02()
 {
 	std::vector<QColor> colorScheme = std::vector<QColor>(4, QColor());

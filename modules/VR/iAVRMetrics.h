@@ -51,8 +51,7 @@ protected:
 	iACsvIO m_io;
 	vtkSmartPointer<vtkTable> m_objectTable;
 	std::vector<iAVROctree*>* m_octrees;
-	
+
 private:
 	void storeMinMaxValues();
 };
-

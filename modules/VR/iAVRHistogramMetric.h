@@ -22,11 +22,37 @@
 
 #include "iAVRMetrics.h"
 
+struct HistogramParameters
+{
+	//featureList needed to map from array position back to feature id
+	std::vector<int>* featureList;
+	//Stores for every [feature] the min value of both regions
+	std::vector<double> minValue;
+	//Stores for every [feature] the max value of both regions
+	std::vector<double> maxValue;
+	//Stores for every [feature] the calculated bin width
+	std::vector<double> histogramWidth;
+	//Amount of bins for current histogram
+	int bins = 0;
+	//Stores for every [feature] the occurency in every [bin]
+	std::vector<std::vector<int>> histogramRegion1;
+	std::vector<std::vector<int>> histogramRegion2;
+};
+
 class iAVRHistogramMetric: public iAVRMetrics
 {
 public:
 	iAVRHistogramMetric(vtkTable* objectTable, iACsvIO io, std::vector<iAVROctree*>* octrees);
+	int getMaxNumberOfHistogramBins(int observations);
+	HistogramParameters* getHistogram(int level, int maxNumberOfFibersInRegion, std::vector<int>* featureList, int region1, int region2);
 
 private:
+	//Stores the minValue, maxValue, binWidth and bin amount
+	HistogramParameters* m_histogramParameter;
+	//Stores the currently calculated histogram for the two [regions] and their [bins] with the cumulative number of observations
+	std::vector<std::vector<int>>* m_currentHistogram;
+
+	void calculateBinWidth(int level, int maxNumberOfFibersInRegion, std::vector<int>* featureList, int region1, int region2, std::vector<std::vector<std::vector<double>>>* regionValues);
+	void calculateHistogramValues(int level, int maxNumberOfFibersInRegion, std::vector<int>* featureList, int region1, int region2);
 };
 

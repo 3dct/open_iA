@@ -279,7 +279,7 @@ void iAVRVolume::moveFibersbyAllCoveredRegions(double offset, bool relativMoveme
 	m_cylinderVis->getPolyData()->GetPoints()->GetData()->Modified();
 }
 
-void iAVRVolume::moveFibersby4Regions(std::vector<std::vector<std::vector<vtkIdType>>>* m_maxCoverage, double offset)
+void iAVRVolume::moveFibersby8Regions(std::vector<std::vector<std::vector<vtkIdType>>>* m_maxCoverage, double offset)
 {
 	double centerPoint[3]{};
 	m_octree->calculateOctreeCenterPos(centerPoint);

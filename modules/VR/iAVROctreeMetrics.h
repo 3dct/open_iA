@@ -22,40 +22,19 @@
 
 #include "iAVRMetrics.h"
 
-
 #include <vtkSmartPointer.h>
 #include <unordered_map>
-#include <thread>
-
-struct HistogramParameters
-{
-	//featureList needed to map from array position back to feature id
-	std::vector<int>* featureList;
-	//Stores for every [feature] the min value of both regions
-	std::vector<double> minValue;
-	//Stores for every [feature] the max value of both regions
-	std::vector<double> maxValue;
-	//Stores for every [feature] the calculated bin width
-	std::vector<double> histogramWidth;
-	//Amount of bins for current histogram
-	int bins = 0;
-	//Stores for every [feature] the occurency in every [bin]
-	std::vector<std::vector<int>> histogramRegion1;
-	std::vector<std::vector<int>> histogramRegion2;
-};
 
 //!This class calculates the metrics used in the Model in Miniature Heatmap
-class iAVROctreeMetrics: public iAVRMetrics
+class iAVROctreeMetrics : public iAVRMetrics
 {
 public:
 	iAVROctreeMetrics(vtkTable* objectTable, iACsvIO io, std::vector<iAVROctree*>* octrees);
 	std::vector<std::vector<std::vector<double>>>* getRegionAverage(int octreeLevel, int feature);
 	std::vector<std::vector<std::vector<vtkIdType>>>* getMaxCoverageFiberPerRegion();
 	std::vector<double> getMinMaxAvgRegionValues(int octreeLevel, int feature);
-	std::vector<std::vector<std::vector<double>>>* getWeightedJaccardIndex(int level);
+	std::vector<std::vector<std::vector<double>>>* getJaccardIndex(int level);
 	double getMaxNumberOfFibersInRegion(int level);
-	int getMaxNumberOfHistogramBins(int level);
-	HistogramParameters* getHistogram(int level, std::vector<int>* featureList, int region1, int region2);
 
 private:
 	//Stores for the [octree level] in an [octree region] the fibers which have the max coverage (Every Fiber can only be in one region)
@@ -66,10 +45,6 @@ private:
 	std::vector<std::vector<std::vector<double>>>* m_jaccardValues;
 	//Stores for the [octree level] the max amount of fibers which lie in an octree region
 	std::vector<double>* m_maxNumberOffibersInRegions;
-	//Stores the minValue, maxValue, binWidth and bin amount
-	HistogramParameters* m_histogramParameter;
-	//Stores the currently calculated histogram for the two [regions] and their [bins] with the cumulative number of observations
-	std::vector<std::vector<int>>* m_currentHistogram;
 	//Stores the info if at a specific octree [level] a specific [feature] is already calculated
 	std::vector<std::vector<bool>>* isAlreadyCalculated;
 	bool m_maxCoverageisAlreadyCalculated;
@@ -77,11 +52,9 @@ private:
 	void calculateWeightedAverage(int octreeLevel, int feature);
 	void calculateMaxCoverageFiberPerRegion();
 	void findBiggestCoverage(int level, int fiber);
-	void calculateJaccardIndex(int level, bool weighted);
+	void calculateJaccardIndex(int level);
 	double calculateJaccardIndex(int level, int region1, int region2);
 	double calculateWeightedJaccardIndex(int level, int region1, int region2);
 	double calculateJaccardDistance(int level, int region1, int region2);
 	void calculateMaxNumberOfFibersInRegion();
-	void calculateBinWidth(int level, std::vector<int>* featureList, int region1, int region2, std::vector<std::vector<std::vector<double>>>* regionValues);
-	void calculateHistogramValues(int level, std::vector<int>* featureList, int region1, int region2);
 };
