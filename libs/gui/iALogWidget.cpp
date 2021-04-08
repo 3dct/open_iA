@@ -58,6 +58,10 @@ void iALogWidget::logSlot(int lvl, QString const & text)
 			.arg(QLocale().toString(QTime::currentTime(), "hh:mm:ss"))
 			.arg(logLevelToString(static_cast<iALogLevel>(lvl)).left(1))
 			.arg(text);
+		if (lvl == lvlError)
+		{
+			msg = "<span style=\"color:red\">" + msg + "</span>";
+		}
 		logTextEdit->append(msg);
 	}
 	if (m_logToFile && lvl >= m_fileLogLevel)

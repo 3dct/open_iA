@@ -164,9 +164,34 @@ iAITKIO::ImagePointer internalCastImageTo(iAITKIO::ImagePointer img)
 	return cast->GetOutput();
 }
 
+// mapping from pixel type to itk component type ID:
+template<typename T> struct iAITKTypeMapper { static const itk::ImageIOBase::IOComponentType ID = itk::ImageIOBase::UNKNOWNCOMPONENTTYPE; };
+//template <>                   class iAITKTypeMapper { int ID; };
+template<> struct iAITKTypeMapper<unsigned char>       { static const itk::ImageIOBase::IOComponentType ID = itk::ImageIOBase::UCHAR; };
+template<> struct iAITKTypeMapper<char>                { static const itk::ImageIOBase::IOComponentType ID = itk::ImageIOBase::CHAR; };
+template<> struct iAITKTypeMapper<unsigned short>      { static const itk::ImageIOBase::IOComponentType ID = itk::ImageIOBase::USHORT; };
+template<> struct iAITKTypeMapper<short>               { static const itk::ImageIOBase::IOComponentType ID = itk::ImageIOBase::SHORT; };
+template<> struct iAITKTypeMapper<unsigned int>        { static const itk::ImageIOBase::IOComponentType ID = itk::ImageIOBase::UINT; };
+template<> struct iAITKTypeMapper<int>                 { static const itk::ImageIOBase::IOComponentType ID = itk::ImageIOBase::INT; };
+template<> struct iAITKTypeMapper<unsigned long>       { static const itk::ImageIOBase::IOComponentType ID = itk::ImageIOBase::ULONG; };
+template<> struct iAITKTypeMapper<long>                { static const itk::ImageIOBase::IOComponentType ID = itk::ImageIOBase::LONG; };
+#if ITK_VERSION_NUMBER >= ITK_VERSION_CHECK(4, 13, 0)
+template<> struct iAITKTypeMapper <unsigned long long> { static const itk::ImageIOBase::IOComponentType ID = itk::ImageIOBase::ULONGLONG; };
+template<> struct iAITKTypeMapper <long long>          { static const itk::ImageIOBase::IOComponentType ID = itk::ImageIOBase::LONGLONG; };
+#endif
+template<> struct iAITKTypeMapper<float>               { static const itk::ImageIOBase::IOComponentType ID = itk::ImageIOBase::FLOAT; };
+template<> struct iAITKTypeMapper<double>              { static const itk::ImageIOBase::IOComponentType ID = itk::ImageIOBase::DOUBLE; };
+
+//! Cast pixel type of image to given ResultPixelType.
+//! If input image already has that pixel type, the given input image is returned.
 template<typename ResultPixelType>
 iAITKIO::ImagePointer castImageTo(iAITKIO::ImagePointer img)
 {
+	// optimization: don't cast if already in desired type:
+	if (itkScalarPixelType(img) == iAITKTypeMapper<ResultPixelType>::ID)
+	{
+		return img;
+	}
 	// can I retrieve number of dimensions somehow? otherwise assume 3 fixed?
 	switch (itkScalarPixelType(img))
 	{
