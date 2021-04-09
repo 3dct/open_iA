@@ -182,6 +182,11 @@ iAScatterPlotWidget::iAScatterPlotWidget(QSharedPointer<iASPLOMData> data, bool 
 	connect(m_scatterplot, &iAScatterPlot::selectionModified, this, &iAScatterPlotWidget::selectionModified);
 }
 
+void iAScatterPlotWidget::setSelectionEnabled(bool enabled)
+{
+	m_scatterplot->settings.selectionEnabled = enabled;
+}
+
 void iAScatterPlotWidget::xParamChanged()
 {
 	size_t idx = sender()->property("idx").toULongLong();

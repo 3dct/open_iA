@@ -75,6 +75,7 @@ public:
 	void toggleHighlightedPoint(size_t curPoint, Qt::KeyboardModifiers modifiers);
 	void setHighlightColor(QColor hltCol);
 	void setHighlightDrawMode(iAScatterPlot::HighlightDrawMode drawMode);
+	void setSelectionEnabled(bool enabled);
 
 protected:
 #ifdef CHART_OPENGL
