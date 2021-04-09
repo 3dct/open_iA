@@ -150,7 +150,7 @@ public:
 	void setSelectionMode(SelectionMode mode);
 	//! Adds a marker at a specific x position (in data space, see screenX2DataBin
 	//! for details) in the given color
-	void addXMarker(double xPos, QColor const & color);
+	void addXMarker(double xPos, QColor const& color, Qt::PenStyle penStyle = Qt::SolidLine);
 	//! Remove the marker at the given x position (in data space, see screenX2DataBin
 	//! for details).
 	void removeXMarker(double xPos);
@@ -262,7 +262,7 @@ private:
 	QRubberBand* m_selectionBand;
 	QPoint m_selectionOrigin;
 	std::vector<size_t> m_selectedPlots;
-	QMap<double, QColor> m_xMarker;
+	QMap<double, QPair<QColor, Qt::PenStyle>> m_xMarker;
 	size_t m_maxXAxisSteps;
 	bool m_drawXAxisAtZero;
 	QColor m_bgColor;

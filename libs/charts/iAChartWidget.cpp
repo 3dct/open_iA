@@ -1115,8 +1115,10 @@ void iAChartWidget::drawAll(QPainter & painter)
 	drawPlots(painter);
 	for (double x : m_xMarker.keys())
 	{
-		QColor color = m_xMarker[x];
-		painter.setPen(color);
+		QColor color = m_xMarker[x].first;
+		Qt::PenStyle penStyle = m_xMarker[x].second;
+		QPen p(color, 1, penStyle);
+		painter.setPen(p);
 		QLine line;
 		QRect diagram = geometry();
 		int pos = static_cast<int>(m_xMapper->srcToDst(x));
@@ -1132,9 +1134,9 @@ void iAChartWidget::drawAll(QPainter & painter)
 	drawAxes(painter);
 }
 
-void iAChartWidget::addXMarker(double xPos, QColor const & color)
+void iAChartWidget::addXMarker(double xPos, QColor const& color, Qt::PenStyle penStyle)
 {
-	m_xMarker.insert(xPos, color);
+	m_xMarker.insert(xPos, qMakePair(color, penStyle));
 }
 
 void iAChartWidget::removeXMarker(double xPos)
