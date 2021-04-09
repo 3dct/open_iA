@@ -199,6 +199,7 @@
     <addaction name="actionPrevWindow"/>
     <addaction name="separator"/>
     <addaction name="actionShowLog"/>
+    <addaction name="actionOpenLogOnNewMessage"/>
     <addaction name="actionMainWindowStatusBar"/>
    </widget>
    <widget class="QMenu" name="menuHelp">
@@ -1100,6 +1101,17 @@
    </property>
    <property name="text">
     <string>Mesh data movable</string>
+   </property>
+  </action>
+  <action name="actionOpenLogOnNewMessage">
+   <property name="checkable">
+    <bool>true</bool>
+   </property>
+   <property name="checked">
+    <bool>true</bool>
+   </property>
+   <property name="text">
+    <string>Open Log on New Message</string>
    </property>
   </action>
  </widget>

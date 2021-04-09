@@ -182,6 +182,7 @@ private slots:
 	void childClosed();
 	void listDockWidgetsInMenu();
 	void toggleMainWindowStatusBar();
+	void toggleOpenLogOnNewMessage();
 	void toggleChildStatusBar();
 	void toggleToolbar();
 	void about();

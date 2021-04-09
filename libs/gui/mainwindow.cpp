@@ -1802,6 +1802,7 @@ void MainWindow::connectSignalsToSlots()
 	connect(actionShowMenu, &QAction::triggered, this, &MainWindow::toggleMenu);
 	connect(actionShowToolbar, &QAction::triggered, this, &MainWindow::toggleToolbar);
 	connect(actionMainWindowStatusBar, &QAction::triggered, this, &MainWindow::toggleMainWindowStatusBar);
+	connect(actionOpenLogOnNewMessage, &QAction::triggered, this, &MainWindow::toggleOpenLogOnNewMessage);
 	connect(menuDockWidgets, &QMenu::aboutToShow, this, &MainWindow::listDockWidgetsInMenu);
 	// Enable these actions also when menu not visible:
 	addAction(actionFullScreenMode);
@@ -1948,6 +1949,8 @@ void MainWindow::readSettings()
 	toggleToolbar();
 	actionMainWindowStatusBar->setChecked(settings.value("Parameters/ShowMainStatusBar", true).toBool());
 	toggleMainWindowStatusBar();
+	actionOpenLogOnNewMessage->setChecked(settings.value("Parameters/OpenLogOnNewMessages", true).toBool());
+	toggleOpenLogOnNewMessage();
 
 	m_owdtcs = settings.value("OpenWithDataTypeConversion/owdtcs", 1).toInt();
 	m_rawFileParams.m_size[0] = settings.value("OpenWithDataTypeConversion/owdtcx", 1).toInt();
@@ -2056,6 +2059,7 @@ void MainWindow::writeSettings()
 	settings.setValue("Parameters/ShowLog", actionShowLog->isChecked());
 	settings.setValue("Parameters/ShowToolbar", actionShowToolbar->isChecked());
 	settings.setValue("Parameters/ShowMainStatusBar", actionMainWindowStatusBar->isChecked());
+	settings.setValue("Parameters/OpenLogOnNewMessages", actionOpenLogOnNewMessage->isChecked());
 
 	settings.setValue("OpenWithDataTypeConversion/owdtcs", m_owdtcs);
 	settings.setValue("OpenWithDataTypeConversion/owdtcx", m_rawFileParams.m_size[0]);
@@ -2345,6 +2349,11 @@ QMenu * MainWindow::helpMenu()
 void MainWindow::toggleMainWindowStatusBar()
 {
 	statusBar()->setVisible(actionMainWindowStatusBar->isChecked());
+}
+
+void MainWindow::toggleOpenLogOnNewMessage()
+{
+	iALogWidget::get()->setOpenOnNewMessage(actionOpenLogOnNewMessage->isChecked());
 }
 
 void MainWindow::listDockWidgetsInMenu()

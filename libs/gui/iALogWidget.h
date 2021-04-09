@@ -57,6 +57,8 @@ public:
 	//! override base class log level setting to make sure that
 	//! shown combobox gets updated
 	void setLogLevel(iALogLevel lvl) override;
+	//! sets whether the log window should open when new messages come in
+	void setOpenOnNewMessage(bool openOnNewMessage);
 signals:
 	//! decouple logging methods from GUI logging (to allow logging from any thread):
 	void logSignal(int lvl, QString const & text);
@@ -81,6 +83,7 @@ private:
 	iALogLevel m_fileLogLevel;
 	bool m_closed;
 	bool m_fileLogError;
+	bool m_openOnNewMessage;
 	vtkSmartPointer<iALogRedirectVTK> m_redirectVTK;
 	itk::SmartPointer<iALogRedirectITK> m_redirectITK;
 };
