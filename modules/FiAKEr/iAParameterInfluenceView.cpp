@@ -350,7 +350,7 @@ void iAParameterInfluenceView::setResultSelected(size_t resultIdx, bool state)
 				if (state)
 				{
 					m_selectedResults.insert(resultIdx);
-					m_table[paramIdx]->par[barIdx]->addXMarker(paramValue, SelectedResultPlotColor);
+					m_table[paramIdx]->par[barIdx]->addXMarker(paramValue, SelectedResultPlotColor, Qt::DashLine);
 					if (m_selectedResultHistoPlots.contains(plotKey))
 					{
 						LOG(lvlWarn, QString("Plot to be added already exists!"));
@@ -651,7 +651,7 @@ void iAParameterInfluenceView::addStackedBar(int outType, int outIdx)
 		for (auto resultIdx : selectedResults)
 		{
 			double paramValue = m_sensInf->m_paramValues[m_sensInf->m_variedParams[paramIdx]][resultIdx];
-			parChart->addXMarker(paramValue, SelectedResultPlotColor);
+			parChart->addXMarker(paramValue, SelectedResultPlotColor, Qt::DashLine);
 		}
 	}
 	updateTableOrder();
