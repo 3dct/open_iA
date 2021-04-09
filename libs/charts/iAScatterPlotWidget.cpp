@@ -428,6 +428,11 @@ void iAScatterPlotWidget::setHighlightColor(QColor hltCol)
 	m_scatterplot->setHighlightColor(hltCol);
 }
 
+void iAScatterPlotWidget::setHighlightDrawMode(iAScatterPlot::HighlightDrawMode drawMode)
+{
+	m_scatterplot->setHighlightDrawMode(drawMode);
+}
+
 void iAScatterPlotWidget::mouseReleaseEvent(QMouseEvent * event)
 {
 	if (event->x() >= PaddingLeft() && event->x() <= (width() - PaddingRight) &&

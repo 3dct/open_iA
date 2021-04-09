@@ -147,8 +147,8 @@ public:
 	int getVisibleParametersCount() const override;                  //!< Get the number of parameters currently displayed
 	double getAnimIn() const override { return m_animIn; }           //!< Getter for animation in property
 	void setAnimIn( double anim );                                   //!< Setter for animation in property
-	double getAnimOut() const override { return m_animOut; }         //!< Getter for animation in property
-	void setAnimOut( double anim );                                  //!< Setter for animation in property
+	double getAnimOut() const override { return m_animOut; }         //!< Getter for animation out property
+	void setAnimOut( double anim );                                  //!< Setter for animation out property
 	SelectionType const & getHighlightedPoints() const override;     //!< get the list of highlighted points
 	void setSeparation(int idx);                                     //!< define an index at which a separation margin is inserted
 	void setBackgroundColorTheme(iAColorTheme const * theme);        //!< define the color theme to use for coloring the different separated regions

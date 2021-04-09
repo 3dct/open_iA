@@ -54,7 +54,7 @@ iAScatterPlot::Settings::Settings() :
 	maximizedParamsOffset( 5 ),
 	textRectHeight( 30 ),
 	rangeMargin( 0.08 ),
-	pointRadius( 1.0/*2.5*/ ),
+	pointRadius( 1.5/*2.5*/ ),
 	maximizedPointMagnification( 1.7 ),
 	defaultGridDimensions( 100 ),
 	defaultMaxBtnSz( 10 ),
@@ -67,6 +67,7 @@ iAScatterPlot::Settings::Settings() :
 	tickLabelColor( QColor( 100, 100, 100 ) ),
 	selectionColor( QColor(0, 0, 0) ),
 	highlightColor(),  // invalid -> only used if set explicitly
+	highlightDrawMode(Enlarged),
 	selectionMode(Polygon),
 	selectionEnabled(false),
 	showPCC(false),
@@ -860,10 +861,10 @@ void iAScatterPlot::drawPoints( QPainter &painter )
 		painter.setPen(line.second);
 		for (int ptIdx = 0; ptIdx < line.first.size() - 1; ++ptIdx)
 		{
-			int x1 = p2x(p0d[line.first[ptIdx]]),
-				x2 = p2x(p0d[line.first[ptIdx + 1]]),
-				y1 = p2y(p1d[line.first[ptIdx]]),
-				y2 = p2y(p1d[line.first[ptIdx + 1]]);
+			int x1 = p2x(p0d[line.first[ptIdx]])+1,
+				x2 = p2x(p0d[line.first[ptIdx + 1]])+1,
+				y1 = p2y(p1d[line.first[ptIdx]])+1,
+				y2 = p2y(p1d[line.first[ptIdx + 1]])+1;
 			// TODO: cut off lines at borders!
 			painter.drawLine(x1, y1, x2, y2);
 		}
@@ -968,27 +969,31 @@ void iAScatterPlot::drawPoints( QPainter &painter )
 	}
 
 	// Draw highlighted points
-	auto const & highlightedPoints = m_splom->getHighlightedPoints();
-	for(auto ind: highlightedPoints)
+	if (settings.highlightDrawMode.testFlag(iAScatterPlot::Enlarged))
 	{
-		double curPtSize = ptSize * settings.pickedPointMagnification;
-		glPointSize(curPtSize);
-		glBegin(GL_POINTS);
-		if (settings.highlightColor.isValid())
+		auto const& highlightedPoints = m_splom->getHighlightedPoints();
+		for (auto ind : highlightedPoints)
 		{
-			QColor c = settings.highlightColor;
-			glColor4f(c.redF(), c.greenF(), c.blueF(), c.alphaF());
+			double curPtSize = ptSize * settings.pickedPointMagnification;
+			glPointSize(curPtSize);
+			glBegin(GL_POINTS);
+			if (settings.highlightColor.isValid())
+			{
+				QColor c = settings.highlightColor;
+				glColor4f(c.redF(), c.greenF(), c.blueF(), c.alphaF());
+			}
+			else if (m_lut->initialized())
+			{
+				double val = m_splomData->paramData(m_colInd)[ind];
+				double rgba[4];
+				m_lut->getColor(val, rgba);
+				glColor4f(rgba[0], rgba[1], rgba[2], 1.0);
+			}
+			double tx = p2tx(p0d[ind]);
+			double ty = p2ty(p1d[ind]);
+			glVertex3f(tx, ty, 0.0f);
+			glEnd();
 		}
-		else if (m_lut->initialized())
-		{
-			double val = m_splomData->paramData(m_colInd)[ind];
-			double rgba[4]; m_lut->getColor(val, rgba);
-			glColor4f(rgba[0], rgba[1], rgba[2], 1.0);
-		}
-		double tx = p2tx(p0d[ind]);
-		double ty = p2ty(p1d[ind]);
-		glVertex3f(tx, ty, 0.0f);
-		glEnd();
 	}
 
 	// Draw previous point
@@ -1053,6 +1058,33 @@ void iAScatterPlot::drawPoints( QPainter &painter )
 			getPointRadius() * settings.pickedPointMagnification, color);
 	}
 #endif
+	// Draw highlighted points
+	if (settings.highlightDrawMode.testFlag(iAScatterPlot::Outline))
+	{
+		auto const& highlightedPoints = m_splom->getHighlightedPoints();
+		for (auto ind : highlightedPoints)
+		{
+			QColor c;
+			if (settings.highlightColor.isValid())
+			{
+				c = settings.highlightColor;
+			}
+			else if (m_lut->initialized())
+			{
+				double val = m_splomData->paramData(m_colInd)[ind];
+				c = m_lut->getQColor(val);
+			}
+			int tx = p2x(p0d[ind]);
+			int ty = p2y(p1d[ind]);
+			int LineThickness = 3;
+			double curPtSize = (LineThickness-1) + ptSize * (settings.highlightDrawMode.testFlag(iAScatterPlot::Enlarged) ? settings.pickedPointMagnification : 1);
+			int radius = curPtSize / 2;
+			QPen p(c, LineThickness);
+			painter.setPen(p);
+			painter.setBrush(Qt::NoBrush);
+			painter.drawEllipse(tx - radius, ty - radius+1, curPtSize, curPtSize);
+		}
+	}
 	painter.restore();
 }
 
@@ -1227,6 +1259,11 @@ void iAScatterPlot::setSelectionColor(QColor selCol)
 void iAScatterPlot::setHighlightColor(QColor hltCol)
 {
 	settings.highlightColor = hltCol;
+}
+
+void iAScatterPlot::setHighlightDrawMode(QFlags<HighlightDrawMode> drawMode)
+{
+	settings.highlightDrawMode = drawMode;
 }
 
 double iAScatterPlot::getPointRadius() const

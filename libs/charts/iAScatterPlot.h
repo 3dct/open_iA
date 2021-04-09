@@ -60,6 +60,11 @@ public:
 		Rectangle,
 		Polygon
 	};
+	enum HighlightDrawMode
+	{
+		Enlarged,
+		Outline
+	};
 	//!  Constructor: requires a parent SPLOM widget
 	iAScatterPlot(iAScatterPlotSelectionHandler * splom, iAChartParentWidget* parent, int numTicks = 5, bool isMaximizedPlot = false);
 	~iAScatterPlot();
@@ -99,9 +104,10 @@ public:
 	void SPLOMMouseMoveEvent( QMouseEvent * event );
 	void SPLOMMousePressEvent( QMouseEvent * event );
 	void SPLOMMouseReleaseEvent( QMouseEvent * event );
+	//! @}
 	void setSelectionColor(QColor selCol);
 	void setHighlightColor(QColor hltCol);
-	//! @}
+	void setHighlightDrawMode(QFlags<HighlightDrawMode> drawMode);
 
 protected:
 	int p2binx( double p ) const;                                    //!< Get grid bin index using parameter value X
@@ -179,6 +185,7 @@ public:
 		QColor backgroundColor;
 		QColor selectionColor;
 		QColor highlightColor;
+		QFlags<HighlightDrawMode> highlightDrawMode;
 		SelectionMode selectionMode;
 		bool selectionEnabled;
 		bool showPCC, showSCC;

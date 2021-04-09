@@ -29,7 +29,7 @@ using iAChartParentWidget = iAQGLWidget;
 using iAChartParentWidget = QWidget;
 #endif
 
-#include "iAScatterPlot.h"	// for iAScatterPlot::SelectionMode
+#include "iAScatterPlot.h"	// for iAScatterPlot::SelectionMode, iAScatterPlot::HighlightDrawMode
 
 #include "iAcharts_export.h"
 
@@ -74,6 +74,7 @@ public:
 	void clearLines();
 	void toggleHighlightedPoint(size_t curPoint, Qt::KeyboardModifiers modifiers);
 	void setHighlightColor(QColor hltCol);
+	void setHighlightDrawMode(iAScatterPlot::HighlightDrawMode drawMode);
 
 protected:
 #ifdef CHART_OPENGL
