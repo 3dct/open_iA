@@ -68,7 +68,8 @@ namespace
 	// needs to match definition in iASensitivityInfo.cpp. Maybe unify somewhere:
 	QColor SelectedResultPlotColor(235, 184, 31, 255);
 
-	QColor UnselectedParamRowBackgroundColor(245, 245, 245);
+	QColor ParamRowSelectedBGColor(245, 245, 245);
+	QColor ParamRowUnselectedBGColor(255, 255, 255);
 }
 
 class iAParTableRow
@@ -398,9 +399,7 @@ void iAParameterInfluenceView::setSelectedParam(int param)
 	m_selectedParam = param;
 	for (int paramIdx = 0; paramIdx < m_sensInf->m_variedParams.size(); ++paramIdx)
 	{
-		QColor color = (paramIdx == m_selectedParam)
-			? palette().color(QPalette::Midlight)
-			: UnselectedParamRowBackgroundColor;
+		QColor color = (paramIdx == m_selectedParam) ? ParamRowSelectedBGColor : ParamRowUnselectedBGColor;
 		for (int col = colMin; col <= colStep; ++col)
 		{
 			m_table[paramIdx]->labels[col]->setStyleSheet("QLabel { background-color : " + color.name() + "; }");
@@ -626,7 +625,7 @@ void iAParameterInfluenceView::addStackedBar(int outType, int outIdx)
 	{
 		int varParIdx = m_sensInf->m_variedParams[paramIdx];
 		auto paramName = m_sensInf->m_paramNames[varParIdx];
-		QColor color = (paramIdx == m_selectedParam) ? palette().color(QPalette::Midlight) : UnselectedParamRowBackgroundColor;
+		QColor color = (paramIdx == m_selectedParam) ? ParamRowSelectedBGColor : ParamRowUnselectedBGColor;
 
 		auto outChart = new iAChartWidget(this, "", (curBarIdx == 0) ? "Var. from " + paramName : "");
 		outChart->setShowXAxisLabel(false);
