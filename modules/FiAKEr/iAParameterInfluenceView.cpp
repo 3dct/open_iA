@@ -331,8 +331,9 @@ void iAParameterInfluenceView::addResultHistoPlot(size_t resultIdx, int paramIdx
 	auto const rng = m_sensInf->m_data->spmData->paramRange(m_sensInf->m_charSelected[charIdx]);
 	auto histData = iAHistogramData::create(QString("Result %1").arg(resultIdx), iAValueType::Continuous, rng[0],
 		rng[1], m_sensInf->m_charHistograms[resultIdx][charIdx]);
-	m_selectedResultHistoPlots.insert(qMakePair(resultIdx, charIdx), createHistoPlot(histData, SelectedResultPlotColor));
-	m_table[paramIdx]->out[barIdx]->addPlot(m_selectedResultHistoPlots[qMakePair(resultIdx, charIdx)]);
+	auto plotKey = std::make_tuple(resultIdx, paramIdx, charIdx);
+	m_selectedResultHistoPlots.insert(plotKey, createHistoPlot(histData, SelectedResultPlotColor));
+	m_table[paramIdx]->out[barIdx]->addPlot(m_selectedResultHistoPlots[plotKey]);
 }
 
 void iAParameterInfluenceView::setResultSelected(size_t resultIdx, bool state)
@@ -345,11 +346,12 @@ void iAParameterInfluenceView::setResultSelected(size_t resultIdx, bool state)
 			if (m_visibleCharacts[barIdx].first == outCharacteristic)
 			{
 				int charIdx = m_visibleCharacts[barIdx].second;
+				auto plotKey = std::make_tuple(resultIdx, paramIdx, charIdx);
 				if (state)
 				{
 					m_selectedResults.insert(resultIdx);
 					m_table[paramIdx]->par[barIdx]->addXMarker(paramValue, SelectedResultPlotColor);
-					if (m_selectedResultHistoPlots.contains(qMakePair(resultIdx, charIdx)))
+					if (m_selectedResultHistoPlots.contains(plotKey))
 					{
 						LOG(lvlWarn, QString("Plot to be added already exists!"));
 					}
@@ -362,15 +364,14 @@ void iAParameterInfluenceView::setResultSelected(size_t resultIdx, bool state)
 				{
 					m_selectedResults.remove(resultIdx);
 					m_table[paramIdx]->par[barIdx]->removeXMarker(paramValue);
-					if (!m_selectedResultHistoPlots.contains(qMakePair(resultIdx, charIdx)))
+					if (!m_selectedResultHistoPlots.contains(plotKey))
 					{
 						LOG(lvlWarn, QString("Plot to be removed does not exist!"));
 					}
 					else
 					{
-						m_table[paramIdx]->out[barIdx]->removePlot(
-							m_selectedResultHistoPlots[qMakePair(resultIdx, charIdx)]);
-						m_selectedResultHistoPlots.remove(qMakePair(resultIdx, charIdx));
+						m_table[paramIdx]->out[barIdx]->removePlot(m_selectedResultHistoPlots[plotKey]);
+						m_selectedResultHistoPlots.remove(plotKey);
 					}
 				}
 			}

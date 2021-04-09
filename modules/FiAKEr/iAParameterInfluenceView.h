@@ -100,7 +100,7 @@ private:
 	QVector<int> m_sort;
 	int m_sortLastOut;
 	bool m_sortLastDesc;
-	QMap<QPair<size_t, int>, QSharedPointer<iAPlot>> m_selectedResultHistoPlots;
+	QMap<std::tuple<size_t, int, int>, QSharedPointer<iAPlot>> m_selectedResultHistoPlots;
 	QSet<size_t> m_selectedResults;
 	QString m_histogramChartType;
 signals:
