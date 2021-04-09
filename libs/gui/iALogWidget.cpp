@@ -49,7 +49,7 @@ void iALogWidget::logSlot(int lvl, QString const & text)
 	// has been called. This allows the program to exit properly.
 	if (!m_closed && lvl >= m_logLevel)
 	{
-		if (!isVisible())
+		if (!isVisible() && m_openOnNewMessage)
 		{
 			show();
 			emit logVisibilityChanged(true);
@@ -129,7 +129,8 @@ iALogWidget::iALogWidget() :
 	m_logFileName("debug.log"),
 	m_logToFile(false),
 	m_closed(false),
-	m_fileLogError(false)
+	m_fileLogError(false),
+	m_openOnNewMessage(true)
 {
 	setupUi(this);
 	setAttribute(Qt::WA_DeleteOnClose, false);
@@ -177,6 +178,11 @@ void iALogWidget::setLogLevel(iALogLevel lvl)
 	QSignalBlocker sb(cmbboxLogLevel);
 	cmbboxLogLevel->setCurrentIndex(lvl - 1);
 	iALogger::setLogLevel(lvl);
+}
+
+void iALogWidget::setOpenOnNewMessage(bool openOnNewMessage)
+{
+	m_openOnNewMessage = openOnNewMessage;
 }
 
 void iALogWidget::setLogLevelSlot(int selectedIdx)
