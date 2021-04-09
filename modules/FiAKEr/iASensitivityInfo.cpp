@@ -1949,6 +1949,7 @@ void iASensitivityInfo::createGUI()
 	m_gui->m_scatterPlot->setPickedPointFactor(1.5);
 	m_gui->m_scatterPlot->setFixPointsEnabled(true);
 	m_gui->m_scatterPlot->setHighlightColor(SelectedResultPlotColor);
+	m_gui->m_scatterPlot->setHighlightDrawMode(iAScatterPlot::Outline);
 	m_gui->m_lut.reset(new iALookupTable());
 	m_gui->m_lut->setRange(0, m_data->result.size());
 	m_gui->m_lut->allocate(m_data->result.size());
