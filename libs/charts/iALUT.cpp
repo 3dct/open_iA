@@ -30,25 +30,34 @@
 #include <vtkLookupTable.h>
 
 const QStringList colormaps = QStringList()
+// diverging:
 	<< "Diverging blue-gray-red"
 	<< "Diverging red-gray-blue"
+// sequential:
 	<< "Black Body"
 	<< "Extended Black Body"
 	<< "Kindlmann"
 	<< "Kindlmann Extended"
+// sequential (Brewer single hue)
 	<< "Brewer single hue 5c oranges"
 	<< "Brewer single hue 5c grays"
 	<< "Brewer single hue 5c oranges inv"
 	<< "Brewer single hue 5c red inv"
+// qualitative:
 	<< "Brewer qualitative 12c Set3"
 	<< "Brewer qualitative 9c Set1"
 	<< "Brewer qualitative 12c Paired"
+// sequential:
 	<< "Rainbow: Jet"
 	<< "Rainbow: Google Turbo"
 	<< "Matplotlib: Magma"
 	<< "Matplotlib: Inferno"
 	<< "Matplotlib: Plasma"
-	<< "Matplotlib: Viridis";
+	<< "Matplotlib: Viridis"
+// sequential (Brewer multi-hue)
+	<< "Brewer YlOrBr 5c"
+	<< "Brewer YlOrRd 5c"
+	;
 
 const QStringList& iALUT::GetColorMapNames()
 {
@@ -1594,17 +1603,17 @@ int iALUT::BuildLUT( vtkSmartPointer<vtkLookupTable> pLUT, double const * lutRan
 
 	case 12:    // ColorBrewer qualitative 12-class Paired
 		c.setRgb(166, 206, 227); ctf->AddRGBPoint(0.0, c.redF(), c.greenF(), c.blueF());
-		c.setRgb(31, 120, 180); ctf->AddRGBPoint(0.09, c.redF(), c.greenF(), c.blueF());
+		c.setRgb( 31, 120, 180); ctf->AddRGBPoint(0.09, c.redF(), c.greenF(), c.blueF());
 		c.setRgb(178, 223, 138); ctf->AddRGBPoint(0.18, c.redF(), c.greenF(), c.blueF());
-		c.setRgb(51, 160, 44); ctf->AddRGBPoint(0.27, c.redF(), c.greenF(), c.blueF());
+		c.setRgb( 51, 160,  44); ctf->AddRGBPoint(0.27, c.redF(), c.greenF(), c.blueF());
 		c.setRgb(251, 154, 153); ctf->AddRGBPoint(0.36, c.redF(), c.greenF(), c.blueF());
-		c.setRgb(227, 26, 28);  ctf->AddRGBPoint(0.45, c.redF(), c.greenF(), c.blueF());
+		c.setRgb(227,  26,  28); ctf->AddRGBPoint(0.45, c.redF(), c.greenF(), c.blueF());
 		c.setRgb(253, 191, 111); ctf->AddRGBPoint(0.54, c.redF(), c.greenF(), c.blueF());
-		c.setRgb(255, 127, 0); ctf->AddRGBPoint(0.63, c.redF(), c.greenF(), c.blueF());
+		c.setRgb(255, 127,   0); ctf->AddRGBPoint(0.63, c.redF(), c.greenF(), c.blueF());
 		c.setRgb(202, 178, 214); ctf->AddRGBPoint(0.72, c.redF(), c.greenF(), c.blueF());
-		c.setRgb(106, 61, 154); ctf->AddRGBPoint(0.81, c.redF(), c.greenF(), c.blueF());
+		c.setRgb(106,  61, 154); ctf->AddRGBPoint(0.81, c.redF(), c.greenF(), c.blueF());
 		c.setRgb(255, 255, 153); ctf->AddRGBPoint(0.90, c.redF(), c.greenF(), c.blueF());
-		c.setRgb(177, 89, 40); ctf->AddRGBPoint(1.0, c.redF(), c.greenF(), c.blueF());
+		c.setRgb(177,  89,  40); ctf->AddRGBPoint(1.00, c.redF(), c.greenF(), c.blueF());
 		break;
 	case 13:
 		addByteData(ctf, jet_data_byte, 72);
@@ -1623,6 +1632,20 @@ int iALUT::BuildLUT( vtkSmartPointer<vtkLookupTable> pLUT, double const * lutRan
 		break;
 	case 18:
 		addData(ctf, viridis_data, 256);
+		break;
+	case 19: // Brewer YlOrBr 5c
+		c.setRgb(255,255,212); ctf->AddRGBPoint(0.0 , c.redF(), c.greenF(), c.blueF());
+		c.setRgb(254,217,142); ctf->AddRGBPoint(0.25, c.redF(), c.greenF(), c.blueF());
+		c.setRgb(254,153, 41); ctf->AddRGBPoint(0.5 , c.redF(), c.greenF(), c.blueF());
+		c.setRgb(217, 95, 14); ctf->AddRGBPoint(0.75, c.redF(), c.greenF(), c.blueF());
+		c.setRgb(153, 52,  4); ctf->AddRGBPoint(1.0 , c.redF(), c.greenF(), c.blueF());
+		break;
+	case 20: // Brewer YlOrRd 5c
+		c.setRgb(255,255,178); ctf->AddRGBPoint(0.0 , c.redF(), c.greenF(), c.blueF());
+		c.setRgb(254,204, 92); ctf->AddRGBPoint(0.25, c.redF(), c.greenF(), c.blueF());
+		c.setRgb(253,141, 60); ctf->AddRGBPoint(0.5 , c.redF(), c.greenF(), c.blueF());
+		c.setRgb(240, 59, 32); ctf->AddRGBPoint(0.75, c.redF(), c.greenF(), c.blueF());
+		c.setRgb(189,  0, 38); ctf->AddRGBPoint(1.0 , c.redF(), c.greenF(), c.blueF());
 		break;
 	}
 #if VTK_VERSION_NUMBER <= VTK_VERSION_CHECK(8, 0, 0)
