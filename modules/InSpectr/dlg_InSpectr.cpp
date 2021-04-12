@@ -27,7 +27,6 @@
 #include "iADecompositionCalculator.h"
 #include "iAElementConcentrations.h"
 #include "iAElementConstants.h"
-#include "iAElementStatisticsInfo.h"
 #include "iAEnergySpectrumWidget.h"
 #include "iAFunctionalBoxplotQtDrawer.h"
 #include "iAPeriodicTableListener.h"
