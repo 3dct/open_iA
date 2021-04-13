@@ -187,9 +187,9 @@ bool iAFAQSplom::drawPopup( QPainter& painter )
 	double anim = 1.0;
 	if( curInd == iAScatterPlot::NoPointIndex )
 	{
-		if( m_animOut > 0.0 && m_animIn >= 1.0 )
+		if( m_viewData->animOut() > 0.0 && m_viewData->animIn() >= 1.0 )
 		{
-			anim = m_animOut;
+			anim = m_viewData->animOut();
 			curInd = m_activePlot->getPreviousPoint();
 		}
 		else
@@ -199,7 +199,7 @@ bool iAFAQSplom::drawPopup( QPainter& painter )
 	}
 	else if (m_activePlot->getPreviousIndex() == iAScatterPlot::NoPointIndex)
 	{
-		anim = m_animIn;
+		anim = m_viewData->animIn();
 	}
 
 	painter.save();
@@ -400,7 +400,7 @@ void iAFAQSplom::fixPoint()
 
 	m_removeFixedAction->setVisible( true );
 	m_fixedPointInd = m_activePlot->getCurrentPoint();
-	addHighlightedPoint( m_fixedPointInd );
+	m_viewData->addHighlightedPoint( m_fixedPointInd );
 	updatePreviewPixmap();
 }
 
@@ -455,7 +455,7 @@ void iAFAQSplom::removeFixedPoint()
 {
 	if (m_fixedPointInd != iAScatterPlot::NoPointIndex)
 	{
-		removeHighlightedPoint(m_fixedPointInd);
+		m_viewData->removeHighlightedPoint(m_fixedPointInd);
 	}
 	m_fixedPointInd = iAScatterPlot::NoPointIndex;
 	m_removeFixedAction->setVisible( false );

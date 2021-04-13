@@ -2298,7 +2298,7 @@ void iAFiAKErController::showSelectionInSPM()
 		}
 		spmIDStart += m_data->result[resultID].fiberCount;
 	}
-	m_spm->setSelection(spmSelection);
+	m_spm->viewData()->setSelection(spmSelection);
 }
 
 void iAFiAKErController::selection3DChanged()

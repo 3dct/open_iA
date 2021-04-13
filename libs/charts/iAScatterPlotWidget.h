@@ -26,8 +26,8 @@
 
 #include "iAcharts_export.h"
 
+class iAScatterPlotViewData;
 class iASPLOMData;
-class iAScatterPlotStandaloneHandler;
 
 //! Widget for using a single scatter plot (outside of a SPLOM)
 class iAcharts_API iAScatterPlotWidget : public iAQGLWidget
@@ -39,11 +39,10 @@ public:
 	int PaddingLeft();
 	static const int TextPadding;
 	iAScatterPlotWidget(QSharedPointer<iASPLOMData> data);
-	std::vector<size_t> & GetSelection();
-	void SetSelection(std::vector<size_t> const & selection);
 	void SetPlotColor(QColor const & c, double rangeMin, double rangeMax);
 	void SetSelectionColor(QColor const & c);
 	void SetSelectionMode(iAScatterPlot::SelectionMode mode);
+	QSharedPointer<iAScatterPlotViewData> viewData();
 protected:
 	void paintEvent(QPaintEvent * event) override;
 	void resizeEvent(QResizeEvent* event) override;
@@ -57,6 +56,6 @@ public:
 private:
 	void adjustScatterPlotSize();
 	QSharedPointer<iASPLOMData> m_data;
-	QSharedPointer<iAScatterPlotStandaloneHandler> m_scatterPlotHandler;
+	QSharedPointer<iAScatterPlotViewData> m_viewData;
 	int m_fontHeight, m_maxTickLabelWidth;
 };

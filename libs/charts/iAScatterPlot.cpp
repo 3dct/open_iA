@@ -23,7 +23,7 @@
 #include "iALog.h"
 #include "iALookupTable.h"
 #include "iAMathUtility.h"
-#include "iAScatterPlotSelectionHandler.h"
+#include "iAScatterPlotViewData.h"
 #include "iASPLOMData.h"
 #ifdef CHART_OPENGL
 #include "iAQGLWidget.h"
@@ -74,7 +74,7 @@ iAScatterPlot::Settings::Settings() :
 
 size_t iAScatterPlot::NoPointIndex = std::numeric_limits<size_t>::max();
 
-iAScatterPlot::iAScatterPlot(iAScatterPlotSelectionHandler * splom, iAChartParentWidget* parent,
+iAScatterPlot::iAScatterPlot(iAScatterPlotViewData* viewData, iAChartParentWidget* parent,
 	int numTicks /*= 5*/, bool isMaximizedPlot /*= false */):
 	QObject(parent),
 	settings(),
@@ -83,7 +83,7 @@ iAScatterPlot::iAScatterPlot(iAScatterPlotSelectionHandler * splom, iAChartParen
 	m_pointsBuffer(nullptr),
 	m_pointsOutdated(true),
 #endif
-	m_splom( splom ),
+	m_viewData(viewData),
 	m_colInd(0),
 	m_lut( new iALookupTable() ),
 	m_scale( 1.0 ),
@@ -234,8 +234,10 @@ void iAScatterPlot::setCurrentPoint( size_t index )
 	if ( m_curInd != index )
 	{
 		m_prevInd = m_curInd;
-		if ( m_prevInd != NoPointIndex )
+		if (m_prevInd != NoPointIndex)
+		{
 			m_prevPtInd = m_prevInd;
+		}
 		m_curInd = index;
 	}
 }
@@ -438,7 +440,7 @@ int iAScatterPlot::p2binx( double p ) const
 double iAScatterPlot::p2tx( double pval ) const
 {
 	double norm = mapToNorm(m_prX, pval);
-	if (m_splomData->isInverted(m_paramIndices[0]))
+	if (m_viewData->isInverted(m_paramIndices[0]))
 	{
 		norm = 1.0 - norm;
 	}
@@ -449,7 +451,7 @@ double iAScatterPlot::p2x( double pval ) const
 {
 	double rangeDst[2] = { m_locRect.left(), m_locRect.right() };
 	double pixelX = mapValue( m_prX, rangeDst, pval);
-	if (m_splomData->isInverted(m_paramIndices[0]))
+	if (m_viewData->isInverted(m_paramIndices[0]))
 	{
 		pixelX = invertValue(rangeDst, pixelX);
 	}
@@ -462,7 +464,7 @@ double iAScatterPlot::x2p( double x ) const
 	//assert(rangeSrc[0] < rangeSrc[1]);
 	double revTransX = clamp(rangeSrc[0]<rangeSrc[1]?rangeSrc[0]:rangeSrc[1],
 		rangeSrc[0]<rangeSrc[1] ? rangeSrc[1] : rangeSrc[0], revertTransformX(x));
-	if (m_splomData->isInverted(m_paramIndices[0]))
+	if (m_viewData->isInverted(m_paramIndices[0]))
 	{
 		revTransX = invertValue(rangeSrc, revTransX);
 	}
@@ -479,7 +481,7 @@ int iAScatterPlot::p2biny( double p ) const
 double iAScatterPlot::p2ty( double pval ) const
 {
 	double norm = mapToNorm( m_prY, pval );
-	if (!m_splomData->isInverted(m_paramIndices[1])) // y needs to be inverted normally
+	if (!m_viewData->isInverted(m_paramIndices[1]))  // y needs to be inverted normally
 	{
 		norm = 1.0 - norm;
 	}
@@ -490,7 +492,7 @@ double iAScatterPlot::p2y( double pval ) const
 {
 	double rangeDst[2] = { m_locRect.bottom(), m_locRect.top() };
 	double pixelY = mapValue(m_prY, rangeDst, pval);
-	if (m_splomData->isInverted(m_paramIndices[1]))
+	if (m_viewData->isInverted(m_paramIndices[1]))
 	{
 		pixelY = invertValue(rangeDst, pixelY);
 	}
@@ -503,7 +505,7 @@ double iAScatterPlot::y2p(double y) const
 	//assert(rangeSrc[0] > rangeSrc[1]);
 	double revTransY = clamp(rangeSrc[0] < rangeSrc[1] ? rangeSrc[0] : rangeSrc[1],
 		rangeSrc[0] < rangeSrc[1] ? rangeSrc[1] : rangeSrc[0], revertTransformY(y));
-	if (m_splomData->isInverted(m_paramIndices[1]))
+	if (m_viewData->isInverted(m_paramIndices[1]))
 	{
 		revTransY = invertValue(rangeSrc, revTransY);
 	}
@@ -722,7 +724,7 @@ QPointF iAScatterPlot::getPositionFromPointIndex( size_t idx ) const
 void iAScatterPlot::updateSelectedPoints(bool append, bool remove)
 {
 	bool wasModified = false;
-	auto & selInds = m_splom->getSelection();
+	auto& selInds = m_viewData->selection();
 	if (!append && !remove)
 	{
 		wasModified = selInds.size() > 0;
@@ -836,13 +838,15 @@ void iAScatterPlot::drawPoints( QPainter &painter )
 		return;
 	}
 	painter.save();
+	double ptRad = getPointRadius();
+	double ptSize = 2 * ptRad;
+	auto const& p0d = m_splomData->paramData(m_paramIndices[0]);
+	auto const& p1d = m_splomData->paramData(m_paramIndices[1]);
 #ifdef CHART_OPENGL
 	// all points
 	int pwidth = m_parentWidget->width();
 	int pheight = m_parentWidget->height();
 
-	double ptRad = getPointRadius();
-	double ptSize = 2 * ptRad;
 	painter.beginNativePainting();
 	int y = pheight - m_globRect.bottom() - 1; //Qt and OpenGL have inverted Y axes
 
@@ -879,7 +883,7 @@ void iAScatterPlot::drawPoints( QPainter &painter )
 	glColor3f( settings.selectionColor.red() / 255.0, settings.selectionColor.green() / 255.0, settings.selectionColor.blue() / 255.0 );
 
 	// draw selection:
-	auto const & selInds = m_splom->getFilteredSelection();
+	auto const& selInds = m_viewData->filteredSelection(m_splomData);
 	std::vector<uint> uintSelInds;
 	for (size_t idx : selInds)
 	{
@@ -893,7 +897,7 @@ void iAScatterPlot::drawPoints( QPainter &painter )
 	m_pointsBuffer->release();
 
 	// draw current point
-	double anim = m_splom->getAnimIn();
+	double anim = m_viewData->animIn();
 	if (m_curInd != NoPointIndex)
 	{
 		double pPM = settings.pickedPointMagnification;
@@ -906,15 +910,14 @@ void iAScatterPlot::drawPoints( QPainter &painter )
 			double rgba[4]; m_lut->getColor(val, rgba);
 			glColor4f(rgba[0], rgba[1], rgba[2], linterp(rgba[3], 1.0, anim));
 		}
-		double tx = p2tx(m_splomData->paramData(m_paramIndices[0])[m_curInd]);
-		double ty = p2ty(m_splomData->paramData(m_paramIndices[1])[m_curInd]);
+		double tx = p2tx(p0d[m_curInd]);
+		double ty = p2ty(p1d[m_curInd]);
 		glVertex3f(tx, ty, 0.0f);
 		glEnd();
 	}
 
 	// draw highlighted points
-	auto const & highlightedPoints = m_splom->getHighlightedPoints();
-	for(auto ind: highlightedPoints)
+	for (auto ind : m_viewData->highlightedPoints())
 	{
 		double curPtSize = ptSize * settings.pickedPointMagnification;
 		glPointSize(curPtSize);
@@ -925,14 +928,14 @@ void iAScatterPlot::drawPoints( QPainter &painter )
 			double rgba[4]; m_lut->getColor(val, rgba);
 			glColor4f(rgba[0], rgba[1], rgba[2], 1.0);
 		}
-		double tx = p2tx(m_splomData->paramData(m_paramIndices[0])[ind]);
-		double ty = p2ty(m_splomData->paramData(m_paramIndices[1])[ind]);
+		double tx = p2tx(p0d[ind]);
+		double ty = p2ty(p1d[ind]);
 		glVertex3f(tx, ty, 0.0f);
 		glEnd();
 	}
 
 	// draw previous point
-	anim = m_splom->getAnimOut();
+	anim = m_viewData->animOut();
 	if (m_prevPtInd != NoPointIndex && anim > 0.0)
 	{
 		double pPM = settings.pickedPointMagnification;
@@ -945,8 +948,8 @@ void iAScatterPlot::drawPoints( QPainter &painter )
 			double rgba[4]; m_lut->getColor(val, rgba);
 			glColor4f(rgba[0], rgba[1], rgba[2], linterp(rgba[3], 1.0, anim));
 		}
-		double tx = p2tx(m_splomData->paramData(m_paramIndices[0])[m_prevPtInd]);
-		double ty = p2ty(m_splomData->paramData(m_paramIndices[1])[m_prevPtInd]);
+		double tx = p2tx(p0d[m_prevPtInd]);
+		double ty = p2ty(p1d[m_prevPtInd]);
 		glVertex3f(tx, ty, 0.0f);
 		glEnd();
 	}
@@ -958,6 +961,30 @@ void iAScatterPlot::drawPoints( QPainter &painter )
 	{
 		return;
 	}
+	// Draw current point
+	double anim = m_viewData->animIn();
+	if (m_curInd != NoPointIndex)
+	{
+		double pPM = settings.pickedPointMagnification;
+		double curPtSize = ptSize * linterp(1.0, pPM, anim);
+		double val = m_splomData->paramData(m_colInd)[m_curInd];
+		QColor color = m_lut->getQColor(val);
+		color.setAlphaF(linterp(color.alphaF(), 1.0, anim));
+		drawPoint(painter, p0d[m_curInd], p1d[m_curInd], curPtSize, color);
+	}
+	// Draw previous point
+	anim = m_viewData->animOut();
+	if (m_prevPtInd != NoPointIndex && anim > 0.0)
+	{
+		double pPM = settings.pickedPointMagnification;
+		double curPtSize = ptSize * linterp(1.0, pPM, anim);
+		double val = m_splomData->paramData(m_colInd)[m_prevPtInd];
+		QColor color = m_lut->getQColor(val);
+		color.setAlphaF(linterp(color.alphaF(), 1.0, anim));
+		drawPoint(painter, p0d[m_prevPtInd], p1d[m_prevPtInd], curPtSize, color);
+	}
+
+	// Draw points:
 	m_curVisiblePts = 0;
 	painter.setPen(Qt::NoPen);
 	for (size_t i = 0; i < m_splomData->numPoints(); ++i)
@@ -967,23 +994,14 @@ void iAScatterPlot::drawPoints( QPainter &painter )
 			continue;
 		}
 		QColor color(m_lut->getQColor(m_splomData->paramData(m_colInd)[i]));
-		drawPoint(painter, m_splomData->paramData(m_paramIndices[0])[i], m_splomData->paramData(m_paramIndices[1])[i], getPointRadius(), color);
+		drawPoint(painter, p0d[i], p1d[i], getPointRadius(), color);
 		++m_curVisiblePts;
 	}
-	auto const& selInds = m_splom->getFilteredSelection();
+	auto const& selInds = m_viewData->filteredSelection(m_splomData);
 	for (size_t idx : selInds)
 	{
-		drawPoint(painter, m_splomData->paramData(m_paramIndices[0])[idx], m_splomData->paramData(m_paramIndices[1])[idx],
-			getPointRadius(),
-			settings.selectionColor);
+		drawPoint(painter, p0d[idx], p1d[idx], getPointRadius(), settings.selectionColor);
 	}
-	/*
-	// not sure what highlighted points are, leave them out for the moment...
-	auto const& highlightedPoints = m_splom->getHighlightedPoints();
-	for (auto ind : highlightedPoints)
-	{
-	}
-	*/
 #endif
 	painter.restore();
 }

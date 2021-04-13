@@ -23,7 +23,7 @@
 #include "iALog.h"
 #include "iALookupTable.h"
 #include "iAScatterPlot.h"
-#include "iAScatterPlotSelectionHandler.h"
+#include "iAScatterPlotViewData.h"
 #include "iASPLOMData.h"
 
 #include <vtkLookupTable.h>
@@ -32,48 +32,6 @@
 #include <QMouseEvent>
 #include <QPainter>
 
-iAScatterPlotSelectionHandler::~iAScatterPlotSelectionHandler()
-{}
-
-class iAScatterPlotStandaloneHandler : public iAScatterPlotSelectionHandler
-{
-public:
-	SelectionType & getSelection() override
-	{
-		return m_selection;
-	}
-	SelectionType const & getSelection() const override
-	{
-		return m_selection;
-	}
-	SelectionType const & getFilteredSelection() const override
-	{
-		return m_selection;
-	}
-	void setSelection(SelectionType const & selection)
-	{
-		m_selection = selection;
-	}
-	SelectionType const & getHighlightedPoints() const override
-	{
-		return m_highlight;
-	}
-	int getVisibleParametersCount() const override
-	{
-		return 2;
-	}
-	double getAnimIn() const override
-	{
-		return 1.0;
-	}
-	double getAnimOut() const override
-	{
-		return 0.0;
-	}
-private:
-	SelectionType m_highlight;
-	SelectionType m_selection;
-};
 
 namespace
 {
@@ -87,13 +45,13 @@ const int iAScatterPlotWidget::TextPadding = 5;
 
 iAScatterPlotWidget::iAScatterPlotWidget(QSharedPointer<iASPLOMData> data) :
 	m_data(data),
-	m_scatterPlotHandler(new iAScatterPlotStandaloneHandler()),
+	m_viewData(new iAScatterPlotViewData()),
 	m_fontHeight(0),
 	m_maxTickLabelWidth(0)
 {
 	setMouseTracking(true);
 	setFocusPolicy(Qt::StrongFocus);
-	m_scatterplot = new iAScatterPlot(m_scatterPlotHandler.data(), this);
+	m_scatterplot = new iAScatterPlot(m_viewData.data(), this);
 	m_scatterplot->settings.selectionEnabled = true;
 	data->updateRanges();
 	if (data->numPoints() > std::numeric_limits<int>::max())
@@ -103,6 +61,8 @@ iAScatterPlotWidget::iAScatterPlotWidget(QSharedPointer<iASPLOMData> data) :
 			.arg(std::numeric_limits<int>::max()));
 	}
 	m_scatterplot->setData(0, 1, data);
+	connect(m_viewData.data(), &iAScatterPlotViewData::updateRequired, this, QOverload<>::of(&iAChartParentWidget::update));
+	//connect(m_scatterplot, &iAScatterPlot::currentPointModified, this, &iAScatterPlotWidget::currentPointUpdated);
 }
 
 void iAScatterPlotWidget::SetPlotColor(QColor const & c, double rangeMin, double rangeMax)
@@ -257,16 +217,6 @@ void iAScatterPlotWidget::keyPressEvent(QKeyEvent * event)
 	}
 }
 
-std::vector<size_t> & iAScatterPlotWidget::GetSelection()
-{
-	return m_scatterPlotHandler->getSelection();
-}
-
-void iAScatterPlotWidget::SetSelection(std::vector<size_t> const & selection)
-{
-	m_scatterPlotHandler->setSelection(selection);
-}
-
 void iAScatterPlotWidget::SetSelectionColor(QColor const & c)
 {
 	m_scatterplot->settings.selectionColor = c;
@@ -275,4 +225,9 @@ void iAScatterPlotWidget::SetSelectionColor(QColor const & c)
 void iAScatterPlotWidget::SetSelectionMode(iAScatterPlot::SelectionMode mode)
 {
 	m_scatterplot->settings.selectionMode = mode;
+}
+
+QSharedPointer<iAScatterPlotViewData> iAScatterPlotWidget::viewData()
+{
+	return m_viewData;
 }
