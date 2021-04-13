@@ -32,11 +32,10 @@ using iAChartParentWidget = QWidget;
 #include "iAcharts_export.h"
 
 #include <QList>
-#include <QScopedPointer>
-#include <QWidget>
+#include <QObject>
 
 class iALookupTable;
-class iAScatterPlotSelectionHandler;
+class iAScatterPlotViewData;
 class iASPLOMData;
 
 class QTableWidget;
@@ -51,7 +50,6 @@ class vtkLookupTable;
 class iAcharts_API iAScatterPlot : public QObject
 {
 	Q_OBJECT
-	// Methods
 public:
 	static size_t NoPointIndex;
 
@@ -65,8 +63,12 @@ public:
 		Enlarged,
 		Outline
 	};
-	//!  Constructor: requires a parent SPLOM widget
-	iAScatterPlot(iAScatterPlotSelectionHandler * splom, iAChartParentWidget* parent, int numTicks = 5, bool isMaximizedPlot = false);
+	//! Constructor, initializes some core members
+	//! @param spViewData data on the current viewing configuration
+	//! @param parent the parent widget
+	//! @param numTicks the number of ticks in x and y direction
+	//! @param isMaximizedPlot whether this is a maximized plot
+	iAScatterPlot(iAScatterPlotViewData * spViewData, iAChartParentWidget* parent, int numTicks = 5, bool isMaximizedPlot = false);
 	~iAScatterPlot();
 
 	void setData(size_t x, size_t y, QSharedPointer<iASPLOMData> &splomData ); //!< Set data to the scatter plot using indices of X and Y parameters and the raw SPLOM data
@@ -199,7 +201,7 @@ protected:
 	iAQGLBuffer * m_pointsBuffer;                                    //!< OpenGL buffer used for points VBO
 	bool m_pointsOutdated;                                           //!< indicates whether we need to fill the points buffer
 #endif
-	iAScatterPlotSelectionHandler * m_splom;                         //!< selection/highlight/settings handler (if part of a SPLOM, the SPLOM-parent)
+	iAScatterPlotViewData* m_viewData;                               //!< selection/highlight/settings handler (if part of a SPLOM, the SPLOM-parent)
 	QRect m_globRect;                                                //!< plot's rectangle
 	QRectF m_locRect;                                                //!< plot's local drawing rectangle
 	QSharedPointer<iASPLOMData> m_splomData;                         //!< pointer to SPLOM-parent's data

@@ -36,7 +36,7 @@ class iAcharts_API iASPLOMData : public QObject
 	Q_OBJECT
 public:
 	iASPLOMData();
-	void clear();                                     //!< Free all the data.
+	void setParameterNames(std::vector<QString> const& paramNmes, size_t rowReserve = 0);  //! Set the parameter names (clears all columns) with an optional row "size" (i.e. how many rows are planned to be there, i.e. used in vector::reserve)
 	std::vector<std::vector<double>> & data();        //!< Get the table values
 	std::vector<QString> & paramNames();              //!< Get the names of the columns/parameters
 	const std::vector<std::vector<double>> & data() const; //!< Get constant ref. to the lists containing raw data points.
@@ -45,9 +45,6 @@ public:
 	size_t paramIndex(QString const & paramName) const; //!< Get the index of a specified parameter name.
 	size_t numParams() const;                         //!< Get number of data point parameters.
 	size_t numPoints() const;                         //!< Get number of data points.
-	bool isInverted(size_t paramIndex);               //!< Get whether the axis of a parameter should be inverted in the scatter plots.
-	void setInverted(size_t paramIndex, bool isInverted);//!< Set whether the axis of a parameter should be inverted in the scatter plots.
-	void setParameterNames(std::vector<QString> const & names, size_t rowReserve = 0); //! Set the parameter names (clears all columns) with an optional row "size" (i.e. how many rows are planned to be there, i.e. used in vector::reserve)
 	void addParameter(QString& name);                 //!< Add an additional column
 	bool matchesFilter(size_t ind) const;             //!< Returns true if point with given index matches current filter
 	void addFilter(size_t paramIndex, double value);  //!< Adds a filter on the given column (index), it needs to match the given value; multiple filters are linked via OR
@@ -64,7 +61,6 @@ protected:
 	std::vector<QString> m_paramNames;                //!< list of parameter names
 	std::vector<std::vector<double>> m_dataPoints;    //!< lists containing data points
 	std::vector<std::vector<double> > m_ranges;       //!< ranges of all parameters
-	std::vector<char> m_inverted;                     //!< whether to invert a feature
 private:
 	void updateRangeInternal(size_t paramIndex);      //!< Update internal range data for parameter paramIndex
 	std::vector<std::pair<size_t, double> > m_filters;//!< collection of filters: each column index/value pair is linked via OR

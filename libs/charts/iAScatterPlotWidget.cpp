@@ -23,7 +23,7 @@
 #include "iALog.h"
 #include "iALookupTable.h"
 #include "iAScatterPlot.h"
-#include "iAScatterPlotSelectionHandler.h"
+#include "iAScatterPlotViewData.h"
 #include "iASPLOMData.h"
 
 #include <vtkLookupTable.h>
@@ -37,73 +37,6 @@
 // for popup / tooltip:
 #include <QAbstractTextDocumentLayout>
 #include <QTextDocument>
-
-iAScatterPlotSelectionHandler::~iAScatterPlotSelectionHandler()
-{}
-
-class iAScatterPlotStandaloneHandler : public iAScatterPlotSelectionHandler
-{
-public:
-	SelectionType & getSelection() override
-	{
-		return m_selection;
-	}
-	SelectionType const & getSelection() const override
-	{
-		return m_selection;
-	}
-	SelectionType const & getFilteredSelection() const override
-	{
-		return m_selection;
-	}
-	void setSelection(SelectionType const & selection)
-	{
-		m_selection = selection;
-	}
-	SelectionType const & getHighlightedPoints() const override
-	{
-		return m_highlight;
-	}
-	void clearHighlighted()
-	{
-		m_highlight.clear();
-	}
-	void addHighlightedPoint(size_t idx)
-	{
-		m_highlight.push_back(idx);
-	}
-	bool isHighlighted(size_t idx) const
-	{
-		return std::find(m_highlight.begin(), m_highlight.end(), idx) != m_highlight.end();
-	}
-	void removeHighlightedPoint(size_t idx)
-	{
-		m_highlight.erase(std::find(m_highlight.begin(), m_highlight.end(), idx));
-	}
-	int getVisibleParametersCount() const override
-	{
-		return 2;
-	}
-	double getAnimIn() const override
-	{
-		return 1.0;
-	}
-	double getAnimOut() const override
-	{
-		return 0.0;
-	}
-	void addLine(SelectionType const& linePoints, QColor const & color)
-	{
-		m_lines.push_back(std::make_pair(linePoints, color));
-	}
-	void clearLines()
-	{
-		m_lines.clear();
-	}
-private:
-	SelectionType m_highlight;
-	SelectionType m_selection;
-};
 
 class iADefaultScatterPlotPointInfo : public iAScatterPlotPointInfo
 {
@@ -134,7 +67,7 @@ const int iAScatterPlotWidget::TextPadding = 5;
 
 iAScatterPlotWidget::iAScatterPlotWidget(QSharedPointer<iASPLOMData> data, bool columnSelection) :
 	m_data(data),
-	m_scatterPlotHandler(new iAScatterPlotStandaloneHandler()),
+	m_viewData(new iAScatterPlotViewData()),
 	m_fontHeight(0),
 	m_maxTickLabelWidth(0),
 	m_fixPointsEnabled(false),
@@ -143,7 +76,7 @@ iAScatterPlotWidget::iAScatterPlotWidget(QSharedPointer<iASPLOMData> data, bool 
 {
 	setMouseTracking(true);
 	setFocusPolicy(Qt::StrongFocus);
-	m_scatterplot = new iAScatterPlot(m_scatterPlotHandler.data(), this);
+	m_scatterplot = new iAScatterPlot(m_viewData.data(), this);
 	m_scatterplot->settings.selectionEnabled = true;
 	data->updateRanges();
 	if (data->numPoints() > std::numeric_limits<int>::max())
@@ -179,12 +112,19 @@ iAScatterPlotWidget::iAScatterPlotWidget(QSharedPointer<iASPLOMData> data, bool 
 		}
 	}
 	m_scatterplot->setData(0, 1, data);
+	connect(m_viewData.data(), &iAScatterPlotViewData::updateRequired, this, QOverload<>::of(&iAChartParentWidget::update));
+	//connect(m_scatterplot, &iAScatterPlot::currentPointModified, this, &iAScatterPlotWidget::currentPointUpdated);
 	connect(m_scatterplot, &iAScatterPlot::selectionModified, this, &iAScatterPlotWidget::selectionModified);
 }
 
 void iAScatterPlotWidget::setSelectionEnabled(bool enabled)
 {
 	m_scatterplot->settings.selectionEnabled = enabled;
+}
+
+QSharedPointer<iAScatterPlotViewData> iAScatterPlotWidget::viewData()
+{
+	return m_viewData;
 }
 
 void iAScatterPlotWidget::xParamChanged()
@@ -403,25 +343,25 @@ void iAScatterPlotWidget::toggleHighlightedPoint(size_t curPoint, Qt::KeyboardMo
 {
 	if (!modifiers.testFlag(Qt::ControlModifier))
 	{  // if Ctrl key not pressed, deselect all highlighted points on any click
-		for (auto idx : m_scatterPlotHandler->getHighlightedPoints())
+		for (auto idx : m_viewData->highlightedPoints())
 		{
 			emit pointHighlighted(idx, false);
 		}
-		m_scatterPlotHandler->clearHighlighted();
+		m_viewData->clearHighlightedPoints();
 	}
 	if (curPoint == iAScatterPlot::NoPointIndex)
 	{
 		return;
 	}
-	auto wasHighlighted = m_scatterPlotHandler->isHighlighted(curPoint);
+	auto wasHighlighted = m_viewData->isPointHighlighted(curPoint);
 	if (modifiers.testFlag(Qt::ControlModifier) && wasHighlighted)
 	{  // remove just the highlight of current point if Ctrl _is_ pressed
-		m_scatterPlotHandler->removeHighlightedPoint(curPoint);
+		m_viewData->removeHighlightedPoint(curPoint);
 		emit pointHighlighted(curPoint, false);
 	}
 	else if (!wasHighlighted)
 	{  // if current point was not highlighted before, add it
-		m_scatterPlotHandler->addHighlightedPoint(curPoint);
+		m_viewData->addHighlightedPoint(curPoint);
 		emit pointHighlighted(curPoint, true);
 	}
 	emit highlightChanged();
@@ -472,17 +412,6 @@ void iAScatterPlotWidget::contextMenuEvent(QContextMenuEvent* event)
 		m_contextMenu->exec(event->globalPos());
 	}
 }
-
-std::vector<size_t> & iAScatterPlotWidget::selection()
-{
-	return m_scatterPlotHandler->getSelection();
-}
-
-void iAScatterPlotWidget::setSelection(std::vector<size_t> const & selection)
-{
-	m_scatterPlotHandler->setSelection(selection);
-}
-
 void iAScatterPlotWidget::setSelectionColor(QColor const & c)
 {
 	m_scatterplot->settings.selectionColor = c;
@@ -513,17 +442,3 @@ void iAScatterPlotWidget::setPointInfo(QSharedPointer<iAScatterPlotPointInfo> po
 	m_pointInfo = pointInfo;
 }
 
-std::vector<size_t> const& iAScatterPlotWidget::highlightedPoints() const
-{
-	return m_scatterPlotHandler->getHighlightedPoints();
-}
-
-void iAScatterPlotWidget::addLine(std::vector<size_t> linePoints, QColor const& color)
-{
-	return m_scatterPlotHandler->addLine(linePoints, color);
-}
-
-void iAScatterPlotWidget::clearLines()
-{
-	return m_scatterPlotHandler->clearLines();
-}

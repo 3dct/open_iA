@@ -24,6 +24,7 @@
 #include <iASPLOMData.h>
 #include <qcustomplot.h>
 #include <iAScatterPlotWidget.h>
+#include <iAScatterPlotViewData.h>
 
 #include <iAFileUtils.h>
 #include <iAColorTheme.h>
@@ -1615,7 +1616,7 @@ public:
 		std::set<int> hiGrp;
 		std::set<std::pair<int, int> > hiGrpParam;
 		std::set<int> hiGrpAll;
-		auto const& hp = m_scatterPlot->highlightedPoints();
+		auto const& hp = m_scatterPlot->viewData()->highlightedPoints();
 		for (auto ptIdx : hp)
 		{
 			int groupID = ptIdx / starGroupSize;
@@ -1689,7 +1690,7 @@ public:
 		m_colorMapWidget->setColorMap(m_scatterPlot->lookupTable());
 		m_colorMapWidget->update();
 
-		m_scatterPlot->clearLines();
+		m_scatterPlot->viewData()->clearLines();
 		// we want to build a separate line for each parameter (i.e. in each branch "direction" of the STAR
 		// easiest way is to collect all parameter values in a group (done in the vector of size_t/double pairs),
 		// then sort this by the parameter values (since we don't know else how many are smaller or larger than
@@ -1719,7 +1720,7 @@ public:
 				{
 					linePoints[i] = linePtParVal[i].first;
 				}
-				m_scatterPlot->addLine(linePoints, ParamColor);
+				m_scatterPlot->viewData()->addLine(linePoints, ParamColor);
 			}
 		}
 	}
@@ -2241,5 +2242,5 @@ std::vector<size_t> iASensitivityInfo::selectedResults() const
 	{
 		return std::vector<size_t>();
 	}
-	return m_gui->m_scatterPlot->highlightedPoints();
+	return m_gui->m_scatterPlot->viewData()->highlightedPoints();
 }

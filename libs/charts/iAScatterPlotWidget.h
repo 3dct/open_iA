@@ -33,8 +33,8 @@ using iAChartParentWidget = QWidget;
 
 #include "iAcharts_export.h"
 
+class iAScatterPlotViewData;
 class iASPLOMData;
-class iAScatterPlotStandaloneHandler;
 
 class QMenu;
 
@@ -66,17 +66,12 @@ public:
 	void setPointRadius(double pointRadius);
 	void setFixPointsEnabled(bool enabled);
 	void setPointInfo(QSharedPointer<iAScatterPlotPointInfo> pointInfo);
-	//! proxy methods for selection handler:
-	std::vector<size_t>& selection();
-	void setSelection(std::vector<size_t> const& selection);
-	std::vector<size_t> const& highlightedPoints() const;
-	void addLine(std::vector<size_t> linePoints, QColor const& color);
-	void clearLines();
 	void toggleHighlightedPoint(size_t curPoint, Qt::KeyboardModifiers modifiers);
 	void setHighlightColor(QColor hltCol);
 	void setHighlightDrawMode(iAScatterPlot::HighlightDrawMode drawMode);
 	void setSelectionEnabled(bool enabled);
 
+	QSharedPointer<iAScatterPlotViewData> viewData();
 protected:
 #ifdef CHART_OPENGL
 	void paintGL() override;
@@ -96,7 +91,7 @@ private:
 
 	iAScatterPlot* m_scatterplot;
 	QSharedPointer<iASPLOMData> m_data;
-	QSharedPointer<iAScatterPlotStandaloneHandler> m_scatterPlotHandler;
+	QSharedPointer<iAScatterPlotViewData> m_viewData;
 	int m_fontHeight, m_maxTickLabelWidth;
 	bool m_fixPointsEnabled;
 	QSharedPointer<iAScatterPlotPointInfo> m_pointInfo;
