@@ -261,7 +261,7 @@ private:
 	//! factors for the diameter of the current selection and of the context (< 1 -> shrink, > 1 extend, = 1.0 no change)
 	double m_diameterFactor, m_contextDiameterFactor;
 	//! column index for the columns of the result list:
-	int m_nameActionColumn, m_previewColumn, m_stackedBarColumn, m_histogramColumn;
+	int m_nameActionColumn, m_previewColumn, m_histogramColumn, m_stackedBarColumn;
 
 	QSharedPointer<iA3DCylinderObjectVis> m_nearestReferenceVis;
 

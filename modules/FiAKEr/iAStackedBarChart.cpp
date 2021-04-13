@@ -189,8 +189,8 @@ iAStackedBarChart::iAStackedBarChart(iAColorTheme const* theme, QGridLayout* gL,
 	m_theme(theme),
 	m_contextMenu(header ? new QMenu(this) : nullptr),
 	m_header(header),
-	m_last(last),
 	m_stack(true),
+	m_last(last),
 	m_resizeBar(NoBar),
 	m_resizeStartX(0),
 	m_resizeWidth(0),
@@ -198,10 +198,10 @@ iAStackedBarChart::iAStackedBarChart(iAColorTheme const* theme, QGridLayout* gL,
 	m_overallMaxValue(0),
 	m_selectedBar(-1),
 	m_leftMargin(0),
-	m_barsWidget(new iABarsWidget(this)),
 	m_gL(gL),
 	m_row(row),
-	m_col(col)
+	m_col(col),
+	m_barsWidget(new iABarsWidget(this))
 {
 	setMouseTracking(true);
 	setContextMenuPolicy(Qt::DefaultContextMenu);
