@@ -34,7 +34,7 @@ iAVRColorLegend::iAVRColorLegend(vtkRenderer* renderer) :m_renderer(renderer)
 {
 	titleTextSource = vtkSmartPointer<vtkTextActor3D>::New();
 	textSource = vtkSmartPointer<vtkTextActor3D>::New();
-	m_colorLegend = vtkSmartPointer<vtkActor>::New();
+	m_colorBarLegend = vtkSmartPointer<vtkActor>::New();
 
 	//Initialize LUT for min/max = 0
 	createLut(0, 0, 1);
@@ -151,12 +151,13 @@ void iAVRColorLegend::calculateColorBarLegend(double physicalScale)
 	mapper->SetInputConnection(colorBarPlane->GetOutputPort());
 	mapper->SetScalarModeToUseCellData();
 	mapper->Update();
-
-	m_colorLegend = vtkSmartPointer<vtkActor>::New();
-	m_colorLegend->SetMapper(mapper);
-	m_colorLegend->GetProperty()->EdgeVisibilityOn();
-
-	m_colorLegend->GetProperty()->SetLineWidth(3);
+	
+	m_colorBarLegend = vtkSmartPointer<vtkActor>::New();
+	//m_colorBarLegend = vtkSmartPointer<vtkFollower>::New();
+	//m_colorBarLegend->SetCamera(m_renderer->GetActiveCamera());
+	m_colorBarLegend->SetMapper(mapper);
+	m_colorBarLegend->GetProperty()->EdgeVisibilityOn();
+	m_colorBarLegend->GetProperty()->SetLineWidth(3);
 
 	//title
 	titleTextSource = vtkSmartPointer<vtkTextActor3D>::New();
@@ -174,7 +175,7 @@ void iAVRColorLegend::calculateColorBarLegend(double physicalScale)
 	textSource->GetTextProperty()->SetFontSize(19);
 
 	double actorBounds[6];
-	m_colorLegend->GetBounds(actorBounds);
+	m_colorBarLegend->GetBounds(actorBounds);
 
 	initialTextOffset = physicalScale * 0.001;// 0.000021;
 
@@ -198,7 +199,7 @@ void iAVRColorLegend::showColorBarLegend()
 	{
 		return;
 	}
-	m_renderer->AddActor(m_colorLegend);
+	m_renderer->AddActor(m_colorBarLegend);
 	m_renderer->AddActor(textSource);
 	m_renderer->AddActor(titleTextSource);
 	m_colorLegendVisible = true;
@@ -211,7 +212,7 @@ void iAVRColorLegend::hideColorBarLegend()
 	{
 		return;
 	}
-	m_renderer->RemoveActor(m_colorLegend);
+	m_renderer->RemoveActor(m_colorBarLegend);
 	m_renderer->RemoveActor(textSource);
 	m_renderer->RemoveActor(titleTextSource);
 	m_colorLegendVisible = false;
@@ -220,10 +221,10 @@ void iAVRColorLegend::hideColorBarLegend()
 //! Moves the color bar legend and its value labels to the given pos
 void iAVRColorLegend::moveColorBarLegend(double* pos)
 {
-	m_colorLegend->SetPosition(pos);
+	m_colorBarLegend->SetPosition(pos);
 
 	double actorBounds[6];
-	m_colorLegend->GetBounds(actorBounds);
+	m_colorBarLegend->GetBounds(actorBounds);
 
 	textSource->SetPosition(actorBounds[1] + initialTextOffset, actorBounds[2] + initialTextOffset, actorBounds[4]);
 	titleTextSource->SetPosition(actorBounds[0], actorBounds[3] + initialTextOffset, actorBounds[4]);
@@ -232,7 +233,7 @@ void iAVRColorLegend::moveColorBarLegend(double* pos)
 //! Rotates the color bar legend and its value labels around the given coordinates
 void iAVRColorLegend::rotateColorBarLegend(double x, double y, double z)
 {
-	m_colorLegend->AddOrientation(x, y, z);
+	m_colorBarLegend->AddOrientation(x, y, z);
 	titleTextSource->AddOrientation(x, y, z);
 	textSource->AddOrientation(x, y, z);
 }
@@ -240,7 +241,7 @@ void iAVRColorLegend::rotateColorBarLegend(double x, double y, double z)
 //! Resizes the color bar legend and its value labels based on the given scale
 void iAVRColorLegend::resizeColorBarLegend(double scale)
 {
-	m_colorLegend->SetScale(scale);
+	m_colorBarLegend->SetScale(scale);
 	titleTextSource->SetScale(scale * titleFieldScale[0], scale * titleFieldScale[1], scale * titleFieldScale[2]);
 	textSource->SetScale(scale * textFieldScale[0], scale * textFieldScale[1], scale * textFieldScale[2]);
 }

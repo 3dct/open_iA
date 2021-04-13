@@ -49,7 +49,7 @@ public:
 private:
 	vtkSmartPointer<vtkRenderer> m_renderer;
 	vtkSmartPointer<vtkLookupTable> m_lut;
-	vtkSmartPointer<vtkActor> m_colorLegend;
+	vtkSmartPointer<vtkActor> m_colorBarLegend;
 	vtkSmartPointer<vtkTextActor3D> textSource;
 	vtkSmartPointer<vtkTextActor3D> titleTextSource;
 	double initialTextOffset;

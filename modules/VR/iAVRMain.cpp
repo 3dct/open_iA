@@ -38,7 +38,6 @@
 #include "vtkPointData.h"
 #include "vtkAbstractPropPicker.h"
 #include "vtkUnsignedCharArray.h"
-#include "vtkIdTypeArray.h"
 #include "vtkPolyDataMapper.h"
 #include <vtkPlaneSource.h>
 #include "vtkIntersectionPolyDataFilter.h"
@@ -46,11 +45,7 @@
 #include "vtkVertexGlyphFilter.h"
 #include "vtkScalarBarActor.h"
 #include "vtkOpenVRCamera.h"
-#include "vtkOutlineFilter.h"
-#include <vtkTexture.h>
-#include "vtkOpenVRModel.h"
-#include <vtkArrowSource.h>
-#include <vtkImageCanvasSource2D.h>
+
 
 #include <QColor>
 
@@ -64,8 +59,16 @@
 iAVRMain::iAVRMain(iAVREnvironment* vrEnv, iAVRInteractorStyle* style, vtkTable* objectTable, iACsvIO io): m_vrEnv(vrEnv),
 	m_style(style),	m_objectTable(objectTable),	m_io(io)
 {
+	// For true TranslucentGeometry
+	//https://vtk.org/Wiki/VTK/Examples/Cxx/Visualization/CorrectlyRenderTranslucentGeometry#CorrectlyRenderTranslucentGeometry.cxx
+	//m_vrEnv->renderer()->SetUseDepthPeeling(true);
+	//m_vrEnv->renderer()->SetMaximumNumberOfPeels(2);
+	//m_vrEnv->renderer()->SetUseFXAA(true);
+	
 	currentMiMDisplacementType = 0;
-	//m_cylinderVis = new iA3DCylinderObjectVis(m_vrEnv->renderer(), m_objectTable, m_io.getOutputMapping(), QColor(140,140,140,255), std::map<size_t, std::vector<iAVec3f> >());
+
+	//Initialize Cube Vis
+	m_modelInMiniature = new iAVRModelInMiniature(m_vrEnv->renderer());
 	m_volume = new iAVRVolume(m_vrEnv->renderer(), m_objectTable, m_io);
 
 	//Define Octree
@@ -75,27 +78,25 @@ iAVRMain::iAVRMain(iAVREnvironment* vrEnv, iAVRInteractorStyle* style, vtkTable*
 	//m_octrees->at(currentOctreeLevel)->generateOctreeRepresentation(currentOctreeLevel, OCTREE_COLOR);
 	//m_octrees->at(currentOctreeLevel)->show();
 
-	// For true TranslucentGeometry
-	//https://vtk.org/Wiki/VTK/Examples/Cxx/Visualization/CorrectlyRenderTranslucentGeometry#CorrectlyRenderTranslucentGeometry.cxx
-	//m_vrEnv->renderer()->SetUseDepthPeeling(true);
-	//m_vrEnv->renderer()->SetMaximumNumberOfPeels(2);
-	//m_vrEnv->renderer()->SetUseFXAA(true);
-
-	//Create Cube
-	m_modelInMiniature = new iAVRModelInMiniature(m_vrEnv->renderer());
+	//Set Octree
 	m_modelInMiniature->setOctree(m_octrees->at(OCTREE_MIN_LEVEL));
+	m_volume->setOctree(m_octrees->at(OCTREE_MIN_LEVEL));
 
 	//Initialize Metrics class
 	currentFeature = 1;
 	fiberMetrics = new iAVROctreeMetrics(m_objectTable, m_io, m_octrees);
-	//map for the coverage of each fiber in every octree level and region
-	m_fiberCoverage = new std::vector<std::vector<std::unordered_map<vtkIdType, double>*>>();
 	histogramMetrics = new iAVRHistogramMetric(m_objectTable, m_io, m_octrees);
 
-	//Thread
-	//m_iDMappingThread = std::thread(&iAVRMain::mapAllPointiDs, this);
-	//m_iDMappingThread = std::thread(&iAVRMain::mapAllPointiDsAndCalculateFiberCoverage, this);
-	mapAllPointiDsAndCalculateFiberCoverage();
+	//Fiber Cocerage
+	m_fiberCoverageCalc = new iAVRFiberCoverage(m_objectTable, m_io, m_octrees, m_volume);
+	m_fiberCoverageCalc->mapAllPointiDsAndCalculateFiberCoverage();
+	
+	m_volume->setMappers(m_fiberCoverageCalc->getPointIDToCsvIndexMapper(), m_fiberCoverageCalc->getCsvIndexToPointIDMapper());
+	m_volume->setFiberCoverageData(m_fiberCoverageCalc->getFiberCoverage());
+	m_modelInMiniature->setFiberCoverageData(m_fiberCoverageCalc->getFiberCoverage());
+	fiberMetrics->setFiberCoverageData(m_fiberCoverageCalc->getFiberCoverage());
+	histogramMetrics->setFiberCoverageData(m_fiberCoverageCalc->getFiberCoverage());
+	fiberMetrics->getMaxCoverageFiberPerRegion();
 
 	//Add InteractorStyle
 	m_style->setVRMain(this);
@@ -122,6 +123,11 @@ iAVRMain::iAVRMain(iAVREnvironment* vrEnv, iAVRInteractorStyle* style, vtkTable*
 	//Initialize Distribution Vis
 	m_networkGraphMode = false;
 	m_distributionVis = new iAVRHistogramPairVis(m_vrEnv->renderer(),histogramMetrics, fiberMetrics, m_objectTable, m_io);
+
+	//Display Volume
+	m_volume->createCubeModel();
+	m_volume->showVolume();
+	m_volume->show();
 
 	//Add Input Mapping
 	//Press, Touch
@@ -163,12 +169,6 @@ iAVRMain::iAVRMain(iAVREnvironment* vrEnv, iAVRInteractorStyle* style, vtkTable*
 		iAVRInteractionOptions::Anywhere, iAVROperations::ChangeJaccardIndex);
 	this->setInputScheme(vtkEventDataDevice::RightController, vtkEventDataDeviceInput::Trigger, vtkEventDataAction::Release,
 		iAVRInteractionOptions::Histogram, iAVROperations::RotateVis);
-
-	//m_cylinderVis->show();
-	m_volume->setOctree(m_octrees->at(OCTREE_MIN_LEVEL));
-	m_volume->createCubeModel();
-	m_volume->showVolume();
-	m_volume->show();
 
 	//Add Actors
 	addPropToOptionID(vtkProp3D::SafeDownCast(m_modelInMiniature->getActor()), iAVRInteractionOptions::MiniatureModel);
@@ -420,316 +420,6 @@ void iAVRMain::onRotate(double angle)
 	//}
 }
 
-//! Computes which polyObject ID (points) belongs to which Object ID in the csv file of the volume
-//! Gets only called internally from thread to store the mapping
-void iAVRMain::mapAllPointiDs()
-{
-	// For every fiber in csv table
-	for (vtkIdType row = 0; row < m_objectTable->GetNumberOfRows(); ++row)
-	{
-		double startPos[3], endPos[3];
-		for (int k = 0; k < 3; ++k)
-		{
-			startPos[k] = m_objectTable->GetValue(row, m_io.getOutputMapping()->value(iACsvConfig::StartX + k)).ToFloat();
-			endPos[k] = m_objectTable->GetValue(row, m_io.getOutputMapping()->value(iACsvConfig::EndX + k)).ToFloat();
-		}
-
-		// Insert polyObject ID of Start Point and End Point
-		m_pointIDToCsvIndex.insert(std::make_pair(m_volume->getVolumeData()->FindPoint(startPos), row));
-		m_pointIDToCsvIndex.insert(std::make_pair(m_volume->getVolumeData()->FindPoint(endPos), row));
-
-		// Insert fiber id with its Start Point and End Point
-		m_csvIndexToPointID.insert(std::make_pair(row, m_volume->getVolumeData()->FindPoint(startPos)));
-		m_csvIndexToPointID.insert(std::make_pair(row, m_volume->getVolumeData()->FindPoint(endPos)));
-	}
-	LOG(lvlDebug, QString("Volume Data loaded"));
-
-	//Calculate Fibers in Region
-	for (int i = 0; i < m_octrees->size(); i++)
-	{
-		m_fiberCoverage->push_back(*m_octrees->at(i)->getfibersInRegionMapping(&m_pointIDToCsvIndex));
-	}
-	LOG(lvlDebug, QString("Fibers in Region for every octree calculated"));
-
-	fiberMetrics->setFiberCoverageData(m_fiberCoverage);
-	m_iDMappingThreadRunning = false; //Thread ended
-}
-
-//! Computes which polyObject ID (points) belongs to which Object ID in the csv file of the volume for every Octree Level
-//! Calculates Intersection between points in different Octree regions in all levels. Calls a emthod to compute fiber coverage.
-//! Gets only called internally
-void iAVRMain::mapAllPointiDsAndCalculateFiberCoverage()
-{
-	int count = 0;
-
-	//Initialize new Vectors
-	for (int level = 0; level < m_octrees->size(); level++)
-	{
-		//Initialize the region vec for every level
-		m_fiberCoverage->push_back(std::vector<std::unordered_map<vtkIdType, double>*>());
-		
-		for (int i = 0; i < m_octrees->at(level)->getNumberOfLeafeNodes(); i++)
-		{
-			//Initialize a vec of Maps for every region
-			m_fiberCoverage->at(level).push_back(new std::unordered_map<vtkIdType, double>());
-		}
-	}	
-
-	// For every fiber in csv table
-	for (vtkIdType row = 0; row < m_objectTable->GetNumberOfRows(); ++row)
-	{
-		double startPos[3], endPos[3];
-		for (int k = 0; k < 3; ++k)
-		{
-			startPos[k] = m_objectTable->GetValue(row, m_io.getOutputMapping()->value(iACsvConfig::StartX + k)).ToFloat();
-			endPos[k] = m_objectTable->GetValue(row, m_io.getOutputMapping()->value(iACsvConfig::EndX + k)).ToFloat();
-		}
-
-		// Insert polyObject ID of Start Point and End Point
-		m_pointIDToCsvIndex.insert(std::make_pair(m_volume->getVolumeData()->FindPoint(startPos), row));
-		m_pointIDToCsvIndex.insert(std::make_pair(m_volume->getVolumeData()->FindPoint(endPos), row));
-
-		// Insert fiber id with its Start Point and End Point
-		m_csvIndexToPointID.insert(std::make_pair(row, m_volume->getVolumeData()->FindPoint(startPos)));
-		m_csvIndexToPointID.insert(std::make_pair(row, m_volume->getVolumeData()->FindPoint(endPos)));
-
-		vtkSmartPointer<vtkPoints> intersectionPoints = vtkSmartPointer<vtkPoints>::New();
-
-		//For every Octree Level
-		//for (int level = OCTREE_MIN_LEVEL; level <= 1; level++)
-		for (int level = 0; level < m_octrees->size(); level++)
-		{
-			//Skip intersection test on lowest Octree level
-			if(level == 0)
-			{
-				//Every fiber is 100% in the one region
-				m_fiberCoverage->at(0).at(0)->insert(std::make_pair(row, 1.0));
-			}
-			else
-			{
-				double fiberLength = m_objectTable->GetValue(row, m_io.getOutputMapping()->value(iACsvConfig::Length)).ToFloat();
-				//std::vector<std::unordered_map<vtkIdType, double>*> coverageInRegion = std::vector<std::unordered_map<vtkIdType, double>*>();
-				//m_fiberCoverage->push_back(coverageInRegion);
-
-				intersectionPoints = getOctreeFiberCoverage(startPos, endPos, level, row, fiberLength);
-				count += intersectionPoints->GetNumberOfPoints();
-
-				if (intersectionPoints == nullptr)
-				{
-					LOG(lvlDebug, QString("!! vtkPoints is null..."));
-				}
-			}
-		}
-	}
-
-	//m_3DTextLabels->at(2)->create3DLabel("Volume loading has finished!");
-	//m_3DTextLabels->at(2)->show();
-	m_volume->setMappers(m_pointIDToCsvIndex, m_csvIndexToPointID);
-	m_volume->setFiberCoverageData(m_fiberCoverage);
-	m_modelInMiniature->setFiberCoverageData(m_fiberCoverage);
-	fiberMetrics->setFiberCoverageData(m_fiberCoverage);
-	histogramMetrics->setFiberCoverageData(m_fiberCoverage);
-	fiberMetrics->getMaxCoverageFiberPerRegion();
-
-	for (int level = 1; level < m_octrees->size(); level++)
-	{
-		m_octrees->at(level)->getRegionsInLineOfRay();
-	}
-
-	LOG(lvlInfo, QString("Volume Data loaded and Intersection test finished"));
-	m_iDMappingThreadRunning = false; //Thread ended
-}
-
-//! The calculated intersection points are returned as vtkPoints
-vtkSmartPointer<vtkPoints> iAVRMain::getOctreeFiberCoverage(double startPoint[3], double endPoint[3], int octreeLevel, int fiber, double fiberLength)
-{
-	vtkSmartPointer<vtkPoints> additionalIntersectionPoints = vtkSmartPointer<vtkPoints>::New();
-
-	//m_octree->calculateOctree(octreeLevel, OCTREE_POINTS_PER_REGION);
-	int leafNodes = m_octrees->at(octreeLevel)->getNumberOfLeafeNodes();
-	int startPointInsideRegion = m_octrees->at(octreeLevel)->getOctree()->GetRegionContainingPoint(startPoint[0], startPoint[1], startPoint[2]);
-	int endPointInsideRegion = m_octrees->at(octreeLevel)->getOctree()->GetRegionContainingPoint(endPoint[0], endPoint[1], endPoint[2]);
-	// Sometimes Point is *barely* outside the bounds of the region ->move them in to check region
-	if (startPointInsideRegion == -1)
-	{
-		double insideStartPoint[3];
-		m_octrees->at(octreeLevel)->movePointInsideRegion(startPoint, insideStartPoint);
-		startPointInsideRegion = m_octrees->at(octreeLevel)->getOctree()->GetRegionContainingPoint(insideStartPoint[0], insideStartPoint[1], insideStartPoint[2]);
-	}
-	if (endPointInsideRegion == -1)
-	{
-		double insideEndPoint[3];
-		m_octrees->at(octreeLevel)->movePointInsideRegion(endPoint, insideEndPoint);
-		endPointInsideRegion = m_octrees->at(octreeLevel)->getOctree()->GetRegionContainingPoint(insideEndPoint[0], insideEndPoint[1], insideEndPoint[2]);
-	}
-
-	for (int region = 0; region < leafNodes; region++)
-	{
-		double lastIntersection[3] = { -1, -1, -1 };
-		int pointsInRegion = 0;
-		double bounds[6];
-		std::vector<std::vector<iAVec3d>>* planePoints = new std::vector<std::vector<iAVec3d>>();
-		m_octrees->at(octreeLevel)->createOctreeBoundingBoxPlanes(region, planePoints);
-		m_octrees->at(octreeLevel)->getOctree()->GetRegionBounds(region, bounds);
-
-		//The ray between start to endpoint can only intersect 2 times with a octree region bounding box
-		while (pointsInRegion < 2)
-		{
-			double intersectionPoint[3] = { -1, -1, -1 };
-
-			if (startPointInsideRegion == region && endPointInsideRegion == region)
-			{
-				//double coverage = calculateFiberCoverage(startPoint, endPoint, fiberLength);
-				m_fiberCoverage->at(octreeLevel).at(region)->insert(std::make_pair(fiber, 1.0));
-				pointsInRegion = 2;
-				return additionalIntersectionPoints; // whole fiber is in one region -> no intersection possible
-			}
-			else if (startPointInsideRegion == region)
-			{
-				if (checkIntersectionWithBox(startPoint, endPoint, planePoints, bounds, intersectionPoint))
-				{
-					additionalIntersectionPoints->InsertNextPoint(intersectionPoint);
-					double coverage = calculateFiberCoverage(startPoint, intersectionPoint, fiberLength);
-					pointsInRegion = 2;
-					m_fiberCoverage->at(octreeLevel).at(region)->insert(std::make_pair(fiber, coverage));
-					break;
-				}
-				else
-				{
-					// startpoint and Intersection point are the same position (lie on same boundary but are in different regions for the octree)
-					break;
-				}
-			}
-			else if (endPointInsideRegion == region)
-			{
-				if (checkIntersectionWithBox(endPoint, startPoint, planePoints, bounds, intersectionPoint))
-				{
-					additionalIntersectionPoints->InsertNextPoint(intersectionPoint);
-					double coverage = calculateFiberCoverage(intersectionPoint, endPoint, fiberLength);
-					pointsInRegion = 2;
-					m_fiberCoverage->at(octreeLevel).at(region)->insert(std::make_pair(fiber, coverage));
-					break;
-				}
-				else
-				{
-					// endPoint and Intersection point are the same position (lie on same boundary but are in different regions for the octree)
-					break;
-				}
-			}
-			else
-			{
-				//When a second point was found...
-				if (pointsInRegion > 0)
-				{
-					if (checkIntersectionWithBox(lastIntersection, endPoint, planePoints, bounds, intersectionPoint))
-					{
-						additionalIntersectionPoints->InsertNextPoint(lastIntersection);
-						additionalIntersectionPoints->InsertNextPoint(intersectionPoint);
-						double coverage = calculateFiberCoverage(lastIntersection, intersectionPoint, fiberLength);
-						pointsInRegion = 2;
-						m_fiberCoverage->at(octreeLevel).at(region)->insert(std::make_pair(fiber, coverage));
-						break;
-					}
-					else if (checkIntersectionWithBox(lastIntersection, startPoint, planePoints, bounds, intersectionPoint))
-					{
-						additionalIntersectionPoints->InsertNextPoint(lastIntersection);
-						additionalIntersectionPoints->InsertNextPoint(intersectionPoint);
-						double coverage = calculateFiberCoverage(lastIntersection, intersectionPoint, fiberLength);
-						pointsInRegion = 2;
-						m_fiberCoverage->at(octreeLevel).at(region)->insert(std::make_pair(fiber, coverage));
-						break;
-					}
-					else
-					{
-						//Corner Point with no second point in region
-						break;
-					}
-
-				}
-				else // look if there is a intersection with a region outside of the startPoint/endPoint region
-				{
-					
-					if (checkIntersectionWithBox(startPoint, endPoint, planePoints, bounds, intersectionPoint))
-					{
-						pointsInRegion += 1;
-						lastIntersection[0] = intersectionPoint[0];
-						lastIntersection[1] = intersectionPoint[1];
-						lastIntersection[2] = intersectionPoint[2];
-						//Point gets saved if second point is found in this region
-					}
-					else
-					{
-						//There are no possible intersections
-						break;
-					}
-				}
-			}
-		}
-	}
-
-	return additionalIntersectionPoints;
-}
-
-//! Looks in the vtkTable for the given position (could be start or end position)
-//! Returns the row iD of the found entrance in the table
-//! Converts double pos to float for use in vtk! Returns -1 if point is not found in csv
-vtkIdType iAVRMain::mapSinglePointiD(vtkIdType polyPoint)
-{
-	double pos[3];
-	m_octrees->at(currentOctreeLevel)->getOctree()->GetDataSet()->GetPoint(polyPoint, pos);
-
-	float posf[3];
-	// Convert to float
-	for (int i = 0; i < 3; ++i)
-	{
-		posf[i] = (float)(pos[i]);
-	}
-
-	for (vtkIdType row = 0; row < m_objectTable->GetNumberOfRows(); ++row)
-	{
-
-		float startPos[3], endPos[3];
-		for (int i = 0; i < 3; ++i)
-		{
-			startPos[i] = m_objectTable->GetValue(row, m_io.getOutputMapping()->value(iACsvConfig::StartX + i)).ToFloat();
-			endPos[i] = m_objectTable->GetValue(row, m_io.getOutputMapping()->value(iACsvConfig::EndX + i)).ToFloat();
-		}
-
-		if (checkEqualArrays(posf, startPos) || checkEqualArrays(posf, endPos))
-		{
-			return row;
-		}
-
-	}
-
-	return -1;
-}
-
-//! Checks if two pos arrays are the same
-bool iAVRMain::checkEqualArrays(float pos1[3], float pos2[3])
-{
-	for (int i = 0; i < 3; ++i)
-	{
-		if (pos1[i] != pos2[i])
-		{
-			return false;
-		}
-	}
-	return true;
-}
-
-bool iAVRMain::checkEqualArrays(double pos1[3], double pos2[3])
-{
-	for (int i = 0; i < 3; ++i)
-	{
-		if (pos1[i] != pos2[i])
-		{
-			return false;
-		}
-	}
-	return true;
-}
-
 void iAVRMain::setInputScheme(vtkEventDataDevice device, vtkEventDataDeviceInput input, vtkEventDataAction action, iAVRInteractionOptions options, iAVROperations operation)
 {
 	inputScheme* scheme = m_style->getInputScheme();
@@ -770,65 +460,6 @@ void iAVRMain::addPropToOptionID(vtkProp3D* prop, iAVRInteractionOptions iD)
 	m_ActorToOptionID.insert(std::make_pair(prop, static_cast<int>(iD)));
 }
 
-bool iAVRMain::checkIntersectionWithBox(double startPoint[3], double endPoint[3], std::vector<std::vector<iAVec3d>>* planePoints, double bounds[6], double intersection[3])
-{
-	double eps = 0.00001;
-
-	iAVec3d p0 = iAVec3d(startPoint);
-	iAVec3d p1 = iAVec3d(endPoint);
-	iAVec3d ray = p1 - p0;
-	iAVec3d ray_normalized = p1 - p0;
-	ray_normalized.normalize();
-
-	for (int i = 0; i < 6; i++)
-	{
-		//Calculate Plane Normal (origin - point 1,2)
-		iAVec3d pointOnPlaneOrigin = iAVec3d(planePoints->at(i).at(0));
-		iAVec3d planeVec1 = planePoints->at(i).at(1) - pointOnPlaneOrigin;
-		iAVec3d planeVec2 = planePoints->at(i).at(2) - pointOnPlaneOrigin;
-		
-		iAVec3d normal = crossProduct(planeVec1, planeVec2);
-		normal.normalize();
-
-		if (abs(dotProduct(normal, ray_normalized)) > eps) { // If false -> the line is parallel to the plane
-			iAVec3d difference = pointOnPlaneOrigin - p0;
-
-			// Compute the t value for the directed line ray intersecting the plane
-			double t = dotProduct(difference, normal) / dotProduct(normal, ray_normalized);
-
-			// possible intersection point in infinety
-			intersection[0] = p0[0] + (ray_normalized[0] * t);
-			intersection[1] = p0[1] + (ray_normalized[1] * t);
-			intersection[2] = p0[2] + (ray_normalized[2] * t);
-			
-			// t has to be smaller or equal to length of ray and bigger then 0
-			//Intersection must be in the inside the finite plane
-			if((t > 0) && (t <= ray.length()) &&
-				(intersection[0] <= bounds[1]) && (intersection[0] >= bounds[0]) &&
-				(intersection[1] <= bounds[3]) && (intersection[1] >= bounds[2]) &&
-				(intersection[2] <= bounds[5]) && (intersection[2] >= bounds[4]))
-			{
-				return true;
-			}
-		}
-	}
-	return false;
-}
-
-double iAVRMain::calculateFiberCoverage(double startPoint[3], double endPoint[3], double fiberLength)
-{
-	double vectorBetweenStartAndEnd[3];
-	for(int i = 0; i < 3; i++)
-	{
-		vectorBetweenStartAndEnd[i] = (endPoint[i] - startPoint[i]);
-	}
-
-	double coverage = sqrt(pow(vectorBetweenStartAndEnd[0], 2) + pow(vectorBetweenStartAndEnd[1], 2) + pow(vectorBetweenStartAndEnd[2], 2));
-	double ratio = coverage / fiberLength;
-
-	return ratio;
-}
-
 //! Test method inserts colored point at given Position
 void iAVRMain::drawPoint(std::vector<double*>* pos, QColor color)
 {
@@ -856,35 +487,6 @@ void iAVRMain::drawPoint(std::vector<double*>* pos, QColor color)
 	pointsActor->GetProperty()->SetPointSize(9);
 	pointsActor->GetProperty()->SetColor(color.redF(), color.greenF(), color.blueF());
 	m_vrEnv->renderer()->AddActor(pointsActor);
-
-}
-
-//! If mapping thread has finsihed load data from map, otherwise calculate it
-//! Returns -1 if point is not found in csv
-vtkIdType iAVRMain::getObjectiD(vtkIdType polyPoint)
-{
-	if (!m_iDMappingThreadRunning)
-	{
-		if (m_iDMappingThread.joinable())
-		{
-			m_iDMappingThread.join();
-		}
-
-		if (m_pointIDToCsvIndex.find(polyPoint) != m_pointIDToCsvIndex.end())
-		{
-			return m_pointIDToCsvIndex.at(polyPoint);
-		}
-		else
-		{
-			LOG(lvlDebug, QString("Point not found in csv"));
-			return -1;
-		}
-
-	}
-	else
-	{
-		return mapSinglePointiD(polyPoint);
-	}
 
 }
 
@@ -920,9 +522,6 @@ void iAVRMain::calculateMetrics()
 	if (modelInMiniatureActive) 
 	{
 		m_modelInMiniature->applyHeatmapColoring(rgba); // Only call when model is calculated (poly data has to be accessible)
-
-		QString text = QString("Feature: %1").arg(fiberMetrics->getFeatureName(currentFeature));
-		m_3DTextLabels->at(1)->create3DLabel(text);
 
 		m_MiMColorLegend->setLegendTitle(QString(" %1 ").arg(fiberMetrics->getFeatureName(currentFeature)).toUtf8());
 
@@ -1002,7 +601,6 @@ void iAVRMain::changeOctreeAndMetric()
 			//m_octrees->at(currentOctreeLevel)->hide();
 		}
 
-		m_3DTextLabels->at(1)->show();
 		m_3DTextLabels->at(0)->hide();
 	}
 	updateModelInMiniatureData();
@@ -1014,7 +612,7 @@ void iAVRMain::pickSingleFiber(double eventPosition[3])
 	// Find the closest points to TestPoint
 	vtkIdType iD = m_octrees->at(currentOctreeLevel)->getOctree()->FindClosestPoint(eventPosition);
 
-	vtkIdType rowiD = getObjectiD(iD);
+	vtkIdType rowiD = m_fiberCoverageCalc->getObjectiD(iD);
 	selection.push_back(rowiD);
 
 	m_volume->renderSelection(selection, 0, QColor(140, 140, 140, 255), nullptr);
@@ -1037,7 +635,7 @@ void iAVRMain::pickFibersinRegion(int leafRegion)
 	std::vector<size_t> selection = std::vector<size_t>();
 
 	
-	for (auto fiber : *m_fiberCoverage->at(currentOctreeLevel).at(leafRegion)) {
+	for (auto fiber : *m_fiberCoverageCalc->getFiberCoverage()->at(currentOctreeLevel).at(leafRegion)) {
 		//LOG(QString("Nr. [%1]").arg(fiber.first));
 		selection.push_back(fiber.first);
 	}
@@ -1083,7 +681,7 @@ void iAVRMain::multiPickMiMRegion()
 
 		for (int i = 0; i < multiPickIDs->size(); i++)
 		{
-			for (auto fiber : *m_fiberCoverage->at(currentOctreeLevel).at(multiPickIDs->at(i))) {
+			for (auto fiber : *m_fiberCoverageCalc->getFiberCoverage()->at(currentOctreeLevel).at(multiPickIDs->at(i))) {
 				selection.push_back(fiber.first);
 			}
 		}
@@ -1275,7 +873,7 @@ void iAVRMain::changeMiMDisplacementType()
 		m_3DTextLabels->at(1)->create3DLabel(QString("LinearCubeOffset"));
 		break;
 	case 2:
-		m_3DTextLabels->at(1)->create3DLabel(QString("4RegionCubeOffset"));
+		m_3DTextLabels->at(1)->create3DLabel(QString("8RegionCubeOffset"));
 		break;
 	}
 

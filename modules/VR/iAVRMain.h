@@ -22,6 +22,7 @@
 
 #include "vtkSmartPointer.h"
 #include "iAVREnvironment.h"
+#include "iAVRFiberCoverage.h"
 #include "iAVROctreeMetrics.h"
 #include "iAVRHistogramMetric.h"
 #include "iAVR3DText.h"
@@ -39,7 +40,6 @@
 #include "vtkPlaneSource.h"
 
 #include <unordered_map>
-#include <thread>
 
 // Enumeration of different interaction options for different Objects
 enum class iAVRInteractionOptions {
@@ -101,6 +101,7 @@ private:
 
 	bool m_networkGraphMode;
 	std::vector<iAVR3DText*>* m_3DTextLabels;
+	iAVRFiberCoverage* m_fiberCoverageCalc;
 	iAVRSlider* m_slider;
 	iAVRColorLegend* m_MiMColorLegend;
 	iAVRMip* m_MiMMip;
@@ -125,39 +126,18 @@ private:
 	std::vector<int>* activeInput;
 	// Map Actors to iAVRInteractionOptions
 	std::unordered_map<vtkProp3D*, int> m_ActorToOptionID;
-	// Maps poly point IDs to Object IDs in csv file
-	std::unordered_map<vtkIdType, vtkIdType> m_pointIDToCsvIndex;
-	// Maps Object IDs in csv file to their poly point IDs (1 fiber has 2 points)
-	std::unordered_multimap<vtkIdType, vtkIdType> m_csvIndexToPointID;
-	// Stores for every fiber iD the region of its start point to 
-	std::unordered_map<vtkIdType, vtkIdType> m_fiberInRegion;
-	std::thread m_iDMappingThread;
-	// True if the Thread has not joined yet
-	bool m_iDMappingThreadRunning = true;
 	// True if the corresponding actor is visible
 	bool modelInMiniatureActive = false;
 	// True if the MIP Panels should be visible
 	bool m_MIPPanelsVisible = false;
-	//Stores for the [octree level] in an [octree region] a map of its fiberIDs with their coverage
-	std::vector<std::vector<std::unordered_map<vtkIdType, double>*>>* m_fiberCoverage;
-	vtkPoints* newIntersectionPoints;
 	double m_rotationOfDisVis;
 	double controllerTravelledDistance;
 	int sign;
 	vtkSmartPointer<vtkActor> pointsActor;
 
-	void mapAllPointiDs();
-	void mapAllPointiDsAndCalculateFiberCoverage();
-	vtkIdType getObjectiD(vtkIdType polyPoint);
-	vtkIdType mapSinglePointiD(vtkIdType polyPoint);
-	bool checkEqualArrays(float pos1[3], float pos2[3]);
-	bool checkEqualArrays(double pos1[3], double pos2[3]);
 	void setInputScheme(vtkEventDataDevice device, vtkEventDataDeviceInput input, vtkEventDataAction action, iAVRInteractionOptions options, iAVROperations operation);
 	int getOptionForObject(vtkProp3D* pickedProp);
 	void addPropToOptionID(vtkProp3D* prop, iAVRInteractionOptions iD);
-	bool checkIntersectionWithBox(double startPoint[3], double endPoint[3], std::vector<std::vector<iAVec3d>>* planePoints, double bounds[6], double intersection[3]);
-	double calculateFiberCoverage(double startPoint[3], double endPoint[3], double fiberLength);
-	vtkSmartPointer<vtkPoints> getOctreeFiberCoverage(double startPoint[3], double endPoint[3], int octreeLevel, int fiber, double fiberLength);
 	void drawPoint(std::vector<double*>* pos, QColor color);
 	void generateOctrees(int maxLevel, int maxPointsPerRegion, vtkPolyData* dataSet);
 	void calculateMetrics();
