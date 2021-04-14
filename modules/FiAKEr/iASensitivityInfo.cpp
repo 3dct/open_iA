@@ -1046,10 +1046,12 @@ void iASensitivityInfo::compute()
 		}
 
 		m_progress.setStatus("Computing dissimilarity between all result pairs.");
-		// fill "upper" half
-		double overallPairs = resultCount * (resultCount - 1) / 2;
+
+		//double overallPairs = resultCount * (resultCount - 1) / 2;
+		// for all result pairs r1 and r2, for every fiber f in r1 find those fibers in r2 which best match f
+		double overallPairs = static_cast<double>(resultCount) * resultCount;
 		size_t curCheckedPairs = 0;
-		for (int r1 = 0; r1 < resultCount - 1 && !m_aborted; ++r1)
+		for (int r1 = 0; r1 < resultCount && !m_aborted; ++r1)
 		{
 			auto& res1 = m_data->result[r1];
 			auto const& mapping = *res1.mapping.data();
@@ -1061,34 +1063,38 @@ void iASensitivityInfo::compute()
 			double diagonalLength = std::sqrt(std::pow(a, 2) + std::pow(b, 2) + std::pow(c, 2));
 			double const* lengthRange = m_data->spmData->paramRange(mapping[iACsvConfig::Length]);
 			double maxLength = lengthRange[1] - lengthRange[0];
-			for (int r2 = r1 + 1; r2 < resultCount && !m_aborted; ++r2)
+			for (int r2 = 0; r2 < resultCount && !m_aborted; ++r2)
 			{
 				auto& mat = m_resultDissimMatrix[r1][r2];
-				m_progress.setStatus(QString("Computing dissimilarity between results %1 and %2.").arg(r1).arg(r2));
 				for (int m = 0; m < measureCount; ++m)
 				{
 					mat.avgDissim[m] = 0;
 				}
-				int r2FibCount = static_cast<int>(m_data->result[r2].fiberCount);
+				if (r1 == r2)
+				{
+					continue;
+				}
+				m_progress.setStatus(QString("Computing dissimilarity between results %1 and %2.").arg(r1).arg(r2));
+				int r1FibCount = static_cast<int>(m_data->result[r1].fiberCount);
 				std::vector<int> r2MatchCount(measureCount, 0);
 				auto& dissimilarities = mat.fiberDissim;
-				dissimilarities.resize(r2FibCount);
+				dissimilarities.resize(r1FibCount);
 				// not ideal: for loop seems to be not ideally parallelizable,
 				// one spike where 100% is used, then going down to nearly 0, until next loop starts
 				int noCanDo = 0;
 				size_t candSum = 0;
 #pragma omp parallel for reduction(+ : noCanDo, candSum)
-				for (int fiberID = 0; fiberID < r2FibCount; ++fiberID)
+				for (int fiberID = 0; fiberID < r1FibCount; ++fiberID)
 				{
 					auto candidates =
-						intersectingBoundingBox(fiberBoundingBox[r2][fiberID], fiberBoundingBox[r1]);
+						intersectingBoundingBox(fiberBoundingBox[r1][fiberID], fiberBoundingBox[r2]);
 					if (candidates.size() == 0)
 					{
 						++noCanDo; // thread-safe
 						continue;
 					}
 					candSum += candidates.size();
-					getBestMatches2(resFib[r2][fiberID], resFib[r1], dissimilarities[fiberID],
+					getBestMatches2(resFib[r1][fiberID], resFib[r2], dissimilarities[fiberID],
 						candidates, diagonalLength, maxLength, m_resultDissimMeasures);
 					for (int m = 0; m < measureCount; ++m)
 					{
@@ -1100,33 +1106,13 @@ void iASensitivityInfo::compute()
 					}
 				}
 				LOG(lvlDebug, QString("Result %1x%2: %3 candidates on average, %4 with no bounding box intersections out of %5")
-					.arg(r1).arg(r2).arg(candSum / r2FibCount).arg(noCanDo).arg(r2FibCount));
+					.arg(r1).arg(r2).arg(candSum / r1FibCount).arg(noCanDo).arg(r1FibCount));
 				for (int m = 0; m < measureCount; ++m)
 				{
 					mat.avgDissim[m] /= r2MatchCount[m];
 				}
 				++curCheckedPairs;
 				m_progress.emitProgress(curCheckedPairs * 100.0 / overallPairs);
-			}
-		}
-		// fill diagonal with 0
-		for (int r = 0; r < resultCount && !m_aborted; ++r)
-		{
-			for (int m = 0; m < measureCount; ++m)
-			{
-				m_resultDissimMatrix[r][r].avgDissim[m] = 0;
-			}
-		}
-		// TODO: save memory by not storing this?
-		// copy other half triangle:
-		for (int r1 = 1; r1 < resultCount && !m_aborted; ++r1)
-		{
-			for (int r2 = 0; r2 < r1; ++r2)
-			{
-				for (int m = 0; m < measureCount; ++m)
-				{
-					m_resultDissimMatrix[r1][r2].avgDissim[m] = m_resultDissimMatrix[r2][r1].avgDissim[m];
-				}
 			}
 		}
 		if (m_aborted)
@@ -1141,6 +1127,7 @@ void iASensitivityInfo::compute()
 		return;
 	}
 
+	// determine dissimilarity ranges:
 	m_resultDissimRanges.resize(m_resultDissimMeasures.size());
 	for (int m = 0; m < m_resultDissimRanges.size(); ++m)
 	{
@@ -1149,11 +1136,15 @@ void iASensitivityInfo::compute()
 	}
 	for (int r1 = 1; r1 < m_data->result.size() && !m_aborted; ++r1)
 	{
-		for (int r2 = 0; r2 < r1; ++r2)
+		for (int r2 = 0; r2 < m_data->result.size() && !m_aborted; ++r2)
 		{
+			if (r1 == r2)
+			{
+				continue;
+			}
 			for (int m = 0; m < m_resultDissimRanges.size(); ++m)
 			{
-				double dissim = m_resultDissimMatrix[r2][r1].avgDissim[m];
+				double dissim = m_resultDissimMatrix[r1][r2].avgDissim[m];
 				if (dissim < m_resultDissimRanges[m].first)
 				{
 					m_resultDissimRanges[m].first = dissim;
@@ -1305,11 +1296,13 @@ QString iASensitivityInfo::dissimilarityMatrixCacheFileName() const
 namespace
 {
 	const QString DissimilarityMatrixCacheFileIdentifier("DissimilarityMatrixCache");
-	const quint32 DissimilarityMatrixCacheFileVersion(2);
+	const quint32 DissimilarityMatrixCacheFileVersion(3);
 	// change from v1 to v2:
 	//   - changed data types in iAFiberSimilarity:
 	//     - index        : quint64 -> quint32
 	//     - dissimilarity: double -> float
+	// change from v2 to v3:
+	//   - non-symmetric matrix (to find respective, "directed" best matches in the other result)
 }
 
 bool iASensitivityInfo::readDissimilarityMatrixCache(QVector<int>& measures)
@@ -1339,11 +1332,10 @@ bool iASensitivityInfo::readDissimilarityMatrixCache(QVector<int>& measures)
 	}
 	quint32 version;
 	in >> version;
-	if (version < 2)
+	if (version < DissimilarityMatrixCacheFileVersion)
 	{
-		LOG(lvlError, QString("FIAKER cache file '%1': Too old cache version %2; "
-					"with version 2 the cache file format changed in an incompatible way! "
-					"Ask a developer how you even could have such an old file...")
+		LOG(lvlError, QString("FIAKER cache file '%1': Too old, incompatible cache version %2; "
+					"")
 				.arg(cacheFile.fileName())
 				.arg(version));
 		return false;
@@ -2148,22 +2140,8 @@ void iASensitivityInfo::spPointHighlighted(size_t resultIdx, bool state)
 	m_currentFiberSelection[resultIdx].clear();
 	if (state)
 	{	// add fibers matching the selection in m_baseFiberSelection to current selection:
-
-		// TODO: cache bounding boxes of all fibers (?)
-		auto& res1 = m_data->result[resultIdx];
-		auto const& mapping = *res1.mapping.data();
-		// TODO: only center -> should use bounding box instead!
-		double const *cxr = m_data->spmData->paramRange(mapping[iACsvConfig::CenterX]),
-					 *cyr = m_data->spmData->paramRange(mapping[iACsvConfig::CenterY]),
-					 *czr = m_data->spmData->paramRange(mapping[iACsvConfig::CenterZ]);
-		double a = cxr[1] - cxr[0], b = cyr[1] - cyr[0], c = czr[1] - czr[0];
-		double diagonalLength = std::sqrt(std::pow(a, 2) + std::pow(b, 2) + std::pow(c, 2));
-		double const* lengthRange = m_data->spmData->paramRange(mapping[iACsvConfig::Length]);
-		double maxLength = lengthRange[1] - lengthRange[0];
-		auto fiberData = createResultFiberData(m_data->result[resultIdx]);
-		auto fiberBBs = boundingBoxesForFibers(fiberData);
-		std::vector<std::pair<int, bool>> overlapMeasure;
-		overlapMeasure.push_back(std::make_pair(7, true));
+		auto it = std::find(m_resultDissimMeasures.begin(), m_resultDissimMeasures.end(), std::make_pair(7, true));
+		int measIdx = (it != m_resultDissimMeasures.end()) ? it - m_resultDissimMeasures.begin() : 0;
 		for (int rSel = 0; rSel < m_baseFiberSelection.size(); ++rSel)
 		{
 			if (m_baseFiberSelection[rSel].size() == 0)
@@ -2175,36 +2153,19 @@ void iASensitivityInfo::spPointHighlighted(size_t resultIdx, bool state)
 				m_currentFiberSelection[rSel] = m_baseFiberSelection[rSel];
 				continue;
 			}
-			LOG(lvlDebug, QString("Checking selected fibers in result %1 against toggled-on result %2:")
-				.arg(rSel).arg(resultIdx));
 			for (auto rSelFibID : m_baseFiberSelection[rSel])
 			{
-				auto selFibData = createFiberData(m_data->result[rSel], rSelFibID);
-				auto selFibBB = boundingBoxForFiber(selFibData);
-				auto candidates = intersectingBoundingBox(selFibBB, fiberBBs);
-				if (candidates.size() == 0)
-				{
-					continue;
-				}
-				QVector<QVector<iAFiberSimilarity>> result;
-				getBestMatches2(selFibData, fiberData, result, candidates, diagonalLength,
-					maxLength, overlapMeasure);
-				LOG(lvlDebug, QString("    %1 Candidates for fiber %2 in:")
-					.arg(result[0].size())
-					.arg(rSelFibID)
-				);
-				for (auto similarFiber: result[0])
+				auto& similarFibers = m_resultDissimMatrix[rSel][resultIdx].fiberDissim[rSelFibID][measIdx];
+				for (auto similarFiber : similarFibers)
 				{
 					LOG(lvlDebug,
 						QString("        Fiber %1, dissimilarity: %2%3")
 							.arg(similarFiber.index)
 							.arg(similarFiber.dissimilarity)
-							.arg(similarFiber.dissimilarity >= 1 ? " (skipped)":""));
-					if (similarFiber.dissimilarity < 1
-						&& std::find(m_currentFiberSelection[resultIdx].begin(),
-							m_currentFiberSelection[resultIdx].end(),
-							similarFiber.index) == m_currentFiberSelection[resultIdx].end()
-						)
+							.arg(similarFiber.dissimilarity >= 1 ? " (skipped)" : ""));
+					if (similarFiber.dissimilarity < 1 &&
+						std::find(m_currentFiberSelection[resultIdx].begin(), m_currentFiberSelection[resultIdx].end(),
+							similarFiber.index) == m_currentFiberSelection[resultIdx].end())
 					{
 						m_currentFiberSelection[resultIdx].push_back(similarFiber.index);
 					}
