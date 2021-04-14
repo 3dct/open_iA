@@ -20,7 +20,7 @@
 * ************************************************************************************/
 #include "iAQGLWidget.h"
 
-iAQGLFormat defaultOpenGLFormat()
+iAQGLFormat defaultQOpenGLWidgetFormat()
 {
 	iAQGLFormat fmt;
 #if (defined(VTK_OPENGL2_BACKEND) && QT_VERSION >= QT_VERSION_CHECK(5, 4, 0) )
@@ -33,7 +33,6 @@ iAQGLFormat defaultOpenGLFormat()
 #endif
 	fmt.setProfile(iAQGLFormat::CoreProfile);
 	fmt.setSamples(8);
-	fmt.setStereo(true);
 	fmt.setRedBufferSize(8);
 	fmt.setGreenBufferSize(8);
 	fmt.setBlueBufferSize(8);

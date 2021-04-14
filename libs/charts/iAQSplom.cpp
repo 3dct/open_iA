@@ -216,7 +216,7 @@ iAQSplom::iAQSplom(QWidget * parent):
 	m_viewData(new iAScatterPlotViewData())
 {
 #ifdef CHART_OPENGL
-	setFormat(defaultOpenGLFormat());
+	setFormat(defaultQOpenGLWidgetFormat());
 #endif
 	setMouseTracking( true );
 	setFocusPolicy( Qt::StrongFocus );

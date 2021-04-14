@@ -49,6 +49,9 @@ iAScatterPlotWidget::iAScatterPlotWidget(QSharedPointer<iASPLOMData> data) :
 	m_fontHeight(0),
 	m_maxTickLabelWidth(0)
 {
+#ifdef CHART_OPENGL
+	setFormat(defaultQOpenGLWidgetFormat());
+#endif
 	setMouseTracking(true);
 	setFocusPolicy(Qt::StrongFocus);
 	m_scatterplot = new iAScatterPlot(m_viewData.data(), this);

@@ -127,7 +127,7 @@ iAChartWidget::iAChartWidget(QWidget* parent, QString const & xLabel, QString co
 	m_drawXAxisAtZero(false)
 {
 #ifdef CHART_OPENGL
-	setFormat(defaultOpenGLFormat());
+	setFormat(defaultQOpenGLWidgetFormat());
 #endif
 	updateBounds();
 	setMouseTracking(true);

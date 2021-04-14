@@ -48,4 +48,4 @@ typedef QGLFormat iAQGLFormat;
 
 #endif
 
-iAqthelper_API iAQGLFormat defaultOpenGLFormat();
+iAqthelper_API iAQGLFormat defaultQOpenGLWidgetFormat();
