@@ -26,7 +26,8 @@ iAScatterPlotViewData::iAScatterPlotViewData() :
 	m_animIn(1.0),
 	m_animOut(0.0),
 	m_animationIn(this, "m_animIn"),
-	m_animationOut(this, "m_animOut")
+	m_animationOut(this, "m_animOut"),
+	m_isAnimated(true)
 {
 	const int animDurationMSec = 100;
 	m_animationIn.setDuration(animDurationMSec);
@@ -202,17 +203,23 @@ void iAScatterPlotViewData::setAnimOut(double anim)
 	emit updateRequired();
 }
 
-void iAScatterPlotViewData::startOutAnimation()
+void iAScatterPlotViewData::updateAnimation(size_t curPt, size_t prePt)
 {
-	m_animationOut.setStartValue(m_animIn);
-	m_animationOut.setEndValue(0.0);
-	m_animationOut.start();
-}
-
-void iAScatterPlotViewData::startInAnimation()
-{
-	const double animStart = 0.0;
-	m_animationIn.setStartValue(animStart);
-	m_animationIn.setEndValue(1.0);
-	m_animationIn.start();
+	if (!m_isAnimated)
+	{
+		return;
+	}
+	if (prePt != iASPLOMData::NoDataIdx && curPt != prePt)
+	{
+		m_animationOut.setStartValue(m_animIn);
+		m_animationOut.setEndValue(0.0);
+		m_animationOut.start();
+	}
+	if (curPt != iASPLOMData::NoDataIdx)
+	{
+		const double animStart = 0.0;
+		m_animationIn.setStartValue(animStart);
+		m_animationIn.setEndValue(1.0);
+		m_animationIn.start();
+	}
 }

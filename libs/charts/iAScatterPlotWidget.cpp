@@ -62,7 +62,12 @@ iAScatterPlotWidget::iAScatterPlotWidget(QSharedPointer<iASPLOMData> data) :
 	}
 	m_scatterplot->setData(0, 1, data);
 	connect(m_viewData.data(), &iAScatterPlotViewData::updateRequired, this, QOverload<>::of(&iAChartParentWidget::update));
-	//connect(m_scatterplot, &iAScatterPlot::currentPointModified, this, &iAScatterPlotWidget::currentPointUpdated);
+	connect(m_scatterplot, &iAScatterPlot::currentPointModified, this, &iAScatterPlotWidget::currentPointUpdated);
+}
+
+void iAScatterPlotWidget::currentPointUpdated(size_t index)
+{
+	m_viewData->updateAnimation(m_scatterplot->getCurrentPoint(), m_scatterplot->getPreviousIndex());
 }
 
 void iAScatterPlotWidget::SetPlotColor(QColor const & c, double rangeMin, double rangeMax)

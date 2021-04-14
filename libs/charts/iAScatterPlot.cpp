@@ -72,8 +72,6 @@ iAScatterPlot::Settings::Settings() :
 	showSCC(false)
 {}
 
-size_t iAScatterPlot::NoPointIndex = std::numeric_limits<size_t>::max();
-
 iAScatterPlot::iAScatterPlot(iAScatterPlotViewData* viewData, iAChartParentWidget* parent,
 	int numTicks /*= 5*/, bool isMaximizedPlot /*= false */):
 	QObject(parent),
@@ -90,9 +88,9 @@ iAScatterPlot::iAScatterPlot(iAScatterPlotViewData* viewData, iAChartParentWidge
 	m_offset( 0.0, 0.0 ),
 	m_numTicks( numTicks ),
 	m_isPlotActive( false ),
-	m_prevPtInd(NoPointIndex),
-	m_prevInd(NoPointIndex),
-	m_curInd( NoPointIndex ),
+	m_prevPtInd(iASPLOMData::NoDataIdx),
+	m_prevInd(iASPLOMData::NoDataIdx),
+	m_curInd(iASPLOMData::NoDataIdx),
 	m_isMaximizedPlot( isMaximizedPlot ),
 	m_isPreviewPlot( false ),
 	m_curVisiblePts ( 0 ),
@@ -234,7 +232,7 @@ void iAScatterPlot::setCurrentPoint( size_t index )
 	if ( m_curInd != index )
 	{
 		m_prevInd = m_curInd;
-		if (m_prevInd != NoPointIndex)
+		if (m_prevInd != iASPLOMData::NoDataIdx)
 		{
 			m_prevPtInd = m_prevInd;
 		}
@@ -264,7 +262,7 @@ void iAScatterPlot::setPreviewState(bool isPreviewPlot)
 
 void iAScatterPlot::leave()
 {
-	m_curInd = m_prevPtInd = NoPointIndex;
+	m_curInd = m_prevPtInd = iASPLOMData::NoDataIdx;
 	m_isPlotActive = false;
 }
 
@@ -691,7 +689,7 @@ size_t iAScatterPlot::getPointIndexAtPosition( QPointF mpos ) const
 	if ( yrange[1] > m_gridDims[1] ) yrange[1] = m_gridDims[1];
 
 	double minDist = pow( pPtMag * ptRad, 2 );
-	size_t res = NoPointIndex;
+	size_t res = iASPLOMData::NoDataIdx;
 	for (int x = xrange[0]; x < xrange[1]; ++x)
 	{
 		for (int y = yrange[0]; y < yrange[1]; ++y)
@@ -898,7 +896,7 @@ void iAScatterPlot::drawPoints( QPainter &painter )
 
 	// draw current point
 	double anim = m_viewData->animIn();
-	if (m_curInd != NoPointIndex)
+	if (m_curInd != iASPLOMData::NoDataIdx)
 	{
 		double pPM = settings.pickedPointMagnification;
 		double curPtSize = ptSize * linterp(1.0, pPM, anim);
@@ -936,7 +934,7 @@ void iAScatterPlot::drawPoints( QPainter &painter )
 
 	// draw previous point
 	anim = m_viewData->animOut();
-	if (m_prevPtInd != NoPointIndex && anim > 0.0)
+	if (m_prevPtInd != iASPLOMData::NoDataIdx && anim > 0.0)
 	{
 		double pPM = settings.pickedPointMagnification;
 		double curPtSize = ptSize * linterp(1.0, pPM, anim);
@@ -963,7 +961,7 @@ void iAScatterPlot::drawPoints( QPainter &painter )
 	}
 	// Draw current point
 	double anim = m_viewData->animIn();
-	if (m_curInd != NoPointIndex)
+	if (m_curInd != NoDataIdx)
 	{
 		double pPM = settings.pickedPointMagnification;
 		double curPtSize = ptSize * linterp(1.0, pPM, anim);
@@ -974,7 +972,7 @@ void iAScatterPlot::drawPoints( QPainter &painter )
 	}
 	// Draw previous point
 	anim = m_viewData->animOut();
-	if (m_prevPtInd != NoPointIndex && anim > 0.0)
+	if (m_prevPtInd != NoDataIdx && anim > 0.0)
 	{
 		double pPM = settings.pickedPointMagnification;
 		double curPtSize = ptSize * linterp(1.0, pPM, anim);

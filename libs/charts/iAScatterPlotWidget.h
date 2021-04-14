@@ -58,4 +58,5 @@ private:
 	QSharedPointer<iASPLOMData> m_data;
 	QSharedPointer<iAScatterPlotViewData> m_viewData;
 	int m_fontHeight, m_maxTickLabelWidth;
+	void currentPointUpdated(size_t index);  //!< When hovered over a new point.
 };

@@ -23,6 +23,8 @@
 #include "iALog.h"
 #include "iAMathUtility.h"
 
+const size_t iASPLOMData::NoDataIdx = std::numeric_limits<size_t>::max();
+
 iASPLOMData::iASPLOMData()
 {
 }
@@ -84,7 +86,7 @@ size_t iASPLOMData::paramIndex(QString const & paramName) const
 			return i;
 		}
 	}
-	return std::numeric_limits<size_t>::max();
+	return NoDataIdx;
 }
 
 size_t iASPLOMData::numParams() const

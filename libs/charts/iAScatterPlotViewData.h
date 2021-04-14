@@ -74,8 +74,7 @@ public:
 	void setAnimIn(double anim);   //!< Setter for animation in property
 	double animOut() const;        //!< Getter for animation out property
 	void setAnimOut(double anim);  //!< Setter for animation out property
-	void startOutAnimation();
-	void startInAnimation();
+	void updateAnimation(size_t curPt, size_t prePt);
 signals:
 	void updateRequired();
 private:
@@ -93,4 +92,6 @@ private:
 	double m_animOut;  //!< Out animation parameter
 	QPropertyAnimation m_animationIn;
 	QPropertyAnimation m_animationOut;
+	// settings:
+	bool m_isAnimated;
 };

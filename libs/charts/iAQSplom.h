@@ -262,8 +262,6 @@ public:
 		double popupWidth;
 		double pointRadius;
 
-		bool isAnimated;
-
 		int separationMargin;
 		int histogramBins;                       //!< The number of bins used in the histogram
 		bool histogramVisible;                   //!< Whether the histogram is shown in the diagonal
@@ -271,7 +269,7 @@ public:
 		int selectionMode;                       //!< The selection mode of all scatter plots
 		bool selectionEnabled;                   //!< Whether selection is enabled in the SPLOM
 		bool quadraticPlots;                     //!< Whether the scatter plots are constrained to quadratic sizes
-		bool showPCC, showSCC;                  //!< Whether to show Pearson's/Spearman's correlation coefficient
+		bool showPCC, showSCC;                   //!< Whether to show Pearson's/Spearman's correlation coefficient
 		bool showColorLegend;                    //!< Whether the color legend is shown
 		ColorMode colorMode;                     //!< How the matrix dots are colored
 		ColorParameterMode colorParameterMode;   //!< How parameters are translated to colors if colored by parameter

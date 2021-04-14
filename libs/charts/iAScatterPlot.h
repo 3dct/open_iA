@@ -51,8 +51,6 @@ class iAcharts_API iAScatterPlot : public QObject
 {
 	Q_OBJECT
 public:
-	static size_t NoPointIndex;
-
 	enum SelectionMode
 	{ // the order here needs to match the order in the cbSelectionMode combobox in SPMSettings dialog!
 		Rectangle,
@@ -85,7 +83,7 @@ public:
 	void printTicksInfo( QList<double> * posX, QList<double> * posY, QList<QString> * textX, QList<QString> * textY ) const;
 	void setCurrentPoint( size_t index );                            //!< Set the index of currently hovered point
 	size_t getCurrentPoint() const;                                  //!< Get the index of currently hovered point
-	size_t getPreviousIndex() const;                                 //!< Get the index of previously hovered point or NoPointIndex
+	size_t getPreviousIndex() const;                                 //!< Get the index of previously hovered point or iASPLOMData::NoDataIdx
 	size_t getPreviousPoint() const;                                 //!< Get the index of point hovered over before previous
 	void paintOnParent( QPainter & painter );                        //!< Paint plot's contents on a SPLOM-parent
 	void setPreviewState( bool isPreviewPlot );                      //!< Set if this plot is currently previewed (displayed in maximized plot view)
@@ -120,7 +118,7 @@ protected:
 	void calculateNiceSteps();                                       //!< Calculates nice steps displayed parameter ranges
 	void calculateNiceSteps( double * r, QList<double> * ticks );    //!< Calculates nice steps displayed parameter ranges given a range and a desired number of ticks
 	int getBinIndex( int x, int y ) const;                           //!< Get global grid bin offset (index) using X and Y bin indices
-	size_t getPointIndexAtPosition( QPointF mpos ) const;            //!< Get index of data point under cursor, NoPointIndex if none
+	size_t getPointIndexAtPosition( QPointF mpos ) const;            //!< Get index of data point under cursor, iASPLOMData::NoDataIdx if none
 	QPointF getPositionFromPointIndex( size_t idx ) const;           //!< Get position of a data point with a given index
 	void updateSelectedPoints( bool append, bool remove);            //!< Update selected points; parameters specify whether to append or to remove from previous selection (or create new if both false). if both append and remove are true, then XOR logic is applied (of newly selected, those already selected will be de-selected, new ones will be added)
 	void updateDrawRect();                                           //!< Re-calculate dimensions of the plot's rectangle
@@ -212,9 +210,9 @@ protected:
 	// points
 	int m_gridDims[2];                                               //!< dimensions of subdivision grid (point picking acceleration)
 	QList<QList<size_t>> m_pointsGrid;                               //!< grid bins containing point indices
-	size_t m_prevPtInd;                                              //!< index of point selected before (NoPointIndex if none, but keeps point index even if no point was selected in between)
-	size_t m_prevInd;                                                //!< index of previously selected point (NoPointIndex if none)
-	size_t m_curInd;                                                 //!< index of currently selected point (NoPointIndex if none)
+	size_t m_prevPtInd;                                              //!< index of point selected before (iASPLOMData::NoDataIdx if none, but keeps point index even if no point was selected in between)
+	size_t m_prevInd;                                                //!< index of previously selected point (iASPLOMData::NoDataIdx if none)
+	size_t m_curInd;                                                 //!< index of currently selected point (iASPLOMData::NoDataIdx if none)
 	//selection polygon
 	QPolygon m_selPoly;                                              //!< polygon of selection lasso
 	QPoint m_selStart;                                               //!< point where the selection started
