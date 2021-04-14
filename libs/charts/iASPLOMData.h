@@ -35,6 +35,7 @@ class iAcharts_API iASPLOMData : public QObject
 {
 	Q_OBJECT
 public:
+	static const size_t NoDataIdx;
 	iASPLOMData();
 	void setParameterNames(std::vector<QString> const& paramNmes, size_t rowReserve = 0);  //! Set the parameter names (clears all columns) with an optional row "size" (i.e. how many rows are planned to be there, i.e. used in vector::reserve)
 	std::vector<std::vector<double>> & data();        //!< Get the table values

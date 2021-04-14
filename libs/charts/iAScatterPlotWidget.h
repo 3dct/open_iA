@@ -88,6 +88,7 @@ protected:
 private:
 	void adjustScatterPlotSize();
 	void drawTooltip(QPainter& painter);
+	void currentPointUpdated(size_t index);  //!< When hovered over a new point.
 
 	iAScatterPlot* m_scatterplot;
 	QSharedPointer<iASPLOMData> m_data;

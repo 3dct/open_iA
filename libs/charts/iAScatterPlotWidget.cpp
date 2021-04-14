@@ -74,6 +74,9 @@ iAScatterPlotWidget::iAScatterPlotWidget(QSharedPointer<iASPLOMData> data, bool 
 	m_pointInfo(new iADefaultScatterPlotPointInfo(data)),
 	m_contextMenu(nullptr)
 {
+#ifdef CHART_OPENGL
+	setFormat(defaultQOpenGLWidgetFormat());
+#endif
 	setMouseTracking(true);
 	setFocusPolicy(Qt::StrongFocus);
 	m_scatterplot = new iAScatterPlot(m_viewData.data(), this);
@@ -113,8 +116,14 @@ iAScatterPlotWidget::iAScatterPlotWidget(QSharedPointer<iASPLOMData> data, bool 
 	}
 	m_scatterplot->setData(0, 1, data);
 	connect(m_viewData.data(), &iAScatterPlotViewData::updateRequired, this, QOverload<>::of(&iAChartParentWidget::update));
-	//connect(m_scatterplot, &iAScatterPlot::currentPointModified, this, &iAScatterPlotWidget::currentPointUpdated);
+	connect(m_scatterplot, &iAScatterPlot::currentPointModified, this, &iAScatterPlotWidget::currentPointUpdated);
 	connect(m_scatterplot, &iAScatterPlot::selectionModified, this, &iAScatterPlotWidget::selectionModified);
+}
+
+void iAScatterPlotWidget::currentPointUpdated(size_t index)
+{
+	Q_UNUSED(index);
+	m_viewData->updateAnimation(m_scatterplot->getCurrentPoint(), m_scatterplot->getPreviousIndex());
 }
 
 void iAScatterPlotWidget::setSelectionEnabled(bool enabled)
@@ -237,7 +246,7 @@ void iAScatterPlotWidget::paintEvent(QPaintEvent* event)
 void iAScatterPlotWidget::drawTooltip(QPainter& painter)
 {
 	size_t curInd = m_scatterplot->getCurrentPoint();
-	if (curInd == iAScatterPlot::NoPointIndex)
+	if (curInd == iASPLOMData::NoDataIdx)
 	{
 		return;
 	}
@@ -349,7 +358,7 @@ void iAScatterPlotWidget::toggleHighlightedPoint(size_t curPoint, Qt::KeyboardMo
 		}
 		m_viewData->clearHighlightedPoints();
 	}
-	if (curPoint == iAScatterPlot::NoPointIndex)
+	if (curPoint == iASPLOMData::NoDataIdx)
 	{
 		return;
 	}

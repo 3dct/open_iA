@@ -47,7 +47,7 @@ const int maskOpacity = 127;
 
 iAFAQSplom::iAFAQSplom( iAMainWindow *mWnd, QWidget * parent):
 	iAQSplom(parent),
-	m_fixedPointInd(iAScatterPlot::NoPointIndex),
+	m_fixedPointInd(iASPLOMData::NoDataIdx),
 	m_mainWnd(mWnd),
 	m_mdiChild(nullptr),
 	m_csvName("")
@@ -141,7 +141,7 @@ void iAFAQSplom::setDatasetsByIndices( QStringList selDatasets, QList<int> indic
 
 void iAFAQSplom::reemitFixedPixmap()
 {
-	if( m_fixedPointInd != iAScatterPlot::NoPointIndex )
+	if( m_fixedPointInd != iASPLOMData::NoDataIdx )
 	{
 		int dsInd = getDatasetIndexFromPointIndex( m_fixedPointInd );
 		QString sliceFilename = getSliceFilename( m_maskNames[m_fixedPointInd], m_sliceNumPopupLst[dsInd] );
@@ -164,7 +164,7 @@ void iAFAQSplom::reemitFixedPixmap()
 
 int iAFAQSplom::getDatasetIndexFromPointIndex(size_t pointIndex)
 {
-	if (pointIndex == iAScatterPlot::NoPointIndex)
+	if (pointIndex == iASPLOMData::NoDataIdx)
 	{
 		return -1;
 	}
@@ -185,7 +185,7 @@ bool iAFAQSplom::drawPopup( QPainter& painter )
 	}
 	size_t curInd = m_activePlot->getCurrentPoint();
 	double anim = 1.0;
-	if( curInd == iAScatterPlot::NoPointIndex )
+	if( curInd == iASPLOMData::NoDataIdx )
 	{
 		if( m_viewData->animOut() > 0.0 && m_viewData->animIn() >= 1.0 )
 		{
@@ -197,7 +197,7 @@ bool iAFAQSplom::drawPopup( QPainter& painter )
 			return false;
 		}
 	}
-	else if (m_activePlot->getPreviousIndex() == iAScatterPlot::NoPointIndex)
+	else if (m_activePlot->getPreviousIndex() == iASPLOMData::NoDataIdx)
 	{
 		anim = m_viewData->animIn();
 	}
@@ -286,7 +286,7 @@ void iAFAQSplom::updatePreviewPixmap()
 	}
 
 	size_t curInd = m_activePlot->getCurrentPoint();
-	if( curInd == iAScatterPlot::NoPointIndex && m_fixedPointInd == iAScatterPlot::NoPointIndex )
+	if( curInd == iASPLOMData::NoDataIdx && m_fixedPointInd == iASPLOMData::NoDataIdx )
 	{
 		emit maskHovered( 0, -1 );
 		return;
@@ -294,7 +294,7 @@ void iAFAQSplom::updatePreviewPixmap()
 
 	QImage fixedMaskImg;
 	int dsInd = -1;
-	if( m_fixedPointInd != iAScatterPlot::NoPointIndex)
+	if( m_fixedPointInd != iASPLOMData::NoDataIdx)
 	{
 		dsInd = getDatasetIndexFromPointIndex( m_fixedPointInd );
 		QString sliceFilename = getSliceFilename( m_maskNames[m_fixedPointInd], m_sliceNumPopupLst[dsInd] );
@@ -307,7 +307,7 @@ void iAFAQSplom::updatePreviewPixmap()
 	}
 
 	QImage maskImg;
-	if (curInd == iAScatterPlot::NoPointIndex)
+	if (curInd == iASPLOMData::NoDataIdx)
 	{
 		maskImg = fixedMaskImg;
 	}
@@ -331,7 +331,7 @@ void iAFAQSplom::updatePreviewPixmap()
 		maskImg.setColor( 2, qRgba( 0, 0, 255, maskOpacity ) );
 		maskImg.setColor( 3, qRgba( 255, 255, 0, maskOpacity ) );
 
-		if( m_fixedPointInd != iAScatterPlot::NoPointIndex && getDatasetIndexFromPointIndex(m_fixedPointInd) == dsInd )
+		if( m_fixedPointInd != iASPLOMData::NoDataIdx && getDatasetIndexFromPointIndex(m_fixedPointInd) == dsInd )
 		{
 			uchar * maskPtr = maskImg.bits();
 			uchar * fixedPtr = fixedMaskImg.bits();
@@ -372,7 +372,7 @@ void iAFAQSplom::updatePreviewPixmap()
 
 void iAFAQSplom::currentPointUpdated( size_t index )
 {
-	if (index != iAScatterPlot::NoPointIndex)
+	if (index != iASPLOMData::NoDataIdx)
 	{
 		m_fixAction->setVisible(true);
 		m_detailsToFeatureScoutAction->setVisible(true);
@@ -393,7 +393,7 @@ void iAFAQSplom::fixPoint()
 		return;
 	}
 
-	if (m_fixedPointInd != iAScatterPlot::NoPointIndex)
+	if (m_fixedPointInd != iASPLOMData::NoDataIdx)
 	{
 		removeFixedPoint();
 	}
@@ -453,11 +453,11 @@ void iAFAQSplom::startFeatureScout()
 
 void iAFAQSplom::removeFixedPoint()
 {
-	if (m_fixedPointInd != iAScatterPlot::NoPointIndex)
+	if (m_fixedPointInd != iASPLOMData::NoDataIdx)
 	{
 		m_viewData->removeHighlightedPoint(m_fixedPointInd);
 	}
-	m_fixedPointInd = iAScatterPlot::NoPointIndex;
+	m_fixedPointInd = iASPLOMData::NoDataIdx;
 	m_removeFixedAction->setVisible( false );
 	updatePreviewPixmap();
 }

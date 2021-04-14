@@ -128,7 +128,7 @@ iAChartWidget::iAChartWidget(QWidget* parent, QString const & xLabel, QString co
 	m_emptyText("Chart not (yet) available.")
 {
 #ifdef CHART_OPENGL
-	setFormat(defaultOpenGLFormat());
+	setFormat(defaultQOpenGLWidgetFormat());
 #endif
 	updateBounds();
 	setMouseTracking(true);

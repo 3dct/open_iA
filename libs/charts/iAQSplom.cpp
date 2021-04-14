@@ -90,7 +90,6 @@ iAQSplom::Settings::Settings() :
 	popupTipDim{ 5, 10 },
 	popupWidth(180),
 	pointRadius(1.0),
-	isAnimated(true),
 	separationMargin(10),
 	histogramBins(10),
 	histogramVisible(true),
@@ -217,7 +216,7 @@ iAQSplom::iAQSplom(QWidget * parent):
 	m_viewData(new iAScatterPlotViewData())
 {
 #ifdef CHART_OPENGL
-	setFormat(defaultOpenGLFormat());
+	setFormat(defaultQOpenGLWidgetFormat());
 #endif
 	setMouseTracking( true );
 	setFocusPolicy( Qt::StrongFocus );
@@ -435,7 +434,7 @@ void iAQSplom::createScatterPlot(size_t y, size_t x, bool initial)
 		s->setLookupTable(m_lut, m_colorLookupParam);
 		QPointF offset;
 		double scale = 1.0;
-		size_t curPoint = iAScatterPlot::NoPointIndex;
+		size_t curPoint = iASPLOMData::NoDataIdx;
 		for (size_t p = 0; p < m_splomData->numParams(); ++p)
 		{
 			if (m_matrix[p][x])
@@ -503,7 +502,7 @@ void iAQSplom::dataChanged(std::vector<char> visibleParams)
 void iAQSplom::setLookupTable( vtkLookupTable * lut, const QString & paramName )
 {
 	size_t colorLookupCol = m_splomData->paramIndex(paramName);
-	if (colorLookupCol == std::numeric_limits<size_t>::max())
+	if (colorLookupCol == iASPLOMData::NoDataIdx)
 	{
 		return;
 	}
@@ -707,27 +706,16 @@ void iAQSplom::currentPointUpdated( size_t index )
 			}
 		}
 	}
-	if( m_maximizedPlot && ( m_maximizedPlot != QObject::sender() ) )
+	if (m_maximizedPlot && m_maximizedPlot != QObject::sender())
 	{
 		m_maximizedPlot->setCurrentPoint( index );
 	}
-
-	//animation
-	if( settings.isAnimated && m_activePlot )
+	if (m_activePlot)    //animation
 	{
-		size_t curPt = m_activePlot->getCurrentPoint();
-		size_t prePt = m_activePlot->getPreviousIndex();
-		if( prePt != iAScatterPlot::NoPointIndex && curPt != prePt )
-		{
-			m_viewData->startOutAnimation();
-		}
-		if( curPt != iAScatterPlot::NoPointIndex )
-		{
-			m_viewData->startInAnimation();
-		}
+		m_viewData->updateAnimation(m_activePlot->getCurrentPoint(), m_activePlot->getPreviousIndex());
 	}
 	repaint(); // should be update, but that does not work if called from base class at the moment (no idea why)
-	if( index != iAScatterPlot::NoPointIndex )
+	if (index != iASPLOMData::NoDataIdx)
 	{
 		emit currentPointModified( index );
 	}
@@ -1116,7 +1104,7 @@ bool iAQSplom::drawPopup( QPainter& painter )
 	}
 	size_t curInd = m_activePlot->getCurrentPoint();
 	double anim = 1.0;
-	if( curInd == iAScatterPlot::NoPointIndex )
+	if (curInd == iASPLOMData::NoDataIdx)
 	{
 		if (m_viewData->animOut() > 0.0 && m_viewData->animIn() >= 1.0)
 		{
@@ -1125,7 +1113,7 @@ bool iAQSplom::drawPopup( QPainter& painter )
 		}
 		return false;
 	}
-	else if ( m_activePlot->getPreviousIndex() == iAScatterPlot::NoPointIndex )
+	else if (m_activePlot->getPreviousIndex() == iASPLOMData::NoDataIdx)
 	{
 		anim = m_viewData->animIn();
 	}
@@ -1737,7 +1725,7 @@ void iAQSplom::setColorParam(const QString & paramName)
 
 void iAQSplom::setColorParam(size_t colorLookupParam)
 {
-	if (colorLookupParam == std::numeric_limits<size_t>::max())
+	if (colorLookupParam == iASPLOMData::NoDataIdx)
 	{
 		return;
 	}
