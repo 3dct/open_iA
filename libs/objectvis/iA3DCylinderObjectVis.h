@@ -38,6 +38,8 @@ public:
 	QString visualizationStatistics() const override;
 	void setShowLines(bool lines) override;
 	vtkPolyData* finalPoly() override;
+	std::vector<vtkSmartPointer<vtkPolyData>> extractSelectedObjects() const override;
+
 private:
 	vtkSmartPointer<iAvtkTubeFilter> m_tubeFilter;
 	float* m_contextFactors;

@@ -37,6 +37,8 @@ public:
 	vtkPolyData* getPolyData() override;
 	vtkPolyData* finalPoly() override;
 	QString visualizationStatistics() const override;
+	std::vector<vtkSmartPointer<vtkPolyData>> extractSelectedObjects() const override;
+
 private:
 	vtkSmartPointer<vtkPolyData> m_fullPoly;
 	IndexType m_pointsPerEllipse;

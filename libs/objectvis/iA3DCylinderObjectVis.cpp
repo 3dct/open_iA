@@ -24,6 +24,7 @@
 #include "iACsvConfig.h"
 
 #include <vtkDoubleArray.h>
+#include <vtkFloatArray.h>
 #include <vtkOutlineFilter.h>
 #include <vtkPolyData.h>
 #include <vtkPolyDataMapper.h>
@@ -147,4 +148,35 @@ vtkPolyData* iA3DCylinderObjectVis::finalPoly()
 {
 	m_tubeFilter->Update();
 	return m_tubeFilter->GetOutput();
+}
+
+std::vector<vtkSmartPointer<vtkPolyData>> iA3DCylinderObjectVis::extractSelectedObjects() const
+{
+	std::vector<vtkSmartPointer<vtkPolyData>> result;
+	for (auto selIdx: m_selection)
+	{
+		vtkNew<vtkTable> tmpTbl;
+		tmpTbl->Initialize();
+		for (int c = 0; c<m_objectTable->GetNumberOfColumns(); ++c)
+		{
+			vtkSmartPointer<vtkFloatArray> arrC = vtkSmartPointer<vtkFloatArray>::New();
+			arrC->SetName(m_objectTable->GetColumnName(c));
+			tmpTbl->AddColumn(arrC);
+		}
+		tmpTbl->SetNumberOfRows(1);
+		for (int c = 0; c < m_objectTable->GetNumberOfColumns(); ++c)
+		{
+			tmpTbl->SetValue(0, c, m_objectTable->GetValue(selIdx, c));
+		}
+		std::map<size_t, std::vector<iAVec3f>> tmpCurvedFiberData;
+		auto it = m_curvedFiberData.find(selIdx);
+		if (it != m_curvedFiberData.end())
+		{
+			tmpCurvedFiberData.insert(std::make_pair(0, it->second));
+		}
+		iA3DCylinderObjectVis tmpVis(m_ren, tmpTbl.GetPointer(), m_columnMapping, QColor(0, 0, 0), tmpCurvedFiberData);
+		auto pd = tmpVis.finalPoly();
+		result.push_back(pd);
+	}
+	return result;
 }

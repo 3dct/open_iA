@@ -38,6 +38,8 @@ public:
 	vtkPolyData* getPolyData() override;
 	vtkPolyData* finalPoly() override;
 	QString visualizationStatistics() const override;
+	std::vector<vtkSmartPointer<vtkPolyData>> extractSelectedObjects() const override;
+
 protected:
 	IndexType objectStartPointIdx(IndexType objIdx) const override;
 	IndexType objectPointCount(IndexType objIdx) const override;
