@@ -1023,7 +1023,7 @@ void iAScatterPlot::drawPoints( QPainter &painter )
 	}
 	// Draw current point
 	double anim = m_viewData->animIn();
-	if (m_curInd != NoDataIdx)
+	if (m_curInd != iASPLOMData::NoDataIdx)
 	{
 		double pPM = settings.pickedPointMagnification;
 		double curPtSize = ptSize * linterp(1.0, pPM, anim);
@@ -1034,7 +1034,7 @@ void iAScatterPlot::drawPoints( QPainter &painter )
 	}
 	// Draw previous point
 	anim = m_viewData->animOut();
-	if (m_prevPtInd != NoDataIdx && anim > 0.0)
+	if (m_prevPtInd != iASPLOMData::NoDataIdx && anim > 0.0)
 	{
 		double pPM = settings.pickedPointMagnification;
 		double curPtSize = ptSize * linterp(1.0, pPM, anim);
@@ -1064,14 +1064,17 @@ void iAScatterPlot::drawPoints( QPainter &painter )
 	}
 
 	// Draw highlighted points
-	for (auto idx : m_viewData->highlightedPoints())
+	if (settings.highlightDrawMode.testFlag(iAScatterPlot::Enlarged))
 	{
-		QColor color(settings.highlightColor.isValid()
-			? settings.highlightColor
-			: m_lut->getQColor(m_splomData->paramData(m_colInd)[idx]));
-		color.setAlpha(255);
-		drawPoint(painter, p0d[idx], m_splomData->paramData(m_paramIndices[1])[idx],
-			getPointRadius() * settings.pickedPointMagnification, color);
+		for (auto idx : m_viewData->highlightedPoints())
+		{
+			QColor color(settings.highlightColor.isValid()
+				? settings.highlightColor
+				: m_lut->getQColor(m_splomData->paramData(m_colInd)[idx]));
+			color.setAlpha(255);
+			drawPoint(painter, p0d[idx], m_splomData->paramData(m_paramIndices[1])[idx],
+				getPointRadius() * settings.pickedPointMagnification, color);
+		}
 	}
 #endif
 	// Draw highlighted points
