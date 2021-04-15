@@ -1,7 +1,7 @@
 /*************************************  open_iA  ************************************ *
 * **********   A tool for visual analysis and processing of 3D CT images   ********** *
 * *********************************************************************************** *
-* Copyright (C) 2016-2020  C. Heinzl, M. Reiter, A. Reh, W. Li, M. Arikan, Ar. &  Al. *
+* Copyright (C) 2016-2021  C. Heinzl, M. Reiter, A. Reh, W. Li, M. Arikan, Ar. &  Al. *
 *                 Amirkhanov, J. Weissenböck, B. Fröhler, M. Schiwarth, P. Weinberger *
 * *********************************************************************************** *
 * This program is free software: you can redistribute it and/or modify it under the   *
@@ -23,7 +23,7 @@
 #include "iABPMData.h"
 #include "iAHMData.h"
 
-#include <charts/qcustomplot.h>
+#include <qcustomplot.h>
 #include <defines.h>
 #include <iALUT.h>
 #include <iAVtkWidget.h>
@@ -86,7 +86,7 @@ iAPDMView::iAPDMView( QWidget * parent /*= 0*/, Qt::WindowFlags f /*= 0 */ )
 #endif
 	m_sbWidget->update();
 	QVBoxLayout *lutLayoutHB = new QVBoxLayout( this );
-	lutLayoutHB->setMargin( 0 );
+	lutLayoutHB->setContentsMargins(0, 0, 0, 0);
 	lutLayoutHB->addWidget( m_sbWidget );
 	lutLayoutHB->update();
 	scalarBarWidget->setLayout( lutLayoutHB );
@@ -166,7 +166,7 @@ void iAPDMView::UpdateTableBoxPlot()
 
 			// Fetch ground truth data
 			QVector<double> valueData;
-			QMap<double, QList<double> > map = (*m_histogramPlots)[i][j].histoBinMap;
+			QMultiMap<double, QList<double> > map = (*m_histogramPlots)[i][j].histoBinMap;
 			for (double idx = 0; idx < map.size(); ++idx)
 			{
 				valueData << map.find(idx).value().size();
@@ -224,7 +224,7 @@ void iAPDMView::UpdateTableHistogram()
 		{
 			// Fetch histogram data
 			QVector<double> keyData; QVector<double> valueData;
-			QMap<double, QList<double> > map = ( *m_histogramPlots )[i][j].histoBinMap;
+			QMultiMap<double, QList<double> > map = ( *m_histogramPlots )[i][j].histoBinMap;
 
 			// prepare all x and y axis values
 			for ( double idx = 0; idx < map.size(); ++idx )
@@ -402,7 +402,8 @@ bool iAPDMView::eventFilter( QObject * obj, QEvent * event )
 void iAPDMView::addWidgetToTable( int r, int c, QWidget * plot )
 {
 	QVBoxLayout * plotLayout = new QVBoxLayout();
-	plotLayout->setMargin( 2 ); plotLayout->setSpacing( 0 );
+	plotLayout->setContentsMargins(2, 2, 2, 2);
+	plotLayout->setSpacing(0);
 	plotLayout->addWidget( plot );
 	QWidget * plotWidget = new QWidget( this );
 	plot->setParent( plotWidget );

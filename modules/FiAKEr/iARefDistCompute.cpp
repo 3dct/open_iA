@@ -1,7 +1,7 @@
 /*************************************  open_iA  ************************************ *
 * **********   A tool for visual analysis and processing of 3D CT images   ********** *
 * *********************************************************************************** *
-* Copyright (C) 2016-2020  C. Heinzl, M. Reiter, A. Reh, W. Li, M. Arikan, Ar. &  Al. *
+* Copyright (C) 2016-2021  C. Heinzl, M. Reiter, A. Reh, W. Li, M. Arikan, Ar. &  Al. *
 *                 Amirkhanov, J. Weissenböck, B. Fröhler, M. Schiwarth, P. Weinberger *
 * *********************************************************************************** *
 * This program is free software: you can redistribute it and/or modify it under the   *
@@ -26,10 +26,10 @@
 #include "iACsvConfig.h"
 
 // Core:
-#include <charts/iASPLOMData.h>
+#include <iASPLOMData.h>
 #include <iALog.h>
 #include <iAStringHelper.h>
-#include <iAvec3.h>
+#include <iAVec3.h>
 
 #include <vtkTable.h>
 #include <vtkVariant.h>
@@ -53,7 +53,13 @@ namespace
 	QString AverageCacheFileIdentifier("FIAKERAverageCacheFile");
 	//QString CacheFileClosestFibers("ClosestFibers");
 	//QString CacheFileResultPattern("Result%1");
-	quint32 CacheFileVersion(3);
+	quint32 AverageCacheFileVersion(3);
+	// until v3, CacheFileVersion and AverageCacheFileVersion were used for both average and per-result caches
+	quint32 CacheFileVersion(4);
+	// change from v3 to v4:
+	//   - changed data types in iAFiberSimilarity:
+	//     - index        : quint64 -> quint32
+	//     - dissimilarity: double -> float
 
 	bool verifyOpenCacheFile(QFile & cacheFile)
 	{
@@ -70,7 +76,7 @@ namespace
 	}
 }
 
-iARefDistCompute::ContainerSizeType iARefDistCompute::MaxNumberOfCloseFibers = 25;
+iARefDistCompute::ContainerSizeType iARefDistCompute::MaxNumberOfCloseFibers = 3;
 
 iARefDistCompute::iARefDistCompute(QSharedPointer<iAFiberResultsCollection> data, size_t referenceID) :
 	m_data(data),
@@ -170,7 +176,7 @@ void getBestMatches(iAFiberData const& fiber,
 				size_t refFiberID = otherMatches[bestMatchID].index;
 				auto it = refCurveInfo.find(refFiberID);
 				iAFiberData refFiber(refTable, refFiberID, mapping, (it != refCurveInfo.end()) ? it->second : std::vector<iAVec3f>());
-				similarities[bestMatchID].index = refFiberID;
+				similarities[bestMatchID].index = static_cast<quint32>(refFiberID);
 				double curDissimilarity = getDissimilarity(fiber, refFiber, measuresToCompute[d].first, diagonalLength, maxLength);
 				if (std::isnan(curDissimilarity))
 				{
@@ -470,6 +476,15 @@ bool iARefDistCompute::readResultRefComparison(QFile& cacheFile, size_t resultID
 			"If you want to recompute with correct values, please delete the 'cache' subfolder!")
 			.arg(cacheFile.fileName()));
 	}
+	if (version < 4)
+	{
+		LOG(lvlError, QString("FIAKER cache file '%1': Too old cache version %2; "
+			"with version 4 the cache file format changed in an incompatible way! "
+			"Triggering re-computation... if you abort now, you can continue using "
+			"the old cache file with an older FIAKER version (open_iA <= 2020.10)!")
+			.arg(cacheFile.fileName()).arg(version));
+		return false;
+	}
 	if (version > CacheFileVersion)
 	{
 		LOG(lvlError, QString("FIAKER cache file '%1': Invalid or too high version number (%2), expected %3 or less.")
@@ -566,7 +581,7 @@ void iARefDistCompute::writeAverageMeasures(QFile& cacheFile)
 	out.setVersion(CacheFileQtDataStreamVersion);
 	// write header:
 	out << AverageCacheFileIdentifier;
-	out << CacheFileVersion;
+	out << AverageCacheFileVersion;
 	// write data:
 	out << static_cast<quint32>(m_data->result.size());
 	out << m_data->avgRefFiberMatch;
@@ -593,10 +608,10 @@ bool iARefDistCompute::readAverageMeasures(QFile& cacheFile)
 	}
 	quint32 version;
 	in >> version;
-	if (version > CacheFileVersion)
+	if (version > AverageCacheFileVersion)
 	{
 		LOG(lvlError, QString("FIAKER cache file '%1': Invalid or too high version number (%2), expected %3 or less.")
-			.arg(cacheFile.fileName()).arg(version).arg(CacheFileVersion));
+			.arg(cacheFile.fileName()).arg(version).arg(AverageCacheFileVersion));
 		return false;
 	}
 	quint32 numberOfResults;

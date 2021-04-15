@@ -1,7 +1,7 @@
 /*************************************  open_iA  ************************************ *
 * **********   A tool for visual analysis and processing of 3D CT images   ********** *
 * *********************************************************************************** *
-* Copyright (C) 2016-2020  C. Heinzl, M. Reiter, A. Reh, W. Li, M. Arikan, Ar. &  Al. *
+* Copyright (C) 2016-2021  C. Heinzl, M. Reiter, A. Reh, W. Li, M. Arikan, Ar. &  Al. *
 *                 Amirkhanov, J. Weissenböck, B. Fröhler, M. Schiwarth, P. Weinberger *
 * *********************************************************************************** *
 * This program is free software: you can redistribute it and/or modify it under the   *
@@ -26,7 +26,7 @@ iAIBorderItem::~iAIBorderItem()
 iARightBorderLayout::iARightBorderLayout(QWidget *parent, Position pos, int margin, int spacing)
 	: QLayout(parent), m_pos(pos)
 {
-	setMargin(margin);
+	setContentsMargins(margin, margin, margin, margin);
 	setSpacing(spacing);
 }
 
@@ -83,7 +83,8 @@ QLayoutItem *iARightBorderLayout::itemAt(int index) const
 		{
 			return m_centerItem;
 		}
-		else {
+		else
+		{
 			return m_borderItem->layoutItem();
 		}
 	case 1:
@@ -91,7 +92,8 @@ QLayoutItem *iARightBorderLayout::itemAt(int index) const
 		{
 			return m_borderItem->layoutItem();
 		}
-		else {
+		else
+		{
 			return 0;
 		}
 	default:
@@ -124,16 +126,18 @@ void iARightBorderLayout::setGeometry(const QRect &rect)
 			width = x - rect.x(); // remaining width
 			x = rect.x();
 		}
-		else {
+		else
+		{
 			// TODO: remove?
 			//width = m_centerItem->sizeHint().width(); // TODO: sizeHint() or geometry()?
 			return;
 		}
 
-		m_centerItem->setGeometry(QRect(x, rect.y(), width, rect.height()
-		));
+		m_centerItem->setGeometry(QRect(x, rect.y(), width, rect.height()));
 
-	} else {// if (m_pos == Top)
+	}
+	else
+	{// if (m_pos == Top)
 		int width = rect.width();//m_centerItem->minimumSize().width();
 		int height = m_borderItem->hasHeightForWidth()
 			? m_borderItem->getHeightForWidth(width)
@@ -151,7 +155,8 @@ QSize iARightBorderLayout::sizeHint() const
 
 QLayoutItem *iARightBorderLayout::takeAt(int index)
 {
-	if (index >= 0 && index < count()) {
+	if (index >= 0 && index < count())
+	{
 		return itemAt(index);
 	}
 	return 0;
@@ -193,9 +198,13 @@ void iARightBorderLayout::incrementSize(QSize &totalSize, QLayoutItem *item, Siz
 {
 	QSize itemSize;
 	if (sizeType == MinimumSize)
+	{
 		itemSize = item->minimumSize();
-	else // (sizeType == SizeHint)
+	}
+	else  // (sizeType == SizeHint)
+	{
 		itemSize = item->sizeHint();
+	}
 
 	totalSize.rheight() += itemSize.height();
 	totalSize.rwidth() += itemSize.width();

@@ -1,7 +1,7 @@
 /*************************************  open_iA  ************************************ *
 * **********   A tool for visual analysis and processing of 3D CT images   ********** *
 * *********************************************************************************** *
-* Copyright (C) 2016-2020  C. Heinzl, M. Reiter, A. Reh, W. Li, M. Arikan, Ar. &  Al. *
+* Copyright (C) 2016-2021  C. Heinzl, M. Reiter, A. Reh, W. Li, M. Arikan, Ar. &  Al. *
 *                 Amirkhanov, J. Weissenböck, B. Fröhler, M. Schiwarth, P. Weinberger *
 * *********************************************************************************** *
 * This program is free software: you can redistribute it and/or modify it under the   *
@@ -83,9 +83,9 @@ QSharedPointer<iAEnsemble> iAEnsemble::Create(int entropyBinCount,
 	QSharedPointer<iASamplingResults> superSet,	int labelCount, QString const & cachePath, int id,
 	IntImage::Pointer reference)
 {
-	QSharedPointer<iAEnsemble> result(new iAEnsemble(entropyBinCount));
-	QSharedPointer<iASamplingResults> samplingResults(new iASamplingResults(superSet->attributes(),
-		"Subset", superSet->path(), superSet->executable(), superSet->additionalArguments(), superSet->name(), id));
+	auto result = QSharedPointer<iAEnsemble>(new iAEnsemble(entropyBinCount));
+	auto samplingResults = QSharedPointer<iASamplingResults>::create(superSet->attributes(),
+		"Subset", superSet->path(), superSet->executable(), superSet->additionalArguments(), superSet->name(), id);
 	samplingResults->setMembers(member);
 	result->m_samplings.push_back(samplingResults);
 	result->m_cachePath = cachePath;

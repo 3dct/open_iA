@@ -1,7 +1,7 @@
 /*************************************  open_iA  ************************************ *
 * **********   A tool for visual analysis and processing of 3D CT images   ********** *
 * *********************************************************************************** *
-* Copyright (C) 2016-2020  C. Heinzl, M. Reiter, A. Reh, W. Li, M. Arikan, Ar. &  Al. *
+* Copyright (C) 2016-2021  C. Heinzl, M. Reiter, A. Reh, W. Li, M. Arikan, Ar. &  Al. *
 *                 Amirkhanov, J. Weissenböck, B. Fröhler, M. Schiwarth, P. Weinberger *
 * *********************************************************************************** *
 * This program is free software: you can redistribute it and/or modify it under the   *
@@ -23,6 +23,7 @@
 #include "iAGraphWeights.h"
 #include "iAImageGraph.h"
 #include "iANormalizerImpl.h"
+#include "iASeedType.h"
 #include "iAVectorArrayImpl.h"
 #include "iAVectorDistanceImpl.h"
 
@@ -31,14 +32,12 @@
 #ifndef NDEBUG
 #include <iAMathUtility.h>    // for dblApproxEqual used in assert
 #endif
-#include <iASeedType.h>
+#include <iAToolsVTK.h>
 #include <iATypedCallHelper.h>
 #include <iAToolsITK.h>
 #include <qthelper/iAQtEndl.h>
 
 #include <vtkImageData.h>
-
-#include <QSet>
 
 #ifdef USE_EIGEN
 
@@ -60,9 +59,10 @@ typedef vnl_sparse_matrix<double> MatrixType;
 typedef vnl_vector<double> VectorType;
 
 #endif
-#include "iAToolsVTK.h"
-#include "QFile"
-#include "QTextStream"
+
+#include <QFile>
+#include <QSet>
+#include <QTextStream>
 
 
 namespace
@@ -261,7 +261,7 @@ void iARandomWalker::performWork(QMap<QString, QVariant> const & parameters)
 	double const * spc = input()[0]->vtkImage()->GetSpacing();
 	QVector<iARWInputChannel> inputChannels;
 	iARWInputChannel inputChannel;
-	auto vtkPixelAccess = QSharedPointer<iAvtkPixelVectorArray>(new iAvtkPixelVectorArray(dim));
+	auto vtkPixelAccess = QSharedPointer<iAvtkPixelVectorArray>::create(dim);
 	for (int i = 0; i < input().size(); ++i)
 	{
 		vtkPixelAccess->AddImage(input()[i]->vtkImage());
@@ -322,7 +322,7 @@ void iARandomWalker::performWork(QMap<QString, QVariant> const & parameters)
 	QVector<double> weightsForChannels(inputChannels.size());
 	for (int i = 0; i<inputChannels.size(); ++i)
 	{
-		QSharedPointer<iAGraphWeights> currentMeasureWeight =
+		auto currentMeasureWeight =
 			CalculateGraphWeights(imageGraph, *inputChannels[i].image, *inputChannels[i].distanceFunc);
 		graphWeights[i] = currentMeasureWeight;
 		weightsForChannels[i] = inputChannels[i].weight;
@@ -333,8 +333,7 @@ void iARandomWalker::performWork(QMap<QString, QVariant> const & parameters)
 		graphWeights[i]->Normalize(inputChannels[i].normalizeFunc);
 	}
 
-	QSharedPointer<const iAGraphWeights > finalWeight =
-		CombineGraphWeights(graphWeights, weightsForChannels);
+	auto finalWeight = CombineGraphWeights(graphWeights, weightsForChannels);
 
 	QVector<double> vertexWeightSum(vertexCount);
 	for (iAEdgeIndexType edgeIdx = 0; edgeIdx < imageGraph.edgeCount(); ++edgeIdx)
@@ -469,7 +468,7 @@ void iAExtendedRandomWalker::performWork(QMap<QString, QVariant> const & paramet
 	double const * spc = input()[0]->vtkImage()->GetSpacing();
 	QVector<iARWInputChannel> inputChannels;
 	iARWInputChannel inputChannel;
-	auto vtkPixelAccess = QSharedPointer<iAvtkPixelVectorArray>(new iAvtkPixelVectorArray(dim));
+	auto vtkPixelAccess = QSharedPointer<iAvtkPixelVectorArray>::create(dim);
 	for (int i = 0; static_cast<unsigned int>(i) < firstInputChannels(); ++i)
 	{
 		vtkPixelAccess->AddImage(input()[i]->vtkImage());
@@ -498,7 +497,7 @@ void iAExtendedRandomWalker::performWork(QMap<QString, QVariant> const & paramet
 	QVector<double> weightsForChannels(inputChannels.size());
 	for (int i = 0; i<inputChannels.size(); ++i)
 	{
-		QSharedPointer<iAGraphWeights> currentMeasureWeight =
+		auto currentMeasureWeight =
 			CalculateGraphWeights(imageGraph, *inputChannels[i].image, *inputChannels[i].distanceFunc);
 		graphWeights[i] = currentMeasureWeight;
 		weightsForChannels[i] = inputChannels[i].weight;

@@ -23,7 +23,7 @@
 #include "iAFiberData.h"
 #include "iAFiberCharData.h"
 
-#include <charts/iASPLOMData.h>
+#include <iASPLOMData.h>
 
 #include <QStandardItemModel>
 
@@ -35,11 +35,12 @@ QStringList const& DistributionDifferenceMeasureNames()
 
 namespace
 {
-	void addCheckItem(QStandardItemModel* model, int i, QString const& title)
+	void addCheckItem(QStandardItemModel* model, int i, QString const& title, bool checkEnabled)
 	{
 		model->setItem(i, 0, new QStandardItem(title));
 		auto checkItem = new QStandardItem();
 		checkItem->setCheckable(true);
+		checkItem->setEnabled(checkEnabled);
 		checkItem->setCheckState(Qt::Unchecked);
 		model->setItem(i, 1, checkItem);
 	}
@@ -60,49 +61,38 @@ namespace
 
 iASensitivityDialog::iASensitivityDialog(QSharedPointer<iAFiberResultsCollection> data) :
 	m_characteristicsModel(new QStandardItemModel()),
-	m_diffMeasuresModel(new QStandardItemModel()),
-	m_measuresModel(new QStandardItemModel())
+	m_diffMeasuresModel(new QStandardItemModel())
 {
-	m_characteristicsModel->setHorizontalHeaderLabels(QStringList() << "Characteristic" << "Select");
+	m_characteristicsModel->setHorizontalHeaderLabels(QStringList() << "Characteristic" << "Select" << "Min" << "Max");
 	for (int i = 0; i < static_cast<int>(data->m_resultIDColumn); ++i)
 	{
-		addCheckItem(m_characteristicsModel, i, data->spmData->parameterName(i));
+		addCheckItem(m_characteristicsModel, i, data->spmData->parameterName(i),
+			data->spmData->paramRange(i)[0] != data->spmData->paramRange(i)[1]);
+		m_characteristicsModel->setItem(i, 2, new QStandardItem(QString::number(data->spmData->paramRange(i)[0])));
+		m_characteristicsModel->setItem(i, 3, new QStandardItem(QString::number(data->spmData->paramRange(i)[1])));
 	}
 	tvCharacteristic->setModel(m_characteristicsModel);
 	tvCharacteristic->horizontalHeader()->setSectionResizeMode(0, QHeaderView::Stretch);
 	tvCharacteristic->horizontalHeader()->setSectionResizeMode(1, QHeaderView::ResizeToContents);
+	tvCharacteristic->horizontalHeader()->setSectionResizeMode(2, QHeaderView::Stretch);
+	tvCharacteristic->horizontalHeader()->setSectionResizeMode(3, QHeaderView::Stretch);
 
 	m_diffMeasuresModel->setHorizontalHeaderLabels(QStringList() << "Difference" << "Select");
 	// Difference Between Mean, Min, Max ? other single measures?
 	for (int i = 0; i < DistributionDifferenceMeasureNames().size(); ++i)
 	{
-		addCheckItem(m_diffMeasuresModel, i, DistributionDifferenceMeasureNames()[i]);
+		addCheckItem(m_diffMeasuresModel, i, DistributionDifferenceMeasureNames()[i], true);
 	}
 	//addCheckItem(diffMeasuresModel, 2, "Mutual information");
 	// ... some other measures from iAVectorDistance...?
 	tvDiffMeasures->setModel(m_diffMeasuresModel);
 	tvDiffMeasures->horizontalHeader()->setSectionResizeMode(0, QHeaderView::Stretch);
 	tvDiffMeasures->horizontalHeader()->setSectionResizeMode(1, QHeaderView::ResizeToContents);
-
-	m_measuresModel->setHorizontalHeaderLabels(QStringList() << "Measure" << "Select");
-	auto measureNames = getAvailableDissimilarityMeasureNames();
-	for (int i = 0; i < measureNames.size(); ++i)
-	{
-		addCheckItem(m_measuresModel, i, measureNames[i]);
-	}
-	tvMeasures->setModel(m_measuresModel);
-	tvMeasures->horizontalHeader()->setSectionResizeMode(0, QHeaderView::Stretch);
-	tvMeasures->horizontalHeader()->setSectionResizeMode(1, QHeaderView::ResizeToContents);
 }
 
 QVector<int> iASensitivityDialog::selectedCharacteristics() const
 {
 	return selectedIndices(m_characteristicsModel);
-}
-
-QVector<int> iASensitivityDialog::selectedMeasures() const
-{
-	return selectedIndices(m_measuresModel);
 }
 
 QVector<int> iASensitivityDialog::selectedDiffMeasures() const

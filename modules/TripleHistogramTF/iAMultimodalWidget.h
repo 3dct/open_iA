@@ -1,7 +1,7 @@
 /*************************************  open_iA  ************************************ *
 * **********   A tool for visual analysis and processing of 3D CT images   ********** *
 * *********************************************************************************** *
-* Copyright (C) 2016-2020  C. Heinzl, M. Reiter, A. Reh, W. Li, M. Arikan, Ar. &  Al. *
+* Copyright (C) 2016-2021  C. Heinzl, M. Reiter, A. Reh, W. Li, M. Arikan, Ar. &  Al. *
 *                 Amirkhanov, J. Weissenböck, B. Fröhler, M. Schiwarth, P. Weinberger *
 * *********************************************************************************** *
 * This program is free software: you can redistribute it and/or modify it under the   *
@@ -24,7 +24,7 @@
 
 #include "iASimpleSlicerWidget.h"
 
-#include <charts/iAChartWithFunctionsWidget.h>
+#include <iAChartWithFunctionsWidget.h>
 #include <iATransferFunction.h>
 
 #include <vtkSmartPointer.h>
@@ -35,7 +35,7 @@
 #include <QVector>
 #include <QSharedPointer>
 
-class MdiChild;
+class iAMdiChild;
 
 class vtkCamera;
 class vtkColorTransferFunction;
@@ -48,52 +48,68 @@ class QLabel;
 class QStackedLayout;
 class QCheckBox;
 
-enum NumOfMod {
+enum NumOfMod
+{
 	UNDEFINED = -1,
 	TWO = 2,
 	THREE = 3
 };
 
-class iAMultimodalWidget : public QWidget {
+class iAMultimodalWidget : public QWidget
+{
 	Q_OBJECT
 
 // Private methods used by public/protected
 private:
-	double bCoord_to_t(iABCoord bCoord) { return bCoord[1]; }
-	iABCoord t_to_bCoord(double t) { return iABCoord(1-t, t); }
+	double bCoord_to_t(iABCoord bCoord)
+	{
+		return bCoord[1];
+	}
+	iABCoord t_to_bCoord(double t)
+	{
+		return iABCoord(1-t, t);
+	}
 	void setWeights(iABCoord bCoord, double t);
 
 public:
-	iAMultimodalWidget(MdiChild* mdiChild, NumOfMod num);
+	iAMultimodalWidget(iAMdiChild* mdiChild, NumOfMod num);
 
-	QSharedPointer<iAChartWithFunctionsWidget> w_histogram(int i) {
+	QSharedPointer<iAChartWithFunctionsWidget> w_histogram(int i)
+	{
 		return m_histograms[i];
 	}
 
-	QSharedPointer<iASimpleSlicerWidget> w_slicer(int i) {
+	QSharedPointer<iASimpleSlicerWidget> w_slicer(int i)
+	{
 		return m_slicerWidgets[i];
 	}
 
-	QCheckBox* w_checkBox_weightByOpacity() {
+	QCheckBox* w_checkBox_weightByOpacity()
+	{
 		return m_checkBox_weightByOpacity;
 	}
 
-	QCheckBox* w_checkBox_syncedCamera() {
+	QCheckBox* w_checkBox_syncedCamera()
+	{
 		return m_checkBox_syncedCamera;
 	}
 
-	QLabel* w_slicerModeLabel() {
+	QLabel* w_slicerModeLabel()
+	{
 		return m_slicerModeLabel;
 	}
 
-	QLabel* w_sliceNumberLabel() {
+	QLabel* w_sliceNumberLabel()
+	{
 		return m_sliceNumberLabel;
 	}
 
-	void setWeights(iABCoord bCoord) {
+	void setWeights(iABCoord bCoord)
+	{
 		setWeights(bCoord, bCoord_to_t(bCoord));
 	}
-	void setWeights(double t) {
+	void setWeights(double t)
+	{
 		setWeights(t_to_bCoord(t), t);
 	}
 	iABCoord getWeights();
@@ -119,26 +135,28 @@ protected:
 
 	void resetSlicer(int i);
 
-	void setWeightsProtected(double t) {
+	void setWeightsProtected(double t)
+	{
 		setWeightsProtected(t_to_bCoord(t), t);
 	}
 
-	void setWeightsProtected(iABCoord bCoord) {
+	void setWeightsProtected(iABCoord bCoord)
+	{
 		setWeightsProtected(bCoord, bCoord_to_t(bCoord));
 	}
 
-	MdiChild *m_mdiChild;
+	iAMdiChild *m_mdiChild;
 	QLayout *m_innerLayout;
 
 private:
 	// User interface {
-	void updateDisabledLabel();
 	QVector<QSharedPointer<iAChartWithFunctionsWidget>> m_histograms;
 	QVector<QSharedPointer<iASimpleSlicerWidget>> m_slicerWidgets;
 	QVector<uint> m_channelID;
 	QStackedLayout *m_stackedLayout;
 	QCheckBox *m_checkBox_weightByOpacity;
 	QLabel *m_disabledLabel;
+	QString m_disabledReason;
 	QCheckBox *m_checkBox_syncedCamera;
 	// }
 	virtual void modalitiesChanged() =0;
@@ -219,12 +237,7 @@ private slots:
 
 	void modalitiesChangedSlot(bool, double const *);
 
-	void onMainXYScrollBarPress();
-	void onMainXZScrollBarPress();
-	void onMainYZScrollBarPress();
-	void onMainXYSliceNumberChanged(int sliceNumberXY);
-	void onMainXZSliceNumberChanged(int sliceNumberXZ);
-	void onMainYZSliceNumberChanged(int sliceNumberYZ);
+	void onMainSliceNumberChanged(int mode, int sliceNumber);
 
 	//void modalitiesChanged();
 	void histogramAvailable();

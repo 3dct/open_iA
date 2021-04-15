@@ -1,7 +1,7 @@
 /*************************************  open_iA  ************************************ *
 * **********   A tool for visual analysis and processing of 3D CT images   ********** *
 * *********************************************************************************** *
-* Copyright (C) 2016-2020  C. Heinzl, M. Reiter, A. Reh, W. Li, M. Arikan, Ar. &  Al. *
+* Copyright (C) 2016-2021  C. Heinzl, M. Reiter, A. Reh, W. Li, M. Arikan, Ar. &  Al. *
 *                 Amirkhanov, J. Weissenböck, B. Fröhler, M. Schiwarth, P. Weinberger *
 * *********************************************************************************** *
 * This program is free software: you can redistribute it and/or modify it under the   *
@@ -33,10 +33,12 @@
 #include <iAModality.h>
 #include <iAModalityList.h>
 #include <iANameMapper.h>
-#include <mainwindow.h>
-#include <mdichild.h>
-#include <qthelper/iAQFlowLayout.h>
+#include <iAStringHelper.h>
+#include <iAMainWindow.h>
+#include <iAMdiChild.h>
 #include <qthelper/iAQtEndl.h>
+
+#include <iAQFlowLayout.h>
 
 #include <QCheckBox>
 #include <QFileDialog>
@@ -112,7 +114,8 @@ iASamplingSettingsDlg::iASamplingSettingsDlg(QWidget *parentWdgt,
 	m_widgetMap.insert(spnNumberOfLabels, sbLabelCount);
 
 	m_widgetMap.insert(spnBaseSamplingMethod, cbBaseSamplingMethod);
-	m_widgetMap.insert(spnSensitivityDelta, sbSensitivityDelta);
+	m_widgetMap.insert(spnStarDelta, sbStarDelta);
+	m_widgetMap.insert(spnStarStepNumber, sbStarStepNumber);
 
 	m_startLine = parameterLayout->rowCount();
 
@@ -162,7 +165,7 @@ namespace
 	{
 		if (values.contains(name))
 		{
-			auto & v = values[name];
+			auto v = values[name];
 			QString txt = (v.type() == QVariant::Double) ? QString::number(v.toDouble(), 'g', ContinuousPrecision) : v.toString();
 			edit->setText(txt);
 			return true;
@@ -509,6 +512,7 @@ void iASamplingSettingsDlg::saveSettings()
 	iASettings settings;
 	getValues(settings);
 
+	// use QSettings?
 	QFile file(fileName);
 	if (!file.open(QIODevice::WriteOnly))
 	{
@@ -594,7 +598,11 @@ void iASamplingSettingsDlg::outputBaseChanged()
 
 void iASamplingSettingsDlg::samplingMethodChanged()
 {
-	globalSensitivitySettingsWidget->setVisible(cbSamplingMethod->currentText() == iASamplingMethodName::GlobalSensitivity);
+	globalSensitivitySettingsWidget->setVisible(
+		cbSamplingMethod->currentText() == iASamplingMethodName::GlobalSensitivity ||
+		cbSamplingMethod->currentText() == iASamplingMethodName::GlobalSensitivitySmall);
+	lbStarStepNumber->setVisible(cbSamplingMethod->currentText() == iASamplingMethodName::GlobalSensitivitySmall);
+	sbStarStepNumber->setVisible(cbSamplingMethod->currentText() == iASamplingMethodName::GlobalSensitivitySmall);
 }
 
 void iASamplingSettingsDlg::showAlgorithmInfo()
@@ -805,12 +813,12 @@ void iASamplingSettingsDlg::runClicked()
 			}
 			else
 			{
-				auto mainWnd = dynamic_cast<MainWindow*>(parentWidget());
+				auto mainWnd = dynamic_cast<iAMainWindow*>(parentWidget());
 				if (mainWnd)
 				{
-					auto child = mainWnd->activeChild<MdiChild>();
+					auto child = mainWnd->activeMdiChild();
 					int curChildInputCount = child->modalities()->size();
-					int childCount = mainWnd->childList<MdiChild>().size();
+					int childCount = mainWnd->mdiChildList().size();
 					int inputCount = (curChildInputCount + childCount - 1);
 					if (filter->requiredInputs() > inputCount)
 					{
@@ -826,6 +834,10 @@ void iASamplingSettingsDlg::runClicked()
 	else if (rbExternal->isChecked() && (leExecutable->text().isEmpty() || leParamDescriptor->text().isEmpty()))
 	{
 		msg += "External sampling: No executable and/or parameter descriptor chosen!";
+	}
+	else if (rbExternal->isChecked() && !QFileInfo(leExecutable->text()).exists())
+	{
+		msg += QString("External sampling: Executable '%1' doesn't exist!").arg(leExecutable->text());
 	}
 	if (!msg.isEmpty())
 	{

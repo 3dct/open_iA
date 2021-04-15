@@ -20,7 +20,7 @@
 * ************************************************************************************/
 #include "iASimpleTester.h"
 
-#include "iAMultiDimensionalScaling.h"
+#include "iAMultidimensionalScaling.h"
 
 
 

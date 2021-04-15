@@ -1,7 +1,7 @@
 /*************************************  open_iA  ************************************ *
 * **********   A tool for visual analysis and processing of 3D CT images   ********** *
 * *********************************************************************************** *
-* Copyright (C) 2016-2020  C. Heinzl, M. Reiter, A. Reh, W. Li, M. Arikan, Ar. &  Al. *
+* Copyright (C) 2016-2021  C. Heinzl, M. Reiter, A. Reh, W. Li, M. Arikan, Ar. &  Al. *
 *                 Amirkhanov, J. Weissenböck, B. Fröhler, M. Schiwarth, P. Weinberger *
 * *********************************************************************************** *
 * This program is free software: you can redistribute it and/or modify it under the   *
@@ -32,11 +32,11 @@
 #include "iAPaintWidget.h"
 #include "iAStabilityWidget.h"
 
-#include <charts/iAPlotTypes.h>
-#include <charts/iAChartWidget.h>
-#include <charts/iAHistogramData.h>
+#include <iAPlotTypes.h>
+#include <iAChartWidget.h>
+#include <iAHistogramData.h>
 #include <iAVtkWidget.h>
-#include <io/iAFileUtils.h>
+#include <iAFileUtils.h>
 
 #include <itkMacro.h>    // for itk::ExceptionObject
 
@@ -289,6 +289,7 @@ iADreamCaster::iADreamCaster(QWidget *parent, Qt::WindowFlags flags)
 	connect(ui.s_lowCut2, &QSlider::valueChanged, this, &iADreamCaster::LowCutParam2Slot);
 	connect(ui.s_lowCut3, &QSlider::valueChanged, this, &iADreamCaster::LowCutParam3Slot);
 	connect(ui.pb_updateResults, &QPushButton::clicked, this, &iADreamCaster::UpdateWeightingResultsSlot);
+	connect(ui.pbExportCSV, &QPushButton::clicked, this, &iADreamCaster::exportCSVs);
 	connect(ui.s_lowCutRes, &QSlider::valueChanged, this, &iADreamCaster::LowCutWeightingResSlot);
 	connect(ui.tb_add, &QToolButton::clicked, this, &iADreamCaster::AddCutFigSlot);
 	connect(ui.tb_remove, &QToolButton::clicked, this, &iADreamCaster::RemoveCutFigSlot);
@@ -634,7 +635,7 @@ void iADreamCaster::RenderViewsSlot()
 	FILE *fptr = fopen( getLocalEncodingFileName(setFileName).c_str(),"wb");
 	if(!fptr)
 	{
-		log("Error! Cannot open set file for writing.");
+		log(QString("Error! Cannot open set file '%1' for writing.").arg(setFileName));
 		return;
 	}
 	float cur_minValX = ui.sb_min_x->value()/DEG_IN_PI;
@@ -1092,8 +1093,8 @@ void iADreamCaster::UpdateHistogramSlot()
 		app->processEvents();
 	}
 	hist->clearPlots();
-	auto histData = iAHistogramData::create(values, numBins, iAValueType::Continuous, min_x, max_x);
-	auto histPlot = QSharedPointer<iAPlot>(new iABarGraphPlot(histData, QColor(0, 0, 255, 255)));
+	auto histData = iAHistogramData::create("Frequency", iAValueType::Continuous, values, numBins, min_x, max_x);
+	auto histPlot = QSharedPointer<iABarGraphPlot>::create(histData, QColor(0, 0, 255, 255));
 	hist->addPlot(histPlot);
 	hist->update();
 }
@@ -1184,7 +1185,7 @@ void iADreamCaster::readRenderFromBinaryFile(unsigned int x, unsigned int y, uns
 	FILE *fptr = fopen( getLocalEncodingFileName(setFileName).c_str() ,"rb");
 	if(!fptr)
 	{
-		log("Error! Cannot open set file for reading.");
+		log(QString("Error! Cannot open set file '%1' for reading.").arg(setFileName));
 		return;
 	}
 
@@ -1480,7 +1481,7 @@ void iADreamCaster::ShowRangeRays()
 	//////////////////////////////////////////////////////////////////////////
 	//if(ui.cb_rangeParameter->currentIndex()!=1)//av. penetration parameter choosed
 	{
-		const unsigned int numValues = (const unsigned int) curRender->rays.size();
+		const unsigned int numValues = static_cast<unsigned int>(curRender->rays.size());
 		double rmin = ui.sb_range_min->value();
 		double rmax = ui.sb_range_max->value();
 		vtkPoints *raysPts = vtkPoints::New();
@@ -1594,7 +1595,7 @@ void iADreamCaster::UpdatePlotSlot()
 	FILE *fptr = fopen( getLocalEncodingFileName(setFileName).c_str(),"rb");
 	if(!fptr)
 	{
-		log("Error! Cannot open set file for reading.");
+		log(QString("Error! Cannot open set file '%1' for reading.").arg(setFileName));
 		return;
 	}
 	ClearPrevData();
@@ -1966,18 +1967,21 @@ void iADreamCaster::ShowResultsSlot()
 		break;
 	}
 	rstr+="Optimal parameter's value is: " + QString::number( (placementsParams[xind][zind])[curParamInd] )+"\n";
-	rstr+="Optimal X-rotation is: " + QString::number(rotations[xind][0][zind].rotX)+" (PI)\n";
-	rstr+="Optimal Z-rotation is: " + QString::number(rotations[xind][0][zind].rotZ)+" (PI)\n";
+	double xOpt = rotations[xind][0][zind].rotX;
+	double zOpt = rotations[xind][0][zind].rotZ;
+	rstr+= QString("Optimal X-rotation is: %1π rad (= %2° deg)\n").arg(xOpt).arg(xOpt * 180);
+	rstr+= QString("Optimal Z-rotation is: %1π rad (= %2° deg)\n").arg(zOpt).arg(zOpt * 180);
 	resUi.textEdit->setText(rstr);
 	res.show();
 }
 
 void iADreamCaster::SaveResultsSlot()
 {
-	QFile file(modelFileName+".result");
+	QString fileName(modelFileName+".result");
+	QFile file(fileName);
 	if (!file.open(QIODevice::WriteOnly))
 	{
-		log("Error: Cannot open file results.txt for writing!");
+		log(QString("Error: Cannot open file '%1' for writing!").arg(fileName));
 		return;
 	}
 	QTextStream out(&file);
@@ -3519,6 +3523,54 @@ void iADreamCaster::maximizeBottom()
 	isOneWidgetMaximized = !isOneWidgetMaximized;
 }
 
+void iADreamCaster::exportCSVs()
+{
+	QString csvFileName = QFileDialog::getSaveFileName(nullptr, "Choose base csv filename",
+		QFileInfo(setFileName).absolutePath());
+	if (csvFileName.isEmpty())
+	{
+		return;
+	}
+	QString suffix[3] = {"-avgPen", "-maxPen", "-badRadon"};
+	QFile* files[3];
+	QTextStream* out[3];
+	for (int i=0; i<3; ++i)
+	{
+		QString name(csvFileName + suffix[i] + ".csv");
+		files[i] = new QFile(name);
+		if (!files[i]->open(QIODevice::WriteOnly))
+		{
+			log(QString("Error: Cannot open file '%1' for writing!").arg(name));
+			return;
+		}
+		out[i] = new QTextStream(files[i]);
+	}
+	for (int x = 0; x < renderCntX; ++x)
+	{
+		for (int z = 0; z < renderCntZ; ++z)
+		{
+			(*out[0]) << placementsParams[x][z].avPenLen;
+			(*out[1]) << placementsParams[x][z].maxPenLen;
+			(*out[2]) << placementsParams[x][z].badAreaPercentage;
+			if (z < renderCntZ - 1)
+			{
+				for (int i = 0; i < 3; ++i)
+				{
+					(*out[i]) << ",";
+				}
+			}
+		}
+		for (int i = 0; i < 3; ++i)
+		{
+			(*out[i]) << "\n";
+		}
+	}
+	for (int i=0; i<3; ++i)
+	{
+		files[i]->close();
+	}
+}
+
 void iADreamCaster::changeVisibility( int isVisible )
 {
 	if(isVisible)
@@ -3553,7 +3605,10 @@ void iADreamCaster::setPickedPlacement( int indX, int indY, int indZ )
 	int indicesxz[2] = {(int)curIndX, (int)curIndZ};
 	ViewsFrame->SetHiglightedIndices(&indicesxz[0], &indicesxz[1], 1);
 	ViewsFrame->update();
-	plot3d->setPicked(curIndX, curIndZ);
+	if (!plot3d->setPicked(curIndX, curIndZ))
+	{
+		return;
+	}
 	UpdateInfoLabels();
 	if (ui.cb_UpdateViews->isChecked() && modelOpened && datasetOpened)
 	{

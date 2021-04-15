@@ -1,7 +1,7 @@
 /*************************************  open_iA  ************************************ *
 * **********   A tool for visual analysis and processing of 3D CT images   ********** *
 * *********************************************************************************** *
-* Copyright (C) 2016-2020  C. Heinzl, M. Reiter, A. Reh, W. Li, M. Arikan, Ar. &  Al. *
+* Copyright (C) 2016-2021  C. Heinzl, M. Reiter, A. Reh, W. Li, M. Arikan, Ar. &  Al. *
 *                 Amirkhanov, J. Weissenböck, B. Fröhler, M. Schiwarth, P. Weinberger *
 * *********************************************************************************** *
 * This program is free software: you can redistribute it and/or modify it under the   *
@@ -23,7 +23,7 @@
 #include <iAChannelData.h>
 #include <iAModality.h>
 #include <iAModalityTransfer.h>
-#include <iASlicer.h>
+#include <iASlicerImpl.h>
 
 #include <vtkCamera.h>
 #include <vtkColorTransferFunction.h>
@@ -38,7 +38,7 @@ iASimpleSlicerWidget::iASimpleSlicerWidget(QWidget * parent /*= 0*/, bool enable
 	QWidget(parent, f), m_enableInteraction(enableInteraction),
 	m_slicerTransform(vtkTransform::New())
 {
-	m_slicer = new iASlicer(this, iASlicerMode::XY, /* magicLens = */ false, /*bool decorations = */false, m_slicerTransform); // Hide everything except the slice itself
+	m_slicer = new iASlicerImpl(this, iASlicerMode::XY, /* magicLens = */ false, /*bool decorations = */false, m_slicerTransform); // Hide everything except the slice itself
 	setLayout(new QHBoxLayout);
 	layout()->setSpacing(0);
 	layout()->addWidget(m_slicer);
@@ -102,7 +102,8 @@ void iASimpleSlicerWidget::changeModality(QSharedPointer<iAModality> modality)
 	m_slicer->addChannel(0, iAChannelData(modality->name(), imageData, colorFunction), true);
 	m_slicer->disableInteractor();
 
-	if (!m_enableInteraction) {
+	if (!m_enableInteraction)
+	{
 		vtkInteractorStyle *dummyStyle = vtkInteractorStyle::New();
 		m_slicer->interactor()->SetInteractorStyle(dummyStyle);
 	}

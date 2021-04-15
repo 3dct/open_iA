@@ -1,7 +1,7 @@
 /*************************************  open_iA  ************************************ *
 * **********   A tool for visual analysis and processing of 3D CT images   ********** *
 * *********************************************************************************** *
-* Copyright (C) 2016-2020  C. Heinzl, M. Reiter, A. Reh, W. Li, M. Arikan, Ar. &  Al. *
+* Copyright (C) 2016-2021  C. Heinzl, M. Reiter, A. Reh, W. Li, M. Arikan, Ar. &  Al. *
 *                 Amirkhanov, J. Weissenböck, B. Fröhler, M. Schiwarth, P. Weinberger *
 * *********************************************************************************** *
 * This program is free software: you can redistribute it and/or modify it under the   *
@@ -31,7 +31,8 @@ class iABarycentricTriangle
 		iABarycentricTriangle(int xa, int ya, int xb, int yb, int xc, int yc);
 		iABarycentricTriangle();
 
-		iABarycentricTriangle operator- (QPoint p) {
+		iABarycentricTriangle operator- (QPoint p)
+		{
 			return iABarycentricTriangle(m_xa - p.x(), m_ya - p.y(), m_xb - p.x(), m_yb - p.y(), m_xc - p.x(), m_yc - p.y());
 		}
 

@@ -1,7 +1,7 @@
 /*************************************  open_iA  ************************************ *
 * **********   A tool for visual analysis and processing of 3D CT images   ********** *
 * *********************************************************************************** *
-* Copyright (C) 2016-2020  C. Heinzl, M. Reiter, A. Reh, W. Li, M. Arikan, Ar. &  Al. *
+* Copyright (C) 2016-2021  C. Heinzl, M. Reiter, A. Reh, W. Li, M. Arikan, Ar. &  Al. *
 *                 Amirkhanov, J. Weissenböck, B. Fröhler, M. Schiwarth, P. Weinberger *
 * *********************************************************************************** *
 * This program is free software: you can redistribute it and/or modify it under the   *
@@ -183,7 +183,7 @@ void dlg_GEMSe::SetTree(
 
 void dlg_GEMSe::CreateMapper()
 {
-	m_chartAttributes = QSharedPointer<iAAttributes>(new iAAttributes());
+	m_chartAttributes = QSharedPointer<iAAttributes>::create();
 	m_chartAttributeMapper.Clear();
 	int nextChartID = 0;
 	m_pipelineNames.clear();
@@ -623,20 +623,20 @@ void dlg_GEMSe::CalcRefImgComp(LabelImagePointer refImg)
 	if (m_MeasureChartIDStart == -1)
 	{
 		QVector<QSharedPointer<iAAttributeDescriptor> > measures;
-		measures.push_back(QSharedPointer<iAAttributeDescriptor>(new iAAttributeDescriptor(
-			"Dice", iAAttributeDescriptor::DerivedOutput, iAValueType::Continuous)));
-		measures.push_back(QSharedPointer<iAAttributeDescriptor>(new iAAttributeDescriptor(
-			"Kappa", iAAttributeDescriptor::DerivedOutput, iAValueType::Continuous)));
-		measures.push_back(QSharedPointer<iAAttributeDescriptor>(new iAAttributeDescriptor(
-			"Overall Accuracy", iAAttributeDescriptor::DerivedOutput, iAValueType::Continuous)));
-		measures.push_back(QSharedPointer<iAAttributeDescriptor>(new iAAttributeDescriptor(
-			"Precision", iAAttributeDescriptor::DerivedOutput, iAValueType::Continuous)));
-		measures.push_back(QSharedPointer<iAAttributeDescriptor>(new iAAttributeDescriptor(
-			"Recall", iAAttributeDescriptor::DerivedOutput, iAValueType::Continuous)));
+		measures.push_back(QSharedPointer<iAAttributeDescriptor>::create(
+			"Dice", iAAttributeDescriptor::DerivedOutput, iAValueType::Continuous));
+		measures.push_back(QSharedPointer<iAAttributeDescriptor>::create(
+			"Kappa", iAAttributeDescriptor::DerivedOutput, iAValueType::Continuous));
+		measures.push_back(QSharedPointer<iAAttributeDescriptor>::create(
+			"Overall Accuracy", iAAttributeDescriptor::DerivedOutput, iAValueType::Continuous));
+		measures.push_back(QSharedPointer<iAAttributeDescriptor>::create(
+			"Precision", iAAttributeDescriptor::DerivedOutput, iAValueType::Continuous));
+		measures.push_back(QSharedPointer<iAAttributeDescriptor>::create(
+			"Recall", iAAttributeDescriptor::DerivedOutput, iAValueType::Continuous));
 		for (int i=0; i<labelCount; ++i)
 		{
-			measures.push_back(QSharedPointer<iAAttributeDescriptor>(new iAAttributeDescriptor(
-				QString("Dice %1").arg(i), iAAttributeDescriptor::DerivedOutput, iAValueType::Continuous)));
+			measures.push_back(QSharedPointer<iAAttributeDescriptor>::create(
+				QString("Dice %1").arg(i), iAAttributeDescriptor::DerivedOutput, iAValueType::Continuous));
 		}
 		m_MeasureChartIDStart = m_chartAttributes->size();
 		for (QSharedPointer<iAAttributeDescriptor> measure : measures)
@@ -759,6 +759,10 @@ void dlg_GEMSe::setMagicLensCount(int count)
 
 void dlg_GEMSe::freeMemory()
 {
+	if (!m_treeView)
+	{
+		return;
+	}
 	m_treeView->freeMemory(GetRoot(), false);
 }
 

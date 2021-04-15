@@ -1,7 +1,7 @@
 /*************************************  open_iA  ************************************ *
 * **********   A tool for visual analysis and processing of 3D CT images   ********** *
 * *********************************************************************************** *
-* Copyright (C) 2016-2020  C. Heinzl, M. Reiter, A. Reh, W. Li, M. Arikan, Ar. &  Al. *
+* Copyright (C) 2016-2021  C. Heinzl, M. Reiter, A. Reh, W. Li, M. Arikan, Ar. &  Al. *
 *                 Amirkhanov, J. Weissenböck, B. Fröhler, M. Schiwarth, P. Weinberger *
 * *********************************************************************************** *
 * This program is free software: you can redistribute it and/or modify it under the   *
@@ -23,11 +23,13 @@
 #include "iAParameterExplorerAttachment.h"
 
 #include <iALog.h>
-#include <io/iAFileUtils.h>
-#include <mainwindow.h>
-#include <mdichild.h>
+#include <iAFileUtils.h>
+#include <iAMainWindow.h>
+#include <iAMdiChild.h>
 
+#include <QAction>
 #include <QFileDialog>
+#include <QMenu>
 #include <QSettings>
 
 void iAParameterExplorerModuleInterface::Initialize()
@@ -37,11 +39,11 @@ void iAParameterExplorerModuleInterface::Initialize()
 		return;
 	}
 	QAction * actionExplore = new QAction(tr("Parameter Explorer"), m_mainWnd);
-	makeActionChildDependent(actionExplore);
+	m_mainWnd->makeActionChildDependent(actionExplore);
 	connect(actionExplore, &QAction::triggered, this, &iAParameterExplorerModuleInterface::StartParameterExplorer);
 
 	QAction * actionLoad = new QAction(tr("Load Parameter Explorer State"), m_mainWnd);
-	makeActionChildDependent(actionLoad);
+	m_mainWnd->makeActionChildDependent(actionLoad);
 	connect(actionLoad, &QAction::triggered, this, &iAParameterExplorerModuleInterface::LoadState);
 
 	QMenu* submenu = getOrAddSubMenu(m_mainWnd->toolsMenu(), tr("Image Ensembles"), true);
@@ -68,8 +70,7 @@ void iAParameterExplorerModuleInterface::SetupToolBar()
 
 void iAParameterExplorerModuleInterface::ToggleDockWidgetTitleBars()
 {
-	m_mdiChild = m_mainWnd->activeMdiChild();
-	iAParameterExplorerAttachment* attach = GetAttachment<iAParameterExplorerAttachment>();
+	iAParameterExplorerAttachment* attach = GetAttachment<iAParameterExplorerAttachment>(m_mainWnd->activeMdiChild());
 	if (!attach)
 	{
 		LOG(lvlError, "ParameterExplorer was not loaded properly!");
@@ -80,8 +81,7 @@ void iAParameterExplorerModuleInterface::ToggleDockWidgetTitleBars()
 
 void iAParameterExplorerModuleInterface::ToggleSettings()
 {
-	m_mdiChild = m_mainWnd->activeMdiChild();
-	iAParameterExplorerAttachment* attach = GetAttachment<iAParameterExplorerAttachment>();
+	iAParameterExplorerAttachment* attach = GetAttachment<iAParameterExplorerAttachment>(m_mainWnd->activeMdiChild());
 	if (!attach)
 	{
 		LOG(lvlError, "ParameterExplorer was not loaded properly!");
@@ -109,7 +109,7 @@ void iAParameterExplorerModuleInterface::StartParameterExplorer()
 void iAParameterExplorerModuleInterface::SaveState()
 {
 	m_mdiChild = m_mainWnd->activeMdiChild();
-	iAParameterExplorerAttachment* attach = GetAttachment<iAParameterExplorerAttachment>();
+	iAParameterExplorerAttachment* attach = GetAttachment<iAParameterExplorerAttachment>(m_mainWnd->activeMdiChild());
 	if (!attach)
 	{
 		LOG(lvlError, "ParameterExplorer was not loaded properly!");
@@ -140,9 +140,9 @@ void iAParameterExplorerModuleInterface::LoadState()
 	QFileInfo stateFileInfo(stateFileName);
 	QSettings stateFileSettings(stateFileName, QSettings::IniFormat);
 	QString refFileName = MakeAbsolute(stateFileInfo.absolutePath(), stateFileSettings.value("Reference").toString());
-	MdiChild *child = m_mainWnd->createMdiChild(false);
+	iAMdiChild* child = m_mainWnd->createMdiChild(false);
 	m_stateFiles.insert(child, stateFileName);
-	connect(child, &MdiChild::fileLoaded, this, &iAParameterExplorerModuleInterface::ContinueStateLoading);
+	connect(child, &iAMdiChild::fileLoaded, this, &iAParameterExplorerModuleInterface::ContinueStateLoading);
 	if (!child->loadFile(refFileName, false))
 	{
 		LOG(lvlError, QString("Could not load reference file %1.").arg(refFileName));
@@ -152,9 +152,9 @@ void iAParameterExplorerModuleInterface::LoadState()
 
 void iAParameterExplorerModuleInterface::ContinueStateLoading()
 {
-	MdiChild* child = dynamic_cast<MdiChild*>(QObject::sender());
+	iAMdiChild* child = dynamic_cast<iAMdiChild*>(QObject::sender());
 	m_mdiChild = child;
-	iAParameterExplorerAttachment* attach = GetAttachment<iAParameterExplorerAttachment>();
+	iAParameterExplorerAttachment* attach = GetAttachment<iAParameterExplorerAttachment>(m_mdiChild);
 	if (!child || attach)
 	{
 		LOG(lvlError, "ParameterExplorer: Invalid state - child null or Parameter Explorer already attached!");
@@ -168,7 +168,7 @@ void iAParameterExplorerModuleInterface::ContinueStateLoading()
 	{
 		return;
 	}
-	attach = GetAttachment<iAParameterExplorerAttachment>();
+	attach = GetAttachment<iAParameterExplorerAttachment>(m_mdiChild);
 	if (!attach)
 	{
 		LOG(lvlError, "ParameterExplorer was not loaded properly!");
@@ -180,15 +180,14 @@ void iAParameterExplorerModuleInterface::ContinueStateLoading()
 	m_stateFiles.remove(child);
 }
 
-bool iAParameterExplorerModuleInterface::CreateAttachment(QString const & csvFileName, MdiChild* child)
+bool iAParameterExplorerModuleInterface::CreateAttachment(QString const & csvFileName, iAMdiChild* child)
 {
 	bool result = AttachToMdiChild(child);
-	m_mdiChild = child;
 	if (!result)
 	{
 		return false;
 	}
-	iAParameterExplorerAttachment* attach = GetAttachment<iAParameterExplorerAttachment>();
+	iAParameterExplorerAttachment* attach = GetAttachment<iAParameterExplorerAttachment>(child);
 	if (!attach)
 	{
 		LOG(lvlError, "ParameterExplorer was not loaded properly!");
@@ -199,7 +198,7 @@ bool iAParameterExplorerModuleInterface::CreateAttachment(QString const & csvFil
 	return true;
 }
 
-iAModuleAttachmentToChild* iAParameterExplorerModuleInterface::CreateAttachment(MainWindow* mainWnd, MdiChild * child)
+iAModuleAttachmentToChild* iAParameterExplorerModuleInterface::CreateAttachment(iAMainWindow* mainWnd, iAMdiChild * child)
 {
 	return iAParameterExplorerAttachment::create( mainWnd, child);
 }

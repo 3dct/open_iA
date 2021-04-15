@@ -1,7 +1,7 @@
 /*************************************  open_iA  ************************************ *
 * **********   A tool for visual analysis and processing of 3D CT images   ********** *
 * *********************************************************************************** *
-* Copyright (C) 2016-2020  C. Heinzl, M. Reiter, A. Reh, W. Li, M. Arikan, Ar. &  Al. *
+* Copyright (C) 2016-2021  C. Heinzl, M. Reiter, A. Reh, W. Li, M. Arikan, Ar. &  Al. *
 *                 Amirkhanov, J. Weissenböck, B. Fröhler, M. Schiwarth, P. Weinberger *
 * *********************************************************************************** *
 * This program is free software: you can redistribute it and/or modify it under the   *
@@ -31,7 +31,7 @@
 #include <iAStringHelper.h>
 #include <iAToolsITK.h>
 #include <iATypedCallHelper.h>
-#include <io/iAITKIO.h>
+#include <iAITKIO.h>
 #include <qthelper/iAQtEndl.h>
 
 #include <itkImage.h>
@@ -206,7 +206,7 @@ namespace
 						filter->run(filterParams);
 
 						// get output images and values from filter:
-						int outputCount = std::max(filter->outputCount(), filter->output().size());
+						int outputCount = std::max(filter->outputCount(), static_cast<int>(filter->output().size()));
 						for (int o = 0; o < outputCount; ++o)
 						{
 							QFileInfo fi(parameters["Output image base name"].toString());

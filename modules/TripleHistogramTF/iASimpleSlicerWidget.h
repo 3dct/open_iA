@@ -1,7 +1,7 @@
 /*************************************  open_iA  ************************************ *
 * **********   A tool for visual analysis and processing of 3D CT images   ********** *
 * *********************************************************************************** *
-* Copyright (C) 2016-2020  C. Heinzl, M. Reiter, A. Reh, W. Li, M. Arikan, Ar. &  Al. *
+* Copyright (C) 2016-2021  C. Heinzl, M. Reiter, A. Reh, W. Li, M. Arikan, Ar. &  Al. *
 *                 Amirkhanov, J. Weissenböck, B. Fröhler, M. Schiwarth, P. Weinberger *
 * *********************************************************************************** *
 * This program is free software: you can redistribute it and/or modify it under the   *
@@ -41,7 +41,7 @@ public:
 #if QT_VERSION < QT_VERSION_CHECK(5, 15, 0)
 	iASimpleSlicerWidget(QWidget* parent = nullptr, bool enableInteraction = false, Qt::WindowFlags f = 0);
 #else
-	iASimpleSlicerWidget(QWidget* parent = nullptr, bool enableInteraction = false, Qt::WindowFlags f = QFlags<Qt::WindowType>());
+	iASimpleSlicerWidget(QWidget* parent = nullptr, bool enableInteraction = false, Qt::WindowFlags f = Qt::WindowFlags());
 #endif
 	~iASimpleSlicerWidget();
 
@@ -59,7 +59,10 @@ public:
 
 	void setCamera(vtkCamera* camera);
 
-	iASlicer* getSlicer() { return m_slicer; }
+	iASlicer* getSlicer()
+	{
+		return m_slicer;
+	}
 
 public slots:
 	void update();

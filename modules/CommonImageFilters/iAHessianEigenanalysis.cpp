@@ -1,7 +1,7 @@
 /*************************************  open_iA  ************************************ *
 * **********   A tool for visual analysis and processing of 3D CT images   ********** *
 * *********************************************************************************** *
-* Copyright (C) 2016-2020  C. Heinzl, M. Reiter, A. Reh, W. Li, M. Arikan, Ar. &  Al. *
+* Copyright (C) 2016-2021  C. Heinzl, M. Reiter, A. Reh, W. Li, M. Arikan, Ar. &  Al. *
 *                 Amirkhanov, J. Weissenböck, B. Fröhler, M. Schiwarth, P. Weinberger *
 * *********************************************************************************** *
 * This program is free software: you can redistribute it and/or modify it under the   *
@@ -143,7 +143,7 @@ void iAHessianEigenanalysis::performWork(QMap<QString, QVariant> const & paramet
 IAFILTER_CREATE(iAHessianEigenanalysis)
 
 iAHessianEigenanalysis::iAHessianEigenanalysis() :
-	iAFilter("Eigen analysis of Hessian", "Hessian and Eigenanalysis",
+	iAFilter("Eigen analysis of Hessian", "Gradient/Derivative",
 		"Computes the Eigen analysis of the Hessian of an image.<br/>"
 		"Computes first the Hessian of an image, and then the eigen analysis "
 		"of the Hessian, and outputs the three lambda images from this eigen"
@@ -180,7 +180,7 @@ void iALaplacian::performWork(QMap<QString, QVariant> const & parameters)
 IAFILTER_CREATE(iALaplacian)
 
 iALaplacian::iALaplacian() :
-	iAFilter("Laplacian of Gaussian", "Hessian and Eigenanalysis",
+	iAFilter("Laplacian of Gaussian", "Gradient/Derivative",
 		"Computes the Laplacian of Gaussian (LoG) of an image.<br/>"
 		"Computes the Laplacian of Gaussian (LoG) of an image by convolution "
 		"with the second derivative of a Gaussian. This filter is "

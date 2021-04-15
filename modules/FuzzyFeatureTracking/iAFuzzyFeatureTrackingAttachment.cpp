@@ -1,7 +1,7 @@
 /*************************************  open_iA  ************************************ *
 * **********   A tool for visual analysis and processing of 3D CT images   ********** *
 * *********************************************************************************** *
-* Copyright (C) 2016-2020  C. Heinzl, M. Reiter, A. Reh, W. Li, M. Arikan, Ar. &  Al. *
+* Copyright (C) 2016-2021  C. Heinzl, M. Reiter, A. Reh, W. Li, M. Arikan, Ar. &  Al. *
 *                 Amirkhanov, J. Weissenböck, B. Fröhler, M. Schiwarth, P. Weinberger *
 * *********************************************************************************** *
 * This program is free software: you can redistribute it and/or modify it under the   *
@@ -27,13 +27,15 @@
 
 #include <iALog.h>
 #include <iAVolumeStack.h>
-#include <mdichild.h>
+#include <iAMdiChild.h>
 
 #include <itkMacro.h>    // for itk::ExceptionObject
 
+#include <QFile>
+
 const int FOURDCT_MIN_NUMBER_OF_VOLUMES = 1;
 
-iAFuzzyFeatureTrackingAttachment::iAFuzzyFeatureTrackingAttachment( MainWindow * mainWnd, MdiChild * child ):
+iAFuzzyFeatureTrackingAttachment::iAFuzzyFeatureTrackingAttachment( iAMainWindow * mainWnd, iAMdiChild * child ):
 	iAModuleAttachmentToChild( mainWnd, child ),
 	trackingGraph(nullptr),
 	m_dlgDataView4DCT(nullptr),
@@ -41,7 +43,7 @@ iAFuzzyFeatureTrackingAttachment::iAFuzzyFeatureTrackingAttachment( MainWindow *
 	m_dlgEventExplorer(nullptr),
 	m_volumeStack(child->volumeStack())
 {
-	connect( child, &MdiChild::viewsUpdated, this, &iAFuzzyFeatureTrackingAttachment::updateViews);
+	connect( child, &iAMdiChild::viewsUpdated, this, &iAFuzzyFeatureTrackingAttachment::updateViews);
 
 	if (!create4DCTDataViewWidget())
 	{

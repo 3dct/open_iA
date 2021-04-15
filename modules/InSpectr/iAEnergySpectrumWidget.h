@@ -1,7 +1,7 @@
 /*************************************  open_iA  ************************************ *
 * **********   A tool for visual analysis and processing of 3D CT images   ********** *
 * *********************************************************************************** *
-* Copyright (C) 2016-2020  C. Heinzl, M. Reiter, A. Reh, W. Li, M. Arikan, Ar. &  Al. *
+* Copyright (C) 2016-2021  C. Heinzl, M. Reiter, A. Reh, W. Li, M. Arikan, Ar. &  Al. *
 *                 Amirkhanov, J. Weissenböck, B. Fröhler, M. Schiwarth, P. Weinberger *
 * *********************************************************************************** *
 * This program is free software: you can redistribute it and/or modify it under the   *
@@ -20,21 +20,24 @@
 * ************************************************************************************/
 #pragma once
 
-#include <charts/iAChartWithFunctionsWidget.h>
+#include <iAChartWithFunctionsWidget.h>
 
 #include <QMap>
 
 class iAAccumulatedXRFData;
 struct iACharacteristicEnergy;
-class iAPlotData;
+class iASimpleTransferFunction;
 class iASpectrumFilterListener;
+
+class vtkColorTransferFunction;
+class vtkPiecewiseFunction;
 
 class QRubberBand;
 
 class iAEnergySpectrumWidget: public iAChartWithFunctionsWidget
 {
 public:
-	iAEnergySpectrumWidget(QWidget *parent, MdiChild *mdiChild,
+	iAEnergySpectrumWidget(QWidget *parent,
 		QSharedPointer<iAAccumulatedXRFData> data,
 		vtkPiecewiseFunction* oTF,
 		vtkColorTransferFunction* cTF,
@@ -57,4 +60,5 @@ private:
 	QVector<QRect> selectionRects;
 	iASpectrumFilterListener* filterListener;
 	QMap<iACharacteristicEnergy*, QColor> m_elementEnergies;
+	QSharedPointer<iASimpleTransferFunction> m_tf;
 };

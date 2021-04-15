@@ -1,7 +1,7 @@
 /*************************************  open_iA  ************************************ *
 * **********   A tool for visual analysis and processing of 3D CT images   ********** *
 * *********************************************************************************** *
-* Copyright (C) 2016-2020  C. Heinzl, M. Reiter, A. Reh, W. Li, M. Arikan, Ar. &  Al. *
+* Copyright (C) 2016-2021  C. Heinzl, M. Reiter, A. Reh, W. Li, M. Arikan, Ar. &  Al. *
 *                 Amirkhanov, J. Weissenböck, B. Fröhler, M. Schiwarth, P. Weinberger *
 * *********************************************************************************** *
 * This program is free software: you can redistribute it and/or modify it under the   *
@@ -20,19 +20,21 @@
 * ************************************************************************************/
 #include "iAQMeasure.h"
 
-#include <charts/iAChartWithFunctionsWidget.h>
-#include <charts/iASimpleHistogramData.h>
-#include <charts/iAPlotTypes.h>
+#include <iAChartWithFunctionsWidget.h>
+#include <iAHistogramData.h>
+#include <iAPlotTypes.h>
 #include <defines.h>    // for DIM
 #include <iAConnector.h>
 #include <iALog.h>
 #include <iAMathUtility.h>
+#include <iAPreferences.h>
 #include <iAProgress.h>
 #include <iAToolsITK.h>
 #include <iAToolsVTK.h>
 #include <iATypedCallHelper.h>
-#include <mdichild.h>
-#include <qthelper/iADockWidgetWrapper.h>
+#include <iAMdiChild.h>
+
+#include <iADockWidgetWrapper.h>
 
 #include <itkImage.h>
 #include <itkImageToHistogramFilter.h>
@@ -122,8 +124,8 @@ void computeQ(iAQMeasure* filter, vtkSmartPointer<vtkImageData> img, QMap<QStrin
 
 	if (filter->m_chart)
 	{
-		auto histoPlotData = iASimpleHistogramData::create(minVal, maxVal, vecHist, iAValueType::Continuous);
-		filter->m_chart->addPlot(QSharedPointer<iAPlot>(new iABarGraphPlot(histoPlotData, QColor(180, 90, 90, 127))));
+		auto histoPlotData = iAHistogramData::create("Frequency", iAValueType::Continuous, minVal, maxVal, vecHist);
+		filter->m_chart->addPlot(QSharedPointer<iABarGraphPlot>::create(histoPlotData, QColor(180, 90, 90, 127)));
 	}
 
 	double derivSigma = static_cast<double>(binCount) / Kderiv;
@@ -132,8 +134,8 @@ void computeQ(iAQMeasure* filter, vtkSmartPointer<vtkImageData> img, QMap<QStrin
 
 	if (filter->m_chart)
 	{
-		auto smoothedHistoPlotData = iASimpleHistogramData::create(minVal, maxVal, smoothedHist, iAValueType::Continuous);
-		filter->m_chart->addPlot(QSharedPointer<iAPlot>(new iABarGraphPlot(smoothedHistoPlotData, QColor(90, 180, 90, 127))));
+		auto smoothedHistoPlotData = iAHistogramData::create("Smoothed Frequency", iAValueType::Continuous, minVal, maxVal, smoothedHist);
+		filter->m_chart->addPlot(QSharedPointer<iABarGraphPlot>::create(smoothedHistoPlotData, QColor(90, 180, 90, 127)));
 	}
 
 	// 3. find peaks: (derivative = 0, 2nd deriv. negative)
@@ -141,8 +143,8 @@ void computeQ(iAQMeasure* filter, vtkSmartPointer<vtkImageData> img, QMap<QStrin
 	auto smoothedDeriv = gaussianSmoothing(firstDeriv, derivSigma, 5);
 	if (filter->m_chart)
 	{
-		auto firstDerivPlotData = iASimpleHistogramData::create(minVal, maxVal, smoothedDeriv, iAValueType::Continuous);
-		filter->m_chart->addPlot(QSharedPointer<iAPlot>(new iABarGraphPlot(firstDerivPlotData, QColor(90, 90, 180, 127))));
+		auto firstDerivPlotData = iAHistogramData::create("Smoothed Derivative", iAValueType::Continuous, minVal, maxVal, smoothedDeriv);
+		filter->m_chart->addPlot(QSharedPointer<iABarGraphPlot>::create(firstDerivPlotData, QColor(90, 90, 180, 127)));
 	}
 
 	// peak is at every 0-crossing, so where:
@@ -187,7 +189,7 @@ void computeQ(iAQMeasure* filter, vtkSmartPointer<vtkImageData> img, QMap<QStrin
 	{
 		for (size_t p = 0; p < numberOfPeaks; ++p)
 		{
-			filter->m_chart->addPlot(QSharedPointer<iAPlot>(new iASelectedBinPlot(filter->m_chart->plots()[0]->data(), peaks[p].first, QColor(90, 180, 90, 182))));
+			filter->m_chart->addPlot(QSharedPointer<iASelectedBinPlot>::create(filter->m_chart->plots()[0]->data(), peaks[p].first, QColor(90, 180, 90, 182)));
 		}
 	}
 										// order peaks by index
@@ -210,8 +212,8 @@ void computeQ(iAQMeasure* filter, vtkSmartPointer<vtkImageData> img, QMap<QStrin
 		auto smoothedHistoMin = gaussianSmoothing(vecHist, minSigma, 10);
 		if (filter->m_chart)
 		{
-			//auto smoothedHisto2PlotData = iASimpleHistogramData::Create(minVal, maxVal, smoothedHistoMin, iAValueType::Continuous);
-			//filter->m_chart->AddPlot(QSharedPointer<iAPlot>(new iABarGraphPlot(smoothedHisto2PlotData, QColor(90, 180, 180, 127))));
+			//auto smoothedHisto2PlotData = iAHistogramData::create(minVal, maxVal, smoothedHistoMin, iAValueType::Continuous);
+			//filter->m_chart->AddPlot(QSharedPointer<iABarGraphPlot>::create(smoothedHisto2PlotData, QColor(90, 180, 180, 127)));
 		}
 		int minIdx = peaks[m].first;
 		double curMinFreq = peaks[m].second;
@@ -228,7 +230,7 @@ void computeQ(iAQMeasure* filter, vtkSmartPointer<vtkImageData> img, QMap<QStrin
 		// calculate mean/stddev:
 		getMeanVariance(vecHist, minVal, maxVal, thresholdIndices[m], thresholdIndices[m + 1], mean[m], variance[m]);
 		if (filter->m_chart)
-			filter->m_chart->addPlot(QSharedPointer<iAPlot>(new iASelectedBinPlot(filter->m_chart->plots()[0]->data(), minIdx, QColor(180, 90, 90, 182))));
+			filter->m_chart->addPlot(QSharedPointer<iASelectedBinPlot>::create(filter->m_chart->plots()[0]->data(), minIdx, QColor(180, 90, 90, 182)));
 	}
 	// for last peak we still have to calculate mean and stddev
 	getMeanVariance(vecHist, minVal, maxVal, thresholdIndices[numberOfPeaks - 1], thresholdIndices[numberOfPeaks], mean[numberOfPeaks - 1], variance[numberOfPeaks - 1]);
@@ -432,7 +434,7 @@ iAQMeasure::iAQMeasure() :
 	addOutputValue("Q (orig, equ 1)");
 }
 
-void iAQMeasure::setupDebugGUI(iAChartWidget* chart, MdiChild* mdiChild)
+void iAQMeasure::setupDebugGUI(iAChartWidget* chart, iAMdiChild* mdiChild)
 {
 	m_chart = chart;
 	m_mdiChild = mdiChild;
@@ -442,7 +444,7 @@ void iAQMeasure::setupDebugGUI(iAChartWidget* chart, MdiChild* mdiChild)
 IAFILTER_RUNNER_CREATE(iAQMeasureRunner);
 
 void iAQMeasureRunner::filterGUIPreparations(QSharedPointer<iAFilter> filter,
-	MdiChild* mdiChild, MainWindow* /*mainWnd*/, QMap<QString, QVariant> const& params)
+	iAMdiChild* mdiChild, iAMainWindow* /*mainWnd*/, QMap<QString, QVariant> const& params)
 {
 	if (params["Analyze Peaks"].toBool())
 	{

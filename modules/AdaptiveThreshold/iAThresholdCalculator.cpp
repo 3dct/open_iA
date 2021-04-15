@@ -1,7 +1,7 @@
 /*************************************  open_iA  ************************************ *
 * **********   A tool for visual analysis and processing of 3D CT images   ********** *
 * *********************************************************************************** *
-* Copyright (C) 2016-2020  C. Heinzl, M. Reiter, A. Reh, W. Li, M. Arikan, Ar. &  Al. *
+* Copyright (C) 2016-2021  C. Heinzl, M. Reiter, A. Reh, W. Li, M. Arikan, Ar. &  Al. *
 *                 Amirkhanov, J. Weissenböck, B. Fröhler, M. Schiwarth, P. Weinberger *
 * *********************************************************************************** *
 * This program is free software: you can redistribute it and/or modify it under the   *
@@ -92,10 +92,10 @@ void iAThresholdCalculator::retrieveHistData()
 		throw std::invalid_argument("Error histogram data cannot be retrieved");
 	}
 
-	for (size_t b = 0; b < m_data->numBin(); ++b)
+	for (size_t idx = 0; idx < m_data->valueCount(); ++idx)
 	{
-		double binVals_X = m_data->binStart(b);
-		double freq_valsY = m_data->rawData()[b];
+		double binVals_X = m_data->xValue(idx);
+		double freq_valsY = m_data->yValue(idx);
 		m_thresBinsX.push_back(binVals_X);
 		m_freqValsY.push_back(freq_valsY);
 	}

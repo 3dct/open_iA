@@ -41,9 +41,7 @@ class iASensitivityDialog : public iACharacteristicsMeasureDialog
 public:
 	iASensitivityDialog(QSharedPointer<iAFiberResultsCollection> data);
 	QVector<int> selectedCharacteristics() const;
-	QVector<int> selectedMeasures() const;
 	QVector<int> selectedDiffMeasures() const;
-	int histogramBins() const;
 private:
-	QStandardItemModel* m_characteristicsModel, * m_measuresModel, * m_diffMeasuresModel;
+	QStandardItemModel* m_characteristicsModel, * m_diffMeasuresModel;
 };

@@ -1,7 +1,7 @@
 /*************************************  open_iA  ************************************ *
 * **********   A tool for visual analysis and processing of 3D CT images   ********** *
 * *********************************************************************************** *
-* Copyright (C) 2016-2020  C. Heinzl, M. Reiter, A. Reh, W. Li, M. Arikan, Ar. &  Al. *
+* Copyright (C) 2016-2021  C. Heinzl, M. Reiter, A. Reh, W. Li, M. Arikan, Ar. &  Al. *
 *                 Amirkhanov, J. Weissenböck, B. Fröhler, M. Schiwarth, P. Weinberger *
 * *********************************************************************************** *
 * This program is free software: you can redistribute it and/or modify it under the   *
@@ -23,8 +23,10 @@
 #include "iAGeometricObjectsDialog.h"
 
 #include <iALog.h>
-#include <mainwindow.h>
+#include <iAMainWindow.h>
 
+#include <QAction>
+#include <QMenu>
 #include <QMessageBox>
 
 namespace
@@ -40,7 +42,7 @@ void iAPolygonPrimitivesModuleInterface::Initialize()
 	}
 	QAction* actionAddObject = new QAction(Title, m_mainWnd);
 	connect(actionAddObject, &QAction::triggered, this, &iAPolygonPrimitivesModuleInterface::addObject);
-	makeActionChildDependent(actionAddObject);
+	m_mainWnd->makeActionChildDependent(actionAddObject);
 	addToMenuSorted(m_mainWnd->toolsMenu(), actionAddObject);
 }
 

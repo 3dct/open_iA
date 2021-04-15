@@ -1,7 +1,7 @@
 /*************************************  open_iA  ************************************ *
 * **********   A tool for visual analysis and processing of 3D CT images   ********** *
 * *********************************************************************************** *
-* Copyright (C) 2016-2020  C. Heinzl, M. Reiter, A. Reh, W. Li, M. Arikan, Ar. &  Al. *
+* Copyright (C) 2016-2021  C. Heinzl, M. Reiter, A. Reh, W. Li, M. Arikan, Ar. &  Al. *
 *                 Amirkhanov, J. Weissenböck, B. Fröhler, M. Schiwarth, P. Weinberger *
 * *********************************************************************************** *
 * This program is free software: you can redistribute it and/or modify it under the   *
@@ -40,11 +40,11 @@ double iAParamHistogramData::mapValueToBin(double value) const
 		valueLog = clamp(minLog, maxLog, valueLog);
 		return mapValue(
 			minLog, maxLog,
-			0.0, static_cast<double>(numBin()),
+			0.0, static_cast<double>(valueCount()),
 			valueLog
 		);
 	}
-	return mapValue(xBounds()[0], xBounds()[1], 0.0, static_cast<double>(numBin()), value);
+	return mapValue(xBounds()[0], xBounds()[1], 0.0, static_cast<double>(valueCount()), value);
 }
 
 double iAParamHistogramData::mapBinToValue(double bin) const
@@ -54,13 +54,13 @@ double iAParamHistogramData::mapBinToValue(double bin) const
 		double minLog = std::floor(LogFunc(xBounds()[0]));
 		double maxLog = std::ceil (LogFunc(xBounds()[1]));
 		double yLog = mapValue(
-			0.0, static_cast<double>(m_numBin),
+			0.0, static_cast<double>(valueCount()),
 			minLog, maxLog,
 			bin
 			);
 		return std::pow(LogBase, yLog);
 	}
-	return mapValue(0.0, static_cast<double>(numBin()), xBounds()[0], xBounds()[1], bin);
+	return mapValue(0.0, static_cast<double>(valueCount()), xBounds()[0], xBounds()[1], bin);
 }
 
 void iAParamHistogramData::countNodeBin(iAImageTreeLeaf const* leaf,
@@ -101,15 +101,15 @@ void iAParamHistogramData::visitNode(iAImageTreeNode const * node,
 	});
 }
 
-double iAParamHistogramData::binStart(size_t binNr) const
+double iAParamHistogramData::xValue(size_t idx) const
 {
 	if (!m_log)
 	{
-		return iAPlotData::binStart(binNr);
+		return iAHistogramData::xValue(idx);
 	}
-	double minLog = std::floor(LogFunc(m_xBounds[0]));
-	double maxLog = std::ceil (LogFunc(m_xBounds[1]));
-	double valueLog = mapValue(static_cast<size_t>(0), m_numBin, minLog, maxLog, binNr);
+	double minLog = std::floor(LogFunc(xBounds()[0]));
+	double maxLog = std::ceil (LogFunc(xBounds()[1]));
+	double valueLog = mapValue(static_cast<size_t>(0), valueCount(), minLog, maxLog, idx);
 	return std::pow(LogBase, valueLog);
 }
 
@@ -135,76 +135,27 @@ QSharedPointer<iAParamHistogramData> iAParamHistogramData::create(iAImageTreeNod
 {
 	QSharedPointer<iAParamHistogramData> result(new iAParamHistogramData(numBin, min, max, log, rangeType));
 	visitNode(tree, result, chartID, chartAttrMap, attributeFilter);
-	if (attributeFilter.HasFilter(chartID))
-	{
-		result->setMinX(result->mapValueToBin(attributeFilter.GetMin(chartID)));
-		result->setMaxX(result->mapValueToBin(attributeFilter.GetMax(chartID)));
-	}
 	return result;
 }
 
-iAParamHistogramData::iAParamHistogramData(size_t numBin, double min, double max, bool log, iAValueType rangeType) :
-	m_data(new DataType[numBin > 0 ? numBin : 1]),
-	m_numBin(numBin > 0 ? numBin : 1),
-	m_spacing(1.0),
-	m_rangeType(rangeType),
-	m_log(log),
-	m_minX(0),
-	m_maxX(numBin)
+iAParamHistogramData::iAParamHistogramData(size_t numBin, double minX, double maxX, bool log, iAValueType type) :
+	iAHistogramData("Frequency", type, log && minX <= 0 ? 0.000001 : minX,
+		(minX == maxX) ? minX + 1 : maxX, numBin > 0 ? numBin : 1),
+	m_log(log)
 {
 	assert(numBin > 0);
-	assert(!m_log || min > 0);
-	if (m_log && min <= 0)
+	assert(!m_log || minX > 0);
+	if (m_log && minX <= 0)
 	{
-		min = 0.000001;
-		LOG(lvlWarn, QString("Need to define minimum bigger than 0 for logarithmic scale, setting to %1!").arg(min));
+		LOG(lvlWarn, QString("Need to define minimum bigger than 0 for logarithmic scale, setting to %1!").arg(xBounds()[0]));
 	}
 	reset();
-	m_xBounds[0] = min;
-	m_xBounds[1] = (min == max)? min+1: max;
-	m_spacing = (max - min) / m_numBin;
 }
 
 void iAParamHistogramData::reset()
 {
-	m_yBounds[0] = 0;
-	m_yBounds[1] = std::numeric_limits<double>::lowest();
-	std::fill(m_data, m_data + m_numBin, 0.0);
-}
-
-iAParamHistogramData::~iAParamHistogramData()
-{
-	delete [] m_data;
-}
-
-iAParamHistogramData::DataType const * iAParamHistogramData::rawData() const
-{
-	return m_data;
-}
-
-size_t iAParamHistogramData::numBin() const
-{
-	return m_numBin;
-}
-
-double iAParamHistogramData::spacing() const
-{
-	return m_spacing;
-}
-
-double const * iAParamHistogramData::xBounds() const
-{
-	return m_xBounds;
-}
-
-iAParamHistogramData::DataType const * iAParamHistogramData::yBounds() const
-{
-	return m_yBounds;
-}
-
-iAValueType iAParamHistogramData::valueType() const
-{
-	return m_rangeType;
+	setYBounds(0, std::numeric_limits<double>::lowest());
+	clear();
 }
 
 bool iAParamHistogramData::isLogarithmic() const
@@ -212,32 +163,8 @@ bool iAParamHistogramData::isLogarithmic() const
 	return m_log;
 }
 
-double iAParamHistogramData::minX() const
-{
-	return m_minX;
-}
-
-double iAParamHistogramData::maxX() const
-{
-	return m_maxX;
-}
-
-void iAParamHistogramData::setMinX(double x)
-{
-	m_minX = x;
-}
-
-void iAParamHistogramData::setMaxX(double x)
-{
-	m_maxX = x;
-}
-
 void iAParamHistogramData::addValue(double value)
 {
-	int binIdx = clamp(0, static_cast<int>(m_numBin - 1), static_cast<int>(mapValueToBin(value)));
-	m_data[binIdx]++;
-	if (m_data[binIdx] > m_yBounds[1])
-	{
-		m_yBounds[1] = m_data[binIdx];
-	}
+	int binIdx = clamp(0, static_cast<int>(valueCount() - 1), static_cast<int>(mapValueToBin(value)));
+	setBin(binIdx, yValue(binIdx) + 1);
 }

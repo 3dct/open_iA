@@ -1,7 +1,7 @@
 /*************************************  open_iA  ************************************ *
 * **********   A tool for visual analysis and processing of 3D CT images   ********** *
 * *********************************************************************************** *
-* Copyright (C) 2016-2020  C. Heinzl, M. Reiter, A. Reh, W. Li, M. Arikan, Ar. &  Al. *
+* Copyright (C) 2016-2021  C. Heinzl, M. Reiter, A. Reh, W. Li, M. Arikan, Ar. &  Al. *
 *                 Amirkhanov, J. Weissenböck, B. Fröhler, M. Schiwarth, P. Weinberger *
 * *********************************************************************************** *
 * This program is free software: you can redistribute it and/or modify it under the   *
@@ -26,9 +26,9 @@
 #include <iALog.h>
 #include <iAToolsVTK.h>
 #include <iATypedCallHelper.h>
-#include <iAvec3.h>
-#include <mainwindow.h>
-#include <mdichild.h>
+#include <iAVec3.h>
+#include <iAMainWindow.h>
+#include <iAMdiChild.h>
 
 #include <astra/CudaBackProjectionAlgorithm3D.h>
 #include <astra/CudaFDKAlgorithm3D.h>
@@ -581,7 +581,7 @@ namespace
 	}
 }
 
-void iAASTRAFilterRunner::run(QSharedPointer<iAFilter> filter, MainWindow* mainWnd)
+void iAASTRAFilterRunner::run(QSharedPointer<iAFilter> filter, iAMainWindow* mainWnd)
 {
 	if (!isCUDAAvailable())
 	{
@@ -600,11 +600,11 @@ void iAASTRAFilterRunner::run(QSharedPointer<iAFilter> filter, MainWindow* mainW
 }
 
 bool iAASTRAFilterRunner::askForParameters(QSharedPointer<iAFilter> filter, QMap<QString, QVariant> & parameters,
-	MdiChild* sourceMdi, MainWindow* mainWnd, bool /*askForAdditionalInput*/)
+	iAMdiChild* sourceMdi, iAMainWindow* mainWnd, bool /*askForAdditionalInput*/)
 {
 	dlg_ProjectionParameters dlg;
 	dlg.setWindowTitle(filter->name());
-	int const * inputDim = sourceMdi->imageData()->GetDimensions();
+	int const * inputDim = sourceMdi->imagePointer()->GetDimensions();
 	if (filter->name() == "ASTRA Forward Projection")
 	{
 		dlg.fillProjectionGeometryValues(

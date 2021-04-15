@@ -1,7 +1,7 @@
 /*************************************  open_iA  ************************************ *
 * **********   A tool for visual analysis and processing of 3D CT images   ********** *
 * *********************************************************************************** *
-* Copyright (C) 2016-2020  C. Heinzl, M. Reiter, A. Reh, W. Li, M. Arikan, Ar. &  Al. *
+* Copyright (C) 2016-2021  C. Heinzl, M. Reiter, A. Reh, W. Li, M. Arikan, Ar. &  Al. *
 *                 Amirkhanov, J. Weissenböck, B. Fröhler, M. Schiwarth, P. Weinberger *
 * *********************************************************************************** *
 * This program is free software: you can redistribute it and/or modify it under the   *
@@ -31,8 +31,8 @@
 #include <iAModalityList.h>
 #include <iAToolsVTK.h>
 #include <iAVtkDraw.h>
-#include <io/iAFileUtils.h>
-#include <mdichild.h>
+#include <iAFileUtils.h>
+#include <iAMdiChild.h>
 
 #include <vtkImageData.h>
 #include <vtkLookupTable.h>
@@ -49,7 +49,7 @@
 #include <random>
 
 
-dlg_labels::dlg_labels(MdiChild* mdiChild, iAColorTheme const * colorTheme):
+dlg_labels::dlg_labels(iAMdiChild* mdiChild, iAColorTheme const * colorTheme):
 	m_itemModel(new QStandardItemModel()),
 	m_colorTheme(colorTheme),
 	m_maxColor(0),
@@ -309,11 +309,11 @@ bool dlg_labels::load(QString const & filename)
 	{
 		if (stream.isStartElement())
 		{
-			if (stream.name() == "Labels")
+			if (stream.name().toString() == "Labels")
 			{
 				// root element, no action required
 			}
-			else if (stream.name() == "Label")
+			else if (stream.name().toString() == "Label")
 			{
 				enableStoreBtn = true;
 				QString id = stream.attributes().value("id").toString();
@@ -326,7 +326,7 @@ bool dlg_labels::load(QString const & filename)
 						.arg(id) );
 				}
 			}
-			else if (stream.name() == "Seed")
+			else if (stream.name().toString() == "Seed")
 			{
 				if (curLabelRow == -1)
 				{

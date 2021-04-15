@@ -1,7 +1,7 @@
 /*************************************  open_iA  ************************************ *
 * **********   A tool for visual analysis and processing of 3D CT images   ********** *
 * *********************************************************************************** *
-* Copyright (C) 2016-2020  C. Heinzl, M. Reiter, A. Reh, W. Li, M. Arikan, Ar. &  Al. *
+* Copyright (C) 2016-2021  C. Heinzl, M. Reiter, A. Reh, W. Li, M. Arikan, Ar. &  Al. *
 *                 Amirkhanov, J. Weissenböck, B. Fröhler, M. Schiwarth, P. Weinberger *
 * *********************************************************************************** *
 * This program is free software: you can redistribute it and/or modify it under the   *
@@ -20,9 +20,9 @@
 * ************************************************************************************/
 #pragma once
 
-#include <charts/iAQSplom.h>
-#include <mainwindow.h>
-#include <mdichild.h>
+#include <iAQSplom.h>
+#include <iAMainWindow.h>
+#include <iAMdiChild.h>
 
 #include <QStringList>
 
@@ -36,7 +36,7 @@ class iAFAQSplom : public iAQSplom
 {
 	Q_OBJECT
 public:
-	iAFAQSplom(MainWindow * mainWind,  QWidget * parent = nullptr);
+	iAFAQSplom(iAMainWindow * mainWind,  QWidget * parent = nullptr);
 public:
 	void setData( const QTableWidget * data );
 	void setPreviewSliceNumbers( QList<int> sliceNumber );
@@ -93,8 +93,8 @@ protected:
 	QString m_currPrevPipelineName;
 
 private:
-	MainWindow * m_mainWnd;
-	MdiChild * m_mdiChild;
+	iAMainWindow * m_mainWnd;
+	iAMdiChild * m_mdiChild;
 	QString m_csvName;
 
 };

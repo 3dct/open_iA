@@ -1,7 +1,7 @@
 /*************************************  open_iA  ************************************ *
 * **********   A tool for visual analysis and processing of 3D CT images   ********** *
 * *********************************************************************************** *
-* Copyright (C) 2016-2020  C. Heinzl, M. Reiter, A. Reh, W. Li, M. Arikan, Ar. &  Al. *
+* Copyright (C) 2016-2021  C. Heinzl, M. Reiter, A. Reh, W. Li, M. Arikan, Ar. &  Al. *
 *                 Amirkhanov, J. Weissenböck, B. Fröhler, M. Schiwarth, P. Weinberger *
 * *********************************************************************************** *
 * This program is free software: you can redistribute it and/or modify it under the   *
@@ -20,7 +20,7 @@
 * ************************************************************************************/
 #pragma once
 
-#include <iAModuleInterface.h>
+#include <iAGUIModuleInterface.h>
 #include <qthelper/iAQTtoUIConnector.h>
 
 #include "ui_ParamToolBar.h"
@@ -29,13 +29,13 @@
 
 typedef iAQTtoUIConnector<QToolBar, Ui_ParamToolBar> iAParamToolBar;
 
-class iAParameterExplorerModuleInterface : public iAModuleInterface
+class iAParameterExplorerModuleInterface : public iAGUIModuleInterface
 {
 	Q_OBJECT
 public:
 	void Initialize() override;
 protected:
-	iAModuleAttachmentToChild* CreateAttachment(MainWindow* mainWnd, MdiChild * child) override;
+	iAModuleAttachmentToChild* CreateAttachment(iAMainWindow* mainWnd, iAMdiChild * child) override;
 private slots:
 	void StartParameterExplorer();
 	void ToggleDockWidgetTitleBars();
@@ -44,8 +44,8 @@ private slots:
 	void LoadState();
 	void ContinueStateLoading();
 private:
-	bool CreateAttachment(QString const & csvFileName, MdiChild* child);
+	bool CreateAttachment(QString const & csvFileName, iAMdiChild* child);
 	void SetupToolBar();
 	iAParamToolBar * m_toolBar;
-	QMap<MdiChild*, QString> m_stateFiles;
+	QMap<iAMdiChild*, QString> m_stateFiles;
 };

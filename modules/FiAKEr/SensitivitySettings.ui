@@ -6,8 +6,8 @@
    <rect>
     <x>0</x>
     <y>0</y>
-    <width>488</width>
-    <height>272</height>
+    <width>261</width>
+    <height>206</height>
    </rect>
   </property>
   <property name="windowTitle">
@@ -29,6 +29,64 @@
    <property name="spacing">
     <number>4</number>
    </property>
+   <item row="3" column="0">
+    <widget class="QGroupBox" name="gbDisplay">
+     <property name="title">
+      <string>Display</string>
+     </property>
+     <layout class="QGridLayout" name="gridLayout">
+      <property name="leftMargin">
+       <number>4</number>
+      </property>
+      <property name="topMargin">
+       <number>4</number>
+      </property>
+      <property name="rightMargin">
+       <number>4</number>
+      </property>
+      <property name="bottomMargin">
+       <number>4</number>
+      </property>
+      <property name="spacing">
+       <number>4</number>
+      </property>
+      <item row="0" column="0">
+       <widget class="QLabel" name="lbHistograms">
+        <property name="text">
+         <string>Histograms as</string>
+        </property>
+       </widget>
+      </item>
+      <item row="0" column="2">
+       <widget class="QRadioButton" name="rbLines">
+        <property name="text">
+         <string>Lines</string>
+        </property>
+       </widget>
+      </item>
+      <item row="0" column="1">
+       <widget class="QRadioButton" name="rbBar">
+        <property name="text">
+         <string>Bars</string>
+        </property>
+        <property name="checked">
+         <bool>true</bool>
+        </property>
+       </widget>
+      </item>
+      <item row="1" column="0">
+       <widget class="QLabel" name="label">
+        <property name="text">
+         <string>SP Color Scale</string>
+        </property>
+       </widget>
+      </item>
+      <item row="1" column="1" colspan="2">
+       <widget class="QComboBox" name="cmbboxSPColorMap"/>
+      </item>
+     </layout>
+    </widget>
+   </item>
    <item row="2" column="0">
     <widget class="QGroupBox" name="gbData">
      <property name="title">
@@ -50,6 +108,54 @@
       <property name="spacing">
        <number>4</number>
       </property>
+      <item row="2" column="1">
+       <widget class="QComboBox" name="cmbboxMeasure">
+        <property name="sizePolicy">
+         <sizepolicy hsizetype="Expanding" vsizetype="Fixed">
+          <horstretch>0</horstretch>
+          <verstretch>0</verstretch>
+         </sizepolicy>
+        </property>
+       </widget>
+      </item>
+      <item row="3" column="1">
+       <widget class="QComboBox" name="cmbboxAggregation">
+        <property name="sizePolicy">
+         <sizepolicy hsizetype="Expanding" vsizetype="Fixed">
+          <horstretch>0</horstretch>
+          <verstretch>0</verstretch>
+         </sizepolicy>
+        </property>
+       </widget>
+      </item>
+      <item row="4" column="0">
+       <widget class="QLabel" name="lbDissimilarity">
+        <property name="text">
+         <string>Dissimilarity</string>
+        </property>
+       </widget>
+      </item>
+      <item row="3" column="0">
+       <widget class="QLabel" name="lbAggregation">
+        <property name="text">
+         <string>Aggregation</string>
+        </property>
+       </widget>
+      </item>
+      <item row="2" column="0">
+       <widget class="QLabel" name="lbMeasure">
+        <property name="text">
+         <string>Measure</string>
+        </property>
+       </widget>
+      </item>
+      <item row="1" column="0">
+       <widget class="QLabel" name="lbCharacteristic">
+        <property name="text">
+         <string>Characteristic </string>
+        </property>
+       </widget>
+      </item>
       <item row="0" column="0">
        <widget class="QLabel" name="lbOutput">
         <property name="text">
@@ -67,30 +173,6 @@
           <horstretch>0</horstretch>
           <verstretch>0</verstretch>
          </sizepolicy>
-        </property>
-       </widget>
-      </item>
-      <item row="2" column="1">
-       <widget class="QComboBox" name="cmbboxMeasure">
-        <property name="sizePolicy">
-         <sizepolicy hsizetype="Expanding" vsizetype="Fixed">
-          <horstretch>0</horstretch>
-          <verstretch>0</verstretch>
-         </sizepolicy>
-        </property>
-       </widget>
-      </item>
-      <item row="1" column="0">
-       <widget class="QLabel" name="lbCharacteristic">
-        <property name="text">
-         <string>Characteristic </string>
-        </property>
-       </widget>
-      </item>
-      <item row="2" column="0">
-       <widget class="QLabel" name="lbMeasure">
-        <property name="text">
-         <string>Measure</string>
         </property>
        </widget>
       </item>
@@ -113,37 +195,13 @@
         </item>
        </widget>
       </item>
-      <item row="3" column="0">
-       <widget class="QLabel" name="lbAggregation">
-        <property name="text">
-         <string>Aggregation</string>
-        </property>
-       </widget>
-      </item>
-      <item row="3" column="1">
-       <widget class="QComboBox" name="cmbboxAggregation">
-        <property name="sizePolicy">
-         <sizepolicy hsizetype="Expanding" vsizetype="Fixed">
-          <horstretch>0</horstretch>
-          <verstretch>0</verstretch>
-         </sizepolicy>
-        </property>
-       </widget>
-      </item>
-      <item row="4" column="0">
-       <widget class="QLabel" name="label">
-        <property name="text">
-         <string>Dissimilarity</string>
-        </property>
-       </widget>
-      </item>
       <item row="4" column="1">
        <widget class="QComboBox" name="cmbboxDissimilarity"/>
       </item>
      </layout>
     </widget>
    </item>
-   <item row="4" column="0">
+   <item row="5" column="0">
     <spacer name="verticalSpacer">
      <property name="orientation">
       <enum>Qt::Vertical</enum>
@@ -155,53 +213,6 @@
       </size>
      </property>
     </spacer>
-   </item>
-   <item row="3" column="0">
-    <widget class="QGroupBox" name="gbDisplay">
-     <property name="sizePolicy">
-      <sizepolicy hsizetype="Expanding" vsizetype="Fixed">
-       <horstretch>0</horstretch>
-       <verstretch>0</verstretch>
-      </sizepolicy>
-     </property>
-     <property name="title">
-      <string>Display</string>
-     </property>
-     <layout class="QGridLayout" name="glDisplay">
-      <property name="leftMargin">
-       <number>4</number>
-      </property>
-      <property name="topMargin">
-       <number>4</number>
-      </property>
-      <property name="rightMargin">
-       <number>4</number>
-      </property>
-      <property name="bottomMargin">
-       <number>4</number>
-      </property>
-      <property name="spacing">
-       <number>4</number>
-      </property>
-      <item row="0" column="0">
-       <widget class="QLabel" name="lbStackedBarChartColors">
-        <property name="text">
-         <string>Stacked Bar Colors </string>
-        </property>
-       </widget>
-      </item>
-      <item row="0" column="1">
-       <widget class="QComboBox" name="cmbboxStackedBarChartColors">
-        <property name="sizePolicy">
-         <sizepolicy hsizetype="Expanding" vsizetype="Fixed">
-          <horstretch>0</horstretch>
-          <verstretch>0</verstretch>
-         </sizepolicy>
-        </property>
-       </widget>
-      </item>
-     </layout>
-    </widget>
    </item>
   </layout>
  </widget>

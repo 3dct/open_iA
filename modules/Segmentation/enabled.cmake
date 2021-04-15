@@ -1,12 +1,31 @@
 IF (openiA_TESTING_ENABLED)
-	get_filename_component(CoreSrcDir "../core/src" REALPATH BASE_DIR "${CMAKE_CURRENT_SOURCE_DIR}")
-	get_filename_component(CoreBinDir "../core" REALPATH BASE_DIR "${CMAKE_CURRENT_BINARY_DIR}")
-	ADD_EXECUTABLE(ImageGraphTest Segmentation/iAImageGraphTest.cpp Segmentation/iAImageGraph.cpp ${CoreSrcDir}/iAImageCoordinate.cpp)
-	ADD_EXECUTABLE(DistanceMeasureTest Segmentation/iADistanceMeasureTest.cpp Segmentation/iAVectorDistanceImpl.cpp Segmentation/iAVectorArrayImpl.cpp Segmentation/iAVectorTypeImpl.cpp ${CoreSrcDir}/iAImageCoordinate.cpp)
-	TARGET_LINK_LIBRARIES(ImageGraphTest PRIVATE ${QT_LIBRARIES})
-	TARGET_LINK_LIBRARIES(DistanceMeasureTest PRIVATE ${QT_LIBRARIES} ${VTK_LIBRARIES})
-	TARGET_INCLUDE_DIRECTORIES(ImageGraphTest PRIVATE ${CoreSrcDir} ${CoreBinDir} ${OpeniABinDir}/modules)  # ../modules is for _export.h
-	TARGET_INCLUDE_DIRECTORIES(DistanceMeasureTest PRIVATE ${CoreSrcDir} ${CoreBinDir} ${OpeniABinDir}/modules)  # ../modules is for _export.h
+	get_filename_component(CoreSrcDir "../libs" REALPATH BASE_DIR "${CMAKE_CURRENT_SOURCE_DIR}")
+	get_filename_component(CoreBinDir "../libs" REALPATH BASE_DIR "${CMAKE_CURRENT_BINARY_DIR}")
+	ADD_EXECUTABLE(ImageGraphTest Segmentation/iAImageGraphTest.cpp Segmentation/iAImageGraph.cpp ${CoreSrcDir}/base/iAImageCoordinate.cpp)
+	ADD_EXECUTABLE(DistanceMeasureTest Segmentation/iADistanceMeasureTest.cpp Segmentation/iAVectorDistanceImpl.cpp Segmentation/iAVectorArrayImpl.cpp Segmentation/iAVectorTypeImpl.cpp ${CoreSrcDir}/base/iAImageCoordinate.cpp)
+	TARGET_LINK_LIBRARIES(ImageGraphTest PRIVATE Qt${QT_VERSION_MAJOR}::Core)
+	TARGET_LINK_LIBRARIES(DistanceMeasureTest PRIVATE Qt${QT_VERSION_MAJOR}::Core)
+	IF (VTK_MAJOR_VERSION LESS 9)
+		TARGET_LINK_LIBRARIES(DistanceMeasureTest PRIVATE ${VTK_LIBRARIES})
+	else()
+		SET (VTK_REQUIRED_LIBS
+			CommonCore        # for vtkSmartPointer
+			CommonDataModel   # for vtkImageData
+		)
+		ADD_VTK_LIBRARIES(DistanceMeasureTest "PRIVATE" "${VTK_REQUIRED_LIBS}")
+	ENDIF()
+	#SET(ITK_REQUIRED_LIBS
+	#	ITKCommon
+	#	ITKVNL             # drawn in by itkVector
+	#)
+	# version check needs to be verified, not sure if these dependencies were introduced exactly with v5.0.0
+	# currently known: they are required in ITK 4.10.0, but not in 5.1.0
+	#IF (ITK_VERSION VERSION_LESS "5.0.0")
+	#	LIST(APPEND ITK_REQUIRED_LIBS ITKKWSys)
+	#ENDIF()
+	#ADD_LEGACY_LIBRARIES(DistanceMeasureTest "" "PRIVATE" "${ITK_REQUIRED_LIBS}")
+	TARGET_INCLUDE_DIRECTORIES(ImageGraphTest PRIVATE ${CoreSrcDir}/base  ${CoreBinDir})
+	TARGET_INCLUDE_DIRECTORIES(DistanceMeasureTest PRIVATE ${CoreSrcDir}/base ${CoreBinDir} ${CMAKE_CURRENT_BINARY_DIR})
 	TARGET_COMPILE_DEFINITIONS(ImageGraphTest PRIVATE NO_DLL_LINKAGE)
 	TARGET_COMPILE_DEFINITIONS(DistanceMeasureTest PRIVATE NO_DLL_LINKAGE)
 	ADD_TEST(NAME ImageGraphTest COMMAND ImageGraphTest)

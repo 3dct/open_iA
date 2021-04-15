@@ -1,7 +1,7 @@
 /*************************************  open_iA  ************************************ *
 * **********   A tool for visual analysis and processing of 3D CT images   ********** *
 * *********************************************************************************** *
-* Copyright (C) 2016-2020  C. Heinzl, M. Reiter, A. Reh, W. Li, M. Arikan, Ar. &  Al. *
+* Copyright (C) 2016-2021  C. Heinzl, M. Reiter, A. Reh, W. Li, M. Arikan, Ar. &  Al. *
 *                 Amirkhanov, J. Weissenböck, B. Fröhler, M. Schiwarth, P. Weinberger *
 * *********************************************************************************** *
 * This program is free software: you can redistribute it and/or modify it under the   *
@@ -42,10 +42,11 @@
 #include <iAParameterNames.h>
 #include <iAToolsITK.h>
 #include <iAVtkWidget.h>
-#include <io/iAFileUtils.h>
+#include <iAFileUtils.h>
 #include <io/iAIOProvider.h>
-#include <mdichild.h>
-#include <qthelper/iADockWidgetWrapper.h>
+#include <iAMdiChild.h>
+
+#include <iADockWidgetWrapper.h>
 
 #include <vtkAxis.h>
 #include <vtkChartXY.h>
@@ -109,7 +110,7 @@ struct ChartWidgetData
 };
 
 ChartWidgetData CreateChartWidget(const char * xTitle, const char * yTitle,
-		MdiChild* mdiChild)
+		iAMdiChild* mdiChild)
 {
 	ChartWidgetData result;
 	result.vtkWidget = new iAVtkWidget();
@@ -137,7 +138,7 @@ ChartWidgetData CreateChartWidget(const char * xTitle, const char * yTitle,
 	return result;
 }
 
-dlg_Consensus::dlg_Consensus(MdiChild* mdiChild, dlg_GEMSe* dlgGEMSe, int labelCount, QString const & folder, dlg_samplings* dlgSamplings) :
+dlg_Consensus::dlg_Consensus(iAMdiChild* mdiChild, dlg_GEMSe* dlgGEMSe, int labelCount, QString const & folder, dlg_samplings* dlgSamplings) :
 	m_mdiChild(mdiChild),
 	m_dlgGEMSe(dlgGEMSe),
 	m_labelCount(labelCount),
@@ -310,7 +311,7 @@ LabelVotingType::Pointer GetLabelVotingFilter(
 	labelVotingFilter->SetWeightType(static_cast<WeightType>(weightType));
 	if (labelVoters > 0)
 	{
-		labelVoters = std::min(selection.size(), labelVoters);
+		labelVoters = std::min(static_cast<int>(selection.size()), labelVoters);
 		typedef std::pair<int, double> InputDice;
 		std::set<std::pair<int, int> > inputLabelVotersSet;
 		for (int l = 0; l<labelCount; ++l)
@@ -748,7 +749,9 @@ void dlg_Consensus::StoreConfig()
 	QFileInfo fi(fileName);
 	QString basePath(fi.absolutePath());
 	QSettings settings(fileName, QSettings::IniFormat);
+#if QT_VERSION < QT_VERSION_CHECK(5, 99, 0)
 	settings.setIniCodec("UTF-8");
+#endif
 	settings.setValue(FileFormatKey, FileVersion);
 	settings.setValue(LabelsKey, m_labelCount);
 
@@ -871,7 +874,9 @@ void dlg_Consensus::LoadConfig()
 	}
 	QFileInfo fi(fileName);
 	QSettings settings(fileName, QSettings::IniFormat);
+#if QT_VERSION < QT_VERSION_CHECK(5, 99, 0)
 	settings.setIniCodec("UTF-8");
+#endif
 	if (settings.value(FileFormatKey) != FileVersion)
 	{
 		QMessageBox::warning(this, "GEMSe",
@@ -1005,7 +1010,7 @@ void dlg_Consensus::LoadConfig()
 		params.insert(spnContinueOnError, true);
 		params.insert(spnOverwriteOutput, true);
 		params.insert(spnCompressOutput, true);
-		auto sampler = QSharedPointer<iAImageSampler>(new iAImageSampler(
+		auto sampler = QSharedPointer<iAImageSampler>::create(
 			m_mdiChild->modalities(),
 			params,
 			samplingResults->attributes(),
@@ -1017,7 +1022,7 @@ void dlg_Consensus::LoadConfig()
 			lastSamplingID+s,
 			iALog::get(),
 			&m_progress
-		));
+		);
 		m_queuedSamplers.push_back(sampler);
 	}
 	StartNextSampler();
@@ -1070,23 +1075,23 @@ void dlg_Consensus::samplerFinished()
 		// do ref img comparison / measure calculation for the new samplings:
 		// TODO: remove duplication between here and dlg_GEMSe::CalcRefImgComp
 		QVector<QSharedPointer<iAAttributeDescriptor> > measures;
-		measures.push_back(QSharedPointer<iAAttributeDescriptor>(new iAAttributeDescriptor(
-			"Dice", iAAttributeDescriptor::DerivedOutput, iAValueType::Continuous)));
-		measures.push_back(QSharedPointer<iAAttributeDescriptor>(new iAAttributeDescriptor(
-			"Kappa", iAAttributeDescriptor::DerivedOutput, iAValueType::Continuous)));
-		measures.push_back(QSharedPointer<iAAttributeDescriptor>(new iAAttributeDescriptor(
-			"Overall Accuracy", iAAttributeDescriptor::DerivedOutput, iAValueType::Continuous)));
-		measures.push_back(QSharedPointer<iAAttributeDescriptor>(new iAAttributeDescriptor(
-			"Precision", iAAttributeDescriptor::DerivedOutput, iAValueType::Continuous)));
-		measures.push_back(QSharedPointer<iAAttributeDescriptor>(new iAAttributeDescriptor(
-			"Recall", iAAttributeDescriptor::DerivedOutput, iAValueType::Continuous)));
+		measures.push_back(QSharedPointer<iAAttributeDescriptor>::create(
+			"Dice", iAAttributeDescriptor::DerivedOutput, iAValueType::Continuous));
+		measures.push_back(QSharedPointer<iAAttributeDescriptor>::create(
+			"Kappa", iAAttributeDescriptor::DerivedOutput, iAValueType::Continuous));
+		measures.push_back(QSharedPointer<iAAttributeDescriptor>::create(
+			"Overall Accuracy", iAAttributeDescriptor::DerivedOutput, iAValueType::Continuous));
+		measures.push_back(QSharedPointer<iAAttributeDescriptor>::create(
+			"Precision", iAAttributeDescriptor::DerivedOutput, iAValueType::Continuous));
+		measures.push_back(QSharedPointer<iAAttributeDescriptor>::create(
+			"Recall", iAAttributeDescriptor::DerivedOutput, iAValueType::Continuous));
 		for (int i = 0; i<m_labelCount; ++i)
 		{
-			measures.push_back(QSharedPointer<iAAttributeDescriptor>(new iAAttributeDescriptor(
-				QString("Dice %1").arg(i), iAAttributeDescriptor::DerivedOutput, iAValueType::Continuous)));
+			measures.push_back(QSharedPointer<iAAttributeDescriptor>::create(
+				QString("Dice %1").arg(i), iAAttributeDescriptor::DerivedOutput, iAValueType::Continuous));
 		}
-		measures.push_back(QSharedPointer<iAAttributeDescriptor>(new iAAttributeDescriptor(
-			"Undecided Pixels", iAAttributeDescriptor::DerivedOutput, iAValueType::Discrete)));
+		measures.push_back(QSharedPointer<iAAttributeDescriptor>::create(
+			"Undecided Pixels", iAAttributeDescriptor::DerivedOutput, iAValueType::Discrete));
 		for (QSharedPointer<iAAttributeDescriptor> measure : measures)
 		{
 			measure->resetMinMax();
@@ -1362,7 +1367,7 @@ void dlg_Consensus::Sample(QVector<QSharedPointer<iASingleResult> > const & sele
 		}
 		for (int i = 0; i < ResultCount; ++i)
 		{
-			AddResult(tables[i], "Sampling(method=" + titles[i] + ", weight=" + GetWeightName(weightType) + ", cluster=" + selectedClusterID);
+			AddResult(tables[i], "Sampling(method=" + titles[i] + ", weight=" + GetWeightName(weightType) + ", cluster=" + QString::number(selectedClusterID));
 		}
 	}
 	catch (std::exception & e)

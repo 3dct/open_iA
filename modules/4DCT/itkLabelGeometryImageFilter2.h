@@ -22,14 +22,15 @@
 #include "itkNumericTraits.h"
 #include "itkArray.h"
 #include "itkSimpleDataObjectDecorator.h"
-#include "itksys/hash_map.hxx"
 #include "itkLabelObject.h"
 #include "itkLabelMap.h"
-#include <vector>
 #include "vnl/algo/vnl_symmetric_eigensystem.h"
 #include "vnl/vnl_det.h"
 #include "vnl/vnl_math.h"
+
 #include <cmath>
+#include <unordered_map>
+#include <vector>
 
 namespace itk
 {
@@ -251,9 +252,9 @@ public:
 
   /** Type of the map used to store data per label */
   // Map from the label to the class storing all of the geometry information.
-  typedef itksys::hash_map< LabelPixelType, LabelGeometry >                          MapType;
-  typedef typename itksys::hash_map< LabelPixelType, LabelGeometry >::iterator       MapIterator;
-  typedef typename itksys::hash_map< LabelPixelType, LabelGeometry >::const_iterator MapConstIterator;
+  typedef std::unordered_map<LabelPixelType, LabelGeometry> MapType;
+  typedef typename std::unordered_map< LabelPixelType, LabelGeometry >::iterator       MapIterator;
+  typedef typename std::unordered_map< LabelPixelType, LabelGeometry >::const_iterator MapConstIterator;
 
   // Macros for enabling the calculation of additional features.
   itkGetMacro(CalculatePixelIndices, bool);

@@ -1,0 +1,174 @@
+/*************************************  open_iA  ************************************ *
+* **********   A tool for visual analysis and processing of 3D CT images   ********** *
+* *********************************************************************************** *
+* Copyright (C) 2016-2021  C. Heinzl, M. Reiter, A. Reh, W. Li, M. Arikan, Ar. &  Al. *
+*                 Amirkhanov, J. Weissenböck, B. Fröhler, M. Schiwarth, P. Weinberger *
+* *********************************************************************************** *
+* This program is free software: you can redistribute it and/or modify it under the   *
+* terms of the GNU General Public License as published by the Free Software           *
+* Foundation, either version 3 of the License, or (at your option) any later version. *
+*                                                                                     *
+* This program is distributed in the hope that it will be useful, but WITHOUT ANY     *
+* WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS FOR A     *
+* PARTICULAR PURPOSE.  See the GNU General Public License for more details.           *
+*                                                                                     *
+* You should have received a copy of the GNU General Public License along with this   *
+* program.  If not, see http://www.gnu.org/licenses/                                  *
+* *********************************************************************************** *
+* Contact: FH OÖ Forschungs & Entwicklungs GmbH, Campus Wels, CT-Gruppe,              *
+*          Stelzhamerstraße 23, 4600 Wels / Austria, Email: c.heinzl@fh-wels.at       *
+* ************************************************************************************/
+#pragma once
+
+#include "iAguibase_export.h"
+#include "iAImageInfo.h"
+#include "iAVolumeSettings.h"
+
+#include <vtkImageData.h>
+#include <vtkSmartPointer.h>
+
+#include <QSharedPointer>
+#include <QString>
+#include <QThread>
+
+#include <vector>
+
+class iAHistogramData;
+class iAImageCoordConverter;
+class iAModalityTransfer;
+class iAVolumeRenderer;
+
+//! class holding the data of a single image channel
+class iAguibase_API iAModality
+{
+public:
+	enum RenderFlag
+	{
+		NoRenderer = 0x0,
+		MainRenderer = 0x01,
+		MagicLens = 0x02,
+		BoundingBox = 0x04,	// TODO: check if that is a good idea or whether that should go somewhere else (VolumeRenderer)?
+		Slicer = 0x08
+	};
+	//! create modality from name, file and image data
+	iAModality(QString const & name, QString const & filename, int channelNo, vtkSmartPointer<vtkImageData> imgData, int renderFlags);
+	//! create modality from name, file and image data
+	iAModality(QString const & name, QString const & filename, std::vector<vtkSmartPointer<vtkImageData> > imgs, int renderFlags);
+	//! returns name of the modality
+	QString name() const;
+	//! returns file holding the modality data
+	QString fileName() const;
+	//! return the channel in the specified file that the data in this class comes from (don't confuse with channelID!)
+	int channel() const;
+	//! return the number of components in this modality
+	size_t componentCount() const;
+	//! return a specific component of this modality
+	vtkSmartPointer<vtkImageData> component(size_t idx) const;
+	//! get the name of the transfer function file
+	QString transferFileName() const;
+	//! set name of the modality
+	void setName(QString const & name);
+	//! set the filename (to be used if it has changed externally; does not save the file!)
+	void setFileName(QString const & fileName);
+	//! set flag indicating location where to render
+	void setRenderFlag(int renderFlag);
+	//! get the main image of this modality (typically only the one is available,
+	//! unless there are multiple components, see ComponentCount() and GetComponent()
+	vtkSmartPointer<vtkImageData> image() const;
+	//! return the name of the given component
+	QString imageName(int componentIdx);
+	//! return statistical information about the image
+	iAImageInfo & info();
+	//! return ID of channel used in mdichild to represent this modality in slicer (don't confuse with channelID!)
+	uint channelID() const;
+	//! set ID of channel used in mdichild to represent this modality in slicer
+	void setChannelID(uint id);
+
+	QString orientationString();
+	QString positionString();
+
+	int width() const;   //!< The width (in number of voxels) of the dataset.
+	int height() const;  //!< The height (in number of voxels) of the dataset.
+	int depth() const;   //!< The depth (in number of voxels) of the dataset.
+
+	//! Get the voxel spacing of the dataset in each (x,y,z) direction.
+	//! @return array of 3 double values: spacing in x, y and z direction
+	double const* spacing() const;
+	//! Set the voxel spacing of the dataset in each (x,y,z) direction.
+	void setSpacing(double spacing[3]);
+	
+	//! Get the coordinates of the origin (x,y,z).
+	//! @return array of 3 double values: x, y and z coordinate of the dataset origin.
+	double const* origin() const;
+	//! Set the coordinates of the origin (x,y,z).
+	void setOrigin(double origin[3]);
+	
+	//! Get the (axis-aligned) bounding box of the dataset.
+	//! @return array of 6 double values: upper-left-top and lower-right-bottom coordinates (in that order)
+	double const* bounds() const;
+
+	iAImageCoordConverter const & converter() const;
+
+	bool hasRenderFlag(RenderFlag flag) const;
+	int renderFlags() const;
+
+	void loadTransferFunction();
+	QSharedPointer<iAModalityTransfer> transfer();
+	void setRenderer(QSharedPointer<iAVolumeRenderer> renderer);
+	QSharedPointer<iAVolumeRenderer> renderer();
+	void updateRenderer();
+
+	void setStringSettings(QString const & pos, QString const & ori, QString const & tfFile);
+	void setData(vtkSmartPointer<vtkImageData> imgData);
+	void computeImageStatistics();
+
+	void setHistogramData(QSharedPointer<iAHistogramData> histoData);
+	QSharedPointer<iAHistogramData> const histogramData() const;
+
+	void setVolSettings(const iAVolumeSettings &volSettings);
+
+	const iAVolumeSettings &volumeSettings() const;
+
+	bool volSettingsSavedStatus()
+	{
+		return this->m_VolSettingsSavedStatus;
+	}
+
+	void setVolSettingsSavedStatusFalse()
+	{
+		this->m_VolSettingsSavedStatus = false;
+	}
+
+	void setSlicerOpacity(double opacity)
+	{
+		m_slicerOpacity = opacity;
+	}
+	double slicerOpacity()
+	{
+		return m_slicerOpacity;
+	}
+
+private:
+	iAVolumeSettings m_volSettings;
+	bool m_VolSettingsSavedStatus;
+
+	QString m_name;
+	QString m_filename;
+	int m_channel;  //!< in case the file contains multiple channels, the channel no. for this modality
+	int m_renderFlags;
+	uint m_channelID;  //!< channel in mdi child
+	double m_slicerOpacity;  //!< overall opacity in the slicers
+	QSharedPointer<iAImageCoordConverter> m_converter;
+	QSharedPointer<iAModalityTransfer> m_transfer;
+	QSharedPointer<iAVolumeRenderer> m_renderer;
+	std::vector<vtkSmartPointer<vtkImageData>> m_imgs;  // TODO: implement lazy loading
+	vtkSmartPointer<vtkImageData> m_imgData;
+
+	QSharedPointer<iAHistogramData> m_histogramData;
+	iAImageInfo m_imageInfo;
+
+	// TODO: Refactor
+	QString m_positionSettings;
+	QString m_orientationSettings;
+	QString m_tfFileName;
+};

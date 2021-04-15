@@ -1,19 +1,14 @@
-SET( DEPENDENCIES_CMAKE
-	OPENCL_FOUND
-)
-
-# Toolkit directories
-SET( DEPENDENCIES_IA_TOOLKIT_DIRS
-	OpenCL
-)
-
 SET( DEPENDENCIES_LIBRARIES
-	${OPENCL_LIBRARIES}
+	OpenCL
+	iAcharts
+	iAguibase
 )
-
-# if OPENCL includes not set via ITK:
-IF ("${ITKGPUCommon_LIBRARY_DIRS}" STREQUAL "")
-SET( DEPENDENCIES_INCLUDE_DIRS
-	${OPENCL_INCLUDE_DIRS}
+SET( DEPENDENCIES_VTK_MODULES
+	FiltersHybrid    # for vtkDepthSortPolyData
 )
-ENDIF()
+# for VTK < 9 we have to use VTK_USE_FILE anyway for module autoinitialization
+#IF (VTK_VERSION VERSION_LESS "9.0.0")
+#	LIST(APPEND DEPENDENCIES_VTK_MODULES
+#		sys     # for vtksys/SystemTools.hxx, required by iASTLLoader.cpp
+#	)
+#ENDIF()

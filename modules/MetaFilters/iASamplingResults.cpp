@@ -1,7 +1,7 @@
 /*************************************  open_iA  ************************************ *
 * **********   A tool for visual analysis and processing of 3D CT images   ********** *
 * *********************************************************************************** *
-* Copyright (C) 2016-2020  C. Heinzl, M. Reiter, A. Reh, W. Li, M. Arikan, Ar. &  Al. *
+* Copyright (C) 2016-2021  C. Heinzl, M. Reiter, A. Reh, W. Li, M. Arikan, Ar. &  Al. *
 *                 Amirkhanov, J. Weissenböck, B. Fröhler, M. Schiwarth, P. Weinberger *
 * *********************************************************************************** *
 * This program is free software: you can redistribute it and/or modify it under the   *
@@ -25,7 +25,7 @@
 
 #include <iAAttributeDescriptor.h>
 #include <iALog.h>
-#include <io/iAFileUtils.h>
+#include <iAFileUtils.h>
 #include <iAStringHelper.h>
 #include <qthelper/iAQtEndl.h>
 
@@ -96,7 +96,11 @@ QSharedPointer<iASamplingResults> iASamplingResults::load(QString const & smpFil
 	}
 	// TODO: replace with QSettings?
 	QTextStream in(&file);
+#if QT_VERSION < QT_VERSION_CHECK(5, 99, 0)
 	in.setCodec("UTF-8");
+#else
+	in.setEncoding(QStringConverter::Utf8);
+#endif
 	QFileInfo fileInfo(file);
 	if (in.atEnd())
 	{
@@ -156,7 +160,11 @@ bool iASamplingResults::store(QString const & rangeFileName,
 		return false;
 	}
 	QTextStream out(&paramRangeFile);
+#if QT_VERSION < QT_VERSION_CHECK(5, 99, 0)
 	out.setCodec("UTF-8");
+#else
+	out.setEncoding(QStringConverter::Utf8);
+#endif
 	QFileInfo fi(paramRangeFile);
 	out << SMPFileFormatVersion << QTENDL;
 	out << "Name" << Output::NameSeparator << m_name << QTENDL;
@@ -184,9 +192,21 @@ bool iASamplingResults::storeAttributes(int type, QString const & fileName, bool
 	}
 	QTextStream outParamSet(&paramSetFile);
 	// header:
-	outParamSet << joinAsString((*m_attributes), ",",
-			[](QSharedPointer<iAAttributeDescriptor> const& attrib) { return attrib->name(); })
-		<< QTENDL;
+	if (id)
+	{
+		outParamSet << "ID" << iASingleResult::ValueSplitString;
+	}
+	// filter attributes for type:
+	iAAttributes typeAttribs;
+	std::copy_if(m_attributes->begin(), m_attributes->end(), std::back_inserter(typeAttribs),
+		[type](QSharedPointer<iAAttributeDescriptor> att) { return att->attribType() == type; });
+	outParamSet << joinAsString((typeAttribs), iASingleResult::ValueSplitString,
+		[](QSharedPointer<iAAttributeDescriptor> const& attrib) { return attrib->name(); });
+	if (type == iAAttributeDescriptor::Parameter)
+	{
+		outParamSet << iASingleResult::ValueSplitString << "Filename";
+	}
+	outParamSet << QTENDL;
 	// values:
 	for (int i = 0; i<m_results.size(); ++i)
 	{

@@ -43,7 +43,7 @@ public:
 	QVector<QVector<QVector<iAFiberSimilarity>>> fiberDissim;
 };
 
-// result similarity matrix type: resultID x resultID
+// result similarity matrix type: resultID1 x resultID2
 using iADissimilarityMatrixType = QVector<QVector<iAResultPairInfo>>;
 
 using iAMatrixValuesType = std::vector<std::vector<double>>;
@@ -157,7 +157,7 @@ private:
 				QRect cellRect(matrixRect.left() + static_cast<int>(x * cellPixel),
 					matrixRect.top() + static_cast<int>(y * cellPixel),
 					cellPixel, cellPixel);
-				double value = m_data[m_sortOrder[x]][m_sortOrder[y]].avgDissim[m_dataIdx];
+				double value = m_data[static_cast<int>(m_sortOrder[x])][static_cast<int>(m_sortOrder[y])].avgDissim[m_dataIdx];
 				QColor color = m_lut.getQColor(value);
 				p.fillRect(cellRect, color);
 			}

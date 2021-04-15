@@ -1,7 +1,7 @@
 /*************************************  open_iA  ************************************ *
 * **********   A tool for visual analysis and processing of 3D CT images   ********** *
 * *********************************************************************************** *
-* Copyright (C) 2016-2020  C. Heinzl, M. Reiter, A. Reh, W. Li, M. Arikan, Ar. &  Al. *
+* Copyright (C) 2016-2021  C. Heinzl, M. Reiter, A. Reh, W. Li, M. Arikan, Ar. &  Al. *
 *                 Amirkhanov, J. Weissenböck, B. Fröhler, M. Schiwarth, P. Weinberger *
 * *********************************************************************************** *
 * This program is free software: you can redistribute it and/or modify it under the   *
@@ -22,14 +22,16 @@
 
 #include "iAParameterNames.h"
 
+#include <iAFilterRegistry.h>
+#include <iAProgress.h>
+
+// base
 #include <iAAttributeDescriptor.h>
 #include <iAConnector.h>
 #include <iALog.h>
-#include <iAFilterRegistry.h>
-#include <iAProgress.h>
+#include <iAITKIO.h>
+#include <iAFileUtils.h>
 #include <iAStringHelper.h>
-#include <io/iAITKIO.h>
-#include <io/iAFileUtils.h>
 #include <qthelper/iAQtEndl.h>
 
 #include <QDir>
@@ -245,7 +247,7 @@ void iABatchFilter::performWork(QMap<QString, QVariant> const & parameters)
 				if (param->valueType() == iAValueType::FileNameSave)
 				{	// all output file names need to be adapted to output file name;
 					// merge with code in iASampleBuiltInFilterOperation?
-					auto value = pathFileBaseName(fileName) + param->defaultValue().toString();
+					auto value = pathFileBaseName(QFileInfo(fileName)) + param->defaultValue().toString();
 					if (QFile::exists(value) && !overwrite)
 					{
 						LOG(lvlError, QString("Output file '%1' already exists! Aborting. "

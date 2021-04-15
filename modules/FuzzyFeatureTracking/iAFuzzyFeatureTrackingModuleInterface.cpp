@@ -1,7 +1,7 @@
 /*************************************  open_iA  ************************************ *
 * **********   A tool for visual analysis and processing of 3D CT images   ********** *
 * *********************************************************************************** *
-* Copyright (C) 2016-2020  C. Heinzl, M. Reiter, A. Reh, W. Li, M. Arikan, Ar. &  Al. *
+* Copyright (C) 2016-2021  C. Heinzl, M. Reiter, A. Reh, W. Li, M. Arikan, Ar. &  Al. *
 *                 Amirkhanov, J. Weissenböck, B. Fröhler, M. Schiwarth, P. Weinberger *
 * *********************************************************************************** *
 * This program is free software: you can redistribute it and/or modify it under the   *
@@ -22,8 +22,11 @@
 
 #include "iAFuzzyFeatureTrackingAttachment.h"
 
-#include <mainwindow.h>
-#include <mdichild.h>
+#include <iAMainWindow.h>
+#include <iAMdiChild.h>
+
+#include <QAction>
+#include <QMenu>
 
 iAFuzzyFeatureTrackingModuleInterface::iAFuzzyFeatureTrackingModuleInterface() {}
 
@@ -35,7 +38,7 @@ void iAFuzzyFeatureTrackingModuleInterface::Initialize()
 	}
 	QAction * actionFuzzyFeatureTracking = new QAction(tr("Fuzzy Feature Tracking"), m_mainWnd);
 	connect(actionFuzzyFeatureTracking, &QAction::triggered, this, &iAFuzzyFeatureTrackingModuleInterface::start_FuzzyFeatureTracking);
-	makeActionChildDependent(actionFuzzyFeatureTracking);
+	m_mainWnd->makeActionChildDependent(actionFuzzyFeatureTracking);
 	QMenu* featureAnalysisMenu = getOrAddSubMenu(m_mainWnd->toolsMenu(), tr("Feature Analysis"), true);
 	featureAnalysisMenu->addAction(actionFuzzyFeatureTracking);
 }
@@ -46,7 +49,7 @@ bool iAFuzzyFeatureTrackingModuleInterface::start_FuzzyFeatureTracking()
 	return AttachToMdiChild( m_mdiChild );
 }
 
-iAModuleAttachmentToChild * iAFuzzyFeatureTrackingModuleInterface::CreateAttachment( MainWindow* mainWnd, MdiChild * child )
+iAModuleAttachmentToChild * iAFuzzyFeatureTrackingModuleInterface::CreateAttachment( iAMainWindow* mainWnd, iAMdiChild * child )
 {
 	return new iAFuzzyFeatureTrackingAttachment( mainWnd, child );
 }

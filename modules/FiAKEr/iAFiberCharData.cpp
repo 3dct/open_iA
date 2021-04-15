@@ -1,7 +1,7 @@
 /*************************************  open_iA  ************************************ *
 * **********   A tool for visual analysis and processing of 3D CT images   ********** *
 * *********************************************************************************** *
-* Copyright (C) 2016-2020  C. Heinzl, M. Reiter, A. Reh, W. Li, M. Arikan, Ar. &  Al. *
+* Copyright (C) 2016-2021  C. Heinzl, M. Reiter, A. Reh, W. Li, M. Arikan, Ar. &  Al. *
 *                 Amirkhanov, J. Weissenböck, B. Fröhler, M. Schiwarth, P. Weinberger *
 * *********************************************************************************** *
 * This program is free software: you can redistribute it and/or modify it under the   *
@@ -25,9 +25,9 @@
 #include "iACsvIO.h"
 #include "iACsvVtkTableCreator.h"
 
-#include <charts/iASPLOMData.h>
+#include <iASPLOMData.h>
 #include <iALog.h>
-#include <io/iAFileUtils.h> // for FindFiles
+#include <iAFileUtils.h> // for FindFiles
 
 #include <vtkFloatArray.h>
 #include <vtkTable.h>
@@ -110,7 +110,7 @@ namespace
 		config.columnSeparator = ",";
 		config.decimalSeparator = ".";
 		config.addAutoID = false;
-		config.objectType = iAFeatureScoutObjectType::Fibers;
+		config.objectType = iAObjectType::Fibers;
 		config.computeLength = false;
 		config.computeAngles = false;
 		config.computeTensors = false;

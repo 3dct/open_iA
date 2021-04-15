@@ -1,7 +1,7 @@
 /*************************************  open_iA  ************************************ *
 * **********   A tool for visual analysis and processing of 3D CT images   ********** *
 * *********************************************************************************** *
-* Copyright (C) 2016-2020  C. Heinzl, M. Reiter, A. Reh, W. Li, M. Arikan, Ar. &  Al. *
+* Copyright (C) 2016-2021  C. Heinzl, M. Reiter, A. Reh, W. Li, M. Arikan, Ar. &  Al. *
 *                 Amirkhanov, J. Weissenböck, B. Fröhler, M. Schiwarth, P. Weinberger *
 * *********************************************************************************** *
 * This program is free software: you can redistribute it and/or modify it under the   *
@@ -27,11 +27,12 @@
 #include <iALog.h>
 #include <iANameMapper.h>
 #include <iAToolsITK.h>
-#include <io/iAFileUtils.h>
-#include <io/iAITKIO.h>
+#include <iAFileUtils.h>
+#include <iAITKIO.h>
 
 #include <QFile>
 #include <QFileInfo>
+#include <QRegularExpression>
 
 const QString iASingleResult::ValueSplitString(",");
 
@@ -48,7 +49,7 @@ QSharedPointer<iASingleResult> iASingleResult::create(
 	if (!ok)
 	{
 		// legacy format: split string " ":
-		QRegExp sep("(,| )");
+		QRegularExpression sep("(,| )");
 		tokens = line.split(sep);
 		id = tokens[0].toInt(&ok);
 		if (!ok)
@@ -159,7 +160,7 @@ QString iASingleResult::toString(QSharedPointer<iAAttributes> attributes, int ty
 			}
 		}
 	}
-	if (type == iAAttributeDescriptor::DerivedOutput)
+	if (type == iAAttributeDescriptor::Parameter)
 	{
 		result += ValueSplitString + MakeRelative(m_sampling.path(), m_fileName);
 	}

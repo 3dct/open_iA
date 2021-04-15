@@ -124,7 +124,7 @@
                <string>aC</string>
               </property>
               <property name="icon">
-               <iconset resource="../../core/open_iA.qrc">
+               <iconset resource="../../libs/guibase/guibase.qrc">
                 <normaloff>:/images/add.png</normaloff>:/images/add.png</iconset>
               </property>
               <property name="iconSize">
@@ -176,7 +176,7 @@
                <string>dC</string>
               </property>
               <property name="icon">
-               <iconset resource="../../core/open_iA.qrc">
+               <iconset resource="../../libs/guibase/guibase.qrc">
                 <normaloff>:/images/minus.png</normaloff>:/images/minus.png</iconset>
               </property>
               <property name="iconSize">
@@ -228,7 +228,7 @@
                <string>sC</string>
               </property>
               <property name="icon">
-               <iconset resource="../../core/open_iA.qrc">
+               <iconset resource="../../libs/guibase/guibase.qrc">
                 <normaloff>:/images/saveClass.png</normaloff>:/images/saveClass.png</iconset>
               </property>
               <property name="iconSize">
@@ -277,7 +277,7 @@
                <string>lC</string>
               </property>
               <property name="icon">
-               <iconset resource="../../core/open_iA.qrc">
+               <iconset resource="../../libs/guibase/guibase.qrc">
                 <normaloff>:/images/load.png</normaloff>:/images/load.png</iconset>
               </property>
               <property name="iconSize">
@@ -405,7 +405,7 @@
   </widget>
  </widget>
  <resources>
-  <include location="../../core/open_iA.qrc"/>
+  <include location="../../libs/guibase/guibase.qrc"/>
   <include location="FeatureScout.qrc"/>
  </resources>
  <connections/>

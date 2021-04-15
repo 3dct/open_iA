@@ -1,7 +1,7 @@
 /*************************************  open_iA  ************************************ *
 * **********   A tool for visual analysis and processing of 3D CT images   ********** *
 * *********************************************************************************** *
-* Copyright (C) 2016-2020  C. Heinzl, M. Reiter, A. Reh, W. Li, M. Arikan, Ar. &  Al. *
+* Copyright (C) 2016-2021  C. Heinzl, M. Reiter, A. Reh, W. Li, M. Arikan, Ar. &  Al. *
 *                 Amirkhanov, J. Weissenböck, B. Fröhler, M. Schiwarth, P. Weinberger *
 * *********************************************************************************** *
 * This program is free software: you can redistribute it and/or modify it under the   *
@@ -25,17 +25,18 @@
 #include "iARepresentative.h"
 #include "iASEAFile.h"
 
-#include <dlg_modalities.h>
 #include <iAConnector.h>
 #include <iALog.h>
 #include <iAFilter.h>
 #include <iAFilterRegistry.h>
 #include <iAModality.h>
 #include <iAProjectRegistry.h>
-#include <mainwindow.h>
-#include <mdichild.h>
+#include <iAMainWindow.h>
+#include <iAMdiChild.h>
 
+#include <QAction>
 #include <QFileDialog>
+#include <QMenu>
 
 #include <cassert>
 
@@ -88,7 +89,7 @@ void iAGEMSeModuleInterface::Initialize()
 	iAProjectRegistry::addProject<iAGEMSeProject>(iAGEMSeProject::ID);
 
 	QAction * actionGEMSe = new QAction(tr("GEMSe"), m_mainWnd);
-	makeActionChildDependent(actionGEMSe);
+	m_mainWnd->makeActionChildDependent(actionGEMSe);
 	connect(actionGEMSe, &QAction::triggered, this, &iAGEMSeModuleInterface::startGEMSe);
 
 	QAction * actionPreCalculated = new QAction(tr("GEMSe - Load Ensemble (old)"), m_mainWnd);
@@ -107,7 +108,7 @@ void iAGEMSeModuleInterface::startGEMSe()
 	AttachToMdiChild(m_mdiChild);
 }
 
-iAModuleAttachmentToChild* iAGEMSeModuleInterface::CreateAttachment(MainWindow* mainWnd, MdiChild * child)
+iAModuleAttachmentToChild* iAGEMSeModuleInterface::CreateAttachment(iAMainWindow* mainWnd, iAMdiChild * child)
 {
 	iAGEMSeAttachment* result = iAGEMSeAttachment::create( mainWnd, child);
 	if (result)
@@ -135,7 +136,7 @@ void iAGEMSeModuleInterface::loadOldGEMSeProject(QString const & fileName)
 		LOG(lvlWarn, "A loading procedure is currently in progress. Please let this finish first.");
 		return;
 	}
-	m_seaFile = QSharedPointer<iASEAFile>(new iASEAFile(fileName));
+	m_seaFile = QSharedPointer<iASEAFile>::create(fileName);
 	if (!m_seaFile->good())
 	{
 		LOG(lvlError, QString("GEMSe data %1 file could not be read.").arg(m_seaFile->fileName()));
@@ -143,7 +144,7 @@ void iAGEMSeModuleInterface::loadOldGEMSeProject(QString const & fileName)
 		return;
 	}
 	m_mdiChild = m_mainWnd->createMdiChild(false);
-	connect(m_mdiChild, &MdiChild::fileLoaded, this, &iAGEMSeModuleInterface::loadGEMSe);
+	connect(m_mdiChild, &iAMdiChild::fileLoaded, this, &iAGEMSeModuleInterface::loadGEMSe);
 	if (!m_mdiChild->loadFile(m_seaFile->modalityFileName(), false))
 	{
 		LOG(lvlError, QString("Failed to load project '%1' referenced from precalculated GEMSe data file %2.")
@@ -154,16 +155,16 @@ void iAGEMSeModuleInterface::loadOldGEMSeProject(QString const & fileName)
 	}
 }
 
-void iAGEMSeModuleInterface::loadProject(MdiChild* mdiChild, QSettings const & metaFile, QString const & fileName)
+void iAGEMSeModuleInterface::loadProject(iAMdiChild* mdiChild, QSettings const & metaFile, QString const & fileName)
 {
 	m_mdiChild = mdiChild;
-	m_seaFile = QSharedPointer<iASEAFile>(new iASEAFile(metaFile, fileName));
+	m_seaFile = QSharedPointer<iASEAFile>::create(metaFile, fileName);
 	loadGEMSe();
 }
 
 void iAGEMSeModuleInterface::saveProject(QSettings & metaFile, QString const & fileName)
 {
-	iAGEMSeAttachment* gemseAttach = GetAttachment<iAGEMSeAttachment>();
+	iAGEMSeAttachment* gemseAttach = GetAttachment<iAGEMSeAttachment>(m_mdiChild);
 	if (!gemseAttach)
 	{
 		LOG(lvlError, "Could not store project - no GEMSE module attached to current child!");
@@ -182,7 +183,7 @@ void iAGEMSeModuleInterface::loadGEMSe()
 	}
 	// load segmentation explorer:
 	bool result = AttachToMdiChild( m_mdiChild );
-	iAGEMSeAttachment* gemseAttach = GetAttachment<iAGEMSeAttachment>();
+	iAGEMSeAttachment* gemseAttach = GetAttachment<iAGEMSeAttachment>(m_mdiChild);
 	if (!result || !gemseAttach)
 	{
 		LOG(lvlError, "GEMSE attachment could not be created!");
@@ -237,7 +238,7 @@ void iAGEMSeModuleInterface::setupToolbar()
 
 void iAGEMSeModuleInterface::resetFilter()
 {
-	iAGEMSeAttachment* gemseAttach = GetAttachment<iAGEMSeAttachment>();
+	iAGEMSeAttachment* gemseAttach = GetAttachment<iAGEMSeAttachment>(m_mainWnd->activeMdiChild());
 	if (!gemseAttach)
 	{
 		LOG(lvlError, "GEMSE module is not attached!");
@@ -248,7 +249,7 @@ void iAGEMSeModuleInterface::resetFilter()
 
 void iAGEMSeModuleInterface::toggleAutoShrink()
 {
-	iAGEMSeAttachment* gemseAttach = GetAttachment<iAGEMSeAttachment>();
+	iAGEMSeAttachment* gemseAttach = GetAttachment<iAGEMSeAttachment>(m_mainWnd->activeMdiChild());
 	if (!gemseAttach)
 	{
 		LOG(lvlError, "GEMSE module is not attached!");
@@ -259,7 +260,7 @@ void iAGEMSeModuleInterface::toggleAutoShrink()
 
 void iAGEMSeModuleInterface::toggleDockWidgetTitleBar()
 {
-	iAGEMSeAttachment* gemseAttach = GetAttachment<iAGEMSeAttachment>();
+	iAGEMSeAttachment* gemseAttach = GetAttachment<iAGEMSeAttachment>(m_mainWnd->activeMdiChild());
 	if (!gemseAttach)
 	{
 		LOG(lvlError, "GEMSE module is not attached!");
@@ -270,7 +271,7 @@ void iAGEMSeModuleInterface::toggleDockWidgetTitleBar()
 
 void iAGEMSeModuleInterface::exportClusterIDs()
 {
-	iAGEMSeAttachment* gemseAttach = GetAttachment<iAGEMSeAttachment>();
+	iAGEMSeAttachment* gemseAttach = GetAttachment<iAGEMSeAttachment>(m_mainWnd->activeMdiChild());
 	if (!gemseAttach)
 	{
 		LOG(lvlError, "GEMSE module is not attached!");
@@ -281,7 +282,7 @@ void iAGEMSeModuleInterface::exportClusterIDs()
 
 void iAGEMSeModuleInterface::exportAttributeRangeRanking()
 {
-	iAGEMSeAttachment* gemseAttach = GetAttachment<iAGEMSeAttachment>();
+	iAGEMSeAttachment* gemseAttach = GetAttachment<iAGEMSeAttachment>(m_mainWnd->activeMdiChild());
 	if (!gemseAttach)
 	{
 		LOG(lvlError, "GEMSE module is not attached!");
@@ -293,7 +294,7 @@ void iAGEMSeModuleInterface::exportAttributeRangeRanking()
 
 void iAGEMSeModuleInterface::exportRankings()
 {
-	iAGEMSeAttachment* gemseAttach = GetAttachment<iAGEMSeAttachment>();
+	iAGEMSeAttachment* gemseAttach = GetAttachment<iAGEMSeAttachment>(m_mainWnd->activeMdiChild());
 	if (!gemseAttach)
 	{
 		LOG(lvlError, "GEMSE module is not attached!");
@@ -305,7 +306,7 @@ void iAGEMSeModuleInterface::exportRankings()
 
 void iAGEMSeModuleInterface::importRankings()
 {
-	iAGEMSeAttachment* gemseAttach = GetAttachment<iAGEMSeAttachment>();
+	iAGEMSeAttachment* gemseAttach = GetAttachment<iAGEMSeAttachment>(m_mainWnd->activeMdiChild());
 	if (!gemseAttach)
 	{
 		LOG(lvlError, "GEMSE module is not attached!");

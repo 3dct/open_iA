@@ -1,7 +1,7 @@
 /*************************************  open_iA  ************************************ *
 * **********   A tool for visual analysis and processing of 3D CT images   ********** *
 * *********************************************************************************** *
-* Copyright (C) 2016-2020  C. Heinzl, M. Reiter, A. Reh, W. Li, M. Arikan, Ar. &  Al. *
+* Copyright (C) 2016-2021  C. Heinzl, M. Reiter, A. Reh, W. Li, M. Arikan, Ar. &  Al. *
 *                 Amirkhanov, J. Weissenböck, B. Fröhler, M. Schiwarth, P. Weinberger *
 * *********************************************************************************** *
 * This program is free software: you can redistribute it and/or modify it under the   *
@@ -423,10 +423,15 @@ int iAPlot3DVtk::GetNumberOfLookupTableValues()
 	return m_lookupTable->GetNumberOfTableValues();
 }
 
-void iAPlot3DVtk::setPicked( int indX, int indZ )
+bool iAPlot3DVtk::setPicked( int indX, int indZ )
 {
 	pickData.xInd = indX;
 	pickData.zInd = indZ;
+	if (!m_grid->GetPoints())
+	{
+		return false;
+	}
 	m_grid->GetPoints()->GetPoint(indX + indZ*m_sizeZ, pickData.pos);
 	HighlightPickedPoint();
+	return true;
 }

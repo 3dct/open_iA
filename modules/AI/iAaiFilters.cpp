@@ -1,7 +1,7 @@
 /*************************************  open_iA  ************************************ *
 * **********   A tool for visual analysis and processing of 3D CT images   ********** *
 * *********************************************************************************** *
-* Copyright (C) 2016-2020  C. Heinzl, M. Reiter, A. Reh, W. Li, M. Arikan, Ar. &  Al. *
+* Copyright (C) 2016-2021  C. Heinzl, M. Reiter, A. Reh, W. Li, M. Arikan, Ar. &  Al. *
 *                 Amirkhanov, J. Weissenböck, B. Fröhler, M. Schiwarth, P. Weinberger *
 * *********************************************************************************** *
 * This program is free software: you can redistribute it and/or modify it under the   *
@@ -19,9 +19,6 @@
 *          Stelzhamerstraße 23, 4600 Wels / Austria, Email: c.heinzl@fh-wels.at       *
 * ************************************************************************************/
 #include "iAaiFilters.h"
-
-#include<vector>
-#include <omp.h>
 
 #include "defines.h" // for DIM
 
@@ -46,6 +43,9 @@
 	#include "dml_provider_factory.h"
 #endif
 
+#include <omp.h>
+
+#include <vector>
 
 typedef float                                 				PixelType;
 const unsigned int Dimension = 3;
@@ -55,8 +55,8 @@ typedef itk::ImageRegionIterator<ImageType> 			    IteratorType;
 
 namespace
 {
-	const size_t sizeDNNin = 132;
-	const size_t sizeDNNout = 122;
+	const int sizeDNNin = 132;
+	const int sizeDNNout = 122;
 }
 
 typename ImageType::Pointer Normalize(typename ImageType::Pointer itk_img)
@@ -186,25 +186,19 @@ typename ImageType::Pointer createImage(int X, int Y, int Z)
 template<class T>
 void executeDNN(iAFilter* filter, QMap<QString, QVariant> const & parameters)
 {
-	typename ImageType::Pointer itk_img;
-
 	typedef itk::Image<T, DIM> InputImageType;
 
-		using FilterType = itk::CastImageFilter<InputImageType, ImageType>;
-		typename FilterType::Pointer castFilter = FilterType::New();
-		castFilter->SetInput(dynamic_cast<InputImageType *>(filter->input()[0]->itkImage()));
-		castFilter->Update();
-		itk_img = castFilter->GetOutput();
-		
+	using FilterType = itk::CastImageFilter<InputImageType, ImageType>;
+	typename FilterType::Pointer castFilter = FilterType::New();
+	castFilter->SetInput(dynamic_cast<InputImageType *>(filter->input()[0]->itkImage()));
+	castFilter->Update();
+	auto itk_img = castFilter->GetOutput();
 
-		typename ImageType::Pointer itk_img_normalized = Normalize(itk_img);
-
-		typename ImageType::Pointer itk_img_normalized_padded = AddPadding(itk_img_normalized,(sizeDNNin - sizeDNNout)/2);
-
-
+	typename ImageType::Pointer itk_img_normalized = Normalize(itk_img);
+	typename ImageType::Pointer itk_img_normalized_padded = AddPadding(itk_img_normalized,(sizeDNNin - sizeDNNout)/2);
 
 	// initialize  enviroment...one enviroment per process
-// enviroment maintains thread pools and other state info
+	// enviroment maintains thread pools and other state info
 	Ort::Env env(ORT_LOGGING_LEVEL_WARNING, "test");
 
 	// initialize session options if needed
@@ -286,7 +280,6 @@ void executeDNN(iAFilter* filter, QMap<QString, QVariant> const & parameters)
 		}
 	}
 
-
 	// print number of model input nodes
 	size_t num_output_nodes = session.GetOutputCount();
 	std::vector<const char*> output_node_names(num_output_nodes);
@@ -345,8 +338,6 @@ void executeDNN(iAFilter* filter, QMap<QString, QVariant> const & parameters)
 	size_t input_tensor_size = sizeDNNin * sizeDNNin * sizeDNNin *1;  // simplify ... using known dim values to calculate size
 											   // use OrtGetTensorShapeElementCount() to get official size!
 
-
-
 	ImageType::RegionType region = itk_img_normalized->GetLargestPossibleRegion();
 
 	ImageType::SizeType size = region.GetSize();
@@ -382,7 +373,7 @@ void executeDNN(iAFilter* filter, QMap<QString, QVariant> const & parameters)
 				tempY = (y <= sizeY - sizeDNNout) ? y : (y - (sizeDNNout - sizeY % sizeDNNout)); 
 				tempZ = (z <= sizeZ - sizeDNNout) ? z : (z - (sizeDNNout - sizeZ % sizeDNNout)); 
 
-				size_t offset = (sizeDNNout - sizeDNNin)/2;
+				int offset = (sizeDNNout - sizeDNNin)/2;
 				itk2tensor(itk_img_normalized_padded, tensor_img, tempX + offset, tempY + offset, tempZ + offset);
 
 				std::vector<Ort::Value> result;

@@ -1,7 +1,7 @@
 /*************************************  open_iA  ************************************ *
 * **********   A tool for visual analysis and processing of 3D CT images   ********** *
 * *********************************************************************************** *
-* Copyright (C) 2016-2020  C. Heinzl, M. Reiter, A. Reh, W. Li, M. Arikan, Ar. &  Al. *
+* Copyright (C) 2016-2021  C. Heinzl, M. Reiter, A. Reh, W. Li, M. Arikan, Ar. &  Al. *
 *                 Amirkhanov, J. Weissenböck, B. Fröhler, M. Schiwarth, P. Weinberger *
 * *********************************************************************************** *
 * This program is free software: you can redistribute it and/or modify it under the   *
@@ -22,8 +22,11 @@
 
 #include "iAInSpectrAttachment.h"
 
-#include <mainwindow.h>
-#include <mdichild.h>
+#include <iAMainWindow.h>
+#include <iAMdiChild.h>
+
+#include <QAction>
+#include <QMenu>
 
 void iAInSpectrModuleInterface::Initialize()
 {
@@ -33,7 +36,7 @@ void iAInSpectrModuleInterface::Initialize()
 	}
 	QAction * actionInSpectr = new QAction(tr("InSpectr"), m_mainWnd);
 	connect(actionInSpectr, &QAction::triggered, this, &iAInSpectrModuleInterface::startInSpectr);
-	makeActionChildDependent(actionInSpectr);
+	m_mainWnd->makeActionChildDependent(actionInSpectr);
 	addToMenuSorted(m_mainWnd->toolsMenu(), actionInSpectr);
 }
 
@@ -43,7 +46,7 @@ bool iAInSpectrModuleInterface::startInSpectr()
 	return AttachToMdiChild( m_mdiChild );
 }
 
-iAModuleAttachmentToChild * iAInSpectrModuleInterface::CreateAttachment(MainWindow* mainWnd, MdiChild * child)
+iAModuleAttachmentToChild * iAInSpectrModuleInterface::CreateAttachment(iAMainWindow* mainWnd, iAMdiChild * child)
 {
 	return new iAInSpectrAttachment( mainWnd, child );
 }

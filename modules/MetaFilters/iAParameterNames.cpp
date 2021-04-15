@@ -1,7 +1,7 @@
 /*************************************  open_iA  ************************************ *
 * **********   A tool for visual analysis and processing of 3D CT images   ********** *
 * *********************************************************************************** *
-* Copyright (C) 2016-2020  C. Heinzl, M. Reiter, A. Reh, W. Li, M. Arikan, Ar. &  Al. *
+* Copyright (C) 2016-2021  C. Heinzl, M. Reiter, A. Reh, W. Li, M. Arikan, Ar. &  Al. *
 *                 Amirkhanov, J. Weissenböck, B. Fröhler, M. Schiwarth, P. Weinberger *
 * *********************************************************************************** *
 * This program is free software: you can redistribute it and/or modify it under the   *
@@ -45,7 +45,8 @@ const QString spnNumberOfLabels("Number of labels");
 
 // Parameters for general sensitivity sampling method:
 const QString spnBaseSamplingMethod("Base sampling method");
-const QString spnSensitivityDelta("Sensitivity delta");
+const QString spnStarDelta("Sensitivity delta");
+const QString spnStarStepNumber("Number of steps");
 
 // Valid values for algorithm type parameter:
 const QString atBuiltIn("Built-in");
@@ -58,6 +59,7 @@ namespace iASamplingMethodName
 	const QString CartesianGrid("Cartesian Grid");
 	const QString LocalSensitivity("Local Sensitivity");
 	const QString GlobalSensitivity("Global sensitivity (star)");
+	const QString GlobalSensitivitySmall("Global sensitivity (small star)");
 }
 
 const QString SampleFilterDescription(QString("Sample any internal filter or external algorithm.<br/>"
@@ -68,13 +70,14 @@ const QString SampleFilterDescription(QString("Sample any internal filter or ext
 	"for each of the parameter sets created by this method, "
 	"additional samples are created. <em>%3</em> specifies the distance between "
 	"samples as a ratio of the specified range for a given parameter (e.g. 0.05 would "
-	"mean a step of 5% of the parameter range). 1 / <em>%3</em> number of samples will be created "
+	"mean a step of 5% of the parameter range). 1 / <em>%4</em> number of samples will be created "
 	"per parameter in a distance of x*<em>%3</em> "
 	"(with x=1,2,3, ...) from the point in the parameter space determined by "
 	"the parameter set. ")
 	.arg(iASamplingMethodName::GlobalSensitivity)
 	.arg(spnBaseSamplingMethod)
-	.arg(spnSensitivityDelta));
+	.arg(spnStarDelta)
+	.arg(spnStarStepNumber));
 
 QString getOutputFolder(QString const& baseFolder, bool createSubFolder, int sampleNr, int numDigits)
 {
@@ -95,9 +98,4 @@ QString getOutputFileName(QString const& outputFolder, QString const& baseName,
 		QString("%1%2%3").arg(fi.completeBaseName()).arg(sampleNr, numDigits, 10, QChar('0')).arg(
 			fi.suffix().size() > 0 ? QString(".%1").arg(fi.suffix()) : QString(""))
 		);
-}
-
-int requiredDigits(int largestNumber)
-{  // number of required digits for number >= 1
-	return std::floor(std::log10(std::abs(largestNumber))) + 1;
 }

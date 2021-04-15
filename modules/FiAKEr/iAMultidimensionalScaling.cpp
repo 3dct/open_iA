@@ -202,7 +202,7 @@ std::vector<std::vector<double>> computeMDS(std::vector<std::vector<double>> con
 	double diffSum = 1;
 	for (int it = 0; it < iterations && diffSum > maxError; it++)
 	{
-		LOG(lvlDebug, QString("ITERATION %1:").arg(it));
+		//LOG(lvlDebug, QString("ITERATION %1:").arg(it));
 		//LOG(lvlDebug, QString("B old: %1").arg(matrixToString(B)));
 
 		// B = calc_B(D_,D);
@@ -259,7 +259,7 @@ std::vector<std::vector<double>> computeMDS(std::vector<std::vector<double>> con
 		auto vecDiff = vectorDiff(Z, X);
 		diffSum = matrixSum(vecDiff);
 		//LOG(lvlDebug, QString("diff Z-X: %1").arg(matrixToString(vecDiff)));
-		LOG(lvlDebug, QString("sum (diff Z-X): %1").arg(diffSum));
+		//LOG(lvlDebug, QString("sum (diff Z-X): %1").arg(diffSum));
 		Z = X;
 	}
 	return X;

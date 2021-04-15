@@ -1,7 +1,7 @@
 /*************************************  open_iA  ************************************ *
 * **********   A tool for visual analysis and processing of 3D CT images   ********** *
 * *********************************************************************************** *
-* Copyright (C) 2016-2020  C. Heinzl, M. Reiter, A. Reh, W. Li, M. Arikan, Ar. &  Al. *
+* Copyright (C) 2016-2021  C. Heinzl, M. Reiter, A. Reh, W. Li, M. Arikan, Ar. &  Al. *
 *                 Amirkhanov, J. Weissenböck, B. Fröhler, M. Schiwarth, P. Weinberger *
 * *********************************************************************************** *
 * This program is free software: you can redistribute it and/or modify it under the   *
@@ -138,9 +138,9 @@ QSharedPointer<iAImageTreeNode> iAImageTree::ReadNode(QTextStream & in,
 			LOG(lvlError, QString("Reading node: Invalid (non-integer) dataset ID in cluster file, line: '%1'").arg(currentLine));
 			return QSharedPointer<iAImageTreeNode>();
 		}
-		QVector<QSharedPointer<iASingleResult> > sampleResults = samplingResults->at(datasetID)->members();
-		QSharedPointer<iASingleResult> result = findResultWithID(sampleResults, id);
-		return QSharedPointer<iAImageTreeNode>(new iAImageTreeLeaf(result, labelCount) );
+		auto sampleResults = samplingResults->at(datasetID)->members();
+		auto result = findResultWithID(sampleResults, id);
+		return QSharedPointer<iAImageTreeLeaf>::create(result, labelCount);
 	}
 	else
 	{

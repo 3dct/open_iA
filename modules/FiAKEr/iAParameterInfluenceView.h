@@ -20,12 +20,18 @@
 * ************************************************************************************/
 #pragma once
 
+#include <QMap>
+#include <QSet>
 #include <QWidget>
 
 class iAChartWidget;
-class iAColorTheme;
+class iAHistogramData;
 class iAStackedBarChart;
 class iASensitivityInfo;
+class iASingleColorTheme;
+class iAParTableRow;
+
+class iAPlot;
 
 class QGridLayout;
 
@@ -40,42 +46,67 @@ class iAParameterInfluenceView : public QWidget
 {
 	Q_OBJECT
 public:
-	iAParameterInfluenceView(iASensitivityInfo* sensInf);
-	void changeMeasure(int newMeasure);
-	void changeAggregation(int newAggregation);
+	iAParameterInfluenceView(iASensitivityInfo* sensInf, QColor const& paramColor, QColor const& outputColor);
+	void setMeasure(int newMeasure);
+	void setAggregation(int newAggregation);
+	void setResultSelected(size_t resultIdx, bool state);
 	int selectedMeasure() const;
 	int selectedAggrType() const;
 	int selectedRow() const;
 	int selectedCol() const;
-	void setColorTheme(iAColorTheme const * colorTheme);
-	void showDifferenceDistribution(int outputIdx, int selCharIdx, int aggrType);
+	void setHistogramChartType(QString const& chartType);
+	QSet<size_t> const & selectedResults() const;
 public slots:
 	void showStackedBar();
-	void selectStackedBar(int idx);
+	void selectStackedBar(int outputType, int idx);
 	void stackedBarDblClicked(int idx);
+	void setSelectedParam(int param);
+	void toggleCharacteristic(int charactIdx);
 private slots:
-	void selectMeasure(int measureIdx);
 	void paramChangedSlot();
+	void setBarWeights(std::vector<double> const& weights);
+	void setBarNormalizeMode(bool normalizePerBar);
+	void setBarDoStack(bool doStack);
+	void paramChartClicked(double x, Qt::KeyboardModifiers modifiers);
+	void paramChartAxisChanged();
+	void charactChartAxisChanged();
+
 private:
 	void updateStackedBars();
-	void addStackedBar(int charactIdx);
-	void removeStackedBar(int charactIdx);
-	QString columnName(int charactIdx) const;
+	void addStackedBar(int outputType, int outIdx);
+	void removeStackedBar(int outputType, int outIdx);
+	void updateStackedBarHistogram(QString const& barName, int paramIdx, int outType, int outIdx);
+	void addColumnAction(int outType, int outIdx, bool checked);
+	QString columnName(int outputType, int outTypeIdx) const;
+	void updateChartY();
+	void toggleBar(bool show, int outType, int outIdx);
+	void updateTableOrder();
+	void setActionChecked(int outType, int outIdx, bool checked);
+	QSharedPointer<iAPlot> createHistoPlot(QSharedPointer<iAHistogramData> data, QColor color);
+	void addResultHistoPlot(size_t resultIdx, int charIdx, int paramIdx);
 
-	QVector<int> m_visibleCharacts;
-	//! stacked bar charts (one per parameter)
-	QVector<iAStackedBarChart*> m_stackedCharts;
-	QVector<iAChartWidget*> m_diffChart;
-	iAStackedBarChart* m_stackedHeader;
+	// pair output type / index
+	QVector<QPair<int,int>> m_visibleCharacts;
 	//! sensitivity information
 	iASensitivityInfo* m_sensInf;
 	//! measure to use 
 	int m_measureIdx;
 	//! aggregation type
 	int m_aggrType;
-	int m_selectedRow, m_selectedCol;
+	int m_selectedParam, m_selectedCol;
 	QGridLayout* m_paramListLayout;
+	QSharedPointer<iASingleColorTheme> m_stackedBarTheme;
+	QVector<QSharedPointer<iAParTableRow>> m_table;
+	QVector<int> m_sort;
+	int m_sortLastOut;
+	bool m_sortLastDesc;
+	QMap<std::tuple<size_t, int, int>, QSharedPointer<iAPlot>> m_selectedResultHistoPlots;
+	QSet<size_t> m_selectedResults;
+	QString m_histogramChartType;
 signals:
 	void parameterChanged();
-	void characteristicSelected(int charIdx);
+	void outputSelected(int outType, int outTypeIdx);
+	void barAdded(int outType, int outIdx);
+	void barRemoved(int outType, int outIdx);
+	void resultSelected(size_t resultIdx, Qt::KeyboardModifiers modifiers);
 };

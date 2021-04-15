@@ -1,7 +1,7 @@
 /*************************************  open_iA  ************************************ *
 * **********   A tool for visual analysis and processing of 3D CT images   ********** *
 * *********************************************************************************** *
-* Copyright (C) 2016-2020  C. Heinzl, M. Reiter, A. Reh, W. Li, M. Arikan, Ar. &  Al. *
+* Copyright (C) 2016-2021  C. Heinzl, M. Reiter, A. Reh, W. Li, M. Arikan, Ar. &  Al. *
 *                 Amirkhanov, J. Weissenböck, B. Fröhler, M. Schiwarth, P. Weinberger *
 * *********************************************************************************** *
 * This program is free software: you can redistribute it and/or modify it under the   *
@@ -30,12 +30,13 @@
 #include <iAModuleDispatcher.h>
 #include <iAProjectBase.h>
 #include <iAProjectRegistry.h>
-#include <io/iAFileUtils.h>
-#include <mainwindow.h>
-#include <mdichild.h>
+#include <iAFileUtils.h>
+#include <iAMainWindow.h>
+#include <iAMdiChild.h>
 
 #include <QAction>
 #include <QFileDialog>
+#include <QMenu>
 #include <QMdiSubWindow>
 #include <QMessageBox>
 #include <QSettings>
@@ -51,7 +52,7 @@ public:
 	void loadProject(QSettings & projectFile, QString const & fileName) override
 	{
 		/*
-		// Remove UseMdiChild setting altogether, always open MdiChild?
+		// Remove UseMdiChild setting altogether, always open iAMdiChild?
 		if (projectFile.contains("UseMdiChild") && projectFile.value("UseMdiChild").toBool() == false)
 		{
 
@@ -63,8 +64,8 @@ public:
 		*/
 		if (!m_mdiChild)
 		{
-			LOG(lvlError, QString("Invalid FIAKER project file '%1': FIAKER requires an MdiChild, "
-				"but UseMdiChild was apparently not specified in this project, as no MdiChild available! "
+			LOG(lvlError, QString("Invalid FIAKER project file '%1': FIAKER requires a child window, "
+				"but UseMdiChild was apparently not specified in this project, as no child window available! "
 				"Please report this error, along with the project file, to the open_iA developers!").arg(fileName));
 			return;
 		}
@@ -107,11 +108,19 @@ void iAFiAKErModuleInterface::Initialize()
 	iAProjectRegistry::addProject<iAFIAKERProject>(iAFiAKErController::FIAKERProjectID);
 
 	QAction * actionFiAKEr = new QAction(tr("Start FIAKER"), m_mainWnd);
+#if QT_VERSION < QT_VERSION_CHECK(5, 99, 0)
 	actionFiAKEr->setShortcut(QKeySequence(Qt::ALT + Qt::Key_R, Qt::Key_O));
+#else
+	actionFiAKEr->setShortcut(QKeySequence(QKeyCombination(Qt::ALT, Qt::Key_R), QKeyCombination(Qt::Key_O)));
+#endif
 	connect(actionFiAKEr, &QAction::triggered, this, &iAFiAKErModuleInterface::startFiAKEr );
 
 	QAction* actionFiAKErProject = new QAction(tr("Load FIAKER (old .fpf files)"), m_mainWnd);
+#if QT_VERSION < QT_VERSION_CHECK(5, 99, 0)
 	actionFiAKErProject->setShortcut(QKeySequence(Qt::ALT + Qt::Key_R, Qt::Key_P));
+#else
+	actionFiAKErProject->setShortcut(QKeySequence(QKeyCombination(Qt::ALT, Qt::Key_R), QKeyCombination(Qt::Key_P)));
+#endif
 	connect(actionFiAKErProject, &QAction::triggered, this, &iAFiAKErModuleInterface::loadFiAKErProject);
 
 	QMenu* submenu = getOrAddSubMenu(m_mainWnd->toolsMenu(), tr("Feature Analysis"), true);
@@ -146,7 +155,7 @@ void iAFiAKErModuleInterface::SaveSettings() const
 void iAFiAKErModuleInterface::startFiAKEr()
 {
 	setupToolBar();
-	MdiChild* mdiChild(nullptr);
+	iAMdiChild* mdiChild(nullptr);
 	bool createdMdi = false;
 	if (m_mainWnd->activeMdiChild() && QMessageBox::question(m_mainWnd, "FIAKER",
 		"Load FIAKER in currently active window (If you choose No, FIAKER will be opened in a new window)?",
@@ -232,7 +241,7 @@ void iAFiAKErModuleInterface::startFiAKEr()
 	//cmbbox_Format->addItems(formatEntries);
 
 	AttachToMdiChild(mdiChild);
-	iAFiAKErAttachment* attach = GetAttachment<iAFiAKErAttachment>();
+	iAFiAKErAttachment* attach = GetAttachment<iAFiAKErAttachment>(mdiChild);
 	m_mainWnd->setPath(m_lastPath);
 	if (createdMdi)
 	{
@@ -254,10 +263,12 @@ void iAFiAKErModuleInterface::loadFiAKErProject()
 	{
 		return;
 	}
-	MdiChild* newChild = m_mainWnd->createMdiChild(false);
+	iAMdiChild* newChild = m_mainWnd->createMdiChild(false);
 	newChild->show();
 	QSettings projectFile(fileName, QSettings::IniFormat);
+#if QT_VERSION < QT_VERSION_CHECK(5, 99, 0)
 	projectFile.setIniCodec("UTF-8");
+#endif
 	auto project = QSharedPointer<iAFIAKERProject>::create();
 	project->setMainWindow(m_mainWnd);
 	project->setChild(newChild);
@@ -265,14 +276,14 @@ void iAFiAKErModuleInterface::loadFiAKErProject()
 	newChild->addProject(iAFiAKErController::FIAKERProjectID, project);
 }
 
-void iAFiAKErModuleInterface::loadProject(MdiChild* mdiChild, QSettings const& projectFile, QString const& fileName, iAFIAKERProject* project)
+void iAFiAKErModuleInterface::loadProject(iAMdiChild* mdiChild, QSettings const& projectFile, QString const& fileName, iAFIAKERProject* project)
 {
 	if (mdiChild->modalities()->size() == 0)
 	{ // if no other data loaded yet, we need to make suare mdichild is initialized:
 		mdiChild->displayResult(mdiChild->windowTitle(), nullptr, nullptr);
 	}
 	AttachToMdiChild(mdiChild);
-	iAFiAKErAttachment* attach = GetAttachment<iAFiAKErAttachment>();
+	iAFiAKErAttachment* attach = GetAttachment<iAFiAKErAttachment>(mdiChild);
 	auto controller = attach->controller();
 	project->setController(controller);
 	m_mainWnd->setPath(m_lastPath);
@@ -284,7 +295,7 @@ void iAFiAKErModuleInterface::loadProject(MdiChild* mdiChild, QSettings const& p
 	controller->loadProject(projectFile, fileName);
 }
 
-iAModuleAttachmentToChild* iAFiAKErModuleInterface::CreateAttachment(MainWindow* mainWnd, MdiChild* child)
+iAModuleAttachmentToChild* iAFiAKErModuleInterface::CreateAttachment(iAMainWindow* mainWnd, iAMdiChild* child)
 {
 	return new iAFiAKErAttachment(mainWnd, child);
 }
@@ -303,8 +314,7 @@ void iAFiAKErModuleInterface::setupToolBar()
 
 void iAFiAKErModuleInterface::toggleDockWidgetTitleBars()
 {
-	m_mdiChild = m_mainWnd->activeMdiChild();
-	iAFiAKErAttachment* attach = GetAttachment<iAFiAKErAttachment>();
+	iAFiAKErAttachment* attach = GetAttachment<iAFiAKErAttachment>(m_mainWnd->activeMdiChild());
 	if (!attach)
 	{
 		return;
@@ -314,8 +324,7 @@ void iAFiAKErModuleInterface::toggleDockWidgetTitleBars()
 
 void iAFiAKErModuleInterface::toggleSettings()
 {
-	m_mdiChild = m_mainWnd->activeMdiChild();
-	iAFiAKErAttachment* attach = GetAttachment<iAFiAKErAttachment>();
+	iAFiAKErAttachment* attach = GetAttachment<iAFiAKErAttachment>(m_mainWnd->activeMdiChild());
 	if (!attach)
 	{
 		return;

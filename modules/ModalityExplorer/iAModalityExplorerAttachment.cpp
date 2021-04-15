@@ -1,7 +1,7 @@
 /*************************************  open_iA  ************************************ *
 * **********   A tool for visual analysis and processing of 3D CT images   ********** *
 * *********************************************************************************** *
-* Copyright (C) 2016-2020  C. Heinzl, M. Reiter, A. Reh, W. Li, M. Arikan, Ar. &  Al. *
+* Copyright (C) 2016-2021  C. Heinzl, M. Reiter, A. Reh, W. Li, M. Arikan, Ar. &  Al. *
 *                 Amirkhanov, J. Weissenböck, B. Fröhler, M. Schiwarth, P. Weinberger *
 * *********************************************************************************** *
 * This program is free software: you can redistribute it and/or modify it under the   *
@@ -23,9 +23,9 @@
 #include "dlg_modalitySPLOM.h"
 
 #include <iAModality.h>
-#include <mdichild.h>
+#include <iAMdiChild.h>
 
-iAModalityExplorerAttachment::iAModalityExplorerAttachment(MainWindow * mainWnd, MdiChild * child):
+iAModalityExplorerAttachment::iAModalityExplorerAttachment(iAMainWindow * mainWnd, iAMdiChild * child):
 	iAModuleAttachmentToChild(mainWnd, child)
 {
 	m_dlgModalitySPLOM = new dlg_modalitySPLOM();
@@ -38,7 +38,7 @@ iAModalityExplorerAttachment::iAModalityExplorerAttachment(MainWindow * mainWnd,
 	*/
 }
 
-iAModalityExplorerAttachment* iAModalityExplorerAttachment::create(MainWindow * mainWnd, MdiChild * child)
+iAModalityExplorerAttachment* iAModalityExplorerAttachment::create(iAMainWindow * mainWnd, iAMdiChild * child)
 {
 	iAModalityExplorerAttachment * newAttachment = new iAModalityExplorerAttachment(mainWnd, child);
 	return newAttachment;

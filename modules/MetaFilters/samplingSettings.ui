@@ -255,7 +255,7 @@
                 <string/>
                </property>
                <property name="icon">
-                <iconset resource="../../core/open_iA.qrc">
+                <iconset resource="../../libs/guibase/guibase.qrc">
                  <normaloff>:/images/info.png</normaloff>:/images/info.png</iconset>
                </property>
                <property name="checkable">
@@ -352,48 +352,6 @@
                 <property name="spacing">
                  <number>4</number>
                 </property>
-                <item row="0" column="0">
-                 <widget class="QLabel" name="lbBaseSamplingMethod">
-                  <property name="sizePolicy">
-                   <sizepolicy hsizetype="Fixed" vsizetype="Preferred">
-                    <horstretch>0</horstretch>
-                    <verstretch>0</verstretch>
-                   </sizepolicy>
-                  </property>
-                  <property name="text">
-                   <string>Base Method</string>
-                  </property>
-                 </widget>
-                </item>
-                <item row="1" column="1">
-                 <widget class="QDoubleSpinBox" name="sbSensitivityDelta">
-                  <property name="decimals">
-                   <number>3</number>
-                  </property>
-                  <property name="minimum">
-                   <double>0.050000000000000</double>
-                  </property>
-                  <property name="maximum">
-                   <double>1.000000000000000</double>
-                  </property>
-                  <property name="singleStep">
-                   <double>0.010000000000000</double>
-                  </property>
-                 </widget>
-                </item>
-                <item row="2" column="0" colspan="2">
-                 <widget class="QCheckBox" name="cbContinueOnError">
-                  <property name="toolTip">
-                   <string>If checked, sampling will continue in the case that an error occurs while producing a single sample. If unchecked, the whole sampling will be aborted when an error occurs.</string>
-                  </property>
-                  <property name="text">
-                   <string>Continue sampling on error</string>
-                  </property>
-                  <property name="checked">
-                   <bool>true</bool>
-                  </property>
-                 </widget>
-                </item>
                 <item row="0" column="1">
                  <widget class="QComboBox" name="cbBaseSamplingMethod">
                   <property name="sizePolicy">
@@ -413,6 +371,32 @@
                   </property>
                  </widget>
                 </item>
+                <item row="0" column="0">
+                 <widget class="QLabel" name="lbBaseSamplingMethod">
+                  <property name="sizePolicy">
+                   <sizepolicy hsizetype="Fixed" vsizetype="Preferred">
+                    <horstretch>0</horstretch>
+                    <verstretch>0</verstretch>
+                   </sizepolicy>
+                  </property>
+                  <property name="text">
+                   <string>Base Method</string>
+                  </property>
+                 </widget>
+                </item>
+                <item row="3" column="0" colspan="2">
+                 <widget class="QCheckBox" name="cbContinueOnError">
+                  <property name="toolTip">
+                   <string>If checked, sampling will continue in the case that an error occurs while producing a single sample. If unchecked, the whole sampling will be aborted when an error occurs.</string>
+                  </property>
+                  <property name="text">
+                   <string>Continue sampling on error</string>
+                  </property>
+                  <property name="checked">
+                   <bool>true</bool>
+                  </property>
+                 </widget>
+                </item>
                 <item row="1" column="0">
                  <widget class="QLabel" name="lbStarDelta">
                   <property name="sizePolicy">
@@ -423,6 +407,42 @@
                   </property>
                   <property name="text">
                    <string>Sensitivity delta</string>
+                  </property>
+                 </widget>
+                </item>
+                <item row="1" column="1">
+                 <widget class="QDoubleSpinBox" name="sbStarDelta">
+                  <property name="decimals">
+                   <number>3</number>
+                  </property>
+                  <property name="minimum">
+                   <double>0.001000000000000</double>
+                  </property>
+                  <property name="maximum">
+                   <double>1.000000000000000</double>
+                  </property>
+                  <property name="singleStep">
+                   <double>0.010000000000000</double>
+                  </property>
+                 </widget>
+                </item>
+                <item row="2" column="0">
+                 <widget class="QLabel" name="lbStarStepNumber">
+                  <property name="text">
+                   <string>Step number</string>
+                  </property>
+                 </widget>
+                </item>
+                <item row="2" column="1">
+                 <widget class="QSpinBox" name="sbStarStepNumber">
+                  <property name="minimum">
+                   <number>1</number>
+                  </property>
+                  <property name="maximum">
+                   <number>100</number>
+                  </property>
+                  <property name="value">
+                   <number>2</number>
                   </property>
                  </widget>
                 </item>
@@ -722,7 +742,7 @@
          <string>Save Settings...</string>
         </property>
         <property name="icon">
-         <iconset resource="../../core/open_iA.qrc">
+         <iconset resource="../../libs/guibase/guibase.qrc">
           <normaloff>:/images/save.png</normaloff>:/images/save.png</iconset>
         </property>
         <property name="popupMode">
@@ -739,7 +759,7 @@
          <string>Load Settings...</string>
         </property>
         <property name="icon">
-         <iconset resource="../../core/open_iA.qrc">
+         <iconset resource="../../libs/guibase/guibase.qrc">
           <normaloff>:/images/open.png</normaloff>:/images/open.png</iconset>
         </property>
         <property name="popupMode">
@@ -753,7 +773,7 @@
          <string/>
         </property>
         <property name="icon">
-         <iconset resource="../../core/open_iA.qrc">
+         <iconset resource="../../libs/guibase/guibase.qrc">
           <normaloff>:/images/info.png</normaloff>:/images/info.png</iconset>
         </property>
         <property name="checkable">
@@ -807,7 +827,7 @@
   <tabstop>pbCancel</tabstop>
  </tabstops>
  <resources>
-  <include location="../../core/open_iA.qrc"/>
+  <include location="../../libs/guibase/guibase.qrc"/>
  </resources>
  <connections/>
 </ui>

@@ -1,7 +1,7 @@
 /*************************************  open_iA  ************************************ *
 * **********   A tool for visual analysis and processing of 3D CT images   ********** *
 * *********************************************************************************** *
-* Copyright (C) 2016-2020  C. Heinzl, M. Reiter, A. Reh, W. Li, M. Arikan, Ar. &  Al. *
+* Copyright (C) 2016-2021  C. Heinzl, M. Reiter, A. Reh, W. Li, M. Arikan, Ar. &  Al. *
 *                 Amirkhanov, J. Weissenböck, B. Fröhler, M. Schiwarth, P. Weinberger *
 * *********************************************************************************** *
 * This program is free software: you can redistribute it and/or modify it under the   *
@@ -29,9 +29,9 @@
 #include <iAModalityList.h>
 #include <iAModality.h>
 #include <iAProgress.h>
-#include <io/iAFileUtils.h>
-#include <mainwindow.h>
-#include <mdichild.h>
+#include <iAFileUtils.h>
+#include <iAMainWindow.h>
+#include <iAMdiChild.h>
 
 #include <QDir>
 
@@ -67,7 +67,9 @@ iASampleFilter::iASampleFilter() :
 	samplingMethods.removeAll(iASamplingMethodName::GlobalSensitivity);
 	// parameters only required for "Global sensitivity (star)" sampling:
 	addParameter(spnBaseSamplingMethod, iAValueType::Categorical, samplingMethods);
-	addParameter(spnSensitivityDelta, iAValueType::Continuous, 0.1);
+	addParameter(spnStarDelta, iAValueType::Continuous, 0.1);
+	// parameter only required for "Global sensitivity (star small)" sampling:
+	addParameter(spnStarStepNumber, iAValueType::Continuous, 0.1);
 }
 
 void iASampleFilter::performWork(QMap<QString, QVariant> const& parameters)
@@ -95,6 +97,24 @@ void iASampleFilter::performWork(QMap<QString, QVariant> const& parameters)
 	QObject::connect(m_sampler, &iAImageSampler::finished, &loop, &QEventLoop::quit);
 	m_sampler->start();  //< returns as soon as first sampling run is started,
 	loop.exec();	     //< so wait for finished event
+}
+
+bool iASampleFilter::checkParameters(QMap<QString, QVariant> const& paramValues)
+{
+	for (auto const & param : parameters())
+	{
+		if ( (param->name() == spnFilter && paramValues[spnAlgorithmType].toString() == atExternal) ||
+			((param->name() == spnExecutable || param->name() == spnParameterDescriptor) &&
+				paramValues[spnAlgorithmType].toString() == atBuiltIn) )
+		{
+			continue;
+		}
+		if (!defaultParameterCheck(param, paramValues[param->name()]))
+		{
+			return false;
+		}
+	}
+	return true;
 }
 
 void iASampleFilter::setParameters(QSharedPointer<iAModalityList> input, QSharedPointer<iAAttributes> parameterRanges,
@@ -129,7 +149,7 @@ bool iASampleFilter::canAbort() const
 IAFILTER_RUNNER_CREATE(iASampleFilterRunnerGUI);
 
 bool iASampleFilterRunnerGUI::askForParameters(QSharedPointer<iAFilter> filter, QMap<QString, QVariant>& parameters,
-	MdiChild* sourceMdi, MainWindow* mainWnd, bool /*askForAdditionalInput*/)
+	iAMdiChild* sourceMdi, iAMainWindow* mainWnd, bool /*askForAdditionalInput*/)
 {
 	iASampleFilter* sampleFilter = dynamic_cast<iASampleFilter*>(filter.data());
 	if (!sampleFilter)

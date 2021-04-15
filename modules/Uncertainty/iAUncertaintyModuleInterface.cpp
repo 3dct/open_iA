@@ -1,7 +1,7 @@
 /*************************************  open_iA  ************************************ *
 * **********   A tool for visual analysis and processing of 3D CT images   ********** *
 * *********************************************************************************** *
-* Copyright (C) 2016-2020  C. Heinzl, M. Reiter, A. Reh, W. Li, M. Arikan, Ar. &  Al. *
+* Copyright (C) 2016-2021  C. Heinzl, M. Reiter, A. Reh, W. Li, M. Arikan, Ar. &  Al. *
 *                 Amirkhanov, J. Weissenböck, B. Fröhler, M. Schiwarth, P. Weinberger *
 * *********************************************************************************** *
 * This program is free software: you can redistribute it and/or modify it under the   *
@@ -27,10 +27,11 @@
 #include <dlg_commoninput.h>
 #include <iALog.h>
 #include <iAFilterRegistry.h>
-#include <mainwindow.h>
-#include <mdichild.h>
+#include <iAMainWindow.h>
+#include <iAMdiChild.h>
 
 #include <QFileDialog>
+#include <QMenu>
 
 void iAUncertaintyModuleInterface::Initialize()
 {
@@ -48,7 +49,7 @@ void iAUncertaintyModuleInterface::Initialize()
 }
 
 
-iAModuleAttachmentToChild* iAUncertaintyModuleInterface::CreateAttachment(MainWindow* mainWnd, MdiChild * child)
+iAModuleAttachmentToChild* iAUncertaintyModuleInterface::CreateAttachment(iAMainWindow* mainWnd, iAMdiChild * child)
 {
 	iAUncertaintyAttachment* result = iAUncertaintyAttachment::Create( mainWnd, child);
 	return result;
@@ -70,15 +71,15 @@ void iAUncertaintyModuleInterface::UncertaintyExploration()
 void iAUncertaintyModuleInterface::LoadEnsemble(QString const & fileName)
 {
 	SetupToolBar();
-	m_mdiChild = m_mainWnd->createMdiChild(false);
-	bool result = AttachToMdiChild(m_mdiChild);
-	iAUncertaintyAttachment* attach = GetAttachment<iAUncertaintyAttachment>();
+	auto child = m_mainWnd->createMdiChild(false);
+	bool result = AttachToMdiChild(child);
+	iAUncertaintyAttachment* attach = GetAttachment<iAUncertaintyAttachment>(child);
 	if (!result || !attach)
 	{
 		LOG(lvlError, "Uncertainty exploration could not be initialized!");
 		return;
 	}
-	m_mdiChild->show();
+	child->show();
 	if (!attach->LoadEnsemble(fileName))
 	{
 		return;
@@ -103,7 +104,7 @@ void iAUncertaintyModuleInterface::SetupToolBar()
 
 void iAUncertaintyModuleInterface::ToggleDockWidgetTitleBars()
 {
-	iAUncertaintyAttachment* attach = GetAttachment<iAUncertaintyAttachment>();
+	iAUncertaintyAttachment* attach = GetAttachment<iAUncertaintyAttachment>(m_mainWnd->activeMdiChild());
 	if (!attach)
 	{
 		LOG(lvlError, "Uncertainty exploration was not loaded properly!");
@@ -114,7 +115,7 @@ void iAUncertaintyModuleInterface::ToggleDockWidgetTitleBars()
 
 void iAUncertaintyModuleInterface::ToggleSettings()
 {
-	iAUncertaintyAttachment* attach = GetAttachment<iAUncertaintyAttachment>();
+	iAUncertaintyAttachment* attach = GetAttachment<iAUncertaintyAttachment>(m_mainWnd->activeMdiChild());
 	if (!attach)
 	{
 		LOG(lvlError, "Uncertainty exploration was not loaded properly!");
@@ -125,7 +126,7 @@ void iAUncertaintyModuleInterface::ToggleSettings()
 
 void iAUncertaintyModuleInterface::CalculateNewSubEnsemble()
 {
-	iAUncertaintyAttachment* attach = GetAttachment<iAUncertaintyAttachment>();
+	iAUncertaintyAttachment* attach = GetAttachment<iAUncertaintyAttachment>(m_mainWnd->activeMdiChild());
 	if (!attach)
 	{
 		LOG(lvlError, "Uncertainty exploration was not loaded properly!");
@@ -136,7 +137,7 @@ void iAUncertaintyModuleInterface::CalculateNewSubEnsemble()
 
 void iAUncertaintyModuleInterface::WriteFullDataFile()
 {
-	iAUncertaintyAttachment* attach = GetAttachment<iAUncertaintyAttachment>();
+	iAUncertaintyAttachment* attach = GetAttachment<iAUncertaintyAttachment>(m_mainWnd->activeMdiChild());
 	if (!attach)
 	{
 		LOG(lvlError, "Uncertainty exploration was not loaded properly!");

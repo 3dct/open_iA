@@ -1,7 +1,7 @@
 /*************************************  open_iA  ************************************ *
 * **********   A tool for visual analysis and processing of 3D CT images   ********** *
 * *********************************************************************************** *
-* Copyright (C) 2016-2020  C. Heinzl, M. Reiter, A. Reh, W. Li, M. Arikan, Ar. &  Al. *
+* Copyright (C) 2016-2021  C. Heinzl, M. Reiter, A. Reh, W. Li, M. Arikan, Ar. &  Al. *
 *                 Amirkhanov, J. Weissenböck, B. Fröhler, M. Schiwarth, P. Weinberger *
 * *********************************************************************************** *
 * This program is free software: you can redistribute it and/or modify it under the   *
@@ -58,7 +58,7 @@ void iAGradientMagnitude::performWork(QMap<QString, QVariant> const & parameters
 IAFILTER_CREATE(iAGradientMagnitude)
 
 iAGradientMagnitude::iAGradientMagnitude() :
-	iAFilter("Gradient Magnitude", "Gradients",
+	iAFilter("Gradient Magnitude", "Gradient/Derivative",
 		"Computes the gradient magnitude at each image element.<br/>"
 		"If <em>Use Image Spacing</em> is enabled, the gradient is calculated in the physical space; "
 		"if it not enabled, the gradient is calculated in pixel space.<br/>"
@@ -93,7 +93,7 @@ void iAGradientMagnitudeRecursiveGaussian::performWork(QMap<QString, QVariant> c
 IAFILTER_CREATE(iAGradientMagnitudeRecursiveGaussian)
 
 iAGradientMagnitudeRecursiveGaussian::iAGradientMagnitudeRecursiveGaussian() :
-	iAFilter("Gradient Magnitude RecursiveGaussian", "Gradients",
+	iAFilter("Gradient Magnitude RecursiveGaussian", "Gradient/Derivative",
 		"Computes the gradient magnitude at each image element.<br/>"
 		"If <em>Use Image Spacing</em> is enabled, the gradient is calculated in the physical space; "
 		"if it not enabled, the gradient is calculated in pixel space.<br/>"
@@ -112,11 +112,8 @@ void derivative(iAFilter* filter, QMap<QString, QVariant> const & params)
 {
 	typedef itk::Image<T, DIM> InputImageType;
 	typedef itk::Image<float, DIM> RealImageType;
-	//typedef itk::CastImageFilter< InputImageType, RealImageType> CastToRealFilterType;
 	typedef itk::DerivativeImageFilter< InputImageType, RealImageType > DIFType;
 
-	//auto toReal = CastToRealFilterType::New();
-	//toReal->SetInput( dynamic_cast< InputImageType * >( image->itkImage() ) );
 	auto derFilter = DIFType::New();
 	derFilter->SetOrder(params["Order"].toUInt());
 	derFilter->SetDirection(params["Direction"].toUInt());
@@ -134,7 +131,7 @@ void iADerivative::performWork(QMap<QString, QVariant> const & parameters)
 IAFILTER_CREATE(iADerivative)
 
 iADerivative::iADerivative() :
-	iAFilter("Derivative", "Gradients",
+	iAFilter("Derivative", "Gradient/Derivative",
 		"Computes the directional derivative for each image element.<br/>"
 		"The <em>order</em> of the derivative can be specified, as well as the desired <em>direction</em> (0=x, 1=y, 2=z).<br/>"
 		"For more information, see the "
@@ -174,7 +171,7 @@ void iAHigherOrderAccurateDerivative::performWork(QMap<QString, QVariant> const 
 IAFILTER_CREATE(iAHigherOrderAccurateDerivative)
 
 iAHigherOrderAccurateDerivative::iAHigherOrderAccurateDerivative() :
-	iAFilter("Higher Order Accurate Derivative", "Gradients",
+	iAFilter("Higher Order Accurate Derivative", "Gradient/Derivative",
 		"Computes the higher order accurate directional derivative of an image.<br/>"
 		"The <em>order</em> of the derivative can be specified, as well as the desired <em>direction</em> (0=x, 1=y, 2=z)."
 		"The approximation will be accurate to two times the <em>Order of Accuracy</em> in terms of Taylor series terms.<br/>"

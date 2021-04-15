@@ -1,7 +1,7 @@
 /*************************************  open_iA  ************************************ *
 * **********   A tool for visual analysis and processing of 3D CT images   ********** *
 * *********************************************************************************** *
-* Copyright (C) 2016-2020  C. Heinzl, M. Reiter, A. Reh, W. Li, M. Arikan, Ar. &  Al. *
+* Copyright (C) 2016-2021  C. Heinzl, M. Reiter, A. Reh, W. Li, M. Arikan, Ar. &  Al. *
 *                 Amirkhanov, J. Weissenböck, B. Fröhler, M. Schiwarth, P. Weinberger *
 * *********************************************************************************** *
 * This program is free software: you can redistribute it and/or modify it under the   *
@@ -21,31 +21,34 @@
 #include "iAConnectedComponentFilters.h"
 
 #include <defines.h> // for DIM
-#include <iAConnector.h>
 #include <iAProgress.h>
+
+#include <iAConnector.h>
+#include <iAFileUtils.h>
 #include <iATypedCallHelper.h>
-#include <io/iAFileUtils.h>
+#include <iAToolsITK.h>
 
 #include <itkConnectedComponentImageFilter.h>
 #include <itkScalarConnectedComponentImageFilter.h>
 #include <itkRelabelComponentImageFilter.h>
 
-#include <QFileDialog>
-#include <QMessageBox>
-
 template<class T>
 void connectedComponentFilter(iAFilter* filter, QMap<QString, QVariant> const & parameters)
 {
-	typedef itk::Image<T, DIM>   InputImageType;
-	typedef itk::Image<long, DIM>   OutputImageType;
+	typedef itk::Image<T, DIM> InputImageType;
+	typedef itk::Image<long, DIM> OutputImageType;
 	typedef itk::ConnectedComponentImageFilter< InputImageType, OutputImageType > CCIFType;
-	typename CCIFType::Pointer ccFilter = CCIFType::New();
+	auto ccFilter = CCIFType::New();
 	ccFilter->SetInput( dynamic_cast< InputImageType * >(filter->input()[0]->itkImage()) );
 	ccFilter->SetBackgroundValue(0);
 	ccFilter->SetFullyConnected(parameters["Fully Connected"].toBool());
 	filter->progress()->observe(ccFilter);
 	ccFilter->Update();
-	filter->addOutput(ccFilter->GetOutput());
+	auto out = ccFilter->GetOutput();
+	// by default, at least ITK 5.1.2 creates long long image (which subsequently
+	// cannot be shown); so let's cast it to int:
+	auto cast = castImageTo<int>(out);
+	filter->addOutput(cast);
 }
 
 void iAConnectedComponents::performWork(QMap<QString, QVariant> const & parameters)

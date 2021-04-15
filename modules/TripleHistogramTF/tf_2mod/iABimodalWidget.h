@@ -1,7 +1,7 @@
 /*************************************  open_iA  ************************************ *
 * **********   A tool for visual analysis and processing of 3D CT images   ********** *
 * *********************************************************************************** *
-* Copyright (C) 2016-2020  C. Heinzl, M. Reiter, A. Reh, W. Li, M. Arikan, Ar. &  Al. *
+* Copyright (C) 2016-2021  C. Heinzl, M. Reiter, A. Reh, W. Li, M. Arikan, Ar. &  Al. *
 *                 Amirkhanov, J. Weissenböck, B. Fröhler, M. Schiwarth, P. Weinberger *
 * *********************************************************************************** *
 * This program is free software: you can redistribute it and/or modify it under the   *
@@ -23,7 +23,7 @@
 #include "iAMultimodalWidget.h"
 
 class iAInterpolationSliderWidget;
-class MdiChild;
+class iAMdiChild;
 
 class QLabel;
 
@@ -32,7 +32,7 @@ class iABimodalWidget : public iAMultimodalWidget
 	Q_OBJECT
 
 public:
-	iABimodalWidget(MdiChild *mdiChild);
+	iABimodalWidget(iAMdiChild *mdiChild);
 	void initialize();
 
 private:

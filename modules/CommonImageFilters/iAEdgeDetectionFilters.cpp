@@ -1,7 +1,7 @@
 /*************************************  open_iA  ************************************ *
 * **********   A tool for visual analysis and processing of 3D CT images   ********** *
 * *********************************************************************************** *
-* Copyright (C) 2016-2020  C. Heinzl, M. Reiter, A. Reh, W. Li, M. Arikan, Ar. &  Al. *
+* Copyright (C) 2016-2021  C. Heinzl, M. Reiter, A. Reh, W. Li, M. Arikan, Ar. &  Al. *
 *                 Amirkhanov, J. Weissenböck, B. Fröhler, M. Schiwarth, P. Weinberger *
 * *********************************************************************************** *
 * This program is free software: you can redistribute it and/or modify it under the   *
@@ -22,27 +22,30 @@
 
 #include <iAConnector.h>
 #include <iAProgress.h>
+#include <iAToolsITK.h>
 #include <iATypedCallHelper.h>
 
 #include <itkCannyEdgeDetectionImageFilter.h>
-#include <itkCastImageFilter.h>
+#include <itkSobelEdgeDetectionImageFilter.h>
+
+namespace
+{
+	using RealPixelType = float;
+	using RealImageType = itk::Image<RealPixelType, 3>;
+}
 
 template<class T>
 void canny_edge_detection(iAFilter* filter, QMap<QString, QVariant> const & parameters)
 {
-	typedef itk::Image< T, 3 >   InputImageType;
-	typedef itk::Image< float, 3 >   RealImageType;
-	typedef itk::CastImageFilter< InputImageType, RealImageType> CastToRealFilterType;
-	typedef itk::CannyEdgeDetectionImageFilter < RealImageType, RealImageType > CannyEDFType;
+	using EdgeDetectionType = itk::CannyEdgeDetectionImageFilter<RealImageType, RealImageType>;
 
-	auto toReal = CastToRealFilterType::New();
-	toReal->SetInput( dynamic_cast< InputImageType * >( filter->input()[0]->itkImage() ) );
-	auto canny = CannyEDFType::New();
+	auto inImg = castImageTo<RealPixelType>(filter->input()[0]->itkImage());
+	auto canny = EdgeDetectionType::New();
 	canny->SetVariance(parameters["Variance"].toDouble());
 	canny->SetMaximumError(parameters["Maximum error"].toDouble());
 	canny->SetUpperThreshold(parameters["Upper threshold"].toDouble());
 	canny->SetLowerThreshold(parameters["Lower threshold"].toDouble());
-	canny->SetInput( toReal->GetOutput() );
+	canny->SetInput(dynamic_cast<RealImageType*>(inImg.GetPointer()));
 	filter->progress()->observe( canny );
 	canny->Update();
 	filter->addOutput(canny->GetOutput());
@@ -68,4 +71,38 @@ iACannyEdgeDetection::iACannyEdgeDetection() :
 	addParameter("Maximum error", iAValueType::Continuous, 0.01, std::numeric_limits<double>::epsilon(), 1);
 	addParameter("Lower threshold", iAValueType::Continuous, 0);
 	addParameter("Upper threshold", iAValueType::Continuous, 1);
+}
+
+
+
+template <class T>
+void sobel_edge_detection(iAFilter* filter, QMap<QString, QVariant> const& parameters)
+{
+	Q_UNUSED(parameters);
+	using EdgeDetectionType = itk::SobelEdgeDetectionImageFilter<RealImageType, RealImageType> ;
+
+	auto inImg = castImageTo<RealPixelType>(filter->input()[0]->itkImage());
+	auto edgeDetector = EdgeDetectionType::New();
+	edgeDetector->SetInput(dynamic_cast<RealImageType*>(inImg.GetPointer()));
+	filter->progress()->observe(edgeDetector);
+	edgeDetector->Update();
+	filter->addOutput(edgeDetector->GetOutput());
+}
+
+IAFILTER_CREATE(iASobelEdgeDetection)
+
+void iASobelEdgeDetection::performWork(QMap<QString, QVariant> const& parameters)
+{
+	ITK_TYPED_CALL(sobel_edge_detection, inputPixelType(), this, parameters);
+}
+
+iASobelEdgeDetection::iASobelEdgeDetection() :
+	iAFilter("Sobel", "Edge detection",
+		"Sobel edge detector for scalar-valued images.<br/>"
+		"Uses the Sobel operator to calculate the image gradient and then finds the magnitude of this gradient vector."
+		" The Sobel gradient magnitude (square-root sum of squares) is an indication of edge strength.<br/>"
+		"For more information, see the "
+		"<a href=\"https://itk.org/Doxygen/html/classitk_1_1SobelEdgeDetectionImageFilter.html\">"
+		"Sobel Edge Detection Filter</a> in the ITK documentation.")
+{
 }

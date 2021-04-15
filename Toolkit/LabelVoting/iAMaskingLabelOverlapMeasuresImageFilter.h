@@ -20,7 +20,7 @@
 #include <itkImageToImageFilter.h>
 #include <itkNumericTraits.h>
 
-#include <itksys/hash_map.hxx>
+#include <unordered_map>
 
 /** \class iAMaskingLabelOverlapMeasuresImageFilter
 * \brief Computes overlap measures between the set same set of labels of
@@ -92,7 +92,7 @@ public:
 	};
 
 	/** Type of the map used to store data per label */
-	typedef itksys::hash_map<LabelType, LabelSetMeasures> MapType;
+	typedef std::unordered_map<LabelType, LabelSetMeasures> MapType;
 	typedef typename MapType::iterator                    MapIterator;
 	typedef typename MapType::const_iterator              MapConstIterator;
 

@@ -1,7 +1,7 @@
 /*************************************  open_iA  ************************************ *
 * **********   A tool for visual analysis and processing of 3D CT images   ********** *
 * *********************************************************************************** *
-* Copyright (C) 2016-2020  C. Heinzl, M. Reiter, A. Reh, W. Li, M. Arikan, Ar. &  Al. *
+* Copyright (C) 2016-2021  C. Heinzl, M. Reiter, A. Reh, W. Li, M. Arikan, Ar. &  Al. *
 *                 Amirkhanov, J. Weissenböck, B. Fröhler, M. Schiwarth, P. Weinberger *
 * *********************************************************************************** *
 * This program is free software: you can redistribute it and/or modify it under the   *
@@ -28,7 +28,8 @@
 #include <iASlicer.h>
 #include <iASlicerMode.h>
 #include <iATransferFunction.h>
-#include <qthelper/iAQFlowLayout.h>
+
+#include <iAQFlowLayout.h>
 
 #include <vtkColorTransferFunction.h>
 #include <vtkPiecewiseFunction.h>
@@ -292,7 +293,7 @@ void iASpatialView::SetupSelection(vtkImagePointer selectionImg)
 {
 	m_ctf = BuildLabelOverlayLUT();
 	m_otf = BuildLabelOverlayOTF();
-	m_selectionData = QSharedPointer<iAChannelData>(new iAChannelData);
+	m_selectionData = QSharedPointer<iAChannelData>::create();
 	m_selectionData->setData(selectionImg, m_ctf, m_otf);
 }
 

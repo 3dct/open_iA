@@ -1,7 +1,7 @@
 /*************************************  open_iA  ************************************ *
 * **********   A tool for visual analysis and processing of 3D CT images   ********** *
 * *********************************************************************************** *
-* Copyright (C) 2016-2020  C. Heinzl, M. Reiter, A. Reh, W. Li, M. Arikan, Ar. &  Al. *
+* Copyright (C) 2016-2021  C. Heinzl, M. Reiter, A. Reh, W. Li, M. Arikan, Ar. &  Al. *
 *                 Amirkhanov, J. Weissenböck, B. Fröhler, M. Schiwarth, P. Weinberger *
 * *********************************************************************************** *
 * This program is free software: you can redistribute it and/or modify it under the   *
@@ -27,7 +27,7 @@
 class QStackedLayout;
 class QLabel;
 
-class MdiChild;
+class iAMdiChild;
 class iATripleModalityWidget;
 class iABCoord;
 
@@ -42,9 +42,9 @@ class dlg_tf_3mod : public QDockWidget
 
 public:
 #if QT_VERSION < QT_VERSION_CHECK(5, 15, 0)
-	dlg_tf_3mod(MdiChild* parent, Qt::WindowFlags f = 0);
+	dlg_tf_3mod(iAMdiChild* parent, Qt::WindowFlags f = 0);
 #else
-	dlg_tf_3mod(MdiChild* parent, Qt::WindowFlags f = QFlags<Qt::WindowType>());
+	dlg_tf_3mod(iAMdiChild* parent, Qt::WindowFlags f = Qt::WindowFlags());
 #endif
 
 private:

@@ -1,7 +1,7 @@
 /*************************************  open_iA  ************************************ *
 * **********   A tool for visual analysis and processing of 3D CT images   ********** *
 * *********************************************************************************** *
-* Copyright (C) 2016-2020  C. Heinzl, M. Reiter, A. Reh, W. Li, M. Arikan, Ar. &  Al. *
+* Copyright (C) 2016-2021  C. Heinzl, M. Reiter, A. Reh, W. Li, M. Arikan, Ar. &  Al. *
 *                 Amirkhanov, J. Weissenböck, B. Fröhler, M. Schiwarth, P. Weinberger *
 * *********************************************************************************** *
 * This program is free software: you can redistribute it and/or modify it under the   *
@@ -28,8 +28,8 @@ class iAModalityExplorerAttachment : public iAModuleAttachmentToChild
 {
 	Q_OBJECT
 public:
-	static iAModalityExplorerAttachment* create(MainWindow * mainWnd, MdiChild * child);
+	static iAModalityExplorerAttachment* create(iAMainWindow * mainWnd, iAMdiChild * child);
 private:
-	iAModalityExplorerAttachment(MainWindow * mainWnd, MdiChild * child);
+	iAModalityExplorerAttachment(iAMainWindow * mainWnd, iAMdiChild * child);
 	dlg_modalitySPLOM* m_dlgModalitySPLOM;
 };

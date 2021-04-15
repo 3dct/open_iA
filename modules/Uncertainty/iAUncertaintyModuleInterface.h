@@ -1,7 +1,7 @@
 /*************************************  open_iA  ************************************ *
 * **********   A tool for visual analysis and processing of 3D CT images   ********** *
 * *********************************************************************************** *
-* Copyright (C) 2016-2020  C. Heinzl, M. Reiter, A. Reh, W. Li, M. Arikan, Ar. &  Al. *
+* Copyright (C) 2016-2021  C. Heinzl, M. Reiter, A. Reh, W. Li, M. Arikan, Ar. &  Al. *
 *                 Amirkhanov, J. Weissenböck, B. Fröhler, M. Schiwarth, P. Weinberger *
 * *********************************************************************************** *
 * This program is free software: you can redistribute it and/or modify it under the   *
@@ -22,23 +22,23 @@
 
 #include "ui_UncertaintyToolBar.h"
 
-#include <iAModuleInterface.h>
+#include <iAGUIModuleInterface.h>
 #include <qthelper/iAQTtoUIConnector.h>
 
 #include <QToolBar>
 
-class MainWindow;
+class iAMainWindow;
 
 typedef iAQTtoUIConnector<QToolBar, Ui_UncertaintyToolBar> iAUncertaintyToolbar;
 
 
-class iAUncertaintyModuleInterface : public iAModuleInterface
+class iAUncertaintyModuleInterface : public iAGUIModuleInterface
 {
 	Q_OBJECT
 public:
 	void Initialize() override;
 protected:
-	iAModuleAttachmentToChild* CreateAttachment(MainWindow* mainWnd, MdiChild * child) override;
+	iAModuleAttachmentToChild* CreateAttachment(iAMainWindow* mainWnd, iAMdiChild * child) override;
 private slots:
 	void UncertaintyExploration();
 	void ToggleDockWidgetTitleBars();

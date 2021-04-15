@@ -27,6 +27,7 @@ option (openiA_DEPENDENCY_INFO "Whether detailed dependency information should b
 
 IF (MSVC)
 	SET (openiA_MODULE_LIB_DIR "${CMAKE_CURRENT_BINARY_DIR}/$(Configuration)")
+	option (openiA_MODULE_GUI_DEPENDENCY "Whether the modules should depend on the GUI application (enabling it makes it easier to develop, as then it becomes possible to set the module as active project, and still start the GUI application for debugging purposes directly; but enabling it also makes the build slightly slower)" ON)
 ELSE()
 	SET (openiA_MODULE_LIB_DIR "${CMAKE_CURRENT_BINARY_DIR}")
 ENDIF()
@@ -58,12 +59,10 @@ FOREACH( indx RANGE ${len} )
 	FILE (GLOB_RECURSE module_hpp "${module_full_path}/*.hpp" )
 	LIST (APPEND module_hs ${module_hpp})
 	FILE (GLOB_RECURSE module_uis "${module_full_path}/*.ui" )
+	LIST (APPEND module_srcs ${module_uis})
 	FILE (GLOB_RECURSE module_qrc "${module_full_path}/*.qrc" )
-	QT5_WRAP_UI( module_srcs ${module_uis})
-	IF ( NOT "${module_qrc}" STREQUAL "" )
-		QT5_ADD_RESOURCES( module_srcs "${module_qrc}" )
-		LIST (APPEND module_srcs "${module_qrc}" )
-	ENDIF ()
+	LIST (APPEND module_srcs ${module_qrc})
+
 	# If there are dependencies do the check
 	MODULE_CHECK_DEPENDENCIES( ${module_option} ${module_full_path} )
 	# Module can be disabled in the course of the dependency check - if so, we need to skip the rest:
@@ -72,7 +71,7 @@ FOREACH( indx RANGE ${len} )
 	ENDIF()
 
 	IF (openiA_DEPENDENCY_INFO)
-		MESSAGE(STATUS "${module_name}:")
+		MESSAGE(STATUS "Module ${module_name}:")
 	ENDIF()
 	LIST(APPEND ENABLED_MODULE_NAMES ${module_name})
 
@@ -91,8 +90,16 @@ FOREACH( indx RANGE ${len} )
 	if (VTK_MAJOR_VERSION GREATER 8)
 		vtk_module_autoinit(TARGETS ${module_name} MODULES ${VTK_LIBRARIES})
 	endif()
-	TARGET_INCLUDE_DIRECTORIES(${module_name} PRIVATE ${module_full_path} )
-	TARGET_INCLUDE_DIRECTORIES(${module_name} PRIVATE ${OpeniABinDir}/modules ) # ui files in module folders
+	TARGET_INCLUDE_DIRECTORIES(${module_name} PUBLIC ${module_full_path} )      # public so depending modules only need to link to the target
+	TARGET_INCLUDE_DIRECTORIES(${module_name} PRIVATE ${OpeniABinDir}/modules ) # _export files
+	# for generated ui_xxx.h includes:
+	IF (CMAKE_CONFIGURATION_TYPES)
+		TARGET_INCLUDE_DIRECTORIES(${module_name} PUBLIC
+			"${CMAKE_CURRENT_BINARY_DIR}/${module_name}_autogen/include_$(Configuration)")
+	ELSE()
+		TARGET_INCLUDE_DIRECTORIES(${module_name} PUBLIC
+			"${CMAKE_CURRENT_BINARY_DIR}/${module_name}_autogen/include")
+	ENDIF()
 
 	IF (openiA_PRECOMPILE)
 		IF (CMAKE_VERSION VERSION_GREATER "3.15.99")
@@ -120,10 +127,13 @@ FOREACH( indx RANGE ${len} )
 		ENDIF()
 	ENDFOREACH()
 
-	# also pulls in libraries defined in core interface (qt, vtk, itk):
-	TARGET_LINK_LIBRARIES(${module_name} PRIVATE ${CORE_LIBRARY_NAME})
-
-	# additional module (such as astra, eigen, OpenCL, ...)
+	# required libraries (either from libs folder, or external, such as astra, eigen, OpenCL, ...)
+	if (ADDITIONAL_VTK_MODULES)
+		ADD_VTK_LIBRARIES(${module_name} "PUBLIC" "${ADDITIONAL_VTK_MODULES}")
+	endif()
+	#if (ADDITIONAL_ITK_MODULES)
+	#	ADD_LEGACY_LIBRARIES(${module_name} "" "PUBLIC" "${ADDITIONAL_ITK_MODULES}")
+	#endif()
 	IF (ADDITIONAL_MODULE_LIBRARIES)
 		IF (openiA_DEPENDENCY_INFO)
 			MESSAGE(STATUS "    libs: ${ADDITIONAL_MODULE_LIBRARIES}")
@@ -179,14 +189,16 @@ FOREACH( indx RANGE ${len} )
 	ENDIF()
 
 	IF (MSVC)
-		SOURCE_GROUP("UI Files" REGULAR_EXPRESSION "[.](ui|qrc)$")      # Apply file grouping based on regular expressions for Visual Studio IDE.
 		INSTALL (TARGETS ${module_name} RUNTIME DESTINATION plugins)    # install dll in plugins folder
 
+		TARGET_COMPILE_OPTIONS(${module_name} PRIVATE "/bigobj")
 		# set up debugging command / environment dll paths
 		set_target_properties(${module_name} PROPERTIES VS_DEBUGGER_COMMAND "${CMAKE_BINARY_DIR}\\$(Platform)\\$(Configuration)\\${GUI_EXECUTABLE_FILE}")
 		set_target_properties(${module_name} PROPERTIES VS_DEBUGGER_ENVIRONMENT "PATH=${WinDLLPaths};%PATH%\nSCIFIO_PATH=${SCIFIO_PATH}")
-
-		add_dependencies(${module_name} ${GUI_EXECUTABLE_TARGET})       # dependency to GUI executable for triggering rebuild when starting module
+		
+		if (openiA_MODULE_GUI_DEPENDENCY)
+			add_dependencies(${module_name} ${GUI_EXECUTABLE_TARGET})       # dependency to GUI executable for triggering rebuild when starting module
+		endif()
 	ELSE()
 		IF (FLATPAK_BUILD)
 			INSTALL (TARGETS ${module_name} LIBRARY DESTINATION bin/plugins)
@@ -205,6 +217,10 @@ FOREACH( indx RANGE ${len} )
 		MESSAGE(STATUS "    Running ${module_full_path}/enabled.cmake...")
 		INCLUDE("${module_full_path}/enabled.cmake")
 	ENDIF()
+
+	IF (CMAKE_COMPILER_IS_GNUCXX OR "${CMAKE_CXX_COMPILER_ID}" STREQUAL "Clang")
+		target_compile_options(${module_name} PRIVATE -fvisibility=hidden)
+	ENDIF ()
 ENDFOREACH()
 SET (BUNDLE_LIBS "${BUNDLE_LIBS}" PARENT_SCOPE)
 
@@ -215,10 +231,4 @@ ELSEIF (NOT "${ENABLED_MODULE_NAMES}" STREQUAL "")
 	FOREACH (m ${ENABLED_MODULE_NAMES})
 		MESSAGE(STATUS "    ${m}")
 	ENDFOREACH()
-ENDIF ()
-
-# Compiler flags
-IF (CMAKE_COMPILER_IS_GNUCXX OR "${CMAKE_CXX_COMPILER_ID}" STREQUAL "Clang")
-	SET (CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -fpic -fvisibility=hidden")
-	SET (CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -fpic -fvisibility=hidden")
 ENDIF ()

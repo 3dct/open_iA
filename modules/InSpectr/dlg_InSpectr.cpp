@@ -1,7 +1,7 @@
 /*************************************  open_iA  ************************************ *
 * **********   A tool for visual analysis and processing of 3D CT images   ********** *
 * *********************************************************************************** *
-* Copyright (C) 2016-2020  C. Heinzl, M. Reiter, A. Reh, W. Li, M. Arikan, Ar. &  Al. *
+* Copyright (C) 2016-2021  C. Heinzl, M. Reiter, A. Reh, W. Li, M. Arikan, Ar. &  Al. *
 *                 Amirkhanov, J. Weissenböck, B. Fröhler, M. Schiwarth, P. Weinberger *
 * *********************************************************************************** *
 * This program is free software: you can redistribute it and/or modify it under the   *
@@ -27,8 +27,6 @@
 #include "iADecompositionCalculator.h"
 #include "iAElementConcentrations.h"
 #include "iAElementConstants.h"
-#include "iAElementStatisticsInfo.h"
-#include "iAEnergySpectrumDiagramData.h"
 #include "iAEnergySpectrumWidget.h"
 #include "iAFunctionalBoxplotQtDrawer.h"
 #include "iAPeriodicTableListener.h"
@@ -38,26 +36,29 @@
 #include "iAXRFData.h"
 #include "iAXRFOverlay.h"
 
-#include <charts/iAChartFunctionTransfer.h>
-#include <charts/iAPlotTypes.h>
-#include <charts/iAMappingDiagramData.h>
 #include <iAChannelData.h>
 #include <iAChannelSlicerData.h>
-#include <iAColorTheme.h>
-#include <iAConnector.h>
 #include <iAFunctionalBoxplot.h>
 #include <iAJobListView.h>
-#include <iALog.h>
-#include <iAMathUtility.h>
+#include <iAMdiChild.h>
 #include <iARenderer.h>
 #include <iARunAsync.h>
 #include <iASlicer.h>
 #include <iAVtkWidget.h>
-#include <io/iAFileUtils.h>
 #include <io/iAIO.h>
-#include <qthelper/iAWidgetAddHelper.h>
-#include <mdichild.h>
-#include <qthelper/iADockWidgetWrapper.h>
+
+#include <iADockWidgetWrapper.h>
+
+#include <iAChartFunctionTransfer.h>
+#include <iAHistogramData.h>
+#include <iAPlotTypes.h>
+
+#include "defines.h"    // for NotExistingChannel
+#include <iAColorTheme.h>
+#include <iAConnector.h>
+#include <iAFileUtils.h>
+#include <iALog.h>
+#include <iAMathUtility.h>
 
 #include <itkImageBase.h>
 #include <itkImage.h>
@@ -67,6 +68,7 @@
 
 #include <vtkColorTransferFunction.h>
 #include <vtkDiscretizableColorTransferFunction.h>
+#include <vtkGenericOpenGLRenderWindow.h>
 #include <vtkImageData.h>
 #include <vtkImageResample.h>
 #include <vtkInteractorStyleImage.h>
@@ -167,7 +169,7 @@ void dlg_InSpectr::RemoveSimilarityMarkers()
 }
 
 void dlg_InSpectr::init(double minEnergy, double maxEnergy, bool haveEnergyLevels,
-		iAWidgetAddHelper & widgetAddHelper)
+		iAMdiChild* child)
 {
 	spectrumVisWidget->show();
 	// initialize functions
@@ -180,23 +182,24 @@ void dlg_InSpectr::init(double minEnergy, double maxEnergy, bool haveEnergyLevel
 	m_cTF->AddRGBPoint ( maxEnergy, 0.0, 0.0, 0.0 );
 	m_cTF->Build();
 	m_xrfData->SetEnergyRange(minEnergy, maxEnergy);
-	m_accumulatedXRF = QSharedPointer<iAAccumulatedXRFData>(new iAAccumulatedXRFData(m_xrfData, minEnergy, maxEnergy));
-	m_voxelEnergy = QSharedPointer<iAEnergySpectrumDiagramData>(new iAEnergySpectrumDiagramData(m_xrfData.data(), m_accumulatedXRF.data()));
-	m_voxelSpectrumDrawer = QSharedPointer<iAStepFunctionPlot>(new iAStepFunctionPlot(m_voxelEnergy, QColor(150, 0, 0)));
-	m_spectrumDiagram = new iAEnergySpectrumWidget(this, dynamic_cast<MdiChild*>(parent()), m_accumulatedXRF, m_oTF, m_cTF, this,
+	m_accumulatedXRF = QSharedPointer<iAAccumulatedXRFData>::create(m_xrfData, minEnergy, maxEnergy);
+	m_voxelEnergy = iAHistogramData::create("Voxel Energy", m_accumulatedXRF->valueType(), m_accumulatedXRF->xBounds()[0],
+		m_accumulatedXRF->xBounds()[1], m_xrfData->size());
+	m_voxelSpectrumDrawer = QSharedPointer<iAStepFunctionPlot>::create(m_voxelEnergy, QColor(150, 0, 0));
+	m_spectrumDiagram = new iAEnergySpectrumWidget(this, m_accumulatedXRF, m_oTF, m_cTF, this,
 		haveEnergyLevels ? "Energy (keV)" : "Energy (bins)");
 	m_spectrumDiagram->setObjectName(QString::fromUtf8("EnergySpectrum"));
 
-	m_selectedBinXDrawer = QSharedPointer<iASelectedBinPlot>(new iASelectedBinPlot(m_voxelEnergy, 0, QColor(150, 0, 0, 50)));
-	m_selectedBinYDrawer = QSharedPointer<iASelectedBinPlot>(new iASelectedBinPlot(m_voxelEnergy, 0, QColor(0, 0, 150, 50)));
+	m_selectedBinXDrawer = QSharedPointer<iASelectedBinPlot>::create(m_voxelEnergy, 0, QColor(150, 0, 0, 50));
+	m_selectedBinYDrawer = QSharedPointer<iASelectedBinPlot>::create(m_voxelEnergy, 0, QColor(0, 0, 150, 50));
 
 	connect((iAChartTransferFunction*)(m_spectrumDiagram->functions()[0]), &iAChartTransferFunction::changed, this, &dlg_InSpectr::SpectrumTFChanged);
 	iADockWidgetWrapper* spectrumChartContainer = new iADockWidgetWrapper(m_spectrumDiagram, "Spectrum View", "SpectrumChartWidget");
 	spectrumChartContainer->setContentsMargins(0, 0, 0, 0);
 
-	InitCommonGUI(widgetAddHelper);
-	widgetAddHelper.SplitWidget(spectrumChartContainer, widgetAddHelper.m_mdiChild->renderDockWidget(), Qt::Vertical);
-	widgetAddHelper.SplitWidget(m_pieChartContainer, spectrumChartContainer);
+	InitCommonGUI(child);
+	child->splitDockWidget(spectrumChartContainer, child->renderDockWidget(), Qt::Vertical);
+	child->splitDockWidget(m_pieChartContainer, spectrumChartContainer, Qt::Horizontal);
 
 	m_ctfChanged  = true;
 	m_initialized = true;
@@ -246,21 +249,21 @@ void dlg_InSpectr::init(double minEnergy, double maxEnergy, bool haveEnergyLevel
 	pb_decompose->setEnabled(true);
 }
 
-void dlg_InSpectr::InitElementMaps(/* QSharedPointer<iAElementConcentrations> conc */iAWidgetAddHelper & widgetAddHelper)
+void dlg_InSpectr::InitElementMaps(/* QSharedPointer<iAElementConcentrations> conc */ iAMdiChild* child)
 {
-	InitCommonGUI(widgetAddHelper);
-	widgetAddHelper.SplitWidget(m_pieChartContainer, m_periodicTable, Qt::Vertical);
+	InitCommonGUI(child);
+	child->splitDockWidget(m_pieChartContainer, m_periodicTable, Qt::Vertical);
 }
 
-void dlg_InSpectr::InitCommonGUI(iAWidgetAddHelper & widgetAddHelper)
+void dlg_InSpectr::InitCommonGUI(iAMdiChild* child)
 {
 	m_periodicTable->setListener(m_periodicTableListener);
 
 
 	// load reference spectra & characteristic energy lines:
 	QString rootDir(QCoreApplication::applicationDirPath() + "/refSpectra/");
-	m_refSpectraLib = QSharedPointer<iAReferenceSpectraLibrary>(new iAReferenceSpectraLibrary(
-		rootDir + "elementSpectra/reference_library.reflib"));
+	m_refSpectraLib = QSharedPointer<iAReferenceSpectraLibrary>::create(
+		rootDir + "elementSpectra/reference_library.reflib");
 	m_refSpectra->getSpectraList()->setModel(m_refSpectraLib->getItemModel().data());
 	EnergyLoader::Load(rootDir + "characteristic-energies.cel", m_characteristicEnergies);
 	connect(m_refSpectra->getSpectraList(), &QListView::doubleClicked, this, &dlg_InSpectr::ReferenceSpectrumDoubleClicked, Qt::UniqueConnection);
@@ -274,8 +277,8 @@ void dlg_InSpectr::InitCommonGUI(iAWidgetAddHelper & widgetAddHelper)
 	m_pieChartContainer = new iADockWidgetWrapper(m_pieChart, "Element Concentration", "PieChartWidget");
 	m_pieChartContainer->setContentsMargins(0, 0, 0, 0);
 	//m_pieChartContainer->hide();
-	widgetAddHelper.SplitWidget(m_periodicTable, this, Qt::Vertical);
-	widgetAddHelper.TabWidget(m_refSpectra, this);
+	child->splitDockWidget(m_periodicTable, this, Qt::Vertical);
+	child->tabifyDockWidget(m_refSpectra, this);
 }
 
 void dlg_InSpectr::setLogDrawMode(bool checked)
@@ -355,9 +358,43 @@ void dlg_InSpectr::updateComposition(QVector<double> const & concentration)
 	m_pieChart->update();
 }
 
+namespace
+{
+int findCharEnergy(QVector<iACharacteristicEnergy> const& energies, QString const& symbol)
+{
+	for (int i = 0; i < energies.size(); ++i)
+	{
+		if (energies[i].symbol == symbol)
+		{
+			return i;
+		}
+	}
+	return -1;
+}
+
+void updateSpectrumData(QSharedPointer<iAHistogramData> histData, QSharedPointer<iAXRFData> xrfData, int x, int y, int z)
+{
+	int extent[6];
+	xrfData->GetExtent(extent);
+	if (x < extent[0] || x > extent[1] || y < extent[2] || y > extent[3] || z < extent[4] || z > extent[5])
+	{
+		histData->clear();
+		return;
+	}
+	iAXRFData::Iterator it = xrfData->begin();
+	int idx = 0;
+	while (it != xrfData->end())
+	{
+		histData->setBin(idx, static_cast<iAPlotData::DataType>((*it)->GetScalarComponentAsFloat(x, y, z, 0)));
+		++it;
+		++idx;
+	}
+}
+}
+
 void dlg_InSpectr::UpdateVoxelSpectrum(int x, int y, int z)
 {
-	m_voxelEnergy->updateEnergyFunction(x, y, z);
+	updateSpectrumData(m_voxelEnergy, m_xrfData, x, y, z);
 	m_spectrumDiagram->update();
 }
 
@@ -399,7 +436,7 @@ void dlg_InSpectr::initSpectraLinesDrawer()
 	}
 	else
 	{
-		m_spectraLinesDrawer = QSharedPointer<iAPlotCollection>(new iAPlotCollection);
+		m_spectraLinesDrawer = QSharedPointer<iAPlotCollection>::create();
 	}
 
 	long numberOfSpectra = (extent[1]-extent[0]+1)*(extent[3]-extent[2]+1)*(extent[5]-extent[4]+1);
@@ -411,8 +448,10 @@ void dlg_InSpectr::initSpectraLinesDrawer()
 		{
 			for (int z=extent[4]; z<=extent[5]; z += step)
 			{
-				QSharedPointer<iAEnergySpectrumDiagramData> dataset(new iAEnergySpectrumDiagramData(m_xrfData.data(), m_accumulatedXRF.data()));
-				dataset->updateEnergyFunction(x, y, z);
+				auto dataset = iAHistogramData::create(QString("Spectrum Line %1,%2,%3").arg(x).arg(y).arg(z),
+					m_accumulatedXRF->valueType(),
+					m_accumulatedXRF->xBounds()[0],	m_accumulatedXRF->xBounds()[1],	m_xrfData->size());
+				updateSpectrumData(dataset, m_xrfData, x, y, z);
 
 				bool isSelected = m_activeFilter.empty() ||
 					m_xrfData->CheckFilters(x, y, z, m_activeFilter, static_cast<iAFilterMode>(comB_spectrumSelectionMode->currentIndex()));
@@ -553,20 +592,6 @@ void dlg_InSpectr::ReferenceSpectrumDoubleClicked( const QModelIndex &index )
 	}
 }
 
-namespace {
-	int findCharEnergy(QVector<iACharacteristicEnergy> const & energies, QString const & symbol)
-	{
-		for (int i=0; i<energies.size(); ++i)
-		{
-			if (energies[i].symbol == symbol)
-			{
-				return i;
-			}
-		}
-		return -1;
-	}
-}
-
 void dlg_InSpectr::ReferenceSpectrumItemChanged( QStandardItem * item )
 {
 	QModelIndex index = item->index();
@@ -633,11 +658,11 @@ void dlg_InSpectr::decomposeElements()
 		LOG(lvlInfo, tr("Decomposition was aborted by user."));
 		return;
 	}
-	m_elementConcentrations = QSharedPointer<iAElementConcentrations>(new iAElementConcentrations());
-	m_decompositionCalculator = QSharedPointer<iADecompositionCalculator>(new iADecompositionCalculator(
+	m_elementConcentrations = QSharedPointer<iAElementConcentrations>::create();
+	m_decompositionCalculator = QSharedPointer<iADecompositionCalculator>::create(
 		m_elementConcentrations,
 		m_xrfData,
-		m_accumulatedXRF));
+		m_accumulatedXRF);
 	m_decomposeSelectedElements.clear();
 	iAJobListView::get()->addJob("Computing elemental decomposition",
 		m_decompositionCalculator->progress(), m_decompositionCalculator.data());
@@ -693,7 +718,7 @@ void dlg_InSpectr::loadDecomposition()
 	QString fileName = QFileDialog::getOpenFileName(
 		QApplication::activeWindow(),
 		tr("Load File"),
-		(dynamic_cast<MdiChild*>(parent()))->filePath(),
+		(dynamic_cast<iAMdiChild*>(parent()))->filePath(),
 		tr("Volstack files (*.volstack);;")
 	);
 	if (fileName.isEmpty())
@@ -702,14 +727,14 @@ void dlg_InSpectr::loadDecomposition()
 	}
 	if (!m_elementConcentrations)
 	{
-		m_elementConcentrations = QSharedPointer<iAElementConcentrations>(new iAElementConcentrations());
+		m_elementConcentrations = QSharedPointer<iAElementConcentrations>::create();
 	}
 	else
 	{
 		m_elementConcentrations->clear();
 	}
 
-	iAIO io(iALog::get(), dynamic_cast<MdiChild*>(parent()),
+	iAIO io(iALog::get(), dynamic_cast<iAMdiChild*>(parent()),
 		m_elementConcentrations->getImageListPtr()
 	);
 	io.setupIO(VOLUME_STACK_VOLSTACK_READER, fileName);
@@ -719,7 +744,7 @@ void dlg_InSpectr::loadDecomposition()
 	QString elementNames = io.additionalInfo();
 	QStringList elements = elementNames.split(",");
 
-	elements.replaceInStrings(QRegExp("^\\s+"), ""); // trim whitespaces
+	elements.replaceInStrings(QRegularExpression("^\\s+"), ""); // trim whitespaces
 	updateDecompositionGUI( elements );
 }
 
@@ -754,7 +779,7 @@ void dlg_InSpectr::storeDecomposition()
 		}
 	}
 
-	iAIO io(iALog::get(), dynamic_cast<MdiChild*>(parent()),
+	iAIO io(iALog::get(), dynamic_cast<iAMdiChild*>(parent()),
 		m_elementConcentrations->getImageListPtr());
 
 	io.setupIO(VOLUME_STACK_VOLSTACK_WRITER, fileName);
@@ -772,7 +797,7 @@ void dlg_InSpectr::combinedElementMaps(int show)
 	}
 
 	pieGlyphsVisualization( cb_pieChartGlyphs->isChecked() );
-	MdiChild * mdiChild = (dynamic_cast<MdiChild*>(parent()));
+	iAMdiChild * mdiChild = (dynamic_cast<iAMdiChild*>(parent()));
 	if (!show)
 	{
 		for (int i=0; i<m_enabledChannels; ++i)
@@ -891,7 +916,7 @@ void dlg_InSpectr::updateSelectionMode(int /*modeIdx*/)
 
 void dlg_InSpectr::updateSelection()
 {
-	MdiChild* mdiChild = dynamic_cast<MdiChild*>(parent());
+	iAMdiChild* mdiChild = dynamic_cast<iAMdiChild*>(parent());
 
 	if (m_activeFilter.empty())
 	{
@@ -902,7 +927,9 @@ void dlg_InSpectr::updateSelection()
 	vtkSmartPointer<vtkImageData> result = m_xrfData->FilterSpectrum(m_activeFilter, static_cast<iAFilterMode>(comB_spectrumSelectionMode->currentIndex()));
 
 	if (m_spectrumSelectionChannelID == NotExistingChannel)
+	{
 		m_spectrumSelectionChannelID = mdiChild->createChannel();
+	}
 	auto chData = mdiChild->channelData(m_spectrumSelectionChannelID);
 	chData->setData(result, m_selection_ctf, m_selection_otf);
 	// TODO: initialize channel?
@@ -925,7 +952,7 @@ void dlg_InSpectr::showLinkedElementMaps( int show )
 	{
 		return;
 	}
-	MdiChild * mdiChild = (dynamic_cast<MdiChild*>(parent()));
+	iAMdiChild * mdiChild = (dynamic_cast<iAMdiChild*>(parent()));
 
 	m_rendererManager.removeAll();
 	m_rendererManager.addToBundle(mdiChild->renderer()->renderer());
@@ -969,7 +996,7 @@ void dlg_InSpectr::showLinkedElementMaps( int show )
 
 void dlg_InSpectr::InitElementRenderer( dlg_elementRenderer * elemRend, size_t index )
 {
-	MdiChild * mdiChild = (dynamic_cast<MdiChild*>(parent()));
+	iAMdiChild * mdiChild = (dynamic_cast<iAMdiChild*>(parent()));
 
 	//Derive data needed for visualization
 	vtkSmartPointer<vtkImageData> chImgData = m_elementConcentrations->getImage(m_decomposeSelectedElements.indexOf(index));
@@ -1007,8 +1034,8 @@ void dlg_InSpectr::updateConcentrationOpacity(int newVal)
 	m_otf[channelIdx]->AddPoint(0.0, 0.0);
 	m_otf[channelIdx]->AddPoint(1.0, opacity);
 	vtkSmartPointer<vtkImageData> chImgData = m_elementConcentrations->getImage(channelIdx);
-	(dynamic_cast<MdiChild*>(parent()))->updateChannel(m_channelIDs[channelIdx], chImgData, m_ctf[channelIdx], m_otf[channelIdx], true);
-	(dynamic_cast<MdiChild*>(parent()))->updateViews();
+	(dynamic_cast<iAMdiChild*>(parent()))->updateChannel(m_channelIDs[channelIdx], chImgData, m_ctf[channelIdx], m_otf[channelIdx], true);
+	(dynamic_cast<iAMdiChild*>(parent()))->updateViews();
 }
 
 void dlg_InSpectr::ReferenceSpectrumClicked( const QModelIndex &index )
@@ -1143,14 +1170,14 @@ void dlg_InSpectr::computeSimilarityMap()
 		// 	}
 		// 	catch (itk::ExceptionObject & excp)
 		// 	{
-		// 		(dynamic_cast<MdiChild*>(parent()))->addMsg("Exception in computeSimilarityMap(): " + QString(excp.GetDescription()));
+		// 		(dynamic_cast<iAMdiChild*>(parent()))->addMsg("Exception in computeSimilarityMap(): " + QString(excp.GetDescription()));
 		// 		delete [] connectors;
 		// 		delete [] images;
 		// 		return;
 		// 	}
 
 		const unsigned int numSamples = 2500;
-		MdiChild* mdiChild = dynamic_cast<MdiChild*>(parent());
+		iAMdiChild* mdiChild = dynamic_cast<iAMdiChild*>(parent());
 		double numIterations = numEBins * numEBins * 0.5;
 		double curIteration = 0.0;
 		int percentage = 0;
@@ -1228,17 +1255,14 @@ void dlg_InSpectr::computeSimilarityMap()
 			LOG(lvlError, "Exception in computeSimilarityMap(): " + errDescr[i]);
 		}
 	},
-	[progress]()
-	{
-			delete progress;
-	});
+	[progress]() { delete progress; }, this);
 	iAJobListView::get()->addJob("Compute Similarity Map", progress, job);
 }
 
 void dlg_InSpectr::energyBinsSelected( int binX, int binY )
 {
-	m_selectedBinXDrawer->setPosition( binX );
-	m_selectedBinYDrawer->setPosition( binY );
+	m_selectedBinXDrawer->setSelectedBin( binX );
+	m_selectedBinYDrawer->setSelectedBin( binY );
 	m_spectrumDiagram->update();
 }
 
@@ -1327,11 +1351,11 @@ void dlg_InSpectr::AddReferenceSpectrum(int modelIdx)
 		RemoveReferenceSpectrum(modelIdx);
 	}
 	QVector<float> const & energies = m_refSpectraLib->spectra[modelIdx].GetEnergyData();
-	QSharedPointer<iAMappingDiagramData> plotData(new iAMappingDiagramData(
+	auto plotData = createMappedHistogramData(QString("Spectrum %1").arg(m_refSpectraLib->spectra[modelIdx].name()),
 		&m_refSpectraLib->spectra[modelIdx].GetCountsData()[0],
 		energies.size(), energies[0], energies[energies.size()-1],
 		m_xrfData->size(), m_xrfData->GetMinEnergy(), m_xrfData->GetMaxEnergy(),
-		m_accumulatedXRF->yBounds()[1]));
+		m_accumulatedXRF->yBounds()[1]);
 	QColor color = m_refSpectraLib->getElementColor(modelIdx);
 	QSharedPointer<iAStepFunctionPlot> drawable(new iAStepFunctionPlot(plotData, color));
 	m_refSpectraDrawers.insert(modelIdx, drawable);
@@ -1432,7 +1456,7 @@ void dlg_InSpectr::setSlicerPieGlyphsOn(bool isOn)
 	if (m_pieGlyphsEnabled == isOn)
 		return;
 	m_pieGlyphsEnabled = isOn;
-	auto child = dynamic_cast<MdiChild*>(parent());
+	auto child = dynamic_cast<iAMdiChild*>(parent());
 	for (int slicerMode = 0; slicerMode < iASlicerMode::SlicerCount; ++slicerMode)
 	{
 		if (isOn)
@@ -1454,7 +1478,7 @@ void dlg_InSpectr::updateAllPieGlyphs()
 void dlg_InSpectr::updatePieGlyphs(int slicerMode)
 {
 	const double EPSILON = 0.0015;
-	auto child = dynamic_cast<MdiChild*>(parent());
+	auto child = dynamic_cast<iAMdiChild*>(parent());
 	auto renWin = child->slicer(slicerMode)->renderWindow();
 	auto ren = renWin->GetRenderers()->GetFirstRenderer();
 	bool hasPieGlyphs = (m_pieGlyphs[slicerMode].size() > 0);
@@ -1517,7 +1541,7 @@ void dlg_InSpectr::updatePieGlyphs(int slicerMode)
 
 				if (portion > EPSILON)
 				{
-					auto pieGlyph = QSharedPointer<iAPieChartGlyph>(new iAPieChartGlyph(angularRange[0], angularRange[1]));
+					auto pieGlyph = QSharedPointer<iAPieChartGlyph>::create(angularRange[0], angularRange[1]);
 					double pos[3] = { origin[0] + x * spacing[0], origin[1] + y * spacing[1], 1.0 };
 					pieGlyph->actor->SetPosition(pos);
 					pieGlyph->actor->SetScale((std::min)(spacing[0], spacing[1]) * m_pieGlyphSpacing);

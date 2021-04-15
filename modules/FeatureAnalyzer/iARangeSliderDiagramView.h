@@ -1,7 +1,7 @@
 /*************************************  open_iA  ************************************ *
 * **********   A tool for visual analysis and processing of 3D CT images   ********** *
 * *********************************************************************************** *
-* Copyright (C) 2016-2020  C. Heinzl, M. Reiter, A. Reh, W. Li, M. Arikan, Ar. &  Al. *
+* Copyright (C) 2016-2021  C. Heinzl, M. Reiter, A. Reh, W. Li, M. Arikan, Ar. &  Al. *
 *                 Amirkhanov, J. Weissenböck, B. Fröhler, M. Schiwarth, P. Weinberger *
 * *********************************************************************************** *
 * This program is free software: you can redistribute it and/or modify it under the   *
@@ -27,10 +27,11 @@
 #include <vtkSmartPointer.h>
 
 #include <QDockWidget>
+#include <QMultiMap>
 #include <QSharedPointer>
 
 
-class iARangeSliderDiagramData;
+class iAHistogramData;
 class iABarGraphPlot;
 class iARangeSliderDiagramWidget;
 
@@ -53,7 +54,11 @@ class iARangeSliderDiagramView : public RangeSliderDiagramViewConnector
 	Q_OBJECT
 
 public:
+#if QT_VERSION < QT_VERSION_CHECK(5, 15, 0)
 	iARangeSliderDiagramView( QWidget * parent = 0, Qt::WindowFlags f = 0 );
+#else
+	iARangeSliderDiagramView(QWidget* parent = nullptr, Qt::WindowFlags f = Qt::WindowFlags());
+#endif
 
 public slots:
 	void setData( const QTableWidget * data );
@@ -65,7 +70,7 @@ signals:
 	void selectionModified( vtkIdTypeArray * );
 
 private:
-	QSharedPointer<iARangeSliderDiagramData> m_rangeSliderData;
+	QSharedPointer<iAHistogramData> m_rangeSliderData;
 	QSharedPointer<iABarGraphPlot> m_rangeSliderDiagramDrawer;
 	QList<double> m_data;
 	QList<vtkSmartPointer<vtkPiecewiseFunction> > m_oTFList;
@@ -85,7 +90,7 @@ private:
 	QLabel * m_output;
 	QFrame * m_separator;
 	const QTableWidget * m_rawTable;
-	QMap<double, QList<double> > m_histogramMap;
+	QMultiMap<double, QList<double>> m_histogramMap;
 
 	QMultiMap<QString, QList<double> > prepareData( const QTableWidget * tableData, bool porOrDev, bool statisticMeasurements );
 	void addTitleLabel();

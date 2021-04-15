@@ -1,5 +1,5 @@
-SET (GEMSe_PRECOMPILE_INCLUDES <cassert>
-<charts/iAPlotTypes.h>
+SET (GEMSe_PRECOMPILE_INCLUDES
+<iAPlotTypes.h>
 <dlg_commoninput.h>
 <dlg_GEMSe.h>
 <dlg_labels.h>
@@ -43,11 +43,13 @@ SET (GEMSe_PRECOMPILE_INCLUDES <cassert>
 <iAToolsITK.h>
 <iAToolsVTK.h>
 <iAVtkDraw.h>
-<io/iAFileUtils.h>
-<io/iAITKIO.h>
+<iAFileUtils.h>
+<iAITKIO.h>
 <itkLabelOverlapMeasuresImageFilter.h>
-<mainwindow.h>
-<mdichild.h>
+<iAMainWindow.h>
+<iAMdiChild.h>
+<qthelper/iAQTtoUIConnector.h>
+
 <QCheckBox>
 <QFile>
 <QFileDialog>
@@ -63,12 +65,15 @@ SET (GEMSe_PRECOMPILE_INCLUDES <cassert>
 <QSplitter>
 <QStandardItemModel>
 <QTextStream>
-<qthelper/iAQTtoUIConnector.h>
 <QThread>
 <QVBoxLayout>
 <QVector>
 <QWidget>
+
 <vtkImageData.h>
 <vtkLookupTable.h>
 <vtkPiecewiseFunction.h>
-<vtkSmartPointer.h>)
+<vtkSmartPointer.h>
+
+<cassert>
+)

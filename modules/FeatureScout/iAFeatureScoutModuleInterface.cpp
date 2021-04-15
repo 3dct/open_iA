@@ -1,7 +1,7 @@
 /*************************************  open_iA  ************************************ *
 * **********   A tool for visual analysis and processing of 3D CT images   ********** *
 * *********************************************************************************** *
-* Copyright (C) 2016-2020  C. Heinzl, M. Reiter, A. Reh, W. Li, M. Arikan, Ar. &  Al. *
+* Copyright (C) 2016-2021  C. Heinzl, M. Reiter, A. Reh, W. Li, M. Arikan, Ar. &  Al. *
 *                 Amirkhanov, J. Weissenböck, B. Fröhler, M. Schiwarth, P. Weinberger *
 * *********************************************************************************** *
 * This program is free software: you can redistribute it and/or modify it under the   *
@@ -20,29 +20,34 @@
 * ************************************************************************************/
 #include "iAFeatureScoutModuleInterface.h"
 
-#include "dlg_CSVInput.h"
-#include "iACsvIO.h"
-#include "iACsvVtkTableCreator.h"
 #include "iAFeatureScoutAttachment.h"
 #include "iAFeatureScoutToolbar.h"
-#include "ui_CsvInput.h"
+
+#include <dlg_CSVInput.h>
+#include <iACsvConfig.h>
+#include <iACsvIO.h>
+#include <iACsvVtkTableCreator.h>
 
 #include <iALog.h>
 #include <iAModalityList.h>
 #include <iAModuleDispatcher.h> // TODO: Refactor; it shouldn't be required to go via iAModuleDispatcher to retrieve one's own module
 #include <iAProjectBase.h>
 #include <iAProjectRegistry.h>
-#include <io/iAFileUtils.h>
-#include <mainwindow.h>
-#include <mdichild.h>
+#include <iAFileUtils.h>
+#include <iAMainWindow.h>
+#include <iAMdiChild.h>
+#include <iARenderSettings.h>
+#include <iAVolumeSettings.h>
 
 #include <vtkTable.h>
 #include <vtkSmartVolumeMapper.h>
 
 #include <QFileDialog>
 #include <QInputDialog>
+#include <QMenu>
 #include <QMessageBox>
 #include <QSettings>
+#include <QStatusBar>
 #include <QTextStream>
 
 class iAFeatureScoutProject: public iAProjectBase
@@ -74,8 +79,8 @@ void iAFeatureScoutProject::loadProject(QSettings & projectFile, QString const &
 {
 	if (!m_mdiChild)
 	{
-		LOG(lvlError, QString("Invalid FeatureScout project file '%1': FeatureScout requires an MdiChild, "
-			"but UseMdiChild was apparently not specified in this project, as no MdiChild available! "
+		LOG(lvlError, QString("Invalid FeatureScout project file '%1': FeatureScout requires a child window, "
+			"but UseMdiChild was apparently not specified in this project, as no child window available! "
 			"Please report this error, along with the project file, to the open_iA developers!").arg(fileName));
 		return;
 	}
@@ -191,7 +196,7 @@ void iAFeatureScoutModuleInterface::FeatureScout()
 	}
 }
 
-iAFeatureScoutObjectType iAFeatureScoutModuleInterface::guessFeatureType(QString const & csvFileName)
+iAObjectType iAFeatureScoutModuleInterface::guessFeatureType(QString const & csvFileName)
 {
 	QFile file( csvFileName );
 	if (!file.open(QIODevice::ReadOnly | QIODevice::Text))
@@ -208,7 +213,7 @@ iAFeatureScoutObjectType iAFeatureScoutModuleInterface::guessFeatureType(QString
 	return returnType;
 }
 
-void iAFeatureScoutModuleInterface::LoadFeatureScoutWithParams(QString const & csvFileName, MdiChild* mdiChild)
+void iAFeatureScoutModuleInterface::LoadFeatureScoutWithParams(QString const & csvFileName, iAMdiChild* mdiChild)
 {
 	if (csvFileName.isEmpty())
 	{
@@ -259,7 +264,7 @@ void iAFeatureScoutModuleInterface::setFeatureScoutRenderSettings()
 	m_mdiChild->editRendererSettings(FS_RenderSettings, FS_VolumeSettings);
 }
 
-void iAFeatureScoutModuleInterface::LoadFeatureScout(iACsvConfig const & csvConfig, MdiChild * mdiChild)
+void iAFeatureScoutModuleInterface::LoadFeatureScout(iACsvConfig const & csvConfig, iAMdiChild * mdiChild)
 {
 	m_mdiChild = mdiChild;
 	startFeatureScout(csvConfig);
@@ -274,8 +279,8 @@ bool iAFeatureScoutModuleInterface::startFeatureScout(iACsvConfig const & csvCon
 		return false;
 	}
 	AttachToMdiChild(m_mdiChild);
-	connect(m_mdiChild, &MdiChild::closed, this, &iAFeatureScoutModuleInterface::onChildClose);
-	iAFeatureScoutAttachment* attach = GetAttachment<iAFeatureScoutAttachment>();
+	connect(m_mdiChild, &iAMdiChild::closed, this, &iAFeatureScoutModuleInterface::onChildClose);
+	iAFeatureScoutAttachment* attach = GetAttachment<iAFeatureScoutAttachment>(m_mdiChild);
 	if (!attach)
 	{
 		LOG(lvlError, "Error while attaching FeatureScout to mdi child window!");
@@ -304,11 +309,10 @@ bool iAFeatureScoutModuleInterface::startFeatureScout(iACsvConfig const & csvCon
 
 void iAFeatureScoutModuleInterface::FeatureScout_Options()
 {
-	m_mdiChild = m_mainWnd->activeMdiChild();
-	iAFeatureScoutAttachment* attach = GetAttachment<iAFeatureScoutAttachment>();
+	iAFeatureScoutAttachment* attach = GetAttachment<iAFeatureScoutAttachment>(m_mainWnd->activeMdiChild());
 	if ( !attach )
 	{
-		LOG(lvlInfo,  "No FeatureScout attachment in current MdiChild!" );
+		LOG(lvlInfo,  "No FeatureScout attachment in current iAMdiChild!" );
 		return;
 	}
 	QString actionText = qobject_cast<QAction *>(sender())->text();
@@ -326,12 +330,12 @@ void iAFeatureScoutModuleInterface::FeatureScout_Options()
 void iAFeatureScoutModuleInterface::onChildClose()
 {
 	if (!tlbFeatureScout)
-		return;
-	auto mdis = m_mainWnd->mdiChildList();
-	for (auto mdi : mdis)
 	{
-		m_mdiChild = mdi;
-		iAFeatureScoutAttachment* attach = GetAttachment<iAFeatureScoutAttachment>();
+		return;
+	}
+	for (auto mdi : m_mainWnd->mdiChildList())
+	{
+		iAFeatureScoutAttachment* attach = GetAttachment<iAFeatureScoutAttachment>(mdi);
 		if (attach)
 		{
 			return;
@@ -342,7 +346,7 @@ void iAFeatureScoutModuleInterface::onChildClose()
 	tlbFeatureScout = nullptr;
 }
 
-iAModuleAttachmentToChild * iAFeatureScoutModuleInterface::CreateAttachment( MainWindow* mainWnd, MdiChild * child )
+iAModuleAttachmentToChild * iAFeatureScoutModuleInterface::CreateAttachment( iAMainWindow* mainWnd, iAMdiChild * child )
 {
 	return new iAFeatureScoutAttachment( mainWnd, child );
 }

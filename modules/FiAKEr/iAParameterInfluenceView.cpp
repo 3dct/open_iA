@@ -21,16 +21,20 @@
 #include "iAParameterInfluenceView.h"
 
 #include "iAFiberCharData.h"
+#include "iAFiberData.h" // for getAvailableDissimilarityMeasureNames
 #include "iASensitivityInfo.h"
 #include "iAStackedBarChart.h"
-#include "qthelper/iAClickableLabel.h"
+#include "iAClickableLabel.h"
 
-#include <charts/iAChartWidget.h>
-#include <charts/iAHistogramData.h>
-#include <charts/iAPlotTypes.h>
-#include <charts/iASPLOMData.h>
 #include <iAColorTheme.h>
 #include <iALog.h>
+
+// charts:
+#include <iAChartWidget.h>
+#include <iAHistogramData.h>
+#include <iAPlotTypes.h>
+#include <iASPLOMData.h>
+#include <iAXYPlotData.h>
 
 #include <QAction>
 #include <QGridLayout>
@@ -39,31 +43,67 @@
 #include <QMenu>
 #include <QScrollArea>
 
-namespace// merge with iASensitivityinfo!
+namespace
 {
-	enum ColumnIndices { colParamName = 0, colMin = 1, colMax = 2, colStep = 3, colStackedBar = 4, colHistogram = 5 };
-	int LayoutSpacing = 0; int LayoutMargin = 4;
-	const QString DefaultStackedBarColorTheme("Brewer Accent (max. 8)");
+	enum ColumnIndices { colParamName = 0, colMin = 1, colMax = 2, colStep = 3, colStackedBar = 4
+		//, colHistogram = 5
+	};
+	const int GridSpacing = 2;
+	const int LayoutMargin = 4;
+	const int RowsPerParam = 4;
 
-	void addColumnAction(QString const & name, int charactIdx, iAParameterInfluenceView* view, iAStackedBarChart* stackedHeader, bool checked)
+	enum
 	{
-		auto charactShowAction = new QAction(name, nullptr);
-		charactShowAction->setProperty("charactIdx", charactIdx);
-		charactShowAction->setCheckable(true);
-		charactShowAction->setChecked(checked);
-		QObject::connect(charactShowAction, &QAction::triggered, view, &iAParameterInfluenceView::showStackedBar);
-		stackedHeader->contextMenu()->addAction(charactShowAction);
-	}
+		RowStackedHeader = 0,
+		RowStackedBar = 1,
+		RowOutputChart = 2,
+		RowParamChart = 3
+	};
+	const int LabelCount = 4;
+
+	QColor VariationHistogramColor(50, 50, 50, 255);
+	QColor AverageHistogramColor(150, 150, 150, 255);
+	QColor ParamSensitivityPlotColor(80, 80, 80, 255);
+
+	// needs to match definition in iASensitivityInfo.cpp. Maybe unify somewhere:
+	QColor SelectedResultPlotColor(235, 184, 31, 255);
+
+	QColor ParamRowSelectedBGColor(245, 245, 245);
+	QColor ParamRowUnselectedBGColor(255, 255, 255);
 }
 
-iAParameterInfluenceView::iAParameterInfluenceView(iASensitivityInfo* sensInf) :
+class iAParTableRow
+{
+public:
+	iAStackedBarChart* head;
+	iAStackedBarChart* bars;
+	QVector<iAChartWidget*> out;
+	QVector<iAChartWidget*> par;
+	iAClickableLabel* labels[LabelCount];
+};
+
+iAParameterInfluenceView::iAParameterInfluenceView(iASensitivityInfo* sensInf, QColor const & paramColor, QColor const & outputColor) :
 	m_sensInf(sensInf),
 	m_measureIdx(0),
 	m_aggrType(0),
-	m_selectedRow(0),
+	m_selectedParam(-1),
 	m_selectedCol(-1),
-	m_paramListLayout(new QGridLayout())
+	m_paramListLayout(new QGridLayout()),
+	m_stackedBarTheme(new iASingleColorTheme("OneOutputColorTheme", outputColor)),
+	m_table(sensInf->m_variedParams.size()),
+	m_sort(sensInf->m_variedParams.size()),
+	m_sortLastOut(-1),
+	m_sortLastDesc(true),
+	m_histogramChartType("Bars")    // needs to match value from radio buttons in SensitivitySettings.ui
 {
+	for (int i=0; i<m_sort.size(); ++i)
+	{
+		m_sort[i] = i;
+	}
+	for (int j=0; j<sensInf->m_variedParams.size(); ++j)
+	{
+		m_table[j] = QSharedPointer<iAParTableRow>::create();
+	}
 	setLayout(new QHBoxLayout);
 	layout()->setContentsMargins(1, 0, 1, 0);
 	auto paramScrollArea = new QScrollArea();
@@ -74,84 +114,116 @@ iAParameterInfluenceView::iAParameterInfluenceView(iASensitivityInfo* sensInf) :
 	layout()->addWidget(paramScrollArea);
 
 	paramList->setLayout(m_paramListLayout);
-	m_paramListLayout->setSpacing(LayoutSpacing);
+	m_paramListLayout->setSpacing(GridSpacing);
 	m_paramListLayout->setContentsMargins(LayoutMargin, LayoutMargin, LayoutMargin, LayoutMargin);
-	m_paramListLayout->setColumnStretch(colParamName, 1);
-	m_paramListLayout->setColumnStretch(colMin, 1);
-	m_paramListLayout->setColumnStretch(colMax, 1);
-	m_paramListLayout->setColumnStretch(colStep, 1);
-	m_paramListLayout->setColumnStretch(colStackedBar, 10);
-	m_paramListLayout->setColumnStretch(colHistogram, 10);
-
-	auto colorTheme = iAColorThemeManager::instance().theme(DefaultStackedBarColorTheme);
-	m_stackedHeader = new iAStackedBarChart(colorTheme, true);
-	connect(m_stackedHeader, &iAStackedBarChart::barDblClicked, this, &iAParameterInfluenceView::stackedBarDblClicked);
 	// TODO: Unify/Group stacked bar widgets here / in iAFIAKERController into a class
 	// which encapsulates updating weights, showing columns, unified data interface (table?)
 	// for all characteristics, add column to stacked bar charts
 
-	for (int charactIdx = 0; charactIdx < sensInf->m_charSelected.size(); ++charactIdx)
-	{
-		addColumnAction(sensInf->charactName(charactIdx), charactIdx, this, m_stackedHeader, charactIdx == 0);
-	}
-	addColumnAction("Fiber Count", sensInf->m_charSelected.size() + 1, this, m_stackedHeader, false);
 	//LOG(lvlDebug, QString("Adding lines for %1 characteristics").arg(sensInf->m_charSelected.size()));
 
 	// headers:
-	addHeaderLabel(m_paramListLayout, colParamName, "Parameter");
-	addHeaderLabel(m_paramListLayout, colMin, "Min");
-	addHeaderLabel(m_paramListLayout, colMax, "Max");
-	addHeaderLabel(m_paramListLayout, colStep, "Step");
-	m_paramListLayout->addWidget(m_stackedHeader, 0, colStackedBar);
-	addHeaderLabel(m_paramListLayout, colHistogram, "Difference Distribution");
+	addHeaderLabel(m_paramListLayout, colParamName, "Param.", QSizePolicy::Fixed);
+	addHeaderLabel(m_paramListLayout, colMin, "Min", QSizePolicy::Fixed);
+	addHeaderLabel(m_paramListLayout, colMax, "Max", QSizePolicy::Fixed);
+	addHeaderLabel(m_paramListLayout, colStep, "Step", QSizePolicy::Fixed);
 
 	for (int paramIdx = 0; paramIdx < sensInf->m_variedParams.size(); ++paramIdx)
 	{
-		m_stackedCharts.push_back(new iAStackedBarChart(colorTheme, false, paramIdx == sensInf->m_variedParams.size()-1));
-		connect(m_stackedHeader, &iAStackedBarChart::weightsChanged, m_stackedCharts[paramIdx], &iAStackedBarChart::setWeights);
-		m_stackedCharts[paramIdx]->setProperty("paramIdx", paramIdx);
-		connect(m_stackedCharts[paramIdx], &iAStackedBarChart::clicked, this, &iAParameterInfluenceView::paramChangedSlot);
-		connect(m_stackedHeader, &iAStackedBarChart::normalizeModeChanged, m_stackedCharts[paramIdx], &iAStackedBarChart::setNormalizeMode);
-		connect(m_stackedHeader, &iAStackedBarChart::switchedStackMode, m_stackedCharts[paramIdx], &iAStackedBarChart::setDoStack);
+		iAParTableRow * row = m_table[paramIdx].data();
+		int rowIdx = 1 + RowsPerParam * paramIdx;
+		row->head = new iAStackedBarChart(m_stackedBarTheme.data(), m_paramListLayout,
+			rowIdx + RowStackedHeader, colStackedBar, true);
+		row->head->setDoStack(false);
+		row->head->setNormalizeMode(false);
+		connect(row->head, &iAStackedBarChart::barDblClicked, this, &iAParameterInfluenceView::stackedBarDblClicked);
+		QString paramName = sensInf->m_paramNames[sensInf->m_variedParams[paramIdx]];
+		row->bars = new iAStackedBarChart(m_stackedBarTheme.data(), m_paramListLayout,
+			rowIdx + RowStackedBar, colStackedBar, false,
+			paramIdx == sensInf->m_variedParams.size() - 1);
+		row->bars->setNormalizeMode(false);
+		row->bars->setDoStack(false);
+		row->bars->setProperty("paramIdx", paramIdx);
+		connect(row->bars, &iAStackedBarChart::clicked, this, &iAParameterInfluenceView::paramChangedSlot);
+		connect(row->head, &iAStackedBarChart::weightsChanged      , this, &iAParameterInfluenceView::setBarWeights);
+		connect(row->head, &iAStackedBarChart::normalizeModeChanged, this, &iAParameterInfluenceView::setBarNormalizeMode);
+		connect(row->head, &iAStackedBarChart::switchedStackMode   , this, &iAParameterInfluenceView::setBarDoStack);
 		auto const& paramVec = sensInf->m_paramValues[sensInf->m_variedParams[paramIdx]];
 		double minVal = *std::min_element(paramVec.begin(), paramVec.end()),
 			maxVal = *std::max_element(paramVec.begin(), paramVec.end());
-		iAClickableLabel* labels[4];
-		QString paramName = sensInf->m_paramNames[sensInf->m_variedParams[paramIdx]];
-		labels[colParamName] = new iAClickableLabel(paramName);
-		labels[colMin] = new iAClickableLabel(QString::number(minVal));
-		labels[colMax] = new iAClickableLabel(QString::number(maxVal));
-		labels[colStep] = new iAClickableLabel(QString::number(sensInf->paramStep[paramIdx]));
+		row->labels[colParamName] = new iAClickableLabel(paramName, true);
+		row->labels[colParamName]->setStyleSheet("QLabel { background-color : " + paramColor.name() + "; }");
+		row->labels[colMin] = new iAClickableLabel(QString::number(minVal, 'f', digitsAfterComma(sensInf->paramStep[paramIdx])), false);
+		row->labels[colMax] = new iAClickableLabel(QString::number(maxVal, 'f', digitsAfterComma(sensInf->paramStep[paramIdx])), false);
+		row->labels[colStep] = new iAClickableLabel(QString::number(sensInf->paramStep[paramIdx]), false);
 		for (int i = colParamName; i <= colStep; ++i)
 		{
-			labels[i]->setProperty("paramIdx", paramIdx);
-			m_paramListLayout->addWidget(labels[i], 1 + paramIdx, i);
-			connect(labels[i], &iAClickableLabel::clicked, this, &iAParameterInfluenceView::paramChangedSlot);
+			row->labels[i]->setProperty("paramIdx", paramIdx);
+			row->labels[i]->setSizePolicy(QSizePolicy::Minimum, QSizePolicy::Minimum);
+			connect(row->labels[i], &iAClickableLabel::clicked, this, &iAParameterInfluenceView::paramChangedSlot);
 		}
-		m_paramListLayout->addWidget(m_stackedCharts[paramIdx], 1 + paramIdx, colStackedBar);
+		//m_paramListLayout->addWidget(m_stackedCharts[paramIdx], rowIdx, colStackedBar);
 
-		m_diffChart.push_back(new iAChartWidget(this, "Characteristics distribution", "Var. from "+ paramName));
-		m_paramListLayout->addWidget(m_diffChart[paramIdx], 1 + paramIdx, colHistogram);
+		//m_diffChart.push_back(new iAChartWidget(this, "Characteristics distribution", ));
+		//m_paramListLayout->addWidget(m_diffChart[paramIdx], 1 + paramIdx, colHistogram);
 	}
-	// default stacked bar content/settings:
-	addStackedBar(0);
-	m_stackedHeader->setDoStack(false);
-	m_stackedHeader->setNormalizeMode(false);
-	for (auto chart : m_stackedCharts)
+	for (int charactIdx = 0; charactIdx < sensInf->m_charSelected.size(); ++charactIdx)
 	{
-		chart->setNormalizeMode(false);
-		chart->setDoStack(false);
+		addColumnAction(outCharacteristic, charactIdx, charactIdx == 0);
+	}
+	addColumnAction(outFiberCount, -1, false);
+	for (int dissimMeasIdx = 0; dissimMeasIdx < sensInf->m_resultDissimMeasures.size(); ++dissimMeasIdx)
+	{
+		addColumnAction(outDissimilarity, dissimMeasIdx, false);
+	}
+
+	addStackedBar(outCharacteristic, 0);  // reflected in iAAlgorithmInfo construction in iASensitivity -> put in common place?
+
+	updateTableOrder();
+}
+
+void iAParameterInfluenceView::updateTableOrder()
+{
+	for (int paramRow = 0; paramRow < m_table.size(); ++paramRow)
+	{
+		int paramIdx = m_sort[paramRow];
+		int rowIdx = 1 + RowsPerParam * paramRow;
+		for (int i=0; i<LabelCount; ++i)
+		{
+			m_paramListLayout->addWidget(m_table[paramIdx]->labels[i], rowIdx, i, RowsPerParam, 1);
+		}
+		m_table[paramIdx]->head->setPos(rowIdx+RowStackedHeader, colStackedBar);
+		m_table[paramIdx]->bars->setPos(rowIdx+RowStackedBar, colStackedBar);
+		for (int c=0; c<m_table[paramIdx]->out.size(); ++c)
+		{
+			m_paramListLayout->addWidget(m_table[paramIdx]->out[c], rowIdx + RowOutputChart, colStackedBar + c);
+			m_paramListLayout->addWidget(m_table[paramIdx]->par[c], rowIdx + RowParamChart, colStackedBar + c);
+		}
 	}
 }
 
-void iAParameterInfluenceView::changeMeasure(int newMeasure)
+void iAParameterInfluenceView::addColumnAction(int objectType, int charactIdx, bool checked)
+{
+	auto charactShowAction = new QAction(columnName(objectType, charactIdx), nullptr);
+	charactShowAction->setProperty("objectType", objectType);
+	charactShowAction->setProperty("charactIdx", charactIdx);
+	charactShowAction->setCheckable(true);
+	charactShowAction->setChecked(checked);
+	QObject::connect(charactShowAction, &QAction::triggered, this, &iAParameterInfluenceView::showStackedBar);
+	for (auto row : m_table)
+	{
+		row->head->contextMenu()->addAction(charactShowAction);
+	}
+}
+
+void iAParameterInfluenceView::setMeasure(int newMeasure)
 {
 	m_measureIdx = newMeasure;
 	updateStackedBars();
 	emit parameterChanged();
 }
 
-void iAParameterInfluenceView::changeAggregation(int newAggregation)
+void iAParameterInfluenceView::setAggregation(int newAggregation)
 {
 	m_aggrType = newAggregation;
 	updateStackedBars();
@@ -160,185 +232,526 @@ void iAParameterInfluenceView::changeAggregation(int newAggregation)
 
 int iAParameterInfluenceView::selectedMeasure() const { return m_measureIdx; }
 int iAParameterInfluenceView::selectedAggrType() const { return m_aggrType; }
-int iAParameterInfluenceView::selectedRow() const { return m_selectedRow; }
+int iAParameterInfluenceView::selectedRow() const { return m_selectedParam; }
 int iAParameterInfluenceView::selectedCol() const { return m_selectedCol; }
-
-void iAParameterInfluenceView::setColorTheme(iAColorTheme const * colorTheme)
-{
-	m_stackedHeader->setColorTheme(colorTheme);
-	for (auto stackedChart : m_stackedCharts)
-	{
-		stackedChart->setColorTheme(colorTheme);
-	}
-}
-
-void iAParameterInfluenceView::showDifferenceDistribution(int outputIdx, int selCharIdx, int aggrType)
-{
-	for (auto chart : m_diffChart)
-	{
-		chart->clearPlots();
-	}
-	if (outputIdx == outFiberCount)
-	{
-		return;
-	}
-	const int numBins = m_sensInf->m_histogramBins;
-	for (int paramIdx=0; paramIdx < m_sensInf->m_variedParams.size(); ++paramIdx)
-	{	// improve iAHistogramData to directly take QVector/std::vector data?
-		double * myHisto = new double[numBins];
-		for (int bin = 0; bin < numBins; ++bin)
-		{
-			myHisto[bin] = m_sensInf->charHistVarAgg[selCharIdx][aggrType][paramIdx][bin];
-		}
-		double cMin = m_sensInf->m_data->spmData->paramRange(m_sensInf->m_charSelected[selCharIdx])[0],
-			cMax = m_sensInf->m_data->spmData->paramRange(m_sensInf->m_charSelected[selCharIdx])[1];
-		m_diffChart[paramIdx]->addPlot(QSharedPointer<iAPlot>(new iABarGraphPlot(
-			iAHistogramData::create(myHisto, numBins,
-			(cMax-cMin)/numBins, cMin, cMax), QColor(80, 80, 80) )));
-		m_diffChart[paramIdx]->setXCaption(m_sensInf->charactName(selCharIdx));
-		m_diffChart[paramIdx]->update();
-	}
-}
 
 void iAParameterInfluenceView::showStackedBar()
 {
 	auto source = qobject_cast<QAction*>(QObject::sender());
+	int objectType = source->property("objectType").toInt();
 	int charactIdx = source->property("charactIdx").toInt();
-	if (source->isChecked())
+	toggleBar(source->isChecked(), objectType, charactIdx);
+}
+
+void iAParameterInfluenceView::selectStackedBar(int outputType, int outTypeIdx)
+{
+	int barIdx = m_table[0]->head->barIndex(columnName(outputType, outTypeIdx));
+	m_selectedCol = barIdx;
+	for (auto row : m_table)
 	{
-		addStackedBar(charactIdx);
-	}
-	else
-	{
-		removeStackedBar(charactIdx);
+		row->head->setSelectedBar(m_selectedCol);
+		row->bars->setSelectedBar(m_selectedCol);
 	}
 }
 
-void iAParameterInfluenceView::selectStackedBar(int charactIdx)
+void iAParameterInfluenceView::toggleCharacteristic(int charactIdx)
 {
-	int barIdx = m_stackedHeader->barIndex(columnName(charactIdx));
-	if (barIdx == -1)
+	bool shown = m_visibleCharacts.indexOf(qMakePair(static_cast<int>(outCharacteristic), charactIdx)) != -1;
+	toggleBar(!shown, outCharacteristic, charactIdx);
+}
+
+void iAParameterInfluenceView::toggleBar(bool show, int outType, int outIdx)
+{
+	if (show)
 	{
-		return;
+		addStackedBar(outType, outIdx);
 	}
-	m_selectedCol = barIdx;
-	m_stackedHeader->setSelectedBar(m_selectedCol);
-	for (auto stackedChart: m_stackedCharts)
+	else
 	{
-		stackedChart->setSelectedBar(m_selectedCol);
+		removeStackedBar(outType, outIdx);
 	}
 }
 
 void iAParameterInfluenceView::stackedBarDblClicked(int barIdx)
 {
-	QString barName = m_stackedHeader->barName(barIdx);
-	int selectedCharactIdx = -1;
-	for (auto charactIdx : m_visibleCharacts)
+	if (m_sortLastOut == barIdx)
 	{
-		if (columnName(charactIdx) == barName)
-		{
-			selectedCharactIdx = charactIdx;
-		}
+		m_sortLastDesc = !m_sortLastDesc;
 	}
-	selectStackedBar(selectedCharactIdx);
-	emit characteristicSelected(selectedCharactIdx);
-}
-
-void iAParameterInfluenceView::selectMeasure(int measureIdx)
-{
-	m_measureIdx = measureIdx;
-	//updateStackedBars();
-	emit parameterChanged();
+	m_sortLastOut = barIdx;
+	std::sort(m_sort.begin(), m_sort.end(), [this, barIdx](int r1, int r2)
+	{
+		double v1 = m_table[r1]->bars->barValue(barIdx),
+			v2 = m_table[r2]->bars->barValue(barIdx);
+		return m_sortLastDesc ? v1 > v2 : v1 < v2;
+	});
+	//LOG(lvlDebug, joinNumbersAsString(m_sort, ","));
+	updateTableOrder();
 }
 
 void iAParameterInfluenceView::paramChangedSlot()
 {
 	auto source = qobject_cast<QWidget*>(QObject::sender());
-	m_selectedRow = source->property("paramIdx").toInt();
+	setSelectedParam(source->property("paramIdx").toInt());
+}
+
+void iAParameterInfluenceView::setBarWeights(std::vector<double> const& weights)
+{
+	for (auto row: m_table)
+	{
+		row->head->setWeights(weights);
+		row->bars->setWeights(weights);
+	}
+}
+
+void iAParameterInfluenceView::setBarNormalizeMode(bool normalizePerBar)
+{
+	for (auto row : m_table)
+	{
+		row->head->setNormalizeMode(normalizePerBar);
+		row->bars->setNormalizeMode(normalizePerBar);
+	}
+}
+
+void iAParameterInfluenceView::setBarDoStack(bool doStack)
+{
+	for (auto row : m_table)
+	{
+		row->head->setDoStack(doStack);
+		row->bars->setDoStack(doStack);
+	}
+}
+
+void iAParameterInfluenceView::addResultHistoPlot(size_t resultIdx, int paramIdx, int barIdx)
+{
+	if (!m_visibleCharacts[barIdx].first == outCharacteristic)
+	{
+		return;
+	}
+	int charIdx = m_visibleCharacts[barIdx].second;
+	auto const rng = m_sensInf->m_data->spmData->paramRange(m_sensInf->m_charSelected[charIdx]);
+	auto histData = iAHistogramData::create(QString("Result %1").arg(resultIdx), iAValueType::Continuous, rng[0],
+		rng[1], m_sensInf->m_charHistograms[resultIdx][charIdx]);
+	auto plotKey = std::make_tuple(resultIdx, paramIdx, charIdx);
+	m_selectedResultHistoPlots.insert(plotKey, createHistoPlot(histData, SelectedResultPlotColor));
+	m_table[paramIdx]->out[barIdx]->addPlot(m_selectedResultHistoPlots[plotKey]);
+}
+
+void iAParameterInfluenceView::setResultSelected(size_t resultIdx, bool state)
+{
 	for (int paramIdx = 0; paramIdx < m_sensInf->m_variedParams.size(); ++paramIdx)
 	{
-		QColor color = palette().color(paramIdx == m_selectedRow ? QPalette::AlternateBase : backgroundRole());
-		for (int col = colParamName; col <= colStep; ++col)
+		double paramValue = m_sensInf->m_paramValues[m_sensInf->m_variedParams[paramIdx]][resultIdx];
+		for (int barIdx = 0; barIdx < m_table[paramIdx]->out.size(); ++barIdx)
 		{
-			m_paramListLayout->itemAtPosition(paramIdx+1, col)->widget()->setStyleSheet(
-				"QLabel { background-color : " + color.name() + "; }");
+			if (m_visibleCharacts[barIdx].first == outCharacteristic)
+			{
+				int charIdx = m_visibleCharacts[barIdx].second;
+				auto plotKey = std::make_tuple(resultIdx, paramIdx, charIdx);
+				if (state)
+				{
+					m_selectedResults.insert(resultIdx);
+					m_table[paramIdx]->par[barIdx]->addXMarker(paramValue, SelectedResultPlotColor, Qt::DashLine);
+					if (m_selectedResultHistoPlots.contains(plotKey))
+					{
+						LOG(lvlWarn, QString("Plot to be added already exists!"));
+					}
+					else
+					{
+						addResultHistoPlot(resultIdx, paramIdx, barIdx);
+					}
+				}
+				else
+				{
+					m_selectedResults.remove(resultIdx);
+					m_table[paramIdx]->par[barIdx]->removeXMarker(paramValue);
+					if (!m_selectedResultHistoPlots.contains(plotKey))
+					{
+						LOG(lvlWarn, QString("Plot to be removed does not exist!"));
+					}
+					else
+					{
+						m_table[paramIdx]->out[barIdx]->removePlot(m_selectedResultHistoPlots[plotKey]);
+						m_selectedResultHistoPlots.remove(plotKey);
+					}
+				}
+			}
 		}
-		m_stackedCharts[paramIdx]->setBackgroundColor(color);
-		m_stackedCharts[paramIdx]->update();
+	}
+}
+
+void iAParameterInfluenceView::paramChartClicked(double x, Qt::KeyboardModifiers modifiers)
+{
+	// search for parameter value "closest" to clicked x;
+	auto chart = qobject_cast<iAChartWidget*>(QObject::sender());
+	int variedParamIdx = chart->property("paramIdx").toInt();
+	auto& paramValues = m_sensInf->m_paramValues[m_sensInf->m_variedParams[variedParamIdx]];
+	auto minDistElem = std::min_element(paramValues.begin(), paramValues.end(), [x](double a, double b) {
+		return std::abs(a - x) < std::abs(b - x);
+	});
+	// select the result that is closest to the currently selected one in the other parameters!
+	int resultIdx = minDistElem - paramValues.begin();
+	emit resultSelected(resultIdx, modifiers);
+}
+
+void iAParameterInfluenceView::setSelectedParam(int param)
+{
+	m_selectedParam = param;
+	for (int paramIdx = 0; paramIdx < m_sensInf->m_variedParams.size(); ++paramIdx)
+	{
+		QColor color = (paramIdx == m_selectedParam) ? ParamRowSelectedBGColor : ParamRowUnselectedBGColor;
+		for (int col = colMin; col <= colStep; ++col)
+		{
+			m_table[paramIdx]->labels[col]->setStyleSheet("QLabel { background-color : " + color.name() + "; }");
+		}
+		m_table[paramIdx]->head->setBackgroundColor(color);
+		m_table[paramIdx]->bars->setBackgroundColor(color);
+		for (int barIdx = 0; barIdx < m_table[paramIdx]->out.size(); ++barIdx)
+		{
+			m_table[paramIdx]->out[barIdx]->setBackgroundColor(color);
+			m_table[paramIdx]->out[barIdx]->update();
+			m_table[paramIdx]->par[barIdx]->setBackgroundColor(color);
+			m_table[paramIdx]->par[barIdx]->update();
+		}
 	}
 	emit parameterChanged();
 }
 
-void iAParameterInfluenceView::updateStackedBars()
+void getParamMaxMinDiffVal(QVector<double> const & d, double & maxVal, double & minValDiff)
 {
-	for (auto charactIdx : m_visibleCharacts)
+	maxVal = std::numeric_limits<double>::lowest();
+	minValDiff = std::numeric_limits<double>::max();
+	for (int paramIdx = 0; paramIdx < d.size(); ++paramIdx)
 	{
-		auto const& d = (charactIdx < m_sensInf->aggregatedSensitivities.size()) ?
-			m_sensInf->aggregatedSensitivities[charactIdx][m_measureIdx][m_aggrType] :
-			m_sensInf->aggregatedSensitivitiesFiberCount[m_aggrType];
-		// TODO: unify with addStackedBar
-		auto title(columnName(charactIdx));
-		double maxValue = std::numeric_limits<double>::lowest();
-		for (int paramIdx = 0; paramIdx < m_sensInf->m_variedParams.size(); ++paramIdx)
+		if (d[paramIdx] > maxVal)
 		{
-			if (d[paramIdx] > maxValue)
+			maxVal = d[paramIdx];
+		}
+		for (int p2 = paramIdx + 1; p2 < d.size(); ++p2)
+		{
+			auto curDiff = std::abs(d[paramIdx] - d[p2]);
+			if (curDiff < minValDiff)
 			{
-				maxValue = d[paramIdx];
+				minValDiff = curDiff;
 			}
 		}
+	}
+}
+
+void iAParameterInfluenceView::updateStackedBars()
+{
+	for (auto col : m_visibleCharacts)
+	{
+		auto const& d =
+		 ((col.first == outCharacteristic)  ? m_sensInf->aggregatedSensitivities[col.second][m_measureIdx] :
+		     ((col.first == outFiberCount)  ? m_sensInf->aggregatedSensitivitiesFiberCount
+		 /*(col.first == outDissimilarity)*/: m_sensInf->aggregatedSensDissim[col.second]))[m_aggrType];
+		// TODO: unify with addStackedBar
+		auto title(columnName(col.first, col.second));
+		double maxVal, minValDiff;
+		getParamMaxMinDiffVal(d, maxVal, minValDiff);
 		for (int paramIdx = 0; paramIdx < m_sensInf->m_variedParams.size(); ++paramIdx)
 		{
-			m_stackedCharts[paramIdx]->updateBar(title, d[paramIdx], maxValue);
+			m_table[paramIdx]->bars->updateBar(title, d[paramIdx], maxVal, minValDiff);
+			updateStackedBarHistogram(title, paramIdx, col.first, col.second);
 		}
 	}
 	for (int paramIdx = 0; paramIdx < m_sensInf->m_variedParams.size(); ++paramIdx)
 	{
-		m_stackedCharts[paramIdx]->update();
+		m_table[paramIdx]->bars->update();
+	}
+	updateChartY();
+}
+
+QString iAParameterInfluenceView::columnName(int outType, int outIdx) const
+{
+	return  +
+		(outType == outCharacteristic) ? QString("Variation ") + m_sensInf->charactName(outIdx) :
+		((outType == outFiberCount) ? "Variation Fiber Count"
+		/*(outType == outDissimilarity)*/	:
+			getAvailableDissimilarityMeasureNames()[m_sensInf->m_resultDissimMeasures[outIdx].first]);
+}
+
+QSharedPointer<iAPlot> iAParameterInfluenceView::createHistoPlot(QSharedPointer<iAHistogramData> histoData, QColor color)
+{	// m_histogramChartType values need to match values from SensitivitySettings.ui file
+	if (m_histogramChartType == "Bars")
+	{
+		QColor c(color);
+		c.setAlpha(64);		// we need a transparent color for bars
+		return QSharedPointer<iABarGraphPlot>::create(histoData, c);
+	}
+	else if (m_histogramChartType == "Lines")
+	{
+		return QSharedPointer<iALinePlot>::create(histoData, color);
+	}
+	else
+	{
+		LOG(lvlWarn, QString("Unknown chart type '%1'!").arg(m_histogramChartType));
+		return QSharedPointer<iAPlot>();
 	}
 }
 
-QString iAParameterInfluenceView::columnName(int charactIdx) const
+void iAParameterInfluenceView::updateStackedBarHistogram(QString const & barName, int paramIdx, int outType, int outIdx)
 {
-	return QString("Variation ") + (charactIdx < m_sensInf->aggregatedSensitivities.size() ?
-		 m_sensInf->charactName(charactIdx) : " Fiber Count");
+	int barIdx = m_table[paramIdx]->bars->barIndex(barName);
+	/*
+
+	*/
+	auto outChart = m_table[paramIdx]->out[barIdx];
+	outChart->clearPlots();
+	outChart->resetYBounds();
+	double rng[2];
+	if (outType == outCharacteristic)
+	{
+		auto r = m_sensInf->m_data->spmData->paramRange(m_sensInf->m_charSelected[outIdx]);
+		rng[0] = r[0];
+		rng[1] = r[1];
+	}
+	else if (outType == outFiberCount)
+	{
+		rng[0] = m_sensInf->m_fiberCountRange[0];
+		rng[1] = m_sensInf->m_fiberCountRange[1];
+	}
+	else /* outType == outDissimilarity */
+	{
+		rng[0] = m_sensInf->m_dissimRanges[outIdx].first;
+		rng[1] = m_sensInf->m_dissimRanges[outIdx].second;
+	}
+	if (outType == outCharacteristic)
+	{
+		auto varHistData = iAHistogramData::create(barName, iAValueType::Continuous, rng[0], rng[1],
+			m_sensInf->charHistVarAgg[outIdx][m_aggrType][paramIdx]);
+		outChart->addPlot(createHistoPlot(varHistData, VariationHistogramColor));
+	}
+	auto avgHistData = iAHistogramData::create("Average", iAValueType::Continuous, rng[0], rng[1],
+		(outType == outCharacteristic)
+			? m_sensInf->charHistAvg[outIdx]
+			: (outType == outFiberCount)
+				? m_sensInf->fiberCountHistogram
+				: /* outType == outDissimilarity */ m_sensInf->m_dissimHistograms[outIdx]);
+	outChart->addPlot(createHistoPlot(avgHistData, AverageHistogramColor));
+	for (auto resultIdx: m_selectedResults)
+	{
+		addResultHistoPlot(resultIdx, paramIdx, barIdx);
+	}
+	outChart->update();
+
+	auto parChart = m_table[paramIdx]->par[barIdx];
+	parChart->clearPlots();
+	auto const& d = ((outType == outCharacteristic)
+		? m_sensInf->sensitivityField[outIdx][m_measureIdx][m_aggrType]
+		: (outType == outFiberCount)
+			? m_sensInf->sensitivityFiberCount[m_aggrType]
+			: /* (outType == outDissimilarity)*/ m_sensInf->sensDissimField[outIdx][m_aggrType])[paramIdx];
+	auto plotData = iAXYPlotData::create("Sensitivity " + columnName(outType, outIdx), iAValueType::Continuous, d.size());
+	for (int i = 0; i < d.size(); ++i)
+	{
+		plotData->addValue(m_sensInf->paramSetValues[i][m_sensInf->m_variedParams[paramIdx]], d[i]);
+	}
+	parChart->resetYBounds();
+	parChart->addPlot(QSharedPointer<iALinePlot>::create(plotData, ParamSensitivityPlotColor));
+	parChart->update();
 }
 
-void iAParameterInfluenceView::addStackedBar(int charactIdx)
+void iAParameterInfluenceView::setHistogramChartType(QString const & chartType)
 {
-	m_visibleCharacts.push_back(charactIdx);
-	auto title(columnName(charactIdx));
-	LOG(lvlDebug, QString("Showing stacked bar for characteristic %1").arg(title));
-	m_stackedHeader->addBar(title, 1, 1);
-	auto const& d = (charactIdx < m_sensInf->aggregatedSensitivities.size()) ?
-		m_sensInf->aggregatedSensitivities[charactIdx][m_measureIdx][m_aggrType] :
-		m_sensInf->aggregatedSensitivitiesFiberCount[m_aggrType];
-	double maxValue = std::numeric_limits<double>::lowest();
-	for (int paramIdx = 0; paramIdx < m_sensInf->m_variedParams.size(); ++paramIdx)
-	{
-		if (d[paramIdx] > maxValue)
+	m_histogramChartType = chartType;
+	updateStackedBars();
+}
+
+QSet<size_t> const & iAParameterInfluenceView::selectedResults() const
+{
+	return m_selectedResults;
+}
+
+void iAParameterInfluenceView::updateChartY()
+{
+	auto getChartMax = [](QVector<iAChartWidget*> const& c, double yMax) {
+		for (auto chart : c)
 		{
-			maxValue = d[paramIdx];
+			yMax = std::max(yMax, chart->yBounds()[1]);
 		}
-	}
-	for (int paramIdx = 0; paramIdx < m_sensInf->m_variedParams.size(); ++paramIdx)
+		return yMax;
+	};
+	auto setChartYBounds = [](QVector<iAChartWidget*> const& c, double yMax) {
+		for (auto chart : c)
+		{
+			chart->setYBounds(0, yMax);
+			chart->update();
+		}
+	};
+	double yMaxOut = std::numeric_limits<double>::lowest(),
+	       yMaxPar = std::numeric_limits<double>::lowest();
+	for (auto chartRow : m_table)
 	{
-		m_stackedCharts[paramIdx]->addBar(title, d[paramIdx], maxValue);
+		yMaxOut = getChartMax(chartRow->out, yMaxOut);
+		yMaxPar = getChartMax(chartRow->par, yMaxPar);
+	}
+	for (auto chartRow : m_table)
+	{
+		setChartYBounds(chartRow->out, yMaxOut);
+		setChartYBounds(chartRow->par, yMaxPar);
 	}
 }
 
-void iAParameterInfluenceView::removeStackedBar(int charactIdx)
+void iAParameterInfluenceView::setActionChecked(int outType, int outIdx, bool checked)
 {
-	int visibleIdx = m_visibleCharacts.indexOf(charactIdx);
+	for (auto action : m_table[0]->head->contextMenu()->actions())
+	{
+		if (action->property("objectType").toInt() == outType && action->property("charactIdx").toInt() == outIdx)
+		{
+			QSignalBlocker b(action);
+			action->setChecked(checked);
+		}
+	}
+}
+
+void iAParameterInfluenceView::addStackedBar(int outType, int outIdx)
+{
+	setActionChecked(outType, outIdx, true);
+	m_visibleCharacts.push_back(qMakePair(outType, outIdx));
+	auto title(columnName(outType, outIdx));
+	LOG(lvlDebug, QString("Showing stacked bar for characteristic %1").arg(title));
+	auto const& d = (
+		   (outType == outCharacteristic)  ? m_sensInf->aggregatedSensitivities[outIdx][m_measureIdx]:
+		      ((outType == outFiberCount)  ? m_sensInf->aggregatedSensitivitiesFiberCount
+		/*(col.first == outDissimilarity)*/: m_sensInf->aggregatedSensDissim[outIdx]))[m_aggrType];
+
+	int curBarIdx = static_cast<int>(m_table[0]->head->numberOfBars());  // not yet added to bars here so no -1
+	auto params = m_sensInf->m_variedParams;
+
+	auto selectedResults = m_sensInf->selectedResults();
+	for (int paramIdx = 0; paramIdx < params.size(); ++paramIdx)
+	{
+		int varParIdx = m_sensInf->m_variedParams[paramIdx];
+		auto paramName = m_sensInf->m_paramNames[varParIdx];
+		QColor color = (paramIdx == m_selectedParam) ? ParamRowSelectedBGColor : ParamRowUnselectedBGColor;
+
+		auto outChart = new iAChartWidget(this, "", (curBarIdx == 0) ? "Var. from " + paramName : "");
+		outChart->setShowXAxisLabel(false);
+		outChart->setEmptyText("");
+		outChart->setBackgroundColor(color);
+		outChart->setMinimumHeight(80);
+		m_table[paramIdx]->out.push_back(outChart);
+		connect(outChart, &iAChartWidget::axisChanged, this, &iAParameterInfluenceView::charactChartAxisChanged);
+
+		auto parChart = new iAChartWidget(this, paramName, (curBarIdx == 0) ? "Sens. " + title : "");
+		parChart->setEmptyText("");
+		parChart->setBackgroundColor(color);
+		parChart->setProperty("paramIdx", paramIdx);
+		double parMin = m_sensInf->m_paramMin[varParIdx],
+			parMax = m_sensInf->m_paramMax[varParIdx],
+			parPad = (parMax - parMin) / 100.0; // add 1% of range on both sides to make sure all markers will be visible
+		parChart->setXBounds(parMin - parPad, parMax + parPad);
+		m_table[paramIdx]->par.push_back(parChart);
+		connect(parChart, &iAChartWidget::clicked, this, &iAParameterInfluenceView::paramChartClicked);
+		connect(parChart, &iAChartWidget::axisChanged, this, &iAParameterInfluenceView::paramChartAxisChanged);
+		parChart->setMinimumHeight(80);
+		for (auto resultIdx : selectedResults)
+		{
+			double paramValue = m_sensInf->m_paramValues[m_sensInf->m_variedParams[paramIdx]][resultIdx];
+			parChart->addXMarker(paramValue, SelectedResultPlotColor, Qt::DashLine);
+		}
+	}
+	updateTableOrder();
+	double maxVal, minValDiff;
+	getParamMaxMinDiffVal(d, maxVal, minValDiff);
+	for (int paramIdx = 0; paramIdx < m_sensInf->m_variedParams.size(); ++paramIdx)
+	{
+		m_table[paramIdx]->head->addBar(title, 1, 1, 1);
+		m_table[paramIdx]->bars->addBar(title, d[paramIdx], maxVal, minValDiff);
+		updateStackedBarHistogram(title, paramIdx, outType, outIdx);
+		m_table[paramIdx]->head->setLeftMargin(m_table[paramIdx]->out[0]->leftMargin());
+		m_table[paramIdx]->bars->setLeftMargin(m_table[paramIdx]->out[0]->leftMargin());
+	}
+	updateChartY();
+	emit barAdded(outType, outIdx);
+}
+
+// TODO: avoid duplication:
+
+void iAParameterInfluenceView::paramChartAxisChanged()
+{
+	auto inChart = qobject_cast<iAChartWidget*>(QObject::sender());
+	for (int rowIdx = 0; rowIdx < m_table.size(); ++rowIdx)
+	{
+		for (int i = 0; i < m_table[rowIdx]->par.size(); ++i)
+		{
+			auto chart = m_table[rowIdx]->par[i];
+			if (chart == inChart)
+			{
+				continue;
+			}
+			chart->setXZoom(inChart->xZoom());
+			chart->setXShift(inChart->xShift());
+			chart->setYZoom(inChart->yZoom());
+			chart->update();
+		}
+	}
+}
+
+void iAParameterInfluenceView::charactChartAxisChanged()
+{
+	auto inChart = qobject_cast<iAChartWidget*>(QObject::sender());
+	for (int rowIdx = 0; rowIdx < m_table.size(); ++rowIdx)
+	{
+		for (int i = 0; i < m_table[rowIdx]->out.size(); ++i)
+		{
+			auto chart = m_table[rowIdx]->out[i];
+			if (chart == inChart)
+			{
+				continue;
+			}
+			chart->setXZoom(inChart->xZoom());
+			chart->setXShift(inChart->xShift());
+			chart->setYZoom(inChart->yZoom());
+			chart->update();
+		}
+	}
+}
+
+
+void iAParameterInfluenceView::removeStackedBar(int outType, int outIdx)
+{
+	setActionChecked(outType, outIdx, false);
+	int visibleIdx = m_visibleCharacts.indexOf(qMakePair(outType, outIdx));
 	if (visibleIdx == -1)
 	{
-		LOG(lvlError, QString("Invalid state - called remove on non-added characteristic idx %1").arg(charactIdx));
+		LOG(lvlError, QString("Invalid state - called remove on non-added bar (outType=%1, outIdx=%2").arg(outType).arg(outIdx));
 	}
 	m_visibleCharacts.remove(visibleIdx);
-	auto title(columnName(charactIdx));
+	auto title(columnName(outType, outIdx));
 	LOG(lvlDebug, QString("Removing stacked bar for characteristic %1").arg(title));
-	m_stackedHeader->removeBar(title);
-	for (auto stackedChart : m_stackedCharts)
+	for (int rowIdx = 0; rowIdx < m_table.size(); ++rowIdx)
 	{
-		stackedChart->removeBar(title);
+		m_table[rowIdx]->head->removeBar(title);
+		int barIdx = m_table[rowIdx]->bars->removeBar(title);
+		auto ow = m_table[rowIdx]->out[barIdx];
+		m_table[rowIdx]->out.remove(barIdx);
+		delete ow;
+		auto pw = m_table[rowIdx]->par[barIdx];
+		m_table[rowIdx]->par.remove(barIdx);
+		delete pw;
+		auto paramName = m_sensInf->m_paramNames[m_sensInf->m_variedParams[m_sort[rowIdx]]];
+		int newNumBars = m_table[rowIdx]->bars->numberOfBars();
+		if (newNumBars > 0)
+		{
+			m_table[rowIdx]->out[0]->setYCaption(
+				"Var. from " + paramName);  // to make sure if first chart is removed that new first gets caption
+			m_table[rowIdx]->out[0]->setYCaption("Sens. " + m_table[rowIdx]->bars->barName(0));
+			for (int i = barIdx; i < newNumBars; ++i)
+			{  // addWidget automatically removes it from position where it was before
+				m_paramListLayout->addWidget(
+					m_table[rowIdx]->out[i], 1 + RowsPerParam * rowIdx + RowOutputChart, colStackedBar + i);
+				m_paramListLayout->addWidget(
+					m_table[rowIdx]->par[i], 1 + RowsPerParam * rowIdx + RowParamChart, colStackedBar + i);
+			}
+			for (int b = 0; b < newNumBars; ++b)
+			{
+				m_table[rowIdx]->out[b]->resetYBounds();
+			}
+		}
 	}
+	updateChartY();
+	emit barRemoved(outType, outIdx);
 }

@@ -1,7 +1,7 @@
 /*************************************  open_iA  ************************************ *
 * **********   A tool for visual analysis and processing of 3D CT images   ********** *
 * *********************************************************************************** *
-* Copyright (C) 2016-2020  C. Heinzl, M. Reiter, A. Reh, W. Li, M. Arikan, Ar. &  Al. *
+* Copyright (C) 2016-2021  C. Heinzl, M. Reiter, A. Reh, W. Li, M. Arikan, Ar. &  Al. *
 *                 Amirkhanov, J. Weissenböck, B. Fröhler, M. Schiwarth, P. Weinberger *
 * *********************************************************************************** *
 * This program is free software: you can redistribute it and/or modify it under the   *
@@ -20,9 +20,12 @@
 * ************************************************************************************/
 #include "iAFeatureScoutSPLOM.h"
 
-#include <charts/iAScatterPlot.h>
-#include <charts/iAQSplom.h>
-#include <charts/iASPLOMData.h>
+// charts
+#include <iAScatterPlot.h>
+#include <iAQSplom.h>
+#include <iASPLOMData.h>
+
+// base
 #include <iALookupTable.h>
 
 #include <vtkDataArray.h>
@@ -154,7 +157,7 @@ void iAFeatureScoutSPLOM::setFilteredSelection(std::vector<size_t> const & selec
 {
 	if (matrix && selectionEnabled)
 	{
-		matrix->setFilteredSelection(selection);
+		matrix->viewData()->setFilteredSelection(selection, matrix->data());
 	}
 }
 
@@ -165,14 +168,14 @@ void iAFeatureScoutSPLOM::classAdded(int classID)
 		return;
 	}
 	size_t classColumn = matrix->data()->numParams() - 1;
-	auto sel = matrix->getSelection();
+	auto sel = matrix->viewData()->selection();
 	for (size_t objID : sel)
 	{
 		matrix->data()->data()[classColumn][objID] = classID;
 	}
 	classesChanged();
 	setFilter(classID);
-	matrix->clearSelection();
+	matrix->viewData()->clearSelection();
 	matrix->update();
 }
 
@@ -182,7 +185,7 @@ void iAFeatureScoutSPLOM::classDeleted(int deleteClassID)
 	{
 		return;
 	}
-	matrix->clearSelection();
+	matrix->viewData()->clearSelection();
 	size_t classColumn = matrix->data()->numParams() - 1;
 	for (size_t objID = 0; objID < matrix->data()->numPoints(); ++objID)
 	{
@@ -223,7 +226,7 @@ void iAFeatureScoutSPLOM::classesChanged()
 
 std::vector<size_t> iAFeatureScoutSPLOM::getFilteredSelection() const
 {
-	return matrix->getFilteredSelection();
+	return matrix->viewData()->filteredSelection(matrix->data());
 }
 
 bool iAFeatureScoutSPLOM::isShown() const
@@ -235,7 +238,7 @@ void iAFeatureScoutSPLOM::clearSelection()
 {
 	if (matrix)
 	{
-		matrix->clearSelection();
+		matrix->viewData()->clearSelection();
 	}
 }
 
@@ -246,6 +249,6 @@ void iAFeatureScoutSPLOM::enableSelection(bool enable)
 	{
 		return;
 	}
-	matrix->clearSelection();
+	matrix->viewData()->clearSelection();
 	matrix->enableSelection(enable);
 }

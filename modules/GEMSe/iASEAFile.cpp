@@ -1,7 +1,7 @@
 /*************************************  open_iA  ************************************ *
 * **********   A tool for visual analysis and processing of 3D CT images   ********** *
 * *********************************************************************************** *
-* Copyright (C) 2016-2020  C. Heinzl, M. Reiter, A. Reh, W. Li, M. Arikan, Ar. &  Al. *
+* Copyright (C) 2016-2021  C. Heinzl, M. Reiter, A. Reh, W. Li, M. Arikan, Ar. &  Al. *
 *                 Amirkhanov, J. Weissenböck, B. Fröhler, M. Schiwarth, P. Weinberger *
 * *********************************************************************************** *
 * This program is free software: you can redistribute it and/or modify it under the   *
@@ -21,7 +21,7 @@
 #include "iASEAFile.h"
 
 #include <iALog.h>
-#include <io/iAFileUtils.h>
+#include <iAFileUtils.h>
 
 #include <QFile>
 #include <QFileInfo>
@@ -83,7 +83,9 @@ iASEAFile::iASEAFile(QString const & fileName):
 		return;
 	}
 	QSettings metaFile(fileName, QSettings::IniFormat );
+#if QT_VERSION < QT_VERSION_CHECK(5, 99, 0)
 	metaFile.setIniCodec("UTF-8");
+#endif
 	load(metaFile, fileName, true);
 }
 
@@ -204,7 +206,9 @@ void iASEAFile::load(QSettings const & metaFile, QString const & fileName, bool 
 void iASEAFile::save(QString const & fileName)
 {
 	QSettings metaFile(fileName, QSettings::IniFormat);
+#if QT_VERSION < QT_VERSION_CHECK(5, 99, 0)
 	metaFile.setIniCodec("UTF-8");
+#endif
 	metaFile.setValue(ModalitiesKey, MakeRelative(QFileInfo(fileName).absolutePath(), m_modalityFileName));
 	save(metaFile, fileName);
 }

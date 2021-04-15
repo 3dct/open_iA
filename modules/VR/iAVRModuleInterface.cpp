@@ -1,7 +1,7 @@
 /*************************************  open_iA  ************************************ *
 * **********   A tool for visual analysis and processing of 3D CT images   ********** *
 * *********************************************************************************** *
-* Copyright (C) 2016-2020  C. Heinzl, M. Reiter, A. Reh, W. Li, M. Arikan, Ar. &  Al. *
+* Copyright (C) 2016-2021  C. Heinzl, M. Reiter, A. Reh, W. Li, M. Arikan, Ar. &  Al. *
 *                 Amirkhanov, J. Weissenböck, B. Fröhler, M. Schiwarth, P. Weinberger *
 * *********************************************************************************** *
 * This program is free software: you can redistribute it and/or modify it under the   *
@@ -30,13 +30,15 @@
 #include "iACsvVtkTableCreator.h"
 
 #include <iALog.h>
-#include <mainwindow.h>
+#include <iAMainWindow.h>
 
 #include <openvr.h>
 
 #include <vtkFloatArray.h>
 #include <vtkTable.h>
 
+#include <QAction>
+#include <QMenu>
 #include <QMessageBox>
 
 void iAVRModuleInterface::Initialize()
@@ -51,7 +53,7 @@ void iAVRModuleInterface::Initialize()
 
 	QAction * actionVRRender = new QAction(tr("Rendering"), m_mainWnd);
 	connect(actionVRRender, &QAction::triggered, this, &iAVRModuleInterface::render);
-	makeActionChildDependent(actionVRRender);
+	m_mainWnd->makeActionChildDependent(actionVRRender);
 
 	m_actionVRShowFibers = new QAction(tr("Show Fibers"), m_mainWnd);
 	connect(m_actionVRShowFibers, &QAction::triggered, this, &iAVRModuleInterface::showFibers);
@@ -174,7 +176,7 @@ bool iAVRModuleInterface::vrAvailable()
 	return true;
 }
 
-iAModuleAttachmentToChild * iAVRModuleInterface::CreateAttachment( MainWindow* mainWnd, MdiChild* child)
+iAModuleAttachmentToChild * iAVRModuleInterface::CreateAttachment( iAMainWindow* mainWnd, iAMdiChild* child)
 {
 	return new iAVRAttachment( mainWnd, child );
 }

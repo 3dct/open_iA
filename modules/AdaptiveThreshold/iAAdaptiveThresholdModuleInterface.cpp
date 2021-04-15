@@ -1,7 +1,7 @@
 /*************************************  open_iA  ************************************ *
 * **********   A tool for visual analysis and processing of 3D CT images   ********** *
 * *********************************************************************************** *
-* Copyright (C) 2016-2020  C. Heinzl, M. Reiter, A. Reh, W. Li, M. Arikan, Ar. &  Al. *
+* Copyright (C) 2016-2021  C. Heinzl, M. Reiter, A. Reh, W. Li, M. Arikan, Ar. &  Al. *
 *                 Amirkhanov, J. Weissenböck, B. Fröhler, M. Schiwarth, P. Weinberger *
 * *********************************************************************************** *
 * This program is free software: you can redistribute it and/or modify it under the   *
@@ -23,15 +23,16 @@
 #include "iAAdaptiveThresholdDlg.h"
 #include "iAImageProcessingHelper.h"
 
-#include <charts/iAChartWithFunctionsWidget.h>
-#include <charts/iAPlot.h>
-#include <charts/iAPlotData.h>
+#include <iAChartWithFunctionsWidget.h>
+#include <iAPlot.h>
+#include <iAPlotData.h>
 #include <iALog.h>
-#include <mainwindow.h>
-#include <mdichild.h>
+#include <iAMainWindow.h>
+#include <iAMdiChild.h>
 
 #include <vtkImageData.h>
 
+#include <QMenu>
 #include <QMessageBox>
 
 void iAAdaptiveThresholdModuleInterface::Initialize()
@@ -42,7 +43,7 @@ void iAAdaptiveThresholdModuleInterface::Initialize()
 	}
 	QAction * determineThresholdAction = new QAction(tr("Adaptive Thresholding"), m_mainWnd);
 	connect(determineThresholdAction, &QAction::triggered, this, &iAAdaptiveThresholdModuleInterface::determineThreshold);
-	makeActionChildDependent(determineThresholdAction);
+	m_mainWnd->makeActionChildDependent(determineThresholdAction);
 	addToMenuSorted(m_mainWnd->toolsMenu(), determineThresholdAction);
 }
 

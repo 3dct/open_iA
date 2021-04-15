@@ -1,7 +1,7 @@
 /*************************************  open_iA  ************************************ *
 * **********   A tool for visual analysis and processing of 3D CT images   ********** *
 * *********************************************************************************** *
-* Copyright (C) 2016-2020  C. Heinzl, M. Reiter, A. Reh, W. Li, M. Arikan, Ar. &  Al. *
+* Copyright (C) 2016-2021  C. Heinzl, M. Reiter, A. Reh, W. Li, M. Arikan, Ar. &  Al. *
 *                 Amirkhanov, J. Weissenböck, B. Fröhler, M. Schiwarth, P. Weinberger *
 * *********************************************************************************** *
 * This program is free software: you can redistribute it and/or modify it under the   *
@@ -69,14 +69,26 @@ public:
 class MetaFilters_API iAGlobalSensitivitySamplingMethod : public iASamplingMethod
 {
 public:
-	iAGlobalSensitivitySamplingMethod(QSharedPointer<iASamplingMethod> otherGenerator,
-		double delta, int samplesPerPoint);
+	iAGlobalSensitivitySamplingMethod(QSharedPointer<iASamplingMethod> otherGenerator, double delta);
 	QString name() const override;
 	iAParameterSetsPointer parameterSets(QSharedPointer<iAAttributes> parameter, int sampleCount) override;
 private:
 	QSharedPointer<iASamplingMethod> m_baseGenerator;
 	double m_delta;
-	int m_samplesPerPoint;
+};
+
+class MetaFilters_API iAGlobalSensitivitySmallStarSamplingMethod: public iASamplingMethod
+{
+public:
+	iAGlobalSensitivitySmallStarSamplingMethod(QSharedPointer<iASamplingMethod> otherGenerator,
+		double delta, int numSteps);
+	QString name() const override;
+	iAParameterSetsPointer parameterSets(QSharedPointer<iAAttributes> parameter, int sampleCount) override;
+
+private:
+	QSharedPointer<iASamplingMethod> m_baseGenerator;
+	double m_delta;
+	int m_numSteps;
 };
 
 class MetaFilters_API iASelectionSamplingMethod : public iASamplingMethod

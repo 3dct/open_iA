@@ -1,7 +1,7 @@
 /*************************************  open_iA  ************************************ *
 * **********   A tool for visual analysis and processing of 3D CT images   ********** *
 * *********************************************************************************** *
-* Copyright (C) 2016-2020  C. Heinzl, M. Reiter, A. Reh, W. Li, M. Arikan, Ar. &  Al. *
+* Copyright (C) 2016-2021  C. Heinzl, M. Reiter, A. Reh, W. Li, M. Arikan, Ar. &  Al. *
 *                 Amirkhanov, J. Weissenböck, B. Fröhler, M. Schiwarth, P. Weinberger *
 * *********************************************************************************** *
 * This program is free software: you can redistribute it and/or modify it under the   *
@@ -24,11 +24,13 @@
 #include "iABoneThicknessSplitter.h"
 #include "iABoneThicknessTable.h"
 
-#include <qthelper/iADockWidgetWrapper.h>
-#include <iARenderer.h>
-#include <mdichild.h>
-#include <mainwindow.h>
+#include <iADockWidgetWrapper.h>
 
+#include <iARenderer.h>
+#include <iAMdiChild.h>
+#include <iAMainWindow.h>
+
+#include <QApplication>
 #include <QCheckBox>
 #include <QFileDialog>
 #include <QGridLayout>
@@ -36,7 +38,7 @@
 #include <QLabel>
 #include <QPushButton>
 
-iABoneThicknessAttachment::iABoneThicknessAttachment(MainWindow* mainWnd, MdiChild * child):
+iABoneThicknessAttachment::iABoneThicknessAttachment(iAMainWindow* mainWnd, iAMdiChild * child):
 	iAModuleAttachmentToChild(mainWnd, child)
 {
 	QWidget* pWidget(new QWidget());

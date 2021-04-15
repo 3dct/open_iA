@@ -1,7 +1,7 @@
 /*************************************  open_iA  ************************************ *
 * **********   A tool for visual analysis and processing of 3D CT images   ********** *
 * *********************************************************************************** *
-* Copyright (C) 2016-2020  C. Heinzl, M. Reiter, A. Reh, W. Li, M. Arikan, Ar. &  Al. *
+* Copyright (C) 2016-2021  C. Heinzl, M. Reiter, A. Reh, W. Li, M. Arikan, Ar. &  Al. *
 *                 Amirkhanov, J. Weissenböck, B. Fröhler, M. Schiwarth, P. Weinberger *
 * *********************************************************************************** *
 * This program is free software: you can redistribute it and/or modify it under the   *
@@ -21,30 +21,35 @@
 #pragma once
 
 #include <iAFilter.h>
-#include <iAFilterRunnerGUI.h>
 
-IAFILTER_DEFAULT_CLASS(iASimpleResampleFilter);
-IAFILTER_DEFAULT_CLASS(iAResampleFilter);
-IAFILTER_DEFAULT_CLASS(iAExtractImageFilter);
+class iASimpleResampleFilter : public iAFilter
+{
+public:
+	static QSharedPointer<iASimpleResampleFilter> create();
+	void adaptParametersToInput(QMap<QString, QVariant>& params, vtkSmartPointer<vtkImageData> img) override;
+private:
+	void performWork(QMap<QString, QVariant> const& parameters) override;
+	iASimpleResampleFilter();
+};
+
+class iAResampleFilter : public iAFilter
+{
+public:
+	static QSharedPointer<iAResampleFilter> create();
+	void adaptParametersToInput(QMap<QString, QVariant>& params, vtkSmartPointer<vtkImageData> img) override;
+private:
+	void performWork(QMap<QString, QVariant> const& parameters) override;
+	iAResampleFilter();
+};
+
+class iAExtractImageFilter : public iAFilter
+{
+public:
+	static QSharedPointer<iAExtractImageFilter> create();
+	void adaptParametersToInput(QMap<QString, QVariant>& params, vtkSmartPointer<vtkImageData> img) override;
+private:
+	void performWork(QMap<QString, QVariant> const& parameters) override;
+	iAExtractImageFilter();
+};
+
 IAFILTER_DEFAULT_CLASS(iAPadImageFilter);
-
-class iASimpleResampleFilterRunner : public iAFilterRunnerGUI
-{
-public:
-	static QSharedPointer<iAFilterRunnerGUI> create();
-	QMap<QString, QVariant> loadParameters(QSharedPointer<iAFilter> filter, MdiChild* sourceMdi) override;
-};
-
-class iAResampleFilterRunner : public iAFilterRunnerGUI
-{
-public:
-	static QSharedPointer<iAFilterRunnerGUI> create();
-	QMap<QString, QVariant> loadParameters(QSharedPointer<iAFilter> filter, MdiChild* sourceMdi) override;
-};
-
-class iAExtractImageFilterRunner : public iAFilterRunnerGUI
-{
-public:
-	static QSharedPointer<iAFilterRunnerGUI> create();
-	QMap<QString, QVariant> loadParameters(QSharedPointer<iAFilter> filter, MdiChild* sourceMdi) override;
-};
