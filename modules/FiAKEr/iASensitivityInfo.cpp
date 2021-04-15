@@ -32,6 +32,7 @@
 #include <iALog.h>
 #include <iALUT.h>
 #include <iAMathUtility.h>
+#include <iAPerformanceHelper.h>
 #include <iARunAsync.h>
 #include <iAStackedBarChart.h>    // for add HeaderLabel
 #include <iAStringHelper.h>
@@ -40,6 +41,9 @@
 
 // qthelper:
 #include <iADockWidgetWrapper.h>
+
+// objectvis:
+#include <iA3DColoredPolyObjectVis.h>
 
 // FeatureScout
 #include "iACsvVectorTableCreator.h"
@@ -51,6 +55,7 @@
 // FIAKER
 #include "iAAlgorithmInfo.h"
 #include "iAFiberCharData.h"
+#include "iAFiberCharUIData.h"
 #include "iAFiberData.h"
 #include "iAMeasureSelectionDlg.h"
 #include "iAMultidimensionalScaling.h"
@@ -60,9 +65,23 @@
 #include "ui_DissimilarityMatrix.h"
 #include "ui_SensitivitySettings.h"
 
+#include <vtkPolyData.h>
+#include <vtkPolyDataMapper.h>
 #include <vtkSmartPointer.h>
 #include <vtkTable.h>
 #include <vtkVariant.h>
+
+// for mesh differences:
+// {
+#include "iARendererManager.h"
+//#include "vtkPolyDataBooleanFilter.h"
+
+#include <vtkActor.h>
+//#include <vtkCleanPolyData.h>
+#include <vtkBooleanOperationPolyDataFilter.h>
+#include <vtkRendererCollection.h>
+#include <vtkTriangleFilter.h>
+// }
 
 #include <QDialog>
 #include <QDialogButtonBox>
@@ -298,8 +317,8 @@ void iASensitivityInfo::abort()
 }
 
 QSharedPointer<iASensitivityInfo> iASensitivityInfo::create(QMainWindow* child,
-	QSharedPointer<iAFiberResultsCollection> data, QDockWidget* nextToDW,
-	int histogramBins, int skipColumns, QString parameterSetFileName,
+	QSharedPointer<iAFiberResultsCollection> data, QDockWidget* nextToDW, int histogramBins, int skipColumns,
+	std::vector<iAFiberCharUIData> const& resultUIs, iAVtkWidget* main3DWidget, QString parameterSetFileName,
 	QVector<int> const & charSelected, QVector<int> const & charDiffMeasure)
 {
 	if (parameterSetFileName.isEmpty())
@@ -333,7 +352,7 @@ QSharedPointer<iASensitivityInfo> iASensitivityInfo::create(QMainWindow* child,
 	}
 	// data in m_paramValues is indexed [col(=parameter index)][row(=parameter set index)]
 	QSharedPointer<iASensitivityInfo> sensitivity(
-		new iASensitivityInfo(data, parameterSetFileName, skipColumns, paramNames, paramValues, child, nextToDW));
+		new iASensitivityInfo(data, parameterSetFileName, skipColumns, paramNames, paramValues, child, nextToDW, resultUIs, main3DWidget));
 
 	// find min/max, for all columns
 	sensitivity->m_paramMin.resize(static_cast<int>(paramValues.size()));
@@ -479,7 +498,8 @@ QSharedPointer<iASensitivityInfo> iASensitivityInfo::create(QMainWindow* child,
 
 iASensitivityInfo::iASensitivityInfo(QSharedPointer<iAFiberResultsCollection> data,
 	QString const& parameterFileName, int skipColumns, QStringList const& paramNames,
-	std::vector<std::vector<double>> const & paramValues, QMainWindow* child, QDockWidget* nextToDW) :
+	std::vector<std::vector<double>> const & paramValues, QMainWindow* child, QDockWidget* nextToDW,
+	std::vector<iAFiberCharUIData> const & resultUIs, iAVtkWidget* main3DWidget) :
 	m_data(data),
 	m_paramNames(paramNames),
 	m_paramValues(paramValues),
@@ -487,7 +507,9 @@ iASensitivityInfo::iASensitivityInfo(QSharedPointer<iAFiberResultsCollection> da
 	m_skipColumns(skipColumns),
 	m_child(child),
 	m_nextToDW(nextToDW),
-	m_aborted(false)
+	m_aborted(false),
+	m_resultUIs(resultUIs),
+	m_main3DWidget(main3DWidget)
 {
 }
 
@@ -1572,7 +1594,8 @@ public:
 		m_dwParamInfluence(nullptr),
 		m_matrixWidget(nullptr),
 		m_parameterListView(nullptr),
-		m_algoInfo(nullptr)
+		m_algoInfo(nullptr),
+		m_diff3DWidget(nullptr)
 	{}
 
 	//! @{ Param Influence List
@@ -1599,6 +1622,12 @@ public:
 	iAMatrixWidget* m_matrixWidget;
 	iAParameterListView* m_parameterListView;
 	iAAlgorithmInfo* m_algoInfo;
+
+	iAVtkWidget* m_diff3DWidget;
+	vtkSmartPointer<vtkRenderer> m_diff3DRenderer;
+	vtkSmartPointer<vtkPolyData> m_diffData;
+	vtkSmartPointer<vtkActor> m_diffActor;
+	iARendererManager m_renderManager;
 
 	void updateScatterPlotLUT(int starGroupSize, int numOfSTARSteps, size_t resultCount, int numInputParams,
 		iADissimilarityMatrixType const & resultDissimMatrix, QVector<QPair<double, double> > const & dissimRanges,
@@ -1803,15 +1832,16 @@ bool iASensitivityInfo::hasData(iASettings const& settings)
 
 
 QSharedPointer<iASensitivityInfo> iASensitivityInfo::load(QMainWindow* child,
-	QSharedPointer<iAFiberResultsCollection> data, QDockWidget* nextToDW,
-	iASettings const & projectFile, QString const& projectFileName)
+	QSharedPointer<iAFiberResultsCollection> data, QDockWidget* nextToDW, iASettings const& projectFile,
+	QString const& projectFileName, std::vector<iAFiberCharUIData> const& resultUIs, iAVtkWidget* main3DWidget)
 {
 	QString parameterSetFileName = MakeAbsolute(QFileInfo(projectFileName).absolutePath(), projectFile.value(ProjectParameterFile).toString());
 	QVector<int> charsSelected = stringToVector<QVector<int>, int>(projectFile.value(ProjectCharacteristics).toString());
 	QVector<int> charDiffMeasure = stringToVector<QVector<int>, int>(projectFile.value(ProjectCharDiffMeasures).toString());
 	int skipColumns = projectFile.value(ProjectSkipParameterCSVColumns, 1).toInt();
 	int histogramBins = projectFile.value(ProjectHistogramBins, 20).toInt();
-	return iASensitivityInfo::create(child, data, nextToDW, histogramBins, skipColumns, parameterSetFileName, charsSelected, charDiffMeasure);
+	return iASensitivityInfo::create(child, data, nextToDW, histogramBins, skipColumns, resultUIs, main3DWidget,
+		parameterSetFileName, charsSelected, charDiffMeasure);
 }
 
 class iASPParamPointInfo final: public iAScatterPlotPointInfo
@@ -1959,6 +1989,25 @@ void iASensitivityInfo::createGUI()
 		m_resultDissimMatrix, m_resultDissimRanges, 0, "");  // last 3 parameters not important here (no result selected here yet)
 	m_gui->m_scatterPlot->setPointInfo(
 		QSharedPointer<iAScatterPlotPointInfo>(new iASPParamPointInfo(*this, *m_data.data())));
+
+	m_gui->m_diff3DWidget = new iAVtkWidget();
+	auto renWin = vtkSmartPointer<vtkGenericOpenGLRenderWindow>::New();
+#if VTK_VERSION_NUMBER < VTK_VERSION_CHECK(9, 0, 0)
+	m_gui->m_diff3DWidget->SetRenderWindow(renWin);
+#else
+	m_gui->m_diff3DWidget->setRenderWindow(renWin);
+#endif
+	auto dwDiff3D = new iADockWidgetWrapper(m_gui->m_diff3DWidget, "Difference 3D", "foeDiff3D");
+	m_child->splitDockWidget(dwSettings, dwDiff3D, Qt::Horizontal);
+#if VTK_VERSION_NUMBER < VTK_VERSION_CHECK(9, 0, 0)
+	m_gui->m_renderManager.addToBundle(m_main3DWidget->GetRenderWindow()->GetRenderers()->GetFirstRenderer());
+#else
+	m_gui->m_renderManager.addToBundle(m_main3DWidget->renderWindow()->GetRenderers()->GetFirstRenderer());
+#endif
+	m_gui->m_diff3DRenderer = vtkSmartPointer<vtkRenderer>::New();
+	m_gui->m_diff3DRenderer->SetBackground(1.0, 1.0, 1.0);
+	m_gui->m_renderManager.addToBundle(m_gui->m_diff3DRenderer);
+	renWin->AddRenderer(m_gui->m_diff3DRenderer);
 
 	updateDissimilarity();
 	changeAggregation(SelectedAggregationMeasureIdx);
@@ -2195,12 +2244,13 @@ void iASensitivityInfo::spHighlightChanged()
 {
 	m_gui->updateScatterPlotLUT(m_starGroupSize, m_numOfSTARSteps, m_data->result.size(), m_variedParams.size(),
 		m_resultDissimMatrix, m_resultDissimRanges, m_gui->m_settings->dissimMeasIdx(), m_gui->m_settings->spColorMap());
-	auto const& hp = m_gui->m_scatterPlot->highlightedPoints();
+	auto const& hp = m_gui->m_scatterPlot->viewData()->highlightedPoints();
 	if (hp.size() == 2)
 	{
-		emit resultSelected(hp[0], false);
-		emit resultSelected(hp[1], false);
-		emit viewDifference(hp[0], hp[1]);
+		//emit resultSelected(hp[0], false);
+		//emit resultSelected(hp[1], false);
+		//emit viewDifference(hp[0], hp[1]);
+		showDifference(hp[0], hp[1]);
 	}
 }
 
@@ -2211,4 +2261,210 @@ std::vector<size_t> iASensitivityInfo::selectedResults() const
 		return std::vector<size_t>();
 	}
 	return m_gui->m_scatterPlot->viewData()->highlightedPoints();
+}
+
+namespace
+{
+	void logMeshSize(QString const& name, vtkSmartPointer<vtkPolyData> mesh)
+	{
+		const double* b1 = mesh->GetBounds();
+		LOG(lvlDebug,
+			QString(name + ": %1, %2, %3, %4 (mesh: %5 cells, %6 points)")
+				.arg(b1[0])
+				.arg(b1[1])
+				.arg(b1[2])
+				.arg(b1[3])
+				.arg(mesh->GetNumberOfCells())
+				.arg(mesh->GetNumberOfPoints()));
+	}
+}
+
+void iASensitivityInfo::showDifference(size_t r1, size_t r2)
+{
+	iATimeGuard timer("ShowDifference");
+	//ensureMain3DViewCreated(r1);
+	//ensureMain3DViewCreated(r2);
+	if (!m_resultUIs[r1].main3DVis)
+	{
+		LOG(lvlDebug, QString("Result %1 - 3D vis not initialized!").arg(r1));
+		return;
+	}
+	if (!m_resultUIs[r2].main3DVis)
+	{
+		LOG(lvlDebug, QString("Result %1 - 3D vis not initialized!").arg(r2));
+		return;
+	}
+	auto input1 = m_resultUIs[r1].main3DVis->extractSelectedObjects();
+	auto input2 = m_resultUIs[r2].main3DVis->extractSelectedObjects();
+	LOG(lvlDebug, QString("Result %1: %2 selected:").arg(r1).arg(input1.size()));
+	for (int i=0; i<input1.size(); ++i)
+	{
+		logMeshSize(QString("  Fiber %1").arg(i), input1[i]);
+	}
+	LOG(lvlDebug, QString("Result %1: %2 selected:").arg(r2).arg(input2.size()));
+	for (int i = 0; i < input2.size(); ++i)
+	{
+		logMeshSize(QString("  Fiber %1").arg(i), input2[i]);
+	}
+
+	/*
+	
+	//double DecimationTarget = 0.5;
+	vtkNew<vtkTriangleFilter> tri1;
+	tri1->SetInputData(input1);
+	tri1->Update();
+	logMeshSize("Tri 1", tri1->GetOutput());
+	vtkNew<vtkDecimatePro> dec1;
+	dec1->SetTargetReduction(DecimationTarget);
+	dec1->SetPreserveTopology(true);
+	dec1->SetSplitting(false);
+	dec1->SetInputConnection(tri1->GetOutputPort());
+	dec1->Update();
+	vtkNew<vtkCleanPolyData> clean1;
+	clean1->SetInputConnection(tri1->GetOutputPort());
+	clean1->Update();
+	vtkNew<vtkPolyDataNormals> norm1;
+	norm1->SetInputConnection(clean1->GetOutputPort());
+	norm1->Update();
+
+	//logMeshSize("Dec 1", norm1->GetOutput());
+
+	vtkNew<vtkTriangleFilter> tri2;
+	tri2->SetInputData(input2);
+	tri2->Update();
+	//logMeshSize("Tri 2", tri2->GetOutput());
+	vtkNew<vtkDecimatePro> dec2;
+	dec2->SetTargetReduction(DecimationTarget);
+	dec2->SetPreserveTopology(true);
+	dec2->SetSplitting(false);
+	dec2->SetInputConnection(tri2->GetOutputPort());
+	logMeshSize("Dec 2", dec2->GetOutput());
+	vtkNew<vtkCleanPolyData> clean2;
+	clean2->SetInputConnection(tri2->GetOutputPort());
+	clean2->Update();
+	vtkNew<vtkPolyDataNormals> norm2;
+	norm2->SetInputConnection(clean2->GetOutputPort());
+	norm2->Update();
+	
+	//logMeshSize("Dec 2", norm2->GetOutput());
+	*/
+	//diffOp->SetInputConnection(0, norm1->GetOutputPort());
+	//diffOp->SetInputConnection(1, norm2->GetOutputPort());
+
+	// OPTION 1:
+	/*
+	auto diffOp = vtkSmartPointer<vtkBooleanOperationPolyDataFilter>::New();
+	diffOp->SetInputData(0, input1);
+	diffOp->SetInputData(1, input2);
+	*/
+	// not working, produces "No points to subdivide" / "No intersection between objects"
+	// according to https://gitlab.kitware.com/vtk/vtk/-/issues/17187,
+	// this could be due to input not being triangulated, so:
+
+	// OPTION 2:
+	/*
+	auto diffOp = vtkSmartPointer<vtkBooleanOperationPolyDataFilter>::New();
+	diffOp->SetOperationToDifference();
+	vtkNew<vtkTriangleFilter> tri1;
+	tri1->SetInputData(input1);
+	tri1->Update();
+	vtkNew<vtkTriangleFilter> tri2;
+	tri2->SetInputData(input2);
+	tri2->Update();
+	diffOp->SetInputConnection(0, tri1->GetOutputPort());
+	diffOp->SetInputConnection(1, tri2->GetOutputPort());
+	*/
+	// But this also doesn't work, giving "Edge not recovered, polygon fill suspect".
+	// different Triangulation? -> https://vtk.org/doc/nightly/html/classvtkDataSetTriangleFilter.html ?
+
+	// OPTION 3:
+	/*
+	auto diffOp = vtkSmartPointer<vtkBooleanOperationPolyDataFilter>::New();
+	diffOp->SetOperationToDifference();
+	vtkNew<vtkDataSetTriangleFilter> tri1;
+	tri1->SetInputData(input1);
+	tri1->Update();
+	vtkNew<vtkDataSetTriangleFilter> tri2;
+	tri2->SetInputData(input2);
+	tri2->Update();
+	diffOp->SetInputConnection(0, tri1->GetOutputPort());
+	diffOp->SetInputConnection(1, tri2->GetOutputPort());
+	*/
+	// not working ->  "Input for connection index 0 on input port index 0 for algorithm vtkBooleanOperationPolyDataFilter(000001E092EC8660) is of type vtkUnstructuredGrid, but a vtkPolyData is required."
+
+	// OPTION 4:
+	/*
+	// with vtkPolyDataBooleanFilter from:
+	auto diffOp = vtkSmartPointer<vtkPolyDataBooleanFilter>::New();
+	diffOp->SetOperModeToDifference();
+	diffOp->SetInputData(0, input1);
+	diffOp->SetInputData(1, input2);
+	*/
+	// error: "Strips are invalid."
+
+	// OPTION 5:
+	/*
+	auto diffOp = vtkSmartPointer<vtkPolyDataBooleanFilter>::New();
+	diffOp->SetOperModeToDifference();
+	vtkNew<vtkTriangleFilter> tri1;
+	tri1->SetInputData(input1[0]);
+	tri1->Update();
+	vtkNew<vtkTriangleFilter> tri2;
+	tri2->SetInputData(input2[0]);
+	tri2->Update();
+	diffOp->SetInputConnection(0, tri1->GetOutputPort());
+	diffOp->SetInputConnection(1, tri2->GetOutputPort());
+	diffOp->Update();
+	m_gui->m_diffData = diffOp->GetOutput();
+	*/
+	// error: "Strips are invalid."
+
+
+	// with just a single fiber: Contact ends suddenly at point 1. 
+
+	if (m_gui->m_diffActor)
+	{
+		m_gui->m_diff3DRenderer->RemoveActor(m_gui->m_diffActor);
+	}
+
+	auto diffOp = vtkSmartPointer<vtkBooleanOperationPolyDataFilter>::New();
+	diffOp->SetOperationToDifference();
+	vtkNew<vtkTriangleFilter> tri1;
+	tri1->SetInputData(input1[0]);
+	tri1->Update();
+	vtkNew<vtkTriangleFilter> tri2;
+	tri2->SetInputData(input2[0]);
+	tri2->Update();
+
+	logMeshSize(QString("TRIANGULATED Result %1").arg(r1), tri1->GetOutput());
+	logMeshSize(QString("TRIANGULATED Result %1").arg(r2), tri2->GetOutput());
+
+
+	diffOp->SetInputConnection(0, tri1->GetOutputPort());
+	diffOp->SetInputConnection(1, tri2->GetOutputPort());
+	diffOp->Update();
+	//m_gui->m_diffData = diffOp->GetOutput();
+	
+	// for debug purposes: just show first fiber of first result_
+	m_gui->m_diffData = input1[0];
+
+	auto diffMapper = vtkSmartPointer<vtkPolyDataMapper>::New();
+	diffMapper->SetInputData(m_gui->m_diffData);
+	m_gui->m_diffActor = vtkSmartPointer<vtkActor>::New();
+	m_gui->m_diffActor->SetMapper(diffMapper);
+	diffMapper->Update();
+	m_gui->m_diff3DRenderer->AddActor(m_gui->m_diffActor);
+	m_gui->m_diff3DWidget->renderWindow()->Render();
+	m_gui->m_diff3DWidget->update();
+	//m_diffActor->GetProperty()->SetPointSize(2);
+	/*
+#if VTK_VERSION_NUMBER < VTK_VERSION_CHECK(9, 0, 0)
+	m_main3DWidget->GetRenderWindow()->GetRenderers()->GetFirstRenderer()->AddActor(m_diffActor);
+	m_main3DWidget->GetRenderWindow()->Render();
+#else
+	m_main3DWidget->renderWindow()->GetRenderers()->GetFirstRenderer()->AddActor(m_diffActor);
+	m_main3DWidget->renderWindow()->Render(); 
+#endif
+	m_main3DWidget->update();
+	*/
 }

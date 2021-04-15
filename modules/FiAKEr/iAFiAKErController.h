@@ -22,6 +22,7 @@
 
 // FiAKEr:
 #include "iAFiberCharData.h"            // for iAFiberSimilarity -> REFACTOR!!!
+#include "iAFiberCharUIData.h"
 #include "iASelectionInteractorStyle.h" // for iASelectionProvider
 #include "ui_FiAKErSettings.h"
 
@@ -84,25 +85,9 @@ class QTimer;
 class QTreeView;
 class QVBoxLayout;
 
-class iAVtkQtWidget;
 class iAFixedAspectWidget;
 class iASignallingWidget;
 
-//! UI elements for each result
-class iAFiberCharUIData
-{
-public:
-	iAVtkQtWidget* vtkWidget = nullptr;
-	QSharedPointer<iA3DColoredPolyObjectVis> mini3DVis;
-	QSharedPointer<iA3DColoredPolyObjectVis> main3DVis;
-	iAChartWidget* histoChart;
-	iAStackedBarChart* stackedBars;
-	iAFixedAspectWidget* previewWidget = nullptr;
-	iASignallingWidget* nameActions;
-	QWidget* topFiller, * bottomFiller;
-	//! index where the plots for this result start
-	size_t startPlotIdx;
-};
 
 class iAFiAKErController: public QObject, public iASelectionProvider
 {
@@ -194,8 +179,6 @@ private slots:
 
 	void styleChanged();
 	void selectFibersFromSensitivity(SelectionType const& selection);
-
-	void showDifference(size_t r1, size_t r2);
 private:
 	bool loadReferenceInternal(iASettings settings);
 	void changeDistributionSource(int index);
@@ -287,8 +270,6 @@ private:
 	std::vector<vtkSmartPointer<vtkActor> > m_contextActors;
 	iAMapper* m_diameterFactorMapper;
 	vtkSmartPointer<vtkActor> m_sampleActor;
-	vtkSmartPointer<vtkPolyData> m_diffData;
-	vtkSmartPointer<vtkActor> m_diffActor;
 
 	vtkSmartPointer<vtkCubeSource> m_customBoundingBoxSource;
 	vtkSmartPointer<vtkPolyDataMapper> m_customBoundingBoxMapper;

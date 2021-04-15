@@ -73,16 +73,11 @@
 #include <iALog.h>
 #include <iALUT.h>
 #include <iAMathUtility.h>
-#include <iAPerformanceHelper.h>#include <iAStringHelper.h>
 #include <iAToolsVTK.h>    // for setCamPos
 #include <iATransferFunction.h>
 #include <iAVtkVersion.h>
 
-#include <vtkBooleanOperationPolyDataFilter.h>
-//#include "vtkPolyDataBooleanFilter.h"
-
 #include <vtkCamera.h>
-#include <vtkCleanPolyData.h>
 #include <vtkColorTransferFunction.h>
 #include <vtkCubeSource.h>
 #include <vtkDecimatePro.h>
@@ -99,7 +94,6 @@
 #include <vtkRendererCollection.h>
 #include <vtkRenderer.h>
 #include <vtkTable.h>
-#include <vtkTriangleFilter.h>
 #include <vtkUnsignedCharArray.h>
 #include <vtkVertexGlyphFilter.h>
 
@@ -1088,7 +1082,6 @@ void iAFiAKErController::connectSensitivity()
 	m_resultColorTheme = iAColorThemeManager::instance().theme("Gray");
 	connect(m_sensitivityInfo.data(), &iASensitivityInfo::aborted, this, &iAFiAKErController::resetSensitivity);
 	connect(m_sensitivityInfo.data(), &iASensitivityInfo::resultSelected, this, &iAFiAKErController::showMainVis);
-	connect(m_sensitivityInfo.data(), &iASensitivityInfo::viewDifference, this, &iAFiAKErController::showDifference);
 	connect(this, &iAFiAKErController::fiberSelectionChanged, m_sensitivityInfo.data(), &iASensitivityInfo::fiberSelectionChanged);
 	connect(m_sensitivityInfo.data(), &iASensitivityInfo::fibersToSelect, this,
 		&iAFiAKErController::selectFibersFromSensitivity);
@@ -1102,7 +1095,8 @@ void iAFiAKErController::computeSensitivity()
 		return;
 	}
 	int skipColumns = m_settingsView->sbParamCSVSkip->value();
-	m_sensitivityInfo = iASensitivityInfo::create(m_mdiChild, m_data, m_views[ResultListView], m_histogramBins, skipColumns);
+	m_sensitivityInfo = iASensitivityInfo::create(m_mdiChild, m_data, m_views[ResultListView], m_histogramBins, skipColumns,
+		m_resultUIs, m_main3DWidget);
 	connectSensitivity();
 }
 
@@ -1688,98 +1682,6 @@ void iAFiAKErController::showMainVis(size_t resultID, bool state)
 		}
 	}
 	changeReferenceDisplay();
-	update3D();
-}
-
-namespace
-{
-void logMeshSize(QString const& name, vtkSmartPointer<vtkPolyData> mesh)
-{
-	const double* b1 = mesh->GetBounds();
-	LOG(lvlDebug,
-		QString(name + ": %1, %2, %3, %4 (mesh: %5 cells, %6 points)")
-			.arg(b1[0])
-			.arg(b1[1])
-			.arg(b1[2])
-			.arg(b1[3])
-			.arg(mesh->GetNumberOfCells())
-			.arg(mesh->GetNumberOfPoints()));
-}
-}
-
-void iAFiAKErController::showDifference(size_t r1, size_t r2)
-{
-	iATimeGuard timer("ShowDifference");
-	ensureMain3DViewCreated(r1);
-	ensureMain3DViewCreated(r2);
-	vtkSmartPointer<vtkPolyData> input1 = m_resultUIs[r1].main3DVis->finalPoly();
-	vtkSmartPointer<vtkPolyData> input2 = m_resultUIs[r2].main3DVis->finalPoly();
-	logMeshSize(QString("Result %1").arg(r1), input1);
-	logMeshSize(QString("Result %1").arg(r2), input2);
-
-	double DecimationTarget = 0.5;
-
-	vtkNew<vtkTriangleFilter> tri1;
-	tri1->SetInputData(input1);
-	tri1->Update();
-	logMeshSize("Tri 1", tri1->GetOutput());
-	/*
-	vtkNew<vtkDecimatePro> dec1;
-	dec1->SetTargetReduction(DecimationTarget);
-	dec1->SetPreserveTopology(true);
-	dec1->SetSplitting(false);
-	dec1->SetInputConnection(tri1->GetOutputPort());
-	dec1->Update();
-	*/
-
-	vtkNew<vtkCleanPolyData> clean1;
-	clean1->SetInputConnection(tri1->GetOutputPort());
-	clean1->Update();
-	vtkNew<vtkPolyDataNormals> norm1;
-	norm1->SetInputConnection(clean1->GetOutputPort());
-	norm1->Update();
-	//m_diffData = dec1->GetOutput();
-	//logMeshSize("Dec 1", norm1->GetOutput());
-
-	vtkNew<vtkTriangleFilter> tri2;
-	tri2->SetInputData(input2);
-	tri2->Update();
-	//logMeshSize("Tri 2", tri2->GetOutput());
-	/*
-	vtkNew<vtkDecimatePro> dec2;
-	dec2->SetTargetReduction(DecimationTarget);
-	dec2->SetPreserveTopology(true);
-	dec2->SetSplitting(false);
-	dec2->SetInputConnection(tri2->GetOutputPort());
-	logMeshSize("Dec 2", dec2->GetOutput());
-	*/
-	vtkNew<vtkCleanPolyData> clean2;
-	clean2->SetInputConnection(tri2->GetOutputPort());
-	clean2->Update();
-	vtkNew<vtkPolyDataNormals> norm2;
-	norm2->SetInputConnection(clean2->GetOutputPort());
-	norm2->Update();
-
-	auto diffOp = vtkSmartPointer<vtkBooleanOperationPolyDataFilter>::New();
-	diffOp->SetInputConnection(0, norm1->GetOutputPort());
-	diffOp->SetInputConnection(1, norm2->GetOutputPort());
-	diffOp->SetOperationToDifference();
-	diffOp->Update();
-	m_diffData = diffOp->GetOutput();
-
-	//auto diffOp = vtkSmartPointer<vtkPolyDataBooleanFilter>::New();
-	//diffOp->SetOperModeToDifference();
-	auto diffMapper = vtkSmartPointer<vtkPolyDataMapper>::New();
-	diffMapper->SetInputData(m_diffData);
-	m_diffActor = vtkSmartPointer<vtkActor>::New();
-	m_diffActor->SetMapper(diffMapper);
-	diffMapper->Update();
-	//m_diffActor->GetProperty()->SetPointSize(2);
-#if VTK_VERSION_NUMBER < VTK_VERSION_CHECK(9, 0, 0)
-	m_main3DWidget->GetRenderWindow()->GetRenderers()->GetFirstRenderer()->AddActor(m_diffActor);
-#else
-	m_main3DWidget->renderWindow()->GetRenderers()->GetFirstRenderer()->AddActor(m_diffActor);
-#endif
 	update3D();
 }
 
@@ -2487,7 +2389,7 @@ void iAFiAKErController::loadAdditionalData(iASettings settings, QString project
 	if (iASensitivityInfo::hasData(settings))
 	{
 		m_sensitivityInfo = iASensitivityInfo::load(m_mdiChild, m_data, m_views[ResultListView],
-			settings, projectFileName);
+			settings, projectFileName, m_resultUIs, m_main3DWidget);
 		connectSensitivity();
 		// don't change direct loading of settings here, the settings loaded below
 		// probably don't really affect sensitivity things (TODO: to be checked - if it doesn't crash it should be fine)

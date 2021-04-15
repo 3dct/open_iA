@@ -33,8 +33,16 @@
 #include <QVector>
 
 class iACsvTableCreator;
+class iAFiberCharUIData;
 class iAFiberResultsCollection;
 class iASensitivityGUI;
+
+// for mesh difference:
+// {
+#include "iAVtkWidget.h"
+class vtkActor;
+class vtkPolyData;
+// }
 
 class QDockWidget;
 class QMainWindow;
@@ -45,12 +53,15 @@ class iASensitivityInfo: public QObject, public iAAbortListener
 public:
 	static QSharedPointer<iASensitivityInfo> create(QMainWindow* child,
 		QSharedPointer<iAFiberResultsCollection> data, QDockWidget* nextToDW,
-		int histogramBins, int skipColumns, QString parameterSetFileName = QString(),
+		int histogramBins, int skipColumns, std::vector<iAFiberCharUIData> const& resultUIs,
+		iAVtkWidget* main3DWidget,
+		QString parameterSetFileName = QString(),
 		QVector<int> const& charSelected = QVector<int>(),
 		QVector<int> const& charDiffMeasure = QVector<int>());
 	static QSharedPointer<iASensitivityInfo> load(QMainWindow* child,
 		QSharedPointer<iAFiberResultsCollection> data, QDockWidget* nextToDW,
-		iASettings const & projectFile, QString const& projectFileName);
+		iASettings const & projectFile, QString const& projectFileName,
+		std::vector<iAFiberCharUIData> const& resultUIs, iAVtkWidget* main3DWidget);
 	static bool hasData(iASettings const& settings);
 	QString charactName(int selCharIdx) const;
 
@@ -211,18 +222,22 @@ public:
 private:
 	iASensitivityInfo(QSharedPointer<iAFiberResultsCollection> data,
 		QString const& parameterFileName, int skipColumns, QStringList const& paramNames,
-		std::vector<std::vector<double>> const& paramValues,
-		QMainWindow* child, QDockWidget* nextToDW);
+		std::vector<std::vector<double>> const& paramValues, QMainWindow* child,
+		QDockWidget* nextToDW, std::vector<iAFiberCharUIData> const& resultUIs, iAVtkWidget* main3DWidget);
 	void compute();
 	QString dissimilarityMatrixCacheFileName() const;
 	bool readDissimilarityMatrixCache(QVector<int>& measures);
 	void writeDissimilarityMatrixCache(QVector<int> const& measures) const;
 	QWidget* setupMatrixView(QVector<int> const& measures);
 
+	void showDifference(size_t r1, size_t r2);
+
 	QString m_parameterFileName;
 	int m_skipColumns;
 	QMainWindow* m_child;
 	QDockWidget* m_nextToDW;
+	std::vector<iAFiberCharUIData> const& m_resultUIs;
+	iAVtkWidget* m_main3DWidget;
 
 	// for computation:
 	iAProgress m_progress;
