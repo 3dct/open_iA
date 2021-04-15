@@ -74,7 +74,7 @@
 // for mesh differences:
 // {
 #include "iARendererManager.h"
-//#include "vtkPolyDataBooleanFilter.h"
+#include "vtkPolyDataBooleanFilter.h"
 
 #include <vtkActor.h>
 //#include <vtkCleanPolyData.h>
@@ -2282,8 +2282,6 @@ namespace
 void iASensitivityInfo::showDifference(size_t r1, size_t r2)
 {
 	iATimeGuard timer("ShowDifference");
-	//ensureMain3DViewCreated(r1);
-	//ensureMain3DViewCreated(r2);
 	if (!m_resultUIs[r1].main3DVis)
 	{
 		LOG(lvlDebug, QString("Result %1 - 3D vis not initialized!").arg(r1));
@@ -2296,6 +2294,11 @@ void iASensitivityInfo::showDifference(size_t r1, size_t r2)
 	}
 	auto input1 = m_resultUIs[r1].main3DVis->extractSelectedObjects();
 	auto input2 = m_resultUIs[r2].main3DVis->extractSelectedObjects();
+	if (input1.size() == 0 || input2.size() == 0)
+	{
+		LOG(lvlWarn, "One of the selected results has no selected fiber!");
+		return;
+	}
 	LOG(lvlDebug, QString("Result %1: %2 selected:").arg(r1).arg(input1.size()));
 	for (int i=0; i<input1.size(); ++i)
 	{
@@ -2307,128 +2310,11 @@ void iASensitivityInfo::showDifference(size_t r1, size_t r2)
 		logMeshSize(QString("  Fiber %1").arg(i), input2[i]);
 	}
 
-	/*
-	
-	//double DecimationTarget = 0.5;
-	vtkNew<vtkTriangleFilter> tri1;
-	tri1->SetInputData(input1);
-	tri1->Update();
-	logMeshSize("Tri 1", tri1->GetOutput());
-	vtkNew<vtkDecimatePro> dec1;
-	dec1->SetTargetReduction(DecimationTarget);
-	dec1->SetPreserveTopology(true);
-	dec1->SetSplitting(false);
-	dec1->SetInputConnection(tri1->GetOutputPort());
-	dec1->Update();
-	vtkNew<vtkCleanPolyData> clean1;
-	clean1->SetInputConnection(tri1->GetOutputPort());
-	clean1->Update();
-	vtkNew<vtkPolyDataNormals> norm1;
-	norm1->SetInputConnection(clean1->GetOutputPort());
-	norm1->Update();
-
-	//logMeshSize("Dec 1", norm1->GetOutput());
-
-	vtkNew<vtkTriangleFilter> tri2;
-	tri2->SetInputData(input2);
-	tri2->Update();
-	//logMeshSize("Tri 2", tri2->GetOutput());
-	vtkNew<vtkDecimatePro> dec2;
-	dec2->SetTargetReduction(DecimationTarget);
-	dec2->SetPreserveTopology(true);
-	dec2->SetSplitting(false);
-	dec2->SetInputConnection(tri2->GetOutputPort());
-	logMeshSize("Dec 2", dec2->GetOutput());
-	vtkNew<vtkCleanPolyData> clean2;
-	clean2->SetInputConnection(tri2->GetOutputPort());
-	clean2->Update();
-	vtkNew<vtkPolyDataNormals> norm2;
-	norm2->SetInputConnection(clean2->GetOutputPort());
-	norm2->Update();
-	
-	//logMeshSize("Dec 2", norm2->GetOutput());
-	*/
-	//diffOp->SetInputConnection(0, norm1->GetOutputPort());
-	//diffOp->SetInputConnection(1, norm2->GetOutputPort());
-
-	// OPTION 1:
-	/*
-	auto diffOp = vtkSmartPointer<vtkBooleanOperationPolyDataFilter>::New();
-	diffOp->SetInputData(0, input1);
-	diffOp->SetInputData(1, input2);
-	*/
-	// not working, produces "No points to subdivide" / "No intersection between objects"
-	// according to https://gitlab.kitware.com/vtk/vtk/-/issues/17187,
-	// this could be due to input not being triangulated, so:
-
-	// OPTION 2:
-	/*
-	auto diffOp = vtkSmartPointer<vtkBooleanOperationPolyDataFilter>::New();
-	diffOp->SetOperationToDifference();
-	vtkNew<vtkTriangleFilter> tri1;
-	tri1->SetInputData(input1);
-	tri1->Update();
-	vtkNew<vtkTriangleFilter> tri2;
-	tri2->SetInputData(input2);
-	tri2->Update();
-	diffOp->SetInputConnection(0, tri1->GetOutputPort());
-	diffOp->SetInputConnection(1, tri2->GetOutputPort());
-	*/
-	// But this also doesn't work, giving "Edge not recovered, polygon fill suspect".
-	// different Triangulation? -> https://vtk.org/doc/nightly/html/classvtkDataSetTriangleFilter.html ?
-
-	// OPTION 3:
-	/*
-	auto diffOp = vtkSmartPointer<vtkBooleanOperationPolyDataFilter>::New();
-	diffOp->SetOperationToDifference();
-	vtkNew<vtkDataSetTriangleFilter> tri1;
-	tri1->SetInputData(input1);
-	tri1->Update();
-	vtkNew<vtkDataSetTriangleFilter> tri2;
-	tri2->SetInputData(input2);
-	tri2->Update();
-	diffOp->SetInputConnection(0, tri1->GetOutputPort());
-	diffOp->SetInputConnection(1, tri2->GetOutputPort());
-	*/
-	// not working ->  "Input for connection index 0 on input port index 0 for algorithm vtkBooleanOperationPolyDataFilter(000001E092EC8660) is of type vtkUnstructuredGrid, but a vtkPolyData is required."
-
-	// OPTION 4:
-	/*
-	// with vtkPolyDataBooleanFilter from:
-	auto diffOp = vtkSmartPointer<vtkPolyDataBooleanFilter>::New();
-	diffOp->SetOperModeToDifference();
-	diffOp->SetInputData(0, input1);
-	diffOp->SetInputData(1, input2);
-	*/
-	// error: "Strips are invalid."
-
-	// OPTION 5:
-	/*
-	auto diffOp = vtkSmartPointer<vtkPolyDataBooleanFilter>::New();
-	diffOp->SetOperModeToDifference();
-	vtkNew<vtkTriangleFilter> tri1;
-	tri1->SetInputData(input1[0]);
-	tri1->Update();
-	vtkNew<vtkTriangleFilter> tri2;
-	tri2->SetInputData(input2[0]);
-	tri2->Update();
-	diffOp->SetInputConnection(0, tri1->GetOutputPort());
-	diffOp->SetInputConnection(1, tri2->GetOutputPort());
-	diffOp->Update();
-	m_gui->m_diffData = diffOp->GetOutput();
-	*/
-	// error: "Strips are invalid."
-
-
-	// with just a single fiber: Contact ends suddenly at point 1. 
-
 	if (m_gui->m_diffActor)
 	{
 		m_gui->m_diff3DRenderer->RemoveActor(m_gui->m_diffActor);
 	}
 
-	auto diffOp = vtkSmartPointer<vtkBooleanOperationPolyDataFilter>::New();
-	diffOp->SetOperationToDifference();
 	vtkNew<vtkTriangleFilter> tri1;
 	tri1->SetInputData(input1[0]);
 	tri1->Update();
@@ -2439,14 +2325,18 @@ void iASensitivityInfo::showDifference(size_t r1, size_t r2)
 	logMeshSize(QString("TRIANGULATED Result %1").arg(r1), tri1->GetOutput());
 	logMeshSize(QString("TRIANGULATED Result %1").arg(r2), tri2->GetOutput());
 
+	//auto diffOp = vtkSmartPointer<vtkPolyDataBooleanFilter>::New();
+	//diffOp->SetOperModeToDifference();
+	auto diffOp = vtkSmartPointer<vtkBooleanOperationPolyDataFilter>::New();
+	diffOp->SetOperationToDifference();
 
 	diffOp->SetInputConnection(0, tri1->GetOutputPort());
 	diffOp->SetInputConnection(1, tri2->GetOutputPort());
 	diffOp->Update();
-	//m_gui->m_diffData = diffOp->GetOutput();
-	
+
+	m_gui->m_diffData = diffOp->GetOutput();
 	// for debug purposes: just show first fiber of first result_
-	m_gui->m_diffData = input1[0];
+	//m_gui->m_diffData = input1[0];
 
 	auto diffMapper = vtkSmartPointer<vtkPolyDataMapper>::New();
 	diffMapper->SetInputData(m_gui->m_diffData);
