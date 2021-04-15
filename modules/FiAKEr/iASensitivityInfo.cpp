@@ -2327,16 +2327,18 @@ void iASensitivityInfo::showDifference(size_t r1, size_t r2)
 
 	//auto diffOp = vtkSmartPointer<vtkPolyDataBooleanFilter>::New();
 	//diffOp->SetOperModeToDifference();
+	/*
 	auto diffOp = vtkSmartPointer<vtkBooleanOperationPolyDataFilter>::New();
 	diffOp->SetOperationToDifference();
 
 	diffOp->SetInputConnection(0, tri1->GetOutputPort());
 	diffOp->SetInputConnection(1, tri2->GetOutputPort());
 	diffOp->Update();
+	*/
 
-	m_gui->m_diffData = diffOp->GetOutput();
+	//m_gui->m_diffData = diffOp->GetOutput();
 	// for debug purposes: just show first fiber of first result_
-	//m_gui->m_diffData = input1[0];
+	m_gui->m_diffData = input1[0];
 
 	auto diffMapper = vtkSmartPointer<vtkPolyDataMapper>::New();
 	diffMapper->SetInputData(m_gui->m_diffData);
