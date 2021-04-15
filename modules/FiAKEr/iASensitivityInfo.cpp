@@ -74,7 +74,7 @@
 // for mesh differences:
 // {
 #include "iARendererManager.h"
-#include "vtkPolyDataBooleanFilter.h"
+//#include "vtkPolyDataBooleanFilter.h"
 
 #include <vtkActor.h>
 //#include <vtkCleanPolyData.h>
