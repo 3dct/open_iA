@@ -67,7 +67,7 @@ public:
 	void setPointInfo(QSharedPointer<iAScatterPlotPointInfo> pointInfo);
 	void toggleHighlightedPoint(size_t curPoint, Qt::KeyboardModifiers modifiers);
 	void setHighlightColor(QColor hltCol);
-	void setHighlightDrawMode(iAScatterPlot::HighlightDrawMode drawMode);
+	void setHighlightDrawMode(iAScatterPlot::HighlightDrawModes drawMode);
 	void setSelectionEnabled(bool enabled);
 
 	QSharedPointer<iAScatterPlotViewData> viewData();

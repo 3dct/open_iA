@@ -58,9 +58,10 @@ public:
 	};
 	enum HighlightDrawMode
 	{
-		Enlarged,
-		Outline
+		Enlarged = 1,
+		Outline  = 2
 	};
+	Q_DECLARE_FLAGS(HighlightDrawModes, HighlightDrawMode)
 	//! Constructor, initializes some core members
 	//! @param spViewData data on the current viewing configuration
 	//! @param parent the parent widget
@@ -107,7 +108,7 @@ public:
 	//! @}
 	void setSelectionColor(QColor selCol);
 	void setHighlightColor(QColor hltCol);
-	void setHighlightDrawMode(QFlags<HighlightDrawMode> drawMode);
+	void setHighlightDrawMode(HighlightDrawModes drawMode);
 
 protected:
 	int p2binx( double p ) const;                                    //!< Get grid bin index using parameter value X
@@ -185,7 +186,7 @@ public:
 		QColor backgroundColor;
 		QColor selectionColor;
 		QColor highlightColor;
-		QFlags<HighlightDrawMode> highlightDrawMode;
+		HighlightDrawModes highlightDrawMode;
 		SelectionMode selectionMode;
 		bool selectionEnabled;
 		bool showPCC, showSCC;
@@ -238,3 +239,5 @@ private:
 	double m_pcc, m_scc;                                             //!< correlation coefficients between the two given data columns
 	bool m_pccValid, m_sccValid;                                     //!< indicates whether current cached values cor correlation coefficients can be used
 };
+
+Q_DECLARE_OPERATORS_FOR_FLAGS(iAScatterPlot::HighlightDrawModes);

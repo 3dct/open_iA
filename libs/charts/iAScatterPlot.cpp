@@ -870,7 +870,9 @@ void iAScatterPlot::drawPoints( QPainter &painter )
 			painter.drawLine(x1, y1, x2, y2);
 		}
 	}
+
 #ifdef SP_OLDOPENGL
+	// all points
 	int pwidth = m_parentWidget->width();
 	int pheight = m_parentWidget->height();
 
@@ -1062,22 +1064,27 @@ void iAScatterPlot::drawPoints( QPainter &painter )
 	}
 
 	// Draw highlighted points
+	double magPtRad = ptRad * settings.pickedPointMagnification;
 	if (settings.highlightDrawMode.testFlag(iAScatterPlot::Enlarged))
 	{
 		for (auto idx : m_viewData->highlightedPoints())
 		{
-			QColor color(settings.highlightColor.isValid()
+			QColor color(
+				(!settings.highlightDrawMode.testFlag(iAScatterPlot::Outline) && settings.highlightColor.isValid())
 				? settings.highlightColor
 				: m_lut->getQColor(m_splomData->paramData(m_colInd)[idx]));
 			color.setAlpha(255);
-			drawPoint(painter, p0d[idx], m_splomData->paramData(m_paramIndices[1])[idx],
-				getPointRadius() * settings.pickedPointMagnification, color);
+			drawPoint(painter, p0d[idx], m_splomData->paramData(m_paramIndices[1])[idx], magPtRad, color);
 		}
 	}
 #endif
-	// Draw highlighted points
 	if (settings.highlightDrawMode.testFlag(iAScatterPlot::Outline))
 	{
+		const int LineThickness = 3;
+		double magPtOutRad = (LineThickness / 2) +
+			ptRad * (settings.highlightDrawMode.testFlag(iAScatterPlot::Enlarged) ? settings.pickedPointMagnification : 1);
+		double magPtOutSize = 2 * magPtOutRad;
+		painter.setBrush(Qt::NoBrush);
 		for (auto ind : m_viewData->highlightedPoints())
 		{
 			QColor c;
@@ -1092,13 +1099,9 @@ void iAScatterPlot::drawPoints( QPainter &painter )
 			}
 			int tx = p2x(p0d[ind]);
 			int ty = p2y(p1d[ind]);
-			int LineThickness = 3;
-			double curPtSize = (LineThickness-1) + ptSize * (settings.highlightDrawMode.testFlag(iAScatterPlot::Enlarged) ? settings.pickedPointMagnification : 1);
-			int radius = curPtSize / 2;
 			QPen p(c, LineThickness);
 			painter.setPen(p);
-			painter.setBrush(Qt::NoBrush);
-			painter.drawEllipse(tx - radius, ty - radius+1, curPtSize, curPtSize);
+			painter.drawEllipse(tx - magPtOutRad, ty - magPtOutRad, magPtOutSize, magPtOutSize);
 		}
 	}
 	painter.restore();
@@ -1277,7 +1280,7 @@ void iAScatterPlot::setHighlightColor(QColor hltCol)
 	settings.highlightColor = hltCol;
 }
 
-void iAScatterPlot::setHighlightDrawMode(QFlags<HighlightDrawMode> drawMode)
+void iAScatterPlot::setHighlightDrawMode(HighlightDrawModes drawMode)
 {
 	settings.highlightDrawMode = drawMode;
 }

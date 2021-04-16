@@ -397,7 +397,7 @@ void iAScatterPlotWidget::setHighlightColor(QColor hltCol)
 	m_scatterplot->setHighlightColor(hltCol);
 }
 
-void iAScatterPlotWidget::setHighlightDrawMode(iAScatterPlot::HighlightDrawMode drawMode)
+void iAScatterPlotWidget::setHighlightDrawMode(iAScatterPlot::HighlightDrawModes drawMode)
 {
 	m_scatterplot->setHighlightDrawMode(drawMode);
 }
