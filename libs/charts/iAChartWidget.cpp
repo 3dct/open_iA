@@ -36,6 +36,9 @@
 #include <QFileDialog>
 #include <QIcon>
 #include <QMenu>
+#if (defined(CHART_OPENGL) && defined(OPENGL_DEBUG))
+#include <QOpenGLDebugLogger>
+#endif
 #ifdef CHART_OPENGL
 #include <QOpenGLFramebufferObject>
 #include <QOpenGLPaintDevice>
@@ -1076,6 +1079,14 @@ void iAChartWidget::paintGL()
 void iAChartWidget::paintEvent(QPaintEvent* /*event*/)
 #endif
 {
+#if (defined(CHART_OPENGL) && defined(OPENGL_DEBUG))
+	QOpenGLContext* ctx = QOpenGLContext::currentContext();
+	QOpenGLDebugLogger* logger = new QOpenGLDebugLogger(this);
+	logger->initialize();  // initializes in the current context, i.e. ctx
+	connect(logger, &QOpenGLDebugLogger::messageLogged,
+		[](const QOpenGLDebugMessage& dbgMsg) { LOG(lvlDebug, dbgMsg.message()); });
+	logger->startLogging();
+#endif
 	QPainter p(this);
 	drawAll(p);
 }

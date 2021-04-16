@@ -139,7 +139,7 @@ protected:
 	void drawMaximizedLabels( QPainter &painter );                   //!< Draws additional plot's labels (only maximized plot)
 	void drawSelectionPolygon( QPainter &painter );                  //!< Draws selection-lasso polygon
 	void drawPoints( QPainter &painter );                            //!< Draws plot's points (uses native OpenGL)
-#ifdef CHART_OPENGL
+#ifdef SP_OLDOPENGL
 	void createVBO();                                                //!< Creates and fills VBO with plot's 2D-points.
 	void fillVBO();                                                  //!< Fill existing VBO with plot's 2D-points.
 #else
@@ -195,7 +195,7 @@ public:
 	Settings settings;
 protected:
 	iAChartParentWidget* m_parentWidget;                             //!< the parent widget
-#ifdef CHART_OPENGL
+#ifdef SP_OLDOPENGL
 	iAQGLBuffer * m_pointsBuffer;                                    //!< OpenGL buffer used for points VBO
 	bool m_pointsOutdated;                                           //!< indicates whether we need to fill the points buffer
 #endif

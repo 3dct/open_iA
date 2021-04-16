@@ -32,6 +32,9 @@ iAQGLFormat defaultQOpenGLWidgetFormat()
 	fmt.setDoubleBuffer(true);
 #endif
 	fmt.setProfile(iAQGLFormat::CoreProfile);
+#ifdef OPENGL_DEBUG
+	fmt.setOption(QSurfaceFormat::DebugContext);
+#endif
 	fmt.setSamples(8);
 	fmt.setRedBufferSize(8);
 	fmt.setGreenBufferSize(8);

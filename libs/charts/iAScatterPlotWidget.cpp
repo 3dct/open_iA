@@ -32,6 +32,9 @@
 #include <QActionGroup>
 #include <QMenu>
 #include <QMouseEvent>
+#if (defined(CHART_OPENGL) && defined(OPENGL_DEBUG))
+#include <QOpenGLDebugLogger>
+#endif
 #include <QPainter>
 
 // for popup / tooltip:
@@ -75,7 +78,11 @@ iAScatterPlotWidget::iAScatterPlotWidget(QSharedPointer<iASPLOMData> data, bool 
 	m_contextMenu(nullptr)
 {
 #ifdef CHART_OPENGL
-	setFormat(defaultQOpenGLWidgetFormat());
+	auto fmt = defaultQOpenGLWidgetFormat();
+	#ifdef SP_OLDOPENGL
+	fmt.setStereo(true);
+	#endif
+	setFormat(fmt);
 #endif
 	setMouseTracking(true);
 	setFocusPolicy(Qt::StrongFocus);
@@ -180,6 +187,14 @@ void iAScatterPlotWidget::paintGL()
 void iAScatterPlotWidget::paintEvent(QPaintEvent* event)
 #endif
 {
+#if (defined(CHART_OPENGL) && defined(OPENGL_DEBUG))
+	QOpenGLContext* ctx = QOpenGLContext::currentContext();
+	QOpenGLDebugLogger* logger = new QOpenGLDebugLogger(this);
+	logger->initialize();  // initializes in the current context, i.e. ctx
+	connect(logger, &QOpenGLDebugLogger::messageLogged,
+		[](const QOpenGLDebugMessage& dbgMsg) { LOG(lvlDebug, dbgMsg.message()); });
+	logger->startLogging();
+#endif
 	QPainter painter(this);
 	QFontMetrics fm = painter.fontMetrics();
 #if QT_VERSION >= QT_VERSION_CHECK(5, 11, 0)

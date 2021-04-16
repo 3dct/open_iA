@@ -42,6 +42,9 @@
 #include <QListWidgetItem>
 #include <QMenu>
 #include <QMessageBox>
+#if (defined(CHART_OPENGL) && defined(OPENGL_DEBUG))
+#include <QOpenGLDebugLogger>
+#endif
 #include <QPainter>
 #include <QSettings>
 #include <QWheelEvent>
@@ -216,7 +219,11 @@ iAQSplom::iAQSplom(QWidget * parent):
 	m_viewData(new iAScatterPlotViewData())
 {
 #ifdef CHART_OPENGL
-	setFormat(defaultQOpenGLWidgetFormat());
+	auto fmt = defaultQOpenGLWidgetFormat();
+#ifdef SP_OLDOPENGL
+	fmt.setStereo(true);
+#endif
+	setFormat(fmt);
 #endif
 	setMouseTracking( true );
 	setFocusPolicy( Qt::StrongFocus );
@@ -940,6 +947,14 @@ void iAQSplom::paintGL()
 void iAQSplom::paintEvent(QPaintEvent* event)
 #endif
 {
+#if (defined(CHART_OPENGL) && defined(OPENGL_DEBUG))
+	QOpenGLContext* ctx = QOpenGLContext::currentContext();
+	QOpenGLDebugLogger* logger = new QOpenGLDebugLogger(this);
+	logger->initialize();  // initializes in the current context, i.e. ctx
+	connect(logger, &QOpenGLDebugLogger::messageLogged,
+		[](const QOpenGLDebugMessage& dbgMsg) { LOG(lvlDebug, dbgMsg.message()); });
+	logger->startLogging();
+#endif
 	QPainter painter( this );
 	painter.setRenderHint(QPainter::Antialiasing);
 	QColor bgColor(settings.backgroundColor);
@@ -947,6 +962,7 @@ void iAQSplom::paintEvent(QPaintEvent* event)
 	{
 		bgColor = QWidget::palette().color(QWidget::backgroundRole());
 	}
+
 #ifdef CHART_OPENGL
 	painter.beginNativePainting();
 	glClearColor(bgColor.redF(), bgColor.greenF(), bgColor.blueF(), bgColor.alphaF());

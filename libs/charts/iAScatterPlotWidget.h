@@ -21,7 +21,6 @@
 #pragma once
 
 #ifdef CHART_OPENGL
-#include "iAQGLBuffer.h"
 #include "iAQGLWidget.h"
 using iAChartParentWidget = iAQGLWidget;
 #else
