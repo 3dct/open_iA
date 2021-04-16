@@ -105,7 +105,6 @@ private:
 	QString m_histogramChartType;
 signals:
 	void parameterChanged();
-	void outputSelected(int outType, int outTypeIdx);
 	void barAdded(int outType, int outIdx);
 	void barRemoved(int outType, int outIdx);
 	void resultSelected(size_t resultIdx, Qt::KeyboardModifiers modifiers);

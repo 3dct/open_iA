@@ -22,7 +22,6 @@
 
 // Charts
 #include <iASPLOMData.h>
-#include <qcustomplot.h>
 #include <iAScatterPlotWidget.h>
 #include <iAScatterPlotViewData.h>
 
@@ -1409,12 +1408,6 @@ public:
 		cmbboxMeasure->addItems(DistributionDifferenceMeasureNames());
 		cmbboxAggregation->addItems(AggregationNames());
 		cmbboxAggregation->setCurrentIndex(SelectedAggregationMeasureIdx);
-		QStringList characteristics;
-		for (int charIdx = 0; charIdx < sensInf->m_charSelected.size(); ++charIdx)
-		{
-			characteristics << sensInf->charactName(charIdx);
-		}
-		cmbboxCharacteristic->addItems(characteristics);
 
 		QStringList dissimilarities;
 		for (auto dissim : sensInf->m_resultDissimMeasures)
@@ -1428,12 +1421,6 @@ public:
 		connect(cmbboxMeasure, QOverload<int>::of(&QComboBox::currentIndexChanged), sensInf, &iASensitivityInfo::changeMeasure);
 		connect(cmbboxAggregation, QOverload<int>::of(&QComboBox::currentIndexChanged), sensInf, &iASensitivityInfo::changeAggregation);
 
-		connect(cmbboxAggregation, QOverload<int>::of(&QComboBox::currentIndexChanged), sensInf, &iASensitivityInfo::paramChanged);
-		connect(cmbboxCharacteristic, QOverload<int>::of(&QComboBox::currentIndexChanged), sensInf, &iASensitivityInfo::paramChanged);
-		connect(cmbboxMeasure, QOverload<int>::of(&QComboBox::currentIndexChanged), sensInf, &iASensitivityInfo::paramChanged);
-		connect(cmbboxOutput, QOverload<int>::of(&QComboBox::currentIndexChanged), sensInf, &iASensitivityInfo::paramChanged);
-		connect(cmbboxOutput, QOverload<int>::of(&QComboBox::currentIndexChanged), sensInf, &iASensitivityInfo::updateOutputControls);
-
 		connect(cmbboxDissimilarity, QOverload<int>::of(&QComboBox::currentIndexChanged), sensInf, &iASensitivityInfo::updateDissimilarity);
 		
 		connect(rbBar, &QRadioButton::toggled, sensInf, &iASensitivityInfo::histoChartTypeToggled);
@@ -1442,15 +1429,6 @@ public:
 		cmbboxAggregation->setMinimumWidth(80);
 		cmbboxMeasure->setMinimumWidth(80);
 		cmbboxDissimilarity->setMinimumWidth(80);
-		cmbboxOutput->setMinimumWidth(80);
-	}
-	int charIdx() const
-	{
-		return cmbboxCharacteristic->currentIndex();
-	}
-	int outputIdx() const
-	{
-		return cmbboxOutput->currentIndex();
 	}
 	int dissimMeasIdx() const
 	{
@@ -1588,7 +1566,6 @@ public:
 	iASensitivityGUI():
 		m_paramInfluenceView(nullptr),
 		m_settings(nullptr),
-		m_paramDetails(nullptr),
 		m_scatterPlot(nullptr),
 		m_colorMapWidget(nullptr),
 		m_dwParamInfluence(nullptr),
@@ -1604,9 +1581,6 @@ public:
 
 	//! Overall settings
 	iASensitivitySettingsView* m_settings;
-
-	//! Parameter detail
-	QCustomPlot* m_paramDetails;
 
 	//! scatter plot for the MDS plot of all results
 	iAScatterPlotWidget* m_scatterPlot;
@@ -1889,19 +1863,10 @@ void iASensitivityInfo::createGUI()
 
 	m_gui->m_paramInfluenceView = new iAParameterInfluenceView(this, ParamColor, OutputColor);
 	m_gui->m_dwParamInfluence = new iADockWidgetWrapper(m_gui->m_paramInfluenceView, "Parameter Influence", "foeParamInfluence");
-	connect(m_gui->m_paramInfluenceView, &iAParameterInfluenceView::parameterChanged, this, &iASensitivityInfo::paramChanged);
-	connect(m_gui->m_paramInfluenceView, &iAParameterInfluenceView::outputSelected, this,
-		&iASensitivityInfo::outputChanged);
 	connect(m_gui->m_paramInfluenceView, &iAParameterInfluenceView::barAdded, this, &iASensitivityInfo::outputBarAdded);
 	connect(m_gui->m_paramInfluenceView, &iAParameterInfluenceView::barRemoved, this, &iASensitivityInfo::outputBarRemoved);
 	connect(m_gui->m_paramInfluenceView, &iAParameterInfluenceView::resultSelected, this, &iASensitivityInfo::parResultSelected);
-	connect(m_gui->m_settings->cmbboxCharacteristic, QOverload<int>::of(&QComboBox::currentIndexChanged),
-		this, &iASensitivityInfo::characteristicChanged);
 	m_child->splitDockWidget(dwSettings, m_gui->m_dwParamInfluence, Qt::Vertical);
-
-	m_gui->m_paramDetails = new QCustomPlot(m_child);
-	auto dwParamDetails = new iADockWidgetWrapper(m_gui->m_paramDetails, "Parameter Details", "foeParamDetails");
-	m_child->splitDockWidget(m_gui->m_dwParamInfluence, dwParamDetails, Qt::Vertical);
 
 	QStringList algoInNames;
 	for (auto p : m_variedParams)
@@ -2023,84 +1988,6 @@ void iASensitivityInfo::changeAggregation(int newAggregation)
 	m_gui->m_paramInfluenceView->setAggregation(newAggregation);
 }
 
-void iASensitivityInfo::paramChanged()
-{
-	int outType = m_gui->m_settings->outputIdx();
-	int paramIdx = m_gui->m_paramInfluenceView->selectedRow();
-	m_gui->m_algoInfo->setSelectedInput(paramIdx);
-	if (paramIdx == -1)
-	{
-		//LOG(lvlDebug, "No parameter selected.");
-		return;
-	}
-	int selCharIdx = m_gui->m_settings->charIdx();
-	int measureIdx = m_gui->m_paramInfluenceView->selectedMeasure();
-	int aggrType = m_gui->m_paramInfluenceView->selectedAggrType();
-	int dissimMeasIdx = m_gui->m_settings->dissimMeasIdx();
-
-	m_gui->m_dwParamInfluence->setWindowTitle("Parameter Influence (by " + DistributionDifferenceMeasureNames()[measureIdx] + ")");
-
-	auto& plot = m_gui->m_paramDetails;
-	plot->clearGraphs();
-	plot->addGraph();
-	plot->graph(0)->setPen(QPen(Qt::blue));
-
-	auto const& data = (
-		(outType == outCharacteristic) ?  sensitivityField[selCharIdx][measureIdx][aggrType]
-		  : (outType == outFiberCount) ? sensitivityFiberCount[aggrType]
-	  /* (outType == outDissimilarity)*/: sensDissimField[dissimMeasIdx][aggrType])[paramIdx];
-	QVector<double> x(data.size()), y(data.size());
-	for (int i = 0; i < data.size(); ++i)
-	{
-		x[i] = paramSetValues[i][m_variedParams[paramIdx]];
-		y[i] = data[i];
-	}
-	// configure right and top axis to show ticks but no labels:
-	// (see QCPAxisRect::setupFullAxesBox for a quicker method to do this)
-	plot->xAxis2->setVisible(true);
-	plot->xAxis2->setTickLabels(false);
-	plot->yAxis2->setVisible(true);
-	plot->yAxis2->setTickLabels(false);
-	plot->xAxis->setLabel(m_paramNames[m_variedParams[paramIdx]]);
-	plot->yAxis->setLabel( ((outType == outCharacteristic) ?
-		"Sensitivity " + (charactName(selCharIdx) + " (" + DistributionDifferenceMeasureNames()[measureIdx]+") ") :
-		"Fiber Count ") + AggregationNames()[aggrType]  );
-	// make left and bottom axes always transfer their ranges to right and top axes:
-	connect(plot->xAxis, SIGNAL(rangeChanged(QCPRange)), plot->xAxis2, SLOT(setRange(QCPRange)));
-	connect(plot->yAxis, SIGNAL(rangeChanged(QCPRange)), plot->yAxis2, SLOT(setRange(QCPRange)));
-	// pass data points to graphs:
-	plot->graph(0)->setData(x, y);
-	// let the ranges scale themselves so graph 0 fits perfectly in the visible area:
-	plot->graph(0)->rescaleAxes();
-	plot->setInteractions(QCP::iRangeDrag | QCP::iRangeZoom | QCP::iSelectPlottables);
-	plot->replot();
-
-	//m_gui->m_paramInfluenceView->showDifferenceDistribution(outputIdx, selCharIdx, aggrType);
-}
-
-void iASensitivityInfo::outputChanged(int outType, int outIdx)
-{
-	QSignalBlocker block1(m_gui->m_settings->cmbboxOutput);
-	m_gui->m_settings->cmbboxOutput->setCurrentIndex(outType);
-	if (outType == outCharacteristic)
-	{
-		QSignalBlocker block2(m_gui->m_settings->cmbboxCharacteristic);
-		m_gui->m_settings->cmbboxCharacteristic->setCurrentIndex(outIdx);
-	}
-	else if (outType == outDissimilarity)
-	{
-		QSignalBlocker block2(m_gui->m_settings->cmbboxDissimilarity);
-		m_gui->m_settings->cmbboxDissimilarity->setCurrentIndex(outIdx);
-	}
-	paramChanged();
-}
-
-void iASensitivityInfo::characteristicChanged(int charIdx)
-{
-	assert(m_gui->m_settings->cmbboxOutput->currentIndex() == outCharacteristic);
-	m_gui->m_paramInfluenceView->selectStackedBar(outCharacteristic, charIdx);
-}
-
 void iASensitivityInfo::outputBarAdded(int outType, int outIdx)
 {
 	if (outType == outCharacteristic)
@@ -2130,15 +2017,6 @@ void iASensitivityInfo::fiberSelectionChanged(std::vector<std::vector<size_t>> c
 		resultCount += (selection[resultID].size() > 0) ? 1 : 0;
 	}
 	LOG(lvlDebug, QString("New fiber selection: %1 selected fibers in %2 results").arg(selectedFibers).arg(resultCount));
-}
-
-void iASensitivityInfo::updateOutputControls()
-{
-	bool characteristics = m_gui->m_settings->cmbboxOutput->currentIndex() == 0;
-	m_gui->m_settings->lbCharacteristic->setEnabled(characteristics);
-	m_gui->m_settings->cmbboxCharacteristic->setEnabled(characteristics);
-	m_gui->m_settings->lbMeasure->setEnabled(characteristics);
-	m_gui->m_settings->cmbboxMeasure->setEnabled(characteristics);
 }
 
 void iASensitivityInfo::updateDissimilarity()

@@ -7,7 +7,7 @@
     <x>0</x>
     <y>0</y>
     <width>261</width>
-    <height>206</height>
+    <height>180</height>
    </rect>
   </property>
   <property name="windowTitle">
@@ -109,16 +109,9 @@
        <number>4</number>
       </property>
       <item row="2" column="1">
-       <widget class="QComboBox" name="cmbboxMeasure">
-        <property name="sizePolicy">
-         <sizepolicy hsizetype="Expanding" vsizetype="Fixed">
-          <horstretch>0</horstretch>
-          <verstretch>0</verstretch>
-         </sizepolicy>
-        </property>
-       </widget>
+       <widget class="QComboBox" name="cmbboxDissimilarity"/>
       </item>
-      <item row="3" column="1">
+      <item row="1" column="1">
        <widget class="QComboBox" name="cmbboxAggregation">
         <property name="sizePolicy">
          <sizepolicy hsizetype="Expanding" vsizetype="Fixed">
@@ -128,46 +121,22 @@
         </property>
        </widget>
       </item>
-      <item row="4" column="0">
-       <widget class="QLabel" name="lbDissimilarity">
-        <property name="text">
-         <string>Dissimilarity</string>
-        </property>
-       </widget>
-      </item>
-      <item row="3" column="0">
+      <item row="1" column="0">
        <widget class="QLabel" name="lbAggregation">
         <property name="text">
          <string>Aggregation</string>
         </property>
        </widget>
       </item>
-      <item row="2" column="0">
+      <item row="0" column="0">
        <widget class="QLabel" name="lbMeasure">
         <property name="text">
          <string>Measure</string>
         </property>
        </widget>
       </item>
-      <item row="1" column="0">
-       <widget class="QLabel" name="lbCharacteristic">
-        <property name="text">
-         <string>Characteristic </string>
-        </property>
-       </widget>
-      </item>
-      <item row="0" column="0">
-       <widget class="QLabel" name="lbOutput">
-        <property name="text">
-         <string>Output</string>
-        </property>
-       </widget>
-      </item>
-      <item row="1" column="1">
-       <widget class="QComboBox" name="cmbboxCharacteristic">
-        <property name="enabled">
-         <bool>true</bool>
-        </property>
+      <item row="0" column="1">
+       <widget class="QComboBox" name="cmbboxMeasure">
         <property name="sizePolicy">
          <sizepolicy hsizetype="Expanding" vsizetype="Fixed">
           <horstretch>0</horstretch>
@@ -176,27 +145,12 @@
         </property>
        </widget>
       </item>
-      <item row="0" column="1">
-       <widget class="QComboBox" name="cmbboxOutput">
-        <item>
-         <property name="text">
-          <string>Characteristic</string>
-         </property>
-        </item>
-        <item>
-         <property name="text">
-          <string>Fiber Count</string>
-         </property>
-        </item>
-        <item>
-         <property name="text">
-          <string>Dissimilarity</string>
-         </property>
-        </item>
+      <item row="2" column="0">
+       <widget class="QLabel" name="lbDissimilarity">
+        <property name="text">
+         <string>Dissimilarity</string>
+        </property>
        </widget>
-      </item>
-      <item row="4" column="1">
-       <widget class="QComboBox" name="cmbboxDissimilarity"/>
       </item>
      </layout>
     </widget>

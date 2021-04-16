@@ -250,13 +250,9 @@ signals:
 public slots:
 	void changeAggregation(int newAggregation);
 	void changeMeasure(int newMeasure);
-	void paramChanged();
-	void outputChanged(int outType, int outIdx);
-	void updateOutputControls();
 	void updateDissimilarity();
 	void spHighlightChanged();
 	void createGUI();
-	void characteristicChanged(int charIdx);
 	void outputBarAdded(int outType, int outIdx);
 	void outputBarRemoved(int outType, int outIdx);
 	void fiberSelectionChanged(std::vector<std::vector<size_t>> const& selection);
