@@ -77,7 +77,7 @@ iAScatterPlot::iAScatterPlot(iAScatterPlotViewData* viewData, iAChartParentWidge
 	QObject(parent),
 	settings(),
 	m_parentWidget(parent),
-#ifdef CHART_OPENGL
+#ifdef SP_OLDOPENGL
 	m_pointsBuffer(nullptr),
 	m_pointsOutdated(true),
 #endif
@@ -106,7 +106,7 @@ iAScatterPlot::iAScatterPlot(iAScatterPlotViewData* viewData, iAChartParentWidge
 
 iAScatterPlot::~iAScatterPlot()
 {
-#ifdef CHART_OPENGL
+#ifdef SP_OLDOPENGL
 	if (m_pointsBuffer)
 	{
 		m_pointsBuffer->bind();
@@ -149,7 +149,7 @@ bool iAScatterPlot::hasData() const
 
 void iAScatterPlot::updatePoints()
 {
-#ifdef CHART_OPENGL
+#ifdef SP_OLDOPENGL
 	m_pointsOutdated = true;
 #endif
 }
@@ -277,7 +277,7 @@ void iAScatterPlot::paintOnParent( QPainter & painter )
 	{
 		return;
 	}
-#ifdef CHART_OPENGL
+#ifdef SP_OLDOPENGL
 	if (!m_pointsBuffer)
 	{
 		createVBO();
@@ -813,7 +813,7 @@ QPoint iAScatterPlot::cropLocalPos( QPoint locPos ) const
 	return res;
 }
 
-#ifndef CHART_OPENGL
+#ifndef SP_OLDOPENGL
 void iAScatterPlot::drawPoint(QPainter& painter, double ptX, double ptY, int radius, QColor const & color)
 {
 	int tx = p2x(ptX);
@@ -837,10 +837,10 @@ void iAScatterPlot::drawPoints( QPainter &painter )
 	}
 	painter.save();
 	double ptRad = getPointRadius();
-	double ptSize = 2 * ptRad;
 	auto const& p0d = m_splomData->paramData(m_paramIndices[0]);
 	auto const& p1d = m_splomData->paramData(m_paramIndices[1]);
-#ifdef CHART_OPENGL
+#ifdef SP_OLDOPENGL
+	double ptSize = 2 * ptRad;
 	// all points
 	int pwidth = m_parentWidget->width();
 	int pheight = m_parentWidget->height();
@@ -959,32 +959,32 @@ void iAScatterPlot::drawPoints( QPainter &painter )
 	{
 		return;
 	}
+	painter.setPen(Qt::NoPen);
 	// Draw current point
 	double anim = m_viewData->animIn();
-	if (m_curInd != NoDataIdx)
+	if (m_curInd != iASPLOMData::NoDataIdx)
 	{
 		double pPM = settings.pickedPointMagnification;
-		double curPtSize = ptSize * linterp(1.0, pPM, anim);
+		double curPtRad = ptRad * linterp(1.0, pPM, anim);
 		double val = m_splomData->paramData(m_colInd)[m_curInd];
 		QColor color = m_lut->getQColor(val);
 		color.setAlphaF(linterp(color.alphaF(), 1.0, anim));
-		drawPoint(painter, p0d[m_curInd], p1d[m_curInd], curPtSize, color);
+		drawPoint(painter, p0d[m_curInd], p1d[m_curInd], curPtRad, color);
 	}
 	// Draw previous point
 	anim = m_viewData->animOut();
-	if (m_prevPtInd != NoDataIdx && anim > 0.0)
+	if (m_prevPtInd != iASPLOMData::NoDataIdx && anim > 0.0)
 	{
 		double pPM = settings.pickedPointMagnification;
-		double curPtSize = ptSize * linterp(1.0, pPM, anim);
+		double curPtRad = ptRad * linterp(1.0, pPM, anim);
 		double val = m_splomData->paramData(m_colInd)[m_prevPtInd];
 		QColor color = m_lut->getQColor(val);
 		color.setAlphaF(linterp(color.alphaF(), 1.0, anim));
-		drawPoint(painter, p0d[m_prevPtInd], p1d[m_prevPtInd], curPtSize, color);
+		drawPoint(painter, p0d[m_prevPtInd], p1d[m_prevPtInd], curPtRad, color);
 	}
 
 	// Draw points:
 	m_curVisiblePts = 0;
-	painter.setPen(Qt::NoPen);
 	for (size_t i = 0; i < m_splomData->numPoints(); ++i)
 	{
 		if (!m_splomData->matchesFilter(i))
@@ -992,13 +992,13 @@ void iAScatterPlot::drawPoints( QPainter &painter )
 			continue;
 		}
 		QColor color(m_lut->getQColor(m_splomData->paramData(m_colInd)[i]));
-		drawPoint(painter, p0d[i], p1d[i], getPointRadius(), color);
+		drawPoint(painter, p0d[i], p1d[i], ptRad, color);
 		++m_curVisiblePts;
 	}
 	auto const& selInds = m_viewData->filteredSelection(m_splomData);
 	for (size_t idx : selInds)
 	{
-		drawPoint(painter, p0d[idx], p1d[idx], getPointRadius(), settings.selectionColor);
+		drawPoint(painter, p0d[idx], p1d[idx], ptRad, settings.selectionColor);
 	}
 #endif
 	painter.restore();
@@ -1087,7 +1087,7 @@ void iAScatterPlot::drawMaximizedLabels( QPainter &painter )
 	painter.restore();
 }
 
-#ifdef CHART_OPENGL
+#ifdef SP_OLDOPENGL
 void iAScatterPlot::createVBO()
 {
 	if (!m_parentWidget->isVisible())

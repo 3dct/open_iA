@@ -20,7 +20,13 @@
 * ************************************************************************************/
 #pragma once
 
+#ifdef CHART_OPENGL
 #include "iAQGLWidget.h"
+using iAChartParentWidget = iAQGLWidget;
+#else
+#include <QWidget>
+using iAChartParentWidget = QWidget;
+#endif
 
 #include "iAScatterPlot.h"	// for iAScatterPlot::SelectionMode
 
@@ -30,7 +36,7 @@ class iAScatterPlotViewData;
 class iASPLOMData;
 
 //! Widget for using a single scatter plot (outside of a SPLOM)
-class iAcharts_API iAScatterPlotWidget : public iAQGLWidget
+class iAcharts_API iAScatterPlotWidget : public iAChartParentWidget
 {
 public:
 	static const int PaddingTop;
@@ -44,7 +50,11 @@ public:
 	void SetSelectionMode(iAScatterPlot::SelectionMode mode);
 	QSharedPointer<iAScatterPlotViewData> viewData();
 protected:
-	void paintEvent(QPaintEvent * event) override;
+#ifdef CHART_OPENGL
+	void paintGL() override;
+#else
+	void paintEvent(QPaintEvent* event) override;
+#endif
 	void resizeEvent(QResizeEvent* event) override;
 	void wheelEvent(QWheelEvent * event) override;
 	void mousePressEvent(QMouseEvent * event) override;
