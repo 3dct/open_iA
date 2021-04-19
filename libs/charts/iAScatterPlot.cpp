@@ -849,7 +849,6 @@ void iAScatterPlot::drawPoints( QPainter &painter )
 	}
 	painter.save();
 	double ptRad = getPointRadius();
-	double ptSize = 2 * ptRad;  // all points
 	auto const& p0d = m_splomData->paramData(m_paramIndices[0]);
 	auto const& p1d = m_splomData->paramData(m_paramIndices[1]);
 	painter.setClipRegion(QRect(0, 0, m_globRect.width(), m_globRect.height()), Qt::ReplaceClip);
@@ -872,6 +871,7 @@ void iAScatterPlot::drawPoints( QPainter &painter )
 	}
 
 #ifdef SP_OLDOPENGL
+	double ptSize = 2 * ptRad;
 	// all points
 	int pwidth = m_parentWidget->width();
 	int pheight = m_parentWidget->height();
@@ -975,7 +975,7 @@ void iAScatterPlot::drawPoints( QPainter &painter )
 			double curPtSize = ptSize * settings.pickedPointMagnification;
 			glPointSize(curPtSize);
 			glBegin(GL_POINTS);
-			if (settings.highlightColor.isValid())
+			if (!settings.highlightDrawMode.testFlag(iAScatterPlot::Outline) && settings.highlightColor.isValid())
 			{
 				QColor c = settings.highlightColor;
 				glColor4f(c.redF(), c.greenF(), c.blueF(), c.alphaF());
