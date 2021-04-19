@@ -861,10 +861,15 @@ void iAScatterPlot::drawPoints( QPainter &painter )
 		painter.setPen(line.second);
 		for (int ptIdx = 0; ptIdx < line.first.size() - 1; ++ptIdx)
 		{
-			int x1 = p2x(p0d[line.first[ptIdx]])+1,
-				x2 = p2x(p0d[line.first[ptIdx + 1]])+1,
-				y1 = p2y(p1d[line.first[ptIdx]])+1,
-				y2 = p2y(p1d[line.first[ptIdx + 1]])+1;
+#ifdef SP_OLDOPENGL
+			int ofs = 1;
+#else
+			int ofs = 0;
+#endif
+			int x1 = p2x(p0d[line.first[ptIdx]]) + ofs,
+				x2 = p2x(p0d[line.first[ptIdx + 1]]) + ofs,
+				y1 = p2y(p1d[line.first[ptIdx]]) + ofs,
+				y2 = p2y(p1d[line.first[ptIdx + 1]]) + ofs;
 			// TODO: cut off lines at borders!
 			painter.drawLine(x1, y1, x2, y2);
 		}
