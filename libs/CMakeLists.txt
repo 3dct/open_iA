@@ -92,6 +92,7 @@ FOREACH(libdir ${children})
 		ELSE ()
 			INSTALL (TARGETS ${libname} LIBRARY DESTINATION .)
 		ENDIF(WIN32)
+
 		# Compiler Flags
 		IF (CMAKE_COMPILER_IS_GNUCXX OR "${CMAKE_CXX_COMPILER_ID}" STREQUAL "Clang")
 			# see Ulrich Drepper - How to write Shared Libraries
@@ -102,4 +103,3 @@ FOREACH(libdir ${children})
 		ENDIF()
 	ENDIF()
 ENDFOREACH()
-

@@ -1,6 +1,7 @@
 IF (FLATPAK_BUILD)
 	MESSAGE(STATUS "Skipping fixup_bundle for FLATPAK build...")
 ELSE()
+	# Bundle creation (while installing / cpack'ing, also include dependency libraries):
 	SET (BUNDLE_APP "\${CMAKE_INSTALL_PREFIX}/${GUI_EXECUTABLE_FILE}")
 	INSTALL(CODE "
 		SET (BUNDLE_LIBS \"${BUNDLE_LIBS}\")
@@ -14,4 +15,3 @@ ELSE()
 		INSTALL(CODE "include(\"${CMAKE_CURRENT_SOURCE_DIR}/../cmake/ChangeRPath.cmake\")")
 	ENDIF()
 ENDIF()
-
