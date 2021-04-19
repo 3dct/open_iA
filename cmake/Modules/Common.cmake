@@ -44,8 +44,6 @@ IF (CMAKE_VERSION VERSION_GREATER "3.15.99")
 ENDIF()
 
 option (openiA_CHART_OPENGL "Whether to use OpenGL in chart widgets" ON)
-include(CMakeDependentOption)
-cmake_dependent_option(openiA_CHART_SP_OLDOPENGL "You can enable this if you have an Nvidia graphics cards for quite some performance gain in scatter plot (matrix). Enabling it is known to cause problems on AMD graphics cards." OFF "openiA_CHART_OPENGL" ON)
 option(openiA_OPENGL_DEBUG "Enable this to turn on debugging messages in OpenGL windows (currently charts)." OFF)
 
 #------------------------------
