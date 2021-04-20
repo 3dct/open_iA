@@ -1715,7 +1715,7 @@ public:
 				{
 					linePoints[i] = linePtParVal[i].first;
 				}
-				m_scatterPlot->viewData()->addLine(linePoints, ParamColor);
+				m_scatterPlot->viewData()->addLine(linePoints, QColor());
 			}
 		}
 	}
