@@ -858,7 +858,11 @@ void iAScatterPlot::drawPoints( QPainter &painter )
 	auto const& lines = m_viewData->lines();
 	for (auto line : lines)
 	{
-		painter.setPen(line.second);
+		if (line.second.isValid())
+		{
+			QPen p;
+			painter.setPen(line.second);
+		}
 		for (int ptIdx = 0; ptIdx < line.first.size() - 1; ++ptIdx)
 		{
 #ifdef SP_OLDOPENGL
@@ -866,10 +870,15 @@ void iAScatterPlot::drawPoints( QPainter &painter )
 #else
 			int ofs = 0;
 #endif
-			int x1 = p2x(p0d[line.first[ptIdx]]) + ofs,
-				x2 = p2x(p0d[line.first[ptIdx + 1]]) + ofs,
-				y1 = p2y(p1d[line.first[ptIdx]]) + ofs,
-				y2 = p2y(p1d[line.first[ptIdx + 1]]) + ofs;
+			int x1 = p2x(p0d[line.first[ptIdx]]) + ofs, x2 = p2x(p0d[line.first[ptIdx + 1]]) + ofs,
+				y1 = p2y(p1d[line.first[ptIdx]]) + ofs, y2 = p2y(p1d[line.first[ptIdx + 1]]) + ofs;
+			if (!line.second.isValid())
+			{
+				QLinearGradient g(QPointF(x1, y1), QPointF(x2, y2));
+				g.setColorAt(0, m_lut->getQColor(m_splomData->paramData(m_colInd)[line.first[ptIdx]]));
+				g.setColorAt(1, m_lut->getQColor(m_splomData->paramData(m_colInd)[line.first[ptIdx+1]]));
+				painter.setPen(QPen(QBrush(g), std::round(settings.pointRadius)));
+			}
 			// TODO: cut off lines at borders!
 			painter.drawLine(x1, y1, x2, y2);
 		}
