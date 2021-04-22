@@ -72,7 +72,7 @@
 
 // for mesh differences:
 // {
-#include "iARendererManager.h"
+#include "iARendererViewSync.h"
 //#include "vtkPolyDataBooleanFilter.h"
 
 #include <vtkActor.h>
@@ -1581,7 +1581,8 @@ public:
 		m_matrixWidget(nullptr),
 		m_parameterListView(nullptr),
 		m_algoInfo(nullptr),
-		m_diff3DWidget(nullptr)
+		m_diff3DWidget(nullptr),
+		m_diff3DRenderManager(/*sharedCamera = */false)
 	{}
 
 	//! @{ Param Influence List
@@ -1607,7 +1608,7 @@ public:
 	iAAlgorithmInfo* m_algoInfo;
 
 	iAVtkWidget* m_diff3DWidget;
-	iARendererManager m_diff3DRenderManager;
+	iARendererViewSync m_diff3DRenderManager;
 	std::vector<QSharedPointer<iAPolyDataRenderer>> m_diff3DRenderers;
 
 	void updateScatterPlotLUT(int starGroupSize, int numOfSTARSteps, size_t resultCount, int numInputParams,
@@ -2191,7 +2192,6 @@ void iASensitivityInfo::updateDifferenceView()
 		}
 		resultData->renderer = vtkSmartPointer<vtkRenderer>::New();
 		resultData->renderer->SetBackground(1.0, 1.0, 1.0);
-		m_gui->m_diff3DRenderManager.addToBundle(resultData->renderer);
 		resultData->renderer->SetViewport(
 			static_cast<double>(i) / hp.size(), 0, static_cast<double>(i + 1) / hp.size(), 1);
 		LOG(lvlDebug, QString("Result %1: %2 selected:").arg(rID).arg(resultData->data.size()));
@@ -2244,6 +2244,7 @@ void iASensitivityInfo::updateDifferenceView()
 		resultData->renderer->AddViewProp(cornerAnnotation);
 
 		renWin->AddRenderer(resultData->renderer);
+		m_gui->m_diff3DRenderManager.addToBundle(resultData->renderer);
 		m_gui->m_diff3DRenderers.push_back(resultData);
 		//m_diffActor->GetProperty()->SetPointSize(2);
 		/*
