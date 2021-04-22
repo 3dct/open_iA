@@ -76,9 +76,11 @@
 //#include "vtkPolyDataBooleanFilter.h"
 
 #include <vtkActor.h>
+#include <vtkCornerAnnotation.h>
 //#include <vtkCleanPolyData.h>
 #include <vtkBooleanOperationPolyDataFilter.h>
 #include <vtkRendererCollection.h>
+#include <vtkTextProperty.h>
 #include <vtkTriangleFilter.h>
 // }
 
@@ -1563,8 +1565,8 @@ private:
 struct iAPolyDataRenderer
 {
 	vtkSmartPointer<vtkRenderer> renderer;
-	vtkSmartPointer<vtkPolyData> data;
-	vtkSmartPointer<vtkActor> actor;
+	std::vector<vtkSmartPointer<vtkPolyData>> data;
+	std::vector<vtkSmartPointer<vtkActor>> actor;
 };
 
 class iASensitivityGUI
@@ -2018,6 +2020,8 @@ void iASensitivityInfo::fiberSelectionChanged(std::vector<std::vector<size_t>> c
 		resultCount += (selection[resultID].size() > 0) ? 1 : 0;
 	}
 	LOG(lvlDebug, QString("New fiber selection: %1 selected fibers in %2 results").arg(selectedFibers).arg(resultCount));
+	
+	updateDifferenceView();
 }
 
 void iASensitivityInfo::updateDissimilarity()
@@ -2058,7 +2062,6 @@ void iASensitivityInfo::spPointHighlighted(size_t resultIdx, bool state)
 	m_gui->m_paramInfluenceView->setResultSelected(resultIdx, state);
 	m_gui->m_paramInfluenceView->setSelectedParam(paramID);
 	emit resultSelected(resultIdx, state);
-
 	if (m_currentFiberSelection.size() == 0)
 	{	// before first selection is made...
 		return;
@@ -2162,17 +2165,14 @@ void iASensitivityInfo::updateDifferenceView()
 	auto const& hp = m_gui->m_scatterPlot->viewData()->highlightedPoints();
 
 	// TODO: reuse actors... / store what was previously shown and only update if something has changed?
+	LOG(lvlDebug, QString("%1 Results!").arg(hp.size()));
 	for (auto r: m_gui->m_diff3DRenderers)
 	{
 		m_gui->m_diff3DRenderManager.removeFromBundle(r->renderer);
-		//renWin->RemoveRenderer(r->renderer);
+		renWin->RemoveRenderer(r->renderer);
 	}
-	renWin->GetRenderers()->RemoveAllItems();
+	//renWin->GetRenderers()->RemoveAllItems();	// should also work instead of above RemoveRenderer call
 	m_gui->m_diff3DRenderers.clear();
-	if (hp.size() < 2)
-	{
-		return;
-	}
 	// TODO: determine "central" resultID to compare to / fixed comparison point determined by user?
 	for (size_t i=0; i<hp.size(); ++i)
 	{
@@ -2182,30 +2182,36 @@ void iASensitivityInfo::updateDifferenceView()
 			LOG(lvlDebug, QString("Result %1: 3D vis not initialized!").arg(rID));
 			continue;
 		}
-		auto input = m_resultUIs[rID].main3DVis->extractSelectedObjects();
-		if (input.size() == 0)
+		auto resultData = QSharedPointer<iAPolyDataRenderer>::create();
+		resultData->data = m_resultUIs[rID].main3DVis->extractSelectedObjects();
+		if (resultData->data.size() == 0)
 		{
 			LOG(lvlWarn, QString("Result %1: No selected fibers!").arg(rID));
 			continue;
 		}
-		LOG(lvlDebug, QString("Result %1: %2 selected:").arg(rID).arg(input.size()));
-		for (int f = 0; f < input.size(); ++f)
+		resultData->renderer = vtkSmartPointer<vtkRenderer>::New();
+		resultData->renderer->SetBackground(1.0, 1.0, 1.0);
+		m_gui->m_diff3DRenderManager.addToBundle(resultData->renderer);
+		resultData->renderer->SetViewport(
+			static_cast<double>(i) / hp.size(), 0, static_cast<double>(i + 1) / hp.size(), 1);
+		LOG(lvlDebug, QString("Result %1: %2 selected:").arg(rID).arg(resultData->data.size()));
+		for (int f = 0; f < resultData->data.size(); ++f)
 		{
-			logMeshSize(QString("  Fiber %1").arg(f), input[f]);
-		}
-		//vtkNew<vtkTriangleFilter> tri1;
-		//tri1->SetInputData(input[0]);
-		//tri1->Update();
-		//vtkNew<vtkTriangleFilter> tri2;
-		//tri2->SetInputData(inputRef[0]);
-		//tri2->Update();
+			logMeshSize(QString("  Fiber %1").arg(f), resultData->data[f]);
 
-		//logMeshSize(QString("TRIANGULATED Result %1").arg(r1), tri1->GetOutput());
-		//logMeshSize(QString("TRIANGULATED Result %1").arg(r2), tri2->GetOutput());
+			//vtkNew<vtkTriangleFilter> tri1;
+			//tri1->SetInputData(input[0]);
+			//tri1->Update();
+			//vtkNew<vtkTriangleFilter> tri2;
+			//tri2->SetInputData(inputRef[0]);
+			//tri2->Update();
 
-		//auto diffOp = vtkSmartPointer<vtkPolyDataBooleanFilter>::New();
-		//diffOp->SetOperModeToDifference();
-		/*
+			//logMeshSize(QString("TRIANGULATED Result %1").arg(r1), tri1->GetOutput());
+			//logMeshSize(QString("TRIANGULATED Result %1").arg(r2), tri2->GetOutput());
+
+			//auto diffOp = vtkSmartPointer<vtkPolyDataBooleanFilter>::New();
+			//diffOp->SetOperModeToDifference();
+			/*
 		auto diffOp = vtkSmartPointer<vtkBooleanOperationPolyDataFilter>::New();
 		diffOp->SetOperationToDifference();
 
@@ -2214,20 +2220,29 @@ void iASensitivityInfo::updateDifferenceView()
 		diffOp->Update();
 		*/
 
-		//m_gui->m_diffData = diffOp->GetOutput();
-		// for debug purposes: just show first fiber of first result_
-		auto resultData = QSharedPointer<iAPolyDataRenderer>::create();
-		resultData->data = input[0];	// TODO: extend to handling multiple fibers!
-		auto diffMapper = vtkSmartPointer<vtkPolyDataMapper>::New();
-		diffMapper->SetInputData(resultData->data);
-		resultData->actor = vtkSmartPointer<vtkActor>::New();
-		resultData->actor->SetMapper(diffMapper);
-		diffMapper->Update();
-		resultData->renderer = vtkSmartPointer<vtkRenderer>::New();
-		resultData->renderer->SetBackground(1.0, 1.0, 1.0);
-		m_gui->m_diff3DRenderManager.addToBundle(resultData->renderer);
-		resultData->renderer->AddActor(resultData->actor);
-		resultData->renderer->SetViewport(static_cast<double>(i) / hp.size(), 0, static_cast<double>(i+1) / hp.size(), 1);
+			//m_gui->m_diffData = diffOp->GetOutput();
+			// for debug purposes: just show first fiber of first result_
+			//resultData->data = input[0];	// TODO: extend to handling multiple fibers!
+			auto diffMapper = vtkSmartPointer<vtkPolyDataMapper>::New();
+			diffMapper->SetInputData(resultData->data[f]);
+			resultData->actor.push_back(vtkSmartPointer<vtkActor>::New());
+			resultData->actor[resultData->actor.size()-1]->SetMapper(diffMapper);
+			diffMapper->Update();
+			resultData->renderer->AddActor(resultData->actor[f]);
+		}
+
+		auto txt = QString("R %1").arg(rID);
+		auto cornerAnnotation = vtkSmartPointer<vtkCornerAnnotation>::New();
+		cornerAnnotation->SetLinearFontScaleFactor(2);
+		cornerAnnotation->SetNonlinearFontScaleFactor(1);
+		cornerAnnotation->SetMaximumFontSize(25);
+		cornerAnnotation->SetText(2, txt.toStdString().c_str());
+			// ToDo: add fiber id ;
+		cornerAnnotation->GetTextProperty()->SetColor(0.0, 0.0, 0.0);
+			//(QWidget::palette(QWidget::foregroundRole());
+		//cornerAnnotation->GetTextProperty()->BoldOn();
+		resultData->renderer->AddViewProp(cornerAnnotation);
+
 		renWin->AddRenderer(resultData->renderer);
 		m_gui->m_diff3DRenderers.push_back(resultData);
 		//m_diffActor->GetProperty()->SetPointSize(2);
