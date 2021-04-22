@@ -55,7 +55,7 @@ class iAColorTheme;
 class iADockWidgetWrapper;
 class iAMapper;
 class iAQSplom;
-class iARendererManager;
+class iARendererViewSync;
 class iARefDistCompute;
 class iASensitivityInfo;
 class iAVolumeRenderer;
@@ -222,7 +222,7 @@ private:
 	QSharedPointer<iAFiberResultsCollection> m_data;
 	std::vector<iAFiberCharUIData> m_resultUIs;
 
-	QSharedPointer<iARendererManager> m_renderManager;
+	QSharedPointer<iARendererViewSync> m_renderManager;
 	vtkSmartPointer<iASelectionInteractorStyle> m_style;
 	iAColorTheme const * m_resultColorTheme;
 	iAMainWindow* m_mainWnd;

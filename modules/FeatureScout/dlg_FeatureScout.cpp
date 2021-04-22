@@ -812,7 +812,12 @@ void dlg_FeatureScout::RenderMeanObject()
 	{
 		m_meanObject.reset(new iAMeanObject(m_activeChild, m_sourcePath));
 	}
-	m_meanObject->render(m_classTreeModel->invisibleRootItem(), classCount, m_tableList, m_filterID,
+	QStringList classNames;
+	for (int c=0; c<classCount; ++c)
+	{
+		classNames.push_back(m_classTreeModel->invisibleRootItem()->child(c, 0)->text());
+	}
+	m_meanObject->render(classNames, m_tableList, m_filterID,
 		m_dwSPM ? m_dwSPM : (m_dwDV ? m_dwDV : m_dwPC), m_renderer->renderer()->GetActiveCamera(),
 		m_colorList);
 }

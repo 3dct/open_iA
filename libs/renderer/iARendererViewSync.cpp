@@ -18,7 +18,7 @@
 * Contact: FH OÖ Forschungs & Entwicklungs GmbH, Campus Wels, CT-Gruppe,              *
 *          Stelzhamerstraße 23, 4600 Wels / Austria, Email: c.heinzl@fh-wels.at       *
 * ************************************************************************************/
-#include "iARendererManager.h"
+#include "iARendererViewSync.h"
 
 #include "iALog.h"
 
@@ -31,29 +31,57 @@
 
 #include <cassert>
 
-iARendererManager::iARendererManager():
-	m_isRedrawn(false),
-	m_commonCamera(nullptr)
+namespace
+{
+	void copyCameraParams(vtkCamera* dstCam, vtkCamera* srcCam)
+	{
+		dstCam->SetViewUp(srcCam->GetViewUp());
+		dstCam->SetPosition(srcCam->GetPosition());
+		dstCam->SetFocalPoint(srcCam->GetFocalPoint());
+		dstCam->SetClippingRange(srcCam->GetClippingRange());
+		if (srcCam->GetParallelProjection())
+		{
+			dstCam->SetParallelScale(srcCam->GetParallelScale());
+		}
+	}
+}
+
+iARendererViewSync::iARendererViewSync(bool sharedCamera) :
+	m_updateInProgress(false),
+	m_commonCamera(nullptr),
+	m_sharedCamera(sharedCamera)
 {
 }
 
-void iARendererManager::addToBundle(vtkRenderer* renderer)
+void iARendererViewSync::addToBundle(vtkRenderer* renderer)
 {
-	if (!m_commonCamera)
+	if (m_sharedCamera)
 	{
-		m_commonCamera = renderer->GetActiveCamera();
+		if (!m_commonCamera)
+		{
+			m_commonCamera = renderer->GetActiveCamera();
+		}
+		else
+		{
+			renderer->SetActiveCamera(m_commonCamera);
+		}
 	}
 	else
 	{
-		renderer->SetActiveCamera(m_commonCamera);
+		if (m_rendererObserverTags.size() > 0)
+		{
+			auto sourceCam = m_rendererObserverTags.keys()[0]->GetActiveCamera();
+			copyCameraParams(renderer->GetActiveCamera(), sourceCam);
+			renderer->GetActiveCamera()->SetParallelProjection(sourceCam->GetParallelProjection());
+		}
 	}
-	m_renderers.append(renderer);
-	renderer->AddObserver(vtkCommand::EndEvent, this, &iARendererManager::redrawOtherRenderers);
+	auto observeTag = renderer->AddObserver(vtkCommand::EndEvent, this, &iARendererViewSync::redrawOtherRenderers);
+	m_rendererObserverTags.insert(renderer, observeTag);
 }
 
-bool iARendererManager::removeFromBundle(vtkRenderer* renderer)
+bool iARendererViewSync::removeFromBundle(vtkRenderer* renderer)
 {
-	if(!m_renderers.contains(renderer))
+	if(!m_rendererObserverTags.contains(renderer))
 	{
 		assert(false);
 		LOG(lvlWarn, "iARenderManager::removeFromBundle called with renderer which isn't part of the Bundle!");
@@ -62,31 +90,39 @@ bool iARendererManager::removeFromBundle(vtkRenderer* renderer)
 	vtkSmartPointer<vtkCamera> newCam = vtkSmartPointer<vtkCamera>::New();
 	newCam->DeepCopy(renderer->GetActiveCamera());
 	renderer->SetActiveCamera(newCam);
-	m_renderers.remove(m_renderers.indexOf(renderer));
+	renderer->RemoveObserver(m_rendererObserverTags[renderer]);
+	m_rendererObserverTags.remove(renderer);
 	return true;
 }
 
-void iARendererManager::removeAll()
+void iARendererViewSync::removeAll()
 {
 	m_commonCamera = nullptr;
-	for(vtkRenderer * r: m_renderers)
+	for (auto  r: m_rendererObserverTags.keys())
 	{
 		removeFromBundle( r );
 	}
 }
 
-void iARendererManager::redrawOtherRenderers(vtkObject* /*caller*/, long unsigned int /*eventId*/, void* callData)
+void iARendererViewSync::redrawOtherRenderers(vtkObject* caller, long unsigned int /*eventId*/, void* /*callData*/)
 {
-	if (!m_isRedrawn)
+	if (m_updateInProgress || !caller)
 	{
-		m_isRedrawn = true;
-		for(int i = 0; i < m_renderers.count(); i++)
-		{
-			if(m_renderers[i] != callData)
-			{
-				m_renderers[i]->GetRenderWindow()->Render();
-			}
-		}
-		m_isRedrawn = false;
+		return;
 	}
+	m_updateInProgress = true;	// thread-safety?
+	auto sourceCam = ((vtkRenderer*)caller)->GetActiveCamera();
+	for (auto r: m_rendererObserverTags.keys())
+	{
+		if (r == caller)
+		{
+			continue;
+		}
+		if (!m_sharedCamera)
+		{
+			copyCameraParams(r->GetActiveCamera(), sourceCam);
+		}
+		r->GetRenderWindow()->Render();
+	}
+	m_updateInProgress = false;
 }

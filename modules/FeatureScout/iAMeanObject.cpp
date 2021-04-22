@@ -118,9 +118,10 @@ iAMeanObject::iAMeanObject(iAMdiChild* activeChild, QString const& sourcePath) :
 {
 }
 
-void iAMeanObject::render(QStandardItem* root, int classCount, QList<vtkSmartPointer<vtkTable>> const& tableList,
+void iAMeanObject::render(QStringList const & classNames, QList<vtkSmartPointer<vtkTable>> const& tableList,
 	int filterID, QDockWidget* nextToDW, vtkCamera* commonCamera, QList<QColor> const& classColor)
 {
+	int classCount = classNames.size();
 	m_filterID = filterID;
 	iAProgress p;
 	auto jobHandle = iAJobListView::get()->addJob("Compute Mean Object", &p);
@@ -232,20 +233,20 @@ void iAMeanObject::render(QStandardItem* root, int classCount, QList<vtkSmartPoi
 	for (int currClass = 1; currClass < classCount; ++currClass)
 	{
 		std::map<int, int>* meanObjectIds = new std::map<int, int>();
-		for (int j = 0; j < root->child(currClass)->rowCount(); ++j)
+		for (int j = 0; j < tableList[currClass]->GetNumberOfRows(); ++j)
 		{
 			meanObjectIds->operator[](tableList[currClass]->GetValue(j, 0).ToInt()) =
 				tableList[currClass]->GetValue(j, 0).ToFloat();
 		}
 
-		typedef itk::ImageRegionIterator< MObjectImageType> IteratorType;
+		typedef itk::ImageRegionIterator<MObjectImageType> IteratorType;
 		IteratorType mOITKImgIt(mObjectITKImage, outputRegion);
 		for (mOITKImgIt.GoToBegin(); !mOITKImgIt.IsAtEnd(); ++mOITKImgIt)
 		{
 			mOITKImgIt.Set(0);
 		}
 
-		typedef itk::ImageRegionIterator< addImageType> IteratorType;
+		typedef itk::ImageRegionIterator<addImageType> IteratorType;
 		IteratorType addImgIt(addImage, addoutputRegion);
 		for (addImgIt.GoToBegin(); !addImgIt.IsAtEnd(); ++addImgIt)
 		{
@@ -265,14 +266,14 @@ void iAMeanObject::render(QStandardItem* root, int classCount, QList<vtkSmartPoi
 			destinationIndex[0] = moImgCenter[0] - std::round(maskSize[0] / 2);
 			destinationIndex[1] = moImgCenter[1] - std::round(maskSize[1] / 2);
 			destinationIndex[2] = moImgCenter[2] - std::round(maskSize[2] / 2);
-			typedef itk::PasteImageFilter <IType, MObjectImageType > PasteImageFilterType;
+			typedef itk::PasteImageFilter<IType, MObjectImageType> PasteImageFilterType;
 			PasteImageFilterType::Pointer pasteFilter = PasteImageFilterType::New();
 			pasteFilter->SetSourceImage(mask->GetOutput());
 			pasteFilter->SetDestinationImage(mObjectITKImage);
 			pasteFilter->SetSourceRegion(mask->GetOutput()->GetLargestPossibleRegion());
 			pasteFilter->SetDestinationIndex(destinationIndex);
 
-			typedef itk::AddImageFilter <MObjectImageType, MObjectImageType > AddImageFilterType;
+			typedef itk::AddImageFilter<MObjectImageType, MObjectImageType> AddImageFilterType;
 			AddImageFilterType::Pointer addFilter = AddImageFilterType::New();
 			addFilter->SetInput1(addImage);
 			addFilter->SetInput2(pasteFilter->GetOutput());
@@ -287,12 +288,12 @@ void iAMeanObject::render(QStandardItem* root, int classCount, QList<vtkSmartPoi
 		}
 
 		// Normalize voxels values to 1
-		typedef itk::Image< float, DIM > moOutputImageType;
-		typedef itk::CastImageFilter< addImageType, moOutputImageType > CastFilterType;
+		typedef itk::Image<float, DIM> moOutputImageType;
+		typedef itk::CastImageFilter<addImageType, moOutputImageType> CastFilterType;
 		CastFilterType::Pointer caster = CastFilterType::New();
 		caster->SetInput(addImage);
 		caster->Update();
-		typedef itk::ImageRegionIterator< moOutputImageType> casterIteratorType;
+		typedef itk::ImageRegionIterator<moOutputImageType> casterIteratorType;
 		casterIteratorType casterImgIt(caster->GetOutput(), caster->GetOutput()->GetLargestPossibleRegion());
 		for (casterImgIt.GoToBegin(); !casterImgIt.IsAtEnd(); ++casterImgIt)
 		{
@@ -309,7 +310,7 @@ void iAMeanObject::render(QStandardItem* root, int classCount, QList<vtkSmartPoi
 		m_MOData->moImageDataList.append(meanObjectImage);
 
 		// Create histogram and TFs for each MObject
-		QString moHistName = root->child(currClass, 0)->text();
+		QString moHistName = classNames[currClass];
 		moHistName.append(QString(" %1 Mean Object").arg(MapObjectTypeToString(filterID)));
 		iAModalityTransfer* moHistogram = new iAModalityTransfer(m_MOData->moImageDataList[currClass - 1]->GetScalarRange());
 		m_MOData->moHistogramList.append(moHistogram);
@@ -414,10 +415,7 @@ void iAMeanObject::render(QStandardItem* root, int classCount, QList<vtkSmartPoi
 
 	// Update MOClass comboBox
 	m_dwMO->cb_Classes->clear();
-	for (int i = 1; i < classCount; ++i)
-	{
-		m_dwMO->cb_Classes->addItem(root->child(i, 0)->text());
-	}
+	m_dwMO->cb_Classes->addItems(classNames);
 	m_activeChild->tabifyDockWidget(nextToDW, m_dwMO);
 	m_dwMO->show();
 	m_dwMO->raise();
@@ -462,7 +460,7 @@ void iAMeanObject::render(QStandardItem* root, int classCount, QList<vtkSmartPoi
 			cornerAnnotation->SetLinearFontScaleFactor(2);
 			cornerAnnotation->SetNonlinearFontScaleFactor(1);
 			cornerAnnotation->SetMaximumFontSize(25);
-			cornerAnnotation->SetText(2, root->child(i + 1, 0)->text().toStdString().c_str());
+			cornerAnnotation->SetText(2, classNames[i + 1].toStdString().c_str());
 			cornerAnnotation->GetTextProperty()->SetColor(classColor.at(i + 1).redF(), classColor.at(i + 1).greenF(), classColor.at(i + 1).blueF());
 			cornerAnnotation->GetTextProperty()->BoldOn();
 
