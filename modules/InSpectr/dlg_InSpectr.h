@@ -27,7 +27,7 @@
 #include "iASpectrumFunction.h"
 #include "ui_InSpectr.h"
 
-#include <iARendererManager.h>
+#include <iARendererViewSync.h>
 #include <iAVtkWidgetFwd.h>
 #include <qthelper/iAQTtoUIConnector.h>
 
@@ -207,7 +207,7 @@ private:
 	QVector<dlg_elementRenderer*>                  m_elementRenderers; 	//!< Individual element renderers
 	QVector<iASpectrumFilter>                      m_activeFilter;
 	dlg_RefSpectra *                               m_refSpectra;
-	iARendererManager                              m_rendererManager;
+	iARendererViewSync                              m_rendererManager;
 	QVector<iACharacteristicEnergy>                m_characteristicEnergies;
 	QDockWidget *                                  m_pieChartContainer;
 	QSharedPointer<iAPeriodicTableListener>        m_periodicTableListener;
