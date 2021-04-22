@@ -207,7 +207,7 @@ private:
 	QVector<dlg_elementRenderer*>                  m_elementRenderers; 	//!< Individual element renderers
 	QVector<iASpectrumFilter>                      m_activeFilter;
 	dlg_RefSpectra *                               m_refSpectra;
-	iARendererViewSync                              m_rendererManager;
+	iARendererViewSync                             m_rendererManager;
 	QVector<iACharacteristicEnergy>                m_characteristicEnergies;
 	QDockWidget *                                  m_pieChartContainer;
 	QSharedPointer<iAPeriodicTableListener>        m_periodicTableListener;
