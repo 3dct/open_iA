@@ -45,7 +45,6 @@ private:
 	float* m_contextFactors;
 	IndexType m_objectCount;
 	float m_contextDiameterFactor;
-	std::map<size_t, std::vector<iAVec3f> > m_curvedFiberData;
 	bool m_lines;
 };
 

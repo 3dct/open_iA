@@ -164,15 +164,21 @@ std::vector<vtkSmartPointer<vtkPolyData>> iA3DCylinderObjectVis::extractSelected
 			tmpTbl->AddColumn(arrC);
 		}
 		tmpTbl->SetNumberOfRows(1);
-		for (int c = 0; c < m_objectTable->GetNumberOfColumns(); ++c)
+		// TODO: use labelID everywhere to identify object!
+		//int labelID = m_objectTable->GetValue(selIdx, 0).ToInt() - 1;
+		//for the moment: assert(labelID == selIdx);
+		int labelID = selIdx;
+		for (int c = 1; c < m_objectTable->GetNumberOfColumns(); ++c)
 		{
 			tmpTbl->SetValue(0, c, m_objectTable->GetValue(selIdx, c));
 		}
+		const int ExtractedID = 1;
+		tmpTbl->SetValue(0, 0, ExtractedID);
 		std::map<size_t, std::vector<iAVec3f>> tmpCurvedFiberData;
-		auto it = m_curvedFiberData.find(selIdx);
+		auto it = m_curvedFiberData.find(labelID);
 		if (it != m_curvedFiberData.end())
-		{
-			tmpCurvedFiberData.insert(std::make_pair(0, it->second));
+		{	// Note: curved fiber data currently does not use LabelID, but starts from 0!
+			tmpCurvedFiberData.insert(std::make_pair(ExtractedID-1, it->second));
 		}
 		iA3DCylinderObjectVis tmpVis(m_ren, tmpTbl.GetPointer(), m_columnMapping, QColor(0, 0, 0), tmpCurvedFiberData);
 		auto pd = tmpVis.finalPoly();
