@@ -155,8 +155,6 @@ public:
 	void updateYBounds(size_t startPlot = 0);
 	//! Draws the chart off screen and returns an image of the result.
 	QImage drawOffscreen();
-	//! Sets the background color of the whole chart.
-	void setBackgroundColor(QColor const & color);
 
 public slots:
 	//! Reset view (zoom and shift in x and y direction) such that all plots are fully visible.
@@ -199,7 +197,6 @@ protected:
 
 	virtual void changeMode(int newMode, QMouseEvent *event);
 	virtual void showDataTooltip(QHelpEvent *event);
-	virtual void drawBackground(QPainter &painter);
 
 	//! @{ Overriden Qt events.
 	void mouseMoveEvent(QMouseEvent *event) override;
@@ -251,5 +248,4 @@ private:
 	QMap<double, QColor> m_xMarker;
 	size_t m_maxXAxisSteps;
 	bool m_drawXAxisAtZero;
-	QColor m_bgColor;
 };

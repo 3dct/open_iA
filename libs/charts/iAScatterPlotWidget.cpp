@@ -29,6 +29,8 @@
 #include <vtkLookupTable.h>
 #include <vtkSmartPointer.h>
 
+#include <QApplication>    // for qApp->palette()
+
 #include <QMouseEvent>
 #if (defined(CHART_OPENGL) && defined(OPENGL_DEBUG))
 #include <QOpenGLDebugLogger>
@@ -123,13 +125,17 @@ void iAScatterPlotWidget::paintEvent(QPaintEvent* /*event*/)
 #endif
 	}
 	painter.setRenderHint(QPainter::Antialiasing);
-	painter.beginNativePainting();
-	QColor bgColor(QWidget::palette().color(QWidget::backgroundRole()));
-	QColor fg(QWidget::palette().color(QPalette::Text));
+	QColor bgColor(qApp->palette().color(QWidget::backgroundRole()));
+	QColor fg(qApp->palette().color(QPalette::Text));
 	m_scatterplot->settings.tickLabelColor = fg;
+#if (defined(CHART_OPENGL))
+	painter.beginNativePainting();
 	glClearColor(bgColor.red() / 255.0, bgColor.green() / 255.0, bgColor.blue() / 255.0, 1.0);
 	glClear(GL_COLOR_BUFFER_BIT);
 	painter.endNativePainting();
+#else
+	painter.fillRect(rect(), bgColor);
+#endif
 	m_scatterplot->paintOnParent(painter);
 
 	// print axes tick labels:
@@ -178,7 +184,7 @@ void iAScatterPlotWidget::adjustScatterPlotSize()
 void iAScatterPlotWidget::resizeEvent(QResizeEvent* event)
 {
 	adjustScatterPlotSize();
-	iAQGLWidget::resizeEvent( event );
+	iAChartParentWidget::resizeEvent(event);
 }
 
 int iAScatterPlotWidget::PaddingLeft()
