@@ -217,8 +217,6 @@ void iAScatterPlotWidget::paintEvent(QPaintEvent* event)
 	m_scatterplot->settings.tickLabelColor = fg;
 #if (defined(CHART_OPENGL))
 	painter.beginNativePainting();
-#ifdef CHART_OPENGL
-	painter.beginNativePainting();
 	glClearColor(bgColor.red() / 255.0, bgColor.green() / 255.0, bgColor.blue() / 255.0, 1.0);
 	glClear(GL_COLOR_BUFFER_BIT);
 	painter.endNativePainting();

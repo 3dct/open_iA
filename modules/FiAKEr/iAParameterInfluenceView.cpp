@@ -37,6 +37,7 @@
 #include <iAXYPlotData.h>
 
 #include <QAction>
+#include <QApplication>    // for qApp->palette()
 #include <QGridLayout>
 #include <QHBoxLayout>
 #include <QLabel>
@@ -400,18 +401,20 @@ void iAParameterInfluenceView::setSelectedParam(int param)
 	for (int paramIdx = 0; paramIdx < m_sensInf->m_variedParams.size(); ++paramIdx)
 	{
 		QColor color = (paramIdx == m_selectedParam) ? ParamRowSelectedBGColor : ParamRowUnselectedBGColor;
+		QPalette::ColorRole bgRole = (paramIdx == m_selectedParam) ? QPalette::AlternateBase : QPalette::Window;
 		for (int col = colMin; col <= colStep; ++col)
 		{
-			m_table[paramIdx]->labels[col]->setStyleSheet("QLabel { background-color : " + color.name() + "; }");
+			m_table[paramIdx]->labels[col]->setAutoFillBackground(true);
+			m_table[paramIdx]->labels[col]->setPalette(qApp->palette());
+			m_table[paramIdx]->labels[col]->setBackgroundRole(bgRole);
+			//m_table[paramIdx]->labels[col]->setStyleSheet("QLabel { background-color : " + color.name() + "; }");
 		}
-		m_table[paramIdx]->head->setBackgroundColor(color);
-		m_table[paramIdx]->bars->setBackgroundColor(color);
+		m_table[paramIdx]->head->setBackgroundRole(bgRole);
+		m_table[paramIdx]->bars->setBackgroundRole(bgRole);
 		for (int barIdx = 0; barIdx < m_table[paramIdx]->out.size(); ++barIdx)
 		{
-			m_table[paramIdx]->out[barIdx]->setBackgroundColor(color);
-			m_table[paramIdx]->out[barIdx]->update();
-			m_table[paramIdx]->par[barIdx]->setBackgroundColor(color);
-			m_table[paramIdx]->par[barIdx]->update();
+			m_table[paramIdx]->out[barIdx]->setBackgroundRole(bgRole);
+			m_table[paramIdx]->par[barIdx]->setBackgroundRole(bgRole);
 		}
 	}
 	emit parameterChanged();
@@ -626,18 +629,20 @@ void iAParameterInfluenceView::addStackedBar(int outType, int outIdx)
 		int varParIdx = m_sensInf->m_variedParams[paramIdx];
 		auto paramName = m_sensInf->m_paramNames[varParIdx];
 		QColor color = (paramIdx == m_selectedParam) ? ParamRowSelectedBGColor : ParamRowUnselectedBGColor;
+		QPalette::ColorRole bgRole = (paramIdx == m_selectedParam) ? QPalette::AlternateBase : QPalette::Window;
 
 		auto outChart = new iAChartWidget(this, "", (curBarIdx == 0) ? "Var. from " + paramName : "");
 		outChart->setShowXAxisLabel(false);
 		outChart->setEmptyText("");
-		outChart->setBackgroundColor(color);
+		outChart->setBackgroundRole(bgRole);
 		outChart->setMinimumHeight(80);
 		m_table[paramIdx]->out.push_back(outChart);
+		//connect(outChart, &iAChartWidget::clicked, this, &iAParameterInfluenceView::);
 		connect(outChart, &iAChartWidget::axisChanged, this, &iAParameterInfluenceView::charactChartAxisChanged);
 
 		auto parChart = new iAChartWidget(this, paramName, (curBarIdx == 0) ? "Sens. " + title : "");
 		parChart->setEmptyText("");
-		parChart->setBackgroundColor(color);
+		parChart->setBackgroundRole(bgRole);
 		parChart->setProperty("paramIdx", paramIdx);
 		double parMin = m_sensInf->m_paramMin[varParIdx],
 			parMax = m_sensInf->m_paramMax[varParIdx],
