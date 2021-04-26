@@ -41,6 +41,7 @@
 #include <vtkLookupTable.h>
 #include <vtkTransform.h>
 
+#include <QApplication>    // for qApp->palette()
 #include <QHBoxLayout>
 
 iAImageWidget::iAImageWidget(vtkSmartPointer<vtkImageData> img, vtkSmartPointer<vtkScalarsToColors> lut):
@@ -86,7 +87,7 @@ iAImageWidget::iAImageWidget(vtkSmartPointer<vtkImageData> img, vtkSmartPointer<
 
 void iAImageWidget::StyleChanged()
 {
-	QColor bgColor = QWidget::palette().color(QWidget::backgroundRole());
+	QColor bgColor = qApp->palette().color(QWidget::backgroundRole());
 
 	//m_renderer->SetBackground(bgColor.red() / 255.0, bgColor.green() / 255.0, bgColor.blue() / 255.0);
 	m_slicer->setBackground(bgColor.red() / 255.0, bgColor.green() / 255.0, bgColor.blue() / 255.0);

@@ -29,6 +29,8 @@
 #include <vtkLookupTable.h>
 #include <vtkSmartPointer.h>
 
+#include <QApplication>    // for qApp->palette()
+
 #include <QActionGroup>
 #include <QMenu>
 #include <QMouseEvent>
@@ -210,9 +212,11 @@ void iAScatterPlotWidget::paintEvent(QPaintEvent* event)
 #endif
 	}
 	painter.setRenderHint(QPainter::Antialiasing);
-	QColor bgColor(QWidget::palette().color(QWidget::backgroundRole()));
-	QColor fg(QWidget::palette().color(QPalette::Text));
+	QColor bgColor(qApp->palette().color(QWidget::backgroundRole()));
+	QColor fg(qApp->palette().color(QPalette::Text));
 	m_scatterplot->settings.tickLabelColor = fg;
+#if (defined(CHART_OPENGL))
+	painter.beginNativePainting();
 #ifdef CHART_OPENGL
 	painter.beginNativePainting();
 	glClearColor(bgColor.red() / 255.0, bgColor.green() / 255.0, bgColor.blue() / 255.0, 1.0);
