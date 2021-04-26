@@ -768,6 +768,7 @@ void MainWindow::savePreferences(iAXmlSettings &xml)
 	preferencesElement.setAttribute("resultsInNewWindow", tr("%1").arg(m_defaultPreferences.ResultInNewWindow));
 	preferencesElement.setAttribute("magicLensSize", tr("%1").arg(m_defaultPreferences.MagicLensSize));
 	preferencesElement.setAttribute("magicLensFrameWidth", tr("%1").arg(m_defaultPreferences.MagicLensFrameWidth));
+	preferencesElement.setAttribute("fontSize", QString::number(m_defaultPreferences.FontSize));
 	preferencesElement.setAttribute("logToFile", tr("%1").arg(iALogWidget::get()->isLogToFileOn()));
 }
 
@@ -782,6 +783,7 @@ void MainWindow::loadPreferences(QDomNode preferencesNode)
 	m_defaultPreferences.ResultInNewWindow = attributes.namedItem("resultsInNewWindow").nodeValue() == "1";
 	m_defaultPreferences.MagicLensSize = attributes.namedItem("magicLensSize").nodeValue().toInt();
 	m_defaultPreferences.MagicLensFrameWidth = attributes.namedItem("magicLensFrameWidth").nodeValue().toInt();
+	m_defaultPreferences.FontSize = attributes.namedItem("fontSize").nodeValue().toInt();
 	bool prefLogToFile = attributes.namedItem("logToFile").nodeValue() == "1";
 	QString logFileName = attributes.namedItem("logFile").nodeValue();
 
@@ -1017,6 +1019,7 @@ void MainWindow::prefs()
 		<< tr("#Log File Name")
 		<< tr("+File Log Level")
 		<< tr("+Looks")
+		<< tr("*Font size")
 		<< tr("#Magic lens size")
 		<< tr("#Magic lens frame width")
 		<< tr("$Logarithmic Histogram y axis"));
@@ -1058,6 +1061,7 @@ void MainWindow::prefs()
 		<< iALogWidget::get()->logFileName()
 		<< fileLogLevels
 		<< looks
+		<< QString::number(p.FontSize)
 		<< tr("%1").arg(p.MagicLensSize)
 		<< tr("%1").arg(p.MagicLensFrameWidth)
 		<< p.HistogramLogarithmicYAxis;
@@ -1082,7 +1086,10 @@ void MainWindow::prefs()
 			m_qssName = styleNames[looksStr];
 			applyQSS();
 		}
-
+		m_defaultPreferences.FontSize = dlg.getIntValue(i++);
+		auto f = QApplication::font();
+		f.setPointSize(m_defaultPreferences.FontSize);
+		QApplication::setFont(f);
 		m_defaultPreferences.MagicLensSize = clamp(MinimumMagicLensSize, MaximumMagicLensSize,
 			static_cast<int>(dlg.getDblValue(i++)));
 		m_defaultPreferences.MagicLensFrameWidth = std::max(0, static_cast<int>(dlg.getDblValue(i++)));
@@ -1882,11 +1889,15 @@ void MainWindow::readSettings()
 	m_defaultPreferences.ResultInNewWindow = settings.value("Preferences/prefResultInNewWindow", defaultPrefs.ResultInNewWindow).toBool();
 	m_defaultPreferences.MagicLensSize = settings.value("Preferences/prefMagicLensSize", defaultPrefs.MagicLensSize).toInt();
 	m_defaultPreferences.MagicLensFrameWidth = settings.value("Preferences/prefMagicLensFrameWidth", defaultPrefs.MagicLensFrameWidth).toInt();
+	m_defaultPreferences.FontSize = settings.value("Preferences/fontSize", defaultPrefs.FontSize).toInt();
 	bool prefLogToFile = settings.value("Preferences/prefLogToFile", false).toBool();
 	QString logFileName = settings.value("Preferences/prefLogFile", "debug.log").toString();
 	iALogWidget::get()->setLogToFile(prefLogToFile, logFileName);
 	iALogWidget::get()->setLogLevel(static_cast<iALogLevel>(settings.value("Preferences/prefLogLevel", lvlInfo).toInt()));
 	iALogWidget::get()->setFileLogLevel(static_cast<iALogLevel>(settings.value("Preferences/prefFileLogLevel", lvlWarn).toInt()));
+	auto f = QApplication::font();
+	f.setPointSize(m_defaultPreferences.FontSize);
+	QApplication::setFont(f);
 
 	iARenderSettings fallbackRS;
 	m_defaultRenderSettings.ShowSlicers = settings.value("Renderer/rsShowSlicers", fallbackRS.ShowSlicers).toBool();
@@ -1998,6 +2009,7 @@ void MainWindow::writeSettings()
 	settings.setValue("Preferences/prefResultInNewWindow", m_defaultPreferences.ResultInNewWindow);
 	settings.setValue("Preferences/prefMagicLensSize", m_defaultPreferences.MagicLensSize);
 	settings.setValue("Preferences/prefMagicLensFrameWidth", m_defaultPreferences.MagicLensFrameWidth);
+	settings.setValue("Preferences/fontSize", m_defaultPreferences.FontSize);
 	settings.setValue("Preferences/prefLogToFile", iALogWidget::get()->isLogToFileOn());
 	settings.setValue("Preferences/prefLogFile", iALogWidget::get()->logFileName());
 	settings.setValue("Preferences/prefLogLevel", iALogWidget::get()->logLevel());

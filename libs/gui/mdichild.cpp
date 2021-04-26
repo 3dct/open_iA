@@ -2428,6 +2428,7 @@ int MdiChild::magicLensSize() const
 {
 	return m_preferences.MagicLensSize;
 }
+
 int MdiChild::magicLensFrameWidth() const
 {
 	return m_preferences.MagicLensFrameWidth;
