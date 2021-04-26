@@ -375,23 +375,21 @@ void iAScatterPlotWidget::toggleHighlightedPoint(size_t curPoint, Qt::KeyboardMo
 		}
 		m_viewData->clearHighlightedPoints();
 	}
-	if (curPoint == iASPLOMData::NoDataIdx)
+	if (curPoint != iASPLOMData::NoDataIdx)
 	{
-		return;
-	}
-	auto wasHighlighted = m_viewData->isPointHighlighted(curPoint);
-	if (modifiers.testFlag(Qt::ControlModifier) && wasHighlighted)
-	{  // remove just the highlight of current point if Ctrl _is_ pressed
-		m_viewData->removeHighlightedPoint(curPoint);
-		emit pointHighlighted(curPoint, false);
-	}
-	else if (!wasHighlighted)
-	{  // if current point was not highlighted before, add it
-		m_viewData->addHighlightedPoint(curPoint);
-		emit pointHighlighted(curPoint, true);
+		auto wasHighlighted = m_viewData->isPointHighlighted(curPoint);
+		if (modifiers.testFlag(Qt::ControlModifier) && wasHighlighted)
+		{  // remove just the highlight of current point if Ctrl _is_ pressed
+			m_viewData->removeHighlightedPoint(curPoint);
+			emit pointHighlighted(curPoint, false);
+		}
+		else if (!wasHighlighted)
+		{  // if current point was not highlighted before, add it
+			m_viewData->addHighlightedPoint(curPoint);
+			emit pointHighlighted(curPoint, true);
+		}
 	}
 	emit highlightChanged();
-	update();
 }
 
 void iAScatterPlotWidget::setHighlightColor(QColor hltCol)

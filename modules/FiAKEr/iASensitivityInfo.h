@@ -230,7 +230,7 @@ private:
 	void writeDissimilarityMatrixCache(QVector<int> const& measures) const;
 	QWidget* setupMatrixView(QVector<int> const& measures);
 
-	void showDifference(size_t r1, size_t r2);
+	void updateDifferenceView();
 
 	QString m_parameterFileName;
 	int m_skipColumns;

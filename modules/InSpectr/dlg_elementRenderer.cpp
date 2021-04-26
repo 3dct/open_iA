@@ -37,8 +37,6 @@ dlg_elementRenderer::dlg_elementRenderer(QWidget *parent):
 	m_renderer( new iARendererImpl(this) ),
 	m_rendInitialized(false),
 	m_axesTransform( vtkSmartPointer<vtkTransform>::New() ),
-	m_observedRenderer(0),
-	m_tag(0),
 	m_indexInReferenceLib(std::numeric_limits<size_t>::max())
 {
 #if VTK_VERSION_NUMBER < VTK_VERSION_CHECK(9, 0, 0)
@@ -46,19 +44,11 @@ dlg_elementRenderer::dlg_elementRenderer(QWidget *parent):
 #else
 	renContainer->setRenderWindow(dynamic_cast<vtkGenericOpenGLRenderWindow*>(m_renderer->renderWindow()));
 #endif
-	m_renderer->renderer()->InteractiveOff();
 	m_renderer->setAxesTransform(m_axesTransform);
+	m_renderer->showHelpers(false);
 
 	connect(renContainer, &iAFast3DMagicLensWidget::rightButtonReleasedSignal, m_renderer, &iARendererImpl::mouseRightButtonReleasedSlot);
 	connect(renContainer, &iAFast3DMagicLensWidget::leftButtonReleasedSignal, m_renderer, &iARendererImpl::mouseLeftButtonReleasedSlot);
-}
-
-
-void dlg_elementRenderer::removeObserver()
-{
-	//is m_renderer deleted by Qt?
-	if(m_observedRenderer)
-		m_observedRenderer->RemoveObserver(m_tag);
 }
 
 void dlg_elementRenderer::SetDataToVisualize( vtkImageData * imgData, vtkPolyData * polyData, vtkPiecewiseFunction* otf, vtkColorTransferFunction* ctf )

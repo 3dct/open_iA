@@ -72,13 +72,15 @@
 
 // for mesh differences:
 // {
-#include "iARendererManager.h"
+#include "iARendererViewSync.h"
 //#include "vtkPolyDataBooleanFilter.h"
 
 #include <vtkActor.h>
+#include <vtkCornerAnnotation.h>
 //#include <vtkCleanPolyData.h>
 #include <vtkBooleanOperationPolyDataFilter.h>
 #include <vtkRendererCollection.h>
+#include <vtkTextProperty.h>
 #include <vtkTriangleFilter.h>
 // }
 
@@ -1560,6 +1562,13 @@ private:
 	}
 };
 
+struct iAPolyDataRenderer
+{
+	vtkSmartPointer<vtkRenderer> renderer;
+	std::vector<vtkSmartPointer<vtkPolyData>> data;
+	std::vector<vtkSmartPointer<vtkActor>> actor;
+};
+
 class iASensitivityGUI
 {
 public:
@@ -1572,7 +1581,8 @@ public:
 		m_matrixWidget(nullptr),
 		m_parameterListView(nullptr),
 		m_algoInfo(nullptr),
-		m_diff3DWidget(nullptr)
+		m_diff3DWidget(nullptr),
+		m_diff3DRenderManager(/*sharedCamera = */false)
 	{}
 
 	//! @{ Param Influence List
@@ -1598,10 +1608,8 @@ public:
 	iAAlgorithmInfo* m_algoInfo;
 
 	iAVtkWidget* m_diff3DWidget;
-	vtkSmartPointer<vtkRenderer> m_diff3DRenderer;
-	vtkSmartPointer<vtkPolyData> m_diffData;
-	vtkSmartPointer<vtkActor> m_diffActor;
-	iARendererManager m_renderManager;
+	iARendererViewSync m_diff3DRenderManager;
+	std::vector<QSharedPointer<iAPolyDataRenderer>> m_diff3DRenderers;
 
 	void updateScatterPlotLUT(int starGroupSize, int numOfSTARSteps, size_t resultCount, int numInputParams,
 		iADissimilarityMatrixType const & resultDissimMatrix, QVector<QPair<double, double> > const & dissimRanges,
@@ -1965,14 +1973,10 @@ void iASensitivityInfo::createGUI()
 	auto dwDiff3D = new iADockWidgetWrapper(m_gui->m_diff3DWidget, "Difference 3D", "foeDiff3D");
 	m_child->splitDockWidget(dwSettings, dwDiff3D, Qt::Horizontal);
 #if VTK_VERSION_NUMBER < VTK_VERSION_CHECK(9, 0, 0)
-	m_gui->m_renderManager.addToBundle(m_main3DWidget->GetRenderWindow()->GetRenderers()->GetFirstRenderer());
+	m_gui->m_diff3DRenderManager.addToBundle(m_main3DWidget->GetRenderWindow()->GetRenderers()->GetFirstRenderer());
 #else
-	m_gui->m_renderManager.addToBundle(m_main3DWidget->renderWindow()->GetRenderers()->GetFirstRenderer());
+	m_gui->m_diff3DRenderManager.addToBundle(m_main3DWidget->renderWindow()->GetRenderers()->GetFirstRenderer());
 #endif
-	m_gui->m_diff3DRenderer = vtkSmartPointer<vtkRenderer>::New();
-	m_gui->m_diff3DRenderer->SetBackground(1.0, 1.0, 1.0);
-	m_gui->m_renderManager.addToBundle(m_gui->m_diff3DRenderer);
-	renWin->AddRenderer(m_gui->m_diff3DRenderer);
 
 	updateDissimilarity();
 	changeAggregation(SelectedAggregationMeasureIdx);
@@ -2017,6 +2021,8 @@ void iASensitivityInfo::fiberSelectionChanged(std::vector<std::vector<size_t>> c
 		resultCount += (selection[resultID].size() > 0) ? 1 : 0;
 	}
 	LOG(lvlDebug, QString("New fiber selection: %1 selected fibers in %2 results").arg(selectedFibers).arg(resultCount));
+	
+	updateDifferenceView();
 }
 
 void iASensitivityInfo::updateDissimilarity()
@@ -2057,7 +2063,6 @@ void iASensitivityInfo::spPointHighlighted(size_t resultIdx, bool state)
 	m_gui->m_paramInfluenceView->setResultSelected(resultIdx, state);
 	m_gui->m_paramInfluenceView->setSelectedParam(paramID);
 	emit resultSelected(resultIdx, state);
-
 	if (m_currentFiberSelection.size() == 0)
 	{	// before first selection is made...
 		return;
@@ -2122,14 +2127,7 @@ void iASensitivityInfo::spHighlightChanged()
 {
 	m_gui->updateScatterPlotLUT(m_starGroupSize, m_numOfSTARSteps, m_data->result.size(), m_variedParams.size(),
 		m_resultDissimMatrix, m_resultDissimRanges, m_gui->m_settings->dissimMeasIdx(), m_gui->m_settings->spColorMap());
-	auto const& hp = m_gui->m_scatterPlot->viewData()->highlightedPoints();
-	if (hp.size() == 2)
-	{
-		//emit resultSelected(hp[0], false);
-		//emit resultSelected(hp[1], false);
-		//emit viewDifference(hp[0], hp[1]);
-		showDifference(hp[0], hp[1]);
-	}
+	updateDifferenceView();
 }
 
 std::vector<size_t> iASensitivityInfo::selectedResults() const
@@ -2157,84 +2155,109 @@ namespace
 	}
 }
 
-void iASensitivityInfo::showDifference(size_t r1, size_t r2)
+void iASensitivityInfo::updateDifferenceView()
 {
-	iATimeGuard timer("ShowDifference");
-	if (!m_resultUIs[r1].main3DVis)
-	{
-		LOG(lvlDebug, QString("Result %1 - 3D vis not initialized!").arg(r1));
-		return;
-	}
-	if (!m_resultUIs[r2].main3DVis)
-	{
-		LOG(lvlDebug, QString("Result %1 - 3D vis not initialized!").arg(r2));
-		return;
-	}
-	auto input1 = m_resultUIs[r1].main3DVis->extractSelectedObjects();
-	auto input2 = m_resultUIs[r2].main3DVis->extractSelectedObjects();
-	if (input1.size() == 0 || input2.size() == 0)
-	{
-		LOG(lvlWarn, "One of the selected results has no selected fiber!");
-		return;
-	}
-	LOG(lvlDebug, QString("Result %1: %2 selected:").arg(r1).arg(input1.size()));
-	for (int i=0; i<input1.size(); ++i)
-	{
-		logMeshSize(QString("  Fiber %1").arg(i), input1[i]);
-	}
-	LOG(lvlDebug, QString("Result %1: %2 selected:").arg(r2).arg(input2.size()));
-	for (int i = 0; i < input2.size(); ++i)
-	{
-		logMeshSize(QString("  Fiber %1").arg(i), input2[i]);
-	}
-
-	if (m_gui->m_diffActor)
-	{
-		m_gui->m_diff3DRenderer->RemoveActor(m_gui->m_diffActor);
-	}
-
-	vtkNew<vtkTriangleFilter> tri1;
-	tri1->SetInputData(input1[0]);
-	tri1->Update();
-	vtkNew<vtkTriangleFilter> tri2;
-	tri2->SetInputData(input2[0]);
-	tri2->Update();
-
-	logMeshSize(QString("TRIANGULATED Result %1").arg(r1), tri1->GetOutput());
-	logMeshSize(QString("TRIANGULATED Result %1").arg(r2), tri2->GetOutput());
-
-	//auto diffOp = vtkSmartPointer<vtkPolyDataBooleanFilter>::New();
-	//diffOp->SetOperModeToDifference();
-	/*
-	auto diffOp = vtkSmartPointer<vtkBooleanOperationPolyDataFilter>::New();
-	diffOp->SetOperationToDifference();
-
-	diffOp->SetInputConnection(0, tri1->GetOutputPort());
-	diffOp->SetInputConnection(1, tri2->GetOutputPort());
-	diffOp->Update();
-	*/
-
-	//m_gui->m_diffData = diffOp->GetOutput();
-	// for debug purposes: just show first fiber of first result_
-	m_gui->m_diffData = input1[0];
-
-	auto diffMapper = vtkSmartPointer<vtkPolyDataMapper>::New();
-	diffMapper->SetInputData(m_gui->m_diffData);
-	m_gui->m_diffActor = vtkSmartPointer<vtkActor>::New();
-	m_gui->m_diffActor->SetMapper(diffMapper);
-	diffMapper->Update();
-	m_gui->m_diff3DRenderer->AddActor(m_gui->m_diffActor);
-	m_gui->m_diff3DWidget->renderWindow()->Render();
-	m_gui->m_diff3DWidget->update();
-	//m_diffActor->GetProperty()->SetPointSize(2);
-	/*
+	//iATimeGuard timer("ShowDifference");
 #if VTK_VERSION_NUMBER < VTK_VERSION_CHECK(9, 0, 0)
-	m_main3DWidget->GetRenderWindow()->GetRenderers()->GetFirstRenderer()->AddActor(m_diffActor);
-	m_main3DWidget->GetRenderWindow()->Render();
+	auto renWin = m_gui->m_diff3DWidget->GetRenderWindow();
 #else
-	m_main3DWidget->renderWindow()->GetRenderers()->GetFirstRenderer()->AddActor(m_diffActor);
-	m_main3DWidget->renderWindow()->Render(); 
+	auto renWin = m_gui->m_diff3DWidget->renderWindow();
 #endif
-	m_main3DWidget->update();
-	*/
+	auto const& hp = m_gui->m_scatterPlot->viewData()->highlightedPoints();
+
+	// TODO: reuse actors... / store what was previously shown and only update if something has changed?
+	LOG(lvlDebug, QString("%1 Results!").arg(hp.size()));
+	for (auto r: m_gui->m_diff3DRenderers)
+	{
+		m_gui->m_diff3DRenderManager.removeFromBundle(r->renderer);
+		renWin->RemoveRenderer(r->renderer);
+	}
+	//renWin->GetRenderers()->RemoveAllItems();	// should also work instead of above RemoveRenderer call
+	m_gui->m_diff3DRenderers.clear();
+	// TODO: determine "central" resultID to compare to / fixed comparison point determined by user?
+	for (size_t i=0; i<hp.size(); ++i)
+	{
+		auto rID = hp[i];
+		if (!m_resultUIs[rID].main3DVis)
+		{
+			LOG(lvlDebug, QString("Result %1: 3D vis not initialized!").arg(rID));
+			continue;
+		}
+		auto resultData = QSharedPointer<iAPolyDataRenderer>::create();
+		resultData->data = m_resultUIs[rID].main3DVis->extractSelectedObjects();
+		if (resultData->data.size() == 0)
+		{
+			LOG(lvlWarn, QString("Result %1: No selected fibers!").arg(rID));
+			continue;
+		}
+		resultData->renderer = vtkSmartPointer<vtkRenderer>::New();
+		resultData->renderer->SetBackground(1.0, 1.0, 1.0);
+		resultData->renderer->SetViewport(
+			static_cast<double>(i) / hp.size(), 0, static_cast<double>(i + 1) / hp.size(), 1);
+		LOG(lvlDebug, QString("Result %1: %2 selected:").arg(rID).arg(resultData->data.size()));
+		for (int f = 0; f < resultData->data.size(); ++f)
+		{
+			logMeshSize(QString("  Fiber %1").arg(f), resultData->data[f]);
+
+			//vtkNew<vtkTriangleFilter> tri1;
+			//tri1->SetInputData(input[0]);
+			//tri1->Update();
+			//vtkNew<vtkTriangleFilter> tri2;
+			//tri2->SetInputData(inputRef[0]);
+			//tri2->Update();
+
+			//logMeshSize(QString("TRIANGULATED Result %1").arg(r1), tri1->GetOutput());
+			//logMeshSize(QString("TRIANGULATED Result %1").arg(r2), tri2->GetOutput());
+
+			//auto diffOp = vtkSmartPointer<vtkPolyDataBooleanFilter>::New();
+			//diffOp->SetOperModeToDifference();
+			/*
+		auto diffOp = vtkSmartPointer<vtkBooleanOperationPolyDataFilter>::New();
+		diffOp->SetOperationToDifference();
+
+		diffOp->SetInputConnection(0, tri1->GetOutputPort());
+		diffOp->SetInputConnection(1, tri2->GetOutputPort());
+		diffOp->Update();
+		*/
+
+			//m_gui->m_diffData = diffOp->GetOutput();
+			// for debug purposes: just show first fiber of first result_
+			//resultData->data = input[0];	// TODO: extend to handling multiple fibers!
+			auto diffMapper = vtkSmartPointer<vtkPolyDataMapper>::New();
+			diffMapper->SetInputData(resultData->data[f]);
+			resultData->actor.push_back(vtkSmartPointer<vtkActor>::New());
+			resultData->actor[resultData->actor.size()-1]->SetMapper(diffMapper);
+			diffMapper->Update();
+			resultData->renderer->AddActor(resultData->actor[f]);
+		}
+
+		auto txt = QString("R %1").arg(rID);
+		auto cornerAnnotation = vtkSmartPointer<vtkCornerAnnotation>::New();
+		cornerAnnotation->SetLinearFontScaleFactor(2);
+		cornerAnnotation->SetNonlinearFontScaleFactor(1);
+		cornerAnnotation->SetMaximumFontSize(25);
+		cornerAnnotation->SetText(2, txt.toStdString().c_str());
+			// ToDo: add fiber id ;
+		cornerAnnotation->GetTextProperty()->SetColor(0.0, 0.0, 0.0);
+			//(QWidget::palette(QWidget::foregroundRole());
+		//cornerAnnotation->GetTextProperty()->BoldOn();
+		resultData->renderer->AddViewProp(cornerAnnotation);
+
+		renWin->AddRenderer(resultData->renderer);
+		m_gui->m_diff3DRenderManager.addToBundle(resultData->renderer);
+		m_gui->m_diff3DRenderers.push_back(resultData);
+		//m_diffActor->GetProperty()->SetPointSize(2);
+		/*
+	#if VTK_VERSION_NUMBER < VTK_VERSION_CHECK(9, 0, 0)
+		m_main3DWidget->GetRenderWindow()->GetRenderers()->GetFirstRenderer()->AddActor(m_diffActor);
+		m_main3DWidget->GetRenderWindow()->Render();
+	#else
+		m_main3DWidget->renderWindow()->GetRenderers()->GetFirstRenderer()->AddActor(m_diffActor);
+		m_main3DWidget->renderWindow()->Render();
+	#endif
+		m_main3DWidget->update();
+		*/
+	}
+	renWin->Render();
+	m_gui->m_diff3DWidget->update();
 }

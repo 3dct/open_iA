@@ -38,11 +38,13 @@ iA3DLineObjectVis::iA3DLineObjectVis(vtkRenderer* ren, vtkTable* objectTable, QS
 	iA3DColoredPolyObjectVis(ren, objectTable, columnMapping, color),
 	m_linePolyData(vtkSmartPointer<vtkPolyData>::New()),
 	m_points(vtkSmartPointer<vtkPoints>::New()),
+	m_curvedFiberData(curvedFiberData),
 	m_totalNumOfSegments(0)
 {
 	auto lines = vtkSmartPointer<vtkCellArray>::New();
 	for (vtkIdType row = 0; row < m_objectTable->GetNumberOfRows(); ++row)
 	{
+		//int labelID = m_objectTable->GetValue(row, 0).ToInt();
 		auto it = curvedFiberData.find(row);
 		IndexType numberOfPts;
 		IndexType totalNumOfPtsBefore = m_points->GetNumberOfPoints();

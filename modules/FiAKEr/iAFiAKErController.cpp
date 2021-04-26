@@ -62,7 +62,7 @@
 #include <iAVtkQtWidget.h>
 
 // renderer
-#include <iARendererManager.h>
+#include <iARendererViewSync.h>
 
 // base
 #include <iAColorTheme.h>
@@ -211,7 +211,7 @@ iAResultPairInfo::iAResultPairInfo(int measureCount) :
 const QString iAFiAKErController::FIAKERProjectID("FIAKER");
 
 iAFiAKErController::iAFiAKErController(iAMainWindow* mainWnd, iAMdiChild* mdiChild) :
-	m_renderManager(new iARendererManager()),
+	m_renderManager(new iARendererViewSync()),
 	m_resultColorTheme(iAColorThemeManager::instance().theme(DefaultResultColorTheme)),
 	m_mainWnd(mainWnd),
 	m_mdiChild(mdiChild),
