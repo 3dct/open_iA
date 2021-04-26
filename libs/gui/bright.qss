@@ -400,7 +400,9 @@ QProgressBar
 QListView,
 QListWidget,
 QTableView,
-QTableWidget
+QTableWidget,
+QTreeView,
+QTreeWidget
 ****************************************************************************/
 	QListView,
 	QListWidget,
@@ -424,6 +426,17 @@ QTableWidget
 		border-bottom: 1px solid 	rgba(135, 135, 135, 255);
 		border-left: 1px solid 		rgba(205, 205, 205, 255);
 		border-right: 1px solid		rgba(205, 205, 205, 255);
+	}
+	QTreeView,
+	QTreeWidget
+	{
+		selection-background-color: transparent;
+	}
+	QTreeView::item:selected,
+	QTreeWidget::item:selected
+	{
+		background-color: rgba(180, 180, 180, 255);
+		color: rgba(25, 25, 25, 255);
 	}
 	QListView::item:alternate,
 	QListWidget::item:alternate
