@@ -47,7 +47,6 @@ class dlg_elementRenderer : public dlg_elemRendererContainer
 	Q_OBJECT
 public:
 	dlg_elementRenderer(QWidget *parent);
-	void removeObserver();
 
 	void SetDataToVisualize(vtkImageData * imgData, vtkPolyData * polyData, vtkPiecewiseFunction* otf, vtkColorTransferFunction* ctf);
 	iARenderer * GetRenderer();
@@ -60,7 +59,5 @@ private:
 	bool m_rendInitialized;
 	vtkSmartPointer<vtkTransform> m_axesTransform;
 	QSharedPointer<iAVolumeRenderer> m_volumeRenderer;
-	vtkRenderer * m_observedRenderer;
-	unsigned long m_tag;
 	size_t m_indexInReferenceLib;
 };

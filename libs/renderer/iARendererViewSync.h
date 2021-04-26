@@ -22,28 +22,29 @@
 
 #include "iArenderer_export.h"
 
-#include <QVector>
+#include <QMap>
 
 class vtkCamera;
 class vtkObject;
 class vtkRenderer;
 
 //! Class synchronizing the camera between multiple renderers
-class iArenderer_API iARendererManager
+class iArenderer_API iARendererViewSync
 {
 public:
-	iARendererManager();
+	iARendererViewSync(bool sharedCamera = true);
 	void addToBundle(vtkRenderer* renderer);
 	bool removeFromBundle(vtkRenderer* renderer);
 	void removeAll();
 
 private:
-	iARendererManager(const iARendererManager&) =delete;
-	iARendererManager& operator=(const iARendererManager&) =delete;
+	iARendererViewSync(const iARendererViewSync&) = delete;
+	iARendererViewSync& operator=(const iARendererViewSync&) = delete;
 
 	void redrawOtherRenderers(vtkObject* caller, long unsigned int eventId, void* callData);
 
-	QVector<vtkRenderer*> m_renderers;
-	int m_isRedrawn;
+	bool m_updateInProgress;
 	vtkCamera* m_commonCamera;
+	bool m_sharedCamera;
+	QMap<vtkRenderer*, unsigned long> m_rendererObserverTags;
 };

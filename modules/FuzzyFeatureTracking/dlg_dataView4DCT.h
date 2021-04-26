@@ -22,7 +22,7 @@
 
 #include "ui_DataView4DCT.h"
 
-#include <iARendererManager.h>
+#include <iARendererViewSync.h>
 #include <qthelper/iAQTtoUIConnector.h>
 
 #include <vtkSmartPointer.h>
@@ -56,5 +56,5 @@ private:
 	iAVolumeRenderer** m_volumeRenderer;
 	vtkSmartPointer<vtkTransform> m_axesTransform;
 	iAMdiChild* m_mdiChild;
-	iARendererManager m_rendererManager;
+	iARendererViewSync m_rendererManager;
 };

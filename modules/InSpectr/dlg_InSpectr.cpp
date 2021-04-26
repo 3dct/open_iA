@@ -961,7 +961,6 @@ void dlg_InSpectr::showLinkedElementMaps( int show )
 	{
 		for (int i = 0; i < m_elementRenderers.size(); ++i)
 		{
-			m_elementRenderers[i]->removeObserver();
 			delete m_elementRenderers[i];
 		}
 		m_elementRenderers.clear();
