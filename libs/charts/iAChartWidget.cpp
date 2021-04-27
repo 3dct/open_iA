@@ -968,7 +968,12 @@ void iAChartWidget::mousePressEvent(QMouseEvent *event)
 	default:
 		break;
 	}
+
+#if QT_VERSION < QT_VERSION_CHECK(5, 15, 0)
 	emit clicked(mouse2DataX(event->x()-leftMargin()), /*yMapper().dstToSrc(event->y()), */event->modifiers());
+#else
+	emit clicked(mouse2DataX(event->position().x() - leftMargin()), /*yMapper().dstToSrc(event->y()), */ event->modifiers());
+#endif
 }
 
 double iAChartWidget::limitXShift(double newXShift)
