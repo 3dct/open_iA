@@ -215,7 +215,7 @@ void iAScatterPlotWidget::wheelEvent(QWheelEvent * event)
 
 void iAScatterPlotWidget::mousePressEvent(QMouseEvent * event)
 {
-#if QT_VERSION < QT_VERSION_CHECK(5, 15, 0)
+#if QT_VERSION < QT_VERSION_CHECK(5, 99, 0)
 	if (event->x() >= PaddingLeft() && event->x() <= (width() - PaddingRight) &&
 		event->y() >= PaddingTop && event->y() <= (height() - PaddingBottom()))
 #else
@@ -230,7 +230,7 @@ void iAScatterPlotWidget::mousePressEvent(QMouseEvent * event)
 
 void iAScatterPlotWidget::mouseReleaseEvent(QMouseEvent * event)
 {
-#if QT_VERSION < QT_VERSION_CHECK(5, 15, 0)
+#if QT_VERSION < QT_VERSION_CHECK(5, 99, 0)
 	if (event->x() >= PaddingLeft() && event->x() <= (width() - PaddingRight) &&
 		event->y() >= PaddingTop && event->y() <= (height() - PaddingBottom()))
 #else
@@ -246,7 +246,7 @@ void iAScatterPlotWidget::mouseReleaseEvent(QMouseEvent * event)
 
 void iAScatterPlotWidget::mouseMoveEvent(QMouseEvent * event)
 {
-#if QT_VERSION < QT_VERSION_CHECK(5, 15, 0)
+#if QT_VERSION < QT_VERSION_CHECK(5, 99, 0)
 	if (event->x() >= PaddingLeft() && event->x() <= (width() - PaddingRight) &&
 		event->y() >= PaddingTop && event->y() <= (height() - PaddingBottom()))
 #else
