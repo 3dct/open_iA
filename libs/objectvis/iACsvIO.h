@@ -30,6 +30,7 @@
 #include <QMap>
 #include <QSharedPointer>
 #include <QString>
+#include <QStringList>
 #include <QVector>
 
 #include <map>
