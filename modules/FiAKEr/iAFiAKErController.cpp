@@ -239,7 +239,6 @@ iAFiAKErController::iAFiAKErController(iAMainWindow* mainWnd, iAMdiChild* mdiChi
 	m_cameraInitialized(false),
 	m_spm(new iAQSplom())
 {
-	connect(mainWnd, &iAMainWindow::styleChanged, this, &iAFiAKErController::styleChanged);
 }
 
 void iAFiAKErController::loadProject(QSettings const& projectFile, QString const& fileName)
@@ -2251,12 +2250,12 @@ namespace
 	void setResultBackground(iAFiberCharUIData & ui, QPalette::ColorRole role)
 	{
 		QColor color(qApp->palette().color(role));
-		ui.nameActions->setBackgroundColor(color);
+		ui.nameActions->setBackgroundRole(role);
 		ui.topFiller->setStyleSheet("background-color: " + color.name());
 		ui.bottomFiller->setStyleSheet("background-color: " + color.name());
 		if (ui.previewWidget && ui.vtkWidget)
 		{
-			ui.previewWidget->setBackgroundColor(color);
+			ui.previewWidget->setBackgroundRole(role);
 #if VTK_VERSION_NUMBER < VTK_VERSION_CHECK(9, 0, 0)
 			ui.vtkWidget->GetRenderWindow()->GetRenderers()->GetFirstRenderer()->SetBackground(
 #else
@@ -3143,14 +3142,4 @@ void iAFiAKErController::toggleDockWidgetTitleBars()
 void iAFiAKErController::toggleSettings()
 {
 	m_views[SettingsView]->setVisible(!m_views[SettingsView]->isVisible());
-}
-
-void iAFiAKErController::styleChanged()
-{
-	for (size_t resultID = 0; resultID < m_resultUIs.size(); ++resultID)
-	{
-		QColor bgColor(m_resultUIs[resultID].nameActions->palette().color(
-			(resultID == m_referenceID) ? QPalette::AlternateBase : QPalette::Window));
-		m_resultUIs[resultID].nameActions->setBackgroundColor(bgColor);
-	}
 }

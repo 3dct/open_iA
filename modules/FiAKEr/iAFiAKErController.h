@@ -177,7 +177,6 @@ private slots:
 	// 3D view:
 	void showMainVis(size_t resultID, bool state);
 
-	void styleChanged();
 	void selectFibersFromSensitivity(SelectionType const& selection);
 private:
 	bool loadReferenceInternal(iASettings settings);
