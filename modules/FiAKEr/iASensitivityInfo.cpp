@@ -1582,8 +1582,20 @@ public:
 		m_parameterListView(nullptr),
 		m_algoInfo(nullptr),
 		m_diff3DWidget(nullptr),
-		m_diff3DRenderManager(/*sharedCamera = */false)
-	{}
+		m_diff3DRenderManager(/*sharedCamera = */false),
+		m_diff3DEmptyRenderer(vtkSmartPointer<vtkRenderer>::New()),
+		m_diff3DEmptyText(vtkSmartPointer<vtkCornerAnnotation>::New())
+	{
+		m_diff3DEmptyText->SetLinearFontScaleFactor(2);
+		m_diff3DEmptyText->SetNonlinearFontScaleFactor(1);
+		m_diff3DEmptyText->SetMaximumFontSize(25);
+		m_diff3DEmptyText->SetText(2, "No Fiber/Result selected");
+		auto textColor = qApp->palette().color(QPalette::Text);
+		m_diff3DEmptyText->GetTextProperty()->SetColor(textColor.redF(), textColor.greenF(), textColor.blueF());
+		auto bgColor = qApp->palette().color(QPalette::Window);
+		m_diff3DEmptyRenderer->SetBackground(bgColor.redF(), bgColor.greenF(), bgColor.blueF());
+		m_diff3DEmptyRenderer->AddViewProp(m_diff3DEmptyText);
+	}
 
 	//! @{ Param Influence List
 	iAParameterInfluenceView* m_paramInfluenceView;
@@ -1610,6 +1622,9 @@ public:
 	iAVtkWidget* m_diff3DWidget;
 	iARendererViewSync m_diff3DRenderManager;
 	std::vector<QSharedPointer<iAPolyDataRenderer>> m_diff3DRenderers;
+
+	vtkSmartPointer<vtkRenderer> m_diff3DEmptyRenderer;
+	vtkSmartPointer<vtkCornerAnnotation> m_diff3DEmptyText;
 
 	void updateScatterPlotLUT(int starGroupSize, int numOfSTARSteps, size_t resultCount, int numInputParams,
 		iADissimilarityMatrixType const & resultDissimMatrix, QVector<QPair<double, double> > const & dissimRanges,
@@ -2191,7 +2206,8 @@ void iASensitivityInfo::updateDifferenceView()
 			continue;
 		}
 		resultData->renderer = vtkSmartPointer<vtkRenderer>::New();
-		resultData->renderer->SetBackground(1.0, 1.0, 1.0);
+		auto bgColor(qApp->palette().color(QPalette::Window));
+		resultData->renderer->SetBackground(bgColor.redF(), bgColor.greenF(), bgColor.blueF());
 		resultData->renderer->SetViewport(
 			static_cast<double>(i) / hp.size(), 0, static_cast<double>(i + 1) / hp.size(), 1);
 		LOG(lvlDebug, QString("Result %1: %2 selected:").arg(rID).arg(resultData->data.size()));
@@ -2237,9 +2253,9 @@ void iASensitivityInfo::updateDifferenceView()
 		cornerAnnotation->SetNonlinearFontScaleFactor(1);
 		cornerAnnotation->SetMaximumFontSize(25);
 		cornerAnnotation->SetText(2, txt.toStdString().c_str());
-			// ToDo: add fiber id ;
-		cornerAnnotation->GetTextProperty()->SetColor(0.0, 0.0, 0.0);
-			//(QWidget::palette(QWidget::foregroundRole());
+		// ToDo: add fiber id ;
+		auto textColor = qApp->palette().color(QPalette::Text);
+		cornerAnnotation->GetTextProperty()->SetColor(textColor.redF(), textColor.greenF(), textColor.blueF());
 		//cornerAnnotation->GetTextProperty()->BoldOn();
 		resultData->renderer->AddViewProp(cornerAnnotation);
 
@@ -2257,6 +2273,14 @@ void iASensitivityInfo::updateDifferenceView()
 	#endif
 		m_main3DWidget->update();
 		*/
+	}
+	if (m_gui->m_diff3DRenderers.size() == 0 && !renWin->GetRenderers()->IsItemPresent(m_gui->m_diff3DEmptyRenderer))
+	{
+		renWin->AddRenderer(m_gui->m_diff3DEmptyRenderer);
+	}
+	else if (m_gui->m_diff3DRenderers.size() > 0 && renWin->GetRenderers()->IsItemPresent(m_gui->m_diff3DEmptyRenderer))
+	{
+		renWin->RemoveRenderer(m_gui->m_diff3DEmptyRenderer);
 	}
 	renWin->Render();
 	m_gui->m_diff3DWidget->update();
