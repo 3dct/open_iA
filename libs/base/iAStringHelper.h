@@ -166,7 +166,7 @@ ContainerT stringToVector(QString const& listAsString, QString const& separator=
 	bool warnWhenInvalid = true)
 {
 	QStringList strList = listAsString.split(separator);
-	ContainerT result(std::min(strList.size(), maxItems));
+	ContainerT result(std::min(static_cast<int>(strList.size()), maxItems));
 	for (auto i = 0; i < strList.size() && i < maxItems; ++i)
 	{
 		bool ok;
