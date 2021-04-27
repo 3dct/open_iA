@@ -2187,7 +2187,7 @@ void iASensitivityInfo::updateDifferenceView()
 		resultData->data = m_resultUIs[rID].main3DVis->extractSelectedObjects();
 		if (resultData->data.size() == 0)
 		{
-			LOG(lvlWarn, QString("Result %1: No selected fibers!").arg(rID));
+			LOG(lvlDebug, QString("Result %1: No selected fibers!").arg(rID));
 			continue;
 		}
 		resultData->renderer = vtkSmartPointer<vtkRenderer>::New();
