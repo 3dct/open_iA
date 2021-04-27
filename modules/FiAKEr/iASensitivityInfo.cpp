@@ -2183,7 +2183,7 @@ void iASensitivityInfo::updateDifferenceView()
 	auto const& hp = m_gui->m_scatterPlot->viewData()->highlightedPoints();
 
 	// TODO: reuse actors... / store what was previously shown and only update if something has changed?
-	LOG(lvlDebug, QString("%1 Results!").arg(hp.size()));
+	//LOG(lvlDebug, QString("%1 Results!").arg(hp.size()));
 	for (auto r: m_gui->m_diff3DRenderers)
 	{
 		m_gui->m_diff3DRenderManager.removeFromBundle(r->renderer);
@@ -2212,10 +2212,10 @@ void iASensitivityInfo::updateDifferenceView()
 		resultData->renderer->SetBackground(bgColor.redF(), bgColor.greenF(), bgColor.blueF());
 		resultData->renderer->SetViewport(
 			static_cast<double>(i) / hp.size(), 0, static_cast<double>(i + 1) / hp.size(), 1);
-		LOG(lvlDebug, QString("Result %1: %2 selected:").arg(rID).arg(resultData->data.size()));
+		//LOG(lvlDebug, QString("Result %1: %2 selected:").arg(rID).arg(resultData->data.size()));
 		for (int f = 0; f < resultData->data.size(); ++f)
 		{
-			logMeshSize(QString("  Fiber %1").arg(f), resultData->data[f]);
+			//logMeshSize(QString("  Fiber %1").arg(f), resultData->data[f]);
 
 			//vtkNew<vtkTriangleFilter> tri1;
 			//tri1->SetInputData(input[0]);
