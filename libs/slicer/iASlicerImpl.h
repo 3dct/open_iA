@@ -298,8 +298,6 @@ private:
 	void updateBackground();
 	void printVoxelInformation();
 	void executeKeyPressEvent();
-	// defaultOutput currently unused - maybe remove? previously used when outside of image dimensions
-	// void defaultOutput();
 
 	//!	This function is used to check whether any agreeable maximum gradient is near the given point.
 	//!	The ROI is 2 voxels on all four direction. if yes move to the closest maximum gradient.
@@ -347,8 +345,6 @@ private:
 	QList<vtkSmartPointer<vtkRegularPolygonSource>> m_circle2List;
 	QList<vtkSmartPointer<vtkActor>> m_circle2ActList;
 	//! @}
-
-	vtkRenderWindowInteractor * m_interactor;  //!< FIXME: only convenience to access interactor of underlying QVTKOpenGLNativeWidget!
 	iASlicerInteractorStyle * m_interactorStyle;
 	vtkSmartPointer<vtkGenericOpenGLRenderWindow> m_renWin;
 	vtkSmartPointer<vtkRenderer> m_ren;
