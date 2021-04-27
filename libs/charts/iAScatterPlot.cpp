@@ -1044,7 +1044,7 @@ void iAScatterPlot::drawPoints( QPainter &painter )
 		double curPtRad = ptRad * linterp(1.0, pPM, anim);
 		double val = m_splomData->paramData(m_colInd)[m_curInd];
 		QColor color = m_lut->getQColor(val);
-		color.setAlphaF(linterp(color.alphaF(), 1.0, anim));
+		color.setAlphaF(linterp(static_cast<double>(color.alphaF()), 1.0, anim));
 		drawPoint(painter, p0d[m_curInd], p1d[m_curInd], curPtRad, color);
 	}
 	// Draw previous point
@@ -1055,7 +1055,7 @@ void iAScatterPlot::drawPoints( QPainter &painter )
 		double curPtRad = ptRad * linterp(1.0, pPM, anim);
 		double val = m_splomData->paramData(m_colInd)[m_prevPtInd];
 		QColor color = m_lut->getQColor(val);
-		color.setAlphaF(linterp(color.alphaF(), 1.0, anim));
+		color.setAlphaF(linterp(static_cast<double>(color.alphaF()), 1.0, anim));
 		drawPoint(painter, p0d[m_prevPtInd], p1d[m_prevPtInd], curPtRad, color);
 	}
 

@@ -39,7 +39,6 @@ class vtkTable;
 
 class QColor;
 class QDockWidget;
-class QStringList;
 
 class iAMeanObject: public QObject
 {

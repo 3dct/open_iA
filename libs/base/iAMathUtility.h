@@ -187,7 +187,7 @@ T round(T const & number)
 //! @param b maximum of the interpolation range
 //! @param t a value from the range [0..1] specifying the interpolation position
 template <typename T>
-inline T linterp(const T a, const T b, const T t)
+T linterp(const T a, const T b, const T t)
 {
 	return a + (b - a)*t;
 }

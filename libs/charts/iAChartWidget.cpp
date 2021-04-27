@@ -853,8 +853,13 @@ void iAChartWidget::changeMode(int newMode, QMouseEvent *event)
 	{
 		m_xShiftStart = m_xShift;
 		m_translationStartY = m_translationY;
+#if QT_VERSION < QT_VERSION_CHECK(5, 99, 0)
 		m_dragStartPosX = event->x();
 		m_dragStartPosY = event->y();
+#else
+		m_dragStartPosX = event->position().x();
+		m_dragStartPosY = event->position().y();
+#endif
 	}
 }
 
@@ -922,15 +927,24 @@ void iAChartWidget::mousePressEvent(QMouseEvent *event)
 			((event->modifiers() & Qt::ControlModifier) == Qt::ControlModifier) &&
 			((event->modifiers() & Qt::AltModifier) == Qt::AltModifier))
 		{
+#if QT_VERSION < QT_VERSION_CHECK(5, 99, 0)
 			m_zoomYPos = event->y();
+#else
+			m_zoomYPos = event->position().y();
+#endif
 			m_yZoomStart = m_yZoom;
 			changeMode(Y_ZOOM_MODE, event);
 		}
 		else if (((event->modifiers() & Qt::ShiftModifier) == Qt::ShiftModifier) &&
 			((event->modifiers() & Qt::ControlModifier) == Qt::ControlModifier))
 		{
+#if QT_VERSION < QT_VERSION_CHECK(5, 99, 0)
 			m_zoomXPos = event->x();
 			m_zoomYPos = event->y();
+#else
+			m_zoomXPos = event->position().x();
+			m_zoomYPos = event->position().y();
+#endif
 			m_xZoomStart = m_xZoom;
 			changeMode(X_ZOOM_MODE, event);
 		}
@@ -974,23 +988,39 @@ void iAChartWidget::mouseMoveEvent(QMouseEvent *event)
 		/* do nothing */ break;
 	case MOVE_VIEW_MODE:
 	{
+#if QT_VERSION < QT_VERSION_CHECK(5, 99, 0)
 		int xDelta = m_dragStartPosX - event->x();
+#else
+		int xDelta = m_dragStartPosX - event->position().x();
+#endif
 		double dataDelta = m_xMapper->dstToSrc(xDelta) - m_xBounds[0];
 		m_xShift = limitXShift(m_xShiftStart + dataDelta);
 		emit axisChanged();
+#if QT_VERSION < QT_VERSION_CHECK(5, 99, 0)
 		m_translationY = m_translationStartY + event->y() - m_dragStartPosY;
+#else
+		m_translationY = m_translationStartY + event->position().y() - m_dragStartPosY;
+#endif
 		m_translationY = clamp(static_cast<int>(-(geometry().height() * m_yZoom - geometry().height())),
 				static_cast<int>(geometry().height() * m_yZoom - geometry().height()), m_translationY);
 		update();
 	}
 		break;
 	case X_ZOOM_MODE:
+#if QT_VERSION < QT_VERSION_CHECK(5, 99, 0)
 		zoomAlongX(((m_zoomYPos-event->y())/2.0)+ m_xZoomStart, m_zoomXPos, false);
+#else
+		zoomAlongX(((m_zoomYPos - event->position().y()) / 2.0) + m_xZoomStart, m_zoomXPos, false);
+#endif
 		update();
 		break;
 	case Y_ZOOM_MODE:
 		{
+#if QT_VERSION < QT_VERSION_CHECK(5, 99, 0)
 			int diff = static_cast<int>((m_zoomYPos-event->y())/2.0);
+#else
+			int diff = static_cast<int>((m_zoomYPos - event->position().y()) / 2.0);
+#endif
 			if (diff < 0)
 			{
 				zoomAlongY(-pow(ZoomYStep,-diff)+ m_yZoomStart, false);

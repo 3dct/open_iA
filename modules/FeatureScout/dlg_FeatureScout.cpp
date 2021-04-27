@@ -126,6 +126,7 @@
 #include <QString>
 #include <QStandardItem>
 #include <QStandardItemModel>
+#include <QStringList>
 #include <QTableView>
 #include <QTreeView>
 #include <QProgressBar>
