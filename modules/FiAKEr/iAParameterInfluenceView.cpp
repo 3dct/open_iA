@@ -407,7 +407,6 @@ void iAParameterInfluenceView::setSelectedParam(int param)
 			m_table[paramIdx]->labels[col]->setAutoFillBackground(true);
 			m_table[paramIdx]->labels[col]->setPalette(qApp->palette());
 			m_table[paramIdx]->labels[col]->setBackgroundRole(bgRole);
-			//m_table[paramIdx]->labels[col]->setStyleSheet("QLabel { background-color : " + color.name() + "; }");
 		}
 		m_table[paramIdx]->head->setBackgroundRole(bgRole);
 		m_table[paramIdx]->bars->setBackgroundRole(bgRole);

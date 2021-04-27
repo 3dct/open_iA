@@ -935,18 +935,6 @@ void iAFiAKErController::updateResultList()
 	for (size_t resultID = 0; resultID < m_resultUIs.size(); ++resultID)
 	{
 		auto& ui = m_resultUIs[resultID];
-		/*
-		m_resultsListLayout->removeWidget(ui.nameActions);
-		if (ui.previewWidget)
-		{
-			m_resultsListLayout->removeWidget(ui.previewWidget);
-		}
-		m_resultsListLayout->removeWidget(ui.stackedBars);
-		if (ui.histoChart)
-		{
-			m_resultsListLayout->removeWidget(ui.histoChart);
-		}
-		*/
 		m_resultsListLayout->addWidget(ui.nameActions, m_resultListSorting[resultID] + 1, m_nameActionColumn);
 		if (ui.previewWidget)
 		{
