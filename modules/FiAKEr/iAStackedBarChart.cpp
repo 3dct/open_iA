@@ -26,6 +26,7 @@
 #include <iAStringHelper.h>
 
 #include <QAction>
+#include <QApplication>    // for qApp->palette()
 #include <QGridLayout>
 #include <QLabel>
 #include <QMenu>
@@ -170,12 +171,7 @@ public:
 	{
 		Q_UNUSED(ev);
 		QPainter painter(this);
-		QColor bg(m_s->m_bgColor);
-		if (!bg.isValid())
-		{
-			bg = QWidget::palette().color(QWidget::backgroundRole());
-		}
-		painter.fillRect(rect(), QBrush(bg));
+		painter.fillRect(rect(), qApp->palette().color(m_s->backgroundRole()));
 		m_s->drawBar(painter, m_barID, m_barID == 0 ? m_s->m_leftMargin : 0, 0,
 			std::min(geometry().height(), iAStackedBarChart::MaxBarHeight) - (m_s->m_header ? 0 : 2 * BarVSpacing)
 		);
@@ -418,12 +414,6 @@ void iAStackedBarChart::setPos(int row, int col)
 	updateLayout();
 }
 
-void iAStackedBarChart::setBackgroundColor(QColor const& color)
-{
-	m_bgColor = color;
-	updateBars();
-}
-
 void iAStackedBarChart::switchStackMode()
 {
 	QAction* sender = qobject_cast<QAction*>(QObject::sender());
@@ -449,6 +439,7 @@ void iAStackedBarChart::drawBar(QPainter& painter, size_t barID, int left, int t
 	painter.fillRect(barRect, barBrush);
 	int segmentWidth = (m_stack ? bWidth : static_cast<int>(bar->weight * (m_chartAreaPixelWidth - m_leftMargin))) - 1;
 	QRect segmentBox(left, 0, segmentWidth, barHeight);
+	painter.setPen(qApp->palette().color(foregroundRole()));
 	if (m_selectedBar == barID)
 	{
 		if (m_header)
@@ -471,13 +462,8 @@ void iABarsWidget::paintEvent(QPaintEvent* ev)
 {
 	Q_UNUSED(ev);
 	QPainter painter(this);
-	QColor bg(m_s->m_bgColor);
-	if (!bg.isValid())
-	{
-		bg = QWidget::palette().color(QWidget::backgroundRole());
-	}
-	painter.fillRect(rect(), QBrush(bg));
-	painter.setPen(QWidget::palette().color(QPalette::Text));
+	painter.fillRect(rect(), qApp->palette().color(m_s->backgroundRole()));
+	painter.setPen(qApp->palette().color(QPalette::Text));
 	int accumulatedWidth = 0;
 	int barHeight =
 		std::min(geometry().height(), iAStackedBarChart::MaxBarHeight) - (m_s->m_header ? 0 : 2 * BarVSpacing);

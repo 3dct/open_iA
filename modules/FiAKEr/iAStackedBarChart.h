@@ -43,7 +43,6 @@ public:
 	void setColorTheme(iAColorTheme const * theme);
 	QMenu* contextMenu();
 	size_t numberOfBars() const;
-	void setBackgroundColor(QColor const & color);
 	double weightedSum() const;
 	double barValue(int barIdx) const;
 	void setSelectedBar(int barIdx);
@@ -100,7 +99,6 @@ private:
 	int m_resizeStartX;
 	double m_resizeWidth;
 	std::vector<QSharedPointer<iABarData>> m_resizeBars;
-	QColor m_bgColor;
 	bool m_normalizePerBar;
 	double m_overallMaxValue;
 	int m_selectedBar;

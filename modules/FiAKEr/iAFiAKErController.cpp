@@ -2252,7 +2252,7 @@ namespace
 				color.redF(), color.greenF(), color.blueF());
 			ui.vtkWidget->update();
 		}
-		ui.stackedBars->setBackgroundColor(color);
+		ui.stackedBars->setBackgroundRole(role);
 		if (ui.histoChart)
 		{
 			ui.histoChart->setBackgroundRole(role);
