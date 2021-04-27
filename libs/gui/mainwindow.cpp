@@ -2279,7 +2279,9 @@ void MainWindow::applyQSS()
 		p.setColor(QPalette::HighlightedText, m_qssName.contains("bright") ? QColor(  0,   0,   0) : QColor(255, 255, 255));
 		p.setColor(QPalette::Text,            m_qssName.contains("bright") ? QColor(  0,   0,   0) : QColor(255, 255, 255));
 		p.setColor(QPalette::ToolTipText,     m_qssName.contains("bright") ? QColor(  0,   0,   0) : QColor(255, 255, 255));
+#if QT_VERSION >= QT_VERSION_CHECK(5, 12, 0)
 		p.setColor(QPalette::PlaceholderText, m_qssName.contains("bright") ? QColor(  0,   0,   0) : QColor(255, 255, 255));
+#endif
 		p.setColor(QPalette::WindowText,      m_qssName.contains("bright") ? QColor(  0,   0,   0) : QColor(255, 255, 255));
 		qApp->setPalette(p);
 		emit styleChanged();
