@@ -1583,7 +1583,7 @@ public:
 		m_parameterListView(nullptr),
 		m_algoInfo(nullptr),
 		m_diff3DWidget(nullptr),
-		m_diff3DRenderManager(/*sharedCamera = */false),
+		m_diff3DRenderManager(/*sharedCamera = */true),
 		m_diff3DEmptyRenderer(vtkSmartPointer<vtkRenderer>::New()),
 		m_diff3DEmptyText(vtkSmartPointer<vtkCornerAnnotation>::New())
 	{
