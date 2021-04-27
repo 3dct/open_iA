@@ -990,13 +990,10 @@ void iARendererImpl::applySettings(iARenderSettings const & settings, bool slice
 	m_renWin->SetMultiSamples(settings.MultiSamples);
 	//m_ren->SetOcclusionRatio(0.0);
 	m_cam->SetParallelProjection(settings.ParallelProjection);
-	QColor bgTop(settings.BackgroundTop);
-	QColor bgBottom(settings.BackgroundBottom);
 
 	setSlicePlaneOpacity(settings.PlaneOpacity);
 
-	m_ren->SetBackground2(bgTop.redF(), bgTop.greenF(), bgTop.blueF());
-	m_ren->SetBackground(bgBottom.redF(), bgBottom.greenF(), bgBottom.blueF());
+	setBackgroundColors(settings);
 	if (!m_imageData)
 	{
 		return;
@@ -1008,6 +1005,18 @@ void iARendererImpl::applySettings(iARenderSettings const & settings, bool slice
 		showSlicePlane(i, settings.ShowSlicePlanes && slicePlaneVisibility[i]);
 	}
 	//renWin->Render();
+}
+
+void iARendererImpl::setBackgroundColors(iARenderSettings const& settings)
+{
+	QColor bgTop(settings.BackgroundTop);
+	QColor bgBottom(settings.BackgroundBottom);
+	if (settings.UseStyleBGColor)
+	{
+		bgBottom = bgTop = qApp->palette().color(QPalette::Window);
+	}
+	m_ren->SetBackground2(bgTop.redF(), bgTop.greenF(), bgTop.blueF());
+	m_ren->SetBackground(bgBottom.redF(), bgBottom.greenF(), bgBottom.blueF());
 }
 
 void iARendererImpl::emitSelectedCells(vtkUnstructuredGrid* selectedCells)

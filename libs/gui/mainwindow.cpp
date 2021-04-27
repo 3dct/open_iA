@@ -800,6 +800,7 @@ void MainWindow::saveRenderSettings(iAXmlSettings &xml)
 	renderSettingsElement.setAttribute("showHelpers", m_defaultRenderSettings.ShowHelpers);
 	renderSettingsElement.setAttribute("showRPosition", m_defaultRenderSettings.ShowRPosition);
 	renderSettingsElement.setAttribute("parallelProjection", m_defaultRenderSettings.ParallelProjection);
+	renderSettingsElement.setAttribute("useStyleBGColor", m_defaultRenderSettings.UseStyleBGColor);
 	renderSettingsElement.setAttribute("backgroundTop", m_defaultRenderSettings.BackgroundTop);
 	renderSettingsElement.setAttribute("backgroundBottom", m_defaultRenderSettings.BackgroundBottom);
 	renderSettingsElement.setAttribute("planeOpacity", m_defaultRenderSettings.PlaneOpacity);
@@ -826,6 +827,7 @@ void MainWindow::loadRenderSettings(QDomNode renderSettingsNode)
 	m_defaultRenderSettings.ShowHelpers = attributes.namedItem("showHelpers").nodeValue() == "1";
 	m_defaultRenderSettings.ShowRPosition = attributes.namedItem("showRPosition").nodeValue() == "1";
 	m_defaultRenderSettings.ParallelProjection = attributes.namedItem("parallelProjection").nodeValue() == "1";
+	m_defaultRenderSettings.UseStyleBGColor = attributes.namedItem("useStyleBGColor").nodeValue() == "1";
 	m_defaultRenderSettings.BackgroundTop = attributes.namedItem("backgroundTop").nodeValue();
 	m_defaultRenderSettings.BackgroundBottom = attributes.namedItem("backgroundBottom").nodeValue();
 	m_defaultRenderSettings.PlaneOpacity = attributes.namedItem("planeOpacity").nodeValue().toDouble();
@@ -1123,6 +1125,7 @@ void MainWindow::renderSettings()
 		<< tr("$Show helpers")
 		<< tr("$Show position")
 		<< tr("$Parallel projection")
+		<< tr("$Use style background color")
 		<< tr("#Background top")
 		<< tr("#Background bottom")
 		<< tr("$Use FXAA")
@@ -1145,6 +1148,7 @@ void MainWindow::renderSettings()
 		<< renderSettings.ShowHelpers
 		<< renderSettings.ShowRPosition
 		<< renderSettings.ParallelProjection
+		<< renderSettings.UseStyleBGColor
 		<< renderSettings.BackgroundTop
 		<< renderSettings.BackgroundBottom
 		<< renderSettings.UseFXAA
@@ -1174,6 +1178,7 @@ void MainWindow::renderSettings()
 	m_defaultRenderSettings.ShowHelpers = dlg.getCheckValue(param++) != 0;
 	m_defaultRenderSettings.ShowRPosition = dlg.getCheckValue(param++) != 0;
 	m_defaultRenderSettings.ParallelProjection = dlg.getCheckValue(param++) != 0;
+	m_defaultRenderSettings.UseStyleBGColor = dlg.getCheckValue(param++) != 0;
 	m_defaultRenderSettings.BackgroundTop = dlg.getText(param++);
 	m_defaultRenderSettings.BackgroundBottom = dlg.getText(param++);
 	m_defaultRenderSettings.UseFXAA = dlg.getCheckValue(param++) != 0;
@@ -1435,7 +1440,7 @@ void MainWindow::raycasterAssignIso()
 		{
 			activeMDI()->camPosition(camOptions);
 		}
-		for(int i = 0; i < sizeMdi; i++)
+		for (int i = 0; i < sizeMdi; i++)
 		{
 			MdiChild *tmpChild = dynamic_cast<MdiChild*>(mdiwindows.at(i));
 
@@ -1905,6 +1910,7 @@ void MainWindow::readSettings()
 	m_defaultRenderSettings.ShowHelpers = settings.value("Renderer/rsShowHelpers", fallbackRS.ShowHelpers).toBool();
 	m_defaultRenderSettings.ShowRPosition = settings.value("Renderer/rsShowRPosition", fallbackRS.ShowRPosition).toBool();
 	m_defaultRenderSettings.ParallelProjection = settings.value("Renderer/rsParallelProjection", fallbackRS.ParallelProjection).toBool();
+	m_defaultRenderSettings.UseStyleBGColor = settings.value("Renderer/rsUseStyleBGColor", fallbackRS.UseStyleBGColor).toBool();
 	m_defaultRenderSettings.UseFXAA = settings.value("Renderer/rsUseFXAA", fallbackRS.UseFXAA).toBool();
 	m_defaultRenderSettings.MultiSamples = settings.value("Renderer/rsMultiSamples", fallbackRS.MultiSamples).toInt();
 	m_defaultRenderSettings.PlaneOpacity = settings.value("Renderer/rsPlaneOpacity", fallbackRS.PlaneOpacity).toDouble();
@@ -2018,6 +2024,7 @@ void MainWindow::writeSettings()
 	settings.setValue("Renderer/rsShowSlicers", m_defaultRenderSettings.ShowSlicers);
 	settings.setValue("Renderer/rsShowSlicePlanes", m_defaultRenderSettings.ShowSlicePlanes);
 	settings.setValue("Renderer/rsParallelProjection", m_defaultRenderSettings.ParallelProjection);
+	settings.setValue("Renderer/rsUseStyleBGColor", m_defaultRenderSettings.UseStyleBGColor);
 	settings.setValue("Renderer/rsBackgroundTop", m_defaultRenderSettings.BackgroundTop);
 	settings.setValue("Renderer/rsBackgroundBottom", m_defaultRenderSettings.BackgroundBottom);
 	settings.setValue("Renderer/rsShowHelpers", m_defaultRenderSettings.ShowHelpers);

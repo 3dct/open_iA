@@ -2872,4 +2872,9 @@ void MdiChild::styleChanged()
 	{
 		m_histogramPlot->setColor(qApp->palette().color(QPalette::Shadow));
 	}
+	if (renderSettings().UseStyleBGColor)
+	{
+		m_renderer->setBackgroundColors(m_renderSettings);
+		m_renderer->update();
+	}
 }
