@@ -2265,13 +2265,14 @@ void MainWindow::applyQSS()
 		QString style = styleIn.readAll();
 		styleFile.close();
 		qApp->setStyleSheet(style);
+
 		QPalette p = qApp->palette();
 		p.setColor(QPalette::Window,          m_qssName.contains("bright") ? QColor(255, 255, 255) : QColor(  0,   0,   0));
 		p.setColor(QPalette::Base,            m_qssName.contains("bright") ? QColor(255, 255, 255) : QColor(  0,   0,   0));
 		p.setColor(QPalette::ToolTipBase,     m_qssName.contains("bright") ? QColor(255, 255, 255) : QColor(  0,   0,   0));
 		p.setColor(QPalette::Light,           m_qssName.contains("bright") ? QColor(255, 255, 255) : QColor(  0,   0,   0));
-		p.setColor(QPalette::AlternateBase,   m_qssName.contains("bright") ? QColor(240, 240, 240) : QColor( 15,  15,  15));
 		p.setColor(QPalette::Midlight,        m_qssName.contains("bright") ? QColor(240, 240, 240) : QColor( 15,  15,  15));
+		p.setColor(QPalette::AlternateBase,   m_qssName.contains("bright") ? QColor(240, 240, 240) : QColor( 30,  30,  30)); // dark seems (to me, BF) to need a bit more contrast to be visible well
 		p.setColor(QPalette::Button,          m_qssName.contains("bright") ? QColor(215, 215, 215) : QColor( 40,  40,  40));
 		p.setColor(QPalette::Mid,             m_qssName.contains("bright") ? QColor(200, 200, 200) : QColor( 55,  55,  55));
 		p.setColor(QPalette::Dark,            m_qssName.contains("bright") ? QColor(180, 180, 180) : QColor( 75,  75,  75));
