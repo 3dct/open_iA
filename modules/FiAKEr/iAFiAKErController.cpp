@@ -1072,6 +1072,7 @@ void iAFiAKErController::connectSensitivity()
 	connect(this, &iAFiAKErController::fiberSelectionChanged, m_sensitivityInfo.data(), &iASensitivityInfo::fiberSelectionChanged);
 	connect(m_sensitivityInfo.data(), &iASensitivityInfo::fibersToSelect, this,
 		&iAFiAKErController::selectFibersFromSensitivity);
+	connect(m_mainWnd, &iAMainWindow::styleChanged, m_sensitivityInfo.data(), &iASensitivityInfo::styleChanged);
 }
 
 void iAFiAKErController::computeSensitivity()

@@ -1567,6 +1567,7 @@ struct iAPolyDataRenderer
 	vtkSmartPointer<vtkRenderer> renderer;
 	std::vector<vtkSmartPointer<vtkPolyData>> data;
 	std::vector<vtkSmartPointer<vtkActor>> actor;
+	vtkSmartPointer<vtkCornerAnnotation> text;
 };
 
 class iASensitivityGUI
@@ -1992,6 +1993,7 @@ void iASensitivityInfo::createGUI()
 #else
 	m_gui->m_diff3DRenderManager.addToBundle(m_main3DWidget->renderWindow()->GetRenderers()->GetFirstRenderer());
 #endif
+	renWin->AddRenderer(m_gui->m_diff3DEmptyRenderer);
 
 	updateDissimilarity();
 	changeAggregation(SelectedAggregationMeasureIdx);
@@ -2248,16 +2250,16 @@ void iASensitivityInfo::updateDifferenceView()
 		}
 
 		auto txt = QString("R %1").arg(rID);
-		auto cornerAnnotation = vtkSmartPointer<vtkCornerAnnotation>::New();
-		cornerAnnotation->SetLinearFontScaleFactor(2);
-		cornerAnnotation->SetNonlinearFontScaleFactor(1);
-		cornerAnnotation->SetMaximumFontSize(25);
-		cornerAnnotation->SetText(2, txt.toStdString().c_str());
+		resultData->text = vtkSmartPointer<vtkCornerAnnotation>::New();
+		resultData->text->SetLinearFontScaleFactor(2);
+		resultData->text->SetNonlinearFontScaleFactor(1);
+		resultData->text->SetMaximumFontSize(25);
+		resultData->text->SetText(2, txt.toStdString().c_str());
 		// ToDo: add fiber id ;
 		auto textColor = qApp->palette().color(QPalette::Text);
-		cornerAnnotation->GetTextProperty()->SetColor(textColor.redF(), textColor.greenF(), textColor.blueF());
+		resultData->text->GetTextProperty()->SetColor(textColor.redF(), textColor.greenF(), textColor.blueF());
 		//cornerAnnotation->GetTextProperty()->BoldOn();
-		resultData->renderer->AddViewProp(cornerAnnotation);
+		resultData->renderer->AddViewProp(resultData->text);
 
 		renWin->AddRenderer(resultData->renderer);
 		m_gui->m_diff3DRenderManager.addToBundle(resultData->renderer);
@@ -2284,4 +2286,17 @@ void iASensitivityInfo::updateDifferenceView()
 	}
 	renWin->Render();
 	m_gui->m_diff3DWidget->update();
+}
+
+void iASensitivityInfo::styleChanged()
+{
+	auto textColor = qApp->palette().color(QPalette::Text);
+	m_gui->m_diff3DEmptyText->GetTextProperty()->SetColor(textColor.redF(), textColor.greenF(), textColor.blueF());
+	auto bgColor = qApp->palette().color(QPalette::Window);
+	m_gui->m_diff3DEmptyRenderer->SetBackground(bgColor.redF(), bgColor.greenF(), bgColor.blueF());
+	for (auto r : m_gui->m_diff3DRenderers)
+	{
+		r->renderer->SetBackground(bgColor.redF(), bgColor.greenF(), bgColor.blueF());
+		r->text->GetTextProperty()->SetColor(textColor.redF(), textColor.greenF(), textColor.blueF());
+	}
 }
