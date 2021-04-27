@@ -20,6 +20,7 @@
 * ************************************************************************************/
 #pragma once
 
+#include <QApplication>    // for qApp
 #include <QWidget>
 
 // could go into .cpp if separated:
@@ -114,6 +115,7 @@ public:
 	{
 		Q_UNUSED(ev);
 		QPainter p(this);
+		p.setPen(qApp->palette().color(QWidget::foregroundRole()));
 
 		QRect algoBox(HMargin + boxWidth(), TopMargin, boxWidth(), boxHeight());
 		p.drawRect(algoBox);
