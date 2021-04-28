@@ -23,15 +23,20 @@
 #include <iALog.h>
 #include <iAMathUtility.h>
 
+#include <vtkActor2D.h>
 #include <vtkAreaPicker.h>
+#include <vtkCellData.h>
 #include <vtkCellPicker.h>
 #include <vtkExtractGeometry.h>
 #include <vtkIdTypeArray.h>
+#include <vtkLine.h>
 #include <vtkPlane.h>
 #include <vtkPlanes.h>
 #include <vtkPointData.h>
 #include <vtkPolyData.h>
+#include <vtkPolyDataMapper2D.h>
 #include <vtkProperty.h>
+#include <vtkProperty2D.h>
 #include <vtkRenderer.h>
 #include <vtkRendererCollection.h>
 #include <vtkRenderWindow.h>
@@ -64,13 +69,15 @@ iASelectionProvider::~iASelectionProvider()
 
 vtkStandardNewMacro(iASelectionInteractorStyle);
 
-iASelectionInteractorStyle::iASelectionInteractorStyle():
+iASelectionInteractorStyle::iASelectionInteractorStyle() :
 	m_selectionProvider(nullptr),
 	m_showModeActor(vtkSmartPointer<vtkTextActor>::New()),
 	m_interactionMode(imNavigate),
 	m_selectionMode(smDrag),
 	m_moving(false),
-	m_pixelArray(vtkSmartPointer<vtkUnsignedCharArray>::New())
+	m_selRectPolyData(vtkSmartPointer<vtkPolyData>::New()),
+	m_selRectMapper(vtkSmartPointer<vtkPolyDataMapper2D>::New()),
+	m_selRectActor(vtkSmartPointer<vtkActor2D>::New())
 {
 	m_startPos[0] = m_startPos[1] = m_endPos[0] = m_endPos[1] = 0;
 
@@ -79,6 +86,39 @@ iASelectionInteractorStyle::iASelectionInteractorStyle():
 	m_showModeActor->GetTextProperty()->SetBackgroundOpacity(0.5);
 	m_showModeActor->GetTextProperty()->SetFontSize(FontSize);
 	m_showModeActor->SetPosition(TextMargin, TextMargin);
+
+	vtkNew<vtkPoints> pts;
+	pts->InsertNextPoint(0, 0, 0);
+	pts->InsertNextPoint(0, 0, 0);
+	pts->InsertNextPoint(0, 0, 0);
+	pts->InsertNextPoint(0, 0, 0);
+	m_selRectPolyData->SetPoints(pts);
+
+	vtkNew<vtkCellArray> lines;
+	for (int i = 0; i < 4; ++i)
+	{
+		vtkNew<vtkLine> line;
+		line->GetPointIds()->SetId(0, i);
+		line->GetPointIds()->SetId(1, (i + 1) % 4);
+		lines->InsertNextCell(line);
+	}
+	m_selRectPolyData->SetLines(lines);
+
+	vtkNew<vtkUnsignedCharArray> colors;
+	colors->SetNumberOfComponents(3);
+	double color[3] = {255, 0.0, 0.0};
+	for (int i = 0; i < 4; ++i)
+	{
+		colors->InsertNextTuple(color);
+	}
+	m_selRectPolyData->GetCellData()->SetScalars(colors);
+	m_selRectMapper->SetInputData(m_selRectPolyData);
+	m_selRectActor->GetProperty()->SetColor(1, 0, 0);
+	m_selRectActor->GetProperty()->SetOpacity(1);
+	m_selRectActor->GetProperty()->SetLineWidth(2.0);
+	m_selRectActor->SetMapper(m_selRectMapper);
+	m_selRectActor->SetPickable(false);
+	m_selRectActor->SetDragable(false);
 }
 
 void iASelectionInteractorStyle::setSelectionProvider(iASelectionProvider *selectionProvider)
@@ -257,23 +297,15 @@ void iASelectionInteractorStyle::OnLeftButtonDown()
 	if (m_selectionMode == smDrag)
 	{
 		m_moving = true;
-
-		vtkRenderWindow* renWin = this->Interactor->GetRenderWindow();
+		m_renWin->GetRenderers()->GetFirstRenderer()->AddActor(m_selRectActor);
 
 		m_startPos[0] = this->Interactor->GetEventPosition()[0];
 		m_startPos[1] = this->Interactor->GetEventPosition()[1];
 		m_endPos[0] = m_startPos[0];
 		m_endPos[1] = m_startPos[1];
 
-		m_pixelArray->Initialize();
-		m_pixelArray->SetNumberOfComponents(3);
-		int const* size = renWin->GetSize();
-		m_pixelArray->SetNumberOfTuples(size[0] * size[1]);
-
-		renWin->GetPixelData(0, 0, size[0] - 1, size[1] - 1, 1, m_pixelArray);
-
 		this->FindPokedRenderer(m_startPos[0], m_startPos[1]);
-
+		updateSelectionRect();
 	}
 	else // smClick
 	{
@@ -318,6 +350,18 @@ void iASelectionInteractorStyle::OnLeftButtonDown()
 	}
 }
 
+void iASelectionInteractorStyle::updateSelectionRect()
+{
+	m_selRectPolyData->GetPoints()->SetPoint(0, m_startPos[0], m_startPos[1], 0);
+	m_selRectPolyData->GetPoints()->SetPoint(1, m_startPos[0], m_endPos[1], 0);
+	m_selRectPolyData->GetPoints()->SetPoint(2, m_endPos[0], m_endPos[1], 0);
+	m_selRectPolyData->GetPoints()->SetPoint(3, m_endPos[0], m_startPos[1], 0);
+	m_selRectPolyData->GetPoints()->Modified();
+	m_selRectPolyData->Modified();
+	m_selRectMapper->SetInputData(m_selRectPolyData);
+	m_selRectMapper->Update();
+}
+
 void iASelectionInteractorStyle::OnMouseMove()
 {
 	if (m_interactionMode != imSelect)
@@ -335,7 +379,7 @@ void iASelectionInteractorStyle::OnMouseMove()
 	int const* size = this->Interactor->GetRenderWindow()->GetSize();
 	m_endPos[0] = clamp(0, size[0] - 1, this->Interactor->GetEventPosition()[0]);
 	m_endPos[1] = clamp(0, size[1] - 1, this->Interactor->GetEventPosition()[1]);
-	redrawRubberBand();
+	updateSelectionRect();
 }
 
 void iASelectionInteractorStyle::OnLeftButtonUp()
@@ -357,45 +401,8 @@ void iASelectionInteractorStyle::OnLeftButtonUp()
 	{
 		pick();
 	}
+	m_renWin->GetRenderers()->GetFirstRenderer()->RemoveActor(m_selRectActor);
 	m_moving = false;
-}
-
-void iASelectionInteractorStyle::redrawRubberBand()
-{
-	int const* size = this->Interactor->GetRenderWindow()->GetSize();
-
-	vtkUnsignedCharArray* tmpPixelArray = vtkUnsignedCharArray::New();
-	tmpPixelArray->DeepCopy(m_pixelArray);
-	unsigned char* pixels = tmpPixelArray->GetPointer(0);
-
-	int minVal[2], maxVal[2];
-	computeMinMax(minVal, maxVal, m_startPos, m_endPos, size);
-
-	for (int i = minVal[0]; i <= maxVal[0]; i++)
-	{
-		for (int c = 0; c < 3; ++c)
-		{
-			int minIdx = 3 * (minVal[1] * size[0] + i) + c;
-			int maxIdx = 3 * (maxVal[1] * size[0] + i) + c;
-			pixels[minIdx] = 255 ^ pixels[minIdx];
-			pixels[maxIdx] = 255 ^ pixels[maxIdx];
-		}
-	}
-	for (int i = minVal[1] + 1; i < maxVal[1]; i++)
-	{
-		for (int c = 0; c < 3; ++c)
-		{
-			int minIdx = 3 * (i * size[0] + minVal[0]) + c;
-			int maxIdx = 3 * (i * size[0] + maxVal[0]) + c;
-			pixels[minIdx] = 255 ^ pixels[minIdx];
-			pixels[maxIdx] = 255 ^ pixels[maxIdx];
-		}
-	}
-
-	this->Interactor->GetRenderWindow()->SetPixelData(0, 0, size[0] - 1, size[1] - 1, pixels, 1);
-	this->Interactor->GetRenderWindow()->Frame();
-
-	tmpPixelArray->Delete();
 }
 
 void iASelectionInteractorStyle::addInput(size_t resultID, vtkSmartPointer<vtkPolyData> points, vtkSmartPointer<vtkActor> actor)
