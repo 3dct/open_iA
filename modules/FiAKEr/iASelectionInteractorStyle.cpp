@@ -357,9 +357,6 @@ void iASelectionInteractorStyle::updateSelectionRect()
 	m_selRectPolyData->GetPoints()->SetPoint(2, m_endPos[0], m_endPos[1], 0);
 	m_selRectPolyData->GetPoints()->SetPoint(3, m_endPos[0], m_startPos[1], 0);
 	m_selRectPolyData->GetPoints()->Modified();
-	m_selRectPolyData->Modified();
-	m_selRectMapper->SetInputData(m_selRectPolyData);
-	m_selRectMapper->Update();
 }
 
 void iASelectionInteractorStyle::OnMouseMove()
