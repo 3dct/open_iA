@@ -252,6 +252,7 @@ public slots:
 	void changeMeasure(int newMeasure);
 	void updateDissimilarity();
 	void spHighlightChanged();
+	void updateSPDifferenceColors();
 	void createGUI();
 	void outputBarAdded(int outType, int outIdx);
 	void outputBarRemoved(int outType, int outIdx);

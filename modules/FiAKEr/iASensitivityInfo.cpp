@@ -1424,6 +1424,7 @@ public:
 		connect(cmbboxAggregation, QOverload<int>::of(&QComboBox::currentIndexChanged), sensInf, &iASensitivityInfo::changeAggregation);
 
 		connect(cmbboxDissimilarity, QOverload<int>::of(&QComboBox::currentIndexChanged), sensInf, &iASensitivityInfo::updateDissimilarity);
+		connect(cmbboxSPColorMap, QOverload<int>::of(&QComboBox::currentIndexChanged), sensInf, &iASensitivityInfo::updateSPDifferenceColors);
 		
 		connect(rbBar, &QRadioButton::toggled, sensInf, &iASensitivityInfo::histoChartTypeToggled);
 		connect(rbLines, &QRadioButton::toggled, sensInf, &iASensitivityInfo::histoChartTypeToggled);
@@ -2140,10 +2141,16 @@ void iASensitivityInfo::parResultSelected(size_t resultIdx, Qt::KeyboardModifier
 	m_gui->m_scatterPlot->toggleHighlightedPoint(resultIdx, modifiers);
 }
 
-void iASensitivityInfo::spHighlightChanged()
+void iASensitivityInfo::updateSPDifferenceColors()
 {
 	m_gui->updateScatterPlotLUT(m_starGroupSize, m_numOfSTARSteps, m_data->result.size(), m_variedParams.size(),
-		m_resultDissimMatrix, m_resultDissimRanges, m_gui->m_settings->dissimMeasIdx(), m_gui->m_settings->spColorMap());
+		m_resultDissimMatrix, m_resultDissimRanges, m_gui->m_settings->dissimMeasIdx(),
+		m_gui->m_settings->spColorMap());
+}
+
+void iASensitivityInfo::spHighlightChanged()
+{
+	updateSPDifferenceColors();
 	updateDifferenceView();
 }
 
