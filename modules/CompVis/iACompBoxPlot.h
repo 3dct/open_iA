@@ -1,23 +1,27 @@
 #pragma once
 
+//CompVis
+#include "iACsvDataStorage.h"
+#include "iACompVisOptions.h"
+
 //Qt
 #include <QDockWidget>
-
 #include "ui_CompHistogramTable.h"
 
-#include "vtkSmartPointer.h"
-#include "iACsvDataStorage.h"
-
+//vtk
 #include <vtkChartBox.h>
 #include "vtkPlotBox.h"
+#include "vtkSmartPointer.h"
 
+//CompVis
 class iAMainWindow;
+
+//vtk
 class QVTKOpenGLNativeWidget;
 class vtkContextView;
 class vtkTable;
 class vtkTextActor;
 class vtkLookupTable;
-
 class vtkRenderer;
 
 //TODO change to ui_boxplot
@@ -30,8 +34,6 @@ class iACompBoxPlot : public QDockWidget, public Ui_CompHistogramTable
 	void showEvent(QShowEvent* event);
 	
 	void renderWidget();
-
-	void reinitializeBoxPlot();
 	
 	void updateLegend();
 	
@@ -98,6 +100,8 @@ private:
 
 	};
 
+	void initializeChart();
+
 	void initializeData();
 	void initializeAxes(vtkSmartPointer<BoxPlotChart> chart, bool axesVisibleOn);
 	void initializeLutForOriginalBoxPlot();
@@ -149,6 +153,9 @@ private:
 	vtkSmartPointer<vtkLookupTable> lutSelected;
 
 	vtkSmartPointer<vtkTextActor> notEnoughElementsSelectedTextActor;
+
+	//stores the last interaction that was performed to make a reinitialization after minimizing etc. possible
+	iACompVisOptions::lastState m_lastState;
 };
 
 

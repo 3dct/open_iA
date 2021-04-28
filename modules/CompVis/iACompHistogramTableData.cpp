@@ -3,182 +3,21 @@
 //CompVis
 #include "iACsvDataStorage.h"
 
+
+//C++
 #include <vector>
 
-iACompHistogramTableData::iACompHistogramTableData(iAMultidimensionalScaling* mds, iACsvDataStorage* dataStorage) :
-	m_mds(mds),
-	m_dataStorage(dataStorage),
-	m_bins(10)
+iACompHistogramTableData::iACompHistogramTableData() : 
+	m_maxVal(-1), 
+	m_minVal(-1), 
+	binData(new QList<bin::BinType*>()),
+	zoomedBinData(bin::initialize(1)),
+	binDataObjects(new QList<std::vector<csvDataType::ArrayType*>*>()),
+	amountObjectsEveryDataset(new std::vector<int>)
 {
-	std::vector<double>* histbinlist = csvDataType::arrayTypeToVector(m_mds->getResultMatrix());
-	auto result = std::minmax_element(histbinlist->begin(), histbinlist->end());
-
-	m_maxVal = *result.second;
-	m_minVal = *result.first;
-
-	datasets = new bin::BinType();
-	amountObjectsEveryDataset = csvFileData::getAmountObjectsEveryDataset(m_mds->getCSVFileData());
-	
-	int add = 0;
-	for (int i = 0; i < amountObjectsEveryDataset->size(); i++)
-	{ 
-		std::vector<double>::const_iterator first = histbinlist->begin() + add;
-		add += amountObjectsEveryDataset->at(i);
-		std::vector<double>::const_iterator last = histbinlist->begin() + add;
-
-		std::vector<double> segment(first, last);
-		datasets->push_back(segment);
-	}
-
-	calculateBins(m_bins);
 }
 
-QList<bin::BinType*>* iACompHistogramTableData::calculateBins(int numberOfBins)
-{
-
-	binData = new QList<bin::BinType*>; //stores MDS values
-	binDataObjects = new QList<std::vector<csvDataType::ArrayType*>*>; //stores data of selected objects attributes
-
-
-	double length = std::abs(m_maxVal) + std::abs(m_minVal);
-	double binLength = length / numberOfBins;
-
-	for (int i = 0; i < amountObjectsEveryDataset->size(); i++)
-	{// do for every dataset
-
-		std::vector<double> values = datasets->at(i);
-		bin::BinType* bins = bin::initialize(numberOfBins);
-
-		//initalize
-		std::vector<csvDataType::ArrayType*>* binsWithFiberIds = new std::vector<csvDataType::ArrayType*>();
-		for(int i= 0; i < numberOfBins; i++)
-		{
-			csvDataType::ArrayType* init = new csvDataType::ArrayType();
-			binsWithFiberIds->push_back(init);
-		}
-
-		int datasetInd = values.size();
-	
-		//check for every value inside a dataset for the corresponding bin
-		for (int v = 0; v < values.size(); v++)
-		{
-			for (int b = 0; b < numberOfBins; b++)
-			{
-				bool inside = checkRange(values.at(v), m_minVal + (binLength * b), m_minVal + (binLength * (b+1)));
-
-				if (!inside && b == numberOfBins - 1)
-				{
-					inside = (abs(m_maxVal - values.at(v)) < 0.0000001);
-				}
-				if (inside)
-				{
-					//store MDS value
-					bins->at(b).push_back(values.at(v));
-
-					//store Fiber ID
-					std::vector<double> object = m_dataStorage->getData()->at(i).values->at(v);//.at(0);
-					csvDataType::ArrayType* data = binsWithFiberIds->at(b);
-					data->push_back(object);
-					//binsWithFiberIds->at(b) = data;
-
-					//LOG(lvlDebug,"fibers stored = " + QString::number(data->size()) + " --> at Bin: " + QString::number(b));
-
-					break;
-				}
-			}
-
-			datasetInd--;
-		}
-
-		
-		initializeMaxAmountInBins(bins);
-		binData->push_back(bins);
-		binDataObjects->push_back(binsWithFiberIds);
-	}
-
-	/*LOG(lvlDebug,"");
-	//DEBUG
-	for(int i = 0; i < binDataObjects->size(); i++)
-	{ //datasets
-		for(int k = 0; k < binDataObjects->at(i)->size(); k++)
-		{ //bins
-
-			csvDataType::ArrayType* data = binDataObjects->at(i)->at(k);
-
-			for(int j = 0; j < data->size(); j++)
-			{
-				LOG(lvlDebug,"fiberLabelId = " + QString::number(data->at(j).at(0)) + " --> at Bin: " + QString::number(k));
-			}
-			
-		}
-	}
-	LOG(lvlDebug,"");
-	LOG(lvlDebug,"#######################################################");
-	*/
-	return binData;
-}
-
-bin::BinType* iACompHistogramTableData::calculateBins(bin::BinType* data, int currData, int numberOfBins)
-{	
-	size_t amountVals = data->at(currData).size();
-
-	if (amountVals == 0)
-	{
-		return nullptr;
-	}
-
-	std::vector<double> vals = data->at(currData);
-
-	auto result = std::minmax_element(vals.begin(), vals.end());
-	double min = *result.first;
-	double max = *result.second;
-
-	double length = max - min;
-	double binLength = length / numberOfBins;
-
-	bin::BinType* bins = bin::initialize(numberOfBins);
-
-
-	for (size_t v = 0; v < amountVals; v++)
-	{
-		for (int b = 0; b < numberOfBins; b++)
-		{
-			bool inside = checkRange(vals.at(v), min + (binLength * b), min + (binLength * (b + 1)));
-			
-			//check if the last value is the maximum value
-			//otherwise this value would never be added to a bin
-			if (!inside && b == numberOfBins - 1)
-			{
-				inside = (vals.at(v) == max);
-			}
-
-			if (inside)
-			{
-				bins->at(b).push_back(vals.at(v));
-				break;
-			}
-		}
-	}
-
-	return bins;
-}
-
-bool iACompHistogramTableData::checkRange(double value, double low, double high)
-{
-	return ((value >= low) && (value < high));
-}
-
-void iACompHistogramTableData::initializeMaxAmountInBins(bin::BinType* bins)
-{
-	for (int ind = 0; ind < m_bins; ind++) 
-	{
-		int size = bins->at(ind).size();
-		if (m_maxAmountInAllBins < size)
-		{
-			m_maxAmountInAllBins = size;
-		}
-	}
-}
+/************************** Setter & Getter ***************************************/
 
 QList<bin::BinType*>* iACompHistogramTableData::getBinData()
 {
@@ -195,16 +34,73 @@ double iACompHistogramTableData::getMinVal()
 	return m_minVal;
 }
 
-int iACompHistogramTableData::getMaxAmountInAllBins()
-{
-	return m_maxAmountInAllBins;
-}
-
 QList<std::vector<csvDataType::ArrayType*>*>* iACompHistogramTableData::getObjectsPerBin()
 {
 	return binDataObjects;
 }
 
+std::vector<int>* iACompHistogramTableData::getAmountObjectsEveryDataset()
+{
+	return amountObjectsEveryDataset;
+}
+
+bin::BinType* iACompHistogramTableData::getZoomedBinData()
+{
+	return zoomedBinData;
+}
+
+void iACompHistogramTableData::setMaxVal(double newMax)
+{
+	m_maxVal = newMax;
+}
+
+void iACompHistogramTableData::setMinVal(double newMin)
+{
+	m_minVal = newMin;
+}
+
+void iACompHistogramTableData::setBinData(QList<bin::BinType*>* newBinData)
+{
+	binData = newBinData;
+}
+
+void iACompHistogramTableData::setBinDataObjects(QList<std::vector<csvDataType::ArrayType*>*>* newBinDataObjects)
+{
+	binDataObjects = newBinDataObjects;
+}
+
+void iACompHistogramTableData::setAmountObjectsEveryDataset(std::vector<int>* newAmountObjectsEveryDataset)
+{
+	amountObjectsEveryDataset = newAmountObjectsEveryDataset;
+}
+
+void iACompHistogramTableData::setZoomedBinData(bin::BinType* newZoomedBinData)
+{
+	zoomedBinData = newZoomedBinData;
+}
+
+/************************** debug methods ***************************************/
+void iACompHistogramTableData::debugBinDataObjects()
+{
+	LOG(lvlDebug, "");
+	//DEBUG
+	for (int i = 0; i < binDataObjects->size(); i++)
+	{  //datasets
+		for (int k = 0; k < binDataObjects->at(i)->size(); k++)
+		{  //bins
+
+			csvDataType::ArrayType* data = binDataObjects->at(i)->at(k);
+
+			for (int j = 0; j < data->size(); j++)
+			{
+				LOG(lvlDebug,
+					"fiberLabelId = " + QString::number(data->at(j).at(0)) + " --> at Bin: " + QString::number(k));
+			}
+		}
+	}
+	LOG(lvlDebug, "");
+	LOG(lvlDebug, "#######################################################");
+}
 
 /************************** bin methods ***************************************/
 

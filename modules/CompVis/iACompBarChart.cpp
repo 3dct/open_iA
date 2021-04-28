@@ -2,7 +2,6 @@
 
 //compVis
 #include "iACoefficientOfVariation.h"
-#include "iACompVisOptions.h"
 #include "iAVtkVersion.h"
 
 //Qt
@@ -63,7 +62,8 @@ iACompBarChart::iACompBarChart(iAMainWindow* parent, iACoefficientOfVariation* c
 	orderedPositions(new std::vector<double>()),
 	m_area(vtkSmartPointer<vtkContextArea>::New()),
 	m_originalBarChart(vtkSmartPointer<vtkPropItem>::New()),
-	m_selectedBarChart(vtkSmartPointer<vtkPropItem>::New())
+	m_selectedBarChart(vtkSmartPointer<vtkPropItem>::New()),
+	m_lastState(iACompVisOptions::lastState::Undefined)
 {
 	setupUi(this);
 	this->setFeatures(DockWidgetVerticalTitleBar);
@@ -110,42 +110,14 @@ iACompBarChart::iACompBarChart(iAMainWindow* parent, iACoefficientOfVariation* c
 
 void iACompBarChart::showEvent(QShowEvent* event)
 {
-	m_view->GetScene()->ClearItems();
-
-	initializeBarChart();
-
-	this->renderWidget();
-}
-
-void iACompBarChart::reinitializeBarChart(iACoefficientOfVariation* newCoeffVar)
-{
-	m_coeffVar = newCoeffVar;
-
-	orderedPositions->clear();
-	delete orderedPositions;
-	orderedPositions = new std::vector<double>();
-
-	m_area = vtkSmartPointer<vtkContextArea>::New();
-	m_originalBarChart = vtkSmartPointer<vtkPropItem>::New();
-	m_selectedBarChart = vtkSmartPointer<vtkPropItem>::New();
-
-	m_view->GetScene()->ClearItems();
-
-	//data preparation
-	attrNames = m_dataStorage->getAttributeNamesWithoutLabel();
-	std::vector<double>* coefficientsOriginal = m_coeffVar->getCoefficientOfVariation();
-	removeLabelAttribute(coefficientsOriginal);
-
-	//change interval from [0,1] to [0,100]
-	coefficients = changeInterval(coefficientsOriginal, 100.0, 0.0, 1.0, 0.0);
-	coefficientsUnordered = new std::vector<double>(coefficients->size(), 0);
-	iACompVisOptions::copyVector(coefficients, coefficientsUnordered);
-
-	orderedPositions = sortWithMemory(coefficients);
-
-	initializeBarChart();
-
-	this->renderWidget();
+	if (m_lastState == iACompVisOptions::lastState::Undefined)
+	{
+		initializeBarChart();
+	}
+	else if (m_lastState == iACompVisOptions::lastState::Defined)
+	{
+		renderWidget();
+	}	
 }
 
 void iACompBarChart::initializeBarChart()
@@ -208,6 +180,8 @@ void iACompBarChart::initializeBarChart()
 	m_view->Update();
 
 	initializeAxes(orderedPositions);
+
+	m_lastState = iACompVisOptions::lastState::Defined;
 }
 
 void iACompBarChart::initializeAxes(std::vector<double>* orderedPos)

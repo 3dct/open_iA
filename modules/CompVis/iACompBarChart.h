@@ -1,5 +1,8 @@
 #pragma once
 
+//CompVis
+#include "iACompVisOptions.h"
+
 //Qt
 #include "ui_CompBarChart.h"
 #include <QDockWidget>
@@ -8,17 +11,17 @@
 #include "vtkSmartPointer.h"
 #include "vtkContextInteractorStyle.h"
 
+//CompVis
 class iAMainWindow;
 class iACoefficientOfVariation;
 class iACsvDataStorage;
 class QVTKOpenGLNativeWidget;
 
+//vtk
 class vtkDataArray;
 class vtkDoubleArray;
 class vtkRenderer;
-
 class vtkIntArray;
-
 class vtkContextView;
 class vtkContextArea;
 class vtkUnsignedCharArray;
@@ -40,8 +43,6 @@ class iACompBarChart : public QDockWidget, public Ui_CompBarChart
 
 	void showEvent(QShowEvent* event);
 	void renderWidget();
-
-	void reinitializeBarChart(iACoefficientOfVariation* newCoeffVar);
 
 	//update the bar chart visualization with the selected objects
 	void updateBarChart(std::vector<double>* coefficientsOriginal, std::map<int, std::vector<double>>* pickStatistic);
@@ -109,6 +110,8 @@ private:
 	vtkSmartPointer<vtkPropItem> m_originalBarChartRepositioned;
 	vtkSmartPointer<vtkPropItem> m_selectedBarChart;
 
+	//stores the last interaction that was performed to make a reinitialization after minimizing etc. possible
+	iACompVisOptions::lastState m_lastState;
 	
 	//inner class
 	class BarChartInteractorStyle : public vtkContextInteractorStyle

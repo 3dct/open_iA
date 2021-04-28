@@ -68,7 +68,8 @@ iACompBoxPlot::iACompBoxPlot(iAMainWindow* parent, iACsvDataStorage* dataStorage
 	m_numberOfAttr(0),
 	currentQuartileTable(vtkSmartPointer<vtkTable>::New()),
 	finishedInitalization(false),
-	labels(vtkSmartPointer<vtkStringArray>::New())
+	labels(vtkSmartPointer<vtkStringArray>::New()),
+	m_lastState(iACompVisOptions::lastState::Undefined)
 {
 	setupUi(this);
 
@@ -89,10 +90,9 @@ iACompBoxPlot::iACompBoxPlot(iAMainWindow* parent, iACsvDataStorage* dataStorage
 		m_view->SetRenderWindow(m_qvtkWidget->renderWindow());
 		m_view->SetInteractor(m_qvtkWidget->interactor());
 	#endif
-
 }
 
-void iACompBoxPlot::showEvent(QShowEvent* event)
+void iACompBoxPlot::initializeChart()
 {
 	//reset chart if something was drawn before
 	m_view->GetScene()->ClearItems();
@@ -133,8 +133,8 @@ void iACompBoxPlot::showEvent(QShowEvent* event)
 	renderWidget();
 
 	//set size of chart
-	m_chartOriginal->SetPoint1(m_qvtkWidget->width()*0.0, (m_qvtkWidget->height()*0.3));
-	m_chartOriginal->SetPoint2(m_qvtkWidget->width()*0.75, (m_qvtkWidget->height())*0.85);
+	m_chartOriginal->SetPoint1(m_qvtkWidget->width() * 0.0, (m_qvtkWidget->height() * 0.3));
+	m_chartOriginal->SetPoint2(m_qvtkWidget->width() * 0.75, (m_qvtkWidget->height()) * 0.85);
 	m_chartOriginal->Update();
 
 	initializeAxes(m_chartOriginal, true);
@@ -143,59 +143,20 @@ void iACompBoxPlot::showEvent(QShowEvent* event)
 	finishedInitalization = true;
 
 	this->renderWidget();
+
+	m_lastState = iACompVisOptions::lastState::Defined;
 }
 
-void iACompBoxPlot::reinitializeBoxPlot()
+void iACompBoxPlot::showEvent(QShowEvent* event)
 {
-	m_view->GetScene()->ClearItems();
-	removeSelectedMessage();
-
-	for(int i = 0; i < m_legendAttributes->size(); i++)
+	if (m_lastState == iACompVisOptions::lastState::Undefined)
 	{
-		m_view->GetRenderer()->RemoveActor2D(m_legendAttributes->at(i));
+		initializeChart();
 	}
-
-	m_legendAttributes->clear();
-	labels->Initialize();
-
-	// data preparation
-	initializeData();
-
-	//create chart (a plot is stored inside a chart)
-	m_chartOriginal = vtkSmartPointer<BoxPlotChart>::New();
-	m_chartOriginal->setOuterClass(this);
-	m_chartOriginal->Update();
-	m_view->GetScene()->AddItem(m_chartOriginal);
-
-	//create box plot
-	m_boxOriginal = vtkSmartPointer<BoxPlot>::New();
-	m_boxOriginal->SetInputData(normalizedTable);
-	m_boxOriginal->SetLookupTable(lutOriginal);
-
-	double col[3];
-	col[0] = iACompVisOptions::getDoubleArray(iACompVisOptions::BACKGROUNDCOLOR_LIGHTGREY)[0];
-	col[1] = iACompVisOptions::getDoubleArray(iACompVisOptions::BACKGROUNDCOLOR_LIGHTGREY)[1];
-	col[2] = iACompVisOptions::getDoubleArray(iACompVisOptions::BACKGROUNDCOLOR_LIGHTGREY)[2];
-	m_boxOriginal->SetColor(col[0], col[1], col[2]);
-	m_boxOriginal->GetPen()->SetWidth(m_boxOriginal->GetPen()->GetWidth() * 2.5);
-
-	m_chartOriginal->SetPlot(m_boxOriginal);
-	m_chartOriginal->SetColumnVisibilityAll(true);
-	m_chartOriginal->Update();
-
-	//render all to get position of columns
-	renderWidget();
-
-	//set size of chart
-	m_chartOriginal->SetPoint1(m_qvtkWidget->width()*0.0, (m_qvtkWidget->height()*0.3));
-	m_chartOriginal->SetPoint2(m_qvtkWidget->width()*0.75, (m_qvtkWidget->height())*0.85);
-	m_chartOriginal->Update();
-	renderWidget();
-
-	initializeAxes(m_chartOriginal, true);
-	initializeLegend(m_chartOriginal);
-
-	renderWidget();
+	else if (m_lastState == iACompVisOptions::lastState::Defined)
+	{
+		renderWidget();
+	}
 }
 
 void iACompBoxPlot::initializeData()

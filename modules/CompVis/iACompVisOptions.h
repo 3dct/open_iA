@@ -19,6 +19,30 @@
 
 namespace iACompVisOptions
 {
+	/*************** Reinitialization of Charts ****************************/
+	enum class lastState
+	{
+		Undefined,
+		Defined
+	};
+
+	/*************** Binning Calculation ****************************/
+	enum class binningType
+	{	Uniform,
+		JenksNaturalBreaks,
+		BayesianBlocks
+	};
+
+	/*************** Active Visualization ****************************/
+	enum class activeVisualization 
+	{	Undefined,
+		UniformTable, 
+		VariableTable, 
+		CombTable, 
+		CurveVisualization 
+	};
+	
+	/*************** Rendering ****************************/
 	static const unsigned char BACKGROUNDCOLOR_GREY[3] = { 25, 25, 25 };//{128, 128, 128 };
 	static const unsigned char BACKGROUNDCOLOR_LIGHTGREY[3] = { 115, 115, 115 };
 	static const unsigned char BACKGROUNDCOLOR_LIGHTERGREY[3] = { 189, 189, 189 };

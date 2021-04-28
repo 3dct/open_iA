@@ -1,29 +1,69 @@
 #pragma once
 
-#include "vtkInteractorStyleTrackballCamera.h"
-#include "vtkSmartPointer.h"
+//CompVis
 #include "iACompHistogramTableData.h"
 
-#include <map>
-#include <vector>
+//vtk
+#include "vtkInteractorStyleTrackballCamera.h"
+#include "vtkSmartPointer.h"
 #include "vtkActor.h"
 #include "vtkIdTypeArray.h"
 
-class iACompHistogramTable;
+//C++
+#include <map>
+#include <vector>
+
+//CompVis
+class iACompUniformTable;
+class iACompHistogramVis;
+
+//vtk
 class vtkRenderer;
-class iACompVisMain;
 class vtkPropPicker;
 
 namespace Pick
 {
 using PickedMap = std::map<vtkSmartPointer<vtkActor>, std::vector<vtkIdType>*>;
+
+static void copyPickedMap(PickedMap* input, PickedMap* result)
+{
+	std::map<vtkSmartPointer<vtkActor>, std::vector<vtkIdType>*>::iterator it;
+
+	for (it = input->begin(); it != input->end(); it++)
+	{
+		vtkSmartPointer<vtkActor> currAc = it->first;
+		std::vector<vtkIdType>* currVec = it->second;
+
+		result->insert({currAc, currVec});
+	}
+};
+
+static void debugPickedMap(PickedMap* input)
+{
+	LOG(lvlDebug, "#######################################################");
+	LOG(lvlDebug, "");
+	LOG(lvlDebug, "size = " + QString::number(input->size()));
+	
+	std::map<vtkSmartPointer<vtkActor>, std::vector<vtkIdType>*>::iterator it;
+	int count = 0;
+	for (it = input->begin(); it != input->end(); it++)
+	{
+		vtkSmartPointer<vtkActor> currAc = it->first;
+		std::vector<vtkIdType>* currVec = it->second;
+
+		LOG(lvlDebug, "Actor " + QString::number(count) + " has " + QString::number(currVec->size()) + " picked cells");
+	}
+	LOG(lvlDebug, "");
+	LOG(lvlDebug, "#######################################################");
+};
+
 }
 
-class iACompHistogramTableInteractorStyle : public vtkInteractorStyleTrackballCamera
+class iACompUniformTableInteractorStyle : public vtkInteractorStyleTrackballCamera
 {
    public:
-	static iACompHistogramTableInteractorStyle* New();
-	vtkTypeMacro(iACompHistogramTableInteractorStyle, vtkInteractorStyleTrackballCamera);
+	static iACompUniformTableInteractorStyle* New();
+	vtkTypeMacro(iACompUniformTableInteractorStyle, vtkInteractorStyleTrackballCamera);
 
 	virtual void OnLeftButtonDown();
 	virtual void OnLeftButtonUp();
@@ -40,11 +80,13 @@ class iACompHistogramTableInteractorStyle : public vtkInteractorStyleTrackballCa
 	virtual void Pan();
 
 	//init iACompHistogramTable
-	void setIACompHistogramTable(iACompHistogramTable* visualization);
-	void setIACompVisMain(iACompVisMain* main);
+	void setIACompUniformTable(iACompUniformTable* visualization);
+	void setIACompHistogramVis(iACompHistogramVis* main);
+
+	Pick::PickedMap* getPickedObjects();
 
    protected:
-	iACompHistogramTableInteractorStyle();
+	iACompUniformTableInteractorStyle();
 
    private:	
 	
@@ -88,10 +130,13 @@ class iACompHistogramTableInteractorStyle : public vtkInteractorStyleTrackballCa
 	//reset the bar chart visualization showing the number of objects for each dataset
 	bool resetBarChartAmountObjects();
 
-	iACompHistogramTable* m_visualization;
+	iACompUniformTable* m_visualization;
+	iACompHistogramVis* m_main;
 
 	//stores for each actor a vector for each picked cell according to their vtkIdType
 	Pick::PickedMap* m_picked;
+	//store for reinitialization after minimization etc. of application
+	Pick::PickedMap* m_pickedOld;
 
 	//controls whether the linear or non-linear zoom on the histogram is activated
 	//true --> non-linear zoom is activated, otherwise linear zoom
@@ -107,8 +152,6 @@ class iACompHistogramTableInteractorStyle : public vtkInteractorStyleTrackballCa
 	double m_zoomLevel;
 
 	QList<bin::BinType*>* m_zoomedRowData;
-
-	iACompVisMain* m_main;
 
 	vtkSmartPointer<vtkPropPicker> m_actorPicker;
 	vtkSmartPointer<vtkActor> m_currentlyPickedActor;

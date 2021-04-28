@@ -35,12 +35,11 @@ void dlg_VisMainWindow::startMDSDialog()
 
 void dlg_VisMainWindow::recalculateMDS()
 {
-
 	m_main->reintitalizeMetrics();
 
 	startMDSDialog();
 
-	m_main->reinitializeCharts();
+	//m_main->reinitializeCharts();
 }
 
 void dlg_VisMainWindow::updateMDS(iAMultidimensionalScaling* newMds)

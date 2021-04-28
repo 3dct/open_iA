@@ -149,97 +149,20 @@ iACompCorrelationMap::iACompCorrelationMap(iAMainWindow* parent, iACorrelationCo
 	initializeArcLegend();
 
 	m_graphLayoutView->ResetCamera();
+	m_lastState = iACompVisOptions::lastState::Defined;
 }
 
 void iACompCorrelationMap::showEvent(QShowEvent* event)
 {
 	QDockWidget::showEvent(event);
 
-	renderWidget();
-}
-
-void iACompCorrelationMap::reinitializeCorrelationMap(iACorrelationCoefficient* newCorrCalculation)
-{
-	m_corrCalculation = newCorrCalculation;
-
-	
-	m_graphLayoutView = vtkSmartPointer<vtkGraphLayoutView>::New();
-	m_graph = vtkSmartPointer<vtkMutableUndirectedGraph>::New();
-	m_lutForEdges = vtkSmartPointer<vtkLookupTable>::New();
-	m_lutForVertices = vtkSmartPointer<vtkLookupTable>::New(); 
-	m_lutForArcs = vtkSmartPointer<vtkLookupTable>::New();
-	m_theme = vtkSmartPointer<vtkViewTheme>::New();
-
-	m_vertices->clear();
-	delete m_vertices;
-	m_vertices = new std::map<vtkIdType, QString>();
-
-	arcActors->clear();
-	delete arcActors;
-	arcActors = new std::vector<vtkSmartPointer<vtkActor>>();
-
-	legendActors->clear();
-	delete legendActors;
-	legendActors = new std::vector<vtkSmartPointer<vtkTextActor>>();
-
-	glyphActors->clear();
-	delete glyphActors;
-	glyphActors = new std::vector<vtkSmartPointer<vtkActor>>();
-
-	arcPercentPair->clear();
-	delete arcPercentPair;
-	arcPercentPair = new std::map<vtkSmartPointer<vtkActor>, double>();
-
-	outerArcWithInnerArcs->clear();
-	delete outerArcWithInnerArcs;
-	outerArcWithInnerArcs = new std::map<vtkSmartPointer<vtkActor>, std::vector<vtkSmartPointer<vtkActor>>>();
-	
-	outerArcWithLegend->clear();
-	delete outerArcWithLegend;
-	outerArcWithLegend = new std::map<vtkSmartPointer<vtkActor>, vtkSmartPointer<vtkTextActor>>();
-
-	m_arcDataIndxTypePair->clear();
-	delete m_arcDataIndxTypePair;
-	m_arcDataIndxTypePair = new std::map< vtkSmartPointer<vtkActor>, std::map<int, double>*>();
-
-	#if VTK_VERSION_NUMBER < VTK_VERSION_CHECK(9, 0, 0)
-		m_qvtkWidget->GetRenderWindow()->RemoveRenderer(m_renderer);
-	#else
-		m_qvtkWidget->renderWindow()->RemoveRenderer(m_renderer);
-	#endif
-
-	m_renderer = vtkSmartPointer<vtkRenderer>::New();
-	m_renderer->SetUseFXAA(true);
-
-	#if VTK_VERSION_NUMBER < VTK_VERSION_CHECK(9, 0, 0)
-		m_qvtkWidget->GetRenderWindow()->AddRenderer(m_renderer);
-		m_graphLayoutView->SetRenderWindow(m_qvtkWidget->GetRenderWindow());
-		m_graphLayoutView->SetInteractor(m_qvtkWidget->GetInteractor());
-	#else
-		m_qvtkWidget->renderWindow()->AddRenderer(m_renderer);
-		m_graphLayoutView->SetRenderWindow(m_qvtkWidget->renderWindow());
-		m_graphLayoutView->SetInteractor(m_qvtkWidget->interactor());
-	#endif
-
-	style = vtkSmartPointer<GraphInteractorStyle>::New();
-	style->setGraphLayoutView(m_graphLayoutView);
-	style->setBaseClass(this);
-	m_graphLayoutView->GetInteractor()->SetInteractorStyle(style);
-
-	m_theme->SetBackgroundColor(iACompVisOptions::getDoubleArray(iACompVisOptions::BACKGROUNDCOLOR_WHITE));
-	m_theme->SetBackgroundColor2(iACompVisOptions::getDoubleArray(iACompVisOptions::BACKGROUNDCOLOR_WHITE));
-
-	//data preparation
-	QList<csvFileData>* data = m_dataStorage->getData();
-	m_attrNames = *m_dataStorage->getAttributeNamesWithoutLabel();
-	m_numberOfAttr = m_attrNames.size(); //amount of attributes
-	
-	initializeCorrelationMap();
-	initializeArcs();
-	initializeArcLegend();
-
-	m_graphLayoutView->ResetCamera();
-	renderWidget();
+	if (m_lastState == iACompVisOptions::lastState::Undefined)
+	{
+	}
+	else if (m_lastState == iACompVisOptions::lastState::Defined)
+	{
+		renderWidget();
+	}	
 }
 
 void iACompCorrelationMap::renderWidget()
@@ -250,6 +173,7 @@ void iACompCorrelationMap::renderWidget()
 		m_qvtkWidget->renderWindow()->GetInteractor()->Render();
 	#endif
 }
+
 
 void iACompCorrelationMap::initializeCorrelationMap()
 {

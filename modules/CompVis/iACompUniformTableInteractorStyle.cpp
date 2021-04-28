@@ -1,12 +1,12 @@
-#include "iACompHistogramTableInteractorStyle.h"
+#include "iACompUniformTableInteractorStyle.h"
 #include <vtkObjectFactory.h> //for macro!
 
 //Debug
 #include "iALog.h"
 
 //CompVis
-#include "iACompHistogramTable.h"
-#include "iACompVisMain.h"
+#include "iACompUniformTable.h"
+#include "iACompHistogramVis.h"
 
 //VTK
 #include <vtkRenderWindow.h>
@@ -47,10 +47,11 @@
 #include <tuple>
 
 
-vtkStandardNewMacro(iACompHistogramTableInteractorStyle);
+vtkStandardNewMacro(iACompUniformTableInteractorStyle);
 
-iACompHistogramTableInteractorStyle::iACompHistogramTableInteractorStyle() :
+iACompUniformTableInteractorStyle::iACompUniformTableInteractorStyle() :
 	m_picked(new Pick::PickedMap()),
+	m_pickedOld(new Pick::PickedMap()),
 	m_controlBinsInZoomedRows(false),
 	m_pointRepresentationOn(false),
 	m_zoomLevel(1),
@@ -62,9 +63,9 @@ iACompHistogramTableInteractorStyle::iACompHistogramTableInteractorStyle() :
 	m_actorPicker->SetPickFromList(true);
 }
 
-void iACompHistogramTableInteractorStyle::OnKeyPress(){}
+void iACompUniformTableInteractorStyle::OnKeyPress(){}
 
-void iACompHistogramTableInteractorStyle::OnKeyRelease()
+void iACompUniformTableInteractorStyle::OnKeyRelease()
 {
 	vtkRenderWindowInteractor* interactor = this->GetInteractor();
 	std::string key = interactor->GetKeySym();
@@ -81,6 +82,8 @@ void iACompHistogramTableInteractorStyle::OnKeyRelease()
 				//forward update to all other charts & histogram table
 				updateCharts();
 
+				Pick::copyPickedMap(m_picked, m_pickedOld);
+
 				//reset selection variables
 				m_picked->clear();
 				m_controlBinsInZoomedRows = true;
@@ -93,6 +96,7 @@ void iACompHistogramTableInteractorStyle::OnKeyRelease()
 			{
 				m_visualization->drawHistogramTableAccordingToCellSimilarity(m_visualization->getBins(), m_picked);
 
+				Pick::copyPickedMap(m_picked, m_pickedOld);
 				//reset selection variables
 				m_picked->clear();
 			}
@@ -100,7 +104,7 @@ void iACompHistogramTableInteractorStyle::OnKeyRelease()
 	}
 }
 
-void iACompHistogramTableInteractorStyle::OnLeftButtonDown()
+void iACompUniformTableInteractorStyle::OnLeftButtonDown()
 {
 	reinitializeState();
 
@@ -163,12 +167,12 @@ void iACompHistogramTableInteractorStyle::OnLeftButtonDown()
 	}
 }
 
-void iACompHistogramTableInteractorStyle::OnLeftButtonUp()
+void iACompUniformTableInteractorStyle::OnLeftButtonUp()
 {
 	manualTableRelocatingStop();
 }
 
-void iACompHistogramTableInteractorStyle::OnMouseMove()
+void iACompUniformTableInteractorStyle::OnMouseMove()
 {
 	int x = this->Interactor->GetEventPosition()[0];
 	int y = this->Interactor->GetEventPosition()[1];
@@ -183,13 +187,13 @@ void iACompHistogramTableInteractorStyle::OnMouseMove()
 	}
 }
 
-void iACompHistogramTableInteractorStyle::manualTableRelocatingStart(vtkSmartPointer<vtkActor> movingActor)
+void iACompUniformTableInteractorStyle::manualTableRelocatingStart(vtkSmartPointer<vtkActor> movingActor)
 {
 	m_visualization->calculateOldDrawingPositionOfMovingActor(movingActor);
 	this->StartPan();
 }
 
-void iACompHistogramTableInteractorStyle::manualTableRelocatingStop()
+void iACompUniformTableInteractorStyle::manualTableRelocatingStop()
 {
 	switch (this->State)
 	{
@@ -211,7 +215,7 @@ void iACompHistogramTableInteractorStyle::manualTableRelocatingStop()
 	}
 }
 
-void iACompHistogramTableInteractorStyle::Pan()
+void iACompUniformTableInteractorStyle::Pan()
 {
 	m_panActive = true;
 
@@ -255,7 +259,6 @@ void iACompHistogramTableInteractorStyle::Pan()
 	{
 		vtkTransform* t = vtkTransform::New();
 		t->PostMultiply();
-		t->SetMatrix(m_currentlyPickedActor->GetUserMatrix());
 		t->Translate(motion_vector[0], motion_vector[1], motion_vector[2]);
 		highlightActor->GetUserMatrix()->DeepCopy(t->GetMatrix());
 		t->Delete();
@@ -276,7 +279,7 @@ void iACompHistogramTableInteractorStyle::Pan()
 	m_visualization->renderWidget();
 }
 
-void iACompHistogramTableInteractorStyle::storePickedActorAndCell(vtkSmartPointer<vtkActor> pickedA, vtkIdType id)
+void iACompUniformTableInteractorStyle::storePickedActorAndCell(vtkSmartPointer<vtkActor> pickedA, vtkIdType id)
 {
 	if (m_picked->find(pickedA) != m_picked->end())
 	{
@@ -297,7 +300,7 @@ void iACompHistogramTableInteractorStyle::storePickedActorAndCell(vtkSmartPointe
 	}
 }
 
-void iACompHistogramTableInteractorStyle::resetHistogramTable()
+void iACompUniformTableInteractorStyle::resetHistogramTable()
 {
 	//reset visualization when clicked anywhere
 	m_visualization->setBinsZoomed(m_visualization->getMinBins());
@@ -313,7 +316,7 @@ void iACompHistogramTableInteractorStyle::resetHistogramTable()
 	resetOtherCharts();
 }
 
-void iACompHistogramTableInteractorStyle::OnMiddleButtonDown()
+void iACompUniformTableInteractorStyle::OnMiddleButtonDown()
 {
 	reinitializeState();
 
@@ -321,7 +324,7 @@ void iACompHistogramTableInteractorStyle::OnMiddleButtonDown()
 	vtkInteractorStyleTrackballCamera::OnMiddleButtonDown();
 }
 
-void iACompHistogramTableInteractorStyle::OnRightButtonDown()
+void iACompUniformTableInteractorStyle::OnRightButtonDown()
 {
 	reinitializeState();
 
@@ -375,7 +378,7 @@ void iACompHistogramTableInteractorStyle::OnRightButtonDown()
 	}
 }
 
-void iACompHistogramTableInteractorStyle::OnMouseWheelForward()
+void iACompUniformTableInteractorStyle::OnMouseWheelForward()
 {
 	reinitializeState();
 
@@ -399,7 +402,7 @@ void iACompHistogramTableInteractorStyle::OnMouseWheelForward()
 	}
 }
 
-void iACompHistogramTableInteractorStyle::OnMouseWheelBackward()
+void iACompUniformTableInteractorStyle::OnMouseWheelBackward()
 {
 	reinitializeState();
 
@@ -423,7 +426,7 @@ void iACompHistogramTableInteractorStyle::OnMouseWheelBackward()
 	}
 }
 
-void iACompHistogramTableInteractorStyle::linearZoomInHistogram()
+void iACompUniformTableInteractorStyle::linearZoomInHistogram()
 {
 	//linear zooming in on histogram over all bins
 	int bins = m_visualization->getBins();
@@ -435,7 +438,7 @@ void iACompHistogramTableInteractorStyle::linearZoomInHistogram()
 		m_visualization->drawHistogramTable(bins);
 	}
 }
-void iACompHistogramTableInteractorStyle::linearZoomOutHistogram()
+void iACompUniformTableInteractorStyle::linearZoomOutHistogram()
 {
 	//linear zooming out on histogram over all bins
 	int bins = m_visualization->getBins();
@@ -448,7 +451,7 @@ void iACompHistogramTableInteractorStyle::linearZoomOutHistogram()
 	}
 }
 
-void iACompHistogramTableInteractorStyle::nonLinearZoomIn()
+void iACompUniformTableInteractorStyle::nonLinearZoomIn()
 {
 	int bins = m_visualization->getBinsZoomed();
 	if (bins >= m_visualization->getMinBins() && bins < m_visualization->getMaxBins())
@@ -463,7 +466,7 @@ void iACompHistogramTableInteractorStyle::nonLinearZoomIn()
 		m_pointRepresentationOn = true;
 	}
 }
-void iACompHistogramTableInteractorStyle::nonLinearZoomOut()
+void iACompUniformTableInteractorStyle::nonLinearZoomOut()
 {
 	//linear zooming out in histogram
 	int bins = m_visualization->getBinsZoomed();
@@ -485,28 +488,28 @@ void iACompHistogramTableInteractorStyle::nonLinearZoomOut()
 	}
 }
 
-void iACompHistogramTableInteractorStyle::generalZoomIn()
+void iACompUniformTableInteractorStyle::generalZoomIn()
 {
 	m_visualization->getRenderer()->GetActiveCamera()->Zoom(m_zoomLevel + 0.05);
 	m_visualization->renderWidget();
 }
-void iACompHistogramTableInteractorStyle::generalZoomOut()
+void iACompUniformTableInteractorStyle::generalZoomOut()
 {
 	m_visualization->getRenderer()->GetActiveCamera()->Zoom(m_zoomLevel - 0.05);
 	m_visualization->renderWidget();
 }
 
-void iACompHistogramTableInteractorStyle::setIACompHistogramTable(iACompHistogramTable* visualization)
+void iACompUniformTableInteractorStyle::setIACompUniformTable(iACompUniformTable* visualization)
 {
 	m_visualization = visualization;
 }
 
-void iACompHistogramTableInteractorStyle::setIACompVisMain(iACompVisMain* main)
+void iACompUniformTableInteractorStyle::setIACompHistogramVis(iACompHistogramVis* main)
 {
 	m_main = main;
 }
 
-void iACompHistogramTableInteractorStyle::updateCharts()
+void iACompUniformTableInteractorStyle::updateCharts()
 {
 	QList<bin::BinType*>* zoomedRowDataMDS;
 	QList<std::vector<csvDataType::ArrayType*>*>* selectedObjectAttributes;
@@ -521,7 +524,7 @@ void iACompHistogramTableInteractorStyle::updateCharts()
 	updateOtherCharts(selectedObjectAttributes);
 }
 
-void iACompHistogramTableInteractorStyle::updateOtherCharts(QList<std::vector<csvDataType::ArrayType*>*>* selectedObjectAttributes)
+void iACompUniformTableInteractorStyle::updateOtherCharts(QList<std::vector<csvDataType::ArrayType*>*>* selectedObjectAttributes)
 {
 	std::vector<int>* indexOfPickedRows = m_visualization->getIndexOfPickedRows();
 	csvDataType::ArrayType* selectedData = formatPickedObjects(selectedObjectAttributes);
@@ -531,13 +534,13 @@ void iACompHistogramTableInteractorStyle::updateOtherCharts(QList<std::vector<cs
 	m_main->updateOtherCharts(selectedData, pickStatistic);
 }
 
-std::map<int, std::vector<double>>* iACompHistogramTableInteractorStyle::calculatePickedObjects(QList<bin::BinType*>* zoomedRowData)
+std::map<int, std::vector<double>>* iACompUniformTableInteractorStyle::calculatePickedObjects(QList<bin::BinType*>* zoomedRowData)
 {
 	std::map<int, std::vector<double>>* statisticForDatasets = new std::map<int, std::vector<double>>();
 
 	std::vector<int>* indexOfPickedRows = m_visualization->getIndexOfPickedRows();
 	//get number of all object in this dataset
-	std::vector<int>* amountObjectsEveryDataset = m_visualization->getAmountObjectsEveryDataset();
+	std::vector<int>* amountObjectsEveryDataset = m_visualization->getHistogramVis()->getAmountObjectsEveryDataset();
 
 	for(int i = 0; i < zoomedRowData->size(); i++)
 	{
@@ -564,12 +567,12 @@ std::map<int, std::vector<double>>* iACompHistogramTableInteractorStyle::calcula
 	return statisticForDatasets;
 }
 
-void iACompHistogramTableInteractorStyle::resetOtherCharts()
+void iACompUniformTableInteractorStyle::resetOtherCharts()
 {	
 	m_main->resetOtherCharts();
 }
 
-void iACompHistogramTableInteractorStyle::setPickList(std::vector<vtkSmartPointer<vtkActor>>* originalRowActors)
+void iACompUniformTableInteractorStyle::setPickList(std::vector<vtkSmartPointer<vtkActor>>* originalRowActors)
 {
 	m_actorPicker->InitializePickList();
 
@@ -581,7 +584,7 @@ void iACompHistogramTableInteractorStyle::setPickList(std::vector<vtkSmartPointe
 	//m_actorPicker->SetPickFromList(true);
 }
 
-csvDataType::ArrayType* iACompHistogramTableInteractorStyle::formatPickedObjects(QList<std::vector<csvDataType::ArrayType*>*>* zoomedRowData)
+csvDataType::ArrayType* iACompUniformTableInteractorStyle::formatPickedObjects(QList<std::vector<csvDataType::ArrayType*>*>* zoomedRowData)
 {
 	csvDataType::ArrayType* result = new csvDataType::ArrayType();
 
@@ -646,7 +649,7 @@ csvDataType::ArrayType* iACompHistogramTableInteractorStyle::formatPickedObjects
 	return result;
 }
 
-bool iACompHistogramTableInteractorStyle::resetBarChartAmountObjects()
+bool iACompUniformTableInteractorStyle::resetBarChartAmountObjects()
 {
 	if(m_visualization->getBarChartAmountObjectsActive())
 	{
@@ -658,7 +661,7 @@ bool iACompHistogramTableInteractorStyle::resetBarChartAmountObjects()
 	return false;
 }
 
-void iACompHistogramTableInteractorStyle::reinitializeState()
+void iACompUniformTableInteractorStyle::reinitializeState()
 {
 	bool resetVis = resetBarChartAmountObjects();
 	bool resetHigh = m_visualization->removeHighlightedRow();
@@ -667,4 +670,9 @@ void iACompHistogramTableInteractorStyle::reinitializeState()
 	{
 		m_visualization->renderWidget();
 	}
+}
+
+Pick::PickedMap* iACompUniformTableInteractorStyle::getPickedObjects()
+{
+	return m_pickedOld;
 }

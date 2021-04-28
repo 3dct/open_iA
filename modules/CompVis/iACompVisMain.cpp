@@ -40,7 +40,7 @@ iACompVisMain::iACompVisMain(iAMainWindow* mainWin):
 
 	//add histogram table
 	m_HistogramTableDockWidget = new iACompHistogramTable(mainWin, m_mds, m_dataStorage, this);
-	layout1->addWidget(m_HistogramTableDockWidget);
+	layout1->addWidget(m_HistogramTableDockWidget->getHistogramTableVis());
 
 	QHBoxLayout* layout2 = new QHBoxLayout;
 	layout1->addLayout(layout2);
@@ -117,35 +117,35 @@ void iACompVisMain::reintitalizeMetrics()
 }
 
 void iACompVisMain::reinitializeCharts()
-{
+{ //TODO repair recalculate MDS!
 	//reinitialize histogram table
-	m_HistogramTableDockWidget->reinitializeHistogramTable(m_mds);
+	//m_HistogramTableDockWidget->reinitializeHistogramTable(m_mds);
 
 	//reinitialize correlation map
-	m_CorrelationMapDockWidget->reinitializeCorrelationMap(m_corCoeff);
+	//m_CorrelationMapDockWidget->reinitializeCorrelationMap(m_corCoeff);
 
 	//reinitialize bar chart
-	m_BarChartDockWidget->reinitializeBarChart(m_cofVar);
+	//m_BarChartDockWidget->reinitializeBarChart(m_cofVar);
 
 	//reinitialize box plot
-	m_BoxPlotDockWidget->setOrderedPositions(m_BarChartDockWidget->getOrderedPositions());
-	m_BoxPlotDockWidget->reinitializeBoxPlot();
+//	m_BoxPlotDockWidget->setOrderedPositions(m_BarChartDockWidget->getOrderedPositions());
+//	m_BoxPlotDockWidget->reinitializeBoxPlot();
 }
 
 /******************************************  Order Methods  **********************************/
 void iACompVisMain::orderHistogramTableAscending()
 {
-	m_HistogramTableDockWidget->drawHistogramTableInAscendingOrder(m_HistogramTableDockWidget->getBins());
+	m_HistogramTableDockWidget->drawDatasetsInAscendingOrder();
 }
 
 void iACompVisMain::orderHistogramTableDescending()
 {
-	m_HistogramTableDockWidget->drawHistogramTableInDescendingOrder(m_HistogramTableDockWidget->getBins());
+	m_HistogramTableDockWidget->drawDatasetsInDescendingOrder();
 }
 
 void iACompVisMain::orderHistogramTableAsLoaded()
 {
-	m_HistogramTableDockWidget->drawHistogramTableInOriginalOrder(m_HistogramTableDockWidget->getBins());
+	m_HistogramTableDockWidget->drawDatasetsInOriginalOrder();
 }
 
 /******************************************  Update Methods  **********************************/
@@ -203,11 +203,11 @@ void iACompVisMain::resetCorrelationMap()
 
 void iACompVisMain::updateHistogramTableFromCorrelationMap(std::map<int, double>* dataIndxSelectedType)
 {
-	m_HistogramTableDockWidget->showSelectionOfCorrelationMap(dataIndxSelectedType);
+	m_HistogramTableDockWidget->getHistogramTableVis()->showSelectionOfCorrelationMap(dataIndxSelectedType);
 }
 
 void iACompVisMain::resetHistogramTableFromCorrelationMap()
 {
-	m_HistogramTableDockWidget->removeSelectionOfCorrelationMap();
-	m_HistogramTableDockWidget->renderWidget();
+	m_HistogramTableDockWidget->getHistogramTableVis()->removeSelectionOfCorrelationMap();
+	m_HistogramTableDockWidget->getHistogramTableVis()->renderWidget();
 }
