@@ -1732,7 +1732,6 @@ void iAFiAKErController::newSelection(QString const& source)
 	{
 		std::sort(m_selection[resultID].begin(), m_selection[resultID].end());
 	}
-	emit fiberSelectionChanged(m_selection);
 	size_t selSize = selectionSize();
 	if (selSize == 0 || (m_selections.size() > 0 && m_selection == m_selections[m_selections.size() - 1]))
 	{
@@ -1861,6 +1860,7 @@ void iAFiAKErController::selection3DChanged()
 	showSelectionInSPM();
 	changeReferenceDisplay();
 	updateFiberContext();
+	emit fiberSelectionChanged(m_selection);
 	/*
 	if (isAnythingSelected() && !m_views[SelectionView]->isVisible())
 	{
@@ -1885,6 +1885,7 @@ void iAFiAKErController::selectionSPMChanged(std::vector<size_t> const & selecti
 	showSelectionInPlots();
 	changeReferenceDisplay();
 	updateFiberContext();
+	emit fiberSelectionChanged(m_selection);
 	/*
 	if (isAnythingSelected() && !m_views[SelectionView]->isVisible())
 	{
@@ -1919,6 +1920,7 @@ void iAFiAKErController::selectionOptimStepChartChanged(std::vector<size_t> cons
 	showSelectionInSPM();
 	changeReferenceDisplay();
 	updateFiberContext();
+	emit fiberSelectionChanged(m_selection);
 	/*
 	if (isAnythingSelected() && !m_views[SelectionView]->isVisible())
 	{
