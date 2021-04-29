@@ -1697,26 +1697,29 @@ public:
 		m_scatterPlot->setLookupTable(m_lut, m_mdsData->numParams() - 1);
 		*/
 
-		if (m_paramInfluenceView->selectedResults().size() == 1)
-		{  // color by difference to currently selected result
-			size_t selectedResultIdx = *m_paramInfluenceView->selectedResults().begin();
-			for (size_t curResultIdx = 0; curResultIdx < resultCount; ++curResultIdx)
-			{
-				m_mdsData->data()[m_mdsData->numParams() - SPDissimilarityOffset][curResultIdx] =
-					resultDissimMatrix[static_cast<int>(selectedResultIdx)][static_cast<int>(curResultIdx)].avgDissim[measureIdx];
+		for (size_t curResultIdx = 0; curResultIdx < resultCount; ++curResultIdx)
+		{
+			size_t refResultIdx;
+			if (m_paramInfluenceView->selectedResults().size() == 1)
+			{  // color by difference to currently selected result
+				refResultIdx = *m_paramInfluenceView->selectedResults().begin();
 			}
-			m_mdsData->updateRanges();
-			//auto rng = m_mdsData->paramRange(m_mdsData->numParams() - SPDissimilarityOffset);
-			double rng[2];
-			rng[0] = dissimRanges.size() > 0 ? dissimRanges[measureIdx].first  : 0;
-			rng[1] = dissimRanges.size() > 0 ? dissimRanges[measureIdx].second : 1;
-			*m_lut.data() = iALUT::Build(rng, colorScaleName, 255, 0);
-			m_scatterPlot->setLookupTable(m_lut, m_mdsData->numParams() - SPDissimilarityOffset);
+			else
+			{  // color by difference to STAR center
+				refResultIdx = curResultIdx - (curResultIdx % starGroupSize);
+			}
+			m_mdsData->data()[m_mdsData->numParams() - SPDissimilarityOffset][curResultIdx] =
+				resultDissimMatrix[static_cast<int>(curResultIdx)][static_cast<int>(refResultIdx)]
+					.avgDissim[measureIdx];
 		}
-		else
-		{  // color all points the same
-			m_scatterPlot->setPlotColor(ScatterPlotPointColor, 0, resultCount);
-		}
+		m_mdsData->updateRanges();
+		//auto rng = m_mdsData->paramRange(m_mdsData->numParams() - SPDissimilarityOffset);
+		double rng[2];
+		rng[0] = dissimRanges.size() > 0 ? dissimRanges[measureIdx].first : 0;
+		rng[1] = dissimRanges.size() > 0 ? dissimRanges[measureIdx].second : 1;
+		*m_lut.data() = iALUT::Build(rng, colorScaleName, 255, 0);
+		m_scatterPlot->setLookupTable(m_lut, m_mdsData->numParams() - SPDissimilarityOffset);
+
 		m_colorMapWidget->setColorMap(m_scatterPlot->lookupTable());
 		m_colorMapWidget->update();
 
@@ -1986,7 +1989,8 @@ void iASensitivityInfo::createGUI()
 	m_child->splitDockWidget(dwScatterPlot, dwColorMap, Qt::Horizontal);
 
 	m_gui->updateScatterPlotLUT(m_starGroupSize, m_numOfSTARSteps, m_data->result.size(), m_variedParams.size(),
-		m_resultDissimMatrix, m_resultDissimRanges, 0, "");  // last 3 parameters not important here (no result selected here yet)
+		m_resultDissimMatrix, m_resultDissimRanges, m_gui->m_settings->dissimMeasIdx(),
+		m_gui->m_settings->spColorMap());
 	m_gui->m_scatterPlot->setPointInfo(
 		QSharedPointer<iAScatterPlotPointInfo>(new iASPParamPointInfo(*this, *m_data.data())));
 
