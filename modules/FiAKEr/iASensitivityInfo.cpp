@@ -1590,7 +1590,7 @@ public:
 	{
 		m_diff3DEmptyText->SetLinearFontScaleFactor(2);
 		m_diff3DEmptyText->SetNonlinearFontScaleFactor(1);
-		m_diff3DEmptyText->SetMaximumFontSize(25);
+		m_diff3DEmptyText->SetMaximumFontSize(18);
 		m_diff3DEmptyText->SetText(2, "No Fiber/Result selected");
 		auto textColor = qApp->palette().color(QPalette::Text);
 		m_diff3DEmptyText->GetTextProperty()->SetColor(textColor.redF(), textColor.greenF(), textColor.blueF());
@@ -2256,11 +2256,11 @@ void iASensitivityInfo::updateDifferenceView()
 			resultData->renderer->AddActor(resultData->actor[f]);
 		}
 
-		auto txt = QString("R %1").arg(rID);
+		auto txt = QString("Result %1").arg(rID);
 		resultData->text = vtkSmartPointer<vtkCornerAnnotation>::New();
 		resultData->text->SetLinearFontScaleFactor(2);
 		resultData->text->SetNonlinearFontScaleFactor(1);
-		resultData->text->SetMaximumFontSize(25);
+		resultData->text->SetMaximumFontSize(18);
 		resultData->text->SetText(2, txt.toStdString().c_str());
 		// ToDo: add fiber id ;
 		auto textColor = qApp->palette().color(QPalette::Text);
