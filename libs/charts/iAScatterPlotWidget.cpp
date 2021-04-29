@@ -274,9 +274,9 @@ void iAScatterPlotWidget::drawTooltip(QPainter& painter)
 	double pPM = m_scatterplot->settings.pickedPointMagnification;
 	double ptRad = m_scatterplot->getPointRadius();
 	popupPos.setY(popupPos.y() - pPM * ptRad);
-	QColor popupFillColor(palette().color(QPalette::Window));
+	QColor popupFillColor(qApp->palette().color(QPalette::Window));
 	painter.setBrush(popupFillColor);
-	QColor popupBorderColor(palette().color(QPalette::Dark));
+	QColor popupBorderColor(qApp->palette().color(QPalette::Dark));
 	painter.setPen(popupBorderColor);
 	painter.translate(popupPos);
 	QString text = "<b>#" + QString::number(curInd) + "</b><br> " +
@@ -301,7 +301,7 @@ void iAScatterPlotWidget::drawTooltip(QPainter& painter)
 
 	painter.translate(-popupWidthHalf, -popupHeight - tipDim[1]);
 	QAbstractTextDocumentLayout::PaintContext ctx;
-	QColor popupTextColor(palette().color(QPalette::ToolTipText) ); // = settings.popupTextColor;
+	QColor popupTextColor(qApp->palette().color(QPalette::ToolTipText));  // = settings.popupTextColor;
 	ctx.palette.setColor(QPalette::Text, popupTextColor);
 	doc.documentLayout()->draw(&painter, ctx); //doc.drawContents( &painter );
 	painter.restore();
