@@ -57,7 +57,8 @@ public:
 		iAVtkWidget* main3DWidget,
 		QString parameterSetFileName = QString(),
 		QVector<int> const& charSelected = QVector<int>(),
-		QVector<int> const& charDiffMeasure = QVector<int>());
+		QVector<int> const& charDiffMeasure = QVector<int>(),
+		iASettings const & projectFile = iASettings());
 	static QSharedPointer<iASensitivityInfo> load(QMainWindow* child,
 		QSharedPointer<iAFiberResultsCollection> data, QDockWidget* nextToDW,
 		iASettings const & projectFile, QString const& projectFileName,
@@ -242,6 +243,8 @@ private:
 	// for computation:
 	iAProgress m_progress;
 	bool m_aborted;
+	//! "temporary" copy of project to load:
+	iASettings m_projectToLoad;
 signals:
 	void aborted();
 	void resultSelected(size_t resultIdx, bool state);

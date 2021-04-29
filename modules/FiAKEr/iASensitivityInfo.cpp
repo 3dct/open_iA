@@ -36,7 +36,10 @@
 #include <iAStackedBarChart.h>    // for add HeaderLabel
 #include <iAStringHelper.h>
 #include <iAVec3.h>
+
+// guibase:
 #include <qthelper/iAQTtoUIConnector.h>
+#include <qthelper/iAWidgetSettingsMapper.h>
 
 // qthelper:
 #include <iADockWidgetWrapper.h>
@@ -135,7 +138,7 @@ namespace
 
 	QColor ParamColor(150, 150, 255, 255);
 	QColor OutputColor(255, 200, 200, 255);
-	
+
 	// needs to match definition in iAParameterInfluenceView. Maybe unify somewhere:
 	QColor SelectedResultPlotColor(235, 184, 31, 255);
 
@@ -326,7 +329,7 @@ void iASensitivityInfo::abort()
 QSharedPointer<iASensitivityInfo> iASensitivityInfo::create(QMainWindow* child,
 	QSharedPointer<iAFiberResultsCollection> data, QDockWidget* nextToDW, int histogramBins, int skipColumns,
 	std::vector<iAFiberCharUIData> const& resultUIs, iAVtkWidget* main3DWidget, QString parameterSetFileName,
-	QVector<int> const & charSelected, QVector<int> const & charDiffMeasure)
+	QVector<int> const & charSelected, QVector<int> const & charDiffMeasure, iASettings const & projectFile)
 {
 	if (parameterSetFileName.isEmpty())
 	{
@@ -432,7 +435,7 @@ QSharedPointer<iASensitivityInfo> iASensitivityInfo::create(QMainWindow* child,
 			.arg(sensitivity->m_starGroupSize).arg(paramValues[0].size()));
 		return QSharedPointer<iASensitivityInfo>();
 	}
-	
+
 	LOG(lvlDebug, QString("In %1 parameter sets, found %2 varying parameters, in STAR groups of %3 (parameter branch size: %4)")
 		.arg(paramValues[0].size())
 		.arg(sensitivity->m_variedParams.size())
@@ -491,6 +494,7 @@ QSharedPointer<iASensitivityInfo> iASensitivityInfo::create(QMainWindow* child,
 		sensitivity->m_resultDissimMeasures = selectMeasure.measures();
 		sensitivity->m_resultDissimOptimMeasureIdx = selectMeasure.optimizeMeasureIdx();
 	}
+	sensitivity->m_projectToLoad = projectFile;
 	auto futureWatcher = runAsync([sensitivity]
 		{
 			sensitivity->compute();
@@ -1410,6 +1414,14 @@ typedef iAQTtoUIConnector<QWidget, Ui_SensitivitySettings> iASensitivitySettings
 
 class iASensitivitySettingsView: public iASensitivitySettingsUI
 {
+	iAWidgetMap m_settingsWidgetMap;
+	iAQRadioButtonVector m_rgChartType;
+	const QString ProjectMeasure = "SensitivityCharacteristicsMeasure";
+	const QString ProjectAggregation = "SensitivityAggregation";
+	const QString ProjectDissimilarity = "SensitivityDissimilarity";
+	const QString ProjectChartType = "SensitivityChartType";
+	const QString ProjectColorScale = "SensitivitySPColorScale";
+
 public:
 	iASensitivitySettingsView(iASensitivityInfo* sensInf)
 	{
@@ -1431,13 +1443,29 @@ public:
 
 		connect(cmbboxDissimilarity, QOverload<int>::of(&QComboBox::currentIndexChanged), sensInf, &iASensitivityInfo::updateDissimilarity);
 		connect(cmbboxSPColorMap, QOverload<int>::of(&QComboBox::currentIndexChanged), sensInf, &iASensitivityInfo::updateSPDifferenceColors);
-		
+
 		connect(rbBar, &QRadioButton::toggled, sensInf, &iASensitivityInfo::histoChartTypeToggled);
 		connect(rbLines, &QRadioButton::toggled, sensInf, &iASensitivityInfo::histoChartTypeToggled);
-		
+
 		cmbboxAggregation->setMinimumWidth(80);
 		cmbboxMeasure->setMinimumWidth(80);
 		cmbboxDissimilarity->setMinimumWidth(80);
+
+		m_rgChartType.push_back(rbBar);
+		m_rgChartType.push_back(rbLines);
+		m_settingsWidgetMap.insert(ProjectMeasure, cmbboxMeasure);
+		m_settingsWidgetMap.insert(ProjectAggregation, cmbboxAggregation);
+		m_settingsWidgetMap.insert(ProjectDissimilarity, cmbboxDissimilarity);
+		m_settingsWidgetMap.insert(ProjectChartType, &m_rgChartType);
+		m_settingsWidgetMap.insert(ProjectColorScale, cmbboxSPColorMap);
+	}
+	void loadSettings(iASettings const & s)
+	{
+		::loadSettings(s, m_settingsWidgetMap);
+	}
+	void saveSettings(QSettings& s)
+	{
+		::saveSettings(s, m_settingsWidgetMap);
 	}
 	int dissimMeasIdx() const
 	{
@@ -1832,6 +1860,8 @@ void iASensitivityInfo::saveProject(QSettings& projectFile, QString  const& file
 	projectFile.setValue(ProjectSkipParameterCSVColumns, m_skipColumns);
 	projectFile.setValue(ProjectCharacteristics, joinNumbersAsString(m_charSelected, ","));
 	projectFile.setValue(ProjectCharDiffMeasures, joinNumbersAsString(m_charDiffMeasure, ","));
+	m_gui->m_settings->saveSettings(projectFile);
+
 	// stored in cache file:
 	//projectFile.setValue(ProjectResultDissimilarityMeasure, joinAsString(m_resultDissimMeasures, ",",
 	//	[](std::pair<int, bool> const& a) {return QString::number(a.first)+":"+(a.second?"true":"false"); }));
@@ -1853,7 +1883,7 @@ QSharedPointer<iASensitivityInfo> iASensitivityInfo::load(QMainWindow* child,
 	int skipColumns = projectFile.value(ProjectSkipParameterCSVColumns, 1).toInt();
 	int histogramBins = projectFile.value(ProjectHistogramBins, 20).toInt();
 	return iASensitivityInfo::create(child, data, nextToDW, histogramBins, skipColumns, resultUIs, main3DWidget,
-		parameterSetFileName, charsSelected, charDiffMeasure);
+		parameterSetFileName, charsSelected, charDiffMeasure, projectFile);
 }
 
 class iASPParamPointInfo final: public iAScatterPlotPointInfo
@@ -2012,6 +2042,11 @@ void iASensitivityInfo::createGUI()
 
 	updateDissimilarity();
 	changeAggregation(SelectedAggregationMeasureIdx);
+
+	if (!m_projectToLoad.isEmpty())
+	{
+		m_gui->m_settings->loadSettings(m_projectToLoad);
+	}
 }
 
 void iASensitivityInfo::changeMeasure(int newMeasure)
@@ -2053,7 +2088,7 @@ void iASensitivityInfo::fiberSelectionChanged(std::vector<std::vector<size_t>> c
 		resultCount += (selection[resultID].size() > 0) ? 1 : 0;
 	}
 	LOG(lvlDebug, QString("New fiber selection: %1 selected fibers in %2 results").arg(selectedFibers).arg(resultCount));
-	
+
 	updateDifferenceView();
 }
 
