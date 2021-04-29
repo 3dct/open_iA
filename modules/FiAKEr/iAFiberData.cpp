@@ -187,28 +187,6 @@ namespace
 		return false;
 	}
 
-	bool pointContainedInFiber(iAVec3f const & point, iAFiberData const & fiber)
-	{
-		if (fiber.curvedPoints.empty())
-		{
-			iAVec3f dir = fiber.pts[PtEnd] - fiber.pts[PtStart];
-			return pointContainedInLineSegment(fiber.pts[PtStart], dir, fiber.diameter / 2.0, point);
-		}
-		else
-		{
-			for (size_t i=0; i<fiber.curvedPoints.size()-1; ++i)
-			{
-				iAVec3f dir = (fiber.curvedPoints[i+1] - fiber.curvedPoints[i]);
-				iAVec3f start(fiber.curvedPoints[i]);
-				if (pointContainedInLineSegment(start, dir, fiber.diameter / 2.0, point))
-				{
-					return true;
-				}
-			}
-			return false;
-		}
-	}
-
 	//! determine the distance from the given point to the closest point on the given line segment
 	//! @param
 	double distanceToLineSegment(iAVec3f const & point, iAVec3f const & lineStart, iAVec3f const & lineEnd)
@@ -384,6 +362,28 @@ namespace
 		}
 		default: return 0;
 		}
+	}
+}
+
+bool pointContainedInFiber(iAVec3f const& point, iAFiberData const& fiber)
+{
+	if (fiber.curvedPoints.empty())
+	{
+		iAVec3f dir = fiber.pts[PtEnd] - fiber.pts[PtStart];
+		return pointContainedInLineSegment(fiber.pts[PtStart], dir, fiber.diameter / 2.0, point);
+	}
+	else
+	{
+		for (size_t i = 0; i < fiber.curvedPoints.size() - 1; ++i)
+		{
+			iAVec3f dir = (fiber.curvedPoints[i + 1] - fiber.curvedPoints[i]);
+			iAVec3f start(fiber.curvedPoints[i]);
+			if (pointContainedInLineSegment(start, dir, fiber.diameter / 2.0, point))
+			{
+				return true;
+			}
+		}
+		return false;
 	}
 }
 

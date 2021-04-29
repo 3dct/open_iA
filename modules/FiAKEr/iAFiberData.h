@@ -48,6 +48,8 @@ struct iAFiberData
 	static iAFiberData getOrientationCorrected(iAFiberData const & source, iAFiberData const & other);
 };
 
+//! check if a point is contained in a fiber
+bool pointContainedInFiber(iAVec3f const& point, iAFiberData const& fiber);
 //! Samples points inside of the cylinder spanned by a single fiber
 void samplePoints(iAFiberData const & fiber, std::vector<iAVec3f> & result, size_t numSamples=DefaultSamplePoints);
 

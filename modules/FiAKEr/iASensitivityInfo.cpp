@@ -78,10 +78,16 @@
 #include <vtkActor.h>
 #include <vtkCornerAnnotation.h>
 //#include <vtkCleanPolyData.h>
-#include <vtkBooleanOperationPolyDataFilter.h>
+//#include <vtkBooleanOperationPolyDataFilter.h>
 #include <vtkRendererCollection.h>
 #include <vtkTextProperty.h>
-#include <vtkTriangleFilter.h>
+//#include <vtkTriangleFilter.h>
+
+// for sampled points display:
+#include <vtkVertexGlyphFilter.h>
+#include <vtkUnsignedCharArray.h>
+#include <vtkPointData.h>
+#include <vtkProperty.h>
 // }
 
 #include <QDialog>
@@ -1569,6 +1575,10 @@ struct iAPolyDataRenderer
 	std::vector<vtkSmartPointer<vtkPolyData>> data;
 	std::vector<vtkSmartPointer<vtkActor>> actor;
 	vtkSmartPointer<vtkCornerAnnotation> text;
+
+	vtkSmartPointer<vtkPolyData> diffPoints;
+	vtkSmartPointer<vtkPolyDataMapper> diffPtMapper;
+	vtkSmartPointer<vtkActor> diffActor;
 };
 
 class iASensitivityGUI
@@ -2219,43 +2229,19 @@ void iASensitivityInfo::updateDifferenceView()
 		resultData->renderer->SetBackground(bgColor.redF(), bgColor.greenF(), bgColor.blueF());
 		resultData->renderer->SetViewport(
 			static_cast<double>(i) / hp.size(), 0, static_cast<double>(i + 1) / hp.size(), 1);
-		//LOG(lvlDebug, QString("Result %1: %2 selected:").arg(rID).arg(resultData->data.size()));
 		for (int f = 0; f < resultData->data.size(); ++f)
 		{
-			//logMeshSize(QString("  Fiber %1").arg(f), resultData->data[f]);
-
-			//vtkNew<vtkTriangleFilter> tri1;
-			//tri1->SetInputData(input[0]);
-			//tri1->Update();
-			//vtkNew<vtkTriangleFilter> tri2;
-			//tri2->SetInputData(inputRef[0]);
-			//tri2->Update();
-
-			//logMeshSize(QString("TRIANGULATED Result %1").arg(r1), tri1->GetOutput());
-			//logMeshSize(QString("TRIANGULATED Result %1").arg(r2), tri2->GetOutput());
-
-			//auto diffOp = vtkSmartPointer<vtkPolyDataBooleanFilter>::New();
-			//diffOp->SetOperModeToDifference();
-			/*
-		auto diffOp = vtkSmartPointer<vtkBooleanOperationPolyDataFilter>::New();
-		diffOp->SetOperationToDifference();
-
-		diffOp->SetInputConnection(0, tri1->GetOutputPort());
-		diffOp->SetInputConnection(1, tri2->GetOutputPort());
-		diffOp->Update();
-		*/
-
-			//m_gui->m_diffData = diffOp->GetOutput();
-			// for debug purposes: just show first fiber of first result_
-			//resultData->data = input[0];	// TODO: extend to handling multiple fibers!
 			auto diffMapper = vtkSmartPointer<vtkPolyDataMapper>::New();
 			diffMapper->SetInputData(resultData->data[f]);
 			resultData->actor.push_back(vtkSmartPointer<vtkActor>::New());
 			resultData->actor[resultData->actor.size()-1]->SetMapper(diffMapper);
+			//resultData->actor[resultData->actor.size() - 1]->GetProperty()->SetColor(128, 128, 128);
+			resultData->actor[resultData->actor.size() - 1]->GetProperty()->SetOpacity(0.5);
+			diffMapper->SetScalarModeToUsePointFieldData();
+			diffMapper->ScalarVisibilityOn();
 			diffMapper->Update();
 			resultData->renderer->AddActor(resultData->actor[f]);
 		}
-
 		auto txt = QString("Result %1").arg(rID);
 		resultData->text = vtkSmartPointer<vtkCornerAnnotation>::New();
 		resultData->text->SetLinearFontScaleFactor(2);
@@ -2268,9 +2254,6 @@ void iASensitivityInfo::updateDifferenceView()
 		//cornerAnnotation->GetTextProperty()->BoldOn();
 		resultData->renderer->AddViewProp(resultData->text);
 
-		renWin->AddRenderer(resultData->renderer);
-		m_gui->m_diff3DRenderManager.addToBundle(resultData->renderer);
-		m_gui->m_diff3DRenderers.push_back(resultData);
 		//m_diffActor->GetProperty()->SetPointSize(2);
 		/*
 	#if VTK_VERSION_NUMBER < VTK_VERSION_CHECK(9, 0, 0)
@@ -2282,6 +2265,91 @@ void iASensitivityInfo::updateDifferenceView()
 	#endif
 		m_main3DWidget->update();
 		*/
+
+		// show differences - for now only for 1st fiber, to 1st fiber of 1st selected result:
+		if (i > 0)
+		{
+			auto refResID = hp[0];
+			int refFiberID = m_currentFiberSelection[refResID][0];
+			auto& ref = m_data->result[refResID];
+			auto const& refMapping = *ref.mapping.data();
+			auto refIt = ref.curveInfo.find(refFiberID);
+			iAFiberData refFiber(ref.table, refFiberID, refMapping,
+				refIt != ref.curveInfo.end() ? refIt->second : std::vector<iAVec3f>());
+
+			auto& d = m_data->result[rID];
+			auto const& mapping = *d.mapping.data();
+			std::vector<iAVec3f> sampledPoints;
+			int fiber0ID = m_currentFiberSelection[rID][0];
+			auto it = d.curveInfo.find(fiber0ID);
+			iAFiberData sampleFiber(
+				d.table, fiber0ID, mapping, it != d.curveInfo.end() ? it->second : std::vector<iAVec3f>());
+
+			vtkNew<vtkPolyData> ptData;
+			vtkNew<vtkPoints> points;
+			auto colors = vtkSmartPointer<vtkUnsignedCharArray>::New();
+			colors->SetNumberOfComponents(3);
+			colors->SetName("Colors");
+
+			// direction fiber -> refFiber
+			// everything that's in the fiber but not in the reference -> color red
+			samplePoints(sampleFiber, sampledPoints, 1000);
+			size_t newPts = 0;
+			for (size_t s = 0; s < sampledPoints.size(); ++s)
+			{
+				if (!pointContainedInFiber(sampledPoints[s], refFiber))
+				{
+					double pt[3];
+					for (int c = 0; c < 3; ++c) pt[c] = sampledPoints[s][c];
+					points->InsertNextPoint(pt);
+					++newPts;
+				}
+			}
+			unsigned char red[3] = {255, 0, 0};
+			for (size_t s = 0; s < newPts; ++s)
+			{
+				colors->InsertNextTypedTuple(red);
+			}
+
+			// direction refFiber -> fiber
+			// -> color blue
+			samplePoints(refFiber, sampledPoints, 1000);
+			newPts = 0;
+			for (size_t s = 0; s < sampledPoints.size(); ++s)
+			{
+				if (!pointContainedInFiber(sampledPoints[s], sampleFiber))
+				{
+					double pt[3];
+					for (int c = 0; c < 3; ++c) pt[c] = sampledPoints[s][c];
+					points->InsertNextPoint(pt);
+					++newPts;
+				}
+			}
+			unsigned char blue[3] = {0, 0, 255};
+			for (size_t s = 0; s < newPts; ++s)
+			{
+				colors->InsertNextTypedTuple(blue);
+			}
+
+			ptData->SetPoints(points);
+			auto vertexFilter = vtkSmartPointer<vtkVertexGlyphFilter>::New();
+			vertexFilter->SetInputData(ptData);
+			vertexFilter->Update();
+
+			resultData->diffPoints = vtkSmartPointer<vtkPolyData>::New();
+			resultData->diffPoints->DeepCopy(vertexFilter->GetOutput());
+			resultData->diffPoints->GetPointData()->SetScalars(colors);
+			resultData->diffPtMapper = vtkSmartPointer<vtkPolyDataMapper>::New();
+			resultData->diffPtMapper->SetInputData(resultData->diffPoints);
+			resultData->diffActor = vtkSmartPointer<vtkActor>::New();
+			resultData->diffActor->SetMapper(resultData->diffPtMapper);
+			resultData->diffPtMapper->Update();
+			resultData->diffActor->GetProperty()->SetPointSize(6);
+			resultData->renderer->AddActor(resultData->diffActor);
+		}
+		renWin->AddRenderer(resultData->renderer);
+		m_gui->m_diff3DRenderManager.addToBundle(resultData->renderer);
+		m_gui->m_diff3DRenderers.push_back(resultData);
 	}
 	if (m_gui->m_diff3DRenderers.size() == 0 && !renWin->GetRenderers()->IsItemPresent(m_gui->m_diff3DEmptyRenderer))
 	{
