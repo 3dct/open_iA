@@ -1437,6 +1437,7 @@ public:
 		cmbboxDissimilarity->addItems(dissimilarities);
 
 		cmbboxSPColorMap->addItems(iALUT::GetColorMapNames());
+		cmbboxSPColorMap->setCurrentText("Brewer single hue 5c grays");
 
 		connect(cmbboxMeasure, QOverload<int>::of(&QComboBox::currentIndexChanged), sensInf, &iASensitivityInfo::changeMeasure);
 		connect(cmbboxAggregation, QOverload<int>::of(&QComboBox::currentIndexChanged), sensInf, &iASensitivityInfo::changeAggregation);
