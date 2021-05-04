@@ -256,6 +256,7 @@ public slots:
 	void updateDissimilarity();
 	void spHighlightChanged();
 	void updateSPDifferenceColors();
+	void updateSPHighlightColors();
 	void createGUI();
 	void outputBarAdded(int outType, int outIdx);
 	void outputBarRemoved(int outType, int outIdx);

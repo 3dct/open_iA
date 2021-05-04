@@ -50,19 +50,22 @@
       <property name="spacing">
        <number>4</number>
       </property>
-      <item row="0" column="0">
-       <widget class="QLabel" name="lbHistograms">
-        <property name="text">
-         <string>Histograms as</string>
-        </property>
-       </widget>
-      </item>
       <item row="0" column="2">
        <widget class="QRadioButton" name="rbLines">
         <property name="text">
          <string>Lines</string>
         </property>
        </widget>
+      </item>
+      <item row="1" column="0">
+       <widget class="QLabel" name="lbSPColorScale">
+        <property name="text">
+         <string>SP Color Scale</string>
+        </property>
+       </widget>
+      </item>
+      <item row="1" column="1" colspan="2">
+       <widget class="QComboBox" name="cmbboxSPColorMap"/>
       </item>
       <item row="0" column="1">
        <widget class="QRadioButton" name="rbBar">
@@ -74,15 +77,22 @@
         </property>
        </widget>
       </item>
-      <item row="1" column="0">
-       <widget class="QLabel" name="label">
+      <item row="0" column="0">
+       <widget class="QLabel" name="lbHistograms">
         <property name="text">
-         <string>SP Color Scale</string>
+         <string>Histograms as</string>
         </property>
        </widget>
       </item>
-      <item row="1" column="1" colspan="2">
-       <widget class="QComboBox" name="cmbboxSPColorMap"/>
+      <item row="2" column="0">
+       <widget class="QLabel" name="lbSPHighlightColorScale">
+        <property name="text">
+         <string>TextLabel</string>
+        </property>
+       </widget>
+      </item>
+      <item row="2" column="1" colspan="2">
+       <widget class="QComboBox" name="cmbboxSPHighlightColorScale"/>
       </item>
      </layout>
     </widget>

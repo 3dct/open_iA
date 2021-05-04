@@ -1439,11 +1439,16 @@ public:
 		cmbboxSPColorMap->addItems(iALUT::GetColorMapNames());
 		cmbboxSPColorMap->setCurrentText("Brewer single hue 5c grays");
 
+		cmbboxSPHighlightColorScale->addItems(iAColorThemeManager::instance().availableThemes());
+		cmbboxSPHighlightColorScale->setCurrentText("Brewer Set3 (max. 12)");
+
 		connect(cmbboxMeasure, QOverload<int>::of(&QComboBox::currentIndexChanged), sensInf, &iASensitivityInfo::changeMeasure);
 		connect(cmbboxAggregation, QOverload<int>::of(&QComboBox::currentIndexChanged), sensInf, &iASensitivityInfo::changeAggregation);
 
 		connect(cmbboxDissimilarity, QOverload<int>::of(&QComboBox::currentIndexChanged), sensInf, &iASensitivityInfo::updateDissimilarity);
 		connect(cmbboxSPColorMap, QOverload<int>::of(&QComboBox::currentIndexChanged), sensInf, &iASensitivityInfo::updateSPDifferenceColors);
+		connect(cmbboxSPHighlightColorScale, QOverload<int>::of(&QComboBox::currentIndexChanged), sensInf,
+			&iASensitivityInfo::updateSPHighlightColors);
 
 		connect(rbBar, &QRadioButton::toggled, sensInf, &iASensitivityInfo::histoChartTypeToggled);
 		connect(rbLines, &QRadioButton::toggled, sensInf, &iASensitivityInfo::histoChartTypeToggled);
@@ -2005,7 +2010,9 @@ void iASensitivityInfo::createGUI()
 	m_gui->m_scatterPlot->setPointRadius(4);
 	m_gui->m_scatterPlot->setPickedPointFactor(1.5);
 	m_gui->m_scatterPlot->setFixPointsEnabled(true);
-	m_gui->m_scatterPlot->setHighlightColor(SelectedResultPlotColor);
+	//m_gui->m_scatterPlot->setHighlightColor(SelectedResultPlotColor);
+	m_gui->m_scatterPlot->setHighlightColorTheme(
+		iAColorThemeManager::instance().theme(m_gui->m_settings->cmbboxSPHighlightColorScale->currentText()));
 	m_gui->m_scatterPlot->setHighlightDrawMode(iAScatterPlot::Outline | iAScatterPlot::Enlarged);
 	m_gui->m_scatterPlot->setSelectionEnabled(false);
 	m_gui->m_lut.reset(new iALookupTable());
@@ -2196,6 +2203,12 @@ void iASensitivityInfo::updateSPDifferenceColors()
 	m_gui->updateScatterPlotLUT(m_starGroupSize, m_numOfSTARSteps, m_data->result.size(), m_variedParams.size(),
 		m_resultDissimMatrix, m_resultDissimRanges, m_gui->m_settings->dissimMeasIdx(),
 		m_gui->m_settings->spColorMap());
+}
+
+void iASensitivityInfo::updateSPHighlightColors()
+{
+	m_gui->m_scatterPlot->setHighlightColorTheme(
+		iAColorThemeManager::instance().theme(m_gui->m_settings->cmbboxSPHighlightColorScale->currentText()));
 }
 
 void iASensitivityInfo::spHighlightChanged()
