@@ -783,8 +783,9 @@ void MdiChild::setupView(bool active)
 
 void MdiChild::setupProject(bool /*active*/)
 {
-	setModalities(m_ioThread->modalities());
+	QSharedPointer<iAModalityList> m = m_ioThread->modalities();
 	QString fileName = m_ioThread->fileName();
+	setModalities(m);
 	setCurrentFile(fileName);
 	m_mainWnd->setCurrentFile(fileName);
 	if (fileName.toLower().endsWith(iAIOProvider::NewProjectFileExtension))

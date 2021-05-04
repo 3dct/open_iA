@@ -239,12 +239,12 @@ dlg_FeatureScout::dlg_FeatureScout(iAMdiChild* parent, iAObjectType fid, QString
 	setupModel();
 	setupConnections();
 	m_3dvis = create3DObjectVis(vis, parent, csvtbl, m_columnMapping, m_colorList.at(0), curvedFiberInfo, cylinderQuality, segmentSkip);
-	if (vis != iACsvConfig::UseVolume)
+	if (vis != iACsvConfig::UseVolume && m_activeChild->modalities()->size() == 0)
 	{
 		parent->displayResult(QString("FeatureScout - %1 (%2)").arg(QFileInfo(fileName).fileName())
 			.arg(MapObjectTypeToString(m_filterID)), nullptr, nullptr);
 	}
-	else
+	if (vis == iACsvConfig::UseVolume)
 	{
 		SingleRendering();
 	}
