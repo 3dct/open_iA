@@ -192,6 +192,7 @@ private slots:
 	void resetLayout();
 	void deleteLayout();
 	void toggleSliceProfile(bool isChecked);
+	void toggleEditProfilePoints(bool isChecked);
 	void updateMenus();
 	void updateWindowMenu();
 	void setActiveSubWindow(QWidget *window);

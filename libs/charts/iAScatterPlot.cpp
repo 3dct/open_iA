@@ -30,6 +30,7 @@
 #endif
 
 #include <QAbstractTextDocumentLayout>
+#include <QApplication>
 #include <QColor>
 #include <QDebug>
 #include <QtMath>
@@ -39,12 +40,6 @@
 #include <QPolygon>
 #include <QPropertyAnimation>
 #include <QWheelEvent>
-
-namespace
-{
-	const size_t CordDim = 3;
-	const size_t ColChan = 4;
-}
 
 
 iAScatterPlot::Settings::Settings() :
@@ -308,7 +303,7 @@ void iAScatterPlot::paintOnParent( QPainter & painter )
 	QColor bg(settings.backgroundColor);
 	if (!bg.isValid())
 	{
-		bg = m_parentWidget->palette().color(m_parentWidget->backgroundRole());
+		bg = qApp->palette().color(m_parentWidget->backgroundRole());
 	}
 	painter.setBrush(bg);
 	drawTicks( painter );
@@ -320,7 +315,7 @@ void iAScatterPlot::paintOnParent( QPainter & painter )
 	drawBorder( painter );
 	if (settings.showPCC || settings.showSCC)
 	{
-		painter.setPen( /* QColor(0, 0, 0) */ m_parentWidget->palette().color(QPalette::Text));
+		painter.setPen(/* QColor(0, 0, 0) */ qApp->palette().color(QPalette::Text));
 		QString corrCoeffText;
 		if (settings.showPCC)
 		{
@@ -1148,7 +1143,7 @@ void iAScatterPlot::drawTicks( QPainter &painter )
 {
 	painter.save();
 	QPen p;
-		p.setColor( /*settings.tickLineColor*/ m_parentWidget->palette().color(QPalette::Midlight) );
+		p.setColor( /*settings.tickLineColor*/ qApp->palette().color(QPalette::Mid) );
 		p.setStyle( Qt::DotLine );
 	painter.setPen( p );
 	for (double t: m_ticksX)
@@ -1180,7 +1175,7 @@ void iAScatterPlot::drawMaximizedLabels( QPainter &painter )
 		tS = settings.tickSpacing, \
 		mPO = settings.maximizedParamsOffset, \
 		tRH = settings.textRectHeight;
-	painter.setPen( /*settings.tickLabelColor*/ m_parentWidget->palette().color(QPalette::Text) );
+	painter.setPen(/*settings.tickLabelColor*/ qApp->palette().color(QPalette::Text));
 
 	for (double t : m_ticksY)
 	{
@@ -1205,6 +1200,12 @@ void iAScatterPlot::drawMaximizedLabels( QPainter &painter )
 }
 
 #ifdef SP_OLDOPENGL
+namespace
+{
+	const size_t CordDim = 3;
+	const size_t ColChan = 4;
+}
+
 void iAScatterPlot::createVBO()
 {
 	if (!m_parentWidget->isVisible())

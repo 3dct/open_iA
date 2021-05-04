@@ -1097,11 +1097,12 @@ void iAChartWidget::paintEvent(QPaintEvent* /*event*/)
 {
 #if (defined(CHART_OPENGL) && defined(OPENGL_DEBUG))
 	QOpenGLContext* ctx = QOpenGLContext::currentContext();
-	QOpenGLDebugLogger* logger = new QOpenGLDebugLogger(this);
-	logger->initialize();  // initializes in the current context, i.e. ctx
-	connect(logger, &QOpenGLDebugLogger::messageLogged,
+	assert(ctx);
+	QOpenGLDebugLogger logger(this);
+	logger.initialize();  // initializes in the current context, i.e. ctx
+	connect(&logger, &QOpenGLDebugLogger::messageLogged,
 		[](const QOpenGLDebugMessage& dbgMsg) { LOG(lvlDebug, dbgMsg.message()); });
-	logger->startLogging();
+	logger.startLogging();
 #endif
 	QPainter p(this);
 	QColor bgColor(qApp->palette().color(QWidget::backgroundRole()));

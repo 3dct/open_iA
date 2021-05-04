@@ -55,11 +55,11 @@ class vtkScalarsToColors;
 class vtkTransform;
 
 class dlg_imageproperty;
-class dlg_profile;
 class dlg_slicer;
 class dlg_volumePlayer;
 class iAParametricSpline;
 struct iAProfileProbe;
+class iAProfileWidget;
 class MainWindow;
 
 // renderer
@@ -286,6 +286,11 @@ public:
 	//! maximize slicer dockwidget with the given mode
 	void maximizeSlicer(int mode);
 
+	//! whether profile handles are currently shown (i.e. "Edit profile points" mode is enabled)
+	bool profileHandlesEnabled() const;
+	//! whether this child has a profile plot (only has one if "normal" volume data loaded)
+	bool hasProfilePlot() const;
+
 //signals:
 //	void preferencesChanged();
 
@@ -315,6 +320,7 @@ public slots:
 	void setCamPosition(double * camOptions, bool rsParallelProjection);
 	void updateProbe(int ptIndex, double * newPos);
 	void resetLayout();
+	void toggleProfileHandles(bool isChecked);
 
 private slots:
 	void saveRC();
@@ -325,7 +331,6 @@ private slots:
 	void setChannel(int ch);
 	void updateRenderWindows(int channels);
 	void updatePositionMarker(int x, int y, int z, int mode);
-	void toggleProfileHandles(bool isChecked);
 	void ioFinished();
 	void updateImageProperties();
 	void modalityTFChanged();
@@ -442,13 +447,14 @@ private:
 	iAIO* m_ioThread;
 
 	iAChartWithFunctionsWidget * m_histogram;
+	iAProfileWidget* m_profile;
 	QSharedPointer<iAPlot> m_histogramPlot;
 
 	//! @{ dock widgets
-	iADockWidgetWrapper * m_dwHistogram;
+	iADockWidgetWrapper* m_dwHistogram;
+	iADockWidgetWrapper* m_dwProfile;
 	dlg_imageproperty * m_dwImgProperty;
 	dlg_volumePlayer * m_dwVolumePlayer;
-	dlg_profile* m_dwProfile;
 	dlg_slicer * m_dwSlicer[3];
 	dlg_modalities * m_dwModalities;
 	dlg_renderer * m_dwRenderer;

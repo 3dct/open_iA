@@ -122,6 +122,7 @@ MainWindow::MainWindow(QString const & appName, QString const & version, QString
 	m_slicerToolsGroup->setExclusive(false);
 	m_slicerToolsGroup->addAction(actionSnakeSlicer);
 	m_slicerToolsGroup->addAction(actionRawProfile);
+	m_slicerToolsGroup->addAction(actionEditProfilePoints);
 
 	actionDeletePoint->setEnabled(false);
 	actionChangeColor->setEnabled(false);
@@ -1404,6 +1405,14 @@ void MainWindow::toggleSliceProfile(bool isChecked)
 	}
 }
 
+void MainWindow::toggleEditProfilePoints(bool isChecked)
+{
+	if (activeMdiChild())
+	{
+		activeMDI()->toggleProfileHandles(isChecked);
+	}
+}
+
 void MainWindow::toggleMagicLens( bool isChecked )
 {
 	if (activeMdiChild())
@@ -1641,6 +1650,7 @@ void MainWindow::updateMenus()
 	actionResetView->setEnabled(hasMdiChild);
 	actionResetFunction->setEnabled(hasMdiChild);
 	actionRawProfile->setEnabled(hasMdiChild);
+	actionEditProfilePoints->setEnabled(hasMdiChild);
 	actionLoadLayout->setEnabled(hasMdiChild);
 	actionSaveLayout->setEnabled(hasMdiChild);
 	actionResetLayout->setEnabled(hasMdiChild);
@@ -1657,6 +1667,8 @@ void MainWindow::updateMenus()
 	actionInteractionModeRegistration->setChecked(hasMdiChild && child->interactionMode() == MdiChild::imRegistration);
 	QSignalBlocker blockSliceProfile(actionRawProfile);
 	actionRawProfile->setChecked(hasMdiChild && child->isSliceProfileToggled());
+	QSignalBlocker blockEditProfile(actionEditProfilePoints);
+	actionEditProfilePoints->setChecked(hasMdiChild && child->profileHandlesEnabled());
 	QSignalBlocker blockSnakeSlicer(actionSnakeSlicer);
 	actionSnakeSlicer->setChecked(hasMdiChild && child->isSnakeSlicerToggled());
 	updateMagicLens2DCheckState(hasMdiChild && child->isMagicLens2DEnabled());
@@ -1864,6 +1876,7 @@ void MainWindow::connectSignalsToSlots()
 	// Snake slicer toolbar
 	connect(actionSnakeSlicer,  &QAction::toggled, this, &MainWindow::toggleSnakeSlicer);
 	connect(actionRawProfile,   &QAction::toggled, this, &MainWindow::toggleSliceProfile);
+	connect(actionEditProfilePoints, &QAction::toggled, this, &MainWindow::toggleEditProfilePoints);
 	connect(actionMagicLens2D,  &QAction::toggled, this, &MainWindow::toggleMagicLens);
 	connect(actionMagicLens3D,  &QAction::triggered, this, &MainWindow::toggleMagicLens3D);
 
