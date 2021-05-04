@@ -21,7 +21,6 @@
 #include "mdichild.h"
 
 #include "dlg_imageproperty.h"
-#include "dlg_profile.h"
 #include "dlg_slicer.h"
 #include "dlg_volumePlayer.h"
 #include "iAParametricSpline.h"
@@ -127,6 +126,7 @@ MdiChild::MdiChild(MainWindow* mainWnd, iAPreferences const& prefs, bool unsaved
 	m_histogram(new iAChartWithFunctionsWidget(nullptr, " Histogram", "Frequency")),
 	m_dwHistogram(new iADockWidgetWrapper(m_histogram, "Histogram", "Histogram")),
 	m_dwImgProperty(nullptr),
+	m_profile(nullptr),
 	m_dwProfile(nullptr),
 	m_nextChannelID(0),
 	m_magicLensChannel(NotExistingChannel),
@@ -2210,19 +2210,34 @@ void MdiChild::addProfile()
 	m_profileProbe->updateProbe(0, start);
 	m_profileProbe->updateProbe(1, end);
 	m_profileProbe->updateData();
-	m_dwProfile = new dlg_profile(this, m_profileProbe->m_profileData, m_profileProbe->rayLength());
+
+	m_profile = new iAProfileWidget(nullptr, m_profileProbe->m_profileData, m_profileProbe->rayLength(), "Greyvalue", "Distance");
+	m_dwProfile = new iADockWidgetWrapper(m_profile, "Profile Plot", "Profile");
 	splitDockWidget(m_dwHistogram, m_dwProfile, Qt::Horizontal);
-	connect(m_dwProfile->profileMode, &QCheckBox::toggled, this, &MdiChild::toggleProfileHandles);
 }
 
 void MdiChild::toggleProfileHandles(bool isChecked)
 {
+	if (!m_dwProfile)
+	{
+		return;
+	}
 	m_profileHandlesEnabled = (bool)isChecked;
 	for (int s = 0; s < 3; ++s)
 	{
 		m_slicer[s]->setProfileHandlesOn(m_profileHandlesEnabled);
 	}
 	m_renderer->setProfileHandlesOn(m_profileHandlesEnabled);
+}
+
+bool MdiChild::profileHandlesEnabled() const
+{
+	return m_profileHandlesEnabled;
+}
+
+bool MdiChild::hasProfilePlot() const
+{
+	return m_dwProfile;
 }
 
 void MdiChild::updateProbe(int ptIndex, double* newPos)
@@ -2238,8 +2253,8 @@ void MdiChild::updateProbe(int ptIndex, double* newPos)
 void MdiChild::updateProfile()
 {
 	m_profileProbe->updateData();
-	m_dwProfile->profileWidget->initialize(m_profileProbe->m_profileData, m_profileProbe->rayLength());
-	m_dwProfile->profileWidget->update();
+	m_profile->initialize(m_profileProbe->m_profileData, m_profileProbe->rayLength());
+	m_profile->update();
 }
 
 int MdiChild::sliceNumber(int mode) const
