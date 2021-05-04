@@ -32,6 +32,7 @@ using iAChartParentWidget = QWidget;
 
 #include "iAcharts_export.h"
 
+class iAColorTheme;
 class iAScatterPlotViewData;
 class iASPLOMData;
 
@@ -67,6 +68,7 @@ public:
 	void setPointInfo(QSharedPointer<iAScatterPlotPointInfo> pointInfo);
 	void toggleHighlightedPoint(size_t curPoint, Qt::KeyboardModifiers modifiers);
 	void setHighlightColor(QColor hltCol);
+	void setHighlightColorTheme(iAColorTheme const* theme);
 	void setHighlightDrawMode(iAScatterPlot::HighlightDrawModes drawMode);
 	void setSelectionEnabled(bool enabled);
 

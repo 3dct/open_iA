@@ -399,9 +399,14 @@ void iAScatterPlotWidget::toggleHighlightedPoint(size_t curPoint, Qt::KeyboardMo
 	emit highlightChanged();
 }
 
-void iAScatterPlotWidget::setHighlightColor(QColor hltCol)
+void iAScatterPlotWidget::setHighlightColor(QColor color)
 {
-	m_scatterplot->setHighlightColor(hltCol);
+	m_scatterplot->setHighlightColor(color);
+}
+
+void iAScatterPlotWidget::setHighlightColorTheme(iAColorTheme const* theme)
+{
+	m_scatterplot->setHighlightColorTheme(theme);
 }
 
 void iAScatterPlotWidget::setHighlightDrawMode(iAScatterPlot::HighlightDrawModes drawMode)

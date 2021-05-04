@@ -34,6 +34,7 @@ using iAChartParentWidget = QWidget;
 #include <QList>
 #include <QObject>
 
+class iAColorTheme;
 class iALookupTable;
 class iAScatterPlotViewData;
 class iASPLOMData;
@@ -108,6 +109,7 @@ public:
 	//! @}
 	void setSelectionColor(QColor selCol);
 	void setHighlightColor(QColor hltCol);
+	void setHighlightColorTheme(iAColorTheme const* theme);
 	void setHighlightDrawMode(HighlightDrawModes drawMode);
 
 protected:
@@ -186,6 +188,7 @@ public:
 		QColor backgroundColor;
 		QColor selectionColor;
 		QColor highlightColor;
+		iAColorTheme const* highlightColorTheme;
 		HighlightDrawModes highlightDrawMode;
 		SelectionMode selectionMode;
 		bool selectionEnabled;

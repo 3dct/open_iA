@@ -20,6 +20,7 @@
 * ************************************************************************************/
 #include "iAScatterPlot.h"
 
+#include "iAColorTheme.h"
 #include "iALog.h"
 #include "iALookupTable.h"
 #include "iAMathUtility.h"
@@ -62,6 +63,7 @@ iAScatterPlot::Settings::Settings() :
 	tickLabelColor( QColor( 100, 100, 100 ) ),
 	selectionColor( QColor(0, 0, 0) ),
 	highlightColor(),  // invalid -> only used if set explicitly
+	highlightColorTheme(nullptr),
 	highlightDrawMode(Enlarged),
 	selectionMode(Polygon),
 	selectionEnabled(false),
@@ -1094,20 +1096,24 @@ void iAScatterPlot::drawPoints( QPainter &painter )
 			ptRad * (settings.highlightDrawMode.testFlag(iAScatterPlot::Enlarged) ? settings.pickedPointMagnification : 1);
 		double magPtOutSize = 2 * magPtOutRad;
 		painter.setBrush(Qt::NoBrush);
-		for (auto ind : m_viewData->highlightedPoints())
+		for (size_t i = 0; i < m_viewData->highlightedPoints().size(); ++i)
 		{
+			auto idx = m_viewData->highlightedPoints()[i];
 			QColor c;
-			if (settings.highlightColor.isValid())
+			if (settings.highlightColorTheme)
+			{
+				c = settings.highlightColorTheme->color(i);
+			} else if (settings.highlightColor.isValid())
 			{
 				c = settings.highlightColor;
 			}
 			else if (m_lut->initialized())
 			{
-				double val = m_splomData->paramData(m_colInd)[ind];
+				double val = m_splomData->paramData(m_colInd)[idx];
 				c = m_lut->getQColor(val);
 			}
-			int tx = p2x(p0d[ind]);
-			int ty = p2y(p1d[ind]);
+			int tx = p2x(p0d[idx]);
+			int ty = p2y(p1d[idx]);
 			QPen p(c, LineThickness);
 			painter.setPen(p);
 			painter.drawEllipse(tx - magPtOutRad, ty - magPtOutRad, magPtOutSize, magPtOutSize);
@@ -1293,6 +1299,11 @@ void iAScatterPlot::setSelectionColor(QColor selCol)
 void iAScatterPlot::setHighlightColor(QColor hltCol)
 {
 	settings.highlightColor = hltCol;
+}
+
+void iAScatterPlot::setHighlightColorTheme(iAColorTheme const* theme)
+{
+	settings.highlightColorTheme = theme;
 }
 
 void iAScatterPlot::setHighlightDrawMode(HighlightDrawModes drawMode)
