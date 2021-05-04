@@ -31,6 +31,8 @@
 
 #include <cmath>
 
+// iAPlot
+
 iAPlot::iAPlot(QSharedPointer<iAPlotData> data, QColor const & color):
 	iAColorable(color),
 	m_data(data),
@@ -54,7 +56,7 @@ void iAPlot::setVisible(bool visible)
 	m_visible = visible;
 }
 
-
+// iASelectedBinPlot
 
 iASelectedBinPlot::iASelectedBinPlot(QSharedPointer<iAPlotData> proxyData, size_t idx /*= 0*/, QColor const & color /*= Qt::red */ ) :
 	iAPlot(proxyData, color), m_idx(idx)
@@ -94,6 +96,8 @@ namespace
 	}
 }
 
+// iALinePlot
+
 iALinePlot::iALinePlot(QSharedPointer<iAPlotData> data, QColor const & color) :
 	iAPlot(data, color),
 	m_lineWidth(1)
@@ -120,7 +124,7 @@ void iALinePlot::draw(QPainter& painter, size_t startIdx, size_t endIdx, iAMappe
 	painter.drawPolyline(poly);
 }
 
-
+// iAFilledLinePlot
 
 iAFilledLinePlot::iAFilledLinePlot(QSharedPointer<iAPlotData> data, QColor const & color):
 	iAPlot(data, color)
@@ -149,7 +153,7 @@ void iAFilledLinePlot::draw(QPainter& painter, size_t startIdx, size_t endIdx, i
 	painter.fillPath(tmpPath, QBrush(getFillColor()));
 }
 
-
+// iAStepFunctionPlot
 
 iAStepFunctionPlot::iAStepFunctionPlot(QSharedPointer<iAPlotData> data, QColor const & color) :
 	iAPlot(data, color)
@@ -180,7 +184,7 @@ void iAStepFunctionPlot::draw(QPainter& painter, size_t startIdx, size_t endIdx,
 	painter.fillPath(tmpPath, QBrush(getFillColor()));
 }
 
-
+// iABarGraphPlot
 
 iABarGraphPlot::iABarGraphPlot(QSharedPointer<iAPlotData> data, QColor const & color, int margin):
 	iAPlot(data, color),
@@ -210,7 +214,7 @@ void iABarGraphPlot::setLookupTable(QSharedPointer<iALookupTable> lut)
 	m_lut = lut;
 }
 
-
+// iAPlotCollection
 
 iAPlotCollection::iAPlotCollection():
 	iAPlot(QSharedPointer<iAPlotData>(), QColor())
