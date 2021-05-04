@@ -41,12 +41,6 @@
 #include <QPropertyAnimation>
 #include <QWheelEvent>
 
-namespace
-{
-	const size_t CordDim = 3;
-	const size_t ColChan = 4;
-}
-
 
 iAScatterPlot::Settings::Settings() :
 	pickedPointMagnification( 2.0 ),
@@ -1089,6 +1083,12 @@ void iAScatterPlot::drawMaximizedLabels( QPainter &painter )
 }
 
 #ifdef SP_OLDOPENGL
+namespace
+{
+	const size_t CordDim = 3;
+	const size_t ColChan = 4;
+}
+
 void iAScatterPlot::createVBO()
 {
 	if (!m_parentWidget->isVisible())
