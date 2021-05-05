@@ -71,7 +71,7 @@ public:
 	void setClippingPlanes(vtkPlane* planes[3]);
 	void removeClippingPlanes();
 	//! extract one mesh per selected object
-	virtual std::vector<vtkSmartPointer<vtkPolyData>> extractSelectedObjects() const = 0;
+	virtual std::vector<vtkSmartPointer<vtkPolyData>> extractSelectedObjects(QColor c = QColor()) const = 0;
 
 protected:
 	vtkSmartPointer<vtkPolyDataMapper> m_mapper;

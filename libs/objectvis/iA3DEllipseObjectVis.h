@@ -37,7 +37,7 @@ public:
 	vtkPolyData* getPolyData() override;
 	vtkPolyData* finalPoly() override;
 	QString visualizationStatistics() const override;
-	std::vector<vtkSmartPointer<vtkPolyData>> extractSelectedObjects() const override;
+	std::vector<vtkSmartPointer<vtkPolyData>> extractSelectedObjects(QColor c) const override;
 
 private:
 	vtkSmartPointer<vtkPolyData> m_fullPoly;

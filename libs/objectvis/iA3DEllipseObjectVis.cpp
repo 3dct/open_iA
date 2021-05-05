@@ -100,7 +100,7 @@ iA3DColoredPolyObjectVis::IndexType iA3DEllipseObjectVis::objectPointCount(Index
 	return m_pointsPerEllipse;
 }
 
-std::vector<vtkSmartPointer<vtkPolyData>> iA3DEllipseObjectVis::extractSelectedObjects() const
+std::vector<vtkSmartPointer<vtkPolyData>> iA3DEllipseObjectVis::extractSelectedObjects(QColor c) const
 {
 	std::vector<vtkSmartPointer<vtkPolyData>> result;
 	return result;

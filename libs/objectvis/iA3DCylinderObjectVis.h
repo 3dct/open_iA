@@ -38,7 +38,7 @@ public:
 	QString visualizationStatistics() const override;
 	void setShowLines(bool lines) override;
 	vtkPolyData* finalPoly() override;
-	std::vector<vtkSmartPointer<vtkPolyData>> extractSelectedObjects() const override;
+	std::vector<vtkSmartPointer<vtkPolyData>> extractSelectedObjects(QColor c) const override;
 
 private:
 	vtkSmartPointer<iAvtkTubeFilter> m_tubeFilter;
