@@ -1440,7 +1440,7 @@ public:
 		cmbboxSPColorMap->setCurrentText("Brewer single hue 5c grays");
 
 		cmbboxSPHighlightColorScale->addItems(iAColorThemeManager::instance().availableThemes());
-		cmbboxSPHighlightColorScale->setCurrentText("Brewer Set3 (max. 12)");
+		cmbboxSPHighlightColorScale->setCurrentText("Brewer Set2 (max. 8)");
 
 		connect(cmbboxMeasure, QOverload<int>::of(&QComboBox::currentIndexChanged), sensInf, &iASensitivityInfo::changeMeasure);
 		connect(cmbboxAggregation, QOverload<int>::of(&QComboBox::currentIndexChanged), sensInf, &iASensitivityInfo::changeAggregation);
@@ -2262,6 +2262,8 @@ void iASensitivityInfo::updateDifferenceView()
 	//renWin->GetRenderers()->RemoveAllItems();	// should also work instead of above RemoveRenderer call
 	m_gui->m_diff3DRenderers.clear();
 	// TODO: determine "central" resultID to compare to / fixed comparison point determined by user?
+
+	auto t = iAColorThemeManager::instance().theme(m_gui->m_settings->cmbboxSPHighlightColorScale->currentText());
 	for (size_t i=0; i<hp.size(); ++i)
 	{
 		auto rID = hp[i];
@@ -2271,7 +2273,8 @@ void iASensitivityInfo::updateDifferenceView()
 			continue;
 		}
 		auto resultData = QSharedPointer<iAPolyDataRenderer>::create();
-		resultData->data = m_resultUIs[rID].main3DVis->extractSelectedObjects();
+		QColor rCol = t->color(i);
+		resultData->data = m_resultUIs[rID].main3DVis->extractSelectedObjects(rCol);
 		if (resultData->data.size() == 0)
 		{
 			LOG(lvlDebug, QString("Result %1: No selected fibers!").arg(rID));
@@ -2288,10 +2291,9 @@ void iASensitivityInfo::updateDifferenceView()
 			diffMapper->SetInputData(resultData->data[f]);
 			resultData->actor.push_back(vtkSmartPointer<vtkActor>::New());
 			resultData->actor[resultData->actor.size()-1]->SetMapper(diffMapper);
-			//resultData->actor[resultData->actor.size() - 1]->GetProperty()->SetColor(128, 128, 128);
 			resultData->actor[resultData->actor.size() - 1]->GetProperty()->SetOpacity(0.5);
 			diffMapper->SetScalarModeToUsePointFieldData();
-			diffMapper->ScalarVisibilityOn();
+			resultData->actor[resultData->actor.size() - 1]->GetProperty()->SetColor(rCol.redF(), rCol.greenF(), rCol.blueF());
 			diffMapper->Update();
 			resultData->renderer->AddActor(resultData->actor[f]);
 		}
@@ -2300,10 +2302,12 @@ void iASensitivityInfo::updateDifferenceView()
 		resultData->text->SetLinearFontScaleFactor(2);
 		resultData->text->SetNonlinearFontScaleFactor(1);
 		resultData->text->SetMaximumFontSize(18);
+		QColor c = t->color(i);
+		resultData->text->GetTextProperty()->SetColor(c.redF(), c.greenF(), c.blueF());
 		resultData->text->SetText(2, txt.toStdString().c_str());
 		// ToDo: add fiber id ;
-		auto textColor = qApp->palette().color(QPalette::Text);
-		resultData->text->GetTextProperty()->SetColor(textColor.redF(), textColor.greenF(), textColor.blueF());
+		//auto textColor = qApp->palette().color(QPalette::Text);
+		//resultData->text->GetTextProperty()->SetColor(textColor.redF(), textColor.greenF(), textColor.blueF());
 		//cornerAnnotation->GetTextProperty()->BoldOn();
 		resultData->renderer->AddViewProp(resultData->text);
 
