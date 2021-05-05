@@ -323,7 +323,7 @@ void iAParameterInfluenceView::setBarDoStack(bool doStack)
 	}
 }
 
-void iAParameterInfluenceView::addResultHistoPlot(size_t resultIdx, int paramIdx, int barIdx)
+void iAParameterInfluenceView::addResultHistoPlot(size_t resultIdx, int paramIdx, int barIdx, QColor c)
 {
 	if (!m_visibleCharacts[barIdx].first == outCharacteristic)
 	{
@@ -334,11 +334,11 @@ void iAParameterInfluenceView::addResultHistoPlot(size_t resultIdx, int paramIdx
 	auto histData = iAHistogramData::create(QString("Result %1").arg(resultIdx), iAValueType::Continuous, rng[0],
 		rng[1], m_sensInf->m_charHistograms[resultIdx][charIdx]);
 	auto plotKey = std::make_tuple(resultIdx, paramIdx, charIdx);
-	m_selectedResultHistoPlots.insert(plotKey, createHistoPlot(histData, SelectedResultPlotColor));
+	m_selectedResultHistoPlots.insert(plotKey, createHistoPlot(histData, c));
 	m_table[paramIdx]->out[barIdx]->addPlot(m_selectedResultHistoPlots[plotKey]);
 }
 
-void iAParameterInfluenceView::setResultSelected(size_t resultIdx, bool state)
+void iAParameterInfluenceView::setResultSelected(size_t resultIdx, bool state, QColor c)
 {
 	for (int paramIdx = 0; paramIdx < m_sensInf->m_variedParams.size(); ++paramIdx)
 	{
@@ -352,14 +352,14 @@ void iAParameterInfluenceView::setResultSelected(size_t resultIdx, bool state)
 				if (state)
 				{
 					m_selectedResults.insert(resultIdx);
-					m_table[paramIdx]->par[barIdx]->addXMarker(paramValue, SelectedResultPlotColor, Qt::DashLine);
+					m_table[paramIdx]->par[barIdx]->addXMarker(paramValue, c, Qt::DashLine);
 					if (m_selectedResultHistoPlots.contains(plotKey))
 					{
 						LOG(lvlWarn, QString("Plot to be added already exists!"));
 					}
 					else
 					{
-						addResultHistoPlot(resultIdx, paramIdx, barIdx);
+						addResultHistoPlot(resultIdx, paramIdx, barIdx, c);
 					}
 				}
 				else
@@ -534,7 +534,7 @@ void iAParameterInfluenceView::updateStackedBarHistogram(QString const & barName
 	outChart->addPlot(createHistoPlot(avgHistData, AverageHistogramColor));
 	for (auto resultIdx: m_selectedResults)
 	{
-		addResultHistoPlot(resultIdx, paramIdx, barIdx);
+		addResultHistoPlot(resultIdx, paramIdx, barIdx, SelectedResultPlotColor);
 	}
 	outChart->update();
 

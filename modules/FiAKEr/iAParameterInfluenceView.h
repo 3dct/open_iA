@@ -49,7 +49,7 @@ public:
 	iAParameterInfluenceView(iASensitivityInfo* sensInf, QColor const& paramColor, QColor const& outputColor);
 	void setMeasure(int newMeasure);
 	void setAggregation(int newAggregation);
-	void setResultSelected(size_t resultIdx, bool state);
+	void setResultSelected(size_t resultIdx, bool state, QColor c);
 	int selectedMeasure() const;
 	int selectedAggrType() const;
 	int selectedRow() const;
@@ -83,7 +83,7 @@ private:
 	void updateTableOrder();
 	void setActionChecked(int outType, int outIdx, bool checked);
 	QSharedPointer<iAPlot> createHistoPlot(QSharedPointer<iAHistogramData> data, QColor color);
-	void addResultHistoPlot(size_t resultIdx, int charIdx, int paramIdx);
+	void addResultHistoPlot(size_t resultIdx, int charIdx, int paramIdx, QColor c);
 
 	// pair output type / index
 	QVector<QPair<int,int>> m_visibleCharacts;

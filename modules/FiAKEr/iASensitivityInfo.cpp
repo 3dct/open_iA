@@ -2131,11 +2131,14 @@ void iASensitivityInfo::updateDissimilarity()
 void iASensitivityInfo::spPointHighlighted(size_t resultIdx, bool state)
 {
 	int paramID = -1;
+	// TODO: keep track of which color used for which currently highlighted result!
+	auto const & hp = m_gui->m_scatterPlot->viewData()->highlightedPoints();
+	auto t = iAColorThemeManager::instance().theme(m_gui->m_settings->cmbboxSPHighlightColorScale->currentText());
 	if (state && resultIdx % m_starGroupSize != 0)
 	{	// specific parameter "branch" selected:
 		paramID = ((resultIdx % m_starGroupSize) - 1) / m_numOfSTARSteps;
 	}
-	m_gui->m_paramInfluenceView->setResultSelected(resultIdx, state);
+	m_gui->m_paramInfluenceView->setResultSelected(resultIdx, state, t->color(hp.size()-1));
 	m_gui->m_paramInfluenceView->setSelectedParam(paramID);
 	emit resultSelected(resultIdx, state);
 	if (m_currentFiberSelection.size() == 0)
@@ -2273,7 +2276,7 @@ void iASensitivityInfo::updateDifferenceView()
 			continue;
 		}
 		auto resultData = QSharedPointer<iAPolyDataRenderer>::create();
-		QColor rCol = t->color(i);
+		QColor rCol = t->color(i);	// TODO: keep track of which color used for which currently highlighted result!
 		resultData->data = m_resultUIs[rID].main3DVis->extractSelectedObjects(rCol);
 		if (resultData->data.size() == 0)
 		{
