@@ -148,9 +148,9 @@ public:
 	//! Determine how a selection works; see SelectionMode: either disable selection,
 	//! or allow selection of single plots.
 	void setSelectionMode(SelectionMode mode);
-	//! Adds a marker at a specific x position (in data space, see screenX2DataBin
+	//! Add or update a marker at a specific x position (in data space, see screenX2DataBin
 	//! for details) in the given color
-	void addXMarker(double xPos, QColor const& color, Qt::PenStyle penStyle = Qt::SolidLine);
+	void setXMarker(double xPos, QColor const& color, Qt::PenStyle penStyle = Qt::SolidLine);
 	//! Remove the marker at the given x position (in data space, see screenX2DataBin
 	//! for details).
 	void removeXMarker(double xPos);

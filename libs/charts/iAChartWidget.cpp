@@ -1170,9 +1170,9 @@ void iAChartWidget::drawAll(QPainter & painter)
 	drawAxes(painter);
 }
 
-void iAChartWidget::addXMarker(double xPos, QColor const& color, Qt::PenStyle penStyle)
+void iAChartWidget::setXMarker(double xPos, QColor const& color, Qt::PenStyle penStyle)
 {
-	m_xMarker.insert(xPos, qMakePair(color, penStyle));
+	m_xMarker[xPos] = qMakePair(color, penStyle);
 }
 
 void iAChartWidget::removeXMarker(double xPos)
