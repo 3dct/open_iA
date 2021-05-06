@@ -25,6 +25,7 @@
 #include <QWidget>
 
 class iAChartWidget;
+class iAColorTheme;
 class iAHistogramData;
 class iAStackedBarChart;
 class iASensitivityInfo;
@@ -56,6 +57,7 @@ public:
 	int selectedCol() const;
 	void setHistogramChartType(QString const& chartType);
 	QSet<size_t> const & selectedResults() const;
+	void updateHighlightColors(std::vector<size_t> highlighted, iAColorTheme const* theme);
 public slots:
 	void showStackedBar();
 	void selectStackedBar(int outputType, int idx);

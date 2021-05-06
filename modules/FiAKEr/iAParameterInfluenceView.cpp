@@ -381,6 +381,29 @@ void iAParameterInfluenceView::setResultSelected(size_t resultIdx, bool state, Q
 	}
 }
 
+void iAParameterInfluenceView::updateHighlightColors(std::vector<size_t> highlighted, iAColorTheme const * theme)
+{
+	for (size_t i=0; i<highlighted.size(); ++i)
+	{
+		size_t resultIdx = highlighted[i];
+		for (int paramIdx = 0; paramIdx < m_sensInf->m_variedParams.size(); ++paramIdx)
+		{
+			double paramValue = m_sensInf->m_paramValues[m_sensInf->m_variedParams[paramIdx]][resultIdx];
+			for (int barIdx = 0; barIdx < m_table[paramIdx]->out.size(); ++barIdx)
+			{
+				if (m_visibleCharacts[barIdx].first == outCharacteristic)
+				{
+					int charIdx = m_visibleCharacts[barIdx].second;
+					m_table[paramIdx]->par[barIdx]->setXMarker(paramValue, theme->color(i), Qt::DashLine);
+					auto plotKey = std::make_tuple(resultIdx, paramIdx, charIdx);
+					m_selectedResultHistoPlots[plotKey]->setColor(theme->color(i));
+				}
+
+			}
+		}
+	}
+}
+
 void iAParameterInfluenceView::paramChartClicked(double x, Qt::KeyboardModifiers modifiers)
 {
 	// search for parameter value "closest" to clicked x;

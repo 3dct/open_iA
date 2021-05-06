@@ -2131,14 +2131,19 @@ void iASensitivityInfo::updateDissimilarity()
 void iASensitivityInfo::spPointHighlighted(size_t resultIdx, bool state)
 {
 	int paramID = -1;
-	// TODO: keep track of which color used for which currently highlighted result!
-	auto const & hp = m_gui->m_scatterPlot->viewData()->highlightedPoints();
+	auto const& hp = m_gui->m_scatterPlot->viewData()->highlightedPoints();
 	auto t = iAColorThemeManager::instance().theme(m_gui->m_settings->cmbboxSPHighlightColorScale->currentText());
+	QColor resultColor = t->color(hp.size() - 1);
+	if (!state)
+	{
+		auto theme = iAColorThemeManager::instance().theme(m_gui->m_settings->cmbboxSPHighlightColorScale->currentText());
+		m_gui->m_paramInfluenceView->updateHighlightColors(hp, theme);
+	}
 	if (state && resultIdx % m_starGroupSize != 0)
 	{	// specific parameter "branch" selected:
 		paramID = ((resultIdx % m_starGroupSize) - 1) / m_numOfSTARSteps;
 	}
-	m_gui->m_paramInfluenceView->setResultSelected(resultIdx, state, t->color(hp.size()-1));
+	m_gui->m_paramInfluenceView->setResultSelected(resultIdx, state, resultColor);
 	m_gui->m_paramInfluenceView->setSelectedParam(paramID);
 	emit resultSelected(resultIdx, state);
 	if (m_currentFiberSelection.size() == 0)
@@ -2210,8 +2215,9 @@ void iASensitivityInfo::updateSPDifferenceColors()
 
 void iASensitivityInfo::updateSPHighlightColors()
 {
-	m_gui->m_scatterPlot->setHighlightColorTheme(
-		iAColorThemeManager::instance().theme(m_gui->m_settings->cmbboxSPHighlightColorScale->currentText()));
+	auto theme = iAColorThemeManager::instance().theme(m_gui->m_settings->cmbboxSPHighlightColorScale->currentText());
+	m_gui->m_scatterPlot->setHighlightColorTheme(theme);
+	m_gui->m_paramInfluenceView->updateHighlightColors(m_gui->m_scatterPlot->viewData()->highlightedPoints(), theme);
 }
 
 void iASensitivityInfo::spHighlightChanged()
