@@ -2276,8 +2276,7 @@ void iASensitivityInfo::updateDifferenceView()
 			continue;
 		}
 		auto resultData = QSharedPointer<iAPolyDataRenderer>::create();
-		QColor rCol = t->color(i);	// TODO: keep track of which color used for which currently highlighted result!
-		resultData->data = m_resultUIs[rID].main3DVis->extractSelectedObjects(rCol);
+		resultData->data = m_resultUIs[rID].main3DVis->extractSelectedObjects(QColor(128, 128, 128));
 		if (resultData->data.size() == 0)
 		{
 			LOG(lvlDebug, QString("Result %1: No selected fibers!").arg(rID));
@@ -2294,9 +2293,9 @@ void iASensitivityInfo::updateDifferenceView()
 			diffMapper->SetInputData(resultData->data[f]);
 			resultData->actor.push_back(vtkSmartPointer<vtkActor>::New());
 			resultData->actor[resultData->actor.size()-1]->SetMapper(diffMapper);
-			resultData->actor[resultData->actor.size() - 1]->GetProperty()->SetOpacity(0.5);
+			resultData->actor[resultData->actor.size() - 1]->GetProperty()->SetOpacity(0.3);
 			diffMapper->SetScalarModeToUsePointFieldData();
-			resultData->actor[resultData->actor.size() - 1]->GetProperty()->SetColor(rCol.redF(), rCol.greenF(), rCol.blueF());
+			resultData->actor[resultData->actor.size() - 1]->GetProperty()->SetColor(0.5, 0.5, 0.5);
 			diffMapper->Update();
 			resultData->renderer->AddActor(resultData->actor[f]);
 		}
@@ -2365,10 +2364,10 @@ void iASensitivityInfo::updateDifferenceView()
 					++newPts;
 				}
 			}
-			unsigned char red[3] = {255, 0, 0};
+			unsigned char onlyInThisColor[3] = {t->color(i).red(), t->color(i).green(), t->color(i).blue()};
 			for (size_t s = 0; s < newPts; ++s)
 			{
-				colors->InsertNextTypedTuple(red);
+				colors->InsertNextTypedTuple(onlyInThisColor);
 			}
 
 			// direction refFiber -> fiber
@@ -2385,10 +2384,10 @@ void iASensitivityInfo::updateDifferenceView()
 					++newPts;
 				}
 			}
-			unsigned char blue[3] = {0, 0, 255};
+			unsigned char onlyInRefColor[3] = {t->color(0).red(), t->color(0).green(), t->color(0).blue()};
 			for (size_t s = 0; s < newPts; ++s)
 			{
-				colors->InsertNextTypedTuple(blue);
+				colors->InsertNextTypedTuple(onlyInRefColor);
 			}
 
 			ptData->SetPoints(points);

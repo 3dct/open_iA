@@ -26,8 +26,6 @@
 #include <iAProgress.h>
 #include <iASettings.h>
 
-#include <QFuture>
-#include <QFutureWatcher>
 #include <QSharedPointer>
 #include <QStringList>
 #include <QVector>
