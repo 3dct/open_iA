@@ -1442,7 +1442,7 @@ void iAFiAKErController::toggleOptimStepChart(size_t chartID, bool visible)
 		m_optimChartLayout->insertWidget(plotsBefore, m_optimStepChart[chartID]);
 		m_optimStepChart[chartID]->setMinimumHeight(100);
 		m_optimStepChart[chartID]->setSelectionMode(iAChartWidget::SelectPlot);
-		m_optimStepChart[chartID]->addXMarker(m_data->optimStepMax -1, OptimStepMarkerColor);
+		m_optimStepChart[chartID]->setXMarker(m_data->optimStepMax -1, OptimStepMarkerColor);
 		for (size_t resultID=0; resultID<m_data->result.size(); ++resultID)
 		{
 			auto & d = m_data->result[resultID];
@@ -1478,7 +1478,7 @@ void iAFiAKErController::toggleOptimStepChart(size_t chartID, bool visible)
 	}
 	m_optimStepChart[chartID]->setVisible(true);
 	m_optimStepChart[chartID]->clearMarkers();
-	m_optimStepChart[chartID]->addXMarker(m_optimStepSlider->value(), OptimStepMarkerColor);
+	m_optimStepChart[chartID]->setXMarker(m_optimStepSlider->value(), OptimStepMarkerColor);
 
 	bool allVisible = noResultSelected(m_resultUIs);
 	for (size_t resultID=0; resultID<m_data->result.size(); ++resultID)
@@ -1973,7 +1973,7 @@ void iAFiAKErController::setOptimStep(int optimStep)
 			continue;
 		}
 		chart->clearMarkers();
-		chart->addXMarker(optimStep, OptimStepMarkerColor);
+		chart->setXMarker(optimStep, OptimStepMarkerColor);
 		chart->update();
 		for (size_t resultID = 0; resultID < m_data->result.size(); ++resultID)
 		{
