@@ -1103,7 +1103,8 @@ void iAScatterPlot::drawPoints( QPainter &painter )
 			if (settings.highlightColorTheme)
 			{
 				c = settings.highlightColorTheme->color(i);
-			} else if (settings.highlightColor.isValid())
+			}
+			else if (settings.highlightColor.isValid())
 			{
 				c = settings.highlightColor;
 			}
