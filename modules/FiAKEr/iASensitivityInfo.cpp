@@ -2353,7 +2353,7 @@ void iASensitivityInfo::updateDifferenceView()
 
 			// direction fiber -> refFiber
 			// everything that's in the fiber but not in the reference -> color red
-			samplePoints(sampleFiber, sampledPoints, 1000);
+			samplePoints(sampleFiber, sampledPoints, 10000);
 			size_t newPts = 0;
 			for (size_t s = 0; s < sampledPoints.size(); ++s)
 			{
@@ -2373,7 +2373,7 @@ void iASensitivityInfo::updateDifferenceView()
 
 			// direction refFiber -> fiber
 			// -> color blue
-			samplePoints(refFiber, sampledPoints, 1000);
+			samplePoints(refFiber, sampledPoints, 10000);
 			newPts = 0;
 			for (size_t s = 0; s < sampledPoints.size(); ++s)
 			{
@@ -2404,7 +2404,7 @@ void iASensitivityInfo::updateDifferenceView()
 			resultData->diffActor = vtkSmartPointer<vtkActor>::New();
 			resultData->diffActor->SetMapper(resultData->diffPtMapper);
 			resultData->diffPtMapper->Update();
-			resultData->diffActor->GetProperty()->SetPointSize(6);
+			resultData->diffActor->GetProperty()->SetPointSize(4);
 			resultData->renderer->AddActor(resultData->diffActor);
 		}
 		renWin->AddRenderer(resultData->renderer);
