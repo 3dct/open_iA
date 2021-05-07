@@ -145,11 +145,6 @@ namespace
 	QColor ScatterPlotPointColor(80, 80, 80, 128);
 
 	const int SelectedAggregationMeasureIdx = 3;
-
-	const int SPMDSXOffset          = 4;
-	const int SPMDSYOffset          = 3;
-	const int SPIDOffset            = 2;
-	const int SPDissimilarityOffset = 1;
 }
 
 // Factor out as generic CSV reading class also used by iACsvIO?
@@ -1658,7 +1653,10 @@ public:
 
 	iADockWidgetWrapper* m_dwParamInfluence;
 
+	// table used in parameter space / MDS scatter plot:
 	QSharedPointer<iASPLOMData> m_mdsData;
+	// indices of the columns added in addition to parameters;
+	int spColIdxMDSX, spColIdxMDSY, spColIdxID, spColIdxDissimilarity, spColIdxFilter;
 
 	iADissimilarityMatrixType m_dissimilarityMatrix;
 	iAMatrixWidget* m_matrixWidget;
@@ -1742,7 +1740,7 @@ public:
 			{  // color by difference to STAR center
 				refResultIdx = curResultIdx - (curResultIdx % starGroupSize);
 			}
-			m_mdsData->data()[m_mdsData->numParams() - SPDissimilarityOffset][curResultIdx] =
+			m_mdsData->data()[spColIdxDissimilarity][curResultIdx] =
 				resultDissimMatrix[static_cast<int>(curResultIdx)][static_cast<int>(refResultIdx)]
 					.avgDissim[measureIdx];
 		}
@@ -1752,7 +1750,7 @@ public:
 		rng[0] = dissimRanges.size() > 0 ? dissimRanges[measureIdx].first : 0;
 		rng[1] = dissimRanges.size() > 0 ? dissimRanges[measureIdx].second : 1;
 		*m_lut.data() = iALUT::Build(rng, colorScaleName, 255, 0);
-		m_scatterPlot->setLookupTable(m_lut, m_mdsData->numParams() - SPDissimilarityOffset);
+		m_scatterPlot->setLookupTable(m_lut, spColIdxDissimilarity);
 
 		m_colorMapWidget->setColorMap(m_scatterPlot->lookupTable());
 		m_colorMapWidget->update();
@@ -1980,10 +1978,11 @@ void iASensitivityInfo::createGUI()
 	{
 		spParamNames.push_back(m_paramNames[p]);
 	}
-	spParamNames.push_back("MDS X");
-	spParamNames.push_back("MDS Y");
-	spParamNames.push_back("ID");
-	spParamNames.push_back("Dissimilarity"); // dissimilarity according to currently selected result
+	m_gui->spColIdxMDSX = spParamNames.size(); spParamNames.push_back("MDS X");
+	m_gui->spColIdxMDSY = spParamNames.size(); spParamNames.push_back("MDS Y");
+	m_gui->spColIdxID   = spParamNames.size(); spParamNames.push_back("ID");
+	m_gui->spColIdxDissimilarity = spParamNames.size(); spParamNames.push_back("Dissimilarity"); // dissimilarity according to currently selected result
+	m_gui->spColIdxFilter = spParamNames.size();  spParamNames.push_back("Filter");  // just for filtering results only from current "STAR plane"
 	size_t resultCount = m_data->result.size();
 	m_gui->m_mdsData->setParameterNames(spParamNames, resultCount);
 	for (int c = 0; c < spParamNames.size(); ++c)
@@ -2000,10 +1999,11 @@ void iASensitivityInfo::createGUI()
 	}
 	for (size_t i = 0; i < resultCount; ++i)
 	{
-		m_gui->m_mdsData->data()[spParamNames.size() - SPMDSXOffset][i] = 0.0;  // MDS X
-		m_gui->m_mdsData->data()[spParamNames.size() - SPMDSYOffset][i] = 0.0;  // MDS Y
-		m_gui->m_mdsData->data()[spParamNames.size() - SPIDOffset][i] = i;    // ID
-		m_gui->m_mdsData->data()[spParamNames.size() - SPDissimilarityOffset][i] = 0.0;  // Dissimilarity
+		m_gui->m_mdsData->data()[m_gui->spColIdxMDSX][i] = 0.0;  // MDS X
+		m_gui->m_mdsData->data()[m_gui->spColIdxMDSY][i] = 0.0;  // MDS Y
+		m_gui->m_mdsData->data()[m_gui->spColIdxID][i] = i;    // ID
+		m_gui->m_mdsData->data()[m_gui->spColIdxDissimilarity][i] = 0.0;  // Dissimilarity
+		m_gui->m_mdsData->data()[m_gui->spColIdxFilter][i] = 0.0;  // Filter
 	}
 	m_gui->m_mdsData->updateRanges();
 	m_gui->m_scatterPlot = new iAScatterPlotWidget(m_gui->m_mdsData, true);
@@ -2121,7 +2121,7 @@ void iASensitivityInfo::updateDissimilarity()
 	{
 		for (int c = 0; c < mds[0].size(); ++c)
 		{
-			m_gui->m_mdsData->data()[m_gui->m_mdsData->numParams() - SPMDSXOffset + c][i] = mds[i][c];
+			m_gui->m_mdsData->data()[m_gui->spColIdxMDSX + c][i] = mds[i][c];
 		}
 		//LOG(lvlDebug, QString("%1: %2, %3").arg(i).arg(mds[i][0]).arg(mds[i][1]));
 	}
