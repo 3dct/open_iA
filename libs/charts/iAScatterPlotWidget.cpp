@@ -150,6 +150,7 @@ void iAScatterPlotWidget::xParamChanged()
 	size_t idx = sender()->property("idx").toULongLong();
 	m_scatterplot->setIndices(idx, m_scatterplot->getIndices()[1]);
 	update();
+	emit visibleParamChanged();
 }
 
 void iAScatterPlotWidget::yParamChanged()
@@ -157,6 +158,7 @@ void iAScatterPlotWidget::yParamChanged()
 	size_t idx = sender()->property("idx").toULongLong();
 	m_scatterplot->setIndices(m_scatterplot->getIndices()[0], idx);
 	update();
+	emit visibleParamChanged();
 }
 
 void iAScatterPlotWidget::setPlotColor(QColor const & c, double rangeMin, double rangeMax)

@@ -111,6 +111,7 @@ signals:
 	//! to represent the new highlight situation after a user interaction.
 	void highlightChanged();
 	void selectionModified();
+	void visibleParamChanged();
 private slots:
 	void xParamChanged();
 	void yParamChanged();
