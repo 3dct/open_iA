@@ -2021,6 +2021,7 @@ void iASensitivityInfo::createGUI()
 	auto dwScatterPlot = new iADockWidgetWrapper(m_gui->m_scatterPlot, "Results Overview", "foeScatterPlot");
 	connect(m_gui->m_scatterPlot, &iAScatterPlotWidget::pointHighlighted, this, &iASensitivityInfo::spPointHighlighted);
 	connect(m_gui->m_scatterPlot, &iAScatterPlotWidget::highlightChanged, this, &iASensitivityInfo::spHighlightChanged);
+	connect(m_gui->m_scatterPlot, &iAScatterPlotWidget::visibleParamChanged, this, &iASensitivityInfo::spVisibleParamChanged);
 	m_child->splitDockWidget(m_gui->m_dwParamInfluence, dwScatterPlot, Qt::Vertical);
 	m_gui->m_colorMapWidget = new iAColorMapWidget();
 	auto dwColorMap = new iADockWidgetWrapper(m_gui->m_colorMapWidget, "Dissimilarity Color Map", "foeColorMap");
@@ -2224,6 +2225,10 @@ void iASensitivityInfo::spHighlightChanged()
 {
 	updateSPDifferenceColors();
 	updateDifferenceView();
+}
+
+void iASensitivityInfo::spVisibleParamChanged()
+{
 }
 
 std::vector<size_t> iASensitivityInfo::selectedResults() const

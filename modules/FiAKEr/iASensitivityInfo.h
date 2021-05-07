@@ -266,6 +266,7 @@ private slots:
 	void dissimMatrixParameterChanged(int);
 	void dissimMatrixColorMapChanged(int);
 	void spPointHighlighted(size_t resultIdx, bool state);
+	void spVisibleParamChanged();
 	void parResultSelected(size_t resultIdx, Qt::KeyboardModifiers modifiers);
 };
 
