@@ -47,6 +47,9 @@ MetaFilters_API extern const QString spnBaseSamplingMethod;
 MetaFilters_API extern const QString spnStarDelta;
 MetaFilters_API extern const QString spnStarStepNumber;
 
+// Parameters for re-run sampling
+MetaFilters_API extern const QString spnParameterSetFile;
+
 // Valid values for algorithm type parameter:
 MetaFilters_API extern const QString atBuiltIn;
 MetaFilters_API extern const QString atExternal;
@@ -61,6 +64,7 @@ namespace iASamplingMethodName
 	MetaFilters_API extern const QString LocalSensitivity;
 	MetaFilters_API extern const QString GlobalSensitivity;
 	MetaFilters_API extern const QString GlobalSensitivitySmall;
+	MetaFilters_API extern const QString RerunSampling;
 }
 
 QString getOutputFolder(QString const& baseFolder, bool createSubFolder, int sampleNr, int numDigits);

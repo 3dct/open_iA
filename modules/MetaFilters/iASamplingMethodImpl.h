@@ -91,10 +91,11 @@ private:
 	int m_numSteps;
 };
 
-class MetaFilters_API iASelectionSamplingMethod : public iASamplingMethod
+class MetaFilters_API iARerunSamplingMethod : public iASamplingMethod
 {
 public:
-	iASelectionSamplingMethod(QString const & name, iAParameterSetsPointer parameterSets);
+	iARerunSamplingMethod(QString const& fileName);
+	iARerunSamplingMethod(iAParameterSetsPointer parameterSets, QString const& name);
 	virtual QString name() const;
 	virtual iAParameterSetsPointer parameterSets(QSharedPointer<iAAttributes> parameter, int sampleCount);
 private:

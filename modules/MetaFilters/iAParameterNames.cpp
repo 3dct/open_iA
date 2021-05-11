@@ -48,6 +48,9 @@ const QString spnBaseSamplingMethod("Base sampling method");
 const QString spnStarDelta("Sensitivity delta");
 const QString spnStarStepNumber("Number of steps");
 
+// Parameters for re-run sampling
+const QString spnParameterSetFile("Parameter set file");
+
 // Valid values for algorithm type parameter:
 const QString atBuiltIn("Built-in");
 const QString atExternal("External");
@@ -60,6 +63,7 @@ namespace iASamplingMethodName
 	const QString LocalSensitivity("Local Sensitivity");
 	const QString GlobalSensitivity("Global sensitivity (star)");
 	const QString GlobalSensitivitySmall("Global sensitivity (small star)");
+	const QString RerunSampling("Re-run previous sampling");
 }
 
 const QString SampleFilterDescription(QString("Sample any internal filter or external algorithm.<br/>"

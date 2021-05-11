@@ -117,6 +117,8 @@ iASamplingSettingsDlg::iASamplingSettingsDlg(QWidget *parentWdgt,
 	m_widgetMap.insert(spnStarDelta, sbStarDelta);
 	m_widgetMap.insert(spnStarStepNumber, sbStarStepNumber);
 
+	m_widgetMap.insert(spnParameterSetFile, leParameterSetFile);
+
 	m_startLine = parameterLayout->rowCount();
 
 	QStringList methods(samplingMethodNames());
@@ -134,9 +136,9 @@ iASamplingSettingsDlg::iASamplingSettingsDlg(QWidget *parentWdgt,
 	setInputsFromMap(values);
 
 	connect(leParamDescriptor, &QLineEdit::editingFinished, this, &iASamplingSettingsDlg::parameterDescriptorChanged);
-	connect(pbChooseOutputFolder, &QPushButton::clicked, this, &iASamplingSettingsDlg::chooseOutputFolder);
-	connect(pbChooseParameterDescriptor, &QPushButton::clicked, this, &iASamplingSettingsDlg::chooseParameterDescriptor);
-	connect(pbChooseExecutable, &QPushButton::clicked, this, &iASamplingSettingsDlg::chooseExecutable);
+	connect(tbChooseOutputFolder, &QToolButton::clicked, this, &iASamplingSettingsDlg::chooseOutputFolder);
+	connect(tbChooseParameterDescriptor, &QToolButton::clicked, this, &iASamplingSettingsDlg::chooseParameterDescriptor);
+	connect(tbChooseExecutable, &QToolButton::clicked, this, &iASamplingSettingsDlg::chooseExecutable);
 	connect(tbSaveSettings, &QToolButton::clicked, this, &iASamplingSettingsDlg::saveSettings);
 	connect(tbLoadSettings, &QToolButton::clicked, this, &iASamplingSettingsDlg::loadSettings);
 	connect(rbBuiltIn, &QRadioButton::toggled, this, &iASamplingSettingsDlg::algoTypeChanged);
@@ -149,6 +151,7 @@ iASamplingSettingsDlg::iASamplingSettingsDlg(QWidget *parentWdgt,
 	connect(cbSamplingMethod, QOverload<int>::of(&QComboBox::currentIndexChanged), this, &iASamplingSettingsDlg::samplingMethodChanged);
 	connect(tbAlgorithmInfo, &QToolButton::toggled, this, &iASamplingSettingsDlg::showAlgorithmInfo);
 	connect(tbSamplingInfo, &QToolButton::toggled, this, &iASamplingSettingsDlg::showSamplingInfo);
+	connect(tbChooseParameterSetFile, &QToolButton::clicked, this, &iASamplingSettingsDlg::chooseParameterSetFile);
 	// initial state
 	showAlgorithmInfo();
 	showSamplingInfo();
@@ -468,9 +471,9 @@ void iASamplingSettingsDlg::algoTypeChanged()
 	tbAlgorithmInfo->setEnabled(!isExternal);
 	pbFilterSelect->setEnabled(!isExternal);
 	leExecutable->setEnabled(isExternal);
-	pbChooseExecutable->setEnabled(isExternal);
+	tbChooseExecutable->setEnabled(isExternal);
 	leParamDescriptor->setEnabled(isExternal);
-	pbChooseParameterDescriptor->setEnabled(isExternal);
+	tbChooseParameterDescriptor->setEnabled(isExternal);
 	leAdditionalArguments->setEnabled(isExternal);
 }
 
@@ -598,11 +601,17 @@ void iASamplingSettingsDlg::outputBaseChanged()
 
 void iASamplingSettingsDlg::samplingMethodChanged()
 {
-	globalSensitivitySettingsWidget->setVisible(
-		cbSamplingMethod->currentText() == iASamplingMethodName::GlobalSensitivity ||
-		cbSamplingMethod->currentText() == iASamplingMethodName::GlobalSensitivitySmall);
-	lbStarStepNumber->setVisible(cbSamplingMethod->currentText() == iASamplingMethodName::GlobalSensitivitySmall);
-	sbStarStepNumber->setVisible(cbSamplingMethod->currentText() == iASamplingMethodName::GlobalSensitivitySmall);
+	QString samplingMethod = cbSamplingMethod->currentText();
+	gbSamplingMethodDetails->setVisible(samplingMethod == iASamplingMethodName::GlobalSensitivity ||
+		samplingMethod == iASamplingMethodName::GlobalSensitivitySmall ||
+		samplingMethod == iASamplingMethodName::RerunSampling);
+	lbNumberOfSamples->setVisible(samplingMethod != iASamplingMethodName::RerunSampling);
+	sbNumberOfSamples->setVisible(samplingMethod != iASamplingMethodName::RerunSampling);
+	widgetSensitivitySamplingParameters->setVisible(samplingMethod == iASamplingMethodName::GlobalSensitivity ||
+		samplingMethod == iASamplingMethodName::GlobalSensitivitySmall);
+	lbStarStepNumber->setVisible(samplingMethod == iASamplingMethodName::GlobalSensitivitySmall);
+	sbStarStepNumber->setVisible(samplingMethod == iASamplingMethodName::GlobalSensitivitySmall);
+	widgetRerunSamplingParameters->setVisible(samplingMethod == iASamplingMethodName::RerunSampling);
 }
 
 void iASamplingSettingsDlg::showAlgorithmInfo()
@@ -733,6 +742,19 @@ QSharedPointer<iAAttributes> iASamplingSettingsDlg::parameterRanges()
 QSharedPointer<iAAttributes> iASamplingSettingsDlg::parameterSpecs()
 {
 	return m_paramSpecs;
+}
+
+void iASamplingSettingsDlg::chooseParameterSetFile()
+{
+	QString fileName = QFileDialog::getOpenFileName(
+		this,
+		"Load Parameter Set",
+		QString(),
+		"Parameter Set File (*.csv);;");
+	if (fileName != "")
+	{
+		leParameterSetFile->setText(fileName);
+	}
 }
 
 void iASamplingSettingsDlg::chooseOutputFolder()

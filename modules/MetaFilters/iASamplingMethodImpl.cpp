@@ -641,17 +641,55 @@ iAParameterSetsPointer iAGlobalSensitivitySmallStarSamplingMethod::parameterSets
 
 
 
-iASelectionSamplingMethod::iASelectionSamplingMethod(QString const & name, iAParameterSetsPointer parameterSets):
+iARerunSamplingMethod::iARerunSamplingMethod(iAParameterSetsPointer parameterSets, QString const& name) :
 	m_name(name),
 	m_parameterSets(parameterSets)
 {}
 
-iAParameterSetsPointer iASelectionSamplingMethod::parameterSets(QSharedPointer<iAAttributes> /*parameters*/, int /*sampleCount*/)
+iARerunSamplingMethod::iARerunSamplingMethod(QString const& fileName):
+	m_parameterSets(QSharedPointer<iAParameterSets>::create())
+{
+	QFile paramFile(fileName);
+	if (!paramFile.open(QIODevice::ReadOnly | QIODevice::Text))
+	{
+		LOG(lvlError, QString("Could not open sample parameter set file '%1' for reading!").arg(fileName));
+	}
+	QTextStream paramIn(&paramFile);
+	QStringList header = paramIn.readLine().split(iASingleResult::ValueSplitString);
+	int lineNr = 2;
+	while (!paramIn.atEnd())
+	{
+		QString paramLine = paramIn.readLine();
+		auto values = paramLine.split(iASingleResult::ValueSplitString);
+		if (values.size() == 0)
+		{
+			continue;
+		}
+		iAParameterSet paramSet;
+		if (header.size() != values.size())
+		{
+			LOG(lvlWarn,
+				QString("Invalid content '%1' on line '%2' in parameter set file %3!")
+					.arg(paramLine)
+					.arg(lineNr)
+					.arg(fileName));
+		}
+		for (int p=0; p<header.size(); ++p)
+		{
+			paramSet.push_back(values[p]);
+		}
+		m_parameterSets->push_back(paramSet);
+		++lineNr;
+	}
+	paramFile.close();
+}
+
+iAParameterSetsPointer iARerunSamplingMethod::parameterSets(QSharedPointer<iAAttributes> /*parameters*/, int /*sampleCount*/)
 {
 	return m_parameterSets;
 }
 
-QString iASelectionSamplingMethod::name() const
+QString iARerunSamplingMethod::name() const
 {
 	return m_name;
 }
@@ -668,6 +706,7 @@ QStringList const& samplingMethodNames()
 		result.push_back(iASamplingMethodName::LocalSensitivity);
 		result.push_back(iASamplingMethodName::GlobalSensitivity);
 		result.push_back(iASamplingMethodName::GlobalSensitivitySmall);
+		result.push_back(iASamplingMethodName::RerunSampling);
 	}
 	return result;
 }
@@ -714,6 +753,10 @@ QSharedPointer<iASamplingMethod> createSamplingMethod(iASettings const& paramete
 			return QSharedPointer<iAGlobalSensitivitySmallStarSamplingMethod>::create(
 				otherSamplingMethod, delta, stepNumber);
 		}
+	}
+	else if (methodName == iASamplingMethodName::RerunSampling)
+	{
+		return QSharedPointer<iARerunSamplingMethod>::create(parameters[spnParameterSetFile].toString());
 	}
 	LOG(lvlError, QString("Could not find sampling method '%1'").arg(methodName));
 	return QSharedPointer<iASamplingMethod>();

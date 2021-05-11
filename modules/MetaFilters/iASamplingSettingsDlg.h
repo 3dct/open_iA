@@ -67,6 +67,7 @@ private slots:
 	void chooseOutputFolder();
 	void chooseParameterDescriptor();
 	void chooseExecutable();
+	void chooseParameterSetFile();
 	void parameterDescriptorChanged();
 	void saveSettings();
 	void loadSettings();
