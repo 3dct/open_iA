@@ -1656,7 +1656,7 @@ public:
 	// table used in parameter space / MDS scatter plot:
 	QSharedPointer<iASPLOMData> m_mdsData;
 	// indices of the columns added in addition to parameters;
-	int spColIdxMDSX, spColIdxMDSY, spColIdxID, spColIdxDissimilarity, spColIdxFilter;
+	size_t spColIdxMDSX, spColIdxMDSY, spColIdxID, spColIdxDissimilarity, spColIdxFilter;
 
 	iADissimilarityMatrixType m_dissimilarityMatrix;
 	iAMatrixWidget* m_matrixWidget;
@@ -2229,6 +2229,23 @@ void iASensitivityInfo::spHighlightChanged()
 
 void iASensitivityInfo::spVisibleParamChanged()
 {
+	size_t const* visPar = m_gui->m_scatterPlot->paramIndices();
+	for (size_t r = 0; r < m_data->result.size(); ++r)
+	{
+		size_t inGroupIdx = r % m_starGroupSize;
+		bool visible =
+			// the STAR centers are always visible:
+			(inGroupIdx == 0) ||
+			// if one of two shown "parameters" is MDS x/y, show all results:
+			visPar[0] >= m_variedParams.size() || visPar[1] >= m_variedParams.size();
+		if (!visible)
+		{	// otherwise, show result only if it's on a branch for one of the two shown parameters:
+			size_t starBranchParamIdx = (inGroupIdx - 1) / m_numOfSTARSteps;
+			visible = (starBranchParamIdx == visPar[0] || starBranchParamIdx == visPar[1]);
+		}
+		m_gui->m_mdsData->data()[m_gui->spColIdxFilter][r] = visible ? 1 : 0;
+	}
+	m_gui->m_mdsData->addFilter(m_gui->spColIdxFilter, 1.0);
 }
 
 std::vector<size_t> iASensitivityInfo::selectedResults() const
