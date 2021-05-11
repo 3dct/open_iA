@@ -21,12 +21,16 @@
 #include "iASamplingMethodImpl.h"
 
 #include "iAParameterNames.h"
+#include "iASingleResult.h"    // for iASingleResult::ValueSplitString
 
 #include <iAAttributes.h>
 #include <iAAttributeDescriptor.h>
 #include <iALog.h>
 #include <iAMathUtility.h>
 #include <iAStringHelper.h>
+
+#include <QFile>
+#include <QTextStream>
 
 #include <cmath>
 #include <random>
@@ -674,7 +678,7 @@ iARerunSamplingMethod::iARerunSamplingMethod(QString const& fileName):
 					.arg(lineNr)
 					.arg(fileName));
 		}
-		for (int p=0; p<header.size(); ++p)
+		for (int p=1; p<header.size()-1; ++p)    // ignore ID and filename -> TODO: adaptive?
 		{
 			paramSet.push_back(values[p]);
 		}
