@@ -125,6 +125,7 @@ iAScatterPlotWidget::iAScatterPlotWidget(QSharedPointer<iASPLOMData> data, bool 
 	}
 	m_scatterplot->setData(0, 1, data);
 	connect(m_viewData.data(), &iAScatterPlotViewData::updateRequired, this, QOverload<>::of(&iAChartParentWidget::update));
+	connect(data.data(), &iASPLOMData::filterChanged, this, &iAScatterPlotWidget::updateFilter);
 	connect(m_scatterplot, &iAScatterPlot::currentPointModified, this, &iAScatterPlotWidget::currentPointUpdated);
 	connect(m_scatterplot, &iAScatterPlot::selectionModified, this, &iAScatterPlotWidget::selectionModified);
 }
@@ -145,6 +146,11 @@ QSharedPointer<iAScatterPlotViewData> iAScatterPlotWidget::viewData()
 	return m_viewData;
 }
 
+const size_t* iAScatterPlotWidget::paramIndices() const
+{
+	return m_scatterplot->getIndices();
+}
+
 void iAScatterPlotWidget::xParamChanged()
 {
 	size_t idx = sender()->property("idx").toULongLong();
@@ -159,6 +165,12 @@ void iAScatterPlotWidget::yParamChanged()
 	m_scatterplot->setIndices(m_scatterplot->getIndices()[0], idx);
 	update();
 	emit visibleParamChanged();
+}
+
+void iAScatterPlotWidget::updateFilter()
+{
+	m_scatterplot->updatePoints();
+	update();
 }
 
 void iAScatterPlotWidget::setPlotColor(QColor const & c, double rangeMin, double rangeMax)

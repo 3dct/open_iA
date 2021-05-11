@@ -48,9 +48,9 @@ public:
 	size_t numPoints() const;                         //!< Get number of data points.
 	void addParameter(QString& name);                 //!< Add an additional column
 	bool matchesFilter(size_t ind) const;             //!< Returns true if point with given index matches current filter
-	void addFilter(size_t paramIndex, double value);  //!< Adds a filter on the given column (index), it needs to match the given value; multiple filters are linked via OR
+	void addFilter(size_t paramIndex, double value);  //!< Adds a filter on the data to be shown, on the given column (index). The value in this column needs to match the given value; multiple filters added via this function are linked via OR.
 	void removeFilter(size_t paramIndex, double value);//!< Removes the filter on the given column and value.
-	void clearFilter();                               //!< Clear all filters
+	void clearFilters();                              //!< Clear all filters on data; after calling this method, all data points will be shown again.
 	bool filterDefined() const;                       //!< Returns true if a filter is defined on the data
 	double const* paramRange(size_t paramIndex) const;//!< Get the range of the parameter with given index
 	void updateRanges();                              //!< update range of all parameters
@@ -58,6 +58,7 @@ public:
 	void updateRange(size_t paramIndex);              //!< update range of a single parameter. Call if data of a parameter has changed
 signals:
 	void dataChanged(size_t paramIndex);              //!< emitted when the range of a parameter has changed
+	void filterChanged();                             //!< emitted whenever a filter is added, removed, or all filters cleared
 protected:
 	std::vector<QString> m_paramNames;                //!< list of parameter names
 	std::vector<std::vector<double>> m_dataPoints;    //!< lists containing data points

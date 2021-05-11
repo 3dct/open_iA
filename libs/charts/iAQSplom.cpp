@@ -349,24 +349,6 @@ void iAQSplom::updateHistograms()
 	}
 }
 
-void iAQSplom::addFilter(size_t paramIndex, double value)
-{
-	m_splomData->addFilter(paramIndex, value);
-	updateFilter();
-}
-
-void iAQSplom::removeFilter(size_t paramIndex, double value)
-{
-	m_splomData->removeFilter(paramIndex, value);
-	updateFilter();
-}
-
-void iAQSplom::resetFilter()
-{
-	m_splomData->clearFilter();
-	updateFilter();
-}
-
 void iAQSplom::updateFilter()
 {
 	for (auto& row : m_visiblePlots)
@@ -413,6 +395,7 @@ void iAQSplom::setData( QSharedPointer<iASPLOMData> data, std::vector<char> cons
 			.arg(std::numeric_limits<int>::max()));
 	}
 	m_splomData = data;
+	connect(m_splomData.data(), &iASPLOMData::filterChanged, this, &iAQSplom::updateFilter);
 	dataChanged(visibility);
 }
 

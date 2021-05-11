@@ -73,6 +73,7 @@ public:
 	void setSelectionEnabled(bool enabled);
 
 	QSharedPointer<iAScatterPlotViewData> viewData();
+	const size_t* paramIndices() const;  //!< Get column indices of visible X and Y parameters in data table
 protected:
 #ifdef CHART_OPENGL
 	void paintGL() override;
@@ -115,4 +116,5 @@ signals:
 private slots:
 	void xParamChanged();
 	void yParamChanged();
+	void updateFilter();
 };

@@ -98,7 +98,7 @@ void iAFeatureScoutSPLOM::multiClassRendering(QList<QColor> const & colors)
 	{
 		return;
 	}
-	matrix->resetFilter();
+	matrix->data()->clearFilters();
 	iALookupTable lookupTable;
 	lookupTable.allocate(colors.size());
 	lookupTable.setRange(0, colors.size() - 1);
@@ -136,10 +136,10 @@ void iAFeatureScoutSPLOM::setFilter(int classID)
 	{
 		return;
 	}
-	matrix->resetFilter();
+	matrix->data()->clearFilters();
 	if (classID != -1)
 	{
-		matrix->addFilter(matrix->data()->numParams() - 1, classID);
+		matrix->data()->addFilter(matrix->data()->numParams() - 1, classID);
 	}
 	matrix->update();
 }

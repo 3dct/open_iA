@@ -124,6 +124,7 @@ void iASPLOMData::addFilter(size_t paramIndex, double value)
 		return;
 	}
 	m_filters.push_back(std::make_pair(paramIndex, value));
+	emit filterChanged();
 }
 
 void iASPLOMData::removeFilter(size_t paramIndex, double value)
@@ -134,11 +135,13 @@ void iASPLOMData::removeFilter(size_t paramIndex, double value)
 	{
 		m_filters.erase(it);
 	}
+	emit filterChanged();
 }
 
-void iASPLOMData::clearFilter()
+void iASPLOMData::clearFilters()
 {
 	m_filters.clear();
+	emit filterChanged();
 }
 
 bool iASPLOMData::filterDefined() const
