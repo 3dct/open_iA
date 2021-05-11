@@ -2332,8 +2332,8 @@ void iASensitivityInfo::updateDifferenceView()
 		resultData->text->SetLinearFontScaleFactor(2);
 		resultData->text->SetNonlinearFontScaleFactor(1);
 		resultData->text->SetMaximumFontSize(18);
-		QColor c = t->color(i);
-		resultData->text->GetTextProperty()->SetColor(c.redF(), c.greenF(), c.blueF());
+		QColor color = t->color(i);
+		resultData->text->GetTextProperty()->SetColor(color.redF(), color.greenF(), color.blueF());
 		resultData->text->SetText(2, txt.toStdString().c_str());
 		// ToDo: add fiber id ;
 		//auto textColor = qApp->palette().color(QPalette::Text);
