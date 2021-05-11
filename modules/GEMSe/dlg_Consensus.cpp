@@ -991,12 +991,12 @@ void dlg_Consensus::LoadConfig()
 		}
 		QString executable = checkAlgoParams.getText(0);
 		QString additionalParameters = checkAlgoParams.getText(1);
-		QSharedPointer<iASelectionSamplingMethod> generator(
-			new iASelectionSamplingMethod(QString("Holdout Comparison, Algorithm %1").arg(s),
-				parameterSets));
+		QSharedPointer<iARerunSamplingMethod> generator(
+			new iARerunSamplingMethod(parameterSets,
+				QString("Holdout Comparison, Algorithm %1").arg(s)));
 		m_samplerParameters.push_back(QMap<QString, QVariant>());
 		auto & params = m_samplerParameters[m_samplerParameters.size() - 1];
-		params.insert(spnNumberOfSamples, 0); // iASelectionSamplingMethod doesn't need this parameter
+		params.insert(spnNumberOfSamples, 0); // iARerunSamplingMethod doesn't need this parameter
 		params.insert(spnSamplingMethod, generator->name());
 		params.insert(spnNumberOfLabels, m_labelCount);
 		params.insert(spnOutputFolder, outputFolder);
