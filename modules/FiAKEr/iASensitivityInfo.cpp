@@ -2049,7 +2049,7 @@ void iASensitivityInfo::createGUI()
 	m_gui->m_mdsSP->setVisibleParameters(m_gui->spColIdxMDSX, m_gui->spColIdxMDSY);
 	connect(m_gui->m_mdsSP, &iAScatterPlotWidget::pointHighlighted, this, &iASensitivityInfo::spPointHighlighted);
 	connect(m_gui->m_mdsSP, &iAScatterPlotWidget::highlightChanged, this, &iASensitivityInfo::spHighlightChanged);
-	connect(m_gui->m_mdsSP, &iAScatterPlotWidget::visibleParamChanged, this, &iASensitivityInfo::spVisibleParamChanged);
+	//connect(m_gui->m_mdsSP, &iAScatterPlotWidget::visibleParamChanged, this, &iASensitivityInfo::spVisibleParamChanged);
 	auto dwMdsSP = new iADockWidgetWrapper(m_gui->m_mdsSP, "MDS Results Overview", "foeMdsSP");
 	m_child->splitDockWidget(dwParamSP, dwMdsSP, Qt::Vertical);
 
@@ -2270,7 +2270,7 @@ void iASensitivityInfo::spHighlightChanged()
 
 void iASensitivityInfo::spVisibleParamChanged()
 {
-	size_t const* visPar = m_gui->m_scatterPlot->paramIndices();
+	size_t const* visPar = m_gui->m_paramSP->paramIndices();
 	for (size_t r = 0; r < m_data->result.size(); ++r)
 	{
 		size_t inGroupIdx = r % m_starGroupSize;
