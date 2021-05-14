@@ -141,6 +141,11 @@ void iAScatterPlotWidget::setSelectionEnabled(bool enabled)
 	m_scatterplot->settings.selectionEnabled = enabled;
 }
 
+void iAScatterPlotWidget::setVisibleParameters(size_t p1, size_t p2)
+{
+	m_scatterplot->setIndices(p1, p2);
+}
+
 QSharedPointer<iAScatterPlotViewData> iAScatterPlotWidget::viewData()
 {
 	return m_viewData;

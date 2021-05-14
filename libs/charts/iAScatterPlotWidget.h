@@ -71,6 +71,8 @@ public:
 	void setHighlightColorTheme(iAColorTheme const* theme);
 	void setHighlightDrawMode(iAScatterPlot::HighlightDrawModes drawMode);
 	void setSelectionEnabled(bool enabled);
+	//! proxy method for setting visible parameters in contained iAScatterPlot
+	void setVisibleParameters(size_t p1, size_t p2);
 
 	QSharedPointer<iAScatterPlotViewData> viewData();
 	const size_t* paramIndices() const;  //!< Get column indices of visible X and Y parameters in data table
