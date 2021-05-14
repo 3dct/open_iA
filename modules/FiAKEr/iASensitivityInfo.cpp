@@ -1616,7 +1616,8 @@ public:
 	iASensitivityGUI():
 		m_paramInfluenceView(nullptr),
 		m_settings(nullptr),
-		m_scatterPlot(nullptr),
+		m_paramSP(nullptr),
+		m_mdsSP(nullptr),
 		m_colorMapWidget(nullptr),
 		m_dwParamInfluence(nullptr),
 		m_matrixWidget(nullptr),
@@ -1645,8 +1646,11 @@ public:
 	//! Overall settings
 	iASensitivitySettingsView* m_settings;
 
-	//! scatter plot for the MDS plot of all results
-	iAScatterPlotWidget* m_scatterPlot;
+	//! scatter plot for the parameter space plot of all results
+	iAScatterPlotWidget* m_paramSP;
+	//! scatter plot for the MDS 2D plot of all results
+	iAScatterPlotWidget* m_mdsSP;
+	
 	//! lookup table for points in scatter plot
 	QSharedPointer<iALookupTable> m_lut;
 	iAColorMapWidget* m_colorMapWidget;
@@ -1678,7 +1682,7 @@ public:
 		std::set<int> hiGrp;
 		std::set<std::pair<int, int> > hiGrpParam;
 		std::set<int> hiGrpAll;
-		auto const& hp = m_scatterPlot->viewData()->highlightedPoints();
+		auto const& hp = m_paramSP->viewData()->highlightedPoints();
 		for (auto ptIdx : hp)
 		{
 			int groupID = ptIdx / starGroupSize;
@@ -1750,12 +1754,14 @@ public:
 		rng[0] = dissimRanges.size() > 0 ? dissimRanges[measureIdx].first : 0;
 		rng[1] = dissimRanges.size() > 0 ? dissimRanges[measureIdx].second : 1;
 		*m_lut.data() = iALUT::Build(rng, colorScaleName, 255, 0);
-		m_scatterPlot->setLookupTable(m_lut, spColIdxDissimilarity);
+		m_paramSP->setLookupTable(m_lut, spColIdxDissimilarity);
+		m_mdsSP->setLookupTable(m_lut, spColIdxDissimilarity);
 
-		m_colorMapWidget->setColorMap(m_scatterPlot->lookupTable());
+		m_colorMapWidget->setColorMap(m_paramSP->lookupTable());
 		m_colorMapWidget->update();
 
-		m_scatterPlot->viewData()->clearLines();
+		m_paramSP->viewData()->clearLines();
+		m_mdsSP->viewData()->clearLines();
 		// we want to build a separate line for each parameter (i.e. in each branch "direction" of the STAR
 		// easiest way is to collect all parameter values in a group (done in the vector of size_t/double pairs),
 		// then sort this by the parameter values (since we don't know else how many are smaller or larger than
@@ -1785,7 +1791,8 @@ public:
 				{
 					linePoints[i] = linePtParVal[i].first;
 				}
-				m_scatterPlot->viewData()->addLine(linePoints, QColor());
+				m_paramSP->viewData()->addLine(linePoints, QColor());
+				m_mdsSP->viewData()->addLine(linePoints, QColor());
 			}
 		}
 	}
@@ -2006,32 +2013,53 @@ void iASensitivityInfo::createGUI()
 		m_gui->m_mdsData->data()[m_gui->spColIdxFilter][i] = 0.0;  // Filter
 	}
 	m_gui->m_mdsData->updateRanges();
-	m_gui->m_scatterPlot = new iAScatterPlotWidget(m_gui->m_mdsData, true);
-	m_gui->m_scatterPlot->setPointRadius(4);
-	m_gui->m_scatterPlot->setPickedPointFactor(1.5);
-	m_gui->m_scatterPlot->setFixPointsEnabled(true);
-	//m_gui->m_scatterPlot->setHighlightColor(SelectedResultPlotColor);
-	m_gui->m_scatterPlot->setHighlightColorTheme(
-		iAColorThemeManager::instance().theme(m_gui->m_settings->cmbboxSPHighlightColorScale->currentText()));
-	m_gui->m_scatterPlot->setHighlightDrawMode(iAScatterPlot::Outline | iAScatterPlot::Enlarged);
-	m_gui->m_scatterPlot->setSelectionEnabled(false);
+
 	m_gui->m_lut.reset(new iALookupTable());
 	m_gui->m_lut->setRange(0, m_data->result.size());
 	m_gui->m_lut->allocate(m_data->result.size());
-	auto dwScatterPlot = new iADockWidgetWrapper(m_gui->m_scatterPlot, "Results Overview", "foeScatterPlot");
-	connect(m_gui->m_scatterPlot, &iAScatterPlotWidget::pointHighlighted, this, &iASensitivityInfo::spPointHighlighted);
-	connect(m_gui->m_scatterPlot, &iAScatterPlotWidget::highlightChanged, this, &iASensitivityInfo::spHighlightChanged);
-	connect(m_gui->m_scatterPlot, &iAScatterPlotWidget::visibleParamChanged, this, &iASensitivityInfo::spVisibleParamChanged);
-	m_child->splitDockWidget(m_gui->m_dwParamInfluence, dwScatterPlot, Qt::Vertical);
+
+	m_gui->m_paramSP = new iAScatterPlotWidget(m_gui->m_mdsData, true);
+	m_gui->m_paramSP->setPointRadius(4);
+	m_gui->m_paramSP->setPickedPointFactor(1.5);
+	m_gui->m_paramSP->setFixPointsEnabled(true);
+	m_gui->m_paramSP->setHighlightColorTheme(
+		iAColorThemeManager::instance().theme(m_gui->m_settings->cmbboxSPHighlightColorScale->currentText()));
+	m_gui->m_paramSP->setHighlightDrawMode(iAScatterPlot::Outline | iAScatterPlot::Enlarged);
+	m_gui->m_paramSP->setSelectionEnabled(false);
+	auto sortedParams = m_gui->m_paramInfluenceView->paramIndicesSorted();
+	m_gui->m_paramSP->setVisibleParameters(sortedParams[0], sortedParams[1]);
+	connect(m_gui->m_paramSP, &iAScatterPlotWidget::pointHighlighted, this, &iASensitivityInfo::spPointHighlighted);
+	connect(m_gui->m_paramSP, &iAScatterPlotWidget::highlightChanged, this, &iASensitivityInfo::spHighlightChanged);
+	connect(m_gui->m_paramSP, &iAScatterPlotWidget::visibleParamChanged, this, &iASensitivityInfo::spVisibleParamChanged);
+	auto dwParamSP = new iADockWidgetWrapper(m_gui->m_paramSP, "Results in Parameter Space", "foeParamSP");
+	m_child->splitDockWidget(m_gui->m_dwParamInfluence, dwParamSP, Qt::Vertical);
+
 	m_gui->m_colorMapWidget = new iAColorMapWidget();
 	auto dwColorMap = new iADockWidgetWrapper(m_gui->m_colorMapWidget, "Dissimilarity Color Map", "foeColorMap");
-	m_child->splitDockWidget(dwScatterPlot, dwColorMap, Qt::Horizontal);
+	m_child->splitDockWidget(dwParamSP, dwColorMap, Qt::Horizontal);
+
+	m_gui->m_mdsSP = new iAScatterPlotWidget(m_gui->m_mdsData, true);
+	m_gui->m_mdsSP->setPointRadius(4);
+	m_gui->m_mdsSP->setPickedPointFactor(1.5);
+	m_gui->m_mdsSP->setFixPointsEnabled(true);
+	m_gui->m_mdsSP->setHighlightColorTheme(
+		iAColorThemeManager::instance().theme(m_gui->m_settings->cmbboxSPHighlightColorScale->currentText()));
+	m_gui->m_mdsSP->setHighlightDrawMode(iAScatterPlot::Outline | iAScatterPlot::Enlarged);
+	m_gui->m_mdsSP->setSelectionEnabled(false);
+	m_gui->m_mdsSP->setVisibleParameters(m_gui->spColIdxMDSX, m_gui->spColIdxMDSY);
+	connect(m_gui->m_mdsSP, &iAScatterPlotWidget::pointHighlighted, this, &iASensitivityInfo::spPointHighlighted);
+	connect(m_gui->m_mdsSP, &iAScatterPlotWidget::highlightChanged, this, &iASensitivityInfo::spHighlightChanged);
+	connect(m_gui->m_mdsSP, &iAScatterPlotWidget::visibleParamChanged, this, &iASensitivityInfo::spVisibleParamChanged);
+	auto dwMdsSP = new iADockWidgetWrapper(m_gui->m_mdsSP, "MDS Results Overview", "foeMdsSP");
+	m_child->splitDockWidget(dwParamSP, dwMdsSP, Qt::Vertical);
 
 	m_gui->updateScatterPlotLUT(m_starGroupSize, m_numOfSTARSteps, m_data->result.size(), m_variedParams.size(),
 		m_resultDissimMatrix, m_resultDissimRanges, m_gui->m_settings->dissimMeasIdx(),
 		m_gui->m_settings->spColorMap());
-	m_gui->m_scatterPlot->setPointInfo(
-		QSharedPointer<iAScatterPlotPointInfo>(new iASPParamPointInfo(*this, *m_data.data())));
+
+	auto ptInfo = QSharedPointer<iASPParamPointInfo>::create(*this, *m_data.data());
+	m_gui->m_paramSP->setPointInfo(ptInfo);
+	m_gui->m_mdsSP->setPointInfo(ptInfo);
 
 	m_gui->m_diff3DWidget = new iAVtkWidget();
 	auto renWin = vtkSmartPointer<vtkGenericOpenGLRenderWindow>::New();
@@ -2132,7 +2160,7 @@ void iASensitivityInfo::updateDissimilarity()
 void iASensitivityInfo::spPointHighlighted(size_t resultIdx, bool state)
 {
 	int paramID = -1;
-	auto const& hp = m_gui->m_scatterPlot->viewData()->highlightedPoints();
+	auto const& hp = m_gui->m_paramSP->viewData()->highlightedPoints();
 	auto t = iAColorThemeManager::instance().theme(m_gui->m_settings->cmbboxSPHighlightColorScale->currentText());
 	QColor resultColor = t->color(hp.size() - 1);
 	if (!state)
@@ -2147,6 +2175,17 @@ void iASensitivityInfo::spPointHighlighted(size_t resultIdx, bool state)
 	m_gui->m_paramInfluenceView->setResultSelected(resultIdx, state, resultColor);
 	m_gui->m_paramInfluenceView->setSelectedParam(paramID);
 	emit resultSelected(resultIdx, state);
+
+	iAScatterPlotWidget* otherSP = (QObject::sender() == m_gui->m_paramSP) ? m_gui->m_mdsSP : m_gui->m_paramSP;
+	if (state)
+	{
+		otherSP->viewData()->addHighlightedPoint(resultIdx);
+	}
+	else
+	{
+		otherSP->viewData()->removeHighlightedPoint(resultIdx);
+	}
+
 	if (m_currentFiberSelection.size() == 0)
 	{	// before first selection is made...
 		return;
@@ -2204,7 +2243,8 @@ void iASensitivityInfo::histoChartTypeToggled(bool checked)
 
 void iASensitivityInfo::parResultSelected(size_t resultIdx, Qt::KeyboardModifiers modifiers)
 {
-	m_gui->m_scatterPlot->toggleHighlightedPoint(resultIdx, modifiers);
+	m_gui->m_paramSP->toggleHighlightedPoint(resultIdx, modifiers);
+	m_gui->m_mdsSP->toggleHighlightedPoint(resultIdx, modifiers);
 }
 
 void iASensitivityInfo::updateSPDifferenceColors()
@@ -2217,8 +2257,9 @@ void iASensitivityInfo::updateSPDifferenceColors()
 void iASensitivityInfo::updateSPHighlightColors()
 {
 	auto theme = iAColorThemeManager::instance().theme(m_gui->m_settings->cmbboxSPHighlightColorScale->currentText());
-	m_gui->m_scatterPlot->setHighlightColorTheme(theme);
-	m_gui->m_paramInfluenceView->updateHighlightColors(m_gui->m_scatterPlot->viewData()->highlightedPoints(), theme);
+	m_gui->m_paramSP->setHighlightColorTheme(theme);
+	m_gui->m_mdsSP->setHighlightColorTheme(theme);
+	m_gui->m_paramInfluenceView->updateHighlightColors(m_gui->m_paramSP->viewData()->highlightedPoints(), theme);
 }
 
 void iASensitivityInfo::spHighlightChanged()
@@ -2250,11 +2291,11 @@ void iASensitivityInfo::spVisibleParamChanged()
 
 std::vector<size_t> iASensitivityInfo::selectedResults() const
 {
-	if (!m_gui || !m_gui->m_scatterPlot)
+	if (!m_gui || !m_gui->m_paramSP)
 	{
 		return std::vector<size_t>();
 	}
-	return m_gui->m_scatterPlot->viewData()->highlightedPoints();
+	return m_gui->m_paramSP->viewData()->highlightedPoints();
 }
 
 namespace
@@ -2281,7 +2322,7 @@ void iASensitivityInfo::updateDifferenceView()
 #else
 	auto renWin = m_gui->m_diff3DWidget->renderWindow();
 #endif
-	auto const& hp = m_gui->m_scatterPlot->viewData()->highlightedPoints();
+	auto const& hp = m_gui->m_paramSP->viewData()->highlightedPoints();
 
 	// TODO: reuse actors... / store what was previously shown and only update if something has changed?
 	//LOG(lvlDebug, QString("%1 Results!").arg(hp.size()));

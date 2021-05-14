@@ -137,7 +137,7 @@ iAParameterInfluenceView::iAParameterInfluenceView(iASensitivityInfo* sensInf, Q
 			rowIdx + RowStackedHeader, colStackedBar, true);
 		row->head->setDoStack(false);
 		row->head->setNormalizeMode(false);
-		connect(row->head, &iAStackedBarChart::barDblClicked, this, &iAParameterInfluenceView::stackedBarDblClicked);
+		connect(row->head, &iAStackedBarChart::barDblClicked, this, &iAParameterInfluenceView::sortListByBar);
 		QString paramName = sensInf->m_paramNames[sensInf->m_variedParams[paramIdx]];
 		row->bars = new iAStackedBarChart(m_stackedBarTheme.data(), m_paramListLayout,
 			rowIdx + RowStackedBar, colStackedBar, false,
@@ -180,10 +180,10 @@ iAParameterInfluenceView::iAParameterInfluenceView(iASensitivityInfo* sensInf, Q
 
 	addStackedBar(outCharacteristic, 0);  // reflected in iAAlgorithmInfo construction in iASensitivity -> put in common place?
 
-	updateTableOrder();
+	sortListByBar(0);
 }
 
-void iAParameterInfluenceView::updateTableOrder()
+void iAParameterInfluenceView::addTableWidgets()
 {
 	for (int paramRow = 0; paramRow < m_table.size(); ++paramRow)
 	{
@@ -273,7 +273,7 @@ void iAParameterInfluenceView::toggleBar(bool show, int outType, int outIdx)
 	}
 }
 
-void iAParameterInfluenceView::stackedBarDblClicked(int barIdx)
+void iAParameterInfluenceView::sortListByBar(int barIdx)
 {
 	if (m_sortLastOut == barIdx)
 	{
@@ -287,7 +287,7 @@ void iAParameterInfluenceView::stackedBarDblClicked(int barIdx)
 		return m_sortLastDesc ? v1 > v2 : v1 < v2;
 	});
 	//LOG(lvlDebug, joinNumbersAsString(m_sort, ","));
-	updateTableOrder();
+	addTableWidgets();
 }
 
 void iAParameterInfluenceView::paramChangedSlot()
@@ -589,6 +589,11 @@ QSet<size_t> const & iAParameterInfluenceView::selectedResults() const
 	return m_selectedResults;
 }
 
+QVector<int> const& iAParameterInfluenceView::paramIndicesSorted() const
+{
+	return m_sort;
+}
+
 void iAParameterInfluenceView::updateChartY()
 {
 	auto getChartMax = [](QVector<iAChartWidget*> const& c, double yMax) {
@@ -680,7 +685,7 @@ void iAParameterInfluenceView::addStackedBar(int outType, int outIdx)
 			parChart->setXMarker(paramValue, SelectedResultPlotColor, Qt::DashLine);
 		}
 	}
-	updateTableOrder();
+	addTableWidgets();
 	double maxVal, minValDiff;
 	getParamMaxMinDiffVal(d, maxVal, minValDiff);
 	for (int paramIdx = 0; paramIdx < m_sensInf->m_variedParams.size(); ++paramIdx)

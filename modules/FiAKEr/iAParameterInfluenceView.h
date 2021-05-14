@@ -57,11 +57,12 @@ public:
 	int selectedCol() const;
 	void setHistogramChartType(QString const& chartType);
 	QSet<size_t> const & selectedResults() const;
+	QVector<int> const& paramIndicesSorted() const;  //! return parameter indices in current sort order (by variation)
 	void updateHighlightColors(std::vector<size_t> highlighted, iAColorTheme const* theme);
 public slots:
 	void showStackedBar();
 	void selectStackedBar(int outputType, int idx);
-	void stackedBarDblClicked(int idx);
+	void sortListByBar(int barIdx);
 	void setSelectedParam(int param);
 	void toggleCharacteristic(int charactIdx);
 private slots:
@@ -82,7 +83,7 @@ private:
 	QString columnName(int outputType, int outTypeIdx) const;
 	void updateChartY();
 	void toggleBar(bool show, int outType, int outIdx);
-	void updateTableOrder();
+	void addTableWidgets();
 	void setActionChecked(int outType, int outIdx, bool checked);
 	QSharedPointer<iAPlot> createHistoPlot(QSharedPointer<iAHistogramData> data, QColor color);
 	void addResultHistoPlot(size_t resultIdx, int charIdx, int paramIdx, QColor c);
