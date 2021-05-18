@@ -46,7 +46,9 @@ class iAcharts_API iAScatterPlotViewData : public QObject
 public:
 	iAScatterPlotViewData();
 
-	typedef std::vector<size_t> SelectionType;
+	using SelectionType = std::vector<size_t>;
+	using LineType = std::tuple<iAScatterPlotViewData::SelectionType, QColor, int>;
+	using LineListType = std::vector<LineType>;
 
 	SelectionType& selection();
 	SelectionType const& selection() const;
@@ -66,8 +68,8 @@ public:
 	//!< Set whether the axis of a parameter should be inverted in the scatter plots.
 	void setInverted(size_t paramIndex, bool isInverted);
 
-	std::vector<std::pair<SelectionType, QColor>> const& lines() const;
-	void addLine(SelectionType const& linePoints, QColor const& color);
+	LineListType const& lines() const;
+	void addLine(SelectionType const& linePoints, QColor const& color, int lineWidth);
 	void clearLines();
 
 	double animIn() const;         //!< Getter for animation in property
@@ -87,7 +89,7 @@ private:
 	//!< whether to invert a feature
 	std::vector<char> m_inverted;
 	//!< indices of pairs of points which should be connected by a line of the given color
-	std::vector<std::pair<SelectionType, QColor>> m_lines;
+	LineListType m_lines;
 	double m_animIn;   //!< In animation parameter
 	double m_animOut;  //!< Out animation parameter
 	QPropertyAnimation m_animationIn;

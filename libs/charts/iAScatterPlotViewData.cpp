@@ -176,14 +176,14 @@ double iAScatterPlotViewData::animOut() const
 	return m_animOut;
 }
 
-std::vector<std::pair<iAScatterPlotViewData::SelectionType, QColor>> const& iAScatterPlotViewData::lines() const
+iAScatterPlotViewData::LineListType const& iAScatterPlotViewData::lines() const
 {
 	return m_lines;
 }
 
-void iAScatterPlotViewData::addLine(SelectionType const& linePoints, QColor const& color)
+void iAScatterPlotViewData::addLine(SelectionType const& linePoints, QColor const& color, int lineWidth)
 {
-	m_lines.push_back(std::make_pair(linePoints, color));
+	m_lines.push_back(std::make_tuple(linePoints, color, lineWidth));
 }
 
 void iAScatterPlotViewData::clearLines()
