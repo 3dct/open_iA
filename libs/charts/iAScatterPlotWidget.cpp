@@ -100,8 +100,8 @@ iAScatterPlotWidget::iAScatterPlotWidget(QSharedPointer<iASPLOMData> data, bool 
 	if (columnSelection)
 	{
 		m_contextMenu = new QMenu(this);
-		auto xMenu = m_contextMenu->addMenu("X Parameter");
-		auto yMenu = m_contextMenu->addMenu("Y Parameter");
+		m_xMenu = m_contextMenu->addMenu("X Parameter");
+		m_yMenu = m_contextMenu->addMenu("Y Parameter");
 		auto xActGrp = new QActionGroup(m_contextMenu);
 		auto yActGrp = new QActionGroup(m_contextMenu);
 		for (size_t p = 0; p < data->numParams(); ++p)
@@ -112,7 +112,7 @@ iAScatterPlotWidget::iAScatterPlotWidget(QSharedPointer<iASPLOMData> data, bool 
 			xShowAct->setActionGroup(xActGrp);
 			xShowAct->setProperty("idx", static_cast<unsigned long long>(p));
 			connect(xShowAct, &QAction::triggered, this, &iAScatterPlotWidget::xParamChanged);
-			xMenu->addAction(xShowAct);
+			m_xMenu->addAction(xShowAct);
 
 			auto yShowAct = new QAction(data->parameterName(p), this);
 			yShowAct->setCheckable(true);
@@ -120,7 +120,7 @@ iAScatterPlotWidget::iAScatterPlotWidget(QSharedPointer<iASPLOMData> data, bool 
 			yShowAct->setActionGroup(yActGrp);
 			yShowAct->setProperty("idx", static_cast<unsigned long long>(p));
 			connect(yShowAct, &QAction::triggered, this, &iAScatterPlotWidget::yParamChanged);
-			yMenu->addAction(yShowAct);
+			m_yMenu->addAction(yShowAct);
 		}
 	}
 	m_scatterplot->setData(0, 1, data);
@@ -473,10 +473,32 @@ void iAScatterPlotWidget::keyPressEvent(QKeyEvent * event)
 	}
 }
 
+namespace
+{
+	void updateParamMenuCheckState(QMenu* menu, QSharedPointer<iASPLOMData> data, int visibleIdx)
+	{
+		for (auto col : menu->actions())
+		{
+			size_t paramIdx = data->paramIndex(col->text());
+			if (paramIdx >= data->numParams())
+			{
+				LOG(lvlWarn,
+					QString("Invalid menu entry %1 in column pick submenu - there is currently no such column!")
+						.arg(col->text()));
+				continue;
+			}
+			QSignalBlocker toggleBlock(col);
+			col->setChecked(paramIdx == visibleIdx);
+		}
+	}
+}
+
 void iAScatterPlotWidget::contextMenuEvent(QContextMenuEvent* event)
 {
 	if (m_contextMenu)
 	{
+		updateParamMenuCheckState(m_xMenu, m_data, m_scatterplot->getIndices()[0]);
+		updateParamMenuCheckState(m_yMenu, m_data, m_scatterplot->getIndices()[1]);
 		m_contextMenu->exec(event->globalPos());
 	}
 }

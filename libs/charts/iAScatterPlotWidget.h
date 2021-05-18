@@ -100,7 +100,8 @@ private:
 	int m_fontHeight, m_maxTickLabelWidth;
 	bool m_fixPointsEnabled;
 	QSharedPointer<iAScatterPlotPointInfo> m_pointInfo;
-	QMenu* m_contextMenu;  //!< the context menu for picking the two visible parameters
+	QMenu *m_contextMenu, *m_xMenu, *m_yMenu;  //!< the context menu for picking the two visible parameters
+
 signals:
 	//! emitted for each single point that was highlighted (or un-highlighted)
 	//! The parameters reflect the new highlight state for the given point.
