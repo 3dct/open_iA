@@ -1416,6 +1416,7 @@ class iASensitivitySettingsView: public iASensitivitySettingsUI
 	const QString ProjectDissimilarity = "SensitivityDissimilarity";
 	const QString ProjectChartType = "SensitivityChartType";
 	const QString ProjectColorScale = "SensitivitySPColorScale";
+	const QString ProjectUnselectedSTARLines = "SensitivityUnselectedSTARLines";
 
 public:
 	iASensitivitySettingsView(iASensitivityInfo* sensInf)
@@ -1445,6 +1446,8 @@ public:
 		connect(cmbboxSPHighlightColorScale, QOverload<int>::of(&QComboBox::currentIndexChanged), sensInf,
 			&iASensitivityInfo::updateSPHighlightColors);
 
+		connect(cbUnselectedSTARLines, &QCheckBox::stateChanged, sensInf, &iASensitivityInfo::updateSPDifferenceColors);
+
 		connect(rbBar, &QRadioButton::toggled, sensInf, &iASensitivityInfo::histoChartTypeToggled);
 		connect(rbLines, &QRadioButton::toggled, sensInf, &iASensitivityInfo::histoChartTypeToggled);
 
@@ -1459,6 +1462,7 @@ public:
 		m_settingsWidgetMap.insert(ProjectDissimilarity, cmbboxDissimilarity);
 		m_settingsWidgetMap.insert(ProjectChartType, &m_rgChartType);
 		m_settingsWidgetMap.insert(ProjectColorScale, cmbboxSPColorMap);
+		m_settingsWidgetMap.insert(ProjectUnselectedSTARLines, cbUnselectedSTARLines);
 	}
 	void loadSettings(iASettings const & s)
 	{
@@ -1770,9 +1774,14 @@ public:
 		// then sort this by the parameter values (since we don't know else how many are smaller or larger than
 		// the center value), then take the point indices from this ordered vector to form the line.
 		int groupCount = resultCount / starGroupSize;
+		bool unselectedStarLines = m_settings->cbUnselectedSTARLines->isChecked();
 		for (int groupID=0; groupID < groupCount; ++groupID)
 		{
 			auto groupStart = groupID * starGroupSize;
+			if (!unselectedStarLines && hiGrpAll.find(groupID) == hiGrpAll.end())
+			{
+				continue;
+			}
 			for (int parIdx = 0; parIdx < numInputParams; ++parIdx)
 			{
 				int lineSize = hiGrpAll.find(groupID) != hiGrpAll.end() ? 3 : 1;

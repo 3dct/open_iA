@@ -6,8 +6,8 @@
    <rect>
     <x>0</x>
     <y>0</y>
-    <width>261</width>
-    <height>180</height>
+    <width>253</width>
+    <height>225</height>
    </rect>
   </property>
   <property name="windowTitle">
@@ -57,15 +57,11 @@
         </property>
        </widget>
       </item>
-      <item row="1" column="0">
-       <widget class="QLabel" name="lbSPColorScale">
-        <property name="text">
-         <string>SP Color Scale</string>
-        </property>
-       </widget>
-      </item>
       <item row="1" column="1" colspan="2">
        <widget class="QComboBox" name="cmbboxSPColorMap"/>
+      </item>
+      <item row="2" column="1" colspan="2">
+       <widget class="QComboBox" name="cmbboxSPHighlightColorScale"/>
       </item>
       <item row="0" column="1">
        <widget class="QRadioButton" name="rbBar">
@@ -91,8 +87,19 @@
         </property>
        </widget>
       </item>
-      <item row="2" column="1" colspan="2">
-       <widget class="QComboBox" name="cmbboxSPHighlightColorScale"/>
+      <item row="1" column="0">
+       <widget class="QLabel" name="lbSPColorScale">
+        <property name="text">
+         <string>SP Color Scale</string>
+        </property>
+       </widget>
+      </item>
+      <item row="3" column="0" colspan="3">
+       <widget class="QCheckBox" name="cbUnselectedSTARLines">
+        <property name="text">
+         <string>Connecting lines for unselected STARs</string>
+        </property>
+       </widget>
       </item>
      </layout>
     </widget>
