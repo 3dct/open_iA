@@ -59,8 +59,9 @@ public:
 	};
 	enum HighlightDrawMode
 	{
-		Enlarged = 1,
-		Outline  = 2
+		Enlarged = 1,         //!< whether to enlarge highlighted point
+		CategoricalColor = 2, //!< if set, use categorical color to draw highlighted point
+		Outline  = 4,         //!< if set, use categorical color for an outline around the actual point; using Enlarged, CategoricalColor AND Outline is redundant, only Enlarged and CategoricalColor will have the same effect
 	};
 	Q_DECLARE_FLAGS(HighlightDrawModes, HighlightDrawMode)
 	//! Constructor, initializes some core members

@@ -986,7 +986,7 @@ void iAScatterPlot::drawPoints( QPainter &painter )
 			double curPtSize = ptSize * settings.pickedPointMagnification;
 			glPointSize(curPtSize);
 			glBegin(GL_POINTS);
-			if (!settings.highlightDrawMode.testFlag(iAScatterPlot::Outline) && settings.highlightColor.isValid())
+			if (settings.highlightDrawMode.testFlag(iAScatterPlot::CategoricalColor) && settings.highlightColor.isValid())
 			{
 				QColor c = settings.highlightColor;
 				glColor4f(c.redF(), c.greenF(), c.blueF(), c.alphaF());
@@ -1081,7 +1081,7 @@ void iAScatterPlot::drawPoints( QPainter &painter )
 		for (auto idx : m_viewData->highlightedPoints())
 		{
 			QColor color(
-				(!settings.highlightDrawMode.testFlag(iAScatterPlot::Outline) && settings.highlightColor.isValid())
+				(settings.highlightDrawMode.testFlag(iAScatterPlot::CategoricalColor) && settings.highlightColor.isValid())
 				? settings.highlightColor
 				: m_lut->getQColor(m_splomData->paramData(m_colInd)[idx]));
 			color.setAlpha(255);
