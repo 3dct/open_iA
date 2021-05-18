@@ -1679,8 +1679,9 @@ public:
 		int measureIdx, QString const & colorScaleName)
 	{
 		//LOG(lvlDebug, "\nNEW LUT:");
-		std::set<int> hiGrp;
-		std::set<std::pair<int, int> > hiGrpParam;
+		//std::set<int> hiGrp;
+		//std::set<std::pair<int, int> > hiGrpParam;
+		std::set<int> hiParam;
 		std::set<int> hiGrpAll;
 		auto const& hp = m_paramSP->viewData()->highlightedPoints();
 		for (auto ptIdx : hp)
@@ -1689,13 +1690,14 @@ public:
 			if (ptIdx % starGroupSize == 0)
 			{
 				//LOG(lvlDebug, QString("Selected GROUP: %1").arg(groupID));
-				hiGrp.insert(groupID);
+				//hiGrp.insert(groupID);
 			}
 			else
 			{
 				int paramID = ((ptIdx % starGroupSize) - 1) / numOfSTARSteps;
 				//LOG(lvlDebug, QString("Selected PARAM: %1, %2").arg(groupID).arg(paramID));
-				hiGrpParam.insert(std::make_pair(groupID, paramID));
+				//hiGrpParam.insert(std::make_pair(groupID, paramID));
+				hiParam.insert(paramID);
 			}
 			hiGrpAll.insert(groupID);
 		}
@@ -1762,15 +1764,22 @@ public:
 
 		m_paramSP->viewData()->clearLines();
 		m_mdsSP->viewData()->clearLines();
+
 		// we want to build a separate line for each parameter (i.e. in each branch "direction" of the STAR
 		// easiest way is to collect all parameter values in a group (done in the vector of size_t/double pairs),
 		// then sort this by the parameter values (since we don't know else how many are smaller or larger than
 		// the center value), then take the point indices from this ordered vector to form the line.
-		for (auto groupID : hiGrpAll)
+		int groupCount = resultCount / starGroupSize;
+		for (int groupID=0; groupID < groupCount; ++groupID)
 		{
 			auto groupStart = groupID * starGroupSize;
 			for (int parIdx = 0; parIdx < numInputParams; ++parIdx)
 			{
+				int lineSize = hiGrpAll.find(groupID) != hiGrpAll.end() ? 3 : 1;
+				if (hiGrpAll.find(groupID) != hiGrpAll.end() && hiParam.find(parIdx) != hiParam.end())
+				{
+					lineSize += 2;
+				}
 				using PtData = std::pair<size_t, double>;
 				std::vector<PtData> linePtParVal;
 				double centerValue = m_mdsData->paramData(parIdx)[groupStart];
@@ -1791,8 +1800,8 @@ public:
 				{
 					linePoints[i] = linePtParVal[i].first;
 				}
-				m_paramSP->viewData()->addLine(linePoints, QColor());
-				m_mdsSP->viewData()->addLine(linePoints, QColor());
+				m_paramSP->viewData()->addLine(linePoints, QColor(), lineSize);
+				m_mdsSP->viewData()->addLine(linePoints, QColor(), lineSize);
 			}
 		}
 	}
