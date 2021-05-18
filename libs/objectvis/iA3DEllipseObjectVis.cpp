@@ -102,6 +102,7 @@ iA3DColoredPolyObjectVis::IndexType iA3DEllipseObjectVis::objectPointCount(Index
 
 std::vector<vtkSmartPointer<vtkPolyData>> iA3DEllipseObjectVis::extractSelectedObjects(QColor c) const
 {
+	Q_UNUSED(c);
 	std::vector<vtkSmartPointer<vtkPolyData>> result;
 	return result;
 }

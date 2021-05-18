@@ -150,7 +150,7 @@ vtkPolyData* iA3DCylinderObjectVis::finalPoly()
 	return m_tubeFilter->GetOutput();
 }
 
-std::vector<vtkSmartPointer<vtkPolyData>> iA3DCylinderObjectVis::extractSelectedObjects(QColor c) const
+std::vector<vtkSmartPointer<vtkPolyData>> iA3DCylinderObjectVis::extractSelectedObjects(QColor color) const
 {
 	std::vector<vtkSmartPointer<vtkPolyData>> result;
 	for (auto selIdx: m_selection)
@@ -180,7 +180,8 @@ std::vector<vtkSmartPointer<vtkPolyData>> iA3DCylinderObjectVis::extractSelected
 		{	// Note: curved fiber data currently does not use LabelID, but starts from 0!
 			tmpCurvedFiberData.insert(std::make_pair(ExtractedID-1, it->second));
 		}
-		iA3DCylinderObjectVis tmpVis(m_ren, tmpTbl.GetPointer(), m_columnMapping, c.isValid()?c : QColor(0, 0, 0), tmpCurvedFiberData);
+		iA3DCylinderObjectVis tmpVis(
+			m_ren, tmpTbl.GetPointer(), m_columnMapping, color.isValid() ? color : QColor(0, 0, 0), tmpCurvedFiberData);
 		auto pd = tmpVis.finalPoly();
 		result.push_back(pd);
 	}
