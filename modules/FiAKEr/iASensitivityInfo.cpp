@@ -2024,7 +2024,7 @@ void iASensitivityInfo::createGUI()
 	m_gui->m_paramSP->setFixPointsEnabled(true);
 	m_gui->m_paramSP->setHighlightColorTheme(
 		iAColorThemeManager::instance().theme(m_gui->m_settings->cmbboxSPHighlightColorScale->currentText()));
-	m_gui->m_paramSP->setHighlightDrawMode(iAScatterPlot::Outline | iAScatterPlot::Enlarged);
+	m_gui->m_paramSP->setHighlightDrawMode(iAScatterPlot::Enlarged | iAScatterPlot::CategoricalColor);
 	m_gui->m_paramSP->setSelectionEnabled(false);
 	auto sortedParams = m_gui->m_paramInfluenceView->paramIndicesSorted();
 	m_gui->m_paramSP->setVisibleParameters(sortedParams[0], sortedParams[1]);
@@ -2044,7 +2044,7 @@ void iASensitivityInfo::createGUI()
 	m_gui->m_mdsSP->setFixPointsEnabled(true);
 	m_gui->m_mdsSP->setHighlightColorTheme(
 		iAColorThemeManager::instance().theme(m_gui->m_settings->cmbboxSPHighlightColorScale->currentText()));
-	m_gui->m_mdsSP->setHighlightDrawMode(iAScatterPlot::Outline | iAScatterPlot::Enlarged);
+	m_gui->m_mdsSP->setHighlightDrawMode(iAScatterPlot::Enlarged | iAScatterPlot::CategoricalColor);
 	m_gui->m_mdsSP->setSelectionEnabled(false);
 	m_gui->m_mdsSP->setVisibleParameters(m_gui->spColIdxMDSX, m_gui->spColIdxMDSY);
 	connect(m_gui->m_mdsSP, &iAScatterPlotWidget::pointHighlighted, this, &iASensitivityInfo::spPointHighlighted);
