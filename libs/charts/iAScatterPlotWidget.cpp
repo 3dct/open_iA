@@ -395,11 +395,12 @@ void iAScatterPlotWidget::toggleHighlightedPoint(size_t curPoint, Qt::KeyboardMo
 {
 	if (!modifiers.testFlag(Qt::ControlModifier))
 	{  // if Ctrl key not pressed, deselect all highlighted points on any click
-		for (auto idx : m_viewData->highlightedPoints())
+		auto oldHighlights(m_viewData->highlightedPoints());
+		m_viewData->clearHighlightedPoints();
+		for (auto idx : oldHighlights)
 		{
 			emit pointHighlighted(idx, false);
 		}
-		m_viewData->clearHighlightedPoints();
 	}
 	if (curPoint != iASPLOMData::NoDataIdx)
 	{
