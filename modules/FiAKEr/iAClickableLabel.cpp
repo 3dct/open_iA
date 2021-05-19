@@ -61,7 +61,7 @@ QSize iAClickableLabel::minimumSizeHint() const
 	if (m_vertical)
 	{
 		QSize s = QLabel::minimumSizeHint();
-		return QSize(s.height(), s.width());
+		return QSize(s.height(), s.height());
 	}
 	else
 	{
@@ -74,7 +74,7 @@ QSize iAClickableLabel::sizeHint() const
 	if (m_vertical)
 	{
 		QSize s = QLabel::sizeHint();
-		return QSize(s.height(), s.width());
+		return QSize(s.height(), s.height());
 	}
 	else
 	{

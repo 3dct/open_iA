@@ -197,8 +197,19 @@ void iAParameterInfluenceView::addTableWidgets()
 		m_table[paramIdx]->bars->setPos(rowIdx+RowStackedBar, colStackedBar);
 		for (int c=0; c<m_table[paramIdx]->out.size(); ++c)
 		{
+			bool outVisible = m_highlightedParams.contains(paramIdx);
 			m_paramListLayout->addWidget(m_table[paramIdx]->out[c], rowIdx + RowOutputChart, colStackedBar + c);
+			m_paramListLayout->setRowStretch(rowIdx + RowOutputChart, outVisible ? 4 : 0);
+			m_table[paramIdx]->out[c]->setMinimumHeight(outVisible ? 80 : 0);
+			m_table[paramIdx]->out[c]->setMaximumHeight(outVisible ? 500 : 0);
+			m_table[paramIdx]->out[c]->setVisible(outVisible);
+
+			bool parVisible = paramRow < 2 || paramIdx == m_selectedParam;
 			m_paramListLayout->addWidget(m_table[paramIdx]->par[c], rowIdx + RowParamChart, colStackedBar + c);
+			m_paramListLayout->setRowStretch(rowIdx + RowParamChart, parVisible ? 4 : 0);
+			m_table[paramIdx]->par[c]->setMinimumHeight(parVisible ? 80 : 0);
+			m_table[paramIdx]->par[c]->setMaximumHeight(parVisible ? 500 : 0);
+			m_table[paramIdx]->par[c]->setVisible(parVisible);
 		}
 	}
 }
@@ -402,6 +413,12 @@ void iAParameterInfluenceView::updateHighlightColors(std::vector<size_t> highlig
 			}
 		}
 	}
+}
+
+void iAParameterInfluenceView::setHighlightedParams(QSet<int> hiParam)
+{
+	m_highlightedParams = hiParam;
+	addTableWidgets();
 }
 
 void iAParameterInfluenceView::paramChartClicked(double x, Qt::KeyboardModifiers modifiers)
@@ -662,7 +679,7 @@ void iAParameterInfluenceView::addStackedBar(int outType, int outIdx)
 		outChart->setShowXAxisLabel(false);
 		outChart->setEmptyText("");
 		outChart->setBackgroundRole(bgRole);
-		outChart->setMinimumHeight(80);
+		//outChart->setMinimumHeight(80);
 		m_table[paramIdx]->out.push_back(outChart);
 		//connect(outChart, &iAChartWidget::clicked, this, &iAParameterInfluenceView::);
 		connect(outChart, &iAChartWidget::axisChanged, this, &iAParameterInfluenceView::charactChartAxisChanged);
@@ -678,7 +695,7 @@ void iAParameterInfluenceView::addStackedBar(int outType, int outIdx)
 		m_table[paramIdx]->par.push_back(parChart);
 		connect(parChart, &iAChartWidget::clicked, this, &iAParameterInfluenceView::paramChartClicked);
 		connect(parChart, &iAChartWidget::axisChanged, this, &iAParameterInfluenceView::paramChartAxisChanged);
-		parChart->setMinimumHeight(80);
+		//parChart->setMinimumHeight(80);
 		for (auto resultIdx : selectedResults)
 		{
 			double paramValue = m_sensInf->m_paramValues[m_sensInf->m_variedParams[paramIdx]][resultIdx];

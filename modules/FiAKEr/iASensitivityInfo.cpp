@@ -1685,7 +1685,7 @@ public:
 		//LOG(lvlDebug, "\nNEW LUT:");
 		//std::set<int> hiGrp;
 		//std::set<std::pair<int, int> > hiGrpParam;
-		std::set<int> hiParam;
+		QSet<int> hiParam;
 		std::set<int> hiGrpAll;
 		auto const& hp = m_paramSP->viewData()->highlightedPoints();
 		for (auto ptIdx : hp)
@@ -1705,6 +1705,7 @@ public:
 			}
 			hiGrpAll.insert(groupID);
 		}
+		m_paramInfluenceView->setHighlightedParams(hiParam);
 		/*
 		for (size_t i = 0; i < resultCount; ++i)
 		{
@@ -1785,7 +1786,7 @@ public:
 			for (int parIdx = 0; parIdx < numInputParams; ++parIdx)
 			{
 				int lineSize = hiGrpAll.find(groupID) != hiGrpAll.end() ? 3 : 1;
-				if (hiGrpAll.find(groupID) != hiGrpAll.end() && hiParam.find(parIdx) != hiParam.end())
+				if (hiGrpAll.find(groupID) != hiGrpAll.end() && hiParam.contains(parIdx))
 				{
 					lineSize += 2;
 				}
