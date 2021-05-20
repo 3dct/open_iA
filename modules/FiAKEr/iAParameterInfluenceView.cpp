@@ -299,6 +299,7 @@ void iAParameterInfluenceView::sortListByBar(int barIdx)
 	});
 	//LOG(lvlDebug, joinNumbersAsString(m_sort, ","));
 	addTableWidgets();
+	emit orderChanged(m_sort);
 }
 
 void iAParameterInfluenceView::paramChangedSlot()

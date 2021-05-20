@@ -113,4 +113,5 @@ signals:
 	void barAdded(int outType, int outIdx);
 	void barRemoved(int outType, int outIdx);
 	void resultSelected(size_t resultIdx, Qt::KeyboardModifiers modifiers);
+	void orderChanged(QVector<int> const & sortOrder);
 };

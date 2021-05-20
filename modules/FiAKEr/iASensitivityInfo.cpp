@@ -1982,6 +1982,9 @@ void iASensitivityInfo::createGUI()
 		m_gui->m_paramInfluenceView, &iAParameterInfluenceView::setSelectedParam);
 	connect(m_gui->m_algoInfo, &iAAlgorithmInfo::outputClicked,
 		m_gui->m_paramInfluenceView, &iAParameterInfluenceView::toggleCharacteristic);
+	connect(m_gui->m_paramInfluenceView, &iAParameterInfluenceView::orderChanged,
+		m_gui->m_algoInfo, &iAAlgorithmInfo::setInSortOrder);
+	m_gui->m_algoInfo->setInSortOrder(m_gui->m_paramInfluenceView->paramIndicesSorted());
 	auto dwAlgoInfo = new iADockWidgetWrapper(m_gui->m_algoInfo, "Algorithm Details", "foeAlgorithmInfo");
 	m_child->splitDockWidget(dwSettings, dwAlgoInfo, Qt::Horizontal);
 

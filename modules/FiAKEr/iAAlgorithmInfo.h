@@ -95,7 +95,7 @@ public:
 		p.drawText(textRect, Qt::AlignCenter, text);
 	}
 	void drawConnections(QPainter& p, int left, QStringList const& strings, QVector<QRect>& rects,
-		QColor const& color, int selected, QVector<int> const & shown)
+		QColor const& color, int selected, QVector<int> const & shown, QVector<int> const &sort)
 	{
 		rects.clear();
 		int bottomDistance = boxHeight() / (strings.size() + 1);
@@ -107,41 +107,9 @@ public:
 		int baseTop = TopMargin + oneHeight;
 		for (int idx = 0; idx < strings.size(); ++idx)
 		{
+			QString name = strings[ sort.size() > idx ? sort[idx] : idx ];
 			drawArrow(p, left, baseTop + idx * oneHeight, boxWidth(), oneHeight,
-				strings[idx], rects, color, selected == idx, shown.size() == 0 || shown.contains(idx));
-		}
-	}
-	void paintEvent(QPaintEvent* ev) override
-	{
-		Q_UNUSED(ev);
-		QPainter p(this);
-		p.setPen(qApp->palette().color(QWidget::foregroundRole()));
-
-		QRect algoBox(HMargin + boxWidth(), TopMargin, boxWidth(), boxHeight());
-		p.drawRect(algoBox);
-		p.drawText(algoBox, Qt::AlignCenter, m_name);
-
-		drawConnections(p, HMargin, m_inNames, m_inRects, m_inColor, m_selectedIn, QVector<int>());
-		drawConnections(p, HMargin + 2 * boxWidth(), m_outNames, m_outRects, m_outColor, -1, m_shownOut);
-	}
-
-	void mousePressEvent(QMouseEvent* ev) override
-	{
-		for (int rIdx = 0; rIdx < m_inRects.size(); ++rIdx)
-		{
-			if (m_inRects[rIdx].contains(ev->pos()))
-			{
-				emit inputClicked(rIdx);
-				return;
-			}
-		}
-		for (int rIdx = 0; rIdx < m_outRects.size(); ++rIdx)
-		{
-			if (m_outRects[rIdx].contains(ev->pos()))
-			{
-				emit outputClicked(rIdx);
-				return;
-			}
+				name, rects, color, selected == idx, shown.size() == 0 || shown.contains(idx));
 		}
 	}
 	void setSelectedInput(int inIdx)
@@ -163,6 +131,46 @@ public:
 		}
 		m_shownOut.remove(idx);
 	}
+	void setInSortOrder(QVector<int> const& inSortOrder)
+	{
+		m_inSort = inSortOrder;
+		update();
+	}
+
+private:
+	void paintEvent(QPaintEvent* ev) override
+	{
+		Q_UNUSED(ev);
+		QPainter p(this);
+		p.setPen(qApp->palette().color(QWidget::foregroundRole()));
+
+		QRect algoBox(HMargin + boxWidth(), TopMargin, boxWidth(), boxHeight());
+		p.drawRect(algoBox);
+		p.drawText(algoBox, Qt::AlignCenter, m_name);
+
+		drawConnections(p, HMargin, m_inNames, m_inRects, m_inColor, m_selectedIn, QVector<int>(), m_inSort);
+		drawConnections(p, HMargin + 2 * boxWidth(), m_outNames, m_outRects, m_outColor, -1, m_shownOut, QVector<int>());
+	}
+	void mousePressEvent(QMouseEvent* ev) override
+	{
+		for (int rIdx = 0; rIdx < m_inRects.size(); ++rIdx)
+		{
+			if (m_inRects[rIdx].contains(ev->pos()))
+			{
+				int clickedIn = (rIdx < m_inSort.size()) ? m_inSort[rIdx] : rIdx;
+				emit inputClicked(clickedIn);
+				return;
+			}
+		}
+		for (int rIdx = 0; rIdx < m_outRects.size(); ++rIdx)
+		{
+			if (m_outRects[rIdx].contains(ev->pos()))
+			{
+				emit outputClicked(rIdx);
+				return;
+			}
+		}
+	}
 	QSize sizeHint() const override
 	{
 		return QSize(1, oneEntryHeight() * std::max(m_inNames.size(), m_outNames.size()));
@@ -177,4 +185,5 @@ private:
 	QColor m_inColor, m_outColor;
 	int m_selectedIn;
 	QVector<int> m_shownOut;
+	QVector<int> m_inSort;
 };
