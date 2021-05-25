@@ -1616,7 +1616,7 @@ void iAFiAKErController::showMainVis(size_t resultID, bool state)
 			m_cameraInitialized = true;
 		}
 		m_style->addInput(resultID, ui.main3DVis->getPolyData(), ui.main3DVis->getActor() );
-		m_spm->data()->addFilter(m_data->m_resultIDColumn, resultID);
+		m_spm->viewData()->addFilter(m_data->m_resultIDColumn, resultID);
 	}
 	else
 	{
@@ -1660,7 +1660,7 @@ void iAFiAKErController::showMainVis(size_t resultID, bool state)
 		}
 		ui.main3DVis->hide();
 		m_style->removeInput(resultID);
-		m_spm->data()->removeFilter(m_data->m_resultIDColumn, resultID);
+		m_spm->viewData()->removeFilter(m_data->m_resultIDColumn, resultID);
 	}
 	for (size_t c = 0; c < m_chartCount; ++c)
 	{

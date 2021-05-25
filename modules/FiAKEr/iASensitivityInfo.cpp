@@ -2050,7 +2050,6 @@ void iASensitivityInfo::createGUI()
 	m_gui->m_paramSP->setSelectionEnabled(false);
 	auto sortedParams = m_gui->m_paramInfluenceView->paramIndicesSorted();
 	m_gui->m_paramSP->setVisibleParameters(sortedParams[0], sortedParams[1]);
-	spVisibleParamChanged();
 	connect(m_gui->m_paramSP, &iAScatterPlotWidget::pointHighlighted, this, &iASensitivityInfo::spPointHighlighted);
 	connect(m_gui->m_paramSP, &iAScatterPlotWidget::highlightChanged, this, &iASensitivityInfo::spHighlightChanged);
 	connect(m_gui->m_paramSP, &iAScatterPlotWidget::visibleParamChanged, this, &iASensitivityInfo::spVisibleParamChanged);
@@ -2100,6 +2099,7 @@ void iASensitivityInfo::createGUI()
 #endif
 	renWin->AddRenderer(m_gui->m_diff3DEmptyRenderer);
 
+	spVisibleParamChanged();
 	updateDissimilarity();
 	changeAggregation(SelectedAggregationMeasureIdx);
 
@@ -2309,7 +2309,7 @@ void iASensitivityInfo::spVisibleParamChanged()
 		}
 		m_gui->m_mdsData->data()[m_gui->spColIdxFilter][r] = visible ? 1 : 0;
 	}
-	m_gui->m_mdsData->addFilter(m_gui->spColIdxFilter, 1.0);
+	m_gui->m_paramSP->viewData()->addFilter(m_gui->spColIdxFilter, 1.0);
 }
 
 std::vector<size_t> iASensitivityInfo::selectedResults() const
