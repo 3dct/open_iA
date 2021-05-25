@@ -710,7 +710,7 @@ size_t iAScatterPlot::getPointIndexAtPosition( QPointF mpos ) const
 				double pixelX = p2x(m_splomData->paramData(m_paramIndices[0])[ptIdx]);
 				double pixelY = p2y(m_splomData->paramData(m_paramIndices[1])[ptIdx]);
 				double dist = pow(pixelX - mpos.x(), 2) + pow(pixelY - mpos.y(), 2);
-				if (dist < minDist && m_splomData->matchesFilter(ptIdx))
+				if (dist < minDist && m_viewData->matchesFilter(m_splomData, ptIdx))
 				{
 					minDist = dist;
 					res = ptIdx;
@@ -754,7 +754,7 @@ void iAScatterPlot::updateSelectedPoints(bool append, bool remove)
 				auto const & pts = m_pointsGrid[getBinIndex(binx, biny)];
 				for(auto i: pts)
 				{
-					if (!m_splomData->matchesFilter(i))
+					if (!m_viewData->matchesFilter(m_splomData, i))
 					{
 						continue;
 					}
@@ -1074,7 +1074,7 @@ void iAScatterPlot::drawPoints( QPainter &painter )
 	m_curVisiblePts = 0;
 	for (size_t i = 0; i < m_splomData->numPoints(); ++i)
 	{
-		if (!m_splomData->matchesFilter(i))
+		if (!m_viewData->matchesFilter(m_splomData, i))
 		{
 			continue;
 		}

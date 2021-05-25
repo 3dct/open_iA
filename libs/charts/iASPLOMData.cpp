@@ -20,9 +20,6 @@
 * ************************************************************************************/
 #include "iASPLOMData.h"
 
-#include "iALog.h"
-#include "iAMathUtility.h"
-
 const size_t iASPLOMData::NoDataIdx = std::numeric_limits<size_t>::max();
 
 iASPLOMData::iASPLOMData()
@@ -31,7 +28,6 @@ iASPLOMData::iASPLOMData()
 
 void iASPLOMData::setParameterNames(std::vector<QString> const & names, size_t rowReserve)
 {
-	m_filters.clear();
 	m_paramNames = names;
 	m_dataPoints.clear();
 	for (size_t i = 0; i < m_paramNames.size(); ++i)
@@ -97,56 +93,6 @@ size_t iASPLOMData::numParams() const
 size_t iASPLOMData::numPoints() const
 {
 	return m_dataPoints.size() < 1 ? 0 : m_dataPoints[0].size();
-}
-
-
-bool iASPLOMData::matchesFilter(size_t ind) const
-{
-	if (m_filters.empty())
-	{
-		return true;
-	}
-	for (auto filter : m_filters)
-	{
-		if (dblApproxEqual(this->paramData(filter.first)[ind], filter.second))
-		{
-			return true;
-		}
-	}
-	return false;
-}
-
-void iASPLOMData::addFilter(size_t paramIndex, double value)
-{
-	if (paramIndex >= numParams())
-	{
-		LOG(lvlWarn, QString("Invalid filter column ID %1!").arg(paramIndex));
-		return;
-	}
-	m_filters.push_back(std::make_pair(paramIndex, value));
-	emit filterChanged();
-}
-
-void iASPLOMData::removeFilter(size_t paramIndex, double value)
-{
-	auto searchedPair = std::make_pair(paramIndex, value);
-	auto it = std::find(m_filters.begin(), m_filters.end(), searchedPair);
-	if (it != m_filters.end())
-	{
-		m_filters.erase(it);
-	}
-	emit filterChanged();
-}
-
-void iASPLOMData::clearFilters()
-{
-	m_filters.clear();
-	emit filterChanged();
-}
-
-bool iASPLOMData::filterDefined() const
-{
-	return m_filters.size() > 0;
 }
 
 double const* iASPLOMData::paramRange(size_t paramIndex) const

@@ -68,9 +68,21 @@ public:
 	//!< Set whether the axis of a parameter should be inverted in the scatter plots.
 	void setInverted(size_t paramIndex, bool isInverted);
 
+	//! @{
+	//! Connecting lines between data points
 	LineListType const& lines() const;
 	void addLine(SelectionType const& linePoints, QColor const& color, int lineWidth);
 	void clearLines();
+	//! @}
+	
+	//! @{
+	//! Filtering for data items (matching values)
+	bool matchesFilter(QSharedPointer<iASPLOMData> splomData, size_t ind) const; //!< Returns true if point with given index matches current filter
+	void addFilter(size_t paramIndex, double value);  //!< Adds a filter on the data to be shown, on the given column (index). The value in this column needs to match the given value; multiple filters added via this function are linked via OR.
+	void removeFilter(size_t paramIndex, double value);//!< Removes the filter on the given column and value.
+	void clearFilters();                              //!< Clear all filters on data; after calling this method, all data points will be shown again.
+	bool filterDefined() const;                       //!< Returns true if a filter is defined on the data
+	//! @}
 
 	double animIn() const;         //!< Getter for animation in property
 	void setAnimIn(double anim);   //!< Setter for animation in property
@@ -79,6 +91,7 @@ public:
 	void updateAnimation(size_t curPt, size_t prePt);
 signals:
 	void updateRequired();
+	void filterChanged();  //!< emitted whenever a filter is added, removed, or all filters cleared
 private:
 	//!< contains indices of highlighted (clicked) points
 	SelectionType m_highlight;
@@ -96,4 +109,7 @@ private:
 	QPropertyAnimation m_animationOut;
 	// settings:
 	bool m_isAnimated;
+
+	//! collection of filters: each column index/value pair is linked via OR
+	std::vector<std::pair<size_t, double> > m_filters;
 };

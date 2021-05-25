@@ -306,6 +306,7 @@ iAQSplom::iAQSplom(QWidget * parent):
 	connect(m_settingsDlg->cbColorThemeQual, QOverload<int>::of(&QComboBox::currentIndexChanged), this, &iAQSplom::setColorThemeQual);
 	m_columnPickMenu = m_contextMenu->addMenu("Columns");
 	connect(m_viewData.data(), &iAScatterPlotViewData::updateRequired, this, QOverload<>::of(&iAChartParentWidget::update));
+	connect(m_viewData.data(), &iAScatterPlotViewData::filterChanged, this, &iAQSplom::updateFilter);
 }
 
 void iAQSplom::addContextMenuAction(QAction* action)
@@ -318,7 +319,7 @@ void iAQSplom::updateHistogram(size_t paramIndex)
 	std::vector<double> hist_InputValues;
 	for (size_t i = 0; i < m_splomData->numPoints(); ++i)
 	{
-		if (m_splomData->matchesFilter(i))
+		if (m_viewData->matchesFilter(m_splomData, i))
 		{
 			hist_InputValues.push_back(m_splomData->paramData(paramIndex)[i]);
 		}
@@ -395,7 +396,6 @@ void iAQSplom::setData( QSharedPointer<iASPLOMData> data, std::vector<char> cons
 			.arg(std::numeric_limits<int>::max()));
 	}
 	m_splomData = data;
-	connect(m_splomData.data(), &iASPLOMData::filterChanged, this, &iAQSplom::updateFilter);
 	dataChanged(visibility);
 }
 
