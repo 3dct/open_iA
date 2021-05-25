@@ -1785,10 +1785,17 @@ public:
 			}
 			for (int parIdx = 0; parIdx < numInputParams; ++parIdx)
 			{
-				int lineSize = hiGrpAll.find(groupID) != hiGrpAll.end() ? 3 : 1;
-				if (hiGrpAll.find(groupID) != hiGrpAll.end() && hiParam.contains(parIdx))
+				int lineSize = 1;
+				if (hiGrpAll.find(groupID) != hiGrpAll.end())
 				{
-					lineSize += 2;
+					if (parIdx == m_paramSP->paramIndices()[0])
+					{
+						lineSize = 5;
+					}
+					else if (parIdx == m_paramSP->paramIndices()[1])
+					{
+						lineSize = 3;
+					}
 				}
 				using PtData = std::pair<size_t, double>;
 				std::vector<PtData> linePtParVal;
@@ -1811,7 +1818,10 @@ public:
 					linePoints[i] = linePtParVal[i].first;
 				}
 				m_paramSP->viewData()->addLine(linePoints, QColor(), lineSize);
-				m_mdsSP->viewData()->addLine(linePoints, QColor(), lineSize);
+				if (hiGrpAll.find(groupID) != hiGrpAll.end())
+				{
+					m_mdsSP->viewData()->addLine(linePoints, QColor(), lineSize);
+				}
 			}
 		}
 	}
