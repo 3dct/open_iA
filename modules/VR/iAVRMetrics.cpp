@@ -111,6 +111,19 @@ void iAVRMetrics::storeMinMaxValues()
 	}
 }
 
+//! Returns the min [0] and the max [1] value of two vectors
+std::vector<double> iAVRMetrics::getMinMaxFromVec(std::vector<double> val01, std::vector<double> val02)
+{
+	std::vector<double> minMax = std::vector<double>(2);
+
+	auto minMaxElem01 = std::minmax_element(val01.begin(), val01.end());
+	auto minMaxElem02 = std::minmax_element(val02.begin(), val02.end());
+	minMax.at(0) = vtkMath::Min(*minMaxElem01.first, *minMaxElem02.first);
+	minMax.at(1) = vtkMath::Max(*minMaxElem01.second, *minMaxElem02.second);
+
+	return minMax;
+}
+
 //! Returns the result of a value in a user given new interval between newMin and newMax
 double iAVRMetrics::histogramNormalization(double value, double newMin, double newMax, double oldMin, double oldMax)
 {

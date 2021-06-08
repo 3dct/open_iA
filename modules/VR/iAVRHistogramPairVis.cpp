@@ -139,10 +139,23 @@ void iAVRHistogramPairVis::createVisualization(double* pos, double visSize, doub
 	m_AxesViewDir->clear();
 	m_histogramBars->clear();
 
-	//Calculate Histogram Values and Bins
-	m_histogramParameter = m_histogramMetric->getHistogram(level, m_octreeMetric->getMaxNumberOfFibersInRegion(level), featureList, regions->at(0), regions->at(1));
-	m_numberOfXBins = m_histogramParameter->bins;
-	m_numberOfYBins = ceil(m_histogramParameter->bins / 2);
+	//Calculate Histogram Values and Bins for every feature
+	for(int feature : *featureList)
+	{
+		LOG(lvlImportant, QString("\n Feature: %1 (%2)").arg(feature).arg(m_octreeMetric->getFeatureName(feature)));
+
+		auto val01 = m_octreeMetric->getRegionValues(level, regions->at(0), feature);
+		auto val02 = m_octreeMetric->getRegionValues(level, regions->at(1), feature);
+		auto minMax = m_octreeMetric->getMinMaxFromVec(val01, val02);
+
+		m_histogram01.push_back(m_histogramMetric->getHistogram(val01, minMax.at(0), minMax.at(1), m_octreeMetric->getMaxNumberOfFibersInRegion(level)));
+		m_histogram02.push_back(m_histogramMetric->getHistogram(val02, minMax.at(0), minMax.at(1), m_octreeMetric->getMaxNumberOfFibersInRegion(level)));
+		//Set IDs
+		m_histogramMetric->setHistogramFeatureID(&m_histogram01.back(), feature);
+		m_histogramMetric->setHistogramFeatureID(&m_histogram02.back(), feature);
+	}
+	m_numberOfXBins = m_histogram01.at(0).m_histogramParameters.bins;
+	m_numberOfYBins = ceil(m_numberOfXBins / 2);
 
 	//Lenght of the axes with offset from center
 	m_axisLength = calculateAxisLength(pos, m_radius);
@@ -631,9 +644,12 @@ void iAVRHistogramPairVis::calculateHistogram(int axis)
 		double markPosShiftedRight[3]{};
 		vtkMath::Subtract(markPos, (direction).data(), markPosShiftedRight);
 		vtkMath::Add(markPos, (direction).data(), markPosShiftedLeft);
+		
 
-		double ySizeR1 = minYBarSize * (double)(m_histogramParameter->histogramRegion1.at(axis).at(binCount));
-		double ySizeR2 = minYBarSize * (double)(m_histogramParameter->histogramRegion2.at(axis).at(binCount));
+		//double ySizeR1 = minYBarSize * (double)(m_histogram->histogramRegion1.at(axis).at(binCount));
+		//double ySizeR2 = minYBarSize * (double)(m_histogram->histogramRegion2.at(axis).at(binCount));
+		double ySizeR1 = minYBarSize * (double)(m_histogram01.at(axis).m_histogramParameters.observations.at(binCount));
+		double ySizeR2 = minYBarSize * (double)(m_histogram02.at(axis).m_histogramParameters.observations.at(binCount));
 
 		barPoints->InsertNextPoint(markPosShiftedLeft[0], markPosShiftedLeft[1] + (ySizeR1 / 2.0), markPosShiftedLeft[2]);
 		glyphColor->InsertNextTuple4(barColorR1.red(), barColorR1.green(), barColorR1.blue(), barColorR1.alpha());
@@ -815,7 +831,7 @@ void iAVRHistogramPairVis::createAxisLabels(int axis)
 	double offsetYAxis = m_radius * 0.006;
 	int loopCount = 0;
 
-	auto minVal = m_histogramParameter->minValue.at(axis);
+	auto minVal = vtkMath::Min(m_histogram01.at(axis).m_histogramParameters.minValue, m_histogram01.at(axis).m_histogramParameters.minValue);
 	//X Dir
 	m_axisLabelActor->at(axis).push_back(std::vector<iAVR3DText>());
 	for (vtkIdType point = 1; point < m_axesMarksPoly->at(axis).at(0)->GetNumberOfPoints(); point += 2)
@@ -826,11 +842,11 @@ void iAVRHistogramPairVis::createAxisLabels(int axis)
 		else pos[1] -= offsetXAxis * 2.1;
 
 		auto tempText = iAVR3DText(m_renderer);
-		QString textLabel = QString("%1-%2").arg(minVal, 0, 'f', 2).arg(minVal + (m_histogramParameter->histogramWidth.at(axis)), 0, 'f', 2);
+		QString textLabel = QString("%1-%2").arg(minVal, 0, 'f', 2).arg(minVal + (m_histogram01.at(axis).m_histogramParameters.binWidth), 0, 'f', 2);
 		tempText.createSmall3DLabel(textLabel);
 		tempText.setLabelPos(pos);
 		m_axisLabelActor->at(axis).at(0).push_back(tempText);
-		minVal += m_histogramParameter->histogramWidth.at(axis);
+		minVal += m_histogram01.at(axis).m_histogramParameters.binWidth;
 		loopCount++;
 	}
 
@@ -858,7 +874,7 @@ void iAVRHistogramPairVis::createAxisLabels(int axis)
 	titlePos[0] = m_axesMarksPoly->at(axis).at(0)->GetPoint(m_axesMarksPoly->at(axis).at(0)->GetNumberOfPoints() / 2)[0];
 	titlePos[1] = height + (0.05 * height);
 	titlePos[2] = m_axesMarksPoly->at(axis).at(0)->GetPoint(m_axesMarksPoly->at(axis).at(0)->GetNumberOfPoints() / 2)[2];
-	m_axisTitleActor->at(axis).create3DLabel(QString("%1").arg(m_histogramMetric->getFeatureName(m_histogramParameter->featureList->at(axis))));
+	m_axisTitleActor->at(axis).create3DLabel(QString("%1").arg(m_histogramMetric->getFeatureName(m_histogram01.at(axis).m_histogramParameters.featureID)));
 	m_axisTitleActor->at(axis).setLabelPos(titlePos);
 }
 
@@ -906,8 +922,8 @@ double iAVRHistogramPairVis::getXZCubeSize()
 
 int iAVRHistogramPairVis::getMaxBinOccurrences(int axis)
 {
-	auto r1 = std::max_element(m_histogramParameter->histogramRegion1.at(axis).begin(), m_histogramParameter->histogramRegion1.at(axis).end());
-	auto r2 = std::max_element(m_histogramParameter->histogramRegion2.at(axis).begin(), m_histogramParameter->histogramRegion2.at(axis).end());
+	auto r1 = std::max_element(m_histogram01.at(axis).m_histogramParameters.observations.begin(), m_histogram01.at(axis).m_histogramParameters.observations.end());
+	auto r2 = std::max_element(m_histogram02.at(axis).m_histogramParameters.observations.begin(), m_histogram02.at(axis).m_histogramParameters.observations.end());
 
 	int maxVal = std::max((int)*r1, (int)*r2);
 	return maxVal;

@@ -21,38 +21,53 @@
 #pragma once
 
 #include "iAVRMetrics.h"
+#include "iAVRHistogram.h"
 
-struct HistogramParameters
-{
-	//featureList needed to map from array position back to feature id
-	std::vector<int>* featureList;
-	//Stores for every [feature] the min value of both regions
-	std::vector<double> minValue;
-	//Stores for every [feature] the max value of both regions
-	std::vector<double> maxValue;
-	//Stores for every [feature] the calculated bin width
-	std::vector<double> histogramWidth;
-	//Amount of bins for current histogram
-	int bins = 0;
-	//Stores for every [feature] the occurency in every [bin]
-	std::vector<std::vector<int>> histogramRegion1;
-	std::vector<std::vector<int>> histogramRegion2;
-};
+//struct HistogramParametersOLD
+//{
+//	//featureList needed to map from array position back to feature id
+//	std::vector<int>* featureList;
+//	//Stores for every [feature] the min value of both regions
+//	std::vector<double> minValue;
+//	//Stores for every [feature] the max value of both regions
+//	std::vector<double> maxValue;
+//	//Stores for every [feature] the calculated bin width
+//	std::vector<double> histogramWidth;
+//	//Amount of bins for current histogram
+//	int bins = 0;
+//	
+//	//Stores for every [feature] the occurency in every [bin]
+//	std::vector<std::vector<int>> histogramRegion1;
+//	std::vector<std::vector<int>> histogramRegion2;
+//};
 
+//! Calculates different metrics of histograms
 class iAVRHistogramMetric: public iAVRMetrics
 {
 public:
 	iAVRHistogramMetric(vtkTable* objectTable, iACsvIO io, std::vector<iAVROctree*>* octrees);
-	int getMaxNumberOfHistogramBins(int observations);
-	HistogramParameters* getHistogram(int level, int maxNumberOfFibersInRegion, std::vector<int>* featureList, int region1, int region2);
+	iAVRHistogram getHistogram(std::vector<double> values, int observations);
+	iAVRHistogram getHistogram(std::vector<double> values, double min, double max, int observations);
+	int determineNumberOfBins(int observations, int method);
+	void setHistogramFeatureID(iAVRHistogram* histogram, int ID);
+	
 
 private:
-	//Stores the minValue, maxValue, binWidth and bin amount
-	HistogramParameters* m_histogramParameter;
-	//Stores the currently calculated histogram for the two [regions] and their [bins] with the cumulative number of observations
-	std::vector<std::vector<int>>* m_currentHistogram;
 
-	void calculateBinWidth(int level, int maxNumberOfFibersInRegion, std::vector<int>* featureList, int region1, int region2, std::vector<std::vector<std::vector<double>>>* regionValues);
-	void calculateHistogramValues(int level, int maxNumberOfFibersInRegion, std::vector<int>* featureList, int region1, int region2);
+	/**************************Histogram Calculations**********************************/
+	int calculateSturgesRule(int observations);
+	iAVRHistogram calculate1DHistogram(QString label, int bins, double min, double max, std::vector<double> values);
+	std::vector<int> getObservationsInBin(iAVRHistogram* histogram);
+
+	/**************************Descriptive Statistics**********************************/
+	void calculateDescriptiveStatistics(std::vector<double> values, iAVRHistogram* histogram);
+	double calculateMean(std::vector<double> values);
+	double calculateMedian(std::vector<double> values);
+	double calculateStandartDeviation(std::vector<double> values);
+	double calculateSkewness(std::vector<double> values);
+	double calculateKurtosis(std::vector<double> values);
+	int calculateModality(std::vector<double> values);
+
+	
 };
 

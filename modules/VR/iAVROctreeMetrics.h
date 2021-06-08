@@ -33,8 +33,9 @@ public:
 	std::vector<std::vector<std::vector<double>>>* getRegionAverage(int octreeLevel, int feature);
 	std::vector<std::vector<std::vector<vtkIdType>>>* getMaxCoverageFiberPerRegion();
 	std::vector<double> getMinMaxAvgRegionValues(int octreeLevel, int feature);
-	std::vector<std::vector<std::vector<double>>>* getJaccardIndex(int level);
-	double getMaxNumberOfFibersInRegion(int level);
+	std::vector<double> getRegionValues(int octreeLevel, int region, int feature);
+	std::vector<std::vector<std::vector<double>>>* getJaccardIndex(int octreeLevel);
+	double getMaxNumberOfFibersInRegion(int octreeLevel);
 
 private:
 	//Stores for the [octree level] in an [octree region] the fibers which have the max coverage (Every Fiber can only be in one region)

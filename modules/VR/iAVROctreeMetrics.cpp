@@ -108,12 +108,28 @@ std::vector<double> iAVROctreeMetrics::getMinMaxAvgRegionValues(int octreeLevel,
 	return minMax;
 }
 
-//! Returns the jaccard index of an octree level. Stores previously computed level.
-std::vector<std::vector<std::vector<double>>>* iAVROctreeMetrics::getJaccardIndex(int level)
+//! Returns the values of a feature for all fibers in the given region
+//! Vector stores all instances (values) of the choosen feature
+std::vector<double> iAVROctreeMetrics::getRegionValues(int octreeLevel, int region, int feature)
 {
-	if (m_jaccardValues->at(level).empty())
+	auto fibersInRegion = m_fiberCoverage->at(octreeLevel).at(region);
+	std::vector<double> values = std::vector<double>();
+
+	for (auto fiber : *fibersInRegion)
 	{
-		calculateJaccardIndex(level);
+		auto value = m_objectTable->GetValue(fiber.first, feature).ToFloat();
+		values.push_back(value);
+	}
+
+	return values;
+}
+
+//! Returns the jaccard index of an octree level. Stores previously computed level.
+std::vector<std::vector<std::vector<double>>>* iAVROctreeMetrics::getJaccardIndex(int octreeLevel)
+{
+	if (m_jaccardValues->at(octreeLevel).empty())
+	{
+		calculateJaccardIndex(octreeLevel);
 		return m_jaccardValues;
 	}
 	else
@@ -123,14 +139,14 @@ std::vector<std::vector<std::vector<double>>>* iAVROctreeMetrics::getJaccardInde
 }
 
 //! Returns amount of fibers for the region with the most fibers (of a given octree level)
-double iAVROctreeMetrics::getMaxNumberOfFibersInRegion(int level)
+double iAVROctreeMetrics::getMaxNumberOfFibersInRegion(int octreeLevel)
 {
 	if (m_maxNumberOffibersInRegions->empty())
 	{
 		calculateMaxNumberOfFibersInRegion();
 	}
 
-	return m_maxNumberOffibersInRegions->at(level);
+	return m_maxNumberOffibersInRegions->at(octreeLevel);
 }
 
 //! Returns a vector which stores for each fiber its region with the strongest coverage fo every level

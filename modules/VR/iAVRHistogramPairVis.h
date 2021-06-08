@@ -88,7 +88,10 @@ private:
 	double binY;
 	//[0] Left (0°), [1] Right (180°) Axis
 	int m_frontAxes[2];
-	HistogramParameters* m_histogramParameter;
+
+	//Stores for every [feature] a histogram
+	std::vector<iAVRHistogram> m_histogram01;
+	std::vector<iAVRHistogram> m_histogram02;
 	QColor barColorR1;
 	QColor barColorR2;
 

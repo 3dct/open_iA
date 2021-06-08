@@ -20,39 +20,43 @@
 * ************************************************************************************/
 #pragma once
 
-#include "iACsvIO.h"
-#include "iAVROctree.h"
-#include "iAVR3DText.h"
+#include <boost/histogram.hpp> // make_histogram, regular, weight, indexed
 
-#include "vtkTable.h"
+/**************************Define histogram type**********************************/
+using axes_regular = std::tuple<
+	boost::histogram::axis::regular<>
+>;
+using regularStatic1DHistogram = boost::histogram::histogram<axes_regular>;
+/*********************************************************************************/
 
-#include <QString>
+struct HistogramParameters
+{
+	int featureID = -1;
+	double bins = 0;
+	double binWidth = 0;
+	//Holds the observations for every [bin]
+	std::vector<int> observations = std::vector<int>();
+	double maxValue = 0;
+	double minValue = 0;
+	double mean = 0;
+	double median = 0;
+	double standartDeviation = 0;
+	double skewness = 0;
+	double kurtosis = 0;
+	double modality = 0;
+};
 
-//!This class contains basic data structures/values for metrics calculation
-class iAVRMetrics
+//! Stores Histogram values
+class iAVRHistogram
 {
 public:
-	iAVRMetrics(vtkTable* objectTable, iACsvIO io, std::vector<iAVROctree*>* octrees);
-	void setFiberCoverageData(std::vector<std::vector<std::unordered_map<vtkIdType, double>*>>* fiberCoverage);
-	int getNumberOfFeatures();
-	QString getFeatureName(int feature);
-	std::vector<double> getMinMaxFiberValues(int feature);
+	iAVRHistogram();
+	HistogramParameters m_histogramParameters;
 
-	static std::vector<double> getMinMaxFromVec(std::vector<double> val01, std::vector<double> val02);
-	static double histogramNormalization(double value, double newMin, double newMax, double oldMin, double oldMax);
-	static double histogramNormalizationExpo(double value, double newMin, double newMax, double oldMin, double oldMax);
-
-protected:
-	static int numberOfFeatures;
-	//Stores the for a [feature] the [0] min and the [1] max value from the csv file
-	static std::vector<std::vector<double>>* m_minMaxValues;
-
-	//Stores for the [octree level] in an [octree region] a map of its fiberIDs with their coverage
-	std::vector<std::vector<std::unordered_map<vtkIdType, double>*>>* m_fiberCoverage;
-	iACsvIO m_io;
-	vtkSmartPointer<vtkTable> m_objectTable;
-	std::vector<iAVROctree*>* m_octrees;
+	regularStatic1DHistogram* getHistogram();
 
 private:
-	void storeMinMaxValues();
+	regularStatic1DHistogram m_histogram;
+
+	void initializeDataStructure();
 };
