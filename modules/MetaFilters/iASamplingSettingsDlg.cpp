@@ -776,12 +776,12 @@ void iASamplingSettingsDlg::runClicked()
 	QString msg;
 	if (!m_paramSpecs)
 	{
-		msg += QString("Parameter specifications not set, cannot run!");
+		msg += QString("Parameter specifications not set, cannot run!\n");
 	}
 	if (m_paramInputs.size() != m_paramSpecs->size())
 	{
 		msg += QString("Number of shown parameters (=%1) is not the same "
-			"as the number of parameters for the filter (=%2)!")
+			"as the number of parameters for the filter (=%2)!\n")
 			.arg(m_paramInputs.size()).arg(m_paramSpecs->size());
 	}
 	for (int l = 0; l < m_paramInputs.size(); ++l)
@@ -793,37 +793,38 @@ void iASamplingSettingsDlg::runClicked()
 			     curMaxStr = QString::number(desc->max(), 'g');
 			if ( !std::isfinite(desc->min()) || minStr == curMinStr)
 			{
-				msg += QString("Parameter '%1': invalid minimum value!").arg(desc->name());
+				msg += QString("Parameter '%1': invalid minimum value!\n").arg(desc->name());
 			}
 			if ( !std::isfinite(desc->max()) || maxStr == curMaxStr)
 			{
-				msg += QString("Parameter '%1': invalid maximum value!").arg(desc->name());
+				msg += QString("Parameter '%1': invalid maximum value!\n").arg(desc->name());
 			}
 			if (desc->min() > desc->max())
 			{
 				msg += QString("Parameter '%1': Minimum value must be smaller than or equal to maximum "
-					"(current minimum %2 is bigger than maximum %3)!").arg(desc->name())
+					"(current minimum %2 is bigger than maximum %3)!\n").arg(desc->name())
 					.arg(desc->min()).arg(desc->max());
 			}
 			if (desc->min() < m_paramSpecs->at(l)->min() ||
 				desc->max() > m_paramSpecs->at(l)->max())
 			{
 				msg += QString("Parameter '%1': Specified interval (%2, %3) outside of "
-					"valid range for this parameter (%4, %5)").arg(desc->name())
+					"valid range for this parameter (%4, %5)\n").arg(desc->name())
 					.arg(desc->min()).arg(desc->max())
 					.arg(m_paramSpecs->at(l)->min()).arg(m_paramSpecs->at(l)->max());
 			}
 		}
-		if (desc->valueType() == iAValueType::Categorical && desc->defaultValue().toString().size() == 0)
+		if ((desc->valueType() == iAValueType::Categorical || desc->valueType() == iAValueType::Boolean) &&
+			desc->defaultValue().toString().size() == 0)
 		{
-			msg += QString("Parameter '%1': Currently, no value is selected; you must select at least one value!").arg(desc->name());
+			msg += QString("Parameter '%1': Currently, no value is selected; you must select at least one value!\n").arg(desc->name());
 		}
 	}
 	if (rbBuiltIn->isChecked())
 	{
 		if (pbFilterSelect->text() == SelectFilterDefaultText)
 		{
-			msg += "Built-in sampling: No filter selected!";
+			msg += "Built-in sampling: No filter selected!\n";
 		}
 		else
 		{
@@ -831,7 +832,7 @@ void iASamplingSettingsDlg::runClicked()
 			auto filter = iAFilterRegistry::filter(filterName);
 			if (!filter)
 			{
-				msg += "Built-in sampling: Invalid filter name - no filter found with that name!";
+				msg += "Built-in sampling: Invalid filter name - no filter found with that name!\n";
 			}
 			else
 			{
@@ -845,7 +846,7 @@ void iASamplingSettingsDlg::runClicked()
 					if (filter->requiredInputs() > inputCount)
 					{
 						msg += QString("Filter requires more inputs (%1) "
-							"than the number of datasets currently loaded (%2)!")
+							"than the number of datasets currently loaded (%2)!\n")
 							.arg(filter->requiredInputs())
 							.arg(inputCount);
 					}
@@ -855,11 +856,11 @@ void iASamplingSettingsDlg::runClicked()
 	}
 	else if (rbExternal->isChecked() && (leExecutable->text().isEmpty() || leParamDescriptor->text().isEmpty()))
 	{
-		msg += "External sampling: No executable and/or parameter descriptor chosen!";
+		msg += "External sampling: No executable and/or parameter descriptor chosen!\n";
 	}
 	else if (rbExternal->isChecked() && !QFileInfo(leExecutable->text()).exists())
 	{
-		msg += QString("External sampling: Executable '%1' doesn't exist!").arg(leExecutable->text());
+		msg += QString("External sampling: Executable '%1' doesn't exist!\n").arg(leExecutable->text());
 	}
 	if (!msg.isEmpty())
 	{

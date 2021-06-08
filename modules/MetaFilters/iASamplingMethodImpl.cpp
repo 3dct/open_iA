@@ -321,11 +321,24 @@ iAParameterSetsPointer iALatinHypercubeSamplingMethod::parameterSets(QSharedPoin
 		else if(valueType == iAValueType::Boolean || valueType == iAValueType::Categorical)
 		{
 			auto options = param->defaultValue().toStringList();
-			int maxOptIdx = options.size();
-			for (int s = 0; s < sampleCount; ++s)
+			if (options.size() == 0)
 			{
-				int optIdx = s % maxOptIdx;
-				sampleValues[p].push_back(options[optIdx]);
+				LOG(lvlWarn,
+					QString("You have to choose at least one option for Boolean values (parameter %1), using 'true' for all parameter sets!")
+						.arg(param->name()));
+				for (int s = 0; s < sampleCount; ++s)
+				{
+					sampleValues[p].push_back(true);
+				}
+			}
+			else
+			{
+				int maxOptIdx = options.size();
+				for (int s = 0; s < sampleCount; ++s)
+				{
+					int optIdx = s % maxOptIdx;
+					sampleValues[p].push_back(options[optIdx]);
+				}
 			}
 		}
 		else
