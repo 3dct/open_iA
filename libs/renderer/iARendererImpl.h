@@ -161,6 +161,9 @@ public:
 	void emitSelectedCells(vtkUnstructuredGrid* selectedCells);
 	void emitNoSelectedCells();
 
+	void touchStart();
+	void touchScaleSlot(float relScale);
+
 signals:
 	void cellsSelected(vtkPoints* selCellPoints);
 	void noCellsSelected();
@@ -256,4 +259,7 @@ private:
 
 	//! flag indicating whether renderer is initialized
 	bool m_initialized;
+
+	//! for touch interaction: scale when touch started
+	double m_touchStartScale;
 };

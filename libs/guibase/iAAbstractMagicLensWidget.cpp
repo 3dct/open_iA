@@ -21,6 +21,7 @@
 #include "iAAbstractMagicLensWidget.h"
 
 #include "defines.h" // for DefaultMagicLensSize
+#include "iALog.h"
 #include "iAVtkVersion.h"
 
 #include <QVTKInteractor.h>
@@ -34,6 +35,9 @@
 #include <vtkProperty2D.h>
 #include <vtkRenderer.h>
 #include <vtkRendererCollection.h>
+
+#include <QEvent>
+#include <QTouchEvent>
 
 const double iAAbstractMagicLensWidget::OFFSET_VAL = 20.;
 
@@ -117,6 +121,52 @@ void iAAbstractMagicLensWidget::mouseMoveEvent( QMouseEvent * event )
 #else
 	renderWindow()->Render();
 #endif
+}
+
+bool iAAbstractMagicLensWidget::event(QEvent* event)
+{
+	switch (event->type())
+	{
+	case QEvent::TouchBegin:
+	case QEvent::TouchUpdate:
+	case QEvent::TouchEnd:
+	{
+		QTouchEvent* touchEvent = static_cast<QTouchEvent*>(event);
+#if QT_VERSION < QT_VERSION_CHECK(6, 0, 0)
+		QList<QTouchEvent::TouchPoint> touchPoints = touchEvent->touchPoints();
+#else
+		QList<QTouchEvent::TouchPoint> touchPoints = touchEvent->points();
+#endif
+		//LOG(lvlDebug, QString("event: %1, touchpoints: %2, state: %3")
+		//	.arg(event->type() == QEvent::TouchBegin ? "TouchBegin" : (event->type() == QEvent::TouchEnd ? "TouchEnd" : "TouchUpdate") )
+		//	.arg(touchPoints.count())
+		//	.arg(touchEvent->touchPointStates())
+		//);
+		if (touchPoints.count() == 2)
+		{
+			if (touchEvent->touchPointStates() & Qt::TouchPointPressed)
+			{
+				emit touchStart();
+			}
+			// determine scale factor
+			const QTouchEvent::TouchPoint& touchPoint0 = touchPoints.first();
+			const QTouchEvent::TouchPoint& touchPoint1 = touchPoints.last();
+			qreal currentScaleFactor = 
+				QLineF(touchPoint0.pressPosition(), touchPoint1.pressPosition()).length() /
+				QLineF(touchPoint0.position(), touchPoint1.position()).length();
+			//LOG(lvlDebug, QString("scale: %1").arg(currentScaleFactor));
+			// ToDo - handle special cases, e.g. :
+			//			- one touch point is moved
+			//          - then other point is lifted
+			//          - then another point is touched -> immediate zooming reaction due to move of pressPosition of "unlifted" point
+			emit touchScale(currentScaleFactor);
+			return true;
+		}
+	}
+	default:
+		return iAVtkWidget::event(event);
+	}
+	return true;
 }
 
 void iAAbstractMagicLensWidget::updateLens( )

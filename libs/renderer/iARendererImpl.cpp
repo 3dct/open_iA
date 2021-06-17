@@ -269,7 +269,8 @@ iARendererImpl::iARendererImpl(QObject *par): iARenderer(par),
 	m_slicingCube(vtkSmartPointer<vtkCubeSource>::New()),
 	m_sliceCubeMapper(vtkSmartPointer<vtkPolyDataMapper>::New()),
 	m_sliceCubeActor(vtkSmartPointer<vtkActor>::New()),
-	m_initialized(false)
+	m_initialized(false),
+	m_touchStartScale(1.0)
 {
 	// fill m_profileLine; cannot do it via  m_profileLine(NumOfProfileLines, iALineSegment()),
 	// since that would insert copies of one iALineSegment, meaning all would reference the same vtk objects...
@@ -1035,6 +1036,19 @@ void iARendererImpl::emitSelectedCells(vtkUnstructuredGrid* selectedCells)
 void iARendererImpl::emitNoSelectedCells()
 {
 	emit noCellsSelected();
+}
+
+void iARendererImpl::touchStart()
+{
+	m_touchStartScale = m_cam->GetParallelScale();
+	//LOG(lvlDebug, QString("Init scale: %1").arg(m_touchStartScale));
+}
+
+void iARendererImpl::touchScaleSlot(float relScale)
+{
+	//LOG(lvlDebug, QString("Scale before: %1; new scale: %2").arg(m_touchStartScale).arg(m_touchStartScale * relScale));
+	m_cam->SetParallelScale(m_touchStartScale * relScale);
+	update();
 }
 
 void iARendererImpl::updateSlicePlanes(double const * newSpacing)
