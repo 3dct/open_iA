@@ -30,6 +30,8 @@
 #include <QStringList>
 #include <QVector>
 
+class iAMdiChild;
+
 class iACsvTableCreator;
 class iAFiberCharUIData;
 class iAFiberResultsCollection;
@@ -43,13 +45,13 @@ class vtkPolyData;
 // }
 
 class QDockWidget;
-class QMainWindow;
+//class QMainWindow;
 
 class iASensitivityInfo: public QObject, public iAAbortListener
 {
 	Q_OBJECT
 public:
-	static QSharedPointer<iASensitivityInfo> create(QMainWindow* child,
+	static QSharedPointer<iASensitivityInfo> create(iAMdiChild* child,
 		QSharedPointer<iAFiberResultsCollection> data, QDockWidget* nextToDW,
 		int histogramBins, int skipColumns, std::vector<iAFiberCharUIData> const& resultUIs,
 		iAVtkWidget* main3DWidget,
@@ -57,7 +59,7 @@ public:
 		QVector<int> const& charSelected = QVector<int>(),
 		QVector<int> const& charDiffMeasure = QVector<int>(),
 		iASettings const & projectFile = iASettings());
-	static QSharedPointer<iASensitivityInfo> load(QMainWindow* child,
+	static QSharedPointer<iASensitivityInfo> load(iAMdiChild* child,
 		QSharedPointer<iAFiberResultsCollection> data, QDockWidget* nextToDW,
 		iASettings const & projectFile, QString const& projectFileName,
 		std::vector<iAFiberCharUIData> const& resultUIs, iAVtkWidget* main3DWidget);
@@ -221,7 +223,7 @@ public:
 private:
 	iASensitivityInfo(QSharedPointer<iAFiberResultsCollection> data,
 		QString const& parameterFileName, int skipColumns, QStringList const& paramNames,
-		std::vector<std::vector<double>> const& paramValues, QMainWindow* child,
+		std::vector<std::vector<double>> const& paramValues, iAMdiChild* child,
 		QDockWidget* nextToDW, std::vector<iAFiberCharUIData> const& resultUIs, iAVtkWidget* main3DWidget);
 	void compute();
 	QString dissimilarityMatrixCacheFileName() const;
@@ -233,7 +235,7 @@ private:
 
 	QString m_parameterFileName;
 	int m_skipColumns;
-	QMainWindow* m_child;
+	iAMdiChild* m_child;
 	QDockWidget* m_nextToDW;
 	std::vector<iAFiberCharUIData> const& m_resultUIs;
 	iAVtkWidget* m_main3DWidget;

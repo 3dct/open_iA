@@ -40,6 +40,9 @@
 #include <iAVec3.h>
 
 // guibase:
+#include <iAMdiChild.h>
+#include <iAModality.h>
+#include <iAModalityList.h>
 #include <qthelper/iAQTtoUIConnector.h>
 #include <qthelper/iAWidgetSettingsMapper.h>
 
@@ -101,7 +104,7 @@
 #include <QFile>
 #include <QFileDialog>
 #include <QLabel>
-#include <QMainWindow>
+//#include <QMainWindow>
 #include <QMessageBox>
 #include <QRadioButton>
 #include <QScrollArea>
@@ -324,7 +327,7 @@ void iASensitivityInfo::abort()
 	m_aborted = true;
 }
 
-QSharedPointer<iASensitivityInfo> iASensitivityInfo::create(QMainWindow* child,
+QSharedPointer<iASensitivityInfo> iASensitivityInfo::create(iAMdiChild* child,
 	QSharedPointer<iAFiberResultsCollection> data, QDockWidget* nextToDW, int histogramBins, int skipColumns,
 	std::vector<iAFiberCharUIData> const& resultUIs, iAVtkWidget* main3DWidget, QString parameterSetFileName,
 	QVector<int> const & charSelected, QVector<int> const & charDiffMeasure, iASettings const & projectFile)
@@ -507,7 +510,7 @@ QSharedPointer<iASensitivityInfo> iASensitivityInfo::create(QMainWindow* child,
 
 iASensitivityInfo::iASensitivityInfo(QSharedPointer<iAFiberResultsCollection> data,
 	QString const& parameterFileName, int skipColumns, QStringList const& paramNames,
-	std::vector<std::vector<double>> const & paramValues, QMainWindow* child, QDockWidget* nextToDW,
+	std::vector<std::vector<double>> const & paramValues, iAMdiChild* child, QDockWidget* nextToDW,
 	std::vector<iAFiberCharUIData> const & resultUIs, iAVtkWidget* main3DWidget) :
 	m_data(data),
 	m_paramNames(paramNames),
@@ -1919,7 +1922,7 @@ bool iASensitivityInfo::hasData(iASettings const& settings)
 }
 
 
-QSharedPointer<iASensitivityInfo> iASensitivityInfo::load(QMainWindow* child,
+QSharedPointer<iASensitivityInfo> iASensitivityInfo::load(iAMdiChild* child,
 	QSharedPointer<iAFiberResultsCollection> data, QDockWidget* nextToDW, iASettings const& projectFile,
 	QString const& projectFileName, std::vector<iAFiberCharUIData> const& resultUIs, iAVtkWidget* main3DWidget)
 {
@@ -1961,6 +1964,19 @@ private:
 	iASensitivityInfo const & m_data;
 	iAFiberResultsCollection const& m_results;
 };
+
+namespace
+{
+	iAVec3i mapPointToIndex(iAVec3f const & pt, double const * origin, double const * spacing, int const * size)
+	{
+		iAVec3i result;
+		for (int i = 0; i < 3; ++i)
+		{
+			result[i] = clamp(0, size[i]-1, static_cast<int>(std::floor((pt[i] - origin[i]) / spacing[i])));
+		}
+		return result;
+	}
+}
 
 void iASensitivityInfo::createGUI()
 {
@@ -2130,7 +2146,8 @@ void iASensitivityInfo::createGUI()
 	// 	   Q: how to handle no match?
 	// 	   Q: 
 	
-	int const size[3] = {64, 64, 64};
+	int const volSize = 64;
+	int const size[3] = {volSize, volSize, volSize};
 	// find bounding box that accomodates all results:
 	double overallBB[6];
 	overallBB[0] = overallBB[2] = overallBB[4] = std::numeric_limits<double>::max();
@@ -2139,34 +2156,96 @@ void iASensitivityInfo::createGUI()
 	{
 		for (int i=0; i<3; ++i)
 		{
-			overallBB[i * 3] = std::min(overallBB[i * 3], m_data->result[r].boundingBox[i * 3]);
-			overallBB[i * 3 + 1] = std::max(overallBB[i * 3 + 1], m_data->result[r].boundingBox[i * 3 + 1]);
+			overallBB[i * 2] = std::min(overallBB[i * 2], m_data->result[r].boundingBox[i * 2]);
+			overallBB[i * 2 + 1] = std::max(overallBB[i * 2 + 1], m_data->result[r].boundingBox[i * 2 + 1]);
 		}
 	}
 
 	// create volume V of dimensionality XxYxZ
-	double const spacing[3] = {1, 1, 1};
 	double const origin[3] = {
 		overallBB[0],
 		overallBB[2],
 		overallBB[4],
 	};
+	double const spacing[3] = {
+		(overallBB[1] - overallBB[0]) / volSize,
+		(overallBB[3] - overallBB[2]) / volSize,
+		(overallBB[5] - overallBB[4]) / volSize,
+	};
+	LOG(lvlDebug,
+		QString("Overview volume: box (tl=%1, %2, %3; br=%4, %5, %6), spacing (%7, %8, %9)")
+			.arg(overallBB[0])
+			.arg(overallBB[2])
+			.arg(overallBB[4])
+			.arg(overallBB[1])
+			.arg(overallBB[3])
+			.arg(overallBB[5])
+			.arg(spacing[0])
+			.arg(spacing[1])
+			.arg(spacing[2])
+	);
 
-	auto overviewVolume = allocateImage(VTK_FLOAT, size, spacing);
-	overviewVolume->SetOrigin(origin);
+	const int MeasureIdx = 0;
+
+	// voxel: x, y, z, (list of pairs result, fiber)
+	std::vector<std::vector<std::vector<std::set<std::pair<size_t, size_t>>>>> fibersPerVoxel(volSize);
+	// allocate sub-storage:
+	for (int x = 0; x < fibersPerVoxel.size(); ++x)
+	{
+		fibersPerVoxel[x].resize(volSize);
+		for (int y = 0; y < volSize; ++y)
+		{
+			fibersPerVoxel[x][y].resize(volSize);
+		}
+	}
+	
+	// assign fibers to the voxels they go through:
 	// for each result:
 	for (size_t r = 0; r < resultCount; ++r)
 	{
+		auto const& d = m_data->result[r];
 		// for each fiber:
-		for (size_t f = 0; f < m_data->result[r].fiberCount; ++f)
+		for (size_t f = 0; f < d.fiberCount; ++f)
 		{
 			// for each fiber "point":
-			// for ()
+			//std::set<iAVec3i> indices;
+			auto it = d.curveInfo.find(f);
+			if (it != d.curveInfo.end())
+			{	// for curved fibers, consider every point in curved fiber info:
+				auto pts = it->second;
+				for (auto pt: pts)
+				{
+					auto idx = mapPointToIndex(pt, origin, spacing, size);
+					//indices.insert(idx);
+					fibersPerVoxel[idx[0]][idx[1]][idx[2]].insert(std::make_pair(r, f));
+				}
+			}
+			else
+			{	// for straight fibers, interpolate points along the direction in distance of half voxel width:
+				iAVec3f start, end;
+				for (int i = 0; i < 3; ++i)
+				{
+					start[i] = d.table->GetValue(f, d.mapping->value(iACsvConfig::StartX + i)).ToFloat();
+					end[i] = d.table->GetValue(f, d.mapping->value(iACsvConfig::EndX + i)).ToFloat();
+				}
+				iAVec3f dir = (end - start).normalized();
+				iAVec3f step = dir / dir.length() * spacing[0] / 2;
+				int ptCount = dir.length() / step.length();
+				for (int s = 0; s < ptCount; ++s)
+				{
+					iAVec3f pt = start + s * step;
+					auto idx = mapPointToIndex(pt, origin, spacing, size);
+					//indices.insert(idx);
+					fibersPerVoxel[idx[0]][idx[1]][idx[2]].insert(std::make_pair(r, f));
+				}
+			}
 				// Q: what fiber points to consider? start/end/middle / curved points / interpolate own points?
 	//             store result+fiber ID in all voxels of V which the fiber goes through
 	//   (-> maybe use iAVRFiberCoverage =)
 		}
 	}
+
+	// compute "average" sensitivity (match quality) for each voxel:
 	// for each voxel in V:
 	//     compute "average" match quality across all assigned fibers
 	//       Q: how to aggregate one value per voxel?
@@ -2174,6 +2253,58 @@ void iASensitivityInfo::createGUI()
 	// crucial: how to aggregate?
 	//    - how on fiber level?
 	//    - how voxel level?
+
+	auto avgVolume = allocateImage(VTK_FLOAT, size, spacing);
+	avgVolume->SetOrigin(origin);
+	auto maxVolume = allocateImage(VTK_FLOAT, size, spacing);
+	maxVolume->SetOrigin(origin);
+	//avgVolume->SetSpacing(spacing);
+	FOR_VTKIMG_PIXELS(avgVolume, x, y, z)
+	{
+		double matchAvgAvg = 0, matchMaxAvg = 0;
+		auto const& fibers = fibersPerVoxel[x][y][z];
+		for (auto p : fibers)
+		{
+			auto r = p.first;
+			auto f = p.second;
+
+			double avgFiberDissim = 0;
+			double maxFiberDissim = 0;
+			int matchCnt = 0;
+			// aggregate on fiber level over dissimilarity of that fiber to all other 
+			// TO EXPLORE: MAX? MIN? ...?
+			for (int r2 = 0; r2 < resultCount; ++r2)
+			{
+				if (r == r2)
+				{
+					continue;
+				}
+				auto const & simFib = m_resultDissimMatrix[r][r2].fiberDissim[f][MeasureIdx];
+				if (simFib.size() > 0)
+				{
+					avgFiberDissim += simFib[0].dissimilarity;
+					maxFiberDissim = std::max(maxFiberDissim, static_cast<double>(simFib[0].dissimilarity));
+					++matchCnt;
+				}
+			}
+			avgFiberDissim /= matchCnt;
+		// aggregate on voxel level over dissimilarity of all contained fibers
+		// TO EXPLORE: MAX? MIN? ...?
+			matchAvgAvg += avgFiberDissim;
+			matchMaxAvg += maxFiberDissim;
+		}
+		matchAvgAvg /= fibers.size();
+		matchMaxAvg /= fibers.size();
+		avgVolume->SetScalarComponentFromDouble(x, y, z, 0, matchAvgAvg);
+		maxVolume->SetScalarComponentFromDouble(x, y, z, 0, matchMaxAvg);
+	}
+
+	// show image 
+	// overviewVolume
+	QSharedPointer<iAModalityList> mods(new iAModalityList());
+	mods->add(QSharedPointer<iAModality>::create("avg per voxel / avg per fiber dissim.", "", 1, avgVolume, iAModality::MainRenderer));
+	mods->add(QSharedPointer<iAModality>::create("avg per voxel / max per fiber dissim.", "", 1, maxVolume, iAModality::MainRenderer));
+	m_child->setModalities(mods);
 }
 
 void iASensitivityInfo::changeMeasure(int newMeasure)
