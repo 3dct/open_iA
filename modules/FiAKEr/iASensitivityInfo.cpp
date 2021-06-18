@@ -20,11 +20,12 @@
 * ************************************************************************************/
 #include "iASensitivityInfo.h"
 
-// Charts
+// charts
 #include <iASPLOMData.h>
 #include <iAScatterPlotWidget.h>
 #include <iAScatterPlotViewData.h>
 
+// base:
 #include <iAFileUtils.h>
 #include <iAColorTheme.h>
 #include <iAJobListView.h>
@@ -35,6 +36,7 @@
 #include <iARunAsync.h>
 #include <iAStackedBarChart.h>    // for add HeaderLabel
 #include <iAStringHelper.h>
+#include <iAToolsVTK.h>
 #include <iAVec3.h>
 
 // guibase:
@@ -67,6 +69,7 @@
 #include "ui_DissimilarityMatrix.h"
 #include "ui_SensitivitySettings.h"
 
+#include <vtkImageData.h>
 #include <vtkPolyData.h>
 #include <vtkPolyDataMapper.h>
 #include <vtkSmartPointer.h>
@@ -1314,6 +1317,9 @@ void iASensitivityInfo::compute()
 		m_dissimRanges.push_back(dissimRange);
 		m_dissimHistograms.push_back(dissimHistogram);
 	}
+
+	// compute volume of dissimilarity
+	
 }
 
 QString iASensitivityInfo::dissimilarityMatrixCacheFileName() const
@@ -2045,7 +2051,6 @@ void iASensitivityInfo::createGUI()
 		m_gui->m_mdsData->data()[m_gui->spColIdxFilter][i] = 0.0;  // Filter
 	}
 	m_gui->m_mdsData->updateRanges();
-
 	m_gui->m_lut.reset(new iALookupTable());
 	m_gui->m_lut->setRange(0, m_data->result.size());
 	m_gui->m_lut->allocate(m_data->result.size());
@@ -2117,6 +2122,58 @@ void iASensitivityInfo::createGUI()
 	{
 		m_gui->m_settings->loadSettings(m_projectToLoad);
 	}
+
+	// initialize 3D overview:
+	// required: for each result, and each fiber - quality of match to best-matching fiber in all others
+	// 	   Q: how to aggregate one value per fiber?
+	// 	      A: just average? 
+	// 	   Q: how to handle no match?
+	// 	   Q: 
+	
+	int const size[3] = {64, 64, 64};
+	// find bounding box that accomodates all results:
+	double overallBB[6];
+	overallBB[0] = overallBB[2] = overallBB[4] = std::numeric_limits<double>::max();
+	overallBB[1] = overallBB[3] = overallBB[5] = std::numeric_limits<double>::lowest();
+	for (size_t r = 0; r < resultCount; ++r)
+	{
+		for (int i=0; i<3; ++i)
+		{
+			overallBB[i * 3] = std::min(overallBB[i * 3], m_data->result[r].boundingBox[i * 3]);
+			overallBB[i * 3 + 1] = std::max(overallBB[i * 3 + 1], m_data->result[r].boundingBox[i * 3 + 1]);
+		}
+	}
+
+	// create volume V of dimensionality XxYxZ
+	double const spacing[3] = {1, 1, 1};
+	double const origin[3] = {
+		overallBB[0],
+		overallBB[2],
+		overallBB[4],
+	};
+
+	auto overviewVolume = allocateImage(VTK_FLOAT, size, spacing);
+	overviewVolume->SetOrigin(origin);
+	// for each result:
+	for (size_t r = 0; r < resultCount; ++r)
+	{
+		// for each fiber:
+		for (size_t f = 0; f < m_data->result[r].fiberCount; ++f)
+		{
+			// for each fiber "point":
+			// for ()
+				// Q: what fiber points to consider? start/end/middle / curved points / interpolate own points?
+	//             store result+fiber ID in all voxels of V which the fiber goes through
+	//   (-> maybe use iAVRFiberCoverage =)
+		}
+	}
+	// for each voxel in V:
+	//     compute "average" match quality across all assigned fibers
+	//       Q: how to aggregate one value per voxel?
+
+	// crucial: how to aggregate?
+	//    - how on fiber level?
+	//    - how voxel level?
 }
 
 void iASensitivityInfo::changeMeasure(int newMeasure)
