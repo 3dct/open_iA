@@ -73,6 +73,9 @@ public:
 	//! Retrieve data for modality with given index.
 	virtual QSharedPointer<iAModality> modality(int idx) = 0;
 
+	//! Set list of modalities.
+	virtual void setModalities(QSharedPointer<iAModalityList> modList) =0;
+
 	virtual void setROIVisible(bool isVisible) = 0;
 	virtual void updateROI(int const roi[6]) = 0;
 
