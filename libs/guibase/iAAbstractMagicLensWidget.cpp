@@ -149,11 +149,16 @@ bool iAAbstractMagicLensWidget::event(QEvent* event)
 				emit touchStart();
 			}
 			// determine scale factor
-			const QTouchEvent::TouchPoint& touchPoint0 = touchPoints.first();
-			const QTouchEvent::TouchPoint& touchPoint1 = touchPoints.last();
+			const auto & touchPoint0 = touchPoints.first();
+			const auto & touchPoint1 = touchPoints.last();
 			qreal currentScaleFactor = 
+#if QT_VERSION < QT_VERSION_CHECK(6, 0, 0)
+				QLineF(touchPoint0.startPos(), touchPoint1.startPos()).length() /
+				QLineF(touchPoint0.pos(), touchPoint1.pos()).length();
+#else
 				QLineF(touchPoint0.pressPosition(), touchPoint1.pressPosition()).length() /
 				QLineF(touchPoint0.position(), touchPoint1.position()).length();
+#endif
 			//LOG(lvlDebug, QString("scale: %1").arg(currentScaleFactor));
 			// ToDo - handle special cases, e.g. :
 			//			- one touch point is moved
