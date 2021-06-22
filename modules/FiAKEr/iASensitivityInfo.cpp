@@ -1967,14 +1967,64 @@ private:
 
 namespace
 {
-	iAVec3i mapPointToIndex(iAVec3f const & pt, double const * origin, double const * spacing, int const * size)
+	iAVec3i mapPointToIndex(iAVec3f const& pt, double const* origin, double const* spacing, int const* size)
 	{
 		iAVec3i result;
 		for (int i = 0; i < 3; ++i)
 		{
-			result[i] = clamp(0, size[i]-1, static_cast<int>(std::floor((pt[i] - origin[i]) / spacing[i])));
+			result[i] = clamp(0, size[i] - 1, static_cast<int>(std::floor((pt[i] - origin[i]) / spacing[i])));
 		}
 		return result;
+	}
+
+	//! one fiber is identified by resultID, fiberID
+	using FiberKeyT = std::pair<size_t, size_t>;
+	//! list of unique fibers; outside vectors: unique fibers; inside vector: "matches"
+	using UniqueFibersT = std::vector<std::vector<FiberKeyT>>;
+
+	UniqueFibersT::iterator findMatch(iADissimilarityMatrixType const& dissimMatrix,
+		UniqueFibersT & uniqueFibers, FiberKeyT const& curF, int MeasureIdx)
+	{
+		size_t r1 = curF.first;
+		size_t f1 = curF.second;
+		for (auto cand = uniqueFibers.begin(); cand != uniqueFibers.end(); ++cand)
+		{
+			// Questions:
+			// - do all need to match or only one?
+			// - one direction or both?
+			bool matchFound = false;
+			for (size_t m = 0; m < cand->size(); ++m)
+			{
+				size_t rm = cand->at(m).first;
+				size_t fm = cand->at(m).second;
+				if (rm == r1)	// another fiber in the same result cannot be best match
+				{
+					continue;
+				}
+				size_t bestMatchOff1Inr0 = dissimMatrix[r1][rm].fiberDissim[f1][MeasureIdx][0].index;
+				if (matchFound && fm != bestMatchOff1Inr0)
+				{
+					LOG(lvlDebug, QString("r1=%1, f1=%2: Match not confirmed in synonym %3 (rm=%4, !").arg(r1).arg(f1).arg(m));
+				}
+				if (fm == bestMatchOff1Inr0)
+				{
+					matchFound = true;
+					if (m > 0)
+					{
+						LOG(lvlDebug, QString("r1=%1, f1=%2: Match found, but not at 1st synonym, only at %3!").arg(r1).arg(f1).arg(m));
+					}
+					// check reverse match(es):
+					size_t bestMatchoffmInr1 = dissimMatrix[rm][r1].fiberDissim[fm][MeasureIdx][0].index;
+					if (bestMatchoffmInr1 != f1)
+					{
+						LOG(lvlDebug, QString("r1=%1, f1=%2: Unique match to rm=%3, fm=%4 (m=%5) isn't a reverse match as well; that's matchF1=%6!")
+							.arg(r1).arg(f1).arg(rm).arg(fm).arg(m).arg(bestMatchoffmInr1));
+					}
+				}
+				return cand;
+			}
+		}
+		return uniqueFibers.end();
 	}
 }
 
@@ -2187,7 +2237,75 @@ void iASensitivityInfo::createGUI()
 
 	const int MeasureIdx = 0;
 
+	// NEW spatial overview over variability:
+
+	// same as before:
+	// find overall bounding box
+	// determine (fixed?) dimensions (s_x, s_y, s_z)
+
+	// build list of "unique" fibers:
+	// empty unique fiber list u
+	// for each result r1:
+	//     for each fiber f1 in r1:
+	//         fiberkey r0, f0 = best match to r1,f1 in u (where r1 != r0)
+	//         if there exists such a f0 (and f1 is also listed as best match for f0 (and all its "matches"))
+	//             add (r1, f1) as new "synonym" for (r0, f0) in u
+	//         (? else, if f1 is not listed as best match for f0 (and all its "matches")
+	// 	           add as new unique fiber but somehow mark it linked to f0
+	//         ?) [[-> in first implementation, measure how many such exist, but no special handling]]
+	//         else 
+	// 	           add (r1, f1) as new unique fiber 
+	UniqueFibersT u;
+	for (size_t r1 = 0; r1 < resultCount; ++r1)
+	{
+		auto const& d = m_data->result[r1];
+		for (size_t f1 = 0; f1 < d.fiberCount; ++f1)
+		{
+			auto curFiber = std::make_pair(r1, f1);
+			//FiberKeyT matchFiber;
+			auto it = findMatch(m_resultDissimMatrix, u, curFiber, MeasureIdx);
+			if (it != u.end())
+			{
+				it->push_back(curFiber);
+			}
+			else
+			{
+				std::vector<FiberKeyT> vec;
+				vec.push_back(curFiber);
+				u.push_back(vec);
+			}
+		}
+	}
+
+	LOG(lvlDebug, QString("Found %1 unique fibers across results!").arg(u.size()));
+
+
+	// build per-fiber variability images:
+	// empty list of images of per-fiber variability v
+	// for each unique fiber f in u:
+	//     create empty image i (all 0)
+	//     for each synonym s:
+	//         project s into voxel space (-> resulting into image i_s with 1 in voxels through which s passes through and 0 where it doesn't)
+	//         increase value of all voxels which are covered by s by 1
+	//         (alternative: add i_s to i)
+	//     create "probability" image out of i
+	//     (by dividing it through number of results in ensemble?)
+
+	// build overall variability image:
+	// empty image (s_x, s_y, s_z) a (as average over all unique fiber images:)
+	// for each unique fiber image i:
+	//     add a to i
+	// divide a by number of unique fibers
+	auto avgVar = allocateImage(VTK_FLOAT, size, spacing);
+	avgVar->SetOrigin(origin);
+
+
+
+	///////////////////////////////////////////////////////////////////////////
+	// OLD
+	///////////////////////////////////////////////////////////////////////////
 	// voxel: x, y, z, (list of pairs result, fiber)
+	/*
 	std::vector<std::vector<std::vector<std::set<std::pair<size_t, size_t>>>>> fibersPerVoxel(volSize);
 	// allocate sub-storage:
 	for (int x = 0; x < fibersPerVoxel.size(); ++x)
@@ -2298,12 +2416,13 @@ void iASensitivityInfo::createGUI()
 		avgVolume->SetScalarComponentFromDouble(x, y, z, 0, matchAvgAvg);
 		maxVolume->SetScalarComponentFromDouble(x, y, z, 0, matchMaxAvg);
 	}
+	*/
 
 	// show image 
 	// overviewVolume
 	QSharedPointer<iAModalityList> mods(new iAModalityList());
-	mods->add(QSharedPointer<iAModality>::create("avg per voxel / avg per fiber dissim.", "", 1, avgVolume, iAModality::MainRenderer));
-	mods->add(QSharedPointer<iAModality>::create("avg per voxel / max per fiber dissim.", "", 1, maxVolume, iAModality::MainRenderer));
+	//mods->add(QSharedPointer<iAModality>::create("avg per voxel / avg per fiber dissim.", "", 1, avgVolume, iAModality::MainRenderer));
+	//mods->add(QSharedPointer<iAModality>::create("avg per voxel / max per fiber dissim.", "", 1, maxVolume, iAModality::MainRenderer));
 	m_child->setModalities(mods);
 }
 
