@@ -56,6 +56,21 @@ iAbase_API vtkSmartPointer<vtkImageData> allocateImage(int vtkType, int const di
 //!         with allocated but uninitialized pixel data.
 iAbase_API vtkSmartPointer<vtkImageData> allocateImage(int vtkType, int const dimensions[3], double const spacing[3], int numComponents);
 
+//! fill all pixels in the given image with the given value
+//! @param img image to be filled
+//! @param value used to fill each voxel in given image
+iAbase_API void fillImage(vtkSmartPointer<vtkImageData> img, double const value);
+
+//! add values of one image to the values of another image
+//! @param imgDst destination image (will be modified)
+//! @param imgToAdd image with values to be added to imgDst (will not be modified)
+iAbase_API void addImages(vtkSmartPointer<vtkImageData> imgDst, vtkSmartPointer<vtkImageData> const imgToAdd);
+
+//! multiply all values of an image with the given value
+//! @param imgDst the image to be multiplied
+//! @param value multiplier used for each voxel
+iAbase_API void multiplyImage(vtkSmartPointer<vtkImageData> imgDst, double value);
+
 //! Stores an image on disk (typically in .mhd format).
 //! @param image the image to store
 //! @param filename the name of the file to write to.
@@ -118,6 +133,7 @@ for (int z = 0; z < img->GetDimensions()[2]; ++z) \
 #define FOR_VTKIMG_PIXELS_IDX(img, idx) \
 for (size_t idx = 0; idx < img->GetDimensions()[0]*img->GetDimensions()[1]*img->GetDimensions()[2]; ++idx)
 
+// analog to above macros to iterate over every pixel in a templated way with img->GetScalarPointer?
 
 enum iACameraPosition
 {
