@@ -1987,6 +1987,11 @@ namespace
 	{
 		size_t r1 = curF.first;
 		size_t f1 = curF.second;
+		// TODO: optimize
+		//     - maybe it's possible to do look up instead of loop over all uniqueFibers?
+		//     - some kind of map/tree/graph structure instead of list maybe?
+		//         - but problematic due to multiple fibers per unique fiber?
+		//     -> build map from (fID, rID) to unique fiber ID
 		for (auto cand = uniqueFibers.begin(); cand != uniqueFibers.end(); ++cand)
 		{
 			// Questions:
@@ -2004,14 +2009,14 @@ namespace
 				size_t bestMatchOff1Inr0 = dissimMatrix[r1][rm].fiberDissim[f1][MeasureIdx][0].index;
 				if (matchFound && fm != bestMatchOff1Inr0)
 				{
-					LOG(lvlDebug, QString("r1=%1, f1=%2: Match not confirmed in synonym %3 (rm=%4, !").arg(r1).arg(f1).arg(m));
+					LOG(lvlDebug, QString("r1=%1, f1=%2: Match not confirmed in synonym m=%3 (rm=%4, fm=%5)!").arg(r1).arg(f1).arg(m).arg(rm).arg(fm));
 				}
 				if (fm == bestMatchOff1Inr0)
 				{
 					matchFound = true;
 					if (m > 0)
 					{
-						LOG(lvlDebug, QString("r1=%1, f1=%2: Match found, but not at 1st synonym, only at %3!").arg(r1).arg(f1).arg(m));
+						LOG(lvlDebug, QString("r1=%1, f1=%2: Match found, but not at 1st synonym, only at m=%3 (rm=%4, fm=%5)!").arg(r1).arg(f1).arg(m).arg(rm).arg(fm));
 					}
 					// check reverse match(es):
 					size_t bestMatchoffmInr1 = dissimMatrix[rm][r1].fiberDissim[fm][MeasureIdx][0].index;
@@ -2021,10 +2026,78 @@ namespace
 							.arg(r1).arg(f1).arg(rm).arg(fm).arg(m).arg(bestMatchoffmInr1));
 					}
 				}
+			}
+			if (matchFound)
+			{
 				return cand;
 			}
 		}
 		return uniqueFibers.end();
+	}
+
+	void projectFiberToImage(iAFiberData const& fiberData, vtkSmartPointer<vtkImageData> img,
+		int const size[3], iAVec3d const & spacing, iAVec3d const & origin)
+	{
+		// naive / brute force way:
+		// for each voxel v
+		//     check if any part of v is covered by current fiber (by checking all edge points?)
+		//     output: covered ? 1 : 0
+		//  (variant: instead of 1/0, check percentage to which voxel is covered by fiber?) -> probably hard to do
+		
+		// optimization:
+		//     compute AABB (boundingBoxForFiber)
+		//     compute index range for AABB
+		// only iterate over this range
+		auto bb = boundingBoxForFiber(fiberData);
+		iAVec3i
+			minC = (bb[0] - origin) / spacing,
+			maxC = (bb[1] - origin) / spacing;
+		for (int i = 0; i < 3; ++i)
+		{
+			if (minC[i] < 0 || minC[i] > size[i] || maxC[i] < 0 || maxC[i] > size[i])
+			{
+				LOG(lvlDebug, QString("Interesting fiber: outside bb!"));
+			}
+			minC[i] = clamp(0, size[i] + 1, minC[i]);
+			maxC[i] = clamp(0, size[i] + 1, maxC[i]);
+		}
+		
+		for (int x = minC[0]; x < maxC[0]; ++x)
+		{
+			for (int y = minC[1]; y < maxC[1]; ++y)
+			{
+				for (int z = minC[2]; z < maxC[2]; ++z)
+				{
+					iAVec3d coord(x, y, z);
+					// get the 8 corners of the voxel cube (in no particular order, just based on offsets)
+					const size_t CornerCount = 8;
+					iAVec3f corners[CornerCount];
+					corners[0] = origin + coord * spacing;
+					for (int i = 0; i < 3; ++i)
+					{
+						iAVec3d tmpcoord(coord);
+						tmpcoord[i] += 1;
+						corners[1 + i] = origin + tmpcoord * spacing;
+						tmpcoord[(i + 1) % 3] += 1;
+						corners[4 + i] = origin + tmpcoord * spacing;
+					}
+					corners[7] = origin + (coord + 1) * spacing;
+					bool match = false;
+					for (size_t c = 0; c < CornerCount; ++c)
+					{
+						if (pointContainedInFiber(corners[c], fiberData))
+						{
+							match = true;
+							break;
+						}
+					}
+					if (match)
+					{
+						img->SetScalarComponentFromDouble(x, y, z, 0, img->GetScalarComponentAsDouble(x, y, z, 0) + 1);
+					}
+				}
+			}
+		}
 	}
 }
 
@@ -2212,12 +2285,12 @@ void iASensitivityInfo::createGUI()
 	}
 
 	// create volume V of dimensionality XxYxZ
-	double const origin[3] = {
+	iAVec3d const origin{
 		overallBB[0],
 		overallBB[2],
 		overallBB[4],
 	};
-	double const spacing[3] = {
+	iAVec3d const spacing{
 		(overallBB[1] - overallBB[0]) / volSize,
 		(overallBB[3] - overallBB[2]) / volSize,
 		(overallBB[5] - overallBB[4]) / volSize,
@@ -2255,7 +2328,20 @@ void iASensitivityInfo::createGUI()
 	//         ?) [[-> in first implementation, measure how many such exist, but no special handling]]
 	//         else 
 	// 	           add (r1, f1) as new unique fiber 
-	UniqueFibersT u;
+
+	// Optimization:
+	// while adding fibers to unique fiber list:
+	// also create reverse lookup list for fibers:
+	// map (rID, fID) -> uniqueID
+	// then during match finding:
+	//     check all results < current result num
+	//     check closest match for that result
+	//     go to that uniqueID and add
+	//         (and maybe check others?)
+
+	iAPerformanceHelper h;
+	h.start("Finding unique fibers", false);
+	UniqueFibersT uniqueFibers;
 	for (size_t r1 = 0; r1 < resultCount; ++r1)
 	{
 		auto const& d = m_data->result[r1];
@@ -2263,22 +2349,23 @@ void iASensitivityInfo::createGUI()
 		{
 			auto curFiber = std::make_pair(r1, f1);
 			//FiberKeyT matchFiber;
-			auto it = findMatch(m_resultDissimMatrix, u, curFiber, MeasureIdx);
-			if (it != u.end())
+			auto it = findMatch(m_resultDissimMatrix, uniqueFibers, curFiber, MeasureIdx);
+			if (it != uniqueFibers.end())
 			{
 				it->push_back(curFiber);
 			}
+			// special handling if match found but no reverse match / no match to all "synonyms" ?
 			else
 			{
 				std::vector<FiberKeyT> vec;
 				vec.push_back(curFiber);
-				u.push_back(vec);
+				uniqueFibers.push_back(vec);
 			}
 		}
 	}
+	h.stop();
 
-	LOG(lvlDebug, QString("Found %1 unique fibers across results!").arg(u.size()));
-
+	LOG(lvlDebug, QString("Found %1 unique fibers across results!").arg(uniqueFibers.size()));
 
 	// build per-fiber variability images:
 	// empty list of images of per-fiber variability v
@@ -2291,138 +2378,38 @@ void iASensitivityInfo::createGUI()
 	//     create "probability" image out of i
 	//     (by dividing it through number of results in ensemble?)
 
-	// build overall variability image:
+	h.start("Determining fiber variation images", false);
+	// maybe operate with "raw" buffers here instead of vtkImageData objects??
+	std::vector<vtkSmartPointer<vtkImageData>> perUniqueFiberVars;
+	auto avgVar = allocateImage(VTK_FLOAT, size, spacing.data());
+	avgVar->SetOrigin(origin.data());
+	for (auto u : uniqueFibers)
+	{
+		auto uniqueFiberVarImg = allocateImage(VTK_FLOAT, size, spacing.data());
+		uniqueFiberVarImg->SetOrigin(origin.data());
+		fillImage(uniqueFiberVarImg, 0);
+		for (auto s: u)
+		{
+			auto fiberData = createFiberData(m_data->result[s.first], s.second);
+			projectFiberToImage(fiberData, uniqueFiberVarImg, size, spacing, origin);
+		}
+		multiplyImage(uniqueFiberVarImg, 1.0 / u.size() );
+		perUniqueFiberVars.push_back(uniqueFiberVarImg);
+
+		addImages(avgVar, uniqueFiberVarImg);
+	}
+	multiplyImage(avgVar, uniqueFibers.size());
+	h.stop();
+
+	// build overall variability image: (-> incorporated in loop above)
 	// empty image (s_x, s_y, s_z) a (as average over all unique fiber images:)
 	// for each unique fiber image i:
 	//     add a to i
 	// divide a by number of unique fibers
-	auto avgVar = allocateImage(VTK_FLOAT, size, spacing);
-	avgVar->SetOrigin(origin);
 
-
-
-	///////////////////////////////////////////////////////////////////////////
-	// OLD
-	///////////////////////////////////////////////////////////////////////////
-	// voxel: x, y, z, (list of pairs result, fiber)
-	/*
-	std::vector<std::vector<std::vector<std::set<std::pair<size_t, size_t>>>>> fibersPerVoxel(volSize);
-	// allocate sub-storage:
-	for (int x = 0; x < fibersPerVoxel.size(); ++x)
-	{
-		fibersPerVoxel[x].resize(volSize);
-		for (int y = 0; y < volSize; ++y)
-		{
-			fibersPerVoxel[x][y].resize(volSize);
-		}
-	}
-	
-	// assign fibers to the voxels they go through:
-	// for each result:
-	for (size_t r = 0; r < resultCount; ++r)
-	{
-		auto const& d = m_data->result[r];
-		// for each fiber:
-		for (size_t f = 0; f < d.fiberCount; ++f)
-		{
-			// for each fiber "point":
-			//std::set<iAVec3i> indices;
-			auto it = d.curveInfo.find(f);
-			if (it != d.curveInfo.end())
-			{	// for curved fibers, consider every point in curved fiber info:
-				auto pts = it->second;
-				for (auto pt: pts)
-				{
-					auto idx = mapPointToIndex(pt, origin, spacing, size);
-					//indices.insert(idx);
-					fibersPerVoxel[idx[0]][idx[1]][idx[2]].insert(std::make_pair(r, f));
-				}
-			}
-			else
-			{	// for straight fibers, interpolate points along the direction in distance of half voxel width:
-				iAVec3f start, end;
-				for (int i = 0; i < 3; ++i)
-				{
-					start[i] = d.table->GetValue(f, d.mapping->value(iACsvConfig::StartX + i)).ToFloat();
-					end[i] = d.table->GetValue(f, d.mapping->value(iACsvConfig::EndX + i)).ToFloat();
-				}
-				iAVec3f dir = (end - start).normalized();
-				iAVec3f step = dir / dir.length() * spacing[0] / 2;
-				int ptCount = dir.length() / step.length();
-				for (int s = 0; s < ptCount; ++s)
-				{
-					iAVec3f pt = start + s * step;
-					auto idx = mapPointToIndex(pt, origin, spacing, size);
-					//indices.insert(idx);
-					fibersPerVoxel[idx[0]][idx[1]][idx[2]].insert(std::make_pair(r, f));
-				}
-			}
-				// Q: what fiber points to consider? start/end/middle / curved points / interpolate own points?
-	//             store result+fiber ID in all voxels of V which the fiber goes through
-	//   (-> maybe use iAVRFiberCoverage =)
-		}
-	}
-
-	// compute "average" sensitivity (match quality) for each voxel:
-	// for each voxel in V:
-	//     compute "average" match quality across all assigned fibers
-	//       Q: how to aggregate one value per voxel?
-
-	// crucial: how to aggregate?
-	//    - how on fiber level?
-	//    - how voxel level?
-
-	auto avgVolume = allocateImage(VTK_FLOAT, size, spacing);
-	avgVolume->SetOrigin(origin);
-	auto maxVolume = allocateImage(VTK_FLOAT, size, spacing);
-	maxVolume->SetOrigin(origin);
-	//avgVolume->SetSpacing(spacing);
-	FOR_VTKIMG_PIXELS(avgVolume, x, y, z)
-	{
-		double matchAvgAvg = 0, matchMaxAvg = 0;
-		auto const& fibers = fibersPerVoxel[x][y][z];
-		for (auto p : fibers)
-		{
-			auto r = p.first;
-			auto f = p.second;
-
-			double avgFiberDissim = 0;
-			double maxFiberDissim = 0;
-			int matchCnt = 0;
-			// aggregate on fiber level over dissimilarity of that fiber to all other 
-			// TO EXPLORE: MAX? MIN? ...?
-			for (int r2 = 0; r2 < resultCount; ++r2)
-			{
-				if (r == r2)
-				{
-					continue;
-				}
-				auto const & simFib = m_resultDissimMatrix[r][r2].fiberDissim[f][MeasureIdx];
-				if (simFib.size() > 0)
-				{
-					avgFiberDissim += simFib[0].dissimilarity;
-					maxFiberDissim = std::max(maxFiberDissim, static_cast<double>(simFib[0].dissimilarity));
-					++matchCnt;
-				}
-			}
-			avgFiberDissim /= matchCnt;
-		// aggregate on voxel level over dissimilarity of all contained fibers
-		// TO EXPLORE: MAX? MIN? ...?
-			matchAvgAvg += avgFiberDissim;
-			matchMaxAvg += maxFiberDissim;
-		}
-		matchAvgAvg /= fibers.size();
-		matchMaxAvg /= fibers.size();
-		avgVolume->SetScalarComponentFromDouble(x, y, z, 0, matchAvgAvg);
-		maxVolume->SetScalarComponentFromDouble(x, y, z, 0, matchMaxAvg);
-	}
-	*/
-
-	// show image 
-	// overviewVolume
-	QSharedPointer<iAModalityList> mods(new iAModalityList());
-	//mods->add(QSharedPointer<iAModality>::create("avg per voxel / avg per fiber dissim.", "", 1, avgVolume, iAModality::MainRenderer));
-	//mods->add(QSharedPointer<iAModality>::create("avg per voxel / max per fiber dissim.", "", 1, maxVolume, iAModality::MainRenderer));
+	// show image
+	QSharedPointer<iAModalityList> mods(new iAModalityList());	
+	mods->add(QSharedPointer<iAModality>::create("Avg fiber occupancy per voxel", "", 1, avgVar, iAModality::MainRenderer));
 	m_child->setModalities(mods);
 }
 
