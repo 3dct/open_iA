@@ -182,7 +182,7 @@ iAVec3T<T>& iAVec3T<T>::operator= (const iAVec3T<ParamType>& v)
 {
 	for (int i = 0; i < 3; ++i)
 	{
-		values[i] = static_cast<T>(v.values[i]);
+		values[i] = static_cast<T>(v[i]);
 	}
 	return *this;
 }
