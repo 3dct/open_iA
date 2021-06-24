@@ -31,7 +31,7 @@ class iAVtkQtWidget;
 class QWidget;
 
 //! UI elements for each result
-class iAFiberCharUIData
+class iAFiberResultUIData
 {
 public:
 	iAVtkQtWidget* vtkWidget = nullptr;

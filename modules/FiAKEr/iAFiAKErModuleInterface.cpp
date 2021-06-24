@@ -21,7 +21,7 @@
 #include "iAFiAKErModuleInterface.h"
 
 #include "iACsvConfig.h"
-#include "iAFiberCharData.h"
+#include "iAFiberResult.h"
 #include "iAFiAKErController.h"
 #include "iAFiAKErAttachment.h"
 

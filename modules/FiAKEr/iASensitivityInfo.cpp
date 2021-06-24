@@ -61,8 +61,8 @@
 
 // FIAKER
 #include "iAAlgorithmInfo.h"
-#include "iAFiberCharData.h"
-#include "iAFiberCharUIData.h"
+#include "iAFiberResult.h"
+#include "iAFiberResultUIData.h"
 #include "iAFiberData.h"
 #include "iAMeasureSelectionDlg.h"
 #include "iAMultidimensionalScaling.h"
@@ -286,7 +286,7 @@ std::vector<int> intersectingBoundingBox(FiberBBT const& fixedFiberBB, std::vect
 	return resultIDs;
 }
 
-iAFiberData createFiberData(iAFiberCharData const& result, size_t fiberID)
+iAFiberData createFiberData(iAFiberResult const& result, size_t fiberID)
 {
 	auto const& mapping = *result.mapping.data();
 	auto it = result.curveInfo.find(fiberID);
@@ -294,7 +294,7 @@ iAFiberData createFiberData(iAFiberCharData const& result, size_t fiberID)
 		(it != result.curveInfo.end()) ? it->second : std::vector<iAVec3f>());
 }
 
-std::vector<iAFiberData> createResultFiberData(iAFiberCharData const& result)
+std::vector<iAFiberData> createResultFiberData(iAFiberResult const& result)
 {
 	std::vector<iAFiberData> fiberData(result.fiberCount);
 	for (size_t fiberID=0; fiberID < result.fiberCount; ++fiberID)
@@ -329,7 +329,7 @@ void iASensitivityInfo::abort()
 
 QSharedPointer<iASensitivityInfo> iASensitivityInfo::create(iAMdiChild* child,
 	QSharedPointer<iAFiberResultsCollection> data, QDockWidget* nextToDW, int histogramBins, int skipColumns,
-	std::vector<iAFiberCharUIData> const& resultUIs, iAVtkWidget* main3DWidget, QString parameterSetFileName,
+	std::vector<iAFiberResultUIData> const& resultUIs, iAVtkWidget* main3DWidget, QString parameterSetFileName,
 	QVector<int> const & charSelected, QVector<int> const & charDiffMeasure, iASettings const & projectFile)
 {
 	if (parameterSetFileName.isEmpty())
@@ -511,7 +511,7 @@ QSharedPointer<iASensitivityInfo> iASensitivityInfo::create(iAMdiChild* child,
 iASensitivityInfo::iASensitivityInfo(QSharedPointer<iAFiberResultsCollection> data,
 	QString const& parameterFileName, int skipColumns, QStringList const& paramNames,
 	std::vector<std::vector<double>> const & paramValues, iAMdiChild* child, QDockWidget* nextToDW,
-	std::vector<iAFiberCharUIData> const & resultUIs, iAVtkWidget* main3DWidget) :
+	std::vector<iAFiberResultUIData> const & resultUIs, iAVtkWidget* main3DWidget) :
 	m_data(data),
 	m_paramNames(paramNames),
 	m_paramValues(paramValues),
@@ -1924,7 +1924,7 @@ bool iASensitivityInfo::hasData(iASettings const& settings)
 
 QSharedPointer<iASensitivityInfo> iASensitivityInfo::load(iAMdiChild* child,
 	QSharedPointer<iAFiberResultsCollection> data, QDockWidget* nextToDW, iASettings const& projectFile,
-	QString const& projectFileName, std::vector<iAFiberCharUIData> const& resultUIs, iAVtkWidget* main3DWidget)
+	QString const& projectFileName, std::vector<iAFiberResultUIData> const& resultUIs, iAVtkWidget* main3DWidget)
 {
 	QString parameterSetFileName = MakeAbsolute(QFileInfo(projectFileName).absolutePath(), projectFile.value(ProjectParameterFile).toString());
 	QVector<int> charsSelected = stringToVector<QVector<int>, int>(projectFile.value(ProjectCharacteristics).toString());

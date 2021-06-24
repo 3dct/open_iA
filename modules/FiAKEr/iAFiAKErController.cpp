@@ -20,7 +20,7 @@
 * ************************************************************************************/
 #include "iAFiAKErController.h"
 
-#include "iAFiberCharData.h"
+#include "iAFiberResult.h"
 #include "iAFiberData.h"     // for samplePoints
 #include "iAJobListView.h"
 #include "iAMeasureSelectionDlg.h"
@@ -439,7 +439,7 @@ void iAFiAKErController::setupSettingsView()
 	m_settingsView->sbAnimationDelay->setValue(DefaultPlayDelay);
 	m_playTimer->setInterval(DefaultPlayDelay);
 
-	//iAFiberCharData::FiberValueCount               // v Projection error
+	//iAFiberResult::FiberValueCount               // v Projection error
 	m_chartCount = 0;
 	addChartCB();
 	size_t curPlotStart = 0;
@@ -573,7 +573,7 @@ namespace
 	}
 }
 
-std::map<size_t, std::vector<iAVec3f> > getCurvedStepInfo(iAFiberCharData const & d)
+std::map<size_t, std::vector<iAVec3f> > getCurvedStepInfo(iAFiberResult const & d)
 {
 	std::map<size_t, std::vector<iAVec3f> > curvedStepInfo;
    // get last step:
@@ -737,7 +737,7 @@ QWidget* iAFiAKErController::setupResultListView()
 		m_resultListSorting.insert(resultID, static_cast<int>(resultID));
 
 		std::map<size_t, std::vector<iAVec3f> > const & curveInfo =
-			(m_useStepData && d.stepData == iAFiberCharData::CurvedStepData) ?
+			(m_useStepData && d.stepData == iAFiberResult::CurvedStepData) ?
 			getCurvedStepInfo(d) : d.curveInfo;
 		QColor resultColor(getResultColor(resultID));
 
@@ -1381,11 +1381,11 @@ QColor iAFiAKErController::getResultColor(size_t resultID)
 
 namespace
 {
-	bool resultSelected(std::vector<iAFiberCharUIData> const & uiCollection, size_t resultID)
+	bool resultSelected(std::vector<iAFiberResultUIData> const & uiCollection, size_t resultID)
 	{
 		return (uiCollection[resultID].main3DVis && uiCollection[resultID].main3DVis->visible());
 	}
-	bool noResultSelected(std::vector<iAFiberCharUIData> const & uiCollection)
+	bool noResultSelected(std::vector<iAFiberResultUIData> const & uiCollection)
 	{
 		for (size_t i = 0; i < uiCollection.size(); ++i)
 		{
@@ -1396,7 +1396,7 @@ namespace
 		}
 		return true;
 	}
-	bool anyOtherResultSelected(std::vector<iAFiberCharUIData> const & uiCollection, size_t resultID)
+	bool anyOtherResultSelected(std::vector<iAFiberResultUIData> const & uiCollection, size_t resultID)
 	{
 		for (size_t i = 0; i < uiCollection.size(); ++i)
 		{
@@ -1524,7 +1524,7 @@ void iAFiAKErController::ensureMain3DViewCreated(size_t resultID)
 	if (!ui.main3DVis)
 	{
 		std::map<size_t, std::vector<iAVec3f> > const& curveInfo =
-			(m_useStepData && d.stepData == iAFiberCharData::CurvedStepData) ?
+			(m_useStepData && d.stepData == iAFiberResult::CurvedStepData) ?
 			getCurvedStepInfo(d) : d.curveInfo;
 		QColor resultColor(getResultColor(resultID));
 		ui.main3DVis = create3DVis(m_ren, d.table, d.mapping, resultColor, m_data->objectType, curveInfo);
@@ -1602,7 +1602,7 @@ void iAFiAKErController::showMainVis(size_t resultID, bool state)
 			ui.main3DVis->setSelection(m_selection[resultID], anythingSelected);
 		}
 		if ((m_data->objectType == iACsvConfig::Cylinders || m_data->objectType == iACsvConfig::Lines) &&
-			d.stepData != iAFiberCharData::NoStepData &&
+			d.stepData != iAFiberResult::NoStepData &&
 			m_useStepData)
 		{
 			vis->updateValues(d.stepValues[
@@ -1980,7 +1980,7 @@ void iAFiAKErController::setOptimStep(int optimStep)
 			auto main3DVis = m_resultUIs[resultID].main3DVis;
 			if (main3DVis && main3DVis->visible() &&
 				m_data->objectType == iACsvConfig::Cylinders &&
-				m_data->result[resultID].stepData != iAFiberCharData::NoStepData)
+				m_data->result[resultID].stepData != iAFiberResult::NoStepData)
 			{
 				auto & stepValues = m_data->result[resultID].stepValues;
 				auto vis = dynamic_cast<iA3DCylinderObjectVis*>(main3DVis.data());
@@ -2238,7 +2238,7 @@ void iAFiAKErController::updateFiberContext()
 
 namespace
 {
-	void setResultBackground(iAFiberCharUIData & ui, QPalette::ColorRole role)
+	void setResultBackground(iAFiberResultUIData & ui, QPalette::ColorRole role)
 	{
 		QColor color(qApp->palette().color(role));
 		ui.nameActions->setBackgroundRole(role);
@@ -2738,7 +2738,7 @@ void iAFiAKErController::changeReferenceDisplay()
 				size_t refFiberID = d.refDiffFiber[fiberID].dist[similarityMeasure][n].index;
 				for (int i = 0; i < 3; ++i)
 				{
-					if (d.stepData == iAFiberCharData::SimpleStepData)
+					if (d.stepData == iAFiberResult::SimpleStepData)
 					{
 						start1[i] = d.stepValues[std::min(step, d.stepValues.size() - 1)][fiberID][i];
 					}
@@ -2750,7 +2750,7 @@ void iAFiAKErController::changeReferenceDisplay()
 				}
 				for (int i = 0; i < 3; ++i)
 				{
-					if (d.stepData == iAFiberCharData::SimpleStepData)
+					if (d.stepData == iAFiberResult::SimpleStepData)
 					{
 						start2[i] = d.stepValues[std::min(step, d.stepValues.size() - 1)][fiberID][3 + i];
 					}

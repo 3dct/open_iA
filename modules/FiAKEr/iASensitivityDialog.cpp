@@ -21,7 +21,7 @@
 #include "iASensitivityDialog.h"
 
 #include "iAFiberData.h"
-#include "iAFiberCharData.h"
+#include "iAFiberResult.h"
 
 #include <iASPLOMData.h>
 

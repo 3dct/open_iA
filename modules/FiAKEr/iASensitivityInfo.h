@@ -33,7 +33,7 @@
 class iAMdiChild;
 
 class iACsvTableCreator;
-class iAFiberCharUIData;
+class iAFiberResultUIData;
 class iAFiberResultsCollection;
 class iASensitivityGUI;
 
@@ -53,7 +53,7 @@ class iASensitivityInfo: public QObject, public iAAbortListener
 public:
 	static QSharedPointer<iASensitivityInfo> create(iAMdiChild* child,
 		QSharedPointer<iAFiberResultsCollection> data, QDockWidget* nextToDW,
-		int histogramBins, int skipColumns, std::vector<iAFiberCharUIData> const& resultUIs,
+		int histogramBins, int skipColumns, std::vector<iAFiberResultUIData> const& resultUIs,
 		iAVtkWidget* main3DWidget,
 		QString parameterSetFileName = QString(),
 		QVector<int> const& charSelected = QVector<int>(),
@@ -62,7 +62,7 @@ public:
 	static QSharedPointer<iASensitivityInfo> load(iAMdiChild* child,
 		QSharedPointer<iAFiberResultsCollection> data, QDockWidget* nextToDW,
 		iASettings const & projectFile, QString const& projectFileName,
-		std::vector<iAFiberCharUIData> const& resultUIs, iAVtkWidget* main3DWidget);
+		std::vector<iAFiberResultUIData> const& resultUIs, iAVtkWidget* main3DWidget);
 	static bool hasData(iASettings const& settings);
 	QString charactName(int selCharIdx) const;
 
@@ -224,7 +224,7 @@ private:
 	iASensitivityInfo(QSharedPointer<iAFiberResultsCollection> data,
 		QString const& parameterFileName, int skipColumns, QStringList const& paramNames,
 		std::vector<std::vector<double>> const& paramValues, iAMdiChild* child,
-		QDockWidget* nextToDW, std::vector<iAFiberCharUIData> const& resultUIs, iAVtkWidget* main3DWidget);
+		QDockWidget* nextToDW, std::vector<iAFiberResultUIData> const& resultUIs, iAVtkWidget* main3DWidget);
 	void compute();
 	QString dissimilarityMatrixCacheFileName() const;
 	bool readDissimilarityMatrixCache(QVector<int>& measures);
@@ -237,7 +237,7 @@ private:
 	int m_skipColumns;
 	iAMdiChild* m_child;
 	QDockWidget* m_nextToDW;
-	std::vector<iAFiberCharUIData> const& m_resultUIs;
+	std::vector<iAFiberResultUIData> const& m_resultUIs;
 	iAVtkWidget* m_main3DWidget;
 
 	// for computation:

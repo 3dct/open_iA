@@ -20,7 +20,7 @@
 * ************************************************************************************/
 #include "iARefDistCompute.h"
 
-#include "iAFiberCharData.h"
+#include "iAFiberResult.h"
 #include "iAFiberData.h"
 
 #include "iACsvConfig.h"
@@ -201,7 +201,7 @@ void iARefDistCompute::run()
 
 	auto const & mapping = *ref.mapping.data();
 	/*
-	std::array<size_t, iAFiberCharData::FiberValueCount> diffCols = {
+	std::array<size_t, iAFiberResult::FiberValueCount> diffCols = {
 		mapping[iACsvConfig::StartX],  mapping[iACsvConfig::StartY],  mapping[iACsvConfig::StartZ],
 		mapping[iACsvConfig::EndX],    mapping[iACsvConfig::EndY],    mapping[iACsvConfig::EndZ],
 		mapping[iACsvConfig::CenterX], mapping[iACsvConfig::CenterY], mapping[iACsvConfig::CenterZ],
@@ -266,12 +266,12 @@ void iARefDistCompute::run()
 #pragma omp parallel for
 		for (qint64 fiberID = 0; fiberID < fiberCount; ++fiberID)
 		{
-			if (d.stepData == iAFiberCharData::SimpleStepData)
+			if (d.stepData == iAFiberResult::SimpleStepData)
 			{
 				iARefDistCompute::ContainerSizeType stepCount = static_cast<int>(d.stepValues.size());
 				auto & diffs = d.refDiffFiber[fiberID].diff;
 				diffs.resize(diffs.size + );
-				for (iARefDistCompute::ContainerSizeType diffID = 0; diffID < iAFiberCharData::FiberValueCount; ++diffID)
+				for (iARefDistCompute::ContainerSizeType diffID = 0; diffID < iAFiberResult::FiberValueCount; ++diffID)
 				{
 					auto & stepDiffs = diffs[diffID].step;
 					stepDiffs.resize(stepCount);
@@ -285,7 +285,7 @@ void iARefDistCompute::run()
 				}
 				for (iARefDistCompute::ContainerSizeType distID = 0; distID < SimilarityMeasureCount; ++distID)
 				{
-					auto & stepDiffs = diffs[iAFiberCharData::FiberValueCount + distID].step;
+					auto & stepDiffs = diffs[iAFiberResult::FiberValueCount + distID].step;
 					stepDiffs.resize(stepCount);
 					size_t refFiberID = d.refDiffFiber[fiberID].dist[distID][0].index;
 
@@ -298,7 +298,7 @@ void iARefDistCompute::run()
 					}
 				}
 			}
-			else if (data.stepData == iAFiberCharData::CurvedStepData)
+			else if (data.stepData == iAFiberResult::CurvedStepData)
 			{
 				// difference computation for curved step data ...
 			}
@@ -329,13 +329,13 @@ void iARefDistCompute::run()
 		assert(d.fiberCount < std::numeric_limits<iARefDistCompute::ContainerSizeType>::max());
 		for (iARefDistCompute::ContainerSizeType fiberID = 0; fiberID < static_cast<iARefDistCompute::ContainerSizeType>(d.fiberCount); ++fiberID)
 		{
-			//if (d.stepData == iAFiberCharData::SimpleStepData) ???
+			//if (d.stepData == iAFiberResult::SimpleStepData) ???
 			/*
-			for (iARefDistCompute::ContainerSizeType diffID = 0; diffID < iAFiberCharData::FiberValueCount; ++diffID)
+			for (iARefDistCompute::ContainerSizeType diffID = 0; diffID < iAFiberResult::FiberValueCount; ++diffID)
 			{
 				size_t tableColumnID = m_data->spmData->numParams() -
-					(iAFiberCharData::FiberValueCount + SimilarityMeasureCount + EndColumns) + diffID;
-				double lastValue = (d.stepData == iAFiberCharData::SimpleStepData) ?
+					(iAFiberResult::FiberValueCount + SimilarityMeasureCount + EndColumns) + diffID;
+				double lastValue = (d.stepData == iAFiberResult::SimpleStepData) ?
 						diffData.diff[diffID].step[static_cast<int>(d.stepValues.size() - 1)] : 0;
 				if (std::isnan(lastValue))
 				{

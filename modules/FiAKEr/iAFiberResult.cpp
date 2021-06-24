@@ -18,7 +18,7 @@
 * Contact: FH OÖ Forschungs & Entwicklungs GmbH, Campus Wels, CT-Gruppe,              *
 *          Stelzhamerstraße 23, 4600 Wels / Austria, Email: c.heinzl@fh-wels.at       *
 * ************************************************************************************/
-#include "iAFiberCharData.h"
+#include "iAFiberResult.h"
 
 #include "iARefDistCompute.h" // only for SimilarityMeasureCount!
 
@@ -251,7 +251,7 @@ bool iAFiberResultsCollection::loadData(QString const & path, iACsvConfig const 
 			continue;
 		}
 
-		iAFiberCharData curData;
+		iAFiberResult curData;
 		curData.table = tableCreator.table();
 		curData.fiberCount = curData.table->GetNumberOfRows();
 		totalFiberCount += curData.fiberCount;
@@ -300,7 +300,7 @@ bool iAFiberResultsCollection::loadData(QString const & path, iACsvConfig const 
 		//       and using std::vector::swap to assign the sub-vectors!
 
 		size_t thisResultStepMax = 1;
-		curData.stepData = iAFiberCharData::NoStepData;
+		curData.stepData = iAFiberResult::NoStepData;
 		if (stepInfo.exists() && stepInfo.isDir())
 		{
 			// LOG(lvlInfo, "Looking for optimization step info in old format...");
@@ -435,7 +435,7 @@ bool iAFiberResultsCollection::loadData(QString const & path, iACsvConfig const 
 				}
 				if (fiberStepValues.size() == curData.fiberCount)
 				{
-					curData.stepData = iAFiberCharData::SimpleStepData;
+					curData.stepData = iAFiberResult::SimpleStepData;
 				}
 				else
 				{
@@ -445,7 +445,7 @@ bool iAFiberResultsCollection::loadData(QString const & path, iACsvConfig const 
 				}
 			}
 
-			if (curData.stepData == iAFiberCharData::NoStepData)
+			if (curData.stepData == iAFiberResult::NoStepData)
 			{
 				//LOG(lvlInfo, "Looking for optimization step info in new (curved) format...");
 				// check if we can load new, curved step data:
@@ -512,7 +512,7 @@ bool iAFiberResultsCollection::loadData(QString const & path, iACsvConfig const 
 				}
 				if (fiberStepValues.size() == curData.fiberCount)
 				{
-					curData.stepData = iAFiberCharData::CurvedStepData;
+					curData.stepData = iAFiberResult::CurvedStepData;
 				}
 				else
 				{
@@ -523,7 +523,7 @@ bool iAFiberResultsCollection::loadData(QString const & path, iACsvConfig const 
 			}
 			// transform from [fiber, step, value] to [step, fiber, value] indexing
 			// TODO: make sure all datasets have the same max step count!
-			if (curData.stepData != iAFiberCharData::NoStepData)
+			if (curData.stepData != iAFiberResult::NoStepData)
 			{
 				curData.stepValues.resize(thisResultStepMax);
 				for (size_t t = 0; t < thisResultStepMax; ++t)

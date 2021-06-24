@@ -20,7 +20,7 @@
 * ************************************************************************************/
 #include "iAParameterInfluenceView.h"
 
-#include "iAFiberCharData.h"
+#include "iAFiberResult.h"
 #include "iAFiberData.h" // for getAvailableDissimilarityMeasureNames
 #include "iASensitivityInfo.h"
 #include "iAStackedBarChart.h"

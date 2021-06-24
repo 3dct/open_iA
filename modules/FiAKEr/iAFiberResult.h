@@ -79,7 +79,7 @@ QDataStream &operator<<(QDataStream &out, const iARefDiffFiberData &s);
 QDataStream &operator>>(QDataStream &in, iARefDiffFiberData &s);
 
 //! Data for the result of a single run of a fiber reconstructcion algorithm.
-class iAFiberCharData
+class iAFiberResult
 {
 public:
 	//! the fiber data as vtkTable, mainly for the 3d visualization
@@ -120,7 +120,7 @@ public:
 	iAFiberResultsCollection();
 
 	//! for each result, detailed data
-	std::vector<iAFiberCharData> result;
+	std::vector<iAFiberResult> result;
 	//! SPM data.
 	// TODO: deduplicate data here and in result[x].table
 	QSharedPointer<iASPLOMData> spmData;

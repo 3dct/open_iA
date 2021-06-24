@@ -110,7 +110,7 @@ void iA3DLineObjectVis::updateValues(std::vector<std::vector<double> > const & v
 	}
 	for (size_t f = 0; f < values.size(); ++f)
 	{
-		// "magic numbers" 1 and 2 need to match values in FIAKER - iAFiberCharData::StepDataType:
+		// "magic numbers" 1 and 2 need to match values in FIAKER - iAFiberResult::StepDataType:
 		if (straightOrCurved == 1) // SimpleStepData
 		{
 			m_points->SetPoint(static_cast<vtkIdType>(2 * f), values[f].data());

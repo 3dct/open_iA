@@ -21,8 +21,8 @@
 #pragma once
 
 // FiAKEr:
-#include "iAFiberCharData.h"            // for iAFiberSimilarity -> REFACTOR!!!
-#include "iAFiberCharUIData.h"
+#include "iAFiberResult.h"            // for iAFiberSimilarity -> REFACTOR!!!
+#include "iAFiberResultUIData.h"
 #include "iASelectionInteractorStyle.h" // for iASelectionProvider
 #include "ui_FiAKErSettings.h"
 
@@ -44,7 +44,6 @@
 #include <vector>
 
 class iAFiberResultsCollection;
-class iAFiberCharUIData;
 class iAStackedBarChart;
 
 class iA3DColoredPolyObjectVis;
@@ -219,7 +218,7 @@ private:
 
 	//! all data about the fiber characteristics optimization results that are analyzed
 	QSharedPointer<iAFiberResultsCollection> m_data;
-	std::vector<iAFiberCharUIData> m_resultUIs;
+	std::vector<iAFiberResultUIData> m_resultUIs;
 
 	QSharedPointer<iARendererViewSync> m_renderManager;
 	vtkSmartPointer<iASelectionInteractorStyle> m_style;

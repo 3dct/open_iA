@@ -20,7 +20,7 @@
 * ************************************************************************************/
 #pragma once
 
-#include "iAFiberCharData.h"            // for iAFiberSimilarity -> REFACTOR!!!
+#include "iAFiberResult.h"            // for iAFiberSimilarity -> REFACTOR!!!
 
 #include <iALookupTable.h>
 #include <iAMathUtility.h>
