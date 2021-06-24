@@ -34,6 +34,8 @@
 
 #include <vector>
 
+struct iAFiberData;
+
 class iASPLOMData;
 
 class vtkTable;
@@ -78,6 +80,8 @@ public:
 QDataStream &operator<<(QDataStream &out, const iARefDiffFiberData &s);
 QDataStream &operator>>(QDataStream &in, iARefDiffFiberData &s);
 
+using iAAABB = std::array<iAVec3f, 2>;
+
 //! Data for the result of a single run of a fiber reconstructcion algorithm.
 class iAFiberResult
 {
@@ -107,8 +111,13 @@ public:
 	QVector<iARefDiffFiberData> refDiffFiber;
 	//! for each similarity measure, the average over all fibers
 	QVector<double> avgDifference;  // rename -> avgDissimilarity
-	//! bounding box
-	double boundingBox[6];
+	
+	//! overall bounding box
+	iAAABB bbox;
+	//! bounding box per fiber:
+	std::vector<iAAABB> fiberBB;
+	//! fiber data objects:
+	std::vector<iAFiberData> fiberData;
 };
 
 //! A collection of multiple results from one or more fiber reconstruction algorithms.
@@ -178,3 +187,6 @@ private:
 // helper functions:
 void addColumn(vtkSmartPointer<vtkTable> table, double value, char const * columnName, size_t numRows);
 iACsvConfig getCsvConfig(QString const & formatName);
+
+//! merge list of bounding boxes
+void mergeBoundingBoxes(iAAABB& bbox, std::vector<iAAABB> const& fiberBBs);

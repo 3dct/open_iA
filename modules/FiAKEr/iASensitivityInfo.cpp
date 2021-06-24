@@ -246,26 +246,9 @@ double distributionDifference(HistogramType const& distr1, HistogramType const& 
 
 namespace
 {
-std::array<iAVec3f, 2> computeFiberBBox(std::vector<iAVec3f> const& points, float radius)
-{
-	std::array<iAVec3f, 2> result;
-	result[0].fill(std::numeric_limits<float>::max());
-	result[1].fill(std::numeric_limits<float>::lowest());
-	for (int p = 0; p < points.size(); ++p)
-	{
-		auto const & pt = points[p].data();
-		for (int i = 0; i < 3; ++i)
-		{
-			result[0][i] = std::min(result[0][i], pt[i] - radius);
-			result[1][i] = std::max(result[1][i], pt[i] + radius);
-		}
-	}
-	return result;
-}
-using FiberBBT = std::array<iAVec3f, 2>;
 
-inline bool boundingBoxesIntersect(FiberBBT const& bb1, FiberBBT const& bb2)
-{
+inline bool boundingBoxesIntersect(iAAABB const& bb1, iAAABB const& bb2)
+	{
 	const int MinIdx = 0, MaxIdx = 1;
 	return
 		bb1[MaxIdx].x() > bb2[MinIdx].x() && bb2[MaxIdx].x() > bb1[MinIdx].x() &&
@@ -273,7 +256,7 @@ inline bool boundingBoxesIntersect(FiberBBT const& bb1, FiberBBT const& bb2)
 		bb1[MaxIdx].z() > bb2[MinIdx].z() && bb2[MaxIdx].z() > bb1[MinIdx].z();
 }
 
-std::vector<int> intersectingBoundingBox(FiberBBT const& fixedFiberBB, std::vector<FiberBBT> const& otherFiberBBs)
+std::vector<int> intersectingBoundingBox(iAAABB const& fixedFiberBB, std::vector<iAAABB> const& otherFiberBBs)
 {
 	std::vector<int> resultIDs;
 	for (int r = 0; r < otherFiberBBs.size(); ++r)
@@ -284,40 +267,6 @@ std::vector<int> intersectingBoundingBox(FiberBBT const& fixedFiberBB, std::vect
 		}
 	}
 	return resultIDs;
-}
-
-iAFiberData createFiberData(iAFiberResult const& result, size_t fiberID)
-{
-	auto const& mapping = *result.mapping.data();
-	auto it = result.curveInfo.find(fiberID);
-	return iAFiberData(result.table, fiberID, mapping,
-		(it != result.curveInfo.end()) ? it->second : std::vector<iAVec3f>());
-}
-
-std::vector<iAFiberData> createResultFiberData(iAFiberResult const& result)
-{
-	std::vector<iAFiberData> fiberData(result.fiberCount);
-	for (size_t fiberID=0; fiberID < result.fiberCount; ++fiberID)
-	{
-		fiberData[fiberID] = createFiberData(result, fiberID);
-	}
-	return fiberData;
-}
-
-FiberBBT boundingBoxForFiber(iAFiberData const & fiberData)
-{
-	return computeFiberBBox(fiberData.curvedPoints.size() > 0 ?
-		fiberData.curvedPoints : fiberData.pts, fiberData.diameter / 2.0);
-}
-
-std::vector<FiberBBT> boundingBoxesForFibers(std::vector<iAFiberData> const & resultFiberData)
-{
-	std::vector<FiberBBT> fibersBBox(resultFiberData.size());
-	for (size_t fiberID = 0; fiberID < fibersBBox.size(); ++fiberID)
-	{
-		fibersBBox[fiberID] = boundingBoxForFiber(resultFiberData[fiberID]);
-	}
-	return fibersBBox;
 }
 
 } // namespace
@@ -1054,7 +1003,7 @@ void iASensitivityInfo::compute()
 	}
 	else
 	{
-		m_progress.setStatus("Creating fiber data and bounding boxes for all results.");
+		m_progress.setStatus("Computing dissimilarity between all result pairs.");
 		int measureCount = static_cast<int>(m_resultDissimMeasures.size());
 		int resultCount = static_cast<int>(m_data->result.size());
 		m_resultDissimMatrix = iADissimilarityMatrixType(resultCount,
@@ -1064,22 +1013,6 @@ void iASensitivityInfo::compute()
 		{
 			measures.push_back(m_resultDissimMeasures[m].first);
 		}
-
-		//m_progress.setStatus("Creating fiber data objects.");
-		std::vector<std::vector<iAFiberData>> resFib(resultCount);
-		for (int resultID = 0; resultID < resultCount && !m_aborted; ++resultID)
-		{
-			resFib[resultID] = createResultFiberData(m_data->result[resultID]);
-		}
-
-		//m_progress.setStatus("Computing bounding boxes for all fibers.");
-		std::vector<std::vector<FiberBBT>> fiberBoundingBox(resultCount);
-		for (int resultID = 0; resultID < resultCount && !m_aborted; ++resultID)
-		{
-			fiberBoundingBox[resultID] = boundingBoxesForFibers(resFib[resultID]);
-		}
-
-		m_progress.setStatus("Computing dissimilarity between all result pairs.");
 
 		//double overallPairs = resultCount * (resultCount - 1) / 2;
 		// for all result pairs r1 and r2, for every fiber f in r1 find those fibers in r2 which best match f
@@ -1120,15 +1053,15 @@ void iASensitivityInfo::compute()
 #pragma omp parallel for reduction(+ : noCanDo, candSum)
 				for (int fiberID = 0; fiberID < r1FibCount; ++fiberID)
 				{
-					auto candidates =
-						intersectingBoundingBox(fiberBoundingBox[r1][fiberID], fiberBoundingBox[r2]);
+					auto candidates = intersectingBoundingBox(m_data->result[r1].fiberBB[fiberID], m_data->result[r2].fiberBB);
 					if (candidates.size() == 0)
 					{
 						++noCanDo; // thread-safe
 						continue;
 					}
 					candSum += candidates.size();
-					getBestMatches2(resFib[r1][fiberID], resFib[r2], dissimilarities[fiberID],
+					getBestMatches2(m_data->result[r1].fiberData[fiberID], m_data->result[r2].fiberData,
+						dissimilarities[fiberID],
 						candidates, diagonalLength, maxLength, m_resultDissimMeasures);
 					for (int m = 0; m < measureCount; ++m)
 					{
@@ -2038,7 +1971,8 @@ namespace
 		return NoMatch;
 	}
 
-	void projectFiberToImage(iAFiberData const& fiberData, vtkSmartPointer<vtkImageData> img,
+	void projectFiberToImage(iAFiberData const& fiberData, iAAABB const & bb,
+		vtkSmartPointer<vtkImageData> img,
 		int const size[3], iAVec3d const & spacing, iAVec3d const & origin)
 	{
 		// naive / brute force way:
@@ -2048,10 +1982,9 @@ namespace
 		//  (variant: instead of 1/0, check percentage to which voxel is covered by fiber?) -> probably hard to do
 		
 		// optimization:
-		//     compute AABB (boundingBoxForFiber)
+		//     take AABB for fiber
 		//     compute index range for AABB
 		// only iterate over this range
-		auto bb = boundingBoxForFiber(fiberData);
 		iAVec3i
 			minC = (bb[0] - origin) / spacing,
 			maxC = (bb[1] - origin) / spacing;
@@ -2275,37 +2208,24 @@ void iASensitivityInfo::createGUI()
 	int const volSize = 64;
 	int const size[3] = {volSize, volSize, volSize};
 	// find bounding box that accomodates all results:
-	double overallBB[6];
-	overallBB[0] = overallBB[2] = overallBB[4] = std::numeric_limits<double>::max();
-	overallBB[1] = overallBB[3] = overallBB[5] = std::numeric_limits<double>::lowest();
-	for (size_t r = 0; r < resultCount; ++r)
+	std::vector<iAAABB> resultBBs;
+	for (size_t r=0; r<resultCount; ++r)
 	{
-		for (int i=0; i<3; ++i)
-		{
-			overallBB[i * 2] = std::min(overallBB[i * 2], m_data->result[r].boundingBox[i * 2]);
-			overallBB[i * 2 + 1] = std::max(overallBB[i * 2 + 1], m_data->result[r].boundingBox[i * 2 + 1]);
-		}
+		resultBBs.push_back(m_data->result[r].bbox);
 	}
+	iAAABB overallBB;
+	mergeBoundingBoxes(overallBB, resultBBs);
 
 	// create volume V of dimensionality XxYxZ
-	iAVec3d const origin{
-		overallBB[0],
-		overallBB[2],
-		overallBB[4],
-	};
-	iAVec3d const spacing{
-		(overallBB[1] - overallBB[0]) / volSize,
-		(overallBB[3] - overallBB[2]) / volSize,
-		(overallBB[5] - overallBB[4]) / volSize,
-	};
+	iAVec3d const spacing = (overallBB[1] - overallBB[0]) / volSize;
 	LOG(lvlDebug,
 		QString("Overview volume: box (tl=%1, %2, %3; br=%4, %5, %6), spacing (%7, %8, %9)")
-			.arg(overallBB[0])
-			.arg(overallBB[2])
-			.arg(overallBB[4])
-			.arg(overallBB[1])
-			.arg(overallBB[3])
-			.arg(overallBB[5])
+			.arg(overallBB[0][0])
+			.arg(overallBB[0][1])
+			.arg(overallBB[0][2])
+			.arg(overallBB[1][0])
+			.arg(overallBB[1][1])
+			.arg(overallBB[1][2])
 			.arg(spacing[0])
 			.arg(spacing[1])
 			.arg(spacing[2])
@@ -2388,6 +2308,7 @@ void iASensitivityInfo::createGUI()
 	h.start("Determining fiber variation images", false);
 	// maybe operate with "raw" buffers here instead of vtkImageData objects??
 	std::vector<vtkSmartPointer<vtkImageData>> perUniqueFiberVars;
+	iAVec3d origin = overallBB[0];
 	auto avgVar = allocateImage(VTK_FLOAT, size, spacing.data());
 	avgVar->SetOrigin(origin.data());
 	fillImage(avgVar, 0);
@@ -2398,8 +2319,8 @@ void iASensitivityInfo::createGUI()
 		fillImage(uniqueFiberVarImg, 0);
 		for (auto s: u)
 		{
-			auto fiberData = createFiberData(m_data->result[s.first], s.second);
-			projectFiberToImage(fiberData, uniqueFiberVarImg, size, spacing, origin);
+			auto const& r = m_data->result[s.first];
+			projectFiberToImage(r.fiberData[s.second], r.fiberBB[s.second], uniqueFiberVarImg, size, spacing, origin);
 		}
 		multiplyImage(uniqueFiberVarImg, 1.0 / u.size() );
 		perUniqueFiberVars.push_back(uniqueFiberVarImg);

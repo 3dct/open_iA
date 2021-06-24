@@ -768,8 +768,8 @@ QWidget* iAFiAKErController::setupResultListView()
 			connect(ui.mini3DVis.data(), &iA3DObjectVis::updated, ui.vtkWidget, &iAVtkQtWidget::updateAll);
 		}
 		QString bboxText = QString("Bounding box: (x: %1..%2, y: %3..%4, z: %5..%6)")
-			.arg(d.boundingBox[0]).arg(d.boundingBox[1]).arg(d.boundingBox[2])
-			.arg(d.boundingBox[3]).arg(d.boundingBox[4]).arg(d.boundingBox[5]);
+			.arg(d.bbox[0][0]).arg(d.bbox[0][1]).arg(d.bbox[0][2])
+			.arg(d.bbox[1][0]).arg(d.bbox[1][1]).arg(d.bbox[1][2]);
 		ui.nameActions->setToolTip(bboxText + "\n"
 			"Filename: " + d.fileName + "\n");
 
@@ -2302,7 +2302,6 @@ void iAFiAKErController::setReference(size_t referenceID, std::vector<std::pair<
 		m_showResultVis[m_referenceID]->setText(m_showResultVis[m_referenceID]->text().left(m_showResultVis[m_referenceID]->text().length()-RefMarker.length()));
 	}
 	addInteraction(QString("Reference set to %1.").arg(resultName(referenceID)));
-	auto & bounds = m_data->result[referenceID].boundingBox;
 	bool setBB = true;
 	for (int i = 0; i < 6; ++i)
 	{
@@ -2314,10 +2313,11 @@ void iAFiAKErController::setReference(size_t referenceID, std::vector<std::pair<
 	}
 	if (setBB)
 	{
+		auto& bounds = m_data->result[referenceID].bbox;
 		for (int i = 0; i < 3; ++i)
 		{
-			m_teBoundingBox[i]->setText(QString::number(bounds[i * 2]));
-			m_teBoundingBox[i + 3]->setText(QString::number(bounds[i * 2 + 1]));
+			m_teBoundingBox[i]->setText(QString::number(bounds[0][i]));
+			m_teBoundingBox[i + 3]->setText(QString::number(bounds[1][i]));
 		}
 	}
 	m_refDistCompute = new iARefDistCompute(m_data, referenceID);

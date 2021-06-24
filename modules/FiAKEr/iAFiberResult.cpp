@@ -20,6 +20,7 @@
 * ************************************************************************************/
 #include "iAFiberResult.h"
 
+#include "iAFiberData.h"
 #include "iARefDistCompute.h" // only for SimilarityMeasureCount!
 
 #include "iACsvIO.h"
@@ -133,6 +134,54 @@ namespace
 		config.fixedDiameterValue = 7;
 		return config;
 	}
+
+	iAAABB computeFiberBBox(std::vector<iAVec3f> const& points, float radius)
+	{
+		std::array<iAVec3f, 2> result;
+		result[0].fill(std::numeric_limits<float>::max());
+		result[1].fill(std::numeric_limits<float>::lowest());
+		for (int p = 0; p < points.size(); ++p)
+		{
+			auto const& pt = points[p].data();
+			for (int i = 0; i < 3; ++i)
+			{
+				result[0][i] = std::min(result[0][i], pt[i] - radius);
+				result[1][i] = std::max(result[1][i], pt[i] + radius);
+			}
+		}
+		return result;
+	}
+	iAFiberData createFiberData(iAFiberResult const& result, size_t fiberID)
+	{
+		auto const& mapping = *result.mapping.data();
+		auto it = result.curveInfo.find(fiberID);
+		return iAFiberData(
+			result.table, fiberID, mapping, (it != result.curveInfo.end()) ? it->second : std::vector<iAVec3f>());
+	}
+
+	iAAABB boundingBoxForFiber(iAFiberData const& fiberData)
+	{
+		return computeFiberBBox(
+			fiberData.curvedPoints.size() > 0 ? fiberData.curvedPoints : fiberData.pts, fiberData.diameter / 2.0);
+	}
+
+	void createResultFiberData(iAFiberResult& result)
+	{
+		result.fiberData.resize(result.fiberCount);
+		for (size_t fiberID = 0; fiberID < result.fiberCount; ++fiberID)
+		{
+			result.fiberData[fiberID] = createFiberData(result, fiberID);
+		}
+	}
+
+	void boundingBoxesForFibers(std::vector<iAAABB>& fiberBBs, std::vector<iAFiberData> const& resultFiberData)
+	{
+		fiberBBs.resize(resultFiberData.size());
+		for (size_t fiberID = 0; fiberID < fiberBBs.size(); ++fiberID)
+		{
+			fiberBBs[fiberID] = boundingBoxForFiber(resultFiberData[fiberID]);
+		}
+	}
 }
 
 iACsvConfig getCsvConfig(QString const & formatName)
@@ -174,35 +223,31 @@ void addColumn(vtkSmartPointer<vtkTable> table, double value, char const * colum
 	table->AddColumn(arrX);
 }
 
-//! compute result bounding box from its value table
-//! only considers start and end points, not curved points at the moment
-//! relies on StartX, StartY, StartZ & EndX, EndY, EndZ constant defines being in sequence.
-//! @param box[out] contains minX, maxX, minY, maxY, minZ, maxZ
-void computeBoundingBox(vtkSmartPointer<vtkTable> tbl, QMap<uint, uint> const& mapping, double box[6])
+void mergeBoundingBoxes(iAAABB& bbox, std::vector<iAAABB> const& fiberBBs)
 {
-	box[0] = box[2] = box[4] = std::numeric_limits<double>::max();
-	box[1] = box[3] = box[5] = std::numeric_limits<double>::lowest();
-	for (vtkIdType f = 0; f < tbl->GetNumberOfRows(); ++f)
+	if (fiberBBs.size() == 0)
 	{
-		for (int i = 0; i < 3; ++i)
+		LOG(lvlWarn, "Invalid call to mergeBoundingBoxes: empty list of bounding boxes!");
+		return;
+	}
+	bbox = fiberBBs[0];
+	for (size_t bbID = 1; bbID < fiberBBs.size(); ++bbID)
+	{
+		for (int c = 0; c < 3; ++c)
 		{
-			double pts[2];
-			pts[0] = tbl->GetValue(f, mapping[iACsvConfig::StartX + i]).ToDouble();
-			pts[1] = tbl->GetValue(f, mapping[iACsvConfig::EndX + i]).ToDouble();
-			for (int j = 0; j < 2; ++j)
+			if (fiberBBs[bbID][0][c] < bbox[0][c])
 			{
-				if (pts[j] < box[2 * i])
-				{
-					box[2 * i] = pts[j];
-				}
-				if (pts[j] > box[2 * i + 1])
-				{
-					box[2 * i + 1] = pts[j];
-				}
+				bbox[0][c] = fiberBBs[bbID][0][c];
+			}
+			if (fiberBBs[bbID][1][c] > bbox[1][c])
+			{
+				bbox[1][c] = fiberBBs[bbID][1][c];
 			}
 		}
 	}
 }
+
+
 
 iAFiberResultsCollection::iAFiberResultsCollection():
 	spmData(new iASPLOMData()),
@@ -270,7 +315,6 @@ bool iAFiberResultsCollection::loadData(QString const & path, iACsvConfig const 
 		{
 			maxFiberCount = curData.fiberCount;
 		}
-		computeBoundingBox(curData.table, *curData.mapping.data(), curData.boundingBox);
 
 		if (result.empty())
 		{
@@ -589,6 +633,7 @@ bool iAFiberResultsCollection::loadData(QString const & path, iACsvConfig const 
 		);
 	}
 
+	progress->setStatus("Creating SPM table...");
 	paramNames.push_back("Result_ID");
 	paramNames.push_back("Proj. Error Red.");
 
@@ -625,10 +670,25 @@ bool iAFiberResultsCollection::loadData(QString const & path, iACsvConfig const 
 		// TODO: reuse spmData also for 3d visualization?
 
 		spmStartIdx += curData.fiberCount;
-	}
 
+		progress->emitProgress(resultID * 100.0 / result.size());
+	}
 	spmData->updateRanges();
 
+	progress->setStatus("Creating fiber data objects");
+	for (resultID = 0; resultID < result.size() && !abort; ++resultID)
+	{
+		createResultFiberData(result[resultID]);
+		progress->emitProgress(resultID * 100 / result.size());
+	}
+
+	progress->setStatus("Computing bounding boxes");
+	for (resultID = 0; static_cast<size_t>(resultID) < result.size() && !abort; ++resultID)
+	{
+		boundingBoxesForFibers(result[resultID].fiberBB, result[resultID].fiberData);
+		progress->emitProgress(resultID * 100 / result.size());
+		mergeBoundingBoxes(result[resultID].bbox, result[resultID].fiberBB);
+	}
 	return !abort;
 }
 
