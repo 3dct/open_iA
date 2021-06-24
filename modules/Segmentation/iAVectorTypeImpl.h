@@ -79,7 +79,7 @@ iARefVector<ContainerT>::iARefVector(ContainerT const& ref) : m_ref(ref)
 template <typename ContainerT>
 iAVectorDataType iARefVector<ContainerT>::get(size_t channelIdx) const
 {
-	assert(channelIdx < std::numeric_limits<typename ContainerT::size_type>::max());
+	assert(static_cast<typename ContainerT::size_type>(channelIdx) < std::numeric_limits<typename ContainerT::size_type>::max());
 	return m_ref[static_cast<typename ContainerT::size_type>(channelIdx)];
 }
 

@@ -1628,11 +1628,11 @@ public:
 		//std::set<int> hiGrp;
 		//std::set<std::pair<int, int> > hiGrpParam;
 		QSet<int> hiParam;
-		std::set<int> hiGrpAll;
+		std::set<size_t> hiGrpAll;
 		auto const& hp = m_paramSP->viewData()->highlightedPoints();
 		for (auto ptIdx : hp)
 		{
-			int groupID = ptIdx / starGroupSize;
+			size_t groupID = ptIdx / starGroupSize;
 			if (ptIdx % starGroupSize == 0)
 			{
 				//LOG(lvlDebug, QString("Selected GROUP: %1").arg(groupID));
@@ -1716,9 +1716,9 @@ public:
 		// easiest way is to collect all parameter values in a group (done in the vector of size_t/double pairs),
 		// then sort this by the parameter values (since we don't know else how many are smaller or larger than
 		// the center value), then take the point indices from this ordered vector to form the line.
-		int groupCount = resultCount / starGroupSize;
+		size_t groupCount = resultCount / starGroupSize;
 		bool unselectedStarLines = m_settings->cbUnselectedSTARLines->isChecked();
-		for (int groupID=0; groupID < groupCount; ++groupID)
+		for (size_t groupID=0; groupID < groupCount; ++groupID)
 		{
 			auto groupStart = groupID * starGroupSize;
 			if (!unselectedStarLines && hiGrpAll.find(groupID) == hiGrpAll.end())
@@ -1958,12 +1958,12 @@ namespace
 					continue;
 				}
 				// check "other" fibers in same unique fiber cluster for match:
-				auto match = dissimMatrix[r1][r0].fiberDissim[f1][MeasureIdx][0];
-				if (fm != match.index)
+				auto matchOther = dissimMatrix[r1][r0].fiberDissim[f1][MeasureIdx][0];
+				if (fm != matchOther.index)
 				{
 					LOG(lvlDebug, QString("r1=%1, f1=%2: Match not confirmed for m=%3 (rm=%4, fm=%5);"
 						" best match would be fID=%6!")
-						.arg(r1).arg(f1).arg(m).arg(rm).arg(fm).arg(match.index));
+						.arg(r1).arg(f1).arg(m).arg(rm).arg(fm).arg(matchOther.index));
 				}
 			}
 			return uniqueID;
@@ -2534,7 +2534,8 @@ void iASensitivityInfo::spVisibleParamChanged()
 			// the STAR centers are always visible:
 			(inGroupIdx == 0) ||
 			// if one of two shown "parameters" is MDS x/y, show all results:
-			visPar[0] >= m_variedParams.size() || visPar[1] >= m_variedParams.size();
+			static_cast<int>(visPar[0]) >= m_variedParams.size() ||
+			static_cast<int>(visPar[1]) >= m_variedParams.size();
 		if (!visible)
 		{	// otherwise, show result only if it's on a branch for one of the two shown parameters:
 			size_t starBranchParamIdx = (inGroupIdx - 1) / m_numOfSTARSteps;
@@ -2654,7 +2655,7 @@ void iASensitivityInfo::updateDifferenceView()
 		if (i > 0)
 		{
 			auto refResID = hp[0];
-			int refFiberID = m_currentFiberSelection[refResID][0];
+			size_t refFiberID = m_currentFiberSelection[refResID][0];
 			auto& ref = m_data->result[refResID];
 			auto const& refMapping = *ref.mapping.data();
 			auto refIt = ref.curveInfo.find(refFiberID);
@@ -2664,7 +2665,7 @@ void iASensitivityInfo::updateDifferenceView()
 			auto& d = m_data->result[rID];
 			auto const& mapping = *d.mapping.data();
 			std::vector<iAVec3f> sampledPoints;
-			int fiber0ID = m_currentFiberSelection[rID][0];
+			size_t fiber0ID = m_currentFiberSelection[rID][0];
 			auto it = d.curveInfo.find(fiber0ID);
 			iAFiberData sampleFiber(
 				d.table, fiber0ID, mapping, it != d.curveInfo.end() ? it->second : std::vector<iAVec3f>());
@@ -2689,7 +2690,11 @@ void iASensitivityInfo::updateDifferenceView()
 					++newPts;
 				}
 			}
-			unsigned char onlyInThisColor[3] = {t->color(i).red(), t->color(i).green(), t->color(i).blue()};
+			unsigned char onlyInThisColor[3] = {    // Qt documentation states that red/green/blue deliver 0..255, so cast is OK
+				static_cast<unsigned char>(t->color(i).red()),
+				static_cast<unsigned char>(t->color(i).green()),
+				static_cast<unsigned char>(t->color(i).blue())
+			};
 			for (size_t s = 0; s < newPts; ++s)
 			{
 				colors->InsertNextTypedTuple(onlyInThisColor);
@@ -2709,7 +2714,11 @@ void iASensitivityInfo::updateDifferenceView()
 					++newPts;
 				}
 			}
-			unsigned char onlyInRefColor[3] = {t->color(0).red(), t->color(0).green(), t->color(0).blue()};
+			unsigned char onlyInRefColor[3] = {
+				static_cast<unsigned char>(t->color(0).red()),
+				static_cast<unsigned char>(t->color(0).green()),
+				static_cast<unsigned char>(t->color(0).blue())
+			};
 			for (size_t s = 0; s < newPts; ++s)
 			{
 				colors->InsertNextTypedTuple(onlyInRefColor);
