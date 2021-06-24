@@ -2390,6 +2390,7 @@ void iASensitivityInfo::createGUI()
 	std::vector<vtkSmartPointer<vtkImageData>> perUniqueFiberVars;
 	auto avgVar = allocateImage(VTK_FLOAT, size, spacing.data());
 	avgVar->SetOrigin(origin.data());
+	fillImage(avgVar, 0);
 	for (auto u : uniqueFibers)
 	{
 		auto uniqueFiberVarImg = allocateImage(VTK_FLOAT, size, spacing.data());
