@@ -1982,57 +1982,60 @@ namespace
 	//! list of unique fibers; outside vectors: unique fibers; inside vector: "matches"
 	using UniqueFibersT = std::vector<std::vector<FiberKeyT>>;
 
-	UniqueFibersT::iterator findMatch(iADissimilarityMatrixType const& dissimMatrix,
-		UniqueFibersT & uniqueFibers, FiberKeyT const& curF, int MeasureIdx)
+	using FiberToUniqueMapT = QMap<std::pair<size_t, size_t>, size_t>;
+
+	const size_t NoMatch = std::numeric_limits<size_t>::max();
+
+	size_t findMatch(iADissimilarityMatrixType const& dissimMatrix, UniqueFibersT const & uniqueFibers,
+		FiberToUniqueMapT const & mapFiberToUnique, FiberKeyT const& curF, int MeasureIdx)
 	{
 		size_t r1 = curF.first;
 		size_t f1 = curF.second;
-		// TODO: optimize
-		//     - maybe it's possible to do look up instead of loop over all uniqueFibers?
-		//     - some kind of map/tree/graph structure instead of list maybe?
-		//         - but problematic due to multiple fibers per unique fiber?
-		//     -> build map from (fID, rID) to unique fiber ID
-		for (auto cand = uniqueFibers.begin(); cand != uniqueFibers.end(); ++cand)
+		for (size_t r0 = 0; r0 < r1; ++r0)
 		{
 			// Questions:
 			// - do all need to match or only one?
 			// - one direction or both?
-			bool matchFound = false;
-			for (size_t m = 0; m < cand->size(); ++m)
+			auto match = dissimMatrix[r1][r0].fiberDissim[f1][MeasureIdx][0];
+			if (dblApproxEqual(match.dissimilarity, 1.0f))	// potentially, there is no match between results at all
 			{
-				size_t rm = cand->at(m).first;
-				size_t fm = cand->at(m).second;
-				if (rm == r1)	// another fiber in the same result cannot be best match
+				continue;
+			}
+			auto f0 = match.index;
+			auto cand = std::make_pair(r0, f0);
+			size_t uniqueID = mapFiberToUnique[cand];
+			for (int m = 0; m < uniqueFibers[uniqueID].size(); ++m)
+			{
+				auto rm = uniqueFibers[uniqueID][m].first;
+				if (rm == r1)	// if another fiber of same result was already added to that unique fiber,
+				{				// we need to skip it for matching checks... maybe debug output?
+					continue;
+				}
+				auto fm = uniqueFibers[uniqueID][m].second;
+				// check reverse match(es):
+				size_t bestMatchoffmInr1 = dissimMatrix[rm][r1].fiberDissim[fm][MeasureIdx][0].index;
+				if (bestMatchoffmInr1 != f1)
+				{
+					LOG(lvlDebug, QString("r1=%1, f1=%2: Match to rm=%3, fm=%4 (m=%5) "
+						"isn't a reverse match; that's fID=%6!")
+						.arg(r1).arg(f1).arg(rm).arg(fm).arg(m).arg(bestMatchoffmInr1));
+				}
+				if (rm == r0)
 				{
 					continue;
 				}
-				size_t bestMatchOff1Inr0 = dissimMatrix[r1][rm].fiberDissim[f1][MeasureIdx][0].index;
-				if (matchFound && fm != bestMatchOff1Inr0)
+				// check "other" fibers in same unique fiber cluster for match:
+				auto match = dissimMatrix[r1][r0].fiberDissim[f1][MeasureIdx][0];
+				if (fm != match.index)
 				{
-					LOG(lvlDebug, QString("r1=%1, f1=%2: Match not confirmed in synonym m=%3 (rm=%4, fm=%5)!").arg(r1).arg(f1).arg(m).arg(rm).arg(fm));
-				}
-				if (fm == bestMatchOff1Inr0)
-				{
-					matchFound = true;
-					if (m > 0)
-					{
-						LOG(lvlDebug, QString("r1=%1, f1=%2: Match found, but not at 1st synonym, only at m=%3 (rm=%4, fm=%5)!").arg(r1).arg(f1).arg(m).arg(rm).arg(fm));
-					}
-					// check reverse match(es):
-					size_t bestMatchoffmInr1 = dissimMatrix[rm][r1].fiberDissim[fm][MeasureIdx][0].index;
-					if (bestMatchoffmInr1 != f1)
-					{
-						LOG(lvlDebug, QString("r1=%1, f1=%2: Unique match to rm=%3, fm=%4 (m=%5) isn't a reverse match as well; that's matchF1=%6!")
-							.arg(r1).arg(f1).arg(rm).arg(fm).arg(m).arg(bestMatchoffmInr1));
-					}
+					LOG(lvlDebug, QString("r1=%1, f1=%2: Match not confirmed for m=%3 (rm=%4, fm=%5);"
+						" best match would be fID=%6!")
+						.arg(r1).arg(f1).arg(m).arg(rm).arg(fm).arg(match.index));
 				}
 			}
-			if (matchFound)
-			{
-				return cand;
-			}
+			return uniqueID;
 		}
-		return uniqueFibers.end();
+		return NoMatch;
 	}
 
 	void projectFiberToImage(iAFiberData const& fiberData, vtkSmartPointer<vtkImageData> img,
@@ -2342,6 +2345,7 @@ void iASensitivityInfo::createGUI()
 	iAPerformanceHelper h;
 	h.start("Finding unique fibers", false);
 	UniqueFibersT uniqueFibers;
+	FiberToUniqueMapT mapFiberToUnique;
 	for (size_t r1 = 0; r1 < resultCount; ++r1)
 	{
 		auto const& d = m_data->result[r1];
@@ -2349,10 +2353,12 @@ void iASensitivityInfo::createGUI()
 		{
 			auto curFiber = std::make_pair(r1, f1);
 			//FiberKeyT matchFiber;
-			auto it = findMatch(m_resultDissimMatrix, uniqueFibers, curFiber, MeasureIdx);
-			if (it != uniqueFibers.end())
+			auto idx = findMatch(m_resultDissimMatrix, uniqueFibers, mapFiberToUnique,
+				curFiber, MeasureIdx);
+			if (idx != NoMatch)
 			{
-				it->push_back(curFiber);
+				uniqueFibers[idx].push_back(curFiber);
+				mapFiberToUnique.insert(curFiber, idx);
 			}
 			// special handling if match found but no reverse match / no match to all "synonyms" ?
 			else
@@ -2360,6 +2366,7 @@ void iASensitivityInfo::createGUI()
 				std::vector<FiberKeyT> vec;
 				vec.push_back(curFiber);
 				uniqueFibers.push_back(vec);
+				mapFiberToUnique.insert(curFiber, uniqueFibers.size() - 1);
 			}
 		}
 	}
