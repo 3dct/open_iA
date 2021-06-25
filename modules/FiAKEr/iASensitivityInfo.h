@@ -225,26 +225,30 @@ private:
 		QString const& parameterFileName, int skipColumns, QStringList const& paramNames,
 		std::vector<std::vector<double>> const& paramValues, iAMdiChild* child,
 		QDockWidget* nextToDW, std::vector<iAFiberResultUIData> const& resultUIs, iAVtkWidget* main3DWidget);
-	void compute();
+	void compute(iAProgress* p);
 	QString dissimilarityMatrixCacheFileName() const;
 	bool readDissimilarityMatrixCache(QVector<int>& measures);
 	void writeDissimilarityMatrixCache(QVector<int> const& measures) const;
 	QWidget* setupMatrixView(QVector<int> const& measures);
 
 	void updateDifferenceView();
-
+	void computeSpatialOverview(iAProgress* p);
+	void showSpatialOverview();
+	
 	QString m_parameterFileName;
 	int m_skipColumns;
+	// UI elements:
 	iAMdiChild* m_child;
 	QDockWidget* m_nextToDW;
 	std::vector<iAFiberResultUIData> const& m_resultUIs;
 	iAVtkWidget* m_main3DWidget;
 
 	// for computation:
-	iAProgress m_progress;
 	bool m_aborted;
 	//! "temporary" copy of project to load:
 	iASettings m_projectToLoad;
+	//! image for holding overview over variation per voxel
+	vtkSmartPointer<vtkImageData> m_spatialOverview;
 signals:
 	void aborted();
 	void resultSelected(size_t resultIdx, bool state);

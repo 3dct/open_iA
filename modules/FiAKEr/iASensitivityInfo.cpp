@@ -444,16 +444,14 @@ QSharedPointer<iASensitivityInfo> iASensitivityInfo::create(iAMdiChild* child,
 		sensitivity->m_resultDissimMeasures = selectMeasure.measures();
 		sensitivity->m_resultDissimOptimMeasureIdx = selectMeasure.optimizeMeasureIdx();
 	}
+	iAProgress* sensP = new iAProgress();
 	sensitivity->m_projectToLoad = projectFile;
-	auto futureWatcher = runAsync([sensitivity]
-		{
-			sensitivity->compute();
-		},
-		[sensitivity]
-		{
-			sensitivity->createGUI();
-		}, child);
-	iAJobListView::get()->addJob("Sensitivity computation", &sensitivity->m_progress, futureWatcher, sensitivity.data());
+	auto sensitivityComputation = runAsync(
+		[sensitivity, sensP] { sensitivity->compute(sensP); },
+		[sensitivity, sensP] { sensitivity->createGUI(); delete sensP; },
+		child);
+	iAJobListView::get()->addJob("Computing sensitivity data",
+		sensP, sensitivityComputation, sensitivity.data());
 	return sensitivity;
 }
 
@@ -508,9 +506,9 @@ void getBestMatches2(iAFiberData const& fiber, std::vector<iAFiberData> const& o
 	}
 }
 
-void iASensitivityInfo::compute()
+void iASensitivityInfo::compute(iAProgress* progress)
 {
-	m_progress.setStatus("Storing parameter set values");
+	progress->setStatus("Storing parameter set values");
 	for (int p = 0; p < m_paramValues[0].size(); p += m_starGroupSize)
 	{
 		QVector<double> parameterSet;
@@ -519,10 +517,10 @@ void iASensitivityInfo::compute()
 			parameterSet.push_back(m_paramValues[v][p]);
 		}
 		paramSetValues.push_back(parameterSet);
-		m_progress.emitProgress(static_cast<int>(100 * p / m_paramValues[0].size()));
+		progress->emitProgress(static_cast<int>(100 * p / m_paramValues[0].size()));
 	}
 
-	m_progress.setStatus("Computing characteristics distribution (histogram) for all results.");
+	progress->setStatus("Computing characteristics distribution (histogram) for all results.");
 	// TODO: common storage for that in data!
 	m_charHistograms.resize(static_cast<int>(m_data->result.size()));
 
@@ -540,7 +538,7 @@ void iASensitivityInfo::compute()
 
 	for (int rIdx = 0; rIdx < m_data->result.size(); ++rIdx)
 	{
-		m_progress.emitProgress(static_cast<int>(100 * rIdx / m_data->result.size()));
+		progress->emitProgress(static_cast<int>(100 * rIdx / m_data->result.size()));
 		auto const& r = m_data->result[rIdx];
 		// TODO: skip some columns? like ID...
 		m_charHistograms[rIdx].reserve(numCharSelected);
@@ -570,7 +568,7 @@ void iASensitivityInfo::compute()
 	//                 for each point in parameter space (of base sampling method)
 	//                     compute local change by that difference measure
 
-	m_progress.setStatus("Computing characteristics sensitivities.");
+	progress->setStatus("Computing characteristics sensitivities.");
 	const int NumOfVarianceAggregation = 4;
 
 	paramStep.fill(0.0, m_variedParams.size());
@@ -578,7 +576,7 @@ void iASensitivityInfo::compute()
 	aggregatedSensitivities.resize(numCharSelected);
 	for (int charIdx = 0; charIdx < numCharSelected && !m_aborted; ++charIdx)
 	{
-		m_progress.emitProgress(100 * charIdx / numCharSelected);
+		progress->emitProgress(100 * charIdx / numCharSelected);
 		//int charactID = m_charSelected[charIdx];
 		//auto charactName = m_data->spmData->parameterName(charactID);
 		//LOG(lvlDebug, QString("Characteristic %1 (%2):").arg(charIdx).arg(charactName));
@@ -712,7 +710,7 @@ void iASensitivityInfo::compute()
 	{
 		return;
 	}
-	m_progress.setStatus("Computing fiber count histogram.");
+	progress->setStatus("Computing fiber count histogram.");
 
 	QVector<double> fiberCounts;
 	for (int resultIdx = 0; resultIdx < m_data->result.size(); ++resultIdx)
@@ -727,7 +725,7 @@ void iASensitivityInfo::compute()
 		return;
 	}
 
-	m_progress.setStatus("Computing fiber count sensitivities.");
+	progress->setStatus("Computing fiber count sensitivities.");
 	// TODO: unify with other loops over STARs
 	sensitivityFiberCount.resize(NumOfVarianceAggregation);
 	aggregatedSensitivitiesFiberCount.resize(NumOfVarianceAggregation);
@@ -738,7 +736,7 @@ void iASensitivityInfo::compute()
 	}
 	for (int paramIdx = 0; paramIdx < m_variedParams.size() && !m_aborted; ++paramIdx)
 	{
-		m_progress.emitProgress(100 * paramIdx / m_variedParams.size());
+		progress->emitProgress(100 * paramIdx / m_variedParams.size());
 		int origParamColIdx = m_variedParams[paramIdx];
 		for (int i = 0; i < NumOfVarianceAggregation; ++i)
 		{
@@ -832,13 +830,13 @@ void iASensitivityInfo::compute()
 		return;
 	}
 
-	m_progress.setStatus("Compute variation histogram");
+	progress->setStatus("Compute variation histogram");
 	//charHistHist.resize(numCharSelected);
 	charHistVar.resize(numCharSelected);
 	charHistVarAgg.resize(numCharSelected);
 	for (int charIdx = 0; charIdx < numCharSelected && !m_aborted; ++charIdx)
 	{
-		m_progress.emitProgress(100 * charIdx / numCharSelected);
+		progress->emitProgress(100 * charIdx / numCharSelected);
 		//charHistHist[charIdx].resize(NumOfVarianceAggregation);
 		charHistVar[charIdx].resize(NumOfVarianceAggregation);
 		charHistVarAgg[charIdx].resize(NumOfVarianceAggregation);
@@ -971,7 +969,7 @@ void iASensitivityInfo::compute()
 		return;
 	}
 
-	m_progress.setStatus("Computing average characteristics histogram.");
+	progress->setStatus("Computing average characteristics histogram.");
 	charHistAvg.resize(numCharSelected);
 	for (int charIdx = 0; charIdx < numCharSelected && !m_aborted; ++charIdx)
 	{
@@ -989,8 +987,8 @@ void iASensitivityInfo::compute()
 		}
 	}
 
-	m_progress.setStatus("Loading cached dissimilarities between all result pairs.");
-	m_progress.emitProgress(0);
+	progress->setStatus("Loading cached dissimilarities between all result pairs.");
+	progress->emitProgress(0);
 	QVector<int> measures;
 
 	if (readDissimilarityMatrixCache(measures))
@@ -1003,7 +1001,7 @@ void iASensitivityInfo::compute()
 	}
 	else
 	{
-		m_progress.setStatus("Computing dissimilarity between all result pairs.");
+		progress->setStatus("Computing dissimilarity between all result pairs.");
 		int measureCount = static_cast<int>(m_resultDissimMeasures.size());
 		int resultCount = static_cast<int>(m_data->result.size());
 		m_resultDissimMatrix = iADissimilarityMatrixType(resultCount,
@@ -1041,7 +1039,7 @@ void iASensitivityInfo::compute()
 				{
 					continue;
 				}
-				m_progress.setStatus(QString("Computing dissimilarity between results %1 and %2.").arg(r1).arg(r2));
+				progress->setStatus(QString("Computing dissimilarity between results %1 and %2.").arg(r1).arg(r2));
 				int r1FibCount = static_cast<int>(m_data->result[r1].fiberCount);
 				std::vector<int> r2MatchCount(measureCount, 0);
 				auto& dissimilarities = mat.fiberDissim;
@@ -1079,7 +1077,7 @@ void iASensitivityInfo::compute()
 					mat.avgDissim[m] /= r2MatchCount[m];
 				}
 				++curCheckedPairs;
-				m_progress.emitProgress(curCheckedPairs * 100.0 / overallPairs);
+				progress->emitProgress(curCheckedPairs * 100.0 / overallPairs);
 			}
 		}
 		if (m_aborted)
@@ -1160,7 +1158,7 @@ void iASensitivityInfo::compute()
 		}
 		for (int paramIdx = 0; paramIdx < m_variedParams.size() && !m_aborted; ++paramIdx)
 		{
-			m_progress.emitProgress(100 * paramIdx / m_variedParams.size());
+			progress->emitProgress(100 * paramIdx / m_variedParams.size());
 			int origParamColIdx = m_variedParams[paramIdx];
 			for (int a = 0; a < NumOfVarianceAggregation; ++a)
 			{
@@ -1253,9 +1251,6 @@ void iASensitivityInfo::compute()
 		m_dissimRanges.push_back(dissimRange);
 		m_dissimHistograms.push_back(dissimHistogram);
 	}
-
-	// compute volume of dissimilarity
-	
 }
 
 QString iASensitivityInfo::dissimilarityMatrixCacheFileName() const
@@ -1949,9 +1944,11 @@ namespace
 				size_t bestMatchoffmInr1 = dissimMatrix[rm][r1].fiberDissim[fm][MeasureIdx][0].index;
 				if (bestMatchoffmInr1 != f1)
 				{
+					/*
 					LOG(lvlDebug, QString("r1=%1, f1=%2: Match to rm=%3, fm=%4 (m=%5) "
 						"isn't a reverse match; that's fID=%6!")
 						.arg(r1).arg(f1).arg(rm).arg(fm).arg(m).arg(bestMatchoffmInr1));
+					*/
 				}
 				if (rm == r0)
 				{
@@ -1961,9 +1958,11 @@ namespace
 				auto matchOther = dissimMatrix[r1][r0].fiberDissim[f1][MeasureIdx][0];
 				if (fm != matchOther.index)
 				{
+					/*
 					LOG(lvlDebug, QString("r1=%1, f1=%2: Match not confirmed for m=%3 (rm=%4, fm=%5);"
 						" best match would be fID=%6!")
 						.arg(r1).arg(f1).arg(m).arg(rm).arg(fm).arg(matchOther.index));
+					*/
 				}
 			}
 			return uniqueID;
@@ -2046,15 +2045,27 @@ void iASensitivityInfo::createGUI()
 	}
 	m_gui.reset(new iASensitivityGUI);
 
+	iAProgress* spatP = new iAProgress();
+	auto spatialVariationComputation = runAsync([this, spatP] { this->computeSpatialOverview(spatP); },
+		[this, spatP] {
+			showSpatialOverview();
+			delete spatP;
+		},
+		m_child);
+	iAJobListView::get()->addJob("Computing spatial overview", spatP, spatialVariationComputation, this);
+
 	m_gui->m_settings = new iASensitivitySettingsView(this);
 	auto dwSettings = new iADockWidgetWrapper(m_gui->m_settings, "Sensitivity Settings", "foeSensitivitySettings");
 	m_child->splitDockWidget(m_nextToDW, dwSettings, Qt::Horizontal);
 
 	m_gui->m_paramInfluenceView = new iAParameterInfluenceView(this, ParamColor, OutputColor);
-	m_gui->m_dwParamInfluence = new iADockWidgetWrapper(m_gui->m_paramInfluenceView, "Parameter Influence", "foeParamInfluence");
+	m_gui->m_dwParamInfluence =
+		new iADockWidgetWrapper(m_gui->m_paramInfluenceView, "Parameter Influence", "foeParamInfluence");
 	connect(m_gui->m_paramInfluenceView, &iAParameterInfluenceView::barAdded, this, &iASensitivityInfo::outputBarAdded);
-	connect(m_gui->m_paramInfluenceView, &iAParameterInfluenceView::barRemoved, this, &iASensitivityInfo::outputBarRemoved);
-	connect(m_gui->m_paramInfluenceView, &iAParameterInfluenceView::resultSelected, this, &iASensitivityInfo::parResultSelected);
+	connect(
+		m_gui->m_paramInfluenceView, &iAParameterInfluenceView::barRemoved, this, &iASensitivityInfo::outputBarRemoved);
+	connect(m_gui->m_paramInfluenceView, &iAParameterInfluenceView::resultSelected, this,
+		&iASensitivityInfo::parResultSelected);
 	m_child->splitDockWidget(dwSettings, m_gui->m_dwParamInfluence, Qt::Vertical);
 
 	QStringList algoInNames;
@@ -2068,13 +2079,13 @@ void iASensitivityInfo::createGUI()
 		algoOutNames << charactName(charIdx);
 	}
 	m_gui->m_algoInfo = new iAAlgorithmInfo("Fiber Reconstruction", algoInNames, algoOutNames, ParamColor, OutputColor);
-	m_gui->m_algoInfo->addShownOut(0); // equivalent to addStackedBar in iAParameterInfluenceView constructor!
-	connect(m_gui->m_algoInfo, &iAAlgorithmInfo::inputClicked,
-		m_gui->m_paramInfluenceView, &iAParameterInfluenceView::setSelectedParam);
-	connect(m_gui->m_algoInfo, &iAAlgorithmInfo::outputClicked,
-		m_gui->m_paramInfluenceView, &iAParameterInfluenceView::toggleCharacteristic);
-	connect(m_gui->m_paramInfluenceView, &iAParameterInfluenceView::orderChanged,
-		m_gui->m_algoInfo, &iAAlgorithmInfo::setInSortOrder);
+	m_gui->m_algoInfo->addShownOut(0);  // equivalent to addStackedBar in iAParameterInfluenceView constructor!
+	connect(m_gui->m_algoInfo, &iAAlgorithmInfo::inputClicked, m_gui->m_paramInfluenceView,
+		&iAParameterInfluenceView::setSelectedParam);
+	connect(m_gui->m_algoInfo, &iAAlgorithmInfo::outputClicked, m_gui->m_paramInfluenceView,
+		&iAParameterInfluenceView::toggleCharacteristic);
+	connect(m_gui->m_paramInfluenceView, &iAParameterInfluenceView::orderChanged, m_gui->m_algoInfo,
+		&iAAlgorithmInfo::setInSortOrder);
 	m_gui->m_algoInfo->setInSortOrder(m_gui->m_paramInfluenceView->paramIndicesSorted());
 	auto dwAlgoInfo = new iADockWidgetWrapper(m_gui->m_algoInfo, "Algorithm Details", "foeAlgorithmInfo");
 	m_child->splitDockWidget(dwSettings, dwAlgoInfo, Qt::Horizontal);
@@ -2088,29 +2099,35 @@ void iASensitivityInfo::createGUI()
 	auto dwDissimMatrix = new iADockWidgetWrapper(dissimDockContent, "Dissimilarity Matrix", "foeMatrix");
 	m_child->splitDockWidget(m_gui->m_dwParamInfluence, dwDissimMatrix, Qt::Vertical);
 
-	m_gui->m_parameterListView = new iAParameterListView(m_paramNames, m_paramValues, m_variedParams, m_resultDissimMatrix);
+	m_gui->m_parameterListView =
+		new iAParameterListView(m_paramNames, m_paramValues, m_variedParams, m_resultDissimMatrix);
 	auto dwParamView = new iADockWidgetWrapper(m_gui->m_parameterListView, "Parameter View", "foeParameters");
 	m_child->splitDockWidget(m_gui->m_dwParamInfluence, dwParamView, Qt::Vertical);
 
 	m_gui->m_mdsData = QSharedPointer<iASPLOMData>(new iASPLOMData());
 	std::vector<QString> spParamNames;
-	for (auto p: m_variedParams)
+	for (auto p : m_variedParams)
 	{
 		spParamNames.push_back(m_paramNames[p]);
 	}
-	m_gui->spColIdxMDSX = spParamNames.size(); spParamNames.push_back("MDS X");
-	m_gui->spColIdxMDSY = spParamNames.size(); spParamNames.push_back("MDS Y");
-	m_gui->spColIdxID   = spParamNames.size(); spParamNames.push_back("ID");
-	m_gui->spColIdxDissimilarity = spParamNames.size(); spParamNames.push_back("Dissimilarity"); // dissimilarity according to currently selected result
-	m_gui->spColIdxFilter = spParamNames.size();  spParamNames.push_back("Filter");  // just for filtering results only from current "STAR plane"
+	m_gui->spColIdxMDSX = spParamNames.size();
+	spParamNames.push_back("MDS X");
+	m_gui->spColIdxMDSY = spParamNames.size();
+	spParamNames.push_back("MDS Y");
+	m_gui->spColIdxID = spParamNames.size();
+	spParamNames.push_back("ID");
+	m_gui->spColIdxDissimilarity = spParamNames.size();
+	spParamNames.push_back("Dissimilarity");  // dissimilarity according to currently selected result
+	m_gui->spColIdxFilter = spParamNames.size();
+	spParamNames.push_back("Filter");  // just for filtering results only from current "STAR plane"
 	size_t resultCount = m_data->result.size();
 	m_gui->m_mdsData->setParameterNames(spParamNames, resultCount);
 	for (int c = 0; c < spParamNames.size(); ++c)
 	{
 		m_gui->m_mdsData->data()[c].resize(resultCount);
 	}
-	for (int p=0; p<m_variedParams.size(); ++p)
-	{	// set parameter values:
+	for (int p = 0; p < m_variedParams.size(); ++p)
+	{  // set parameter values:
 		int origParamIdx = m_variedParams[p];
 		for (int r = 0; r < resultCount; ++r)
 		{
@@ -2119,11 +2136,11 @@ void iASensitivityInfo::createGUI()
 	}
 	for (size_t i = 0; i < resultCount; ++i)
 	{
-		m_gui->m_mdsData->data()[m_gui->spColIdxMDSX][i] = 0.0;  // MDS X
-		m_gui->m_mdsData->data()[m_gui->spColIdxMDSY][i] = 0.0;  // MDS Y
-		m_gui->m_mdsData->data()[m_gui->spColIdxID][i] = i;    // ID
+		m_gui->m_mdsData->data()[m_gui->spColIdxMDSX][i] = 0.0;           // MDS X
+		m_gui->m_mdsData->data()[m_gui->spColIdxMDSY][i] = 0.0;           // MDS Y
+		m_gui->m_mdsData->data()[m_gui->spColIdxID][i] = i;               // ID
 		m_gui->m_mdsData->data()[m_gui->spColIdxDissimilarity][i] = 0.0;  // Dissimilarity
-		m_gui->m_mdsData->data()[m_gui->spColIdxFilter][i] = 0.0;  // Filter
+		m_gui->m_mdsData->data()[m_gui->spColIdxFilter][i] = 0.0;         // Filter
 	}
 	m_gui->m_mdsData->updateRanges();
 	m_gui->m_lut.reset(new iALookupTable());
@@ -2142,7 +2159,8 @@ void iASensitivityInfo::createGUI()
 	m_gui->m_paramSP->setVisibleParameters(sortedParams[0], sortedParams[1]);
 	connect(m_gui->m_paramSP, &iAScatterPlotWidget::pointHighlighted, this, &iASensitivityInfo::spPointHighlighted);
 	connect(m_gui->m_paramSP, &iAScatterPlotWidget::highlightChanged, this, &iASensitivityInfo::spHighlightChanged);
-	connect(m_gui->m_paramSP, &iAScatterPlotWidget::visibleParamChanged, this, &iASensitivityInfo::spVisibleParamChanged);
+	connect(
+		m_gui->m_paramSP, &iAScatterPlotWidget::visibleParamChanged, this, &iASensitivityInfo::spVisibleParamChanged);
 	auto dwParamSP = new iADockWidgetWrapper(m_gui->m_paramSP, "Results in Parameter Space", "foeParamSP");
 	m_child->splitDockWidget(m_gui->m_dwParamInfluence, dwParamSP, Qt::Vertical);
 
@@ -2197,19 +2215,31 @@ void iASensitivityInfo::createGUI()
 	{
 		m_gui->m_settings->loadSettings(m_projectToLoad);
 	}
+}
 
+void iASensitivityInfo::showSpatialOverview()
+{
+	// show image
+	QSharedPointer<iAModalityList> mods(new iAModalityList());	
+	mods->add(QSharedPointer<iAModality>::create(
+		"Avg fiber occupancy per voxel", "", 1, m_spatialOverview, iAModality::MainRenderer));
+	m_child->setModalities(mods);
+}
+
+void iASensitivityInfo::computeSpatialOverview(iAProgress * progress)
+{
 	// initialize 3D overview:
 	// required: for each result, and each fiber - quality of match to best-matching fiber in all others
 	// 	   Q: how to aggregate one value per fiber?
-	// 	      A: just average? 
+	// 	      A: just average?
 	// 	   Q: how to handle no match?
-	// 	   Q: 
-	
+	// 	   Q:
+	size_t resultCount = m_data->result.size();
 	int const volSize = 64;
 	int const size[3] = {volSize, volSize, volSize};
 	// find bounding box that accomodates all results:
 	std::vector<iAAABB> resultBBs;
-	for (size_t r=0; r<resultCount; ++r)
+	for (size_t r = 0; r < resultCount; ++r)
 	{
 		resultBBs.push_back(m_data->result[r].bbox);
 	}
@@ -2228,14 +2258,13 @@ void iASensitivityInfo::createGUI()
 			.arg(overallBB[1][2])
 			.arg(spacing[0])
 			.arg(spacing[1])
-			.arg(spacing[2])
-	);
+			.arg(spacing[2]));
 
 	const int MeasureIdx = 0;
 
 	// NEW spatial overview over variability:
+	// do in background!
 
-	// same as before:
 	// find overall bounding box
 	// determine (fixed?) dimensions (s_x, s_y, s_z)
 
@@ -2249,8 +2278,8 @@ void iASensitivityInfo::createGUI()
 	//         (? else, if f1 is not listed as best match for f0 (and all its "matches")
 	// 	           add as new unique fiber but somehow mark it linked to f0
 	//         ?) [[-> in first implementation, measure how many such exist, but no special handling]]
-	//         else 
-	// 	           add (r1, f1) as new unique fiber 
+	//         else
+	// 	           add (r1, f1) as new unique fiber
 
 	// Optimization:
 	// while adding fibers to unique fiber list:
@@ -2264,6 +2293,8 @@ void iASensitivityInfo::createGUI()
 
 	iAPerformanceHelper h;
 	h.start("Finding unique fibers", false);
+	progress->setStatus("Finding unique fibers");
+	progress->emitProgress(0);
 	UniqueFibersT uniqueFibers;
 	FiberToUniqueMapT mapFiberToUnique;
 	for (size_t r1 = 0; r1 < resultCount; ++r1)
@@ -2273,8 +2304,7 @@ void iASensitivityInfo::createGUI()
 		{
 			auto curFiber = std::make_pair(r1, f1);
 			//FiberKeyT matchFiber;
-			auto idx = findMatch(m_resultDissimMatrix, uniqueFibers, mapFiberToUnique,
-				curFiber, MeasureIdx);
+			auto idx = findMatch(m_resultDissimMatrix, uniqueFibers, mapFiberToUnique, curFiber, MeasureIdx);
 			if (idx != NoMatch)
 			{
 				uniqueFibers[idx].push_back(curFiber);
@@ -2289,6 +2319,7 @@ void iASensitivityInfo::createGUI()
 				mapFiberToUnique.insert(curFiber, uniqueFibers.size() - 1);
 			}
 		}
+		progress->emitProgress(100 * (r1 + 1) / resultCount);
 	}
 	h.stop();
 
@@ -2305,29 +2336,34 @@ void iASensitivityInfo::createGUI()
 	//     create "probability" image out of i
 	//     (by dividing it through number of results in ensemble?)
 
+	progress->setStatus("Determining fiber variation images");
+	progress->emitProgress(0);
 	h.start("Determining fiber variation images", false);
 	// maybe operate with "raw" buffers here instead of vtkImageData objects??
 	std::vector<vtkSmartPointer<vtkImageData>> perUniqueFiberVars;
 	iAVec3d origin = overallBB[0];
-	auto avgVar = allocateImage(VTK_FLOAT, size, spacing.data());
-	avgVar->SetOrigin(origin.data());
-	fillImage(avgVar, 0);
-	for (auto u : uniqueFibers)
+	m_spatialOverview = allocateImage(VTK_FLOAT, size, spacing.data());
+	m_spatialOverview->SetOrigin(origin.data());
+	fillImage(m_spatialOverview, 0);
+	for (size_t uIdx = 0; uIdx < uniqueFibers.size(); ++uIdx)
 	{
+		auto const & u = uniqueFibers[uIdx];
 		auto uniqueFiberVarImg = allocateImage(VTK_FLOAT, size, spacing.data());
 		uniqueFiberVarImg->SetOrigin(origin.data());
 		fillImage(uniqueFiberVarImg, 0);
-		for (auto s: u)
+		for (auto s : u)
 		{
 			auto const& r = m_data->result[s.first];
 			projectFiberToImage(r.fiberData[s.second], r.fiberBB[s.second], uniqueFiberVarImg, size, spacing, origin);
 		}
-		multiplyImage(uniqueFiberVarImg, 1.0 / u.size() );
+		multiplyImage(uniqueFiberVarImg, 1.0 / u.size());
 		perUniqueFiberVars.push_back(uniqueFiberVarImg);
 
-		addImages(avgVar, uniqueFiberVarImg);
+		addImages(m_spatialOverview, uniqueFiberVarImg);
+
+		progress->emitProgress(100 * (uIdx + 1) / uniqueFibers.size());
 	}
-	multiplyImage(avgVar, uniqueFibers.size());
+	multiplyImage(m_spatialOverview, uniqueFibers.size());
 	h.stop();
 
 	// build overall variability image: (-> incorporated in loop above)
@@ -2335,11 +2371,6 @@ void iASensitivityInfo::createGUI()
 	// for each unique fiber image i:
 	//     add a to i
 	// divide a by number of unique fibers
-
-	// show image
-	QSharedPointer<iAModalityList> mods(new iAModalityList());	
-	mods->add(QSharedPointer<iAModality>::create("Avg fiber occupancy per voxel", "", 1, avgVar, iAModality::MainRenderer));
-	m_child->setModalities(mods);
 }
 
 void iASensitivityInfo::changeMeasure(int newMeasure)
