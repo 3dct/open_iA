@@ -227,6 +227,7 @@ private:
 		QDockWidget* nextToDW, std::vector<iAFiberResultUIData> const& resultUIs, iAVtkWidget* main3DWidget);
 	void compute(iAProgress* p);
 	QString dissimilarityMatrixCacheFileName() const;
+	QString spatialOverviewCacheFileName() const;
 	bool readDissimilarityMatrixCache(QVector<int>& measures);
 	void writeDissimilarityMatrixCache(QVector<int> const& measures) const;
 	QWidget* setupMatrixView(QVector<int> const& measures);

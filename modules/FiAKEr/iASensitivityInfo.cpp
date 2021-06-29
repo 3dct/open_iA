@@ -1258,6 +1258,11 @@ QString iASensitivityInfo::dissimilarityMatrixCacheFileName() const
 	return m_data->folder + "/cache/dissimilarityMatrix.cache";
 }
 
+QString iASensitivityInfo::spatialOverviewCacheFileName() const
+{
+	return m_data->folder + "/cache/spatialOverview-v0.mhd";
+}
+
 namespace
 {
 	const QString DissimilarityMatrixCacheFileIdentifier("DissimilarityMatrixCache");
@@ -2228,6 +2233,13 @@ void iASensitivityInfo::showSpatialOverview()
 
 void iASensitivityInfo::computeSpatialOverview(iAProgress * progress)
 {
+	// check for cached spatial overview image:
+	if (QFile::exists(spatialOverviewCacheFileName()))
+	{
+		m_spatialOverview = readImage(spatialOverviewCacheFileName(), true);
+		return;
+	}
+
 	// initialize 3D overview:
 	// required: for each result, and each fiber - quality of match to best-matching fiber in all others
 	// 	   Q: how to aggregate one value per fiber?
@@ -2371,6 +2383,8 @@ void iASensitivityInfo::computeSpatialOverview(iAProgress * progress)
 	// for each unique fiber image i:
 	//     add a to i
 	// divide a by number of unique fibers
+
+	storeImage(m_spatialOverview, spatialOverviewCacheFileName());
 }
 
 void iASensitivityInfo::changeMeasure(int newMeasure)
