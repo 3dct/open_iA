@@ -281,7 +281,11 @@ int iAStackedBarChart::removeBar(QString const & name)
 	if (m_stack)
 	{
 		// update row span of bars widget:
-		m_gL->addWidget(m_barsWidget, m_row, m_col, 1, static_cast<int>(m_bars.size()));
+		//if (m_bars.size() == 0)
+		//{
+		//	LOG(lvlDebug, "iAStackedBarChart: no bars!");
+		//}
+		m_gL->addWidget(m_barsWidget, m_row, m_col, 1, std::max(1, static_cast<int>(m_bars.size())));
 	}
 	else
 	{	// always delete last -> just the bar IDs need to be ordered, then the correct data is shown
@@ -515,7 +519,11 @@ void iAStackedBarChart::updateLayout()
 {
 	if (m_stack)
 	{	// update row span of bars widget:
-		m_gL->addWidget(m_barsWidget, m_row, m_col, 1, static_cast<int>(m_bars.size()));
+		//if (m_bars.size() == 0)
+		//{
+		//	LOG(lvlDebug, "iAStackedBarChart: no bars!");
+		//}
+		m_gL->addWidget(m_barsWidget, m_row, m_col, 1, std::max(1, static_cast<int>(m_bars.size())));
 	}
 	else
 	{
