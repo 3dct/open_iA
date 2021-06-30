@@ -627,7 +627,7 @@ void iASensitivityInfo::compute(iAProgress* progress)
 					if (paramStep[paramIdx] == 0)
 					{
 						paramStep[paramIdx] = std::abs(paramDiff);
-						LOG(lvlInfo, QString("Param Step (param %1): %2").arg(paramIdx).arg(paramStep[paramIdx]));
+						LOG(lvlInfo, QString("Param %1 step width: %2").arg(paramIdx).arg(paramStep[paramIdx]));
 					}
 
 					double leftVar = 0;
@@ -2226,8 +2226,8 @@ void iASensitivityInfo::showSpatialOverview()
 {
 	// show image
 	QSharedPointer<iAModalityList> mods(new iAModalityList());	
-	mods->add(QSharedPointer<iAModality>::create(
-		"Avg fiber occupancy per voxel", "", 1, m_spatialOverview, iAModality::MainRenderer));
+	mods->add(QSharedPointer<iAModality>::create("Avg fiber occupancy per voxel",
+		spatialOverviewCacheFileName(), 1, m_spatialOverview, iAModality::MainRenderer));
 	m_child->setModalities(mods);
 }
 
@@ -2236,7 +2236,7 @@ void iASensitivityInfo::computeSpatialOverview(iAProgress * progress)
 	// check for cached spatial overview image:
 	if (QFile::exists(spatialOverviewCacheFileName()))
 	{
-		m_spatialOverview = readImage(spatialOverviewCacheFileName(), true);
+		m_spatialOverview = readImage(spatialOverviewCacheFileName(), false);
 		return;
 	}
 
@@ -2247,7 +2247,7 @@ void iASensitivityInfo::computeSpatialOverview(iAProgress * progress)
 	// 	   Q: how to handle no match?
 	// 	   Q:
 	size_t resultCount = m_data->result.size();
-	int const volSize = 64;
+	int const volSize = 256;
 	int const size[3] = {volSize, volSize, volSize};
 	// find bounding box that accomodates all results:
 	std::vector<iAAABB> resultBBs;
