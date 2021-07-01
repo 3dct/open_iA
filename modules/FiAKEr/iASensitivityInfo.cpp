@@ -2236,6 +2236,7 @@ void iASensitivityInfo::computeSpatialOverview(iAProgress * progress)
 	// check for cached spatial overview image:
 	if (QFile::exists(spatialOverviewCacheFileName()))
 	{
+		progress->setStatus(QString("Loading cached spatial overview from '%1'.").arg(spatialOverviewCacheFileName()));
 		m_spatialOverview = readImage(spatialOverviewCacheFileName(), false);
 		return;
 	}
