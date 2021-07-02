@@ -1910,17 +1910,11 @@ namespace
 		return result;
 	}
 
-	//! one fiber is identified by resultID, fiberID
-	using FiberKeyT = std::pair<size_t, size_t>;
-	//! list of unique fibers; outside vectors: unique fibers; inside vector: "matches"
-	using UniqueFibersT = std::vector<std::vector<FiberKeyT>>;
-
-	using FiberToUniqueMapT = QMap<std::pair<size_t, size_t>, size_t>;
-
 	const size_t NoMatch = std::numeric_limits<size_t>::max();
 
-	size_t findMatch(iADissimilarityMatrixType const& dissimMatrix, UniqueFibersT const & uniqueFibers,
-		FiberToUniqueMapT const & mapFiberToUnique, FiberKeyT const& curF, int MeasureIdx)
+	size_t findMatch(iADissimilarityMatrixType const& dissimMatrix, iASensitivityInfo::UniqueFibersT const& uniqueFibers,
+		iASensitivityInfo::FiberToUniqueMapT const& mapFiberToUnique, iASensitivityInfo::FiberKeyT const& curF,
+		int MeasureIdx)
 	{
 		size_t r1 = curF.first;
 		size_t f1 = curF.second;
@@ -2316,8 +2310,6 @@ void iASensitivityInfo::computeSpatialOverview(iAProgress * progress)
 	h.start("Finding unique fibers", false);
 	progress->setStatus("Finding unique fibers");
 	progress->emitProgress(0);
-	UniqueFibersT uniqueFibers;
-	FiberToUniqueMapT mapFiberToUnique;
 	for (size_t r1 = 0; r1 < resultCount; ++r1)
 	{
 		auto const& d = m_data->result[r1];
@@ -2325,26 +2317,26 @@ void iASensitivityInfo::computeSpatialOverview(iAProgress * progress)
 		{
 			auto curFiber = std::make_pair(r1, f1);
 			//FiberKeyT matchFiber;
-			auto idx = findMatch(m_resultDissimMatrix, uniqueFibers, mapFiberToUnique, curFiber, MeasureIdx);
+			auto idx = findMatch(m_resultDissimMatrix, m_uniqueFibers, m_mapFiberToUnique, curFiber, MeasureIdx);
 			if (idx != NoMatch)
 			{
-				uniqueFibers[idx].push_back(curFiber);
-				mapFiberToUnique.insert(curFiber, idx);
+				m_uniqueFibers[idx].push_back(curFiber);
+				m_mapFiberToUnique.insert(curFiber, idx);
 			}
 			// special handling if match found but no reverse match / no match to all "synonyms" ?
 			else
 			{
 				std::vector<FiberKeyT> vec;
 				vec.push_back(curFiber);
-				uniqueFibers.push_back(vec);
-				mapFiberToUnique.insert(curFiber, uniqueFibers.size() - 1);
+				m_uniqueFibers.push_back(vec);
+				m_mapFiberToUnique.insert(curFiber, m_uniqueFibers.size() - 1);
 			}
 		}
 		progress->emitProgress(100 * (r1 + 1) / resultCount);
 	}
 	h.stop();
 
-	LOG(lvlDebug, QString("Found %1 unique fibers across results!").arg(uniqueFibers.size()));
+	LOG(lvlDebug, QString("Found %1 unique fibers across results!").arg(m_uniqueFibers.size()));
 
 	// build per-fiber variability images:
 	// empty list of images of per-fiber variability v
@@ -2366,9 +2358,9 @@ void iASensitivityInfo::computeSpatialOverview(iAProgress * progress)
 	m_spatialOverview = allocateImage(VTK_FLOAT, size, spacing.data());
 	m_spatialOverview->SetOrigin(origin.data());
 	fillImage(m_spatialOverview, 0);
-	for (size_t uIdx = 0; uIdx < uniqueFibers.size(); ++uIdx)
+	for (size_t uIdx = 0; uIdx < m_uniqueFibers.size(); ++uIdx)
 	{
-		auto const & u = uniqueFibers[uIdx];
+		auto const& u = m_uniqueFibers[uIdx];
 		auto uniqueFiberVarImg = allocateImage(VTK_FLOAT, size, spacing.data());
 		uniqueFiberVarImg->SetOrigin(origin.data());
 		fillImage(uniqueFiberVarImg, 0);
@@ -2382,9 +2374,9 @@ void iASensitivityInfo::computeSpatialOverview(iAProgress * progress)
 
 		addImages(m_spatialOverview, uniqueFiberVarImg);
 
-		progress->emitProgress(100 * (uIdx + 1) / uniqueFibers.size());
+		progress->emitProgress(100 * (uIdx + 1) / m_uniqueFibers.size());
 	}
-	multiplyImage(m_spatialOverview, uniqueFibers.size());
+	multiplyImage(m_spatialOverview, m_uniqueFibers.size());
 	h.stop();
 
 	// build overall variability image: (-> incorporated in loop above)

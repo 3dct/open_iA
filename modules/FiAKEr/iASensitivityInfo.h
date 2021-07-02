@@ -209,6 +209,17 @@ public:
 	std::vector<std::pair<int, bool>> m_resultDissimMeasures;
 	iADissimilarityMatrixType m_resultDissimMatrix;
 
+	// unique fibers:
+	//! one fiber is identified by resultID, fiberID
+	using FiberKeyT = std::pair<size_t, size_t>;
+	//! list of unique fibers; outside vectors: unique fibers; inside vector: "matches"
+	using UniqueFibersT = std::vector<std::vector<FiberKeyT>>;
+
+	using FiberToUniqueMapT = QMap<std::pair<size_t, size_t>, size_t>;
+
+	UniqueFibersT m_uniqueFibers;
+	FiberToUniqueMapT m_mapFiberToUnique;
+
 	QVector<QPair<double, double>> m_resultDissimRanges;
 	int m_resultDissimOptimMeasureIdx;
 
