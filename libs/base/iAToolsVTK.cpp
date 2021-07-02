@@ -109,13 +109,17 @@ void storeImage(vtkSmartPointer<vtkImageData> img, QString const & filename, boo
 	iAITKIO::writeFile(filename, con.itkImage(), pixelType, useCompression);
 }
 
-vtkSmartPointer<vtkImageData> readImage(QString const & filename, bool releaseFlag)
+void readImage(QString const & filename, bool releaseFlag, vtkSmartPointer<vtkImageData>& ptr)
 {
+	ptr = vtkSmartPointer<vtkImageData>::New();
 	iAConnector con;
 	iAITKIO::ScalarPixelType pixelType;
 	iAITKIO::ImagePointer img = iAITKIO::readFile(filename, pixelType, releaseFlag);
 	con.setImage(img);
-	return con.vtkImage();
+	// only works with deep copy, not with returning vtkImage
+	// assumption: ITK smart pointer goes out of scope, deletes image, and
+	// invalidates "linked" vtk image
+	ptr->DeepCopy(con.vtkImage());
 }
 
 void writeSingleSliceImage(QString const & filename, vtkImageData* img)

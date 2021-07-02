@@ -81,7 +81,7 @@ iAbase_API void storeImage(vtkSmartPointer<vtkImageData> img, QString const & fi
 //! @param filename the name of the file to read.
 //! @param releaseFlag whether the ITK release flag should be set on the ITK image reader
 //! @return the vtk image as read from the given file
-iAbase_API vtkSmartPointer<vtkImageData> readImage(QString const & filename, bool releaseFlag);
+iAbase_API void readImage(QString const& filename, bool releaseFlag, vtkSmartPointer<vtkImageData>& ptr);
 
 //! Write a single slice image to a common 2D picture format
 //! @param filename the name of the file to write to; this is expected to have an extension of tif, png, jpg or bmp;
