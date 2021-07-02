@@ -1253,14 +1253,24 @@ void iASensitivityInfo::compute(iAProgress* progress)
 	}
 }
 
+QString iASensitivityInfo::cacheFileName(QString fileName) const
+{
+	return QString("%1/cache/%2").arg(m_data->folder).arg(fileName);
+}
+
 QString iASensitivityInfo::dissimilarityMatrixCacheFileName() const
 {
-	return m_data->folder + "/cache/dissimilarityMatrix.cache";
+	return cacheFileName("dissimilarityMatrix.cache");
 }
 
 QString iASensitivityInfo::spatialOverviewCacheFileName() const
 {
-	return m_data->folder + "/cache/spatialOverview-v0.mhd";
+	return cacheFileName("spatialOverview-v0.mhd");
+}
+
+QString iASensitivityInfo::uniqueFiberVarCacheFileName(size_t uIdx) const
+{
+	return cacheFileName(QString("uniqueFiberVar-%1-v0.mhd").arg(uIdx));
 }
 
 namespace
@@ -2373,6 +2383,8 @@ void iASensitivityInfo::computeSpatialOverview(iAProgress * progress)
 		perUniqueFiberVars.push_back(uniqueFiberVarImg);
 
 		addImages(m_spatialOverview, uniqueFiberVarImg);
+
+		storeImage(uniqueFiberVarImg, uniqueFiberVarCacheFileName(uIdx));
 
 		progress->emitProgress(100 * (uIdx + 1) / m_uniqueFibers.size());
 	}

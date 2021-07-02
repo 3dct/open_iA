@@ -237,8 +237,10 @@ private:
 		std::vector<std::vector<double>> const& paramValues, iAMdiChild* child,
 		QDockWidget* nextToDW, std::vector<iAFiberResultUIData> const& resultUIs, iAVtkWidget* main3DWidget);
 	void compute(iAProgress* p);
+	QString cacheFileName(QString fileName) const;
 	QString dissimilarityMatrixCacheFileName() const;
 	QString spatialOverviewCacheFileName() const;
+	QString uniqueFiberVarCacheFileName(size_t uIdx) const;
 	bool readDissimilarityMatrixCache(QVector<int>& measures);
 	void writeDissimilarityMatrixCache(QVector<int> const& measures) const;
 	QWidget* setupMatrixView(QVector<int> const& measures);
