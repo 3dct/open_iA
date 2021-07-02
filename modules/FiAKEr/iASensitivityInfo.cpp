@@ -1929,8 +1929,14 @@ namespace
 			// Questions:
 			// - do all need to match or only one?
 			// - one direction or both?
-			auto match = dissimMatrix[r1][r0].fiberDissim[f1][MeasureIdx][0];
-			if (dblApproxEqual(match.dissimilarity, 1.0f))	// potentially, there is no match between results at all
+			auto& fiberDissim = dissimMatrix[r1][r0].fiberDissim[f1];
+			if (fiberDissim.size() == 0 ||
+				fiberDissim[MeasureIdx].size() == 0)  // potentially, there is no match between results at all
+			{
+				continue;
+			}
+			auto& match = fiberDissim[MeasureIdx][0];
+			if (dblApproxEqual(match.dissimilarity, 1.0f))	// only non-match, skip as well
 			{
 				continue;
 			}
@@ -1946,8 +1952,10 @@ namespace
 				}
 				auto fm = uniqueFibers[uniqueID][m].second;
 				// check reverse match(es):
-				size_t bestMatchoffmInr1 = dissimMatrix[rm][r1].fiberDissim[fm][MeasureIdx][0].index;
-				if (bestMatchoffmInr1 != f1)
+				auto& revMatchDissim = dissimMatrix[rm][r1].fiberDissim[fm];
+				if (revMatchDissim.size() == 0 ||
+					revMatchDissim[MeasureIdx].size() == 0 ||
+					revMatchDissim[MeasureIdx][0].index != f1)
 				{
 					/*
 					LOG(lvlDebug, QString("r1=%1, f1=%2: Match to rm=%3, fm=%4 (m=%5) "
