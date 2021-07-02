@@ -2520,14 +2520,21 @@ void iASensitivityInfo::spPointHighlighted(size_t resultIdx, bool state)
 			}
 			for (auto rSelFibID : m_baseFiberSelection[rSel])
 			{
-				auto& similarFibers = m_resultDissimMatrix[rSel][resultIdx].fiberDissim[rSelFibID][measIdx];
+				auto& fiberDissim = m_resultDissimMatrix[rSel][resultIdx].fiberDissim[rSelFibID];
+				if (fiberDissim.size() == 0)
+				{
+					continue;
+				}
+				auto& similarFibers = fiberDissim[measIdx];
 				for (auto similarFiber : similarFibers)
 				{
+					/*
 					LOG(lvlDebug,
 						QString("        Fiber %1, dissimilarity: %2%3")
 							.arg(similarFiber.index)
 							.arg(similarFiber.dissimilarity)
 							.arg(similarFiber.dissimilarity >= 1 ? " (skipped)" : ""));
+					*/
 					if (similarFiber.dissimilarity < 1 &&
 						std::find(m_currentFiberSelection[resultIdx].begin(), m_currentFiberSelection[resultIdx].end(),
 							similarFiber.index) == m_currentFiberSelection[resultIdx].end())
@@ -2659,7 +2666,7 @@ void iASensitivityInfo::updateDifferenceView()
 		resultData->data = m_resultUIs[rID].main3DVis->extractSelectedObjects(QColor(128, 128, 128));
 		if (resultData->data.size() == 0)
 		{
-			LOG(lvlDebug, QString("Result %1: No selected fibers!").arg(rID));
+			//LOG(lvlDebug, QString("Result %1: No selected fibers!").arg(rID));
 			continue;
 		}
 		resultData->renderer = vtkSmartPointer<vtkRenderer>::New();
@@ -2706,7 +2713,7 @@ void iASensitivityInfo::updateDifferenceView()
 		*/
 
 		// show differences - for now only for 1st fiber, to 1st fiber of 1st selected result:
-		if (i > 0)
+		if (i > 0 && m_currentFiberSelection[hp[0]].size() > 0 && m_currentFiberSelection[rID].size() > 0)
 		{
 			auto refResID = hp[0];
 			size_t refFiberID = m_currentFiberSelection[refResID][0];
