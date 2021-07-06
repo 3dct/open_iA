@@ -72,7 +72,7 @@ namespace
 	}
 }
 
-iAParameterDlg::iAParameterDlg(QWidget* parent, QString const& title, QVector<QSharedPointer<iAAttributeDescriptor> > parameters, QString const& descr)
+iAParameterDlg::iAParameterDlg(QWidget* parent, QString const& title, ParamListT parameters, QString const& descr)
 	: QDialog(parent),
 	m_sourceMdiChild(nullptr),
 	m_sourceMdiChildClosed(false),
