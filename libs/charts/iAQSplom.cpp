@@ -979,7 +979,7 @@ void iAQSplom::paintEvent(QPaintEvent* event)
 	painter.setPen(qApp->palette().color(QPalette::Text));
 	if (m_visiblePlots.size() < 2)
 	{
-		painter.drawText(geometry(), Qt::AlignCenter | Qt::AlignVCenter, "Too few parameters selected!");
+		painter.drawText(geometry(), Qt::AlignCenter, "Too few parameters selected!");
 		return;
 	}
 	QFontMetrics fm = painter.fontMetrics();
@@ -1552,7 +1552,7 @@ void iAQSplom::drawPlotLabels(QPainter & painter, bool switchTO_YRow)
 
 			currentRect.setTopLeft(QPoint(-textwidth / 2, -textHeight / 2));
 			currentRect.setSize(QSize(textwidth, textHeight));
-			painter.drawText(currentRect, Qt::AlignCenter | Qt::AlignTop, currentParamName);
+			painter.drawText(currentRect, Qt::AlignHCenter | Qt::AlignTop, currentParamName);
 			painter.restore();
 		}
 		else
