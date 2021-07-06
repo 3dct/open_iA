@@ -46,6 +46,7 @@
 #include <iAModalityTransfer.h>
 #include <iAModalityList.h>
 #include <iAMdiChild.h>
+#include <iAParameterDlg.h>
 #include <iAPreferences.h>
 #include <iATypedCallHelper.h>
 
@@ -57,6 +58,7 @@
 
 // base:
 #include <defines.h>    // for DIM
+#include <iAAttributeDescriptor.h>
 #include <iAConnector.h>
 #include <iAFileUtils.h>
 #include <iALog.h>
@@ -209,6 +211,7 @@ dlg_FeatureScout::dlg_FeatureScout(iAMdiChild* parent, iAObjectType fid, QString
 	m_pcLineWidth(0.1),
 	m_pcFontSize(15),
 	m_pcTickCount(10),
+	m_pcOpacity(90),
 	m_renderer(parent->renderer()),
 	m_blobManager(new iABlobManager()),
 	m_blobVisDialog(new dlg_blobVisualization()),
@@ -310,7 +313,7 @@ void dlg_FeatureScout::setPCChartData(bool specialRendering)
 	}
 	m_pcChart = vtkSmartPointer<vtkChartParallelCoordinates>::New();
 	m_pcChart->GetPlot(0)->SetInputData(m_chartTable);
-	m_pcChart->GetPlot(0)->GetPen()->SetOpacity(90);
+	m_pcChart->GetPlot(0)->GetPen()->SetOpacity(m_pcOpacity);
 	m_pcChart->GetPlot(0)->SetWidth(m_pcLineWidth);
 	m_pcView->GetScene()->AddItem(m_pcChart);
 	m_pcConnections->Connect(m_pcChart,
@@ -453,11 +456,12 @@ void dlg_FeatureScout::setupViews()
 	m_lengthDistrView->SetInteractor(m_lengthDistrWidget->interactor());
 #endif
 
-	// Creates a popup menu
+	// Create a popup menu for Parallel Coordinates:
 	QMenu* popup2 = new QMenu(m_pcWidget);
-	popup2->addAction("Add class");
-	popup2->setStyleSheet("font-size: 11px; background-color: #9B9B9B; border: 1px solid black;");
-	connect(popup2, &QMenu::triggered, this, &dlg_FeatureScout::spPopupSelection);
+	auto addClass = popup2->addAction("Add class");
+	connect(addClass, &QAction::triggered, this, &dlg_FeatureScout::ClassAddButton);
+	auto pcSettings = popup2->addAction("Settings");
+	connect(pcSettings, &QAction::triggered, this, &dlg_FeatureScout::showPCSettings);
 
 	m_pcConnections = vtkSmartPointer<vtkEventQtSlotConnect>::New();
 	// Gets right button release event (on a parallel coordinates).
@@ -1910,6 +1914,35 @@ void dlg_FeatureScout::showScatterPlot()
 	}
 }
 
+void dlg_FeatureScout::showPCSettings()
+{
+	iAParameterDlg::ParamListT params;
+	params.push_back(iAAttributeDescriptor::createParam("Line Width", iAValueType::Continuous, m_pcLineWidth, 0.001, 100000));
+	params.push_back(iAAttributeDescriptor::createParam("Opacity", iAValueType::Discrete, m_pcOpacity, 0, 255));
+	params.push_back(iAAttributeDescriptor::createParam("Tick Count", iAValueType::Discrete, m_pcTickCount, 0, 255));
+	params.push_back(iAAttributeDescriptor::createParam("Font Size", iAValueType::Discrete, m_pcFontSize, 0, 255));
+
+	iAParameterDlg pcSettingsDlg(this, "Parallel Coordinates Settings", params);
+	if (pcSettingsDlg.exec() != QDialog::Accepted)
+	{
+		return;
+	}
+	auto const& values = pcSettingsDlg.parameterValues();
+	m_pcLineWidth = values["Line Width"].toFloat();
+	m_pcOpacity   = values["Opacity"].toInt();
+	m_pcTickCount = values["Tick Count"].toInt();
+	m_pcFontSize  = values["Font Size"].toInt();
+		
+	m_pcChart->GetPlot(0)->GetPen()->SetOpacity(m_pcOpacity);
+	m_pcChart->GetPlot(0)->SetWidth(m_pcLineWidth);
+	
+	updateAxisProperties();
+
+	m_pcView->Update();
+	m_pcView->ResetCamera();
+	m_pcView->Render();
+}
+
 void dlg_FeatureScout::spSelInformsPCChart(std::vector<size_t> const& selInds)
 {	// If scatter plot selection changes, Parallel Coordinates gets informed
 	RenderSelection(selInds);
@@ -1965,10 +1998,7 @@ void dlg_FeatureScout::spPopup(vtkObject* obj, unsigned long, void* client_data,
 	}
 }
 
-void dlg_FeatureScout::spPopupSelection(QAction* selection)
-{
-	if (selection->text() == "Add class") { ClassAddButton(); }
-	// semi-automatic classification not ported to new SPM yet
+// from previous right-click menu event handler:
 	/*
 	if ( selection->text() == "Suggest Classification" )
 	{
@@ -1987,11 +2017,7 @@ void dlg_FeatureScout::spPopupSelection(QAction* selection)
 		//autoAddClass( matrix->GetkMeansClusterCount() );
 		selection->setText( "Suggest Classification" );
 	}
-	*/
-}
 
-/*
-	// semi-automatic classification not ported to new SPM yet
 void dlg_FeatureScout::autoAddClass( int NbOfClusters )
 {
 	QStandardItem *motherClassItem = m_activeClassItem;
@@ -3177,6 +3203,9 @@ void dlg_FeatureScout::changeFeatureScout_Options(int idx)
 			return;
 		}
 		showScatterPlot();
+		break;
+	case 8:
+		showPCSettings();
 		break;
 	}
 }

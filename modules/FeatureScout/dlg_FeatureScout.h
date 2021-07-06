@@ -116,7 +116,6 @@ private slots:
 	//! @{ scatterplot-related methods:
 	void spBigChartMouseButtonPressed(vtkObject * obj, unsigned long, void * client_data, void *, vtkCommand * command);
 	void spPopup(vtkObject * obj, unsigned long, void * client_data, void *, vtkCommand * command);
-	void spPopupSelection(QAction *selection);
 	void spSelInformsPCChart(std::vector<size_t> const & selInds);
 	void spParameterVisibilityChanged(size_t paramIndex, bool enabled);
 	//! @}
@@ -129,6 +128,7 @@ private:
 	//create labelled output image based on defined classes
 	template <class T> void CreateLabelledOutputMask(iAConnector & con, const QString & fOutPath);
 	void showScatterPlot();
+	void showPCSettings();
 	void setupModel();
 	void setupViews();
 	void setupConnections();  //!< define signal and slots connections
@@ -217,6 +217,7 @@ private:
 	float m_pcLineWidth;              //!< width of the line for each object in Parallel Coordinates
 	int m_pcFontSize;                 //!< current font size of titles and tick labels
 	int m_pcTickCount;                //!< current tick count
+	int m_pcOpacity;                  //!< current opacity of lines
 	static const int PCMinTicksCount; //!< minimum number of ticks
 	//! @}
 
