@@ -390,6 +390,7 @@ void iAQSplom::updateFilter()
 #ifdef CHART_OPENGL
 void iAQSplom::initializeGL()
 {
+	initializeOpenGLFunctions();
 }
 #endif
 

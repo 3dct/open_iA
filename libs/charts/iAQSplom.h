@@ -28,6 +28,7 @@
 #ifdef CHART_OPENGL
 #include "iAQGLWidget.h"
 using iAChartParentWidget = iAQGLWidget;
+#include <QOpenGLFunctions>
 #else
 #include <QWidget>
 using iAChartParentWidget = QWidget;
@@ -92,6 +93,9 @@ class QSettings;
 */
 
 class iAcharts_API iAQSplom : public iAChartParentWidget
+#ifdef CHART_OPENGL
+	, public QOpenGLFunctions
+#endif
 {
 	Q_OBJECT
 public:
