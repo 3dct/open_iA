@@ -115,11 +115,11 @@ private slots:
 	void updateVisibility(QStandardItem *item);
 	//! @{ scatterplot-related methods:
 	void spBigChartMouseButtonPressed(vtkObject * obj, unsigned long, void * client_data, void *, vtkCommand * command);
-	void spPopup(vtkObject * obj, unsigned long, void * client_data, void *, vtkCommand * command);
 	void spSelInformsPCChart(std::vector<size_t> const & selInds);
 	void spParameterVisibilityChanged(size_t paramIndex, bool enabled);
 	//! @}
 	//! @{ parallel coordinate chart related methods:
+	void pcPopup(vtkObject* obj, unsigned long, void* client_data, void*, vtkCommand* command);
 	void pcViewMouseButtonCallBack(vtkObject * obj, unsigned long, void * client_data, void*, vtkCommand * command);
 	//! @}
 

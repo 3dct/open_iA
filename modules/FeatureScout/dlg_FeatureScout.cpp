@@ -191,8 +191,8 @@ namespace
 const int dlg_FeatureScout::PCMinTicksCount = 2;
 
 dlg_FeatureScout::dlg_FeatureScout(iAMdiChild* parent, iAObjectType fid, QString const& fileName,
-	vtkSmartPointer<vtkTable> csvtbl, int vis, QSharedPointer<QMap<uint, uint> > columnMapping,
-	std::map<size_t, std::vector<iAVec3f> >& curvedFiberInfo, int cylinderQuality, size_t segmentSkip) :
+	vtkSmartPointer<vtkTable> csvtbl, int vis, QSharedPointer<QMap<uint, uint>> columnMapping,
+	std::map<size_t, std::vector<iAVec3f>>& curvedFiberInfo, int cylinderQuality, size_t segmentSkip) :
 	QDockWidget(parent),
 	m_activeChild(parent),
 	m_elementCount(csvtbl->GetNumberOfColumns()),
@@ -472,7 +472,7 @@ void dlg_FeatureScout::setupViews()
 #endif
 		vtkCommand::RightButtonReleaseEvent,
 		this,
-		SLOT(spPopup(vtkObject*, unsigned long, void*, void*, vtkCommand*)),
+		SLOT(pcPopup(vtkObject*, unsigned long, void*, void*, vtkCommand*)),
 		popup2, 1.0);
 
 	// Gets right button press event (on a scatter plot).
@@ -1972,7 +1972,7 @@ void dlg_FeatureScout::spBigChartMouseButtonPressed(vtkObject* obj, unsigned lon
 	m_mousePressPos[1] = iren->GetEventPosition()[1];
 }
 
-void dlg_FeatureScout::spPopup(vtkObject* obj, unsigned long, void* client_data, void*, vtkCommand* command)
+void dlg_FeatureScout::pcPopup(vtkObject* obj, unsigned long, void* client_data, void*, vtkCommand* command)
 {
 	// Gets the mouse button event for scatter plot matrix and opens a popup menu.
 	vtkRenderWindowInteractor* iren = vtkRenderWindowInteractor::SafeDownCast(obj);
