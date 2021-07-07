@@ -2257,7 +2257,7 @@ void iASensitivityInfo::computeSpatialOverview(iAProgress * progress)
 	// 	   Q: how to handle no match?
 	// 	   Q:
 	size_t resultCount = m_data->result.size();
-	int const volSize = 256;
+	int const volSize = 128;
 	int const size[3] = {volSize, volSize, volSize};
 	// find bounding box that accomodates all results:
 	std::vector<iAAABB> resultBBs;
