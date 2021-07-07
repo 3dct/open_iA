@@ -74,7 +74,7 @@ public:
 		{
 			for (iADissimilarityMatrixType::size_type j = 0; j < m_data[i].size(); ++j)
 			{
-				double value = m_data[i][j].avgDissim[m_dataIdx];
+				double value = (i == j)? 0 : m_data[i][j].avgDissim[m_dataIdx];
 				if (value < m_range[0])
 				{
 					m_range[0] = value;
