@@ -2355,8 +2355,6 @@ void iASensitivityInfo::computeSpatialOverview(iAProgress * progress)
 	//         (alternative: add i_s to i)
 	//     create "probability" image out of i
 	//     (by dividing it through number of results in ensemble?)
-
-	progress->setStatus("Determining fiber variation images");
 	progress->emitProgress(0);
 	h.start("Determining fiber variation images", false);
 	// maybe operate with "raw" buffers here instead of vtkImageData objects??
@@ -2367,6 +2365,7 @@ void iASensitivityInfo::computeSpatialOverview(iAProgress * progress)
 	fillImage(m_spatialOverview, 0);
 	for (size_t uIdx = 0; uIdx < m_uniqueFibers.size(); ++uIdx)
 	{
+		progress->setStatus(QString("Determining fiber variation image for unique fiber %1").arg(uIdx));
 		auto const& u = m_uniqueFibers[uIdx];
 		auto uniqueFiberVarImg = allocateImage(VTK_FLOAT, size, spacing.data());
 		uniqueFiberVarImg->SetOrigin(origin.data());
