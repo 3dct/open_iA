@@ -327,7 +327,7 @@ void iAScatterPlot::paintOnParent( QPainter & painter )
 		{
 			corrCoeffText += (!corrCoeffText.isEmpty()?"\n":"") + QString("Spearman's Coeff.") + QString::number(scc(), 'g', 3);
 		}
-		painter.drawText( QRect(0, 0, m_globRect.width(), m_globRect.height()), Qt::AlignCenter | Qt::AlignVCenter, corrCoeffText);
+		painter.drawText( QRect(0, 0, m_globRect.width(), m_globRect.height()), Qt::AlignCenter, corrCoeffText);
 	}
 	painter.restore();
 }

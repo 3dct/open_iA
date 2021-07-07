@@ -245,6 +245,7 @@ void iAFeatureScoutModuleInterface::SetupToolbar()
 	connect( tlbFeatureScout->actionMultiRendering, &QAction::triggered, this, &iAFeatureScoutModuleInterface::FeatureScout_Options);
 	connect( tlbFeatureScout->actionOrientation_Rendering, &QAction::triggered, this, &iAFeatureScoutModuleInterface::FeatureScout_Options);
 	connect( tlbFeatureScout->actionActivate_SPM, &QAction::triggered, this, &iAFeatureScoutModuleInterface::FeatureScout_Options);
+	connect( tlbFeatureScout->actionSettingsPC, &QAction::triggered, this, &iAFeatureScoutModuleInterface::FeatureScout_Options);
 	tlbFeatureScout->setVisible( true );
 }
 
@@ -317,14 +318,14 @@ void iAFeatureScoutModuleInterface::FeatureScout_Options()
 	}
 	QString actionText = qobject_cast<QAction *>(sender())->text();
 	int idx = 0;
-	if ( actionText.toStdString() == "Length Distribution" ) idx = 7;
-	if ( actionText.toStdString() == "Mean Object" ) idx = 4;
-	if ( actionText.toStdString() == "Multi Rendering" ) idx = 3;
-	if ( actionText.toStdString() == "Orientation Rendering" ) idx = 5;
-	if ( actionText.toStdString() == "Activate SPM" ) idx = 6;
-
+	if (actionText.toStdString() == "Multi Rendering") idx = 3;
+	else if (actionText.toStdString() == "Mean Object") idx = 4;
+	else if (actionText.toStdString() == "Orientation Rendering") idx = 5;
+	else if (actionText.toStdString() == "Activate SPM") idx = 6;
+	else if (actionText.toStdString() == "Length Distribution") idx = 7;
+	else if (actionText.toStdString() == "PC settings") idx = 8;
 	attach->FeatureScout_Options( idx );
-	m_mainWnd->statusBar()->showMessage( tr( "FeatureScout options changed to: " ).append( actionText ), 5000 );
+	//m_mainWnd->statusBar()->showMessage( tr( "FeatureScout options changed to: " ).append( actionText ), 5000 );
 }
 
 void iAFeatureScoutModuleInterface::onChildClose()
