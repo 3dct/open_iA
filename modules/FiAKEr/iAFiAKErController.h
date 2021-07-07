@@ -64,7 +64,6 @@ class iAMdiChild;
 class vtkColorTransferFunction;
 class vtkCubeSource;
 class vtkPiecewiseFunction;
-class vtkImageData;
 class vtkTable;
 
 class QActionGroup;

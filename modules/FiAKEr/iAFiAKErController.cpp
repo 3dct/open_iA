@@ -83,7 +83,6 @@
 #include <vtkDecimatePro.h>
 #include <vtkGenericOpenGLRenderWindow.h>
 #include <vtkIdTypeArray.h>
-#include <vtkImageData.h>
 #include <vtkLine.h>
 #include <vtkPiecewiseFunction.h>
 #include <vtkPointData.h>
