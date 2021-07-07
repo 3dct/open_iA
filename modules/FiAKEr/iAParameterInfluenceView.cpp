@@ -66,9 +66,6 @@ namespace
 	QColor AverageHistogramColor(150, 150, 150, 255);
 	QColor ParamSensitivityPlotColor(80, 80, 80, 255);
 
-	// needs to match definition in iASensitivityInfo.cpp. Maybe unify somewhere:
-	QColor SelectedResultPlotColor(235, 184, 31, 255);
-
 	QColor ParamRowSelectedBGColor(245, 245, 245);
 	QColor ParamRowUnselectedBGColor(255, 255, 255);
 }
@@ -363,7 +360,6 @@ void iAParameterInfluenceView::setResultSelected(size_t resultIdx, bool state, Q
 				auto plotKey = std::make_tuple(resultIdx, paramIdx, charIdx);
 				if (state)
 				{
-					m_selectedResults.insert(resultIdx);
 					m_table[paramIdx]->par[barIdx]->setXMarker(paramValue, c, Qt::DashLine);
 					if (m_selectedResultHistoPlots.contains(plotKey))
 					{
@@ -376,7 +372,6 @@ void iAParameterInfluenceView::setResultSelected(size_t resultIdx, bool state, Q
 				}
 				else
 				{
-					m_selectedResults.remove(resultIdx);
 					m_table[paramIdx]->par[barIdx]->removeXMarker(paramValue);
 					if (!m_selectedResultHistoPlots.contains(plotKey))
 					{
@@ -537,9 +532,6 @@ QSharedPointer<iAPlot> iAParameterInfluenceView::createHistoPlot(QSharedPointer<
 void iAParameterInfluenceView::updateStackedBarHistogram(QString const & barName, int paramIdx, int outType, int outIdx)
 {
 	int barIdx = m_table[paramIdx]->bars->barIndex(barName);
-	/*
-
-	*/
 	auto outChart = m_table[paramIdx]->out[barIdx];
 	outChart->clearPlots();
 	outChart->resetYBounds();
@@ -573,9 +565,11 @@ void iAParameterInfluenceView::updateStackedBarHistogram(QString const & barName
 				? m_sensInf->fiberCountHistogram
 				: /* outType == outDissimilarity */ m_sensInf->m_dissimHistograms[outIdx]);
 	outChart->addPlot(createHistoPlot(avgHistData, AverageHistogramColor));
-	for (auto resultIdx: m_selectedResults)
+	auto selectedResults = m_sensInf->selectedResults();
+	for (int i=0; i<selectedResults.size(); ++i)
 	{
-		addResultHistoPlot(resultIdx, paramIdx, barIdx, SelectedResultPlotColor);
+		auto resultIdx = selectedResults[i];
+		addResultHistoPlot(resultIdx, paramIdx, barIdx, m_sensInf->selectedResultColorTheme()->color(i));
 	}
 	outChart->update();
 
@@ -600,11 +594,6 @@ void iAParameterInfluenceView::setHistogramChartType(QString const & chartType)
 {
 	m_histogramChartType = chartType;
 	updateStackedBars();
-}
-
-QSet<size_t> const & iAParameterInfluenceView::selectedResults() const
-{
-	return m_selectedResults;
 }
 
 QVector<int> const& iAParameterInfluenceView::paramIndicesSorted() const
@@ -697,10 +686,11 @@ void iAParameterInfluenceView::addStackedBar(int outType, int outIdx)
 		connect(parChart, &iAChartWidget::clicked, this, &iAParameterInfluenceView::paramChartClicked);
 		connect(parChart, &iAChartWidget::axisChanged, this, &iAParameterInfluenceView::paramChartAxisChanged);
 		//parChart->setMinimumHeight(80);
-		for (auto resultIdx : selectedResults)
+		for (int i=0; i<selectedResults.size(); ++i)
 		{
+			auto resultIdx = selectedResults[i];
 			double paramValue = m_sensInf->m_paramValues[m_sensInf->m_variedParams[paramIdx]][resultIdx];
-			parChart->setXMarker(paramValue, SelectedResultPlotColor, Qt::DashLine);
+			parChart->setXMarker(paramValue, m_sensInf->selectedResultColorTheme()->color(i), Qt::DashLine);
 		}
 	}
 	addTableWidgets();

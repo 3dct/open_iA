@@ -56,7 +56,6 @@ public:
 	int selectedRow() const;
 	int selectedCol() const;
 	void setHistogramChartType(QString const& chartType);
-	QSet<size_t> const & selectedResults() const;
 	QVector<int> const& paramIndicesSorted() const;  //! return parameter indices in current sort order (by variation)
 	void updateHighlightColors(std::vector<size_t> highlighted, iAColorTheme const* theme);
 	void setHighlightedParams(QSet<int> hiParam);
@@ -105,7 +104,6 @@ private:
 	int m_sortLastOut;
 	bool m_sortLastDesc;
 	QMap<std::tuple<size_t, int, int>, QSharedPointer<iAPlot>> m_selectedResultHistoPlots;
-	QSet<size_t> m_selectedResults;
 	QString m_histogramChartType;
 	QSet<int> m_highlightedParams;
 signals:

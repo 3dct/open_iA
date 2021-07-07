@@ -141,13 +141,8 @@ namespace
 		return Names;
 	}
 
-
 	QColor ParamColor(150, 150, 255, 255);
 	QColor OutputColor(255, 200, 200, 255);
-
-	// needs to match definition in iAParameterInfluenceView. Maybe unify somewhere:
-	QColor SelectedResultPlotColor(235, 184, 31, 255);
-
 	QColor ScatterPlotPointColor(80, 80, 80, 128);
 
 	const int SelectedAggregationMeasureIdx = 3;
@@ -1569,7 +1564,7 @@ struct iAPolyDataRenderer
 class iASensitivityGUI
 {
 public:
-	iASensitivityGUI():
+	iASensitivityGUI(iASensitivityInfo* sensInf):
 		m_paramInfluenceView(nullptr),
 		m_settings(nullptr),
 		m_paramSP(nullptr),
@@ -1579,6 +1574,7 @@ public:
 		m_matrixWidget(nullptr),
 		m_parameterListView(nullptr),
 		m_algoInfo(nullptr),
+		m_sensInf(sensInf),
 		m_diff3DWidget(nullptr),
 		m_diff3DRenderManager(/*sharedCamera = */true),
 		m_diff3DEmptyRenderer(vtkSmartPointer<vtkRenderer>::New()),
@@ -1594,10 +1590,11 @@ public:
 		m_diff3DEmptyRenderer->SetBackground(bgColor.redF(), bgColor.greenF(), bgColor.blueF());
 		m_diff3DEmptyRenderer->AddViewProp(m_diff3DEmptyText);
 	}
+	//! sensitivity information
+	iASensitivityInfo* m_sensInf;
 
-	//! @{ Param Influence List
+	//! Param Influence List
 	iAParameterInfluenceView* m_paramInfluenceView;
-	//! @}
 
 	//! Overall settings
 	iASensitivitySettingsView* m_settings;
@@ -1695,9 +1692,9 @@ public:
 		for (size_t curResultIdx = 0; curResultIdx < resultCount; ++curResultIdx)
 		{
 			size_t refResultIdx;
-			if (m_paramInfluenceView->selectedResults().size() == 1)
+			if (m_sensInf->selectedResults().size() == 1)
 			{  // color by difference to currently selected result
-				refResultIdx = *m_paramInfluenceView->selectedResults().begin();
+				refResultIdx = m_sensInf->selectedResults()[0];
 			}
 			else
 			{  // color by difference to STAR center
@@ -2060,7 +2057,7 @@ void iASensitivityInfo::createGUI()
 		emit aborted();
 		return;
 	}
-	m_gui.reset(new iASensitivityGUI);
+	m_gui.reset(new iASensitivityGUI(this));
 
 	iAProgress* spatP = new iAProgress();
 	auto spatialVariationComputation = runAsync([this, spatP] { this->computeSpatialOverview(spatP); },
@@ -2565,7 +2562,7 @@ void iASensitivityInfo::histoChartTypeToggled(bool checked)
 void iASensitivityInfo::parResultSelected(size_t resultIdx, Qt::KeyboardModifiers modifiers)
 {
 	m_gui->m_paramSP->toggleHighlightedPoint(resultIdx, modifiers);
-	m_gui->m_mdsSP->toggleHighlightedPoint(resultIdx, modifiers);
+	// mdsSP will get updated through signal triggered by paramSP
 }
 
 void iASensitivityInfo::updateSPDifferenceColors()
@@ -2618,6 +2615,11 @@ std::vector<size_t> iASensitivityInfo::selectedResults() const
 		return std::vector<size_t>();
 	}
 	return m_gui->m_paramSP->viewData()->highlightedPoints();
+}
+
+iAColorTheme const * iASensitivityInfo::selectedResultColorTheme() const
+{
+	return iAColorThemeManager::instance().theme(m_gui->m_settings->cmbboxSPHighlightColorScale->currentText());
 }
 
 namespace

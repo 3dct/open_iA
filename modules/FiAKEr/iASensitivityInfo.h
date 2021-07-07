@@ -30,6 +30,7 @@
 #include <QStringList>
 #include <QVector>
 
+class iAColorTheme;
 class iAMdiChild;
 
 class iACsvTableCreator;
@@ -69,6 +70,7 @@ public:
 	void saveProject(QSettings& projectFile, QString  const& fileName);
 
 	std::vector<size_t> selectedResults() const;
+	iAColorTheme const* selectedResultColorTheme() const;
 
 	// TODO: separate data from GUI code!
 
