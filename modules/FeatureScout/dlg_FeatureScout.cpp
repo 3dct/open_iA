@@ -3238,7 +3238,7 @@ void dlg_FeatureScout::updateAxisProperties()
 			// if min == max, then leave NumberOfTicks at default -1, otherwise there will be no ticks and no lines shown
 			axis->SetNumberOfTicks(m_pcTickCount);
 		}
-		axis->RecalculateTickSpacing();
+		axis->Update();
 		++visibleColIdx;
 	}
 	m_pcChart->Update();
