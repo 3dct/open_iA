@@ -457,10 +457,10 @@ void dlg_FeatureScout::setupViews()
 #endif
 
 	// Create a popup menu for Parallel Coordinates:
-	QMenu* popup2 = new QMenu(m_pcWidget);
-	auto addClass = popup2->addAction("Add class");
+	QMenu* pcPopupMenu = new QMenu(m_pcWidget);
+	auto addClass = pcPopupMenu->addAction("Add class");
 	connect(addClass, &QAction::triggered, this, &dlg_FeatureScout::ClassAddButton);
-	auto pcSettings = popup2->addAction("Settings");
+	auto pcSettings = pcPopupMenu->addAction("Settings");
 	connect(pcSettings, &QAction::triggered, this, &dlg_FeatureScout::showPCSettings);
 
 	m_pcConnections = vtkSmartPointer<vtkEventQtSlotConnect>::New();
@@ -472,8 +472,8 @@ void dlg_FeatureScout::setupViews()
 #endif
 		vtkCommand::RightButtonReleaseEvent,
 		this,
-		SLOT(pcPopup(vtkObject*, unsigned long, void*, void*, vtkCommand*)),
-		popup2, 1.0);
+		SLOT(pcRightButtonReleased(vtkObject*, unsigned long, void*, void*, vtkCommand*)),
+		pcPopupMenu, 1.0);
 
 	// Gets right button press event (on a scatter plot).
 #if VTK_VERSION_NUMBER < VTK_VERSION_CHECK(9, 0, 0)
@@ -483,7 +483,7 @@ void dlg_FeatureScout::setupViews()
 #endif
 		vtkCommand::RightButtonPressEvent,
 		this,
-		SLOT(spBigChartMouseButtonPressed(vtkObject*, unsigned long, void*, void*, vtkCommand*)));
+		SLOT(pcRightButtonPressed(vtkObject*, unsigned long, void*, void*, vtkCommand*)));
 
 	setPCChartData(false);
 	updatePolarPlotView(m_chartTable);
@@ -1964,7 +1964,7 @@ void dlg_FeatureScout::spSelInformsPCChart(std::vector<size_t> const& selInds)
 	m_pcView->Render();
 }
 
-void dlg_FeatureScout::spBigChartMouseButtonPressed(vtkObject* obj, unsigned long, void* /*client_data*/, void*, vtkCommand* /*command*/)
+void dlg_FeatureScout::pcRightButtonPressed(vtkObject* obj, unsigned long, void* /*client_data*/, void*, vtkCommand* /*command*/)
 {
 	// Gets the right mouse button press event for scatter plot matrix.
 	vtkRenderWindowInteractor* iren = vtkRenderWindowInteractor::SafeDownCast(obj);
@@ -1972,19 +1972,21 @@ void dlg_FeatureScout::spBigChartMouseButtonPressed(vtkObject* obj, unsigned lon
 	m_mousePressPos[1] = iren->GetEventPosition()[1];
 }
 
-void dlg_FeatureScout::pcPopup(vtkObject* obj, unsigned long, void* client_data, void*, vtkCommand* command)
+void dlg_FeatureScout::pcRightButtonReleased(vtkObject* obj, unsigned long, void* client_data, void*, vtkCommand* command)
 {
 	// Gets the mouse button event for scatter plot matrix and opens a popup menu.
 	vtkRenderWindowInteractor* iren = vtkRenderWindowInteractor::SafeDownCast(obj);
 	int* mouseReleasePos = iren->GetLastEventPosition();
 	if (mouseReleasePos[0] == m_mousePressPos[0] && mouseReleasePos[1] == m_mousePressPos[1])
 	{
-		// Consume event so the interactor style doesn't get it
-		command->AbortFlagOn();
+		command->AbortFlagOn();    //< Consume event so the interactor style doesn't get it
 		QMenu* popupMenu = static_cast<QMenu*>(client_data);
-		int* sz = iren->GetSize();  // Get event location
-		QPoint pt = QPoint(mouseReleasePos[0], sz[1] - mouseReleasePos[1]);  // flip y
-		QPoint global_pt = popupMenu->parentWidget()->mapToGlobal(pt);
+		int* sz = iren->GetSize();
+		QPoint pt(mouseReleasePos[0], sz[1] - mouseReleasePos[1]); // flip y
+		// VTK delivers "device pixel" coordinates, while Qt expects "device independent pixel" coordinates
+		// (see https://doc.qt.io/qt-5/highdpi.html#glossary-of-high-dpi-terms); convert:
+		pt = pt / m_dwPC->devicePixelRatio();
+		auto global_pt = popupMenu->parentWidget()->mapToGlobal(pt);
 		popupMenu->popup(global_pt);
 	}
 	else
