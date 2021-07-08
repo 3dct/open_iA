@@ -472,9 +472,9 @@ QCheckBox
 		width: 12px;
 		height: 12px;
 	}
-	QCheckBox::indicator:unchecked
+	QCheckBox::indicator:checked
 	{
-		image: url(:/images/checkbox_unchecked.svg);
+		image: url(:/images/checkbox_checked.svg);
 	}
 	QCheckBox::indicator:checked:hover
 	{
