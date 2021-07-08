@@ -466,6 +466,11 @@ QTreeWidget
 QRadioButton
 QCheckBox
 ****************************************************************************/
+	QRadioButton,
+	QCheckBox
+	{
+		color: rgba(25, 25, 25, 255);
+	}
 	QCheckBox::indicator:checked
 	{
 		image: url(:/images/checkbox_checked.svg);
