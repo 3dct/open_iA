@@ -466,12 +466,6 @@ QTreeWidget
 QRadioButton
 QCheckBox
 ****************************************************************************/
-	QCheckBox::indicator,
-	QRadioButton:indicator
-	{
-		width: 12px;
-		height: 12px;
-	}
 	QCheckBox::indicator:checked
 	{
 		image: url(:/images/checkbox_checked.svg);
