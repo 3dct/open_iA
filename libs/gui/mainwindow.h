@@ -201,6 +201,7 @@ private slots:
 	void endPointSelected();
 	void setHistogramFocus();
 	void logVisibilityChanged(bool newVisibility);
+	void toggleMdiViewMode();
 
 private:
 	//! internal retriever for MdiChild object (instead of iAMdiChild interface)
@@ -227,7 +228,7 @@ private:
 	QSplashScreen *m_splashScreen;
 	QAction *m_separatorAct;
 	QAction *m_recentFileActs[MaxRecentFiles];
-	QActionGroup *m_slicerToolsGroup;
+	QActionGroup *m_slicerToolsGroup, *m_mdiViewModeGroup;
 	QString m_qssName;
 	iAVolumeSettings m_defaultVolumeSettings;
 	iARenderSettings m_defaultRenderSettings;
