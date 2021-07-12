@@ -82,7 +82,7 @@ class iAVRMip;
 class iAVRMain
 {
 public:
-	iAVRMain(iAVREnvironment* vrEnv, iAVRInteractorStyle* style, vtkTable* objectTable, iACsvIO io);
+	iAVRMain(iAVREnvironment* vrEnv, iAVRInteractorStyle* style, vtkTable* objectTable, iACsvIO io, std::map<size_t, std::vector<iAVec3f> > curvedFiberInfo);
 	void startInteraction(vtkEventDataDevice3D* device, double eventPosition[3], double eventOrientation[4], vtkProp3D* pickedProp); //Press, Touch
 	void endInteraction(vtkEventDataDevice3D* device, double eventPosition[3], double eventOrientation[4],vtkProp3D* pickedProp); //Release, Untouch
 	void onMove(vtkEventDataDevice3D* device, double movePosition[3], double eventOrientation[4]); //Movement
@@ -106,6 +106,7 @@ private:
 	iAVRColorLegend* m_MiMColorLegend;
 	iAVRMip* m_MiMMip;
 	iACsvIO m_io;
+	std::map<size_t, std::vector<iAVec3f> > m_curvedFiberInfo;
 	iAVROctreeMetrics* fiberMetrics;
 	iAVRHistogramMetric* histogramMetrics;
 	iAVRHistogramPairVis* m_distributionVis;

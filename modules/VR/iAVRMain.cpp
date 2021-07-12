@@ -56,8 +56,8 @@
 #define OCTREE_COLOR QColor(126, 0, 223, 255)
 //#define OCTREE_COLOR QColor(130, 10, 10, 255)
 
-iAVRMain::iAVRMain(iAVREnvironment* vrEnv, iAVRInteractorStyle* style, vtkTable* objectTable, iACsvIO io): m_vrEnv(vrEnv),
-	m_style(style),	m_objectTable(objectTable),	m_io(io)
+iAVRMain::iAVRMain(iAVREnvironment* vrEnv, iAVRInteractorStyle* style, vtkTable* objectTable, iACsvIO io, std::map<size_t, std::vector<iAVec3f> > curvedFiberInfo): m_vrEnv(vrEnv),
+	m_style(style),	m_objectTable(objectTable),	m_io(io), m_curvedFiberInfo(curvedFiberInfo)
 {
 	// For true TranslucentGeometry
 	//https://vtk.org/Wiki/VTK/Examples/Cxx/Visualization/CorrectlyRenderTranslucentGeometry#CorrectlyRenderTranslucentGeometry.cxx
@@ -69,7 +69,7 @@ iAVRMain::iAVRMain(iAVREnvironment* vrEnv, iAVRInteractorStyle* style, vtkTable*
 
 	//Initialize Cube Vis
 	m_modelInMiniature = new iAVRModelInMiniature(m_vrEnv->renderer());
-	m_volume = new iAVRVolume(m_vrEnv->renderer(), m_objectTable, m_io);
+	m_volume = new iAVRVolume(m_vrEnv->renderer(), m_objectTable, m_io, m_curvedFiberInfo);
 
 	//Define Octree
 	currentOctreeLevel = 0;
@@ -636,7 +636,7 @@ void iAVRMain::pickFibersinRegion(int leafRegion)
 
 	
 	for (auto fiber : *m_fiberCoverageCalc->getFiberCoverage()->at(currentOctreeLevel).at(leafRegion)) {
-		//LOG(QString("Nr. [%1]").arg(fiber.first));
+		LOG(lvlImportant,QString("Nr. [%1]").arg(fiber.first));
 		selection.push_back(fiber.first);
 	}
 	std::sort(selection.begin(), selection.end());

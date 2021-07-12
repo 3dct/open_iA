@@ -40,7 +40,7 @@
 #include <vtkCleanPolyData.h>
 #include <vtkCubeSource.h>
 
-iAVRVolume::iAVRVolume(vtkRenderer* ren, vtkTable* objectTable, iACsvIO io) :m_objectTable(objectTable), m_io(io), iAVRCubicVis{ren}
+iAVRVolume::iAVRVolume(vtkRenderer* ren, vtkTable* objectTable, iACsvIO io, std::map<size_t, std::vector<iAVec3f> > curvedFiberInfo) :m_objectTable(objectTable), m_io(io), m_curvedFiberInfo(curvedFiberInfo), iAVRCubicVis{ren}
 {
 	defaultColor = QColor(126, 0, 223, 255);
 	m_volumeActor = vtkSmartPointer<vtkActor>::New();
@@ -58,7 +58,7 @@ iAVRVolume::iAVRVolume(vtkRenderer* ren, vtkTable* objectTable, iACsvIO io) :m_o
 
 void iAVRVolume::resetVolume()
 {
-	m_cylinderVis = new iA3DCylinderObjectVis(m_renderer, m_objectTable, m_io.getOutputMapping(), QColor(140, 140, 140, 255), std::map<size_t, std::vector<iAVec3f> >());
+	m_cylinderVis = new iA3DCylinderObjectVis(m_renderer, m_objectTable, m_io.getOutputMapping(), QColor(140, 140, 140, 255), m_curvedFiberInfo);
 	m_volumeActor = m_cylinderVis->getActor();
 	//m_volumeActor->AddPosition(1,200,1);
 }
@@ -170,7 +170,7 @@ void iAVRVolume::createCubeModel()
 	m_actor->GetProperty()->SetColor(defaultColor.redF(), defaultColor.greenF(), defaultColor.blueF());
 	m_actor->GetProperty()->SetRepresentationToWireframe();
 	m_actor->GetProperty()->SetRenderLinesAsTubes(true);
-	m_actor->GetProperty()->SetLineWidth(4);
+	m_actor->GetProperty()->SetLineWidth(2);
 	m_actor->Modified();
 
 }

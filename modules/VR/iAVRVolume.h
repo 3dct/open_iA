@@ -37,7 +37,7 @@ class iA3DCylinderObjectVis;
 class iAVRVolume: public iAVRCubicVis
 {
 public:
-	iAVRVolume(vtkRenderer* ren, vtkTable* objectTable, iACsvIO io);
+	iAVRVolume(vtkRenderer* ren, vtkTable* objectTable, iACsvIO io, std::map<size_t, std::vector<iAVec3f> > curvedFiberInfo);
 	void resetVolume();
 	void showVolume();
 	void hideVolume();
@@ -69,6 +69,7 @@ private:
 	std::unordered_map<vtkIdType, vtkIdType> m_pointIDToCsvIndex;
 	std::unordered_multimap<vtkIdType, vtkIdType> m_csvIndexToPointID;
 	iACsvIO m_io;
+	std::map<size_t, std::vector<iAVec3f> > m_curvedFiberInfo;
 	vtkSmartPointer<vtkLookupTable> m_lut;
 	vtkSmartPointer<vtkDoubleArray> nodeGlyphScales;
 	vtkSmartPointer<vtkUnsignedCharArray> linkGlyphColor;

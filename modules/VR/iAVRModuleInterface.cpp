@@ -140,6 +140,16 @@ void iAVRModuleInterface::showFibers()
 		return;
 	}
 
+	std::map<size_t, std::vector<iAVec3f> > curvedFiberInfo;
+
+	if (csvConfig.visType == iACsvConfig::Cylinders || csvConfig.visType == iACsvConfig::Lines)
+	{
+		if(!readCurvedFiberInfo(csvConfig.curvedFiberFileName, curvedFiberInfo))
+		{
+			curvedFiberInfo = std::map<size_t, std::vector<iAVec3f>>();
+		}
+	}
+
 	if (!vrAvailable())
 	{
 		return;
@@ -159,7 +169,7 @@ void iAVRModuleInterface::showFibers()
 	m_style = vtkSmartPointer<iAVRInteractorStyle>::New();
 
 	//Create VR Main
-	m_vrMain = new iAVRMain(m_vrEnv.data(), m_style, m_objectTable, io);
+	m_vrMain = new iAVRMain(m_vrEnv.data(), m_style, m_objectTable, io, curvedFiberInfo);
 
 	// Start Render Loop HERE!
 	m_vrEnv->start();
