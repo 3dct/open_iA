@@ -108,4 +108,5 @@ void dlg_trackingGraph::updateGraph(vtkMutableDirectedGraph* g, size_t numRanks,
 #else
 	graphWidget->renderWindow()->Render();
 #endif
+	graphWidget->update();
 }
