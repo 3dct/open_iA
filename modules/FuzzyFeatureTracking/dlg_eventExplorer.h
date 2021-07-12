@@ -52,15 +52,9 @@ public:
 	dlg_eventExplorer(QWidget *parent, size_t numberOfCharts, int numberOfEventTypes, iAVolumeStack *volumeStack, dlg_trackingGraph* trackingGraph, std::vector<iAFeatureTracking*> trackedFeaturesForwards, std::vector<iAFeatureTracking*> trackedFeaturesBackwards);
 	~dlg_eventExplorer();
 
-	private slots:
+private slots:
 	void comboBoxXSelectionChanged(int s);
 	void comboBoxYSelectionChanged(int s);
-
-	void updateOpacityCreation(int v);
-	void updateOpacityContinuation(int v);
-	void updateOpacitySplit(int v);
-	void updateOpacityMerge(int v);
-	void updateOpacityDissipation(int v);
 
 	void updateOpacityGrid(int v);
 
@@ -78,6 +72,9 @@ public:
 private:
 	void buildGraph(int id, int layer, int eventType, double uncertainty);
 	void buildSubGraph(int id, int layer);
+	void updateChartData(int axis, int s);
+	void updateChartLogScale(int axis, bool log);
+	void updateOpacity(int v, int eventType);
 
 	iAVolumeStack* m_volumeStack;
 	size_t m_numberOfCharts;
