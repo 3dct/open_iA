@@ -88,7 +88,7 @@ private:
 	int m_propertyYId;
 	int m_rgb[5][3];
 
-	std::vector<iAVtkOldWidget*> m_widgets;
+	std::vector<iAVtkWidget*> m_widgets;
 	std::vector<vtkSmartPointer<vtkContextView>> m_contextViews;
 	std::vector<vtkSmartPointer<vtkChartXY>> m_charts;
 	std::vector<vtkSmartPointer<vtkPlot>> m_plots;

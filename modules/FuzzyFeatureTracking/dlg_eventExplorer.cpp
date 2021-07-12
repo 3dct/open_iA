@@ -144,8 +144,9 @@ dlg_eventExplorer::dlg_eventExplorer(QWidget *parent, size_t numberOfCharts, int
 
 	for (size_t i=0; i<numberOfCharts; i++)
 	{
-		iAVtkOldWidget* vtkWidget;
-		CREATE_OLDVTKWIDGET(vtkWidget);
+		iAVtkWidget* vtkWidget = new iAVtkWidget();
+		auto renWin = vtkSmartPointer<vtkGenericOpenGLRenderWindow>::New();
+		vtkWidget->setRenderWindow(renWin);
 		m_widgets.push_back(vtkWidget);
 
 		this->horizontalLayout->addWidget(m_widgets.at(i));

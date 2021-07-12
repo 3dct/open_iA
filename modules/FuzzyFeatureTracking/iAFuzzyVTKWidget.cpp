@@ -18,13 +18,17 @@
 * Contact: FH OÖ Forschungs & Entwicklungs GmbH, Campus Wels, CT-Gruppe,              *
 *          Stelzhamerstraße 23, 4600 Wels / Austria, Email: c.heinzl@fh-wels.at       *
 * ************************************************************************************/
-#include "iAQVTKWidgetMouseReleaseWorkaround.h"
+#include "iAFuzzyVTKWidget.h"
 
-iAQVTKWidgetMouseReleaseWorkaround::iAQVTKWidgetMouseReleaseWorkaround(QWidget* parent, Qt::WindowFlags f)
-	: iAVtkOldWidget(parent, f)
-{}
+iAFuzzyVTKWidget::iAFuzzyVTKWidget(
+	QWidget* parent, Qt::WindowFlags f)
+	: iAVtkWidget(parent, f)
+{
+	auto renWin = vtkSmartPointer<vtkGenericOpenGLRenderWindow>::New();
+	setRenderWindow(renWin);
+}
 
-void iAQVTKWidgetMouseReleaseWorkaround::mouseReleaseEvent( QMouseEvent * event )
+void iAFuzzyVTKWidget::mouseReleaseEvent(QMouseEvent* event)
 {
 	if (Qt::RightButton == event->button())
 	{
@@ -34,11 +38,11 @@ void iAQVTKWidgetMouseReleaseWorkaround::mouseReleaseEvent( QMouseEvent * event 
 	{
 		emit leftButtonReleasedSignal();
 	}
-	iAVtkOldWidget::mouseReleaseEvent(event);
+	iAVtkWidget::mouseReleaseEvent(event);
 }
 
-void iAQVTKWidgetMouseReleaseWorkaround::resizeEvent( QResizeEvent * event )
+void iAFuzzyVTKWidget::resizeEvent(QResizeEvent* event)
 {
 	repaint();//less flickering, but resize is less responsive
-	iAVtkOldWidget::resizeEvent(event);
+	iAVtkWidget::resizeEvent(event);
 }
