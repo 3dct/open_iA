@@ -153,7 +153,9 @@ bool iAGUIModuleInterface::AttachToMdiChild( iAMdiChild * child )
 		connect(attachment, &iAModuleAttachmentToChild::detach, this, &iAGUIModuleInterface::detach);
 	}
 	catch( itk::ExceptionObject &excep )
-	{  // check why we catch an ITK exception here! in the attachment initialization, no ITK filters should be called...
+	{	// check why we catch an ITK exception here! in the attachment initialization, no ITK filters should be called...
+		// assumption: as e.g. used in FuzzyFeatureTracking, this is just to be able to use
+		// the file/line information that the itk exception object holds
 		LOG(lvlError, tr("%1 in File %2, Line %3").arg( excep.GetDescription() )
 			.arg( excep.GetFile() )
 			.arg( excep.GetLine() ) );
