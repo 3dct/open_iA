@@ -51,12 +51,20 @@
 
 namespace
 {
-	const QStringList EventTypes = QStringList()
+	const QStringList EventNames = QStringList()
 		<< "Creation"
 		<< "Continuation"
 		<< "Split"
 		<< "Merge"
 		<< "Dissipation";
+	const std::array<QColor, 5> EventColors =
+	{
+		QColor(218, 181, 214, 255),
+		QColor(205, 221, 112, 255),
+		QColor(135, 216, 219, 255),
+		QColor(139, 224, 164, 255),
+		QColor(228, 179, 111, 255)
+	};
 	
 	const QStringList AvailableProperties = QStringList()
 		<< " Volume "
@@ -85,6 +93,12 @@ QString toqstr(vtkVariant const & var)
 dlg_eventExplorer::dlg_eventExplorer(QWidget *parent, size_t numberOfCharts, int numberOfEventTypes, iAVolumeStack* volumeStack, dlg_trackingGraph* trackingGraph, std::vector<iAFeatureTracking*> trackedFeaturesForwards, std::vector<iAFeatureTracking*> trackedFeaturesBackwards) : QDockWidget(parent)
 {
 	setupUi(this);
+
+	m_slider.push_back(creationSlider);
+	m_slider.push_back(continuationSlider);
+	m_slider.push_back(splitSlider);
+	m_slider.push_back(mergeSlider);
+	m_slider.push_back(dissipationSlider);
 
 	this->m_numberOfCharts = numberOfCharts;
 	this->m_numberOfEventTypes = numberOfEventTypes;
@@ -133,11 +147,11 @@ dlg_eventExplorer::dlg_eventExplorer(QWidget *parent, size_t numberOfCharts, int
 
 	connect(gridOpacitySlider, &QSlider::sliderMoved, this, &dlg_eventExplorer::updateOpacityGrid);
 
-	connect(creationCheckBox, &QCheckBox::stateChanged, this, &dlg_eventExplorer::updateCheckBoxCreation);
-	connect(continuationCheckBox, &QCheckBox::stateChanged, this, &dlg_eventExplorer::updateCheckBoxContinuation);
-	connect(splitCheckBox, &QCheckBox::stateChanged, this, &dlg_eventExplorer::updateCheckBoxSplit);
-	connect(mergeCheckBox, &QCheckBox::stateChanged, this, &dlg_eventExplorer::updateCheckBoxMerge);
-	connect(dissipationCheckBox, &QCheckBox::stateChanged, this, &dlg_eventExplorer::updateCheckBoxDissipation);
+	connect(creationCheckBox, &QCheckBox::stateChanged,     [this](int c) { updateCheckBox(Creation, c == Qt::Checked); });
+	connect(continuationCheckBox, &QCheckBox::stateChanged, [this](int c) { updateCheckBox(Continuation, c == Qt::Checked); });
+	connect(splitCheckBox, &QCheckBox::stateChanged,        [this](int c) { updateCheckBox(Bifurcation, c == Qt::Checked); });
+	connect(mergeCheckBox, &QCheckBox::stateChanged,        [this](int c) { updateCheckBox(Amalgamation, c == Qt::Checked); });
+	connect(dissipationCheckBox, &QCheckBox::stateChanged,  [this](int c) { updateCheckBox(Dissipation, c == Qt::Checked); });
 
 	connect(logXCheckBox, &QCheckBox::stateChanged, this, &dlg_eventExplorer::updateCheckBoxLogX);
 	connect(logYCheckBox, &QCheckBox::stateChanged, this, &dlg_eventExplorer::updateCheckBoxLogY);
@@ -170,7 +184,7 @@ dlg_eventExplorer::dlg_eventExplorer(QWidget *parent, size_t numberOfCharts, int
 	}
 	int tableId=0;
 
-	for (QString eventName : EventTypes)
+	for (QString eventName : EventNames)
 	{
 		for (size_t i = 0; i < numberOfCharts; i++)
 		{
@@ -265,7 +279,7 @@ dlg_eventExplorer::dlg_eventExplorer(QWidget *parent, size_t numberOfCharts, int
 						default:newEventType = -1;break;
 					}
 				}
-				assert(newEventType >= 0 && newEventType < EventTypes.size());
+				assert(newEventType >= 0 && newEventType < EventNames.size());
 				arr->SetValue(0, i+1);
 				arr->SetValue(1, v->GetValue(i, 4));
 				arr->SetValue(2, v->GetValue(i, 5));
@@ -284,55 +298,20 @@ dlg_eventExplorer::dlg_eventExplorer(QWidget *parent, size_t numberOfCharts, int
 		}
 	}
 
-
-
 	float width = 1.0;
-
-	vtkPlot *plot;
-	for(size_t i=0; i<numberOfCharts; i++)
+	for (int eventID = 0; eventID < EventColors.size(); ++eventID)
 	{
-		plot = m_charts.at(i)->AddPlot(vtkChart::POINTS);
-		plot->SetInputData(m_tables.at(i + numberOfCharts * 0), 1, 6);
-		plot->SetColor(218,181,214, 255);
-		plot->SetWidth(width);
-		plot->SetTooltipLabelFormat("");
-		m_plots.push_back(plot);
-	}
-	for (size_t i=0; i<numberOfCharts; ++i)
-	{
-		plot = m_charts.at(i)->AddPlot(vtkChart::POINTS);
-		plot->SetInputData(m_tables.at(i + numberOfCharts * 1), 1, 6);
-		plot->SetColor(205,221,112, 255);
-		plot->SetWidth(width);
-		plot->SetTooltipLabelFormat("");
-		m_plots.push_back(plot);
-	}
-	for (size_t i=0; i<numberOfCharts; ++i)
-	{
-		plot = m_charts.at(i)->AddPlot(vtkChart::POINTS);
-		plot->SetInputData(m_tables.at(i + numberOfCharts * 2), 1, 6);
-		plot->SetColor(135,216,219, 255);
-		plot->SetWidth(width);
-		plot->SetTooltipLabelFormat("");
-		m_plots.push_back(plot);
-	}
-	for (size_t i=0; i<numberOfCharts; ++i)
-	{
-		plot = m_charts.at(i)->AddPlot(vtkChart::POINTS);
-		plot->SetInputData(m_tables.at(i + numberOfCharts * 3), 1, 6);
-		plot->SetColor(139,224,164, 255);
-		plot->SetWidth(width);
-		plot->SetTooltipLabelFormat("");
-		m_plots.push_back(plot);
-	}
-	for (size_t i=0; i<numberOfCharts; ++i)
-	{
-		plot = m_charts.at(i)->AddPlot(vtkChart::POINTS);
-		plot->SetInputData(m_tables.at(i + numberOfCharts * 4), 1, 6);
-		plot->SetColor(228,179,111, 255);
-		plot->SetWidth(width);
-		plot->SetTooltipLabelFormat("");
-		m_plots.push_back(plot);
+		for (size_t i = 0; i < numberOfCharts; i++)
+		{
+			vtkPlot* plot = m_charts.at(i)->AddPlot(vtkChart::POINTS);
+			plot->SetInputData(m_tables.at(i + numberOfCharts * eventID), 1, 6);
+			QColor c = EventColors[eventID];
+			plot->SetColor(static_cast<unsigned char>(c.red()), static_cast<unsigned char>(c.green()),
+				static_cast<unsigned char>(c.blue()), static_cast<unsigned char>(c.alpha()));
+			plot->SetWidth(width);
+			plot->SetTooltipLabelFormat("");
+			m_plots.push_back(plot);
+		}
 	}
 
 	for (int i=0; i<numberOfEventTypes; ++i)
@@ -380,250 +359,58 @@ void dlg_eventExplorer::updateOpacityGrid(int v)
 	}
 }
 
-// BEGIN CODE DUPLICATION
-// {
-void dlg_eventExplorer::updateCheckBoxCreation(int /*c*/)
+void dlg_eventExplorer::updateCheckBox(int eventType, int checked)
 {
-	LOG(lvlInfo, QString("BEFORE   %1 %2 %3 %4 %5   -   %6")
-		.arg(m_plotPositionInVector[0]).arg(m_plotPositionInVector[1]).arg(m_plotPositionInVector[2])
-		.arg(m_plotPositionInVector[3]).arg(m_plotPositionInVector[4]).arg(m_numberOfActivePlots));
-
-	if (!creationCheckBox->isChecked())
+	LOG(lvlDebug,
+		QString("BEFORE   %1 %2 %3 %4 %5   -   %6 (%7)")
+			.arg(m_plotPositionInVector[0])
+			.arg(m_plotPositionInVector[1])
+			.arg(m_plotPositionInVector[2])
+			.arg(m_plotPositionInVector[3])
+			.arg(m_plotPositionInVector[4])
+			.arg(m_numberOfActivePlots)
+			.arg(EventNames[eventType]));
+	if (!checked)
 	{
-		for (size_t i=0; i<m_numberOfCharts; ++i)
+		for (size_t i = 0; i < m_numberOfCharts; ++i)
 		{
-			m_charts.at(i)->RemovePlot(m_plotPositionInVector[0]);
+			m_charts.at(i)->RemovePlot(m_plotPositionInVector[eventType]);
 		}
-
-		for (int i=0; i<m_numberOfEventTypes; ++i)
+		for (int i = 0; i < m_numberOfEventTypes; ++i)
 		{
-			if (m_plotPositionInVector[i] > m_plotPositionInVector[0])
-			{
-				m_plotPositionInVector[i]--;
-			}
-		}
-
-		m_plotPositionInVector[0] = -1;
-
-		m_numberOfActivePlots--;
-
-		creationSlider->setValue(0);
-		updateOpacity(0, Creation);
-	}
-	else
-	{
-		for (size_t i=0; i<m_numberOfCharts; ++i)
-		{
-			m_charts.at(i)->AddPlot(m_plots.at(i + m_numberOfCharts * 0));
-			m_charts.at(i)->Update();
-
-			m_plotPositionInVector[0]=m_numberOfActivePlots;
-		}
-
-		m_numberOfActivePlots++;
-
-		creationSlider->setValue(255);
-		updateOpacity(255, Creation);
-	}
-	creationCheckBox->update();
-	creationSlider->update();
-	LOG(lvlInfo, QString("AFTER   %1 %2 %3 %4 %5   -   %6")
-		.arg(m_plotPositionInVector[0]).arg(m_plotPositionInVector[1]).arg(m_plotPositionInVector[2])
-		.arg(m_plotPositionInVector[3]).arg(m_plotPositionInVector[4]).arg(m_numberOfActivePlots));
-}
-
-void dlg_eventExplorer::updateCheckBoxContinuation(int /*c*/)
-{
-	LOG(lvlInfo, QString("BEFORE   %1 %2 %3 %4 %5   -   %6")
-		.arg(m_plotPositionInVector[0]).arg(m_plotPositionInVector[1]).arg(m_plotPositionInVector[2])
-		.arg(m_plotPositionInVector[3]).arg(m_plotPositionInVector[4]).arg(m_numberOfActivePlots));
-	if(!continuationCheckBox->isChecked())
-	{
-		for (size_t i=0; i<m_numberOfCharts; ++i)
-		{
-			m_charts.at(i)->RemovePlot(m_plotPositionInVector[1]);
-		}
-
-		for (int i=0; i<m_numberOfEventTypes; ++i)
-		{
-			if (m_plotPositionInVector[i] > m_plotPositionInVector[1])
+			if (m_plotPositionInVector[i] > m_plotPositionInVector[eventType])
 			{
 				--m_plotPositionInVector[i];
 			}
 		}
-
-		m_plotPositionInVector[1] = -1;
-
+		m_plotPositionInVector[eventType] = -1;
 		--m_numberOfActivePlots;
-
-		continuationSlider->setValue(0);
-		updateOpacity(0, Continuation);
+		m_slider[eventType]->setValue(0);
+		updateOpacity(0, eventType);
 	}
 	else
 	{
-		for (size_t i=0; i<m_numberOfCharts; ++i)
+		for (size_t i = 0; i < m_numberOfCharts; ++i)
 		{
-			m_charts.at(i)->AddPlot(m_plots.at(i + m_numberOfCharts * 1));
+			m_charts.at(i)->AddPlot(m_plots.at(i + m_numberOfCharts * eventType));
 
-			m_plotPositionInVector[1]=m_numberOfActivePlots;
+			m_plotPositionInVector[eventType] = m_numberOfActivePlots;
 		}
-
-		m_numberOfActivePlots++;
-
-		continuationSlider->setValue(255);
-		updateOpacity(255, Continuation);
-	}
-	continuationCheckBox->update();
-	continuationSlider->update();
-	LOG(lvlInfo, QString("AFTER   %1 %2 %3 %4 %5   -   %6")
-		.arg(m_plotPositionInVector[0]).arg(m_plotPositionInVector[1]).arg(m_plotPositionInVector[2])
-		.arg(m_plotPositionInVector[3]).arg(m_plotPositionInVector[4]).arg(m_numberOfActivePlots));
-}
-
-void dlg_eventExplorer::updateCheckBoxSplit(int /*c*/)
-{
-	LOG(lvlInfo, QString("BEFORE   %1 %2 %3 %4 %5   -   %6")
-		.arg(m_plotPositionInVector[0]).arg(m_plotPositionInVector[1]).arg(m_plotPositionInVector[2])
-		.arg(m_plotPositionInVector[3]).arg(m_plotPositionInVector[4]).arg(m_numberOfActivePlots));
-	if(!splitCheckBox->isChecked())
-	{
-		for (size_t i=0; i<m_numberOfCharts; ++i)
-		{
-			m_charts.at(i)->RemovePlot(m_plotPositionInVector[2]);
-		}
-
-		for (int i=0; i<m_numberOfEventTypes; ++i)
-		{
-			if(m_plotPositionInVector[i] > m_plotPositionInVector[2])
-			{
-				--m_plotPositionInVector[i];
-			}
-		}
-
-		m_plotPositionInVector[2] = -1;
-
-		--m_numberOfActivePlots;
-
-		splitSlider->setValue(0);
-		updateOpacity(0, Bifurcation);
-	}
-	else
-	{
-		for (size_t i=0; i<m_numberOfCharts; ++i)
-		{
-			m_charts.at(i)->AddPlot(m_plots.at(i + m_numberOfCharts * 2));
-
-			m_plotPositionInVector[2]=m_numberOfActivePlots;
-		}
-
-		m_numberOfActivePlots++;
-
-		splitSlider->setValue(255);
-		updateOpacity(255, Bifurcation);
-	}
-	splitCheckBox->update();
-	splitSlider->update();
-	LOG(lvlInfo, QString("AFTER   %1 %2 %3 %4 %5   -   %6")
-		.arg(m_plotPositionInVector[0]).arg(m_plotPositionInVector[1]).arg(m_plotPositionInVector[2])
-		.arg(m_plotPositionInVector[3]).arg(m_plotPositionInVector[4]).arg(m_numberOfActivePlots));
-}
-
-void dlg_eventExplorer::updateCheckBoxMerge(int /*c*/)
-{
-	LOG(lvlInfo, QString("BEFORE   %1 %2 %3 %4 %5   -   %6")
-		.arg(m_plotPositionInVector[0]).arg(m_plotPositionInVector[1]).arg(m_plotPositionInVector[2])
-		.arg(m_plotPositionInVector[3]).arg(m_plotPositionInVector[4]).arg(m_numberOfActivePlots));
-	if (!mergeCheckBox->isChecked())
-	{
-		for (size_t i=0; i<m_numberOfCharts; ++i)
-		{
-			m_charts.at(i)->RemovePlot(m_plotPositionInVector[3]);
-		}
-
-		for (int i=0; i<m_numberOfEventTypes; ++i)
-		{
-			if(m_plotPositionInVector[i] > m_plotPositionInVector[3])
-			{
-				--m_plotPositionInVector[i];
-			}
-		}
-
-		m_plotPositionInVector[3] = -1;
-
-		m_numberOfActivePlots--;
-
-		mergeSlider->setValue(0);
-		updateOpacity(0, Amalgamation);
-	}
-	else
-	{
-		for (size_t i=0; i<m_numberOfCharts; ++i)
-		{
-			m_charts.at(i)->AddPlot(m_plots.at(i + m_numberOfCharts * 3));
-
-			m_plotPositionInVector[3]=m_numberOfActivePlots;
-		}
-
 		++m_numberOfActivePlots;
-
-		mergeSlider->setValue(255);
-		updateOpacity(255, Amalgamation);
+		m_slider[eventType]->setValue(255);
+		updateOpacity(255, eventType);
 	}
-	mergeCheckBox->update();
-	mergeSlider->update();
-	LOG(lvlInfo, QString("AFTER   %1 %2 %3 %4 %5   -   %6")
-		.arg(m_plotPositionInVector[0]).arg(m_plotPositionInVector[1]).arg(m_plotPositionInVector[2])
-		.arg(m_plotPositionInVector[3]).arg(m_plotPositionInVector[4]).arg(m_numberOfActivePlots));
+	m_slider[eventType]->update();
+	LOG(lvlDebug,
+		QString("AFTER   %1 %2 %3 %4 %5   -   %6 (%7)")
+			.arg(m_plotPositionInVector[0])
+			.arg(m_plotPositionInVector[1])
+			.arg(m_plotPositionInVector[2])
+			.arg(m_plotPositionInVector[3])
+			.arg(m_plotPositionInVector[4])
+			.arg(m_numberOfActivePlots)
+			.arg(EventNames[eventType]));
 }
-
-void dlg_eventExplorer::updateCheckBoxDissipation(int /*c*/)
-{
-	LOG(lvlInfo, QString("BEFORE   %1 %2 %3 %4 %5   -   %6")
-		.arg(m_plotPositionInVector[0]).arg(m_plotPositionInVector[1]).arg(m_plotPositionInVector[2])
-		.arg(m_plotPositionInVector[3]).arg(m_plotPositionInVector[4]).arg(m_numberOfActivePlots));
-	if (!dissipationCheckBox->isChecked())
-	{
-		for (size_t i=0; i<m_numberOfCharts; ++i)
-		{
-			m_charts.at(i)->RemovePlot(m_plotPositionInVector[4]);
-		}
-
-		for (int i=0; i<m_numberOfEventTypes; ++i)
-		{
-			if (m_plotPositionInVector[i] > m_plotPositionInVector[4])
-			{
-				--m_plotPositionInVector[i];
-			}
-		}
-
-		m_plotPositionInVector[4] = -1;
-
-		--m_numberOfActivePlots;
-
-		dissipationSlider->setValue(0);
-		updateOpacity(0, Dissipation);
-	}
-	else
-	{
-		for (size_t i=0; i<m_numberOfCharts; ++i)
-		{
-			m_charts.at(i)->AddPlot(m_plots.at(i+m_numberOfCharts*4));
-
-			m_plotPositionInVector[4]=m_numberOfActivePlots;
-		}
-
-		++m_numberOfActivePlots;
-
-		dissipationSlider->setValue(255);
-		updateOpacity(255, Dissipation);
-	}
-	dissipationCheckBox->update();
-	dissipationSlider->update();
-	LOG(lvlInfo, QString("AFTER   %1 %2 %3 %4 %5   -   %6")
-		.arg(m_plotPositionInVector[0]).arg(m_plotPositionInVector[1]).arg(m_plotPositionInVector[2])
-		.arg(m_plotPositionInVector[3]).arg(m_plotPositionInVector[4]).arg(m_numberOfActivePlots));
-}
-// END CODE DUPLICATION
 
 void dlg_eventExplorer::updateChartLogScale(int axis, bool logScale)
 {
@@ -753,7 +540,7 @@ void dlg_eventExplorer::chartMouseButtonCallBack(vtkObject * /*obj*/)
 						//if(currentPlot==plotPositionInVector[k])
 						if (currentPlot == k)
 						{
-							LOG(lvlInfo, QString("   %1 Events").arg(EventTypes[k]));
+							LOG(lvlInfo, QString("   %1 Events").arg(EventNames[k]));
 							//plots.at(numberOfCharts * k)->GetColor(rgb);
 							for (int l = 0; l < ids->GetNumberOfTuples(); ++l)
 							{
