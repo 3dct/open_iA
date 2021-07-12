@@ -23,6 +23,7 @@
 #include "iAMathUtility.h"
 #include "iAMapper.h"
 
+#include <QApplication>    // for qApp->palette()
 #include <QPainter>
 #include <QToolTip>
 
@@ -84,7 +85,7 @@ void iAProfileWidget::drawPlots(QPainter &painter)
 		return;
 	}
 	double binWidth = (double)(chartWidth()) / m_numBin * m_xZoom;
-	painter.setPen(QWidget::palette().color(QPalette::Text));
+	painter.setPen(qApp->palette().color(QPalette::Text));
 	double scalingCoef = (double)(chartHeight()-1) / m_yHeight * m_yZoom;
 	for ( int j = 0; j < m_numBin-1; j++ )
 	{

@@ -35,7 +35,7 @@
 #include <iARenderer.h>
 #include <iASlicer.h>
 
-#include <iARendererManager.h>
+#include <iARendererViewSync.h>
 
 #include <vtkTransform.h>
 #include <vtkColorTransferFunction.h>
@@ -62,7 +62,7 @@ iASSView::iASSView( QWidget * parent /*= 0*/, Qt::WindowFlags f /*= 0 */ )
 	m_slicerTransform( vtkSmartPointer<vtkTransform>::New() ),
 	m_slicerTF( vtkSmartPointer<vtkColorTransferFunction>::New() ),
 	m_modeInd( 0 ),
-	m_sliceMgr( new iARendererManager ),
+	m_sliceMgr( new iARendererViewSync ),
 	m_imgData( vtkSmartPointer<vtkImageData>::New() ),
 	m_slicerViewsLayout( new QHBoxLayout(slicerWidget) ),
 	m_segm3DViewExtrnl( 0 ),

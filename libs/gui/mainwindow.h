@@ -182,6 +182,7 @@ private slots:
 	void childClosed();
 	void listDockWidgetsInMenu();
 	void toggleMainWindowStatusBar();
+	void toggleOpenLogOnNewMessage();
 	void toggleChildStatusBar();
 	void toggleToolbar();
 	void about();
@@ -191,6 +192,7 @@ private slots:
 	void resetLayout();
 	void deleteLayout();
 	void toggleSliceProfile(bool isChecked);
+	void toggleEditProfilePoints(bool isChecked);
 	void updateMenus();
 	void updateWindowMenu();
 	void setActiveSubWindow(QWidget *window);
@@ -199,6 +201,7 @@ private slots:
 	void endPointSelected();
 	void setHistogramFocus();
 	void logVisibilityChanged(bool newVisibility);
+	void toggleMdiViewMode();
 
 private:
 	//! internal retriever for MdiChild object (instead of iAMdiChild interface)
@@ -225,7 +228,7 @@ private:
 	QSplashScreen *m_splashScreen;
 	QAction *m_separatorAct;
 	QAction *m_recentFileActs[MaxRecentFiles];
-	QActionGroup *m_slicerToolsGroup;
+	QActionGroup *m_slicerToolsGroup, *m_mdiViewModeGroup;
 	QString m_qssName;
 	iAVolumeSettings m_defaultVolumeSettings;
 	iARenderSettings m_defaultRenderSettings;

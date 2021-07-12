@@ -132,14 +132,23 @@ void iAChartWithFunctionsWidget::mousePressEvent(QMouseEvent *event)
 				((event->modifiers() & Qt::ControlModifier) == Qt::ControlModifier) &&
 				((event->modifiers() & Qt::AltModifier) == Qt::AltModifier))
 			{
+#if QT_VERSION < QT_VERSION_CHECK(5, 99, 0)
 				m_zoomYPos = event->y();
+#else
+				m_zoomYPos = event->position().y();
+#endif
 				changeMode(Y_ZOOM_MODE, event);
 			}
 			else if (((event->modifiers() & Qt::ShiftModifier) == Qt::ShiftModifier) &&
 				((event->modifiers() & Qt::ControlModifier) == Qt::ControlModifier))
 			{
+#if QT_VERSION < QT_VERSION_CHECK(5, 99, 0)
 				m_zoomXPos = event->x();
 				m_zoomYPos = event->y();
+#else
+				m_zoomXPos = event->position().x();
+				m_zoomYPos = event->position().y();
+#endif
 				m_xZoomStart = m_xZoom;
 				changeMode(X_ZOOM_MODE, event);
 			}
@@ -160,7 +169,11 @@ void iAChartWithFunctionsWidget::mousePressEvent(QMouseEvent *event)
 			}
 			std::vector<iAChartFunction*>::iterator it = m_functions.begin();
 			iAChartFunction *func = *(it + m_selectedFunction);
+#if QT_VERSION < QT_VERSION_CHECK(5, 99, 0)
 			int selectedPoint = func->selectPoint(event->x() - leftMargin(), chartHeight() - event->y());
+#else
+			int selectedPoint = func->selectPoint(event->position().x() - leftMargin(), chartHeight() - event->position().y());
+#endif
 			if (selectedPoint == -1)
 			{
 				emit noPointSelected();
@@ -213,8 +226,13 @@ void iAChartWithFunctionsWidget::mouseMoveEvent(QMouseEvent *event)
 		case MOVE_POINT_MODE:
 		case MOVE_NEW_POINT_MODE:
 		{
+#if QT_VERSION < QT_VERSION_CHECK(5, 99, 0)
 			int mouseX = event->x() - leftMargin();
 			int mouseY = geometry().height() -event->y() -bottomMargin();
+#else
+			int mouseX = event->position().x() - leftMargin();
+			int mouseY = geometry().height() - event->position().y() - bottomMargin();
+#endif
 			if (m_showFunctions)
 			{
 				std::vector<iAChartFunction*>::iterator it = m_functions.begin();
@@ -341,8 +359,13 @@ void iAChartWithFunctionsWidget::changeMode(int newMode, QMouseEvent *event)
 			}
 			std::vector<iAChartFunction*>::iterator it = m_functions.begin();
 			iAChartFunction *func = *(it + m_selectedFunction);
+#if QT_VERSION < QT_VERSION_CHECK(5, 99, 0)
 			int mouseX = event->x() - leftMargin();
 			int mouseY = chartHeight() - event->y();
+#else
+			int mouseX = event->position().x() - leftMargin();
+			int mouseY = chartHeight() - event->position().y();
+#endif
 			int selectedPoint = func->selectPoint(mouseX, mouseY);
 			// don't do anything if outside of diagram region:
 			if (selectedPoint == -1 && mouseX < 0)
@@ -421,7 +444,11 @@ void iAChartWithFunctionsWidget::changeColor(QMouseEvent *event)
 	iAChartFunction *func = *(it + m_selectedFunction);
 	if (event != nullptr)
 	{
+#if QT_VERSION < QT_VERSION_CHECK(5, 99, 0)
 		func->selectPoint(event->x() - leftMargin(), chartHeight() - event->y());
+#else
+		func->selectPoint(event->position().x() - leftMargin(), chartHeight() - event->position().y());
+#endif
 	}
 	func->changeColor();
 

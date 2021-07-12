@@ -21,7 +21,7 @@ SET (OPENIA_PRECOMPILE_HEADERS
 <iAPlotTypes.h>
 <iAQGLWidget.h>
 <iAScatterPlot.h>
-<iAScatterPlotSelectionHandler.h>
+<iAScatterPlotViewData.h>
 <iASPLOMData.h>
 <iAStringHelper.h>
 <iATFTableDlg.h>

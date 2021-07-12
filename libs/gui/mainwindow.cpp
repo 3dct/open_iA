@@ -88,6 +88,11 @@ MainWindow::MainWindow(QString const & appName, QString const & version, QString
 	setupUi(this);
 	setAcceptDrops(true);
 
+	m_mdiViewModeGroup = new QActionGroup(this);
+	m_mdiViewModeGroup->addAction(actionTabbed);
+	m_mdiViewModeGroup->addAction(actionSubWindows);
+	m_mdiViewModeGroup->setExclusive(true);
+
 	// restore geometry and state
 	QCoreApplication::setOrganizationName("FHW");
 	QCoreApplication::setOrganizationDomain("3dct.at");
@@ -122,6 +127,7 @@ MainWindow::MainWindow(QString const & appName, QString const & version, QString
 	m_slicerToolsGroup->setExclusive(false);
 	m_slicerToolsGroup->addAction(actionSnakeSlicer);
 	m_slicerToolsGroup->addAction(actionRawProfile);
+	m_slicerToolsGroup->addAction(actionEditProfilePoints);
 
 	actionDeletePoint->setEnabled(false);
 	actionChangeColor->setEnabled(false);
@@ -305,7 +311,7 @@ void MainWindow::openVolumeStack()
 
 void MainWindow::openRecentFile()
 {
-	QAction *action = qobject_cast<QAction *>(sender());
+	auto action = qobject_cast<QAction *>(sender());
 	if (!action)
 	{
 		return;
@@ -768,6 +774,7 @@ void MainWindow::savePreferences(iAXmlSettings &xml)
 	preferencesElement.setAttribute("resultsInNewWindow", tr("%1").arg(m_defaultPreferences.ResultInNewWindow));
 	preferencesElement.setAttribute("magicLensSize", tr("%1").arg(m_defaultPreferences.MagicLensSize));
 	preferencesElement.setAttribute("magicLensFrameWidth", tr("%1").arg(m_defaultPreferences.MagicLensFrameWidth));
+	preferencesElement.setAttribute("fontSize", QString::number(m_defaultPreferences.FontSize));
 	preferencesElement.setAttribute("logToFile", tr("%1").arg(iALogWidget::get()->isLogToFileOn()));
 }
 
@@ -782,6 +789,7 @@ void MainWindow::loadPreferences(QDomNode preferencesNode)
 	m_defaultPreferences.ResultInNewWindow = attributes.namedItem("resultsInNewWindow").nodeValue() == "1";
 	m_defaultPreferences.MagicLensSize = attributes.namedItem("magicLensSize").nodeValue().toInt();
 	m_defaultPreferences.MagicLensFrameWidth = attributes.namedItem("magicLensFrameWidth").nodeValue().toInt();
+	m_defaultPreferences.FontSize = attributes.namedItem("fontSize").nodeValue().toInt();
 	bool prefLogToFile = attributes.namedItem("logToFile").nodeValue() == "1";
 	QString logFileName = attributes.namedItem("logFile").nodeValue();
 
@@ -798,6 +806,7 @@ void MainWindow::saveRenderSettings(iAXmlSettings &xml)
 	renderSettingsElement.setAttribute("showHelpers", m_defaultRenderSettings.ShowHelpers);
 	renderSettingsElement.setAttribute("showRPosition", m_defaultRenderSettings.ShowRPosition);
 	renderSettingsElement.setAttribute("parallelProjection", m_defaultRenderSettings.ParallelProjection);
+	renderSettingsElement.setAttribute("useStyleBGColor", m_defaultRenderSettings.UseStyleBGColor);
 	renderSettingsElement.setAttribute("backgroundTop", m_defaultRenderSettings.BackgroundTop);
 	renderSettingsElement.setAttribute("backgroundBottom", m_defaultRenderSettings.BackgroundBottom);
 	renderSettingsElement.setAttribute("planeOpacity", m_defaultRenderSettings.PlaneOpacity);
@@ -824,6 +833,7 @@ void MainWindow::loadRenderSettings(QDomNode renderSettingsNode)
 	m_defaultRenderSettings.ShowHelpers = attributes.namedItem("showHelpers").nodeValue() == "1";
 	m_defaultRenderSettings.ShowRPosition = attributes.namedItem("showRPosition").nodeValue() == "1";
 	m_defaultRenderSettings.ParallelProjection = attributes.namedItem("parallelProjection").nodeValue() == "1";
+	m_defaultRenderSettings.UseStyleBGColor = attributes.namedItem("useStyleBGColor").nodeValue() == "1";
 	m_defaultRenderSettings.BackgroundTop = attributes.namedItem("backgroundTop").nodeValue();
 	m_defaultRenderSettings.BackgroundBottom = attributes.namedItem("backgroundBottom").nodeValue();
 	m_defaultRenderSettings.PlaneOpacity = attributes.namedItem("planeOpacity").nodeValue().toDouble();
@@ -1017,6 +1027,7 @@ void MainWindow::prefs()
 		<< tr("#Log File Name")
 		<< tr("+File Log Level")
 		<< tr("+Looks")
+		<< tr("*Font size")
 		<< tr("#Magic lens size")
 		<< tr("#Magic lens frame width")
 		<< tr("$Logarithmic Histogram y axis"));
@@ -1058,6 +1069,7 @@ void MainWindow::prefs()
 		<< iALogWidget::get()->logFileName()
 		<< fileLogLevels
 		<< looks
+		<< QString::number(p.FontSize)
 		<< tr("%1").arg(p.MagicLensSize)
 		<< tr("%1").arg(p.MagicLensFrameWidth)
 		<< p.HistogramLogarithmicYAxis;
@@ -1082,7 +1094,10 @@ void MainWindow::prefs()
 			m_qssName = styleNames[looksStr];
 			applyQSS();
 		}
-
+		m_defaultPreferences.FontSize = dlg.getIntValue(i++);
+		auto f = QApplication::font();
+		f.setPointSize(m_defaultPreferences.FontSize);
+		QApplication::setFont(f);
 		m_defaultPreferences.MagicLensSize = clamp(MinimumMagicLensSize, MaximumMagicLensSize,
 			static_cast<int>(dlg.getDblValue(i++)));
 		m_defaultPreferences.MagicLensFrameWidth = std::max(0, static_cast<int>(dlg.getDblValue(i++)));
@@ -1116,6 +1131,7 @@ void MainWindow::renderSettings()
 		<< tr("$Show helpers")
 		<< tr("$Show position")
 		<< tr("$Parallel projection")
+		<< tr("$Use style background color")
 		<< tr("#Background top")
 		<< tr("#Background bottom")
 		<< tr("$Use FXAA")
@@ -1138,6 +1154,7 @@ void MainWindow::renderSettings()
 		<< renderSettings.ShowHelpers
 		<< renderSettings.ShowRPosition
 		<< renderSettings.ParallelProjection
+		<< renderSettings.UseStyleBGColor
 		<< renderSettings.BackgroundTop
 		<< renderSettings.BackgroundBottom
 		<< renderSettings.UseFXAA
@@ -1167,6 +1184,7 @@ void MainWindow::renderSettings()
 	m_defaultRenderSettings.ShowHelpers = dlg.getCheckValue(param++) != 0;
 	m_defaultRenderSettings.ShowRPosition = dlg.getCheckValue(param++) != 0;
 	m_defaultRenderSettings.ParallelProjection = dlg.getCheckValue(param++) != 0;
+	m_defaultRenderSettings.UseStyleBGColor = dlg.getCheckValue(param++) != 0;
 	m_defaultRenderSettings.BackgroundTop = dlg.getText(param++);
 	m_defaultRenderSettings.BackgroundBottom = dlg.getText(param++);
 	m_defaultRenderSettings.UseFXAA = dlg.getCheckValue(param++) != 0;
@@ -1351,8 +1369,8 @@ void MainWindow::changeInteractionMode(bool isChecked)
 {
 	if (activeMdiChild())
 	{
-		QAction* a = qobject_cast<QAction*>(sender());
-		MdiChild::iAInteractionMode mode =
+		auto a = qobject_cast<QAction*>(sender());
+		auto mode =
 			(a == actionInteractionModeCamera) ?
 			(isChecked ? MdiChild::imCamera : MdiChild::imRegistration) :
 			(isChecked ? MdiChild::imRegistration : MdiChild::imCamera);
@@ -1392,6 +1410,14 @@ void MainWindow::toggleSliceProfile(bool isChecked)
 	}
 }
 
+void MainWindow::toggleEditProfilePoints(bool isChecked)
+{
+	if (activeMdiChild())
+	{
+		activeMDI()->toggleProfileHandles(isChecked);
+	}
+}
+
 void MainWindow::toggleMagicLens( bool isChecked )
 {
 	if (activeMdiChild())
@@ -1428,7 +1454,7 @@ void MainWindow::raycasterAssignIso()
 		{
 			activeMDI()->camPosition(camOptions);
 		}
-		for(int i = 0; i < sizeMdi; i++)
+		for (int i = 0; i < sizeMdi; i++)
 		{
 			MdiChild *tmpChild = dynamic_cast<MdiChild*>(mdiwindows.at(i));
 
@@ -1545,7 +1571,7 @@ void MainWindow::buildInformation()
 
 void MainWindow::wiki()
 {
-	QAction* act = qobject_cast<QAction*>(QObject::sender());
+	auto act = qobject_cast<QAction*>(QObject::sender());
 	if (act->text().contains("Core"))
 	{
 		QDesktopServices::openUrl(QUrl("https://github.com/3dct/open_iA/wiki/Core"));
@@ -1593,8 +1619,8 @@ void MainWindow::updateMenus()
 	actionClose->setEnabled(hasMdiChild);
 	actionCloseAll->setEnabled(hasMdiChild);
 
-	actionTile->setEnabled(hasMdiChild);
-	actionCascade->setEnabled(hasMdiChild);
+	actionTile->setEnabled(hasMdiChild && actionSubWindows->isChecked());
+	actionCascade->setEnabled(hasMdiChild && actionSubWindows->isChecked());
 	actionNextWindow->setEnabled(hasMdiChild);
 	actionPrevWindow->setEnabled(hasMdiChild);
 
@@ -1629,6 +1655,7 @@ void MainWindow::updateMenus()
 	actionResetView->setEnabled(hasMdiChild);
 	actionResetFunction->setEnabled(hasMdiChild);
 	actionRawProfile->setEnabled(hasMdiChild);
+	actionEditProfilePoints->setEnabled(hasMdiChild);
 	actionLoadLayout->setEnabled(hasMdiChild);
 	actionSaveLayout->setEnabled(hasMdiChild);
 	actionResetLayout->setEnabled(hasMdiChild);
@@ -1645,6 +1672,8 @@ void MainWindow::updateMenus()
 	actionInteractionModeRegistration->setChecked(hasMdiChild && child->interactionMode() == MdiChild::imRegistration);
 	QSignalBlocker blockSliceProfile(actionRawProfile);
 	actionRawProfile->setChecked(hasMdiChild && child->isSliceProfileToggled());
+	QSignalBlocker blockEditProfile(actionEditProfilePoints);
+	actionEditProfilePoints->setChecked(hasMdiChild && child->profileHandlesEnabled());
 	QSignalBlocker blockSnakeSlicer(actionSnakeSlicer);
 	actionSnakeSlicer->setChecked(hasMdiChild && child->isSnakeSlicerToggled());
 	updateMagicLens2DCheckState(hasMdiChild && child->isMagicLens2DEnabled());
@@ -1802,6 +1831,7 @@ void MainWindow::connectSignalsToSlots()
 	connect(actionShowMenu, &QAction::triggered, this, &MainWindow::toggleMenu);
 	connect(actionShowToolbar, &QAction::triggered, this, &MainWindow::toggleToolbar);
 	connect(actionMainWindowStatusBar, &QAction::triggered, this, &MainWindow::toggleMainWindowStatusBar);
+	connect(actionOpenLogOnNewMessage, &QAction::triggered, this, &MainWindow::toggleOpenLogOnNewMessage);
 	connect(menuDockWidgets, &QMenu::aboutToShow, this, &MainWindow::listDockWidgetsInMenu);
 	// Enable these actions also when menu not visible:
 	addAction(actionFullScreenMode);
@@ -1817,6 +1847,9 @@ void MainWindow::connectSignalsToSlots()
 	connect(actionNextWindow, &QAction::triggered, mdiArea, &QMdiArea::activateNextSubWindow);
 	connect(actionPrevWindow, &QAction::triggered, mdiArea, &QMdiArea::activatePreviousSubWindow);
 	connect(actionChildStatusBar, &QAction::triggered, this, &MainWindow::toggleChildStatusBar);
+
+	connect(actionTabbed, &QAction::triggered, this, &MainWindow::toggleMdiViewMode);
+	connect(actionSubWindows, &QAction::triggered, this, &MainWindow::toggleMdiViewMode);
 
 	// "Help" menu entries:
 	connect(actionUserGuideCore, &QAction::triggered, this, &MainWindow::wiki);
@@ -1851,6 +1884,7 @@ void MainWindow::connectSignalsToSlots()
 	// Snake slicer toolbar
 	connect(actionSnakeSlicer,  &QAction::toggled, this, &MainWindow::toggleSnakeSlicer);
 	connect(actionRawProfile,   &QAction::toggled, this, &MainWindow::toggleSliceProfile);
+	connect(actionEditProfilePoints, &QAction::toggled, this, &MainWindow::toggleEditProfilePoints);
 	connect(actionMagicLens2D,  &QAction::toggled, this, &MainWindow::toggleMagicLens);
 	connect(actionMagicLens3D,  &QAction::triggered, this, &MainWindow::toggleMagicLens3D);
 
@@ -1881,11 +1915,15 @@ void MainWindow::readSettings()
 	m_defaultPreferences.ResultInNewWindow = settings.value("Preferences/prefResultInNewWindow", defaultPrefs.ResultInNewWindow).toBool();
 	m_defaultPreferences.MagicLensSize = settings.value("Preferences/prefMagicLensSize", defaultPrefs.MagicLensSize).toInt();
 	m_defaultPreferences.MagicLensFrameWidth = settings.value("Preferences/prefMagicLensFrameWidth", defaultPrefs.MagicLensFrameWidth).toInt();
+	m_defaultPreferences.FontSize = settings.value("Preferences/fontSize", defaultPrefs.FontSize).toInt();
 	bool prefLogToFile = settings.value("Preferences/prefLogToFile", false).toBool();
 	QString logFileName = settings.value("Preferences/prefLogFile", "debug.log").toString();
 	iALogWidget::get()->setLogToFile(prefLogToFile, logFileName);
 	iALogWidget::get()->setLogLevel(static_cast<iALogLevel>(settings.value("Preferences/prefLogLevel", lvlInfo).toInt()));
 	iALogWidget::get()->setFileLogLevel(static_cast<iALogLevel>(settings.value("Preferences/prefFileLogLevel", lvlWarn).toInt()));
+	auto f = QApplication::font();
+	f.setPointSize(m_defaultPreferences.FontSize);
+	QApplication::setFont(f);
 
 	iARenderSettings fallbackRS;
 	m_defaultRenderSettings.ShowSlicers = settings.value("Renderer/rsShowSlicers", fallbackRS.ShowSlicers).toBool();
@@ -1893,6 +1931,7 @@ void MainWindow::readSettings()
 	m_defaultRenderSettings.ShowHelpers = settings.value("Renderer/rsShowHelpers", fallbackRS.ShowHelpers).toBool();
 	m_defaultRenderSettings.ShowRPosition = settings.value("Renderer/rsShowRPosition", fallbackRS.ShowRPosition).toBool();
 	m_defaultRenderSettings.ParallelProjection = settings.value("Renderer/rsParallelProjection", fallbackRS.ParallelProjection).toBool();
+	m_defaultRenderSettings.UseStyleBGColor = settings.value("Renderer/rsUseStyleBGColor", fallbackRS.UseStyleBGColor).toBool();
 	m_defaultRenderSettings.UseFXAA = settings.value("Renderer/rsUseFXAA", fallbackRS.UseFXAA).toBool();
 	m_defaultRenderSettings.MultiSamples = settings.value("Renderer/rsMultiSamples", fallbackRS.MultiSamples).toInt();
 	m_defaultRenderSettings.PlaneOpacity = settings.value("Renderer/rsPlaneOpacity", fallbackRS.PlaneOpacity).toDouble();
@@ -1948,6 +1987,18 @@ void MainWindow::readSettings()
 	toggleToolbar();
 	actionMainWindowStatusBar->setChecked(settings.value("Parameters/ShowMainStatusBar", true).toBool());
 	toggleMainWindowStatusBar();
+	actionOpenLogOnNewMessage->setChecked(settings.value("Parameters/OpenLogOnNewMessages", true).toBool());
+	toggleOpenLogOnNewMessage();
+	auto viewMode = static_cast<QMdiArea::ViewMode>(settings.value("Parameters/ViewMode", QMdiArea::SubWindowView).toInt());
+	mdiArea->setViewMode(viewMode);
+	if (viewMode == QMdiArea::SubWindowView)
+	{
+		actionSubWindows->setChecked(true);
+	}
+	else
+	{
+		actionTabbed->setChecked(true);
+	}
 
 	m_owdtcs = settings.value("OpenWithDataTypeConversion/owdtcs", 1).toInt();
 	m_rawFileParams.m_size[0] = settings.value("OpenWithDataTypeConversion/owdtcx", 1).toInt();
@@ -1995,6 +2046,7 @@ void MainWindow::writeSettings()
 	settings.setValue("Preferences/prefResultInNewWindow", m_defaultPreferences.ResultInNewWindow);
 	settings.setValue("Preferences/prefMagicLensSize", m_defaultPreferences.MagicLensSize);
 	settings.setValue("Preferences/prefMagicLensFrameWidth", m_defaultPreferences.MagicLensFrameWidth);
+	settings.setValue("Preferences/fontSize", m_defaultPreferences.FontSize);
 	settings.setValue("Preferences/prefLogToFile", iALogWidget::get()->isLogToFileOn());
 	settings.setValue("Preferences/prefLogFile", iALogWidget::get()->logFileName());
 	settings.setValue("Preferences/prefLogLevel", iALogWidget::get()->logLevel());
@@ -2003,6 +2055,7 @@ void MainWindow::writeSettings()
 	settings.setValue("Renderer/rsShowSlicers", m_defaultRenderSettings.ShowSlicers);
 	settings.setValue("Renderer/rsShowSlicePlanes", m_defaultRenderSettings.ShowSlicePlanes);
 	settings.setValue("Renderer/rsParallelProjection", m_defaultRenderSettings.ParallelProjection);
+	settings.setValue("Renderer/rsUseStyleBGColor", m_defaultRenderSettings.UseStyleBGColor);
 	settings.setValue("Renderer/rsBackgroundTop", m_defaultRenderSettings.BackgroundTop);
 	settings.setValue("Renderer/rsBackgroundBottom", m_defaultRenderSettings.BackgroundBottom);
 	settings.setValue("Renderer/rsShowHelpers", m_defaultRenderSettings.ShowHelpers);
@@ -2054,8 +2107,10 @@ void MainWindow::writeSettings()
 	settings.setValue("Parameters/spSlicerSettings", m_spSlicerSettings);
 
 	settings.setValue("Parameters/ShowLog", actionShowLog->isChecked());
+	settings.setValue("Parameters/ViewMode", mdiArea->viewMode());
 	settings.setValue("Parameters/ShowToolbar", actionShowToolbar->isChecked());
 	settings.setValue("Parameters/ShowMainStatusBar", actionMainWindowStatusBar->isChecked());
+	settings.setValue("Parameters/OpenLogOnNewMessages", actionOpenLogOnNewMessage->isChecked());
 
 	settings.setValue("OpenWithDataTypeConversion/owdtcs", m_owdtcs);
 	settings.setValue("OpenWithDataTypeConversion/owdtcx", m_rawFileParams.m_size[0]);
@@ -2234,6 +2289,15 @@ void MainWindow::logVisibilityChanged(bool newVisibility)
 	actionShowLog->setChecked(newVisibility);
 }
 
+void MainWindow::toggleMdiViewMode()
+{
+	auto action = qobject_cast<QAction*>(sender());
+	auto viewMode = action == actionTabbed ? QMdiArea::TabbedView : QMdiArea::SubWindowView;
+	actionTile->setEnabled(actionSubWindows->isChecked());
+	actionCascade->setEnabled(actionSubWindows->isChecked());
+	mdiArea->setViewMode(viewMode);
+}
+
 QList<iAMdiChild*> MainWindow::mdiChildList()
 {
 	return childList<iAMdiChild>(QMdiArea::CreationOrder);
@@ -2249,6 +2313,26 @@ void MainWindow::applyQSS()
 		QString style = styleIn.readAll();
 		styleFile.close();
 		qApp->setStyleSheet(style);
+
+		QPalette p = qApp->palette();
+		p.setColor(QPalette::Window,          m_qssName.contains("bright") ? QColor(255, 255, 255) : QColor(  0,   0,   0));
+		p.setColor(QPalette::Base,            m_qssName.contains("bright") ? QColor(255, 255, 255) : QColor(  0,   0,   0));
+		p.setColor(QPalette::ToolTipBase,     m_qssName.contains("bright") ? QColor(255, 255, 255) : QColor(  0,   0,   0));
+		p.setColor(QPalette::Light,           m_qssName.contains("bright") ? QColor(255, 255, 255) : QColor(  0,   0,   0));
+		p.setColor(QPalette::Midlight,        m_qssName.contains("bright") ? QColor(240, 240, 240) : QColor( 15,  15,  15));
+		p.setColor(QPalette::AlternateBase,   m_qssName.contains("bright") ? QColor(240, 240, 240) : QColor( 30,  30,  30)); // dark seems (to me, BF) to need a bit more contrast to be visible well
+		p.setColor(QPalette::Button,          m_qssName.contains("bright") ? QColor(215, 215, 215) : QColor( 40,  40,  40));
+		p.setColor(QPalette::Mid,             m_qssName.contains("bright") ? QColor(200, 200, 200) : QColor( 55,  55,  55));
+		p.setColor(QPalette::Dark,            m_qssName.contains("bright") ? QColor(180, 180, 180) : QColor( 75,  75,  75));
+		p.setColor(QPalette::Shadow,          m_qssName.contains("bright") ? QColor(  0,   0,   0) : QColor(255, 255, 255));
+		p.setColor(QPalette::HighlightedText, m_qssName.contains("bright") ? QColor(  0,   0,   0) : QColor(255, 255, 255));
+		p.setColor(QPalette::Text,            m_qssName.contains("bright") ? QColor(  0,   0,   0) : QColor(255, 255, 255));
+		p.setColor(QPalette::ToolTipText,     m_qssName.contains("bright") ? QColor(  0,   0,   0) : QColor(255, 255, 255));
+#if QT_VERSION >= QT_VERSION_CHECK(5, 12, 0)
+		p.setColor(QPalette::PlaceholderText, m_qssName.contains("bright") ? QColor(  0,   0,   0) : QColor(255, 255, 255));
+#endif
+		p.setColor(QPalette::WindowText,      m_qssName.contains("bright") ? QColor(  0,   0,   0) : QColor(255, 255, 255));
+		qApp->setPalette(p);
 		emit styleChanged();
 	}
 }
@@ -2347,6 +2431,11 @@ void MainWindow::toggleMainWindowStatusBar()
 	statusBar()->setVisible(actionMainWindowStatusBar->isChecked());
 }
 
+void MainWindow::toggleOpenLogOnNewMessage()
+{
+	iALogWidget::get()->setOpenOnNewMessage(actionOpenLogOnNewMessage->isChecked());
+}
+
 void MainWindow::listDockWidgetsInMenu()
 {
 	menuDockWidgets->clear();
@@ -2411,7 +2500,7 @@ void MainWindow::setModuleActionsEnabled( bool isEnabled )
 
 void MainWindow::childClosed()
 {
-	MdiChild * sender = dynamic_cast<MdiChild*> (QObject::sender());
+	auto sender = dynamic_cast<MdiChild*>(QObject::sender());
 	if (!sender)
 	{
 		return;

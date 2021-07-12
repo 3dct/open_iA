@@ -25,13 +25,7 @@
 // Qt
 #include <QDockWidget>
 #include <QStandardItemModel>
-
-#if QT_VERSION < QT_VERSION_CHECK(5, 99, 0)
-class QStringList;
-#else
-#include <QList>
-using QStringList = QList<QString>;
-#endif
+#include <QStringList>
 
 class iAVisModulesCollection;
 class iAVisModuleItem;

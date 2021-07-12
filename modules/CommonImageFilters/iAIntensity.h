@@ -31,6 +31,7 @@ IAFILTER_DEFAULT_CLASS(iAMaskIntensityFilter);
 IAFILTER_DEFAULT_CLASS(iANormalizeIntensityFilter);
 IAFILTER_DEFAULT_CLASS(iARescaleIntensityFilter);
 IAFILTER_DEFAULT_CLASS(iAShiftScaleIntensityFilter);
+IAFILTER_DEFAULT_CLASS(iAHistogramFill);
 // Filters requiring 2 input images:
 IAFILTER_DEFAULT_CLASS(iAAddFilter);
 IAFILTER_DEFAULT_CLASS(iADifferenceFilter);

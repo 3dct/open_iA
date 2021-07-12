@@ -11,7 +11,7 @@ FOREACH(libdir ${children})
 			MESSAGE(STATUS "Library ${libdir}:")
 		ENDIF()
 		FILE( GLOB_RECURSE lib_SRCS "${libdir}/*.cpp" "${libdir}/*.h" )
-		FILE( GLOB_RECURSE lib_UI "${libdir}/*.ui" )
+		#FILE( GLOB_RECURSE lib_UI "${libdir}/*.ui" ) # not needed anymore apparently
 		FILE( GLOB_RECURSE lib_QRC "${libdir}/*.qrc" )
 
 		set (libname "iA${libdir}")
@@ -92,6 +92,7 @@ FOREACH(libdir ${children})
 		ELSE ()
 			INSTALL (TARGETS ${libname} LIBRARY DESTINATION .)
 		ENDIF(WIN32)
+
 		# Compiler Flags
 		IF (CMAKE_COMPILER_IS_GNUCXX OR "${CMAKE_CXX_COMPILER_ID}" STREQUAL "Clang")
 			# see Ulrich Drepper - How to write Shared Libraries
@@ -102,4 +103,3 @@ FOREACH(libdir ${children})
 		ENDIF()
 	ENDIF()
 ENDFOREACH()
-

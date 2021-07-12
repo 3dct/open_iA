@@ -1,7 +1,7 @@
-find_package(Qt5Charts REQUIRED)
+find_package(Qt${QT_VERSION_MAJOR}Charts REQUIRED)
 
 SET( DEPENDENCIES_LIBRARIES
-	Qt5::Charts
+	Qt${QT_VERSION_MAJOR}::Charts
 	iAcharts
 	iAguibase
 )

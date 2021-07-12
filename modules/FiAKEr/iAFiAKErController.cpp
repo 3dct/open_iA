@@ -61,7 +61,7 @@
 #include <iAVtkQtWidget.h>
 
 // renderer
-#include <iARendererManager.h>
+#include <iARendererViewSync.h>
 
 // base
 #include <iAColorTheme.h>
@@ -212,7 +212,7 @@ iAResultPairInfo::iAResultPairInfo(int measureCount) :
 const QString iAFiAKErController::FIAKERProjectID("FIAKER");
 
 iAFiAKErController::iAFiAKErController(iAMainWindow* mainWnd, iAMdiChild* mdiChild) :
-	m_renderManager(new iARendererManager()),
+	m_renderManager(new iARendererViewSync()),
 	m_resultColorTheme(iAColorThemeManager::instance().theme(DefaultResultColorTheme)),
 	m_mainWnd(mainWnd),
 	m_mdiChild(mdiChild),
@@ -2298,7 +2298,7 @@ void iAFiAKErController::showSelectionInSPM()
 		}
 		spmIDStart += m_data->result[resultID].fiberCount;
 	}
-	m_spm->setSelection(spmSelection);
+	m_spm->viewData()->setSelection(spmSelection);
 }
 
 void iAFiAKErController::selection3DChanged()
@@ -2679,8 +2679,9 @@ void iAFiAKErController::updateFiberContext()
 
 namespace
 {
-	void setResultBackground(iAFiberCharUIData & ui, QColor const & color)
+	void setResultBackground(iAFiberCharUIData & ui, QPalette::ColorRole role)
 	{
+		QColor color(qApp->palette().color(role));
 		ui.nameActions->setBackgroundColor(color);
 		ui.topFiller->setStyleSheet("background-color: " + color.name());
 		ui.bottomFiller->setStyleSheet("background-color: " + color.name());
@@ -2696,7 +2697,7 @@ namespace
 			ui.vtkWidget->update();
 		}
 		ui.stackedBars->setBackgroundColor(color);
-		ui.histoChart->setBackgroundColor(color);
+		ui.histoChart->setBackgroundRole(role);
 	}
 }
 
@@ -2735,7 +2736,7 @@ void iAFiAKErController::setReference(size_t referenceID, std::vector<std::pair<
 			return;
 		}
 		auto & ui = m_resultUIs[m_referenceID];
-		setResultBackground(ui, m_main3DWidget->palette().color(ui.nameActions->backgroundRole()));
+		setResultBackground(ui, ui.nameActions->backgroundRole());
 		m_showResultVis[m_referenceID]->setText(m_showResultVis[m_referenceID]->text().left(m_showResultVis[m_referenceID]->text().length()-RefMarker.length()));
 	}
 	addInteraction(QString("Reference set to %1.").arg(resultName(referenceID)));
@@ -2897,8 +2898,7 @@ void iAFiAKErController::refDistAvailable()
 	m_refDistCompute = nullptr;
 
 	auto & ui = m_resultUIs[m_referenceID];
-	QColor refBGColor(m_mainWnd->palette().color(QPalette::AlternateBase));
-	setResultBackground(ui, refBGColor);
+	setResultBackground(ui, QPalette::AlternateBase);
 	m_showResultVis[m_referenceID]->setText(m_showResultVis[m_referenceID]->text() + RefMarker);
 
 	updateRefDistPlots();

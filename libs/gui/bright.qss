@@ -400,7 +400,9 @@ QProgressBar
 QListView,
 QListWidget,
 QTableView,
-QTableWidget
+QTableWidget,
+QTreeView,
+QTreeWidget
 ****************************************************************************/
 	QListView,
 	QListWidget,
@@ -424,6 +426,17 @@ QTableWidget
 		border-bottom: 1px solid 	rgba(135, 135, 135, 255);
 		border-left: 1px solid 		rgba(205, 205, 205, 255);
 		border-right: 1px solid		rgba(205, 205, 205, 255);
+	}
+	QTreeView,
+	QTreeWidget
+	{
+		selection-background-color: transparent;
+	}
+	QTreeView::item:selected,
+	QTreeWidget::item:selected
+	{
+		background-color: rgba(180, 180, 180, 255);
+		color: rgba(25, 25, 25, 255);
 	}
 	QListView::item:alternate,
 	QListWidget::item:alternate
@@ -456,10 +469,71 @@ QCheckBox
 	QRadioButton,
 	QCheckBox
 	{
-		border-radius: 1px;
-		border: 1px;
-		background: none;
 		color: rgba(25, 25, 25, 255);
+	}
+	QCheckBox::indicator:checked
+	{
+		image: url(:/images/checkbox_checked.svg);
+	}
+	QCheckBox::indicator:checked:hover
+	{
+		image: url(:/images/checkbox_checked_hover.svg);
+	}
+	QCheckBox::indicator:checked:pressed
+	{
+		image: url(:/images/checkbox_checked_pressed.svg);
+	}
+
+	QCheckBox::indicator:unchecked
+	{
+		image: url(:/images/checkbox_unchecked.svg);
+	}
+	QCheckBox::indicator:unchecked:hover
+	{
+		image: url(:/images/checkbox_unchecked_hover.svg);
+	}
+	QCheckBox::indicator:unchecked:pressed
+	{
+		image: url(:/images/checkbox_unchecked_pressed.svg);
+	}
+
+	QCheckBox::indicator:indeterminate
+	{
+		image: url(:/images/checkbox_indeterminate.svg);
+	}
+	QCheckBox::indicator:indeterminate:hover
+	{
+		image: url(:/images/checkbox_indeterminate_hover.svg);
+	}
+	QCheckBox::indicator:indeterminate:pressed
+	{
+		image: url(:/images/checkbox_indeterminate_pressed.svg);
+	}
+
+	QRadioButton::indicator::unchecked
+	{
+		image: url(:/images/radiobutton_unchecked.svg);
+	}
+	QRadioButton::indicator:unchecked:hover
+	{
+		image: url(:/images/radiobutton_unchecked_hover.svg);
+	}
+	QRadioButton::indicator:unchecked:pressed
+	{
+		image: url(:/images/radiobutton_unchecked_pressed.svg);
+	}
+
+	QRadioButton::indicator::checked
+	{
+		image: url(:/images/radiobutton_checked.svg);
+	}
+	QRadioButton::indicator:checked:hover
+	{
+		image: url(:/images/radiobutton_checked_hover.svg);
+	}
+	QRadioButton::indicator:checked:pressed
+	{
+		image: url(:/images/radiobutton_checked_pressed.svg);
 	}
 /****************************************************************************
 QSlider

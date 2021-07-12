@@ -7,13 +7,13 @@
     <x>0</x>
     <y>0</y>
     <width>330</width>
-    <height>80</height>
+    <height>82</height>
    </rect>
   </property>
   <property name="minimumSize">
    <size>
-    <width>314</width>
-    <height>80</height>
+    <width>315</width>
+    <height>82</height>
    </size>
   </property>
   <property name="features">
@@ -84,9 +84,7 @@
            </property>
            <property name="font">
             <font>
-             <family>MS Shell Dlg 2</family>
              <pointsize>10</pointsize>
-             <weight>50</weight>
              <bold>false</bold>
             </font>
            </property>
@@ -105,9 +103,7 @@
            </property>
            <property name="font">
             <font>
-             <family>MS Shell Dlg 2</family>
              <pointsize>10</pointsize>
-             <weight>50</weight>
              <italic>false</italic>
              <bold>false</bold>
              <kerning>true</kerning>
@@ -125,9 +121,7 @@
            </property>
            <property name="font">
             <font>
-             <family>MS Shell Dlg 2</family>
              <pointsize>10</pointsize>
-             <weight>50</weight>
              <bold>false</bold>
             </font>
            </property>
@@ -146,9 +140,7 @@
            </property>
            <property name="font">
             <font>
-             <family>MS Shell Dlg 2</family>
              <pointsize>10</pointsize>
-             <weight>50</weight>
              <bold>false</bold>
             </font>
            </property>
@@ -174,7 +166,6 @@
            <property name="font">
             <font>
              <pointsize>10</pointsize>
-             <weight>50</weight>
              <bold>false</bold>
             </font>
            </property>
@@ -201,7 +192,6 @@
            <property name="font">
             <font>
              <pointsize>10</pointsize>
-             <weight>50</weight>
              <bold>false</bold>
             </font>
            </property>
@@ -229,9 +219,7 @@
            </property>
            <property name="font">
             <font>
-             <family>MS Shell Dlg 2</family>
              <pointsize>10</pointsize>
-             <weight>50</weight>
              <italic>false</italic>
              <bold>false</bold>
              <kerning>true</kerning>
@@ -294,9 +282,7 @@
            </property>
            <property name="font">
             <font>
-             <family>MS Shell Dlg 2</family>
              <pointsize>12</pointsize>
-             <weight>75</weight>
              <bold>true</bold>
             </font>
            </property>
@@ -422,7 +408,6 @@
            </property>
            <property name="font">
             <font>
-             <weight>75</weight>
              <italic>false</italic>
              <bold>true</bold>
             </font>

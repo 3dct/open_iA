@@ -27,7 +27,6 @@
 #include "iADecompositionCalculator.h"
 #include "iAElementConcentrations.h"
 #include "iAElementConstants.h"
-#include "iAElementStatisticsInfo.h"
 #include "iAEnergySpectrumWidget.h"
 #include "iAFunctionalBoxplotQtDrawer.h"
 #include "iAPeriodicTableListener.h"
@@ -962,7 +961,6 @@ void dlg_InSpectr::showLinkedElementMaps( int show )
 	{
 		for (int i = 0; i < m_elementRenderers.size(); ++i)
 		{
-			m_elementRenderers[i]->removeObserver();
 			delete m_elementRenderers[i];
 		}
 		m_elementRenderers.clear();

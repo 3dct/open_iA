@@ -490,19 +490,19 @@ iAMaskIntensityFilter::iAMaskIntensityFilter() :
 template<class T>
 void histomatch(iAFilter* filter, QMap<QString, QVariant> const & parameters)
 {
-	typedef itk::Image< T, DIM > ImageType;
-	typedef double InternalPixelType;
-	typedef itk::Image< InternalPixelType, DIM > InternalImageType;
-	typedef itk::CastImageFilter< ImageType, InternalImageType > CasterType;
-	typedef itk::HistogramMatchingImageFilter<InternalImageType, InternalImageType > MatchingFilterType;
+	using MatchImageType = itk::Image<T, DIM>;
+	using HistoMatchFilterType = itk::HistogramMatchingImageFilter<MatchImageType, MatchImageType>;
 
-	auto fixedImageCaster = CasterType::New();
-	auto movingImageCaster = CasterType::New();
-	fixedImageCaster->SetInput( dynamic_cast< ImageType * >( filter->input()[0]->itkImage() ) );
-	movingImageCaster->SetInput( dynamic_cast< ImageType * >( filter->input()[1]->itkImage() ) );
-	auto matcher = MatchingFilterType::New();
-	matcher->SetInput( movingImageCaster->GetOutput() );
-	matcher->SetReferenceImage( fixedImageCaster->GetOutput() );
+	auto matcher = HistoMatchFilterType::New();
+	if (itkScalarPixelType(filter->input()[0]->itkImage()) != itkScalarPixelType(filter->input()[1]->itkImage()))
+	{
+		LOG(lvlWarn, "Second image does not have the same pixel type as the first; I will try to typecast, "
+			"but the filter might not work properly if the data ranges are different.");
+	}
+	auto refImg = castImageTo<T>(filter->input()[1]->itkImage());
+
+	matcher->SetInput(dynamic_cast<MatchImageType*>(filter->input()[0]->itkImage()));
+	matcher->SetReferenceImage(dynamic_cast<MatchImageType*>(refImg.GetPointer()));
 	matcher->SetNumberOfHistogramLevels(parameters["Number of histogram levels"].toUInt() );
 	matcher->SetNumberOfMatchPoints(parameters["Number of match points"].toUInt());
 	if (parameters["Threshold at mean intensity"].toBool())
@@ -546,4 +546,55 @@ iAHistogramMatchingFilter::iAHistogramMatchingFilter() :
 	addParameter("Number of histogram levels", iAValueType::Continuous, 256);
 	addParameter("Number of match points", iAValueType::Continuous, 1);
 	setInputName(1u, "Reference image");
+}
+
+
+
+template <class T>
+void fillHistogramm(iAFilter* filter, QMap<QString, QVariant> const& params)
+{
+	Q_UNUSED(params);
+	std::map<T, T> histogramm;
+	using ImageType = itk::Image<T, DIM>;
+	typename ImageType::Pointer im = dynamic_cast<ImageType*>(filter->input()[0]->itkImage());
+
+	using IteratorType = itk::ImageRegionIterator<ImageType>;
+	IteratorType it(im, im->GetRequestedRegion());
+
+	it.GoToBegin();
+	while (!it.IsAtEnd())
+	{
+		histogramm[it.Value()] = it.Value();
+		++it;
+	}
+
+	int index = 0;
+	for (auto& element : histogramm)
+	{
+		histogramm[element.first] = index;
+		index++;
+	}
+	filter->progress()->emitProgress(50);
+
+	it.GoToBegin();
+	while (!it.IsAtEnd())
+	{
+		it.Set(histogramm[it.Value()]);
+		++it;
+	}
+}
+
+iAHistogramFill::iAHistogramFill() :
+	iAFilter("Histogram Fill", "Intensity",
+		"Packs a histogram so that consecutive values starting from 0 are used. "
+		"Only useful for integer images. For example, if you have an image containing the values "
+		"2, 5, 6 and 8, these would be translated to 0, 1, 2 and 3 respectively (2 -> 0, 5 -> 1, 6 -> 2, 8 -> 3).")
+{
+}
+
+IAFILTER_CREATE(iAHistogramFill)
+
+void iAHistogramFill::performWork(QMap<QString, QVariant> const& params)
+{
+	ITK_TYPED_CALL(fillHistogramm, inputPixelType(), this, params);
 }

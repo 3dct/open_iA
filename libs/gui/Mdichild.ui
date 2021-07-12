@@ -30,8 +30,6 @@
   </property>
   <property name="font">
    <font>
-    <family>MS Shell Dlg 2</family>
-    <weight>75</weight>
     <italic>false</italic>
     <bold>true</bold>
    </font>
@@ -52,14 +50,14 @@
   <property name="styleSheet">
    <string notr="true"/>
   </property>
+  <property name="animated">
+   <bool>false</bool>
+  </property>
   <property name="tabShape">
    <enum>QTabWidget::Triangular</enum>
   </property>
   <property name="dockNestingEnabled">
    <bool>true</bool>
-  </property>
-  <property name="animated">
-   <bool>false</bool>
   </property>
   <widget class="QWidget" name="centralWidget"/>
  </widget>

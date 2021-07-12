@@ -156,9 +156,13 @@ public:
 	//! @param settings data holder for all settings.
 	//! @param slicePlaneVisibility initial visibility of the single slice planes (can be modified independently via showSlicePlanes as well).
 	void applySettings(iARenderSettings const & settings, bool slicePlaneVisibility[3]) override;
+	void setBackgroundColors(iARenderSettings const& settings);
 
 	void emitSelectedCells(vtkUnstructuredGrid* selectedCells);
 	void emitNoSelectedCells();
+
+	void touchStart();
+	void touchScaleSlot(float relScale);
 
 signals:
 	void cellsSelected(vtkPoints* selCellPoints);
@@ -255,4 +259,7 @@ private:
 
 	//! flag indicating whether renderer is initialized
 	bool m_initialized;
+
+	//! for touch interaction: scale when touch started
+	double m_touchStartScale;
 };
