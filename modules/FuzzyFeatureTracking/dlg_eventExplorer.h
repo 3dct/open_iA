@@ -78,7 +78,6 @@ private:
 	int m_numberOfActivePlots;
 	int m_propertyXId;
 	int m_propertyYId;
-	int m_rgb[5][3];
 	
 	std::vector<QSlider*> m_slider;
 	std::vector<iAVtkWidget*> m_widgets;
