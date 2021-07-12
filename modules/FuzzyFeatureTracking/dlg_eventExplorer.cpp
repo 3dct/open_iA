@@ -47,6 +47,7 @@
 #include <vtkTable.h>
 #include <vtkVariantArray.h>
 
+#include <array>
 #include <sstream>
 
 namespace
