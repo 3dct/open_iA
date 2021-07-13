@@ -65,6 +65,7 @@ private:
 	void setChartLogScale(int axis, bool log);
 	void setOpacity(int eventType, int value);
 	void updateCheckBox(int eventType, int checked);
+	void updateCharts();
 
 	iAVolumeStack* m_volumeStack;
 	size_t m_numberOfCharts;

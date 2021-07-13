@@ -148,21 +148,17 @@ dlg_eventExplorer::dlg_eventExplorer(QWidget *parent, size_t numberOfCharts, int
 	{
 		iAVtkWidget* vtkWidget = new iAVtkWidget();
 		auto renWin = vtkSmartPointer<vtkGenericOpenGLRenderWindow>::New();
+#if VTK_VERSION_NUMBER < VTK_VERSION_CHECK(9, 0, 0)
+		vtkWidget->SetRenderWindow(renWin);
+#else
 		vtkWidget->setRenderWindow(renWin);
+#endif
 		m_widgets.push_back(vtkWidget);
-
 		this->horizontalLayout->addWidget(m_widgets.at(i));
-
 		m_contextViews.push_back(vtkSmartPointer<vtkContextView>::New());
 		m_charts.push_back(vtkSmartPointer<vtkChartXY>::New());
-
-#if VTK_VERSION_NUMBER < VTK_VERSION_CHECK(9, 0, 0)
-		m_contextViews.at(i)->SetRenderWindow(m_widgets.at(i)->GetRenderWindow());
-#else
-		m_contextViews.at(i)->SetRenderWindow(m_widgets.at(i)->renderWindow());
-#endif
+		m_contextViews.at(i)->SetRenderWindow(renWin);
 		m_contextViews.at(i)->GetScene()->AddItem(m_charts.at(i));
-
 		m_chartConnections->Connect(m_charts.at(i),
 			vtkCommand::SelectionChangedEvent,
 			this,
@@ -313,8 +309,8 @@ dlg_eventExplorer::dlg_eventExplorer(QWidget *parent, size_t numberOfCharts, int
 		m_charts.at(i)->GetAxis(vtkAxis::BOTTOM)->SetTitle(AvailableProperties[m_propertyXId].toStdString().c_str());
 		m_charts.at(i)->GetAxis(vtkAxis::BOTTOM)->GetGridPen()->SetColorF(0.5, 0.5, 0.5, 1.0);
 		m_charts.at(i)->GetAxis(vtkAxis::LEFT)->GetGridPen()->SetColorF(0.5, 0.5, 0.5, 1.0);
-		m_charts.at(i)->Update();
 	}
+	updateCharts();
 }
 
 
@@ -329,9 +325,18 @@ void dlg_eventExplorer::setOpacity(int eventType, int value)
 	{
 		m_plots.at(i)->GetPen()->SetOpacity(value);
 	}
+	updateCharts();
+}
+
+void dlg_eventExplorer::updateCharts()
+{
 	for (size_t i = 0; i < m_numberOfCharts; ++i)
 	{
-		m_charts.at(i)->Update();
+#if VTK_VERSION_NUMBER < VTK_VERSION_CHECK(9, 0, 0)
+		m_widgets.at(i)->GetRenderWindow()->Render();
+#else
+		m_widgets.at(i)->renderWindow()->Render();
+#endif
 	}
 }
 
@@ -341,8 +346,8 @@ void dlg_eventExplorer::setGridOpacity(int v)
 	{
 		m_charts.at(i)->GetAxis(vtkAxis::BOTTOM)->GetGridPen()->SetColorF(0.5, 0.5, 0.5, v/255.0);
 		m_charts.at(i)->GetAxis(vtkAxis::LEFT)->GetGridPen()->SetColorF(0.5, 0.5, 0.5, v/255.0);
-		m_charts.at(i)->Update();
 	}
+	updateCharts();
 }
 
 void dlg_eventExplorer::updateCheckBox(int eventType, int checked)
@@ -404,6 +409,7 @@ void dlg_eventExplorer::setChartLogScale(int axis, bool logScale)
 	{
 		m_charts.at(i)->GetAxis(axis)->SetLogScale(logScale);
 	}
+	updateCharts();
 }
 
 void dlg_eventExplorer::updateChartData(int axis, int s)
@@ -424,6 +430,7 @@ void dlg_eventExplorer::updateChartData(int axis, int s)
 	{
 		m_charts.at(i)->GetAxis(axis)->SetTitle(title);
 	}
+	updateCharts();
 }
 
 void dlg_eventExplorer::comboBoxXSelectionChanged(int s)
