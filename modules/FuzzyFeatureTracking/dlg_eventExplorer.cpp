@@ -125,13 +125,13 @@ dlg_eventExplorer::dlg_eventExplorer(QWidget *parent, size_t numberOfCharts, int
 	mergeCheckBox->setChecked(true);
 	dissipationCheckBox->setChecked(true);
 
-	connect(creationSlider,     &QSlider::sliderMoved, [this](int v) { updateOpacity(v, Creation); });
-	connect(continuationSlider, &QSlider::sliderMoved, [this](int v) { updateOpacity(v, Continuation); });
-	connect(splitSlider,        &QSlider::sliderMoved, [this](int v) { updateOpacity(v, Bifurcation); });
-	connect(mergeSlider,        &QSlider::sliderMoved, [this](int v) { updateOpacity(v, Amalgamation); });
-	connect(dissipationSlider,  &QSlider::sliderMoved, [this](int v) { updateOpacity(v, Dissipation); });
+	connect(creationSlider,     &QSlider::sliderMoved, [this](int v) { setOpacity(Creation, v); });
+	connect(continuationSlider, &QSlider::sliderMoved, [this](int v) { setOpacity(Continuation, v); });
+	connect(splitSlider,        &QSlider::sliderMoved, [this](int v) { setOpacity(Bifurcation, v); });
+	connect(mergeSlider,        &QSlider::sliderMoved, [this](int v) { setOpacity(Amalgamation, v); });
+	connect(dissipationSlider,  &QSlider::sliderMoved, [this](int v) { setOpacity(Dissipation, v); });
 
-	connect(gridOpacitySlider, &QSlider::sliderMoved, this, &dlg_eventExplorer::updateOpacityGrid);
+	connect(gridOpacitySlider, &QSlider::sliderMoved, this, &dlg_eventExplorer::setGridOpacity);
 
 	connect(creationCheckBox, &QCheckBox::stateChanged,     [this](int c) { updateCheckBox(Creation, c == Qt::Checked); });
 	connect(continuationCheckBox, &QCheckBox::stateChanged, [this](int c) { updateCheckBox(Continuation, c == Qt::Checked); });
@@ -323,11 +323,11 @@ dlg_eventExplorer::~dlg_eventExplorer()
 	//TODO
 }
 
-void dlg_eventExplorer::updateOpacity(int v, int eventType)
+void dlg_eventExplorer::setOpacity(int eventType, int value)
 {
 	for (size_t i = (m_numberOfCharts * eventType); i < (m_numberOfCharts * (eventType + 1) ); ++i)
 	{
-		m_plots.at(i)->GetPen()->SetOpacity(v);
+		m_plots.at(i)->GetPen()->SetOpacity(value);
 	}
 	for (size_t i = 0; i < m_numberOfCharts; ++i)
 	{
@@ -335,7 +335,7 @@ void dlg_eventExplorer::updateOpacity(int v, int eventType)
 	}
 }
 
-void dlg_eventExplorer::updateOpacityGrid(int v)
+void dlg_eventExplorer::setGridOpacity(int v)
 {
 	for (size_t i = 0; i < m_numberOfCharts; ++i)
 	{
@@ -372,7 +372,7 @@ void dlg_eventExplorer::updateCheckBox(int eventType, int checked)
 		m_plotPositionInVector[eventType] = -1;
 		--m_numberOfActivePlots;
 		m_slider[eventType]->setValue(0);
-		updateOpacity(0, eventType);
+		setOpacity(eventType, 0);
 	}
 	else
 	{
@@ -384,7 +384,7 @@ void dlg_eventExplorer::updateCheckBox(int eventType, int checked)
 		}
 		++m_numberOfActivePlots;
 		m_slider[eventType]->setValue(255);
-		updateOpacity(255, eventType);
+		setOpacity(eventType, 255);
 	}
 	m_slider[eventType]->update();
 	LOG(lvlDebug,
