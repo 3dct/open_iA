@@ -290,7 +290,7 @@ dlg_eventExplorer::dlg_eventExplorer(QWidget *parent, size_t numberOfCharts, int
 		for (size_t i = 0; i < numberOfCharts; i++)
 		{
 			vtkPlot* plot = m_charts.at(i)->AddPlot(vtkChart::POINTS);
-			plot->SetInputData(m_tables.at(i + numberOfCharts * eventID), 1, 6);
+			plot->SetInputData(m_tables.at(i + numberOfCharts * eventID), m_propertyXId, m_propertyYId);
 			QColor c = EventColors[eventID];
 			plot->SetColor(static_cast<unsigned char>(c.red()), static_cast<unsigned char>(c.green()),
 				static_cast<unsigned char>(c.blue()), static_cast<unsigned char>(c.alpha()));
@@ -309,8 +309,8 @@ dlg_eventExplorer::dlg_eventExplorer(QWidget *parent, size_t numberOfCharts, int
 
 	for (size_t i=0; i<numberOfCharts; ++i)
 	{
-		m_charts.at(i)->GetAxis(0)->SetTitle("Uncertainty");
-		m_charts.at(i)->GetAxis(1)->SetTitle("Volume");
+		m_charts.at(i)->GetAxis(vtkAxis::LEFT)->SetTitle(AvailableProperties[m_propertyYId].toStdString().c_str());
+		m_charts.at(i)->GetAxis(vtkAxis::BOTTOM)->SetTitle(AvailableProperties[m_propertyXId].toStdString().c_str());
 		m_charts.at(i)->GetAxis(vtkAxis::BOTTOM)->GetGridPen()->SetColorF(0.5, 0.5, 0.5, 1.0);
 		m_charts.at(i)->GetAxis(vtkAxis::LEFT)->GetGridPen()->SetColorF(0.5, 0.5, 0.5, 1.0);
 		m_charts.at(i)->Update();
