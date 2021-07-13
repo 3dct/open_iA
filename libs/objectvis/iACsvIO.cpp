@@ -59,10 +59,6 @@ namespace
 	const char* ColNameEndZ = "Z2";
 	const char* ColNameDiameter = "Diameter";
 
-	QString DblToString(double value)
-	{
-		return QString::number(value, 'f', 10);
-	}
 	double transformValue(QString value, uint idx, iACsvConfig const& config)
 	{
 		// TODO: error check?
