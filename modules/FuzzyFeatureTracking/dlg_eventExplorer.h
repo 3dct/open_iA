@@ -52,23 +52,11 @@ public:
 	dlg_eventExplorer(QWidget *parent, size_t numberOfCharts, int numberOfEventTypes, iAVolumeStack *volumeStack, dlg_trackingGraph* trackingGraph, std::vector<iAFeatureTracking*> trackedFeaturesForwards, std::vector<iAFeatureTracking*> trackedFeaturesBackwards);
 	~dlg_eventExplorer();
 
-	private slots:
+private slots:
 	void comboBoxXSelectionChanged(int s);
 	void comboBoxYSelectionChanged(int s);
 
-	void updateOpacityCreation(int v);
-	void updateOpacityContinuation(int v);
-	void updateOpacitySplit(int v);
-	void updateOpacityMerge(int v);
-	void updateOpacityDissipation(int v);
-
 	void updateOpacityGrid(int v);
-
-	void updateCheckBoxCreation(int c);
-	void updateCheckBoxContinuation(int c);
-	void updateCheckBoxSplit(int c);
-	void updateCheckBoxMerge(int c);
-	void updateCheckBoxDissipation(int c);
 
 	void updateCheckBoxLogX(int c);
 	void updateCheckBoxLogY(int c);
@@ -78,6 +66,10 @@ public:
 private:
 	void buildGraph(int id, int layer, int eventType, double uncertainty);
 	void buildSubGraph(int id, int layer);
+	void updateChartData(int axis, int s);
+	void updateChartLogScale(int axis, bool log);
+	void updateOpacity(int v, int eventType);
+	void updateCheckBox(int eventType, int checked);
 
 	iAVolumeStack* m_volumeStack;
 	size_t m_numberOfCharts;
@@ -86,9 +78,9 @@ private:
 	int m_numberOfActivePlots;
 	int m_propertyXId;
 	int m_propertyYId;
-	int m_rgb[5][3];
-
-	std::vector<iAVtkOldWidget*> m_widgets;
+	
+	std::vector<QSlider*> m_slider;
+	std::vector<iAVtkWidget*> m_widgets;
 	std::vector<vtkSmartPointer<vtkContextView>> m_contextViews;
 	std::vector<vtkSmartPointer<vtkChartXY>> m_charts;
 	std::vector<vtkSmartPointer<vtkPlot>> m_plots;

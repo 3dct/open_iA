@@ -51,7 +51,7 @@ public:
 	void updateGraph(vtkMutableDirectedGraph* g, size_t numRanks, std::map<vtkIdType, int> nodesToLayers, std::map<int, std::map<vtkIdType, int>> graphToTableId);
 
 private:
-	iAVtkOldWidget* graphWidget;
+	iAVtkWidget* graphWidget;
 
 	vtkSmartPointer<vtkMutableDirectedGraph>	m_graph;
 	vtkSmartPointer<iATrackingGraphItem>		m_graphItem;

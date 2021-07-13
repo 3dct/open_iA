@@ -212,12 +212,12 @@ iAQSplom::iAQSplom(QWidget * parent):
 	m_splomData(new iASPLOMData()),
 	m_previewPlot(nullptr),
 	m_maximizedPlot(nullptr),
+	m_viewData(new iAScatterPlotViewData()),
 	m_popupHeight(0),
 	m_separationIdx(-1),
 	m_bgColorTheme(iAColorThemeManager::instance().theme("White")),
 	m_contextMenu(new QMenu(this)),
-	m_settingsDlg(new iASPMSettings(this)),
-	m_viewData(new iAScatterPlotViewData())
+	m_settingsDlg(new iASPMSettings(this))
 {
 #ifdef CHART_OPENGL
 	auto fmt = defaultQOpenGLWidgetFormat();

@@ -88,6 +88,11 @@ MainWindow::MainWindow(QString const & appName, QString const & version, QString
 	setupUi(this);
 	setAcceptDrops(true);
 
+	m_mdiViewModeGroup = new QActionGroup(this);
+	m_mdiViewModeGroup->addAction(actionTabbed);
+	m_mdiViewModeGroup->addAction(actionSubWindows);
+	m_mdiViewModeGroup->setExclusive(true);
+
 	// restore geometry and state
 	QCoreApplication::setOrganizationName("FHW");
 	QCoreApplication::setOrganizationDomain("3dct.at");
@@ -306,7 +311,7 @@ void MainWindow::openVolumeStack()
 
 void MainWindow::openRecentFile()
 {
-	QAction *action = qobject_cast<QAction *>(sender());
+	auto action = qobject_cast<QAction *>(sender());
 	if (!action)
 	{
 		return;
@@ -1364,8 +1369,8 @@ void MainWindow::changeInteractionMode(bool isChecked)
 {
 	if (activeMdiChild())
 	{
-		QAction* a = qobject_cast<QAction*>(sender());
-		MdiChild::iAInteractionMode mode =
+		auto a = qobject_cast<QAction*>(sender());
+		auto mode =
 			(a == actionInteractionModeCamera) ?
 			(isChecked ? MdiChild::imCamera : MdiChild::imRegistration) :
 			(isChecked ? MdiChild::imRegistration : MdiChild::imCamera);
@@ -1566,7 +1571,7 @@ void MainWindow::buildInformation()
 
 void MainWindow::wiki()
 {
-	QAction* act = qobject_cast<QAction*>(QObject::sender());
+	auto act = qobject_cast<QAction*>(QObject::sender());
 	if (act->text().contains("Core"))
 	{
 		QDesktopServices::openUrl(QUrl("https://github.com/3dct/open_iA/wiki/Core"));
@@ -1614,8 +1619,8 @@ void MainWindow::updateMenus()
 	actionClose->setEnabled(hasMdiChild);
 	actionCloseAll->setEnabled(hasMdiChild);
 
-	actionTile->setEnabled(hasMdiChild);
-	actionCascade->setEnabled(hasMdiChild);
+	actionTile->setEnabled(hasMdiChild && actionSubWindows->isChecked());
+	actionCascade->setEnabled(hasMdiChild && actionSubWindows->isChecked());
 	actionNextWindow->setEnabled(hasMdiChild);
 	actionPrevWindow->setEnabled(hasMdiChild);
 
@@ -1843,6 +1848,9 @@ void MainWindow::connectSignalsToSlots()
 	connect(actionPrevWindow, &QAction::triggered, mdiArea, &QMdiArea::activatePreviousSubWindow);
 	connect(actionChildStatusBar, &QAction::triggered, this, &MainWindow::toggleChildStatusBar);
 
+	connect(actionTabbed, &QAction::triggered, this, &MainWindow::toggleMdiViewMode);
+	connect(actionSubWindows, &QAction::triggered, this, &MainWindow::toggleMdiViewMode);
+
 	// "Help" menu entries:
 	connect(actionUserGuideCore, &QAction::triggered, this, &MainWindow::wiki);
 	connect(actionUserGuideFilters, &QAction::triggered, this, &MainWindow::wiki);
@@ -1981,6 +1989,16 @@ void MainWindow::readSettings()
 	toggleMainWindowStatusBar();
 	actionOpenLogOnNewMessage->setChecked(settings.value("Parameters/OpenLogOnNewMessages", true).toBool());
 	toggleOpenLogOnNewMessage();
+	auto viewMode = static_cast<QMdiArea::ViewMode>(settings.value("Parameters/ViewMode", QMdiArea::SubWindowView).toInt());
+	mdiArea->setViewMode(viewMode);
+	if (viewMode == QMdiArea::SubWindowView)
+	{
+		actionSubWindows->setChecked(true);
+	}
+	else
+	{
+		actionTabbed->setChecked(true);
+	}
 
 	m_owdtcs = settings.value("OpenWithDataTypeConversion/owdtcs", 1).toInt();
 	m_rawFileParams.m_size[0] = settings.value("OpenWithDataTypeConversion/owdtcx", 1).toInt();
@@ -2089,6 +2107,7 @@ void MainWindow::writeSettings()
 	settings.setValue("Parameters/spSlicerSettings", m_spSlicerSettings);
 
 	settings.setValue("Parameters/ShowLog", actionShowLog->isChecked());
+	settings.setValue("Parameters/ViewMode", mdiArea->viewMode());
 	settings.setValue("Parameters/ShowToolbar", actionShowToolbar->isChecked());
 	settings.setValue("Parameters/ShowMainStatusBar", actionMainWindowStatusBar->isChecked());
 	settings.setValue("Parameters/OpenLogOnNewMessages", actionOpenLogOnNewMessage->isChecked());
@@ -2268,6 +2287,15 @@ void MainWindow::logVisibilityChanged(bool newVisibility)
 {
 	QSignalBlocker block(actionShowLog);
 	actionShowLog->setChecked(newVisibility);
+}
+
+void MainWindow::toggleMdiViewMode()
+{
+	auto action = qobject_cast<QAction*>(sender());
+	auto viewMode = action == actionTabbed ? QMdiArea::TabbedView : QMdiArea::SubWindowView;
+	actionTile->setEnabled(actionSubWindows->isChecked());
+	actionCascade->setEnabled(actionSubWindows->isChecked());
+	mdiArea->setViewMode(viewMode);
 }
 
 QList<iAMdiChild*> MainWindow::mdiChildList()
@@ -2472,7 +2500,7 @@ void MainWindow::setModuleActionsEnabled( bool isEnabled )
 
 void MainWindow::childClosed()
 {
-	MdiChild * sender = dynamic_cast<MdiChild*> (QObject::sender());
+	auto sender = dynamic_cast<MdiChild*>(QObject::sender());
 	if (!sender)
 	{
 		return;

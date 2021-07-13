@@ -13,7 +13,7 @@
   <property name="minimumSize">
    <size>
     <width>243</width>
-    <height>80</height>
+    <height>82</height>
    </size>
   </property>
   <property name="features">
@@ -100,9 +100,7 @@
               <widget class="QLabel" name="labelRC2">
                <property name="font">
                 <font>
-                 <family>MS Shell Dlg 2</family>
                  <pointsize>12</pointsize>
-                 <weight>75</weight>
                  <bold>true</bold>
                 </font>
                </property>
@@ -159,7 +157,6 @@
                <property name="font">
                 <font>
                  <pointsize>10</pointsize>
-                 <weight>75</weight>
                  <bold>true</bold>
                 </font>
                </property>
@@ -198,7 +195,6 @@
            <property name="font">
             <font>
              <pointsize>9</pointsize>
-             <weight>50</weight>
              <bold>false</bold>
             </font>
            </property>
@@ -228,7 +224,6 @@
            <property name="font">
             <font>
              <pointsize>9</pointsize>
-             <weight>50</weight>
              <bold>false</bold>
             </font>
            </property>
@@ -258,7 +253,6 @@
            <property name="font">
             <font>
              <pointsize>9</pointsize>
-             <weight>50</weight>
              <bold>false</bold>
             </font>
            </property>
@@ -288,7 +282,6 @@
            <property name="font">
             <font>
              <pointsize>9</pointsize>
-             <weight>50</weight>
              <bold>false</bold>
             </font>
            </property>
@@ -318,7 +311,6 @@
            <property name="font">
             <font>
              <pointsize>9</pointsize>
-             <weight>50</weight>
              <bold>false</bold>
             </font>
            </property>
@@ -348,7 +340,6 @@
            <property name="font">
             <font>
              <pointsize>9</pointsize>
-             <weight>50</weight>
              <bold>false</bold>
             </font>
            </property>
@@ -378,7 +369,6 @@
            <property name="font">
             <font>
              <pointsize>9</pointsize>
-             <weight>50</weight>
              <bold>false</bold>
             </font>
            </property>
@@ -475,7 +465,6 @@
            </property>
            <property name="font">
             <font>
-             <weight>75</weight>
              <italic>false</italic>
              <bold>true</bold>
             </font>
@@ -508,7 +497,6 @@
            </property>
            <property name="font">
             <font>
-             <weight>75</weight>
              <italic>false</italic>
              <bold>true</bold>
             </font>
@@ -544,8 +532,6 @@
         </property>
         <property name="font">
          <font>
-          <family>MS Shell Dlg 2</family>
-          <weight>50</weight>
           <bold>false</bold>
          </font>
         </property>
