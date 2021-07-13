@@ -58,9 +58,6 @@ private slots:
 
 	void updateOpacityGrid(int v);
 
-	void updateCheckBoxLogX(int c);
-	void updateCheckBoxLogY(int c);
-
 	void chartMouseButtonCallBack(vtkObject * obj);
 
 private:

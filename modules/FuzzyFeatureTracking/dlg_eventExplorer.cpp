@@ -139,8 +139,8 @@ dlg_eventExplorer::dlg_eventExplorer(QWidget *parent, size_t numberOfCharts, int
 	connect(mergeCheckBox, &QCheckBox::stateChanged,        [this](int c) { updateCheckBox(Amalgamation, c == Qt::Checked); });
 	connect(dissipationCheckBox, &QCheckBox::stateChanged,  [this](int c) { updateCheckBox(Dissipation, c == Qt::Checked); });
 
-	connect(logXCheckBox, &QCheckBox::stateChanged, this, &dlg_eventExplorer::updateCheckBoxLogX);
-	connect(logYCheckBox, &QCheckBox::stateChanged, this, &dlg_eventExplorer::updateCheckBoxLogY);
+	connect(logXCheckBox, &QCheckBox::stateChanged, [this](int c) { setChartLogScale(vtkAxis::BOTTOM, c == Qt::Checked); });
+	connect(logYCheckBox, &QCheckBox::stateChanged, [this](int c) { setChartLogScale(vtkAxis::LEFT, c == Qt::Checked); });
 
 	m_chartConnections = vtkEventQtSlotConnect::New();
 
@@ -398,22 +398,12 @@ void dlg_eventExplorer::updateCheckBox(int eventType, int checked)
 			.arg(EventNames[eventType]));
 }
 
-void dlg_eventExplorer::updateChartLogScale(int axis, bool logScale)
+void dlg_eventExplorer::setChartLogScale(int axis, bool logScale)
 {
 	for (size_t i = 0; i < m_numberOfCharts; ++i)
 	{
 		m_charts.at(i)->GetAxis(axis)->SetLogScale(logScale);
 	}
-}
-
-void dlg_eventExplorer::updateCheckBoxLogX(int /*c*/)
-{
-	updateChartLogScale(vtkAxis::BOTTOM, logXCheckBox->isChecked());
-}
-
-void dlg_eventExplorer::updateCheckBoxLogY(int /*c*/)
-{
-	updateChartLogScale(vtkAxis::LEFT, logYCheckBox->isChecked());
 }
 
 void dlg_eventExplorer::updateChartData(int axis, int s)
