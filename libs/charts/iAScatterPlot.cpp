@@ -1137,7 +1137,7 @@ void iAScatterPlot::fillVBO()
 	m_curVisiblePts = 0;
 	for ( size_t i = 0; i < m_splomData->numPoints(); ++i )
 	{
-		if (!m_splomData->matchesFilter(i))
+		if (!m_viewData->matchesFilter(m_splomData, i))
 		{
 			continue;
 		}
