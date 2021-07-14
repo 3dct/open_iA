@@ -27,6 +27,7 @@
 #include <vtkContextInteractorStyle.h>
 #include <vtkContextScene.h>
 #include <vtkContextTransform.h>
+#include <vtkGenericOpenGLRenderWindow.h>
 #include <vtkGraphItem.h>
 #include <vtkMutableDirectedGraph.h>
 #include <vtkObjectFactory.h>
@@ -62,7 +63,9 @@ dlg_trackingGraph::dlg_trackingGraph(QWidget *parent) : QDockWidget(parent)
 	m_renderer->SetBackground(BACKGROUND[0], BACKGROUND[1], BACKGROUND[2]);
 	m_renderer->AddActor(m_actor);
 
-	CREATE_OLDVTKWIDGET(graphWidget);
+	graphWidget = new iAVtkWidget();
+	auto renWin = vtkSmartPointer<vtkGenericOpenGLRenderWindow>::New();
+	graphWidget->setRenderWindow(renWin);
 	this->horizontalLayout->addWidget(graphWidget);
 #if VTK_VERSION_NUMBER < VTK_VERSION_CHECK(9, 0, 0)
 	graphWidget->GetRenderWindow()->AddRenderer(m_renderer);

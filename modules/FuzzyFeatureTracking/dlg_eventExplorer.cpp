@@ -37,6 +37,7 @@
 #include <vtkDoubleArray.h>
 #include <vtkEventQtSlotConnect.h>
 #include <vtkFloatArray.h>
+#include <vtkGenericOpenGLRenderWindow.h>
 #include <vtkIdTypeArray.h>
 #include <vtkIntArray.h>
 #include <vtkMutableDirectedGraph.h>
