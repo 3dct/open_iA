@@ -55,21 +55,17 @@ public:
 private slots:
 	void comboBoxXSelectionChanged(int s);
 	void comboBoxYSelectionChanged(int s);
-
-	void updateOpacityGrid(int v);
-
-	void updateCheckBoxLogX(int c);
-	void updateCheckBoxLogY(int c);
-
-	void chartMouseButtonCallBack(vtkObject * obj);
+	void setGridOpacity(int v);
+	void chartSelectionChanged(vtkObject* obj);
 
 private:
 	void buildGraph(int id, int layer, int eventType, double uncertainty);
 	void buildSubGraph(int id, int layer);
 	void updateChartData(int axis, int s);
-	void updateChartLogScale(int axis, bool log);
-	void updateOpacity(int v, int eventType);
+	void setChartLogScale(int axis, bool log);
+	void setOpacity(int eventType, int value);
 	void updateCheckBox(int eventType, int checked);
+	void updateCharts();
 
 	iAVolumeStack* m_volumeStack;
 	size_t m_numberOfCharts;

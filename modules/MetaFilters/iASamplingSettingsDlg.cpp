@@ -169,7 +169,11 @@ namespace
 		if (values.contains(name))
 		{
 			auto v = values[name];
+#if QT_VERSION < QT_VERSION_CHECK(6, 0, 0)
 			QString txt = (v.type() == QVariant::Double) ? QString::number(v.toDouble(), 'g', ContinuousPrecision) : v.toString();
+#else
+			QString txt = (v.metaType().id() == QMetaType::Double) ? QString::number(v.toDouble(), 'g', ContinuousPrecision) : v.toString();
+#endif
 			edit->setText(txt);
 			return true;
 		}
