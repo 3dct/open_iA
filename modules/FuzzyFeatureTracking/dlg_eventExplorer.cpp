@@ -163,7 +163,7 @@ dlg_eventExplorer::dlg_eventExplorer(QWidget *parent, size_t numberOfCharts, int
 		m_chartConnections->Connect(m_charts.at(i),
 			vtkCommand::SelectionChangedEvent,
 			this,
-			SLOT(chartMouseButtonCallBack(vtkObject*)));
+			SLOT(chartSelectionChanged(vtkObject*)));
 	}
 	int tableId=0;
 
@@ -446,7 +446,7 @@ void dlg_eventExplorer::comboBoxYSelectionChanged(int s)
 	updateChartData(vtkAxis::LEFT, s);
 }
 
-void dlg_eventExplorer::chartMouseButtonCallBack(vtkObject * /*obj*/)
+void dlg_eventExplorer::chartSelectionChanged(vtkObject* /*obj*/)
 {
 	//clear graph TODO
 	m_graph = vtkMutableDirectedGraph::New();

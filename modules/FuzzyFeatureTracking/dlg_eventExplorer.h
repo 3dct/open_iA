@@ -56,7 +56,7 @@ private slots:
 	void comboBoxXSelectionChanged(int s);
 	void comboBoxYSelectionChanged(int s);
 	void setGridOpacity(int v);
-	void chartMouseButtonCallBack(vtkObject * obj);
+	void chartSelectionChanged(vtkObject* obj);
 
 private:
 	void buildGraph(int id, int layer, int eventType, double uncertainty);
