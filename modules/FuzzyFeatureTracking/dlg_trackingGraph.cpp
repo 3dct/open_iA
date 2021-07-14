@@ -65,13 +65,13 @@ dlg_trackingGraph::dlg_trackingGraph(QWidget *parent) : QDockWidget(parent)
 
 	graphWidget = new iAVtkWidget();
 	auto renWin = vtkSmartPointer<vtkGenericOpenGLRenderWindow>::New();
-	graphWidget->setRenderWindow(renWin);
-	this->horizontalLayout->addWidget(graphWidget);
 #if VTK_VERSION_NUMBER < VTK_VERSION_CHECK(9, 0, 0)
-	graphWidget->GetRenderWindow()->AddRenderer(m_renderer);
+	graphWidget->SetRenderWindow(renWin);
 #else
-	graphWidget->renderWindow()->AddRenderer(m_renderer);
+	graphWidget->setRenderWindow(renWin);
 #endif
+	this->horizontalLayout->addWidget(graphWidget);
+	renWin->AddRenderer(m_renderer);
 
 	m_interactorStyle = vtkSmartPointer<vtkContextInteractorStyle>::New();
 	m_interactorStyle->SetScene(m_contextScene);
@@ -80,11 +80,10 @@ dlg_trackingGraph::dlg_trackingGraph(QWidget *parent) : QDockWidget(parent)
 	m_interactor->SetInteractorStyle(m_interactorStyle);
 #if VTK_VERSION_NUMBER < VTK_VERSION_CHECK(9, 0, 0)
 	m_interactor->SetRenderWindow(graphWidget->GetRenderWindow());
-	graphWidget->GetRenderWindow()->Render();
 #else
 	m_interactor->SetRenderWindow(graphWidget->renderWindow());
-	graphWidget->renderWindow()->Render();
 #endif
+	renWin->Render();
 }
 
 void dlg_trackingGraph::updateGraph(vtkMutableDirectedGraph* g, size_t numRanks, std::map<vtkIdType, int> nodesToLayers, std::map<int, std::map<vtkIdType, int>> /*graphToTableId*/)
