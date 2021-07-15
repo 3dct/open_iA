@@ -20,6 +20,8 @@
 * ************************************************************************************/
 #include "iAFuzzyVTKWidget.h"
 
+#include <vtkGenericOpenGLRenderWindow.h>
+
 iAFuzzyVTKWidget::iAFuzzyVTKWidget(
 	QWidget* parent, Qt::WindowFlags f)
 	: iAVtkWidget(parent, f)
