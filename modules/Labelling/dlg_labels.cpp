@@ -152,7 +152,7 @@ void dlg_labels::addSlicer(iASlicer *slicer, int imageId, uint channelId)
 	}
 	else
 	{
-		if (!slicerData->overlayImageId != imageId)
+		if (slicerData->overlayImageId != imageId)
 		{
 			//TODO: throw error
 			assert(false);

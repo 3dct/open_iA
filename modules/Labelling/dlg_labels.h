@@ -134,7 +134,11 @@ private:
 
 	struct SlicerData
 	{
-		SlicerData(iAChannelData _channelData, uint _channelId, QList<QMetaObject::Connection> c, int id) : channelData(_channelData), channelId(_channelId), connections(c), overlayImageId(id)
+		SlicerData(iAChannelData _channelData, uint _channelId, QList<QMetaObject::Connection> c, int id) :
+			channelData(_channelData),
+			overlayImageId(id),
+			channelId(_channelId),
+			connections(c)
 		{}
 		iAChannelData channelData;
 		int overlayImageId;
