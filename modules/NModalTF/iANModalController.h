@@ -85,15 +85,15 @@ public:
 private:
 	MdiChild *m_mdiChild;
 
-	void _initialize();
-	iASlicer* _initializeSlicer(QSharedPointer<iAModality>);
-	void _initializeHistogram(QSharedPointer<iAModality> modality, int index);
-	void _initializeCombinedVol();
-	void _initializeMainSlicers();
-	bool _checkModalities(const QList<QSharedPointer<iAModality>> &modalities);
-	bool _matchModalities(QSharedPointer<iAModality> m1, QSharedPointer<iAModality> m2);
-	void _updateHistograms();
-	template <typename PixelType> void _updateMainSlicers();
+	void privateInitialize();
+	iASlicer* initializeSlicer(QSharedPointer<iAModality>);
+	void initializeHistogram(QSharedPointer<iAModality> modality, int index);
+	void initializeCombinedVol();
+	void initializeMainSlicers();
+	bool checkModalities(const QList<QSharedPointer<iAModality>> &modalities);
+	//bool _matchModalities(QSharedPointer<iAModality> m1, QSharedPointer<iAModality> m2);
+	void updateHistograms();
+	template <typename PixelType> void updateMainSlicers();
 
 	QList<QSharedPointer<iAModality>> m_modalities;
 	QList<QSharedPointer<iANModalTFManager>> m_tfs;

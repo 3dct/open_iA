@@ -112,7 +112,7 @@ int iANModalLabelsWidget::row(int labelId) {
 
 void iANModalLabelsWidget::addRow(int rowIndex, iANModalLabel label, float opacity) {
 	assert(rowIndex <= m_layout->columnCount());
-	int labelId = label.id;
+	//int labelId = label.id;
 
 	//QLabel *lName = new QLabel(label.name);
 

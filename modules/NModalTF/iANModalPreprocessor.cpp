@@ -210,9 +210,11 @@ QSharedPointer<iANModalBackgroundRemover> iANModalPreprocessor::chooseBackground
 	}
 }
 
+/*
 bool iANModalPreprocessor::areModalitiesCompatible(QSharedPointer<iAModality> m1, QSharedPointer<iAModality> m2) {
 	return true; // TODO
 }
+*/
 
 void iANModalPreprocessor::groupModalities(const QList<QSharedPointer<iAModality>> &modalitiesToGroup, QList<ModalitiesGroup> &output) {
 	// TODO

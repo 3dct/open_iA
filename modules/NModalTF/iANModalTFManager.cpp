@@ -84,7 +84,7 @@ void iANModalTFManager::update() {
 		bool repeated = false;
 		CP prev;
 #pragma omp for
-		for (int i = 0; i < m_cps.size(); ++i) {
+		for (size_t i = 0; i < m_cps.size(); ++i) {
 			const CP &cp = m_cps[i];
 			if (!cp.null()) {
 				if (prev == cp) {
@@ -111,7 +111,7 @@ void iANModalTFManager::update() {
 
 	assert(m_colorTf->GetSize() == m_opacityTf->GetSize());
 
-	for (int i = 0; i < unmanaged_cps.size(); ++i) {
+	for (size_t i = 0; i < unmanaged_cps.size(); ++i) {
 		addControlPointToTfs(unmanaged_cps[i]);
 	}
 
@@ -121,13 +121,13 @@ void iANModalTFManager::update() {
 void iANModalTFManager::updateLabels(const std::vector<iANModalLabel> &labels) {
 	// Put labels in an indexed array for faster access
 	int maxId = -1;
-	for (auto label : labels) {
+	for (auto & label : labels) {
 		if (label.id > maxId) {
 			maxId = label.id;
 		}
 	}
 	std::vector<iANModalLabel> labels_indexed(maxId + 1);
-	for (auto label : labels) {
+	for (auto & label : labels) {
 		labels_indexed[label.id] = label;
 	}
 
@@ -135,7 +135,7 @@ void iANModalTFManager::updateLabels(const std::vector<iANModalLabel> &labels) {
 	iANModalLabel *labelPtr = labels_indexed.data();
 	CP *cpPtr = m_cps.data();
 #pragma omp parallel for
-	for (int i = 0; i < m_cps.size(); ++i) {
+	for (size_t i = 0; i < m_cps.size(); ++i) {
 		if (!cpPtr[i].null()) {
 			int labelId = cpPtr[i].labelId;
 			if (labelId <= maxId) {
@@ -156,7 +156,7 @@ void iANModalTFManager::removeControlPoints(int labelId) {
 
 	// Remove control points from TF first
 	std::vector<unsigned int> to_be_removed;
-	double c[6], o[4];
+	double o[4];
 	for (int i = 0; i < m_opacityTf->GetSize(); ++i) {
 		m_opacityTf->GetNodeValue(i, o);
 		unsigned int x = o[0];
@@ -182,7 +182,7 @@ void iANModalTFManager::removeControlPoints(int labelId) {
 		// Then remove control points from our data structure
 		CP *ptr = m_cps.data();
 	#pragma omp for
-		for (int i = 0; i < m_cps.size(); ++i) {
+		for (size_t i = 0; i < m_cps.size(); ++i) {
 			if (ptr[i].labelId == labelId) {
 				ptr[i] = CP();
 			}
@@ -197,13 +197,13 @@ void iANModalTFManager::removeAllControlPoints() {
 #pragma omp sections
 		{
 #pragma omp section
-			for (int i = 0; i < m_cps.size(); ++i) {
+			for (size_t i = 0; i < m_cps.size(); ++i) {
 				if (!ptr[i].null()) {
 					m_colorTf->RemovePoint(i);
 				}
 			}
 #pragma omp section
-			for (int i = 0; i < m_cps.size(); ++i) {
+			for (size_t i = 0; i < m_cps.size(); ++i) {
 				if (!ptr[i].null()) {
 					m_opacityTf->RemovePoint(i);
 				}
@@ -211,7 +211,7 @@ void iANModalTFManager::removeAllControlPoints() {
 		} // end of sections
 		// Implicit barrier
 #pragma omp for
-		for (int i = 0; i < m_cps.size(); ++i) {
+		for (size_t i = 0; i < m_cps.size(); ++i) {
 			ptr[i] = CP();
 		}
 	} // end of parallel block

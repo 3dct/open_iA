@@ -55,7 +55,7 @@ QList<QSharedPointer<iAModality>> iANModalPCAModalityReducer::reduce(const QList
 
 	// Set up output list
 	auto modalities = QList<QSharedPointer<iAModality>>();
-	for (int i = 0; i < connectors.size(); i++) {
+	for (size_t i = 0; i < connectors.size(); i++) {
 		auto name = "Principal Component " + QString::number(i);
 
 		auto imageData = vtkSmartPointer<vtkImageData>::New();
@@ -160,25 +160,25 @@ void iANModalPCAModalityReducer::ownPCA(std::vector<iAConnector> &c) {
 
 	iATimeGuard tg("Perform PCA");
 
-	int numInputs = c.size();
-	int numOutputs = std::min((int)c.size(), maxOutputLength());
+	size_t numInputs = c.size();
+	size_t numOutputs = std::min((int)c.size(), maxOutputLength());
 
 	auto itkImg0 = c[0].itkImage();
 
 	auto size = itkImg0->GetBufferedRegion().GetSize();
-	int numVoxels = 1;
+	size_t numVoxels = 1;
 	for (unsigned int dim_i = 0; dim_i < DIM; dim_i++) {
 		numVoxels *= size[dim_i];
 	}
 
 	// Set up input matrix
 	vnl_matrix<double> inputs(numInputs, numVoxels);
-	for (int row_i = 0; row_i < numInputs; row_i++) {
+	for (size_t row_i = 0; row_i < numInputs; row_i++) {
 		auto input = dynamic_cast<const ImageType *>(c[row_i].itkImage());
 		auto iterator = itk::ImageRegionConstIterator<ImageType>(input, input->GetBufferedRegion());
 		iterator.GoToBegin();
 
-		for (int col_i = 0; col_i < numVoxels; col_i++) {
+		for (size_t col_i = 0; col_i < numVoxels; col_i++) {
 			inputs[row_i][col_i] = iterator.Get();
 			++iterator;
 		}
@@ -222,10 +222,10 @@ void iANModalPCAModalityReducer::ownPCA(std::vector<iAConnector> &c) {
 	{
 
 		// Calculate means
-		for (int img_i = 0; img_i < numInputs; img_i++) {
+		for (size_t img_i = 0; img_i < numInputs; img_i++) {
 			double mean = 0;
 #pragma omp for nowait
-			for (int i = 0; i < numVoxels; i++) {
+			for (size_t i = 0; i < numVoxels; i++) {
 				//means[img_i] += inputs[img_i][i];
 				mean += inputs[img_i][i];
 			}
@@ -247,11 +247,11 @@ void iANModalPCAModalityReducer::ownPCA(std::vector<iAConnector> &c) {
 
 
 		// Calculate inner product (lower triangle) (for covariance matrix)
-		for (int ix = 0; ix < numInputs; ix++) {
-			for (int iy = 0; iy <= ix; iy++) {
+		for (size_t ix = 0; ix < numInputs; ix++) {
+			for (size_t iy = 0; iy <= ix; iy++) {
 				double innerProd_thread = 0;
 #pragma omp for nowait
-				for (int i = 0; i < numVoxels; i++) {
+				for (size_t i = 0; i < numVoxels; i++) {
 					auto mx = inputs[ix][i] - means[ix];
 					auto my = inputs[iy][i] - means[iy];
 					//innerProd[ix][iy] += (mx * my); // Product takes place!
@@ -268,8 +268,8 @@ void iANModalPCAModalityReducer::ownPCA(std::vector<iAConnector> &c) {
 
 		// Fill upper triangle (make symmetric)
 #pragma omp for
-		for (int ix = 0; ix < (numInputs - 1); ix++) {
-			for (int iy = ix + 1; iy < numInputs; iy++) {
+		for (size_t ix = 0; ix < (numInputs - 1); ix++) {
+			for (size_t iy = ix + 1; iy < numInputs; iy++) {
 				innerProd[ix][iy] = innerProd[iy][ix];
 			}
 		}
@@ -312,9 +312,9 @@ void iANModalPCAModalityReducer::ownPCA(std::vector<iAConnector> &c) {
 
 
 		// Initialize the reconstructed matrix (with zeros)
-		for (int row_i = 0; row_i < numOutputs; row_i++) {
+		for (size_t row_i = 0; row_i < numOutputs; row_i++) {
 #pragma omp for nowait
-			for (int col_i = 0; col_i < numVoxels; col_i++) {
+			for (size_t col_i = 0; col_i < numVoxels; col_i++) {
 				reconstructed[row_i][col_i] = 0;
 			}
 		}
@@ -324,12 +324,12 @@ void iANModalPCAModalityReducer::ownPCA(std::vector<iAConnector> &c) {
 
 
 		// Transform images to principal components
-		for (int row_i = 0; row_i < numInputs; row_i++) {
-			for (int vec_i = 0; vec_i < numOutputs; vec_i++) {
+		for (size_t row_i = 0; row_i < numInputs; row_i++) {
+			for (size_t vec_i = 0; vec_i < numOutputs; vec_i++) {
 				auto evec_elem = evecs_innerProd[row_i][vec_i];
-				double reconstructed_thread = 0;
+				//double reconstructed_thread = 0;
 #pragma omp for nowait
-				for (int col_i = 0; col_i < numVoxels; col_i++) {
+				for (size_t col_i = 0; col_i < numVoxels; col_i++) {
 					auto voxel_value = inputs[row_i][col_i];
 					reconstructed[vec_i][col_i] += (voxel_value * evec_elem);
 				}
@@ -341,12 +341,12 @@ void iANModalPCAModalityReducer::ownPCA(std::vector<iAConnector> &c) {
 
 
 		// Normalize row-wise (i.e. image-wise) to range 0..1
-		for (int vec_i = 0; vec_i < numOutputs; vec_i++) {
+		for (size_t vec_i = 0; vec_i < numOutputs; vec_i++) {
 			double max_thread = -DBL_MAX;
 			double min_thread = DBL_MAX;
 
 #pragma omp for
-			for (int i = 0; i < numVoxels; i++) {
+			for (size_t i = 0; i < numVoxels; i++) {
 				auto rec = reconstructed[vec_i][i];
 				//max_val = max_val > rec ? max_val : rec;
 				//min_val = min_val < rec ? min_val : rec;
@@ -363,7 +363,7 @@ void iANModalPCAModalityReducer::ownPCA(std::vector<iAConnector> &c) {
 #pragma omp barrier
 
 #pragma omp for nowait
-			for (int i = 0; i < numVoxels; i++) {
+			for (size_t i = 0; i < numVoxels; i++) {
 				auto old = reconstructed[vec_i][i];
 				reconstructed[vec_i][i] = (old - min_val) / (max_val - min_val) * 65535.0;
 			}
@@ -375,7 +375,7 @@ void iANModalPCAModalityReducer::ownPCA(std::vector<iAConnector> &c) {
 
 	// Reshape reconstructed vectors into image
 	c.resize(numOutputs);
-	for (unsigned int out_i = 0; out_i < numOutputs; out_i++) {
+	for (size_t out_i = 0; out_i < numOutputs; out_i++) {
 		auto recvec = reconstructed.get_row(out_i);
 
 		auto output = ImageType::New();

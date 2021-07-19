@@ -183,7 +183,7 @@ void dlg_labels::removeSlicer(iASlicer* slicer)
 	QSharedPointer<OverlayImage> oi = m_mapId2image.value(slicerData->overlayImageId);
 	oi->slicers.removeOne(slicer);
 	if (oi->slicers.isEmpty()) {
-		auto removed = m_mapId2image.remove(slicerData->overlayImageId);
+		/*auto removed = */m_mapId2image.remove(slicerData->overlayImageId);
 	}
 }
 

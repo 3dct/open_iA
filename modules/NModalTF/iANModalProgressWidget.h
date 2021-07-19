@@ -38,7 +38,7 @@ public:
 	int addProgressBar(int max, QString title, bool autoUpdateText=true, QString name=QString());
 	int addProgressBar(int max, QLabel *label, bool autoUpdateText=false, QString name= QString());
 
-	void addWidget(QWidget *widget, QString title, int rowStretch=1);
+	void addWidget(QWidget *widget, QString title);
 	void addWidget(QWidget *widget, QLabel *label=nullptr, int rowStretch=1);
 
 	void addSeparator();

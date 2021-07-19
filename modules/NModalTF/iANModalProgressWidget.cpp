@@ -95,7 +95,7 @@ void iANModalProgressWidget::setText(QString name, QString text) {
 	setText(m_name2id.value(name, -1), text);
 }
 
-void iANModalProgressWidget::addWidget(QWidget *widget, QString title, int rowStretch/*=1*/) {
+void iANModalProgressWidget::addWidget(QWidget *widget, QString title) {
 	addWidget(widget, new QLabel(title));
 }
 

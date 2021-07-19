@@ -85,10 +85,10 @@ private:
 	std::vector<unsigned int> m_imageAccumulator;
 	QTimer *m_timer_resizeUpdate;
 
-	int m_indexHovered = -1;
+	size_t m_indexHovered;
 
-	int yToSliceNumber(int y);
-	int sliceNumberToY(int sliceNumber);
+	size_t yToSliceNumber(int y);
+	int sliceNumberToY(size_t sliceNumber);
 
 	void paint();
 	void autoresize();
@@ -102,7 +102,7 @@ private:
 	void drawLine(int lineY, double value, double maxValue, bool selected);
 
 signals:
-	void binClicked(int sliceNumber);
+	void binClicked(size_t sliceNumber);
 
 public slots:
 	void update();

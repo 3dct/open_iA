@@ -37,11 +37,12 @@
 #include <QButtonGroup>
 #include <QStatusBar>
 
-iANModalDisplay::iANModalDisplay(QWidget *parent, MdiChild *mdiChild, const QList<QSharedPointer<iAModality>> &modalities, int maxSelection, int minSelection, int numOfRows) :
-	m_mdiChild(mdiChild),
+iANModalDisplay::iANModalDisplay(QWidget *parent, MdiChild *mdiChild, const QList<QSharedPointer<iAModality>> &modalities,
+								 int maxSelection, int minSelection, int numOfRows) :
+	m_modalities(modalities),
 	m_maxSelection(maxSelection),
 	m_minSelection(minSelection),
-	m_modalities(modalities)
+	m_mdiChild(mdiChild)
 {
 	setParent(parent); 
 
@@ -66,7 +67,7 @@ iANModalDisplay::iANModalDisplay(QWidget *parent, MdiChild *mdiChild, const QLis
 
 		int col = i % numOfCols;
 		int row = floor(i / numOfCols);
-		layoutGrid->addWidget(_createSlicerContainer(slicer, mod, group, isSingleSelection() && i == 0), row, col);
+		layoutGrid->addWidget(createSlicerContainer(slicer, mod, group/*, isSingleSelection() && i == 0*/), row, col);
 	}
 
 	layoutMain->addWidget(widgetGrid);
@@ -111,7 +112,8 @@ iASlicer* iANModalDisplay::createSlicer(QSharedPointer<iAModality> mod) {
 	return slicer;
 }
 
-inline QWidget* iANModalDisplay::_createSlicerContainer(iASlicer* slicer, QSharedPointer<iAModality> mod, QButtonGroup* group, bool checked) {
+inline QWidget* iANModalDisplay::createSlicerContainer(iASlicer* slicer, QSharedPointer<iAModality> mod, QButtonGroup* group/*, bool checked*/) {
+	//Q_UNUSED(checked);
 	QWidget *widget = new QWidget(this);
 	QHBoxLayout *layout = new QHBoxLayout(widget);
 
@@ -142,8 +144,6 @@ inline QWidget* iANModalDisplay::_createSlicerContainer(iASlicer* slicer, QShare
 
 QList<QSharedPointer<iAModality>> iANModalDisplay::selectModalities(
 	iANModalDisplay *display,
-	int maxSelection,
-	int minSelection,
 	QWidget *footer,
 	QWidget *dialogParent)
 {

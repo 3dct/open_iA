@@ -88,7 +88,8 @@ void iANModalSeedTracker::updateLater() {
 
 iANModalSeedVisualizer::iANModalSeedVisualizer(MdiChild *mdiChild, iASlicerMode mode) :
 	m_mode(mode),
-	m_timer_resizeUpdate(new QTimer())
+	m_timer_resizeUpdate(new QTimer()),
+	m_indexHovered(std::numeric_limits<size_t>::max())
 {
 	auto slicerDockWidget = mdiChild->slicerDockWidget(m_mode);
 	slicerDockWidget->horizontalLayout_2->addWidget(this, 0);
@@ -125,31 +126,34 @@ void iANModalSeedVisualizer::teardown() {
 	deleteLater();
 }
 
-void iANModalSeedVisualizer::addSeeds(const QList<iANModalSeed> &seeds, const iANModalLabel &label) {
-	int id = label.id;
-	for (const auto &seed : seeds) {
-		int i;
-		switch (m_mode) {
-		case iASlicerMode::XY: i = seed.z; break;
-		case iASlicerMode::XZ: i = seed.y; break;
-		case iASlicerMode::YZ: i = seed.x; break;
-		default: break; // TODO: error 
+namespace
+{
+	template <typename OpT>
+	void processSeedCoord(const QList<iANModalSeed> &seeds, iASlicerMode mode, OpT op)
+	{
+		for (const auto &seed : seeds) {
+			int i = -1;
+			switch (mode) {
+			case iASlicerMode::XY: i = seed.z; break;
+			case iASlicerMode::XZ: i = seed.y; break;
+			case iASlicerMode::YZ: i = seed.x; break;
+			default: break; // TODO: error
+			}
+			if (i != -1)
+			{
+				op(i);
+			}
 		}
-		++m_values[i];
 	}
 }
 
+void iANModalSeedVisualizer::addSeeds(const QList<iANModalSeed> &seeds, const iANModalLabel &label) {
+	Q_UNUSED(label);
+	processSeedCoord(seeds, m_mode, [this](int i) { ++m_values[i]; });
+}
+
 void iANModalSeedVisualizer::removeSeeds(const QList<iANModalSeed> &seeds) {
-	for (const auto &seed : seeds) {
-		int i;
-		switch (m_mode) {
-		case iASlicerMode::XY: i = seed.z; break;
-		case iASlicerMode::XZ: i = seed.y; break;
-		case iASlicerMode::YZ: i = seed.x; break;
-		default: break; // TODO: error 
-		}
-		--m_values[i];
-	}
+	processSeedCoord(seeds, m_mode, [this](int i) { --m_values[i]; });
 }
 
 void iANModalSeedVisualizer::removeAllSeeds() {
@@ -161,7 +165,7 @@ void iANModalSeedVisualizer::updateLater() {
 }
 
 void iANModalSeedVisualizer::update() {
-	if (m_image.height() > m_values.size()) {
+	if (static_cast<size_t>(m_image.height()) > m_values.size()) {
 		update_imageLargerThanBuffer();
 	} else {
 		update_imageSmallerThanBuffer();
@@ -208,25 +212,22 @@ inline void iANModalSeedVisualizer::update_imageLargerThanBuffer() {
 	}
 	double maxValue_double = (double)maxValue;
 	for (int y = 0; y < m_image.height(); ++y) {
-		int sliceNumber = yToSliceNumber(y);
-		int index = sliceNumber;
+		size_t index = yToSliceNumber(y);
 		unsigned int value = m_values[index];
 		drawLine(y, value, maxValue_double, index == m_indexHovered);
 	}
 }
 
 void iANModalSeedVisualizer::update_imageSmallerThanBuffer() {
-	if (m_imageAccumulator.size() != m_image.height()) {
+	if (m_imageAccumulator.size() != static_cast<size_t>(m_image.height())) {
 		m_imageAccumulator.resize(m_image.height());
 	}
 	std::fill(m_imageAccumulator.begin(), m_imageAccumulator.end(), 0);
 	unsigned int maxValue = 0;
 	int ySelected = -1;
-	for (int index = 0; index < m_values.size(); ++index) {
+	for (size_t index = 0; index < m_values.size(); ++index) {
 		unsigned int value = m_values[index];
-
-		int sliceNumber = index;
-		int y = sliceNumberToY(sliceNumber);
+		int y = sliceNumberToY(index);
 		unsigned int accumulatedValue = m_imageAccumulator[y] + value;
 		m_imageAccumulator[y] = accumulatedValue;
 
@@ -250,15 +251,15 @@ void iANModalSeedVisualizer::update_imageSmallerThanBuffer() {
 	}
 }
 
-inline int iANModalSeedVisualizer::yToSliceNumber(int y) {
+inline size_t iANModalSeedVisualizer::yToSliceNumber(int y) {
 	int y_inv = m_image.height() - 1 - y;
 	float valueIndex_float = ((float)y_inv / (float)(m_image.height() - 1) * (float)(m_values.size() - 1));
-	int valueIndex = round(valueIndex_float);
+	size_t valueIndex = round(valueIndex_float);
 	assert(valueIndex >= 0 && valueIndex < m_values.size());
 	return valueIndex;
 }
 
-inline int iANModalSeedVisualizer::sliceNumberToY(int sliceNumber) {
+inline int iANModalSeedVisualizer::sliceNumberToY(size_t sliceNumber) {
 	float y_inv_float = (float)sliceNumber / (float)(m_values.size() - 1) * (float)(m_image.height() - 1);
 	int y_inv = round(y_inv_float);
 	int y = m_image.height() - 1 - y_inv;
@@ -288,17 +289,15 @@ void iANModalSeedVisualizer::resize(int width, int height) {
 }
 
 void iANModalSeedVisualizer::click(int y) {
-	int sliceNumber = yToSliceNumber(y);
-	int index = sliceNumber;
+	size_t index = yToSliceNumber(y);
 	emit binClicked(index);
 }
 
 void iANModalSeedVisualizer::hover(int y) {
-	int sliceNumber = yToSliceNumber(y);
-	int index = sliceNumber;
+	size_t index = yToSliceNumber(y);
 	unsigned int value = m_values[index];
 
-	bool aggregatedSlices = m_image.height() < m_values.size();
+	bool aggregatedSlices = static_cast<size_t>(m_image.height()) < m_values.size();
 
 	QString aggregatedSlicesText = 
 		"(because the height of this histogram\n"
@@ -308,7 +307,7 @@ void iANModalSeedVisualizer::hover(int y) {
 
 	QString sliceInfo = QString(aggregatedSlices
 		? "Click to select slice #%1"
-		: "Slice #%1").arg(sliceNumber);
+		: "Slice #%1").arg(index);
 
 	QString seedInfo = QString("%0 seed%1").arg(value).arg(value == 1 ? "" : "s");
 
@@ -335,10 +334,12 @@ void iANModalSeedVisualizer::leave() {
 // EVENTS -----------------------------------------------------------------------------
 
 void iANModalSeedVisualizer::paintEvent(QPaintEvent* event) {
+	Q_UNUSED(event);
 	paint();
 }
 
 void iANModalSeedVisualizer::resizeEvent(QResizeEvent* event) {
+	Q_UNUSED(event);
 	autoresize();
 }
 
@@ -351,5 +352,6 @@ void iANModalSeedVisualizer::mouseMoveEvent(QMouseEvent* event) {
 }
 
 void iANModalSeedVisualizer::leaveEvent(QEvent* event) {
+	Q_UNUSED(event);
 	leave();
 }

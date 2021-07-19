@@ -96,9 +96,11 @@ private:
 	template<class T>
 	void itkBinaryThreshold(iAConnector &conn, int loThresh, int upThresh);
 
-	// TODO make debug only
+#ifndef NDEBUG
+	// Note: currently not called from anywhere:
 	void showMask(QSharedPointer<iAModality> mod, vtkSmartPointer<vtkImageData> mask);
 	void showMask(ImagePointer itkImgPtr);
+#endif
 
 public slots:
 	void setModalitySelected(QSharedPointer<iAModality>);

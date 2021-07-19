@@ -80,7 +80,7 @@ private:
 	QSharedPointer<iANModalBackgroundRemover> chooseBackgroundRemover();
 	
 
-	bool areModalitiesCompatible(QSharedPointer<iAModality>, QSharedPointer <iAModality>);
+	//bool areModalitiesCompatible(QSharedPointer<iAModality>, QSharedPointer <iAModality>);
 	void groupModalities(const QList<QSharedPointer<iAModality>> &, QList<ModalitiesGroup> &output);
 	QList<QSharedPointer<iAModality>> chooseGroup(const QList<ModalitiesGroup> &);
 

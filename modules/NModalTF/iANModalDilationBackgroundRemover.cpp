@@ -228,9 +228,6 @@ void iANModalDilationBackgroundRemover::showMask(ImagePointer itkImgPtr)
 	display->setChannelData(iANModalDisplay::MAIN_CHANNEL_ID, cd);
 	iANModalDisplay::selectModalities(display);
 }
-#else
-void iANModalDilationBackgroundRemover::showMask(QSharedPointer<iAModality> mod, vtkSmartPointer<vtkImageData> mask){}
-void iANModalDilationBackgroundRemover::showMask(ImagePointer itkImgPtr){}
 #endif
 
 iANModalDilationBackgroundRemover::iANModalDilationBackgroundRemover(MdiChild *mdiChild) : m_mdiChild(mdiChild)
@@ -459,8 +456,12 @@ bool iANModalDilationBackgroundRemover::iterativeDilation(ImagePointer mask, int
 
 iANModalIterativeDilationThread::iANModalIterativeDilationThread(
 	iANModalProgressWidget *progressWidget, iAProgress *progress[3], ImagePointer mask, int regionCountGoal) :
-	iANModalProgressUpdater(progressWidget), m_mask(mask), m_regionCountGoal(regionCountGoal),
-	m_progDil(progress[0]), m_progCc(progress[1]), m_progEro(progress[2])
+	iANModalProgressUpdater(progressWidget),
+	m_progDil(progress[0]),
+	m_progCc(progress[1]),
+	m_progEro(progress[2]),
+	m_mask(mask),
+	m_regionCountGoal(regionCountGoal)
 {
 }
 
@@ -604,6 +605,7 @@ QSize iANModalIterativeDilationPlot::sizeHint() const {
 }
 
 void iANModalIterativeDilationPlot::paintEvent(QPaintEvent* event) {
+	Q_UNUSED(event);
 	if (m_values.empty()) {
 		return;
 	}

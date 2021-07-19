@@ -63,8 +63,6 @@ public:
 	// Result can be null! That means that the selection was cancelled
 	static QList<QSharedPointer<iAModality>> selectModalities(
 		iANModalDisplay *display,
-		int maxSelection = 0, // how many modalities can be selected at maximum. <= 0 means there is no limit
-		int minSelection = 1, // how many modalities can be selected at minimum. <= 0 means it acceptable to make no selections
 		QWidget *footer = nullptr,
 		QWidget *dialogParent = nullptr
 	);
@@ -74,7 +72,7 @@ public:
 		QWidget *footer = nullptr,
 		QWidget *dialogParent = nullptr)
 	{
-		return selectModalities(display, 1, 1, footer, dialogParent)[0];
+		return selectModalities(display, footer, dialogParent)[0];
 	};
 
 	class Footer : public QWidget {
@@ -98,7 +96,7 @@ private:
 
 	MdiChild *m_mdiChild;
 
-	QWidget* _createSlicerContainer(iASlicer* slicer, QSharedPointer<iAModality> mod, QButtonGroup* group, bool checked);
+	QWidget* createSlicerContainer(iASlicer* slicer, QSharedPointer<iAModality> mod, QButtonGroup* group/*, bool checked*/);
 
 	void setModalitySelected(QSharedPointer<iAModality> mod, QAbstractButton *button);
 	bool isSelectionValid();
