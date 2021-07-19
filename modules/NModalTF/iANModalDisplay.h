@@ -21,6 +21,7 @@
 #pragma once
 
 #include <iAChannelData.h>
+#include <iASlicerMode.h>
 
 #include <QWidget>
 #include <QList>
@@ -29,7 +30,6 @@
 
 class iAModality;
 class iASlicer;
-enum iASlicerMode;
 class MdiChild;
 
 class QAbstractButton;

@@ -97,7 +97,7 @@ private:
 
 	QList<QSharedPointer<iAModality>> m_modalities;
 	QList<QSharedPointer<iANModalTFManager>> m_tfs;
-	vtkSmartPointer<vtkImageData> m_mask = nullptr;
+	vtkSmartPointer<vtkImageData> m_mask;
 	QMap<int, QSharedPointer<iAModality>> m_mapOverlayImageId2modality;
 	QList<uint> m_channelIds;
 	vtkSmartPointer<vtkVolume> m_combinedVol;

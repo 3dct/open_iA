@@ -22,7 +22,7 @@
 
 #include "iANModalObjects.h"
 
-#include "QSharedPointer.h"
+#include <QSharedPointer>
 
 #include "vtkSmartPointer.h"
 

@@ -106,7 +106,7 @@ void iANModalPCAModalityReducer::itkPCA(std::vector<iAConnector> &c) {
 	pca->Update();
 
 	// Debug. TODO: remove
-	PCASMEType::VectorOfDoubleType eigenValues = pca->GetEigenValues();
+	typename PCASMEType::VectorOfDoubleType eigenValues = pca->GetEigenValues();
 	double sv_mean = sqrt(eigenValues[0]);
 	printf("sv_mean = %d\n", sv_mean);
 
@@ -379,7 +379,7 @@ void iANModalPCAModalityReducer::ownPCA(std::vector<iAConnector> &c) {
 		auto recvec = reconstructed.get_row(out_i);
 
 		auto output = ImageType::New();
-		ImageType::RegionType region;
+		typename ImageType::RegionType region;
 		region.SetSize(itkImg0->GetLargestPossibleRegion().GetSize());
 		region.SetIndex(itkImg0->GetLargestPossibleRegion().GetIndex());
 		output->SetRegions(region);
@@ -392,7 +392,7 @@ void iANModalPCAModalityReducer::ownPCA(std::vector<iAConnector> &c) {
 		while (!ite.IsAtEnd()) {
 
 			double rec = recvec[i];
-			ImageType::PixelType rec_cast = static_cast<typename ImageType::PixelType>(rec);
+			typename ImageType::PixelType rec_cast = static_cast<typename ImageType::PixelType>(rec);
 			ite.Set(rec_cast);
 
 			++ite;
