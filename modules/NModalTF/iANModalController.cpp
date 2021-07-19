@@ -434,7 +434,7 @@ void iANModalController::addSeeds(const QList<iANModalSeed> &seeds, const iANMod
 		unsigned int x = modality->image()->GetScalarComponentAsDouble(seed.x, seed.y, seed.z, 0);
 		int i = m_modalities.lastIndexOf(modality);
 
-		int size = m_tfs.size();
+		//int size = m_tfs.size();
 		assert(size > 0);
 
 		auto tf = m_tfs[i];
@@ -616,7 +616,7 @@ void iANModalController::_updateMainSlicers() {
 
 			// Get the 2D slice image
 			auto sliceImg2D = channel->reslicer()->GetOutput();
-			auto dim = sliceImg2D->GetDimensions();
+			//auto dim = sliceImg2D->GetDimensions();
 			assert(dim[0] == 1 || dim[1] == 1 || dim[2] == 1);
 
 			// Save 2D slice image and transfer functions for future processing
