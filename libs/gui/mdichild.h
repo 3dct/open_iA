@@ -305,8 +305,8 @@ public:
 
 	//! @{
 	size_t histogramNewBinCount(QSharedPointer<iAModality>) override;
-	bool histogramComputed(size_t newBinCount, QSharedPointer<iAModality>, int modalityIdx = -1) override;
-	void computeHistogramAsync(std::function<void()> callbackSlot, size_t newBinCount, QSharedPointer<iAModality>, int modalityIdx = -1) override;
+	bool histogramComputed(size_t newBinCount, QSharedPointer<iAModality>) override;
+	void computeHistogramAsync(std::function<void()> callbackSlot, size_t newBinCount, QSharedPointer<iAModality>) override;
 	//! @}
 //signals:
 //	void preferencesChanged();

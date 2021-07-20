@@ -2726,31 +2726,24 @@ size_t MdiChild::histogramNewBinCount(QSharedPointer<iAModality> mod)
 	return newBinCount;
 }
 
-bool MdiChild::histogramComputed(size_t newBinCount, QSharedPointer<iAModality> mod, int modalityIdx)
+bool MdiChild::histogramComputed(size_t newBinCount, QSharedPointer<iAModality> mod)
 {
 	auto histData = mod->histogramData();
-	if (histData && histData->valueCount() == newBinCount)
-	{
-		if (modalityIdx != m_currentHistogramModality)
-		{
-			return true;
-		}
-	}
-	return false;
+	return (histData && histData->valueCount() == newBinCount);
 }
 
-void MdiChild::computeHistogramAsync(std::function<void()> callbackSlot, size_t newBinCount, QSharedPointer<iAModality> mod, int modalityIdx)
+void MdiChild::computeHistogramAsync(std::function<void()> callbackSlot, size_t newBinCount, QSharedPointer<iAModality> mod)
 {
-	auto fw = runAsync([this, modalityIdx, newBinCount]
+	auto fw = runAsync([this, newBinCount, mod]
 		{   // run computation of histogram...
-			auto histData = iAHistogramData::create("Frequency", modality(modalityIdx)->image(), newBinCount, &modality(modalityIdx)->info());
-			modality(modalityIdx)->setHistogramData(histData);
+			auto histData = iAHistogramData::create("Frequency", mod->image(), newBinCount, &mod->info());
+			mod->setHistogramData(histData);
 		},
 		callbackSlot,
 		this);
 		// TODO: find way of terminating computation in case modality is deleted/application closed!
 	iAJobListView::get()->addJob(QString("Computing histogram for modality %1...")
-		.arg(modality(modalityIdx)->name()), nullptr, fw);
+		.arg(mod->name()), nullptr, fw);
 }
 
 void MdiChild::displayHistogram(int modalityIdx)
@@ -2762,14 +2755,14 @@ void MdiChild::displayHistogram(int modalityIdx)
 	}
 	auto mod = modality(modalityIdx);
 	size_t newBinCount = histogramNewBinCount(mod);
-	if (histogramComputed(newBinCount, mod, modalityIdx))
+	if (histogramComputed(newBinCount, mod))
 	{
 		histogramDataAvailable(modalityIdx);
 		return;
 	}
 
 	std::function<void()> callbackSlot = [this, modalityIdx](){ histogramDataAvailable(modalityIdx); };
-	computeHistogramAsync(callbackSlot, newBinCount, mod, modalityIdx);
+	computeHistogramAsync(callbackSlot, newBinCount, mod);
 }
 
 void MdiChild::clearHistogram()

@@ -261,9 +261,8 @@ public:
 
 	//! @{ for recomputing histogram. should probably be made private somehow
 	virtual size_t histogramNewBinCount(QSharedPointer<iAModality>) = 0;
-	virtual bool histogramComputed(size_t newBinCount, QSharedPointer<iAModality>, int modalityIdx = -1) = 0;
-	virtual void computeHistogramAsync(
-		std::function<void()> callbackSlot, size_t newBinCount, QSharedPointer<iAModality>, int modalityIdx = -1) = 0;
+	virtual bool histogramComputed(size_t newBinCount, QSharedPointer<iAModality>) = 0;
+	virtual void computeHistogramAsync(std::function<void()> callbackSlot, size_t newBinCount, QSharedPointer<iAModality>) = 0;
 	//! @}
 signals:
 	void closed();
