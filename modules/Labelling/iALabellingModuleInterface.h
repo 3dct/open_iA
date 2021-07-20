@@ -28,7 +28,7 @@ class iALabellingModuleInterface : public iAGUIModuleInterface
 public:
 	void Initialize() override;
 protected:
-	iAModuleAttachmentToChild* CreateAttachment(iAMainWindow* mainWnd, iAMdiChild * child) override;
+	iAModuleAttachmentToChild* CreateAttachment(iAMainWindow* mainWnd, iAMdiChild* child) override;
 private slots:
 	//! Menu entries:
 	void startLabelling();

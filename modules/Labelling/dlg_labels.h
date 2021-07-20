@@ -21,9 +21,8 @@
 #pragma once
 
 #include "Labelling_export.h"
-
-#include "iALabellingObjects.h"
 #include "iAChannelData.h"
+#include "iALabellingObjects.h"
 #include "ui_labels.h"
 
 #include <qthelper/iAQTtoUIConnector.h>
@@ -57,12 +56,12 @@ public:
 	dlg_labels(iAMdiChild* mdiChild, bool addMainSlicer = true);
 	int curLabelRow() const;
 	int seedCount(int labelIdx) const;
-	bool load(QString const & filename);
-	bool store(QString const & filename, bool extendedFormat);
+	bool load(QString const& filename);
+	bool store(QString const& filename, bool extendedFormat);
 
-	int addSlicer(iASlicer *slicer, QString name, int *extent, double *spacing, uint channelId);
-	void addSlicer(iASlicer *slicer, int imageId, uint channelId=0);
-	void removeSlicer(iASlicer *slicer);
+	int addSlicer(iASlicer* slicer, QString name, int* extent, double* spacing, uint channelId);
+	void addSlicer(iASlicer* slicer, int imageId, uint channelId = 0);
+	void removeSlicer(iASlicer* slicer);
 
 	int labelCount();
 	int overlayImageIdBySlicer(iASlicer*);
@@ -70,15 +69,15 @@ public:
 	void setSeedsTracking(bool enabled);
 
 	// TEMPORARY
-	QStandardItemModel* m_itemModel; // TODO: make private
+	QStandardItemModel* m_itemModel;  // TODO: make private
 
 signals:
-	void seedsAdded(const QList<iASeed> &);
-	void seedsRemoved(const QList<iASeed> &);
+	void seedsAdded(const QList<iASeed>&);
+	void seedsRemoved(const QList<iASeed>&);
 	void allSeedsRemoved();
-	void labelAdded(const iALabel &);
-	void labelRemoved(const iALabel &);
-	void labelsColorChanged(const QList<iALabel> &);
+	void labelAdded(const iALabel&);
+	void labelRemoved(const iALabel&);
+	void labelsColorChanged(const QList<iALabel>&);
 
 public slots:
 	void rendererClicked(int, int, int, iASlicer*);
@@ -92,8 +91,8 @@ public slots:
 	void storeImage();
 	void sample();
 	void clear();
-	void colorThemeChanged(QString const & newThemeName);
-	QString const & fileName();
+	void colorThemeChanged(QString const& newThemeName);
+	QString const& fileName();
 	void opacityChanged(int newValue);
 
 private:
@@ -101,8 +100,8 @@ private:
 	void removeSeed(int, int, int, iASlicer*);
 	void removeSeed(QStandardItem*);
 	QStandardItem* addSeedItem(int label, int x, int y, int z, int imageId);
-	int addLabelItem(QString const & labelText);
-	void appendSeeds(int label, QList<QStandardItem*> const & items);
+	int addLabelItem(QString const& labelText);
+	void appendSeeds(int label, QList<QStandardItem*> const& items);
 	void reInitChannelTF();
 	void recolorItems();
 	void updateChannels();
@@ -113,7 +112,7 @@ private:
 
 	int chooseOverlayImage(QString title);
 
-	iAColorTheme const * m_colorTheme;
+	iAColorTheme const* m_colorTheme;
 	QString m_fileName;
 	QList<QSharedPointer<iALabel>> m_labels;
 	int m_nextLabelId = 0;
@@ -123,11 +122,13 @@ private:
 	int getNextId();
 	struct OverlayImage
 	{
-		OverlayImage(int _id, QString _name, vtkSmartPointer<iAvtkImageData> _image) : id(_id), name(_name), image(_image)
-		{}
+		OverlayImage(int _id, QString _name, vtkSmartPointer<iAvtkImageData> _image) :
+			id(_id), name(_name), image(_image)
+		{
+		}
 		int id;
 		QString name;
-		vtkSmartPointer<iAvtkImageData> image; // label overlay image
+		vtkSmartPointer<iAvtkImageData> image;  // label overlay image
 		QList<iASlicer*> slicers;
 	};
 	QMap<int, QSharedPointer<OverlayImage>> m_mapId2image;
@@ -135,11 +136,9 @@ private:
 	struct SlicerData
 	{
 		SlicerData(iAChannelData _channelData, uint _channelId, QList<QMetaObject::Connection> c, int id) :
-			channelData(_channelData),
-			overlayImageId(id),
-			channelId(_channelId),
-			connections(c)
-		{}
+			channelData(_channelData), overlayImageId(id), channelId(_channelId), connections(c)
+		{
+		}
 		iAChannelData channelData;
 		int overlayImageId;
 		uint channelId;

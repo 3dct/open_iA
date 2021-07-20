@@ -23,22 +23,22 @@
 #include "iAImageCoordinate.h"
 
 #include <dlg_commoninput.h>
-#include <iALabellingObjects.h>
 #include <iAChannelData.h>
 #include <iAColorTheme.h>
-#include <iALog.h>
 #include <iALUT.h>
+#include <iALabellingObjects.h>
+#include <iALog.h>
 #include <iAModality.h>
 #include <iAModalityList.h>
 //#include <iARenderer.h>
-#include <iAPerformanceHelper.h>
-#include <iASlicer.h>
-#include <iASlicerImpl.h>    // for mapSliceToGlobalAxis
-#include <iAToolsVTK.h>
-#include <iAvec3.h>
-#include <iAVtkDraw.h>
 #include <iAFileUtils.h>
 #include <iAMdiChild.h>
+#include <iAPerformanceHelper.h>
+#include <iASlicer.h>
+#include <iASlicerImpl.h>  // for mapSliceToGlobalAxis
+#include <iAToolsVTK.h>
+#include <iAVtkDraw.h>
+#include <iAvec3.h>
 
 #include <vtkImageData.h>
 #include <vtkLookupTable.h>
@@ -49,11 +49,11 @@
 #include <QInputDialog>
 #include <QListWidgetItem>
 #include <QMessageBox>
+#include <QSignalMapper>
 #include <QStandardItemModel>
 #include <QStringView>
 #include <QThread>
 #include <QXmlStreamReader>
-#include <QSignalMapper>
 
 #include <random>
 
@@ -63,7 +63,7 @@ namespace
 	typedef int LabelPixelType;
 }
 
-dlg_labels::dlg_labels(iAMdiChild* mdiChild, bool addMainSlicers /* = true*/):
+dlg_labels::dlg_labels(iAMdiChild* mdiChild, bool addMainSlicers /* = true*/) :
 	m_itemModel(new QStandardItemModel()),
 	m_trackingSeeds(false),
 	m_colorTheme(iAColorThemeManager::instance().theme("Brewer Set3 (max. 12)")),
@@ -85,7 +85,8 @@ dlg_labels::dlg_labels(iAMdiChild* mdiChild, bool addMainSlicers /* = true*/):
 	m_itemModel->setHorizontalHeaderItem(1, new QStandardItem("Count"));
 	lvLabels->setModel(m_itemModel);
 
-	if (addMainSlicers) {
+	if (addMainSlicers)
+	{
 		uint channelId = m_mdiChild->createChannel();
 		auto ip = m_mdiChild->imagePointer();
 		int id = addSlicer(m_mdiChild->slicer(iASlicerMode::XY), "Main XY", ip->GetExtent(), ip->GetSpacing(), channelId);
@@ -94,13 +95,15 @@ dlg_labels::dlg_labels(iAMdiChild* mdiChild, bool addMainSlicers /* = true*/):
 	}
 }
 
-int dlg_labels::getNextLabelId() {
+int dlg_labels::getNextLabelId()
+{
 	int id = m_nextLabelId;
 	m_nextLabelId++;
 	return id;
 }
 
-int dlg_labels::getNextId() {
+int dlg_labels::getNextId()
+{
 	int id = m_nextId;
 	m_nextId++;
 	return id;
@@ -118,7 +121,7 @@ int dlg_labels::addSlicer(iASlicer* slicer, QString name, int* extent, double* s
 	labelOverlayImg->AllocateScalars(VTK_INT, 1);
 	clearImage<LabelPixelType>(labelOverlayImg, 0);
 
-	OverlayImage *image = new OverlayImage(imageId, name, labelOverlayImg);
+	OverlayImage* image = new OverlayImage(imageId, name, labelOverlayImg);
 	m_mapId2image.insert(imageId, QSharedPointer<OverlayImage>(image));
 
 	addSlicer(slicer, imageId, channelId);
@@ -126,10 +129,11 @@ int dlg_labels::addSlicer(iASlicer* slicer, QString name, int* extent, double* s
 	return imageId;
 }
 
-void dlg_labels::addSlicer(iASlicer *slicer, int imageId, uint channelId)
+void dlg_labels::addSlicer(iASlicer* slicer, int imageId, uint channelId)
 {
 	QSharedPointer<OverlayImage> oi = m_mapId2image.value(imageId);
-	if (!oi) {
+	if (!oi)
+	{
 		// TODO: throw error
 		assert(false);
 	}
@@ -142,10 +146,13 @@ void dlg_labels::addSlicer(iASlicer *slicer, int imageId, uint channelId)
 		int id = oi->id;
 
 		QList<QMetaObject::Connection> c;
-		c.append(connect(slicer, &iASlicer::leftClicked, this, [this, slicer](int x, int y, int z) { slicerClicked(x, y, z, slicer); }));
-		c.append(connect(slicer, &iASlicer::leftDragged, this, [this, slicer](int x, int y, int z) { slicerDragged(x, y, z, slicer); }));
-		c.append(connect(slicer, &iASlicer::rightClicked, this, [this, slicer](int x, int y, int z) { slicerRightClicked(x, y, z, slicer); }));
-		
+		c.append(connect(slicer, &iASlicer::leftClicked, this,
+			[this, slicer](int x, int y, int z) { slicerClicked(x, y, z, slicer); }));
+		c.append(connect(slicer, &iASlicer::leftDragged, this,
+			[this, slicer](int x, int y, int z) { slicerDragged(x, y, z, slicer); }));
+		c.append(connect(slicer, &iASlicer::rightClicked, this,
+			[this, slicer](int x, int y, int z) { slicerRightClicked(x, y, z, slicer); }));
+
 		auto channelData = iAChannelData("name", oi->image, m_labelColorTF, m_labelOpacityTF);
 		slicer->addChannel(channelId, channelData, true);
 
@@ -166,14 +173,16 @@ void dlg_labels::addSlicer(iASlicer *slicer, int imageId, uint channelId)
 void dlg_labels::removeSlicer(iASlicer* slicer)
 {
 	auto slicerData = m_mapSlicer2data.value(slicer);
-	if (!slicerData) {
+	if (!slicerData)
+	{
 		return;
 	}
 
 	slicer->removeChannel(slicerData->channelId);
 
 	auto connections = slicerData->connections;
-	for (auto c : connections) {
+	for (auto c : connections)
+	{
 		disconnect(c);
 	}
 
@@ -184,8 +193,9 @@ void dlg_labels::removeSlicer(iASlicer* slicer)
 	// So we can assume here that no slicer has been added twice
 	QSharedPointer<OverlayImage> oi = m_mapId2image.value(slicerData->overlayImageId);
 	oi->slicers.removeOne(slicer);
-	if (oi->slicers.isEmpty()) {
-		/*auto removed = */m_mapId2image.remove(slicerData->overlayImageId);
+	if (oi->slicers.isEmpty())
+	{
+		/*auto removed = */ m_mapId2image.remove(slicerData->overlayImageId);
 	}
 }
 
@@ -193,7 +203,8 @@ namespace
 {
 	QStandardItem* createCoordinateItem(int x, int y, int z, int overlayImageId)
 	{
-		QStandardItem* item = new QStandardItem("(" + QString::number(x) + ", " + QString::number(y) + ", " + QString::number(z) + ")");
+		QStandardItem* item =
+			new QStandardItem("(" + QString::number(x) + ", " + QString::number(y) + ", " + QString::number(z) + ")");
 		item->setData(x, Qt::UserRole + 1);
 		item->setData(y, Qt::UserRole + 2);
 		item->setData(z, Qt::UserRole + 3);
@@ -211,14 +222,14 @@ namespace
 	}
 }
 
-void dlg_labels::rendererClicked(int x, int y, int z, iASlicer *slicer)
+void dlg_labels::rendererClicked(int x, int y, int z, iASlicer* slicer)
 {
 	addSeed(x, y, z, slicer);
 }
 
 int findSeed(QStandardItem* labelItem, int x, int y, int z, int overlayImageId)
 {
-	for (int i = 0; i<labelItem->rowCount(); ++i)
+	for (int i = 0; i < labelItem->rowCount(); ++i)
 	{
 		QStandardItem* coordItem = labelItem->child(i);
 		int ix = coordItem->data(Qt::UserRole + 1).toInt();
@@ -232,7 +243,7 @@ int findSeed(QStandardItem* labelItem, int x, int y, int z, int overlayImageId)
 	return -1;
 }
 
-bool seedAlreadyExists(QStandardItem* labelItem, int x, int y, int z, int imgId) // TODO
+bool seedAlreadyExists(QStandardItem* labelItem, int x, int y, int z, int imgId)  // TODO
 {
 	return findSeed(labelItem, x, y, z, imgId) != -1;
 }
@@ -252,9 +263,9 @@ void dlg_labels::addSeed(int cx, int cy, int cz, iASlicer* slicer)
 	}
 
 	//if (m_trackingSeeds)
-		QList<iASeed> addedSeeds;
+	QList<iASeed> addedSeeds;
 
-	int radius = spinBox->value() - 1; // -1 because the center voxel shouldn't count
+	int radius = spinBox->value() - 1;  // -1 because the center voxel shouldn't count
 	//iATimeGuard timer(QString("Drawing circle of radius %1").arg(radius).toStdString());
 
 	int imageId = m_mapSlicer2data.value(slicer)->overlayImageId;
@@ -263,8 +274,7 @@ void dlg_labels::addSeed(int cx, int cy, int cz, iASlicer* slicer)
 	auto extent = oi->image->GetExtent();
 	auto mode = slicer->mode();
 
-	int xAxis = mapSliceToGlobalAxis(mode, iAAxisIndex::X),
-		yAxis = mapSliceToGlobalAxis(mode, iAAxisIndex::Y),
+	int xAxis = mapSliceToGlobalAxis(mode, iAAxisIndex::X), yAxis = mapSliceToGlobalAxis(mode, iAAxisIndex::Y),
 		minSlicerX = vtkMath::Max(center[xAxis] - radius, extent[xAxis * 2]),
 		maxSlicerX = vtkMath::Min(center[xAxis] + radius, extent[xAxis * 2 + 1]),
 		minSlicerY = vtkMath::Max(center[yAxis] - radius, extent[yAxis * 2]),
@@ -304,22 +314,23 @@ void dlg_labels::addSeed(int cx, int cy, int cz, iASlicer* slicer)
 	appendSeeds(labelRow, items);
 	updateChannels(imageId);
 
-	if (m_trackingSeeds) {
+	if (m_trackingSeeds)
+	{
 		emit seedsAdded(addedSeeds);
 	}
 }
 
-void dlg_labels::slicerClicked(int x, int y, int z, iASlicer *slicer)
+void dlg_labels::slicerClicked(int x, int y, int z, iASlicer* slicer)
 {
 	addSeed(x, y, z, slicer);
 }
 
-void dlg_labels::slicerDragged(int x, int y, int z, iASlicer *slicer)
+void dlg_labels::slicerDragged(int x, int y, int z, iASlicer* slicer)
 {
 	addSeed(x, y, z, slicer);
 }
 
-void dlg_labels::slicerRightClicked(int x, int y, int z, iASlicer *slicer)
+void dlg_labels::slicerRightClicked(int x, int y, int z, iASlicer* slicer)
 {
 	removeSeed(x, y, z, slicer);
 	updateChannels(m_mapSlicer2data.value(slicer)->overlayImageId);
@@ -335,7 +346,7 @@ QStandardItem* dlg_labels::addSeedItem(int labelRow, int x, int y, int z, int im
 		if (childIdx != -1)
 		{
 			if (l == labelRow)
-				return nullptr; // seed already exists with same label, nothing to do
+				return nullptr;  // seed already exists with same label, nothing to do
 			else
 				// seed already exists with different label; need to remove other
 				// TODO: do that removal somehow "in batch" too?
@@ -347,19 +358,19 @@ QStandardItem* dlg_labels::addSeedItem(int labelRow, int x, int y, int z, int im
 	return createCoordinateItem(x, y, z, imageId);
 }
 
-void dlg_labels::appendSeeds(int label, QList<QStandardItem*> const & items)
+void dlg_labels::appendSeeds(int label, QList<QStandardItem*> const& items)
 {
 	m_itemModel->item(label)->appendRows(items);
 	m_itemModel->item(label, 1)->setText(QString::number(m_itemModel->item(label)->rowCount()));
 }
 
-int dlg_labels::addLabelItem(QString const & labelText)
+int dlg_labels::addLabelItem(QString const& labelText)
 {
 	QStandardItem* newItem = new QStandardItem(labelText);
 	QStandardItem* newItemCount = new QStandardItem("0");
 	QColor color = m_colorTheme->color(m_itemModel->rowCount());
 	newItem->setData(color, Qt::DecorationRole);
-	QList<QStandardItem* > newRow;
+	QList<QStandardItem*> newRow;
 	newRow.append(newItem);
 	newRow.append(newItemCount);
 	m_itemModel->appendRow(newRow);
@@ -373,7 +384,7 @@ int dlg_labels::addLabelItem(QString const & labelText)
 void dlg_labels::add()
 {
 	pbStore->setEnabled(true);
-	addLabelItem(QString::number( m_itemModel->rowCount() ));
+	addLabelItem(QString::number(m_itemModel->rowCount()));
 	reInitChannelTF();
 }
 
@@ -385,7 +396,8 @@ void dlg_labels::reInitChannelTF()
 
 void dlg_labels::recolorItems()
 {
-	for (int row = 0; row < m_itemModel->rowCount(); ++row) {
+	for (int row = 0; row < m_itemModel->rowCount(); ++row)
+	{
 		QColor color = m_colorTheme->color(row);
 		auto item = m_itemModel->item(row);
 		item->setData(color, Qt::DecorationRole);
@@ -394,8 +406,10 @@ void dlg_labels::recolorItems()
 	emit labelsColorChanged(createLabelsList(m_labels));
 }
 
-void dlg_labels::updateChannels() {
-	for (auto slicer : m_mapSlicer2data.keys()) {
+void dlg_labels::updateChannels()
+{
+	for (auto slicer : m_mapSlicer2data.keys())
+	{
 		updateChannel(slicer);
 	}
 }
@@ -408,7 +422,7 @@ void dlg_labels::updateChannels(int imageId)
 	}
 }
 
-void dlg_labels::updateChannel(iASlicer *slicer)
+void dlg_labels::updateChannel(iASlicer* slicer)
 {
 	auto slicerData = m_mapSlicer2data.value(slicer);
 	auto imageId = slicerData->overlayImageId;
@@ -439,9 +453,11 @@ void dlg_labels::remove()
 		if (item->rowCount() > 0)
 		{
 			auto reply = QMessageBox::question(this, "Remove Label",
-				QString("Are you sure you want to remove the whole label and all of its %1 seeds?").arg(item->rowCount()),
+				QString("Are you sure you want to remove the whole label and all of its %1 seeds?")
+					.arg(item->rowCount()),
 				QMessageBox::Yes | QMessageBox::No);
-			if (reply != QMessageBox::Yes) {
+			if (reply != QMessageBox::Yes)
+			{
 				return;
 			}
 		}
@@ -455,17 +471,19 @@ void dlg_labels::remove()
 		auto label = m_labels[curLabel];
 
 		QList<iASeed> removedSeeds;
-		for (int s = item->rowCount()-1; s >= 0; --s)
+		for (int s = item->rowCount() - 1; s >= 0; --s)
 		{
 			auto seed = item->child(s);
 			int x = seed->data(Qt::UserRole + 1).toInt();
 			int y = seed->data(Qt::UserRole + 2).toInt();
 			int z = seed->data(Qt::UserRole + 3).toInt();
 			int oiid = seed->data(Qt::UserRole + 4).toInt();
-			if (m_trackingSeeds) {
+			if (m_trackingSeeds)
+			{
 				removedSeeds.append(iASeed(x, y, z, oiid, label));
 			}
-			for (QSharedPointer<OverlayImage> oi : m_mapId2image.values()) {
+			for (QSharedPointer<OverlayImage> oi : m_mapId2image.values())
+			{
 				drawPixel<LabelPixelType>(oi->image, x, y, z, 0);
 			}
 		}
@@ -481,7 +499,8 @@ void dlg_labels::remove()
 				int x = seed->data(Qt::UserRole + 1).toInt();
 				int y = seed->data(Qt::UserRole + 2).toInt();
 				int z = seed->data(Qt::UserRole + 3).toInt();
-				for (QSharedPointer<OverlayImage> oi : m_mapId2image.values()) {
+				for (QSharedPointer<OverlayImage> oi : m_mapId2image.values())
+				{
 					drawPixel<LabelPixelType>(oi->image, x, y, z, l + 1);
 				}
 			}
@@ -497,7 +516,8 @@ void dlg_labels::remove()
 		// TODO remove respective SlicerData from m_mapSlicer2data
 		// ... by going through all entries and checking if overlayImageId matches that of the removed image
 
-		if (m_trackingSeeds) {
+		if (m_trackingSeeds)
+		{
 			emit seedsRemoved(removedSeeds);
 		}
 
@@ -507,23 +527,24 @@ void dlg_labels::remove()
 		updateChannels();
 	}
 	else
-	{	// remove a single seed
+	{  // remove a single seed
 		removeSeed(item);
 		updateChannels();
 	}
 }
 
-void dlg_labels::removeSeed(int x, int y, int z, iASlicer *slicer)
+void dlg_labels::removeSeed(int x, int y, int z, iASlicer* slicer)
 {
 	int id = m_mapSlicer2data.value(slicer)->overlayImageId;
 	auto image = m_mapId2image.value(id)->image;
 	int labelRow = static_cast<int>(image->GetScalarComponentAsFloat(x, y, z, 0)) - 1;
-	if (labelRow < 0) {
+	if (labelRow < 0)
+	{
 		return;
 	}
 
 	auto label = m_labels[labelRow];
-	
+
 	drawPixel<LabelPixelType>(image, x, y, z, 0);
 
 	auto labelItem = m_itemModel->item(labelRow);
@@ -532,14 +553,16 @@ void dlg_labels::removeSeed(int x, int y, int z, iASlicer *slicer)
 	labelItem->removeRow(seedItemRow);
 	m_itemModel->item(labelRow, 1)->setText(QString::number(m_itemModel->item(labelRow, 1)->text().toInt() - 1));
 
-	if (m_trackingSeeds) {
+	if (m_trackingSeeds)
+	{
 		QList<iASeed> removedSeeds;
 		removedSeeds.append(iASeed(x, y, z, id, label));
 		emit seedsRemoved(removedSeeds);
 	}
 }
 
-void dlg_labels::removeSeed(QStandardItem *item) {
+void dlg_labels::removeSeed(QStandardItem* item)
+{
 	int x = item->data(Qt::UserRole + 1).toInt();
 	int y = item->data(Qt::UserRole + 2).toInt();
 	int z = item->data(Qt::UserRole + 3).toInt();
@@ -549,7 +572,8 @@ void dlg_labels::removeSeed(QStandardItem *item) {
 
 	// TODO remove item from list
 
-	if (m_trackingSeeds) {
+	if (m_trackingSeeds)
+	{
 		iASeed seed(x, y, z, id, label);
 		QList<iASeed> seeds;
 		seeds.append(seed);
@@ -578,15 +602,18 @@ int dlg_labels::seedCount(int labelIdx) const
 	return labelItem->rowCount();
 }
 
-int dlg_labels::labelCount() {
+int dlg_labels::labelCount()
+{
 	return m_itemModel->rowCount();
 }
 
-int dlg_labels::overlayImageIdBySlicer(iASlicer* slicer) {
+int dlg_labels::overlayImageIdBySlicer(iASlicer* slicer)
+{
 	return m_mapSlicer2data.value(slicer)->overlayImageId;
 }
 
-void dlg_labels::setSeedsTracking(bool enabled) {
+void dlg_labels::setSeedsTracking(bool enabled)
+{
 	m_trackingSeeds = enabled;
 }
 
@@ -604,7 +631,8 @@ int dlg_labels::chooseOverlayImage(QString title)
 
 	QStringList items;
 	QMap<QString, int> map;
-	for (QSharedPointer<OverlayImage> oi : m_mapId2image.values()) {
+	for (QSharedPointer<OverlayImage> oi : m_mapId2image.values())
+	{
 		QString name = oi->name;
 		items.append(name);
 		map.insert(name, oi->id);
@@ -612,14 +640,15 @@ int dlg_labels::chooseOverlayImage(QString title)
 
 	bool ok;
 	QString selectedString = QInputDialog::getItem(this, title, "Images", items, 0, false, &ok);
-	if (!ok || selectedString.isEmpty()) {
+	if (!ok || selectedString.isEmpty())
+	{
 		return -1;
 	}
 
 	return map.value(selectedString);
 }
 
-bool dlg_labels::load(QString const & filename)
+bool dlg_labels::load(QString const& filename)
 {
 	int overlayImageId = chooseOverlayImage("Choose an image to load onto");
 	if (overlayImageId == -1)
@@ -627,7 +656,7 @@ bool dlg_labels::load(QString const & filename)
 		return false;
 	}
 	QSharedPointer<OverlayImage> oi = m_mapId2image.value(overlayImageId);
-	
+
 	clearImage<LabelPixelType>(oi->image, 0);
 
 	m_itemModel->clear();
@@ -649,18 +678,17 @@ bool dlg_labels::load(QString const & filename)
 	{
 		if (stream.isStartElement())
 		{
-			if (stream.name().compare(QString("Labels"))  == 0)
+			if (stream.name().compare(QString("Labels")) == 0)
 			{
 				// root element, no action required
 			}
-			else if (stream.name().compare(QString("Label")) == 0 )
+			else if (stream.name().compare(QString("Label")) == 0)
 			{
 				if (items.size() > 0)
 				{
 					if (curLabelRow == -1)
 					{
-						LOG(lvlError, QString("Error loading seed file '%1': Current label not set!")
-							.arg(filename));
+						LOG(lvlError, QString("Error loading seed file '%1': Current label not set!").arg(filename));
 					}
 					appendSeeds(curLabelRow, items);
 				}
@@ -670,19 +698,19 @@ bool dlg_labels::load(QString const & filename)
 				QString name = stream.attributes().value("name").toString();
 				curLabelRow = addLabelItem(name);
 				items.clear();
-				if (m_itemModel->rowCount()-1 != id.toInt())
+				if (m_itemModel->rowCount() - 1 != id.toInt())
 				{
-					LOG(lvlWarn, QString("Inserting row: rowCount %1 <-> label id %2 mismatch!")
-						.arg(m_itemModel->rowCount())
-						.arg(id) );
+					LOG(lvlWarn,
+						QString("Inserting row: rowCount %1 <-> label id %2 mismatch!")
+							.arg(m_itemModel->rowCount())
+							.arg(id));
 				}
 			}
 			else if (stream.name().compare(QString("Seed")) == 0)
 			{
 				if (curLabelRow == -1)
 				{
-					LOG(lvlError, QString("Error loading seed file '%1': Current label not set!")
-						.arg(filename) );
+					LOG(lvlError, QString("Error loading seed file '%1': Current label not set!").arg(filename));
 					return false;
 				}
 				int x = stream.attributes().value("x").toInt();
@@ -692,8 +720,8 @@ bool dlg_labels::load(QString const & filename)
 				if (item)
 					items.append(item);
 				else
-					LOG(lvlWarn, QString("Item %1, %2, %3, label %4 already exists!")
-						.arg(x).arg(y).arg(z).arg(curLabelRow));
+					LOG(lvlWarn,
+						QString("Item %1, %2, %3, label %4 already exists!").arg(x).arg(y).arg(z).arg(curLabelRow));
 			}
 		}
 		stream.readNext();
@@ -702,16 +730,12 @@ bool dlg_labels::load(QString const & filename)
 	file.close();
 	if (stream.hasError())
 	{
-		LOG(lvlError, QString("Error: Failed to parse seed xml file '%1': %2")
-			.arg(filename)
-			.arg(stream.errorString()) );
+		LOG(lvlError, QString("Error: Failed to parse seed xml file '%1': %2").arg(filename).arg(stream.errorString()));
 		return false;
 	}
 	else if (file.error() != QFile::NoError)
 	{
-		LOG(lvlError, QString("Error: Cannot read file '%1': %2")
-			.arg(filename )
-			.arg(file.errorString()) );
+		LOG(lvlError, QString("Error: Cannot read file '%1': %2").arg(filename).arg(file.errorString()));
 		return false;
 	}
 
@@ -723,7 +747,7 @@ bool dlg_labels::load(QString const & filename)
 	return true;
 }
 
-bool dlg_labels::store(QString const & filename, bool extendedFormat)
+bool dlg_labels::store(QString const& filename, bool extendedFormat)
 {
 	int id = chooseOverlayImage("Choose a label overlay image to store");
 	if (id == -1)
@@ -746,13 +770,13 @@ bool dlg_labels::store(QString const & filename, bool extendedFormat)
 	stream.writeStartElement("Labels");
 
 	auto modalities = m_mdiChild->modalities();
-	for (int l=0; l<m_itemModel->rowCount(); ++l)
+	for (int l = 0; l < m_itemModel->rowCount(); ++l)
 	{
-		QStandardItem * labelItem = m_itemModel->item(l);
+		QStandardItem* labelItem = m_itemModel->item(l);
 		stream.writeStartElement("Label");
 		stream.writeAttribute("id", QString::number(l));
 		stream.writeAttribute("name", labelItem->text());
-		for (int i=0; i<labelItem->rowCount(); ++i)
+		for (int i = 0; i < labelItem->rowCount(); ++i)
 		{
 			stream.writeStartElement("Seed");
 			QStandardItem* coordItem = labelItem->child(i);
@@ -790,12 +814,10 @@ bool dlg_labels::store(QString const & filename, bool extendedFormat)
 
 void dlg_labels::loadLabels()
 {
-	QString fileName = QFileDialog::getOpenFileName(
-		QApplication::activeWindow(),
-		tr("Open Seed File"),
-		QString() // TODO get directory of current file
+	QString fileName = QFileDialog::getOpenFileName(QApplication::activeWindow(), tr("Open Seed File"),
+		QString()  // TODO get directory of current file
 		,
-		tr("Seed file (*.seed);;All files (*.*)" ) );
+		tr("Seed file (*.seed);;All files (*.*)"));
 	if (fileName.isEmpty())
 	{
 		return;
@@ -808,12 +830,10 @@ void dlg_labels::loadLabels()
 
 void dlg_labels::storeLabels()
 {
-	QString fileName = QFileDialog::getSaveFileName(
-		QApplication::activeWindow(),
-		tr("Save Seed File"),
-		QString() // TODO get directory of current file
+	QString fileName = QFileDialog::getSaveFileName(QApplication::activeWindow(), tr("Save Seed File"),
+		QString()  // TODO get directory of current file
 		,
-		tr("Seed file (*.seed);;All files (*.*)" ) );
+		tr("Seed file (*.seed);;All files (*.*)"));
 	if (fileName.isEmpty())
 	{
 		return;
@@ -844,27 +864,25 @@ void dlg_labels::storeImage()
 
 	auto labelOverlayImage = m_mapId2image.value(id)->image;
 
-	QString fileName = QFileDialog::getSaveFileName(
-		QApplication::activeWindow(),
-		tr("Save Seeds as Image"),
-		QString() // TODO get directory of current file
+	QString fileName = QFileDialog::getSaveFileName(QApplication::activeWindow(), tr("Save Seeds as Image"),
+		QString()  // TODO get directory of current file
 		,
-		tr("Seed file (*.mhd);;All files (*.*)" ) );
+		tr("Seed file (*.mhd);;All files (*.*)"));
 	if (fileName.isEmpty())
 	{
 		return;
 	}
-	vtkMetaImageWriter *metaImageWriter = vtkMetaImageWriter::New();
-	metaImageWriter->SetFileName( getLocalEncodingFileName(fileName).c_str() );
+	vtkMetaImageWriter* metaImageWriter = vtkMetaImageWriter::New();
+	metaImageWriter->SetFileName(getLocalEncodingFileName(fileName).c_str());
 	metaImageWriter->SetInputData(labelOverlayImage);
-	metaImageWriter->SetCompression( false );
+	metaImageWriter->SetCompression(false);
 	metaImageWriter->Write();
 	metaImageWriter->Delete();
 }
 
-bool haveAllSeeds(QVector<int> const & label2SeedCounts, std::vector<int> const & requiredNumOfSeedsPerLabel)
+bool haveAllSeeds(QVector<int> const& label2SeedCounts, std::vector<int> const& requiredNumOfSeedsPerLabel)
 {
-	for (int i=0; i<label2SeedCounts.size(); ++i)
+	for (int i = 0; i < label2SeedCounts.size(); ++i)
 	{
 		if (label2SeedCounts[i] < requiredNumOfSeedsPerLabel[i])
 		{
@@ -885,23 +903,25 @@ void dlg_labels::sample()
 
 	int gt = m_mdiChild->chooseModalityNr("Choose Ground Truth");
 	vtkSmartPointer<vtkImageData> img = m_mdiChild->modality(gt)->image();
-	int labelCount = img->GetScalarRange()[1]+1;
+	int labelCount = img->GetScalarRange()[1] + 1;
 	if (labelCount > 50)
 	{
 		auto reply = QMessageBox::question(this, "Sample Seeds",
-			QString("According to min/max values in image, there are %1 labels, this seems a bit much. Do you really want to proceed?").arg(labelCount),
+			QString("According to min/max values in image, there are %1 labels, this seems a bit much. Do you really "
+					"want to proceed?")
+				.arg(labelCount),
 			QMessageBox::Yes | QMessageBox::No);
-		if (reply != QMessageBox::Yes) {
+		if (reply != QMessageBox::Yes)
+		{
 			return;
 		}
 	}
 
-	QStringList     inParams; inParams
-		<< "*Number of Seeds per Label"
-		<< "$Reduce seed number for all labels to size of smallest labeling";
-	QList<QVariant> inValues; inValues
-		<< 50
-		<< true;
+	QStringList inParams;
+	inParams << "*Number of Seeds per Label"
+			 << "$Reduce seed number for all labels to size of smallest labeling";
+	QList<QVariant> inValues;
+	inValues << 50 << true;
 	dlg_commoninput input(this, "Sample Seeds", inParams, inValues, nullptr);
 	if (input.exec() != QDialog::Accepted)
 	{
@@ -924,8 +944,11 @@ void dlg_labels::sample()
 		if ((histogram[i] * 3 / 4) < numOfSeedsPerLabel[i])
 		{
 			numOfSeedsPerLabel[i] = histogram[i] * 3 / 4;
-			LOG(lvlWarn, QString("Reducing number of seeds for label %1 to %2 because it only has %3 pixels")
-				.arg(i).arg(numOfSeedsPerLabel[i]).arg(histogram[i]));
+			LOG(lvlWarn,
+				QString("Reducing number of seeds for label %1 to %2 because it only has %3 pixels")
+					.arg(i)
+					.arg(numOfSeedsPerLabel[i])
+					.arg(histogram[i]));
 		}
 		if (numOfSeedsPerLabel[i] < minNumOfSeeds)
 		{
@@ -951,7 +974,7 @@ void dlg_labels::sample()
 	std::uniform_int_distribution<> zDist(0, img->GetDimensions()[2] - 1);
 
 	QVector<int> label2SeedCount(labelCount, 0);
-	QVector<QList<QStandardItem*> > items(labelCount);
+	QVector<QList<QStandardItem*>> items(labelCount);
 	while (!haveAllSeeds(label2SeedCount, numOfSeedsPerLabel))
 	{
 		int x = xDist(gen);
@@ -959,7 +982,8 @@ void dlg_labels::sample()
 		int z = zDist(gen);
 		int label = static_cast<int>(img->GetScalarComponentAsFloat(x, y, z, 0));
 
-		if (label2SeedCount[label] < numOfSeedsPerLabel[label] && !seedAlreadyExists(m_itemModel->item(label), x, y, z, imageId))
+		if (label2SeedCount[label] < numOfSeedsPerLabel[label] &&
+			!seedAlreadyExists(m_itemModel->item(label), x, y, z, imageId))
 		{
 			// m_itemModel->item(label)->appendRow(GetCoordinateItem(x, y, z));
 			auto item = addSeedItem(label, x, y, z, oi->id);
@@ -981,7 +1005,8 @@ void dlg_labels::sample()
 
 void dlg_labels::clear()
 {
-	for (QSharedPointer<OverlayImage> oi : m_mapId2image.values()) {
+	for (QSharedPointer<OverlayImage> oi : m_mapId2image.values())
+	{
 		auto img = oi->image;
 		if (img)
 		{
@@ -991,18 +1016,19 @@ void dlg_labels::clear()
 	updateChannels();
 	m_itemModel->clear();
 	emit allSeedsRemoved();
-	for (auto label : m_labels) {
+	for (auto label : m_labels)
+	{
 		emit labelRemoved(*label);
 	}
 	m_labels.clear();
 }
 
-QString const & dlg_labels::fileName()
+QString const& dlg_labels::fileName()
 {
 	return m_fileName;
 }
 
-void dlg_labels::colorThemeChanged(QString const & newThemeName)
+void dlg_labels::colorThemeChanged(QString const& newThemeName)
 {
 	m_colorTheme = iAColorThemeManager::instance().theme(newThemeName);
 	reInitChannelTF();
@@ -1017,7 +1043,7 @@ void dlg_labels::opacityChanged(int newValue)
 	{
 		auto slicerData = m_mapSlicer2data.value(slicer);
 
-		auto & channelData = slicerData->channelData;
+		auto& channelData = slicerData->channelData;
 		channelData.setOpacity(opacity);
 
 		slicer->setChannelOpacity(slicerData->channelId, opacity);

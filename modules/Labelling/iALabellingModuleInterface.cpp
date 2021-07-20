@@ -22,8 +22,8 @@
 
 #include "iALabellingAttachment.h"
 
-#include <iAModuleDispatcher.h>
 #include <iAMainwindow.h>
+#include <iAModuleDispatcher.h>
 
 #include <QAction>
 #include <QMenu>
@@ -49,7 +49,7 @@ void iALabellingModuleInterface::startLabelling()
 	AttachToMdiChild(m_mainWnd->activeMdiChild());
 }
 
-iAModuleAttachmentToChild* iALabellingModuleInterface::CreateAttachment(iAMainWindow* mainWnd, iAMdiChild * child)
+iAModuleAttachmentToChild* iALabellingModuleInterface::CreateAttachment(iAMainWindow* mainWnd, iAMdiChild* child)
 {
 	return iALabellingAttachment::create(mainWnd, child);
 }

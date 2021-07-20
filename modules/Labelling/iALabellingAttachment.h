@@ -32,7 +32,8 @@ class iALabellingAttachment : public iAModuleAttachmentToChild
 public:
 	static iALabellingAttachment* create(iAMainWindow* mainWnd, iAMdiChild* child);
 	dlg_labels* labelsDlg();
+
 private:
 	iALabellingAttachment(iAMainWindow* mainWnd, iAMdiChild* child);
-	dlg_labels*						  m_dlgLabels;
+	dlg_labels* m_dlgLabels;
 };

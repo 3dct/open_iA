@@ -31,7 +31,7 @@ iALabellingAttachment::iALabellingAttachment(iAMainWindow* mainWnd, iAMdiChild* 
 
 iALabellingAttachment* iALabellingAttachment::create(iAMainWindow* mainWnd, iAMdiChild* child)
 {
-	iALabellingAttachment * newAttachment = new iALabellingAttachment(mainWnd, child);
+	iALabellingAttachment* newAttachment = new iALabellingAttachment(mainWnd, child);
 	newAttachment->m_dlgLabels = new dlg_labels(child);
 	child->splitDockWidget(child->renderDockWidget(), newAttachment->m_dlgLabels, Qt::Vertical);
 	return newAttachment;
