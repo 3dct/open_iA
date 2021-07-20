@@ -159,10 +159,10 @@ void iANModalProgressWidget::showDialog(QWidget *widget/*=nullptr*/) {
 	layout->setColumnStretch(0, 1);
 	layout->setColumnStretch(1, 0);
 	
-	connect(buttonCancel, SIGNAL(clicked()), this, SLOT(cancel()));
+	connect(buttonCancel, &QPushButton::clicked, this, &iANModalProgressWidget::cancel);
 
-	connect(this, SIGNAL(finished()), dialog, SLOT(accept()));
-	connect(this, SIGNAL(canceled()), dialog, SLOT(reject()));
+	connect(this, &iANModalProgressWidget::finished, dialog, &QDialog::accept);
+	connect(this, &iANModalProgressWidget::canceled, dialog, &QDialog::reject);
 
 	auto dialogCode = dialog->exec();
 	if (dialogCode == QDialog::Rejected) {
@@ -219,20 +219,20 @@ void iANModalProgressWidget::cancel() {
 }
 
 iANModalProgressUpdater::iANModalProgressUpdater(iANModalProgressWidget* progress) {
-	connect(this, SIGNAL(finish()), progress, SLOT(finish()), CONNECTION_TYPE);
-	connect(this, SIGNAL(cancel()), progress, SLOT(cancel()), CONNECTION_TYPE);
+	connect(this, &iANModalProgressUpdater::finish, progress, &iANModalProgressWidget::finish, CONNECTION_TYPE);
+	connect(this, &iANModalProgressUpdater::cancel, progress, &iANModalProgressWidget::cancel, CONNECTION_TYPE);
 
-	connect(this, SIGNAL(showDialog(QWidget*)), progress, SLOT(showDialog(QWidget*)), CONNECTION_TYPE);
+	connect(this, &iANModalProgressUpdater::showDialog, progress, &iANModalProgressWidget::showDialog, CONNECTION_TYPE);
 
-	connect(this, SIGNAL(setFirstValue(int)), progress, SLOT(setFirstValue(int)), CONNECTION_TYPE);
+	connect(this, &iANModalProgressUpdater::setFirstValue, progress, &iANModalProgressWidget::setFirstValue, CONNECTION_TYPE);
 
-	connect(this, SIGNAL(setValue(int, int)), progress, SLOT(setValue(int, int)), CONNECTION_TYPE);
-	connect(this, SIGNAL(setMax(int, int)), progress, SLOT(setMax(int, int)), CONNECTION_TYPE);
-	connect(this, SIGNAL(setAutoUpdateText(int, bool)), progress, SLOT(setAutoUpdateText(int, bool)), CONNECTION_TYPE);
-	connect(this, SIGNAL(setText(int, QString)), progress, SLOT(setText(int, QString)), CONNECTION_TYPE);
+	connect(this, QOverload<int,int>::of(&iANModalProgressUpdater::setValue), progress, QOverload<int,int>::of(&iANModalProgressWidget::setValue), CONNECTION_TYPE);
+	connect(this, QOverload<int,int>::of(&iANModalProgressUpdater::setMax), progress, QOverload<int,int>::of(&iANModalProgressWidget::setMax), CONNECTION_TYPE);
+	connect(this, QOverload<int,bool>::of(&iANModalProgressUpdater::setAutoUpdateText), progress, QOverload<int,bool>::of(&iANModalProgressWidget::setAutoUpdateText), CONNECTION_TYPE);
+	connect(this, QOverload<int,QString>::of(&iANModalProgressUpdater::setText), progress, QOverload<int,QString>::of(&iANModalProgressWidget::setText), CONNECTION_TYPE);
 
-	connect(this, SIGNAL(setValue(QString, int)), progress, SLOT(setValue(QString, int)), CONNECTION_TYPE);
-	connect(this, SIGNAL(setMax(QString, int)), progress, SLOT(setMax(QString, int)), CONNECTION_TYPE);
-	connect(this, SIGNAL(setAutoUpdateText(QString, bool)), progress, SLOT(setAutoUpdateText(QString, bool)), CONNECTION_TYPE);
-	connect(this, SIGNAL(setText(QString, QString)), progress, SLOT(setText(QString, QString)), CONNECTION_TYPE);
+	connect(this, QOverload<QString,int>::of(&iANModalProgressUpdater::setValue), progress, QOverload<QString,int>::of(&iANModalProgressWidget::setValue), CONNECTION_TYPE);
+	connect(this, QOverload<QString,int>::of(&iANModalProgressUpdater::setMax),   progress, QOverload<QString,int>::of(&iANModalProgressWidget::setMax), CONNECTION_TYPE);
+	connect(this, QOverload<QString,bool>::of(&iANModalProgressUpdater::setAutoUpdateText), progress, QOverload<QString,bool>::of(&iANModalProgressWidget::setAutoUpdateText), CONNECTION_TYPE);
+	connect(this, QOverload<QString,QString>::of(&iANModalProgressUpdater::setText), progress, QOverload<QString,QString>::of(&iANModalProgressWidget::setText), CONNECTION_TYPE);
 }

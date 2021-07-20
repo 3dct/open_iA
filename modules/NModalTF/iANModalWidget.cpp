@@ -70,21 +70,21 @@ iANModalWidget::iANModalWidget(iAMdiChild *mdiChild) {
 	//layoutMain->addWidget(scrollArea, 1);
 	layoutMain->addWidget(widgetSlicersGrid, 1);
 
-	connect(m_labelsWidget, SIGNAL(labelOpacityChanged(int)), this, SLOT(onLabelOpacityChanged(int)));
+	connect(m_labelsWidget, &iANModalLabelsWidget::labelOpacityChanged, this, &iANModalWidget::onLabelOpacityChanged);
 	//connect(m_labelsWidget, &iANModalLabelsWidget::labelRemoverStateChanged, this, &iANModalWidget::onLabelRemoverStateChanged);
 
-	connect(m_c, SIGNAL(allSlicersInitialized()), this, SLOT(onAllSlicersInitialized()));
-	connect(m_c, SIGNAL(allSlicersReinitialized()), this, SLOT(onAllSlicersReinitialized()));
+	connect(m_c, &iANModalController::allSlicersInitialized, this, &iANModalWidget::onAllSlicersInitialized);
+	connect(m_c, &iANModalController::allSlicersReinitialized, this, &iANModalWidget::onAllSlicersReinitialized);
 	connect(m_c, &iANModalController::histogramInitialized, this, &iANModalWidget::onHistogramInitialized);
 
 	//connect(m_mdiChild->dataDockWidget(), &dlg_modalities::modalitiesChanged, this, &iANModalWidget::onModalitiesChanged);
 
-	connect(m_c->m_dlg_labels, SIGNAL(seedsAdded(const QList<iASeed> &)), this, SLOT(onSeedsAdded(const QList<iASeed> &)));
-	connect(m_c->m_dlg_labels, SIGNAL(seedsRemoved(const QList<iASeed> &)), this, SLOT(onSeedsRemoved(const QList<iASeed> &)));
+	connect(m_c->m_dlg_labels, &dlg_labels::seedsAdded, this, &iANModalWidget::onSeedsAdded);
+	connect(m_c->m_dlg_labels, &dlg_labels::seedsRemoved, this, &iANModalWidget::onSeedsRemoved);
 	connect(m_c->m_dlg_labels, &dlg_labels::allSeedsRemoved, this, &iANModalWidget::onAllSeedsRemoved);
-	connect(m_c->m_dlg_labels, SIGNAL(labelAdded(const iALabel &)), this, SLOT(onLabelAdded(const iALabel &)));
+	connect(m_c->m_dlg_labels, &dlg_labels::labelAdded, this,&iANModalWidget::onLabelAdded);
 	connect(m_c->m_dlg_labels, &dlg_labels::labelRemoved, this, &iANModalWidget::onLabelRemoved);
-	connect(m_c->m_dlg_labels, SIGNAL(labelsColorChanged(const QList<iALabel> &)), this, SLOT(onLabelsColorChanged(const QList<iALabel> &)));
+	connect(m_c->m_dlg_labels, &dlg_labels::labelsColorChanged, this, &iANModalWidget::onLabelsColorChanged);
 
 	auto list = m_mdiChild->modalities();
 	QList<QSharedPointer<iAModality>> modalities;

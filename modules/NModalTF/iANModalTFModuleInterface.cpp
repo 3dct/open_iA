@@ -36,7 +36,7 @@ void iANModalTFModuleInterface::Initialize()
 		return;
 	}
 	QAction *action = new QAction(tr("n-Modal Transfer Function"), m_mainWnd);
-	connect(action, SIGNAL(triggered()), this, SLOT(onMenuItemSelected()));
+	connect(action, &QAction::triggered, this, &iANModalTFModuleInterface::onMenuItemSelected);
 	auto submenu = getOrAddSubMenu(m_mainWnd->toolsMenu(), tr("Multi-Modal/-Channel Images"), false);
 	submenu->addAction(action);
 }

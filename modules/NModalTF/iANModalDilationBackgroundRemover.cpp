@@ -311,7 +311,7 @@ bool iANModalDilationBackgroundRemover::selectModalityAndThreshold(QWidget *pare
 		m_display = new iANModalDisplay(displayWidget, m_mdiChild, modalities, 1, 1);
 		m_threholdingMaskChannelId = m_display->createChannel();
 		//connect(m_display, SIGNAL(selectionChanged()), this, SLOT(updateThreshold()));
-		connect(m_display, SIGNAL(selectionChanged()), this, SLOT(updateModalitySelected()));
+		connect(m_display, &iANModalDisplay::selectionChanged, this, &iANModalDilationBackgroundRemover::updateModalitySelected);
 
 		displayLayout->addWidget(displayLabel);
 		displayLayout->addWidget(m_display);
@@ -327,7 +327,7 @@ bool iANModalDilationBackgroundRemover::selectModalityAndThreshold(QWidget *pare
 		auto thresholdLabel = new QLabel("Set threshold", thresholdWidget);
 
 		m_threshold = new iANModalThresholdingWidget(thresholdWidget);
-		connect(m_threshold, SIGNAL(thresholdChanged(int)), this, SLOT(updateThreshold()));
+		connect(m_threshold, &iANModalThresholdingWidget::thresholdChanged, this, &iANModalDilationBackgroundRemover::updateThreshold);
 
 		thresholdLayout->addWidget(thresholdLabel);
 		thresholdLayout->addWidget(m_threshold);
@@ -429,10 +429,13 @@ bool iANModalDilationBackgroundRemover::iterativeDilation(ImagePointer mask, int
 	iAProgress* progs[PROGS] = {new iAProgress(), new iAProgress(), new iAProgress()};
 
 	auto thread = new iANModalIterativeDilationThread(pw, progs, mask, regionCountGoal);
-	connect(thread, SIGNAL(addValue(int)), plot, SLOT(addValue(int)));
+	connect(thread, &iANModalIterativeDilationThread::addValue, plot, &iANModalIterativeDilationPlot::addValue);
 	connect(thread, &QThread::finished, thread, &QObject::deleteLater);
 	connect(thread, &QThread::finished, pw, &QObject::deleteLater);
-	for (int i = 0; i < PROGS; i++) connect(thread, &QThread::finished, progs[i], &QObject::deleteLater);
+	for (int i = 0; i < PROGS; i++)
+	{
+		connect(thread, &QThread::finished, progs[i], &QObject::deleteLater);
+	}
 	connect(progs[0], &iAProgress::progress, pw, [pw](int p) { pw->setValue("dil", p); });
 	connect(progs[1], &iAProgress::progress, pw, [pw](int p) { pw->setValue("cc", p); });
 	connect(progs[2], &iAProgress::progress, pw, [pw](int p) { pw->setValue("ero", p); });
@@ -561,10 +564,10 @@ iANModalThresholdingWidget::iANModalThresholdingWidget(QWidget *parent) : QWidge
 	layout->addWidget(m_spinBox);
 	layout->setStretchFactor(m_spinBox, 0);
 
-	connect(m_slider, SIGNAL(sliderMoved(int)), m_spinBox, SLOT(setValue(int)));
-	connect(m_spinBox, SIGNAL(valueChanged(int)), m_slider, SLOT(setValue(int)));
-	connect(m_spinBox, SIGNAL(valueChanged(int)), this, SLOT(setThreshold(int)));
-	connect(m_spinBox, SIGNAL(valueChanged(int)), this, SIGNAL(thresholdChanged(int)));
+	connect(m_slider, &QSlider::sliderMoved, m_spinBox, &QSpinBox::setValue);
+	connect(m_spinBox, &QSpinBox::valueChanged, m_slider, &QSlider::setValue);
+	connect(m_spinBox, &QSpinBox::valueChanged, this, &iANModalThresholdingWidget::setThreshold);
+	connect(m_spinBox, &QSpinBox::valueChanged, this, &iANModalThresholdingWidget::thresholdChanged);
 }
 
 void iANModalThresholdingWidget::setThreshold(int threshold)

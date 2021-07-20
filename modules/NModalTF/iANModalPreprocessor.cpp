@@ -308,8 +308,7 @@ iANModalPreprocessorSelector::iANModalPreprocessorSelector(QString dialogTitle) 
 	QVBoxLayout *layout = new QVBoxLayout(m_dialog);
 
 	m_comboBox = new QComboBox(m_dialog);
-	//QObject::connect(m_comboBox, &QComboBox::currentTextChanged, this, &PreprocessorSelector::updateText);
-	connect(m_comboBox, SIGNAL(currentTextChanged(QString)), this, SLOT(updateText()));
+	connect(m_comboBox, &QComboBox::currentTextChanged, this, &iANModalPreprocessorSelector::updateText);
 
 	m_label = new QLabel(m_dialog);
 

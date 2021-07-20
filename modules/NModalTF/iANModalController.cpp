@@ -147,7 +147,7 @@ void iANModalController::privateInitialize() {
 	}
 
 	m_tracker.reinitialize(m_mdiChild);
-	connect(&m_tracker, &iANModalSeedTracker::binCliked, this, &iANModalController::trackerBinClicked);
+	connect(&m_tracker, &iANModalSeedTracker::binClicked, this, &iANModalController::trackerBinClicked);
 
 	m_initialized = true;
 }

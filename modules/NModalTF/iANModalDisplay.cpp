@@ -186,7 +186,7 @@ iANModalDisplay::Footer* iANModalDisplay::createFooter(QDialog *dialog, const QL
 			QObject::connect(button, &QPushButton::clicked, dialog, [footerWigdet, text]{
 				footerWigdet->m_textOfButtonClicked = text;
 			});
-			QObject::connect(button, SIGNAL(clicked()), dialog, SLOT(accept()));
+			QObject::connect(button, &QPushButton::clicked, dialog, &QDialog::accept);
 			footerLayout->addWidget(button);
 			footerLayout->setStretchFactor(button, 0);
 		}
@@ -196,7 +196,7 @@ iANModalDisplay::Footer* iANModalDisplay::createFooter(QDialog *dialog, const QL
 			QObject::connect(button, &QPushButton::clicked, dialog, [footerWigdet, text] {
 				footerWigdet->m_textOfButtonClicked = text;
 				});
-			QObject::connect(button, SIGNAL(clicked()), dialog, SLOT(reject()));
+			QObject::connect(button, &QPushButton::clicked, dialog, &QDialog::reject);
 			footerLayout->addWidget(button);
 			footerLayout->setStretchFactor(button, 0);
 		}

@@ -53,7 +53,7 @@ private:
 	iANModalSeedVisualizer *m_visualizers[iASlicerMode::SlicerCount];
 
 signals:
-	void binCliked(iASlicerMode slicerMode, int sliceNumber);
+	void binClicked(iASlicerMode slicerMode, int sliceNumber);
 
 };
 
