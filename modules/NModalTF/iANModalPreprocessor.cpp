@@ -20,20 +20,17 @@
 * ************************************************************************************/
 
 #include "iANModalPreprocessor.h"
-#include "iANModalModalityReducer.h"
+
 #include "iANModalBackgroundRemover.h"
-
-// Background removers
 #include "iANModalDilationBackgroundRemover.h"
-
-// Modality reducers
+#include "iANModalDisplay.h"
+#include "iANModalModalityReducer.h"
 #include "iANModalPCAModalityReducer.h"
 
-#include "iANModalDisplay.h"
-#include "iAModality.h"
-#include "iAToolsVTK.h"
-#include "dlg_modalities.h"
-#include "iAModalityList.h"
+#include <dlg_modalities.h>
+#include <iAModality.h>
+#include <iAModalityList.h>
+#include <iAToolsVTK.h>
 
 #include <vtkImageData.h>
 #include <vtkImageMask.h>
@@ -42,30 +39,34 @@
 #include <QLabel>
 #include <QTextEdit>
 
-namespace {
-	iANModalBackgroundRemover::Mask MASK_NONE = { nullptr, iANModalBackgroundRemover::MaskMode::NONE };
-	class PassthroughReducer : public iANModalModalityReducer {
-		QList<QSharedPointer<iAModality>> reduce(const QList<QSharedPointer<iAModality>> &inputModalities) {
+namespace
+{
+	iANModalBackgroundRemover::Mask MASK_NONE = {nullptr, iANModalBackgroundRemover::MaskMode::NONE};
+	class PassthroughReducer : public iANModalModalityReducer
+	{
+		QList<QSharedPointer<iAModality>> reduce(const QList<QSharedPointer<iAModality>>& inputModalities)
+		{
 			return inputModalities;
 		}
 	};
-	class PassthroughBackgroundRemover : public iANModalBackgroundRemover {
-		iANModalBackgroundRemover::Mask removeBackground(const QList<QSharedPointer<iAModality>> &) {
+	class PassthroughBackgroundRemover : public iANModalBackgroundRemover
+	{
+		iANModalBackgroundRemover::Mask removeBackground(const QList<QSharedPointer<iAModality>>&)
+		{
 			return MASK_NONE;
 		}
 	};
 }
 
-iANModalPreprocessor::iANModalPreprocessor(iAMdiChild* mdiChild) :
-	m_mdiChild(mdiChild)
+iANModalPreprocessor::iANModalPreprocessor(iAMdiChild* mdiChild) : m_mdiChild(mdiChild)
 {
-
 }
 
-inline QList<QSharedPointer<iAModality>> applyMask(const vtkSmartPointer<vtkImageData> &mask, const QList<QSharedPointer<iAModality>> &modalities);
+inline QList<QSharedPointer<iAModality>> applyMask(
+	const vtkSmartPointer<vtkImageData>& mask, const QList<QSharedPointer<iAModality>>& modalities);
 
-iANModalPreprocessor::Output iANModalPreprocessor::preprocess(const QList<QSharedPointer<iAModality>> &modalities_in) {
-
+iANModalPreprocessor::Output iANModalPreprocessor::preprocess(const QList<QSharedPointer<iAModality>>& modalities_in)
+{
 	Output output;
 
 	QList<ModalitiesGroup> groups;
@@ -74,10 +75,12 @@ iANModalPreprocessor::Output iANModalPreprocessor::preprocess(const QList<QShare
 
 	Pipeline pipeline = choosePipeline();
 
-	if (pipeline == MR_BGR || pipeline == MR) {
+	if (pipeline == MR_BGR || pipeline == MR)
+	{
 		// Dimensionality reduction
 		modalities = chooseModalityReducer()->reduce(modalities);
-		if (modalities.empty()) {
+		if (modalities.empty())
+		{
 			// TODO
 			return Output(false);
 		}
@@ -85,41 +88,52 @@ iANModalPreprocessor::Output iANModalPreprocessor::preprocess(const QList<QShare
 
 	// Extract mask for background removal
 	iANModalBackgroundRemover::Mask mask;
-	if (pipeline == BGR || pipeline == BGR_MR || pipeline == MR_BGR) {
+	if (pipeline == BGR || pipeline == BGR_MR || pipeline == MR_BGR)
+	{
 		mask = chooseBackgroundRemover()->removeBackground(modalities);
-		if (mask.maskMode == iANModalBackgroundRemover::MaskMode::INVALID) {
+		if (mask.maskMode == iANModalBackgroundRemover::MaskMode::INVALID)
+		{
 			// TODO return Output(false)?
 			output.maskMode = IGNORE_MASK;
-
-		} else if (mask.maskMode == iANModalBackgroundRemover::MaskMode::REMOVE) {
+		}
+		else if (mask.maskMode == iANModalBackgroundRemover::MaskMode::REMOVE)
+		{
 			output.maskMode = IGNORE_MASK;
 
 			// Perform background removal
-			if (pipeline != BGR_MR) {
+			if (pipeline != BGR_MR)
+			{
 				modalities = applyMask(mask.mask, modalities);
 			}
-
-		} else if (mask.maskMode == iANModalBackgroundRemover::MaskMode::HIDE) {
+		}
+		else if (mask.maskMode == iANModalBackgroundRemover::MaskMode::HIDE)
+		{
 			output.maskMode = HIDE_ON_RENDER;
-
-		} else {
+		}
+		else
+		{
 			output.maskMode = IGNORE_MASK;
 		}
-	} else {
+	}
+	else
+	{
 		mask = MASK_NONE;
 		output.maskMode = IGNORE_MASK;
 	}
 
-	if (pipeline == BGR_MR) {
+	if (pipeline == BGR_MR)
+	{
 		// Dimensionality reduction
 		modalities = chooseModalityReducer()->reduce(modalities);
-		if (modalities.empty()) {
+		if (modalities.empty())
+		{
 			// TODO
 			return Output(false);
 		}
 
 		// Perform background removal
-		if (mask.maskMode == iANModalBackgroundRemover::MaskMode::REMOVE) {
+		if (mask.maskMode == iANModalBackgroundRemover::MaskMode::REMOVE)
+		{
 			modalities = applyMask(mask.mask, modalities);
 		}
 	}
@@ -133,7 +147,8 @@ iANModalPreprocessor::Output iANModalPreprocessor::preprocess(const QList<QShare
 	return output;
 }
 
-iANModalPreprocessor::Pipeline iANModalPreprocessor::choosePipeline() {
+iANModalPreprocessor::Pipeline iANModalPreprocessor::choosePipeline()
+{
 	const QString NONE = "Passthrough";
 	const QString BGR = "Background Removal (BGR)";
 	const QString MR = "Modality Reducion (MR)";
@@ -151,62 +166,81 @@ iANModalPreprocessor::Pipeline iANModalPreprocessor::choosePipeline() {
 	sel->addOption(NONE, {NONE, "Do not perform any preprocessing: use modalities as-is"});
 	sel->addOption(BGR, {BGR, "Perform background removal.\n\nYou will be able to choose a method later"});
 	sel->addOption(MR, {MR, "Perform modality reduction.\n\nYou will be able to choose a method later"});
-	sel->addOption(BGR_MR, {BGR_MR, "The following steps will be performed:\n"
-		"1) Calculate a binary mask for background removal from the input modalities;\n"
-		"2) Perform modality reduction;\n"
-		"3) Apply the binary mask from step (1) onto the reduced modalities.\n\n"
-		"You will be able to choose the background removal and modality reduction methods later"});
-	sel->addOption(MR_BGR, {MR_BGR, "Perform modality reduction on the input modalities, then perform background removal on the reduced modalities\n\n"
-		"You will be able to choose the background removal and modality reduction methods later"});
+	sel->addOption(BGR_MR,
+		{BGR_MR,
+			"The following steps will be performed:\n"
+			"1) Calculate a binary mask for background removal from the input modalities;\n"
+			"2) Perform modality reduction;\n"
+			"3) Apply the binary mask from step (1) onto the reduced modalities.\n\n"
+			"You will be able to choose the background removal and modality reduction methods later"});
+	sel->addOption(MR_BGR,
+		{MR_BGR,
+			"Perform modality reduction on the input modalities, then perform background removal on the reduced "
+			"modalities\n\n"
+			"You will be able to choose the background removal and modality reduction methods later"});
 	QString selection = sel->exec();
 	sel->deleteLater();
 
 	return map.value(selection);
 }
 
-QSharedPointer<iANModalModalityReducer> iANModalPreprocessor::chooseModalityReducer() {
-	
+QSharedPointer<iANModalModalityReducer> iANModalPreprocessor::chooseModalityReducer()
+{
 	const QString PCA = "PCA";
 	const QString NONE = "Skip";
 
 	auto sel = new iANModalPreprocessorSelector("n-Modal Transfer Function preprocessing: choose Modality Reducer");
-	sel->addOption(PCA, {PCA, "Perform Principal Component Analysis on the input modalities and use the principal components with largest variance"});
-	sel->addOption(NONE, {NONE, "Skip modality reduction and use any four modalities" });
+	sel->addOption(PCA,
+		{PCA,
+			"Perform Principal Component Analysis on the input modalities and use the principal components with "
+			"largest variance"});
+	sel->addOption(NONE, {NONE, "Skip modality reduction and use any four modalities"});
 	QString selection = sel->exec();
 	sel->deleteLater();
 
-	if (selection == NONE) {
+	if (selection == NONE)
+	{
 		return QSharedPointer<PassthroughReducer>(new PassthroughReducer());
-	} else if (selection == PCA) {
+	}
+	else if (selection == PCA)
+	{
 		return QSharedPointer<iANModalModalityReducer>(new iANModalPCAModalityReducer());
-	} else {
+	}
+	else
+	{
 		return nullptr;
 	}
 }
 
-
-
-QSharedPointer<iANModalBackgroundRemover> iANModalPreprocessor::chooseBackgroundRemover() {
-	
+QSharedPointer<iANModalBackgroundRemover> iANModalPreprocessor::chooseBackgroundRemover()
+{
 	const QString CLOSING = "Morphological Closing";
 	const QString NONE = "Skip";
 
 	auto sel = new iANModalPreprocessorSelector("n-Modal Transfer Function preprocessing: choose Background Remover");
-	sel->addOption(CLOSING, {CLOSING, "The following operations will be performed:\n"
-		"1) Make an initial rough background selection (with simple thresholding), resulting in a binary mask;\n"
-		"2) Then perform N morphological dilations (until the mask has only one region);\n"
-		"3) Then perform N morphological erosions.\n\n"
-		"This method only works if the input specimen has only one foreground region" // However, it can later be adapted to support more regions! TODO
+	sel->addOption(CLOSING,
+		{
+			CLOSING,
+			"The following operations will be performed:\n"
+			"1) Make an initial rough background selection (with simple thresholding), resulting in a binary mask;\n"
+			"2) Then perform N morphological dilations (until the mask has only one region);\n"
+			"3) Then perform N morphological erosions.\n\n"
+			"This method only works if the input specimen has only one foreground region"  // However, it can later be adapted to support more regions! TODO
 		});
 	sel->addOption(NONE, {NONE, "Skip background removal (do not remove background)"});
 	QString selection = sel->exec();
 	sel->deleteLater();
 
-	if (selection == NONE) {
+	if (selection == NONE)
+	{
 		return QSharedPointer<PassthroughBackgroundRemover>(new PassthroughBackgroundRemover());
-	} else if (selection == CLOSING) {
+	}
+	else if (selection == CLOSING)
+	{
 		return QSharedPointer<iANModalBackgroundRemover>(new iANModalDilationBackgroundRemover(m_mdiChild));
-	} else {
+	}
+	else
+	{
 		return nullptr;
 	}
 }
@@ -217,7 +251,9 @@ bool iANModalPreprocessor::areModalitiesCompatible(QSharedPointer<iAModality> m1
 }
 */
 
-void iANModalPreprocessor::groupModalities(const QList<QSharedPointer<iAModality>> &modalitiesToGroup, QList<ModalitiesGroup> &output) {
+void iANModalPreprocessor::groupModalities(
+	const QList<QSharedPointer<iAModality>>& modalitiesToGroup, QList<ModalitiesGroup>& output)
+{
 	// TODO
 	// Currently returning same list as in input
 	auto dims = modalitiesToGroup[0]->image()->GetDimensions();
@@ -229,22 +265,28 @@ void iANModalPreprocessor::groupModalities(const QList<QSharedPointer<iAModality
 	output.append(group);
 }
 
-QList<QSharedPointer<iAModality>> iANModalPreprocessor::chooseGroup(const QList<ModalitiesGroup> &groups) {
+QList<QSharedPointer<iAModality>> iANModalPreprocessor::chooseGroup(const QList<ModalitiesGroup>& groups)
+{
 	// TODO
 	return groups[0].modalities;
 }
 
-QList<QSharedPointer<iAModality>> iANModalPreprocessor::extractNewModalities(const QList<QSharedPointer<iAModality>> &modalities) {
+QList<QSharedPointer<iAModality>> iANModalPreprocessor::extractNewModalities(
+	const QList<QSharedPointer<iAModality>>& modalities)
+{
 	auto list = m_mdiChild->dataDockWidget()->modalities();
 	auto currentModalities = QList<QSharedPointer<iAModality>>();
-	for (int i = 0; i < list->size(); ++i) {
+	for (int i = 0; i < list->size(); ++i)
+	{
 		auto modality = list->get(i);
 		currentModalities.append(modality);
 	}
 
 	auto newModalities = QList<QSharedPointer<iAModality>>();
-	for (auto potentiallyNewModality : modalities) {
-		if (!currentModalities.contains(potentiallyNewModality)) {
+	for (auto potentiallyNewModality : modalities)
+	{
+		if (!currentModalities.contains(potentiallyNewModality))
+		{
 			newModalities.append(potentiallyNewModality);
 		}
 	}
@@ -252,17 +294,18 @@ QList<QSharedPointer<iAModality>> iANModalPreprocessor::extractNewModalities(con
 	return newModalities;
 }
 
-void iANModalPreprocessor::addModalitiesToMdiChild(const QList<QSharedPointer<iAModality>> &modalities) {
-	for (auto mod : modalities) {
+void iANModalPreprocessor::addModalitiesToMdiChild(const QList<QSharedPointer<iAModality>>& modalities)
+{
+	for (auto mod : modalities)
+	{
 		//m_mdiChild->dataDockWidget()->addModality(mod->image(), mod->name());
 		m_mdiChild->dataDockWidget()->addModality(mod);
 	}
 }
 
 inline QList<QSharedPointer<iAModality>> applyMask(
-	const vtkSmartPointer<vtkImageData> &mask,
-	const QList<QSharedPointer<iAModality>> &modalities) {
-
+	const vtkSmartPointer<vtkImageData>& mask, const QList<QSharedPointer<iAModality>>& modalities)
+{
 	/* TODO (28th July 2020)
 	As of now, the way the mask works does not support dynamic addition of modalities.
 
@@ -284,7 +327,8 @@ inline QList<QSharedPointer<iAModality>> applyMask(
 
 	QString nameSuffix = "_noBackground";
 
-	for (auto modOld : modalities) {
+	for (auto modOld : modalities)
+	{
 		auto maskFilter = vtkSmartPointer<vtkImageMask>::New();
 		maskFilter->SetInput1Data(modOld->image());
 		maskFilter->SetInput2Data(mask);
@@ -302,10 +346,11 @@ inline QList<QSharedPointer<iAModality>> applyMask(
 
 // iANModalPreprocessorSelector ------------------------------------------------------------
 
-iANModalPreprocessorSelector::iANModalPreprocessorSelector(QString dialogTitle) {
+iANModalPreprocessorSelector::iANModalPreprocessorSelector(QString dialogTitle)
+{
 	m_dialog = new QDialog();
 	m_dialog->setWindowTitle(dialogTitle);
-	QVBoxLayout *layout = new QVBoxLayout(m_dialog);
+	QVBoxLayout* layout = new QVBoxLayout(m_dialog);
 
 	m_comboBox = new QComboBox(m_dialog);
 	connect(m_comboBox, &QComboBox::currentTextChanged, this, &iANModalPreprocessorSelector::updateText);
@@ -315,7 +360,7 @@ iANModalPreprocessorSelector::iANModalPreprocessorSelector(QString dialogTitle) 
 	m_textEdit = new QTextEdit(m_dialog);
 	m_textEdit->setEnabled(false);
 
-	QWidget *footer = iANModalDisplay::createOkCancelFooter(m_dialog);
+	QWidget* footer = iANModalDisplay::createOkCancelFooter(m_dialog);
 
 	layout->addWidget(m_comboBox);
 	layout->addWidget(m_label);
@@ -323,25 +368,30 @@ iANModalPreprocessorSelector::iANModalPreprocessorSelector(QString dialogTitle) 
 	layout->addWidget(footer);
 }
 
-void iANModalPreprocessorSelector::addOption(QString displayName, iANModalPreprocessorSelector::Option option) {
+void iANModalPreprocessorSelector::addOption(QString displayName, iANModalPreprocessorSelector::Option option)
+{
 	m_comboBox->addItem(displayName);
 	m_options.insert(displayName, option);
-	if (m_comboBox->count() == 1) {
+	if (m_comboBox->count() == 1)
+	{
 		m_comboBox->setCurrentIndex(0);
 		m_label->setText(option.name);
 		m_textEdit->setPlainText(option.description);
 	}
 }
 
-QString iANModalPreprocessorSelector::exec() {
+QString iANModalPreprocessorSelector::exec()
+{
 	auto code = m_dialog->exec();
-	if (code == QDialog::Rejected) {
+	if (code == QDialog::Rejected)
+	{
 		return QString();
 	}
 	return m_comboBox->currentText();
 }
 
-void iANModalPreprocessorSelector::updateText() {
+void iANModalPreprocessorSelector::updateText()
+{
 	QString selected = m_comboBox->currentText();
 	iANModalPreprocessorSelector::Option option = m_options.value(selected);
 	m_label->setText(option.name);

@@ -22,7 +22,7 @@
 
 #include "iANModalModalityReducer.h"
 
-#include "iAConnector.h"
+#include <iAConnector.h>
 
 #include <vtkSmartPointer.h>
 
@@ -30,10 +30,12 @@ class vtkImageData;
 
 class iANModalPCAModalityReducer : public iANModalModalityReducer
 {
-   public:
-	QList<QSharedPointer<iAModality>> reduce(const QList<QSharedPointer<iAModality>> &) override;
+public:
+	QList<QSharedPointer<iAModality>> reduce(const QList<QSharedPointer<iAModality>>&) override;
 
-   private:
-	template <class T> void itkPCA(std::vector<iAConnector>& connectors);
-	template <class T> void ownPCA(std::vector<iAConnector>& connectors);
+private:
+	template <class T>
+	void itkPCA(std::vector<iAConnector>& connectors);
+	template <class T>
+	void ownPCA(std::vector<iAConnector>& connectors);
 };

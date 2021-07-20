@@ -35,7 +35,7 @@ void iANModalTFModuleInterface::Initialize()
 	{
 		return;
 	}
-	QAction *action = new QAction(tr("n-Modal Transfer Function"), m_mainWnd);
+	QAction* action = new QAction(tr("n-Modal Transfer Function"), m_mainWnd);
 	connect(action, &QAction::triggered, this, &iANModalTFModuleInterface::onMenuItemSelected);
 	auto submenu = getOrAddSubMenu(m_mainWnd->toolsMenu(), tr("Multi-Modal/-Channel Images"), false);
 	submenu->addAction(action);
@@ -46,7 +46,8 @@ iAModuleAttachmentToChild* iANModalTFModuleInterface::CreateAttachment(iAMainWin
 	return iANModalAttachment::create(mainWnd, childData);
 }
 
-void iANModalTFModuleInterface::onMenuItemSelected() {
+void iANModalTFModuleInterface::onMenuItemSelected()
+{
 	auto attach = attachment<iANModalAttachment>(m_mainWnd->activeMdiChild());
 	if (!attach)
 	{
@@ -60,4 +61,3 @@ void iANModalTFModuleInterface::onMenuItemSelected() {
 	}
 	attach->start();
 }
-

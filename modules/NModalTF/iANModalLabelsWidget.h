@@ -20,10 +20,10 @@
 * ************************************************************************************/
 #pragma once
 
-#include <QWidget>
 #include <QListWidget>
 #include <QMap>
 #include <QSharedPointer>
+#include <QWidget>
 
 struct iANModalLabel;
 
@@ -31,13 +31,14 @@ class QGridLayout;
 class QLabel;
 class QSlider;
 
-class iANModalLabelsWidget : public QWidget {
+class iANModalLabelsWidget : public QWidget
+{
 	Q_OBJECT
 
 public:
-	iANModalLabelsWidget(QWidget *parent = nullptr);
+	iANModalLabelsWidget(QWidget* parent = nullptr);
 
-	void updateTable(const QList<iANModalLabel> &);
+	void updateTable(const QList<iANModalLabel>&);
 	void insertLabel(int row, iANModalLabel, float opacity);
 	void removeLabel(int row);
 	bool containsLabel(int row);
@@ -47,23 +48,26 @@ public:
 	int row(int labelId);
 
 private:
-
-	enum Column {
+	enum Column
+	{
 		COLOR = 0,
 		OPACITY = 1
 	};
 
-	struct Row {
-		Row() {}
-		Row(int _row, QLabel *_color, QSlider *_opacity) : 
-			row(_row), color(_color), opacity(_opacity)
-		{}
+	struct Row
+	{
+		Row()
+		{
+		}
+		Row(int _row, QLabel* _color, QSlider* _opacity) : row(_row), color(_color), opacity(_opacity)
+		{
+		}
 		int row = -1;
-		QLabel *color = nullptr;
-		QSlider *opacity = nullptr;
+		QLabel* color = nullptr;
+		QSlider* opacity = nullptr;
 	};
 
-	QGridLayout *m_layout;
+	QGridLayout* m_layout;
 	QVector<iANModalLabel> m_labels;
 	QVector<Row> m_rows;
 
@@ -74,5 +78,4 @@ private:
 
 signals:
 	void labelOpacityChanged(int labelId);
-
 };

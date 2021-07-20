@@ -38,21 +38,22 @@ class QLabel;
 class QGridLayout;
 class QScrollArea;
 
-class iANModalWidget : public QWidget {
+class iANModalWidget : public QWidget
+{
 	Q_OBJECT
 
 public:
 	iANModalWidget(iAMdiChild* mdiChild);
 
 private:
-	iANModalController *m_c;
+	iANModalController* m_c;
 	QSharedPointer<iANModalPreprocessor> m_preprocessor;
 	iAMdiChild* m_mdiChild;
 
-	QGridLayout *m_layoutSlicersGrid;
-	iANModalLabelsWidget *m_labelsWidget;
+	QGridLayout* m_layoutSlicersGrid;
+	iANModalLabelsWidget* m_labelsWidget;
 
-	QLabel *m_labelModalityCount;
+	QLabel* m_labelModalityCount;
 
 	QMap<int, iANModalLabel> m_labels;
 
@@ -63,12 +64,12 @@ private slots:
 
 	//void onModalitiesChanged();
 
-	void onSeedsAdded(const QList<iASeed> &);
-	void onSeedsRemoved(const QList<iASeed> &);
+	void onSeedsAdded(const QList<iASeed>&);
+	void onSeedsRemoved(const QList<iASeed>&);
 	void onAllSeedsRemoved();
-	void onLabelAdded(const iALabel &);
-	void onLabelRemoved(const iALabel &);
-	void onLabelsColorChanged(const QList<iALabel> &);
+	void onLabelAdded(const iALabel&);
+	void onLabelRemoved(const iALabel&);
+	void onLabelsColorChanged(const QList<iALabel>&);
 
 	void onLabelOpacityChanged(int labelId);
 	void onLabelRemoverStateChanged(int labelId);

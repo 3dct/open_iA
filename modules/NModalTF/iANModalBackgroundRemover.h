@@ -29,22 +29,27 @@ class vtkImageData;
 
 class iAModality;
 
-class iANModalBackgroundRemover {
+class iANModalBackgroundRemover
+{
 public:
-	enum OutputType {
+	enum OutputType
+	{
 		BACKGROUND = 0,
 		FOREGROUND = 1
 	};
-	enum MaskMode {
+	enum MaskMode
+	{
 		INVALID,
 		NONE,
 		REMOVE,
 		HIDE
 	};
-	struct Mask {
+	struct Mask
+	{
 		vtkSmartPointer<vtkImageData> mask;
 		MaskMode maskMode;
 	};
-	virtual ~iANModalBackgroundRemover() {};
-	virtual	Mask removeBackground(const QList<QSharedPointer<iAModality>> &) = 0; // TODO: make input std::vector<vtkSmartPointer<vtkImageData>>
+	virtual ~iANModalBackgroundRemover(){};
+	virtual Mask removeBackground(
+		const QList<QSharedPointer<iAModality>>&) = 0;  // TODO: make input std::vector<vtkSmartPointer<vtkImageData>>
 };

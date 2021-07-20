@@ -24,38 +24,38 @@
 #include "iANModalDisplay.h"
 #include "iANModalProgressWidget.h"
 
-#include "iAConnector.h"
-#include "iAModality.h"
-#include "iASlicer.h"
-#include "iAToolsITK.h"
-#include "iATypedCallHelper.h"
-#include "iAProgress.h"
-
-#include <vtkImageData.h>
-#include <vtkLookupTable.h>
-#include <vtkPiecewiseFunction.h>
-#include <vtkImageCast.h>
+#include <iAConnector.h>
+#include <iAModality.h>
+#include <iAProgress.h>
+#include <iASlicer.h>
+#include <iAToolsITK.h>
+#include <iATypedCallHelper.h>
 
 #include <itkBinaryBallStructuringElement.h>
 #include <itkBinaryDilateImageFilter.h>
 #include <itkBinaryErodeImageFilter.h>
 #include <itkBinaryThresholdImageFilter.h>
 #include <itkConnectedComponentImageFilter.h>
-#include <itkMultiplyImageFilter.h>
 #include <itkInvertIntensityImageFilter.h>
+#include <itkMultiplyImageFilter.h>
+
+#include <vtkImageCast.h>
+#include <vtkImageData.h>
+#include <vtkLookupTable.h>
+#include <vtkPiecewiseFunction.h>
 
 #include <QDialog>
 #include <QLabel>
+#include <QPainter>
+#include <QPointer>
 #include <QPushButton>
 #include <QSlider>
 #include <QSpinBox>
 #include <QStatusBar>
 #include <QVBoxLayout>
-#include <QPointer>
-#include <QPainter>
 
 template <class T>
-void iANModalDilationBackgroundRemover::itkBinaryThreshold(iAConnector &conn, int loThresh, int upThresh)
+void iANModalDilationBackgroundRemover::itkBinaryThreshold(iAConnector& conn, int loThresh, int upThresh)
 {
 	typedef itk::Image<T, DIM> InputImageType;
 	typedef itk::Image<unsigned short, DIM> OutputImageType;
@@ -66,7 +66,7 @@ void iANModalDilationBackgroundRemover::itkBinaryThreshold(iAConnector &conn, in
 	binThreshFilter->SetUpperThreshold(upThresh);
 	binThreshFilter->SetOutsideValue(BACKGROUND);
 	binThreshFilter->SetInsideValue(FOREGROUND);
-	binThreshFilter->SetInput(dynamic_cast<InputImageType *>(conn.itkImage()));
+	binThreshFilter->SetInput(dynamic_cast<InputImageType*>(conn.itkImage()));
 	//filter->progress()->observe(binThreshFilter);
 	binThreshFilter->Update();
 
@@ -75,7 +75,7 @@ void iANModalDilationBackgroundRemover::itkBinaryThreshold(iAConnector &conn, in
 }
 
 void iANModalIterativeDilationThread::itkDilateAndCountConnectedComponents(
-	ImagePointer itkImgPtr, int &connectedComponentsOut, bool dilate /*= true*/)
+	ImagePointer itkImgPtr, int& connectedComponentsOut, bool dilate /*= true*/)
 {
 	typedef itk::Image<unsigned short, DIM> ImageType;
 	typedef itk::ConnectedComponentImageFilter<ImageType, ImageType> CCIFType;
@@ -92,7 +92,7 @@ void iANModalIterativeDilationThread::itkDilateAndCountConnectedComponents(
 	connCompFilter->SetBackgroundValue(iANModalBackgroundRemover::BACKGROUND);
 	m_progCc->observe(connCompFilter);
 
-	auto input = dynamic_cast<ImageType *>(itkImgPtr.GetPointer());
+	auto input = dynamic_cast<ImageType*>(itkImgPtr.GetPointer());
 	if (dilate)
 	{
 		// dilate the background (region of higher intensity)...
@@ -120,7 +120,7 @@ void iANModalIterativeDilationThread::itkDilateAndCountConnectedComponents(
 	connectedComponentsOut = connCompFilter->GetObjectCount();
 }
 
-void iANModalIterativeDilationThread::itkCountConnectedComponents(ImagePointer itkImgPtr, int &connectedComponentsOut)
+void iANModalIterativeDilationThread::itkCountConnectedComponents(ImagePointer itkImgPtr, int& connectedComponentsOut)
 {
 	itkDilateAndCountConnectedComponents(itkImgPtr, connectedComponentsOut, false);
 	return;
@@ -154,7 +154,7 @@ void iANModalIterativeDilationThread::itkDilate(ImagePointer itkImgPtr)
 	typedef itk::BinaryDilateImageFilter<ImageType, ImageType, StructuringElementType> BDIFType;
 	typename BDIFType::Pointer dilationFilter;
 
-	auto input = dynamic_cast<ImageType *>(itkImgPtr.GetPointer());
+	auto input = dynamic_cast<ImageType*>(itkImgPtr.GetPointer());
 	dilationFilter = BDIFType::New();
 	dilationFilter->SetDilateValue(iANModalBackgroundRemover::BACKGROUND);
 	dilationFilter->SetKernel(structuringElement);
@@ -175,13 +175,14 @@ void iANModalIterativeDilationThread::itkErodeAndInvert(ImagePointer itkImgPtr, 
 	elementRadius.Fill(1);
 	auto structuringElement = StructuringElementType::Ball(elementRadius);
 
-	if (count <= 0) {
+	if (count <= 0)
+	{
 		m_mask = itkImgPtr;
 		return;
 	}
 
 	std::vector<typename BDIFType::Pointer> erosionFilters(count);
-	auto input = dynamic_cast<ImageType *>(itkImgPtr.GetPointer());
+	auto input = dynamic_cast<ImageType*>(itkImgPtr.GetPointer());
 	for (int i = 0; i < count; i++)
 	{
 		erosionFilters[i] = BDIFType::New();
@@ -191,7 +192,7 @@ void iANModalIterativeDilationThread::itkErodeAndInvert(ImagePointer itkImgPtr, 
 		erosionFilters[i]->SetInput(i == 0 ? input : erosionFilters[i - 1]->GetOutput());
 		m_progEro->observe(erosionFilters[i]);
 	}
-	
+
 	typedef itk::InvertIntensityImageFilter<ImageType> IIIFType;
 	auto invertFilter = IIIFType::New();
 	invertFilter->SetMaximum(iANModalBackgroundRemover::FOREGROUND);
@@ -242,7 +243,7 @@ iANModalDilationBackgroundRemover::iANModalDilationBackgroundRemover(iAMdiChild*
 }
 
 iANModalBackgroundRemover::Mask iANModalDilationBackgroundRemover::removeBackground(
-	const QList<QSharedPointer<iAModality>> &modalities)
+	const QList<QSharedPointer<iAModality>>& modalities)
 {
 	QSharedPointer<iAModality> selectedMod;
 	iANModalBackgroundRemover::MaskMode maskMode;
@@ -292,11 +293,11 @@ iANModalBackgroundRemover::Mask iANModalDilationBackgroundRemover::removeBackgro
 
 // return - true if a modality and a threshold were successfully chosen
 //        - false otherwise
-bool iANModalDilationBackgroundRemover::selectModalityAndThreshold(QWidget *parent,
-	const QList<QSharedPointer<iAModality>> &modalities,
-	int &out_threshold, QSharedPointer<iAModality> &out_modality, iANModalBackgroundRemover::MaskMode &out_maskMode)
+bool iANModalDilationBackgroundRemover::selectModalityAndThreshold(QWidget* parent,
+	const QList<QSharedPointer<iAModality>>& modalities, int& out_threshold, QSharedPointer<iAModality>& out_modality,
+	iANModalBackgroundRemover::MaskMode& out_maskMode)
 {
-	QDialog *dialog = new QDialog(parent);
+	QDialog* dialog = new QDialog(parent);
 	// TODO: set dialog title
 	dialog->setModal(true);
 
@@ -311,7 +312,8 @@ bool iANModalDilationBackgroundRemover::selectModalityAndThreshold(QWidget *pare
 		m_display = new iANModalDisplay(displayWidget, m_mdiChild, modalities, 1, 1);
 		m_threholdingMaskChannelId = m_display->createChannel();
 		//connect(m_display, SIGNAL(selectionChanged()), this, SLOT(updateThreshold()));
-		connect(m_display, &iANModalDisplay::selectionChanged, this, &iANModalDilationBackgroundRemover::updateModalitySelected);
+		connect(m_display, &iANModalDisplay::selectionChanged, this,
+			&iANModalDilationBackgroundRemover::updateModalitySelected);
 
 		displayLayout->addWidget(displayLabel);
 		displayLayout->addWidget(m_display);
@@ -327,7 +329,8 @@ bool iANModalDilationBackgroundRemover::selectModalityAndThreshold(QWidget *pare
 		auto thresholdLabel = new QLabel("Set threshold", thresholdWidget);
 
 		m_threshold = new iANModalThresholdingWidget(thresholdWidget);
-		connect(m_threshold, &iANModalThresholdingWidget::thresholdChanged, this, &iANModalDilationBackgroundRemover::updateThreshold);
+		connect(m_threshold, &iANModalThresholdingWidget::thresholdChanged, this,
+			&iANModalDilationBackgroundRemover::updateThreshold);
 
 		thresholdLayout->addWidget(thresholdLabel);
 		thresholdLayout->addWidget(m_threshold);
@@ -347,7 +350,7 @@ bool iANModalDilationBackgroundRemover::selectModalityAndThreshold(QWidget *pare
 	const QString SKIP = "Skip";
 
 	//QWidget *footerWidget = iANModalDisplay::createOkSkipFooter(dialog);
-	iANModalDisplay::Footer *footerWidget = iANModalDisplay::createFooter(dialog, {REMOVE, HIDE}, {SKIP});
+	iANModalDisplay::Footer* footerWidget = iANModalDisplay::createFooter(dialog, {REMOVE, HIDE}, {SKIP});
 	layout->addWidget(footerWidget);
 	layout->setStretchFactor(footerWidget, 0);
 
@@ -358,10 +361,7 @@ bool iANModalDilationBackgroundRemover::selectModalityAndThreshold(QWidget *pare
 	}
 
 	const QString t = footerWidget->m_textOfButtonClicked;
-	out_maskMode =
-		t == REMOVE ? MaskMode::REMOVE : (
-		t == HIDE   ? MaskMode::HIDE
-		: MaskMode::INVALID);
+	out_maskMode = t == REMOVE ? MaskMode::REMOVE : (t == HIDE ? MaskMode::HIDE : MaskMode::INVALID);
 
 	LOG(lvlDebug, QString("Option chosen: ") + t + QString("\n"));
 
@@ -418,7 +418,7 @@ bool iANModalDilationBackgroundRemover::iterativeDilation(ImagePointer mask, int
 	auto plot = new iANModalIterativeDilationPlot(pw);
 
 	pw->addProgressBar(3, "Total progress", true, "status");  // 3 steps: counts; counts+dilations; erosions
-	pw->addProgressBar(100, "Dilation", false, "dil");  // 100 steps, because that's how iAProgress works
+	pw->addProgressBar(100, "Dilation", false, "dil");        // 100 steps, because that's how iAProgress works
 	pw->addProgressBar(100, "Count connected components", false, "cc");
 	pw->addProgressBar(100, "Erosion", false, "ero");
 	pw->addSeparator();
@@ -445,9 +445,12 @@ bool iANModalDilationBackgroundRemover::iterativeDilation(ImagePointer mask, int
 
 	// Progress dialog will close automatically once everything is finished
 	pw->showDialog();
-	if (pw->isCanceled()) {
+	if (pw->isCanceled())
+	{
 		thread->setCanceled(true);
-	} else {
+	}
+	else
+	{
 		m_itkTempImg = thread->mask();
 	}
 
@@ -459,7 +462,7 @@ bool iANModalDilationBackgroundRemover::iterativeDilation(ImagePointer mask, int
 // ----------------------------------------------------------------------------------------------
 
 iANModalIterativeDilationThread::iANModalIterativeDilationThread(
-	iANModalProgressWidget *progressWidget, iAProgress *progress[3], ImagePointer mask, int regionCountGoal) :
+	iANModalProgressWidget* progressWidget, iAProgress* progress[3], ImagePointer mask, int regionCountGoal) :
 	iANModalProgressUpdater(progressWidget),
 	m_progDil(progress[0]),
 	m_progCc(progress[1]),
@@ -469,18 +472,22 @@ iANModalIterativeDilationThread::iANModalIterativeDilationThread(
 {
 }
 
-void iANModalIterativeDilationThread::setCanceled(bool c) {
+void iANModalIterativeDilationThread::setCanceled(bool c)
+{
 	m_canceled = c;
 }
 
 #ifndef IANMODAL_REQUIRE_NCANCELED
 #define IANMODAL_REQUIRE_NCANCELED() \
-	if (m_canceled) { \
-		return; \
-	} while(0)
+	if (m_canceled)                  \
+	{                                \
+		return;                      \
+	}                                \
+	while (0)
 #endif
 
-void iANModalIterativeDilationThread::run() {
+void iANModalIterativeDilationThread::run()
+{
 	int connectedComponents;
 
 	emit setValue("dil", 100);
@@ -530,12 +537,11 @@ void iANModalIterativeDilationThread::run() {
 	emit finish();
 }
 
-
 // ----------------------------------------------------------------------------------------------
 // iANModalThresholdingWidget
 // ----------------------------------------------------------------------------------------------
 
-iANModalThresholdingWidget::iANModalThresholdingWidget(QWidget *parent) : QWidget(parent)
+iANModalThresholdingWidget::iANModalThresholdingWidget(QWidget* parent) : QWidget(parent)
 {
 	int min = 0;
 	int max = 0;
@@ -580,12 +586,12 @@ int iANModalThresholdingWidget::threshold()
 	return m_threshold;
 }
 
-QSlider *iANModalThresholdingWidget::slider()
+QSlider* iANModalThresholdingWidget::slider()
 {
 	return m_slider;
 }
 
-QSpinBox *iANModalThresholdingWidget::spinBox()
+QSpinBox* iANModalThresholdingWidget::spinBox()
 {
 	return m_spinBox;
 }
@@ -594,29 +600,34 @@ QSpinBox *iANModalThresholdingWidget::spinBox()
 // iANModalIterativeDilationPlot
 // ----------------------------------------------------------------------------------------------
 
-iANModalIterativeDilationPlot::iANModalIterativeDilationPlot(QWidget *parent) : QWidget(parent) {
+iANModalIterativeDilationPlot::iANModalIterativeDilationPlot(QWidget* parent) : QWidget(parent)
+{
 }
 
-void iANModalIterativeDilationPlot::addValue(int v) {
+void iANModalIterativeDilationPlot::addValue(int v)
+{
 	assert(v > 0);
 	m_values.append(v);
 	m_max = v > m_max ? v : m_max;
 	update();
 }
 
-QSize iANModalIterativeDilationPlot::sizeHint() const {
+QSize iANModalIterativeDilationPlot::sizeHint() const
+{
 	return QSize(200, 200);
 }
 
-void iANModalIterativeDilationPlot::paintEvent(QPaintEvent* event) {
+void iANModalIterativeDilationPlot::paintEvent(QPaintEvent* event)
+{
 	Q_UNUSED(event);
-	if (m_values.empty()) {
+	if (m_values.empty())
+	{
 		return;
 	}
 
-	constexpr int sep = 10; // separation
-	constexpr int textSep = sep / 2; // text separation
-	constexpr int mar = sep * 2; // margin
+	constexpr int sep = 10;           // separation
+	constexpr int textSep = sep / 2;  // text separation
+	constexpr int mar = sep * 2;      // margin
 
 	QPainter p(this);
 	p.setRenderHint(QPainter::Antialiasing);
@@ -631,13 +642,14 @@ void iANModalIterativeDilationPlot::paintEvent(QPaintEvent* event) {
 	int right = w - mar;
 	int bottom = h - mar - (2 * (textHeight - textSep));
 
-	int wAvailable = right - left; // available width
-	int wSeparators = (sep * (m_values.size() - 1)); // width occupied by separators
+	int wAvailable = right - left;                    // available width
+	int wSeparators = (sep * (m_values.size() - 1));  // width occupied by separators
 	int barWidth = (int)((float)(wAvailable - wSeparators) / (float)m_values.size());
 
-	int hAvailable = bottom - top; // available height
+	int hAvailable = bottom - top;  // available height
 
-	for (int i = 0; i < m_values.size(); i++) {
+	for (int i = 0; i < m_values.size(); i++)
+	{
 		int v = m_values[i];
 
 		int barHeight = v == 0 ? 0 : (int)((float)(hAvailable * v) / (float)(m_max));

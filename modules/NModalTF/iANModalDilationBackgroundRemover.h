@@ -21,15 +21,16 @@
 #pragma once
 
 #include "iANModalBackgroundRemover.h"
+#include "iANModalProgressWidget.h"
 
 #include <defines.h>  // for DIM
-#include "iANModalProgressWidget.h"
 
 #include <itkImageBase.h>
 
 #include <vtkSmartPointer.h>
 
 #include <QWidget>
+
 
 class iAMdiChild;
 class iAConnector;
@@ -42,13 +43,15 @@ class vtkPiecewiseFunction;
 class QSlider;
 class QSpinBox;
 
-class iANModalThresholdingWidget : public QWidget {
+class iANModalThresholdingWidget : public QWidget
+{
 	Q_OBJECT
 public:
-	iANModalThresholdingWidget(QWidget *parent);
+	iANModalThresholdingWidget(QWidget* parent);
 	int threshold();
 	QSlider* slider();
 	QSpinBox* spinBox();
+
 private:
 	QSlider* m_slider;
 	QSpinBox* m_spinBox;
@@ -59,12 +62,13 @@ private slots:
 	void setThreshold(int);
 };
 
-class iANModalDilationBackgroundRemover : public QObject, public iANModalBackgroundRemover {
+class iANModalDilationBackgroundRemover : public QObject, public iANModalBackgroundRemover
+{
 	Q_OBJECT
 
 public:
 	iANModalDilationBackgroundRemover(iAMdiChild* mdiChild);
-	Mask removeBackground(const QList<QSharedPointer<iAModality>> &) override;
+	Mask removeBackground(const QList<QSharedPointer<iAModality>>&) override;
 
 private:
 	using ImagePointer = itk::ImageBase<DIM>::Pointer;
@@ -78,23 +82,22 @@ private:
 
 	// return - true if a modality and a threshold were successfully chosen
 	//        - false otherwise
-	bool selectModalityAndThreshold(QWidget *parent, const QList<QSharedPointer<iAModality>> &modalities,
-		int &out_threshold,
-		QSharedPointer<iAModality> &out_modality,
-		iANModalBackgroundRemover::MaskMode &out_maskMode);
-	
+	bool selectModalityAndThreshold(QWidget* parent, const QList<QSharedPointer<iAModality>>& modalities,
+		int& out_threshold, QSharedPointer<iAModality>& out_modality,
+		iANModalBackgroundRemover::MaskMode& out_maskMode);
+
 	// TODO describe
 	bool iterativeDilation(ImagePointer mask, int regionCountGoal);
 
-	iANModalDisplay *m_display;
+	iANModalDisplay* m_display;
 	unsigned int m_threholdingMaskChannelId;
 	vtkSmartPointer<vtkLookupTable> m_colorTf;
 	vtkSmartPointer<vtkPiecewiseFunction> m_opacityTf;
 
-	iANModalThresholdingWidget *m_threshold;
+	iANModalThresholdingWidget* m_threshold;
 
-	template<class T>
-	void itkBinaryThreshold(iAConnector &conn, int loThresh, int upThresh);
+	template <class T>
+	void itkBinaryThreshold(iAConnector& conn, int loThresh, int upThresh);
 
 #ifndef NDEBUG
 	// Note: currently not called from anywhere:
@@ -108,29 +111,34 @@ public slots:
 	void updateThreshold();
 };
 
-class iANModalIterativeDilationThread : public iANModalProgressUpdater {
+class iANModalIterativeDilationThread : public iANModalProgressUpdater
+{
 	Q_OBJECT
 
 private:
 	typedef itk::ImageBase<DIM>::Pointer ImagePointer;
 
-	iAProgress *m_progDil;
-	iAProgress *m_progCc;
-	iAProgress *m_progEro;
+	iAProgress* m_progDil;
+	iAProgress* m_progCc;
+	iAProgress* m_progEro;
 	ImagePointer m_mask;
 	int m_regionCountGoal;
 
-	void itkDilateAndCountConnectedComponents(ImagePointer itkImgPtr, int &connectedComponents, bool dilate = true);
-	void itkCountConnectedComponents(ImagePointer itkImgPtr, int &connectedComponents);
+	void itkDilateAndCountConnectedComponents(ImagePointer itkImgPtr, int& connectedComponents, bool dilate = true);
+	void itkCountConnectedComponents(ImagePointer itkImgPtr, int& connectedComponents);
 	void itkDilate(ImagePointer itkImgPtr);
 	void itkErodeAndInvert(ImagePointer itkImgPtr, int count);
 
 	bool m_canceled = false;
 
 public:
-	iANModalIterativeDilationThread(iANModalProgressWidget *progressWidget, iAProgress *progress[3], ImagePointer mask, int regionCountGoal);
+	iANModalIterativeDilationThread(
+		iANModalProgressWidget* progressWidget, iAProgress* progress[3], ImagePointer mask, int regionCountGoal);
 	void run() override;
-	ImagePointer mask() { return m_mask; }
+	ImagePointer mask()
+	{
+		return m_mask;
+	}
 
 public slots:
 	void setCanceled(bool);
@@ -139,11 +147,12 @@ signals:
 	void addValue(int v);
 };
 
-class iANModalIterativeDilationPlot : public QWidget {
+class iANModalIterativeDilationPlot : public QWidget
+{
 	Q_OBJECT
 
 public:
-	iANModalIterativeDilationPlot(QWidget *parent);
+	iANModalIterativeDilationPlot(QWidget* parent);
 
 private:
 	QList<int> m_values;

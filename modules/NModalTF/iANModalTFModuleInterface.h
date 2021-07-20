@@ -22,7 +22,8 @@
 
 #include <iAGUIModuleInterface.h>
 
-class iANModalTFModuleInterface : public iAGUIModuleInterface {
+class iANModalTFModuleInterface : public iAGUIModuleInterface
+{
 	Q_OBJECT
 public:
 	void Initialize() override;
@@ -31,4 +32,3 @@ protected:
 private slots:
 	void onMenuItemSelected();
 };
-

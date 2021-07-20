@@ -20,7 +20,7 @@
 * ************************************************************************************/
 #pragma once
 
-#include "iASlicerMode.h"
+#include <iASlicerMode.h>
 
 #include <QWidget>
 
@@ -32,7 +32,8 @@ class iAMdiChild;
 
 class QTimer;
 
-class iANModalSeedTracker : public QObject {
+class iANModalSeedTracker : public QObject
+{
 	Q_OBJECT
 
 public:
@@ -43,21 +44,21 @@ public:
 	~iANModalSeedTracker();
 	void teardown();
 
-	void addSeeds(const QList<iANModalSeed> &, const iANModalLabel &);
-	void removeSeeds(const QList<iANModalSeed> &);
+	void addSeeds(const QList<iANModalSeed>&, const iANModalLabel&);
+	void removeSeeds(const QList<iANModalSeed>&);
 	void removeAllSeeds();
 
 	void updateLater();
 
 private:
-	iANModalSeedVisualizer *m_visualizers[iASlicerMode::SlicerCount];
+	iANModalSeedVisualizer* m_visualizers[iASlicerMode::SlicerCount];
 
 signals:
 	void binClicked(iASlicerMode slicerMode, int sliceNumber);
-
 };
 
-class iANModalSeedVisualizer : public QWidget {
+class iANModalSeedVisualizer : public QWidget
+{
 	Q_OBJECT
 
 public:
@@ -65,8 +66,8 @@ public:
 	void reinitialize(iAMdiChild* mdiChild);
 	void teardown();
 
-	void addSeeds(const QList<iANModalSeed> &, const iANModalLabel &);
-	void removeSeeds(const QList<iANModalSeed> &);
+	void addSeeds(const QList<iANModalSeed>&, const iANModalLabel&);
+	void removeSeeds(const QList<iANModalSeed>&);
 	void removeAllSeeds();
 
 	void updateLater();
@@ -83,7 +84,7 @@ private:
 	std::vector<unsigned int> m_values;
 	QImage m_image;
 	std::vector<unsigned int> m_imageAccumulator;
-	QTimer *m_timer_resizeUpdate;
+	QTimer* m_timer_resizeUpdate;
 
 	size_t m_indexHovered;
 
@@ -106,5 +107,4 @@ signals:
 
 public slots:
 	void update();
-
 };

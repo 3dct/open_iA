@@ -29,24 +29,26 @@ class iAMdiChild;
 
 class QLabel;
 
-class iANModalMain : public QDockWidget {
+class iANModalMain : public QDockWidget
+{
 	Q_OBJECT
 
 public:
-	iANModalMain(iAMdiChild *mdiChild);
+	iANModalMain(iAMdiChild* mdiChild);
 	iANModalWidget* nModalWidget();
 
 private:
-	iANModalWidget *m_nModalWidget;
+	iANModalWidget* m_nModalWidget;
 };
 
-
-class iANModalAttachment : public iAModuleAttachmentToChild {
+class iANModalAttachment : public iAModuleAttachmentToChild
+{
 	Q_OBJECT
 public:
-	static iANModalAttachment* create(iAMainWindow *mainWnd, iAMdiChild *child);
+	static iANModalAttachment* create(iAMainWindow* mainWnd, iAMdiChild* child);
 	void start();
+
 private:
-	iANModalAttachment(iAMainWindow *mainWnd, iAMdiChild *child);
-	iANModalMain *m_nModalMain;
+	iANModalAttachment(iAMainWindow* mainWnd, iAMdiChild* child);
+	iANModalMain* m_nModalMain;
 };

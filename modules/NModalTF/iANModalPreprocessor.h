@@ -20,7 +20,7 @@
 * ************************************************************************************/
 #pragma once
 
-#include "iAMdiChild.h"
+#include <iAMdiChild.h>
 
 #include <vtkSmartPointer.h>
 
@@ -38,41 +38,48 @@ class QComboBox;
 class QLabel;
 class QTextEdit;
 
-class iANModalPreprocessor {
-
+class iANModalPreprocessor
+{
 public:
 	iANModalPreprocessor(iAMdiChild* mdiChild);
 
-	enum MaskMode {
+	enum MaskMode
+	{
 		IGNORE_MASK,
 		HIDE_ON_RENDER
 	};
 
-	struct Output {
-		Output() {}
-		Output(bool valid) : valid(valid) {}
+	struct Output
+	{
+		Output()
+		{
+		}
+		Output(bool valid) : valid(valid)
+		{
+		}
 		QList<QSharedPointer<iAModality>> modalities;
 		//bool hasMask = false;
 		vtkSmartPointer<vtkImageData> mask;
 		MaskMode maskMode;
 		bool valid = true;
 	};
-	
-	Output preprocess(const QList<QSharedPointer<iAModality>> &);
+
+	Output preprocess(const QList<QSharedPointer<iAModality>>&);
 
 private:
-
 	iAMdiChild* m_mdiChild;
 
-	struct ModalitiesGroup {
+	struct ModalitiesGroup
+	{
 		QList<QSharedPointer<iAModality>> modalities;
 		int dimx, dimy, dimz;
 	};
 
-	enum Pipeline {
+	enum Pipeline
+	{
 		NONE,
-		BGR, // Background removal
-		MR,  // Modality reduction
+		BGR,  // Background removal
+		MR,   // Modality reduction
 		BGR_MR,
 		MR_BGR
 	};
@@ -80,21 +87,22 @@ private:
 	Pipeline choosePipeline();
 	QSharedPointer<iANModalModalityReducer> chooseModalityReducer();
 	QSharedPointer<iANModalBackgroundRemover> chooseBackgroundRemover();
-	
 
 	//bool areModalitiesCompatible(QSharedPointer<iAModality>, QSharedPointer <iAModality>);
-	void groupModalities(const QList<QSharedPointer<iAModality>> &, QList<ModalitiesGroup> &output);
-	QList<QSharedPointer<iAModality>> chooseGroup(const QList<ModalitiesGroup> &);
+	void groupModalities(const QList<QSharedPointer<iAModality>>&, QList<ModalitiesGroup>& output);
+	QList<QSharedPointer<iAModality>> chooseGroup(const QList<ModalitiesGroup>&);
 
-	QList<QSharedPointer<iAModality>> extractNewModalities(const QList<QSharedPointer<iAModality>> &);
-	void addModalitiesToMdiChild(const QList<QSharedPointer<iAModality>> &);
+	QList<QSharedPointer<iAModality>> extractNewModalities(const QList<QSharedPointer<iAModality>>&);
+	void addModalitiesToMdiChild(const QList<QSharedPointer<iAModality>>&);
 };
 
-class iANModalPreprocessorSelector : public QObject {
+class iANModalPreprocessorSelector : public QObject
+{
 	Q_OBJECT
 
 public:
-	struct Option {
+	struct Option
+	{
 		QString name;
 		QString description;
 	};
@@ -104,10 +112,10 @@ public:
 	QString exec();
 
 private:
-	QDialog *m_dialog;
-	QComboBox *m_comboBox;
-	QLabel *m_label;
-	QTextEdit *m_textEdit;
+	QDialog* m_dialog;
+	QComboBox* m_comboBox;
+	QLabel* m_label;
+	QTextEdit* m_textEdit;
 	QMap<QString, Option> m_options;
 
 private slots:

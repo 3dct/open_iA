@@ -21,15 +21,15 @@
 
 #include "iANModalDisplay.h"
 
-#include "iASlicerImpl.h"
-#include "iASlicerMode.h"
-#include "iAMdiChild.h"
-#include "iAModality.h"
-#include "iAChannelData.h"
+#include <iAChannelData.h>
+#include <iAMdiChild.h>
+#include <iAModality.h>
+#include <iASlicerImpl.h>
+#include <iASlicerMode.h>
 
-#include <vtkImageData.h>
-#include <vtkColorTransferFunction.h>
 #include <vtkCamera.h>
+#include <vtkColorTransferFunction.h>
+#include <vtkImageData.h>
 
 #include <QButtonGroup>
 #include <QCheckBox>
@@ -41,14 +41,11 @@
 #include <QStatusBar>
 #include <QVBoxLayout>
 
-iANModalDisplay::iANModalDisplay(QWidget *parent, iAMdiChild *mdiChild, const QList<QSharedPointer<iAModality>> &modalities,
-								 int maxSelection, int minSelection, int numOfRows) :
-	m_modalities(modalities),
-	m_maxSelection(maxSelection),
-	m_minSelection(minSelection),
-	m_mdiChild(mdiChild)
+iANModalDisplay::iANModalDisplay(QWidget* parent, iAMdiChild* mdiChild,
+	const QList<QSharedPointer<iAModality>>& modalities, int maxSelection, int minSelection, int numOfRows) :
+	m_modalities(modalities), m_maxSelection(maxSelection), m_minSelection(minSelection), m_mdiChild(mdiChild)
 {
-	setParent(parent); 
+	setParent(parent);
 
 	assert(modalities.size() >= 0);
 
@@ -64,23 +61,25 @@ iANModalDisplay::iANModalDisplay(QWidget *parent, iAMdiChild *mdiChild, const QL
 	group->setExclusive(isSingleSelection());
 
 	m_slicerMode = iASlicerMode::XY;
-	for (int i = 0; i < modalities.size(); i++) {
+	for (int i = 0; i < modalities.size(); i++)
+	{
 		auto mod = modalities[i];
 		auto slicer = createSlicer(mod);
 		m_slicers.append(slicer);
 
 		int col = i % numOfCols;
 		int row = floor(i / numOfCols);
-		layoutGrid->addWidget(createSlicerContainer(slicer, mod, group/*, isSingleSelection() && i == 0*/), row, col);
+		layoutGrid->addWidget(createSlicerContainer(slicer, mod, group /*, isSingleSelection() && i == 0*/), row, col);
 	}
 
 	layoutMain->addWidget(widgetGrid);
 }
 
-iASlicer* iANModalDisplay::createSlicer(QSharedPointer<iAModality> mod) {
+iASlicer* iANModalDisplay::createSlicer(QSharedPointer<iAModality> mod)
+{
 	int sliceNumber = m_mdiChild->slicer(m_slicerMode)->sliceNumber();
 	// Hide everything except the slice itself
-	auto slicer = new iASlicerImpl(nullptr, m_slicerMode, /*bool decorations = */false);
+	auto slicer = new iASlicerImpl(nullptr, m_slicerMode, /*bool decorations = */ false);
 	slicer->setup(m_mdiChild->slicerSettings().SingleSlicer);
 	slicer->setSizePolicy(QSizePolicy::Preferred, QSizePolicy::Expanding);
 
@@ -100,10 +99,10 @@ iASlicer* iANModalDisplay::createSlicer(QSharedPointer<iAModality> mod) {
 	int* extent = image->GetExtent();
 	double* spacing = image->GetSpacing();
 
-	double xc = origin[0] + 0.5*(extent[0] + extent[1])*spacing[0];
-	double yc = origin[1] + 0.5*(extent[2] + extent[3])*spacing[1];
+	double xc = origin[0] + 0.5 * (extent[0] + extent[1]) * spacing[0];
+	double yc = origin[1] + 0.5 * (extent[2] + extent[3]) * spacing[1];
 	//double xd = (extent[1] - extent[0] + 1)*spacing[0];
-	double yd = (extent[3] - extent[2] + 1)*spacing[1];
+	double yd = (extent[3] - extent[2] + 1) * spacing[1];
 
 	vtkCamera* camera = slicer->camera();
 	double d = camera->GetDistance();
@@ -116,21 +115,27 @@ iASlicer* iANModalDisplay::createSlicer(QSharedPointer<iAModality> mod) {
 	return slicer;
 }
 
-inline QWidget* iANModalDisplay::createSlicerContainer(iASlicer* slicer, QSharedPointer<iAModality> mod, QButtonGroup* group/*, bool checked*/) {
+inline QWidget* iANModalDisplay::createSlicerContainer(
+	iASlicer* slicer, QSharedPointer<iAModality> mod, QButtonGroup* group /*, bool checked*/)
+{
 	//Q_UNUSED(checked);
-	QWidget *widget = new QWidget(this);
-	QHBoxLayout *layout = new QHBoxLayout(widget);
+	QWidget* widget = new QWidget(this);
+	QHBoxLayout* layout = new QHBoxLayout(widget);
 
 	widget->setSizePolicy(QSizePolicy::Expanding, QSizePolicy::Expanding);
 
-	QAbstractButton *selectionButton;
-	if (isSingleSelection()) {
+	QAbstractButton* selectionButton;
+	if (isSingleSelection())
+	{
 		selectionButton = new QRadioButton(widget);
-	} else {
+	}
+	else
+	{
 		selectionButton = new QCheckBox(widget);
 	}
 	selectionButton->setSizePolicy(QSizePolicy::Fixed, QSizePolicy::Expanding);
-	connect(selectionButton, &QAbstractButton::toggled, this, [this, mod, selectionButton]() { setModalitySelected(mod, selectionButton); });
+	connect(selectionButton, &QAbstractButton::toggled, this,
+		[this, mod, selectionButton]() { setModalitySelected(mod, selectionButton); });
 
 	//selectionButton->setChecked(checked);
 
@@ -147,55 +152,57 @@ inline QWidget* iANModalDisplay::createSlicerContainer(iASlicer* slicer, QShared
 }
 
 QList<QSharedPointer<iAModality>> iANModalDisplay::selectModalities(
-	iANModalDisplay *display,
-	QWidget *footer,
-	QWidget *dialogParent)
+	iANModalDisplay* display, QWidget* footer, QWidget* dialogParent)
 {
 	// Set up dialog
 	//QDialog *dialog = new QDialog(dialogParent);
 	auto dialog = new SelectionDialog(display, dialogParent);
 	dialog->setModal(true);
 
-	if (!footer) {
+	if (!footer)
+	{
 		footer = createOkCancelFooter(dialog);
 	}
 
 	// Set up dialog contents
-	QVBoxLayout *layout = new QVBoxLayout(dialog);
+	QVBoxLayout* layout = new QVBoxLayout(dialog);
 	layout->addWidget(display, 1);
 	layout->addWidget(footer, 0);
 
 	// Execute dialog and output
 	auto dialogCode = dialog->exec();
-	if (dialogCode == QDialog::Rejected) {
+	if (dialogCode == QDialog::Rejected)
+	{
 		return QList<QSharedPointer<iAModality>>();
 	}
 	return display->selection();
 }
 
-iANModalDisplay::Footer* iANModalDisplay::createFooter(QDialog *dialog, const QList<QString> &acceptText, const QList<QString> &rejectText) {
+iANModalDisplay::Footer* iANModalDisplay::createFooter(
+	QDialog* dialog, const QList<QString>& acceptText, const QList<QString>& rejectText)
+{
 	auto footerWigdet = new Footer(dialog);
 	auto footerLabel = new QLabel(footerWigdet);
-	auto footerLayout = new QHBoxLayout(footerWigdet); {
-
+	auto footerLayout = new QHBoxLayout(footerWigdet);
+	{
 		footerLayout->addWidget(footerLabel);
 		footerLayout->setStretchFactor(footerLabel, 1);
 
-		for (QString text : acceptText) {
+		for (QString text : acceptText)
+		{
 			auto button = new QPushButton(text);
-			QObject::connect(button, &QPushButton::clicked, dialog, [footerWigdet, text]{
-				footerWigdet->m_textOfButtonClicked = text;
-			});
+			QObject::connect(button, &QPushButton::clicked, dialog,
+				[footerWigdet, text] { footerWigdet->m_textOfButtonClicked = text; });
 			QObject::connect(button, &QPushButton::clicked, dialog, &QDialog::accept);
 			footerLayout->addWidget(button);
 			footerLayout->setStretchFactor(button, 0);
 		}
 
-		for (QString text : rejectText) {
+		for (QString text : rejectText)
+		{
 			auto button = new QPushButton(text);
-			QObject::connect(button, &QPushButton::clicked, dialog, [footerWigdet, text] {
-				footerWigdet->m_textOfButtonClicked = text;
-				});
+			QObject::connect(button, &QPushButton::clicked, dialog,
+				[footerWigdet, text] { footerWigdet->m_textOfButtonClicked = text; });
 			QObject::connect(button, &QPushButton::clicked, dialog, &QDialog::reject);
 			footerLayout->addWidget(button);
 			footerLayout->setStretchFactor(button, 0);
@@ -207,16 +214,21 @@ iANModalDisplay::Footer* iANModalDisplay::createFooter(QDialog *dialog, const QL
 	return footerWigdet;
 }
 
-
-void iANModalDisplay::setModalitySelected(QSharedPointer<iAModality> mod, QAbstractButton *button) {
-	if (isSingleSelection()) {
+void iANModalDisplay::setModalitySelected(QSharedPointer<iAModality> mod, QAbstractButton* button)
+{
+	if (isSingleSelection())
+	{
 		m_selectedModalities.clear();
 		m_selectedModalities.append(mod);
-
-	} else {
-		if (button->isDown()) {
+	}
+	else
+	{
+		if (button->isDown())
+		{
 			m_selectedModalities.append(mod);
-		} else {
+		}
+		else
+		{
 			m_selectedModalities.removeOne(mod);
 		}
 	}
@@ -224,13 +236,16 @@ void iANModalDisplay::setModalitySelected(QSharedPointer<iAModality> mod, QAbstr
 	emit selectionChanged();
 }
 
-bool iANModalDisplay::isSelectionValid() {
+bool iANModalDisplay::isSelectionValid()
+{
 	int len = selection().size();
 	return len < m_minSelection || (m_maxSelection > 0 && len > m_maxSelection);
 }
 
-bool iANModalDisplay::validateSelection() {
-	if (!isSelectionValid()) {
+bool iANModalDisplay::validateSelection()
+{
+	if (!isSelectionValid())
+	{
 		// TODO
 		QString msg = "TODO";
 		emit selectionRejected(msg);
@@ -239,32 +254,40 @@ bool iANModalDisplay::validateSelection() {
 	return true;
 }
 
-iANModalDisplay::SelectionDialog::SelectionDialog(iANModalDisplay *display, QWidget *parent) :
-	QDialog(parent),
-	m_display(display)
+iANModalDisplay::SelectionDialog::SelectionDialog(iANModalDisplay* display, QWidget* parent) :
+	QDialog(parent), m_display(display)
 {
 	display->setParent(this);
 }
 
-void iANModalDisplay::SelectionDialog::done(int r) {
-	if (r == QDialog::Accepted) {
-		if (m_display->validateSelection()) {
+void iANModalDisplay::SelectionDialog::done(int r)
+{
+	if (r == QDialog::Accepted)
+	{
+		if (m_display->validateSelection())
+		{
 			QDialog::done(r);
 		}
 	}
 }
 
-uint iANModalDisplay::createChannel() {
+uint iANModalDisplay::createChannel()
+{
 	uint channel = m_nextChannelId;
 	m_nextChannelId++;
 	return channel;
 }
 
-void iANModalDisplay::setChannelData(uint channelId, iAChannelData channelData) {
-	for (auto slicer : m_slicers) {
-		if (slicer->hasChannel(channelId)) {
+void iANModalDisplay::setChannelData(uint channelId, iAChannelData channelData)
+{
+	for (auto slicer : m_slicers)
+	{
+		if (slicer->hasChannel(channelId))
+		{
 			slicer->updateChannel(channelId, channelData);
-		} else {
+		}
+		else
+		{
 			slicer->addChannel(channelId, channelData, true);
 		}
 		slicer->update();

@@ -20,49 +20,48 @@
 * ************************************************************************************/
 #include "iANModalController.h"
 
-#include "iANModalBackgroundRemover.h" // for BACKGROUND and FOREGROUND values
+#include "iANModalBackgroundRemover.h"  // for BACKGROUND and FOREGROUND values
 #include "iANModalTFManager.h"
 
-#include "iALabellingAttachment.h"
 #include "dlg_labels.h"
-
 #include "dlg_modalities.h"
-#include <iAChannelSlicerData.h>
+#include "iALabellingAttachment.h"
+
 #include <iAChannelData.h>
+#include <iAChannelSlicerData.h>
 #include <iALog.h>
 #include <iAMdiChild.h>
 #include <iAModality.h>
 #include <iAModalityList.h>
 #include <iAModalityTransfer.h>
-#include <iARenderer.h>
-#include <iASlicerSettings.h>
 #include <iARenderSettings.h>
+#include <iARenderer.h>
 #include <iASlicer.h>
 #include <iASlicerImpl.h>
+#include <iASlicerSettings.h>
 #include <iAToolsVTK.h>
 #include <iAVolumeRenderer.h>
 //#include "iAChartWithFunctionsWidget.h" // Why doesn't it work?
 //#include "iAToolsVTK.h"
-#include <iAPerformanceHelper.h>
-#include <iATypedCallHelper.h>
-
 #include <iAChartWithFunctionsWidget.h>
 #include <iAHistogramData.h>
+#include <iAPerformanceHelper.h>
 #include <iAPlotTypes.h>
+#include <iATypedCallHelper.h>
 
-#include <vtkImageData.h>
+#include <vtkCamera.h>
 #include <vtkColorTransferFunction.h>
-#include <vtkPiecewiseFunction.h>
+#include <vtkGPUVolumeRayCastMapper.h>
+#include <vtkImageActor.h>
 #include <vtkImageAppendComponents.h>
+#include <vtkImageData.h>
+#include <vtkImageReslice.h>
+#include <vtkPiecewiseFunction.h>
+#include <vtkRenderer.h>
+#include <vtkSmartPointer.h>
+#include <vtkSmartVolumeMapper.h>
 #include <vtkVolume.h>
 #include <vtkVolumeProperty.h>
-#include <vtkSmartVolumeMapper.h>
-#include <vtkRenderer.h>
-#include <vtkCamera.h>
-#include <vtkImageReslice.h>
-#include <vtkSmartPointer.h>
-#include <vtkImageActor.h>
-#include <vtkGPUVolumeRayCastMapper.h>
 //#include <vtkImageMapToColors.h>
 //#include <vtkGPUVolumeRayCastMapper.h>
 //#include <vtkImageMask.h>
@@ -73,8 +72,7 @@ vtkStandardNewMacro(iANModalSmartVolumeMapper);
 
 static constexpr int NUM_SLICERS = iASlicerMode::SlicerCount;
 
-iANModalController::iANModalController(iAMdiChild* mdiChild) :
-	m_mdiChild(mdiChild)
+iANModalController::iANModalController(iAMdiChild* mdiChild) : m_mdiChild(mdiChild)
 {
 	QObject* obj = m_mdiChild->findChild<QObject*>("labels");
 	if (obj)
@@ -92,22 +90,26 @@ iANModalController::iANModalController(iAMdiChild* mdiChild) :
 	m_dlg_labels->setSeedsTracking(true);
 }
 
-void iANModalController::initialize() {
+void iANModalController::initialize()
+{
 	assert(!m_initialized);
 	privateInitialize();
 	emit(allSlicersInitialized());
 }
 
-void iANModalController::reinitialize() {
+void iANModalController::reinitialize()
+{
 	assert(m_initialized);
 	privateInitialize();
 	emit(allSlicersReinitialized());
 }
 
-void iANModalController::privateInitialize() {
-	assert(countModalities() <= 4); // VTK limit. TODO: don't hard-code
+void iANModalController::privateInitialize()
+{
+	assert(countModalities() <= 4);  // VTK limit. TODO: don't hard-code
 
-	for (auto slicer : m_slicers) {
+	for (auto slicer : m_slicers)
+	{
 		m_dlg_labels->removeSlicer(slicer);
 	}
 
@@ -119,29 +121,30 @@ void iANModalController::privateInitialize() {
 	m_histograms.clear();
 	m_histograms.resize(m_modalities.size());
 
-	for (int i = 0; i < m_modalities.size(); i++) {
+	for (int i = 0; i < m_modalities.size(); i++)
+	{
 		auto modality = m_modalities[i];
 
 		auto slicer = initializeSlicer(modality);
-		int id = m_dlg_labels->addSlicer(
-			slicer,
-			modality->name(),
-			modality->image()->GetExtent(),
-			modality->image()->GetSpacing(),
-			m_slicerChannel_label);
+		int id = m_dlg_labels->addSlicer(slicer, modality->name(), modality->image()->GetExtent(),
+			modality->image()->GetSpacing(), m_slicerChannel_label);
 		m_slicers[i] = slicer;
 		m_mapOverlayImageId2modality.insert(id, modality);
 
 		auto histogramNewBinCount = m_mdiChild->histogramNewBinCount(modality);
-		if (m_mdiChild->histogramComputed(histogramNewBinCount, modality)) {
+		if (m_mdiChild->histogramComputed(histogramNewBinCount, modality))
+		{
 			initializeHistogram(modality, i);
-		} else {
-			auto callback = [this, modality, i](){ initializeHistogram(modality, i); };
+		}
+		else
+		{
+			auto callback = [this, modality, i]() { initializeHistogram(modality, i); };
 			m_mdiChild->computeHistogramAsync(callback, histogramNewBinCount, modality);
 		}
 	}
 
-	if (countModalities() > 0) {
+	if (countModalities() > 0)
+	{
 		initializeMainSlicers();
 		initializeCombinedVol();
 	}
@@ -152,9 +155,10 @@ void iANModalController::privateInitialize() {
 	m_initialized = true;
 }
 
-void iANModalController::initializeHistogram(QSharedPointer<iAModality> modality, int index) {
-	QSharedPointer<iAPlot> histogramPlot = QSharedPointer<iAPlot>(
-		new	iABarGraphPlot(modality->histogramData(), QColor(70, 70, 70, 255)));
+void iANModalController::initializeHistogram(QSharedPointer<iAModality> modality, int index)
+{
+	QSharedPointer<iAPlot> histogramPlot =
+		QSharedPointer<iAPlot>(new iABarGraphPlot(modality->histogramData(), QColor(70, 70, 70, 255)));
 
 	auto histogram = new iAChartWithFunctionsWidget(m_mdiChild, modality->name() + " grey value", "Frequency");
 	histogram->addPlot(histogramPlot);
@@ -165,11 +169,12 @@ void iANModalController::initializeHistogram(QSharedPointer<iAModality> modality
 	emit histogramInitialized(index);
 }
 
-inline iASlicer* iANModalController::initializeSlicer(QSharedPointer<iAModality> modality) {
+inline iASlicer* iANModalController::initializeSlicer(QSharedPointer<iAModality> modality)
+{
 	auto slicerMode = iASlicerMode::XY;
 	int sliceNumber = m_mdiChild->slicer(slicerMode)->sliceNumber();
 	// Hide everything except the slice itself
-	auto slicer = new iASlicerImpl(nullptr, slicerMode, /*bool decorations = */false);
+	auto slicer = new iASlicerImpl(nullptr, slicerMode, /*bool decorations = */ false);
 	slicer->setup(m_mdiChild->slicerSettings().SingleSlicer);
 	slicer->setSizePolicy(QSizePolicy::Preferred, QSizePolicy::Expanding);
 
@@ -188,10 +193,10 @@ inline iASlicer* iANModalController::initializeSlicer(QSharedPointer<iAModality>
 	int* extent = image->GetExtent();
 	double* spacing = image->GetSpacing();
 
-	double xc = origin[0] + 0.5*(extent[0] + extent[1])*spacing[0];
-	double yc = origin[1] + 0.5*(extent[2] + extent[3])*spacing[1];
+	double xc = origin[0] + 0.5 * (extent[0] + extent[1]) * spacing[0];
+	double yc = origin[1] + 0.5 * (extent[2] + extent[3]) * spacing[1];
 	//double xd = (extent[1] - extent[0] + 1)*spacing[0];
-	double yd = (extent[3] - extent[2] + 1)*spacing[1];
+	double yd = (extent[3] - extent[2] + 1) * spacing[1];
 
 	vtkCamera* camera = slicer->camera();
 	double d = camera->GetDistance();
@@ -204,19 +209,21 @@ inline iASlicer* iANModalController::initializeSlicer(QSharedPointer<iAModality>
 	return slicer;
 }
 
-inline void iANModalController::initializeMainSlicers() {
+inline void iANModalController::initializeMainSlicers()
+{
 	iASlicer* slicerArray[] = {
 		m_mdiChild->slicer(iASlicerMode::YZ),
 		m_mdiChild->slicer(iASlicerMode::XY),
-		m_mdiChild->slicer(iASlicerMode::XZ)
-	};
+		m_mdiChild->slicer(iASlicerMode::XZ)};
 
-	for (uint channelId : m_channelIds) {
+	for (uint channelId : m_channelIds)
+	{
 		m_mdiChild->removeChannel(channelId);
 	}
 	m_channelIds.clear();
 
-	for (int modalityIndex = 0; modalityIndex < countModalities(); modalityIndex++) {
+	for (int modalityIndex = 0; modalityIndex < countModalities(); modalityIndex++)
+	{
 		uint channelId = m_mdiChild->createChannel();
 		m_channelIds.append(channelId);
 
@@ -233,8 +240,8 @@ inline void iANModalController::initializeMainSlicers() {
 
 	// Allocate a 2D image for each main slicer
 	// This will be useful in the method _updateMainSlicers
-	for (int mainSlicerIndex = 0; mainSlicerIndex < iASlicerMode::SlicerCount; mainSlicerIndex++) {
-
+	for (int mainSlicerIndex = 0; mainSlicerIndex < iASlicerMode::SlicerCount; mainSlicerIndex++)
+	{
 		auto reslicer = slicerArray[mainSlicerIndex]->channel(m_channelIds[0])->reslicer();
 
 		int const* dims = reslicer->GetOutput()->GetDimensions();
@@ -253,10 +260,12 @@ inline void iANModalController::initializeMainSlicers() {
 	}
 }
 
-inline void iANModalController::initializeCombinedVol() {
+inline void iANModalController::initializeCombinedVol()
+{
 	auto appendFilter = vtkSmartPointer<vtkImageAppendComponents>::New();
 	appendFilter->SetInputData(m_modalities[0]->image());
-	for (int i = 1; i < countModalities(); i++) {
+	for (int i = 1; i < countModalities(); i++)
+	{
 		appendFilter->AddInputData(m_modalities[i]->image());
 	}
 	appendFilter->Update();
@@ -264,7 +273,8 @@ inline void iANModalController::initializeCombinedVol() {
 	m_combinedVol = vtkSmartPointer<vtkVolume>::New();
 	auto combinedVolProp = vtkSmartPointer<vtkVolumeProperty>::New();
 
-	for (int i = 0; i < countModalities(); i++) {
+	for (int i = 0; i < countModalities(); i++)
+	{
 		auto transfer = m_modalities[i]->transfer();
 		combinedVolProp->SetColor(i, transfer->colorTF());
 		combinedVolProp->SetScalarOpacity(i, transfer->opacityTF());
@@ -287,7 +297,8 @@ inline void iANModalController::initializeCombinedVol() {
 	m_combinedVolRenderer->AddVolume(m_combinedVol);
 	//m_combinedVolRenderer->ResetCamera();
 
-	for (int i = 0; i < countModalities(); ++i) {
+	for (int i = 0; i < countModalities(); ++i)
+	{
 		QSharedPointer<iAVolumeRenderer> renderer = m_modalities[i]->renderer();
 		if (renderer && renderer->isRendered())
 			renderer->remove();
@@ -297,7 +308,8 @@ inline void iANModalController::initializeCombinedVol() {
 	m_mdiChild->dataDockWidget()->setAllChecked(Qt::Unchecked);
 }
 
-inline void iANModalController::applyVolumeSettings() {
+inline void iANModalController::applyVolumeSettings()
+{
 	auto vs = m_mdiChild->volumeSettings();
 	auto volProp = m_combinedVol->GetProperty();
 	volProp->SetAmbient(vs.AmbientLighting);
@@ -324,18 +336,21 @@ inline void iANModalController::applyVolumeSettings() {
 #endif
 }
 
-int iANModalController::countModalities() {
+int iANModalController::countModalities()
+{
 	// Cannot be larger than 4 because of VTK limit
 	int numModalities = m_modalities.size();
-	assert(numModalities <= 4); // Bad: '4' is hard-coded. TODO: improve
+	assert(numModalities <= 4);  // Bad: '4' is hard-coded. TODO: improve
 	return numModalities;
 }
 
-bool iANModalController::checkModalities(const QList<QSharedPointer<iAModality>> &modalities) {
-	if (modalities.size() < 1 || modalities.size() > 4) { // Bad: '4' is hard-coded. TODO: improve
+bool iANModalController::checkModalities(const QList<QSharedPointer<iAModality>>& modalities)
+{
+	if (modalities.size() < 1 || modalities.size() > 4)
+	{  // Bad: '4' is hard-coded. TODO: improve
 		return false;
 	}
-/*
+	/*
 	for (int i = 1; i < modalities.size(); i++) {
 		if (!matchModalities(modalities[0], modalities[i])) {
 			return false;
@@ -361,30 +376,34 @@ bool iANModalController::_matchModalities(QSharedPointer<iAModality> m1, QShared
 }
 */
 
-void iANModalController::setModalities(const QList<QSharedPointer<iAModality>> &modalities) {
-	if (!checkModalities(modalities)) {
+void iANModalController::setModalities(const QList<QSharedPointer<iAModality>>& modalities)
+{
+	if (!checkModalities(modalities))
+	{
 		return;
 	}
 	m_modalities = modalities;
 
 	m_tfs.clear();
-	for (auto mod : modalities) {
+	for (auto mod : modalities)
+	{
 		m_tfs.append(QSharedPointer<iANModalTFManager>(new iANModalTFManager(mod)));
 	}
 
 	resetTf(modalities);
 }
 
-void iANModalController::setMask(vtkSmartPointer<vtkImageData> mask) {
-
+void iANModalController::setMask(vtkSmartPointer<vtkImageData> mask)
+{
 	m_mask = vtkSmartPointer<vtkImageData>::New();
 	m_mask->DeepCopy(mask);
 	mask = m_mask;
 
-	unsigned char *ptr = static_cast<unsigned char *>(mask->GetScalarPointer());
+	unsigned char* ptr = static_cast<unsigned char*>(mask->GetScalarPointer());
 #pragma omp parallel for
-	FOR_VTKIMG_PIXELS(mask, x, y, z) {
-		int ijk[3] = { x, y, z };
+	FOR_VTKIMG_PIXELS(mask, x, y, z)
+	{
+		int ijk[3] = {x, y, z};
 		int id = mask->ComputePointId(ijk);
 		ptr[id] *= 255;
 	}
@@ -394,7 +413,8 @@ void iANModalController::setMask(vtkSmartPointer<vtkImageData> mask) {
 	gpuMapper->SetMaskInput(mask);
 }
 
-void iANModalController::resetTf(QSharedPointer<iAModality> modality) {
+void iANModalController::resetTf(QSharedPointer<iAModality> modality)
+{
 	auto transfer = modality->transfer();
 	transfer->opacityTF()->RemoveAllPoints();
 	transfer->colorTF()->RemoveAllPoints();
@@ -403,38 +423,45 @@ void iANModalController::resetTf(QSharedPointer<iAModality> modality) {
 	auto tf = m_tfs[i];
 
 	tf->removeAllControlPoints();
-	tf->addControlPoint(tf->minx(), { 0, 0, 0, 0 });
-	tf->addControlPoint(tf->maxx(), { 0, 0, 0, 0 });
+	tf->addControlPoint(tf->minx(), {0, 0, 0, 0});
+	tf->addControlPoint(tf->maxx(), {0, 0, 0, 0});
 
 	tf->update();
 }
 
-void iANModalController::resetTf(const QList<QSharedPointer<iAModality>> &modalities) {
-	for (auto modality : modalities) {
+void iANModalController::resetTf(const QList<QSharedPointer<iAModality>>& modalities)
+{
+	for (auto modality : modalities)
+	{
 		resetTf(modality);
 	}
 }
 
-void iANModalController::updateLabel(const iANModalLabel &label) {
+void iANModalController::updateLabel(const iANModalLabel& label)
+{
 	auto list = QList<iANModalLabel>();
 	list.append(label);
 	updateLabels(list);
 }
 
-void iANModalController::updateLabels(const QList<iANModalLabel> &labelsList) {
+void iANModalController::updateLabels(const QList<iANModalLabel>& labelsList)
+{
 #if QT_VERSION < QT_VERSION_CHECK(5, 14, 0)
 	std::vector<iANModalLabel> labels = labelsList.toVector().toStdVector();
 #else
 	std::vector<iANModalLabel> labels(labelsList.begin(), labelsList.end());
 #endif
-	for (auto tf : m_tfs) {
+	for (auto tf : m_tfs)
+	{
 		tf->updateLabels(labels);
 		tf->update();
 	}
 }
 
-void iANModalController::addSeeds(const QList<iANModalSeed> &seeds, const iANModalLabel &label) {
-	for (const auto &seed : seeds) {
+void iANModalController::addSeeds(const QList<iANModalSeed>& seeds, const iANModalLabel& label)
+{
+	for (const auto& seed : seeds)
+	{
 		auto modality = m_mapOverlayImageId2modality.value(seed.overlayImageId);
 		unsigned int x = modality->image()->GetScalarComponentAsDouble(seed.x, seed.y, seed.z, 0);
 		int i = m_modalities.lastIndexOf(modality);
@@ -444,7 +471,8 @@ void iANModalController::addSeeds(const QList<iANModalSeed> &seeds, const iANMod
 		auto tf = m_tfs[i];
 		tf->addControlPoint(x, label);
 	}
-	for (auto tf : m_tfs) {
+	for (auto tf : m_tfs)
+	{
 		tf->update();
 	}
 
@@ -452,15 +480,18 @@ void iANModalController::addSeeds(const QList<iANModalSeed> &seeds, const iANMod
 	m_tracker.updateLater();
 }
 
-void iANModalController::removeSeeds(const QList<iANModalSeed> &seeds) {
-	for (const auto &seed : seeds) {
+void iANModalController::removeSeeds(const QList<iANModalSeed>& seeds)
+{
+	for (const auto& seed : seeds)
+	{
 		auto modality = m_mapOverlayImageId2modality.value(seed.overlayImageId);
 		unsigned int x = modality->image()->GetScalarComponentAsDouble(seed.x, seed.y, seed.z, 0);
 		int i = m_modalities.lastIndexOf(modality);
 		auto tf = m_tfs[i];
 		tf->removeControlPoint(x);
 	}
-	for (auto tf : m_tfs) {
+	for (auto tf : m_tfs)
+	{
 		tf->update();
 	}
 
@@ -468,8 +499,10 @@ void iANModalController::removeSeeds(const QList<iANModalSeed> &seeds) {
 	m_tracker.updateLater();
 }
 
-void iANModalController::removeAllSeeds() {
-	for (auto tf : m_tfs) {
+void iANModalController::removeAllSeeds()
+{
+	for (auto tf : m_tfs)
+	{
 		tf->removeAllControlPoints();
 		tf->update();
 	}
@@ -478,7 +511,8 @@ void iANModalController::removeAllSeeds() {
 	m_tracker.updateLater();
 }
 
-void iANModalController::update() {
+void iANModalController::update()
+{
 	m_mdiChild->renderer()->update();
 
 	// TODO: see TODO at implementation of _updateMainSlicers
@@ -492,10 +526,12 @@ void iANModalController::update() {
 using Rgb = std::array<unsigned char, 3>;
 using Colors = std::vector<Rgb>;
 using Alphas = std::vector<float>;
-static inline void combineColors(const Colors &colors, const Alphas &opacities, Rgb &output) {
+static inline void combineColors(const Colors& colors, const Alphas& opacities, Rgb& output)
+{
 	assert(colors.size() == opacities.size());
 	output = {0, 0, 0};
-	for (size_t i = 0; i < colors.size(); ++i) {
+	for (size_t i = 0; i < colors.size(); ++i)
+	{
 		float opacity = opacities[i];
 		output[0] += (colors[i][0] * opacity);
 		output[1] += (colors[i][1] * opacity);
@@ -503,45 +539,46 @@ static inline void combineColors(const Colors &colors, const Alphas &opacities, 
 	}
 }
 
-static inline void setRgba(const vtkSmartPointer<vtkImageData> &img, const int &x, const int &y, const int &z, const Rgb &color, const float &alpha = 255) {
-	for (int i = 0; i < 3; ++i)
-		img->SetScalarComponentFromFloat(x, y, z, i, color[i]);
+static inline void setRgba(const vtkSmartPointer<vtkImageData>& img, const int& x, const int& y, const int& z,
+	const Rgb& color, const float& alpha = 255)
+{
+	for (int i = 0; i < 3; ++i) img->SetScalarComponentFromFloat(x, y, z, i, color[i]);
 	img->SetScalarComponentFromFloat(x, y, z, 3, alpha);
 }
 
-static inline double getScalar(const vtkSmartPointer<vtkImageData> &img, const int &x, const int &y, const int &z) {
+static inline double getScalar(const vtkSmartPointer<vtkImageData>& img, const int& x, const int& y, const int& z)
+{
 	return img->GetScalarComponentAsDouble(x, y, z, 0);
 }
 
-static inline void setRgba(unsigned char *ptr, const int &id, const Rgb &color, const float &alpha = 255) {
-	ptr[id+0] = color[0];
-	ptr[id+1] = color[1];
-	ptr[id+2] = color[2];
-	ptr[id+3] = alpha;
+static inline void setRgba(unsigned char* ptr, const int& id, const Rgb& color, const float& alpha = 255)
+{
+	ptr[id + 0] = color[0];
+	ptr[id + 1] = color[1];
+	ptr[id + 2] = color[2];
+	ptr[id + 3] = alpha;
 	//unsigned char rgba[4] = { color[0], color[1], color[2], alpha };
 	//memcpy(&ptr[id], rgba, 4 * sizeof(unsigned char));
 }
 
 template <typename T>
-static inline double getScalar(T *ptr, const int &id) {
+static inline double getScalar(T* ptr, const int& id)
+{
 	return ptr[id];
 }
 
 static constexpr iASlicerMode slicerModes[NUM_SLICERS] = {
-		iASlicerMode::YZ, // X
-		iASlicerMode::XY, // Z
-		iASlicerMode::XZ  // Y
+	iASlicerMode::YZ,  // X
+	iASlicerMode::XY,  // Z
+	iASlicerMode::XZ   // Y
 };
 
-static constexpr int slicerAxes[NUM_SLICERS] = { 0, 2, 1 }; // X, Z, Y (compatible with layout of slicerModes array)
+static constexpr int slicerAxes[NUM_SLICERS] = {0, 2, 1};  // X, Z, Y (compatible with layout of slicerModes array)
 
-static constexpr int slicerCoordSwapIndices[NUM_SLICERS][NUM_SLICERS] = {
-	{2, 0, 1},
-	{0, 1, 2},
-	{0, 2, 1}
-};
+static constexpr int slicerCoordSwapIndices[NUM_SLICERS][NUM_SLICERS] = {{2, 0, 1}, {0, 1, 2}, {0, 2, 1}};
 
-static inline void swapIndices(const int (&xyz_orig)[3], int mainSlicerIndex, int (&xyz_out)[3]) {
+static inline void swapIndices(const int (&xyz_orig)[3], int mainSlicerIndex, int (&xyz_out)[3])
+{
 #ifndef NDEBUG
 	Q_UNUSED(xyz_orig);
 #endif
@@ -554,7 +591,8 @@ static inline void swapIndices(const int (&xyz_orig)[3], int mainSlicerIndex, in
 	assert(xyz_orig[slicerCoordSwapIndices[mainSlicerIndex][2]] == xyz_out[2]);
 }
 
-static inline void convert_2d_to_3d(const int(&xyz_orig)[3], int mainSlicerIndex, int sliceNum, int(&xyz_out)[3]) {
+static inline void convert_2d_to_3d(const int (&xyz_orig)[3], int mainSlicerIndex, int sliceNum, int (&xyz_out)[3])
+{
 	swapIndices(xyz_orig, mainSlicerIndex, xyz_out);
 	xyz_out[slicerAxes[mainSlicerIndex]] += sliceNum;
 }
@@ -571,8 +609,10 @@ static inline void convert_2d_to_3d(const int(&xyz_orig)[3], int mainSlicerIndex
 #define iANModal_SET_COLOR(img, ptr, color, alpha) setRgba(img, x, y, z, color, alpha)
 #endif
 
-void iANModalController::updateHistograms() {
-	for (auto histogram : m_histograms) {
+void iANModalController::updateHistograms()
+{
+	for (auto histogram : m_histograms)
+	{
 		histogram->update();
 	}
 }
@@ -580,8 +620,8 @@ void iANModalController::updateHistograms() {
 // Assume that all modalities have the same pixel type
 // TODO: Don't...
 template <typename PixelType>
-void iANModalController::updateMainSlicers() {
-
+void iANModalController::updateMainSlicers()
+{
 	/*for (int i = 0; i < NUM_SLICERS; ++i) {
 		m_mdiChild->slicer(i)->update();
 	}
@@ -594,9 +634,11 @@ void iANModalController::updateMainSlicers() {
 
 	iATimeGuard testAll("Process (2D) slice images");
 
-	for (int mainSlicerIndex = 0; mainSlicerIndex < NUM_SLICERS; ++mainSlicerIndex) {
-
-		QString testSliceCaption = QString("Process (2D) slice image %1/%2").arg(QString::number(mainSlicerIndex + 1)).arg(QString::number(NUM_SLICERS));
+	for (int mainSlicerIndex = 0; mainSlicerIndex < NUM_SLICERS; ++mainSlicerIndex)
+	{
+		QString testSliceCaption = QString("Process (2D) slice image %1/%2")
+									   .arg(QString::number(mainSlicerIndex + 1))
+									   .arg(QString::number(NUM_SLICERS));
 		iATimeGuard testSlice(testSliceCaption.toStdString());
 
 		auto slicerMode = slicerModes[mainSlicerIndex];
@@ -605,10 +647,11 @@ void iANModalController::updateMainSlicers() {
 
 		std::vector<vtkSmartPointer<vtkImageData>> sliceImgs2D(numModalities);
 		iANModal_IF_USE_GETSCALARPOINTER(std::vector<PixelType*> sliceImgs2D_ptrs(numModalities));
-		std::vector<vtkScalarsToColors*>           sliceColorTf(numModalities);
-		std::vector<vtkPiecewiseFunction*>         sliceOpacityTf(numModalities);
+		std::vector<vtkScalarsToColors*> sliceColorTf(numModalities);
+		std::vector<vtkPiecewiseFunction*> sliceOpacityTf(numModalities);
 
-		for (int modalityIndex = 0; modalityIndex < countModalities(); ++modalityIndex) {
+		for (int modalityIndex = 0; modalityIndex < countModalities(); ++modalityIndex)
+		{
 			// Get channel for modality
 			// ...this will allow us to get the 2D slice image and the transfer functions
 			auto channel = slicer->channel(m_channelIds[modalityIndex]);
@@ -626,7 +669,8 @@ void iANModalController::updateMainSlicers() {
 
 			// Save 2D slice image and transfer functions for future processing
 			sliceImgs2D[modalityIndex] = sliceImg2D;
-			iANModal_IF_USE_GETSCALARPOINTER(sliceImgs2D_ptrs[modalityIndex] = static_cast<PixelType*>(sliceImg2D->GetScalarPointer()));
+			iANModal_IF_USE_GETSCALARPOINTER(
+				sliceImgs2D_ptrs[modalityIndex] = static_cast<PixelType*>(sliceImg2D->GetScalarPointer()));
 			sliceColorTf[modalityIndex] = channel->colorTF();
 			sliceOpacityTf[modalityIndex] = channel->opacityTF();
 
@@ -639,17 +683,19 @@ void iANModalController::updateMainSlicers() {
 		auto sliceImg2D_out = m_sliceImages2D[mainSlicerIndex];
 
 #ifdef iANModal_USE_GETSCALARPOINTER
-		auto ptr = static_cast<unsigned char *>(sliceImg2D_out->GetScalarPointer());
-		unsigned char *maskPtr = nullptr;
-		if (m_mask) maskPtr = static_cast<unsigned char *>(m_mask->GetScalarPointer());
+		auto ptr = static_cast<unsigned char*>(sliceImg2D_out->GetScalarPointer());
+		unsigned char* maskPtr = nullptr;
+		if (m_mask)
+			maskPtr = static_cast<unsigned char*>(m_mask->GetScalarPointer());
 #ifndef NDEBUG
-		int numVoxels = sliceImg2D_out->GetDimensions()[0] * sliceImg2D_out->GetDimensions()[1] * sliceImg2D_out->GetDimensions()[2];
+		int numVoxels = sliceImg2D_out->GetDimensions()[0] * sliceImg2D_out->GetDimensions()[1] *
+			sliceImg2D_out->GetDimensions()[2];
 #endif
 #endif
 
-//#pragma omp parallel for
-		FOR_VTKIMG_PIXELS(sliceImg2D_out, x, y, z) {
-
+		//#pragma omp parallel for
+		FOR_VTKIMG_PIXELS(sliceImg2D_out, x, y, z)
+		{
 #ifdef iANModal_USE_GETSCALARPOINTER
 			int ijk[3] = {x, y, z};
 			int id_scalar = sliceImg2D_out->ComputePointId(ijk);
@@ -658,51 +704,55 @@ void iANModalController::updateMainSlicers() {
 #ifndef NDEBUG
 			{
 				assert(id_scalar < numVoxels);
-				unsigned char *ptr_test1 = &ptr[id_rgba];
-				unsigned char *ptr_test2 = static_cast<unsigned char *>(sliceImg2D_out->GetScalarPointer(x, y, z));
+				unsigned char* ptr_test1 = &ptr[id_rgba];
+				unsigned char* ptr_test2 = static_cast<unsigned char*>(sliceImg2D_out->GetScalarPointer(x, y, z));
 				assert(ptr_test1 == ptr_test2);
 			}
 #endif
 #endif
 
-			if (m_mask) {
+			if (m_mask)
+			{
 				//int ijk_3D[3] = { x + indexAddends[0], y + indexAddends[2], z + indexAddends[1] }; // X,Z,Y -> 0,2,1
 				int ijk_3D[3];
 				convert_2d_to_3d(ijk, mainSlicerIndex, sliceNum, ijk_3D);
-				int id_scalar = m_mask->ComputePointId(ijk_3D); // Shadow id_scalar from previous scope to work with macro
+				int id_scalar =
+					m_mask->ComputePointId(ijk_3D);  // Shadow id_scalar from previous scope to work with macro
 				unsigned char maskValue = iANModal_GET_SCALAR(m_mask, maskPtr);
 #ifndef NDEBUG
 				{
-					unsigned char *ptr_mask_test1 = &maskPtr[id_scalar];
-					unsigned char *ptr_mask_test2 = static_cast<unsigned char *>(m_mask->GetScalarPointer(ijk_3D));
+					unsigned char* ptr_mask_test1 = &maskPtr[id_scalar];
+					unsigned char* ptr_mask_test2 = static_cast<unsigned char*>(m_mask->GetScalarPointer(ijk_3D));
 					assert(ptr_mask_test1 == ptr_mask_test2);
-					unsigned char maskValue_test = m_mask->GetScalarComponentAsDouble(ijk_3D[0], ijk_3D[1], ijk_3D[2], 0);
+					unsigned char maskValue_test =
+						m_mask->GetScalarComponentAsDouble(ijk_3D[0], ijk_3D[1], ijk_3D[2], 0);
 					assert(maskValue == maskValue_test);
 				}
 #endif
-				if (maskValue == 0) {
-					static constexpr Rgb black = { 0, 0, 0 };
+				if (maskValue == 0)
+				{
+					static constexpr Rgb black = {0, 0, 0};
 					iANModal_SET_COLOR(sliceImg2D_out, ptr, black, 0);
 					continue;
 				}
 			}
-			
+
 			Colors colors(numModalities);
 			Alphas opacities(numModalities);
 			float opacitySum = 0;
 
 			// Gather the colors and opacities for this voxel xyz (for each modality)
-			for (int mod_i = 0; mod_i < numModalities; ++mod_i) {
-
+			for (int mod_i = 0; mod_i < numModalities; ++mod_i)
+			{
 #ifdef iANModal_USE_GETSCALARPOINTER
-				PixelType *ptr2 = sliceImgs2D_ptrs[mod_i];
+				PixelType* ptr2 = sliceImgs2D_ptrs[mod_i];
 
 #ifndef NDEBUG
 				{
 					int id_scalar_test = sliceImgs2D[mod_i]->ComputePointId(ijk);
 					assert(id_scalar == id_scalar_test);
-					PixelType *ptr2_test1 = &ptr2[id_scalar_test];
-					PixelType *ptr2_test2 = static_cast<PixelType *>(sliceImgs2D[mod_i]->GetScalarPointer(x, y, z));
+					PixelType* ptr2_test1 = &ptr2[id_scalar_test];
+					PixelType* ptr2_test2 = static_cast<PixelType*>(sliceImgs2D[mod_i]->GetScalarPointer(x, y, z));
 					assert(ptr2_test1 == ptr2_test2);
 				}
 #endif
@@ -710,37 +760,42 @@ void iANModalController::updateMainSlicers() {
 				PixelType scalar = getScalar(ptr2, id_scalar);
 
 #ifndef NDEBUG
-			{
+				{
 					PixelType scalar_test = sliceImgs2D[mod_i]->GetScalarComponentAsDouble(x, y, z, 0);
 					assert(scalar == scalar_test);
-			}
+				}
 #endif
-				
+
 #else
 				float scalar = getScalar(sliceImgs2D[mod_i], x, y, z);
 #endif
 
 				ta_color.resume();
-				const unsigned char *color = sliceColorTf[mod_i]->MapValue(scalar); // 4 bytes (RGBA)
+				const unsigned char* color = sliceColorTf[mod_i]->MapValue(scalar);  // 4 bytes (RGBA)
 				ta_color.pause();
 
 				ta_opacity.resume();
 				float opacity = sliceOpacityTf[mod_i]->GetValue(scalar);
 				ta_opacity.pause();
 
-				colors[mod_i] = { color[0], color[1], color[2] }; // RGB (ignore A)
+				colors[mod_i] = {color[0], color[1], color[2]};  // RGB (ignore A)
 				opacities[mod_i] = opacity;
 				opacitySum += opacity;
 			}
 
 			// Normalize opacities so that their sum is 1
-			if (opacitySum == 0) {
-				for (int mod_i = 0; mod_i < numModalities; ++mod_i) {
+			if (opacitySum == 0)
+			{
+				for (int mod_i = 0; mod_i < numModalities; ++mod_i)
+				{
 					opacities[mod_i] = 1 / numModalities;
 					opacitySum = 1;
 				}
-			} else {
-				for (int mod_i = 0; mod_i < numModalities; ++mod_i) {
+			}
+			else
+			{
+				for (int mod_i = 0; mod_i < numModalities; ++mod_i)
+				{
 					opacities[mod_i] /= opacitySum;
 				}
 			}
@@ -762,7 +817,7 @@ void iANModalController::updateMainSlicers() {
 
 			iANModal_SET_COLOR(sliceImg2D_out, ptr, combinedColor, 255);
 
-		} // end of FOR_VTKIMG_PIXELS
+		}  // end of FOR_VTKIMG_PIXELS
 
 		testSlice.time("All voxels processed");
 
@@ -783,14 +838,17 @@ void iANModalController::updateMainSlicers() {
 
 	testAll.time("Done!");
 
-	for (int i = 0; i < NUM_SLICERS; ++i) {
+	for (int i = 0; i < NUM_SLICERS; ++i)
+	{
 		m_mdiChild->slicer(i)->update();
 	}
 }
 
-void iANModalController::trackerBinClicked(iASlicerMode slicerMode, int sliceNumber) {
+void iANModalController::trackerBinClicked(iASlicerMode slicerMode, int sliceNumber)
+{
 	m_mdiChild->slicer(slicerMode)->setSliceNumber(sliceNumber);
-	for (auto slicer : m_slicers) {
+	for (auto slicer : m_slicers)
+	{
 		slicer->setMode(slicerMode);
 		slicer->setSliceNumber(sliceNumber);
 	}

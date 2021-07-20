@@ -22,9 +22,9 @@
 
 #include "iANModalObjects.h"
 
-#include <QSharedPointer>
+#include <vtkSmartPointer.h>
 
-#include "vtkSmartPointer.h"
+#include <QSharedPointer>
 
 #include <vector>
 
@@ -33,44 +33,61 @@ class iAModality;
 class vtkColorTransferFunction;
 class vtkPiecewiseFunction;
 
-class iANModalTFManager {
+class iANModalTFManager
+{
 public:
 	iANModalTFManager(QSharedPointer<iAModality> modality);
 
-	void addControlPoint(unsigned int x, const iANModalLabel &label);
+	void addControlPoint(unsigned int x, const iANModalLabel& label);
 	void addControlPoint(unsigned int x, const double (&rgba)[4]);
 
 	void removeControlPoint(unsigned int x);
 	void removeControlPoints(int labelId);
 	void removeAllControlPoints();
 
-	void updateLabels(const std::vector<iANModalLabel> &labels);
+	void updateLabels(const std::vector<iANModalLabel>& labels);
 
 	void update();
 
-	unsigned int minx() { return 0; }
-	unsigned int maxx() { return m_cps.size() - 1; }
+	unsigned int minx()
+	{
+		return 0;
+	}
+	unsigned int maxx()
+	{
+		return m_cps.size() - 1;
+	}
 
 private:
-
-	struct CP {
-		CP() : x(0), r(0), g(0), b(0), a(0), labelId(-1) {}
-		CP(unsigned int X, float R, float G, float B, float A) : x(X), r(R), g(G), b(B), a(A), labelId(-1) {}
-		CP(unsigned int X, float R, float G, float B, float A, int LabelId) : x(X), r(R), g(G), b(B), a(A), labelId(LabelId) {}
+	struct CP
+	{
+		CP() : x(0), r(0), g(0), b(0), a(0), labelId(-1)
+		{
+		}
+		CP(unsigned int X, float R, float G, float B, float A) : x(X), r(R), g(G), b(B), a(A), labelId(-1)
+		{
+		}
+		CP(unsigned int X, float R, float G, float B, float A, int LabelId) :
+			x(X), r(R), g(G), b(B), a(A), labelId(LabelId)
+		{
+		}
 
 		unsigned int x;
 		float r, g, b, a;
 		int labelId;
 
-		bool operator==(const CP &other) const {
+		bool operator==(const CP& other) const
+		{
 			return (null() && other.null()) || (null() == other.null() && labelId == other.labelId);
 		}
 
-		bool operator!=(const CP &other) const {
+		bool operator!=(const CP& other) const
+		{
 			return !operator==(other);
 		}
 
-		bool null() const {
+		bool null() const
+		{
 			return labelId < 0;
 		}
 	};
@@ -79,7 +96,6 @@ private:
 	vtkSmartPointer<vtkPiecewiseFunction> m_opacityTf;
 	std::vector<CP> m_cps;
 
-	inline void addControlPointToTfs(const CP &cp);
+	inline void addControlPointToTfs(const CP& cp);
 	inline void removeControlPointFromTfs(unsigned int x);
-
 };

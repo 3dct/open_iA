@@ -20,26 +20,27 @@
 * ************************************************************************************/
 #pragma once
 
-#include <QWidget>
-#include <QThread>
 #include <QMap>
+#include <QThread>
+#include <QWidget>
 
 class QGridLayout;
 class QProgressBar;
 class QLabel;
 class QLayout;
 
-class iANModalProgressWidget : public QWidget {
+class iANModalProgressWidget : public QWidget
+{
 	Q_OBJECT
 
 public:
-	iANModalProgressWidget(QWidget *parent=nullptr);
+	iANModalProgressWidget(QWidget* parent = nullptr);
 
-	int addProgressBar(int max, QString title, bool autoUpdateText=true, QString name=QString());
-	int addProgressBar(int max, QLabel *label, bool autoUpdateText=false, QString name= QString());
+	int addProgressBar(int max, QString title, bool autoUpdateText = true, QString name = QString());
+	int addProgressBar(int max, QLabel* label, bool autoUpdateText = false, QString name = QString());
 
-	void addWidget(QWidget *widget, QString title);
-	void addWidget(QWidget *widget, QLabel *label=nullptr, int rowStretch=1);
+	void addWidget(QWidget* widget, QString title);
+	void addWidget(QWidget* widget, QLabel* label = nullptr, int rowStretch = 1);
 
 	void addSeparator();
 
@@ -49,7 +50,7 @@ public:
 	bool exists(int pbid);
 
 private:
-	QGridLayout *m_layout;
+	QGridLayout* m_layout;
 	QList<QProgressBar*> m_bars;
 	QList<QLabel*> m_barLabels;
 	QList<QString> m_barTexts;
@@ -60,7 +61,7 @@ private:
 	bool m_canceled = false;
 
 public slots:
-	void showDialog(QWidget *parent = nullptr);
+	void showDialog(QWidget* parent = nullptr);
 	void update(int pbid);
 	void finish();
 	void cancel();
@@ -83,7 +84,8 @@ signals:
 	void canceled();
 };
 
-class iANModalProgressUpdater : public QThread {
+class iANModalProgressUpdater : public QThread
+{
 	Q_OBJECT
 
 public:
@@ -96,7 +98,7 @@ signals:
 	void finish();
 	void cancel();
 
-	void showDialog(QWidget *parent = nullptr);
+	void showDialog(QWidget* parent = nullptr);
 
 	void setFirstValue(int value);
 	void setValue(int pbid, int value);

@@ -27,12 +27,11 @@
 #include <vtkSmartVolumeMapper.h>
 
 #include <QColor>
-#include <QVector>
 #include <QList>
 #include <QMap>
-//#include <QSet>
 #include <QSharedPointer>
 #include <QString>
+#include <QVector>
 
 #include <unordered_set>
 
@@ -49,17 +48,21 @@ class vtkVolume;
 class vtkRenderer;
 class vtkImageData;
 
-class iANModalSmartVolumeMapper : public vtkSmartVolumeMapper {
+class iANModalSmartVolumeMapper : public vtkSmartVolumeMapper
+{
 public:
-	static iANModalSmartVolumeMapper *New();
+	static iANModalSmartVolumeMapper* New();
 	vtkTypeMacro(iANModalSmartVolumeMapper, vtkSmartVolumeMapper);
-	vtkGPUVolumeRayCastMapper* getGPUMapper() { return GPUMapper; }
+	vtkGPUVolumeRayCastMapper* getGPUMapper()
+	{
+		return GPUMapper;
+	}
 	//vtkGPUVolumeRayCastMapper* getGPULowResMapper() { return GPULowResMapper; }
 	//vtkFixedPointVolumeRayCastMapper  *RayCastMapper;
 };
 
-
-class iANModalController : public QObject {
+class iANModalController : public QObject
+{
 	Q_OBJECT
 
 	friend class iANModalWidget;
@@ -69,17 +72,17 @@ public:
 	void initialize();
 
 	int countModalities();
-	void setModalities(const QList<QSharedPointer<iAModality>> &modalities);
+	void setModalities(const QList<QSharedPointer<iAModality>>& modalities);
 	void setMask(vtkSmartPointer<vtkImageData> mask);
 	void resetTf(QSharedPointer<iAModality> modality);
-	void resetTf(const QList<QSharedPointer<iAModality>> &modalities);
+	void resetTf(const QList<QSharedPointer<iAModality>>& modalities);
 
 	void reinitialize();
 
-	void updateLabel(const iANModalLabel &);
-	void updateLabels(const QList<iANModalLabel> &);
-	void addSeeds(const QList<iANModalSeed> &, const iANModalLabel &);
-	void removeSeeds(const QList<iANModalSeed> &);
+	void updateLabel(const iANModalLabel&);
+	void updateLabels(const QList<iANModalLabel>&);
+	void addSeeds(const QList<iANModalSeed>&, const iANModalLabel&);
+	void removeSeeds(const QList<iANModalSeed>&);
 	void removeAllSeeds();
 
 private:
@@ -90,10 +93,11 @@ private:
 	void initializeHistogram(QSharedPointer<iAModality> modality, int index);
 	void initializeCombinedVol();
 	void initializeMainSlicers();
-	bool checkModalities(const QList<QSharedPointer<iAModality>> &modalities);
+	bool checkModalities(const QList<QSharedPointer<iAModality>>& modalities);
 	//bool _matchModalities(QSharedPointer<iAModality> m1, QSharedPointer<iAModality> m2);
 	void updateHistograms();
-	template <typename PixelType> void updateMainSlicers();
+	template <typename PixelType>
+	void updateMainSlicers();
 
 	QList<QSharedPointer<iAModality>> m_modalities;
 	QList<QSharedPointer<iANModalTFManager>> m_tfs;
@@ -122,7 +126,7 @@ private:
 	// Seed tracker (visualization next to the main slicers's sliders)
 	iANModalSeedTracker m_tracker;
 
-	dlg_labels *m_dlg_labels;
+	dlg_labels* m_dlg_labels;
 
 signals:
 	void allSlicersInitialized();
@@ -134,5 +138,4 @@ private slots:
 
 public slots:
 	void update();
-
 };
