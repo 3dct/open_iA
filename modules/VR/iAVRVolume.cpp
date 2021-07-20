@@ -182,7 +182,8 @@ void iAVRVolume::renderSelection(std::vector<size_t> const& sortedSelInds, int c
 
 //! Moves all fibers from the octree center away.
 //! The fibers belong to the region in which they have their maximum coverage
-//! The flag relativMovement decides if the offset is applied to the relative octree region postion or linear
+//! The flag relativMovement decides if the offset is applied to the relative (radial) octree region postion 
+//! or linear (SP)
 //! Should only be called if the mappers are set!
 void iAVRVolume::moveFibersByMaxCoverage(std::vector<std::vector<std::vector<vtkIdType>>>* m_maxCoverage, double offset, bool relativMovement)
 {
@@ -279,7 +280,9 @@ void iAVRVolume::moveFibersbyAllCoveredRegions(double offset, bool relativMoveme
 	m_cylinderVis->getPolyData()->GetPoints()->GetData()->Modified();
 }
 
-void iAVRVolume::moveFibersby8Regions(std::vector<std::vector<std::vector<vtkIdType>>>* m_maxCoverage, double offset)
+//! Moves all fibers from the octree center away.
+//! The fibers belong to the region in which they have their maximum coverage and are moved based on the octant displacement
+void iAVRVolume::moveFibersbyOctant(std::vector<std::vector<std::vector<vtkIdType>>>* m_maxCoverage, double offset)
 {
 	double centerPoint[3]{};
 	m_octree->calculateOctreeCenterPos(centerPoint);
@@ -334,7 +337,13 @@ void iAVRVolume::moveFibersby8Regions(std::vector<std::vector<std::vector<vtkIdT
 	m_cylinderVis->getPolyData()->GetPoints()->GetData()->Modified();
 }
 
-void iAVRVolume::createRegionLinks(std::vector<std::vector<std::vector<double>>>* similarityMetric, double maxFibersInRegions, double worldSize)
+void iAVRVolume::createSimilarityNetwork(std::vector<std::vector<std::vector<double>>>* similarityMetric, double maxFibersInRegions, double worldSize)
+{
+	createRegionLinks(similarityMetric, worldSize);
+	createRegionNodes(maxFibersInRegions, worldSize);
+}
+
+void iAVRVolume::createRegionLinks(std::vector<std::vector<std::vector<double>>>* similarityMetric, double worldSize)
 {
 	vtkSmartPointer<vtkPoints> linePoints = vtkSmartPointer<vtkPoints>::New();
 	m_linePolyData = vtkSmartPointer<vtkPolyData>::New();
@@ -417,8 +426,6 @@ void iAVRVolume::createRegionLinks(std::vector<std::vector<std::vector<double>>>
 	m_RegionLinksActor->GetMapper()->ScalarVisibilityOn();
 	m_RegionLinksActor->GetMapper()->SetScalarModeToUsePointFieldData();
 	m_RegionLinksActor->GetMapper()->SelectColorArray("linkColor");
-
-	createRegionNodes(maxFibersInRegions, worldSize);
 }
 
 void iAVRVolume::createRegionNodes(double maxFibersInRegions, double worldSize)
@@ -509,6 +516,7 @@ void iAVRVolume::calculateNodeLUT(double min, double max, int colorScheme)
 	m_lut = vtkSmartPointer<vtkLookupTable>::New();
 
 	m_lut->SetNumberOfTableValues(6);
+	//m_lut->SetScaleToLog10();
 	m_lut->Build();
 
 	m_lut->SetTableValue(0, f.redF(), f.greenF(), f.blueF());

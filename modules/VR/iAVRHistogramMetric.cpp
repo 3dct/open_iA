@@ -128,10 +128,10 @@ iAVRHistogram iAVRHistogramMetric::calculate1DHistogram(QString label, int bins,
 	histogram.m_histogramParameters.observations = getObservationsInBin(&histogram);
 	calculateDescriptiveStatistics(values, &histogram);
 
-	LOG(lvlDebug, "1DHistogram calculated");
+	//LOG(lvlDebug, "1DHistogram calculated");
 
-	LOG(lvlImportant, QString("\n New Hist with:\n Bins: %1 \n Bin Width: %2 \n Min: %3 \n Max: %4 \n").arg(histogram.m_histogramParameters.bins).arg(histogram.m_histogramParameters.binWidth).arg(histogram.m_histogramParameters.minValue).arg(histogram.m_histogramParameters.maxValue));
-	LOG(lvlImportant, QString("\n Mean: %1 \n Median: %2 \n StandartDeviation: %3 \n kurtosis: %4 \n skewness: %5 \n").arg(histogram.m_histogramParameters.mean).arg(histogram.m_histogramParameters.median).arg(histogram.m_histogramParameters.standartDeviation).arg(histogram.m_histogramParameters.kurtosis).arg(histogram.m_histogramParameters.skewness));
+	//LOG(lvlImportant, QString("\n New Hist with:\n Bins: %1 \n Bin Width: %2 \n Min: %3 \n Max: %4 \n").arg(histogram.m_histogramParameters.bins).arg(histogram.m_histogramParameters.binWidth).arg(histogram.m_histogramParameters.minValue).arg(histogram.m_histogramParameters.maxValue));
+	//LOG(lvlImportant, QString("\n Mean: %1 \n Median: %2 \n StandartDeviation: %3 \n kurtosis: %4 \n skewness: %5 \n").arg(histogram.m_histogramParameters.mean).arg(histogram.m_histogramParameters.median).arg(histogram.m_histogramParameters.standartDeviation).arg(histogram.m_histogramParameters.kurtosis).arg(histogram.m_histogramParameters.skewness));
 
 	return histogram;
 }

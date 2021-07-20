@@ -35,6 +35,7 @@ iAVRColorLegend::iAVRColorLegend(vtkRenderer* renderer) :m_renderer(renderer)
 	titleTextSource = vtkSmartPointer<vtkTextActor3D>::New();
 	textSource = vtkSmartPointer<vtkTextActor3D>::New();
 	m_colorBarLegend = vtkSmartPointer<vtkActor>::New();
+	m_legend = vtkSmartPointer<vtkAssembly>::New();
 
 	//Initialize LUT for min/max = 0
 	createLut(0, 0, 1);
@@ -96,13 +97,13 @@ std::vector<QColor>* iAVRColorLegend::getColors(int octreeLevel, int feature, st
 
 //! Creates a color bar which acts as legend for the current LUT. The color Bar is sized based on the world physicalScale and gets
 //! calculated as plane with uniform division based on the available colors in the LUT. The function also creates the labels for the color sections.
-void iAVRColorLegend::calculateColorBarLegend(double physicalScale)
+void iAVRColorLegend::calculateLegend(double physicalScale)
 {
 	auto width = physicalScale * 0.05; //5%
 	auto height = physicalScale * 0.15; //15%
 
 	//Remove old colorBar
-	hideColorBarLegend();
+	hide();
 
 	vtkSmartPointer<vtkPlaneSource> colorBarPlane = vtkSmartPointer<vtkPlaneSource>::New();
 	colorBarPlane->SetXResolution(1);
@@ -153,8 +154,6 @@ void iAVRColorLegend::calculateColorBarLegend(double physicalScale)
 	mapper->Update();
 	
 	m_colorBarLegend = vtkSmartPointer<vtkActor>::New();
-	//m_colorBarLegend = vtkSmartPointer<vtkFollower>::New();
-	//m_colorBarLegend->SetCamera(m_renderer->GetActiveCamera());
 	m_colorBarLegend->SetMapper(mapper);
 	m_colorBarLegend->GetProperty()->EdgeVisibilityOn();
 	m_colorBarLegend->GetProperty()->SetLineWidth(3);
@@ -190,64 +189,56 @@ void iAVRColorLegend::calculateColorBarLegend(double physicalScale)
 		titleFieldScale[i] = titleTextSource->GetScale()[i];
 		textFieldScale[i] = textSource->GetScale()[i];
 	}
+
+	m_legend = vtkSmartPointer<vtkAssembly>::New();
+	m_legend->AddPart(m_colorBarLegend);
+	m_legend->AddPart(titleTextSource);
+	m_legend->AddPart(textSource);
+	m_legend->Modified();
 }
 
 //! Displays the color bar legend and its value labels
-void iAVRColorLegend::showColorBarLegend()
+void iAVRColorLegend::show()
 {
 	if (m_colorLegendVisible)
 	{
 		return;
 	}
-	m_renderer->AddActor(m_colorBarLegend);
-	m_renderer->AddActor(textSource);
-	m_renderer->AddActor(titleTextSource);
+	m_renderer->AddActor(m_legend);
 	m_colorLegendVisible = true;
 }
 
 //! Hides the color bar legend and its value labels
-void iAVRColorLegend::hideColorBarLegend()
+void iAVRColorLegend::hide()
 {
 	if (!m_colorLegendVisible)
 	{
 		return;
 	}
-	m_renderer->RemoveActor(m_colorBarLegend);
-	m_renderer->RemoveActor(textSource);
-	m_renderer->RemoveActor(titleTextSource);
+	m_renderer->RemoveActor(m_legend);
 	m_colorLegendVisible = false;
 }
 
-//! Moves the color bar legend and its value labels to the given pos
-void iAVRColorLegend::moveColorBarLegend(double* pos)
+//! Moves the color legend and its value labels to the given pos
+void iAVRColorLegend::setPosition(double* pos)
 {
-	m_colorBarLegend->SetPosition(pos);
-
-	double actorBounds[6];
-	m_colorBarLegend->GetBounds(actorBounds);
-
-	textSource->SetPosition(actorBounds[1] + initialTextOffset, actorBounds[2] + initialTextOffset, actorBounds[4]);
-	titleTextSource->SetPosition(actorBounds[0], actorBounds[3] + initialTextOffset, actorBounds[4]);
+	m_legend->SetPosition(pos);
 }
 
-//! Rotates the color bar legend and its value labels around the given coordinates
-void iAVRColorLegend::rotateColorBarLegend(double x, double y, double z)
+//! Sets the orientation of the color legend and its value labels to the given coordinates
+void iAVRColorLegend::setOrientation(double x, double y, double z)
 {
-	m_colorBarLegend->AddOrientation(x, y, z);
-	titleTextSource->AddOrientation(x, y, z);
-	textSource->AddOrientation(x, y, z);
+	m_legend->SetOrientation(x, y, z);
 }
 
 //! Resizes the color bar legend and its value labels based on the given scale
-void iAVRColorLegend::resizeColorBarLegend(double scale)
+void iAVRColorLegend::setScale(double scale)
 {
-	m_colorBarLegend->SetScale(scale);
-	titleTextSource->SetScale(scale * titleFieldScale[0], scale * titleFieldScale[1], scale * titleFieldScale[2]);
-	textSource->SetScale(scale * textFieldScale[0], scale * textFieldScale[1], scale * textFieldScale[2]);
+	m_legend->SetScale(scale);
 }
 
 //! Sets the title for the header of the color bar legend
-void iAVRColorLegend::setLegendTitle(QString title)
+void iAVRColorLegend::setTitle(QString title)
 {
 	titleTextSource->SetInput(title.toUtf8());
 }

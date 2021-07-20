@@ -51,7 +51,7 @@ void iAVRModelInMiniature::createCubeModel()
 {
 	iAVRCubicVis::createCubeModel();
 
-	applyRelativeCubeOffset(2.9);
+	applySPDisplacement(2.9);
 
 	m_actor->GetMapper()->ScalarVisibilityOn();
 	m_actor->GetMapper()->SetScalarModeToUsePointFieldData();

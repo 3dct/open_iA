@@ -356,9 +356,11 @@ void iAVRCubicVis::drawPoint(std::vector<double*>* pos, QColor color)
 	m_renderer->AddActor(pointsActor);
 }
 
-//! This Method calculates the direction from the center to its single cubes and shifts the cubes from the center away
+//! Applies a linear shift: All regions are displaced by the same factor, regardless of their 
+//! distance from the center of the fiber model. This Method calculates the direction from 
+//! the center to its single cubes and shifts the cubes linear from the center away
 //! The original (vtkPoint) values are taken (not the actors visible getPosition() values)
-void iAVRCubicVis::applyLinearCubeOffset(double offset)
+void iAVRCubicVis::applyRadialDisplacement(double offset)
 {
 	if (m_cubePolyData == nullptr)
 	{
@@ -385,10 +387,12 @@ void iAVRCubicVis::applyLinearCubeOffset(double offset)
 	redrawHighlightedGlyphs();
 }
 
-//! This Method calculates the direction from the center to its single cubes and shifts the cubes from the center away
-//! The shifts is scaled non-linear by the length from the center to the cube
+//! The structure preserving displacement (SP) increases the distance to the center 
+//! and the regions, but the relative distances between the regions remain the same.
+//! The shifts is scaled relative to the maximal length from the center to one cube and 
+//! shifts all cubes from the center away
 //! The original (vtkPoint) values are taken (not the actors visible getPosition() values)
-void iAVRCubicVis::applyRelativeCubeOffset(double offset)
+void iAVRCubicVis::applySPDisplacement(double offset)
 {
 	if (m_cubePolyData == nullptr)
 	{
@@ -427,10 +431,11 @@ void iAVRCubicVis::applyRelativeCubeOffset(double offset)
 	redrawHighlightedGlyphs();
 }
 
-//! This Method calculates a position depending shift of the cubes from the center outwards.
-//! The cubes are moved in its 4 direction from the center (left, right, up, down).
+//! The octant displacement shifts the regions to the nearest octant out of 8 possible octants.
+//! The center of the fiber model is the origin of the three - dimensional Euclidean coordinate 
+//! system, which forms eight octants through the three axial planes X, Y, and Z.
 //! The original (vtkPoint) values are taken (not the actors visible getPosition() values)
-void iAVRCubicVis::apply8RegionCubeOffset(double offset)
+void iAVRCubicVis::applyOctantDisplacement(double offset)
 {
 	if (m_cubePolyData == nullptr)
 	{

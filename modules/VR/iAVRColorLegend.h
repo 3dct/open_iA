@@ -23,6 +23,8 @@
 #include <vtkSmartPointer.h>
 #include <vtkRenderer.h>
 #include <vtkActor.h>
+#include <vtkFollower.h>
+#include <vtkAssembly.h>
 #include <vtkTextActor3D.h>
 #include <vtkLookupTable.h>
 
@@ -38,18 +40,19 @@ public:
 	vtkSmartPointer<vtkLookupTable> createLut(double min, double max, int colorScheme);
 	QColor getColor(double value);
 	std::vector<QColor>* getColors(int octreeLevel, int feature, std::vector<std::vector<std::vector<double>>>* calculatedValues);
-	void calculateColorBarLegend(double physicalScale);
-	void showColorBarLegend();
-	void hideColorBarLegend();
-	void moveColorBarLegend(double* pos);
-	void rotateColorBarLegend(double x, double y, double z);
-	void resizeColorBarLegend(double scale);
-	void setLegendTitle(QString title);
+	void calculateLegend(double physicalScale);
+	void show();
+	void hide();
+	void setPosition(double* pos);
+	void setOrientation(double x, double y, double z);
+	void setScale(double scale);
+	void setTitle(QString title);
 
 private:
 	vtkSmartPointer<vtkRenderer> m_renderer;
 	vtkSmartPointer<vtkLookupTable> m_lut;
 	vtkSmartPointer<vtkActor> m_colorBarLegend;
+	vtkSmartPointer<vtkAssembly> m_legend;
 	vtkSmartPointer<vtkTextActor3D> textSource;
 	vtkSmartPointer<vtkTextActor3D> titleTextSource;
 	double initialTextOffset;

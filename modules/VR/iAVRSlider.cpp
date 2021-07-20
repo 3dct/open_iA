@@ -101,6 +101,11 @@ void iAVRSlider::setPosition(double x, double y, double z)
 	m_sliderRep->GetPoint2Coordinate()->SetValue(x + shift, y, z);
 }
 
+void iAVRSlider::setOrientation(double x)
+{
+	m_sliderRep->SetRotation(x);
+}
+
 void iAVRSlider::setTitel(QString title)
 {
 	m_sliderRep->SetTitleText(title.toUtf8());

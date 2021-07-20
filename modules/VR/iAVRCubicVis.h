@@ -54,9 +54,9 @@ public:
 	void removeHighlightedGlyphs();
 	void redrawHighlightedGlyphs();
 	double* getDefaultActorSize();
-	void applyLinearCubeOffset(double offset);
-	void applyRelativeCubeOffset(double offset);
-	void apply8RegionCubeOffset(double offset);
+	void applyRadialDisplacement(double offset);
+	void applySPDisplacement(double offset);
+	void applyOctantDisplacement(double offset);
 
 private:
 

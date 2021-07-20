@@ -59,7 +59,9 @@ private:
 
 	vtkSmartPointer<vtkPoints> getOctreeFiberCoverage(double startPoint[3], double endPoint[3], int octreeLevel, int fiber, double fiberLength);
 	bool checkIntersectionWithBox(double startPoint[3], double endPoint[3], std::vector<std::vector<iAVec3d>>* planePoints, double bounds[6], double intersection[3]);
+	bool checkIntersectionWithBox(double startPoint[3], double endPoint[3], double bounds[6], double intersection[3]);
 	double calculateFiberCoverage(double startPoint[3], double endPoint[3], double fiberLength);
 	bool checkEqualArrays(float pos1[3], float pos2[3]);
 	bool checkEqualArrays(double pos1[3], double pos2[3]);
+	void createPlanePoint(int plane, double bounds[6], iAVec3d* planeOrigin, iAVec3d* planeP1, iAVec3d* planeP2);
 };

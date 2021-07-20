@@ -142,7 +142,7 @@ void iAVRHistogramPairVis::createVisualization(double* pos, double visSize, doub
 	//Calculate Histogram Values and Bins for every feature
 	for(int feature : *featureList)
 	{
-		LOG(lvlImportant, QString("\n Feature: %1 (%2)").arg(feature).arg(m_octreeMetric->getFeatureName(feature)));
+		//LOG(lvlImportant, QString("\n Feature: %1 (%2)").arg(feature).arg(m_octreeMetric->getFeatureName(feature)));
 
 		auto val01 = m_octreeMetric->getRegionValues(level, regions->at(0), feature);
 		auto val02 = m_octreeMetric->getRegionValues(level, regions->at(1), feature);

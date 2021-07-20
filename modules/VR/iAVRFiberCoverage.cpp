@@ -132,7 +132,7 @@ void iAVRFiberCoverage::mapAllPointiDsAndCalculateFiberCoverage()
 		m_octrees->at(level)->getRegionsInLineOfRay();
 	}
 
-	LOG(lvlInfo, QString("Volume Data loaded and Intersection test finished"));
+	LOG(lvlInfo, QString("Volume Data processed and loaded"));
 }
 
 std::vector<std::vector<std::unordered_map<vtkIdType, double>*>>* iAVRFiberCoverage::getFiberCoverage()
@@ -193,8 +193,8 @@ vtkSmartPointer<vtkPoints> iAVRFiberCoverage::getOctreeFiberCoverage(double star
 		double lastIntersection[3] = { -1, -1, -1 };
 		int pointsInRegion = 0;
 		double bounds[6];
-		std::vector<std::vector<iAVec3d>>* planePoints = new std::vector<std::vector<iAVec3d>>();
-		m_octrees->at(octreeLevel)->createOctreeBoundingBoxPlanes(region, planePoints);
+		//std::vector<std::vector<iAVec3d>>* planePoints = new std::vector<std::vector<iAVec3d>>();
+		//m_octrees->at(octreeLevel)->createOctreeBoundingBoxPlanes(region, planePoints);
 		m_octrees->at(octreeLevel)->getOctree()->GetRegionBounds(region, bounds);
 
 		//The ray between start to endpoint can only intersect 2 times with a octree region bounding box
@@ -211,7 +211,7 @@ vtkSmartPointer<vtkPoints> iAVRFiberCoverage::getOctreeFiberCoverage(double star
 			}
 			else if (startPointInsideRegion == region)
 			{
-				if (checkIntersectionWithBox(startPoint, endPoint, planePoints, bounds, intersectionPoint))
+				if (checkIntersectionWithBox(startPoint, endPoint, bounds, intersectionPoint))
 				{
 					additionalIntersectionPoints->InsertNextPoint(intersectionPoint);
 					double coverage = calculateFiberCoverage(startPoint, intersectionPoint, fiberLength);
@@ -227,7 +227,7 @@ vtkSmartPointer<vtkPoints> iAVRFiberCoverage::getOctreeFiberCoverage(double star
 			}
 			else if (endPointInsideRegion == region)
 			{
-				if (checkIntersectionWithBox(endPoint, startPoint, planePoints, bounds, intersectionPoint))
+				if (checkIntersectionWithBox(endPoint, startPoint, bounds, intersectionPoint))
 				{
 					additionalIntersectionPoints->InsertNextPoint(intersectionPoint);
 					double coverage = calculateFiberCoverage(intersectionPoint, endPoint, fiberLength);
@@ -246,7 +246,7 @@ vtkSmartPointer<vtkPoints> iAVRFiberCoverage::getOctreeFiberCoverage(double star
 				//When a second point was found...
 				if (pointsInRegion > 0)
 				{
-					if (checkIntersectionWithBox(lastIntersection, endPoint, planePoints, bounds, intersectionPoint))
+					if (checkIntersectionWithBox(lastIntersection, endPoint, bounds, intersectionPoint))
 					{
 						additionalIntersectionPoints->InsertNextPoint(lastIntersection);
 						additionalIntersectionPoints->InsertNextPoint(intersectionPoint);
@@ -255,7 +255,7 @@ vtkSmartPointer<vtkPoints> iAVRFiberCoverage::getOctreeFiberCoverage(double star
 						m_fiberCoverage->at(octreeLevel).at(region)->insert(std::make_pair(fiber, coverage));
 						break;
 					}
-					else if (checkIntersectionWithBox(lastIntersection, startPoint, planePoints, bounds, intersectionPoint))
+					else if (checkIntersectionWithBox(lastIntersection, startPoint, bounds, intersectionPoint))
 					{
 						additionalIntersectionPoints->InsertNextPoint(lastIntersection);
 						additionalIntersectionPoints->InsertNextPoint(intersectionPoint);
@@ -272,7 +272,7 @@ vtkSmartPointer<vtkPoints> iAVRFiberCoverage::getOctreeFiberCoverage(double star
 				}
 				else // look if there is a intersection with a region outside of the startPoint/endPoint region
 				{
-					if (checkIntersectionWithBox(startPoint, endPoint, planePoints, bounds, intersectionPoint))
+					if (checkIntersectionWithBox(startPoint, endPoint, bounds, intersectionPoint))
 					{
 						pointsInRegion += 1;
 						lastIntersection[0] = intersectionPoint[0];
@@ -309,6 +309,56 @@ bool iAVRFiberCoverage::checkIntersectionWithBox(double startPoint[3], double en
 		iAVec3d pointOnPlaneOrigin = iAVec3d(planePoints->at(i).at(0));
 		iAVec3d planeVec1 = planePoints->at(i).at(1) - pointOnPlaneOrigin;
 		iAVec3d planeVec2 = planePoints->at(i).at(2) - pointOnPlaneOrigin;
+
+		iAVec3d normal = crossProduct(planeVec1, planeVec2);
+		normal.normalize();
+
+		if (abs(dotProduct(normal, ray_normalized)) > eps) { // If false -> the line is parallel to the plane
+			iAVec3d difference = pointOnPlaneOrigin - p0;
+
+			// Compute the t value for the directed line ray intersecting the plane
+			double t = dotProduct(difference, normal) / dotProduct(normal, ray_normalized);
+
+			// possible intersection point in infinety
+			intersection[0] = p0[0] + (ray_normalized[0] * t);
+			intersection[1] = p0[1] + (ray_normalized[1] * t);
+			intersection[2] = p0[2] + (ray_normalized[2] * t);
+
+			// t has to be smaller or equal to length of ray and bigger then 0
+			//Intersection must be in the inside the finite plane
+			if ((t > 0) && (t <= ray.length()) &&
+				(intersection[0] <= bounds[1]) && (intersection[0] >= bounds[0]) &&
+				(intersection[1] <= bounds[3]) && (intersection[1] >= bounds[2]) &&
+				(intersection[2] <= bounds[5]) && (intersection[2] >= bounds[4]))
+			{
+				return true;
+			}
+		}
+	}
+	return false;
+}
+
+bool iAVRFiberCoverage::checkIntersectionWithBox(double startPoint[3], double endPoint[3], double bounds[6], double intersection[3])
+{
+	double eps = 0.00001;
+
+	iAVec3d p0 = iAVec3d(startPoint);
+	iAVec3d p1 = iAVec3d(endPoint);
+	iAVec3d ray = p1 - p0;
+	iAVec3d ray_normalized = p1 - p0;
+	ray_normalized.normalize();
+
+	for (int i = 0; i < 6; i++)
+	{
+		iAVec3d pointOnPlaneOrigin = iAVec3d();
+		iAVec3d planeP1 = iAVec3d();
+		iAVec3d planeP2 = iAVec3d();
+
+		createPlanePoint(i, bounds, &pointOnPlaneOrigin, &planeP1, &planeP2);
+
+		//Calculate Plane Normal (origin - point 1,2)
+		iAVec3d planeVec1 = planeP1 - pointOnPlaneOrigin;
+		iAVec3d planeVec2 = planeP2 - pointOnPlaneOrigin;
 
 		iAVec3d normal = crossProduct(planeVec1, planeVec2);
 		normal.normalize();
@@ -375,4 +425,55 @@ bool iAVRFiberCoverage::checkEqualArrays(double pos1[3], double pos2[3])
 		}
 	}
 	return true;
+}
+
+void iAVRFiberCoverage::createPlanePoint(int plane, double bounds[6], iAVec3d* planeOrigin, iAVec3d* planeP1, iAVec3d* planeP2)
+{
+	double xMin = bounds[0];
+	double xMax = bounds[1];
+	double yMin = bounds[2];
+	double yMax = bounds[3];
+	double zMin = bounds[4];
+	double zMax = bounds[5];
+
+	switch (plane)
+	{
+	case 0:
+		//Plane 1
+		*planeOrigin = iAVec3d(xMin, yMin, zMax);
+		*planeP1 = iAVec3d(xMax, yMin, zMax); 
+		*planeP2 = iAVec3d(xMin, yMax, zMax);
+		break;
+	case 1:
+		//Plane 2
+		*planeOrigin = iAVec3d(xMax, yMin, zMax);
+		*planeP1 = iAVec3d(xMax, yMin, zMin);
+		*planeP2 = iAVec3d(xMax, yMax, zMax);
+		break;
+	case 2:
+		//Plane 3
+		*planeOrigin = iAVec3d(xMin, yMin, zMin);
+		*planeP1 = iAVec3d(xMax, yMin, zMin);
+		*planeP2 = iAVec3d(xMin, yMax, zMin);
+		break;
+	case 3:
+		//Plane 4
+		*planeOrigin = iAVec3d(xMin, yMin, zMax);
+		*planeP1 = iAVec3d(xMin, yMin, zMin);
+		*planeP2 = iAVec3d(xMin, yMax, zMax);
+		break;
+	case 4:
+		//Plane 5
+		*planeOrigin = iAVec3d(xMax, yMin, zMax);
+		*planeP1 = iAVec3d(xMax, yMin, zMin);
+		*planeP2 = iAVec3d(xMin, yMin, zMax);
+		break;
+	case 5:
+		//Plane 6
+		*planeOrigin = iAVec3d(xMax, yMax, zMax);
+		*planeP1 = iAVec3d(xMax, yMax, zMin);
+		*planeP2 = iAVec3d(xMin, yMax, zMax);
+		break;
+	}
+
 }

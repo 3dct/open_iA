@@ -68,6 +68,7 @@ public:
 	vtkSmartPointer<vtkProp> getSlider();
 	void setSliderLength(double length);
 	void setPosition(double x, double y, double z);
+	void setOrientation(double y);
 	void setTitel(QString title);
 	void setValue(double val);
 	double getValue();
