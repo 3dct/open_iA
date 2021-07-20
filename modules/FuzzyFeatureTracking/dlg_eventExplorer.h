@@ -1,8 +1,8 @@
 /*************************************  open_iA  ************************************ *
 * **********   A tool for visual analysis and processing of 3D CT images   ********** *
 * *********************************************************************************** *
-* Copyright (C) 2016-2020  C. Heinzl, M. Reiter, A. Reh, W. Li, M. Arikan, Ar. &  Al. *
-*                          Amirkhanov, J. Weissenböck, B. Fröhler, M. Schiwarth       *
+* Copyright (C) 2016-2021  C. Heinzl, M. Reiter, A. Reh, W. Li, M. Arikan, Ar. &  Al. *
+*                 Amirkhanov, J. Weissenböck, B. Fröhler, M. Schiwarth, P. Weinberger *
 * *********************************************************************************** *
 * This program is free software: you can redistribute it and/or modify it under the   *
 * terms of the GNU General Public License as published by the Free Software           *
@@ -52,32 +52,20 @@ public:
 	dlg_eventExplorer(QWidget *parent, size_t numberOfCharts, int numberOfEventTypes, iAVolumeStack *volumeStack, dlg_trackingGraph* trackingGraph, std::vector<iAFeatureTracking*> trackedFeaturesForwards, std::vector<iAFeatureTracking*> trackedFeaturesBackwards);
 	~dlg_eventExplorer();
 
-	private slots:
+private slots:
 	void comboBoxXSelectionChanged(int s);
 	void comboBoxYSelectionChanged(int s);
-
-	void updateOpacityCreation(int v);
-	void updateOpacityContinuation(int v);
-	void updateOpacitySplit(int v);
-	void updateOpacityMerge(int v);
-	void updateOpacityDissipation(int v);
-
-	void updateOpacityGrid(int v);
-
-	void updateCheckBoxCreation(int c);
-	void updateCheckBoxContinuation(int c);
-	void updateCheckBoxSplit(int c);
-	void updateCheckBoxMerge(int c);
-	void updateCheckBoxDissipation(int c);
-
-	void updateCheckBoxLogX(int c);
-	void updateCheckBoxLogY(int c);
-
-	void chartMouseButtonCallBack(vtkObject * obj);
+	void setGridOpacity(int v);
+	void chartSelectionChanged(vtkObject* obj);
 
 private:
 	void buildGraph(int id, int layer, int eventType, double uncertainty);
 	void buildSubGraph(int id, int layer);
+	void updateChartData(int axis, int s);
+	void setChartLogScale(int axis, bool log);
+	void setOpacity(int eventType, int value);
+	void updateCheckBox(int eventType, int checked);
+	void updateCharts();
 
 	iAVolumeStack* m_volumeStack;
 	size_t m_numberOfCharts;
@@ -86,9 +74,9 @@ private:
 	int m_numberOfActivePlots;
 	int m_propertyXId;
 	int m_propertyYId;
-	int m_rgb[5][3];
-
-	std::vector<iAVtkOldWidget*> m_widgets;
+	
+	std::vector<QSlider*> m_slider;
+	std::vector<iAVtkWidget*> m_widgets;
 	std::vector<vtkSmartPointer<vtkContextView>> m_contextViews;
 	std::vector<vtkSmartPointer<vtkChartXY>> m_charts;
 	std::vector<vtkSmartPointer<vtkPlot>> m_plots;

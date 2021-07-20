@@ -20,14 +20,14 @@
 * ************************************************************************************/
 #pragma once
 
-#include <iAModuleInterface.h>
+#include <iAGUIModuleInterface.h>
 
-class iANModalTFModuleInterface : public iAModuleInterface {
+class iANModalTFModuleInterface : public iAGUIModuleInterface {
 	Q_OBJECT
 public:
 	void Initialize() override;
 protected:
-	iAModuleAttachmentToChild* CreateAttachment(MainWindow* mainWnd, MdiChild *child) override;
+	iAModuleAttachmentToChild* CreateAttachment(iAMainWindow* mainWnd, iAMdiChild* child) override;
 private slots:
 	void onMenuItemSelected();
 };

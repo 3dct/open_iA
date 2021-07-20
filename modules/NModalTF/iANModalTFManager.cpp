@@ -84,7 +84,7 @@ void iANModalTFManager::update() {
 		bool repeated = false;
 		CP prev;
 #pragma omp for
-		for (size_t i = 0; i < m_cps.size(); ++i) {
+		for (int i = 0; i < m_cps.size(); ++i) {
 			const CP &cp = m_cps[i];
 			if (!cp.null()) {
 				if (prev == cp) {
@@ -135,7 +135,7 @@ void iANModalTFManager::updateLabels(const std::vector<iANModalLabel> &labels) {
 	iANModalLabel *labelPtr = labels_indexed.data();
 	CP *cpPtr = m_cps.data();
 #pragma omp parallel for
-	for (size_t i = 0; i < m_cps.size(); ++i) {
+	for (int i = 0; i < m_cps.size(); ++i) {
 		if (!cpPtr[i].null()) {
 			int labelId = cpPtr[i].labelId;
 			if (labelId <= maxId) {
@@ -182,7 +182,7 @@ void iANModalTFManager::removeControlPoints(int labelId) {
 		// Then remove control points from our data structure
 		CP *ptr = m_cps.data();
 	#pragma omp for
-		for (size_t i = 0; i < m_cps.size(); ++i) {
+		for (int i = 0; i < m_cps.size(); ++i) {
 			if (ptr[i].labelId == labelId) {
 				ptr[i] = CP();
 			}
@@ -211,7 +211,7 @@ void iANModalTFManager::removeAllControlPoints() {
 		} // end of sections
 		// Implicit barrier
 #pragma omp for
-		for (size_t i = 0; i < m_cps.size(); ++i) {
+		for (int i = 0; i < m_cps.size(); ++i) {
 			ptr[i] = CP();
 		}
 	} // end of parallel block

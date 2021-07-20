@@ -38,7 +38,7 @@ class iAImageCoordinate;
 class iAModality;
 class iASlicer;
 class iAvtkImageData;
-class MdiChild;
+class iAMdiChild;
 
 class QStandardItem;
 class QStandardItemModel;
@@ -54,7 +54,7 @@ class Labelling_API dlg_labels : public dlg_labelUI
 	Q_OBJECT
 
 public:
-	dlg_labels(MdiChild* mdiChild, bool addMainSlicer = true);
+	dlg_labels(iAMdiChild* mdiChild, bool addMainSlicer = true);
 	int curLabelRow() const;
 	int seedCount(int labelIdx) const;
 	bool load(QString const & filename);
@@ -149,5 +149,5 @@ private:
 
 	vtkSmartPointer<vtkLookupTable> m_labelColorTF;
 	vtkSmartPointer<vtkPiecewiseFunction> m_labelOpacityTF;
-	MdiChild* m_mdiChild;
+	iAMdiChild* m_mdiChild;
 };

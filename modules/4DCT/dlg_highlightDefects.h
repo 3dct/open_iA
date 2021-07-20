@@ -1,8 +1,8 @@
 /*************************************  open_iA  ************************************ *
 * **********   A tool for visual analysis and processing of 3D CT images   ********** *
 * *********************************************************************************** *
-* Copyright (C) 2016-2020  C. Heinzl, M. Reiter, A. Reh, W. Li, M. Arikan, Ar. &  Al. *
-*                          Amirkhanov, J. Weissenböck, B. Fröhler, M. Schiwarth       *
+* Copyright (C) 2016-2021  C. Heinzl, M. Reiter, A. Reh, W. Li, M. Arikan, Ar. &  Al. *
+*                 Amirkhanov, J. Weissenböck, B. Fröhler, M. Schiwarth, P. Weinberger *
 * *********************************************************************************** *
 * This program is free software: you can redistribute it and/or modify it under the   *
 * terms of the GNU General Public License as published by the Free Software           *
@@ -21,13 +21,13 @@
 #pragma once
 
 // Ui
-#include "ui_iA4DCTHeightlightDefectsDialog.h"
+#include "ui_iA4DCTHightlightDefectsDialog.h"
 // Qt
 #include <QDialog>
 
 class iA4DCTVisWin;
 
-class dlg_highlightDefects : public QDialog, public Ui::HeighlightDefectsDialog
+class dlg_highlightDefects : public QDialog, public Ui::HighlightDefectsDialog
 {
 	Q_OBJECT
 

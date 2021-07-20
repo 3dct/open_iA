@@ -1,8 +1,8 @@
 /*************************************  open_iA  ************************************ *
 * **********   A tool for visual analysis and processing of 3D CT images   ********** *
 * *********************************************************************************** *
-* Copyright (C) 2016-2020  C. Heinzl, M. Reiter, A. Reh, W. Li, M. Arikan, Ar. &  Al. *
-*                          Amirkhanov, J. Weissenböck, B. Fröhler, M. Schiwarth       *
+* Copyright (C) 2016-2021  C. Heinzl, M. Reiter, A. Reh, W. Li, M. Arikan, Ar. &  Al. *
+*                 Amirkhanov, J. Weissenböck, B. Fröhler, M. Schiwarth, P. Weinberger *
 * *********************************************************************************** *
 * This program is free software: you can redistribute it and/or modify it under the   *
 * terms of the GNU General Public License as published by the Free Software           *
@@ -32,6 +32,7 @@
 #include <itkCastImageFilter.h>
 #include <itkImageRegionConstIterator.h>
 #include <itkImageRegionIterator.h>
+#include <itkImageIterator.h>
 #include <itkLabelToRGBImageFilter.h>
 #include <itkRGBPixel.h>
 #include <itkRGBAPixel.h>
@@ -150,7 +151,7 @@ void iACastImageFilter::performWork(QMap<QString, QVariant> const & parameters)
 }
 
 iACastImageFilter::iACastImageFilter() :
-	iAFilter("Datatype Conversion", "",
+	iAFilter("Datatype Conversion", "Conversion",
 		"Converts an image to another datatype.<br/>"
 		"<em>Rescale Range</em> determines whether the intensity values are transformed to another range in that process."
 		"All parameters below are only considered in the case that Rescale Ranges is enabled; if it is disabled, the "
@@ -166,14 +167,14 @@ iACastImageFilter::iACastImageFilter() :
 		"Rescale Image Filter</a> in the ITK documentation.")
 {
 	QStringList datatypes = readableDataTypeList(false);
-	addParameter("Data Type", Categorical, datatypes);
-	addParameter("Rescale Range", Boolean, false);
-	addParameter("Automatic Input Range", Boolean, false);
-	addParameter("Input Min", Continuous, 0);
-	addParameter("Input Max", Continuous, 1);
-	addParameter("Use Full Output Range", Boolean, true);
-	addParameter("Output Min", Continuous, 0);
-	addParameter("Output Max", Continuous, 1);
+	addParameter("Data Type", iAValueType::Categorical, datatypes);
+	addParameter("Rescale Range", iAValueType::Boolean, false);
+	addParameter("Automatic Input Range", iAValueType::Boolean, false);
+	addParameter("Input Min", iAValueType::Continuous, 0);
+	addParameter("Input Max", iAValueType::Continuous, 1);
+	addParameter("Use Full Output Range", iAValueType::Boolean, true);
+	addParameter("Output Min", iAValueType::Continuous, 0);
+	addParameter("Output Max", iAValueType::Continuous, 1);
 }
 
 
@@ -247,7 +248,7 @@ void convertToRGB(iAFilter * filter, QMap<QString, QVariant> const & params)
 }
 
 iAConvertToRGBAFilter::iAConvertToRGBAFilter() :
-	iAFilter("Label image to color-coded RGBA image", "",
+	iAFilter("Label image to color-coded RGBA image", "Conversion",
 		"Converts a labeled image (i.e. an image where all voxels of an object "
 		"have the object ID as value) to an RGBA image.<br/>"
 		"Each separately labeled component gets assigned a color from the chosen color lookup table. "
@@ -264,11 +265,11 @@ iAConvertToRGBAFilter::iAConvertToRGBAFilter() :
 	QStringList colorSchemes;
 	colorSchemes << "Default";
 	colorSchemes.append(iAColorThemeManager::instance().availableThemes());
-	addParameter("Background color", Color, "#000000");
-	addParameter("Background value", Discrete, 0);
-	addParameter("Background opacity", Discrete, 0, 0, 255);
-	addParameter("Object opacity", Discrete, 255, 0, 255);
-	addParameter("Color scheme", Categorical, colorSchemes);
+	addParameter("Background color", iAValueType::Color, "#000000");
+	addParameter("Background value", iAValueType::Discrete, 0);
+	addParameter("Background opacity", iAValueType::Discrete, 0, 0, 255);
+	addParameter("Object opacity", iAValueType::Discrete, 255, 0, 255);
+	addParameter("Color scheme", iAValueType::Categorical, colorSchemes);
 }
 
 IAFILTER_CREATE(iAConvertToRGBAFilter)

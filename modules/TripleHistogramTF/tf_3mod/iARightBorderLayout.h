@@ -1,8 +1,8 @@
 /*************************************  open_iA  ************************************ *
 * **********   A tool for visual analysis and processing of 3D CT images   ********** *
 * *********************************************************************************** *
-* Copyright (C) 2016-2020  C. Heinzl, M. Reiter, A. Reh, W. Li, M. Arikan, Ar. &  Al. *
-*                          Amirkhanov, J. Weissenböck, B. Fröhler, M. Schiwarth       *
+* Copyright (C) 2016-2021  C. Heinzl, M. Reiter, A. Reh, W. Li, M. Arikan, Ar. &  Al. *
+*                 Amirkhanov, J. Weissenböck, B. Fröhler, M. Schiwarth, P. Weinberger *
 * *********************************************************************************** *
 * This program is free software: you can redistribute it and/or modify it under the   *
 * terms of the GNU General Public License as published by the Free Software           *
@@ -65,14 +65,32 @@ private:
 class BorderLayoutItemWrapper : iAIBorderLayoutItem
 {
 public:
-	BorderLayoutItemWrapper(iAIBorderItem* rbi, QLayoutItem *layoutItem) : m_rbi(rbi), m_layoutItem(layoutItem) {}
-	BorderLayoutItemWrapper(iAIBorderWidget* rbw) : m_rbi(rbw), m_layoutItem(new QWidgetItem(rbw->widget())) {}
-	BorderLayoutItemWrapper(iAIBorderLayoutItem* rbli) : m_rbi(rbli), m_layoutItem(rbli->layoutItem()) {}
-	bool hasWidthForHeight() { return m_rbi->hasWidthForHeight(); }
-	int getWidthForHeight(int height) { return m_rbi->getWidthForHeight(height); }
-	bool hasHeightForWidth() { return m_rbi->hasHeightForWidth();  }
-	int getHeightForWidth(int width) { return m_rbi->getHeightForWidth(width); }
-	QLayoutItem* layoutItem() { return m_layoutItem; }
+	BorderLayoutItemWrapper(iAIBorderItem* rbi, QLayoutItem *layoutItem) : m_rbi(rbi), m_layoutItem(layoutItem)
+	{}
+	BorderLayoutItemWrapper(iAIBorderWidget* rbw) : m_rbi(rbw), m_layoutItem(new QWidgetItem(rbw->widget()))
+	{}
+	BorderLayoutItemWrapper(iAIBorderLayoutItem* rbli) : m_rbi(rbli), m_layoutItem(rbli->layoutItem())
+	{}
+	bool hasWidthForHeight()
+	{
+		return m_rbi->hasWidthForHeight();
+	}
+	int getWidthForHeight(int height)
+	{
+		return m_rbi->getWidthForHeight(height);
+	}
+	bool hasHeightForWidth()
+	{
+		return m_rbi->hasHeightForWidth();
+	}
+	int getHeightForWidth(int width)
+	{
+		return m_rbi->getHeightForWidth(width);
+	}
+	QLayoutItem* layoutItem()
+	{
+		return m_layoutItem;
+	}
 
 private:
 	iAIBorderItem *m_rbi;

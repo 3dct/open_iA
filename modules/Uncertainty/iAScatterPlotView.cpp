@@ -1,8 +1,8 @@
 /*************************************  open_iA  ************************************ *
 * **********   A tool for visual analysis and processing of 3D CT images   ********** *
 * *********************************************************************************** *
-* Copyright (C) 2016-2020  C. Heinzl, M. Reiter, A. Reh, W. Li, M. Arikan, Ar. &  Al. *
-*                          Amirkhanov, J. Weissenböck, B. Fröhler, M. Schiwarth       *
+* Copyright (C) 2016-2021  C. Heinzl, M. Reiter, A. Reh, W. Li, M. Arikan, Ar. &  Al. *
+*                 Amirkhanov, J. Weissenböck, B. Fröhler, M. Schiwarth, P. Weinberger *
 * *********************************************************************************** *
 * This program is free software: you can redistribute it and/or modify it under the   *
 * terms of the GNU General Public License as published by the Free Software           *
@@ -19,16 +19,18 @@
 *          Stelzhamerstraße 23, 4600 Wels / Austria, Email: c.heinzl@fh-wels.at       *
 * ************************************************************************************/
 #include "iAScatterPlotView.h"
+#include "iAScatterPlotViewData.h"
 
 #include "iAUncertaintyColors.h"
 
-#include <charts/iAScatterPlot.h>
-#include <charts/iAScatterPlotWidget.h>
-#include <charts/iASPLOMData.h>
-#include <iAConsole.h>
+#include <iAScatterPlot.h>
+#include <iAScatterPlotWidget.h>
+#include <iASPLOMData.h>
+#include <iALog.h>
 #include <iAToolsVTK.h>
 #include <iAVtkDraw.h>
-#include <qthelper/iAQFlowLayout.h>
+
+#include <iAQFlowLayout.h>
 
 #include <vtkAxis.h>
 #include <vtkChartXY.h>
@@ -95,7 +97,7 @@ void iAScatterPlotView::AddPlot(vtkImagePointer imgX, vtkImagePointer imgY, QStr
 	std::vector<size_t> selection;
 	if (m_scatterPlotWidget)
 	{
-		selection = m_scatterPlotWidget->GetSelection();
+		selection = m_scatterPlotWidget->viewData()->selection();
 		delete m_scatterPlotWidget;
 	}
 	// setup data object:
@@ -103,7 +105,7 @@ void iAScatterPlotView::AddPlot(vtkImagePointer imgX, vtkImagePointer imgY, QStr
 	m_voxelCount = static_cast<size_t>(dim[0]) * dim[1] * dim[2];
 	double* bufX = static_cast<double*>(imgX->GetScalarPointer());
 	double* bufY = static_cast<double*>(imgY->GetScalarPointer());
-	auto splomData = QSharedPointer<iASPLOMData>(new iASPLOMData());
+	auto splomData = QSharedPointer<iASPLOMData>::create();
 	splomData->paramNames().push_back(captionX);
 	splomData->paramNames().push_back(captionY);
 	std::vector<double> values0;
@@ -123,7 +125,7 @@ void iAScatterPlotView::AddPlot(vtkImagePointer imgX, vtkImagePointer imgY, QStr
 	m_scatterPlotWidget->SetSelectionMode(iAScatterPlot::Rectangle);
 	m_scatterPlotWidget->SetPlotColor(c, 0, 1);
 	m_scatterPlotWidget->SetSelectionColor(iAUncertaintyColors::SelectedPixel);
-	m_scatterPlotWidget->SetSelection(selection);
+	m_scatterPlotWidget->viewData()->setSelection(selection);
 	m_scatterPlotWidget->setMinimumWidth(width() / 2);
 	m_scatterPlotContainer->layout()->addWidget(m_scatterPlotWidget);
 	connect(m_scatterPlotWidget->m_scatterplot, &iAScatterPlot::selectionModified, this, &iAScatterPlotView::SelectionUpdated);
@@ -134,7 +136,7 @@ void iAScatterPlotView::SetDatasets(QSharedPointer<iAUncertaintyImages> imgs)
 {
 	if (m_scatterPlotWidget)
 	{
-		m_scatterPlotWidget->GetSelection().clear();
+		m_scatterPlotWidget->viewData()->selection().clear();
 	}
 	for (auto widget : m_xAxisChooser->findChildren<QToolButton*>(QString(), Qt::FindDirectChildrenOnly))
 	{
@@ -214,7 +216,7 @@ void iAScatterPlotView::YAxisChoice()
 
 void iAScatterPlotView::SelectionUpdated()
 {
-	auto selectedPoints = m_scatterPlotWidget->GetSelection();
+	auto & selectedPoints = m_scatterPlotWidget->viewData()->selection();
 	std::set<size_t> selectedSet(selectedPoints.begin(), selectedPoints.end());
 	double* buf = static_cast<double*>(m_selectionImg->GetScalarPointer());
 	for (unsigned int v = 0; v<m_voxelCount; ++v)

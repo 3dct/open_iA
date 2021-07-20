@@ -1,8 +1,8 @@
 /*************************************  open_iA  ************************************ *
 * **********   A tool for visual analysis and processing of 3D CT images   ********** *
 * *********************************************************************************** *
-* Copyright (C) 2016-2020  C. Heinzl, M. Reiter, A. Reh, W. Li, M. Arikan, Ar. &  Al. *
-*                          Amirkhanov, J. Weissenböck, B. Fröhler, M. Schiwarth       *
+* Copyright (C) 2016-2021  C. Heinzl, M. Reiter, A. Reh, W. Li, M. Arikan, Ar. &  Al. *
+*                 Amirkhanov, J. Weissenböck, B. Fröhler, M. Schiwarth, P. Weinberger *
 * *********************************************************************************** *
 * This program is free software: you can redistribute it and/or modify it under the   *
 * terms of the GNU General Public License as published by the Free Software           *
@@ -20,9 +20,10 @@
 * ************************************************************************************/
 #include "iARangeSliderDiagramView.h"
 
-#include "iARangeSliderDiagramData.h"
 #include "iARangeSliderDiagramWidget.h"
 #include "FeatureAnalyzerHelpers.h"
+
+#include <iAHistogramData.h>
 
 #include <vtkIdTypeArray.h>
 
@@ -30,6 +31,21 @@
 #include <QFrame>
 #include <QLabel>
 #include <QTableWidget>
+
+namespace
+{
+QSharedPointer<iAHistogramData> createRangeSliderData(QList<double> m_rangeSliderData, double min, double max)
+{
+	auto data = iAHistogramData::create("Frequency", iAValueType::Continuous, min, max, m_rangeSliderData.size());
+	size_t idx = 0;
+	for (double val : m_rangeSliderData)
+	{
+		data->setBin(idx, val);
+		++idx;
+	}
+	return data;
+}
+}
 
 iARangeSliderDiagramView::iARangeSliderDiagramView( QWidget * parent /*= 0*/, Qt::WindowFlags f /*= 0 */ ):
 	RangeSliderDiagramViewConnector( parent, f ),
@@ -131,7 +147,7 @@ void iARangeSliderDiagramView::addTitleLabel()
 	m_mainContainer = new QWidget();
 	m_mainContainer->setMinimumHeight( 300 );
 	m_layoutVBMainContainer = new QVBoxLayout( this );
-	m_layoutVBMainContainer->setMargin( 0 );
+	m_layoutVBMainContainer->setContentsMargins(0, 0, 0, 0);
 
 	//Install event filter for main conatiner
 	m_mainContainer->installEventFilter( this );
@@ -197,7 +213,7 @@ void iARangeSliderDiagramView::addComboBoxes()
 	m_comboBoxContainer->setFixedHeight( 25 );
 	m_comboBoxContainer->setFixedWidth( 200 );
 	m_layoutHBComboBoxes = new QHBoxLayout(this);
-	m_layoutHBComboBoxes->setMargin( 0 );
+	m_layoutHBComboBoxes->setContentsMargins(0, 0, 0, 0);
 	m_layoutHBComboBoxes->setContentsMargins( 0, 0, 0, 0 );
 
 	m_cbPorDev = new QComboBox();
@@ -305,17 +321,20 @@ void iARangeSliderDiagramView::setupHistogram()
 
 	QList<double> binList;
 	m_histogramMap = calculateHistogram( porosityList, 0.0, 100.0 );
-	QMapIterator<double, QList<double> > mapIt( m_histogramMap );
+#if QT_VERSION < QT_VERSION_CHECK(5, 99, 0)
+	QMapIterator<double, QList<double>> mapIt(m_histogramMap);
+#else
+	QMultiMapIterator<double, QList<double>> mapIt(m_histogramMap);
+#endif
 	while ( mapIt.hasNext() )
 	{
 		mapIt.next();
 		binList.append( mapIt.value().size() );
 	}
 
-	m_rangeSliderData = QSharedPointer<iARangeSliderDiagramData>( new iARangeSliderDiagramData( binList, 0.0, 99.9 ) );
-	m_rangeSliderData->updateRangeSliderFunction();
+	m_rangeSliderData = createRangeSliderData( binList, 0.0, 99.9);
 
-	m_rangeSliderDiagramDrawer = QSharedPointer<iABarGraphPlot>( new iABarGraphPlot( m_rangeSliderData, QColor(70, 70, 70, 255)) );
+	m_rangeSliderDiagramDrawer = QSharedPointer<iABarGraphPlot>::create(m_rangeSliderData, QColor(70, 70, 70, 255));
 	vtkSmartPointer<vtkPiecewiseFunction> oTF = vtkSmartPointer<vtkPiecewiseFunction>::New();
 	vtkSmartPointer<vtkColorTransferFunction> cTF = vtkSmartPointer<vtkColorTransferFunction>::New();
 	// Adds two end points to set up a propper transfer function
@@ -326,8 +345,8 @@ void iARangeSliderDiagramView::setupHistogram()
 	m_oTFList.append( oTF );
 	m_cTFList.append( cTF );
 
-	iARangeSliderDiagramWidget *rangeSliderDiagramWidget = new iARangeSliderDiagramWidget( dynamic_cast<QWidget*> ( parent() ), nullptr, m_oTFList.at( 0 ),
-													 m_cTFList.at( 0 ), m_rangeSliderData, &m_histogramMap, m_rawTable,"Porosity", "Frequency" );
+	auto *rangeSliderDiagramWidget = new iARangeSliderDiagramWidget( dynamic_cast<QWidget*> ( parent() ), m_oTFList.at( 0 ),
+		m_cTFList.at( 0 ), m_rangeSliderData, &m_histogramMap, m_rawTable,"Porosity", "Frequency" );
 
 	rangeSliderDiagramWidget->addPlot( m_rangeSliderDiagramDrawer );
 	m_widgetList.append( rangeSliderDiagramWidget );
@@ -340,8 +359,11 @@ void iARangeSliderDiagramView::setupDiagrams()
 	auto paramPorOrDevMap = prepareData( m_rawTable, m_cbPorDev->currentIndex(),
 																  m_cbStatisticMeasurements->currentIndex() );
 
-
-	QMapIterator<QString, QList<double> > mapIt( paramPorOrDevMap );
+#if QT_VERSION < QT_VERSION_CHECK(5, 99, 0)
+	QMapIterator<QString, QList<double>> mapIt(paramPorOrDevMap);
+#else
+	QMultiMapIterator<QString, QList<double>> mapIt(paramPorOrDevMap);
+#endif
 	while ( mapIt.hasNext() )
 	{
 		mapIt.next();
@@ -357,11 +379,8 @@ void iARangeSliderDiagramView::setupDiagrams()
 
 		double min = m_rawTable->item( 1, paramColumnPos )->text().toDouble();
 		double max = m_rawTable->item( m_rawTable->rowCount() - 1, paramColumnPos )->text().toDouble();
-		m_rangeSliderData = QSharedPointer<iARangeSliderDiagramData>( new iARangeSliderDiagramData( mapIt.value(), min, max ) );
-
-		m_rangeSliderData->updateRangeSliderFunction();
-
-		m_rangeSliderDiagramDrawer = QSharedPointer<iABarGraphPlot>( new iABarGraphPlot( m_rangeSliderData, QColor(70, 70, 70, 255)) );
+		m_rangeSliderData = createRangeSliderData(mapIt.value(), min, max);
+		m_rangeSliderDiagramDrawer = QSharedPointer<iABarGraphPlot>::create(m_rangeSliderData, QColor(70, 70, 70, 255));
 		vtkSmartPointer<vtkPiecewiseFunction> oTF = vtkSmartPointer<vtkPiecewiseFunction>::New();
 		vtkSmartPointer<vtkColorTransferFunction> cTF = vtkSmartPointer<vtkColorTransferFunction>::New();;
 		// Adds two end points to set up a propper transfer function
@@ -372,9 +391,8 @@ void iARangeSliderDiagramView::setupDiagrams()
 		m_oTFList.append( oTF );
 		m_cTFList.append( cTF );
 
-		iARangeSliderDiagramWidget* rangeSliderDiagramWidget = new iARangeSliderDiagramWidget( dynamic_cast<QWidget*> ( parent() ), nullptr,
-															m_oTFList.last(), m_cTFList.last(), m_rangeSliderData,
-															&m_histogramMap, m_rawTable, mapIt.key(), m_cbPorDev->currentText() );
+		auto * rangeSliderDiagramWidget = new iARangeSliderDiagramWidget(dynamic_cast<QWidget*>(parent()),
+				m_oTFList.last(), m_cTFList.last(), m_rangeSliderData, &m_histogramMap, m_rawTable, mapIt.key(), m_cbPorDev->currentText() );
 
 		connect( m_widgetList[0], &iARangeSliderDiagramWidget::selected, rangeSliderDiagramWidget,    &iARangeSliderDiagramWidget::selectSlot);
 		connect( m_widgetList[0], &iARangeSliderDiagramWidget::deselected, rangeSliderDiagramWidget,  &iARangeSliderDiagramWidget::deleteSlot);

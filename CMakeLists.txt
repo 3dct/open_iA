@@ -15,7 +15,7 @@ INCLUDE(Common)
 # Subdirectories
 #-------------------------
 SET (TEST_DATA_DIR "${CMAKE_SOURCE_DIR}/test/data")
-ADD_SUBDIRECTORY(core)
+ADD_SUBDIRECTORY(libs)
 
 ADD_SUBDIRECTORY(cmd)     # Sets CMD test runner, used in modules
 
@@ -24,15 +24,18 @@ SET (GUI_EXECUTABLE_FILE "${GUI_EXECUTABLE_TARGET}${CMAKE_EXECUTABLE_SUFFIX}")  
 ADD_SUBDIRECTORY(modules)
 
 # modules might have added something to BUILD_INFO:
-configure_file("${open_iA_SOURCE_DIR}/cmake/version.h.in" "${open_iA_BINARY_DIR}/version.h" @ONLY)
-
+configure_file("${CMAKE_SOURCE_DIR}/cmake/version.h.in" "${CMAKE_BINARY_DIR}/version.h" @ONLY)
+	
 ADD_SUBDIRECTORY(gui)
 
-ADD_SUBDIRECTORY(xinst)
+IF (openiA_TESTING_ENABLED)
+	ADD_SUBDIRECTORY(test)
+ENDIF()
 
 #-------------------------
 # Installation
 #-------------------------
+ADD_SUBDIRECTORY(xinst)
 # Text files:
 INSTALL(FILES ${CMAKE_SOURCE_DIR}/LICENSE DESTINATION .)
 INSTALL(FILES ${CMAKE_SOURCE_DIR}/README.md DESTINATION .)

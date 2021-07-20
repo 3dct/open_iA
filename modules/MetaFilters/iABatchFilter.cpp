@@ -1,8 +1,8 @@
 /*************************************  open_iA  ************************************ *
 * **********   A tool for visual analysis and processing of 3D CT images   ********** *
 * *********************************************************************************** *
-* Copyright (C) 2016-2020  C. Heinzl, M. Reiter, A. Reh, W. Li, M. Arikan, Ar. &  Al. *
-*                          Amirkhanov, J. Weissenböck, B. Fröhler, M. Schiwarth       *
+* Copyright (C) 2016-2021  C. Heinzl, M. Reiter, A. Reh, W. Li, M. Arikan, Ar. &  Al. *
+*                 Amirkhanov, J. Weissenböck, B. Fröhler, M. Schiwarth, P. Weinberger *
 * *********************************************************************************** *
 * This program is free software: you can redistribute it and/or modify it under the   *
 * terms of the GNU General Public License as published by the Free Software           *
@@ -22,14 +22,16 @@
 
 #include "iAParameterNames.h"
 
-#include <iAAttributeDescriptor.h>
-#include <iAConnector.h>
-#include <iAConsole.h>
 #include <iAFilterRegistry.h>
 #include <iAProgress.h>
+
+// base
+#include <iAAttributeDescriptor.h>
+#include <iAConnector.h>
+#include <iALog.h>
+#include <iAITKIO.h>
+#include <iAFileUtils.h>
 #include <iAStringHelper.h>
-#include <io/iAITKIO.h>
-#include <io/iAFileUtils.h>
 
 #include <QDir>
 #include <QFile>
@@ -38,6 +40,7 @@
 
 iABatchFilter::iABatchFilter():
 	iAFilter("Batch...", "",
+		QString(
 		"Runs a filter on a selected set of images.<br/>"
 		"Specify an <em>Image folder</em> which contains the images to be processed. "
 		"<em>Recursive</em> toggles whether or not to also consider subdirectories. "
@@ -69,34 +72,35 @@ iABatchFilter::iABatchFilter():
 		"with the batch run that created the file in the first place. "
 		"If <em>Add filename</em> is enabled, then the name of the file processed for that "
 		"line will be appended before the first output value from that file."
-		"When <em>Continue on error</em> is enabled, then batch processing will continue with the next file "
+		"When <em>%1</em> is enabled, then batch processing will continue with the next file "
 		"in case there is an error. If it is disabled, an error will interrupt the whole batch run. "
 		"Under <em>Work on</em> it can be specified whether the batched filter should get passed "
 		"only files, only folders, or both files and folders."
-		"<em>Output format</em> specifies the file format for the output image(s).", 0, 0),
+		"<em>Output format</em> specifies the file format for the output image(s)."
+		).arg(spnContinueOnError), 0, 0),
 	m_aborted(false)
 {
 	QStringList filesFoldersBoth;
 	filesFoldersBoth << "Files" << "Folders" << "Both Files and Folders";
-	addParameter("Image folder", Folder, "");
-	addParameter("Recursive", Boolean, false);
-	addParameter("File mask", String, "*.mhd");
-	addParameter(spnFilter, FilterName, "Image Quality");
-	addParameter("Parameters", FilterParameters, "");
-	addParameter("Additional Input", FileNamesOpen, "");
-	addParameter(spnOutputFolder, Folder, "");
-	addParameter("Output suffix", String, "");
-	addParameter(spnOverwriteOutput, Boolean, false);
-	addParameter(spnCompressOutput, Boolean, true);
-	addParameter("Output csv file", FileNameSave, ".csv");
-	addParameter("Append to output", Boolean, true);
-	addParameter("Add filename", Boolean, true);
-	addParameter(spnContinueOnError, Boolean, false);
-	addParameter("Work on", Categorical, filesFoldersBoth);
+	addParameter("Image folder", iAValueType::Folder, "");
+	addParameter("Recursive", iAValueType::Boolean, false);
+	addParameter("File mask", iAValueType::String, "*.mhd");
+	addParameter(spnFilter, iAValueType::FilterName, "Image Quality");
+	addParameter("Parameters", iAValueType::FilterParameters, "");
+	addParameter("Additional Input", iAValueType::FileNamesOpen, "");
+	addParameter(spnOutputFolder, iAValueType::Folder, "");
+	addParameter("Output suffix", iAValueType::String, "");
+	addParameter(spnOverwriteOutput, iAValueType::Boolean, false);
+	addParameter(spnCompressOutput, iAValueType::Boolean, true);
+	addParameter("Output csv file", iAValueType::FileNameSave, ".csv");
+	addParameter("Append to output", iAValueType::Boolean, true);
+	addParameter("Add filename", iAValueType::Boolean, true);
+	addParameter(spnContinueOnError, iAValueType::Boolean, false);
+	addParameter("Work on", iAValueType::Categorical, filesFoldersBoth);
 	QStringList outputFormat;
 	outputFormat << "Same as input"
 		<< "MetaImage (*.mhd)";
-	addParameter("Output format", Categorical, outputFormat);
+	addParameter("Output format", iAValueType::Categorical, outputFormat);
 }
 
 void iABatchFilter::performWork(QMap<QString, QVariant> const & parameters)
@@ -155,8 +159,8 @@ void iABatchFilter::performWork(QMap<QString, QVariant> const & parameters)
 			file.close();
 		}
 	}
-	iAProgress p;	// dummy progress swallowing progress from filter which we don't want to propagate
-	filter->setProgress(&p);
+	iAProgress dummyProgress;	// dummy progress swallowing progress from filter which we don't want to propagate
+	filter->setProgress(&dummyProgress);
 	filter->setLogger(logger());
 
 	QStringList filters = parameters["File mask"].toString().split(";");
@@ -227,9 +231,29 @@ void iABatchFilter::performWork(QMap<QString, QVariant> const & parameters)
 						filter->addInput(inputImages[i], additionalFileNames[i]);
 					}
 				}
+				/*
+				// attempt to make input filename accessible to filter,
+				// in order for filters to be able to deduce their output names automatically
+				// -> now rather FileNameSave parameters get set by Batch and Sample filters!
 				for (int i = 0; i < inputImages.size(); ++i)
 				{
 					filterParams[QString("Input file %1").arg(i)] = fileName;
+				}
+				*/
+			}
+			for (auto const& param: filter->parameters())
+			{
+				if (param->valueType() == iAValueType::FileNameSave)
+				{	// all output file names need to be adapted to output file name;
+					// merge with code in iASampleBuiltInFilterOperation?
+					auto value = pathFileBaseName(QFileInfo(fileName)) + param->defaultValue().toString();
+					if (QFile::exists(value) && !overwrite)
+					{
+						LOG(lvlError, QString("Output file '%1' already exists! Aborting. "
+							"Check '%2' to overwrite existing files.").arg(value).arg(spnOverwriteOutput));
+						return;
+					}
+					filterParams[param->name()] = value;
 				}
 			}
 			filter->run(filterParams);
@@ -301,13 +325,13 @@ void iABatchFilter::performWork(QMap<QString, QVariant> const & parameters)
 		}
 		catch (std::exception & e)
 		{
-			DEBUG_LOG(QString("Batch processing: Error while processing file '%1': %2").arg(fileName).arg(e.what()));
+			LOG(lvlError, QString("Batch processing: Error while processing file '%1': %2").arg(fileName).arg(e.what()));
 			if (!parameters["Continue on error"].toBool())
 			{
 				throw e;
 			}
 		}
-		progress()->emitProgress( static_cast<int>(100 * (curLine - 1.0) / files.size()) );
+		progress()->emitProgress( (curLine - 1.0) * 100.0 / files.size() );
 		if (m_aborted)
 		{
 			break;

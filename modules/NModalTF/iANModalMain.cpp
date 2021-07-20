@@ -20,20 +20,20 @@
 * ************************************************************************************/
 #include "iANModalMain.h"
 
-#include "iAConsole.h"
-#include "mdichild.h"
+#include "iALog.h"
+#include "iAMdiChild.h"
 
 
 // Module interface and Attachment --------------------------------------------------------
 
-iANModalAttachment::iANModalAttachment(MainWindow * mainWnd, MdiChild *child) :
+iANModalAttachment::iANModalAttachment(iAMainWindow* mainWnd, iAMdiChild* child) :
 	iAModuleAttachmentToChild(mainWnd, child),
 	m_nModalMain(nullptr)
 {
 	// Do nothing
 }
 
-iANModalAttachment* iANModalAttachment::create(MainWindow * mainWnd, MdiChild *child) {
+iANModalAttachment* iANModalAttachment::create(iAMainWindow * mainWnd, iAMdiChild *child) {
 	auto newAttachment = new iANModalAttachment(mainWnd, child);
 	return newAttachment;
 }
@@ -41,7 +41,7 @@ iANModalAttachment* iANModalAttachment::create(MainWindow * mainWnd, MdiChild *c
 void iANModalAttachment::start() {
 	if (!m_nModalMain) {
 		m_nModalMain = new iANModalMain(m_child);
-		m_child->tabifyDockWidget(m_child->logDockWidget(), m_nModalMain);
+		m_child->tabifyDockWidget(m_child->renderDockWidget(), m_nModalMain);
 	}
 	m_nModalMain->show();
 	m_nModalMain->raise();
@@ -52,7 +52,7 @@ void iANModalAttachment::start() {
 
 #include "iANModalWidget.h"
 
-iANModalMain::iANModalMain(MdiChild *mdiChild):
+iANModalMain::iANModalMain(iAMdiChild *mdiChild):
 	QDockWidget("n-Modal Transfer Function", mdiChild)
 {
 	setFeatures(QDockWidget::DockWidgetClosable | QDockWidget::DockWidgetMovable | QDockWidget::DockWidgetVerticalTitleBar);

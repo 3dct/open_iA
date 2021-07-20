@@ -39,6 +39,7 @@
 #include <vtkImageMask.h>
 
 #include <QComboBox>
+#include <QLabel>
 #include <QTextEdit>
 
 namespace {
@@ -55,7 +56,7 @@ namespace {
 	};
 }
 
-iANModalPreprocessor::iANModalPreprocessor(MdiChild *mdiChild) :
+iANModalPreprocessor::iANModalPreprocessor(iAMdiChild* mdiChild) :
 	m_mdiChild(mdiChild)
 {
 
@@ -234,7 +235,7 @@ QList<QSharedPointer<iAModality>> iANModalPreprocessor::chooseGroup(const QList<
 }
 
 QList<QSharedPointer<iAModality>> iANModalPreprocessor::extractNewModalities(const QList<QSharedPointer<iAModality>> &modalities) {
-	auto list = m_mdiChild->modalitiesDockWidget()->modalities();
+	auto list = m_mdiChild->dataDockWidget()->modalities();
 	auto currentModalities = QList<QSharedPointer<iAModality>>();
 	for (int i = 0; i < list->size(); ++i) {
 		auto modality = list->get(i);
@@ -253,8 +254,8 @@ QList<QSharedPointer<iAModality>> iANModalPreprocessor::extractNewModalities(con
 
 void iANModalPreprocessor::addModalitiesToMdiChild(const QList<QSharedPointer<iAModality>> &modalities) {
 	for (auto mod : modalities) {
-		//m_mdiChild->modalitiesDockWidget()->addModality(mod->image(), mod->name());
-		m_mdiChild->modalitiesDockWidget()->addModality(mod);
+		//m_mdiChild->dataDockWidget()->addModality(mod->image(), mod->name());
+		m_mdiChild->dataDockWidget()->addModality(mod);
 	}
 }
 

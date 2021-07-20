@@ -1,8 +1,8 @@
 /*************************************  open_iA  ************************************ *
 * **********   A tool for visual analysis and processing of 3D CT images   ********** *
 * *********************************************************************************** *
-* Copyright (C) 2016-2020  C. Heinzl, M. Reiter, A. Reh, W. Li, M. Arikan, Ar. &  Al. *
-*                          Amirkhanov, J. Weissenböck, B. Fröhler, M. Schiwarth       *
+* Copyright (C) 2016-2021  C. Heinzl, M. Reiter, A. Reh, W. Li, M. Arikan, Ar. &  Al. *
+*                 Amirkhanov, J. Weissenböck, B. Fröhler, M. Schiwarth, P. Weinberger *
 * *********************************************************************************** *
 * This program is free software: you can redistribute it and/or modify it under the   *
 * terms of the GNU General Public License as published by the Free Software           *
@@ -25,7 +25,7 @@
 #include <iAProgress.h>
 #include <iAToolsITK.h>
 #include <iATypedCallHelper.h>
-#include <mdichild.h>
+#include <iAMdiChild.h>
 
 #include <itkCastImageFilter.h>
 #include <itkExtractImageFilter.h>
@@ -283,7 +283,7 @@ iASimilarity::iASimilarity() : iAFilter("Similarity", "Metrics",
 	"between the images results in small measure values.<br/>"
 	"More Information on Mutual Information is given in the "
 	"<a href=\"https://itk.org/ItkSoftwareGuide.pdf\">ITK Software Guide</a> in the sections '3.10.4 Mutual "
-	"Information Metric' (pp. 262-264) and '5.3.2 Information Theory' (pp. 462-471)."
+	"Information Metric' (pp. 262-264) and '5.3.2 Information Theory' (pp. 462-471). "
 	"The <em>Structural Similarity Index</em> Metric (SSIM) is a metric calculated from mean, variance and covariance "
 	"of the two compared images. For more details see e.g. the "
 	"<a href=\"https://en.wikipedia.org/wiki/Structural_similarity\">Structural Similarity index article in wikipedia</a>, "
@@ -291,24 +291,24 @@ iASimilarity::iASimilarity() : iAFilter("Similarity", "Metrics",
 	"<em>Equal pixel rate</em> computes the ratio between voxels with same value and the total voxel count.",
 	2, 0)
 {
-	addParameter("Index X", Discrete, 0);
-	addParameter("Index Y", Discrete, 0);
-	addParameter("Index Z", Discrete, 0);
-	addParameter("Size X", Discrete, 1);
-	addParameter("Size Y", Discrete, 1);
-	addParameter("Size Z", Discrete, 1);
-	addParameter("Mean Squared Error", Boolean, false);
-	addParameter("RMSE", Boolean, true);
-	addParameter("Normalized RMSE", Boolean, false);
-	addParameter("Peak Signal-to-Noise Ratio", Boolean, true);
-	addParameter("Mean Absolute Error", Boolean, true);
-	addParameter("Normalized Correlation", Boolean, false);
-	addParameter("Mutual Information", Boolean, false);
-	addParameter("Histogram Bins", Discrete, 256, 2);
-	addParameter("Structural Similarity Index", Boolean, true);
-	addParameter("Structural Similarity k1", Continuous, 0.01);
-	addParameter("Structural Similarity k2", Continuous, 0.03);
-	addParameter("Equal pixel rate", Boolean, false);
+	addParameter("Index X", iAValueType::Discrete, 0);
+	addParameter("Index Y", iAValueType::Discrete, 0);
+	addParameter("Index Z", iAValueType::Discrete, 0);
+	addParameter("Size X", iAValueType::Discrete, 1);
+	addParameter("Size Y", iAValueType::Discrete, 1);
+	addParameter("Size Z", iAValueType::Discrete, 1);
+	addParameter("Mean Squared Error", iAValueType::Boolean, false);
+	addParameter("RMSE", iAValueType::Boolean, true);
+	addParameter("Normalized RMSE", iAValueType::Boolean, false);
+	addParameter("Peak Signal-to-Noise Ratio", iAValueType::Boolean, true);
+	addParameter("Mean Absolute Error", iAValueType::Boolean, true);
+	addParameter("Normalized Correlation", iAValueType::Boolean, false);
+	addParameter("Mutual Information", iAValueType::Boolean, false);
+	addParameter("Histogram Bins", iAValueType::Discrete, 256, 2);
+	addParameter("Structural Similarity Index", iAValueType::Boolean, true);
+	addParameter("Structural Similarity k1", iAValueType::Continuous, 0.01);
+	addParameter("Structural Similarity k2", iAValueType::Continuous, 0.03);
+	addParameter("Equal pixel rate", iAValueType::Boolean, false);
 }
 
 IAFILTER_CREATE(iASimilarity)
@@ -320,10 +320,10 @@ void iASimilarity::performWork(QMap<QString, QVariant> const & parameters)
 
 QSharedPointer<iAFilterRunnerGUI> iASimilarityFilterRunner::create()
 {
-	return QSharedPointer<iAFilterRunnerGUI>(new iASimilarityFilterRunner());
+	return QSharedPointer<iASimilarityFilterRunner>::create();
 }
 
-QMap<QString, QVariant> iASimilarityFilterRunner::loadParameters(QSharedPointer<iAFilter> filter, MdiChild* sourceMdi)
+QMap<QString, QVariant> iASimilarityFilterRunner::loadParameters(QSharedPointer<iAFilter> filter, iAMdiChild* sourceMdi)
 {
 	auto params = iAFilterRunnerGUI::loadParameters(filter, sourceMdi);
 	int const * dim = sourceMdi->imagePointer()->GetDimensions();

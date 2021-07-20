@@ -25,7 +25,7 @@
 #include <QDockWidget>
 
 class iANModalWidget;
-class MdiChild;
+class iAMdiChild;
 
 class QLabel;
 
@@ -33,7 +33,7 @@ class iANModalMain : public QDockWidget {
 	Q_OBJECT
 
 public:
-	iANModalMain(MdiChild *mdiChild);
+	iANModalMain(iAMdiChild *mdiChild);
 	iANModalWidget* nModalWidget();
 
 private:
@@ -44,9 +44,9 @@ private:
 class iANModalAttachment : public iAModuleAttachmentToChild {
 	Q_OBJECT
 public:
-	static iANModalAttachment* create(MainWindow *mainWnd, MdiChild *child);
+	static iANModalAttachment* create(iAMainWindow *mainWnd, iAMdiChild *child);
 	void start();
 private:
-	iANModalAttachment(MainWindow *mainWnd, MdiChild *child);
+	iANModalAttachment(iAMainWindow *mainWnd, iAMdiChild *child);
 	iANModalMain *m_nModalMain;
 };

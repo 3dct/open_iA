@@ -21,9 +21,9 @@
 
 #include "iANModalDisplay.h"
 
-#include "mdichild.h"
-#include "iASlicer.h"
+#include "iASlicerImpl.h"
 #include "iASlicerMode.h"
+#include "iAMdiChild.h"
 #include "iAModality.h"
 #include "iAChannelData.h"
 
@@ -31,13 +31,17 @@
 #include <vtkColorTransferFunction.h>
 #include <vtkCamera.h>
 
-#include <QDialog>
-#include <QCheckBox>
-#include <QRadioButton>
 #include <QButtonGroup>
+#include <QCheckBox>
+#include <QDialog>
+#include <QGridLayout>
+#include <QLabel>
+#include <QPushButton>
+#include <QRadioButton>
 #include <QStatusBar>
+#include <QVBoxLayout>
 
-iANModalDisplay::iANModalDisplay(QWidget *parent, MdiChild *mdiChild, const QList<QSharedPointer<iAModality>> &modalities,
+iANModalDisplay::iANModalDisplay(QWidget *parent, iAMdiChild *mdiChild, const QList<QSharedPointer<iAModality>> &modalities,
 								 int maxSelection, int minSelection, int numOfRows) :
 	m_modalities(modalities),
 	m_maxSelection(maxSelection),
@@ -76,7 +80,7 @@ iANModalDisplay::iANModalDisplay(QWidget *parent, MdiChild *mdiChild, const QLis
 iASlicer* iANModalDisplay::createSlicer(QSharedPointer<iAModality> mod) {
 	int sliceNumber = m_mdiChild->slicer(m_slicerMode)->sliceNumber();
 	// Hide everything except the slice itself
-	auto slicer = new iASlicer(nullptr, m_slicerMode, /*bool decorations = */false);
+	auto slicer = new iASlicerImpl(nullptr, m_slicerMode, /*bool decorations = */false);
 	slicer->setup(m_mdiChild->slicerSettings().SingleSlicer);
 	slicer->setSizePolicy(QSizePolicy::Preferred, QSizePolicy::Expanding);
 

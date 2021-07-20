@@ -42,7 +42,7 @@ class iANModalTFManager;
 
 class iAModality;
 class iASlicer;
-class MdiChild;
+class iAMdiChild;
 class iAChartWithFunctionsWidget;
 
 class vtkVolume;
@@ -65,7 +65,7 @@ class iANModalController : public QObject {
 	friend class iANModalWidget;
 
 public:
-	iANModalController(MdiChild *mdiChild);
+	iANModalController(iAMdiChild* mdiChild);
 	void initialize();
 
 	int countModalities();
@@ -83,7 +83,7 @@ public:
 	void removeAllSeeds();
 
 private:
-	MdiChild *m_mdiChild;
+	iAMdiChild* m_mdiChild;
 
 	void privateInitialize();
 	iASlicer* initializeSlicer(QSharedPointer<iAModality>);
@@ -122,7 +122,6 @@ private:
 	// Seed tracker (visualization next to the main slicers's sliders)
 	iANModalSeedTracker m_tracker;
 
-	// MdiChild widgets
 	dlg_labels *m_dlg_labels;
 
 signals:

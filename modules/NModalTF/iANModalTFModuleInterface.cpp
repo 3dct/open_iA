@@ -22,36 +22,39 @@
 
 #include "iANModalMain.h"
 
-#include <iAConsole.h>
-#include <mainwindow.h>
-#include <mdichild.h>
+#include <iALog.h>
+#include <iAMainWindow.h>
+#include <iAMdiChild.h>
 
-void iANModalTFModuleInterface::Initialize() {
-	if (!m_mainWnd) // if m_mainWnd is not set, we are running in command line mode
-		return;     // in that case, we do not do anything as we can not add a menu entry there
-	QMenu *toolsMenu = m_mainWnd->toolsMenu();
-	QMenu *menuMultiModalChannel = getMenuWithTitle(toolsMenu, QString("Multi-Modal/-Channel Images"), false);
+#include <QAction>
+#include <QMenu>
 
-	QAction *action = new QAction(m_mainWnd);
-	action->setText(QApplication::translate("MainWindow", "n-Modal Transfer Function", nullptr));
-	AddActionToMenuAlphabeticallySorted(menuMultiModalChannel, action, true);
+void iANModalTFModuleInterface::Initialize()
+{
+	if (!m_mainWnd)
+	{
+		return;
+	}
+	QAction *action = new QAction(tr("n-Modal Transfer Function"), m_mainWnd);
 	connect(action, SIGNAL(triggered()), this, SLOT(onMenuItemSelected()));
+	auto submenu = getOrAddSubMenu(m_mainWnd->toolsMenu(), tr("Multi-Modal/-Channel Images"), false);
+	submenu->addAction(action);
 }
 
-iAModuleAttachmentToChild* iANModalTFModuleInterface::CreateAttachment(MainWindow* mainWnd, MdiChild *childData) {
+iAModuleAttachmentToChild* iANModalTFModuleInterface::CreateAttachment(iAMainWindow* mainWnd, iAMdiChild* childData)
+{
 	return iANModalAttachment::create(mainWnd, childData);
 }
 
 void iANModalTFModuleInterface::onMenuItemSelected() {
-	PrepareActiveChild();
-	auto attach = attachment<iANModalAttachment>(m_mdiChild);
+	auto attach = attachment<iANModalAttachment>(m_mainWnd->activeMdiChild());
 	if (!attach)
 	{
-		AttachToMdiChild(m_mdiChild);
-		attach = attachment<iANModalAttachment>(m_mdiChild);
+		AttachToMdiChild(m_mainWnd->activeMdiChild());
+		attach = attachment<iANModalAttachment>(m_mainWnd->activeMdiChild());
 		if (!attach)
 		{
-			DEBUG_LOG("Attaching failed!");
+			LOG(lvlError, "Attaching failed!");
 			return;
 		}
 	}

@@ -24,9 +24,13 @@
 #include "iANModalObjects.h"
 
 #include "iASlicer.h"
-#include "mdichild.h"
-#include "dlg_slicer.h"
+#include "iAMdiChild.h"
 
+#include <QDockWidget>
+#include <QHBoxLayout>
+#include <QMouseEvent>
+#include <QPainter>
+#include <QSlider>
 #include <QTimer>
 
 // iANModalSeedTracker ----------------------------------------------------------------
@@ -35,11 +39,12 @@ iANModalSeedTracker::iANModalSeedTracker() {
 	// Do nothing
 }
 
-iANModalSeedTracker::iANModalSeedTracker(MdiChild *mdiChild) {
+iANModalSeedTracker::iANModalSeedTracker(iAMdiChild *mdiChild) {
 	reinitialize(mdiChild);
 }
 
-void iANModalSeedTracker::reinitialize(MdiChild *mdiChild) {
+void iANModalSeedTracker::reinitialize(iAMdiChild* mdiChild)
+{
 	constexpr iASlicerMode modes[iASlicerMode::SlicerCount]{
 		iASlicerMode::YZ,
 		iASlicerMode::XZ,
@@ -49,7 +54,7 @@ void iANModalSeedTracker::reinitialize(MdiChild *mdiChild) {
 	for (int i = 0; i < iASlicerMode::SlicerCount; ++i) {
 		auto mode = modes[i];
 		m_visualizers[i] = new iANModalSeedVisualizer(mdiChild, mode);
-		connect(m_visualizers[i], &iANModalSeedVisualizer::binClicked, [this, mode](int sliceNumber){
+		connect(m_visualizers[i], &iANModalSeedVisualizer::binClicked, [this, mode](size_t sliceNumber){
 			emit binCliked(mode, sliceNumber); });
 	}
 }
@@ -86,13 +91,12 @@ void iANModalSeedTracker::updateLater() {
 
 // iANModalSeedVisualizer -------------------------------------------------------------
 
-iANModalSeedVisualizer::iANModalSeedVisualizer(MdiChild *mdiChild, iASlicerMode mode) :
+iANModalSeedVisualizer::iANModalSeedVisualizer(iAMdiChild* mdiChild, iASlicerMode mode) :
 	m_mode(mode),
 	m_timer_resizeUpdate(new QTimer()),
 	m_indexHovered(std::numeric_limits<size_t>::max())
 {
-	auto slicerDockWidget = mdiChild->slicerDockWidget(m_mode);
-	slicerDockWidget->horizontalLayout_2->addWidget(this, 0);
+	mdiChild->slicerContainerLayout(m_mode)->addWidget(this, 0);
 
 	setMouseTracking(true);
 
@@ -105,15 +109,15 @@ iANModalSeedVisualizer::iANModalSeedVisualizer(MdiChild *mdiChild, iASlicerMode 
 	reinitialize(mdiChild);
 }
 
-void iANModalSeedVisualizer::reinitialize(MdiChild *mdiChild) {
-	auto widget = mdiChild->slicerDockWidget(m_mode);
+void iANModalSeedVisualizer::reinitialize(iAMdiChild *mdiChild) {
+	auto slicerScrollBar = mdiChild->slicerScrollBar(m_mode);
 
-	int scrollbarWidth = widget->verticalScrollBar->minimumSize().width();
+	int scrollbarWidth = slicerScrollBar->minimumSize().width();
 	int imageWidth = scrollbarWidth < 20 ? 20 : scrollbarWidth;
 	setMinimumSize(QSize(imageWidth, 0));
 
-	int min = widget->verticalScrollBar->minimum();
-	int max = widget->verticalScrollBar->maximum();
+	int min = slicerScrollBar->minimum();
+	int max = slicerScrollBar->maximum();
 	int range = max - min + 1;
 
 	m_values.resize(range);
@@ -327,7 +331,7 @@ void iANModalSeedVisualizer::hover(int y) {
 }
 
 void iANModalSeedVisualizer::leave() {
-	m_indexHovered = -1;
+	m_indexHovered = std::numeric_limits<size_t>::max();
 	update();
 }
 

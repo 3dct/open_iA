@@ -26,26 +26,29 @@
 #include "iALabellingAttachment.h"
 #include "dlg_labels.h"
 
-#include "iAModality.h"
-#include "iAModalityList.h"
-#include "iAModalityTransfer.h"
-#include "iARenderer.h"
-#include "iAVolumeRenderer.h"
-#include "iASlicer.h"
-#include "iAChannelSlicerData.h"
-#include "iAChannelData.h"
-#include "mdichild.h"
-#include <iAToolsVTK.h>
-//#include "iAChartWithFunctionsWidget.h" // Why doesn't it work?
 #include "dlg_modalities.h"
+#include <iAChannelSlicerData.h>
+#include <iAChannelData.h>
+#include <iALog.h>
+#include <iAMdiChild.h>
+#include <iAModality.h>
+#include <iAModalityList.h>
+#include <iAModalityTransfer.h>
+#include <iARenderer.h>
+#include <iASlicerSettings.h>
+#include <iARenderSettings.h>
+#include <iASlicer.h>
+#include <iASlicerImpl.h>
+#include <iAToolsVTK.h>
+#include <iAVolumeRenderer.h>
+//#include "iAChartWithFunctionsWidget.h" // Why doesn't it work?
 //#include "iAToolsVTK.h"
-#include "iAPerformanceHelper.h"
-#include "iAConsole.h"
-#include "iATypedCallHelper.h"
+#include <iAPerformanceHelper.h>
+#include <iATypedCallHelper.h>
 
-#include "charts/iAChartWithFunctionsWidget.h"
-#include "charts/iAHistogramData.h"
-#include "charts/iAPlotTypes.h"
+#include <iAChartWithFunctionsWidget.h>
+#include <iAHistogramData.h>
+#include <iAPlotTypes.h>
 
 #include <vtkImageData.h>
 #include <vtkColorTransferFunction.h>
@@ -70,7 +73,7 @@ vtkStandardNewMacro(iANModalSmartVolumeMapper);
 
 static constexpr int NUM_SLICERS = iASlicerMode::SlicerCount;
 
-iANModalController::iANModalController(MdiChild *mdiChild) :
+iANModalController::iANModalController(iAMdiChild* mdiChild) :
 	m_mdiChild(mdiChild)
 {
 	QObject* obj = m_mdiChild->findChild<QObject*>("labels");
@@ -84,7 +87,7 @@ iANModalController::iANModalController(MdiChild *mdiChild) :
 	else
 	{
 		m_dlg_labels = new dlg_labels(mdiChild, false);
-		mdiChild->splitDockWidget(mdiChild->logDockWidget(), m_dlg_labels, Qt::Vertical);
+		mdiChild->splitDockWidget(mdiChild->renderDockWidget(), m_dlg_labels, Qt::Vertical);
 	}
 	m_dlg_labels->setSeedsTracking(true);
 }
@@ -133,8 +136,8 @@ void iANModalController::privateInitialize() {
 		if (m_mdiChild->histogramComputed(histogramNewBinCount, modality)) {
 			initializeHistogram(modality, i);
 		} else {
-			auto callback = [this, modality, i](int modalityIndex){ Q_UNUSED(modalityIndex) initializeHistogram(modality, i); };
-			m_mdiChild->computeHistogramAsync(this, callback, histogramNewBinCount, modality);
+			auto callback = [this, modality, i](){ initializeHistogram(modality, i); };
+			m_mdiChild->computeHistogramAsync(callback, histogramNewBinCount, modality);
 		}
 	}
 
@@ -153,11 +156,9 @@ void iANModalController::initializeHistogram(QSharedPointer<iAModality> modality
 	QSharedPointer<iAPlot> histogramPlot = QSharedPointer<iAPlot>(
 		new	iABarGraphPlot(modality->histogramData(), QColor(70, 70, 70, 255)));
 
-	auto histogram = new iAChartWithFunctionsWidget(nullptr, m_mdiChild, modality->name() + " grey value", "Frequency");
+	auto histogram = new iAChartWithFunctionsWidget(m_mdiChild, modality->name() + " grey value", "Frequency");
 	histogram->addPlot(histogramPlot);
-	histogram->setTransferFunctions(modality->transfer()->colorTF(), modality->transfer()->opacityTF());
-	histogram->updateTrf();
-
+	histogram->setTransferFunction(modality->transfer().data());
 	histogram->setMinimumSize(0, 100);
 
 	m_histograms[index] = histogram;
@@ -168,7 +169,7 @@ inline iASlicer* iANModalController::initializeSlicer(QSharedPointer<iAModality>
 	auto slicerMode = iASlicerMode::XY;
 	int sliceNumber = m_mdiChild->slicer(slicerMode)->sliceNumber();
 	// Hide everything except the slice itself
-	auto slicer = new iASlicer(nullptr, slicerMode, /*bool decorations = */false);
+	auto slicer = new iASlicerImpl(nullptr, slicerMode, /*bool decorations = */false);
 	slicer->setup(m_mdiChild->slicerSettings().SingleSlicer);
 	slicer->setSizePolicy(QSizePolicy::Preferred, QSizePolicy::Expanding);
 
@@ -293,7 +294,7 @@ inline void iANModalController::initializeCombinedVol() {
 	}
 	m_mdiChild->renderer()->addRenderer(m_combinedVolRenderer);
 
-	m_mdiChild->modalitiesDockWidget()->setAllChecked(Qt::Unchecked);
+	m_mdiChild->dataDockWidget()->setAllChecked(Qt::Unchecked);
 }
 
 inline void iANModalController::applyVolumeSettings() {
@@ -421,7 +422,11 @@ void iANModalController::updateLabel(const iANModalLabel &label) {
 }
 
 void iANModalController::updateLabels(const QList<iANModalLabel> &labelsList) {
+#if QT_VERSION < QT_VERSION_CHECK(5, 14, 0)
 	std::vector<iANModalLabel> labels = labelsList.toVector().toStdVector();
+#else
+	std::vector<iANModalLabel> labels(labelsList.begin(), labelsList.end());
+#endif
 	for (auto tf : m_tfs) {
 		tf->updateLabels(labels);
 		tf->update();
@@ -434,8 +439,7 @@ void iANModalController::addSeeds(const QList<iANModalSeed> &seeds, const iANMod
 		unsigned int x = modality->image()->GetScalarComponentAsDouble(seed.x, seed.y, seed.z, 0);
 		int i = m_modalities.lastIndexOf(modality);
 
-		//int size = m_tfs.size();
-		assert(size > 0);
+		assert(m_tfs.size() > 0);
 
 		auto tf = m_tfs[i];
 		tf->addControlPoint(x, label);
@@ -482,7 +486,7 @@ void iANModalController::update() {
 	VTK_TYPED_CALL(updateMainSlicers, type);
 
 	updateHistograms();
-	m_mdiChild->redrawHistogram();
+	//m_mdiChild->redrawHistogram();
 }
 
 using Rgb = std::array<unsigned char, 3>;
@@ -538,17 +542,16 @@ static constexpr int slicerCoordSwapIndices[NUM_SLICERS][NUM_SLICERS] = {
 };
 
 static inline void swapIndices(const int (&xyz_orig)[3], int mainSlicerIndex, int (&xyz_out)[3]) {
-	//int i0 = xyz_orig[slicerCoordSwapIndices[mainSlicerIndex][0]];
-	//int i1 = xyz_orig[slicerCoordSwapIndices[mainSlicerIndex][1]];
-	//int i2 = xyz_orig[slicerCoordSwapIndices[mainSlicerIndex][2]];
+#ifndef NDEBUG
 	Q_UNUSED(xyz_orig);
+#endif
 	xyz_out[0] = mapSliceToGlobalAxis(mainSlicerIndex, 0);
 	xyz_out[1] = mapSliceToGlobalAxis(mainSlicerIndex, 1);
 	xyz_out[2] = mapSliceToGlobalAxis(mainSlicerIndex, 2);
 
-	assert(i0 == xyz_out[0]);
-	assert(i1 == xyz_out[1]);
-	assert(i2 == xyz_out[2]);
+	assert(xyz_orig[slicerCoordSwapIndices[mainSlicerIndex][0]] == xyz_out[0]);
+	assert(xyz_orig[slicerCoordSwapIndices[mainSlicerIndex][1]] == xyz_out[1]);
+	assert(xyz_orig[slicerCoordSwapIndices[mainSlicerIndex][2]] == xyz_out[2]);
 }
 
 static inline void convert_2d_to_3d(const int(&xyz_orig)[3], int mainSlicerIndex, int sliceNum, int(&xyz_out)[3]) {
@@ -616,8 +619,10 @@ void iANModalController::updateMainSlicers() {
 
 			// Get the 2D slice image
 			auto sliceImg2D = channel->reslicer()->GetOutput();
-			//auto dim = sliceImg2D->GetDimensions();
+#ifndef NDEBUG
+			auto dim = sliceImg2D->GetDimensions();
 			assert(dim[0] == 1 || dim[1] == 1 || dim[2] == 1);
+#endif
 
 			// Save 2D slice image and transfer functions for future processing
 			sliceImgs2D[modalityIndex] = sliceImg2D;
@@ -772,9 +777,9 @@ void iANModalController::updateMainSlicers() {
 	QString duration_opacity = formatDuration(time_opacity);
 	QString duration_both = formatDuration(time_color + time_opacity);
 
-	DEBUG_LOG("Accumulated time for color TF mapping: " + duration_color);
-	DEBUG_LOG("Accumulated time for opacity TF mapping: " + duration_opacity);
-	DEBUG_LOG("Accumulated time for color + opacity TF mapping: " + duration_both);
+	LOG(lvlInfo, "Accumulated time for color TF mapping: " + duration_color);
+	LOG(lvlInfo, "Accumulated time for opacity TF mapping: " + duration_opacity);
+	LOG(lvlInfo, "Accumulated time for color + opacity TF mapping: " + duration_both);
 
 	testAll.time("Done!");
 

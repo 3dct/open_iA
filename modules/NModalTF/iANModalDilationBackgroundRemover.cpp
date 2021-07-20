@@ -124,7 +124,7 @@ void iANModalIterativeDilationThread::itkCountConnectedComponents(ImagePointer i
 {
 	itkDilateAndCountConnectedComponents(itkImgPtr, connectedComponentsOut, false);
 	return;
-
+	/*
 	typedef itk::Image<unsigned short, DIM> ImageType;
 	typedef itk::ConnectedComponentImageFilter<ImageType, ImageType> CCIFType;
 
@@ -139,6 +139,7 @@ void iANModalIterativeDilationThread::itkCountConnectedComponents(ImagePointer i
 
 	//m_mask = connCompFilter->GetOutput();
 	connectedComponentsOut = connCompFilter->GetObjectCount();
+	*/
 }
 
 void iANModalIterativeDilationThread::itkDilate(ImagePointer itkImgPtr)
@@ -230,7 +231,7 @@ void iANModalDilationBackgroundRemover::showMask(ImagePointer itkImgPtr)
 }
 #endif
 
-iANModalDilationBackgroundRemover::iANModalDilationBackgroundRemover(MdiChild *mdiChild) : m_mdiChild(mdiChild)
+iANModalDilationBackgroundRemover::iANModalDilationBackgroundRemover(iAMdiChild* mdiChild) : m_mdiChild(mdiChild)
 {
 	m_colorTf = vtkSmartPointer<vtkLookupTable>::New();
 	m_colorTf->SetNumberOfTableValues(2);
@@ -362,7 +363,7 @@ bool iANModalDilationBackgroundRemover::selectModalityAndThreshold(QWidget *pare
 		t == HIDE   ? MaskMode::HIDE
 		: MaskMode::INVALID);
 
-	DEBUG_LOG(QString("Option chosen: ") + t + QString("\n"));
+	LOG(lvlDebug, QString("Option chosen: ") + t + QString("\n"));
 
 	out_threshold = m_threshold->threshold();
 	out_modality = m_display->singleSelection();

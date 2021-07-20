@@ -1,8 +1,8 @@
 /*************************************  open_iA  ************************************ *
 * **********   A tool for visual analysis and processing of 3D CT images   ********** *
 * *********************************************************************************** *
-* Copyright (C) 2016-2020  C. Heinzl, M. Reiter, A. Reh, W. Li, M. Arikan, Ar. &  Al. *
-*                          Amirkhanov, J. Weissenböck, B. Fröhler, M. Schiwarth       *
+* Copyright (C) 2016-2021  C. Heinzl, M. Reiter, A. Reh, W. Li, M. Arikan, Ar. &  Al. *
+*                 Amirkhanov, J. Weissenböck, B. Fröhler, M. Schiwarth, P. Weinberger *
 * *********************************************************************************** *
 * This program is free software: you can redistribute it and/or modify it under the   *
 * terms of the GNU General Public License as published by the Free Software           *
@@ -31,11 +31,12 @@
 
 #include <iAAttributeDescriptor.h>
 #include <iAConnector.h>
-#include <iAConsole.h>
+#include <iALog.h>
 #include <iAImageCoordinate.h>
 #include <iAModality.h>
 #include <iAModalityList.h>
 #include <iANameMapper.h>
+#include <iAProgress.h>
 #include <iAStringHelper.h>
 
 #include <QDir>
@@ -56,7 +57,8 @@ iAImageSampler::iAImageSampler(
 		QString const & parameterSetFile,
 		QString const & derivedOutputFile,
 		int samplingID,
-		iALogger * logger) :
+		iALogger * logger,
+		iAProgress * progress) :
 	m_datasets(dataset),
 	m_parameters(parameters),
 	m_parameterRanges(parameterRanges),
@@ -69,19 +71,15 @@ iAImageSampler::iAImageSampler(
 	m_computationDuration(0),
 	m_derivedOutputDuration(0),
 	m_samplingID(samplingID),
-	m_logger(logger)
+	m_logger(logger),
+	m_progress(progress)
 {
 }
 
 void iAImageSampler::statusMsg(QString const & msg)
 {
-	QString statusMsg(msg);
-	if (statusMsg.length() > 105)
-	{
-		statusMsg = statusMsg.left(100) + "...";
-	}
-	emit status(statusMsg);
-	DEBUG_LOG(msg);
+	m_progress->setStatus(msg);
+	LOG(lvlInfo, msg);
 }
 
 void iAImageSampler::newSamplingRun()
@@ -161,13 +159,13 @@ void iAImageSampler::newSamplingRun()
 			QString value;
 			switch (m_parameterRanges->at(i)->valueType())
 			{
-			case Continuous:
+			case iAValueType::Continuous:
 				value = QString::number(paramSet.at(i).toDouble(), 'g', 12);
 				break;
-			case Discrete:
+			case iAValueType::Discrete:
 				value = QString::number(paramSet.at(i).toInt());
 				break;
-			case Categorical:
+			case iAValueType::Categorical:
 				value = m_parameterRanges->at(i)->nameMapper()->name(paramSet.at(i).toInt());
 				break;
 			default:
@@ -229,24 +227,24 @@ void iAImageSampler::start()
 	{
 		// add derived output to the attributes (which we want to set during sampling):
 		QSharedPointer<iAAttributeDescriptor> objectCountAttr(new iAAttributeDescriptor(
-			"Object Count", iAAttributeDescriptor::DerivedOutput, Discrete));
+			"Object Count", iAAttributeDescriptor::DerivedOutput, iAValueType::Discrete));
 		QSharedPointer<iAAttributeDescriptor> avgUncertaintyAttr(new iAAttributeDescriptor(
-			"Average Uncertainty", iAAttributeDescriptor::DerivedOutput, Continuous));
+			"Average Uncertainty", iAAttributeDescriptor::DerivedOutput, iAValueType::Continuous));
 		QSharedPointer<iAAttributeDescriptor> timeAttr(new iAAttributeDescriptor(
-			"Performance", iAAttributeDescriptor::DerivedOutput, Continuous));
+			"Performance", iAAttributeDescriptor::DerivedOutput, iAValueType::Continuous));
 		m_parameterRanges->push_back(objectCountAttr);
 		m_parameterRanges->push_back(avgUncertaintyAttr);
 		m_parameterRanges->push_back(timeAttr);
 	}
 
-	m_results = QSharedPointer<iASamplingResults>(new iASamplingResults(
+	m_results = QSharedPointer<iASamplingResults>::create(
 		m_parameterRanges,
 		m_samplingMethod->name(),
 		m_parameters[spnOutputFolder].toString(),
 		m_parameters[spnExecutable].toString(),
 		m_parameters[spnAdditionalArguments].toString(),
 		m_parameters[spnAlgorithmName].toString(),
-		m_samplingID));
+		m_samplingID);
 
 	m_numDigits = requiredDigits(m_parameterSets->size());
 	for (int i = 0; i < CONCURRENT_COMPUTATION_RUNS; ++i)
@@ -323,7 +321,7 @@ void iAImageSampler::computationFinished()
 		QString parameterSetFile = m_parameters[spnOutputFolder].toString() + "/" + m_parameterSetFile;
 		QString derivedOutputFile = m_parameters[spnOutputFolder].toString() + "/" + m_derivedOutputFile;
 		m_results->addResult(result);
-		emit progress((100 * m_results->size()) / m_parameterSets->size());
+		m_progress->emitProgress(m_results->size() * 100.0 / m_parameterSets->size());
 		if (!m_results->store(sampleMetaFile, parameterSetFile, derivedOutputFile))
 		{
 			statusMsg("Error writing parameter file.");
@@ -356,7 +354,7 @@ void iAImageSampler::derivedOutputFinished()
 	QString parameterSetFile  = m_parameters[spnOutputFolder].toString() + "/" + m_parameterSetFile;
 	QString derivedOutputFile = m_parameters[spnOutputFolder].toString() + "/" + m_derivedOutputFile;
 	m_results->addResult(result);
-	emit progress((100*m_results->size()) / m_parameterSets->size());
+	m_progress->emitProgress(m_results->size() * 100.0 / m_parameterSets->size());
 	if (!m_results->store(sampleMetaFile, parameterSetFile, derivedOutputFile))
 	{
 		statusMsg("Error writing parameter file.");
@@ -371,8 +369,9 @@ double iAImageSampler::elapsed() const
 	return m_overallTimer.elapsed();
 }
 
-double iAImageSampler::estimatedTimeRemaining() const
+double iAImageSampler::estimatedTimeRemaining(double percent) const
 {
+	Q_UNUSED(percent);
 	return
 		(m_overallTimer.elapsed()/(m_curSample +1)) // average duration of one cycle
 		* static_cast<double>(m_parameterSets->size()- m_curSample -1) // remaining cycles

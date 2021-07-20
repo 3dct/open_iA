@@ -1,8 +1,8 @@
 /*************************************  open_iA  ************************************ *
 * **********   A tool for visual analysis and processing of 3D CT images   ********** *
 * *********************************************************************************** *
-* Copyright (C) 2016-2020  C. Heinzl, M. Reiter, A. Reh, W. Li, M. Arikan, Ar. &  Al. *
-*                          Amirkhanov, J. Weissenböck, B. Fröhler, M. Schiwarth       *
+* Copyright (C) 2016-2021  C. Heinzl, M. Reiter, A. Reh, W. Li, M. Arikan, Ar. &  Al. *
+*                 Amirkhanov, J. Weissenböck, B. Fröhler, M. Schiwarth, P. Weinberger *
 * *********************************************************************************** *
 * This program is free software: you can redistribute it and/or modify it under the   *
 * terms of the GNU General Public License as published by the Free Software           *
@@ -23,7 +23,7 @@
 #include "iAEnergySpectrum.h"
 #include "iASpectrumFunction.h"
 
-#include <charts/iAPlotData.h>
+#include <iAPlotData.h>
 
 #include <QSharedPointer>
 
@@ -36,6 +36,8 @@ template <typename ArgType, typename ValType>
 class iAFunctionalBoxplot;
 typedef iAFunctionalBoxplot<size_t, unsigned int> FunctionalBoxPlot;
 
+// TODO: merge with iAHistogramData?
+// ideally: split up into 3 different usages of iAHistogramData
 class iAAccumulatedXRFData: public iAPlotData
 {
 public:
@@ -48,18 +50,24 @@ public:
 		fctDefault = fctMax,
 	};
 	iAAccumulatedXRFData(QSharedPointer<iAXRFData> data, double minEnergy, double maxEnergy);
-	double spacing() const override;
+	// { remove if merged with iAHistogramData:
 	double const * xBounds() const override;
 	DataType const * yBounds() const override;
-	DataType const * rawData() const override;
-	size_t numBin() const override;
+	DataType yValue(size_t idx) const override;
+	double xValue(size_t idx) const override;
+	size_t valueCount() const override;
+	size_t nearestIdx(DataType dataX) const override;
+	QString toolTipText(DataType dataX) const override;
+	double spacing() const;
+	// }
+
 	void setFct(int fctIdx);
 	void retrieveHistData(long numBin_in, DataType * &data_out, size_t &numHist_out, DataType &maxValue_out);
 	CountType spectraHistogramMax() const;
 	DataType const * avgData() const;
 	FunctionalBoxPlot* functionalBoxPlot();
 private:
-	void computeSpectraHistograms( long numBins );
+	void computeSpectraHistograms(long numBins);
 	iAAccumulatedXRFData(iAAccumulatedXRFData const & other);
 	iAAccumulatedXRFData operator=(iAAccumulatedXRFData const & other);
 	void calculateStatistics();

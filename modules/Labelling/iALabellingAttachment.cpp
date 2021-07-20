@@ -22,18 +22,18 @@
 
 #include "dlg_labels.h"
 
-#include <mdichild.h>
+#include <iAMdichild.h>
 
-iALabellingAttachment::iALabellingAttachment(MainWindow * mainWnd, MdiChild * child):
+iALabellingAttachment::iALabellingAttachment(iAMainWindow* mainWnd, iAMdiChild* child) :
 	iAModuleAttachmentToChild(mainWnd, child)
 {
 }
 
-iALabellingAttachment* iALabellingAttachment::create(MainWindow * mainWnd, MdiChild * child)
+iALabellingAttachment* iALabellingAttachment::create(iAMainWindow* mainWnd, iAMdiChild* child)
 {
 	iALabellingAttachment * newAttachment = new iALabellingAttachment(mainWnd, child);
 	newAttachment->m_dlgLabels = new dlg_labels(child);
-	child->splitDockWidget(child->logDockWidget(), newAttachment->m_dlgLabels, Qt::Vertical);
+	child->splitDockWidget(child->renderDockWidget(), newAttachment->m_dlgLabels, Qt::Vertical);
 	return newAttachment;
 }
 

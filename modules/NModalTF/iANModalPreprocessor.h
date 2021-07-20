@@ -20,11 +20,12 @@
 * ************************************************************************************/
 #pragma once
 
-#include "mdichild.h"
+#include "iAMdiChild.h"
 
 #include <vtkSmartPointer.h>
 
 #include <QList>
+#include <QMap>
 #include <QSharedPointer>
 
 class iAModality;
@@ -34,12 +35,13 @@ class iANModalBackgroundRemover;
 class vtkImageData;
 
 class QComboBox;
+class QLabel;
 class QTextEdit;
 
 class iANModalPreprocessor {
 
 public:
-	iANModalPreprocessor(MdiChild *mdiChild);
+	iANModalPreprocessor(iAMdiChild* mdiChild);
 
 	enum MaskMode {
 		IGNORE_MASK,
@@ -60,7 +62,7 @@ public:
 
 private:
 
-	MdiChild *m_mdiChild;
+	iAMdiChild* m_mdiChild;
 
 	struct ModalitiesGroup {
 		QList<QSharedPointer<iAModality>> modalities;

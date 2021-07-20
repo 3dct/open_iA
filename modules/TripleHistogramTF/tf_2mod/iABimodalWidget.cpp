@@ -1,8 +1,8 @@
 /*************************************  open_iA  ************************************ *
 * **********   A tool for visual analysis and processing of 3D CT images   ********** *
 * *********************************************************************************** *
-* Copyright (C) 2016-2020  C. Heinzl, M. Reiter, A. Reh, W. Li, M. Arikan, Ar. &  Al. *
-*                          Amirkhanov, J. Weissenböck, B. Fröhler, M. Schiwarth       *
+* Copyright (C) 2016-2021  C. Heinzl, M. Reiter, A. Reh, W. Li, M. Arikan, Ar. &  Al. *
+*                 Amirkhanov, J. Weissenböck, B. Fröhler, M. Schiwarth, P. Weinberger *
 * *********************************************************************************** *
 * This program is free software: you can redistribute it and/or modify it under the   *
 * terms of the GNU General Public License as published by the Free Software           *
@@ -22,7 +22,8 @@
 #include "iABimodalWidget.h"
 
 #include <iAModality.h>
-#include <mdichild.h>
+#include <iAModalityList.h>
+#include <iAMdiChild.h>
 
 #include "iAInterpolationSliderWidget.h"
 #include "iAHistogramStackGrid.h"
@@ -31,7 +32,7 @@
 #include <QHBoxLayout>
 #include <QSplitter>
 
-iABimodalWidget::iABimodalWidget(MdiChild *mdiChild):
+iABimodalWidget::iABimodalWidget(iAMdiChild *mdiChild):
 	iAMultimodalWidget(mdiChild, TWO)
 {
 	connect(this, &iABimodalWidget::modalitiesLoaded_beforeUpdate, this, &iABimodalWidget::modalitiesLoaded_beforeUpdateSlot);
@@ -52,7 +53,8 @@ void iABimodalWidget::initialize()
 	QVector<iASimpleSlicerWidget*> slicers;
 	m_labels.clear();
 
-	for (int i = 0; i < 2; i++) {
+	for (int i = 0; i < 2; i++)
+	{
 		QLabel *l = new QLabel(m_mdiChild->modality(i)->name());
 		l->setStyleSheet("font-weight: bold");
 		l->setSizePolicy(QSizePolicy::Preferred, QSizePolicy::Fixed);
@@ -74,12 +76,12 @@ void iABimodalWidget::initialize()
 
 	//m_slider = new iAInterpolationSlider(Qt::Vertical, wmain);
 	m_slider = new iAInterpolationSliderWidget();
-	m_slider->setContentsMargins(QMargins(20, 20, 20, 20));
+	m_slider->setContentsMargins(20, 20, 20, 20);
 
 	QWidget *wleft = new QWidget();
 	QVBoxLayout *wleftl = new QVBoxLayout(wleft);
 	wleftl->setSpacing(1);
-	wleftl->setMargin(0);
+	wleftl->setContentsMargins(0, 0, 0, 0);
 
 	auto grid = new iAHistogramStackGrid(wleft, histograms, slicers, m_labels);
 
@@ -111,6 +113,8 @@ void iABimodalWidget::tChanged(double t)
 
 void iABimodalWidget::modalitiesChanged()
 {
-	for (int i = 0; i < 2; i++)
+	for (int i = 0; i < m_mdiChild->modalities()->size(); i++)
+	{
 		m_labels[i]->setText(m_mdiChild->modality(i)->name());
+	}
 }

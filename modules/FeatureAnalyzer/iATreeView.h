@@ -1,8 +1,8 @@
 /*************************************  open_iA  ************************************ *
 * **********   A tool for visual analysis and processing of 3D CT images   ********** *
 * *********************************************************************************** *
-* Copyright (C) 2016-2020  C. Heinzl, M. Reiter, A. Reh, W. Li, M. Arikan, Ar. &  Al. *
-*                          Amirkhanov, J. Weissenböck, B. Fröhler, M. Schiwarth       *
+* Copyright (C) 2016-2021  C. Heinzl, M. Reiter, A. Reh, W. Li, M. Arikan, Ar. &  Al. *
+*                 Amirkhanov, J. Weissenböck, B. Fröhler, M. Schiwarth, P. Weinberger *
 * *********************************************************************************** *
 * This program is free software: you can redistribute it and/or modify it under the   *
 * terms of the GNU General Public License as published by the Free Software           *
@@ -22,19 +22,19 @@
 
 #include "ui_TreeView.h"
 #include "iABPMData.h"
+#include "FeatureAnalyzerHelpers.h"    // for PorosityFilterID
 #include "iAHMData.h"
-#include "FeatureAnalyzerHelpers.h"
 
 #include <qthelper/iAQTtoUIConnector.h>
 
 #include <QWidget>
 #include <QTableWidget>
 #include <QModelIndex>
-
+#include <QStringList>
 
 class QContextMenuEvent;
 class QMenu;
-class QStringList;
+
 class QTableWidget;
 
 struct iASelection;
@@ -46,7 +46,11 @@ class iATreeView : public TreeViewConnector
 	Q_OBJECT
 
 public:
+#if QT_VERSION < QT_VERSION_CHECK(5, 15, 0)
 	iATreeView( QWidget * parent = 0, Qt::WindowFlags f = 0 );
+#else
+	iATreeView(QWidget* parent = nullptr, Qt::WindowFlags f = Qt::WindowFlags());
+#endif
 	virtual ~iATreeView();
 	void SetData( QTableWidget * const data, const QMap<QString, double> * gtPorosityMap, int runsOffset );
 	QList<QTreeWidgetItem *> * getLastSelectedItems();

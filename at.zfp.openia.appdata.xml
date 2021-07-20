@@ -39,6 +39,11 @@
         </screenshot>
     </screenshots>
     <releases>
+        <release version="2020.09" date="2020-09-17">
+            <description>
+                New AI module, improved filter sampling capabilities; transfer function editing bugfixes, multiple other small improvements.
+            </description>
+        </release>
         <release version="2020.04" date="2020-04-27">
             <description>
                 Improvements to the data dialog, better style and colors.

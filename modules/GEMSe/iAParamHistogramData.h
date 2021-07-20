@@ -1,8 +1,8 @@
 /*************************************  open_iA  ************************************ *
 * **********   A tool for visual analysis and processing of 3D CT images   ********** *
 * *********************************************************************************** *
-* Copyright (C) 2016-2020  C. Heinzl, M. Reiter, A. Reh, W. Li, M. Arikan, Ar. &  Al. *
-*                          Amirkhanov, J. Weissenböck, B. Fröhler, M. Schiwarth       *
+* Copyright (C) 2016-2021  C. Heinzl, M. Reiter, A. Reh, W. Li, M. Arikan, Ar. &  Al. *
+*                 Amirkhanov, J. Weissenböck, B. Fröhler, M. Schiwarth, P. Weinberger *
 * *********************************************************************************** *
 * This program is free software: you can redistribute it and/or modify it under the   *
 * terms of the GNU General Public License as published by the Free Software           *
@@ -22,7 +22,7 @@
 
 #include "iAGEMSeConstants.h"
 
-#include <charts/iAPlotData.h>
+#include <iAHistogramData.h>
 
 #include <QSharedPointer>
 
@@ -33,44 +33,33 @@ class iAChartAttributeMapper;
 class iAImageTreeNode;
 class iAImageTreeLeaf;
 
-class iAParamHistogramData: public iAPlotData
+class iAParamHistogramData : public iAHistogramData
 {
 public:
 	// TODO: extract creation?
 	static QSharedPointer<iAParamHistogramData> create(iAImageTreeNode const * ,
 		int chartID,
 		iAValueType rangeType,
-		double min, double max,
+		double minX, double maxX,
 		bool log,
 		iAChartAttributeMapper const & chartAttrMap,
 		int numBin);
 	static QSharedPointer<iAParamHistogramData> create(iAImageTreeNode const * ,
 		int chartID,
 		iAValueType rangeType,
-		double min, double max,
+		double minX, double maxX,
 		bool log,
 		iAChartAttributeMapper const & chartAttrMap,
 		iAChartFilter const & attributeFilter,
 		int numBin);
 	iAParamHistogramData(size_t numBin,
-		double min, double max, bool log,
-		iAValueType rangeType);
+		double minX, double maxX, bool log,
+		iAValueType type);
 	void reset();
-	virtual ~iAParamHistogramData();
-	DataType const * rawData() const override;
-	size_t numBin() const override;
-	double spacing() const override;
-	double const * xBounds() const override;
-	DataType const * yBounds() const override;
-	double binStart(size_t binNr) const override;
+	double xValue(size_t idx) const override;
 	double mapValueToBin(double value) const;
 	double mapBinToValue(double bin) const;
-	iAValueType valueType() const override;
 	bool isLogarithmic() const;
-	double minX() const override;
-	double maxX() const override;
-	void setMinX(double x);
-	void setMaxX(double x);
 	void addValue(double value);
 private:
 	static void visitNode(iAImageTreeNode const * node,
@@ -86,13 +75,7 @@ private:
 		QSharedPointer<iAParamHistogramData> data,
 		int chartID,
 		iAChartAttributeMapper const & chartAttrMap);
-
-	DataType * m_data;
-	size_t m_numBin;
-	double m_xBounds[2];
-	DataType m_yBounds[2];
-	DataType m_spacing;
-	iAValueType m_rangeType;
+	
 	bool m_log;
 	double m_minX, m_maxX;
 };

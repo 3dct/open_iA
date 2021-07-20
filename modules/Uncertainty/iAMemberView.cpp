@@ -1,8 +1,8 @@
 /*************************************  open_iA  ************************************ *
 * **********   A tool for visual analysis and processing of 3D CT images   ********** *
 * *********************************************************************************** *
-* Copyright (C) 2016-2020  C. Heinzl, M. Reiter, A. Reh, W. Li, M. Arikan, Ar. &  Al. *
-*                          Amirkhanov, J. Weissenböck, B. Fröhler, M. Schiwarth       *
+* Copyright (C) 2016-2021  C. Heinzl, M. Reiter, A. Reh, W. Li, M. Arikan, Ar. &  Al. *
+*                 Amirkhanov, J. Weissenböck, B. Fröhler, M. Schiwarth, P. Weinberger *
 * *********************************************************************************** *
 * This program is free software: you can redistribute it and/or modify it under the   *
 * terms of the GNU General Public License as published by the Free Software           *
@@ -24,8 +24,9 @@
 #include "iAEnsemble.h"
 #include "iASingleResult.h"
 
-#include <charts/qcustomplot.h>
+#include <qcustomplot.h>
 
+#include <QGuiApplication>
 #include <QHBoxLayout>
 
 #include <vector>
@@ -87,7 +88,7 @@ void iAMemberView::SetEnsemble(QSharedPointer<iAEnsemble> ensemble)
 		++cnt;
 	}
 
-	QSharedPointer<QCPAxisTickerText> textTicker(new QCPAxisTickerText);
+	auto textTicker = QSharedPointer<QCPAxisTickerText>::create();
 	textTicker->addTicks(ticks, labels);
 	m_plot->xAxis->setTicker(textTicker);
 	m_plot->xAxis->setLabel("Member ID");
@@ -165,8 +166,8 @@ QVector<int > iAMemberView::SelectedMemberIDs() const
 
 void iAMemberView::StyleChanged()
 {
-	QColor bg(QWidget::palette().color(QPalette::Window));
-	QColor fg(QWidget::palette().color(QPalette::Text));
+	QColor bg(qApp->palette().color(QPalette::Window));
+	QColor fg(qApp->palette().color(QPalette::Text));
 	m_plot->setBackground(bg);
 	m_plot->axisRect()->setBackground(bg);
 	for (auto a : m_plot->axisRect()->axes())

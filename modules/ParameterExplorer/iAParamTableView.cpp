@@ -1,8 +1,8 @@
 /*************************************  open_iA  ************************************ *
 * **********   A tool for visual analysis and processing of 3D CT images   ********** *
 * *********************************************************************************** *
-* Copyright (C) 2016-2020  C. Heinzl, M. Reiter, A. Reh, W. Li, M. Arikan, Ar. &  Al. *
-*                          Amirkhanov, J. Weissenböck, B. Fröhler, M. Schiwarth       *
+* Copyright (C) 2016-2021  C. Heinzl, M. Reiter, A. Reh, W. Li, M. Arikan, Ar. &  Al. *
+*                 Amirkhanov, J. Weissenböck, B. Fröhler, M. Schiwarth, P. Weinberger *
 * *********************************************************************************** *
 * This program is free software: you can redistribute it and/or modify it under the   *
 * terms of the GNU General Public License as published by the Free Software           *
@@ -20,7 +20,7 @@
 * ************************************************************************************/
 #include "iAParamTableView.h"
 
-#include <iAConsole.h>
+#include <iALog.h>
 
 #include <QFile>
 #include <QHBoxLayout>
@@ -42,7 +42,7 @@ void iAParamTableView::LoadCSVData(QString const & csvFileName)
 	QFile file(csvFileName);
 	if (!file.open(QIODevice::ReadOnly | QIODevice::Text))
 	{
-		DEBUG_LOG(QString("Could not read csv file %1").arg(csvFileName));
+		LOG(lvlError, QString("Could not read csv file %1").arg(csvFileName));
 		return;
 	}
 	QStringList csvLines;
@@ -88,7 +88,7 @@ void iAParamTableView::LoadCSVData(QString const & csvFileName)
 		}
 		if (items.size() < headers.size())
 		{
-			DEBUG_LOG(QString("Line %1 has less columns(%2) than expected(%3)").arg(row).arg(items.size()).arg(headers.size()));
+			LOG(lvlError, QString("Line %1 has less columns(%2) than expected(%3)").arg(row).arg(items.size()).arg(headers.size()));
 			for (int col = items.size(); col < headers.size(); ++col)
 			{
 				m_table->setItem(row, col, new QTableWidgetItem("0"));

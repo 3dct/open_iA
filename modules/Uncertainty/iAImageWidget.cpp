@@ -1,8 +1,8 @@
 /*************************************  open_iA  ************************************ *
 * **********   A tool for visual analysis and processing of 3D CT images   ********** *
 * *********************************************************************************** *
-* Copyright (C) 2016-2020  C. Heinzl, M. Reiter, A. Reh, W. Li, M. Arikan, Ar. &  Al. *
-*                          Amirkhanov, J. Weissenböck, B. Fröhler, M. Schiwarth       *
+* Copyright (C) 2016-2021  C. Heinzl, M. Reiter, A. Reh, W. Li, M. Arikan, Ar. &  Al. *
+*                 Amirkhanov, J. Weissenböck, B. Fröhler, M. Schiwarth, P. Weinberger *
 * *********************************************************************************** *
 * This program is free software: you can redistribute it and/or modify it under the   *
 * terms of the GNU General Public License as published by the Free Software           *
@@ -33,13 +33,15 @@
 #include <iAChannelData.h>
 #include <iAChannelSlicerData.h>
 #include <iASlicerSettings.h>
-#include <iASlicer.h>
+
+#include <iASlicerImpl.h>
 
 #include <vtkColorTransferFunction.h>
 #include <vtkImageData.h>
 #include <vtkLookupTable.h>
 #include <vtkTransform.h>
 
+#include <QApplication>    // for qApp->palette()
 #include <QHBoxLayout>
 
 iAImageWidget::iAImageWidget(vtkSmartPointer<vtkImageData> img, vtkSmartPointer<vtkScalarsToColors> lut):
@@ -73,7 +75,7 @@ iAImageWidget::iAImageWidget(vtkSmartPointer<vtkImageData> img, vtkSmartPointer<
 	renderWindow->AddRenderer(m_renderer);
 	SetRenderWindow(renderWindow);
 	*/
-	m_slicer = new iASlicer(this, iASlicerMode::XY, false, true, m_transform);
+	m_slicer = new iASlicerImpl(this, iASlicerMode::XY, false, true, m_transform);
 	setLayout(new QHBoxLayout);
 	layout()->setSpacing(0);
 	layout()->addWidget(m_slicer);
@@ -85,7 +87,7 @@ iAImageWidget::iAImageWidget(vtkSmartPointer<vtkImageData> img, vtkSmartPointer<
 
 void iAImageWidget::StyleChanged()
 {
-	QColor bgColor = QWidget::palette().color(QWidget::backgroundRole());
+	QColor bgColor = qApp->palette().color(QWidget::backgroundRole());
 
 	//m_renderer->SetBackground(bgColor.red() / 255.0, bgColor.green() / 255.0, bgColor.blue() / 255.0);
 	m_slicer->setBackground(bgColor.red() / 255.0, bgColor.green() / 255.0, bgColor.blue() / 255.0);

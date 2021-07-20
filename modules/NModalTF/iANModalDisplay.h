@@ -30,7 +30,7 @@
 
 class iAModality;
 class iASlicer;
-class MdiChild;
+class iAMdiChild;
 
 class QAbstractButton;
 class QButtonGroup;
@@ -43,7 +43,7 @@ public:
 	// numOfRows must be at least 1; smaller values will be clamped
 	// maxSelection: how many modalities can be selected at maximum. <= 0 means there is no limit
 	// minSelection: how many modalities can be selected at minimum. <= 0 means it acceptable to make no selections
-	iANModalDisplay(QWidget *parent, MdiChild *mdiChild, const QList<QSharedPointer<iAModality>> &modalities, int maxSelection = 0, int minSelection = 1, int numOfRows = 1);
+	iANModalDisplay(QWidget *parent, iAMdiChild *mdiChild, const QList<QSharedPointer<iAModality>> &modalities, int maxSelection = 0, int minSelection = 1, int numOfRows = 1);
 
 	QList<QSharedPointer<iAModality>> modalities() { return m_modalities; }
 
@@ -94,7 +94,7 @@ private:
 	int m_minSelection;
 	iASlicerMode m_slicerMode;
 
-	MdiChild *m_mdiChild;
+	iAMdiChild* m_mdiChild;
 
 	QWidget* createSlicerContainer(iASlicer* slicer, QSharedPointer<iAModality> mod, QButtonGroup* group/*, bool checked*/);
 

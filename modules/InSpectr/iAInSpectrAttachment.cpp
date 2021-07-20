@@ -1,8 +1,8 @@
 /*************************************  open_iA  ************************************ *
 * **********   A tool for visual analysis and processing of 3D CT images   ********** *
 * *********************************************************************************** *
-* Copyright (C) 2016-2020  C. Heinzl, M. Reiter, A. Reh, W. Li, M. Arikan, Ar. &  Al. *
-*                          Amirkhanov, J. Weissenböck, B. Fröhler, M. Schiwarth       *
+* Copyright (C) 2016-2021  C. Heinzl, M. Reiter, A. Reh, W. Li, M. Arikan, Ar. &  Al. *
+*                 Amirkhanov, J. Weissenböck, B. Fröhler, M. Schiwarth, P. Weinberger *
 * *********************************************************************************** *
 * This program is free software: you can redistribute it and/or modify it under the   *
 * terms of the GNU General Public License as published by the Free Software           *
@@ -27,14 +27,14 @@
 #include "iAElementConcentrations.h"
 #include "iAXRFData.h"
 
-#include <dlg_slicer.h>
 #include <iAChannelData.h>
 #include <iASlicer.h>
-#include <io/extension2id.h>
 #include <io/iAIO.h>
-#include <mainwindow.h>
-#include <mdichild.h>
-#include <qthelper/iAWidgetAddHelper.h>
+#include <iALog.h>
+#include <iAMainWindow.h>
+#include <iAMdiChild.h>
+
+#include "defines.h"    // for NotExistingChannel
 
 #include <itkMacro.h>    // for itk::ExceptionObject
 
@@ -45,14 +45,14 @@
 #include <QFileDialog>
 #include <QtMath>
 
-iAInSpectrAttachment::iAInSpectrAttachment( MainWindow * mainWnd, MdiChild * child ) : iAModuleAttachmentToChild( mainWnd, child ),
+iAInSpectrAttachment::iAInSpectrAttachment( iAMainWindow * mainWnd, iAMdiChild * child ) : iAModuleAttachmentToChild( mainWnd, child ),
 	dlgPeriodicTable(nullptr),
 	dlgSimilarityMap(nullptr),
 	dlgXRF(nullptr),
 	ioThread(nullptr),
 	m_xrfChannelID(NotExistingChannel)
 {
-	connect(m_child, &MdiChild::magicLensToggled, this, &iAInSpectrAttachment::magicLensToggled);
+	connect(m_child, &iAMdiChild::magicLensToggled, this, &iAInSpectrAttachment::magicLensToggled);
 	for (int i = 0; i < 3; ++i)
 	{
 		connect(m_child->slicer(i), &iASlicer::oslicerPos, this, &iAInSpectrAttachment::updateXRFVoxelEnergy);
@@ -75,7 +75,7 @@ iAInSpectrAttachment::iAInSpectrAttachment( MainWindow * mainWnd, MdiChild * chi
 		throw itk::ExceptionObject(__FILE__, __LINE__, "File does not exist");
 	}
 
-	m_child->addMsg(tr("Loading file '%1', please wait...").arg(f));
+	LOG(lvlInfo, tr("Loading file '%1', please wait...").arg(f));
 
 	dlgPeriodicTable = new dlg_periodicTable( m_child );
 	dlgRefSpectra = new dlg_RefSpectra( m_child );
@@ -84,7 +84,7 @@ iAInSpectrAttachment::iAInSpectrAttachment( MainWindow * mainWnd, MdiChild * chi
 
 	dlgXRF = new dlg_InSpectr( m_child, dlgPeriodicTable, dlgRefSpectra );
 
-	ioThread = new iAIO( m_child->logger(), m_child, dlgXRF->GetXRFData()->GetDataPtr() );
+	ioThread = new iAIO(iALog::get(), m_child, dlgXRF->GetXRFData()->GetDataPtr() );
 	m_child->setReInitializeRenderWindows( false );
 	m_child->connectIOThreadSignals( ioThread );
 	connect( ioThread, &iAIO::done, this, &iAInSpectrAttachment::xrfLoadingDone);
@@ -93,12 +93,12 @@ iAInSpectrAttachment::iAInSpectrAttachment( MainWindow * mainWnd, MdiChild * chi
 
 	QString extension = QFileInfo( f ).suffix();
 	extension = extension.toUpper();
-	if (extensionToIdStack.find(extension) == extensionToIdStack.end())
+	if (extensionToIdStack().find(extension) == extensionToIdStack().end())
 	{
 		throw itk::ExceptionObject(__FILE__, __LINE__, "Unsupported extension");
 	}
 
-	iAIOType id = extensionToIdStack.find( extension ).value();
+	iAIOType id = extensionToIdStack().find(extension).value();
 	if( !ioThread->setupIO( id, f ) )
 	{
 		xrfLoadingFailed();
@@ -158,7 +158,7 @@ void iAInSpectrAttachment::initXRF( bool enableChannel )
 		m_child->setMagicLensInput(m_xrfChannelID);
 	}
 	m_child->updateSlicers();
-	m_child->addMsg(tr("Spectral color image initialized."));
+	LOG(lvlInfo, tr("Spectral color image initialized."));
 }
 
 QThread* iAInSpectrAttachment::recalculateXRF()
@@ -246,8 +246,7 @@ void iAInSpectrAttachment::xrfLoadingDone()
 			haveEnergyLevels = true;
 		}
 	}
-	iAWidgetAddHelper wdgtHelp(m_child, m_child->logDockWidget());
-	dlgXRF->init( minEnergy, maxEnergy, haveEnergyLevels, wdgtHelp);
+	dlgXRF->init(minEnergy, maxEnergy, haveEnergyLevels, m_child);
 	connect( dlgXRF->cb_spectralColorImage, &QCheckBox::stateChanged, this, &iAInSpectrAttachment::visualizeXRF);
 	connect( dlgXRF->sl_peakOpacity, &QSlider::valueChanged, this, &iAInSpectrAttachment::updateXRFOpacity);
 	connect( dlgXRF->pb_compute, &QPushButton::clicked, this, &iAInSpectrAttachment::updateXRF);
@@ -258,7 +257,7 @@ void iAInSpectrAttachment::xrfLoadingDone()
 
 void iAInSpectrAttachment::xrfLoadingFailed()
 {
-	m_child->addMsg( tr("XRF data loading has failed!"));
+	LOG(lvlError, tr("XRF data loading has failed!"));
 	delete dlgXRF;
 	delete dlgPeriodicTable;
 	delete dlgRefSpectra;
@@ -289,7 +288,7 @@ void iAInSpectrAttachment::updateXRFOpacity( int /*value*/ )
 bool iAInSpectrAttachment::filter_SimilarityMap()
 {
 	dlgSimilarityMap = new dlg_SimilarityMap( m_child );
-	m_child->tabifyDockWidget( m_child->logDockWidget(), dlgSimilarityMap );
+	m_child->tabifyDockWidget( m_child->renderDockWidget(), dlgSimilarityMap );
 
 	return true;
 }
@@ -297,7 +296,7 @@ bool iAInSpectrAttachment::filter_SimilarityMap()
 void iAInSpectrAttachment::initSlicerXRF( bool enableChannel )
 {
 	assert( !m_child->channelData(m_xrfChannelID) );
-	m_child->addMsg(tr("Initializing Spectral Color Image. This may take a while..."));
+	LOG(lvlInfo, tr("Initializing Spectral Color Image. This may take a while..."));
 	auto calcThread = recalculateXRF();
 	if (enableChannel)
 	{

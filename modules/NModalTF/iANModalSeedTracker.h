@@ -28,7 +28,7 @@ struct iANModalSeed;
 struct iANModalLabel;
 class iANModalSeedVisualizer;
 
-class MdiChild;
+class iAMdiChild;
 
 class QTimer;
 
@@ -37,8 +37,8 @@ class iANModalSeedTracker : public QObject {
 
 public:
 	iANModalSeedTracker();
-	iANModalSeedTracker(MdiChild *mdiChild);
-	void reinitialize(MdiChild *mdiChild);
+	iANModalSeedTracker(iAMdiChild* mdiChild);
+	void reinitialize(iAMdiChild* mdiChild);
 
 	~iANModalSeedTracker();
 	void teardown();
@@ -61,8 +61,8 @@ class iANModalSeedVisualizer : public QWidget {
 	Q_OBJECT
 
 public:
-	iANModalSeedVisualizer(MdiChild *mdiChild, iASlicerMode mode);
-	void reinitialize(MdiChild *mdiChild);
+	iANModalSeedVisualizer(iAMdiChild* mdiChild, iASlicerMode mode);
+	void reinitialize(iAMdiChild* mdiChild);
 	void teardown();
 
 	void addSeeds(const QList<iANModalSeed> &, const iANModalLabel &);

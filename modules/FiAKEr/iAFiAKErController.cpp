@@ -1,8 +1,8 @@
 /*************************************  open_iA  ************************************ *
 * **********   A tool for visual analysis and processing of 3D CT images   ********** *
 * *********************************************************************************** *
-* Copyright (C) 2016-2020  C. Heinzl, M. Reiter, A. Reh, W. Li, M. Arikan, Ar. &  Al. *
-*                          Amirkhanov, J. Weissenböck, B. Fröhler, M. Schiwarth       *
+* Copyright (C) 2016-2021  C. Heinzl, M. Reiter, A. Reh, W. Li, M. Arikan, Ar. &  Al. *
+*                 Amirkhanov, J. Weissenböck, B. Fröhler, M. Schiwarth, P. Weinberger *
 * *********************************************************************************** *
 * This program is free software: you can redistribute it and/or modify it under the   *
 * terms of the GNU General Public License as published by the Free Software           *
@@ -27,46 +27,55 @@
 #include "iARefDistCompute.h"
 #include "iAStackedBarChart.h"
 #include "ui_DissimilarityMatrix.h"
+//#include "iAFeatureScoutModuleInterface.h"
 
-// FeatureScout:
+// charts
+#include <iAChartWidget.h>
+#include <iAHistogramData.h>
+#include <iAPlotTypes.h>
+#include <iAScatterPlot.h> // for selection mode: iAScatterPlot::Rectangle
+#include <iAQSplom.h>
+#include <iASPLOMData.h>
+
+// core
+#include <iAMapperImpl.h>
+#include <iAModuleDispatcher.h>
+#include <iARenderSettings.h>
+#include <iARenderer.h>
+#include <iAVolumeRenderer.h>
+#include <io/iAIOProvider.h>
+#include <iAMainWindow.h>
+#include <iAMdiChild.h>
+#include <qthelper/iAQTtoUIConnector.h>
+
+// objectvis
 #include "iA3DCylinderObjectVis.h"
 #include "iA3DEllipseObjectVis.h"
 #include "iACsvConfig.h"
 #include "iACsvVectorTableCreator.h"
-#include "iAFeatureScoutModuleInterface.h"
-#include "iAVectorPlotData.h"
 
-// Core:
-#include <charts/iAChartWidget.h>
-#include <charts/iAHistogramData.h>
-#include <charts/iAPlotTypes.h>
-#include <charts/iAScatterPlot.h> // for selection mode: iAScatterPlot::Rectangle
-#include <charts/iAQSplom.h>
-#include <charts/iASPLOMData.h>
+// qthelper
+#include <iADockWidgetWrapper.h>
+#include <iAFixedAspectWidget.h>
+#include <iASignallingWidget.h>
+#include <iAVtkQtWidget.h>
+
+// renderer
+#include <iARendererViewSync.h>
+
+// base
 #include <iAColorTheme.h>
 #include <iAConnector.h>
-#include <iAConsole.h>
 #include <iALookupTable.h>
+#include <iAFileUtils.h>
+#include <iAITKIO.h>
+#include <iALog.h>
 #include <iALUT.h>
-#include <iAMapperImpl.h>
 #include <iAMathUtility.h>
-#include <iAModuleDispatcher.h>
-#include <iARenderer.h>
-#include <iARendererManager.h>
 #include <iAStringHelper.h>
 #include <iAToolsVTK.h>    // for setCamPos
 #include <iATransferFunction.h>
-#include <iAVolumeRenderer.h>
 #include <iAVtkVersion.h>
-#include <io/iAIOProvider.h>
-#include <io/iAITKIO.h>
-#include <mainwindow.h>
-#include <mdichild.h>
-#include <qthelper/iADockWidgetWrapper.h>
-#include <qthelper/iAFixedAspectWidget.h>
-#include <qthelper/iAQTtoUIConnector.h>
-#include <qthelper/iASignallingWidget.h>
-#include <qthelper/iAVtkQtWidget.h>
 
 #include <vtkCamera.h>
 #include <vtkColorTransferFunction.h>
@@ -100,6 +109,7 @@
 #include <QMessageBox>
 #include <QModelIndex>
 #include <QMouseEvent>
+#include <QPainter>
 #include <QRadioButton>
 #include <QScrollArea>
 #include <QSettings>
@@ -122,19 +132,16 @@ namespace
 	const int HistogramMinWidth = 80;
 	const int StackedBarMinWidth = 70;
 	const int DefaultPlayDelay = 1000;
-	int HistogramBins = 20;
-	int SelectionOpacity = iA3DLineObjectVis::DefaultSelectionOpacity;
-	int ContextOpacity = iA3DLineObjectVis::DefaultContextOpacity;
+	const int DefaultHistogramBins = 20;
 	const double MinDiameterFactor = 0.02;
 	const double MaxDiameterFactor = 2;
 	const int MinFactorSliderVal = 1;
 	const int MaxFactorSliderVal = 100;
-	double DiameterFactor = 1.0;
-	double ContextDiameterFactor = 1.0;
+	const double DefaultDiameterFactor = 1.0;
+	const double DefaultContextDiameterFactor = 1.0;
 	const size_t NoPlotsIdx = std::numeric_limits<size_t>::max();
 	const size_t NoResult = std::numeric_limits<size_t>::max();
 	const QString RefMarker(" (Reference)");
-
 
 	const QString DefaultResultColorTheme("Brewer Accent (max. 8)");
 	const QString DefaultStackedBarColorTheme("Material red (max. 10)");
@@ -142,11 +149,6 @@ namespace
 	const int DistributionRefAlpha = 80;
 	const QColor OptimStepMarkerColor(192, 0, 0);
 	const QColor SelectionColor(0, 0, 0);
-
-	int NameActionColumn = 0;
-	int PreviewColumn = 1;
-	int StackedBarColumn = 2;
-	int HistogramColumn = 3;
 
 	// { SETTING NAMES:
 	const QString ProjectFileFolder("Folder");
@@ -209,8 +211,8 @@ iAResultPairInfo::iAResultPairInfo(int measureCount) :
 
 const QString iAFiAKErController::FIAKERProjectID("FIAKER");
 
-iAFiAKErController::iAFiAKErController(MainWindow* mainWnd, MdiChild* mdiChild) :
-	m_renderManager(new iARendererManager()),
+iAFiAKErController::iAFiAKErController(iAMainWindow* mainWnd, iAMdiChild* mdiChild) :
+	m_renderManager(new iARendererViewSync()),
 	m_resultColorTheme(iAColorThemeManager::instance().theme(DefaultResultColorTheme)),
 	m_mainWnd(mainWnd),
 	m_mdiChild(mdiChild),
@@ -221,6 +223,15 @@ iAFiAKErController::iAFiAKErController(MainWindow* mainWnd, MdiChild* mdiChild) 
 	m_showWireFrame(false),
 	m_showLines(false),
 	m_contextSpacing(0.0),
+	m_histogramBins(DefaultHistogramBins),
+	m_selectionOpacity(iA3DLineObjectVis::DefaultSelectionOpacity),
+	m_contextOpacity(iA3DLineObjectVis::DefaultContextOpacity),
+	m_diameterFactor(DefaultDiameterFactor),
+	m_contextDiameterFactor(DefaultContextDiameterFactor),
+	m_nameActionColumn(0),
+	m_previewColumn(1),
+	m_stackedBarColumn(2),
+	m_histogramColumn(3),
 	m_playTimer(new QTimer(mainWnd)),
 	m_refDistCompute(nullptr),
 	m_cameraInitialized(false),
@@ -241,7 +252,7 @@ void iAFiAKErController::loadProject(QSettings const& projectFile, QString const
 	{  // load full format
 		if (!config.load(projectFile, ProjectFileSaveFormatName))
 		{
-			DEBUG_LOG("Could not load CSV format specification from project file!");
+			LOG(lvlError, "Could not load CSV format specification from project file!");
 			return;
 		}
 	}
@@ -259,13 +270,13 @@ void iAFiAKErController::start(QString const & path, iACsvConfig const & config,
 	m_useStepData = useStepData;
 	m_showPreviews = showPreviews;
 	m_views.resize(DockWidgetCount);
-	connect(m_mdiChild, &MdiChild::renderSettingsChanged, this, &iAFiAKErController::applyRenderSettings);
+	connect(m_mdiChild, &iAMdiChild::renderSettingsChanged, this, &iAFiAKErController::applyRenderSettings);
 
-	m_data = QSharedPointer<iAFiberResultsCollection>(new iAFiberResultsCollection());
+	m_data = QSharedPointer<iAFiberResultsCollection>::create();
 	auto resultsLoader = new iAFiberResultsLoader(m_data, path, m_config, stepShift);
 	connect(resultsLoader, &iAFiberResultsLoader::success, this, &iAFiAKErController::resultsLoaded);
 	connect(resultsLoader, &iAFiberResultsLoader::failed,  this, &iAFiAKErController::resultsLoadFailed);
-	m_mdiChild->addJob("Loading results...", resultsLoader->progress(), resultsLoader);
+	iAJobListView::get()->addJob("Loading results...", resultsLoader->progress(), resultsLoader);
 	resultsLoader->start();
 }
 
@@ -343,7 +354,7 @@ void iAFiAKErController::resultsLoaded()
 
 void iAFiAKErController::setupMain3DView()
 {
-	m_main3DWidget = m_mdiChild->renderDockWidget()->vtkWidgetRC;
+	m_main3DWidget = m_mdiChild->renderVtkWidget();
 #if VTK_VERSION_NUMBER < VTK_VERSION_CHECK(9, 0, 0)
 	auto renWin = m_main3DWidget->GetRenderWindow();
 #else
@@ -386,22 +397,22 @@ void iAFiAKErController::setupSettingsView()
 {
 	m_settingsView = new iAFIAKERSettingsWidget();
 
-	m_settingsView->slOpacityDefault->setValue(SelectionOpacity);
-	m_settingsView->lbOpacityDefaultValue->setText(QString::number(SelectionOpacity, 'f', 2));
+	m_settingsView->slOpacityDefault->setValue(m_selectionOpacity);
+	m_settingsView->lbOpacityDefaultValue->setText(QString::number(m_selectionOpacity, 'f', 2));
 
-	m_settingsView->slOpacityContext->setValue(ContextOpacity);
-	m_settingsView->lbOpacityContextValue->setText(QString::number(ContextOpacity, 'f', 2));
+	m_settingsView->slOpacityContext->setValue(m_contextOpacity);
+	m_settingsView->lbOpacityContextValue->setText(QString::number(m_contextOpacity, 'f', 2));
 
 	m_diameterFactorMapper = new iALinearMapper(MinDiameterFactor, MaxDiameterFactor, MinFactorSliderVal, MaxFactorSliderVal);
 	m_settingsView->slDiameterFactorDefault->setMinimum(MinFactorSliderVal);
 	m_settingsView->slDiameterFactorDefault->setMaximum(MaxFactorSliderVal);
-	int factorSliderValue = static_cast<int>(m_diameterFactorMapper->srcToDst(DiameterFactor));
+	int factorSliderValue = static_cast<int>(m_diameterFactorMapper->srcToDst(m_diameterFactor));
 	m_settingsView->slDiameterFactorDefault->setValue(factorSliderValue);
 	m_settingsView->lbDiameterFactorDefaultValue->setText(QString::number(m_diameterFactorMapper->dstToSrc(factorSliderValue), 'f', 2));
 
 	m_settingsView->slDiameterFactorContext->setMinimum(MinFactorSliderVal);
 	m_settingsView->slDiameterFactorContext->setMaximum(MaxFactorSliderVal);
-	int contextFactorSlider = static_cast<int>(m_diameterFactorMapper->srcToDst(ContextDiameterFactor));
+	int contextFactorSlider = static_cast<int>(m_diameterFactorMapper->srcToDst(m_contextDiameterFactor));
 	m_settingsView->slDiameterFactorContext->setValue(contextFactorSlider);
 	m_settingsView->lbDiameterFactorContextValue->setText(QString::number(m_diameterFactorMapper->dstToSrc(contextFactorSlider), 'f', 2));
 
@@ -461,7 +472,7 @@ void iAFiAKErController::setupSettingsView()
 	auto grid = static_cast<QGridLayout*>(m_settingsView->tab3DView->layout());
 	grid->addWidget(m_showReferenceWidget, grid->rowCount(), 0, 1, 7);
 
-	m_settingsView->sbHistogramBins->setValue(HistogramBins);
+	m_settingsView->sbHistogramBins->setValue(m_histogramBins);
 
 	m_settingsView->cmbboxStackedBarChartColors->addItems(iAColorThemeManager::instance().availableThemes());
 	m_settingsView->cmbboxStackedBarChartColors->setCurrentText(DefaultStackedBarColorTheme);
@@ -543,9 +554,9 @@ namespace
 	{
 		switch (objectType)
 		{
-		case iACsvConfig::Ellipses:  return QSharedPointer<iA3DColoredPolyObjectVis>(new iA3DEllipseObjectVis(renderer, table, mapping, color));
+		case iACsvConfig::Ellipses:  return QSharedPointer<iA3DEllipseObjectVis>::create(renderer, table, mapping, color);
 		default:
-		case iACsvConfig::Cylinders: return QSharedPointer<iA3DColoredPolyObjectVis>(new iA3DCylinderObjectVis(renderer, table, mapping, color, curvedFiberData));
+		case iACsvConfig::Cylinders: return QSharedPointer<iA3DCylinderObjectVis>::create(renderer, table, mapping, color, curvedFiberData);
 		}
 	}
 
@@ -561,8 +572,8 @@ QWidget* iAFiAKErController::setupResultListView()
 {
 	if (!m_showPreviews)
 	{
-		StackedBarColumn = 1;
-		HistogramColumn = 2;
+		m_stackedBarColumn = 1;
+		m_histogramColumn = 2;
 	}
 	int commonPrefixLength = 0, commonSuffixLength = 0;
 	QString baseName0;
@@ -593,8 +604,8 @@ QWidget* iAFiAKErController::setupResultListView()
 	m_resultsListLayout = new QGridLayout();
 	m_resultsListLayout->setSpacing(ControlSpacing);
 	m_resultsListLayout->setContentsMargins(ResultListMargin, ResultListMargin, ResultListMargin, ResultListMargin);
-	m_resultsListLayout->setColumnStretch(StackedBarColumn, static_cast<int>(m_data->result.size()));
-	m_resultsListLayout->setColumnStretch(HistogramColumn, static_cast<int>(2 * m_data->result.size()));
+	m_resultsListLayout->setColumnStretch(m_stackedBarColumn, static_cast<int>(m_data->result.size()));
+	m_resultsListLayout->setColumnStretch(m_histogramColumn, static_cast<int>(2 * m_data->result.size()));
 
 	auto colorTheme = iAColorThemeManager::instance().theme(DefaultStackedBarColorTheme);
 	m_stackedBarsHeaders = new iAStackedBarChart(colorTheme, true);
@@ -633,14 +644,14 @@ QWidget* iAFiAKErController::setupResultListView()
 	histHeader->layout()->addWidget(m_colorByDistribution);
 	histHeader->layout()->addWidget(m_distributionChoice);
 
-	addHeaderLabel(m_resultsListLayout, NameActionColumn, "Name/Actions");
+	addHeaderLabel(m_resultsListLayout, m_nameActionColumn, "Name/Actions");
 	if (m_showPreviews)
 	{
-		m_resultsListLayout->setColumnStretch(PreviewColumn, 1);
-		addHeaderLabel(m_resultsListLayout, PreviewColumn, "Preview");
+		m_resultsListLayout->setColumnStretch(m_previewColumn, 1);
+		addHeaderLabel(m_resultsListLayout, m_previewColumn, "Preview");
 	}
-	m_resultsListLayout->addWidget(m_stackedBarsHeaders, 0, StackedBarColumn);
-	m_resultsListLayout->addWidget(histHeader, 0, HistogramColumn);
+	m_resultsListLayout->addWidget(m_stackedBarsHeaders, 0, m_stackedBarColumn);
+	m_resultsListLayout->addWidget(histHeader, 0, m_histogramColumn);
 
 	m_showResultVis.resize(m_data->result.size());
 	m_showResultBox.resize(m_data->result.size());
@@ -737,18 +748,8 @@ QWidget* iAFiAKErController::setupResultListView()
 			ui.mini3DVis->show();
 			ren->ResetCamera();
 			ui.previewWidget->setProperty("resultID", static_cast<qulonglong>(resultID));
-			connect(ui.previewWidget, &iAFixedAspectWidget::dblClicked, this, &iAFiAKErController::referenceToggled);
-#if VTK_VERSION_NUMBER < VTK_VERSION_CHECK(9, 0, 0)
-			connect(ui.vtkWidget, &iAVtkWidget::mouseEvent, this, &iAFiAKErController::miniMouseEvent);
-#else
-#ifndef _MSC_VER
-			#warning("VTK >= 9.0 - Fix required for missing mouseEvent signal in QVTKOpenGLNativeWidget")
-#else
-#pragma message("VTK >= 9.0 - Fix required for missing mouseEvent signal in QVTKOpenGLNativeWidget")
-#endif
-#endif
-			// connect changes to visualizations to an update of the 3D widget:
-			// {
+			connect(ui.previewWidget, &iASignallingWidget::dblClicked, this, &iAFiAKErController::referenceToggled);
+			//connect(ui.previewWidget, &iASignallingWidget::clicked, this, &iAFiAKErController::previewMouseClick);
 			connect(ui.mini3DVis.data(), &iA3DObjectVis::updated, ui.vtkWidget, &iAVtkQtWidget::updateAll);
 		}
 		ui.main3DVis = create3DVis(m_ren, d.table, d.mapping, resultColor, m_data->objectType, curveInfo);
@@ -888,7 +889,7 @@ void iAFiAKErController::addStackedBar(int index)
 		}
 		m_resultUIs[resultID].stackedBars->addBar(title, value, maxValue);
 	}
-	m_resultsListLayout->setColumnStretch(StackedBarColumn, static_cast<int>(m_stackedBarsHeaders->numberOfBars()* m_data->result.size()) );
+	m_resultsListLayout->setColumnStretch(m_stackedBarColumn, static_cast<int>(m_stackedBarsHeaders->numberOfBars()* m_data->result.size()) );
 }
 
 void iAFiAKErController::removeStackedBar(int index)
@@ -899,7 +900,7 @@ void iAFiAKErController::removeStackedBar(int index)
 	{
 		m_resultUIs[resultID].stackedBars->removeBar(title);
 	}
-	m_resultsListLayout->setColumnStretch(StackedBarColumn, static_cast<int>(m_stackedBarsHeaders->numberOfBars()*m_data->result.size()));
+	m_resultsListLayout->setColumnStretch(m_stackedBarColumn, static_cast<int>(m_stackedBarsHeaders->numberOfBars()*m_data->result.size()));
 }
 
 void iAFiAKErController::updateResultList()
@@ -914,13 +915,13 @@ void iAFiAKErController::updateResultList()
 		}
 		m_resultsListLayout->removeWidget(ui.stackedBars);
 		m_resultsListLayout->removeWidget(ui.histoChart);
-		m_resultsListLayout->addWidget(ui.nameActions, m_resultListSorting[resultID] + 1, NameActionColumn);
+		m_resultsListLayout->addWidget(ui.nameActions, m_resultListSorting[resultID] + 1, m_nameActionColumn);
 		if (ui.previewWidget)
 		{
-			m_resultsListLayout->addWidget(ui.previewWidget, m_resultListSorting[resultID] + 1, PreviewColumn);
+			m_resultsListLayout->addWidget(ui.previewWidget, m_resultListSorting[resultID] + 1, m_previewColumn);
 		}
-		m_resultsListLayout->addWidget(ui.stackedBars, m_resultListSorting[resultID] + 1, StackedBarColumn);
-		m_resultsListLayout->addWidget(ui.histoChart, m_resultListSorting[resultID] + 1, HistogramColumn);
+		m_resultsListLayout->addWidget(ui.stackedBars, m_resultListSorting[resultID] + 1, m_stackedBarColumn);
+		m_resultsListLayout->addWidget(ui.histoChart, m_resultListSorting[resultID] + 1, m_histogramColumn);
 	}
 }
 
@@ -971,7 +972,7 @@ void iAFiAKErController::distributionChoiceChanged(int index)
 void iAFiAKErController::histogramBinsChanged(int value)
 {
 	addInteraction(QString("Changed number of histogram bins to %1.").arg(value));
-	HistogramBins = value;
+	m_histogramBins = value;
 	changeDistributionSource(m_distributionChoice->currentIndex());
 }
 
@@ -1040,17 +1041,23 @@ bool readParameterCSV(QString const& fileName, QString const & encoding, QString
 {
 	if (!QFile::exists(fileName))
 	{
-		DEBUG_LOG("Error loading csv file, file does not exist.");
+		LOG(lvlError, QString("Error loading csv file %1, file does not exist.").arg(fileName));
 		return false;
 	}
 	QFile file(fileName);
 	if (!file.open(QIODevice::ReadOnly | QIODevice::Text))
 	{
-		DEBUG_LOG(QString("Unable to open file '%1': %2").arg(fileName).arg(file.errorString()));
+		LOG(lvlError, QString("Unable to open file '%1': %2").arg(fileName).arg(file.errorString()));
 		return false;
 	}
 	QTextStream in(&file);
+#if QT_VERSION < QT_VERSION_CHECK(5, 99, 0)
 	in.setCodec(encoding.toStdString().c_str());
+#else
+	auto encOpt = QStringConverter::encodingForName(encoding.toStdString().c_str());
+	QStringConverter::Encoding enc = encOpt.has_value() ? encOpt.value() : QStringConverter::Utf8;
+	in.setEncoding(enc);
+#endif
 	auto headers = in.readLine().split(columnSeparator);
 	tblCreator.initialize(headers, resultCount);
 	size_t row = 0;
@@ -1090,9 +1097,9 @@ public:
 		m_dataIdx = idx;
 		m_range[0] = std::numeric_limits<double>::max();
 		m_range[1] = std::numeric_limits<double>::lowest();
-		for (size_t i = 0; i < m_data.size(); ++i)
+		for (iADissimilarityMatrixType::size_type i = 0; i < m_data.size(); ++i)
 		{
-			for (size_t j = 0; j < m_data[i].size(); ++j)
+			for (iADissimilarityMatrixType::size_type j = 0; j < m_data[i].size(); ++j)
 			{
 				double value = m_data[i][j].avgDissim[m_dataIdx];
 				if (value < m_range[0])
@@ -1170,9 +1177,9 @@ private:
 			std::min((geometry().height() - axisSize) / static_cast<int>(m_data.size()),
 				(geometry().width() - fullScalarBarWidth - axisSize) / static_cast<int>(m_data.size())));
 		QRect matrixRect(axisSize, axisSize, m_data.size() * cellPixel, m_data.size() * cellPixel);
-		for (size_t x = 0; x < m_data.size(); ++x)
+		for (iADissimilarityMatrixType::size_type x = 0; x < m_data.size(); ++x)
 		{
-			for (size_t y = 0; y < m_data[x].size(); ++y)
+			for (iADissimilarityMatrixType::size_type y = 0; y < m_data[x].size(); ++y)
 			{
 				QRect cellRect(matrixRect.left() + static_cast<int>(x * cellPixel),
 					matrixRect.top() + static_cast<int>(y * cellPixel),
@@ -1271,7 +1278,7 @@ QWidget* iAFiAKErController::setupMatrixView(QStringList paramNames, std::vector
 	iADissimilarityMatrixDockContent* dissimDockContent = new iADissimilarityMatrixDockContent();
 	auto measureNames = getAvailableDissimilarityMeasureNames();
 	QStringList computedMeasureNames;
-	for (size_t m = 0; m < measures.size(); ++m)
+	for (int m = 0; m < measures.size(); ++m)
 	{
 		computedMeasureNames << measureNames[measures[m]];
 	}
@@ -1387,7 +1394,7 @@ bool iAFiAKErController::readDissimilarityMatrixCache(QVector<int>& measures)
 	}
 	if (!cacheFile.open(QFile::ReadOnly))
 	{
-		DEBUG_LOG(QString("Couldn't open file %1 for reading!").arg(cacheFile.fileName()));
+		LOG(lvlWarn, QString("FIAKER cache file '%1': Couldn't open for reading!").arg(cacheFile.fileName()));
 		return false;
 	}
 	// unify with readResultRefComparison / common cache file version/identifier pattern?
@@ -1397,7 +1404,7 @@ bool iAFiAKErController::readDissimilarityMatrixCache(QVector<int>& measures)
 	in >> identifier;
 	if (identifier != DissimilarityMatrixCacheFileIdentifier)
 	{
-		DEBUG_LOG(QString("FIAKER cache file '%1': Unknown cache file format - found identifier %2 does not match expected identifier %3.")
+		LOG(lvlWarn, QString("FIAKER cache file '%1': Unknown cache file format - found identifier %2 does not match expected identifier %3.")
 			.arg(cacheFile.fileName())
 			.arg(identifier).arg(DissimilarityMatrixCacheFileIdentifier));
 		return false;
@@ -1406,7 +1413,7 @@ bool iAFiAKErController::readDissimilarityMatrixCache(QVector<int>& measures)
 	in >> version;
 	if (version > DissimilarityMatrixCacheFileVersion)
 	{
-		DEBUG_LOG(QString("FIAKER cache file '%1': Invalid or too high version number (%2), expected %3 or less.")
+		LOG(lvlWarn, QString("FIAKER cache file '%1': Invalid or too high version number (%2), expected %3 or less.")
 			.arg(cacheFile.fileName())
 			.arg(version).arg(DissimilarityMatrixCacheFileVersion));
 		return false;
@@ -1421,7 +1428,7 @@ void iAFiAKErController::writeDissimilarityMatrixCache(QVector<int> const& measu
 	QFile cacheFile(dissimilarityMatrixCacheFileName());
 	if (!cacheFile.open(QFile::WriteOnly))
 	{
-		DEBUG_LOG(QString("Couldn't open file %1 for writing!").arg(cacheFile.fileName()));
+		LOG(lvlWarn, QString("FIAKER cache file '%1': Couldn't open for writing!").arg(cacheFile.fileName()));
 		return;
 	}
 	QDataStream out(&cacheFile);
@@ -1563,7 +1570,7 @@ void iAFiAKErController::changeDistributionSource(int index)
 {
 	if (matchQualityVisActive() && m_referenceID == NoResult)
 	{
-		DEBUG_LOG(QString("You need to set a reference first!"));
+		LOG(lvlWarn, QString("You need to set a reference first!"));
 		return;
 	}
 	double range[2];
@@ -1594,7 +1601,7 @@ void iAFiAKErController::changeDistributionSource(int index)
 			fiberData[fiberID] = matchQualityVisActive() ? m_data->avgRefFiberMatch[fiberID]
 				: d.table->GetValue(fiberID, index).ToDouble();
 		}
-		auto histogramData = iAHistogramData::create(fiberData, HistogramBins, Continuous, range[0], range[1]);
+		auto histogramData = iAHistogramData::create("Frequency", iAValueType::Continuous, fiberData, m_histogramBins, range[0], range[1]);
 		QSharedPointer<iAPlot> histogramPlot =
 			(m_settingsView->cmbboxDistributionPlotType->currentIndex() == 0) ?
 			QSharedPointer<iAPlot>(new iABarGraphPlot(histogramData, getResultColor(resultID)))
@@ -1619,9 +1626,9 @@ void iAFiAKErController::changeDistributionSource(int index)
 
 void iAFiAKErController::updateHistogramColors()
 {
-	double range[2] = { 0.0, static_cast<double>(HistogramBins) };
+	double range[2] = { 0.0, static_cast<double>(m_histogramBins) };
 	auto lut = m_colorByDistribution->isChecked() ?
-		QSharedPointer<iALookupTable>(new iALookupTable(iALUT::Build(range, m_colorByThemeName, 255, 1)))
+		QSharedPointer<iALookupTable>::create(iALUT::Build(range, m_colorByThemeName, 255, 1))
 		: QSharedPointer<iALookupTable>();
 	for (size_t resultID = 0; resultID < m_data->result.size(); ++resultID)
 	{
@@ -1710,7 +1717,7 @@ void iAFiAKErController::exportDissimilarities()
 {
 	if (m_referenceID == NoResult)
 	{
-		DEBUG_LOG("No reference set, therefore there are no dissimilarities to export!");
+		LOG(lvlWarn, "No reference set, therefore there are no dissimilarities to export!");
 		return;
 	}
 	QString fileName = QFileDialog::getSaveFileName(m_mainWnd, iAFiAKErController::FIAKERProjectID, m_data->folder, "Comma-Separated Values (*.csv);;");
@@ -1721,7 +1728,7 @@ void iAFiAKErController::exportDissimilarities()
 	QFile outFile(fileName);
 	if (!outFile.open(QIODevice::WriteOnly))
 	{
-		DEBUG_LOG(QString("Cannot open file %1 for writing!").arg(fileName));
+		LOG(lvlError, QString("FIAKER Dissimilarities export: Cannot open file %1 for writing!").arg(fileName));
 		return;
 	}
 	QTextStream out(&outFile);
@@ -1768,7 +1775,7 @@ void iAFiAKErController::exportDissimilarities()
 		QFile resultOutFile(resultFileName);
 		if (!resultOutFile.open(QIODevice::WriteOnly))
 		{
-			DEBUG_LOG(QString("Cannot open file %1 for writing!").arg(fileName));
+			LOG(lvlError, QString("FIAKER Dissimilarities export: Cannot open file %1 for writing!").arg(fileName));
 			return;
 		}
 		const int NumOfMatchesToWrite = 3;
@@ -1833,7 +1840,7 @@ void iAFiAKErController::sortByCurrentWeighting()
 QColor iAFiAKErController::getResultColor(size_t resultID)
 {
 	QColor color = m_resultColorTheme->color( resultID % m_resultColorTheme->size() );
-	color.setAlpha(SelectionOpacity);
+	color.setAlpha(m_selectionOpacity);
 	return color;
 }
 
@@ -1873,7 +1880,7 @@ void iAFiAKErController::toggleOptimStepChart(size_t chartID, bool visible)
 	{
 		if (!m_optimStepChart[chartID])
 		{
-			DEBUG_LOG(QString("Step chart %1 toggled invisible, but not created yet.").arg(chartID));
+			LOG(lvlWarn, QString("Step chart %1 toggled invisible, but not created yet.").arg(chartID));
 			return;
 		}
 		m_optimStepChart[chartID]->setVisible(false);
@@ -1883,7 +1890,7 @@ void iAFiAKErController::toggleOptimStepChart(size_t chartID, bool visible)
 	{
 		if (chartID < m_chartCount-1 && m_referenceID == NoResult)
 		{
-			DEBUG_LOG(QString("You need to set a reference first!"));
+			LOG(lvlWarn, QString("You need to set a reference first!"));
 			return;
 		}
 		m_optimStepChart[chartID] = new iAChartWidget(nullptr, "Optimization Step", diffName(chartID));
@@ -1910,25 +1917,25 @@ void iAFiAKErController::toggleOptimStepChart(size_t chartID, bool visible)
 			}
 			for (size_t fiberID = 0; fiberID < d.fiberCount; ++fiberID)
 			{
-				QSharedPointer<iAVectorPlotData> plotData;
+				QVector<double>* histoData(nullptr);
 				if (chartID < m_chartCount - 1)
 				{
 					if (chartID < static_cast<size_t>(d.refDiffFiber[fiberID].diff.size()))
 					{
-						plotData = QSharedPointer<iAVectorPlotData>(new iAVectorPlotData(d.refDiffFiber[fiberID].diff[chartID].step));
+						histoData = &d.refDiffFiber[fiberID].diff[chartID].step;
 					}
 					else
 					{
-						DEBUG_LOG("Differences for this measure not computed (yet).");
+						LOG(lvlWarn, "Differences for this measure not computed (yet).");
 						return;
 					}
 				}
 				else
 				{
-					plotData = QSharedPointer<iAVectorPlotData>(new iAVectorPlotData(d.projectionError[fiberID]));
+					histoData = &d.projectionError[fiberID];
 				}
-				plotData->setXDataType(Discrete);
-				m_optimStepChart[chartID]->addPlot(QSharedPointer<iALinePlot>(new iALinePlot(plotData, getResultColor(resultID))));
+				auto plotData = iAHistogramData::create(diffName(chartID), iAValueType::Discrete, 0, histoData->size(), *histoData);
+				m_optimStepChart[chartID]->addPlot(QSharedPointer<iALinePlot>::create(plotData, getResultColor(resultID)));
 			}
 		}
 		connect(m_optimStepChart[chartID], &iAChartWidget::plotsSelected,
@@ -1954,7 +1961,7 @@ void iAFiAKErController::toggleOptimStepChart(size_t chartID, bool visible)
 			}
 			else
 			{
-				DEBUG_LOG("Tried to show/hide unavailable plot.");
+				LOG(lvlWarn, "Tried to show/hide unavailable plot.");
 				return;
 			}
 		}
@@ -1981,16 +1988,16 @@ void iAFiAKErController::showMainVis(size_t resultID, int state)
 	auto & ui = m_resultUIs[resultID];
 	if (state == Qt::Checked)
 	{
-		ui.main3DVis->setSelectionOpacity(SelectionOpacity);
-		ui.main3DVis->setContextOpacity(ContextOpacity);
+		ui.main3DVis->setSelectionOpacity(m_selectionOpacity);
+		ui.main3DVis->setContextOpacity(m_contextOpacity);
 		ui.main3DVis->setShowWireFrame(m_showWireFrame);
 		ui.main3DVis->setShowLines(m_showLines);
 		setClippingPlanes(ui.main3DVis);
 		auto vis = dynamic_cast<iA3DCylinderObjectVis*>(ui.main3DVis.data());
 		if (vis)
 		{
-			vis->setDiameterFactor(DiameterFactor);
-			vis->setContextDiameterFactor(ContextDiameterFactor);
+			vis->setDiameterFactor(m_diameterFactor);
+			vis->setContextDiameterFactor(m_contextDiameterFactor);
 		}
 		if (matchQualityVisActive())
 		{
@@ -2071,7 +2078,7 @@ void iAFiAKErController::showMainVis(size_t resultID, int state)
 						{
 							if (ui.startPlotIdx + p >= m_optimStepChart[c]->plots().size())
 							{
-								DEBUG_LOG(QString("Invalid chart access: access to plot %1, but only has %2")
+								LOG(lvlError, QString("Invalid chart access: access to plot %1, but only has %2")
 									.arg(ui.startPlotIdx + p)
 									.arg(m_optimStepChart[c]->plots().size()));
 							}
@@ -2145,7 +2152,7 @@ void iAFiAKErController::getResultFiberIDFromSpmID(size_t spmID, size_t & result
 	}
 	if (resultID == m_data->result.size())
 	{
-		DEBUG_LOG(QString("Invalid index in SPM: %1").arg(spmID));
+		LOG(lvlError, QString("Invalid index in SPM: %1").arg(spmID));
 		return;
 	}
 	fiberID = spmID - curStart;
@@ -2224,7 +2231,7 @@ void iAFiAKErController::showSelectionInPlot(int chartID)
 			QColor color(getResultColor(resultID));
 			if (isAnythingSelected())
 			{
-				color.setAlpha(ContextOpacity);
+				color.setAlpha(m_contextOpacity);
 			}
 			for (size_t fiberID=0; fiberID < m_data->result[resultID].fiberCount; ++fiberID)
 			{
@@ -2291,7 +2298,7 @@ void iAFiAKErController::showSelectionInSPM()
 		}
 		spmIDStart += m_data->result[resultID].fiberCount;
 	}
-	m_spm->setSelection(spmSelection);
+	m_spm->viewData()->setSelection(spmSelection);
 }
 
 void iAFiAKErController::selection3DChanged()
@@ -2363,30 +2370,32 @@ void iAFiAKErController::selectionOptimStepChartChanged(std::vector<size_t> cons
 	}
 }
 
-void iAFiAKErController::miniMouseEvent(QMouseEvent* ev)
-{
-	if (ev->buttons() == Qt::RightButton && ev->type() == QEvent::MouseButtonPress)
+/*
+void iAFiAKErController::previewMouseClick(Qt::MouseButton button, Qt::KeyboardModifiers modifiers)
+{	// require Ctrl + Left mouse click:
+	if (button != Qt::LeftButton || !modifiers.testFlag(Qt::ControlModifier))
 	{
-		size_t resultID = QObject::sender()->property("resultID").toULongLong();
-		addInteraction(QString("Started FiberScout for %1.").arg(resultName(resultID)));
-		MdiChild* newChild = m_mainWnd->createMdiChild(false);
-		newChild->show();
-		// wait a bit to make sure MdiChild is shown and all initialization is done
-		// TODO: Replace by connection to a signal which is emitted when MdiChild initialization done
-		QTimer::singleShot(1000, [this, resultID, newChild] { startFeatureScout(resultID, newChild); });
-		ev->accept();  // not sure if this helps, sometimes still the context menu seems to pop up
+		return;
 	}
+	size_t resultID = QObject::sender()->property("resultID").toULongLong();
+	addInteraction(QString("Started FiberScout for %1.").arg(resultName(resultID)));
+	iAMdiChild* newChild = m_mainWnd->createMdiChild(false);
+	newChild->show();
+	// wait a bit to make sure iAMdiChild is shown and all initialization is done
+	// TODO: Replace by connection to a signal which is emitted when iAMdiChild initialization done
+	QTimer::singleShot(1000, [this, resultID, newChild] { startFeatureScout(resultID, newChild); });
 }
-
-void iAFiAKErController::startFeatureScout(int resultID, MdiChild* newChild)
+void iAFiAKErController::startFeatureScout(int resultID, iAMdiChild* newChild)
 {
 	iACsvConfig config(m_config);
+	// fails if config.visType is labelled volume
 	config.fileName = m_data->result[resultID].fileName;
 	config.curvedFiberFileName = m_data->result[resultID].curvedFileName;
 	iAFeatureScoutModuleInterface * featureScout = m_mainWnd->moduleDispatcher().module<iAFeatureScoutModuleInterface>();
 	featureScout->LoadFeatureScout(config, newChild);
 	//newChild->loadLayout("FeatureScout");
 }
+*/
 
 void iAFiAKErController::optimStepSliderChanged(int optimStep)
 {
@@ -2428,10 +2437,10 @@ void iAFiAKErController::mainOpacityChanged(int opacity)
 {
 	addInteraction(QString("Set main opacity to %1.").arg(opacity));
 	m_settingsView->lbOpacityDefaultValue->setText(QString::number(opacity, 'f', 2));
-	SelectionOpacity = opacity;
-	visitAllVisibleVis([](QSharedPointer<iA3DColoredPolyObjectVis> vis, size_t /*resultID*/)
+	m_selectionOpacity = opacity;
+	visitAllVisibleVis([opacity](QSharedPointer<iA3DColoredPolyObjectVis> vis, size_t /*resultID*/)
 	{
-		vis->setSelectionOpacity(SelectionOpacity);
+		vis->setSelectionOpacity(opacity);
 		vis->updateColorSelectionRendering();
 	});
 }
@@ -2440,10 +2449,10 @@ void iAFiAKErController::contextOpacityChanged(int opacity)
 {
 	addInteraction(QString("Set context opacity to %1.").arg(opacity));
 	m_settingsView->lbOpacityContextValue->setText(QString::number(opacity, 'f', 2));
-	ContextOpacity = opacity;
-	visitAllVisibleVis([](QSharedPointer<iA3DColoredPolyObjectVis> vis, size_t /*resultID*/)
+	m_contextOpacity = opacity;
+	visitAllVisibleVis([opacity](QSharedPointer<iA3DColoredPolyObjectVis> vis, size_t /*resultID*/)
 	{
-		vis->setContextOpacity(ContextOpacity);
+		vis->setContextOpacity(opacity);
 		vis->updateColorSelectionRendering();
 	});
 	showSelectionInPlots();
@@ -2455,12 +2464,12 @@ void iAFiAKErController::diameterFactorChanged(int diameterFactorInt)
 	{
 		return;
 	}
-	DiameterFactor = m_diameterFactorMapper->dstToSrc(diameterFactorInt);
-	addInteraction(QString("Set diameter modification factor to %1.").arg(DiameterFactor));
-	m_settingsView->lbDiameterFactorDefaultValue->setText(QString::number(DiameterFactor, 'f', 2));
-	visitAllVisibleVis([](QSharedPointer<iA3DColoredPolyObjectVis> vis, size_t /*resultID*/)
+	m_diameterFactor = m_diameterFactorMapper->dstToSrc(diameterFactorInt);
+	addInteraction(QString("Set diameter modification factor to %1.").arg(m_diameterFactor));
+	m_settingsView->lbDiameterFactorDefaultValue->setText(QString::number(m_diameterFactor, 'f', 2));
+	visitAllVisibleVis([=](QSharedPointer<iA3DColoredPolyObjectVis> vis, size_t /*resultID*/)
 	{
-		(dynamic_cast<iA3DCylinderObjectVis*>(vis.data()))->setDiameterFactor(DiameterFactor);
+		(dynamic_cast<iA3DCylinderObjectVis*>(vis.data()))->setDiameterFactor(m_diameterFactor);
 	});
 }
 
@@ -2470,12 +2479,12 @@ void iAFiAKErController::contextDiameterFactorChanged(int contextDiameterFactorI
 	{
 		return;
 	}
-	ContextDiameterFactor = m_diameterFactorMapper->dstToSrc(contextDiameterFactorInt);
-	addInteraction(QString("Set context diameter modification factor to %1.").arg(ContextDiameterFactor));
-	m_settingsView->lbDiameterFactorContextValue->setText(QString::number(ContextDiameterFactor, 'f', 2));
-	visitAllVisibleVis([](QSharedPointer<iA3DColoredPolyObjectVis> vis, size_t /*resultID*/)
+	m_contextDiameterFactor = m_diameterFactorMapper->dstToSrc(contextDiameterFactorInt);
+	addInteraction(QString("Set context diameter modification factor to %1.").arg(m_contextDiameterFactor));
+	m_settingsView->lbDiameterFactorContextValue->setText(QString::number(m_contextDiameterFactor, 'f', 2));
+	visitAllVisibleVis([=](QSharedPointer<iA3DColoredPolyObjectVis> vis, size_t /*resultID*/)
 	{
-		(dynamic_cast<iA3DCylinderObjectVis*>(vis.data()))->setContextDiameterFactor(ContextDiameterFactor);
+		(dynamic_cast<iA3DCylinderObjectVis*>(vis.data()))->setContextDiameterFactor(m_contextDiameterFactor);
 	});
 }
 
@@ -2553,12 +2562,12 @@ void iAFiAKErController::updateBoundingBox()
 		newBounds[i * 2] = m_teBoundingBox[i]->text().toDouble(&ok);
 		if (!ok)
 		{
-			DEBUG_LOG(QString("Invalid bounding box value: %1").arg(m_teBoundingBox[i]->text()))
+			LOG(lvlError, QString("Invalid bounding box value: %1").arg(m_teBoundingBox[i]->text()))
 		}
 		newBounds[i * 2 + 1] = m_teBoundingBox[i + 3]->text().toDouble(&ok);
 		if (!ok)
 		{
-			DEBUG_LOG(QString("Invalid bounding box value: %1").arg(m_teBoundingBox[i]->text()))
+			LOG(lvlError, QString("Invalid bounding box value: %1").arg(m_teBoundingBox[i]->text()))
 		}
 	}
 	m_customBoundingBoxSource->SetBounds(newBounds);
@@ -2616,8 +2625,8 @@ void iAFiAKErController::updateFiberContext()
 				double radius = diameter / 2;
 				if (!m_mergeContextBoxes)
 				{
-					minCoord = std::numeric_limits<double>::max();
-					maxCoord = std::numeric_limits<double>::lowest();
+					minCoord.fill(std::numeric_limits<double>::max());
+					maxCoord.fill(std::numeric_limits<double>::lowest());
 				}
 				for (int i = 0; i < 3; ++i)
 				{
@@ -2670,8 +2679,9 @@ void iAFiAKErController::updateFiberContext()
 
 namespace
 {
-	void setResultBackground(iAFiberCharUIData & ui, QColor const & color)
+	void setResultBackground(iAFiberCharUIData & ui, QPalette::ColorRole role)
 	{
+		QColor color(qApp->palette().color(role));
 		ui.nameActions->setBackgroundColor(color);
 		ui.topFiller->setStyleSheet("background-color: " + color.name());
 		ui.bottomFiller->setStyleSheet("background-color: " + color.name());
@@ -2687,7 +2697,7 @@ namespace
 			ui.vtkWidget->update();
 		}
 		ui.stackedBars->setBackgroundColor(color);
-		ui.histoChart->setBackgroundColor(color);
+		ui.histoChart->setBackgroundRole(role);
 	}
 }
 
@@ -2695,7 +2705,7 @@ void iAFiAKErController::referenceToggled()
 {
 	if (m_refDistCompute)
 	{
-		DEBUG_LOG("Another reference computation is currently running, please let that finish first!");
+		LOG(lvlWarn, "Another reference computation is currently running, please let that finish first!");
 		return;
 	}
 	size_t referenceID = QObject::sender()->property("resultID").toULongLong();
@@ -2712,7 +2722,7 @@ void iAFiAKErController::setReference(size_t referenceID, std::vector<std::pair<
 {
 	if (referenceID == m_referenceID)
 	{
-		DEBUG_LOG(QString("The selected result (%1) is already set as reference!").arg(referenceID));
+		LOG(lvlInfo, QString("The selected result (%1) is already set as reference!").arg(referenceID));
 		return;
 	}
 	if (m_referenceID != NoResult)
@@ -2726,7 +2736,7 @@ void iAFiAKErController::setReference(size_t referenceID, std::vector<std::pair<
 			return;
 		}
 		auto & ui = m_resultUIs[m_referenceID];
-		setResultBackground(ui, m_main3DWidget->palette().color(ui.nameActions->backgroundRole()));
+		setResultBackground(ui, ui.nameActions->backgroundRole());
 		m_showResultVis[m_referenceID]->setText(m_showResultVis[m_referenceID]->text().left(m_showResultVis[m_referenceID]->text().length()-RefMarker.length()));
 	}
 	addInteraction(QString("Reference set to %1.").arg(resultName(referenceID)));
@@ -2754,7 +2764,7 @@ void iAFiAKErController::setReference(size_t referenceID, std::vector<std::pair<
 		m_refDistCompute->setMeasuresToCompute(measures, optimizationMeasure, bestMeasure);
 	}
 	connect(m_refDistCompute, &QThread::finished, this, &iAFiAKErController::refDistAvailable);
-	m_mdiChild->addJob("Computing Reference Similarities", m_refDistCompute->progress(), m_refDistCompute);
+	iAJobListView::get()->addJob("Computing Reference Similarities", m_refDistCompute->progress(), m_refDistCompute);
 	m_refDistCompute->start();
 }
 
@@ -2770,7 +2780,7 @@ bool iAFiAKErController::loadReferenceInternal(iASettings settings)
 	{
 		if (QFileInfo(m_data->result[resultID].fileName).completeBaseName() == refIDStr)
 		{
-			DEBUG_LOG(QString("Result %1, number=%2 will be used as reference!").arg(refIDStr).arg(resultID));
+			LOG(lvlInfo, QString("Result %1, number=%2 will be used as reference!").arg(refIDStr).arg(resultID));
 			referenceID = resultID;
 			break;
 		}
@@ -2781,13 +2791,13 @@ bool iAFiAKErController::loadReferenceInternal(iASettings settings)
 		referenceID = refIDStr.toULongLong(&ok);
 		if (!ok || referenceID >= m_data->result.size())
 		{
-			DEBUG_LOG(QString("Invalid reference specification '%1' in project file! "
+			LOG(lvlWarn, QString("Invalid reference specification '%1' in project file! "
 				"Expected either a file name (new format) or a result number (old format)").arg(refIDStr));
 			return false;
 		}
 		else
 		{
-			DEBUG_LOG(QString("Old style project file: result number %1 will be used as reference!").arg(referenceID));
+			LOG(lvlInfo, QString("Old style project file: result number %1 will be used as reference!").arg(referenceID));
 		}
 	}
 	connect(this, &iAFiAKErController::referenceComputed, [this, settings]
@@ -2823,7 +2833,7 @@ namespace
 		}
 		else
 		{
-			DEBUG_LOG(QString("Invalid value %1 for key=%2 couldn't be parsed as double array of size 3!")
+			LOG(lvlWarn, QString("Invalid value %1 for key=%2 couldn't be parsed as double array of size 3!")
 				.arg(settings.value(key).toString())
 				.arg(key));
 		}
@@ -2888,8 +2898,7 @@ void iAFiAKErController::refDistAvailable()
 	m_refDistCompute = nullptr;
 
 	auto & ui = m_resultUIs[m_referenceID];
-	QColor refBGColor(m_mainWnd->palette().color(QPalette::AlternateBase));
-	setResultBackground(ui, refBGColor);
+	setResultBackground(ui, QPalette::AlternateBase);
 	m_showResultVis[m_referenceID]->setText(m_showResultVis[m_referenceID]->text() + RefMarker);
 
 	updateRefDistPlots();
@@ -2941,7 +2950,7 @@ void iAFiAKErController::showSpatialOverview()
 	}
 	double range[2] = {-1.0, 1.0};
 	QSharedPointer<iALookupTable> lut(new iALookupTable());
-	*lut = iALUT::Build(range, m_colorByThemeName, 255, SelectionOpacity);
+	*lut = iALUT::Build(range, m_colorByThemeName, 255, m_selectionOpacity);
 	auto ref3D = m_resultUIs[m_referenceID].main3DVis;
 	QSignalBlocker cbBlock(m_showResultVis[m_referenceID]);
 	m_showResultVis[m_referenceID]->setChecked(true);
@@ -3008,7 +3017,8 @@ void iAFiAKErController::showReferenceLinesToggled()
 
 void iAFiAKErController::changeReferenceDisplay()
 {
-	size_t similarityMeasure = clamp(0, m_data->m_measures.size(), m_settingsView->cmbboxSimilarityMeasure->currentIndex());
+	size_t similarityMeasure =
+		clamp(0, static_cast<int>(m_data->m_measures.size()), m_settingsView->cmbboxSimilarityMeasure->currentIndex());
 	bool showRef = m_chkboxShowReference->isChecked();
 	int refCount = std::min(iARefDistCompute::MaxNumberOfCloseFibers, m_spnboxReferenceCount->value());
 
@@ -3033,7 +3043,7 @@ void iAFiAKErController::changeReferenceDisplay()
 	}
 	if (m_referenceID == NoResult)
 	{
-		DEBUG_LOG(QString("You need to set a reference first!"));
+		LOG(lvlWarn, QString("You need to set a reference first!"));
 		return;
 	}
 	m_refVisTable = vtkSmartPointer<vtkTable>::New();
@@ -3050,7 +3060,7 @@ void iAFiAKErController::changeReferenceDisplay()
 
 	std::vector<iAFiberSimilarity> referenceIDsToShow;
 
-	//DEBUG_LOG("Showing reference fibers:");
+	//LOG(lvlInfo, "Showing reference fibers:");
 	for (size_t resultID=0; resultID < m_selection.size(); ++resultID)
 	{
 		if (resultID == m_referenceID || !resultSelected(m_resultUIs, resultID))
@@ -3094,8 +3104,8 @@ void iAFiAKErController::changeReferenceDisplay()
 		}
 	}
 
-	m_nearestReferenceVis = QSharedPointer<iA3DCylinderObjectVis>(new iA3DCylinderObjectVis(m_ren, m_refVisTable,
-		m_data->result[m_referenceID].mapping, QColor(0,0,0), refCurvedFiberInfo) );
+	m_nearestReferenceVis = QSharedPointer<iA3DCylinderObjectVis>::create(m_ren, m_refVisTable,
+		m_data->result[m_referenceID].mapping, QColor(0,0,0), refCurvedFiberInfo);
 	/*
 	QSharedPointer<iALookupTable> lut(new iALookupTable);
 	*lut.data() = iALUT::Build(m_data->spmData->paramRange(m_data->spmData->numParams()-iARefDistCompute::EndColumns-iARefDistCompute::SimilarityMeasureCount+similarityMeasure),
@@ -3268,7 +3278,7 @@ void iAFiAKErController::visualizeCylinderSamplePoints()
 	}
 	if (fiberID == NoPlotsIdx)
 	{
-		DEBUG_LOG("No fiber selected!");
+		LOG(lvlWarn, "No fiber selected!");
 		return;
 	}
 	addInteraction(QString("Visualized cylinder sampling for fiber %1 in %2.").arg(fiberID).arg(resultName(resultID)));
@@ -3414,31 +3424,6 @@ QString iAFiAKErController::resultName(size_t resultID) const
 {
 	return QFileInfo(m_data->result[resultID].fileName).baseName();
 }
-
-/*
-void iAFiAKErController::doSaveProject()
-{
-	// somehow move that part out into the core?
-	// { e.g. into iASavableProject ?
-	QString fileName = QFileDialog::getSaveFileName(
-	QApplication::activeWindow(),
-		tr("Select Output File"),
-		m_data->folder,
-		iAIOProvider::NewProjectFileTypeFilter);
-	if (fileName.isEmpty())
-	{
-		return;
-	}
-	QSettings projectFile(fileName, QSettings::IniFormat);
-	projectFile.setIniCodec("UTF-8");
-	projectFile.beginGroup(FIAKERProjectID);
-	saveProject(projectFile, fileName);
-	projectFile.endGroup();
-	projectFile.sync(); // make sure file is written here...
-	m_mainWnd->setCurrentFile(fileName); // ...because otherwise it won't get added to recent list here
-	addInteraction(QString("Saved as Project '%1'.").arg(fileName));
-}
-*/
 
 void iAFiAKErController::saveProject(QSettings & projectFile, QString  const & fileName)
 {

@@ -1,8 +1,8 @@
 /*************************************  open_iA  ************************************ *
 * **********   A tool for visual analysis and processing of 3D CT images   ********** *
 * *********************************************************************************** *
-* Copyright (C) 2016-2020  C. Heinzl, M. Reiter, A. Reh, W. Li, M. Arikan, Ar. &  Al. *
-*                          Amirkhanov, J. Weissenböck, B. Fröhler, M. Schiwarth       *
+* Copyright (C) 2016-2021  C. Heinzl, M. Reiter, A. Reh, W. Li, M. Arikan, Ar. &  Al. *
+*                 Amirkhanov, J. Weissenböck, B. Fröhler, M. Schiwarth, P. Weinberger *
 * *********************************************************************************** *
 * This program is free software: you can redistribute it and/or modify it under the   *
 * terms of the GNU General Public License as published by the Free Software           *
@@ -22,7 +22,6 @@
 
 // FiAKEr:
 #include "iAFiberCharData.h"            // for iAFiberSimilarity -> REFACTOR!!!
-#include "iASavableProject.h"
 #include "iASelectionInteractorStyle.h" // for iASelectionProvider
 #include "ui_FiAKErSettings.h"
 
@@ -45,7 +44,6 @@
 
 class iAFiberResultsCollection;
 class iAFiberCharUIData;
-class iAJobListView;
 class iAStackedBarChart;
 
 // Sensitivity:
@@ -57,17 +55,15 @@ class iA3DCylinderObjectVis;
 
 class iAChartWidget;
 class iAColorTheme;
-class iACsvVectorTableCreator;
 class iADockWidgetWrapper;
-class iAFileChooserWidget;
 class iAMapper;
 class iAQSplom;
-class iARendererManager;
+class iARendererViewSync;
 class iARefDistCompute;
 class iASPLOMData;
 class iAVolumeRenderer;
-class MainWindow;
-class MdiChild;
+class iAMainWindow;
+class iAMdiChild;
 
 class vtkColorTransferFunction;
 class vtkCubeSource;
@@ -135,7 +131,7 @@ public:
 	typedef std::vector<std::vector<size_t> > SelectionType;
 	static const QString FIAKERProjectID;
 
-	iAFiAKErController(MainWindow* mainWnd, MdiChild* mdiChild);
+	iAFiAKErController(iAMainWindow* mainWnd, iAMdiChild* mdiChild);
 
 	void loadProject(QSettings const & projectFile, QString const & fileName);
 	void start(QString const & path, iACsvConfig const & config, double stepShift, bool useStepData, bool showPreview);
@@ -157,7 +153,7 @@ private slots:
 	void toggleVis(int);
 	void toggleBoundingBox(int);
 	void referenceToggled();
-	void miniMouseEvent(QMouseEvent* ev);
+	//void previewMouseClick(Qt::MouseButton buttons, Qt::KeyboardModifiers modifiers);
 	void optimStepSliderChanged(int);
 	void mainOpacityChanged(int);
 	void contextOpacityChanged(int);
@@ -244,7 +240,7 @@ private:
 	void updateRefDistPlots();
 	bool matchQualityVisActive() const;
 	void updateFiberContext();
-	void startFeatureScout(int resultID, MdiChild* newChild);
+	//void startFeatureScout(int resultID, iAMdiChild* newChild);
 	void visitAllVisibleVis(std::function<void(QSharedPointer<iA3DColoredPolyObjectVis>, size_t resultID)> func);
 	void setClippingPlanes(QSharedPointer<iA3DColoredPolyObjectVis> vis);
 
@@ -260,11 +256,11 @@ private:
 	QSharedPointer<iAFiberResultsCollection> m_data;
 	std::vector<iAFiberCharUIData> m_resultUIs;
 
-	QSharedPointer<iARendererManager> m_renderManager;
+	QSharedPointer<iARendererViewSync> m_renderManager;
 	vtkSmartPointer<iASelectionInteractorStyle> m_style;
 	iAColorTheme const * m_resultColorTheme;
-	MainWindow* m_mainWnd;
-	MdiChild* m_mdiChild;
+	iAMainWindow* m_mainWnd;
+	iAMdiChild* m_mdiChild;
 	size_t m_referenceID;
 	SelectionType m_selection;
 	vtkSmartPointer<vtkTable> m_refVisTable;
@@ -275,6 +271,15 @@ private:
 	double m_contextSpacing;
 	QString m_parameterFile; //! (.csv-)file containing eventual parameters used in creating the loaded results
 	std::vector<std::vector<double>> m_paramValues;
+
+	//! number of bins in histograms in result list
+	int m_histogramBins;
+	//! opacity (0..255) of current selection and of context
+	int m_selectionOpacity, m_contextOpacity;
+	//! factors for the diameter of the current selection and of the context (< 1 -> shrink, > 1 extend, = 1.0 no change)
+	double m_diameterFactor, m_contextDiameterFactor;
+	//! column index for the columns of the result list:
+	int m_nameActionColumn, m_previewColumn, m_stackedBarColumn, m_histogramColumn;
 
 	QSharedPointer<iA3DCylinderObjectVis> m_nearestReferenceVis;
 

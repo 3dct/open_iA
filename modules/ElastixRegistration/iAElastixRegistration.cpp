@@ -1,8 +1,8 @@
 /*************************************  open_iA  ************************************ *
 * **********   A tool for visual analysis and processing of 3D CT images   ********** *
 * *********************************************************************************** *
-* Copyright (C) 2016-2020  C. Heinzl, M. Reiter, A. Reh, W. Li, M. Arikan, Ar. &  Al. *
-*                          Amirkhanov, J. Weissenböck, B. Fröhler, M. Schiwarth       *
+* Copyright (C) 2016-2021  C. Heinzl, M. Reiter, A. Reh, W. Li, M. Arikan, Ar. &  Al. *
+*                 Amirkhanov, J. Weissenböck, B. Fröhler, M. Schiwarth, P. Weinberger *
 * *********************************************************************************** *
 * This program is free software: you can redistribute it and/or modify it under the   *
 * terms of the GNU General Public License as published by the Free Software           *
@@ -284,13 +284,13 @@ iAElastixRegistration::iAElastixRegistration() :
 		"<ol>Deformation Z</ol>"
 		"< / ul>",2,2)
 {
-	addParameter("ParameterFile", FileNameOpen);
-	addParameter("PathElastix", Folder);
-	addParameter("Outputdir", Folder,"");
-	addParameter("Timeout[sec]", Discrete, 300);
+	addParameter("ParameterFile", iAValueType::FileNameOpen);
+	addParameter("PathElastix", iAValueType::Folder);
+	addParameter("Outputdir", iAValueType::Folder,"");
+	addParameter("Timeout[sec]", iAValueType::Discrete, 300);
 
-	addParameter("Load Files", Boolean, true);
-	addParameter("Run Transformix", Boolean, true);
+	addParameter("Load Files", iAValueType::Boolean, true);
+	addParameter("Run Transformix", iAValueType::Boolean, true);
 	
 
 

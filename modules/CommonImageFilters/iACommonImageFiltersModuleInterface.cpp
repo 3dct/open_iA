@@ -1,8 +1,8 @@
 /*************************************  open_iA  ************************************ *
 * **********   A tool for visual analysis and processing of 3D CT images   ********** *
 * *********************************************************************************** *
-* Copyright (C) 2016-2020  C. Heinzl, M. Reiter, A. Reh, W. Li, M. Arikan, Ar. &  Al. *
-*                          Amirkhanov, J. Weissenböck, B. Fröhler, M. Schiwarth       *
+* Copyright (C) 2016-2021  C. Heinzl, M. Reiter, A. Reh, W. Li, M. Arikan, Ar. &  Al. *
+*                 Amirkhanov, J. Weissenböck, B. Fröhler, M. Schiwarth, P. Weinberger *
 * *********************************************************************************** *
 * This program is free software: you can redistribute it and/or modify it under the   *
 * terms of the GNU General Public License as published by the Free Software           *
@@ -40,10 +40,12 @@ void iACommonImageFiltersModuleInterface::Initialize()
 {
 	// Edge detection:
 	REGISTER_FILTER(iACannyEdgeDetection);
+	REGISTER_FILTER(iASobelEdgeDetection);
 
 	// Casting / Datatype conversion:
 	REGISTER_FILTER(iACastImageFilter);
 	REGISTER_FILTER(iAConvertToRGBAFilter);
+	REGISTER_FILTER(iAHistogramFill);
 
 	// Connected component / relabeling:
 	REGISTER_FILTER(iAConnectedComponents);
@@ -62,8 +64,9 @@ void iACommonImageFiltersModuleInterface::Initialize()
 	REGISTER_FILTER(iAStreamedFFTCorrelation);
 
 	// Geometric transformations
-	REGISTER_FILTER_WITH_RUNNER(iAResampleFilter, iAResampleFilterRunner);
-	REGISTER_FILTER_WITH_RUNNER(iAExtractImageFilter, iAExtractImageFilterRunner);
+	REGISTER_FILTER(iASimpleResampleFilter);
+	REGISTER_FILTER(iAResampleFilter);
+	REGISTER_FILTER(iAExtractImageFilter);
 	REGISTER_FILTER(iAPadImageFilter);
 
 	// Gradient filters:
@@ -100,9 +103,11 @@ void iACommonImageFiltersModuleInterface::Initialize()
 	REGISTER_FILTER(iAVesselEnhancement);
 	REGISTER_FILTER(iAMorphOpening);
 	REGISTER_FILTER(iAMorphClosing);
-	REGISTER_FILTER(iAFillHole);
+	REGISTER_FILTER(iAGrayscaleFillHole);
+	REGISTER_FILTER(iABinaryFillHole);
 	REGISTER_FILTER(iAOpeningByReconstruction);
 	REGISTER_FILTER(iAClosingByReconstruction);
+	REGISTER_FILTER(iABinaryThinning);
 
 	// Filters adding noise
 	REGISTER_FILTER(iAAdditiveGaussianNoise);

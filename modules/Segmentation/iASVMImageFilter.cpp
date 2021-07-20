@@ -1,8 +1,8 @@
 /*************************************  open_iA  ************************************ *
  * * **********   A tool for visual analysis and processing of 3D CT images   ********** *
  * * *********************************************************************************** *
- * * Copyright (C) 2016-2020  C. Heinzl, M. Reiter, A. Reh, W. Li, M. Arikan, Ar. &  Al. *
- * *                          Amirkhanov, J. Weissenböck, B. Fröhler, M. Schiwarth       *
+ * * Copyright (C) 2016-2021  C. Heinzl, M. Reiter, A. Reh, W. Li, M. Arikan, Ar. &  Al. *
+ * *                 Amirkhanov, J. Weissenböck, B. Fröhler, M. Schiwarth, P. Weinberger *
  * * *********************************************************************************** *
  * * This program is free software: you can redistribute it and/or modify it under the   *
  * * terms of the GNU General Public License as published by the Free Software           *
@@ -24,7 +24,7 @@
 
 #include <defines.h>    // for DIM
 #include <iAConnector.h>
-#include <iAConsole.h>
+#include <iALog.h>
 #include <iAImageCoordinate.h>
 #include <iAProgress.h>
 #include <iASeedType.h>
@@ -50,7 +50,7 @@ namespace
 		else if (type == "RBF") return 2;
 		else if (type == "Sigmoid") return 3;
 		else {
-			DEBUG_LOG("Invalid SVM kernel type! Falling back to RBF!");
+			LOG(lvlError, "Invalid SVM kernel type! Falling back to RBF!");
 			return 2;
 		}
 	}
@@ -60,7 +60,7 @@ void iASVMImageFilter::performWork(QMap<QString, QVariant> const & parameters)
 {
 	if (input().size() == 0)
 	{
-		DEBUG_LOG("No Input available!");
+		LOG(lvlError, "No Input available!");
 		return;
 	}
 	svm_set_print_string_function(myNullPrintFunc); // make libSVM shut up
@@ -129,14 +129,14 @@ void iASVMImageFilter::performWork(QMap<QString, QVariant> const & parameters)
 	//	}
 	//}
 	// } else {
-	//	DEBUG_LOG("Neither seeds nor training values specified!");
+	//	LOG(lvlError, "Neither seeds nor training values specified!");
 	//	return false;
 	// }
 
 	char const * error = svm_check_parameter(&problem, &param);
 	if (error)
 	{
-		DEBUG_LOG(QString("Error in SVM parameters: %1").arg(error));
+		LOG(lvlError, QString("Error in SVM parameters: %1").arg(error));
 	}
 	// train the model
 	svm_model* model = svm_train(&problem, &param);
@@ -172,7 +172,7 @@ void iASVMImageFilter::performWork(QMap<QString, QVariant> const & parameters)
 			// DEBUG check begin
 			if (prob_estimates[l] < -MY_EPSILON || prob_estimates[l] > 1.0+MY_EPSILON)
 			{
-				DEBUG_LOG(QString("SVM: Invalid probability (%1) at %2, %3, %4")
+				LOG(lvlWarn, QString("SVM: Invalid probability (%1) at %2, %3, %4")
 					.arg(prob_estimates[l])
 					.arg(x)
 					.arg(y)
@@ -183,7 +183,7 @@ void iASVMImageFilter::performWork(QMap<QString, QVariant> const & parameters)
 		// DEBUG check begin
 		if (probSum - 1.0 > MY_EPSILON)
 		{
-			DEBUG_LOG(QString("SVM: Probabilities at %1, %2, %3 add up to %4 instead of 1!")
+			LOG(lvlWarn, QString("SVM: Probabilities at %1, %2, %3 add up to %4 instead of 1!")
 				.arg(x)
 				.arg(y)
 				.arg(z)
@@ -223,12 +223,12 @@ iASVMImageFilter::iASVMImageFilter() :
 {
 	QStringList kernels; kernels
 		<< "Linear" << "Polynomial" << "RBF" << "Sigmoid";
-	addParameter("Kernel Type", Categorical, kernels);
-	addParameter("Gamma", Continuous, 0.1);
-	addParameter("Dimension", Discrete, 2);
-	addParameter("Coef0", Continuous, 1);
-	addParameter("C", Continuous, 10);
-	addParameter("Seeds", Text);
+	addParameter("Kernel Type", iAValueType::Categorical, kernels);
+	addParameter("Gamma", iAValueType::Continuous, 0.1);
+	addParameter("Dimension", iAValueType::Discrete, 2);
+	addParameter("Coef0", iAValueType::Continuous, 1);
+	addParameter("C", iAValueType::Continuous, 10);
+	addParameter("Seeds", iAValueType::Text);
 }
 
 
@@ -271,6 +271,6 @@ iAKMeans::iAKMeans() :
 		"<a href=\"https://itk.org/Doxygen/html/classitk_1_1ScalarImageKmeansImageFilter.html\">"
 		"Scalar Image K-Means Filter</a> in the ITK documentation.", 1)
 {
-	addParameter("Initial means", Text, "");
-	addParameter("Non-contiguous labels", Boolean, false);
+	addParameter("Initial means", iAValueType::Text, "");
+	addParameter("Non-contiguous labels", iAValueType::Boolean, false);
 }

@@ -1,8 +1,8 @@
 /*************************************  open_iA  ************************************ *
 * **********   A tool for visual analysis and processing of 3D CT images   ********** *
 * *********************************************************************************** *
-* Copyright (C) 2016-2020  C. Heinzl, M. Reiter, A. Reh, W. Li, M. Arikan, Ar. &  Al. *
-*                          Amirkhanov, J. Weissenböck, B. Fröhler, M. Schiwarth       *
+* Copyright (C) 2016-2021  C. Heinzl, M. Reiter, A. Reh, W. Li, M. Arikan, Ar. &  Al. *
+*                 Amirkhanov, J. Weissenböck, B. Fröhler, M. Schiwarth, P. Weinberger *
 * *********************************************************************************** *
 * This program is free software: you can redistribute it and/or modify it under the   *
 * terms of the GNU General Public License as published by the Free Software           *
@@ -20,7 +20,7 @@
 * ************************************************************************************/
 #include "dlg_elementRenderer.h"
 
-#include <iARenderer.h>
+#include <iARendererImpl.h>
 #include <iATransferFunction.h>
 #include <iAVolumeRenderer.h>
 
@@ -34,11 +34,9 @@
 
 dlg_elementRenderer::dlg_elementRenderer(QWidget *parent):
 	dlg_elemRendererContainer(parent),
-	m_renderer( new iARenderer(this) ),
+	m_renderer( new iARendererImpl(this) ),
 	m_rendInitialized(false),
 	m_axesTransform( vtkSmartPointer<vtkTransform>::New() ),
-	m_observedRenderer(0),
-	m_tag(0),
 	m_indexInReferenceLib(std::numeric_limits<size_t>::max())
 {
 #if VTK_VERSION_NUMBER < VTK_VERSION_CHECK(9, 0, 0)
@@ -46,19 +44,11 @@ dlg_elementRenderer::dlg_elementRenderer(QWidget *parent):
 #else
 	renContainer->setRenderWindow(dynamic_cast<vtkGenericOpenGLRenderWindow*>(m_renderer->renderWindow()));
 #endif
-	m_renderer->renderer()->InteractiveOff();
 	m_renderer->setAxesTransform(m_axesTransform);
+	m_renderer->showHelpers(false);
 
-	connect(renContainer, &iAFast3DMagicLensWidget::rightButtonReleasedSignal, m_renderer, &iARenderer::mouseRightButtonReleasedSlot);
-	connect(renContainer, &iAFast3DMagicLensWidget::leftButtonReleasedSignal, m_renderer, &iARenderer::mouseLeftButtonReleasedSlot);
-}
-
-
-void dlg_elementRenderer::removeObserver()
-{
-	//is m_renderer deleted by Qt?
-	if(m_observedRenderer)
-		m_observedRenderer->RemoveObserver(m_tag);
+	connect(renContainer, &iAFast3DMagicLensWidget::rightButtonReleasedSignal, m_renderer, &iARendererImpl::mouseRightButtonReleasedSlot);
+	connect(renContainer, &iAFast3DMagicLensWidget::leftButtonReleasedSignal, m_renderer, &iARendererImpl::mouseLeftButtonReleasedSlot);
 }
 
 void dlg_elementRenderer::SetDataToVisualize( vtkImageData * imgData, vtkPolyData * polyData, vtkPiecewiseFunction* otf, vtkColorTransferFunction* ctf )
@@ -67,7 +57,7 @@ void dlg_elementRenderer::SetDataToVisualize( vtkImageData * imgData, vtkPolyDat
 	if(!m_rendInitialized)
 	{
 		m_renderer->initialize(imgData, polyData);
-		m_volumeRenderer = QSharedPointer<iAVolumeRenderer>(new iAVolumeRenderer(&transferFunction, imgData));
+		m_volumeRenderer = QSharedPointer<iAVolumeRenderer>::create(&transferFunction, imgData);
 		m_volumeRenderer->addTo(m_renderer->renderer());
 		m_rendInitialized = true;
 	}
@@ -75,7 +65,7 @@ void dlg_elementRenderer::SetDataToVisualize( vtkImageData * imgData, vtkPolyDat
 	{
 		m_volumeRenderer->remove();
 		m_renderer->reInitialize(imgData, polyData);
-		m_volumeRenderer = QSharedPointer<iAVolumeRenderer>(new iAVolumeRenderer(&transferFunction, imgData));
+		m_volumeRenderer = QSharedPointer<iAVolumeRenderer>::create(&transferFunction, imgData);
 		m_volumeRenderer->addTo(m_renderer->renderer());
 	}
 }

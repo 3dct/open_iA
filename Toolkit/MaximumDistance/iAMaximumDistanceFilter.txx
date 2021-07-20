@@ -1,8 +1,8 @@
 /*************************************  open_iA  ************************************ *
 * **********   A tool for visual analysis and processing of 3D CT images   ********** *
 * *********************************************************************************** *
-* Copyright (C) 2016-2020  C. Heinzl, M. Reiter, A. Reh, W. Li, M. Arikan, Ar. &  Al. *
-*                          Amirkhanov, J. Weissenböck, B. Fröhler, M. Schiwarth       *
+* Copyright (C) 2016-2021  C. Heinzl, M. Reiter, A. Reh, W. Li, M. Arikan, Ar. &  Al. *
+*                 Amirkhanov, J. Weissenböck, B. Fröhler, M. Schiwarth, P. Weinberger *
 * *********************************************************************************** *
 * This program is free software: you can redistribute it and/or modify it under the   *
 * terms of the GNU General Public License as published by the Free Software           *
@@ -22,7 +22,7 @@
 
 #include "iAMaximumDistanceFilter.h"
 
-#include <iAConsole.h>
+#include <iALog.h>
 
 template <class TImageType>
 iAMaximumDistanceFilter<TImageType>::iAMaximumDistanceFilter()
@@ -40,24 +40,24 @@ void iAMaximumDistanceFilter<TImageType>::GenerateData()
 {
 	if (std::numeric_limits<typename TImageType::PixelType>::lowest() < 0)
 	{
-		DEBUG_LOG("Signed pixel type not supported by maximum distance filter!");
+		LOG(lvlError, "Signed pixel type not supported by maximum distance filter!");
 		return;
 	}
 	if (!std::is_integral<typename TImageType::PixelType>::value)
 	{
-		DEBUG_LOG("Non-integral pixel type not supported by maximum distance filter!");
+		LOG(lvlError, "Non-integral pixel type not supported by maximum distance filter!");
 		return;
 	}
 	if (m_centre == 0)
 	{
-		m_centre = std::numeric_limits<typename TImageType::PixelType>::max() / (m_binWidth * 2);
+		m_centre = static_cast<double>(std::numeric_limits<typename TImageType::PixelType>::max()) / (m_binWidth * 2);
 	}
 	assert(m_binWidth != 0);
 	m_inImage = this->GetInput();
 	ConstIteratorType in_Iter (m_inImage, m_inImage->GetLargestPossibleRegion());
 
 	// histogram:
-	int noofBins = (std::numeric_limits<typename TImageType::PixelType>::max() / m_binWidth) + 1;
+	int noofBins = (static_cast<double>(std::numeric_limits<typename TImageType::PixelType>::max()) / m_binWidth) + 1;
 	std::vector<long long> histogram (noofBins, 0 );
 	for ( in_Iter.GoToBegin(); !in_Iter.IsAtEnd(); ++in_Iter )
 	{

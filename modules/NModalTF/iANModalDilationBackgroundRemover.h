@@ -31,7 +31,7 @@
 
 #include <QWidget>
 
-class MdiChild;
+class iAMdiChild;
 class iAConnector;
 class iANModalDisplay;
 class iAProgress;
@@ -63,7 +63,7 @@ class iANModalDilationBackgroundRemover : public QObject, public iANModalBackgro
 	Q_OBJECT
 
 public:
-	iANModalDilationBackgroundRemover(MdiChild *mdiChild);
+	iANModalDilationBackgroundRemover(iAMdiChild* mdiChild);
 	Mask removeBackground(const QList<QSharedPointer<iAModality>> &) override;
 
 private:
@@ -74,7 +74,7 @@ private:
 	// TODO: Try without
 	ImagePointer m_itkTempImg;
 
-	MdiChild *m_mdiChild;
+	iAMdiChild* m_mdiChild;
 
 	// return - true if a modality and a threshold were successfully chosen
 	//        - false otherwise

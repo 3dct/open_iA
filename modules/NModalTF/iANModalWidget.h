@@ -32,7 +32,7 @@ class iANModalPreprocessor;
 class iANModalLabelsWidget;
 class iASlicer;
 class iAModality;
-class MdiChild;
+class iAMdiChild;
 
 class QLabel;
 class QGridLayout;
@@ -42,12 +42,12 @@ class iANModalWidget : public QWidget {
 	Q_OBJECT
 
 public:
-	iANModalWidget(MdiChild *mdiChild);
+	iANModalWidget(iAMdiChild* mdiChild);
 
 private:
 	iANModalController *m_c;
 	QSharedPointer<iANModalPreprocessor> m_preprocessor;
-	MdiChild *m_mdiChild;
+	iAMdiChild* m_mdiChild;
 
 	QGridLayout *m_layoutSlicersGrid;
 	iANModalLabelsWidget *m_labelsWidget;

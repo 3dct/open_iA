@@ -1,8 +1,8 @@
 /*************************************  open_iA  ************************************ *
 * **********   A tool for visual analysis and processing of 3D CT images   ********** *
 * *********************************************************************************** *
-* Copyright (C) 2016-2020  C. Heinzl, M. Reiter, A. Reh, W. Li, M. Arikan, Ar. &  Al. *
-*                          Amirkhanov, J. Weissenböck, B. Fröhler, M. Schiwarth       *
+* Copyright (C) 2016-2021  C. Heinzl, M. Reiter, A. Reh, W. Li, M. Arikan, Ar. &  Al. *
+*                 Amirkhanov, J. Weissenböck, B. Fröhler, M. Schiwarth, P. Weinberger *
 * *********************************************************************************** *
 * This program is free software: you can redistribute it and/or modify it under the   *
 * terms of the GNU General Public License as published by the Free Software           *
@@ -21,10 +21,12 @@
 #include "iACalcFeatureCharacteristics.h"
 
 #include <defines.h>          // for DIM
-#include <iAConnector.h>
 #include <iAProgress.h>
+
+// base
+#include <iAConnector.h>
 #include <iATypedCallHelper.h>
-#include <io/iAFileUtils.h>
+#include <iAFileUtils.h>
 
 #include <itkLabelImageToShapeLabelMapFilter.h>
 #include <itkLabelGeometryImageFilter.h>
@@ -311,7 +313,7 @@ template<class T> void calcFeatureCharacteristics_template(iAConnector *image, i
 		}
 		fout << '\n';
 
-		progress->emitProgress(static_cast<int>(labelValue * 100 / allLabels.size()));
+		progress->emitProgress(labelValue * 100.0 / allLabels.size());
 	}
 
 	fout.close();
@@ -335,10 +337,10 @@ iACalcFeatureCharacteristics::iACalcFeatureCharacteristics():
 		"Label Image to Shape Label Map Filter </a> "
 		"in the ITK documentation.", 1, 0)
 {
-	addParameter("Output CSV filename", FileNameSave, ".csv");
-	addParameter("Calculate Feret Diameter", Boolean, false);
-	addParameter("Calculate roundness", Boolean, false);
-	addParameter("Calculate advanced void parameters", Boolean, false);
+	addParameter("Output CSV filename", iAValueType::FileNameSave, ".csv");
+	addParameter("Calculate Feret Diameter", iAValueType::Boolean, false);
+	addParameter("Calculate roundness", iAValueType::Boolean, false);
+	addParameter("Calculate advanced void parameters", iAValueType::Boolean, false);
 }
 
 IAFILTER_CREATE(iACalcFeatureCharacteristics)

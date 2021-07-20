@@ -1,8 +1,8 @@
 /*************************************  open_iA  ************************************ *
 * **********   A tool for visual analysis and processing of 3D CT images   ********** *
 * *********************************************************************************** *
-* Copyright (C) 2016-2020  C. Heinzl, M. Reiter, A. Reh, W. Li, M. Arikan, Ar. &  Al. *
-*                          Amirkhanov, J. Weissenböck, B. Fröhler, M. Schiwarth       *
+* Copyright (C) 2016-2021  C. Heinzl, M. Reiter, A. Reh, W. Li, M. Arikan, Ar. &  Al. *
+*                 Amirkhanov, J. Weissenböck, B. Fröhler, M. Schiwarth, P. Weinberger *
 * *********************************************************************************** *
 * This program is free software: you can redistribute it and/or modify it under the   *
 * terms of the GNU General Public License as published by the Free Software           *
@@ -22,13 +22,15 @@
 
 #include <defines.h>    // for DIM
 #include <iAConnector.h>
-#include <iAConsole.h>
+#include <iALog.h>
 #include <iAProgress.h>
 #include <iATypedCallHelper.h>
 
 #pragma GCC diagnostic push
 #pragma GCC diagnostic ignored "-Wstrict-overflow"
 #include <itkBinaryBallStructuringElement.h>
+#include <itkBinaryFillholeImageFilter.h>
+#include <itkBinaryThinningImageFilter.h>
 #include <itkGrayscaleDilateImageFilter.h>
 #include <itkGrayscaleErodeImageFilter.h>
 #include <itkGrayscaleFillholeImageFilter.h>
@@ -119,8 +121,8 @@ iADilation::iADilation() :
 		"FlatStructuringElement (Box, Cross and Polygon)</a> "
 		"in the ITK documentation.")
 {
-	addParameter("Radius", Discrete, 1, 1);
-	addParameter(StructuringElementParamName, Categorical, structuringElementNames());
+	addParameter("Radius", iAValueType::Discrete, 1, 1);
+	addParameter(StructuringElementParamName, iAValueType::Categorical, structuringElementNames());
 }
 
 
@@ -152,8 +154,8 @@ iAErosion::iAErosion() :
 		"FlatStructuringElement (Box, Cross and Polygon)</a> "
 		"in the ITK documentation.")
 {
-	addParameter("Radius", Discrete, 1, 1);
-	addParameter(StructuringElementParamName, Categorical, structuringElementNames());
+	addParameter("Radius", iAValueType::Discrete, 1, 1);
+	addParameter(StructuringElementParamName, iAValueType::Categorical, structuringElementNames());
 }
 
 
@@ -185,8 +187,8 @@ iAMorphOpening::iAMorphOpening():
 		"FlatStructuringElement (Box, Cross and Polygon)</a> "
 		"in the ITK documentation.")
 {
-	addParameter("Radius", Discrete, 1, 1);
-	addParameter(StructuringElementParamName, Categorical, structuringElementNames());
+	addParameter("Radius", iAValueType::Discrete, 1, 1);
+	addParameter(StructuringElementParamName, iAValueType::Categorical, structuringElementNames());
 }
 
 
@@ -218,8 +220,8 @@ iAMorphClosing::iAMorphClosing() :
 		"FlatStructuringElement (Box, Cross and Polygon)</a> "
 		"in the ITK documentation.")
 {
-	addParameter("Radius", Discrete, 1, 1);
-	addParameter(StructuringElementParamName, Categorical, structuringElementNames());
+	addParameter("Radius", iAValueType::Discrete, 1, 1);
+	addParameter(StructuringElementParamName, iAValueType::Categorical, structuringElementNames());
 }
 
 
@@ -257,8 +259,8 @@ iAOpeningByReconstruction::iAOpeningByReconstruction() :
 		"FlatStructuringElement (Box, Cross and Polygon)</a> "
 		"in the ITK documentation.")
 {
-	addParameter("Radius", Discrete, 1, 1);
-	addParameter(StructuringElementParamName, Categorical, structuringElementNames());
+	addParameter("Radius", iAValueType::Discrete, 1, 1);
+	addParameter(StructuringElementParamName, iAValueType::Categorical, structuringElementNames());
 }
 
 
@@ -295,32 +297,100 @@ iAClosingByReconstruction::iAClosingByReconstruction() :
 		"FlatStructuringElement (Box, Cross and Polygon)</a> "
 		"in the ITK documentation.")
 {
-	addParameter("Radius", Discrete, 1, 1);
-	addParameter(StructuringElementParamName, Categorical, structuringElementNames());
+	addParameter("Radius", iAValueType::Discrete, 1, 1);
+	addParameter(StructuringElementParamName, iAValueType::Categorical, structuringElementNames());
 }
 
 
 
-template<class T> void fillHole(iAFilter* filter, QMap<QString, QVariant> const & params)
+template <class T>
+void binaryThinning(iAFilter* filter, QMap<QString, QVariant> const& params)
 {
-	typedef itk::GrayscaleFillholeImageFilter <InputImage<T>, InputImage<T>> FillHoleImageFilterType;
-	typename FillHoleImageFilterType::Pointer fillHoleFilter = FillHoleImageFilterType::New();
+	Q_UNUSED(params);
+	typedef itk::BinaryThinningImageFilter<InputImage<T>, InputImage<T>> BinaryThinningFilterType;
+	auto thinningFilter = BinaryThinningFilterType::New();
+	thinningFilter->SetInput(dynamic_cast<InputImage<T>*>(filter->input()[0]->itkImage()));
+	filter->progress()->observe(thinningFilter);
+	thinningFilter->Update();
+	filter->addOutput(thinningFilter->GetOutput());
+}
+
+void iABinaryThinning::performWork(QMap<QString, QVariant> const& parameters)
+{
+	ITK_TYPED_CALL(binaryThinning, inputPixelType(), this, parameters);
+}
+
+IAFILTER_CREATE(iABinaryThinning)
+
+iABinaryThinning::iABinaryThinning() :
+	iAFilter("Binary thinning", "Morphology",
+		"Computes one-pixel-wide edges of the input image.<br/>"
+		"The input is assumed to be a binary image. If the foreground pixels of the input image "
+		"do not have a value of 1, they are rescaled to 1 internally to simplify the computation. "
+		"The filter will produce a skeleton of the object.The output background values are 0, "
+		"and the foreground values are 1. This filter is a sequential thinning algorithm and "
+		"known to be computational time dependable on the image	size.<br />"
+		"For more information, see the "
+		"<a href=\"https://itk.org/Doxygen/html/classitk_1_1BinaryThinningImageFilter.html\">"
+		"Binary Thinning Image Filter</a> in the ITK documentation.")
+{
+}
+
+
+
+template<class T> void binaryFillHole(iAFilter* filter, QMap<QString, QVariant> const & params)
+{
+	typedef itk::BinaryFillholeImageFilter<InputImage<T>> FillHoleImageFilterType;
+	auto fillHoleFilter = FillHoleImageFilterType::New();
 	fillHoleFilter->SetInput(dynamic_cast<InputImage<T> *>(filter->input()[0]->itkImage()));
+	fillHoleFilter->SetFullyConnected(params["Fully Connected"].toBool());
+	fillHoleFilter->SetForegroundValue(params["Foreground Value"].toDouble());
+	filter->progress()->observe(fillHoleFilter);
+	fillHoleFilter->Update();
+	filter->addOutput(fillHoleFilter->GetOutput());
+}
+
+void iABinaryFillHole::performWork(QMap<QString, QVariant> const & parameters)
+{
+	ITK_TYPED_CALL(binaryFillHole, inputPixelType(), this, parameters);
+}
+
+IAFILTER_CREATE(iABinaryFillHole)
+
+iABinaryFillHole::iABinaryFillHole() :
+	iAFilter("Fill Hole (binary)", "Morphology",
+		"Remove holes not connected to the boundary of the image.<br/>"
+		"For more information, see the "
+		"<a href=\"https://itk.org/Doxygen/html/classitk_1_1BinaryFillholeImageFilter.html\">"
+		"binary fill hole image filter</a> in the ITK documentation")
+{
+	addParameter("Fully Connected", iAValueType::Boolean, false);
+	addParameter("Foreground Value", iAValueType::Continuous, 1);
+}
+
+
+
+template <class T>
+void grayscaleFillHole(iAFilter* filter, QMap<QString, QVariant> const& params)
+{
+	typedef itk::GrayscaleFillholeImageFilter<InputImage<T>, InputImage<T>> FillHoleImageFilterType;
+	auto fillHoleFilter = FillHoleImageFilterType::New();
+	fillHoleFilter->SetInput(dynamic_cast<InputImage<T>*>(filter->input()[0]->itkImage()));
 	fillHoleFilter->SetFullyConnected(params["Fully Connected"].toBool());
 	filter->progress()->observe(fillHoleFilter);
 	fillHoleFilter->Update();
 	filter->addOutput(fillHoleFilter->GetOutput());
 }
 
-void iAFillHole::performWork(QMap<QString, QVariant> const & parameters)
+void iAGrayscaleFillHole::performWork(QMap<QString, QVariant> const& parameters)
 {
-	ITK_TYPED_CALL(fillHole, inputPixelType(), this, parameters);
+	ITK_TYPED_CALL(grayscaleFillHole, inputPixelType(), this, parameters);
 }
 
-IAFILTER_CREATE(iAFillHole)
+IAFILTER_CREATE(iAGrayscaleFillHole)
 
-iAFillHole::iAFillHole() :
-	iAFilter("Fill Hole", "Morphology",
+iAGrayscaleFillHole::iAGrayscaleFillHole() :
+	iAFilter("Fill Hole (grayscale)", "Morphology",
 		"Remove local minima not connected to the boundary of the image.<br/>"
 		"GrayscaleFillholeImageFilter fills holes in a grayscale image. "
 		"Holes are local minima in the grayscale topography that are not connected "
@@ -329,7 +399,7 @@ iAFillHole::iAFillHole() :
 		"<a href=\"https://itk.org/Doxygen/html/classitk_1_1GrayscaleFillholeImageFilter.html\">"
 		"GrayscaleFillholeImageFilter</a>")
 {
-	addParameter("Fully Connected", Boolean, false);
+	addParameter("Fully Connected", iAValueType::Boolean, false);
 }
 
 
@@ -367,5 +437,5 @@ iAVesselEnhancement::iAVesselEnhancement() :
 		"<a href=\"https://itk.org/Doxygen/html/classitk_1_1Hessian3DToVesselnessMeasureImageFilter.html\">"
 		"Hessian 3D to Vesselness Measure Filter</a> in the ITK documentation.")
 {
-	addParameter("Sigma", Continuous, 0);
+	addParameter("Sigma", iAValueType::Continuous, 0);
 }

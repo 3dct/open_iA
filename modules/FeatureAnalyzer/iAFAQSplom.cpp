@@ -1,8 +1,8 @@
 /*************************************  open_iA  ************************************ *
 * **********   A tool for visual analysis and processing of 3D CT images   ********** *
 * *********************************************************************************** *
-* Copyright (C) 2016-2020  C. Heinzl, M. Reiter, A. Reh, W. Li, M. Arikan, Ar. &  Al. *
-*                          Amirkhanov, J. Weissenböck, B. Fröhler, M. Schiwarth       *
+* Copyright (C) 2016-2021  C. Heinzl, M. Reiter, A. Reh, W. Li, M. Arikan, Ar. &  Al. *
+*                 Amirkhanov, J. Weissenböck, B. Fröhler, M. Schiwarth, P. Weinberger *
 * *********************************************************************************** *
 * This program is free software: you can redistribute it and/or modify it under the   *
 * terms of the GNU General Public License as published by the Free Software           *
@@ -24,9 +24,9 @@
 
 #include "iAFeatureScoutModuleInterface.h"
 
-#include <charts/iASPLOMData.h>
-#include <charts/iAScatterPlot.h>
-#include <iAConsole.h>
+#include <iASPLOMData.h>
+#include <iAScatterPlot.h>
+#include <iALog.h>
 #include <iAMathUtility.h>
 #include <iAModuleDispatcher.h>
 
@@ -34,6 +34,7 @@
 #include <QDir>
 #include <QKeyEvent>
 #include <QMenu>
+#include <QPainter>
 
 // OpenMP
 #ifndef __APPLE__
@@ -44,9 +45,9 @@
 
 const int maskOpacity = 127;
 
-iAFAQSplom::iAFAQSplom( MainWindow *mWnd, QWidget * parent):
+iAFAQSplom::iAFAQSplom( iAMainWindow *mWnd, QWidget * parent):
 	iAQSplom(parent),
-	m_fixedPointInd(iAScatterPlot::NoPointIndex),
+	m_fixedPointInd(iASPLOMData::NoDataIdx),
 	m_mainWnd(mWnd),
 	m_mdiChild(nullptr),
 	m_csvName("")
@@ -140,7 +141,7 @@ void iAFAQSplom::setDatasetsByIndices( QStringList selDatasets, QList<int> indic
 
 void iAFAQSplom::reemitFixedPixmap()
 {
-	if( m_fixedPointInd != iAScatterPlot::NoPointIndex )
+	if( m_fixedPointInd != iASPLOMData::NoDataIdx )
 	{
 		int dsInd = getDatasetIndexFromPointIndex( m_fixedPointInd );
 		QString sliceFilename = getSliceFilename( m_maskNames[m_fixedPointInd], m_sliceNumPopupLst[dsInd] );
@@ -163,7 +164,7 @@ void iAFAQSplom::reemitFixedPixmap()
 
 int iAFAQSplom::getDatasetIndexFromPointIndex(size_t pointIndex)
 {
-	if (pointIndex == iAScatterPlot::NoPointIndex)
+	if (pointIndex == iASPLOMData::NoDataIdx)
 	{
 		return -1;
 	}
@@ -184,11 +185,11 @@ bool iAFAQSplom::drawPopup( QPainter& painter )
 	}
 	size_t curInd = m_activePlot->getCurrentPoint();
 	double anim = 1.0;
-	if( curInd == iAScatterPlot::NoPointIndex )
+	if( curInd == iASPLOMData::NoDataIdx )
 	{
-		if( m_animOut > 0.0 && m_animIn >= 1.0 )
+		if( m_viewData->animOut() > 0.0 && m_viewData->animIn() >= 1.0 )
 		{
-			anim = m_animOut;
+			anim = m_viewData->animOut();
 			curInd = m_activePlot->getPreviousPoint();
 		}
 		else
@@ -196,9 +197,9 @@ bool iAFAQSplom::drawPopup( QPainter& painter )
 			return false;
 		}
 	}
-	else if (m_activePlot->getPreviousIndex() == iAScatterPlot::NoPointIndex)
+	else if (m_activePlot->getPreviousIndex() == iASPLOMData::NoDataIdx)
 	{
-		anim = m_animIn;
+		anim = m_viewData->animIn();
 	}
 
 	painter.save();
@@ -285,7 +286,7 @@ void iAFAQSplom::updatePreviewPixmap()
 	}
 
 	size_t curInd = m_activePlot->getCurrentPoint();
-	if( curInd == iAScatterPlot::NoPointIndex && m_fixedPointInd == iAScatterPlot::NoPointIndex )
+	if( curInd == iASPLOMData::NoDataIdx && m_fixedPointInd == iASPLOMData::NoDataIdx )
 	{
 		emit maskHovered( 0, -1 );
 		return;
@@ -293,7 +294,7 @@ void iAFAQSplom::updatePreviewPixmap()
 
 	QImage fixedMaskImg;
 	int dsInd = -1;
-	if( m_fixedPointInd != iAScatterPlot::NoPointIndex)
+	if( m_fixedPointInd != iASPLOMData::NoDataIdx)
 	{
 		dsInd = getDatasetIndexFromPointIndex( m_fixedPointInd );
 		QString sliceFilename = getSliceFilename( m_maskNames[m_fixedPointInd], m_sliceNumPopupLst[dsInd] );
@@ -306,7 +307,7 @@ void iAFAQSplom::updatePreviewPixmap()
 	}
 
 	QImage maskImg;
-	if (curInd == iAScatterPlot::NoPointIndex)
+	if (curInd == iASPLOMData::NoDataIdx)
 	{
 		maskImg = fixedMaskImg;
 	}
@@ -330,7 +331,7 @@ void iAFAQSplom::updatePreviewPixmap()
 		maskImg.setColor( 2, qRgba( 0, 0, 255, maskOpacity ) );
 		maskImg.setColor( 3, qRgba( 255, 255, 0, maskOpacity ) );
 
-		if( m_fixedPointInd != iAScatterPlot::NoPointIndex && getDatasetIndexFromPointIndex(m_fixedPointInd) == dsInd )
+		if( m_fixedPointInd != iASPLOMData::NoDataIdx && getDatasetIndexFromPointIndex(m_fixedPointInd) == dsInd )
 		{
 			uchar * maskPtr = maskImg.bits();
 			uchar * fixedPtr = fixedMaskImg.bits();
@@ -371,7 +372,7 @@ void iAFAQSplom::updatePreviewPixmap()
 
 void iAFAQSplom::currentPointUpdated( size_t index )
 {
-	if (index != iAScatterPlot::NoPointIndex)
+	if (index != iASPLOMData::NoDataIdx)
 	{
 		m_fixAction->setVisible(true);
 		m_detailsToFeatureScoutAction->setVisible(true);
@@ -392,14 +393,14 @@ void iAFAQSplom::fixPoint()
 		return;
 	}
 
-	if (m_fixedPointInd != iAScatterPlot::NoPointIndex)
+	if (m_fixedPointInd != iASPLOMData::NoDataIdx)
 	{
 		removeFixedPoint();
 	}
 
 	m_removeFixedAction->setVisible( true );
 	m_fixedPointInd = m_activePlot->getCurrentPoint();
-	addHighlightedPoint( m_fixedPointInd );
+	m_viewData->addHighlightedPoint( m_fixedPointInd );
 	updatePreviewPixmap();
 }
 
@@ -419,10 +420,10 @@ void iAFAQSplom::sendToFeatureScout()
 		return;
 	}
 	this->m_mdiChild->show();
-	connect(m_mdiChild, &MdiChild::histogramAvailable, this, &iAFAQSplom::startFeatureScout);
+	connect(m_mdiChild, &iAMdiChild::histogramAvailable, this, &iAFAQSplom::startFeatureScout);
 	if (!m_mdiChild->loadFile(mhdName, false))
 	{
-		DEBUG_LOG(QString("File '%1' could not be loaded!").arg(mhdName));
+		LOG(lvlError, QString("File '%1' could not be loaded!").arg(mhdName));
 		m_mdiChild->close();
 		return;
 	}
@@ -447,16 +448,16 @@ void iAFAQSplom::startFeatureScout()
 		return;
 	}
 	featureScout->LoadFeatureScoutWithParams(m_csvName, m_mdiChild);
-	disconnect(m_mdiChild, &MdiChild::histogramAvailable, this, &iAFAQSplom::startFeatureScout);
+	disconnect(m_mdiChild, &iAMdiChild::histogramAvailable, this, &iAFAQSplom::startFeatureScout);
 }
 
 void iAFAQSplom::removeFixedPoint()
 {
-	if (m_fixedPointInd != iAScatterPlot::NoPointIndex)
+	if (m_fixedPointInd != iASPLOMData::NoDataIdx)
 	{
-		removeHighlightedPoint(m_fixedPointInd);
+		m_viewData->removeHighlightedPoint(m_fixedPointInd);
 	}
-	m_fixedPointInd = iAScatterPlot::NoPointIndex;
+	m_fixedPointInd = iASPLOMData::NoDataIdx;
 	m_removeFixedAction->setVisible( false );
 	updatePreviewPixmap();
 }

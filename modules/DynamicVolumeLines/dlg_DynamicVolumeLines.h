@@ -1,8 +1,8 @@
 /*************************************  open_iA  ************************************ *
 * **********   A tool for visual analysis and processing of 3D CT images   ********** *
 * *********************************************************************************** *
-* Copyright (C) 2016-2020  C. Heinzl, M. Reiter, A. Reh, W. Li, M. Arikan, Ar. &  Al. *
-*                          Amirkhanov, J. Weissenböck, B. Fröhler, M. Schiwarth       *
+* Copyright (C) 2016-2021  C. Heinzl, M. Reiter, A. Reh, W. Li, M. Arikan, Ar. &  Al. *
+*                 Amirkhanov, J. Weissenböck, B. Fröhler, M. Schiwarth, P. Weinberger *
 * *********************************************************************************** *
 * This program is free software: you can redistribute it and/or modify it under the   *
 * terms of the GNU General Public License as published by the Free Software           *
@@ -26,16 +26,21 @@
 #include "ui_Multi3DView.h"
 
 #include <iAVtkWidgetFwd.h>
-#include <mdichild.h>
 #include <qthelper/iAQTtoUIConnector.h>
 #include <iAProgress.h>
+
+#include <vtkSmartPointer.h>
+
+#include <QDir>
 
 class iANonLinearAxisTicker;
 class iAOrientationWidget;
 class iASegmentTree;
 
+class iAMdiChild;
 class iAVolumeRenderer;
 
+class vtkImageData;
 class vtkLookupTable;
 class vtkPoints;
 class vtkRenderer;
@@ -54,7 +59,7 @@ public:
 #if QT_VERSION < QT_VERSION_CHECK(5,15,0)
 	dlg_DynamicVolumeLines(QWidget* parent, QDir datasetsDir, Qt::WindowFlags f = 0);
 #else
-	dlg_DynamicVolumeLines(QWidget* parent, QDir datasetsDir, Qt::WindowFlags f = QFlags<Qt::WindowType>());
+	dlg_DynamicVolumeLines(QWidget* parent, QDir datasetsDir, Qt::WindowFlags f = Qt::WindowFlags());
 #endif
 	~dlg_DynamicVolumeLines();
 
@@ -84,7 +89,6 @@ public slots:
 	void setSubHistBinCntFlag();
 	void updateHistColorMap(vtkSmartPointer<vtkLookupTable> LUT);
 	void compLevelRangeChanged();
-	void updateIntensityMapperProgress(int);
 
 signals:
 	void compLevelRangeChanged(QVector<double> compRange);
@@ -93,7 +97,7 @@ protected:
 	bool eventFilter(QObject * obj, QEvent * event) override;
 
 private:
-	MdiChild *m_mdiChild;
+	iAMdiChild *m_mdiChild;
 	QCustomPlot *m_nonlinearScaledPlot;
 	QCustomPlot *m_linearScaledPlot;
 	QCustomPlot *m_debugPlot;

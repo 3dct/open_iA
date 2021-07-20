@@ -70,7 +70,7 @@ QList<QSharedPointer<iAModality>> iANModalPCAModalityReducer::reduce(const QList
 		//QSharedPointer<iAVolumeRenderer> renderer(new iAVolumeRenderer(mod->transfer().data(), mod->image()));
 		//mod->setRenderer(renderer);
 
-		//m_mdiChild->modalitiesDockWidget()->addModality(...);
+		//m_mdiChild->dataDockWidget()->addModality(...);
 
 		modalities.append(QSharedPointer<iAModality>(mod));
 	}
@@ -138,7 +138,7 @@ void iANModalPCAModalityReducer::itkPCA(std::vector<iAConnector> &c) {
 		} \
 		str += "\n"; \
 	} \
-	DEBUG_LOG(str); }
+	LOG(lvlDebug, str); }
 #define DEBUG_LOG_VECTOR(vector, string) \
 	{ QString str = string; \
 	str += "\n"; \
@@ -146,7 +146,7 @@ void iANModalPCAModalityReducer::itkPCA(std::vector<iAConnector> &c) {
 		str += QString::number(vector[i]) + "     "; \
 	} \
 	str += "\n"; \
-	DEBUG_LOG(str); }
+	LOG(lvlDebug, str); }
 #else
 #define DEBUG_LOG_MATRIX(matrix, string)
 #define DEBUG_LOG_VECTOR(vector, string)
@@ -196,7 +196,7 @@ void iANModalPCAModalityReducer::ownPCA(std::vector<iAConnector> &c) {
 #pragma omp single
 		numThreads = omp_get_num_threads();
 	}
-	DEBUG_LOG(QString::number(numThreads) + " threads available\n");
+	LOG(lvlDebug, QString::number(numThreads) + " threads available\n");
 #endif
 
 	// Calculate means
@@ -225,7 +225,7 @@ void iANModalPCAModalityReducer::ownPCA(std::vector<iAConnector> &c) {
 		for (size_t img_i = 0; img_i < numInputs; img_i++) {
 			double mean = 0;
 #pragma omp for nowait
-			for (size_t i = 0; i < numVoxels; i++) {
+			for (int i = 0; i < numVoxels; i++) {
 				//means[img_i] += inputs[img_i][i];
 				mean += inputs[img_i][i];
 			}
@@ -251,7 +251,7 @@ void iANModalPCAModalityReducer::ownPCA(std::vector<iAConnector> &c) {
 			for (size_t iy = 0; iy <= ix; iy++) {
 				double innerProd_thread = 0;
 #pragma omp for nowait
-				for (size_t i = 0; i < numVoxels; i++) {
+				for (int i = 0; i < numVoxels; i++) {
 					auto mx = inputs[ix][i] - means[ix];
 					auto my = inputs[iy][i] - means[iy];
 					//innerProd[ix][iy] += (mx * my); // Product takes place!
@@ -268,7 +268,7 @@ void iANModalPCAModalityReducer::ownPCA(std::vector<iAConnector> &c) {
 
 		// Fill upper triangle (make symmetric)
 #pragma omp for
-		for (size_t ix = 0; ix < (numInputs - 1); ix++) {
+		for (int ix = 0; ix < (numInputs - 1); ix++) {
 			for (size_t iy = ix + 1; iy < numInputs; iy++) {
 				innerProd[ix][iy] = innerProd[iy][ix];
 			}
@@ -314,7 +314,7 @@ void iANModalPCAModalityReducer::ownPCA(std::vector<iAConnector> &c) {
 		// Initialize the reconstructed matrix (with zeros)
 		for (size_t row_i = 0; row_i < numOutputs; row_i++) {
 #pragma omp for nowait
-			for (size_t col_i = 0; col_i < numVoxels; col_i++) {
+			for (int col_i = 0; col_i < numVoxels; col_i++) {
 				reconstructed[row_i][col_i] = 0;
 			}
 		}
@@ -329,7 +329,7 @@ void iANModalPCAModalityReducer::ownPCA(std::vector<iAConnector> &c) {
 				auto evec_elem = evecs_innerProd[row_i][vec_i];
 				//double reconstructed_thread = 0;
 #pragma omp for nowait
-				for (size_t col_i = 0; col_i < numVoxels; col_i++) {
+				for (int col_i = 0; col_i < numVoxels; col_i++) {
 					auto voxel_value = inputs[row_i][col_i];
 					reconstructed[vec_i][col_i] += (voxel_value * evec_elem);
 				}
@@ -346,7 +346,7 @@ void iANModalPCAModalityReducer::ownPCA(std::vector<iAConnector> &c) {
 			double min_thread = DBL_MAX;
 
 #pragma omp for
-			for (size_t i = 0; i < numVoxels; i++) {
+			for (int i = 0; i < numVoxels; i++) {
 				auto rec = reconstructed[vec_i][i];
 				//max_val = max_val > rec ? max_val : rec;
 				//min_val = min_val < rec ? min_val : rec;
@@ -363,7 +363,7 @@ void iANModalPCAModalityReducer::ownPCA(std::vector<iAConnector> &c) {
 #pragma omp barrier
 
 #pragma omp for nowait
-			for (size_t i = 0; i < numVoxels; i++) {
+			for (int i = 0; i < numVoxels; i++) {
 				auto old = reconstructed[vec_i][i];
 				reconstructed[vec_i][i] = (old - min_val) / (max_val - min_val) * 65535.0;
 			}

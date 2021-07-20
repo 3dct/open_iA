@@ -1,8 +1,8 @@
 /*************************************  open_iA  ************************************ *
 * **********   A tool for visual analysis and processing of 3D CT images   ********** *
 * *********************************************************************************** *
-* Copyright (C) 2016-2020  C. Heinzl, M. Reiter, A. Reh, W. Li, M. Arikan, Ar. &  Al. *
-*                          Amirkhanov, J. Weissenböck, B. Fröhler, M. Schiwarth       *
+* Copyright (C) 2016-2021  C. Heinzl, M. Reiter, A. Reh, W. Li, M. Arikan, Ar. &  Al. *
+*                 Amirkhanov, J. Weissenböck, B. Fröhler, M. Schiwarth, P. Weinberger *
 * *********************************************************************************** *
 * This program is free software: you can redistribute it and/or modify it under the   *
 * terms of the GNU General Public License as published by the Free Software           *
@@ -21,7 +21,7 @@
 #include "iASimilarityMapWidget.h"
 
 //#include <iAMathUtility.h>
-#include <io/iAFileUtils.h>
+#include <iAFileUtils.h>
 
 #include <vtkImageData.h>
 #include <vtkMetaImageReader.h>
@@ -125,7 +125,7 @@ void iASimilarityMapWidget::updateQtImage()
 	m_numBins = dims[0];
 	ImageScalarType * scalPtr = (ImageScalarType*)m_vtkImageData->GetScalarPointer();
 	double windowRange[2] = { scalRange[1] * m_WindowRange[0], scalRange[1] * m_WindowRange[1] };
-	m_qtImage = QSharedPointer<QImage>( new QImage( dims[0], dims[1], QImage::Format_ARGB32 ) );
+	m_qtImage = QSharedPointer<QImage>::create( dims[0], dims[1], QImage::Format_ARGB32 );
 
 	for( int x = 0; x < dims[0]; ++x )
 	{

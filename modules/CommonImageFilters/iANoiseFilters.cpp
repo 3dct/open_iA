@@ -1,8 +1,8 @@
 /*************************************  open_iA  ************************************ *
 * **********   A tool for visual analysis and processing of 3D CT images   ********** *
 * *********************************************************************************** *
-* Copyright (C) 2016-2020  C. Heinzl, M. Reiter, A. Reh, W. Li, M. Arikan, Ar. &  Al. *
-*                          Amirkhanov, J. Weissenböck, B. Fröhler, M. Schiwarth       *
+* Copyright (C) 2016-2021  C. Heinzl, M. Reiter, A. Reh, W. Li, M. Arikan, Ar. &  Al. *
+*                 Amirkhanov, J. Weissenböck, B. Fröhler, M. Schiwarth, P. Weinberger *
 * *********************************************************************************** *
 * This program is free software: you can redistribute it and/or modify it under the   *
 * terms of the GNU General Public License as published by the Free Software           *
@@ -22,7 +22,7 @@
 
 #include <defines.h>    // for DIM
 #include <iAConnector.h>
-#include <iAConsole.h>
+#include <iALog.h>
 #include <iAProgress.h>
 #include <iATypedCallHelper.h>
 
@@ -60,8 +60,8 @@ iAAdditiveGaussianNoise::iAAdditiveGaussianNoise() :
 		"<a href=\"https://itk.org/Doxygen/html/classitk_1_1AdditiveGaussianNoiseImageFilter.html\">"
 		"Additive Gaussian Noise Filter</a> in the ITK documentation.")
 {
-	addParameter("Mean", Continuous, 0);
-	addParameter("Standard deviation", Continuous, 0.1, std::numeric_limits<double>::epsilon());
+	addParameter("Mean", iAValueType::Continuous, 0);
+	addParameter("Standard deviation", iAValueType::Continuous, 0.1, std::numeric_limits<double>::epsilon());
 }
 
 
@@ -94,7 +94,7 @@ iASaltAndPepperNoise::iASaltAndPepperNoise() :
 		"<a href=\"https://itk.org/Doxygen/html/classitk_1_1SaltAndPepperNoiseImageFilter.html\">"
 		"Salt and Pepper Noise Filter</a> in the ITK documentation.")
 {
-	addParameter("Probability", Continuous, 0.1, 0, 1);
+	addParameter("Probability", iAValueType::Continuous, 0.1, 0, 1);
 }
 
 
@@ -127,7 +127,7 @@ iAShotNoise::iAShotNoise() :
 		"<a href=\"https://itk.org/Doxygen/html/classitk_1_1ShotNoiseImageFilter.html\">"
 		"Shot Noise Filter</a> in the ITK documentation.")
 {
-	addParameter("Scale", Continuous, 1, std::numeric_limits<double>::epsilon());
+	addParameter("Scale", iAValueType::Continuous, 1, std::numeric_limits<double>::epsilon());
 }
 
 
@@ -160,5 +160,5 @@ iASpeckleNoise::iASpeckleNoise() :
 		"<a href=\"https://itk.org/Doxygen/html/classitk_1_1SpeckleNoiseImageFilter.html\">"
 		"Speckle Noise Filter</a> in the ITK documentation.")
 {
-	addParameter("Standard deviation", Continuous, 0.1, std::numeric_limits<double>::epsilon());
+	addParameter("Standard deviation", iAValueType::Continuous, 0.1, std::numeric_limits<double>::epsilon());
 }

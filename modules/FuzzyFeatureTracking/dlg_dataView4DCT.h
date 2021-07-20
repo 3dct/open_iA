@@ -1,8 +1,8 @@
 /*************************************  open_iA  ************************************ *
 * **********   A tool for visual analysis and processing of 3D CT images   ********** *
 * *********************************************************************************** *
-* Copyright (C) 2016-2020  C. Heinzl, M. Reiter, A. Reh, W. Li, M. Arikan, Ar. &  Al. *
-*                          Amirkhanov, J. Weissenböck, B. Fröhler, M. Schiwarth       *
+* Copyright (C) 2016-2021  C. Heinzl, M. Reiter, A. Reh, W. Li, M. Arikan, Ar. &  Al. *
+*                 Amirkhanov, J. Weissenböck, B. Fröhler, M. Schiwarth, P. Weinberger *
 * *********************************************************************************** *
 * This program is free software: you can redistribute it and/or modify it under the   *
 * terms of the GNU General Public License as published by the Free Software           *
@@ -22,24 +22,24 @@
 
 #include "ui_DataView4DCT.h"
 
-#include <iARendererManager.h>
+#include <iARendererViewSync.h>
 #include <qthelper/iAQTtoUIConnector.h>
 
 #include <vtkSmartPointer.h>
 
 typedef iAQTtoUIConnector<QDockWidget, Ui_DataView4DCT>	dlg_dataView4DCTContainer;
 
+class iAFuzzyVTKWidget;
 
-// forward declaration
+class iARendererImpl;
+
+class iAVolumeRenderer;
+class iAVolumeStack;
+class iAMdiChild;
+
 class vtkCamera;
 class vtkPolyData;
 class vtkTransform;
-
-class iARenderer;
-class iAVolumeRenderer;
-class iAVolumeStack;
-class MdiChild;
-class iAQVTKWidgetMouseReleaseWorkaround;
 
 class dlg_dataView4DCT : public dlg_dataView4DCTContainer
 {
@@ -50,11 +50,11 @@ public:
 	void update();
 
 private:
-	iAVolumeStack*						m_volumeStack;
-	iAQVTKWidgetMouseReleaseWorkaround** m_vtkWidgets;
-	iARenderer**						m_renderers;
-	iAVolumeRenderer**					m_volumeRenderer;
-	vtkSmartPointer<vtkTransform>		m_axesTransform;
-	MdiChild*							m_mdiChild;
-	iARendererManager					m_rendererManager;
+	iAVolumeStack* m_volumeStack;
+	iAFuzzyVTKWidget** m_vtkWidgets;
+	iARendererImpl**  m_renderers;
+	iAVolumeRenderer** m_volumeRenderer;
+	vtkSmartPointer<vtkTransform> m_axesTransform;
+	iAMdiChild* m_mdiChild;
+	iARendererViewSync m_rendererManager;
 };

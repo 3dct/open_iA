@@ -1,8 +1,8 @@
 /*************************************  open_iA  ************************************ *
 * **********   A tool for visual analysis and processing of 3D CT images   ********** *
 * *********************************************************************************** *
-* Copyright (C) 2016-2020  C. Heinzl, M. Reiter, A. Reh, W. Li, M. Arikan, Ar. &  Al. *
-*                          Amirkhanov, J. Weissenböck, B. Fröhler, M. Schiwarth       *
+* Copyright (C) 2016-2021  C. Heinzl, M. Reiter, A. Reh, W. Li, M. Arikan, Ar. &  Al. *
+*                 Amirkhanov, J. Weissenböck, B. Fröhler, M. Schiwarth, P. Weinberger *
 * *********************************************************************************** *
 * This program is free software: you can redistribute it and/or modify it under the   *
 * terms of the GNU General Public License as published by the Free Software           *
@@ -22,7 +22,7 @@
 
 #include "iAImagePreviewWidget.h"
 
-#include <iAConsole.h>
+#include <iALog.h>
 
 iAPreviewWidgetPool::iAPreviewWidgetPool(int maxWidgets, vtkCamera* camera, iASlicerMode slicerMode, int labelCount, iAColorTheme const * colorTheme):
 	m_commonCamera(camera),
@@ -46,7 +46,7 @@ iAImagePreviewWidget* iAPreviewWidgetPool::getWidget(QWidget* parent, bool /*mag
 	if (m_pool.size() == 0)
 	{
 #if _DEBUG
-		DEBUG_LOG("No more slicer widgets available!\n");
+		LOG(lvlError, "No more slicer widgets available!\n");
 #endif
 		return 0;
 	}
@@ -81,7 +81,7 @@ void iAPreviewWidgetPool::setSlicerMode(iASlicerMode mode, int sliceNr, vtkCamer
 	m_slicerMode = mode;
 	if (m_sliceNumber[m_slicerMode] != sliceNr && m_sliceNumber[m_slicerMode] != iAImagePreviewWidget::SliceNumberNotSet)
 	{
-		DEBUG_LOG(QString("Current and given sliceNumber unexpectedly don't match (sliceNr=%1 != m_sliceNumber[mode]=%2\n")
+		LOG(lvlError, QString("Current and given sliceNumber unexpectedly don't match (sliceNr=%1 != m_sliceNumber[mode]=%2\n")
 			.arg(sliceNr)
 			.arg(m_sliceNumber[m_slicerMode]));
 	}

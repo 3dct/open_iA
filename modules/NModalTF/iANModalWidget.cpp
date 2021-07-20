@@ -27,25 +27,26 @@
 
 #include "dlg_labels.h"
 
-#include "iAModality.h"
-#include "iAModalityList.h"
-#include "iASlicer.h"
-#include "iAModalityTransfer.h"
-#include "iASlicerMode.h"
-#include "dlg_modalities.h"
-#include "dlg_slicer.h"
-#include "mdichild.h"
-#include "charts/iAChartWithFunctionsWidget.h"
+#include <dlg_modalities.h>
+#include <iAMdiChild.h>
+#include <iAModality.h>
+#include <iAModalityList.h>
+#include <iAModalityTransfer.h>
+#include <iASlicer.h>
+#include <iASlicerMode.h>
+
+#include <iAChartWithFunctionsWidget.h>
 
 #include <vtkImageData.h>
 #include <vtkSmartPointer.h>
 
-#include <QStandardItemModel>
-#include <QSizePolicy>
 #include <QGridLayout>
 #include <QScrollArea>
+#include <QScrollBar>
+#include <QSizePolicy>
+#include <QStandardItemModel>
 
-iANModalWidget::iANModalWidget(MdiChild *mdiChild) {
+iANModalWidget::iANModalWidget(iAMdiChild *mdiChild) {
 	m_mdiChild = mdiChild;
 	m_c = new iANModalController(mdiChild);
 
@@ -76,7 +77,7 @@ iANModalWidget::iANModalWidget(MdiChild *mdiChild) {
 	connect(m_c, SIGNAL(allSlicersReinitialized()), this, SLOT(onAllSlicersReinitialized()));
 	connect(m_c, &iANModalController::histogramInitialized, this, &iANModalWidget::onHistogramInitialized);
 
-	//connect(m_mdiChild->modalitiesDockWidget(), &dlg_modalities::modalitiesChanged, this, &iANModalWidget::onModalitiesChanged);
+	//connect(m_mdiChild->dataDockWidget(), &dlg_modalities::modalitiesChanged, this, &iANModalWidget::onModalitiesChanged);
 
 	connect(m_c->m_dlg_labels, SIGNAL(seedsAdded(const QList<iASeed> &)), this, SLOT(onSeedsAdded(const QList<iASeed> &)));
 	connect(m_c->m_dlg_labels, SIGNAL(seedsRemoved(const QList<iASeed> &)), this, SLOT(onSeedsRemoved(const QList<iASeed> &)));
@@ -118,7 +119,7 @@ void iANModalWidget::onAllSlicersInitialized() {
 			iASlicerMode::XY, iASlicerMode::XZ, iASlicerMode::YZ
 		};
 		for (iASlicerMode mode : modes) {
-			auto mainSlider = m_mdiChild->slicerDockWidget(mode)->verticalScrollBar;
+			auto mainSlider = m_mdiChild->slicerScrollBar(mode);
 			connect(mainSlider, &QAbstractSlider::sliderPressed, [slicer, mainSlider, mode](){
 				slicer->setMode(mode);
 				slicer->setSliceNumber(mainSlider->value()); });

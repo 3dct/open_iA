@@ -23,30 +23,33 @@
 #include "iALabellingAttachment.h"
 
 #include <iAModuleDispatcher.h>
-#include <mainwindow.h>
+#include <iAMainwindow.h>
 
+#include <QAction>
+#include <QMenu>
 
 void iALabellingModuleInterface::Initialize()
 {
 	if (!m_mainWnd)
+	{
 		return;
-	QMenu * toolsMenu = m_mainWnd->toolsMenu();
-	QMenu * menuEnsembles = getMenuWithTitle( toolsMenu, tr( "Image Ensembles" ), false );
-	
-	QAction * actionLabelling = new QAction( tr("Labelling"), nullptr);
-	AddActionToMenuAlphabeticallySorted(menuEnsembles, actionLabelling, true);
-	connect(actionLabelling, SIGNAL(triggered()), this, SLOT(startLabelling()));
+	}
+	QMenu* menuEnsembles = getOrAddSubMenu(m_mainWnd->toolsMenu(), tr("Image Ensembles"), false);
+	QAction* actionLabelling = new QAction(tr("Labelling"), m_mainWnd);
+	menuEnsembles->addAction(actionLabelling);
+	connect(actionLabelling, &QAction::triggered, this, &iALabellingModuleInterface::startLabelling);
 }
 
 void iALabellingModuleInterface::startLabelling()
 {
-	PrepareActiveChild();
-	if (!m_mdiChild)
+	if (!m_mainWnd->activeMdiChild())
+	{
 		return;
-	AttachToMdiChild(m_mdiChild);
+	}
+	AttachToMdiChild(m_mainWnd->activeMdiChild());
 }
 
-iAModuleAttachmentToChild* iALabellingModuleInterface::CreateAttachment(MainWindow* mainWnd, MdiChild * child)
+iAModuleAttachmentToChild* iALabellingModuleInterface::CreateAttachment(iAMainWindow* mainWnd, iAMdiChild * child)
 {
-	return iALabellingAttachment::create( mainWnd, child);
+	return iALabellingAttachment::create(mainWnd, child);
 }

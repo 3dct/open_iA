@@ -1,8 +1,8 @@
 /*************************************  open_iA  ************************************ *
 * **********   A tool for visual analysis and processing of 3D CT images   ********** *
 * *********************************************************************************** *
-* Copyright (C) 2016-2020  C. Heinzl, M. Reiter, A. Reh, W. Li, M. Arikan, Ar. &  Al. *
-*                          Amirkhanov, J. Weissenböck, B. Fröhler, M. Schiwarth       *
+* Copyright (C) 2016-2021  C. Heinzl, M. Reiter, A. Reh, W. Li, M. Arikan, Ar. &  Al. *
+*                 Amirkhanov, J. Weissenböck, B. Fröhler, M. Schiwarth, P. Weinberger *
 * *********************************************************************************** *
 * This program is free software: you can redistribute it and/or modify it under the   *
 * terms of the GNU General Public License as published by the Free Software           *
@@ -22,10 +22,15 @@
 #include "iAThresholdDefinitions.h"
 
 #include <QLineSeries>
+#include <QXYSeries>
 
 #include <vector>
 
+#if QT_VERSION < QT_VERSION_CHECK(6, 0, 0)
 void fillSeries(QtCharts::QXYSeries* aSeries, const std::vector<double>& vec_x, const std::vector<double>& vec_y)
+#else
+void fillSeries(QXYSeries* aSeries, const std::vector<double>& vec_x, const std::vector<double>& vec_y)
+#endif
 {
 	if (!aSeries)
 	{
@@ -37,9 +42,15 @@ void fillSeries(QtCharts::QXYSeries* aSeries, const std::vector<double>& vec_x, 
 	}
 }
 
+#if QT_VERSION < QT_VERSION_CHECK(6, 0, 0)
 QtCharts::QLineSeries* createLineSeries(const threshold_defs::iAParametersRanges& ranges)
 {
 	QtCharts::QLineSeries * series = new QtCharts::QLineSeries;
+#else
+QLineSeries* createLineSeries(const threshold_defs::iAParametersRanges& ranges)
+{
+	QLineSeries* series = new QLineSeries;
+#endif
 	const std::vector<double> x_series = ranges.getXRange();
 	const std::vector<double> y_series = ranges.getYRange();
 
@@ -53,7 +64,11 @@ QtCharts::QLineSeries* createLineSeries(const threshold_defs::iAParametersRanges
 	return series;
 }
 
+#if QT_VERSION < QT_VERSION_CHECK(6, 0, 0)
 QtCharts::QLineSeries* createLineSeries(const QPointF& pt_1, const QPointF& pt_2, LineVisOption option)
+#else
+QLineSeries* createLineSeries(const QPointF& pt_1, const QPointF& pt_2, LineVisOption option)
+#endif
 {
 	double x_1 = pt_1.x();
 	double y_1 = pt_1.y();
@@ -61,7 +76,11 @@ QtCharts::QLineSeries* createLineSeries(const QPointF& pt_1, const QPointF& pt_2
 	double y_2 = pt_2.y();
 
 	//horizontal xy use xy coordinates
+#if QT_VERSION < QT_VERSION_CHECK(6, 0, 0)
 	QtCharts::QLineSeries* series = new QtCharts::QLineSeries;
+#else
+	QLineSeries* series = new QLineSeries;
+#endif
 	switch (option) {
 	case horizontally: y_1 = 0; /*y_2 = 0*/;break;
 	case vertically: /*x_1 = 0*/; x_2 = 0; break;
