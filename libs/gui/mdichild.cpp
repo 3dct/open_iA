@@ -2654,6 +2654,10 @@ void MdiChild::computeStatisticsAsync(std::function<void()> callbackSlot, QShare
 
 void MdiChild::setHistogramModality(int modalityIdx)
 {
+	if (modalityIdx < 0 || modalityIdx >= modalities()->size())
+	{
+		return;
+	}
 	auto mod = modality(modalityIdx);
 
 	if (statisticsComputed(mod))
