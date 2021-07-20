@@ -45,8 +45,10 @@ QVector<double> iANonLinearAxisTicker::createTickVector(double tickStep,
 {
 	Q_UNUSED(tickStep)  Q_UNUSED(range)
 	QVector<double> result;
-	for (int i = 0; i < m_tickVector.size(); i+=m_tickStep)
+	for (int i = 0; i < m_tickVector.size(); i += m_tickStep)
+	{
 		result.append(m_tickVector[i]);
+	}
 	return result;
 }
 
@@ -62,11 +64,17 @@ QVector<double> iANonLinearAxisTicker::createSubTickVector(int subTickCount,
 	int indicesAfterLastMajorTick = 0;
 
 	if ((endIdx + m_tickStep) > m_tickVector.size() - 1)
+	{
 		indicesAfterLastMajorTick = m_tickVector.size() - 1 - endIdx;
+	}
 
 	for (int i = startIdx; i <= endIdx + indicesAfterLastMajorTick; ++i)
+	{
 		if ((i % m_tickStep) != 0)
+		{
 			result.append(m_tickVector[i]);
+		}
+	}
 	return result;
 }
 
@@ -76,7 +84,9 @@ QVector<QString> iANonLinearAxisTicker::createLabelVector(const QVector<double> 
 	//TODO: set dist automatically
 	QVector<QString> result;
 	if (ticks.size() == 0)
+	{
 		return result;
+	}
 
 	int prev = 1;
 	for (int i = 0; i < ticks.size(); ++i)
