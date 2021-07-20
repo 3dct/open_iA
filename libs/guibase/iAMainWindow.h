@@ -93,6 +93,9 @@ public:
 	//! retrieve the module dispatcher
 	virtual iAModuleDispatcher& moduleDispatcher() const = 0;
 
+	//! whether the current qss theme is bright mode (true) or dark mode (false)
+	virtual bool brightMode() const = 0;
+
 
 	//! Retrieve current directory path (the "working folder")
 	virtual QString const& path() const = 0;

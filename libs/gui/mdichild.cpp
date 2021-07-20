@@ -1448,6 +1448,11 @@ void MdiChild::updateLayout()
 	m_mainWnd->loadLayout();
 }
 
+bool MdiChild::brightMode() const
+{
+	return m_mainWnd->brightMode();
+}
+
 void MdiChild::loadLayout(QString const& layout)
 {
 	m_layout = layout;

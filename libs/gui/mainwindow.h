@@ -128,6 +128,9 @@ public:
 	void updateMagicLens2DCheckState(bool enabled);
 	void makeActionChildDependent(QAction* action) override;
 
+	//! whether the current qss theme is bright mode (true) or dark mode (false)
+	bool brightMode() const override;
+
 public slots:
 	void loadLayout();
 

@@ -249,6 +249,8 @@ public:
 	QString layoutName() const override;
 	//! Loads the layout with the given name from the settings store, and tries to restore the according dockwidgets configuration
 	void loadLayout(QString const & layout) override;
+	//! whether the current qss theme is bright mode (true) or dark mode (false)
+	bool brightMode() const override;
 
 	//! If more than one modality loaded, ask user to choose one of them.
 	//! (currently used for determining which modality to save)

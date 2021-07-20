@@ -2337,6 +2337,11 @@ void MainWindow::applyQSS()
 	}
 }
 
+bool MainWindow::brightMode() const
+{
+	return m_qssName.contains("bright");
+}
+
 void MainWindow::saveLayout()
 {
 	iAMdiChild *child = activeMdiChild();

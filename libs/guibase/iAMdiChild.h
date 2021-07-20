@@ -119,6 +119,9 @@ public:
 	// Layout:
 	//! Loads the layout with the given name from the settings store, and tries to restore the according dockwidgets configuration
 	virtual void loadLayout(QString const& layout) = 0;
+	
+	//! whether the current qss theme is bright mode (true) or dark mode (false)
+	virtual bool brightMode() const = 0;
 
 
 	// Settings:

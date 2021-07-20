@@ -246,6 +246,14 @@ QPushButton
 	{
 		border: 1px outset rgba(165, 165, 165, 255);
 	}
+	/*****************************************************************************/
+	/* QPushButton icons:                                                        */
+	/*   - Data dialog (images in guibase):                                      */
+	QToolButton[objectName="add_class"],
+	QPushButton[objectName="pbAdd"]    { qproperty-icon: url(:/images/plus.svg);  }
+	QToolButton[objectName="delete_class"],
+	QPushButton[objectName="pbRemove"] { qproperty-icon: url(:/images/minus.svg); }
+	QPushButton[objectName="pbEdit"]   { qproperty-icon: url(:/images/edit.svg);  }
 /****************************************************************************
 QTabWidget
 QTabBar

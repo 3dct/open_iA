@@ -159,7 +159,7 @@ void dlg_DynamicVolumeLines::setupScaledPlot(QCustomPlot *qcp)
 	tb_MinMaxPlot->setStyleSheet("border: 1px solid; margin-left: 3px;");
 	tb_MinMaxPlot->setMinimumSize(QSize(0, 0));
 	tb_MinMaxPlot->setMaximumSize(QSize(13, 10));
-	tb_MinMaxPlot->setIcon(QIcon(":/images/minus.png"));
+	tb_MinMaxPlot->setIcon(QIcon(QString(":/images/minus%1.svg").arg(!m_mdiChild->brightMode() ? "-dark" : "")));
 	tb_MinMaxPlot->setIconSize(QSize(10, 10));
 	connect(tb_MinMaxPlot, &QToolButton::clicked, this, &dlg_DynamicVolumeLines::changePlotVisibility);
 
@@ -281,8 +281,8 @@ void dlg_DynamicVolumeLines::changePlotVisibility()
 {
 	QToolButton *tb = qobject_cast<QToolButton*>(QObject::sender());
 	tb->objectName().contains("nonlinear") ?
-		setPlotVisibility(tb, m_nonlinearScaledPlot) :
-		setPlotVisibility(tb, m_linearScaledPlot);
+		setPlotVisibility(tb, m_nonlinearScaledPlot, !m_mdiChild->brightMode()) :
+		setPlotVisibility(tb, m_linearScaledPlot, !m_mdiChild->brightMode());
 }
 
 void dlg_DynamicVolumeLines::setupMultiRendererView()
