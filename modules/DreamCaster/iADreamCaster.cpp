@@ -3429,7 +3429,11 @@ bool iADreamCaster::eventFilter(QObject *obj, QEvent *event)
 		if (event->type() == QEvent::MouseButtonDblClick)
 		{
 			QMouseEvent * mevent = static_cast<QMouseEvent*>(event);
+#if QT_VERSION >= QT_VERSION_CHECK(6, 0, 0)
+			int pcoords[2] = {static_cast<int>(mevent->position().x()), static_cast<int>(qvtkPlot3d->height() - mevent->position().y())};
+#else
 			int pcoords[2] = {mevent->x(), qvtkPlot3d->height() - mevent->y()};
+#endif
 			Pick(pcoords);
 		}
 	}

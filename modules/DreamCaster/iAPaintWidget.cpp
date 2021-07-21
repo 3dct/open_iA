@@ -36,10 +36,14 @@ iAPaintWidget::iAPaintWidget(QPixmap *a_pxmp, QWidget *parent): QWidget(parent)
 
 iAPaintWidget::~iAPaintWidget()
 {
-	if(m_highlightX)
-		delete [] m_highlightX;
-	if(m_highlightY)
-		delete [] m_highlightY;
+	if (m_highlightX)
+	{
+		delete[] m_highlightX;
+	}
+	if (m_highlightY)
+	{
+		delete[] m_highlightY;
+	}
 }
 
 void iAPaintWidget::paintEvent(QPaintEvent * /*event*/)
@@ -72,19 +76,33 @@ void iAPaintWidget::paintEvent(QPaintEvent * /*event*/)
 
 void iAPaintWidget::mouseReleaseEvent ( QMouseEvent * event )
 {
-	lastX = (int)(((double)event->x())/m_scale - m_offset[0]);
-	lastY = (int)(((double)event->y())/m_scale - m_offset[1]);
+#if QT_VERSION >= QT_VERSION_CHECK(6, 0, 0)
+	lastX = (int)(((double)event->position().x())/m_scale - m_offset[0]);
+	lastY = (int)(((double)event->position().y())/m_scale - m_offset[1]);
+#else
+	lastX = (int)(((double)event->x()) / m_scale - m_offset[0]);
+	lastY = (int)(((double)event->y()) / m_scale - m_offset[1]);
+#endif
 	mouseReleaseEventSignal();
-	if( event->button()&Qt::LeftButton && !(event->buttons()&Qt::RightButton) )
+	if (event->button() & Qt::LeftButton && !(event->buttons() & Qt::RightButton))
+	{
 		mouseReleaseEventSignal(lastX, lastY);
+	}
 }
 
 void iAPaintWidget::mousePressEvent ( QMouseEvent * event )
 {
+#if QT_VERSION >= QT_VERSION_CHECK(6, 0, 0)
+	m_lastMoveX = event->position().x();
+	m_lastMoveY = event->position().y();
+	lastMoveX = (int)(((double)event->position().x())/m_scale - m_offset[0]);
+	lastMoveY = (int)(((double)event->position().y())/m_scale - m_offset[1]);
+#else
 	m_lastMoveX = event->x();
 	m_lastMoveY = event->y();
-	lastMoveX = (int)(((double)event->x())/m_scale - m_offset[0]);
-	lastMoveY = (int)(((double)event->y())/m_scale - m_offset[1]);
+	lastMoveX = (int)(((double)event->x()) / m_scale - m_offset[0]);
+	lastMoveY = (int)(((double)event->y()) / m_scale - m_offset[1]);
+#endif
 	mousePressEventSignal();
 }
 
@@ -103,35 +121,59 @@ void iAPaintWidget::mouseMoveEvent ( QMouseEvent * event )
 	}
 	else if(event->buttons()&Qt::RightButton)//moving
 	{
-		m_offset[0] += ((double)event->x()-m_lastMoveX)/m_scale;
-		m_offset[1] += ((double)event->y()-m_lastMoveY)/m_scale;
+#if QT_VERSION >= QT_VERSION_CHECK(6, 0, 0)
+		m_offset[0] += ((double)event->position().x()-m_lastMoveX)/m_scale;
+		m_offset[1] += ((double)event->position().y()-m_lastMoveY)/m_scale;
+#else
+		m_offset[0] += ((double)event->x() - m_lastMoveX) / m_scale;
+		m_offset[1] += ((double)event->y() - m_lastMoveY) / m_scale;
+#endif
 		checkOffset();
 		update();
 		ChangedSignal(m_scale, m_offset[0], m_offset[1]);
 	}
+#if QT_VERSION >= QT_VERSION_CHECK(6, 0, 0)
+	m_lastMoveX = event->position().x();
+	m_lastMoveY = event->position().y();
+	lastMoveX = (int)(((double)event->position().x())/m_scale - m_offset[0]);
+	lastMoveY = (int)(((double)event->position().y()) / m_scale - m_offset[1]);
+#else
 	m_lastMoveX = event->x();
 	m_lastMoveY = event->y();
-	lastMoveX = (int)(((double)event->x())/m_scale - m_offset[0]);
-	lastMoveY = (int)(((double)event->y())/m_scale - m_offset[1]);
+	lastMoveX = (int)(((double)event->x()) / m_scale - m_offset[0]);
+	lastMoveY = (int)(((double)event->y()) / m_scale - m_offset[1]);
+#endif
 	mouseMoveEventSignal();
 }
 void iAPaintWidget::checkOffset()
 {
-	if(m_offset[0]>0)
+	if (m_offset[0] > 0)
+	{
 		m_offset[0] = 0;
-	if(m_offset[1]>0)
+	}
+	if (m_offset[1] > 0)
+	{
 		m_offset[1] = 0;
-	if(m_offset[0]<-(double)geometry().width()+(double)geometry().width()/m_scale)
-		m_offset[0] = -(double)geometry().width()+(double)geometry().width()/m_scale;
-	if(m_offset[1]<-(double)geometry().height()+(double)geometry().height()/m_scale)
-		m_offset[1] = -(double)geometry().height()+(double)geometry().height()/m_scale;
+	}
+	if (m_offset[0] < -(double)geometry().width() + (double)geometry().width() / m_scale)
+	{
+		m_offset[0] = -(double)geometry().width() + (double)geometry().width() / m_scale;
+	}
+	if (m_offset[1] < -(double)geometry().height() + (double)geometry().height() / m_scale)
+	{
+		m_offset[1] = -(double)geometry().height() + (double)geometry().height() / m_scale;
+	}
 }
 void iAPaintWidget::checkScale()
 {
-	if(m_scale<1.f)
+	if (m_scale < 1.f)
+	{
 		m_scale = 1.f;
-	if(m_scale>m_maxScale)
+	}
+	if (m_scale > m_maxScale)
+	{
 		m_scale = m_maxScale;
+	}
 }
 void iAPaintWidget::SetHiglightedIndices(int *inds_x, int *inds_y, unsigned int count)
 {
@@ -154,15 +196,15 @@ void iAPaintWidget::SetHighlightStyle(const QColor &color, float penWidth)
 
 void iAPaintWidget::RemoveHighlights()
 {
-	if(m_highlightX)
+	if (m_highlightX)
 	{
 		delete [] m_highlightX;
-		m_highlightX = 0;
+		m_highlightX = nullptr;
 	}
-	if(m_highlightY)
+	if (m_highlightY)
 	{
 		delete [] m_highlightY;
-		m_highlightY = 0;
+		m_highlightY = nullptr;
 	}
 	highlightCount = 0;
 }
