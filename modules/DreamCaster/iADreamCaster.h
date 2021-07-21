@@ -23,7 +23,6 @@
 #include <QMainWindow>
 
 #include "ui_dream_caster4.h"
-#include "ui_LogWnd.h"
 #include "ui_results_dialog.h"
 #include "ui_settings.h"
 
@@ -92,7 +91,6 @@ private:
 	QPainter * formPainter;             //!< Painter. Used to draw on pixmaps (outside QWidget redraw event).
 	unsigned int * viewsBuffer;
 	Ui::DCFormInterface ui;             //!< Contains GUI of main window.
-	Ui::LogWindow logsUi;               //!< Contains GUI of logging window.
 	Ui::ResultsDialog resUi;            //!< Contains GUI of results dialog.
 	Ui::Settings settingsUi;            //!< Contains GUI of settings dialog.
 	//histogram stuff

@@ -152,7 +152,6 @@ iADreamCaster::iADreamCaster(QWidget *parent, Qt::WindowFlags flags)
 	ui.setupUi(this);
 	connect(ui.openSTLFile, &QPushButton::clicked, this, &iADreamCaster::OpenModelSlot);
 	connect(ui.saveTree, &QPushButton::clicked, this, &iADreamCaster::SaveTree);
-	logsUi.setupUi(ui.logsWidget);
 	resUi.setupUi(&res);
 	settingsUi.setupUi(&settings);
 	connect(resUi.pb_Save, &QPushButton::clicked, this, &iADreamCaster::SaveResultsSlot);
@@ -519,12 +518,12 @@ void iADreamCaster::log(QString text, bool appendToPrev)
 {
 	if(appendToPrev)
 	{
-		QString prev_text = logsUi.listWidget->item(logsUi.listWidget->count()-1)->text();
-		logsUi.listWidget->item(logsUi.listWidget->count()-1)->setText(prev_text+text);
+		QString prev_text = ui.listWidget->item(ui.listWidget->count() - 1)->text();
+		ui.listWidget->item(ui.listWidget->count() - 1)->setText(prev_text + text);
 	}
 	else
 	{
-		logsUi.listWidget->insertItem(logsUi.listWidget->count(), text);
+		ui.listWidget->insertItem(ui.listWidget->count(), text);
 	}
 }
 

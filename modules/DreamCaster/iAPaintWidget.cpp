@@ -111,9 +111,9 @@ void iAPaintWidget::mouseMoveEvent ( QMouseEvent * event )
 	if(event->buttons()&Qt::RightButton && event->buttons()&Qt::LeftButton)//scaling
 	{
 #if QT_VERSION >= QT_VERSION_CHECK(6, 0, 0)
-		double delta = scaleCoef*((double)event->y()-(double)m_lastMoveY);
+		double delta = scaleCoef * ((double)event->position().y() - (double)m_lastMoveY);
 #else
-		double delta = scaleCoef*((double)event->position().y()-(double)m_lastMoveY);
+		double delta = scaleCoef * ((double)event->y() - (double)m_lastMoveY);
 #endif
 		//m_offset[0] += (double)geometry().width()/m_scale - (double)geometry().width()/(m_scale+delta);
 		//m_offset[1] += (double)geometry().height()/m_scale - (double)geometry().height()/(m_scale+delta);
