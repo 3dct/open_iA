@@ -2,7 +2,6 @@ SET (GEMSe_PRECOMPILE_INCLUDES
 <iAPlotTypes.h>
 <dlg_commoninput.h>
 <dlg_GEMSe.h>
-<dlg_labels.h>
 <dlg_modalities.h>
 <dlg_samplings.h>
 <iAAttitudes.h>
