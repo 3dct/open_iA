@@ -50,7 +50,10 @@
 #include <QMessageBox>
 #include <QSignalMapper>
 #include <QStandardItemModel>
+
+#if QT_VERSION >= QT_VERSION_CHECK(5, 10, 0)
 #include <QStringView>
+#endif
 #include <QThread>
 #include <QXmlStreamReader>
 
