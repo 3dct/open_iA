@@ -22,7 +22,7 @@
 
 #include "iALabellingAttachment.h"
 
-#include <iAMainwindow.h>
+#include <iAMainWindow.h>
 #include <iAModuleDispatcher.h>
 
 #include <QAction>

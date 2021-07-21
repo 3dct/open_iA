@@ -33,6 +33,8 @@
 #include <QSlider>
 #include <QTimer>
 
+#include <cassert>
+
 // iANModalSeedTracker ----------------------------------------------------------------
 
 iANModalSeedTracker::iANModalSeedTracker()

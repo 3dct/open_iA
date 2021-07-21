@@ -28,6 +28,8 @@
 #include <QPalette>
 #include <QSlider>
 
+#include <cassert>
+
 namespace
 {
 	inline void setLabelColor(QLabel* label, QColor color)

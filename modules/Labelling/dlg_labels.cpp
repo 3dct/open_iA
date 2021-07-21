@@ -30,7 +30,6 @@
 #include <iALog.h>
 #include <iAModality.h>
 #include <iAModalityList.h>
-//#include <iARenderer.h>
 #include <iAFileUtils.h>
 #include <iAMdiChild.h>
 #include <iAPerformanceHelper.h>
@@ -38,7 +37,7 @@
 #include <iASlicerImpl.h>  // for mapSliceToGlobalAxis
 #include <iAToolsVTK.h>
 #include <iAVtkDraw.h>
-#include <iAvec3.h>
+#include <iAVec3.h>
 
 #include <vtkImageData.h>
 #include <vtkLookupTable.h>

@@ -22,7 +22,7 @@
 
 #include "dlg_labels.h"
 
-#include <iAMdichild.h>
+#include <iAMdiChild.h>
 
 iALabellingAttachment::iALabellingAttachment(iAMainWindow* mainWnd, iAMdiChild* child) :
 	iAModuleAttachmentToChild(mainWnd, child)
