@@ -139,9 +139,7 @@ MdiChild::MdiChild(MainWindow* mainWnd, iAPreferences const& prefs, bool unsaved
 {
 	m_histogram->setYMappingMode(prefs.HistogramLogarithmicYAxis ? iAChartWidget::Logarithmic : iAChartWidget::Linear);
 	std::fill(m_slicerVisibility, m_slicerVisibility + 3, false);
-#if QT_VERSION >= QT_VERSION_CHECK(5, 6, 0)
 	setDockOptions(dockOptions() | QMainWindow::GroupedDragging);
-#endif
 	setWindowModified(unsavedChanges);
 	setupUi(this);
 	//prepare window for handling dock widgets

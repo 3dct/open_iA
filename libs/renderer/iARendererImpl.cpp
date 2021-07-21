@@ -983,7 +983,7 @@ void iARendererImpl::setSlicePlanePos(int planeID, double originX, double origin
 void iARendererImpl::applySettings(iARenderSettings const & settings, bool slicePlaneVisibility[3])
 {
 	m_ren->SetUseDepthPeeling(settings.UseDepthPeeling);
-#if (defined(VTK_OPENGL2_BACKEND) && QT_VERSION >= QT_VERSION_CHECK(5, 4, 0) )
+#if (defined(VTK_OPENGL2_BACKEND))
 	m_ren->SetUseDepthPeelingForVolumes(settings.UseDepthPeeling);
 #endif
 	m_ren->SetMaximumNumberOfPeels(settings.DepthPeels);

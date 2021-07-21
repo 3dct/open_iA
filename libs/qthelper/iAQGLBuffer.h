@@ -22,7 +22,7 @@
 
 #include <QtGlobal>
 
-#if (defined(VTK_OPENGL2_BACKEND) && QT_VERSION >= QT_VERSION_CHECK(5, 4, 0) )
+#if (defined(VTK_OPENGL2_BACKEND))
 
 #include <QOpenGLBuffer>
 

@@ -24,7 +24,7 @@
 
 #include <QtGlobal>
 
-#if (VTK_VERSION_NUMBER >= VTK_VERSION_CHECK(8, 2, 0) && (defined(VTK_OPENGL2_BACKEND) && QT_VERSION >= QT_VERSION_CHECK(5, 4, 0)) )
+#if (VTK_VERSION_NUMBER >= VTK_VERSION_CHECK(8, 2, 0) && defined(VTK_OPENGL2_BACKEND) )
 	#include <QVTKOpenGLNativeWidget.h>
 	#include <vtkGenericOpenGLRenderWindow.h>
 	typedef QVTKOpenGLNativeWidget iAVtkWidget;
@@ -45,7 +45,7 @@
 	}
 #endif
 #else
-	#if (VTK_VERSION_NUMBER < VTK_VERSION_CHECK(8, 2, 0) && (defined(VTK_OPENGL2_BACKEND) && QT_VERSION >= QT_VERSION_CHECK(5, 4, 0)) )
+	#if (VTK_VERSION_NUMBER < VTK_VERSION_CHECK(8, 2, 0) && defined(VTK_OPENGL2_BACKEND))
 		#include <QVTKOpenGLWidget.h>
 		#include <vtkGenericOpenGLRenderWindow.h>
 		typedef QVTKOpenGLWidget iAVtkWidget;
