@@ -44,6 +44,7 @@
 #include <vtkPen.h>
 #include <vtkPiecewiseFunction.h>
 #include <vtkPlot.h>
+#include <vtkPlotPoints.h>
 #include <vtkStringArray.h>
 #include <vtkTable.h>
 #include <vtkVariantArray.h>
@@ -293,6 +294,7 @@ dlg_eventExplorer::dlg_eventExplorer(QWidget *parent, size_t numberOfCharts, int
 				static_cast<unsigned char>(c.blue()), static_cast<unsigned char>(c.alpha()));
 			plot->SetWidth(width);
 			plot->SetTooltipLabelFormat("");
+			dynamic_cast<vtkPlotPoints*>(plot)->SetMarkerStyle(vtkPlotPoints::CROSS);
 			m_plots.push_back(plot);
 		}
 	}
