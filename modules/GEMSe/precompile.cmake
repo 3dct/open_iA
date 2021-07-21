@@ -24,7 +24,6 @@ SET (GEMSe_PRECOMPILE_INCLUDES
 <iAImageTreeLeaf.h>
 <iAImageTreeNode.h>
 <iALabelInfo.h>
-<iALabelOverlayThread.h>
 <iALog.h>
 <iAMathUtility.h>
 <iAMeasures.h>
