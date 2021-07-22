@@ -2741,7 +2741,7 @@ bool MdiChild::histogramComputed(size_t newBinCount, QSharedPointer<iAModality> 
 
 void MdiChild::computeHistogramAsync(std::function<void()> callbackSlot, size_t newBinCount, QSharedPointer<iAModality> mod)
 {
-	auto fw = runAsync([this, newBinCount, mod]
+	auto fw = runAsync([newBinCount, mod]
 		{   // run computation of histogram...
 			auto histData = iAHistogramData::create("Frequency", mod->image(), newBinCount, &mod->info());
 			mod->setHistogramData(histData);
