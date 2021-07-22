@@ -47,11 +47,9 @@ class dlg_trackingGraph : public QDockWidget, private Ui_TrackingGraph
 
 public:
 	dlg_trackingGraph(QWidget* parent);
-	void updateGraph(vtkSmartPointer<vtkMutableDirectedGraph> g, size_t numRanks, std::map<vtkIdType, int> nodesToLayers, std::map<int, std::map<vtkIdType, int>> graphToTableId);
+	void updateGraph(vtkSmartPointer<vtkMutableDirectedGraph> g, size_t numRanks);
 
 private:
 	iAVtkWidget* m_graphWidget;
 	vtkSmartPointer<iATrackingGraphItem> m_graphItem;
-	std::map<vtkIdType, int> m_nodesToLayers;
-	std::map<int, std::map<vtkIdType, int>> m_graphToTableId;
 };

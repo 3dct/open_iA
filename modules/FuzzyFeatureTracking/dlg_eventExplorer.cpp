@@ -541,7 +541,7 @@ void dlg_eventExplorer::chartSelectionChanged(vtkObject* /*obj*/)
 		}
 		LOG(lvlInfo, QString("   cTF range: %1, %2").arg(cTF->GetRange()[0]).arg(cTF->GetRange()[1]));
 	}
-	m_trackingGraph->updateGraph(m_graph, this->m_volumeStack->numberOfVolumes(), m_nodesToLayers, m_graphToTableId);
+	m_trackingGraph->updateGraph(m_graph, this->m_volumeStack->numberOfVolumes());
 }
 
 void dlg_eventExplorer::buildGraph(int id, int layer, int eventType, double uncertainty)

@@ -37,17 +37,14 @@
 #include <vtkRenderer.h>
 #include <vtkRenderWindowInteractor.h>
 
-//const int MAX_ITERATIONS		= 24;
 const double BACKGROUND[3]		= {1, 1, 1};
 
 dlg_trackingGraph::dlg_trackingGraph(QWidget *parent) :
 	QDockWidget(parent),
 	m_graphWidget(new iAVtkWidget()),
-	//m_graph(vtkSmartPointer<vtkMutableDirectedGraph>::New()),
 	m_graphItem(vtkSmartPointer<iATrackingGraphItem>::New())
 {
 	setupUi(this);
-	//m_graphItem->SetGraph(m_graph);
 	vtkNew<vtkContextTransform> trans;
 	trans->SetInteractive(true);
 	trans->AddItem(m_graphItem);
@@ -78,19 +75,14 @@ dlg_trackingGraph::dlg_trackingGraph(QWidget *parent) :
 	renWin->Render();
 }
 
-void dlg_trackingGraph::updateGraph(vtkSmartPointer<vtkMutableDirectedGraph> graph, size_t numRanks,
-	std::map<vtkIdType, int> nodesToLayers, std::map<int, std::map<vtkIdType, int>> /*graphToTableId*/)
+void dlg_trackingGraph::updateGraph(vtkSmartPointer<vtkMutableDirectedGraph> graph, size_t numRanks)
 {
 	if (graph->GetNumberOfVertices() < 1)
 	{
 		return;
 	}
-
-	m_nodesToLayers = nodesToLayers;
-
 	vtkNew<vtkPoints> points;
 	iAVtkGraphDrawer graphDrawer;
-	//graphDrawer.setMaxIteration(MAX_ITERATIONS);
 #if VTK_VERSION_NUMBER < VTK_VERSION_CHECK(9, 0, 0)
 	auto renWin = m_graphWidget->GetRenderWindow();
 #else
