@@ -99,7 +99,7 @@ void dlg_eventExplorer::addPlot(int eventID, size_t chartID)
 		static_cast<unsigned char>(c.blue()), static_cast<unsigned char>(c.alpha()));
 	plot->SetWidth(width);
 	plot->SetTooltipLabelFormat("");
-	dynamic_cast<vtkPlotPoints*>(plot)->SetMarkerStyle(vtkPlotPoints::CROSS);
+	dynamic_cast<vtkPlotPoints*>(plot)->SetMarkerStyle(vtkPlotPoints::CIRCLE);
 	m_plots[chartID + m_numberOfCharts * eventID] = plot;
 }
 
@@ -160,6 +160,7 @@ dlg_eventExplorer::dlg_eventExplorer(QWidget *parent, size_t numberOfCharts, int
 	for (size_t i=0; i<numberOfCharts; i++)
 	{
 		iAVtkWidget* vtkWidget = new iAVtkWidget();
+		vtkWidget->setFormat(QVTKOpenGLNativeWidget::defaultFormat());
 		auto renWin = vtkSmartPointer<vtkGenericOpenGLRenderWindow>::New();
 #if VTK_VERSION_NUMBER < VTK_VERSION_CHECK(9, 0, 0)
 		vtkWidget->SetRenderWindow(renWin);
