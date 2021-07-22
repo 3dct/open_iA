@@ -157,7 +157,7 @@ dlg_eventExplorer::dlg_eventExplorer(QWidget *parent, size_t numberOfCharts, int
 
 	m_chartConnections = vtkSmartPointer<vtkEventQtSlotConnect>::New();
 
-	for (size_t i=0; i<numberOfCharts; i++)
+	for (size_t i=0; i<numberOfCharts; ++i)
 	{
 		iAVtkWidget* vtkWidget = new iAVtkWidget();
 		vtkWidget->setFormat(QVTKOpenGLNativeWidget::defaultFormat());
