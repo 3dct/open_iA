@@ -252,7 +252,7 @@ void iAInSpectrAttachment::xrfLoadingDone()
 	connect( dlgXRF->cb_spectralColorImage, &QCheckBox::stateChanged, this, &iAInSpectrAttachment::visualizeXRF);
 	connect( dlgXRF->sl_peakOpacity, &QSlider::valueChanged, this, &iAInSpectrAttachment::updateXRFOpacity);
 	connect( dlgXRF->pb_compute, &QPushButton::clicked, this, &iAInSpectrAttachment::updateXRF);
-	m_child->tabifyDockWidget( dlgRefSpectra, dlgXRF );
+	m_child->splitDockWidget(dlgRefSpectra, dlgXRF, Qt::Horizontal);
 	dlgSimilarityMap->connectToXRF( dlgXRF );
 	m_child->updateLayout();
 }

@@ -74,7 +74,6 @@ class dlg_InSpectr : public dlg_xrfContainer, public iASpectrumFilterListener
 public:
 	dlg_InSpectr(QWidget *parentWidget, iAPeriodicTableWidget* periodicTable, dlg_RefSpectra* dlgRefSpectra);
 	void init(double minEnergy, double maxEnergy, bool haveEnergyLevels, iAMdiChild* child);
-	void InitElementMaps(iAMdiChild* child);
 
 	vtkSmartPointer<vtkImageData> GetCombinedVolume();
 	vtkSmartPointer<vtkColorTransferFunction> GetColorTransferFunction();
@@ -164,7 +163,7 @@ private:
 	void updateSelection();
 	void enableControlsNeedingDecompositionData();
 	void InitElementRenderer(dlg_elementRenderer * elemRend, size_t index);
-	void InitCommonGUI(iAMdiChild* child);
+	void InitCommonGUI();
 
 	QSharedPointer<QImage>                         m_spectraHistogramImage;
 	QImage                                         m_spectraHistogramColormap;
