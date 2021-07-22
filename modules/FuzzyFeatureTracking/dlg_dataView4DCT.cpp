@@ -90,8 +90,8 @@ dlg_dataView4DCT::dlg_dataView4DCT(QWidget *parent, iAVolumeStack* volumeStack):
 
 dlg_dataView4DCT::~dlg_dataView4DCT()
 {
-	delete m_vtkWidgets;
-	delete m_renderers;
+	delete [] m_vtkWidgets;
+	delete [] m_renderers;
 }
 
 void dlg_dataView4DCT::update()
