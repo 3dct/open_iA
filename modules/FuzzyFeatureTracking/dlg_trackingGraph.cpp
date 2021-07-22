@@ -20,8 +20,9 @@
 * ************************************************************************************/
 #include "dlg_trackingGraph.h"
 
-#include <iAVtkGraphDrawer.h>
-#include <iAVtkWidget.h>
+#include "iATrackingGraphItem.h"
+#include "iAVtkGraphDrawer.h"
+#include "iAVtkWidget.h"
 
 #include <vtkContextActor.h>
 #include <vtkContextInteractorStyle.h>

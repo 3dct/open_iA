@@ -21,25 +21,16 @@
 #pragma once
 
 #include "ui_TrackingGraph.h"
-#include "iATrackingGraphItem.h"
 
 #include <iAVtkWidgetFwd.h>
 
 #include <vtkSmartPointer.h>
 
 #include <QDockWidget>
-#include <QWidget>
 
-#include <map>
+class iATrackingGraphItem;
 
-class vtkContextActor;
-class vtkContextInteractorStyle;
-class vtkContextView;
-class vtkContextTransform;
 class vtkMutableDirectedGraph;
-class vtkRenderer;
-class vtkRenderWindowInteractor;
-
 
 class dlg_trackingGraph : public QDockWidget, private Ui_TrackingGraph
 {

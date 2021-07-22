@@ -89,6 +89,20 @@ QString toqstr(vtkVariant const & var)
 	return QString(oss.str().c_str());
 }
 
+void dlg_eventExplorer::addPlot(int eventID, size_t chartID)
+{
+	const float width = 1.0;
+	vtkPlot* plot = m_charts.at(chartID)->AddPlot(vtkChart::POINTS);
+	plot->SetInputData(m_tables.at(chartID + m_numberOfCharts * eventID), m_propertyXId, m_propertyYId);
+	QColor c = EventColors[eventID];
+	plot->SetColor(static_cast<unsigned char>(c.red()), static_cast<unsigned char>(c.green()),
+		static_cast<unsigned char>(c.blue()), static_cast<unsigned char>(c.alpha()));
+	plot->SetWidth(width);
+	plot->SetTooltipLabelFormat("");
+	dynamic_cast<vtkPlotPoints*>(plot)->SetMarkerStyle(vtkPlotPoints::CROSS);
+	m_plots[chartID + m_numberOfCharts * eventID] = plot;
+}
+
 dlg_eventExplorer::dlg_eventExplorer(QWidget *parent, size_t numberOfCharts, int numberOfEventTypes, iAVolumeStack* volumeStack, dlg_trackingGraph* trackingGraph, std::vector<iAFeatureTracking*> trackedFeaturesForwards, std::vector<iAFeatureTracking*> trackedFeaturesBackwards) : QDockWidget(parent)
 {
 	setupUi(this);
@@ -279,20 +293,12 @@ dlg_eventExplorer::dlg_eventExplorer(QWidget *parent, size_t numberOfCharts, int
 		}
 	}
 
-	float width = 1.0;
+	m_plots.resize(EventColors.size() * numberOfCharts);
 	for (size_t eventID = 0; eventID < EventColors.size(); ++eventID)
 	{
 		for (size_t i = 0; i < numberOfCharts; i++)
 		{
-			vtkPlot* plot = m_charts.at(i)->AddPlot(vtkChart::POINTS);
-			plot->SetInputData(m_tables.at(i + numberOfCharts * eventID), m_propertyXId, m_propertyYId);
-			QColor c = EventColors[eventID];
-			plot->SetColor(static_cast<unsigned char>(c.red()), static_cast<unsigned char>(c.green()),
-				static_cast<unsigned char>(c.blue()), static_cast<unsigned char>(c.alpha()));
-			plot->SetWidth(width);
-			plot->SetTooltipLabelFormat("");
-			dynamic_cast<vtkPlotPoints*>(plot)->SetMarkerStyle(vtkPlotPoints::CROSS);
-			m_plots.push_back(plot);
+			addPlot(eventID, i);
 		}
 	}
 
@@ -323,7 +329,7 @@ void dlg_eventExplorer::setOpacity(int eventType, int value)
 {
 	for (size_t i = (m_numberOfCharts * eventType); i < (m_numberOfCharts * (eventType + 1) ); ++i)
 	{
-		m_plots.at(i)->GetPen()->SetOpacity(value);
+		m_plots[i]->GetPen()->SetOpacity(value);
 	}
 	updateCharts();
 }
@@ -366,6 +372,7 @@ void dlg_eventExplorer::updateCheckBox(int eventType, int checked)
 		for (size_t i = 0; i < m_numberOfCharts; ++i)
 		{
 			m_charts.at(i)->RemovePlot(m_plotPositionInVector[eventType]);
+			m_plots[i + m_numberOfCharts * eventType] = nullptr;
 		}
 		for (int i = 0; i < m_numberOfEventTypes; ++i)
 		{
@@ -377,19 +384,18 @@ void dlg_eventExplorer::updateCheckBox(int eventType, int checked)
 		m_plotPositionInVector[eventType] = -1;
 		--m_numberOfActivePlots;
 		m_slider[eventType]->setValue(0);
-		setOpacity(eventType, 0);
+		m_slider[eventType]->setDisabled(true);
 	}
 	else
 	{
+		m_plotPositionInVector[eventType] = m_numberOfActivePlots;
 		for (size_t i = 0; i < m_numberOfCharts; ++i)
 		{
-			m_charts.at(i)->AddPlot(m_plots.at(i + m_numberOfCharts * eventType));
-
-			m_plotPositionInVector[eventType] = m_numberOfActivePlots;
+			addPlot(eventType, i);
 		}
 		++m_numberOfActivePlots;
 		m_slider[eventType]->setValue(255);
-		setOpacity(eventType, 255);
+		m_slider[eventType]->setDisabled(false);
 	}
 	m_slider[eventType]->update();
 	LOG(lvlDebug,
@@ -423,7 +429,10 @@ void dlg_eventExplorer::updateChartData(int axis, int s)
 	}
 	for (size_t i = 0; i < m_numberOfCharts * m_numberOfEventTypes; ++i)
 	{
-		m_plots.at(i)->SetInputData(m_tables.at(i), m_propertyXId + 1, m_propertyYId + 1);
+		if (m_plots[i])
+		{
+			m_plots[i]->SetInputData(m_tables.at(i), m_propertyXId, m_propertyYId);
+		}
 	}
 	vtkStdString title = AvailableProperties[s].toStdString();
 	for (size_t i = 0; i < m_numberOfCharts; ++i)
@@ -661,7 +670,7 @@ void dlg_eventExplorer::buildSubGraph(int id, int layer)
 		}
 
 		// search forwards
-		assert(layer > 0);
+		//assert(layer > 0);		// not sure whether this check is required?
 		if (static_cast<size_t>(layer) < m_numberOfCharts - 1)
 		{
 			//iAFeatureTracking *ftB = m_trackedFeaturesBackwards.at(layer + 1);

@@ -66,6 +66,7 @@ private:
 	void setOpacity(int eventType, int value);
 	void updateCheckBox(int eventType, int checked);
 	void updateCharts();
+	void addPlot(int eventType, size_t chartID);
 
 	iAVolumeStack* m_volumeStack;
 	size_t m_numberOfCharts;
@@ -79,7 +80,7 @@ private:
 	std::vector<iAVtkWidget*> m_widgets;
 	std::vector<vtkSmartPointer<vtkContextView>> m_contextViews;
 	std::vector<vtkSmartPointer<vtkChartXY>> m_charts;
-	std::vector<vtkSmartPointer<vtkPlot>> m_plots;
+	std::vector<vtkPlot*> m_plots;
 	std::vector<vtkSmartPointer<vtkTable>> m_tables;
 
 	std::vector<iAFeatureTracking*> m_trackedFeaturesForwards;
