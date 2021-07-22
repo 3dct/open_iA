@@ -38,9 +38,7 @@ typedef iAQTtoUIConnector<QMainWindow, Ui_FeatureAnalyzer> FeatureAnalyzerConnec
 class iASPMView;
 class iATreeView;
 class iAPDMView;
-//class iAPCView;
 class iASSView;
-class iARangeSliderDiagramView;
 class iASelectionsView;
 class QTreeWidgetItem;
 class QTableWidget;
@@ -95,7 +93,6 @@ private:
 	iAPDMView * m_pdmView;
 	//iAPCView * m_pcView;
 	iASSView * m_ssView;
-	iARangeSliderDiagramView * m_rangeSliderDiagramView;
 	iASelectionsView * m_selView;
 	iASegm3DView * m_segm3DView;
 	iAPreviewSPLOMView * m_prvSplomView;

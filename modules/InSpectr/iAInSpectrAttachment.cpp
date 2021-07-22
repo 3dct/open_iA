@@ -20,19 +20,20 @@
 * ************************************************************************************/
 #include "iAInSpectrAttachment.h"
 
-#include "dlg_periodicTable.h"
 #include "dlg_RefSpectra.h"
 #include "dlg_SimilarityMap.h"
 #include "dlg_InSpectr.h"
 #include "iAElementConcentrations.h"
+#include "iAPeriodicTableWidget.h"
 #include "iAXRFData.h"
 
 #include <iAChannelData.h>
-#include <iASlicer.h>
-#include <io/iAIO.h>
+#include <iADockWidgetWrapper.h>
 #include <iALog.h>
 #include <iAMainWindow.h>
 #include <iAMdiChild.h>
+#include <iASlicer.h>
+#include <io/iAIO.h>
 
 #include "defines.h"    // for NotExistingChannel
 
@@ -77,12 +78,13 @@ iAInSpectrAttachment::iAInSpectrAttachment( iAMainWindow * mainWnd, iAMdiChild *
 
 	LOG(lvlInfo, tr("Loading file '%1', please wait...").arg(f));
 
-	dlgPeriodicTable = new dlg_periodicTable( m_child );
+	auto periodicTable = new iAPeriodicTableWidget(m_child);
+	dlgPeriodicTable = new iADockWidgetWrapper(periodicTable, "Periodic Table of Elements", "PeriodicTable");
 	dlgRefSpectra = new dlg_RefSpectra( m_child );
 	m_child->splitDockWidget(m_child->slicerDockWidget(iASlicerMode::XY), dlgPeriodicTable, Qt::Horizontal);
 	m_child->splitDockWidget(m_child->slicerDockWidget(iASlicerMode::XY), dlgRefSpectra, Qt::Horizontal);
 
-	dlgXRF = new dlg_InSpectr( m_child, dlgPeriodicTable, dlgRefSpectra );
+	dlgXRF = new dlg_InSpectr(m_child, periodicTable, dlgRefSpectra);
 
 	ioThread = new iAIO(iALog::get(), m_child, dlgXRF->GetXRFData()->GetDataPtr() );
 	m_child->setReInitializeRenderWindows( false );

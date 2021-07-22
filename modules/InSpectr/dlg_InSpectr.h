@@ -40,16 +40,16 @@
 
 typedef iAQTtoUIConnector<QDockWidget, Ui_InSpectr>   dlg_xrfContainer;
 
-class dlg_periodicTable;
 class dlg_RefSpectra;
 class iAAccumulatedXRFData;
 class iADecompositionCalculator;
 class iAElementConcentrations;
 class iAEnergySpectrumWidget;
+class iAPeriodicTableListener;
+class iAPeriodicTableWidget;
 class iAPieChartGlyph;
 class iAPieChartWidget;
 class iAReferenceSpectraLibrary;
-class iAPeriodicTableListener;
 class iAXRFData;
 
 class iAMdiChild;
@@ -72,7 +72,7 @@ class dlg_InSpectr : public dlg_xrfContainer, public iASpectrumFilterListener
 {
 	Q_OBJECT
 public:
-	dlg_InSpectr(QWidget *parentWidget, dlg_periodicTable* dlgPeriodicTable, dlg_RefSpectra* dlgRefSpectra);
+	dlg_InSpectr(QWidget *parentWidget, iAPeriodicTableWidget* periodicTable, dlg_RefSpectra* dlgRefSpectra);
 	void init(double minEnergy, double maxEnergy, bool haveEnergyLevels, iAMdiChild* child);
 	void InitElementMaps(iAMdiChild* child);
 
@@ -196,7 +196,7 @@ private:
 	uint                                           m_spectrumSelectionChannelID;
 	vtkSmartPointer<vtkLookupTable>                m_ctf[3];
 	vtkSmartPointer<vtkPiecewiseFunction>          m_otf[3];
-	dlg_periodicTable *                            m_periodicTable;
+	iAPeriodicTableWidget*                         m_periodicTable;
 	vtkSmartPointer<vtkColorTransferFunction>      m_selection_ctf;
 	vtkSmartPointer<vtkPiecewiseFunction>          m_selection_otf;
 	//! @{ Spectra Histogram colormap

@@ -20,7 +20,6 @@
 * ************************************************************************************/
 #include "dlg_InSpectr.h"
 
-#include "dlg_periodicTable.h"
 #include "dlg_RefSpectra.h"
 #include "iAAccumulatedXRFData.h"
 #include "iACharacteristicEnergy.h"
@@ -29,6 +28,7 @@
 #include "iAElementConstants.h"
 #include "iAEnergySpectrumWidget.h"
 #include "iAFunctionalBoxplotQtDrawer.h"
+#include "iAPeriodicTableWidget.h"
 #include "iAPeriodicTableListener.h"
 #include "iAPieChartGlyph.h"
 #include "iAPieChartWidget.h"
@@ -92,7 +92,7 @@
 #include <cassert>
 
 
-dlg_InSpectr::dlg_InSpectr(QWidget *parentWidget, dlg_periodicTable* dlgPeriodicTable, dlg_RefSpectra* dlgRefSpectra):
+dlg_InSpectr::dlg_InSpectr(QWidget* parentWidget, iAPeriodicTableWidget* periodicTable, dlg_RefSpectra* dlgRefSpectra) :
 	dlg_xrfContainer(parentWidget),
 	m_pieGlyphsEnabled(false),
 	m_spectraHistogramColormap(QString::fromUtf8(":/images/colormap.png")),
@@ -106,7 +106,7 @@ dlg_InSpectr::dlg_InSpectr(QWidget *parentWidget, dlg_periodicTable* dlgPeriodic
 	m_xrfData(new iAXRFData),
 	m_enabledChannels(0),
 	m_spectrumSelectionChannelID(NotExistingChannel),
-	m_periodicTable(dlgPeriodicTable),
+	m_periodicTable(periodicTable),
 	m_selection_ctf(vtkSmartPointer<vtkColorTransferFunction>::New()),
 	m_selection_otf(vtkSmartPointer<vtkPiecewiseFunction>::New()),
 	m_refSpectra(dlgRefSpectra),
