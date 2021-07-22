@@ -39,6 +39,7 @@ iAPCView::iAPCView( QWidget * parent /*= 0*/, Qt::WindowFlags f /*= 0 */ )
 	m_chart( vtkSmartPointer<vtkChartParallelCoordinates>::New() )
 {
 	CREATE_OLDVTKWIDGET(m_widget);
+	m_widget->setFormat(QVTKOpenGLNativeWidget::defaultFormat());
 	QHBoxLayout *layoutHB = new QHBoxLayout( this );
 	layoutHB->setContentsMargins(0, 0, 0, 0);
 	layoutHB->addWidget( m_widget );

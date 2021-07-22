@@ -48,6 +48,7 @@ iAGEMSeScatterplot::iAGEMSeScatterplot(QWidget* parent):
 	m_chart1ID(-1),
 	m_chart2ID(-1)
 {
+	setFormat(QVTKOpenGLNativeWidget::defaultFormat());
 	vtkSmartPointer<vtkContextView> contextView(vtkSmartPointer<vtkContextView>::New());
 #if VTK_VERSION_NUMBER < VTK_VERSION_CHECK(9, 0, 0)
 	SetRenderWindow(vtkSmartPointer<vtkGenericOpenGLRenderWindow>::New());
