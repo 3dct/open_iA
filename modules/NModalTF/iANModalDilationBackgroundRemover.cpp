@@ -482,8 +482,7 @@ void iANModalIterativeDilationThread::setCanceled(bool c)
 	if (m_canceled)                  \
 	{                                \
 		return;                      \
-	}                                \
-	while (0)
+	}
 #endif
 
 void iANModalIterativeDilationThread::run()

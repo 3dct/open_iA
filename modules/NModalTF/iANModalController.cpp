@@ -579,7 +579,7 @@ static constexpr int slicerCoordSwapIndices[NUM_SLICERS][NUM_SLICERS] = {{2, 0, 
 
 static inline void swapIndices(const int (&xyz_orig)[3], int mainSlicerIndex, int (&xyz_out)[3])
 {
-#ifndef NDEBUG
+#ifdef NDEBUG
 	Q_UNUSED(xyz_orig);
 #endif
 	xyz_out[0] = mapSliceToGlobalAxis(mainSlicerIndex, 0);
