@@ -27,6 +27,7 @@
 #include <vtkContextInteractorStyle.h>
 #include <vtkContextScene.h>
 #include <vtkContextTransform.h>
+#include <vtkContextView.h>
 #include <vtkGenericOpenGLRenderWindow.h>
 #include <vtkGraphItem.h>
 #include <vtkMutableDirectedGraph.h>
@@ -39,76 +40,67 @@
 //const int MAX_ITERATIONS		= 24;
 const double BACKGROUND[3]		= {1, 1, 1};
 
-dlg_trackingGraph::dlg_trackingGraph(QWidget *parent) : QDockWidget(parent)
+dlg_trackingGraph::dlg_trackingGraph(QWidget *parent) :
+	QDockWidget(parent),
+	m_graphWidget(new iAVtkWidget()),
+	//m_graph(vtkSmartPointer<vtkMutableDirectedGraph>::New()),
+	m_graphItem(vtkSmartPointer<iATrackingGraphItem>::New())
 {
 	setupUi(this);
+	//m_graphItem->SetGraph(m_graph);
+	vtkNew<vtkContextTransform> trans;
+	trans->SetInteractive(true);
+	trans->AddItem(m_graphItem);
+	vtkNew<vtkContextView> contextView;
+	contextView->GetScene()->AddItem(trans);
+	vtkNew<vtkContextActor> actor;
+	actor->SetScene(contextView->GetScene());
 
-	// create graph
-	m_graph = vtkSmartPointer<vtkMutableDirectedGraph>::New();
+	vtkNew<vtkRenderer> renderer;
+	renderer->SetBackground(BACKGROUND[0], BACKGROUND[1], BACKGROUND[2]);
+	renderer->AddActor(actor);
 
-	m_graphItem = vtkSmartPointer<iATrackingGraphItem>::New();
-	m_graphItem->SetGraph(m_graph);
-
-	m_trans = vtkSmartPointer<vtkContextTransform>::New();
-	m_trans->SetInteractive(true);
-	m_trans->AddItem(m_graphItem);
-
-	m_contextScene = vtkSmartPointer<vtkContextScene>::New();
-	m_contextScene->AddItem(m_trans);
-
-	m_actor = vtkSmartPointer<vtkContextActor>::New();
-	m_actor->SetScene(m_contextScene);
-
-	m_renderer = vtkSmartPointer<vtkRenderer>::New();
-	m_renderer->SetBackground(BACKGROUND[0], BACKGROUND[1], BACKGROUND[2]);
-	m_renderer->AddActor(m_actor);
-
-	graphWidget = new iAVtkWidget();
 	auto renWin = vtkSmartPointer<vtkGenericOpenGLRenderWindow>::New();
 #if VTK_VERSION_NUMBER < VTK_VERSION_CHECK(9, 0, 0)
-	graphWidget->SetRenderWindow(renWin);
+	m_graphWidget->SetRenderWindow(renWin);
+	auto interactor = m_graphWidget->GetInteractor();
 #else
-	graphWidget->setRenderWindow(renWin);
+	m_graphWidget->setRenderWindow(renWin);
+	auto interactor = m_graphWidget->interactor();
 #endif
-	this->horizontalLayout->addWidget(graphWidget);
-	renWin->AddRenderer(m_renderer);
-
-	m_interactorStyle = vtkSmartPointer<vtkContextInteractorStyle>::New();
-	m_interactorStyle->SetScene(m_contextScene);
-
-	m_interactor = vtkSmartPointer<vtkRenderWindowInteractor>::New();
-	m_interactor->SetInteractorStyle(m_interactorStyle);
-#if VTK_VERSION_NUMBER < VTK_VERSION_CHECK(9, 0, 0)
-	m_interactor->SetRenderWindow(graphWidget->GetRenderWindow());
-#else
-	m_interactor->SetRenderWindow(graphWidget->renderWindow());
-#endif
+	this->horizontalLayout->addWidget(m_graphWidget);
+	renWin->AddRenderer(renderer);
+	contextView->SetRenderWindow(renWin);
+	vtkNew<vtkContextInteractorStyle> interactorStyle;
+	interactorStyle->SetScene(contextView->GetScene());
+	interactor->SetInteractorStyle(interactorStyle);
+	contextView->SetInteractor(interactor);
 	renWin->Render();
 }
 
-void dlg_trackingGraph::updateGraph(vtkMutableDirectedGraph* g, size_t numRanks, std::map<vtkIdType, int> nodesToLayers, std::map<int, std::map<vtkIdType, int>> /*graphToTableId*/)
+void dlg_trackingGraph::updateGraph(vtkSmartPointer<vtkMutableDirectedGraph> graph, size_t numRanks,
+	std::map<vtkIdType, int> nodesToLayers, std::map<int, std::map<vtkIdType, int>> /*graphToTableId*/)
 {
-	if(g->GetNumberOfVertices() < 1) return;
+	if (graph->GetNumberOfVertices() < 1)
+	{
+		return;
+	}
 
-	this->m_graph = g;
-	this->m_nodesToLayers = nodesToLayers;
+	m_nodesToLayers = nodesToLayers;
 
 	vtkNew<vtkPoints> points;
 	iAVtkGraphDrawer graphDrawer;
 	//graphDrawer.setMaxIteration(MAX_ITERATIONS);
 #if VTK_VERSION_NUMBER < VTK_VERSION_CHECK(9, 0, 0)
-	graphDrawer.createLayout(points.GetPointer(), m_graph, graphWidget->GetRenderWindow()->GetSize(), numRanks);
+	auto renWin = m_graphWidget->GetRenderWindow();
 #else
-	graphDrawer.createLayout(points.GetPointer(), m_graph, graphWidget->renderWindow()->GetSize(), numRanks);
+	auto renWin = m_graphWidget->renderWindow();
 #endif
-	m_graph->SetPoints(points.GetPointer());
+	graphDrawer.createLayout(points.GetPointer(), graph, renWin->GetSize(), numRanks);
+	graph->SetPoints(points.GetPointer());
 
-	m_graphItem->SetGraph(m_graph);
+	m_graphItem->SetGraph(graph);
 	m_graphItem->Update();
-#if VTK_VERSION_NUMBER < VTK_VERSION_CHECK(9, 0, 0)
-	graphWidget->GetRenderWindow()->Render();
-#else
-	graphWidget->renderWindow()->Render();
-#endif
-	graphWidget->update();
+	renWin->Render();
+	m_graphWidget->update();
 }

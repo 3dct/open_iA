@@ -93,12 +93,12 @@ private:
 	std::map<int, std::map<vtkIdType, int>> m_graphToTableId;
 	std::map<int, std::map<vtkIdType, int>> m_tableToGraphId;
 
-	vtkMutableDirectedGraph* m_graph;
-	vtkStringArray* m_labels;
-	vtkIntArray* m_nodeLayer;
-	vtkIntArray* m_colorR;
-	vtkIntArray* m_colorG;
-	vtkIntArray* m_colorB;
-	vtkDoubleArray* m_trackingUncertainty;
-	vtkEventQtSlotConnect* m_chartConnections;
+	vtkSmartPointer<vtkMutableDirectedGraph> m_graph;
+	vtkSmartPointer<vtkStringArray> m_labels;
+	vtkSmartPointer<vtkIntArray> m_nodeLayer;
+	vtkSmartPointer<vtkIntArray> m_colorR;
+	vtkSmartPointer<vtkIntArray> m_colorG;
+	vtkSmartPointer<vtkIntArray> m_colorB;
+	vtkSmartPointer<vtkDoubleArray> m_trackingUncertainty;
+	vtkSmartPointer<vtkEventQtSlotConnect> m_chartConnections;
 };

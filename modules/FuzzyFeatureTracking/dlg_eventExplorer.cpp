@@ -82,9 +82,6 @@ namespace
 		<< " Event Type";
 }
 
-#define VTK_CREATE(type, name) \
-	vtkSmartPointer<type> name = vtkSmartPointer<type>::New()
-
 QString toqstr(vtkVariant const & var)
 {
 	std::ostringstream oss;
@@ -144,7 +141,7 @@ dlg_eventExplorer::dlg_eventExplorer(QWidget *parent, size_t numberOfCharts, int
 	connect(logXCheckBox, &QCheckBox::stateChanged, [this](int c) { setChartLogScale(vtkAxis::BOTTOM, c == Qt::Checked); });
 	connect(logYCheckBox, &QCheckBox::stateChanged, [this](int c) { setChartLogScale(vtkAxis::LEFT, c == Qt::Checked); });
 
-	m_chartConnections = vtkEventQtSlotConnect::New();
+	m_chartConnections = vtkSmartPointer<vtkEventQtSlotConnect>::New();
 
 	for (size_t i=0; i<numberOfCharts; i++)
 	{
@@ -174,12 +171,12 @@ dlg_eventExplorer::dlg_eventExplorer(QWidget *parent, size_t numberOfCharts, int
 		{
 			m_tables.push_back(vtkSmartPointer<vtkTable>::New());
 
-			VTK_CREATE(vtkFloatArray, arrX);
+			auto arrX = vtkSmartPointer<vtkFloatArray>::New();
 			arrX->SetName("x");
 			m_tables.at(tableId)->AddColumn(arrX);
 			for (QString propName : AvailableProperties)
 			{
-				VTK_CREATE(vtkFloatArray, arrProp);
+				auto arrProp = vtkSmartPointer<vtkFloatArray>::New();
 				auto arrName = QString("%1[%2]").arg(eventName).arg(propName).toStdString();
 				arrProp->SetName(arrName.c_str());
 				m_tables.at(tableId)->AddColumn(arrProp);
@@ -283,7 +280,7 @@ dlg_eventExplorer::dlg_eventExplorer(QWidget *parent, size_t numberOfCharts, int
 	}
 
 	float width = 1.0;
-	for (int eventID = 0; eventID < EventColors.size(); ++eventID)
+	for (size_t eventID = 0; eventID < EventColors.size(); ++eventID)
 	{
 		for (size_t i = 0; i < numberOfCharts; i++)
 		{
@@ -451,18 +448,18 @@ void dlg_eventExplorer::comboBoxYSelectionChanged(int s)
 void dlg_eventExplorer::chartSelectionChanged(vtkObject* /*obj*/)
 {
 	//clear graph TODO
-	m_graph = vtkMutableDirectedGraph::New();
-	m_labels = vtkStringArray::New();
+	m_graph = vtkSmartPointer<vtkMutableDirectedGraph>::New();
+	m_labels = vtkSmartPointer<vtkStringArray>::New();
 	m_labels->SetName("Label");
-	m_nodeLayer = vtkIntArray::New();
+	m_nodeLayer = vtkSmartPointer<vtkIntArray>::New();
 	m_nodeLayer->SetName("Layer");
-	m_colorR = vtkIntArray::New();
+	m_colorR = vtkSmartPointer<vtkIntArray>::New();
 	m_colorR->SetName("ColorR");
-	m_colorG = vtkIntArray::New();
+	m_colorG = vtkSmartPointer<vtkIntArray>::New();
 	m_colorG->SetName("ColorG");
-	m_colorB = vtkIntArray::New();
+	m_colorB = vtkSmartPointer<vtkIntArray>::New();
 	m_colorB->SetName("ColorB");
-	m_trackingUncertainty = vtkDoubleArray::New();
+	m_trackingUncertainty = vtkSmartPointer<vtkDoubleArray>::New();
 	m_trackingUncertainty->SetName("Uncertainty");
 	m_nodes.clear();
 	m_visitedNodes.clear();

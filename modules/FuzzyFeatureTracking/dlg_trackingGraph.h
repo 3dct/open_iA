@@ -32,13 +32,13 @@
 
 #include <map>
 
-class vtkRenderer;
-class vtkContextInteractorStyle;
-class vtkRenderWindowInteractor;
-class vtkContextTransform;
 class vtkContextActor;
+class vtkContextInteractorStyle;
+class vtkContextView;
+class vtkContextTransform;
 class vtkMutableDirectedGraph;
-class vtkContextScene;
+class vtkRenderer;
+class vtkRenderWindowInteractor;
 
 
 class dlg_trackingGraph : public QDockWidget, private Ui_TrackingGraph
@@ -47,21 +47,11 @@ class dlg_trackingGraph : public QDockWidget, private Ui_TrackingGraph
 
 public:
 	dlg_trackingGraph(QWidget* parent);
-
-	void updateGraph(vtkMutableDirectedGraph* g, size_t numRanks, std::map<vtkIdType, int> nodesToLayers, std::map<int, std::map<vtkIdType, int>> graphToTableId);
+	void updateGraph(vtkSmartPointer<vtkMutableDirectedGraph> g, size_t numRanks, std::map<vtkIdType, int> nodesToLayers, std::map<int, std::map<vtkIdType, int>> graphToTableId);
 
 private:
-	iAVtkWidget* graphWidget;
-
-	vtkSmartPointer<vtkMutableDirectedGraph>	m_graph;
-	vtkSmartPointer<iATrackingGraphItem>		m_graphItem;
-	vtkSmartPointer<vtkContextActor>			m_actor;
-	vtkSmartPointer<vtkContextTransform>		m_trans;
-	vtkSmartPointer<vtkRenderer>				m_renderer;
-	vtkSmartPointer<vtkContextScene>			m_contextScene;
-	vtkSmartPointer<vtkContextInteractorStyle>	m_interactorStyle;
-	vtkSmartPointer<vtkRenderWindowInteractor>	m_interactor;
-
-	std::map<vtkIdType, int>					m_nodesToLayers;
-	std::map<int, std::map<vtkIdType, int>>		m_graphToTableId;
+	iAVtkWidget* m_graphWidget;
+	vtkSmartPointer<iATrackingGraphItem> m_graphItem;
+	std::map<vtkIdType, int> m_nodesToLayers;
+	std::map<int, std::map<vtkIdType, int>> m_graphToTableId;
 };
