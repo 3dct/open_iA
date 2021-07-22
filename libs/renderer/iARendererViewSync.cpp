@@ -53,6 +53,11 @@ iARendererViewSync::iARendererViewSync(bool sharedCamera) :
 {
 }
 
+iARendererViewSync::~iARendererViewSync()
+{
+	removeAll();
+}
+
 void iARendererViewSync::addToBundle(vtkRenderer* renderer)
 {
 	if (m_sharedCamera)
