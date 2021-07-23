@@ -42,6 +42,7 @@
 		(x) = new QVTKOpenGLNativeWidget(); \
 		auto renWin = vtkSmartPointer<vtkGenericOpenGLRenderWindow>::New(); \
 		(x)->setRenderWindow(renWin); \
+		(x)->setFormat(QVTKOpenGLNativeWidget::defaultFormat()); \
 	}
 #endif
 #else

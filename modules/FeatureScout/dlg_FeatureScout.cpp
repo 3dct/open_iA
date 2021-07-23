@@ -1452,7 +1452,6 @@ void dlg_FeatureScout::CsvDVSaveButton()
 
 			iAVtkOldWidget* dvqvtkWidget;
 			CREATE_OLDVTKWIDGET(dvqvtkWidget);
-			dvqvtkWidget->setFormat(QVTKOpenGLNativeWidget::defaultFormat());
 			m_dwDV->setWidget(dvqvtkWidget);
 #if VTK_VERSION_NUMBER < VTK_VERSION_CHECK(9, 0, 0)
 			m_dvContextView->SetRenderWindow(dvqvtkWidget->GetRenderWindow());

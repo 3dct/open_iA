@@ -114,7 +114,6 @@ ChartWidgetData CreateChartWidget(const char * xTitle, const char * yTitle,
 {
 	ChartWidgetData result;
 	result.vtkWidget = new iAVtkWidget();
-	result.vtkWidget->setFormat(QVTKOpenGLNativeWidget::defaultFormat());
 	auto contextView = vtkSmartPointer<vtkContextView>::New();
 #if VTK_VERSION_NUMBER < VTK_VERSION_CHECK(9, 0, 0)
 	result.vtkWidget->SetRenderWindow(vtkSmartPointer<vtkGenericOpenGLRenderWindow>::New());
