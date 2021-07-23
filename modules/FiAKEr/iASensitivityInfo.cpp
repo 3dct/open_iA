@@ -2284,6 +2284,44 @@ void iASensitivityInfo::computeSpatialOverview(iAProgress * progress)
 
 	const int MeasureIdx = 0;
 
+	progress->setStatus("Computing fiber volume percentage.");
+	progress->emitProgress(0);
+	iAVec3d origin = overallBB[0];
+
+	int overallVoxels = volSize * volSize * volSize;
+#pragma omp parallel for
+	for (size_t r = 0; r < resultCount; ++r)
+	{
+		if (m_aborted)	// apparently a good way to stop OpenMP thread:
+		{	// https://stackoverflow.com/questions/54293086
+			continue;
+		}
+		auto resultFiberImg = allocateImage(VTK_FLOAT, size, spacing.data());
+		resultFiberImg->SetOrigin(origin.data());
+		fillImage(resultFiberImg, 0);
+		auto const& d = m_data->result[r];
+		for (size_t f = 0; f < d.fiberCount && !m_aborted; ++f)
+		{
+			projectFiberToImage(d.fiberData[f], d.fiberBB[f], resultFiberImg, size, spacing, origin);
+		}
+		// count voxels != 0:
+		int fiberVoxels = 0;
+		FOR_VTKIMG_PIXELS(resultFiberImg, x, y, z)
+		{
+			if (resultFiberImg->GetScalarComponentAsDouble(x, y, z, 0) != 0)
+			{
+				++fiberVoxels;
+			}
+			if (m_aborted)
+			{
+				break;
+			}
+		}
+		LOG(lvlInfo, QString("Result %1: Fibers take up ~ %2 %% of the volume (%3 of %4 voxels).")
+			.arg(r).arg(static_cast<double>(fiberVoxels)/overallVoxels)
+			.arg(fiberVoxels).arg(overallVoxels));
+	}
+
 	// NEW spatial overview over variability:
 	// do in background!
 
@@ -2359,7 +2397,6 @@ void iASensitivityInfo::computeSpatialOverview(iAProgress * progress)
 	h.start("Determining fiber variation images", false);
 	// maybe operate with "raw" buffers here instead of vtkImageData objects??
 	std::vector<vtkSmartPointer<vtkImageData>> perUniqueFiberVars;
-	iAVec3d origin = overallBB[0];
 	m_spatialOverview = allocateImage(VTK_FLOAT, size, spacing.data());
 	m_spatialOverview->SetOrigin(origin.data());
 	fillImage(m_spatialOverview, 0);
