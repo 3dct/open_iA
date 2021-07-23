@@ -24,6 +24,7 @@ ADD_TEST(NAME Vec3Test COMMAND Vec3Test)
 # MathUtilTest
 ADD_EXECUTABLE(MathUtilTest iAMathUtilityTest.cpp ../libs/base/iAMathUtility.cpp)
 TARGET_INCLUDE_DIRECTORIES(MathUtilTest PRIVATE ${CMAKE_CURRENT_SOURCE_DIR}/../libs/base ${CMAKE_CURRENT_BINARY_DIR}/../libs)
+TARGET_LINK_LIBRARIES(MathUtilTest PRIVATE Qt${QT_VERSION_MAJOR}::Core)
 IF (openiA_DEPENDENCY_INFO)
 	MESSAGE(STATUS "MathUtilTest dependencies")
 ENDIF()
