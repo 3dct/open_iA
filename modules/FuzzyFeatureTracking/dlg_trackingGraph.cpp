@@ -45,22 +45,21 @@ dlg_trackingGraph::dlg_trackingGraph(QWidget *parent) :
 	m_graphWidget(new iAVtkWidget()),
 	m_graphItem(vtkSmartPointer<iATrackingGraphItem>::New())
 {
-#if (VTK_VERSION_NUMBER >= VTK_VERSION_CHECK(8, 2, 0) && defined(VTK_OPENGL2_BACKEND))
+#if (VTK_VERSION_NUMBER >= VTK_VERSION_CHECK(8, 2, 0) || defined(VTK_OPENGL2_BACKEND))
 	m_graphWidget->setFormat(iAVtkWidget::defaultFormat());
 #endif
 	setupUi(this);
 	vtkNew<vtkContextTransform> trans;
 	trans->SetInteractive(true);
-	trans->AddItem(m_graphItem);
-	vtkNew<vtkContextView> contextView;
-	contextView->GetScene()->AddItem(trans);
+	trans->AddItem(m_graphItem.GetPointer());
 	vtkNew<vtkContextActor> actor;
-	actor->SetScene(contextView->GetScene());
-
+	vtkNew<vtkContextView> contextView;
+	auto contextScene = contextView->GetScene();
+	contextScene->AddItem(trans.GetPointer());
+	actor->SetScene(contextScene);
 	vtkNew<vtkRenderer> renderer;
 	renderer->SetBackground(BACKGROUND[0], BACKGROUND[1], BACKGROUND[2]);
-	renderer->AddActor(actor);
-
+	renderer->AddActor(actor.GetPointer());
 	auto renWin = vtkSmartPointer<vtkGenericOpenGLRenderWindow>::New();
 #if VTK_VERSION_NUMBER < VTK_VERSION_CHECK(9, 0, 0)
 	m_graphWidget->SetRenderWindow(renWin);
@@ -70,11 +69,11 @@ dlg_trackingGraph::dlg_trackingGraph(QWidget *parent) :
 	auto interactor = m_graphWidget->interactor();
 #endif
 	this->horizontalLayout->addWidget(m_graphWidget);
-	renWin->AddRenderer(renderer);
+	renWin->AddRenderer(renderer.GetPointer());
 	contextView->SetRenderWindow(renWin);
 	vtkNew<vtkContextInteractorStyle> interactorStyle;
-	interactorStyle->SetScene(contextView->GetScene());
-	interactor->SetInteractorStyle(interactorStyle);
+	interactorStyle->SetScene(contextScene);
+	interactor->SetInteractorStyle(interactorStyle.GetPointer());
 	contextView->SetInteractor(interactor);
 	renWin->Render();
 }
