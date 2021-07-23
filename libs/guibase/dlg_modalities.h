@@ -66,13 +66,19 @@ public:
 	//! initialize a modality's display in renderers
 	void initDisplay(QSharedPointer<iAModality> mod);
 	void addModality(vtkSmartPointer<vtkImageData>, QString const & name);
+	void addModality(QSharedPointer<iAModality> mod);
 	void selectRow(int idx);
 	void enableUI();
 	void setFileName(int modality, QString const & fileName);
 	void setInteractionMode(bool manualRegistration);
+
+	void setChecked(QSharedPointer<iAModality>, Qt::CheckState checked);
+	void setAllChecked(Qt::CheckState checked);
+
 public slots:
 	//! add modality to list, create transfer function, add volume to renderers
 	void modalityAdded(QSharedPointer<iAModality> mod);
+
 signals:
 	void modalityAvailable(int modalityIdx);
 	void modalitySelected(int modalityIdx);
@@ -92,7 +98,7 @@ private slots:
 	//! enable/ picking dragging of selected modality
 	void setModalitySelectionMovable(int selectedRow);
 
-	void showChecked(QListWidgetItem* item);
+	void checkboxClicked(QListWidgetItem* item);
 
 private:
 	//! connects interactor styles  slicer to each other and with 3D renderer
@@ -108,4 +114,9 @@ private:
 	iAMdiChild* m_mdiChild;
 
 	vtkSmartPointer<iAvtkInteractStyleActor> m_manualMoveStyle[4];
+
+	void setChecked(QListWidgetItem* item, Qt::CheckState checked);
+	void setModalityVisibility(QSharedPointer<iAModality>, bool visible);
+
+	QListWidgetItem* item(QSharedPointer<iAModality>);
 };

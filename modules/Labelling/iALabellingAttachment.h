@@ -20,78 +20,20 @@
 * ************************************************************************************/
 #pragma once
 
-#include "ui_labels.h"
+#include "Labelling_export.h"
 
-#include "iALabelInfo.h"
+#include <iAModuleAttachmentToChild.h>
 
-#include <qthelper/iAQTtoUIConnector.h>
+class dlg_labels;
 
-#include <vtkSmartPointer.h>
-
-#include <QList>
-
-class iAColorTheme;
-class iAMdiChild;
-
-class QStandardItem;
-class QStandardItemModel;
-
-class iAvtkImageData;
-class vtkLookupTable;
-class vtkObject;
-class vtkPiecewiseFunction;
-
-class iALabelOverlayThread;
-
-class iAImageCoordinate;
-
-typedef iAQTtoUIConnector<QDockWidget, Ui_labels> dlg_labelUI;
-
-class dlg_labels : public dlg_labelUI, public iALabelInfo
+class iALabellingAttachment : public iAModuleAttachmentToChild
 {
 	Q_OBJECT
 public:
-	dlg_labels(iAMdiChild* mdiChild, iAColorTheme const * theme);
-	int curLabelRow() const;
-	int seedCount(int labelIdx) const;
-	bool load(QString const & filename);
-	bool store(QString const & filename, bool extendedFormat);
-	void setColorTheme(iAColorTheme const *);
-	//! @{ implementing iALabelInfo methods
-	int count() const override;
-	QString name(int idx) const override;
-	QColor color(int idx) const override;
-	//! @}
-public slots:
-	void RendererClicked(int, int, int);
-	void SlicerClicked(int, int, int);
-	void SlicerRightClicked(int, int, int);
-	void Add();
-	void Remove();
-	void Store();
-	void Load();
-	void storeImage();
-	void Sample();
-	void Clear();
-	QString const & fileName();
+	static iALabellingAttachment* create(iAMainWindow* mainWnd, iAMdiChild* child);
+	dlg_labels* labelsDlg();
+
 private:
-	void addSeed(int, int, int);
-	void removeSeed(QStandardItem* item, int x, int y, int z);
-	void addSeedItem(int label, int x, int y, int z);
-	int addLabelItem(QString const & labelText);
-	void reInitChannelTF();
-	void updateChannel();
-
-	QStandardItemModel* m_itemModel;
-	iAColorTheme const * m_colorTheme;
-	int m_maxColor;
-	QString m_fileName;
-
-	// for label overlay:
-	vtkSmartPointer<iAvtkImageData> m_labelOverlayImg;
-	vtkSmartPointer<vtkLookupTable> m_labelOverlayLUT;
-	vtkSmartPointer<vtkPiecewiseFunction> m_labelOverlayOTF;
-	iAMdiChild* m_mdiChild;
-	bool m_newOverlay;
-	uint m_labelChannelID;
+	iALabellingAttachment(iAMainWindow* mainWnd, iAMdiChild* child);
+	dlg_labels* m_dlgLabels;
 };

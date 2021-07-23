@@ -21,6 +21,7 @@
 
 #include "iALUT.h"
 
+#include "iAColorTheme.h"
 #include "iALookupTable.h"
 #include "iAVtkVersion.h"
 
@@ -28,6 +29,7 @@
 
 #include <vtkColorTransferFunction.h>
 #include <vtkLookupTable.h>
+#include <vtkPiecewiseFunction.h>
 
 const QStringList colormaps = QStringList()
 // diverging:
@@ -1679,5 +1681,35 @@ iALookupTable iALUT::Build(double const * lutRange, QString colorMap, int numCol
 	vtkSmartPointer<vtkLookupTable> vtkLUT(vtkSmartPointer<vtkLookupTable>::New());
 	BuildLUT(vtkLUT, lutRange, colorMap, numCols);
 	iALookupTable result(vtkLUT);
+	return result;
+}
+
+vtkSmartPointer<vtkPiecewiseFunction> iALUT::BuildLabelOpacityTF(int labelCount)
+{
+	auto result = vtkSmartPointer<vtkPiecewiseFunction>::New();
+	result->AddPoint(0.0, 0.0);
+	for (int i = 0; i < labelCount; ++i)
+	{
+		result->AddPoint(i + 1, 1.0);
+	}
+	return result;
+}
+
+vtkSmartPointer<vtkLookupTable> iALUT::BuildLabelColorTF(int labelCount, iAColorTheme const * colorTheme)
+{
+	auto result = vtkSmartPointer<vtkLookupTable>::New();
+	result->SetNumberOfTableValues(labelCount + 1);
+	result->SetRange(0, labelCount);
+	result->SetTableValue(0.0, 0.0, 0.0, 0.0, 0.0);   // value 0 is transparent
+	for (int i = 0; i < labelCount; ++i)
+	{
+		QColor c(colorTheme->color(i));
+		result->SetTableValue(i + 1,
+			c.red() / 255.0,
+			c.green() / 255.0,
+			c.blue() / 255.0,
+			1.0);	                                  // all other labels are opaque
+	}
+	result->Build();
 	return result;
 }

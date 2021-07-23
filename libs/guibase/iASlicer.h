@@ -167,6 +167,7 @@ signals:
 	void userInteraction();
 	void oslicerPos(int x, int y, int z, int mode); //!< triggered on mouse move
 	void pick();
+	void leftDragged(int x, int y, int z);
 	//! triggered when slice number changed.
 	//! @param mode slicer mode (=plane)
 	//! @param sliceNumber number of the slice that was switched to

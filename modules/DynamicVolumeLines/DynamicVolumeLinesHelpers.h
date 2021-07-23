@@ -197,11 +197,11 @@ inline void switchLevelOfDetail(bool histVisMode, QCheckBox *cb_showFBP, QComboB
 	}
 }
 
-inline void setPlotVisibility(QToolButton *tb, QCustomPlot *qcp)
+inline void setPlotVisibility(QToolButton *tb, QCustomPlot *qcp, bool dark)
 {
 	qcp->isVisible() ?
-		tb->setIcon(QIcon(":/images/add.png")) :
-		tb->setIcon(QIcon(":/images/minus.png"));
+		tb->setIcon(QIcon(QString(":/images/plus%1.svg").arg(dark?"-dark":""))) :
+		tb->setIcon(QIcon(QString(":/images/minus%1.svg").arg(dark?"-dark":"")));
 	qcp->setVisible(!qcp->isVisible());
 	qcp->update();
 }

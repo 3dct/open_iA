@@ -54,6 +54,10 @@ public:
 	//!        or just synchronize required view parameters (false).
 	//!        see class description for details.
 	iARendererViewSync(bool sharedCamera = true);
+
+	//! destructor, disconnects from all renderers
+	~iARendererViewSync();
+
 	//! Adds given renderer to the bundle of renderers with synced views.
 	//! Any change in that renderer's viewing parameters will be synced to all other
 	//! renderers in the bundle.

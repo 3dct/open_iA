@@ -442,7 +442,7 @@ void iAFAQSplom::getFilesLabeledFromPoint(QString &fileName, QString &mhdName)
 
 void iAFAQSplom::startFeatureScout()
 {
-	iAFeatureScoutModuleInterface * featureScout = m_mainWnd->getModuleDispatcher().GetModule<iAFeatureScoutModuleInterface>();
+	iAFeatureScoutModuleInterface * featureScout = m_mainWnd->moduleDispatcher().module<iAFeatureScoutModuleInterface>();
 	if (!featureScout)
 	{
 		return;

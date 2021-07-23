@@ -66,6 +66,7 @@ private:
 	void setOpacity(int eventType, int value);
 	void updateCheckBox(int eventType, int checked);
 	void updateCharts();
+	void addPlot(int eventType, size_t chartID);
 
 	iAVolumeStack* m_volumeStack;
 	size_t m_numberOfCharts;
@@ -79,7 +80,7 @@ private:
 	std::vector<iAVtkWidget*> m_widgets;
 	std::vector<vtkSmartPointer<vtkContextView>> m_contextViews;
 	std::vector<vtkSmartPointer<vtkChartXY>> m_charts;
-	std::vector<vtkSmartPointer<vtkPlot>> m_plots;
+	std::vector<vtkPlot*> m_plots;
 	std::vector<vtkSmartPointer<vtkTable>> m_tables;
 
 	std::vector<iAFeatureTracking*> m_trackedFeaturesForwards;
@@ -93,12 +94,12 @@ private:
 	std::map<int, std::map<vtkIdType, int>> m_graphToTableId;
 	std::map<int, std::map<vtkIdType, int>> m_tableToGraphId;
 
-	vtkMutableDirectedGraph* m_graph;
-	vtkStringArray* m_labels;
-	vtkIntArray* m_nodeLayer;
-	vtkIntArray* m_colorR;
-	vtkIntArray* m_colorG;
-	vtkIntArray* m_colorB;
-	vtkDoubleArray* m_trackingUncertainty;
-	vtkEventQtSlotConnect* m_chartConnections;
+	vtkSmartPointer<vtkMutableDirectedGraph> m_graph;
+	vtkSmartPointer<vtkStringArray> m_labels;
+	vtkSmartPointer<vtkIntArray> m_nodeLayer;
+	vtkSmartPointer<vtkIntArray> m_colorR;
+	vtkSmartPointer<vtkIntArray> m_colorG;
+	vtkSmartPointer<vtkIntArray> m_colorB;
+	vtkSmartPointer<vtkDoubleArray> m_trackingUncertainty;
+	vtkSmartPointer<vtkEventQtSlotConnect> m_chartConnections;
 };

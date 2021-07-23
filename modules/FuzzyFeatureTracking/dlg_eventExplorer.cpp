@@ -44,6 +44,7 @@
 #include <vtkPen.h>
 #include <vtkPiecewiseFunction.h>
 #include <vtkPlot.h>
+#include <vtkPlotPoints.h>
 #include <vtkStringArray.h>
 #include <vtkTable.h>
 #include <vtkVariantArray.h>
@@ -81,14 +82,25 @@ namespace
 		<< " Event Type";
 }
 
-#define VTK_CREATE(type, name) \
-	vtkSmartPointer<type> name = vtkSmartPointer<type>::New()
-
 QString toqstr(vtkVariant const & var)
 {
 	std::ostringstream oss;
 	oss << var;
 	return QString(oss.str().c_str());
+}
+
+void dlg_eventExplorer::addPlot(int eventID, size_t chartID)
+{
+	const float width = 1.0;
+	vtkPlot* plot = m_charts.at(chartID)->AddPlot(vtkChart::POINTS);
+	plot->SetInputData(m_tables.at(chartID + m_numberOfCharts * eventID), m_propertyXId, m_propertyYId);
+	QColor c = EventColors[eventID];
+	plot->SetColor(static_cast<unsigned char>(c.red()), static_cast<unsigned char>(c.green()),
+		static_cast<unsigned char>(c.blue()), static_cast<unsigned char>(c.alpha()));
+	plot->SetWidth(width);
+	plot->SetTooltipLabelFormat("");
+	dynamic_cast<vtkPlotPoints*>(plot)->SetMarkerStyle(vtkPlotPoints::CIRCLE);
+	m_plots[chartID + m_numberOfCharts * eventID] = plot;
 }
 
 dlg_eventExplorer::dlg_eventExplorer(QWidget *parent, size_t numberOfCharts, int numberOfEventTypes, iAVolumeStack* volumeStack, dlg_trackingGraph* trackingGraph, std::vector<iAFeatureTracking*> trackedFeaturesForwards, std::vector<iAFeatureTracking*> trackedFeaturesBackwards) : QDockWidget(parent)
@@ -143,11 +155,14 @@ dlg_eventExplorer::dlg_eventExplorer(QWidget *parent, size_t numberOfCharts, int
 	connect(logXCheckBox, &QCheckBox::stateChanged, [this](int c) { setChartLogScale(vtkAxis::BOTTOM, c == Qt::Checked); });
 	connect(logYCheckBox, &QCheckBox::stateChanged, [this](int c) { setChartLogScale(vtkAxis::LEFT, c == Qt::Checked); });
 
-	m_chartConnections = vtkEventQtSlotConnect::New();
+	m_chartConnections = vtkSmartPointer<vtkEventQtSlotConnect>::New();
 
-	for (size_t i=0; i<numberOfCharts; i++)
+	for (size_t i=0; i<numberOfCharts; ++i)
 	{
 		iAVtkWidget* vtkWidget = new iAVtkWidget();
+#if (VTK_VERSION_NUMBER >= VTK_VERSION_CHECK(8, 2, 0) && defined(VTK_OPENGL2_BACKEND))
+		vtkWidget->setFormat(iAVtkWidget::defaultFormat());
+#endif
 		auto renWin = vtkSmartPointer<vtkGenericOpenGLRenderWindow>::New();
 #if VTK_VERSION_NUMBER < VTK_VERSION_CHECK(9, 0, 0)
 		vtkWidget->SetRenderWindow(renWin);
@@ -173,12 +188,12 @@ dlg_eventExplorer::dlg_eventExplorer(QWidget *parent, size_t numberOfCharts, int
 		{
 			m_tables.push_back(vtkSmartPointer<vtkTable>::New());
 
-			VTK_CREATE(vtkFloatArray, arrX);
+			auto arrX = vtkSmartPointer<vtkFloatArray>::New();
 			arrX->SetName("x");
 			m_tables.at(tableId)->AddColumn(arrX);
 			for (QString propName : AvailableProperties)
 			{
-				VTK_CREATE(vtkFloatArray, arrProp);
+				auto arrProp = vtkSmartPointer<vtkFloatArray>::New();
 				auto arrName = QString("%1[%2]").arg(eventName).arg(propName).toStdString();
 				arrProp->SetName(arrName.c_str());
 				m_tables.at(tableId)->AddColumn(arrProp);
@@ -281,19 +296,12 @@ dlg_eventExplorer::dlg_eventExplorer(QWidget *parent, size_t numberOfCharts, int
 		}
 	}
 
-	float width = 1.0;
-	for (int eventID = 0; eventID < EventColors.size(); ++eventID)
+	m_plots.resize(EventColors.size() * numberOfCharts);
+	for (size_t eventID = 0; eventID < EventColors.size(); ++eventID)
 	{
 		for (size_t i = 0; i < numberOfCharts; i++)
 		{
-			vtkPlot* plot = m_charts.at(i)->AddPlot(vtkChart::POINTS);
-			plot->SetInputData(m_tables.at(i + numberOfCharts * eventID), m_propertyXId, m_propertyYId);
-			QColor c = EventColors[eventID];
-			plot->SetColor(static_cast<unsigned char>(c.red()), static_cast<unsigned char>(c.green()),
-				static_cast<unsigned char>(c.blue()), static_cast<unsigned char>(c.alpha()));
-			plot->SetWidth(width);
-			plot->SetTooltipLabelFormat("");
-			m_plots.push_back(plot);
+			addPlot(eventID, i);
 		}
 	}
 
@@ -324,7 +332,7 @@ void dlg_eventExplorer::setOpacity(int eventType, int value)
 {
 	for (size_t i = (m_numberOfCharts * eventType); i < (m_numberOfCharts * (eventType + 1) ); ++i)
 	{
-		m_plots.at(i)->GetPen()->SetOpacity(value);
+		m_plots[i]->GetPen()->SetOpacity(value);
 	}
 	updateCharts();
 }
@@ -367,6 +375,7 @@ void dlg_eventExplorer::updateCheckBox(int eventType, int checked)
 		for (size_t i = 0; i < m_numberOfCharts; ++i)
 		{
 			m_charts.at(i)->RemovePlot(m_plotPositionInVector[eventType]);
+			m_plots[i + m_numberOfCharts * eventType] = nullptr;
 		}
 		for (int i = 0; i < m_numberOfEventTypes; ++i)
 		{
@@ -378,19 +387,18 @@ void dlg_eventExplorer::updateCheckBox(int eventType, int checked)
 		m_plotPositionInVector[eventType] = -1;
 		--m_numberOfActivePlots;
 		m_slider[eventType]->setValue(0);
-		setOpacity(eventType, 0);
+		m_slider[eventType]->setDisabled(true);
 	}
 	else
 	{
+		m_plotPositionInVector[eventType] = m_numberOfActivePlots;
 		for (size_t i = 0; i < m_numberOfCharts; ++i)
 		{
-			m_charts.at(i)->AddPlot(m_plots.at(i + m_numberOfCharts * eventType));
-
-			m_plotPositionInVector[eventType] = m_numberOfActivePlots;
+			addPlot(eventType, i);
 		}
 		++m_numberOfActivePlots;
 		m_slider[eventType]->setValue(255);
-		setOpacity(eventType, 255);
+		m_slider[eventType]->setDisabled(false);
 	}
 	m_slider[eventType]->update();
 	LOG(lvlDebug,
@@ -424,7 +432,10 @@ void dlg_eventExplorer::updateChartData(int axis, int s)
 	}
 	for (size_t i = 0; i < m_numberOfCharts * m_numberOfEventTypes; ++i)
 	{
-		m_plots.at(i)->SetInputData(m_tables.at(i), m_propertyXId + 1, m_propertyYId + 1);
+		if (m_plots[i])
+		{
+			m_plots[i]->SetInputData(m_tables.at(i), m_propertyXId, m_propertyYId);
+		}
 	}
 	vtkStdString title = AvailableProperties[s].toStdString();
 	for (size_t i = 0; i < m_numberOfCharts; ++i)
@@ -449,18 +460,18 @@ void dlg_eventExplorer::comboBoxYSelectionChanged(int s)
 void dlg_eventExplorer::chartSelectionChanged(vtkObject* /*obj*/)
 {
 	//clear graph TODO
-	m_graph = vtkMutableDirectedGraph::New();
-	m_labels = vtkStringArray::New();
+	m_graph = vtkSmartPointer<vtkMutableDirectedGraph>::New();
+	m_labels = vtkSmartPointer<vtkStringArray>::New();
 	m_labels->SetName("Label");
-	m_nodeLayer = vtkIntArray::New();
+	m_nodeLayer = vtkSmartPointer<vtkIntArray>::New();
 	m_nodeLayer->SetName("Layer");
-	m_colorR = vtkIntArray::New();
+	m_colorR = vtkSmartPointer<vtkIntArray>::New();
 	m_colorR->SetName("ColorR");
-	m_colorG = vtkIntArray::New();
+	m_colorG = vtkSmartPointer<vtkIntArray>::New();
 	m_colorG->SetName("ColorG");
-	m_colorB = vtkIntArray::New();
+	m_colorB = vtkSmartPointer<vtkIntArray>::New();
 	m_colorB->SetName("ColorB");
-	m_trackingUncertainty = vtkDoubleArray::New();
+	m_trackingUncertainty = vtkSmartPointer<vtkDoubleArray>::New();
 	m_trackingUncertainty->SetName("Uncertainty");
 	m_nodes.clear();
 	m_visitedNodes.clear();
@@ -542,7 +553,7 @@ void dlg_eventExplorer::chartSelectionChanged(vtkObject* /*obj*/)
 		}
 		LOG(lvlInfo, QString("   cTF range: %1, %2").arg(cTF->GetRange()[0]).arg(cTF->GetRange()[1]));
 	}
-	m_trackingGraph->updateGraph(m_graph, this->m_volumeStack->numberOfVolumes(), m_nodesToLayers, m_graphToTableId);
+	m_trackingGraph->updateGraph(m_graph, this->m_volumeStack->numberOfVolumes());
 }
 
 void dlg_eventExplorer::buildGraph(int id, int layer, int eventType, double uncertainty)
@@ -662,7 +673,7 @@ void dlg_eventExplorer::buildSubGraph(int id, int layer)
 		}
 
 		// search forwards
-		assert(layer > 0);
+		//assert(layer > 0);		// not sure whether this check is required?
 		if (static_cast<size_t>(layer) < m_numberOfCharts - 1)
 		{
 			//iAFeatureTracking *ftB = m_trackedFeaturesBackwards.at(layer + 1);

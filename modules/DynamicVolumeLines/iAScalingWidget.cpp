@@ -129,7 +129,9 @@ void iAScalingWidget::paintGL()
 {
 	// TODO: whole widget is always painted (not needed if only red line moves)?
 	if (m_nonlinearScalingVec.size() == 0)
+	{
 		return;
+	}
 
 	QPainter painter(this);
 	painter.setClipRegion(QRegion(m_nonlinearAxis->axisRect()->left(),
@@ -253,57 +255,57 @@ void iAScalingWidget::paintGL()
 
 		for (int histBinNbr = m_nonlinearLowerIdx - 1; histBinNbr <= m_nonlinearUpperIdx; ++histBinNbr)
 		{
-				if (histBinNbr == m_nonlinearLowerIdx - 1)
-				{
-					nonlinearBarWidth = m_nonlinearLowerRest * nonlinearScalingFactor;
-					linearBarWidth = m_linearLowerRest * linearScalingFactor;
+			if (histBinNbr == m_nonlinearLowerIdx - 1)
+			{
+				nonlinearBarWidth = m_nonlinearLowerRest * nonlinearScalingFactor;
+				linearBarWidth = m_linearLowerRest * linearScalingFactor;
 
-				}
-				else if (histBinNbr == m_nonlinearUpperIdx)
-				{
-					nonlinearBarWidth = m_nonlinearUpperRest * nonlinearScalingFactor;
-					linearBarWidth = m_linearUpperRest * linearScalingFactor;
-				}
-				else
-				{
-					nonlinearBarWidth = nonlinearScalingFactor;
-					linearBarWidth = (m_linearHistBinBoarderVec[histBinNbr] - m_linearHistBinBoarderVec[histBinNbr-1]) * linearScalingFactor;
-				}
+			}
+			else if (histBinNbr == m_nonlinearUpperIdx)
+			{
+				nonlinearBarWidth = m_nonlinearUpperRest * nonlinearScalingFactor;
+				linearBarWidth = m_linearUpperRest * linearScalingFactor;
+			}
+			else
+			{
+				nonlinearBarWidth = nonlinearScalingFactor;
+				linearBarWidth = (m_linearHistBinBoarderVec[histBinNbr] - m_linearHistBinBoarderVec[histBinNbr-1]) * linearScalingFactor;
+			}
 
-				// Nonlinear Bar
-				m_lut->GetColor(m_histBinImpFunctAvgVec[histBinNbr], rgb);
-				c.setRgbF(rgb[0], rgb[1], rgb[2]);
-				painter.setBrush(QBrush(c));
-				//painter.setBrush(Qt::NoBrush);	//debug
-				painter.setPen(QPen(c));
-				//painter.setPen(QPen(QColor(0, 0, 0)));	//debug
-				painter.drawRect(leftOffset + nonlinearBarStartPosX, nonlinearBarStartPosY,
-					nonlinearBarWidth, nonlinearBarHeight);
+			// Nonlinear Bar
+			m_lut->GetColor(m_histBinImpFunctAvgVec[histBinNbr], rgb);
+			c.setRgbF(rgb[0], rgb[1], rgb[2]);
+			painter.setBrush(QBrush(c));
+			//painter.setBrush(Qt::NoBrush);	//debug
+			painter.setPen(QPen(c));
+			//painter.setPen(QPen(QColor(0, 0, 0)));	//debug
+			painter.drawRect(leftOffset + nonlinearBarStartPosX, nonlinearBarStartPosY,
+				nonlinearBarWidth, nonlinearBarHeight);
 
-				nonlinearBarStartPosX += nonlinearBarWidth;
-				linearBarStartPosX += linearBarWidth;
+			nonlinearBarStartPosX += nonlinearBarWidth;
+			linearBarStartPosX += linearBarWidth;
 
-				// Connection between nonlinear and linear Bar
-				QLinearGradient gradient(
-					leftOffset + m_prevLinearBarStartPosX, 20,
-					leftOffset + m_prevLinearBarStartPosX, 70);
-				gradient.setColorAt(0.0, c);
-				gradient.setColorAt(1.0, linearBarColor);
-				painter.setBrush(gradient);
-				painter.setPen(Qt::NoPen);
-				//painter.setPen(QPen(QColor(0, 0, 0)));	//debug
-				QPainterPath path;
-				path.moveTo(QPoint(leftOffset + m_prevNonlinearBarStartPosX,
-					nonlinearBarStartPosY + nonlinearBarHeight));
-				path.lineTo(QPoint(leftOffset + nonlinearBarStartPosX,
-					nonlinearBarStartPosY + nonlinearBarHeight));
-				path.lineTo(QPoint(leftOffset + linearBarStartPosX, linearBarStartPosY));
-				path.lineTo(QPoint(leftOffset + m_prevLinearBarStartPosX, linearBarStartPosY));
-				path.lineTo(QPoint(leftOffset + m_prevNonlinearBarStartPosX,
-					nonlinearBarStartPosY + nonlinearBarHeight));
-				painter.drawPath(path);
-				m_prevNonlinearBarStartPosX = nonlinearBarStartPosX;
-				m_prevLinearBarStartPosX = linearBarStartPosX;
+			// Connection between nonlinear and linear Bar
+			QLinearGradient gradient(
+				leftOffset + m_prevLinearBarStartPosX, 20,
+				leftOffset + m_prevLinearBarStartPosX, 70);
+			gradient.setColorAt(0.0, c);
+			gradient.setColorAt(1.0, linearBarColor);
+			painter.setBrush(gradient);
+			painter.setPen(Qt::NoPen);
+			//painter.setPen(QPen(QColor(0, 0, 0)));	//debug
+			QPainterPath path;
+			path.moveTo(QPoint(leftOffset + m_prevNonlinearBarStartPosX,
+				nonlinearBarStartPosY + nonlinearBarHeight));
+			path.lineTo(QPoint(leftOffset + nonlinearBarStartPosX,
+				nonlinearBarStartPosY + nonlinearBarHeight));
+			path.lineTo(QPoint(leftOffset + linearBarStartPosX, linearBarStartPosY));
+			path.lineTo(QPoint(leftOffset + m_prevLinearBarStartPosX, linearBarStartPosY));
+			path.lineTo(QPoint(leftOffset + m_prevNonlinearBarStartPosX,
+				nonlinearBarStartPosY + nonlinearBarHeight));
+			painter.drawPath(path);
+			m_prevNonlinearBarStartPosX = nonlinearBarStartPosX;
+			m_prevLinearBarStartPosX = linearBarStartPosX;
 		}
 
 		// Linear Bar

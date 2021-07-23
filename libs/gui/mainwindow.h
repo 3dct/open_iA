@@ -119,14 +119,17 @@ public:
 	QMdiSubWindow* activeChild() override;
 	QMdiSubWindow* addSubWindow(QWidget * child) override;
 	void loadArguments(int argc, char** argv);
-	iAPreferences const & getDefaultPreferences() const;
-	iAModuleDispatcher& getModuleDispatcher() const override;
+	iAPreferences const & defaultPreferences() const;
+	iAModuleDispatcher& moduleDispatcher() const override;
 	iAMdiChild* createMdiChild(bool unsavedChanges) override;
 	void closeMdiChild(iAMdiChild* child) override;
 	void closeAllSubWindows() override;
 	void updateInteractionModeControls(int mode);
 	void updateMagicLens2DCheckState(bool enabled);
 	void makeActionChildDependent(QAction* action) override;
+
+	//! whether the current qss theme is bright mode (true) or dark mode (false)
+	bool brightMode() const override;
 
 public slots:
 	void loadLayout();

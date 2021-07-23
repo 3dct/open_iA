@@ -30,32 +30,10 @@
 #include <iAQtVTKBindings.h>
 #include <iAVtkWidget.h>
 
-#include <vtkAnnotationLink.h>
-#include <vtkChart.h>
-#include <vtkColor.h>
-#include <vtkColorTransferFunction.h>
-#include <vtkContextMouseEvent.h>
-#include <vtkContextView.h>
-#include <vtkContextScene.h>
-#include <vtkDoubleArray.h>
-#include <vtkEventQtSlotConnect.h>
-#include <vtkFloatArray.h>
 #include <vtkIdTypeArray.h>
-#include <vtkInteractorObserver.h>
 #include <vtkLookupTable.h>
-#include <vtkMath.h>
-#include <vtkNew.h>
-#include <vtkPen.h>
-#include <vtkPlot.h>
-#include <vtkPlotPoints.h>
 #include <vtkRenderer.h>
-#include <vtkRenderWindow.h>
-#include <vtkRenderWindowInteractor.h>
 #include <vtkScalarBarActor.h>
-#include <vtkScatterPlotMatrix.h>
-#include <vtkSelection.h>
-#include <vtkSelectionNode.h>
-#include <vtkTable.h>
 #include <vtkTextProperty.h>
 
 #include <QCheckBox>
@@ -139,17 +117,12 @@ void iASPMView::setData( const QTableWidget * newData )
 	applyLookupTable();
 }
 
-inline void SetLookupTable( vtkPlotPoints * pp, vtkScalarsToColors * lut, const vtkStdString colorArrayName )
-{
-	pp->SetLookupTable( lut );
-	pp->SelectColorArray( colorArrayName );
-	pp->ScalarVisibilityOn();
-}
-
 void iASPMView::applyLookupTable()
 {
 	if (m_splom->data()->numParams() == 0)
+	{
 		return;
+	}
 	updateLUT();
 	m_sbActor->SetLookupTable( m_lut );
 	m_sbActor->SetTitle( m_splom->data()->parameterName(m_splom->colorLookupParam()).toStdString().c_str() );
@@ -164,8 +137,10 @@ void iASPMView::applyLookupTable()
 void iASPMView::selectionUpdated( std::vector<size_t> const & selInds )
 {
 	m_SPLOMSelection = vtkSmartPointer<vtkIdTypeArray>::New();
-	for( auto & i: selInds )
-		m_SPLOMSelection->InsertNextValue( static_cast<vtkIdType>( i ) );
+	for (auto& i : selInds)
+	{
+		m_SPLOMSelection->InsertNextValue(static_cast<vtkIdType>(i));
+	}
 
 	emit selectionModified( getActivePlotIndices(), m_SPLOMSelection );
 }

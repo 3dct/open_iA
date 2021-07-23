@@ -73,7 +73,7 @@ void iAUncertaintyModuleInterface::LoadEnsemble(QString const & fileName)
 	SetupToolBar();
 	auto child = m_mainWnd->createMdiChild(false);
 	bool result = AttachToMdiChild(child);
-	iAUncertaintyAttachment* attach = GetAttachment<iAUncertaintyAttachment>(child);
+	iAUncertaintyAttachment* attach = attachment<iAUncertaintyAttachment>(child);
 	if (!result || !attach)
 	{
 		LOG(lvlError, "Uncertainty exploration could not be initialized!");
@@ -104,7 +104,7 @@ void iAUncertaintyModuleInterface::SetupToolBar()
 
 void iAUncertaintyModuleInterface::ToggleDockWidgetTitleBars()
 {
-	iAUncertaintyAttachment* attach = GetAttachment<iAUncertaintyAttachment>(m_mainWnd->activeMdiChild());
+	iAUncertaintyAttachment* attach = attachment<iAUncertaintyAttachment>(m_mainWnd->activeMdiChild());
 	if (!attach)
 	{
 		LOG(lvlError, "Uncertainty exploration was not loaded properly!");
@@ -115,7 +115,7 @@ void iAUncertaintyModuleInterface::ToggleDockWidgetTitleBars()
 
 void iAUncertaintyModuleInterface::ToggleSettings()
 {
-	iAUncertaintyAttachment* attach = GetAttachment<iAUncertaintyAttachment>(m_mainWnd->activeMdiChild());
+	iAUncertaintyAttachment* attach = attachment<iAUncertaintyAttachment>(m_mainWnd->activeMdiChild());
 	if (!attach)
 	{
 		LOG(lvlError, "Uncertainty exploration was not loaded properly!");
@@ -126,7 +126,7 @@ void iAUncertaintyModuleInterface::ToggleSettings()
 
 void iAUncertaintyModuleInterface::CalculateNewSubEnsemble()
 {
-	iAUncertaintyAttachment* attach = GetAttachment<iAUncertaintyAttachment>(m_mainWnd->activeMdiChild());
+	iAUncertaintyAttachment* attach = attachment<iAUncertaintyAttachment>(m_mainWnd->activeMdiChild());
 	if (!attach)
 	{
 		LOG(lvlError, "Uncertainty exploration was not loaded properly!");
@@ -137,7 +137,7 @@ void iAUncertaintyModuleInterface::CalculateNewSubEnsemble()
 
 void iAUncertaintyModuleInterface::WriteFullDataFile()
 {
-	iAUncertaintyAttachment* attach = GetAttachment<iAUncertaintyAttachment>(m_mainWnd->activeMdiChild());
+	iAUncertaintyAttachment* attach = attachment<iAUncertaintyAttachment>(m_mainWnd->activeMdiChild());
 	if (!attach)
 	{
 		LOG(lvlError, "Uncertainty exploration was not loaded properly!");

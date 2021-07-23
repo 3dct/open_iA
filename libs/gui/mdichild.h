@@ -41,6 +41,7 @@
 #include <QSharedPointer>
 
 #include <vector>
+#include <functional>
 
 class vtkAbstractTransform;
 class vtkActor;
@@ -80,6 +81,7 @@ class iAChannelData;
 class iADockWidgetWrapper;
 class iAIO;
 class iAModality;
+class iAStatisticsUpdater;
 class iAModalityList;
 class iAProjectBase;
 class iAVolumeStack;
@@ -163,6 +165,10 @@ public:
 	iAVtkWidget* renderVtkWidget() override;
 	//! Access slicer for given mode (use iASlicerMode enum for mode values)
 	iASlicer* slicer(int mode) override;
+	//! Access to the scroll bar next to a slicer
+	QSlider* slicerScrollBar(int mode) override;
+	//! Access to the layout in the slicer dockwidget containing the actual iASlicer
+	QHBoxLayout* slicerContainerLayout(int mode) override;
 	//! Get current slice number in the respective slicer
 	int sliceNumber(int mode) const;
 	//! Access to slicer dock widget for the given mode
@@ -243,6 +249,8 @@ public:
 	QString layoutName() const override;
 	//! Loads the layout with the given name from the settings store, and tries to restore the according dockwidgets configuration
 	void loadLayout(QString const & layout) override;
+	//! whether the current qss theme is bright mode (true) or dark mode (false)
+	bool brightMode() const override;
 
 	//! If more than one modality loaded, ask user to choose one of them.
 	//! (currently used for determining which modality to save)
@@ -290,9 +298,21 @@ public:
 	bool profileHandlesEnabled() const;
 	//! whether this child has a profile plot (only has one if "normal" volume data loaded)
 	bool hasProfilePlot() const;
+	
+	//! @{ 
+	bool statisticsComputed(QSharedPointer<iAModality>);
+	bool statisticsComputable(QSharedPointer<iAModality>, int modalityIdx = -1);
+	void computeStatisticsAsync(std::function<void()> callbackSlot, QSharedPointer<iAModality> modality);
+	//! @}
 
+	//! @{
+	size_t histogramNewBinCount(QSharedPointer<iAModality>) override;
+	bool histogramComputed(size_t newBinCount, QSharedPointer<iAModality>) override;
+	void computeHistogramAsync(std::function<void()> callbackSlot, size_t newBinCount, QSharedPointer<iAModality>) override;
+	//! @}
 //signals:
 //	void preferencesChanged();
+
 
 public slots:
 	void maximizeRC();
