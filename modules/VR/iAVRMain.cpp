@@ -640,7 +640,7 @@ void iAVRMain::pickFibersinRegion(int leafRegion)
 
 	
 	for (auto fiber : *m_fiberCoverageCalc->getFiberCoverage()->at(currentOctreeLevel).at(leafRegion)) {
-		LOG(lvlImportant,QString("Nr. [%1]").arg(fiber.first));
+		//LOG(lvlImportant,QString("Nr. [%1]").arg(fiber.first));
 		selection.push_back(fiber.first);
 	}
 	std::sort(selection.begin(), selection.end());
