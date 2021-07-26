@@ -26,7 +26,6 @@
 
 class dlg_GEMSe;
 class dlg_GEMSeControl;
-class dlg_labels;
 class dlg_priors;
 class dlg_samplings;
 
@@ -56,7 +55,6 @@ public:
 	void importRankings();
 private:
 	iAGEMSeAttachment(iAMainWindow * mainWnd, iAMdiChild * child);
-	dlg_labels*						  m_dlgLabels;
 	dlg_priors*                       m_dlgPriors;
 	dlg_GEMSeControl*                 m_dlgGEMSeControl;
 	QWidget*                          m_dummyTitleWidget;

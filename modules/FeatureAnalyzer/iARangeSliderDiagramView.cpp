@@ -31,6 +31,7 @@
 #include <QFrame>
 #include <QLabel>
 #include <QTableWidget>
+#include <QVBoxLayout>
 
 namespace
 {
@@ -48,8 +49,7 @@ QSharedPointer<iAHistogramData> createRangeSliderData(QList<double> m_rangeSlide
 }
 
 iARangeSliderDiagramView::iARangeSliderDiagramView( QWidget * parent /*= 0*/, Qt::WindowFlags f /*= 0 */ ):
-	RangeSliderDiagramViewConnector( parent, f ),
-	m_mainContainer(nullptr),
+	QWidget( parent, f ),
 	m_comboBoxContainer(nullptr),
 	m_histoContainer(nullptr),
 	m_layoutVBMainContainer(nullptr),
@@ -74,8 +74,7 @@ void iARangeSliderDiagramView::setData( const QTableWidget * newData )
 	addComboBoxes();
 	setupDiagrams();
 
-	m_mainContainer->setLayout( m_layoutVBMainContainer );
-	rangeSliderDiagramContainer->addWidget( m_mainContainer );
+	setLayout( m_layoutVBMainContainer );
 	show();
 }
 
@@ -144,13 +143,12 @@ void iARangeSliderDiagramView::updateDiagrams()
 void iARangeSliderDiagramView::addTitleLabel()
 {
 	//Setup main container for GUI elements
-	m_mainContainer = new QWidget();
-	m_mainContainer->setMinimumHeight( 300 );
+	setMinimumHeight( 300 );
 	m_layoutVBMainContainer = new QVBoxLayout( this );
 	m_layoutVBMainContainer->setContentsMargins(0, 0, 0, 0);
 
 	//Install event filter for main conatiner
-	m_mainContainer->installEventFilter( this );
+	installEventFilter( this );
 
 	// Title label
 	m_title = new QLabel();
@@ -295,18 +293,17 @@ void iARangeSliderDiagramView::deleteOutdated()
 	m_widgetList.clear();
 	m_oTFList.clear();
 	m_cTFList.clear();
-	delete m_title; m_title = 0;
-	delete m_cbPorDev; m_cbPorDev = 0;
-	delete m_cbStatisticMeasurements; m_cbStatisticMeasurements = 0;
-	delete m_layoutHBComboBoxes; m_layoutHBComboBoxes = 0;
-	delete m_comboBoxContainer; m_comboBoxContainer = 0;
-	delete m_layoutVBHistoContainer; m_layoutVBHistoContainer = 0;
-	delete m_histoContainer; m_histoContainer = 0;
-	delete m_separator; m_separator = 0;
-	delete m_input; m_input = 0;
-	delete m_output; m_output = 0;
-	delete m_layoutVBMainContainer; m_layoutVBMainContainer = 0;
-	delete m_mainContainer; m_mainContainer = 0;
+	delete m_title; m_title = nullptr;
+	delete m_cbPorDev; m_cbPorDev = nullptr;
+	delete m_cbStatisticMeasurements; m_cbStatisticMeasurements = nullptr;
+	delete m_layoutHBComboBoxes; m_layoutHBComboBoxes = nullptr;
+	delete m_comboBoxContainer; m_comboBoxContainer = nullptr;
+	delete m_layoutVBHistoContainer; m_layoutVBHistoContainer = nullptr;
+	delete m_histoContainer; m_histoContainer = nullptr;
+	delete m_separator; m_separator = nullptr;
+	delete m_input; m_input = nullptr;
+	delete m_output; m_output = nullptr;
+	delete m_layoutVBMainContainer; m_layoutVBMainContainer = nullptr;
 	hide();
 }
 

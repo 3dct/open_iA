@@ -82,14 +82,18 @@ bool iALinearColorGradientBar::event(QEvent *event)
 void iALinearColorGradientBar::mouseDoubleClickEvent(QMouseEvent * /*event*/)
 {
 	if (!m_modifiable)
+	{
 		return;
+	}
 
 	bool ok;
 	QString colormapName = QInputDialog::getItem(this, tr("Change Histogram Colormap"),
 		tr(""), iALUT::GetColorMapNames(), 0, false, &ok);
 
 	if (!ok)
+	{
 		return;
+	}
 
 	m_colormap.clear();
 	int colorCnt = iALUT::BuildLUT(m_lut, 0.0, 1.0, colormapName);
@@ -112,7 +116,9 @@ void iALinearColorGradientBar::paintEvent(QPaintEvent *e)
 	QLinearGradient grad(0.0, 0.0, width(), 0.0);
 	QMap<double, QColor>::iterator it;
 	for (it = m_colormap.begin(); it != m_colormap.end(); ++it)
+	{
 		grad.setColorAt(it.key(), it.value());
+	}
 	painter.fillRect(0, 0, width(), height(), grad);
 	if ((m_compLevelRange[1] - m_compLevelRange[0]) > 0)
 	{

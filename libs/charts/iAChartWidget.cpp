@@ -33,9 +33,13 @@
 #include <vtkMath.h>
 
 #include <QAction>
+#include <QApplication>    // for qApp->palette()
 #include <QFileDialog>
 #include <QIcon>
 #include <QMenu>
+#if (defined(CHART_OPENGL) && defined(OPENGL_DEBUG))
+#include <QOpenGLDebugLogger>
+#endif
 #ifdef CHART_OPENGL
 #include <QOpenGLFramebufferObject>
 #include <QOpenGLPaintDevice>
@@ -127,7 +131,7 @@ iAChartWidget::iAChartWidget(QWidget* parent, QString const & xLabel, QString co
 	m_drawXAxisAtZero(false)
 {
 #ifdef CHART_OPENGL
-	setFormat(defaultOpenGLFormat());
+	setFormat(defaultQOpenGLWidgetFormat());
 #endif
 	updateBounds();
 	setMouseTracking(true);
@@ -399,7 +403,7 @@ double iAChartWidget::visibleXEnd() const
 
 void iAChartWidget::drawXAxis(QPainter &painter)
 {
-	painter.setPen(QWidget::palette().color(QPalette::Text));
+	painter.setPen(qApp->palette().color(QPalette::Text));
 	QFontMetrics fm = painter.fontMetrics();
 	size_t stepCount = m_maxXAxisSteps;
 	double stepWidth;
@@ -481,7 +485,7 @@ void iAChartWidget::drawXAxis(QPainter &painter)
 	}
 
 	//draw the x axis
-	painter.setPen(QWidget::palette().color(QPalette::Text));
+	painter.setPen(qApp->palette().color(QPalette::Text));
 	int xAxisStart = m_xMapper->srcToDst(visibleXStart());
 	painter.drawLine(xAxisStart, -1, xAxisStart+chartWidth(), -1);
 	if (m_drawXAxisAtZero && std::abs(-1.0-m_yMapper->srcToDst(0)) > 5) // if axis at bottom is at least 5 pixels away from zero point, draw additional line
@@ -507,15 +511,11 @@ void iAChartWidget::drawYAxis(QPainter &painter)
 	}
 	painter.save();
 	painter.translate(m_xMapper->srcToDst(visibleXStart()), 0);
-	QColor bgColor(m_bgColor);
-	if (!bgColor.isValid())
-	{
-		bgColor = QWidget::palette().color(QWidget::backgroundRole());
-	}
+	QColor bgColor = qApp->palette().color(QWidget::backgroundRole());
 	painter.fillRect(QRect(-leftMargin(), -chartHeight(), leftMargin(), geometry().height()), bgColor);
 	QFontMetrics fm = painter.fontMetrics();
 	int aheight = chartHeight() - 1;
-	painter.setPen(QWidget::palette().color(QPalette::Text));
+	painter.setPen(qApp->palette().color(QPalette::Text));
 
 	// at most, make Y_AXIS_STEPS, but reduce to number actually fitting in current height:
 	int stepNumber = std::min(AxisTicksYMax, static_cast<int>(aheight / (m_fontHeight*1.1)));
@@ -627,16 +627,6 @@ void iAChartWidget::updateBounds(size_t startPlot)
 {
 	updateXBounds(startPlot);
 	updateYBounds(startPlot);
-}
-
-void iAChartWidget::drawBackground(QPainter &painter)
-{
-	QColor bgColor(m_bgColor);
-	if (!bgColor.isValid())
-	{
-		bgColor = QWidget::palette().color(QWidget::backgroundRole());
-	}
-	painter.fillRect( rect(), bgColor);
 }
 
 void iAChartWidget::resetView()
@@ -842,8 +832,13 @@ void iAChartWidget::changeMode(int newMode, QMouseEvent *event)
 	{
 		m_xShiftStart = m_xShift;
 		m_translationStartY = m_translationY;
+#if QT_VERSION < QT_VERSION_CHECK(5, 99, 0)
 		m_dragStartPosX = event->x();
 		m_dragStartPosY = event->y();
+#else
+		m_dragStartPosX = event->position().x();
+		m_dragStartPosY = event->position().y();
+#endif
 	}
 }
 
@@ -911,15 +906,24 @@ void iAChartWidget::mousePressEvent(QMouseEvent *event)
 			((event->modifiers() & Qt::ControlModifier) == Qt::ControlModifier) &&
 			((event->modifiers() & Qt::AltModifier) == Qt::AltModifier))
 		{
+#if QT_VERSION < QT_VERSION_CHECK(5, 99, 0)
 			m_zoomYPos = event->y();
+#else
+			m_zoomYPos = event->position().y();
+#endif
 			m_yZoomStart = m_yZoom;
 			changeMode(Y_ZOOM_MODE, event);
 		}
 		else if (((event->modifiers() & Qt::ShiftModifier) == Qt::ShiftModifier) &&
 			((event->modifiers() & Qt::ControlModifier) == Qt::ControlModifier))
 		{
+#if QT_VERSION < QT_VERSION_CHECK(5, 99, 0)
 			m_zoomXPos = event->x();
 			m_zoomYPos = event->y();
+#else
+			m_zoomXPos = event->position().x();
+			m_zoomYPos = event->position().y();
+#endif
 			m_xZoomStart = m_xZoom;
 			changeMode(X_ZOOM_MODE, event);
 		}
@@ -962,23 +966,39 @@ void iAChartWidget::mouseMoveEvent(QMouseEvent *event)
 		/* do nothing */ break;
 	case MOVE_VIEW_MODE:
 	{
+#if QT_VERSION < QT_VERSION_CHECK(5, 99, 0)
 		int xDelta = m_dragStartPosX - event->x();
+#else
+		int xDelta = m_dragStartPosX - event->position().x();
+#endif
 		double dataDelta = m_xMapper->dstToSrc(xDelta) - m_xBounds[0];
 		m_xShift = limitXShift(m_xShiftStart + dataDelta);
 		emit xAxisChanged();
+#if QT_VERSION < QT_VERSION_CHECK(5, 99, 0)
 		m_translationY = m_translationStartY + event->y() - m_dragStartPosY;
+#else
+		m_translationY = m_translationStartY + event->position().y() - m_dragStartPosY;
+#endif
 		m_translationY = clamp(static_cast<int>(-(geometry().height() * m_yZoom - geometry().height())),
 				static_cast<int>(geometry().height() * m_yZoom - geometry().height()), m_translationY);
 		update();
 	}
 		break;
 	case X_ZOOM_MODE:
+#if QT_VERSION < QT_VERSION_CHECK(5, 99, 0)
 		zoomAlongX(((m_zoomYPos-event->y())/2.0)+ m_xZoomStart, m_zoomXPos, false);
+#else
+		zoomAlongX(((m_zoomYPos - event->position().y()) / 2.0) + m_xZoomStart, m_zoomXPos, false);
+#endif
 		update();
 		break;
 	case Y_ZOOM_MODE:
 		{
+#if QT_VERSION < QT_VERSION_CHECK(5, 99, 0)
 			int diff = static_cast<int>((m_zoomYPos-event->y())/2.0);
+#else
+			int diff = static_cast<int>((m_zoomYPos - event->position().y()) / 2.0);
+#endif
 			if (diff < 0)
 			{
 				zoomAlongY(-pow(ZoomYStep,-diff)+ m_yZoomStart, false);
@@ -1037,26 +1057,37 @@ QImage iAChartWidget::drawOffscreen()
 	return image;
 }
 
-void iAChartWidget::setBackgroundColor(QColor const & color)
-{
-	m_bgColor = color;
-	update();
-}
-
 #ifdef CHART_OPENGL
 void iAChartWidget::paintGL()
 #else
 void iAChartWidget::paintEvent(QPaintEvent* /*event*/)
 #endif
 {
+#if (defined(CHART_OPENGL) && defined(OPENGL_DEBUG))
+	QOpenGLContext* ctx = QOpenGLContext::currentContext();
+	assert(ctx);
+	QOpenGLDebugLogger logger(this);
+	logger.initialize();  // initializes in the current context, i.e. ctx
+	connect(&logger, &QOpenGLDebugLogger::messageLogged,
+		[](const QOpenGLDebugMessage& dbgMsg) { LOG(lvlDebug, dbgMsg.message()); });
+	logger.startLogging();
+#endif
 	QPainter p(this);
+	QColor bgColor(qApp->palette().color(QWidget::backgroundRole()));
+#ifdef CHART_OPENGL
+	p.beginNativePainting();
+	glClearColor(bgColor.red() / 255.0, bgColor.green() / 255.0, bgColor.blue() / 255.0, 1.0);
+	glClear(GL_COLOR_BUFFER_BIT);
+	p.endNativePainting();
+#else
+	p.fillRect(rect(), bgColor);
+#endif
 	drawAll(p);
 }
 
 void iAChartWidget::drawAll(QPainter & painter)
 {
 	painter.setRenderHint(QPainter::Antialiasing);
-	drawBackground(painter);
 	if (chartWidth() <= 1 || chartHeight() <= 1)
 	{
 		return;

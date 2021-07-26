@@ -271,6 +271,14 @@ QPushButton
 	{
 		background-color: rgba(0, 0, 0, 255);
 	}
+	/*****************************************************************************/
+	/* QPushButton icons:                                                        */
+	/*   - Data dialog (images in guibase):                                      */
+	QToolButton[objectName="add_class"],
+	QPushButton[objectName="pbAdd"]    { qproperty-icon: url(:/images/plus-dark.svg);  }
+	QToolButton[objectName="delete_class"],
+	QPushButton[objectName="pbRemove"] { qproperty-icon: url(:/images/minus-dark.svg); }
+	QPushButton[objectName="pbEdit"]   { qproperty-icon: url(:/images/edit-dark.svg);  }
 /****************************************************************************
 QTabWidget
 QTabBar
@@ -430,7 +438,9 @@ QProgressBar
 QListView,
 QListWidget,
 QTableView,
-QTableWidget
+QTableWidget,
+QTreeView,
+QTreeWidget
 ****************************************************************************/
 	QListView,
 	QListWidget,
@@ -450,6 +460,17 @@ QTableWidget
 		border-bottom: 1px solid 	rgba(40, 40, 40, 255);
 		border-left: 1px solid 		rgba(50, 50, 50, 255);
 		border-right: 1px solid		rgba(50, 50, 50, 255);
+	}
+	QTreeView,
+	QTreeWidget
+	{
+		selection-background-color: transparent;
+	}
+	QTreeView::item:selected,
+	QTreeWidget::item:selected
+	{
+		background-color: rgba(75, 75, 75, 255);
+		color: rgba(230, 230, 230, 255);
 	}
 	QListView::item:alternate,
 	QListWidget::item:alternate
@@ -479,76 +500,69 @@ QTableWidget
 QRadioButton
 QCheckBox
 ****************************************************************************/
-	QRadioButton::indicator,
-	QCheckBox::indicator
-	{
-		width: 13px;
-		height: 13px;
-	}
-
 	QCheckBox::indicator:checked
 	{
-		image: url(:/images/checkbox_checked_dark.png);
+		image: url(:/images/checkbox_checked_dark.svg);
 	}
 	QCheckBox::indicator:checked:hover
 	{
-		image: url(:/images/checkbox_checked_hover_dark.png);
+		image: url(:/images/checkbox_checked_hover_dark.svg);
 	}
 	QCheckBox::indicator:checked:pressed
 	{
-		image: url(:/images/checkbox_checked_pressed_dark.png);
+		image: url(:/images/checkbox_checked_pressed_dark.svg);
 	}
 
 	QCheckBox::indicator:unchecked
 	{
-		image: url(:/images/checkbox_unchecked_dark.png);
+		image: url(:/images/checkbox_unchecked_dark.svg);
 	}
 	QCheckBox::indicator:unchecked:hover
 	{
-		image: url(:/images/checkbox_unchecked_hover_dark.png);
+		image: url(:/images/checkbox_unchecked_hover_dark.svg);
 	}
 	QCheckBox::indicator:unchecked:pressed
 	{
-		image: url(:/images/checkbox_unchecked_pressed_dark.png);
+		image: url(:/images/checkbox_unchecked_pressed_dark.svg);
 	}
 
 	QCheckBox::indicator:indeterminate
 	{
-		image: url(:/images/checkbox_indeterminate_dark.png);
+		image: url(:/images/checkbox_indeterminate_dark.svg);
 	}
 	QCheckBox::indicator:indeterminate:hover
 	{
-		image: url(:/images/checkbox_indeterminate_hover_dark.png);
+		image: url(:/images/checkbox_indeterminate_hover_dark.svg);
 	}
 	QCheckBox::indicator:indeterminate:pressed
 	{
-		image: url(:/images/checkbox_indeterminate_pressed_dark.png);
+		image: url(:/images/checkbox_indeterminate_pressed_dark.svg);
 	}
 
 	QRadioButton::indicator::unchecked
 	{
-		image: url(:/images/radiobutton_unchecked_dark.png);
+		image: url(:/images/radiobutton_unchecked_dark.svg);
 	}
 	QRadioButton::indicator:unchecked:hover
 	{
-		image: url(:/images/radiobutton_unchecked_hover_dark.png);
+		image: url(:/images/radiobutton_unchecked_hover_dark.svg);
 	}
 	QRadioButton::indicator:unchecked:pressed
 	{
-		image: url(:/images/radiobutton_unchecked_pressed_dark.png);
+		image: url(:/images/radiobutton_unchecked_pressed_dark.svg);
 	}
 
 	QRadioButton::indicator::checked
 	{
-		image: url(:/images/radiobutton_checked_dark.png);
+		image: url(:/images/radiobutton_checked_dark.svg);
 	}
 	QRadioButton::indicator:checked:hover
 	{
-		image: url(:/images/radiobutton_checked_hover_dark.png);
+		image: url(:/images/radiobutton_checked_hover_dark.svg);
 	}
 	QRadioButton::indicator:checked:pressed
 	{
-		image: url(:/images/radiobutton_checked_pressed_dark.png);
+		image: url(:/images/radiobutton_checked_pressed_dark.svg);
 	}
 /****************************************************************************
 QSlider

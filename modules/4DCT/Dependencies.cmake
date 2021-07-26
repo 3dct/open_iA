@@ -1,6 +1,6 @@
 SET( DEPENDENCIES_LIBRARIES
 	iAguibase
-	iArenderer         # for iARendererManager
+	iArenderer         # for iARendererViewSync
 )
 SET( DEPENDENCIES_VTK_MODULES
 	FiltersHybrid      # for vtkDepthSortPolyData

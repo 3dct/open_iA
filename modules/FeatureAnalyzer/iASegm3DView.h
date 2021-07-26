@@ -29,7 +29,7 @@
 class iAFast3DMagicLensWidget;
 class iARenderer;
 class iARendererImpl;
-class iARendererManager;
+class iARendererViewSync;
 class iAVolumeRenderer;
 
 class vtkActor;
@@ -104,7 +104,7 @@ public:
 protected:
 	QList<iASegm3DViewData*> m_data;
 	QHBoxLayout * m_layout;
-	QScopedPointer<iARendererManager> m_renMgr;
+	QScopedPointer<iARendererViewSync> m_renMgr;
 	double m_range;
 	QList<QWidget *> m_containerList;
 };

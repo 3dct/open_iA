@@ -166,8 +166,8 @@ QVector<int > iAMemberView::SelectedMemberIDs() const
 
 void iAMemberView::StyleChanged()
 {
-	QColor bg(QWidget::palette().color(QPalette::Window));
-	QColor fg(QWidget::palette().color(QPalette::Text));
+	QColor bg(qApp->palette().color(QPalette::Window));
+	QColor fg(qApp->palette().color(QPalette::Text));
 	m_plot->setBackground(bg);
 	m_plot->axisRect()->setBackground(bg);
 	for (auto a : m_plot->axisRect()->axes())

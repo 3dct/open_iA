@@ -20,10 +20,10 @@
 * ************************************************************************************/
 #include "iAQGLWidget.h"
 
-iAQGLFormat defaultOpenGLFormat()
+iAQGLFormat defaultQOpenGLWidgetFormat()
 {
 	iAQGLFormat fmt;
-#if (defined(VTK_OPENGL2_BACKEND) && QT_VERSION >= QT_VERSION_CHECK(5, 4, 0) )
+#if (defined(VTK_OPENGL2_BACKEND))
 	fmt.setVersion(3, 2);
 	fmt.setRenderableType(QSurfaceFormat::OpenGL);
 	fmt.setSwapBehavior(QSurfaceFormat::DoubleBuffer);
@@ -32,8 +32,10 @@ iAQGLFormat defaultOpenGLFormat()
 	fmt.setDoubleBuffer(true);
 #endif
 	fmt.setProfile(iAQGLFormat::CoreProfile);
+#ifdef OPENGL_DEBUG
+	fmt.setOption(QSurfaceFormat::DebugContext);
+#endif
 	fmt.setSamples(8);
-	fmt.setStereo(true);
 	fmt.setRedBufferSize(8);
 	fmt.setGreenBufferSize(8);
 	fmt.setBlueBufferSize(8);

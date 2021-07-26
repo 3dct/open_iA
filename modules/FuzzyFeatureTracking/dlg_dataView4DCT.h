@@ -22,14 +22,14 @@
 
 #include "ui_DataView4DCT.h"
 
-#include <iARendererManager.h>
+#include <iARendererViewSync.h>
 #include <qthelper/iAQTtoUIConnector.h>
 
 #include <vtkSmartPointer.h>
 
 typedef iAQTtoUIConnector<QDockWidget, Ui_DataView4DCT>	dlg_dataView4DCTContainer;
 
-class iAQVTKWidgetMouseReleaseWorkaround;
+class iAFuzzyVTKWidget;
 
 class iARendererImpl;
 
@@ -51,10 +51,10 @@ public:
 
 private:
 	iAVolumeStack* m_volumeStack;
-	iAQVTKWidgetMouseReleaseWorkaround** m_vtkWidgets;
+	iAFuzzyVTKWidget** m_vtkWidgets;
 	iARendererImpl**  m_renderers;
 	iAVolumeRenderer** m_volumeRenderer;
 	vtkSmartPointer<vtkTransform> m_axesTransform;
 	iAMdiChild* m_mdiChild;
-	iARendererManager m_rendererManager;
+	iARendererViewSync m_rendererManager;
 };

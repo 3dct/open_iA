@@ -40,6 +40,7 @@ void iACommonImageFiltersModuleInterface::Initialize()
 {
 	// Edge detection:
 	REGISTER_FILTER(iACannyEdgeDetection);
+	REGISTER_FILTER(iASobelEdgeDetection);
 
 	// Casting / Datatype conversion:
 	REGISTER_FILTER(iACastImageFilter);
@@ -102,9 +103,11 @@ void iACommonImageFiltersModuleInterface::Initialize()
 	REGISTER_FILTER(iAVesselEnhancement);
 	REGISTER_FILTER(iAMorphOpening);
 	REGISTER_FILTER(iAMorphClosing);
-	REGISTER_FILTER(iAFillHole);
+	REGISTER_FILTER(iAGrayscaleFillHole);
+	REGISTER_FILTER(iABinaryFillHole);
 	REGISTER_FILTER(iAOpeningByReconstruction);
 	REGISTER_FILTER(iAClosingByReconstruction);
+	REGISTER_FILTER(iABinaryThinning);
 
 	// Filters adding noise
 	REGISTER_FILTER(iAAdditiveGaussianNoise);

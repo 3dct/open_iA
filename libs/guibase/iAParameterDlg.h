@@ -26,6 +26,7 @@
 #include <QDialog>
 #include <QMap>
 #include <QSharedPointer>
+#include <QStringList>
 #include <QVector>
 
 class iAAttributeDescriptor;
@@ -34,24 +35,19 @@ class iAMdiChild;
 
 class QWidget;
 class QString;
-#if QT_VERSION < QT_VERSION_CHECK(5, 99, 0)
-class QStringList;
-#else
-#include <QList>
-using QStringList = QList<QString>;
-#endif
 
 //! Dialog asking the user for some given parameters.
 class iAguibase_API iAParameterDlg : public QDialog, public Ui_CommonInput
 {
 	Q_OBJECT
 public:
+	using ParamListT = QVector<QSharedPointer<iAAttributeDescriptor>>;
 	//! Create dialog with the given parameters.
 	//! @param parent the parent widget
 	//! @param title  the dialog title
 	//! @param parmaeters list of parameters (name, type, value, range, ...)
 	//! @param descr an optional description text, displayed on top of the dialog
-	iAParameterDlg( QWidget *parent, QString const & title, QVector<QSharedPointer<iAAttributeDescriptor> > parameters, QString const & descr = QString());
+	iAParameterDlg(QWidget* parent, QString const& title, ParamListT parameters, QString const& descr = QString());
 	QMap<QString, QVariant> parameterValues() const;
 	void showROI();
 	int exec() override;
@@ -71,7 +67,7 @@ private:
 	iAMainWindow * m_mainWnd;
 	bool m_sourceMdiChildClosed;
 	QVector<QWidget*> m_widgetList;
-	QVector<QSharedPointer<iAAttributeDescriptor> > m_parameters;
+	ParamListT m_parameters;
 
 	void updateROIPart(QString const& partName, int value);
 };

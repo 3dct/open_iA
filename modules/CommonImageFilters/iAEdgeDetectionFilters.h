@@ -23,3 +23,4 @@
 #include <iAFilter.h>
 
 IAFILTER_DEFAULT_CLASS(iACannyEdgeDetection);
+IAFILTER_DEFAULT_CLASS(iASobelEdgeDetection);

@@ -91,7 +91,10 @@ public:
 	virtual void makeActionChildDependent(QAction* action) = 0;
 
 	//! retrieve the module dispatcher
-	virtual iAModuleDispatcher& getModuleDispatcher() const = 0;
+	virtual iAModuleDispatcher& moduleDispatcher() const = 0;
+
+	//! whether the current qss theme is bright mode (true) or dark mode (false)
+	virtual bool brightMode() const = 0;
 
 
 	//! Retrieve current directory path (the "working folder")

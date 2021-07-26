@@ -58,7 +58,9 @@ void getIntensities(iAProgress &imp, PathID m_pathID, ImagePointer &image, QList
 				unsigned int HilbertCnt = size[0] * size[1] * size[2];
 				int nbOfBitsPerDim[DIM];
 				for (int i = 0; i < DIM; ++i)
+				{
 					nbOfBitsPerDim[i] = ceil(sqrt((size[i] - 1)));
+				}
 
 				#pragma omp parallel for 
 				for (long h = 0; h < HilbertCnt; ++h)
@@ -72,10 +74,10 @@ void getIntensities(iAProgress &imp, PathID m_pathID, ImagePointer &image, QList
 
 					#pragma omp critical
 					{
-					for (int i = 0; i < DIM; i++)
-					{
-						coord[i] = coordPtr[i].rack();
-					}
+						for (int i = 0; i < DIM; i++)
+						{
+							coord[i] = coordPtr[i].rack();
+						}
 					
 						delete[] coordPtr;
 						coordList.append(coord);

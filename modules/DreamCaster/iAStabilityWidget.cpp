@@ -26,6 +26,34 @@
 #include <QMouseEvent>
 #include <QPainter>
 
+namespace
+{
+	void deleteColors2D(QColor** colsXY, unsigned int countX)
+	{
+		for (unsigned int i = 0; i < countX; i++)
+		{
+			delete[] colsXY[i];
+		}
+		delete[] colsXY;
+	}
+	QColor** allocateColors2D(unsigned int countX, unsigned int countY)
+	{
+		auto colsXY = new QColor*[2 * countX + 1];
+		for (unsigned int i = 0; i < 2 * countX + 1; i++)
+		{
+			colsXY[i] = new QColor[2 * countY + 1];
+		}
+		for (unsigned int i = 0; i < 2 * countX + 1; i++)
+		{
+			for (unsigned int j = 0; j < 2 * countY + 1; j++)
+			{
+				colsXY[i][j] = QColor(255, 255, 255);
+			}
+		}
+		return colsXY;
+	}
+}
+
 const float SCALE = 1.0f/3.5f;
 iAStabilityWidget::iAStabilityWidget(QWidget *parent): QWidget(parent), m_pix_size(min_macro(parent->width(),parent->height()))
 {
@@ -36,15 +64,7 @@ iAStabilityWidget::iAStabilityWidget(QWidget *parent): QWidget(parent), m_pix_si
 	m_countZ = 5;
 	m_stepPixSize = m_pix_size;
 	m_spanAngleZ = 140.f;
-	m_colsXY = new QColor*[2*m_countX+1];
-	for (unsigned int i=0; i<2*m_countX+1; i++)
-		m_colsXY[i] = new QColor[2*m_countY+1];
-	for (unsigned int i=0; i<2*m_countX+1; i++)
-		for (unsigned int j=0; j<2*m_countY+1; j++)
-		{
-			m_colsXY[i][j] = QColor(255,255,255);
-		}
-	m_colsZ = new QColor[2*m_countZ+1];
+	m_colsXY = allocateColors2D(m_countX, m_countY);
 	m_colArrowX = QColor(255,255,255);
 	m_colArrowY = QColor(255,255,255);
 	m_colArrowZ = QColor(255,255,255);
@@ -52,13 +72,7 @@ iAStabilityWidget::iAStabilityWidget(QWidget *parent): QWidget(parent), m_pix_si
 
 iAStabilityWidget::~iAStabilityWidget()
 {
-	for (unsigned int i=0; i<m_countX; i++)
-		if (m_colsXY[i])
-			delete[] m_colsXY[i];
-	if (m_colsXY)
-		delete[] m_colsXY;
-	if (m_colsZ)
-		delete[] m_colsZ;
+	deleteColors2D(m_colsXY, m_countX);
 }
 
 void iAStabilityWidget::paintEvent(QPaintEvent * /*event*/)
@@ -73,8 +87,10 @@ void iAStabilityWidget::paintEvent(QPaintEvent * /*event*/)
 	unsigned int shiftedCenterX = centerX-halfStep;
 	unsigned int shiftedCenterY = centerY-halfStep;
 	QPainter painter(this);
-	if(painter.isActive() == false)
+	if (painter.isActive() == false)
+	{
 		return;
+	}
 	//QFont font;
 	//font.setPixelSize(18);
 	//painter.setFont(font);
@@ -202,32 +218,21 @@ void iAStabilityWidget::paintEvent(QPaintEvent * /*event*/)
 
 void iAStabilityWidget::mouseReleaseEvent ( QMouseEvent * event )
 {
-	m_lastX = event->x();
-	m_lastY = event->y();
+	Q_UNUSED(event);
+	//m_lastX = event->x();
+	//m_lastY = event->y();
 	mouseReleaseEventSignal();
 }
 
 void iAStabilityWidget::SetCount(int count)
 {
-	for (unsigned int i=0; i<m_countX; i++)
-		if (m_colsXY[i])
-			delete[] m_colsXY[i];
-	if (m_colsXY)
-		delete[] m_colsXY;
-
 	m_countX = count; m_countY = count;	m_countZ = count;
 	m_pix_size = min_macro(m_parent->geometry().width(), m_parent->geometry().height());
 	m_pix_size*=SCALE;
 	m_stepPixSize = m_pix_size/(float)count;
 
-	m_colsXY = new QColor*[2*m_countX+1];
-	for (unsigned int i=0; i<2*m_countX+1; i++)
-		m_colsXY[i] = new QColor[2*m_countY+1];
-	for (unsigned int i=0; i<2*m_countX+1; i++)
-		for (unsigned int j=0; j<2*m_countY+1; j++)
-		{
-			m_colsXY[i][j] = QColor(255,255,255);
-		}
+	deleteColors2D(m_colsXY, m_countX);
+	m_colsXY = allocateColors2D(m_countX, m_countY);
 
 	m_colArrowX = QColor(255,255,255);
 	m_colArrowY = QColor(255,255,255);

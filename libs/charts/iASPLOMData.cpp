@@ -23,22 +23,17 @@
 #include "iALog.h"
 #include "iAMathUtility.h"
 
+const size_t iASPLOMData::NoDataIdx = std::numeric_limits<size_t>::max();
+
 iASPLOMData::iASPLOMData()
 {
 }
 
-void iASPLOMData::clear()
-{
-	m_paramNames.clear();
-	m_dataPoints.clear();
-	m_inverted.clear();
-	m_filters.clear();
-}
-
 void iASPLOMData::setParameterNames(std::vector<QString> const & names, size_t rowReserve)
 {
-	clear();
+	m_filters.clear();
 	m_paramNames = names;
+	m_dataPoints.clear();
 	for (size_t i = 0; i < m_paramNames.size(); ++i)
 	{
 		std::vector<double> column;
@@ -91,7 +86,7 @@ size_t iASPLOMData::paramIndex(QString const & paramName) const
 			return i;
 		}
 	}
-	return std::numeric_limits<size_t>::max();
+	return NoDataIdx;
 }
 
 size_t iASPLOMData::numParams() const
@@ -102,16 +97,6 @@ size_t iASPLOMData::numParams() const
 size_t iASPLOMData::numPoints() const
 {
 	return m_dataPoints.size() < 1 ? 0 : m_dataPoints[0].size();
-}
-
-bool iASPLOMData::isInverted(size_t paramIndex)
-{
-	return paramIndex < m_inverted.size() ? m_inverted[paramIndex] : false;
-}
-
-void iASPLOMData::setInverted(size_t paramIndex, bool isInverted)
-{
-	m_inverted[paramIndex] = isInverted;
 }
 
 

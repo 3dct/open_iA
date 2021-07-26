@@ -32,11 +32,10 @@ IF (openiA_TESTING_ENABLED)
 	ADD_SUBDIRECTORY(test)
 ENDIF()
 
-ADD_SUBDIRECTORY(xinst)
-
 #-------------------------
 # Installation
 #-------------------------
+ADD_SUBDIRECTORY(xinst)
 # Text files:
 INSTALL(FILES ${CMAKE_SOURCE_DIR}/LICENSE DESTINATION .)
 INSTALL(FILES ${CMAKE_SOURCE_DIR}/README.md DESTINATION .)

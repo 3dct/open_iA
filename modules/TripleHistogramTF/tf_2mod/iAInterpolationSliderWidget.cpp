@@ -177,7 +177,7 @@ double iAInterpolationSliderWidget::getT()
 static const QImage::Format IMAGE_FORMAT = QImage::Format::Format_Grayscale8;
 static const int TIMER_HISTOGRAM_MS_DEFAULT = 2500; // in milliseconds
 static const int SLIDER_RECTANGLE_WIDTH = 30;
-static const int HISTOGRAM_BAR_LENGTH_MIN = 10;
+static const int HISTOGRAM_BAR_LENGTH_MIN = 1;
 
 iAInterpolationSlider::iAInterpolationSlider() :
 	m_histogramImg(new QImage(0, 0, IMAGE_FORMAT)),
@@ -187,7 +187,7 @@ iAInterpolationSlider::iAInterpolationSlider() :
 	m_sliderPen.setColor(Qt::black);
 
 	m_sliderHandlePen.setWidth(2);
-	m_sliderPen.setColor(Qt::black);
+	m_sliderHandlePen.setColor(Qt::red);
 
 	// Create slider handle
 	{
@@ -282,12 +282,11 @@ void iAInterpolationSlider::paintEvent(QPaintEvent* /*event*/)
 	p.drawRect(m_sliderRect);
 
 	// Paint handle
-	p.setPen(m_sliderHandlePen);
-	//p.drawLine(0, m_lineHeight, SLIDER_RECTANGLE_WIDTH, m_lineHeight);
 	int handleHeight = getT() * m_sliderHeight;
 	auto sliderHandle = m_sliderHandle;
 	sliderHandle.translate(0, handleHeight);
-	p.fillPath(sliderHandle, m_sliderHandleBrush);
+	//p.fillPath(sliderHandle, m_sliderHandleBrush);
+	p.setPen(m_sliderHandlePen);
 	p.drawPath(sliderHandle);
 
 	// Paint histogram
@@ -427,7 +426,7 @@ void iAInterpolationSlider::calculateHistogramNow()
 
 	const int histogramBarLengthInterval = (w - 1) - HISTOGRAM_BAR_LENGTH_MIN;
 
-	// Go through every pixel and set the pixel color based on the counts 1D-image
+	// Go through every pixel and set the pixel color based on the counts array
 	// TODO parallelize
 	// TODO accelerate using QImage::scanLine()
 	QImage *buf = new QImage(w, h, IMAGE_FORMAT);
@@ -441,6 +440,7 @@ void iAInterpolationSlider::calculateHistogramNow()
 			if (c > 0)
 			{
 				int length = k * log(c) + HISTOGRAM_BAR_LENGTH_MIN;
+				//int length = (c / max) * histogramBarLengthInterval + HISTOGRAM_BAR_LENGTH_MIN;
 				assert(length >= 0 && length <= w);
 				for (int x = 0; x < length; x++)
 				{

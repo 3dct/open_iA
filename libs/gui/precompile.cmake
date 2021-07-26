@@ -2,7 +2,6 @@ SET (OPENIA_PRECOMPILE_HEADERS
 <dlg_commoninput.h>
 <dlg_datatypeconversion.h>
 <dlg_imageproperty.h>
-<dlg_profile.h>
 <dlg_slicer.h>
 <dlg_volumePlayer.h>
 <iAChannelData.h>

@@ -41,6 +41,7 @@
 #include <QSharedPointer>
 
 #include <vector>
+#include <functional>
 
 class vtkAbstractTransform;
 class vtkActor;
@@ -55,11 +56,11 @@ class vtkScalarsToColors;
 class vtkTransform;
 
 class dlg_imageproperty;
-class dlg_profile;
 class dlg_slicer;
 class dlg_volumePlayer;
 class iAParametricSpline;
 struct iAProfileProbe;
+class iAProfileWidget;
 class MainWindow;
 
 // renderer
@@ -80,6 +81,7 @@ class iAChannelData;
 class iADockWidgetWrapper;
 class iAIO;
 class iAModality;
+class iAStatisticsUpdater;
 class iAModalityList;
 class iAProjectBase;
 class iAVolumeStack;
@@ -163,6 +165,10 @@ public:
 	iAVtkWidget* renderVtkWidget() override;
 	//! Access slicer for given mode (use iASlicerMode enum for mode values)
 	iASlicer* slicer(int mode) override;
+	//! Access to the scroll bar next to a slicer
+	QSlider* slicerScrollBar(int mode) override;
+	//! Access to the layout in the slicer dockwidget containing the actual iASlicer
+	QHBoxLayout* slicerContainerLayout(int mode) override;
 	//! Get current slice number in the respective slicer
 	int sliceNumber(int mode) const;
 	//! Access to slicer dock widget for the given mode
@@ -243,6 +249,8 @@ public:
 	QString layoutName() const override;
 	//! Loads the layout with the given name from the settings store, and tries to restore the according dockwidgets configuration
 	void loadLayout(QString const & layout) override;
+	//! whether the current qss theme is bright mode (true) or dark mode (false)
+	bool brightMode() const override;
 
 	//! If more than one modality loaded, ask user to choose one of them.
 	//! (currently used for determining which modality to save)
@@ -286,8 +294,25 @@ public:
 	//! maximize slicer dockwidget with the given mode
 	void maximizeSlicer(int mode);
 
+	//! whether profile handles are currently shown (i.e. "Edit profile points" mode is enabled)
+	bool profileHandlesEnabled() const;
+	//! whether this child has a profile plot (only has one if "normal" volume data loaded)
+	bool hasProfilePlot() const;
+	
+	//! @{ 
+	bool statisticsComputed(QSharedPointer<iAModality>);
+	bool statisticsComputable(QSharedPointer<iAModality>, int modalityIdx = -1);
+	void computeStatisticsAsync(std::function<void()> callbackSlot, QSharedPointer<iAModality> modality);
+	//! @}
+
+	//! @{
+	size_t histogramNewBinCount(QSharedPointer<iAModality>) override;
+	bool histogramComputed(size_t newBinCount, QSharedPointer<iAModality>) override;
+	void computeHistogramAsync(std::function<void()> callbackSlot, size_t newBinCount, QSharedPointer<iAModality>) override;
+	//! @}
 //signals:
 //	void preferencesChanged();
+
 
 public slots:
 	void maximizeRC();
@@ -315,6 +340,7 @@ public slots:
 	void setCamPosition(double * camOptions, bool rsParallelProjection);
 	void updateProbe(int ptIndex, double * newPos);
 	void resetLayout();
+	void toggleProfileHandles(bool isChecked);
 
 private slots:
 	void saveRC();
@@ -325,7 +351,6 @@ private slots:
 	void setChannel(int ch);
 	void updateRenderWindows(int channels);
 	void updatePositionMarker(int x, int y, int z, int mode);
-	void toggleProfileHandles(bool isChecked);
 	void ioFinished();
 	void updateImageProperties();
 	void modalityTFChanged();
@@ -442,13 +467,14 @@ private:
 	iAIO* m_ioThread;
 
 	iAChartWithFunctionsWidget * m_histogram;
+	iAProfileWidget* m_profile;
 	QSharedPointer<iAPlot> m_histogramPlot;
 
 	//! @{ dock widgets
-	iADockWidgetWrapper * m_dwHistogram;
+	iADockWidgetWrapper* m_dwHistogram;
+	iADockWidgetWrapper* m_dwProfile;
 	dlg_imageproperty * m_dwImgProperty;
 	dlg_volumePlayer * m_dwVolumePlayer;
-	dlg_profile* m_dwProfile;
 	dlg_slicer * m_dwSlicer[3];
 	dlg_modalities * m_dwModalities;
 	dlg_renderer * m_dwRenderer;

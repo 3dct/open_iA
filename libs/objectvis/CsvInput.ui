@@ -62,6 +62,9 @@
       </item>
       <item row="1" column="0">
        <widget class="QCheckBox" name="cb_CurvedFiberInfo">
+        <property name="toolTip">
+         <string>Requires &quot;Visualization&quot; to be set to &quot;Cylinders&quot;</string>
+        </property>
         <property name="text">
          <string>Curved Fiber Info</string>
         </property>
@@ -72,12 +75,18 @@
         <property name="enabled">
          <bool>false</bool>
         </property>
+        <property name="toolTip">
+         <string>Requires &quot;Visualization&quot; to be set to &quot;Cylinders&quot;</string>
+        </property>
        </widget>
       </item>
       <item row="1" column="2">
        <widget class="QToolButton" name="btn_SelectCurvedFile">
         <property name="enabled">
          <bool>false</bool>
+        </property>
+        <property name="toolTip">
+         <string>Requires &quot;Visualization&quot; to be set to &quot;Cylinders&quot;</string>
         </property>
         <property name="text">
          <string>...</string>
@@ -769,6 +778,9 @@
           <widget class="QDoubleSpinBox" name="sb_FixedDiameter">
            <property name="enabled">
             <bool>false</bool>
+           </property>
+           <property name="maximum">
+            <double>999999.000000000000000</double>
            </property>
           </widget>
          </item>

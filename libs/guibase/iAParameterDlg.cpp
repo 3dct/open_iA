@@ -72,7 +72,7 @@ namespace
 	}
 }
 
-iAParameterDlg::iAParameterDlg(QWidget* parent, QString const& title, QVector<QSharedPointer<iAAttributeDescriptor> > parameters, QString const& descr)
+iAParameterDlg::iAParameterDlg(QWidget* parent, QString const& title, ParamListT parameters, QString const& descr)
 	: QDialog(parent),
 	m_sourceMdiChild(nullptr),
 	m_sourceMdiChildClosed(false),
@@ -97,9 +97,6 @@ iAParameterDlg::iAParameterDlg(QWidget* parent, QString const& title, QVector<QS
 	if (!descr.isEmpty())
 	{
 		auto info = new QTextBrowser();
-		QPalette p = info->palette();
-		p.setColor(QPalette::Base, QColor(240, 240, 255));
-		info->setPalette(p);
 		QTextDocument *doc = new QTextDocument(info); // set info as parent so it will get deleted along with it
 		doc->setHtml(descr);
 		info->setDocument(doc);

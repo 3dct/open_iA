@@ -25,10 +25,13 @@
 
 #include <QCoreApplication>
 
-
 vtkStandardNewMacro(iAVRInteractor);
 
-void  iAVRInteractor::StartEventLoop()
+iAVRInteractor::iAVRInteractor()
+{
+}
+
+void iAVRInteractor::StartEventLoop()
 {
 	this->StartedMessageLoop = 1;
 	this->Done = false;
@@ -42,9 +45,6 @@ void  iAVRInteractor::StartEventLoop()
 		QCoreApplication::processEvents();
 	}
 }
-
-iAVRInteractor::iAVRInteractor()
-{}
 
 void iAVRInteractor::stop()
 {

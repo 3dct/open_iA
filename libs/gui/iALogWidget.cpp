@@ -49,7 +49,7 @@ void iALogWidget::logSlot(int lvl, QString const & text)
 	// has been called. This allows the program to exit properly.
 	if (!m_closed && lvl >= m_logLevel)
 	{
-		if (!isVisible())
+		if (!isVisible() && m_openOnNewMessage)
 		{
 			show();
 			emit logVisibilityChanged(true);
@@ -58,6 +58,10 @@ void iALogWidget::logSlot(int lvl, QString const & text)
 			.arg(QLocale().toString(QTime::currentTime(), "hh:mm:ss"))
 			.arg(logLevelToString(static_cast<iALogLevel>(lvl)).left(1))
 			.arg(text);
+		if (lvl == lvlError)
+		{
+			msg = "<span style=\"color:red\">" + msg + "</span>";
+		}
 		logTextEdit->append(msg);
 	}
 	if (m_logToFile && lvl >= m_fileLogLevel)
@@ -125,7 +129,8 @@ iALogWidget::iALogWidget() :
 	m_logFileName("debug.log"),
 	m_logToFile(false),
 	m_closed(false),
-	m_fileLogError(false)
+	m_fileLogError(false),
+	m_openOnNewMessage(true)
 {
 	setupUi(this);
 	setAttribute(Qt::WA_DeleteOnClose, false);
@@ -173,6 +178,11 @@ void iALogWidget::setLogLevel(iALogLevel lvl)
 	QSignalBlocker sb(cmbboxLogLevel);
 	cmbboxLogLevel->setCurrentIndex(lvl - 1);
 	iALogger::setLogLevel(lvl);
+}
+
+void iALogWidget::setOpenOnNewMessage(bool openOnNewMessage)
+{
+	m_openOnNewMessage = openOnNewMessage;
 }
 
 void iALogWidget::setLogLevelSlot(int selectedIdx)

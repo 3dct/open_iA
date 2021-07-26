@@ -47,10 +47,6 @@
       <property name="text">
        <string/>
       </property>
-      <property name="icon">
-       <iconset resource="guibase.qrc">
-        <normaloff>:/images/add.png</normaloff>:/images/add.png</iconset>
-      </property>
      </widget>
     </item>
     <item row="2" column="1">
@@ -60,10 +56,6 @@
       </property>
       <property name="text">
        <string/>
-      </property>
-      <property name="icon">
-       <iconset resource="guibase.qrc">
-        <normaloff>:/images/document-edit.png</normaloff>:/images/document-edit.png</iconset>
       </property>
      </widget>
     </item>
@@ -87,10 +79,6 @@
       </property>
       <property name="text">
        <string/>
-      </property>
-      <property name="icon">
-       <iconset resource="guibase.qrc">
-        <normaloff>:/images/minus.png</normaloff>:/images/minus.png</iconset>
       </property>
      </widget>
     </item>

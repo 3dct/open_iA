@@ -76,7 +76,7 @@ protected:
 	//! Get an attachment of an mdi child; the type of attachment is given by the templated type.
 	//! Call by explicitly specifying a type, e.g. `auto attach = GetAttachment<iAMyModuleAttachment>();`
 	//!     @param child the child window to check for attachments
-	template <class T> T* GetAttachment(iAMdiChild* child);
+	template <class T> T* attachment(iAMdiChild* child);
 	//! Sets up a new attachment for the given iAMdiChild via CreateAttachment and links the two.
 	bool AttachToMdiChild( iAMdiChild * child );
 
@@ -103,7 +103,7 @@ iAguibase_API QMenu* getOrAddSubMenu(QMenu* parentMenu, QString const& title, bo
 iAguibase_API void addToMenuSorted(QMenu* menu, QAction* action);
 
 template <class T>
-T* iAGUIModuleInterface::GetAttachment(iAMdiChild* child)
+T* iAGUIModuleInterface::attachment(iAMdiChild* child)
 {
 	static_assert(std::is_base_of<iAModuleAttachmentToChild, T>::value,
 		"GetAttachment: given type must inherit from iAModuleAttachmentToChild!");
