@@ -6,7 +6,7 @@
    <rect>
     <x>0</x>
     <y>0</y>
-    <width>800</width>
+    <width>1130</width>
     <height>600</height>
    </rect>
   </property>
@@ -54,8 +54,8 @@
     <rect>
      <x>0</x>
      <y>0</y>
-     <width>800</width>
-     <height>22</height>
+     <width>1130</width>
+     <height>26</height>
     </rect>
    </property>
    <property name="toolTipDuration">
@@ -233,7 +233,7 @@
    <addaction name="menuHelp"/>
   </widget>
   <widget class="QStatusBar" name="statusbar"/>
-  <widget class="QToolBar" name="fileToolBar">
+  <widget class="QToolBar" name="fileToolbar">
    <property name="windowTitle">
     <string>Main Toolbar</string>
    </property>
@@ -279,7 +279,7 @@
    <addaction name="actionResetView"/>
    <addaction name="actionResetFunction"/>
   </widget>
-  <widget class="QToolBar" name="SnakeSlicerToolbar">
+  <widget class="QToolBar" name="slicerToolbar">
    <property name="enabled">
     <bool>true</bool>
    </property>
