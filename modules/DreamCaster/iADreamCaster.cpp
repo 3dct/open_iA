@@ -20,10 +20,6 @@
 * ************************************************************************************/
 #include "iADreamCaster.h"
 
-#include <charts/iAPlotTypes.h>
-#include <charts/iAChartWidget.h>
-#include <charts/iAHistogramData.h>
-
 #include "iAComparisonAndWeighting.h"
 #include "raycast/include/iACutFigList.h"
 #include "raycast/include/iARayTracer.h"
