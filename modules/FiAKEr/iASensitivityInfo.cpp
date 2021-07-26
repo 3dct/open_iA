@@ -2290,7 +2290,7 @@ void iASensitivityInfo::computeSpatialOverview(iAProgress * progress)
 
 	int overallVoxels = volSize * volSize * volSize;
 #pragma omp parallel for
-	for (size_t r = 0; r < resultCount; ++r)
+	for (int r = 0; r < resultCount; ++r)
 	{
 		if (m_aborted)	// apparently a good way to stop OpenMP thread:
 		{	// https://stackoverflow.com/questions/54293086
