@@ -90,11 +90,20 @@ iACompHistogramTable::iACompHistogramTable(
 	m_amountDatasets = dataResolution->size();
 
 	//initialize datastructure
-	histogramCalculation = new iACompHistogramCalculation(mds, m_dataStorage);
-	histogramCalculation->calculateUniformBinning();
+	initializeBinCalculation(mds);
 
 	//initialize visualization
 	histogramVis = new iACompHistogramVis(this, parent, m_amountDatasets);
+}
+
+void iACompHistogramTable::initializeBinCalculation(iAMultidimensionalScaling* mds)
+{
+	histogramCalculation = new iACompHistogramCalculation(mds, m_dataStorage);
+	histogramCalculation->calculateUniformBinning();
+	histogramCalculation->calculateBayesianBlocks();
+	histogramCalculation->calculateNaturalBreaks();
+	
+	//add new binning methods here
 }
 
 void iACompHistogramTable::reinitializeHistogramTable(iAMultidimensionalScaling* newMds)
@@ -229,6 +238,16 @@ iACompUniformBinningData* iACompHistogramTable::getUniformBinningData()
 	return histogramCalculation->getUniformBinningData();
 }
 
+iACompBayesianBlocksData* iACompHistogramTable::getBayesianBlocksData()
+{
+	return histogramCalculation->getBayesianBlocksData();
+}
+
+iACompNaturalBreaksData* iACompHistogramTable::getNaturalBreaksData()
+{
+	return histogramCalculation->getNaturalBreaksData();
+}
+
 void iACompHistogramTable::resetOtherCharts()
 {
 	m_main->resetOtherCharts();
@@ -291,4 +310,19 @@ void iACompHistogramTable::drawDatasetsInDescendingOrder()
 void iACompHistogramTable::drawDatasetsInOriginalOrder()
 {
 	histogramVis->drawDatasetsInOriginalOrder();
+}
+
+
+/**************************  Change Table Visualization Methods  ******************************/
+void iACompHistogramTable::drawUniformTable()
+{
+	histogramVis->drawUniformTable();
+}
+void iACompHistogramTable::drawBayesianBlocksTable()
+{
+	histogramVis->drawBayesianBlocksTable();
+}
+void iACompHistogramTable::drawNaturalBreaksTable()
+{
+	histogramVis->drawNaturalBreaksTable();
 }

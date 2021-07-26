@@ -7,13 +7,14 @@
 //C++
 #include <vector>
 
-iACompHistogramTableData::iACompHistogramTableData() : 
-	m_maxVal(-1), 
-	m_minVal(-1), 
+iACompHistogramTableData::iACompHistogramTableData() :
+	m_maxVal(-1),
+	m_minVal(-1),
 	binData(new QList<bin::BinType*>()),
 	zoomedBinData(bin::initialize(1)),
 	binDataObjects(new QList<std::vector<csvDataType::ArrayType*>*>()),
-	amountObjectsEveryDataset(new std::vector<int>)
+	amountObjectsEveryDataset(new std::vector<int>),
+	m_maxAmountInAllBins(0)
 {
 }
 
@@ -79,13 +80,26 @@ void iACompHistogramTableData::setZoomedBinData(bin::BinType* newZoomedBinData)
 	zoomedBinData = newZoomedBinData;
 }
 
+
+int iACompHistogramTableData::getMaxAmountInAllBins()
+{
+	return m_maxAmountInAllBins;
+}
+void iACompHistogramTableData::setMaxAmountInAllBins(int newMaxAmountInAllBins)
+{
+	m_maxAmountInAllBins = newMaxAmountInAllBins;
+}
+
 /************************** debug methods ***************************************/
 void iACompHistogramTableData::debugBinDataObjects()
 {
 	LOG(lvlDebug, "");
+
+	int NrOfFibers = 0;
 	//DEBUG
 	for (int i = 0; i < binDataObjects->size(); i++)
 	{  //datasets
+		LOG(lvlDebug, "Dataset " + QString::number(i));
 		for (int k = 0; k < binDataObjects->at(i)->size(); k++)
 		{  //bins
 
@@ -93,9 +107,13 @@ void iACompHistogramTableData::debugBinDataObjects()
 
 			for (int j = 0; j < data->size(); j++)
 			{
-				LOG(lvlDebug,
-					"fiberLabelId = " + QString::number(data->at(j).at(0)) + " --> at Bin: " + QString::number(k));
+				//LOG(lvlDebug,
+				//	"fiberLabelId = " + QString::number(data->at(j).at(0)) + " --> at Bin: " + QString::number(k));
+				NrOfFibers++;
 			}
+			LOG(lvlDebug, "number of fibers = " + QString::number(NrOfFibers));
+			NrOfFibers = 0;
+			LOG(lvlDebug, "");
 		}
 	}
 	LOG(lvlDebug, "");

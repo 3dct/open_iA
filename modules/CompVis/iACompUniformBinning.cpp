@@ -35,7 +35,7 @@ void iACompUniformBinning::calculateBins()
 
 		//initalize
 		std::vector<csvDataType::ArrayType*>* binsWithFiberIds = new std::vector<csvDataType::ArrayType*>();
-		for (int i = 0; i < m_currentNumberOfBins; i++)
+		for (int k = 0; k < m_currentNumberOfBins; k++)
 		{
 			csvDataType::ArrayType* init = new csvDataType::ArrayType();
 			binsWithFiberIds->push_back(init);
@@ -60,7 +60,7 @@ void iACompUniformBinning::calculateBins()
 					bins->at(b).push_back(values.at(v));
 
 					//store Fiber ID
-					std::vector<double> object = m_dataStorage->getData()->at(i).values->at(v);//.at(0);
+					std::vector<double> object = m_dataStorage->getData()->at(i).values->at(v);
 					csvDataType::ArrayType* data = binsWithFiberIds->at(b);
 					data->push_back(object);
 					//binsWithFiberIds->at(b) = data;

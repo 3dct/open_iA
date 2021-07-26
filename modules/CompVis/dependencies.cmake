@@ -13,4 +13,5 @@ SET( DEPENDENCIES_VTK_MODULES
 	ViewsInfovis
 	FiltersStatistics
 	FiltersExtraction
+	FiltersProgrammable
 )

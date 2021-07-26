@@ -132,6 +132,23 @@ void iACompVisMain::reinitializeCharts()
 //	m_BoxPlotDockWidget->reinitializeBoxPlot();
 }
 
+/******************************************  Change Table Visualization Methods  **********************************/
+
+void iACompVisMain::enableUniformTable()
+{
+	m_HistogramTableDockWidget->drawUniformTable();
+}
+
+void iACompVisMain::enableBayesianBlocks()
+{
+	m_HistogramTableDockWidget->drawBayesianBlocksTable();
+}
+
+void iACompVisMain::enableNaturalBreaks()
+{
+	m_HistogramTableDockWidget->drawNaturalBreaksTable();
+}
+
 /******************************************  Order Methods  **********************************/
 void iACompVisMain::orderHistogramTableAscending()
 {

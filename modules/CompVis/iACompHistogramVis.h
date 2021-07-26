@@ -15,6 +15,7 @@
 class iAMainWindow;
 class iACompUniformBinningData;
 class iACompUniformTable;
+class iACompVariableTable;
 class iACompHistogramTable;
 class iACsvDataStorage;
 
@@ -22,6 +23,7 @@ class iACsvDataStorage;
 class vtkInteractorObserver;
 class QVTKOpenGLNativeWidget;
 class vtkRenderer;
+class vtkCamera;
 
 
 class iACompHistogramVis : public QDockWidget, public Ui_CompHistogramTable
@@ -72,6 +74,13 @@ public:
 
 	std::vector<int>* getAmountObjectsEveryDataset();
 
+	vtkSmartPointer<vtkCamera> getCamera();
+	void setCamera(vtkSmartPointer<vtkCamera> newCamera);
+
+	/*** Update Table Visualization ****/
+	void drawUniformTable();
+	void drawBayesianBlocksTable();
+	void drawNaturalBreaksTable();
 
 	/*** Recalculate Data Binning ****/
 	iACompHistogramTableData* recalculateBinning(iACompVisOptions::binningType binningType, int numberOfBins);
@@ -82,7 +91,7 @@ public:
 	void resetOtherCharts();
 	void updateOtherCharts(csvDataType::ArrayType* selectedData, std::map<int, std::vector<double>>* pickStatistic);
 
-		/*** Update THIS ****/
+	/*** Update THIS ****/
 	void showSelectionOfCorrelationMap(std::map<int, double>* dataIndxSelectedType);
 	void removeSelectionOfCorrelationMap();
 
@@ -94,6 +103,10 @@ public:
 	//draw the datasets with rows ordered according to loading the datasets
 	void drawDatasetsInOriginalOrder();
 
+	//sorts the input vector according to the given orderStyle ascending(0) or descending(1)
+	std::vector<int>* sortWithMemory(std::vector<int> input, int orderStyle);
+	std::vector<int>* sortWithMemory(std::vector<double> input, int orderStyle);
+	std::vector<int>* reorderAccordingTo(std::vector<int>* newPositions);
 
 private:
 
@@ -114,6 +127,7 @@ private:
 	/*************** Rendering ****************************/
 	QVTKOpenGLNativeWidget* m_qvtkWidget;
 	vtkSmartPointer<vtkRenderer> m_renderer;
+	vtkSmartPointer<vtkCamera> mainCamera;
 
 	//amount of datasets
 	int m_amountDatasets;
@@ -150,9 +164,11 @@ private:
 
 	/*************** Visualizations ****************************/
 	iACompUniformTable* m_uniformTable;
+	iACompVariableTable* m_variableTable;
 
 	iACompHistogramTable* m_main;
 
 	iACompVisOptions::activeVisualization m_activeVis;
+	iACompVisOptions::binningType m_activeBinning;
 };
 

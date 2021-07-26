@@ -2,8 +2,10 @@
 
 //CompVis
 #include "iACsvDataStorage.h"
-#include "iAMultidimensionalScaling.h";
-#include "iACompUniformBinningData.h";
+#include "iAMultidimensionalScaling.h"
+#include "iACompUniformBinningData.h"
+#include "iACompBayesianBlocksData.h"
+#include "iACompNaturalBreaksData.h"
 
 
 //C++
@@ -40,6 +42,7 @@ void iACompHistogramCalculation::orderDataPointsByDatasetAffiliation(std::vector
 	}
 }
 
+/******************************************  Uniform Binning  **********************************/
 void iACompHistogramCalculation::calculateUniformBinning()
 {
 	//calculate uniform binning and store it
@@ -70,4 +73,42 @@ void iACompHistogramCalculation::calculateUniformBinningSpecificBins(bin::BinTyp
 iACompUniformBinningData* iACompHistogramCalculation::getUniformBinningData()
 {
 	return m_uniformBinningData;
+}
+
+/******************************************  Bayesian Blocks  **********************************/
+void iACompHistogramCalculation::calculateBayesianBlocks()
+{
+	m_bayesianBlocksData = new iACompBayesianBlocksData();
+	m_bayesianBlocksData->setMinVal(m_minVal);
+	m_bayesianBlocksData->setMaxVal(m_maxVal);
+	m_bayesianBlocksData->setAmountObjectsEveryDataset(m_amountObjectsEveryDataset);
+	m_bayesianBlocksData->setMaxAmountInAllBins(m_uniformBinningData->getMaxAmountInAllBins());
+
+	m_bayesianBlocks = new iACompBayesianBlocks(m_dataStorage, m_amountObjectsEveryDataset, m_datasets);
+	m_bayesianBlocks->setDataStructure(m_bayesianBlocksData);
+	m_bayesianBlocks->calculateBins();
+}
+
+iACompBayesianBlocksData* iACompHistogramCalculation::getBayesianBlocksData()
+{
+	return m_bayesianBlocksData;
+}
+
+/******************************************  Natural Breaks  **********************************/
+void iACompHistogramCalculation::calculateNaturalBreaks()
+{
+	 m_naturalBreaksData = new iACompNaturalBreaksData();
+	m_naturalBreaksData->setMinVal(m_minVal);
+	m_naturalBreaksData->setMaxVal(m_maxVal);
+	m_naturalBreaksData->setAmountObjectsEveryDataset(m_amountObjectsEveryDataset);
+	m_naturalBreaksData->setMaxAmountInAllBins(m_uniformBinningData->getMaxAmountInAllBins());
+	
+	m_naturalBreaks = new iACompNaturalBreaks(m_dataStorage, m_amountObjectsEveryDataset, m_datasets);
+	m_naturalBreaks->setDataStructure(m_naturalBreaksData);
+	m_naturalBreaks->calculateBins();
+}
+
+iACompNaturalBreaksData* iACompHistogramCalculation::getNaturalBreaksData()
+{
+	return m_naturalBreaksData;
 }

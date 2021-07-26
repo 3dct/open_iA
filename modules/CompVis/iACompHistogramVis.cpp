@@ -2,8 +2,9 @@
 
 //CompVis
 #include "iACompUniformTable.h"
+#include "iACompVariableTable.h"
 #include "iACompHistogramTable.h"
-#include "iACompHistogramTable.h"
+
 
 //iA
 #include "iAMainWindow.h"
@@ -17,6 +18,7 @@
 #include "vtkRenderWindow.h"
 #include "vtkInteractorObserver.h"
 #include "vtkRendererCollection.h"
+#include "vtkCamera.h"
 
 
 iACompHistogramVis::iACompHistogramVis(iACompHistogramTable* table, iAMainWindow* parent, int amountDatasets) :
@@ -27,7 +29,9 @@ iACompHistogramVis::iACompHistogramVis(iACompHistogramTable* table, iAMainWindow
 	m_windowWidth(-1),
 	m_windowHeight(-1),
 	m_drawingPositionForRegions(new std::map<int, std::vector<double>>()),
-	m_activeVis(iACompVisOptions::activeVisualization::Undefined)
+	mainCamera(vtkSmartPointer<vtkCamera>::New()),
+	m_activeVis(iACompVisOptions::activeVisualization::Undefined),
+	m_activeBinning(iACompVisOptions::binningType::Undefined)
 {
 	//1. initialize variables
 	m_orderOfIndicesDatasets = new std::vector<int>(m_amountDatasets, 0);
@@ -45,7 +49,6 @@ iACompHistogramVis::iACompHistogramVis(iACompHistogramTable* table, iAMainWindow
 
 	m_qvtkWidget = new QVTKOpenGLNativeWidget(this);
 	layout->addWidget(m_qvtkWidget);
-
 }
 
 void iACompHistogramVis::showEvent(QShowEvent* event)
@@ -74,6 +77,8 @@ void iACompHistogramVis::showInitally()
 	//initialize drawing areas of rows for manual repositioning
 	determineRowAreas();
 
+	m_activeVis = iACompVisOptions::activeVisualization::UniformTable;
+	m_activeBinning = iACompVisOptions::binningType::Uniform;
 	showUniformTable();
 }
 
@@ -88,6 +93,7 @@ void iACompHistogramVis::showAFresh()
 	}
 	else if (m_activeVis == iACompVisOptions::activeVisualization::VariableTable)
 	{
+		showVariableTable();
 	}
 	else if (m_activeVis == iACompVisOptions::activeVisualization::CombTable)
 	{
@@ -141,9 +147,9 @@ void iACompHistogramVis::initializeVisualization()
 
 	m_uniformTable = new iACompUniformTable(this, m_main->getUniformBinningData());
 
-	//TODO add additional visualizations
-
-
+	m_variableTable = new iACompVariableTable(this, m_main->getBayesianBlocksData(), m_main->getNaturalBreaksData());
+	
+	//add additional visualizations
 }
 
 void iACompHistogramVis::initializeOrderOfIndices()
@@ -158,23 +164,50 @@ void iACompHistogramVis::initializeOrderOfIndices()
 	}
 }
 
-/*************** Rendering ****************************/
+/*************** Update Table Visualization ****************************/
+void iACompHistogramVis::drawUniformTable()
+{
+	m_activeVis = iACompVisOptions::activeVisualization::UniformTable;
+	m_activeBinning = iACompVisOptions::binningType::Uniform;
+	showAFresh();
+}
 
+void iACompHistogramVis::drawBayesianBlocksTable()
+{
+	m_activeVis = iACompVisOptions::activeVisualization::VariableTable;
+	m_activeBinning = iACompVisOptions::binningType::BayesianBlocks;
+	showAFresh();
+}
+
+void iACompHistogramVis::drawNaturalBreaksTable()
+{
+	m_activeVis = iACompVisOptions::activeVisualization::VariableTable;
+	m_activeBinning = iACompVisOptions::binningType::JenksNaturalBreaks;
+	showAFresh();
+}
+
+/*************** Rendering ****************************/
 void iACompHistogramVis::showUniformTable()
 {
 	//remove the other visualization
 	removeAllRendererFromWidget();
+	m_variableTable->setInactive();
 
 	//activate uniform table visualization
-	m_uniformTable->setInteractorStyleToWidget();
+	m_uniformTable->setInteractorStyleToWidget(m_uniformTable->getInteractorStyle());
 	m_uniformTable->addRendererToWidget();
 	m_uniformTable->setActive();
-
-	m_activeVis = iACompVisOptions::activeVisualization::UniformTable;
 }
 
 void iACompHistogramVis::showVariableTable()
-{ //TODO implement visualization of variable table
+{
+	//remove the other visualization
+	removeAllRendererFromWidget();
+
+	m_variableTable->setActiveBinning(m_activeBinning);
+	m_variableTable->setInteractorStyleToWidget(m_variableTable->getInteractorStyle());
+	m_variableTable->addRendererToWidget();
+	m_variableTable->setActive();
 }
 
 void iACompHistogramVis::showCombiTable()
@@ -290,6 +323,17 @@ std::vector<int>* iACompHistogramVis::getAmountObjectsEveryDataset()
 	return m_main->getAmountObjectsEveryDataset();
 }
 
+vtkSmartPointer<vtkCamera> iACompHistogramVis::getCamera()
+{
+	return mainCamera;
+}
+
+void iACompHistogramVis::setCamera(vtkSmartPointer<vtkCamera> newCamera)
+{
+	mainCamera = newCamera;
+}
+
+
 /****************************************** Recalculate Data Binning **********************************************/
 
 iACompHistogramTableData* iACompHistogramVis::recalculateBinning(iACompVisOptions::binningType binningType, int numberOfBins)
@@ -357,7 +401,8 @@ void iACompHistogramVis::drawDatasetsInAscendingOrder()
 		m_uniformTable->drawHistogramTableInAscendingOrder(m_uniformTable->getBins());
 	}
 	else if (m_activeVis == iACompVisOptions::activeVisualization::VariableTable)
-	{  //TODO
+	{  
+		m_variableTable->drawHistogramTableInAscendingOrder(0);
 	}
 	else if (m_activeVis == iACompVisOptions::activeVisualization::CombTable)
 	{  //TODO
@@ -374,7 +419,8 @@ void iACompHistogramVis::drawDatasetsInDescendingOrder()
 		m_uniformTable->drawHistogramTableInDescendingOrder(m_uniformTable->getBins());
 	}
 	else if (m_activeVis == iACompVisOptions::activeVisualization::VariableTable)
-	{  //TODO
+	{ 
+		m_variableTable->drawHistogramTableInDescendingOrder(0);
 	}
 	else if (m_activeVis == iACompVisOptions::activeVisualization::CombTable)
 	{  //TODO
@@ -391,7 +437,8 @@ void iACompHistogramVis::drawDatasetsInOriginalOrder()
 		m_uniformTable->drawHistogramTableInOriginalOrder(m_uniformTable->getBins());
 	}
 	else if (m_activeVis == iACompVisOptions::activeVisualization::VariableTable)
-	{  //TODO
+	{  
+		m_variableTable->drawHistogramTableInOriginalOrder(0);
 	}
 	else if (m_activeVis == iACompVisOptions::activeVisualization::CombTable)
 	{  //TODO
@@ -399,4 +446,65 @@ void iACompHistogramVis::drawDatasetsInOriginalOrder()
 	else if (m_activeVis == iACompVisOptions::activeVisualization::CurveVisualization)
 	{  //TODO
 	}
+}
+
+std::vector<int>* iACompHistogramVis::sortWithMemory(std::vector<int> input, int orderStyle)
+{
+	std::vector<int>* newOrder = new std::vector<int>(input.size(), 0);
+	int n(0);
+	std::generate(std::begin(*newOrder), std::end(*newOrder), [&] { return n++; });
+
+	if (orderStyle == 0)
+	{  // ascending ordering
+		auto comparator = [input](int i1, int i2) { return input.at(i1) < input.at(i2); };
+		std::sort(std::begin(*newOrder), std::end(*newOrder), comparator);
+
+		std::sort(std::begin(input), std::end(input), std::less<int>());
+	}
+	else
+	{  // descending ordering
+		auto comparator = [input](int i1, int i2) { return input.at(i1) > input.at(i2); };
+		std::sort(std::begin(*newOrder), std::end(*newOrder), comparator);
+
+		std::sort(std::begin(input), std::end(input), std::greater<int>());
+	}
+
+	return newOrder;
+}
+
+std::vector<int>* iACompHistogramVis::sortWithMemory(std::vector<double> input, int orderStyle)
+{
+	std::vector<int>* newOrder = new std::vector<int>(input.size(), 0.0);
+	int n(0);
+	std::generate(std::begin(*newOrder), std::end(*newOrder), [&] { return n++; });
+
+	if (orderStyle == 0)
+	{  //ascending ordering
+		auto comparator = [input](double i1, double i2) { return input.at(i1) < input.at(i2); };
+		std::sort(std::begin(*newOrder), std::end(*newOrder), comparator);
+
+		std::sort(std::begin(input), std::end(input), std::less<double>());
+	}
+	else
+	{
+		// descending ordering
+		auto comparator = [input](double i1, double i2) { return input.at(i1) > input.at(i2); };
+		std::sort(std::begin(*newOrder), std::end(*newOrder), comparator);
+
+		std::sort(std::begin(input), std::end(input), std::greater<double>());
+	}
+
+	return newOrder;
+}
+
+std::vector<int>* iACompHistogramVis::reorderAccordingTo(std::vector<int>* newPositions)
+{
+	std::vector<int>* result = new std::vector<int>(newPositions->size(), 0);
+
+	for (int i = 0; i < newPositions->size(); i++)
+	{
+		result->at((newPositions->size() - 1) - i) = newPositions->at(i);
+	}
+
+	return result;
 }

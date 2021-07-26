@@ -33,6 +33,10 @@ class iACompVisMain
 	void reinitializeCharts();
 	void reintitalizeMetrics();
 
+	void enableUniformTable();
+	void enableBayesianBlocks();
+	void enableNaturalBreaks();
+
 	void orderHistogramTableAscending();
 	void orderHistogramTableDescending();
 	void orderHistogramTableAsLoaded();

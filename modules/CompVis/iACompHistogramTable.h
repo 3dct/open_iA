@@ -23,6 +23,13 @@ class iACompHistogramTable
 	iACompHistogramVis* getHistogramTableVis();
 
 	iACompUniformBinningData* getUniformBinningData();
+	iACompBayesianBlocksData* getBayesianBlocksData();
+	iACompNaturalBreaksData* getNaturalBreaksData();
+
+	/**************************  Change Table Visualization Methods  ******************************/
+	void drawUniformTable();
+	void drawBayesianBlocksTable();
+	void drawNaturalBreaksTable();
 
 	/******************************************  Update  ******************************/
 	void resetOtherCharts();
@@ -47,6 +54,9 @@ class iACompHistogramTable
 	std::vector<int>* getAmountObjectsEveryDataset();
 
    private:
+
+	   //initialize the various binning methods
+	   void initializeBinCalculation(iAMultidimensionalScaling* mds);
 
 	iACompVisMain* m_main;
 	iACsvDataStorage* m_dataStorage;

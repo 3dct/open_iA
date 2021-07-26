@@ -1,18 +1,10 @@
 #include "iACompUniformTableInteractorStyle.h"
 #include <vtkObjectFactory.h> //for macro!
 
-//Debug
-#include "iALog.h"
-
-//CompVis
 #include "iACompUniformTable.h"
 #include "iACompHistogramVis.h"
 
 //VTK
-#include <vtkRenderWindow.h>
-#include <vtkRenderWindowInteractor.h>
-#include <vtkSmartPointer.h>
-
 #include <vtkActorCollection.h>
 #include <vtkCellPicker.h>
 #include <vtkPropPicker.h>
@@ -50,13 +42,13 @@
 vtkStandardNewMacro(iACompUniformTableInteractorStyle);
 
 iACompUniformTableInteractorStyle::iACompUniformTableInteractorStyle() :
+	iACompTableInteractorStyle(),
+	m_visualization(nullptr),
 	m_picked(new Pick::PickedMap()),
 	m_pickedOld(new Pick::PickedMap()),
 	m_controlBinsInZoomedRows(false),
 	m_pointRepresentationOn(false),
-	m_zoomLevel(1),
 	m_actorPicker(vtkSmartPointer<vtkPropPicker>::New()),
-	m_zoomOn(true),
 	m_currentlyPickedActor(vtkSmartPointer<vtkActor>::New()),
 	m_panActive(false)
 {
@@ -124,7 +116,7 @@ void iACompUniformTableInteractorStyle::OnLeftButtonDown()
 	int is = m_actorPicker->Pick(pos[0], pos[1], 0, this->CurrentRenderer); //this->GetDefaultRenderer()
 	if (is == 0) 
 	{
-		resetHistogramTable();
+		resetUniformTable();
 		m_picked->clear();
 		return; 
 	}
@@ -300,7 +292,7 @@ void iACompUniformTableInteractorStyle::storePickedActorAndCell(vtkSmartPointer<
 	}
 }
 
-void iACompUniformTableInteractorStyle::resetHistogramTable()
+void iACompUniformTableInteractorStyle::resetUniformTable()
 {
 	//reset visualization when clicked anywhere
 	m_visualization->setBinsZoomed(m_visualization->getMinBins());
@@ -383,8 +375,8 @@ void iACompUniformTableInteractorStyle::OnMouseWheelForward()
 	reinitializeState();
 
 	//camera zoom in
-	if (this->GetInteractor()->GetShiftKey() && this->GetInteractor()->GetControlKey())
-	{  
+	if (this->GetInteractor()->GetControlKey())
+	{
 		generalZoomIn();
 		return;
 	}
@@ -407,7 +399,7 @@ void iACompUniformTableInteractorStyle::OnMouseWheelBackward()
 	reinitializeState();
 
 	//camera zoom out
-	if (this->GetInteractor()->GetShiftKey() && this->GetInteractor()->GetControlKey())
+	if (this->GetInteractor()->GetControlKey())
 	{  
 		generalZoomOut();
 		return;
@@ -488,25 +480,9 @@ void iACompUniformTableInteractorStyle::nonLinearZoomOut()
 	}
 }
 
-void iACompUniformTableInteractorStyle::generalZoomIn()
-{
-	m_visualization->getRenderer()->GetActiveCamera()->Zoom(m_zoomLevel + 0.05);
-	m_visualization->renderWidget();
-}
-void iACompUniformTableInteractorStyle::generalZoomOut()
-{
-	m_visualization->getRenderer()->GetActiveCamera()->Zoom(m_zoomLevel - 0.05);
-	m_visualization->renderWidget();
-}
-
-void iACompUniformTableInteractorStyle::setIACompUniformTable(iACompUniformTable* visualization)
+void iACompUniformTableInteractorStyle::setUniformTableVisualization(iACompUniformTable* visualization)
 {
 	m_visualization = visualization;
-}
-
-void iACompUniformTableInteractorStyle::setIACompHistogramVis(iACompHistogramVis* main)
-{
-	m_main = main;
 }
 
 void iACompUniformTableInteractorStyle::updateCharts()

@@ -1,10 +1,10 @@
 #pragma once
 
 //CompVis
+#include "iACompTableInteractorStyle.h"
 #include "iACompHistogramTableData.h"
 
 //vtk
-#include "vtkInteractorStyleTrackballCamera.h"
 #include "vtkSmartPointer.h"
 #include "vtkActor.h"
 #include "vtkIdTypeArray.h"
@@ -15,7 +15,6 @@
 
 //CompVis
 class iACompUniformTable;
-class iACompHistogramVis;
 
 //vtk
 class vtkRenderer;
@@ -59,11 +58,11 @@ static void debugPickedMap(PickedMap* input)
 
 }
 
-class iACompUniformTableInteractorStyle : public vtkInteractorStyleTrackballCamera
+class iACompUniformTableInteractorStyle : public iACompTableInteractorStyle
 {
    public:
 	static iACompUniformTableInteractorStyle* New();
-	vtkTypeMacro(iACompUniformTableInteractorStyle, vtkInteractorStyleTrackballCamera);
+	   vtkTypeMacro(iACompUniformTableInteractorStyle, iACompTableInteractorStyle);
 
 	virtual void OnLeftButtonDown();
 	virtual void OnLeftButtonUp();
@@ -80,10 +79,12 @@ class iACompUniformTableInteractorStyle : public vtkInteractorStyleTrackballCame
 	virtual void Pan();
 
 	//init iACompHistogramTable
-	void setIACompUniformTable(iACompUniformTable* visualization);
-	void setIACompHistogramVis(iACompHistogramVis* main);
+	void setUniformTableVisualization(iACompUniformTable* visualization);
 
 	Pick::PickedMap* getPickedObjects();
+
+	//remove unnecessary highlights and bar char visualization
+	void reinitializeState();
 
    protected:
 	iACompUniformTableInteractorStyle();
@@ -94,11 +95,6 @@ class iACompUniformTableInteractorStyle : public vtkInteractorStyleTrackballCame
 
 	//reformats picked object such that the other charts can work with it
 	csvDataType::ArrayType* formatPickedObjects(QList<std::vector<csvDataType::ArrayType*>*>* zoomedRowData);
-
-	//general zooming in executed by the camera
-	void generalZoomIn();
-	//general zooming out executed by the camera
-	void generalZoomOut();
 
 	//linear zooming in over all bins of the histograms
 	void linearZoomInHistogram();
@@ -114,10 +110,7 @@ class iACompUniformTableInteractorStyle : public vtkInteractorStyleTrackballCame
 	void updateOtherCharts(QList<std::vector<csvDataType::ArrayType*>*>* selectedObjectAttributes);
 	void resetOtherCharts();
 
-	void resetHistogramTable();
-
-	//remove unnecessary highlights and bar char visualization 
-	void reinitializeState();
+	void resetUniformTable();
 
 	void manualTableRelocatingStart(vtkSmartPointer<vtkActor> movingActor);
 	void manualTableRelocatingStop();
@@ -129,9 +122,6 @@ class iACompUniformTableInteractorStyle : public vtkInteractorStyleTrackballCame
 
 	//reset the bar chart visualization showing the number of objects for each dataset
 	bool resetBarChartAmountObjects();
-
-	iACompUniformTable* m_visualization;
-	iACompHistogramVis* m_main;
 
 	//stores for each actor a vector for each picked cell according to their vtkIdType
 	Pick::PickedMap* m_picked;
@@ -145,11 +135,7 @@ class iACompUniformTableInteractorStyle : public vtkInteractorStyleTrackballCame
 	//true --> point representation is drawn
 	bool m_pointRepresentationOn;
 
-	//if ture --> zooming is active, otherwise ordering according to selected bins is active
-	bool m_zoomOn;
-
-	//is always 1 -> only needed for changing the zoom for the camera
-	double m_zoomLevel;
+	iACompUniformTable* m_visualization;
 
 	QList<bin::BinType*>* m_zoomedRowData;
 

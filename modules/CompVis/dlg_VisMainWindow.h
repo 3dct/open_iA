@@ -33,6 +33,10 @@ class dlg_VisMainWindow : public QMainWindow, public Ui_CompVisMainWindow
 	void reorderHistogramTableDescending();
 	void reorderHistogramTableAsLoaded();
 
+	void enableUniformTable();
+	void enableBayesianBlocks();
+	void enableNaturalBreaks();
+
 	iACompVisMain* m_main;
 	iAMultidimensionalScaling* m_mds;
 	dlg_MultidimensionalScalingDialog* m_MDSD;

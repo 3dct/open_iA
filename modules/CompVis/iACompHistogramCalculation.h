@@ -1,13 +1,14 @@
 #pragma once
 
-#include "iACompUniformBinning.h";
-
-
+#include "iACompUniformBinning.h"
+#include "iACompBayesianBlocks.h"
+#include "iACompNaturalBreaks.h"
 
 class iAMultidimensionalScaling;
 class iACsvDataStorage;
 class iACompUniformBinningData;
-
+class iACompBayesianBlocksData;
+class iACompNaturalBreaksData;
 
 class iACompHistogramCalculation
 {
@@ -15,6 +16,7 @@ class iACompHistogramCalculation
 public:
 	iACompHistogramCalculation(iAMultidimensionalScaling* mds, iACsvDataStorage* dataStorage);
 
+	/************************** Uniform Binning ***************************************/
 	iACompUniformBinningData* getUniformBinningData();
 
 	//calculates the uniform binning with 10 bins
@@ -22,6 +24,17 @@ public:
 	//calculates the uniform binning with the number stored in the variable "numberOfBins" bins
 	void calculateUniformBinning(int numberOfBins);
 	void calculateUniformBinningSpecificBins(bin::BinType* data, int currData, int numberOfBins);
+
+	/************************** Bayesian Blocks ***************************************/
+	iACompBayesianBlocksData* getBayesianBlocksData();
+	
+	void calculateBayesianBlocks();
+
+	
+	/************************** Jenks Natural Breaks ***************************************/
+	iACompNaturalBreaksData* getNaturalBreaksData();
+
+	void calculateNaturalBreaks();
 
 	//TODO add other binning techniques
 
@@ -45,5 +58,12 @@ private:
 
 	iACompUniformBinningData* m_uniformBinningData;
 	iACompUniformBinning* m_uniformBinning;
+
+	
+	iACompBayesianBlocksData* m_bayesianBlocksData;
+	iACompBayesianBlocks* m_bayesianBlocks;
+
+	iACompNaturalBreaksData* m_naturalBreaksData;
+	iACompNaturalBreaks* m_naturalBreaks;
 
 };

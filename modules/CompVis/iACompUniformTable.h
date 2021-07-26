@@ -25,6 +25,8 @@ public:
 	virtual void setActive();
 	//set the visualization inactive (it will no longer be drawn)
 	virtual void setInactive();
+	//initialize the camera. The camera set by vtk in this view will be given to all other tables
+	virtual void initializeCamera();
 
 	/******************************************  Ordering/Ranking  **********************************/
 	//draw Histogram table with rows ordered ascending to its amount of objects
@@ -76,11 +78,10 @@ public:
 	//calculate the old position (drawing order) of the picked/moved plane
 	void calculateOldDrawingPositionOfMovingActor(vtkSmartPointer<vtkActor> movingActor);
 
-		//get the selected dataset with its MDS values
+	//get the selected dataset with its MDS values
 	// and the selected dataset with its object IDs
 	std::tuple<QList<bin::BinType*>*, QList<std::vector<csvDataType::ArrayType*>*>*> getSelectedData(
 		Pick::PickedMap* map);
-
 
 	/******************************************  Getter & Setter  **********************************************/
 	//return the actors representing the original rows
@@ -93,22 +94,26 @@ public:
 	const int getMinBins();
 	const int getMaxBins();
 
-	//get the boolean indicating that the bar chart visulaiztion showing the number of objects for each dataset is active
-	bool getBarChartAmountObjectsActive();
 	std::vector<int>* getIndexOfPickedRows();
+
+	vtkSmartPointer<iACompUniformTableInteractorStyle> getInteractorStyle();
 
 	/******************************************  Update THIS  **********************************************/
 	virtual void showSelectionOfCorrelationMap(std::map<int, double>* dataIndxSelectedType);
 	virtual void removeSelectionOfCorrelationMap();
 	
-
 protected:
+
 	virtual void initializeTable();
 	virtual void initializeInteraction();
 
 	//create the color lookuptable
 	virtual void makeLUTFromCTF();
 	virtual void makeLUTDarker();
+
+	//define the range of the bins for the visualization
+	//for uniform binning, the range of the objects is divded by the number of bins
+	virtual void calculateBinRange();
 
 private:
 
@@ -119,6 +124,7 @@ private:
 	//amountOfBins: contains the number how many bins are drawn
 	//offset contains: the offset by how much the plane will be drawn above the previous plane
 	vtkSmartPointer<vtkPlaneSource> drawRow(int currDataInd, int currentColumn, int amountOfBins, double offset);
+
 	//draw the zoomed row beneath its parent row
 	//currDataInd: contains the index to the current datastructure
 	//currentColumn: contains the index at which location it is drawn
@@ -127,11 +133,14 @@ private:
 	//offset contains: the offset by how much the zoomed plane will be drawn above the previous plane
 	std::vector<vtkSmartPointer<vtkPlaneSource>>* drawZoomedRow(int currDataInd, int currentColumn, int amountOfBins,
 		bin::BinType* currentData, double offsetHeight, std::vector<vtkIdType>* cellIdsOriginalPlane);
+	
 	vtkSmartPointer<vtkPlaneSource> drawZoomedPlanes(
 		int bins, double startX, double startY, double endX, double endY, int currBinIndex, bin::BinType* currentData);
+	
 	//draw the line from each selected cell of the original row plane to the zoomed row plane and border the bins in the zoomed row accrodingly
 	void drawLineBetweenRowAndZoomedRow(std::vector<vtkSmartPointer<vtkPlaneSource>>* zoomedRowPlanes,
 		vtkSmartPointer<vtkPlaneSource> originalRowPlane, std::vector<vtkIdType>* cellIdsOriginalPlane);
+	
 	//draw a line from start- to endPoint with a certain color and width
 	vtkSmartPointer<vtkActor> drawLine(double* startPoint, double* endPoint, double lineColor[3], double lineWidth);
 	void drawStippledTexture(double* origin, double* point1, double* point2, double* color);
@@ -150,28 +159,14 @@ private:
 	vtkSmartPointer<vtkPoints> calculatePointPosition(
 		std::vector<double> dataPoints, double newMinX, double newMaxX, double y, std::vector<double> currMinMax);
 
-
-	//define the maximum number of elements in a bin for visualization of the table
-	void calculateBinLength();
-
-	/******************************************  Initialization *******************************************/
-	//create correct label format
-	std::string initializeLegendLabels(std::string input);
-	//create the legend
-	void initializeLegend();
-
 	/******************************************  Ordering/Ranking  **********************************/
 	//draws the bar chart for showing the number of objects for each dataset
-	void drawBarChartShowingAmountOfObjects(std::vector<int> amountObjectsEveryDataset);
-	//creates the bar actors for showing the number of objects for each dataset
-	void createBar(vtkSmartPointer<vtkPlaneSource> currPlane, int currAmountObjects, int maxAmountObjects);
-	//creates the text actors for showing the number of objects for each dataset
-	void createAmountOfObjectsText(vtkSmartPointer<vtkPlaneSource> currPlane, int currAmountObjects);
+	virtual void drawBarChartShowingAmountOfObjects(std::vector<int> amountObjectsEveryDataset);
+	////creates the bar actors for showing the number of objects for each dataset
+	//void createBar(vtkSmartPointer<vtkPlaneSource> currPlane, int currAmountObjects, int maxAmountObjects);
+	////creates the text actors for showing the number of objects for each dataset
+	//void createAmountOfObjectsText(vtkSmartPointer<vtkPlaneSource> currPlane, int currAmountObjects);
 
-	//sorts the input vector according to the given orderStyle ascending(0) or descending(1)
-	std::vector<int>* sortWithMemory(std::vector<int> input, int orderStyle);
-	std::vector<int>* sortWithMemory(std::vector<double> input, int orderStyle);
-	std::vector<int>* reorderAccordingTo(std::vector<int>* newPositions);
 	double calculateChiSquaredMetric(bin::BinType* observedFrequency, bin::BinType* expectedFrequency);
 
 	//calculate the new position (drawing order) of the picked/moved plane
@@ -179,10 +174,8 @@ private:
 	int calculateCurrentPosition(vtkSmartPointer<vtkActor> movingActor);
 	void reorderIndices(int newDrawingPos, int oldDrawingPos);
 
-	
 	//datastructure containing the binned data points
 	iACompUniformBinningData* m_uniformBinningData;
-
 
 	//store bin data of selected rows that will be zoomed
 	//each entry in the list represents a row, where any cell(or several) were selected.
@@ -224,10 +217,6 @@ private:
 	//stores the actors needed for the point representation
 	std::vector<vtkSmartPointer<vtkActor>>* m_pointRepresentationActors;
 
-	//stores the bar actors drawn to show the number of objects for each dataset
-	std::vector<vtkSmartPointer<vtkActor>>* m_barActors;
-	//stores the text actors drawn to show the number of objects for each dataset
-	std::vector<vtkSmartPointer<vtkTextActor>>* m_barTextActors;
 	std::vector<vtkSmartPointer<vtkActor>>* m_stippledActors;
 
 	//stores the order of the row which was picked
@@ -239,6 +228,6 @@ private:
 	int m_oldDrawingPosition;
 	int m_newDrawingPosition;
 
-	//stores the last interaction that was performed to make a reinitialization after minimizing etc. possible
-	iACompVisOptions::lastState m_lastState;
+	/*** Interaction ***/
+	vtkSmartPointer<iACompUniformTableInteractorStyle> m_interactionStyle;
 };

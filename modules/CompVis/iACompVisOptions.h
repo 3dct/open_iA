@@ -28,7 +28,9 @@ namespace iACompVisOptions
 
 	/*************** Binning Calculation ****************************/
 	enum class binningType
-	{	Uniform,
+	{
+		Undefined,
+		Uniform,
 		JenksNaturalBreaks,
 		BayesianBlocks
 	};
@@ -43,6 +45,7 @@ namespace iACompVisOptions
 	};
 	
 	/*************** Rendering ****************************/
+	static const unsigned char BACKGROUNDCOLOR_BLACK[3] = {0, 0, 0};
 	static const unsigned char BACKGROUNDCOLOR_GREY[3] = { 25, 25, 25 };//{128, 128, 128 };
 	static const unsigned char BACKGROUNDCOLOR_LIGHTGREY[3] = { 115, 115, 115 };
 	static const unsigned char BACKGROUNDCOLOR_LIGHTERGREY[3] = { 189, 189, 189 };
@@ -86,6 +89,18 @@ namespace iACompVisOptions
 	{
 		double result = ((newMax - newMin)* ((value - oldMin) / (oldMax - oldMin))) + newMin;
 		return result;
+	}
+
+	//calculates the percentage of a point in any range interval (with positive and negative values)
+	static double calculatePercentofRange(double value, double min, double max)
+	{
+		return (value - min) / (max - min);
+	}
+
+	//calculates a value at a specific percentage in any range interval (with positive and negative values)
+	static double calculateValueAccordingToPercent(double min, double max, double percent)
+	{
+		return percent * (max - min) + min;
 	}
 
 	static double* getDoubleArray(const unsigned char colors[3])

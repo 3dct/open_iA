@@ -8,6 +8,8 @@
 #include <QColor>
 
 //vtk
+#include "vtkRenderWindow.h"
+#include "vtkRenderWindowInteractor.h"
 #include "vtkColorTransferFunction.h";
 #include "vtkLookupTable.h"
 #include "vtkScalarBarActor.h"
@@ -34,9 +36,14 @@
 #include "vtkLineSource.h"
 #include "vtkSphereSource.h"
 #include "vtkGlyph2D.h"
+#include "vtkProperty2D.h"
+
+#include <vtkBorderRepresentation.h>
+#include <vtkBorderWidget.h>
 
 iACompUniformTable::iACompUniformTable(iACompHistogramVis* vis, iACompUniformBinningData* uniformBinningData) :
-	iACompTable(vis),
+	iACompTable(vis), 
+	m_interactionStyle(vtkSmartPointer<iACompUniformTableInteractorStyle>::New()),
 	m_uniformBinningData(uniformBinningData),
 	m_BinRangeLength(0),
 	m_originalPlaneActors(new std::vector<vtkSmartPointer<vtkActor>>()),
@@ -46,13 +53,12 @@ iACompUniformTable::iACompUniformTable(iACompHistogramVis* vis, iACompUniformBin
 	m_highlightRowActor(vtkSmartPointer<vtkActor>::New()),
 	m_oldDrawingPosition(-1),
 	m_pointRepresentationActors(new std::vector<vtkSmartPointer<vtkActor>>()),
-	m_barActors(new std::vector<vtkSmartPointer<vtkActor>>()),
-	m_barTextActors(new std::vector<vtkSmartPointer<vtkTextActor>>()),
+	/*m_barActors(new std::vector<vtkSmartPointer<vtkActor>>()),
+	m_barTextActors(new std::vector<vtkSmartPointer<vtkTextActor>>()),*/
 	m_stippledActors(new std::vector<vtkSmartPointer<vtkActor>>()),
 	m_indexOfPickedRow(new std::vector<int>()),
 	m_pickedCellsforPickedRow(new std::map<int, std::vector<vtkIdType>*>()),
-	originalPlaneZoomedPlanePair(new std::map<vtkSmartPointer<vtkActor>, std::vector<vtkSmartPointer<vtkActor>>*>()),
-	m_lastState(iACompVisOptions::lastState::Undefined)
+	originalPlaneZoomedPlanePair(new std::map<vtkSmartPointer<vtkActor>, std::vector<vtkSmartPointer<vtkActor>>*>())
 {
 	m_bins = minBins;
 	m_binsZoomed = minBins;
@@ -72,17 +78,11 @@ void iACompUniformTable::initializeTable()
 
 	//initialize legend
 	initializeLegend();
-
-	//init camera
-	vtkSmartPointer<vtkCamera> camera = vtkSmartPointer<vtkCamera>::New();
-	camera->SetPosition(m_vis->getRowSize() * 0.5, (m_vis->getColSize() * m_vis->getAmountDatasets()) * 0.5, 1);
-	camera->SetFocalPoint(m_vis->getRowSize() * 0.5, (m_vis->getColSize() * m_vis->getAmountDatasets()) * 0.5, 0);
-	//m_mainRenderer->SetActiveCamera(camera);
 }
 
 void iACompUniformTable::initializeInteraction()
 {
-	m_interactionStyle->setIACompUniformTable(this);
+	m_interactionStyle->setUniformTableVisualization(this);
 	m_interactionStyle->SetDefaultRenderer(m_mainRenderer);
 	m_interactionStyle->setIACompHistogramVis(m_vis);
 }
@@ -92,13 +92,18 @@ void iACompUniformTable::setActive()
 	//add rendererColorLegend to widget
 	addLegendRendererToWidget();
 
-
 	if (m_lastState == iACompVisOptions::lastState::Undefined)
 	{
 		drawHistogramTable(m_bins);
+
+		//init camera
+		initializeCamera();
 	}
 	else if (m_lastState == iACompVisOptions::lastState::Defined)
 	{
+		m_interactionStyle->reinitializeState();
+
+		drawHistogramTable(m_bins);
 		renderWidget();
 	}	
 }
@@ -108,10 +113,15 @@ void iACompUniformTable::setInactive()
 
 }
 
+void iACompUniformTable::initializeCamera()
+{
+	m_vis->setCamera(m_mainRenderer->GetActiveCamera());
+}
+
 /******************************************  Coloring (LookupTable)  **********************************/
 void iACompUniformTable::makeLUTFromCTF()
 {
-	calculateBinLength();
+	calculateBinRange();
 
 	vtkSmartPointer<vtkColorTransferFunction> ctf = vtkSmartPointer<vtkColorTransferFunction>::New();
 	ctf->SetColorSpaceToRGB();
@@ -144,13 +154,11 @@ void iACompUniformTable::makeLUTFromCTF()
 
 	double min = 0;
 	double max = 0;
-	int startVal = 0;
-
+	int startVal = 1;
+	
 	for (size_t i = 0; i < m_tableSize; i++)
 	{
 		double* rgb;
-		rgb = ctf->GetColor(static_cast<double>(i) / (double)m_tableSize);
-		m_lut->SetTableValue(i, rgb);
 
 		//make format of annotations
 		double low = round_up(startVal + (i * m_BinRangeLength), 2);
@@ -162,9 +170,6 @@ void iACompUniformTable::makeLUTFromCTF()
 		std::string lowerString = initializeLegendLabels(sLow);
 		std::string upperString = initializeLegendLabels(sHigh);
 
-		//position description in the middle of each color bar in the scalarBar legend
-		m_lut->SetAnnotation(low + ((high - low) * 0.5), lowerString + " - " + upperString);
-
 		//store min and max value of the dataset
 		if (i == 0)
 		{
@@ -174,6 +179,12 @@ void iACompUniformTable::makeLUTFromCTF()
 		{
 			max = high;
 		}
+
+		
+		rgb = ctf->GetColor(static_cast<double>(i) / (double)m_tableSize);
+		m_lut->SetTableValue(i, rgb);
+		//position description in the middle of each color bar in the scalarBar legend
+		m_lut->SetAnnotation(low + ((high - low) * 0.5), lowerString + " - " + upperString);
 	}
 
 	m_lut->SetTableRange(min, max);
@@ -219,7 +230,7 @@ void iACompUniformTable::makeLUTDarker()
 
 	double min = 0;
 	double max = 0;
-	int startVal = 0;
+	int startVal = 1;
 
 	for (size_t i = 0; i < m_tableSize; i++)
 	{
@@ -261,63 +272,10 @@ void iACompUniformTable::makeLUTDarker()
 	m_lutDarker->UseBelowRangeColorOn();
 }
 
-void iACompUniformTable::calculateBinLength()
+void iACompUniformTable::calculateBinRange()
 {
 	int maxAmountInAllBins = m_uniformBinningData->getMaxAmountInAllBins();
 	m_BinRangeLength = ((double)maxAmountInAllBins) / ((double)m_tableSize);
-}
-
-std::string iACompUniformTable::initializeLegendLabels(std::string input)
-{
-	std::string result;
-	std::string helper = input;
-	std::string newLow = input.erase(input.find('.'), std::string::npos);
-
-	if (newLow.size() > 1)
-	{  //more than one charachater before the dot
-		result = newLow;
-	}
-	else
-	{  //only one  character before the dot
-		result = helper.erase(helper.find('.') + 2, std::string::npos);
-	}
-
-	return result;
-}
-
-void iACompUniformTable::initializeLegend()
-{
-	vtkSmartPointer<vtkScalarBarActor> scalarBar = vtkSmartPointer<vtkScalarBarActor>::New();
-	scalarBar->SetLookupTable(m_lut);
-	scalarBar->SetHeight(0.85);
-	scalarBar->GetPositionCoordinate()->SetCoordinateSystemToNormalizedViewport();
-	scalarBar->GetPositionCoordinate()->SetValue(0.001, 0.1, 0.0);
-	scalarBar->SetWidth(0.5);
-	scalarBar->SetUnconstrainedFontSize(1);
-
-	scalarBar->SetTitle("                   Number of Objects");
-	scalarBar->SetNumberOfLabels(0);
-	scalarBar->SetTextPositionToPrecedeScalarBar();
-
-	//title properties
-	scalarBar->GetTitleTextProperty()->BoldOn();
-	scalarBar->GetTitleTextProperty()->SetFontSize(iACompVisOptions::FONTSIZE_TITLE);
-	scalarBar->GetTitleTextProperty()->SetColor(iACompVisOptions::getDoubleArray(iACompVisOptions::FONTCOLOR_TITLE));
-	scalarBar->GetTitleTextProperty()->SetVerticalJustificationToTop();
-	scalarBar->SetVerticalTitleSeparation(7);
-	scalarBar->GetTitleTextProperty()->Modified();
-
-	//text properties
-	vtkSmartPointer<vtkTextProperty> propL = vtkSmartPointer<vtkTextProperty>::New();
-	propL->SetFontSize(iACompVisOptions::FONTSIZE_TITLE);
-	propL->SetColor(iACompVisOptions::getDoubleArray(iACompVisOptions::FONTCOLOR_TEXT));
-	propL->Modified();
-	scalarBar->SetAnnotationTextProperty(propL);
-
-	// Setup render window, renderer, and interactor
-	m_rendererColorLegend->SetViewport(0.8, 0, 1, 1);
-	m_rendererColorLegend->SetBackground(iACompVisOptions::getDoubleArray(iACompVisOptions::BACKGROUNDCOLOR_GREY));
-	m_rendererColorLegend->AddActor2D(scalarBar);
 }
 
 /*************** Rendering ****************************/
@@ -387,10 +345,11 @@ vtkSmartPointer<vtkPlaneSource> iACompUniformTable::drawRow(int currDataInd, int
 	{ //the edges of the cells are drawn
 		actor->GetProperty()->EdgeVisibilityOn();
 		double col[3];
-		col[0] = iACompVisOptions::getDoubleArray(iACompVisOptions::BACKGROUNDCOLOR_GREY)[0];
-		col[1] = iACompVisOptions::getDoubleArray(iACompVisOptions::BACKGROUNDCOLOR_GREY)[1];
-		col[2] = iACompVisOptions::getDoubleArray(iACompVisOptions::BACKGROUNDCOLOR_GREY)[2];
+		col[0] = iACompVisOptions::getDoubleArray(iACompVisOptions::BACKGROUNDCOLOR_BLACK)[0];
+		col[1] = iACompVisOptions::getDoubleArray(iACompVisOptions::BACKGROUNDCOLOR_BLACK)[1];
+		col[2] = iACompVisOptions::getDoubleArray(iACompVisOptions::BACKGROUNDCOLOR_BLACK)[2];
 		actor->GetProperty()->SetEdgeColor(col[0], col[1], col[2]);
+		actor->GetProperty()->SetLineWidth(actor->GetProperty()->GetLineWidth()*1.5);
 	}
 	else
 	{ //not showing the edges of the cells
@@ -414,7 +373,7 @@ void iACompUniformTable::colorRow(vtkUnsignedCharArray* colors, int currDataset,
 {
 	m_uniformBinningData = static_cast<iACompUniformBinningData*>(m_vis->recalculateBinning(iACompVisOptions::binningType::Uniform, numberOfBins));
 	QList<bin::BinType*>* binData = m_uniformBinningData->getBinData();
-	calculateBinLength();
+	calculateBinRange();
 
 	colorBinsOfRow(colors, binData->at(currDataset), binData->at(currDataset)->size());
 }
@@ -501,8 +460,8 @@ void iACompUniformTable::drawHistogramTableAccordingToSimilarity(int bins, vtkSm
 	}
 
 	//stores the new order of the datasets as their new position
-	std::vector<int>* newOrder = sortWithMemory(results, 0);
-	m_vis->setOrderOfIndicesDatasets(reorderAccordingTo(newOrder));
+	std::vector<int>* newOrder = m_vis->sortWithMemory(results, 0);
+	m_vis->setOrderOfIndicesDatasets(m_vis->reorderAccordingTo(newOrder));
 
 	drawHistogramTable(m_bins);
 
@@ -554,8 +513,8 @@ void iACompUniformTable::drawHistogramTableAccordingToCellSimilarity(int bins, P
 	}
 
 	//stores the new order of the datasets as their new position
-	std::vector<int>* newOrder = sortWithMemory(results, 0);
-	m_vis->setOrderOfIndicesDatasets(reorderAccordingTo(newOrder));
+	std::vector<int>* newOrder = m_vis->sortWithMemory(results, 0);
+	m_vis->setOrderOfIndicesDatasets(m_vis->reorderAccordingTo(newOrder));
 
 	drawHistogramTable(m_bins);
 
@@ -1405,67 +1364,6 @@ double iACompUniformTable::calculateChiSquaredMetric(bin::BinType* observedFrequ
 	return chiSquare;
 }
 
-std::vector<int>* iACompUniformTable::reorderAccordingTo(std::vector<int>* newPositions)
-{
-	std::vector<int>* result = new std::vector<int>(newPositions->size(), 0);
-
-	for (int i = 0; i < newPositions->size(); i++)
-	{
-		result->at((newPositions->size() - 1) - i) = newPositions->at(i);
-	}
-
-	return result;
-}
-
-std::vector<int>* iACompUniformTable::sortWithMemory(std::vector<int> input, int orderStyle)
-{
-	std::vector<int>* newOrder = new std::vector<int>(input.size(), 0);
-	int n(0);
-	std::generate(std::begin(*newOrder), std::end(*newOrder), [&] { return n++; });
-
-	if (orderStyle == 0)
-	{ // ascending ordering
-		auto comparator = [input](int i1, int i2) { return input.at(i1) < input.at(i2); };
-		std::sort(std::begin(*newOrder), std::end(*newOrder), comparator);
-
-		std::sort(std::begin(input), std::end(input), std::less<int>());
-	}
-	else
-	{// descending ordering
-		auto comparator = [input](int i1, int i2) { return input.at(i1) > input.at(i2); };
-		std::sort(std::begin(*newOrder), std::end(*newOrder), comparator);
-
-		std::sort(std::begin(input), std::end(input), std::greater<int>());
-	}
-
-	return newOrder;
-}
-
-std::vector<int>* iACompUniformTable::sortWithMemory(std::vector<double> input, int orderStyle)
-{
-	std::vector<int>* newOrder = new std::vector<int>(input.size(), 0.0);
-	int n(0);
-	std::generate(std::begin(*newOrder), std::end(*newOrder), [&] { return n++; });
-
-	if (orderStyle == 0)
-	{ //ascending ordering
-		auto comparator = [input](double i1, double i2) { return input.at(i1) < input.at(i2); };
-		std::sort(std::begin(*newOrder), std::end(*newOrder), comparator);
-
-		std::sort(std::begin(input), std::end(input), std::less<double>());
-	}
-	else
-	{
-		// descending ordering
-		auto comparator = [input](double i1, double i2) { return input.at(i1) > input.at(i2); };
-		std::sort(std::begin(*newOrder), std::end(*newOrder), comparator);
-
-		std::sort(std::begin(input), std::end(input), std::greater<double>());
-	}
-
-	return newOrder;
-}
-
 void iACompUniformTable::reorderHistogramTable(vtkSmartPointer<vtkActor> movingActor)
 {
 	//calculate in which row the moving actor will be set
@@ -1631,14 +1529,14 @@ void iACompUniformTable::setBinsZoomed(int bins)
 	m_binsZoomed = bins;
 }
 
-bool iACompUniformTable::getBarChartAmountObjectsActive()
-{
-	return m_useDarkerLut;
-}
-
 std::vector<int>* iACompUniformTable::getIndexOfPickedRows()
 {
 	return m_indexOfPickedRow;
+}
+
+vtkSmartPointer<iACompUniformTableInteractorStyle> iACompUniformTable::getInteractorStyle()
+{
+	return m_interactionStyle;
 }
 
 /******************************************  Ordering/Ranking  **********************************/
@@ -1667,8 +1565,8 @@ void iACompUniformTable::drawHistogramTableInDescendingOrder(int bins)
 	std::vector<int> amountObjectsEveryDataset = *(m_uniformBinningData->getAmountObjectsEveryDataset());
 
 	//stores the new order of the datasets as their new position
-	std::vector<int>* newOrder = sortWithMemory(amountObjectsEveryDataset, 1);
-	m_vis->setOrderOfIndicesDatasets(reorderAccordingTo(newOrder));
+	std::vector<int>* newOrder = m_vis->sortWithMemory(amountObjectsEveryDataset, 1);
+	m_vis->setOrderOfIndicesDatasets(m_vis->reorderAccordingTo(newOrder));
 
 	if (m_useDarkerLut)
 	{
@@ -1686,8 +1584,8 @@ void iACompUniformTable::drawHistogramTableInAscendingOrder(int bins)
 	std::vector<int> amountObjectsEveryDataset = *(m_uniformBinningData->getAmountObjectsEveryDataset());
 
 	//stores the new order of the datasets as their new position
-	std::vector<int>* newOrder = sortWithMemory(amountObjectsEveryDataset, 0);
-	m_vis->setOrderOfIndicesDatasets(reorderAccordingTo(newOrder));
+	std::vector<int>* newOrder = m_vis->sortWithMemory(amountObjectsEveryDataset, 0);
+	m_vis->setOrderOfIndicesDatasets(m_vis->reorderAccordingTo(newOrder));
 
 	if (m_useDarkerLut)
 	{
@@ -1719,73 +1617,6 @@ void iACompUniformTable::drawBarChartShowingAmountOfObjects(std::vector<int> amo
 	}
 
 	renderWidget();
-}
-
-void iACompUniformTable::createBar(
-	vtkSmartPointer<vtkPlaneSource> currPlane, int currAmountObjects, int maxAmountObjects)
-{
-	//calculate height of bar
-	double maxHeight = currPlane->GetPoint2()[1] - currPlane->GetOrigin()[1];
-	double height25 = currPlane->GetOrigin()[1] + (maxHeight * 0.25);
-	double height75 = currPlane->GetOrigin()[1] + (maxHeight * 0.75);
-
-	//calculate width of bar
-	double maxWidth = currPlane->GetPoint1()[0] - currPlane->GetOrigin()[0];
-	double percent = ((double)currAmountObjects) / ((double)maxAmountObjects);
-	double correctWidth = maxWidth * percent;
-	double correctX = (currPlane->GetOrigin()[0]) + correctWidth;
-
-	vtkSmartPointer<vtkPlaneSource> barPlane = vtkSmartPointer<vtkPlaneSource>::New();
-	barPlane->SetXResolution(1);
-	barPlane->SetYResolution(1);
-	barPlane->SetOrigin(currPlane->GetOrigin()[0], height25, currPlane->GetOrigin()[2]);
-	barPlane->SetPoint1(correctX, height25, currPlane->GetPoint1()[2]);
-	barPlane->SetPoint2(currPlane->GetPoint2()[0], height75, currPlane->GetPoint2()[2]);
-	barPlane->Update();
-
-	// Setup actor and mapper
-	vtkSmartPointer<vtkPolyDataMapper> mapper = vtkSmartPointer<vtkPolyDataMapper>::New();
-	mapper->SetInputConnection(barPlane->GetOutputPort());
-	mapper->Update();
-
-	vtkSmartPointer<vtkActor> actor = vtkSmartPointer<vtkActor>::New();
-	actor->SetMapper(mapper);
-	double color[3];
-	color[0] = iACompVisOptions::getDoubleArray(iACompVisOptions::HIGHLIGHTCOLOR_GREEN)[0];
-	color[1] = iACompVisOptions::getDoubleArray(iACompVisOptions::HIGHLIGHTCOLOR_GREEN)[1];
-	color[2] = iACompVisOptions::getDoubleArray(iACompVisOptions::HIGHLIGHTCOLOR_GREEN)[2];
-	actor->GetProperty()->SetColor(color[0], color[1], color[2]);
-
-	m_mainRenderer->AddActor(actor);
-	m_barActors->push_back(actor);
-}
-
-void iACompUniformTable::createAmountOfObjectsText(vtkSmartPointer<vtkPlaneSource> currPlane, int currAmountObjects)
-{
-	vtkSmartPointer<vtkTextActor> legend = vtkSmartPointer<vtkTextActor>::New();
-	legend->SetTextScaleModeToNone();
-	legend->SetInput(std::to_string(currAmountObjects).c_str());
-
-	vtkSmartPointer<vtkTextProperty> legendProperty = legend->GetTextProperty();
-	legendProperty->BoldOn();
-	legendProperty->ItalicOff();
-	legendProperty->ShadowOff();
-	legendProperty->SetFontFamilyToArial();
-	legendProperty->SetColor(iACompVisOptions::getDoubleArray(iACompVisOptions::BACKGROUNDCOLOR_WHITE));
-	legendProperty->SetFontSize(iACompVisOptions::FONTSIZE_TEXT);
-	legendProperty->SetJustification(VTK_TEXT_LEFT);
-	legendProperty->SetVerticalJustificationToCentered();
-	legendProperty->Modified();
-
-	double x = currPlane->GetPoint1()[0] + (m_vis->getRowSize() * 0.05);
-	double height = currPlane->GetPoint2()[1] - currPlane->GetOrigin()[1];
-	double y = currPlane->GetOrigin()[1] + (height * 0.5);
-	legend->GetPositionCoordinate()->SetCoordinateSystemToWorld();
-	legend->GetPositionCoordinate()->SetValue(x, y);
-	legend->Modified();
-
-	m_mainRenderer->AddActor(legend);
-	m_barTextActors->push_back(legend);
 }
 
 /******************************************  Update THIS  **********************************/

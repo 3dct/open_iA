@@ -54,11 +54,19 @@ QList<csvFileData>* dlg_VisMainWindow::getData()
 
 void dlg_VisMainWindow::createMenu()
 {
+	//activate MDS recalculation
 	connect(actionRecalculateMDS, &QAction::triggered, this, &dlg_VisMainWindow::recalculateMDS);
 	
+	//activate ordering in histogram table
 	connect(actionAscending_to_Number_of_Objects, &QAction::triggered, this, &dlg_VisMainWindow::reorderHistogramTableAscending);
 	connect(actionDescending_to_Number_of_Objects, &QAction::triggered, this, &dlg_VisMainWindow::reorderHistogramTableDescending);
 	connect(actionAs_Loaded, &QAction::triggered, this, &dlg_VisMainWindow::reorderHistogramTableAsLoaded);
+
+	//activate switching between discretization methods
+	connect(actionUniform, &QAction::triggered, this, &dlg_VisMainWindow::enableUniformTable);
+	connect(actionBayesian_Blocks, &QAction::triggered, this, &dlg_VisMainWindow::enableBayesianBlocks);
+	connect(actionNatual_Breaks, &QAction::triggered, this, &dlg_VisMainWindow::enableNaturalBreaks);
+
 }
 
 void dlg_VisMainWindow::reorderHistogramTableAscending()
@@ -74,4 +82,18 @@ void dlg_VisMainWindow::reorderHistogramTableDescending()
 void dlg_VisMainWindow::reorderHistogramTableAsLoaded()
 {
 	m_main->orderHistogramTableAsLoaded();
+}
+
+void dlg_VisMainWindow::enableUniformTable()
+{
+	m_main->enableUniformTable();
+}
+
+void dlg_VisMainWindow::enableBayesianBlocks()
+{
+	m_main->enableBayesianBlocks();
+}
+void dlg_VisMainWindow::enableNaturalBreaks()
+{
+	m_main->enableNaturalBreaks();
 }

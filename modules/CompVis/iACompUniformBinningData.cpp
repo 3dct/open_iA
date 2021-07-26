@@ -23,3 +23,8 @@ int iACompUniformBinningData::getInitialNumberOfBins()
 {
 	return m_bins;
 }
+
+QList<std::vector<double>>* iACompUniformBinningData::getBinRange()
+{ //TODO add implementation - not important
+	return nullptr;
+}
