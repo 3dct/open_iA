@@ -27,16 +27,43 @@
 #include <vtkOpenVRRenderer.h>
 #include <vtkOpenVRRenderWindow.h>
 #include <vtkOpenVRCamera.h>
+#include <vtkPNGReader.h>
+#include <vtkJPEGReader.h>
+#include <vtkEquirectangularToCubeMapTexture.h>
+#include <vtkImageFlip.h>
+#include <vtkLight.h>
+#include <vtkLightKit.h>
+#include <vtkPickingManager.h>
 
-iAVREnvironment::iAVREnvironment():
-	m_renderer(vtkSmartPointer<vtkOpenVRRenderer>::New())
-{
-	m_renderer->SetBackground(50, 50, 50);
+#include <qstring.h>
+#include <QCoreApplication>
+
+iAVREnvironment::iAVREnvironment():	m_renderer(vtkSmartPointer<vtkOpenVRRenderer>::New()), m_interactor(vtkSmartPointer<iAVRInteractor>::New()), 
+m_renderWindow(vtkSmartPointer<vtkOpenVRRenderWindow>::New())
+{	
+	createSkybox(0);
+	createLightKit();
+	//m_renderer->SetShowFloor(true);
 }
 
 vtkRenderer* iAVREnvironment::renderer()
 {
 	return m_renderer;
+}
+
+iAVRInteractor* iAVREnvironment::interactor()
+{
+	return m_interactor;
+}
+
+vtkOpenVRRenderWindow* iAVREnvironment::renderWindow()
+{
+	return m_renderWindow;
+}
+
+void iAVREnvironment::update()
+{
+	m_renderWindow->Render();
 }
 
 void iAVREnvironment::start()
@@ -50,18 +77,19 @@ void iAVREnvironment::start()
 		return;
 	}
 	++runningInstances;
-	auto renderWindow = vtkSmartPointer<vtkOpenVRRenderWindow>::New();
-	renderWindow->AddRenderer(m_renderer);
+	m_renderWindow->AddRenderer(m_renderer);
 	// MultiSamples needs to be set to 0 to make Volume Rendering work:
 	// http://vtk.1045678.n5.nabble.com/Problems-in-rendering-volume-with-vtkOpenVR-td5739143.html
-	renderWindow->SetMultiSamples(0);
-	m_interactor = vtkSmartPointer<iAVRInteractor>::New();
-	m_interactor->SetRenderWindow(renderWindow);
+	m_renderWindow->SetMultiSamples(0);
+	m_interactor->SetRenderWindow(m_renderWindow);
 	auto camera = vtkSmartPointer<vtkOpenVRCamera>::New();
 
 	m_renderer->SetActiveCamera(camera);
 	m_renderer->ResetCamera();
-	renderWindow->Render();
+	m_renderer->ResetCameraClippingRange();
+	m_renderWindow->Render();
+	m_worldScale = m_interactor->GetPhysicalScale();
+	m_interactor->GetPickingManager()->EnabledOn();
 	m_interactor->Start();
 	--runningInstances;
 	emit finished();
@@ -72,3 +100,80 @@ void iAVREnvironment::stop()
 	if (m_interactor)
 		m_interactor->stop();
 }
+
+void iAVREnvironment::createLightKit()
+{
+	vtkSmartPointer<vtkLightKit> light = vtkSmartPointer<vtkLightKit>::New();
+	light->SetKeyLightIntensity(0.88);
+	light->AddLightsToRenderer(m_renderer);
+}
+
+double iAVREnvironment::getInitialWorldScale()
+{
+	return m_worldScale;
+}
+
+void iAVREnvironment::createSkybox(int skyboxImage)
+{
+	//const std::string chosenSkybox = QString("/skybox%1/").arg(skyboxImage).toUtf8();
+	const std::string chosenSkybox = "/skybox" + std::to_string(skyboxImage) + "/";
+
+	// Load the skybox
+	// Read it again as there is no deep copy for vtkTexture
+	QString path = QCoreApplication::applicationDirPath() + "/VR-skybox";
+	auto skybox = ReadCubeMap(path.toStdString(), chosenSkybox, ".png", 0);
+	skybox->InterpolateOn();
+	skybox->RepeatOff();
+	skybox->EdgeClampOn();
+
+	//m_renderer->UseImageBasedLightingOn();
+	//m_renderer->SetEnvironmentTexture(cubemap);
+
+	skyboxActor = vtkSmartPointer<vtkSkybox>::New();
+	skyboxActor->SetTexture(skybox);
+	m_renderer->AddActor(skyboxActor);
+}
+
+vtkSmartPointer<vtkTexture> iAVREnvironment::ReadCubeMap(std::string const& folderPath,
+	std::string const& fileRoot,
+	std::string const& ext, int const& key)
+{
+	// A map of cube map naming conventions and the corresponding file name
+	// components.
+	std::map<int, std::vector<std::string>> fileNames{
+		{0, {"right", "left", "top", "bottom", "front", "back"}},
+		{1, {"posx", "negx", "posy", "negy", "posz", "negz"}},
+		{2, {"-px", "-nx", "-py", "-ny", "-pz", "-nz"}},
+		{3, {"0", "1", "2", "3", "4", "5"}} };
+	std::vector<std::string> fns;
+	if (fileNames.count(key))
+	{
+		fns = fileNames.at(key);
+	}
+	else
+	{
+		std::cerr << "ReadCubeMap(): invalid key, unable to continue." << std::endl;
+		std::exit(EXIT_FAILURE);
+	}
+	auto texture = vtkSmartPointer<vtkTexture>::New();
+	texture->CubeMapOn();
+	// Build the file names.
+	std::for_each(fns.begin(), fns.end(),
+		[&folderPath, &fileRoot, &ext](std::string& f) {
+		f = folderPath + fileRoot + f + ext;
+	});
+	auto i = 0;
+	for (auto const& fn : fns)
+	{
+		auto imgReader = vtkSmartPointer<vtkPNGReader>::New();
+		imgReader->SetFileName(fn.c_str());
+
+		auto flip = vtkSmartPointer<vtkImageFlip>::New();
+		flip->SetInputConnection(imgReader->GetOutputPort());
+		flip->SetFilteredAxis(1); // flip y axis
+		texture->SetInputConnection(i, flip->GetOutputPort(0));
+		++i;
+	}
+	return texture;
+}
+

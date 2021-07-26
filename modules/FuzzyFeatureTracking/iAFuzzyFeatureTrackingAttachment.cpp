@@ -33,11 +33,10 @@
 
 #include <QFile>
 
-const int FOURDCT_MIN_NUMBER_OF_VOLUMES = 1;
+const int FOURDCT_MIN_NUMBER_OF_VOLUMES = 2;
 
 iAFuzzyFeatureTrackingAttachment::iAFuzzyFeatureTrackingAttachment( iAMainWindow * mainWnd, iAMdiChild * child ):
 	iAModuleAttachmentToChild( mainWnd, child ),
-	trackingGraph(nullptr),
 	m_dlgDataView4DCT(nullptr),
 	m_dlgTrackingGraph(nullptr),
 	m_dlgEventExplorer(nullptr),
@@ -67,7 +66,7 @@ bool iAFuzzyFeatureTrackingAttachment::create4DCTDataViewWidget()
 		return false;
 	}
 
-	if (!m_volumeStack || m_volumeStack->numberOfVolumes() <= FOURDCT_MIN_NUMBER_OF_VOLUMES)
+	if (!m_volumeStack || m_volumeStack->numberOfVolumes() < FOURDCT_MIN_NUMBER_OF_VOLUMES)
 	{
 		LOG(lvlError, tr( "No volume stack loaded or it does not contain enough volumes (expected: %1, actual: %2)!" )
 			.arg(FOURDCT_MIN_NUMBER_OF_VOLUMES)
@@ -75,7 +74,6 @@ bool iAFuzzyFeatureTrackingAttachment::create4DCTDataViewWidget()
 		return false;
 	}
 
-	// create new dialog
 	m_dlgDataView4DCT = new dlg_dataView4DCT( m_child, m_volumeStack );
 	m_child->tabifyDockWidget( m_child->renderDockWidget(), m_dlgDataView4DCT );
 	// test m_renderer->reInitialize (m_volumeStack->volume(1), polyData, m_volumeStack->opacityTF(1),m_volumeStack->colorTF(1));

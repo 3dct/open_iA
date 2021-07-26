@@ -156,7 +156,6 @@ iADreamCaster::iADreamCaster(QWidget *parent, Qt::WindowFlags flags)
 	ui.setupUi(this);
 	connect(ui.openSTLFile, &QPushButton::clicked, this, &iADreamCaster::OpenModelSlot);
 	connect(ui.saveTree, &QPushButton::clicked, this, &iADreamCaster::SaveTree);
-	logsUi.setupUi(ui.logsWidget);
 	resUi.setupUi(&res);
 	settingsUi.setupUi(&settings);
 	connect(resUi.pb_Save, &QPushButton::clicked, this, &iADreamCaster::SaveResultsSlot);
@@ -523,12 +522,12 @@ void iADreamCaster::log(QString text, bool appendToPrev)
 {
 	if(appendToPrev)
 	{
-		QString prev_text = logsUi.listWidget->item(logsUi.listWidget->count()-1)->text();
-		logsUi.listWidget->item(logsUi.listWidget->count()-1)->setText(prev_text+text);
+		QString prev_text = ui.listWidget->item(ui.listWidget->count() - 1)->text();
+		ui.listWidget->item(ui.listWidget->count() - 1)->setText(prev_text + text);
 	}
 	else
 	{
-		logsUi.listWidget->insertItem(logsUi.listWidget->count(), text);
+		ui.listWidget->insertItem(ui.listWidget->count(), text);
 	}
 }
 
@@ -3433,7 +3432,11 @@ bool iADreamCaster::eventFilter(QObject *obj, QEvent *event)
 		if (event->type() == QEvent::MouseButtonDblClick)
 		{
 			QMouseEvent * mevent = static_cast<QMouseEvent*>(event);
+#if QT_VERSION >= QT_VERSION_CHECK(6, 0, 0)
+			int pcoords[2] = {static_cast<int>(mevent->position().x()), static_cast<int>(qvtkPlot3d->height() - mevent->position().y())};
+#else
 			int pcoords[2] = {mevent->x(), qvtkPlot3d->height() - mevent->y()};
+#endif
 			Pick(pcoords);
 		}
 	}

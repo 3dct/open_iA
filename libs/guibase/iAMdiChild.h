@@ -53,6 +53,8 @@ class vtkScalarsToColors;
 class vtkTransform;
 
 class QFileInfo;
+class QHBoxLayout;
+class QSlider;
 
 class iAguibase_API iAMdiChild : public QMainWindow
 {
@@ -97,6 +99,12 @@ public:
 	//! Access slicer for given mode (use iASlicerMode enum for mode values)
 	virtual iASlicer* slicer(int mode) = 0;
 
+	// Access to some slicer GUI internals (used only in NModalTF at the moment):
+	//! Access to the scroll bar next to a slicer
+	virtual QSlider* slicerScrollBar(int mode) = 0;
+	//! Access to the layout in the slicer dockwidget containing the actual iASlicer
+	virtual QHBoxLayout* slicerContainerLayout(int mode) = 0;
+
 	//! Access to the 3D renderer widget
 	virtual iARenderer* renderer() = 0;
 	//! Access to the 3D renderer vtk widget
@@ -111,6 +119,9 @@ public:
 	// Layout:
 	//! Loads the layout with the given name from the settings store, and tries to restore the according dockwidgets configuration
 	virtual void loadLayout(QString const& layout) = 0;
+	
+	//! whether the current qss theme is bright mode (true) or dark mode (false)
+	virtual bool brightMode() const = 0;
 
 
 	// Settings:
@@ -250,6 +261,12 @@ public:
 
 	//! @deprecated. can be removed together with enableRenderWindow/disableRenderWindow
 	virtual void setReInitializeRenderWindows(bool reInit) = 0;
+
+	//! @{ for recomputing histogram. should probably be made private somehow
+	virtual size_t histogramNewBinCount(QSharedPointer<iAModality>) = 0;
+	virtual bool histogramComputed(size_t newBinCount, QSharedPointer<iAModality>) = 0;
+	virtual void computeHistogramAsync(std::function<void()> callbackSlot, size_t newBinCount, QSharedPointer<iAModality>) = 0;
+	//! @}
 signals:
 	void closed();
 	//! @deprecated. no direct replacement

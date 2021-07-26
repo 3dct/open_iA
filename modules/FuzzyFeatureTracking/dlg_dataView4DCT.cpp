@@ -21,7 +21,7 @@
 #include "dlg_dataView4DCT.h"
 
 #include "ui_DataView4DCT.h"
-#include "iAQVTKWidgetMouseReleaseWorkaround.h"
+#include "iAFuzzyVTKWidget.h"
 
 #include <iAModalityTransfer.h>
 #include <iATransferFunction.h>
@@ -52,12 +52,12 @@ dlg_dataView4DCT::dlg_dataView4DCT(QWidget *parent, iAVolumeStack* volumeStack):
 
 	// add widgets to window
 	size_t numOfVolumes = m_volumeStack->numberOfVolumes();
-	m_vtkWidgets = new iAQVTKWidgetMouseReleaseWorkaround*[numOfVolumes];
+	m_vtkWidgets = new iAFuzzyVTKWidget*[numOfVolumes];
 	m_renderers = new iARendererImpl*[numOfVolumes];
 	m_volumeRenderer = new iAVolumeRenderer*[numOfVolumes];
 	for(size_t i = 0; i < numOfVolumes; i++)
 	{
-		m_vtkWidgets[i] = new iAQVTKWidgetMouseReleaseWorkaround(this);
+		m_vtkWidgets[i] = new iAFuzzyVTKWidget(this);
 		m_renderers[i] = new iARendererImpl(this);
 		// TODO: VOLUME: check if this is working!
 		iASimpleTransferFunction transferFunction(
@@ -90,8 +90,8 @@ dlg_dataView4DCT::dlg_dataView4DCT(QWidget *parent, iAVolumeStack* volumeStack):
 
 dlg_dataView4DCT::~dlg_dataView4DCT()
 {
-	delete m_vtkWidgets;
-	delete m_renderers;
+	delete [] m_vtkWidgets;
+	delete [] m_renderers;
 }
 
 void dlg_dataView4DCT::update()

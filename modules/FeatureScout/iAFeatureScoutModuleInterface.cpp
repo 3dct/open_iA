@@ -97,7 +97,7 @@ void iAFeatureScoutProject::loadProject(QSettings & projectFile, QString const &
 	{
 		m_config.curvedFiberFileName = MakeAbsolute(path, projectFile.value("CurvedFileName").toString());
 	}
-	iAFeatureScoutModuleInterface * featureScout = m_mainWindow->getModuleDispatcher().GetModule<iAFeatureScoutModuleInterface>();
+	iAFeatureScoutModuleInterface * featureScout = m_mainWindow->moduleDispatcher().module<iAFeatureScoutModuleInterface>();
 	featureScout->LoadFeatureScout(m_config, m_mdiChild);
 	QString layoutName = projectFile.value("Layout").toString();
 	if (!layoutName.isEmpty())
@@ -243,6 +243,7 @@ void iAFeatureScoutModuleInterface::SetupToolbar()
 	connect( tlbFeatureScout->actionMultiRendering, &QAction::triggered, this, &iAFeatureScoutModuleInterface::FeatureScout_Options);
 	connect( tlbFeatureScout->actionOrientation_Rendering, &QAction::triggered, this, &iAFeatureScoutModuleInterface::FeatureScout_Options);
 	connect( tlbFeatureScout->actionActivate_SPM, &QAction::triggered, this, &iAFeatureScoutModuleInterface::FeatureScout_Options);
+	connect( tlbFeatureScout->actionSettingsPC, &QAction::triggered, this, &iAFeatureScoutModuleInterface::FeatureScout_Options);
 	tlbFeatureScout->setVisible( true );
 }
 
@@ -278,7 +279,7 @@ bool iAFeatureScoutModuleInterface::startFeatureScout(iACsvConfig const & csvCon
 	}
 	AttachToMdiChild(m_mdiChild);
 	connect(m_mdiChild, &iAMdiChild::closed, this, &iAFeatureScoutModuleInterface::onChildClose);
-	iAFeatureScoutAttachment* attach = GetAttachment<iAFeatureScoutAttachment>(m_mdiChild);
+	iAFeatureScoutAttachment* attach = attachment<iAFeatureScoutAttachment>(m_mdiChild);
 	if (!attach)
 	{
 		LOG(lvlError, "Error while attaching FeatureScout to mdi child window!");
@@ -307,7 +308,7 @@ bool iAFeatureScoutModuleInterface::startFeatureScout(iACsvConfig const & csvCon
 
 void iAFeatureScoutModuleInterface::FeatureScout_Options()
 {
-	iAFeatureScoutAttachment* attach = GetAttachment<iAFeatureScoutAttachment>(m_mainWnd->activeMdiChild());
+	iAFeatureScoutAttachment* attach = attachment<iAFeatureScoutAttachment>(m_mainWnd->activeMdiChild());
 	if ( !attach )
 	{
 		LOG(lvlInfo,  "No FeatureScout attachment in current iAMdiChild!" );
@@ -315,14 +316,14 @@ void iAFeatureScoutModuleInterface::FeatureScout_Options()
 	}
 	QString actionText = qobject_cast<QAction *>(sender())->text();
 	int idx = 0;
-	if ( actionText.toStdString() == "Length Distribution" ) idx = 7;
-	if ( actionText.toStdString() == "Mean Object" ) idx = 4;
-	if ( actionText.toStdString() == "Multi Rendering" ) idx = 3;
-	if ( actionText.toStdString() == "Orientation Rendering" ) idx = 5;
-	if ( actionText.toStdString() == "Activate SPM" ) idx = 6;
-
+	if (actionText.toStdString() == "Multi Rendering") idx = 3;
+	else if (actionText.toStdString() == "Mean Object") idx = 4;
+	else if (actionText.toStdString() == "Orientation Rendering") idx = 5;
+	else if (actionText.toStdString() == "Activate SPM") idx = 6;
+	else if (actionText.toStdString() == "Length Distribution") idx = 7;
+	else if (actionText.toStdString() == "PC settings") idx = 8;
 	attach->FeatureScout_Options( idx );
-	m_mainWnd->statusBar()->showMessage( tr( "FeatureScout options changed to: " ).append( actionText ), 5000 );
+	//m_mainWnd->statusBar()->showMessage( tr( "FeatureScout options changed to: " ).append( actionText ), 5000 );
 }
 
 void iAFeatureScoutModuleInterface::onChildClose()
@@ -333,7 +334,7 @@ void iAFeatureScoutModuleInterface::onChildClose()
 	}
 	for (auto mdi : m_mainWnd->mdiChildList())
 	{
-		iAFeatureScoutAttachment* attach = GetAttachment<iAFeatureScoutAttachment>(mdi);
+		iAFeatureScoutAttachment* attach = attachment<iAFeatureScoutAttachment>(mdi);
 		if (attach)
 		{
 			return;

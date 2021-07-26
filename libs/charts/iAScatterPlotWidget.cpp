@@ -23,57 +23,20 @@
 #include "iALog.h"
 #include "iALookupTable.h"
 #include "iAScatterPlot.h"
-#include "iAScatterPlotSelectionHandler.h"
+#include "iAScatterPlotViewData.h"
 #include "iASPLOMData.h"
 
 #include <vtkLookupTable.h>
 #include <vtkSmartPointer.h>
 
+#include <QApplication>    // for qApp->palette()
+
 #include <QMouseEvent>
+#if (defined(CHART_OPENGL) && defined(OPENGL_DEBUG))
+#include <QOpenGLDebugLogger>
+#endif
 #include <QPainter>
 
-iAScatterPlotSelectionHandler::~iAScatterPlotSelectionHandler()
-{}
-
-class iAScatterPlotStandaloneHandler : public iAScatterPlotSelectionHandler
-{
-public:
-	SelectionType & getSelection() override
-	{
-		return m_selection;
-	}
-	SelectionType const & getSelection() const override
-	{
-		return m_selection;
-	}
-	SelectionType const & getFilteredSelection() const override
-	{
-		return m_selection;
-	}
-	void setSelection(SelectionType const & selection)
-	{
-		m_selection = selection;
-	}
-	SelectionType const & getHighlightedPoints() const override
-	{
-		return m_highlight;
-	}
-	int getVisibleParametersCount() const override
-	{
-		return 2;
-	}
-	double getAnimIn() const override
-	{
-		return 1.0;
-	}
-	double getAnimOut() const override
-	{
-		return 0.0;
-	}
-private:
-	SelectionType m_highlight;
-	SelectionType m_selection;
-};
 
 namespace
 {
@@ -87,13 +50,20 @@ const int iAScatterPlotWidget::TextPadding = 5;
 
 iAScatterPlotWidget::iAScatterPlotWidget(QSharedPointer<iASPLOMData> data) :
 	m_data(data),
-	m_scatterPlotHandler(new iAScatterPlotStandaloneHandler()),
+	m_viewData(new iAScatterPlotViewData()),
 	m_fontHeight(0),
 	m_maxTickLabelWidth(0)
 {
+#ifdef CHART_OPENGL
+	auto fmt = defaultQOpenGLWidgetFormat();
+	#ifdef SP_OLDOPENGL
+	fmt.setStereo(true);
+	#endif
+	setFormat(fmt);
+#endif
 	setMouseTracking(true);
 	setFocusPolicy(Qt::StrongFocus);
-	m_scatterplot = new iAScatterPlot(m_scatterPlotHandler.data(), this);
+	m_scatterplot = new iAScatterPlot(m_viewData.data(), this);
 	m_scatterplot->settings.selectionEnabled = true;
 	data->updateRanges();
 	if (data->numPoints() > std::numeric_limits<int>::max())
@@ -103,6 +73,14 @@ iAScatterPlotWidget::iAScatterPlotWidget(QSharedPointer<iASPLOMData> data) :
 			.arg(std::numeric_limits<int>::max()));
 	}
 	m_scatterplot->setData(0, 1, data);
+	connect(m_viewData.data(), &iAScatterPlotViewData::updateRequired, this, QOverload<>::of(&iAChartParentWidget::update));
+	connect(m_scatterplot, &iAScatterPlot::currentPointModified, this, &iAScatterPlotWidget::currentPointUpdated);
+}
+
+void iAScatterPlotWidget::currentPointUpdated(size_t index)
+{
+	Q_UNUSED(index);
+	m_viewData->updateAnimation(m_scatterplot->getCurrentPoint(), m_scatterplot->getPreviousIndex());
 }
 
 void iAScatterPlotWidget::SetPlotColor(QColor const & c, double rangeMin, double rangeMax)
@@ -118,8 +96,21 @@ void iAScatterPlotWidget::SetPlotColor(QColor const & c, double rangeMin, double
 	m_scatterplot->setLookupTable(lut, 0);
 }
 
-void iAScatterPlotWidget::paintEvent(QPaintEvent * /*event*/)
+#ifdef CHART_OPENGL
+void iAScatterPlotWidget::paintGL()
+#else
+void iAScatterPlotWidget::paintEvent(QPaintEvent* /*event*/)
+#endif
 {
+#if (defined(CHART_OPENGL) && defined(OPENGL_DEBUG))
+	QOpenGLContext* ctx = QOpenGLContext::currentContext();
+	assert(ctx);
+	QOpenGLDebugLogger logger(this);
+	logger.initialize();  // initializes in the current context, i.e. ctx
+	connect(&logger, &QOpenGLDebugLogger::messageLogged,
+		[](const QOpenGLDebugMessage& dbgMsg) { LOG(lvlDebug, dbgMsg.message()); });
+	logger.startLogging();
+#endif
 	QPainter painter(this);
 	QFontMetrics fm = painter.fontMetrics();
 #if QT_VERSION >= QT_VERSION_CHECK(5, 11, 0)
@@ -135,13 +126,17 @@ void iAScatterPlotWidget::paintEvent(QPaintEvent * /*event*/)
 #endif
 	}
 	painter.setRenderHint(QPainter::Antialiasing);
-	painter.beginNativePainting();
-	QColor bgColor(QWidget::palette().color(QWidget::backgroundRole()));
-	QColor fg(QWidget::palette().color(QPalette::Text));
+	QColor bgColor(qApp->palette().color(QWidget::backgroundRole()));
+	QColor fg(qApp->palette().color(QPalette::Text));
 	m_scatterplot->settings.tickLabelColor = fg;
+#if (defined(CHART_OPENGL))
+	painter.beginNativePainting();
 	glClearColor(bgColor.red() / 255.0, bgColor.green() / 255.0, bgColor.blue() / 255.0, 1.0);
 	glClear(GL_COLOR_BUFFER_BIT);
 	painter.endNativePainting();
+#else
+	painter.fillRect(rect(), bgColor);
+#endif
 	m_scatterplot->paintOnParent(painter);
 
 	// print axes tick labels:
@@ -190,7 +185,7 @@ void iAScatterPlotWidget::adjustScatterPlotSize()
 void iAScatterPlotWidget::resizeEvent(QResizeEvent* event)
 {
 	adjustScatterPlotSize();
-	iAQGLWidget::resizeEvent( event );
+	iAChartParentWidget::resizeEvent(event);
 }
 
 int iAScatterPlotWidget::PaddingLeft()
@@ -211,7 +206,7 @@ void iAScatterPlotWidget::wheelEvent(QWheelEvent * event)
 #else
 	QPointF p = event->position();
 	if (p.x() >= PaddingLeft() && p.x() <= (width() - PaddingRight) &&
-		p.y() >= PaddingTop && p.y() <= (height() - PaddingBottom()))
+	    p.y() >= PaddingTop    && p.y() <= (height() - PaddingBottom()))
 #endif
 	{
 		m_scatterplot->SPLOMWheelEvent(event);
@@ -221,8 +216,14 @@ void iAScatterPlotWidget::wheelEvent(QWheelEvent * event)
 
 void iAScatterPlotWidget::mousePressEvent(QMouseEvent * event)
 {
+#if QT_VERSION < QT_VERSION_CHECK(5, 99, 0)
 	if (event->x() >= PaddingLeft() && event->x() <= (width() - PaddingRight) &&
 		event->y() >= PaddingTop && event->y() <= (height() - PaddingBottom()))
+#else
+	QPointF p = event->position();
+	if (p.x() >= PaddingLeft() && p.x() <= (width() - PaddingRight) &&
+	    p.y() >= PaddingTop    && p.y() <= (height() - PaddingBottom()))
+#endif
 	{
 		m_scatterplot->SPLOMMousePressEvent(event);
 	}
@@ -230,8 +231,14 @@ void iAScatterPlotWidget::mousePressEvent(QMouseEvent * event)
 
 void iAScatterPlotWidget::mouseReleaseEvent(QMouseEvent * event)
 {
+#if QT_VERSION < QT_VERSION_CHECK(5, 99, 0)
 	if (event->x() >= PaddingLeft() && event->x() <= (width() - PaddingRight) &&
 		event->y() >= PaddingTop && event->y() <= (height() - PaddingBottom()))
+#else
+	QPointF p = event->position();
+	if (p.x() >= PaddingLeft() && p.x() <= (width() - PaddingRight) &&
+	    p.y() >= PaddingTop    && p.y() <= (height() - PaddingBottom()))
+#endif
 	{
 		m_scatterplot->SPLOMMouseReleaseEvent(event);
 		update();
@@ -240,8 +247,14 @@ void iAScatterPlotWidget::mouseReleaseEvent(QMouseEvent * event)
 
 void iAScatterPlotWidget::mouseMoveEvent(QMouseEvent * event)
 {
+#if QT_VERSION < QT_VERSION_CHECK(5, 99, 0)
 	if (event->x() >= PaddingLeft() && event->x() <= (width() - PaddingRight) &&
 		event->y() >= PaddingTop && event->y() <= (height() - PaddingBottom()))
+#else
+	QPointF p = event->position();
+	if (p.x() >= PaddingLeft() && p.x() <= (width() - PaddingRight) &&
+	    p.y() >= PaddingTop    && p.y() <= (height() - PaddingBottom()))
+#endif
 	{
 		m_scatterplot->SPLOMMouseMoveEvent(event);
 	}
@@ -257,16 +270,6 @@ void iAScatterPlotWidget::keyPressEvent(QKeyEvent * event)
 	}
 }
 
-std::vector<size_t> & iAScatterPlotWidget::GetSelection()
-{
-	return m_scatterPlotHandler->getSelection();
-}
-
-void iAScatterPlotWidget::SetSelection(std::vector<size_t> const & selection)
-{
-	m_scatterPlotHandler->setSelection(selection);
-}
-
 void iAScatterPlotWidget::SetSelectionColor(QColor const & c)
 {
 	m_scatterplot->settings.selectionColor = c;
@@ -275,4 +278,9 @@ void iAScatterPlotWidget::SetSelectionColor(QColor const & c)
 void iAScatterPlotWidget::SetSelectionMode(iAScatterPlot::SelectionMode mode)
 {
 	m_scatterplot->settings.selectionMode = mode;
+}
+
+QSharedPointer<iAScatterPlotViewData> iAScatterPlotWidget::viewData()
+{
+	return m_viewData;
 }

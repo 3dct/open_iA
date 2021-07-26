@@ -27,7 +27,7 @@
 #include "iASpectrumFunction.h"
 #include "ui_InSpectr.h"
 
-#include <iARendererManager.h>
+#include <iARendererViewSync.h>
 #include <iAVtkWidgetFwd.h>
 #include <qthelper/iAQTtoUIConnector.h>
 
@@ -40,16 +40,16 @@
 
 typedef iAQTtoUIConnector<QDockWidget, Ui_InSpectr>   dlg_xrfContainer;
 
-class dlg_periodicTable;
 class dlg_RefSpectra;
 class iAAccumulatedXRFData;
 class iADecompositionCalculator;
 class iAElementConcentrations;
 class iAEnergySpectrumWidget;
+class iAPeriodicTableListener;
+class iAPeriodicTableWidget;
 class iAPieChartGlyph;
 class iAPieChartWidget;
 class iAReferenceSpectraLibrary;
-class iAPeriodicTableListener;
 class iAXRFData;
 
 class iAMdiChild;
@@ -72,9 +72,8 @@ class dlg_InSpectr : public dlg_xrfContainer, public iASpectrumFilterListener
 {
 	Q_OBJECT
 public:
-	dlg_InSpectr(QWidget *parentWidget, dlg_periodicTable* dlgPeriodicTable, dlg_RefSpectra* dlgRefSpectra);
+	dlg_InSpectr(QWidget *parentWidget, iAPeriodicTableWidget* periodicTable, dlg_RefSpectra* dlgRefSpectra);
 	void init(double minEnergy, double maxEnergy, bool haveEnergyLevels, iAMdiChild* child);
-	void InitElementMaps(iAMdiChild* child);
 
 	vtkSmartPointer<vtkImageData> GetCombinedVolume();
 	vtkSmartPointer<vtkColorTransferFunction> GetColorTransferFunction();
@@ -164,7 +163,7 @@ private:
 	void updateSelection();
 	void enableControlsNeedingDecompositionData();
 	void InitElementRenderer(dlg_elementRenderer * elemRend, size_t index);
-	void InitCommonGUI(iAMdiChild* child);
+	void InitCommonGUI();
 
 	QSharedPointer<QImage>                         m_spectraHistogramImage;
 	QImage                                         m_spectraHistogramColormap;
@@ -196,7 +195,7 @@ private:
 	uint                                           m_spectrumSelectionChannelID;
 	vtkSmartPointer<vtkLookupTable>                m_ctf[3];
 	vtkSmartPointer<vtkPiecewiseFunction>          m_otf[3];
-	dlg_periodicTable *                            m_periodicTable;
+	iAPeriodicTableWidget*                         m_periodicTable;
 	vtkSmartPointer<vtkColorTransferFunction>      m_selection_ctf;
 	vtkSmartPointer<vtkPiecewiseFunction>          m_selection_otf;
 	//! @{ Spectra Histogram colormap
@@ -207,7 +206,7 @@ private:
 	QVector<dlg_elementRenderer*>                  m_elementRenderers; 	//!< Individual element renderers
 	QVector<iASpectrumFilter>                      m_activeFilter;
 	dlg_RefSpectra *                               m_refSpectra;
-	iARendererManager                              m_rendererManager;
+	iARendererViewSync                             m_rendererManager;
 	QVector<iACharacteristicEnergy>                m_characteristicEnergies;
 	QDockWidget *                                  m_pieChartContainer;
 	QSharedPointer<iAPeriodicTableListener>        m_periodicTableListener;

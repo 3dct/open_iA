@@ -192,11 +192,19 @@ void iAFilterChart::mousePressEvent( QMouseEvent *event )
 			return;
 		}
 
+#if QT_VERSION >= QT_VERSION_CHECK(6, 0, 0)
+		if ( event->position().y() > geometry().height() - bottomMargin() - m_translationY
+#else
 		if ( event->y() > geometry().height() - bottomMargin() - m_translationY
+#endif
 			  && !( ( event->modifiers() & Qt::ShiftModifier ) == Qt::ShiftModifier ) )	// mouse event below X-axis
 		{
 			// check if we hit min or max handle:
+#if QT_VERSION >= QT_VERSION_CHECK(6, 0, 0)
+			int x = event->position().x() - leftMargin();
+#else
 			int x = event->x() - leftMargin();
+#endif
 
 			int minX = xMapper().srcToDst(m_minSliderPos);
 			int maxX = xMapper().srcToDst(m_maxSliderPos);
@@ -232,11 +240,19 @@ void iAFilterChart::mouseReleaseEvent( QMouseEvent *event )
 void iAFilterChart::mouseMoveEvent( QMouseEvent *event )
 {
 	if (	( event->buttons() == Qt::LeftButton ) &&
+#if QT_VERSION >= QT_VERSION_CHECK(6, 0, 0)
+			( event->position().y() > geometry().height() - bottomMargin() - m_translationY			// mouse event below X-axis
+#else
 			( event->y() > geometry().height() - bottomMargin() - m_translationY			// mouse event below X-axis
+#endif
 			  && !( ( event->modifiers() & Qt::ShiftModifier ) == Qt::ShiftModifier ) ) &&
 			  m_selectedHandle != -1)
 	{
+#if QT_VERSION >= QT_VERSION_CHECK(6, 0, 0)
+		int x = event->position().x() - leftMargin() + m_selectionOffset;
+#else
 		int x = event->x() - leftMargin() + m_selectionOffset;
+#endif
 		if (x < 0 || x + m_xMapper->srcToDst(m_xShift) > static_cast<int>(chartWidth() * xZoom()))
 		{
 			return;
@@ -263,7 +279,11 @@ void iAFilterChart::mouseMoveEvent( QMouseEvent *event )
 				  .arg( m_data->xBounds()[0] )
 				  .arg( m_data->xBounds()[1] )
 		);
+#if QT_VERSION >= QT_VERSION_CHECK(6, 0, 0)
+		QToolTip::showText(event->globalPosition().toPoint(), text, this);
+#else
 		QToolTip::showText( event->globalPos(), text, this );
+#endif
 		update();
 		return;
 	}

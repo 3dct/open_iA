@@ -36,13 +36,12 @@ protected:
 	void paintEvent(QPaintEvent *event) override;
 	void mouseReleaseEvent ( QMouseEvent * event ) override;
 public:
-	unsigned int countX(){return m_countX;}
-	unsigned int countY(){return m_countY;}
-	unsigned int countZ(){return m_countZ;}
+	unsigned int countX() const { return m_countX; }
+	unsigned int countY() const { return m_countY; }
+	unsigned int countZ() const { return m_countZ; }
 	void SetCount(int count);
 
-	unsigned int m_lastX, m_lastY;
-	QColor **m_colsXY, *m_colsZ, m_colArrowX, m_colArrowY, m_colArrowZ;
+	QColor **m_colsXY, m_colArrowX, m_colArrowY, m_colArrowZ;
 private:
 	unsigned int m_countX, m_countY, m_countZ;
 	float m_pix_size;

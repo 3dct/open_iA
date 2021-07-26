@@ -26,7 +26,7 @@ SET (FeatureAnalyzer_PRECOMPILE_INCLUDES
 <iAQtVTKBindings.h>
 <iARangeSliderDiagramView.h>
 <iARangeSliderDiagramWidget.h>
-<iARendererManager.h>
+<iARendererViewSync.h>
 <iASegm3DView.h>
 <iASelection.h>
 <iASelectionsView.h>

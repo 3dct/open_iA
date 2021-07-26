@@ -20,16 +20,15 @@
 * ************************************************************************************/
 #include "dlg_InSpectr.h"
 
-#include "dlg_periodicTable.h"
 #include "dlg_RefSpectra.h"
 #include "iAAccumulatedXRFData.h"
 #include "iACharacteristicEnergy.h"
 #include "iADecompositionCalculator.h"
 #include "iAElementConcentrations.h"
 #include "iAElementConstants.h"
-#include "iAElementStatisticsInfo.h"
 #include "iAEnergySpectrumWidget.h"
 #include "iAFunctionalBoxplotQtDrawer.h"
+#include "iAPeriodicTableWidget.h"
 #include "iAPeriodicTableListener.h"
 #include "iAPieChartGlyph.h"
 #include "iAPieChartWidget.h"
@@ -93,7 +92,7 @@
 #include <cassert>
 
 
-dlg_InSpectr::dlg_InSpectr(QWidget *parentWidget, dlg_periodicTable* dlgPeriodicTable, dlg_RefSpectra* dlgRefSpectra):
+dlg_InSpectr::dlg_InSpectr(QWidget* parentWidget, iAPeriodicTableWidget* periodicTable, dlg_RefSpectra* dlgRefSpectra) :
 	dlg_xrfContainer(parentWidget),
 	m_pieGlyphsEnabled(false),
 	m_spectraHistogramColormap(QString::fromUtf8(":/images/colormap.png")),
@@ -107,7 +106,7 @@ dlg_InSpectr::dlg_InSpectr(QWidget *parentWidget, dlg_periodicTable* dlgPeriodic
 	m_xrfData(new iAXRFData),
 	m_enabledChannels(0),
 	m_spectrumSelectionChannelID(NotExistingChannel),
-	m_periodicTable(dlgPeriodicTable),
+	m_periodicTable(periodicTable),
 	m_selection_ctf(vtkSmartPointer<vtkColorTransferFunction>::New()),
 	m_selection_otf(vtkSmartPointer<vtkPiecewiseFunction>::New()),
 	m_refSpectra(dlgRefSpectra),
@@ -198,7 +197,7 @@ void dlg_InSpectr::init(double minEnergy, double maxEnergy, bool haveEnergyLevel
 	iADockWidgetWrapper* spectrumChartContainer = new iADockWidgetWrapper(m_spectrumDiagram, "Spectrum View", "SpectrumChartWidget");
 	spectrumChartContainer->setContentsMargins(0, 0, 0, 0);
 
-	InitCommonGUI(child);
+	InitCommonGUI();
 	child->splitDockWidget(spectrumChartContainer, child->renderDockWidget(), Qt::Vertical);
 	child->splitDockWidget(m_pieChartContainer, spectrumChartContainer, Qt::Horizontal);
 
@@ -250,13 +249,7 @@ void dlg_InSpectr::init(double minEnergy, double maxEnergy, bool haveEnergyLevel
 	pb_decompose->setEnabled(true);
 }
 
-void dlg_InSpectr::InitElementMaps(/* QSharedPointer<iAElementConcentrations> conc */ iAMdiChild* child)
-{
-	InitCommonGUI(child);
-	child->splitDockWidget(m_pieChartContainer, m_periodicTable, Qt::Vertical);
-}
-
-void dlg_InSpectr::InitCommonGUI(iAMdiChild* child)
+void dlg_InSpectr::InitCommonGUI()
 {
 	m_periodicTable->setListener(m_periodicTableListener);
 
@@ -277,9 +270,6 @@ void dlg_InSpectr::InitCommonGUI(iAMdiChild* child)
 	m_pieChart->setObjectName(QString::fromUtf8("Composition"));
 	m_pieChartContainer = new iADockWidgetWrapper(m_pieChart, "Element Concentration", "PieChartWidget");
 	m_pieChartContainer->setContentsMargins(0, 0, 0, 0);
-	//m_pieChartContainer->hide();
-	child->splitDockWidget(m_periodicTable, this, Qt::Vertical);
-	child->tabifyDockWidget(m_refSpectra, this);
 }
 
 void dlg_InSpectr::setLogDrawMode(bool checked)
@@ -962,7 +952,6 @@ void dlg_InSpectr::showLinkedElementMaps( int show )
 	{
 		for (int i = 0; i < m_elementRenderers.size(); ++i)
 		{
-			m_elementRenderers[i]->removeObserver();
 			delete m_elementRenderers[i];
 		}
 		m_elementRenderers.clear();

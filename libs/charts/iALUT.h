@@ -24,24 +24,21 @@
 
 #include <vtkSmartPointer.h>
 
-#include <qglobal.h> // for QT_VERSION_CHECK
+#include <QStringList>
 
+class iAColorTheme;
 class iALookupTable;
 
 class vtkLookupTable;
-
-class QString;
-#if QT_VERSION < QT_VERSION_CHECK(5, 99, 0)
-class QStringList;
-#else
-#include <QList>
-using QStringList = QList<QString>;
-#endif
+class vtkPiecewiseFunction;
 
 namespace iALUT
 {
 	iAcharts_API const QStringList&  GetColorMapNames();
 	iAcharts_API int BuildLUT( vtkSmartPointer<vtkLookupTable> pLUT, double const * lutRange, QString colorMap, int numCols = 256 );
 	iAcharts_API int BuildLUT( vtkSmartPointer<vtkLookupTable> pLUT, double rangeFrom, double rangeTo, QString colorMap, int numCols = 256 );
-	iAcharts_API iALookupTable Build(double const* lutRange, QString colorMap, int numCols, double alpha);
+	iAcharts_API iALookupTable Build(double const * lutRange, QString colorMap, int numCols, double alpha);
+
+	iAcharts_API vtkSmartPointer<vtkPiecewiseFunction> BuildLabelOpacityTF(int labelCount);
+	iAcharts_API vtkSmartPointer<vtkLookupTable> BuildLabelColorTF(int labelCount, iAColorTheme const * colorTheme);
 }

@@ -51,9 +51,12 @@ public:
 
 signals:
 	void mouseMoved();
+	void touchStart();
+	void touchScale(float relScale);
 
 protected:
 	void mouseMoveEvent( QMouseEvent * event ) override;
+	bool event(QEvent* event) override;
 	virtual void updateLens( );
 	virtual void updateGUI( );
 	void getViewportPoints( double points[4] );

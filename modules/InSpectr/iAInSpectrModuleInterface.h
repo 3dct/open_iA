@@ -27,8 +27,7 @@ class iAInSpectrModuleInterface : public iAGUIModuleInterface
 	Q_OBJECT
 public:
 	void Initialize() override;
-private slots:
-	bool startInSpectr();
 private:
+	void startInSpectr();
 	iAModuleAttachmentToChild * CreateAttachment(iAMainWindow* mainWnd, iAMdiChild * child) override;
 };

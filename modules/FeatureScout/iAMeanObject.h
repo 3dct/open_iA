@@ -39,14 +39,13 @@ class vtkTable;
 
 class QColor;
 class QDockWidget;
-class QStandardItem;
 
 class iAMeanObject: public QObject
 {
 	Q_OBJECT
 public:
 	iAMeanObject(iAMdiChild* activeChild, QString const& sourcePath);
-	void render(QStandardItem* root, int classCount, QList<vtkSmartPointer<vtkTable>> const & tableList,
+	void render(QStringList const & classNames, QList<vtkSmartPointer<vtkTable>> const& tableList,
 		int filterID, QDockWidget* nextToDW, vtkCamera* commonCamera, QList<QColor> const & classColor);
 private slots:
 	void modifyMeanObjectTF();

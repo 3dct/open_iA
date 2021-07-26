@@ -32,11 +32,10 @@ using iAChartParentWidget = QWidget;
 #include "iAcharts_export.h"
 
 #include <QList>
-#include <QScopedPointer>
-#include <QWidget>
+#include <QObject>
 
 class iALookupTable;
-class iAScatterPlotSelectionHandler;
+class iAScatterPlotViewData;
 class iASPLOMData;
 
 class QTableWidget;
@@ -51,17 +50,18 @@ class vtkLookupTable;
 class iAcharts_API iAScatterPlot : public QObject
 {
 	Q_OBJECT
-	// Methods
 public:
-	static size_t NoPointIndex;
-
 	enum SelectionMode
 	{ // the order here needs to match the order in the cbSelectionMode combobox in SPMSettings dialog!
 		Rectangle,
 		Polygon
 	};
-	//!  Constructor: requires a parent SPLOM widget
-	iAScatterPlot(iAScatterPlotSelectionHandler * splom, iAChartParentWidget* parent, int numTicks = 5, bool isMaximizedPlot = false);
+	//! Constructor, initializes some core members
+	//! @param spViewData data on the current viewing configuration
+	//! @param parent the parent widget
+	//! @param numTicks the number of ticks in x and y direction
+	//! @param isMaximizedPlot whether this is a maximized plot
+	iAScatterPlot(iAScatterPlotViewData * spViewData, iAChartParentWidget* parent, int numTicks = 5, bool isMaximizedPlot = false);
 	~iAScatterPlot();
 
 	void setData(size_t x, size_t y, QSharedPointer<iASPLOMData> &splomData ); //!< Set data to the scatter plot using indices of X and Y parameters and the raw SPLOM data
@@ -83,7 +83,7 @@ public:
 	void printTicksInfo( QList<double> * posX, QList<double> * posY, QList<QString> * textX, QList<QString> * textY ) const;
 	void setCurrentPoint( size_t index );                            //!< Set the index of currently hovered point
 	size_t getCurrentPoint() const;                                  //!< Get the index of currently hovered point
-	size_t getPreviousIndex() const;                                 //!< Get the index of previously hovered point or NoPointIndex
+	size_t getPreviousIndex() const;                                 //!< Get the index of previously hovered point or iASPLOMData::NoDataIdx
 	size_t getPreviousPoint() const;                                 //!< Get the index of point hovered over before previous
 	void paintOnParent( QPainter & painter );                        //!< Paint plot's contents on a SPLOM-parent
 	void setPreviewState( bool isPreviewPlot );                      //!< Set if this plot is currently previewed (displayed in maximized plot view)
@@ -118,7 +118,7 @@ protected:
 	void calculateNiceSteps();                                       //!< Calculates nice steps displayed parameter ranges
 	void calculateNiceSteps( double * r, QList<double> * ticks );    //!< Calculates nice steps displayed parameter ranges given a range and a desired number of ticks
 	int getBinIndex( int x, int y ) const;                           //!< Get global grid bin offset (index) using X and Y bin indices
-	size_t getPointIndexAtPosition( QPointF mpos ) const;            //!< Get index of data point under cursor, NoPointIndex if none
+	size_t getPointIndexAtPosition( QPointF mpos ) const;            //!< Get index of data point under cursor, iASPLOMData::NoDataIdx if none
 	QPointF getPositionFromPointIndex( size_t idx ) const;           //!< Get position of a data point with a given index
 	void updateSelectedPoints( bool append, bool remove);            //!< Update selected points; parameters specify whether to append or to remove from previous selection (or create new if both false). if both append and remove are true, then XOR logic is applied (of newly selected, those already selected will be de-selected, new ones will be added)
 	void updateDrawRect();                                           //!< Re-calculate dimensions of the plot's rectangle
@@ -130,7 +130,7 @@ protected:
 	void drawMaximizedLabels( QPainter &painter );                   //!< Draws additional plot's labels (only maximized plot)
 	void drawSelectionPolygon( QPainter &painter );                  //!< Draws selection-lasso polygon
 	void drawPoints( QPainter &painter );                            //!< Draws plot's points (uses native OpenGL)
-#ifdef CHART_OPENGL
+#ifdef SP_OLDOPENGL
 	void createVBO();                                                //!< Creates and fills VBO with plot's 2D-points.
 	void fillVBO();                                                  //!< Fill existing VBO with plot's 2D-points.
 #else
@@ -184,11 +184,11 @@ public:
 	Settings settings;
 protected:
 	iAChartParentWidget* m_parentWidget;                             //!< the parent widget
-#ifdef CHART_OPENGL
+#ifdef SP_OLDOPENGL
 	iAQGLBuffer * m_pointsBuffer;                                    //!< OpenGL buffer used for points VBO
 	bool m_pointsOutdated;                                           //!< indicates whether we need to fill the points buffer
 #endif
-	iAScatterPlotSelectionHandler * m_splom;                         //!< selection/highlight/settings handler (if part of a SPLOM, the SPLOM-parent)
+	iAScatterPlotViewData* m_viewData;                               //!< selection/highlight/settings handler (if part of a SPLOM, the SPLOM-parent)
 	QRect m_globRect;                                                //!< plot's rectangle
 	QRectF m_locRect;                                                //!< plot's local drawing rectangle
 	QSharedPointer<iASPLOMData> m_splomData;                         //!< pointer to SPLOM-parent's data
@@ -210,9 +210,9 @@ protected:
 	// points
 	int m_gridDims[2];                                               //!< dimensions of subdivision grid (point picking acceleration)
 	QList<QList<size_t>> m_pointsGrid;                               //!< grid bins containing point indices
-	size_t m_prevPtInd;                                              //!< index of point selected before (NoPointIndex if none, but keeps point index even if no point was selected in between)
-	size_t m_prevInd;                                                //!< index of previously selected point (NoPointIndex if none)
-	size_t m_curInd;                                                 //!< index of currently selected point (NoPointIndex if none)
+	size_t m_prevPtInd;                                              //!< index of point selected before (iASPLOMData::NoDataIdx if none, but keeps point index even if no point was selected in between)
+	size_t m_prevInd;                                                //!< index of previously selected point (iASPLOMData::NoDataIdx if none)
+	size_t m_curInd;                                                 //!< index of currently selected point (iASPLOMData::NoDataIdx if none)
 	//selection polygon
 	QPolygon m_selPoly;                                              //!< polygon of selection lasso
 	QPoint m_selStart;                                               //!< point where the selection started

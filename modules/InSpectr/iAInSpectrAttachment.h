@@ -25,13 +25,14 @@
 
 #include <vtkSmartPointer.h>
 
-class iAMainWindow;
-class dlg_periodicTable;
 class dlg_RefSpectra;
 class dlg_SimilarityMap;
 class dlg_InSpectr;
-class iASlicer;
+
+class iADockWidgetWrapper;
 class iAIO;
+class iAMainWindow;
+class iASlicer;
 
 class vtkPiecewiseFunction;
 
@@ -66,7 +67,7 @@ protected:
 	void initSlicerXRF( bool enableChannel );
 
 protected:
-	dlg_periodicTable * dlgPeriodicTable;
+	iADockWidgetWrapper* dlgPeriodicTable;
 	dlg_RefSpectra* dlgRefSpectra;
 	dlg_SimilarityMap * dlgSimilarityMap;
 	dlg_InSpectr * dlgXRF;

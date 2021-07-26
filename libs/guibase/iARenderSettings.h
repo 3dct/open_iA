@@ -30,6 +30,7 @@ public:
 		ShowHelpers,            //!< whether axes cube and origin indicator are shown
 		ShowRPosition,          //!< whether red position cube indicator is shown
 		ParallelProjection,     //!< true - use parallel projection, false - use perspective projection
+		UseStyleBGColor,        //!< true - use background color from style (bright/dark), false - use BackgroundTop/BackgroundBottom
 		UseFXAA,                //!< whether to use FXAA anti-aliasing, if supported
 		UseDepthPeeling;        //!< whether to use depth peeling (improves depth ordering in rendering of multiple objects), if false, alpha blending is used
 	QString BackgroundTop,      //!< top color used in background gradient
@@ -44,6 +45,7 @@ public:
 		ShowHelpers(true),
 		ShowRPosition(true),
 		ParallelProjection(false),
+		UseStyleBGColor(false),
 		UseFXAA(true),
 		UseDepthPeeling(true),
 		BackgroundTop("#7FAAFF"),

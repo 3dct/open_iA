@@ -20,7 +20,7 @@
 * ************************************************************************************/
 #pragma once
 
-#include "iAScatterPlotSelectionHandler.h"
+#include "iAScatterPlotViewData.h"
 #include "iASettings.h"
 
 #include "iAcharts_export.h"
@@ -28,6 +28,7 @@
 #ifdef CHART_OPENGL
 #include "iAQGLWidget.h"
 using iAChartParentWidget = iAQGLWidget;
+#include <QOpenGLFunctions>
 #else
 #include <QWidget>
 using iAChartParentWidget = QWidget;
@@ -49,7 +50,6 @@ class vtkLookupTable;
 class QGridLayout;
 class QListWidgetItem;
 class QMenu;
-class QPropertyAnimation;
 class QSettings;
 
 //! A scatter plot matrix (SPLOM) widget.
@@ -92,11 +92,12 @@ class QSettings;
 		splom->setLookupTable( lut, 0 );
 */
 
-class iAcharts_API iAQSplom : public iAChartParentWidget, public iAScatterPlotSelectionHandler
+class iAcharts_API iAQSplom : public iAChartParentWidget
+#ifdef CHART_OPENGL
+	, public QOpenGLFunctions
+#endif
 {
 	Q_OBJECT
-	Q_PROPERTY(double m_animIn READ getAnimIn WRITE setAnimIn)
-	Q_PROPERTY(double m_animOut READ getAnimOut WRITE setAnimOut)
 public:
 	enum SPMMode            //!< two possible states of SPLOM: upper triangle with maximized plot or all possible combinations of scatter plots
 	{
@@ -116,8 +117,8 @@ public:
 	};
 	enum ColorRangeMode     //!< How parameter range is determined if points are colored by parameter. Order must match labels in m_settingsDlg->cbColorRangeMode!
 	{
-		rmAutomatic,       //!< Range is automatically determined from chosen parameter
-		rmManual           //!< Range is manually set via minimum and maximum inputs
+		rmAutomatic,        //!< Range is automatically determined from chosen parameter
+		rmManual            //!< Range is manually set via minimum and maximum inputs
 	};
 	iAQSplom(QWidget * parent = nullptr);
 	~iAQSplom();
@@ -134,22 +135,12 @@ public:
 	void setParameterInverted( size_t paramIndex, bool isInverted);  //!< whether to invert the axis for a given parameter's index.
 	void setPointRadius( double radius );                            //!< set the radius for scatter plot points
 	void setPointColor( QColor const & color );                      //!< set the color for all data points
-	void setPointOpacity( double opacity );                          //!< set the opacity for all data points
-	SelectionType & getSelection() override;                         //!< Get const vector of indices of currently selected data points.
-	SelectionType const & getSelection() const override;             //!< Get vector of indices of currently selected data points.
-	SelectionType const & getFilteredSelection() const override;     //!< Get currently selected data points, as indices in the list of filtered data points. These indices are always sorted.
-	void setFilteredSelection(SelectionType const & filteredSelInds);//!< Set selected data points from indices within the filtered data points
-	void setSelection( SelectionType const & selInds );              //!< Set selected data points from a vector of indices.
-	void clearSelection();                                           //!< deletes current selection
+	void setPointOpacity( double opacity );                          //!< set the opaci	ty for all data points
+	QSharedPointer<iAScatterPlotViewData> viewData();
 	void setSelectionColor(QColor color);                            //!< set the color for selected points
 	void enableSelection(bool enable);                               //!< set whether selections are allowed or not
 	void getActivePlotIndices( int * inds_out );                     //!< Get X and Y parameter indices of currently active scatter plot.
-	int getVisibleParametersCount() const override;                  //!< Get the number of parameters currently displayed
-	double getAnimIn() const override { return m_animIn; }           //!< Getter for animation in property
-	void setAnimIn( double anim );                                   //!< Setter for animation in property
-	double getAnimOut() const override { return m_animOut; }         //!< Getter for animation in property
-	void setAnimOut( double anim );                                  //!< Setter for animation in property
-	SelectionType const & getHighlightedPoints() const override;     //!< get the list of highlighted points
+	int visibleParametersCount() const;                              //!< Get the number of parameters currently displayed
 	void setSeparation(int idx);                                     //!< define an index at which a separation margin is inserted
 	void setBackgroundColorTheme(iAColorTheme const * theme);        //!< define the color theme to use for coloring the different separated regions
 	iAColorTheme const * getBackgroundColorTheme();                  //!< retrieve the theme for background colors for the separated regions
@@ -174,7 +165,7 @@ public slots:
 	void setColorThemeQual(int index);                               //!< Call to adapt color theme used for coloring by a qualitative parameter
 	void rangeFromParameter();                                       //!< Call when color range should be determined from parameter
 signals:
-	void selectionModified(SelectionType const & selInds);           //!< Emitted when new data points are selected. Contains a list of selected data points.
+	void selectionModified(iAScatterPlotViewData::SelectionType const & selInds); //!< Emitted when new data points are selected. Contains a list of selected data points.
 	void currentPointModified(size_t index);                         //!< Emitted when hovered over a new point.
 	void parameterVisibilityChanged(size_t paramIndex, bool visible);//!< Emitted when the visibility of a parameter has changed (from within SPLOM, not triggered if it was set from the outside via setParameterVisibility).
 	void lookupTableChanged();                                       //!< Emitted when the lookup table has changed
@@ -215,8 +206,6 @@ protected:
 	void mouseDoubleClickEvent( QMouseEvent * event ) override;
 	void contextMenuEvent(QContextMenuEvent *event) override;
 	//! @}
-	virtual void addHighlightedPoint(size_t index);                  //!< Keep a point with index always highlighted
-	virtual void removeHighlightedPoint(size_t index);               //!< Remove a point from the highlighted list
 protected slots:
 	void setColorThemeFromComboBox(int index);                       //!< Called when color theme changed via combobox in settings dialog
 	virtual void currentPointUpdated(size_t index);                  //!< When hovered over a new point.
@@ -277,10 +266,6 @@ public:
 		double popupWidth;
 		double pointRadius;
 
-		bool isAnimated;
-		double animDuration;
-		double animStart;
-
 		int separationMargin;
 		int histogramBins;                       //!< The number of bins used in the histogram
 		bool histogramVisible;                   //!< Whether the histogram is shown in the diagonal
@@ -288,7 +273,7 @@ public:
 		int selectionMode;                       //!< The selection mode of all scatter plots
 		bool selectionEnabled;                   //!< Whether selection is enabled in the SPLOM
 		bool quadraticPlots;                     //!< Whether the scatter plots are constrained to quadratic sizes
-		bool showPCC, showSCC;                  //!< Whether to show Pearson's/Spearman's correlation coefficient
+		bool showPCC, showSCC;                   //!< Whether to show Pearson's/Spearman's correlation coefficient
 		bool showColorLegend;                    //!< Whether the color legend is shown
 		ColorMode colorMode;                     //!< How the matrix dots are colored
 		ColorParameterMode colorParameterMode;   //!< How parameters are translated to colors if colored by parameter
@@ -313,13 +298,8 @@ protected:
 	QSharedPointer<iASPLOMData> m_splomData;     //!< contains raw data points used in SPLOM
 	iAScatterPlot * m_previewPlot;               //!< plot currently being previewed (shown in maximized plot)
 	iAScatterPlot * m_maximizedPlot;             //!< pointer to the maximized plot
-	SelectionType m_selInds;                     //!< contains indices of currently selected data points
-	mutable SelectionType m_filteredSelInds;     //!< contains indices of selected points in filtered list (TODO: update only when selection changes and when filters change, remove mutable)
-	double m_animIn;                             //!< In animation parameter
-	double m_animOut;                            //!< Out animation parameter
-	QPropertyAnimation * m_animationIn;
-	QPropertyAnimation * m_animationOut;
-	SelectionType m_highlightedPoints;           //!< contains indices of always highlighted points
+	QSharedPointer<iAScatterPlotViewData> m_viewData;
+
 	double m_popupHeight;                        //!< height of the last drawn popup
 	int m_separationIdx;                         //!< index at which to separate scatterplots spatially (e.g. into in- and output parameters)
 	iAColorTheme const * m_bgColorTheme;         //!< background colors for regions in the scatterplot

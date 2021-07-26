@@ -91,11 +91,24 @@
     <string>Activate Scatterplot Matrix</string>
    </property>
   </action>
+  <action name="actionSettingsPC">
+   <property name="icon">
+    <iconset resource="FeatureScout.qrc">
+     <normaloff>:/images/settings_PC.png</normaloff>:/images/settings_PC.png</iconset>
+   </property>
+   <property name="text">
+    <string>PC settings</string>
+   </property>
+   <property name="toolTip">
+    <string>Open Parallel Coordinates Settings Dialog</string>
+   </property>
+  </action>
   <addaction name="actionLength_Distribution"/>
   <addaction name="actionOrientation_Rendering"/>
   <addaction name="actionMultiRendering"/>
   <addaction name="actionMeanObject"/>
   <addaction name="actionActivate_SPM"/>
+  <addaction name="actionSettingsPC"/>
  </widget>
  <resources>
   <include location="FeatureScout.qrc"/>

@@ -298,8 +298,6 @@ private:
 	void updateBackground();
 	void printVoxelInformation();
 	void executeKeyPressEvent();
-	// defaultOutput currently unused - maybe remove? previously used when outside of image dimensions
-	// void defaultOutput();
 
 	//!	This function is used to check whether any agreeable maximum gradient is near the given point.
 	//!	The ROI is 2 voxels on all four direction. if yes move to the closest maximum gradient.
@@ -321,6 +319,8 @@ private:
 	bool m_decorations;             //!< whether "decorations" will be shown, i.e. scalar bar widget, text on hover, ...
 	bool m_userSetBackground;       //!< whether the user has set a background
 	bool m_showPositionMarker;      //!< whether the position marker is shown in the slicer
+
+	bool m_leftMouseDrag = false;   //!< whether the left mouse button is currently being held down
 
 	uint m_magicLensInput;
 	QSharedPointer<iAMagicLens> m_magicLens;
@@ -347,8 +347,6 @@ private:
 	QList<vtkSmartPointer<vtkRegularPolygonSource>> m_circle2List;
 	QList<vtkSmartPointer<vtkActor>> m_circle2ActList;
 	//! @}
-
-	vtkRenderWindowInteractor * m_interactor;  //!< FIXME: only convenience to access interactor of underlying QVTKOpenGLNativeWidget!
 	iASlicerInteractorStyle * m_interactorStyle;
 	vtkSmartPointer<vtkGenericOpenGLRenderWindow> m_renWin;
 	vtkSmartPointer<vtkRenderer> m_ren;

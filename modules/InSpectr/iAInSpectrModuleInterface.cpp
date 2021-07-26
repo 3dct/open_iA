@@ -23,7 +23,6 @@
 #include "iAInSpectrAttachment.h"
 
 #include <iAMainWindow.h>
-#include <iAMdiChild.h>
 
 #include <QAction>
 #include <QMenu>
@@ -40,10 +39,9 @@ void iAInSpectrModuleInterface::Initialize()
 	addToMenuSorted(m_mainWnd->toolsMenu(), actionInSpectr);
 }
 
-bool iAInSpectrModuleInterface::startInSpectr()
+void iAInSpectrModuleInterface::startInSpectr()
 {
-	PrepareActiveChild();
-	return AttachToMdiChild( m_mdiChild );
+	AttachToMdiChild(m_mainWnd->activeMdiChild());
 }
 
 iAModuleAttachmentToChild * iAInSpectrModuleInterface::CreateAttachment(iAMainWindow* mainWnd, iAMdiChild * child)

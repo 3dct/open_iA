@@ -30,8 +30,7 @@ public:
 	iAFuzzyFeatureTrackingModuleInterface();
 	void Initialize() override;
 
-private slots:
-	bool start_FuzzyFeatureTracking();
-
+private:
+	void fuzzyFeatureTracking();
 	iAModuleAttachmentToChild * CreateAttachment( iAMainWindow* mainWnd, iAMdiChild * child ) override;
 };

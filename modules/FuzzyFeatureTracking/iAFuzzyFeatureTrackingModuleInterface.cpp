@@ -37,16 +37,15 @@ void iAFuzzyFeatureTrackingModuleInterface::Initialize()
 		return;
 	}
 	QAction * actionFuzzyFeatureTracking = new QAction(tr("Fuzzy Feature Tracking"), m_mainWnd);
-	connect(actionFuzzyFeatureTracking, &QAction::triggered, this, &iAFuzzyFeatureTrackingModuleInterface::start_FuzzyFeatureTracking);
+	connect(actionFuzzyFeatureTracking, &QAction::triggered, this, &iAFuzzyFeatureTrackingModuleInterface::fuzzyFeatureTracking);
 	m_mainWnd->makeActionChildDependent(actionFuzzyFeatureTracking);
 	QMenu* featureAnalysisMenu = getOrAddSubMenu(m_mainWnd->toolsMenu(), tr("Feature Analysis"), true);
 	featureAnalysisMenu->addAction(actionFuzzyFeatureTracking);
 }
 
-bool iAFuzzyFeatureTrackingModuleInterface::start_FuzzyFeatureTracking()
+void iAFuzzyFeatureTrackingModuleInterface::fuzzyFeatureTracking()
 {
-	PrepareActiveChild();
-	return AttachToMdiChild( m_mdiChild );
+	AttachToMdiChild(m_mainWnd->activeMdiChild());
 }
 
 iAModuleAttachmentToChild * iAFuzzyFeatureTrackingModuleInterface::CreateAttachment( iAMainWindow* mainWnd, iAMdiChild * child )
