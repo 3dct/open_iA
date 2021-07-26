@@ -32,18 +32,6 @@
 
 #include <iAQFlowLayout.h>
 
-#include <vtkAxis.h>
-#include <vtkChartXY.h>
-#include <vtkContextScene.h>
-#include <vtkContextView.h>
-#include <vtkFloatArray.h>
-#include <vtkImageData.h>
-#include <vtkPen.h>
-#include <vtkPlot.h>
-#include <vtkRenderer.h>
-#include <vtkTable.h>
-#include <vtkTextProperty.h>
-
 #include <QHBoxLayout>
 #include <QLabel>
 #include <QPainter>

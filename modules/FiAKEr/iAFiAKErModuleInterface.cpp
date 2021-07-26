@@ -69,7 +69,7 @@ public:
 				"Please report this error, along with the project file, to the open_iA developers!").arg(fileName));
 			return;
 		}
-		iAFiAKErModuleInterface * fiaker = m_mainWindow->getModuleDispatcher().GetModule<iAFiAKErModuleInterface>();
+		iAFiAKErModuleInterface * fiaker = m_mainWindow->moduleDispatcher().module<iAFiAKErModuleInterface>();
 		fiaker->setupToolBar();
 		fiaker->loadProject(m_mdiChild, projectFile, fileName, this);
 	}
@@ -232,7 +232,7 @@ void iAFiAKErModuleInterface::startFiAKEr()
 	//cmbbox_Format->addItems(formatEntries);
 
 	AttachToMdiChild(mdiChild);
-	iAFiAKErAttachment* attach = GetAttachment<iAFiAKErAttachment>(mdiChild);
+	iAFiAKErAttachment* attach = attachment<iAFiAKErAttachment>(mdiChild);
 	m_mainWnd->setPath(m_lastPath);
 	if (createdMdi)
 	{
@@ -273,7 +273,7 @@ void iAFiAKErModuleInterface::loadProject(iAMdiChild* mdiChild, QSettings const&
 		mdiChild->displayResult(mdiChild->windowTitle(), nullptr, nullptr);
 	}
 	AttachToMdiChild(mdiChild);
-	iAFiAKErAttachment* attach = GetAttachment<iAFiAKErAttachment>(mdiChild);
+	iAFiAKErAttachment* attach = attachment<iAFiAKErAttachment>(mdiChild);
 	auto controller = attach->controller();
 	project->setController(controller);
 	m_mainWnd->setPath(m_lastPath);
@@ -304,7 +304,7 @@ void iAFiAKErModuleInterface::setupToolBar()
 
 void iAFiAKErModuleInterface::toggleDockWidgetTitleBars()
 {
-	iAFiAKErAttachment* attach = GetAttachment<iAFiAKErAttachment>(m_mainWnd->activeMdiChild());
+	iAFiAKErAttachment* attach = attachment<iAFiAKErAttachment>(m_mainWnd->activeMdiChild());
 	if (!attach)
 	{
 		return;
@@ -314,7 +314,7 @@ void iAFiAKErModuleInterface::toggleDockWidgetTitleBars()
 
 void iAFiAKErModuleInterface::toggleSettings()
 {
-	iAFiAKErAttachment* attach = GetAttachment<iAFiAKErAttachment>(m_mainWnd->activeMdiChild());
+	iAFiAKErAttachment* attach = attachment<iAFiAKErAttachment>(m_mainWnd->activeMdiChild());
 	if (!attach)
 	{
 		return;

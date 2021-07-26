@@ -20,6 +20,10 @@
 * ************************************************************************************/
 #include "iAGraphDrawer.h"
 
+#include <iALog.h>
+
+#include <QString>
+
 #include <algorithm>
 #include <cassert>
 #include <cmath>
@@ -99,7 +103,8 @@ void iAGraphDrawer::initialOrder(OrderType& order)
 void iAGraphDrawer::addVerticesToOrder(iAGraph::idType headerVert, OrderType& order)
 {
 	iAGraph::Vertex v = m_graph->getVertices()->at(headerVert);
-	for (size_t i = 0; i < order[v.rank].size(); i++) {
+	for (size_t i = 0; i < order[v.rank].size(); i++)
+	{
 		if (order[v.rank][i] == headerVert)
 		{
 			return;			// the vertex has been added already
@@ -141,7 +146,7 @@ void iAGraphDrawer::start()
 		}
 	}
 
-	std::cout << "crossings " << numberOfCrossing(m_order);
+	LOG(lvlDebug, QString("Crossings: %1").arg(numberOfCrossing(m_order)));
 
 	for (size_t i = 0; i < m_order.size(); i++)
 	{

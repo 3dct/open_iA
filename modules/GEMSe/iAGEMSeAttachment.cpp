@@ -22,7 +22,6 @@
 
 #include "dlg_GEMSeControl.h"
 #include "dlg_GEMSe.h"
-#include "dlg_labels.h"
 #include "dlg_samplings.h"
 #include "iAGEMSeProject.h"
 
@@ -53,27 +52,17 @@ iAGEMSeAttachment* iAGEMSeAttachment::create(iAMainWindow * mainWnd, iAMdiChild 
 	iAColorTheme const * colorTheme = iAColorThemeManager::instance().theme(defaultThemeName);
 
 	newAttachment->m_dlgGEMSe = new dlg_GEMSe(child, iALog::get(), colorTheme);
-
-	newAttachment->m_dlgLabels = new dlg_labels(child, colorTheme);
 	newAttachment->m_dlgSamplings = new dlg_samplings();
 	newAttachment->m_dlgGEMSeControl = new dlg_GEMSeControl(
 		child,
 		newAttachment->m_dlgGEMSe,
 		child->dataDockWidget(),
-		newAttachment->m_dlgLabels,
 		newAttachment->m_dlgSamplings,
 		colorTheme
 	);
 	child->splitDockWidget(child->renderDockWidget(), newAttachment->m_dlgGEMSe, Qt::Vertical);
 	child->splitDockWidget(child->renderDockWidget(), newAttachment->m_dlgGEMSeControl, Qt::Horizontal);
-	child->splitDockWidget(newAttachment->m_dlgGEMSeControl, newAttachment->m_dlgLabels, Qt::Vertical);
 	child->splitDockWidget(newAttachment->m_dlgGEMSeControl, newAttachment->m_dlgSamplings, Qt::Vertical);
-
-	for (int i = 0; i < iASlicerMode::SlicerCount; ++i)
-	{
-		connect(child->slicer(i), &iASlicer::leftClicked, newAttachment->m_dlgLabels, &dlg_labels::SlicerClicked);
-		connect(child->slicer(i), &iASlicer::rightClicked, newAttachment->m_dlgLabels, &dlg_labels::SlicerRightClicked);
-	}
 	return newAttachment;
 }
 

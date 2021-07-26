@@ -20,43 +20,16 @@
 * ************************************************************************************/
 #pragma once
 
-#include <vtkSmartPointer.h>
+#include <iAGUIModuleInterface.h>
 
-#include <QThread>
-
-class iAColorTheme;
-
-class vtkImageData;
-class vtkLookupTable;
-class vtkPiecewiseFunction;
-
-class QStandardItemModel;
-
-class iALabelOverlayThread : public QThread
+class iALabellingModuleInterface : public iAGUIModuleInterface
 {
+	Q_OBJECT
 public:
-	iALabelOverlayThread(vtkSmartPointer<vtkImageData>& labelOverlayImg,
-		vtkSmartPointer<vtkLookupTable>& labelOverlayLUT,
-		vtkSmartPointer<vtkPiecewiseFunction>& labelOverlayOTF,
-		QStandardItemModel* itemModel,
-		int labelCount,
-		iAColorTheme const * colorTheme,
-		int *    imageExtent,
-		double * imageSpacing);
-	void RebuildLabelOverlayLUT();
-	vtkSmartPointer<vtkImageData> drawImage();
-	void run();
-private:
-	vtkSmartPointer<vtkImageData>& m_labelOverlayImg;
-	vtkSmartPointer<vtkLookupTable>& m_labelOverlayLUT;
-	vtkSmartPointer<vtkPiecewiseFunction>& m_labelOverlayOTF;
-	QStandardItemModel* m_itemModel;
-	int m_labelCount;
-	iAColorTheme const * m_colorTheme;
-	int *    m_imageExtent;
-	double * m_imageSpacing;
+	void Initialize() override;
+protected:
+	iAModuleAttachmentToChild* CreateAttachment(iAMainWindow* mainWnd, iAMdiChild* child) override;
+private slots:
+	//! Menu entries:
+	void startLabelling();
 };
-
-vtkSmartPointer<vtkPiecewiseFunction> BuildLabelOverlayOTF(int labelCount);
-
-vtkSmartPointer<vtkLookupTable> BuildLabelOverlayLUT(int labelCount, iAColorTheme const * colorTheme);

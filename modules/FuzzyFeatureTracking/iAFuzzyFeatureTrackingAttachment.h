@@ -44,7 +44,6 @@ protected:
 protected slots:
 	void updateViews();
 protected:
-	dlg_trackingGraph * trackingGraph;
 	dlg_dataView4DCT * m_dlgDataView4DCT;
 	dlg_trackingGraph * m_dlgTrackingGraph;
 	dlg_eventExplorer * m_dlgEventExplorer;

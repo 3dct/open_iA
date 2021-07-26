@@ -53,6 +53,11 @@ iARendererViewSync::iARendererViewSync(bool sharedCamera) :
 {
 }
 
+iARendererViewSync::~iARendererViewSync()
+{
+	removeAll();
+}
+
 void iARendererViewSync::addToBundle(vtkRenderer* renderer)
 {
 	if (m_sharedCamera)
@@ -122,7 +127,10 @@ void iARendererViewSync::redrawOtherRenderers(vtkObject* caller, long unsigned i
 		{
 			copyCameraParams(r->GetActiveCamera(), sourceCam);
 		}
-		r->GetRenderWindow()->Render();
+		if (r->GetRenderWindow())
+		{	// don't update renderers already removed from render window:
+			r->GetRenderWindow()->Render();
+		}
 	}
 	m_updateInProgress = false;
 }

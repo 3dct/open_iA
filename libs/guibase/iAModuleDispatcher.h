@@ -70,8 +70,8 @@ public:
 	~iAModuleDispatcher();
 	void InitializeModules(iALogger* logger);
 	void SaveModulesSettings() const;
-	iAMainWindow * GetMainWnd() const;
-	template <typename T> T* GetModule();
+	iAMainWindow * mainWnd() const;
+	template <typename T> T* module();
 	void ChildCreated(iAMdiChild* child);
 private slots:
 	void executeFilter();
@@ -89,7 +89,7 @@ private:
 	void runFilter(int filterID);
 };
 
-template <typename T> T* iAModuleDispatcher::GetModule()
+template <typename T> T* iAModuleDispatcher::module()
 {
 	for (iALoadedModule m: m_loadedModules)
 	{

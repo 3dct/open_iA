@@ -20,36 +20,28 @@
 * ************************************************************************************/
 #pragma once
 
-#include "ui_RangeSliderDiagramView.h"
-
-#include <qthelper/iAQTtoUIConnector.h>
-
 #include <vtkSmartPointer.h>
 
-#include <QDockWidget>
 #include <QMultiMap>
 #include <QSharedPointer>
-
+#include <QWidget>
 
 class iAHistogramData;
 class iABarGraphPlot;
 class iARangeSliderDiagramWidget;
 
-class QTableWidget;
-class QWidget;
-class QVBoxLayout;
 class QComboBox;
-class QLabel;
 class QFrame;
+class QHBoxLayout;
+class QLabel;
+class QTableWidget;
+class QVBoxLayout;
 
 class vtkPiecewiseFunction;
 class vtkColorTransferFunction;
 class vtkIdTypeArray;
 
-
-typedef iAQTtoUIConnector<QDockWidget, Ui_RangeSliderDiagramView>  RangeSliderDiagramViewConnector;
-
-class iARangeSliderDiagramView : public RangeSliderDiagramViewConnector
+class iARangeSliderDiagramView : public QWidget
 {
 	Q_OBJECT
 

@@ -2337,6 +2337,11 @@ void MainWindow::applyQSS()
 	}
 }
 
+bool MainWindow::brightMode() const
+{
+	return m_qssName.contains("bright");
+}
+
 void MainWindow::saveLayout()
 {
 	iAMdiChild *child = activeMdiChild();
@@ -2570,12 +2575,12 @@ void MainWindow::loadArguments(int argc, char** argv)
 	loadFiles(files);
 }
 
-iAPreferences const & MainWindow::getDefaultPreferences() const
+iAPreferences const & MainWindow::defaultPreferences() const
 {
 	return m_defaultPreferences;
 }
 
-iAModuleDispatcher & MainWindow::getModuleDispatcher() const
+iAModuleDispatcher & MainWindow::moduleDispatcher() const
 {
 	return *this->m_moduleDispatcher.data();
 }

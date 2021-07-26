@@ -18,27 +18,59 @@
 * Contact: FH OÖ Forschungs & Entwicklungs GmbH, Campus Wels, CT-Gruppe,              *
 *          Stelzhamerstraße 23, 4600 Wels / Austria, Email: c.heinzl@fh-wels.at       *
 * ************************************************************************************/
-#include "iAQVTKWidgetMouseReleaseWorkaround.h"
+#pragma once
 
-iAQVTKWidgetMouseReleaseWorkaround::iAQVTKWidgetMouseReleaseWorkaround(QWidget* parent, Qt::WindowFlags f)
-	: iAVtkOldWidget(parent, f)
-{}
+#include "iALabellingObjects.h"
+#include "iANModalObjects.h"
 
-void iAQVTKWidgetMouseReleaseWorkaround::mouseReleaseEvent( QMouseEvent * event )
+#include <QList>
+#include <QMap>
+#include <QWidget>
+
+class iANModalController;
+class iANModalPreprocessor;
+class iANModalLabelsWidget;
+class iASlicer;
+class iAModality;
+class iAMdiChild;
+
+class QLabel;
+class QGridLayout;
+class QScrollArea;
+
+class iANModalWidget : public QWidget
 {
-	if (Qt::RightButton == event->button())
-	{
-		emit rightButtonReleasedSignal();
-	}
-	else if (Qt::LeftButton == event->button())
-	{
-		emit leftButtonReleasedSignal();
-	}
-	iAVtkOldWidget::mouseReleaseEvent(event);
-}
+	Q_OBJECT
 
-void iAQVTKWidgetMouseReleaseWorkaround::resizeEvent( QResizeEvent * event )
-{
-	repaint();//less flickering, but resize is less responsive
-	iAVtkOldWidget::resizeEvent(event);
-}
+public:
+	iANModalWidget(iAMdiChild* mdiChild);
+
+private:
+	iANModalController* m_c;
+	QSharedPointer<iANModalPreprocessor> m_preprocessor;
+	iAMdiChild* m_mdiChild;
+
+	QGridLayout* m_layoutSlicersGrid;
+	iANModalLabelsWidget* m_labelsWidget;
+
+	QLabel* m_labelModalityCount;
+
+	QMap<int, iANModalLabel> m_labels;
+
+private slots:
+	void onAllSlicersInitialized();
+	void onAllSlicersReinitialized();
+	void onHistogramInitialized(int index);
+
+	//void onModalitiesChanged();
+
+	void onSeedsAdded(const QList<iASeed>&);
+	void onSeedsRemoved(const QList<iASeed>&);
+	void onAllSeedsRemoved();
+	void onLabelAdded(const iALabel&);
+	void onLabelRemoved(const iALabel&);
+	void onLabelsColorChanged(const QList<iALabel>&);
+
+	void onLabelOpacityChanged(int labelId);
+	void onLabelRemoverStateChanged(int labelId);
+};

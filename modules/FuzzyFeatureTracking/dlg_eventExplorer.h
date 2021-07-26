@@ -52,32 +52,21 @@ public:
 	dlg_eventExplorer(QWidget *parent, size_t numberOfCharts, int numberOfEventTypes, iAVolumeStack *volumeStack, dlg_trackingGraph* trackingGraph, std::vector<iAFeatureTracking*> trackedFeaturesForwards, std::vector<iAFeatureTracking*> trackedFeaturesBackwards);
 	~dlg_eventExplorer();
 
-	private slots:
+private slots:
 	void comboBoxXSelectionChanged(int s);
 	void comboBoxYSelectionChanged(int s);
-
-	void updateOpacityCreation(int v);
-	void updateOpacityContinuation(int v);
-	void updateOpacitySplit(int v);
-	void updateOpacityMerge(int v);
-	void updateOpacityDissipation(int v);
-
-	void updateOpacityGrid(int v);
-
-	void updateCheckBoxCreation(int c);
-	void updateCheckBoxContinuation(int c);
-	void updateCheckBoxSplit(int c);
-	void updateCheckBoxMerge(int c);
-	void updateCheckBoxDissipation(int c);
-
-	void updateCheckBoxLogX(int c);
-	void updateCheckBoxLogY(int c);
-
-	void chartMouseButtonCallBack(vtkObject * obj);
+	void setGridOpacity(int v);
+	void chartSelectionChanged(vtkObject* obj);
 
 private:
 	void buildGraph(int id, int layer, int eventType, double uncertainty);
 	void buildSubGraph(int id, int layer);
+	void updateChartData(int axis, int s);
+	void setChartLogScale(int axis, bool log);
+	void setOpacity(int eventType, int value);
+	void updateCheckBox(int eventType, int checked);
+	void updateCharts();
+	void addPlot(int eventType, size_t chartID);
 
 	iAVolumeStack* m_volumeStack;
 	size_t m_numberOfCharts;
@@ -86,12 +75,12 @@ private:
 	int m_numberOfActivePlots;
 	int m_propertyXId;
 	int m_propertyYId;
-	int m_rgb[5][3];
-
-	std::vector<iAVtkOldWidget*> m_widgets;
+	
+	std::vector<QSlider*> m_slider;
+	std::vector<iAVtkWidget*> m_widgets;
 	std::vector<vtkSmartPointer<vtkContextView>> m_contextViews;
 	std::vector<vtkSmartPointer<vtkChartXY>> m_charts;
-	std::vector<vtkSmartPointer<vtkPlot>> m_plots;
+	std::vector<vtkPlot*> m_plots;
 	std::vector<vtkSmartPointer<vtkTable>> m_tables;
 
 	std::vector<iAFeatureTracking*> m_trackedFeaturesForwards;
@@ -105,12 +94,12 @@ private:
 	std::map<int, std::map<vtkIdType, int>> m_graphToTableId;
 	std::map<int, std::map<vtkIdType, int>> m_tableToGraphId;
 
-	vtkMutableDirectedGraph* m_graph;
-	vtkStringArray* m_labels;
-	vtkIntArray* m_nodeLayer;
-	vtkIntArray* m_colorR;
-	vtkIntArray* m_colorG;
-	vtkIntArray* m_colorB;
-	vtkDoubleArray* m_trackingUncertainty;
-	vtkEventQtSlotConnect* m_chartConnections;
+	vtkSmartPointer<vtkMutableDirectedGraph> m_graph;
+	vtkSmartPointer<vtkStringArray> m_labels;
+	vtkSmartPointer<vtkIntArray> m_nodeLayer;
+	vtkSmartPointer<vtkIntArray> m_colorR;
+	vtkSmartPointer<vtkIntArray> m_colorG;
+	vtkSmartPointer<vtkIntArray> m_colorB;
+	vtkSmartPointer<vtkDoubleArray> m_trackingUncertainty;
+	vtkSmartPointer<vtkEventQtSlotConnect> m_chartConnections;
 };

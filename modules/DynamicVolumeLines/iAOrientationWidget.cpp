@@ -72,7 +72,13 @@ void iAOrientationWidget::paintGL()
 	double y = (m_upperLimitY - m_plot->yAxis->range().upper) * height() / (m_upperLimitY - m_lowerLimitY);
 	double w = m_plot->xAxis->range().size() * width() / (m_upperLimitX - m_lowerLimitX);
 	double h = m_plot->yAxis->range().size() * height() / (m_upperLimitY - m_lowerLimitY);
-	if (w < minPixelSize) w = minPixelSize;
-	if (h < minPixelSize) h = minPixelSize;
+	if (w < minPixelSize)
+	{
+		w = minPixelSize;
+	}
+	if (h < minPixelSize)
+	{
+		h = minPixelSize;
+	}
 	painter.drawRect(x, y, w, h);
 }

@@ -124,10 +124,11 @@ MdiChild::MdiChild(MainWindow* mainWnd, iAPreferences const& prefs, bool unsaved
 	m_volumeStack(new iAVolumeStack),
 	m_ioThread(nullptr),
 	m_histogram(new iAChartWithFunctionsWidget(nullptr, " Histogram", "Frequency")),
-	m_dwHistogram(new iADockWidgetWrapper(m_histogram, "Histogram", "Histogram")),
-	m_dwImgProperty(nullptr),
 	m_profile(nullptr),
+	m_dwHistogram(new iADockWidgetWrapper(m_histogram, "Histogram", "Histogram")),
 	m_dwProfile(nullptr),
+	m_dwImgProperty(nullptr),
+	m_dwVolumePlayer(nullptr),
 	m_nextChannelID(0),
 	m_magicLensChannel(NotExistingChannel),
 	m_currentModality(0),
@@ -138,9 +139,7 @@ MdiChild::MdiChild(MainWindow* mainWnd, iAPreferences const& prefs, bool unsaved
 {
 	m_histogram->setYMappingMode(prefs.HistogramLogarithmicYAxis ? iAChartWidget::Logarithmic : iAChartWidget::Linear);
 	std::fill(m_slicerVisibility, m_slicerVisibility + 3, false);
-#if QT_VERSION >= QT_VERSION_CHECK(5, 6, 0)
 	setDockOptions(dockOptions() | QMainWindow::GroupedDragging);
-#endif
 	setWindowModified(unsavedChanges);
 	setupUi(this);
 	//prepare window for handling dock widgets
@@ -1191,11 +1190,13 @@ void MdiChild::setSlice(int mode, int s)
 	else
 	{
 		//Update Slicer if changed
-		if (m_dwSlicer[mode]->sbSlice->value() != s) {
+		if (m_dwSlicer[mode]->sbSlice->value() != s)
+		{
 			QSignalBlocker block(m_dwSlicer[mode]->sbSlice);
 			m_dwSlicer[mode]->sbSlice->setValue(s);
 		}
-		if (m_dwSlicer[mode]->verticalScrollBar->value() != s) {
+		if (m_dwSlicer[mode]->verticalScrollBar->value() != s)
+		{
 			QSignalBlocker block(m_dwSlicer[mode]->verticalScrollBar);
 			m_dwSlicer[mode]->verticalScrollBar->setValue(s);
 		}
@@ -1443,6 +1444,11 @@ QString MdiChild::layoutName() const
 void MdiChild::updateLayout()
 {
 	m_mainWnd->loadLayout();
+}
+
+bool MdiChild::brightMode() const
+{
+	return m_mainWnd->brightMode();
 }
 
 void MdiChild::loadLayout(QString const& layout)
@@ -2320,6 +2326,16 @@ iASlicer* MdiChild::slicer(int mode)
 	return m_slicer[mode];
 }
 
+QSlider* MdiChild::slicerScrollBar(int mode)
+{
+	return m_dwSlicer[mode]->verticalScrollBar;
+}
+
+QHBoxLayout* MdiChild::slicerContainerLayout(int mode)
+{
+	return m_dwSlicer[mode]->horizontalLayout_2;
+}
+
 QDockWidget* MdiChild::slicerDockWidget(int mode)
 {
 	assert(0 <= mode && mode < iASlicerMode::SlicerCount);
@@ -2592,30 +2608,73 @@ void MdiChild::initModalities()
 	m_dwModalities->selectRow(0);
 }
 
-void MdiChild::setHistogramModality(int modalityIdx)
+bool MdiChild::statisticsComputed(QSharedPointer<iAModality> modality)
 {
-	if (!m_histogram || modalities()->size() <= modalityIdx ||
-		modality(modalityIdx)->image()->GetNumberOfScalarComponents() != 1) //No histogram/profile for rgb, rgba or vector pixel type images
+	return modality->transfer()->statisticsComputed();
+}
+
+bool MdiChild::statisticsComputable(QSharedPointer<iAModality> modality, int modalityIdx /* = -1 */)
+//bool MdiChild::histogramComputedOrComputing(QSharedPointer<iAModality> modality, int modalityIdx /* = -1 */) {
+{
+	if (modality->info().isComputing())
+	{
+		return false;
+	}
+
+	// If modality index is provided
+	if (modalityIdx != -1)
+	{
+		// If histogram can't be computed
+		if (modalities()->size() < modalityIdx ||
+			!m_histogram || modality->image()->GetNumberOfScalarComponents() != 1)
+		{
+			return false;
+		}
+	}
+
+	return true;
+}
+
+void MdiChild::computeStatisticsAsync(std::function<void()> callbackSlot, QSharedPointer<iAModality> mod)
+{
+	if (!statisticsComputable(mod))
 	{
 		return;
 	}
-	if (modality(modalityIdx)->transfer()->statisticsComputed())
+
+	mod->info().setComputing();
+	updateImageProperties();
+	auto compute = [mod] { mod->computeImageStatistics(); };
+	auto fw = runAsync(compute, callbackSlot, this);
+	iAJobListView::get()->addJob(QString("Computing statistics for modality %1...")
+		.arg(mod->name()), nullptr, fw);
+}
+
+void MdiChild::setHistogramModality(int modalityIdx)
+{
+	if (modalityIdx < 0 || modalityIdx >= modalities()->size())
+	{
+		return;
+	}
+	auto mod = modality(modalityIdx);
+
+	if (statisticsComputed(mod))
 	{
 		displayHistogram(modalityIdx);
 		return;
 	}
-	if (modality(modalityIdx)->info().isComputing()) // already computing currently...
+
+	if (!statisticsComputable(mod, modalityIdx))
 	{
+		// Here, we also return if the histogram is currently being computed
+		// However, it is possible that an external class requested the computation of the histogram
+		// In that case, the function MdiChild::statisticsAvailable may never be called
+		// TODO: fix that
 		return;
 	}
-	modality(modalityIdx)->info().setComputing();
-	updateImageProperties();
 
-	auto compute = [this, modalityIdx] { modality(modalityIdx)->computeImageStatistics(); };
-	auto finished = [this, modalityIdx] { statisticsAvailable(modalityIdx); };
-	auto fw = runAsync(compute, finished, this);
-	iAJobListView::get()->addJob(QString("Computing statistics for modality %1...")
-		.arg(modality(modalityIdx)->name()), nullptr, fw);
+	auto callbackSlot = [this, modalityIdx](){ statisticsAvailable(modalityIdx); };
+	computeStatisticsAsync(callbackSlot, mod);
 }
 
 void MdiChild::modalityAdded(int modalityIdx)
@@ -2658,6 +2717,42 @@ void MdiChild::histogramDataAvailable(int modalityIdx)
 	emit histogramAvailable();
 }
 
+size_t MdiChild::histogramNewBinCount(QSharedPointer<iAModality> mod)
+{
+	size_t newBinCount = m_preferences.HistogramBins;
+	auto img = mod->image();
+	if (img->GetNumberOfScalarComponents() != 1)
+	{
+		LOG(lvlDebug, QString("Image of modality %1 has %2 components, only computing histogram of first one!").arg(mod->name()).arg(img->GetNumberOfScalarComponents()));
+	}
+	auto scalarRange = img->GetScalarRange();
+	if (isVtkIntegerImage(mod->image()))
+	{
+		newBinCount = std::min(newBinCount, static_cast<size_t>(scalarRange[1] - scalarRange[0] + 1));
+	}
+	return newBinCount;
+}
+
+bool MdiChild::histogramComputed(size_t newBinCount, QSharedPointer<iAModality> mod)
+{
+	auto histData = mod->histogramData();
+	return (histData && histData->valueCount() == newBinCount);
+}
+
+void MdiChild::computeHistogramAsync(std::function<void()> callbackSlot, size_t newBinCount, QSharedPointer<iAModality> mod)
+{
+	auto fw = runAsync([newBinCount, mod]
+		{   // run computation of histogram...
+			auto histData = iAHistogramData::create("Frequency", mod->image(), newBinCount, &mod->info());
+			mod->setHistogramData(histData);
+		},
+		callbackSlot,
+		this);
+		// TODO: find way of terminating computation in case modality is deleted/application closed!
+	iAJobListView::get()->addJob(QString("Computing histogram for modality %1...")
+		.arg(mod->name()), nullptr, fw);
+}
+
 void MdiChild::displayHistogram(int modalityIdx)
 {
 	if (modalityIdx < 0 || modalityIdx >= modalities()->size())
@@ -2665,39 +2760,16 @@ void MdiChild::displayHistogram(int modalityIdx)
 		LOG(lvlWarn, QString("displayHistogram: Modality %1 not available!").arg(modalityIdx));
 		return;
 	}
-	auto img = modality(modalityIdx)->image();
-	if (img->GetNumberOfScalarComponents() != 1)
+	auto mod = modality(modalityIdx);
+	size_t newBinCount = histogramNewBinCount(mod);
+	if (histogramComputed(newBinCount, mod))
 	{
-		return;
-	}
-	auto histData = modality(modalityIdx)->histogramData();
-	size_t newBinCount = m_preferences.HistogramBins;
-	auto scalarRange = img->GetScalarRange();
-	if (isVtkIntegerImage(modality(modalityIdx)->image()))
-	{
-		newBinCount = std::min(newBinCount, static_cast<size_t>(scalarRange[1] - scalarRange[0] + 1));
-	}
-	if (histData && histData->valueCount() == newBinCount)
-	{
-		if (modalityIdx != m_currentHistogramModality)
-		{
-			histogramDataAvailable(modalityIdx);
-		}
+		histogramDataAvailable(modalityIdx);
 		return;
 	}
 
-	auto fw = runAsync([this, modalityIdx, newBinCount]
-		{   // run computation of histogram...
-			auto histData = iAHistogramData::create("Frequency", modality(modalityIdx)->image(), newBinCount, &modality(modalityIdx)->info());
-			modality(modalityIdx)->setHistogramData(histData);
-		},
-		[this, modalityIdx]
-		{  // ... and on finished signal, trigger histogramDataAvailable
-			histogramDataAvailable(modalityIdx);
-		}, this);
-		// TODO: find way of terminating computation in case modality is deleted/application closed!
-	iAJobListView::get()->addJob(QString("Computing histogram for modality %1...")
-		.arg(modality(modalityIdx)->name()), nullptr, fw);
+	std::function<void()> callbackSlot = [this, modalityIdx](){ histogramDataAvailable(modalityIdx); };
+	computeHistogramAsync(callbackSlot, newBinCount, mod);
 }
 
 void MdiChild::clearHistogram()

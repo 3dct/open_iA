@@ -35,13 +35,13 @@ iAGEMSeProject::~iAGEMSeProject()
 
 void iAGEMSeProject::loadProject(QSettings & projectFile, QString const & fileName)
 {
-	iAGEMSeModuleInterface * gemseModule = m_mainWindow->getModuleDispatcher().GetModule<iAGEMSeModuleInterface>();
+	iAGEMSeModuleInterface * gemseModule = m_mainWindow->moduleDispatcher().module<iAGEMSeModuleInterface>();
 	gemseModule->loadProject(m_mdiChild, projectFile, fileName);
 }
 
 void iAGEMSeProject::saveProject(QSettings & projectFile, QString const & fileName)
 {
-	iAGEMSeModuleInterface * gemseModule = m_mainWindow->getModuleDispatcher().GetModule<iAGEMSeModuleInterface>();
+	iAGEMSeModuleInterface * gemseModule = m_mainWindow->moduleDispatcher().module<iAGEMSeModuleInterface>();
 	gemseModule->saveProject(projectFile, fileName);
 }
 

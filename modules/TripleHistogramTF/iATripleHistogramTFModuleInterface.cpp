@@ -56,11 +56,11 @@ iAModuleAttachmentToChild* iATripleHistogramTFModuleInterface::CreateAttachment(
 iATripleHistogramTFAttachment* iATripleHistogramTFModuleInterface::getOrCreateAttachment()
 {
 	auto child = m_mainWnd->activeMdiChild();
-	auto attach = GetAttachment<iATripleHistogramTFAttachment>(child);
+	auto attach = attachment<iATripleHistogramTFAttachment>(child);
 	if (!attach)
 	{
 		AttachToMdiChild(child);
-		attach = GetAttachment<iATripleHistogramTFAttachment>(child);
+		attach = attachment<iATripleHistogramTFAttachment>(child);
 		if (!attach)
 		{
 			LOG(lvlError, "Attaching failed!");

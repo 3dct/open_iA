@@ -37,21 +37,50 @@
 #include <vtkDoubleArray.h>
 #include <vtkEventQtSlotConnect.h>
 #include <vtkFloatArray.h>
+#include <vtkGenericOpenGLRenderWindow.h>
 #include <vtkIdTypeArray.h>
 #include <vtkIntArray.h>
 #include <vtkMutableDirectedGraph.h>
 #include <vtkPen.h>
 #include <vtkPiecewiseFunction.h>
 #include <vtkPlot.h>
+#include <vtkPlotPoints.h>
 #include <vtkStringArray.h>
 #include <vtkTable.h>
 #include <vtkVariantArray.h>
 
-
+#include <array>
 #include <sstream>
 
-#define VTK_CREATE(type, name) \
-	vtkSmartPointer<type> name = vtkSmartPointer<type>::New()
+namespace
+{
+	const QStringList EventNames = QStringList()
+		<< "Creation"
+		<< "Continuation"
+		<< "Split"
+		<< "Merge"
+		<< "Dissipation";
+	const std::array<QColor, 5> EventColors =
+	{	// use color theme instead?
+		QColor(218, 181, 214),
+		QColor(205, 221, 112),
+		QColor(135, 216, 219),
+		QColor(139, 224, 164),
+		QColor(228, 179, 111)
+	};
+	const QStringList AvailableProperties = QStringList()
+		<< " Volume "
+		<< " Dimension X "
+		<< " Dimension Y "
+		<< " Dimension Z "
+		<< " Shape Factor "
+		<< " Probability "
+		<< " Uncertainty "
+		<< " Volume Overlap "
+		<< " Dataset Id "
+		<< " Correspondence Id "
+		<< " Event Type";
+}
 
 QString toqstr(vtkVariant const & var)
 {
@@ -60,9 +89,29 @@ QString toqstr(vtkVariant const & var)
 	return QString(oss.str().c_str());
 }
 
+void dlg_eventExplorer::addPlot(int eventID, size_t chartID)
+{
+	const float width = 1.0;
+	vtkPlot* plot = m_charts.at(chartID)->AddPlot(vtkChart::POINTS);
+	plot->SetInputData(m_tables.at(chartID + m_numberOfCharts * eventID), m_propertyXId, m_propertyYId);
+	QColor c = EventColors[eventID];
+	plot->SetColor(static_cast<unsigned char>(c.red()), static_cast<unsigned char>(c.green()),
+		static_cast<unsigned char>(c.blue()), static_cast<unsigned char>(c.alpha()));
+	plot->SetWidth(width);
+	plot->SetTooltipLabelFormat("");
+	dynamic_cast<vtkPlotPoints*>(plot)->SetMarkerStyle(vtkPlotPoints::CIRCLE);
+	m_plots[chartID + m_numberOfCharts * eventID] = plot;
+}
+
 dlg_eventExplorer::dlg_eventExplorer(QWidget *parent, size_t numberOfCharts, int numberOfEventTypes, iAVolumeStack* volumeStack, dlg_trackingGraph* trackingGraph, std::vector<iAFeatureTracking*> trackedFeaturesForwards, std::vector<iAFeatureTracking*> trackedFeaturesBackwards) : QDockWidget(parent)
 {
 	setupUi(this);
+
+	m_slider.push_back(creationSlider);
+	m_slider.push_back(continuationSlider);
+	m_slider.push_back(splitSlider);
+	m_slider.push_back(mergeSlider);
+	m_slider.push_back(dissipationSlider);
 
 	this->m_numberOfCharts = numberOfCharts;
 	this->m_numberOfEventTypes = numberOfEventTypes;
@@ -74,44 +123,10 @@ dlg_eventExplorer::dlg_eventExplorer(QWidget *parent, size_t numberOfCharts, int
 	m_propertyXId = 0;
 	m_propertyYId = 7;
 
-	m_rgb[0][0] = 218; m_rgb[0][1] = 181; m_rgb[0][2] = 214;
-	m_rgb[1][0] = 205; m_rgb[1][1] = 221; m_rgb[1][2] = 112;
-	m_rgb[2][0] = 135; m_rgb[2][1] = 216; m_rgb[2][2] = 219;
-	m_rgb[3][0] = 139; m_rgb[3][1] = 224; m_rgb[3][2] = 164;
-	m_rgb[4][0] = 228; m_rgb[4][1] = 179; m_rgb[4][2] = 111;
-
-	for (int c = 0; c < 3; c++)
-	{
-		for (int r = 0; r < 5; r++)
-		{
-			LOG(lvlInfo, QString("rgb[%1][%2] = %3").arg(r).arg(c).arg(m_rgb[r][c]));
-		}
-	}
-
-	this->comboBoxX->addItem(" Volume ");
-	this->comboBoxX->addItem(" Dimension X ");
-	this->comboBoxX->addItem(" Dimension Y ");
-	this->comboBoxX->addItem(" Dimension Z ");
-	this->comboBoxX->addItem(" Shape Factor ");
-	this->comboBoxX->addItem(" Probability ");
-	this->comboBoxX->addItem(" Uncertainty ");
-	this->comboBoxX->addItem(" Volume Overlap ");
-	this->comboBoxX->addItem(" Dataset Id ");
-	this->comboBoxX->addItem(" Correspondence Id ");
-	this->comboBoxX->addItem(" Event Type");
+	this->comboBoxX->addItems(AvailableProperties);
 	this->comboBoxX->setCurrentIndex(m_propertyXId);
 
-	this->comboBoxY->addItem(" Volume ");
-	this->comboBoxY->addItem(" Dimension X ");
-	this->comboBoxY->addItem(" Dimension Y ");
-	this->comboBoxY->addItem(" Dimension Z ");
-	this->comboBoxY->addItem(" Shape Factor ");
-	this->comboBoxY->addItem(" Probability ");
-	this->comboBoxY->addItem(" Uncertainty ");
-	this->comboBoxY->addItem(" Volume Overlap ");
-	this->comboBoxY->addItem(" Dataset Id ");
-	this->comboBoxY->addItem(" Correspondence Id ");
-	this->comboBoxY->addItem(" Event Type");
+	this->comboBoxY->addItems(AvailableProperties);
 	this->comboBoxY->setCurrentIndex(m_propertyYId);
 
 	connect(comboBoxX, QOverload<int>::of(&QComboBox::currentIndexChanged), this, &dlg_eventExplorer::comboBoxXSelectionChanged);
@@ -123,263 +138,70 @@ dlg_eventExplorer::dlg_eventExplorer(QWidget *parent, size_t numberOfCharts, int
 	mergeCheckBox->setChecked(true);
 	dissipationCheckBox->setChecked(true);
 
-	connect(creationSlider, &QSlider::sliderMoved, this, &dlg_eventExplorer::updateOpacityCreation);
-	connect(continuationSlider, &QSlider::sliderMoved, this, &dlg_eventExplorer::updateOpacityContinuation);
-	connect(splitSlider, &QSlider::sliderMoved, this, &dlg_eventExplorer::updateOpacitySplit);
-	connect(mergeSlider, &QSlider::sliderMoved, this, &dlg_eventExplorer::updateOpacityMerge);
-	connect(dissipationSlider, &QSlider::sliderMoved, this, &dlg_eventExplorer::updateOpacityDissipation);
+	connect(creationSlider,     &QSlider::sliderMoved, [this](int v) { setOpacity(Creation, v); });
+	connect(continuationSlider, &QSlider::sliderMoved, [this](int v) { setOpacity(Continuation, v); });
+	connect(splitSlider,        &QSlider::sliderMoved, [this](int v) { setOpacity(Bifurcation, v); });
+	connect(mergeSlider,        &QSlider::sliderMoved, [this](int v) { setOpacity(Amalgamation, v); });
+	connect(dissipationSlider,  &QSlider::sliderMoved, [this](int v) { setOpacity(Dissipation, v); });
 
-	connect(gridOpacitySlider, &QSlider::sliderMoved, this, &dlg_eventExplorer::updateOpacityGrid);
+	connect(gridOpacitySlider, &QSlider::sliderMoved, this, &dlg_eventExplorer::setGridOpacity);
 
-	connect(creationCheckBox, &QCheckBox::stateChanged, this, &dlg_eventExplorer::updateCheckBoxCreation);
-	connect(continuationCheckBox, &QCheckBox::stateChanged, this, &dlg_eventExplorer::updateCheckBoxContinuation);
-	connect(splitCheckBox, &QCheckBox::stateChanged, this, &dlg_eventExplorer::updateCheckBoxSplit);
-	connect(mergeCheckBox, &QCheckBox::stateChanged, this, &dlg_eventExplorer::updateCheckBoxMerge);
-	connect(dissipationCheckBox, &QCheckBox::stateChanged, this, &dlg_eventExplorer::updateCheckBoxDissipation);
+	connect(creationCheckBox, &QCheckBox::stateChanged,     [this](int c) { updateCheckBox(Creation, c == Qt::Checked); });
+	connect(continuationCheckBox, &QCheckBox::stateChanged, [this](int c) { updateCheckBox(Continuation, c == Qt::Checked); });
+	connect(splitCheckBox, &QCheckBox::stateChanged,        [this](int c) { updateCheckBox(Bifurcation, c == Qt::Checked); });
+	connect(mergeCheckBox, &QCheckBox::stateChanged,        [this](int c) { updateCheckBox(Amalgamation, c == Qt::Checked); });
+	connect(dissipationCheckBox, &QCheckBox::stateChanged,  [this](int c) { updateCheckBox(Dissipation, c == Qt::Checked); });
 
-	connect(logXCheckBox, &QCheckBox::stateChanged, this, &dlg_eventExplorer::updateCheckBoxLogX);
-	connect(logYCheckBox, &QCheckBox::stateChanged, this, &dlg_eventExplorer::updateCheckBoxLogY);
+	connect(logXCheckBox, &QCheckBox::stateChanged, [this](int c) { setChartLogScale(vtkAxis::BOTTOM, c == Qt::Checked); });
+	connect(logYCheckBox, &QCheckBox::stateChanged, [this](int c) { setChartLogScale(vtkAxis::LEFT, c == Qt::Checked); });
 
-	m_chartConnections = vtkEventQtSlotConnect::New();
+	m_chartConnections = vtkSmartPointer<vtkEventQtSlotConnect>::New();
 
-	for (size_t i=0; i<numberOfCharts; i++)
+	for (size_t i=0; i<numberOfCharts; ++i)
 	{
-		iAVtkOldWidget* vtkWidget;
-		CREATE_OLDVTKWIDGET(vtkWidget);
+		iAVtkWidget* vtkWidget = new iAVtkWidget();
+#if (VTK_VERSION_NUMBER >= VTK_VERSION_CHECK(8, 2, 0) && defined(VTK_OPENGL2_BACKEND))
+		vtkWidget->setFormat(iAVtkWidget::defaultFormat());
+#endif
+		auto renWin = vtkSmartPointer<vtkGenericOpenGLRenderWindow>::New();
+#if VTK_VERSION_NUMBER < VTK_VERSION_CHECK(9, 0, 0)
+		vtkWidget->SetRenderWindow(renWin);
+#else
+		vtkWidget->setRenderWindow(renWin);
+#endif
 		m_widgets.push_back(vtkWidget);
-
 		this->horizontalLayout->addWidget(m_widgets.at(i));
-
 		m_contextViews.push_back(vtkSmartPointer<vtkContextView>::New());
 		m_charts.push_back(vtkSmartPointer<vtkChartXY>::New());
-
-#if VTK_VERSION_NUMBER < VTK_VERSION_CHECK(9, 0, 0)
-		m_contextViews.at(i)->SetRenderWindow(m_widgets.at(i)->GetRenderWindow());
-#else
-		m_contextViews.at(i)->SetRenderWindow(m_widgets.at(i)->renderWindow());
-#endif
+		m_contextViews.at(i)->SetRenderWindow(renWin);
 		m_contextViews.at(i)->GetScene()->AddItem(m_charts.at(i));
-
 		m_chartConnections->Connect(m_charts.at(i),
 			vtkCommand::SelectionChangedEvent,
 			this,
-			SLOT(chartMouseButtonCallBack(vtkObject*)));
+			SLOT(chartSelectionChanged(vtkObject*)));
 	}
 	int tableId=0;
-	for (size_t i=0; i<numberOfCharts; i++)
-	{
-		m_tables.push_back(vtkSmartPointer<vtkTable>::New());
 
-		VTK_CREATE(vtkFloatArray, arrX);
-		arrX->SetName("x");
-		m_tables.at(tableId)->AddColumn(arrX);
-		VTK_CREATE(vtkFloatArray, arrVol);
-		arrVol->SetName("Creation[Volume]");
-		m_tables.at(tableId)->AddColumn(arrVol);
-		VTK_CREATE(vtkFloatArray, arrDimX);
-		arrDimX->SetName("Creation[Dimension X]");
-		m_tables.at(tableId)->AddColumn(arrDimX);
-		VTK_CREATE(vtkFloatArray, arrDimY);
-		arrDimY->SetName("Creation[Dimension Y]");
-		m_tables.at(tableId)->AddColumn(arrDimY);
-		VTK_CREATE(vtkFloatArray, arrDimZ);
-		arrDimZ->SetName("Creation[Dimension Z]");
-		m_tables.at(tableId)->AddColumn(arrDimZ);
-		VTK_CREATE(vtkFloatArray, arrShape);
-		arrShape->SetName("Creation[Shape factor]");
-		m_tables.at(tableId)->AddColumn(arrShape);
-		VTK_CREATE(vtkFloatArray, arrProbability);
-		arrProbability->SetName("Creation[Probability]");
-		m_tables.at(tableId)->AddColumn(arrProbability);
-		VTK_CREATE(vtkFloatArray, arrUncertainty);
-		arrUncertainty->SetName("Creation[Uncertainty]");
-		m_tables.at(tableId)->AddColumn(arrUncertainty);
-		VTK_CREATE(vtkFloatArray, arrOverlap);
-		arrOverlap->SetName("Creation[Overlap]");
-		m_tables.at(tableId)->AddColumn(arrOverlap);
-		VTK_CREATE(vtkFloatArray, arrDatasetId);
-		arrDatasetId->SetName("Creation[Dataset Id]");
-		m_tables.at(tableId)->AddColumn(arrDatasetId);
-		VTK_CREATE(vtkFloatArray, arrCorrId);
-		arrCorrId->SetName("Creation[Correspondence Id]");
-		m_tables.at(tableId)->AddColumn(arrCorrId);
-		VTK_CREATE(vtkFloatArray, arrEvent);
-		arrEvent->SetName("Creation[Event Type]");
-		m_tables.at(tableId)->AddColumn(arrEvent);
-		tableId++;
+	for (QString eventName : EventNames)
+	{
+		for (size_t i = 0; i < numberOfCharts; i++)
+		{
+			m_tables.push_back(vtkSmartPointer<vtkTable>::New());
+
+			auto arrX = vtkSmartPointer<vtkFloatArray>::New();
+			arrX->SetName("x");
+			m_tables.at(tableId)->AddColumn(arrX);
+			for (QString propName : AvailableProperties)
+			{
+				auto arrProp = vtkSmartPointer<vtkFloatArray>::New();
+				auto arrName = QString("%1[%2]").arg(eventName).arg(propName).toStdString();
+				arrProp->SetName(arrName.c_str());
+				m_tables.at(tableId)->AddColumn(arrProp);
+			}
+			tableId++;
+		}
 	}
 
-	for (size_t i=0; i<numberOfCharts; i++)
-	{
-		m_tables.push_back(vtkSmartPointer<vtkTable>::New());
-
-		VTK_CREATE(vtkFloatArray, arrX);
-		arrX->SetName("x");
-		m_tables.at(tableId)->AddColumn(arrX);
-		VTK_CREATE(vtkFloatArray, arrVol);
-		arrVol->SetName("Continuation[Volume]");
-		m_tables.at(tableId)->AddColumn(arrVol);
-		VTK_CREATE(vtkFloatArray, arrDimX);
-		arrDimX->SetName("Continuation[Dimension X]");
-		m_tables.at(tableId)->AddColumn(arrDimX);
-		VTK_CREATE(vtkFloatArray, arrDimY);
-		arrDimY->SetName("Continuation[Dimension Y]");
-		m_tables.at(tableId)->AddColumn(arrDimY);
-		VTK_CREATE(vtkFloatArray, arrDimZ);
-		arrDimZ->SetName("Continuation[Dimension Z]");
-		m_tables.at(tableId)->AddColumn(arrDimZ);
-		VTK_CREATE(vtkFloatArray, arrShape);
-		arrShape->SetName("Continuation[Shape factor]");
-		m_tables.at(tableId)->AddColumn(arrShape);
-		VTK_CREATE(vtkFloatArray, arrProbability);
-		arrProbability->SetName("Continuation[Probability]");
-		m_tables.at(tableId)->AddColumn(arrProbability);
-		VTK_CREATE(vtkFloatArray, arrUncertainty);
-		arrUncertainty->SetName("Continuation[Uncertainty]");
-		m_tables.at(tableId)->AddColumn(arrUncertainty);
-		VTK_CREATE(vtkFloatArray, arrOverlap);
-		arrOverlap->SetName("Continuation[Overlap]");
-		m_tables.at(tableId)->AddColumn(arrOverlap);
-		VTK_CREATE(vtkFloatArray, arrDatasetId);
-		arrDatasetId->SetName("Continuation[Dataset Id]");
-		m_tables.at(tableId)->AddColumn(arrDatasetId);
-		VTK_CREATE(vtkFloatArray, arrCorrId);
-		arrCorrId->SetName("Continuation[Correspondence Id]");
-		m_tables.at(tableId)->AddColumn(arrCorrId);
-		VTK_CREATE(vtkFloatArray, arrEvent);
-		arrEvent->SetName("Continuation[Event Type]");
-		m_tables.at(tableId)->AddColumn(arrEvent);
-		tableId++;
-	}
-
-	for (size_t i=0; i<numberOfCharts; i++)
-	{
-		m_tables.push_back(vtkSmartPointer<vtkTable>::New());
-
-		VTK_CREATE(vtkFloatArray, arrX);
-		arrX->SetName("x");
-		m_tables.at(tableId)->AddColumn(arrX);
-		VTK_CREATE(vtkFloatArray, arrVol);
-		arrVol->SetName("Split[Volume]");
-		m_tables.at(tableId)->AddColumn(arrVol);
-		VTK_CREATE(vtkFloatArray, arrDimX);
-		arrDimX->SetName("Split[Dimension X]");
-		m_tables.at(tableId)->AddColumn(arrDimX);
-		VTK_CREATE(vtkFloatArray, arrDimY);
-		arrDimY->SetName("Split[Dimension Y]");
-		m_tables.at(tableId)->AddColumn(arrDimY);
-		VTK_CREATE(vtkFloatArray, arrDimZ);
-		arrDimZ->SetName("Split[Dimension Z]");
-		m_tables.at(tableId)->AddColumn(arrDimZ);
-		VTK_CREATE(vtkFloatArray, arrShape);
-		arrShape->SetName("Split[Shape factor]");
-		m_tables.at(tableId)->AddColumn(arrShape);
-		VTK_CREATE(vtkFloatArray, arrProbability);
-		arrProbability->SetName("Split[Probability]");
-		m_tables.at(tableId)->AddColumn(arrProbability);
-		VTK_CREATE(vtkFloatArray, arrUncertainty);
-		arrUncertainty->SetName("Split[Uncertainty]");
-		m_tables.at(tableId)->AddColumn(arrUncertainty);
-		VTK_CREATE(vtkFloatArray, arrOverlap);
-		arrOverlap->SetName("Split[Overlap]");
-		m_tables.at(tableId)->AddColumn(arrOverlap);
-		VTK_CREATE(vtkFloatArray, arrDatasetId);
-		arrDatasetId->SetName("Split[Dataset Id]");
-		m_tables.at(tableId)->AddColumn(arrDatasetId);
-		VTK_CREATE(vtkFloatArray, arrCorrId);
-		arrCorrId->SetName("Split[Correspondence Id]");
-		m_tables.at(tableId)->AddColumn(arrCorrId);
-		VTK_CREATE(vtkFloatArray, arrEvent);
-		arrEvent->SetName("Split[Event Type]");
-		m_tables.at(tableId)->AddColumn(arrEvent);
-		tableId++;
-	}
-
-	for (size_t i=0; i<numberOfCharts; ++i)
-	{
-		m_tables.push_back(vtkSmartPointer<vtkTable>::New());
-
-		VTK_CREATE(vtkFloatArray, arrX);
-		arrX->SetName("x");
-		m_tables.at(tableId)->AddColumn(arrX);
-		VTK_CREATE(vtkFloatArray, arrVol);
-		arrVol->SetName("Merge[Volume]");
-		m_tables.at(tableId)->AddColumn(arrVol);
-		VTK_CREATE(vtkFloatArray, arrDimX);
-		arrDimX->SetName("Merge[Dimension X]");
-		m_tables.at(tableId)->AddColumn(arrDimX);
-		VTK_CREATE(vtkFloatArray, arrDimY);
-		arrDimY->SetName("Merge[Dimension Y]");
-		m_tables.at(tableId)->AddColumn(arrDimY);
-		VTK_CREATE(vtkFloatArray, arrDimZ);
-		arrDimZ->SetName("Merge[Dimension Z]");
-		m_tables.at(tableId)->AddColumn(arrDimZ);
-		VTK_CREATE(vtkFloatArray, arrShape);
-		arrShape->SetName("Merge[Shape factor]");
-		m_tables.at(tableId)->AddColumn(arrShape);
-		VTK_CREATE(vtkFloatArray, arrProbability);
-		arrProbability->SetName("Merge[Probability]");
-		m_tables.at(tableId)->AddColumn(arrProbability);
-		VTK_CREATE(vtkFloatArray, arrUncertainty);
-		arrUncertainty->SetName("Merge[Uncertainty]");
-		m_tables.at(tableId)->AddColumn(arrUncertainty);
-		VTK_CREATE(vtkFloatArray, arrOverlap);
-		arrOverlap->SetName("Merge[Overlap]");
-		m_tables.at(tableId)->AddColumn(arrOverlap);
-		VTK_CREATE(vtkFloatArray, arrDatasetId);
-		arrDatasetId->SetName("Merge[Dataset Id]");
-		m_tables.at(tableId)->AddColumn(arrDatasetId);
-		VTK_CREATE(vtkFloatArray, arrCorrId);
-		arrCorrId->SetName("Merge[Correspondence Id]");
-		m_tables.at(tableId)->AddColumn(arrCorrId);
-		VTK_CREATE(vtkFloatArray, arrEvent);
-		arrEvent->SetName("Merge[Event Type]");
-		m_tables.at(tableId)->AddColumn(arrEvent);
-		tableId++;
-	}
-
-	for (size_t i=0; i<numberOfCharts; ++i)
-	{
-		m_tables.push_back(vtkSmartPointer<vtkTable>::New());
-
-		VTK_CREATE(vtkFloatArray, arrX);
-		arrX->SetName("x");
-		m_tables.at(tableId)->AddColumn(arrX);
-		VTK_CREATE(vtkFloatArray, arrVol);
-		arrVol->SetName("Dissipation[Volume]");
-		m_tables.at(tableId)->AddColumn(arrVol);
-		VTK_CREATE(vtkFloatArray, arrDimX);
-		arrDimX->SetName("Dissipation[Dimension X]");
-		m_tables.at(tableId)->AddColumn(arrDimX);
-		VTK_CREATE(vtkFloatArray, arrDimY);
-		arrDimY->SetName("Dissipation[Dimension Y]");
-		m_tables.at(tableId)->AddColumn(arrDimY);
-		VTK_CREATE(vtkFloatArray, arrDimZ);
-		arrDimZ->SetName("Dissipation[Dimension Z]");
-		m_tables.at(tableId)->AddColumn(arrDimZ);
-		VTK_CREATE(vtkFloatArray, arrShape);
-		arrShape->SetName("Dissipation[Shape factor]");
-		m_tables.at(tableId)->AddColumn(arrShape);
-		VTK_CREATE(vtkFloatArray, arrProbability);
-		arrProbability->SetName("Dissipation[Probability]");
-		m_tables.at(tableId)->AddColumn(arrProbability);
-		VTK_CREATE(vtkFloatArray, arrUncertainty);
-		arrUncertainty->SetName("Dissipation[Uncertainty]");
-		m_tables.at(tableId)->AddColumn(arrUncertainty);
-		VTK_CREATE(vtkFloatArray, arrOverlap);
-		arrOverlap->SetName("Dissipation[Overlap]");
-		m_tables.at(tableId)->AddColumn(arrOverlap);
-		VTK_CREATE(vtkFloatArray, arrDatasetId);
-		arrDatasetId->SetName("Dissipation[Dataset Id]");
-		m_tables.at(tableId)->AddColumn(arrDatasetId);
-		VTK_CREATE(vtkFloatArray, arrCorrId);
-		arrCorrId->SetName("Dissipation[Correspondence Id]");
-		m_tables.at(tableId)->AddColumn(arrCorrId);
-		VTK_CREATE(vtkFloatArray, arrEvent);
-		arrEvent->SetName("Dissipation[Event Type]");
-		m_tables.at(tableId)->AddColumn(arrEvent);
-		++tableId;
-	}
 	iAFeatureTracking *ftF;
 	iAFeatureTracking *ftB;
 
@@ -429,227 +251,58 @@ dlg_eventExplorer::dlg_eventExplorer(QWidget *parent, size_t numberOfCharts, int
 
 				vtkSmartPointer<vtkVariantArray> arr = vtkSmartPointer<vtkVariantArray>::New();
 				arr->SetNumberOfValues(12);
-
-				if (t > 0) //t > 0
+				
+				int newEventType = -1;
+				if (t > 0)
 				{
 					switch (c->featureEvent)
 					{
-					case 0:
-						arr->SetValue(0, i+1);
-						arr->SetValue(1, v->GetValue(i, 4));
-						arr->SetValue(2, v->GetValue(i, 5));
-						arr->SetValue(3, v->GetValue(i, 6));
-						arr->SetValue(4, v->GetValue(i, 7));
-						arr->SetValue(5, v->GetValue(i, 4));
-						arr->SetValue(6, c->likelyhood);
-						arr->SetValue(7, 1 - c->likelyhood);
-						arr->SetValue(8, c->overlap);
-						arr->SetValue(9, i+1);
-						arr->SetValue(10, c->id);
-						arr->SetValue(11, c->featureEvent);
-						m_tables.at(t + numberOfCharts * 4)->InsertNextRow(arr);
-						break;
-					case 1:
-						arr->SetValue(0, i+1);
-						arr->SetValue(1, v->GetValue(i, 4));
-						arr->SetValue(2, v->GetValue(i, 5));
-						arr->SetValue(3, v->GetValue(i, 6));
-						arr->SetValue(4, v->GetValue(i, 7));
-						arr->SetValue(5, v->GetValue(i, 4));
-						arr->SetValue(6, c->likelyhood);
-						arr->SetValue(7, 1 - c->likelyhood);
-						arr->SetValue(8, c->overlap);
-						arr->SetValue(9, i+1);
-						arr->SetValue(10, c->id);
-						arr->SetValue(11, c->featureEvent);
-						m_tables.at(t + numberOfCharts * 1)->InsertNextRow(arr);
-						break;
-					case 2:
-						arr->SetValue(0, i+1);
-						arr->SetValue(1, v->GetValue(i, 4));
-						arr->SetValue(2, v->GetValue(i, 5));
-						arr->SetValue(3, v->GetValue(i, 6));
-						arr->SetValue(4, v->GetValue(i, 7));
-						arr->SetValue(5, v->GetValue(i, 4));
-						arr->SetValue(6, c->likelyhood);
-						arr->SetValue(7, 1 - c->likelyhood);
-						arr->SetValue(8, c->overlap);
-						arr->SetValue(9, i+1);
-						arr->SetValue(10, c->id);
-						arr->SetValue(11, c->featureEvent);
-						m_tables.at(t + numberOfCharts * 3)->InsertNextRow(arr);
-						break;
-					case 3:
-						arr->SetValue(0, i+1);
-						arr->SetValue(1, v->GetValue(i, 4));
-						arr->SetValue(2, v->GetValue(i, 5));
-						arr->SetValue(3, v->GetValue(i, 6));
-						arr->SetValue(4, v->GetValue(i, 7));
-						arr->SetValue(5, v->GetValue(i, 4));
-						arr->SetValue(6, c->likelyhood);
-						arr->SetValue(7, 1 - c->likelyhood);
-						arr->SetValue(8, c->overlap);
-						arr->SetValue(9, i + 1);
-						arr->SetValue(10, c->id);
-						arr->SetValue(11, c->featureEvent);
-						m_tables.at(t + numberOfCharts * 2)->InsertNextRow(arr);
-						break;
-					case 4:
-						arr->SetValue(0, i+1);
-						arr->SetValue(1, v->GetValue(i, 4));
-						arr->SetValue(2, v->GetValue(i, 5));
-						arr->SetValue(3, v->GetValue(i, 6));
-						arr->SetValue(4, v->GetValue(i, 7));
-						arr->SetValue(5, v->GetValue(i, 4));
-						arr->SetValue(6, c->likelyhood);
-						arr->SetValue(7, 1 - c->likelyhood);
-						arr->SetValue(8, c->overlap);
-						arr->SetValue(9, i + 1);
-						arr->SetValue(10, c->id);
-						arr->SetValue(11, c->featureEvent);
-						m_tables.at(t + numberOfCharts * 0)->InsertNextRow(arr);  //(4 + numberOfEventTypes * t)
-						break;
-					default:
-						break;
+						case 0: newEventType =  4; break;
+						case 1: newEventType =  1; break;
+						case 2: newEventType =  3; break;
+						case 3: newEventType =  2; break;
+						case 4: newEventType =  0; break;
+						default:newEventType = -1; break;
 					}
 				}
 				else if (c->isTakenForCurrentIteration)
 				{
 					switch (c->featureEvent)
 					{
-					case 0:
-						arr->SetValue(0, i+1);
-						arr->SetValue(1, v->GetValue(i, 4));
-						arr->SetValue(2, v->GetValue(i, 5));
-						arr->SetValue(3, v->GetValue(i, 6));
-						arr->SetValue(4, v->GetValue(i, 7));
-						arr->SetValue(5, v->GetValue(i, 4));
-						arr->SetValue(6, c->likelyhood);
-						arr->SetValue(7, 1 - c->likelyhood);
-						arr->SetValue(8, c->overlap);
-						arr->SetValue(9, i + 1);
-						arr->SetValue(10, c->id);
-						arr->SetValue(11, c->featureEvent);
-						m_tables.at(t + numberOfCharts * 0)->InsertNextRow(arr);
-						break;
-					case 1:
-						arr->SetValue(0, i+1);
-						arr->SetValue(1, v->GetValue(i, 4));
-						arr->SetValue(2, v->GetValue(i, 5));
-						arr->SetValue(3, v->GetValue(i, 6));
-						arr->SetValue(4, v->GetValue(i, 7));
-						arr->SetValue(5, v->GetValue(i, 4));
-						arr->SetValue(6, c->likelyhood);
-						arr->SetValue(7, 1 - c->likelyhood);
-						arr->SetValue(8, c->overlap);
-						arr->SetValue(9, i + 1);
-						arr->SetValue(10, c->id);
-						arr->SetValue(11, c->featureEvent);
-						m_tables.at(t + numberOfCharts * 1)->InsertNextRow(arr);
-						break;
-					case 2:
-						arr->SetValue(0, i+1);
-						arr->SetValue(1, v->GetValue(i, 4));
-						arr->SetValue(2, v->GetValue(i, 5));
-						arr->SetValue(3, v->GetValue(i, 6));
-						arr->SetValue(4, v->GetValue(i, 7));
-						arr->SetValue(5, v->GetValue(i, 4));
-						arr->SetValue(6, c->likelyhood);
-						arr->SetValue(7, 1 - c->likelyhood);
-						arr->SetValue(8, c->overlap);
-						arr->SetValue(9, i + 1);
-						arr->SetValue(10, c->id);
-						arr->SetValue(11, c->featureEvent);
-						m_tables.at(t + numberOfCharts * 3)->InsertNextRow(arr);
-						break;
-					case 3:
-						arr->SetValue(0, i+1);
-						arr->SetValue(1, v->GetValue(i, 4));
-						arr->SetValue(2, v->GetValue(i, 5));
-						arr->SetValue(3, v->GetValue(i, 6));
-						arr->SetValue(4, v->GetValue(i, 7));
-						arr->SetValue(5, v->GetValue(i, 4));
-						arr->SetValue(6, c->likelyhood);
-						arr->SetValue(7, 1 - c->likelyhood);
-						arr->SetValue(8, c->overlap);
-						arr->SetValue(9, i + 1);
-						arr->SetValue(10, c->id);
-						arr->SetValue(11, c->featureEvent);
-						m_tables.at(t + numberOfCharts * 2)->InsertNextRow(arr);
-						break;
-					case 4:
-						arr->SetValue(0, i+1);
-						arr->SetValue(1, v->GetValue(i, 4));
-						arr->SetValue(2, v->GetValue(i, 5));
-						arr->SetValue(3, v->GetValue(i, 6));
-						arr->SetValue(4, v->GetValue(i, 7));
-						arr->SetValue(5, v->GetValue(i, 4));
-						arr->SetValue(6, c->likelyhood);
-						arr->SetValue(7, 1 - c->likelyhood);
-						arr->SetValue(8, c->overlap);
-						arr->SetValue(9, i + 1);
-						arr->SetValue(10, c->id);
-						arr->SetValue(11, c->featureEvent);
-						m_tables.at(t + numberOfCharts * 4)->InsertNextRow(arr);  //(4 + numberOfEventTypes * t)
-						break;
-					default:
-						break;
+						case 0: newEventType = 0; break;
+						case 1: newEventType = 1; break;
+						case 2: newEventType = 3; break;
+						case 3: newEventType = 2; break;
+						case 4: newEventType = 4; break;
+						default:newEventType = -1;break;
 					}
 				}
+				assert(newEventType >= 0 && newEventType < EventNames.size());
+				arr->SetValue(0, i+1);
+				arr->SetValue(1, v->GetValue(i, 4));
+				arr->SetValue(2, v->GetValue(i, 5));
+				arr->SetValue(3, v->GetValue(i, 6));
+				arr->SetValue(4, v->GetValue(i, 7));
+				arr->SetValue(5, v->GetValue(i, 4));
+				arr->SetValue(6, c->likelyhood);
+				arr->SetValue(7, 1 - c->likelyhood);
+				arr->SetValue(8, c->overlap);
+				arr->SetValue(9, i + 1);
+				arr->SetValue(10, c->id);
+				arr->SetValue(11, c->featureEvent);
+				m_tables.at(t + numberOfCharts * newEventType)->InsertNextRow(arr);
 				break; //only show the best correspondence
 			}
 		}
 	}
 
-
-
-	float width = 1.0;
-
-	vtkPlot *plot;
-	for(size_t i=0; i<numberOfCharts; i++)
+	m_plots.resize(EventColors.size() * numberOfCharts);
+	for (size_t eventID = 0; eventID < EventColors.size(); ++eventID)
 	{
-		plot = m_charts.at(i)->AddPlot(vtkChart::POINTS);
-		plot->SetInputData(m_tables.at(i + numberOfCharts * 0), 1, 6);
-		plot->SetColor(218,181,214, 255);
-		plot->SetWidth(width);
-		plot->SetTooltipLabelFormat("");
-		m_plots.push_back(plot);
-	}
-	for (size_t i=0; i<numberOfCharts; ++i)
-	{
-		plot = m_charts.at(i)->AddPlot(vtkChart::POINTS);
-		plot->SetInputData(m_tables.at(i + numberOfCharts * 1), 1, 6);
-		plot->SetColor(205,221,112, 255);
-		plot->SetWidth(width);
-		plot->SetTooltipLabelFormat("");
-		m_plots.push_back(plot);
-	}
-	for (size_t i=0; i<numberOfCharts; ++i)
-	{
-		plot = m_charts.at(i)->AddPlot(vtkChart::POINTS);
-		plot->SetInputData(m_tables.at(i + numberOfCharts * 2), 1, 6);
-		plot->SetColor(135,216,219, 255);
-		plot->SetWidth(width);
-		plot->SetTooltipLabelFormat("");
-		m_plots.push_back(plot);
-	}
-	for (size_t i=0; i<numberOfCharts; ++i)
-	{
-		plot = m_charts.at(i)->AddPlot(vtkChart::POINTS);
-		plot->SetInputData(m_tables.at(i + numberOfCharts * 3), 1, 6);
-		plot->SetColor(139,224,164, 255);
-		plot->SetWidth(width);
-		plot->SetTooltipLabelFormat("");
-		m_plots.push_back(plot);
-	}
-	for (size_t i=0; i<numberOfCharts; ++i)
-	{
-		plot = m_charts.at(i)->AddPlot(vtkChart::POINTS);
-		plot->SetInputData(m_tables.at(i + numberOfCharts * 4), 1, 6);
-		plot->SetColor(228,179,111, 255);
-		plot->SetWidth(width);
-		plot->SetTooltipLabelFormat("");
-		m_plots.push_back(plot);
+		for (size_t i = 0; i < numberOfCharts; i++)
+		{
+			addPlot(eventID, i);
+		}
 	}
 
 	for (int i=0; i<numberOfEventTypes; ++i)
@@ -661,12 +314,12 @@ dlg_eventExplorer::dlg_eventExplorer(QWidget *parent, size_t numberOfCharts, int
 
 	for (size_t i=0; i<numberOfCharts; ++i)
 	{
-		m_charts.at(i)->GetAxis(0)->SetTitle("Uncertainty");
-		m_charts.at(i)->GetAxis(1)->SetTitle("Volume");
+		m_charts.at(i)->GetAxis(vtkAxis::LEFT)->SetTitle(AvailableProperties[m_propertyYId].toStdString().c_str());
+		m_charts.at(i)->GetAxis(vtkAxis::BOTTOM)->SetTitle(AvailableProperties[m_propertyXId].toStdString().c_str());
 		m_charts.at(i)->GetAxis(vtkAxis::BOTTOM)->GetGridPen()->SetColorF(0.5, 0.5, 0.5, 1.0);
 		m_charts.at(i)->GetAxis(vtkAxis::LEFT)->GetGridPen()->SetColorF(0.5, 0.5, 0.5, 1.0);
-		m_charts.at(i)->Update();
 	}
+	updateCharts();
 }
 
 
@@ -675,488 +328,150 @@ dlg_eventExplorer::~dlg_eventExplorer()
 	//TODO
 }
 
-void dlg_eventExplorer::updateOpacityCreation(int v)
+void dlg_eventExplorer::setOpacity(int eventType, int value)
+{
+	for (size_t i = (m_numberOfCharts * eventType); i < (m_numberOfCharts * (eventType + 1) ); ++i)
+	{
+		m_plots[i]->GetPen()->SetOpacity(value);
+	}
+	updateCharts();
+}
+
+void dlg_eventExplorer::updateCharts()
 {
 	for (size_t i = 0; i < m_numberOfCharts; ++i)
 	{
-		m_plots.at(i)->GetPen()->SetOpacity(v);
-	}
-
-	for (size_t i = 0; i < m_numberOfCharts; ++i)
-	{
-		m_charts.at(i)->Update();
-	}
-}
-
-void dlg_eventExplorer::updateOpacityContinuation(int v)
-{
-	for (size_t i = (m_numberOfCharts * 1); i<(m_numberOfCharts * 2); ++i)
-	{
-		m_plots.at(i)->GetPen()->SetOpacity(v);
-	}
-
-	for (size_t i = 0; i < m_numberOfCharts; ++i)
-	{
-		m_charts.at(i)->Update();
+#if VTK_VERSION_NUMBER < VTK_VERSION_CHECK(9, 0, 0)
+		m_widgets.at(i)->GetRenderWindow()->Render();
+#else
+		m_widgets.at(i)->renderWindow()->Render();
+#endif
 	}
 }
 
-void dlg_eventExplorer::updateOpacitySplit(int v)
-{
-	for (size_t i = (m_numberOfCharts * 2); i<(m_numberOfCharts * 3); ++i)
-	{
-		m_plots.at(i)->GetPen()->SetOpacity(v);
-	}
-
-	for (size_t i = 0; i < m_numberOfCharts; ++i)
-	{
-		m_charts.at(i)->Update();
-	}
-}
-
-void dlg_eventExplorer::updateOpacityMerge(int v)
-{
-	for (size_t i = (m_numberOfCharts * 3); i<(m_numberOfCharts * 4); ++i)
-	{
-		m_plots.at(i)->GetPen()->SetOpacity(v);
-	}
-
-	for (size_t i = 0; i < m_numberOfCharts; ++i)
-	{
-		m_charts.at(i)->Update();
-	}
-}
-
-void dlg_eventExplorer::updateOpacityDissipation(int v)
-{
-	for (size_t i = (m_numberOfCharts * 4); i<(m_numberOfCharts * 5); ++i)
-	{
-		m_plots.at(i)->GetPen()->SetOpacity(v);
-	}
-
-	for (size_t i = 0; i < m_numberOfCharts; ++i)
-	{
-		m_charts.at(i)->Update();
-	}
-}
-
-void dlg_eventExplorer::updateOpacityGrid(int v)
+void dlg_eventExplorer::setGridOpacity(int v)
 {
 	for (size_t i = 0; i < m_numberOfCharts; ++i)
 	{
 		m_charts.at(i)->GetAxis(vtkAxis::BOTTOM)->GetGridPen()->SetColorF(0.5, 0.5, 0.5, v/255.0);
 		m_charts.at(i)->GetAxis(vtkAxis::LEFT)->GetGridPen()->SetColorF(0.5, 0.5, 0.5, v/255.0);
-		m_charts.at(i)->Update();
 	}
+	updateCharts();
 }
 
-void dlg_eventExplorer::updateCheckBoxCreation(int /*c*/)
+void dlg_eventExplorer::updateCheckBox(int eventType, int checked)
 {
-	LOG(lvlInfo, QString("BEFORE   %1 %2 %3 %4 %5   -   %6")
-		.arg(m_plotPositionInVector[0]).arg(m_plotPositionInVector[1]).arg(m_plotPositionInVector[2])
-		.arg(m_plotPositionInVector[3]).arg(m_plotPositionInVector[4]).arg(m_numberOfActivePlots));
-
-	if (!creationCheckBox->isChecked())
+	LOG(lvlDebug,
+		QString("BEFORE   %1 %2 %3 %4 %5   -   %6 (%7)")
+			.arg(m_plotPositionInVector[0])
+			.arg(m_plotPositionInVector[1])
+			.arg(m_plotPositionInVector[2])
+			.arg(m_plotPositionInVector[3])
+			.arg(m_plotPositionInVector[4])
+			.arg(m_numberOfActivePlots)
+			.arg(EventNames[eventType]));
+	if (!checked)
 	{
-		for (size_t i=0; i<m_numberOfCharts; ++i)
+		for (size_t i = 0; i < m_numberOfCharts; ++i)
 		{
-			m_charts.at(i)->RemovePlot(m_plotPositionInVector[0]);
+			m_charts.at(i)->RemovePlot(m_plotPositionInVector[eventType]);
+			m_plots[i + m_numberOfCharts * eventType] = nullptr;
 		}
-
-		for (int i=0; i<m_numberOfEventTypes; ++i)
+		for (int i = 0; i < m_numberOfEventTypes; ++i)
 		{
-			if (m_plotPositionInVector[i] > m_plotPositionInVector[0])
-			{
-				m_plotPositionInVector[i]--;
-			}
-		}
-
-		m_plotPositionInVector[0] = -1;
-
-		m_numberOfActivePlots--;
-
-		creationSlider->setValue(0);
-		updateOpacityCreation(0);
-	}
-	else
-	{
-		for (size_t i=0; i<m_numberOfCharts; ++i)
-		{
-			m_charts.at(i)->AddPlot(m_plots.at(i + m_numberOfCharts * 0));
-			m_charts.at(i)->Update();
-
-			m_plotPositionInVector[0]=m_numberOfActivePlots;
-		}
-
-		m_numberOfActivePlots++;
-
-		creationSlider->setValue(255);
-		updateOpacityCreation(255);
-	}
-	creationCheckBox->update();
-	creationSlider->update();
-	LOG(lvlInfo, QString("AFTER   %1 %2 %3 %4 %5   -   %6")
-		.arg(m_plotPositionInVector[0]).arg(m_plotPositionInVector[1]).arg(m_plotPositionInVector[2])
-		.arg(m_plotPositionInVector[3]).arg(m_plotPositionInVector[4]).arg(m_numberOfActivePlots));
-}
-
-void dlg_eventExplorer::updateCheckBoxContinuation(int /*c*/)
-{
-	LOG(lvlInfo, QString("BEFORE   %1 %2 %3 %4 %5   -   %6")
-		.arg(m_plotPositionInVector[0]).arg(m_plotPositionInVector[1]).arg(m_plotPositionInVector[2])
-		.arg(m_plotPositionInVector[3]).arg(m_plotPositionInVector[4]).arg(m_numberOfActivePlots));
-	if(!continuationCheckBox->isChecked())
-	{
-		for (size_t i=0; i<m_numberOfCharts; ++i)
-		{
-			m_charts.at(i)->RemovePlot(m_plotPositionInVector[1]);
-		}
-
-		for (int i=0; i<m_numberOfEventTypes; ++i)
-		{
-			if (m_plotPositionInVector[i] > m_plotPositionInVector[1])
+			if (m_plotPositionInVector[i] > m_plotPositionInVector[eventType])
 			{
 				--m_plotPositionInVector[i];
 			}
 		}
-
-		m_plotPositionInVector[1] = -1;
-
+		m_plotPositionInVector[eventType] = -1;
 		--m_numberOfActivePlots;
-
-		continuationSlider->setValue(0);
-		updateOpacityContinuation(0);
+		m_slider[eventType]->setValue(0);
+		m_slider[eventType]->setDisabled(true);
 	}
 	else
 	{
-		for (size_t i=0; i<m_numberOfCharts; ++i)
+		m_plotPositionInVector[eventType] = m_numberOfActivePlots;
+		for (size_t i = 0; i < m_numberOfCharts; ++i)
 		{
-			m_charts.at(i)->AddPlot(m_plots.at(i + m_numberOfCharts * 1));
-
-			m_plotPositionInVector[1]=m_numberOfActivePlots;
+			addPlot(eventType, i);
 		}
-
-		m_numberOfActivePlots++;
-
-		continuationSlider->setValue(255);
-		updateOpacityContinuation(255);
-	}
-	continuationCheckBox->update();
-	continuationSlider->update();
-	LOG(lvlInfo, QString("AFTER   %1 %2 %3 %4 %5   -   %6")
-		.arg(m_plotPositionInVector[0]).arg(m_plotPositionInVector[1]).arg(m_plotPositionInVector[2])
-		.arg(m_plotPositionInVector[3]).arg(m_plotPositionInVector[4]).arg(m_numberOfActivePlots));
-}
-
-void dlg_eventExplorer::updateCheckBoxSplit(int /*c*/)
-{
-	LOG(lvlInfo, QString("BEFORE   %1 %2 %3 %4 %5   -   %6")
-		.arg(m_plotPositionInVector[0]).arg(m_plotPositionInVector[1]).arg(m_plotPositionInVector[2])
-		.arg(m_plotPositionInVector[3]).arg(m_plotPositionInVector[4]).arg(m_numberOfActivePlots));
-	if(!splitCheckBox->isChecked())
-	{
-		for (size_t i=0; i<m_numberOfCharts; ++i)
-		{
-			m_charts.at(i)->RemovePlot(m_plotPositionInVector[2]);
-		}
-
-		for (int i=0; i<m_numberOfEventTypes; ++i)
-		{
-			if(m_plotPositionInVector[i] > m_plotPositionInVector[2])
-			{
-				--m_plotPositionInVector[i];
-			}
-		}
-
-		m_plotPositionInVector[2] = -1;
-
-		--m_numberOfActivePlots;
-
-		splitSlider->setValue(0);
-		updateOpacitySplit(0);
-	}
-	else
-	{
-		for (size_t i=0; i<m_numberOfCharts; ++i)
-		{
-			m_charts.at(i)->AddPlot(m_plots.at(i + m_numberOfCharts * 2));
-
-			m_plotPositionInVector[2]=m_numberOfActivePlots;
-		}
-
-		m_numberOfActivePlots++;
-
-		splitSlider->setValue(255);
-		updateOpacitySplit(255);
-	}
-	splitCheckBox->update();
-	splitSlider->update();
-	LOG(lvlInfo, QString("AFTER   %1 %2 %3 %4 %5   -   %6")
-		.arg(m_plotPositionInVector[0]).arg(m_plotPositionInVector[1]).arg(m_plotPositionInVector[2])
-		.arg(m_plotPositionInVector[3]).arg(m_plotPositionInVector[4]).arg(m_numberOfActivePlots));
-}
-
-void dlg_eventExplorer::updateCheckBoxMerge(int /*c*/)
-{
-	LOG(lvlInfo, QString("BEFORE   %1 %2 %3 %4 %5   -   %6")
-		.arg(m_plotPositionInVector[0]).arg(m_plotPositionInVector[1]).arg(m_plotPositionInVector[2])
-		.arg(m_plotPositionInVector[3]).arg(m_plotPositionInVector[4]).arg(m_numberOfActivePlots));
-	if (!mergeCheckBox->isChecked())
-	{
-		for (size_t i=0; i<m_numberOfCharts; ++i)
-		{
-			m_charts.at(i)->RemovePlot(m_plotPositionInVector[3]);
-		}
-
-		for (int i=0; i<m_numberOfEventTypes; ++i)
-		{
-			if(m_plotPositionInVector[i] > m_plotPositionInVector[3])
-			{
-				--m_plotPositionInVector[i];
-			}
-		}
-
-		m_plotPositionInVector[3] = -1;
-
-		m_numberOfActivePlots--;
-
-		mergeSlider->setValue(0);
-		updateOpacityMerge(0);
-	}
-	else
-	{
-		for (size_t i=0; i<m_numberOfCharts; ++i)
-		{
-			m_charts.at(i)->AddPlot(m_plots.at(i + m_numberOfCharts * 3));
-
-			m_plotPositionInVector[3]=m_numberOfActivePlots;
-		}
-
 		++m_numberOfActivePlots;
-
-		mergeSlider->setValue(255);
-		updateOpacityMerge(255);
+		m_slider[eventType]->setValue(255);
+		m_slider[eventType]->setDisabled(false);
 	}
-	mergeCheckBox->update();
-	mergeSlider->update();
-	LOG(lvlInfo, QString("AFTER   %1 %2 %3 %4 %5   -   %6")
-		.arg(m_plotPositionInVector[0]).arg(m_plotPositionInVector[1]).arg(m_plotPositionInVector[2])
-		.arg(m_plotPositionInVector[3]).arg(m_plotPositionInVector[4]).arg(m_numberOfActivePlots));
+	m_slider[eventType]->update();
+	LOG(lvlDebug,
+		QString("AFTER   %1 %2 %3 %4 %5   -   %6 (%7)")
+			.arg(m_plotPositionInVector[0])
+			.arg(m_plotPositionInVector[1])
+			.arg(m_plotPositionInVector[2])
+			.arg(m_plotPositionInVector[3])
+			.arg(m_plotPositionInVector[4])
+			.arg(m_numberOfActivePlots)
+			.arg(EventNames[eventType]));
 }
 
-void dlg_eventExplorer::updateCheckBoxDissipation(int /*c*/)
+void dlg_eventExplorer::setChartLogScale(int axis, bool logScale)
 {
-	LOG(lvlInfo, QString("BEFORE   %1 %2 %3 %4 %5   -   %6")
-		.arg(m_plotPositionInVector[0]).arg(m_plotPositionInVector[1]).arg(m_plotPositionInVector[2])
-		.arg(m_plotPositionInVector[3]).arg(m_plotPositionInVector[4]).arg(m_numberOfActivePlots));
-	if (!dissipationCheckBox->isChecked())
+	for (size_t i = 0; i < m_numberOfCharts; ++i)
 	{
-		for (size_t i=0; i<m_numberOfCharts; ++i)
-		{
-			m_charts.at(i)->RemovePlot(m_plotPositionInVector[4]);
-		}
-
-		for (int i=0; i<m_numberOfEventTypes; ++i)
-		{
-			if (m_plotPositionInVector[i] > m_plotPositionInVector[4])
-			{
-				--m_plotPositionInVector[i];
-			}
-		}
-
-		m_plotPositionInVector[4] = -1;
-
-		--m_numberOfActivePlots;
-
-		dissipationSlider->setValue(0);
-		updateOpacityDissipation(0);
+		m_charts.at(i)->GetAxis(axis)->SetLogScale(logScale);
 	}
-	else
-	{
-		for (size_t i=0; i<m_numberOfCharts; ++i)
-		{
-			m_charts.at(i)->AddPlot(m_plots.at(i+m_numberOfCharts*4));
-
-			m_plotPositionInVector[4]=m_numberOfActivePlots;
-		}
-
-		++m_numberOfActivePlots;
-
-		dissipationSlider->setValue(255);
-		updateOpacityDissipation(255);
-	}
-	dissipationCheckBox->update();
-	dissipationSlider->update();
-	LOG(lvlInfo, QString("AFTER   %1 %2 %3 %4 %5   -   %6")
-		.arg(m_plotPositionInVector[0]).arg(m_plotPositionInVector[1]).arg(m_plotPositionInVector[2])
-		.arg(m_plotPositionInVector[3]).arg(m_plotPositionInVector[4]).arg(m_numberOfActivePlots));
+	updateCharts();
 }
 
-void dlg_eventExplorer::updateCheckBoxLogX(int /*c*/)
+void dlg_eventExplorer::updateChartData(int axis, int s)
 {
-	if (!logXCheckBox->isChecked())
+	if (s >= 5 && s <= 7)
 	{
-		for (size_t i = 0; i<m_numberOfCharts; ++i)
+		for (size_t i = 0; i < m_numberOfCharts; ++i)
 		{
-			m_charts.at(i)->GetAxis(vtkAxis::BOTTOM)->LogScaleOff();
+			m_charts.at(i)->GetAxis(axis)->SetRange(0.0, 1.0);
 		}
 	}
-	else
+	for (size_t i = 0; i < m_numberOfCharts * m_numberOfEventTypes; ++i)
 	{
-		for (size_t i = 0; i<m_numberOfCharts; ++i)
+		if (m_plots[i])
 		{
-			m_charts.at(i)->GetAxis(vtkAxis::BOTTOM)->LogScaleOn();
+			m_plots[i]->SetInputData(m_tables.at(i), m_propertyXId, m_propertyYId);
 		}
 	}
-}
-
-void dlg_eventExplorer::updateCheckBoxLogY(int /*c*/)
-{
-	if (!logYCheckBox->isChecked())
+	vtkStdString title = AvailableProperties[s].toStdString();
+	for (size_t i = 0; i < m_numberOfCharts; ++i)
 	{
-		for (size_t i = 0; i<m_numberOfCharts; ++i)
-		{
-			m_charts.at(i)->GetAxis(vtkAxis::LEFT)->LogScaleOff();
-		}
+		m_charts.at(i)->GetAxis(axis)->SetTitle(title);
 	}
-	else
-	{
-		for (size_t i = 0; i<m_numberOfCharts; ++i)
-		{
-			m_charts.at(i)->GetAxis(vtkAxis::LEFT)->LogScaleOn();
-		}
-	}
+	updateCharts();
 }
 
 void dlg_eventExplorer::comboBoxXSelectionChanged(int s)
 {
-	vtkStdString title;
-
-	switch(s)
-	{
-	case 0:
-		title = "Volume";
-		break;
-	case 1:
-		title = "Dimension X";
-		break;
-	case 2:
-		title = "Dimension Y";
-		break;
-	case 3:
-		title = "Dimension Z";
-		break;
-	case 4:
-		title = "Shape factor";
-		break;
-	case 5:
-		title = "Probability";
-		for (size_t i = 0; i<m_numberOfCharts; ++i)
-		{
-			m_charts.at(i)->GetAxis(vtkAxis::BOTTOM)->SetRange(0.0, 1.0);
-		}
-		break;
-	case 6:
-		title = "Uncertainty";
-		for (size_t i = 0; i<m_numberOfCharts; ++i)
-		{
-			m_charts.at(i)->GetAxis(vtkAxis::BOTTOM)->SetRange(0.0, 1.0);
-		}
-		break;
-	case 7:
-		title = "Volume Overlap";
-		for (size_t i = 0; i<m_numberOfCharts; ++i)
-		{
-			m_charts.at(i)->GetAxis(vtkAxis::BOTTOM)->SetRange(0.0, 1.0);
-		}
-		break;
-	}
-
 	m_propertyXId = s;
-
-	for (size_t i=0; i<m_numberOfCharts*m_numberOfEventTypes; ++i)
-	{
-		m_plots.at(i)->SetInputData(m_tables.at(i), m_propertyXId+1, m_propertyYId+1);
-	}
-
-	for (size_t i=0; i<m_numberOfCharts; ++i)
-	{
-		m_charts.at(i)->GetAxis(1)->SetTitle(title);
-	}
+	updateChartData(vtkAxis::BOTTOM, s);
 }
 
 void dlg_eventExplorer::comboBoxYSelectionChanged(int s)
 {
-	vtkStdString title;
-
-	switch(s)
-	{
-		case 0:
-			title="Volume";
-			break;
-		case 1:
-			title="Dimension X";
-			break;
-		case 2:
-			title="Dimension Y";
-			break;
-		case 3:
-			title="Dimension Z";
-			break;
-		case 4:
-			title="Shape factor";
-			break;
-		case 5:
-			title="Probability";
-			for (size_t i = 0; i<m_numberOfCharts; ++i)
-			{
-				m_charts.at(i)->GetAxis(vtkAxis::LEFT)->SetRange(0.0, 1.0);
-			}
-			break;
-		case 6:
-			title = "Uncertainty";
-			for (size_t i = 0; i<m_numberOfCharts; ++i)
-			{
-				m_charts.at(i)->GetAxis(vtkAxis::LEFT)->SetRange(0.0, 1.0);
-			}
-			break;
-		case 7:
-			title = "Volume Overlap";
-			for (size_t i = 0; i<m_numberOfCharts; ++i)
-			{
-				m_charts.at(i)->GetAxis(vtkAxis::LEFT)->SetRange(0.0, 1.0);
-			}
-			break;
-	}
-
 	m_propertyYId = s;
-
-	for (size_t i=0; i<m_numberOfCharts*m_numberOfEventTypes; ++i)
-	{
-		m_plots.at(i)->SetInputData(m_tables.at(i), m_propertyXId+1, m_propertyYId+1);
-	}
-
-	for (size_t i=0; i<m_numberOfCharts; ++i)
-	{
-		m_charts.at(i)->GetAxis(0)->SetTitle(title);
-	}
+	updateChartData(vtkAxis::LEFT, s);
 }
 
-void dlg_eventExplorer::chartMouseButtonCallBack(vtkObject * /*obj*/)
+void dlg_eventExplorer::chartSelectionChanged(vtkObject* /*obj*/)
 {
 	//clear graph TODO
-	m_graph = vtkMutableDirectedGraph::New();
-	m_labels = vtkStringArray::New();
+	m_graph = vtkSmartPointer<vtkMutableDirectedGraph>::New();
+	m_labels = vtkSmartPointer<vtkStringArray>::New();
 	m_labels->SetName("Label");
-	m_nodeLayer = vtkIntArray::New();
+	m_nodeLayer = vtkSmartPointer<vtkIntArray>::New();
 	m_nodeLayer->SetName("Layer");
-	m_colorR = vtkIntArray::New();
+	m_colorR = vtkSmartPointer<vtkIntArray>::New();
 	m_colorR->SetName("ColorR");
-	m_colorG = vtkIntArray::New();
+	m_colorG = vtkSmartPointer<vtkIntArray>::New();
 	m_colorG->SetName("ColorG");
-	m_colorB = vtkIntArray::New();
+	m_colorB = vtkSmartPointer<vtkIntArray>::New();
 	m_colorB->SetName("ColorB");
-	m_trackingUncertainty = vtkDoubleArray::New();
+	m_trackingUncertainty = vtkSmartPointer<vtkDoubleArray>::New();
 	m_trackingUncertainty->SetName("Uncertainty");
 	m_nodes.clear();
 	m_visitedNodes.clear();
@@ -1170,9 +485,6 @@ void dlg_eventExplorer::chartMouseButtonCallBack(vtkObject * /*obj*/)
 
 	LOG(lvlInfo, "\n\nSELECTION");
 
-	vtkColorTransferFunction *cTF;
-	vtkPiecewiseFunction *oTF;
-
 	if (m_numberOfCharts > std::numeric_limits<int>::max())
 	{
 		LOG(lvlError, QString("Number of charts (%1) larger than supported (%2)!").arg(m_numberOfCharts).arg(std::numeric_limits<int>::max()));
@@ -1181,8 +493,8 @@ void dlg_eventExplorer::chartMouseButtonCallBack(vtkObject * /*obj*/)
 	{
 		LOG(lvlInfo, QString("\nChart[%1]").arg(i));
 
-		cTF = m_volumeStack->colorTF(i);
-		oTF = m_volumeStack->opacityTF(i);
+		auto cTF = m_volumeStack->colorTF(i);
+		auto oTF = m_volumeStack->opacityTF(i);
 
 		cTF->RemoveAllPoints();
 		oTF->RemoveAllPoints();
@@ -1220,30 +532,8 @@ void dlg_eventExplorer::chartMouseButtonCallBack(vtkObject * /*obj*/)
 						//if(currentPlot==plotPositionInVector[k])
 						if (currentPlot == k)
 						{
-							switch (k)
-							{
-							case 0:
-								LOG(lvlInfo, "   Creation Events");
-								//plots.at(numberOfCharts * 0)->GetColor(rgb);
-								break;
-							case 1:
-								LOG(lvlInfo, "   Continuation Events");
-								//plots.at(numberOfCharts * 1)->GetColor(rgb);
-								break;
-							case 2:
-								LOG(lvlInfo, "   Split Events");
-								//plots.at(numberOfCharts * 2)->GetColor(rgb);
-								break;
-							case 3:
-								LOG(lvlInfo, "   Merge Events");
-								//plots.at(numberOfCharts * 3)->GetColor(rgb);
-								break;
-							case 4:
-								LOG(lvlInfo, "   Dissipation Events");
-								//plots.at(numberOfCharts * 4)->GetColor(rgb);
-								break;
-							}
-
+							LOG(lvlInfo, QString("   %1 Events").arg(EventNames[k]));
+							//plots.at(numberOfCharts * k)->GetColor(rgb);
 							for (int l = 0; l < ids->GetNumberOfTuples(); ++l)
 							{
 								double id = m_tables.at(i + m_numberOfCharts * k)->GetRow(ids->GetValue(l))->GetValue(0).ToDouble();
@@ -1263,33 +553,30 @@ void dlg_eventExplorer::chartMouseButtonCallBack(vtkObject * /*obj*/)
 		}
 		LOG(lvlInfo, QString("   cTF range: %1, %2").arg(cTF->GetRange()[0]).arg(cTF->GetRange()[1]));
 	}
-	m_trackingGraph->updateGraph(m_graph, this->m_volumeStack->numberOfVolumes(), m_nodesToLayers, m_graphToTableId);
+	m_trackingGraph->updateGraph(m_graph, this->m_volumeStack->numberOfVolumes());
 }
 
 void dlg_eventExplorer::buildGraph(int id, int layer, int eventType, double uncertainty)
 {
-	vtkColorTransferFunction *cTF;
-	vtkPiecewiseFunction *oTF;
-
 	if (m_tableToGraphId[layer].find(id) == m_tableToGraphId[layer].end())
 	{
 		vtkIdType vId = m_graph->AddVertex();
 		m_labels->InsertValue(vId, "[" + std::to_string((long long)id) + "]" + " (" + std::to_string((long long)uncertainty) + ")");
 		m_nodeLayer->InsertValue(vId, layer);
-		m_colorR->InsertValue(vId, m_rgb[eventType][0]);
-		m_colorG->InsertValue(vId, m_rgb[eventType][1]);
-		m_colorB->InsertValue(vId, m_rgb[eventType][2]);
+		m_colorR->InsertValue(vId, EventColors[eventType].red());
+		m_colorG->InsertValue(vId, EventColors[eventType].green());
+		m_colorB->InsertValue(vId, EventColors[eventType].blue());
 		m_trackingUncertainty->InsertValue(vId, uncertainty);
 
 		m_graphToTableId[layer][vId] = id;
 		m_tableToGraphId[layer][id] = vId;
 		m_nodesToLayers[vId] = layer;
 
-		cTF = m_volumeStack->colorTF(layer);
+		auto cTF = m_volumeStack->colorTF(layer);
 		cTF->AddRGBPoint(id - 0.5, 0.0, 0.0, 0.0, 0.5, 1.0);
-		cTF->AddRGBPoint(id, (double)m_rgb[eventType][0] / 255.0, (double)m_rgb[eventType][1] / 255.0, (double)m_rgb[eventType][2] / 255.0, 0.5, 1.0);
+		cTF->AddRGBPoint(id, EventColors[eventType].redF(), EventColors[eventType].greenF(), EventColors[eventType].blueF(), 0.5, 1.0);
 		cTF->AddRGBPoint(id + 0.3, 0.0, 0.0, 0.0, 0.5, 1.0);
-		oTF = m_volumeStack->opacityTF(layer);
+		auto oTF = m_volumeStack->opacityTF(layer);
 		oTF->AddPoint(id - 0.5, 0.0, 0.5, 1.0);
 		oTF->AddPoint(id, (double)creationSlider->value() / 255.0, 0.5, 1.0);
 		oTF->AddPoint(id + 0.3, 0.0, 0.5, 1.0);
@@ -1307,9 +594,6 @@ void dlg_eventExplorer::buildGraph(int id, int layer, int eventType, double unce
 
 void dlg_eventExplorer::buildSubGraph(int id, int layer)
 {
-	vtkColorTransferFunction* cTF;
-	vtkPiecewiseFunction* oTF;
-
 	if (m_visitedNodes.find(id) == m_visitedNodes.end())
 	{
 		m_visitedNodes[id] = true;
@@ -1346,9 +630,9 @@ void dlg_eventExplorer::buildSubGraph(int id, int layer)
 
 						m_labels->InsertValue(newVertexId, std::to_string(c.id) + " (" + std::to_string((long long)(1 - c.likelyhood)) + ")");
 						m_nodeLayer->InsertValue(newVertexId, layer - 1);
-						m_colorR->InsertValue(newVertexId, m_rgb[featureEvent][0]);
-						m_colorG->InsertValue(newVertexId, m_rgb[featureEvent][1]);
-						m_colorB->InsertValue(newVertexId, m_rgb[featureEvent][2]);
+						m_colorR->InsertValue(newVertexId, EventColors[featureEvent].red());
+						m_colorG->InsertValue(newVertexId, EventColors[featureEvent].green());
+						m_colorB->InsertValue(newVertexId, EventColors[featureEvent].blue());
 						m_trackingUncertainty->InsertValue(newVertexId, 1 - c.likelyhood);
 
 						m_graphToTableId[layer - 1][newVertexId] = c.id;
@@ -1356,12 +640,12 @@ void dlg_eventExplorer::buildSubGraph(int id, int layer)
 
 						m_nodesToLayers[newVertexId] = layer - 1;
 
-						cTF = m_volumeStack->colorTF(layer - 1);
+						auto cTF = m_volumeStack->colorTF(layer - 1);
 						cTF->AddRGBPoint(c.id - 0.5, 0.0, 0.0, 0.0, 0.5, 1.0);
-						cTF->AddRGBPoint(c.id, (double)m_rgb[featureEvent][0] / 255.0, (double)m_rgb[featureEvent][1] / 255.0, (double)m_rgb[featureEvent][2] / 255.0, 0.5, 1.0);
+						cTF->AddRGBPoint(c.id, EventColors[featureEvent].redF(), EventColors[featureEvent].greenF(), EventColors[featureEvent].blueF(), 0.5, 1.0);
 						cTF->AddRGBPoint(c.id + 0.3, 0.0, 0.0, 0.0, 0.5, 1.0);
 
-						oTF = m_volumeStack->opacityTF(layer - 1);
+						auto oTF = m_volumeStack->opacityTF(layer - 1);
 						oTF->AddPoint(c.id - 0.5, 0.0, 0.5, 1.0);
 						oTF->AddPoint(c.id, (double)creationSlider->value() / 255.0, 0.5, 1.0);
 						oTF->AddPoint(c.id + 0.3, 0.0, 0.5, 1.0);
@@ -1389,7 +673,7 @@ void dlg_eventExplorer::buildSubGraph(int id, int layer)
 		}
 
 		// search forwards
-		assert(layer > 0);
+		//assert(layer > 0);		// not sure whether this check is required?
 		if (static_cast<size_t>(layer) < m_numberOfCharts - 1)
 		{
 			//iAFeatureTracking *ftB = m_trackedFeaturesBackwards.at(layer + 1);
@@ -1424,9 +708,9 @@ void dlg_eventExplorer::buildSubGraph(int id, int layer)
 						m_labels->InsertValue(newVertexId, std::to_string(c.id) +" (" + std::to_string((long long)(1 - c.likelyhood)) + ")");
 						m_nodeLayer->InsertValue(newVertexId, layer + 1);
 
-						m_colorR->InsertValue(newVertexId, m_rgb[featureEvent][0]);
-						m_colorG->InsertValue(newVertexId, m_rgb[featureEvent][1]);
-						m_colorB->InsertValue(newVertexId, m_rgb[featureEvent][2]);
+						m_colorR->InsertValue(newVertexId, EventColors[featureEvent].red());
+						m_colorG->InsertValue(newVertexId, EventColors[featureEvent].green());
+						m_colorB->InsertValue(newVertexId, EventColors[featureEvent].blue());
 						m_trackingUncertainty->InsertValue(newVertexId, 1 - c.likelyhood);
 
 						m_graphToTableId[layer + 1][newVertexId] = c.id;
@@ -1434,11 +718,11 @@ void dlg_eventExplorer::buildSubGraph(int id, int layer)
 
 						m_nodesToLayers[newVertexId] = layer + 1;
 
-						cTF = m_volumeStack->colorTF(layer + 1);
+						auto cTF = m_volumeStack->colorTF(layer + 1);
 						cTF->AddRGBPoint(c.id - 0.5, 0.0, 0.0, 0.0, 0.5, 1.0);
-						cTF->AddRGBPoint(c.id, (double)m_rgb[featureEvent][0] / 255.0, (double)m_rgb[featureEvent][1] / 255.0, (double)m_rgb[featureEvent][2] / 255.0, 0.5, 1.0);
+						cTF->AddRGBPoint(c.id, EventColors[featureEvent].redF(), EventColors[featureEvent].greenF(), EventColors[featureEvent].blueF(), 0.5, 1.0);
 						cTF->AddRGBPoint(c.id + 0.3, 0.0, 0.0, 0.0, 0.5, 1.0);
-						oTF = m_volumeStack->opacityTF(layer + 1);
+						auto oTF = m_volumeStack->opacityTF(layer + 1);
 						oTF->AddPoint(c.id - 0.5, 0.0, 0.5, 1.0);
 						oTF->AddPoint(c.id, (double)creationSlider->value() / 255.0, 0.5, 1.0);
 						oTF->AddPoint(c.id + 0.3, 0.0, 0.5, 1.0);

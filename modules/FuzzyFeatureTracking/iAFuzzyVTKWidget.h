@@ -27,18 +27,18 @@
 //! Qt+VTK widget which emits signals when button released.
 //! Solution for a "non-bug" in VTK http://www.vtk.org/pipermail/vtkusers/2013-December/082291.html
 //! which will not get fixed.
-class iAQVTKWidgetMouseReleaseWorkaround : public iAVtkOldWidget
+class iAFuzzyVTKWidget : public iAVtkWidget
 {
 	Q_OBJECT
 public:
 #if QT_VERSION < QT_VERSION_CHECK(5, 15, 0)
-	iAQVTKWidgetMouseReleaseWorkaround(QWidget* parent = nullptr, Qt::WindowFlags f = 0);
+	iAFuzzyVTKWidget(QWidget* parent = nullptr, Qt::WindowFlags f = 0);
 #else
-	iAQVTKWidgetMouseReleaseWorkaround(QWidget* parent = nullptr, Qt::WindowFlags f = Qt::WindowFlags());
+	iAFuzzyVTKWidget(QWidget* parent = nullptr, Qt::WindowFlags f = Qt::WindowFlags());
 #endif
 protected:
-	virtual void mouseReleaseEvent ( QMouseEvent * event );
-	virtual void resizeEvent ( QResizeEvent * event );
+	void mouseReleaseEvent ( QMouseEvent * event ) override;
+	void resizeEvent ( QResizeEvent * event ) override;
 signals:
 	void rightButtonReleasedSignal();
 	void leftButtonReleasedSignal();

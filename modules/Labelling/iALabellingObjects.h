@@ -20,40 +20,42 @@
 * ************************************************************************************/
 #pragma once
 
-#include "iAPeriodicTableWidget.h"
+#include "Labelling_export.h"
 
-#include "ui_PeriodicTable.h"
+#include <QObject>
+#include <QColor>
+#include <QSharedPointer>
 
-#include <qthelper/iAQTtoUIConnector.h>
-
-#include <QDockWidget>
-
-class iAElementSelectionListener;
-
-typedef iAQTtoUIConnector<QDockWidget, Ui_PeriodicTable> dlg_periodicTableContainer;
-
-class dlg_periodicTable : public dlg_periodicTableContainer
+struct iALabel
 {
-	Q_OBJECT
-public:
-	dlg_periodicTable(QWidget *parent): dlg_periodicTableContainer(parent)
-	{
-		m_periodicTableWidget = new iAPeriodicTableWidget(parent);
-		m_periodicTableWidget->setObjectName(QString::fromUtf8("PeriodicTable"));
-		setWidget(m_periodicTableWidget);
-	}
-	void setConcentration(QString const & elementName, double percentage, QColor const & color)
-	{
-		m_periodicTableWidget->setConcentration(elementName, percentage, color);
-	}
-	void setListener(QSharedPointer<iAElementSelectionListener> listener)
-	{
-		m_periodicTableWidget->setListener(listener);
-	}
-	int GetCurrentElement() const
-	{
-		return m_periodicTableWidget->GetCurrentElement();
-	}
-private:
-	iAPeriodicTableWidget* m_periodicTableWidget;
+	iALabel() : id(-1) {};
+	iALabel(int i, QString n, QColor c) :
+		id(i), name(n), color(c)
+	{}
+	int id;
+	QString name;
+	QColor color;
 };
+
+struct iASeed
+{
+	iASeed() : x(-1), y(-1), z(-1), overlayImageId(-1) {};
+	iASeed(int X, int Y, int Z, int oiid, QSharedPointer<iALabel> l) :
+		x(X), y(Y), z(Z), overlayImageId(oiid), label(l)
+	{}
+	int x;
+	int y;
+	int z;
+	int overlayImageId;
+	QSharedPointer<iALabel> label;
+};
+
+inline bool operator==(const iASeed& i1, const iASeed& i2)
+{
+	return i1.x == i2.x && i1.y == i2.y && i1.z == i2.z && i1.overlayImageId == i2.overlayImageId;
+}
+
+inline uint qHash(const iASeed& key, uint seed)
+{
+	return qHash(key.x ^ key.y ^ key.z ^ key.overlayImageId, seed);
+}

@@ -36,7 +36,6 @@ class iAImageClusterer;
 class iAImageSampler;
 
 class dlg_GEMSe;
-class dlg_labels;
 class dlg_Consensus;
 class dlg_modalities;
 class dlg_samplings;
@@ -59,7 +58,6 @@ public:
 		QWidget *parentWidget,
 		dlg_GEMSe* dlgGEMSe,
 		dlg_modalities* dlgModalities,
-		dlg_labels* dlgLabels,
 		dlg_samplings* dlgSamplings,
 		iAColorTheme const * colorTheme
 	);
@@ -107,7 +105,6 @@ private:
 	dlg_modalities* m_dlgModalities;
 	iASamplingSettingsDlg* m_dlgSamplingSettings;
 	dlg_GEMSe* m_dlgGEMSe;
-	dlg_labels* m_dlgLabels;
 	dlg_samplings* m_dlgSamplings;
 	dlg_Consensus* m_dlgConsensus;
 

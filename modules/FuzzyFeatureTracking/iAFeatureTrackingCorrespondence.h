@@ -22,7 +22,14 @@
 
 #include <vtkType.h>
 
-enum FeatureEvent { Creation, Continuation, Bifurcation, Amalgamation, Dissipation }; //Creation, Continuation, Dissipation, Bifurcation, Amalgamation
+enum FeatureEvent
+{
+	Creation,
+	Continuation,
+	Bifurcation,   // = Split
+	Amalgamation,  // = Merge
+	Dissipation
+};
 
 class iAFeatureTrackingCorrespondence
 {

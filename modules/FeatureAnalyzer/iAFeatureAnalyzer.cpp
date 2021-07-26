@@ -21,7 +21,6 @@
 #include "iAFeatureAnalyzer.h"
 
 #include "iAFeatureAnalyzerProject.h"
-//#include "iAPCView.h"
 #include "iAPDMView.h"
 #include "iAPreviewSPLOMView.h"
 #include "iARangeSliderDiagramView.h"
@@ -32,6 +31,7 @@
 #include "iATreeView.h"
 #include "FeatureAnalyzerHelpers.h"
 
+#include <iADockWidgetWrapper.h>
 #include <iALog.h>
 #include <iACSVToQTableWidgetConverter.h>
 #include <iAITKIO.h>
@@ -59,7 +59,6 @@ iAFeatureAnalyzer::iAFeatureAnalyzer(iAMainWindow *mWnd, const QString & resDir,
 	m_pdmView( new iAPDMView( parent, f ) ),
 	//m_pcView( new iAPCView( parent, f ) ),
 	m_ssView( new iASSView( parent, f ) ),
-	m_rangeSliderDiagramView( new iARangeSliderDiagramView( parent, f ) ),
 	m_selView( new iASelectionsView( nullptr, f ) ),
 	m_segm3DView( new iASegm3DView( parent, f ) ),
 	m_prvSplomView( new iAPreviewSPLOMView( parent, f ) ),
@@ -82,14 +81,16 @@ iAFeatureAnalyzer::iAFeatureAnalyzer(iAMainWindow *mWnd, const QString & resDir,
 
 	const int defaultPopupSizePercentage = 20;
 	m_prvSplomView->sliderPreviewSize->setValue( defaultPopupSizePercentage );
-	m_spmView->setSPLOMPreviewSize( defaultPopupSizePercentage );
+	m_spmView->setSPLOMPreviewSize(defaultPopupSizePercentage);
+	
+	iARangeSliderDiagramView * rangeSliderDiagramView =  new iARangeSliderDiagramView( parent, f );
 
 	connect( m_treeView, &iATreeView::loadSelectionToSPMSignal, m_spmView, &iASPMView::setData);
 	connect( m_treeView, &iATreeView::loadSelectionToSSSignal, m_ssView, &iASSView::SetData);
 	connect( m_treeView, &iATreeView::loadSelectionsToSSSignal, m_ssView, &iASSView::SetCompareData);
 	connect( m_treeView, &iATreeView::loadSelectionToPDMSignal, m_pdmView, &iAPDMView::SetData);
 	//connect( m_treeView, &iATreeView::loadSelectionToPCSignal, m_pcView, &iAPCView::SetData);
-	connect( m_treeView, &iATreeView::loadSelectionToRSDSignal, m_rangeSliderDiagramView, &iARangeSliderDiagramView::setData);
+	connect( m_treeView, &iATreeView::loadSelectionToRSDSignal, rangeSliderDiagramView, &iARangeSliderDiagramView::setData);
 	connect( tbSelections, &QToolButton::clicked, this, &iAFeatureAnalyzer::ShowSelections);
 	connect( tbTreeView, &QToolButton::clicked, this, &iAFeatureAnalyzer::ShowTreeView);
 	connect( m_treeView, &iATreeView::selectionModified, m_selView, &iASelectionsView::selectionModifiedTreeView);
@@ -100,8 +101,8 @@ iAFeatureAnalyzer::iAFeatureAnalyzer(iAMainWindow *mWnd, const QString & resDir,
 	connect( m_selView, &iASelectionsView::compareSelections, m_treeView, &iATreeView::loadSelectionsToSS);
 	connect( this, &iAFeatureAnalyzer::loadTreeDataToViews, m_treeView, &iATreeView::loadFilteredDataToOverview);
 	connect( m_pdmView, &iAPDMView::selectionModified, m_treeView, &iATreeView::loadOverviewSelectionToSPM);
-	connect( m_rangeSliderDiagramView, &iARangeSliderDiagramView::selectionModified, m_spmView, &iASPMView::setRSDSelection);
-	connect( m_treeView, &iATreeView::clearOldRSDViewSignal, m_rangeSliderDiagramView, &iARangeSliderDiagramView::clearOldRSDView);
+	connect( rangeSliderDiagramView, &iARangeSliderDiagramView::selectionModified, m_spmView, &iASPMView::setRSDSelection);
+	connect( m_treeView, &iATreeView::clearOldRSDViewSignal, rangeSliderDiagramView, &iARangeSliderDiagramView::clearOldRSDView);
 	connect( this, &iAFeatureAnalyzer::runsOffsetChanged, m_ssView, &iASSView::setRunsOffset);
 	connect( m_treeView, &iATreeView::displayMessage, this, &iAFeatureAnalyzer::message);
 	connect( m_treeView, &iATreeView::loadDatasetsToPreviewSignal, m_prvSplomView, &iAPreviewSPLOMView::SetDatasets);
@@ -116,15 +117,15 @@ iAFeatureAnalyzer::iAFeatureAnalyzer(iAMainWindow *mWnd, const QString & resDir,
 	connect( m_prvSplomView->cbDatasets, QOverload<int>::of(&QComboBox::currentIndexChanged), m_spmView, &iASPMView::reemitFixedPixmap);
 
 	m_visanMW->addDockWidget( Qt::LeftDockWidgetArea, m_pdmView );
-	m_visanMW->splitDockWidget( m_pdmView, m_rangeSliderDiagramView, Qt::Horizontal );
+	auto dwRangeSliderChart = new iADockWidgetWrapper(rangeSliderDiagramView, "Parameter Range Slider", "RangeSliderDiagramView");
+	m_visanMW->splitDockWidget(m_pdmView, dwRangeSliderChart, Qt::Horizontal);
 	m_visanMW->addDockWidget( Qt::RightDockWidgetArea, m_prvSplomView );
-	m_visanMW->splitDockWidget( m_rangeSliderDiagramView, m_spmView, Qt::Vertical );
+	m_visanMW->splitDockWidget(dwRangeSliderChart, m_spmView, Qt::Vertical);
 	m_visanMW->splitDockWidget( m_prvSplomView, m_ssView, Qt::Vertical );
 	m_visanMW->tabifyDockWidget( m_ssView, m_segm3DView );
 	m_ssView->attachSegm3DView( m_segm3DView );
 
-	m_rangeSliderDiagramView->raise();
-	//m_rangeSliderDiagramView->hide();
+	dwRangeSliderChart->raise();
 
 	m_spmView->raise();
 	m_ssView->raise();

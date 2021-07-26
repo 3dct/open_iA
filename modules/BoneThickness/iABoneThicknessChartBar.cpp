@@ -211,7 +211,11 @@ void iABoneThicknessChartBar::mousePressEvent(QMouseEvent* e)
 {
 	if (m_daThickness)
 	{
+#if QT_VERSION < QT_VERSION_CHECK(6, 0, 0)
 		const vtkIdType idSelected (selected(e->x(), e->y()));
+#else
+		const vtkIdType idSelected(selected(e->position().x(), e->position().y()));
+#endif
 
 		if ((idSelected == m_pBoneThicknessTable->selected()) || (idSelected < 0))
 		{

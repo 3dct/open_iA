@@ -97,7 +97,7 @@ void iAFeatureScoutProject::loadProject(QSettings & projectFile, QString const &
 	{
 		m_config.curvedFiberFileName = MakeAbsolute(path, projectFile.value("CurvedFileName").toString());
 	}
-	iAFeatureScoutModuleInterface * featureScout = m_mainWindow->getModuleDispatcher().GetModule<iAFeatureScoutModuleInterface>();
+	iAFeatureScoutModuleInterface * featureScout = m_mainWindow->moduleDispatcher().module<iAFeatureScoutModuleInterface>();
 	featureScout->LoadFeatureScout(m_config, m_mdiChild);
 	QString layoutName = projectFile.value("Layout").toString();
 	if (!layoutName.isEmpty())
@@ -279,7 +279,7 @@ bool iAFeatureScoutModuleInterface::startFeatureScout(iACsvConfig const & csvCon
 	}
 	AttachToMdiChild(m_mdiChild);
 	connect(m_mdiChild, &iAMdiChild::closed, this, &iAFeatureScoutModuleInterface::onChildClose);
-	iAFeatureScoutAttachment* attach = GetAttachment<iAFeatureScoutAttachment>(m_mdiChild);
+	iAFeatureScoutAttachment* attach = attachment<iAFeatureScoutAttachment>(m_mdiChild);
 	if (!attach)
 	{
 		LOG(lvlError, "Error while attaching FeatureScout to mdi child window!");
@@ -308,7 +308,7 @@ bool iAFeatureScoutModuleInterface::startFeatureScout(iACsvConfig const & csvCon
 
 void iAFeatureScoutModuleInterface::FeatureScout_Options()
 {
-	iAFeatureScoutAttachment* attach = GetAttachment<iAFeatureScoutAttachment>(m_mainWnd->activeMdiChild());
+	iAFeatureScoutAttachment* attach = attachment<iAFeatureScoutAttachment>(m_mainWnd->activeMdiChild());
 	if ( !attach )
 	{
 		LOG(lvlInfo,  "No FeatureScout attachment in current iAMdiChild!" );
@@ -334,7 +334,7 @@ void iAFeatureScoutModuleInterface::onChildClose()
 	}
 	for (auto mdi : m_mainWnd->mdiChildList())
 	{
-		iAFeatureScoutAttachment* attach = GetAttachment<iAFeatureScoutAttachment>(mdi);
+		iAFeatureScoutAttachment* attach = attachment<iAFeatureScoutAttachment>(mdi);
 		if (attach)
 		{
 			return;

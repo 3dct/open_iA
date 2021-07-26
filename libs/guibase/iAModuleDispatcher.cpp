@@ -61,7 +61,7 @@ typedef iAModuleInterface*(CALLCONV *f_GetModuleInterface)();
 
 
 iALoadedModule::iALoadedModule():
-	handle(0), moduleInterface(0)
+	handle(nullptr), moduleInterface(nullptr)
 {}
 
 iALoadedModule::iALoadedModule(QString const & n, MODULE_HANDLE h, iAModuleInterface* i) :
@@ -302,7 +302,7 @@ void iAModuleDispatcher::SaveModulesSettings() const
 	}
 }
 
-iAMainWindow * iAModuleDispatcher::GetMainWnd() const
+iAMainWindow * iAModuleDispatcher::mainWnd() const
 {
 	return m_mainWnd;
 }
