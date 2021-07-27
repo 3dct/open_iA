@@ -8,6 +8,8 @@
 
 #include "vtkMultiBlockDataSet.h"
 
+#include <limits>
+
 iACorrelationCoefficient::iACorrelationCoefficient(iACsvDataStorage* dataStorage):
 	m_dataStorage(dataStorage),
 	m_correlationFilter(vtkSmartPointer<vtkCorrelativeStatistics>::New()),
@@ -34,7 +36,7 @@ std::map<QString, Correlation::CorrelationStore>* iACorrelationCoefficient::calc
 		{
 			if (c == d)
 			{
-				corStore.insert({ data->GetColumnName(d), INFINITY });
+				corStore.insert({ data->GetColumnName(d), std::numeric_limits<double>::infinity() });
 				continue;
 			}
 

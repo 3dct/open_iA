@@ -4,7 +4,7 @@
 #include "iACsvDataStorage.h"
 
 //Qt
-#include "qlist.h"
+#include <QList>
 
 #include <iostream>
 

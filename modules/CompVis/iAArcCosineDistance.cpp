@@ -1,6 +1,6 @@
 #include "iAArcCosineDistance.h"
 
-#include <math.h>
+#include <cmath>
 
 //Debug
 #include "iALog.h"

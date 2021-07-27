@@ -169,7 +169,7 @@ vtkIdType iAVRCubicVis::getClosestCellID(double pos[3], double eventOrientation[
 //! The region ID of the octree is used
 void iAVRCubicVis::setCubeColor(QColor col, int regionID)
 {
-	unsigned char rgb[4] = { col.red(), col.green(), col.blue(), col.alpha() };
+	unsigned char rgb[4] = { static_cast<unsigned char>(col.red()), static_cast<unsigned char>(col.green()), static_cast<unsigned char>(col.blue()), static_cast<unsigned char>(col.alpha()) };
 
 	glyphColor->SetTuple4(regionID, rgb[0], rgb[1], rgb[2], rgb[3]);
 

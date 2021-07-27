@@ -1,5 +1,7 @@
 #include "iAEuclideanDistance.h"
 
+#include <cmath>
+
 iAEuclideanDistance::iAEuclideanDistance() : iASimilarityDistance()
 {
 }

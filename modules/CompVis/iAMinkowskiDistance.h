@@ -1,7 +1,7 @@
 #pragma once
 #include "iASimilarityDistance.h"
 
-#include "iACsvDataStorage.h";
+#include "iACsvDataStorage.h"
 
 class iAMinkowskiDistance : public iASimilarityDistance
 {

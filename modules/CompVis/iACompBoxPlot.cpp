@@ -7,12 +7,10 @@
 #include "iAMainWindow.h"
 #include "iAVtkVersion.h"
 
-//Qt
+//vtk
 #include "vtkGenericOpenGLRenderWindow.h"
 #include "QVTKOpenGLNativeWidget.h"
-#include "qboxlayout.h"
 
-//vtk
 #include "vtkRenderer.h"
 #include "vtkContextView.h"
 #include "vtkContextScene.h"
@@ -53,6 +51,9 @@
 #include "vtkPen.h"
 #include "vtkBrush.h"
 #include "vtkContext2D.h"
+
+// Qt
+#include <QBoxLayout>
 
 #include <string>
 

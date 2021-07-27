@@ -10,7 +10,9 @@
 #include "iALog.h"
 
 #include <algorithm>
+#include <cmath>
 #include <iostream>
+#include <limits>
 #include <vector>
 
 iAMultidimensionalScaling::iAMultidimensionalScaling(QList<csvFileData>* data) :
@@ -79,7 +81,7 @@ void iAMultidimensionalScaling::normalizeMatrix()
 	//skip first column & row, since these are only label numbers	
 	for (int col = 0; col < m_amountOfCharas - 1; col++)
 	{
-		maxValsForCols[col] = -INFINITY;
+		maxValsForCols[col] = -std::numeric_limits<double>::infinity();
 
 		for (int ind = 0; ind < m_inputData->count(); ind++)
 		{
@@ -183,7 +185,7 @@ void iAMultidimensionalScaling::calculateMDS(int dim, int iterations)
 	csvDataType::addNumberSelf(X, -0.5);
 
 	// before this step, mean distance is 1/3*sqrt(d)
-	csvDataType::multiplyNumberSelf(X, 0.1 * meanD / (1.0 / 3.0 * sqrt((double)dim)));
+	csvDataType::multiplyNumberSelf(X, 0.1 * meanD / (1.0 / 3.0 * std::sqrt((double)dim)));
 
 	////DEBUG
 	/*LOG(lvlDebug,"X");

@@ -3,9 +3,9 @@
 //Debug
 #include "iALog.h"
 
-#include <QDirIterator.h>
-#include <QFileDialog.h>
-#include <QStringListModel.h>
+#include <QDirIterator>
+#include <QFileDialog>
+#include <QStringListModel>
 #include <QPushButton>
 
 

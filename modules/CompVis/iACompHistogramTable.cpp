@@ -13,7 +13,6 @@
 
 //Qt
 #include <QColor>
-#include "QVTKOpenGLNativeWidget.h"
 
 //vtk
 #include <vtkActor.h>
@@ -41,6 +40,7 @@
 #include <vtkUnsignedCharArray.h>
 
 #include <QVTKInteractor.h>
+#include <QVTKOpenGLNativeWidget.h>
 #include <vtkActorCollection.h>
 #include <vtkCamera.h>
 
@@ -70,12 +70,14 @@
 #include <vtkUnstructuredGrid.h>
 
 #include <vtkShrinkPolyData.h>
+
 #include <algorithm>
 #include <cstring>
-#include <functional>
-#include <vector>
 #include <iostream>
+#include <functional>
+#include <limits>
 #include <tuple>
+#include <vector>
 
 
 iACompHistogramTable::iACompHistogramTable(
@@ -2052,8 +2054,8 @@ int iACompHistogramTable::calculateCurrentPosition(vtkSmartPointer<vtkActor> mov
 
 	std::map<int, std::vector<double>>::iterator iter = m_drawingPositionForRegions->begin();
 	
-	double minPossibleY = INFINITY;
-	double maxPossibleY = -INFINITY;
+	double minPossibleY = std::numeric_limits<double>::infinity();
+	double maxPossibleY = -std::numeric_limits<double>::infinity();
 
 	//inside defined drawing area
 	while( iter != m_drawingPositionForRegions->end())

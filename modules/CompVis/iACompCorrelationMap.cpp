@@ -76,7 +76,6 @@
 #include "vtkForceDirectedLayoutStrategy.h"
 
 #include <cmath>
-#include <math.h> 
 
 
 //testing
