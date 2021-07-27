@@ -33,8 +33,8 @@ class QSettings;
 //! parameters for csv loading configuraton
 struct iAobjectvis_API iACsvConfig
 {
-	static const QString LegacyFiberFormat;
-	static const QString LegacyVoidFormat;
+	static const QString FCPFiberFormat;
+	static const QString FCVoidFormat;
 	enum MappedColumn {                    //! "ID" for columns needed either in computation of other columns or later in FeatureScout
 		NotMapped = -1,
 		StartX, StartY, StartZ,
@@ -54,7 +54,7 @@ struct iAobjectvis_API iACsvConfig
 		NoVis,
 		VisTypeCount //must be last element
 	}; //!< what visualization to use for the objects. Should match the entries of VisualizationTypeName iACsvConfig.cpp
-	static const int LegacyFormatStartSkipLines = 5;
+	static const int FCPFormatStartSkipLines = 5;
 	iACsvConfig();
 	bool isValid(QString & errorMsg) const;
 
@@ -80,8 +80,8 @@ struct iAobjectvis_API iACsvConfig
 	bool isDiameterFixed;                   //! whether to insert a fixed diameter (given by fixedDiameterValue)
 	double fixedDiameterValue;              //! value to use as diameter for all objects
 	bool addClassID;                        //! whether to add class ID at the end. This setting is not stored, rather this is a use-case dependent setting
-	static iACsvConfig const & getLegacyFiberFormat(QString const & fileName);
-	static iACsvConfig const & getLegacyPoreFormat(QString const & fileName);
+	static iACsvConfig const & getFCPFiberFormat(QString const & fileName);
+	static iACsvConfig const & getFCVoidFormat(QString const & fileName);
 
 	//! Return base key for a given format
 	static QString getFormatKey(QString const & formatName);

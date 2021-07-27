@@ -181,17 +181,17 @@ void iAFiAKErModuleInterface::startFiAKEr()
 	{
 		formatEntries.append(iAFiberResultsCollection::SimpleFormat);
 	}
-	if (!formatEntries.contains(iAFiberResultsCollection::LegacyFormat))
+	if (!formatEntries.contains(iAFiberResultsCollection:FiakerFCPFormat))
 	{
-		formatEntries.append(iAFiberResultsCollection::LegacyFormat);
+		formatEntries.append(iAFiberResultsCollection::FiakerFCPFormat);
 	}
-	if (!formatEntries.contains(iACsvConfig::LegacyFiberFormat))
+	if (!formatEntries.contains(iACsvConfig::FCPFiberFormat))
 	{
-		formatEntries.append(iACsvConfig::LegacyFiberFormat);
+		formatEntries.append(iACsvConfig::FCPFiberFormat);
 	}
-	if (!formatEntries.contains(iACsvConfig::LegacyVoidFormat))
+	if (!formatEntries.contains(iACsvConfig::FCVoidFormat))
 	{
-		formatEntries.append(iACsvConfig::LegacyVoidFormat);
+		formatEntries.append(iACsvConfig::FCVoidFormat);
 	}
 	for (int i = 0; i < formatEntries.size(); ++i)
 	{

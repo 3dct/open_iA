@@ -35,8 +35,8 @@ namespace
 	};
 }
 
-const QString iACsvConfig::LegacyFiberFormat("Legacy Fiber csv");
-const QString iACsvConfig::LegacyVoidFormat("Legacy Pore csv");
+const QString iACsvConfig::FCPFiberFormat("FCP Fiber csv");
+const QString iACsvConfig::FCVoidFormat("Feature Characteristics (Pore) csv");
 
 namespace
 {
@@ -88,7 +88,7 @@ iACsvConfig::iACsvConfig() :
 	fileName(""),
 	encoding("System"),
 	containsHeader(true),
-	skipLinesStart(LegacyFormatStartSkipLines),
+	skipLinesStart(FCPFormatStartSkipLines),
 	skipLinesEnd(0),
 	columnSeparator(";"),
 	decimalSeparator("."),
@@ -193,26 +193,26 @@ bool iACsvConfig::isValid(QString & errorMsg) const
 	return true;
 }
 
-iACsvConfig const & iACsvConfig::getLegacyFiberFormat(QString const & fileName)
+iACsvConfig const & iACsvConfig::getFCPFiberFormat(QString const & fileName)
 {
-	static iACsvConfig LegacyFormat;
-	LegacyFormat.fileName = fileName;
-	LegacyFormat.encoding = "System";
-	LegacyFormat.containsHeader = false;
-	LegacyFormat.skipLinesStart = 5;
-	LegacyFormat.skipLinesEnd = 0;
-	LegacyFormat.columnSeparator = ",";
-	LegacyFormat.decimalSeparator = ".";
-	LegacyFormat.addAutoID = false;
-	LegacyFormat.objectType = iAObjectType::Fibers;
-	LegacyFormat.computeLength = false;
-	LegacyFormat.computeAngles = true;
-	LegacyFormat.computeTensors = true;
-	LegacyFormat.computeCenter = true;
-	LegacyFormat.computeStartEnd = false;
-	std::fill(LegacyFormat.offset, LegacyFormat.offset + 3, 0.0);
-	LegacyFormat.visType = UseVolume;
-	LegacyFormat.currentHeaders = QStringList() << "Label"
+	static iACsvConfig FCPFormat;
+	FCPFormat.fileName = fileName;
+	FCPFormat.encoding = "System";
+	FCPFormat.containsHeader = false;
+	FCPFormat.skipLinesStart = 5;
+	FCPFormat.skipLinesEnd = 0;
+	FCPFormat.columnSeparator = ",";
+	FCPFormat.decimalSeparator = ".";
+	FCPFormat.addAutoID = false;
+	FCPFormat.objectType = iAObjectType::Fibers;
+	FCPFormat.computeLength = false;
+	FCPFormat.computeAngles = true;
+	FCPFormat.computeTensors = true;
+	FCPFormat.computeCenter = true;
+	FCPFormat.computeStartEnd = false;
+	std::fill(FCPFormat.offset, FCPFormat.offset + 3, 0.0);
+	FCPFormat.visType = UseVolume;
+	FCPFormat.currentHeaders = QStringList() << "Label"
 		<< "X1[µm]"
 		<< "Y1[µm]"
 		<< "Z1[µm]"
@@ -226,39 +226,39 @@ iACsvConfig const & iACsvConfig::getLegacyFiberFormat(QString const & fileName)
 		<< "Volume[µm³]"
 		<< "SeperatedFibre"
 		<< "CurvedFibre";
-	LegacyFormat.selectedHeaders = LegacyFormat.currentHeaders;
-	LegacyFormat.columnMapping.clear();
-	LegacyFormat.columnMapping.insert(StartX,   1);
-	LegacyFormat.columnMapping.insert(StartY,   2);
-	LegacyFormat.columnMapping.insert(StartZ,   3);
-	LegacyFormat.columnMapping.insert(EndX,     4);
-	LegacyFormat.columnMapping.insert(EndY,     5);
-	LegacyFormat.columnMapping.insert(EndZ,     6);
-	LegacyFormat.columnMapping.insert(Length,   7);
-	LegacyFormat.columnMapping.insert(Diameter, 9);
-	return LegacyFormat;
+	FCPFormat.selectedHeaders = FCPFormat.currentHeaders;
+	FCPFormat.columnMapping.clear();
+	FCPFormat.columnMapping.insert(StartX,   1);
+	FCPFormat.columnMapping.insert(StartY,   2);
+	FCPFormat.columnMapping.insert(StartZ,   3);
+	FCPFormat.columnMapping.insert(EndX,     4);
+	FCPFormat.columnMapping.insert(EndY,     5);
+	FCPFormat.columnMapping.insert(EndZ,     6);
+	FCPFormat.columnMapping.insert(Length,   7);
+	FCPFormat.columnMapping.insert(Diameter, 9);
+	return FCPFormat;
 }
 
-iACsvConfig const & iACsvConfig::getLegacyPoreFormat(QString const & fileName)
+iACsvConfig const& iACsvConfig::getFCVoidFormat(QString const& fileName)
 {
-	static iACsvConfig LegacyFormat;
-	LegacyFormat.fileName = fileName;
-	LegacyFormat.encoding = "System";
-	LegacyFormat.containsHeader = false;
-	LegacyFormat.skipLinesStart = 5;
-	LegacyFormat.skipLinesEnd = 0;
-	LegacyFormat.columnSeparator = ",";
-	LegacyFormat.decimalSeparator = ".";
-	LegacyFormat.addAutoID = false;
-	LegacyFormat.objectType = iAObjectType::Voids;
-	LegacyFormat.computeLength = false;
-	LegacyFormat.computeAngles = false;
-	LegacyFormat.computeTensors = false;
-	LegacyFormat.computeCenter = false;
-	LegacyFormat.computeStartEnd = false;
-	std::fill(LegacyFormat.offset, LegacyFormat.offset + 3, 0.0);
-	LegacyFormat.visType = UseVolume;
-	LegacyFormat.currentHeaders = QStringList()
+	static iACsvConfig FCVoidFormat;
+	FCVoidFormat.fileName = fileName;
+	FCVoidFormat.encoding = "System";
+	FCVoidFormat.containsHeader = false;
+	FCVoidFormat.skipLinesStart = 5;
+	FCVoidFormat.skipLinesEnd = 0;
+	FCVoidFormat.columnSeparator = ",";
+	FCVoidFormat.decimalSeparator = ".";
+	FCVoidFormat.addAutoID = false;
+	FCVoidFormat.objectType = iAObjectType::Voids;
+	FCVoidFormat.computeLength = false;
+	FCVoidFormat.computeAngles = false;
+	FCVoidFormat.computeTensors = false;
+	FCVoidFormat.computeCenter = false;
+	FCVoidFormat.computeStartEnd = false;
+	std::fill(FCVoidFormat.offset, FCVoidFormat.offset + 3, 0.0);
+	FCVoidFormat.visType = UseVolume;
+	FCVoidFormat.currentHeaders = QStringList()
 		<< "Label Id"
 		<< "X1"	<< "Y1"	<< "Z1"
 		<< "X2"	<< "Y2"	<< "Z2"
@@ -274,25 +274,25 @@ iACsvConfig const & iACsvConfig::getLegacyPoreFormat(QString const & fileName)
 		<< "VoxDimX" << "VoxDimY" << "VoxDimZ"
 		<< "MajorLength"
 		<< "MinorLength";
-	LegacyFormat.selectedHeaders = LegacyFormat.currentHeaders;
-	LegacyFormat.columnMapping.clear();
-	LegacyFormat.columnMapping.insert(StartX,    1);
-	LegacyFormat.columnMapping.insert(StartY,    2);
-	LegacyFormat.columnMapping.insert(StartZ,    3);
-	LegacyFormat.columnMapping.insert(EndX,      4);
-	LegacyFormat.columnMapping.insert(EndY,      5);
-	LegacyFormat.columnMapping.insert(EndZ,      6);
-	LegacyFormat.columnMapping.insert(DimensionX,13);
-	LegacyFormat.columnMapping.insert(DimensionY,14);
-	LegacyFormat.columnMapping.insert(DimensionZ,15);
-	LegacyFormat.columnMapping.insert(Phi,      16);
-	LegacyFormat.columnMapping.insert(Theta,    17);
-	LegacyFormat.columnMapping.insert(CenterX,  18);
-	LegacyFormat.columnMapping.insert(CenterY,  19);
-	LegacyFormat.columnMapping.insert(CenterZ,  20);
-	LegacyFormat.columnMapping.insert(Diameter, 23);
-	LegacyFormat.columnMapping.insert(Length,   28);
-	return LegacyFormat;
+	FCVoidFormat.selectedHeaders = FCVoidFormat.currentHeaders;
+	FCVoidFormat.columnMapping.clear();
+	FCVoidFormat.columnMapping.insert(StartX,    1);
+	FCVoidFormat.columnMapping.insert(StartY,    2);
+	FCVoidFormat.columnMapping.insert(StartZ,    3);
+	FCVoidFormat.columnMapping.insert(EndX,      4);
+	FCVoidFormat.columnMapping.insert(EndY,      5);
+	FCVoidFormat.columnMapping.insert(EndZ,      6);
+	FCVoidFormat.columnMapping.insert(DimensionX,13);
+	FCVoidFormat.columnMapping.insert(DimensionY,14);
+	FCVoidFormat.columnMapping.insert(DimensionZ,15);
+	FCVoidFormat.columnMapping.insert(Phi,      16);
+	FCVoidFormat.columnMapping.insert(Theta,    17);
+	FCVoidFormat.columnMapping.insert(CenterX,  18);
+	FCVoidFormat.columnMapping.insert(CenterY,  19);
+	FCVoidFormat.columnMapping.insert(CenterZ,  20);
+	FCVoidFormat.columnMapping.insert(Diameter, 23);
+	FCVoidFormat.columnMapping.insert(Length,   28);
+	return FCVoidFormat;
 }
 
 QString iACsvConfig::getFormatKey(QString const & formatName)

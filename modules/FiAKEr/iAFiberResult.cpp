@@ -85,16 +85,16 @@ QDataStream &operator>>(QDataStream &in, iARefDiffFiberData &s)
 	return in;
 }
 
-const QString iAFiberResultsCollection::LegacyFormat("FIAKER Legacy Format");
-const QString iAFiberResultsCollection::SimpleFormat("FIAKER Simple Format");
+const QString iAFiberResultsCollection::FiakerFCPFormat("FIAKER FCP (same as FCP format, but no headers)");
+const QString iAFiberResultsCollection::SimpleFormat("FIAKER Simple (no header, center coords, phi, theta, length)");
 
 namespace
 {
 	const double SimpleConfigCoordShift = 74.5;
 
-	iACsvConfig getLegacyConfig()
+	iACsvConfig getFiakerFCPConfig()
 	{
-		iACsvConfig config = iACsvConfig::getLegacyFiberFormat("");
+		iACsvConfig config = iACsvConfig::getFCPFiberFormat("");
 		config.skipLinesStart = 0;
 		config.containsHeader = false;
 		config.visType = iACsvConfig::Cylinders;
@@ -190,17 +190,17 @@ iACsvConfig getCsvConfig(QString const & formatName)
 	QSettings settings;
 	if (!result.load(settings, formatName))
 	{
-		if (formatName == iACsvConfig::LegacyFiberFormat)
+		if (formatName == iACsvConfig::FCPFiberFormat)
 		{
-			result = iACsvConfig::getLegacyFiberFormat("");
+			result = iACsvConfig::getFCPFiberFormat("");
 		}
-		else if (formatName == iACsvConfig::LegacyVoidFormat)
+		else if (formatName == iACsvConfig::FCVoidFormat)
 		{
-			result = iACsvConfig::getLegacyPoreFormat("");
+			result = iACsvConfig::getFCVoidFormat("");
 		}
-		else if (formatName == iAFiberResultsCollection::LegacyFormat)
+		else if (formatName == iAFiberResultsCollection::FiakerFCPFormat)
 		{
-			result = getLegacyConfig();
+			result = getFiakerFCPConfig();
 		}
 		else if (formatName == iAFiberResultsCollection::SimpleFormat)
 		{

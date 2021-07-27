@@ -124,7 +124,7 @@ public:
 class iAFiberResultsCollection
 {
 public:
-	static const QString LegacyFormat;
+	static const QString FiakerFCPFormat;
 	static const QString SimpleFormat;
 	iAFiberResultsCollection();
 

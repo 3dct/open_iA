@@ -117,10 +117,14 @@ void dlg_CSVInput::initParameters()
 {
 	ed_FormatName->setValidator(new QRegularExpressionValidator(QRegularExpression("[A-Za-z0-9_]{0,30}"), this)); // limit input to format names
 	QStringList formatEntries = iACsvConfig::getListFromRegistry();
-	if (!formatEntries.contains(iACsvConfig::LegacyFiberFormat))
-		formatEntries.append(iACsvConfig::LegacyFiberFormat);
-	if (!formatEntries.contains(iACsvConfig::LegacyVoidFormat))
-		formatEntries.append(iACsvConfig::LegacyVoidFormat);
+	if (!formatEntries.contains(iACsvConfig::FCPFiberFormat))
+	{
+		formatEntries.append(iACsvConfig::FCPFiberFormat);
+	}
+	if (!formatEntries.contains(iACsvConfig::FCVoidFormat))
+	{
+		formatEntries.append(iACsvConfig::FCVoidFormat);
+	}
 	cmbbox_Format->addItems(formatEntries);
 	// load default format, and if that fails, load first format if available:
 	if (!loadFormatFromRegistry(loadGeneralSetting(csvRegKeys::DefaultFormat).toString()) && formatEntries.length() > 0)
@@ -733,14 +737,14 @@ bool dlg_CSVInput::loadFormatFromRegistry(const QString & formatName, iACsvConfi
 	QSettings settings;
 	if (!dest.load(settings, formatName))
 	{
-		if (formatName == iACsvConfig::LegacyFiberFormat)
+		if (formatName == iACsvConfig::FCPFiberFormat)
 		{
-			dest = iACsvConfig::getLegacyFiberFormat(dest.fileName);
+			dest = iACsvConfig::getFCPFiberFormat(dest.fileName);
 			return true;
 		}
-		else if (formatName == iACsvConfig::LegacyVoidFormat)
+		else if (formatName == iACsvConfig::FCVoidFormat)
 		{
-			dest = iACsvConfig::getLegacyPoreFormat(dest.fileName);
+			dest = iACsvConfig::getFCVoidFormat(dest.fileName);
 			return true;
 		}
 		return false;

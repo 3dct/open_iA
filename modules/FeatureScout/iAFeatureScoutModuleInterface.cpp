@@ -155,7 +155,7 @@ void iAFeatureScoutModuleInterface::FeatureScout()
 			auto type = guessFeatureType(testCSVFileName);
 			if (type != InvalidObjectType)
 			{
-				dlg.setFormat(type == Voids ? iACsvConfig::LegacyVoidFormat : iACsvConfig::LegacyFiberFormat);
+				dlg.setFormat(type == Voids ? iACsvConfig::FCVoidFormat : iACsvConfig::FCPFiberFormat);
 			}
 		}
 		else
@@ -227,8 +227,8 @@ void iAFeatureScoutModuleInterface::LoadFeatureScoutWithParams(QString const & c
 		return;
 	}
 	iACsvConfig csvConfig = (type != Voids) ?
-		iACsvConfig::getLegacyFiberFormat( csvFileName ):
-		iACsvConfig::getLegacyPoreFormat( csvFileName );
+		iACsvConfig::getFCPFiberFormat( csvFileName ):
+		iACsvConfig::getFCVoidFormat( csvFileName );
 	startFeatureScout(csvConfig);
 }
 
