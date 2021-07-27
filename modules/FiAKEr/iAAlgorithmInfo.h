@@ -142,6 +142,7 @@ private:
 	{
 		Q_UNUSED(ev);
 		QPainter p(this);
+		p.setRenderHint(QPainter::Antialiasing);
 		p.setPen(qApp->palette().color(QWidget::foregroundRole()));
 
 		QRect algoBox(HMargin + boxWidth(), TopMargin, boxWidth(), boxHeight());
