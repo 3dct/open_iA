@@ -1137,7 +1137,7 @@ void dlg_FeatureScout::ClassAddButton()
 void dlg_FeatureScout::writeWisetex(QXmlStreamWriter* writer)
 {
 	if (QMessageBox::warning(this, "FeatureScout",
-		"This functionality is only available for FCP fiber/pore csv formats at the moment. Are you sure you want to proceed?",
+		"This functionality is only available for FCP fiber/ feature characteristics pore csv formats at the moment. Are you sure you want to proceed?",
 		QMessageBox::Yes | QMessageBox::No) != QMessageBox::Yes)
 	{
 		return;
