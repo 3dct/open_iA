@@ -181,7 +181,7 @@ void iAFiAKErModuleInterface::startFiAKEr()
 	{
 		formatEntries.append(iAFiberResultsCollection::SimpleFormat);
 	}
-	if (!formatEntries.contains(iAFiberResultsCollection:FiakerFCPFormat))
+	if (!formatEntries.contains(iAFiberResultsCollection::FiakerFCPFormat))
 	{
 		formatEntries.append(iAFiberResultsCollection::FiakerFCPFormat);
 	}

@@ -241,24 +241,24 @@ iACsvConfig const & iACsvConfig::getFCPFiberFormat(QString const & fileName)
 
 iACsvConfig const& iACsvConfig::getFCVoidFormat(QString const& fileName)
 {
-	static iACsvConfig FCVoidFormat;
-	FCVoidFormat.fileName = fileName;
-	FCVoidFormat.encoding = "System";
-	FCVoidFormat.containsHeader = false;
-	FCVoidFormat.skipLinesStart = 5;
-	FCVoidFormat.skipLinesEnd = 0;
-	FCVoidFormat.columnSeparator = ",";
-	FCVoidFormat.decimalSeparator = ".";
-	FCVoidFormat.addAutoID = false;
-	FCVoidFormat.objectType = iAObjectType::Voids;
-	FCVoidFormat.computeLength = false;
-	FCVoidFormat.computeAngles = false;
-	FCVoidFormat.computeTensors = false;
-	FCVoidFormat.computeCenter = false;
-	FCVoidFormat.computeStartEnd = false;
-	std::fill(FCVoidFormat.offset, FCVoidFormat.offset + 3, 0.0);
-	FCVoidFormat.visType = UseVolume;
-	FCVoidFormat.currentHeaders = QStringList()
+	static iACsvConfig FCFormat;
+	FCFormat.fileName = fileName;
+	FCFormat.encoding = "System";
+	FCFormat.containsHeader = false;
+	FCFormat.skipLinesStart = 5;
+	FCFormat.skipLinesEnd = 0;
+	FCFormat.columnSeparator = ",";
+	FCFormat.decimalSeparator = ".";
+	FCFormat.addAutoID = false;
+	FCFormat.objectType = iAObjectType::Voids;
+	FCFormat.computeLength = false;
+	FCFormat.computeAngles = false;
+	FCFormat.computeTensors = false;
+	FCFormat.computeCenter = false;
+	FCFormat.computeStartEnd = false;
+	std::fill(FCFormat.offset, FCFormat.offset + 3, 0.0);
+	FCFormat.visType = UseVolume;
+	FCFormat.currentHeaders = QStringList()
 		<< "Label Id"
 		<< "X1"	<< "Y1"	<< "Z1"
 		<< "X2"	<< "Y2"	<< "Z2"
@@ -274,25 +274,25 @@ iACsvConfig const& iACsvConfig::getFCVoidFormat(QString const& fileName)
 		<< "VoxDimX" << "VoxDimY" << "VoxDimZ"
 		<< "MajorLength"
 		<< "MinorLength";
-	FCVoidFormat.selectedHeaders = FCVoidFormat.currentHeaders;
-	FCVoidFormat.columnMapping.clear();
-	FCVoidFormat.columnMapping.insert(StartX,    1);
-	FCVoidFormat.columnMapping.insert(StartY,    2);
-	FCVoidFormat.columnMapping.insert(StartZ,    3);
-	FCVoidFormat.columnMapping.insert(EndX,      4);
-	FCVoidFormat.columnMapping.insert(EndY,      5);
-	FCVoidFormat.columnMapping.insert(EndZ,      6);
-	FCVoidFormat.columnMapping.insert(DimensionX,13);
-	FCVoidFormat.columnMapping.insert(DimensionY,14);
-	FCVoidFormat.columnMapping.insert(DimensionZ,15);
-	FCVoidFormat.columnMapping.insert(Phi,      16);
-	FCVoidFormat.columnMapping.insert(Theta,    17);
-	FCVoidFormat.columnMapping.insert(CenterX,  18);
-	FCVoidFormat.columnMapping.insert(CenterY,  19);
-	FCVoidFormat.columnMapping.insert(CenterZ,  20);
-	FCVoidFormat.columnMapping.insert(Diameter, 23);
-	FCVoidFormat.columnMapping.insert(Length,   28);
-	return FCVoidFormat;
+	FCFormat.selectedHeaders = FCFormat.currentHeaders;
+	FCFormat.columnMapping.clear();
+	FCFormat.columnMapping.insert(StartX,    1);
+	FCFormat.columnMapping.insert(StartY,    2);
+	FCFormat.columnMapping.insert(StartZ,    3);
+	FCFormat.columnMapping.insert(EndX,      4);
+	FCFormat.columnMapping.insert(EndY,      5);
+	FCFormat.columnMapping.insert(EndZ,      6);
+	FCFormat.columnMapping.insert(DimensionX,13);
+	FCFormat.columnMapping.insert(DimensionY,14);
+	FCFormat.columnMapping.insert(DimensionZ,15);
+	FCFormat.columnMapping.insert(Phi,      16);
+	FCFormat.columnMapping.insert(Theta,    17);
+	FCFormat.columnMapping.insert(CenterX,  18);
+	FCFormat.columnMapping.insert(CenterY,  19);
+	FCFormat.columnMapping.insert(CenterZ,  20);
+	FCFormat.columnMapping.insert(Diameter, 23);
+	FCFormat.columnMapping.insert(Length,   28);
+	return FCFormat;
 }
 
 QString iACsvConfig::getFormatKey(QString const & formatName)
