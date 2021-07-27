@@ -3,8 +3,8 @@
 //Debug
 #include <iALog.h>
 
-#include <QString.h>
-#include <qlistview.h>
+#include <QString>
+#include <QListView>
 
 #include <vector>
 

@@ -21,7 +21,7 @@
 #include "iAVRHistogramPairVis.h"
 
 #include <iALog.h>
-#include <iAvec3.h>
+#include <iAVec3.h>
 
 #include <vtkMath.h>
 #include <vtkRegularPolygonSource.h>

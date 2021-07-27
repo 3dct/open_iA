@@ -36,7 +36,7 @@
 #include <vtkCubeSource.h>
 
 #include <iALog.h>
-#include <iAvec3.h>
+#include <iAVec3.h>
 #include <math.h>
 
 iAVRModelInMiniature::iAVRModelInMiniature(vtkRenderer* ren):iAVRCubicVis{ren}

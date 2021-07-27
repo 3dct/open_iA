@@ -21,7 +21,7 @@
 #include "iAVR3DText.h"
 
 #include <iALog.h>
-#include <iAvec3.h>
+#include <iAVec3.h>
 
 #include "vtkTextProperty.h"
 #include "vtkCamera.h"
