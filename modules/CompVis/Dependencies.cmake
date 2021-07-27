@@ -14,3 +14,7 @@ SET( DEPENDENCIES_VTK_MODULES
 	FiltersStatistics
 	FiltersExtraction
 )
+# CompVis uses QVTKOpenGLNative widget directly, therefore only works with OpenGL2 backend:
+if (NOT "${VTK_RENDERING_BACKEND}" STREQUAL "OpenGL2")
+	set(DEPENDENCIES_CMAKE VTK_RENDERING_BACKEND_OPENGL2)
+endif()
