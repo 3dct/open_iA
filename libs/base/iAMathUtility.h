@@ -230,7 +230,7 @@ iAbase_API double pearsonsCorrelationCoefficient(FuncType const & func1, FuncTyp
 iAbase_API double spearmansCorrelationCoefficient(FuncType const& func1, FuncType const& func2);
 
 //! Checks whether two real values are equal, given a certain tolerance.
-//! inspired by https://stackoverflow.com/a/41405501/671366
+//! inspired by great points about floating point equals at https://stackoverflow.com/a/41405501
 template <typename RealType>
 bool dblApproxEqual(RealType a, RealType b, RealType tolerance = std::numeric_limits<RealType>::epsilon())
 {
@@ -242,7 +242,24 @@ bool dblApproxEqual(RealType a, RealType b, RealType tolerance = std::numeric_li
 	//return ((a>1 || b>1) && (diff < std::max(std::fabs(a), std::abs(b)) * tolerance));
 }
 
-// source: https://stackoverflow.com/questions/1577475/c-sorting-and-keeping-track-of-indexes
+//! comparison of two real type values - merge with above!
+template <typename T1, typename T2>
+bool isApproxEqual(T1 a, T2 b, T1 tolerance = std::numeric_limits<T1>::epsilon())
+{
+	T1 diff = std::fabs(a - b);
+	if (diff <= tolerance)
+	{
+		return true;
+	}
+	if (diff < std::fmax(std::fabs(a), std::fabs(b)) * tolerance)
+	{
+		return true;
+	}
+
+	return false;
+}
+
+// source: https://stackoverflow.com/questions/1577475
 template <typename T>
 std::vector<size_t> sort_indexes(const std::vector<T>& v)
 {

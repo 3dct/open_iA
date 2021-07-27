@@ -33,7 +33,7 @@ target_compile_definitions(MathUtilTest PRIVATE NO_DLL_LINKAGE)
 ADD_TEST(NAME MathUtilTest COMMAND MathUtilTest)
 IF (CMAKE_COMPILER_IS_GNUCXX OR "${CMAKE_CXX_COMPILER_ID}" STREQUAL "Clang")
 	target_compile_options(MathUtilTest PRIVATE -fPIC)
-	target_compile_definitions(MathUtilTest PRIVATE QT_NO_VERSION_TAGGING) # see https://stackoverflow.com/a/46522599/671366
+	target_compile_definitions(MathUtilTest PRIVATE QT_NO_VERSION_TAGGING) # see https://stackoverflow.com/a/46522599
 ENDIF()
 
 # FunctionalBoxplotTest
