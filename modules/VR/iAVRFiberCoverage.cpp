@@ -54,7 +54,7 @@ void iAVRFiberCoverage::mapAllPointiDs()
 	LOG(lvlInfo, QString("Volume Data loaded"));
 
 	//Calculate Fibers in Region
-	for (int i = 0; i < m_octrees->size(); i++)
+	for (auto i = 0; i < m_octrees->size(); i++)
 	{
 		m_fiberCoverage->push_back(*m_octrees->at(i)->getfibersInRegionMapping(&m_pointIDToCsvIndex));
 	}
@@ -68,7 +68,7 @@ void iAVRFiberCoverage::mapAllPointiDsAndCalculateFiberCoverage()
 	int count = 0;
 
 	//Initialize new Vectors
-	for (int level = 0; level < m_octrees->size(); level++)
+	for (auto level = 0; level < m_octrees->size(); level++)
 	{
 		//Initialize the region vec for every level
 		m_fiberCoverage->push_back(std::vector<std::unordered_map<vtkIdType, double>*>());
@@ -102,7 +102,7 @@ void iAVRFiberCoverage::mapAllPointiDsAndCalculateFiberCoverage()
 
 		//For every Octree Level
 		//for (int level = OCTREE_MIN_LEVEL; level <= 1; level++)
-		for (int level = 0; level < m_octrees->size(); level++)
+		for (auto level = 0; level < m_octrees->size(); level++)
 		{
 			//Skip intersection test on lowest Octree level
 			if (level == 0)
@@ -127,7 +127,7 @@ void iAVRFiberCoverage::mapAllPointiDsAndCalculateFiberCoverage()
 		}
 	}
 
-	for (int level = 1; level < m_octrees->size(); level++)
+	for (auto level = 1; level < m_octrees->size(); level++)
 	{
 		m_octrees->at(level)->getRegionsInLineOfRay();
 	}

@@ -169,7 +169,7 @@ vtkIdType iAVRCubicVis::getClosestCellID(double pos[3], double eventOrientation[
 //! The region ID of the octree is used
 void iAVRCubicVis::setCubeColor(QColor col, int regionID)
 {
-	unsigned char rgb[4] = { col.red(), col.green(), col.blue(), col.alpha() };
+	unsigned char rgb[4] = { static_cast<unsigned char>(col.red()), static_cast<unsigned char>(col.green()), static_cast<unsigned char>(col.blue()), static_cast<unsigned char>(col.alpha()) };
 
 	glyphColor->SetTuple4(regionID, rgb[0], rgb[1], rgb[2], rgb[3]);
 
@@ -187,7 +187,7 @@ void iAVRCubicVis::applyHeatmapColoring(std::vector<QColor>* colorPerRegion)
 	glyphColor->SetName("colors");
 	glyphColor->SetNumberOfComponents(4);
 
-	for (int i = 0; i < colorPerRegion->size(); i++)
+	for (auto i = 0; i < colorPerRegion->size(); i++)
 	{
 		glyphColor->InsertNextTuple4(colorPerRegion->at(i).red(), colorPerRegion->at(i).green(), colorPerRegion->at(i).blue(), colorPerRegion->at(i).alpha());
 	}
@@ -203,7 +203,7 @@ void iAVRCubicVis::highlightGlyphs(std::vector<vtkIdType>* regionIDs, std::vecto
 		//Add black color if too few colors are given
 		if (regionIDs->size() > colorPerRegion->size())
 		{
-			for (int i = 0; i < colorPerRegion->size() - regionIDs->size(); i++)
+			for (auto i = 0; i < colorPerRegion->size() - regionIDs->size(); i++)
 			{
 				colorPerRegion->push_back(QColor(0, 0, 0));
 			}
@@ -335,7 +335,7 @@ void iAVRCubicVis::drawPoint(std::vector<double*>* pos, QColor color)
 {
 	vtkSmartPointer<vtkPoints> points = vtkSmartPointer<vtkPoints>::New();
 
-	for (int i = 0; i < pos->size(); i++)
+	for (auto i = 0; i < pos->size(); i++)
 	{
 		points->InsertNextPoint(pos->at(i));
 	}

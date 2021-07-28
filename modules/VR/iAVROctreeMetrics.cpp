@@ -159,14 +159,14 @@ void iAVROctreeMetrics::calculateMaxCoverageFiberPerRegion()
 		//Initialize the region vec for every level
 		m_maxCoverage->push_back(std::vector<std::vector<vtkIdType>>());
 
-		for (int region = 0; region < m_fiberCoverage->at(level).size(); region++)
+		for (auto region = 0; region < m_fiberCoverage->at(level).size(); region++)
 		{
 			//Initialize a vec of IDs for every region
 			m_maxCoverage->at(level).push_back(std::vector<vtkIdType>());
 		}
 	}
 
-	for (int level = 0; level < m_fiberCoverage->size(); level++)
+	for (auto level = 0; level < m_fiberCoverage->size(); level++)
 	{
 		for (vtkIdType row = 0; row < m_objectTable->GetNumberOfRows(); ++row)
 		{
@@ -181,7 +181,7 @@ void iAVROctreeMetrics::findBiggestCoverage(int level, int fiber)
 	double currentMaxCoverage = -1.0;
 	int regionWithMaxCoverage = 0;
 
-	for (int region = 0; region < m_fiberCoverage->at(level).size(); region++)
+	for (auto region = 0; region < m_fiberCoverage->at(level).size(); region++)
 	{
 		auto it = m_fiberCoverage->at(level).at(region)->find(fiber);
 		//If fiber has a coverage...
@@ -204,7 +204,7 @@ void iAVROctreeMetrics::findBiggestCoverage(int level, int fiber)
 //! Iterates through all permutations of region pairs and calculates the jaccard index (calls calculateJaccardIndex with two distinct regions)
 void iAVROctreeMetrics::calculateJaccardIndex(int level)
 {
-	for (int region = 0; region < m_fiberCoverage->at(level).size(); region++)
+	for (auto region = 0; region < m_fiberCoverage->at(level).size(); region++)
 	{
 		m_jaccardValues->at(level).push_back(std::vector<double>());
 
@@ -215,7 +215,7 @@ void iAVROctreeMetrics::calculateJaccardIndex(int level)
 			return;
 		}
 
-		for (int region2 = 0; region2 < m_fiberCoverage->at(level).size(); region2++)
+		for (auto region2 = 0; region2 < m_fiberCoverage->at(level).size(); region2++)
 		{
 			double index = 0;
 
@@ -324,7 +324,7 @@ void iAVROctreeMetrics::calculateMaxNumberOfFibersInRegion()
 	{
 		double numberOfFibers = 0;
 
-		for (int region = 0; region < m_fiberCoverage->at(level).size(); region++)
+		for (auto region = 0; region < m_fiberCoverage->at(level).size(); region++)
 		{
 			auto fibers = m_fiberCoverage->at(level).at(region)->size();
 

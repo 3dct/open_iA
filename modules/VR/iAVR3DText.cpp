@@ -84,7 +84,7 @@ void iAVR3DText::createSmall3DLabel(QString text)
 	m_textActor3D->GetTextProperty()->SetJustificationToCentered();
 	m_textActor3D->GetTextProperty()->SetFrame(1);
 	m_textActor3D->GetTextProperty()->SetFrameColor(0.6, 0.6, 0.6);
-	m_textActor3D->GetTextProperty()->SetFrameWidth(1.6);
+	m_textActor3D->GetTextProperty()->SetFrameWidth(2);
 	m_textActor3D->GetTextProperty()->SetBackgroundOpacity(1.0);
 	m_textActor3D->GetTextProperty()->SetBackgroundColor(0.4, 0.4, 0.4);
 	m_textActor3D->GetTextProperty()->SetFontSize(14);

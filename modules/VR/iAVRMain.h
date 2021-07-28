@@ -67,7 +67,7 @@ enum class iAVROperations {
   DisplayNodeLinkDiagram,
   ChangeMiMDisplacementType,
   ChangeJaccardIndex,
-  RotateVis,
+  FlipHistoBookPages,
   NumberOfOperations
 };
 
@@ -87,7 +87,6 @@ public:
 	void endInteraction(vtkEventDataDevice3D* device, double eventPosition[3], double eventOrientation[4],vtkProp3D* pickedProp); //Release, Untouch
 	void onMove(vtkEventDataDevice3D* device, double movePosition[3], double eventOrientation[4]); //Movement
 	void onZoom();
-	void onRotate(double angle);
 	int currentOctreeLevel;
 
 private:
@@ -157,6 +156,6 @@ private:
 	void spawnModelInMiniature(double eventPosition[3], bool hide);
 	void pressLeftTouchpad();
 	void changeMiMDisplacementType();
-	void rotateDistributionVis(double eventPosition[3], bool startAction);
+	void flipDistributionVis();
 	void displayNodeLinkD();
 };

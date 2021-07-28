@@ -48,7 +48,6 @@ private:
 	std::vector<double>* m_maxNumberOffibersInRegions;
 	//Stores the info if at a specific octree [level] a specific [feature] is already calculated
 	std::vector<std::vector<bool>>* isAlreadyCalculated;
-	bool m_maxCoverageisAlreadyCalculated;
 
 	void calculateWeightedAverage(int octreeLevel, int feature);
 	void calculateMaxCoverageFiberPerRegion();

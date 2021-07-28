@@ -246,7 +246,7 @@ void iAVRColorLegend::setTitle(QString title)
 //! Calculates the Lookuptable (LUT) based on the range from min to max and a given color scheme
 vtkSmartPointer<vtkLookupTable> iAVRColorLegend::calculateLUT(double min, double max, std::vector<QColor> colorScheme)
 {
-	int schemeSize = colorScheme.size();
+	auto schemeSize = colorScheme.size();
 	m_lut = vtkSmartPointer<vtkLookupTable>::New();
 
 	m_lut->SetNumberOfTableValues(schemeSize);
@@ -254,7 +254,7 @@ vtkSmartPointer<vtkLookupTable> iAVRColorLegend::calculateLUT(double min, double
 
 	for (int i = 0; i < schemeSize; i++)
 	{
-		int temp = schemeSize - 1 - i;
+		auto temp = schemeSize - 1 - i;
 		m_lut->SetTableValue(i, colorScheme.at(temp).redF(), colorScheme.at(temp).greenF(), colorScheme.at(temp).blueF());
 	}
 

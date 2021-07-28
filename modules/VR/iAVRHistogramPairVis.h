@@ -85,7 +85,6 @@ private:
 	double axisAngle; //in RAD
 	int currentlyShownAxis;
 	int m_axisInView;
-	double binY;
 	//[0] Left (0°), [1] Right (180°) Axis
 	int m_frontAxes[2];
 

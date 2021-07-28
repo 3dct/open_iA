@@ -24,7 +24,7 @@
 int iAVRMetrics::numberOfFeatures = 0;
 std::vector<std::vector<double>>* iAVRMetrics::m_minMaxValues = nullptr;
 
-iAVRMetrics::iAVRMetrics(vtkTable* objectTable, iACsvIO io, std::vector<iAVROctree*>* octrees) : m_objectTable(objectTable), m_io(io),
+iAVRMetrics::iAVRMetrics(vtkTable* objectTable, iACsvIO io, std::vector<iAVROctree*>* octrees) : m_io(io), m_objectTable(objectTable),
 m_octrees(octrees)
 {
 	// Initialize these values only once

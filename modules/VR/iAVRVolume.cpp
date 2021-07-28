@@ -127,7 +127,7 @@ void iAVRVolume::setNodeColor(std::vector<vtkIdType> regions, std::vector<QColor
 {
 	if (nodeGlyphResetColor->GetNumberOfTuples() >0)
 	{
-		for (vtkIdType i = 0; i < regions.size(); i++)
+		for (int i = 0; i < regions.size(); i++)
 		{
 			nodeGlyphColor->SetTuple3(regions.at(i), color.at(i).red(), color.at(i).green(), color.at(i).blue());
 			nodeGlyph3D->Modified();

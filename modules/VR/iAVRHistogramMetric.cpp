@@ -82,11 +82,11 @@ int iAVRHistogramMetric::determineNumberOfBins(int observations, int method)
 }
 
 //! Sets the ID of the feature which is represented by this histogram
-//! The name of the feature is also set as axis metadata (boost)
 void iAVRHistogramMetric::setHistogramFeatureID(iAVRHistogram* histogram, int ID)
 {
 	histogram->m_histogramParameters.featureID = ID;
-	histogram->getHistogram()->axis(0).metadata() = getFeatureName(ID).toStdString();
+	// The name of the feature is also set as axis metadata (boost)
+	//histogram->getHistogram()->axis(0).metadata() = getFeatureName(ID).toStdString();
 }
 
 //! Calculates the number of needed bins through Sturge's Rule

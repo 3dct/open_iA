@@ -38,8 +38,7 @@
 #include <qstring.h>
 #include <QCoreApplication>
 
-iAVREnvironment::iAVREnvironment():	m_renderer(vtkSmartPointer<vtkOpenVRRenderer>::New()), m_interactor(vtkSmartPointer<iAVRInteractor>::New()), 
-m_renderWindow(vtkSmartPointer<vtkOpenVRRenderWindow>::New())
+iAVREnvironment::iAVREnvironment():	m_renderer(vtkSmartPointer<vtkOpenVRRenderer>::New()), m_renderWindow(vtkSmartPointer<vtkOpenVRRenderWindow>::New()), m_interactor(vtkSmartPointer<iAVRInteractor>::New())
 {	
 	createSkybox(0);
 	createLightKit();

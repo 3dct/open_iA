@@ -46,7 +46,7 @@
 #include <vtkTransformFilter.h>
 #include <vtkSphereSource.h>
 
-iAVRHistogramPairVis::iAVRHistogramPairVis(vtkRenderer* ren, iAVRHistogramMetric* histogramMetric, iAVROctreeMetrics* octreeMetric, vtkTable* objectTable, iACsvIO io) :m_renderer(ren), m_histogramMetric(histogramMetric), m_octreeMetric(octreeMetric), m_sphereActor(vtkSmartPointer<vtkActor>::New()), m_objectTable(objectTable), m_io(io)
+iAVRHistogramPairVis::iAVRHistogramPairVis(vtkRenderer* ren, iAVRHistogramMetric* histogramMetric, iAVROctreeMetrics* octreeMetric, vtkTable* objectTable, iACsvIO io) :m_renderer(ren), m_octreeMetric(octreeMetric), m_histogramMetric(histogramMetric), m_sphereActor(vtkSmartPointer<vtkActor>::New()), m_objectTable(objectTable), m_io(io)
 {
 	initialize();
 }
@@ -414,7 +414,7 @@ void iAVRHistogramPairVis::flipThroughHistograms(double flipDir)
 	for (int pos = 0; pos < 2; pos++)
 	{
 		if (m_frontAxes[pos] < 0) m_frontAxes[pos] = m_axesPoly->size() - 1;
-		if (m_frontAxes[pos] > m_axesPoly->size() - 1) m_frontAxes[pos] = 0;
+		if (m_frontAxes[pos] > static_cast<int>(m_axesPoly->size()) - 1) m_frontAxes[pos] = 0;
 	}
 
 	drawAxes(m_axisInView);

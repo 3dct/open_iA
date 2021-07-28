@@ -165,7 +165,6 @@ std::vector<QColor>* iAVRMip::calculateMIPColoring(int direction, int level, int
 		for (int x = 0; x < gridSize; x++)
 		{
 			double val = 0;
-			double rgb[3] = { 0,0,0 };
 
 			for (auto region : regionsInLine->at(direction).at(y).at(x))
 			{
