@@ -54,8 +54,6 @@ IF (MSVC)
 	MESSAGE(STATUS "Compiler: Visual C++ (MSVC_VERSION ${MSVC_VERSION} / ${CMAKE_CXX_COMPILER_VERSION})")
 	set (BUILD_INFO "${BUILD_INFO}    \"Compiler: Visual C++ (MSVC_VERSION ${MSVC_VERSION} / ${CMAKE_CXX_COMPILER_VERSION})\\n\"\n")
 	set (BUILD_INFO "${BUILD_INFO}    \"Windows SDK: ${CMAKE_VS_WINDOWS_TARGET_PLATFORM_VERSION}\\n\"\n")
-	# Apply file grouping based on regular expressions for Visual Studio IDE.
-	SOURCE_GROUP("UI Files" REGULAR_EXPRESSION "[.](ui|qrc)$")
 ELSEIF (CMAKE_CXX_COMPILER_ID MATCHES "Clang")
 	MESSAGE(STATUS "Compiler: Clang (${CMAKE_CXX_COMPILER_VERSION})")
 	set (BUILD_INFO "${BUILD_INFO}    \"Compiler: Clang (Version ${CMAKE_CXX_COMPILER_VERSION})\\n\"\n")

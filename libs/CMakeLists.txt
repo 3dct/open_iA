@@ -2,6 +2,11 @@ SET (LIB_TYPE SHARED)
 INCLUDE(Modules)
 
 FILE(GLOB children RELATIVE ${CMAKE_CURRENT_SOURCE_DIR} "${CMAKE_CURRENT_SOURCE_DIR}/*")
+if (MSVC)
+	# Apply file grouping based on regular expressions for Visual Studio (applies to all projects in current folder)
+	SOURCE_GROUP("UI Files" REGULAR_EXPRESSION "[.](ui|qrc)$")
+	SOURCE_GROUP("Generated" REGULAR_EXPRESSION "ui_")
+endif()
 FOREACH(libdir ${children})
 
 	# todo: add check on whether any module requires lib (for objectvis only ATM?)
