@@ -14,7 +14,7 @@ class dlg_MultidimensionalScalingDialog : public QDialog, public Ui_Multidimensi
 
    public:
 	dlg_MultidimensionalScalingDialog(
-		QList<csvFileData>* data, iAMultidimensionalScaling* mds, QWidget* parent = 0, Qt::WindowFlags f = 0);
+		QList<csvFileData>* data, iAMultidimensionalScaling* mds, QWidget* parent = nullptr, Qt::WindowFlags f = Qt::WindowFlags());
 
    public slots:
 	void onCellChanged(int row, int column);
