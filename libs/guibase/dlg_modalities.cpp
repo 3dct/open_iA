@@ -64,6 +64,7 @@ dlg_modalities::dlg_modalities(iAFast3DMagicLensWidget* magicLensWidget,
 	m_mdiChild(mdiChild),
 	m_ui(new Ui_modalities())
 {
+	m_ui->setupUi(this);
 	for (int i = 0; i <= iASlicerMode::SlicerCount; ++i)
 	{
 		m_manualMoveStyle[i] = vtkSmartPointer<iAvtkInteractStyleActor>::New();
