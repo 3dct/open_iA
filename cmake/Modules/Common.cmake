@@ -227,7 +227,7 @@ SET (VTK_COMPONENTS
 IF (VTK_MAJOR_VERSION GREATER_EQUAL 9)
 	LIST (APPEND VTK_COMPONENTS         # components not pulled in automatically anymore in VTK >= 9:
 		ChartsCore                  # for vtkAxis, vtkChart, vtkChartParallelCoordinates, used in FeatureScout, FuzzyFeatureTracking, GEMSE, PorosityAnalyzer
-		CommonColor                 # for vtkNamedColors
+		CommonColor                 # for vtkNamedColors, vtkColorSeries, used in CompVis
 		CommonComputationalGeometry # for vtkParametricSpline, used in core - iASpline/iAParametricSpline
 		FiltersExtraction           # for vtkExtractGeometry, used in FIAKER - iASelectionInteractorStyle
 		FiltersGeometry             # for vtkImageDataGeometryFilter used in iALabel3D and vtkDataSetSurfaceFilter used in ExtractSurface - iAExtractSurfaceFilter
@@ -235,8 +235,8 @@ IF (VTK_MAJOR_VERSION GREATER_EQUAL 9)
 		FiltersStatistics           # for vtkDataSetSurfaceFilter used in BoneThickness - iABoneThickness
 		GUISupportQt                # for QVTKOpenGLNativeWidget
 		ImagingHybrid               # for vtkSampleFunction.h used in FeatureScout - iABlobCluster
+		InfovisLayout               # for vtkGraphLayoutStrategy used in CompVis
 		IOXML                       # for vtkXMLImageDataReader used in iAIO
-		RenderingContext2D          # for making vtkContext2D::GetDevice return something else than nullptr
 	)
 ENDIF()
 IF ("${VTK_RENDERING_BACKEND}" STREQUAL "OpenGL2")

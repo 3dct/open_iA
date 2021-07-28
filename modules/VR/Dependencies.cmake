@@ -18,6 +18,13 @@ ELSE()
 	endif()
 ENDIF()
 
+# Check whether boost has histogram.hpp (only available in boost >= 1.70)
+include(CheckIncludeFileCXX)
+check_include_file_cxx("boost/histogram.hpp" HAVE_BOOST_HISTOGRAM_HPP CMAKE_REQUIRED_INCLUDES ${BOOST_INCLUDE_DIR})
+if (NOT HAVE_BOOST_HISTOGRAM_HPP)
+	set(DEPENDENCIES_CMAKE BOOST_HISTOGRAM_HPP_FOUND)
+endif()
+
 SET ( DEPENDENCIES_LIBRARIES
 	${OPENVR_LIBRARY}
 	iAguibase

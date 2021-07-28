@@ -27,7 +27,7 @@
 #include <vtkPlaneSource.h>
 #include <vtkPolyData.h>
 
-#include <iAvec3.h>
+#include <iAVec3.h>
 
 #include <QColor>
 #include <unordered_map>
