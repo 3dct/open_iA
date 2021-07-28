@@ -20,18 +20,21 @@
 * ************************************************************************************/
 #pragma once
 
-#include "ui_CsvInput.h"
 #include "iACsvConfig.h"
 
 #include "iAobjectvis_export.h"
 
-class iACsvIO;
+#include <QDialog>
 
+class iACsvIO;
+class Ui_CsvInput;
+
+class QComboBox;
 class QSettings;
 
 //! Loads custom csv file with data preview
 //! Settings can be adapted and saved under a specified format name
-class iAobjectvis_API dlg_CSVInput : public QDialog, public Ui_CsvInput
+class iAobjectvis_API dlg_CSVInput : public QDialog
 {
 Q_OBJECT
 public:
@@ -147,4 +150,5 @@ private:
 	QVector<QComboBox*> m_mappingBoxes;
 	bool m_columnMappingChoiceSet; //!< whether we have provided proper choices in the column mapping comboboxes already
 	bool m_volumeDataAvailable;    //!< whether a volume dataset was available before opening the dialog
+	QSharedPointer<Ui_CsvInput> m_ui;
 };

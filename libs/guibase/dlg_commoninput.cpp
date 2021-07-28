@@ -20,6 +20,8 @@
 * ************************************************************************************/
 #include "dlg_commoninput.h"
 
+#include "ui_CommonInput.h"
+
 #include "iAAttributeDescriptor.h"
 #include "iAFilterSelectionDlg.h"
 #include "iALog.h"
@@ -52,16 +54,17 @@ dlg_commoninput::dlg_commoninput(QWidget *parent, QString const & title, QString
 	: QDialog(parent),
 	m_sourceMdiChild(nullptr),
 	m_sourceMdiChildClosed(false),
-	m_widgetList(labels.size())
+	m_widgetList(labels.size()),
+	m_ui(new Ui_CommonInput())
 {
-	setupUi(this);
+	m_ui->setupUi(this);
 	if (title.isEmpty())
 	{
 		LOG(lvlError, "Implementation Error: No window title entered. Please give a window title");
 		auto lbl = new QLabel("Implementation Error: No window title entered. Please give a window title");
-		gridLayout->addWidget(lbl, 0, 0);
-		buttonBox->button(QDialogButtonBox::Ok)->setEnabled(false);
-		gridLayout->addWidget(buttonBox, 1, 0);
+		m_ui->gridLayout->addWidget(lbl, 0, 0);
+		m_ui->buttonBox->button(QDialogButtonBox::Ok)->setEnabled(false);
+		m_ui->gridLayout->addWidget(m_ui->buttonBox, 1, 0);
 		return;
 	}
 	if (labels.size() != values.size())
@@ -70,9 +73,9 @@ dlg_commoninput::dlg_commoninput(QWidget *parent, QString const & title, QString
 			"Please report this message to the developers, along with the action you were trying to perform when it occured!");
 		auto lbl = new QLabel("Implementation Error: The number of of parameter descriptions and the number of given values does not match. "
 			"Please report this message to the developers, along with the action you were trying to perform when it occured!");
-		gridLayout->addWidget(lbl, 0, 0);
-		buttonBox->button(QDialogButtonBox::Ok)->setEnabled(false);
-		gridLayout->addWidget(buttonBox, 1, 0);
+		m_ui->gridLayout->addWidget(lbl, 0, 0);
+		m_ui->buttonBox->button(QDialogButtonBox::Ok)->setEnabled(false);
+		m_ui->gridLayout->addWidget(m_ui->buttonBox, 1, 0);
 		return;
 	}
 	this->setWindowTitle(title);
@@ -88,7 +91,7 @@ dlg_commoninput::dlg_commoninput(QWidget *parent, QString const & title, QString
 		info->setDocument(doc);
 		info->setReadOnly(true);
 		info->setOpenExternalLinks(true);
-		gridLayout->addWidget(info, 0, 0);
+		m_ui->gridLayout->addWidget(info, 0, 0);
 		// make sure that description can be easily resized; parameters have scroll bar
 		scrollArea->setSizePolicy(QSizePolicy::Expanding, QSizePolicy::Fixed);
 	}
@@ -197,8 +200,8 @@ dlg_commoninput::dlg_commoninput(QWidget *parent, QString const & title, QString
 	pal.setColor(scrollArea->backgroundRole(), Qt::transparent);
 	scrollArea->setPalette(pal);
 
-	gridLayout->addWidget(scrollArea, 1, 0);
-	gridLayout->addWidget(buttonBox, 2, 0);  // add the ok and cancel button to the gridlayout
+	m_ui->gridLayout->addWidget(scrollArea, 1, 0);
+	m_ui->gridLayout->addWidget(m_ui->buttonBox, 2, 0);  // add the ok and cancel button to the gridlayout
 
 	updateValues(values);
 }
@@ -528,4 +531,14 @@ int dlg_commoninput::exec()
 		m_sourceMdiChild->setROIVisible(false);
 	}
 	return result;
+}
+
+void dlg_commoninput::addWidget(QWidget* w, int row, int col, int rowSpan, int colSpan)
+{
+	m_ui->gridLayout->addWidget(w, row, col, rowSpan, colSpan);
+}
+
+QDialogButtonBox* dlg_commoninput::buttonBox()
+{
+	return m_ui->buttonBox;
 }

@@ -30,6 +30,7 @@
 #include "iAModuleInterface.h"
 #include "iAMainWindow.h"
 
+#include <QCoreApplication>
 #include <QDir>
 #include <QFileInfo>
 #include <QMenu>

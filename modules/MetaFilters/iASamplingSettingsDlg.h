@@ -20,27 +20,23 @@
 * ************************************************************************************/
 #pragma once
 
-#include "ui_samplingSettings.h"
-
 #include "MetaFilters_export.h"
 
 #include <iAAttributes.h>
 #include <iASettings.h>
-#include <qthelper/iAQTtoUIConnector.h>
 #include <qthelper/iAWidgetSettingsMapper.h>
 
+#include <QDialog>
 #include <QMap>
-
 
 class iAAttributeDescriptor;
 class iAModalityList;
 class iASamplingMethod;
+class Ui_samplingSettings;
 
 class QCheckBox;
+class QLabel;
 class QShortcut;
-
-
-using dlg_samplingSettingsUI = iAQTtoUIConnector<QDialog, Ui_samplingSettings>;
 
 class iAParameterInputs
 {
@@ -54,7 +50,7 @@ public:
 	virtual QSharedPointer<iAAttributeDescriptor> currentDescriptor() = 0;
 };
 
-class MetaFilters_API iASamplingSettingsDlg : public dlg_samplingSettingsUI
+class MetaFilters_API iASamplingSettingsDlg : public QDialog
 {
 	Q_OBJECT
 public:
@@ -88,4 +84,5 @@ private:
 	iAWidgetMap m_widgetMap;
 	iAQRadioButtonVector m_rgAlgorithmType;
 	QSharedPointer<iAAttributes> m_paramSpecs;
+	QSharedPointer<Ui_samplingSettings> m_ui;
 };

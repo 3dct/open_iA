@@ -124,6 +124,7 @@
 #include <QInputDialog>
 #include <QMenu>
 #include <QMessageBox>
+#include <QPushButton>
 #include <QString>
 #include <QStandardItem>
 #include <QStandardItemModel>

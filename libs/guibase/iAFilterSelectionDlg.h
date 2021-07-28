@@ -22,14 +22,14 @@
 
 #include "iAguibase_export.h"
 
-#include "ui_FilterSelection.h"
-#include "qthelper/iAQTtoUIConnector.h"
+#include <QDialog>
 
+class Ui_FilterSelectionDlg;
 
-typedef iAQTtoUIConnector<QDialog, Ui_FilterSelectionDlg> iAFilterSelectionConnector;
+class QListWidgetItem;
 
 //! Dialog for selecting a filter from the ones currently registered with the iAFilterRegistry.
-class iAguibase_API iAFilterSelectionDlg : public iAFilterSelectionConnector
+class iAguibase_API iAFilterSelectionDlg : public QDialog
 {
 Q_OBJECT
 public:
@@ -51,4 +51,5 @@ private:
 	//! check whether one (shown) item is selected, and if it is, show its description and enable OK button.
 	void updateOKAndDescription();
 	int m_curMatches;
+	QSharedPointer<Ui_FilterSelectionDlg> m_ui;
 };

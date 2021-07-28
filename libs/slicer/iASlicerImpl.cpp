@@ -97,6 +97,7 @@
 
 #include <QActionGroup>
 #include <QBitmap>
+#include <QCoreApplication>
 #include <QFileDialog>
 #include <QIcon>
 #include <QKeyEvent>
