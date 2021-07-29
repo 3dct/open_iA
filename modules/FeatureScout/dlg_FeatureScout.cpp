@@ -229,12 +229,7 @@ dlg_FeatureScout::dlg_FeatureScout(iAMdiChild* parent, iAObjectType fid, QString
 	m_tableList.push_back(m_chartTable);
 
 	initFeatureScoutUI();
-	CREATE_OLDVTKWIDGET(m_pcWidget);
-	CREATE_OLDVTKWIDGET(m_polarPlotWidget);
-	CREATE_OLDVTKWIDGET(m_lengthDistrWidget);
 	m_lengthDistrWidget->hide();
-	m_dwPC->setWidget(m_pcWidget);
-	m_dwPP->legendLayout->addWidget(m_polarPlotWidget);
 
 	// Initialize the models for QtViews
 	initColumnVisibility();
@@ -1449,11 +1444,9 @@ void dlg_FeatureScout::CsvDVSaveButton()
 	{
 		if (!m_dwDV)
 		{
-			m_dwDV = new iADockWidgetWrapper("Distribution View", "FeatureScoutDV");
-
 			iAVtkOldWidget* dvqvtkWidget;
 			CREATE_OLDVTKWIDGET(dvqvtkWidget);
-			m_dwDV->setWidget(dvqvtkWidget);
+			m_dwDV = new iADockWidgetWrapper(dvqvtkWidget, "Distribution View", "FeatureScoutDV");
 #if VTK_VERSION_NUMBER < VTK_VERSION_CHECK(9, 0, 0)
 			m_dvContextView->SetRenderWindow(dvqvtkWidget->GetRenderWindow());
 			m_dvContextView->SetInteractor(dvqvtkWidget->GetInteractor());
@@ -1883,12 +1876,12 @@ void dlg_FeatureScout::showScatterPlot()
 	{
 		return;
 	}
-	m_dwSPM = new iADockWidgetWrapper("Scatter Plot Matrix", "FeatureScoutSPM");
+	QSignalBlocker spmBlock(m_splom.data()); //< no need to trigger updates while we're creating SPM
+	m_splom->initScatterPlot(m_csvTable, m_columnVisibility);
+	m_dwSPM = new iADockWidgetWrapper(m_splom->matrixWidget(), "Scatter Plot Matrix", "FeatureScoutSPM");
 	m_activeChild->splitDockWidget(m_activeChild->renderDockWidget(), m_dwSPM, Qt::Vertical);
 	m_dwSPM->show();
 	m_dwSPM->raise();
-	QSignalBlocker spmBlock(m_splom.data()); //< no need to trigger updates while we're creating SPM
-	m_splom->initScatterPlot(m_dwSPM, m_csvTable, m_columnVisibility);
 	if (m_renderMode == rmMultiClass)
 	{
 		m_splom->multiClassRendering(m_colorList);
@@ -3157,8 +3150,12 @@ void dlg_FeatureScout::SaveBlobMovie()
 
 void dlg_FeatureScout::initFeatureScoutUI()
 {
-	m_dwPC = new iADockWidgetWrapper("Parallel Coordinates", "FeatureScoutPC");
+	CREATE_OLDVTKWIDGET(m_lengthDistrWidget);
+	CREATE_OLDVTKWIDGET(m_pcWidget);
+	m_dwPC = new iADockWidgetWrapper(m_pcWidget, "Parallel Coordinates", "FeatureScoutPC");
 	m_dwPP = new dlg_PolarPlot(this);
+	CREATE_OLDVTKWIDGET(m_polarPlotWidget);
+	m_dwPP->legendLayout->addWidget(m_polarPlotWidget);
 	m_activeChild->addDockWidget(Qt::RightDockWidgetArea, this);
 	m_activeChild->addDockWidget(Qt::RightDockWidgetArea, m_dwPC);
 	m_activeChild->addDockWidget(Qt::RightDockWidgetArea, m_dwPP);
