@@ -94,7 +94,7 @@ void iAVRHistogramPairVis::createVisualization(double* pos, double visSize, doub
 
 	//Axes which are at 0° and 180°
 	m_frontAxes[0] = 0;
-	m_frontAxes[1] = featureList->size() - 1;
+	m_frontAxes[1] = static_cast<int>(featureList->size() - 1);
 
 	//Copy only values from position pointer
 	m_centerOfVis[0] = pos[0];
@@ -166,7 +166,7 @@ void iAVRHistogramPairVis::createVisualization(double* pos, double visSize, doub
 	for (int i = 0; i < featureList->size(); i++)
 	{
 		double posOnCircle[3]{};
-		calculateAxisPositionInCircle(i, featureList->size() - 1, pos, m_radius, posOnCircle);
+		calculateAxisPositionInCircle(i, static_cast<int>(featureList->size() - 1), pos, m_radius, posOnCircle);
 		calculateCenterOffsetPos(pos, posOnCircle, newCenterPos);
 		calculateAxis(newCenterPos, posOnCircle);
 		createAxisMarks(i);
@@ -413,7 +413,7 @@ void iAVRHistogramPairVis::flipThroughHistograms(double flipDir)
 
 	for (int pos = 0; pos < 2; pos++)
 	{
-		if (m_frontAxes[pos] < 0) m_frontAxes[pos] = m_axesPoly->size() - 1;
+		if (m_frontAxes[pos] < 0) m_frontAxes[pos] = static_cast<int>(m_axesPoly->size() - 1);
 		if (m_frontAxes[pos] > static_cast<int>(m_axesPoly->size()) - 1) m_frontAxes[pos] = 0;
 	}
 
