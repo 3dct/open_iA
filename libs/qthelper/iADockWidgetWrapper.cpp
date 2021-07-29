@@ -29,16 +29,6 @@ iADockWidgetWrapper::iADockWidgetWrapper(QWidget* widget, QString const & window
 	setObjectName(objectName);
 }
 
-
-iADockWidgetWrapper::iADockWidgetWrapper(QString const & windowTitle, QString const & objectName):
-	m_titleBar(new QWidget())
-{
-	setWindowTitle(windowTitle);
-	setFeatures(DockWidgetVerticalTitleBar | DockWidgetClosable | DockWidgetMovable | DockWidgetFloatable);
-	setObjectName(objectName);
-}
-
-
 void iADockWidgetWrapper::toggleTitleBar()
 {
 	QWidget* titleBar = titleBarWidget();
@@ -51,7 +41,6 @@ void iADockWidgetWrapper::toggleTitleBar()
 		setTitleBarWidget(m_titleBar);
 	}
 }
-
 
 bool iADockWidgetWrapper::isTitleBarVisible() const
 {

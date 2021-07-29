@@ -36,6 +36,8 @@
 #include "io/iAIO.h"
 #include "io/iAIOProvider.h"
 #include "iAMdiChild.h"
+#include "ui_modalities.h"
+
 
 #include <QVTKInteractor.h>
 #include <vtkColorTransferFunction.h>
@@ -59,30 +61,32 @@ dlg_modalities::dlg_modalities(iAFast3DMagicLensWidget* magicLensWidget,
 	m_modalities(new iAModalityList),
 	m_magicLensWidget(magicLensWidget),
 	m_mainRenderer(mainRenderer),
-	m_mdiChild(mdiChild)
+	m_mdiChild(mdiChild),
+	m_ui(new Ui_modalities())
 {
+	m_ui->setupUi(this);
 	for (int i = 0; i <= iASlicerMode::SlicerCount; ++i)
 	{
 		m_manualMoveStyle[i] = vtkSmartPointer<iAvtkInteractStyleActor>::New();
 		connect(m_manualMoveStyle[i].Get(), &iAvtkInteractStyleActor::actorsUpdated, mdiChild, &iAMdiChild::updateViews);
 	}
-	connect(pbAdd,    &QPushButton::clicked, this, &dlg_modalities::addClicked);
-	connect(pbRemove, &QPushButton::clicked, this, &dlg_modalities::removeClicked);
-	connect(pbEdit,   &QPushButton::clicked, this, &dlg_modalities::editClicked);
+	connect(m_ui->pbAdd,    &QPushButton::clicked, this, &dlg_modalities::addClicked);
+	connect(m_ui->pbRemove, &QPushButton::clicked, this, &dlg_modalities::removeClicked);
+	connect(m_ui->pbEdit,   &QPushButton::clicked, this, &dlg_modalities::editClicked);
 
-	connect(lwModalities, &QListWidget::itemClicked, this, &dlg_modalities::listClicked);
-	connect(lwModalities, &QListWidget::itemChanged, this, &dlg_modalities::checkboxClicked);
+	connect(m_ui->lwModalities, &QListWidget::itemClicked, this, &dlg_modalities::listClicked);
+	connect(m_ui->lwModalities, &QListWidget::itemChanged, this, &dlg_modalities::checkboxClicked);
 }
 
 void dlg_modalities::setModalities(QSharedPointer<iAModalityList> modList)
 {
 	m_modalities = modList;
-	lwModalities->clear();
+	m_ui->lwModalities->clear();
 }
 
 void dlg_modalities::selectRow(int idx)
 {
-	lwModalities->setCurrentRow(idx);
+	m_ui->lwModalities->setCurrentRow(idx);
 }
 
 QString GetCaption(iAModality const & mod)
@@ -167,8 +171,8 @@ void dlg_modalities::initDisplay(QSharedPointer<iAModality> mod)
 void dlg_modalities::addToList(QSharedPointer<iAModality> mod)
 {
 	QListWidgetItem* listItem = new QListWidgetItem(GetCaption(*mod));
-	lwModalities->addItem(listItem);
-	lwModalities->setCurrentItem(listItem);
+	m_ui->lwModalities->addItem(listItem);
+	m_ui->lwModalities->setCurrentItem(listItem);
 	listItem->setFlags(listItem->flags() | Qt::ItemIsUserCheckable);
 	setChecked(listItem, Qt::Checked);
 }
@@ -183,15 +187,17 @@ void dlg_modalities::modalityAdded(QSharedPointer<iAModality> mod)
 {
 	addListItem(mod);
 	initDisplay(mod);
-	emit modalityAvailable(lwModalities->count()-1);
+	emit modalityAvailable(m_ui->lwModalities->count() - 1);
 }
 
 QListWidgetItem* dlg_modalities::item(QSharedPointer<iAModality> modWanted)
 {
-	for (int i = 0; i < m_modalities->size(); ++i) {
+	for (int i = 0; i < m_modalities->size(); ++i)
+	{
 		auto modFound = m_modalities->get(i);
-		if (modWanted == modFound) {
-			return lwModalities->item(i);
+		if (modWanted == modFound)
+		{
+			return m_ui->lwModalities->item(i);
 		}
 	}
 	return nullptr;
@@ -216,12 +222,12 @@ void dlg_modalities::setAllChecked(Qt::CheckState checked)
 
 void dlg_modalities::enableUI()
 {
-	pbAdd->setEnabled(true);
+	m_ui->pbAdd->setEnabled(true);
 }
 
 void dlg_modalities::removeClicked()
 {
-	int idx = lwModalities->currentRow();
+	int idx = m_ui->lwModalities->currentRow();
 	if (idx < 0 || idx >= m_modalities->size())
 	{
 		LOG(lvlError, QString("Index out of range (%1)").arg(idx));
@@ -246,8 +252,8 @@ void dlg_modalities::removeClicked()
 	}
 
 	m_modalities->remove(idx);
-	delete lwModalities->takeItem(idx);
-	lwModalities->setCurrentRow(-1);
+	delete m_ui->lwModalities->takeItem(idx);
+	m_ui->lwModalities->setCurrentRow(-1);
 	enableButtons();
 
 	m_mainRenderer->GetRenderWindow()->Render();
@@ -257,7 +263,7 @@ void dlg_modalities::removeClicked()
 
 void dlg_modalities::editClicked()
 {
-	int idx = lwModalities->currentRow();
+	int idx = m_ui->lwModalities->currentRow();
 	if (idx < 0 || idx >= m_modalities->size())
 	{
 		LOG(lvlError, QString("Index out of range (%1).").arg(idx));
@@ -330,22 +336,22 @@ void dlg_modalities::editClicked()
 		m_mdiChild->updateChannel(editModality->channelID(), editModality->image(), editModality->transfer()->colorTF(), editModality->transfer()->opacityTF(), true);
 	}
 	m_mdiChild->updateChannelOpacity(editModality->channelID(), editModality->slicerOpacity());
-	lwModalities->item(idx)->setText(GetCaption(*editModality));
+	m_ui->lwModalities->item(idx)->setText(GetCaption(*editModality));
 	emit modalitiesChanged(prop.spacingChanged(),prop.newSpacing());
 }
 
 void dlg_modalities::enableButtons()
 {
 	bool enable = m_modalities->size() > 0;
-	pbEdit->setEnabled(enable);
-	pbRemove->setEnabled(enable);
+	m_ui->pbEdit->setEnabled(enable);
+	m_ui->pbRemove->setEnabled(enable);
 }
 
 void dlg_modalities::setInteractionMode(bool manualRegistration)
 {
 	try
 	{
-		int idx = lwModalities->currentRow();
+		int idx = m_ui->lwModalities->currentRow();
 		if (idx < 0 || idx >= m_modalities->size())
 		{
 			LOG(lvlError, QString("Index out of range (%1).").arg(idx));
@@ -423,7 +429,7 @@ void dlg_modalities::configureInterActorStyles(QSharedPointer<iAModality> editMo
 
 void dlg_modalities::listClicked(QListWidgetItem* item)
 {
-	int selectedRow = lwModalities->row( item );
+	int selectedRow = m_ui->lwModalities->row(item);
 	if (selectedRow < 0)
 	{
 		return;
@@ -464,20 +470,20 @@ void dlg_modalities::setModalitySelectionMovable(int selectedRow)
 }
 
 void dlg_modalities::checkboxClicked(QListWidgetItem* item) {
-	int i = lwModalities->row(item);
+	int i = m_ui->lwModalities->row(item);
 	auto mod = m_modalities->get(i);
 	setModalityVisibility(mod, item->checkState() == Qt::Checked);
 }
 
 void dlg_modalities::setChecked(QListWidgetItem* item, Qt::CheckState checked)
 {
-	QSignalBlocker blocker(lwModalities);
+	QSignalBlocker blocker(m_ui->lwModalities);
 	{
 		item->setCheckState(checked);
 	}
 	blocker.unblock();
 
-	int i = lwModalities->row(item);
+	int i = m_ui->lwModalities->row(item);
 	auto mod = m_modalities->get(i);
 	setModalityVisibility(mod, checked == Qt::Checked);
 }
@@ -504,7 +510,7 @@ QSharedPointer<iAModalityList> dlg_modalities::modalities()
 
 int dlg_modalities::selected() const
 {
-	return lwModalities->currentRow();
+	return m_ui->lwModalities->currentRow();
 }
 
 vtkSmartPointer<vtkColorTransferFunction> dlg_modalities::colorTF(int modality)
@@ -591,5 +597,5 @@ void dlg_modalities::addModality(QSharedPointer<iAModality> mod) {
 void dlg_modalities::setFileName(int modality, QString const & fileName)
 {
 	m_modalities->get(modality)->setFileName(fileName);
-	lwModalities->item(modality)->setText(GetCaption(*m_modalities->get(modality).data()));
+	m_ui->lwModalities->item(modality)->setText(GetCaption(*m_modalities->get(modality).data()));
 }

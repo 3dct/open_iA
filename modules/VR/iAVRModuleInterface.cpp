@@ -32,6 +32,7 @@
 #include <iALog.h>
 #include <iAMainWindow.h>
 
+
 #include <openvr.h>
 
 #include <vtkFloatArray.h>
@@ -139,6 +140,16 @@ void iAVRModuleInterface::showFibers()
 		return;
 	}
 
+	std::map<size_t, std::vector<iAVec3f> > curvedFiberInfo;
+
+	if (csvConfig.visType == iACsvConfig::Cylinders || csvConfig.visType == iACsvConfig::Lines)
+	{
+		if(!readCurvedFiberInfo(csvConfig.curvedFiberFileName, curvedFiberInfo))
+		{
+			curvedFiberInfo = std::map<size_t, std::vector<iAVec3f>>();
+		}
+	}
+
 	if (!vrAvailable())
 	{
 		return;
@@ -147,15 +158,20 @@ void iAVRModuleInterface::showFibers()
 	{
 		return;
 	}
+	//Create Environment
 	m_vrEnv.reset(new iAVREnvironment());
 	connect(m_vrEnv.data(), &iAVREnvironment::finished, this, &iAVRModuleInterface::vrDone);
 	m_actionVRShowFibers->setText("Stop Show Fibers");
 
 	m_objectTable = creator.table();
 
-	m_cylinderVis.reset(new iA3DCylinderObjectVis(m_vrEnv->renderer(), m_objectTable, io.getOutputMapping(), QColor(255, 0, 0), std::map<size_t, std::vector<iAVec3f> >() ));
-	m_cylinderVis->show();
+	//Create InteractorStyle
+	m_style = vtkSmartPointer<iAVRInteractorStyle>::New();
 
+	//Create VR Main
+	m_vrMain = new iAVRMain(m_vrEnv.data(), m_style, m_objectTable, io, curvedFiberInfo);
+
+	// Start Render Loop HERE!
 	m_vrEnv->start();
 
 	m_vrEnv.reset(nullptr);

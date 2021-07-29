@@ -24,12 +24,9 @@
 
 #include <vtkSmartPointer.h>
 
+#include <QDockWidget>
 #include <QSharedPointer>
 #include <QVector>
-
-#include "ui_modalities.h"
-#include "qthelper/iAQTtoUIConnector.h"
-typedef iAQTtoUIConnector<QDockWidget, Ui_modalities> dlg_modalitiesUI;
 
 class iAvtkInteractStyleActor;
 class iAFast3DMagicLensWidget;
@@ -40,6 +37,8 @@ class iAVolumeSettings;
 class iAModalityTransfer;
 class iAMdiChild;
 
+class Ui_modalities;
+
 class vtkActor;
 class vtkColorTransferFunction;
 class vtkImageData;
@@ -47,9 +46,11 @@ class vtkPiecewiseFunction;
 class vtkPlane;
 class vtkRenderer;
 
+class QListWidgetItem;
+
 // TODO: VOLUME: split off volume manager for the management of the actual volume rendering stuff
 // TODO: VOLUME: rename to dlg_dataList or such
-class iAguibase_API dlg_modalities : public dlg_modalitiesUI
+class iAguibase_API dlg_modalities : public QDockWidget
 {
 	Q_OBJECT
 public:
@@ -114,6 +115,8 @@ private:
 	iAMdiChild* m_mdiChild;
 
 	vtkSmartPointer<iAvtkInteractStyleActor> m_manualMoveStyle[4];
+
+	QSharedPointer<Ui_modalities> m_ui;
 
 	void setChecked(QListWidgetItem* item, Qt::CheckState checked);
 	void setModalityVisibility(QSharedPointer<iAModality>, bool visible);

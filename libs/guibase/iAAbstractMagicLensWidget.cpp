@@ -175,7 +175,6 @@ bool iAAbstractMagicLensWidget::event(QEvent* event)
 	default:
 		return iAVtkWidget::event(event);
 	}
-	return true;
 }
 
 void iAAbstractMagicLensWidget::updateLens( )

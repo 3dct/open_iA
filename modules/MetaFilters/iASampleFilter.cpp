@@ -34,6 +34,7 @@
 #include <iAMdiChild.h>
 
 #include <QDir>
+#include <QEventLoop>
 
 
 IAFILTER_CREATE(iASampleFilter)

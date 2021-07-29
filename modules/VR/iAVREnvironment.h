@@ -21,12 +21,16 @@
 #pragma once
 
 #include <vtkSmartPointer.h>
+#include <vtkTexture.h>
+#include <vtkActor.h>
+#include <vtkSkybox.h>
 
 #include <QObject>
 
 class vtkOpenVRRenderer;
 class iAVRInteractor;
 class vtkRenderer;
+class vtkOpenVRRenderWindow;
 
 class iAVREnvironment: public QObject
 {
@@ -34,11 +38,26 @@ class iAVREnvironment: public QObject
 public:
 	iAVREnvironment();
 	vtkRenderer* renderer();
+	iAVRInteractor* interactor();
+	vtkOpenVRRenderWindow* renderWindow();
+	void update();
 	void start();
 	void stop();
+	void createLightKit();
+	double getInitialWorldScale();
 private:
 	vtkSmartPointer<vtkOpenVRRenderer> m_renderer;
+	vtkSmartPointer<vtkOpenVRRenderWindow> m_renderWindow;
 	vtkSmartPointer<iAVRInteractor> m_interactor;
+	vtkSmartPointer<vtkSkybox> skyboxActor;
+	//Stores the world scale at start
+	double m_worldScale;
+
+	void createSkybox(int skyboxImage);
+	vtkSmartPointer<vtkTexture> ReadCubeMap(std::string const& folderPath,
+		std::string const& fileRoot,
+		std::string const& ext, int const& key);
+
 signals:
 	void finished();
 };

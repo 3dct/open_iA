@@ -63,20 +63,12 @@ iAFeatureScoutSPLOM::iAFeatureScoutSPLOM():
 	selectionEnabled(true)
 {}
 
-iAFeatureScoutSPLOM::~iAFeatureScoutSPLOM()
+void iAFeatureScoutSPLOM::initScatterPlot(vtkTable* csvTable, std::vector<char> const & columnVisibility)
 {
-}
-
-void iAFeatureScoutSPLOM::initScatterPlot(QDockWidget* container, vtkTable* csvTable, std::vector<char> const & columnVisibility)
-{
-	if (matrix)
-	{
-		delete matrix;
-	}
+	assert(!matrix);
 	matrix = new iAQSplom();
 	matrix->setSelectionMode(iAScatterPlot::Rectangle);
 	auto spInput = createSPLOMData(csvTable);
-	container->setWidget(matrix);
 	matrix->showAllPlots(false);
 	matrix->setData(spInput, columnVisibility);
 	matrix->setSelectionColor(QColor(255, 40, 0, 255));
@@ -251,4 +243,9 @@ void iAFeatureScoutSPLOM::enableSelection(bool enable)
 	}
 	matrix->viewData()->clearSelection();
 	matrix->enableSelection(enable);
+}
+
+QWidget* iAFeatureScoutSPLOM::matrixWidget()
+{
+	return matrix;
 }

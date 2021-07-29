@@ -21,7 +21,6 @@
 #pragma once
 
 #include "iAguibase_export.h"
-#include "ui_CommonInput.h"
 
 #include <QDialog>
 #include <QStringList>
@@ -29,14 +28,17 @@
 
 class iAMainWindow;
 class iAMdiChild;
-class QWidget;
+class Ui_CommonInput;
+
+class QDialogButtonBox;
 class QErrorMessage;
 class QLabel;
 class QScrollArea;
 class QString;
+class QWidget;
 
 //! Dialog asking the user for some given parameters.
-class iAguibase_API dlg_commoninput : public QDialog, public Ui_CommonInput
+class iAguibase_API dlg_commoninput : public QDialog
 {
 	Q_OBJECT
 public:
@@ -74,6 +76,9 @@ public:
 	int exec() override;
 	void setSourceMdi(iAMdiChild* child, iAMainWindow* mainWnd);
 	QVector<QWidget*> widgetList();
+	void addWidget(QWidget* w, int row, int col, int rowSpan, int colSpan);
+	QDialogButtonBox* buttonBox();
+
 private:
 	QWidget * m_container;
 	int m_roi[6];
@@ -84,6 +89,7 @@ private:
 	void updateValues(QList<QVariant>);
 	void UpdateROIPart(QString const & partName, QString const & value);
 	QVector<QWidget*> m_widgetList;
+	QSharedPointer<Ui_CommonInput> m_ui;
 private slots:
 	void ROIUpdated(QString text);
 	void SourceChildClosed();

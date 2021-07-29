@@ -99,6 +99,7 @@
 #include <QMessageBox>
 #include <QSettings>
 #include <QSpinBox>
+#include <QStatusBar>
 #include <QToolButton>
 #include <QtGlobal> // for QT_VERSION
 
@@ -1908,16 +1909,6 @@ bool MdiChild::addVolumePlayer()
 	connect(m_histogram, &iAChartWithFunctionsWidget::applyTFForAll, m_dwVolumePlayer, &dlg_volumePlayer::applyForAll);
 
 	return true;
-}
-
-int MdiChild::evaluatePosition(int pos, int i, bool invert)
-{
-	if (pos < 0)
-	{
-		invert ? (pos = m_imageData->GetExtent()[i]) : (pos = 0);
-	}
-	if (pos > m_imageData->GetExtent()[i]) invert ? (pos = 0) : (pos = m_imageData->GetExtent()[i]);
-	return pos;
 }
 
 void MdiChild::addStatusMsg(QString const & txt)

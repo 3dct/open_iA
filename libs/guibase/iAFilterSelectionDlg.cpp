@@ -22,46 +22,49 @@
 
 #include "iAFilterRegistry.h"
 #include "iAFilter.h"
+#include "ui_FilterSelection.h"
 
 #include <QPushButton>
 
 iAFilterSelectionDlg::iAFilterSelectionDlg(QWidget * parent, QString const & preselectedFilter):
-	iAFilterSelectionConnector(parent),
-	m_curMatches(0)
+	QDialog(parent),
+	m_curMatches(0),
+	m_ui(new Ui_FilterSelectionDlg())
 {
-	connect(leFilterSearch, &QLineEdit::textEdited, this, &iAFilterSelectionDlg::filterChanged);
-	connect(lwFilterList, &QListWidget::currentItemChanged, this, &iAFilterSelectionDlg::listSelectionChanged);
-	connect(lwFilterList, &QListWidget::itemDoubleClicked, this, &iAFilterSelectionDlg::accept);
-	buttonBox->button(QDialogButtonBox::Ok)->setEnabled(false);
+	m_ui->setupUi(this);
+	connect(m_ui->leFilterSearch, &QLineEdit::textEdited, this, &iAFilterSelectionDlg::filterChanged);
+	connect(m_ui->lwFilterList, &QListWidget::currentItemChanged, this, &iAFilterSelectionDlg::listSelectionChanged);
+	connect(m_ui->lwFilterList, &QListWidget::itemDoubleClicked, this, &iAFilterSelectionDlg::accept);
+	m_ui->buttonBox->button(QDialogButtonBox::Ok)->setEnabled(false);
 	for (auto filterFactory : iAFilterRegistry::filterFactories())
 	{
-		lwFilterList->addItem(filterFactory->create()->name());
+		m_ui->lwFilterList->addItem(filterFactory->create()->name());
 	}
 	if (!preselectedFilter.isEmpty())
 	{
-		auto matching = lwFilterList->findItems(preselectedFilter, Qt::MatchExactly);
+		auto matching = m_ui->lwFilterList->findItems(preselectedFilter, Qt::MatchExactly);
 		if (matching.size() > 0)
 		{
-			lwFilterList->setCurrentItem(matching[0]);
+			m_ui->lwFilterList->setCurrentItem(matching[0]);
 		}
 	}
-	splitter->setCollapsible(1, true);
+	m_ui->splitter->setCollapsible(1, true);
 }
 
 void iAFilterSelectionDlg::filterChanged(QString const & filter)
 {
-	for (int row = 0; row < lwFilterList->count(); ++row)
+	for (int row = 0; row < m_ui->lwFilterList->count(); ++row)
 	{
-		lwFilterList->item(row)->setHidden(true);
+		m_ui->lwFilterList->item(row)->setHidden(true);
 	}
-	QList<QListWidgetItem*> matches(lwFilterList->findItems(filter, Qt::MatchFlag::MatchContains));
+	QList<QListWidgetItem*> matches(m_ui->lwFilterList->findItems(filter, Qt::MatchFlag::MatchContains));
 	m_curMatches = matches.size();
 	for (QListWidgetItem* item : matches)
 	{
 		item->setHidden(false);
 		if (matches.size() == 1)
 		{
-			lwFilterList->setCurrentItem(item);
+			m_ui->lwFilterList->setCurrentItem(item);
 		}
 	}
 	updateOKAndDescription();
@@ -70,17 +73,17 @@ void iAFilterSelectionDlg::filterChanged(QString const & filter)
 void iAFilterSelectionDlg::updateOKAndDescription()
 {
 	bool enable = m_curMatches == 1 ||
-		(lwFilterList->currentItem() != nullptr && !lwFilterList->currentItem()->isHidden());
-	buttonBox->button(QDialogButtonBox::Ok)->setEnabled(enable);
+		(m_ui->lwFilterList->currentItem() != nullptr && !m_ui->lwFilterList->currentItem()->isHidden());
+	m_ui->buttonBox->button(QDialogButtonBox::Ok)->setEnabled(enable);
 	QString description;
 	if (enable)
 	{
-		QString filterName = lwFilterList->currentItem()->text();
+		QString filterName = m_ui->lwFilterList->currentItem()->text();
 		auto filter = iAFilterRegistry::filter(filterName);
 		assert(filter);
 		description = filter->description();
 	}
-	teDescription->setText(description);
+	m_ui->teDescription->setText(description);
 }
 
 void iAFilterSelectionDlg::listSelectionChanged(QListWidgetItem * /*current*/, QListWidgetItem * /*previous*/)
@@ -90,5 +93,5 @@ void iAFilterSelectionDlg::listSelectionChanged(QListWidgetItem * /*current*/, Q
 
 QString iAFilterSelectionDlg::selectedFilterName() const
 {
-	return lwFilterList->currentItem() == nullptr ? QString() : lwFilterList->currentItem()->text();
+	return m_ui->lwFilterList->currentItem() == nullptr ? QString() : m_ui->lwFilterList->currentItem()->text();
 }

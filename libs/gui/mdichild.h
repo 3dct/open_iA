@@ -375,7 +375,6 @@ private:
 	void updateProfile();
 	bool saveAs(int modalityNr);
 	bool initView(QString const & title);
-	int  evaluatePosition(int pos, int i, bool invert = false);
 	void set3DSlicePlanePos(int mode, int slice);
 
 	//! Changes the display of views from full to multi screen or multi screen to fullscreen.
