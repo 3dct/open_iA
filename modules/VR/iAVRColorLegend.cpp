@@ -252,7 +252,7 @@ vtkSmartPointer<vtkLookupTable> iAVRColorLegend::calculateLUT(double min, double
 	m_lut->SetNumberOfTableValues(schemeSize);
 	m_lut->Build();
 
-	for (int i = 0; i < schemeSize; i++)
+	for (size_t i = 0; i < schemeSize; i++)
 	{
 		auto temp = schemeSize - 1 - i;
 		m_lut->SetTableValue(i, colorScheme.at(temp).redF(), colorScheme.at(temp).greenF(), colorScheme.at(temp).blueF());

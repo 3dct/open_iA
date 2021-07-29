@@ -57,7 +57,7 @@ private:
 	//Stores for the [octree level] in an [octree region] a map of its fiberIDs with their coverage
 	std::vector<std::vector<std::unordered_map<vtkIdType, double>*>>* m_fiberCoverage;
 
-	vtkSmartPointer<vtkPoints> getOctreeFiberCoverage(double startPoint[3], double endPoint[3], int octreeLevel, int fiber, double fiberLength);
+	vtkSmartPointer<vtkPoints> getOctreeFiberCoverage(double startPoint[3], double endPoint[3], vtkIdType octreeLevel, vtkIdType fiber, double fiberLength);
 	bool checkIntersectionWithBox(double startPoint[3], double endPoint[3], std::vector<std::vector<iAVec3d>>* planePoints, double bounds[6], double intersection[3]);
 	bool checkIntersectionWithBox(double startPoint[3], double endPoint[3], double bounds[6], double intersection[3]);
 	double calculateFiberCoverage(double startPoint[3], double endPoint[3], double fiberLength);

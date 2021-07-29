@@ -155,7 +155,7 @@ void iAVRMip::hideMIPPanels()
 //! Saves the color for the maximum value found by shooting a parallel ray through a cube row.
 std::vector<QColor>* iAVRMip::calculateMIPColoring(int direction, int level, int feature, std::vector<std::vector<std::vector<double>>>* calculatedValues)
 {
-	int gridSize = pow(2, level);
+	size_t gridSize = pow(2, level);
 	std::vector<std::vector<std::vector<std::forward_list<vtkIdType>>>>* regionsInLine = m_octrees->at(level)->getRegionsInLineOfRay();
 	std::vector<QColor>* mipColors = new std::vector<QColor>();
 	mipColors->reserve(gridSize * gridSize);

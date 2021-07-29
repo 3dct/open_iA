@@ -185,7 +185,7 @@ iAVRMain::iAVRMain(iAVREnvironment* vrEnv, iAVRInteractorStyle* style, vtkTable*
 
 //! Defines the action executed for specific controller inputs
 //! Position and Orientation are in WorldCoordinates and Orientation is in Degree
-void iAVRMain::startInteraction(vtkEventDataDevice3D* device, double eventPosition[3], double eventOrientation[4], vtkProp3D* pickedProp)
+void iAVRMain::startInteraction(vtkEventDataDevice3D* device, vtkProp3D* pickedProp, double eventPosition[3], double eventOrientation[4])
 {
 	m_vrEnv->interactor()->GetTouchPadPosition(device->GetDevice(), device->GetInput(), touchPadPosition);
 
@@ -244,13 +244,15 @@ void iAVRMain::startInteraction(vtkEventDataDevice3D* device, double eventPositi
 		this->flipDistributionVis();
 		break;
 	default:
-		LOG(lvlDebug, QString("Operation %1 is not defined").arg(operation));
+		LOG(lvlDebug, QString("Start Operation %1 is not defined").arg(operation));
 		break;
 	}
 }
 
-void iAVRMain::endInteraction(vtkEventDataDevice3D* device, double eventPosition[3], double eventOrientation[4], vtkProp3D* pickedProp)
+void iAVRMain::endInteraction(vtkEventDataDevice3D* device, vtkProp3D* pickedProp, double eventPosition[3], double eventOrientation[4])
 {
+	Q_UNUSED(eventPosition);
+	Q_UNUSED(eventOrientation);
 	int deviceID = static_cast<int>(device->GetDevice()); // Device
 	int inputID = static_cast<int>(device->GetInput());  // Input Method
 	int actioniD = static_cast<int>(device->GetAction());     // Action of Input Method
@@ -275,6 +277,9 @@ void iAVRMain::endInteraction(vtkEventDataDevice3D* device, double eventPosition
 		this->flipDistributionVis();
 		activeInput->at(deviceID) = 0;
 		break;
+	default:
+		LOG(lvlDebug, QString("End Operation %1 is not defined").arg(operation));
+		break;
 	}
 	m_vrEnv->update();
 }
@@ -292,7 +297,7 @@ void iAVRMain::onMove(vtkEventDataDevice3D * device, double movePosition[3], dou
 	double oldcPos[3] = { cPos[deviceID][0], cPos[deviceID][1], cPos[deviceID][2]};
 	double oldcOrie[4] = { cOrie[deviceID][0], cOrie[deviceID][1], cOrie[deviceID][2], cOrie[deviceID][3]}; //W,X,Y,Z
 
-	for (size_t i = 0; i < 3; i++)
+	for (vtkIdType i = 0; i < 3; i++)
 	{
 		//Save Current Pos
 		cPos[deviceID][i] = movePosition[i];
@@ -302,8 +307,8 @@ void iAVRMain::onMove(vtkEventDataDevice3D * device, double movePosition[3], dou
 	}
 	cOrie[deviceID][3] = eventOrientation[3];
 
-	double movementPos[3];
-	double movementOrie[4];
+	double movementPos[3]{};
+	double movementOrie[4]{};
 	movementPos[0] = cPos[deviceID][0] - oldcPos[0];
 	movementPos[1] = cPos[deviceID][1] - oldcPos[1];
 	movementPos[2] = cPos[deviceID][2] - oldcPos[2];
@@ -531,7 +536,7 @@ void iAVRMain::colorMiMCubes(std::vector<vtkIdType>* regionIDs)
 	m_MiMColorLegend->calculateLegend(m_vrEnv->getInitialWorldScale());
 	m_modelInMiniature->applyHeatmapColoring(rgba); //Reset Color
 	
-	for (int i = 0; i < regionIDs->size(); i++)
+	for (size_t i = 0; i < regionIDs->size(); i++)
 	{
 		m_modelInMiniature->setCubeColor(OCTREE_COLOR, regionIDs->at(i));
 	}
@@ -672,7 +677,7 @@ void iAVRMain::multiPickMiMRegion()
 	{
 		std::vector<size_t> selection = std::vector<size_t>();
 
-		for (auto i = 0; i < multiPickIDs->size(); i++)
+		for (size_t i = 0; i < multiPickIDs->size(); i++)
 		{
 			for (auto fiber : *m_fiberCoverageCalc->getFiberCoverage()->at(currentOctreeLevel).at(multiPickIDs->at(i))) {
 				selection.push_back(fiber.first);

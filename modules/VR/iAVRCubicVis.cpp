@@ -187,7 +187,7 @@ void iAVRCubicVis::applyHeatmapColoring(std::vector<QColor>* colorPerRegion)
 	glyphColor->SetName("colors");
 	glyphColor->SetNumberOfComponents(4);
 
-	for (auto i = 0; i < colorPerRegion->size(); i++)
+	for (size_t i = 0; i < colorPerRegion->size(); i++)
 	{
 		glyphColor->InsertNextTuple4(colorPerRegion->at(i).red(), colorPerRegion->at(i).green(), colorPerRegion->at(i).blue(), colorPerRegion->at(i).alpha());
 	}
@@ -203,7 +203,7 @@ void iAVRCubicVis::highlightGlyphs(std::vector<vtkIdType>* regionIDs, std::vecto
 		//Add black color if too few colors are given
 		if (regionIDs->size() > colorPerRegion->size())
 		{
-			for (auto i = 0; i < colorPerRegion->size() - regionIDs->size(); i++)
+			for (size_t i = 0; i < colorPerRegion->size() - regionIDs->size(); i++)
 			{
 				colorPerRegion->push_back(QColor(0, 0, 0));
 			}
@@ -335,7 +335,7 @@ void iAVRCubicVis::drawPoint(std::vector<double*>* pos, QColor color)
 {
 	vtkSmartPointer<vtkPoints> points = vtkSmartPointer<vtkPoints>::New();
 
-	for (auto i = 0; i < pos->size(); i++)
+	for (size_t i = 0; i < pos->size(); i++)
 	{
 		points->InsertNextPoint(pos->at(i));
 	}

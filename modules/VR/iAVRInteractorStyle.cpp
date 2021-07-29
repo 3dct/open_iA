@@ -87,11 +87,11 @@ void iAVRInteractorStyle::OnButton3D(vtkEventData* edata)
 
 	if(action == vtkEventDataAction::Press || action == vtkEventDataAction::Touch)
 	{
-		m_vrMain->startInteraction(device, m_eventPosition, m_eventOrientation, InteractionProp);
+		m_vrMain->startInteraction(device, InteractionProp, m_eventPosition, m_eventOrientation);
 	}
 	else if(action == vtkEventDataAction::Release || action == vtkEventDataAction::Untouch)
 	{
-		m_vrMain->endInteraction(device, m_eventPosition, m_eventOrientation, InteractionProp);
+		m_vrMain->endInteraction(device, InteractionProp, m_eventPosition, m_eventOrientation);
 	}
 	
 }
