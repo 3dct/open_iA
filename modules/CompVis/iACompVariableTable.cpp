@@ -20,13 +20,28 @@
 #include "vtkPolyDataMapper.h"
 #include "vtkCellData.h"
 #include "vtkProperty.h"
+#include "vtkMapper.h"
+#include "vtkDataSet.h"
+#include "vtkPointData.h"
+#include "vtkAlgorithmOutput.h"
+#include "vtkAlgorithm.h"
+
+
+#include "vtkSelectionNode.h"
+#include "vtkSelection.h"
+#include "vtkExtractSelection.h"
+#include "vtkUnstructuredGrid.h"
+#include "vtkDataSetMapper.h"
+#include "vtkUnsignedCharArray.h"
+#include "vtkVertexGlyphFilter.h"
+#include "vtkPlaneSource.h"
 
 iACompVariableTable::iACompVariableTable(iACompHistogramVis* vis, iACompBayesianBlocksData* bayesianBlocksData, iACompNaturalBreaksData* naturalBreaksData):
 	iACompTable(vis),
 	m_interactionStyle(vtkSmartPointer<iACompVariableTableInteractorStyle>::New()),
 	m_bbData(bayesianBlocksData), 
 	m_nbData(naturalBreaksData),
-	m_originalPlanes(new std::vector<vtkSmartPointer<vtkPlaneSource>>())
+	m_originalRowActors(new std::vector<vtkSmartPointer<vtkActor>>())
 {
 	m_activeData = m_nbData;
 	
@@ -41,7 +56,6 @@ void iACompVariableTable::setActive()
 {
 	//add rendererColorLegend to widget
 	addLegendRendererToWidget();
-
 
 	if (m_lastState == iACompVisOptions::lastState::Undefined)
 	{
@@ -313,10 +327,15 @@ vtkSmartPointer<iACompVariableTableInteractorStyle> iACompVariableTable::getInte
 	return m_interactionStyle;
 }
 
+std::vector<vtkSmartPointer<vtkActor>>* iACompVariableTable::getOriginalRowActors()
+{
+	return m_originalRowActors;
+}
+
 /****************************************** Rendering **********************************************/
 void iACompVariableTable::drawHistogramTable()
 {
-	m_originalPlanes->clear();
+	m_originalRowActors->clear();
 	if (m_mainRenderer->GetViewProps()->GetNumberOfItems() > 0)
 	{
 		m_mainRenderer->RemoveAllViewProps();
@@ -410,6 +429,7 @@ void iACompVariableTable::drawRow(int currDataInd, int currentColumn, double off
 		actor->GetProperty()->EdgeVisibilityOff();
 	}
 
+	m_originalRowActors->push_back(actor);
 	m_mainRenderer->AddActor(actor);
 
 	//add name of dataset/row
@@ -435,16 +455,6 @@ void iACompVariableTable::constructBins(
 	double max_x = m_vis->getRowSize();
 	double min_y = (m_vis->getColSize() * currentColumn) + offset;
 	double max_y = min_y + m_vis->getColSize();
-
-	//store plane representing a dataset for later use
-	vtkSmartPointer<vtkPlaneSource> currentPlane = vtkSmartPointer<vtkPlaneSource>::New();
-	currentPlane->SetXResolution(1);
-	currentPlane->SetYResolution(1);
-	currentPlane->SetOrigin(min_x, min_y, 0);
-	currentPlane->SetPoint1(max_x, min_y, 0);
-	currentPlane->SetPoint2(min_x, max_y, 0);
-	currentPlane->Update();
-	m_originalPlanes->push_back(currentPlane);
 
 	//xOffset is added to prevent bins from overlapping
 	double xOffset = 0.0;  //m_vis->getRowSize() * 0.5; //0.05
@@ -594,8 +604,6 @@ void iACompVariableTable::reinitalizeState()
 
 void iACompVariableTable::drawHistogramTableInAscendingOrder(int bins)
 {
-	LOG(lvlDebug, "Variable Table Draw Ascending");
-
 	std::vector<int> amountObjectsEveryDataset = *(m_activeData->getAmountObjectsEveryDataset());
 
 	//stores the new order of the datasets as their new position
@@ -658,12 +666,23 @@ void iACompVariableTable::drawBarChartShowingAmountOfObjects(std::vector<int> am
 	auto minMax = std::minmax_element(begin(amountObjectsEveryDataset), end(amountObjectsEveryDataset));
 	int max = *minMax.second;
 
-	for (int i = 0; i < m_originalPlanes->size(); i++)
+	for (int i = 0; i < m_originalRowActors->size(); i++)
 	{
-		vtkSmartPointer<vtkPlaneSource> currPlane = m_originalPlanes->at(i);
+		vtkSmartPointer<vtkActor> currAct = m_originalRowActors->at(i);
+		vtkSmartPointer<vtkPolyData> polyData = vtkProgrammableGlyphFilter::SafeDownCast(
+			currAct->GetMapper()->GetInputConnection(0, 0)->GetProducer())
+			->GetPolyDataInput(0);
+		
+		vtkSmartPointer<vtkDoubleArray> originArray = vtkDoubleArray::SafeDownCast(polyData->GetPointData()->GetArray("originArray"));
+		vtkSmartPointer<vtkDoubleArray> point1Array = vtkDoubleArray::SafeDownCast(polyData->GetPointData()->GetArray("point1Array"));
+		vtkSmartPointer<vtkDoubleArray> point2Array = vtkDoubleArray::SafeDownCast(polyData->GetPointData()->GetArray("point2Array"));
 
-		createBar(currPlane, amountObjectsEveryDataset.at(orderOfIndicesDatasets->at(i)), max);
-		createAmountOfObjectsText(currPlane, amountObjectsEveryDataset.at(orderOfIndicesDatasets->at(i)));
+		double positions[4] = {
+			originArray->GetTuple3(0)[0], point1Array->GetTuple3(point1Array->GetNumberOfTuples()-1)[0],  //x_min, x_max
+			originArray->GetTuple3(0)[1], point2Array->GetTuple3(point2Array->GetNumberOfTuples() - 1)[1],  //y_min, y_max
+		};
+
+		createBarChart(positions, amountObjectsEveryDataset.at(orderOfIndicesDatasets->at(i)), max);
 	}
 }
 
@@ -674,4 +693,43 @@ void iACompVariableTable::showSelectionOfCorrelationMap(std::map<int, double>* d
 
 void iACompVariableTable::removeSelectionOfCorrelationMap()
 {
+}
+
+/****************************************** Interaction Picking **********************************************/
+void iACompVariableTable::highlightSelectedCell(vtkSmartPointer<vtkActor> pickedActor, vtkIdType pickedCellId)
+{
+	vtkSmartPointer<vtkPolyData> polyData = vtkProgrammableGlyphFilter::SafeDownCast(pickedActor->GetMapper()->GetInputConnection(0, 0)->GetProducer())->GetPolyDataInput(0);
+
+	vtkSmartPointer<vtkPlaneSource> planeSource = vtkSmartPointer<vtkPlaneSource>::New();
+	planeSource->SetOrigin(polyData->GetPointData()->GetArray("originArray")->GetTuple3(pickedCellId));
+	planeSource->SetPoint1(polyData->GetPointData()->GetArray("point1Array")->GetTuple3(pickedCellId));
+	planeSource->SetPoint2(polyData->GetPointData()->GetArray("point2Array")->GetTuple3(pickedCellId));
+	planeSource->Update();
+	
+	vtkSmartPointer<vtkUnsignedCharArray> selectedColorArray = vtkSmartPointer<vtkUnsignedCharArray>::New();
+	selectedColorArray->SetName("selectedColorArray");
+	selectedColorArray->SetNumberOfComponents(3);
+	selectedColorArray->SetNumberOfTuples(1);
+	double* color = polyData->GetCellData()->GetArray("colorArray")->GetTuple3(pickedCellId);
+	selectedColorArray->InsertTuple3(0, color[0], color[1], color[2]);
+
+	vtkSmartPointer<vtkPolyDataMapper> selectedMapper = vtkSmartPointer<vtkPolyDataMapper>::New();
+	selectedMapper->SetInputData(planeSource->GetOutput());
+	selectedMapper->GetInput()->GetCellData()->SetScalars(selectedColorArray);
+	selectedMapper->SetColorModeToDefault();
+	selectedMapper->SetScalarModeToUseCellData();
+	selectedMapper->ScalarVisibilityOn();
+
+	vtkSmartPointer<vtkActor> selectedActor = vtkSmartPointer<vtkActor>::New();
+	selectedActor->SetMapper(selectedMapper);
+	selectedActor->GetProperty()->EdgeVisibilityOn();
+	double col[3];
+	col[0] = iACompVisOptions::getDoubleArray(iACompVisOptions::HIGHLIGHTCOLOR_GREEN)[0];
+	col[1] = iACompVisOptions::getDoubleArray(iACompVisOptions::HIGHLIGHTCOLOR_GREEN)[1];
+	col[2] = iACompVisOptions::getDoubleArray(iACompVisOptions::HIGHLIGHTCOLOR_GREEN)[2];
+	selectedActor->GetProperty()->SetEdgeColor(col);
+	selectedActor->GetProperty()->SetLineWidth(iACompVisOptions::LINE_WIDTH);
+
+	m_highlighingActors->push_back(selectedActor);
+	m_mainRenderer->AddActor(selectedActor);
 }

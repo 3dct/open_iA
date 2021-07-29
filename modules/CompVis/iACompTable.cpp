@@ -27,7 +27,8 @@ iACompTable::iACompTable(iACompHistogramVis* vis) :
 	m_rendererColorLegend(vtkSmartPointer<vtkRenderer>::New()),
 	m_lastState(iACompVisOptions::lastState::Undefined),
 	m_barActors(new std::vector<vtkSmartPointer<vtkActor>>()),
-	m_barTextActors(new std::vector<vtkSmartPointer<vtkTextActor>>())
+	m_barTextActors(new std::vector<vtkSmartPointer<vtkTextActor>>()),
+	m_highlighingActors(new std::vector<vtkSmartPointer<vtkActor>>)
 {
 	initializeRenderer();
 }
@@ -69,27 +70,79 @@ void iACompTable::addDatasetName(int currDataset, double* position)
 	m_mainRenderer->AddActor(legend);
 }
 
-///////////////////// NEW
-void iACompTable::createBar(
+/********************************************  Ordering/Ranking ********************************************/
+void iACompTable::createBarChart(
 	vtkSmartPointer<vtkPlaneSource> currPlane, int currAmountObjects, int maxAmountObjects)
 {
 	//calculate height of bar
 	double maxHeight = currPlane->GetPoint2()[1] - currPlane->GetOrigin()[1];
 	double height25 = currPlane->GetOrigin()[1] + (maxHeight * 0.25);
 	double height75 = currPlane->GetOrigin()[1] + (maxHeight * 0.75);
-
+	
 	//calculate width of bar
 	double maxWidth = currPlane->GetPoint1()[0] - currPlane->GetOrigin()[0];
 	double percent = ((double)currAmountObjects) / ((double)maxAmountObjects);
 	double correctWidth = maxWidth * percent;
 	double correctX = (currPlane->GetOrigin()[0]) + correctWidth;
 
+	double positions[4] = 
+	{
+		currPlane->GetOrigin()[0], correctX,  //x_min, x_max
+		height25, height75                    //y_min, y_max
+	};
+
+	createBars(positions);
+
+	double textPosition[3] = {currPlane->GetPoint1()[0], //x_max
+							  currPlane->GetOrigin()[1], //y_min
+							  currPlane->GetPoint2()[1] //y_max
+							  };
+
+	createAmountOfObjectsText(textPosition, currAmountObjects);
+}
+
+void iACompTable::createBarChart(double* positions, int currAmountObjects, int maxAmountObjects)
+{
+	double x_min = positions[0];
+	double x_max = positions[1];
+	double y_min = positions[2];
+	double y_max = positions[3];
+	
+	//calculate height of bar
+	double maxHeight = y_max - y_min;
+	double height25 = y_min + (maxHeight * 0.25);
+	double height75 = y_min + (maxHeight * 0.75);
+
+	//calculate width of bar//calculate width of bar
+	double maxWidth = x_max - x_min;
+	double percent = ((double)currAmountObjects) / ((double)maxAmountObjects);
+	double correctWidth = maxWidth * percent;
+	double correctX = x_min + correctWidth;
+
+	double values[4] = {
+		x_min, correctX,     //x_min, x_max
+		height25, height75   //y_min, y_max
+	};
+
+	createBars(values);
+
+	double textPosition[3] = {x_max, y_min, y_max};
+	createAmountOfObjectsText(textPosition, currAmountObjects);
+}
+
+void iACompTable::createBars(double* positions)
+{
+	double x_min = positions[0];
+	double x_max = positions[1];
+	double y_min = positions[2];
+	double y_max = positions[3];
+
 	vtkSmartPointer<vtkPlaneSource> barPlane = vtkSmartPointer<vtkPlaneSource>::New();
 	barPlane->SetXResolution(1);
 	barPlane->SetYResolution(1);
-	barPlane->SetOrigin(currPlane->GetOrigin()[0], height25, currPlane->GetOrigin()[2]);
-	barPlane->SetPoint1(correctX, height25, currPlane->GetPoint1()[2]);
-	barPlane->SetPoint2(currPlane->GetPoint2()[0], height75, currPlane->GetPoint2()[2]);
+	barPlane->SetOrigin(x_min, y_min, 0.0);
+	barPlane->SetPoint1(x_max, y_min, 0.0);
+	barPlane->SetPoint2(x_min, y_max, 0.0);
 	barPlane->Update();
 
 	// Setup actor and mapper
@@ -109,8 +162,17 @@ void iACompTable::createBar(
 	m_barActors->push_back(actor);
 }
 
-void iACompTable::createAmountOfObjectsText(vtkSmartPointer<vtkPlaneSource> currPlane, int currAmountObjects)
+void iACompTable::createAmountOfObjectsText(double positions[3], int currAmountObjects)
 {
+	double x_max = positions[0];
+	double y_min = positions[1];
+	double y_max = positions[2];
+
+	//calculate position
+	double x = x_max + (m_vis->getRowSize() * 0.05);
+	double height = y_max - y_min;
+	double y = y_min + (height * 0.5);
+
 	vtkSmartPointer<vtkTextActor> legend = vtkSmartPointer<vtkTextActor>::New();
 	legend->SetTextScaleModeToNone();
 	legend->SetInput(std::to_string(currAmountObjects).c_str());
@@ -126,9 +188,6 @@ void iACompTable::createAmountOfObjectsText(vtkSmartPointer<vtkPlaneSource> curr
 	legendProperty->SetVerticalJustificationToCentered();
 	legendProperty->Modified();
 
-	double x = currPlane->GetPoint1()[0] + (m_vis->getRowSize() * 0.05);
-	double height = currPlane->GetPoint2()[1] - currPlane->GetOrigin()[1];
-	double y = currPlane->GetOrigin()[1] + (height * 0.5);
 	legend->GetPositionCoordinate()->SetCoordinateSystemToWorld();
 	legend->GetPositionCoordinate()->SetValue(x, y);
 	legend->Modified();
@@ -271,3 +330,40 @@ double iACompTable::round_up(double value, int decimal_places)
 	const double multiplier = std::pow(10.0, decimal_places);
 	return std::ceil(value * multiplier) / multiplier;
 }
+
+void iACompTable::removeHighlightedCells()
+{
+	for (int i = 0; i < m_highlighingActors->size(); i++)
+	{
+		m_mainRenderer->RemoveActor(m_highlighingActors->at(i));
+	}
+
+	m_highlighingActors->clear();
+}
+
+//void iACompTable::updateCharts()
+//{
+//	QList<bin::BinType*>* zoomedRowDataMDS;
+//	QList<std::vector<csvDataType::ArrayType*>*>* selectedObjectAttributes;
+//
+//	//calculate the fiberIds per selected cells & the mds values per selected cells
+//	std::tie(zoomedRowDataMDS, selectedObjectAttributes) = m_visualization->getSelectedData(m_picked);
+//	m_zoomedRowData = zoomedRowDataMDS;
+//
+//	//change histogram table
+//	m_visualization->drawLinearZoom(
+//		m_picked, m_visualization->getBins(), m_visualization->getBinsZoomed(), m_zoomedRowData);
+//
+//	updateOtherCharts(selectedObjectAttributes);
+//}
+//
+//void iACompTable::updateOtherCharts(
+//	QList<std::vector<csvDataType::ArrayType*>*>* selectedObjectAttributes)
+//{
+//	std::vector<int>* indexOfPickedRows = m_visualization->getIndexOfPickedRows();
+//	csvDataType::ArrayType* selectedData = formatPickedObjects(selectedObjectAttributes);
+//
+//	std::map<int, std::vector<double>>* pickStatistic = calculatePickedObjects(m_zoomedRowData);
+//
+//	m_main->updateOtherCharts(selectedData, pickStatistic);
+//}

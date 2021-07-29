@@ -7,11 +7,6 @@
 //vtk
 #include "vtkSmartPointer.h"
 #include "vtkActor.h"
-#include "vtkIdTypeArray.h"
-
-//C++
-#include <map>
-#include <vector>
 
 //CompVis
 class iACompUniformTable;
@@ -20,43 +15,6 @@ class iACompUniformTable;
 class vtkRenderer;
 class vtkPropPicker;
 
-namespace Pick
-{
-using PickedMap = std::map<vtkSmartPointer<vtkActor>, std::vector<vtkIdType>*>;
-
-static void copyPickedMap(PickedMap* input, PickedMap* result)
-{
-	std::map<vtkSmartPointer<vtkActor>, std::vector<vtkIdType>*>::iterator it;
-
-	for (it = input->begin(); it != input->end(); it++)
-	{
-		vtkSmartPointer<vtkActor> currAc = it->first;
-		std::vector<vtkIdType>* currVec = it->second;
-
-		result->insert({currAc, currVec});
-	}
-};
-
-static void debugPickedMap(PickedMap* input)
-{
-	LOG(lvlDebug, "#######################################################");
-	LOG(lvlDebug, "");
-	LOG(lvlDebug, "size = " + QString::number(input->size()));
-	
-	std::map<vtkSmartPointer<vtkActor>, std::vector<vtkIdType>*>::iterator it;
-	int count = 0;
-	for (it = input->begin(); it != input->end(); it++)
-	{
-		vtkSmartPointer<vtkActor> currAc = it->first;
-		std::vector<vtkIdType>* currVec = it->second;
-
-		LOG(lvlDebug, "Actor " + QString::number(count) + " has " + QString::number(currVec->size()) + " picked cells");
-	}
-	LOG(lvlDebug, "");
-	LOG(lvlDebug, "#######################################################");
-};
-
-}
 
 class iACompUniformTableInteractorStyle : public iACompTableInteractorStyle
 {
@@ -106,8 +64,8 @@ class iACompUniformTableInteractorStyle : public iACompTableInteractorStyle
 	//non linear zooming out - zooming out on currently selected bin(s)/row(s)
 	void nonLinearZoomOut();
 
-	void updateCharts();
-	void updateOtherCharts(QList<std::vector<csvDataType::ArrayType*>*>* selectedObjectAttributes);
+	//void updateCharts();
+	//void updateOtherCharts(QList<std::vector<csvDataType::ArrayType*>*>* selectedObjectAttributes);
 	void resetOtherCharts();
 
 	void resetUniformTable();
@@ -115,18 +73,15 @@ class iACompUniformTableInteractorStyle : public iACompTableInteractorStyle
 	void manualTableRelocatingStart(vtkSmartPointer<vtkActor> movingActor);
 	void manualTableRelocatingStop();
 
+
 	//set the picklist for the propPicker to only pick original row actors
 	void setPickList(std::vector<vtkSmartPointer<vtkActor>>* originalRowActors);
+	/**
+	 * @brief The bar chart, showing the number of objects for each dataset, is removed from the table visualization, if one exists.
+	 * @return bool that is true when the bar chart was removed, false when no bar chart was present beforehand
+	*/
+	bool removeBarChart();
 
-	void storePickedActorAndCell(vtkSmartPointer<vtkActor> pickedA, vtkIdType id);
-
-	//reset the bar chart visualization showing the number of objects for each dataset
-	bool resetBarChartAmountObjects();
-
-	//stores for each actor a vector for each picked cell according to their vtkIdType
-	Pick::PickedMap* m_picked;
-	//store for reinitialization after minimization etc. of application
-	Pick::PickedMap* m_pickedOld;
 
 	//controls whether the linear or non-linear zoom on the histogram is activated
 	//true --> non-linear zoom is activated, otherwise linear zoom

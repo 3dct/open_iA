@@ -49,12 +49,9 @@ iACompUniformTable::iACompUniformTable(iACompHistogramVis* vis, iACompUniformBin
 	m_originalPlaneActors(new std::vector<vtkSmartPointer<vtkActor>>()),
 	m_zoomedPlaneActors(new std::vector<vtkSmartPointer<vtkActor>>()),
 	m_rowDataIndexPair(new std::map<vtkSmartPointer<vtkActor>, int>()),
-	m_highlighingActors(new std::vector<vtkSmartPointer<vtkActor>>()),
 	m_highlightRowActor(vtkSmartPointer<vtkActor>::New()),
 	m_oldDrawingPosition(-1),
 	m_pointRepresentationActors(new std::vector<vtkSmartPointer<vtkActor>>()),
-	/*m_barActors(new std::vector<vtkSmartPointer<vtkActor>>()),
-	m_barTextActors(new std::vector<vtkSmartPointer<vtkTextActor>>()),*/
 	m_stippledActors(new std::vector<vtkSmartPointer<vtkActor>>()),
 	m_indexOfPickedRow(new std::vector<int>()),
 	m_pickedCellsforPickedRow(new std::map<int, std::vector<vtkIdType>*>()),
@@ -1250,16 +1247,6 @@ std::tuple<QList<bin::BinType*>*, QList<std::vector<csvDataType::ArrayType*>*>*>
 	return tuple;
 }
 
-void iACompUniformTable::removeHighlightedCells()
-{
-	for (int i = 0; i < m_highlighingActors->size(); i++)
-	{
-		m_mainRenderer->RemoveActor(m_highlighingActors->at(i));
-	}
-
-	m_highlighingActors->clear();
-}
-
 void iACompUniformTable::highlightSelectedCell(vtkSmartPointer<vtkActor> pickedActor, vtkIdType pickedCellId)
 {
 	vtkSmartPointer<vtkAlgorithm> algorithm = pickedActor->GetMapper()->GetInputConnection(0, 0)->GetProducer();
@@ -1612,8 +1599,7 @@ void iACompUniformTable::drawBarChartShowingAmountOfObjects(std::vector<int> amo
 		vtkSmartPointer<vtkAlgorithm> currAlgorithm = currAct->GetMapper()->GetInputConnection(0, 0)->GetProducer();
 		vtkSmartPointer<vtkPlaneSource> currPlane = vtkPlaneSource::SafeDownCast(currAlgorithm);
 
-		createBar(currPlane, amountObjectsEveryDataset.at(orderOfIndicesDatasets->at(i)), max);
-		createAmountOfObjectsText(currPlane, amountObjectsEveryDataset.at(orderOfIndicesDatasets->at(i)));
+		createBarChart(currPlane, amountObjectsEveryDataset.at(orderOfIndicesDatasets->at(i)), max);
 	}
 
 	renderWidget();

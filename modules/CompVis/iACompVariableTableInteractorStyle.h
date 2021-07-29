@@ -8,7 +8,11 @@
 class iACompVariableTable;
 
 //vtk
+class vtkCellPicker;
 class vtkPropPicker;
+
+//C++
+#include <vector>
 
 class iACompVariableTableInteractorStyle : public iACompTableInteractorStyle
 {
@@ -34,18 +38,30 @@ class iACompVariableTableInteractorStyle : public iACompTableInteractorStyle
 		virtual void Pan();
 
 	protected:
+		
 		iACompVariableTableInteractorStyle();
+
+	
 
 	private:
 
-		void resetVariableTable();
+		/*** Interaction Picking ***/
+
+		void setPickList(std::vector<vtkSmartPointer<vtkActor>>* originalRowActors);
+
+		/**
+		 * @brief The bar chart, showing the number of objects for each dataset, is removed from the table visualization, if one exists.
+		 * @return bool that is true when the bar chart was removed, false when no bar chart was present beforehand
+		*/
+		bool removeBarChart();
 
 
 		//VariableTable Visualization
 		iACompVariableTable* m_visualization;
 
-		//stores the picker to pick individual bins and datasets
-		vtkSmartPointer<vtkPropPicker> m_picker;
+
+		//stores the picker to pick individual bins
+		vtkSmartPointer<vtkCellPicker> m_picker;
 
 
 };

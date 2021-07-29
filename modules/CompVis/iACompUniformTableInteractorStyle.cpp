@@ -44,8 +44,6 @@ vtkStandardNewMacro(iACompUniformTableInteractorStyle);
 iACompUniformTableInteractorStyle::iACompUniformTableInteractorStyle() :
 	iACompTableInteractorStyle(),
 	m_visualization(nullptr),
-	m_picked(new Pick::PickedMap()),
-	m_pickedOld(new Pick::PickedMap()),
 	m_controlBinsInZoomedRows(false),
 	m_pointRepresentationOn(false),
 	m_actorPicker(vtkSmartPointer<vtkPropPicker>::New()),
@@ -62,7 +60,7 @@ void iACompUniformTableInteractorStyle::OnKeyRelease()
 	vtkRenderWindowInteractor* interactor = this->GetInteractor();
 	std::string key = interactor->GetKeySym();
 
-	//when shift is released, the compuation of the zoom is performed
+	//when shift is released, the computation of the zoom is performed
 	if (key == "Shift_L")
 	{
 		if(m_zoomOn)
@@ -72,7 +70,7 @@ void iACompUniformTableInteractorStyle::OnKeyRelease()
 				m_visualization->removeHighlightedCells();
 
 				//forward update to all other charts & histogram table
-				updateCharts();
+				//updateCharts();
 
 				Pick::copyPickedMap(m_picked, m_pickedOld);
 
@@ -109,7 +107,7 @@ void iACompUniformTableInteractorStyle::OnLeftButtonDown()
 	auto currentRenderer = this->GetDefaultRenderer();
 	if (currentRenderer == nullptr)
 	{
-		LOG(lvlDebug,"HistogramTableInteractorStyle: currentRenderer is null!!");
+		LOG(lvlDebug,"UniformTableInteractorStyle: currentRenderer is null!!");
 		return;
 	}
 
@@ -146,7 +144,7 @@ void iACompUniformTableInteractorStyle::OnLeftButtonDown()
 		{//when non-linear zoom is active --> do nothing
 			//resetHistogramTable();
 		}else
-		{ //manual reordering only working when no non-linear zoom is active
+		{ //manual reordering only working when NO non-linear zoom is active
 			m_currentlyPickedActor = pickedA;
 			manualTableRelocatingStart(m_currentlyPickedActor);
 
@@ -271,27 +269,6 @@ void iACompUniformTableInteractorStyle::Pan()
 	m_visualization->renderWidget();
 }
 
-void iACompUniformTableInteractorStyle::storePickedActorAndCell(vtkSmartPointer<vtkActor> pickedA, vtkIdType id)
-{
-	if (m_picked->find(pickedA) != m_picked->end())
-	{
-		//when this actor has been picked already
-		std::vector<vtkIdType>* v = m_picked->find(pickedA)->second;
-		if (std::find(v->begin(), v->end(), id) == v->end())
-		{  //when cellId is not already in the vector, add it
-			v->push_back(id);
-		}
-	}
-	else
-	{
-		//when this actor has NOT been picked until now
-		std::vector<vtkIdType>* pickedCellsList = new std::vector<vtkIdType>();
-		pickedCellsList->push_back(id);
-
-		m_picked->insert({ pickedA, pickedCellsList });
-	}
-}
-
 void iACompUniformTableInteractorStyle::resetUniformTable()
 {
 	//reset visualization when clicked anywhere
@@ -299,7 +276,7 @@ void iACompUniformTableInteractorStyle::resetUniformTable()
 	m_visualization->removePointRepresentation();
 	m_visualization->removeHighlightedCells();
 	m_visualization->removeHighlightedRow();
-	resetBarChartAmountObjects();
+	removeBarChart();
 
 	m_controlBinsInZoomedRows = false;
 	m_pointRepresentationOn = false;
@@ -485,30 +462,30 @@ void iACompUniformTableInteractorStyle::setUniformTableVisualization(iACompUnifo
 	m_visualization = visualization;
 }
 
-void iACompUniformTableInteractorStyle::updateCharts()
-{
-	QList<bin::BinType*>* zoomedRowDataMDS;
-	QList<std::vector<csvDataType::ArrayType*>*>* selectedObjectAttributes;
-
-	//calculate the fiberIds per selected cells & the mds values per selected cells
-	std::tie(zoomedRowDataMDS, selectedObjectAttributes) = m_visualization->getSelectedData(m_picked);
-	m_zoomedRowData = zoomedRowDataMDS;
-
-	//change histogram table
-	m_visualization->drawLinearZoom(m_picked, m_visualization->getBins(), m_visualization->getBinsZoomed(), m_zoomedRowData);
-
-	updateOtherCharts(selectedObjectAttributes);
-}
-
-void iACompUniformTableInteractorStyle::updateOtherCharts(QList<std::vector<csvDataType::ArrayType*>*>* selectedObjectAttributes)
-{
-	std::vector<int>* indexOfPickedRows = m_visualization->getIndexOfPickedRows();
-	csvDataType::ArrayType* selectedData = formatPickedObjects(selectedObjectAttributes);
-
-	std::map<int, std::vector<double>>* pickStatistic = calculatePickedObjects(m_zoomedRowData);
-
-	m_main->updateOtherCharts(selectedData, pickStatistic);
-}
+//void iACompUniformTableInteractorStyle::updateCharts()
+//{
+//	QList<bin::BinType*>* zoomedRowDataMDS;
+//	QList<std::vector<csvDataType::ArrayType*>*>* selectedObjectAttributes;
+//
+//	//calculate the fiberIds per selected cells & the mds values per selected cells
+//	std::tie(zoomedRowDataMDS, selectedObjectAttributes) = m_visualization->getSelectedData(m_picked);
+//	m_zoomedRowData = zoomedRowDataMDS;
+//
+//	//change histogram table
+//	m_visualization->drawLinearZoom(m_picked, m_visualization->getBins(), m_visualization->getBinsZoomed(), m_zoomedRowData);
+//
+//	updateOtherCharts(selectedObjectAttributes);
+//}
+//
+//void iACompUniformTableInteractorStyle::updateOtherCharts(QList<std::vector<csvDataType::ArrayType*>*>* selectedObjectAttributes)
+//{
+//	std::vector<int>* indexOfPickedRows = m_visualization->getIndexOfPickedRows();
+//	csvDataType::ArrayType* selectedData = formatPickedObjects(selectedObjectAttributes);
+//
+//	std::map<int, std::vector<double>>* pickStatistic = calculatePickedObjects(m_zoomedRowData);
+//
+//	m_main->updateOtherCharts(selectedData, pickStatistic);
+//}
 
 std::map<int, std::vector<double>>* iACompUniformTableInteractorStyle::calculatePickedObjects(QList<bin::BinType*>* zoomedRowData)
 {
@@ -556,8 +533,6 @@ void iACompUniformTableInteractorStyle::setPickList(std::vector<vtkSmartPointer<
 	{
 		m_actorPicker->AddPickList(originalRowActors->at(i));
 	}
-
-	//m_actorPicker->SetPickFromList(true);
 }
 
 csvDataType::ArrayType* iACompUniformTableInteractorStyle::formatPickedObjects(QList<std::vector<csvDataType::ArrayType*>*>* zoomedRowData)
@@ -625,7 +600,7 @@ csvDataType::ArrayType* iACompUniformTableInteractorStyle::formatPickedObjects(Q
 	return result;
 }
 
-bool iACompUniformTableInteractorStyle::resetBarChartAmountObjects()
+bool iACompUniformTableInteractorStyle::removeBarChart()
 {
 	if(m_visualization->getBarChartAmountObjectsActive())
 	{
@@ -639,7 +614,7 @@ bool iACompUniformTableInteractorStyle::resetBarChartAmountObjects()
 
 void iACompUniformTableInteractorStyle::reinitializeState()
 {
-	bool resetVis = resetBarChartAmountObjects();
+	bool resetVis = removeBarChart();
 	bool resetHigh = m_visualization->removeHighlightedRow();
 
 	if(resetVis || resetHigh)

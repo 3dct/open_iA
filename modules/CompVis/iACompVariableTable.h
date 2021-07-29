@@ -6,11 +6,12 @@
 
 //CompVis
 class iACompHistogramVis;
-//class iACompVariableTableInteractionStyle;
 
 //vtk
 class vtkUnsignedCharArray;
 class vtkDoubleArray;
+class vtkActor;
+
 
 
 //because of vtk this method has to be placed outside the class
@@ -33,6 +34,7 @@ public:
 
 	/***  Getter & Setter ***/
 	vtkSmartPointer<iACompVariableTableInteractorStyle> getInteractorStyle();
+	virtual std::vector<vtkSmartPointer<vtkActor>>* getOriginalRowActors();
 
 	/***  Ordering/Ranking  ***/
 	//draw Histogram table with rows ordered ascending to its amount of objects
@@ -51,6 +53,10 @@ public:
 	/*** Update THIS ***/
 	virtual void showSelectionOfCorrelationMap(std::map<int, double>* dataIndxSelectedType);
 	virtual void removeSelectionOfCorrelationMap();
+
+	/*** Interaction Picking***/
+	virtual void highlightSelectedCell(vtkSmartPointer<vtkActor> pickedActor, vtkIdType pickedCellId);
+
 
 protected:
 
@@ -99,6 +105,11 @@ private:
 	/*** Interaction ***/
 	vtkSmartPointer<iACompVariableTableInteractorStyle> m_interactionStyle;
 
-	std::vector<vtkSmartPointer<vtkPlaneSource>>* m_originalPlanes;
+	//stores the actors that contain the original rows
+	std::vector<vtkSmartPointer<vtkActor>>* m_originalRowActors;
+	
+
+
+	
 };
 

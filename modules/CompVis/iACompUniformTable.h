@@ -60,13 +60,11 @@ public:
 	void drawPointRepresentation();
 
 	/******************************************  Interaction  **********************************************/
-	//dehighlight the selected cells with an outline
-	//(necessary that the renderer only contains the datarows for further calculations)
-	void removeHighlightedCells();
+	
 	//dehighlihgte the selcted row
 	bool removeHighlightedRow();
 	//highlight the selected cells with an outline
-	void highlightSelectedCell(vtkSmartPointer<vtkActor> pickedActor, vtkIdType pickedCellId);
+	virtual void highlightSelectedCell(vtkSmartPointer<vtkActor> pickedActor, vtkIdType pickedCellId);
 	void highlightSelectedRow(vtkSmartPointer<vtkActor> pickedActor);
 
 	void removePointRepresentation();
@@ -85,7 +83,8 @@ public:
 
 	/******************************************  Getter & Setter  **********************************************/
 	//return the actors representing the original rows
-	std::vector<vtkSmartPointer<vtkActor>>* getOriginalRowActors();
+	virtual std::vector<vtkSmartPointer<vtkActor>>* getOriginalRowActors();
+
 	vtkSmartPointer<vtkActor> getHighlightingRowActor();
 	int getBins();
 	void setBins(int bins);
@@ -209,9 +208,7 @@ private:
 	const int m_ColForData = 1;
 
 	/******************************************  Interaction  **********************************************/
-	//stores the actors added to display the border of the selected cells
-	//have to be removed before any calculation for zooming can take place!
-	std::vector<vtkSmartPointer<vtkActor>>* m_highlighingActors;
+
 	//stores the actor showing the highlight for one row during the manual repositioning
 	vtkSmartPointer<vtkActor> m_highlightRowActor;
 	//stores the actors needed for the point representation
