@@ -54,7 +54,7 @@ void iACsvVtkTableCreator::initialize(QStringList const & headers, size_t const 
 void iACsvVtkTableCreator::addRow(size_t row, std::vector<double> const & values)
 {
 	m_table->SetValue(row, 0, static_cast<int>(values[0])); // ID
-	for (int col = 1; col < values.size() - 1; ++col)
+	for (size_t col = 1; col < values.size() - 1; ++col)
 	{
 		m_table->SetValue(row, col, values[col]);
 	}

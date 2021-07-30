@@ -861,7 +861,7 @@ void iAScatterPlot::drawPoints( QPainter &painter )
 			p.setWidth(std::get<2>(line));
 			painter.setPen(p);
 		}
-		for (int ptIdx = 0; ptIdx < std::get<0>(line).size() - 1; ++ptIdx)
+		for (size_t ptIdx = 0; ptIdx < std::get<0>(line).size() - 1; ++ptIdx)
 		{
 #ifdef SP_OLDOPENGL
 			int ofs = 1;

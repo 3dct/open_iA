@@ -168,7 +168,7 @@ std::vector<vtkSmartPointer<vtkPolyData>> iA3DCylinderObjectVis::extractSelected
 		// TODO: use labelID everywhere to identify object!
 		//int labelID = m_objectTable->GetValue(selIdx, 0).ToInt() - 1;
 		//for the moment: assert(labelID == selIdx);
-		int labelID = selIdx;
+		size_t labelID = selIdx;
 		for (int c = 1; c < m_objectTable->GetNumberOfColumns(); ++c)
 		{
 			tmpTbl->SetValue(0, c, m_objectTable->GetValue(selIdx, c));

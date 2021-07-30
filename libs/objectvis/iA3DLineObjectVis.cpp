@@ -108,7 +108,7 @@ void iA3DLineObjectVis::updateValues(std::vector<std::vector<double> > const & v
 			.arg(2 * values.size() + 1)
 			.arg(std::numeric_limits<vtkIdType>::max()));
 	}
-	for (vtkIdType f = 0; f < values.size(); ++f)
+	for (size_t f = 0; f < values.size(); ++f)
 	{
 		// "magic numbers" 1 and 2 need to match values in FIAKER - iAFiberResult::StepDataType:
 		if (straightOrCurved == 1) // SimpleStepData

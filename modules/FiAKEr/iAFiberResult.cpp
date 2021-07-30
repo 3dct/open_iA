@@ -140,7 +140,7 @@ namespace
 		std::array<iAVec3f, 2> result;
 		result[0].fill(std::numeric_limits<float>::max());
 		result[1].fill(std::numeric_limits<float>::lowest());
-		for (int p = 0; p < points.size(); ++p)
+		for (size_t p = 0; p < points.size(); ++p)
 		{
 			auto const& pt = points[p].data();
 			for (int i = 0; i < 3; ++i)
@@ -276,7 +276,7 @@ bool iAFiberResultsCollection::loadData(QString const & path, iACsvConfig const 
 			.arg(path).arg(csvFileNames.size()).arg(MaxDatasetCount));
 		return false;
 	}
-	int resultID = 0;
+	int loadedResults = 0;
 	std::vector<QString> paramNames;
 
 	QStringList noStepFiberFiles;
@@ -598,12 +598,12 @@ bool iAFiberResultsCollection::loadData(QString const & path, iACsvConfig const 
 			if (optimStepMax > 1)
 			{
 				LOG(lvlInfo, QString("Result %1 has a new maximum number of steps %2 (was %3).")
-					.arg(resultID).arg(thisResultStepMax).arg(optimStepMax));
+					.arg(loadedResults).arg(thisResultStepMax).arg(optimStepMax));
 			}
 			optimStepMax = thisResultStepMax;
 		}
-		++resultID;
-		progress->emitProgress(resultID * 100.0 / csvFileNames.size());
+		++loadedResults;
+		progress->emitProgress(loadedResults * 100.0 / csvFileNames.size());
 		if (abort)
 		{
 			return false;
@@ -642,7 +642,7 @@ bool iAFiberResultsCollection::loadData(QString const & path, iACsvConfig const 
 	size_t spmStartIdx = 0;
 	m_resultIDColumn = static_cast<uint>(numParams) - 2;
 	m_projectionErrorColumn = static_cast<uint>(numParams) - 1;
-	for (resultID=0; static_cast<size_t>(resultID) < result.size() && !abort; ++resultID)
+	for (size_t resultID=0; resultID < result.size() && !abort; ++resultID)
 	{
 		auto & curData = result[resultID];
 		vtkIdType numTableColumns = curData.table->GetNumberOfColumns();
@@ -676,14 +676,14 @@ bool iAFiberResultsCollection::loadData(QString const & path, iACsvConfig const 
 	spmData->updateRanges();
 
 	progress->setStatus("Creating fiber data objects");
-	for (resultID = 0; resultID < result.size() && !abort; ++resultID)
+	for (size_t resultID = 0; resultID < result.size() && !abort; ++resultID)
 	{
 		createResultFiberData(result[resultID]);
 		progress->emitProgress(resultID * 100 / result.size());
 	}
 
 	progress->setStatus("Computing bounding boxes");
-	for (resultID = 0; static_cast<size_t>(resultID) < result.size() && !abort; ++resultID)
+	for (size_t resultID = 0; resultID < result.size() && !abort; ++resultID)
 	{
 		boundingBoxesForFibers(result[resultID].fiberBB, result[resultID].fiberData);
 		progress->emitProgress(resultID * 100 / result.size());

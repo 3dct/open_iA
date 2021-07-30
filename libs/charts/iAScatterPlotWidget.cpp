@@ -43,6 +43,11 @@
 #include <QAbstractTextDocumentLayout>
 #include <QTextDocument>
 
+
+iAScatterPlotPointInfo::~iAScatterPlotPointInfo()
+{
+}
+
 class iADefaultScatterPlotPointInfo : public iAScatterPlotPointInfo
 {
 public:
@@ -475,7 +480,7 @@ void iAScatterPlotWidget::keyPressEvent(QKeyEvent * event)
 
 namespace
 {
-	void updateParamMenuCheckState(QMenu* menu, QSharedPointer<iASPLOMData> data, int visibleIdx)
+	void updateParamMenuCheckState(QMenu* menu, QSharedPointer<iASPLOMData> data, size_t visibleIdx)
 	{
 		for (auto col : menu->actions())
 		{

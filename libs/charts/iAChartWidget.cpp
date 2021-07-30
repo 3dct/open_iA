@@ -357,7 +357,7 @@ void iAChartWidget::drawImageOverlays(QPainter& painter)
 	targetRect.setWidth(static_cast<int>((targetRect.width() - leftMargin()) * m_xZoom));
 	targetRect.setTop(targetRect.top() + yTranslate);
 	targetRect.setLeft(0);
-	for (int i = 0; i < m_overlays.size(); ++i)
+	for (size_t i = 0; i < m_overlays.size(); ++i)
 	{
 		painter.drawImage(m_overlays[i].second ? // stretch to full chart area?
 			targetRect : chartRect,

@@ -68,13 +68,13 @@ namespace
 	}
 
 	void computeDistance(iAMatrixType const& dataMatrix, iAMatrixType& distanceMatrix)
-	{
-		for (int r = 0; r < dataMatrix.size() - 1; r++)
+	{	// use/merge with computeDistanceMatrix?
+		for (size_t r = 0; r < dataMatrix.size() - 1; r++)
 		{
-			for (int c = r + 1; c < dataMatrix.size(); c++)
+			for (size_t c = r + 1; c < dataMatrix.size(); c++)
 			{
 				double temp = 0;
-				for (int c2 = 0; c2 < dataMatrix[0].size(); c2++)
+				for (size_t c2 = 0; c2 < dataMatrix[0].size(); c2++)
 				{
 					temp += pow(dataMatrix[r][c2] - dataMatrix[c][c2], 2);
 				}
@@ -82,9 +82,9 @@ namespace
 			}
 		}
 		// fill other half triangle:
-		for (int r = 1; r < distanceMatrix.size(); r++)
+		for (size_t r = 1; r < distanceMatrix.size(); r++)
 		{
-			for (int c = 0; c < r; c++)
+			for (size_t c = 0; c < r; c++)
 			{
 				distanceMatrix[r][c] = distanceMatrix[c][r];
 			}
@@ -98,9 +98,9 @@ namespace
 	iAMatrixType vectorDiff(iAMatrixType const& a, iAMatrixType const& b)
 	{
 		iAMatrixType result(a.size(), std::vector<double>(a[0].size(), 0.0));
-		for (int i = 0; i < a.size(); ++i)
+		for (size_t i = 0; i < a.size(); ++i)
 		{
-			for (int j = 0; j < a[0].size(); ++j)
+			for (size_t j = 0; j < a[0].size(); ++j)
 			{
 				result[i][j] = std::abs(a[i][j] - b[i][j]);
 			}
@@ -153,7 +153,7 @@ iAMatrixDistance* initializeDistanceMetric(iADistanceMetricID distanceMetric)
 QString matrixToString(iAMatrixType const& input)
 {
 	QString output = QString("%1x%2:\n").arg(input.size()).arg(input[0].size());
-	for (int r = 0; r < input.size(); ++r)
+	for (size_t r = 0; r < input.size(); ++r)
 	{
 		output += joinAsString(input[r], ",",
 			[](double val) -> QString { return QString::number(val, 'g', 7); })
@@ -206,11 +206,11 @@ std::vector<std::vector<double>> computeMDS(std::vector<std::vector<double>> con
 		//LOG(lvlDebug, QString("B old: %1").arg(matrixToString(B)));
 
 		// B = calc_B(D_,D);
-		for (int r = 0; r < numElems; r++)
+		for (size_t r = 0; r < numElems; r++)
 		{
-			for (int c = 0; c < numElems; c++)
+			for (size_t c = 0; c < numElems; c++)
 			{
-				if ( r == c || std::fabs(D[r][c]) < Epsilon)
+				if (r == c || std::fabs(D[r][c]) < Epsilon)
 				{
 					B[r][c] = 0.0;
 				}
@@ -221,10 +221,10 @@ std::vector<std::vector<double>> computeMDS(std::vector<std::vector<double>> con
 			}
 		}
 
-		for (int c = 0; c < numElems; c++)
+		for (size_t c = 0; c < numElems; c++)
 		{
 			double temp = 0;
-			for (int r = 0; r < numElems; r++)
+			for (size_t r = 0; r < numElems; r++)
 			{
 				temp += B[r][c];
 
@@ -237,12 +237,12 @@ std::vector<std::vector<double>> computeMDS(std::vector<std::vector<double>> con
 		//LOG(lvlDebug, QString("Z: %1").arg(matrixToString(Z)));
 
 		// X = B*Z/size(D,1);
-		for (int r = 0; r < X.size(); r++)	
+		for (size_t r = 0; r < X.size(); r++)	
 		{
-			for (int xCols = 0; xCols < X[0].size(); xCols++)
+			for (size_t xCols = 0; xCols < X[0].size(); xCols++)
 			{
 				double temp = 0;
-				for (int bCols = 0; bCols < B[0].size(); bCols++)
+				for (size_t bCols = 0; bCols < B[0].size(); bCols++)
 				{
 					temp += (B[r][bCols] * Z[bCols][xCols]);
 				}

@@ -170,9 +170,9 @@ iAParameterInfluenceView::iAParameterInfluenceView(iASensitivityInfo* sensInf, Q
 		addColumnAction(outCharacteristic, charactIdx, charactIdx == 0);
 	}
 	addColumnAction(outFiberCount, -1, false);
-	for (int dissimMeasIdx = 0; dissimMeasIdx < sensInf->m_resultDissimMeasures.size(); ++dissimMeasIdx)
+	for (size_t dissimMeasIdx = 0; dissimMeasIdx < sensInf->m_resultDissimMeasures.size(); ++dissimMeasIdx)
 	{
-		addColumnAction(outDissimilarity, dissimMeasIdx, false);
+		addColumnAction(outDissimilarity, static_cast<int>(dissimMeasIdx), false);
 	}
 
 	addStackedBar(outCharacteristic, 0);  // reflected in iAAlgorithmInfo construction in iASensitivity -> put in common place?
@@ -334,7 +334,7 @@ void iAParameterInfluenceView::setBarDoStack(bool doStack)
 
 void iAParameterInfluenceView::addResultHistoPlot(size_t resultIdx, int paramIdx, int barIdx, QColor c)
 {
-	if (!m_visibleCharacts[barIdx].first == outCharacteristic)
+	if (m_visibleCharacts[barIdx].first != outCharacteristic)
 	{
 		return;
 	}
@@ -566,7 +566,7 @@ void iAParameterInfluenceView::updateStackedBarHistogram(QString const & barName
 				: /* outType == outDissimilarity */ m_sensInf->m_dissimHistograms[outIdx]);
 	outChart->addPlot(createHistoPlot(avgHistData, AverageHistogramColor));
 	auto selectedResults = m_sensInf->selectedResults();
-	for (int i=0; i<selectedResults.size(); ++i)
+	for (size_t i=0; i<selectedResults.size(); ++i)
 	{
 		auto resultIdx = selectedResults[i];
 		addResultHistoPlot(resultIdx, paramIdx, barIdx, m_sensInf->selectedResultColorTheme()->color(i));
@@ -686,7 +686,7 @@ void iAParameterInfluenceView::addStackedBar(int outType, int outIdx)
 		connect(parChart, &iAChartWidget::clicked, this, &iAParameterInfluenceView::paramChartClicked);
 		connect(parChart, &iAChartWidget::axisChanged, this, &iAParameterInfluenceView::paramChartAxisChanged);
 		//parChart->setMinimumHeight(80);
-		for (int i=0; i<selectedResults.size(); ++i)
+		for (size_t i=0; i<selectedResults.size(); ++i)
 		{
 			auto resultIdx = selectedResults[i];
 			double paramValue = m_sensInf->m_paramValues[m_sensInf->m_variedParams[paramIdx]][resultIdx];

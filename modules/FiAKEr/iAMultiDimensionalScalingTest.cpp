@@ -41,7 +41,7 @@ BEGIN_TEST
 	auto actualMDS = computeMDS(distMatrix, 1, 10);
 
 	std::vector<double> expectedMDS = {-6.625, -5.625, -4.625, -2.625, -0.625, 2.375, 5.375, 12.375};
-	for (int i = 0; i < expectedMDS.size(); ++i)
+	for (size_t i = 0; i < expectedMDS.size(); ++i)
 	{
 		TestEqualFloatingPoint(expectedMDS[i], actualMDS[i][0]);
 	}
@@ -50,7 +50,7 @@ BEGIN_TEST
 	auto distMatrix2 = computeDistanceMatrix(values2, doubleDist);
 	auto actualMDS2 = computeMDS(distMatrix2, 1, 10);
 	std::vector<double> expectedMDS2 = {-9, -5, -1, 0, 1, 5, 9};
-	for (int i = 0; i < expectedMDS2.size(); ++i)
+	for (size_t i = 0; i < expectedMDS2.size(); ++i)
 	{
 		TestEqualFloatingPoint(expectedMDS2[i], actualMDS2[i][0]);
 	}

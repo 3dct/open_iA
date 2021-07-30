@@ -39,9 +39,10 @@ class iASPLOMData;
 class QMenu;
 
 //! class for providing information on a point in the scatter plot (used in tooltips)
-class iAScatterPlotPointInfo
+class iAcharts_API iAScatterPlotPointInfo
 {
 public:
+	virtual ~iAScatterPlotPointInfo();
 	virtual QString text(const size_t paramIdx[2], size_t pointIdx) =0;
 };
 

@@ -33,16 +33,16 @@ template <typename InT, typename DistT>
 iAMatrixType computeDistanceMatrix(InT const& data, DistT distance)
 {
 	iAMatrixType result(data.size(), std::vector<double>(data.size(), 0.0));
-	for (int r = 0; r < data.size() - 1; r++)
+	for (size_t r = 0; r < data.size() - 1; r++)
 	{
-		for (int c = r + 1; c < data.size(); c++)
+		for (size_t c = r + 1; c < data.size(); c++)
 		{
 			result[r][c] = distance(data[r], data[c]);
 		}
 	}
-	for (int r = 1; r < data.size(); r++)
+	for (size_t r = 1; r < data.size(); r++)
 	{
-		for (int c = 0; c < r; c++)
+		for (size_t c = 0; c < r; c++)
 		{
 			result[r][c] = result[c][r];
 		}

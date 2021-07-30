@@ -75,10 +75,10 @@ iASelectionInteractorStyle::iASelectionInteractorStyle() :
 	m_showModeActor(vtkSmartPointer<vtkTextActor>::New()),
 	m_interactionMode(imNavigate),
 	m_selectionMode(smDrag),
-	m_moving(false),
 	m_selRectPolyData(vtkSmartPointer<vtkPolyData>::New()),
 	m_selRectMapper(vtkSmartPointer<vtkPolyDataMapper2D>::New()),
-	m_selRectActor(vtkSmartPointer<vtkActor2D>::New())
+	m_selRectActor(vtkSmartPointer<vtkActor2D>::New()),
+	m_moving(false)
 {
 	m_startPos[0] = m_startPos[1] = m_endPos[0] = m_endPos[1] = 0;
 
