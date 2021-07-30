@@ -22,21 +22,12 @@
 
 #include "iAVtkVersion.h"
 
-#include <QtGlobal>
-
-#if (VTK_VERSION_NUMBER >= VTK_VERSION_CHECK(8, 2, 0) && defined(VTK_OPENGL2_BACKEND))
+#if (VTK_VERSION_NUMBER >= VTK_VERSION_CHECK(8, 2, 0))
 	class QVTKOpenGLNativeWidget;
-	typedef QVTKOpenGLNativeWidget iAVtkWidget;
-	typedef QVTKOpenGLNativeWidget iAVtkOldWidget;
+	using iAVtkWidget = QVTKOpenGLNativeWidget;
+	using iAVtkOldWidget = QVTKOpenGLNativeWidget;
 #else
-	#if (VTK_VERSION_NUMBER < VTK_VERSION_CHECK(8, 2, 0) && defined(VTK_OPENGL2_BACKEND))
-		class QVTKOpenGLWidget;
-		typedef QVTKOpenGLWidget iAVtkWidget;
-		typedef QVTKOpenGLWidget iAVtkOldWidget;
-	#else
-		class QVTKWidget;
-		class QVTKWidget2;
-		typedef QVTKWidget2 iAVtkWidget;
-		typedef QVTKWidget iAVtkOldWidget;
-	#endif
+	class QVTKOpenGLWidget;
+	using iAVtkWidget = QVTKOpenGLWidget;
+	using iAVtkOldWidget = QVTKOpenGLWidget;
 #endif

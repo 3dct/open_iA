@@ -17,8 +17,8 @@ ELSE()
 		IOImage
 		ImagingCore
 		RenderingCore
-		Rendering${VTK_RENDERING_BACKEND}
-		RenderingVolume${VTK_RENDERING_BACKEND}
+		RenderingOpenGL2
+		RenderingVolumeOpenGL2
 		InteractionStyle      # implements VTK::RenderingCore
 		RenderingFreeType     # implements VTK::RenderingCore
 		RenderingGL2PSOpenGL2 # implements VTK::RenderingOpenGL2
@@ -38,11 +38,9 @@ ELSE()
 	endif()
 ENDIF()
 # VTK_REQUIRED_LIBS_PUBLIC above only used anyway on VTK >= 9, which only supports OpenGL2 backend...
-#IF ("${VTK_RENDERING_BACKEND}" STREQUAL "OpenGL2")
 #	LIST(APPEND VTK_REQUIRED_LIBS_PUBLIC
 #		RenderingGL2PSOpenGL2 # implements VTK::RenderingOpenGL2
 #	)
-#ENDIF()
 
 #	
 # instead of linking all ITK_LIBRARIES:

@@ -323,10 +323,8 @@ inline void iANModalController::applyVolumeSettings()
 	{
 		m_combinedVolMapper->RemoveAllClippingPlanes();
 	}
-#ifdef VTK_OPENGL2_BACKEND
 	m_combinedVolMapper->SetSampleDistance(vs.SampleDistance);
 	m_combinedVolMapper->InteractiveAdjustSampleDistancesOff();
-#endif
 }
 
 int iANModalController::countModalities()

@@ -5,7 +5,7 @@ SET( DEPENDENCIES_LIBRARIES
 SET( DEPENDENCIES_VTK_MODULES
 	ChartsCore  # for vtkAxis
 	RenderingContext2D    # for vtkContextActor, vtkContextScene, vtkContextTransform
-	RenderingContext${VTK_RENDERING_BACKEND}    # for implementation of RenderingContext2D (?)
+	RenderingContextOpenGL2 # for implementation of RenderingContext2D (?)
 	ViewsContext2D        # for vtkContextView, vtkContextInteractorStyle
 	ViewsInfovis    # for vtkGraphItem
 )

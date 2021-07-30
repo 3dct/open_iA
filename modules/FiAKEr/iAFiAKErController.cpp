@@ -3061,9 +3061,7 @@ void iAFiAKErController::applyRenderSettings()
 			auto ren = m_resultUIs[resultID].vtkWidget->renderWindow()->GetRenderers()->GetFirstRenderer();
 #endif
 			ren->SetUseDepthPeeling(m_mdiChild->renderSettings().UseDepthPeeling);
-#if (defined(VTK_OPENGL2_BACKEND))
 			ren->SetUseDepthPeelingForVolumes(m_mdiChild->renderSettings().UseDepthPeeling);
-#endif
 			ren->SetMaximumNumberOfPeels(m_mdiChild->renderSettings().DepthPeels);
 			ren->SetUseFXAA(m_mdiChild->renderSettings().UseFXAA);
 			QColor bgTop(m_mdiChild->renderSettings().BackgroundTop);

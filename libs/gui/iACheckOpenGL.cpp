@@ -91,23 +91,14 @@ bool checkOpenGLVersion(QString & msg)
 			delete context;
 			return false;
 		}
-#if (defined(VTK_OPENGL2_BACKEND))
 		const int minMajor = 3;
 		const int minMinor = 2;
-#else
-		const int minMajor = 1;
-		const int minMinor = 1;
-#endif
 //		std::cout << "OpenGL version: " << major << "." << minor << std::endl;
 		if (major < minMajor || (major == minMajor && minor < minMinor))
 		{
 			msg = QString("The OpenGL version currently available on your system (%1.%2) is insufficient, required is at least %3.%4.\n\n"
 				"If you are using Remote Desktop, you might be able to get better OpenGL support when using other remote access software "
 				"such as VNC, TeamViewer, NoMachine or similar. "
-#if (defined(VTK_OPENGL2_BACKEND))
-				"You can also compile VTK with 'OpenGL' VTK_RENDERING_BACKEND instead of 'OpenGL2' "
-				"(note that the 'OpenGL' option is only available up until VTK version 8.1.2, it is not available in newer versions).\n\n"
-#endif
 				"It might also help to update the display drivers; "
 				"or if you have the chance, use the program on newer hardware."
 #ifndef _WIN32

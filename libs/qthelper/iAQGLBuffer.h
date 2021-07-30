@@ -22,16 +22,6 @@
 
 #include <QtGlobal>
 
-#if (defined(VTK_OPENGL2_BACKEND))
-
 #include <QOpenGLBuffer>
 
-typedef QOpenGLBuffer iAQGLBuffer;
-
-#else
-
-#include <QGLBuffer>
-
-typedef QGLBuffer iAQGLBuffer;
-
-#endif
+using iAQGLBuffer = QOpenGLBuffer;

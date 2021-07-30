@@ -24,28 +24,9 @@
 
 #include <QtGlobal>
 
-#if (defined(VTK_OPENGL2_BACKEND))
-
 #include <QOpenGLWidget>
 
-typedef QOpenGLWidget iAQGLWidget;
-typedef QSurfaceFormat iAQGLFormat;
-
-#define GRAB_FRAMEBUFFER grabFramebuffer
-
-#else
-
-#define WIN32_LEAN_AND_MEAN		// apparently QGLWidget might include windows.h...
-#define VC_EXTRALEAN
-#define NOMINMAX
-
-#include <QGLWidget>
-
-typedef QGLWidget iAQGLWidget;
-typedef QGLFormat iAQGLFormat;
-
-#define GRAB_FRAMEBUFFER grabFrameBuffer
-
-#endif
+using iAQGLWidget = QOpenGLWidget;
+using iAQGLFormat = QSurfaceFormat;
 
 iAqthelper_API iAQGLFormat defaultQOpenGLWidgetFormat();

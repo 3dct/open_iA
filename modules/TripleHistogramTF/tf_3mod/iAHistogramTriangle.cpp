@@ -87,7 +87,7 @@ void iAHistogramTriangle::initialize(QString const /*names*/[3])
 		// That prevents a "Framebuffer incomplete attachment" warning
 #ifdef CHART_OPENGL
 // TODO: Find way to do this without OpenGL!
-		m_tmw->w_slicer(i)->getSlicer()->GRAB_FRAMEBUFFER();
+		m_tmw->w_slicer(i)->getSlicer()->grabFramebuffer();
 #endif
 	}
 
@@ -104,12 +104,10 @@ void iAHistogramTriangle::initialize(QString const /*names*/[3])
 	m_fClear = true;
 	update();
 
-#if (defined(VTK_OPENGL2_BACKEND))
 	for (int i = 0; i < 3; i++)
 	{
 		connect(m_tmw->w_slicer(i)->getSlicer(), &iASlicer::resized, this, &iAHistogramTriangle::glresized);
 	}
-#endif
 	connect(m_tmw, &iATripleModalityWidget::slicerModeChangedExternally, this, &iAHistogramTriangle::updateSlicers);
 	connect(m_tmw, &iATripleModalityWidget::sliceNumberChangedExternally, this, &iAHistogramTriangle::updateSlicers);
 }
@@ -534,7 +532,7 @@ void iAHistogramTriangle::paintSlicers(QPainter &p)
 			p.setTransform(m_transformSlicers[i]);
 #ifdef CHART_OPENGL
 // TODO: Find way to do this without OpenGL!
-			img = m_tmw->w_slicer(i)->getSlicer()->GRAB_FRAMEBUFFER();
+			img = m_tmw->w_slicer(i)->getSlicer()->grabFramebuffer();
 #endif
 
 			QSize size = m_tmw->w_slicer(i)->getSlicer()->size();

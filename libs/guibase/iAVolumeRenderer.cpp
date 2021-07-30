@@ -134,10 +134,8 @@ void iAVolumeRenderer::applySettings(iAVolumeSettings const & vs)
 		m_volSettings.ScalarOpacityUnitDistance = m_volProp->GetScalarOpacityUnitDistance();
 	}
 	m_volMapper->SetRequestedRenderMode(vs.RenderMode);
-#ifdef VTK_OPENGL2_BACKEND
 	m_volMapper->SetSampleDistance(vs.SampleDistance);
 	m_volMapper->InteractiveAdjustSampleDistancesOff();
-#endif
 }
 
 double const * iAVolumeRenderer::orientation() const

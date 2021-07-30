@@ -160,9 +160,7 @@ dlg_eventExplorer::dlg_eventExplorer(QWidget *parent, size_t numberOfCharts, int
 	for (size_t i=0; i<numberOfCharts; ++i)
 	{
 		iAVtkWidget* vtkWidget = new iAVtkWidget();
-#if (VTK_VERSION_NUMBER >= VTK_VERSION_CHECK(8, 2, 0) && defined(VTK_OPENGL2_BACKEND))
 		vtkWidget->setFormat(iAVtkWidget::defaultFormat());
-#endif
 		auto renWin = vtkSmartPointer<vtkGenericOpenGLRenderWindow>::New();
 #if VTK_VERSION_NUMBER < VTK_VERSION_CHECK(9, 0, 0)
 		vtkWidget->SetRenderWindow(renWin);
