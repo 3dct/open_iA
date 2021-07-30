@@ -26,6 +26,7 @@
 #include <iATypedCallHelper.h>
 
 #include <defines.h>  // for DIM
+#include <iALog.h>
 
 #ifndef NDEBUG
 #include <iAPerformanceHelper.h>  // TODO
