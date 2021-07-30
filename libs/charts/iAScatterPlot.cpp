@@ -1288,7 +1288,7 @@ void iAScatterPlot::fillVBO()
 		return;
 	}
 
-	GLfloat * buffer = static_cast<GLfloat *>(m_pointsBuffer->map(iAQGLBuffer::ReadWrite));
+	GLfloat * buffer = static_cast<GLfloat *>(m_pointsBuffer->map(QOpenGLBuffer::ReadWrite));
 
 	assert(buffer);
 
