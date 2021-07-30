@@ -199,7 +199,7 @@ protected:
 	int m_dragStartPosX, m_dragStartPosY;
 	int m_mode;
 	//! Main mappers from diagram coordinates to pixel coordinates, for each axis:
-	QSharedPointer<iAMapper> m_xMapper, m_yMapper;
+	mutable QSharedPointer<iAMapper> m_xMapper, m_yMapper;
 	AxisMappingType m_yMappingMode;
 
 	virtual void drawPlots(QPainter& painter);
@@ -234,7 +234,7 @@ private slots:
 
 private:
 	virtual void addContextMenuEntries(QMenu* contextMenu);
-	void createMappers();
+	void createMappers() const;
 	void drawAll(QPainter& painter);
 	void drawImageOverlays(QPainter &painter);
 	virtual void drawAfterPlots(QPainter& painter);
