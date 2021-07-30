@@ -133,7 +133,10 @@ iADreamCaster::iADreamCaster(QWidget *parent, Qt::WindowFlags flags)
 	curIndY(0),
 	curIndZ(0),
 	modelOpened(false),
-	datasetOpened(false)
+	datasetOpened(false),
+	qvtkWidget(new iAQVTKWidget),
+	qvtkPlot3d(new iAQVTKWidget),
+	qvtkWeighing(new iAQVTKWidget)
 {
 	Q_INIT_RESOURCE(dreamcaster);
 	ParseConfigFile(&stngs);
@@ -202,10 +205,6 @@ iADreamCaster::iADreamCaster(QWidget *parent, Qt::WindowFlags flags)
 
 	ren = vtkRenderer::New();
 
-	CREATE_OLDVTKWIDGET(qvtkWidget);
-	CREATE_OLDVTKWIDGET(qvtkPlot3d);
-	CREATE_OLDVTKWIDGET(qvtkWeighing);
-
 	qvtkWidget->setSizePolicy(QSizePolicy::Expanding, QSizePolicy::Expanding);
 	qvtkWidget->setMinimumSize(100, 250);
 	qvtkWidget->setAutoFillBackground(true);
@@ -213,12 +212,7 @@ iADreamCaster::iADreamCaster(QWidget *parent, Qt::WindowFlags flags)
 	ui.verticalLayout_63->addWidget(qvtkWidget);
 	ui.gridLayout_4->addWidget(qvtkPlot3d);
 	ui.gridLayout_1->addWidget(qvtkWeighing);
-
-#if VTK_VERSION_NUMBER < VTK_VERSION_CHECK(9, 0, 0)
-	qvtkWidget->GetRenderWindow()->AddRenderer(ren);
-#else
 	qvtkWidget->renderWindow()->AddRenderer(ren);
-#endif
 	stlReader = vtkSTLReader::New();
 	mapper = vtkPolyDataMapper::New();
 	actor = vtkActor::New();
@@ -237,11 +231,7 @@ iADreamCaster::iADreamCaster(QWidget *parent, Qt::WindowFlags flags)
 	depthSort = 0;
 	vtkInteractorStyleSwitch *style = vtkInteractorStyleSwitch::New();
 	style->SetCurrentStyleToTrackballCamera();
-#if VTK_VERSION_NUMBER < VTK_VERSION_CHECK(9, 0, 0)
-	qvtkWidget->GetInteractor()->SetInteractorStyle(style);
-#else
 	qvtkWidget->interactor()->SetInteractorStyle(style);
-#endif
 	style->Delete();
 
 	#define THREAD_W 2
@@ -318,49 +308,28 @@ iADreamCaster::iADreamCaster(QWidget *parent, Qt::WindowFlags flags)
 	plot3d->GetRenderer()->SetBackground2(0.5, 0.66666666666666666666666666666667, 1);
 	vtkInteractorStyleSwitch *cube_style = vtkInteractorStyleSwitch::New();
 	cube_style->SetCurrentStyleToTrackballCamera();
-#if VTK_VERSION_NUMBER < VTK_VERSION_CHECK(9, 0, 0)
-	qvtkPlot3d->GetRenderWindow()->AddRenderer(plot3d->GetRenderer());
-	qvtkPlot3d->GetInteractor()->SetInteractorStyle(cube_style);
-#else
 	qvtkPlot3d->renderWindow()->AddRenderer(plot3d->GetRenderer());
 	qvtkPlot3d->interactor()->SetInteractorStyle(cube_style);
-#endif
 	cube_style->Delete();
 	plot3d->SetPalette(100, stngs.COL_RANGE_MIN_R, stngs.COL_RANGE_MIN_G, stngs.COL_RANGE_MIN_B, stngs.COL_RANGE_MAX_R, stngs.COL_RANGE_MAX_G, stngs.COL_RANGE_MAX_B);
 	plot3d->Update();
 	//TODO: callback not used?
 	vtkCallbackCommand* callback = vtkCallbackCommand::New();
-#if VTK_VERSION_NUMBER < VTK_VERSION_CHECK(9, 0, 0)
-	qvtkPlot3d->GetRenderWindow()->GetInteractor()->AddObserver(vtkCommand::LeftButtonPressEvent, callback, 1.0);
-#else
 	qvtkPlot3d->renderWindow()->GetInteractor()->AddObserver(vtkCommand::LeftButtonPressEvent, callback, 1.0);
-#endif
 	callback->Delete();
 	//plot3dWeighting stuff
 	plot3dWeighting = new iAPlot3DVtk;
 	plot3dWeighting->GetRenderer()->SetBackground(stngs.BG_COL_R/255.0, stngs.BG_COL_G/255.0, stngs.BG_COL_B/255.0);//(0,0,0);//
 	plot3dWeighting->GetRenderer()->SetBackground2(0.5, 0.66666666666666666666666666666667, 1);
-#if VTK_VERSION_NUMBER < VTK_VERSION_CHECK(9, 0, 0)
-	qvtkWeighing->GetRenderWindow()->AddRenderer(plot3dWeighting->GetRenderer());
-#else
 	qvtkWeighing->renderWindow()->AddRenderer(plot3dWeighting->GetRenderer());
-#endif
 	vtkInteractorStyleSwitch *cube_style2 = vtkInteractorStyleSwitch::New();
 	cube_style2->SetCurrentStyleToTrackballCamera();
-#if VTK_VERSION_NUMBER < VTK_VERSION_CHECK(9, 0, 0)
-	qvtkWeighing->GetInteractor()->SetInteractorStyle(cube_style2);
-#else
 	qvtkWeighing->interactor()->SetInteractorStyle(cube_style2);
-#endif
 	cube_style2->Delete();
 	plot3dWeighting->SetPalette(100, stngs.COL_RANGE_MIN_R, stngs.COL_RANGE_MIN_G, stngs.COL_RANGE_MIN_B, stngs.COL_RANGE_MAX_R, stngs.COL_RANGE_MAX_G, stngs.COL_RANGE_MAX_B);
 	plot3dWeighting->Update();
 
-#if VTK_VERSION_NUMBER < VTK_VERSION_CHECK(9, 0, 0)
-	qvtkPlot3d->GetRenderWindow()->Render();
-#else
 	qvtkPlot3d->renderWindow()->Render();
-#endif
 	qvtkPlot3d->installEventFilter(this);
 	ui.RenderViewWidget->installEventFilter(this);
 	ui.HeightWidget->installEventFilter(this);
