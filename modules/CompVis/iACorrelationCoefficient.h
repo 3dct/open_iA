@@ -5,7 +5,7 @@
 #include "vtkSmartPointer.h"
 #include "vtkTable.h"
 
-#include "iACsvDataStorage.h";
+#include "iACsvDataStorage.h"
 
 namespace Correlation
 {

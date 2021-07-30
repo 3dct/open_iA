@@ -184,6 +184,11 @@ void iANModalPCAModalityReducer::ownPCA(std::vector<iAConnector>& c)
 	{
 		numVoxels *= size[dim_i];
 	}
+	if (numVoxels >= std::numeric_limits<int>::max())
+	{
+		LOG(lvlWarn, QString("Input image (number of voxels: %1) exceeds size that can be handled "
+			"(current voxel number maximum: %2)!").arg(numVoxels).arg(std::numeric_limits<int>::max()));
+	}
 
 	// Set up input matrix
 	vnl_matrix<double> inputs(numInputs, numVoxels);
@@ -240,6 +245,7 @@ void iANModalPCAModalityReducer::ownPCA(std::vector<iAConnector>& c)
 		for (size_t img_i = 0; img_i < numInputs; img_i++)
 		{
 			double mean = 0;
+			// TODO: Use omp reduction?
 #pragma omp for nowait
 			for (int i = 0; i < numVoxels; i++)
 			{

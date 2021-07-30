@@ -41,8 +41,6 @@
 #include <iASlicerSettings.h>
 #include <iAToolsVTK.h>
 #include <iAVolumeRenderer.h>
-//#include "iAChartWithFunctionsWidget.h" // Why doesn't it work?
-//#include "iAToolsVTK.h"
 #include <iAChartWithFunctionsWidget.h>
 #include <iAHistogramData.h>
 #include <iAPerformanceHelper.h>
@@ -62,15 +60,10 @@
 #include <vtkSmartVolumeMapper.h>
 #include <vtkVolume.h>
 #include <vtkVolumeProperty.h>
-//#include <vtkImageMapToColors.h>
-//#include <vtkGPUVolumeRayCastMapper.h>
-//#include <vtkImageMask.h>
 
 #include <array>
 
 vtkStandardNewMacro(iANModalSmartVolumeMapper);
-
-static constexpr int NUM_SLICERS = iASlicerMode::SlicerCount;
 
 iANModalController::iANModalController(iAMdiChild* mdiChild) : m_mdiChild(mdiChild)
 {
@@ -523,78 +516,83 @@ void iANModalController::update()
 	//m_mdiChild->redrawHistogram();
 }
 
-using Rgb = std::array<unsigned char, 3>;
-using Colors = std::vector<Rgb>;
-using Alphas = std::vector<float>;
-static inline void combineColors(const Colors& colors, const Alphas& opacities, Rgb& output)
+namespace
 {
-	assert(colors.size() == opacities.size());
-	output = {0, 0, 0};
-	for (size_t i = 0; i < colors.size(); ++i)
+	using Rgb = std::array<unsigned char, 3>;
+	using Colors = std::vector<Rgb>;
+	using Alphas = std::vector<float>;
+	inline void combineColors(const Colors& colors, const Alphas& opacities, Rgb& output)
 	{
-		float opacity = opacities[i];
-		output[0] += (colors[i][0] * opacity);
-		output[1] += (colors[i][1] * opacity);
-		output[2] += (colors[i][2] * opacity);
+		assert(colors.size() == opacities.size());
+		output = {0, 0, 0};
+		for (size_t i = 0; i < colors.size(); ++i)
+		{
+			float opacity = opacities[i];
+			output[0] += (colors[i][0] * opacity);
+			output[1] += (colors[i][1] * opacity);
+			output[2] += (colors[i][2] * opacity);
+		}
 	}
-}
 
-static inline void setRgba(const vtkSmartPointer<vtkImageData>& img, const int& x, const int& y, const int& z,
-	const Rgb& color, const float& alpha = 255)
-{
-	for (int i = 0; i < 3; ++i) img->SetScalarComponentFromFloat(x, y, z, i, color[i]);
-	img->SetScalarComponentFromFloat(x, y, z, 3, alpha);
-}
+	inline void setRgba(const vtkSmartPointer<vtkImageData>& img, const int& x, const int& y, const int& z,
+		const Rgb& color, const float& alpha = 255)
+	{
+		for (int i = 0; i < 3; ++i) img->SetScalarComponentFromFloat(x, y, z, i, color[i]);
+		img->SetScalarComponentFromFloat(x, y, z, 3, alpha);
+	}
 
-static inline double getScalar(const vtkSmartPointer<vtkImageData>& img, const int& x, const int& y, const int& z)
-{
-	return img->GetScalarComponentAsDouble(x, y, z, 0);
-}
+	inline double getScalar(const vtkSmartPointer<vtkImageData>& img, const int& x, const int& y, const int& z)
+	{
+		return img->GetScalarComponentAsDouble(x, y, z, 0);
+	}
 
-static inline void setRgba(unsigned char* ptr, const int& id, const Rgb& color, const float& alpha = 255)
-{
-	ptr[id + 0] = color[0];
-	ptr[id + 1] = color[1];
-	ptr[id + 2] = color[2];
-	ptr[id + 3] = alpha;
-	//unsigned char rgba[4] = { color[0], color[1], color[2], alpha };
-	//memcpy(&ptr[id], rgba, 4 * sizeof(unsigned char));
-}
+	inline void setRgba(unsigned char* ptr, const int& id, const Rgb& color, const float& alpha = 255)
+	{
+		ptr[id + 0] = color[0];
+		ptr[id + 1] = color[1];
+		ptr[id + 2] = color[2];
+		ptr[id + 3] = alpha;
+		//unsigned char rgba[4] = { color[0], color[1], color[2], alpha };
+		//memcpy(&ptr[id], rgba, 4 * sizeof(unsigned char));
+	}
 
-template <typename T>
-static inline double getScalar(T* ptr, const int& id)
-{
-	return ptr[id];
-}
+	template <typename T>
+	inline double getScalar(T* ptr, const int& id)
+	{
+		return ptr[id];
+	}
 
-static constexpr iASlicerMode slicerModes[NUM_SLICERS] = {
-	iASlicerMode::YZ,  // X
-	iASlicerMode::XY,  // Z
-	iASlicerMode::XZ   // Y
-};
+	constexpr int NUM_SLICERS = iASlicerMode::SlicerCount;
 
-static constexpr int slicerAxes[NUM_SLICERS] = {0, 2, 1};  // X, Z, Y (compatible with layout of slicerModes array)
+	constexpr iASlicerMode slicerModes[NUM_SLICERS] = {
+		iASlicerMode::YZ,  // X
+		iASlicerMode::XY,  // Z
+		iASlicerMode::XZ   // Y
+	};
 
-static constexpr int slicerCoordSwapIndices[NUM_SLICERS][NUM_SLICERS] = {{2, 0, 1}, {0, 1, 2}, {0, 2, 1}};
+	constexpr int slicerAxes[NUM_SLICERS] = {0, 2, 1};  // X, Z, Y (compatible with layout of slicerModes array)
 
-static inline void swapIndices(const int (&xyz_orig)[3], int mainSlicerIndex, int (&xyz_out)[3])
-{
+	constexpr int slicerCoordSwapIndices[NUM_SLICERS][NUM_SLICERS] = {{2, 0, 1}, {0, 1, 2}, {0, 2, 1}};
+
+	inline void swapIndices(const int (&xyz_orig)[3], int mainSlicerIndex, int (&xyz_out)[3])
+	{
 #ifdef NDEBUG
-	Q_UNUSED(xyz_orig);
+		Q_UNUSED(xyz_orig);
 #endif
-	xyz_out[0] = mapSliceToGlobalAxis(mainSlicerIndex, 0);
-	xyz_out[1] = mapSliceToGlobalAxis(mainSlicerIndex, 1);
-	xyz_out[2] = mapSliceToGlobalAxis(mainSlicerIndex, 2);
+		xyz_out[0] = mapSliceToGlobalAxis(mainSlicerIndex, 0);
+		xyz_out[1] = mapSliceToGlobalAxis(mainSlicerIndex, 1);
+		xyz_out[2] = mapSliceToGlobalAxis(mainSlicerIndex, 2);
 
-	assert(xyz_orig[slicerCoordSwapIndices[mainSlicerIndex][0]] == xyz_out[0]);
-	assert(xyz_orig[slicerCoordSwapIndices[mainSlicerIndex][1]] == xyz_out[1]);
-	assert(xyz_orig[slicerCoordSwapIndices[mainSlicerIndex][2]] == xyz_out[2]);
-}
+		assert(xyz_orig[slicerCoordSwapIndices[mainSlicerIndex][0]] == xyz_out[0]);
+		assert(xyz_orig[slicerCoordSwapIndices[mainSlicerIndex][1]] == xyz_out[1]);
+		assert(xyz_orig[slicerCoordSwapIndices[mainSlicerIndex][2]] == xyz_out[2]);
+	}
 
-static inline void convert_2d_to_3d(const int (&xyz_orig)[3], int mainSlicerIndex, int sliceNum, int (&xyz_out)[3])
-{
-	swapIndices(xyz_orig, mainSlicerIndex, xyz_out);
-	xyz_out[slicerAxes[mainSlicerIndex]] += sliceNum;
+	inline void convert_2d_to_3d(const int (&xyz_orig)[3], int mainSlicerIndex, int sliceNum, int (&xyz_out)[3])
+	{
+		swapIndices(xyz_orig, mainSlicerIndex, xyz_out);
+		xyz_out[slicerAxes[mainSlicerIndex]] += sliceNum;
+	}
 }
 
 #define iANModal_USE_GETSCALARPOINTER

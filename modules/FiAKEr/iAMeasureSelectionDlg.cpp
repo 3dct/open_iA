@@ -129,8 +129,8 @@ int iAMeasureSelectionDlg::optimizeMeasureIdx() const
 			for (size_t mIdx = 0; mIdx < m.size(); ++mIdx)
 			{
 				if (m[mIdx].first == row)
-				{
-					return mIdx;
+				{	// assuming that there won't be more than 2billion measures is probably safe
+					return static_cast<int>(mIdx);
 				}
 			}
 			LOG(lvlWarn, "Optimization measure requested, but not selected to be computed!");
