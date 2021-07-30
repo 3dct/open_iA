@@ -30,6 +30,7 @@
 #include <vtkExtractGeometry.h>
 #include <vtkIdTypeArray.h>
 #include <vtkLine.h>
+#include <vtkNew.h>
 #include <vtkPlane.h>
 #include <vtkPlanes.h>
 #include <vtkPointData.h>

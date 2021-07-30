@@ -34,6 +34,8 @@
 #include <QAction>
 #include <QDockWidget>
 
+#include <cassert>
+
 namespace
 {
 	QSharedPointer<iASPLOMData> createSPLOMData(vtkTable* table)

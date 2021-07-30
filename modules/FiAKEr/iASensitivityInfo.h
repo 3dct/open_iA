@@ -42,6 +42,7 @@ class iASensitivityGUI;
 // {
 #include "iAVtkWidget.h"
 class vtkActor;
+class vtkImageData;
 class vtkPolyData;
 // }
 

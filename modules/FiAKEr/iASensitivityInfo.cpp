@@ -72,7 +72,9 @@
 #include "ui_DissimilarityMatrix.h"
 #include "ui_SensitivitySettings.h"
 
+#include <vtkGenericOpenGLRenderWindow.h>
 #include <vtkImageData.h>
+#include <vtkNew.h>
 #include <vtkPolyData.h>
 #include <vtkPolyDataMapper.h>
 #include <vtkSmartPointer.h>
@@ -1523,7 +1525,7 @@ private:
 #if QT_VERSION >= QT_VERSION_CHECK(5, 11, 0)
 		int textWidth = std::max(p.fontMetrics().horizontalAdvance(minStr), p.fontMetrics().horizontalAdvance(maxStr));
 #else
-		int textWidth = std::max(fm.width(minStr), fm.width(maxStr));
+		int textWidth = std::max(p.fontMetrics().width(minStr), p.fontMetrics().width(maxStr));
 #endif
 		int scalarBarWidth = geometry().width() - 2 * ScalarBarPadding - textWidth;
 		// Draw scalar bar (duplicated from iAQSplom!)

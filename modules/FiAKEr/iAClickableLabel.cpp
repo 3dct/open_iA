@@ -21,6 +21,7 @@
 #include "iAClickableLabel.h"
 
 #include <QApplication>    // for qApp->palette()
+#include <QFontMetrics>
 #include <QMouseEvent>
 #include <QPainter>
 

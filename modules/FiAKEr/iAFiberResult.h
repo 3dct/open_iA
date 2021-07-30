@@ -32,6 +32,7 @@
 #include <QSharedPointer>
 #include <QThread>
 
+#include <array>
 #include <vector>
 
 struct iAFiberData;
