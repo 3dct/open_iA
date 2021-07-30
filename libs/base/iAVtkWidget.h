@@ -50,3 +50,28 @@
 		(x)->setFormat(iAVtkWidget::defaultFormat()); \
 	}
 #endif
+
+class iAQVTKWidget: public iAVtkWidget
+{
+public:
+	iAQVTKWidget(QWidget* parent = nullptr): iAVtkWidget(parent)
+	{
+		auto renWin = vtkSmartPointer<vtkGenericOpenGLRenderWindow>::New();
+#if VTK_VERSION_NUMBER < VTK_VERSION_CHECK(9, 0, 0)
+		SetRenderWindow(renWin);
+#else
+		setRenderWindow(renWin);
+#endif
+		setFormat(iAVtkWidget::defaultFormat());
+	}
+#if VTK_VERSION_NUMBER < VTK_VERSION_CHECK(9, 0, 0)
+	vtkRenderWindow* renderWindow()
+	{
+		return GetRenderWindow();
+	}
+	QVTKInteractor* interactor()
+	{
+		return GetInteractor();
+	}
+#endif
+};
