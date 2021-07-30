@@ -21,9 +21,9 @@
 #pragma once
 
 #ifdef CHART_OPENGL
-#include "iAQGLWidget.h"
-#include "iAQGLBuffer.h"
-using iAChartParentWidget = iAQGLWidget;
+#include <QOpenGLWidget>
+#include <QOpenGLBuffer>
+using iAChartParentWidget = QOpenGLWidget;
 #else
 #include <QWidget>
 using iAChartParentWidget = QWidget;
@@ -201,7 +201,7 @@ public:
 protected:
 	iAChartParentWidget* m_parentWidget;                             //!< the parent widget
 #ifdef SP_OLDOPENGL
-	iAQGLBuffer * m_pointsBuffer;                                    //!< OpenGL buffer used for points VBO
+	QOpenGLBuffer* m_pointsBuffer;                                   //!< OpenGL buffer used for points VBO
 	bool m_pointsOutdated;                                           //!< indicates whether we need to fill the points buffer
 #endif
 	iAScatterPlotViewData* m_viewData;                               //!< selection/highlight/settings handler (if part of a SPLOM, the SPLOM-parent)

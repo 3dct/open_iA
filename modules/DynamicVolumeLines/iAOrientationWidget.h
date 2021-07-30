@@ -22,12 +22,11 @@
 
 #include <qcustomplot.h>
 
-// qthelper
-#include <iAQGLWidget.h>
+#include <QOpenGLWidget>
 
 #include <vtkSmartPointer.h>
 
-class iAOrientationWidget : public iAQGLWidget
+class iAOrientationWidget : public QOpenGLWidget
 {
 	Q_OBJECT
 

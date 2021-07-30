@@ -26,9 +26,6 @@
 #include "iAMathUtility.h"
 #include "iAScatterPlotViewData.h"
 #include "iASPLOMData.h"
-#ifdef CHART_OPENGL
-#include "iAQGLWidget.h"
-#endif
 
 #include <QAbstractTextDocumentLayout>
 #include <QApplication>
@@ -1249,13 +1246,17 @@ namespace
 void iAScatterPlot::createVBO()
 {
 	if (!m_parentWidget->isVisible())
+	{
 		return;
+	}
 	m_parentWidget->makeCurrent();
 
 	if (!m_splomData)
+	{
 		return;
+	}
 
-	m_pointsBuffer = new iAQGLBuffer( iAQGLBuffer::VertexBuffer );
+	m_pointsBuffer = new QOpenGLBuffer(QOpenGLBuffer::VertexBuffer);
 	if (!m_pointsBuffer->create())
 	{
 		m_pointsBuffer = nullptr;
@@ -1267,7 +1268,7 @@ void iAScatterPlot::createVBO()
 		LOG(lvlWarn, "Binding points buffer failed!");
 		return;
 	}
-	m_pointsBuffer->setUsagePattern(iAQGLBuffer::DynamicDraw);
+	m_pointsBuffer->setUsagePattern(QOpenGLBuffer::DynamicDraw);
 	m_pointsBuffer->allocate(static_cast<int>((CordDim + ColChan) * m_splomData->numPoints() * sizeof(GLfloat)));
 	m_pointsBuffer->release();
 }

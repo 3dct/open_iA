@@ -21,8 +21,8 @@
 #pragma once
 
 #ifdef CHART_OPENGL
-#include "iAQGLWidget.h"
-using iAChartParentWidget = iAQGLWidget;
+#include <QOpenGLWidget>
+using iAChartParentWidget = QOpenGLWidget;
 #else
 #include <QWidget>
 using iAChartParentWidget = QWidget;

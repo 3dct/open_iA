@@ -25,9 +25,9 @@
 #include "iALog.h"
 #include "iAMapperImpl.h"
 #include "iAMathUtility.h"
-//#include "iAParameterDlg.h"
 #include "iAPlot.h"
 #include "iAPlotData.h"
+#include "iAQGLWidget.h"
 #include "iAStringHelper.h"
 
 #include <vtkMath.h>

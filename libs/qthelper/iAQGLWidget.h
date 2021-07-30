@@ -22,11 +22,6 @@
 
 #include "iAqthelper_export.h"
 
-#include <QtGlobal>
+#include <QSurfaceFormat>
 
-#include <QOpenGLWidget>
-
-using iAQGLWidget = QOpenGLWidget;
-using iAQGLFormat = QSurfaceFormat;
-
-iAqthelper_API iAQGLFormat defaultQOpenGLWidgetFormat();
+iAqthelper_API QSurfaceFormat defaultQOpenGLWidgetFormat();

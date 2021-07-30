@@ -26,8 +26,8 @@
 #include "iAcharts_export.h"
 
 #ifdef CHART_OPENGL
-#include "iAQGLWidget.h"
-using iAChartParentWidget = iAQGLWidget;
+#include <QOpenGLWidget>
+using iAChartParentWidget = QOpenGLWidget;
 #include <QOpenGLFunctions>
 #else
 #include <QWidget>

@@ -22,6 +22,7 @@
 
 #include "iALog.h"
 #include "iALookupTable.h"
+#include "iAQGLWidget.h"
 #include "iAScatterPlot.h"
 #include "iAScatterPlotViewData.h"
 #include "iASPLOMData.h"
