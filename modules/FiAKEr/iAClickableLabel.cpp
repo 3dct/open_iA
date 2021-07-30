@@ -47,7 +47,11 @@ void iAClickableLabel::paintEvent(QPaintEvent* ev)
 	{
 		QPainter painter(this);
 		painter.setPen(qApp->palette().color(QPalette::Text));
+#if QT_VERSION >= QT_VERSION_CHECK(5, 11, 0)
 		painter.translate( painter.fontMetrics().height(), (geometry().height() + painter.fontMetrics().horizontalAdvance(text())) / 2 );
+#else
+		painter.translate( painter.fontMetrics().height(), (geometry().height() + painter.fontMetrics().width(text())) / 2 );
+#endif
 		painter.rotate(270);
 		painter.drawText(0, 0, text());
 	}

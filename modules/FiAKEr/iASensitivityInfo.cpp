@@ -2829,9 +2829,9 @@ void iASensitivityInfo::updateDifferenceView()
 				colors->InsertNextTypedTuple(onlyInRefColor);
 			}
 
-			ptData->SetPoints(points);
+			ptData->SetPoints(points.GetPointer());
 			auto vertexFilter = vtkSmartPointer<vtkVertexGlyphFilter>::New();
-			vertexFilter->SetInputData(ptData);
+			vertexFilter->SetInputData(ptData.GetPointer());
 			vertexFilter->Update();
 
 			resultData->diffPoints = vtkSmartPointer<vtkPolyData>::New();

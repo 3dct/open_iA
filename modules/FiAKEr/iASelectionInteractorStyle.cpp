@@ -93,7 +93,7 @@ iASelectionInteractorStyle::iASelectionInteractorStyle() :
 	pts->InsertNextPoint(0, 0, 0);
 	pts->InsertNextPoint(0, 0, 0);
 	pts->InsertNextPoint(0, 0, 0);
-	m_selRectPolyData->SetPoints(pts);
+	m_selRectPolyData->SetPoints(pts.GetPointer());
 
 	vtkNew<vtkCellArray> lines;
 	for (int i = 0; i < 4; ++i)
@@ -101,9 +101,9 @@ iASelectionInteractorStyle::iASelectionInteractorStyle() :
 		vtkNew<vtkLine> line;
 		line->GetPointIds()->SetId(0, i);
 		line->GetPointIds()->SetId(1, (i + 1) % 4);
-		lines->InsertNextCell(line);
+		lines->InsertNextCell(line.GetPointer());
 	}
-	m_selRectPolyData->SetLines(lines);
+	m_selRectPolyData->SetLines(lines.GetPointer());
 
 	vtkNew<vtkUnsignedCharArray> colors;
 	colors->SetNumberOfComponents(3);
@@ -112,7 +112,7 @@ iASelectionInteractorStyle::iASelectionInteractorStyle() :
 	{
 		colors->InsertNextTuple(color);
 	}
-	m_selRectPolyData->GetCellData()->SetScalars(colors);
+	m_selRectPolyData->GetCellData()->SetScalars(colors.GetPointer());
 	m_selRectMapper->SetInputData(m_selRectPolyData);
 	m_selRectActor->GetProperty()->SetColor(1, 0, 0);
 	m_selRectActor->GetProperty()->SetOpacity(1);
