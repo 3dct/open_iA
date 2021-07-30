@@ -20,8 +20,6 @@
 * ************************************************************************************/
 #pragma once
 
-#include <iAVtkWidgetFwd.h>
-
 #include <vtkSmartPointer.h>
 
 #include <QList>
@@ -33,6 +31,7 @@ class iAMeanObjectDockWidget;
 class iAMeanObjectTFView;
 
 class iAMdiChild;
+class iAQVTKWidget;
 
 class vtkCamera;
 class vtkTable;
@@ -56,7 +55,7 @@ private:
 	iAMeanObjectDockWidget* m_dwMO;
 	iAMeanObjectTFView* m_motfView;
 	QSharedPointer<iAMeanObjectData> m_MOData;
-	iAVtkOldWidget* m_meanObjectWidget;
+	iAQVTKWidget* m_meanObjectWidget;
 	iAMdiChild* m_activeChild;
 	int m_filterID;
 	QString m_sourcePath;

@@ -26,7 +26,6 @@
 #include "ui_FeatureScoutPolarPlot.h"
 
 #include <iAVec3.h>
-#include <iAVtkWidgetFwd.h>
 #include <qthelper/iAQTtoUIConnector.h>
 
 #include <vtkSmartPointer.h>
@@ -47,6 +46,7 @@ class iAModalityTransfer;
 class iAQSplom;
 class iARenderer;
 class iAMdiChild;
+class iAQVTKWidget;
 
 class iA3DObjectVis;
 
@@ -234,7 +234,7 @@ private:
 
 	dlg_blobVisualization* m_blobVisDialog;
 
-	iAVtkOldWidget* m_pcWidget, *m_polarPlotWidget, *m_lengthDistrWidget;
+	iAQVTKWidget* m_pcWidget, *m_polarPlotWidget, *m_lengthDistrWidget;
 
 	vtkSmartPointer<vtkContextView> m_dvContextView;
 

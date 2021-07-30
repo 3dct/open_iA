@@ -398,15 +398,11 @@ void iAMeanObject::render(QStringList const & classNames, QList<vtkSmartPointer<
 		connect(m_dwMO->tb_SaveStl, &QToolButton::clicked, this, &iAMeanObject::saveStl);
 
 		// Create a render window and an interactor for all the MObjects
-		CREATE_OLDVTKWIDGET(m_meanObjectWidget);
+		m_meanObjectWidget = new iAQVTKWidget();
 
 		m_dwMO->verticalLayout->addWidget(m_meanObjectWidget);
 		auto renderWindowInteractor = vtkSmartPointer<vtkRenderWindowInteractor>::New();
-#if VTK_VERSION_NUMBER < VTK_VERSION_CHECK(9, 0, 0)
-		renderWindowInteractor->SetRenderWindow(m_meanObjectWidget->GetRenderWindow());
-#else
 		renderWindowInteractor->SetRenderWindow(m_meanObjectWidget->renderWindow());
-#endif
 		auto style = vtkSmartPointer<vtkInteractorStyleTrackballCamera>::New();
 		renderWindowInteractor->SetInteractorStyle(style);
 
@@ -421,11 +417,7 @@ void iAMeanObject::render(QStringList const & classNames, QList<vtkSmartPointer<
 	m_dwMO->raise();
 
 	// Remove old renderers
-#if VTK_VERSION_NUMBER < VTK_VERSION_CHECK(9, 0, 0)
-	m_meanObjectWidget->GetRenderWindow()->GetRenderers()->RemoveAllItems();
-#else
 	m_meanObjectWidget->renderWindow()->GetRenderers()->RemoveAllItems();
-#endif
 
 	// Define viewport variables
 	int numberOfMeanObjectVolumes = m_MOData->moVolumesList.size();
@@ -440,11 +432,7 @@ void iAMeanObject::render(QStringList const & classNames, QList<vtkSmartPointer<
 		m_MOData->moRendererList.append(renderer);
 		renderer->GetActiveCamera()->ParallelProjectionOn();
 		renderer->SetBackground(1.0, 1.0, 1.0);
-#if VTK_VERSION_NUMBER < VTK_VERSION_CHECK(9, 0, 0)
-		m_meanObjectWidget->GetRenderWindow()->AddRenderer(m_MOData->moRendererList[i]);
-#else
 		m_meanObjectWidget->renderWindow()->AddRenderer(m_MOData->moRendererList[i]);
-#endif
 		renderer->SetViewport(fmod(i, viewportColumns) * fieldLengthX,
 			1 - (ceil((i + 1.0) / viewportColumns) / viewportRows),
 			fmod(i, viewportColumns) * fieldLengthX + fieldLengthX,
@@ -495,11 +483,7 @@ void iAMeanObject::render(QStringList const & classNames, QList<vtkSmartPointer<
 			renderer->AddActor(cubeAxesActor);
 			renderer->AddActor(outlineActor);
 		}
-#if VTK_VERSION_NUMBER < VTK_VERSION_CHECK(9, 0, 0)
-		m_meanObjectWidget->GetRenderWindow()->Render();
-#else
 		m_meanObjectWidget->renderWindow()->Render();
-#endif
 	}
 }
 
@@ -518,14 +502,8 @@ void iAMeanObject::modifyMeanObjectTF()
 
 void iAMeanObject::updateMOView()
 {
-#if VTK_VERSION_NUMBER < VTK_VERSION_CHECK(9, 0, 0)
-	m_meanObjectWidget->GetRenderWindow()->Render();
-#else
 	m_meanObjectWidget->renderWindow()->Render();
-#endif
 }
-
-
 
 void iAMeanObject::browseFolderDialog()
 {
