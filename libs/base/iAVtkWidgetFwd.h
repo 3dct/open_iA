@@ -25,9 +25,7 @@
 #if (VTK_VERSION_NUMBER >= VTK_VERSION_CHECK(8, 2, 0))
 	class QVTKOpenGLNativeWidget;
 	using iAVtkWidget = QVTKOpenGLNativeWidget;
-	using iAVtkOldWidget = QVTKOpenGLNativeWidget;
 #else
 	class QVTKOpenGLWidget;
 	using iAVtkWidget = QVTKOpenGLWidget;
-	using iAVtkOldWidget = QVTKOpenGLWidget;
 #endif
