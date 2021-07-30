@@ -1,18 +1,17 @@
 #pragma once
 
+#include "iACsvDataStorage.h"
+#include "ui_CompHistogramTable.h"
+
+#include <vtkChartBox.h>
+#include <vtkPlotBox.h>
+#include <vtkSmartPointer.h>
+
 //Qt
 #include <QDockWidget>
 
-#include "ui_CompHistogramTable.h"
-
-#include "vtkSmartPointer.h"
-#include "iACsvDataStorage.h"
-
-#include <vtkChartBox.h>
-#include "vtkPlotBox.h"
-
 class iAMainWindow;
-class QVTKOpenGLNativeWidget;
+class iAQVTKWidget;
 class vtkContextView;
 class vtkTable;
 class vtkTextActor;
@@ -111,7 +110,7 @@ private:
 
 	iACsvDataStorage* m_dataStorage;
 
-	QVTKOpenGLNativeWidget* m_qvtkWidget;
+	iAQVTKWidget* m_qvtkWidget;
 	vtkSmartPointer<vtkContextView> m_view;
 
 	std::vector<double>* maxValsAttr;

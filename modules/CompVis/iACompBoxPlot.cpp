@@ -6,10 +6,10 @@
 //iA
 #include "iAMainWindow.h"
 #include "iAVtkVersion.h"
+#include "iAVtkWidget.h"
 
 //vtk
 #include "vtkGenericOpenGLRenderWindow.h"
-#include "QVTKOpenGLNativeWidget.h"
 
 #include "vtkRenderer.h"
 #include "vtkContextView.h"
@@ -44,8 +44,8 @@
 #include "vtkActor.h"
 #include "vtkProperty.h"
 #include "vtkRegularPolygonSource.h"
-#include  "vtkCoordinate.h"
-#include  "vtkActor2D.h"
+#include "vtkCoordinate.h"
+#include "vtkActor2D.h"
 #include "vtkPolyDataMapper2D.h"
 
 #include "vtkPen.h"
@@ -63,6 +63,7 @@ vtkStandardNewMacro(iACompBoxPlot::BoxPlot);
 iACompBoxPlot::iACompBoxPlot(iAMainWindow* parent, iACsvDataStorage* dataStorage) : 
 	QDockWidget(parent),
 	m_dataStorage(dataStorage),
+	m_qvtkWidget(new iAQVTKWidget(this)),
 	maxValsAttr(new std::vector<double>()),
 	minValsAttr(new std::vector<double>()),
 	m_legendAttributes(new std::vector<vtkSmartPointer<vtkTextActor>>()),
@@ -78,19 +79,12 @@ iACompBoxPlot::iACompBoxPlot(iAMainWindow* parent, iACsvDataStorage* dataStorage
 	QVBoxLayout* layout = new QVBoxLayout;
 	dockWidgetContents->setLayout(layout);
 
-	m_qvtkWidget = new QVTKOpenGLNativeWidget(this);
 	layout->addWidget(m_qvtkWidget);
 
 	m_view = vtkSmartPointer<vtkContextView>::New();
 
-	#if VTK_VERSION_NUMBER < VTK_VERSION_CHECK(9, 0, 0)
-		m_view->SetRenderWindow(m_qvtkWidget->GetRenderWindow());
-		m_view->SetInteractor(m_qvtkWidget->GetInteractor());
-	#else
-		m_view->SetRenderWindow(m_qvtkWidget->renderWindow());
-		m_view->SetInteractor(m_qvtkWidget->interactor());
-	#endif
-
+	m_view->SetRenderWindow(m_qvtkWidget->renderWindow());
+	m_view->SetInteractor(m_qvtkWidget->interactor());
 }
 
 void iACompBoxPlot::showEvent(QShowEvent* event)
@@ -431,11 +425,7 @@ void iACompBoxPlot::initializeLegend(vtkSmartPointer<BoxPlotChart> chart)
 
 void iACompBoxPlot::renderWidget()
 {
-	#if VTK_VERSION_NUMBER < VTK_VERSION_CHECK(9, 0, 0)
-		m_qvtkWidget->GetRenderWindow()->GetInteractor()->Render();
-	#else
-		m_qvtkWidget->renderWindow()->GetInteractor()->Render();
-	#endif
+	m_qvtkWidget->renderWindow()->GetInteractor()->Render();
 }
 
 void iACompBoxPlot::setOrderedPositions(std::vector<double>* orderedPositions)
@@ -914,7 +904,7 @@ void iACompBoxPlot::BoxPlot::DrawBoxPlot(int i, unsigned char* rgba, double x, v
 
 	brush->SetOpacityF( (rgba[3]/ 255.)); //new
 
-	painter->ApplyBrush(brush);
+	painter->ApplyBrush(brush.GetPointer());
 
 	// Helper variables for x position
 	double xpos = x + 0.5 * this->BoxWidth;
@@ -944,7 +934,7 @@ void iACompBoxPlot::BoxPlot::DrawBoxPlot(int i, unsigned char* rgba, double x, v
 		whitePen->SetWidth(this->Pen->GetWidth());
 		whitePen->SetColor(128, 128, 128, 128);
 		whitePen->SetOpacity(this->Pen->GetOpacity());
-		painter->ApplyPen(whitePen);
+		painter->ApplyPen(whitePen.GetPointer());
 	}
 
 	painter->DrawLine(xneg, q[2], xpos, q[2]);

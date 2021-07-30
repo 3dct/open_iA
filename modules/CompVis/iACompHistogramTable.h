@@ -5,20 +5,19 @@
 #include "iAMultidimensionalScaling.h"
 #include "iACompHistogramTableInteractorStyle.h"
 #include "iACompHistogramTableData.h"
+#include "ui_CompHistogramTable.h"
 
 //Qt
 #include <QDockWidget>
-#include "ui_CompHistogramTable.h"
 
 #include <vtkSmartPointer.h>
 
-class iAMainWindow;
 class iACsvDataStorage;
 class iACompVisMain;
 class iACompHistogramTableData;
+class iAMainWindow;
+class iAQVTKWidget;
 
-
-class QVTKOpenGLNativeWidget;
 class vtkLookupTable;
 class vtkDataObject;
 class vtkActor;
@@ -204,7 +203,7 @@ class iACompHistogramTable : public QDockWidget, public Ui_CompHistogramTable
 	iAMultidimensionalScaling* m_mds;
 	iACompHistogramTableData* m_histData;
 
-	QVTKOpenGLNativeWidget* m_qvtkWidget;
+	iAQVTKWidget* m_qvtkWidget;
 	vtkSmartPointer<vtkRenderer> m_renderer;
 	vtkSmartPointer<vtkLookupTable> m_lut;
 

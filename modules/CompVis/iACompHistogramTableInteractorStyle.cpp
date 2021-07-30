@@ -40,10 +40,6 @@
 #include <vtkCallbackCommand.h>
 #include <vtkTransform.h>
 
-//Qt
-#include <QDockWidget>
-#include "QVTKOpenGLNativeWidget.h"
-
 #include <tuple>
 
 

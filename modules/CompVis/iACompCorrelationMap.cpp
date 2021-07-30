@@ -7,11 +7,11 @@
 #include "iACompVisMain.h"
 
 //iA
-#include "iAMainWindow.h"
-#include "iAVtkVersion.h"
+#include <iAMainWindow.h>
+#include <iAVtkVersion.h>
+#include <iAVtkWidget.h>
 
 //vtk
-#include "QVTKOpenGLNativeWidget.h"
 #include "vtkRenderer.h"
 #include "vtkRenderWindow.h"
 #include "vtkCamera.h"
@@ -90,6 +90,7 @@ iACompCorrelationMap::iACompCorrelationMap(iAMainWindow* parent, iACorrelationCo
 	QDockWidget(parent),
 	m_corrCalculation(corrCalculation),
 	m_main(main),
+	m_qvtkWidget(new iAQVTKWidget(this)),
 	m_dataStorage(dataStorage),
 	m_renderer(vtkSmartPointer<vtkRenderer>::New()),
 	m_graphLayoutView(vtkSmartPointer<vtkGraphLayoutView>::New()),
@@ -112,20 +113,13 @@ iACompCorrelationMap::iACompCorrelationMap(iAMainWindow* parent, iACorrelationCo
 	QVBoxLayout* layout = new QVBoxLayout;
 	dockWidgetContents->setLayout(layout);
 
-	m_qvtkWidget = new QVTKOpenGLNativeWidget(this);
 	layout->addWidget(m_qvtkWidget);
 
 	m_renderer->SetUseFXAA(true);
 
-	#if VTK_VERSION_NUMBER < VTK_VERSION_CHECK(9, 0, 0)
-		m_qvtkWidget->GetRenderWindow()->AddRenderer(m_renderer);
-		m_graphLayoutView->SetRenderWindow(m_qvtkWidget->GetRenderWindow());
-		m_graphLayoutView->SetInteractor(m_qvtkWidget->GetInteractor());
-	#else
-		m_qvtkWidget->renderWindow()->AddRenderer(m_renderer);
-		m_graphLayoutView->SetRenderWindow(m_qvtkWidget->renderWindow());
-		m_graphLayoutView->SetInteractor(m_qvtkWidget->interactor());
-	#endif
+	m_qvtkWidget->renderWindow()->AddRenderer(m_renderer);
+	m_graphLayoutView->SetRenderWindow(m_qvtkWidget->renderWindow());
+	m_graphLayoutView->SetInteractor(m_qvtkWidget->interactor());
 
 	style = vtkSmartPointer<GraphInteractorStyle>::New();
 	style->setGraphLayoutView(m_graphLayoutView);
@@ -201,24 +195,14 @@ void iACompCorrelationMap::reinitializeCorrelationMap(iACorrelationCoefficient* 
 	delete m_arcDataIndxTypePair;
 	m_arcDataIndxTypePair = new std::map< vtkSmartPointer<vtkActor>, std::map<int, double>*>();
 
-	#if VTK_VERSION_NUMBER < VTK_VERSION_CHECK(9, 0, 0)
-		m_qvtkWidget->GetRenderWindow()->RemoveRenderer(m_renderer);
-	#else
-		m_qvtkWidget->renderWindow()->RemoveRenderer(m_renderer);
-	#endif
+	m_qvtkWidget->renderWindow()->RemoveRenderer(m_renderer);
 
 	m_renderer = vtkSmartPointer<vtkRenderer>::New();
 	m_renderer->SetUseFXAA(true);
 
-	#if VTK_VERSION_NUMBER < VTK_VERSION_CHECK(9, 0, 0)
-		m_qvtkWidget->GetRenderWindow()->AddRenderer(m_renderer);
-		m_graphLayoutView->SetRenderWindow(m_qvtkWidget->GetRenderWindow());
-		m_graphLayoutView->SetInteractor(m_qvtkWidget->GetInteractor());
-	#else
-		m_qvtkWidget->renderWindow()->AddRenderer(m_renderer);
-		m_graphLayoutView->SetRenderWindow(m_qvtkWidget->renderWindow());
-		m_graphLayoutView->SetInteractor(m_qvtkWidget->interactor());
-	#endif
+	m_qvtkWidget->renderWindow()->AddRenderer(m_renderer);
+	m_graphLayoutView->SetRenderWindow(m_qvtkWidget->renderWindow());
+	m_graphLayoutView->SetInteractor(m_qvtkWidget->interactor());
 
 	style = vtkSmartPointer<GraphInteractorStyle>::New();
 	style->setGraphLayoutView(m_graphLayoutView);
@@ -243,11 +227,7 @@ void iACompCorrelationMap::reinitializeCorrelationMap(iACorrelationCoefficient* 
 
 void iACompCorrelationMap::renderWidget()
 {
-	#if VTK_VERSION_NUMBER < VTK_VERSION_CHECK(9, 0, 0)
-		m_qvtkWidget->GetRenderWindow()->GetInteractor()->Render();
-	#else
-		m_qvtkWidget->renderWindow()->GetInteractor()->Render();
-	#endif
+	m_qvtkWidget->renderWindow()->GetInteractor()->Render();
 }
 
 void iACompCorrelationMap::initializeCorrelationMap()
