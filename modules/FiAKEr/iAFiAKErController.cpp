@@ -359,17 +359,12 @@ void iAFiAKErController::resultsLoaded()
 
 void iAFiAKErController::setupMain3DView()
 {
-	m_main3DWidget = m_mdiChild->renderVtkWidget();
-#if VTK_VERSION_NUMBER < VTK_VERSION_CHECK(9, 0, 0)
-	auto renWin = m_main3DWidget->GetRenderWindow();
-#else
-	auto renWin = m_main3DWidget->renderWindow();
-#endif
-	m_ren = renWin->GetRenderers()->GetFirstRenderer();
+	m_main3DWin = m_mdiChild->renderer()->renderWindow();
+	m_ren = m_main3DWin->GetRenderers()->GetFirstRenderer();
 	m_renderManager->addToBundle(m_ren);
 	m_style = vtkSmartPointer<iASelectionInteractorStyle>::New();
 	m_style->setSelectionProvider(this);
-	m_style->assignToRenderWindow(renWin);
+	m_style->assignToRenderWindow(m_main3DWin);
 	m_style->setRenderer(m_ren);
 	connect(m_style.GetPointer(), &iASelectionInteractorStyle::selectionChanged, this, &iAFiAKErController::selection3DChanged);
 
@@ -1077,8 +1072,7 @@ void iAFiAKErController::computeSensitivity()
 		return;
 	}
 	int skipColumns = m_settingsView->sbParamCSVSkip->value();
-	m_sensitivityInfo = iASensitivityInfo::create(m_mdiChild, m_data, m_views[ResultListView], m_histogramBins, skipColumns,
-		m_resultUIs, m_main3DWidget);
+	m_sensitivityInfo = iASensitivityInfo::create(m_mdiChild, m_data, m_views[ResultListView], m_histogramBins, skipColumns, m_resultUIs, m_main3DWin);
 	connectSensitivity();
 }
 
@@ -2158,11 +2152,7 @@ void iAFiAKErController::updateFiberContext()
 {
 	for (auto actor : m_contextActors)
 	{
-#if VTK_VERSION_NUMBER < VTK_VERSION_CHECK(9, 0, 0)
-		m_main3DWidget->GetRenderWindow()->GetRenderers()->GetFirstRenderer()->RemoveActor(actor);
-#else
-		m_main3DWidget->renderWindow()->GetRenderers()->GetFirstRenderer()->RemoveActor(actor);
-#endif
+		m_main3DWin->GetRenderers()->GetFirstRenderer()->RemoveActor(actor);
 	}
 	m_contextActors.clear();
 	if (m_showFiberContext)
@@ -2207,11 +2197,7 @@ void iAFiAKErController::updateFiberContext()
 				if (!m_mergeContextBoxes)
 				{
 					auto actor = getCubeActor(minCoord, maxCoord);
-#if VTK_VERSION_NUMBER < VTK_VERSION_CHECK(9, 0, 0)
-					m_main3DWidget->GetRenderWindow()->GetRenderers()->GetFirstRenderer()->AddActor(actor);
-#else
-					m_main3DWidget->renderWindow()->GetRenderers()->GetFirstRenderer()->AddActor(actor);
-#endif
+					m_main3DWin->GetRenderers()->GetFirstRenderer()->AddActor(actor);
 					m_contextActors.push_back(actor);
 				}
 			}
@@ -2219,11 +2205,7 @@ void iAFiAKErController::updateFiberContext()
 		if (m_mergeContextBoxes)
 		{
 			auto actor = getCubeActor(minCoord, maxCoord);
-#if VTK_VERSION_NUMBER < VTK_VERSION_CHECK(9, 0, 0)
-			m_main3DWidget->GetRenderWindow()->GetRenderers()->GetFirstRenderer()->AddActor(actor);
-#else
-			m_main3DWidget->renderWindow()->GetRenderers()->GetFirstRenderer()->AddActor(actor);
-#endif
+			m_main3DWin->GetRenderers()->GetFirstRenderer()->AddActor(actor);
 			m_contextActors.push_back(actor);
 		}
 	}
@@ -2370,7 +2352,7 @@ void iAFiAKErController::loadAdditionalData(iASettings settings, QString project
 	if (iASensitivityInfo::hasData(settings))
 	{
 		m_sensitivityInfo = iASensitivityInfo::load(m_mdiChild, m_data, m_views[ResultListView],
-			settings, projectFileName, m_resultUIs, m_main3DWidget);
+			settings, projectFileName, m_resultUIs, m_main3DWin);
 		connectSensitivity();
 		// don't change direct loading of settings here, the settings loaded below
 		// probably don't really affect sensitivity things (TODO: to be checked - if it doesn't crash it should be fine)
@@ -2598,11 +2580,7 @@ void iAFiAKErController::changeReferenceDisplay()
 
 	if (m_refLineActor)
 	{
-#if VTK_VERSION_NUMBER < VTK_VERSION_CHECK(9, 0, 0)
-		m_main3DWidget->GetRenderWindow()->GetRenderers()->GetFirstRenderer()->RemoveActor(m_refLineActor);
-#else
-		m_main3DWidget->renderWindow()->GetRenderers()->GetFirstRenderer()->RemoveActor(m_refLineActor);
-#endif
+		m_main3DWin->GetRenderers()->GetFirstRenderer()->RemoveActor(m_refLineActor);
 	}
 	if (!isAnythingSelected() || !showRef)
 	{
@@ -2793,11 +2771,7 @@ void iAFiAKErController::changeReferenceDisplay()
 	m_refLineActor = vtkSmartPointer<vtkActor>::New();
 	m_refLineActor->SetMapper(mapper);
 	m_refLineActor->GetProperty()->SetLineWidth(2);
-#if VTK_VERSION_NUMBER < VTK_VERSION_CHECK(9, 0, 0)
-	m_main3DWidget->GetRenderWindow()->GetRenderers()->GetFirstRenderer()->AddActor(m_refLineActor);
-#else
-	m_main3DWidget->renderWindow()->GetRenderers()->GetFirstRenderer()->AddActor(m_refLineActor);
-#endif
+	m_main3DWin->GetRenderers()->GetFirstRenderer()->AddActor(m_refLineActor);
 	update3D();
 }
 
@@ -2890,11 +2864,7 @@ void iAFiAKErController::visualizeCylinderSamplePoints()
 	m_sampleActor->SetMapper(sampleMapper);
 	sampleMapper->Update();
 	m_sampleActor->GetProperty()->SetPointSize(2);
-#if VTK_VERSION_NUMBER < VTK_VERSION_CHECK(9, 0, 0)
-	m_main3DWidget->GetRenderWindow()->GetRenderers()->GetFirstRenderer()->AddActor(m_sampleActor);
-#else
-	m_main3DWidget->renderWindow()->GetRenderers()->GetFirstRenderer()->AddActor(m_sampleActor);
-#endif
+	m_main3DWin->GetRenderers()->GetFirstRenderer()->AddActor(m_sampleActor);
 	update3D();
 }
 
@@ -2914,11 +2884,7 @@ void iAFiAKErController::hideSamplePointsPrivate()
 {
 	if (m_sampleActor)
 	{
-#if VTK_VERSION_NUMBER < VTK_VERSION_CHECK(9, 0, 0)
-		m_main3DWidget->GetRenderWindow()->GetRenderers()->GetFirstRenderer()->RemoveActor(m_sampleActor);
-#else
-		m_main3DWidget->renderWindow()->GetRenderers()->GetFirstRenderer()->RemoveActor(m_sampleActor);
-#endif
+		m_main3DWin->GetRenderers()->GetFirstRenderer()->RemoveActor(m_sampleActor);
 	}
 }
 
@@ -3016,12 +2982,7 @@ void iAFiAKErController::saveProject(QSettings & projectFile, QString  const & f
 
 void iAFiAKErController::update3D()
 {
-#if VTK_VERSION_NUMBER < VTK_VERSION_CHECK(9, 0, 0)
-	m_main3DWidget->GetRenderWindow()->Render();
-#else
-	m_main3DWidget->renderWindow()->Render();
-#endif
-	m_main3DWidget->update();
+	m_mdiChild->updateRenderer();
 }
 
 void iAFiAKErController::setClippingPlanes(QSharedPointer<iA3DColoredPolyObjectVis> vis)

@@ -38,6 +38,7 @@
 #include <iAStringHelper.h>
 #include <iAToolsVTK.h>
 #include <iAVec3.h>
+#include <iAVtkWidget.h>
 
 // guibase:
 #include <iAMdiChild.h>
@@ -106,7 +107,6 @@
 #include <QFile>
 #include <QFileDialog>
 #include <QLabel>
-//#include <QMainWindow>
 #include <QMessageBox>
 #include <QRadioButton>
 #include <QScrollArea>
@@ -275,7 +275,7 @@ void iASensitivityInfo::abort()
 
 QSharedPointer<iASensitivityInfo> iASensitivityInfo::create(iAMdiChild* child,
 	QSharedPointer<iAFiberResultsCollection> data, QDockWidget* nextToDW, int histogramBins, int skipColumns,
-	std::vector<iAFiberResultUIData> const& resultUIs, iAVtkWidget* main3DWidget, QString parameterSetFileName,
+	std::vector<iAFiberResultUIData> const& resultUIs, vtkRenderWindow* main3DWin, QString parameterSetFileName,
 	QVector<int> const & charSelected, QVector<int> const & charDiffMeasure, iASettings const & projectFile)
 {
 	if (parameterSetFileName.isEmpty())
@@ -309,7 +309,7 @@ QSharedPointer<iASensitivityInfo> iASensitivityInfo::create(iAMdiChild* child,
 	}
 	// data in m_paramValues is indexed [col(=parameter index)][row(=parameter set index)]
 	QSharedPointer<iASensitivityInfo> sensitivity(
-		new iASensitivityInfo(data, parameterSetFileName, skipColumns, paramNames, paramValues, child, nextToDW, resultUIs, main3DWidget));
+		new iASensitivityInfo(data, parameterSetFileName, skipColumns, paramNames, paramValues, child, nextToDW, resultUIs, main3DWin));
 
 	// find min/max, for all columns
 	sensitivity->m_paramMin.resize(static_cast<int>(paramValues.size()));
@@ -455,7 +455,7 @@ QSharedPointer<iASensitivityInfo> iASensitivityInfo::create(iAMdiChild* child,
 iASensitivityInfo::iASensitivityInfo(QSharedPointer<iAFiberResultsCollection> data,
 	QString const& parameterFileName, int skipColumns, QStringList const& paramNames,
 	std::vector<std::vector<double>> const & paramValues, iAMdiChild* child, QDockWidget* nextToDW,
-	std::vector<iAFiberResultUIData> const & resultUIs, iAVtkWidget* main3DWidget) :
+	std::vector<iAFiberResultUIData> const & resultUIs, vtkRenderWindow* main3DWin) :
 	m_data(data),
 	m_paramNames(paramNames),
 	m_paramValues(paramValues),
@@ -465,7 +465,7 @@ iASensitivityInfo::iASensitivityInfo(QSharedPointer<iAFiberResultsCollection> da
 	m_nextToDW(nextToDW),
 	m_aborted(false),
 	m_resultUIs(resultUIs),
-	m_main3DWidget(main3DWidget)
+	m_main3DWin(main3DWin)
 {
 }
 
@@ -1866,14 +1866,14 @@ bool iASensitivityInfo::hasData(iASettings const& settings)
 
 QSharedPointer<iASensitivityInfo> iASensitivityInfo::load(iAMdiChild* child,
 	QSharedPointer<iAFiberResultsCollection> data, QDockWidget* nextToDW, iASettings const& projectFile,
-	QString const& projectFileName, std::vector<iAFiberResultUIData> const& resultUIs, iAVtkWidget* main3DWidget)
+	QString const& projectFileName, std::vector<iAFiberResultUIData> const& resultUIs, vtkRenderWindow* main3DWin)
 {
 	QString parameterSetFileName = MakeAbsolute(QFileInfo(projectFileName).absolutePath(), projectFile.value(ProjectParameterFile).toString());
 	QVector<int> charsSelected = stringToVector<QVector<int>, int>(projectFile.value(ProjectCharacteristics).toString());
 	QVector<int> charDiffMeasure = stringToVector<QVector<int>, int>(projectFile.value(ProjectCharDiffMeasures).toString());
 	int skipColumns = projectFile.value(ProjectSkipParameterCSVColumns, 1).toInt();
 	int histogramBins = projectFile.value(ProjectHistogramBins, 20).toInt();
-	return iASensitivityInfo::create(child, data, nextToDW, histogramBins, skipColumns, resultUIs, main3DWidget,
+	return iASensitivityInfo::create(child, data, nextToDW, histogramBins, skipColumns, resultUIs, main3DWin,
 		parameterSetFileName, charsSelected, charDiffMeasure, projectFile);
 }
 
@@ -2210,11 +2210,7 @@ void iASensitivityInfo::createGUI()
 	m_gui->m_diff3DWidget = new iAQVTKWidget();
 	auto dwDiff3D = new iADockWidgetWrapper(m_gui->m_diff3DWidget, "Difference 3D", "foeDiff3D");
 	m_child->splitDockWidget(dwSettings, dwDiff3D, Qt::Horizontal);
-#if VTK_VERSION_NUMBER < VTK_VERSION_CHECK(9, 0, 0)
-	m_gui->m_diff3DRenderManager.addToBundle(m_main3DWidget->GetRenderWindow()->GetRenderers()->GetFirstRenderer());
-#else
-	m_gui->m_diff3DRenderManager.addToBundle(m_main3DWidget->renderWindow()->GetRenderers()->GetFirstRenderer());
-#endif
+	m_gui->m_diff3DRenderManager.addToBundle(m_main3DWin->GetRenderers()->GetFirstRenderer());
 	m_gui->m_diff3DWidget->renderWindow()->AddRenderer(m_gui->m_diff3DEmptyRenderer);
 
 	spVisibleParamChanged();
@@ -2736,13 +2732,8 @@ void iASensitivityInfo::updateDifferenceView()
 
 		//m_diffActor->GetProperty()->SetPointSize(2);
 		/*
-	#if VTK_VERSION_NUMBER < VTK_VERSION_CHECK(9, 0, 0)
-		m_main3DWidget->GetRenderWindow()->GetRenderers()->GetFirstRenderer()->AddActor(m_diffActor);
-		m_main3DWidget->GetRenderWindow()->Render();
-	#else
-		m_main3DWidget->renderWindow()->GetRenderers()->GetFirstRenderer()->AddActor(m_diffActor);
-		m_main3DWidget->renderWindow()->Render();
-	#endif
+		m_main3DWin->GetRenderers()->GetFirstRenderer()->AddActor(m_diffActor);
+		m_main3DWin->Render();
 		m_main3DWidget->update();
 		*/
 

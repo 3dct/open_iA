@@ -257,7 +257,7 @@ private:
 	};
 	// 3D View:
 	void ensureMain3DViewCreated(size_t resultID);
-	iAVtkWidget* m_main3DWidget;
+	vtkRenderWindow* m_main3DWin;
 	vtkSmartPointer<vtkRenderer> m_ren;
 	QCheckBox* m_chkboxShowReference;
 	QCheckBox* m_chkboxShowLines;

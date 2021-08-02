@@ -635,11 +635,6 @@ iARenderer* MdiChild::renderer()
 	return m_renderer;
 }
 
-iAVtkWidget* MdiChild::renderVtkWidget()
-{
-	return m_dwRenderer->vtkWidgetRC;
-}
-
 bool MdiChild::updateVolumePlayerView(int updateIndex, bool isApplyForAll)
 {
 	// TODO: VOLUME: Test!!! copy from currently selected instead of fixed 0 index?
@@ -1078,11 +1073,7 @@ bool MdiChild::saveFile(const QString& f, int modalityNr, int componentNr)
 void MdiChild::updateViews()
 {
 	updateSlicers();
-
-	m_renderer->update();
-	m_renderer->renderWindow()->GetInteractor()->Modified();
-	m_renderer->renderWindow()->GetInteractor()->Render();
-	m_dwRenderer->vtkWidgetRC->update();
+	updateRenderer();
 	emit viewsUpdated();
 }
 
@@ -2096,13 +2087,20 @@ uint MdiChild::createChannel()
 	return newChannelID;
 }
 
-
 void MdiChild::updateSlicers()
 {
 	for (int s = 0; s < 3; ++s)
 	{
 		m_slicer[s]->update();
 	}
+}
+
+void MdiChild::updateRenderer()
+{
+	m_renderer->update();
+	m_renderer->renderWindow()->GetInteractor()->Modified();
+	m_renderer->renderWindow()->GetInteractor()->Render();
+	m_dwRenderer->vtkWidgetRC->update();
 }
 
 void MdiChild::updateChannelOpacity(uint id, double opacity)
