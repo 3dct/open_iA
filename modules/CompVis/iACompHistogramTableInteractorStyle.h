@@ -25,19 +25,19 @@ class iACompHistogramTableInteractorStyle : public vtkInteractorStyleTrackballCa
 	static iACompHistogramTableInteractorStyle* New();
 	vtkTypeMacro(iACompHistogramTableInteractorStyle, vtkInteractorStyleTrackballCamera);
 
-	virtual void OnLeftButtonDown();
-	virtual void OnLeftButtonUp();
+	virtual void OnLeftButtonDown() override;
+	virtual void OnLeftButtonUp() override;
 
-	virtual void OnMouseMove();
+	virtual void OnMouseMove() override;
 
-	virtual void OnMiddleButtonDown();
-	virtual void OnRightButtonDown();
-	virtual void OnMouseWheelForward();
-	virtual void OnMouseWheelBackward();
-	virtual void OnKeyPress();
-	virtual void OnKeyRelease();
+	virtual void OnMiddleButtonDown() override;
+	virtual void OnRightButtonDown() override;
+	virtual void OnMouseWheelForward() override;
+	virtual void OnMouseWheelBackward() override;
+	virtual void OnKeyPress() override;
+	virtual void OnKeyRelease() override;
 
-	virtual void Pan();
+	virtual void Pan() override;
 
 	//init iACompHistogramTable
 	void setIACompHistogramTable(iACompHistogramTable* visualization);

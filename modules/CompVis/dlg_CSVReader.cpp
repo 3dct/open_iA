@@ -9,7 +9,7 @@
 #include <QPushButton>
 
 
-dlg_CSVReader::dlg_CSVReader(QWidget *parent /* = 0,*/, Qt::WindowFlags f /* f = 0*/) : QDialog(parent, f)
+dlg_CSVReader::dlg_CSVReader() : QDialog()
 {
 	setupUi(this);
 	connectSignals();

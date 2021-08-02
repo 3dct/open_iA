@@ -67,7 +67,8 @@ private:
 	void drawArc(double lengthInDegree, double* startPos, double* color, double lineWidth, bool stippled, int lineStipplePattern, int lineStippleRepeat);
 	void drawGlyphs(vtkSmartPointer<vtkPoints> positions, vtkSmartPointer<vtkDoubleArray> colors, vtkSmartPointer<vtkDoubleArray> scales);
 	void drawLegend(vtkSmartPointer<vtkPoints> positions, QStringList names);
-	void drawInnerArc(std::vector<double> data, double* parentPosition, double parentTheta, double parentPhi, double parentAngle, double parentArcLength, int dataIndex);
+	void drawInnerArc(std::vector<double> dataPoints, double* parentPosition, double parentTheta, double parentPhi,
+		double parentAngle, double parentArcLength, int dataIndex);
 
 	void calculateLabelPosition(vtkSmartPointer<vtkPoints> labelPositions, double theta, double arcLength, double phi, double radiusOffset);
 
@@ -286,13 +287,13 @@ private:
 			void removeHighlighting();
 			void resetEdgeVisualization();
 
-			virtual void OnLeftButtonDown();
-			virtual void OnMiddleButtonDown();
-			virtual void OnRightButtonDown();
-			virtual void OnMouseWheelForward();
-			virtual void OnMouseWheelBackward();
-			virtual void OnKeyPress();
-			virtual void OnKeyRelease();
+			virtual void OnLeftButtonDown() override;
+			virtual void OnMiddleButtonDown() override;
+			virtual void OnRightButtonDown() override;
+			virtual void OnMouseWheelForward() override;
+			virtual void OnMouseWheelBackward() override;
+			virtual void OnKeyPress() override;
+			virtual void OnKeyRelease() override;
 
 		protected:
 			GraphInteractorStyle();

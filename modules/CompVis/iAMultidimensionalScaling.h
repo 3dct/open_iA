@@ -12,67 +12,29 @@
 class iASimilarityDistance;
 class iAHistogramData;
 
-enum class ProximityMetric
+namespace MDS
 {
-	Unknown = -1,
-	ArcCosineDistance,
-	NumberOfProximityMetrics
-};
+	enum class ProximityMetric
+	{
+		Unknown = -1,
+		ArcCosineDistance,
+		NumberOfProximityMetrics
+	};
 
-static QString proximityMetric_to_string(int i)
-{
-	switch (i)
-	{
-	case 0: return QString("Arc-Cosine Distance");
-	default: return QString("Invalid ProximityMetric");
-	}
-}
+	QString proximityMetric_to_string(int i);
+	ProximityMetric string_to_proximityMetric(QString string);
 
-static ProximityMetric string_to_proximityMetric(QString string)
-{
+	enum class DistanceMetric
+	{
+		Unknown = -1,
+		EuclideanDistance,
+		MinkowskiDistance,
+		NumberOfDistanceMetrics
+	};
 
-	if (string == QString("Arc-Cosine Distance"))
-	{
-		return ProximityMetric::ArcCosineDistance;
-	}
-	else
-	{
-		return ProximityMetric::Unknown;
-	}
-}
+	QString distanceMetric_to_string(int i);
 
-enum class DistanceMetric
-{
-	Unknown = -1,
-	EuclideanDistance,
-	MinkowskiDistance,
-	NumberOfDistanceMetrics
-};
-
-static QString distanceMetric_to_string(int i)
-{
-	switch (i)
-	{
-	case 0: return QString("Euclidean Distance");
-	case 1: return QString("Minkowski Distance");
-	default: return QString("Invalid DistanceMetric");
-	}
-}
-
-static DistanceMetric string_to_distanceMetric(QString string)
-{
-	if (string == QString("Euclidean Distance"))
-	{
-		return DistanceMetric::EuclideanDistance;
-	}
-	else if (string == QString("Minkowski Distance"))
-	{
-		return DistanceMetric::MinkowskiDistance;
-	}
-	else
-	{
-		return DistanceMetric::Unknown;
-	}
+	DistanceMetric string_to_distanceMetric(QString string);
 }
 
 class iAMultidimensionalScaling
@@ -83,8 +45,8 @@ class iAMultidimensionalScaling
 
 	std::vector<double>* getWeights();
 	void startMDS(std::vector<double>* weights);
-	void setProximityMetric(ProximityMetric proxiName);
-	void setDistanceMetric(DistanceMetric disName);
+	void setProximityMetric(MDS::ProximityMetric proxiName);
+	void setDistanceMetric(MDS::DistanceMetric disName);
 	QList<csvFileData>* getCSVFileData();
 	//return the result of the mds
 	csvDataType::ArrayType* getResultMatrix();
@@ -132,8 +94,8 @@ class iAMultidimensionalScaling
 	//weights that will be used for each characteristic during the computation, each between [0,100]
 	std::vector<double>* m_weights;
 
-	DistanceMetric m_activeDisM;
-	ProximityMetric m_activeProxM;
+	MDS::DistanceMetric m_activeDisM;
+	MDS::ProximityMetric m_activeProxM;
 
 	const double Epsilon = 0.000001;
 	void vectorDiff(csvDataType::ArrayType* a, csvDataType::ArrayType* b, csvDataType::ArrayType* result);

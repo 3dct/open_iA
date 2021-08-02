@@ -34,9 +34,10 @@ class dlg_VisMainWindow : public QMainWindow, public Ui_CompVisMainWindow
 	void reorderHistogramTableAsLoaded();
 
 	iACompVisMain* m_main;
+	QList<csvFileData>* m_data;
 	iAMultidimensionalScaling* m_mds;
 	dlg_MultidimensionalScalingDialog* m_MDSD;
-	QList<csvFileData>* m_data;
+	
 
    private slots:
 };

@@ -15,6 +15,61 @@
 #include <limits>
 #include <vector>
 
+namespace MDS
+{
+	QString proximityMetric_to_string(int i)
+	{
+		switch (i)
+		{
+		case 0:
+			return QString("Arc-Cosine Distance");
+		default:
+			return QString("Invalid ProximityMetric");
+		}
+	}
+
+	ProximityMetric string_to_proximityMetric(QString string)
+	{
+		if (string == QString("Arc-Cosine Distance"))
+		{
+			return ProximityMetric::ArcCosineDistance;
+		}
+		else
+		{
+			return ProximityMetric::Unknown;
+		}
+	}
+
+	QString distanceMetric_to_string(int i)
+	{
+		switch (i)
+		{
+		case 0:
+			return QString("Euclidean Distance");
+		case 1:
+			return QString("Minkowski Distance");
+		default:
+			return QString("Invalid DistanceMetric");
+		}
+	}
+
+	DistanceMetric string_to_distanceMetric(QString string)
+	{
+		if (string == QString("Euclidean Distance"))
+		{
+			return DistanceMetric::EuclideanDistance;
+		}
+		else if (string == QString("Minkowski Distance"))
+		{
+			return DistanceMetric::MinkowskiDistance;
+		}
+		else
+		{
+			return DistanceMetric::Unknown;
+		}
+	}
+}
+
 iAMultidimensionalScaling::iAMultidimensionalScaling(QList<csvFileData>* data) :
 	m_inputData(data),
 	m_amountOfElems(0),
@@ -50,12 +105,12 @@ void iAMultidimensionalScaling::startMDS(std::vector<double>* weights)
 	calculateMDS(1, 100);
 }
 
-void iAMultidimensionalScaling::setProximityMetric(ProximityMetric proxiName)
+void iAMultidimensionalScaling::setProximityMetric(MDS::ProximityMetric proxiName)
 {
 	m_activeProxM = proxiName;
 }
 
-void iAMultidimensionalScaling::setDistanceMetric(DistanceMetric disName)
+void iAMultidimensionalScaling::setDistanceMetric(MDS::DistanceMetric disName)
 {
 	m_activeDisM = disName;
 }
@@ -131,7 +186,7 @@ void iAMultidimensionalScaling::normalizeMatrix()
 
 void iAMultidimensionalScaling::calculateProximityDistance()
 {
-	if (m_activeProxM == ProximityMetric::ArcCosineDistance)
+	if (m_activeProxM == MDS::ProximityMetric::ArcCosineDistance)
 	{
 		//m_amountofCharas-1 - without the labels
 		iAArcCosineDistance pd(m_weights, m_matrixUNormalized, m_amountOfCharas - 1, m_amountOfElems);
@@ -148,11 +203,11 @@ void iAMultidimensionalScaling::calculateProximityDistance()
 iASimilarityDistance* iAMultidimensionalScaling::initializeDistanceMetric()
 {
 	iASimilarityDistance* d;
-	if (m_activeDisM == DistanceMetric::EuclideanDistance)
+	if (m_activeDisM == MDS::DistanceMetric::EuclideanDistance)
 	{
 		d = new iAEuclideanDistance();
 	}
-	else if (m_activeDisM == DistanceMetric::MinkowskiDistance)
+	else if (m_activeDisM == MDS::DistanceMetric::MinkowskiDistance)
 	{
 		d = new iAMinkowskiDistance();
 	}

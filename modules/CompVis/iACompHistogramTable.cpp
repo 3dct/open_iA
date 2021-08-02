@@ -130,7 +130,9 @@ iACompHistogramTable::iACompHistogramTable(
 	calculateHistogramTable();
 
 	//setup rendering environment
-	m_renderer->SetBackground(iACompVisOptions::getDoubleArray(iACompVisOptions::BACKGROUNDCOLOR_GREY));
+	double col[3];
+	iACompVisOptions::getDoubleArray(iACompVisOptions::BACKGROUNDCOLOR_GREY, col);
+	m_renderer->SetBackground(col);
 	m_renderer->SetViewport(0, 0, 0.8, 1);
 	m_renderer->SetUseFXAA(true);
 
@@ -251,7 +253,9 @@ void iACompHistogramTable::reinitializeHistogramTable(iAMultidimensionalScaling*
 
 
 	m_renderer = vtkSmartPointer<vtkRenderer>::New();
-	m_renderer->SetBackground(iACompVisOptions::getDoubleArray(iACompVisOptions::BACKGROUNDCOLOR_GREY));
+	double col1[3];
+	iACompVisOptions::getDoubleArray(iACompVisOptions::BACKGROUNDCOLOR_GREY, col1);
+	m_renderer->SetBackground(col1);
 	m_renderer->SetViewport(0, 0, 0.8, 1);
 	m_renderer->SetUseFXAA(true);
 
@@ -572,7 +576,9 @@ void iACompHistogramTable::createAmountOfObjectsText(vtkSmartPointer<vtkPlaneSou
 	legendProperty->ItalicOff();
 	legendProperty->ShadowOff();
 	legendProperty->SetFontFamilyToArial();
-	legendProperty->SetColor(iACompVisOptions::getDoubleArray(iACompVisOptions::BACKGROUNDCOLOR_WHITE));
+	double col[3];
+	iACompVisOptions::getDoubleArray(iACompVisOptions::BACKGROUNDCOLOR_WHITE,col);
+	legendProperty->SetColor(col);
 	legendProperty->SetFontSize(iACompVisOptions::FONTSIZE_TEXT);
 	legendProperty->SetJustification(VTK_TEXT_LEFT);
 	legendProperty->SetVerticalJustificationToCentered();
@@ -618,9 +624,7 @@ void iACompHistogramTable::createBar(vtkSmartPointer<vtkPlaneSource> currPlane, 
 	vtkSmartPointer<vtkActor> actor = vtkSmartPointer<vtkActor>::New();
 	actor->SetMapper(mapper);
 	double color[3];
-	color[0] = iACompVisOptions::getDoubleArray(iACompVisOptions::HIGHLIGHTCOLOR_GREEN)[0];
-	color[1] = iACompVisOptions::getDoubleArray(iACompVisOptions::HIGHLIGHTCOLOR_GREEN)[1];
-	color[2] = iACompVisOptions::getDoubleArray(iACompVisOptions::HIGHLIGHTCOLOR_GREEN)[2];
+	iACompVisOptions::getDoubleArray(iACompVisOptions::HIGHLIGHTCOLOR_GREEN, color);
 	actor->GetProperty()->SetColor(color[0], color[1], color[2]);
 
 	m_renderer->AddActor(actor);
@@ -797,9 +801,7 @@ vtkSmartPointer<vtkPlaneSource> iACompHistogramTable::drawRow(int currDataInd, i
 	{ //the edges of the cells are drawn
 		actor->GetProperty()->EdgeVisibilityOn();
 		double col[3];
-		col[0] = iACompVisOptions::getDoubleArray(iACompVisOptions::BACKGROUNDCOLOR_GREY)[0];
-		col[1] = iACompVisOptions::getDoubleArray(iACompVisOptions::BACKGROUNDCOLOR_GREY)[1];
-		col[2] = iACompVisOptions::getDoubleArray(iACompVisOptions::BACKGROUNDCOLOR_GREY)[2];
+		iACompVisOptions::getDoubleArray(iACompVisOptions::BACKGROUNDCOLOR_GREY,col);
 		actor->GetProperty()->SetEdgeColor(col[0], col[1], col[2]);
 	}else
 	{ //not showing the edges of the cells
@@ -888,9 +890,7 @@ vtkSmartPointer<vtkPlaneSource> iACompHistogramTable::drawZoomedPlanes(int bins,
 	actor->SetMapper(mapper);
 	actor->GetProperty()->EdgeVisibilityOn();
 	double col[3];
-	col[0] = iACompVisOptions::getDoubleArray(iACompVisOptions::BACKGROUNDCOLOR_GREY)[0];
-	col[1] = iACompVisOptions::getDoubleArray(iACompVisOptions::BACKGROUNDCOLOR_GREY)[1];
-	col[2] = iACompVisOptions::getDoubleArray(iACompVisOptions::BACKGROUNDCOLOR_GREY)[2];
+	iACompVisOptions::getDoubleArray(iACompVisOptions::BACKGROUNDCOLOR_GREY,col);
 	actor->GetProperty()->SetEdgeColor(col[0], col[1], col[2]);
 	actor->GetProperty()->SetLineWidth(1);
 
@@ -1037,9 +1037,7 @@ void iACompHistogramTable::drawPointRepresentation()
 				planeActor->SetMapper(planeMapper);
 				planeActor->GetProperty()->SetEdgeVisibility(true);
 				double col[3];
-				col[0] = iACompVisOptions::getDoubleArray(iACompVisOptions::HIGHLIGHTCOLOR_BLACK)[0];
-				col[1] = iACompVisOptions::getDoubleArray(iACompVisOptions::HIGHLIGHTCOLOR_BLACK)[1];
-				col[2] = iACompVisOptions::getDoubleArray(iACompVisOptions::HIGHLIGHTCOLOR_BLACK)[2];
+				iACompVisOptions::getDoubleArray(iACompVisOptions::HIGHLIGHTCOLOR_BLACK,col);
 				planeActor->GetProperty()->SetEdgeColor(col[0], col[1], col[2]);
 				m_pointRepresentationActors->push_back(planeActor);
 				m_renderer->AddActor(planeActor);
@@ -1048,9 +1046,7 @@ void iACompHistogramTable::drawPointRepresentation()
 				double startP[3] = { xmin, ymin + ((ymax - ymin) / 2.0), 0.0 };
 				double endP[3] = { xmax, ymin + ((ymax - ymin) / 2.0), 0.0 };
 				double col1[3];
-				col1[0] = iACompVisOptions::getDoubleArray(iACompVisOptions::BACKGROUNDCOLOR_GREY)[0];
-				col1[1] = iACompVisOptions::getDoubleArray(iACompVisOptions::BACKGROUNDCOLOR_GREY)[1];
-				col1[2] = iACompVisOptions::getDoubleArray(iACompVisOptions::BACKGROUNDCOLOR_GREY)[2];
+				iACompVisOptions::getDoubleArray(iACompVisOptions::BACKGROUNDCOLOR_GREY,col1);
 				vtkSmartPointer<vtkActor> lineActor = drawLine(startP, endP, col1, 2);
 				lineActor->GetProperty()->SetOpacity(0.1);
 				lineActor->Modified();
@@ -1060,13 +1056,9 @@ void iACompHistogramTable::drawPointRepresentation()
 				double radius = (m_colSize*0.5)*0.25;
 				double lineWidth = 1;
 				double circleColor[3];
-				circleColor[0] = iACompVisOptions::getDoubleArray(iACompVisOptions::BACKGROUNDCOLOR_LIGHTGREY)[0];
-				circleColor[1] = iACompVisOptions::getDoubleArray(iACompVisOptions::BACKGROUNDCOLOR_LIGHTGREY)[1];
-				circleColor[2] = iACompVisOptions::getDoubleArray(iACompVisOptions::BACKGROUNDCOLOR_LIGHTGREY)[2];
+				iACompVisOptions::getDoubleArray(iACompVisOptions::BACKGROUNDCOLOR_LIGHTGREY, circleColor);
 				double lineColor[3];
-				lineColor[0] = iACompVisOptions::getDoubleArray(iACompVisOptions::BACKGROUNDCOLOR_LIGHTGREY)[0];
-				lineColor[1] = iACompVisOptions::getDoubleArray(iACompVisOptions::BACKGROUNDCOLOR_LIGHTGREY)[1];
-				lineColor[2] = iACompVisOptions::getDoubleArray(iACompVisOptions::BACKGROUNDCOLOR_LIGHTGREY)[2];
+				iACompVisOptions::getDoubleArray(iACompVisOptions::BACKGROUNDCOLOR_LIGHTGREY, lineColor);
 
 				std::vector<double> data = m_zoomedRowData->at(zoomedRowDataInd)->at(zoomedRowInd);
 
@@ -1166,9 +1158,7 @@ void iACompHistogramTable::drawLineBetweenRowAndZoomedRow(std::vector<vtkSmartPo
 		double currCellId = cellIdsOriginalPlane->at(i);
 
 		double col[3];
-		col[0] = iACompVisOptions::getDoubleArray(iACompVisOptions::HIGHLIGHTCOLOR_GREEN)[0];
-		col[1] = iACompVisOptions::getDoubleArray(iACompVisOptions::HIGHLIGHTCOLOR_GREEN)[1];
-		col[2] = iACompVisOptions::getDoubleArray(iACompVisOptions::HIGHLIGHTCOLOR_GREEN)[2];
+		iACompVisOptions::getDoubleArray(iACompVisOptions::HIGHLIGHTCOLOR_GREEN,col);
 
 		//left line
 		double p0[3];
@@ -1479,9 +1469,7 @@ void iACompHistogramTable::makeLUTFromCTF()
 	m_lut->SetTableRange(min, max);
 
 	double col[3];
-	col[0] = iACompVisOptions::getDoubleArray(iACompVisOptions::BACKGROUNDCOLOR_GREY)[0];
-	col[1] = iACompVisOptions::getDoubleArray(iACompVisOptions::BACKGROUNDCOLOR_GREY)[1];
-	col[2] = iACompVisOptions::getDoubleArray(iACompVisOptions::BACKGROUNDCOLOR_GREY)[2];
+	iACompVisOptions::getDoubleArray(iACompVisOptions::BACKGROUNDCOLOR_GREY, col);
 	m_lut->SetBelowRangeColor(col[0], col[1], col[2], 1);
 	m_lut->UseBelowRangeColorOn();
 }
@@ -1554,9 +1542,7 @@ void iACompHistogramTable::makeLUTDarker()
 	m_lutDarker->SetTableRange(min, max);
 
 	double col[3];
-	col[0] = iACompVisOptions::getDoubleArray(iACompVisOptions::BACKGROUNDCOLOR_GREY)[0];
-	col[1] = iACompVisOptions::getDoubleArray(iACompVisOptions::BACKGROUNDCOLOR_GREY)[1];
-	col[2] = iACompVisOptions::getDoubleArray(iACompVisOptions::BACKGROUNDCOLOR_GREY)[2];
+	iACompVisOptions::getDoubleArray(iACompVisOptions::BACKGROUNDCOLOR_GREY,col);
 	m_lutDarker->SetBelowRangeColor(col[0], col[1], col[2], 1);
 	m_lutDarker->UseBelowRangeColorOn();
 
@@ -1580,7 +1566,8 @@ void iACompHistogramTable::colorRowForZoom(vtkUnsignedCharArray* colors, int cur
 		{
 			double rgb[3];
 			m_lut->GetColor(-1, rgb);
-			unsigned char* ucrgb = iACompVisOptions::getColorArray(rgb);
+			unsigned char ucrgb[3];
+			iACompVisOptions::getColorArray(rgb, ucrgb);
 			colors->InsertNextTuple3(ucrgb[0], ucrgb[1], ucrgb[2]);
 		}
 		return;
@@ -1605,7 +1592,8 @@ void iACompHistogramTable::colorBinsOfRow(vtkUnsignedCharArray* colors, bin::Bin
 			m_lut->GetColor(amountVals, rgb);
 		}
 		
-		unsigned char* ucrgb = iACompVisOptions::getColorArray(rgb);
+		unsigned char ucrgb[3];
+		iACompVisOptions::getColorArray(rgb,ucrgb);
 		colors->InsertNextTuple3(ucrgb[0], ucrgb[1], ucrgb[2]);
 	}
 }
@@ -1673,7 +1661,9 @@ void iACompHistogramTable::initializeLegend()
 	//title properties
 	scalarBar->GetTitleTextProperty()->BoldOn();
 	scalarBar->GetTitleTextProperty()->SetFontSize(iACompVisOptions::FONTSIZE_TITLE);
-	scalarBar->GetTitleTextProperty()->SetColor(iACompVisOptions::getDoubleArray(iACompVisOptions::FONTCOLOR_TITLE));
+	double col[3];
+	iACompVisOptions::getDoubleArray(iACompVisOptions::FONTCOLOR_TITLE, col);
+	scalarBar->GetTitleTextProperty()->SetColor(col);
 	scalarBar->GetTitleTextProperty()->SetVerticalJustificationToTop();
 	scalarBar->SetVerticalTitleSeparation(7);
 	scalarBar->GetTitleTextProperty()->Modified();
@@ -1681,14 +1671,18 @@ void iACompHistogramTable::initializeLegend()
 	//text properties
 	vtkSmartPointer<vtkTextProperty> propL = vtkSmartPointer<vtkTextProperty>::New();
 	propL->SetFontSize(iACompVisOptions::FONTSIZE_TITLE);
-	propL->SetColor(iACompVisOptions::getDoubleArray(iACompVisOptions::FONTCOLOR_TEXT));
+	double col1[3];
+	iACompVisOptions::getDoubleArray(iACompVisOptions::FONTCOLOR_TEXT,col1);
+	propL->SetColor(col1);
 	propL->Modified();
 	scalarBar->SetAnnotationTextProperty(propL);
 
 	// Setup render window, renderer, and interactor
 	vtkSmartPointer<vtkRenderer> renderer = vtkSmartPointer<vtkRenderer>::New();
 	renderer->SetViewport(0.8, 0, 1, 1);
-	renderer->SetBackground(iACompVisOptions::getDoubleArray(iACompVisOptions::BACKGROUNDCOLOR_GREY));
+	double col2[3];
+	iACompVisOptions::getDoubleArray(iACompVisOptions::BACKGROUNDCOLOR_GREY,col2);
+	renderer->SetBackground(col2);
 	renderer->AddActor2D(scalarBar);
 
 	#if VTK_VERSION_NUMBER < VTK_VERSION_CHECK(9, 0, 0)
@@ -1734,7 +1728,9 @@ void iACompHistogramTable::addDatasetName(int currDataset, double* position)
 	legendProperty->ItalicOff();
 	legendProperty->ShadowOn();
 	legendProperty->SetFontFamilyToArial();
-	legendProperty->SetColor(iACompVisOptions::getDoubleArray(iACompVisOptions::FONTCOLOR_TITLE));
+	double col[3];
+	iACompVisOptions::getDoubleArray(iACompVisOptions::FONTCOLOR_TITLE, col);
+	legendProperty->SetColor(col);
 	legendProperty->SetFontSize(iACompVisOptions::FONTSIZE_TITLE);
 	legendProperty->SetVerticalJustificationToCentered();
 	legendProperty->SetJustification(VTK_TEXT_RIGHT);
@@ -1770,12 +1766,12 @@ void iACompHistogramTable::setBins(int bins)
 	m_bins = bins;
 }
 
-const int iACompHistogramTable::getMinBins()
+int iACompHistogramTable::getMinBins()
 {
 	return minBins;
 }
 
-const int iACompHistogramTable::getMaxBins()
+int iACompHistogramTable::getMaxBins()
 {
 	return maxBins;
 }
@@ -1931,9 +1927,7 @@ void iACompHistogramTable::highlightSelectedCell(vtkSmartPointer<vtkActor> picke
 	selectedActor->SetMapper(selectedMapper);
 	selectedActor->GetProperty()->EdgeVisibilityOn();
 	double col[3];
-	col[0] = iACompVisOptions::getDoubleArray(iACompVisOptions::HIGHLIGHTCOLOR_GREEN)[0];
-	col[1] = iACompVisOptions::getDoubleArray(iACompVisOptions::HIGHLIGHTCOLOR_GREEN)[1];
-	col[2] = iACompVisOptions::getDoubleArray(iACompVisOptions::HIGHLIGHTCOLOR_GREEN)[2];
+	iACompVisOptions::getDoubleArray(iACompVisOptions::HIGHLIGHTCOLOR_GREEN,col);
 
 	selectedActor->GetProperty()->SetEdgeColor(col[0],col[1],col[2]);
 	selectedActor->GetProperty()->SetLineWidth(iACompVisOptions::LINE_WIDTH);
@@ -1974,9 +1968,7 @@ void iACompHistogramTable::highlightSelectedRow(vtkSmartPointer<vtkActor> picked
 	points->InsertNextPoint(plane->GetOrigin());
 
 	double col[3];
-	col[0] = iACompVisOptions::getDoubleArray(iACompVisOptions::HIGHLIGHTCOLOR_GREEN)[0];
-	col[1] = iACompVisOptions::getDoubleArray(iACompVisOptions::HIGHLIGHTCOLOR_GREEN)[1];
-	col[2] = iACompVisOptions::getDoubleArray(iACompVisOptions::HIGHLIGHTCOLOR_GREEN)[2];
+	iACompVisOptions::getDoubleArray(iACompVisOptions::HIGHLIGHTCOLOR_GREEN,col);
 
 	m_highlightRowActor = drawPolyLine(points, col, iACompVisOptions::LINE_WIDTH);
 
@@ -2117,9 +2109,7 @@ void iACompHistogramTable::showSelectionOfCorrelationMap(std::map<int, double>* 
 				{ // is outer arc --> highlight whole dataset
 
 					double col[3];
-					col[0] = iACompVisOptions::getDoubleArray(iACompVisOptions::BACKGROUNDCOLOR_LIGHTGREY)[0];
-					col[1] = iACompVisOptions::getDoubleArray(iACompVisOptions::BACKGROUNDCOLOR_LIGHTGREY)[1];
-					col[2] = iACompVisOptions::getDoubleArray(iACompVisOptions::BACKGROUNDCOLOR_LIGHTGREY)[2];
+					iACompVisOptions::getDoubleArray(iACompVisOptions::BACKGROUNDCOLOR_LIGHTGREY,col);
 
 					drawStippledTexture(oldPlane->GetOrigin(), oldPlane->GetPoint1(), oldPlane->GetPoint2(), col);
 
@@ -2146,9 +2136,7 @@ void iACompHistogramTable::showSelectionOfCorrelationMap(std::map<int, double>* 
 							double point2[3] = { startXCell, oldPlane->GetPoint2()[1], oldPlane->GetPoint2()[2] };
 
 							double col[3];
-							col[0] = iACompVisOptions::getDoubleArray(iACompVisOptions::HIGHLIGHTCOLOR_GREEN)[0];
-							col[1] = iACompVisOptions::getDoubleArray(iACompVisOptions::HIGHLIGHTCOLOR_GREEN)[1];
-							col[2] = iACompVisOptions::getDoubleArray(iACompVisOptions::HIGHLIGHTCOLOR_GREEN)[2];
+							iACompVisOptions::getDoubleArray(iACompVisOptions::HIGHLIGHTCOLOR_GREEN,col);
 
 							drawStippledTexture(origin, point1, point2, col);
 						}
@@ -2178,9 +2166,7 @@ void iACompHistogramTable::showSelectionOfCorrelationMap(std::map<int, double>* 
 								double point2[3] = { startXCell, oldPlane->GetPoint2()[1], oldPlane->GetPoint2()[2] };
 
 								double col[3];
-								col[0] = iACompVisOptions::getDoubleArray(iACompVisOptions::BACKGROUNDCOLOR_LIGHTERGREY)[0];
-								col[1] = iACompVisOptions::getDoubleArray(iACompVisOptions::BACKGROUNDCOLOR_LIGHTERGREY)[1];
-								col[2] = iACompVisOptions::getDoubleArray(iACompVisOptions::BACKGROUNDCOLOR_LIGHTERGREY)[2];
+								iACompVisOptions::getDoubleArray(iACompVisOptions::BACKGROUNDCOLOR_LIGHTERGREY,col);
 
 								drawStippledTexture(origin, point1, point2, col);
 							}

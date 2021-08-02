@@ -133,12 +133,12 @@ iACompCorrelationMap::iACompCorrelationMap(iAMainWindow* parent, iACorrelationCo
 	m_graphLayoutView->GetInteractor()->SetInteractorStyle(style);
 
 	m_graphLayoutView->GetRenderer()->SetUseFXAA(true);
-
-	m_theme->SetBackgroundColor(iACompVisOptions::getDoubleArray(iACompVisOptions::BACKGROUNDCOLOR_WHITE));
-	m_theme->SetBackgroundColor2(iACompVisOptions::getDoubleArray(iACompVisOptions::BACKGROUNDCOLOR_WHITE));
-
-	//data preparation
-	QList<csvFileData>* data = m_dataStorage->getData();
+	double col1[3];
+	iACompVisOptions::getDoubleArray(iACompVisOptions::BACKGROUNDCOLOR_WHITE, col1);
+	double col2[3];
+	iACompVisOptions::getDoubleArray(iACompVisOptions::BACKGROUNDCOLOR_WHITE, col2);
+	m_theme->SetBackgroundColor(col1);
+	m_theme->SetBackgroundColor2(col2);
 
 	m_attrNames = *m_dataStorage->getAttributeNamesWithoutLabel();
 	m_numberOfAttr = m_attrNames.size(); //amount of attributes
@@ -225,11 +225,14 @@ void iACompCorrelationMap::reinitializeCorrelationMap(iACorrelationCoefficient* 
 	style->setBaseClass(this);
 	m_graphLayoutView->GetInteractor()->SetInteractorStyle(style);
 
-	m_theme->SetBackgroundColor(iACompVisOptions::getDoubleArray(iACompVisOptions::BACKGROUNDCOLOR_WHITE));
-	m_theme->SetBackgroundColor2(iACompVisOptions::getDoubleArray(iACompVisOptions::BACKGROUNDCOLOR_WHITE));
+	double col1[3];
+	iACompVisOptions::getDoubleArray(iACompVisOptions::BACKGROUNDCOLOR_WHITE, col1);
+	double col2[3];
+	iACompVisOptions::getDoubleArray(iACompVisOptions::BACKGROUNDCOLOR_WHITE, col2);
+	m_theme->SetBackgroundColor(col1);
+	m_theme->SetBackgroundColor2(col2);
 
 	//data preparation
-	QList<csvFileData>* data = m_dataStorage->getData();
 	m_attrNames = *m_dataStorage->getAttributeNamesWithoutLabel();
 	m_numberOfAttr = m_attrNames.size(); //amount of attributes
 	
@@ -513,7 +516,9 @@ void iACompCorrelationMap::initializeLegend(vtkScalarBarWidget* widget)
 	titleTextProp->ItalicOff();
 	titleTextProp->ShadowOff();
 	titleTextProp->SetFontSize(iACompVisOptions::FONTSIZE_TITLE);
-	titleTextProp->SetColor(iACompVisOptions::getDoubleArray(iACompVisOptions::BACKGROUNDCOLOR_LIGHTGREY));
+	double col[3];
+	iACompVisOptions::getDoubleArray(iACompVisOptions::BACKGROUNDCOLOR_LIGHTGREY, col);
+	titleTextProp->SetColor(col);
 	titleTextProp->SetJustificationToLeft();
 	titleTextProp->SetVerticalJustificationToTop();
 	titleTextProp->Modified();
@@ -530,21 +535,15 @@ void iACompCorrelationMap::initializeArcLegend()
 	legendBox->Update();
 
 	double dataColor[4] = { 0, 0, 0, 1 };
-	dataColor[0] = iACompVisOptions::getDoubleArray(iACompVisOptions::BACKGROUNDCOLOR_LIGHTGREY)[0];
-	dataColor[1] = iACompVisOptions::getDoubleArray(iACompVisOptions::BACKGROUNDCOLOR_LIGHTGREY)[1];
-	dataColor[2] = iACompVisOptions::getDoubleArray(iACompVisOptions::BACKGROUNDCOLOR_LIGHTGREY)[2];
+	iACompVisOptions::getDoubleArray(iACompVisOptions::BACKGROUNDCOLOR_LIGHTGREY,dataColor);
 	legend->SetEntry(0, legendBox->GetOutput(), "Dataset", dataColor);
 
 	double unselectedColor[4] = { 0, 0, 0, 1 };
-	unselectedColor[0] = iACompVisOptions::getDoubleArray(iACompVisOptions::BACKGROUNDCOLOR_LIGHTERGREY)[0];
-	unselectedColor[1] = iACompVisOptions::getDoubleArray(iACompVisOptions::BACKGROUNDCOLOR_LIGHTERGREY)[1];
-	unselectedColor[2] = iACompVisOptions::getDoubleArray(iACompVisOptions::BACKGROUNDCOLOR_LIGHTERGREY)[2];
+	iACompVisOptions::getDoubleArray(iACompVisOptions::BACKGROUNDCOLOR_LIGHTERGREY, unselectedColor);
 	legend->SetEntry(1, legendBox->GetOutput(), "unselected Objects", unselectedColor);
 
 	double selectedColor[4] = { 0, 0, 0, 1 };
-	selectedColor[0] = iACompVisOptions::getDoubleArray(iACompVisOptions::HIGHLIGHTCOLOR_GREEN)[0];
-	selectedColor[1] = iACompVisOptions::getDoubleArray(iACompVisOptions::HIGHLIGHTCOLOR_GREEN)[1];
-	selectedColor[2] = iACompVisOptions::getDoubleArray(iACompVisOptions::HIGHLIGHTCOLOR_GREEN)[2];
+	iACompVisOptions::getDoubleArray(iACompVisOptions::HIGHLIGHTCOLOR_GREEN, selectedColor);
 	legend->SetEntry(2, legendBox->GetOutput(), "selected Objects", selectedColor);
 
 	legend->GetPositionCoordinate()->SetCoordinateSystemToNormalizedDisplay();
@@ -932,15 +931,15 @@ void iACompCorrelationMap::updateArcs(std::map<int, std::vector<double>>* pickSt
 	}
 }
 
-void iACompCorrelationMap::drawInnerArc(std::vector<double> data, double* parentPosition, double parentTheta, double parentPhi, double parentAngle, double parentArcLength, int dataIndex)
+void iACompCorrelationMap::drawInnerArc(std::vector<double> dataPoints, double* parentPosition, double parentTheta, double parentPhi, double parentAngle, double parentArcLength, int dataIndex)
 {
 	//draw not selected arc
 	double posNotSelected[3] = {0.0, 0.0, parentPosition[2]};
 	posNotSelected[0] = (cos(parentTheta) * cos(parentPhi) * (m_radius*0.925));
 	posNotSelected[1] = (sin(parentTheta) * cos(parentPhi) * (m_radius*0.925));
 
-	double amountNotPicked = data.at(0) - data.at(1);
-	double percentNotPicked = amountNotPicked / data.at(0);
+	double amountNotPicked = dataPoints.at(0) - dataPoints.at(1);
+	double percentNotPicked = amountNotPicked / dataPoints.at(0);
 
 	double resAngle = percentNotPicked * parentAngle;
 	double* col = m_lutForArcs->GetTableValue(1);
@@ -1191,10 +1190,8 @@ void iACompCorrelationMap::GraphInteractorStyle::addHighlightingBelow(vtkSmartPo
 	actor->SetMapper(mapper.Get());
 	actor->GetProperty()->SetLineWidth(arcActor->GetProperty()->GetLineWidth()*1.5);
 
-	double color[3] = { 0,0,0 };
-	color[0] = iACompVisOptions::getDoubleArray(iACompVisOptions::HIGHLIGHTCOLOR_YELLOW)[0];
-	color[1] = iACompVisOptions::getDoubleArray(iACompVisOptions::HIGHLIGHTCOLOR_YELLOW)[1];
-	color[2] = iACompVisOptions::getDoubleArray(iACompVisOptions::HIGHLIGHTCOLOR_YELLOW)[2];
+	double color[3];
+	iACompVisOptions::getDoubleArray(iACompVisOptions::HIGHLIGHTCOLOR_YELLOW, color);
 
 	actor->GetProperty()->SetColor(color);
 
@@ -1328,10 +1325,8 @@ void iACompCorrelationMap::GraphInteractorStyle::drawPercentLabel(vtkSmartPointe
 	legendProperty->ShadowOn();
 	legendProperty->SetFontFamilyToArial();
 
-	double color[3] = { 0,0,0 };
-	color[0] = iACompVisOptions::getDoubleArray(iACompVisOptions::HIGHLIGHTCOLOR_YELLOW)[0];
-	color[1] = iACompVisOptions::getDoubleArray(iACompVisOptions::HIGHLIGHTCOLOR_YELLOW)[1];
-	color[2] = iACompVisOptions::getDoubleArray(iACompVisOptions::HIGHLIGHTCOLOR_YELLOW)[2];
+	double color[3];
+	iACompVisOptions::getDoubleArray(iACompVisOptions::HIGHLIGHTCOLOR_YELLOW, color);
 
 	legendProperty->SetColor(color);
 	legendProperty->SetFontSize(iACompVisOptions::FONTSIZE_TITLE);
@@ -1505,6 +1500,14 @@ void iACompCorrelationMap::GraphInteractorStyle::removeHighlighting()
 /************************* INNER CLASS CorrelationGraphLayout *******************************************/
 iACompCorrelationMap::CorrelationGraphLayout::CorrelationGraphLayout()
 {
+	this->TotalIterations = 0;
+	this->Temp = 0.0;
+	this->m_correlations = nullptr;
+	this->m_vertices = nullptr;
+	this->maxDist = 0.0;
+	this->minDist = 0.0;
+	this->optDist = 0.0;
+
 	this->RandomSeed = 123;
 	this->GraphBounds[0] = this->GraphBounds[2] = this->GraphBounds[4] = -0.5;
 	this->GraphBounds[1] = this->GraphBounds[3] = this->GraphBounds[5] = 0.5;
@@ -1518,6 +1521,8 @@ iACompCorrelationMap::CorrelationGraphLayout::CorrelationGraphLayout()
 	this->RandomInitialPoints = true;
 	this->v = nullptr;
 	this->e = nullptr;
+
+	
 }
 
 iACompCorrelationMap::CorrelationGraphLayout::~CorrelationGraphLayout() {

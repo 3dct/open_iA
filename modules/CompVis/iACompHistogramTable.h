@@ -72,8 +72,8 @@ class iACompHistogramTable : public QDockWidget, public Ui_CompHistogramTable
 	int getBinsZoomed();
 	void setBinsZoomed(int bins);
 
-	const int getMinBins();
-	const int getMaxBins();
+	int getMinBins();
+	int getMaxBins();
 
 	std::vector<int>* getIndexOfPickedRows();
 	std::vector<int>* getAmountObjectsEveryDataset();
