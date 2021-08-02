@@ -31,7 +31,6 @@
 class iAAttributeDescriptor;
 class iAMainWindow;
 class iAMdiChild;
-class Ui_CommonInput;
 
 class QWidget;
 class QString;
@@ -68,7 +67,6 @@ private:
 	bool m_sourceMdiChildClosed;
 	QVector<QWidget*> m_widgetList;
 	ParamListT m_parameters;
-	QSharedPointer<Ui_CommonInput> m_ui;
 
 	void updateROIPart(QString const& partName, int value);
 };
