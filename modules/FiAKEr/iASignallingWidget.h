@@ -20,12 +20,10 @@
 * ************************************************************************************/
 #pragma once
 
-#include "iAguibase_export.h"
-
 #include <QWidget>
 
 //! A widget that emits signals on click and double click.
-class iAguibase_API iASignallingWidget: public QWidget
+class iASignallingWidget: public QWidget
 {
 	Q_OBJECT
 signals:

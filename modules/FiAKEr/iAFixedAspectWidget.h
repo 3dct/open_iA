@@ -20,8 +20,6 @@
 * ************************************************************************************/
 #pragma once
 
-#include "iAguibase_export.h"
-
 #include "iASignallingWidget.h"
 #include "iAQVTKWidget.h"
 
@@ -29,7 +27,7 @@ class iAColoredWidget;
 
 //! Keeps the aspect ratio of a contained iAQVTKWidget fixed
 //! by placing two other resizable widgets around it as padding.
-class iAguibase_API iAFixedAspectWidget: public iASignallingWidget
+class iAFixedAspectWidget: public iASignallingWidget
 {
 	Q_OBJECT
 public:
