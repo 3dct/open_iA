@@ -177,7 +177,7 @@ iAVRMain::iAVRMain(iAVREnvironment* vrEnv, iAVRInteractorStyle* style, vtkTable*
 
 	//addPropToOptionID(m_slider->getSlider(), iAVRInteractionOptions::Histogram);
 	
-	for(auto i = 0; i < m_octrees->size(); i++)
+	for(size_t i = 0; i < m_octrees->size(); i++)
 	{
 		addPropToOptionID(vtkProp3D::SafeDownCast(m_octrees->at(i)->getActor()), iAVRInteractionOptions::Volume); //Octree counts as Volume
 	}
@@ -465,7 +465,7 @@ void iAVRMain::drawPoint(std::vector<double*>* pos, QColor color)
 
 	vtkSmartPointer<vtkPoints> points = vtkSmartPointer<vtkPoints>::New();
 
-	for(auto i=0; i<pos->size(); i++)
+	for(size_t i=0; i<pos->size(); i++)
 	{
 		points->InsertNextPoint(pos->at(i));
 	}

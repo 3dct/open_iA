@@ -40,8 +40,8 @@ public:
 
 private:
 	vtkSmartPointer<vtkRenderer> m_renderer;
-	iAVRColorLegend* m_colorLegend;
 	std::vector<iAVROctree*>* m_octrees;
+	iAVRColorLegend* m_colorLegend;
 	vtkSmartPointer<vtkActor> mipPanel;
 	std::vector<vtkPolyData*> mipPlanes;
 

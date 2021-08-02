@@ -73,7 +73,7 @@ void iAVRFiberCoverage::mapAllPointiDsAndCalculateFiberCoverage()
 		//Initialize the region vec for every level
 		m_fiberCoverage->push_back(std::vector<std::unordered_map<vtkIdType, double>*>());
 
-		for (int i = 0; i < m_octrees->at(level)->getNumberOfLeafeNodes(); i++)
+		for (vtkIdType i = 0; i < m_octrees->at(level)->getNumberOfLeafeNodes(); i++)
 		{
 			//Initialize a vec of Maps for every region
 			m_fiberCoverage->at(level).push_back(new std::unordered_map<vtkIdType, double>());

@@ -52,6 +52,8 @@ public:
 
 private:
 	vtkSmartPointer<vtkRenderer> m_renderer;
+	iAVRHistogramMetric* m_histogramMetric;
+	iAVROctreeMetrics* m_octreeMetric;
 	vtkSmartPointer<vtkTable> m_objectTable;
 	vtkSmartPointer<vtkActor> m_sphereActor;
 	vtkSmartPointer<vtkActor> m_activeHistogramActor;
@@ -67,8 +69,6 @@ private:
 	//Stores for an [axis] its title
 	std::vector<iAVR3DText>* m_axisTitleActor;
 	iACsvIO m_io;
-	iAVROctreeMetrics* m_octreeMetric;
-	iAVRHistogramMetric* m_histogramMetric;
 	//Stores the [axis] polydata with the 3 points which create a X axis and the y axis
 	std::vector<vtkSmartPointer<vtkPolyData>>* m_axesPoly;
 	//Stores for every [axis] and [direction] (x,y) the polydata with 2 points for each mark on an axis
