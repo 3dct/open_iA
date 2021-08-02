@@ -229,12 +229,7 @@ dlg_FeatureScout::dlg_FeatureScout(iAMdiChild* parent, iAObjectType fid, QString
 	m_tableList.push_back(m_chartTable);
 
 	initFeatureScoutUI();
-	CREATE_OLDVTKWIDGET(m_pcWidget);
-	CREATE_OLDVTKWIDGET(m_polarPlotWidget);
-	CREATE_OLDVTKWIDGET(m_lengthDistrWidget);
 	m_lengthDistrWidget->hide();
-	m_dwPC->setWidget(m_pcWidget);
-	m_dwPP->legendLayout->addWidget(m_polarPlotWidget);
 
 	// Initialize the models for QtViews
 	initColumnVisibility();
@@ -444,17 +439,10 @@ void dlg_FeatureScout::setupViews()
 	// preparing chart and view for Parallel Coordinates
 	m_pcView = vtkSmartPointer<vtkContextView>::New();
 	m_lengthDistrView = vtkSmartPointer<vtkContextView>::New();
-#if VTK_VERSION_NUMBER < VTK_VERSION_CHECK(9, 0, 0)
-	m_pcView->SetRenderWindow(m_pcWidget->GetRenderWindow());
-	m_pcView->SetInteractor(m_pcWidget->GetInteractor());
-	m_lengthDistrView->SetRenderWindow(m_lengthDistrWidget->GetRenderWindow());
-	m_lengthDistrView->SetInteractor(m_lengthDistrWidget->GetInteractor());
-#else
 	m_pcView->SetRenderWindow(m_pcWidget->renderWindow());
 	m_pcView->SetInteractor(m_pcWidget->interactor());
 	m_lengthDistrView->SetRenderWindow(m_lengthDistrWidget->renderWindow());
 	m_lengthDistrView->SetInteractor(m_lengthDistrWidget->interactor());
-#endif
 
 	// Create a popup menu for Parallel Coordinates:
 	QMenu* pcPopupMenu = new QMenu(m_pcWidget);
@@ -465,22 +453,14 @@ void dlg_FeatureScout::setupViews()
 
 	m_pcConnections = vtkSmartPointer<vtkEventQtSlotConnect>::New();
 	// Gets right button release event (on a parallel coordinates).
-#if VTK_VERSION_NUMBER < VTK_VERSION_CHECK(9, 0, 0)
-	m_pcConnections->Connect(m_pcWidget->GetRenderWindow()->GetInteractor(),
-#else
 	m_pcConnections->Connect(m_pcWidget->renderWindow()->GetInteractor(),
-#endif
 		vtkCommand::RightButtonReleaseEvent,
 		this,
 		SLOT(pcRightButtonReleased(vtkObject*, unsigned long, void*, void*, vtkCommand*)),
 		pcPopupMenu, 1.0);
 
 	// Gets right button press event (on a scatter plot).
-#if VTK_VERSION_NUMBER < VTK_VERSION_CHECK(9, 0, 0)
-	m_pcConnections->Connect(m_pcWidget->GetRenderWindow()->GetInteractor(),
-#else
 	m_pcConnections->Connect(m_pcWidget->renderWindow()->GetInteractor(),
-#endif
 		vtkCommand::RightButtonPressEvent,
 		this,
 		SLOT(pcRightButtonPressed(vtkObject*, unsigned long, void*, void*, vtkCommand*)));
@@ -899,11 +879,7 @@ void dlg_FeatureScout::RenderOrientation()
 	auto renderer = vtkSmartPointer<vtkRenderer>::New();
 	renderer->SetBackground(1, 1, 1);
 	renderer->AddActor(actor);
-#if VTK_VERSION_NUMBER < VTK_VERSION_CHECK(9, 0, 0)
-	vtkRenderWindow* renW = m_polarPlotWidget->GetRenderWindow();
-#else
 	vtkRenderWindow* renW = m_polarPlotWidget->renderWindow();
-#endif
 	auto ren = renW->GetRenderers()->GetFirstRenderer();
 	renW->RemoveRenderer(ren);
 	renW->AddRenderer(renderer);
@@ -1015,12 +991,7 @@ void dlg_FeatureScout::RenderLengthDistribution()
 	plot->GetYAxis()->SetTitle("Frequency");
 	m_lengthDistrView->GetScene()->ClearItems();
 	m_lengthDistrView->GetScene()->AddItem(chart);
-
-#if VTK_VERSION_NUMBER < VTK_VERSION_CHECK(9, 0, 0)
-	m_lengthDistrWidget->GetRenderWindow()->Render();
-#else
 	m_lengthDistrWidget->renderWindow()->Render();
-#endif
 	m_lengthDistrWidget->update();
 	m_dwPP->legendLayout->removeWidget(m_polarPlotWidget);
 	m_dwPP->legendLayout->addWidget(m_lengthDistrWidget);
@@ -1138,7 +1109,7 @@ void dlg_FeatureScout::ClassAddButton()
 void dlg_FeatureScout::writeWisetex(QXmlStreamWriter* writer)
 {
 	if (QMessageBox::warning(this, "FeatureScout",
-		"This functionality is only available for legacy fiber/pore csv formats at the moment. Are you sure you want to proceed?",
+		"This functionality is only available for FCP fiber/ feature characteristics pore csv formats at the moment. Are you sure you want to proceed?",
 		QMessageBox::Yes | QMessageBox::No) != QMessageBox::Yes)
 	{
 		return;
@@ -1449,18 +1420,10 @@ void dlg_FeatureScout::CsvDVSaveButton()
 	{
 		if (!m_dwDV)
 		{
-			m_dwDV = new iADockWidgetWrapper("Distribution View", "FeatureScoutDV");
-
-			iAVtkOldWidget* dvqvtkWidget;
-			CREATE_OLDVTKWIDGET(dvqvtkWidget);
-			m_dwDV->setWidget(dvqvtkWidget);
-#if VTK_VERSION_NUMBER < VTK_VERSION_CHECK(9, 0, 0)
-			m_dvContextView->SetRenderWindow(dvqvtkWidget->GetRenderWindow());
-			m_dvContextView->SetInteractor(dvqvtkWidget->GetInteractor());
-#else
+			iAQVTKWidget* dvqvtkWidget(new iAQVTKWidget());
+			m_dwDV = new iADockWidgetWrapper(dvqvtkWidget, "Distribution View", "FeatureScoutDV");
 			m_dvContextView->SetRenderWindow(dvqvtkWidget->renderWindow());
 			m_dvContextView->SetInteractor(dvqvtkWidget->interactor());
-#endif
 			m_activeChild->addDockWidget(Qt::RightDockWidgetArea, m_dwDV);
 			m_dwDV->show();
 		}
@@ -1883,12 +1846,12 @@ void dlg_FeatureScout::showScatterPlot()
 	{
 		return;
 	}
-	m_dwSPM = new iADockWidgetWrapper("Scatter Plot Matrix", "FeatureScoutSPM");
+	QSignalBlocker spmBlock(m_splom.data()); //< no need to trigger updates while we're creating SPM
+	m_splom->initScatterPlot(m_csvTable, m_columnVisibility);
+	m_dwSPM = new iADockWidgetWrapper(m_splom->matrixWidget(), "Scatter Plot Matrix", "FeatureScoutSPM");
 	m_activeChild->splitDockWidget(m_activeChild->renderDockWidget(), m_dwSPM, Qt::Vertical);
 	m_dwSPM->show();
 	m_dwSPM->raise();
-	QSignalBlocker spmBlock(m_splom.data()); //< no need to trigger updates while we're creating SPM
-	m_splom->initScatterPlot(m_dwSPM, m_csvTable, m_columnVisibility);
 	if (m_renderMode == rmMultiClass)
 	{
 		m_splom->multiClassRendering(m_colorList);
@@ -2820,11 +2783,7 @@ void dlg_FeatureScout::drawOrientationScalarBar(vtkScalarsToColors* lut)
 	m_scalarBarPP->GetPositionCoordinate()->SetCoordinateSystemToNormalizedViewport();
 	m_scalarBarPP->SetTitle("Frequency");
 	m_scalarBarPP->SetNumberOfLabels(5);
-#if VTK_VERSION_NUMBER < VTK_VERSION_CHECK(9, 0, 0)
-	m_scalarWidgetPP->SetInteractor(m_polarPlotWidget->GetInteractor());
-#else
 	m_scalarWidgetPP->SetInteractor(m_polarPlotWidget->interactor());
-#endif
 	m_scalarWidgetPP->SetScalarBarActor(m_scalarBarPP);
 	m_scalarWidgetPP->SetEnabled(true);
 	m_scalarWidgetPP->SetRepositionable(true);
@@ -2925,11 +2884,7 @@ void dlg_FeatureScout::updatePolarPlotView(vtkTable* it)
 	auto renderer = vtkSmartPointer<vtkRenderer>::New();
 	renderer->SetBackground(1, 1, 1);
 
-#if VTK_VERSION_NUMBER < VTK_VERSION_CHECK(9, 0, 0)
-	auto renW = m_polarPlotWidget->GetRenderWindow();
-#else
 	auto renW = m_polarPlotWidget->renderWindow();
-#endif
 	auto ren = renW->GetRenderers()->GetFirstRenderer();
 	if (ren)
 	{
@@ -2942,11 +2897,7 @@ void dlg_FeatureScout::updatePolarPlotView(vtkTable* it)
 	drawAnnotations(renderer);
 	drawOrientationScalarBar(cTFun);
 	renderer->ResetCamera();
-#if VTK_VERSION_NUMBER < VTK_VERSION_CHECK(9, 0, 0)
-	m_polarPlotWidget->GetRenderWindow()->Render();
-#else
 	m_polarPlotWidget->renderWindow()->Render();
-#endif
 }
 
 void dlg_FeatureScout::setupPolarPlotResolution(float grad)
@@ -3157,8 +3108,12 @@ void dlg_FeatureScout::SaveBlobMovie()
 
 void dlg_FeatureScout::initFeatureScoutUI()
 {
-	m_dwPC = new iADockWidgetWrapper("Parallel Coordinates", "FeatureScoutPC");
+	m_pcWidget = new iAQVTKWidget();
+	m_polarPlotWidget = new iAQVTKWidget();
+	m_lengthDistrWidget = new iAQVTKWidget();
+	m_dwPC = new iADockWidgetWrapper(m_pcWidget, "Parallel Coordinates", "FeatureScoutPC");
 	m_dwPP = new dlg_PolarPlot(this);
+	m_dwPP->legendLayout->addWidget(m_polarPlotWidget);
 	m_activeChild->addDockWidget(Qt::RightDockWidgetArea, this);
 	m_activeChild->addDockWidget(Qt::RightDockWidgetArea, m_dwPC);
 	m_activeChild->addDockWidget(Qt::RightDockWidgetArea, m_dwPP);

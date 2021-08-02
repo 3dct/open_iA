@@ -11,7 +11,7 @@
 class iAMainWindow;
 class iACoefficientOfVariation;
 class iACsvDataStorage;
-class QVTKOpenGLNativeWidget;
+class iAQVTKWidget;
 
 class vtkDataArray;
 class vtkDoubleArray;
@@ -81,7 +81,7 @@ private:
 	iACsvDataStorage* m_dataStorage;
 	//class where the calculation of the coefficient of variation happens
 	iACoefficientOfVariation* m_coeffVar;
-	QVTKOpenGLNativeWidget* m_qvtkWidget;
+	iAQVTKWidget* m_qvtkWidget;
 
 	//context view for 2D charts
 	vtkSmartPointer<vtkContextView> m_view;

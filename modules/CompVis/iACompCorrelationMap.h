@@ -14,7 +14,8 @@
 class iAMainWindow;
 class iACorrelationCoefficient;
 class iACsvDataStorage;
-class QVTKOpenGLNativeWidget;
+class iAQVTKWidget;
+
 class vtkRenderer;
 class vtkGraphLayoutView;
 class vtkMutableUndirectedGraph;
@@ -83,7 +84,7 @@ private:
 
 	iACompVisMain* m_main;
 
-	QVTKOpenGLNativeWidget* m_qvtkWidget;
+	iAQVTKWidget* m_qvtkWidget;
 	vtkSmartPointer<vtkRenderer> m_renderer;
 
 	int m_numberOfAttr;

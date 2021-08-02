@@ -184,7 +184,6 @@ void dlg_GEMSeControl::startSampling()
 	m_dlgSamplingSettings = new iASamplingSettingsDlg(this, m_dlgModalities->modalities()->size(), m_samplingSettings);
 	if (m_dlgSamplingSettings->exec() == QDialog::Accepted)
 	{
-		QSharedPointer<iAAttributes> parameterRanges = m_dlgSamplingSettings->parameterRanges();
 		m_dlgSamplingSettings->getValues(m_samplingSettings);
 		m_outputFolder = m_samplingSettings[spnOutputFolder].toString();
 		QDir outputFolder(m_outputFolder);
@@ -205,7 +204,8 @@ void dlg_GEMSeControl::startSampling()
 		m_sampler = QSharedPointer<iAImageSampler>::create(
 			m_dlgModalities->modalities(),
 			m_samplingSettings,
-			parameterRanges,
+			m_dlgSamplingSettings->parameterRanges(),
+			m_dlgSamplingSettings->parameterSpecs(),
 			samplingMethod,
 			iASEAFile::DefaultSMPFileName,
 			iASEAFile::DefaultSPSFileName,

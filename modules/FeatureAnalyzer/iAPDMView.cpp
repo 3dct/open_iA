@@ -56,9 +56,9 @@ iAPDMView::iAPDMView( QWidget * parent /*= 0*/, Qt::WindowFlags f /*= 0 */ )
 	: PorosityAnalyzerPDMConnector( parent, f ),
 	m_lut( vtkSmartPointer<vtkLookupTable>::New() ),
 	m_sbRen( vtkSmartPointer<vtkRenderer>::New() ),
-	m_sbActor( vtkSmartPointer<vtkScalarBarActor>::New() )
+	m_sbActor( vtkSmartPointer<vtkScalarBarActor>::New() ),
+	m_sbWidget(new iAQVTKWidget())
 {
-	CREATE_OLDVTKWIDGET(m_sbWidget);
 	QSettings settings( organisationName, applicationName );
 	this->dsbCMRange->setValue( settings.value( "FeatureAnalyzer/GUI/CMRange", 2.0 ).toDouble() );
 
@@ -79,11 +79,7 @@ iAPDMView::iAPDMView( QWidget * parent /*= 0*/, Qt::WindowFlags f /*= 0 */ )
 	m_sbActor->SetOrientationToHorizontal();
 	m_sbActor->SetLookupTable( m_lut );
 	m_sbActor->SetTitle( "Deviation from reference porosity (%)" );
-#if VTK_VERSION_NUMBER < VTK_VERSION_CHECK(9, 0, 0)
-	m_sbWidget->GetRenderWindow()->AddRenderer( m_sbRen );
-#else
 	m_sbWidget->renderWindow()->AddRenderer( m_sbRen );
-#endif
 	m_sbWidget->update();
 	QVBoxLayout *lutLayoutHB = new QVBoxLayout( this );
 	lutLayoutHB->setContentsMargins(0, 0, 0, 0);

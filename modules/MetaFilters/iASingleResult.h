@@ -39,7 +39,8 @@ public:
 	static QSharedPointer<iASingleResult> create(
 		QString const & line,
 		iASamplingResults const & sampling,
-		QSharedPointer<iAAttributes> attributes);
+		QSharedPointer<iAAttributes> attributes,
+		bool showErrorOutput);
 
 	static QSharedPointer<iASingleResult> create(
 		int id,

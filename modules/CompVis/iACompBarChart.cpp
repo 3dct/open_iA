@@ -3,12 +3,15 @@
 //compVis
 #include "iACoefficientOfVariation.h"
 #include "iACompVisOptions.h"
-#include "iAVtkVersion.h"
+
+// core
 #include "iAMainWindow.h"
+#include "iAVtkVersion.h"
+#include "iAVtkWidget.h"
+
 
 //Qt
 #include "vtkGenericOpenGLRenderWindow.h"
-#include "QVTKOpenGLNativeWidget.h"
 
 //vtk
 #include <vtkObjectFactory.h> //for macro!
@@ -59,8 +62,9 @@ vtkStandardNewMacro(iACompBarChart::BarChartInteractorStyle);
 
 iACompBarChart::iACompBarChart(iAMainWindow* parent, iACoefficientOfVariation* coeffVar, iACsvDataStorage* dataStorage) :
 	QDockWidget(parent), 
-	m_dataStorage(dataStorage),
 	m_coeffVar(coeffVar),
+	m_qvtkWidget(new iAQVTKWidget(this)),
+	m_dataStorage(dataStorage),
 	orderedPositions(new std::vector<double>()),
 	m_area(vtkSmartPointer<vtkContextArea>::New()),
 	m_originalBarChart(vtkSmartPointer<vtkPropItem>::New()),
@@ -72,7 +76,6 @@ iACompBarChart::iACompBarChart(iAMainWindow* parent, iACoefficientOfVariation* c
 	QVBoxLayout* layout = new QVBoxLayout;
 	dockWidgetContents->setLayout(layout);
 
-	m_qvtkWidget = new QVTKOpenGLNativeWidget(this);
 	layout->addWidget(m_qvtkWidget);
 
 	//initialize interaction
@@ -82,17 +85,10 @@ iACompBarChart::iACompBarChart(iAMainWindow* parent, iACoefficientOfVariation* c
 	
 	m_view = vtkSmartPointer<vtkContextView>::New();
 	
-	#if VTK_VERSION_NUMBER < VTK_VERSION_CHECK(9, 0, 0)
-		m_qvtkWidget->GetInteractor()->SetInteractorStyle(style);
+	m_qvtkWidget->interactor()->SetInteractorStyle(style);
 
-		m_view->SetRenderWindow(m_qvtkWidget->GetRenderWindow());
-		m_view->SetInteractor(m_qvtkWidget->GetInteractor());
-	#else
-		m_qvtkWidget->interactor()->SetInteractorStyle(style);
-
-		m_view->SetRenderWindow(m_qvtkWidget->renderWindow());
-		m_view->SetInteractor(m_qvtkWidget->interactor());
-	#endif
+	m_view->SetRenderWindow(m_qvtkWidget->renderWindow());
+	m_view->SetInteractor(m_qvtkWidget->interactor());
 
 	m_view->GetInteractor()->SetInteractorStyle(style);
 
@@ -282,7 +278,9 @@ void iACompBarChart::initializeAxes(std::vector<double>* orderedPos)
 	m_area->GetAxis(vtkAxis::TOP)->SetAxisVisible(false);
 	m_area->GetAxis(vtkAxis::TOP)->SetTicksVisible(false);
 	m_area->GetAxis(vtkAxis::TOP)->SetLabelsVisible(false);
+#if VTK_VERSION_NUMBER >= VTK_VERSION_CHECK(8,2,0)
 	m_area->GetAxis(vtkAxis::TOP)->SetTitleVisible(true);
+#endif
 	vtkAxis *axisTop = m_area->GetAxis(vtkAxis::TOP);
 	axisTop->SetTitle("Coefficient of Variation");
 	axisTop->GetTitleProperties()->BoldOn();
@@ -393,11 +391,7 @@ void iACompBarChart::removeLabelAttribute(std::vector<double>* input)
 
 void iACompBarChart::renderWidget()
 {
-	#if VTK_VERSION_NUMBER < VTK_VERSION_CHECK(9, 0, 0)
-		m_qvtkWidget->GetRenderWindow()->GetInteractor()->Render();
-	#else
-		m_qvtkWidget->renderWindow()->GetInteractor()->Render();
-	#endif
+	m_qvtkWidget->renderWindow()->GetInteractor()->Render();
 }
 
 /******************************************  Getter Methods  **********************************************/

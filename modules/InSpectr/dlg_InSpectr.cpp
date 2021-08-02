@@ -110,7 +110,8 @@ dlg_InSpectr::dlg_InSpectr(QWidget* parentWidget, iAPeriodicTableWidget* periodi
 	m_selection_ctf(vtkSmartPointer<vtkColorTransferFunction>::New()),
 	m_selection_otf(vtkSmartPointer<vtkPiecewiseFunction>::New()),
 	m_refSpectra(dlgRefSpectra),
-	m_periodicTableListener(new iAPeriodicTableListener(this))
+	m_periodicTableListener(new iAPeriodicTableListener(this)),
+	m_colormapWidget(new iAQVTKWidget)
 {
 	spectrumVisWidget->hide();
 
@@ -205,18 +206,13 @@ void dlg_InSpectr::init(double minEnergy, double maxEnergy, bool haveEnergyLevel
 	m_initialized = true;
 
 	m_colormapRen = vtkSmartPointer<vtkRenderer>::New();
-	m_colormapRen->SetBackground(1.0, 1.0, 1.0);
+	QColor bgc(qApp->palette().color(QWidget::backgroundRole()));
+	m_colormapRen->SetBackground(bgc.redF(), bgc.blueF(), bgc.greenF());
 
-	CREATE_OLDVTKWIDGET(m_colormapWidget);
 	horizontalLayout_8->insertWidget(0, m_colormapWidget);
 	vtkSmartPointer<vtkInteractorStyleImage> style = vtkSmartPointer<vtkInteractorStyleImage>::New();
-#if VTK_VERSION_NUMBER < VTK_VERSION_CHECK(9, 0, 0)
-	m_colormapWidget->GetRenderWindow()->AddRenderer(m_colormapRen);
-	m_colormapWidget->GetInteractor()->SetInteractorStyle(style);
-#else
 	m_colormapWidget->renderWindow()->AddRenderer(m_colormapRen);
 	m_colormapWidget->interactor()->SetInteractorStyle(style);
-#endif
 
 	m_colormapLUT = vtkSmartPointer<vtkColorTransferFunction>::New();
 	m_colormapLUT->SetColorSpaceToRGB();
@@ -233,16 +229,11 @@ void dlg_InSpectr::init(double minEnergy, double maxEnergy, bool haveEnergyLevel
 	m_colormapScalarBarActor->GetTitleTextProperty()->SetColor(0,0,0);
 	m_colormapScalarBarActor->GetTitleTextProperty()->SetBold(0);
 	m_colormapScalarBarActor->GetTitleTextProperty()->SetShadow(0);
-	m_colormapScalarBarActor->GetPositionCoordinate()->SetCoordinateSystemToNormalizedViewport();
-	m_colormapScalarBarActor->SetPosition(0.0, 0.07);
-	m_colormapScalarBarActor->SetPosition2(1.0, 0.93);
-
-	m_colormapRen->AddActor2D(m_colormapScalarBarActor);
-#if VTK_VERSION_NUMBER < VTK_VERSION_CHECK(9, 0, 0)
-	m_colormapWidget->GetRenderWindow()->Render();
-#else
+	m_colormapScalarBarActor->SetWidth(1.0);
+	m_colormapScalarBarActor->SetHeight(1.0);
+	m_colormapWidget->setMinimumWidth(50);
+	m_colormapRen->AddActor(m_colormapScalarBarActor);
 	m_colormapWidget->renderWindow()->Render();
-#endif
 
 	m_refSpectra->cb_showRefSpectra->setEnabled(true);
 	m_refSpectra->cb_showRefLines->setEnabled(true);
@@ -469,11 +460,7 @@ void dlg_InSpectr::initSpectraOverlay()
 		numBin,
 		sensVal, sensMax, threshVal, threshMax, smoothFade);
 	m_spectrumDiagram->addImageOverlay(m_spectraHistogramImage);
-#if VTK_VERSION_NUMBER < VTK_VERSION_CHECK(9, 0, 0)
-	m_colormapWidget->GetRenderWindow()->Render();
-#else
 	m_colormapWidget->renderWindow()->Render();
-#endif
 }
 
 void dlg_InSpectr::showSpectraLines(int show)

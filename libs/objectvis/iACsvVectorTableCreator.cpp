@@ -33,11 +33,11 @@ void iACsvVectorTableCreator::initialize(QStringList const & headers, size_t con
 	}
 }
 
-void iACsvVectorTableCreator::addRow(size_t row, QStringList const & values)
+void iACsvVectorTableCreator::addRow(size_t row, std::vector<double> const & values)
 {
-	for (int col = 0; col < values.size(); ++col)
+	for (size_t col = 0; col < values.size(); ++col)
 	{
-		m_values[col][row] = values[col].toDouble();
+		m_values[col][row] = values[col];
 	}
 }
 

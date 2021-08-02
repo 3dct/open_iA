@@ -31,6 +31,7 @@
 
 #include <iAAttributeDescriptor.h>
 #include <iAConnector.h>
+#include <iAFileUtils.h>
 #include <iALog.h>
 #include <iAImageCoordinate.h>
 #include <iAModality.h>
@@ -52,6 +53,7 @@ iAImageSampler::iAImageSampler(
 		QSharedPointer<iAModalityList> dataset,
 		QMap<QString, QVariant> const & parameters,
 		QSharedPointer<iAAttributes> parameterRanges,
+		QSharedPointer<iAAttributes> parameterSpecs,
 		QSharedPointer<iASamplingMethod> samplingMethod,
 		QString const & parameterRangeFile,
 		QString const & parameterSetFile,
@@ -62,6 +64,7 @@ iAImageSampler::iAImageSampler(
 	m_datasets(dataset),
 	m_parameters(parameters),
 	m_parameterRanges(parameterRanges),
+	m_parameterSpecs(parameterSpecs),
 	m_samplingMethod(samplingMethod),
 	m_parameterRangeFile(parameterRangeFile),
 	m_parameterSetFile  (parameterSetFile),
@@ -182,9 +185,9 @@ void iAImageSampler::newSamplingRun()
 		return;
 	}
 	m_runningComputation.insert(op, m_curSample);
+	++m_curSample;
 	connect(op, &iASampleBuiltInFilterOperation::finished, this, &iAImageSampler::computationFinished);
 	op->start();
-	++m_curSample;
 }
 
 void iAImageSampler::start()
@@ -220,21 +223,55 @@ void iAImageSampler::start()
 		statusMsg("No Parameters available!");
 		return;
 	}
+	m_numDigits = requiredDigits(m_parameterSets->size());
+	for (int paramSetIdx = 0; paramSetIdx < m_parameterSets->size(); ++paramSetIdx)
+	{
+		auto& paramSet = (*m_parameterSets)[paramSetIdx];
+		for (int p = 0; p < m_parameterRanges->size(); ++p)
+		{
+			auto const & param = m_parameterRanges->at(p);
+			if (param->valueType() == iAValueType::FileNameSave)
+			{	// all output file names need to be adapted to output file name
+				QString outputFolder(getOutputFolder(
+					m_parameters[spnOutputFolder].toString(),
+					m_parameters[spnSubfolderPerSample].toBool(), paramSetIdx, m_numDigits));
+				QString outputFile(getOutputFileName(outputFolder, m_parameters[spnBaseName].toString(),
+					m_parameters[spnSubfolderPerSample].toBool(), paramSetIdx, m_numDigits));
+				auto value = pathFileBaseName(QFileInfo(outputFile)) + m_parameterSpecs->at(p)->defaultValue().toString();
+				if (QFile::exists(value) && !m_parameters[spnOverwriteOutput].toBool())
+				{
+					LOG(lvlError, QString("Output file '%1' already exists! Aborting. "
+						"Check 'Overwrite output' to overwrite existing files.").arg(value));
+					return;
+				}
+				paramSet[p] = value;
+			}
+		}
+	}
+	LOG(lvlInfo, QString("Parameter combinations that will be sampled (%1):").arg(m_parameterSets->size()));
+	for (auto parameterSet: *m_parameterSets.data())
+	{
+		LOG(lvlInfo, QString(joinQVariantAsString(parameterSet, ",")));
+	}
+
 	m_parameterCount = countAttributes(*m_parameterRanges.data(), iAAttributeDescriptor::Parameter);
 
 	m_additionalArgumentList = splitPossiblyQuotedString(m_parameters[spnAdditionalArguments].toString());
-	if (findAttribute(*m_parameterRanges.data(), "Object Count") == -1)
+	if (findAttribute(*m_parameterRanges.data(), "Performance") == -1)
 	{
-		// add derived output to the attributes (which we want to set during sampling):
-		QSharedPointer<iAAttributeDescriptor> objectCountAttr(new iAAttributeDescriptor(
-			"Object Count", iAAttributeDescriptor::DerivedOutput, iAValueType::Discrete));
-		QSharedPointer<iAAttributeDescriptor> avgUncertaintyAttr(new iAAttributeDescriptor(
-			"Average Uncertainty", iAAttributeDescriptor::DerivedOutput, iAValueType::Continuous));
-		QSharedPointer<iAAttributeDescriptor> timeAttr(new iAAttributeDescriptor(
-			"Performance", iAAttributeDescriptor::DerivedOutput, iAValueType::Continuous));
-		m_parameterRanges->push_back(objectCountAttr);
-		m_parameterRanges->push_back(avgUncertaintyAttr);
+		QSharedPointer<iAAttributeDescriptor> timeAttr(
+			new iAAttributeDescriptor("Performance", iAAttributeDescriptor::DerivedOutput, iAValueType::Continuous));
 		m_parameterRanges->push_back(timeAttr);
+		if (m_parameters[spnComputeDerivedOutput].toBool())
+		{
+			// add derived output to the attributes (which we want to set during sampling):
+			QSharedPointer<iAAttributeDescriptor> objectCountAttr(
+				new iAAttributeDescriptor("Object Count", iAAttributeDescriptor::DerivedOutput, iAValueType::Discrete));
+			QSharedPointer<iAAttributeDescriptor> avgUncertaintyAttr(new iAAttributeDescriptor(
+				"Average Uncertainty", iAAttributeDescriptor::DerivedOutput, iAValueType::Continuous));
+			m_parameterRanges->push_back(objectCountAttr);
+			m_parameterRanges->push_back(avgUncertaintyAttr);
+		}
 	}
 
 	m_results = QSharedPointer<iASamplingResults>::create(
@@ -246,7 +283,6 @@ void iAImageSampler::start()
 		m_parameters[spnAlgorithmName].toString(),
 		m_samplingID);
 
-	m_numDigits = requiredDigits(m_parameterSets->size());
 	for (int i = 0; i < CONCURRENT_COMPUTATION_RUNS; ++i)
 	{
 		newSamplingRun();
@@ -264,9 +300,9 @@ void iAImageSampler::computationFinished()
 	int id = m_runningComputation[op];
 	m_runningComputation.remove(op);
 	iAPerformanceTimer::DurationType computationTime = op->duration();
-	statusMsg(QString("Finished in %1 seconds. Output: %2\n")
+	statusMsg(QString("Finished in %1 seconds.%2\n")
 		.arg(QString::number(computationTime))
-		.arg(op->output()));
+		.arg(op->output().isEmpty() ? QString() : QString(" Output: %2").arg(op->output())) );
 	m_computationDuration += computationTime;
 	if (!op->success())
 	{
@@ -303,13 +339,13 @@ void iAImageSampler::computationFinished()
 	QSharedPointer<iASingleResult> result = iASingleResult::create(id, *m_results.data(), param,
 		outputFile);
 
-	result->setAttribute(m_parameterCount+2, computationTime);
-	m_results->attributes()->at(m_parameterCount+2)->adjustMinMax(computationTime);
+	result->setAttribute(m_parameterCount, computationTime);
+	m_results->attributes()->at(m_parameterCount)->adjustMinMax(computationTime);
 
 	if (m_parameters[spnComputeDerivedOutput].toBool())
 	{
 		// TODO: use external programs / built-in filters to calculate derived output
-		iADerivedOutputCalculator * newCharCalc = new iADerivedOutputCalculator(result, m_parameterCount, m_parameterCount + 1,
+		iADerivedOutputCalculator * newCharCalc = new iADerivedOutputCalculator(result, m_parameterCount+1, m_parameterCount+2,
 			m_parameters[spnNumberOfLabels].toInt());
 		m_runningDerivedOutput.insert(newCharCalc, result);
 		connect(newCharCalc, &iADerivedOutputCalculator::finished, this, &iAImageSampler::derivedOutputFinished);
@@ -346,8 +382,8 @@ void iAImageSampler::derivedOutputFinished()
 	}
 
 	QSharedPointer<iASingleResult> result = m_runningDerivedOutput[charactCalc];
-	m_results->attributes()->at(m_parameterCount)->adjustMinMax(result->attribute(m_parameterCount));
 	m_results->attributes()->at(m_parameterCount+1)->adjustMinMax(result->attribute(m_parameterCount+1));
+	m_results->attributes()->at(m_parameterCount+2)->adjustMinMax(result->attribute(m_parameterCount+2));
 
 	// TODO: pass in from somewhere! Or don't store here at all? but what in case of a power outage/error?
 	QString sampleMetaFile    = m_parameters[spnOutputFolder].toString() + "/" + m_parameterRangeFile;

@@ -51,6 +51,7 @@ public:
 		QSharedPointer<iAModalityList> datasets,
 		QMap<QString, QVariant> const & parameters,
 		QSharedPointer<iAAttributes> parameterRanges,
+		QSharedPointer<iAAttributes> parameterSpecs,
 		QSharedPointer<iASamplingMethod> samplingMethod,
 		QString const & parameterRangeFile,
 		QString const & parameterSetFile,
@@ -72,6 +73,7 @@ private:
 	QSharedPointer<iAModalityList> m_datasets;
 	QMap<QString, QVariant> const& m_parameters;
 	QSharedPointer<iAAttributes> m_parameterRanges;
+	QSharedPointer<iAAttributes> m_parameterSpecs;
 	QSharedPointer<iASamplingMethod> m_samplingMethod;
 	QString m_parameterRangeFile;
 	QString m_parameterSetFile;

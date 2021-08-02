@@ -6,8 +6,8 @@
    <rect>
     <x>0</x>
     <y>0</y>
-    <width>403</width>
-    <height>330</height>
+    <width>426</width>
+    <height>316</height>
    </rect>
   </property>
   <property name="windowTitle">
@@ -18,27 +18,30 @@
     <number>0</number>
    </property>
    <property name="leftMargin">
-    <number>2</number>
+    <number>1</number>
    </property>
    <property name="topMargin">
-    <number>2</number>
+    <number>0</number>
    </property>
    <property name="rightMargin">
-    <number>2</number>
+    <number>1</number>
    </property>
    <property name="bottomMargin">
-    <number>2</number>
+    <number>0</number>
    </property>
    <item>
     <widget class="QTabWidget" name="tabWidget">
      <property name="currentIndex">
-      <number>0</number>
+      <number>3</number>
      </property>
      <widget class="QWidget" name="tabGeneral">
       <attribute name="title">
        <string>General</string>
       </attribute>
       <layout class="QVBoxLayout" name="verticalLayout">
+       <property name="spacing">
+        <number>4</number>
+       </property>
        <property name="leftMargin">
         <number>4</number>
        </property>
@@ -67,6 +70,9 @@
            <number>4</number>
           </property>
           <property name="bottomMargin">
+           <number>4</number>
+          </property>
+          <property name="spacing">
            <number>4</number>
           </property>
           <item row="1" column="0">
@@ -110,17 +116,36 @@
           <property name="bottomMargin">
            <number>4</number>
           </property>
-          <item row="5" column="0">
+          <property name="spacing">
+           <number>4</number>
+          </property>
+          <item row="6" column="1">
+           <widget class="QSpinBox" name="sbHistogramBins">
+            <property name="sizePolicy">
+             <sizepolicy hsizetype="Expanding" vsizetype="Fixed">
+              <horstretch>0</horstretch>
+              <verstretch>0</verstretch>
+             </sizepolicy>
+            </property>
+            <property name="minimum">
+             <number>5</number>
+            </property>
+            <property name="maximum">
+             <number>1000</number>
+            </property>
+           </widget>
+          </item>
+          <item row="6" column="0">
            <widget class="QLabel" name="lbHistogramShow">
             <property name="text">
              <string>Histogram Bins:</string>
             </property>
            </widget>
           </item>
-          <item row="8" column="0" colspan="2">
-           <widget class="QPushButton" name="pbSensitivity">
+          <item row="4" column="0" colspan="2">
+           <widget class="QCheckBox" name="cbShowCharts">
             <property name="text">
-             <string>Parameter Sensitivity Matrix</string>
+             <string>Show distribution charts (save and load project file to apply)</string>
             </property>
            </widget>
           </item>
@@ -132,14 +157,37 @@
            </widget>
           </item>
           <item row="7" column="0">
-           <widget class="QLabel" name="lbStackedBarColors">
+           <widget class="QLabel" name="lbDistributionPlotType">
             <property name="text">
-             <string>Stacked Bar Chart Colors</string>
+             <string>Distribution Plot Types</string>
             </property>
            </widget>
           </item>
-          <item row="6" column="1">
+          <item row="5" column="0" colspan="2">
+           <widget class="QCheckBox" name="cbLinkPreviews">
+            <property name="text">
+             <string>Link preview cameras to main 3D view</string>
+            </property>
+           </widget>
+          </item>
+          <item row="8" column="1">
+           <widget class="QComboBox" name="cmbboxStackedBarChartColors">
+            <property name="sizePolicy">
+             <sizepolicy hsizetype="Expanding" vsizetype="Fixed">
+              <horstretch>0</horstretch>
+              <verstretch>0</verstretch>
+             </sizepolicy>
+            </property>
+           </widget>
+          </item>
+          <item row="7" column="1">
            <widget class="QComboBox" name="cmbboxDistributionPlotType">
+            <property name="sizePolicy">
+             <sizepolicy hsizetype="Expanding" vsizetype="Fixed">
+              <horstretch>0</horstretch>
+              <verstretch>0</verstretch>
+             </sizepolicy>
+            </property>
             <item>
              <property name="text">
               <string>Bar Chart</string>
@@ -152,18 +200,25 @@
             </item>
            </widget>
           </item>
-          <item row="5" column="1">
-           <widget class="QSpinBox" name="sbHistogramBins">
-            <property name="minimum">
-             <number>5</number>
+          <item row="3" column="0" colspan="2">
+           <widget class="QCheckBox" name="cbShowPreviews">
+            <property name="enabled">
+             <bool>true</bool>
             </property>
-            <property name="maximum">
-             <number>1000</number>
+            <property name="text">
+             <string>Show mini previews (save and load project file to apply)</string>
+            </property>
+            <property name="checked">
+             <bool>true</bool>
             </property>
            </widget>
           </item>
-          <item row="7" column="1">
-           <widget class="QComboBox" name="cmbboxStackedBarChartColors"/>
+          <item row="8" column="0">
+           <widget class="QLabel" name="lbStackedBarColors">
+            <property name="text">
+             <string>Stacked Bar Chart Colors</string>
+            </property>
+           </widget>
           </item>
           <item row="10" column="0" colspan="2">
            <spacer name="verticalSpacer_2">
@@ -177,33 +232,6 @@
              </size>
             </property>
            </spacer>
-          </item>
-          <item row="6" column="0">
-           <widget class="QLabel" name="lbDistributionPlotType">
-            <property name="text">
-             <string>Distribution Plot Types</string>
-            </property>
-           </widget>
-          </item>
-          <item row="3" column="0" colspan="2">
-           <widget class="QCheckBox" name="cbShowPreviews">
-            <property name="enabled">
-             <bool>true</bool>
-            </property>
-            <property name="text">
-             <string>Show preview (save and load project file to apply)</string>
-            </property>
-            <property name="checked">
-             <bool>true</bool>
-            </property>
-           </widget>
-          </item>
-          <item row="4" column="0" colspan="2">
-           <widget class="QCheckBox" name="cbLinkPreviews">
-            <property name="text">
-             <string>Link preview cameras to main 3D view</string>
-            </property>
-           </widget>
           </item>
          </layout>
         </widget>
@@ -225,6 +253,9 @@
         <number>4</number>
        </property>
        <property name="bottomMargin">
+        <number>4</number>
+       </property>
+       <property name="spacing">
         <number>4</number>
        </property>
        <item row="0" column="1">
@@ -264,6 +295,9 @@
        </item>
        <item row="4" column="2" colspan="5">
         <layout class="QGridLayout" name="gridLayout_2">
+         <property name="spacing">
+          <number>4</number>
+         </property>
          <item row="0" column="1">
           <widget class="QLineEdit" name="leBoundingBoxC1X">
            <property name="text">
@@ -362,6 +396,9 @@
        </item>
        <item row="12" column="0" colspan="7">
         <layout class="QHBoxLayout" name="horizontalLayout_2">
+         <property name="spacing">
+          <number>4</number>
+         </property>
          <item>
           <widget class="QPushButton" name="pbSampleSelectedFiber">
            <property name="text">
@@ -550,6 +587,21 @@
        <string>Optimization Steps</string>
       </attribute>
       <layout class="QGridLayout" name="gridLayout_5">
+       <property name="leftMargin">
+        <number>4</number>
+       </property>
+       <property name="topMargin">
+        <number>4</number>
+       </property>
+       <property name="rightMargin">
+        <number>4</number>
+       </property>
+       <property name="bottomMargin">
+        <number>4</number>
+       </property>
+       <property name="spacing">
+        <number>4</number>
+       </property>
        <item row="2" column="0" colspan="2">
         <widget class="QScrollArea" name="saOptimizationStepChartSelection">
          <property name="widgetResizable">
@@ -560,11 +612,26 @@
            <rect>
             <x>0</x>
             <y>0</y>
-            <width>373</width>
-            <height>235</height>
+            <width>408</width>
+            <height>231</height>
            </rect>
           </property>
           <layout class="QVBoxLayout" name="verticalLayout_2">
+           <property name="spacing">
+            <number>4</number>
+           </property>
+           <property name="leftMargin">
+            <number>4</number>
+           </property>
+           <property name="topMargin">
+            <number>4</number>
+           </property>
+           <property name="rightMargin">
+            <number>4</number>
+           </property>
+           <property name="bottomMargin">
+            <number>4</number>
+           </property>
            <item>
             <widget class="QWidget" name="checkboxContainer" native="true">
              <layout class="QVBoxLayout" name="verticalLayout_3">
@@ -616,6 +683,60 @@
           <string>Show chart for optimization steps vs. change of:</string>
          </property>
         </widget>
+       </item>
+      </layout>
+     </widget>
+     <widget class="QWidget" name="tabSensitivity">
+      <attribute name="title">
+       <string>Sensitivity</string>
+      </attribute>
+      <layout class="QGridLayout" name="gridLayout_6">
+       <item row="0" column="1">
+        <widget class="QSpinBox" name="sbParamCSVSkip">
+         <property name="value">
+          <number>1</number>
+         </property>
+        </widget>
+       </item>
+       <item row="0" column="2">
+        <widget class="QLabel" name="lbParamCSVEnd">
+         <property name="text">
+          <string>columns at end</string>
+         </property>
+        </widget>
+       </item>
+       <item row="1" column="0" colspan="3">
+        <widget class="QToolButton" name="pbSensitivity">
+         <property name="sizePolicy">
+          <sizepolicy hsizetype="Preferred" vsizetype="Fixed">
+           <horstretch>0</horstretch>
+           <verstretch>0</verstretch>
+          </sizepolicy>
+         </property>
+         <property name="text">
+          <string>Compute Sensitivities</string>
+         </property>
+        </widget>
+       </item>
+       <item row="0" column="0">
+        <widget class="QLabel" name="lbParamCSVIntro">
+         <property name="text">
+          <string>In Parameter CSV, skip</string>
+         </property>
+        </widget>
+       </item>
+       <item row="2" column="0" colspan="3">
+        <spacer name="verticalSpacer_3">
+         <property name="orientation">
+          <enum>Qt::Vertical</enum>
+         </property>
+         <property name="sizeHint" stdset="0">
+          <size>
+           <width>20</width>
+           <height>40</height>
+          </size>
+         </property>
+        </spacer>
        </item>
       </layout>
      </widget>

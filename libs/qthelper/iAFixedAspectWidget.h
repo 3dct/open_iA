@@ -35,7 +35,7 @@ class iAqthelper_API iAFixedAspectWidget: public iASignallingWidget
 public:
 	iAFixedAspectWidget(double aspect=1.0, Qt::Alignment verticalAlign = Qt::AlignVCenter);
 	iAVtkQtWidget* vtkWidget();
-	void setBackgroundColor(QColor const & color);
+	void setBGRole(QPalette::ColorRole role);
 private:
 	iAVtkQtWidget* m_widget;
 	iAColoredWidget* m_fill1, * m_fill2;

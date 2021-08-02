@@ -5,7 +5,7 @@ SET( DEPENDENCIES_LIBRARIES
 SET( DEPENDENCIES_VTK_MODULES
 	ChartsCore  # for vtkAxis
 	RenderingContext2D    # for vtkContextScene
-	RenderingContext${VTK_RENDERING_BACKEND}    # for implementation of RenderingContext2D (?)
+	RenderingContextOpenGL2 # for implementation of RenderingContext2D (?)
 	ViewsContext2D        # for vtkContextView
 )
 # for VTK < 9 we have to use VTK_USE_FILE anyway for module autoinitialization

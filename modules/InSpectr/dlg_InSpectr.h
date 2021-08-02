@@ -210,5 +210,5 @@ private:
 	QVector<iACharacteristicEnergy>                m_characteristicEnergies;
 	QDockWidget *                                  m_pieChartContainer;
 	QSharedPointer<iAPeriodicTableListener>        m_periodicTableListener;
-	iAVtkOldWidget *                               m_colormapWidget;
+	iAQVTKWidget *                                 m_colormapWidget;
 };

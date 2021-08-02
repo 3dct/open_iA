@@ -21,34 +21,62 @@
 #pragma once
 
 #ifdef CHART_OPENGL
-#include "iAQGLWidget.h"
-using iAChartParentWidget = iAQGLWidget;
+#include <QOpenGLWidget>
+using iAChartParentWidget = QOpenGLWidget;
 #else
 #include <QWidget>
 using iAChartParentWidget = QWidget;
 #endif
 
-#include "iAScatterPlot.h"	// for iAScatterPlot::SelectionMode
+#include "iAScatterPlot.h"	// for iAScatterPlot::SelectionMode, iAScatterPlot::HighlightDrawMode
 
 #include "iAcharts_export.h"
 
+class iAColorTheme;
 class iAScatterPlotViewData;
 class iASPLOMData;
 
+class QMenu;
+
+//! class for providing information on a point in the scatter plot (used in tooltips)
+class iAcharts_API iAScatterPlotPointInfo
+{
+public:
+	virtual ~iAScatterPlotPointInfo();
+	virtual QString text(const size_t paramIdx[2], size_t pointIdx) =0;
+};
+
 //! Widget for using a single scatter plot (outside of a SPLOM)
+// TODO: minimize duplication between iAScatterPlotWidget and iAQSplom!
 class iAcharts_API iAScatterPlotWidget : public iAChartParentWidget
 {
+	Q_OBJECT
 public:
 	static const int PaddingTop;
 	static const int PaddingRight;
 	int PaddingBottom();
 	int PaddingLeft();
 	static const int TextPadding;
-	iAScatterPlotWidget(QSharedPointer<iASPLOMData> data);
-	void SetPlotColor(QColor const & c, double rangeMin, double rangeMax);
-	void SetSelectionColor(QColor const & c);
-	void SetSelectionMode(iAScatterPlot::SelectionMode mode);
+	iAScatterPlotWidget(QSharedPointer<iASPLOMData> data, bool columnSelection = false);
+	void setLookupTable(QSharedPointer<iALookupTable> lut, size_t paramIdx);
+	QSharedPointer<iALookupTable> lookupTable() const;
+	void setPlotColor(QColor const & c, double rangeMin, double rangeMax);
+	void setSelectionColor(QColor const & c);
+	void setSelectionMode(iAScatterPlot::SelectionMode mode);
+	void setPickedPointFactor(double factor);
+	void setPointRadius(double pointRadius);
+	void setFixPointsEnabled(bool enabled);
+	void setPointInfo(QSharedPointer<iAScatterPlotPointInfo> pointInfo);
+	void toggleHighlightedPoint(size_t curPoint, Qt::KeyboardModifiers modifiers);
+	void setHighlightColor(QColor hltCol);
+	void setHighlightColorTheme(iAColorTheme const* theme);
+	void setHighlightDrawMode(iAScatterPlot::HighlightDrawModes drawMode);
+	void setSelectionEnabled(bool enabled);
+	//! proxy method for setting visible parameters in contained iAScatterPlot
+	void setVisibleParameters(size_t p1, size_t p2);
+
 	QSharedPointer<iAScatterPlotViewData> viewData();
+	const size_t* paramIndices() const;  //!< Get column indices of visible X and Y parameters in data table
 protected:
 #ifdef CHART_OPENGL
 	void paintGL() override;
@@ -61,12 +89,36 @@ protected:
 	void mouseReleaseEvent(QMouseEvent * event) override;
 	void mouseMoveEvent(QMouseEvent * event) override;
 	void keyPressEvent(QKeyEvent * event) override;
-public:
-	iAScatterPlot* m_scatterplot;
+	void contextMenuEvent(QContextMenuEvent* event) override;
 private:
 	void adjustScatterPlotSize();
+	void drawTooltip(QPainter& painter);
+	void currentPointUpdated(size_t index);  //!< When hovered over a new point.
+
+	iAScatterPlot* m_scatterplot;
 	QSharedPointer<iASPLOMData> m_data;
 	QSharedPointer<iAScatterPlotViewData> m_viewData;
 	int m_fontHeight, m_maxTickLabelWidth;
-	void currentPointUpdated(size_t index);  //!< When hovered over a new point.
+	bool m_fixPointsEnabled;
+	QSharedPointer<iAScatterPlotPointInfo> m_pointInfo;
+	QMenu *m_contextMenu, *m_xMenu, *m_yMenu;  //!< the context menu for picking the two visible parameters
+
+signals:
+	//! emitted for each single point that was highlighted (or un-highlighted)
+	//! The parameters reflect the new highlight state for the given point.
+	//! Note: When this function is called, the highlightedPoints() might
+	//! not be at the most up-to-date state (e.g. ptIdx might still be
+	//! contained in the returned vector, if state parameter here is false).
+	//! If you need a consistent, up-to-date state of all highlighted points,
+	//! attach to the highlightChanged signal instead!
+	void pointHighlighted(size_t ptIdx, bool state);
+	//! Emitted once after the internal state of highlights has been fully updated
+	//! to represent the new highlight situation after a user interaction.
+	void highlightChanged();
+	void selectionModified();
+	void visibleParamChanged();
+private slots:
+	void xParamChanged();
+	void yParamChanged();
+	void updateFilter();
 };

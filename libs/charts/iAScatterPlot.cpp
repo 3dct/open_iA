@@ -20,14 +20,12 @@
 * ************************************************************************************/
 #include "iAScatterPlot.h"
 
+#include "iAColorTheme.h"
 #include "iALog.h"
 #include "iALookupTable.h"
 #include "iAMathUtility.h"
 #include "iAScatterPlotViewData.h"
 #include "iASPLOMData.h"
-#ifdef CHART_OPENGL
-#include "iAQGLWidget.h"
-#endif
 
 #include <QAbstractTextDocumentLayout>
 #include <QApplication>
@@ -49,7 +47,7 @@ iAScatterPlot::Settings::Settings() :
 	maximizedParamsOffset( 5 ),
 	textRectHeight( 30 ),
 	rangeMargin( 0.08 ),
-	pointRadius( 1.0/*2.5*/ ),
+	pointRadius( 1.5/*2.5*/ ),
 	maximizedPointMagnification( 1.7 ),
 	defaultGridDimensions( 100 ),
 	defaultMaxBtnSz( 10 ),
@@ -61,6 +59,9 @@ iAScatterPlot::Settings::Settings() :
 	tickLineColor( QColor( 221, 221, 221 ) ),
 	tickLabelColor( QColor( 100, 100, 100 ) ),
 	selectionColor( QColor(0, 0, 0) ),
+	highlightColor(),  // invalid -> only used if set explicitly
+	highlightColorTheme(nullptr),
+	highlightDrawMode(Enlarged),
 	selectionMode(Polygon),
 	selectionEnabled(false),
 	showPCC(false),
@@ -112,20 +113,25 @@ iAScatterPlot::~iAScatterPlot()
 #endif
 }
 
-void iAScatterPlot::setData( size_t x, size_t y, QSharedPointer<iASPLOMData> &splomData )
+void iAScatterPlot::setData(size_t x, size_t y, QSharedPointer<iASPLOMData>& splomData)
 {
 	if (m_splomData)
 	{
 		return;
 	}
 
-	m_paramIndices[0] = x; m_paramIndices[1] = y;
 	m_splomData = splomData;
 	connect(m_splomData.data(), &iASPLOMData::dataChanged, this, &iAScatterPlot::dataChanged);
 	if (!hasData())
 	{
 		return;
 	}
+	setIndices(x, y);
+}
+
+void iAScatterPlot::setIndices(size_t x, size_t y)
+{
+	m_paramIndices[0] = x; m_paramIndices[1] = y;
 	m_pccValid = false;
 	m_sccValid = false;
 	applyMarginToRanges();
@@ -154,6 +160,11 @@ void iAScatterPlot::setLookupTable( QSharedPointer<iALookupTable> &lut, size_t c
 	m_colInd = colInd;
 	m_lut = lut;
 	updatePoints();
+}
+
+QSharedPointer<iALookupTable> iAScatterPlot::lookupTable() const
+{
+	return m_lut;
 }
 
 void iAScatterPlot::setTransform( double scale, QPointF newOffset )
@@ -696,7 +707,7 @@ size_t iAScatterPlot::getPointIndexAtPosition( QPointF mpos ) const
 				double pixelX = p2x(m_splomData->paramData(m_paramIndices[0])[ptIdx]);
 				double pixelY = p2y(m_splomData->paramData(m_paramIndices[1])[ptIdx]);
 				double dist = pow(pixelX - mpos.x(), 2) + pow(pixelY - mpos.y(), 2);
-				if (dist < minDist && m_splomData->matchesFilter(ptIdx))
+				if (dist < minDist && m_viewData->matchesFilter(m_splomData, ptIdx))
 				{
 					minDist = dist;
 					res = ptIdx;
@@ -740,7 +751,7 @@ void iAScatterPlot::updateSelectedPoints(bool append, bool remove)
 				auto const & pts = m_pointsGrid[getBinIndex(binx, biny)];
 				for(auto i: pts)
 				{
-					if (!m_splomData->matchesFilter(i))
+					if (!m_viewData->matchesFilter(m_splomData, i))
 					{
 						continue;
 					}
@@ -834,6 +845,41 @@ void iAScatterPlot::drawPoints( QPainter &painter )
 	double ptRad = getPointRadius();
 	auto const& p0d = m_splomData->paramData(m_paramIndices[0]);
 	auto const& p1d = m_splomData->paramData(m_paramIndices[1]);
+	painter.setClipRegion(QRect(0, 0, m_globRect.width(), m_globRect.height()), Qt::ReplaceClip);
+	painter.setClipping(true);
+
+	// Draw connecting lines between points
+	auto const& lines = m_viewData->lines();
+	for (auto line : lines)
+	{
+		if (std::get<1>(line).isValid())
+		{
+			QPen p(std::get<1>(line));
+			p.setWidth(std::get<2>(line));
+			painter.setPen(p);
+		}
+		for (size_t ptIdx = 0; ptIdx < std::get<0>(line).size() - 1; ++ptIdx)
+		{
+#ifdef SP_OLDOPENGL
+			int ofs = 1;
+#else
+			int ofs = 0;
+#endif
+			int x1 = p2x(p0d[std::get<0>(line)[ptIdx]]) + ofs, x2 = p2x(p0d[std::get<0>(line)[ptIdx + 1]]) + ofs,
+				y1 = p2y(p1d[std::get<0>(line)[ptIdx]]) + ofs, y2 = p2y(p1d[std::get<0>(line)[ptIdx + 1]]) + ofs;
+			if (!std::get<1>(line).isValid())
+			{
+				QLinearGradient g(QPointF(x1, y1), QPointF(x2, y2));
+				g.setColorAt(0, m_lut->getQColor(m_splomData->paramData(m_colInd)[std::get<0>(line)[ptIdx]]));
+				g.setColorAt(1, m_lut->getQColor(m_splomData->paramData(m_colInd)[std::get<0>(line)[ptIdx+1]]));
+				painter.setPen(QPen(QBrush(g), std::get<2>(line)));
+			}
+			
+			// TODO: cut off lines at borders!
+			painter.drawLine(x1, y1, x2, y2);
+		}
+	}
+
 #ifdef SP_OLDOPENGL
 	double ptSize = 2 * ptRad;
 	// all points
@@ -857,6 +903,28 @@ void iAScatterPlot::drawPoints( QPainter &painter )
 
 	glScissor( m_globRect.left(), y, m_globRect.width(), m_globRect.height() );
 	glEnable( GL_SCISSOR_TEST );
+
+	// Draw connecting lines between points
+	/* NOT WORKING - FIND OUT WHY:
+	// Draw connecting lines between points
+	auto const& lines = m_viewData->lines();
+	QColor c(m_parentWidget->palette().color(QPalette::Text));
+	glLineWidth(1.0);
+	glColor4f(c.redF(), c.greenF(), c.blueF(), 1.0);
+	for (auto line : lines)
+	{
+		glBegin(GL_LINE_STRIP);
+		for (int ptIdx = 0; ptIdx < line.size(); ++ptIdx)
+		{
+			double tx = p2x(p0d[line[ptIdx]]),
+				ty = p2y(p1d[line[ptIdx]]);
+			glVertex3f(tx, ty, 0.0f);
+		}
+		glEnd(); // GL_LINE_STRIP
+	}
+	*/
+
+	// Draw points:
 	if (!m_pointsBuffer->bind())//TODO: proper handling (exceptions?)
 	{
 		LOG(lvlWarn, "Failed to bind points buffer!");
@@ -873,9 +941,9 @@ void iAScatterPlot::drawPoints( QPainter &painter )
 	assert(m_curVisiblePts < std::numeric_limits<GLsizei>::max());
 	glDrawArrays( GL_POINTS, 0, static_cast<GLsizei>(m_curVisiblePts) );//glDrawElements( GL_POINTS, m_pointsBuffer->size(), GL_UNSIGNED_INT, 0 );
 	glDisableClientState( GL_COLOR_ARRAY );
-	glColor3f( settings.selectionColor.red() / 255.0, settings.selectionColor.green() / 255.0, settings.selectionColor.blue() / 255.0 );
 
-	// draw selection:
+	// Draw selection:	
+	glColor3f( settings.selectionColor.red() / 255.0, settings.selectionColor.green() / 255.0, settings.selectionColor.blue() / 255.0 );
 	auto const& selInds = m_viewData->filteredSelection(m_splomData);
 	std::vector<uint> uintSelInds;
 	for (size_t idx : selInds)
@@ -889,7 +957,7 @@ void iAScatterPlot::drawPoints( QPainter &painter )
 	glDisableClientState( GL_VERTEX_ARRAY );
 	m_pointsBuffer->release();
 
-	// draw current point
+	// Draw current point
 	double anim = m_viewData->animIn();
 	if (m_curInd != iASPLOMData::NoDataIdx)
 	{
@@ -910,24 +978,45 @@ void iAScatterPlot::drawPoints( QPainter &painter )
 	}
 
 	// draw highlighted points
-	for (auto ind : m_viewData->highlightedPoints())
+	if (settings.highlightDrawMode.testFlag(iAScatterPlot::Enlarged))
 	{
-		double curPtSize = ptSize * settings.pickedPointMagnification;
-		glPointSize(curPtSize);
-		glBegin(GL_POINTS);
-		if (m_lut->initialized())
+		for (size_t i = 0; i < m_viewData->highlightedPoints().size(); ++i)
 		{
-			double val = m_splomData->paramData(m_colInd)[ind];
-			double rgba[4]; m_lut->getColor(val, rgba);
-			glColor4f(rgba[0], rgba[1], rgba[2], 1.0);
+			auto idx = m_viewData->highlightedPoints()[i];
+			double curPtSize = ptSize * settings.pickedPointMagnification;
+			glPointSize(curPtSize);
+			glBegin(GL_POINTS);
+			QColor color;
+			if (settings.highlightDrawMode.testFlag(iAScatterPlot::CategoricalColor))
+			{
+				if (settings.highlightColorTheme)
+				{
+					color = settings.highlightColorTheme->color(i);
+				}
+				else if (settings.highlightColor.isValid())
+				{
+					color = settings.highlightColor;
+				}
+			}
+			else if (m_lut->initialized())
+			{
+				double val = m_splomData->paramData(m_colInd)[idx];
+				color = m_lut->getQColor(val);
+			}
+			if (!color.isValid())
+			{
+				LOG(lvlWarn, QString("CategoricalColor set but no highlight color specified!"));
+				color.setRgb(0, 0, 0);
+			}
+			glColor4f(color.redF(), color.greenF(), color.blueF(), color.alphaF());
+			double tx = p2tx(p0d[idx]);
+			double ty = p2ty(p1d[idx]);
+			glVertex3f(tx, ty, 0.0f);
+			glEnd();
 		}
-		double tx = p2tx(p0d[ind]);
-		double ty = p2ty(p1d[ind]);
-		glVertex3f(tx, ty, 0.0f);
-		glEnd();
 	}
 
-	// draw previous point
+	// Draw previous point
 	anim = m_viewData->animOut();
 	if (m_prevPtInd != iASPLOMData::NoDataIdx && anim > 0.0)
 	{
@@ -982,7 +1071,7 @@ void iAScatterPlot::drawPoints( QPainter &painter )
 	m_curVisiblePts = 0;
 	for (size_t i = 0; i < m_splomData->numPoints(); ++i)
 	{
-		if (!m_splomData->matchesFilter(i))
+		if (!m_viewData->matchesFilter(m_splomData, i))
 		{
 			continue;
 		}
@@ -995,7 +1084,72 @@ void iAScatterPlot::drawPoints( QPainter &painter )
 	{
 		drawPoint(painter, p0d[idx], p1d[idx], ptRad, settings.selectionColor);
 	}
+
+	// Draw highlighted points
+	double magPtRad = ptRad * settings.pickedPointMagnification;
+	if (settings.highlightDrawMode.testFlag(iAScatterPlot::Enlarged))
+	{
+		for (size_t i = 0; i < m_viewData->highlightedPoints().size(); ++i)
+		{
+			auto idx = m_viewData->highlightedPoints()[i];
+			QColor color;
+			if (settings.highlightDrawMode.testFlag(iAScatterPlot::CategoricalColor))
+			{
+				if (settings.highlightColorTheme)
+				{
+					color = settings.highlightColorTheme->color(i);
+				}
+				else if (settings.highlightColor.isValid())
+				{
+					color = settings.highlightColor;
+				}
+			}
+			else if (m_lut->initialized())
+			{
+				double val = m_splomData->paramData(m_colInd)[idx];
+				color = m_lut->getQColor(val);
+			}
+			if (!color.isValid())
+			{
+				LOG(lvlWarn, QString("CategoricalColor set but no highlight color specified!"));
+				color.setRgb(0, 0, 0);
+			}
+			color.setAlpha(255);
+			drawPoint(painter, p0d[idx], m_splomData->paramData(m_paramIndices[1])[idx], magPtRad, color);
+		}
+	}
 #endif
+	if (settings.highlightDrawMode.testFlag(iAScatterPlot::Outline))
+	{
+		const int LineThickness = 3;
+		double magPtOutRad = (LineThickness / 2) +
+			ptRad * (settings.highlightDrawMode.testFlag(iAScatterPlot::Enlarged) ? settings.pickedPointMagnification : 1);
+		double magPtOutSize = 2 * magPtOutRad;
+		painter.setBrush(Qt::NoBrush);
+		for (size_t i = 0; i < m_viewData->highlightedPoints().size(); ++i)
+		{
+			auto idx = m_viewData->highlightedPoints()[i];
+			QColor c;
+			if (settings.highlightColorTheme)
+			{
+				c = settings.highlightColorTheme->color(i);
+			}
+			else if (settings.highlightColor.isValid())
+			{
+				c = settings.highlightColor;
+			}
+			else if (m_lut->initialized())
+			{
+				double val = m_splomData->paramData(m_colInd)[idx];
+				c = m_lut->getQColor(val);
+			}
+			int tx = p2x(p0d[idx]);
+			int ty = p2y(p1d[idx]);
+			QPen p(c, LineThickness);
+			painter.setPen(p);
+			painter.drawEllipse(tx - magPtOutRad, ty - magPtOutRad, magPtOutSize, magPtOutSize);
+		}
+	}
 	painter.restore();
 }
 
@@ -1092,13 +1246,17 @@ namespace
 void iAScatterPlot::createVBO()
 {
 	if (!m_parentWidget->isVisible())
+	{
 		return;
+	}
 	m_parentWidget->makeCurrent();
 
 	if (!m_splomData)
+	{
 		return;
+	}
 
-	m_pointsBuffer = new iAQGLBuffer( iAQGLBuffer::VertexBuffer );
+	m_pointsBuffer = new QOpenGLBuffer(QOpenGLBuffer::VertexBuffer);
 	if (!m_pointsBuffer->create())
 	{
 		m_pointsBuffer = nullptr;
@@ -1110,7 +1268,7 @@ void iAScatterPlot::createVBO()
 		LOG(lvlWarn, "Binding points buffer failed!");
 		return;
 	}
-	m_pointsBuffer->setUsagePattern(iAQGLBuffer::DynamicDraw);
+	m_pointsBuffer->setUsagePattern(QOpenGLBuffer::DynamicDraw);
 	m_pointsBuffer->allocate(static_cast<int>((CordDim + ColChan) * m_splomData->numPoints() * sizeof(GLfloat)));
 	m_pointsBuffer->release();
 }
@@ -1130,14 +1288,14 @@ void iAScatterPlot::fillVBO()
 		return;
 	}
 
-	GLfloat * buffer = static_cast<GLfloat *>(m_pointsBuffer->map(iAQGLBuffer::ReadWrite));
+	GLfloat * buffer = static_cast<GLfloat *>(m_pointsBuffer->map(QOpenGLBuffer::ReadWrite));
 
 	assert(buffer);
 
 	m_curVisiblePts = 0;
 	for ( size_t i = 0; i < m_splomData->numPoints(); ++i )
 	{
-		if (!m_splomData->matchesFilter(i))
+		if (!m_viewData->matchesFilter(m_splomData, i))
 		{
 			continue;
 		}
@@ -1173,11 +1331,28 @@ void iAScatterPlot::setSelectionColor(QColor selCol)
 	settings.selectionColor = selCol;
 }
 
+void iAScatterPlot::setHighlightColor(QColor hltCol)
+{
+	settings.highlightColor = hltCol;
+}
+
+void iAScatterPlot::setHighlightColorTheme(iAColorTheme const* theme)
+{
+	settings.highlightColorTheme = theme;
+}
+
+void iAScatterPlot::setHighlightDrawMode(HighlightDrawModes drawMode)
+{
+	settings.highlightDrawMode = drawMode;
+}
+
 double iAScatterPlot::getPointRadius() const
 {
 	double res = settings.pointRadius;
-	if ( m_isMaximizedPlot )
+	if (m_isMaximizedPlot)
+	{
 		res *= settings.maximizedPointMagnification;
+	}
 	return res;
 }
 

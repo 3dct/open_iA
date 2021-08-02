@@ -22,8 +22,8 @@
 
 #include "iAPlotData.h"
 #ifdef CHART_OPENGL
-#include "iAQGLWidget.h"
-using iAChartParentWidget = iAQGLWidget;
+#include <QOpenGLWidget>
+using iAChartParentWidget = QOpenGLWidget;
 #else
 #include <QWidget>
 using iAChartParentWidget = QWidget;
@@ -56,7 +56,14 @@ public:
 	//! @{ Get x/y zoom and shift.
 	double xZoom()  const { return m_xZoom;        }
 	double yZoom()  const { return m_yZoom;        }
+	double xShift() const { return m_xShift;       }
 	int    yShift() const { return m_translationY; }
+	//! @}
+	//! @{
+	//! set the x zoom/shift:
+	void setXShift(double xShift);
+	void setXZoom(double xZoom);
+	void setYZoom(double yZoom);
 	//! @}
 	//! Retrieve bottom margin (in pixels).
 	virtual int bottomMargin() const;
@@ -133,15 +140,17 @@ public:
 	//! Retrieve all plots currently in the chart.
 	std::vector< QSharedPointer< iAPlot > > const & plots();
 	//! Add an image overlay to the chart.
-	void addImageOverlay(QSharedPointer<QImage> imgOverlay);
+	void addImageOverlay(QSharedPointer<QImage> imgOverlay, bool stretch=true);
 	//! Remove an image overlay from the chart.
 	void removeImageOverlay(QImage * imgOverlay);
+	//! Clear all image overlays:
+	void clearImageOverlays();
 	//! Determine how a selection works; see SelectionMode: either disable selection,
 	//! or allow selection of single plots.
 	void setSelectionMode(SelectionMode mode);
-	//! Adds a marker at a specific x position (in data space, see screenX2DataBin
+	//! Add or update a marker at a specific x position (in data space, see screenX2DataBin
 	//! for details) in the given color
-	void addXMarker(double xPos, QColor const & color);
+	void setXMarker(double xPos, QColor const& color, Qt::PenStyle penStyle = Qt::SolidLine);
 	//! Remove the marker at the given x position (in data space, see screenX2DataBin
 	//! for details).
 	void removeXMarker(double xPos);
@@ -155,6 +164,8 @@ public:
 	void updateYBounds(size_t startPlot = 0);
 	//! Draws the chart off screen and returns an image of the result.
 	QImage drawOffscreen();
+	//! Set text shown when no plot available
+	void setEmptyText(QString const& text);
 
 public slots:
 	//! Reset view (zoom and shift in x and y direction) such that all plots are fully visible.
@@ -165,14 +176,17 @@ public slots:
 	void setDrawXAxisAtZero(bool enable);
 
 signals:
-	//! Fires whenever the displayed x axis has changed
-	//! (i.e. if it has been shifted, zoomed, or reset).
-	void xAxisChanged();
+	//! Fires whenever the displayed x/y axis has changed (i.e. if it has been shifted, zoomed, or reset).
+	void axisChanged();
 	//! Fires whenever one or more plots are selected.
 	//! @param plotIDs the IDs of the selected plots
 	void plotsSelected(std::vector<size_t> const & plotIDs);
 	//! Fires whenever the user double-clicks on the chart.
 	void dblClicked();
+	//! Fires whenever the user clicks on the chart
+	//! @param x coordinate x of the click position, in chart coordinates
+	//! @param modifiers modifier keys that were pressed at time of click
+	void clicked(double x, /*double y,*/ Qt::KeyboardModifiers modifiers);
 
 protected:
 	QString m_xCaption, m_yCaption;
@@ -185,7 +199,7 @@ protected:
 	int m_dragStartPosX, m_dragStartPosY;
 	int m_mode;
 	//! Main mappers from diagram coordinates to pixel coordinates, for each axis:
-	QSharedPointer<iAMapper> m_xMapper, m_yMapper;
+	mutable QSharedPointer<iAMapper> m_xMapper, m_yMapper;
 	AxisMappingType m_yMappingMode;
 
 	virtual void drawPlots(QPainter& painter);
@@ -220,7 +234,7 @@ private slots:
 
 private:
 	virtual void addContextMenuEntries(QMenu* contextMenu);
-	void createMappers();
+	void createMappers() const;
 	void drawAll(QPainter& painter);
 	void drawImageOverlays(QPainter &painter);
 	virtual void drawAfterPlots(QPainter& painter);
@@ -230,8 +244,8 @@ private:
 	double visibleXEnd() const;
 	double limitXShift(double newXShift);
 
-	std::vector< QSharedPointer< iAPlot > >	m_plots;
-	QList< QSharedPointer< QImage > > m_overlays;
+	std::vector<QSharedPointer<iAPlot> >	m_plots;
+	std::vector<std::pair<QSharedPointer<QImage>, bool> > m_overlays;
 	QMenu* m_contextMenu;
 	QPoint m_contextPos;
 	bool m_showTooltip;
@@ -245,7 +259,8 @@ private:
 	QRubberBand* m_selectionBand;
 	QPoint m_selectionOrigin;
 	std::vector<size_t> m_selectedPlots;
-	QMap<double, QColor> m_xMarker;
+	QMap<double, QPair<QColor, Qt::PenStyle>> m_xMarker;
 	size_t m_maxXAxisSteps;
 	bool m_drawXAxisAtZero;
+	QString m_emptyText;
 };

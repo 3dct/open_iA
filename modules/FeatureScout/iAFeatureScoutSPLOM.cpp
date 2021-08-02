@@ -34,6 +34,8 @@
 #include <QAction>
 #include <QDockWidget>
 
+#include <cassert>
+
 namespace
 {
 	QSharedPointer<iASPLOMData> createSPLOMData(vtkTable* table)
@@ -63,20 +65,12 @@ iAFeatureScoutSPLOM::iAFeatureScoutSPLOM():
 	selectionEnabled(true)
 {}
 
-iAFeatureScoutSPLOM::~iAFeatureScoutSPLOM()
+void iAFeatureScoutSPLOM::initScatterPlot(vtkTable* csvTable, std::vector<char> const & columnVisibility)
 {
-}
-
-void iAFeatureScoutSPLOM::initScatterPlot(QDockWidget* container, vtkTable* csvTable, std::vector<char> const & columnVisibility)
-{
-	if (matrix)
-	{
-		delete matrix;
-	}
+	assert(!matrix);
 	matrix = new iAQSplom();
 	matrix->setSelectionMode(iAScatterPlot::Rectangle);
 	auto spInput = createSPLOMData(csvTable);
-	container->setWidget(matrix);
 	matrix->showAllPlots(false);
 	matrix->setData(spInput, columnVisibility);
 	matrix->setSelectionColor(QColor(255, 40, 0, 255));
@@ -98,7 +92,7 @@ void iAFeatureScoutSPLOM::multiClassRendering(QList<QColor> const & colors)
 	{
 		return;
 	}
-	matrix->resetFilter();
+	matrix->viewData()->clearFilters();
 	iALookupTable lookupTable;
 	lookupTable.allocate(colors.size());
 	lookupTable.setRange(0, colors.size() - 1);
@@ -136,10 +130,10 @@ void iAFeatureScoutSPLOM::setFilter(int classID)
 	{
 		return;
 	}
-	matrix->resetFilter();
+	matrix->viewData()->clearFilters();
 	if (classID != -1)
 	{
-		matrix->addFilter(matrix->data()->numParams() - 1, classID);
+		matrix->viewData()->addFilter(matrix->data()->numParams() - 1, classID);
 	}
 	matrix->update();
 }
@@ -251,4 +245,9 @@ void iAFeatureScoutSPLOM::enableSelection(bool enable)
 	}
 	matrix->viewData()->clearSelection();
 	matrix->enableSelection(enable);
+}
+
+QWidget* iAFeatureScoutSPLOM::matrixWidget()
+{
+	return matrix;
 }

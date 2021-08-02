@@ -46,7 +46,9 @@ class iAcharts_API iAScatterPlotViewData : public QObject
 public:
 	iAScatterPlotViewData();
 
-	typedef std::vector<size_t> SelectionType;
+	using SelectionType = std::vector<size_t>;
+	using LineType = std::tuple<iAScatterPlotViewData::SelectionType, QColor, int>;
+	using LineListType = std::vector<LineType>;
 
 	SelectionType& selection();
 	SelectionType const& selection() const;
@@ -66,9 +68,21 @@ public:
 	//!< Set whether the axis of a parameter should be inverted in the scatter plots.
 	void setInverted(size_t paramIndex, bool isInverted);
 
-	std::vector<std::pair<SelectionType, QColor>> const& lines() const;
-	void addLine(SelectionType const& linePoints, QColor const& color);
+	//! @{
+	//! Connecting lines between data points
+	LineListType const& lines() const;
+	void addLine(SelectionType const& linePoints, QColor const& color, int lineWidth);
 	void clearLines();
+	//! @}
+	
+	//! @{
+	//! Filtering for data items (matching values)
+	bool matchesFilter(QSharedPointer<iASPLOMData> splomData, size_t ind) const; //!< Returns true if point with given index matches current filter
+	void addFilter(size_t paramIndex, double value);  //!< Adds a filter on the data to be shown, on the given column (index). The value in this column needs to match the given value; multiple filters added via this function are linked via OR.
+	void removeFilter(size_t paramIndex, double value);//!< Removes the filter on the given column and value.
+	void clearFilters();                              //!< Clear all filters on data; after calling this method, all data points will be shown again.
+	bool filterDefined() const;                       //!< Returns true if a filter is defined on the data
+	//! @}
 
 	double animIn() const;         //!< Getter for animation in property
 	void setAnimIn(double anim);   //!< Setter for animation in property
@@ -77,6 +91,7 @@ public:
 	void updateAnimation(size_t curPt, size_t prePt);
 signals:
 	void updateRequired();
+	void filterChanged();  //!< emitted whenever a filter is added, removed, or all filters cleared
 private:
 	//!< contains indices of highlighted (clicked) points
 	SelectionType m_highlight;
@@ -87,11 +102,14 @@ private:
 	//!< whether to invert a feature
 	std::vector<char> m_inverted;
 	//!< indices of pairs of points which should be connected by a line of the given color
-	std::vector<std::pair<SelectionType, QColor>> m_lines;
+	LineListType m_lines;
 	double m_animIn;   //!< In animation parameter
 	double m_animOut;  //!< Out animation parameter
 	QPropertyAnimation m_animationIn;
 	QPropertyAnimation m_animationOut;
 	// settings:
 	bool m_isAnimated;
+
+	//! collection of filters: each column index/value pair is linked via OR
+	std::vector<std::pair<size_t, double> > m_filters;
 };

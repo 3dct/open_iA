@@ -20,18 +20,28 @@
 * ************************************************************************************/
 #pragma once
 
-#include <QtGlobal>
+#include <QSharedPointer>
 
-#if (defined(VTK_OPENGL2_BACKEND))
+class iA3DColoredPolyObjectVis;
+class iAChartWidget;
+class iAFixedAspectWidget;
+class iASignallingWidget;
+class iAStackedBarChart;
+class iAVtkQtWidget;
+class QWidget;
 
-#include <QOpenGLBuffer>
-
-typedef QOpenGLBuffer iAQGLBuffer;
-
-#else
-
-#include <QGLBuffer>
-
-typedef QGLBuffer iAQGLBuffer;
-
-#endif
+//! UI elements for each result
+class iAFiberResultUIData
+{
+public:
+	iAVtkQtWidget* vtkWidget = nullptr;
+	QSharedPointer<iA3DColoredPolyObjectVis> mini3DVis;
+	QSharedPointer<iA3DColoredPolyObjectVis> main3DVis;
+	iAChartWidget* histoChart;
+	iAStackedBarChart* stackedBars;
+	iAFixedAspectWidget* previewWidget = nullptr;
+	iASignallingWidget* nameActions;
+	QWidget* topFiller, * bottomFiller;
+	//! index where the plots for this result start
+	size_t startPlotIdx;
+};

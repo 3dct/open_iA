@@ -25,9 +25,10 @@
 #include "iALog.h"
 #include "iAHistogramData.h"
 #include "iALookupTable.h"
-#include "iAMathUtility.h"
 #include "iALUT.h"
+#include "iAMathUtility.h"
 #include "iAPlotTypes.h"
+#include "iAQGLWidget.h"
 #include "iAScatterPlot.h"
 #include "iASPLOMData.h"
 #include "iASPMSettings.h"
@@ -306,6 +307,7 @@ iAQSplom::iAQSplom(QWidget * parent):
 	connect(m_settingsDlg->cbColorThemeQual, QOverload<int>::of(&QComboBox::currentIndexChanged), this, &iAQSplom::setColorThemeQual);
 	m_columnPickMenu = m_contextMenu->addMenu("Columns");
 	connect(m_viewData.data(), &iAScatterPlotViewData::updateRequired, this, QOverload<>::of(&iAChartParentWidget::update));
+	connect(m_viewData.data(), &iAScatterPlotViewData::filterChanged, this, &iAQSplom::updateFilter);
 }
 
 void iAQSplom::addContextMenuAction(QAction* action)
@@ -318,7 +320,7 @@ void iAQSplom::updateHistogram(size_t paramIndex)
 	std::vector<double> hist_InputValues;
 	for (size_t i = 0; i < m_splomData->numPoints(); ++i)
 	{
-		if (m_splomData->matchesFilter(i))
+		if (m_viewData->matchesFilter(m_splomData, i))
 		{
 			hist_InputValues.push_back(m_splomData->paramData(paramIndex)[i]);
 		}
@@ -347,24 +349,6 @@ void iAQSplom::updateHistograms()
 			updateHistogram(y);
 		}
 	}
-}
-
-void iAQSplom::addFilter(size_t paramIndex, double value)
-{
-	m_splomData->addFilter(paramIndex, value);
-	updateFilter();
-}
-
-void iAQSplom::removeFilter(size_t paramIndex, double value)
-{
-	m_splomData->removeFilter(paramIndex, value);
-	updateFilter();
-}
-
-void iAQSplom::resetFilter()
-{
-	m_splomData->clearFilter();
-	updateFilter();
 }
 
 void iAQSplom::updateFilter()
@@ -397,7 +381,6 @@ void iAQSplom::initializeGL()
 iAQSplom::~iAQSplom()
 {
 	delete m_maximizedPlot;
-	delete m_contextMenu;
 }
 
 void iAQSplom::setData( QSharedPointer<iASPLOMData> data, std::vector<char> const & visibility )
@@ -1148,8 +1131,6 @@ bool iAQSplom::drawPopup( QPainter& painter )
 	painter.setBrush( col );
 	col = settings.popupBorderColor; col.setAlpha( col.alpha()* anim );
 	painter.setPen( col );
-	//painter.setBrush( settings.popupFillColor );
-	//painter.setPen( settings.popupBorderColor );
 	painter.translate( popupPos );
 
 	QString text = "<center><b>#" + QString::number(curInd) + "</b><br> " + \
@@ -1177,8 +1158,6 @@ bool iAQSplom::drawPopup( QPainter& painter )
 
 	painter.translate( -popupWidthHalf, -m_popupHeight - tipDim[1] );
 	QAbstractTextDocumentLayout::PaintContext ctx;
-	col = settings.popupTextColor; col.setAlpha( col.alpha()* anim );
-	ctx.palette.setColor( QPalette::Text, col );
 	ctx.palette.setColor( QPalette::Text, settings.popupTextColor );
 	doc.documentLayout()->draw( &painter, ctx ); //doc.drawContents( &painter );
 
@@ -1820,7 +1799,7 @@ void iAQSplom::saveSettings(QSettings & iniFile) const
 	iniFile.setValue(CfgKeyColorCodingMin, colorCodingMin);
 	iniFile.setValue(CfgKeyColorCodingMax, colorCodingMax);
 	iniFile.setValue(CfgKeyColorLookupParam, static_cast<qulonglong>(m_colorLookupParam));
-	iniFile.setValue(CfgKeyVisibleParameters, joinAsString(m_visibleIndices, ","));
+	iniFile.setValue(CfgKeyVisibleParameters, joinNumbersAsString(m_visibleIndices, ","));
 	if (m_maximizedPlot)
 	{
 		iniFile.setValue(CfgKeyMaximizedPlot, QString("%1,%2").arg(m_maximizedPlot->getIndices()[0]).arg(m_maximizedPlot->getIndices()[1]));

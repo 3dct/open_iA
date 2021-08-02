@@ -25,7 +25,6 @@
 #include "ui_dlg_DynamicVolumeLines.h"
 #include "ui_Multi3DView.h"
 
-#include <iAVtkWidgetFwd.h>
 #include <qthelper/iAQTtoUIConnector.h>
 #include <iAProgress.h>
 
@@ -38,6 +37,7 @@ class iAOrientationWidget;
 class iASegmentTree;
 
 class iAMdiChild;
+class iAQVTKWidget;
 class iAVolumeRenderer;
 
 class vtkImageData;
@@ -45,7 +45,6 @@ class vtkLookupTable;
 class vtkPoints;
 class vtkRenderer;
 class vtkRenderWindow;
-class vtkScalarBarActor;
 class vtkTextActor;
 
 typedef iAQTtoUIConnector<QDockWidget, Ui_dlg_DynamicVolumeLines>  DynamicVolumeLinesConnector;
@@ -128,7 +127,7 @@ private:
 	QList<vtkSmartPointer<vtkImageData>> m_imgDataList;
 	multi3DRendererView *m_MultiRendererView;
 
-	iAVtkOldWidget* wgtContainer;
+	iAQVTKWidget* m_wgtContainer;
 
 	vtkSmartPointer<vtkRenderer> m_mrvBGRen;
 	vtkSmartPointer<vtkTextActor> m_mrvTxtAct;

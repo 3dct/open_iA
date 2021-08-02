@@ -18,63 +18,44 @@
 * Contact: FH OÖ Forschungs & Entwicklungs GmbH, Campus Wels, CT-Gruppe,              *
 *          Stelzhamerstraße 23, 4600 Wels / Austria, Email: c.heinzl@fh-wels.at       *
 * ************************************************************************************/
-#include "iAPCView.h"
+#include "iASimpleTester.h"
 
-#include <iAQtVTKBindings.h>
-#include <iAVtkWidget.h>
+#include "iAMultidimensionalScaling.h"
 
-#include <vtkContextScene.h>
-#include <vtkContextView.h>
-#include <vtkChartParallelCoordinates.h>
-#include <vtkGenericOpenGLRenderWindow.h>
-#include <vtkPlot.h>
-#include <vtkRenderWindow.h>
-#include <vtkTable.h>
 
-#include <QTableWidget>
 
-iAPCView::iAPCView( QWidget * parent /*= 0*/, Qt::WindowFlags f /*= 0 */ )
-	: PCViewConnector( parent, f ),
-	m_view( vtkSmartPointer<vtkContextView>::New() ),
-	m_chart( vtkSmartPointer<vtkChartParallelCoordinates>::New() )
+std::ostream& operator<<(std::ostream& o, const iAMatrixType& m)
 {
-	CREATE_OLDVTKWIDGET(m_widget);
-	QHBoxLayout *layoutHB = new QHBoxLayout( this );
-	layoutHB->setContentsMargins(0, 0, 0, 0);
-	layoutHB->addWidget( m_widget );
-	PCContainer->setLayout( layoutHB );
-
-	m_view->GetScene()->AddItem( m_chart );
-#if VTK_VERSION_NUMBER < VTK_VERSION_CHECK(9, 0, 0)
-	m_view->SetInteractor( m_widget->GetInteractor() );
-#else
-	m_view->SetInteractor( m_widget->interactor() );
-#endif
-	m_view->GetRenderWindow()->LineSmoothingOn();
-	m_view->GetRenderWindow()->PointSmoothingOn();
-	m_view->GetRenderWindow()->PolygonSmoothingOn();
-
-#if VTK_VERSION_NUMBER < VTK_VERSION_CHECK(9, 0, 0)
-	m_widget->SetRenderWindow( m_view->GetRenderWindow() );
-#else
-	m_widget->setRenderWindow( m_view->GetRenderWindow() );
-#endif
+	o << matrixToString(m).toStdString();
+	return o;
 }
 
-iAPCView::~iAPCView()
-{}
-
-void iAPCView::SetData( const QTableWidget * newData )
+BEGIN_TEST
 {
-	//Init PC
-	vtkSmartPointer<vtkTable> matrixInputTable = vtkSmartPointer<vtkTable>::New();
-	matrixInputTable->DeepCopy( convertQTableWidgetToVTKTable(newData) );
-	m_chart->GetPlot( 0 )->SetInputData( matrixInputTable );
-	ChartModified();
-}
+	auto doubleDist = [](double a, double b)
+	{
+		return std::abs(a - b);
+	};
+	std::vector<double> values = { 1, 2, 3, 5, 7, 10, 13, 20 };
+	auto distMatrix = computeDistanceMatrix(values, doubleDist);
+	auto actualMDS = computeMDS(distMatrix, 1, 10);
 
-void iAPCView::ChartModified()
-{
-	m_chart->Update();
-	m_view->Render();
+	std::vector<double> expectedMDS = {-6.625, -5.625, -4.625, -2.625, -0.625, 2.375, 5.375, 12.375};
+	for (size_t i = 0; i < expectedMDS.size(); ++i)
+	{
+		TestEqualFloatingPoint(expectedMDS[i], actualMDS[i][0]);
+	}
+
+	std::vector<double> values2 = { 1, 5, 9, 10, 11, 15, 19 };
+	auto distMatrix2 = computeDistanceMatrix(values2, doubleDist);
+	auto actualMDS2 = computeMDS(distMatrix2, 1, 10);
+	std::vector<double> expectedMDS2 = {-9, -5, -1, 0, 1, 5, 9};
+	for (size_t i = 0; i < expectedMDS2.size(); ++i)
+	{
+		TestEqualFloatingPoint(expectedMDS2[i], actualMDS2[i][0]);
+	}
+
+	auto actualMDS3 = computeMDS(distMatrix2, 2, 10);
+	std::cout << matrixToString(actualMDS3).toStdString() << std::endl;
 }
+END_TEST

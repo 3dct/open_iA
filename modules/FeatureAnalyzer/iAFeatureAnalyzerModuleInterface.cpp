@@ -45,10 +45,10 @@ void iAFeatureAnalyzerModuleInterface::Initialize()
 	qsrand(QTime::currentTime().msec());
 #endif
 
-	QAction * actionRunPA = new QAction(tr("Analyze Segmentations"), m_mainWnd);
+	QAction * actionRunPA = new QAction(tr("Start FeatureAnalyzer"), m_mainWnd);
 	connect(actionRunPA, &QAction::triggered, this, &iAFeatureAnalyzerModuleInterface::launchFeatureAnalyzer);
 
-	QMenu* submenu = getOrAddSubMenu(m_mainWnd->toolsMenu(), tr("FeatureAnalyzer"));
+	QMenu* submenu = getOrAddSubMenu(m_mainWnd->toolsMenu(), tr("Feature Analysis"), true);
 	submenu->addAction( actionRunPA );
 }
 

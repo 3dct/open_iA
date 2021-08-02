@@ -26,9 +26,7 @@ iAFuzzyVTKWidget::iAFuzzyVTKWidget(
 	QWidget* parent, Qt::WindowFlags f)
 	: iAVtkWidget(parent, f)
 {
-#if (VTK_VERSION_NUMBER >= VTK_VERSION_CHECK(8, 2, 0) && defined(VTK_OPENGL2_BACKEND))
 	setFormat(iAVtkWidget::defaultFormat());
-#endif
 	auto renWin = vtkSmartPointer<vtkGenericOpenGLRenderWindow>::New();
 #if VTK_VERSION_NUMBER < VTK_VERSION_CHECK(9, 0, 0)
 	SetRenderWindow(renWin);

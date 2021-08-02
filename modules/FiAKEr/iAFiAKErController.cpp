@@ -20,13 +20,13 @@
 * ************************************************************************************/
 #include "iAFiAKErController.h"
 
-#include "iAFiberCharData.h"
+#include "iAFiberResult.h"
 #include "iAFiberData.h"     // for samplePoints
 #include "iAJobListView.h"
 #include "iAMeasureSelectionDlg.h"
 #include "iARefDistCompute.h"
+#include "iASensitivityInfo.h"
 #include "iAStackedBarChart.h"
-#include "ui_DissimilarityMatrix.h"
 //#include "iAFeatureScoutModuleInterface.h"
 
 // charts
@@ -47,6 +47,7 @@
 #include <iAMainWindow.h>
 #include <iAMdiChild.h>
 #include <qthelper/iAQTtoUIConnector.h>
+#include <qthelper/iAQtEndl.h>
 
 // objectvis
 #include "iA3DCylinderObjectVis.h"
@@ -72,7 +73,6 @@
 #include <iALog.h>
 #include <iALUT.h>
 #include <iAMathUtility.h>
-#include <iAStringHelper.h>
 #include <iAToolsVTK.h>    // for setCamPos
 #include <iATransferFunction.h>
 #include <iAVtkVersion.h>
@@ -80,14 +80,15 @@
 #include <vtkCamera.h>
 #include <vtkColorTransferFunction.h>
 #include <vtkCubeSource.h>
+#include <vtkDecimatePro.h>
 #include <vtkGenericOpenGLRenderWindow.h>
 #include <vtkIdTypeArray.h>
-#include <vtkImageData.h>
 #include <vtkLine.h>
 #include <vtkPiecewiseFunction.h>
 #include <vtkPointData.h>
 #include <vtkPolyData.h>
 #include <vtkPolyDataMapper.h>
+#include <vtkPolyDataNormals.h>
 #include <vtkProperty.h>
 #include <vtkRendererCollection.h>
 #include <vtkRenderer.h>
@@ -95,22 +96,17 @@
 #include <vtkUnsignedCharArray.h>
 #include <vtkVertexGlyphFilter.h>
 
-#include <QButtonGroup>
 #include <QCheckBox>
 #include <QComboBox>
 #include <QFileDialog>
 #include <QFileInfo>
 #include <QGridLayout>
-#include <QGroupBox>
 #include <QHBoxLayout>
 #include <QLineEdit>
 #include <QListView>
 #include <QMenu>
 #include <QMessageBox>
 #include <QModelIndex>
-#include <QMouseEvent>
-#include <QPainter>
-#include <QRadioButton>
 #include <QScrollArea>
 #include <QSettings>
 #include <QSlider>
@@ -129,8 +125,9 @@ namespace
 {
 	const int ControlSpacing = 4;
 	const int ResultListMargin = 2;
-	const int HistogramMinWidth = 80;
-	const int StackedBarMinWidth = 70;
+	const int HistogramMinWidth = 40;
+	const int StackedBarMinWidth = 40;
+	const int SPMMinWidth = 150;
 	const int DefaultPlayDelay = 1000;
 	const int DefaultHistogramBins = 20;
 	const double MinDiameterFactor = 0.02;
@@ -158,6 +155,7 @@ namespace
 	const QString ProjectFileSaveFormatName("CsvFormat");
 	const QString ProjectUseStepData("UseStepData");
 	const QString ProjectShowPreviews("ShowPreviews");
+	const QString ProjectShowCharts("ShowCharts");
 	const QString CameraPosition("CameraPosition");
 	const QString CameraViewUp("CameraViewUp");
 	const QString CameraFocalPoint("CameraFocalPoint");
@@ -218,6 +216,9 @@ iAFiAKErController::iAFiAKErController(iAMainWindow* mainWnd, iAMdiChild* mdiChi
 	m_mdiChild(mdiChild),
 	m_referenceID(NoResult),
 	m_colorByThemeName(iALUT::GetColorMapNames()[0]),
+	m_useStepData(false),
+	m_showPreviews(false),
+	m_showCharts(false),
 	m_showFiberContext(false),
 	m_mergeContextBoxes(false),
 	m_showWireFrame(false),
@@ -230,8 +231,8 @@ iAFiAKErController::iAFiAKErController(iAMainWindow* mainWnd, iAMdiChild* mdiChi
 	m_contextDiameterFactor(DefaultContextDiameterFactor),
 	m_nameActionColumn(0),
 	m_previewColumn(1),
-	m_stackedBarColumn(2),
-	m_histogramColumn(3),
+	m_histogramColumn(2),
+	m_stackedBarColumn(3),
 	m_playTimer(new QTimer(mainWnd)),
 	m_refDistCompute(nullptr),
 	m_cameraInitialized(false),
@@ -260,35 +261,38 @@ void iAFiAKErController::loadProject(QSettings const& projectFile, QString const
 	auto stepShift = projectFile.value(ProjectFileStepShift, 0).toDouble();
 	auto useStepData = projectFile.value(ProjectUseStepData, true).toBool();
 	auto showPreviews = projectFile.value(ProjectShowPreviews, true).toBool();
-	start(dataFolder, config, stepShift, useStepData, showPreviews);
+	auto createCharts = projectFile.value(ProjectShowCharts, true).toBool();
+	start(dataFolder, config, stepShift, useStepData, showPreviews, createCharts);
 }
 
-void iAFiAKErController::start(QString const & path, iACsvConfig const & config, double stepShift, bool useStepData, bool showPreviews)
+void iAFiAKErController::start(QString const & path, iACsvConfig const & config, double stepShift, bool useStepData, bool showPreviews, bool createCharts)
 {
 	m_config = config;
 	m_config.addClassID = false;
 	m_useStepData = useStepData;
 	m_showPreviews = showPreviews;
+	m_showCharts = createCharts;
 	m_views.resize(DockWidgetCount);
 	connect(m_mdiChild, &iAMdiChild::renderSettingsChanged, this, &iAFiAKErController::applyRenderSettings);
 
 	m_data = QSharedPointer<iAFiberResultsCollection>::create();
 	auto resultsLoader = new iAFiberResultsLoader(m_data, path, m_config, stepShift);
 	connect(resultsLoader, &iAFiberResultsLoader::success, this, &iAFiAKErController::resultsLoaded);
-	connect(resultsLoader, &iAFiberResultsLoader::failed,  this, &iAFiAKErController::resultsLoadFailed);
-	iAJobListView::get()->addJob("Loading results...", resultsLoader->progress(), resultsLoader);
+	connect(resultsLoader, &iAFiberResultsLoader::finished, resultsLoader, &QObject::deleteLater);
+	connect(resultsLoader, &iAFiberResultsLoader::failed, this, [this, resultsLoader, path]
+		{
+			if (!resultsLoader->isAborted())
+			{
+				QMessageBox::warning(m_mainWnd, "Fiber Analytics",
+					QString("Could not load data in folder '%1'. Make sure it is in the right format. "
+						"Make sure to check the Debug Console window for further errors; "
+						"for checking the format of a specific csv file, "
+						"you can use the data loading dialog provided in the FeatureScout tool.").arg(path));
+			}
+			m_mdiChild->parent()->deleteLater(); // deletes QMdiSubWindow which this widget is child of
+		});
+	iAJobListView::get()->addJob("Loading results...", resultsLoader->progress(), resultsLoader, resultsLoader);
 	resultsLoader->start();
-}
-
-void iAFiAKErController::resultsLoadFailed(QString const & path)
-{
-	QMessageBox::warning(m_mainWnd, "Fiber Analytics",
-		QString("Could not load data in folder '%1'. Make sure it is in the right format. "
-			"Make sure to check the Debug Console window for further errors; "
-			"for checking the format of a specific csv file, "
-			"you can use the data loading dialog provided in the FeatureScout tool.").arg(path));
-	delete parent(); // deletes QMdiSubWindow which this widget is child of
-	return;
 }
 
 void iAFiAKErController::resultsLoaded()
@@ -336,6 +340,7 @@ void iAFiAKErController::resultsLoaded()
 	m_settingsWidgetMap.insert(ProjectConnectMatchingReferenceFibers, m_chkboxShowLines);
 	m_settingsWidgetMap.insert(ProjectShowRefInDistribution, m_settingsView->cbShowReferenceDistribution);
 	m_settingsWidgetMap.insert(ProjectShowPreviews, m_settingsView->cbShowPreviews);
+	m_settingsWidgetMap.insert(ProjectShowCharts, m_settingsView->cbShowCharts);
 	m_settingsWidgetMap.insert(ProjectLinkPreviews, m_settingsView->cbLinkPreviews);
 	m_settingsWidgetMap.insert(ProjectDistributionHistogramBins, m_settingsView->sbHistogramBins);
 	m_settingsWidgetMap.insert(ProjectDistributionPlotTypes, m_settingsView->cmbboxDistributionPlotType);
@@ -433,7 +438,7 @@ void iAFiAKErController::setupSettingsView()
 	m_settingsView->sbAnimationDelay->setValue(DefaultPlayDelay);
 	m_playTimer->setInterval(DefaultPlayDelay);
 
-	//iAFiberCharData::FiberValueCount               // v Projection error
+	//iAFiberResult::FiberValueCount               // v Projection error
 	m_chartCount = 0;
 	addChartCB();
 	size_t curPlotStart = 0;
@@ -483,6 +488,9 @@ void iAFiAKErController::setupSettingsView()
 	m_settingsView->cmbboxResultColors->addItems(iAColorThemeManager::instance().availableThemes());
 	m_settingsView->cmbboxResultColors->setCurrentText(DefaultResultColorTheme);
 
+	m_settingsView->cbShowPreviews->setChecked(m_showPreviews);
+	m_settingsView->cbShowCharts->setChecked(m_showCharts);
+
 	connect(m_settingsView->slOpacityDefault, &QSlider::valueChanged, this, &iAFiAKErController::mainOpacityChanged);
 	connect(m_settingsView->slOpacityContext, &QSlider::valueChanged, this, &iAFiAKErController::contextOpacityChanged);
 	connect(m_settingsView->slDiameterFactorDefault, &QSlider::valueChanged, this, &iAFiAKErController::diameterFactorChanged);
@@ -511,7 +519,7 @@ void iAFiAKErController::setupSettingsView()
 		this, &iAFiAKErController::distributionColorThemeChanged);
 	connect(m_settingsView->cmbboxResultColors, QOverload<int>::of(&QComboBox::currentIndexChanged),
 		this, &iAFiAKErController::resultColorThemeChanged);
-	connect(m_settingsView->pbSensitivity, &QPushButton::clicked, this, &iAFiAKErController::sensitivitySlot);
+	connect(m_settingsView->pbSensitivity, &QPushButton::clicked, this, &iAFiAKErController::computeSensitivity);
 }
 
 QWidget* iAFiAKErController::setupOptimStepView()
@@ -554,26 +562,47 @@ namespace
 	{
 		switch (objectType)
 		{
-		case iACsvConfig::Ellipses:  return QSharedPointer<iA3DEllipseObjectVis>::create(renderer, table, mapping, color);
+		case iACsvConfig::Ellipses: return QSharedPointer<iA3DEllipseObjectVis>::create(renderer, table, mapping, color);
 		default:
-		case iACsvConfig::Cylinders: return QSharedPointer<iA3DCylinderObjectVis>::create(renderer, table, mapping, color, curvedFiberData);
+#if __cplusplus >= 201703L
+			[[fallthrough]];
+#endif
+		case iACsvConfig::Cylinders: return QSharedPointer<iA3DCylinderObjectVis>::create(renderer, table, mapping, color, curvedFiberData, 6, 3);
 		}
 	}
+}
 
-	void addHeaderLabel(QGridLayout* layout, int column, QString const& text)
+std::map<size_t, std::vector<iAVec3f> > getCurvedStepInfo(iAFiberResult const & d)
+{
+	std::map<size_t, std::vector<iAVec3f> > curvedStepInfo;
+   // get last step:
+	auto& lastStepValues = d.stepValues[d.stepValues.size() - 1];
+	//              fibers,      point values (each coordinate is 3 values)
+	// convert from std::vector<std::vector<double>> to    (as in lastStepValues)
+	//                       fiberid, coordinate
+	//              std::map<size_t,  std::vector<iAVec3f>
+	for (size_t f = 0; f < d.fiberCount; ++f)
 	{
-		auto headerLabel = new QLabel(text);
-		headerLabel->setSizePolicy(QSizePolicy::Expanding, QSizePolicy::Fixed);
-		layout->addWidget(headerLabel, 0, column);
+		size_t const numPts = lastStepValues[f].size() / 3;
+		std::vector<iAVec3f> fiberCurvePoints(numPts);
+		for (size_t p = 0; p < numPts; ++p)
+		{
+			fiberCurvePoints[p] = iAVec3f(
+				static_cast<float>(lastStepValues[f][p * 3]),
+				static_cast<float>(lastStepValues[f][p * 3 + 1]),
+				static_cast<float>(lastStepValues[f][p * 3 + 2]));
+		}
+		curvedStepInfo.insert(std::make_pair(f, fiberCurvePoints));
 	}
+	return curvedStepInfo;
 }
 
 QWidget* iAFiAKErController::setupResultListView()
 {
 	if (!m_showPreviews)
 	{
-		m_stackedBarColumn = 1;
-		m_histogramColumn = 2;
+		m_histogramColumn  = 1;
+		m_stackedBarColumn = 2;
 	}
 	int commonPrefixLength = 0, commonSuffixLength = 0;
 	QString baseName0;
@@ -605,10 +634,13 @@ QWidget* iAFiAKErController::setupResultListView()
 	m_resultsListLayout->setSpacing(ControlSpacing);
 	m_resultsListLayout->setContentsMargins(ResultListMargin, ResultListMargin, ResultListMargin, ResultListMargin);
 	m_resultsListLayout->setColumnStretch(m_stackedBarColumn, static_cast<int>(m_data->result.size()));
-	m_resultsListLayout->setColumnStretch(m_histogramColumn, static_cast<int>(2 * m_data->result.size()));
+	if (m_showCharts)
+	{
+		m_resultsListLayout->setColumnStretch(m_histogramColumn, static_cast<int>(2 * m_data->result.size()));
+	}
 
 	auto colorTheme = iAColorThemeManager::instance().theme(DefaultStackedBarColorTheme);
-	m_stackedBarsHeaders = new iAStackedBarChart(colorTheme, true);
+	m_stackedBarsHeaders = new iAStackedBarChart(colorTheme, m_resultsListLayout, 0, m_stackedBarColumn, true);
 	m_stackedBarsHeaders->setMinimumWidth(StackedBarMinWidth);
 
 	QAction* exportDissimilarities = new QAction("Export Dissimilarities", nullptr);
@@ -621,7 +653,7 @@ QWidget* iAFiAKErController::setupResultListView()
 	connect(headerFiberCountAction, &QAction::triggered, this, &iAFiAKErController::stackedColSelect);
 	m_stackedBarsHeaders->contextMenu()->addAction(headerFiberCountAction);
 	connect(m_stackedBarsHeaders, &iAStackedBarChart::switchedStackMode, this, &iAFiAKErController::switchStackMode);
-	connect(m_stackedBarsHeaders, &iAStackedBarChart::doubleClicked, this, &iAFiAKErController::sortByCurrentWeighting);
+	connect(m_stackedBarsHeaders, &iAStackedBarChart::dblClicked, this, &iAFiAKErController::sortByCurrentWeighting);
 	m_stackedBarsHeaders->contextMenu()->addSeparator();
 
 	m_distributionChoice = new QComboBox();
@@ -638,20 +670,22 @@ QWidget* iAFiAKErController::setupResultListView()
 	m_colorByDistribution = new QCheckBox("Color by");
 	connect(m_colorByDistribution, &QCheckBox::stateChanged, this, &iAFiAKErController::colorByDistrToggled);
 
-	auto histHeader = new QWidget();
-	histHeader->setLayout(new QHBoxLayout());
-	histHeader->layout()->setContentsMargins(0, 0, 0, 0);
-	histHeader->layout()->addWidget(m_colorByDistribution);
-	histHeader->layout()->addWidget(m_distributionChoice);
-
-	addHeaderLabel(m_resultsListLayout, m_nameActionColumn, "Name/Actions");
+	addHeaderLabel(m_resultsListLayout, m_nameActionColumn, "Name/Actions", QSizePolicy::Fixed);
 	if (m_showPreviews)
 	{
 		m_resultsListLayout->setColumnStretch(m_previewColumn, 1);
-		addHeaderLabel(m_resultsListLayout, m_previewColumn, "Preview");
+		addHeaderLabel(m_resultsListLayout, m_previewColumn, "Preview", QSizePolicy::Fixed);
 	}
 	m_resultsListLayout->addWidget(m_stackedBarsHeaders, 0, m_stackedBarColumn);
-	m_resultsListLayout->addWidget(histHeader, 0, m_histogramColumn);
+	if (m_showCharts)
+	{
+		auto histHeader = new QWidget();
+		histHeader->setLayout(new QHBoxLayout());
+		histHeader->layout()->setContentsMargins(0, 0, 0, 0);
+		histHeader->layout()->addWidget(m_colorByDistribution);
+		histHeader->layout()->addWidget(m_distributionChoice);
+		m_resultsListLayout->addWidget(histHeader, 0, m_histogramColumn);
+	}
 
 	m_showResultVis.resize(m_data->result.size());
 	m_showResultBox.resize(m_data->result.size());
@@ -686,44 +720,24 @@ QWidget* iAFiAKErController::setupResultListView()
 		ui.nameActions->layout()->addWidget(m_showResultBox[resultID]);
 		ui.nameActions->layout()->addWidget(ui.bottomFiller);
 
-		ui.stackedBars = new iAStackedBarChart(colorTheme);
+		ui.stackedBars = new iAStackedBarChart(colorTheme, m_resultsListLayout, 1 + resultID, m_stackedBarColumn);
 		ui.stackedBars->setMinimumWidth(StackedBarMinWidth);
 		ui.stackedBars->setSizePolicy(QSizePolicy::Expanding, QSizePolicy::Expanding);
 		connect(m_stackedBarsHeaders, &iAStackedBarChart::weightsChanged, ui.stackedBars, &iAStackedBarChart::setWeights);
 
-		ui.histoChart = new iAChartWidget(resultList, "Fiber Length", "");
-		ui.histoChart->setShowXAxisLabel(false);
-		ui.histoChart->setMinimumWidth(HistogramMinWidth);
-		ui.histoChart->setSizePolicy(QSizePolicy::Expanding, QSizePolicy::Expanding);
+		if (m_showCharts)
+		{
+			ui.histoChart = new iAChartWidget(resultList, "Fiber Length", "");
+			ui.histoChart->setShowXAxisLabel(false);
+			ui.histoChart->setMinimumWidth(HistogramMinWidth);
+			ui.histoChart->setSizePolicy(QSizePolicy::Expanding, QSizePolicy::Expanding);
+		}
 
 		m_resultListSorting.insert(resultID, static_cast<int>(resultID));
 
-		std::map<size_t, std::vector<iAVec3f> > curvedStepInfo;
-		if (m_useStepData && d.stepData == iAFiberCharData::CurvedStepData)
-		{   // get last step:
-			auto & lastStepValues = d.stepValues[d.stepValues.size() - 1];
-			//              fibers,      point values (each coordinate is 3 values)
-			// convert from std::vector<std::vector<double>> to    (as in lastStepValues)
-			//                       fiberid, coordinate
-			//              std::map<size_t,  std::vector<iAVec3f>
-			for (size_t f = 0; f < d.fiberCount; ++f)
-			{
-				size_t const numPts = lastStepValues[f].size() / 3;
-				std::vector<iAVec3f> fiberCurvePoints(numPts);
-				for (size_t p = 0; p < numPts; ++p)
-				{
-					fiberCurvePoints[p] = iAVec3f(
-						static_cast<float>(lastStepValues[f][p * 3]),
-						static_cast<float>(lastStepValues[f][p * 3 + 1]),
-						static_cast<float>(lastStepValues[f][p * 3 + 2]));
-				}
-				curvedStepInfo.insert(std::make_pair(f, fiberCurvePoints));
-			}
-		}
-
 		std::map<size_t, std::vector<iAVec3f> > const & curveInfo =
-			(m_useStepData && d.stepData == iAFiberCharData::CurvedStepData) ?
-			curvedStepInfo : d.curveInfo;
+			(m_useStepData && d.stepData == iAFiberResult::CurvedStepData) ?
+			getCurvedStepInfo(d) : d.curveInfo;
 		QColor resultColor(getResultColor(resultID));
 
 		if (m_showPreviews)
@@ -752,28 +766,23 @@ QWidget* iAFiAKErController::setupResultListView()
 			//connect(ui.previewWidget, &iASignallingWidget::clicked, this, &iAFiAKErController::previewMouseClick);
 			connect(ui.mini3DVis.data(), &iA3DObjectVis::updated, ui.vtkWidget, &iAVtkQtWidget::updateAll);
 		}
-		ui.main3DVis = create3DVis(m_ren, d.table, d.mapping, resultColor, m_data->objectType, curveInfo);
-
-		const double * b = ui.main3DVis->bounds();
-		QString bbox = QString("Bounding box: (x: %1..%2, y: %3..%4, z: %5..%6)")
-			.arg(b[0]).arg(b[1]).arg(b[2]).arg(b[3]).arg(b[4]).arg(b[5]);
-		ui.nameActions->setToolTip(bbox + "\n"
-			"Filename: " + d.fileName + "\n"
-			"Visualization details: " + ui.main3DVis->visualizationStatistics());
+		QString bboxText = QString("Bounding box: (x: %1..%2, y: %3..%4, z: %5..%6)")
+			.arg(d.bbox[0][0]).arg(d.bbox[0][1]).arg(d.bbox[0][2])
+			.arg(d.bbox[1][0]).arg(d.bbox[1][1]).arg(d.bbox[1][2]);
+		ui.nameActions->setToolTip(bboxText + "\n"
+			"Filename: " + d.fileName + "\n");
 
 		ui.stackedBars->setProperty("resultID", static_cast<qulonglong>(resultID));
-		ui.histoChart->setProperty("resultID", static_cast<qulonglong>(resultID));
+		if (m_showCharts)
+		{
+			ui.histoChart->setProperty("resultID", static_cast<qulonglong>(resultID));
+			connect(ui.histoChart, &iAChartWidget::dblClicked, this, &iAFiAKErController::referenceToggled);
+		}
 		ui.nameActions->setProperty("resultID", static_cast<qulonglong>(resultID));
 		connect(ui.stackedBars, &iAStackedBarChart::dblClicked, this, &iAFiAKErController::referenceToggled);
-		connect(ui.histoChart, &iAChartWidget::dblClicked, this, &iAFiAKErController::referenceToggled);
 		connect(ui.nameActions, &iASignallingWidget::dblClicked, this, &iAFiAKErController::referenceToggled);
 		connect(m_showResultVis[resultID], &QCheckBox::stateChanged, this, &iAFiAKErController::toggleVis);
 		connect(m_showResultBox[resultID], &QCheckBox::stateChanged, this, &iAFiAKErController::toggleBoundingBox);
-
-
-		// iA3DColoredObjectVis::updateRenderer makes sure this connection is only triggered if vis is currently shown:
-		connect(ui.main3DVis.data(), &iA3DObjectVis::updated, this, &iAFiAKErController::update3D);
-		// }
 	}
 	updateResultList();
 
@@ -842,7 +851,7 @@ void iAFiAKErController::loadStateAndShow()
 	addInteraction(QString("Loaded %1 results in folder %2.").arg(m_data->result.size()).arg(m_data->folder));
 
 	// SPM needs an active OpenGL Context (it must be visible when setData is called):
-	m_spm->setMinimumWidth(200);
+	m_spm->setMinimumWidth(SPMMinWidth);
 	m_spm->showAllPlots(false);
 	//auto np = m_data->spmData->numParams();
 	std::vector<char> v(m_data->spmData->numParams(), false);
@@ -872,22 +881,39 @@ QString iAFiAKErController::stackedBarColName(int index) const
 void iAFiAKErController::addStackedBar(int index)
 {
 	QString title = stackedBarColName(index);
-	m_stackedBarsHeaders->addBar(title, 1, 1);
+	m_stackedBarsHeaders->addBar(title, 1, 1, 1);
+	double maxValue, minValDiff;
+	if (index == 0)
+	{
+		maxValue = m_data->maxFiberCount;
+		minValDiff = 1;
+	}
+	else
+	{
+		minValDiff = std::numeric_limits<double>::max();
+		maxValue = m_data->maxAvgDifference.size() > 0 ? m_data->maxAvgDifference[index - 1] : 1;
+		for (size_t r1 = 0; r1 < m_resultUIs.size(); ++r1)
+		{
+			auto const& d1 = m_data->result[r1];
+			double v1 = d1.avgDifference.size() > 0 ? d1.avgDifference[index - 1] : 0;
+			for (size_t r2 = r1+1; r2 < m_resultUIs.size(); ++r2)
+			{
+				auto const& d2 = m_data->result[r2];
+				double v2 = d2.avgDifference.size() > 0 ? d2.avgDifference[index - 1] : 0;
+				double diff = std::abs(v1 - v2);
+				if (diff < minValDiff)
+				{
+					minValDiff = diff;
+				}
+			}
+		}
+	}
 	for (size_t resultID=0; resultID<m_resultUIs.size(); ++resultID)
 	{
-		double value, maxValue;
-		if (index == 0)
-		{
-			value = m_data->result[resultID].fiberCount;
-			maxValue = m_data->maxFiberCount;
-		}
-		else
-		{
-			value = m_data->result[resultID].avgDifference.size() > 0 ?
-			        m_data->result[resultID].avgDifference[index-1] : 0;
-			maxValue = m_data->maxAvgDifference[index-1];
-		}
-		m_resultUIs[resultID].stackedBars->addBar(title, value, maxValue);
+		auto const& d = m_data->result[resultID];
+		double value = (index == 0) ? d.fiberCount :
+			(d.avgDifference.size() > 0 ? d.avgDifference[index-1] : 0);
+		m_resultUIs[resultID].stackedBars->addBar(title, value, maxValue, minValDiff);
 	}
 	m_resultsListLayout->setColumnStretch(m_stackedBarColumn, static_cast<int>(m_stackedBarsHeaders->numberOfBars()* m_data->result.size()) );
 }
@@ -908,20 +934,16 @@ void iAFiAKErController::updateResultList()
 	for (size_t resultID = 0; resultID < m_resultUIs.size(); ++resultID)
 	{
 		auto& ui = m_resultUIs[resultID];
-		m_resultsListLayout->removeWidget(ui.nameActions);
-		if (ui.previewWidget)
-		{
-			m_resultsListLayout->removeWidget(ui.previewWidget);
-		}
-		m_resultsListLayout->removeWidget(ui.stackedBars);
-		m_resultsListLayout->removeWidget(ui.histoChart);
 		m_resultsListLayout->addWidget(ui.nameActions, m_resultListSorting[resultID] + 1, m_nameActionColumn);
 		if (ui.previewWidget)
 		{
 			m_resultsListLayout->addWidget(ui.previewWidget, m_resultListSorting[resultID] + 1, m_previewColumn);
 		}
-		m_resultsListLayout->addWidget(ui.stackedBars, m_resultListSorting[resultID] + 1, m_stackedBarColumn);
-		m_resultsListLayout->addWidget(ui.histoChart, m_resultListSorting[resultID] + 1, m_histogramColumn);
+		ui.stackedBars->setPos(m_resultListSorting[resultID] + 1, m_stackedBarColumn);
+		if (ui.histoChart)
+		{
+			m_resultsListLayout->addWidget(ui.histoChart, m_resultListSorting[resultID] + 1, m_histogramColumn);
+		}
 	}
 }
 
@@ -1036,522 +1058,38 @@ void iAFiAKErController::resultColorThemeChanged(int index)
 	// main3DVis automatically updated through SPM
 }
 
-// Factor out as generic CSV reading class also used by iACsvIO?
-bool readParameterCSV(QString const& fileName, QString const & encoding, QString const & columnSeparator, iACsvTableCreator& tblCreator, size_t resultCount)
+void iAFiAKErController::connectSensitivity()
 {
-	if (!QFile::exists(fileName))
-	{
-		LOG(lvlError, QString("Error loading csv file %1, file does not exist.").arg(fileName));
-		return false;
-	}
-	QFile file(fileName);
-	if (!file.open(QIODevice::ReadOnly | QIODevice::Text))
-	{
-		LOG(lvlError, QString("Unable to open file '%1': %2").arg(fileName).arg(file.errorString()));
-		return false;
-	}
-	QTextStream in(&file);
-#if QT_VERSION < QT_VERSION_CHECK(5, 99, 0)
-	in.setCodec(encoding.toStdString().c_str());
-#else
-	auto encOpt = QStringConverter::encodingForName(encoding.toStdString().c_str());
-	QStringConverter::Encoding enc = encOpt.has_value() ? encOpt.value() : QStringConverter::Utf8;
-	in.setEncoding(enc);
-#endif
-	auto headers = in.readLine().split(columnSeparator);
-	tblCreator.initialize(headers, resultCount);
-	size_t row = 0;
-	while (!in.atEnd())
-	{
-		QString line = in.readLine();
-		if (line.trimmed().isEmpty()) // skip empty lines
-		{
-			continue;
-		}
-		auto values = line.split(columnSeparator);
-		tblCreator.addRow(row, values);
-		++row;
-	}
-	return true;
-}
-
-// TODO: Refactor to use more generic data source
-class iAMatrixWidget: public QWidget
-{
-public:
-	iAMatrixWidget(iADissimilarityMatrixType const & data,
-		std::vector<std::vector<double>> const& paramValues, bool showScalarBar, bool showAxes) :
-		m_data(data),
-		m_paramValues(paramValues),
-		m_sortParam(0),
-		m_dataIdx(0),
-		m_showScalarBar(showScalarBar),
-		m_showAxes(showAxes)
-		//m_paramName(paramName)
-		//m_quadraticAspectRatio(true)
-	{
-		m_range[0] = m_range[1] = 0;
-	}
-	void setData(int idx)
-	{
-		m_dataIdx = idx;
-		m_range[0] = std::numeric_limits<double>::max();
-		m_range[1] = std::numeric_limits<double>::lowest();
-		for (iADissimilarityMatrixType::size_type i = 0; i < m_data.size(); ++i)
-		{
-			for (iADissimilarityMatrixType::size_type j = 0; j < m_data[i].size(); ++j)
-			{
-				double value = m_data[i][j].avgDissim[m_dataIdx];
-				if (value < m_range[0])
-				{
-					m_range[0] = value;
-				}
-				if (value > m_range[1])
-				{
-					m_range[1] = value;
-				}
-			}
-		}
-		if (m_lut.initialized())
-		{
-			m_lut.setRange(m_range);
-		}
-	}
-	void setLookupTable(iALookupTable lut)
-	{
-		m_lut = lut;
-	}
-	void setSortParameter(int paramIdx)
-	{
-		m_sortParam = paramIdx;
-		m_sortOrder = sort_indexes(m_paramValues[paramIdx]);
-	}
-	double const* range()
-	{
-		return m_range;
-	}
-private:
-	void drawAxisText(QPainter& p, int textStartX, int textBoxWidth, int textHeight, int outerAxisPadding, double value)
-	{
-		// x label:
-		p.drawText(textStartX, outerAxisPadding, textBoxWidth, textHeight, Qt::AlignCenter, QString::number(value));
-		// y label:
-		p.save();
-		p.translate(outerAxisPadding, textStartX + textBoxWidth);
-		p.rotate(-90);
-		p.drawText(0, 0, textBoxWidth, textHeight, Qt::AlignCenter, QString::number(value));
-		p.restore();
-	}
-	void drawAxisTick(QPainter& p, int axisPos, int outTickDist, int tickPos)
-	{
-		p.drawLine(tickPos, outTickDist, tickPos, axisPos);    // x tick
-		p.drawLine(outTickDist, tickPos, axisPos, tickPos);    // y tick
-	}
-	void paintEvent(QPaintEvent* /*event*/) override
-	{
-		if (!m_lut.initialized())
-		{
-			return;
-		}
-
-		QPainter p(this);
-		QFontMetrics fm = p.fontMetrics();
-
-		int scalarBarWidth = 20;
-		int scalarBarPadding = 4;
-		int outerAxisPadding = 0;
-		int innerAxisPadding = 4;
-		int axisTickHeight = 5;
-
-		QString minStr = dblToStringWithUnits(m_range[0]);
-		QString maxStr = dblToStringWithUnits(m_range[1]);
-#if QT_VERSION >= QT_VERSION_CHECK(5, 11, 0)
-		int textWidth = std::max(fm.horizontalAdvance(minStr), fm.horizontalAdvance(maxStr));
-#else
-		int textWidth = std::max(fm.width(minStr), fm.width(maxStr));
-#endif
-		int textHeight = fm.height();
-		int fullScalarBarWidth = m_showScalarBar ? (3 * scalarBarPadding + scalarBarWidth + textWidth) : 0;
-		int axisSize = m_showAxes ? (textHeight + innerAxisPadding + outerAxisPadding + axisTickHeight) : 0;
-		int cellPixel = std::max(1,
-			std::min((geometry().height() - axisSize) / static_cast<int>(m_data.size()),
-				(geometry().width() - fullScalarBarWidth - axisSize) / static_cast<int>(m_data.size())));
-		QRect matrixRect(axisSize, axisSize, m_data.size() * cellPixel, m_data.size() * cellPixel);
-		for (iADissimilarityMatrixType::size_type x = 0; x < m_data.size(); ++x)
-		{
-			for (iADissimilarityMatrixType::size_type y = 0; y < m_data[x].size(); ++y)
-			{
-				QRect cellRect(matrixRect.left() + static_cast<int>(x * cellPixel),
-					matrixRect.top() + static_cast<int>(y * cellPixel),
-					cellPixel, cellPixel);
-				double value = m_data[m_sortOrder[x]][m_sortOrder[y]].avgDissim[m_dataIdx];
-				QColor color = m_lut.getQColor(value);
-				p.fillRect(cellRect, color);
-			}
-		}
-
-		if (m_showAxes)
-		{
-			//p.drawText(axisSize, axisPadding, matrixRect.width(), textHeight, m_paramName);
-			// draw x axis line:
-			int outTickDist = outerAxisPadding + textHeight;
-			int axisPos = outTickDist + axisTickHeight;
-			p.drawLine(axisSize, axisPos, axisSize + matrixRect.width(), axisPos);
-			// draw y axis line:
-			p.drawLine(axisPos, axisSize, axisPos, axisSize + matrixRect.height());
-			
-			const size_t NoRangeStart = std::numeric_limits<size_t>::max();
-			const double NoValue = std::numeric_limits<double>::infinity();
-			double prevValue = NoValue;
-			size_t rangeStart = NoRangeStart;
-			auto const& pv = m_paramValues[m_sortParam];
-			for (size_t i = 0; i <= m_sortOrder.size(); ++i)
-			{
-				double curValue = i < m_sortOrder.size() ? pv[m_sortOrder[i]] : NoValue;
-				if (curValue != prevValue)
-				{
-					bool rangeStarts = (i < m_sortOrder.size()-1) && pv[m_sortOrder[i]] == pv[m_sortOrder[i + 1]];
-					bool rangeEnds = rangeStart != NoRangeStart;
-					if (rangeEnds)
-					{    // does a previously started range end here? if yes, draw label and end tick
-						drawAxisText(p, axisSize + rangeStart * cellPixel, (i - rangeStart) * cellPixel, textHeight, outerAxisPadding, prevValue);
-						drawAxisTick(p, axisPos, outTickDist, axisSize + (i * cellPixel));
-					}
-					if (!rangeStarts && i < m_sortOrder.size())
-					{   // draw tick and label for single cell not belonging to range
-						drawAxisText(p, axisSize + (i * cellPixel), cellPixel, textHeight, outerAxisPadding, curValue);
-						drawAxisTick(p, axisPos, outTickDist, axisSize + static_cast<int>((i + 0.5) * cellPixel));
-						rangeStart = NoRangeStart;
-					}
-					if (rangeStarts)
-					{
-						rangeStart = i;
-						if (!rangeEnds)
-						{
-							drawAxisTick(p, axisPos, outTickDist, axisSize + (rangeStart * cellPixel));
-						}
-					}
-					prevValue = m_paramValues[m_sortParam][m_sortOrder[i]];
-				}
-			}
-		}
-
-		if (m_showScalarBar)
-		{
-			// Draw scalar bar (duplicated from iAQSplom!)
-			QPoint topLeft(geometry().width() - (scalarBarPadding + scalarBarWidth), scalarBarPadding);
-
-			QRect colorBarRect(topLeft.x(), topLeft.y(),
-				scalarBarWidth, height() - 2 * scalarBarPadding);
-			QLinearGradient grad(topLeft.x(), topLeft.y(), topLeft.x(), topLeft.y() + colorBarRect.height());
-			QMap<double, QColor>::iterator it;
-			for (size_t i = 0; i < m_lut.numberOfValues(); ++i)
-			{
-				double rgba[4];
-				m_lut.getTableValue(i, rgba);
-				QColor color(rgba[0] * 255, rgba[1] * 255, rgba[2] * 255, rgba[3] * 255);
-				double key = 1 - (static_cast<double>(i) / (m_lut.numberOfValues() - 1));
-				grad.setColorAt(key, color);
-			}
-			p.fillRect(colorBarRect, grad);
-			p.drawRect(colorBarRect);
-			// Draw color bar / name of parameter used for coloring
-			int colorBarTextX = topLeft.x() - (textWidth + scalarBarPadding);
-			p.drawText(colorBarTextX, topLeft.y() + fm.height(), maxStr);
-			p.drawText(colorBarTextX, height() - (fm.height() + scalarBarPadding), minStr);
-		}
-	}
-	iADissimilarityMatrixType const & m_data;
-	std::vector<std::vector<double>> const & m_paramValues;
-	int m_sortParam;
-	int m_dataIdx;
-	iALookupTable m_lut;
-	double m_range[2];
-	std::vector<size_t> m_sortOrder;
-	bool m_showScalarBar, m_showAxes;
-};
-
-using iADissimilarityMatrixDockContent = iAQTtoUIConnector<QWidget, Ui_DissimilarityMatrix>;
-
-QWidget* iAFiAKErController::setupMatrixView(QStringList paramNames, std::vector<std::vector<double>> const& paramValues, QVector<int> const & measures)
-{
-	iADissimilarityMatrixDockContent* dissimDockContent = new iADissimilarityMatrixDockContent();
-	auto measureNames = getAvailableDissimilarityMeasureNames();
-	QStringList computedMeasureNames;
-	for (int m = 0; m < measures.size(); ++m)
-	{
-		computedMeasureNames << measureNames[measures[m]];
-	}
-	dissimDockContent->cbMeasure->addItems(computedMeasureNames);
-	dissimDockContent->cbParameter->addItems(paramNames);
-	dissimDockContent->cbColorMap->addItems(iALUT::GetColorMapNames());
-	connect(dissimDockContent->cbMeasure, QOverload<int>::of(&QComboBox::currentIndexChanged), this, &iAFiAKErController::dissimMatrixMeasureChanged);
-	connect(dissimDockContent->cbParameter, QOverload<int>::of(&QComboBox::currentIndexChanged), this, &iAFiAKErController::dissimMatrixParameterChanged);
-	connect(dissimDockContent->cbColorMap, QOverload<int>::of(&QComboBox::currentIndexChanged), this, &iAFiAKErController::dissimMatrixColorMapChanged);
-	m_matrixWidget = new iAMatrixWidget(m_dissimilarityMatrix, paramValues, true, true);
-	m_matrixWidget->setSortParameter(0);
-	m_matrixWidget->setData(0);
-	m_matrixWidget->setLookupTable(iALUT::Build(m_matrixWidget->range(), iALUT::GetColorMapNames()[0], 255, 255));
-	dissimDockContent->matrix->layout()->addWidget(m_matrixWidget);
-	return dissimDockContent;
-}
-
-class iAParameterListView : public QWidget
-{
-public:
-	iAParameterListView(QStringList const& paramNames,
-		std::vector<std::vector<double>> const& paramValues,
-		iADissimilarityMatrixType const& dissimMatrix)
-	{
-		auto paramScrollArea = new QScrollArea();
-		paramScrollArea->setWidgetResizable(true);
-		auto paramList = new QWidget();
-		paramScrollArea->setWidget(paramList);
-		paramScrollArea->setContentsMargins(0, 0, 0, 0);
-		auto paramListLayout = new QGridLayout();
-		paramListLayout->setSpacing(ControlSpacing);
-		paramListLayout->setContentsMargins(ResultListMargin, ResultListMargin, ResultListMargin, ResultListMargin);
-		paramListLayout->setColumnStretch(0, 1);
-		paramListLayout->setColumnStretch(1, 2);
-
-		enum ParamColumns
-		{
-			NameCol = 0,
-			MatrixCol
-		};
-		addHeaderLabel(paramListLayout, NameCol, "Parameter");
-		addHeaderLabel(paramListLayout, MatrixCol, "Sensitivity Matrix");
-		for (int p = 0; p < paramNames.size(); ++p)
-		{
-			auto paramNameLabel = new QLabel(paramNames[p]);
-			paramNameLabel->setSizePolicy(QSizePolicy::Expanding, QSizePolicy::Expanding);
-			paramListLayout->addWidget(paramNameLabel, p + 1, NameCol);
-
-			auto paramMatrix = new iAMatrixWidget(dissimMatrix, paramValues, false, false);
-			paramMatrix->setSortParameter(p);
-			paramMatrix->setSizePolicy(QSizePolicy::Expanding, QSizePolicy::Expanding);
-			paramMatrix->setData(0);
-			paramMatrix->setLookupTable(iALUT::Build(paramMatrix->range(), iALUT::GetColorMapNames()[0], 255, 255));
-			m_matrixPerParam.push_back(paramMatrix);
-			paramListLayout->addWidget(paramMatrix, p + 1, MatrixCol);
-		}
-		setLayout(paramListLayout);
-	}
-
-	void dissimMatrixMeasureChanged(int idx)
-	{
-		for (auto paramMatrix : m_matrixPerParam)
-		{
-			paramMatrix->setData(idx);
-			paramMatrix->update();
-		}
-	}
-
-	void dissimMatrixColorMapChanged(int idx)
-	{
-		for (auto paramMatrix : m_matrixPerParam)
-		{
-			paramMatrix->setLookupTable(iALUT::Build(paramMatrix->range(), iALUT::GetColorMapNames()[idx], 255, 255));
-			paramMatrix->update();
-		}
-	}
-private:
-	std::vector<iAMatrixWidget*> m_matrixPerParam;
-};
-
-QDataStream& operator<<(QDataStream& out, const iAResultPairInfo& pairInfo)
-{
-	out << pairInfo.avgDissim;
-	out << pairInfo.fiberDissim;
-	return out;
-}
-
-QDataStream& operator>>(QDataStream& in, iAResultPairInfo& pairInfo)
-{
-	in >> pairInfo.avgDissim;
-	in >> pairInfo.fiberDissim;
-	return in;
-}
-
-QString iAFiAKErController::dissimilarityMatrixCacheFileName()
-{
-	return m_data->folder + "/cache/dissimilarityMatrix.cache";
-}
-
-namespace
-{
-	const QString DissimilarityMatrixCacheFileIdentifier("DissimilarityMatrixCache");
-	const quint32 DissimilarityMatrixCacheFileVersion(1);
-}
-
-bool iAFiAKErController::readDissimilarityMatrixCache(QVector<int>& measures)
-{
-	QFile cacheFile(dissimilarityMatrixCacheFileName());
-	// unify with verifyOpenCacheFile?
-	if (!cacheFile.exists())
-	{
-		return false;
-	}
-	if (!cacheFile.open(QFile::ReadOnly))
-	{
-		LOG(lvlWarn, QString("FIAKER cache file '%1': Couldn't open for reading!").arg(cacheFile.fileName()));
-		return false;
-	}
-	// unify with readResultRefComparison / common cache file version/identifier pattern?
-	QDataStream in(&cacheFile);
-	in.setVersion(CacheFileQtDataStreamVersion);
-	QString identifier;
-	in >> identifier;
-	if (identifier != DissimilarityMatrixCacheFileIdentifier)
-	{
-		LOG(lvlWarn, QString("FIAKER cache file '%1': Unknown cache file format - found identifier %2 does not match expected identifier %3.")
-			.arg(cacheFile.fileName())
-			.arg(identifier).arg(DissimilarityMatrixCacheFileIdentifier));
-		return false;
-	}
-	quint32 version;
-	in >> version;
-	if (version > DissimilarityMatrixCacheFileVersion)
-	{
-		LOG(lvlWarn, QString("FIAKER cache file '%1': Invalid or too high version number (%2), expected %3 or less.")
-			.arg(cacheFile.fileName())
-			.arg(version).arg(DissimilarityMatrixCacheFileVersion));
-		return false;
-	}
-	in >> measures;
-	in >> m_dissimilarityMatrix;
-	return true;
-}
-
-void iAFiAKErController::writeDissimilarityMatrixCache(QVector<int> const& measures)
-{
-	QFile cacheFile(dissimilarityMatrixCacheFileName());
-	if (!cacheFile.open(QFile::WriteOnly))
-	{
-		LOG(lvlWarn, QString("FIAKER cache file '%1': Couldn't open for writing!").arg(cacheFile.fileName()));
-		return;
-	}
-	QDataStream out(&cacheFile);
-	out.setVersion(CacheFileQtDataStreamVersion);
-	// write header:
-	out << DissimilarityMatrixCacheFileIdentifier;
-	out << DissimilarityMatrixCacheFileVersion;
-
-	out << measures;
-	out << m_dissimilarityMatrix;
-}
-
-void iAFiAKErController::sensitivitySlot()
-{
-	QString fileName = QFileDialog::getOpenFileName(m_mainWnd, iAFiAKErController::FIAKERProjectID, m_data->folder, "Comma-Separated Values (*.csv);;");
-	if (fileName.isEmpty())
+	if (!m_sensitivityInfo)
 	{
 		return;
 	}
-	iACsvVectorTableCreator tblCreator;
-	if (!readParameterCSV(fileName, "UTF-8", ",", tblCreator, m_data->result.size()))
+	// "hack" go get results all to have same color; TODO: set in settings / use resultColorThemeChanged?
+	m_resultColorTheme = iAColorThemeManager::instance().theme("Gray");
+	connect(m_sensitivityInfo.data(), &iASensitivityInfo::aborted, this, &iAFiAKErController::resetSensitivity);
+	connect(m_sensitivityInfo.data(), &iASensitivityInfo::resultSelected, this, &iAFiAKErController::showMainVis);
+	connect(this, &iAFiAKErController::fiberSelectionChanged, m_sensitivityInfo.data(), &iASensitivityInfo::fiberSelectionChanged);
+	connect(m_sensitivityInfo.data(), &iASensitivityInfo::fibersToSelect, this,
+		&iAFiAKErController::selectFibersFromSensitivity);
+	connect(m_mainWnd, &iAMainWindow::styleChanged, m_sensitivityInfo.data(), &iASensitivityInfo::styleChanged);
+}
+
+void iAFiAKErController::computeSensitivity()
+{
+	if (m_sensitivityInfo)
 	{
+		LOG(lvlWarn, "Already started!");
 		return;
 	}
-	assert(tblCreator.table().size() > 0 && tblCreator.table()[0].size() == m_data->result.size());
-	m_paramValues = tblCreator.table();
-	m_parameterFile = fileName;
-	// compute pairwise dissimilarities between results:
-	QVector<int> measures;
-
-	if (!readDissimilarityMatrixCache(measures))
-	{
-		iAMeasureSelectionDlg selectMeasure;
-		if (selectMeasure.exec() != QDialog::Accepted)
-		{
-			return;
-		}
-		auto measuresComputed = selectMeasure.measures();
-		auto optimizationMeasureIdx = selectMeasure.optimizeMeasureIdx();
-
-		m_dissimilarityMatrix = iADissimilarityMatrixType(m_data->result.size(),
-			QVector<iAResultPairInfo>(m_data->result.size(),
-				iAResultPairInfo(measuresComputed.size())));
-		for (size_t m = 0; m < measuresComputed.size(); ++m)
-		{
-			measures.push_back(measuresComputed[m].first);
-		}
-
-		for (size_t resultID1 = 0; resultID1 < m_data->result.size(); ++resultID1)
-		{
-			auto& res1 = m_data->result[resultID1];
-			auto const& mapping = *res1.mapping.data();
-			double const* cxr = m_data->spmData->paramRange(mapping[iACsvConfig::CenterX]),
-				* cyr = m_data->spmData->paramRange(mapping[iACsvConfig::CenterY]),
-				* czr = m_data->spmData->paramRange(mapping[iACsvConfig::CenterZ]);
-			double a = cxr[1] - cxr[0], b = cyr[1] - cyr[0], c = czr[1] - czr[0];
-			double diagonalLength = std::sqrt(std::pow(a, 2) + std::pow(b, 2) + std::pow(c, 2));
-			double const* lengthRange = m_data->spmData->paramRange(mapping[iACsvConfig::Length]);
-			double maxLength = lengthRange[1] - lengthRange[0];
-			for (size_t resultID2 = 0; resultID2 < m_data->result.size(); ++resultID2)
-			{
-				for (size_t m = 0; m < measuresComputed.size(); ++m)
-				{
-					m_dissimilarityMatrix[resultID1][resultID2].avgDissim[m] = 0;
-				}
-				if (resultID1 == resultID2)
-				{
-					continue;
-				}
-				auto& res2 = m_data->result[resultID2];
-				qint64 const fiberCount = res2.table->GetNumberOfRows();
-				auto& dissimilarities = m_dissimilarityMatrix[resultID1][resultID2].fiberDissim;
-				dissimilarities.resize(fiberCount);
-#pragma omp parallel for
-				for (qint64 fiberID = 0; fiberID < fiberCount; ++fiberID)
-				{
-					auto it = res2.curveInfo.find(fiberID);
-					// find the best-matching fibers in reference & compute difference:
-					iAFiberData fiber(res2.table, fiberID, mapping, (it != res2.curveInfo.end()) ? it->second : std::vector<iAVec3f>());
-					getBestMatches(fiber, mapping, res1.table, dissimilarities[fiberID], res1.curveInfo,
-						diagonalLength, maxLength, measuresComputed, optimizationMeasureIdx);
-					for (size_t m = 0; m < measuresComputed.size(); ++m)
-					{
-						m_dissimilarityMatrix[resultID1][resultID2].avgDissim[m] += dissimilarities[fiberID][m][0].dissimilarity;
-					}
-				}
-				for (size_t m = 0; m < measuresComputed.size(); ++m)
-				{
-					m_dissimilarityMatrix[resultID1][resultID2].avgDissim[m] /= res2.fiberCount;
-				}
-			}
-		}
-		writeDissimilarityMatrixCache(measures);
-	}
-	QWidget* dissimDockContent = setupMatrixView(tblCreator.header(), m_paramValues, measures);
-	m_views.push_back(new iADockWidgetWrapper(dissimDockContent, "Dissimilarity Matrix", "foeMatrix"));
-	m_mdiChild->splitDockWidget(m_views[ResultListView], m_views[m_views.size()-1], Qt::Vertical);
-
-	m_parameterListView = new iAParameterListView(tblCreator.header(), m_paramValues, m_dissimilarityMatrix);
-	m_views.push_back(new iADockWidgetWrapper(m_parameterListView, "Parameter View", "foeParameters"));
-	m_mdiChild->splitDockWidget(m_views[ResultListView], m_views[m_views.size() - 1], Qt::Vertical);
-
-	dissimMatrixMeasureChanged(0);
+	int skipColumns = m_settingsView->sbParamCSVSkip->value();
+	m_sensitivityInfo = iASensitivityInfo::create(m_mdiChild, m_data, m_views[ResultListView], m_histogramBins, skipColumns,
+		m_resultUIs, m_main3DWidget);
+	connectSensitivity();
 }
 
-void iAFiAKErController::dissimMatrixMeasureChanged(int idx)
+void iAFiAKErController::resetSensitivity()
 {
-	m_matrixWidget->setData(idx);
-	m_matrixWidget->update();
-	m_parameterListView->dissimMatrixMeasureChanged(idx);
-}
-
-void iAFiAKErController::dissimMatrixParameterChanged(int idx)
-{
-	m_matrixWidget->setSortParameter(idx);
-	m_matrixWidget->update();
-}
-
-void iAFiAKErController::dissimMatrixColorMapChanged(int idx)
-{
-	m_matrixWidget->setLookupTable(iALUT::Build(m_matrixWidget->range(), iALUT::GetColorMapNames()[idx], 255, 255));
-	m_matrixWidget->update();
-	m_parameterListView->dissimMatrixColorMapChanged(idx);
+	m_sensitivityInfo.clear();
 }
 
 void iAFiAKErController::stackedBarColorThemeChanged(int index)
@@ -1568,6 +1106,10 @@ void iAFiAKErController::stackedBarColorThemeChanged(int index)
 
 void iAFiAKErController::changeDistributionSource(int index)
 {
+	if (!m_showCharts)
+	{
+		return;
+	}
 	if (matchQualityVisActive() && m_referenceID == NoResult)
 	{
 		LOG(lvlWarn, QString("You need to set a reference first!"));
@@ -1626,6 +1168,10 @@ void iAFiAKErController::changeDistributionSource(int index)
 
 void iAFiAKErController::updateHistogramColors()
 {
+	if (!m_showCharts)
+	{
+		return;
+	}
 	double range[2] = { 0.0, static_cast<double>(m_histogramBins) };
 	auto lut = m_colorByDistribution->isChecked() ?
 		QSharedPointer<iALookupTable>::create(iALUT::Build(range, m_colorByThemeName, 255, 1))
@@ -1654,6 +1200,10 @@ void iAFiAKErController::updateHistogramColors()
 
 void iAFiAKErController::updateRefDistPlots()
 {
+	if (!m_showCharts)
+	{
+		return;
+	}
 	for (size_t resultID = 0; resultID < m_data->result.size(); ++resultID)
 	{
 		auto & chart = m_resultUIs[resultID].histoChart;
@@ -1692,7 +1242,7 @@ void iAFiAKErController::colorByDistrToggled()
 					continue;
 				}
 				auto mainVis = m_resultUIs[resultID].main3DVis;
-				if (mainVis->visible())
+				if (mainVis && mainVis->visible())
 				{
 					mainVis->setColor(getResultColor(resultID));
 				}
@@ -1738,11 +1288,7 @@ void iAFiAKErController::exportDissimilarities()
 	{
 		out << "," << measureNames[measureID];
 	}
-#if QT_VERSION >= QT_VERSION_CHECK(5,14,0)
-	out << Qt::endl;
-#else
-	out << endl;
-#endif
+	out << QTENDL;
 	QFileInfo fi(fileName);
 	for (size_t resultID = 0; resultID < m_data->result.size(); ++resultID)
 	{
@@ -1761,11 +1307,7 @@ void iAFiAKErController::exportDissimilarities()
 				out << "," << avgMeasure[m];
 			}
 		}
-#if QT_VERSION >= QT_VERSION_CHECK(5,14,0)
-		out << Qt::endl;
-#else
-		out << endl;
-#endif
+		out << QTENDL;
 
 		if (resultID == m_referenceID)
 		{
@@ -1789,11 +1331,7 @@ void iAFiAKErController::exportDissimilarities()
 					<< "," << measureNames[measureID] << QString(" Dissimilarity %1").arg(i);
 			}
 		}
-#if QT_VERSION >= QT_VERSION_CHECK(5,14,0)
-		resultOut << Qt::endl;
-#else
-		resultOut << endl;
-#endif
+		resultOut << QTENDL;
 		for (int fiberID = 0; fiberID < r.refDiffFiber.size(); ++fiberID)
 		{
 			auto& f = r.refDiffFiber[fiberID].dist;
@@ -1805,11 +1343,7 @@ void iAFiAKErController::exportDissimilarities()
 					resultOut << "," << f[m][i].index << "," << f[m][i].dissimilarity;
 				}
 			}
-#if QT_VERSION >= QT_VERSION_CHECK(5,14,0)
-			resultOut << Qt::endl;
-#else
-			resultOut << endl;
-#endif
+			resultOut << QTENDL;
 		}
 		resultOutFile.close();
 	}
@@ -1846,11 +1380,11 @@ QColor iAFiAKErController::getResultColor(size_t resultID)
 
 namespace
 {
-	bool resultSelected(std::vector<iAFiberCharUIData> const & uiCollection, size_t resultID)
+	bool resultSelected(std::vector<iAFiberResultUIData> const & uiCollection, size_t resultID)
 	{
-		return (uiCollection[resultID].main3DVis->visible());
+		return (uiCollection[resultID].main3DVis && uiCollection[resultID].main3DVis->visible());
 	}
-	bool noResultSelected(std::vector<iAFiberCharUIData> const & uiCollection)
+	bool noResultSelected(std::vector<iAFiberResultUIData> const & uiCollection)
 	{
 		for (size_t i = 0; i < uiCollection.size(); ++i)
 		{
@@ -1861,7 +1395,7 @@ namespace
 		}
 		return true;
 	}
-	bool anyOtherResultSelected(std::vector<iAFiberCharUIData> const & uiCollection, size_t resultID)
+	bool anyOtherResultSelected(std::vector<iAFiberResultUIData> const & uiCollection, size_t resultID)
 	{
 		for (size_t i = 0; i < uiCollection.size(); ++i)
 		{
@@ -1907,7 +1441,7 @@ void iAFiAKErController::toggleOptimStepChart(size_t chartID, bool visible)
 		m_optimChartLayout->insertWidget(plotsBefore, m_optimStepChart[chartID]);
 		m_optimStepChart[chartID]->setMinimumHeight(100);
 		m_optimStepChart[chartID]->setSelectionMode(iAChartWidget::SelectPlot);
-		m_optimStepChart[chartID]->addXMarker(m_data->optimStepMax -1, OptimStepMarkerColor);
+		m_optimStepChart[chartID]->setXMarker(m_data->optimStepMax -1, OptimStepMarkerColor);
 		for (size_t resultID=0; resultID<m_data->result.size(); ++resultID)
 		{
 			auto & d = m_data->result[resultID];
@@ -1943,7 +1477,7 @@ void iAFiAKErController::toggleOptimStepChart(size_t chartID, bool visible)
 	}
 	m_optimStepChart[chartID]->setVisible(true);
 	m_optimStepChart[chartID]->clearMarkers();
-	m_optimStepChart[chartID]->addXMarker(m_optimStepSlider->value(), OptimStepMarkerColor);
+	m_optimStepChart[chartID]->setXMarker(m_optimStepSlider->value(), OptimStepMarkerColor);
 
 	bool allVisible = noResultSelected(m_resultUIs);
 	for (size_t resultID=0; resultID<m_data->result.size(); ++resultID)
@@ -1979,15 +1513,34 @@ void iAFiAKErController::toggleVis(int state)
 {
 	size_t resultID = QObject::sender()->property("resultID").toULongLong();
 	addInteraction(QString("Toggle visibility of %1 to %2.").arg(resultName(resultID)).arg(state?"on":"off"));
-	showMainVis(resultID, state);
+	showMainVis(resultID, state == Qt::Checked);
 }
 
-void iAFiAKErController::showMainVis(size_t resultID, int state)
+void iAFiAKErController::ensureMain3DViewCreated(size_t resultID)
+{
+	auto& d = m_data->result[resultID];
+	auto& ui = m_resultUIs[resultID];
+	if (!ui.main3DVis)
+	{
+		std::map<size_t, std::vector<iAVec3f> > const& curveInfo =
+			(m_useStepData && d.stepData == iAFiberResult::CurvedStepData) ?
+			getCurvedStepInfo(d) : d.curveInfo;
+		QColor resultColor(getResultColor(resultID));
+		ui.main3DVis = create3DVis(m_ren, d.table, d.mapping, resultColor, m_data->objectType, curveInfo);
+		ui.nameActions->setToolTip(ui.nameActions->toolTip() +
+			"Visualization details: " + ui.main3DVis->visualizationStatistics());
+		// iA3DColoredObjectVis::updateRenderer makes sure this connection is only triggered if vis is currently shown:
+		connect(ui.main3DVis.data(), &iA3DObjectVis::updated, this, &iAFiAKErController::update3D);
+	}
+}
+
+void iAFiAKErController::showMainVis(size_t resultID, bool state)
 {
 	auto & d = m_data->result[resultID];
 	auto & ui = m_resultUIs[resultID];
-	if (state == Qt::Checked)
+	if (state)
 	{
+		ensureMain3DViewCreated(resultID);
 		ui.main3DVis->setSelectionOpacity(m_selectionOpacity);
 		ui.main3DVis->setContextOpacity(m_contextOpacity);
 		ui.main3DVis->setShowWireFrame(m_showWireFrame);
@@ -2048,7 +1601,7 @@ void iAFiAKErController::showMainVis(size_t resultID, int state)
 			ui.main3DVis->setSelection(m_selection[resultID], anythingSelected);
 		}
 		if ((m_data->objectType == iACsvConfig::Cylinders || m_data->objectType == iACsvConfig::Lines) &&
-			d.stepData != iAFiberCharData::NoStepData &&
+			d.stepData != iAFiberResult::NoStepData &&
 			m_useStepData)
 		{
 			vis->updateValues(d.stepValues[
@@ -2062,7 +1615,7 @@ void iAFiAKErController::showMainVis(size_t resultID, int state)
 			m_cameraInitialized = true;
 		}
 		m_style->addInput(resultID, ui.main3DVis->getPolyData(), ui.main3DVis->getActor() );
-		m_spm->addFilter(m_data->m_resultIDColumn, resultID);
+		m_spm->viewData()->addFilter(m_data->m_resultIDColumn, resultID);
 	}
 	else
 	{
@@ -2106,7 +1659,7 @@ void iAFiAKErController::showMainVis(size_t resultID, int state)
 		}
 		ui.main3DVis->hide();
 		m_style->removeInput(resultID);
-		m_spm->removeFilter(m_data->m_resultIDColumn, resultID);
+		m_spm->viewData()->removeFilter(m_data->m_resultIDColumn, resultID);
 	}
 	for (size_t c = 0; c < m_chartCount; ++c)
 	{
@@ -2127,6 +1680,7 @@ void iAFiAKErController::toggleBoundingBox(int state)
 	auto & ui = m_resultUIs[resultID];
 	if (state == Qt::Checked)
 	{
+		ensureMain3DViewCreated(resultID);
 		ui.main3DVis->showBoundingBox();
 		if (!m_cameraInitialized)
 		{
@@ -2171,17 +1725,12 @@ void iAFiAKErController::clearSelection()
 	}
 }
 
-void iAFiAKErController::sortSelection(QString const & source)
+void iAFiAKErController::newSelection(QString const& source)
 {
 	for (size_t resultID = 0; resultID < m_selection.size(); ++resultID)
 	{
 		std::sort(m_selection[resultID].begin(), m_selection[resultID].end());
 	}
-	newSelection(source);
-}
-
-void iAFiAKErController::newSelection(QString const & source)
-{
 	size_t selSize = selectionSize();
 	if (selSize == 0 || (m_selections.size() > 0 && m_selection == m_selections[m_selections.size() - 1]))
 	{
@@ -2276,7 +1825,7 @@ void iAFiAKErController::showSelectionIn3DViews()
 	for (size_t resultID = 0; resultID < m_resultUIs.size(); ++resultID)
 	{
 		auto& vis = m_resultUIs[resultID];
-		if (vis.main3DVis->visible())
+		if (vis.main3DVis && vis.main3DVis->visible())
 		{
 			vis.main3DVis->setSelection(m_selection[resultID], anythingSelected);
 		}
@@ -2304,16 +1853,19 @@ void iAFiAKErController::showSelectionInSPM()
 void iAFiAKErController::selection3DChanged()
 {
 	addInteraction(QString("Selected %1 fibers in 3D view.").arg(selectionSize()));
-	sortSelection("3D view");
+	newSelection("3D view");
 	showSelectionIn3DViews();
 	showSelectionInPlots();
 	showSelectionInSPM();
 	changeReferenceDisplay();
 	updateFiberContext();
+	emit fiberSelectionChanged(m_selection);
+	/*
 	if (isAnythingSelected() && !m_views[SelectionView]->isVisible())
 	{
 		m_views[SelectionView]->show();
 	}
+	*/
 }
 
 void iAFiAKErController::selectionSPMChanged(std::vector<size_t> const & selection)
@@ -2327,15 +1879,18 @@ void iAFiAKErController::selectionSPMChanged(std::vector<size_t> const & selecti
 		getResultFiberIDFromSpmID(spmID, resultID, fiberID);
 		m_selection[resultID].push_back(fiberID);
 	}
-	sortSelection("SPM");
+	newSelection("SPM");
 	showSelectionIn3DViews();
 	showSelectionInPlots();
 	changeReferenceDisplay();
 	updateFiberContext();
+	emit fiberSelectionChanged(m_selection);
+	/*
 	if (isAnythingSelected() && !m_views[SelectionView]->isVisible())
 	{
 		m_views[SelectionView]->show();
 	}
+	*/
 }
 
 void iAFiAKErController::selectionOptimStepChartChanged(std::vector<size_t> const & selection)
@@ -2358,16 +1913,19 @@ void iAFiAKErController::selectionOptimStepChartChanged(std::vector<size_t> cons
 			}
 		}
 	}
-	sortSelection("Chart");
+	newSelection("Chart");
 	showSelectionInPlots();
 	showSelectionIn3DViews();
 	showSelectionInSPM();
 	changeReferenceDisplay();
 	updateFiberContext();
+	emit fiberSelectionChanged(m_selection);
+	/*
 	if (isAnythingSelected() && !m_views[SelectionView]->isVisible())
 	{
 		m_views[SelectionView]->show();
 	}
+	*/
 }
 
 /*
@@ -2414,14 +1972,14 @@ void iAFiAKErController::setOptimStep(int optimStep)
 			continue;
 		}
 		chart->clearMarkers();
-		chart->addXMarker(optimStep, OptimStepMarkerColor);
+		chart->setXMarker(optimStep, OptimStepMarkerColor);
 		chart->update();
 		for (size_t resultID = 0; resultID < m_data->result.size(); ++resultID)
 		{
 			auto main3DVis = m_resultUIs[resultID].main3DVis;
-			if (main3DVis->visible() &&
+			if (main3DVis && main3DVis->visible() &&
 				m_data->objectType == iACsvConfig::Cylinders &&
-				m_data->result[resultID].stepData != iAFiberCharData::NoStepData)
+				m_data->result[resultID].stepData != iAFiberResult::NoStepData)
 			{
 				auto & stepValues = m_data->result[resultID].stepValues;
 				auto vis = dynamic_cast<iA3DCylinderObjectVis*>(main3DVis.data());
@@ -2509,7 +2067,7 @@ void iAFiAKErController::visitAllVisibleVis(std::function<void(QSharedPointer<iA
 		{
 			func(vis.mini3DVis, resultID);
 		}
-		if (vis.main3DVis->visible())
+		if (vis.main3DVis && vis.main3DVis->visible())
 		{
 			func(vis.main3DVis, resultID);
 		}
@@ -2679,15 +2237,15 @@ void iAFiAKErController::updateFiberContext()
 
 namespace
 {
-	void setResultBackground(iAFiberCharUIData & ui, QPalette::ColorRole role)
+	void setResultBackground(iAFiberResultUIData & ui, QPalette::ColorRole role)
 	{
 		QColor color(qApp->palette().color(role));
-		ui.nameActions->setBackgroundColor(color);
+		ui.nameActions->setBackgroundRole(role);
 		ui.topFiller->setStyleSheet("background-color: " + color.name());
 		ui.bottomFiller->setStyleSheet("background-color: " + color.name());
 		if (ui.previewWidget && ui.vtkWidget)
 		{
-			ui.previewWidget->setBackgroundColor(color);
+			ui.previewWidget->setBackgroundRole(role);
 #if VTK_VERSION_NUMBER < VTK_VERSION_CHECK(9, 0, 0)
 			ui.vtkWidget->GetRenderWindow()->GetRenderers()->GetFirstRenderer()->SetBackground(
 #else
@@ -2696,8 +2254,11 @@ namespace
 				color.redF(), color.greenF(), color.blueF());
 			ui.vtkWidget->update();
 		}
-		ui.stackedBars->setBackgroundColor(color);
-		ui.histoChart->setBackgroundRole(role);
+		ui.stackedBars->setBackgroundRole(role);
+		if (ui.histoChart)
+		{
+			ui.histoChart->setBackgroundRole(role);
+		}
 	}
 }
 
@@ -2740,7 +2301,6 @@ void iAFiAKErController::setReference(size_t referenceID, std::vector<std::pair<
 		m_showResultVis[m_referenceID]->setText(m_showResultVis[m_referenceID]->text().left(m_showResultVis[m_referenceID]->text().length()-RefMarker.length()));
 	}
 	addInteraction(QString("Reference set to %1.").arg(resultName(referenceID)));
-	auto bounds = m_resultUIs[referenceID].main3DVis->bounds();
 	bool setBB = true;
 	for (int i = 0; i < 6; ++i)
 	{
@@ -2752,10 +2312,11 @@ void iAFiAKErController::setReference(size_t referenceID, std::vector<std::pair<
 	}
 	if (setBB)
 	{
+		auto& bounds = m_data->result[referenceID].bbox;
 		for (int i = 0; i < 3; ++i)
 		{
-			m_teBoundingBox[i]->setText(QString::number(bounds[i * 2]));
-			m_teBoundingBox[i + 3]->setText(QString::number(bounds[i * 2 + 1]));
+			m_teBoundingBox[i]->setText(QString::number(bounds[0][i]));
+			m_teBoundingBox[i + 3]->setText(QString::number(bounds[1][i]));
 		}
 	}
 	m_refDistCompute = new iARefDistCompute(m_data, referenceID);
@@ -2808,10 +2369,24 @@ bool iAFiAKErController::loadReferenceInternal(iASettings settings)
 	return true;
 }
 
-void iAFiAKErController::loadReference(iASettings settings)
+void iAFiAKErController::loadAdditionalData(iASettings settings, QString projectFileName)
 {
-	if (!loadReferenceInternal(settings))
-	{   // if no reference set, load settings directly
+	bool directlyLoadSettings = true;
+	if (settings.contains(ProjectFileReference))
+	{
+		directlyLoadSettings = !loadReferenceInternal(settings);
+	}
+	if (iASensitivityInfo::hasData(settings))
+	{
+		m_sensitivityInfo = iASensitivityInfo::load(m_mdiChild, m_data, m_views[ResultListView],
+			settings, projectFileName, m_resultUIs, m_main3DWidget);
+		connectSensitivity();
+		// don't change direct loading of settings here, the settings loaded below
+		// probably don't really affect sensitivity things (TODO: to be checked - if it doesn't crash it should be fine)
+	}
+	// if no further data loaded, load settings directly
+	if (directlyLoadSettings)
+	{
 		loadSettings(settings);
 	}
 }
@@ -2844,6 +2419,7 @@ void iAFiAKErController::loadSettings(iASettings settings)
 {
 	m_spm->loadSettings(settings);
 	::loadSettings(settings, m_settingsWidgetMap);
+	m_histogramBins = m_settingsView->sbHistogramBins->value();
 
 	auto cam = m_ren->GetActiveCamera();
 	setCameraParameter(settings, CameraPosition, cam, &vtkCamera::SetPosition);
@@ -2924,7 +2500,7 @@ void iAFiAKErController::refDistAvailable()
 	m_distributionChoice->setCurrentIndex(m_data->spmData->numParams() - 1);
 	QSignalBlocker cbColorByBlock(m_colorByDistribution);
 	m_colorByDistribution->setChecked(true);
-	showMainVis(m_referenceID, Qt::Checked);
+	showMainVis(m_referenceID, true);
 	changeDistributionSource(m_data->spmData->numParams() - 1);
 
 	emit referenceComputed();
@@ -2951,6 +2527,7 @@ void iAFiAKErController::showSpatialOverview()
 	double range[2] = {-1.0, 1.0};
 	QSharedPointer<iALookupTable> lut(new iALookupTable());
 	*lut = iALUT::Build(range, m_colorByThemeName, 255, m_selectionOpacity);
+	ensureMain3DViewCreated(m_referenceID);
 	auto ref3D = m_resultUIs[m_referenceID].main3DVis;
 	QSignalBlocker cbBlock(m_showResultVis[m_referenceID]);
 	m_showResultVis[m_referenceID]->setChecked(true);
@@ -2982,7 +2559,7 @@ void iAFiAKErController::spmLookupTableChanged()
 	//     - update color theme name if changed in SPM settings
 	for (size_t resultID = 0; resultID < m_resultUIs.size(); ++resultID)
 	{
-		if (m_resultUIs[resultID].main3DVis->visible() && (!matchQualityVisActive() || resultID != m_referenceID))
+		if (m_resultUIs[resultID].main3DVis && m_resultUIs[resultID].main3DVis->visible() && (!matchQualityVisActive() || resultID != m_referenceID))
 		{
 			m_resultUIs[resultID].main3DVis->setLookupTable(lut, colorLookupParam);
 		}
@@ -3118,7 +2695,6 @@ void iAFiAKErController::changeReferenceDisplay()
 	//m_nearestReferenceVis->setLookupTable(lut, refTable->GetNumberOfColumns()-2);
 	// TODO: show similarity color map somewhere!!!
 
-
 	// Lines from Fiber points to reference:
 	if (!m_chkboxShowLines->isChecked())
 	{
@@ -3161,7 +2737,7 @@ void iAFiAKErController::changeReferenceDisplay()
 				size_t refFiberID = d.refDiffFiber[fiberID].dist[similarityMeasure][n].index;
 				for (int i = 0; i < 3; ++i)
 				{
-					if (d.stepData == iAFiberCharData::SimpleStepData)
+					if (d.stepData == iAFiberResult::SimpleStepData)
 					{
 						start1[i] = d.stepValues[std::min(step, d.stepValues.size() - 1)][fiberID][i];
 					}
@@ -3173,7 +2749,7 @@ void iAFiAKErController::changeReferenceDisplay()
 				}
 				for (int i = 0; i < 3; ++i)
 				{
-					if (d.stepData == iAFiberCharData::SimpleStepData)
+					if (d.stepData == iAFiberResult::SimpleStepData)
 					{
 						start2[i] = d.stepValues[std::min(step, d.stepValues.size() - 1)][fiberID][3 + i];
 					}
@@ -3375,6 +2951,13 @@ void iAFiAKErController::selectionFromListActivated(QModelIndex const & index)
 	changeReferenceDisplay();
 }
 
+void iAFiAKErController::selectFibersFromSensitivity(SelectionType const& selection)
+{
+	m_selection = selection;
+	// for now let's try with only updating 3D view:
+	showSelectionIn3DViews();
+}
+
 void iAFiAKErController::showSelectionDetail()
 {
 	m_selectionDetailModel->clear();
@@ -3432,7 +3015,12 @@ void iAFiAKErController::saveProject(QSettings & projectFile, QString  const & f
 	projectFile.setValue(ProjectFileStepShift, m_data->stepShift);
 	projectFile.setValue(ProjectUseStepData, m_useStepData);
 	projectFile.setValue(ProjectShowPreviews, m_showPreviews);
+	projectFile.setValue(ProjectShowCharts, m_showCharts);
 	saveSettings(projectFile);
+	if (m_sensitivityInfo)
+	{
+		m_sensitivityInfo->saveProject(projectFile, fileName);
+	}
 }
 
 void iAFiAKErController::update3D()
@@ -3473,9 +3061,7 @@ void iAFiAKErController::applyRenderSettings()
 			auto ren = m_resultUIs[resultID].vtkWidget->renderWindow()->GetRenderers()->GetFirstRenderer();
 #endif
 			ren->SetUseDepthPeeling(m_mdiChild->renderSettings().UseDepthPeeling);
-#if (defined(VTK_OPENGL2_BACKEND))
 			ren->SetUseDepthPeelingForVolumes(m_mdiChild->renderSettings().UseDepthPeeling);
-#endif
 			ren->SetMaximumNumberOfPeels(m_mdiChild->renderSettings().DepthPeels);
 			ren->SetUseFXAA(m_mdiChild->renderSettings().UseFXAA);
 			QColor bgTop(m_mdiChild->renderSettings().BackgroundTop);
@@ -3484,7 +3070,7 @@ void iAFiAKErController::applyRenderSettings()
 			ren->SetBackground(bgBottom.redF(), bgBottom.greenF(), bgBottom.blueF());
 		}
 
-		if (mainVis->visible())
+		if (mainVis && mainVis->visible())
 		{
 			setClippingPlanes(mainVis);
 		}

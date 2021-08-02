@@ -48,6 +48,7 @@ iAFilterSelectionDlg::iAFilterSelectionDlg(QWidget * parent, QString const & pre
 			m_ui->lwFilterList->setCurrentItem(matching[0]);
 		}
 	}
+	m_ui->splitter->setCollapsible(1, true);
 }
 
 void iAFilterSelectionDlg::filterChanged(QString const & filter)

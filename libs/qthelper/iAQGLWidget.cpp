@@ -20,18 +20,13 @@
 * ************************************************************************************/
 #include "iAQGLWidget.h"
 
-iAQGLFormat defaultQOpenGLWidgetFormat()
+QSurfaceFormat defaultQOpenGLWidgetFormat()
 {
-	iAQGLFormat fmt;
-#if (defined(VTK_OPENGL2_BACKEND))
+	QSurfaceFormat fmt;
 	fmt.setVersion(3, 2);
 	fmt.setRenderableType(QSurfaceFormat::OpenGL);
 	fmt.setSwapBehavior(QSurfaceFormat::DoubleBuffer);
-#else
-	fmt.setVersion(1, 0);
-	fmt.setDoubleBuffer(true);
-#endif
-	fmt.setProfile(iAQGLFormat::CoreProfile);
+	fmt.setProfile(QSurfaceFormat::CoreProfile);
 #ifdef OPENGL_DEBUG
 	fmt.setOption(QSurfaceFormat::DebugContext);
 #endif

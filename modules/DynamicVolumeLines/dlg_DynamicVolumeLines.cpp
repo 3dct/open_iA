@@ -61,7 +61,6 @@
 #include <vtkProperty.h>
 #include <vtkRenderer.h>
 #include <vtkRendererCollection.h>
-#include <vtkScalarBarActor.h>
 #include <vtkTextActor.h>
 #include <vtkTextProperty.h>
 #include <vtkVolumeProperty.h>
@@ -303,17 +302,13 @@ void dlg_DynamicVolumeLines::setupMultiRendererView()
 	m_mrvBGRen->SetBackground(1.0, 1.0, 1.0);
 	m_mrvBGRen->AddActor2D(m_mrvTxtAct);
 
-	CREATE_OLDVTKWIDGET(wgtContainer);
-#if VTK_VERSION_NUMBER < VTK_VERSION_CHECK(9, 0, 0)
-	auto mrvRenWin = wgtContainer->GetRenderWindow();
-#else
-	auto mrvRenWin = wgtContainer->renderWindow();
-#endif
+	m_wgtContainer = new iAQVTKWidget();
+	auto mrvRenWin = m_wgtContainer->renderWindow();
 	mrvRenWin->SetNumberOfLayers(2);
 	mrvRenWin->AddRenderer(m_mrvBGRen);
 	mrvRenWin->Render();
 	m_mdiChild->tabifyDockWidget(m_mdiChild->renderDockWidget(), m_MultiRendererView);
-	m_MultiRendererView->verticalLayout->addWidget(wgtContainer);
+	m_MultiRendererView->verticalLayout->addWidget(m_wgtContainer);
 	m_MultiRendererView->show();
 }
 
@@ -1256,13 +1251,8 @@ void dlg_DynamicVolumeLines::mouseWheel(QWheelEvent* e)
 void dlg_DynamicVolumeLines::selectionChangedByUser()
 {
 	// TODO: change transfer function for "hidden" values; should be HistogramRangeMinimum-1
-#if VTK_VERSION_NUMBER < VTK_VERSION_CHECK(9, 0, 0)
-	wgtContainer->GetRenderWindow()->GetRenderers()->RemoveAllItems();
-	wgtContainer->GetRenderWindow()->AddRenderer(m_mrvBGRen);
-#else
-	wgtContainer->renderWindow()->GetRenderers()->RemoveAllItems();
-	wgtContainer->renderWindow()->AddRenderer(m_mrvBGRen);
-#endif
+	m_wgtContainer->renderWindow()->GetRenderers()->RemoveAllItems();
+	m_wgtContainer->renderWindow()->AddRenderer(m_mrvBGRen);
 
 	QCustomPlot *plotU = qobject_cast<QCustomPlot*>(QObject::sender());
 	QCustomPlot *plotP;
@@ -1531,13 +1521,8 @@ void dlg_DynamicVolumeLines::selectCompLevel()
 		}
 	}
 
-#if VTK_VERSION_NUMBER < VTK_VERSION_CHECK(9, 0, 0)
-	wgtContainer->GetRenderWindow()->GetRenderers()->RemoveAllItems();
-	wgtContainer->GetRenderWindow()->AddRenderer(m_mrvBGRen);
-#else
-	wgtContainer->renderWindow()->GetRenderers()->RemoveAllItems();
-	wgtContainer->renderWindow()->AddRenderer(m_mrvBGRen);
-#endif
+	m_wgtContainer->renderWindow()->GetRenderers()->RemoveAllItems();
+	m_wgtContainer->renderWindow()->AddRenderer(m_mrvBGRen);
 	m_mrvTxtAct->SetVisibility(selCompLvlRanges.dataRanges().empty());
 
 	QList<QCPGraph *> visibleGraphsList;
@@ -1659,15 +1644,9 @@ void dlg_DynamicVolumeLines::setSelectionForRenderer(QList<QCPGraph *> visSelGra
 		m_volRen->applySettings(m_mdiChild->volumeSettings());
 		m_volRen->addTo(ren);
 		m_volRen->addBoundingBoxTo(ren);
-#if VTK_VERSION_NUMBER < VTK_VERSION_CHECK(9, 0, 0)
-		wgtContainer->GetRenderWindow()->AddRenderer(ren);
+		m_wgtContainer->renderWindow()->AddRenderer(ren);
 	}
-	wgtContainer->GetRenderWindow()->Render();
-#else
-		wgtContainer->renderWindow()->AddRenderer(ren);
-	}
-	wgtContainer->renderWindow()->Render();
-#endif
+	m_wgtContainer->renderWindow()->Render();
 }
 
 void dlg_DynamicVolumeLines::setNoSelectionForPlots()
@@ -1679,17 +1658,10 @@ void dlg_DynamicVolumeLines::setNoSelectionForPlots()
 		m_linearScaledPlot->graph(i)->setSelection(noSelection);
 	}
 
-#if VTK_VERSION_NUMBER < VTK_VERSION_CHECK(9, 0, 0)
-	wgtContainer->GetRenderWindow()->GetRenderers()->RemoveAllItems();
+	m_wgtContainer->renderWindow()->GetRenderers()->RemoveAllItems();
 	m_mrvTxtAct->VisibilityOn();
-	wgtContainer->GetRenderWindow()->AddRenderer(m_mrvBGRen);
-	wgtContainer->GetRenderWindow()->Render();
-#else
-	wgtContainer->renderWindow()->GetRenderers()->RemoveAllItems();
-	m_mrvTxtAct->VisibilityOn();
-	wgtContainer->renderWindow()->AddRenderer(m_mrvBGRen);
-	wgtContainer->renderWindow()->Render();
-#endif
+	m_wgtContainer->renderWindow()->AddRenderer(m_mrvBGRen);
+	m_wgtContainer->renderWindow()->Render();
 
 	m_scalingWidget->setSel(noSelection);
 	m_scalingWidget->update();

@@ -20,40 +20,22 @@
 * ************************************************************************************/
 #pragma once
 
-#include "ui_PCView.h"
+#include <QLabel>
 
-#include <iAVtkWidgetFwd.h>
-#include <qthelper/iAQTtoUIConnector.h>
-
-#include <vtkSmartPointer.h>
-
-typedef iAQTtoUIConnector<QDockWidget, Ui_PCView> PCViewConnector;
-
-class vtkContextView;
-class vtkChartParallelCoordinates;
-
-class QTableWidget;
-
-class iAPCView : public PCViewConnector
+class iAClickableLabel: public QLabel
 {
 	Q_OBJECT
-
 public:
-#if QT_VERSION < QT_VERSION_CHECK(5, 15, 0)
-	iAPCView(QWidget * parent = nullptr, Qt::WindowFlags f = 0);
-#else
-	iAPCView(QWidget* parent = nullptr, Qt::WindowFlags f = Qt::WindowFlags());
-#endif
-	~iAPCView();
+	iAClickableLabel(QString const& text, bool vertical);
+signals:
+	void dblClicked();
+	void clicked();
+private:
+	void mouseDoubleClickEvent(QMouseEvent* ev) override;
+	void mouseReleaseEvent(QMouseEvent* ev) override;
+	void paintEvent(QPaintEvent*) override;
+	QSize sizeHint() const override;
+	QSize minimumSizeHint() const override;
 
-public slots:
-	void SetData( const QTableWidget * data );
-
-protected:
-	void ChartModified();
-
-protected:
-	vtkSmartPointer<vtkContextView> m_view;
-	vtkSmartPointer<vtkChartParallelCoordinates> m_chart;
-	iAVtkOldWidget * m_widget;
+	bool m_vertical;
 };

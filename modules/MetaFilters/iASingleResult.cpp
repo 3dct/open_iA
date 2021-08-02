@@ -39,7 +39,8 @@ const QString iASingleResult::ValueSplitString(",");
 QSharedPointer<iASingleResult> iASingleResult::create(
 	QString const & line,
 	iASamplingResults const & sampling,
-	QSharedPointer<iAAttributes> attributes)
+	QSharedPointer<iAAttributes> attributes,
+	bool showErrorOutput)
 {
 	QStringList tokens = line.split(ValueSplitString);
 
@@ -53,7 +54,10 @@ QSharedPointer<iASingleResult> iASingleResult::create(
 		id = tokens[0].toInt(&ok);
 		if (!ok)
 		{
-			LOG(lvlError, QString("Invalid result ID: %1").arg(tokens[0]));
+			if (showErrorOutput)
+			{
+				LOG(lvlError, QString("Invalid result ID: %1").arg(tokens[0]));
+			}
 			return QSharedPointer<iASingleResult>();
 		}
 		else
@@ -67,7 +71,10 @@ QSharedPointer<iASingleResult> iASingleResult::create(
 	));
 	if (tokens.size() < attributes->size()+1) // +1 for ID
 	{
-		LOG(lvlError, QString("Invalid token count(=%1), expected %2").arg(tokens.size()).arg(attributes->size()+1));
+		if (showErrorOutput)
+		{
+			LOG(lvlError, QString("Invalid token count(=%1), expected %2").arg(tokens.size()).arg(attributes->size() + 1));
+		}
 		return QSharedPointer<iASingleResult>();
 	}
 	for (int i = 0; i < attributes->size(); ++i)
@@ -92,8 +99,11 @@ QSharedPointer<iASingleResult> iASingleResult::create(
 		}
 		if (!ok)
 		{
-			LOG(lvlError, QString("Could not parse attribute value # %1: '%2' (type=%3).")
-				.arg(i).arg(curToken).arg(ValueType2Str(valueType)));
+			if (showErrorOutput)
+			{
+				LOG(lvlError, QString("Could not parse attribute value # %1: '%2' (type=%3).")
+					.arg(i).arg(curToken).arg(ValueType2Str(valueType)));
+			}
 			return QSharedPointer<iASingleResult>();
 		}
 		result->m_attributeValues.push_back(value);
@@ -150,7 +160,7 @@ QString iASingleResult::toString(QSharedPointer<iAAttributes> attributes, int ty
 			}
 		}
 	}
-	if (type == iAAttributeDescriptor::DerivedOutput)
+	if (type == iAAttributeDescriptor::Parameter)
 	{
 		result += ValueSplitString + MakeRelative(m_sampling.path(), m_fileName);
 	}

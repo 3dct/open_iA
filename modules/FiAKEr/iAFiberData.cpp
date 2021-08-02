@@ -23,6 +23,7 @@
 #include "iACsvConfig.h"
 
 #include <iALog.h>
+#include <iAMathUtility.h>
 
 #include <vtkMath.h>
 #include <vtkTable.h>
@@ -124,25 +125,6 @@ iAFiberData iAFiberData::getOrientationCorrected(iAFiberData const & source, iAF
 
 namespace
 {
-
-	// great points about floating point equals: https://stackoverflow.com/a/41405501/671366
-	template<typename T1, typename T2>
-	static bool isApproxEqual(T1 a, T2 b, T1 tolerance = std::numeric_limits<T1>::epsilon())
-	{
-		T1 diff = std::fabs(a - b);
-		if (diff <= tolerance)
-		{
-			return true;
-		}
-
-		if (diff < std::fmax(std::fabs(a), std::fabs(b)) * tolerance)
-		{
-			return true;
-		}
-
-		return false;
-	}
-
 	iAVec3f perpendicularVector(iAVec3f const & vectorIn)
 	{
 		if (!isApproxEqual(vectorIn[0], 0.0) && !isApproxEqual(-vectorIn[0], vectorIn[1]))
@@ -185,28 +167,6 @@ namespace
 			return distance < radius;
 		}
 		return false;
-	}
-
-	bool pointContainedInFiber(iAVec3f const & point, iAFiberData const & fiber)
-	{
-		if (fiber.curvedPoints.empty())
-		{
-			iAVec3f dir = fiber.pts[PtEnd] - fiber.pts[PtStart];
-			return pointContainedInLineSegment(fiber.pts[PtStart], dir, fiber.diameter / 2.0, point);
-		}
-		else
-		{
-			for (size_t i=0; i<fiber.curvedPoints.size()-1; ++i)
-			{
-				iAVec3f dir = (fiber.curvedPoints[i+1] - fiber.curvedPoints[i]);
-				iAVec3f start(fiber.curvedPoints[i]);
-				if (pointContainedInLineSegment(start, dir, fiber.diameter / 2.0, point))
-				{
-					return true;
-				}
-			}
-			return false;
-		}
 	}
 
 	//! determine the distance from the given point to the closest point on the given line segment
@@ -387,6 +347,28 @@ namespace
 	}
 }
 
+bool pointContainedInFiber(iAVec3f const& point, iAFiberData const& fiber)
+{
+	if (fiber.curvedPoints.empty())
+	{
+		iAVec3f dir = fiber.pts[PtEnd] - fiber.pts[PtStart];
+		return pointContainedInLineSegment(fiber.pts[PtStart], dir, fiber.diameter / 2.0, point);
+	}
+	else
+	{
+		for (size_t i = 0; i < fiber.curvedPoints.size() - 1; ++i)
+		{
+			iAVec3f dir = (fiber.curvedPoints[i + 1] - fiber.curvedPoints[i]);
+			iAVec3f start(fiber.curvedPoints[i]);
+			if (pointContainedInLineSegment(start, dir, fiber.diameter / 2.0, point))
+			{
+				return true;
+			}
+		}
+		return false;
+	}
+}
+
 void samplePoints(iAFiberData const & fiber, std::vector<iAVec3f> & result, size_t numSamples)
 {
 	result.reserve(numSamples);
@@ -508,7 +490,7 @@ double getDissimilarity(iAFiberData const & fiber1raw, iAFiberData const & fiber
 		//        - n places along the fiber axis (e.g. split length into 5 equal segments)
 		//        - at each place, take m points along the fiber surface (i.e. split 360° by m = x, one point for each segment of angle width x)
 		//        - at surface? -> at distance r from current middle point, in direction of angle x
-		//    -> random? -> probably simplest, something like https://stackoverflow.com/a/9266704/671366:
+		//    -> random? -> probably simplest, something like https://stackoverflow.com/a/9266704
 		//        - one random variable for point along fiber axis (0..1, where 0=start point, 1=end point)
 		//        - one random variable for direction from axis (0..360°)
 		//            -> for now: only 4 positions (0, 90, 180, 270)°, which makes it much easier to handle (no rotation around custom axis, just cross product/inversion of direction!

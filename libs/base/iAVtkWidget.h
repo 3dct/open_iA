@@ -22,47 +22,38 @@
 
 #include "iAVtkVersion.h"
 
-#include <QtGlobal>
+#include <vtkGenericOpenGLRenderWindow.h>
 
-#if (VTK_VERSION_NUMBER >= VTK_VERSION_CHECK(8, 2, 0) && defined(VTK_OPENGL2_BACKEND) )
+#if (VTK_VERSION_NUMBER >= VTK_VERSION_CHECK(8, 2, 0))
 	#include <QVTKOpenGLNativeWidget.h>
-	#include <vtkGenericOpenGLRenderWindow.h>
-	typedef QVTKOpenGLNativeWidget iAVtkWidget;
-	typedef QVTKOpenGLNativeWidget iAVtkOldWidget;
+	using iAVtkWidget = QVTKOpenGLNativeWidget;
+#else
+	#include <QVTKOpenGLWidget.h>
+	using iAVtkWidget = QVTKOpenGLWidget;
+#endif
+
+//! Unified interface to a Qt widget with VTK content, providing consistent usage for VTK versions 8 to 9.
+class iAQVTKWidget: public iAVtkWidget
+{
+public:
+	//! Creates the widget; makes sure its inner vtk render window is set, and sets an appropriate surface format
+	iAQVTKWidget(QWidget* parent = nullptr): iAVtkWidget(parent)
+	{	// before version 9, VTK did not set a default render window, let's do this...
 #if VTK_VERSION_NUMBER < VTK_VERSION_CHECK(9, 0, 0)
-	#define CREATE_OLDVTKWIDGET(x) \
-	{ \
-		(x) = new QVTKOpenGLNativeWidget(); \
-		auto renWin = vtkSmartPointer<vtkGenericOpenGLRenderWindow>::New(); \
-		(x)->SetRenderWindow(renWin); \
+		auto renWin = vtkSmartPointer<vtkGenericOpenGLRenderWindow>::New();
+		SetRenderWindow(renWin);
+#endif
+		setFormat(iAVtkWidget::defaultFormat());
 	}
-#else
-	#define CREATE_OLDVTKWIDGET(x) \
-	{ \
-		(x) = new QVTKOpenGLNativeWidget(); \
-		auto renWin = vtkSmartPointer<vtkGenericOpenGLRenderWindow>::New(); \
-		(x)->setRenderWindow(renWin); \
-		(x)->setFormat(QVTKOpenGLNativeWidget::defaultFormat()); \
+#if VTK_VERSION_NUMBER < VTK_VERSION_CHECK(9, 0, 0)
+	// There also were no Qt-style methods to retrieve render window and interactor, let's provide them:
+	vtkRenderWindow* renderWindow()
+	{
+		return GetRenderWindow();
+	}
+	QVTKInteractor* interactor()
+	{
+		return GetInteractor();
 	}
 #endif
-#else
-	#if (VTK_VERSION_NUMBER < VTK_VERSION_CHECK(8, 2, 0) && defined(VTK_OPENGL2_BACKEND))
-		#include <QVTKOpenGLWidget.h>
-		#include <vtkGenericOpenGLRenderWindow.h>
-		typedef QVTKOpenGLWidget iAVtkWidget;
-		typedef QVTKOpenGLWidget iAVtkOldWidget;
-		#define CREATE_OLDVTKWIDGET(x) \
-		{ \
-			(x) = new QVTKOpenGLWidget(); \
-			auto renWin = vtkSmartPointer<vtkGenericOpenGLRenderWindow>::New(); \
-			(x)->SetRenderWindow(renWin); \
-		}
-	#else
-		#include <QVTKWidget.h>
-		#include <QVTKWidget2.h>
-		#include <vtkRenderWindow.h>
-		typedef QVTKWidget2 iAVtkWidget;
-		typedef QVTKWidget iAVtkOldWidget;
-		#define CREATE_OLDVTKWIDGET(x) (x) = new QVTKWidget();
-	#endif
-#endif
+};

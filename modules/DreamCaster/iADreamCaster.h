@@ -28,8 +28,6 @@
 
 #include "raycast/include/iADreamCasterCommon.h"
 
-#include "iAVtkWidgetFwd.h"
-
 class vtkActor;
 class vtkDataSetMapper;
 class vtkDepthSortPolyData;
@@ -38,6 +36,7 @@ class vtkRenderer;
 class vtkSTLReader;
 
 class iAChartWidget;
+class iAQVTKWidget;
 
 struct iACombinedParametersView;
 class iACutFigList;
@@ -139,7 +138,7 @@ private:
 	iAPlot3DVtk * plot3d;
 	iAPlot3DVtk * plot3dWeighting;
 
-	iAVtkOldWidget *qvtkWidget, *qvtkPlot3d, *qvtkWeighing;
+	iAQVTKWidget *qvtkWidget, *qvtkPlot3d, *qvtkWeighing;
 	void  Pick(int pickPos[2]);
 	//! Update all the views and labels corresponding to the picked placement
 	void setPickedPlacement(int indX, int indY, int indZ);

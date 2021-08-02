@@ -22,6 +22,7 @@
 
 #include "iACsvConfig.h"
 
+#include <iAAbortListener.h>
 #include <iAProgress.h>
 #include <iAVec3.h>
 
@@ -31,7 +32,10 @@
 #include <QSharedPointer>
 #include <QThread>
 
+#include <array>
 #include <vector>
+
+struct iAFiberData;
 
 class iASPLOMData;
 
@@ -45,8 +49,8 @@ class QCheckBox;
 class iAFiberSimilarity
 {
 public:
-	quint64 index;
-	double dissimilarity;
+	quint32 index;
+	float dissimilarity;
 	friend bool operator<(iAFiberSimilarity const & a, iAFiberSimilarity const & b);
 };
 
@@ -77,11 +81,14 @@ public:
 QDataStream &operator<<(QDataStream &out, const iARefDiffFiberData &s);
 QDataStream &operator>>(QDataStream &in, iARefDiffFiberData &s);
 
+using iAAABB = std::array<iAVec3f, 2>;
+
 //! Data for the result of a single run of a fiber reconstructcion algorithm.
-class iAFiberCharData
+class iAFiberResult
 {
 public:
-	//! the fiber data as vtkTable, mainly for the 3d visualization:
+	//! the fiber data as vtkTable, mainly for the 3d visualization
+	// TODO: deduplicate data here and in iAFiberResultsCollection::spmData
 	vtkSmartPointer<vtkTable> table;
 	//! mapping of the columns in m_resultTable
 	QSharedPointer<QMap<uint, uint> > mapping;
@@ -105,19 +112,27 @@ public:
 	QVector<iARefDiffFiberData> refDiffFiber;
 	//! for each similarity measure, the average over all fibers
 	QVector<double> avgDifference;  // rename -> avgDissimilarity
+	
+	//! overall bounding box
+	iAAABB bbox;
+	//! bounding box per fiber:
+	std::vector<iAAABB> fiberBB;
+	//! fiber data objects:
+	std::vector<iAFiberData> fiberData;
 };
 
 //! A collection of multiple results from one or more fiber reconstruction algorithms.
 class iAFiberResultsCollection
 {
 public:
-	static const QString LegacyFormat;
+	static const QString FiakerFCPFormat;
 	static const QString SimpleFormat;
 	iAFiberResultsCollection();
 
 	//! for each result, detailed data
-	std::vector<iAFiberCharData> result;
-	//! SPM data
+	std::vector<iAFiberResult> result;
+	//! SPM data.
+	// TODO: deduplicate data here and in result[x].table
 	QSharedPointer<iASPLOMData> spmData;
 	//! min and max of fiber count over all results
 	size_t minFiberCount, maxFiberCount;
@@ -144,17 +159,19 @@ public:
 	uint m_resultIDColumn, m_projectionErrorColumn;
 
 // Methods:
-	bool loadData(QString const & path, iACsvConfig const & config, double stepShift, iAProgress * progress);
+	bool loadData(QString const & path, iACsvConfig const & config, double stepShift, iAProgress * progress, bool& abort);
 };
 
 //! Loads a collection of results from a folder, in the background
-class iAFiberResultsLoader: public QThread
+class iAFiberResultsLoader: public QThread, public iAAbortListener
 {
 	Q_OBJECT
 public:
 	iAFiberResultsLoader(QSharedPointer<iAFiberResultsCollection> results,
 		QString const & path, iACsvConfig const & config, double stepShift);
 	void run() override;
+	void abort() override;
+	bool isAborted() const;
 	iAProgress* progress();
 signals:
 	void failed(QString const & path);
@@ -165,8 +182,12 @@ private:
 	QString m_path;
 	iACsvConfig m_config;
 	double m_stepShift;
+	bool m_aborted;
 };
 
 // helper functions:
 void addColumn(vtkSmartPointer<vtkTable> table, double value, char const * columnName, size_t numRows);
 iACsvConfig getCsvConfig(QString const & formatName);
+
+//! merge list of bounding boxes
+void mergeBoundingBoxes(iAAABB& bbox, std::vector<iAAABB> const& fiberBBs);

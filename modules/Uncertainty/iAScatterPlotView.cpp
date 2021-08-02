@@ -110,13 +110,13 @@ void iAScatterPlotView::AddPlot(vtkImagePointer imgX, vtkImagePointer imgY, QStr
 	m_scatterPlotWidget = new iAScatterPlotWidget(splomData);
 	QColor c(iAUncertaintyColors::ScatterPlotDots);
 	c.setAlpha(128);
-	m_scatterPlotWidget->SetSelectionMode(iAScatterPlot::Rectangle);
-	m_scatterPlotWidget->SetPlotColor(c, 0, 1);
-	m_scatterPlotWidget->SetSelectionColor(iAUncertaintyColors::SelectedPixel);
+	m_scatterPlotWidget->setSelectionMode(iAScatterPlot::Rectangle);
+	m_scatterPlotWidget->setPlotColor(c, 0, 1);
+	m_scatterPlotWidget->setSelectionColor(iAUncertaintyColors::SelectedPixel);
 	m_scatterPlotWidget->viewData()->setSelection(selection);
 	m_scatterPlotWidget->setMinimumWidth(width() / 2);
 	m_scatterPlotContainer->layout()->addWidget(m_scatterPlotWidget);
-	connect(m_scatterPlotWidget->m_scatterplot, &iAScatterPlot::selectionModified, this, &iAScatterPlotView::SelectionUpdated);
+	connect(m_scatterPlotWidget, &iAScatterPlotWidget::selectionModified, this, &iAScatterPlotView::SelectionUpdated);
 }
 
 

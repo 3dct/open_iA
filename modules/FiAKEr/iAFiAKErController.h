@@ -21,7 +21,8 @@
 #pragma once
 
 // FiAKEr:
-#include "iAFiberCharData.h"            // for iAFiberSimilarity -> REFACTOR!!!
+#include "iAFiberResult.h"            // for iAFiberSimilarity -> REFACTOR!!!
+#include "iAFiberResultUIData.h"
 #include "iASelectionInteractorStyle.h" // for iASelectionProvider
 #include "ui_FiAKErSettings.h"
 
@@ -43,12 +44,7 @@
 #include <vector>
 
 class iAFiberResultsCollection;
-class iAFiberCharUIData;
 class iAStackedBarChart;
-
-// Sensitivity:
-class iAMatrixWidget;
-class iAParameterListView;
 
 class iA3DColoredPolyObjectVis;
 class iA3DCylinderObjectVis;
@@ -60,7 +56,7 @@ class iAMapper;
 class iAQSplom;
 class iARendererViewSync;
 class iARefDistCompute;
-class iASPLOMData;
+class iASensitivityInfo;
 class iAVolumeRenderer;
 class iAMainWindow;
 class iAMdiChild;
@@ -68,7 +64,6 @@ class iAMdiChild;
 class vtkColorTransferFunction;
 class vtkCubeSource;
 class vtkPiecewiseFunction;
-class vtkImageData;
 class vtkTable;
 
 class QActionGroup;
@@ -88,53 +83,22 @@ class QTimer;
 class QTreeView;
 class QVBoxLayout;
 
-class iAVtkQtWidget;
 class iAFixedAspectWidget;
 class iASignallingWidget;
 
-//! UI elements for each result
-class iAFiberCharUIData
-{
-public:
-	iAVtkQtWidget* vtkWidget = nullptr;
-	QSharedPointer<iA3DColoredPolyObjectVis> mini3DVis;
-	QSharedPointer<iA3DColoredPolyObjectVis> main3DVis;
-	iAChartWidget* histoChart;
-	iAStackedBarChart* stackedBars;
-	iAFixedAspectWidget* previewWidget = nullptr;
-	iASignallingWidget* nameActions;
-	QWidget* topFiller, * bottomFiller;
-	//! index where the plots for this result start
-	size_t startPlotIdx;
-};
-
-
-class iAResultPairInfo
-{
-public:
-	iAResultPairInfo();
-	iAResultPairInfo(int measureCount);
-	// average dissimilarity, per dissimilarity measure
-	QVector<double> avgDissim;
-
-	// for every fiber, and every dissimilarity measure, the n best matching fibers (in descending match quality)
-	QVector<QVector<QVector<iAFiberSimilarity>>> fiberDissim;
-};
-
-using iADissimilarityMatrixType = QVector<QVector<iAResultPairInfo>>;
 
 class iAFiAKErController: public QObject, public iASelectionProvider
 {
 	Q_OBJECT
 public:
 	typedef iAQTtoUIConnector<QWidget, Ui_FIAKERSettings> iAFIAKERSettingsWidget;
-	typedef std::vector<std::vector<size_t> > SelectionType;
+	typedef std::vector<std::vector<size_t>> SelectionType;
 	static const QString FIAKERProjectID;
 
 	iAFiAKErController(iAMainWindow* mainWnd, iAMdiChild* mdiChild);
 
 	void loadProject(QSettings const & projectFile, QString const & fileName);
-	void start(QString const & path, iACsvConfig const & config, double stepShift, bool useStepData, bool showPreview);
+	void start(QString const & path, iACsvConfig const & config, double stepShift, bool useStepData, bool showPreview, bool createCharts);
 	std::vector<std::vector<size_t> > & selection() override;
 	void toggleDockWidgetTitleBars();
 	void toggleSettings();
@@ -142,13 +106,14 @@ public:
 	//! @param settings needs to be passed by value, as it's used in a lambda!
 	void loadSettings(iASettings settings);
 	void saveSettings(QSettings & settings);
-	//! Load potential reference.
+	//! Load additional data/state - a potentially set reference or sensitivity data
 	//! @param settings needs to be passed by value, as it's used in a lambda!
-	void loadReference(iASettings settings);
+	void loadAdditionalData(iASettings settings, QString projectFileName);
 	void saveProject(QSettings& projectFile, QString  const& fileName);
 signals:
 	void setupFinished();
 	void referenceComputed();
+	void fiberSelectionChanged(SelectionType const& selection);
 private slots:
 	void toggleVis(int);
 	void toggleBoundingBox(int);
@@ -168,7 +133,6 @@ private slots:
 	void refDistAvailable();
 	void optimDataToggled(int);
 	void resultsLoaded();
-	void resultsLoadFailed(QString const & path);
 	void visualizeCylinderSamplePoints();
 	void hideSamplePoints();
 	void showReferenceToggled();
@@ -206,10 +170,12 @@ private slots:
 	void update3D();
 	void applyRenderSettings();
 	// sensitivity:
-	void sensitivitySlot();
-	void dissimMatrixMeasureChanged(int);
-	void dissimMatrixParameterChanged(int);
-	void dissimMatrixColorMapChanged(int);
+	void computeSensitivity();
+	void resetSensitivity();
+	// 3D view:
+	void showMainVis(size_t resultID, bool state);
+
+	void selectFibersFromSensitivity(SelectionType const& selection);
 private:
 	bool loadReferenceInternal(iASettings settings);
 	void changeDistributionSource(int index);
@@ -219,7 +185,6 @@ private:
 	void clearSelection();
 	void newSelection(QString const & source);
 	size_t selectionSize() const;
-	void sortSelection(QString const & source);
 	void showSelectionInPlots();
 	void showSelectionInPlot(int chartID);
 	void showSelectionIn3DViews();
@@ -236,7 +201,6 @@ private:
 	void hideSamplePointsPrivate();
 	void showSpatialOverview();
 	void setReference(size_t referenceID, std::vector<std::pair<int, bool>> measures, int optimizationMeasure, int bestMeasure);
-	void showMainVis(size_t resultID, int state);
 	void updateRefDistPlots();
 	bool matchQualityVisActive() const;
 	void updateFiberContext();
@@ -250,11 +214,10 @@ private:
 	QWidget* setupResultListView();
 	QWidget* setupProtocolView();
 	QWidget* setupSelectionView();
-	QWidget* setupMatrixView(QStringList paramNames, std::vector<std::vector<double>> const& paramValues, QVector<int> const & measures);
 
 	//! all data about the fiber characteristics optimization results that are analyzed
 	QSharedPointer<iAFiberResultsCollection> m_data;
-	std::vector<iAFiberCharUIData> m_resultUIs;
+	std::vector<iAFiberResultUIData> m_resultUIs;
 
 	QSharedPointer<iARendererViewSync> m_renderManager;
 	vtkSmartPointer<iASelectionInteractorStyle> m_style;
@@ -266,7 +229,7 @@ private:
 	vtkSmartPointer<vtkTable> m_refVisTable;
 	iACsvConfig m_config;
 	QString m_colorByThemeName;
-	bool m_useStepData, m_showPreviews;
+	bool m_useStepData, m_showPreviews, m_showCharts;
 	bool m_showFiberContext, m_mergeContextBoxes, m_showWireFrame, m_showLines;
 	double m_contextSpacing;
 	QString m_parameterFile; //! (.csv-)file containing eventual parameters used in creating the loaded results
@@ -279,11 +242,10 @@ private:
 	//! factors for the diameter of the current selection and of the context (< 1 -> shrink, > 1 extend, = 1.0 no change)
 	double m_diameterFactor, m_contextDiameterFactor;
 	//! column index for the columns of the result list:
-	int m_nameActionColumn, m_previewColumn, m_stackedBarColumn, m_histogramColumn;
+	int m_nameActionColumn, m_previewColumn, m_histogramColumn, m_stackedBarColumn;
 
 	QSharedPointer<iA3DCylinderObjectVis> m_nearestReferenceVis;
 
-	vtkSmartPointer<vtkActor> m_sampleActor;
 	QTimer * m_playTimer;
 	iARefDistCompute* m_refDistCompute;
 	iAWidgetMap m_settingsWidgetMap;
@@ -294,6 +256,7 @@ private:
 		ResultListView, OptimStepChart, SPMView, ProtocolView, SelectionView, SettingsView, DockWidgetCount
 	};
 	// 3D View:
+	void ensureMain3DViewCreated(size_t resultID);
 	iAVtkWidget* m_main3DWidget;
 	vtkSmartPointer<vtkRenderer> m_ren;
 	QCheckBox* m_chkboxShowReference;
@@ -303,6 +266,7 @@ private:
 	QWidget* m_showReferenceWidget;
 	std::vector<vtkSmartPointer<vtkActor> > m_contextActors;
 	iAMapper* m_diameterFactorMapper;
+	vtkSmartPointer<vtkActor> m_sampleActor;
 
 	vtkSmartPointer<vtkCubeSource> m_customBoundingBoxSource;
 	vtkSmartPointer<vtkPolyDataMapper> m_customBoundingBoxMapper;
@@ -353,11 +317,6 @@ private:
 	std::vector<SelectionType> m_selections;
 
 	// Sensitivity
-	iADissimilarityMatrixType m_dissimilarityMatrix;
-	iAMatrixWidget* m_matrixWidget;
-	iAParameterListView* m_parameterListView;
-
-	QString dissimilarityMatrixCacheFileName();
-	bool readDissimilarityMatrixCache(QVector<int>& measures);
-	void writeDissimilarityMatrixCache(QVector<int> const& measures);
+	QSharedPointer<iASensitivityInfo> m_sensitivityInfo;
+	void connectSensitivity();
 };

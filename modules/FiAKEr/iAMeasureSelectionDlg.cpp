@@ -22,6 +22,8 @@
 
 #include "iAFiberData.h"
 
+#include "iALog.h"
+
 #include <QMessageBox>
 
 iAMeasureSelectionDlg::iAMeasureSelectionDlg(QWidget* parent) :
@@ -123,7 +125,16 @@ int iAMeasureSelectionDlg::optimizeMeasureIdx() const
 	{
 		if (m_model->item(row, 3)->checkState() == Qt::Checked)
 		{
-			return row;
+			auto m = measures();
+			for (size_t mIdx = 0; mIdx < m.size(); ++mIdx)
+			{
+				if (m[mIdx].first == row)
+				{	// assuming that there won't be more than 2billion measures is probably safe
+					return static_cast<int>(mIdx);
+				}
+			}
+			LOG(lvlWarn, "Optimization measure requested, but not selected to be computed!");
+			break;
 		}
 	}
 	return -1;

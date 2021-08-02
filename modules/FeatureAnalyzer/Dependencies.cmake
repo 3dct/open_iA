@@ -7,7 +7,7 @@ SET( DEPENDENCIES_LIBRARIES
 SET( DEPENDENCIES_VTK_MODULES
 	ChartsCore            # for vtkPlot
 	RenderingContext2D    # for vtkContextScene
-	RenderingContext${VTK_RENDERING_BACKEND}    # for implementation of RenderingContext2D (?)
+	RenderingContextOpenGL2 # for implementation of RenderingContext2D
 	ViewsContext2D        # for vtkContextView
 )
 SET( DEPENDENCIES_IA_TOOLKIT_DIRS

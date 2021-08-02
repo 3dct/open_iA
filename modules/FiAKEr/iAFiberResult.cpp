@@ -18,8 +18,9 @@
 * Contact: FH OÖ Forschungs & Entwicklungs GmbH, Campus Wels, CT-Gruppe,              *
 *          Stelzhamerstraße 23, 4600 Wels / Austria, Email: c.heinzl@fh-wels.at       *
 * ************************************************************************************/
-#include "iAFiberCharData.h"
+#include "iAFiberResult.h"
 
+#include "iAFiberData.h"
 #include "iARefDistCompute.h" // only for SimilarityMeasureCount!
 
 #include "iACsvIO.h"
@@ -84,16 +85,16 @@ QDataStream &operator>>(QDataStream &in, iARefDiffFiberData &s)
 	return in;
 }
 
-const QString iAFiberResultsCollection::LegacyFormat("FIAKER Legacy Format");
-const QString iAFiberResultsCollection::SimpleFormat("FIAKER Simple Format");
+const QString iAFiberResultsCollection::FiakerFCPFormat("FIAKER FCP (same as FCP format, but no headers)");
+const QString iAFiberResultsCollection::SimpleFormat("FIAKER Simple (no header, center coords, phi, theta, length)");
 
 namespace
 {
 	const double SimpleConfigCoordShift = 74.5;
 
-	iACsvConfig getLegacyConfig()
+	iACsvConfig getFiakerFCPConfig()
 	{
-		iACsvConfig config = iACsvConfig::getLegacyFiberFormat("");
+		iACsvConfig config = iACsvConfig::getFCPFiberFormat("");
 		config.skipLinesStart = 0;
 		config.containsHeader = false;
 		config.visType = iACsvConfig::Cylinders;
@@ -133,6 +134,54 @@ namespace
 		config.fixedDiameterValue = 7;
 		return config;
 	}
+
+	iAAABB computeFiberBBox(std::vector<iAVec3f> const& points, float radius)
+	{
+		std::array<iAVec3f, 2> result;
+		result[0].fill(std::numeric_limits<float>::max());
+		result[1].fill(std::numeric_limits<float>::lowest());
+		for (size_t p = 0; p < points.size(); ++p)
+		{
+			auto const& pt = points[p].data();
+			for (int i = 0; i < 3; ++i)
+			{
+				result[0][i] = std::min(result[0][i], pt[i] - radius);
+				result[1][i] = std::max(result[1][i], pt[i] + radius);
+			}
+		}
+		return result;
+	}
+	iAFiberData createFiberData(iAFiberResult const& result, size_t fiberID)
+	{
+		auto const& mapping = *result.mapping.data();
+		auto it = result.curveInfo.find(fiberID);
+		return iAFiberData(
+			result.table, fiberID, mapping, (it != result.curveInfo.end()) ? it->second : std::vector<iAVec3f>());
+	}
+
+	iAAABB boundingBoxForFiber(iAFiberData const& fiberData)
+	{
+		return computeFiberBBox(
+			fiberData.curvedPoints.size() > 0 ? fiberData.curvedPoints : fiberData.pts, fiberData.diameter / 2.0);
+	}
+
+	void createResultFiberData(iAFiberResult& result)
+	{
+		result.fiberData.resize(result.fiberCount);
+		for (size_t fiberID = 0; fiberID < result.fiberCount; ++fiberID)
+		{
+			result.fiberData[fiberID] = createFiberData(result, fiberID);
+		}
+	}
+
+	void boundingBoxesForFibers(std::vector<iAAABB>& fiberBBs, std::vector<iAFiberData> const& resultFiberData)
+	{
+		fiberBBs.resize(resultFiberData.size());
+		for (size_t fiberID = 0; fiberID < fiberBBs.size(); ++fiberID)
+		{
+			fiberBBs[fiberID] = boundingBoxForFiber(resultFiberData[fiberID]);
+		}
+	}
 }
 
 iACsvConfig getCsvConfig(QString const & formatName)
@@ -141,17 +190,17 @@ iACsvConfig getCsvConfig(QString const & formatName)
 	QSettings settings;
 	if (!result.load(settings, formatName))
 	{
-		if (formatName == iACsvConfig::LegacyFiberFormat)
+		if (formatName == iACsvConfig::FCPFiberFormat)
 		{
-			result = iACsvConfig::getLegacyFiberFormat("");
+			result = iACsvConfig::getFCPFiberFormat("");
 		}
-		else if (formatName == iACsvConfig::LegacyVoidFormat)
+		else if (formatName == iACsvConfig::FCVoidFormat)
 		{
-			result = iACsvConfig::getLegacyPoreFormat("");
+			result = iACsvConfig::getFCVoidFormat("");
 		}
-		else if (formatName == iAFiberResultsCollection::LegacyFormat)
+		else if (formatName == iAFiberResultsCollection::FiakerFCPFormat)
 		{
-			result = getLegacyConfig();
+			result = getFiakerFCPConfig();
 		}
 		else if (formatName == iAFiberResultsCollection::SimpleFormat)
 		{
@@ -174,6 +223,32 @@ void addColumn(vtkSmartPointer<vtkTable> table, double value, char const * colum
 	table->AddColumn(arrX);
 }
 
+void mergeBoundingBoxes(iAAABB& bbox, std::vector<iAAABB> const& fiberBBs)
+{
+	if (fiberBBs.size() == 0)
+	{
+		LOG(lvlWarn, "Invalid call to mergeBoundingBoxes: empty list of bounding boxes!");
+		return;
+	}
+	bbox = fiberBBs[0];
+	for (size_t bbID = 1; bbID < fiberBBs.size(); ++bbID)
+	{
+		for (int c = 0; c < 3; ++c)
+		{
+			if (fiberBBs[bbID][0][c] < bbox[0][c])
+			{
+				bbox[0][c] = fiberBBs[bbID][0][c];
+			}
+			if (fiberBBs[bbID][1][c] > bbox[1][c])
+			{
+				bbox[1][c] = fiberBBs[bbID][1][c];
+			}
+		}
+	}
+}
+
+
+
 iAFiberResultsCollection::iAFiberResultsCollection():
 	spmData(new iASPLOMData()),
 	minFiberCount(std::numeric_limits<size_t>::max()),
@@ -184,7 +259,7 @@ iAFiberResultsCollection::iAFiberResultsCollection():
 	m_projectionErrorColumn(0)
 {}
 
-bool iAFiberResultsCollection::loadData(QString const & path, iACsvConfig const & cfg, double newStepShift, iAProgress * progress)
+bool iAFiberResultsCollection::loadData(QString const & path, iACsvConfig const & cfg, double newStepShift, iAProgress * progress, bool & abort)
 {
 	folder = path;
 	stepShift = newStepShift;
@@ -194,14 +269,14 @@ bool iAFiberResultsCollection::loadData(QString const & path, iACsvConfig const 
 
 	FindFiles(path, filters, false, csvFileNames, Files);
 
-	const int MaxDatasetCount = 200;
+	const int MaxDatasetCount = 1000;
 	if (csvFileNames.size() > MaxDatasetCount)
 	{
 		LOG(lvlError, QString("The specified folder %1 contains %2 datasets; currently we only support loading up to %3 datasets!")
 			.arg(path).arg(csvFileNames.size()).arg(MaxDatasetCount));
 		return false;
 	}
-	int resultID = 0;
+	int loadedResults = 0;
 	std::vector<QString> paramNames;
 
 	QStringList noStepFiberFiles;
@@ -221,7 +296,7 @@ bool iAFiberResultsCollection::loadData(QString const & path, iACsvConfig const 
 			continue;
 		}
 
-		iAFiberCharData curData;
+		iAFiberResult curData;
 		curData.table = tableCreator.table();
 		curData.fiberCount = curData.table->GetNumberOfRows();
 		totalFiberCount += curData.fiberCount;
@@ -269,7 +344,7 @@ bool iAFiberResultsCollection::loadData(QString const & path, iACsvConfig const 
 		//       and using std::vector::swap to assign the sub-vectors!
 
 		size_t thisResultStepMax = 1;
-		curData.stepData = iAFiberCharData::NoStepData;
+		curData.stepData = iAFiberResult::NoStepData;
 		if (stepInfo.exists() && stepInfo.isDir())
 		{
 			// LOG(lvlInfo, "Looking for optimization step info in old format...");
@@ -404,7 +479,7 @@ bool iAFiberResultsCollection::loadData(QString const & path, iACsvConfig const 
 				}
 				if (fiberStepValues.size() == curData.fiberCount)
 				{
-					curData.stepData = iAFiberCharData::SimpleStepData;
+					curData.stepData = iAFiberResult::SimpleStepData;
 				}
 				else
 				{
@@ -414,7 +489,7 @@ bool iAFiberResultsCollection::loadData(QString const & path, iACsvConfig const 
 				}
 			}
 
-			if (curData.stepData == iAFiberCharData::NoStepData)
+			if (curData.stepData == iAFiberResult::NoStepData)
 			{
 				//LOG(lvlInfo, "Looking for optimization step info in new (curved) format...");
 				// check if we can load new, curved step data:
@@ -481,7 +556,7 @@ bool iAFiberResultsCollection::loadData(QString const & path, iACsvConfig const 
 				}
 				if (fiberStepValues.size() == curData.fiberCount)
 				{
-					curData.stepData = iAFiberCharData::CurvedStepData;
+					curData.stepData = iAFiberResult::CurvedStepData;
 				}
 				else
 				{
@@ -492,7 +567,7 @@ bool iAFiberResultsCollection::loadData(QString const & path, iACsvConfig const 
 			}
 			// transform from [fiber, step, value] to [step, fiber, value] indexing
 			// TODO: make sure all datasets have the same max step count!
-			if (curData.stepData != iAFiberCharData::NoStepData)
+			if (curData.stepData != iAFiberResult::NoStepData)
 			{
 				curData.stepValues.resize(thisResultStepMax);
 				for (size_t t = 0; t < thisResultStepMax; ++t)
@@ -523,12 +598,16 @@ bool iAFiberResultsCollection::loadData(QString const & path, iACsvConfig const 
 			if (optimStepMax > 1)
 			{
 				LOG(lvlInfo, QString("Result %1 has a new maximum number of steps %2 (was %3).")
-					.arg(resultID).arg(thisResultStepMax).arg(optimStepMax));
+					.arg(loadedResults).arg(thisResultStepMax).arg(optimStepMax));
 			}
 			optimStepMax = thisResultStepMax;
 		}
-		++resultID;
-		progress->emitProgress(resultID * 100.0 / csvFileNames.size());
+		++loadedResults;
+		progress->emitProgress(loadedResults * 100.0 / csvFileNames.size());
+		if (abort)
+		{
+			return false;
+		}
 		result.push_back(curData);
 	}
 
@@ -554,6 +633,7 @@ bool iAFiberResultsCollection::loadData(QString const & path, iACsvConfig const 
 		);
 	}
 
+	progress->setStatus("Creating SPM table...");
 	paramNames.push_back("Result_ID");
 	paramNames.push_back("Proj. Error Red.");
 
@@ -562,7 +642,7 @@ bool iAFiberResultsCollection::loadData(QString const & path, iACsvConfig const 
 	size_t spmStartIdx = 0;
 	m_resultIDColumn = static_cast<uint>(numParams) - 2;
 	m_projectionErrorColumn = static_cast<uint>(numParams) - 1;
-	for (resultID=0; static_cast<size_t>(resultID) < result.size(); ++resultID)
+	for (size_t resultID=0; resultID < result.size() && !abort; ++resultID)
 	{
 		auto & curData = result[resultID];
 		vtkIdType numTableColumns = curData.table->GetNumberOfColumns();
@@ -590,11 +670,26 @@ bool iAFiberResultsCollection::loadData(QString const & path, iACsvConfig const 
 		// TODO: reuse spmData also for 3d visualization?
 
 		spmStartIdx += curData.fiberCount;
-	}
 
+		progress->emitProgress(resultID * 100.0 / result.size());
+	}
 	spmData->updateRanges();
 
-	return true;
+	progress->setStatus("Creating fiber data objects");
+	for (size_t resultID = 0; resultID < result.size() && !abort; ++resultID)
+	{
+		createResultFiberData(result[resultID]);
+		progress->emitProgress(resultID * 100 / result.size());
+	}
+
+	progress->setStatus("Computing bounding boxes");
+	for (size_t resultID = 0; resultID < result.size() && !abort; ++resultID)
+	{
+		boundingBoxesForFibers(result[resultID].fiberBB, result[resultID].fiberData);
+		progress->emitProgress(resultID * 100 / result.size());
+		mergeBoundingBoxes(result[resultID].bbox, result[resultID].fiberBB);
+	}
+	return !abort;
 }
 
 iAFiberResultsLoader::iAFiberResultsLoader(QSharedPointer<iAFiberResultsCollection> results,
@@ -602,12 +697,13 @@ iAFiberResultsLoader::iAFiberResultsLoader(QSharedPointer<iAFiberResultsCollecti
 	m_results(results),
 	m_path(path),
 	m_config(config),
-	m_stepShift(stepShift)
+	m_stepShift(stepShift),
+	m_aborted(false)
 {}
 
 void iAFiberResultsLoader::run()
 {
-	if (!m_results->loadData(m_path, m_config, m_stepShift, &m_progress))
+	if (!m_results->loadData(m_path, m_config, m_stepShift, &m_progress, m_aborted))
 	{
 		emit failed(m_path);
 	}
@@ -615,6 +711,16 @@ void iAFiberResultsLoader::run()
 	{
 		emit success();
 	}
+}
+
+void iAFiberResultsLoader::abort()
+{
+	m_aborted = true;
+}
+
+bool iAFiberResultsLoader::isAborted() const
+{
+	return m_aborted;
 }
 
 iAProgress* iAFiberResultsLoader::progress()

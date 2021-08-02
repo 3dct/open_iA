@@ -8,8 +8,9 @@
 #include "iACompVisMain.h"
 
 //iA
-#include "iAMainWindow.h"
-#include "iAVtkVersion.h"
+#include <iAMainWindow.h>
+#include <iAVtkWidget.h>
+#include <iAVtkVersion.h>
 
 //Qt
 #include <QColor>
@@ -40,7 +41,6 @@
 #include <vtkUnsignedCharArray.h>
 
 #include <QVTKInteractor.h>
-#include <QVTKOpenGLNativeWidget.h>
 #include <vtkActorCollection.h>
 #include <vtkCamera.h>
 
@@ -86,6 +86,7 @@ iACompHistogramTable::iACompHistogramTable(
 	m_main(main),
 	m_mds(mds),
 	m_inputData(mds->getCSVFileData()),
+	m_qvtkWidget(new iAQVTKWidget(this)),
 	m_dataStorage(dataStorage),
 	m_BinRangeLength(0),
 	m_lut(vtkSmartPointer<vtkLookupTable>::New()),
@@ -114,7 +115,6 @@ iACompHistogramTable::iACompHistogramTable(
 	QVBoxLayout* layout = new QVBoxLayout;
 	dockWidgetContents->setLayout(layout);
 
-	m_qvtkWidget = new QVTKOpenGLNativeWidget(this);
 	layout->addWidget(m_qvtkWidget);
 
 	std::vector<int>* dataResolution = csvFileData::getAmountObjectsEveryDataset(m_inputData);
@@ -136,11 +136,7 @@ iACompHistogramTable::iACompHistogramTable(
 	m_renderer->SetViewport(0, 0, 0.8, 1);
 	m_renderer->SetUseFXAA(true);
 
-	#if VTK_VERSION_NUMBER < VTK_VERSION_CHECK(9, 0, 0)
-		m_qvtkWidget->GetRenderWindow()->AddRenderer(m_renderer);
-	#else
-		m_qvtkWidget->renderWindow()->AddRenderer(m_renderer);
-	#endif
+	m_qvtkWidget->renderWindow()->AddRenderer(m_renderer);
 }
 
 void iACompHistogramTable::showEvent(QShowEvent* event)
@@ -243,14 +239,7 @@ void iACompHistogramTable::reinitializeHistogramTable(iAMultidimensionalScaling*
 	//initialize datastructure
 	calculateHistogramTable();
 
-	
-
-	#if VTK_VERSION_NUMBER < VTK_VERSION_CHECK(9, 0, 0)
-		m_qvtkWidget->GetRenderWindow()->RemoveRenderer(m_renderer);
-	#else
-		m_qvtkWidget->renderWindow()->RemoveRenderer(m_renderer);
-	#endif
-
+	m_qvtkWidget->renderWindow()->RemoveRenderer(m_renderer);
 
 	m_renderer = vtkSmartPointer<vtkRenderer>::New();
 	double col1[3];
@@ -259,12 +248,7 @@ void iACompHistogramTable::reinitializeHistogramTable(iAMultidimensionalScaling*
 	m_renderer->SetViewport(0, 0, 0.8, 1);
 	m_renderer->SetUseFXAA(true);
 
-	#if VTK_VERSION_NUMBER < VTK_VERSION_CHECK(9, 0, 0)
-		m_qvtkWidget->GetRenderWindow()->AddRenderer(m_renderer);
-	#else
-		m_qvtkWidget->renderWindow()->AddRenderer(m_renderer);
-	#endif
-	
+	m_qvtkWidget->renderWindow()->AddRenderer(m_renderer);
 
 	calculateRowWidthAndHeight(m_windowWidth, m_windowHeight, m_amountDatasets);
 
@@ -1360,11 +1344,7 @@ vtkSmartPointer<vtkActor> iACompHistogramTable::drawPoints(vtkSmartPointer<vtkPo
 
 void iACompHistogramTable::renderWidget()
 {
-	#if VTK_VERSION_NUMBER < VTK_VERSION_CHECK(9, 0, 0)
-		m_qvtkWidget->GetRenderWindow()->GetInteractor()->Render();
-	#else
-		m_qvtkWidget->renderWindow()->GetInteractor()->Render();
-	#endif
+	m_qvtkWidget->renderWindow()->GetInteractor()->Render();
 }
 
 /******************************************  Coloring (LookupTable)  **********************************/
@@ -1685,12 +1665,7 @@ void iACompHistogramTable::initializeLegend()
 	renderer->SetBackground(col2);
 	renderer->AddActor2D(scalarBar);
 
-	#if VTK_VERSION_NUMBER < VTK_VERSION_CHECK(9, 0, 0)
-		m_qvtkWidget->GetRenderWindow()->AddRenderer(renderer);
-	#else
-		m_qvtkWidget->renderWindow()->AddRenderer(renderer);
-	#endif
-	
+	m_qvtkWidget->renderWindow()->AddRenderer(renderer);
 }
 
 std::string iACompHistogramTable::initializeLegendLabels(std::string input)
@@ -1747,12 +1722,7 @@ void iACompHistogramTable::initializeInteraction()
 	style->SetDefaultRenderer(m_renderer);
 	style->setIACompVisMain(m_main);
 
-	#if VTK_VERSION_NUMBER < VTK_VERSION_CHECK(9, 0, 0)
-		m_qvtkWidget->GetInteractor()->SetInteractorStyle(style);
-	#else
-		m_qvtkWidget->interactor()->SetInteractorStyle(style);
-	#endif
-
+	m_qvtkWidget->interactor()->SetInteractorStyle(style);
 }
 
 /******************************************  Getter & Setter ******************************************/

@@ -243,15 +243,23 @@ void iASimilarityMapWidget::setWindowing( double lowerVal, double upperVal )
 void iASimilarityMapWidget::mouseMoveEvent( QMouseEvent *event )
 {
 	int selectedBins[2] = { 0, 0 };
-	int pos[2] = { event->x(), event->y() };
+#if QT_VERSION < QT_VERSION_CHECK(6, 0, 0)
+	double pos[2] = { event->x(), event->y() };
+#else
+	double pos[2] = {event->position().x(), event->position().y()};
+#endif
 	binsFromPos( pos, selectedBins );
 	emit energyBinsSelectedSignal( selectedBins[0], selectedBins[1] );
 }
 
 void iASimilarityMapWidget::mouseReleaseEvent( QMouseEvent * event )
 {
-	int selectedBins[2] = { 0, 0 };
-	int pos[2] = { event->x(), event->y() };
+	int selectedBins[2] = {0, 0};
+#if QT_VERSION < QT_VERSION_CHECK(6, 0, 0)
+	double pos[2] = {event->x(), event->y()};
+#else
+	double pos[2] = {event->position().x(), event->position().y()};
+#endif
 	binsFromPos( pos, selectedBins );
 	findPeak( selectedBins[0], selectedBins[1] );
 	findPeakRanges();
@@ -316,12 +324,9 @@ void iASimilarityMapWidget::findPeakRanges()
 	m_peakRange[1][1] = steepestGradientPos( x, y, 0, 1, scalPtr, dims );
 }
 
-void iASimilarityMapWidget::binsFromPos( const int( &pos )[2], int( &bins_out )[2] )
+void iASimilarityMapWidget::binsFromPos(double const pos[2], int( &bins_out )[2] )
 {
-	double pos_inv_y[2] = {
-		static_cast<double>(pos[0]),
-		static_cast<double>(geometry().height() - pos[1])
-	};
+	double pos_inv_y[2] = {pos[0], geometry().height() - pos[1]};
 	if (pos_inv_y[0] > m_mapWidth || pos_inv_y[1] > m_mapWidth)
 	{
 		return;

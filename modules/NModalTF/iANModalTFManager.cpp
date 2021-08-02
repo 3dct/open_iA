@@ -89,8 +89,10 @@ void iANModalTFManager::update()
 	{
 		bool repeated = false;
 		CP prev;
+		// it would be better to use size_t as loop variable type, but MSVC does not support
+		// OpenMP 3.0 yet and therefore no unsigned loop variables
 #pragma omp for
-		for (int i = 0; i < m_cps.size(); ++i)
+		for (int i = 0; i < static_cast<int>(m_cps.size()); ++i)
 		{
 			const CP& cp = m_cps[i];
 			if (!cp.null())
@@ -153,7 +155,7 @@ void iANModalTFManager::updateLabels(const std::vector<iANModalLabel>& labels)
 	iANModalLabel* labelPtr = labels_indexed.data();
 	CP* cpPtr = m_cps.data();
 #pragma omp parallel for
-	for (int i = 0; i < m_cps.size(); ++i)
+	for (int i = 0; i < static_cast<int>(m_cps.size()); ++i)
 	{
 		if (!cpPtr[i].null())
 		{
@@ -209,7 +211,7 @@ void iANModalTFManager::removeControlPoints(int labelId)
 		// Then remove control points from our data structure
 		CP* ptr = m_cps.data();
 #pragma omp for
-		for (int i = 0; i < m_cps.size(); ++i)
+		for (int i = 0; i < static_cast<int>(m_cps.size()); ++i)
 		{
 			if (ptr[i].labelId == labelId)
 			{
@@ -245,7 +247,7 @@ void iANModalTFManager::removeAllControlPoints()
 		}  // end of sections
 		   // Implicit barrier
 #pragma omp for
-		for (int i = 0; i < m_cps.size(); ++i)
+		for (int i = 0; i < static_cast<int>(m_cps.size()); ++i)
 		{
 			ptr[i] = CP();
 		}

@@ -55,7 +55,7 @@ public:
 	}
 	unsigned int maxx()
 	{
-		return m_cps.size() - 1;
+		return static_cast<unsigned int>(m_cps.size() - 1);
 	}
 
 private:

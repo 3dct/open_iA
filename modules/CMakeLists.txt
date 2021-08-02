@@ -91,7 +91,7 @@ FOREACH( indx RANGE ${len} )
 	if (VTK_MAJOR_VERSION GREATER 8)
 		vtk_module_autoinit(TARGETS ${module_name} MODULES ${VTK_LIBRARIES})
 	endif()
-	TARGET_INCLUDE_DIRECTORIES(${module_name} PRIVATE ${module_full_path} )
+	TARGET_INCLUDE_DIRECTORIES(${module_name} PUBLIC ${module_full_path} )      # public so depending modules only need to link to the target
 	TARGET_INCLUDE_DIRECTORIES(${module_name} PRIVATE ${OpeniABinDir}/modules ) # _export files
 
 	IF (openiA_PRECOMPILE)

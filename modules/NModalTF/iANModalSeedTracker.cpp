@@ -56,7 +56,7 @@ void iANModalSeedTracker::reinitialize(iAMdiChild* mdiChild)
 		auto mode = modes[i];
 		m_visualizers[i] = new iANModalSeedVisualizer(mdiChild, mode);
 		connect(m_visualizers[i], &iANModalSeedVisualizer::binClicked,
-			[this, mode](size_t sliceNumber) { emit binClicked(mode, sliceNumber); });
+			[this, mode](size_t sliceNumber) { emit binClicked(mode, static_cast<int>(sliceNumber)); });
 	}
 }
 

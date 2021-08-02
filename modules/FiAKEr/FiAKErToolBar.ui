@@ -2,13 +2,21 @@
 <ui version="4.0">
  <class>FiAKErToolBar</class>
  <widget class="QToolBar" name="FiAKErToolBar">
+  <property name="geometry">
+   <rect>
+    <x>0</x>
+    <y>0</y>
+    <width>66</width>
+    <height>34</height>
+   </rect>
+  </property>
   <property name="windowTitle">
    <string>FiAKErToolBar</string>
   </property>
   <action name="action_ToggleTitleBar">
    <property name="icon">
     <iconset resource="../../libs/guibase/guibase.qrc">
-     <normaloff>:/images/GEMSe_toggle_titleBar.png</normaloff>:/images/GEMSe_toggle_titleBar.png</iconset>
+     <normaloff>:/images/toggle_titleBar.png</normaloff>:/images/toggle_titleBar.png</iconset>
    </property>
    <property name="text">
     <string>Toggle Title Bar</string>

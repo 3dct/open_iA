@@ -36,7 +36,7 @@ void iAVRFiberCoverage::mapAllPointiDs()
 	// For every fiber in csv table
 	for (vtkIdType row = 0; row < m_objectTable->GetNumberOfRows(); ++row)
 	{
-		double startPos[3], endPos[3];
+		double startPos[3]{}, endPos[3]{};
 		for (int k = 0; k < 3; ++k)
 		{
 			startPos[k] = m_objectTable->GetValue(row, m_io.getOutputMapping()->value(iACsvConfig::StartX + k)).ToFloat();
@@ -54,7 +54,7 @@ void iAVRFiberCoverage::mapAllPointiDs()
 	LOG(lvlInfo, QString("Volume Data loaded"));
 
 	//Calculate Fibers in Region
-	for (auto i = 0; i < m_octrees->size(); i++)
+	for (size_t i = 0; i < m_octrees->size(); i++)
 	{
 		m_fiberCoverage->push_back(*m_octrees->at(i)->getfibersInRegionMapping(&m_pointIDToCsvIndex));
 	}
@@ -68,7 +68,7 @@ void iAVRFiberCoverage::mapAllPointiDsAndCalculateFiberCoverage()
 	int count = 0;
 
 	//Initialize new Vectors
-	for (auto level = 0; level < m_octrees->size(); level++)
+	for (size_t level = 0; level < m_octrees->size(); level++)
 	{
 		//Initialize the region vec for every level
 		m_fiberCoverage->push_back(std::vector<std::unordered_map<vtkIdType, double>*>());
@@ -83,7 +83,7 @@ void iAVRFiberCoverage::mapAllPointiDsAndCalculateFiberCoverage()
 	// For every fiber in csv table
 	for (vtkIdType row = 0; row < m_objectTable->GetNumberOfRows(); ++row)
 	{
-		double startPos[3], endPos[3];
+		double startPos[3]{}, endPos[3]{};
 		for (int k = 0; k < 3; ++k)
 		{
 			startPos[k] = m_objectTable->GetValue(row, m_io.getOutputMapping()->value(iACsvConfig::StartX + k)).ToFloat();
@@ -102,7 +102,7 @@ void iAVRFiberCoverage::mapAllPointiDsAndCalculateFiberCoverage()
 
 		//For every Octree Level
 		//for (int level = OCTREE_MIN_LEVEL; level <= 1; level++)
-		for (auto level = 0; level < m_octrees->size(); level++)
+		for (size_t level = 0; level < m_octrees->size(); level++)
 		{
 			//Skip intersection test on lowest Octree level
 			if (level == 0)
@@ -127,7 +127,7 @@ void iAVRFiberCoverage::mapAllPointiDsAndCalculateFiberCoverage()
 		}
 	}
 
-	for (auto level = 1; level < m_octrees->size(); level++)
+	for (size_t level = 1; level < m_octrees->size(); level++)
 	{
 		m_octrees->at(level)->getRegionsInLineOfRay();
 	}
@@ -166,14 +166,14 @@ std::unordered_multimap<vtkIdType, vtkIdType> iAVRFiberCoverage::getCsvIndexToPo
 }
 
 //! The calculated intersection points are returned as vtkPoints
-vtkSmartPointer<vtkPoints> iAVRFiberCoverage::getOctreeFiberCoverage(double startPoint[3], double endPoint[3], int octreeLevel, int fiber, double fiberLength)
+vtkSmartPointer<vtkPoints> iAVRFiberCoverage::getOctreeFiberCoverage(double startPoint[3], double endPoint[3], vtkIdType octreeLevel, vtkIdType fiber, double fiberLength)
 {
 	vtkSmartPointer<vtkPoints> additionalIntersectionPoints = vtkSmartPointer<vtkPoints>::New();
 
 	//m_octree->calculateOctree(octreeLevel, OCTREE_POINTS_PER_REGION);
-	int leafNodes = m_octrees->at(octreeLevel)->getNumberOfLeafeNodes();
-	int startPointInsideRegion = m_octrees->at(octreeLevel)->getOctree()->GetRegionContainingPoint(startPoint[0], startPoint[1], startPoint[2]);
-	int endPointInsideRegion = m_octrees->at(octreeLevel)->getOctree()->GetRegionContainingPoint(endPoint[0], endPoint[1], endPoint[2]);
+	vtkIdType leafNodes = m_octrees->at(octreeLevel)->getNumberOfLeafeNodes();
+	vtkIdType startPointInsideRegion = m_octrees->at(octreeLevel)->getOctree()->GetRegionContainingPoint(startPoint[0], startPoint[1], startPoint[2]);
+	vtkIdType endPointInsideRegion = m_octrees->at(octreeLevel)->getOctree()->GetRegionContainingPoint(endPoint[0], endPoint[1], endPoint[2]);
 	// Sometimes Point is *barely* outside the bounds of the region ->move them in to check region
 	if (startPointInsideRegion == -1)
 	{
@@ -188,7 +188,7 @@ vtkSmartPointer<vtkPoints> iAVRFiberCoverage::getOctreeFiberCoverage(double star
 		endPointInsideRegion = m_octrees->at(octreeLevel)->getOctree()->GetRegionContainingPoint(insideEndPoint[0], insideEndPoint[1], insideEndPoint[2]);
 	}
 
-	for (int region = 0; region < leafNodes; region++)
+	for (vtkIdType region = 0; region < leafNodes; region++)
 	{
 		double lastIntersection[3] = { -1, -1, -1 };
 		int pointsInRegion = 0;
@@ -390,7 +390,7 @@ bool iAVRFiberCoverage::checkIntersectionWithBox(double startPoint[3], double en
 
 double iAVRFiberCoverage::calculateFiberCoverage(double startPoint[3], double endPoint[3], double fiberLength)
 {
-	double vectorBetweenStartAndEnd[3];
+	double vectorBetweenStartAndEnd[3]{};
 	for (int i = 0; i < 3; i++)
 	{
 		vectorBetweenStartAndEnd[i] = (endPoint[i] - startPoint[i]);

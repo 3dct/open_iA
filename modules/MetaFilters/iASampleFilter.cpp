@@ -68,8 +68,9 @@ iASampleFilter::iASampleFilter() :
 	samplingMethods.removeAll(iASamplingMethodName::GlobalSensitivity);
 	// parameters only required for "Global sensitivity (star)" sampling:
 	addParameter(spnBaseSamplingMethod, iAValueType::Categorical, samplingMethods);
-	addParameter(spnSensitivityDelta, iAValueType::Continuous, 0.1);
-	addParameter(spnSamplesPerPoint, iAValueType::Discrete, 0);
+	addParameter(spnStarDelta, iAValueType::Continuous, 0.1);
+	// parameter only required for "Global sensitivity (star small)" sampling:
+	addParameter(spnStarStepNumber, iAValueType::Continuous, 0.1);
 }
 
 void iASampleFilter::performWork(QMap<QString, QVariant> const& parameters)
@@ -84,6 +85,7 @@ void iASampleFilter::performWork(QMap<QString, QVariant> const& parameters)
 		m_input,
 		parameters,
 		m_parameterRanges,
+		m_parameterSpecs,
 		samplingMethod,
 		m_parameterRangeFile,
 		m_parameterSetFile,
@@ -98,13 +100,32 @@ void iASampleFilter::performWork(QMap<QString, QVariant> const& parameters)
 	loop.exec();	     //< so wait for finished event
 }
 
+bool iASampleFilter::checkParameters(QMap<QString, QVariant> const& paramValues)
+{
+	for (auto const & param : parameters())
+	{
+		if ( (param->name() == spnFilter && paramValues[spnAlgorithmType].toString() == atExternal) ||
+			((param->name() == spnExecutable || param->name() == spnParameterDescriptor) &&
+				paramValues[spnAlgorithmType].toString() == atBuiltIn) )
+		{
+			continue;
+		}
+		if (!defaultParameterCheck(param, paramValues[param->name()]))
+		{
+			return false;
+		}
+	}
+	return true;
+}
+
 void iASampleFilter::setParameters(QSharedPointer<iAModalityList> input, QSharedPointer<iAAttributes> parameterRanges,
+	QSharedPointer<iAAttributes> parameterSpecs,
 	QString const& parameterRangeFile, QString const& parameterSetFile, QString const& derivedOutFile, int samplingID)
 {
 	// TODO: get parameter ranges and filenames in cmd/gui-agnostical way?
 	m_input = input;
 	m_parameterRanges = parameterRanges;
-
+	m_parameterSpecs = parameterSpecs;
 	m_parameterRangeFile = parameterRangeFile;
 	m_parameterSetFile = parameterSetFile;
 	m_derivedOutFile = derivedOutFile;
@@ -152,13 +173,13 @@ bool iASampleFilterRunnerGUI::askForParameters(QSharedPointer<iAFilter> filter, 
 		LOG(lvlError, "'Number of labels' must not be smaller than 2!");
 		return false;
 	}
-	auto parameterRanges = dlg.parameterRanges();
 	QString outBaseName = QFileInfo(parameters[spnBaseName].toString()).completeBaseName();
 	QString parameterRangeFile = outBaseName + "-parameterRanges.csv"; // iASEAFile::DefaultSMPFileName,
 	QString parameterSetFile   = outBaseName + "-parameterSets.csv";   // iASEAFile::DefaultSPSFileName,
 	QString derivedOutputFile  = outBaseName + "-derivedOutput.csv";   // iASEAFile::DefaultCHRFileName,
 
 	int SamplingID = 0;
-	sampleFilter->setParameters(sourceMdi->modalities(), parameterRanges, parameterRangeFile, parameterSetFile, derivedOutputFile, SamplingID);
+	sampleFilter->setParameters(sourceMdi->modalities(), dlg.parameterRanges(), dlg.parameterSpecs(),
+		parameterRangeFile, parameterSetFile, derivedOutputFile, SamplingID);
 	return true;
 }

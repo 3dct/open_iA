@@ -8,7 +8,7 @@ SET( DEPENDENCIES_VTK_MODULES
 	FiltersHybrid         # for vtkPolyDataSilhouette
 	ImagingHybrid         # for vtkSampleFunction used in iABlobCluster
 	RenderingContext2D    # for vtkContextActor, vtkContextScene, vtkContextTransform
-	RenderingContext${VTK_RENDERING_BACKEND}    # for implementation of RenderingContext2D (?)
+	RenderingContextOpenGL2 # for implementation of RenderingContext2D (?)
 	ViewsContext2D        # for vtkContextView, vtkContextInteractorStyle
 )
 # for VTK < 9 we have to use VTK_USE_FILE anyway for module autoinitialization

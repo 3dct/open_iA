@@ -30,7 +30,7 @@ const QColor bgrCol( 50, 50, 50 );
 const QColor roiCol( 255, 0, 0, 240 );
 
 iAPreviewSPLOM::iAPreviewSPLOM(QWidget * parent /*= 0*/, Qt::WindowFlags f /*= 0 */) :
-	iAQGLWidget(parent),
+	QOpenGLWidget(parent),
 	m_pxmp( nullptr ),
 	m_mousePressed( false ),
 	m_maskPtrExt( nullptr )
@@ -96,7 +96,7 @@ void iAPreviewSPLOM::paintGL( )
 
 void iAPreviewSPLOM::resizeEvent( QResizeEvent * event )
 {
-	iAQGLWidget::resizeEvent(event);
+	QOpenGLWidget::resizeEvent(event);
 	if( !m_pxmp )
 		return;
 	Scale();

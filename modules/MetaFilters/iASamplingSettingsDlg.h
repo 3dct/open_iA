@@ -57,11 +57,13 @@ public:
 	iASamplingSettingsDlg(QWidget* parentWdgt, int inputImageCount,
 		iASettings const & values);
 	QSharedPointer<iAAttributes> parameterRanges();
+	QSharedPointer<iAAttributes> parameterSpecs();
 	void getValues(iASettings & values) const;
 private slots:
 	void chooseOutputFolder();
 	void chooseParameterDescriptor();
 	void chooseExecutable();
+	void chooseParameterSetFile();
 	void parameterDescriptorChanged();
 	void saveSettings();
 	void loadSettings();
@@ -70,6 +72,8 @@ private slots:
 	void runClicked();
 	void outputBaseChanged();
 	void samplingMethodChanged();
+	void showAlgorithmInfo();
+	void showSamplingInfo();
 private:
 	void setInputsFromMap(iASettings const & values);
 	void setParameters(QSharedPointer<iAAttributes> params);

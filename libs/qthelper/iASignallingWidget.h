@@ -24,14 +24,10 @@
 
 #include <QWidget>
 
-//! Double-use widget: Allows setting background color, and will emit signal "dblClicked" when it is double clicked.
-//! TODO: replace by something more simple / not double-use
+//! Emits signal "dblClicked" when it is double clicked.
 class iAqthelper_API iASignallingWidget: public QWidget
 {
 	Q_OBJECT
-public:
-	void setBackgroundColor(QColor const & color);
-
 signals:
 	void dblClicked();
 	void clicked(Qt::MouseButton button, Qt::KeyboardModifiers modifiers);
@@ -39,6 +35,4 @@ private:
 	void mouseDoubleClickEvent(QMouseEvent* ev) override;
 	void mouseReleaseEvent(QMouseEvent* ev) override;
 	void paintEvent(QPaintEvent* ev) override;
-
-	QColor m_bgColor;
 };

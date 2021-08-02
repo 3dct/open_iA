@@ -22,14 +22,12 @@
 
 #include "ui_SPMView.h"
 
-#include <iAVtkWidgetFwd.h>
 #include <qthelper/iAQTtoUIConnector.h>
 
 #include <vtkSmartPointer.h>
 #include <vtkVector.h>
 
 #include <QDockWidget>
-
 
 class QAction;
 class QCheckBox;
@@ -51,7 +49,9 @@ class vtkTable;
 class iAFAQSplom;
 struct iASelection;
 class iASPMSettings;
+
 class iAMainWindow;
+class iAQVTKWidget;
 
 typedef iAQTtoUIConnector<QDockWidget, Ui_SPMView> iAPorosityAnalyzerSPMConnector;
 
@@ -109,7 +109,7 @@ protected:
 	iAFAQSplom * m_splom;
 	vtkSmartPointer<vtkIdTypeArray> m_SPLOMSelection;
 	vtkSmartPointer<vtkLookupTable> m_lut;
-	iAVtkOldWidget * m_SBQVTKWidget;
+	iAQVTKWidget * m_SBQVTKWidget;
 	vtkSmartPointer<vtkRenderer> m_sbRen;
 	vtkSmartPointer<vtkScalarBarActor> m_sbActor;
 };

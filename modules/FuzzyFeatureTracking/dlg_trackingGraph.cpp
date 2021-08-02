@@ -45,9 +45,7 @@ dlg_trackingGraph::dlg_trackingGraph(QWidget *parent) :
 	m_graphWidget(new iAVtkWidget()),
 	m_graphItem(vtkSmartPointer<iATrackingGraphItem>::New())
 {
-#if (VTK_VERSION_NUMBER >= VTK_VERSION_CHECK(8, 2, 0) || defined(VTK_OPENGL2_BACKEND))
 	m_graphWidget->setFormat(iAVtkWidget::defaultFormat());
-#endif
 	setupUi(this);
 	vtkNew<vtkContextTransform> trans;
 	trans->SetInteractive(true);
