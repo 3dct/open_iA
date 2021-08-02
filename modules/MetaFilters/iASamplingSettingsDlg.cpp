@@ -30,7 +30,6 @@
 #include <iALog.h>
 #include <iAFilter.h>
 #include <iAFilterRegistry.h>
-#include <iAListNameMapper.h>
 #include <iAModality.h>
 #include <iAModalityList.h>
 #include <iANameMapper.h>
