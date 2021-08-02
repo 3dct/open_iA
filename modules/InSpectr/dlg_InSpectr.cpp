@@ -41,10 +41,10 @@
 #include <iAFunctionalBoxplot.h>
 #include <iAJobListView.h>
 #include <iAMdiChild.h>
+#include <iAQVTKWidget.h>
 #include <iARenderer.h>
 #include <iARunAsync.h>
 #include <iASlicer.h>
-#include <iAVtkWidget.h>
 #include <io/iAIO.h>
 
 #include <iADockWidgetWrapper.h>

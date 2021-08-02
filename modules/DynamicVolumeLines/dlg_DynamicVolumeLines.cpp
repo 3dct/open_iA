@@ -32,9 +32,9 @@
 #include <iAMdiChild.h>
 #include <iAModality.h>
 #include <iAModalityTransfer.h>
+#include <iAQVTKWidget.h>
 #include <iARenderer.h>
 #include <iAVolumeRenderer.h>
-#include <iAVtkWidget.h>
 
 #include <iAChartWithFunctionsWidget.h>
 

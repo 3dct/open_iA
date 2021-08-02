@@ -27,7 +27,6 @@
 #include "iAImageTreeNode.h"
 
 #include <iAAttributeDescriptor.h>
-#include <iAVtkVersion.h>
 
 #include <vtkAxis.h>
 #include <vtkFloatArray.h>

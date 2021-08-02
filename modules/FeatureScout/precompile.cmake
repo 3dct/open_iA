@@ -21,9 +21,9 @@ SET (FeatureScout_PRECOMPILE_INCLUDES
 <iAModalityTransfer.h>
 <iAMovieHelper.h>
 <iAObjectType.h>
+<iAQVTKWidget.h>
 <iARenderer.h>
 <iAVec3.h>
-<iAVtkWidget.h>
 <itkImageRegionIterator.h>
 <itkImageToVTKImageFilter.h>
 <itkVTKImageToImageFilter.h>

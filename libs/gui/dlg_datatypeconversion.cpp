@@ -20,8 +20,9 @@
 * ************************************************************************************/
 #include "dlg_datatypeconversion.h"
 
-#include "iAVtkWidget.h"
-#include "io/iARawFileParameters.h"
+// guibase
+#include <iAQVTKWidget.h>
+#include <io/iARawFileParameters.h>
 
 // charts
 #include <iAChartWidget.h>
@@ -36,7 +37,6 @@
 #include <iAToolsVTK.h>
 #include <iATransferFunction.h>    // for GetDefault... functions
 #include <iATypedCallHelper.h>
-#include <iAVtkVersion.h>
 
 #include <itkChangeInformationImageFilter.h>
 #include <itkExtractImageFilter.h>

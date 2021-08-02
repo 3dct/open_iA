@@ -20,7 +20,7 @@
 * ************************************************************************************/
 #include "dlg_planeSlicer.h"
 
-#include <iAVtkWidget.h>
+#include <iAQVTKWidget.h>
 
 #include <vtkCamera.h>
 #include <vtkColorTransferFunction.h>

@@ -28,7 +28,7 @@
 #include <iALookupTable.h>
 #include <iALUT.h>
 #include <iAQtVTKBindings.h>
-#include <iAVtkWidget.h>
+#include <iAQVTKWidget.h>
 
 #include <vtkIdTypeArray.h>
 #include <vtkLookupTable.h>

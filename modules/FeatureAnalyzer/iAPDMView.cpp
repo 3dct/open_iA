@@ -26,7 +26,7 @@
 #include <qcustomplot.h>
 #include <defines.h>
 #include <iALUT.h>
-#include <iAVtkWidget.h>
+#include <iAQVTKWidget.h>
 
 #include <vtkColorTransferFunction.h>
 #include <vtkLookupTable.h>

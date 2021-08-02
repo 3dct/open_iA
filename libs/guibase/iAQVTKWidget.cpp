@@ -18,21 +18,33 @@
 * Contact: FH OÖ Forschungs & Entwicklungs GmbH, Campus Wels, CT-Gruppe,              *
 *          Stelzhamerstraße 23, 4600 Wels / Austria, Email: c.heinzl@fh-wels.at       *
 * ************************************************************************************/
-#pragma once
+#include "iAQVTKWidget.h"
 
-#include "iAqthelper_export.h"
+#include <vtkGenericOpenGLRenderWindow.h>
 
-#include <QWidget>
+iAQVTKWidget::iAQVTKWidget(QWidget* parent) : iAVtkWidget(parent)
+{  // before version 9, VTK did not set a default render window, let's do this...
+#if VTK_VERSION_NUMBER < VTK_VERSION_CHECK(9, 0, 0)
+	auto renWin = vtkSmartPointer<vtkGenericOpenGLRenderWindow>::New();
+	SetRenderWindow(renWin);
+#endif
+	setFormat(iAVtkWidget::defaultFormat());
+}
 
-//! Emits signal "dblClicked" when it is double clicked.
-class iAqthelper_API iASignallingWidget: public QWidget
+#if VTK_VERSION_NUMBER < VTK_VERSION_CHECK(9, 0, 0)
+// There also were no Qt-style methods to retrieve render window and interactor, let's provide them:
+vtkRenderWindow* iAQVTKWidget::renderWindow()
 {
-	Q_OBJECT
-signals:
-	void dblClicked();
-	void clicked(Qt::MouseButton button, Qt::KeyboardModifiers modifiers);
-private:
-	void mouseDoubleClickEvent(QMouseEvent* ev) override;
-	void mouseReleaseEvent(QMouseEvent* ev) override;
-	void paintEvent(QPaintEvent* ev) override;
-};
+	return GetRenderWindow();
+}
+QVTKInteractor* iAQVTKWidget::interactor()
+{
+	return GetInteractor();
+}
+#endif
+
+void iAQVTKWidget::updateAll()
+{
+	renderWindow()->Render();
+	update();
+}

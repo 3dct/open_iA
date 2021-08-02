@@ -32,7 +32,6 @@ SET (OPENIA_PRECOMPILE_HEADERS
 <iATransferFunction.h>
 <iAVolumeSettings.h>
 <iAVolumeStack.h>
-<iAVtkVersion.h>
 <QCheckBox>
 <QComboBox>
 <QDockWidget>

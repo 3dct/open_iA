@@ -40,8 +40,8 @@
 #include <iALog.h>
 #include <iALookupTable.h>
 #include <iAParameterNames.h>
+#include <iAQVTKWidget.h>
 #include <iAToolsITK.h>
-#include <iAVtkWidget.h>
 #include <iAFileUtils.h>
 #include <io/iAIOProvider.h>
 #include <iAMdiChild.h>

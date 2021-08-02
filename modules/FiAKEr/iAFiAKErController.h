@@ -29,11 +29,13 @@
 // FeatureScout:
 #include <iACsvConfig.h>
 
-// Core:
-#include <iASettings.h>
-#include <iAVtkWidget.h>
+// guibase:
+#include <iAQVTKWidget.h>
 #include <qthelper/iAQTtoUIConnector.h>
 #include <qthelper/iAWidgetSettingsMapper.h>
+
+// base
+#include <iASettings.h>
 
 #include <vtkSmartPointer.h>
 

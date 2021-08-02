@@ -20,23 +20,19 @@
 * ************************************************************************************/
 #pragma once
 
-#include "iAqthelper_export.h"
+#include "iAguibase_export.h"
 
-#include "iASignallingWidget.h"
-#include "iAVtkWidget.h"
+#include <QWidget>
 
-class iAColoredWidget;
-
-//! Keeps the aspect ratio of a contained iAQVTKWidget fixed
-//! by placing two other resizable widgets around it as padding.
-class iAqthelper_API iAFixedAspectWidget: public iASignallingWidget
+//! A widget that emits signals on click and double click.
+class iAguibase_API iASignallingWidget: public QWidget
 {
 	Q_OBJECT
-public:
-	iAFixedAspectWidget(double aspect=1.0, Qt::Alignment verticalAlign = Qt::AlignVCenter);
-	iAQVTKWidget* vtkWidget();
-	void setBGRole(QPalette::ColorRole role);
+signals:
+	void dblClicked();
+	void clicked(Qt::MouseButton button, Qt::KeyboardModifiers modifiers);
 private:
-	iAQVTKWidget* m_widget;
-	iAColoredWidget* m_fill1, * m_fill2;
+	void mouseDoubleClickEvent(QMouseEvent* ev) override;
+	void mouseReleaseEvent(QMouseEvent* ev) override;
+	void paintEvent(QPaintEvent* ev) override;
 };

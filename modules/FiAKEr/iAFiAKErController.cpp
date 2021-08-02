@@ -57,9 +57,11 @@
 
 // qthelper
 #include <iADockWidgetWrapper.h>
+
+// guibase
 #include <iAFixedAspectWidget.h>
+#include <iAQVTKWidget.h>
 #include <iASignallingWidget.h>
-#include <iAVtkWidget.h>
 
 // renderer
 #include <iARendererViewSync.h>
@@ -75,7 +77,6 @@
 #include <iAMathUtility.h>
 #include <iAToolsVTK.h>    // for setCamPos
 #include <iATransferFunction.h>
-#include <iAVtkVersion.h>
 
 #include <vtkCamera.h>
 #include <vtkColorTransferFunction.h>

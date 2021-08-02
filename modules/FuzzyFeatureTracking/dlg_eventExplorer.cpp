@@ -25,7 +25,7 @@
 
 #include <iALog.h>
 #include <iAVolumeStack.h>
-#include <iAVtkWidget.h>
+#include <iAQVTKWidget.h>
 #include <iAMdiChild.h>
 
 #include <vtkAxis.h>

@@ -28,10 +28,10 @@
 #include <iAJobListView.h>
 #include <iAModalityTransfer.h>
 #include <iAMultiStepProgressObserver.h>
+#include <iAQVTKWidget.h>
 #include <iARunAsync.h>
 #include <iAMdiChild.h>
 #include <qthelper/iAQTtoUIConnector.h>
-#include <iAVtkWidget.h>
 
 #include <iAChartWithFunctionsWidget.h>
 

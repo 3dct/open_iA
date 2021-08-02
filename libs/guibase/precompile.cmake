@@ -44,6 +44,7 @@ SET (OPENIA_PRECOMPILE_HEADERS
 <iAParameterDlg.h>
 <iAPerformanceHelper.h>
 <iAProgress.h>
+<iAQVTKWidget.h>
 <iASlicerMode.h>
 <iAStringHelper.h>
 <iAToolsVTK.h>
@@ -54,7 +55,6 @@ SET (OPENIA_PRECOMPILE_HEADERS
 <iAVolumeStack.h>
 <iAvtkInteractStyleActor.h>
 <iAVtkVersion.h>
-<iAVtkWidget.h>
 <iAXmlSettings.h>
 
 <itkImage.h>

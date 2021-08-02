@@ -40,14 +40,14 @@
 #include <dlg_modalities.h>
 #include <iAmat4.h>
 #include <iAMovieHelper.h>
-#include <iARenderer.h>
-#include <iAVtkWidget.h>
 #include <iAModality.h>
 #include <iAModalityTransfer.h>
 #include <iAModalityList.h>
 #include <iAMdiChild.h>
 #include <iAParameterDlg.h>
 #include <iAPreferences.h>
+#include <iAQVTKWidget.h>
+#include <iARenderer.h>
 #include <iATypedCallHelper.h>
 
 // qthelper:

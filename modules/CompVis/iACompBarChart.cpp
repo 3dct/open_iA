@@ -7,7 +7,7 @@
 // core
 #include "iAMainWindow.h"
 #include "iAVtkVersion.h"
-#include "iAVtkWidget.h"
+#include "iAQVTKWidget.h"
 
 //vtk
 #include <vtkObjectFactory.h> //for macro!

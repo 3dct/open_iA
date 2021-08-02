@@ -33,12 +33,12 @@
 #include <iALUT.h>
 #include <iAMathUtility.h>
 #include <iAPerformanceHelper.h>
+#include <iAQVTKWidget.h>
 #include <iARunAsync.h>
 #include <iAStackedBarChart.h>    // for add HeaderLabel
 #include <iAStringHelper.h>
 #include <iAToolsVTK.h>
 #include <iAVec3.h>
-#include <iAVtkWidget.h>
 
 // guibase:
 #include <iAMdiChild.h>
