@@ -9,9 +9,9 @@
 #include "iAVtkWidget.h"
 
 //vtk
-#include "vtkGenericOpenGLRenderWindow.h"
 
 #include "vtkRenderer.h"
+#include <vtkRenderWindow.h>
 #include "vtkContextView.h"
 #include "vtkContextScene.h"
 

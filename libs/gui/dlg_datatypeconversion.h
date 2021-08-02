@@ -25,8 +25,6 @@
 // charts
 #include "iAPlotData.h"
 
-#include "iAVtkWidgetFwd.h"
-
 #include <vtkSmartPointer.h>
 
 #include <QDialog>
@@ -34,6 +32,8 @@
 
 class iAConnector;
 struct iARawFileParameters;
+
+class iAQVTKWidget;
 
 class vtkImageData;
 class vtkPlaneSource;
@@ -83,7 +83,7 @@ private:
 	double m_min, m_max;
 	vtkSmartPointer<vtkPlaneSource> m_xyroiSource, m_xzroiSource, m_yzroiSource;
 	iAConnector *m_roiimage, *m_xyimage, *m_xzimage, *m_yzimage;
-	iAVtkWidget* m_xyWidget, *m_xzWidget, *m_yzWidget;
+	iAQVTKWidget* m_xyWidget, *m_xzWidget, *m_yzWidget;
 	QLineEdit* leRangeLower, *leRangeUpper, *leOutputMin,*leOutputMax, *leXOrigin, *leXSize, *leYOrigin, *leYSize, *leZOrigin, *leZSize;
 	QComboBox* cbDataType;
 	QCheckBox* chConvertROI;

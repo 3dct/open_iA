@@ -21,10 +21,8 @@
 #include "iA3DColoredPolyObjectVis.h"
 
 #include <iALookupTable.h>
-#include <iAVtkWidget.h>
 
 #include <vtkActor.h>
-#include <vtkGenericOpenGLRenderWindow.h>
 #include <vtkIdTypeArray.h>
 #include <vtkOutlineFilter.h>
 #include <vtkPointData.h>

@@ -59,6 +59,7 @@
 #include <vtkProperty.h>
 #include <vtkRenderer.h>
 #include <vtkRendererCollection.h>
+#include <vtkRenderWindow.h>
 #include <vtkSTLWriter.h>
 #include <vtkTable.h>
 #include <vtkTextProperty.h>

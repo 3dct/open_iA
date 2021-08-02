@@ -27,14 +27,14 @@ class iAChartWidget;
 class iAFixedAspectWidget;
 class iASignallingWidget;
 class iAStackedBarChart;
-class iAVtkQtWidget;
+class iAQVTKWidget;
 class QWidget;
 
 //! UI elements for each result
 class iAFiberResultUIData
 {
 public:
-	iAVtkQtWidget* vtkWidget = nullptr;
+	iAQVTKWidget* vtkWidget = nullptr;
 	QSharedPointer<iA3DColoredPolyObjectVis> mini3DVis;
 	QSharedPointer<iA3DColoredPolyObjectVis> main3DVis;
 	iAChartWidget* histoChart;

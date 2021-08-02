@@ -184,7 +184,9 @@ void iAAbstractMagicLensWidget::updateLens( )
 #else
 	if( renderWindow( )->GetRenderers( )->GetNumberOfItems( ) <= 0 )
 #endif
+	{
 		return;
+	}
 	double points[4];
 	getViewportPoints( points );
 	m_lensRen->SetViewport( points[0], points[1], points[2], points[3] );
@@ -209,8 +211,10 @@ void iAAbstractMagicLensWidget::updateGUI( )
 		points->InsertNextPoint( p2 );
 		points->InsertNextPoint( p3 );
 		line->GetPointIds( )->SetNumberOfIds( 5 );
-		for( int i = 0; i < 5; i++ )
-			line->GetPointIds( )->SetId( i, i % 4 );
+		for (int i = 0; i < 5; i++)
+		{
+			line->GetPointIds()->SetId(i, i % 4);
+		}
 		cells->InsertNextCell( line );
 		break;
 	}

@@ -22,7 +22,6 @@
 
 #include "ui_planeSlicer.h"
 
-#include <iAVtkWidgetFwd.h>
 #include <qthelper/iAQTtoUIConnector.h>
 
 #include <vtkSmartPointer.h>
@@ -33,6 +32,8 @@ class vtkImageData;
 class vtkImageSlice;
 class vtkPlane;
 class vtkOpenGLRenderer;
+
+class iAQVTKWidget;
 
 typedef iAQTtoUIConnector<QDockWidget, Ui_PlaneSlicer> dlg_planeSlicerUI;
 
@@ -45,7 +46,7 @@ public:
 	void SetCuttingPlane(double pos[3], double n[3]);
 	void SetOpacity(int imageIdx, double opacity);
 private:
-	iAVtkWidget* m_vtkWidget;
+	iAQVTKWidget* m_vtkWidget;
 	vtkSmartPointer<vtkOpenGLRenderer> m_renderer;
 	vtkCamera* m_camera_ext;
 

@@ -29,23 +29,22 @@
 #include <vtkContextScene.h>
 #include <vtkContextTransform.h>
 #include <vtkContextView.h>
-#include <vtkGenericOpenGLRenderWindow.h>
 #include <vtkGraphItem.h>
 #include <vtkMutableDirectedGraph.h>
 #include <vtkObjectFactory.h>
 #include <vtkPoints.h>
 #include <vtkSmartPointer.h>
 #include <vtkRenderer.h>
+#include <vtkRenderWindow.h>
 #include <vtkRenderWindowInteractor.h>
 
 const double BACKGROUND[3]		= {1, 1, 1};
 
 dlg_trackingGraph::dlg_trackingGraph(QWidget *parent) :
 	QDockWidget(parent),
-	m_graphWidget(new iAVtkWidget()),
+	m_graphWidget(new iAQVTKWidget()),
 	m_graphItem(vtkSmartPointer<iATrackingGraphItem>::New())
 {
-	m_graphWidget->setFormat(iAVtkWidget::defaultFormat());
 	setupUi(this);
 	vtkNew<vtkContextTransform> trans;
 	trans->SetInteractive(true);
@@ -58,14 +57,8 @@ dlg_trackingGraph::dlg_trackingGraph(QWidget *parent) :
 	vtkNew<vtkRenderer> renderer;
 	renderer->SetBackground(BACKGROUND[0], BACKGROUND[1], BACKGROUND[2]);
 	renderer->AddActor(actor.GetPointer());
-	auto renWin = vtkSmartPointer<vtkGenericOpenGLRenderWindow>::New();
-#if VTK_VERSION_NUMBER < VTK_VERSION_CHECK(9, 0, 0)
-	m_graphWidget->SetRenderWindow(renWin);
-	auto interactor = m_graphWidget->GetInteractor();
-#else
-	m_graphWidget->setRenderWindow(renWin);
+	auto renWin = m_graphWidget->renderWindow();
 	auto interactor = m_graphWidget->interactor();
-#endif
 	this->horizontalLayout->addWidget(m_graphWidget);
 	renWin->AddRenderer(renderer.GetPointer());
 	contextView->SetRenderWindow(renWin);
@@ -84,11 +77,7 @@ void dlg_trackingGraph::updateGraph(vtkSmartPointer<vtkMutableDirectedGraph> gra
 	}
 	vtkNew<vtkPoints> points;
 	iAVtkGraphDrawer graphDrawer;
-#if VTK_VERSION_NUMBER < VTK_VERSION_CHECK(9, 0, 0)
-	auto renWin = m_graphWidget->GetRenderWindow();
-#else
 	auto renWin = m_graphWidget->renderWindow();
-#endif
 	graphDrawer.createLayout(points.GetPointer(), graph, renWin->GetSize(), numRanks);
 	graph->SetPoints(points.GetPointer());
 

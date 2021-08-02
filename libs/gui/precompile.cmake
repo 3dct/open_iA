@@ -46,7 +46,6 @@ SET (OPENIA_PRECOMPILE_HEADERS
 <vector>
 <vtkCamera.h>
 <vtkColorTransferFunction.h>
-<vtkGenericOpenGLRenderWindow.h>
 <vtkImageActor.h>
 <vtkImageData.h>
 <vtkLineSource.h>

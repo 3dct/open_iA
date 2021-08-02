@@ -33,6 +33,7 @@
 #include <vtkIdTypeArray.h>
 #include <vtkLookupTable.h>
 #include <vtkRenderer.h>
+#include <vtkRenderWindow.h>
 #include <vtkScalarBarActor.h>
 #include <vtkTextProperty.h>
 

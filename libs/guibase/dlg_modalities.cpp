@@ -38,7 +38,6 @@
 #include "iAMdiChild.h"
 #include "ui_modalities.h"
 
-
 #include <QVTKInteractor.h>
 #include <vtkColorTransferFunction.h>
 #include <vtkImageData.h>
@@ -46,6 +45,7 @@
 #include <vtkPiecewiseFunction.h>
 #include <vtkRenderer.h>
 #include <vtkRendererCollection.h>
+#include <vtkRenderWindow.h>
 #include <vtkVolume.h>
 
 #include <QFileDialog>

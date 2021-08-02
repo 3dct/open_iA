@@ -37,7 +37,6 @@
 #include <vtkDoubleArray.h>
 #include <vtkEventQtSlotConnect.h>
 #include <vtkFloatArray.h>
-#include <vtkGenericOpenGLRenderWindow.h>
 #include <vtkIdTypeArray.h>
 #include <vtkIntArray.h>
 #include <vtkMutableDirectedGraph.h>
@@ -45,6 +44,7 @@
 #include <vtkPiecewiseFunction.h>
 #include <vtkPlot.h>
 #include <vtkPlotPoints.h>
+#include <vtkRenderWindow.h>
 #include <vtkStringArray.h>
 #include <vtkTable.h>
 #include <vtkVariantArray.h>
@@ -159,19 +159,12 @@ dlg_eventExplorer::dlg_eventExplorer(QWidget *parent, size_t numberOfCharts, int
 
 	for (size_t i=0; i<numberOfCharts; ++i)
 	{
-		iAVtkWidget* vtkWidget = new iAVtkWidget();
-		vtkWidget->setFormat(iAVtkWidget::defaultFormat());
-		auto renWin = vtkSmartPointer<vtkGenericOpenGLRenderWindow>::New();
-#if VTK_VERSION_NUMBER < VTK_VERSION_CHECK(9, 0, 0)
-		vtkWidget->SetRenderWindow(renWin);
-#else
-		vtkWidget->setRenderWindow(renWin);
-#endif
+		iAQVTKWidget* vtkWidget = new iAQVTKWidget();
 		m_widgets.push_back(vtkWidget);
 		this->horizontalLayout->addWidget(m_widgets.at(i));
 		m_contextViews.push_back(vtkSmartPointer<vtkContextView>::New());
 		m_charts.push_back(vtkSmartPointer<vtkChartXY>::New());
-		m_contextViews.at(i)->SetRenderWindow(renWin);
+		m_contextViews.at(i)->SetRenderWindow(vtkWidget->renderWindow());
 		m_contextViews.at(i)->GetScene()->AddItem(m_charts.at(i));
 		m_chartConnections->Connect(m_charts.at(i),
 			vtkCommand::SelectionChangedEvent,
@@ -339,11 +332,7 @@ void dlg_eventExplorer::updateCharts()
 {
 	for (size_t i = 0; i < m_numberOfCharts; ++i)
 	{
-#if VTK_VERSION_NUMBER < VTK_VERSION_CHECK(9, 0, 0)
-		m_widgets.at(i)->GetRenderWindow()->Render();
-#else
 		m_widgets.at(i)->renderWindow()->Render();
-#endif
 	}
 }
 

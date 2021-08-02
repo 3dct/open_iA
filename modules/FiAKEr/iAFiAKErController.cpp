@@ -59,7 +59,7 @@
 #include <iADockWidgetWrapper.h>
 #include <iAFixedAspectWidget.h>
 #include <iASignallingWidget.h>
-#include <iAVtkQtWidget.h>
+#include <iAVtkWidget.h>
 
 // renderer
 #include <iARendererViewSync.h>
@@ -81,7 +81,6 @@
 #include <vtkColorTransferFunction.h>
 #include <vtkCubeSource.h>
 #include <vtkDecimatePro.h>
-#include <vtkGenericOpenGLRenderWindow.h>
 #include <vtkIdTypeArray.h>
 #include <vtkLine.h>
 #include <vtkPiecewiseFunction.h>
@@ -92,6 +91,7 @@
 #include <vtkProperty.h>
 #include <vtkRendererCollection.h>
 #include <vtkRenderer.h>
+#include <vtkRenderWindow.h>
 #include <vtkTable.h>
 #include <vtkUnsignedCharArray.h>
 #include <vtkVertexGlyphFilter.h>
@@ -744,18 +744,13 @@ QWidget* iAFiAKErController::setupResultListView()
 		{
 			ui.previewWidget = new iAFixedAspectWidget();
 			ui.vtkWidget = ui.previewWidget->vtkWidget();
-			auto renWin = vtkSmartPointer<vtkGenericOpenGLRenderWindow>::New();
+			auto renWin = ui.vtkWidget->renderWindow();
 			renWin->SetAlphaBitPlanes(1);
 			auto ren = vtkSmartPointer<vtkRenderer>::New();
 			ren->SetBackground(1.0, 1.0, 1.0);
 			ren->SetUseDepthPeeling(true);
 			ren->SetMaximumNumberOfPeels(10);
 			renWin->AddRenderer(ren);
-#if VTK_VERSION_NUMBER < VTK_VERSION_CHECK(9, 0, 0)
-			ui.vtkWidget->SetRenderWindow(renWin);
-#else
-			ui.vtkWidget->setRenderWindow(renWin);
-#endif
 			ui.vtkWidget->setProperty("resultID", static_cast<qulonglong>(resultID));
 			ui.mini3DVis = create3DVis(ren, d.table, d.mapping, resultColor, m_data->objectType, curveInfo);
 			ui.mini3DVis->setColor(resultColor);
@@ -764,7 +759,7 @@ QWidget* iAFiAKErController::setupResultListView()
 			ui.previewWidget->setProperty("resultID", static_cast<qulonglong>(resultID));
 			connect(ui.previewWidget, &iASignallingWidget::dblClicked, this, &iAFiAKErController::referenceToggled);
 			//connect(ui.previewWidget, &iASignallingWidget::clicked, this, &iAFiAKErController::previewMouseClick);
-			connect(ui.mini3DVis.data(), &iA3DObjectVis::updated, ui.vtkWidget, &iAVtkQtWidget::updateAll);
+			connect(ui.mini3DVis.data(), &iA3DObjectVis::updated, ui.vtkWidget, &iAQVTKWidget::updateAll);
 		}
 		QString bboxText = QString("Bounding box: (x: %1..%2, y: %3..%4, z: %5..%6)")
 			.arg(d.bbox[0][0]).arg(d.bbox[0][1]).arg(d.bbox[0][2])
@@ -2246,11 +2241,7 @@ namespace
 		if (ui.previewWidget && ui.vtkWidget)
 		{
 			ui.previewWidget->setBackgroundRole(role);
-#if VTK_VERSION_NUMBER < VTK_VERSION_CHECK(9, 0, 0)
-			ui.vtkWidget->GetRenderWindow()->GetRenderers()->GetFirstRenderer()->SetBackground(
-#else
 			ui.vtkWidget->renderWindow()->GetRenderers()->GetFirstRenderer()->SetBackground(
-#endif
 				color.redF(), color.greenF(), color.blueF());
 			ui.vtkWidget->update();
 		}
@@ -3055,11 +3046,7 @@ void iAFiAKErController::applyRenderSettings()
 
 		if (m_resultUIs[resultID].vtkWidget)
 		{
-#if VTK_VERSION_NUMBER < VTK_VERSION_CHECK(9, 0, 0)
-			auto ren = m_resultUIs[resultID].vtkWidget->GetRenderWindow()->GetRenderers()->GetFirstRenderer();
-#else
 			auto ren = m_resultUIs[resultID].vtkWidget->renderWindow()->GetRenderers()->GetFirstRenderer();
-#endif
 			ren->SetUseDepthPeeling(m_mdiChild->renderSettings().UseDepthPeeling);
 			ren->SetUseDepthPeelingForVolumes(m_mdiChild->renderSettings().UseDepthPeeling);
 			ren->SetMaximumNumberOfPeels(m_mdiChild->renderSettings().DepthPeels);
@@ -3096,11 +3083,7 @@ void iAFiAKErController::linkPreviewsToggled()
 	for (size_t resultID = 0; resultID < m_data->result.size(); ++resultID)
 	{
 		auto & ui = m_resultUIs[resultID];
-#if VTK_VERSION_NUMBER < VTK_VERSION_CHECK(9, 0, 0)
-		auto ren = ui.vtkWidget->GetRenderWindow()->GetRenderers()->GetFirstRenderer();
-#else
 		auto ren = ui.vtkWidget->renderWindow()->GetRenderers()->GetFirstRenderer();
-#endif
 		if (link)
 		{
 			m_renderManager->addToBundle(ren);

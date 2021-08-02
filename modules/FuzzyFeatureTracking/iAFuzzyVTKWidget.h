@@ -27,15 +27,11 @@
 //! Qt+VTK widget which emits signals when button released.
 //! Solution for a "non-bug" in VTK http://www.vtk.org/pipermail/vtkusers/2013-December/082291.html
 //! which will not get fixed.
-class iAFuzzyVTKWidget : public iAVtkWidget
+class iAFuzzyVTKWidget : public iAQVTKWidget
 {
 	Q_OBJECT
 public:
-#if QT_VERSION < QT_VERSION_CHECK(5, 15, 0)
-	iAFuzzyVTKWidget(QWidget* parent = nullptr, Qt::WindowFlags f = 0);
-#else
-	iAFuzzyVTKWidget(QWidget* parent = nullptr, Qt::WindowFlags f = Qt::WindowFlags());
-#endif
+	iAFuzzyVTKWidget(QWidget* parent = nullptr);
 protected:
 	void mouseReleaseEvent ( QMouseEvent * event ) override;
 	void resizeEvent ( QResizeEvent * event ) override;

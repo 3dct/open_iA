@@ -72,11 +72,11 @@
 #include "ui_DissimilarityMatrix.h"
 #include "ui_SensitivitySettings.h"
 
-#include <vtkGenericOpenGLRenderWindow.h>
 #include <vtkImageData.h>
 #include <vtkNew.h>
 #include <vtkPolyData.h>
 #include <vtkPolyDataMapper.h>
+#include <vtkRenderWindow.h>
 #include <vtkSmartPointer.h>
 #include <vtkTable.h>
 #include <vtkVariant.h>
@@ -1622,7 +1622,7 @@ public:
 	iAParameterListView* m_parameterListView;
 	iAAlgorithmInfo* m_algoInfo;
 
-	iAVtkWidget* m_diff3DWidget;
+	iAQVTKWidget* m_diff3DWidget;
 	iARendererViewSync m_diff3DRenderManager;
 	std::vector<QSharedPointer<iAPolyDataRenderer>> m_diff3DRenderers;
 
@@ -2207,13 +2207,7 @@ void iASensitivityInfo::createGUI()
 	m_gui->m_paramSP->setPointInfo(ptInfo);
 	m_gui->m_mdsSP->setPointInfo(ptInfo);
 
-	m_gui->m_diff3DWidget = new iAVtkWidget();
-	auto renWin = vtkSmartPointer<vtkGenericOpenGLRenderWindow>::New();
-#if VTK_VERSION_NUMBER < VTK_VERSION_CHECK(9, 0, 0)
-	m_gui->m_diff3DWidget->SetRenderWindow(renWin);
-#else
-	m_gui->m_diff3DWidget->setRenderWindow(renWin);
-#endif
+	m_gui->m_diff3DWidget = new iAQVTKWidget();
 	auto dwDiff3D = new iADockWidgetWrapper(m_gui->m_diff3DWidget, "Difference 3D", "foeDiff3D");
 	m_child->splitDockWidget(dwSettings, dwDiff3D, Qt::Horizontal);
 #if VTK_VERSION_NUMBER < VTK_VERSION_CHECK(9, 0, 0)
@@ -2221,7 +2215,7 @@ void iASensitivityInfo::createGUI()
 #else
 	m_gui->m_diff3DRenderManager.addToBundle(m_main3DWidget->renderWindow()->GetRenderers()->GetFirstRenderer());
 #endif
-	renWin->AddRenderer(m_gui->m_diff3DEmptyRenderer);
+	m_gui->m_diff3DWidget->renderWindow()->AddRenderer(m_gui->m_diff3DEmptyRenderer);
 
 	spVisibleParamChanged();
 	updateDissimilarity();
@@ -2679,11 +2673,7 @@ namespace
 void iASensitivityInfo::updateDifferenceView()
 {
 	//iATimeGuard timer("ShowDifference");
-#if VTK_VERSION_NUMBER < VTK_VERSION_CHECK(9, 0, 0)
-	auto renWin = m_gui->m_diff3DWidget->GetRenderWindow();
-#else
 	auto renWin = m_gui->m_diff3DWidget->renderWindow();
-#endif
 	auto const& hp = m_gui->m_paramSP->viewData()->highlightedPoints();
 
 	// TODO: reuse actors... / store what was previously shown and only update if something has changed?
