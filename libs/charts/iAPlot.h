@@ -22,12 +22,12 @@
 
 #include "iAcharts_export.h"
 
+#include <QColor>
 #include <QSharedPointer>
 
 class iAPlotData;
 class iAMapper;
 
-class QColor;
 class QPainter;
 
 //! Interface for a function which is drawable in a chart.
@@ -52,5 +52,6 @@ public:
 protected:
 	QSharedPointer<iAPlotData> m_data;
 	bool m_visible;
+private:
 	QColor m_color;
 };
