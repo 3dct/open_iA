@@ -24,7 +24,6 @@ SET (FeatureScout_PRECOMPILE_INCLUDES
 <iARenderer.h>
 <iAVec3.h>
 <iAVtkWidget.h>
-<iAVtkWidgetFwd.h>
 <itkImageRegionIterator.h>
 <itkImageToVTKImageFilter.h>
 <itkVTKImageToImageFilter.h>

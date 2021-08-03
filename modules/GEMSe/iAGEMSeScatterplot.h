@@ -37,7 +37,7 @@ class vtkTable;
 
 class QColor;
 
-class iAGEMSeScatterplot : public iAVtkWidget
+class iAGEMSeScatterplot : public iAQVTKWidget
 {
 public:
 	iAGEMSeScatterplot(QWidget* parent);

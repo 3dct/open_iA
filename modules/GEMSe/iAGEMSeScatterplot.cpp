@@ -34,7 +34,6 @@
 #include <vtkChartXY.h>
 #include <vtkContextView.h>
 #include <vtkContextScene.h>
-#include <vtkGenericOpenGLRenderWindow.h>
 #include <vtkPlot.h>
 #include <vtkTable.h>
 
@@ -48,15 +47,8 @@ iAGEMSeScatterplot::iAGEMSeScatterplot(QWidget* parent):
 	m_chart1ID(-1),
 	m_chart2ID(-1)
 {
-	setFormat(iAVtkWidget::defaultFormat());
 	vtkSmartPointer<vtkContextView> contextView(vtkSmartPointer<vtkContextView>::New());
-#if VTK_VERSION_NUMBER < VTK_VERSION_CHECK(9, 0, 0)
-	SetRenderWindow(vtkSmartPointer<vtkGenericOpenGLRenderWindow>::New());
-	contextView->SetRenderWindow(GetRenderWindow());
-#else
-	setRenderWindow(vtkSmartPointer<vtkGenericOpenGLRenderWindow>::New());
 	contextView->SetRenderWindow(renderWindow());
-#endif
 	m_chart = vtkSmartPointer<vtkChartXY>::New();
 	m_chart->SetSelectionMode(vtkContextScene::SELECTION_NONE);
 	contextView->GetScene()->AddItem(m_chart);

@@ -21,7 +21,7 @@
 #include "iAFixedAspectWidget.h"
 
 #include "iALog.h"
-#include "iAVtkQtWidget.h"
+#include "iAVtkWidget.h"
 
 #include <QApplication>    // for qApp->palette()
 #include <QPainter>
@@ -40,8 +40,8 @@ public:
 	}
 };
 
-//! The internal iAVtkQtWidget of an iAFixedAspectWidget which actually keeps its aspect ratio.
-class iAFixedAspectWidgetInternal: public iAVtkQtWidget
+//! The internal iAQVTKWidget of an iAFixedAspectWidget which actually keeps its aspect ratio.
+class iAFixedAspectWidgetInternal: public iAQVTKWidget
 {
 public:
 	iAFixedAspectWidgetInternal(double aspect):
@@ -83,7 +83,7 @@ iAFixedAspectWidget::iAFixedAspectWidget(double aspect, Qt::Alignment verticalAl
 	}
 }
 
-iAVtkQtWidget* iAFixedAspectWidget::vtkWidget()
+iAQVTKWidget* iAFixedAspectWidget::vtkWidget()
 {
 	return m_widget;
 }

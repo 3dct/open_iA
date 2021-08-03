@@ -9,10 +9,6 @@
 #include "iAVtkVersion.h"
 #include "iAVtkWidget.h"
 
-
-//Qt
-#include "vtkGenericOpenGLRenderWindow.h"
-
 //vtk
 #include <vtkObjectFactory.h> //for macro!
 #include "vtkDoubleArray.h"
@@ -20,6 +16,7 @@
 #include "vtkIntArray.h"
 
 #include "vtkRenderer.h"
+#include <vtkRenderWindow.h>
 #include "vtkContextView.h"
 #include "vtkContextScene.h"
 

@@ -61,6 +61,7 @@
 #include <vtkProperty.h>
 #include <vtkRenderer.h>
 #include <vtkRendererCollection.h>
+#include <vtkRenderWindow.h>
 #include <vtkTextActor.h>
 #include <vtkTextProperty.h>
 #include <vtkVolumeProperty.h>

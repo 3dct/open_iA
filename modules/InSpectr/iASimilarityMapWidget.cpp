@@ -244,7 +244,7 @@ void iASimilarityMapWidget::mouseMoveEvent( QMouseEvent *event )
 {
 	int selectedBins[2] = { 0, 0 };
 #if QT_VERSION < QT_VERSION_CHECK(6, 0, 0)
-	double pos[2] = { event->x(), event->y() };
+	double pos[2] = {static_cast<double>(event->x()), static_cast<double>(event->y()) };
 #else
 	double pos[2] = {event->position().x(), event->position().y()};
 #endif
@@ -256,7 +256,7 @@ void iASimilarityMapWidget::mouseReleaseEvent( QMouseEvent * event )
 {
 	int selectedBins[2] = {0, 0};
 #if QT_VERSION < QT_VERSION_CHECK(6, 0, 0)
-	double pos[2] = {event->x(), event->y()};
+	double pos[2] = {static_cast<double>(event->x()), static_cast<double>(event->y())};
 #else
 	double pos[2] = {event->position().x(), event->position().y()};
 #endif

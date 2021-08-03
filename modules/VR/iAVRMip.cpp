@@ -160,9 +160,9 @@ std::vector<QColor>* iAVRMip::calculateMIPColoring(int direction, int level, int
 	std::vector<QColor>* mipColors = new std::vector<QColor>();
 	mipColors->reserve(gridSize * gridSize);
 
-	for (int y = 0; y < gridSize; y++)
+	for (size_t y = 0; y < gridSize; y++)
 	{
-		for (int x = 0; x < gridSize; x++)
+		for (size_t x = 0; x < gridSize; x++)
 		{
 			double val = 0;
 

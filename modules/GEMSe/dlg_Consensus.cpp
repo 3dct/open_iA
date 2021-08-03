@@ -53,7 +53,6 @@
 #include <vtkContextScene.h>
 #include <vtkContextView.h>
 #include <vtkFloatArray.h>
-#include <vtkGenericOpenGLRenderWindow.h>
 #include <vtkPlot.h>
 #include <vtkPlotLine.h>
 #include <vtkTable.h>
@@ -105,7 +104,7 @@
 
 struct ChartWidgetData
 {
-	iAVtkWidget* vtkWidget;
+	iAQVTKWidget* vtkWidget;
 	vtkSmartPointer<vtkChartXY> chart;
 };
 
@@ -113,15 +112,9 @@ ChartWidgetData CreateChartWidget(const char * xTitle, const char * yTitle,
 		iAMdiChild* mdiChild)
 {
 	ChartWidgetData result;
-	result.vtkWidget = new iAVtkWidget();
+	result.vtkWidget = new iAQVTKWidget();
 	auto contextView = vtkSmartPointer<vtkContextView>::New();
-#if VTK_VERSION_NUMBER < VTK_VERSION_CHECK(9, 0, 0)
-	result.vtkWidget->SetRenderWindow(vtkSmartPointer<vtkGenericOpenGLRenderWindow>::New());
-	contextView->SetRenderWindow(result.vtkWidget->GetRenderWindow());
-#else
-	result.vtkWidget->setRenderWindow(vtkSmartPointer<vtkGenericOpenGLRenderWindow>::New());
 	contextView->SetRenderWindow(result.vtkWidget->renderWindow());
-#endif
 	result.chart = vtkSmartPointer<vtkChartXY>::New();
 	result.chart->SetSelectionMode(vtkContextScene::SELECTION_NONE);
 	auto xAxis1 = result.chart->GetAxis(vtkAxis::BOTTOM);

@@ -87,7 +87,7 @@ public:
 	void endInteraction(vtkEventDataDevice3D* device, vtkProp3D* pickedProp, double eventPosition[3], double eventOrientation[4]); //Release, Untouch
 	void onMove(vtkEventDataDevice3D* device, double movePosition[3], double eventOrientation[4]); //Movement
 	void onZoom();
-	int currentOctreeLevel;
+	vtkIdType currentOctreeLevel;
 
 private:
 	iAVREnvironment* m_vrEnv;

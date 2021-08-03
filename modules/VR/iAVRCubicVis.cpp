@@ -224,7 +224,7 @@ void iAVRCubicVis::highlightGlyphs(std::vector<vtkIdType>* regionIDs, std::vecto
 		activeGlyphScales->SetName("scales");
 		activeGlyphScales->SetNumberOfComponents(3);
 
-		for (int i = 0; i < regionIDs->size(); i++)
+		for (size_t i = 0; i < regionIDs->size(); i++)
 		{
 			int iD = regionIDs->at(i);
 			points->InsertNextPoint(m_cubePolyData->GetPoint(iD));
@@ -372,7 +372,7 @@ void iAVRCubicVis::applyRadialDisplacement(double offset)
 	m_octree->calculateOctreeCenterPos(centerPoint);
 	iAVec3d centerPos = iAVec3d(centerPoint);
 
-	for (int i = 0; i < glyph3D->GetPolyDataInput(0)->GetNumberOfPoints(); i++)
+	for (vtkIdType i = 0; i < glyph3D->GetPolyDataInput(0)->GetNumberOfPoints(); i++)
 	{
 		iAVec3d currentPoint = iAVec3d(glyph3D->GetPolyDataInput(0)->GetPoint(i));
 		iAVec3d normDirection = currentPoint - centerPos;
@@ -406,7 +406,7 @@ void iAVRCubicVis::applySPDisplacement(double offset)
 	iAVec3d centerPos = iAVec3d(centerPoint);
 
 	// Get max length
-	for (int i = 0; i < glyph3D->GetPolyDataInput(0)->GetNumberOfPoints(); i++)
+	for (vtkIdType i = 0; i < glyph3D->GetPolyDataInput(0)->GetNumberOfPoints(); i++)
 	{
 		iAVec3d currentPoint = iAVec3d(glyph3D->GetPolyDataInput(0)->GetPoint(i));
 		iAVec3d direction = currentPoint - centerPos;
@@ -415,7 +415,7 @@ void iAVRCubicVis::applySPDisplacement(double offset)
 		if (length > maxLength) maxLength = length;
 	}
 
-	for (int i = 0; i < glyph3D->GetPolyDataInput(0)->GetNumberOfPoints(); i++)
+	for (vtkIdType i = 0; i < glyph3D->GetPolyDataInput(0)->GetNumberOfPoints(); i++)
 	{
 		iAVec3d currentPoint = iAVec3d(glyph3D->GetPolyDataInput(0)->GetPoint(i));
 		iAVec3d normDirection = currentPoint - centerPos;
@@ -448,7 +448,7 @@ void iAVRCubicVis::applyOctantDisplacement(double offset)
 	iAVec3d centerPos = iAVec3d(centerPoint);
 	iAVec3d newPoint;
 
-	for (int i = 0; i < glyph3D->GetPolyDataInput(0)->GetNumberOfPoints(); i++)
+	for (vtkIdType i = 0; i < glyph3D->GetPolyDataInput(0)->GetNumberOfPoints(); i++)
 	{
 		iAVec3d currentPoint = iAVec3d(glyph3D->GetPolyDataInput(0)->GetPoint(i));
 		newPoint = currentPoint;

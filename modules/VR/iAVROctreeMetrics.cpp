@@ -154,7 +154,7 @@ double iAVROctreeMetrics::getMaxNumberOfFibersInRegion(vtkIdType octreeLevel)
 void iAVROctreeMetrics::calculateMaxCoverageFiberPerRegion()
 {
 	//Initialize new Vectors
-	for (int level = 0; level < m_fiberCoverage->size(); level++)
+	for (size_t level = 0; level < m_fiberCoverage->size(); level++)
 	{
 		//Initialize the region vec for every level
 		m_maxCoverage->push_back(std::vector<std::vector<vtkIdType>>());
@@ -320,7 +320,7 @@ double iAVROctreeMetrics::calculateJaccardDistance(vtkIdType level, vtkIdType re
 //! Iterates through all regions in all level and counts the amount of fibers. The maximum amount of fibers in a region (in a level) is stored.
 void iAVROctreeMetrics::calculateMaxNumberOfFibersInRegion()
 {
-	for (int level = 0; level < m_octrees->size(); level++)
+	for (size_t level = 0; level < m_octrees->size(); level++)
 	{
 		double numberOfFibers = 0;
 

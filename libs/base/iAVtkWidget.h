@@ -20,9 +20,9 @@
 * ************************************************************************************/
 #pragma once
 
-#include "iAVtkVersion.h"
+#include "iAbase_export.h"
 
-#include <vtkGenericOpenGLRenderWindow.h>
+#include "iAVtkVersion.h"
 
 #if (VTK_VERSION_NUMBER >= VTK_VERSION_CHECK(8, 2, 0))
 	#include <QVTKOpenGLNativeWidget.h>
@@ -33,27 +33,16 @@
 #endif
 
 //! Unified interface to a Qt widget with VTK content, providing consistent usage for VTK versions 8 to 9.
-class iAQVTKWidget: public iAVtkWidget
+class iAbase_API iAQVTKWidget: public iAVtkWidget
 {
 public:
 	//! Creates the widget; makes sure its inner vtk render window is set, and sets an appropriate surface format
-	iAQVTKWidget(QWidget* parent = nullptr): iAVtkWidget(parent)
-	{	// before version 9, VTK did not set a default render window, let's do this...
+	iAQVTKWidget(QWidget* parent = nullptr);
 #if VTK_VERSION_NUMBER < VTK_VERSION_CHECK(9, 0, 0)
-		auto renWin = vtkSmartPointer<vtkGenericOpenGLRenderWindow>::New();
-		SetRenderWindow(renWin);
+	//! access to VTK render window (compatibility method to VTK 9 for VTK 8)
+	vtkRenderWindow* renderWindow();
+	//! access to VTK interactor (compatibility method to provide same interface as VTK 9, when using VTK 8)
+	QVTKInteractor* interactor();
 #endif
-		setFormat(iAVtkWidget::defaultFormat());
-	}
-#if VTK_VERSION_NUMBER < VTK_VERSION_CHECK(9, 0, 0)
-	// There also were no Qt-style methods to retrieve render window and interactor, let's provide them:
-	vtkRenderWindow* renderWindow()
-	{
-		return GetRenderWindow();
-	}
-	QVTKInteractor* interactor()
-	{
-		return GetInteractor();
-	}
-#endif
+	void updateAll();
 };
