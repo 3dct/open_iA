@@ -23,7 +23,7 @@ std::vector<double>* iACoefficientOfVariation::recalculateCoefficentOfVariation(
 	return calculateVariationCoefficient(selectedData);;
 }
 
-void iACoefficientOfVariation::initializeAttributeArray(csvDataType::ArrayType* selectedData, csvDataType::ArrayType* result)
+void iACoefficientOfVariation::initializeAttributeArray(csvDataType::ArrayType* selectedData)
 {
 	m_attributeArray = selectedData;
 }

@@ -11,9 +11,11 @@
 #include <limits>
 
 iACorrelationCoefficient::iACorrelationCoefficient(iACsvDataStorage* dataStorage):
+	m_inputTable(nullptr),
 	m_dataStorage(dataStorage),
-	m_correlationFilter(vtkSmartPointer<vtkCorrelativeStatistics>::New()),
-	m_correlations(new std::map <QString, Correlation::CorrelationStore>())
+	m_numberOfAttr(0),
+	m_correlations(new std::map <QString, Correlation::CorrelationStore>()),
+	m_correlationFilter(vtkSmartPointer<vtkCorrelativeStatistics>::New())
 {
 	vtkSmartPointer<vtkTable> data = toVtkTable(m_dataStorage->getData());
 	m_correlations = calculate(data);
@@ -114,7 +116,7 @@ vtkSmartPointer<vtkTable> iACorrelationCoefficient::toVtkTable(QList<csvFileData
 
 	int row = 0;
 	//fill table with data
-	for (int i = 0; i < data->size(); i++)
+	for (int i = 0; i < ((int)data->size()); i++)
 	{//for all datasets
 		for (int dataInd = 0; dataInd < data->at(i).values->size(); dataInd++)
 		{ //for all values

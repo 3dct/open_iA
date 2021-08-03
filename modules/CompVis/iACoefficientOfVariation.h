@@ -27,7 +27,7 @@ private:
 	//store all values of each attribute in a vector
 	void initializeAttributeArray(QList<csvFileData>* input, csvDataType::ArrayType* result);
 	//store all values of each attribute in a vector
-	void initializeAttributeArray(csvDataType::ArrayType* selectedData, csvDataType::ArrayType* result);
+	void initializeAttributeArray(csvDataType::ArrayType* selectedData);
 
 	double calculateStandardDeviation(std::vector<double>* input, double mean);
 	double calculateMean(std::vector<double>* input);

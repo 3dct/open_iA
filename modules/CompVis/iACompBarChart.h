@@ -83,17 +83,11 @@ private:
 	iACoefficientOfVariation* m_coeffVar;
 	iAQVTKWidget* m_qvtkWidget;
 
-	//context view for 2D charts
-	vtkSmartPointer<vtkContextView> m_view;
+	
 
-	//stores the coefficient of variation for all values of all datasets
-	std::vector<double>* coefficients;
-	//stores the coefficient of variation for all values of all datasets in original order
-	//according to the order of the attributes in the csv
-	std::vector<double>* coefficientsUnordered;
+	
 
-	//stores the names of all attributes
-	QStringList* attrNames;
+	
 	
 	//stores the new positions of all values for all datasets after sorting according to the coefficient of variation
 	std::vector<double>* orderedPositions;
@@ -109,6 +103,17 @@ private:
 	vtkSmartPointer<vtkPropItem> m_originalBarChartRepositioned;
 	vtkSmartPointer<vtkPropItem> m_selectedBarChart;
 
+	//context view for 2D charts
+	vtkSmartPointer<vtkContextView> m_view;
+
+	//stores the names of all attributes
+	QStringList* attrNames;
+	
+	//stores the coefficient of variation for all values of all datasets
+	std::vector<double>* coefficients;
+	//stores the coefficient of variation for all values of all datasets in original order
+	//according to the order of the attributes in the csv
+	std::vector<double>* coefficientsUnordered;
 	
 	//inner class
 	class BarChartInteractorStyle : public vtkContextInteractorStyle

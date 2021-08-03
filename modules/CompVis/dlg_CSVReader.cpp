@@ -59,7 +59,7 @@ void dlg_CSVReader::btnDeleteFileClicked()
 
 void dlg_CSVReader::okBtnClicked()
 {
-	m_dataStorage = new iACsvDataStorage(&m_filenames, listView);
+	m_dataStorage = new iACsvDataStorage(&m_filenames);
 
 	this->accept();
 }

@@ -148,7 +148,7 @@ void iACompBoxPlot::reinitializeBoxPlot()
 	m_view->GetScene()->ClearItems();
 	removeSelectedMessage();
 
-	for(int i = 0; i < m_legendAttributes->size(); i++)
+	for(int i = 0; i < ((int)m_legendAttributes->size()); i++)
 	{
 		m_view->GetRenderer()->RemoveActor2D(m_legendAttributes->at(i));
 	}
@@ -776,6 +776,11 @@ void iACompBoxPlot::BoxPlotChart::SetTooltipInfo(const vtkContextMouseEvent& mou
 	vtkIdType segmentIndex)
 {
 	if (!this->Tooltip)
+	  {
+		return;
+	  }
+
+	if (seriesIndex == -1 && plot == nullptr && segmentIndex == -1)
 	  {
 		return;
 	  }
