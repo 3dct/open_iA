@@ -20,7 +20,6 @@
 * ************************************************************************************/
 #include "dlg_modalities.h"
 
-#include "dlg_commoninput.h"
 #include "dlg_modalityProperties.h"
 #include "iAChannelData.h"
 #include "iAChannelSlicerData.h"
@@ -29,6 +28,7 @@
 #include "iAModality.h"
 #include "iAModalityList.h"
 #include "iAModalityTransfer.h"
+#include "iAParameterDlg.h"
 #include "iARenderer.h"
 #include "iASlicer.h"
 #include "iAVolumeRenderer.h"
@@ -114,20 +114,18 @@ void dlg_modalities::addClicked()
 	bool split = false;
 	if (CanHaveMultipleChannels(fileName))
 	{
-		QStringList inList;
-		inList << tr("$Split Channels");
-		QList<QVariant> inPara;
-		inPara << tr("%1").arg(true);
-		QString descr("Input file potentially has multiple channels. "
+		iAParameterDlg::ParamListT params;
+		addParameter(params, "Split Channels", iAValueType::Boolean, true);
+		iAParameterDlg dlg(this, "Multi-channel input", params,
+			"Input file potentially has multiple channels. "
 			"Should they be split into separate datasets, "
 			"or kept as one dataset with multiple components ?");
-		dlg_commoninput splitInput(this, "Multi-channel input", inList, inPara, descr);
-		if (splitInput.exec() != QDialog::Accepted)
+		if (dlg.exec() != QDialog::Accepted)
 		{
 			LOG(lvlInfo, "Aborted by user.");
 			return;
 		}
-		split = splitInput.getCheckValue(0);
+		split = dlg.parameterValues()["Split Channels"].toBool();
 	}
 	ModalityCollection mods = iAModalityList::load(fileName, "", -1, split, DefaultRenderFlags);
 	for (auto mod : mods)

@@ -36,7 +36,6 @@
 #include "iACsvIO.h"
 #include "iAObjectType.h"
 
-#include <dlg_commoninput.h>
 #include <dlg_modalities.h>
 #include <iAmat4.h>
 #include <iAMovieHelper.h>
@@ -58,7 +57,6 @@
 
 // base:
 #include <defines.h>    // for DIM
-#include <iAAttributeDescriptor.h>
 #include <iAConnector.h>
 #include <iAFileUtils.h>
 #include <iALog.h>
@@ -1204,18 +1202,15 @@ void dlg_FeatureScout::writeWisetex(QXmlStreamWriter* writer)
 
 void dlg_FeatureScout::CsvDVSaveButton()
 {
-	//Gets the selected rows out of elementTable
+	// Get selected rows out of elementTable
 	QModelIndexList indexes = m_elementTableView->selectionModel()->selection().indexes();
 	QList<ushort> characteristicsList;
-	QStringList inList;
-	QList<QVariant> inPara;
 
-	//Creates to checkboxes
-	inList.append(QString("$Save file"));
-	inPara.append(false);
-	inList.append(QString("$Show histograms"));
-	inPara.append(true);
-
+	
+	iAParameterDlg::ParamListT params;
+	addParameter(params, "Save file", iAValueType::Boolean, false);
+	addParameter(params, "Show histograms", iAValueType::Boolean, true);
+	QStringList colNames;
 	for (int i = 0; i < indexes.count(); ++i)
 	{
 		//Ensures that indices are unique
@@ -1227,14 +1222,12 @@ void dlg_FeatureScout::CsvDVSaveButton()
 
 		QString columnName(m_elementTable->GetColumn(0)->GetVariantValue(characteristicsList.at(i)).ToString().c_str());
 		columnName.remove("Â");
-
-		inList.append(QString("#HistoMin for %1").arg(columnName));
-		inList.append(QString("#HistoMax for %1").arg(columnName));
-		inList.append(QString("#HistoBinNbr for %1").arg(columnName));
-
-		inPara.append(m_elementTable->GetColumn(1)->GetVariantValue(characteristicsList.at(i)).ToFloat());
-		inPara.append(m_elementTable->GetColumn(2)->GetVariantValue(characteristicsList.at(i)).ToFloat());
-		inPara.append(100);
+		colNames.push_back(columnName);
+		addParameter(params, QString("HistoMin for %1").arg(columnName), iAValueType::Continuous,
+			m_elementTable->GetColumn(1)->GetVariantValue(characteristicsList.at(i)).ToFloat());
+		addParameter(params, QString("HistoMax for %1").arg(columnName), iAValueType::Continuous,
+			m_elementTable->GetColumn(2)->GetVariantValue(characteristicsList.at(i)).ToFloat());
+		addParameter(params, QString("HistoBinNbr for %1").arg(columnName), iAValueType::Discrete, 100, 2);
 	}
 
 	if (characteristicsList.count() == 0)
@@ -1243,14 +1236,14 @@ void dlg_FeatureScout::CsvDVSaveButton()
 		return;
 	}
 
-	dlg_commoninput dlg(this, "DistributionViewCSVSaveDialog", inList, inPara, nullptr);
+	iAParameterDlg dlg(this, "Save Distribution CSV", params);
 	if (dlg.exec() != QDialog::Accepted)
 	{
 		return;
 	}
-
-	bool saveFile = dlg.getCheckValue(0) == 2;
-	bool showHistogram = dlg.getCheckValue(1) == 2;
+	auto values = dlg.parameterValues();
+	bool saveFile = values["Save file"].toBool();
+	bool showHistogram = values["Show histograms"].toBool();
 	if (!saveFile && !showHistogram)
 	{
 		QMessageBox::warning(this, "FeatureScout", "Please check either 'Save file' or 'Show histogram' (or both).");
@@ -1281,18 +1274,15 @@ void dlg_FeatureScout::CsvDVSaveButton()
 		double range[2] = { 0.0, 0.0 };
 		vtkDataArray* length = vtkDataArray::SafeDownCast(
 			m_tableList[m_activeClassItem->index().row()]->GetColumn(characteristicsList.at(characteristicIdx)));
-		range[0] = dlg.getDblValue(3 * characteristicIdx + 2);
-		range[1] = dlg.getDblValue(3 * characteristicIdx + 3);
-		//length->GetRange(range);
+		range[0] = values[QString("HistoMin for %1").arg(colNames[characteristicIdx])].toDouble();
+		range[1] = values[QString("HistoMax for %1").arg(colNames[characteristicIdx])].toDouble();
 
 		if (range[0] == range[1])
 		{
 			range[1] = range[0] + 1.0;
 		}
 
-		int numberOfBins = dlg.getDblValue(3 * characteristicIdx + 4);
-		//int numberOfBins = dlg.getDblValue(row+2);
-		//double inc = (range[1] - range[0]) / (numberOfBins) * 1.001; //test
+		int numberOfBins = values[QString("HistoBinNbr for %1").arg(colNames[characteristicIdx])].toInt();
 		double inc = (range[1] - range[0]) / (numberOfBins);
 		double halfInc = inc / 2.0;
 
@@ -1301,7 +1291,6 @@ void dlg_FeatureScout::CsvDVSaveButton()
 		extents->SetNumberOfTuples(numberOfBins);
 
 		float* centers = static_cast<float*>(extents->GetVoidPointer(0));
-		//double min = range[0] - 0.0005*inc + halfInc;	//test
 		double min = range[0] + halfInc;
 
 		for (int j = 0; j < numberOfBins; ++j)
@@ -1509,21 +1498,20 @@ void dlg_FeatureScout::CreateLabelledOutputMask(iAConnector& con, const QString&
 	typedef itk::Image<T, DIM>   InputImageType;
 	typedef itk::Image<ClassIDType, DIM>   OutputImageType;
 
-	QMap<size_t, ClassIDType> currentEntries;
-
 	QString mode1 = "Export all classes";
 	QString mode2 = "Export single selected class";
-	QStringList modes = (QStringList() << tr(mode1.toStdString().c_str()) << tr(mode2.toStdString().c_str()));
-	QStringList inList = (QStringList() << tr("+Classification"));
-	QList<QVariant> inPara = (QList<QVariant>() << modes);
-	dlg_commoninput dlg(this, "Save classification options", inList, inPara, nullptr);
+	QStringList modes = (QStringList() << mode1 << mode2);
+	iAParameterDlg::ParamListT params;
+	addParameter(params, "Classification", iAValueType::Categorical, modes);
+	iAParameterDlg dlg(this, "Save classification options", params);
 	if (dlg.exec() != QDialog::Accepted)
 	{
 		return;
 	}
-	QString mode = dlg.getComboBoxValue(0);
-	bool exportAllClassified = (mode.compare(mode1) == 0); //if export all selected else single class export
+	QString mode = dlg.parameterValues()["Classification"].toString();
+	bool exportAllClassified = (mode == mode1);
 
+	QMap<size_t, ClassIDType> currentEntries;
 	// Skip first, as classes start with 1, 0 is the uncategorized class
 	for (int i = 1; i < m_classTreeModel->invisibleRootItem()->rowCount(); i++)
 	{
@@ -1881,17 +1869,17 @@ void dlg_FeatureScout::showScatterPlot()
 void dlg_FeatureScout::showPCSettings()
 {
 	iAParameterDlg::ParamListT params;
-	params.push_back(iAAttributeDescriptor::createParam("Line Width", iAValueType::Continuous, m_pcLineWidth, 0.001, 100000));
-	params.push_back(iAAttributeDescriptor::createParam("Opacity", iAValueType::Discrete, m_pcOpacity, 0, 255));
-	params.push_back(iAAttributeDescriptor::createParam("Tick Count", iAValueType::Discrete, m_pcTickCount, 0, 255));
-	params.push_back(iAAttributeDescriptor::createParam("Font Size", iAValueType::Discrete, m_pcFontSize, 0, 255));
+	addParameter(params, "Line Width", iAValueType::Continuous, m_pcLineWidth, 0.001, 100000);
+	addParameter(params, "Opacity", iAValueType::Discrete, m_pcOpacity, 0, 255);
+	addParameter(params, "Tick Count", iAValueType::Discrete, m_pcTickCount, 0, 255);
+	addParameter(params, "Font Size", iAValueType::Discrete, m_pcFontSize, 0, 255);
 
 	iAParameterDlg pcSettingsDlg(this, "Parallel Coordinates Settings", params);
 	if (pcSettingsDlg.exec() != QDialog::Accepted)
 	{
 		return;
 	}
-	auto const& values = pcSettingsDlg.parameterValues();
+	auto values = pcSettingsDlg.parameterValues();
 	m_pcLineWidth = values["Line Width"].toFloat();
 	m_pcOpacity   = values["Opacity"].toInt();
 	m_pcTickCount = values["Tick Count"].toInt();
@@ -2912,69 +2900,46 @@ void dlg_FeatureScout::setupPolarPlotResolution(float grad)
 
 bool dlg_FeatureScout::OpenBlobVisDialog()
 {
-	QStringList inList = (QStringList()
-		<< tr("^Range:")
-		<< tr("$Blob body:")
-		<< tr("$Use Depth peeling:")
-		<< tr("^Blob opacity [0,1]:")
-		<< tr("$Silhouettes:")
-		<< tr("^Silhouettes opacity [0,1]:")
-		<< tr("$3D labels:")
-		<< tr("$Smart overlapping:")
-		<< tr("^Separation distance (if smart overlapping):")
-		<< tr("$Smooth after smart overlapping:")
-		<< tr("$Gaussian blurring of the blob:")
-		<< tr("*Gaussian blur variance:")
-		<< tr("*Dimension X")
-		<< tr("*Dimension Y")
-		<< tr("*Dimension Z")
-		);
-	QList<QVariant> inPara;
 	iABlobCluster* blob = nullptr;
 	if (m_blobMap.contains(m_activeClassItem->text()))
 	{
 		blob = m_blobMap[m_activeClassItem->text()];
 	}
-
-	inPara
-		<< tr("%1").arg(blob ? blob->GetRange() : m_blobManager->GetRange())
-		<< tr("%1").arg(blob ? blob->GetShowBlob() : m_blobManager->GetShowBlob())
-		<< tr("%1").arg(m_blobManager->GetUseDepthPeeling())
-		<< tr("%1").arg(blob ? blob->GetBlobOpacity() : m_blobManager->GetBlobOpacity())
-		<< tr("%1").arg(blob ? blob->GetSilhouette() : m_blobManager->GetSilhouettes())
-		<< tr("%1").arg(blob ? blob->GetSilhouetteOpacity() : m_blobManager->GetSilhouetteOpacity())
-		<< tr("%1").arg(blob ? blob->GetLabel() : m_blobManager->GetLabeling())
-		<< tr("%1").arg(m_blobManager->OverlappingIsEnabled())
-		<< tr("%1").arg(m_blobManager->GetOverlapThreshold())
-		<< tr("%1").arg(blob ? blob->GetSmoothing() : m_blobManager->GetSmoothing())
-		<< tr("%1").arg(m_blobManager->GetGaussianBlur())
-		<< tr("%1").arg(blob ? blob->GetGaussianBlurVariance() : m_blobManager->GetGaussianBlurVariance())
-		<< tr("%1").arg(blob ? blob->GetDimensions()[0] : m_blobManager->GetDimensions()[0])
-		<< tr("%1").arg(blob ? blob->GetDimensions()[1] : m_blobManager->GetDimensions()[1])
-		<< tr("%1").arg(blob ? blob->GetDimensions()[2] : m_blobManager->GetDimensions()[2]);
-	dlg_commoninput dlg(this, "Blob rendering preferences", inList, inPara, nullptr);
+	iAParameterDlg::ParamListT params;
+	addParameter(params, "Range:", iAValueType::Continuous, blob ? blob->GetRange() : m_blobManager->GetRange());
+	addParameter(params, "Blob body:", iAValueType::Boolean, blob ? blob->GetShowBlob() : m_blobManager->GetShowBlob());
+	addParameter(params, "Use Depth peeling:", iAValueType::Boolean, m_blobManager->GetUseDepthPeeling());
+	addParameter(params, "Blob opacity [0,1]:", iAValueType::Continuous, blob ? blob->GetBlobOpacity() : m_blobManager->GetBlobOpacity());
+	addParameter(params, "Silhouettes:", iAValueType::Boolean, blob ? blob->GetSilhouette() : m_blobManager->GetSilhouettes());
+	addParameter(params, "Silhouettes opacity [0,1]:", iAValueType::Continuous, blob ? blob->GetSilhouetteOpacity() : m_blobManager->GetSilhouetteOpacity());
+	addParameter(params, "3D labels:", iAValueType::Boolean, blob ? blob->GetLabel() : m_blobManager->GetLabeling());
+	addParameter(params, "Smart overlapping:", iAValueType::Boolean, m_blobManager->OverlappingIsEnabled());
+	addParameter(params, "Separation distance (if smart overlapping):", iAValueType::Continuous, m_blobManager->GetOverlapThreshold());
+	addParameter(params, "Smooth after smart overlapping:", iAValueType::Boolean, blob ? blob->GetSmoothing() : m_blobManager->GetSmoothing());
+	addParameter(params, "Gaussian blurring of the blob:", iAValueType::Boolean, m_blobManager->GetGaussianBlur());
+	addParameter(params, "Gaussian blur variance:", iAValueType::Continuous, blob ? blob->GetGaussianBlurVariance() : m_blobManager->GetGaussianBlurVariance());
+	addParameter(params, "Dimension X", iAValueType::Discrete, blob ? blob->GetDimensions()[0] : m_blobManager->GetDimensions()[0]);
+	addParameter(params, "Dimension Y", iAValueType::Discrete, blob ? blob->GetDimensions()[1] : m_blobManager->GetDimensions()[1]);
+	addParameter(params, "Dimension Z", iAValueType::Discrete, blob ? blob->GetDimensions()[2] : m_blobManager->GetDimensions()[2]);
+	iAParameterDlg dlg(this, "Blob rendering preferences", params);
 	if (dlg.exec() != QDialog::Accepted)
 	{
 		return false;
 	}
-	int i = 0;
-	m_blobManager->SetRange(dlg.getDblValue(i++));
-	m_blobManager->SetShowBlob(dlg.getCheckValue(i++) != 0);
-	m_blobManager->SetUseDepthPeeling(dlg.getCheckValue(i++));
-	m_blobManager->SetBlobOpacity(dlg.getDblValue(i++));
-	m_blobManager->SetSilhouettes(dlg.getCheckValue(i++) != 0);
-	m_blobManager->SetSilhouetteOpacity(dlg.getDblValue(i++));
-	m_blobManager->SetLabeling(dlg.getCheckValue(i++) != 0);
-	m_blobManager->SetOverlappingEnabled(dlg.getCheckValue(i++) != 0);
-	m_blobManager->SetOverlapThreshold(dlg.getDblValue(i++));
-	m_blobManager->SetSmoothing(dlg.getCheckValue(i++));
-	m_blobManager->SetGaussianBlur(dlg.getCheckValue(i++));
-	m_blobManager->SetGaussianBlurVariance(dlg.getIntValue(i++));
-
-	int dimens[3];
-	dimens[0] = dlg.getIntValue(i++);
-	dimens[1] = dlg.getIntValue(i++);
-	dimens[2] = dlg.getIntValue(i++);
+	auto values = dlg.parameterValues();
+	m_blobManager->SetRange(values["Range:"].toDouble());
+	m_blobManager->SetShowBlob(values["Blob body:"].toBool());
+	m_blobManager->SetUseDepthPeeling(values["Use Depth peeling:"].toBool());
+	m_blobManager->SetBlobOpacity(values["Blob opacity [0,1]:"].toDouble());
+	m_blobManager->SetSilhouettes(values["Silhouettes:"].toBool());
+	m_blobManager->SetSilhouetteOpacity(values["Silhouettes opacity [0,1]:"].toDouble());
+	m_blobManager->SetLabeling(values["3D labels:"].toBool());
+	m_blobManager->SetOverlappingEnabled(values["Smart overlapping:"].toBool());
+	m_blobManager->SetOverlapThreshold(values["Separation distance (if smart overlapping):"].toDouble());
+	m_blobManager->SetSmoothing(values["Smooth after smart overlapping:"].toBool());
+	m_blobManager->SetGaussianBlur(values["Gaussian blurring of the blob:"].toBool());
+	m_blobManager->SetGaussianBlurVariance(values["Gaussian blur variance:"].toDouble());
+	int dimens[3] = {values["Dimension X"].toInt(), values["Dimension Y"].toInt(), values["Dimension Z"].toInt()};
 	m_blobManager->SetDimensions(dimens);
 	return true;
 }
@@ -2987,103 +2952,56 @@ void dlg_FeatureScout::SaveBlobMovie()
 		QMessageBox::information(this, "Movie Export", "Sorry, but movie export support is disabled.");
 		return;
 	}
+	iAParameterDlg::ParamListT params;
 	QStringList modes = (QStringList() << tr("No rotation") << tr("Rotate Z") << tr("Rotate X") << tr("Rotate Y"));
-	QStringList inList = (QStringList() << tr("+Rotation mode"));
-	QList<QVariant> inPara = (QList<QVariant>() << modes);
-	dlg_commoninput dlg(this, "Save movie options", inList, inPara, nullptr);
+	addParameter(params, "Rotation mode", iAValueType::Categorical, modes);
+	addParameter(params, "Number of frames:", iAValueType::Discrete, 24, 1);
+	addParameter(params, "Range from:", iAValueType::Continuous, m_blobManager->GetRange());
+	addParameter(params, "Range to:", iAValueType::Continuous, m_blobManager->GetRange());
+	addParameter(params, "Blob body:", iAValueType::Boolean, m_blobManager->GetShowBlob());
+	addParameter(params, "Blob opacity from [0,1]:", iAValueType::Continuous, m_blobManager->GetBlobOpacity(), 0, 1);
+	addParameter(params, "Blob opacity to:", iAValueType::Continuous, m_blobManager->GetBlobOpacity(), 0, 1);
+	addParameter(params, "Silhouettes:", iAValueType::Boolean, m_blobManager->GetSilhouettes());
+	addParameter(params, "Silhouettes opacity from [0,1]:", iAValueType::Continuous, m_blobManager->GetSilhouetteOpacity());
+	addParameter(params, "Silhouettes opacity to:", iAValueType::Continuous, m_blobManager->GetSilhouetteOpacity());
+	addParameter(params, "3D labels:", iAValueType::Boolean, m_blobManager->GetLabeling());
+	addParameter(params, "Smart overlapping:", iAValueType::Boolean, m_blobManager->OverlappingIsEnabled());
+	addParameter(params, "Separation distance from (if smart overlapping):", iAValueType::Continuous, m_blobManager->GetOverlapThreshold());
+	addParameter(params, "Separation distance to:", iAValueType::Continuous, m_blobManager->GetOverlapThreshold());
+	addParameter(params, "Smooth after smart overlapping:", iAValueType::Boolean, m_blobManager->GetSmoothing());
+	addParameter(params, "Gaussian blurring of the blob:", iAValueType::Boolean, m_blobManager->GetGaussianBlur());
+	addParameter(params, "Gaussian blur variance from:", iAValueType::Continuous, m_blobManager->GetGaussianBlurVariance());
+	addParameter(params, "Gaussian blur variance to:", iAValueType::Continuous, m_blobManager->GetGaussianBlurVariance());
+	addParameter(params, "Dimension X from", iAValueType::Discrete, m_blobManager->GetDimensions()[0]);
+	addParameter(params, "Dimension X to:" , iAValueType::Discrete, m_blobManager->GetDimensions()[0]);
+	addParameter(params, "Dimension Y from", iAValueType::Discrete, m_blobManager->GetDimensions()[1]);
+	addParameter(params, "Dimension Y to:" , iAValueType::Discrete, m_blobManager->GetDimensions()[1]);
+	addParameter(params, "Dimension Z from", iAValueType::Discrete, m_blobManager->GetDimensions()[2]);
+	addParameter(params, "Dimension Z to:" , iAValueType::Discrete, m_blobManager->GetDimensions()[2]);
+
+	iAParameterDlg dlg(this, "Blob movie rendering options", params);
 	if (dlg.exec() != QDialog::Accepted)
 	{
 		return;
 	}
-	QString mode = dlg.getComboBoxValue(0);
-	int imode = dlg.getComboBoxIndex(0);
-	inList.clear();
-	inList = (QStringList()
-		<< tr("*Number of frames:")
-		<< tr("^Range from:") << tr("^Range to:")
-		<< tr("$Blob body:")
-		<< tr("^Blob opacity [0,1]:") << tr("^Blob opacity to:")
-		<< tr("$Silhouettes:")
-		<< tr("^Silhouettes opacity [0,1]:") << tr("^Silhouettes opacity to:")
-		<< tr("$3D labels:")
-		<< tr("$Smart overlapping:")
-		<< tr("^Separation distance (if smart overlapping):") << tr("^ Separation distance to:")
-		<< tr("$Smooth after smart overlapping:")
-		<< tr("$Gaussian blurring of the blob:")
-		<< tr("*Gaussian blur variance:") << tr("*Gaussian blur variance to:")
-		<< tr("*Dimension X") << tr("*Dimension X to:")
-		<< tr("*Dimension Y") << tr("*Dimension Y to:")
-		<< tr("*Dimension Z") << tr("*Dimension Z to:")
-		);
-	inPara.clear();
-	inPara
-		<< tr("%1").arg(24)
-		<< tr("%1").arg(m_blobManager->GetRange()) << tr("%1").arg(m_blobManager->GetRange())
-		<< tr("%1").arg(m_blobManager->GetShowBlob())
-		<< tr("%1").arg(m_blobManager->GetBlobOpacity()) << tr("%1").arg(m_blobManager->GetBlobOpacity())
-		<< tr("%1").arg(m_blobManager->GetSilhouettes())
-		<< tr("%1").arg(m_blobManager->GetSilhouetteOpacity()) << tr("%1").arg(m_blobManager->GetSilhouetteOpacity())
-		<< tr("%1").arg(m_blobManager->GetLabeling())
-		<< tr("%1").arg(m_blobManager->OverlappingIsEnabled())
-		<< tr("%1").arg(m_blobManager->GetOverlapThreshold()) << tr("%1").arg(m_blobManager->GetOverlapThreshold())
-		<< tr("%1").arg(m_blobManager->GetSmoothing())
-		<< tr("%1").arg(m_blobManager->GetGaussianBlur())
-		<< tr("%1").arg(m_blobManager->GetGaussianBlurVariance()) << tr("%1").arg(m_blobManager->GetGaussianBlurVariance())
-		<< tr("%1").arg(m_blobManager->GetDimensions()[0]) << tr("%1").arg(m_blobManager->GetDimensions()[0])
-		<< tr("%1").arg(m_blobManager->GetDimensions()[1]) << tr("%1").arg(m_blobManager->GetDimensions()[1])
-		<< tr("%1").arg(m_blobManager->GetDimensions()[2]) << tr("%1").arg(m_blobManager->GetDimensions()[2]);
-	dlg_commoninput dlg2(this, "Blob rendering preferences", inList, inPara, nullptr);
-	if (dlg2.exec() != QDialog::Accepted)
-		return;
-
-	int i = 0;
-	double range[2];
-	double blobOpacity[2];
-	double silhouetteOpacity[2];
-	double overlapThreshold[2];
-	double gaussianBlurVariance[2];
-	int dimX[2]; int dimY[2]; int dimZ[2];
-
-	size_t numFrames = dlg.getIntValue(i++);
-	for (int ind = 0; ind < 2; ++ind)
-	{
-		range[ind] = dlg.getDblValue(i++);
-	}
-	m_blobManager->SetShowBlob(dlg.getCheckValue(i++) != 0);
-	for (int ind = 0; ind < 2; ++ind)
-	{
-		blobOpacity[ind] = dlg.getDblValue(i++);
-	}
-	m_blobManager->SetSilhouettes(dlg.getCheckValue(i++) != 0);
-	for (int ind = 0; ind < 2; ++ind)
-	{
-		silhouetteOpacity[ind] = dlg.getDblValue(i++);
-	}
-	m_blobManager->SetLabeling(dlg.getCheckValue(i++) != 0);
-	m_blobManager->SetOverlappingEnabled(dlg.getCheckValue(i++) != 0);
-	for (int ind = 0; ind < 2; ++ind)
-	{
-		overlapThreshold[ind] = dlg.getDblValue(i++);
-	}
-	m_blobManager->SetSmoothing(dlg.getCheckValue(i++));
-	m_blobManager->SetGaussianBlur(dlg.getCheckValue(i++));
-	for (int ind = 0; ind < 2; ++ind)
-	{
-		gaussianBlurVariance[ind] = dlg.getIntValue(i++);
-	}
-
-	for (int ind = 0; ind < 2; ++ind)
-	{
-		dimX[ind] = dlg.getIntValue(i++);
-	}
-	for (int ind = 0; ind < 2; ++ind)
-	{
-		dimY[ind] = dlg.getIntValue(i++);
-	}
-	for (int ind = 0; ind < 2; ++ind)
-	{
-		dimZ[ind] = dlg.getIntValue(i++);
-	}
+	auto values = dlg.parameterValues();
+	QString mode = values["Rotation mode"].toString();
+	int imode = modes.indexOf(mode);
+	m_blobManager->SetShowBlob(values["Blob body:"].toBool());
+	m_blobManager->SetSilhouettes(values["Silhouettes:"].toBool());
+	m_blobManager->SetLabeling(values["3D labels:"].toBool());
+	m_blobManager->SetOverlappingEnabled(values["Smart overlapping:"].toBool());
+	m_blobManager->SetSmoothing(values["Smooth after smart overlapping:"].toBool());
+	m_blobManager->SetGaussianBlur(values["Gaussian blurring of the blob:"].toBool());
+	size_t numFrames = values["Number of frames:"].toInt();
+	double range[2] = {values["Range from:"].toDouble(), values["Range to:"].toDouble()};
+	double blobOpacity[2] = {values["Blob opacity from [0,1]:"].toDouble(), values["Blob opacity to:"].toDouble()};
+	double silhouetteOpacity[2] = {values["Silhouettes opacity from [0,1]:"].toDouble(), values["Silhouettes opacity to:"].toDouble()};
+	double overlapThreshold[2] = {values["Separation distance from (if smart overlapping):"].toDouble(), values["Separation distance to:"].toDouble()};
+	double gaussianBlurVariance[2] = {values["Gaussian blur variance from:"].toDouble(), values["Gaussian blur variance to:"].toDouble()};
+	int dimX[2] = {values["Dimension X from"].toInt(), values["Dimension X to"].toInt()};
+	int dimY[2] = {values["Dimension Y from"].toInt(), values["Dimension Y to"].toInt()};
+	int dimZ[2] = {values["Dimension Z from"].toInt(), values["Dimension Z to"].toInt()};
 
 	QFileInfo fileInfo = m_activeChild->fileInfo();
 

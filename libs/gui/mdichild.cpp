@@ -35,7 +35,6 @@
 #include <iASlicerImpl.h>
 
 // core
-#include <dlg_commoninput.h>
 #include <dlg_modalities.h>
 #include <iAAlgorithm.h>
 #include <iAChannelData.h>
@@ -45,6 +44,7 @@
 #include <iAModalityList.h>
 #include <iAModalityTransfer.h>
 #include <iAMovieHelper.h>
+#include <iAParameterDlg.h>
 #include <iAPreferences.h>
 #include <iAProjectBase.h>
 #include <iAProjectRegistry.h>
@@ -820,19 +820,19 @@ int MdiChild::chooseModalityNr(QString const& caption)
 	{
 		return 0;
 	}
-	QStringList parameters = (QStringList() << tr("+Channel"));
 	QStringList modalityNames;
 	for (int i = 0; i < modalities()->size(); ++i)
 	{
 		modalityNames << modality(i)->name();
 	}
-	QList<QVariant> values = (QList<QVariant>() << modalityNames);
-	dlg_commoninput modalityChoice(this, caption, parameters, values, nullptr);
+	iAParameterDlg::ParamListT params;
+	addParameter(params, "Channel", iAValueType::Categorical, modalityNames);
+	iAParameterDlg modalityChoice(this, caption, params);
 	if (modalityChoice.exec() != QDialog::Accepted)
 	{
 		return -1;
 	}
-	return modalityChoice.getComboBoxIndex(0);
+	return modalityNames.indexOf(modalityChoice.parameterValues()["Channel"].toString());
 }
 
 int MdiChild::chooseComponentNr(int modalityNr)
@@ -846,20 +846,20 @@ int MdiChild::chooseComponentNr(int modalityNr)
 	{
 		return 0;
 	}
-	QStringList parameters = (QStringList() << tr("+Component"));
 	QStringList components;
 	for (int i = 0; i < nrOfComponents; ++i)
 	{
 		components << QString::number(i);
 	}
 	components << "All components";
-	QList<QVariant> values = (QList<QVariant>() << components);
-	dlg_commoninput componentChoice(this, "Choose Component", parameters, values, nullptr);
+	iAParameterDlg::ParamListT params;
+	addParameter(params, "Component", iAValueType::Categorical, components);
+	iAParameterDlg componentChoice(this, "Choose Component", params);
 	if (componentChoice.exec() != QDialog::Accepted)
 	{
 		return -1;
 	}
-	return componentChoice.getComboBoxIndex(0);
+	return components.indexOf(componentChoice.parameterValues()["Component"].toString());
 }
 
 bool MdiChild::save()
@@ -1119,21 +1119,17 @@ void MdiChild::saveMovRC()
 		return;
 	}
 
-	QString mode;
-	int imode = 0;
-
 	QStringList modes = (QStringList() << tr("Rotate Z") << tr("Rotate X") << tr("Rotate Y"));
-	QStringList inList = (QStringList() << tr("+Rotation mode"));
-	QList<QVariant> inPara = (QList<QVariant>() << modes);
-	dlg_commoninput dlg(this, "Save movie options", inList, inPara,
+	iAParameterDlg::ParamListT params;
+	addParameter(params, "Rotation mode", iAValueType::Categorical, modes);
+	iAParameterDlg dlg(this, "Save movie options", params,
 		"Creates a movie by rotating the object around a user-defined axis in the 3D renderer.");
 	if (dlg.exec() != QDialog::Accepted)
 	{
 		return;
 	}
-
-	mode = dlg.getComboBoxValue(0);
-	imode = dlg.getComboBoxIndex(0);
+	QString mode = dlg.parameterValues()["Rotation mode"].toString();
+	int imode = modes.indexOf(mode);
 
 	// Show standard save file dialog using available movie file types.
 	m_renderer->saveMovie(QFileDialog::getSaveFileName(this, tr("Export movie %1").arg(mode),

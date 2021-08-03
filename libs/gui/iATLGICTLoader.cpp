@@ -20,12 +20,12 @@
 * ************************************************************************************/
 #include "iATLGICTLoader.h"
 
-#include "dlg_commoninput.h"
 #include "iAJobListView.h"
 #include "iALog.h"
 #include "iAModality.h"
 #include "iAModalityList.h"
 #include "iAMultiStepProgressObserver.h"
+#include "iAParameterDlg.h"
 #include "iAStringHelper.h"
 #include "iAFileUtils.h"
 #include "mdichild.h"
@@ -75,23 +75,21 @@ bool iATLGICTLoader::setup(QString const & baseDirectory, QWidget* parent)
 	}
 	QSettings iniLog(logFiles[0].absoluteFilePath(), QSettings::IniFormat);
 	double pixelSize = iniLog.value("Reconstruction/Pixel Size (um)", 1000).toDouble() / 1000;
-
-	double spacing[3] = { pixelSize, pixelSize, pixelSize };
-	double origin[3] = { 0, 0, 0 };
-	QStringList inList;
-	inList << tr("#Spacing X") << tr("#Spacing Y") << tr("#Spacing Z")
-		<< tr("#Origin X") << tr("#Origin Y") << tr("#Origin Z");
-	QList<QVariant> inPara;
-	inPara << tr("%1").arg(spacing[0]) << tr("%1").arg(spacing[1]) << tr("%1").arg(spacing[2])
-		<< tr("%1").arg(origin[0]) << tr("%1").arg(origin[1]) << tr("%1").arg(origin[2]);
-
-	dlg_commoninput dlg(parent, "Set file parameters", inList, inPara, nullptr);
+	iAParameterDlg::ParamListT params;
+	addParameter(params, "Spacing X", iAValueType::Continuous, pixelSize);
+	addParameter(params, "Spacing Y", iAValueType::Continuous, pixelSize);
+	addParameter(params, "Spacing Z", iAValueType::Continuous, pixelSize);
+	addParameter(params, "Origin X", iAValueType::Continuous, 0);
+	addParameter(params, "Origin Y", iAValueType::Continuous, 0);
+	addParameter(params, "Origin Z", iAValueType::Continuous, 0);
+	iAParameterDlg dlg(parent, "Set file parameters", params);
 	if (dlg.exec() != QDialog::Accepted)
 	{
 		return false;
 	}
-	m_spacing[0] = dlg.getDblValue(0); m_spacing[1] = dlg.getDblValue(1); m_spacing[2] = dlg.getDblValue(2);
-	m_origin[0] = dlg.getDblValue(3); m_origin[1] = dlg.getDblValue(4); m_origin[2] = dlg.getDblValue(5);
+	auto values = dlg.parameterValues();
+	double spacing[3] = {values["Spacing X"].toDouble(), values["Spacing Y"].toDouble(), values["Spacing Z"].toDouble()};
+	double origin[3] = {values["Origin X"].toDouble(), values["Origin Y"].toDouble(), values["Origin Z"].toDouble()};
 	return true;
 }
 

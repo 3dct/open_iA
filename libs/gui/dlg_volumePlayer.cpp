@@ -20,9 +20,9 @@
 * ************************************************************************************/
 #include "dlg_volumePlayer.h"
 
-#include "dlg_commoninput.h"
 #include "iAChannelData.h"
 #include "iALog.h"
+#include "iAParameterDlg.h"
 #include "iARenderer.h"
 #include "iASlicer.h"
 #include "iAVolumeStack.h"
@@ -220,14 +220,12 @@ void dlg_volumePlayer::updateView(int r, int /*c*/)
 
 void dlg_volumePlayer::editMaxSpeed()
 {
-	QStringList inList		= (QStringList() << tr("#Speed (one step/msec)"));
-	QList<QVariant> inPara	= (QList<QVariant>() << tr("%1").arg(getCurrentSpeed()));
-
-	dlg_commoninput dlg(m_mdiChild, "Set speed", inList, inPara, nullptr);
-
+	iAParameterDlg::ParamListT param;
+	addParameter(param, "Speed (one step/msec)", iAValueType::Continuous, getCurrentSpeed(), 0.2, 50);
+	iAParameterDlg dlg(m_mdiChild, "Set speed", param, nullptr);
 	if (dlg.exec() == QDialog::Accepted)
 	{
-		float speed = (float)dlg.getDblValue(0);
+		float speed = dlg.parameterValues()["Speed (one step/msec)"].toFloat();
 		m_timer.setInterval((int)((1/speed) * SECONDS_TO_MILISECONDS));
 		this->speedValue->setText(QString::number(speed, 'f', 2));
 	}

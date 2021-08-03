@@ -25,14 +25,14 @@
 #include "iAFiAKErController.h"
 #include "iAFiAKErAttachment.h"
 
-#include <dlg_commoninput.h>
-#include <iAModalityList.h> // only required for initializing mdichild if no volume dataset loaded; should not be needed
-#include <iAModuleDispatcher.h>
-#include <iAProjectBase.h>
-#include <iAProjectRegistry.h>
 #include <iAFileUtils.h>
 #include <iAMainWindow.h>
 #include <iAMdiChild.h>
+#include <iAModalityList.h> // only required for initializing mdichild if no volume dataset loaded; should not be needed
+#include <iAModuleDispatcher.h>
+#include <iAParameterDlg.h>
+#include <iAProjectBase.h>
+#include <iAProjectRegistry.h>
 
 #include <QAction>
 #include <QFileDialog>
@@ -169,13 +169,6 @@ void iAFiAKErModuleInterface::startFiAKEr()
 		mdiChild = m_mainWnd->createMdiChild(false);
 		mdiChild->show();
 	}
-	QStringList parameterNames = QStringList()
-		<< ";Result folder"
-		<< "+CSV cormat"
-		<< "#Step coordinate shift"
-		<< "$Use step data"
-		<< "$Show mini previews in result list"
-		<< "$Show distribution charts in result list";
 	QStringList formatEntries = iACsvConfig::getListFromRegistry();
 	if (!formatEntries.contains(iAFiberResultsCollection::SimpleFormat))
 	{
@@ -200,10 +193,13 @@ void iAFiAKErModuleInterface::startFiAKEr()
 			formatEntries[i] = "!" + formatEntries[i];
 		}
 	}
-
-	QList<QVariant> values;
-	values << m_lastPath << formatEntries << m_lastTimeStepOffset << m_lastUseStepData << m_lastShowPreviews << m_lastShowCharts;
-
+	iAParameterDlg::ParamListT params;
+	addParameter(params, "Result folder", iAValueType::Folder, m_lastPath);
+	addParameter(params, "CSV cormat", iAValueType::Categorical, formatEntries);
+	addParameter(params, "Step coordinate shift", iAValueType::Continuous, m_lastTimeStepOffset);
+	addParameter(params, "Use step data", iAValueType::Boolean, m_lastUseStepData);
+	addParameter(params, "Show mini previews in result list", iAValueType::Boolean, m_lastShowPreviews);
+	addParameter(params, "Show distribution charts in result list", iAValueType::Boolean, m_lastShowCharts);
 	QString descr("Starts FIAKER, a comparison tool for results from fiber reconstruction algorithms.<br/>"
 		"Choose a <em>Result folder</em> containing two or more fiber reconstruction results in .csv format. "
 		"Under <em>CSV format</em>, select the format in which data is stored in your .csv files. "
@@ -223,8 +219,8 @@ void iAFiAKErModuleInterface::startFiAKEr()
 		"Analysis and comparison of algorithms for the tomographic reconstruction of curved fibres, "
 		"Nondestructive Testing and Evaluation 35 (3), 2020, pp. 328–341, "
 		"doi: <a href=\"https://doi.org/10.1080/10589759.2020.1774583\">10.1080/10589759.2020.1774583</a>.</li></ul>");
-	dlg_commoninput dlg(m_mainWnd, "Start FIAKER", parameterNames, values, descr);
-	if (dlg.exec() != QDialog::Accepted || dlg.getText(0).isEmpty())
+	iAParameterDlg dlg(m_mainWnd, "Start FIAKER", params, descr);
+	if (dlg.exec() != QDialog::Accepted || dlg.parameterValues()["Result folder"].toString().isEmpty())
 	{
 		if (createdMdi)
 		{
@@ -232,13 +228,13 @@ void iAFiAKErModuleInterface::startFiAKEr()
 		}
 		return;
 	}
-	m_lastPath = dlg.getText(0);
-	m_lastFormat = dlg.getComboBoxValue(1);
-	m_lastTimeStepOffset = dlg.getDblValue(2);
-	m_lastUseStepData = dlg.getCheckValue(3);
-	m_lastShowPreviews = dlg.getCheckValue(4);
-	m_lastShowCharts = dlg.getCheckValue(5);
-	//cmbbox_Format->addItems(formatEntries);
+	auto values = dlg.parameterValues();
+	m_lastPath = values["Result folder"].toString();
+	m_lastFormat = values["CSV cormat"].toString();
+	m_lastTimeStepOffset = values["Step coordinate shift"].toDouble();
+	m_lastUseStepData = values["Use step data"].toBool();
+	m_lastShowPreviews = values["Show mini previews in result list"].toBool();
+	m_lastShowCharts = values["Show distribution charts in result list"].toBool();
 
 	AttachToMdiChild(mdiChild);
 	iAFiAKErAttachment* attach = attachment<iAFiAKErAttachment>(mdiChild);

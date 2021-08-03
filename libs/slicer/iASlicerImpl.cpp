@@ -21,7 +21,6 @@
 #include "iASlicerImpl.h"
 
 #include "defines.h"    // for NotExistingChannel
-#include "dlg_commoninput.h"
 #include "iAAbortListener.h"
 #include "iAChannelData.h"
 #include "iAChannelSlicerData.h"
@@ -32,6 +31,7 @@
 #include "iAMathUtility.h"
 #include "iAModality.h"
 #include "iAMovieHelper.h"
+#include "iAParameterDlg.h"
 #include "iAProgress.h"
 #include "iARulerWidget.h"
 #include "iARulerRepresentation.h"
@@ -1049,6 +1049,12 @@ void iASlicerImpl::saveSliceMovie(QString const& fileName, int qual /*= 2*/)
 	printFinalLogMessage(movieWriter, aborter);
 }
 
+namespace
+{
+	QString const SaveNative("Save native image (intensity rescaled to output format)");
+	QString const Output16Bit("16 bit native output (if disabled, native output will be 8 bit)");
+}
+
 void iASlicerImpl::saveAsImage()
 {
 	if (!hasChannel(0))
@@ -1062,17 +1068,11 @@ void iASlicerImpl::saveAsImage()
 	{
 		return;
 	}
-	bool saveNative = true;
-	bool output16Bit = false;
-
-	QStringList inList = (QStringList()
-		<< tr("$Save native image (intensity rescaled to output format)"));
-	QList<QVariant> inPara = (QList<QVariant>()
-		<< (saveNative ? tr("true") : tr("false")));
-
+	iAParameterDlg::ParamListT params;
+	QString const Channel("Channel (native only exports slice of what's selected here)");
+	addParameter(params, SaveNative, iAValueType::Boolean, true);
 	bool moreThanOneChannel = m_channels.size() > 1;
 	QFileInfo fi(fileName);
-
 	if (moreThanOneChannel)
 	{
 		QStringList currentChannels;
@@ -1080,26 +1080,22 @@ void iASlicerImpl::saveAsImage()
 		{
 			currentChannels << ch->name();
 		}
-		inList << tr("+Channel (native only exports slice of what's selected here)");
-		inPara << currentChannels;
+		addParameter(params, Channel, iAValueType::Categorical, currentChannels);
 	}
 	if ((QString::compare(fi.suffix(), "TIF", Qt::CaseInsensitive) == 0) ||
 		(QString::compare(fi.suffix(), "TIFF", Qt::CaseInsensitive) == 0))
 	{
-		inList << tr("$16 bit native output (if disabled, native output will be 8 bit)");
-		inPara << (output16Bit ? tr("true") : tr("false"));
+		addParameter(params, Output16Bit, iAValueType::Boolean, false);
 	}
 
-	dlg_commoninput dlg(this, "Save options", inList, inPara, nullptr);
+	iAParameterDlg dlg(this, "Save options", params);
 	if (dlg.exec() != QDialog::Accepted)
 	{
 		return;
 	}
-	saveNative = dlg.getCheckValue(0);
-	if (inList.size() > 2)
-	{
-		output16Bit = dlg.getCheckValue(2);
-	}
+	auto values = dlg.parameterValues();
+	bool saveNative = values[SaveNative].toBool();
+	bool output16Bit = values.contains(Output16Bit)	? values[Output16Bit].toBool() : false;
 	iAConnector con;
 	vtkSmartPointer<vtkImageData> img;
 	auto windowToImage = vtkSmartPointer<vtkWindowToImageFilter>::New();
@@ -1108,7 +1104,7 @@ void iASlicerImpl::saveAsImage()
 		int selectedChannelID = 0;
 		if (moreThanOneChannel)
 		{
-			QString selectedChannelName = dlg.getComboBoxValue(1);
+			QString selectedChannelName = values[Channel].toString();
 			for (auto key : m_channels.keys())
 			{
 				if (m_channels[key]->name() == selectedChannelName)
@@ -1150,7 +1146,7 @@ void iASlicerImpl::saveImageStack()
 	auto imageData = m_channels[0]->input();
 
 	QString file = QFileDialog::getSaveFileName(this, tr("Save Image Stack"),
-		"", // TODO: get directory of file?
+		"",  // TODO: get directory of file?
 		iAIOProvider::GetSupportedImageFormats());
 	if (file.isEmpty())
 	{
@@ -1160,42 +1156,35 @@ void iASlicerImpl::saveImageStack()
 	QFileInfo fileInfo(file);
 	QString baseName = fileInfo.absolutePath() + "/" + fileInfo.baseName();
 
-	int const * imgExtent = imageData->GetExtent();
-	double const * imgSpacing = imageData->GetSpacing();
+	int const* imgExtent = imageData->GetExtent();
+	double const* imgSpacing = imageData->GetSpacing();
 	int const sliceZAxisIdx = mapSliceToGlobalAxis(m_mode, iAAxisIndex::Z);
 	int const sliceMin = imgExtent[sliceZAxisIdx * 2];
 	int const sliceMax = imgExtent[sliceZAxisIdx * 2 + 1];
-	bool saveNative = true;
-	bool output16Bit = false;
-	QStringList inList = (QStringList() << tr("$Save native image (intensity rescaled to output format)")
-		<< tr("*From Slice Number:")
-		<< tr("*To Slice Number:"));
-	QList<QVariant> inPara = (QList<QVariant>() << (saveNative ? tr("true") : tr("false")) << sliceMin << sliceMax);
-
+	iAParameterDlg::ParamListT params;
+	addParameter(params, SaveNative, iAValueType::Boolean, true);
+	addParameter(params, "From Slice Number:", iAValueType::Discrete, sliceMin, sliceMin, sliceMax);
+	addParameter(params, "To Slice Number:", iAValueType::Discrete, sliceMax, sliceMin, sliceMax);
 	if ((QString::compare(fileInfo.suffix(), "TIF", Qt::CaseInsensitive) == 0) ||
 		(QString::compare(fileInfo.suffix(), "TIFF", Qt::CaseInsensitive) == 0))
 	{
-		inList << tr("$16 bit native output (if disabled, native output will be 8 bit)");
-		inPara << (output16Bit ? tr("true") : tr("false"));
+		addParameter(params, Output16Bit, iAValueType::Boolean, false);
 	}
-	dlg_commoninput dlg(this, "Save options", inList, inPara, nullptr);
+	iAParameterDlg dlg(this, "Save options", params);
 	if (dlg.exec() != QDialog::Accepted)
 	{
 		return;
 	}
-
-	saveNative = dlg.getCheckValue(0);
-	int sliceFrom = dlg.getIntValue(1);
-	int sliceTo = dlg.getIntValue(2);
-	if (inList.size() > 3)
-	{
-		output16Bit = dlg.getCheckValue(3);
-	}
+	auto values = dlg.parameterValues();
+	bool saveNative = values[SaveNative].toBool();
+	int sliceFrom = values["From Slice Number:"].toInt();
+	int sliceTo = values["To Slice Number:"].toInt();
+	bool output16Bit = values.contains(Output16Bit) ? values[Output16Bit].toBool() : false;
 
 	if (sliceFrom < sliceMin || sliceFrom > sliceTo || sliceTo > sliceMax)
 	{
 		QMessageBox::information(this, "Save Image Stack", QString("Invalid input: 'From Slice Number' is greater than 'To Slice Number',"
-			" or 'From Slice Number' or 'To Slice Number' are outside of valid region [0..%1]!").arg(sliceMax));
+			" or 'From Slice Number' or 'To Slice Number' are outside of valid region [%1..%2]!").arg(sliceMin).arg(sliceMax));
 		return;
 	}
 	iAProgress p;

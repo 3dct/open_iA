@@ -11,7 +11,6 @@ SET (OPENIA_PRECOMPILE_HEADERS
 <vector>
 
 <defines.h>
-<dlg_commoninput.h>
 <dlg_modalities.h>
 <dlg_modalityProperties.h>
 <dlg_openfile_sizecheck.h>

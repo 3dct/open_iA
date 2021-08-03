@@ -21,7 +21,6 @@
 #include "iAIO.h"
 
 #include "defines.h"
-#include "dlg_commoninput.h"
 #include "dlg_openfile_sizecheck.h"
 #include "iAAmiraMeshIO.h"
 #include "iAConnector.h"
@@ -32,6 +31,7 @@
 #include "iAJobListView.h"
 #include "iAModalityList.h"
 #include "iAOIFReader.h"
+#include "iAParameterDlg.h"
 #include "iAProgress.h"
 #include "iAStringHelper.h"
 #include "iAVolumeStack.h"
@@ -308,6 +308,20 @@ QString MapHDF5TypeToString(H5T_class_t hdf5Type)
 namespace
 {
 	const int InvalidHDF5Type = -1;
+	QString const FileNameBase = "File name base";
+	QString const Extension = "Extension";
+	QString const NumDigits = "Number of digits in index";
+	QString const MinimumIndex = "Minimum index";
+	QString const MaximumIndex = "Maximum index";
+
+	void addSeriesParameters(iAParameterDlg::ParamListT& params, QString const& base, QString const& ext, int digits, int index[2])
+	{
+		addParameter(params, FileNameBase, iAValueType::String, base);
+		addParameter(params, Extension, iAValueType::String, ext);
+		addParameter(params, NumDigits, iAValueType::Discrete, digits);
+		addParameter(params, MinimumIndex, iAValueType::Discrete, index[0]);
+		addParameter(params, MaximumIndex, iAValueType::Discrete, index[1]);
+	}
 }
 
 int GetNumericVTKTypeFromHDF5Type(H5T_class_t hdf5Type, size_t numBytes, H5T_sign_t sign)
@@ -1318,27 +1332,21 @@ bool iAIO::setupVolumeStackMHDReader(QString const & f)
 {
 	int indexRange[2] = {0, 0};
 	int digitsInIndex = 0;
-
 	m_fileNamesBase = f;
 	m_extension = "." + QFileInfo(f).suffix();
-	QStringList inList		= (QStringList()
-		<< tr("#File Names Base") << tr("#Extension")
-		<< tr("#Number of Digits in Index")
-		<< tr("#Minimum Index")  << tr("#Maximum Index") );
-	QList<QVariant> inPara	= (QList<QVariant>()
-		<< m_fileNamesBase << m_extension
-		<< tr("%1").arg(digitsInIndex)
-		<< tr("%1").arg(indexRange[0]) << tr("%1").arg(indexRange[1]) );
-
-	dlg_commoninput dlg(m_parent, "Set file parameters", inList, inPara, nullptr);
-
+	iAParameterDlg::ParamListT params;
+	addSeriesParameters(params, m_fileNamesBase, m_extension, digitsInIndex, indexRange);
+	iAParameterDlg dlg(m_parent, "Set file parameters", params);
 	if (dlg.exec() != QDialog::Accepted)
+	{
 		return false;
-
-	m_fileNamesBase = dlg.getText(0);
-	m_extension = dlg.getText(1);
-	digitsInIndex = dlg.getDblValue(2);
-	indexRange[0] = dlg.getDblValue(3); indexRange[1]= dlg.getDblValue(4);
+	}
+	auto values = dlg.parameterValues();
+	m_fileNamesBase = values[FileNameBase].toString();
+	m_extension = values[Extension].toString();
+	digitsInIndex = values[NumDigits].toInt();
+	indexRange[0] = values[MinimumIndex].toInt();
+	indexRange[1] = values[MaximumIndex].toInt();
 	fillFileNameArray(indexRange, digitsInIndex);
 	return true;
 }
@@ -1446,29 +1454,19 @@ bool iAIO::setupVolumeStackReader(QString const & f)
 	int digitsInIndex = 0;
 	m_fileNamesBase = f;
 	m_extension = "." + QFileInfo(f).suffix();
-
-	QStringList additionalLabels = (QStringList()
-		<< tr("#File Names Base")
-		<< tr("#Extension")
-		<< tr("#Number of Digits in Index")
-		<< tr("#Minimum Index")
-		<< tr("#Maximum Index"));
-	QList<QVariant> additionalValues = (QList<QVariant>()
-		<< m_fileNamesBase
-		<< m_extension
-		<< tr("%1").arg(digitsInIndex)
-		<< tr("%1").arg(indexRange[0])
-		<< tr("%1").arg(indexRange[1]));
-
-	dlg_openfile_sizecheck dlg(f, m_parent, "RAW file specs", additionalLabels, additionalValues, m_rawFileParams);
+	iAParameterDlg::ParamListT params;
+	addSeriesParameters(params, m_fileNamesBase, m_extension, digitsInIndex, indexRange);
+	iARawFileParamDlg dlg(f, m_parent, "RAW file specs", params, m_rawFileParams);
 	if (!dlg.accepted())
+	{
 		return false;
-
-	m_fileNamesBase = dlg.inputDlg()->getText(dlg.fixedParams());
-	m_extension = dlg.inputDlg()->getText(dlg.fixedParams()+1);
-	digitsInIndex = dlg.inputDlg()->getDblValue(dlg.fixedParams()+2);
-	indexRange[0] = dlg.inputDlg()->getDblValue(dlg.fixedParams()+3);
-	indexRange[1]= dlg.inputDlg()->getDblValue(dlg.fixedParams()+4);
+	}
+	auto values = dlg.parameterValues();
+	m_fileNamesBase = values[FileNameBase].toString();
+	m_extension = values[Extension].toString();
+	digitsInIndex = values[NumDigits].toInt();
+	indexRange[0] = values[MinimumIndex].toInt();
+	indexRange[1] = values[MaximumIndex].toInt();
 	fillFileNameArray(indexRange, digitsInIndex);
 	return true;
 }
@@ -1476,7 +1474,7 @@ bool iAIO::setupVolumeStackReader(QString const & f)
 bool iAIO::setupRAWReader( QString const & f )
 {
 	m_fileName = f;
-	dlg_openfile_sizecheck dlg(f, m_parent, "RAW file specs", QStringList(), QVariantList(), m_rawFileParams);
+	iARawFileParamDlg dlg(f, m_parent, "RAW file specs", iAParameterDlg::ParamListT(), m_rawFileParams);
 	return dlg.accepted();
 }
 
@@ -1743,32 +1741,33 @@ bool iAIO::setupStackReader( QString const & f )
 	int indexRange[2];
 	int digits;
 	determineStackParameters(f, m_fileNamesBase, m_extension, indexRange, digits);
-	QStringList inList = (QStringList()
-		<< tr("#File Names Base") << tr("#Extension")
-		<< tr("#Number of Digits in Index")
-		<< tr("#Minimum Index") << tr("#Maximum Index")
-		<< tr("*Step")
-		<< tr("#Spacing X") << tr("#Spacing Y") << tr("#Spacing Z")
-		<< tr("#Origin X") << tr("#Origin Y") << tr("#Origin Z"));
-	QList<QVariant> inPara = (QList<QVariant>()
-		<< m_fileNamesBase << m_extension
-		<< tr("%1").arg(digits)
-		<< tr("%1").arg(indexRange[0]) << tr("%1").arg(indexRange[1])
-		<< QString::number(1)
-		<< tr("%1").arg(m_rawFileParams.m_spacing[0]) << tr("%1").arg(m_rawFileParams.m_spacing[1]) << tr("%1").arg(m_rawFileParams.m_spacing[2])
-		<< tr("%1").arg(m_rawFileParams.m_origin[0])  << tr("%1").arg(m_rawFileParams.m_origin[1])  << tr("%1").arg(m_rawFileParams.m_origin[2]));
-
-	dlg_commoninput dlg(m_parent, "Set file parameters", inList, inPara, "Please check these automatically determined settings:");
+	iAParameterDlg::ParamListT params;
+	addSeriesParameters(params, m_fileNamesBase, m_extension, digits, indexRange);
+	addParameter(params, "Step", iAValueType::Discrete, 1);
+	addParameter(params, "Spacing X", iAValueType::Continuous, m_rawFileParams.m_spacing[0]);
+	addParameter(params, "Spacing Y", iAValueType::Continuous, m_rawFileParams.m_spacing[1]);
+	addParameter(params, "Spacing Z", iAValueType::Continuous, m_rawFileParams.m_spacing[2]);
+	addParameter(params, "Origin X", iAValueType::Continuous, m_rawFileParams.m_origin[0]);
+	addParameter(params, "Origin Y", iAValueType::Continuous, m_rawFileParams.m_origin[1]);
+	addParameter(params, "Origin Z", iAValueType::Continuous, m_rawFileParams.m_origin[2]);
+	iAParameterDlg dlg(m_parent, "Set file parameters", params, "Please check these automatically determined settings:");
 	if (dlg.exec() != QDialog::Accepted)
+	{
 		return false;
-
-	m_fileNamesBase = dlg.getText(0);
-	m_extension = dlg.getText(1);
-	digits = dlg.getDblValue(2);
-	indexRange[0] = dlg.getDblValue(3); indexRange[1]= dlg.getDblValue(4);
-	int stepSize = dlg.getIntValue(5);
-	m_rawFileParams.m_spacing[0] = dlg.getDblValue(6); m_rawFileParams.m_spacing[1] = dlg.getDblValue(7);  m_rawFileParams.m_spacing[2] = dlg.getDblValue(8);
-	m_rawFileParams.m_origin [0] = dlg.getDblValue(9); m_rawFileParams.m_origin [1] = dlg.getDblValue(10); m_rawFileParams.m_origin [2] = dlg.getDblValue(11);
+	}
+	auto values = dlg.parameterValues();
+	m_fileNamesBase = values[FileNameBase].toString();
+	m_extension = values[Extension].toString();
+	digits = values[NumDigits].toInt();
+	indexRange[0] = values[MinimumIndex].toInt();
+	indexRange[1] = values[MaximumIndex].toInt();
+	int stepSize = values["Step"].toInt();
+	m_rawFileParams.m_spacing[0] = values["Spacing X"].toDouble();
+	m_rawFileParams.m_spacing[1] = values["Spacing Y"].toDouble();
+	m_rawFileParams.m_spacing[2] = values["Spacing Z"].toDouble();
+	m_rawFileParams.m_origin[0] = values["Origin X"].toDouble();
+	m_rawFileParams.m_origin[1] = values["Origin Y"].toDouble();
+	m_rawFileParams.m_origin[2] = values["Origin Z"].toDouble();
 	fillFileNameArray(indexRange, digits, stepSize);
 	return true;
 }

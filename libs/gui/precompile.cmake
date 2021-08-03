@@ -1,5 +1,4 @@
 SET (OPENIA_PRECOMPILE_HEADERS
-<dlg_commoninput.h>
 <dlg_datatypeconversion.h>
 <dlg_imageproperty.h>
 <dlg_slicer.h>

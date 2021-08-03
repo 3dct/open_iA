@@ -22,18 +22,22 @@
 
 #include "iAguibase_export.h"
 
+#include "iAValueType.h"
+
 #include <QDialog>
 #include <QMap>
 #include <QSharedPointer>
 #include <QStringList>
+#include <QVariant>
 #include <QVector>
 
 class iAAttributeDescriptor;
 class iAMainWindow;
 class iAMdiChild;
 
-class QWidget;
+class QDialogButtonBox;
 class QString;
+class QWidget;
 
 //! Dialog asking the user for some given parameters.
 class iAguibase_API iAParameterDlg : public QDialog
@@ -44,14 +48,16 @@ public:
 	//! Create dialog with the given parameters.
 	//! @param parent the parent widget
 	//! @param title  the dialog title
-	//! @param parmaeters list of parameters (name, type, value, range, ...)
+	//! @param parameters list of parameters (name, type, value, range, ...)
 	//! @param descr an optional description text, displayed on top of the dialog
 	iAParameterDlg(QWidget* parent, QString const& title, ParamListT parameters, QString const& descr = QString());
-	QMap<QString, QVariant> parameterValues() const;
+	QMap<QString, QVariant> parameterValues() const;  // make const &, cache
+	//QVariant value(QString const& key) const;
 	void showROI();
 	int exec() override;
 	void setSourceMdi(iAMdiChild* child, iAMainWindow* mainWnd);
 	QVector<QWidget*> widgetList();
+	void setOKEnabled(bool enabled);
 
 private slots:
 	void updatedROI(int value);
@@ -67,6 +73,11 @@ private:
 	bool m_sourceMdiChildClosed;
 	QVector<QWidget*> m_widgetList;
 	ParamListT m_parameters;
+	QDialogButtonBox* m_buttonBox;
 
 	void updateROIPart(QString const& partName, int value);
 };
+
+iAguibase_API void addParameter(iAParameterDlg::ParamListT params, QString const& name, iAValueType valueType,
+	QVariant defaultValue = 0.0, double min = std::numeric_limits<double>::lowest(),
+	double max = std::numeric_limits<double>::max());

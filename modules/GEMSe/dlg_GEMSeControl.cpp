@@ -38,7 +38,6 @@
 #include <iASamplingSettingsDlg.h>
 
 // core
-#include <dlg_commoninput.h>
 #include <dlg_modalities.h>
 #include <iAAttributes.h>
 #include <iAAttributeDescriptor.h>
@@ -47,11 +46,12 @@
 #include <iAFileUtils.h>    // for getLocalEncodingFileName
 #include <iAJobListView.h>
 #include <iALog.h>
+#include <iAMdiChild.h>
 #include <iAModality.h>
 #include <iAModalityList.h>
+#include <iAParameterDlg.h>
 #include <iAToolsITK.h>
 #include <io/iAIOProvider.h>
-#include <iAMdiChild.h>
 
 #include <vtkImageData.h>
 
@@ -236,17 +236,15 @@ void dlg_GEMSeControl::loadSamplingSlot()
 	int labelCount = m_simpleLabelInfo->count();
 	if (labelCount < 2)
 	{
-		QStringList inList;
-		inList << tr("*Label Count");
-		QList<QVariant> inPara;
-		inPara << tr("%1").arg(2);
-		dlg_commoninput lblCountInput(this, "Label Count", inList, inPara, nullptr);
-		if (lblCountInput.exec() != QDialog::Accepted)
+		iAParameterDlg::ParamListT param;
+		addParameter(param, "Label Count", iAValueType::Discrete, 2, 2);
+		iAParameterDlg dlg(this, "Label Count", param);
+		if (dlg.exec() != QDialog::Accepted)
 		{
 			LOG(lvlError, "Cannot load sampling without label count input!");
 			return;
 		}
-		labelCount = lblCountInput.getIntValue(0);
+		labelCount = dlg.parameterValues()["Label Count"].toInt();
 	}
 	loadSampling(fileName, labelCount, m_dlgSamplings->GetSamplings()->size());
 }

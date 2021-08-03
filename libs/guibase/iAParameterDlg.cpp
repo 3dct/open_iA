@@ -83,17 +83,17 @@ iAParameterDlg::iAParameterDlg(QWidget* parent, QString const& title, ParamListT
 	auto gridLayout = new QGridLayout();
 	setLayout(gridLayout);
 	gridLayout->setContentsMargins(4, 4, 4, 4);
-	auto buttonBox = new QDialogButtonBox();
-	buttonBox->setStandardButtons(QDialogButtonBox::Cancel|QDialogButtonBox::Ok);
-	connect(buttonBox, &QDialogButtonBox::accepted, this, &QDialog::accept);
-	connect(buttonBox, &QDialogButtonBox::rejected, this, &QDialog::reject);
+	m_buttonBox = new QDialogButtonBox();
+	m_buttonBox->setStandardButtons(QDialogButtonBox::Cancel|QDialogButtonBox::Ok);
+	connect(m_buttonBox, &QDialogButtonBox::accepted, this, &QDialog::accept);
+	connect(m_buttonBox, &QDialogButtonBox::rejected, this, &QDialog::reject);
 	if (title.isEmpty())
 	{
 		LOG(lvlError, "No window title entered. Please give a window title");
 		auto lbl = new QLabel("No window title entered. Please give a window title");
 		gridLayout->addWidget(lbl, 0, 0);
-		buttonBox->button(QDialogButtonBox::Ok)->setEnabled(false);
-		gridLayout->addWidget(buttonBox, 1, 0);
+		m_buttonBox->button(QDialogButtonBox::Ok)->setEnabled(false);
+		gridLayout->addWidget(m_buttonBox, 1, 0);
 		return;
 	}
 	this->setWindowTitle(title);
@@ -274,7 +274,7 @@ iAParameterDlg::iAParameterDlg(QWidget* parent, QString const& title, ParamListT
 	scrollArea->setPalette(pal);
 
 	gridLayout->addWidget(scrollArea, 1, 0);
-	gridLayout->addWidget(buttonBox, 2, 0);  // add the ok and cancel button to the gridlayout
+	gridLayout->addWidget(m_buttonBox, 2, 0);
 }
 
 void  iAParameterDlg::setSourceMdi(iAMdiChild* child, iAMainWindow* mainWnd)
@@ -526,4 +526,15 @@ int iAParameterDlg::exec()
 		m_sourceMdiChild->setROIVisible(false);
 	}
 	return result;
+}
+
+void iAParameterDlg::setOKEnabled(bool enabled)
+{
+	m_buttonBox->button(QDialogButtonBox::Ok)->setEnabled(enabled);
+}
+
+void addParameter(iAParameterDlg::ParamListT params, QString const& name, iAValueType valueType,
+	QVariant defaultValue, double min, double max)
+{
+	params.push_back(iAAttributeDescriptor::createParam(name, valueType, defaultValue, min, max));
 }

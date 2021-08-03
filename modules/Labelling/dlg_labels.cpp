@@ -23,16 +23,16 @@
 #include "iAImageCoordinate.h"
 #include "ui_labels.h"
 
-#include <dlg_commoninput.h>
 #include <iAChannelData.h>
 #include <iAColorTheme.h>
+#include <iAFileUtils.h>
 #include <iALUT.h>
 #include <iALabellingObjects.h>
 #include <iALog.h>
+#include <iAMdiChild.h>
 #include <iAModality.h>
 #include <iAModalityList.h>
-#include <iAFileUtils.h>
-#include <iAMdiChild.h>
+#include <iAParameterDlg.h>
 #include <iAPerformanceHelper.h>
 #include <iASlicer.h>
 #include <iASlicerImpl.h>  // for mapSliceToGlobalAxis
@@ -836,24 +836,22 @@ void dlg_labels::loadLabels()
 void dlg_labels::storeLabels()
 {
 	QString fileName = QFileDialog::getSaveFileName(QApplication::activeWindow(), tr("Save Seed File"),
-		QString()  // TODO get directory of current file
-		,
+		QString(),  // TODO get directory of current file
 		tr("Seed file (*.seed);;All files (*.*)"));
 	if (fileName.isEmpty())
 	{
 		return;
 	}
-	QStringList inList;
-	inList << tr("$Extended Format (also write pixel values, not only positions)");
-	QList<QVariant> inPara;
-	inPara << tr("%1").arg(true);
-	dlg_commoninput extendedFormatInput(this, "Seed File Format", inList, inPara, nullptr);
-	if (extendedFormatInput.exec() != QDialog::Accepted)
+	QString paramName("Extended Format (also write pixel values, not only positions)");
+	iAParameterDlg::ParamListT param;
+	addParameter(param, paramName, iAValueType::Boolean, true);
+	iAParameterDlg dlg(this, "Seed File Format", param);
+	if (dlg.exec() != QDialog::Accepted)
 	{
 		LOG(lvlError, "Selection of format aborted, aborting seed file storing");
 		return;
 	}
-	if (!store(fileName, extendedFormatInput.getCheckValue(0)))
+	if (!store(fileName, dlg.parameterValues()[paramName].toBool()))
 	{
 		QMessageBox::warning(this, "GEMSe", "Storing seed file '" + fileName + "' failed!");
 	}
@@ -922,18 +920,19 @@ void dlg_labels::sample()
 		}
 	}
 
-	QStringList inParams;
-	inParams << "*Number of Seeds per Label"
-			 << "$Reduce seed number for all labels to size of smallest labeling";
-	QList<QVariant> inValues;
-	inValues << 50 << true;
-	dlg_commoninput input(this, "Sample Seeds", inParams, inValues, nullptr);
-	if (input.exec() != QDialog::Accepted)
+	iAParameterDlg::ParamListT params;
+	QString const NumSeeds("Number of Seeds per Label");
+	QString const ReduceNum("Reduce seed number for all labels to size of smallest labeling");
+	addParameter(params, NumSeeds, iAValueType::Discrete, 50, 1);
+	addParameter(params, ReduceNum, iAValueType::Boolean, true);
+	iAParameterDlg dlg(this, "Sample Seeds", params);
+	if (dlg.exec() != QDialog::Accepted)
 	{
 		return;
 	}
-	int numOfSeeds = input.getIntValue(0);
-	bool reduceNum = input.getCheckValue(1);
+	auto values = dlg.parameterValues();
+	int numOfSeeds = values[NumSeeds].toInt();
+	bool reduceNum = values[ReduceNum].toBool();
 
 	std::vector<int> numOfSeedsPerLabel(labelCount, numOfSeeds);
 	// check that there is at least numOfSeedsPerLabel pixels per label

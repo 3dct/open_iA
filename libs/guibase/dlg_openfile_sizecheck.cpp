@@ -20,7 +20,6 @@
 * ************************************************************************************/
 #include "dlg_openfile_sizecheck.h"
 
-#include "dlg_commoninput.h"
 #include "io/iARawFileParameters.h"
 #include "iAToolsVTK.h"    // for mapVTKTypeToReadableDataType, readableDataTypes, ...
 
@@ -28,6 +27,7 @@
 #include <QDialogButtonBox>
 #include <QFileInfo>
 #include <QLabel>
+#include <QLayout>
 #include <QLineEdit>
 #include <QPushButton>
 
@@ -46,13 +46,12 @@ namespace
 	}
 }
 
-dlg_openfile_sizecheck::dlg_openfile_sizecheck(QString const & fileName, QWidget *parent, QString const & title,
-	QStringList const & additionalLabels, QList<QVariant> const & additionalValues, iARawFileParameters & rawFileParams):
+iARawFileParamDlg::iARawFileParamDlg(QString const& fileName, QWidget* parent, QString const& title,
+	iAParameterDlg::ParamListT const& additionalParams, iARawFileParameters& rawFileParams) :
 	m_accepted(false)
 {
 	QFileInfo info1(fileName);
 	m_fileSize = info1.size();
-	m_sizeXIdx = 0; m_sizeYIdx = 1; m_sizeZIdx = 2; m_headerSizeIdx = 9; m_voxelSizeIdx = 10;
 
 	QStringList datatype(readableDataTypeList(false));
 	QString selectedType = mapVTKTypeToReadableDataType(rawFileParams.m_scalarType);
@@ -63,42 +62,35 @@ dlg_openfile_sizecheck::dlg_openfile_sizecheck(QString const & fileName, QWidget
 	}
 	QStringList byteOrderStr = (QStringList() << tr("Little Endian") << tr("Big Endian"));
 	byteOrderStr[mapVTKByteOrderToIdx(rawFileParams.m_byteOrder)] = "!" + byteOrderStr[mapVTKByteOrderToIdx(rawFileParams.m_byteOrder)];
-	QStringList labels = (QStringList()
-		<< tr("#Size X") << tr("#Size Y") << tr("#Size Z")
-		<< tr("#Spacing X") << tr("#Spacing Y") << tr("#Spacing Z")
-		<< tr("#Origin X") << tr("#Origin Y") << tr("#Origin Z")
-		<< tr("#Headersize")
-		<< tr("+Data Type")
-		<< tr("+Byte Order"));
-	m_fixedParams = labels.size();
-	labels.append(additionalLabels);
-
-	QList<QVariant> values = (QList<QVariant>()
-		<< rawFileParams.m_size[0]    << rawFileParams.m_size[1]    << rawFileParams.m_size[2]
-		<< rawFileParams.m_spacing[0] << rawFileParams.m_spacing[1] << rawFileParams.m_spacing[2]
-		<< rawFileParams.m_origin[0]  << rawFileParams.m_origin[1]  << rawFileParams.m_origin[2]
-		<< rawFileParams.m_headersize
-		<< datatype
-		<< byteOrderStr
-		<< additionalValues);
-
-	m_inputDlg = new dlg_commoninput(parent, title, labels, values);
+	iAParameterDlg::ParamListT params;
+	addParameter(params, "Size X", iAValueType::Discrete, rawFileParams.m_size[0]);
+	addParameter(params, "Size Y", iAValueType::Discrete, rawFileParams.m_size[1]);
+	addParameter(params, "Size Z", iAValueType::Discrete, rawFileParams.m_size[2]);
+	addParameter(params, "Spacing X", iAValueType::Continuous, rawFileParams.m_spacing[0]);
+	addParameter(params, "Spacing Y", iAValueType::Continuous, rawFileParams.m_spacing[1]);
+	addParameter(params, "Spacing Z", iAValueType::Continuous, rawFileParams.m_spacing[2]);
+	addParameter(params, "Origin X", iAValueType::Continuous, rawFileParams.m_origin[0]);
+	addParameter(params, "Origin Y", iAValueType::Continuous, rawFileParams.m_origin[1]);
+	addParameter(params, "Origin Z", iAValueType::Continuous, rawFileParams.m_origin[2]);
+	addParameter(params, "Headersize", iAValueType::Discrete, rawFileParams.m_headersize);
+	addParameter(params, "Data Type", iAValueType::Categorical, datatype);
+	addParameter(params, "Byte Order", iAValueType::Categorical, byteOrderStr);
+	params.append(additionalParams);
+	m_inputDlg = new iAParameterDlg(parent, title, params);
 
 	m_actualSizeLabel = new QLabel("Actual file size: " + QString::number(m_fileSize) + " bytes");
 	m_actualSizeLabel->setAlignment(Qt::AlignRight);
-	m_inputDlg->addWidget(m_actualSizeLabel, labels.size(), 0, 1, 1);
+	m_inputDlg->layout()->addWidget(m_actualSizeLabel);
 
 	m_proposedSizeLabel = new QLabel("Predicted file size: ");
 	m_proposedSizeLabel->setAlignment(Qt::AlignRight);
-	m_inputDlg->addWidget(m_proposedSizeLabel, labels.size() + 1, 0, 1, 1);
-
-	m_inputDlg->addWidget(m_inputDlg->buttonBox(), labels.size() + 2, 0, 1, 1);
-
-	connect(qobject_cast<QLineEdit*>(m_inputDlg->widgetList()[m_sizeXIdx])     , &QLineEdit::textChanged, this, &dlg_openfile_sizecheck::checkFileSize);
-	connect(qobject_cast<QLineEdit*>(m_inputDlg->widgetList()[m_sizeYIdx])     , &QLineEdit::textChanged, this, &dlg_openfile_sizecheck::checkFileSize);
-	connect(qobject_cast<QLineEdit*>(m_inputDlg->widgetList()[m_sizeZIdx])     , &QLineEdit::textChanged, this, &dlg_openfile_sizecheck::checkFileSize);
-	connect(qobject_cast<QLineEdit*>(m_inputDlg->widgetList()[m_headerSizeIdx]), &QLineEdit::textChanged, this, &dlg_openfile_sizecheck::checkFileSize);
-	connect(qobject_cast<QComboBox*>(m_inputDlg->widgetList()[m_voxelSizeIdx]), QOverload<int>::of(&QComboBox::currentIndexChanged), this, &dlg_openfile_sizecheck::checkFileSize);
+	m_inputDlg->layout()->addWidget(m_proposedSizeLabel);
+	// indices here refer to the order that the items are inserted in above!
+	connect(qobject_cast<QLineEdit*>(m_inputDlg->widgetList()[0]), &QLineEdit::textChanged, this, &iARawFileParamDlg::checkFileSize);
+	connect(qobject_cast<QLineEdit*>(m_inputDlg->widgetList()[1]), &QLineEdit::textChanged, this, &iARawFileParamDlg::checkFileSize);
+	connect(qobject_cast<QLineEdit*>(m_inputDlg->widgetList()[2]), &QLineEdit::textChanged, this, &iARawFileParamDlg::checkFileSize);
+	connect(qobject_cast<QLineEdit*>(m_inputDlg->widgetList()[9]), &QLineEdit::textChanged, this, &iARawFileParamDlg::checkFileSize);
+	connect(qobject_cast<QComboBox*>(m_inputDlg->widgetList()[10]), QOverload<int>::of(&QComboBox::currentIndexChanged), this, &iARawFileParamDlg::checkFileSize);
 
 	checkFileSize();
 
@@ -106,62 +98,59 @@ dlg_openfile_sizecheck::dlg_openfile_sizecheck(QString const & fileName, QWidget
 	{
 		return;
 	}
-
-	for (int i = 0; i < 3; ++i)
-	{
-		rawFileParams.m_size[i] = m_inputDlg->getIntValue(i);
-		rawFileParams.m_spacing[i] = m_inputDlg->getDblValue(3 + i);
-		rawFileParams.m_origin[i] = m_inputDlg->getDblValue(6 + i);
-	}
-	rawFileParams.m_headersize = m_inputDlg->getDblValue(9);
-	rawFileParams.m_scalarType = mapReadableDataTypeToVTKType(m_inputDlg->getComboBoxValue(10));
-	if (m_inputDlg->getComboBoxValue(11) == "Little Endian")
+	auto values = m_inputDlg->parameterValues();
+	rawFileParams.m_size[0] = values["Size X"].toInt();
+	rawFileParams.m_size[1] = values["Size Y"].toInt();
+	rawFileParams.m_size[2] = values["Size Z"].toInt();
+	rawFileParams.m_spacing[0] = values["Spacing X"].toDouble();
+	rawFileParams.m_spacing[1] = values["Spacing Y"].toDouble();
+	rawFileParams.m_spacing[2] = values["Spacing Z"].toDouble();
+	rawFileParams.m_origin[0] = values["Origin X"].toDouble();
+	rawFileParams.m_origin[1] = values["Origin Y"].toDouble();
+	rawFileParams.m_origin[2] = values["Origin Z"].toDouble();
+	rawFileParams.m_headersize = values["Headersize"].toULongLong();
+	rawFileParams.m_scalarType = mapReadableDataTypeToVTKType(values["Data Type"].toString());
+	if (values["Byte Order"].toString() == "Little Endian")
 	{
 		rawFileParams.m_byteOrder = VTK_FILE_BYTE_ORDER_LITTLE_ENDIAN;
 	}
-	else if (m_inputDlg->getComboBoxValue(11) == "Big Endian")
+	else // if (values["Byte Order"].toString() == "Big Endian")
 	{
 		rawFileParams.m_byteOrder = VTK_FILE_BYTE_ORDER_BIG_ENDIAN;
 	}
 	m_accepted = true;
 }
 
-void dlg_openfile_sizecheck::checkFileSize()
+void iARawFileParamDlg::checkFileSize()
 {
-	qint64 sizeX = m_inputDlg->getDblValue(m_sizeXIdx),
-		sizeY= m_inputDlg->getDblValue(m_sizeYIdx),
-		sizeZ = m_inputDlg->getDblValue(m_sizeZIdx),
-		voxelSize = mapVTKTypeToSize(mapReadableDataTypeToVTKType(m_inputDlg->getComboBoxValue(m_voxelSizeIdx))),
-		headerSize = m_inputDlg->getDblValue(m_headerSizeIdx);
+	auto values = m_inputDlg->parameterValues();
+	qint64
+		sizeX = values["Size X"].toLongLong(),
+		sizeY = values["Size Y"].toLongLong(),
+		sizeZ = values["Size Z"].toLongLong(),
+		voxelSize = mapVTKTypeToSize(mapReadableDataTypeToVTKType(values["Data Type"].toString())),
+		headerSize = values["Headersize"].toLongLong();
 	qint64 proposedSize = sizeX * sizeY * sizeZ * voxelSize + headerSize;
-	if (sizeX <= 0 || sizeY <= 0 || sizeZ <= 0 || voxelSize <= 0 || headerSize < 0)
-	{
-		m_proposedSizeLabel->setText("Invalid numbers in size, data type or header size (too large/negative)?");
-	}
-	else
-	{
-		m_proposedSizeLabel->setText("Predicted file size: " + QString::number(proposedSize) + " bytes");
-	}
-	m_proposedSizeLabel->setStyleSheet(QString("QLabel { background-color : %1; }").arg(proposedSize == m_fileSize ? "#BFB" : "#FBB" ));
-	m_inputDlg->buttonBox()->button(QDialogButtonBox::Ok)->setEnabled(proposedSize == m_fileSize);
+	bool valid = (sizeX <= 0 || sizeY <= 0 || sizeZ <= 0 || voxelSize <= 0 || headerSize < 0);
+	m_proposedSizeLabel->setText(valid ?
+		"Predicted file size: " + QString::number(proposedSize) + " bytes" :
+		"Invalid numbers in size, data type or header size (too large/negative)?");
+	m_proposedSizeLabel->setStyleSheet(
+		QString("QLabel { background-color : %1; }").arg(proposedSize == m_fileSize ? "#BFB" : "#FBB"));
+	m_inputDlg->setOKEnabled(proposedSize == m_fileSize);
 }
 
-bool dlg_openfile_sizecheck::accepted() const
+bool iARawFileParamDlg::accepted() const
 {
 	return m_accepted;
 }
 
-int dlg_openfile_sizecheck::fixedParams() const
+QMap<QString, QVariant> iARawFileParamDlg::parameterValues() const
 {
-	return m_fixedParams;
+	return m_inputDlg->parameterValues();
 }
 
-dlg_commoninput const * dlg_openfile_sizecheck::inputDlg() const
-{
-	return m_inputDlg;
-}
-
-dlg_openfile_sizecheck::~dlg_openfile_sizecheck()
+iARawFileParamDlg::~iARawFileParamDlg()
 {
 	delete m_inputDlg;
 }

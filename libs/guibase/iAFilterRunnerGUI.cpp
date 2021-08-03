@@ -220,8 +220,7 @@ bool iAFilterRunnerGUI::askForParameters(QSharedPointer<iAFilter> filter, QMap<Q
 		}
 		for (int i = 1; i < filter->requiredInputs(); ++i)
 		{
-			dlgParams.push_back(iAAttributeDescriptor::createParam(
-				QString("%1").arg(filter->inputName(i)), iAValueType::Categorical, mdiChildrenNames));
+			addParameter(dlgParams, QString("%1").arg(filter->inputName(i)), iAValueType::Categorical, mdiChildrenNames);
 		}
 	}
 	iAParameterDlg dlg(mainWnd, filter->name(), dlgParams, filter->description());

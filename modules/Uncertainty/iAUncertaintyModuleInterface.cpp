@@ -24,11 +24,11 @@
 #include "iACSVtoMHD.h"
 #include "iAUncertaintyAttachment.h"
 
-#include <dlg_commoninput.h>
 #include <iALog.h>
 #include <iAFilterRegistry.h>
 #include <iAMainWindow.h>
 #include <iAMdiChild.h>
+#include <iAParameterDlg.h>
 
 #include <QFileDialog>
 #include <QMenu>
@@ -151,20 +151,17 @@ void iAUncertaintyModuleInterface::WriteFullDataFile()
 	{
 		return;
 	}
-
-	QStringList params;
-	params
-		<< "$Write original data values"
-		<< "$Write Member Labels"
-		<< "$Write Member Probabilities"
-		<< "$Write Ensemble Uncertainties";
-	QList<QVariant> values;
-	values << true << true << true;
-	dlg_commoninput whatToStore(m_mainWnd, "Write parameters", params, values);
-	if (whatToStore.exec() != QDialog::Accepted)
+	iAParameterDlg::ParamListT params;
+	addParameter(params, "Write original data values", iAValueType::Boolean, true);
+	addParameter(params, "Write Member Labels", iAValueType::Boolean, true);
+	addParameter(params, "Write Member Probabilities", iAValueType::Boolean, true);
+	addParameter(params, "Write Ensemble Uncertainties", iAValueType::Boolean, true);
+	iAParameterDlg dlg(m_mainWnd, "Write parameters", params);
+	if (dlg.exec() != QDialog::Accepted)
 	{
 		return;
 	}
-	attach->WriteFullDataFile(fileName, whatToStore.getCheckValue(0), whatToStore.getCheckValue(1), whatToStore.getCheckValue(2), whatToStore.getCheckValue(3));
-
+	auto val = dlg.parameterValues();
+	attach->WriteFullDataFile(fileName, val["Write original data values"].toBool(), val["Write Member Labels"].toBool(),
+		val["Write Member Probabilities"].toBool(), val["Write Ensemble Uncertainties"].toBool());
 }
