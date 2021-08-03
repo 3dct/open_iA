@@ -72,6 +72,17 @@ public:
 	void removeClippingPlanes();
 	//! extract one mesh per selected object
 	virtual std::vector<vtkSmartPointer<vtkPolyData>> extractSelectedObjects(QColor c = QColor()) const = 0;
+	//! Get the index of the first point of a given object.
+	//! @param objIdx the index of the object.
+	//! @return the index of the first point in the object.
+	virtual IndexType objectStartPointIdx(IndexType objIdx) const;
+	//! Get the number of points representing a given object.
+	//! @param objIdx the index of the object.
+	//! @return the number of points in the object.
+	virtual IndexType objectPointCount(IndexType objIdx) const;
+	//! Get the number of points in all objects.
+	//! @return the number of points in all objects, i.e. the sum of objectPointCount over all object indices.
+	IndexType allPointCount() const;
 
 protected:
 	vtkSmartPointer<vtkPolyDataMapper> m_mapper;
@@ -100,18 +111,6 @@ protected:
 	void setupOriginalIds();
 	//! Set up the array of colors for each object.
 	void setupColors();
-
-	//! Get the index of the first point of a given object.
-	//! @param objIdx the index of the object.
-	//! @return the index of the first point in the object.
-	virtual IndexType objectStartPointIdx(IndexType objIdx) const;
-	//! Get the number of points representing a given object.
-	//! @param objIdx the index of the object.
-	//! @return the number of points in the object.
-	virtual IndexType objectPointCount(IndexType objIdx) const;
-	//! Get the number of points in all objects.
-	//! @return the number of points in all objects, i.e. the sum of objectPointCount over all object indices.
-	IndexType allPointCount() const;
 
 	//! Updates the renderer; but only if the own actor is actually shown.
 	void updateRenderer() override;

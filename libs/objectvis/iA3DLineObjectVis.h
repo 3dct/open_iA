@@ -39,10 +39,10 @@ public:
 	vtkPolyData* finalPoly() override;
 	QString visualizationStatistics() const override;
 	std::vector<vtkSmartPointer<vtkPolyData>> extractSelectedObjects(QColor c) const override;
-
-protected:
 	IndexType objectStartPointIdx(IndexType objIdx) const override;
 	IndexType objectPointCount(IndexType objIdx) const override;
+
+protected:
 	vtkSmartPointer<vtkPolyData> m_linePolyData;
 	vtkSmartPointer<vtkPoints> m_points;
 	std::map<size_t, std::vector<iAVec3f>> m_curvedFiberData;
