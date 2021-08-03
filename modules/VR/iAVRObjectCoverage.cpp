@@ -19,11 +19,11 @@
 *          Stelzhamerstraße 23, 4600 Wels / Austria, Email: c.heinzl@fh-wels.at       *
 * ************************************************************************************/
 
-#include "iAVRFiberCoverage.h"
+#include "iAVRObjectCoverage.h"
 
 #include <iALog.h>
 
-iAVRFiberCoverage::iAVRFiberCoverage(vtkTable* objectTable, iACsvIO io, std::vector<iAVROctree*>* octrees, iAVRVolume* volume) : m_objectTable(objectTable), m_io(io), 
+iAVRObjectCoverage::iAVRObjectCoverage(vtkTable* objectTable, iACsvIO io, iACsvConfig csvConfig, std::vector<iAVROctree*>* octrees, iAVRVolume* volume) : m_objectTable(objectTable), m_io(io), m_csvConfig(csvConfig),
 m_octrees(octrees), m_volume(volume)
 {
 	m_fiberCoverage = new std::vector<std::vector<std::unordered_map<vtkIdType, double>*>>();
@@ -31,7 +31,7 @@ m_octrees(octrees), m_volume(volume)
 
 //! Computes which polyObject ID (points) belongs to which Object ID in the csv file of the volume
 //! Gets only called internally from thread to store the mapping
-void iAVRFiberCoverage::mapAllPointiDs()
+void iAVRObjectCoverage::mapAllPointiDs()
 {
 	// For every fiber in csv table
 	for (vtkIdType row = 0; row < m_objectTable->GetNumberOfRows(); ++row)
@@ -63,7 +63,7 @@ void iAVRFiberCoverage::mapAllPointiDs()
 //! Computes which polyObject ID (points) belongs to which Object ID in the csv file of the volume for every Octree Level
 //! Calculates Intersection between points in different Octree regions in all levels. Calls a emthod to compute fiber coverage.
 //! Gets only called internally
-void iAVRFiberCoverage::mapAllPointiDsAndCalculateFiberCoverage()
+void iAVRObjectCoverage::mapAllPointiDsAndCalculateFiberCoverage()
 {
 	int count = 0;
 
@@ -135,14 +135,14 @@ void iAVRFiberCoverage::mapAllPointiDsAndCalculateFiberCoverage()
 	LOG(lvlInfo, QString("Volume Data processed and loaded"));
 }
 
-std::vector<std::vector<std::unordered_map<vtkIdType, double>*>>* iAVRFiberCoverage::getFiberCoverage()
+std::vector<std::vector<std::unordered_map<vtkIdType, double>*>>* iAVRObjectCoverage::getFiberCoverage()
 {
 	return m_fiberCoverage;
 }
 
 //! Returns the iD (row of csv) of the fiber corresponding to the polyObject ID
 //! Returns -1 if point is not found in csv
-vtkIdType iAVRFiberCoverage::getObjectiD(vtkIdType polyPoint)
+vtkIdType iAVRObjectCoverage::getObjectiD(vtkIdType polyPoint)
 {
 	if (m_pointIDToCsvIndex.find(polyPoint) != m_pointIDToCsvIndex.end())
 	{
@@ -155,18 +155,18 @@ vtkIdType iAVRFiberCoverage::getObjectiD(vtkIdType polyPoint)
 	}
 }
 
-std::unordered_map<vtkIdType, vtkIdType> iAVRFiberCoverage::getPointIDToCsvIndexMapper()
+std::unordered_map<vtkIdType, vtkIdType> iAVRObjectCoverage::getPointIDToCsvIndexMapper()
 {
 	return m_pointIDToCsvIndex;
 }
 
-std::unordered_multimap<vtkIdType, vtkIdType> iAVRFiberCoverage::getCsvIndexToPointIDMapper()
+std::unordered_multimap<vtkIdType, vtkIdType> iAVRObjectCoverage::getCsvIndexToPointIDMapper()
 {
 	return m_csvIndexToPointID;
 }
 
 //! The calculated intersection points are returned as vtkPoints
-vtkSmartPointer<vtkPoints> iAVRFiberCoverage::getOctreeFiberCoverage(double startPoint[3], double endPoint[3], vtkIdType octreeLevel, vtkIdType fiber, double fiberLength)
+vtkSmartPointer<vtkPoints> iAVRObjectCoverage::getOctreeFiberCoverage(double startPoint[3], double endPoint[3], vtkIdType octreeLevel, vtkIdType fiber, double fiberLength)
 {
 	vtkSmartPointer<vtkPoints> additionalIntersectionPoints = vtkSmartPointer<vtkPoints>::New();
 
@@ -293,7 +293,7 @@ vtkSmartPointer<vtkPoints> iAVRFiberCoverage::getOctreeFiberCoverage(double star
 	return additionalIntersectionPoints;
 }
 
-bool iAVRFiberCoverage::checkIntersectionWithBox(double startPoint[3], double endPoint[3], std::vector<std::vector<iAVec3d>>* planePoints, double bounds[6], double intersection[3])
+bool iAVRObjectCoverage::checkIntersectionWithBox(double startPoint[3], double endPoint[3], std::vector<std::vector<iAVec3d>>* planePoints, double bounds[6], double intersection[3])
 {
 	double eps = 0.00001;
 
@@ -338,7 +338,7 @@ bool iAVRFiberCoverage::checkIntersectionWithBox(double startPoint[3], double en
 	return false;
 }
 
-bool iAVRFiberCoverage::checkIntersectionWithBox(double startPoint[3], double endPoint[3], double bounds[6], double intersection[3])
+bool iAVRObjectCoverage::checkIntersectionWithBox(double startPoint[3], double endPoint[3], double bounds[6], double intersection[3])
 {
 	double eps = 0.00001;
 
@@ -388,7 +388,7 @@ bool iAVRFiberCoverage::checkIntersectionWithBox(double startPoint[3], double en
 	return false;
 }
 
-double iAVRFiberCoverage::calculateFiberCoverage(double startPoint[3], double endPoint[3], double fiberLength)
+double iAVRObjectCoverage::calculateFiberCoverage(double startPoint[3], double endPoint[3], double fiberLength)
 {
 	double vectorBetweenStartAndEnd[3]{};
 	for (int i = 0; i < 3; i++)
@@ -403,7 +403,7 @@ double iAVRFiberCoverage::calculateFiberCoverage(double startPoint[3], double en
 }
 
 //! Checks if two pos arrays are the same
-bool iAVRFiberCoverage::checkEqualArrays(float pos1[3], float pos2[3])
+bool iAVRObjectCoverage::checkEqualArrays(float pos1[3], float pos2[3])
 {
 	for (int i = 0; i < 3; ++i)
 	{
@@ -415,7 +415,7 @@ bool iAVRFiberCoverage::checkEqualArrays(float pos1[3], float pos2[3])
 	return true;
 }
 
-bool iAVRFiberCoverage::checkEqualArrays(double pos1[3], double pos2[3])
+bool iAVRObjectCoverage::checkEqualArrays(double pos1[3], double pos2[3])
 {
 	for (int i = 0; i < 3; ++i)
 	{
@@ -427,7 +427,7 @@ bool iAVRFiberCoverage::checkEqualArrays(double pos1[3], double pos2[3])
 	return true;
 }
 
-void iAVRFiberCoverage::createPlanePoint(int plane, double bounds[6], iAVec3d* planeOrigin, iAVec3d* planeP1, iAVec3d* planeP2)
+void iAVRObjectCoverage::createPlanePoint(int plane, double bounds[6], iAVec3d* planeOrigin, iAVec3d* planeP1, iAVec3d* planeP2)
 {
 	double xMin = bounds[0];
 	double xMax = bounds[1];

@@ -169,7 +169,7 @@ void iAVRModuleInterface::showFibers()
 	m_style = vtkSmartPointer<iAVRInteractorStyle>::New();
 
 	//Create VR Main
-	m_vrMain = new iAVRMain(m_vrEnv.data(), m_style, m_objectTable, io, curvedFiberInfo);
+	m_vrMain = new iAVRMain(m_vrEnv.data(), m_style, m_objectTable, io, csvConfig, curvedFiberInfo);
 
 	// Start Render Loop HERE!
 	m_vrEnv->start();

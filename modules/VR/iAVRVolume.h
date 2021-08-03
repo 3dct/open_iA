@@ -31,13 +31,13 @@
 
 #include <unordered_map>
 
-class iA3DCylinderObjectVis;
+class iA3DColoredPolyObjectVis;
 
 //! Class which represents the rendered volume
 class iAVRVolume: public iAVRCubicVis
 {
 public:
-	iAVRVolume(vtkRenderer* ren, vtkTable* objectTable, iACsvIO io, std::map<size_t, std::vector<iAVec3f> > curvedFiberInfo);
+	iAVRVolume(vtkRenderer* ren, vtkTable* objectTable, iACsvIO io, iACsvConfig csvConfig, std::map<size_t, std::vector<iAVec3f> > curvedFiberInfo);
 	void resetVolume();
 	void showVolume();
 	void hideVolume();
@@ -65,12 +65,13 @@ private:
 	vtkSmartPointer<vtkActor> m_volumeActor;
 	vtkSmartPointer<vtkActor> m_RegionLinksActor;
 	vtkSmartPointer<vtkActor> m_RegionNodesActor;
-	iA3DCylinderObjectVis* m_cylinderVis;
+	iA3DColoredPolyObjectVis* m_PolyObjectVis;
 	vtkSmartPointer<vtkTable> m_objectTable;
 	vtkSmartPointer<vtkPolyData> m_linePolyData;
 	std::unordered_map<vtkIdType, vtkIdType> m_pointIDToCsvIndex;
 	std::unordered_multimap<vtkIdType, vtkIdType> m_csvIndexToPointID;
 	iACsvIO m_io;
+	iACsvConfig m_csvConfig;
 	std::map<size_t, std::vector<iAVec3f> > m_curvedFiberInfo;
 	vtkSmartPointer<vtkLookupTable> m_lut;
 	vtkSmartPointer<vtkDoubleArray> nodeGlyphScales;

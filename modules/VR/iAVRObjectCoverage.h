@@ -31,13 +31,13 @@
 #include "iAVROctree.h"
 
 /*
-* This class maps the fibers Object ID in the csv file to the polyObject ID of the
-* rendered points and calculates the coverage of fiber inside octree regions
+* This class maps the Objects ID in the csv file to the polyObject ID of the
+* rendered points and calculates the coverage of the objects inside octree regions
 */
-class iAVRFiberCoverage
+class iAVRObjectCoverage
 {
 public:
-	iAVRFiberCoverage(vtkTable* objectTable, iACsvIO io, std::vector<iAVROctree*>* octrees, iAVRVolume* volume);
+	iAVRObjectCoverage(vtkTable* objectTable, iACsvIO io, iACsvConfig csvConfig, std::vector<iAVROctree*>* octrees, iAVRVolume* volume);
 	void mapAllPointiDs();
 	void mapAllPointiDsAndCalculateFiberCoverage();
 	std::vector<std::vector<std::unordered_map<vtkIdType, double>*>>* getFiberCoverage();
@@ -48,6 +48,7 @@ public:
 private:
 	vtkSmartPointer<vtkTable> m_objectTable;
 	iACsvIO m_io;
+	iACsvConfig m_csvConfig;
 	std::vector<iAVROctree*>* m_octrees;
 	iAVRVolume* m_volume;
 	// Maps poly point IDs to Object IDs in csv file

@@ -21,7 +21,9 @@
 #include "iAVRVolume.h"
 
 #include <iALog.h>
+#include <iA3DColoredPolyObjectVis.h>
 #include <iA3DCylinderObjectVis.h>
+#include <iA3DEllipseObjectVis.h>
 #include <iAVROctreeMetrics.h>
 
 #include <vtkVariantArray.h>
@@ -40,7 +42,7 @@
 #include <vtkCleanPolyData.h>
 #include <vtkCubeSource.h>
 
-iAVRVolume::iAVRVolume(vtkRenderer* ren, vtkTable* objectTable, iACsvIO io, std::map<size_t, std::vector<iAVec3f> > curvedFiberInfo) :iAVRCubicVis{ ren }, m_objectTable(objectTable), m_io(io), m_curvedFiberInfo(curvedFiberInfo)
+iAVRVolume::iAVRVolume(vtkRenderer* ren, vtkTable* objectTable, iACsvIO io, iACsvConfig csvConfig, std::map<size_t, std::vector<iAVec3f> > curvedFiberInfo) :iAVRCubicVis{ ren }, m_objectTable(objectTable), m_io(io), m_csvConfig(csvConfig), m_curvedFiberInfo(curvedFiberInfo)
 {
 	defaultColor = QColor(126, 0, 223, 255);
 	m_volumeActor = vtkSmartPointer<vtkActor>::New();
@@ -58,8 +60,15 @@ iAVRVolume::iAVRVolume(vtkRenderer* ren, vtkTable* objectTable, iACsvIO io, std:
 
 void iAVRVolume::resetVolume()
 {
-	m_cylinderVis = new iA3DCylinderObjectVis(m_renderer, m_objectTable, m_io.getOutputMapping(), QColor(140, 140, 140, 255), m_curvedFiberInfo);
-	m_volumeActor = m_cylinderVis->getActor();
+	if(m_csvConfig.visType == iACsvConfig::Cylinders)
+	{
+		m_PolyObjectVis = new iA3DCylinderObjectVis(m_renderer, m_objectTable, m_io.getOutputMapping(), QColor(140, 140, 140, 255), m_curvedFiberInfo);
+	}
+	else if(m_csvConfig.visType == iACsvConfig::Ellipses)
+	{
+		m_PolyObjectVis = new iA3DEllipseObjectVis(m_renderer, m_objectTable, m_io.getOutputMapping(), QColor(140, 140, 140, 255));
+	}
+	m_volumeActor = m_PolyObjectVis->getActor();
 	//m_volumeActor->AddPosition(1,200,1);
 }
 
@@ -152,7 +161,7 @@ void iAVRVolume::setMappers(std::unordered_map<vtkIdType, vtkIdType> pointIDToCs
 
 vtkSmartPointer<vtkPolyData> iAVRVolume::getVolumeData()
 {
-	return m_cylinderVis->getPolyData();
+	return m_PolyObjectVis->getPolyData();
 }
 
 void iAVRVolume::createCubeModel()
@@ -177,7 +186,7 @@ void iAVRVolume::createCubeModel()
 
 void iAVRVolume::renderSelection(std::vector<size_t> const& sortedSelInds, int classID, QColor const& classColor, QStandardItem* activeClassItem)
 {
-	m_cylinderVis->renderSelection(sortedSelInds, classID, classColor, activeClassItem);
+	m_PolyObjectVis->renderSelection(sortedSelInds, classID, classColor, activeClassItem);
 }
 
 //! Moves all fibers from the octree center away.
@@ -213,7 +222,7 @@ void iAVRVolume::moveFibersByMaxCoverage(std::vector<std::vector<std::vector<vtk
 			auto findKeys = m_csvIndexToPointID.equal_range(fiberID);
 			for (auto it = findKeys.first; it != findKeys.second; ++it) 
 			{
-				iAVec3d currentPoint = iAVec3d(m_cylinderVis->getPolyData()->GetPoint(it->second));
+				iAVec3d currentPoint = iAVec3d(m_PolyObjectVis->getPolyData()->GetPoint(it->second));
 				iAVec3d currentRegionCenterPoint = iAVec3d(regionCenterPoint);
 				iAVec3d normDirection = currentRegionCenterPoint - centerPos;
 				double currentLength = normDirection.length();
@@ -224,12 +233,12 @@ void iAVRVolume::moveFibersByMaxCoverage(std::vector<std::vector<std::vector<vtk
 				else move = normDirection * offset;
 				iAVec3d newPoint = currentPoint + move;
 
-				m_cylinderVis->getPolyData()->GetPoints()->SetPoint(it->second, newPoint.data());
+				m_PolyObjectVis->getPolyData()->GetPoints()->SetPoint(it->second, newPoint.data());
 			}
 		}
 	}
 	
-	m_cylinderVis->getPolyData()->GetPoints()->GetData()->Modified();
+	m_PolyObjectVis->getPolyData()->GetPoints()->GetData()->Modified();
 }
 
 //! Moves all fibers from the octree center away.
@@ -260,7 +269,7 @@ void iAVRVolume::moveFibersbyAllCoveredRegions(double offset, bool relativMoveme
 		for (auto element : *m_fiberCoverage->at(m_octree->getLevel()).at(region))
 		{
 
-			iAVec3d currentPoint = iAVec3d(m_cylinderVis->getPolyData()->GetPoint(element.first));
+			iAVec3d currentPoint = iAVec3d(m_PolyObjectVis->getPolyData()->GetPoint(element.first));
 
 			iAVec3d regionCenterPoint = iAVec3d(glyph3D->GetPolyDataInput(0)->GetPoint(region));
 			iAVec3d normDirection = regionCenterPoint - centerPos;
@@ -273,11 +282,11 @@ void iAVRVolume::moveFibersbyAllCoveredRegions(double offset, bool relativMoveme
 			else move = normDirection * offset * element.second;
 			iAVec3d newPoint = currentPoint + move;
 
-			m_cylinderVis->getPolyData()->GetPoints()->SetPoint(element.first, newPoint.data());
+			m_PolyObjectVis->getPolyData()->GetPoints()->SetPoint(element.first, newPoint.data());
 
 		}
 	}
-	m_cylinderVis->getPolyData()->GetPoints()->GetData()->Modified();
+	m_PolyObjectVis->getPolyData()->GetPoints()->GetData()->Modified();
 }
 
 //! Moves all fibers from the octree center away.
@@ -326,15 +335,15 @@ void iAVRVolume::moveFibersbyOctant(std::vector<std::vector<std::vector<vtkIdTyp
 			auto findKeys = m_csvIndexToPointID.equal_range(fiberID);
 			for (auto it = findKeys.first; it != findKeys.second; ++it)
 			{
-				iAVec3d currentPoint = iAVec3d(m_cylinderVis->getPolyData()->GetPoint(it->second));
+				iAVec3d currentPoint = iAVec3d(m_PolyObjectVis->getPolyData()->GetPoint(it->second));
 				iAVec3d newPoint = currentPoint + move;
 
-				m_cylinderVis->getPolyData()->GetPoints()->SetPoint(it->second, newPoint.data());
+				m_PolyObjectVis->getPolyData()->GetPoints()->SetPoint(it->second, newPoint.data());
 			}
 		}
 		
 	}
-	m_cylinderVis->getPolyData()->GetPoints()->GetData()->Modified();
+	m_PolyObjectVis->getPolyData()->GetPoints()->GetData()->Modified();
 }
 
 void iAVRVolume::createSimilarityNetwork(std::vector<std::vector<std::vector<double>>>* similarityMetric, double maxFibersInRegions, double worldSize)
