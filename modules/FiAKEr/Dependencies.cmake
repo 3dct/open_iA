@@ -3,6 +3,8 @@ SET( DEPENDENCIES_LIBRARIES
 	iAguibase
 	iAobjectvis
 	iArenderer    # for iARendererViewSync
+)
+SET( DEPENDENCIES_MODULES
 	Segmentation  # required for distance measures; maybe move these to core?
 )
 SET( DEPENDENCIES_VTK_MODULES
