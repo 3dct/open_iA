@@ -1488,23 +1488,29 @@ bool iAIO::setupPARSReader( QString const & f )
 	m_rawFileParams.m_spacing[1] = getParameterValues(f, "det_pitch:", 1).toDouble() / (getParameterValues(f, "geo_SD:", 0).toDouble() / getParameterValues(f, "geo_SO:", 0).toDouble());
 	m_rawFileParams.m_spacing[2] = m_rawFileParams.m_spacing[0] > m_rawFileParams.m_spacing[1] ? m_rawFileParams.m_spacing[1] : m_rawFileParams.m_spacing[0];
 
-	if(getParameterValues(f,"proj_datatype:",0) == "intensity")
-		m_rawFileParams.m_scalarType = VTK_UNSIGNED_SHORT;
-	else
-		m_rawFileParams.m_scalarType = VTK_FLOAT;
+	m_rawFileParams.m_scalarType = (getParameterValues(f, "proj_datatype:", 0) == "intensity") ? VTK_UNSIGNED_SHORT: VTK_FLOAT;
 
 	m_fileName = getParameterValues(f,"proj_filename_template_1:",0);
 	QFileInfo pars(f);
 	if(!QFile::exists(m_fileName))
 	{
 		if ((m_fileName.lastIndexOf("\\") == -1) && (m_fileName.lastIndexOf("/") == -1))
+		{
 			m_fileName = pars.canonicalPath() + "/" + m_fileName;
+		}
 		else if (m_fileName.lastIndexOf("\\") > 0)
+		{
 			m_fileName = pars.canonicalPath() + "/" + m_fileName.section('\\', -1);
+		}
 		else if (m_fileName.lastIndexOf("/") > 0)
+		{
 			m_fileName = pars.canonicalPath() + "/" + m_fileName.section('/', -1);
+		}
 		else
-			m_fileName = QFileDialog::getOpenFileName(m_parent, tr("Specify data File (file path in PARS is wrong)"), "", tr("PRO (*.pro);;RAW files (*.raw);;"));
+		{
+			m_fileName = QFileDialog::getOpenFileName(m_parent, tr("Specify data File (file path in PARS is wrong)"),
+				"", tr("PRO (*.pro);;RAW files (*.raw);;"));
+		}
 	}
 	QFile file;
 	file.setFileName(m_fileName);
@@ -1513,8 +1519,10 @@ bool iAIO::setupPARSReader( QString const & f )
 		LOG(lvlError, QString("PARS reader: Cannot open data file '%1'!").arg(m_fileName));
 		return false;
 	}
-	else file.close();
-
+	else
+	{
+		file.close();
+	}
 	return true;
 }
 
