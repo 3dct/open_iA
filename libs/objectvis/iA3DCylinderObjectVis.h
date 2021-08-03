@@ -26,13 +26,6 @@ class iAvtkTubeFilter;
 
 class iAobjectvis_API iA3DCylinderObjectVis : public iA3DLineObjectVis
 {
-private:
-	vtkSmartPointer<iAvtkTubeFilter> m_tubeFilter;
-	float* m_contextFactors;
-	IndexType m_objectCount;
-	float m_contextDiameterFactor;
-	std::map<size_t, std::vector<iAVec3f> > m_curvedFiberData;
-	bool m_lines;
 public:
 	static const int DefaultNumberOfCylinderSides = 12;
 	iA3DCylinderObjectVis(vtkRenderer* ren, vtkTable* objectTable, QSharedPointer<QMap<uint, uint> > columnMapping,
@@ -44,5 +37,14 @@ public:
 	void setSelection(std::vector<size_t> const & sortedSelInds, bool selectionActive) override;
 	QString visualizationStatistics() const override;
 	void setShowLines(bool lines) override;
+	vtkPolyData* finalPoly() override;
+	std::vector<vtkSmartPointer<vtkPolyData>> extractSelectedObjects(QColor c) const override;
+
+private:
+	vtkSmartPointer<iAvtkTubeFilter> m_tubeFilter;
+	float* m_contextFactors;
+	IndexType m_objectCount;
+	float m_contextDiameterFactor;
+	bool m_lines;
 };
 

@@ -20,40 +20,28 @@
 * ************************************************************************************/
 #pragma once
 
-#include "ui_PCView.h"
+#include <QSharedPointer>
 
-#include <iAVtkWidgetFwd.h>
-#include <qthelper/iAQTtoUIConnector.h>
+class iA3DColoredPolyObjectVis;
+class iAChartWidget;
+class iAFixedAspectWidget;
+class iASignallingWidget;
+class iAStackedBarChart;
+class iAQVTKWidget;
+class QWidget;
 
-#include <vtkSmartPointer.h>
-
-typedef iAQTtoUIConnector<QDockWidget, Ui_PCView> PCViewConnector;
-
-class vtkContextView;
-class vtkChartParallelCoordinates;
-
-class QTableWidget;
-
-class iAPCView : public PCViewConnector
+//! UI elements for each result
+class iAFiberResultUIData
 {
-	Q_OBJECT
-
 public:
-#if QT_VERSION < QT_VERSION_CHECK(5, 15, 0)
-	iAPCView(QWidget * parent = nullptr, Qt::WindowFlags f = 0);
-#else
-	iAPCView(QWidget* parent = nullptr, Qt::WindowFlags f = Qt::WindowFlags());
-#endif
-	~iAPCView();
-
-public slots:
-	void SetData( const QTableWidget * data );
-
-protected:
-	void ChartModified();
-
-protected:
-	vtkSmartPointer<vtkContextView> m_view;
-	vtkSmartPointer<vtkChartParallelCoordinates> m_chart;
-	iAVtkOldWidget * m_widget;
+	iAQVTKWidget* vtkWidget = nullptr;
+	QSharedPointer<iA3DColoredPolyObjectVis> mini3DVis;
+	QSharedPointer<iA3DColoredPolyObjectVis> main3DVis;
+	iAChartWidget* histoChart;
+	iAStackedBarChart* stackedBars;
+	iAFixedAspectWidget* previewWidget = nullptr;
+	iASignallingWidget* nameActions;
+	QWidget* topFiller, * bottomFiller;
+	//! index where the plots for this result start
+	size_t startPlotIdx;
 };

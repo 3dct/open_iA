@@ -28,10 +28,11 @@
 
 #include <vector>
 
+class vtkActor2D;
 class vtkPolyData;
+class vtkPolyDataMapper2D;
 class vtkRenderWindow;
 class vtkTextActor;
-class vtkUnsignedCharArray;
 
 class iASelectionProvider
 {
@@ -75,13 +76,18 @@ signals:
 	void selectionChanged();
 private:
 	void pick();
-	void redrawRubberBand();
 	void updateModeLabel();
+	void updateSelectionRect();
 
 	QMap<size_t, std::pair<vtkSmartPointer<vtkPolyData>, vtkSmartPointer<vtkActor> > > m_input;
 	iASelectionProvider * m_selectionProvider;
 	vtkSmartPointer<vtkTextActor> m_showModeActor;
 	vtkSmartPointer<vtkRenderWindow> m_renWin;
+
+	vtkSmartPointer<vtkPolyData> m_selRectPolyData;
+	vtkSmartPointer<vtkPolyDataMapper2D> m_selRectMapper;
+	vtkSmartPointer<vtkActor2D> m_selRectActor;
+
 	InteractionMode m_interactionMode;
 	SelectionMode m_selectionMode;
 	vtkRenderer* m_cellRenderer;
@@ -89,5 +95,4 @@ private:
 	int m_startPos[2];
 	int m_endPos[2];
 	bool m_moving;
-	vtkSmartPointer<vtkUnsignedCharArray> m_pixelArray;
 };

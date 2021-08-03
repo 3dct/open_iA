@@ -33,7 +33,7 @@ iACompVisMain::iACompVisMain(iAMainWindow* mainWin):
 	initializeCorrelationCoefficient();
 
 	//open iAMainWindow with its dockWidgets
-	m_mainW = new dlg_VisMainWindow(m_dataStorage->getData(), m_mds, mainWin, this);
+	m_mainW = new dlg_VisMainWindow(m_dataStorage->getData(), m_mds, m_mainWindow, this);
 
 	QVBoxLayout* layout1 = new QVBoxLayout;
 	m_mainW->centralwidget->setLayout(layout1);
@@ -46,18 +46,18 @@ iACompVisMain::iACompVisMain(iAMainWindow* mainWin):
 	layout1->addLayout(layout2);
 
 	//add correlation map
-	m_CorrelationMapDockWidget = new iACompCorrelationMap(mainWin, m_corCoeff, m_dataStorage, this);
+	m_CorrelationMapDockWidget = new iACompCorrelationMap(m_mainWindow, m_corCoeff, m_dataStorage, this);
 	layout2->addWidget(m_CorrelationMapDockWidget);
 
 	QVBoxLayout* layout3 = new QVBoxLayout;
 	layout2->addLayout(layout3);
 
 	//add bar chart
-	m_BarChartDockWidget = new iACompBarChart(mainWin, m_cofVar, m_dataStorage);
+	m_BarChartDockWidget = new iACompBarChart(m_mainWindow, m_cofVar, m_dataStorage);
 	layout3->addWidget(m_BarChartDockWidget);
 
 	//add box plot
-	m_BoxPlotDockWidget = new iACompBoxPlot(mainWin, m_dataStorage);
+	m_BoxPlotDockWidget = new iACompBoxPlot(m_mainWindow, m_dataStorage);
 	m_BoxPlotDockWidget->setOrderedPositions(m_BarChartDockWidget->getOrderedPositions());
 	layout3->addWidget(m_BoxPlotDockWidget);
 

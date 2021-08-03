@@ -23,13 +23,12 @@
 #include "Labelling_export.h"
 #include "iAChannelData.h"
 #include "iALabellingObjects.h"
-#include "ui_labels.h"
-
-#include <qthelper/iAQTtoUIConnector.h>
 
 #include <vtkSmartPointer.h>
 
+#include <QDockWidget>
 #include <QList>
+#include <QMap>
 #include <QSharedPointer>
 
 class iAColorTheme;
@@ -38,6 +37,7 @@ class iAModality;
 class iASlicer;
 class iAvtkImageData;
 class iAMdiChild;
+class Ui_labels;
 
 class QStandardItem;
 class QStandardItemModel;
@@ -46,9 +46,7 @@ class vtkLookupTable;
 class vtkObject;
 class vtkPiecewiseFunction;
 
-typedef iAQTtoUIConnector<QDockWidget, Ui_labels> dlg_labelUI;
-
-class Labelling_API dlg_labels : public dlg_labelUI
+class Labelling_API dlg_labels : public QDockWidget
 {
 	Q_OBJECT
 
@@ -149,4 +147,5 @@ private:
 	vtkSmartPointer<vtkLookupTable> m_labelColorTF;
 	vtkSmartPointer<vtkPiecewiseFunction> m_labelOpacityTF;
 	iAMdiChild* m_mdiChild;
+	QSharedPointer<Ui_labels> m_ui;
 };

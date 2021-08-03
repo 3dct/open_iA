@@ -22,7 +22,6 @@
 
 #include "ui_PDMView.h"
 
-#include <iAVtkWidgetFwd.h>
 #include <qthelper/iAQTtoUIConnector.h>
 
 #include <vtkSmartPointer.h>
@@ -32,8 +31,6 @@
 #include <QMap>
 #include <QMultiMap>
 
-struct iABPMData;
-struct iAHMData;
 
 class QCustomPlot;
 class QModelIndex;
@@ -44,9 +41,12 @@ class vtkLookupTable;
 class vtkRenderer;
 class vtkScalarBarActor;
 
-struct iABoxPlotData;
+struct iABPMData;
 struct iAHistogramPlotData;
-class iAPDMSettings;
+struct iAHMData;
+
+struct iABoxPlotData;
+class iAQVTKWidget;
 
 typedef iAQTtoUIConnector<QDockWidget, Ui_PDMView>  PorosityAnalyzerPDMConnector;
 
@@ -95,7 +95,7 @@ protected:
 	const QMultiMap<QString, double> * m_gtPorosityMap;
 	QMap<QObject*, QModelIndex> m_indices;
 	QModelIndexList m_selectedIndices;
-	iAVtkOldWidget * m_sbWidget;
+	iAQVTKWidget * m_sbWidget;
 	vtkSmartPointer<vtkLookupTable> m_lut;
 	vtkSmartPointer<vtkRenderer> m_sbRen;
 	vtkSmartPointer<vtkScalarBarActor> m_sbActor;

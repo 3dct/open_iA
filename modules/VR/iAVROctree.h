@@ -27,7 +27,7 @@
 #include <vtkPlaneSource.h>
 #include <vtkPolyData.h>
 
-#include <iAvec3.h>
+#include <iAVec3.h>
 
 #include <QColor>
 #include <unordered_map>
@@ -48,7 +48,7 @@ public:
 	void createOctreeBoundingBoxPlanes(int regionID, std::vector<std::vector<iAVec3d>>* planePoints);
 	void createOctreeBoundingBoxPlanes(std::vector<std::vector<iAVec3d>>* planePoints);
 	void movePointInsideRegion(double point[3], double movedPoint[3]);
-	int getNumberOfLeafeNodes();
+	vtkIdType getNumberOfLeafeNodes();
 	double getMaxDistanceOctCenterToRegionCenter();
 	double getMaxDistanceOctCenterToFiber();
 	std::vector<std::unordered_map<vtkIdType, double>*>* getfibersInRegionMapping(std::unordered_map<vtkIdType, vtkIdType>* pointIDToCsvIndex);
@@ -60,14 +60,14 @@ public:
 	std::vector<std::vector<std::vector<std::forward_list<vtkIdType>>>>* getRegionsInLineOfRay();
 
 private:
-	int numberOfLeaveNodes;
+	vtkIdType numberOfLeaveNodes;
 	double m_maxDistanceOctCenterToRegionCenter;
 	double m_maxDistanceOctCenterToFiber;
 	bool m_visible;
 	int m_level;
 	vtkSmartPointer<vtkRenderer> m_renderer;
-	vtkSmartPointer<vtkActor> m_actor;
 	vtkSmartPointer<vtkDataSet> m_dataSet;
+	vtkSmartPointer<vtkActor> m_actor;
 	vtkSmartPointer<vtkOctreePointLocator> m_octree;
 	vtkSmartPointer<vtkPolyData> m_boundingBoxes;
 	//Saves the octree [region] and a  map of its fiber IDs [iD] with their coverage (0.0-1.0)

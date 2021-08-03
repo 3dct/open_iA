@@ -25,6 +25,7 @@
 #include "iAToolsVTK.h"    // for mapVTKTypeToReadableDataType, readableDataTypes, ...
 
 #include <QComboBox>
+#include <QDialogButtonBox>
 #include <QFileInfo>
 #include <QLabel>
 #include <QLineEdit>
@@ -85,13 +86,13 @@ dlg_openfile_sizecheck::dlg_openfile_sizecheck(QString const & fileName, QWidget
 
 	m_actualSizeLabel = new QLabel("Actual file size: " + QString::number(m_fileSize) + " bytes");
 	m_actualSizeLabel->setAlignment(Qt::AlignRight);
-	m_inputDlg->gridLayout->addWidget(m_actualSizeLabel, labels.size(), 0, 1, 1);
+	m_inputDlg->addWidget(m_actualSizeLabel, labels.size(), 0, 1, 1);
 
 	m_proposedSizeLabel = new QLabel("Predicted file size: ");
 	m_proposedSizeLabel->setAlignment(Qt::AlignRight);
-	m_inputDlg->gridLayout->addWidget(m_proposedSizeLabel, labels.size() + 1, 0, 1, 1);
+	m_inputDlg->addWidget(m_proposedSizeLabel, labels.size() + 1, 0, 1, 1);
 
-	m_inputDlg->gridLayout->addWidget(m_inputDlg->buttonBox, labels.size() + 2, 0, 1, 1);
+	m_inputDlg->addWidget(m_inputDlg->buttonBox(), labels.size() + 2, 0, 1, 1);
 
 	connect(qobject_cast<QLineEdit*>(m_inputDlg->widgetList()[m_sizeXIdx])     , &QLineEdit::textChanged, this, &dlg_openfile_sizecheck::checkFileSize);
 	connect(qobject_cast<QLineEdit*>(m_inputDlg->widgetList()[m_sizeYIdx])     , &QLineEdit::textChanged, this, &dlg_openfile_sizecheck::checkFileSize);
@@ -142,7 +143,7 @@ void dlg_openfile_sizecheck::checkFileSize()
 		m_proposedSizeLabel->setText("Predicted file size: " + QString::number(proposedSize) + " bytes");
 	}
 	m_proposedSizeLabel->setStyleSheet(QString("QLabel { background-color : %1; }").arg(proposedSize == m_fileSize ? "#BFB" : "#FBB" ));
-	m_inputDlg->buttonBox->button(QDialogButtonBox::Ok)->setEnabled(proposedSize == m_fileSize);
+	m_inputDlg->buttonBox()->button(QDialogButtonBox::Ok)->setEnabled(proposedSize == m_fileSize);
 }
 
 bool dlg_openfile_sizecheck::accepted() const

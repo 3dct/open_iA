@@ -77,10 +77,25 @@ private:
 	double m_delta;
 };
 
-class MetaFilters_API iASelectionSamplingMethod : public iASamplingMethod
+class MetaFilters_API iAGlobalSensitivitySmallStarSamplingMethod: public iASamplingMethod
 {
 public:
-	iASelectionSamplingMethod(QString const & name, iAParameterSetsPointer parameterSets);
+	iAGlobalSensitivitySmallStarSamplingMethod(QSharedPointer<iASamplingMethod> otherGenerator,
+		double delta, int numSteps);
+	QString name() const override;
+	iAParameterSetsPointer parameterSets(QSharedPointer<iAAttributes> parameter, int sampleCount) override;
+
+private:
+	QSharedPointer<iASamplingMethod> m_baseGenerator;
+	double m_delta;
+	int m_numSteps;
+};
+
+class MetaFilters_API iARerunSamplingMethod : public iASamplingMethod
+{
+public:
+	iARerunSamplingMethod(QString const& fileName);
+	iARerunSamplingMethod(iAParameterSetsPointer parameterSets, QString const& name);
 	virtual QString name() const;
 	virtual iAParameterSetsPointer parameterSets(QSharedPointer<iAAttributes> parameter, int sampleCount);
 private:

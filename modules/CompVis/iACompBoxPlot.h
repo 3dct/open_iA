@@ -16,8 +16,8 @@
 //CompVis
 class iAMainWindow;
 
-//vtk
-class QVTKOpenGLNativeWidget;
+class iAQVTKWidget;
+
 class vtkContextView;
 class vtkTable;
 class vtkTextActor;
@@ -64,9 +64,9 @@ private:
 		virtual void SetTooltipInfo(const vtkContextMouseEvent& mouse,
 			const vtkVector2d &plotPos,
 			vtkIdType seriesIndex, vtkPlot* plot,
-			vtkIdType segmentIndex);
+			vtkIdType segmentIndex) override;
 
-		void Update();
+		virtual void Update() override;
 
 		void setOuterClass(iACompBoxPlot* outerClass);
 
@@ -84,7 +84,7 @@ private:
 		static BoxPlot* New();
 		vtkTypeMacro(BoxPlot, vtkPlotBox);
 
-		virtual bool Paint(vtkContext2D *painter);
+		virtual bool Paint(vtkContext2D *painter) override;
 		virtual void DrawBoxPlot(int i, unsigned char* rgba, double x, vtkContext2D* painter);
 
 		void setOuterClass(iACompBoxPlot* outerClass);
@@ -115,22 +115,11 @@ private:
 
 	iACsvDataStorage* m_dataStorage;
 
-	QVTKOpenGLNativeWidget* m_qvtkWidget;
+	iAQVTKWidget* m_qvtkWidget;
 	vtkSmartPointer<vtkContextView> m_view;
 
 	std::vector<double>* maxValsAttr;
 	std::vector<double>* minValsAttr;
-
-	//table containing all values
-	//vtkSmartPointer<vtkTable> m_originalBoxPlotTable;
-	//stores the minimum, first quartile, median, third quartile and maximum of the real values
-	vtkSmartPointer<vtkTable> outTable;
-	//stores the values of outTable in the interval [0,1]
-	vtkSmartPointer<vtkTable> normalizedTable;
-
-	vtkSmartPointer<vtkTable> reorderedNormalizedTable;
-
-	vtkSmartPointer<vtkTable> currentQuartileTable;
 
 	//stores the normalized values in the original order
 	vtkSmartPointer<vtkTable> m_originalOrderTable;
@@ -142,6 +131,17 @@ private:
 	int m_numberOfAttr;
 	std::vector<vtkSmartPointer<vtkTextActor>>* m_legendAttributes;
 	vtkSmartPointer<vtkStringArray> labels;
+
+		//table containing all values
+	//vtkSmartPointer<vtkTable> m_originalBoxPlotTable;
+	//stores the minimum, first quartile, median, third quartile and maximum of the real values
+	vtkSmartPointer<vtkTable> outTable;
+	//stores the values of outTable in the interval [0,1]
+	vtkSmartPointer<vtkTable> normalizedTable;
+
+	vtkSmartPointer<vtkTable> reorderedNormalizedTable;
+
+	vtkSmartPointer<vtkTable> currentQuartileTable;
 
 	vtkSmartPointer<BoxPlotChart> m_chartOriginal;
 	vtkSmartPointer<BoxPlot> m_boxOriginal;

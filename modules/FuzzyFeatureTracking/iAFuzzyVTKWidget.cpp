@@ -20,21 +20,8 @@
 * ************************************************************************************/
 #include "iAFuzzyVTKWidget.h"
 
-#include <vtkGenericOpenGLRenderWindow.h>
-
-iAFuzzyVTKWidget::iAFuzzyVTKWidget(
-	QWidget* parent, Qt::WindowFlags f)
-	: iAVtkWidget(parent, f)
+iAFuzzyVTKWidget::iAFuzzyVTKWidget(QWidget* parent): iAQVTKWidget(parent)
 {
-#if (VTK_VERSION_NUMBER >= VTK_VERSION_CHECK(8, 2, 0) && defined(VTK_OPENGL2_BACKEND))
-	setFormat(iAVtkWidget::defaultFormat());
-#endif
-	auto renWin = vtkSmartPointer<vtkGenericOpenGLRenderWindow>::New();
-#if VTK_VERSION_NUMBER < VTK_VERSION_CHECK(9, 0, 0)
-	SetRenderWindow(renWin);
-#else
-	setRenderWindow(renWin);
-#endif
 }
 
 void iAFuzzyVTKWidget::mouseReleaseEvent(QMouseEvent* event)
@@ -47,11 +34,11 @@ void iAFuzzyVTKWidget::mouseReleaseEvent(QMouseEvent* event)
 	{
 		emit leftButtonReleasedSignal();
 	}
-	iAVtkWidget::mouseReleaseEvent(event);
+	iAQVTKWidget::mouseReleaseEvent(event);
 }
 
 void iAFuzzyVTKWidget::resizeEvent(QResizeEvent* event)
 {
 	repaint();//less flickering, but resize is less responsive
-	iAVtkWidget::resizeEvent(event);
+	iAQVTKWidget::resizeEvent(event);
 }

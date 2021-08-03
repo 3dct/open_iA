@@ -3,6 +3,7 @@ SET( DEPENDENCIES_LIBRARIES
 	iAguibase
 	iAobjectvis
 	iArenderer    # for iARendererViewSync
+	Segmentation  # required for distance measures; maybe move these to core?
 )
 SET( DEPENDENCIES_VTK_MODULES
 	FiltersExtraction           # for vtkExtractGeometry used iASelectionInteractorStyle

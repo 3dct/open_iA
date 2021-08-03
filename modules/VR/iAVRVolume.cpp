@@ -40,7 +40,7 @@
 #include <vtkCleanPolyData.h>
 #include <vtkCubeSource.h>
 
-iAVRVolume::iAVRVolume(vtkRenderer* ren, vtkTable* objectTable, iACsvIO io, std::map<size_t, std::vector<iAVec3f> > curvedFiberInfo) :m_objectTable(objectTable), m_io(io), m_curvedFiberInfo(curvedFiberInfo), iAVRCubicVis{ren}
+iAVRVolume::iAVRVolume(vtkRenderer* ren, vtkTable* objectTable, iACsvIO io, std::map<size_t, std::vector<iAVec3f> > curvedFiberInfo) :iAVRCubicVis{ ren }, m_objectTable(objectTable), m_io(io), m_curvedFiberInfo(curvedFiberInfo)
 {
 	defaultColor = QColor(126, 0, 223, 255);
 	m_volumeActor = vtkSmartPointer<vtkActor>::New();
@@ -127,7 +127,7 @@ void iAVRVolume::setNodeColor(std::vector<vtkIdType> regions, std::vector<QColor
 {
 	if (nodeGlyphResetColor->GetNumberOfTuples() >0)
 	{
-		for (vtkIdType i = 0; i < regions.size(); i++)
+		for (size_t i = 0; i < regions.size(); i++)
 		{
 			nodeGlyphColor->SetTuple3(regions.at(i), color.at(i).red(), color.at(i).green(), color.at(i).blue());
 			nodeGlyph3D->Modified();
@@ -194,7 +194,7 @@ void iAVRVolume::moveFibersByMaxCoverage(std::vector<std::vector<std::vector<vtk
 
 	if(relativMovement)
 	{
-		for (int region = 0; region < m_octree->getNumberOfLeafeNodes(); region++)
+		for (vtkIdType region = 0; region < m_octree->getNumberOfLeafeNodes(); region++)
 		{
 			iAVec3d regionCenterPoint = iAVec3d(glyph3D->GetPolyDataInput(0)->GetPoint(region));
 			iAVec3d direction = regionCenterPoint - centerPos;
@@ -203,7 +203,7 @@ void iAVRVolume::moveFibersByMaxCoverage(std::vector<std::vector<std::vector<vtk
 		}
 	}
 
-	for (int region = 0; region < m_octree->getNumberOfLeafeNodes(); region++)
+	for (vtkIdType region = 0; region < m_octree->getNumberOfLeafeNodes(); region++)
 	{
 		iAVec3d regionCenterPoint = iAVec3d(glyph3D->GetPolyDataInput(0)->GetPoint(region));
 
@@ -244,7 +244,7 @@ void iAVRVolume::moveFibersbyAllCoveredRegions(double offset, bool relativMoveme
 
 	if(relativMovement)
 	{
-		for (int region = 0; region < m_octree->getNumberOfLeafeNodes(); region++)
+		for (vtkIdType region = 0; region < m_octree->getNumberOfLeafeNodes(); region++)
 		{
 			iAVec3d regionCenterPoint = iAVec3d(glyph3D->GetPolyDataInput(0)->GetPoint(region));
 			iAVec3d direction = regionCenterPoint - centerPos;
@@ -254,7 +254,7 @@ void iAVRVolume::moveFibersbyAllCoveredRegions(double offset, bool relativMoveme
 	}
 
 
-	for (int region = 0; region < m_octree->getNumberOfLeafeNodes(); region++)
+	for (vtkIdType region = 0; region < m_octree->getNumberOfLeafeNodes(); region++)
 	{
 
 		for (auto element : *m_fiberCoverage->at(m_octree->getLevel()).at(region))
@@ -288,7 +288,7 @@ void iAVRVolume::moveFibersbyOctant(std::vector<std::vector<std::vector<vtkIdTyp
 	m_octree->calculateOctreeCenterPos(centerPoint);
 	iAVec3d centerPos = iAVec3d(centerPoint);
 
-	for (int region = 0; region < m_octree->getNumberOfLeafeNodes(); region++)
+	for (vtkIdType region = 0; region < m_octree->getNumberOfLeafeNodes(); region++)
 	{
 		iAVec3d currentRegion = iAVec3d(glyph3D->GetPolyDataInput(0)->GetPoint(region));
 		iAVec3d move = iAVec3d(0,0,0);
@@ -349,7 +349,7 @@ void iAVRVolume::createRegionLinks(std::vector<std::vector<std::vector<double>>>
 	m_linePolyData = vtkSmartPointer<vtkPolyData>::New();
 	vtkSmartPointer<vtkCellArray> lines = vtkSmartPointer<vtkCellArray>::New();
 
-	int numbPoints = m_cubePolyData->GetNumberOfPoints();
+	vtkIdType numbPoints = m_cubePolyData->GetNumberOfPoints();
 	auto minRadius = worldSize * 0.00084;
 	auto maxRadius = worldSize * 0.007;
 
@@ -367,10 +367,10 @@ void iAVRVolume::createRegionLinks(std::vector<std::vector<std::vector<double>>>
 	vtkIdType pointID = 0;
 	double rgb[3] = { 0,0,0 };
 
-	for (int i = 0; i < numbPoints; i++)
+	for (vtkIdType i = 0; i < numbPoints; i++)
 	{
 		double radius = 0.0;
-		for (int j = i + 1; j < numbPoints; j++)
+		for (vtkIdType j = i + 1; j < numbPoints; j++)
 		{
 			radius = similarityMetric->at(m_octree->getLevel()).at(i).at(j);
 			
@@ -445,7 +445,7 @@ void iAVRVolume::createRegionNodes(double maxFibersInRegions, double worldSize)
 	nodeGlyphScales->SetName("scales");
 	nodeGlyphScales->SetNumberOfComponents(3);
 
-	for (int p = 0; p < regionNodes->GetNumberOfPoints(); p++)
+	for (vtkIdType p = 0; p < regionNodes->GetNumberOfPoints(); p++)
 	{
 		double fibersInRegion = (double)(m_fiberCoverage->at(m_octree->getLevel()).at(p)->size());	
 		double sizeLog = 0;

@@ -20,6 +20,9 @@
 * ************************************************************************************/
 #include "iAScatterPlotViewData.h"
 
+#include "iALog.h"
+#include "iAMathUtility.h"
+
 #include "iASPLOMData.h"
 
 iAScatterPlotViewData::iAScatterPlotViewData() :
@@ -46,7 +49,7 @@ iAScatterPlotViewData::SelectionType const& iAScatterPlotViewData::selection() c
 
 iAScatterPlotViewData::SelectionType const& iAScatterPlotViewData::filteredSelection(QSharedPointer<iASPLOMData> splomData) const
 {
-	if (!splomData->filterDefined() || selection().size() == 0)
+	if (!filterDefined() || selection().size() == 0)
 	{
 		m_filteredSelection = m_selection;
 		return m_filteredSelection;
@@ -56,7 +59,7 @@ iAScatterPlotViewData::SelectionType const& iAScatterPlotViewData::filteredSelec
 	size_t curSelIdx = 0;
 	for (size_t curIdx = 0; curIdx < splomData->numPoints(); ++curIdx)
 	{
-		if (!splomData->matchesFilter(curIdx))
+		if (!matchesFilter(splomData, curIdx))
 		{
 			continue;
 		}
@@ -76,7 +79,7 @@ iAScatterPlotViewData::SelectionType const& iAScatterPlotViewData::filteredSelec
 
 void iAScatterPlotViewData::setFilteredSelection(iAScatterPlotViewData::SelectionType const& filteredSelection, QSharedPointer<iASPLOMData> splomData)
 {
-	if (!splomData->filterDefined())
+	if (!filterDefined())
 	{
 		setSelection(filteredSelection);
 		return;
@@ -87,7 +90,7 @@ void iAScatterPlotViewData::setFilteredSelection(iAScatterPlotViewData::Selectio
 	m_selection.clear();
 	for (size_t curIdx = 0; curIdx < splomData->numPoints(); ++curIdx)
 	{
-		if (!splomData->matchesFilter(curIdx))
+		if (!matchesFilter(splomData, curIdx))
 		{
 			continue;
 		}
@@ -176,14 +179,14 @@ double iAScatterPlotViewData::animOut() const
 	return m_animOut;
 }
 
-std::vector<std::pair<iAScatterPlotViewData::SelectionType, QColor>> const& iAScatterPlotViewData::lines() const
+iAScatterPlotViewData::LineListType const& iAScatterPlotViewData::lines() const
 {
 	return m_lines;
 }
 
-void iAScatterPlotViewData::addLine(SelectionType const& linePoints, QColor const& color)
+void iAScatterPlotViewData::addLine(SelectionType const& linePoints, QColor const& color, int lineWidth)
 {
-	m_lines.push_back(std::make_pair(linePoints, color));
+	m_lines.push_back(std::make_tuple(linePoints, color, lineWidth));
 }
 
 void iAScatterPlotViewData::clearLines()
@@ -222,4 +225,54 @@ void iAScatterPlotViewData::updateAnimation(size_t curPt, size_t prePt)
 		m_animationIn.setEndValue(1.0);
 		m_animationIn.start();
 	}
+}
+
+bool iAScatterPlotViewData::matchesFilter(QSharedPointer<iASPLOMData> splomData, size_t ind) const
+{
+	if (m_filters.empty())
+	{
+		return true;
+	}
+	for (auto filter : m_filters)
+	{
+		if (filter.first >= splomData->numParams())
+		{
+			LOG(lvlWarn, QString("Invalid filter column ID %1 (>= column count %2)!")
+				.arg(filter.first).arg(splomData->numParams()));
+			return false;
+		}
+		if (dblApproxEqual(splomData->paramData(filter.first)[ind], filter.second))
+		{
+			return true;
+		}
+	}
+	return false;
+}
+
+void iAScatterPlotViewData::addFilter(size_t paramIndex, double value)
+{
+	m_filters.push_back(std::make_pair(paramIndex, value));
+	emit filterChanged();
+}
+
+void iAScatterPlotViewData::removeFilter(size_t paramIndex, double value)
+{
+	auto searchedPair = std::make_pair(paramIndex, value);
+	auto it = std::find(m_filters.begin(), m_filters.end(), searchedPair);
+	if (it != m_filters.end())
+	{
+		m_filters.erase(it);
+	}
+	emit filterChanged();
+}
+
+void iAScatterPlotViewData::clearFilters()
+{
+	m_filters.clear();
+	emit filterChanged();
+}
+
+bool iAScatterPlotViewData::filterDefined() const
+{
+	return m_filters.size() > 0;
 }

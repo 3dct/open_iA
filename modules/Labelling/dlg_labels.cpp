@@ -21,6 +21,7 @@
 #include "dlg_labels.h"
 
 #include "iAImageCoordinate.h"
+#include "ui_labels.h"
 
 #include <dlg_commoninput.h>
 #include <iAChannelData.h>
@@ -69,23 +70,25 @@ dlg_labels::dlg_labels(iAMdiChild* mdiChild, bool addMainSlicers /* = true*/) :
 	m_itemModel(new QStandardItemModel()),
 	m_trackingSeeds(false),
 	m_colorTheme(iAColorThemeManager::instance().theme("Brewer Set3 (max. 12)")),
-	m_mdiChild(mdiChild)
+	m_mdiChild(mdiChild),
+	m_ui(new Ui_labels())
 {
-	cbColorTheme->addItems(iAColorThemeManager::instance().availableThemes());
-	cbColorTheme->setCurrentText(m_colorTheme->name());
-	connect(pbAdd, &QPushButton::clicked, this, &dlg_labels::add);
-	connect(pbRemove, &QPushButton::clicked, this, &dlg_labels::remove);
-	connect(pbStore, &QPushButton::clicked, this, &dlg_labels::storeLabels);
-	connect(pbLoad, &QPushButton::clicked, this, &dlg_labels::loadLabels);
-	connect(pbStoreImage, &QPushButton::clicked, this, &dlg_labels::storeImage);
-	connect(pbSample, &QPushButton::clicked, this, &dlg_labels::sample);
-	connect(pbClear, &QPushButton::clicked, this, &dlg_labels::clear);
-	connect(cbColorTheme, &QComboBox::currentTextChanged, this, &dlg_labels::colorThemeChanged);
-	slOpacity->setValue(DefaultOpacity * slOpacity->maximum());
-	connect(slOpacity, &QSlider::valueChanged, this, &dlg_labels::opacityChanged);
+	m_ui->setupUi(this);
+	m_ui->cbColorTheme->addItems(iAColorThemeManager::instance().availableThemes());
+	m_ui->cbColorTheme->setCurrentText(m_colorTheme->name());
+	connect(m_ui->pbAdd, &QPushButton::clicked, this, &dlg_labels::add);
+	connect(m_ui->pbRemove, &QPushButton::clicked, this, &dlg_labels::remove);
+	connect(m_ui->pbStore, &QPushButton::clicked, this, &dlg_labels::storeLabels);
+	connect(m_ui->pbLoad, &QPushButton::clicked, this, &dlg_labels::loadLabels);
+	connect(m_ui->pbStoreImage, &QPushButton::clicked, this, &dlg_labels::storeImage);
+	connect(m_ui->pbSample, &QPushButton::clicked, this, &dlg_labels::sample);
+	connect(m_ui->pbClear, &QPushButton::clicked, this, &dlg_labels::clear);
+	connect(m_ui->cbColorTheme, &QComboBox::currentTextChanged, this, &dlg_labels::colorThemeChanged);
+	m_ui->slOpacity->setValue(DefaultOpacity * m_ui->slOpacity->maximum());
+	connect(m_ui->slOpacity, &QSlider::valueChanged, this, &dlg_labels::opacityChanged);
 	m_itemModel->setHorizontalHeaderItem(0, new QStandardItem("Label"));
 	m_itemModel->setHorizontalHeaderItem(1, new QStandardItem("Count"));
-	lvLabels->setModel(m_itemModel);
+	m_ui->lvLabels->setModel(m_itemModel);
 
 	if (addMainSlicers)
 	{
@@ -253,7 +256,7 @@ bool seedAlreadyExists(QStandardItem* labelItem, int x, int y, int z, int imgId)
 void dlg_labels::addSeed(int cx, int cy, int cz, iASlicer* slicer)
 {
 	iAVec3i center(cx, cy, cz);
-	if (!cbEnableEditing->isChecked())
+	if (!m_ui->cbEnableEditing->isChecked())
 	{
 		return;
 	}
@@ -267,7 +270,7 @@ void dlg_labels::addSeed(int cx, int cy, int cz, iASlicer* slicer)
 	//if (m_trackingSeeds)
 	QList<iASeed> addedSeeds;
 
-	int radius = spinBox->value() - 1;  // -1 because the center voxel shouldn't count
+	int radius = m_ui->spinBox->value() - 1;  // -1 because the center voxel shouldn't count
 	//iATimeGuard timer(QString("Drawing circle of radius %1").arg(radius).toStdString());
 
 	int imageId = m_mapSlicer2data.value(slicer)->overlayImageId;
@@ -385,7 +388,7 @@ int dlg_labels::addLabelItem(QString const& labelText)
 
 void dlg_labels::add()
 {
-	pbStore->setEnabled(true);
+	m_ui->pbStore->setEnabled(true);
 	addLabelItem(QString::number(m_itemModel->rowCount()));
 	reInitChannelTF();
 }
@@ -444,7 +447,7 @@ void dlg_labels::updateChannel(iASlicer* slicer)
 
 void dlg_labels::remove()
 {
-	QModelIndexList indices = lvLabels->selectionModel()->selectedIndexes();
+	QModelIndexList indices = m_ui->lvLabels->selectionModel()->selectedIndexes();
 	if (indices.size() == 0)
 		return;
 	QStandardItem* item = m_itemModel->itemFromIndex(indices[0]);
@@ -509,7 +512,7 @@ void dlg_labels::remove()
 		}
 		if (m_itemModel->rowCount() == 0)
 		{
-			pbStore->setEnabled(false);
+			m_ui->pbStore->setEnabled(false);
 		}
 
 		// TODO remove respective OverlayImage from m_mapId2image
@@ -585,7 +588,7 @@ void dlg_labels::removeSeed(QStandardItem* item)
 
 int dlg_labels::curLabelRow() const
 {
-	QModelIndexList indices = lvLabels->selectionModel()->selectedIndexes();
+	QModelIndexList indices = m_ui->lvLabels->selectionModel()->selectedIndexes();
 	if (indices.size() <= 0)
 	{
 		return -1;
@@ -743,7 +746,7 @@ bool dlg_labels::load(QString const& filename)
 
 	QFileInfo fileInfo(file);
 	m_fileName = MakeAbsolute(fileInfo.absolutePath(), filename);
-	pbStore->setEnabled(enableStoreBtn);
+	m_ui->pbStore->setEnabled(enableStoreBtn);
 	reInitChannelTF();
 	updateChannels();
 	return true;
@@ -1002,7 +1005,7 @@ void dlg_labels::sample()
 	}
 	reInitChannelTF();
 	updateChannels();
-	pbStore->setEnabled(true);
+	m_ui->pbStore->setEnabled(true);
 }
 
 void dlg_labels::clear()
@@ -1040,7 +1043,7 @@ void dlg_labels::colorThemeChanged(QString const& newThemeName)
 
 void dlg_labels::opacityChanged(int newValue)
 {
-	double opacity = static_cast<double>(newValue) / slOpacity->maximum();
+	double opacity = static_cast<double>(newValue) / m_ui->slOpacity->maximum();
 	for (auto slicer : m_mapSlicer2data.keys())
 	{
 		auto slicerData = m_mapSlicer2data.value(slicer);

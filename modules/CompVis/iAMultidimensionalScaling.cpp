@@ -10,8 +10,65 @@
 #include "iALog.h"
 
 #include <algorithm>
+#include <cmath>
 #include <iostream>
+#include <limits>
 #include <vector>
+
+namespace MDS
+{
+	QString proximityMetric_to_string(int i)
+	{
+		switch (i)
+		{
+		case 0:
+			return QString("Arc-Cosine Distance");
+		default:
+			return QString("Invalid ProximityMetric");
+		}
+	}
+
+	ProximityMetric string_to_proximityMetric(QString string)
+	{
+		if (string == QString("Arc-Cosine Distance"))
+		{
+			return ProximityMetric::ArcCosineDistance;
+		}
+		else
+		{
+			return ProximityMetric::Unknown;
+		}
+	}
+
+	QString distanceMetric_to_string(int i)
+	{
+		switch (i)
+		{
+		case 0:
+			return QString("Euclidean Distance");
+		case 1:
+			return QString("Minkowski Distance");
+		default:
+			return QString("Invalid DistanceMetric");
+		}
+	}
+
+	DistanceMetric string_to_distanceMetric(QString string)
+	{
+		if (string == QString("Euclidean Distance"))
+		{
+			return DistanceMetric::EuclideanDistance;
+		}
+		else if (string == QString("Minkowski Distance"))
+		{
+			return DistanceMetric::MinkowskiDistance;
+		}
+		else
+		{
+			return DistanceMetric::Unknown;
+		}
+	}
+}
 
 iAMultidimensionalScaling::iAMultidimensionalScaling(QList<csvFileData>* data) :
 	m_inputData(data),
@@ -48,12 +105,12 @@ void iAMultidimensionalScaling::startMDS(std::vector<double>* weights)
 	calculateMDS(1, 100);
 }
 
-void iAMultidimensionalScaling::setProximityMetric(ProximityMetric proxiName)
+void iAMultidimensionalScaling::setProximityMetric(MDS::ProximityMetric proxiName)
 {
 	m_activeProxM = proxiName;
 }
 
-void iAMultidimensionalScaling::setDistanceMetric(DistanceMetric disName)
+void iAMultidimensionalScaling::setDistanceMetric(MDS::DistanceMetric disName)
 {
 	m_activeDisM = disName;
 }
@@ -79,14 +136,14 @@ void iAMultidimensionalScaling::normalizeMatrix()
 	//skip first column & row, since these are only label numbers	
 	for (int col = 0; col < m_amountOfCharas - 1; col++)
 	{
-		maxValsForCols[col] = -INFINITY;
+		maxValsForCols[col] = -std::numeric_limits<double>::infinity();
 
 		for (int ind = 0; ind < m_inputData->count(); ind++)
 		{
 			csvFileData currDataset = m_inputData->at(ind);
 
 			//find max of each column for all datasets
-			for (int row = 0; row < currDataset.values->size(); row++)
+			for (int row = 0; row < ((int)currDataset.values->size()); row++)
 			{
 				double curVal = currDataset.values->at(row).at(col + 1);
 
@@ -99,11 +156,11 @@ void iAMultidimensionalScaling::normalizeMatrix()
 	
 		//normalize column according to maxVal
 		int rowU = 0;
-		for (int ind = 0; ind < m_inputData->count(); ind++)
+		for (int ind = 0; ind < ((int)m_inputData->count()); ind++)
 		{
 			csvFileData currDataset = m_inputData->at(ind);
 
-			for (int row = 0; row < currDataset.values->size(); row++)
+			for (int row = 0; row < ((int)currDataset.values->size()); row++)
 			{
 				double curVal = currDataset.values->at(row).at(col + 1);
 
@@ -129,7 +186,7 @@ void iAMultidimensionalScaling::normalizeMatrix()
 
 void iAMultidimensionalScaling::calculateProximityDistance()
 {
-	if (m_activeProxM == ProximityMetric::ArcCosineDistance)
+	if (m_activeProxM == MDS::ProximityMetric::ArcCosineDistance)
 	{
 		//m_amountofCharas-1 - without the labels
 		iAArcCosineDistance pd(m_weights, m_matrixUNormalized, m_amountOfCharas - 1, m_amountOfElems);
@@ -145,12 +202,12 @@ void iAMultidimensionalScaling::calculateProximityDistance()
 
 iASimilarityDistance* iAMultidimensionalScaling::initializeDistanceMetric()
 {
-	iASimilarityDistance* d;
-	if (m_activeDisM == DistanceMetric::EuclideanDistance)
+	iASimilarityDistance* d = nullptr;
+	if (m_activeDisM == MDS::DistanceMetric::EuclideanDistance)
 	{
 		d = new iAEuclideanDistance();
 	}
-	else if (m_activeDisM == DistanceMetric::MinkowskiDistance)
+	else if (m_activeDisM == MDS::DistanceMetric::MinkowskiDistance)
 	{
 		d = new iAMinkowskiDistance();
 	}
@@ -183,7 +240,7 @@ void iAMultidimensionalScaling::calculateMDS(int dim, int iterations)
 	csvDataType::addNumberSelf(X, -0.5);
 
 	// before this step, mean distance is 1/3*sqrt(d)
-	csvDataType::multiplyNumberSelf(X, 0.1 * meanD / (1.0 / 3.0 * sqrt((double)dim)));
+	csvDataType::multiplyNumberSelf(X, 0.1 * meanD / (1.0 / 3.0 * std::sqrt((double)dim)));
 
 	////DEBUG
 	/*LOG(lvlDebug,"X");

@@ -7,10 +7,10 @@
 
 dlg_VisMainWindow::dlg_VisMainWindow(QList<csvFileData>* data, iAMultidimensionalScaling* mds, iAMainWindow* parent, iACompVisMain* main)
 	:
-	QMainWindow(parent),
+	QMainWindow(parent), 
+	m_main(main),
 	m_data(data),
-	m_mds(mds),
-	m_main(main)
+	m_mds(mds)
 {
 	//setup iAMainWindow
 	parent->addSubWindow(this);

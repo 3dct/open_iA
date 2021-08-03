@@ -21,7 +21,7 @@
 #include "iAFiAKErModuleInterface.h"
 
 #include "iACsvConfig.h"
-#include "iAFiberCharData.h"
+#include "iAFiberResult.h"
 #include "iAFiAKErController.h"
 #include "iAFiAKErAttachment.h"
 
@@ -96,6 +96,7 @@ namespace
 	const QString LastPathKey("FIAKER/LastPath");
 	const QString LastUseStepData("FIAKER/LastUseStepData");
 	const QString LastShowPreviews("FIAKER/LastShowPreviews");
+	const QString LastShowCharts("FIAKER/LastShowCharts");
 }
 
 void iAFiAKErModuleInterface::Initialize()
@@ -106,7 +107,7 @@ void iAFiAKErModuleInterface::Initialize()
 	}
 	iAProjectRegistry::addProject<iAFIAKERProject>(iAFiAKErController::FIAKERProjectID);
 
-	QAction* actionFiAKEr = new QAction(tr("Open Results Folder"), m_mainWnd);
+	QAction * actionFiAKEr = new QAction(tr("Start FIAKER"), m_mainWnd);
 #if QT_VERSION < QT_VERSION_CHECK(5, 99, 0)
 	actionFiAKEr->setShortcut(QKeySequence(Qt::ALT + Qt::Key_R, Qt::Key_O));
 #else
@@ -114,7 +115,7 @@ void iAFiAKErModuleInterface::Initialize()
 #endif
 	connect(actionFiAKEr, &QAction::triggered, this, &iAFiAKErModuleInterface::startFiAKEr );
 
-	QAction * actionFiAKErProject = new QAction(tr("Load Project (for .fpf; for .iaproj use File->Open)"), m_mainWnd);
+	QAction* actionFiAKErProject = new QAction(tr("Load FIAKER (old .fpf files)"), m_mainWnd);
 #if QT_VERSION < QT_VERSION_CHECK(5, 99, 0)
 	actionFiAKErProject->setShortcut(QKeySequence(Qt::ALT + Qt::Key_R, Qt::Key_P));
 #else
@@ -122,15 +123,16 @@ void iAFiAKErModuleInterface::Initialize()
 #endif
 	connect(actionFiAKErProject, &QAction::triggered, this, &iAFiAKErModuleInterface::loadFiAKErProject);
 
-	QMenu* fiakerMenu = getOrAddSubMenu(m_mainWnd->toolsMenu(), tr("FiAKEr"), false);
-	fiakerMenu->addAction(actionFiAKEr);
-	fiakerMenu->addAction(actionFiAKErProject);
+	QMenu* submenu = getOrAddSubMenu(m_mainWnd->toolsMenu(), tr("Feature Analysis"), true);
+	submenu->addAction(actionFiAKEr);
+	submenu->addAction(actionFiAKErProject);
 
 	QSettings s;
 	m_lastFormat = s.value(LastFormatKey, "").toString();
 	m_lastPath = s.value(LastPathKey, m_mainWnd->path()).toString();
 	m_lastUseStepData = s.value(LastUseStepData, true).toBool();
 	m_lastShowPreviews = s.value(LastShowPreviews, true).toBool();
+	m_lastShowCharts = s.value(LastShowCharts, true).toBool();
 	bool ok;
 	m_lastTimeStepOffset = s.value(LastTimeStepOffsetKey, 0).toDouble(&ok);
 	if (!ok)
@@ -147,6 +149,7 @@ void iAFiAKErModuleInterface::SaveSettings() const
 	s.setValue(LastTimeStepOffsetKey, m_lastTimeStepOffset);
 	s.setValue(LastUseStepData, m_lastUseStepData);
 	s.setValue(LastShowPreviews, m_lastShowPreviews);
+	s.setValue(LastShowCharts, m_lastShowCharts);
 }
 
 void iAFiAKErModuleInterface::startFiAKEr()
@@ -171,23 +174,24 @@ void iAFiAKErModuleInterface::startFiAKEr()
 		<< "+CSV cormat"
 		<< "#Step coordinate shift"
 		<< "$Use step data"
-		<< "$Show result previews in list";
+		<< "$Show mini previews in result list"
+		<< "$Show distribution charts in result list";
 	QStringList formatEntries = iACsvConfig::getListFromRegistry();
 	if (!formatEntries.contains(iAFiberResultsCollection::SimpleFormat))
 	{
 		formatEntries.append(iAFiberResultsCollection::SimpleFormat);
 	}
-	if (!formatEntries.contains(iAFiberResultsCollection::LegacyFormat))
+	if (!formatEntries.contains(iAFiberResultsCollection::FiakerFCPFormat))
 	{
-		formatEntries.append(iAFiberResultsCollection::LegacyFormat);
+		formatEntries.append(iAFiberResultsCollection::FiakerFCPFormat);
 	}
-	if (!formatEntries.contains(iACsvConfig::LegacyFiberFormat))
+	if (!formatEntries.contains(iACsvConfig::FCPFiberFormat))
 	{
-		formatEntries.append(iACsvConfig::LegacyFiberFormat);
+		formatEntries.append(iACsvConfig::FCPFiberFormat);
 	}
-	if (!formatEntries.contains(iACsvConfig::LegacyVoidFormat))
+	if (!formatEntries.contains(iACsvConfig::FCVoidFormat))
 	{
-		formatEntries.append(iACsvConfig::LegacyVoidFormat);
+		formatEntries.append(iACsvConfig::FCVoidFormat);
 	}
 	for (int i = 0; i < formatEntries.size(); ++i)
 	{
@@ -198,7 +202,7 @@ void iAFiAKErModuleInterface::startFiAKEr()
 	}
 
 	QList<QVariant> values;
-	values << m_lastPath << formatEntries << m_lastTimeStepOffset << m_lastUseStepData << m_lastShowPreviews;
+	values << m_lastPath << formatEntries << m_lastTimeStepOffset << m_lastUseStepData << m_lastShowPreviews << m_lastShowCharts;
 
 	QString descr("Starts FIAKER, a comparison tool for results from fiber reconstruction algorithms.<br/>"
 		"Choose a <em>Result folder</em> containing two or more fiber reconstruction results in .csv format. "
@@ -210,11 +214,15 @@ void iAFiAKErModuleInterface::startFiAKEr()
 		"there is a similar setting available via the .csv format specification, see above. "
 		"<em>Use step data</em> determines whether FIAKER immediately uses information on curved files from the last step; "
 		"if unchecked, FIAKER will initially show the separate curved representation for the final result.<br/>"
-		"For more information on FIAKER, see the corresponding publication: "
-		"Bernhard Fröhler, Tim Elberfeld, Torsten Möller, Hans-Christian Hege, Johannes Weissenböck, "
-		"Jan De Beenhouwer, Jan Sijbers, Johann Kastner and Christoph Heinzl, "
+		"For more information on FIAKER, see the corresponding publications:"
+		"<ul><li>B. Fröhler, T. Elberfeld, T. Möller, H.-C. Hege, J. Weissenböck, "
+		"J. De Beenhouwer, J. Sijbers, J. Kastner, and C. Heinzl, "
 		"A Visual Tool for the Analysis of Algorithms for Tomographic Fiber Reconstruction in Materials Science, "
-		"2019, Computer Graphics Forum 38 (3), <a href=\"https://doi.org/10.1111/cgf.13688\">doi: 10.1111/cgf.13688</a>.");
+		"Computer Graphics Forum 38 (3), 2019, pp. 273-283, doi: <a href=\"https://doi.org/10.1111/cgf.13688\">10.1111/cgf.13688</a>.</li>"
+		"<li>B. Fröhler, T. Elberfeld, T. Möller, H.-C. Hege, J. De Beenhouwer, J. Sijbers, J. Kastner, and Christoph Heinzl, "
+		"Analysis and comparison of algorithms for the tomographic reconstruction of curved fibres, "
+		"Nondestructive Testing and Evaluation 35 (3), 2020, pp. 328–341, "
+		"doi: <a href=\"https://doi.org/10.1080/10589759.2020.1774583\">10.1080/10589759.2020.1774583</a>.</li></ul>");
 	dlg_commoninput dlg(m_mainWnd, "Start FIAKER", parameterNames, values, descr);
 	if (dlg.exec() != QDialog::Accepted || dlg.getText(0).isEmpty())
 	{
@@ -229,6 +237,7 @@ void iAFiAKErModuleInterface::startFiAKEr()
 	m_lastTimeStepOffset = dlg.getDblValue(2);
 	m_lastUseStepData = dlg.getCheckValue(3);
 	m_lastShowPreviews = dlg.getCheckValue(4);
+	m_lastShowCharts = dlg.getCheckValue(5);
 	//cmbbox_Format->addItems(formatEntries);
 
 	AttachToMdiChild(mdiChild);
@@ -241,7 +250,8 @@ void iAFiAKErModuleInterface::startFiAKEr()
 	auto project = QSharedPointer<iAFIAKERProject>::create();
 	project->setController(attach->controller());
 	mdiChild->addProject(iAFiAKErController::FIAKERProjectID, project);
-	attach->controller()->start(m_lastPath, getCsvConfig(m_lastFormat), m_lastTimeStepOffset, m_lastUseStepData, m_lastShowPreviews);
+	attach->controller()->start(m_lastPath, getCsvConfig(m_lastFormat), m_lastTimeStepOffset,
+		m_lastUseStepData, m_lastShowPreviews, m_lastShowCharts);
 }
 
 void iAFiAKErModuleInterface::loadFiAKErProject()
@@ -278,9 +288,9 @@ void iAFiAKErModuleInterface::loadProject(iAMdiChild* mdiChild, QSettings const&
 	project->setController(controller);
 	m_mainWnd->setPath(m_lastPath);
 	iASettings projectSettings = mapFromQSettings(projectFile);
-	connect(controller, &iAFiAKErController::setupFinished, [controller, projectSettings]
+	connect(controller, &iAFiAKErController::setupFinished, [controller, projectSettings, fileName]
 		{
-			controller->loadReference(projectSettings);
+			controller->loadAdditionalData(projectSettings, fileName);
 		});
 	controller->loadProject(projectFile, fileName);
 }

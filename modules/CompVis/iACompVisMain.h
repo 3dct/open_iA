@@ -24,7 +24,7 @@ class iAHistogramData;
 class iACompVisMain
 {
    public:
-	iACompVisMain(iAMainWindow*  mainWin);
+	iACompVisMain(iAMainWindow* mainWin);
 
 	//load the CSV datasets
 	//when nothing was loaded it returns false
@@ -76,8 +76,6 @@ class iACompVisMain
 	iACoefficientOfVariation* m_cofVar;
 	iACorrelationCoefficient* m_corCoeff;
 	
-	iAHistogramData* m_histData;
-
 	iACompBarChart* m_BarChartDockWidget;
 	iACompHistogramTable* m_HistogramTableDockWidget;
 	iACompBoxPlot* m_BoxPlotDockWidget;

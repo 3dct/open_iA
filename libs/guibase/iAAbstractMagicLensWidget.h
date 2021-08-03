@@ -31,7 +31,7 @@ class vtkCamera;
 class vtkInteractorStyle;
 class vtkRenderer;
 
-class iAguibase_API iAAbstractMagicLensWidget : public iAVtkWidget
+class iAguibase_API iAAbstractMagicLensWidget : public iAQVTKWidget
 {
 	Q_OBJECT
 public:

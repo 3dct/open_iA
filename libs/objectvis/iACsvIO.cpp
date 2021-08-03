@@ -58,44 +58,38 @@ namespace
 	const char* ColNameEndY = "Y2";
 	const char* ColNameEndZ = "Z2";
 	const char* ColNameDiameter = "Diameter";
-}
 
-namespace
-{
-	QString DblToString(double value)
+	double transformValue(QString value, uint idx, iACsvConfig const& config)
 	{
-		return QString::number(value, 'f', 10);
-	}
-	QString transformValue(QString value, uint idx, iACsvConfig const& config)
-	{
+		// TODO: error check?
 		if (config.offset[0] != 0 && (
 			(config.columnMapping.contains(iACsvConfig::CenterX) && idx == config.columnMapping[iACsvConfig::CenterX]) ||
 			(config.columnMapping.contains(iACsvConfig::StartX) && idx == config.columnMapping[iACsvConfig::StartX]) ||
 			(config.columnMapping.contains(iACsvConfig::EndX) && idx == config.columnMapping[iACsvConfig::EndX])))
 		{
-			return DblToString(value.toDouble() + config.offset[0]);
+			return value.toDouble() + config.offset[0];
 		}
 		else if (config.offset[1] != 0 && (
 			(config.columnMapping.contains(iACsvConfig::CenterY) && idx == config.columnMapping[iACsvConfig::CenterY]) ||
 			(config.columnMapping.contains(iACsvConfig::StartY) && idx == config.columnMapping[iACsvConfig::StartY]) ||
 			(config.columnMapping.contains(iACsvConfig::EndY) && idx == config.columnMapping[iACsvConfig::EndY])))
 		{
-			return DblToString(value.toDouble() + config.offset[1]);
+			return value.toDouble() + config.offset[1];
 		}
 		else if (config.offset[2] != 0 && (
 			(config.columnMapping.contains(iACsvConfig::CenterZ) && idx == config.columnMapping[iACsvConfig::CenterZ]) ||
 			(config.columnMapping.contains(iACsvConfig::StartZ) && idx == config.columnMapping[iACsvConfig::StartZ]) ||
 			(config.columnMapping.contains(iACsvConfig::EndZ) && idx == config.columnMapping[iACsvConfig::EndZ])))
 		{
-			return DblToString(value.toDouble() + config.offset[2]);
+			return value.toDouble() + config.offset[2];
 		}
 		else if (config.columnMapping.contains(iACsvConfig::Theta) && idx == config.columnMapping[iACsvConfig::Theta] && value.toDouble() < 0)
 		{
-			return DblToString(2 * vtkMath::Pi() + value.toDouble());
+			return 2 * vtkMath::Pi() + value.toDouble();
 		}
 		else
 		{
-			return value;
+			return value.toDouble();
 		}
 	}
 	double getValueAsDouble(QStringList const & values, uint index, iACsvConfig const & config)
@@ -110,7 +104,11 @@ namespace
 		{
 			value = value.replace(config.decimalSeparator, ".");
 		}
-		return transformValue(value, index, config).toDouble();
+		return transformValue(value, index, config);
+	}
+	size_t getLineNumberForRow(iACsvConfig const& cfg, size_t row)
+	{
+		return cfg.skipLinesStart + (cfg.containsHeader ? 1 : 0) + row;
 	}
 }
 
@@ -123,7 +121,7 @@ bool iACsvIO::loadCSV(iACsvTableCreator & dstTbl, iACsvConfig const & cnfg_param
 	m_csvConfig = cnfg_params;
 	if (!QFile::exists(m_csvConfig.fileName))
 	{
-		LOG(lvlError, "Error loading csv file, file does not exist.");
+		LOG(lvlError, QString("Unable to open csv file '%1': File does not exist.").arg(m_csvConfig.fileName));
 		return false;
 	}
 	QFile file(m_csvConfig.fileName);
@@ -141,10 +139,11 @@ bool iACsvIO::loadCSV(iACsvTableCreator & dstTbl, iACsvConfig const & cnfg_param
 	in.setEncoding(enc);
 #endif
 	size_t effectiveRowCount = std::min(rowCount,
-		calcRowCount(in, m_csvConfig.skipLinesStart + (cnfg_params.containsHeader ? 1 : 0), m_csvConfig.skipLinesEnd));
+		calcRowCount(in, getLineNumberForRow(m_csvConfig, 0), m_csvConfig.skipLinesEnd));
 	if (effectiveRowCount <= 0)
 	{
-		LOG(lvlError, "No rows to load in the csv file!");
+		LOG(lvlError, QString("Unable to open csv file '%1': No rows to load in the csv file!")
+			.arg(m_csvConfig.fileName));
 		return false;
 	}
 
@@ -174,24 +173,28 @@ bool iACsvIO::loadCSV(iACsvTableCreator & dstTbl, iACsvConfig const & cnfg_param
 		{
 			continue;
 		}
-		QStringList entries;
+		std::vector<double> entries;
+		entries.reserve(m_outputHeaders.size());
 		if (m_csvConfig.addAutoID)
 		{
-			entries.append(QString::number(resultRowID));
+			entries.push_back(resultRowID);
 		}
 
 		auto values = line.split(m_csvConfig.columnSeparator);
 		if (values.size() < m_csvConfig.currentHeaders.size())
 		{
-			LOG(lvlWarn, QString("Line %1 in file '%2' only contains %3 entries, expected %4. Skipping...")
-				.arg(row + m_csvConfig.skipLinesStart + (m_csvConfig.containsHeader ? 0 : 1)).arg(m_csvConfig.fileName)
+			LOG(lvlWarn, QString("Line %1 in file '%2' (row %3 of data) only contains %4 entries, expected %5. Skipping...")
+				.arg(getLineNumberForRow(m_csvConfig, row)).arg(m_csvConfig.fileName).arg(row)
 				.arg(values.size()).arg(m_csvConfig.currentHeaders.size()));
 			continue;
 		}
 		if (!m_csvConfig.addAutoID && values[0].toULongLong() != (row + 1))
 		{
-			LOG(lvlError, QString("ID column not ordered as expected in line %1 (needs to be consecutive, starting at 1)! "
-				"Please either fix the data in the CSV or use the 'Create ID' feature!").arg(row));
+			LOG(lvlError, QString("ID column: Unexpected value %1, expected %2 in line %3 of file '%4' "
+				"(i.e. the values are not ordered as required, the ID values need to be consecutive, starting at 1)! "
+				"Please either fix the data in the CSV or use the 'Create ID' feature!")
+				.arg(values[0].toULongLong()).arg(row+1)
+				.arg(getLineNumberForRow(m_csvConfig, row)).arg(m_csvConfig.fileName));
 			return false;
 		}
 		for (int valIdx : selectedColIdx)
@@ -206,7 +209,7 @@ bool iACsvIO::loadCSV(iACsvTableCreator & dstTbl, iACsvConfig const & cnfg_param
 			{
 				value = value.replace(m_csvConfig.decimalSeparator, ".");
 			}
-			entries.append(transformValue(value, valIdx, m_csvConfig));
+			entries.push_back(transformValue(value, valIdx, m_csvConfig));
 		}
 		if (m_csvConfig.computeStartEnd)
 		{
@@ -223,16 +226,16 @@ bool iACsvIO::loadCSV(iACsvTableCreator & dstTbl, iACsvConfig const & cnfg_param
 			dir[2] = radius * std::cos(phi);
 			for (int i = 0; i < 3; ++i)
 			{
-				entries.append(DblToString(center[i] + dir[i])); // start
+				entries.push_back(center[i] + dir[i]); // start
 			}
 			for (int i = 0; i < 3; ++i)
 			{
-				entries.append(DblToString(center[i] - dir[i])); // end
+				entries.push_back(center[i] - dir[i]); // end
 			}
 		}
 		if (m_csvConfig.isDiameterFixed)
 		{
-			entries.append(DblToString(m_csvConfig.fixedDiameterValue));
+			entries.push_back(m_csvConfig.fixedDiameterValue);
 		}
 		double phi = 0.0, theta = 0.0;
 		if (m_csvConfig.computeLength || m_csvConfig.computeAngles || m_csvConfig.computeCenter)
@@ -255,16 +258,16 @@ bool iACsvIO::loadCSV(iACsvTableCreator & dstTbl, iACsvConfig const & cnfg_param
 			if (m_csvConfig.computeLength)
 			{
 				double length = std::sqrt(dx * dx + dy * dy + dz * dz);
-				entries.append(DblToString(length));
+				entries.push_back(length);
 			}
 			if (m_csvConfig.computeCenter)
 			{
 				double xm = (x1 + x2) / 2.0f;
 				double ym = (y1 + y2) / 2.0f;
 				double zm = (z1 + z2) / 2.0f;
-				entries.append(DblToString(xm));
-				entries.append(DblToString(ym));
-				entries.append(DblToString(zm));
+				entries.push_back(xm);
+				entries.push_back(ym);
+				entries.push_back(zm);
 			}
 			if (m_csvConfig.computeAngles)
 			{
@@ -289,8 +292,8 @@ bool iACsvIO::loadCSV(iACsvTableCreator & dstTbl, iACsvConfig const & cnfg_param
 						phi = phi + 360.0;
 					}
 				}
-				entries.append(DblToString(phi));
-				entries.append(DblToString(theta));
+				entries.push_back(phi);
+				entries.push_back(theta);
 			}
 		}
 		if (m_csvConfig.computeTensors)
@@ -318,16 +321,16 @@ bool iACsvIO::loadCSV(iACsvTableCreator & dstTbl, iACsvConfig const & cnfg_param
 				a23 = 0.0;
 			}
 			*/
-			entries.append(DblToString(a11));
-			entries.append(DblToString(a22));
-			entries.append(DblToString(a33));
-			entries.append(DblToString(a12));
-			entries.append(DblToString(a13));
-			entries.append(DblToString(a23));
+			entries.push_back(a11);
+			entries.push_back(a22);
+			entries.push_back(a33);
+			entries.push_back(a12);
+			entries.push_back(a13);
+			entries.push_back(a23);
 		}
 		if (m_csvConfig.addClassID)
 		{
-			entries.append("0"); // class ID
+			entries.push_back(0); // class ID
 		}
 		dstTbl.addRow(resultRowID-1, entries);
 		++resultRowID;
@@ -525,7 +528,7 @@ bool readCurvedFiberInfo(QString const & fileName, std::map<size_t, std::vector<
 		// TODO: better solution for Label (1..N) <-> internal fiber ID (0..N-1) mapping!!!
 		size_t fiberID = valueStrList[0].toInt() - 1;
 		int numOfPoints = (valueStrList.size() - 1) / 3;
-		std::vector<iAVec3f> points;
+		std::vector<iAVec3f> points(numOfPoints);
 		for (int i = 0; i < numOfPoints; ++i)
 		{
 			int baseIdx = 1 + (i * 3);
@@ -538,7 +541,7 @@ bool readCurvedFiberInfo(QString const & fileName, std::map<size_t, std::vector<
 					.arg(curvedInfo.absoluteFilePath()).arg(lineNr).arg(line).arg(valueStrList.size()));
 				continue;
 			}
-			points.push_back(p);
+			points[i] = p;
 
 		}
 		outMap.insert(std::make_pair(fiberID, points));

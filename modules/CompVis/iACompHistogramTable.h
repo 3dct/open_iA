@@ -12,12 +12,10 @@ class iAMainWindow;
 class iACompVisMain;
 class iACompUniformBinningData;
 
-
 class iACompHistogramTable 
 {
 
    public:
-
 	/************************** Setter & Getter ***************************************/
 	iACsvDataStorage* getDataStorage();
 	iACompHistogramVis* getHistogramTableVis();

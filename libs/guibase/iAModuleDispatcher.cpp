@@ -30,6 +30,7 @@
 #include "iAModuleInterface.h"
 #include "iAMainWindow.h"
 
+#include <QCoreApplication>
 #include <QDir>
 #include <QFileInfo>
 #include <QMenu>
@@ -42,7 +43,9 @@ QString GetLastErrorAsString()
 {
 	DWORD errorMessageID = ::GetLastError();
 	if (errorMessageID == 0)
+	{
 		return QString();
+	}
 	LPSTR messageBuffer = nullptr;
 	size_t size = FormatMessageA(FORMAT_MESSAGE_ALLOCATE_BUFFER | FORMAT_MESSAGE_FROM_SYSTEM | FORMAT_MESSAGE_IGNORE_INSERTS,
 		nullptr, errorMessageID, MAKELANGID(LANG_NEUTRAL, SUBLANG_DEFAULT), (LPSTR)&messageBuffer, 0, nullptr);

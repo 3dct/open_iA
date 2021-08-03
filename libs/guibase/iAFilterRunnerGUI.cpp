@@ -42,6 +42,7 @@
 
 #include <QFileInfo>
 #include <QMessageBox>
+#include <QRegularExpression>
 #include <QSettings>
 #include <QSharedPointer>
 #include <QStatusBar>

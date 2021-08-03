@@ -13,7 +13,7 @@ class dlg_CSVReader : public QDialog, public Ui_CSVReader
 	Q_OBJECT
    public:
 	//! Create a new dialog
-	dlg_CSVReader(QWidget* parent = 0, Qt::WindowFlags f = 0);
+	dlg_CSVReader();
 
 	iACsvDataStorage* getCsvDataStorage();
 	

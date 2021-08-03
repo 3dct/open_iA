@@ -1,6 +1,5 @@
 TARGET_LINK_LIBRARIES(${libname} PUBLIC
 	iAqthelper
-	Opengl32
 )
 IF (MSVC AND MSVC_VERSION GREATER_EQUAL 1910)              # apparently required for VS < 2019:
 	TARGET_LINK_LIBRARIES(${libname} PUBLIC Opengl32)

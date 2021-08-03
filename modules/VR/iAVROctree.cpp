@@ -271,7 +271,7 @@ void iAVROctree::movePointInsideRegion(double point[3], double movedPoint[3])
 	}
 }
 
-int iAVROctree::getNumberOfLeafeNodes()
+vtkIdType iAVROctree::getNumberOfLeafeNodes()
 {
 	return numberOfLeaveNodes;
 }
@@ -382,7 +382,7 @@ void iAVROctree::mapFibersToRegion(std::unordered_map<vtkIdType, vtkIdType>* poi
 		//Check if points is not null!!
 		if (points != nullptr) {
 
-			for (int i = 0; i < points->GetSize(); i++)
+			for (vtkIdType i = 0; i < points->GetSize(); i++)
 			{
 				vtkIdType fiberiD;
 				if (pointIDToCsvIndex->find(points->GetValue(i)) != pointIDToCsvIndex->end())
@@ -404,7 +404,7 @@ double iAVROctree::calculateDistanceOctCenterToRegionCenter()
 	calculateOctreeCenterPos(centerPoint);
 	iAVec3d centerPos = iAVec3d(centerPoint);
 
-	for (int region = 0; region < getNumberOfLeafeNodes(); region++)
+	for (vtkIdType region = 0; region < getNumberOfLeafeNodes(); region++)
 	{
 		calculateOctreeRegionCenterPos(region, regionCenterPoint);
 
@@ -425,7 +425,7 @@ double iAVROctree::calculateDistanceOctCenterToFiber()
 	iAVec3d centerPos = iAVec3d(centerPoint);
 
 	// Get max length
-	for (int i = 0; i < m_octree->GetDataSet()->GetNumberOfPoints(); i++)
+	for (vtkIdType i = 0; i < m_octree->GetDataSet()->GetNumberOfPoints(); i++)
 	{
 		iAVec3d currentPoint = iAVec3d(m_octree->GetDataSet()->GetPoint(i));
 		iAVec3d direction = currentPoint - centerPos;

@@ -25,13 +25,13 @@
 
 const double minPixelSize = 2.0;
 
-iAOrientationWidget::iAOrientationWidget(QWidget* parent) : iAQGLWidget(parent)
+iAOrientationWidget::iAOrientationWidget(QWidget* parent) : QOpenGLWidget(parent)
 {
 	setMaximumWidth(100);
 	setFixedHeight(27);
 	setBackgroundRole(QPalette::Base);
 	setAutoFillBackground(true);
-	iAQGLFormat format;
+	QSurfaceFormat format;
 	format.setSamples(4);
 	this->setFormat(format);
 	this->setToolTip("The Orientation Widget shows the visible plot area\nin blue (the rest in gray)");

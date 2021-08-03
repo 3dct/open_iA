@@ -45,7 +45,6 @@
 #include <itkRescaleIntensityImageFilter.h>
 
 #include <vtkColorTransferFunction.h>
-#include <vtkGenericOpenGLRenderWindow.h>
 #include <vtkImageActor.h>
 #include <vtkImageData.h>
 #include <vtkImageMapper3D.h>
@@ -57,6 +56,7 @@
 #include <vtkPolyDataMapper.h>
 #include <vtkProperty.h>
 #include <vtkRenderer.h>
+#include <vtkRenderWindow.h>
 
 #include <QCheckBox>
 #include <QComboBox>
@@ -348,21 +348,15 @@ void dlg_datatypeconversion::DataTypeConversionROI(QString const & filename, iAR
 	VTK_TYPED_CALL(DataTypeConversionROI_template, p.m_scalarType, filename, p, roi, m_min, m_max, m_roiimage);
 }
 
-QVBoxLayout* setupSliceWidget(iAVtkWidget* &widget, vtkSmartPointer<vtkPlaneSource> & roiSource, iAConnector* image, QString const & name)
+QVBoxLayout* setupSliceWidget(iAQVTKWidget* &widget, vtkSmartPointer<vtkPlaneSource> & roiSource, iAConnector* image, QString const & name)
 {
 	QVBoxLayout *boxlayout = new QVBoxLayout();
 	QLabel *label = new QLabel(QString("%1 IMAGE").arg(name));
 	label->setMinimumWidth(50);
 	label->setSizePolicy(QSizePolicy::Expanding, QSizePolicy::Fixed);
-	widget = new iAVtkWidget();
+	widget = new iAQVTKWidget();
 	widget->setMinimumHeight(50);
 	widget->setWindowTitle(QString("%1 Plane").arg(name));
-	auto window = vtkSmartPointer<vtkGenericOpenGLRenderWindow>::New();
-#if VTK_VERSION_NUMBER < VTK_VERSION_CHECK(9, 0, 0)
-	widget->SetRenderWindow(window);
-#else
-	widget->setRenderWindow(window);
-#endif
 
 	auto color = vtkSmartPointer<vtkImageMapToColors>::New();
 	auto table = defaultColorTF(image->vtkImage()->GetScalarRange());
@@ -399,6 +393,7 @@ QVBoxLayout* setupSliceWidget(iAVtkWidget* &widget, vtkSmartPointer<vtkPlaneSour
 	roiRenderer->SetActiveCamera(imageRenderer->GetActiveCamera());
 	imageRenderer->ResetCamera();
 
+	auto window = widget->renderWindow();
 	window->SetNumberOfLayers(2);
 	window->AddRenderer(imageRenderer);
 	window->AddRenderer(roiRenderer);
@@ -680,20 +675,9 @@ void dlg_datatypeconversion::updateROI( )
 	m_yzroiSource->SetPoint1(-0.5*m_spacing[1] + m_roi[1]*m_spacing[1]+m_roi[4]*m_spacing[1], -0.5*m_spacing[2] + m_roi[2]*m_spacing[2], 0);
 	m_yzroiSource->SetPoint2(-0.5*m_spacing[1] + m_roi[1]*m_spacing[1], -0.5*m_spacing[2] + m_roi[2]+m_roi[5], 0);
 
-#if VTK_VERSION_NUMBER < VTK_VERSION_CHECK(9, 0, 0)
-	m_xyWidget->GetRenderWindow()->Render();
-	m_xyWidget->update();
-	m_xzWidget->GetRenderWindow()->Render();
-	m_xzWidget->update();
-	m_yzWidget->GetRenderWindow()->Render();
-#else
-	m_xyWidget->renderWindow()->Render();
-	m_xyWidget->update();
-	m_xzWidget->renderWindow()->Render();
-	m_xzWidget->update();
-	m_yzWidget->renderWindow()->Render();
-#endif
-	m_yzWidget->update();
+	m_xyWidget->updateAll();
+	m_xzWidget->updateAll();
+	m_yzWidget->updateAll();
 }
 
 double dlg_datatypeconversion::getRangeLower() const { return leRangeLower->text().toDouble(); }

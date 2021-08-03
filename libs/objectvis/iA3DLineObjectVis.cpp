@@ -38,11 +38,13 @@ iA3DLineObjectVis::iA3DLineObjectVis(vtkRenderer* ren, vtkTable* objectTable, QS
 	iA3DColoredPolyObjectVis(ren, objectTable, columnMapping, color),
 	m_linePolyData(vtkSmartPointer<vtkPolyData>::New()),
 	m_points(vtkSmartPointer<vtkPoints>::New()),
+	m_curvedFiberData(curvedFiberData),
 	m_totalNumOfSegments(0)
 {
 	auto lines = vtkSmartPointer<vtkCellArray>::New();
 	for (vtkIdType row = 0; row < m_objectTable->GetNumberOfRows(); ++row)
 	{
+		//int labelID = m_objectTable->GetValue(row, 0).ToInt();
 		auto it = curvedFiberData.find(row);
 		IndexType numberOfPts;
 		IndexType totalNumOfPtsBefore = m_points->GetNumberOfPoints();
@@ -108,7 +110,7 @@ void iA3DLineObjectVis::updateValues(std::vector<std::vector<double> > const & v
 	}
 	for (size_t f = 0; f < values.size(); ++f)
 	{
-		// "magic numbers" 1 and 2 need to match values in FIAKER - iAFiberCharData::StepDataType:
+		// "magic numbers" 1 and 2 need to match values in FIAKER - iAFiberResult::StepDataType:
 		if (straightOrCurved == 1) // SimpleStepData
 		{
 			m_points->SetPoint(static_cast<vtkIdType>(2 * f), values[f].data());
@@ -146,6 +148,11 @@ vtkPolyData* iA3DLineObjectVis::getPolyData()
 	return m_linePolyData;
 }
 
+vtkPolyData* iA3DLineObjectVis::finalPoly()
+{
+	return m_linePolyData;
+}
+
 QString iA3DLineObjectVis::visualizationStatistics() const
 {
 	return QString("# lines: %1; # line segments: %2; # points: %3")
@@ -160,4 +167,11 @@ iA3DColoredPolyObjectVis::IndexType iA3DLineObjectVis::objectStartPointIdx(Index
 iA3DColoredPolyObjectVis::IndexType iA3DLineObjectVis::objectPointCount(IndexType objIdx) const
 {
 	return m_objectPointMap[objIdx].second;
+}
+
+std::vector<vtkSmartPointer<vtkPolyData>> iA3DLineObjectVis::extractSelectedObjects(QColor c) const
+{
+	Q_UNUSED(c);
+	std::vector<vtkSmartPointer<vtkPolyData>> result;
+	return result;
 }

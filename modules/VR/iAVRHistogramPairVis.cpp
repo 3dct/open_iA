@@ -21,7 +21,7 @@
 #include "iAVRHistogramPairVis.h"
 
 #include <iALog.h>
-#include <iAvec3.h>
+#include <iAVec3.h>
 
 #include <vtkMath.h>
 #include <vtkRegularPolygonSource.h>
@@ -46,7 +46,8 @@
 #include <vtkTransformFilter.h>
 #include <vtkSphereSource.h>
 
-iAVRHistogramPairVis::iAVRHistogramPairVis(vtkRenderer* ren, iAVRHistogramMetric* histogramMetric, iAVROctreeMetrics* octreeMetric, vtkTable* objectTable, iACsvIO io) :m_renderer(ren), m_histogramMetric(histogramMetric), m_octreeMetric(octreeMetric), m_sphereActor(vtkSmartPointer<vtkActor>::New()), m_objectTable(objectTable), m_io(io)
+iAVRHistogramPairVis::iAVRHistogramPairVis(vtkRenderer* ren, iAVRHistogramMetric* histogramMetric, iAVROctreeMetrics* octreeMetric, vtkTable* objectTable, iACsvIO io) :m_renderer(ren), 
+m_histogramMetric(histogramMetric), m_octreeMetric(octreeMetric), m_objectTable(objectTable), m_sphereActor(vtkSmartPointer<vtkActor>::New()), m_io(io)
 {
 	initialize();
 }
@@ -94,7 +95,7 @@ void iAVRHistogramPairVis::createVisualization(double* pos, double visSize, doub
 
 	//Axes which are at 0° and 180°
 	m_frontAxes[0] = 0;
-	m_frontAxes[1] = featureList->size() - 1;
+	m_frontAxes[1] = static_cast<int>(featureList->size() - 1);
 
 	//Copy only values from position pointer
 	m_centerOfVis[0] = pos[0];
@@ -163,10 +164,10 @@ void iAVRHistogramPairVis::createVisualization(double* pos, double visSize, doub
 	//start from new centerPos
 	double newCenterPos[3]{};
 
-	for (int i = 0; i < featureList->size(); i++)
+	for (size_t i = 0; i < featureList->size(); i++)
 	{
 		double posOnCircle[3]{};
-		calculateAxisPositionInCircle(i, featureList->size() - 1, pos, m_radius, posOnCircle);
+		calculateAxisPositionInCircle(i, static_cast<int>(featureList->size() - 1), pos, m_radius, posOnCircle);
 		calculateCenterOffsetPos(pos, posOnCircle, newCenterPos);
 		calculateAxis(newCenterPos, posOnCircle);
 		createAxisMarks(i);
@@ -202,13 +203,13 @@ void iAVRHistogramPairVis::hide()
 	}
 	m_renderer->RemoveActor(visualizationActor);
 
-	for (int i = 0; i < m_axisLabelActor->size(); i++)
+	for (size_t i = 0; i < m_axisLabelActor->size(); i++)
 	{
 		m_axisTitleActor->at(i).hide();
 
-		for (int j = 0; j < m_axisLabelActor->at(i).size(); j++)
+		for (size_t j = 0; j < m_axisLabelActor->at(i).size(); j++)
 		{
-			for (int k = 0; k < m_axisLabelActor->at(i).at(j).size(); k++)
+			for (size_t k = 0; k < m_axisLabelActor->at(i).at(j).size(); k++)
 			{
 				m_axisLabelActor->at(i).at(j).at(k).hide();
 			}
@@ -227,7 +228,7 @@ void iAVRHistogramPairVis::determineHistogramInView(double* viewDir)
 		double minDistance = std::numeric_limits<double>::infinity();
 		int newAxisInView = -1;
 
-		for (int i = 0; i < m_AxesViewDir->size(); i++)
+		for (size_t i = 0; i < m_AxesViewDir->size(); i++)
 		{
 			auto focalP = iAVec3d(viewDir[0], viewDir[1], viewDir[2]);
 			auto ray = (m_AxesViewDir->at(i) - (focalP));
@@ -259,7 +260,7 @@ void iAVRHistogramPairVis::rotateVisualization(double y)
 		transform->RotateY(-y);
 		transform->Translate(m_centerOfVis[0], m_centerOfVis[1], m_centerOfVis[2]);
 
-		for (int i = 0; i < m_axesPoly->size(); i++)
+		for (size_t i = 0; i < m_axesPoly->size(); i++)
 		{
 			vtkSmartPointer<vtkTransformPolyDataFilter> transformFilter = vtkSmartPointer<vtkTransformPolyDataFilter>::New();
 
@@ -270,7 +271,7 @@ void iAVRHistogramPairVis::rotateVisualization(double y)
 			transformFilter->Update();
 			m_axesPoly->at(i) = transformFilter->GetOutput();
 
-			for (int d = 0; d < m_axesMarksPoly->at(i).size(); d++)
+			for (size_t d = 0; d < m_axesMarksPoly->at(i).size(); d++)
 			{
 				transformFilter = vtkSmartPointer<vtkTransformPolyDataFilter>::New();
 				transformFilter->SetInputData(m_axesMarksPoly->at(i).at(d));
@@ -289,9 +290,9 @@ void iAVRHistogramPairVis::rotateVisualization(double y)
 			currentTitleLabel->SetPosition(transform->TransformPoint(currentTitleLabel->GetPosition()));
 			currentTitleLabel->Modified();
 
-			for (int k = 0; k < m_axisLabelActor->at(i).size(); k++)
+			for (size_t k = 0; k < m_axisLabelActor->at(i).size(); k++)
 			{
-				for (int j = 0; j < m_axisLabelActor->at(i).at(k).size(); j++)
+				for (size_t j = 0; j < m_axisLabelActor->at(i).at(k).size(); j++)
 				{
 					auto currentLabel = m_axisLabelActor->at(i).at(k).at(j).getTextActor();
 					currentLabel->SetPosition(transform->TransformPoint(currentLabel->GetPosition()));
@@ -325,7 +326,7 @@ void iAVRHistogramPairVis::flipThroughHistograms(double flipDir)
 	transform->RotateY(vtkMath::DegreesFromRadians(axisAngle) * flipDir);
 	transform->Translate(m_centerOfVis[0], m_centerOfVis[1], m_centerOfVis[2]);
 
-	for (int i = 0; i < m_axesPoly->size(); i++)
+	for (size_t i = 0; i < m_axesPoly->size(); i++)
 	{
 		vtkSmartPointer<vtkTransformPolyDataFilter> transformFilter = vtkSmartPointer<vtkTransformPolyDataFilter>::New();
 
@@ -338,7 +339,7 @@ void iAVRHistogramPairVis::flipThroughHistograms(double flipDir)
 			transformFilter->Update();
 			m_axesPoly->at(i) = transformFilter->GetOutput();
 
-			for (int d = 0; d < m_axesMarksPoly->at(i).size(); d++)
+			for (size_t d = 0; d < m_axesMarksPoly->at(i).size(); d++)
 			{
 				transformFilter = vtkSmartPointer<vtkTransformPolyDataFilter>::New();
 				transformFilter->SetInputData(m_axesMarksPoly->at(i).at(d));
@@ -357,9 +358,9 @@ void iAVRHistogramPairVis::flipThroughHistograms(double flipDir)
 			currentTitleLabel->SetPosition(transformFront->TransformPoint(currentTitleLabel->GetPosition()));
 			currentTitleLabel->Modified();
 
-			for (int k = 0; k < m_axisLabelActor->at(i).size(); k++)
+			for (size_t k = 0; k < m_axisLabelActor->at(i).size(); k++)
 			{
-				for (int j = 0; j < m_axisLabelActor->at(i).at(k).size(); j++)
+				for (size_t j = 0; j < m_axisLabelActor->at(i).at(k).size(); j++)
 				{
 					auto currentLabel = m_axisLabelActor->at(i).at(k).at(j).getTextActor();
 					currentLabel->SetPosition(transformFront->TransformPoint(currentLabel->GetPosition()));
@@ -377,7 +378,7 @@ void iAVRHistogramPairVis::flipThroughHistograms(double flipDir)
 			transformFilter->Update();
 			m_axesPoly->at(i) = transformFilter->GetOutput();
 
-			for (int d = 0; d < m_axesMarksPoly->at(i).size(); d++)
+			for (size_t d = 0; d < m_axesMarksPoly->at(i).size(); d++)
 			{
 				transformFilter = vtkSmartPointer<vtkTransformPolyDataFilter>::New();
 				transformFilter->SetInputData(m_axesMarksPoly->at(i).at(d));
@@ -396,9 +397,9 @@ void iAVRHistogramPairVis::flipThroughHistograms(double flipDir)
 			currentTitleLabel->SetPosition(transform->TransformPoint(currentTitleLabel->GetPosition()));
 			currentTitleLabel->Modified();
 
-			for (int k = 0; k < m_axisLabelActor->at(i).size(); k++)
+			for (size_t k = 0; k < m_axisLabelActor->at(i).size(); k++)
 			{
-				for (int j = 0; j < m_axisLabelActor->at(i).at(k).size(); j++)
+				for (size_t j = 0; j < m_axisLabelActor->at(i).at(k).size(); j++)
 				{
 					auto currentLabel = m_axisLabelActor->at(i).at(k).at(j).getTextActor();
 					currentLabel->SetPosition(transform->TransformPoint(currentLabel->GetPosition()));
@@ -413,8 +414,8 @@ void iAVRHistogramPairVis::flipThroughHistograms(double flipDir)
 
 	for (int pos = 0; pos < 2; pos++)
 	{
-		if (m_frontAxes[pos] < 0) m_frontAxes[pos] = m_axesPoly->size() - 1;
-		if (m_frontAxes[pos] > m_axesPoly->size() - 1) m_frontAxes[pos] = 0;
+		if (m_frontAxes[pos] < 0) m_frontAxes[pos] = static_cast<int>(m_axesPoly->size() - 1);
+		if (m_frontAxes[pos] > static_cast<int>(m_axesPoly->size()) - 1) m_frontAxes[pos] = 0;
 	}
 
 	drawAxes(m_axisInView);
@@ -457,9 +458,9 @@ void iAVRHistogramPairVis::showHistogramInView()
 		{
 			//Delete old
 			m_axisTitleActor->at(currentlyShownAxis).hide();
-			for (int j = 0; j < m_axisLabelActor->at(currentlyShownAxis).size(); j++)
+			for (size_t j = 0; j < m_axisLabelActor->at(currentlyShownAxis).size(); j++)
 			{
-				for (int k = 0; k < m_axisLabelActor->at(currentlyShownAxis).at(j).size(); k++)
+				for (size_t k = 0; k < m_axisLabelActor->at(currentlyShownAxis).at(j).size(); k++)
 				{
 					m_axisLabelActor->at(currentlyShownAxis).at(j).at(k).hide();
 				}
@@ -471,9 +472,9 @@ void iAVRHistogramPairVis::showHistogramInView()
 
 		//Create new
 		m_axisTitleActor->at(m_axisInView).show();
-		for (int j = 0; j < m_axisLabelActor->at(m_axisInView).size(); j++)
+		for (size_t j = 0; j < m_axisLabelActor->at(m_axisInView).size(); j++)
 		{
-			for (int k = 0; k < m_axisLabelActor->at(m_axisInView).at(j).size(); k++)
+			for (size_t k = 0; k < m_axisLabelActor->at(m_axisInView).at(j).size(); k++)
 			{
 				m_axisLabelActor->at(m_axisInView).at(j).at(k).show();
 			}
@@ -505,7 +506,7 @@ void iAVRHistogramPairVis::drawAxes(int visibleAxis)
 		vtkSmartPointer<vtkAppendPolyData> appendActiveFilter = vtkSmartPointer<vtkAppendPolyData>::New();
 		vtkSmartPointer<vtkAppendPolyData> appendInactiveFilter = vtkSmartPointer<vtkAppendPolyData>::New();
 
-		for (int axisPoly = 0; axisPoly < m_axesPoly->size(); axisPoly++)
+		for (size_t axisPoly = 0; axisPoly < m_axesPoly->size(); axisPoly++)
 		{
 			if (axisPoly == visibleAxis)
 			{

@@ -28,7 +28,6 @@
 #include "ui_InSpectr.h"
 
 #include <iARendererViewSync.h>
-#include <iAVtkWidgetFwd.h>
 #include <qthelper/iAQTtoUIConnector.h>
 
 #include <vtkSmartPointer.h>
@@ -210,5 +209,5 @@ private:
 	QVector<iACharacteristicEnergy>                m_characteristicEnergies;
 	QDockWidget *                                  m_pieChartContainer;
 	QSharedPointer<iAPeriodicTableListener>        m_periodicTableListener;
-	iAVtkOldWidget *                               m_colormapWidget;
+	iAQVTKWidget *                                 m_colormapWidget;
 };

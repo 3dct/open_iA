@@ -54,8 +54,6 @@ IF (MSVC)
 	MESSAGE(STATUS "Compiler: Visual C++ (MSVC_VERSION ${MSVC_VERSION} / ${CMAKE_CXX_COMPILER_VERSION})")
 	set (BUILD_INFO "${BUILD_INFO}    \"Compiler: Visual C++ (MSVC_VERSION ${MSVC_VERSION} / ${CMAKE_CXX_COMPILER_VERSION})\\n\"\n")
 	set (BUILD_INFO "${BUILD_INFO}    \"Windows SDK: ${CMAKE_VS_WINDOWS_TARGET_PLATFORM_VERSION}\\n\"\n")
-	# Apply file grouping based on regular expressions for Visual Studio IDE.
-	SOURCE_GROUP("UI Files" REGULAR_EXPRESSION "[.](ui|qrc)$")
 ELSEIF (CMAKE_CXX_COMPILER_ID MATCHES "Clang")
 	MESSAGE(STATUS "Compiler: Clang (${CMAKE_CXX_COMPILER_VERSION})")
 	set (BUILD_INFO "${BUILD_INFO}    \"Compiler: Clang (Version ${CMAKE_CXX_COMPILER_VERSION})\\n\"\n")
@@ -200,16 +198,17 @@ MESSAGE(STATUS "VTK: ${VTK_VERSION} in ${VTK_DIR}.")
 IF (VTK_VERSION VERSION_LESS "8.0.0")
 	MESSAGE(FATAL_ERROR "Your VTK version is too old. Please use VTK >= 8.0")
 ENDIF()
+if (VTK_VERSION VERSION_LESS "8.2.0" AND "${VTK_RENDERING_BACKEND}" STREQUAL "OpenGL")
+	MESSAGE(FATAL_ERROR "VTK was built with the old OpenGL backend; please switch to VTK_RENDERING_BACKEND=OpenGL2, or use a newer VTK version (VTK >= 8.2.0)!")
+endif()
 SET (VTK_LIB_PREFIX "VTK::")
 IF (VTK_VERSION VERSION_LESS "9.0.0")
 	SET (VTK_COMP_PREFIX "vtk")
 	SET (VTK_BASE_LIB_LIST kwiml)
 SET (VTK_LIB_PREFIX "vtk")
 ELSE()
-	SET (VTK_RENDERING_BACKEND "OpenGL2")     # peculiarity about VTK 9: it sets VTK_RENDERING_BACKEND to "OpenGL", but for our purposes, it behaves exactly like when previously it was set to OpenGL2. The VTK_RENDERING_BACKEND also isn't exposed as user parameter anymore.
 	SET (VTK_COMP_PREFIX "")
 ENDIF()
-MESSAGE(STATUS "    Rendering Backend: ${VTK_RENDERING_BACKEND}")
 SET (VTK_COMPONENTS
 	${VTK_COMP_PREFIX}FiltersModeling         # for vtkRotationalExtrusionFilter, vtkOutlineFilter
 	${VTK_COMP_PREFIX}InteractionImage        # for vtkImageViewer2
@@ -218,9 +217,9 @@ SET (VTK_COMPONENTS
 	${VTK_COMP_PREFIX}IOGeometry              # for vtkSTLReader/Writer
 	${VTK_COMP_PREFIX}IOMovie                 # for vtkGenericMovieWriter
 	${VTK_COMP_PREFIX}RenderingAnnotation     # for vtkAnnotatedCubeActor, vtkCaptionActor, vtkScalarBarActor
-	${VTK_COMP_PREFIX}RenderingContext${VTK_RENDERING_BACKEND} # required, otherwise 3D renderer CRASHES somewhere with a nullptr access in vtkContextActor::GetDevice !!!
+	${VTK_COMP_PREFIX}RenderingContextOpenGL2 # required, otherwise 3D renderer CRASHES somewhere with a nullptr access in vtkContextActor::GetDevice !!!
 	${VTK_COMP_PREFIX}RenderingImage          # for vtkImageResliceMapper
-	${VTK_COMP_PREFIX}RenderingVolume${VTK_RENDERING_BACKEND}  # for volume rendering
+	${VTK_COMP_PREFIX}RenderingVolumeOpenGL2  # for volume rendering
 	${VTK_COMP_PREFIX}RenderingQt             # for vtkQImageToImageSource, also pulls in vtkGUISupportQt (for QVTKWidgetOpenGL)
 	${VTK_COMP_PREFIX}ViewsContext2D          # for vtkContextView, vtkContextInteractorStyle
 	${VTK_COMP_PREFIX}ViewsInfovis)           # for vtkGraphItem
@@ -238,14 +237,6 @@ IF (VTK_MAJOR_VERSION GREATER_EQUAL 9)
 		InfovisLayout               # for vtkGraphLayoutStrategy used in CompVis
 		IOXML                       # for vtkXMLImageDataReader used in iAIO
 	)
-ENDIF()
-IF ("${VTK_RENDERING_BACKEND}" STREQUAL "OpenGL2")
-	add_compile_definitions(VTK_OPENGL2_BACKEND)
-ELSE()
-	IF (MSVC)
-		ADD_COMPILE_OPTIONS(/wd4081)
-	ENDIF()
-	LIST (APPEND VTK_COMPONENTS vtkGUISupportQtOpenGL)    # for QVTKWidget2
 ENDIF()
 IF ("${vtkRenderingOSPRay_LOADED}")
 	add_compile_definitions(VTK_OSPRAY_AVAILABLE)
@@ -327,9 +318,6 @@ ELSE()
 	MESSAGE(WARNING "    Video: No encoder available! You will not be able to record videos.")
 	SET (VTK_VIDEO_SUPPORT "off")
 ENDIF()
-if (VTK_MAJOR_VERSION LESS 9)
-	set(BUILD_INFO_VTK_DETAILS "Backend: ${VTK_RENDERING_BACKEND}, ")
-endif ()
 set (BUILD_INFO_VTK_DETAILS "${BUILD_INFO_VTK_DETAILS}OpenVR: ${BUILD_INFO_VTK_VR_SUPPORT}, Video: ${VTK_VIDEO_SUPPORT}")
 set (BUILD_INFO_VTK "VTK: ${VTK_VERSION} (${BUILD_INFO_VTK_DETAILS})")
 set (BUILD_INFO "${BUILD_INFO}    \"${BUILD_INFO_VTK}\\n\"\n")

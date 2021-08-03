@@ -5,7 +5,7 @@
 #include "vtkSmartPointer.h"
 #include "vtkTable.h"
 
-#include "iACsvDataStorage.h";
+#include "iACsvDataStorage.h"
 
 namespace Correlation
 {
@@ -29,7 +29,7 @@ private:
 
 	vtkSmartPointer<vtkTable> toVtkTable(QList<csvFileData>* data);
 
-	vtkSmartPointer<vtkCorrelativeStatistics> m_correlationFilter;
+	
 
 	//stores the table with all object for all datasets
 	vtkSmartPointer<vtkTable> m_inputTable;
@@ -44,5 +44,7 @@ private:
 	//for each column/attribute name a map of corresponding other column names is stored and its resulting correlation coefficient
 	// Attr1 = < <Attr2, 0.9>, <Attr3, 0.1>, .... >
 	std::map<QString, Correlation::CorrelationStore>* m_correlations;
+
+	vtkSmartPointer<vtkCorrelativeStatistics> m_correlationFilter;
 
 };

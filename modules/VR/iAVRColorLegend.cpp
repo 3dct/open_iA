@@ -82,7 +82,7 @@ std::vector<QColor>* iAVRColorLegend::getColors(int octreeLevel, int feature, st
 {
 	std::vector<QColor>* colors = new std::vector<QColor>(calculatedValues->at(octreeLevel).at(feature).size(), QColor());
 
-	for (int region = 0; region < calculatedValues->at(octreeLevel).at(feature).size(); region++)
+	for (size_t region = 0; region < calculatedValues->at(octreeLevel).at(feature).size(); region++)
 	{
 		double rgba[3] = { 0,0,0 };
 		//double val = histogramNormalization(m_calculatedAverage->at(octreeLevel).at(feature).at(region),0,1,min,max);
@@ -124,7 +124,7 @@ void iAVRColorLegend::calculateLegend(double physicalScale)
 
 	QString text = "";
 
-	for (int i = 0; i < m_lut->GetNumberOfAvailableColors(); i++)
+	for (vtkIdType i = 0; i < m_lut->GetNumberOfAvailableColors(); i++)
 	{
 		double rgba[4];
 		double value = max - (subRange * i);
@@ -184,7 +184,8 @@ void iAVRColorLegend::calculateLegend(double physicalScale)
 	titleTextSource->SetPosition(actorBounds[0], actorBounds[3] + initialTextOffset, actorBounds[4]);
 	titleTextSource->SetScale(physicalScale * 0.0008, physicalScale * 0.00085, 1);
 
-	for (int i = 0; i < 3; i++)
+	
+	for(int i = 0; i < 3; i++)
 	{
 		titleFieldScale[i] = titleTextSource->GetScale()[i];
 		textFieldScale[i] = textSource->GetScale()[i];
@@ -246,15 +247,15 @@ void iAVRColorLegend::setTitle(QString title)
 //! Calculates the Lookuptable (LUT) based on the range from min to max and a given color scheme
 vtkSmartPointer<vtkLookupTable> iAVRColorLegend::calculateLUT(double min, double max, std::vector<QColor> colorScheme)
 {
-	int schemeSize = colorScheme.size();
+	auto schemeSize = colorScheme.size();
 	m_lut = vtkSmartPointer<vtkLookupTable>::New();
 
 	m_lut->SetNumberOfTableValues(schemeSize);
 	m_lut->Build();
 
-	for (int i = 0; i < schemeSize; i++)
+	for (size_t i = 0; i < schemeSize; i++)
 	{
-		int temp = schemeSize - 1 - i;
+		auto temp = schemeSize - 1 - i;
 		m_lut->SetTableValue(i, colorScheme.at(temp).redF(), colorScheme.at(temp).greenF(), colorScheme.at(temp).blueF());
 	}
 

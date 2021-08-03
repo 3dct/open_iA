@@ -32,10 +32,6 @@
 #include <vtkCallbackCommand.h>
 #include <vtkTransform.h>
 
-//Qt
-#include <QDockWidget>
-#include "QVTKOpenGLNativeWidget.h"
-
 #include <tuple>
 
 
@@ -84,7 +80,7 @@ void iACompUniformTableInteractorStyle::OnKeyRelease()
 			//only one actor is allowed to be picked --> otherwise the calculation is not working
 			if (m_picked->size() == 1)
 			{
-				m_visualization->drawHistogramTableAccordingToCellSimilarity(m_visualization->getBins(), m_picked);
+				m_visualization->drawHistogramTableAccordingToCellSimilarity(m_picked);
 
 				Pick::copyPickedMap(m_picked, m_pickedOld);
 				//reset selection variables
@@ -343,7 +339,7 @@ void iACompUniformTableInteractorStyle::OnRightButtonDown()
 	else
 	{	//order datasets according to every bin
 		m_visualization->highlightSelectedRow(pickedA);
-		m_visualization->drawHistogramTableAccordingToSimilarity(m_visualization->getBins(), pickedA);
+		m_visualization->drawHistogramTableAccordingToSimilarity(pickedA);
 	}
 }
 
@@ -462,6 +458,7 @@ void iACompUniformTableInteractorStyle::setUniformTableVisualization(iACompUnifo
 	m_visualization = visualization;
 }
 
+
 //void iACompUniformTableInteractorStyle::updateCharts()
 //{
 //	QList<bin::BinType*>* zoomedRowDataMDS;
@@ -495,7 +492,7 @@ std::map<int, std::vector<double>>* iACompUniformTableInteractorStyle::calculate
 	//get number of all object in this dataset
 	std::vector<int>* amountObjectsEveryDataset = m_visualization->getHistogramVis()->getAmountObjectsEveryDataset();
 
-	for(int i = 0; i < zoomedRowData->size(); i++)
+	for(int i = 0; i < ((int)zoomedRowData->size()); i++)
 	{
 		std::vector<double> container = std::vector<double>(2, 0);
 		double totalNumber = 0;
@@ -506,7 +503,7 @@ std::map<int, std::vector<double>>* iACompUniformTableInteractorStyle::calculate
 
 		//get number of picked objects
 		bin::BinType* bins = zoomedRowData->at(i);
-		for (int binInd = 0; binInd < bins->size(); binInd++)
+		for (int binInd = 0; binInd < ((int)bins->size()); binInd++)
 		{ //sum over all bins to get amount of picked objects
 			pickedNumber += bins->at(binInd).size();
 		}
@@ -529,7 +526,7 @@ void iACompUniformTableInteractorStyle::setPickList(std::vector<vtkSmartPointer<
 {
 	m_actorPicker->InitializePickList();
 
-	for (int i = 0; i < originalRowActors->size(); i++)
+	for (int i = 0; i < ((int)originalRowActors->size()); i++)
 	{
 		m_actorPicker->AddPickList(originalRowActors->at(i));
 	}

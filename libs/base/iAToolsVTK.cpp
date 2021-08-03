@@ -56,7 +56,6 @@ vtkSmartPointer<vtkImageData> allocateImage(int vtkType, int const dimensions[3]
 	return result;
 }
 
-
 vtkSmartPointer<vtkImageData> allocateImage(int vtkType, int const dimensions[3], double const spacing[3])
 {
 	return allocateImage(vtkType, dimensions, spacing, 1);
@@ -65,6 +64,40 @@ vtkSmartPointer<vtkImageData> allocateImage(int vtkType, int const dimensions[3]
 vtkSmartPointer<vtkImageData> allocateImage(vtkSmartPointer<vtkImageData> img)
 {
 	return allocateImage(img->GetScalarType(), img->GetDimensions(), img->GetSpacing());
+}
+
+void fillImage(vtkSmartPointer<vtkImageData> img, double const value)
+{
+	// measure performance + improve!
+	// iATypedCallHelper together with std::fill / memset maybe?
+	FOR_VTKIMG_PIXELS(img, x, y, z)
+	{
+		img->SetScalarComponentFromDouble(x, y, z, 0, value);
+	}
+}
+
+void addImages(vtkSmartPointer<vtkImageData> imgDst, vtkSmartPointer<vtkImageData> const imgToAdd)
+{
+	// check for same dimensions/spacing/origin:
+	for (int i=0; i<3; ++i)
+	{
+		assert(imgDst->GetDimensions()[i] == imgToAdd->GetDimensions()[i]);
+		assert(imgDst->GetSpacing()[i] == imgToAdd->GetSpacing()[i]);
+		assert(imgDst->GetOrigin()[i] == imgToAdd->GetOrigin()[i]);
+	}
+	FOR_VTKIMG_PIXELS(imgDst, x, y, z)
+	{
+		imgDst->SetScalarComponentFromDouble(x, y, z, 0,
+			imgDst->GetScalarComponentAsDouble(x, y, z, 0) + imgToAdd->GetScalarComponentAsDouble(x, y, z, 0));
+	}
+}
+
+iAbase_API void multiplyImage(vtkSmartPointer<vtkImageData> imgDst, double value)
+{
+	FOR_VTKIMG_PIXELS(imgDst, x, y, z)
+	{
+		imgDst->SetScalarComponentFromDouble(x, y, z, 0, imgDst->GetScalarComponentAsDouble(x, y, z, 0) * value);
+	}
 }
 
 
@@ -76,13 +109,17 @@ void storeImage(vtkSmartPointer<vtkImageData> img, QString const & filename, boo
 	iAITKIO::writeFile(filename, con.itkImage(), pixelType, useCompression);
 }
 
-vtkSmartPointer<vtkImageData> readImage(QString const & filename, bool releaseFlag)
+void readImage(QString const & filename, bool releaseFlag, vtkSmartPointer<vtkImageData>& ptr)
 {
+	ptr = vtkSmartPointer<vtkImageData>::New();
 	iAConnector con;
 	iAITKIO::ScalarPixelType pixelType;
 	iAITKIO::ImagePointer img = iAITKIO::readFile(filename, pixelType, releaseFlag);
 	con.setImage(img);
-	return con.vtkImage();
+	// only works with deep copy, not with returning vtkImage
+	// assumption: ITK smart pointer goes out of scope, deletes image, and
+	// invalidates "linked" vtk image
+	ptr->DeepCopy(con.vtkImage());
 }
 
 void writeSingleSliceImage(QString const & filename, vtkImageData* img)

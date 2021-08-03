@@ -20,6 +20,7 @@
 * ************************************************************************************/
 #include "iASignallingWidget.h"
 
+#include <QApplication>    // for qApp->palette()
 #include <QMouseEvent>
 #include <QPainter>
 
@@ -33,18 +34,8 @@ void iASignallingWidget::mouseReleaseEvent(QMouseEvent* ev)
 	emit clicked(ev->button(), ev->modifiers());
 }
 
-void iASignallingWidget::setBackgroundColor(QColor const & color)
-{
-	m_bgColor = color;
-	update();
-}
-
 void iASignallingWidget::paintEvent(QPaintEvent* /*ev*/)
 {
 	QPainter painter(this);
-	if (!m_bgColor.isValid())
-	{
-		m_bgColor = QWidget::palette().color(QWidget::backgroundRole());
-	}
-	painter.fillRect(rect(), QBrush(m_bgColor));
+	painter.fillRect(rect(), qApp->palette().color(QWidget::backgroundRole()));
 }

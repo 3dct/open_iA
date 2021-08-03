@@ -18,63 +18,24 @@
 * Contact: FH OÖ Forschungs & Entwicklungs GmbH, Campus Wels, CT-Gruppe,              *
 *          Stelzhamerstraße 23, 4600 Wels / Austria, Email: c.heinzl@fh-wels.at       *
 * ************************************************************************************/
-#include "iAPCView.h"
+#pragma once
 
-#include <iAQtVTKBindings.h>
-#include <iAVtkWidget.h>
+#include <QLabel>
 
-#include <vtkContextScene.h>
-#include <vtkContextView.h>
-#include <vtkChartParallelCoordinates.h>
-#include <vtkGenericOpenGLRenderWindow.h>
-#include <vtkPlot.h>
-#include <vtkRenderWindow.h>
-#include <vtkTable.h>
-
-#include <QTableWidget>
-
-iAPCView::iAPCView( QWidget * parent /*= 0*/, Qt::WindowFlags f /*= 0 */ )
-	: PCViewConnector( parent, f ),
-	m_view( vtkSmartPointer<vtkContextView>::New() ),
-	m_chart( vtkSmartPointer<vtkChartParallelCoordinates>::New() )
+class iAClickableLabel: public QLabel
 {
-	CREATE_OLDVTKWIDGET(m_widget);
-	QHBoxLayout *layoutHB = new QHBoxLayout( this );
-	layoutHB->setContentsMargins(0, 0, 0, 0);
-	layoutHB->addWidget( m_widget );
-	PCContainer->setLayout( layoutHB );
+	Q_OBJECT
+public:
+	iAClickableLabel(QString const& text, bool vertical);
+signals:
+	void dblClicked();
+	void clicked();
+private:
+	void mouseDoubleClickEvent(QMouseEvent* ev) override;
+	void mouseReleaseEvent(QMouseEvent* ev) override;
+	void paintEvent(QPaintEvent*) override;
+	QSize sizeHint() const override;
+	QSize minimumSizeHint() const override;
 
-	m_view->GetScene()->AddItem( m_chart );
-#if VTK_VERSION_NUMBER < VTK_VERSION_CHECK(9, 0, 0)
-	m_view->SetInteractor( m_widget->GetInteractor() );
-#else
-	m_view->SetInteractor( m_widget->interactor() );
-#endif
-	m_view->GetRenderWindow()->LineSmoothingOn();
-	m_view->GetRenderWindow()->PointSmoothingOn();
-	m_view->GetRenderWindow()->PolygonSmoothingOn();
-
-#if VTK_VERSION_NUMBER < VTK_VERSION_CHECK(9, 0, 0)
-	m_widget->SetRenderWindow( m_view->GetRenderWindow() );
-#else
-	m_widget->setRenderWindow( m_view->GetRenderWindow() );
-#endif
-}
-
-iAPCView::~iAPCView()
-{}
-
-void iAPCView::SetData( const QTableWidget * newData )
-{
-	//Init PC
-	vtkSmartPointer<vtkTable> matrixInputTable = vtkSmartPointer<vtkTable>::New();
-	matrixInputTable->DeepCopy( convertQTableWidgetToVTKTable(newData) );
-	m_chart->GetPlot( 0 )->SetInputData( matrixInputTable );
-	ChartModified();
-}
-
-void iAPCView::ChartModified()
-{
-	m_chart->Update();
-	m_view->Render();
-}
+	bool m_vertical;
+};

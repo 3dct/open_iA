@@ -50,7 +50,7 @@ protected:
 	void applyWindow( ImageScalarType &val_out, const double( &windowRange )[2] );
 	void findPeak( int x, int y );
 	void findPeakRanges();
-	void binsFromPos( const int( &pos )[2], int( &bins_out )[2] );
+	void binsFromPos(double const pos[2], int (&bins_out)[2]);
 	void posFromBins( const int( &bins )[2], int( &pos_out )[2] );
 signals:
 	void energyBinsSelectedSignal( int binX, int binY );

@@ -48,11 +48,12 @@ private slots:
 	//! Method to load fiaker project (called on Tools->FIAKER->Load project)
 	//! Deprecated, use open_iA project feature instead!
 	void loadFiAKErProject();
+
 	void toggleDockWidgetTitleBars();
 	void toggleSettings();
 private:
 	iAFiAKErToolBar* m_toolbar = nullptr;
 	QString m_lastPath, m_lastFormat;
 	double m_lastTimeStepOffset;
-	bool m_lastUseStepData, m_lastShowPreviews;
+	bool m_lastUseStepData, m_lastShowPreviews, m_lastShowCharts;
 };

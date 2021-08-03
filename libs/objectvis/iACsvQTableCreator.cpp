@@ -39,12 +39,12 @@ void iACsvQTableCreator::initialize(QStringList const & headers, size_t const ro
 	m_table->setHorizontalHeaderLabels(headers);
 }
 
-void iACsvQTableCreator::addRow(size_t row, QStringList const & values)
+void iACsvQTableCreator::addRow(size_t row, std::vector<double> const & values)
 {
 	uint col = 0;
 	for (const auto &value : values)
 	{                   // we made sure in initialize(...) that rowCount < int_max
-		m_table->setItem(static_cast<int>(row), col, new QTableWidgetItem(value));
+		m_table->setItem(static_cast<int>(row), col, new QTableWidgetItem(QString::number(value, 'f', 10)));
 		++col;
 	}
 }

@@ -31,7 +31,6 @@ class iAqthelper_API iADockWidgetWrapper: public QDockWidget
 {
 public:
 	iADockWidgetWrapper(QWidget* widget, QString const & windowTitle, QString const & objectName);
-	iADockWidgetWrapper(QString const & windowTitle, QString const & objectName);
 	void toggleTitleBar();
 	bool isTitleBarVisible() const;
 private:

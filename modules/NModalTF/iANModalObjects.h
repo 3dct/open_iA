@@ -65,7 +65,11 @@ inline bool operator==(const iANModalSeed& i1, const iANModalSeed& i2)
 	return i1.x == i2.x && i1.y == i2.y && i1.z == i2.z && i1.overlayImageId == i2.overlayImageId;
 }
 
+#if QT_VERSION < QT_VERSION_CHECK(6, 0, 0)
 inline uint qHash(const iANModalSeed& key, uint seed)
+#else
+inline size_t qHash(const iANModalSeed& key, size_t seed)
+#endif
 {
 	return qHash(key.x ^ key.y ^ key.z ^ key.overlayImageId, seed);
 }
@@ -94,7 +98,11 @@ inline bool operator==(const iANModalLabel& i1, const iANModalLabel& i2)
 	return i1.id == i2.id;
 }
 
+#if QT_VERSION < QT_VERSION_CHECK(6, 0, 0)
 inline uint qHash(const iANModalLabel& key, uint seed)
+#else
+inline size_t qHash(const iANModalLabel& key, size_t seed)
+#endif
 {
 	return qHash(key.id, seed);
 }

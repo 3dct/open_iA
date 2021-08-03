@@ -26,6 +26,8 @@
 #include <iAAttributeDescriptor.h>
 #include <iALog.h>
 #include <iAFileUtils.h>
+#include <iAStringHelper.h>
+#include <qthelper/iAQtEndl.h>
 
 #include <QFile>
 #include <QTextStream>
@@ -136,7 +138,7 @@ QSharedPointer<iASamplingResults> iASamplingResults::load(QString const & smpFil
 	if (result->loadInternal(MakeAbsolute(fileInfo.absolutePath(), parameterSetFileName),
 		MakeAbsolute(fileInfo.absolutePath(), derivedOutputFileName)))
 	{
-		result->m_fileName = smpFileName;
+		result->m_rangeFileName = smpFileName;
 		return result;
 	}
 	LOG(lvlError, "Sampling: Internal loading failed.");
@@ -144,17 +146,17 @@ QSharedPointer<iASamplingResults> iASamplingResults::load(QString const & smpFil
 }
 
 
-bool iASamplingResults::store(QString const & fileName,
+bool iASamplingResults::store(QString const & rangeFileName,
 	QString const & parameterSetFileName,
 	QString const & derivedOutputFileName)
 {
 	m_parameterSetFile = parameterSetFileName;
 	m_derivedOutputFile = derivedOutputFileName;
 	// write parameter ranges:
-	QFile paramRangeFile(fileName);
+	QFile paramRangeFile(rangeFileName);
 	if (!paramRangeFile.open(QIODevice::WriteOnly | QIODevice::Text))
 	{
-		LOG(lvlError, QString("Could not open parameter range file '%1' for writing!").arg(fileName));
+		LOG(lvlError, QString("Could not open parameter range file '%1' for writing!").arg(rangeFileName));
 		return false;
 	}
 	QTextStream out(&paramRangeFile);
@@ -164,27 +166,17 @@ bool iASamplingResults::store(QString const & fileName,
 	out.setEncoding(QStringConverter::Utf8);
 #endif
 	QFileInfo fi(paramRangeFile);
-#if QT_VERSION >= QT_VERSION_CHECK(5,14,0)
-	out << SMPFileFormatVersion << Qt::endl;
-	out << "Name" << Output::NameSeparator << m_name << Qt::endl;
-	out << "ParameterSet" << Output::NameSeparator << MakeRelative(fi.absolutePath(), parameterSetFileName) << Qt::endl;
-	out << "DerivedOutput" << Output::NameSeparator << MakeRelative(fi.absolutePath(), derivedOutputFileName) << Qt::endl;
-	out << "SamplingMethod" << Output::NameSeparator << m_samplingMethod << Qt::endl;
-	out << "Executable" << Output::NameSeparator << m_executable << Qt::endl;
-	out << "AdditionalArguments" << Output::NameSeparator << m_additionalArguments << Qt::endl;
-#else
-	out << SMPFileFormatVersion << endl;
-	out << "Name" << Output::NameSeparator << m_name << endl;
-	out << "ParameterSet" << Output::NameSeparator << MakeRelative(fi.absolutePath(), parameterSetFileName) << endl;
-	out << "DerivedOutput" << Output::NameSeparator << MakeRelative(fi.absolutePath(), derivedOutputFileName) << endl;
-	out << "SamplingMethod" << Output::NameSeparator << m_samplingMethod << endl;
-	out << "Executable" << Output::NameSeparator << m_executable << endl;
-	out << "AdditionalArguments" << Output::NameSeparator << m_additionalArguments << endl;
-#endif
+	out << SMPFileFormatVersion << QTENDL;
+	out << "Name" << Output::NameSeparator << m_name << QTENDL;
+	out << "ParameterSet" << Output::NameSeparator << MakeRelative(fi.absolutePath(), parameterSetFileName) << QTENDL;
+	out << "DerivedOutput" << Output::NameSeparator << MakeRelative(fi.absolutePath(), derivedOutputFileName) << QTENDL;
+	out << "SamplingMethod" << Output::NameSeparator << m_samplingMethod << QTENDL;
+	out << "Executable" << Output::NameSeparator << m_executable << QTENDL;
+	out << "AdditionalArguments" << Output::NameSeparator << m_additionalArguments << QTENDL;
 	::storeAttributes(out, *m_attributes.data());
 	paramRangeFile.close();
 
-	m_fileName = fileName;
+	m_rangeFileName = rangeFileName;
 
 	return storeAttributes(iAAttributeDescriptor::Parameter, parameterSetFileName, true) &&
 		storeAttributes(iAAttributeDescriptor::DerivedOutput, derivedOutputFileName, false);
@@ -199,17 +191,30 @@ bool iASamplingResults::storeAttributes(int type, QString const & fileName, bool
 		return false;
 	}
 	QTextStream outParamSet(&paramSetFile);
+	// header:
+	if (id)
+	{
+		outParamSet << "ID" << iASingleResult::ValueSplitString;
+	}
+	// filter attributes for type:
+	iAAttributes typeAttribs;
+	std::copy_if(m_attributes->begin(), m_attributes->end(), std::back_inserter(typeAttribs),
+		[type](QSharedPointer<iAAttributeDescriptor> att) { return att->attribType() == type; });
+	outParamSet << joinAsString((typeAttribs), iASingleResult::ValueSplitString,
+		[](QSharedPointer<iAAttributeDescriptor> const& attrib) { return attrib->name(); });
+	if (type == iAAttributeDescriptor::Parameter)
+	{
+		outParamSet << iASingleResult::ValueSplitString << "Filename";
+	}
+	outParamSet << QTENDL;
+	// values:
 	for (int i = 0; i<m_results.size(); ++i)
 	{
 		if (id)
 		{
 			outParamSet << m_results[i]->id() << iASingleResult::ValueSplitString;
 		}
-#if QT_VERSION >= QT_VERSION_CHECK(5,14,0)
-		outParamSet << m_results[i]->toString(m_attributes, type) << Qt::endl;
-#else
-		outParamSet << m_results[i]->toString(m_attributes, type) << endl;
-#endif
+		outParamSet << m_results[i]->toString(m_attributes, type) << QTENDL;
 	}
 	paramSetFile.close();
 	return true;
@@ -254,13 +259,19 @@ bool iASamplingResults::loadInternal(QString const & parameterSetFileName, QStri
 			// for now, assemble attributes from two files (could be merged in one)
 			attribLine,
 			*this,
-			m_attributes);
-		if (!result)
+			m_attributes,
+			lineNr != 0);   // for line 0, don't show error output (assume it's the header)
+		if (result)
 		{
-			LOG(lvlError, QString("Invalid parameter set / derived output descriptor at line  %1: %2").arg(lineNr).arg(attribLine));
-			return false;
+			m_results.push_back(result);		}
+		else
+		{
+			if (lineNr > 0) // skip potential header
+			{
+				LOG(lvlError, QString("Invalid parameter set / derived output descriptor at line  %1: %2").arg(lineNr).arg(attribLine));
+				return false;
+			}
 		}
-		m_results.push_back(result);
 	}
 	paramFile.close();
 	if (charac)
@@ -314,7 +325,7 @@ QString iASamplingResults::name() const
 
 QString iASamplingResults::fileName() const
 {
-	return m_fileName;
+	return m_rangeFileName;
 }
 
 

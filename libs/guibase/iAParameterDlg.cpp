@@ -29,6 +29,7 @@
 #include "iAStringHelper.h"
 #include "io/iAFileChooserWidget.h"
 #include "iAMdiChild.h"
+#include "ui_CommonInput.h"
 
 #include <vtkImageData.h>
 
@@ -77,16 +78,17 @@ iAParameterDlg::iAParameterDlg(QWidget* parent, QString const& title, ParamListT
 	m_sourceMdiChild(nullptr),
 	m_sourceMdiChildClosed(false),
 	m_widgetList(parameters.size()),
-	m_parameters(parameters)
+	m_parameters(parameters),
+	m_ui(new Ui_CommonInput())
 {
-	setupUi(this);
+	m_ui->setupUi(this);
 	if (title.isEmpty())
 	{
 		LOG(lvlError, "No window title entered. Please give a window title");
 		auto lbl = new QLabel("No window title entered. Please give a window title");
-		gridLayout->addWidget(lbl, 0, 0);
-		buttonBox->button(QDialogButtonBox::Ok)->setEnabled(false);
-		gridLayout->addWidget(buttonBox, 1, 0);
+		m_ui->gridLayout->addWidget(lbl, 0, 0);
+		m_ui->buttonBox->button(QDialogButtonBox::Ok)->setEnabled(false);
+		m_ui->gridLayout->addWidget(m_ui->buttonBox, 1, 0);
 		return;
 	}
 	this->setWindowTitle(title);
@@ -102,7 +104,7 @@ iAParameterDlg::iAParameterDlg(QWidget* parent, QString const& title, ParamListT
 		info->setDocument(doc);
 		info->setReadOnly(true);
 		info->setOpenExternalLinks(true);
-		gridLayout->addWidget(info, 0, 0);
+		m_ui->gridLayout->addWidget(info, 0, 0);
 		// make sure that description can be easily resized; parameters have scroll bar
 		scrollArea->setSizePolicy(QSizePolicy::Expanding, QSizePolicy::Fixed);
 	}
@@ -266,8 +268,8 @@ iAParameterDlg::iAParameterDlg(QWidget* parent, QString const& title, ParamListT
 	pal.setColor(scrollArea->backgroundRole(), Qt::transparent);
 	scrollArea->setPalette(pal);
 
-	gridLayout->addWidget(scrollArea, 1, 0);
-	gridLayout->addWidget(buttonBox, 2, 0);  // add the ok and cancel button to the gridlayout
+	m_ui->gridLayout->addWidget(scrollArea, 1, 0);
+	m_ui->gridLayout->addWidget(m_ui->buttonBox, 2, 0);  // add the ok and cancel button to the gridlayout
 }
 
 void  iAParameterDlg::setSourceMdi(iAMdiChild* child, iAMainWindow* mainWnd)

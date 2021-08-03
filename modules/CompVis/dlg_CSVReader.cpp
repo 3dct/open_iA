@@ -3,13 +3,13 @@
 //Debug
 #include "iALog.h"
 
-#include <QDirIterator.h>
-#include <QFileDialog.h>
-#include <QStringListModel.h>
+#include <QDirIterator>
+#include <QFileDialog>
+#include <QStringListModel>
 #include <QPushButton>
 
 
-dlg_CSVReader::dlg_CSVReader(QWidget *parent /* = 0,*/, Qt::WindowFlags f /* f = 0*/) : QDialog(parent, f)
+dlg_CSVReader::dlg_CSVReader() : QDialog()
 {
 	setupUi(this);
 	connectSignals();
@@ -59,7 +59,7 @@ void dlg_CSVReader::btnDeleteFileClicked()
 
 void dlg_CSVReader::okBtnClicked()
 {
-	m_dataStorage = new iACsvDataStorage(&m_filenames, listView);
+	m_dataStorage = new iACsvDataStorage(&m_filenames);
 
 	this->accept();
 }

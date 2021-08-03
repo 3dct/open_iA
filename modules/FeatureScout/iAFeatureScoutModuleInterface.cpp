@@ -44,6 +44,7 @@
 
 #include <QFileDialog>
 #include <QInputDialog>
+#include <QMenu>
 #include <QMessageBox>
 #include <QSettings>
 #include <QStatusBar>
@@ -133,7 +134,8 @@ void iAFeatureScoutModuleInterface::Initialize()
 	iAProjectRegistry::addProject<iAFeatureScoutProject>(iAFeatureScoutProject::ID);
 	QAction * actionFibreScout = new QAction(tr("FeatureScout"), m_mainWnd);
 	connect(actionFibreScout, &QAction::triggered, this, &iAFeatureScoutModuleInterface::FeatureScout);
-	addToMenuSorted(m_mainWnd->toolsMenu(), actionFibreScout);
+	QMenu* submenu = getOrAddSubMenu(m_mainWnd->toolsMenu(), tr("Feature Analysis"), true);
+	submenu->addAction(actionFibreScout);
 }
 
 void iAFeatureScoutModuleInterface::FeatureScout()
@@ -153,7 +155,7 @@ void iAFeatureScoutModuleInterface::FeatureScout()
 			auto type = guessFeatureType(testCSVFileName);
 			if (type != InvalidObjectType)
 			{
-				dlg.setFormat(type == Voids ? iACsvConfig::LegacyVoidFormat : iACsvConfig::LegacyFiberFormat);
+				dlg.setFormat(type == Voids ? iACsvConfig::FCVoidFormat : iACsvConfig::FCPFiberFormat);
 			}
 		}
 		else
@@ -225,8 +227,8 @@ void iAFeatureScoutModuleInterface::LoadFeatureScoutWithParams(QString const & c
 		return;
 	}
 	iACsvConfig csvConfig = (type != Voids) ?
-		iACsvConfig::getLegacyFiberFormat( csvFileName ):
-		iACsvConfig::getLegacyPoreFormat( csvFileName );
+		iACsvConfig::getFCPFiberFormat( csvFileName ):
+		iACsvConfig::getFCVoidFormat( csvFileName );
 	startFeatureScout(csvConfig);
 }
 

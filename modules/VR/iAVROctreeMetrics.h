@@ -30,12 +30,12 @@ class iAVROctreeMetrics : public iAVRMetrics
 {
 public:
 	iAVROctreeMetrics(vtkTable* objectTable, iACsvIO io, std::vector<iAVROctree*>* octrees);
-	std::vector<std::vector<std::vector<double>>>* getRegionAverage(int octreeLevel, int feature);
+	std::vector<std::vector<std::vector<double>>>* getRegionAverage(vtkIdType octreeLevel, vtkIdType feature);
 	std::vector<std::vector<std::vector<vtkIdType>>>* getMaxCoverageFiberPerRegion();
-	std::vector<double> getMinMaxAvgRegionValues(int octreeLevel, int feature);
-	std::vector<double> getRegionValues(int octreeLevel, int region, int feature);
-	std::vector<std::vector<std::vector<double>>>* getJaccardIndex(int octreeLevel);
-	double getMaxNumberOfFibersInRegion(int octreeLevel);
+	std::vector<double> getMinMaxAvgRegionValues(vtkIdType octreeLevel, vtkIdType feature);
+	std::vector<double> getRegionValues(vtkIdType octreeLevel, vtkIdType region, vtkIdType feature);
+	std::vector<std::vector<std::vector<double>>>* getJaccardIndex(vtkIdType octreeLevel);
+	double getMaxNumberOfFibersInRegion(vtkIdType octreeLevel);
 
 private:
 	//Stores for the [octree level] in an [octree region] the fibers which have the max coverage (Every Fiber can only be in one region)
@@ -48,14 +48,13 @@ private:
 	std::vector<double>* m_maxNumberOffibersInRegions;
 	//Stores the info if at a specific octree [level] a specific [feature] is already calculated
 	std::vector<std::vector<bool>>* isAlreadyCalculated;
-	bool m_maxCoverageisAlreadyCalculated;
 
-	void calculateWeightedAverage(int octreeLevel, int feature);
+	void calculateWeightedAverage(vtkIdType octreeLevel, vtkIdType feature);
 	void calculateMaxCoverageFiberPerRegion();
-	void findBiggestCoverage(int level, int fiber);
-	void calculateJaccardIndex(int level);
-	double calculateJaccardIndex(int level, int region1, int region2);
-	double calculateWeightedJaccardIndex(int level, int region1, int region2);
-	double calculateJaccardDistance(int level, int region1, int region2);
+	void findBiggestCoverage(vtkIdType level, vtkIdType fiber);
+	void calculateJaccardIndex(vtkIdType level);
+	double calculateJaccardIndex(vtkIdType level, vtkIdType region1, vtkIdType region2);
+	double calculateWeightedJaccardIndex(vtkIdType level, vtkIdType region1, vtkIdType region2);
+	double calculateJaccardDistance(vtkIdType level, vtkIdType region1, vtkIdType region2);
 	void calculateMaxNumberOfFibersInRegion();
 };

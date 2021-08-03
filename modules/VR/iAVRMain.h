@@ -67,7 +67,7 @@ enum class iAVROperations {
   DisplayNodeLinkDiagram,
   ChangeMiMDisplacementType,
   ChangeJaccardIndex,
-  RotateVis,
+  FlipHistoBookPages,
   NumberOfOperations
 };
 
@@ -83,12 +83,11 @@ class iAVRMain
 {
 public:
 	iAVRMain(iAVREnvironment* vrEnv, iAVRInteractorStyle* style, vtkTable* objectTable, iACsvIO io, std::map<size_t, std::vector<iAVec3f> > curvedFiberInfo);
-	void startInteraction(vtkEventDataDevice3D* device, double eventPosition[3], double eventOrientation[4], vtkProp3D* pickedProp); //Press, Touch
-	void endInteraction(vtkEventDataDevice3D* device, double eventPosition[3], double eventOrientation[4],vtkProp3D* pickedProp); //Release, Untouch
+	void startInteraction(vtkEventDataDevice3D* device, vtkProp3D* pickedProp, double eventPosition[3], double eventOrientation[4]); //Press, Touch
+	void endInteraction(vtkEventDataDevice3D* device, vtkProp3D* pickedProp, double eventPosition[3], double eventOrientation[4]); //Release, Untouch
 	void onMove(vtkEventDataDevice3D* device, double movePosition[3], double eventOrientation[4]); //Movement
 	void onZoom();
-	void onRotate(double angle);
-	int currentOctreeLevel;
+	vtkIdType currentOctreeLevel;
 
 private:
 	iAVREnvironment* m_vrEnv;
@@ -157,6 +156,6 @@ private:
 	void spawnModelInMiniature(double eventPosition[3], bool hide);
 	void pressLeftTouchpad();
 	void changeMiMDisplacementType();
-	void rotateDistributionVis(double eventPosition[3], bool startAction);
+	void flipDistributionVis();
 	void displayNodeLinkD();
 };

@@ -23,6 +23,7 @@
 #include "iAAttributes.h"
 #include "iASamplingMethodImpl.h"
 #include "iAParameterNames.h"
+#include "ui_samplingSettings.h"
 
 #include <iAFilterSelectionDlg.h>
 #include <iAAttributeDescriptor.h>
@@ -36,6 +37,7 @@
 #include <iAStringHelper.h>
 #include <iAMainWindow.h>
 #include <iAMdiChild.h>
+#include <qthelper/iAQtEndl.h>
 
 #include <iAQFlowLayout.h>
 
@@ -86,69 +88,80 @@ public:
 iASamplingSettingsDlg::iASamplingSettingsDlg(QWidget *parentWdgt,
 	int inputImageCount,
 	iASettings const & values):
-	dlg_samplingSettingsUI(parentWdgt),
-	m_inputImageCount(inputImageCount)
+	QDialog(parentWdgt),
+	m_inputImageCount(inputImageCount),
+	m_ui(new Ui_samplingSettings())
 {
+	m_ui->setupUi(this);
 	// to make sure that the radio button text matches the available options of the filter:
-	rbBuiltIn->setText(atBuiltIn);
-	rbExternal->setText(atExternal);
+	m_ui->rbBuiltIn->setText(atBuiltIn);
+	m_ui->rbExternal->setText(atExternal);
 
-	m_rgAlgorithmType.push_back(rbBuiltIn);
-	m_rgAlgorithmType.push_back(rbExternal);
-	m_widgetMap.insert(spnAlgorithmName, lePipelineName);
+	m_rgAlgorithmType.push_back(m_ui->rbBuiltIn);
+	m_rgAlgorithmType.push_back(m_ui->rbExternal);
+	m_widgetMap.insert(spnAlgorithmName, m_ui->lePipelineName);
 	m_widgetMap.insert(spnAlgorithmType, &m_rgAlgorithmType);
-	m_widgetMap.insert(spnFilter, pbFilterSelect);
-	m_widgetMap.insert(spnExecutable, leExecutable);
-	m_widgetMap.insert(spnParameterDescriptor, leParamDescriptor);
-	m_widgetMap.insert(spnAdditionalArguments, leAdditionalArguments);
-	m_widgetMap.insert(spnSamplingMethod, cbSamplingMethod);
-	m_widgetMap.insert(spnNumberOfSamples, sbNumberOfSamples);
-	m_widgetMap.insert(spnOutputFolder, leOutputFolder);
-	m_widgetMap.insert(spnBaseName, leBaseName);
-	m_widgetMap.insert(spnSubfolderPerSample, cbSeparateFolder);
-	m_widgetMap.insert(spnOverwriteOutput, cbOverwriteOutput);
-	m_widgetMap.insert(spnCompressOutput, cbCompressOutput);
-	m_widgetMap.insert(spnContinueOnError, cbContinueOnError);
-	m_widgetMap.insert(spnComputeDerivedOutput, cbCalcChar);
-	m_widgetMap.insert(spnNumberOfLabels, sbLabelCount);
+	m_widgetMap.insert(spnFilter, m_ui->pbFilterSelect);
+	m_widgetMap.insert(spnExecutable, m_ui->leExecutable);
+	m_widgetMap.insert(spnParameterDescriptor, m_ui->leParamDescriptor);
+	m_widgetMap.insert(spnAdditionalArguments, m_ui->leAdditionalArguments);
+	m_widgetMap.insert(spnSamplingMethod, m_ui->cbSamplingMethod);
+	m_widgetMap.insert(spnNumberOfSamples, m_ui->sbNumberOfSamples);
+	m_widgetMap.insert(spnOutputFolder, m_ui->leOutputFolder);
+	m_widgetMap.insert(spnBaseName, m_ui->leBaseName);
+	m_widgetMap.insert(spnSubfolderPerSample, m_ui->cbSeparateFolder);
+	m_widgetMap.insert(spnOverwriteOutput, m_ui->cbOverwriteOutput);
+	m_widgetMap.insert(spnCompressOutput, m_ui->cbCompressOutput);
+	m_widgetMap.insert(spnContinueOnError, m_ui->cbContinueOnError);
+	m_widgetMap.insert(spnComputeDerivedOutput, m_ui->cbCalcChar);
+	m_widgetMap.insert(spnNumberOfLabels, m_ui->sbLabelCount);
 
-	m_widgetMap.insert(spnBaseSamplingMethod, cbBaseSamplingMethod);
-	m_widgetMap.insert(spnSensitivityDelta, sbSensitivityDelta);
-	m_widgetMap.insert(spnSamplesPerPoint, sbSamplesPerPoint);
+	m_widgetMap.insert(spnBaseSamplingMethod, m_ui->cbBaseSamplingMethod);
+	m_widgetMap.insert(spnStarDelta, m_ui->sbStarDelta);
+	m_widgetMap.insert(spnStarStepNumber, m_ui->sbStarStepNumber);
 
-	m_startLine = parameterLayout->rowCount();
+	m_widgetMap.insert(spnParameterSetFile, m_ui->leParameterSetFile);
+
+	m_startLine = m_ui->parameterLayout->rowCount();
 
 	QStringList methods(samplingMethodNames());
-	cbSamplingMethod->addItems(methods);
-	cbSamplingMethod->setCurrentIndex(1);
+	m_ui->cbSamplingMethod->addItems(methods);
+	m_ui->cbSamplingMethod->setCurrentIndex(1);
 
 	methods.removeAll(iASamplingMethodName::GlobalSensitivity);
-	cbBaseSamplingMethod->addItems(methods);
-	cbBaseSamplingMethod->setCurrentIndex(1);
+	m_ui->cbBaseSamplingMethod->addItems(methods);
+	m_ui->cbBaseSamplingMethod->setCurrentIndex(1);
 
-	QTextDocument* sampleFilterDescDoc = new QTextDocument(textSamplingDescription); // set parent so it will get deleted along with it
+	QTextDocument* sampleFilterDescDoc =
+		new QTextDocument(m_ui->textSamplingDescription);  // set parent so it will get deleted along with it
 	sampleFilterDescDoc->setHtml(SampleFilterDescription);
-	textSamplingDescription->setDocument(sampleFilterDescDoc);
+	m_ui->textSamplingDescription->setDocument(sampleFilterDescDoc);
 
 	setInputsFromMap(values);
 
-	connect(leParamDescriptor, &QLineEdit::editingFinished, this, &iASamplingSettingsDlg::parameterDescriptorChanged);
-	connect(pbChooseOutputFolder, &QPushButton::clicked, this, &iASamplingSettingsDlg::chooseOutputFolder);
-	connect(pbChooseParameterDescriptor, &QPushButton::clicked, this, &iASamplingSettingsDlg::chooseParameterDescriptor);
-	connect(pbChooseExecutable, &QPushButton::clicked, this, &iASamplingSettingsDlg::chooseExecutable);
-	connect(tbSaveSettings, &QToolButton::clicked, this, &iASamplingSettingsDlg::saveSettings);
-	connect(tbLoadSettings, &QToolButton::clicked, this, &iASamplingSettingsDlg::loadSettings);
-	connect(rbBuiltIn, &QRadioButton::toggled, this, &iASamplingSettingsDlg::algoTypeChanged);
-	connect(rbExternal, &QRadioButton::toggled, this, &iASamplingSettingsDlg::algoTypeChanged);
-	connect(pbFilterSelect, &QPushButton::clicked, this, &iASamplingSettingsDlg::selectFilter);
-	connect(leOutputFolder, &QLineEdit::editingFinished, this, &iASamplingSettingsDlg::outputBaseChanged);
-	connect(leBaseName, &QLineEdit::editingFinished, this, &iASamplingSettingsDlg::outputBaseChanged);
-	connect(cbSeparateFolder, &QCheckBox::toggled, this, &iASamplingSettingsDlg::outputBaseChanged);
-	connect(sbNumberOfSamples, QOverload<int>::of(&QSpinBox::valueChanged), this, &iASamplingSettingsDlg::outputBaseChanged);
-	connect(cbSamplingMethod, QOverload<int>::of(&QComboBox::currentIndexChanged), this, &iASamplingSettingsDlg::samplingMethodChanged);
+	connect(m_ui->leParamDescriptor, &QLineEdit::editingFinished, this, &iASamplingSettingsDlg::parameterDescriptorChanged);
+	connect(m_ui->tbChooseOutputFolder, &QToolButton::clicked, this, &iASamplingSettingsDlg::chooseOutputFolder);
+	connect(m_ui->tbChooseParameterDescriptor, &QToolButton::clicked, this, &iASamplingSettingsDlg::chooseParameterDescriptor);
+	connect(m_ui->tbChooseExecutable, &QToolButton::clicked, this, &iASamplingSettingsDlg::chooseExecutable);
+	connect(m_ui->tbSaveSettings, &QToolButton::clicked, this, &iASamplingSettingsDlg::saveSettings);
+	connect(m_ui->tbLoadSettings, &QToolButton::clicked, this, &iASamplingSettingsDlg::loadSettings);
+	connect(m_ui->rbBuiltIn, &QRadioButton::toggled, this, &iASamplingSettingsDlg::algoTypeChanged);
+	connect(m_ui->rbExternal, &QRadioButton::toggled, this, &iASamplingSettingsDlg::algoTypeChanged);
+	connect(m_ui->pbFilterSelect, &QPushButton::clicked, this, &iASamplingSettingsDlg::selectFilter);
+	connect(m_ui->leOutputFolder, &QLineEdit::editingFinished, this, &iASamplingSettingsDlg::outputBaseChanged);
+	connect(m_ui->leBaseName, &QLineEdit::editingFinished, this, &iASamplingSettingsDlg::outputBaseChanged);
+	connect(m_ui->cbSeparateFolder, &QCheckBox::toggled, this, &iASamplingSettingsDlg::outputBaseChanged);
+	connect(m_ui->sbNumberOfSamples, QOverload<int>::of(&QSpinBox::valueChanged), this, &iASamplingSettingsDlg::outputBaseChanged);
+	connect(m_ui->cbSamplingMethod, QOverload<int>::of(&QComboBox::currentIndexChanged), this, &iASamplingSettingsDlg::samplingMethodChanged);
+	connect(m_ui->tbAlgorithmInfo, &QToolButton::toggled, this, &iASamplingSettingsDlg::showAlgorithmInfo);
+	connect(m_ui->tbSamplingInfo, &QToolButton::toggled, this, &iASamplingSettingsDlg::showSamplingInfo);
+	connect(m_ui->tbChooseParameterSetFile, &QToolButton::clicked, this, &iASamplingSettingsDlg::chooseParameterSetFile);
+	// initial state
+	showAlgorithmInfo();
+	showSamplingInfo();
 
-	connect(pbRun, &QPushButton::clicked, this, &iASamplingSettingsDlg::runClicked);
-	connect(pbCancel, &QPushButton::clicked, this, &iASamplingSettingsDlg::reject);
+	connect(m_ui->pbRun, &QPushButton::clicked, this, &iASamplingSettingsDlg::runClicked);
+	connect(m_ui->pbCancel, &QPushButton::clicked, this, &iASamplingSettingsDlg::reject);
 };
 
 namespace
@@ -442,19 +455,10 @@ QSharedPointer<iAAttributeDescriptor> iAOtherParameterInputs::currentDescriptor(
 void iASamplingSettingsDlg::setInputsFromMap(iASettings const & values)
 {
 	::loadSettings(values, m_widgetMap);
-	auto algoType = values[spnAlgorithmType].toString();
-	if (algoType == atExternal && values.contains(spnParameterDescriptor))
-	{
-		parameterDescriptorChanged();
-	}
-	else if (algoType == atBuiltIn)
-	{
-		setParametersFromFilter(values[spnFilter].toString());
-	}
 	algoTypeChanged();
 	if (!values.contains(spnFilter) || values[spnFilter].toString().isEmpty())
 	{
-		pbFilterSelect->setText(SelectFilterDefaultText);
+		m_ui->pbFilterSelect->setText(SelectFilterDefaultText);
 	}
 	setParameterValues(values);
 	outputBaseChanged();
@@ -463,13 +467,22 @@ void iASamplingSettingsDlg::setInputsFromMap(iASettings const & values)
 
 void iASamplingSettingsDlg::algoTypeChanged()
 {
-	bool isExternal = rbExternal->isChecked();
-	pbFilterSelect->setEnabled(!isExternal);
-	leExecutable->setEnabled(isExternal);
-	pbChooseExecutable->setEnabled(isExternal);
-	leParamDescriptor->setEnabled(isExternal);
-	pbChooseParameterDescriptor->setEnabled(isExternal);
-	leAdditionalArguments->setEnabled(isExternal);
+	bool isExternal = m_ui->rbExternal->isChecked();
+	if (isExternal)
+	{
+		parameterDescriptorChanged();
+	}
+	else
+	{
+		setParametersFromFilter(m_ui->pbFilterSelect->text());
+	}
+	m_ui->tbAlgorithmInfo->setEnabled(!isExternal);
+	m_ui->pbFilterSelect->setEnabled(!isExternal);
+	m_ui->leExecutable->setEnabled(isExternal);
+	m_ui->tbChooseExecutable->setEnabled(isExternal);
+	m_ui->leParamDescriptor->setEnabled(isExternal);
+	m_ui->tbChooseParameterDescriptor->setEnabled(isExternal);
+	m_ui->leAdditionalArguments->setEnabled(isExternal);
 }
 
 void iASamplingSettingsDlg::getValues(iASettings& values) const
@@ -520,11 +533,7 @@ void iASamplingSettingsDlg::saveSettings()
 	QTextStream stream(&file);
 	for (QString key : settings.keys())
 	{
-#if QT_VERSION >= QT_VERSION_CHECK(5,14,0)
-		stream << key << KeyValueSeparator << settings[key].toString() << Qt::endl;
-#else
-		stream << key << KeyValueSeparator << settings[key].toString() << endl;
-#endif
+		stream << key << KeyValueSeparator << settings[key].toString() << QTENDL;
 	}
 }
 
@@ -588,10 +597,10 @@ void iASamplingSettingsDlg::outputBaseChanged()
 			auto inputs = dynamic_cast<iAOtherParameterInputs*>(m_paramInputs[p].data());
 			assert(inputs);
 			int sampleNr = 0;
-			bool createSubFolder = cbSeparateFolder->isChecked();
-			int numDigits = requiredDigits(sbNumberOfSamples->value());
-			auto outputFolder = getOutputFolder(leOutputFolder->text(), createSubFolder, sampleNr, numDigits);
-			auto outFile = getOutputFileName(outputFolder, leBaseName->text(),
+			bool createSubFolder = m_ui->cbSeparateFolder->isChecked();
+			int numDigits = requiredDigits(m_ui->sbNumberOfSamples->value());
+			auto outputFolder = getOutputFolder(m_ui->leOutputFolder->text(), createSubFolder, sampleNr, numDigits);
+			auto outFile = getOutputFileName(outputFolder, m_ui->leBaseName->text(),
 				createSubFolder, sampleNr, numDigits) + m_paramSpecs->at(p)->defaultValue().toString();
 			inputs->m_valueEdit->setText(QString("Example: %1 (Set automatically during sampling)").arg(outFile));
 		}
@@ -600,7 +609,27 @@ void iASamplingSettingsDlg::outputBaseChanged()
 
 void iASamplingSettingsDlg::samplingMethodChanged()
 {
-	globalSensitivitySettingsWidget->setVisible(cbSamplingMethod->currentText() == iASamplingMethodName::GlobalSensitivity);
+	QString samplingMethod = m_ui->cbSamplingMethod->currentText();
+	m_ui->gbSamplingMethodDetails->setVisible(samplingMethod == iASamplingMethodName::GlobalSensitivity ||
+		samplingMethod == iASamplingMethodName::GlobalSensitivitySmall ||
+		samplingMethod == iASamplingMethodName::RerunSampling);
+	m_ui->lbNumberOfSamples->setVisible(samplingMethod != iASamplingMethodName::RerunSampling);
+	m_ui->sbNumberOfSamples->setVisible(samplingMethod != iASamplingMethodName::RerunSampling);
+	m_ui->widgetSensitivitySamplingParameters->setVisible(samplingMethod == iASamplingMethodName::GlobalSensitivity ||
+		samplingMethod == iASamplingMethodName::GlobalSensitivitySmall);
+	m_ui->lbStarStepNumber->setVisible(samplingMethod == iASamplingMethodName::GlobalSensitivitySmall);
+	m_ui->sbStarStepNumber->setVisible(samplingMethod == iASamplingMethodName::GlobalSensitivitySmall);
+	m_ui->widgetRerunSamplingParameters->setVisible(samplingMethod == iASamplingMethodName::RerunSampling);
+}
+
+void iASamplingSettingsDlg::showAlgorithmInfo()
+{
+	m_ui->textAlgorithmDescription->setVisible(m_ui->tbAlgorithmInfo->isChecked());
+}
+
+void iASamplingSettingsDlg::showSamplingInfo()
+{
+	m_ui->textSamplingDescription->setVisible(m_ui->tbSamplingInfo->isChecked());
 }
 
 void iASamplingSettingsDlg::chooseParameterDescriptor()
@@ -610,9 +639,9 @@ void iASamplingSettingsDlg::chooseParameterDescriptor()
 		tr("Parameter Descriptor Text File (*.txt);;All Files (*);;"));
 	if (!fileName.isEmpty())
 	{
-		leParamDescriptor->setText(fileName);
+		m_ui->leParamDescriptor->setText(fileName);
 	}
-	setParametersFromFile(leParamDescriptor->text());
+	setParametersFromFile(m_ui->leParamDescriptor->text());
 }
 
 void iASamplingSettingsDlg::chooseExecutable()
@@ -622,14 +651,14 @@ void iASamplingSettingsDlg::chooseExecutable()
 		tr("Windows Executable (*.exe);;Batch Script (*.bat);;Shell Script (*.sh);;Any Executable (*);;"));
 	if (!fileName.isEmpty())
 	{
-		leExecutable->setText(fileName);
+		m_ui->leExecutable->setText(fileName);
 	}
 }
 
 void iASamplingSettingsDlg::parameterDescriptorChanged()
 {
 	// load parameter descriptor from file
-	setParametersFromFile(leParamDescriptor->text());
+	setParametersFromFile(m_ui->leParamDescriptor->text());
 }
 
 void iASamplingSettingsDlg::setParametersFromFile(QString const& fileName)
@@ -659,12 +688,16 @@ void iASamplingSettingsDlg::setParametersFromFilter(QString const& filterName)
 		return;
 	}
 	auto filter = iAFilterRegistry::filter(filterName);
+	if (!filter)
+	{
+		LOG(lvlError, QString("Invalid filter name '%1'").arg(filterName));
+	}
 	auto params = QSharedPointer<iAAttributes>(new iAAttributes(filter->parameters()));
 	setParameters(params);
 
-	QTextDocument* sampleFilterDescDoc = new QTextDocument(textAlgorithmDescription); // set parent so it will get deleted along with it
+	QTextDocument* sampleFilterDescDoc = new QTextDocument(m_ui->textAlgorithmDescription); // set parent so it will get deleted along with it
 	sampleFilterDescDoc->setHtml(filter->description());
-	textAlgorithmDescription->setDocument(sampleFilterDescDoc);
+	m_ui->textAlgorithmDescription->setDocument(sampleFilterDescDoc);
 
 	m_lastFilterName = filterName;
 	m_lastParamsFileName.clear();   // if we change to external, it should reload parameters
@@ -685,7 +718,7 @@ void iASamplingSettingsDlg::setParameters(QSharedPointer<iAAttributes> params)
 				QSharedPointer<iAParameterInputs> pInput = createParameterLine(QString("Mod %1 ").arg(m) +
 					pName.right(pName.length() - 4),
 					p,
-					parameterLayout,
+					m_ui->parameterLayout,
 					curGridLine);
 				++curGridLine;
 				m_paramInputs.push_back(pInput);
@@ -696,7 +729,7 @@ void iASamplingSettingsDlg::setParameters(QSharedPointer<iAAttributes> params)
 			QSharedPointer<iAParameterInputs> pInput = createParameterLine(
 				pName,
 				p,
-				parameterLayout,
+				m_ui->parameterLayout,
 				curGridLine);
 			curGridLine++;
 			m_paramInputs.push_back(pInput);
@@ -714,6 +747,24 @@ QSharedPointer<iAAttributes> iASamplingSettingsDlg::parameterRanges()
 	return result;
 }
 
+QSharedPointer<iAAttributes> iASamplingSettingsDlg::parameterSpecs()
+{
+	return m_paramSpecs;
+}
+
+void iASamplingSettingsDlg::chooseParameterSetFile()
+{
+	QString fileName = QFileDialog::getOpenFileName(
+		this,
+		"Load Parameter Set",
+		QString(),
+		"Parameter Set File (*.csv);;");
+	if (fileName != "")
+	{
+		m_ui->leParameterSetFile->setText(fileName);
+	}
+}
+
 void iASamplingSettingsDlg::chooseOutputFolder()
 {
 	QFileDialog dialog;
@@ -722,7 +773,7 @@ void iASamplingSettingsDlg::chooseOutputFolder()
 	QString outFolder = dialog.getExistingDirectory(this, "Choose Output Folder");
 	if (outFolder != "")
 	{
-		leOutputFolder->setText(outFolder);
+		m_ui->leOutputFolder->setText(outFolder);
 	}
 }
 
@@ -733,12 +784,12 @@ void iASamplingSettingsDlg::runClicked()
 	QString msg;
 	if (!m_paramSpecs)
 	{
-		msg += QString("Parameter specifications not set, cannot run!");
+		msg += QString("Parameter specifications not set, cannot run!\n");
 	}
 	if (m_paramInputs.size() != m_paramSpecs->size())
 	{
 		msg += QString("Number of shown parameters (=%1) is not the same "
-			"as the number of parameters for the filter (=%2)!")
+			"as the number of parameters for the filter (=%2)!\n")
 			.arg(m_paramInputs.size()).arg(m_paramSpecs->size());
 	}
 	for (int l = 0; l < m_paramInputs.size(); ++l)
@@ -750,45 +801,46 @@ void iASamplingSettingsDlg::runClicked()
 			     curMaxStr = QString::number(desc->max(), 'g');
 			if ( !std::isfinite(desc->min()) || minStr == curMinStr)
 			{
-				msg += QString("Parameter '%1': invalid minimum value!").arg(desc->name());
+				msg += QString("Parameter '%1': invalid minimum value!\n").arg(desc->name());
 			}
 			if ( !std::isfinite(desc->max()) || maxStr == curMaxStr)
 			{
-				msg += QString("Parameter '%1': invalid maximum value!").arg(desc->name());
+				msg += QString("Parameter '%1': invalid maximum value!\n").arg(desc->name());
 			}
 			if (desc->min() > desc->max())
 			{
 				msg += QString("Parameter '%1': Minimum value must be smaller than or equal to maximum "
-					"(current minimum %2 is bigger than maximum %3)!").arg(desc->name())
+					"(current minimum %2 is bigger than maximum %3)!\n").arg(desc->name())
 					.arg(desc->min()).arg(desc->max());
 			}
 			if (desc->min() < m_paramSpecs->at(l)->min() ||
 				desc->max() > m_paramSpecs->at(l)->max())
 			{
 				msg += QString("Parameter '%1': Specified interval (%2, %3) outside of "
-					"valid range for this parameter (%4, %5)").arg(desc->name())
+					"valid range for this parameter (%4, %5)\n").arg(desc->name())
 					.arg(desc->min()).arg(desc->max())
 					.arg(m_paramSpecs->at(l)->min()).arg(m_paramSpecs->at(l)->max());
 			}
 		}
-		if (desc->valueType() == iAValueType::Categorical && desc->defaultValue().toString().size() == 0)
+		if ((desc->valueType() == iAValueType::Categorical || desc->valueType() == iAValueType::Boolean) &&
+			desc->defaultValue().toString().size() == 0)
 		{
-			msg += QString("Parameter '%1': Currently, no value is selected; you must select at least one value!").arg(desc->name());
+			msg += QString("Parameter '%1': Currently, no value is selected; you must select at least one value!\n").arg(desc->name());
 		}
 	}
-	if (rbBuiltIn->isChecked())
+	if (m_ui->rbBuiltIn->isChecked())
 	{
-		if (pbFilterSelect->text() == SelectFilterDefaultText)
+		if (m_ui->pbFilterSelect->text() == SelectFilterDefaultText)
 		{
-			msg += "Built-in sampling: No filter selected!";
+			msg += "Built-in sampling: No filter selected!\n";
 		}
 		else
 		{
-			QString filterName = pbFilterSelect->text();
+			QString filterName = m_ui->pbFilterSelect->text();
 			auto filter = iAFilterRegistry::filter(filterName);
 			if (!filter)
 			{
-				msg += "Built-in sampling: Invalid filter name - no filter found with that name!";
+				msg += "Built-in sampling: Invalid filter name - no filter found with that name!\n";
 			}
 			else
 			{
@@ -802,7 +854,7 @@ void iASamplingSettingsDlg::runClicked()
 					if (filter->requiredInputs() > inputCount)
 					{
 						msg += QString("Filter requires more inputs (%1) "
-							"than the number of datasets currently loaded (%2)!")
+							"than the number of datasets currently loaded (%2)!\n")
 							.arg(filter->requiredInputs())
 							.arg(inputCount);
 					}
@@ -810,9 +862,13 @@ void iASamplingSettingsDlg::runClicked()
 			}
 		}
 	}
-	else if (rbExternal->isChecked() && (leExecutable->text().isEmpty() || leParamDescriptor->text().isEmpty()))
+	else if (m_ui->rbExternal->isChecked() && (m_ui->leExecutable->text().isEmpty() || m_ui->leParamDescriptor->text().isEmpty()))
 	{
-		msg += "External sampling: No executable and/or parameter descriptor chosen!";
+		msg += "External sampling: No executable and/or parameter descriptor chosen!\n";
+	}
+	else if (m_ui->rbExternal->isChecked() && !QFileInfo(m_ui->leExecutable->text()).exists())
+	{
+		msg += QString("External sampling: Executable '%1' doesn't exist!\n").arg(m_ui->leExecutable->text());
 	}
 	if (!msg.isEmpty())
 	{

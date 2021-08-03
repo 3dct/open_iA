@@ -43,16 +43,19 @@ public:
 	iA3DColoredPolyObjectVis(vtkRenderer* ren, vtkTable* objectTable, QSharedPointer<QMap<uint, uint> > columnMapping, QColor const & neutralColor);
 	void show() override;
 	void hide();
+	//! @{ "legacy" methods for various selection/coloring options, specific to FeatureScout module
 	void renderSelection(std::vector<size_t> const & sortedSelInds, int classID, QColor const & classColor, QStandardItem* activeClassItem) override;
 	void renderSingle(IndexType selectedObjID, int classID, QColor const & classColors, QStandardItem* activeClassItem) override;
 	void multiClassRendering(QList<QColor> const & colors, QStandardItem* rootItem, double alpha) override;
 	void renderOrientationDistribution(vtkImageData* oi) override;
 	void renderLengthDistribution(vtkColorTransferFunction* ctFun, vtkFloatArray* extents, double halfInc, int filterID, double const * range) override;
+	//! @}
 	void setSelectionOpacity(int selectionAlpha);
 	void setContextOpacity(int contextAlpha);
 	bool visible() const;
 	vtkSmartPointer<vtkActor> getActor();
-	virtual vtkPolyData* getPolyData() =0;
+	virtual vtkPolyData* getPolyData() = 0;
+	virtual vtkPolyData* finalPoly() = 0;
 	//!  @{ bounding box / bounds
 	void showBoundingBox();
 	void hideBoundingBox();
@@ -67,6 +70,9 @@ public:
 	virtual void setShowLines(bool /*lines*/) {} // not ideal, should not be here
 	void setClippingPlanes(vtkPlane* planes[3]);
 	void removeClippingPlanes();
+	//! extract one mesh per selected object
+	virtual std::vector<vtkSmartPointer<vtkPolyData>> extractSelectedObjects(QColor c = QColor()) const = 0;
+
 protected:
 	vtkSmartPointer<vtkPolyDataMapper> m_mapper;
 	vtkSmartPointer<vtkUnsignedCharArray> m_colors;

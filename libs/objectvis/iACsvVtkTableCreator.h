@@ -33,7 +33,7 @@ class iAobjectvis_API iACsvVtkTableCreator : public iACsvTableCreator
 public:
 	iACsvVtkTableCreator();
 	void initialize(QStringList const & headers, size_t const rowCount) override;
-	void addRow(size_t row, QStringList const & values) override;
+	void addRow(size_t row, std::vector<double> const & values) override;
 	vtkSmartPointer<vtkTable> table();
 private:
 	vtkSmartPointer<vtkTable> m_table;   //!< output vtk table

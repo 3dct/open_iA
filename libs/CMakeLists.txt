@@ -2,6 +2,11 @@ SET (LIB_TYPE SHARED)
 INCLUDE(Modules)
 
 FILE(GLOB children RELATIVE ${CMAKE_CURRENT_SOURCE_DIR} "${CMAKE_CURRENT_SOURCE_DIR}/*")
+if (MSVC)
+	# Apply file grouping based on regular expressions for Visual Studio (applies to all projects in current folder)
+	SOURCE_GROUP("UI Files" REGULAR_EXPRESSION "[.](ui|qrc)$")
+	SOURCE_GROUP("Generated" REGULAR_EXPRESSION "ui_")
+endif()
 FOREACH(libdir ${children})
 
 	# todo: add check on whether any module requires lib (for objectvis only ATM?)
@@ -58,15 +63,6 @@ FOREACH(libdir ${children})
 			${CMAKE_CURRENT_SOURCE_DIR}/${libdir}
 			${CMAKE_CURRENT_BINARY_DIR} # for export header
 		)
-		# for generated ui_xxx.h includes:
-		IF (CMAKE_CONFIGURATION_TYPES)
-			TARGET_INCLUDE_DIRECTORIES(${libname} PUBLIC
-				"${CMAKE_CURRENT_BINARY_DIR}/${libname}_autogen/include_$(Configuration)")
-		ELSE()
-			TARGET_INCLUDE_DIRECTORIES(${libname} PUBLIC
-				"${CMAKE_CURRENT_BINARY_DIR}/${libname}_autogen/include")
-		ENDIF()
-
 		IF (openiA_USE_IDE_FOLDERS)
 			SET_PROPERTY(TARGET ${libname} PROPERTY FOLDER "Libraries")
 		ENDIF()

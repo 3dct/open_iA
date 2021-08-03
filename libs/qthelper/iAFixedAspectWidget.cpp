@@ -21,8 +21,9 @@
 #include "iAFixedAspectWidget.h"
 
 #include "iALog.h"
-#include "iAVtkQtWidget.h"
+#include "iAVtkWidget.h"
 
+#include <QApplication>    // for qApp->palette()
 #include <QPainter>
 #include <QVBoxLayout>
 
@@ -35,24 +36,12 @@ public:
 	void paintEvent(QPaintEvent* /*ev*/) override
 	{
 		QPainter p(this);
-		QColor bgColor(m_bgColor);
-		if (!bgColor.isValid())
-		{
-			bgColor = QWidget::palette().color(QWidget::backgroundRole());
-		}
-		p.fillRect(rect(), bgColor);
+		p.fillRect(rect(), qApp->palette().color(QWidget::backgroundRole()));
 	}
-	void setBGColor(QColor const & color)
-	{
-		m_bgColor = color;
-		update();
-	}
-private:
-	QColor m_bgColor;
 };
 
-//! The internal iAVtkQtWidget of an iAFixedAspectWidget which actually keeps its aspect ratio.
-class iAFixedAspectWidgetInternal: public iAVtkQtWidget
+//! The internal iAQVTKWidget of an iAFixedAspectWidget which actually keeps its aspect ratio.
+class iAFixedAspectWidgetInternal: public iAQVTKWidget
 {
 public:
 	iAFixedAspectWidgetInternal(double aspect):
@@ -94,19 +83,19 @@ iAFixedAspectWidget::iAFixedAspectWidget(double aspect, Qt::Alignment verticalAl
 	}
 }
 
-iAVtkQtWidget* iAFixedAspectWidget::vtkWidget()
+iAQVTKWidget* iAFixedAspectWidget::vtkWidget()
 {
 	return m_widget;
 }
 
-void iAFixedAspectWidget::setBackgroundColor(QColor const & color)
+void iAFixedAspectWidget::setBGRole(QPalette::ColorRole role)
 {
 	if (m_fill1)
 	{
-		m_fill1->setBGColor(color);
+		m_fill1->setBackgroundRole(role);
 	}
 	if (m_fill2)
 	{
-		m_fill2->setBGColor(color);
+		m_fill2->setBackgroundRole(role);
 	}
 }

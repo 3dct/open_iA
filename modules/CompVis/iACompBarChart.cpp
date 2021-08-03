@@ -3,10 +3,13 @@
 //compVis
 #include "iACoefficientOfVariation.h"
 #include "iAVtkVersion.h"
+#include "iACompVisOptions.h"
 
-//Qt
-#include "vtkGenericOpenGLRenderWindow.h"
-#include "QVTKOpenGLNativeWidget.h"
+
+// core
+#include "iAMainWindow.h"
+#include "iAVtkVersion.h"
+#include "iAVtkWidget.h"
 
 //vtk
 #include <vtkObjectFactory.h> //for macro!
@@ -15,6 +18,7 @@
 #include "vtkIntArray.h"
 
 #include "vtkRenderer.h"
+#include <vtkRenderWindow.h>
 #include "vtkContextView.h"
 #include "vtkContextScene.h"
 
@@ -48,8 +52,8 @@
 #include "vtkPointLocator.h"
 #include "vtkCoordinate.h"
 #include "vtkPen.h"
+#include "vtkPointData.h"
 
-#include "iAMainWindow.h"
 #include <vector>
 #include <algorithm>
 
@@ -57,9 +61,11 @@ vtkStandardNewMacro(iACompBarChart::BarChartInteractorStyle);
 
 iACompBarChart::iACompBarChart(iAMainWindow* parent, iACoefficientOfVariation* coeffVar, iACsvDataStorage* dataStorage) :
 	QDockWidget(parent), 
-	m_coeffVar(coeffVar),
 	m_dataStorage(dataStorage),
+	m_coeffVar(coeffVar),
+	m_qvtkWidget(new iAQVTKWidget(this)),
 	orderedPositions(new std::vector<double>()),
+	selected_orderedPositions(nullptr),
 	m_area(vtkSmartPointer<vtkContextArea>::New()),
 	m_originalBarChart(vtkSmartPointer<vtkPropItem>::New()),
 	m_selectedBarChart(vtkSmartPointer<vtkPropItem>::New()),
@@ -71,7 +77,6 @@ iACompBarChart::iACompBarChart(iAMainWindow* parent, iACoefficientOfVariation* c
 	QVBoxLayout* layout = new QVBoxLayout;
 	dockWidgetContents->setLayout(layout);
 
-	m_qvtkWidget = new QVTKOpenGLNativeWidget(this);
 	layout->addWidget(m_qvtkWidget);
 
 	//initialize interaction
@@ -81,17 +86,10 @@ iACompBarChart::iACompBarChart(iAMainWindow* parent, iACoefficientOfVariation* c
 	
 	m_view = vtkSmartPointer<vtkContextView>::New();
 	
-	#if VTK_VERSION_NUMBER < VTK_VERSION_CHECK(9, 0, 0)
-		m_qvtkWidget->GetInteractor()->SetInteractorStyle(style);
+	m_qvtkWidget->interactor()->SetInteractorStyle(style);
 
-		m_view->SetRenderWindow(m_qvtkWidget->GetRenderWindow());
-		m_view->SetInteractor(m_qvtkWidget->GetInteractor());
-	#else
-		m_qvtkWidget->interactor()->SetInteractorStyle(style);
-
-		m_view->SetRenderWindow(m_qvtkWidget->renderWindow());
-		m_view->SetInteractor(m_qvtkWidget->interactor());
-	#endif
+	m_view->SetRenderWindow(m_qvtkWidget->renderWindow());
+	m_view->SetInteractor(m_qvtkWidget->interactor());
 
 	m_view->GetInteractor()->SetInteractorStyle(style);
 
@@ -105,7 +103,7 @@ iACompBarChart::iACompBarChart(iAMainWindow* parent, iACoefficientOfVariation* c
 	coefficientsUnordered = new std::vector<double>(coefficients->size(), 0);
 	iACompVisOptions::copyVector(coefficients, coefficientsUnordered);
 
-	orderedPositions = sortWithMemory(coefficients);	
+	orderedPositions = sortWithMemory(coefficients);
 }
 
 void iACompBarChart::showEvent(QShowEvent* event)
@@ -141,8 +139,6 @@ void iACompBarChart::initializeBarChart()
 	colorsOriginal->SetName(colorArrayName.c_str());
 	colorsOriginal->SetNumberOfComponents(3);
 
-	//LOG(lvlDebug,"numberOfBars = " + QString::number(numberOfBars));
-
 	for (int i = 0; i < numberOfBars; i++)
 	{
 		double xi = i + 1;
@@ -150,8 +146,6 @@ void iACompBarChart::initializeBarChart()
 
 		//set position
 		barPositionsOriginal->InsertNextPoint(xi, yi, 0.0);
-
-		//LOG(lvlDebug,"scale at " + QString::number(i) + " = " + QString::number(coefficientsUnordered->at(orderedPositions->at(i))));
 
 		//set scale
 		scalesOriginal->InsertNextTuple3(m_barWidth, 2 * coefficientsUnordered->at(orderedPositions->at(i)), 1);
@@ -169,10 +163,7 @@ void iACompBarChart::initializeBarChart()
 	style->buildPointLocatorOriginal(data);
 
 	double col[3];
-	col[0] = iACompVisOptions::getDoubleArray(iACompVisOptions::BACKGROUNDCOLOR_LIGHTGREY)[0];
-	col[1] = iACompVisOptions::getDoubleArray(iACompVisOptions::BACKGROUNDCOLOR_LIGHTGREY)[1];
-	col[2] = iACompVisOptions::getDoubleArray(iACompVisOptions::BACKGROUNDCOLOR_LIGHTGREY)[2];
-
+	iACompVisOptions::getDoubleArray(iACompVisOptions::BACKGROUNDCOLOR_LIGHTGREY, col);
 	m_originalBarChart = addBars(data, colorArrayName, scaleArrayName, 1, col);
 	
 	m_view->GetScene()->AddItem(m_area);
@@ -198,7 +189,9 @@ void iACompBarChart::initializeAxes(std::vector<double>* orderedPos)
 	axisBottom->Update();
 	axisBottom->SetMaximum(coefficients->size() + 1); //add 1 since the all bars are drawn from 1 to end (and not from 0!)
 	axisBottom->SetTitle("Attributes");
-	axisBottom->GetTitleProperties()->SetColor(iACompVisOptions::getDoubleArray(iACompVisOptions::BACKGROUNDCOLOR_LIGHTGREY));
+	double col[3];
+	iACompVisOptions::getDoubleArray(iACompVisOptions::BACKGROUNDCOLOR_LIGHTGREY, col);
+	axisBottom->GetTitleProperties()->SetColor(col);
 	axisBottom->GetTitleProperties()->SetFontFamilyToArial();
 	axisBottom->GetTitleProperties()->SetFontSize(iACompVisOptions::FONTSIZE_TEXT);
 
@@ -206,7 +199,7 @@ void iACompBarChart::initializeAxes(std::vector<double>* orderedPos)
 	vtkSmartPointer<vtkDoubleArray> labelInd = vtkSmartPointer<vtkDoubleArray>::New();
 	vtkSmartPointer<vtkStringArray> labelStrings = vtkSmartPointer<vtkStringArray>::New();
 
-	for (int i = 0; i < coefficients->size(); i++)
+	for (int i = 0; i < ((int)coefficients->size()); i++)
 	{
 		labelInd->InsertNextValue(i + 1); //start with 1 so that the first bar is not drawn inside y-axis
 		labelStrings->InsertNextValue(attrNames->at(orderedPos->at(i)).toStdString());
@@ -238,7 +231,9 @@ void iACompBarChart::initializeAxes(std::vector<double>* orderedPos)
 	axisLeft->SetBehavior(1);
 	axisLeft->SetTitle("Similarity in %");
 	axisLeft->GetTitleProperties()->ItalicOff();
-	axisLeft->GetTitleProperties()->SetColor(iACompVisOptions::getDoubleArray(iACompVisOptions::BACKGROUNDCOLOR_LIGHTGREY));
+	double col1[3];
+	iACompVisOptions::getDoubleArray(iACompVisOptions::BACKGROUNDCOLOR_LIGHTGREY, col1);
+	axisLeft->GetTitleProperties()->SetColor(col1);
 	axisLeft->GetTitleProperties()->SetFontFamilyToArial();
 	axisLeft->GetTitleProperties()->SetFontSize(iACompVisOptions::FONTSIZE_TEXT);
 	axisLeft->GetTitleProperties()->SetLineOffset(-20);
@@ -256,13 +251,17 @@ void iACompBarChart::initializeAxes(std::vector<double>* orderedPos)
 	m_area->GetAxis(vtkAxis::TOP)->SetAxisVisible(false);
 	m_area->GetAxis(vtkAxis::TOP)->SetTicksVisible(false);
 	m_area->GetAxis(vtkAxis::TOP)->SetLabelsVisible(false);
+#if VTK_VERSION_NUMBER >= VTK_VERSION_CHECK(8,2,0)
 	m_area->GetAxis(vtkAxis::TOP)->SetTitleVisible(true);
+#endif
 	vtkAxis *axisTop = m_area->GetAxis(vtkAxis::TOP);
 	axisTop->SetTitle("Coefficient of Variation");
 	axisTop->GetTitleProperties()->BoldOn();
 	axisTop->GetTitleProperties()->ItalicOff();
 	axisTop->GetTitleProperties()->ShadowOff();
-	axisTop->GetTitleProperties()->SetColor(iACompVisOptions::getDoubleArray(iACompVisOptions::BACKGROUNDCOLOR_LIGHTGREY));
+	double col2[3];
+	iACompVisOptions::getDoubleArray(iACompVisOptions::BACKGROUNDCOLOR_LIGHTGREY, col2);
+	axisTop->GetTitleProperties()->SetColor(col2);
 	axisTop->GetTitleProperties()->SetFontFamilyToArial();
 	axisTop->GetTitleProperties()->SetFontSize(iACompVisOptions::FONTSIZE_TITLE);
 	axisTop->GetTitleProperties()->Modified();
@@ -311,7 +310,7 @@ std::vector<double>* iACompBarChart::changeInterval(std::vector<double>* input, 
 	/*LOG(lvlDebug,"oldMin = " + QString::number(oldMin));
 	LOG(lvlDebug,"oldMax = " + QString::number(oldMax));*/
 
-	for (int i = 0; i < input->size(); i++)
+	for (int i = 0; i < ((int)input->size()); i++)
 	{
 		//LOG(lvlDebug,"input->at(i) = " + QString::number(input->at(i)));
 		double val = iACompVisOptions::histogramNormalization(input->at(i), newMin, newMax, oldMin, oldMax);
@@ -325,7 +324,7 @@ vtkSmartPointer<vtkIntArray> iACompBarChart::getIndexArray(std::vector<double>* 
 {
 	vtkSmartPointer<vtkIntArray> result = vtkSmartPointer<vtkIntArray>::New();
 	result->SetName(name);
-	for (int i = 1; i <= input->size(); i++)
+	for (int i = 1; i <= ((int)input->size()); i++)
 	{//start from one to draw bar not inside y-axis
 		result->InsertNextValue(i);
 	}
@@ -337,7 +336,7 @@ vtkSmartPointer<vtkDoubleArray> iACompBarChart::vectorToVtkDataArray(std::vector
 {
 	vtkSmartPointer<vtkDoubleArray> result = vtkSmartPointer<vtkDoubleArray>::New();
 	result->SetName(name);
-	for (int i = 0; i < input->size(); i++)
+	for (int i = 0; i < ((int)input->size()); i++)
 	{
 		result->InsertNextTuple(&input->at(i));
 	}
@@ -365,11 +364,7 @@ void iACompBarChart::removeLabelAttribute(std::vector<double>* input)
 
 void iACompBarChart::renderWidget()
 {
-	#if VTK_VERSION_NUMBER < VTK_VERSION_CHECK(9, 0, 0)
-		m_qvtkWidget->GetRenderWindow()->GetInteractor()->Render();
-	#else
-		m_qvtkWidget->renderWindow()->GetInteractor()->Render();
-	#endif
+	m_qvtkWidget->renderWindow()->GetInteractor()->Render();
 }
 
 /******************************************  Getter Methods  **********************************************/
@@ -418,7 +413,7 @@ void iACompBarChart::updateBarChart(std::vector<double>* coefficientsOriginal, s
 	updateOriginalBarChart(selected_orderedPositions);
 	updateLabels(selected_orderedPositions);
 	
-	double maxVal = coefficientsSelected->at(0); //first value is the biggest
+	//double maxVal = coefficientsSelected->at(0); //first value is the biggest
 	double maxNumberObjects = m_dataStorage->getTotalNumberOfObjects();
 	double selectedNumberObjects = 0;
 	for (std::map<int, std::vector<double>>::iterator iter = pickStatistic->begin(); iter != pickStatistic->end(); ++iter)
@@ -467,9 +462,7 @@ void iACompBarChart::updateBarChart(std::vector<double>* coefficientsOriginal, s
 	style->buildPointLocatorSelected(data);
 
 	double col[3];
-	col[0] = iACompVisOptions::getDoubleArray(iACompVisOptions::HIGHLIGHTCOLOR_GREEN)[0];
-	col[1] = iACompVisOptions::getDoubleArray(iACompVisOptions::HIGHLIGHTCOLOR_GREEN)[1];
-	col[2] = iACompVisOptions::getDoubleArray(iACompVisOptions::HIGHLIGHTCOLOR_GREEN)[2];
+	iACompVisOptions::getDoubleArray(iACompVisOptions::HIGHLIGHTCOLOR_GREEN, col);
 
 	m_selectedBarChart = addBars(data, colorArrayName, scaleArrayName, 0.5, col);
 
@@ -518,9 +511,7 @@ void iACompBarChart::updateOriginalBarChart(std::vector<double>* selected_ordere
 	style->buildPointLocatorOriginalRepositioned(data);
 
 	double col[3];
-	col[0] = iACompVisOptions::getDoubleArray(iACompVisOptions::BACKGROUNDCOLOR_LIGHTGREY)[0];
-	col[1] = iACompVisOptions::getDoubleArray(iACompVisOptions::BACKGROUNDCOLOR_LIGHTGREY)[1];
-	col[2] = iACompVisOptions::getDoubleArray(iACompVisOptions::BACKGROUNDCOLOR_LIGHTGREY)[2];
+	iACompVisOptions::getDoubleArray(iACompVisOptions::BACKGROUNDCOLOR_LIGHTGREY, col);
 
 	m_originalBarChartRepositioned = addBars(data, colorArrayName, scaleArrayName, 1, col);
 
@@ -534,7 +525,7 @@ void iACompBarChart::updateLabels(std::vector<double>* selected_orderedPositions
 	vtkSmartPointer<vtkDoubleArray> labelInd = vtkSmartPointer<vtkDoubleArray>::New();
 	vtkSmartPointer<vtkStringArray> labelStrings = vtkSmartPointer<vtkStringArray>::New();
 
-	for (int i = 0; i < coefficients->size(); i++)
+	for (int i = 0; i < ((int)coefficients->size()); i++)
 	{
 		labelInd->InsertNextValue(i + 1); //start with 1 so that the first bar is not drawn inside y-axis
 		labelStrings->InsertNextValue(attrNames->at(selected_orderedPositions->at(i)).toStdString());
@@ -574,7 +565,7 @@ void iACompBarChart::resetLabels()
 	vtkSmartPointer<vtkDoubleArray> labelInd = vtkSmartPointer<vtkDoubleArray>::New();
 	vtkSmartPointer<vtkStringArray> labelStrings = vtkSmartPointer<vtkStringArray>::New();
 
-	for (int i = 0; i < coefficients->size(); i++)
+	for (int i = 0; i < ((int)coefficients->size()); i++)
 	{
 		labelInd->InsertNextValue(i + 1); //start with 1 so that the first bar is not drawn inside y-axis
 		labelStrings->InsertNextValue(attrNames->at(orderedPositions->at(i)).toStdString());
@@ -734,9 +725,8 @@ void iACompBarChart::BarChartInteractorStyle::OnLeftButtonDown()
 {
 	int* pos = this->GetInteractor()->GetEventPosition();
 	this->FindPokedRenderer(pos[0], pos[1]);
-	auto currentRenderer = this->GetDefaultRenderer();
 
-	int is = m_picker->Pick(pos[0], pos[1], 0, this->CurrentRenderer);
+	m_picker->Pick(pos[0], pos[1], 0, this->CurrentRenderer);
 
 	vtkIdList* result = vtkIdList::New();
 	result->SetNumberOfIds(1);
@@ -775,11 +765,11 @@ void iACompBarChart::BarChartInteractorStyle::showToolTip(std::vector<double> po
 {
 	double xMin = positions.at(0);
 	double xMax = positions.at(1);
-	double yMin = positions.at(2);
+	//double yMin = positions.at(2);
 	double yMax = positions.at(3);
 
 	double pickedX = posInScene[0];
-	double pickedY = posInScene[1];
+	//double pickedY = posInScene[1];
 
 	if(pickedX >= xMin && pickedX <= xMax)
 	{

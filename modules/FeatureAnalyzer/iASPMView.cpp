@@ -33,6 +33,7 @@
 #include <vtkIdTypeArray.h>
 #include <vtkLookupTable.h>
 #include <vtkRenderer.h>
+#include <vtkRenderWindow.h>
 #include <vtkScalarBarActor.h>
 #include <vtkTextProperty.h>
 
@@ -54,9 +55,9 @@ iASPMView::iASPMView(iAMainWindow *mWnd,  QWidget * parent /*= 0*/, Qt::WindowFl
 	m_SPLOMSelection( vtkSmartPointer<vtkIdTypeArray>::New() ),
 	m_lut( vtkSmartPointer<vtkLookupTable>::New() ),
 	m_sbRen( vtkSmartPointer<vtkRenderer>::New() ),
-	m_sbActor( vtkSmartPointer<vtkScalarBarActor>::New() )
+	m_sbActor( vtkSmartPointer<vtkScalarBarActor>::New() ),
+	m_SBQVTKWidget(new iAQVTKWidget())
 {
-	CREATE_OLDVTKWIDGET(m_SBQVTKWidget);
 	QHBoxLayout *layoutHB2 = new QHBoxLayout( this );
 	layoutHB2->setContentsMargins(0, 0, 0, 0);
 	layoutHB2->setSpacing( 0 );
@@ -90,11 +91,7 @@ void iASPMView::initScalarBar()
 	m_sbActor->SetLookupTable( m_lut );
 	m_sbActor->SetTitle( "Color Map" );
 	m_sbActor->VisibilityOff();
-#if VTK_VERSION_NUMBER < VTK_VERSION_CHECK(9, 0, 0)
-	m_SBQVTKWidget->GetRenderWindow()->AddRenderer( m_sbRen );
-#else
 	m_SBQVTKWidget->renderWindow()->AddRenderer( m_sbRen );
-#endif
 	m_SBQVTKWidget->update();
 	QVBoxLayout *lutLayoutHB = new QVBoxLayout( this );
 	lutLayoutHB->setContentsMargins(0, 0, 0, 0);
@@ -126,11 +123,7 @@ void iASPMView::applyLookupTable()
 	updateLUT();
 	m_sbActor->SetLookupTable( m_lut );
 	m_sbActor->SetTitle( m_splom->data()->parameterName(m_splom->colorLookupParam()).toStdString().c_str() );
-#if VTK_VERSION_NUMBER < VTK_VERSION_CHECK(9, 0, 0)
-	m_SBQVTKWidget->GetRenderWindow()->Render();
-#else
 	m_SBQVTKWidget->renderWindow()->Render();
-#endif
 	m_SBQVTKWidget->update();
 }
 

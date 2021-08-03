@@ -21,7 +21,6 @@
 #pragma once
 
 #include "iAguibase_export.h"
-#include "ui_CommonInput.h"
 
 #include <QDialog>
 #include <QMap>
@@ -32,12 +31,13 @@
 class iAAttributeDescriptor;
 class iAMainWindow;
 class iAMdiChild;
+class Ui_CommonInput;
 
 class QWidget;
 class QString;
 
 //! Dialog asking the user for some given parameters.
-class iAguibase_API iAParameterDlg : public QDialog, public Ui_CommonInput
+class iAguibase_API iAParameterDlg : public QDialog
 {
 	Q_OBJECT
 public:
@@ -68,6 +68,7 @@ private:
 	bool m_sourceMdiChildClosed;
 	QVector<QWidget*> m_widgetList;
 	ParamListT m_parameters;
+	QSharedPointer<Ui_CommonInput> m_ui;
 
 	void updateROIPart(QString const& partName, int value);
 };

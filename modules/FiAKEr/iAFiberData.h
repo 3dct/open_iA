@@ -43,11 +43,15 @@ struct iAFiberData
 	std::vector<iAVec3f> pts;
 	std::vector<iAVec3f> curvedPoints;
 	iAFiberData();
+	//! generate fiber data from given table, mapping, and optional curved points
 	iAFiberData(vtkTable* table, size_t fiberID, QMap<uint, uint> const & mapping, std::vector<iAVec3f> curvedPts /*= std::vector<iAVec3f>()*/);
+	//! generate from a vector containing start, middle end points (each 3 coordinates), phi, theta, length and diameter (i.e. 13 values overall)
 	iAFiberData(std::vector<double> const & data);
 	static iAFiberData getOrientationCorrected(iAFiberData const & source, iAFiberData const & other);
 };
 
+//! check if a point is contained in a fiber
+bool pointContainedInFiber(iAVec3f const& point, iAFiberData const& fiber);
 //! Samples points inside of the cylinder spanned by a single fiber
 void samplePoints(iAFiberData const & fiber, std::vector<iAVec3f> & result, size_t numSamples=DefaultSamplePoints);
 

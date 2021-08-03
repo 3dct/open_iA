@@ -18,6 +18,12 @@ ELSE()
 	endif()
 ENDIF()
 
+# Check whether boost (from astra) has histogram.hpp (only available in boost >= 1.70)
+if (NOT BOOST_INCLUDE_DIR OR NOT EXISTS "${BOOST_INCLUDE_DIR}/boost/histogram.hpp")
+	MESSAGE(STATUS "Boost with histogram.hpp not found (specify via BOOST_INCLUDE_DIR)!")
+	set(DEPENDENCIES_CMAKE BOOST_HISTOGRAM_HPP_FOUND)
+endif()
+
 SET ( DEPENDENCIES_LIBRARIES
 	${OPENVR_LIBRARY}
 	iAguibase

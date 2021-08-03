@@ -10,12 +10,12 @@
 #include "iACompUniformBinningData.h"
 
 //iA
-#include "iAMainWindow.h"
-#include "iAVtkVersion.h"
+#include <iAMainWindow.h>
+#include <iAVtkWidget.h>
+#include <iAVtkVersion.h>
 
 //Qt
 #include <QColor>
-#include "QVTKOpenGLNativeWidget.h"
 
 //vtk
 #include <vtkActor.h>
@@ -72,12 +72,14 @@
 #include <vtkUnstructuredGrid.h>
 
 #include <vtkShrinkPolyData.h>
+
 #include <algorithm>
 #include <cstring>
-#include <functional>
-#include <vector>
 #include <iostream>
+#include <functional>
+#include <limits>
 #include <tuple>
+#include <vector>
 
 
 iACompHistogramTable::iACompHistogramTable(
@@ -187,26 +189,16 @@ void iACompHistogramTable::reinitializeHistogramTable(iAMultidimensionalScaling*
 	//initialize datastructure
 	calculateHistogramTable();
 
-	
-
-	#if VTK_VERSION_NUMBER < VTK_VERSION_CHECK(9, 0, 0)
-		m_qvtkWidget->GetRenderWindow()->RemoveRenderer(m_renderer);
-	#else
-		m_qvtkWidget->renderWindow()->RemoveRenderer(m_renderer);
-	#endif
-
+	m_qvtkWidget->renderWindow()->RemoveRenderer(m_renderer);
 
 	m_renderer = vtkSmartPointer<vtkRenderer>::New();
-	m_renderer->SetBackground(iACompVisOptions::getDoubleArray(iACompVisOptions::BACKGROUNDCOLOR_GREY));
+	double col1[3];
+	iACompVisOptions::getDoubleArray(iACompVisOptions::BACKGROUNDCOLOR_GREY, col1);
+	m_renderer->SetBackground(col1);
 	m_renderer->SetViewport(0, 0, 0.8, 1);
 	m_renderer->SetUseFXAA(true);
 
-	#if VTK_VERSION_NUMBER < VTK_VERSION_CHECK(9, 0, 0)
-		m_qvtkWidget->GetRenderWindow()->AddRenderer(m_renderer);
-	#else
-		m_qvtkWidget->renderWindow()->AddRenderer(m_renderer);
-	#endif
-	
+	m_qvtkWidget->renderWindow()->AddRenderer(m_renderer);
 
 	calculateRowWidthAndHeight(m_windowWidth, m_windowHeight, m_amountDatasets);
 
@@ -235,6 +227,7 @@ iACompHistogramVis* iACompHistogramTable::getHistogramTableVis()
 
 iACompUniformBinningData* iACompHistogramTable::getUniformBinningData()
 {
+<<<<<<< HEAD
 	return histogramCalculation->getUniformBinningData();
 }
 
@@ -295,7 +288,6 @@ iACompHistogramTableData* iACompHistogramTable::calculateSpecificBins(
 
 	return nullptr;
 }
-
 	
 void iACompHistogramTable::drawDatasetsInAscendingOrder()
 {
@@ -309,6 +301,7 @@ void iACompHistogramTable::drawDatasetsInDescendingOrder()
 
 void iACompHistogramTable::drawDatasetsInOriginalOrder()
 {
+<<<<<<< HEAD
 	histogramVis->drawDatasetsInOriginalOrder();
 }
 
@@ -318,10 +311,12 @@ void iACompHistogramTable::drawUniformTable()
 {
 	histogramVis->drawUniformTable();
 }
+
 void iACompHistogramTable::drawBayesianBlocksTable()
 {
 	histogramVis->drawBayesianBlocksTable();
 }
+
 void iACompHistogramTable::drawNaturalBreaksTable()
 {
 	histogramVis->drawNaturalBreaksTable();

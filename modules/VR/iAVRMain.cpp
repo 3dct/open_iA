@@ -138,7 +138,7 @@ iAVRMain::iAVRMain(iAVREnvironment* vrEnv, iAVRInteractorStyle* style, vtkTable*
 	this->setInputScheme(vtkEventDataDevice::RightController, vtkEventDataDeviceInput::Trigger, vtkEventDataAction::Press,
 		iAVRInteractionOptions::NoObject, iAVROperations::ResetSelection);
 	this->setInputScheme(vtkEventDataDevice::RightController, vtkEventDataDeviceInput::Trigger, vtkEventDataAction::Press,
-		iAVRInteractionOptions::Histogram, iAVROperations::RotateVis);
+		iAVRInteractionOptions::Histogram, iAVROperations::FlipHistoBookPages);
 	this->setInputScheme(vtkEventDataDevice::LeftController, vtkEventDataDeviceInput::Trigger, vtkEventDataAction::Press,
 		iAVRInteractionOptions::Anywhere, iAVROperations::ChangeMiMDisplacementType);
 	this->setInputScheme(vtkEventDataDevice::LeftController, vtkEventDataDeviceInput::TrackPad, vtkEventDataAction::Press,
@@ -168,7 +168,7 @@ iAVRMain::iAVRMain(iAVREnvironment* vrEnv, iAVRInteractorStyle* style, vtkTable*
 	this->setInputScheme(vtkEventDataDevice::LeftController, vtkEventDataDeviceInput::Joystick, vtkEventDataAction::Press,
 		iAVRInteractionOptions::Anywhere, iAVROperations::ChangeJaccardIndex);
 	this->setInputScheme(vtkEventDataDevice::RightController, vtkEventDataDeviceInput::Trigger, vtkEventDataAction::Release,
-		iAVRInteractionOptions::Histogram, iAVROperations::RotateVis);
+		iAVRInteractionOptions::Histogram, iAVROperations::FlipHistoBookPages);
 
 	//Add Actors
 	addPropToOptionID(vtkProp3D::SafeDownCast(m_modelInMiniature->getActor()), iAVRInteractionOptions::MiniatureModel);
@@ -177,7 +177,7 @@ iAVRMain::iAVRMain(iAVREnvironment* vrEnv, iAVRInteractorStyle* style, vtkTable*
 
 	//addPropToOptionID(m_slider->getSlider(), iAVRInteractionOptions::Histogram);
 	
-	for(int i = 0; i < m_octrees->size(); i++)
+	for(size_t i = 0; i < m_octrees->size(); i++)
 	{
 		addPropToOptionID(vtkProp3D::SafeDownCast(m_octrees->at(i)->getActor()), iAVRInteractionOptions::Volume); //Octree counts as Volume
 	}
@@ -185,7 +185,7 @@ iAVRMain::iAVRMain(iAVREnvironment* vrEnv, iAVRInteractorStyle* style, vtkTable*
 
 //! Defines the action executed for specific controller inputs
 //! Position and Orientation are in WorldCoordinates and Orientation is in Degree
-void iAVRMain::startInteraction(vtkEventDataDevice3D* device, double eventPosition[3], double eventOrientation[4], vtkProp3D* pickedProp)
+void iAVRMain::startInteraction(vtkEventDataDevice3D* device, vtkProp3D* pickedProp, double eventPosition[3], double eventOrientation[4])
 {
 	m_vrEnv->interactor()->GetTouchPadPosition(device->GetDevice(), device->GetInput(), touchPadPosition);
 
@@ -239,15 +239,20 @@ void iAVRMain::startInteraction(vtkEventDataDevice3D* device, double eventPositi
 	case iAVROperations::ChangeJaccardIndex:
 		this->pressLeftTouchpad();
 		break;
-	case iAVROperations::RotateVis:
-		activeInput->at(deviceID) = static_cast<int>(iAVROperations::RotateVis);
-		this->rotateDistributionVis(eventPosition, true);
+	case iAVROperations::FlipHistoBookPages:
+		activeInput->at(deviceID) = static_cast<int>(iAVROperations::FlipHistoBookPages);
+		this->flipDistributionVis();
+		break;
+	default:
+		LOG(lvlDebug, QString("Start Operation %1 is not defined").arg(operation));
 		break;
 	}
 }
 
-void iAVRMain::endInteraction(vtkEventDataDevice3D* device, double eventPosition[3], double eventOrientation[4], vtkProp3D* pickedProp)
+void iAVRMain::endInteraction(vtkEventDataDevice3D* device, vtkProp3D* pickedProp, double eventPosition[3], double eventOrientation[4])
 {
+	Q_UNUSED(eventPosition);
+	Q_UNUSED(eventOrientation);
 	int deviceID = static_cast<int>(device->GetDevice()); // Device
 	int inputID = static_cast<int>(device->GetInput());  // Input Method
 	int actioniD = static_cast<int>(device->GetAction());     // Action of Input Method
@@ -268,9 +273,12 @@ void iAVRMain::endInteraction(vtkEventDataDevice3D* device, double eventPosition
 		activeInput->at(deviceID) = 0; // For Multitouch
 		multiPickMiMRegion();
 		break;
-	case iAVROperations::RotateVis:
-		this->rotateDistributionVis(eventPosition, false);
+	case iAVROperations::FlipHistoBookPages:
+		this->flipDistributionVis();
 		activeInput->at(deviceID) = 0;
+		break;
+	default:
+		LOG(lvlDebug, QString("End Operation %1 is not defined").arg(operation));
 		break;
 	}
 	m_vrEnv->update();
@@ -289,7 +297,7 @@ void iAVRMain::onMove(vtkEventDataDevice3D * device, double movePosition[3], dou
 	double oldcPos[3] = { cPos[deviceID][0], cPos[deviceID][1], cPos[deviceID][2]};
 	double oldcOrie[4] = { cOrie[deviceID][0], cOrie[deviceID][1], cOrie[deviceID][2], cOrie[deviceID][3]}; //W,X,Y,Z
 
-	for (size_t i = 0; i < 3; i++)
+	for (vtkIdType i = 0; i < 3; i++)
 	{
 		//Save Current Pos
 		cPos[deviceID][i] = movePosition[i];
@@ -299,8 +307,8 @@ void iAVRMain::onMove(vtkEventDataDevice3D * device, double movePosition[3], dou
 	}
 	cOrie[deviceID][3] = eventOrientation[3];
 
-	double movementPos[3];
-	double movementOrie[4];
+	double movementPos[3]{};
+	double movementOrie[4]{};
 	movementPos[0] = cPos[deviceID][0] - oldcPos[0];
 	movementPos[1] = cPos[deviceID][1] - oldcPos[1];
 	movementPos[2] = cPos[deviceID][2] - oldcPos[2];
@@ -384,7 +392,7 @@ void iAVRMain::onMove(vtkEventDataDevice3D * device, double movePosition[3], dou
 		m_3DTextLabels->at(0)->setLabelPos(rcPos);
 		m_3DTextLabels->at(0)->moveInEyeDir(initialScale * 0.04, initialScale * 0.04, initialScale * 0.04);
 
-		if(activeInput->at(deviceID) == static_cast<int>(iAVROperations::RotateVis))
+		if(activeInput->at(deviceID) == static_cast<int>(iAVROperations::FlipHistoBookPages))
 		{
 			double controllerPath[3]{};
 			double crossPro[3]{};
@@ -401,27 +409,13 @@ void iAVRMain::onMove(vtkEventDataDevice3D * device, double movePosition[3], dou
 	}
 }
 
+//! Corrects the size of elements based on the new physical scale of the environment
 void iAVRMain::onZoom()
 {
 	auto scaleDiff = (1.0 / calculateWorldScaleFactor());
 
 	m_modelInMiniature->setScale(scaleDiff, scaleDiff, scaleDiff);
 	m_MiMColorLegend->setScale(scaleDiff);
-}
-
-void iAVRMain::onRotate(double angle)
-{
-	//vtkSmartPointer<vtkActorCollection> actors = m_vrEnv->renderer()->GetActors();
-	//actors->InitTraversal();
-
-	//for (vtkIdType i = 0; i < actors->GetNumberOfItems(); i++)
-	//{
-	//	vtkActor* nextActor = actors->GetNextActor();
-	//	if (nextActor != nullptr)
-	//	{
-	//		nextActor->RotateY(-angle);
-	//	}
-	//}
 }
 
 void iAVRMain::setInputScheme(vtkEventDataDevice device, vtkEventDataDeviceInput input, vtkEventDataAction action, iAVRInteractionOptions options, iAVROperations operation)
@@ -471,7 +465,7 @@ void iAVRMain::drawPoint(std::vector<double*>* pos, QColor color)
 
 	vtkSmartPointer<vtkPoints> points = vtkSmartPointer<vtkPoints>::New();
 
-	for(int i=0; i<pos->size(); i++)
+	for(size_t i=0; i<pos->size(); i++)
 	{
 		points->InsertNextPoint(pos->at(i));
 	}
@@ -498,7 +492,7 @@ void iAVRMain::drawPoint(std::vector<double*>* pos, QColor color)
 void iAVRMain::generateOctrees(int maxLevel, int maxPointsPerRegion, vtkPolyData* dataSet)
 {
 	int lastLeafNodeAmount = 0;
-	for(int level = 0; level <= maxLevel; level++)
+	for(auto level = 0; level <= maxLevel; level++)
 	{
 		iAVROctree* tempOctree = new iAVROctree(m_vrEnv->renderer(), dataSet);
 		tempOctree->calculateOctree(level, maxPointsPerRegion);
@@ -542,7 +536,7 @@ void iAVRMain::colorMiMCubes(std::vector<vtkIdType>* regionIDs)
 	m_MiMColorLegend->calculateLegend(m_vrEnv->getInitialWorldScale());
 	m_modelInMiniature->applyHeatmapColoring(rgba); //Reset Color
 	
-	for (int i = 0; i < regionIDs->size(); i++)
+	for (size_t i = 0; i < regionIDs->size(); i++)
 	{
 		m_modelInMiniature->setCubeColor(OCTREE_COLOR, regionIDs->at(i));
 	}
@@ -683,7 +677,7 @@ void iAVRMain::multiPickMiMRegion()
 	{
 		std::vector<size_t> selection = std::vector<size_t>();
 
-		for (int i = 0; i < multiPickIDs->size(); i++)
+		for (size_t i = 0; i < multiPickIDs->size(); i++)
 		{
 			for (auto fiber : *m_fiberCoverageCalc->getFiberCoverage()->at(currentOctreeLevel).at(multiPickIDs->at(i))) {
 				selection.push_back(fiber.first);
@@ -886,16 +880,9 @@ void iAVRMain::changeMiMDisplacementType()
 	m_3DTextLabels->at(0)->hide();	
 }
 
-void iAVRMain::rotateDistributionVis(double eventPosition[3], bool startAction)
+void iAVRMain::flipDistributionVis()
 {
-	if(startAction)
-	{
-		//m_distributionVis->flipThroughHistograms(sign);
-	}
-	else
-	{
-		m_distributionVis->flipThroughHistograms(sign);
-	}
+	m_distributionVis->flipThroughHistograms(sign);
 }
 
 void iAVRMain::displayNodeLinkD()

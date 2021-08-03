@@ -6,14 +6,12 @@
 //iA
 #include "iAMainWindow.h"
 #include "iAVtkVersion.h"
-
-//Qt
-#include "vtkGenericOpenGLRenderWindow.h"
-#include "QVTKOpenGLNativeWidget.h"
-#include "qboxlayout.h"
+#include "iAVtkWidget.h"
 
 //vtk
+
 #include "vtkRenderer.h"
+#include <vtkRenderWindow.h>
 #include "vtkContextView.h"
 #include "vtkContextScene.h"
 
@@ -28,6 +26,7 @@
 #include "vtkStringArray.h"
 #include "vtkIntArray.h"
 #include "vtkVariantArray.h"
+
 
 #include "vtkComputeQuartiles.h"
 #include "vtkStatisticsAlgorithm.h"
@@ -46,13 +45,17 @@
 #include "vtkActor.h"
 #include "vtkProperty.h"
 #include "vtkRegularPolygonSource.h"
-#include  "vtkCoordinate.h"
-#include  "vtkActor2D.h"
+#include "vtkCoordinate.h"
+#include "vtkActor2D.h"
 #include "vtkPolyDataMapper2D.h"
+#include "vtkDataSetAttributes.h"
 
 #include "vtkPen.h"
 #include "vtkBrush.h"
 #include "vtkContext2D.h"
+
+// Qt
+#include <QBoxLayout>
 
 #include <string>
 
@@ -62,10 +65,12 @@ vtkStandardNewMacro(iACompBoxPlot::BoxPlot);
 iACompBoxPlot::iACompBoxPlot(iAMainWindow* parent, iACsvDataStorage* dataStorage) : 
 	QDockWidget(parent),
 	m_dataStorage(dataStorage),
+	m_qvtkWidget(new iAQVTKWidget(this)),
 	maxValsAttr(new std::vector<double>()),
 	minValsAttr(new std::vector<double>()),
-	m_legendAttributes(new std::vector<vtkSmartPointer<vtkTextActor>>()),
 	m_numberOfAttr(0),
+	m_legendAttributes(new std::vector<vtkSmartPointer<vtkTextActor>>()),
+	labels(vtkSmartPointer<vtkStringArray>::New()),
 	currentQuartileTable(vtkSmartPointer<vtkTable>::New()),
 	finishedInitalization(false),
 	labels(vtkSmartPointer<vtkStringArray>::New()),
@@ -78,26 +83,21 @@ iACompBoxPlot::iACompBoxPlot(iAMainWindow* parent, iACsvDataStorage* dataStorage
 	QVBoxLayout* layout = new QVBoxLayout;
 	dockWidgetContents->setLayout(layout);
 
-	m_qvtkWidget = new QVTKOpenGLNativeWidget(this);
 	layout->addWidget(m_qvtkWidget);
 
 	m_view = vtkSmartPointer<vtkContextView>::New();
-
-	#if VTK_VERSION_NUMBER < VTK_VERSION_CHECK(9, 0, 0)
-		m_view->SetRenderWindow(m_qvtkWidget->GetRenderWindow());
-		m_view->SetInteractor(m_qvtkWidget->GetInteractor());
-	#else
-		m_view->SetRenderWindow(m_qvtkWidget->renderWindow());
-		m_view->SetInteractor(m_qvtkWidget->interactor());
-	#endif
+	m_view->SetRenderWindow(m_qvtkWidget->renderWindow());
+	m_view->SetInteractor(m_qvtkWidget->interactor());
 }
 
 void iACompBoxPlot::initializeChart()
 {
+	QDockWidget::showEvent(event);
+
 	//reset chart if something was drawn before
 	m_view->GetScene()->ClearItems();
 
-	for (int i = 0; i < m_legendAttributes->size(); i++)
+	for (int i = 0; i < ((int)m_legendAttributes->size()); i++)
 	{
 		m_view->GetRenderer()->RemoveActor2D(m_legendAttributes->at(i));
 	}
@@ -119,9 +119,7 @@ void iACompBoxPlot::initializeChart()
 	m_boxOriginal->SetLookupTable(lutOriginal);
 
 	double col[3];
-	col[0] = iACompVisOptions::getDoubleArray(iACompVisOptions::BACKGROUNDCOLOR_LIGHTGREY)[0];
-	col[1] = iACompVisOptions::getDoubleArray(iACompVisOptions::BACKGROUNDCOLOR_LIGHTGREY)[1];
-	col[2] = iACompVisOptions::getDoubleArray(iACompVisOptions::BACKGROUNDCOLOR_LIGHTGREY)[2];
+	iACompVisOptions::getDoubleArray(iACompVisOptions::BACKGROUNDCOLOR_LIGHTGREY, col);
 	m_boxOriginal->SetColor(col[0], col[1], col[2]);
 	m_boxOriginal->GetPen()->SetWidth(m_boxOriginal->GetPen()->GetWidth() * 2.5);
 
@@ -200,7 +198,7 @@ void iACompBoxPlot::initializeData()
 	//fill table with data
 	for (int i = 0; i < data->size(); i++)
 	{//for all datasets
-		for (int dataInd = 0; dataInd < data->at(i).values->size(); dataInd++)
+		for (int dataInd = 0; dataInd < ((int)data->at(i).values->size()); dataInd++)
 		{ //for all values
 			for (int attrInd = 1; attrInd <= m_numberOfAttr; attrInd++)
 
@@ -238,7 +236,9 @@ void iACompBoxPlot::initializeAxes(vtkSmartPointer<BoxPlotChart> chart, bool axe
 	chart->GetTitleProperties()->BoldOn();
 	chart->GetTitleProperties()->ItalicOff();
 	chart->GetTitleProperties()->ShadowOff();
-	chart->GetTitleProperties()->SetColor(iACompVisOptions::getDoubleArray(iACompVisOptions::BACKGROUNDCOLOR_LIGHTGREY));
+	double col[3];
+	iACompVisOptions::getDoubleArray(iACompVisOptions::BACKGROUNDCOLOR_LIGHTGREY, col);
+	chart->GetTitleProperties()->SetColor(col);
 	chart->GetTitleProperties()->SetFontFamilyToArial();
 	chart->GetTitleProperties()->SetFontSize(iACompVisOptions::FONTSIZE_TITLE);
 	chart->GetTitleProperties()->Modified();
@@ -248,7 +248,9 @@ void iACompBoxPlot::initializeAxes(vtkSmartPointer<BoxPlotChart> chart, bool axe
 	axisLeft->SetBehavior(1);
 	axisLeft->SetTitle("Converted Interval Size");
 	axisLeft->GetTitleProperties()->ItalicOff();
-	axisLeft->GetTitleProperties()->SetColor(iACompVisOptions::getDoubleArray(iACompVisOptions::BACKGROUNDCOLOR_LIGHTGREY));
+	double col1[3];
+	iACompVisOptions::getDoubleArray(iACompVisOptions::BACKGROUNDCOLOR_LIGHTGREY, col1);
+	axisLeft->GetTitleProperties()->SetColor(col1);
 	axisLeft->GetTitleProperties()->SetFontFamilyToArial();
 	axisLeft->GetTitleProperties()->SetFontSize(iACompVisOptions::FONTSIZE_TEXT);
 	axisLeft->GetTitleProperties()->SetLineOffset(-20);
@@ -290,9 +292,7 @@ void iACompBoxPlot::initializeLutForOriginalBoxPlot()
 	lutOriginal->Build();
 	
 	double col[3];
-	col[0] = iACompVisOptions::getDoubleArray(iACompVisOptions::BACKGROUNDCOLOR_LIGHTGREY)[0];
-	col[1] = iACompVisOptions::getDoubleArray(iACompVisOptions::BACKGROUNDCOLOR_LIGHTGREY)[1];
-	col[2] = iACompVisOptions::getDoubleArray(iACompVisOptions::BACKGROUNDCOLOR_LIGHTGREY)[2];
+	iACompVisOptions::getDoubleArray(iACompVisOptions::BACKGROUNDCOLOR_LIGHTGREY, col);
 
 	for(int i = 0; i < m_numberOfAttr; i++)
 	{
@@ -307,9 +307,7 @@ void iACompBoxPlot::initializeLutForSelectedBoxPlot()
 	lutSelected->Build();
 
 	double col[3];
-	col[0] = iACompVisOptions::getDoubleArray(iACompVisOptions::HIGHLIGHTCOLOR_GREEN)[0];
-	col[1] = iACompVisOptions::getDoubleArray(iACompVisOptions::HIGHLIGHTCOLOR_GREEN)[1];
-	col[2] = iACompVisOptions::getDoubleArray(iACompVisOptions::HIGHLIGHTCOLOR_GREEN)[2];
+	iACompVisOptions::getDoubleArray(iACompVisOptions::HIGHLIGHTCOLOR_GREEN, col);
 
 	for (int i = 0; i < m_numberOfAttr; i++)
 	{
@@ -391,11 +389,7 @@ void iACompBoxPlot::initializeLegend(vtkSmartPointer<BoxPlotChart> chart)
 
 void iACompBoxPlot::renderWidget()
 {
-	#if VTK_VERSION_NUMBER < VTK_VERSION_CHECK(9, 0, 0)
-		m_qvtkWidget->GetRenderWindow()->GetInteractor()->Render();
-	#else
-		m_qvtkWidget->renderWindow()->GetInteractor()->Render();
-	#endif
+	m_qvtkWidget->renderWindow()->GetInteractor()->Render();
 }
 
 void iACompBoxPlot::setOrderedPositions(std::vector<double>* orderedPositions)
@@ -545,10 +539,10 @@ void iACompBoxPlot::updateBoxPlot(csvDataType::ArrayType* selectedData, std::vec
 		table->SetNumberOfRows(selectedData->at(0).size());
 
 		//fill table with data
-		for (int col = 1; col < selectedData->size(); col++)
+		for (int col = 1; col < ((int)selectedData->size()); col++)
 		{//for each attribute
 
-			for (int row = 0; row < selectedData->at(col).size(); row++)
+			for (int row = 0; row < ((int)selectedData->at(col).size()); row++)
 			{
 				int colNew = col - 1;
 				table->SetValue(row, colNew, selectedData->at(selected_orderedPositions->at(colNew) + 1).at(row));
@@ -565,9 +559,7 @@ void iACompBoxPlot::updateBoxPlot(csvDataType::ArrayType* selectedData, std::vec
 	}
 
 	double col[3];
-	col[0] = iACompVisOptions::getDoubleArray(iACompVisOptions::HIGHLIGHTCOLOR_GREEN)[0];
-	col[1] = iACompVisOptions::getDoubleArray(iACompVisOptions::HIGHLIGHTCOLOR_GREEN)[1];
-	col[2] = iACompVisOptions::getDoubleArray(iACompVisOptions::HIGHLIGHTCOLOR_GREEN)[2];
+	iACompVisOptions::getDoubleArray(iACompVisOptions::HIGHLIGHTCOLOR_GREEN, col);
 
 	//create box plot
 	m_boxSelected = vtkSmartPointer<BoxPlot>::New();
@@ -644,7 +636,7 @@ void iACompBoxPlot::reorderOriginalData(std::vector<double>* selected_orderedPos
 
 void iACompBoxPlot::reorderLegend(std::vector<double>* selected_orderedPositions)
 {
-	for (int i = 0; i < m_legendAttributes->size(); i++)
+	for (int i = 0; i < ((int)m_legendAttributes->size()); i++)
 	{
 		vtkSmartPointer<vtkTextActor> legend = m_legendAttributes->at(i);
 		legend->SetInput(labels->GetValue(selected_orderedPositions->at(i)));
@@ -683,7 +675,7 @@ void iACompBoxPlot::resetBoxPlot()
 	m_chartOriginal->SetPoint2(m_qvtkWidget->width()*0.75, (m_qvtkWidget->height())*0.85);
 	m_chartOriginal->Update();
 
-	for (int i = 0; i < m_legendAttributes->size(); i++)
+	for (int i = 0; i < ((int)m_legendAttributes->size()); i++)
 	{
 		vtkSmartPointer<vtkTextActor> legend = m_legendAttributes->at(i);
 		legend->SetInput(labels->GetValue(m_orderedPositions->at(i)));
@@ -747,6 +739,11 @@ void iACompBoxPlot::BoxPlotChart::SetTooltipInfo(const vtkContextMouseEvent& mou
 	vtkIdType segmentIndex)
 {
 	if (!this->Tooltip)
+	  {
+		return;
+	  }
+
+	if (seriesIndex == -1 && plot == nullptr && segmentIndex == -1)
 	  {
 		return;
 	  }
@@ -839,7 +836,6 @@ bool iACompBoxPlot::BoxPlot::Paint(vtkContext2D *painter)
 		vtkStdString colName = parent->GetVisibleColumns()->GetValue(i);
 		int index;
 		this->GetInput()->GetRowData()->GetAbstractArray(colName.c_str(), index);
-
 		double rgb[4];
 		this->LookupTable->GetIndexedColor(index, rgb);
 
@@ -874,7 +870,7 @@ void iACompBoxPlot::BoxPlot::DrawBoxPlot(int i, unsigned char* rgba, double x, v
 
 	brush->SetOpacityF( (rgba[3]/ 255.)); //new
 
-	painter->ApplyBrush(brush);
+	painter->ApplyBrush(brush.GetPointer());
 
 	// Helper variables for x position
 	double xpos = x + 0.5 * this->BoxWidth;
@@ -904,7 +900,7 @@ void iACompBoxPlot::BoxPlot::DrawBoxPlot(int i, unsigned char* rgba, double x, v
 		whitePen->SetWidth(this->Pen->GetWidth());
 		whitePen->SetColor(128, 128, 128, 128);
 		whitePen->SetOpacity(this->Pen->GetOpacity());
-		painter->ApplyPen(whitePen);
+		painter->ApplyPen(whitePen.GetPointer());
 	}
 
 	painter->DrawLine(xneg, q[2], xpos, q[2]);

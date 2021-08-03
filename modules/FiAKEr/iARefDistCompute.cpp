@@ -20,7 +20,7 @@
 * ************************************************************************************/
 #include "iARefDistCompute.h"
 
-#include "iAFiberCharData.h"
+#include "iAFiberResult.h"
 #include "iAFiberData.h"
 
 #include "iACsvConfig.h"
@@ -53,7 +53,13 @@ namespace
 	QString AverageCacheFileIdentifier("FIAKERAverageCacheFile");
 	//QString CacheFileClosestFibers("ClosestFibers");
 	//QString CacheFileResultPattern("Result%1");
-	quint32 CacheFileVersion(3);
+	quint32 AverageCacheFileVersion(3);
+	// until v3, CacheFileVersion and AverageCacheFileVersion were used for both average and per-result caches
+	quint32 CacheFileVersion(4);
+	// change from v3 to v4:
+	//   - changed data types in iAFiberSimilarity:
+	//     - index        : quint64 -> quint32
+	//     - dissimilarity: double -> float
 
 	bool verifyOpenCacheFile(QFile & cacheFile)
 	{
@@ -70,7 +76,7 @@ namespace
 	}
 }
 
-iARefDistCompute::ContainerSizeType iARefDistCompute::MaxNumberOfCloseFibers = 25;
+iARefDistCompute::ContainerSizeType iARefDistCompute::MaxNumberOfCloseFibers = 3;
 
 iARefDistCompute::iARefDistCompute(QSharedPointer<iAFiberResultsCollection> data, size_t referenceID) :
 	m_data(data),
@@ -170,7 +176,7 @@ void getBestMatches(iAFiberData const& fiber,
 				size_t refFiberID = otherMatches[bestMatchID].index;
 				auto it = refCurveInfo.find(refFiberID);
 				iAFiberData refFiber(refTable, refFiberID, mapping, (it != refCurveInfo.end()) ? it->second : std::vector<iAVec3f>());
-				similarities[bestMatchID].index = refFiberID;
+				similarities[bestMatchID].index = static_cast<quint32>(refFiberID);
 				double curDissimilarity = getDissimilarity(fiber, refFiber, measuresToCompute[d].first, diagonalLength, maxLength);
 				if (std::isnan(curDissimilarity))
 				{
@@ -195,7 +201,7 @@ void iARefDistCompute::run()
 
 	auto const & mapping = *ref.mapping.data();
 	/*
-	std::array<size_t, iAFiberCharData::FiberValueCount> diffCols = {
+	std::array<size_t, iAFiberResult::FiberValueCount> diffCols = {
 		mapping[iACsvConfig::StartX],  mapping[iACsvConfig::StartY],  mapping[iACsvConfig::StartZ],
 		mapping[iACsvConfig::EndX],    mapping[iACsvConfig::EndY],    mapping[iACsvConfig::EndZ],
 		mapping[iACsvConfig::CenterX], mapping[iACsvConfig::CenterY], mapping[iACsvConfig::CenterZ],
@@ -260,12 +266,12 @@ void iARefDistCompute::run()
 #pragma omp parallel for
 		for (qint64 fiberID = 0; fiberID < fiberCount; ++fiberID)
 		{
-			if (d.stepData == iAFiberCharData::SimpleStepData)
+			if (d.stepData == iAFiberResult::SimpleStepData)
 			{
 				iARefDistCompute::ContainerSizeType stepCount = static_cast<int>(d.stepValues.size());
 				auto & diffs = d.refDiffFiber[fiberID].diff;
 				diffs.resize(diffs.size + );
-				for (iARefDistCompute::ContainerSizeType diffID = 0; diffID < iAFiberCharData::FiberValueCount; ++diffID)
+				for (iARefDistCompute::ContainerSizeType diffID = 0; diffID < iAFiberResult::FiberValueCount; ++diffID)
 				{
 					auto & stepDiffs = diffs[diffID].step;
 					stepDiffs.resize(stepCount);
@@ -279,7 +285,7 @@ void iARefDistCompute::run()
 				}
 				for (iARefDistCompute::ContainerSizeType distID = 0; distID < SimilarityMeasureCount; ++distID)
 				{
-					auto & stepDiffs = diffs[iAFiberCharData::FiberValueCount + distID].step;
+					auto & stepDiffs = diffs[iAFiberResult::FiberValueCount + distID].step;
 					stepDiffs.resize(stepCount);
 					size_t refFiberID = d.refDiffFiber[fiberID].dist[distID][0].index;
 
@@ -292,7 +298,7 @@ void iARefDistCompute::run()
 					}
 				}
 			}
-			else if (data.stepData == iAFiberCharData::CurvedStepData)
+			else if (data.stepData == iAFiberResult::CurvedStepData)
 			{
 				// difference computation for curved step data ...
 			}
@@ -323,13 +329,13 @@ void iARefDistCompute::run()
 		assert(d.fiberCount < std::numeric_limits<iARefDistCompute::ContainerSizeType>::max());
 		for (iARefDistCompute::ContainerSizeType fiberID = 0; fiberID < static_cast<iARefDistCompute::ContainerSizeType>(d.fiberCount); ++fiberID)
 		{
-			//if (d.stepData == iAFiberCharData::SimpleStepData) ???
+			//if (d.stepData == iAFiberResult::SimpleStepData) ???
 			/*
-			for (iARefDistCompute::ContainerSizeType diffID = 0; diffID < iAFiberCharData::FiberValueCount; ++diffID)
+			for (iARefDistCompute::ContainerSizeType diffID = 0; diffID < iAFiberResult::FiberValueCount; ++diffID)
 			{
 				size_t tableColumnID = m_data->spmData->numParams() -
-					(iAFiberCharData::FiberValueCount + SimilarityMeasureCount + EndColumns) + diffID;
-				double lastValue = (d.stepData == iAFiberCharData::SimpleStepData) ?
+					(iAFiberResult::FiberValueCount + SimilarityMeasureCount + EndColumns) + diffID;
+				double lastValue = (d.stepData == iAFiberResult::SimpleStepData) ?
 						diffData.diff[diffID].step[static_cast<int>(d.stepValues.size() - 1)] : 0;
 				if (std::isnan(lastValue))
 				{
@@ -470,6 +476,15 @@ bool iARefDistCompute::readResultRefComparison(QFile& cacheFile, size_t resultID
 			"If you want to recompute with correct values, please delete the 'cache' subfolder!")
 			.arg(cacheFile.fileName()));
 	}
+	if (version < 4)
+	{
+		LOG(lvlError, QString("FIAKER cache file '%1': Too old cache version %2; "
+			"with version 4 the cache file format changed in an incompatible way! "
+			"Triggering re-computation... if you abort now, you can continue using "
+			"the old cache file with an older FIAKER version (open_iA <= 2020.10)!")
+			.arg(cacheFile.fileName()).arg(version));
+		return false;
+	}
 	if (version > CacheFileVersion)
 	{
 		LOG(lvlError, QString("FIAKER cache file '%1': Invalid or too high version number (%2), expected %3 or less.")
@@ -566,7 +581,7 @@ void iARefDistCompute::writeAverageMeasures(QFile& cacheFile)
 	out.setVersion(CacheFileQtDataStreamVersion);
 	// write header:
 	out << AverageCacheFileIdentifier;
-	out << CacheFileVersion;
+	out << AverageCacheFileVersion;
 	// write data:
 	out << static_cast<quint32>(m_data->result.size());
 	out << m_data->avgRefFiberMatch;
@@ -593,10 +608,10 @@ bool iARefDistCompute::readAverageMeasures(QFile& cacheFile)
 	}
 	quint32 version;
 	in >> version;
-	if (version > CacheFileVersion)
+	if (version > AverageCacheFileVersion)
 	{
 		LOG(lvlError, QString("FIAKER cache file '%1': Invalid or too high version number (%2), expected %3 or less.")
-			.arg(cacheFile.fileName()).arg(version).arg(CacheFileVersion));
+			.arg(cacheFile.fileName()).arg(version).arg(AverageCacheFileVersion));
 		return false;
 	}
 	quint32 numberOfResults;

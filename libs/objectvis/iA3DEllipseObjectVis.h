@@ -35,7 +35,10 @@ public:
 		QColor const & color, int phiRes = DefaultPhiRes, int thetaRes = DefaultThetaRes);
 	double const * bounds() override;
 	vtkPolyData* getPolyData() override;
+	vtkPolyData* finalPoly() override;
 	QString visualizationStatistics() const override;
+	std::vector<vtkSmartPointer<vtkPolyData>> extractSelectedObjects(QColor c) const override;
+
 private:
 	vtkSmartPointer<vtkPolyData> m_fullPoly;
 	IndexType m_pointsPerEllipse;

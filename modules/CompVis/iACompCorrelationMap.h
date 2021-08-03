@@ -19,10 +19,15 @@
 class iAMainWindow;
 class iACorrelationCoefficient;
 class iACsvDataStorage;
-class iACompVisMain;
+
+//class iACompVisMain;
 
 //vtk
-class QVTKOpenGLNativeWidget;
+//class QVTKOpenGLNativeWidget;
+
+class iAQVTKWidget;
+
+
 class vtkRenderer;
 class vtkGraphLayoutView;
 class vtkMutableUndirectedGraph;
@@ -60,7 +65,7 @@ private:
 	
 	void initializeLutForEdges();
 	void initializeLegend(vtkScalarBarWidget* widget);
-	void initializeEdges(QStringList attrNames);
+	void initializeEdges();
 	double colorEdges(vtkIdType startVertex, vtkIdType endVertex, std::map<QString, Correlation::CorrelationStore>* correlations, std::map<vtkIdType, QString>* vertices);
 
 	void initializeArcs();
@@ -72,7 +77,8 @@ private:
 	void drawArc(double lengthInDegree, double* startPos, double* color, double lineWidth, bool stippled, int lineStipplePattern, int lineStippleRepeat);
 	void drawGlyphs(vtkSmartPointer<vtkPoints> positions, vtkSmartPointer<vtkDoubleArray> colors, vtkSmartPointer<vtkDoubleArray> scales);
 	void drawLegend(vtkSmartPointer<vtkPoints> positions, QStringList names);
-	void drawInnerArc(std::vector<double> data, double* parentPosition, double parentTheta, double parentPhi, double parentAngle, double parentArcLength, int dataIndex);
+	void drawInnerArc(std::vector<double> dataPoints, double* parentPosition, double parentTheta, double parentPhi,
+		double parentAngle, double parentArcLength, int dataIndex);
 
 	void calculateLabelPosition(vtkSmartPointer<vtkPoints> labelPositions, double theta, double arcLength, double phi, double radiusOffset);
 
@@ -87,13 +93,9 @@ private:
 
 	iACompVisMain* m_main;
 
-	QVTKOpenGLNativeWidget* m_qvtkWidget;
+	iAQVTKWidget* m_qvtkWidget;
 	vtkSmartPointer<vtkRenderer> m_renderer;
 
-	int m_numberOfAttr;
-	double m_radius = 0.75;
-	double m_PI = std::atan(1) * 4;
-	QStringList m_attrNames;
 	//stores for every vertex its name
 	std::map<vtkIdType, QString>* m_vertices;
 
@@ -270,7 +272,7 @@ private:
 		std::map<QString, Correlation::CorrelationStore>* m_correlations;
 
 		const int K = 1;
-		const double MASS = 1;
+		//const double MASS = 1;
 
 		double minDist;
 		double maxDist;
@@ -291,13 +293,13 @@ private:
 			void removeHighlighting();
 			void resetEdgeVisualization();
 
-			virtual void OnLeftButtonDown();
-			virtual void OnMiddleButtonDown();
-			virtual void OnRightButtonDown();
-			virtual void OnMouseWheelForward();
-			virtual void OnMouseWheelBackward();
-			virtual void OnKeyPress();
-			virtual void OnKeyRelease();
+			virtual void OnLeftButtonDown() override;
+			virtual void OnMiddleButtonDown() override;
+			virtual void OnRightButtonDown() override;
+			virtual void OnMouseWheelForward() override;
+			virtual void OnMouseWheelBackward() override;
+			virtual void OnKeyPress() override;
+			virtual void OnKeyRelease() override;
 
 		protected:
 			GraphInteractorStyle();
@@ -337,7 +339,7 @@ private:
 			vtkSmartPointer<vtkLookupTable> lutForLabels;
 	};
 
-	vtkSmartPointer<GraphInteractorStyle> style;
+	
 	vtkSmartPointer<CorrelationGraphLayout> m_graphLayout;
 	vtkSmartPointer<vtkGraphLayoutView> m_graphLayoutView;
 	vtkSmartPointer<vtkViewTheme> m_theme;
@@ -362,5 +364,6 @@ private:
 
 	//stores the last interaction that was performed to make a reinitialization after minimizing etc. possible
 	iACompVisOptions::lastState m_lastState;
+
 };
 

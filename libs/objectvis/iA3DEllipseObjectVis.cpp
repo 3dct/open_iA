@@ -58,6 +58,7 @@ iA3DEllipseObjectVis::iA3DEllipseObjectVis(vtkRenderer* ren, vtkTable* objectTab
 		fullPolySource->AddInputData(ellipsoidSrc->GetOutput());
 	}
 	fullPolySource->Update();
+	// TODO: color updates etc. don't work because of this "static" mapping!
 	m_fullPoly = fullPolySource->GetOutput();
 	setupColors();
 	m_fullPoly->GetPointData()->AddArray(m_colors);
@@ -77,6 +78,11 @@ vtkPolyData* iA3DEllipseObjectVis::getPolyData()
 	return m_fullPoly;
 }
 
+vtkPolyData* iA3DEllipseObjectVis::finalPoly()
+{
+	return m_fullPoly;
+}
+
 QString iA3DEllipseObjectVis::visualizationStatistics() const
 {
 	return QString("Number of cells: %1; Number of points: %3")
@@ -92,4 +98,11 @@ iA3DColoredPolyObjectVis::IndexType iA3DEllipseObjectVis::objectStartPointIdx(In
 iA3DColoredPolyObjectVis::IndexType iA3DEllipseObjectVis::objectPointCount(IndexType /*objIdx*/) const
 {
 	return m_pointsPerEllipse;
+}
+
+std::vector<vtkSmartPointer<vtkPolyData>> iA3DEllipseObjectVis::extractSelectedObjects(QColor c) const
+{
+	Q_UNUSED(c);
+	std::vector<vtkSmartPointer<vtkPolyData>> result;
+	return result;
 }

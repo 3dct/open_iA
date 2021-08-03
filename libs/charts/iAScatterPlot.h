@@ -21,9 +21,9 @@
 #pragma once
 
 #ifdef CHART_OPENGL
-#include "iAQGLWidget.h"
-#include "iAQGLBuffer.h"
-using iAChartParentWidget = iAQGLWidget;
+#include <QOpenGLWidget>
+#include <QOpenGLBuffer>
+using iAChartParentWidget = QOpenGLWidget;
 #else
 #include <QWidget>
 using iAChartParentWidget = QWidget;
@@ -34,6 +34,7 @@ using iAChartParentWidget = QWidget;
 #include <QList>
 #include <QObject>
 
+class iAColorTheme;
 class iALookupTable;
 class iAScatterPlotViewData;
 class iASPLOMData;
@@ -56,6 +57,13 @@ public:
 		Rectangle,
 		Polygon
 	};
+	enum HighlightDrawMode
+	{
+		Enlarged = 1,         //!< whether to enlarge highlighted point
+		CategoricalColor = 2, //!< if set, use categorical color to draw highlighted point
+		Outline  = 4,         //!< if set, use categorical color for an outline around the actual point; using Enlarged, CategoricalColor AND Outline is redundant, only Enlarged and CategoricalColor will have the same effect
+	};
+	Q_DECLARE_FLAGS(HighlightDrawModes, HighlightDrawMode)
 	//! Constructor, initializes some core members
 	//! @param spViewData data on the current viewing configuration
 	//! @param parent the parent widget
@@ -65,9 +73,11 @@ public:
 	~iAScatterPlot();
 
 	void setData(size_t x, size_t y, QSharedPointer<iASPLOMData> &splomData ); //!< Set data to the scatter plot using indices of X and Y parameters and the raw SPLOM data
+	void setIndices(size_t x, size_t y);                             //!< Set the indices of the parameters to view
 	bool hasData() const;                                            //!< Check if data is already set to the plot
 	//! Set color lookup table and the name of a color-coded parameter
 	void setLookupTable( QSharedPointer<iALookupTable> &lut, size_t colInd );
+	QSharedPointer<iALookupTable> lookupTable() const;
 	const size_t* getIndices() const { return m_paramIndices; }      //!< Get indices of X and Y parameters
 	void setTransform( double scale, QPointF newOffset );            //!< Set new transform: new scale and new offset
 	void setTransformDelta( double scale, QPointF deltaOffset );     //!< Set new transform: new scale and change in the offset (delta)
@@ -97,8 +107,11 @@ public:
 	void SPLOMMouseMoveEvent( QMouseEvent * event );
 	void SPLOMMousePressEvent( QMouseEvent * event );
 	void SPLOMMouseReleaseEvent( QMouseEvent * event );
-	void setSelectionColor(QColor selCol);
 	//! @}
+	void setSelectionColor(QColor selCol);
+	void setHighlightColor(QColor hltCol);
+	void setHighlightColorTheme(iAColorTheme const* theme);
+	void setHighlightDrawMode(HighlightDrawModes drawMode);
 
 protected:
 	int p2binx( double p ) const;                                    //!< Get grid bin index using parameter value X
@@ -175,6 +188,9 @@ public:
 		QColor tickLabelColor;
 		QColor backgroundColor;
 		QColor selectionColor;
+		QColor highlightColor;
+		iAColorTheme const* highlightColorTheme;
+		HighlightDrawModes highlightDrawMode;
 		SelectionMode selectionMode;
 		bool selectionEnabled;
 		bool showPCC, showSCC;
@@ -185,7 +201,7 @@ public:
 protected:
 	iAChartParentWidget* m_parentWidget;                             //!< the parent widget
 #ifdef SP_OLDOPENGL
-	iAQGLBuffer * m_pointsBuffer;                                    //!< OpenGL buffer used for points VBO
+	QOpenGLBuffer* m_pointsBuffer;                                   //!< OpenGL buffer used for points VBO
 	bool m_pointsOutdated;                                           //!< indicates whether we need to fill the points buffer
 #endif
 	iAScatterPlotViewData* m_viewData;                               //!< selection/highlight/settings handler (if part of a SPLOM, the SPLOM-parent)
@@ -227,3 +243,5 @@ private:
 	double m_pcc, m_scc;                                             //!< correlation coefficients between the two given data columns
 	bool m_pccValid, m_sccValid;                                     //!< indicates whether current cached values cor correlation coefficients can be used
 };
+
+Q_DECLARE_OPERATORS_FOR_FLAGS(iAScatterPlot::HighlightDrawModes);

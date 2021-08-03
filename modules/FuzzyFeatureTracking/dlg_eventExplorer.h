@@ -22,8 +22,6 @@
 
 #include "ui_EventExplorer.h"
 
-#include <iAVtkWidgetFwd.h>
-
 #include <vtkSmartPointer.h>
 
 #include <QDockWidget>
@@ -32,6 +30,7 @@
 
 class dlg_trackingGraph;
 class iAFeatureTracking;
+class iAQVTKWidget;
 class iAVolumeStack;
 
 class vtkEventQtSlotConnect;
@@ -40,6 +39,7 @@ class vtkContextView;
 class vtkDoubleArray;
 class vtkIntArray;
 class vtkMutableDirectedGraph;
+class vtkObject;
 class vtkPlot;
 class vtkStringArray;
 class vtkTable;
@@ -77,7 +77,7 @@ private:
 	int m_propertyYId;
 	
 	std::vector<QSlider*> m_slider;
-	std::vector<iAVtkWidget*> m_widgets;
+	std::vector<iAQVTKWidget*> m_widgets;
 	std::vector<vtkSmartPointer<vtkContextView>> m_contextViews;
 	std::vector<vtkSmartPointer<vtkChartXY>> m_charts;
 	std::vector<vtkPlot*> m_plots;

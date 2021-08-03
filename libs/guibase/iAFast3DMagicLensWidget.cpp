@@ -27,7 +27,6 @@
 #include <vtkActor2DCollection.h>
 #include <vtkCamera.h>
 #include <vtkCellArray.h>
-#include <vtkGenericOpenGLRenderWindow.h>
 #include <vtkMath.h>
 #include <vtkPoints.h>
 #include <vtkPolyLine.h>
@@ -36,6 +35,7 @@
 #include <vtkProperty2D.h>
 #include <vtkRenderer.h>
 #include <vtkRendererCollection.h>
+#include <vtkRenderWindow.h>
 
 #include <QMouseEvent>
 
@@ -133,9 +133,13 @@ inline double iAFast3DMagicLensWidget::calculateZ( double viewAngle )
 
 void iAFast3DMagicLensWidget::mouseReleaseEvent( QMouseEvent * event )
 {
-	if( Qt::RightButton == event->button( ) )
-		emit rightButtonReleasedSignal( );
-	else if( Qt::LeftButton == event->button( ) )
-		emit leftButtonReleasedSignal( );
+	if (Qt::RightButton == event->button())
+	{
+		emit rightButtonReleasedSignal();
+	}
+	else if (Qt::LeftButton == event->button())
+	{
+		emit leftButtonReleasedSignal();
+	}
 	iAVtkWidget::mouseReleaseEvent( event );
 }

@@ -33,7 +33,7 @@ public:
 	using TableType = std::vector<std::vector<ValueType>>;
 	iACsvVectorTableCreator();
 	void initialize(QStringList const & headers, size_t const rowCount) override;
-	void addRow(size_t row, QStringList const & values) override;
+	void addRow(size_t row, std::vector<double> const & values) override;
 	TableType const & table();
 	QStringList const& header();
 private:

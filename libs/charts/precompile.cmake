@@ -19,7 +19,6 @@ SET (OPENIA_PRECOMPILE_HEADERS
 <iAPlot.h>
 <iAPlotData.h>
 <iAPlotTypes.h>
-<iAQGLWidget.h>
 <iAScatterPlot.h>
 <iAScatterPlotViewData.h>
 <iASPLOMData.h>
@@ -34,6 +33,7 @@ SET (OPENIA_PRECOMPILE_HEADERS
 <QMessageBox>
 <QMouseEvent>
 <QObject>
+<QOpenGLWidget>
 <QPainter>
 <QPen>
 <QPolygon>

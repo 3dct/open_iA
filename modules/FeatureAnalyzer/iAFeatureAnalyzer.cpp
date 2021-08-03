@@ -57,7 +57,6 @@ iAFeatureAnalyzer::iAFeatureAnalyzer(iAMainWindow *mWnd, const QString & resDir,
 	m_spmView( new iASPMView(mWnd, parent, f ) ),
 	m_treeView( new iATreeView( nullptr, f ) ),
 	m_pdmView( new iAPDMView( parent, f ) ),
-	//m_pcView( new iAPCView( parent, f ) ),
 	m_ssView( new iASSView( parent, f ) ),
 	m_selView( new iASelectionsView( nullptr, f ) ),
 	m_segm3DView( new iASegm3DView( parent, f ) ),
@@ -89,7 +88,6 @@ iAFeatureAnalyzer::iAFeatureAnalyzer(iAMainWindow *mWnd, const QString & resDir,
 	connect( m_treeView, &iATreeView::loadSelectionToSSSignal, m_ssView, &iASSView::SetData);
 	connect( m_treeView, &iATreeView::loadSelectionsToSSSignal, m_ssView, &iASSView::SetCompareData);
 	connect( m_treeView, &iATreeView::loadSelectionToPDMSignal, m_pdmView, &iAPDMView::SetData);
-	//connect( m_treeView, &iATreeView::loadSelectionToPCSignal, m_pcView, &iAPCView::SetData);
 	connect( m_treeView, &iATreeView::loadSelectionToRSDSignal, rangeSliderDiagramView, &iARangeSliderDiagramView::setData);
 	connect( tbSelections, &QToolButton::clicked, this, &iAFeatureAnalyzer::ShowSelections);
 	connect( tbTreeView, &QToolButton::clicked, this, &iAFeatureAnalyzer::ShowTreeView);

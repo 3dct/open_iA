@@ -138,7 +138,7 @@ void bin::debugBinType(BinType* input)
 	for (int col1 = 0; col1 < amountCols; col1++)
 	{
 		LOG(lvlDebug,"Bin " + QString::number(col1) + ":");
-		for (int r1 = 0; r1 < input->at(col1).size(); r1++)
+		for (int r1 = 0; r1 < ((int)input->at(col1).size()); r1++)
 		{
 			LOG(lvlDebug,"  Values " + QString::number(r1) + ": " + QString::number(input->at(col1).at(r1)));
 		}
@@ -155,7 +155,7 @@ QList<bin::BinType*>* bin::DeepCopy(QList<bin::BinType*>* input)
 		bin::BinType* curBin = input->at(binInd);
 		bin::BinType* newBin = initialize(curBin->size());
 
-		for (int indVals = 0; indVals < curBin->size(); indVals++)
+		for (int indVals = 0; indVals < ((int)curBin->size()); indVals++)
 		{
 			newBin->at(indVals) = (curBin->at(indVals));
 		}
@@ -170,7 +170,7 @@ bin::BinType* bin::copyCells(bin::BinType* input, std::vector<vtkIdType>* indexO
 {
 	bin::BinType* output = new bin::BinType();
 
-	for(int i = 0; i < indexOfCellsToCopy->size(); i++)
+	for(int i = 0; i < ((int)indexOfCellsToCopy->size()); i++)
 	{
 		output->push_back( input->at(indexOfCellsToCopy->at(i)) );
 	}

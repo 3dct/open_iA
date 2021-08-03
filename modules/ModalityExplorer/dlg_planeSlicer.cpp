@@ -24,25 +24,19 @@
 
 #include <vtkCamera.h>
 #include <vtkColorTransferFunction.h>
-#include <vtkGenericOpenGLRenderWindow.h>
 #include <vtkImageData.h>
 #include <vtkImageMapToColors.h>
 #include <vtkImageResliceMapper.h>
 #include <vtkImageProperty.h>
 #include <vtkImageSlice.h>
 #include <vtkOpenGLRenderer.h>
+#include <vtkRenderWindow.h>
 
 dlg_planeSlicer::dlg_planeSlicer() :
-	m_vtkWidget(new iAVtkWidget(this))
+	m_vtkWidget(new iAQVTKWidget(this))
 {
 	m_renderer = vtkSmartPointer<vtkOpenGLRenderer>::New();
-#if VTK_VERSION_NUMBER < VTK_VERSION_CHECK(9, 0, 0)
-	m_vtkWidget->SetRenderWindow(vtkSmartPointer<vtkGenericOpenGLRenderWindow>::New());
-	m_vtkWidget->GetRenderWindow()->AddRenderer(m_renderer);
-#else
-	m_vtkWidget->setRenderWindow(vtkSmartPointer<vtkGenericOpenGLRenderWindow>::New());
 	m_vtkWidget->renderWindow()->AddRenderer(m_renderer);
-#endif
 	slicer->layout()->addWidget(m_vtkWidget);
 	m_renderer->SetBackground(1, 1, 1);
 

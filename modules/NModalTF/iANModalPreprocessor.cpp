@@ -37,6 +37,7 @@
 
 #include <QComboBox>
 #include <QLabel>
+#include <QVBoxLayout>
 #include <QTextEdit>
 
 namespace

@@ -20,7 +20,6 @@
 * ************************************************************************************/
 #pragma once
 
-#include "ui_Mainwindow.h"
 #include "iAgui_export.h"
 
 #include "iAMainWindow.h"
@@ -30,6 +29,7 @@
 #include "iAVolumeSettings.h"
 #include "io/iARawFileParameters.h"
 
+#include <QMdiArea>
 #include <QMdiSubWindow>
 
 class QAction;
@@ -39,7 +39,6 @@ class QDomDocument;
 class QDomElement;
 class QDomNode;
 class QMenu;
-class QMdiArea;
 class QLabel;
 class QSplashScreen;
 
@@ -52,8 +51,10 @@ class iAModuleDispatcher;
 class iATransferFunction;
 class iAXmlSettings;
 
+class Ui_MainWindow;
+
 //! Application main window, provides access to all global graphical user interface elements.
-class iAgui_API MainWindow : public iAMainWindow, public Ui_MainWindow
+class iAgui_API MainWindow : public iAMainWindow
 {
 	Q_OBJECT
 
@@ -261,28 +262,6 @@ private:
 	QVector<QAction*> m_childDependentActions;
 	QStringList m_layoutNames;
 	QString m_gitVersion, m_buildInformation;
+
+	QSharedPointer<Ui_MainWindow> m_ui;
 };
-
-template <typename T> QList<T*> MainWindow::childList(QMdiArea::WindowOrder order)
-{
-	QList<T*> res;
-	for (QMdiSubWindow *window: mdiArea->subWindowList(order))
-	{
-		T * child = dynamic_cast<T*>(window->widget());
-		if (child)
-		{
-			res.append(child);
-		}
-	}
-	return res;
-}
-
-template <typename T> T * MainWindow::activeChild()
-{
-	int subWndCnt = childList<T>().size();
-	if (subWndCnt > 0)
-	{
-		return childList<T>(QMdiArea::ActivationHistoryOrder).last();
-	}
-	return nullptr;
-}

@@ -20,11 +20,11 @@
 * ************************************************************************************/
 #pragma once
 
-#include <iAQGLWidget.h>
+#include <QOpenGLWidget>
 
 #include <QPixmap>
 
-class iAPreviewSPLOM : public iAQGLWidget
+class iAPreviewSPLOM : public QOpenGLWidget
 {
 	Q_OBJECT
 

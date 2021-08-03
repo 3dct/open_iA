@@ -21,7 +21,7 @@
 #pragma once
 
 #include "iAFiberData.h"
-#include "iAFiberCharData.h"
+#include "iAFiberResult.h"
 
 #include <iAProgress.h>
 

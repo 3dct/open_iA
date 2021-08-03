@@ -22,13 +22,13 @@
 
 #include "ui_TrackingGraph.h"
 
-#include <iAVtkWidgetFwd.h>
-
 #include <vtkSmartPointer.h>
 
 #include <QDockWidget>
 
 class iATrackingGraphItem;
+
+class iAQVTKWidget;
 
 class vtkMutableDirectedGraph;
 
@@ -41,6 +41,6 @@ public:
 	void updateGraph(vtkSmartPointer<vtkMutableDirectedGraph> g, size_t numRanks);
 
 private:
-	iAVtkWidget* m_graphWidget;
+	iAQVTKWidget* m_graphWidget;
 	vtkSmartPointer<iATrackingGraphItem> m_graphItem;
 };

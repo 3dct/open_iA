@@ -6,8 +6,8 @@
    <rect>
     <x>0</x>
     <y>0</y>
-    <width>703</width>
-    <height>311</height>
+    <width>710</width>
+    <height>309</height>
    </rect>
   </property>
   <property name="features">
@@ -42,17 +42,23 @@
        </sizepolicy>
       </property>
       <layout class="QHBoxLayout" name="horizontalLayout_8">
+       <property name="leftMargin">
+        <number>0</number>
+       </property>
+       <property name="topMargin">
+        <number>0</number>
+       </property>
+       <property name="rightMargin">
+        <number>0</number>
+       </property>
+       <property name="bottomMargin">
+        <number>0</number>
+       </property>
        <property name="margin" stdset="0">
         <number>0</number>
        </property>
        <item>
         <widget class="QGroupBox" name="gb_spectraSettings">
-         <property name="sizePolicy">
-          <sizepolicy hsizetype="Maximum" vsizetype="Preferred">
-           <horstretch>0</horstretch>
-           <verstretch>0</verstretch>
-          </sizepolicy>
-         </property>
          <property name="title">
           <string>Spectra Histogram Settings:</string>
          </property>

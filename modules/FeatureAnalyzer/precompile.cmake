@@ -37,7 +37,6 @@ SET (FeatureAnalyzer_PRECOMPILE_INCLUDES
 <iATransferFunction.h>
 <iATreeView.h>
 <iAVtkWidget.h>
-<iAVtkWidgetFwd.h>
 <QCheckBox>
 <QColor>
 <QDir>
@@ -64,7 +63,6 @@ SET (FeatureAnalyzer_PRECOMPILE_INCLUDES
 <vtkContextView.h>
 <vtkDistancePolyDataFilter.h>
 <vtkDoubleArray.h>
-<vtkGenericOpenGLRenderWindow.h>
 <vtkIdTypeArray.h>
 <vtkImageData.h>
 <vtkLookupTable.h>

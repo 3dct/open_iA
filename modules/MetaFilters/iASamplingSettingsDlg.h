@@ -20,27 +20,23 @@
 * ************************************************************************************/
 #pragma once
 
-#include "ui_samplingSettings.h"
-
 #include "MetaFilters_export.h"
 
 #include <iAAttributes.h>
 #include <iASettings.h>
-#include <qthelper/iAQTtoUIConnector.h>
 #include <qthelper/iAWidgetSettingsMapper.h>
 
+#include <QDialog>
 #include <QMap>
-
 
 class iAAttributeDescriptor;
 class iAModalityList;
 class iASamplingMethod;
+class Ui_samplingSettings;
 
 class QCheckBox;
+class QLabel;
 class QShortcut;
-
-
-using dlg_samplingSettingsUI = iAQTtoUIConnector<QDialog, Ui_samplingSettings>;
 
 class iAParameterInputs
 {
@@ -54,18 +50,20 @@ public:
 	virtual QSharedPointer<iAAttributeDescriptor> currentDescriptor() = 0;
 };
 
-class MetaFilters_API iASamplingSettingsDlg : public dlg_samplingSettingsUI
+class MetaFilters_API iASamplingSettingsDlg : public QDialog
 {
 	Q_OBJECT
 public:
 	iASamplingSettingsDlg(QWidget* parentWdgt, int inputImageCount,
 		iASettings const & values);
 	QSharedPointer<iAAttributes> parameterRanges();
+	QSharedPointer<iAAttributes> parameterSpecs();
 	void getValues(iASettings & values) const;
 private slots:
 	void chooseOutputFolder();
 	void chooseParameterDescriptor();
 	void chooseExecutable();
+	void chooseParameterSetFile();
 	void parameterDescriptorChanged();
 	void saveSettings();
 	void loadSettings();
@@ -74,6 +72,8 @@ private slots:
 	void runClicked();
 	void outputBaseChanged();
 	void samplingMethodChanged();
+	void showAlgorithmInfo();
+	void showSamplingInfo();
 private:
 	void setInputsFromMap(iASettings const & values);
 	void setParameters(QSharedPointer<iAAttributes> params);
@@ -88,4 +88,5 @@ private:
 	iAWidgetMap m_widgetMap;
 	iAQRadioButtonVector m_rgAlgorithmType;
 	QSharedPointer<iAAttributes> m_paramSpecs;
+	QSharedPointer<Ui_samplingSettings> m_ui;
 };

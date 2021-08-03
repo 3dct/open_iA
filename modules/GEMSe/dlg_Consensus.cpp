@@ -53,7 +53,6 @@
 #include <vtkContextScene.h>
 #include <vtkContextView.h>
 #include <vtkFloatArray.h>
-#include <vtkGenericOpenGLRenderWindow.h>
 #include <vtkPlot.h>
 #include <vtkPlotLine.h>
 #include <vtkTable.h>
@@ -105,7 +104,7 @@
 
 struct ChartWidgetData
 {
-	iAVtkWidget* vtkWidget;
+	iAQVTKWidget* vtkWidget;
 	vtkSmartPointer<vtkChartXY> chart;
 };
 
@@ -113,15 +112,9 @@ ChartWidgetData CreateChartWidget(const char * xTitle, const char * yTitle,
 		iAMdiChild* mdiChild)
 {
 	ChartWidgetData result;
-	result.vtkWidget = new iAVtkWidget();
+	result.vtkWidget = new iAQVTKWidget();
 	auto contextView = vtkSmartPointer<vtkContextView>::New();
-#if VTK_VERSION_NUMBER < VTK_VERSION_CHECK(9, 0, 0)
-	result.vtkWidget->SetRenderWindow(vtkSmartPointer<vtkGenericOpenGLRenderWindow>::New());
-	contextView->SetRenderWindow(result.vtkWidget->GetRenderWindow());
-#else
-	result.vtkWidget->setRenderWindow(vtkSmartPointer<vtkGenericOpenGLRenderWindow>::New());
 	contextView->SetRenderWindow(result.vtkWidget->renderWindow());
-#endif
 	result.chart = vtkSmartPointer<vtkChartXY>::New();
 	result.chart->SetSelectionMode(vtkContextScene::SELECTION_NONE);
 	auto xAxis1 = result.chart->GetAxis(vtkAxis::BOTTOM);
@@ -991,12 +984,12 @@ void dlg_Consensus::LoadConfig()
 		}
 		QString executable = checkAlgoParams.getText(0);
 		QString additionalParameters = checkAlgoParams.getText(1);
-		QSharedPointer<iASelectionSamplingMethod> generator(
-			new iASelectionSamplingMethod(QString("Holdout Comparison, Algorithm %1").arg(s),
-				parameterSets));
+		QSharedPointer<iARerunSamplingMethod> generator(
+			new iARerunSamplingMethod(parameterSets,
+				QString("Holdout Comparison, Algorithm %1").arg(s)));
 		m_samplerParameters.push_back(QMap<QString, QVariant>());
 		auto & params = m_samplerParameters[m_samplerParameters.size() - 1];
-		params.insert(spnNumberOfSamples, 0); // iASelectionSamplingMethod doesn't need this parameter
+		params.insert(spnNumberOfSamples, 0); // iARerunSamplingMethod doesn't need this parameter
 		params.insert(spnSamplingMethod, generator->name());
 		params.insert(spnNumberOfLabels, m_labelCount);
 		params.insert(spnOutputFolder, outputFolder);
@@ -1014,6 +1007,7 @@ void dlg_Consensus::LoadConfig()
 			m_mdiChild->modalities(),
 			params,
 			samplingResults->attributes(),
+			samplingResults->attributes(), // TODO: check if this hack of using the same for ranges and spec works
 			generator,
 			iASEAFile::DefaultSMPFileName,
 			iASEAFile::DefaultSPSFileName,

@@ -15,7 +15,7 @@
 class iAMainWindow;
 class iACoefficientOfVariation;
 class iACsvDataStorage;
-class QVTKOpenGLNativeWidget;
+class iAQVTKWidget;
 
 //vtk
 class vtkDataArray;
@@ -82,19 +82,13 @@ private:
 	iACsvDataStorage* m_dataStorage;
 	//class where the calculation of the coefficient of variation happens
 	iACoefficientOfVariation* m_coeffVar;
-	QVTKOpenGLNativeWidget* m_qvtkWidget;
+	iAQVTKWidget* m_qvtkWidget;
 
-	//context view for 2D charts
-	vtkSmartPointer<vtkContextView> m_view;
+	
 
-	//stores the coefficient of variation for all values of all datasets
-	std::vector<double>* coefficients;
-	//stores the coefficient of variation for all values of all datasets in original order
-	//according to the order of the attributes in the csv
-	std::vector<double>* coefficientsUnordered;
+	
 
-	//stores the names of all attributes
-	QStringList* attrNames;
+	
 	
 	//stores the new positions of all values for all datasets after sorting according to the coefficient of variation
 	std::vector<double>* orderedPositions;
@@ -120,16 +114,16 @@ private:
 			static BarChartInteractorStyle* New();
 			vtkTypeMacro(BarChartInteractorStyle, vtkContextInteractorStyle);
 
-			virtual void OnLeftButtonDown();
+			virtual void OnLeftButtonDown() override;
 
-			virtual void OnLeftButtonUp();
-			virtual void OnMouseMove();
-			virtual void OnMiddleButtonDown();
-			virtual void OnRightButtonDown();
-			virtual void OnMouseWheelForward();
-			virtual void OnMouseWheelBackward();
-			virtual void OnKeyPress();
-			virtual void OnKeyRelease();
+			virtual void OnLeftButtonUp() override;
+			virtual void OnMouseMove() override;
+			virtual void OnMiddleButtonDown() override;
+			virtual void OnRightButtonDown() override;
+			virtual void OnMouseWheelForward() override;
+			virtual void OnMouseWheelBackward() override;
+			virtual void OnKeyPress() override;
+			virtual void OnKeyRelease() override;
 
 			void setTooltip(vtkTooltipItem* tooltip);
 			vtkTooltipItem* GetTooltip();

@@ -22,7 +22,12 @@
 
 #include "iAbase_export.h"
 
+#include "iALog.h"
+
+#include <QString>
 #include <QStringList>
+#include <QVariant>
+#include <QVector>
 
 #include <cassert>
 
@@ -149,11 +154,29 @@ void valuesFromString(T& val, QString const & str, QString const & sep = " ")
 	if (list.size() >= Nval)
 	{
 		for (int j = 0; j < Nval; j++)
-		{
+		{	// TODO: check why we don't use iAConverter<TVal>::toT here!
 			val[j] = static_cast<TVal>(list.at(j).toDouble());
 		}
 	}
 	// else report error?
+}
+
+template <typename ContainerT, typename ElementT>
+ContainerT stringToVector(QString const& listAsString, QString const& separator=",", int maxItems=std::numeric_limits<int>::max(),
+	bool warnWhenInvalid = true)
+{
+	QStringList strList = listAsString.split(separator);
+	ContainerT result(std::min(static_cast<int>(strList.size()), maxItems));
+	for (auto i = 0; i < strList.size() && i < maxItems; ++i)
+	{
+		bool ok;
+		result[i] = iAConverter<ElementT>::toT(strList[i], &ok);
+		if (!ok && warnWhenInvalid)
+		{
+			LOG(lvlWarn, QString("Invalid value %1 in stringToVector conversion!").arg(strList[i]));
+		}
+	}
+	return result;
 }
 
 //! Pads or truncates the given string to the given size.
@@ -171,17 +194,13 @@ iAbase_API QString padOrTruncate(QString const & str, int size);
 iAbase_API QString stripHTML(QString const & html);
 
 //! returns the value converted to string, with units (K, M, G, T, P) applied for every 10³ factor over 1000
-iAbase_API QString dblToStringWithUnits(double value, double switchFactor = 1000);
+iAbase_API QString dblToStringWithUnits(double value, double switchFactor = 10);
 
-//! join an iterable collection of numeric elements to a string
-//!
-//! works similar to QString::join, but on arbitrary iterable collection types
-//! containing items which can be converted to QString via QString::number.
-//! @param vec the collection of elements to be joined
-//! @param joinStr the string to be used in between the elements of the string
-//! @return a string joining all elements of the given collection together
-template <template <typename...> class Container, typename Element>
-QString joinAsString(Container<Element> const & vec, QString const & joinStr)
+//! join any list as string - the conversion of the single items happens via the passed-in lambda
+//! FnType is something like a function taking an Element parameter and has a QString(-compatible)
+//! return type; tried QString fct(Element const &) but it doesn't work as expected
+template <template <typename...> class Container, typename Element, typename FnType>
+QString joinAsString(Container<Element> const& vec, QString const& joinStr, FnType lambda)
 {
 	QString result;
 	bool first = true;
@@ -195,10 +214,25 @@ QString joinAsString(Container<Element> const & vec, QString const & joinStr)
 		{
 			first = false;
 		}
-		result += QString::number(elem);
+		result += lambda(elem);
 	}
 	return result;
 }
+
+//! join an iterable collection of numeric elements to a string
+//!
+//! works similar to QString::join, but on arbitrary iterable collection types
+//! containing items which can be converted to QString via QString::number.
+//! @param vec the collection of elements to be joined
+//! @param joinStr the string to be used in between the elements of the string
+//! @return a string joining all elements of the given collection together
+template <template <typename...> class Container, typename Element>
+QString joinNumbersAsString(Container<Element> const& vec, QString const& joinStr)
+{
+	return joinAsString(vec, joinStr, [](Element const& elem) -> QString { return QString::number(elem); });
+}
+
+iAbase_API QString joinQVariantAsString(QVector<QVariant> const& vec, QString const& joinStr);
 
 //! Find the (length of the) greatest common prefix of the two given strings.
 //! example: str1 ="BaseMethod", str2="BaseMember" => result: "BaseMe"
