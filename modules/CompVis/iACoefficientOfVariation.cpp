@@ -9,8 +9,7 @@ iACoefficientOfVariation::iACoefficientOfVariation(iACsvDataStorage* dataStorage
 	m_coeffOfVar(new std::vector<double>()),
 	m_maxValForEachAttr(new std::vector<double>()),
 	m_minValForEachAttr(new std::vector<double>()),
-	m_attributeArray(new csvDataType::ArrayType()),
-	m_dataStorage(dataStorage), 
+	m_attributeArray(new csvDataType::ArrayType()), 
 	m_inputData(dataStorage->getData())
 	
 {

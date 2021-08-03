@@ -369,7 +369,7 @@ void iACompHistogramTable::drawHistogramTableAccordingToCellSimilarity(Pick::Pic
 	//get for all dataset each bin with its MDS values
 	QList<bin::BinType*>* binData = m_histData->getBinData();
 	vtkSmartPointer<vtkActor> referenceData;
-	std::vector<vtkIdType>* indexOfCells;
+	std::vector<vtkIdType>* indexOfCells = new std::vector<vtkIdType>();
 
 	//is only run once, since the map can only contain 1 actor with its selected cells
 	for (Pick::PickedMap::iterator it = m_picked->begin(); it != m_picked->end(); ++it)
@@ -837,7 +837,7 @@ std::vector<vtkSmartPointer<vtkPlaneSource>>* iACompHistogramTable::drawZoomedRo
 
 		zoomedPlanes->push_back(plane);
 
-		if ( i < cellIdsOriginalPlane->size()-1)
+		if ( i < (((int)cellIdsOriginalPlane->size())-1))
 		{
 			vtkIdType lastCellId = cellIdsOriginalPlane->at(i);
 			vtkIdType currCellId = cellIdsOriginalPlane->at(i + 1);
@@ -954,7 +954,7 @@ void iACompHistogramTable::drawPointRepresentation()
 		{
 			minMaxPerBin.insert({binId, new std::vector<double>()});
 
-			for (int valId = 0; valId < m_zoomedRowData->at(datasetInd)->at(binId).size(); valId++)
+			for (int valId = 0; valId < ((int)m_zoomedRowData->at(datasetInd)->at(binId).size()); valId++)
 			{
 				auto binData = m_zoomedRowData->at(datasetInd)->at(binId);
 				auto minMax = std::minmax_element(binData.begin(), binData.end());
@@ -1007,7 +1007,6 @@ void iACompHistogramTable::drawPointRepresentation()
 				double xmax = zoomedPlane->GetPoint1()[0];
 				double ymin = zoomedPlane->GetOrigin()[1];
 				double ymax = zoomedPlane->GetPoint2()[1];
-				double width = xmax - xmin;
 
 				auto iter = m_pickedCellsforPickedRow->find(indData);
 				if (iter == m_pickedCellsforPickedRow->end()) { continue; }
@@ -1077,7 +1076,7 @@ void iACompHistogramTable::drawPointRepresentation()
 
 void iACompHistogramTable::removePointRepresentation()
 {
-	for (unsigned int i = 0; i < ((int)m_pointRepresentationActors->size()); i++)
+	for (int i = 0; i < ((int)m_pointRepresentationActors->size()); i++)
 	{
 		m_renderer->RemoveActor(m_pointRepresentationActors->at(i));
 	}
@@ -1146,7 +1145,6 @@ void iACompHistogramTable::drawLineBetweenRowAndZoomedRow(std::vector<vtkSmartPo
 		double xMaxZ = zoomedRowPlane->GetPoint1()[0];
 		double yMinZ = zoomedRowPlane->GetOrigin()[1];
 		double yMaxZ = zoomedRowPlane->GetPoint2()[1];
-		double widthZ = xMaxZ - xMinZ;
 
 		double currCellId = cellIdsOriginalPlane->at(i);
 
@@ -1549,7 +1547,7 @@ void iACompHistogramTable::colorRowForZoom(vtkUnsignedCharArray* colors, int cur
 {
 	bin::BinType* binData = m_histData->calculateBins(data, currBin, amountOfBins);
 
-	if (binData == NULL || binData == nullptr)
+	if (binData == nullptr)
 	{
 		for (int b = 0; b < amountOfBins; b++)
 		{

@@ -548,7 +548,7 @@ std::map<int, std::vector<double>>* iACompHistogramTableInteractorStyle::calcula
 
 		//get number of picked objects
 		bin::BinType* bins = zoomedRowData->at(i);
-		for (int binInd = 0; binInd < bins->size(); binInd++)
+		for (int binInd = 0; binInd < ((int)bins->size()); binInd++)
 		{ //sum over all bins to get amount of picked objects
 			pickedNumber += bins->at(binInd).size();
 		}

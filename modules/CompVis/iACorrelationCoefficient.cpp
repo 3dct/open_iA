@@ -118,7 +118,7 @@ vtkSmartPointer<vtkTable> iACorrelationCoefficient::toVtkTable(QList<csvFileData
 	//fill table with data
 	for (int i = 0; i < ((int)data->size()); i++)
 	{//for all datasets
-		for (int dataInd = 0; dataInd < data->at(i).values->size(); dataInd++)
+		for (int dataInd = 0; dataInd < ((int)data->at(i).values->size()); dataInd++)
 		{ //for all values
 			for (int attrInd = 1; attrInd < m_numberOfAttr + 1; attrInd++)
 			{//for all attributes but without the label attribute

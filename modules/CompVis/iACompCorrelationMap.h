@@ -263,7 +263,7 @@ private:
 		std::map<QString, Correlation::CorrelationStore>* m_correlations;
 
 		const int K = 1;
-		const double MASS = 1;
+		//const double MASS = 1;
 
 		double minDist;
 		double maxDist;

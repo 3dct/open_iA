@@ -41,9 +41,6 @@ private:
 	//contains all values for each attribute
 	csvDataType::ArrayType* m_attributeArray;
 
-	//contains the initial dataset
-	iACsvDataStorage* m_dataStorage;
-
 	//holds the data for which the MDS will be calculated
 	//list containing all csv-files
 	//data = [[headerOfCSV1,valuesOfCSV1], [headerOfCSV2,valuesOfCSV2],...]

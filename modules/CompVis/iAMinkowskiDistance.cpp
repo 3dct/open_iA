@@ -5,7 +5,7 @@
 
 #include <cmath>
 
-iAMinkowskiDistance::iAMinkowskiDistance() : iASimilarityDistance()
+iAMinkowskiDistance::iAMinkowskiDistance() : iASimilarityDistance(), m_p(1.0)
 {
 }
 
