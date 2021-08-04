@@ -18,7 +18,7 @@
 * Contact: FH OÖ Forschungs & Entwicklungs GmbH, Campus Wels, CT-Gruppe,              *
 *          Stelzhamerstraße 23, 4600 Wels / Austria, Email: c.heinzl@fh-wels.at       *
 * ************************************************************************************/
-#include "dlg_openfile_sizecheck.h"
+#include "iARawFileParamDlg.h"
 
 #include "io/iARawFileParameters.h"
 #include "iAToolsVTK.h"    // for mapVTKTypeToReadableDataType, readableDataTypes, ...
@@ -28,8 +28,8 @@
 #include <QFileInfo>
 #include <QLabel>
 #include <QLayout>
-#include <QLineEdit>
 #include <QPushButton>
+#include <QSpinBox>
 
 #include <cassert>
 
@@ -59,16 +59,16 @@ iARawFileParamDlg::iARawFileParamDlg(QString const& fileName, QWidget* parent, Q
 	QStringList byteOrderStr = (QStringList() << tr("Little Endian") << tr("Big Endian"));
 	byteOrderStr[mapVTKByteOrderToIdx(rawFileParams.m_byteOrder)] = "!" + byteOrderStr[mapVTKByteOrderToIdx(rawFileParams.m_byteOrder)];
 	iAParameterDlg::ParamListT params;
-	addParameter(params, "Size X", iAValueType::Discrete, rawFileParams.m_size[0]);
-	addParameter(params, "Size Y", iAValueType::Discrete, rawFileParams.m_size[1]);
-	addParameter(params, "Size Z", iAValueType::Discrete, rawFileParams.m_size[2]);
+	addParameter(params, "Size X", iAValueType::Discrete, rawFileParams.m_size[0], 1);
+	addParameter(params, "Size Y", iAValueType::Discrete, rawFileParams.m_size[1], 1);
+	addParameter(params, "Size Z", iAValueType::Discrete, rawFileParams.m_size[2], 1);
 	addParameter(params, "Spacing X", iAValueType::Continuous, rawFileParams.m_spacing[0]);
 	addParameter(params, "Spacing Y", iAValueType::Continuous, rawFileParams.m_spacing[1]);
 	addParameter(params, "Spacing Z", iAValueType::Continuous, rawFileParams.m_spacing[2]);
 	addParameter(params, "Origin X", iAValueType::Continuous, rawFileParams.m_origin[0]);
 	addParameter(params, "Origin Y", iAValueType::Continuous, rawFileParams.m_origin[1]);
 	addParameter(params, "Origin Z", iAValueType::Continuous, rawFileParams.m_origin[2]);
-	addParameter(params, "Headersize", iAValueType::Discrete, rawFileParams.m_headersize);
+	addParameter(params, "Headersize", iAValueType::Discrete, rawFileParams.m_headersize, 0);
 	addParameter(params, "Data Type", iAValueType::Categorical, datatype);
 	addParameter(params, "Byte Order", iAValueType::Categorical, byteOrderStr);
 	params.append(additionalParams);
@@ -82,10 +82,10 @@ iARawFileParamDlg::iARawFileParamDlg(QString const& fileName, QWidget* parent, Q
 	m_proposedSizeLabel->setAlignment(Qt::AlignRight);
 	m_inputDlg->layout()->addWidget(m_proposedSizeLabel);
 	// indices here refer to the order that the items are inserted in above!
-	connect(qobject_cast<QLineEdit*>(m_inputDlg->widgetList()[0]), &QLineEdit::textChanged, this, &iARawFileParamDlg::checkFileSize);
-	connect(qobject_cast<QLineEdit*>(m_inputDlg->widgetList()[1]), &QLineEdit::textChanged, this, &iARawFileParamDlg::checkFileSize);
-	connect(qobject_cast<QLineEdit*>(m_inputDlg->widgetList()[2]), &QLineEdit::textChanged, this, &iARawFileParamDlg::checkFileSize);
-	connect(qobject_cast<QLineEdit*>(m_inputDlg->widgetList()[9]), &QLineEdit::textChanged, this, &iARawFileParamDlg::checkFileSize);
+	connect(qobject_cast<QSpinBox*>(m_inputDlg->widgetList()[0]), QOverload<int>::of(&QSpinBox::valueChanged), this, &iARawFileParamDlg::checkFileSize);
+	connect(qobject_cast<QSpinBox*>(m_inputDlg->widgetList()[1]), QOverload<int>::of(&QSpinBox::valueChanged), this, &iARawFileParamDlg::checkFileSize);
+	connect(qobject_cast<QSpinBox*>(m_inputDlg->widgetList()[2]), QOverload<int>::of(&QSpinBox::valueChanged), this, &iARawFileParamDlg::checkFileSize);
+	connect(qobject_cast<QSpinBox*>(m_inputDlg->widgetList()[9]), QOverload<int>::of(&QSpinBox::valueChanged), this, &iARawFileParamDlg::checkFileSize);
 	connect(qobject_cast<QComboBox*>(m_inputDlg->widgetList()[10]), QOverload<int>::of(&QComboBox::currentIndexChanged), this, &iARawFileParamDlg::checkFileSize);
 
 	checkFileSize();
@@ -127,7 +127,7 @@ void iARawFileParamDlg::checkFileSize()
 		voxelSize = mapVTKTypeToSize(mapReadableDataTypeToVTKType(values["Data Type"].toString())),
 		headerSize = values["Headersize"].toLongLong();
 	qint64 proposedSize = sizeX * sizeY * sizeZ * voxelSize + headerSize;
-	bool valid = (sizeX <= 0 || sizeY <= 0 || sizeZ <= 0 || voxelSize <= 0 || headerSize < 0);
+	bool valid = !(sizeX <= 0 || sizeY <= 0 || sizeZ <= 0 || voxelSize <= 0 || headerSize < 0);
 	m_proposedSizeLabel->setText(valid ?
 		"Predicted file size: " + QString::number(proposedSize) + " bytes" :
 		"Invalid numbers in size, data type or header size (too large/negative)?");

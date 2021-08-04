@@ -13,7 +13,6 @@ SET (OPENIA_PRECOMPILE_HEADERS
 <defines.h>
 <dlg_modalities.h>
 <dlg_modalityProperties.h>
-<dlg_openfile_sizecheck.h>
 <iAAbortListener.h>
 <iAAbstractMagicLensWidget.h>
 <iAAlgorithm.h>
@@ -44,6 +43,7 @@ SET (OPENIA_PRECOMPILE_HEADERS
 <iAPerformanceHelper.h>
 <iAProgress.h>
 <iAQVTKWidget.h>
+<iARawFileParamDlg.h>
 <iASlicerMode.h>
 <iAStringHelper.h>
 <iAToolsVTK.h>

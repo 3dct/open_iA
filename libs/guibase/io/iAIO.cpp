@@ -21,7 +21,6 @@
 #include "iAIO.h"
 
 #include "defines.h"
-#include "dlg_openfile_sizecheck.h"
 #include "iAAmiraMeshIO.h"
 #include "iAConnector.h"
 #include "iALog.h"
@@ -33,6 +32,7 @@
 #include "iAOIFReader.h"
 #include "iAParameterDlg.h"
 #include "iAProgress.h"
+#include "iARawFileParamDlg.h"
 #include "iAStringHelper.h"
 #include "iAVolumeStack.h"
 #include "iAToolsVTK.h"
