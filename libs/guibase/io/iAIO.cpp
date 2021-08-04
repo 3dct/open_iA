@@ -287,7 +287,6 @@ iAIO::~iAIO()
 
 namespace
 {
-	const int InvalidHDF5Type = -1;
 	QString const FileNameBase("File name base");
 	QString const Extension   ("Extension");
 	QString const NumDigits   ("Number of digits in index");
@@ -304,31 +303,31 @@ namespace
 	}
 }
 
-
 #ifdef USE_HDF5
-QString MapHDF5TypeToString(H5T_class_t hdf5Type)
-{
-	switch (hdf5Type)
-	{
-		case H5T_NO_CLASS  : return QString("No Class");
-		case H5T_INTEGER   : return QString("Integer");
-		case H5T_FLOAT	   : return QString("Float");
-		case H5T_TIME	   : return QString("Time");
-		case H5T_STRING	   : return QString("String");
-		case H5T_BITFIELD  : return QString("Bitfield");
-		case H5T_OPAQUE	   : return QString("Opaque");
-		case H5T_COMPOUND  : return QString("Compound");
-		case H5T_REFERENCE : return QString("Reference");
-		case H5T_ENUM	   : return QString("Enum");
-		case H5T_VLEN	   : return QString("VLen");
-		case H5T_ARRAY     : return QString("Array");
-		default: return QString("Unknown");
-	}
-}
 
 namespace
 {
+	const int InvalidHDF5Type = -1;
 
+	QString MapHDF5TypeToString(H5T_class_t hdf5Type)
+	{
+		switch (hdf5Type)
+		{
+			case H5T_NO_CLASS  : return QString("No Class");
+			case H5T_INTEGER   : return QString("Integer");
+			case H5T_FLOAT	   : return QString("Float");
+			case H5T_TIME	   : return QString("Time");
+			case H5T_STRING	   : return QString("String");
+			case H5T_BITFIELD  : return QString("Bitfield");
+			case H5T_OPAQUE	   : return QString("Opaque");
+			case H5T_COMPOUND  : return QString("Compound");
+			case H5T_REFERENCE : return QString("Reference");
+			case H5T_ENUM	   : return QString("Enum");
+			case H5T_VLEN	   : return QString("VLen");
+			case H5T_ARRAY     : return QString("Array");
+			default: return QString("Unknown");
+		}
+	}
 	int GetNumericVTKTypeFromHDF5Type(H5T_class_t hdf5Type, size_t numBytes, H5T_sign_t sign)
 	{
 		switch (hdf5Type)
