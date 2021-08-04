@@ -89,7 +89,7 @@ QString toqstr(vtkVariant const & var)
 	return QString(oss.str().c_str());
 }
 
-void dlg_eventExplorer::addPlot(int eventID, size_t chartID)
+void dlg_eventExplorer::addPlot(size_t eventID, size_t chartID)
 {
 	const float width = 1.0;
 	vtkPlot* plot = m_charts.at(chartID)->AddPlot(vtkChart::POINTS);
