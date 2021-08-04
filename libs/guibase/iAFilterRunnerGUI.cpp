@@ -173,13 +173,7 @@ bool iAFilterRunnerGUI::askForParameters(QSharedPointer<iAFilter> filter, QMap<Q
 		{
 			QStringList comboValues = p->defaultValue().toStringList();
 			QString storedValue = paramValues[p->name()].toString();
-			for (int i = 0; i < comboValues.size(); ++i)
-			{
-				if (comboValues[i] == storedValue)
-				{
-					comboValues[i] = "!" + comboValues[i];
-				}
-			}
+			selectOption(comboValues, storedValue);
 			p->setDefaultValue(comboValues);
 		}
 		else

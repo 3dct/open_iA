@@ -308,11 +308,11 @@ QString MapHDF5TypeToString(H5T_class_t hdf5Type)
 namespace
 {
 	const int InvalidHDF5Type = -1;
-	QString const FileNameBase = "File name base";
-	QString const Extension = "Extension";
-	QString const NumDigits = "Number of digits in index";
-	QString const MinimumIndex = "Minimum index";
-	QString const MaximumIndex = "Maximum index";
+	QString const FileNameBase("File name base");
+	QString const Extension   ("Extension");
+	QString const NumDigits   ("Number of digits in index");
+	QString const MinimumIndex("Minimum index");
+	QString const MaximumIndex("Maximum index");
 
 	void addSeriesParameters(iAParameterDlg::ParamListT& params, QString const& base, QString const& ext, int digits, int index[2])
 	{

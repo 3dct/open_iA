@@ -55,11 +55,7 @@ iARawFileParamDlg::iARawFileParamDlg(QString const& fileName, QWidget* parent, Q
 
 	QStringList datatype(readableDataTypeList(false));
 	QString selectedType = mapVTKTypeToReadableDataType(rawFileParams.m_scalarType);
-	int selectedIdx = datatype.indexOf(selectedType);
-	if (selectedIdx != -1)
-	{
-		datatype[selectedIdx] = "!" + datatype[selectedIdx];
-	}
+	selectOption(datatype, selectedType);
 	QStringList byteOrderStr = (QStringList() << tr("Little Endian") << tr("Big Endian"));
 	byteOrderStr[mapVTKByteOrderToIdx(rawFileParams.m_byteOrder)] = "!" + byteOrderStr[mapVTKByteOrderToIdx(rawFileParams.m_byteOrder)];
 	iAParameterDlg::ParamListT params;

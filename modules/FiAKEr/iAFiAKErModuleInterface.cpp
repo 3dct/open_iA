@@ -186,13 +186,7 @@ void iAFiAKErModuleInterface::startFiAKEr()
 	{
 		formatEntries.append(iACsvConfig::FCVoidFormat);
 	}
-	for (int i = 0; i < formatEntries.size(); ++i)
-	{
-		if (formatEntries[i] == m_lastFormat)
-		{
-			formatEntries[i] = "!" + formatEntries[i];
-		}
-	}
+	selectOption(formatEntries, m_lastFormat);
 	iAParameterDlg::ParamListT params;
 	addParameter(params, "Result folder", iAValueType::Folder, m_lastPath);
 	addParameter(params, "CSV cormat", iAValueType::Categorical, formatEntries);

@@ -81,3 +81,5 @@ private:
 iAguibase_API void addParameter(iAParameterDlg::ParamListT params, QString const& name, iAValueType valueType,
 	QVariant defaultValue = 0.0, double min = std::numeric_limits<double>::lowest(),
 	double max = std::numeric_limits<double>::max());
+
+iAguibase_API void selectOption(QStringList& options, QString const& selected);

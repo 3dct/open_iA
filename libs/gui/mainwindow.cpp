@@ -1118,12 +1118,8 @@ void MainWindow::renderSettings()
 	QString dlgTitle = activeMdiChild()? (activeMdiChild()->windowTitle() + " - renderer setings") : "Default renderer settings";
 	iARenderSettings renderSettings = activeMdiChild() ? activeMDI()->renderSettings() : m_defaultRenderSettings;
 	iAVolumeSettings volumeSettings = activeMdiChild() ? activeMdiChild()->volumeSettings() : m_defaultVolumeSettings;
-
-	QStringList renderTypes;
-	for (int mode : RenderModeMap().keys())
-	{
-		renderTypes << ((mode == volumeSettings.RenderMode) ? QString("!") : QString()) + RenderModeMap().value(mode);
-	}
+	QStringList renderTypes = RenderModeMap().values();
+	selectOption(renderTypes, renderTypes[volumeSettings.RenderMode]);
 	iAParameterDlg::ParamListT params;
 	addParameter(params, "Show slicers", iAValueType::Boolean, renderSettings.ShowSlicers);
 	addParameter(params, "Show slice planes", iAValueType::Boolean, renderSettings.ShowSlicePlanes);
@@ -1198,22 +1194,16 @@ void MainWindow::renderSettings()
 
 void MainWindow::slicerSettings()
 {
-	const QStringList mouseCursorModes = QStringList()\
-		<< "Crosshair default" \
-		<< "Crosshair thick red"	<< "Crosshair thin red" \
-		<< "Crosshair thick orange"	<< "Crosshair thin orange" \
-		<< "Crosshair thick yellow"	<< "Crosshair thin yellow" \
-		<< "Crosshair thick blue"	<< "Crosshair thin blue" \
+	QStringList mouseCursorOptions = QStringList()
+		<< "Crosshair default"
+		<< "Crosshair thick red"	<< "Crosshair thin red"
+		<< "Crosshair thick orange"	<< "Crosshair thin orange"
+		<< "Crosshair thick yellow"	<< "Crosshair thin yellow"
+		<< "Crosshair thick blue"	<< "Crosshair thin blue"
 		<< "Crosshair thick cyan"	<< "Crosshair thin cyan";
 	QString dlgTitle = activeMdiChild() ? (activeMdiChild()->windowTitle() + " - slicer setings") : "Default slicer settings";
 	iASlicerSettings const& slicerSettings = activeMDI() ? activeMDI()->slicerSettings() : m_defaultSlicerSettings;
-
-	QStringList mouseCursorTypes;
-	for (QString mode : mouseCursorModes)
-	{
-		mouseCursorTypes << ((mode == slicerSettings.SingleSlicer.CursorMode) ? QString("!") : QString()) + mode;
-	}
-
+	selectOption(mouseCursorOptions, slicerSettings.SingleSlicer.CursorMode);
 	iAParameterDlg::ParamListT params;
 	addParameter(params, "Link Views", iAValueType::Boolean, slicerSettings.LinkViews);
 	addParameter(params, "Show Position", iAValueType::Boolean, slicerSettings.SingleSlicer.ShowPosition);
@@ -1225,7 +1215,7 @@ void MainWindow::slicerSettings()
 	addParameter(params, "Max Isovalue", iAValueType::Continuous, slicerSettings.SingleSlicer.MaxIsoValue);
 	addParameter(params, "Snake Slices", iAValueType::Discrete, slicerSettings.SnakeSlices);
 	addParameter(params, "Link MDIs", iAValueType::Boolean, slicerSettings.LinkMDIs);
-	addParameter(params, "Mouse Coursor Types", iAValueType::Categorical, mouseCursorTypes);
+	addParameter(params, "Mouse Coursor Types", iAValueType::Categorical, mouseCursorOptions);
 	addParameter(params, "Show Axes Caption", iAValueType::Boolean, slicerSettings.SingleSlicer.ShowAxesCaption);
 	addParameter(params, "Tooltip Font Size (pt)", iAValueType::Discrete, slicerSettings.SingleSlicer.ToolTipFontSize);
 	addParameter(params, "Show Tooltip", iAValueType::Boolean, slicerSettings.SingleSlicer.ShowTooltip);
