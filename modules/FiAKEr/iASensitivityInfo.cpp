@@ -120,7 +120,9 @@
 #include <set>
 
 #if QT_VERSION < QT_VERSION_CHECK(6,0,0)
-using qsizetype = int;
+using qvectorsizetype = int;
+#else
+using qvectorsizetype = size_t;
 #endif
 
 QDataStream& operator<<(QDataStream& out, const iAResultPairInfo& pairInfo)
@@ -552,7 +554,7 @@ void iASensitivityInfo::compute(iAProgress* progress)
 		progress->emitProgress(static_cast<int>(100 * rIdx / m_data->result.size()));
 		auto const& r = m_data->result[rIdx];
 		// TODO: skip some columns? like ID...
-		m_charHistograms[static_cast<qsizetype>(rIdx)].reserve(numCharSelected);
+		m_charHistograms[static_cast<qvectorsizetype>(rIdx)].reserve(numCharSelected);
 		for (auto charIdx: m_charSelected)
 		{
 			// make sure of all histograms for the same characteristic have the same range
@@ -564,7 +566,7 @@ void iASensitivityInfo::compute(iAProgress* progress)
 				fiberData[fiberID] = r.table->GetValue(fiberID, charIdx).ToDouble();
 			}
 			auto histogram = createHistogram(fiberData, m_histogramBins, rangeMin, rangeMax);
-			m_charHistograms[static_cast<qsizetype>(rIdx)].push_back(histogram);
+			m_charHistograms[static_cast<qvectorsizetype>(rIdx)].push_back(histogram);
 		}
 	}
 	if (m_aborted)
@@ -1104,15 +1106,15 @@ void iASensitivityInfo::compute(iAProgress* progress)
 	}
 
 	// determine dissimilarity ranges:
-	m_resultDissimRanges.resize(static_cast<qsizetype>(m_resultDissimMeasures.size()));
+	m_resultDissimRanges.resize(static_cast<qvectorsizetype>(m_resultDissimMeasures.size()));
 	for (int m = 0; m < m_resultDissimRanges.size(); ++m)
 	{
 		m_resultDissimRanges[m].first = std::numeric_limits<double>::max();
 		m_resultDissimRanges[m].second = std::numeric_limits<double>::lowest();
 	}
-	for (int r1 = 1; r1 < static_cast<qsizetype>(m_data->result.size()) && !m_aborted; ++r1)
+	for (int r1 = 1; r1 < static_cast<qvectorsizetype>(m_data->result.size()) && !m_aborted; ++r1)
 	{
-		for (int r2 = 0; r2 < static_cast<qsizetype>(m_data->result.size()) && !m_aborted; ++r2)
+		for (int r2 = 0; r2 < static_cast<qvectorsizetype>(m_data->result.size()) && !m_aborted; ++r2)
 		{
 			if (r1 == r2)
 			{
@@ -2487,10 +2489,10 @@ void iASensitivityInfo::updateDissimilarity()
 	int dissimIdx = m_gui->m_settings->cmbboxDissimilarity->currentIndex();
 	iAMatrixType distMatrix(m_data->result.size(), std::vector<double>(m_data->result.size()));
 	//LOG(lvlDebug, "Distance Matrix:");
-	for (qsizetype r1 = 0; r1 < static_cast<qsizetype>(distMatrix.size()); ++r1)
+	for (qvectorsizetype r1 = 0; r1 < static_cast<qvectorsizetype>(distMatrix.size()); ++r1)
 	{
 		QString line;
-		for (qsizetype r2 = 0; r2 < static_cast<qsizetype>(distMatrix.size()); ++r2)
+		for (qvectorsizetype r2 = 0; r2 < static_cast<qvectorsizetype>(distMatrix.size()); ++r2)
 		{
 			distMatrix[r1][r2] = m_resultDissimMatrix[r1][r2].avgDissim[dissimIdx];
 			line += " " + QString::number(distMatrix[r1][r2], 'f', 2).rightJustified(5);
