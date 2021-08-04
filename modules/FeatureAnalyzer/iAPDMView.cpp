@@ -55,8 +55,8 @@ void SetWidgetSelectionStyle(QWidget * w, bool isSelected)
 iAPDMView::iAPDMView( QWidget * parent /*= 0*/, Qt::WindowFlags f /*= 0 */ )
 	: PorosityAnalyzerPDMConnector( parent, f ),
 	m_lut( vtkSmartPointer<vtkLookupTable>::New() ),
-	m_sbRen( vtkSmartPointer<vtkRenderer>::New() ),
 	m_sbWidget(new iAQVTKWidget()),
+	m_sbRen( vtkSmartPointer<vtkRenderer>::New() ),
 	m_sbActor(vtkSmartPointer<vtkScalarBarActor>::New())
 {
 	QSettings settings( organisationName, applicationName );
