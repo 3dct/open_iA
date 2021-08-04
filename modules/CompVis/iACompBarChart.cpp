@@ -64,10 +64,11 @@ iACompBarChart::iACompBarChart(iAMainWindow* parent, iACoefficientOfVariation* c
 	m_dataStorage(dataStorage),
 	m_coeffVar(coeffVar),
 	m_qvtkWidget(new iAQVTKWidget(this)),
+	m_area(vtkSmartPointer<vtkContextArea>::New()),
 	orderedPositions(new std::vector<double>()),
 	selected_orderedPositions(nullptr),
-	m_area(vtkSmartPointer<vtkContextArea>::New()),
 	m_originalBarChart(vtkSmartPointer<vtkPropItem>::New()),
+	m_originalBarChartRepositioned(nullptr),
 	m_selectedBarChart(vtkSmartPointer<vtkPropItem>::New()),
 	m_lastState(iACompVisOptions::lastState::Undefined)
 {
@@ -90,7 +91,6 @@ iACompBarChart::iACompBarChart(iAMainWindow* parent, iACoefficientOfVariation* c
 
 	m_view->SetRenderWindow(m_qvtkWidget->renderWindow());
 	m_view->SetInteractor(m_qvtkWidget->interactor());
-
 	m_view->GetInteractor()->SetInteractorStyle(style);
 
 	//data preparation

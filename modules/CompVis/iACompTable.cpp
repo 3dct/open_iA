@@ -28,14 +28,20 @@ iACompTable::iACompTable(iACompHistogramVis* vis) :
 	m_lastState(iACompVisOptions::lastState::Undefined),
 	m_barActors(new std::vector<vtkSmartPointer<vtkActor>>()),
 	m_barTextActors(new std::vector<vtkSmartPointer<vtkTextActor>>()),
-	m_highlighingActors(new std::vector<vtkSmartPointer<vtkActor>>)
+	m_highlighingActors(new std::vector<vtkSmartPointer<vtkActor>>),
+	m_indexOfPickedRow(new std::vector<int>()),
+	m_pickedCellsforPickedRow(new std::map<int, std::vector<vtkIdType>*>()),
+	m_zoomedRowData(nullptr),
+	m_rowDataIndexPair(new std::map<vtkSmartPointer<vtkActor>, int>())
 {
 	initializeRenderer();
 }
 
 void iACompTable::initializeRenderer()
 {
-	m_mainRenderer->SetBackground(iACompVisOptions::getDoubleArray(iACompVisOptions::BACKGROUNDCOLOR_GREY));
+	double col[3];
+	iACompVisOptions::getDoubleArray(iACompVisOptions::BACKGROUNDCOLOR_GREY, col);
+	m_mainRenderer->SetBackground(col);
 	m_mainRenderer->SetViewport(0, 0, 0.85, 1);
 	m_mainRenderer->SetUseFXAA(true);
 }
@@ -61,7 +67,9 @@ void iACompTable::addDatasetName(int currDataset, double* position)
 	legendProperty->ItalicOff();
 	legendProperty->ShadowOn();
 	legendProperty->SetFontFamilyToArial();
-	legendProperty->SetColor(iACompVisOptions::getDoubleArray(iACompVisOptions::FONTCOLOR_TITLE));
+	double col[3];
+	iACompVisOptions::getDoubleArray(iACompVisOptions::FONTCOLOR_TITLE, col);
+	legendProperty->SetColor(col);
 	legendProperty->SetFontSize(iACompVisOptions::FONTSIZE_TITLE);
 	legendProperty->SetVerticalJustificationToCentered();
 	legendProperty->SetJustification(VTK_TEXT_RIGHT);
@@ -153,9 +161,7 @@ void iACompTable::createBars(double* positions)
 	vtkSmartPointer<vtkActor> actor = vtkSmartPointer<vtkActor>::New();
 	actor->SetMapper(mapper);
 	double color[3];
-	color[0] = iACompVisOptions::getDoubleArray(iACompVisOptions::HIGHLIGHTCOLOR_GREEN)[0];
-	color[1] = iACompVisOptions::getDoubleArray(iACompVisOptions::HIGHLIGHTCOLOR_GREEN)[1];
-	color[2] = iACompVisOptions::getDoubleArray(iACompVisOptions::HIGHLIGHTCOLOR_GREEN)[2];
+	iACompVisOptions::getDoubleArray(iACompVisOptions::HIGHLIGHTCOLOR_GREEN, color);
 	actor->GetProperty()->SetColor(color[0], color[1], color[2]);
 
 	m_mainRenderer->AddActor(actor);
@@ -182,7 +188,9 @@ void iACompTable::createAmountOfObjectsText(double positions[3], int currAmountO
 	legendProperty->ItalicOff();
 	legendProperty->ShadowOff();
 	legendProperty->SetFontFamilyToArial();
-	legendProperty->SetColor(iACompVisOptions::getDoubleArray(iACompVisOptions::BACKGROUNDCOLOR_WHITE));
+	double col[3];
+	iACompVisOptions::getDoubleArray(iACompVisOptions::BACKGROUNDCOLOR_WHITE, col);
+	legendProperty->SetColor(col);
 	legendProperty->SetFontSize(iACompVisOptions::FONTSIZE_TEXT);
 	legendProperty->SetJustification(VTK_TEXT_LEFT);
 	legendProperty->SetVerticalJustificationToCentered();
@@ -253,17 +261,25 @@ void iACompTable::initializeLegend()
 	scalarBar->DrawFrameOn();
 	scalarBar->GetFrameProperty()->SetLineWidth(scalarBar->GetFrameProperty()->GetLineWidth() * 6);
 	scalarBar->GetFrameProperty()->SetDisplayLocationToForeground();
-	scalarBar->GetFrameProperty()->SetColor(iACompVisOptions::getDoubleArray(iACompVisOptions::BACKGROUNDCOLOR_BLACK));
+	double col[3];
+	iACompVisOptions::getDoubleArray(iACompVisOptions::BACKGROUNDCOLOR_BLACK, col);
+	scalarBar->GetFrameProperty()->SetColor(col);
 	scalarBar->SetBarRatio(1);
 
 	//title properties
 	scalarBar->GetTitleTextProperty()->SetLineOffset(50);
 	scalarBar->GetTitleTextProperty()->BoldOn();
 	scalarBar->GetTitleTextProperty()->SetFontSize(iACompVisOptions::FONTSIZE_TITLE);
-	scalarBar->GetTitleTextProperty()->SetColor(iACompVisOptions::getDoubleArray(iACompVisOptions::FONTCOLOR_TITLE));
+	
+	double col1[3];
+	iACompVisOptions::getDoubleArray(iACompVisOptions::FONTCOLOR_TITLE, col1);
+	scalarBar->GetTitleTextProperty()
+		->SetColor(col1);
 	scalarBar->GetTitleTextProperty()->SetVerticalJustificationToTop();
-	scalarBar->GetTitleTextProperty()->SetBackgroundColor(
-		iACompVisOptions::getDoubleArray(iACompVisOptions::BACKGROUNDCOLOR_GREY));
+	
+	double col2[3];
+	iACompVisOptions::getDoubleArray(iACompVisOptions::BACKGROUNDCOLOR_GREY, col2);
+	scalarBar->GetTitleTextProperty()->SetBackgroundColor(col2);
 	scalarBar->GetTitleTextProperty()->SetBackgroundOpacity(1);
 	scalarBar->SetVerticalTitleSeparation(10);
 	scalarBar->GetTitleTextProperty()->Modified();
@@ -271,7 +287,9 @@ void iACompTable::initializeLegend()
 	//text properties
 	vtkSmartPointer<vtkTextProperty> propL = vtkSmartPointer<vtkTextProperty>::New();
 	propL->SetFontSize(iACompVisOptions::FONTSIZE_TITLE);
-	propL->SetColor(iACompVisOptions::getDoubleArray(iACompVisOptions::FONTCOLOR_TEXT));
+	double col3[3];
+	iACompVisOptions::getDoubleArray(iACompVisOptions::FONTCOLOR_TEXT, col3);
+	propL->SetColor(col3);
 	propL->Modified();
 	scalarBar->SetAnnotationTextProperty(propL);
 
@@ -281,13 +299,16 @@ void iACompTable::initializeLegend()
 
 	//draw background
 	scalarBar->DrawBackgroundOn();
-	scalarBar->GetBackgroundProperty()->SetColor(
-		iACompVisOptions::getDoubleArray(iACompVisOptions::BACKGROUNDCOLOR_BLACK));
+	double col4[3];
+	iACompVisOptions::getDoubleArray(iACompVisOptions::BACKGROUNDCOLOR_BLACK, col4);
+	scalarBar->GetBackgroundProperty()->SetColor(col4);
 	scalarBar->GetBackgroundProperty()->SetLineWidth(scalarBar->GetBackgroundProperty()->GetLineWidth() * 7);
 
 	// Setup render window, renderer, and interactor
 	m_rendererColorLegend->SetViewport(0.85, 0, 1, 1);
-	m_rendererColorLegend->SetBackground(iACompVisOptions::getDoubleArray(iACompVisOptions::BACKGROUNDCOLOR_GREY));
+	double col5[3];
+	iACompVisOptions::getDoubleArray(iACompVisOptions::BACKGROUNDCOLOR_GREY, col5);
+	m_rendererColorLegend->SetBackground(col5);
 	m_rendererColorLegend->AddActor2D(scalarBar);
 }
 
@@ -323,7 +344,10 @@ vtkSmartPointer<vtkRenderer> iACompTable::getRenderer()
 	return m_mainRenderer;
 }
 
-
+std::vector<int>* iACompTable::getIndexOfPickedRows()
+{
+	return m_indexOfPickedRow;
+}
 
 double iACompTable::round_up(double value, int decimal_places)
 {
@@ -340,30 +364,3 @@ void iACompTable::removeHighlightedCells()
 
 	m_highlighingActors->clear();
 }
-
-//void iACompTable::updateCharts()
-//{
-//	QList<bin::BinType*>* zoomedRowDataMDS;
-//	QList<std::vector<csvDataType::ArrayType*>*>* selectedObjectAttributes;
-//
-//	//calculate the fiberIds per selected cells & the mds values per selected cells
-//	std::tie(zoomedRowDataMDS, selectedObjectAttributes) = m_visualization->getSelectedData(m_picked);
-//	m_zoomedRowData = zoomedRowDataMDS;
-//
-//	//change histogram table
-//	m_visualization->drawLinearZoom(
-//		m_picked, m_visualization->getBins(), m_visualization->getBinsZoomed(), m_zoomedRowData);
-//
-//	updateOtherCharts(selectedObjectAttributes);
-//}
-//
-//void iACompTable::updateOtherCharts(
-//	QList<std::vector<csvDataType::ArrayType*>*>* selectedObjectAttributes)
-//{
-//	std::vector<int>* indexOfPickedRows = m_visualization->getIndexOfPickedRows();
-//	csvDataType::ArrayType* selectedData = formatPickedObjects(selectedObjectAttributes);
-//
-//	std::map<int, std::vector<double>>* pickStatistic = calculatePickedObjects(m_zoomedRowData);
-//
-//	m_main->updateOtherCharts(selectedData, pickStatistic);
-//}

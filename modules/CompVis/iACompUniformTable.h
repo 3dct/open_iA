@@ -30,19 +30,19 @@ public:
 
 	/******************************************  Ordering/Ranking  **********************************/
 	//draw Histogram table with rows ordered ascending to its amount of objects
-	virtual void drawHistogramTableInAscendingOrder(int bins);
+	virtual void drawHistogramTableInAscendingOrder();
 	//draw Histogram table with rows ordered descending to its amount of objects
-	virtual void drawHistogramTableInDescendingOrder(int bins);
+	virtual void drawHistogramTableInDescendingOrder();
 	//draw Histogram table with rows ordered according to loading the datasets
-	virtual void drawHistogramTableInOriginalOrder(int bins);
+	virtual void drawHistogramTableInOriginalOrder();
 
 	/******************************************  Rendering  **********************************/
 	//draw initial Histogram Table
 	void drawHistogramTable(int bins);
 	//draw Histogram table according to the similiarity values calculated for a picked row AND CELL
-	void drawHistogramTableAccordingToCellSimilarity(int bins, Pick::PickedMap* m_picked);
+	void drawHistogramTableAccordingToCellSimilarity(Pick::PickedMap* m_picked);
 	//draw Histogram table according to the similiarity values calculated for a picked row
-	void drawHistogramTableAccordingToSimilarity(int bins, vtkSmartPointer<vtkActor> referenceData);
+	void drawHistogramTableAccordingToSimilarity(vtkSmartPointer<vtkActor> referenceData);
 	//draw Histogram table after manual repositioning is finsihed
 	void drawReorderedHistogramTable();
 
@@ -78,8 +78,8 @@ public:
 
 	//get the selected dataset with its MDS values
 	// and the selected dataset with its object IDs
-	std::tuple<QList<bin::BinType*>*, QList<std::vector<csvDataType::ArrayType*>*>*> getSelectedData(
-		Pick::PickedMap* map);
+	virtual std::tuple<QList<bin::BinType*>*, QList<std::vector<csvDataType::ArrayType*>*>*> getSelectedData(
+		Pick::PickedMap* map) override;
 
 	/******************************************  Getter & Setter  **********************************************/
 	//return the actors representing the original rows
@@ -93,7 +93,7 @@ public:
 	const int getMinBins();
 	const int getMaxBins();
 
-	std::vector<int>* getIndexOfPickedRows();
+	//std::vector<int>* getIndexOfPickedRows();
 
 	vtkSmartPointer<iACompUniformTableInteractorStyle> getInteractorStyle();
 
@@ -130,7 +130,7 @@ private:
 	//amountOfBins: contains the number how many bins are drawn per selected cell in the original plane
 	//currentData is: the data of the selected cell in the original plane
 	//offset contains: the offset by how much the zoomed plane will be drawn above the previous plane
-	std::vector<vtkSmartPointer<vtkPlaneSource>>* drawZoomedRow(int currDataInd, int currentColumn, int amountOfBins,
+	std::vector<vtkSmartPointer<vtkPlaneSource>>* drawZoomedRow(int currentColumn, int amountOfBins,
 		bin::BinType* currentData, double offsetHeight, std::vector<vtkIdType>* cellIdsOriginalPlane);
 	
 	vtkSmartPointer<vtkPlaneSource> drawZoomedPlanes(
@@ -161,10 +161,6 @@ private:
 	/******************************************  Ordering/Ranking  **********************************/
 	//draws the bar chart for showing the number of objects for each dataset
 	virtual void drawBarChartShowingAmountOfObjects(std::vector<int> amountObjectsEveryDataset);
-	////creates the bar actors for showing the number of objects for each dataset
-	//void createBar(vtkSmartPointer<vtkPlaneSource> currPlane, int currAmountObjects, int maxAmountObjects);
-	////creates the text actors for showing the number of objects for each dataset
-	//void createAmountOfObjectsText(vtkSmartPointer<vtkPlaneSource> currPlane, int currAmountObjects);
 
 	double calculateChiSquaredMetric(bin::BinType* observedFrequency, bin::BinType* expectedFrequency);
 
@@ -176,21 +172,13 @@ private:
 	//datastructure containing the binned data points
 	iACompUniformBinningData* m_uniformBinningData;
 
-	//store bin data of selected rows that will be zoomed
-	//each entry in the list represents a row, where any cell(or several) were selected.
-	//the first entry is the most upper row that was selected, the ordering is then descending.
-	//each entry has as many bins as cells were selected for this row
-	QList<bin::BinType*>* m_zoomedRowData;
-	
-	//number of elements per color
-	double m_BinRangeLength;
-
 	//stores the actors that contain the original rows
 	std::vector<vtkSmartPointer<vtkActor>>* m_originalPlaneActors;
 	//stores the actors that contain the zoomed rows
 	std::vector<vtkSmartPointer<vtkActor>>* m_zoomedPlaneActors;
-	//stores for each row which dataset is currently drawn inside
-	std::map<vtkSmartPointer<vtkActor>, int>* m_rowDataIndexPair;
+
+	//number of elements per color
+	double m_BinRangeLength;
 
 	std::map<vtkSmartPointer<vtkActor>, std::vector<vtkSmartPointer<vtkActor>>*>* originalPlaneZoomedPlanePair;
 
@@ -202,8 +190,6 @@ private:
 	const int minBins = 10;
 	//maximal amount of bins
 	const int maxBins = 80;
-	
-	
 	//each dataset is one plane row
 	const int m_ColForData = 1;
 
@@ -216,15 +202,8 @@ private:
 
 	std::vector<vtkSmartPointer<vtkActor>>* m_stippledActors;
 
-	//stores the order of the row which was picked
-	std::vector<int>* m_indexOfPickedRow;
-	//stores for each picked actor/row the id of the cells that were picked
-	//for each id stored in m_indexOfPickedRow, here the ids of the picked cells are stored
-	std::map<int, std::vector<vtkIdType>*>* m_pickedCellsforPickedRow;
-
 	int m_oldDrawingPosition;
 	int m_newDrawingPosition;
 
-	/*** Interaction ***/
 	vtkSmartPointer<iACompUniformTableInteractorStyle> m_interactionStyle;
 };

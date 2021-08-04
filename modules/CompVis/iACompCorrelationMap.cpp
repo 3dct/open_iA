@@ -107,7 +107,8 @@ iACompCorrelationMap::iACompCorrelationMap(iAMainWindow* parent, iACorrelationCo
 	outerArcWithLegend(new std::map<vtkSmartPointer<vtkActor>, vtkSmartPointer<vtkTextActor>>()),
 	m_arcDataIndxTypePair(new std::map<vtkSmartPointer<vtkActor>, std::map<int, double>*>()),
 	glyphActors(new std::vector<vtkSmartPointer<vtkActor>>()),
-	legendActors(new std::vector<vtkSmartPointer<vtkTextActor>>())
+	legendActors(new std::vector<vtkSmartPointer<vtkTextActor>>()),
+	m_lastState(iACompVisOptions::lastState::Undefined)
 {
 	setupUi(this);
 

@@ -36,6 +36,9 @@ class iACompUniformTableInteractorStyle : public iACompTableInteractorStyle
 
 	virtual void Pan() override;
 
+	virtual void updateCharts() override;
+	virtual void updateOtherCharts(QList<std::vector<csvDataType::ArrayType*>*>* selectedObjectAttributes) override;
+
 	//init iACompHistogramTable
 	void setUniformTableVisualization(iACompUniformTable* visualization);
 
@@ -47,12 +50,10 @@ class iACompUniformTableInteractorStyle : public iACompTableInteractorStyle
    protected:
 	iACompUniformTableInteractorStyle();
 
-   private:	
-	
-	std::map<int, std::vector<double>>* calculatePickedObjects(QList<bin::BinType*>* zoomedRowData);
+	virtual iACompTable* getVisualization() override;
+	virtual  std::map<int, std::vector<double>>* calculatePickedObjects(QList<bin::BinType*>* zoomedRowData) override;
 
-	//reformats picked object such that the other charts can work with it
-	csvDataType::ArrayType* formatPickedObjects(QList<std::vector<csvDataType::ArrayType*>*>* zoomedRowData);
+   private:
 
 	//linear zooming in over all bins of the histograms
 	void linearZoomInHistogram();
@@ -64,11 +65,7 @@ class iACompUniformTableInteractorStyle : public iACompTableInteractorStyle
 	//non linear zooming out - zooming out on currently selected bin(s)/row(s)
 	void nonLinearZoomOut();
 
-	//void updateCharts();
-	//void updateOtherCharts(QList<std::vector<csvDataType::ArrayType*>*>* selectedObjectAttributes);
-	void resetOtherCharts();
-
-	void resetUniformTable();
+	virtual void resetHistogramTable() override;
 
 	void manualTableRelocatingStart(vtkSmartPointer<vtkActor> movingActor);
 	void manualTableRelocatingStop();
@@ -76,26 +73,26 @@ class iACompUniformTableInteractorStyle : public iACompTableInteractorStyle
 
 	//set the picklist for the propPicker to only pick original row actors
 	void setPickList(std::vector<vtkSmartPointer<vtkActor>>* originalRowActors);
+	
 	/**
 	 * @brief The bar chart, showing the number of objects for each dataset, is removed from the table visualization, if one exists.
 	 * @return bool that is true when the bar chart was removed, false when no bar chart was present beforehand
 	*/
 	bool removeBarChart();
 
-
-	//controls whether the linear or non-linear zoom on the histogram is activated
-	//true --> non-linear zoom is activated, otherwise linear zoom
-	bool m_controlBinsInZoomedRows;
-	//controls if the number of bins is modified or if the point representation should be drawn
-	//true --> point representation is drawn
-	bool m_pointRepresentationOn;
-
 	iACompUniformTable* m_visualization;
 
-	QList<bin::BinType*>* m_zoomedRowData;
+	//QList<bin::BinType*>* m_zoomedRowData;
 
 	vtkSmartPointer<vtkPropPicker> m_actorPicker;
 	vtkSmartPointer<vtkActor> m_currentlyPickedActor;
 
 	bool m_panActive;
+
+		//controls whether the linear or non-linear zoom on the histogram is activated
+	//true --> non-linear zoom is activated, otherwise linear zoom
+	bool m_controlBinsInZoomedRows;
+	//controls if the number of bins is modified or if the point representation should be drawn
+	//true --> point representation is drawn
+	bool m_pointRepresentationOn;
 };

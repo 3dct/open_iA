@@ -89,7 +89,7 @@ iACompHistogramTable::iACompHistogramTable(
 	m_dataStorage(dataStorage)
 {
 	std::vector<int>* dataResolution = csvFileData::getAmountObjectsEveryDataset(m_inputData);
-	m_amountDatasets = dataResolution->size();
+	m_amountDatasets = (int)dataResolution->size();
 
 	//initialize datastructure
 	initializeBinCalculation(mds);
@@ -227,7 +227,6 @@ iACompHistogramVis* iACompHistogramTable::getHistogramTableVis()
 
 iACompUniformBinningData* iACompHistogramTable::getUniformBinningData()
 {
-<<<<<<< HEAD
 	return histogramCalculation->getUniformBinningData();
 }
 
@@ -301,7 +300,6 @@ void iACompHistogramTable::drawDatasetsInDescendingOrder()
 
 void iACompHistogramTable::drawDatasetsInOriginalOrder()
 {
-<<<<<<< HEAD
 	histogramVis->drawDatasetsInOriginalOrder();
 }
 

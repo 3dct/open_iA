@@ -24,49 +24,50 @@ public:
     iACompVariableTable(iACompHistogramVis* vis, iACompBayesianBlocksData* bayesianBlocksData, iACompNaturalBreaksData* naturalBreaksData);
 
 	//set the visualization is active (it will be drawn)
-	virtual void setActive();
+	virtual void setActive() override;
 	//set the visualization inactive (it will no longer be drawn)
-	virtual void setInactive();
+	virtual void setInactive() override;
 	//initialize the camera. The camera set by vtk in iACompUniformTable and will be given to this table.
-	virtual void initializeCamera();
+	virtual void initializeCamera() override;
 
 	void setActiveBinning(iACompVisOptions::binningType binningType);
 
 	/***  Getter & Setter ***/
 	vtkSmartPointer<iACompVariableTableInteractorStyle> getInteractorStyle();
-	virtual std::vector<vtkSmartPointer<vtkActor>>* getOriginalRowActors();
+	virtual std::vector<vtkSmartPointer<vtkActor>>* getOriginalRowActors() override;
 
 	/***  Ordering/Ranking  ***/
 	//draw Histogram table with rows ordered ascending to its amount of objects
-	virtual void drawHistogramTableInAscendingOrder(int bins);
+	virtual void drawHistogramTableInAscendingOrder() override;
 	//draw Histogram table with rows ordered descending to its amount of objects
-	virtual void drawHistogramTableInDescendingOrder(int bins);
+	virtual void drawHistogramTableInDescendingOrder() override;
 	//draw Histogram table with rows ordered according to loading the datasets
-	virtual void drawHistogramTableInOriginalOrder(int bins);
+	virtual void drawHistogramTableInOriginalOrder() override;
 	//draws the bar chart for showing the number of objects for each dataset
-	virtual void drawBarChartShowingAmountOfObjects(std::vector<int> amountObjectsEveryDataset);
+	virtual void drawBarChartShowingAmountOfObjects(std::vector<int> amountObjectsEveryDataset) override;
 
 	/*** Rendering ***/
 	//draw initial Histogram Table
 	void drawHistogramTable();
 
 	/*** Update THIS ***/
-	virtual void showSelectionOfCorrelationMap(std::map<int, double>* dataIndxSelectedType);
-	virtual void removeSelectionOfCorrelationMap();
+	virtual void showSelectionOfCorrelationMap(std::map<int, double>* dataIndxSelectedType) override;
+	virtual void removeSelectionOfCorrelationMap() override;
 
 	/*** Interaction Picking***/
-	virtual void highlightSelectedCell(vtkSmartPointer<vtkActor> pickedActor, vtkIdType pickedCellId);
-
+	virtual void highlightSelectedCell(vtkSmartPointer<vtkActor> pickedActor, vtkIdType pickedCellId) override;
+	virtual std::tuple<QList<bin::BinType*>*, QList<std::vector<csvDataType::ArrayType*>*>*> getSelectedData(
+		Pick::PickedMap* map) override;
 
 protected:
 
 	/***  Initialization  ***/
-	virtual void initializeTable();
-	virtual void initializeInteraction();
+	virtual void initializeTable() override;
+	virtual void initializeInteraction() override;
 
 	//create the color lookuptable
-	virtual void makeLUTFromCTF();
-	virtual void makeLUTDarker();
+	virtual void makeLUTFromCTF() override;
+	virtual void makeLUTDarker() override;
 
 	//define the range of the color map bins for the visualization
 	void calculateBinRange();

@@ -2,7 +2,7 @@
 
 //CompVis
 #include "iACompHistogramVis.h"
-
+#include "iACompHistogramTableData.h"
 
 //vtk
 #include "vtkCamera.h"
@@ -25,6 +25,7 @@
 #include "vtkPointData.h"
 #include "vtkAlgorithmOutput.h"
 #include "vtkAlgorithm.h"
+#include "vtkDoubleArray.h"
 
 
 #include "vtkSelectionNode.h"
@@ -206,9 +207,7 @@ void iACompVariableTable::makeLUTFromCTF()
 	*/
 
 	double col[3];
-	col[0] = iACompVisOptions::getDoubleArray(iACompVisOptions::BACKGROUNDCOLOR_GREY)[0];
-	col[1] = iACompVisOptions::getDoubleArray(iACompVisOptions::BACKGROUNDCOLOR_GREY)[1];
-	col[2] = iACompVisOptions::getDoubleArray(iACompVisOptions::BACKGROUNDCOLOR_GREY)[2];
+	iACompVisOptions::getDoubleArray(iACompVisOptions::BACKGROUNDCOLOR_GREY, col);
 	m_lut->SetBelowRangeColor(col[0], col[1], col[2], 1);
 	m_lut->UseBelowRangeColorOn();
 
@@ -300,9 +299,7 @@ void iACompVariableTable::makeLUTDarker()
 	*/
 
 	double col[3];
-	col[0] = iACompVisOptions::getDoubleArray(iACompVisOptions::BACKGROUNDCOLOR_GREY)[0];
-	col[1] = iACompVisOptions::getDoubleArray(iACompVisOptions::BACKGROUNDCOLOR_GREY)[1];
-	col[2] = iACompVisOptions::getDoubleArray(iACompVisOptions::BACKGROUNDCOLOR_GREY)[2];
+	iACompVisOptions::getDoubleArray(iACompVisOptions::BACKGROUNDCOLOR_GREY, col);
 	m_lutDarker->SetBelowRangeColor(col[0], col[1], col[2], 1);
 	m_lutDarker->UseBelowRangeColorOn();
 
@@ -336,10 +333,15 @@ std::vector<vtkSmartPointer<vtkActor>>* iACompVariableTable::getOriginalRowActor
 void iACompVariableTable::drawHistogramTable()
 {
 	m_originalRowActors->clear();
+	m_rowDataIndexPair->clear();
+
 	if (m_mainRenderer->GetViewProps()->GetNumberOfItems() > 0)
 	{
 		m_mainRenderer->RemoveAllViewProps();
 	}
+
+	
+
 
 	m_vis->calculateRowWidthAndHeight(m_vis->getWindowWidth(), m_vis->getWindowHeight(), m_vis->getAmountDatasets());
 
@@ -418,9 +420,7 @@ void iACompVariableTable::drawRow(int currDataInd, int currentColumn, double off
 	{  //the edges of the cells are drawn
 		actor->GetProperty()->EdgeVisibilityOn();
 		double col[3];
-		col[0] = iACompVisOptions::getDoubleArray(iACompVisOptions::BACKGROUNDCOLOR_BLACK)[0];
-		col[1] = iACompVisOptions::getDoubleArray(iACompVisOptions::BACKGROUNDCOLOR_BLACK)[1];
-		col[2] = iACompVisOptions::getDoubleArray(iACompVisOptions::BACKGROUNDCOLOR_BLACK)[2];
+		iACompVisOptions::getDoubleArray(iACompVisOptions::BACKGROUNDCOLOR_BLACK, col);
 		actor->GetProperty()->SetEdgeColor(col[0], col[1], col[2]);
 		actor->GetProperty()->SetLineWidth(actor->GetProperty()->GetLineWidth() * 1.5);
 	}
@@ -429,8 +429,13 @@ void iACompVariableTable::drawRow(int currDataInd, int currentColumn, double off
 		actor->GetProperty()->EdgeVisibilityOff();
 	}
 
-	m_originalRowActors->push_back(actor);
 	m_mainRenderer->AddActor(actor);
+
+
+	m_originalRowActors->push_back(actor);
+	//store row and for each row the index which dataset it is showing
+	m_rowDataIndexPair->insert({actor, currDataInd});
+	
 
 	//add name of dataset/row
 	double y = (m_vis->getColSize() * currentColumn) + offset;
@@ -537,7 +542,8 @@ void iACompVariableTable::constructBins(
 				rgbBorder = m_lut->GetAboveRangeColor();
 			}
 			
-			unsigned char* ucrgb = iACompVisOptions::getColorArray(rgbBorder);
+			unsigned char ucrgb [3];
+			iACompVisOptions::getColorArray(rgbBorder, ucrgb);
 			colorArray->InsertTuple3(i, ucrgb[0], ucrgb[1], ucrgb[2]);
 		}
 		else if (numberOfObjects < minNumber)
@@ -551,7 +557,8 @@ void iACompVariableTable::constructBins(
 				rgbBorder = m_lut->GetBelowRangeColor();
 			}
 			
-			unsigned char* ucrgb = iACompVisOptions::getColorArray(rgbBorder);
+			unsigned char ucrgb[3];
+			iACompVisOptions::getColorArray(rgbBorder, ucrgb);
 			colorArray->InsertTuple3(i, ucrgb[0], ucrgb[1], ucrgb[2]);
 		}
 		else
@@ -565,7 +572,8 @@ void iACompVariableTable::constructBins(
 				m_lut->GetColor(numberOfObjects, rgb);
 			}
 			
-			unsigned char* ucrgb = iACompVisOptions::getColorArray(rgb);
+			unsigned char ucrgb[3];
+			iACompVisOptions::getColorArray(rgb, ucrgb);
 			colorArray->InsertTuple3(i, ucrgb[0], ucrgb[1], ucrgb[2]);
 		}
 	}
@@ -602,7 +610,7 @@ void iACompVariableTable::reinitalizeState()
 
 /****************************************** Ordering/Ranking **********************************************/
 
-void iACompVariableTable::drawHistogramTableInAscendingOrder(int bins)
+void iACompVariableTable::drawHistogramTableInAscendingOrder()
 {
 	std::vector<int> amountObjectsEveryDataset = *(m_activeData->getAmountObjectsEveryDataset());
 
@@ -622,7 +630,7 @@ void iACompVariableTable::drawHistogramTableInAscendingOrder(int bins)
 	renderWidget();
 }
 
-void iACompVariableTable::drawHistogramTableInDescendingOrder(int bins)
+void iACompVariableTable::drawHistogramTableInDescendingOrder()
 {
 	std::vector<int> amountObjectsEveryDataset = *(m_activeData->getAmountObjectsEveryDataset());
 
@@ -642,7 +650,7 @@ void iACompVariableTable::drawHistogramTableInDescendingOrder(int bins)
 	renderWidget();
 }
 
-void iACompVariableTable::drawHistogramTableInOriginalOrder(int bins)
+void iACompVariableTable::drawHistogramTableInOriginalOrder()
 {
 	std::vector<int>* originalOrderOfIndicesDatasets = m_vis->getOriginalOrderOfIndicesDatasets();
 	std::vector<int>* orderOfIndicesDatasets = m_vis->getOrderOfIndicesDatasets();
@@ -724,12 +732,88 @@ void iACompVariableTable::highlightSelectedCell(vtkSmartPointer<vtkActor> picked
 	selectedActor->SetMapper(selectedMapper);
 	selectedActor->GetProperty()->EdgeVisibilityOn();
 	double col[3];
-	col[0] = iACompVisOptions::getDoubleArray(iACompVisOptions::HIGHLIGHTCOLOR_GREEN)[0];
-	col[1] = iACompVisOptions::getDoubleArray(iACompVisOptions::HIGHLIGHTCOLOR_GREEN)[1];
-	col[2] = iACompVisOptions::getDoubleArray(iACompVisOptions::HIGHLIGHTCOLOR_GREEN)[2];
+	iACompVisOptions::getDoubleArray(iACompVisOptions::HIGHLIGHTCOLOR_GREEN, col);
 	selectedActor->GetProperty()->SetEdgeColor(col);
 	selectedActor->GetProperty()->SetLineWidth(iACompVisOptions::LINE_WIDTH);
 
 	m_highlighingActors->push_back(selectedActor);
 	m_mainRenderer->AddActor(selectedActor);
+}
+
+std::tuple<QList<bin::BinType*>*, QList<std::vector<csvDataType::ArrayType*>*>*> iACompVariableTable::getSelectedData(
+	Pick::PickedMap* map)
+{
+	//stores object attributes
+	QList<std::vector<csvDataType::ArrayType*>*>* selectedObjects = new QList<std::vector<csvDataType::ArrayType*>*>();
+	//stores MDS values
+	QList<bin::BinType*>* thisZoomedRowData = new QList<bin::BinType*>();
+
+
+	//TODO implement
+	//get for all datasets each bin with its objects attributes (label,...)
+	QList<std::vector<csvDataType::ArrayType*>*>* objectsPerBin = m_activeData->getObjectsPerBin();
+	//get for all dataset each bin with its MDS values
+	QList<bin::BinType*>* binData = m_activeData->getBinData();
+
+	m_indexOfPickedRow = new std::vector<int>();
+	m_pickedCellsforPickedRow = new std::map<int, std::vector<vtkIdType>*>();
+
+	for (int rowId = m_vis->getAmountDatasets() - 1; rowId >= 0; rowId--)
+	{
+		vtkSmartPointer<vtkActor> currAct = m_originalRowActors->at(rowId);
+
+		//set dataIndex
+		std::map<vtkSmartPointer<vtkActor>, int>::iterator it = m_rowDataIndexPair->find(currAct);
+		if (it == m_rowDataIndexPair->end())
+			continue;
+		int dataIndex = it->second;
+
+		//for every row --> for every actor
+		if (map->find(currAct) != map->end())
+		{
+			std::vector<vtkIdType>* pickedCells = map->find(currAct)->second;
+			std::sort(pickedCells->begin(), pickedCells->end(), std::less<long long>());
+
+			//store Ids
+			std::vector<csvDataType::ArrayType*>* currRowIds = objectsPerBin->at(dataIndex);
+			std::vector<csvDataType::ArrayType*>* newRowIds = new std::vector<csvDataType::ArrayType*>();
+
+			//store MDS values
+			bin::BinType* currRowMDS = binData->at(dataIndex);
+			bin::BinType* newRowMDS = new bin::BinType();
+
+			//look for the selected cells in the current row
+			for (int i = 0; i < pickedCells->size(); i++)
+			{
+				int currBin = pickedCells->at(i);
+				newRowIds->push_back(currRowIds->at(currBin));
+				newRowMDS->push_back(currRowMDS->at(currBin));
+			}
+
+			selectedObjects->append(newRowIds);
+			thisZoomedRowData->append(newRowMDS);
+
+			m_indexOfPickedRow->push_back(dataIndex);
+			m_pickedCellsforPickedRow->insert({dataIndex, pickedCells});
+		}
+	}
+
+	//DEBUG
+	/*LOG(lvlDebug,"DEBUGGING");
+	for (int i = 0; i < thisZoomedRowData->size(); i++)
+	{
+		bin::debugBinType(thisZoomedRowData->at(i));
+	}*/
+
+	/*LOG(lvlDebug,"DEBUGGING");
+	for (int i = 0; i < selectedObjects->size(); i++)
+	{
+		bin::debugBinType(selectedObjects->at(i));
+	}*/
+
+	//store zoomed data as bin structure
+	m_zoomedRowData = bin::DeepCopy(thisZoomedRowData);
+
+	auto tuple = std::make_tuple(thisZoomedRowData, selectedObjects);
+	return tuple;
 }

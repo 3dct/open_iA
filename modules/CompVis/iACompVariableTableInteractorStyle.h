@@ -37,16 +37,27 @@ class iACompVariableTableInteractorStyle : public iACompTableInteractorStyle
 
 		virtual void Pan();
 
+		virtual void updateCharts() override;
+		virtual void updateOtherCharts(QList<std::vector<csvDataType::ArrayType*>*>* selectedObjectAttributes) override;
+
+
 	protected:
 		
 		iACompVariableTableInteractorStyle();
 
-	
+		virtual iACompTable* getVisualization() override;
+
+		/*** Rendering ***/
+		virtual void resetHistogramTable() override;
+
+		/*** Interaction Picking ***/
+		virtual std::map<int, std::vector<double>>* calculatePickedObjects(
+			QList<bin::BinType*>* zoomedRowData) override;
+
 
 	private:
 
 		/*** Interaction Picking ***/
-
 		void setPickList(std::vector<vtkSmartPointer<vtkActor>>* originalRowActors);
 
 		/**

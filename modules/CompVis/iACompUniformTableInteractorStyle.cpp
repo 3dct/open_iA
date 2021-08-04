@@ -40,11 +40,12 @@ vtkStandardNewMacro(iACompUniformTableInteractorStyle);
 iACompUniformTableInteractorStyle::iACompUniformTableInteractorStyle() :
 	iACompTableInteractorStyle(),
 	m_visualization(nullptr),
-	m_controlBinsInZoomedRows(false),
-	m_pointRepresentationOn(false),
+	//m_zoomedRowData(nullptr),
 	m_actorPicker(vtkSmartPointer<vtkPropPicker>::New()),
 	m_currentlyPickedActor(vtkSmartPointer<vtkActor>::New()),
-	m_panActive(false)
+	m_panActive(false),
+	m_controlBinsInZoomedRows(false),
+	m_pointRepresentationOn(false)
 {
 	m_actorPicker->SetPickFromList(true);
 }
@@ -66,7 +67,7 @@ void iACompUniformTableInteractorStyle::OnKeyRelease()
 				m_visualization->removeHighlightedCells();
 
 				//forward update to all other charts & histogram table
-				//updateCharts();
+				updateCharts();
 
 				Pick::copyPickedMap(m_picked, m_pickedOld);
 
@@ -110,7 +111,7 @@ void iACompUniformTableInteractorStyle::OnLeftButtonDown()
 	int is = m_actorPicker->Pick(pos[0], pos[1], 0, this->CurrentRenderer); //this->GetDefaultRenderer()
 	if (is == 0) 
 	{
-		resetUniformTable();
+		resetHistogramTable();
 		m_picked->clear();
 		return; 
 	}
@@ -265,7 +266,7 @@ void iACompUniformTableInteractorStyle::Pan()
 	m_visualization->renderWidget();
 }
 
-void iACompUniformTableInteractorStyle::resetUniformTable()
+void iACompUniformTableInteractorStyle::resetHistogramTable()
 {
 	//reset visualization when clicked anywhere
 	m_visualization->setBinsZoomed(m_visualization->getMinBins());
@@ -458,31 +459,30 @@ void iACompUniformTableInteractorStyle::setUniformTableVisualization(iACompUnifo
 	m_visualization = visualization;
 }
 
+void iACompUniformTableInteractorStyle::updateCharts()
+{
+	QList<bin::BinType*>* zoomedRowDataMDS;
+	QList<std::vector<csvDataType::ArrayType*>*>* selectedObjectAttributes;
 
-//void iACompUniformTableInteractorStyle::updateCharts()
-//{
-//	QList<bin::BinType*>* zoomedRowDataMDS;
-//	QList<std::vector<csvDataType::ArrayType*>*>* selectedObjectAttributes;
-//
-//	//calculate the fiberIds per selected cells & the mds values per selected cells
-//	std::tie(zoomedRowDataMDS, selectedObjectAttributes) = m_visualization->getSelectedData(m_picked);
-//	m_zoomedRowData = zoomedRowDataMDS;
-//
-//	//change histogram table
-//	m_visualization->drawLinearZoom(m_picked, m_visualization->getBins(), m_visualization->getBinsZoomed(), m_zoomedRowData);
-//
-//	updateOtherCharts(selectedObjectAttributes);
-//}
-//
-//void iACompUniformTableInteractorStyle::updateOtherCharts(QList<std::vector<csvDataType::ArrayType*>*>* selectedObjectAttributes)
-//{
-//	std::vector<int>* indexOfPickedRows = m_visualization->getIndexOfPickedRows();
-//	csvDataType::ArrayType* selectedData = formatPickedObjects(selectedObjectAttributes);
-//
-//	std::map<int, std::vector<double>>* pickStatistic = calculatePickedObjects(m_zoomedRowData);
-//
-//	m_main->updateOtherCharts(selectedData, pickStatistic);
-//}
+	//calculate the fiberIds per selected cells & the mds values per selected cells
+	std::tie(zoomedRowDataMDS, selectedObjectAttributes) = m_visualization->getSelectedData(m_picked);
+	m_zoomedRowData = zoomedRowDataMDS;
+
+	//change histogram table
+	m_visualization->drawLinearZoom(m_picked, m_visualization->getBins(), m_visualization->getBinsZoomed(), m_zoomedRowData);
+
+	updateOtherCharts(selectedObjectAttributes);
+}
+
+void iACompUniformTableInteractorStyle::updateOtherCharts(QList<std::vector<csvDataType::ArrayType*>*>* selectedObjectAttributes)
+{
+	std::vector<int>* indexOfPickedRows = m_visualization->getIndexOfPickedRows();
+	csvDataType::ArrayType* selectedData = formatPickedObjects(selectedObjectAttributes);
+
+	std::map<int, std::vector<double>>* pickStatistic = calculatePickedObjects(m_zoomedRowData);
+
+	m_main->updateOtherCharts(selectedData, pickStatistic);
+}
 
 std::map<int, std::vector<double>>* iACompUniformTableInteractorStyle::calculatePickedObjects(QList<bin::BinType*>* zoomedRowData)
 {
@@ -492,34 +492,9 @@ std::map<int, std::vector<double>>* iACompUniformTableInteractorStyle::calculate
 	//get number of all object in this dataset
 	std::vector<int>* amountObjectsEveryDataset = m_visualization->getHistogramVis()->getAmountObjectsEveryDataset();
 
-	for(int i = 0; i < ((int)zoomedRowData->size()); i++)
-	{
-		std::vector<double> container = std::vector<double>(2, 0);
-		double totalNumber = 0;
-		double pickedNumber = 0;
-
-		//get total number of object of the picked dataset
-		totalNumber = amountObjectsEveryDataset->at(indexOfPickedRows->at(i));
-
-		//get number of picked objects
-		bin::BinType* bins = zoomedRowData->at(i);
-		for (int binInd = 0; binInd < ((int)bins->size()); binInd++)
-		{ //sum over all bins to get amount of picked objects
-			pickedNumber += bins->at(binInd).size();
-		}
-
-		container.at(0) = totalNumber;
-		container.at(1) = pickedNumber;
-
-		statisticForDatasets->insert({ indexOfPickedRows->at(i), container});
-	}
+	calculateStatisticsForDatasets(zoomedRowData, indexOfPickedRows, amountObjectsEveryDataset, statisticForDatasets);
 
 	return statisticForDatasets;
-}
-
-void iACompUniformTableInteractorStyle::resetOtherCharts()
-{	
-	m_main->resetOtherCharts();
 }
 
 void iACompUniformTableInteractorStyle::setPickList(std::vector<vtkSmartPointer<vtkActor>>* originalRowActors)
@@ -530,71 +505,6 @@ void iACompUniformTableInteractorStyle::setPickList(std::vector<vtkSmartPointer<
 	{
 		m_actorPicker->AddPickList(originalRowActors->at(i));
 	}
-}
-
-csvDataType::ArrayType* iACompUniformTableInteractorStyle::formatPickedObjects(QList<std::vector<csvDataType::ArrayType*>*>* zoomedRowData)
-{
-	csvDataType::ArrayType* result = new csvDataType::ArrayType();
-
-	/*LOG(lvlDebug,"++++++++++++++++++++++++");
-	//DEBUG
-	for (int i = 0; i < zoomedRowData->size(); i++)
-	{ //datasets
-		for (int k = 0; k < zoomedRowData->at(i)->size(); k++)
-		{ //bins
-
-			csvDataType::ArrayType* data = zoomedRowData->at(i)->at(k);
-
-			for (int j = 0; j < data->size(); j++)
-			{
-				LOG(lvlDebug,"fiberLabelId = " + QString::number(data->at(j).at(0)) + " --> at Bin: " + QString::number(k));
-			}
-
-		}
-	}
-	LOG(lvlDebug,"++++++++++++++++++++++++");*/
-
-	int amountDatasets = zoomedRowData->size();
-
-	if(amountDatasets == 0 || (zoomedRowData->at(0)->size() == 0) || (zoomedRowData->at(0)->at(0)->size() == 0))
-	{ //when selecting empty cell
-		return result;
-	}
-
-	int amountAttributes = zoomedRowData->at(0)->at(0)->at(0).size();
-
-	for (int attrInd = 0; attrInd < amountAttributes; attrInd++)
-	{ //for all attributes
-		std::vector<double> attr = std::vector<double>();
-
-		for (int datasetInd = 0; datasetInd < amountDatasets; datasetInd++)
-		{ //for the datasets that were picked
-			int amountBins = zoomedRowData->at(datasetInd)->size();
-
-			for (int binId = 0; binId < amountBins; binId++)
-			{ //for the bins that were picked
-
-				int amountVals = zoomedRowData->at(datasetInd)->at(binId)->size();
-				
-				for (int objInd = 0; objInd < amountVals; objInd++)
-				{
-					csvDataType::ArrayType* vals = zoomedRowData->at(datasetInd)->at(binId);
-					attr.push_back(vals->at(objInd).at(attrInd));
-				}
-			}
-		}
-
-		result->push_back(attr);
-	}
-
-	//DEBUG
-	/*for (int i = 0; i < result->size(); i++)
-	{
-		std::vector<double> attr = result->at(i);
-		LOG(lvlDebug,"Attr " + QString::number(i) + " has " + QString::number(attr.size()) + " fibers");
-	}*/
-
-	return result;
 }
 
 bool iACompUniformTableInteractorStyle::removeBarChart()
@@ -623,4 +533,9 @@ void iACompUniformTableInteractorStyle::reinitializeState()
 Pick::PickedMap* iACompUniformTableInteractorStyle::getPickedObjects()
 {
 	return m_pickedOld;
+}
+
+iACompTable* iACompUniformTableInteractorStyle::getVisualization()
+{
+	return m_visualization;
 }

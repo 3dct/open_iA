@@ -1,7 +1,7 @@
 #pragma once
 
 #include "iACompVisOptions.h"
-//#include "iACsvDataStorage.h"
+#include "iACompHistogramTableData.h"
 
 //vtk
 #include "vtkSmartPointer.h"
@@ -10,7 +10,8 @@
 #include <map>
  
 //CompVis
-class iACompTableInteractorStyle;
+//class iACompTableInteractorStyle;
+#include "iACompTableInteractorStyle.h"
 class iACompHistogramVis;
 
 //vtk
@@ -43,11 +44,11 @@ public:
 
 	/*** Ordering/Ranking ***/
 	//draw Histogram table with rows ordered ascending to its amount of objects
-	virtual void drawHistogramTableInAscendingOrder(int bins) = 0;
+	virtual void drawHistogramTableInAscendingOrder() = 0;
 	//draw Histogram table with rows ordered descending to its amount of objects
-	virtual void drawHistogramTableInDescendingOrder(int bins) = 0;
+	virtual void drawHistogramTableInDescendingOrder() = 0;
 	//draw Histogram table with rows ordered according to loading the datasets
-	virtual void drawHistogramTableInOriginalOrder(int bins) = 0;
+	virtual void drawHistogramTableInOriginalOrder() = 0;
 
 	//get the boolean indicating that the bar chart visulaiztion showing the number of objects for each dataset is active
 	bool getBarChartAmountObjectsActive();
@@ -59,13 +60,13 @@ public:
 	virtual void removeSelectionOfCorrelationMap() = 0;
 
 	/*** Interaction ***/
-	//void updateCharts();
-	//void updateOtherCharts(QList<std::vector<csvDataType::ArrayType*>*>* selectedObjectAttributes);
-
 	virtual void highlightSelectedCell(vtkSmartPointer<vtkActor> pickedActor, vtkIdType pickedCellId) = 0;
 	//remove the selected cells with an outline
 	//(necessary that the renderer only contains the datarows for further calculations)
 	virtual void removeHighlightedCells();
+
+	std::vector<int>* getIndexOfPickedRows();
+	
 
 protected:
 
@@ -106,7 +107,11 @@ protected:
 	//creates the bar actors for showing the number of objects for each dataset
 	void createBarChart(double* points, int currAmountObjects, int maxAmountObjects);
 
-	
+	/***  Interaction  ***/
+	//get the selected dataset with its MDS values
+	// and the selected dataset with its object IDs
+	virtual std::tuple<QList<bin::BinType*>*, QList<std::vector<csvDataType::ArrayType*>*>*> getSelectedData(
+		Pick::PickedMap* map) = 0;
 
 	//round the value to a certain decimal
 	double round_up(double value, int decimal_places);
@@ -145,6 +150,21 @@ protected:
 	//stores the actors added to display the border of the selected cells
 	//have to be removed before any calculation for zooming can take place!
 	std::vector<vtkSmartPointer<vtkActor>>* m_highlighingActors;
+
+	//stores the order of the row which was picked
+	std::vector<int>* m_indexOfPickedRow;
+	//stores for each picked actor/row the id of the cells that were picked
+	//for each id stored in m_indexOfPickedRow, here the ids of the picked cells are stored
+	std::map<int, std::vector<vtkIdType>*>* m_pickedCellsforPickedRow;
+
+	//store bin data of selected rows that will be zoomed
+	//each entry in the list represents a row, where any cell(or several) were selected.
+	//the first entry is the most upper row that was selected, the ordering is then descending.
+	//each entry has as many bins as cells were selected for this row
+	QList<bin::BinType*>* m_zoomedRowData;
+
+	//stores for each row which dataset is currently drawn inside
+	std::map<vtkSmartPointer<vtkActor>, int>* m_rowDataIndexPair;
 
 private:
 	

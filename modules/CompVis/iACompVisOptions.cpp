@@ -144,4 +144,17 @@ namespace iACompVisOptions
 
 		actor->SetTexture(texture);
 	}
+
+	//calculates the percentage of a point in any range interval (with positive and negative values)
+	double calculatePercentofRange(double value, double min, double max)
+	{
+		return (value - min) / (max - min);
+	}
+
+	//calculates a value at a specific percentage in any range interval (with positive and negative values)
+	double calculateValueAccordingToPercent(double min, double max, double percent)
+	{
+		return percent * (max - min) + min;
+	}
+
 }

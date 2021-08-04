@@ -342,9 +342,9 @@ iACompHistogramTableData* iACompHistogramVis::recalculateBinning(iACompVisOption
 }
 
 iACompHistogramTableData* iACompHistogramVis::calculateSpecificBins(
-	iACompVisOptions::binningType binningType, bin::BinType* data, int currBin, int amountOfBins)
+	iACompVisOptions::binningType binningType, bin::BinType* dataBins, int currBin, int amountOfBins)
 {
-	return m_main->calculateSpecificBins(binningType, data, currBin, amountOfBins);
+	return m_main->calculateSpecificBins(binningType, dataBins, currBin, amountOfBins);
 }
 
 /******************************************  Update  OTHERS **********************************************/
@@ -398,11 +398,11 @@ void iACompHistogramVis::drawDatasetsInAscendingOrder()
 {
 	if (m_activeVis == iACompVisOptions::activeVisualization::UniformTable)
 	{
-		m_uniformTable->drawHistogramTableInAscendingOrder(m_uniformTable->getBins());
+		m_uniformTable->drawHistogramTableInAscendingOrder();
 	}
 	else if (m_activeVis == iACompVisOptions::activeVisualization::VariableTable)
 	{  
-		m_variableTable->drawHistogramTableInAscendingOrder(0);
+		m_variableTable->drawHistogramTableInAscendingOrder();
 	}
 	else if (m_activeVis == iACompVisOptions::activeVisualization::CombTable)
 	{  //TODO
@@ -416,11 +416,11 @@ void iACompHistogramVis::drawDatasetsInDescendingOrder()
 {
 	if (m_activeVis == iACompVisOptions::activeVisualization::UniformTable)
 	{
-		m_uniformTable->drawHistogramTableInDescendingOrder(m_uniformTable->getBins());
+		m_uniformTable->drawHistogramTableInDescendingOrder();
 	}
 	else if (m_activeVis == iACompVisOptions::activeVisualization::VariableTable)
 	{ 
-		m_variableTable->drawHistogramTableInDescendingOrder(0);
+		m_variableTable->drawHistogramTableInDescendingOrder();
 	}
 	else if (m_activeVis == iACompVisOptions::activeVisualization::CombTable)
 	{  //TODO
@@ -434,11 +434,11 @@ void iACompHistogramVis::drawDatasetsInOriginalOrder()
 {
 	if (m_activeVis == iACompVisOptions::activeVisualization::UniformTable)
 	{
-		m_uniformTable->drawHistogramTableInOriginalOrder(m_uniformTable->getBins());
+		m_uniformTable->drawHistogramTableInOriginalOrder();
 	}
 	else if (m_activeVis == iACompVisOptions::activeVisualization::VariableTable)
 	{  
-		m_variableTable->drawHistogramTableInOriginalOrder(0);
+		m_variableTable->drawHistogramTableInOriginalOrder();
 	}
 	else if (m_activeVis == iACompVisOptions::activeVisualization::CombTable)
 	{  //TODO

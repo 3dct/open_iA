@@ -3,6 +3,7 @@
 
 //CompVis
 #include "iACompVariableTable.h"
+#include "iACompHistogramVis.h"
 
 //vtk
 #include <vtkRenderWindow.h>
@@ -46,13 +47,19 @@ void iACompVariableTableInteractorStyle::OnLeftButtonDown()
 
 	if (cellPicked == 0)
 	{
-		removeBarChart();
-			//m_picked->clear();
-			return;
+		resetHistogramTable();
+		resetOtherCharts();
+		m_picked->clear();
+		return;
 	}
 	
 	if (cellPicked != NULL && this->GetInteractor()->GetShiftKey() && m_picker->GetActor()!= NULL)
 	{
+		if (m_picked->empty())
+		{ //when it is the first time of a new picking time --> remove the highlight from the last one
+			m_visualization->removeHighlightedCells();
+		}
+
 		vtkIdType id = m_picker->GetCellId();
 		storePickedActorAndCell(m_picker->GetActor(), id);
 		m_visualization->highlightSelectedCell(m_picker->GetActor(), id);
@@ -109,10 +116,9 @@ void iACompVariableTableInteractorStyle::OnKeyRelease()
 	{
 		if (m_picked->size() >= 1)
 		{
-			m_visualization->removeHighlightedCells();
-
+			
 			//forward update to all other charts & histogram table
-			//updateCharts();
+			updateCharts();
 
 			Pick::copyPickedMap(m_picked, m_pickedOld);
 
@@ -134,8 +140,6 @@ bool iACompVariableTableInteractorStyle::removeBarChart()
 	if (m_visualization->getBarChartAmountObjectsActive())
 	{
 		m_visualization->removeBarCharShowingAmountOfObjects();
-		m_visualization->drawHistogramTable();
-		m_visualization->renderWidget();
 		return true;
 	}
 
@@ -150,4 +154,60 @@ void iACompVariableTableInteractorStyle::setPickList(std::vector<vtkSmartPointer
 	{
 		m_picker->AddPickList(originalRowActors->at(i));
 	}
+}
+
+
+void iACompVariableTableInteractorStyle::resetHistogramTable()
+{
+	m_visualization->removeHighlightedCells();
+	removeBarChart();
+
+	m_visualization->drawHistogramTable();
+	m_visualization->renderWidget();
+}
+
+
+void iACompVariableTableInteractorStyle::updateCharts()
+{
+	QList<bin::BinType*>* zoomedRowDataMDS;
+	QList<std::vector<csvDataType::ArrayType*>*>* selectedObjectAttributes;
+
+	std::tie(zoomedRowDataMDS, selectedObjectAttributes) = m_visualization->getSelectedData(m_picked);
+	m_zoomedRowData = zoomedRowDataMDS;
+
+	//change histogram table
+	//variableTable->drawLinearZoom(
+	//	m_picked, variableTable->getBins(), variableTable->getBinsZoomed(), m_zoomedRowData);
+
+	updateOtherCharts(selectedObjectAttributes);
+}
+
+void iACompVariableTableInteractorStyle::updateOtherCharts(
+	QList<std::vector<csvDataType::ArrayType*>*>* selectedObjectAttributes)
+{
+	std::vector<int>* indexOfPickedRows = m_visualization->getIndexOfPickedRows();
+	csvDataType::ArrayType* selectedData = formatPickedObjects(selectedObjectAttributes);
+	
+	std::map<int, std::vector<double>>* pickStatistic = calculatePickedObjects(m_zoomedRowData);
+	
+	m_main->updateOtherCharts(selectedData, pickStatistic);
+}
+
+std::map<int, std::vector<double>>* iACompVariableTableInteractorStyle::calculatePickedObjects(
+	QList<bin::BinType*>* zoomedRowData)
+{
+	std::map<int, std::vector<double>>* statisticForDatasets = new std::map<int, std::vector<double>>();
+
+	std::vector<int>* indexOfPickedRows = m_visualization->getIndexOfPickedRows();
+	//get number of all object in this dataset
+	std::vector<int>* amountObjectsEveryDataset = m_visualization->getHistogramVis()->getAmountObjectsEveryDataset();
+
+	calculateStatisticsForDatasets(zoomedRowData, indexOfPickedRows, amountObjectsEveryDataset, statisticForDatasets);
+
+	return statisticForDatasets;
+}
+
+iACompTable* iACompVariableTableInteractorStyle::getVisualization()
+{
+	return m_visualization;
 }

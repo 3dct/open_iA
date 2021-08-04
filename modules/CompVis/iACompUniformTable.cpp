@@ -10,7 +10,7 @@
 //vtk
 #include "vtkRenderWindow.h"
 #include "vtkRenderWindowInteractor.h"
-#include "vtkColorTransferFunction.h";
+#include "vtkColorTransferFunction.h"
 #include "vtkLookupTable.h"
 #include "vtkScalarBarActor.h"
 #include "vtkTextProperty.h"
@@ -43,19 +43,17 @@
 
 iACompUniformTable::iACompUniformTable(iACompHistogramVis* vis, iACompUniformBinningData* uniformBinningData) :
 	iACompTable(vis), 
-	m_interactionStyle(vtkSmartPointer<iACompUniformTableInteractorStyle>::New()),
 	m_uniformBinningData(uniformBinningData),
-	m_BinRangeLength(0),
 	m_originalPlaneActors(new std::vector<vtkSmartPointer<vtkActor>>()),
 	m_zoomedPlaneActors(new std::vector<vtkSmartPointer<vtkActor>>()),
-	m_rowDataIndexPair(new std::map<vtkSmartPointer<vtkActor>, int>()),
+	m_BinRangeLength(0),
+	originalPlaneZoomedPlanePair(new std::map<vtkSmartPointer<vtkActor>, std::vector<vtkSmartPointer<vtkActor>>*>()),
 	m_highlightRowActor(vtkSmartPointer<vtkActor>::New()),
-	m_oldDrawingPosition(-1),
 	m_pointRepresentationActors(new std::vector<vtkSmartPointer<vtkActor>>()),
 	m_stippledActors(new std::vector<vtkSmartPointer<vtkActor>>()),
-	m_indexOfPickedRow(new std::vector<int>()),
-	m_pickedCellsforPickedRow(new std::map<int, std::vector<vtkIdType>*>()),
-	originalPlaneZoomedPlanePair(new std::map<vtkSmartPointer<vtkActor>, std::vector<vtkSmartPointer<vtkActor>>*>())
+	m_oldDrawingPosition(-1),
+	m_newDrawingPosition(-1),
+	m_interactionStyle(vtkSmartPointer<iACompUniformTableInteractorStyle>::New())
 {
 	m_bins = minBins;
 	m_binsZoomed = minBins;
@@ -187,9 +185,7 @@ void iACompUniformTable::makeLUTFromCTF()
 	m_lut->SetTableRange(min, max);
 
 	double col[3];
-	col[0] = iACompVisOptions::getDoubleArray(iACompVisOptions::BACKGROUNDCOLOR_GREY)[0];
-	col[1] = iACompVisOptions::getDoubleArray(iACompVisOptions::BACKGROUNDCOLOR_GREY)[1];
-	col[2] = iACompVisOptions::getDoubleArray(iACompVisOptions::BACKGROUNDCOLOR_GREY)[2];
+	iACompVisOptions::getDoubleArray(iACompVisOptions::BACKGROUNDCOLOR_GREY, col);
 	m_lut->SetBelowRangeColor(col[0], col[1], col[2], 1);
 	m_lut->UseBelowRangeColorOn();
 }
@@ -262,9 +258,7 @@ void iACompUniformTable::makeLUTDarker()
 	m_lutDarker->SetTableRange(min, max);
 
 	double col[3];
-	col[0] = iACompVisOptions::getDoubleArray(iACompVisOptions::BACKGROUNDCOLOR_GREY)[0];
-	col[1] = iACompVisOptions::getDoubleArray(iACompVisOptions::BACKGROUNDCOLOR_GREY)[1];
-	col[2] = iACompVisOptions::getDoubleArray(iACompVisOptions::BACKGROUNDCOLOR_GREY)[2];
+	iACompVisOptions::getDoubleArray(iACompVisOptions::BACKGROUNDCOLOR_GREY, col);
 	m_lutDarker->SetBelowRangeColor(col[0], col[1], col[2], 1);
 	m_lutDarker->UseBelowRangeColorOn();
 }
@@ -342,9 +336,7 @@ vtkSmartPointer<vtkPlaneSource> iACompUniformTable::drawRow(int currDataInd, int
 	{ //the edges of the cells are drawn
 		actor->GetProperty()->EdgeVisibilityOn();
 		double col[3];
-		col[0] = iACompVisOptions::getDoubleArray(iACompVisOptions::BACKGROUNDCOLOR_BLACK)[0];
-		col[1] = iACompVisOptions::getDoubleArray(iACompVisOptions::BACKGROUNDCOLOR_BLACK)[1];
-		col[2] = iACompVisOptions::getDoubleArray(iACompVisOptions::BACKGROUNDCOLOR_BLACK)[2];
+		iACompVisOptions::getDoubleArray(iACompVisOptions::BACKGROUNDCOLOR_BLACK, col);
 		actor->GetProperty()->SetEdgeColor(col[0], col[1], col[2]);
 		actor->GetProperty()->SetLineWidth(actor->GetProperty()->GetLineWidth()*1.5);
 	}
@@ -372,7 +364,7 @@ void iACompUniformTable::colorRow(vtkUnsignedCharArray* colors, int currDataset,
 	QList<bin::BinType*>* binData = m_uniformBinningData->getBinData();
 	calculateBinRange();
 
-	colorBinsOfRow(colors, binData->at(currDataset), binData->at(currDataset)->size());
+	colorBinsOfRow(colors, binData->at(currDataset), ((int)binData->at(currDataset)->size()));
 }
 
 void iACompUniformTable::colorBinsOfRow(vtkUnsignedCharArray* colors, bin::BinType* binData, int amountOfBins)
@@ -381,7 +373,7 @@ void iACompUniformTable::colorBinsOfRow(vtkUnsignedCharArray* colors, bin::BinTy
 	{  //for each selected bin a specific amount of bins is drawn according to this data
 
 		double rgb[3];
-		int amountVals = binData->at(b).size();
+		int amountVals = (int)binData->at(b).size();
 
 		if (m_useDarkerLut)
 		{
@@ -392,7 +384,8 @@ void iACompUniformTable::colorBinsOfRow(vtkUnsignedCharArray* colors, bin::BinTy
 			m_lut->GetColor(amountVals, rgb);
 		}
 
-		unsigned char* ucrgb = iACompVisOptions::getColorArray(rgb);
+		unsigned char ucrgb[3];
+		iACompVisOptions::getColorArray(rgb, ucrgb);
 		colors->InsertNextTuple3(ucrgb[0], ucrgb[1], ucrgb[2]);
 	}
 }
@@ -426,7 +419,7 @@ vtkSmartPointer<vtkActor> iACompUniformTable::drawPolyLine(vtkSmartPointer<vtkPo
 	return polyLineActor;
 }
 
-void iACompUniformTable::drawHistogramTableAccordingToSimilarity(int bins, vtkSmartPointer<vtkActor> referenceData)
+void iACompUniformTable::drawHistogramTableAccordingToSimilarity(vtkSmartPointer<vtkActor> referenceData)
 {
 	//get for all dataset each bin with its MDS values
 	QList<bin::BinType*>* binData = m_uniformBinningData->getBinData();
@@ -466,12 +459,12 @@ void iACompUniformTable::drawHistogramTableAccordingToSimilarity(int bins, vtkSm
 	highlightSelectedRow(m_originalPlaneActors->at(m_vis->getAmountDatasets() - 1));
 }
 
-void iACompUniformTable::drawHistogramTableAccordingToCellSimilarity(int bins, Pick::PickedMap* m_picked)
+void iACompUniformTable::drawHistogramTableAccordingToCellSimilarity(Pick::PickedMap* m_picked)
 {
 	//get for all dataset each bin with its MDS values
 	QList<bin::BinType*>* binData = m_uniformBinningData->getBinData();
 	vtkSmartPointer<vtkActor> referenceData;
-	std::vector<vtkIdType>* indexOfCells;
+	std::vector<vtkIdType>* indexOfCells = new std::vector<vtkIdType>();
 
 	//is only run once, since the map can only contain 1 actor with its selected cells
 	for (Pick::PickedMap::iterator it = m_picked->begin(); it != m_picked->end(); ++it)
@@ -547,7 +540,7 @@ void iACompUniformTable::drawLinearZoom(
 		(((windowHeight * distanceToParent)) * map->size());
 	m_vis->calculateRowWidthAndHeight(windowWidth, newHeight, m_vis->getAmountDatasets() + map->size());
 
-	std::vector<vtkSmartPointer<vtkPlaneSource>>* zoomedPlanes;
+	std::vector<vtkSmartPointer<vtkPlaneSource>>* zoomedPlanes = new std::vector<vtkSmartPointer<vtkPlaneSource>>();
 	vtkSmartPointer<vtkPlaneSource> originalPlane;
 
 	for (int counter = 0; counter < m_vis->getAmountDatasets(); counter++)
@@ -567,7 +560,7 @@ void iACompUniformTable::drawLinearZoom(
 			std::map<int, std::vector<vtkIdType>*>::const_iterator pos = m_pickedCellsforPickedRow->find(indData);
 			std::vector<vtkIdType>* cellIds = pos->second;
 			zoomedPlanes =
-				drawZoomedRow(indData, currCol, selectedBinNumber, thisZoomedRowData->last(), offset, cellIds);
+				drawZoomedRow(currCol, selectedBinNumber, thisZoomedRowData->last(), offset, cellIds);
 			thisZoomedRowData->removeLast();
 
 			currCol += 1;
@@ -605,7 +598,7 @@ void iACompUniformTable::drawLinearZoom(
 			//store for each original row its zoomed row actors
 			std::vector<vtkSmartPointer<vtkActor>>* zoomedActorsForThisRow =
 				new std::vector<vtkSmartPointer<vtkActor>>();
-			for (int i = (zoomedPlanes->size() - 1); i >= 0; i--)
+			for (int i = (((int)zoomedPlanes->size()) - 1); i >= 0; i--)
 			{
 				zoomedActorsForThisRow->push_back(m_zoomedPlaneActors->at((m_zoomedPlaneActors->size() - 1) - i));
 			}
@@ -625,7 +618,7 @@ void iACompUniformTable::drawLinearZoom(
 	renderWidget();
 }
 
-std::vector<vtkSmartPointer<vtkPlaneSource>>* iACompUniformTable::drawZoomedRow(int currDataInd, int currentColumn,
+std::vector<vtkSmartPointer<vtkPlaneSource>>* iACompUniformTable::drawZoomedRow(int currentColumn,
 	int amountOfBins, bin::BinType* currentData, double offsetHeight, std::vector<vtkIdType>* cellIdsOriginalPlane)
 {
 	std::vector<vtkSmartPointer<vtkPlaneSource>>* zoomedPlanes = new std::vector<vtkSmartPointer<vtkPlaneSource>>();
@@ -717,19 +710,20 @@ void iACompUniformTable::colorRowForZoom(vtkUnsignedCharArray* colors, int currB
 	m_vis->calculateSpecificBins(iACompVisOptions::binningType::Uniform, data, currBin, amountOfBins);
 	bin::BinType* binData = m_uniformBinningData->getZoomedBinData();
 
-	if (binData == NULL || binData == nullptr)
+	if (binData == nullptr)
 	{
 		for (int b = 0; b < amountOfBins; b++)
 		{
 			double rgb[3];
 			m_lut->GetColor(-1, rgb);
-			unsigned char* ucrgb = iACompVisOptions::getColorArray(rgb);
+			unsigned char ucrgb[3];
+			iACompVisOptions::getColorArray(rgb, ucrgb);
 			colors->InsertNextTuple3(ucrgb[0], ucrgb[1], ucrgb[2]);
 		}
 		return;
 	}
 
-	colorBinsOfRow(colors, binData, binData->size());
+	colorBinsOfRow(colors, binData, ((int)binData->size()));
 }
 
 vtkSmartPointer<vtkPlaneSource> iACompUniformTable::drawZoomedPlanes(
@@ -761,9 +755,7 @@ vtkSmartPointer<vtkPlaneSource> iACompUniformTable::drawZoomedPlanes(
 	actor->SetMapper(mapper);
 	actor->GetProperty()->EdgeVisibilityOn();
 	double col[3];
-	col[0] = iACompVisOptions::getDoubleArray(iACompVisOptions::BACKGROUNDCOLOR_GREY)[0];
-	col[1] = iACompVisOptions::getDoubleArray(iACompVisOptions::BACKGROUNDCOLOR_GREY)[1];
-	col[2] = iACompVisOptions::getDoubleArray(iACompVisOptions::BACKGROUNDCOLOR_GREY)[2];
+	iACompVisOptions::getDoubleArray(iACompVisOptions::BACKGROUNDCOLOR_GREY, col);
 	actor->GetProperty()->SetEdgeColor(col[0], col[1], col[2]);
 	actor->GetProperty()->SetLineWidth(1);
 
@@ -793,15 +785,11 @@ void iACompUniformTable::drawLineBetweenRowAndZoomedRow(std::vector<vtkSmartPoin
 		double xMaxZ = zoomedRowPlane->GetPoint1()[0];
 		double yMinZ = zoomedRowPlane->GetOrigin()[1];
 		double yMaxZ = zoomedRowPlane->GetPoint2()[1];
-		double widthZ = xMaxZ - xMinZ;
-		double binLengthZ = widthZ / ((double)(cellIdsOriginalPlane->size()));
 
 		double currCellId = cellIdsOriginalPlane->at(i);
 
 		double col[3];
-		col[0] = iACompVisOptions::getDoubleArray(iACompVisOptions::HIGHLIGHTCOLOR_GREEN)[0];
-		col[1] = iACompVisOptions::getDoubleArray(iACompVisOptions::HIGHLIGHTCOLOR_GREEN)[1];
-		col[2] = iACompVisOptions::getDoubleArray(iACompVisOptions::HIGHLIGHTCOLOR_GREEN)[2];
+		iACompVisOptions::getDoubleArray(iACompVisOptions::HIGHLIGHTCOLOR_GREEN, col);
 
 		//left line
 		double p0[3];
@@ -849,27 +837,27 @@ void iACompUniformTable::drawLineBetweenRowAndZoomedRow(std::vector<vtkSmartPoin
 				if ((currCellId + 1) != nextCellId)
 				{
 					//right line
-					vtkSmartPointer<vtkPoints> points = vtkSmartPointer<vtkPoints>::New();
-					points->InsertNextPoint(rightUp);
-					points->InsertNextPoint(rightDown);
-					drawPolyLine(points, col, iACompVisOptions::LINE_WIDTH);
+					vtkSmartPointer<vtkPoints> pointList = vtkSmartPointer<vtkPoints>::New();
+					pointList->InsertNextPoint(rightUp);
+					pointList->InsertNextPoint(rightDown);
+					drawPolyLine(pointList, col, iACompVisOptions::LINE_WIDTH);
 				}
 			}
 			else
 			{  //right line
-				vtkSmartPointer<vtkPoints> points = vtkSmartPointer<vtkPoints>::New();
-				points->InsertNextPoint(rightUp);
-				points->InsertNextPoint(rightDown);
-				drawPolyLine(points, col, iACompVisOptions::LINE_WIDTH);
+				vtkSmartPointer<vtkPoints> pointList = vtkSmartPointer<vtkPoints>::New();
+				pointList->InsertNextPoint(rightUp);
+				pointList->InsertNextPoint(rightDown);
+				drawPolyLine(pointList, col, iACompVisOptions::LINE_WIDTH);
 			}
 		}
 		else if (i == (cellIdsOriginalPlane->size() - 1))
 		{
 			//right line
-			vtkSmartPointer<vtkPoints> points = vtkSmartPointer<vtkPoints>::New();
-			points->InsertNextPoint(rightUp);
-			points->InsertNextPoint(rightDown);
-			drawPolyLine(points, col, iACompVisOptions::LINE_WIDTH);
+			vtkSmartPointer<vtkPoints> pointList = vtkSmartPointer<vtkPoints>::New();
+			pointList->InsertNextPoint(rightUp);
+			pointList->InsertNextPoint(rightDown);
+			drawPolyLine(pointList, col, iACompVisOptions::LINE_WIDTH);
 
 			double lastCellId = cellIdsOriginalPlane->at(i - 1);
 			if ((currCellId - 1) != lastCellId)
@@ -1008,15 +996,12 @@ void iACompUniformTable::drawPointRepresentation()
 				double xmax = zoomedPlane->GetPoint1()[0];
 				double ymin = zoomedPlane->GetOrigin()[1];
 				double ymax = zoomedPlane->GetPoint2()[1];
-				double width = xmax - xmin;
 
 				auto iter = m_pickedCellsforPickedRow->find(indData);
 				if (iter == m_pickedCellsforPickedRow->end())
 				{
 					continue;
 				}
-
-				double binLength = width / ((double)zoomedRowActs->size());
 
 				//set plane
 				vtkSmartPointer<vtkPlaneSource> pointPlane = vtkSmartPointer<vtkPlaneSource>::New();
@@ -1037,9 +1022,7 @@ void iACompUniformTable::drawPointRepresentation()
 				planeActor->SetMapper(planeMapper);
 				planeActor->GetProperty()->SetEdgeVisibility(true);
 				double col[3];
-				col[0] = iACompVisOptions::getDoubleArray(iACompVisOptions::HIGHLIGHTCOLOR_BLACK)[0];
-				col[1] = iACompVisOptions::getDoubleArray(iACompVisOptions::HIGHLIGHTCOLOR_BLACK)[1];
-				col[2] = iACompVisOptions::getDoubleArray(iACompVisOptions::HIGHLIGHTCOLOR_BLACK)[2];
+				iACompVisOptions::getDoubleArray(iACompVisOptions::HIGHLIGHTCOLOR_BLACK, col);
 				planeActor->GetProperty()->SetEdgeColor(col[0], col[1], col[2]);
 				m_pointRepresentationActors->push_back(planeActor);
 				m_mainRenderer->AddActor(planeActor);
@@ -1048,9 +1031,7 @@ void iACompUniformTable::drawPointRepresentation()
 				double startP[3] = {xmin, ymin + ((ymax - ymin) / 2.0), 0.0};
 				double endP[3] = {xmax, ymin + ((ymax - ymin) / 2.0), 0.0};
 				double col1[3];
-				col1[0] = iACompVisOptions::getDoubleArray(iACompVisOptions::BACKGROUNDCOLOR_GREY)[0];
-				col1[1] = iACompVisOptions::getDoubleArray(iACompVisOptions::BACKGROUNDCOLOR_GREY)[1];
-				col1[2] = iACompVisOptions::getDoubleArray(iACompVisOptions::BACKGROUNDCOLOR_GREY)[2];
+				iACompVisOptions::getDoubleArray(iACompVisOptions::BACKGROUNDCOLOR_GREY, col1);
 				vtkSmartPointer<vtkActor> lineActor = drawLine(startP, endP, col1, 2);
 				lineActor->GetProperty()->SetOpacity(0.1);
 				lineActor->Modified();
@@ -1060,13 +1041,9 @@ void iACompUniformTable::drawPointRepresentation()
 				double radius = (m_vis->getColSize() * 0.5) * 0.25;
 				double lineWidth = 1;
 				double circleColor[3];
-				circleColor[0] = iACompVisOptions::getDoubleArray(iACompVisOptions::BACKGROUNDCOLOR_LIGHTGREY)[0];
-				circleColor[1] = iACompVisOptions::getDoubleArray(iACompVisOptions::BACKGROUNDCOLOR_LIGHTGREY)[1];
-				circleColor[2] = iACompVisOptions::getDoubleArray(iACompVisOptions::BACKGROUNDCOLOR_LIGHTGREY)[2];
+				iACompVisOptions::getDoubleArray(iACompVisOptions::BACKGROUNDCOLOR_LIGHTGREY, circleColor);
 				double lineColor[3];
-				lineColor[0] = iACompVisOptions::getDoubleArray(iACompVisOptions::BACKGROUNDCOLOR_LIGHTGREY)[0];
-				lineColor[1] = iACompVisOptions::getDoubleArray(iACompVisOptions::BACKGROUNDCOLOR_LIGHTGREY)[1];
-				lineColor[2] = iACompVisOptions::getDoubleArray(iACompVisOptions::BACKGROUNDCOLOR_LIGHTGREY)[2];
+				iACompVisOptions::getDoubleArray(iACompVisOptions::BACKGROUNDCOLOR_LIGHTGREY, lineColor);
 
 				std::vector<double> data = m_zoomedRowData->at(zoomedRowDataInd)->at(zoomedRowInd);
 
@@ -1276,9 +1253,7 @@ void iACompUniformTable::highlightSelectedCell(vtkSmartPointer<vtkActor> pickedA
 	selectedActor->SetMapper(selectedMapper);
 	selectedActor->GetProperty()->EdgeVisibilityOn();
 	double col[3];
-	col[0] = iACompVisOptions::getDoubleArray(iACompVisOptions::HIGHLIGHTCOLOR_GREEN)[0];
-	col[1] = iACompVisOptions::getDoubleArray(iACompVisOptions::HIGHLIGHTCOLOR_GREEN)[1];
-	col[2] = iACompVisOptions::getDoubleArray(iACompVisOptions::HIGHLIGHTCOLOR_GREEN)[2];
+	iACompVisOptions::getDoubleArray(iACompVisOptions::HIGHLIGHTCOLOR_GREEN, col);
 
 	selectedActor->GetProperty()->SetEdgeColor(col[0], col[1], col[2]);
 	selectedActor->GetProperty()->SetLineWidth(iACompVisOptions::LINE_WIDTH);
@@ -1305,9 +1280,9 @@ void iACompUniformTable::highlightSelectedRow(vtkSmartPointer<vtkActor> pickedAc
 	vtkSmartPointer<vtkAlgorithm> algorithm = pickedActor->GetMapper()->GetInputConnection(0, 0)->GetProducer();
 	vtkSmartPointer<vtkPlaneSource> plane = vtkPlaneSource::SafeDownCast(algorithm);
 
-	double xMin = plane->GetOrigin()[0];
+	//double xMin = plane->GetOrigin()[0];
 	double xMax = plane->GetPoint1()[0];
-	double yMin = plane->GetOrigin()[1];
+	//double yMin = plane->GetOrigin()[1];
 	double yMax = plane->GetPoint2()[1];
 
 	double rightUpperPoint[3] = { xMax , yMax, 0 };
@@ -1320,9 +1295,7 @@ void iACompUniformTable::highlightSelectedRow(vtkSmartPointer<vtkActor> pickedAc
 	points->InsertNextPoint(plane->GetOrigin());
 
 	double col[3];
-	col[0] = iACompVisOptions::getDoubleArray(iACompVisOptions::HIGHLIGHTCOLOR_GREEN)[0];
-	col[1] = iACompVisOptions::getDoubleArray(iACompVisOptions::HIGHLIGHTCOLOR_GREEN)[1];
-	col[2] = iACompVisOptions::getDoubleArray(iACompVisOptions::HIGHLIGHTCOLOR_GREEN)[2];
+	iACompVisOptions::getDoubleArray(iACompVisOptions::HIGHLIGHTCOLOR_GREEN, col);
 
 	m_highlightRowActor = drawPolyLine(points, col, iACompVisOptions::LINE_WIDTH);
 
@@ -1338,12 +1311,12 @@ double iACompUniformTable::calculateChiSquaredMetric(bin::BinType* observedFrequ
 
 		if (expectedFrequency->at(i).size() != 0)
 		{
-			int diff = observedFrequency->at(i).size() - expectedFrequency->at(i).size();
+			int diff = ((int)observedFrequency->at(i).size()) - ((int)expectedFrequency->at(i).size());
 			chiSquare += std::pow(((double)diff), 2) / ((double)expectedFrequency->at(i).size());
 		}
 		else
 		{
-			int diff = observedFrequency->at(i).size();
+			int diff = ((int)observedFrequency->at(i).size());
 			chiSquare += std::pow(((double)diff), 2);
 		}
 	}
@@ -1516,10 +1489,10 @@ void iACompUniformTable::setBinsZoomed(int bins)
 	m_binsZoomed = bins;
 }
 
-std::vector<int>* iACompUniformTable::getIndexOfPickedRows()
-{
-	return m_indexOfPickedRow;
-}
+//std::vector<int>* iACompUniformTable::getIndexOfPickedRows()
+//{
+//	return m_indexOfPickedRow;
+//}
 
 vtkSmartPointer<iACompUniformTableInteractorStyle> iACompUniformTable::getInteractorStyle()
 {
@@ -1528,7 +1501,7 @@ vtkSmartPointer<iACompUniformTableInteractorStyle> iACompUniformTable::getIntera
 
 /******************************************  Ordering/Ranking  **********************************/
 
-void iACompUniformTable::drawHistogramTableInOriginalOrder(int bins)
+void iACompUniformTable::drawHistogramTableInOriginalOrder()
 {
 	std::vector<int>* originalOrderOfIndicesDatasets = m_vis->getOriginalOrderOfIndicesDatasets();
 	std::vector<int>* orderOfIndicesDatasets = m_vis->getOrderOfIndicesDatasets();
@@ -1547,7 +1520,7 @@ void iACompUniformTable::drawHistogramTableInOriginalOrder(int bins)
 	drawBarChartShowingAmountOfObjects(amountObjectsEveryDataset);
 }
 
-void iACompUniformTable::drawHistogramTableInDescendingOrder(int bins)
+void iACompUniformTable::drawHistogramTableInDescendingOrder()
 {
 	std::vector<int> amountObjectsEveryDataset = *(m_uniformBinningData->getAmountObjectsEveryDataset());
 
@@ -1566,7 +1539,7 @@ void iACompUniformTable::drawHistogramTableInDescendingOrder(int bins)
 	drawBarChartShowingAmountOfObjects(amountObjectsEveryDataset);
 }
 
-void iACompUniformTable::drawHistogramTableInAscendingOrder(int bins)
+void iACompUniformTable::drawHistogramTableInAscendingOrder()
 {
 	std::vector<int> amountObjectsEveryDataset = *(m_uniformBinningData->getAmountObjectsEveryDataset());
 
@@ -1635,9 +1608,7 @@ void iACompUniformTable::showSelectionOfCorrelationMap(std::map<int, double>* da
 				{  // is outer arc --> highlight whole dataset
 
 					double col[3];
-					col[0] = iACompVisOptions::getDoubleArray(iACompVisOptions::BACKGROUNDCOLOR_LIGHTGREY)[0];
-					col[1] = iACompVisOptions::getDoubleArray(iACompVisOptions::BACKGROUNDCOLOR_LIGHTGREY)[1];
-					col[2] = iACompVisOptions::getDoubleArray(iACompVisOptions::BACKGROUNDCOLOR_LIGHTGREY)[2];
+					iACompVisOptions::getDoubleArray(iACompVisOptions::BACKGROUNDCOLOR_LIGHTGREY, col);
 
 					drawStippledTexture(oldPlane->GetOrigin(), oldPlane->GetPoint1(), oldPlane->GetPoint2(), col);
 				}
@@ -1665,9 +1636,7 @@ void iACompUniformTable::showSelectionOfCorrelationMap(std::map<int, double>* da
 							double point2[3] = {startXCell, oldPlane->GetPoint2()[1], oldPlane->GetPoint2()[2]};
 
 							double col[3];
-							col[0] = iACompVisOptions::getDoubleArray(iACompVisOptions::HIGHLIGHTCOLOR_GREEN)[0];
-							col[1] = iACompVisOptions::getDoubleArray(iACompVisOptions::HIGHLIGHTCOLOR_GREEN)[1];
-							col[2] = iACompVisOptions::getDoubleArray(iACompVisOptions::HIGHLIGHTCOLOR_GREEN)[2];
+							iACompVisOptions::getDoubleArray(iACompVisOptions::HIGHLIGHTCOLOR_GREEN, col);
 
 							drawStippledTexture(origin, point1, point2, col);
 						}
@@ -1698,12 +1667,7 @@ void iACompUniformTable::showSelectionOfCorrelationMap(std::map<int, double>* da
 								double point2[3] = {startXCell, oldPlane->GetPoint2()[1], oldPlane->GetPoint2()[2]};
 
 								double col[3];
-								col[0] =
-									iACompVisOptions::getDoubleArray(iACompVisOptions::BACKGROUNDCOLOR_LIGHTERGREY)[0];
-								col[1] =
-									iACompVisOptions::getDoubleArray(iACompVisOptions::BACKGROUNDCOLOR_LIGHTERGREY)[1];
-								col[2] =
-									iACompVisOptions::getDoubleArray(iACompVisOptions::BACKGROUNDCOLOR_LIGHTERGREY)[2];
+								iACompVisOptions::getDoubleArray(iACompVisOptions::BACKGROUNDCOLOR_LIGHTERGREY, col);
 
 								drawStippledTexture(origin, point1, point2, col);
 							}

@@ -2,6 +2,8 @@
 //vtk
 #include "vtkInteractorStyleTrackballCamera.h"
 #include "vtkIdTypeArray.h"
+#include "iACsvDataStorage.h"
+#include "iACompHistogramTableData.h"
 
 //Debug
 #include "iALog.h"
@@ -15,6 +17,7 @@
 
 //CompVis
 class iACompHistogramVis;
+class iACompTable;
 
 namespace Pick
 {
@@ -27,8 +30,8 @@ namespace Pick
 class iACompTableInteractorStyle: public vtkInteractorStyleTrackballCamera
 {
 public:
-	static iACompTableInteractorStyle* New();
-	vtkTypeMacro(iACompTableInteractorStyle, vtkInteractorStyleTrackballCamera);
+	//static iACompTableInteractorStyle* New();
+	//vtkTypeMacro(iACompTableInteractorStyle, vtkInteractorStyleTrackballCamera);
 
 	//initialization
 	void setIACompHistogramVis(iACompHistogramVis* main);
@@ -47,8 +50,16 @@ public:
 
 	virtual void Pan();
 
+	virtual void updateCharts() = 0;
+	virtual void updateOtherCharts(QList<std::vector<csvDataType::ArrayType*>*>* selectedObjectAttributes) = 0;
+	virtual void resetOtherCharts();
+
 protected:
 	iACompTableInteractorStyle();
+
+	virtual iACompTable* getVisualization() = 0;
+
+	virtual void resetHistogramTable()  = 0;
 
 	/*** Interaction Camera Zoom ***/
 	//general zooming in executed by the camera
@@ -58,6 +69,14 @@ protected:
 
 	/*** Interaction Picking ***/
 	virtual void storePickedActorAndCell(vtkSmartPointer<vtkActor> pickedA, vtkIdType id);
+	
+	virtual std::map<int, std::vector<double>>* calculatePickedObjects(QList<bin::BinType*>* zoomedRowData) = 0;
+	
+	std::map<int, std::vector<double>>* calculateStatisticsForDatasets(
+		QList<bin::BinType*>* zoomedRowData, std::vector<int>* indexOfPickedRows,
+		std::vector<int>* amountObjectsEveryDataset, std::map<int, std::vector<double>>* result);
+	
+	csvDataType::ArrayType* formatPickedObjects(QList<std::vector<csvDataType::ArrayType*>*>* zoomedRowData);
 
 	iACompHistogramVis* m_main;
 
@@ -70,6 +89,8 @@ protected:
 	Pick::PickedMap* m_picked;
 	//store for reinitialization after minimization etc. of application
 	Pick::PickedMap* m_pickedOld;
+
+	QList<bin::BinType*>* m_zoomedRowData;
 };
 
 

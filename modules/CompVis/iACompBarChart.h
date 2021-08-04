@@ -84,21 +84,29 @@ private:
 	iACoefficientOfVariation* m_coeffVar;
 	iAQVTKWidget* m_qvtkWidget;
 
-	
+	//drawing area of the bars
+	vtkSmartPointer<vtkContextArea> m_area;
 
-	
+	//context view for 2D charts
+	vtkSmartPointer<vtkContextView> m_view;
 
-	
-	
 	//stores the new positions of all values for all datasets after sorting according to the coefficient of variation
 	std::vector<double>* orderedPositions;
 	// stores the new positions after sorting according to the coefficient of variation
 	std::vector<double>* selected_orderedPositions;
+
+	//stores the names of all attributes
+	QStringList* attrNames;
+
+	//stores the coefficient of variation for all values of all datasets
+	std::vector<double>* coefficients;
+	//stores the coefficient of variation for all values of all datasets in original order
+	//according to the order of the attributes in the csv
+	std::vector<double>* coefficientsUnordered;
 	
 	//width of the original bars --> not 1, otherwise there would be no space between them
 	const double m_barWidth = 0.8;
-	//drawing area of the bars
-	vtkSmartPointer<vtkContextArea> m_area;
+	
 
 	vtkSmartPointer<vtkPropItem> m_originalBarChart;
 	vtkSmartPointer<vtkPropItem> m_originalBarChartRepositioned;

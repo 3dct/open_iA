@@ -33,6 +33,7 @@ namespace iACompVisOptions
 	};
 	
 	/*************** Rendering ****************************/
+	const unsigned char BACKGROUNDCOLOR_BLACK[3] = {0, 0, 0};
 	const unsigned char BACKGROUNDCOLOR_GREY[3] = { 25, 25, 25 };//{128, 128, 128 };
 	const unsigned char BACKGROUNDCOLOR_LIGHTGREY[3] = { 115, 115, 115 };
 	const unsigned char BACKGROUNDCOLOR_LIGHTERGREY[3] = { 189, 189, 189 };
@@ -67,4 +68,12 @@ namespace iACompVisOptions
 	void copyVector(std::vector<double>* toCopy, std::vector<double>* copied);
 
 	void stippledLine(vtkSmartPointer<vtkActor> actor, int lineStipplePattern, int lineStippleRepeat);
+
+	//calculates the percentage of a point in any range interval (with positive and negative values)
+	double calculatePercentofRange(double value, double min, double max);
+
+	//calculates a value at a specific percentage in any range interval (with positive and negative values)
+	double calculateValueAccordingToPercent(double min, double max, double percent);
+
+
 };

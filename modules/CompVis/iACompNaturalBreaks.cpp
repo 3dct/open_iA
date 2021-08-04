@@ -22,7 +22,7 @@ void iACompNaturalBreaks::calculateBins()
 		new QList<std::vector<csvDataType::ArrayType*>*>;  //stores data of selected objects attributes
 
 	double maxVal = m_naturalBreaksData->getMaxVal();
-	double minVal = m_naturalBreaksData->getMinVal();
+	//double minVal = m_naturalBreaksData->getMinVal();
 
 	QList<std::vector<double>>* binningStrategies = new QList<std::vector<double>>; //stores number of bins for each dataset
 
@@ -30,7 +30,7 @@ void iACompNaturalBreaks::calculateBins()
 	{  // do for every dataset
 
 		std::vector<double> values = m_datasets->at(i);
-		const int n = values.size();
+		const int n = ((int)values.size());
 
 		bin::BinType* bins;
 		bin::BinType* bestBins;
@@ -67,7 +67,7 @@ void iACompNaturalBreaks::calculateBins()
 				binsWithFiberIds->push_back(init);
 			}
 
-			int datasetInd = values.size();
+			int datasetInd = (int)values.size();
 
 			//check for every value inside a dataset for the corresponding bin
 			for (int v = 0; v < values.size(); v++)
@@ -300,7 +300,7 @@ namespace FishersNaturalBreaks
 			{
 				resize(nrUsedContainers + 2);
 
-				unsigned int m = size / 2;
+				unsigned int m = ((unsigned int)size) / 2;
 
 				GetValueCountPairs(vcpc, values, m, nrUsedContainers);
 				GetValueCountPairs(begin()[nrUsedContainers], values + m, size - m, nrUsedContainers + 1);

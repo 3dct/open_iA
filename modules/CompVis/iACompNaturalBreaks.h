@@ -31,7 +31,8 @@ namespace FishersNaturalBreaks
 			m_PrevSSM(m_BufSize),
 			m_CurrSSM(m_BufSize),
 			m_CB(m_BufSize * (m_K - 1)),
-			m_CBPtr()
+			m_CBPtr(),
+			m_NrCompletedRows(0)
 		{
 			m_CumulValues.reserve(vcpc.size());
 			double cwv = 0;

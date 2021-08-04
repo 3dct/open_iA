@@ -121,6 +121,10 @@ private:
 	std::vector<double>* maxValsAttr;
 	std::vector<double>* minValsAttr;
 
+	int m_numberOfAttr;
+	std::vector<vtkSmartPointer<vtkTextActor>>* m_legendAttributes;
+	vtkSmartPointer<vtkStringArray> labels;
+
 	//stores the normalized values in the original order
 	vtkSmartPointer<vtkTable> m_originalOrderTable;
 	vtkSmartPointer<vtkTable> m_originalOrderTableNotNormalized;
@@ -128,11 +132,7 @@ private:
 	//new positions calculated from bar chart
 	std::vector<double>* m_orderedPositions;
 
-	int m_numberOfAttr;
-	std::vector<vtkSmartPointer<vtkTextActor>>* m_legendAttributes;
-	vtkSmartPointer<vtkStringArray> labels;
-
-		//table containing all values
+	//table containing all values
 	//vtkSmartPointer<vtkTable> m_originalBoxPlotTable;
 	//stores the minimum, first quartile, median, third quartile and maximum of the real values
 	vtkSmartPointer<vtkTable> outTable;
