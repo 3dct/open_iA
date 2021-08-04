@@ -95,8 +95,8 @@ protected:
 	const QMultiMap<QString, double> * m_gtPorosityMap;
 	QMap<QObject*, QModelIndex> m_indices;
 	QModelIndexList m_selectedIndices;
-	iAQVTKWidget * m_sbWidget;
 	vtkSmartPointer<vtkLookupTable> m_lut;
+	iAQVTKWidget * m_sbWidget;
 	vtkSmartPointer<vtkRenderer> m_sbRen;
 	vtkSmartPointer<vtkScalarBarActor> m_sbActor;
 };
