@@ -56,6 +56,7 @@
 
 #include <vtkBMPReader.h>
 #include <vtkImageData.h>
+#include <vtkImageImport.h>
 #include <vtkJPEGReader.h>
 #include <vtkPNGReader.h>
 #include <vtkPolyData.h>
@@ -82,6 +83,9 @@
 #define H5_USE_110_API
 #include <hdf5.h>
 #include <QStack>
+#include <QStandardItemModel>
+#include <QTextEdit>
+#include <QTreeView>
 #endif
 
 #include <algorithm>
@@ -90,9 +94,6 @@
 #include <iostream>
 #include <string>
 #include <vector>
-
-
-#include "defines.h"
 
 #include <QMap>
 
@@ -284,6 +285,26 @@ iAIO::~iAIO()
 	m_fileNameArray->Delete();
 }
 
+namespace
+{
+	const int InvalidHDF5Type = -1;
+	QString const FileNameBase("File name base");
+	QString const Extension   ("Extension");
+	QString const NumDigits   ("Number of digits in index");
+	QString const MinimumIndex("Minimum index");
+	QString const MaximumIndex("Maximum index");
+
+	void addSeriesParameters(iAParameterDlg::ParamListT& params, QString const& base, QString const& ext, int digits, int const * index)
+	{
+		addParameter(params, FileNameBase, iAValueType::String, base);
+		addParameter(params, Extension, iAValueType::String, ext);
+		addParameter(params, NumDigits, iAValueType::Discrete, digits);
+		addParameter(params, MinimumIndex, iAValueType::Discrete, index[0]);
+		addParameter(params, MaximumIndex, iAValueType::Discrete, index[1]);
+	}
+}
+
+
 #ifdef USE_HDF5
 QString MapHDF5TypeToString(H5T_class_t hdf5Type)
 {
@@ -307,107 +328,91 @@ QString MapHDF5TypeToString(H5T_class_t hdf5Type)
 
 namespace
 {
-	const int InvalidHDF5Type = -1;
-	QString const FileNameBase("File name base");
-	QString const Extension   ("Extension");
-	QString const NumDigits   ("Number of digits in index");
-	QString const MinimumIndex("Minimum index");
-	QString const MaximumIndex("Maximum index");
 
-	void addSeriesParameters(iAParameterDlg::ParamListT& params, QString const& base, QString const& ext, int digits, int index[2])
+	int GetNumericVTKTypeFromHDF5Type(H5T_class_t hdf5Type, size_t numBytes, H5T_sign_t sign)
 	{
-		addParameter(params, FileNameBase, iAValueType::String, base);
-		addParameter(params, Extension, iAValueType::String, ext);
-		addParameter(params, NumDigits, iAValueType::Discrete, digits);
-		addParameter(params, MinimumIndex, iAValueType::Discrete, index[0]);
-		addParameter(params, MaximumIndex, iAValueType::Discrete, index[1]);
-	}
-}
-
-int GetNumericVTKTypeFromHDF5Type(H5T_class_t hdf5Type, size_t numBytes, H5T_sign_t sign)
-{
-	switch (hdf5Type)
-	{
-	case H5T_INTEGER: {
-		switch (numBytes)
+		switch (hdf5Type)
 		{
-		case 1: return (sign == H5T_SGN_NONE) ? VTK_UNSIGNED_CHAR : VTK_CHAR;
-		case 2: return (sign == H5T_SGN_NONE) ? VTK_UNSIGNED_SHORT : VTK_SHORT;
-		case 4: return (sign == H5T_SGN_NONE) ? VTK_UNSIGNED_INT : VTK_INT;
-		case 8: return (sign == H5T_SGN_NONE) ? VTK_UNSIGNED_LONG_LONG : VTK_LONG_LONG;
-		default: return InvalidHDF5Type;
-		}
-	}
-	case H5T_FLOAT: {
-		switch (numBytes)
-		{
-			case 4:  return VTK_FLOAT;
-			case 8:  return VTK_DOUBLE;
+		case H5T_INTEGER: {
+			switch (numBytes)
+			{
+			case 1: return (sign == H5T_SGN_NONE) ? VTK_UNSIGNED_CHAR : VTK_CHAR;
+			case 2: return (sign == H5T_SGN_NONE) ? VTK_UNSIGNED_SHORT : VTK_SHORT;
+			case 4: return (sign == H5T_SGN_NONE) ? VTK_UNSIGNED_INT : VTK_INT;
+			case 8: return (sign == H5T_SGN_NONE) ? VTK_UNSIGNED_LONG_LONG : VTK_LONG_LONG;
 			default: return InvalidHDF5Type;
+			}
+		}
+		case H5T_FLOAT: {
+			switch (numBytes)
+			{
+				case 4:  return VTK_FLOAT;
+				case 8:  return VTK_DOUBLE;
+				default: return InvalidHDF5Type;
+			}
+		}
+		default: return InvalidHDF5Type;
 		}
 	}
-	default: return InvalidHDF5Type;
-	}
-}
 
-hid_t GetHDF5ReadType(H5T_class_t hdf5Type, size_t numBytes, H5T_sign_t sign)
-{
-	switch (hdf5Type)
+	hid_t GetHDF5ReadType(H5T_class_t hdf5Type, size_t numBytes, H5T_sign_t sign)
 	{
-	case H5T_INTEGER: {
-		switch (numBytes)
+		switch (hdf5Type)
 		{
-		case 1: return (sign == H5T_SGN_NONE) ? H5T_NATIVE_UCHAR : H5T_NATIVE_SCHAR;
-		case 2: return (sign == H5T_SGN_NONE) ? H5T_NATIVE_USHORT : H5T_NATIVE_SHORT;
-		case 4: return (sign == H5T_SGN_NONE) ? H5T_NATIVE_UINT : H5T_NATIVE_INT;
-		case 8: return (sign == H5T_SGN_NONE) ? H5T_NATIVE_ULLONG : H5T_NATIVE_LLONG;
+		case H5T_INTEGER: {
+			switch (numBytes)
+			{
+			case 1: return (sign == H5T_SGN_NONE) ? H5T_NATIVE_UCHAR : H5T_NATIVE_SCHAR;
+			case 2: return (sign == H5T_SGN_NONE) ? H5T_NATIVE_USHORT : H5T_NATIVE_SHORT;
+			case 4: return (sign == H5T_SGN_NONE) ? H5T_NATIVE_UINT : H5T_NATIVE_INT;
+			case 8: return (sign == H5T_SGN_NONE) ? H5T_NATIVE_ULLONG : H5T_NATIVE_LLONG;
+			default: return InvalidHDF5Type;
+			}
+		}
+		case H5T_FLOAT: {
+			switch (numBytes)
+			{
+			case 4:  return H5T_NATIVE_FLOAT;
+			case 8:  return H5T_NATIVE_DOUBLE;
+			default: return InvalidHDF5Type;
+			}
+		}
 		default: return InvalidHDF5Type;
 		}
 	}
-	case H5T_FLOAT: {
-		switch (numBytes)
-		{
-		case 4:  return H5T_NATIVE_FLOAT;
-		case 8:  return H5T_NATIVE_DOUBLE;
-		default: return InvalidHDF5Type;
-		}
+
+	// typedef herr_t(*H5E_walk2_t)(unsigned n, const H5E_error2_t *err_desc, void *client_data)
+	herr_t errorfunc(unsigned /*n*/, const H5E_error2_t *err, void * /*client_data*/)
+	{
+		/*
+		hid_t       cls_id;     class ID
+		hid_t       maj_num;	major error ID
+		hid_t       min_num;	minor error number
+		unsigned	line;		line in file where error occurs
+		const char	*func_name; function in which error occurred
+		const char	*file_name;	file in which error occurred
+		const char	*desc;
+		*/
+		LOG(lvlError, QString("HDF5 error: class=%1 maj_num=%2(%3) min_num=%4(%5) file=%6:%7 func=%8 desc=%9")
+			.arg(err->cls_id)
+			.arg(err->maj_num)
+			.arg(H5Eget_major(err->maj_num))
+			.arg(err->min_num)
+			.arg(H5Eget_minor(err->min_num))
+			.arg(err->file_name)
+			.arg(err->line)
+			.arg(err->func_name)
+			.arg(err->desc));
+		return 0;
 	}
-	default: return InvalidHDF5Type;
+
+	void printHDF5ErrorsToConsole()
+	{
+		hid_t err_stack = H5Eget_current_stack();
+		/*herr_t walkresult = */ H5Ewalk(err_stack, H5E_WALK_UPWARD, errorfunc, nullptr);
 	}
 }
 
-// typedef herr_t(*H5E_walk2_t)(unsigned n, const H5E_error2_t *err_desc, void *client_data)
-herr_t errorfunc(unsigned /*n*/, const H5E_error2_t *err, void * /*client_data*/)
-{
-	/*
-	hid_t       cls_id;     class ID
-	hid_t       maj_num;	major error ID
-	hid_t       min_num;	minor error number
-	unsigned	line;		line in file where error occurs
-	const char	*func_name; function in which error occurred
-	const char	*file_name;	file in which error occurred
-	const char	*desc;
-	*/
-	LOG(lvlError, QString("HDF5 error: class=%1 maj_num=%2(%3) min_num=%4(%5) file=%6:%7 func=%8 desc=%9")
-		.arg(err->cls_id)
-		.arg(err->maj_num)
-		.arg(H5Eget_major(err->maj_num))
-		.arg(err->min_num)
-		.arg(H5Eget_minor(err->min_num))
-		.arg(err->file_name)
-		.arg(err->line)
-		.arg(err->func_name)
-		.arg(err->desc));
-	return 0;
-}
-
-void printHDF5ErrorsToConsole()
-{
-	hid_t err_stack = H5Eget_current_stack();
-	/*herr_t walkresult = */ H5Ewalk(err_stack, H5E_WALK_UPWARD, errorfunc, nullptr);
-}
-
-#include <vtkImageImport.h>
 
 void iAIO::readHDF5File()
 {
@@ -629,10 +634,6 @@ void iAIO::run()
 
 
 #ifdef USE_HDF5
-#include <QTextEdit>
-#include <QTreeView>
-#include <QStandardItemModel>
-
 namespace
 {
 
@@ -1609,16 +1610,15 @@ bool iAIO::setupNKCReader(QString const& f)
 	QRegularExpressionMatch matchColumns = regexColumns.match(text);
 	if (matchColumns.hasMatch())
 	{
-		QString columns = matchColumns.captured(1); 
+		QString columns = matchColumns.captured(1);
 		m_rawFileParams.m_size[0] = columns.toInt();
-											  
 	}
 
 	QRegularExpression regexRows("number of raws : (\\d*)\\D");
 	QRegularExpressionMatch matchRows = regexRows.match(text);
 	if (matchRows.hasMatch())
 	{
-		QString rows = matchRows.captured(1);  
+		QString rows = matchRows.captured(1);
 		m_rawFileParams.m_size[1] = rows.toInt();
 	}
 
@@ -1713,7 +1713,7 @@ void writeImageStack_template(QString const & fileName, iAProgress* p, iAConnect
 		auto imgIO = itk::TIFFImageIO::New();
 		writer->SetImageIO(imgIO);
 	}
-	
+
 	QString length = QString::number(size[2]);
 	QString format(fi.absolutePath() + "/" + fi.baseName() + "%0" + QString::number(length.size()) + "d." + fi.completeSuffix());
 	nameGenerator->SetSeriesFormat( getLocalEncodingFileName(format).c_str());
@@ -1732,7 +1732,7 @@ void iAIO::writeImageStack( )
 	const ScalarPixelType pixelType = getConnector()->itkScalarPixelType();
 	const PixelType imagePixelType = getConnector()->itkPixelType();
 	ITK_EXTENDED_TYPED_CALL(writeImageStack_template, pixelType, imagePixelType,
-		m_fileName, ProgressObserver(), getConnector(), false);  //compression Hard coded to false, because the used m_compression was used for stl 
+		m_fileName, ProgressObserver(), getConnector(), false);  //compression Hard coded to false, because the used m_compression was used for stl
 	addMsg(tr("%1 Image Stack saved; base file name: %2")
 		.arg(QFileInfo(m_fileName).completeSuffix().toUpper())
 		.arg(m_fileName));
