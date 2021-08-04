@@ -55,8 +55,8 @@ iASPMView::iASPMView(iAMainWindow *mWnd,  QWidget * parent /*= 0*/, Qt::WindowFl
 	m_SPLOMSelection( vtkSmartPointer<vtkIdTypeArray>::New() ),
 	m_lut( vtkSmartPointer<vtkLookupTable>::New() ),
 	m_sbRen( vtkSmartPointer<vtkRenderer>::New() ),
-	m_sbActor( vtkSmartPointer<vtkScalarBarActor>::New() ),
-	m_SBQVTKWidget(new iAQVTKWidget())
+	m_SBQVTKWidget(new iAQVTKWidget()),
+	m_sbActor(vtkSmartPointer<vtkScalarBarActor>::New())
 {
 	QHBoxLayout *layoutHB2 = new QHBoxLayout( this );
 	layoutHB2->setContentsMargins(0, 0, 0, 0);
