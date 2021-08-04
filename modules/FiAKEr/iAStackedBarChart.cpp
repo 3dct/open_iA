@@ -42,7 +42,7 @@ namespace
 	int MinimumPixelBarWidth = 1;
 	const int DividerRange = 2;
 	const int BarVSpacing = 1;
-	const int BarHSpacing = 2;
+	//const int BarHSpacing = 2;
 	size_t NoBar = std::numeric_limits<size_t>::max();
 	const int MaxChartWidth = 150;
 }
@@ -76,7 +76,7 @@ public:
 	{
 		setSizePolicy(QSizePolicy::Expanding, QSizePolicy::Fixed);
 	}
-	QSize sizeHint() const
+	QSize sizeHint() const override
 	{
 		return QSize(10, fontMetrics().lineSpacing()+2*BarVSpacing);  // font height?
 	}
@@ -84,7 +84,7 @@ public:
 	{
 		m_s->contextMenuEvent(ev);
 	}
-	void resizeEvent(QResizeEvent* e)
+	void resizeEvent(QResizeEvent* e) override
 	{
 		QWidget::resizeEvent(e);
 		m_s->updateDividers();
@@ -144,7 +144,7 @@ public:
 	{
 		setSizePolicy(QSizePolicy::Expanding, QSizePolicy::Fixed);
 	}
-	QSize sizeHint() const
+	QSize sizeHint() const override
 	{
 		return QSize(10, fontMetrics().lineSpacing() + 2 * BarVSpacing);  // font height?
 	}
@@ -152,7 +152,7 @@ public:
 	{
 		m_s->contextMenuEvent(ev);
 	}
-	void resizeEvent(QResizeEvent* e)
+	void resizeEvent(QResizeEvent* e) override
 	{
 		QWidget::resizeEvent(e);
 		m_s->updateDividers();
@@ -360,7 +360,7 @@ void iAStackedBarChart::updateBars()
 	}
 	else
 	{
-		for (int i = 0; i < m_bars.size(); ++i)
+		for (int i = 0; i < static_cast<int>(m_bars.size()); ++i)
 		{
 			m_gL->itemAtPosition(m_row, m_col + i)->widget()->update();
 		}
@@ -452,7 +452,7 @@ void iAStackedBarChart::drawBar(QPainter& painter, size_t barID, int left, int t
 	int segmentWidth = (m_stack ? bWidth : static_cast<int>(bar->weight * (m_chartAreaPixelWidth - m_leftMargin))) - 1;
 	QRect segmentBox(left, 0, segmentWidth, barHeight);
 	painter.setPen(qApp->palette().color(foregroundRole()));
-	if (m_selectedBar == barID)
+	if (m_selectedBar == static_cast<int>(barID))
 	{
 		if (m_header)
 		{
@@ -508,7 +508,7 @@ void iAStackedBarChart::updateDividers()
 	else
 	{
 		m_chartAreaPixelWidth = 0;
-		for (int i = 0; i < m_bars.size(); ++i)
+		for (int i = 0; i < static_cast<int>(m_bars.size()); ++i)
 		{
 			m_chartAreaPixelWidth += m_gL->itemAtPosition(m_row, m_col + i)->widget()->geometry().width();
 		}
