@@ -253,7 +253,7 @@ void iANModalPCAModalityReducer::ownPCA(std::vector<iAConnector>& c)
 			double mean = 0;
 			// TODO: Use omp reduction?
 #pragma omp for nowait
-			for (int i = 0; i < numVoxels; i++)
+			for (int i = 0; i < static_cast<int>(numVoxels); i++)
 			{
 				//means[img_i] += inputs[img_i][i];
 				mean += inputs[img_i][i];
