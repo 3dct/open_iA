@@ -196,7 +196,7 @@ void iACompBoxPlot::reinitializeBoxPlot()
 void iACompBoxPlot::initializeData()
 {
 	// data preparation
-	QList<csvFileData>* data = m_dataStorage->getData();
+	QList<csvFileData>* csvData = m_dataStorage->getData();
 	QStringList* attrNames = m_dataStorage->getAttributeNamesWithoutLabel();
 	m_numberOfAttr = attrNames->size(); //amount of attributes
 	
@@ -223,29 +223,29 @@ void iACompBoxPlot::initializeData()
 
 	//calculate amount of objects(fibers)/rows
 	int numberOfRows = 0;
-	for (int i = 0; i < data->size(); i++)
+	for (int i = 0; i < csvData->size(); i++)
 	{
-		numberOfRows += csvDataType::getRows(data->at(i).values);
+		numberOfRows += csvDataType::getRows(csvData->at(i).values);
 	}
 	originalValuesTable->SetNumberOfRows(numberOfRows);
 	m_originalOrderTable->SetNumberOfRows(numberOfRows);
 
 	int row = 0;
 	//fill table with data
-	for (int i = 0; i < data->size(); i++)
+	for (int i = 0; i < csvData->size(); i++)
 	{//for all datasets
-		for (int dataInd = 0; dataInd < ((int)data->at(i).values->size()); dataInd++)
+		for (int dataInd = 0; dataInd < ((int)csvData->at(i).values->size()); dataInd++)
 		{ //for all values
 			for (int attrInd = 1; attrInd <= m_numberOfAttr; attrInd++)
 
 			{//for all attributes but without the label attribute
 
 				int col = attrInd - 1;
-				double val = data->at(i).values->at(dataInd).at(m_orderedPositions->at(col) + 1);
+				double val = csvData->at(i).values->at(dataInd).at(m_orderedPositions->at(col) + 1);
 				
 				originalValuesTable->SetValue(row, col, vtkVariant(val));
 
-				double valOriginalOrder = data->at(i).values->at(dataInd).at(attrInd);
+				double valOriginalOrder = csvData->at(i).values->at(dataInd).at(attrInd);
 				m_originalOrderTable->SetValue(row, col, valOriginalOrder);
 			}
 
