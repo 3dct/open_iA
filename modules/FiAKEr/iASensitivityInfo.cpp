@@ -501,7 +501,7 @@ void getBestMatches2(iAFiberData const& fiber, std::vector<iAFiberData> const& o
 	{
 		QVector<iAFiberSimilarity> similarities;
 		similarities.resize(static_cast<int>(candidates.size()));
-		for (iARefDistCompute::ContainerSizeType bestMatchID = 0; bestMatchID < candidates.size(); ++bestMatchID)
+		for (qvectorsizetype bestMatchID = 0; bestMatchID < static_cast<int>(candidates.size()); ++bestMatchID)
 		{
 			size_t refFiberID = candidates[bestMatchID];
 			similarities[bestMatchID].index = static_cast<quint32>(refFiberID);
@@ -1925,6 +1925,7 @@ private:
 
 namespace
 {
+/*
 	iAVec3i mapPointToIndex(iAVec3f const& pt, double const* origin, double const* spacing, int const* size)
 	{
 		iAVec3i result;
@@ -1934,7 +1935,7 @@ namespace
 		}
 		return result;
 	}
-
+*/
 	const size_t NoMatch = std::numeric_limits<size_t>::max();
 
 	size_t findMatch(iADissimilarityMatrixType const& dissimMatrix, iASensitivityInfo::UniqueFibersT const& uniqueFibers,
