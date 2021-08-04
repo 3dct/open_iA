@@ -436,7 +436,7 @@ void iAParameterInfluenceView::setSelectedParam(int param)
 	m_selectedParam = param;
 	for (int paramIdx = 0; paramIdx < m_sensInf->m_variedParams.size(); ++paramIdx)
 	{
-		QColor color = (paramIdx == m_selectedParam) ? ParamRowSelectedBGColor : ParamRowUnselectedBGColor;
+		//QColor color = (paramIdx == m_selectedParam) ? ParamRowSelectedBGColor : ParamRowUnselectedBGColor;
 		QPalette::ColorRole bgRole = (paramIdx == m_selectedParam) ? QPalette::AlternateBase : QPalette::Window;
 		for (int col = colMin; col <= colStep; ++col)
 		{
@@ -662,7 +662,7 @@ void iAParameterInfluenceView::addStackedBar(int outType, int outIdx)
 	{
 		int varParIdx = m_sensInf->m_variedParams[paramIdx];
 		auto paramName = m_sensInf->m_paramNames[varParIdx];
-		QColor color = (paramIdx == m_selectedParam) ? ParamRowSelectedBGColor : ParamRowUnselectedBGColor;
+		//QColor color = (paramIdx == m_selectedParam) ? ParamRowSelectedBGColor : ParamRowUnselectedBGColor;
 		QPalette::ColorRole bgRole = (paramIdx == m_selectedParam) ? QPalette::AlternateBase : QPalette::Window;
 
 		auto outChart = new iAChartWidget(this, "", (curBarIdx == 0) ? "Var. from " + paramName : "");
