@@ -22,42 +22,12 @@
 #include "iAVRObjectCoverage.h"
 
 #include <iALog.h>
+#include <vtkPointData.h>
 
-iAVRObjectCoverage::iAVRObjectCoverage(vtkTable* objectTable, iACsvIO io, iACsvConfig csvConfig, std::vector<iAVROctree*>* octrees, iAVRVolume* volume) : m_objectTable(objectTable), m_io(io), m_csvConfig(csvConfig),
+iAVRObjectCoverage::iAVRObjectCoverage(vtkTable* objectTable, iACsvIO io, iACsvConfig csvConfig, std::vector<iAVROctree*>* octrees, iAVRObjectModel* volume) : m_objectTable(objectTable), m_io(io), m_csvConfig(csvConfig),
 m_octrees(octrees), m_volume(volume)
 {
 	m_fiberCoverage = new std::vector<std::vector<std::unordered_map<vtkIdType, double>*>>();
-}
-
-//! Computes which polyObject ID (points) belongs to which Object ID in the csv file of the volume
-//! Gets only called internally from thread to store the mapping
-void iAVRObjectCoverage::mapAllPointiDs()
-{
-	// For every fiber in csv table
-	for (vtkIdType row = 0; row < m_objectTable->GetNumberOfRows(); ++row)
-	{
-		double startPos[3]{}, endPos[3]{};
-		for (int k = 0; k < 3; ++k)
-		{
-			startPos[k] = m_objectTable->GetValue(row, m_io.getOutputMapping()->value(iACsvConfig::StartX + k)).ToFloat();
-			endPos[k] = m_objectTable->GetValue(row, m_io.getOutputMapping()->value(iACsvConfig::EndX + k)).ToFloat();
-		}
-
-		// Insert polyObject ID of Start Point and End Point
-		m_pointIDToCsvIndex.insert(std::make_pair(m_volume->getVolumeData()->FindPoint(startPos), row));
-		m_pointIDToCsvIndex.insert(std::make_pair(m_volume->getVolumeData()->FindPoint(endPos), row));
-
-		// Insert fiber id with its Start Point and End Point
-		m_csvIndexToPointID.insert(std::make_pair(row, m_volume->getVolumeData()->FindPoint(startPos)));
-		m_csvIndexToPointID.insert(std::make_pair(row, m_volume->getVolumeData()->FindPoint(endPos)));
-	}
-	LOG(lvlInfo, QString("Volume Data loaded"));
-
-	//Calculate Fibers in Region
-	for (size_t i = 0; i < m_octrees->size(); i++)
-	{
-		m_fiberCoverage->push_back(*m_octrees->at(i)->getfibersInRegionMapping(&m_pointIDToCsvIndex));
-	}
 }
 
 //! Computes which polyObject ID (points) belongs to which Object ID in the csv file of the volume for every Octree Level
@@ -91,12 +61,12 @@ void iAVRObjectCoverage::mapAllPointiDsAndCalculateFiberCoverage()
 		}
 
 		// Insert polyObject ID of Start Point and End Point
-		m_pointIDToCsvIndex.insert(std::make_pair(m_volume->getVolumeData()->FindPoint(startPos), row));
-		m_pointIDToCsvIndex.insert(std::make_pair(m_volume->getVolumeData()->FindPoint(endPos), row));
-
-		// Insert fiber id with its Start Point and End Point
-		m_csvIndexToPointID.insert(std::make_pair(row, m_volume->getVolumeData()->FindPoint(startPos)));
-		m_csvIndexToPointID.insert(std::make_pair(row, m_volume->getVolumeData()->FindPoint(endPos)));
+		//m_pointIDToCsvIndex.insert(std::make_pair(m_volume->getVolumeData()->FindPoint(startPos), row));
+		//m_pointIDToCsvIndex.insert(std::make_pair(m_volume->getVolumeData()->FindPoint(endPos), row));
+		
+		// get objID from polyPoint
+		//vtkVariant v = m_volume->getVolumeData()->GetPoints()->GetVariantValue(id);
+		//objID = v.ToInt() + 1;	//fibre index starting at 1 not at 0
 
 		vtkSmartPointer<vtkPoints> intersectionPoints = vtkSmartPointer<vtkPoints>::New();
 
@@ -144,25 +114,19 @@ std::vector<std::vector<std::unordered_map<vtkIdType, double>*>>* iAVRObjectCove
 //! Returns -1 if point is not found in csv
 vtkIdType iAVRObjectCoverage::getObjectiD(vtkIdType polyPoint)
 {
-	if (m_pointIDToCsvIndex.find(polyPoint) != m_pointIDToCsvIndex.end())
+	auto arr = m_volume->getVolumeData()->GetPointData()->GetAbstractArray("");
+
+	if (arr != nullptr)
 	{
-		return m_pointIDToCsvIndex.at(polyPoint);
+		vtkVariant v = arr->GetVariantValue(polyPoint);
+		vtkIdType objID = v.ToInt() +1;	//fibre index starting at 1 not at 0
+		return objID;
 	}
 	else
 	{
 		LOG(lvlDebug, QString("Point ID not found in csv"));
 		return -1;
 	}
-}
-
-std::unordered_map<vtkIdType, vtkIdType> iAVRObjectCoverage::getPointIDToCsvIndexMapper()
-{
-	return m_pointIDToCsvIndex;
-}
-
-std::unordered_multimap<vtkIdType, vtkIdType> iAVRObjectCoverage::getCsvIndexToPointIDMapper()
-{
-	return m_csvIndexToPointID;
 }
 
 //! The calculated intersection points are returned as vtkPoints

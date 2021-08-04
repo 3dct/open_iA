@@ -69,7 +69,7 @@ iAVRMain::iAVRMain(iAVREnvironment* vrEnv, iAVRInteractorStyle* style, vtkTable*
 
 	//Initialize Cube Vis
 	m_modelInMiniature = new iAVRModelInMiniature(m_vrEnv->renderer());
-	m_volume = new iAVRVolume(m_vrEnv->renderer(), m_objectTable, m_io, csvConfig, m_curvedFiberInfo);
+	m_volume = new iAVRObjectModel(m_vrEnv->renderer(), m_objectTable, m_io, csvConfig, m_curvedFiberInfo);
 
 	//Define Octree
 	currentOctreeLevel = 0;
@@ -91,7 +91,6 @@ iAVRMain::iAVRMain(iAVREnvironment* vrEnv, iAVRInteractorStyle* style, vtkTable*
 	m_fiberCoverageCalc = new iAVRObjectCoverage(m_objectTable, m_io, csvConfig,m_octrees, m_volume);
 	m_fiberCoverageCalc->mapAllPointiDsAndCalculateFiberCoverage();
 	
-	m_volume->setMappers(m_fiberCoverageCalc->getPointIDToCsvIndexMapper(), m_fiberCoverageCalc->getCsvIndexToPointIDMapper());
 	m_volume->setFiberCoverageData(m_fiberCoverageCalc->getFiberCoverage());
 	m_modelInMiniature->setFiberCoverageData(m_fiberCoverageCalc->getFiberCoverage());
 	fiberMetrics->setFiberCoverageData(m_fiberCoverageCalc->getFiberCoverage());

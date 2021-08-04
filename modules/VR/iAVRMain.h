@@ -29,7 +29,7 @@
 #include "iAVRColorLegend.h"
 #include "iAVRMip.h"
 #include "iAVRHistogramPairVis.h"
-#include "iAVRVolume.h"
+#include "iAVRObjectModel.h"
 #include "iACsvIO.h"
 
 #include "vtkEventData.h"
@@ -93,7 +93,7 @@ private:
 	iAVREnvironment* m_vrEnv;
 	std::vector<iAVROctree*>* m_octrees;
 	iAVRModelInMiniature* m_modelInMiniature;
-	iAVRVolume* m_volume;
+	iAVRObjectModel* m_volume;
 	vtkSmartPointer<vtkPolyData> m_extendedCylinderVisData; // Data extended with additional intersection points
 	vtkSmartPointer<iAVRInteractorStyle> m_style;
 	vtkSmartPointer<vtkTable> m_objectTable;

@@ -34,10 +34,10 @@
 class iA3DColoredPolyObjectVis;
 
 //! Class which represents the rendered volume
-class iAVRVolume: public iAVRCubicVis
+class iAVRObjectModel: public iAVRCubicVis
 {
 public:
-	iAVRVolume(vtkRenderer* ren, vtkTable* objectTable, iACsvIO io, iACsvConfig csvConfig, std::map<size_t, std::vector<iAVec3f> > curvedFiberInfo);
+	iAVRObjectModel(vtkRenderer* ren, vtkTable* objectTable, iACsvIO io, iACsvConfig csvConfig, std::map<size_t, std::vector<iAVec3f> > curvedFiberInfo);
 	void resetVolume();
 	void showVolume();
 	void hideVolume();
@@ -49,7 +49,6 @@ public:
 	double getCubeSize(int region);
 	void setNodeColor(std::vector<vtkIdType> regions, std::vector<QColor> color);
 	void resetNodeColor();
-	void setMappers(std::unordered_map<vtkIdType, vtkIdType> pointIDToCsvIndex, std::unordered_multimap<vtkIdType, vtkIdType> csvIndexToPointID);
 	vtkSmartPointer<vtkPolyData> getVolumeData();
 	void renderSelection(std::vector<size_t> const& sortedSelInds, int classID, QColor const& classColor, QStandardItem* activeClassItem);
 	void moveFibersByMaxCoverage(std::vector<std::vector<std::vector<vtkIdType>>>* m_maxCoverage, double offset, bool relativMovement);
@@ -68,8 +67,6 @@ private:
 	iA3DColoredPolyObjectVis* m_PolyObjectVis;
 	vtkSmartPointer<vtkTable> m_objectTable;
 	vtkSmartPointer<vtkPolyData> m_linePolyData;
-	std::unordered_map<vtkIdType, vtkIdType> m_pointIDToCsvIndex;
-	std::unordered_multimap<vtkIdType, vtkIdType> m_csvIndexToPointID;
 	iACsvIO m_io;
 	iACsvConfig m_csvConfig;
 	std::map<size_t, std::vector<iAVec3f> > m_curvedFiberInfo;

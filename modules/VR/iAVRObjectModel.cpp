@@ -18,7 +18,7 @@
 * Contact: FH OÖ Forschungs & Entwicklungs GmbH, Campus Wels, CT-Gruppe,              *
 *          Stelzhamerstraße 23, 4600 Wels / Austria, Email: c.heinzl@fh-wels.at       *
 * ************************************************************************************/
-#include "iAVRVolume.h"
+#include "iAVRObjectModel.h"
 
 #include <iALog.h>
 #include <iA3DColoredPolyObjectVis.h>
@@ -42,7 +42,7 @@
 #include <vtkCleanPolyData.h>
 #include <vtkCubeSource.h>
 
-iAVRVolume::iAVRVolume(vtkRenderer* ren, vtkTable* objectTable, iACsvIO io, iACsvConfig csvConfig, std::map<size_t, std::vector<iAVec3f> > curvedFiberInfo) :iAVRCubicVis{ ren }, m_objectTable(objectTable), m_io(io), m_csvConfig(csvConfig), m_curvedFiberInfo(curvedFiberInfo)
+iAVRObjectModel::iAVRObjectModel(vtkRenderer* ren, vtkTable* objectTable, iACsvIO io, iACsvConfig csvConfig, std::map<size_t, std::vector<iAVec3f> > curvedFiberInfo) :iAVRCubicVis{ ren }, m_objectTable(objectTable), m_io(io), m_csvConfig(csvConfig), m_curvedFiberInfo(curvedFiberInfo)
 {
 	defaultColor = QColor(126, 0, 223, 255);
 	m_volumeActor = vtkSmartPointer<vtkActor>::New();
@@ -58,7 +58,7 @@ iAVRVolume::iAVRVolume(vtkRenderer* ren, vtkTable* objectTable, iACsvIO io, iACs
 	resetVolume();
 }
 
-void iAVRVolume::resetVolume()
+void iAVRObjectModel::resetVolume()
 {
 	if(m_csvConfig.visType == iACsvConfig::Cylinders)
 	{
@@ -72,7 +72,7 @@ void iAVRVolume::resetVolume()
 	//m_volumeActor->AddPosition(1,200,1);
 }
 
-void iAVRVolume::showVolume()
+void iAVRObjectModel::showVolume()
 {
 	if (m_volumeVisible)
 	{
@@ -82,7 +82,7 @@ void iAVRVolume::showVolume()
 	m_volumeVisible = true;
 }
 
-void iAVRVolume::hideVolume()
+void iAVRObjectModel::hideVolume()
 {
 	if (!m_volumeVisible)
 	{
@@ -92,7 +92,7 @@ void iAVRVolume::hideVolume()
 	m_volumeVisible = false;
 }
 
-void iAVRVolume::showRegionLinks()
+void iAVRObjectModel::showRegionLinks()
 {
 	if (m_regionLinksVisible)
 	{
@@ -103,7 +103,7 @@ void iAVRVolume::showRegionLinks()
 	m_regionLinksVisible = true;
 }
 
-void iAVRVolume::hideRegionLinks()
+void iAVRObjectModel::hideRegionLinks()
 {
 	if (!m_regionLinksVisible)
 	{
@@ -114,25 +114,25 @@ void iAVRVolume::hideRegionLinks()
 	m_regionLinksVisible = false;
 }
 
-vtkSmartPointer<vtkActor> iAVRVolume::getVolumeActor()
+vtkSmartPointer<vtkActor> iAVRObjectModel::getVolumeActor()
 {
 	return m_volumeActor;
 }
 
 
-double* iAVRVolume::getCubePos(int region)
+double* iAVRObjectModel::getCubePos(int region)
 {
 	return m_cubePolyData->GetPoint(region);
 }
 
-double iAVRVolume::getCubeSize(int region)
+double iAVRObjectModel::getCubeSize(int region)
 {
 	return nodeGlyphScales->GetTuple3(region)[0];
 }
 
 //! Colors the cube nodes with the given region IDs with a given color
 //! Both vectors must have equal length
-void iAVRVolume::setNodeColor(std::vector<vtkIdType> regions, std::vector<QColor> color)
+void iAVRObjectModel::setNodeColor(std::vector<vtkIdType> regions, std::vector<QColor> color)
 {
 	if (nodeGlyphResetColor->GetNumberOfTuples() >0)
 	{
@@ -144,7 +144,7 @@ void iAVRVolume::setNodeColor(std::vector<vtkIdType> regions, std::vector<QColor
 	}
 }
 
-void iAVRVolume::resetNodeColor()
+void iAVRObjectModel::resetNodeColor()
 {
 	if (nodeGlyphResetColor->GetNumberOfTuples() > 0)
 	{
@@ -153,18 +153,12 @@ void iAVRVolume::resetNodeColor()
 	}
 }
 
-void iAVRVolume::setMappers(std::unordered_map<vtkIdType, vtkIdType> pointIDToCsvIndex, std::unordered_multimap<vtkIdType, vtkIdType> csvIndexToPointID)
-{
-	m_pointIDToCsvIndex = pointIDToCsvIndex;
-	m_csvIndexToPointID = csvIndexToPointID;
-}
-
-vtkSmartPointer<vtkPolyData> iAVRVolume::getVolumeData()
+vtkSmartPointer<vtkPolyData> iAVRObjectModel::getVolumeData()
 {
 	return m_PolyObjectVis->getPolyData();
 }
 
-void iAVRVolume::createCubeModel()
+void iAVRObjectModel::createCubeModel()
 {
 	iAVRCubicVis::createCubeModel();
 
@@ -184,7 +178,7 @@ void iAVRVolume::createCubeModel()
 
 }
 
-void iAVRVolume::renderSelection(std::vector<size_t> const& sortedSelInds, int classID, QColor const& classColor, QStandardItem* activeClassItem)
+void iAVRObjectModel::renderSelection(std::vector<size_t> const& sortedSelInds, int classID, QColor const& classColor, QStandardItem* activeClassItem)
 {
 	m_PolyObjectVis->renderSelection(sortedSelInds, classID, classColor, activeClassItem);
 }
@@ -194,7 +188,7 @@ void iAVRVolume::renderSelection(std::vector<size_t> const& sortedSelInds, int c
 //! The flag relativMovement decides if the offset is applied to the relative (radial) octree region postion 
 //! or linear (SP)
 //! Should only be called if the mappers are set!
-void iAVRVolume::moveFibersByMaxCoverage(std::vector<std::vector<std::vector<vtkIdType>>>* m_maxCoverage, double offset, bool relativMovement)
+void iAVRObjectModel::moveFibersByMaxCoverage(std::vector<std::vector<std::vector<vtkIdType>>>* m_maxCoverage, double offset, bool relativMovement)
 {
 	double maxLength = 0; // m_octree->getMaxDistanceOctCenterToRegionCenter();// m_octree->getMaxDistanceOctCenterToFiber();
 	double centerPoint[3]{};
@@ -218,11 +212,11 @@ void iAVRVolume::moveFibersByMaxCoverage(std::vector<std::vector<std::vector<vtk
 
 		for (auto fiberID : m_maxCoverage->at(m_octree->getLevel()).at(region))
 		{
+			auto endPointID = m_PolyObjectVis->objectStartPointIdx(fiberID) + m_PolyObjectVis->objectPointCount(fiberID);
 
-			auto findKeys = m_csvIndexToPointID.equal_range(fiberID);
-			for (auto it = findKeys.first; it != findKeys.second; ++it) 
+			for (auto pointID = m_PolyObjectVis->objectStartPointIdx(fiberID); pointID < endPointID; ++pointID)
 			{
-				iAVec3d currentPoint = iAVec3d(m_PolyObjectVis->getPolyData()->GetPoint(it->second));
+				iAVec3d currentPoint = iAVec3d(m_PolyObjectVis->getPolyData()->GetPoint(pointID));
 				iAVec3d currentRegionCenterPoint = iAVec3d(regionCenterPoint);
 				iAVec3d normDirection = currentRegionCenterPoint - centerPos;
 				double currentLength = normDirection.length();
@@ -233,7 +227,7 @@ void iAVRVolume::moveFibersByMaxCoverage(std::vector<std::vector<std::vector<vtk
 				else move = normDirection * offset;
 				iAVec3d newPoint = currentPoint + move;
 
-				m_PolyObjectVis->getPolyData()->GetPoints()->SetPoint(it->second, newPoint.data());
+				m_PolyObjectVis->getPolyData()->GetPoints()->SetPoint(pointID, newPoint.data());
 			}
 		}
 	}
@@ -244,7 +238,7 @@ void iAVRVolume::moveFibersByMaxCoverage(std::vector<std::vector<std::vector<vtk
 //! Moves all fibers from the octree center away.
 //! The fibers belong to every region in which they have a coverage
 //! Should only be called if the mappers are set!
-void iAVRVolume::moveFibersbyAllCoveredRegions(double offset, bool relativMovement)
+void iAVRObjectModel::moveFibersbyAllCoveredRegions(double offset, bool relativMovement)
 {
 	double maxLength = 0;
 	double centerPoint[3];
@@ -291,7 +285,7 @@ void iAVRVolume::moveFibersbyAllCoveredRegions(double offset, bool relativMoveme
 
 //! Moves all fibers from the octree center away.
 //! The fibers belong to the region in which they have their maximum coverage and are moved based on the octant displacement
-void iAVRVolume::moveFibersbyOctant(std::vector<std::vector<std::vector<vtkIdType>>>* m_maxCoverage, double offset)
+void iAVRObjectModel::moveFibersbyOctant(std::vector<std::vector<std::vector<vtkIdType>>>* m_maxCoverage, double offset)
 {
 	double centerPoint[3]{};
 	m_octree->calculateOctreeCenterPos(centerPoint);
@@ -332,13 +326,13 @@ void iAVRVolume::moveFibersbyOctant(std::vector<std::vector<std::vector<vtkIdTyp
 		
 		for (auto fiberID : m_maxCoverage->at(m_octree->getLevel()).at(region))
 		{
-			auto findKeys = m_csvIndexToPointID.equal_range(fiberID);
-			for (auto it = findKeys.first; it != findKeys.second; ++it)
+			auto endPointID = m_PolyObjectVis->objectStartPointIdx(fiberID) + m_PolyObjectVis->objectPointCount(fiberID);
+			for (auto pointID = m_PolyObjectVis->objectStartPointIdx(fiberID); pointID < endPointID; ++pointID)
 			{
-				iAVec3d currentPoint = iAVec3d(m_PolyObjectVis->getPolyData()->GetPoint(it->second));
+				iAVec3d currentPoint = iAVec3d(m_PolyObjectVis->getPolyData()->GetPoint(pointID));
 				iAVec3d newPoint = currentPoint + move;
 
-				m_PolyObjectVis->getPolyData()->GetPoints()->SetPoint(it->second, newPoint.data());
+				m_PolyObjectVis->getPolyData()->GetPoints()->SetPoint(pointID, newPoint.data());
 			}
 		}
 		
@@ -346,13 +340,13 @@ void iAVRVolume::moveFibersbyOctant(std::vector<std::vector<std::vector<vtkIdTyp
 	m_PolyObjectVis->getPolyData()->GetPoints()->GetData()->Modified();
 }
 
-void iAVRVolume::createSimilarityNetwork(std::vector<std::vector<std::vector<double>>>* similarityMetric, double maxFibersInRegions, double worldSize)
+void iAVRObjectModel::createSimilarityNetwork(std::vector<std::vector<std::vector<double>>>* similarityMetric, double maxFibersInRegions, double worldSize)
 {
 	createRegionLinks(similarityMetric, worldSize);
 	createRegionNodes(maxFibersInRegions, worldSize);
 }
 
-void iAVRVolume::createRegionLinks(std::vector<std::vector<std::vector<double>>>* similarityMetric, double worldSize)
+void iAVRObjectModel::createRegionLinks(std::vector<std::vector<std::vector<double>>>* similarityMetric, double worldSize)
 {
 	vtkSmartPointer<vtkPoints> linePoints = vtkSmartPointer<vtkPoints>::New();
 	m_linePolyData = vtkSmartPointer<vtkPolyData>::New();
@@ -437,7 +431,7 @@ void iAVRVolume::createRegionLinks(std::vector<std::vector<std::vector<double>>>
 	m_RegionLinksActor->GetMapper()->SelectColorArray("linkColor");
 }
 
-void iAVRVolume::createRegionNodes(double maxFibersInRegions, double worldSize)
+void iAVRObjectModel::createRegionNodes(double maxFibersInRegions, double worldSize)
 {
 	vtkSmartPointer<vtkPolyData> regionNodes = vtkSmartPointer<vtkPolyData>::New();
 	regionNodes->ShallowCopy(m_cubePolyData);
@@ -494,7 +488,7 @@ void iAVRVolume::createRegionNodes(double maxFibersInRegions, double worldSize)
 }
 
 //! Calculates the LUT for the regionLinks (0) and the regionNodes (1)
-void iAVRVolume::calculateNodeLUT(double min, double max, int colorScheme)
+void iAVRObjectModel::calculateNodeLUT(double min, double max, int colorScheme)
 {
 	QColor a;
 	QColor b;
@@ -540,7 +534,7 @@ void iAVRVolume::calculateNodeLUT(double min, double max, int colorScheme)
 
 //! Cycles between values from 0.95 to 0
 //! The sign defines if the values are increased/decreased
-void iAVRVolume::filterRegionLinks(int sign)
+void iAVRObjectModel::filterRegionLinks(int sign)
 {
 	double step = 0.05;
 
@@ -553,7 +547,7 @@ void iAVRVolume::filterRegionLinks(int sign)
 	if (m_regionLinkDrawRadius - 0.0 <= 0.00001) m_regionLinkDrawRadius = 0.0;
 }
 
-double iAVRVolume::getJaccardFilterVal()
+double iAVRObjectModel::getJaccardFilterVal()
 {
 	return m_regionLinkDrawRadius;
 }

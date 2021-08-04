@@ -27,7 +27,7 @@
 #include <unordered_map>
 
 #include "iACsvIO.h"
-#include "iAVRVolume.h"
+#include "iAVRObjectModel.h"
 #include "iAVROctree.h"
 
 /*
@@ -37,24 +37,17 @@
 class iAVRObjectCoverage
 {
 public:
-	iAVRObjectCoverage(vtkTable* objectTable, iACsvIO io, iACsvConfig csvConfig, std::vector<iAVROctree*>* octrees, iAVRVolume* volume);
-	void mapAllPointiDs();
+	iAVRObjectCoverage(vtkTable* objectTable, iACsvIO io, iACsvConfig csvConfig, std::vector<iAVROctree*>* octrees, iAVRObjectModel* volume);
 	void mapAllPointiDsAndCalculateFiberCoverage();
 	std::vector<std::vector<std::unordered_map<vtkIdType, double>*>>* getFiberCoverage();
 	vtkIdType getObjectiD(vtkIdType polyPoint);
-	std::unordered_map<vtkIdType, vtkIdType> getPointIDToCsvIndexMapper();
-	std::unordered_multimap<vtkIdType, vtkIdType> getCsvIndexToPointIDMapper();
 
 private:
 	vtkSmartPointer<vtkTable> m_objectTable;
 	iACsvIO m_io;
 	iACsvConfig m_csvConfig;
 	std::vector<iAVROctree*>* m_octrees;
-	iAVRVolume* m_volume;
-	// Maps poly point IDs to Object IDs in csv file
-	std::unordered_map<vtkIdType, vtkIdType> m_pointIDToCsvIndex;
-	// Maps Object IDs in csv file to their poly point IDs (1 fiber has 2 points)
-	std::unordered_multimap<vtkIdType, vtkIdType> m_csvIndexToPointID;
+	iAVRObjectModel* m_volume;
 	//Stores for the [octree level] in an [octree region] a map of its fiberIDs with their coverage
 	std::vector<std::vector<std::unordered_map<vtkIdType, double>*>>* m_fiberCoverage;
 
