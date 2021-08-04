@@ -47,7 +47,7 @@ iATLGICTLoader::iATLGICTLoader():
 {}
 
 
-bool iATLGICTLoader::setup(QString const & baseDirectory, QWidget* parent)
+bool iATLGICTLoader::setup(QString const& baseDirectory, QWidget* parent)
 {
 	m_baseDirectory = baseDirectory;
 
@@ -88,8 +88,12 @@ bool iATLGICTLoader::setup(QString const & baseDirectory, QWidget* parent)
 		return false;
 	}
 	auto values = dlg.parameterValues();
-	double spacing[3] = {values["Spacing X"].toDouble(), values["Spacing Y"].toDouble(), values["Spacing Z"].toDouble()};
-	double origin[3] = {values["Origin X"].toDouble(), values["Origin Y"].toDouble(), values["Origin Z"].toDouble()};
+	m_spacing[0] = values["Spacing X"].toDouble();
+	m_spacing[1] = values["Spacing Y"].toDouble();
+	m_spacing[2] = values["Spacing Z"].toDouble();
+	m_origin[0] = values["Origin X"].toDouble();
+	m_origin[1] = values["Origin Y"].toDouble();
+	m_origin[2] = values["Origin Z"].toDouble();
 	return true;
 }
 
