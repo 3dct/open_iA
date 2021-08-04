@@ -1855,6 +1855,7 @@ void MainWindow::readSettings()
 	m_defaultPreferences.HistogramLogarithmicYAxis = settings.value("Preferences/prefHistogramLogarithmicYAxis", defaultPrefs.HistogramLogarithmicYAxis).toBool();
 	m_defaultPreferences.StatisticalExtent = settings.value("Preferences/prefStatExt", defaultPrefs.StatisticalExtent).toInt();
 	m_defaultPreferences.Compression = settings.value("Preferences/prefCompression", defaultPrefs.Compression).toBool();
+	m_defaultPreferences.PrintParameters = settings.value("Preferences/prefPrintParameters", defaultPrefs.PrintParameters).toBool();
 	m_defaultPreferences.ResultInNewWindow = settings.value("Preferences/prefResultInNewWindow", defaultPrefs.ResultInNewWindow).toBool();
 	m_defaultPreferences.MagicLensSize = settings.value("Preferences/prefMagicLensSize", defaultPrefs.MagicLensSize).toInt();
 	m_defaultPreferences.MagicLensFrameWidth = settings.value("Preferences/prefMagicLensFrameWidth", defaultPrefs.MagicLensFrameWidth).toInt();
@@ -1986,6 +1987,7 @@ void MainWindow::writeSettings()
 	settings.setValue("Preferences/prefHistogramLogarithmicYAxis", m_defaultPreferences.HistogramLogarithmicYAxis);
 	settings.setValue("Preferences/prefStatExt", m_defaultPreferences.StatisticalExtent);
 	settings.setValue("Preferences/prefCompression", m_defaultPreferences.Compression);
+	settings.setValue("Preferences/prefPrintParameters", m_defaultPreferences.PrintParameters);
 	settings.setValue("Preferences/prefResultInNewWindow", m_defaultPreferences.ResultInNewWindow);
 	settings.setValue("Preferences/prefMagicLensSize", m_defaultPreferences.MagicLensSize);
 	settings.setValue("Preferences/prefMagicLensFrameWidth", m_defaultPreferences.MagicLensFrameWidth);
