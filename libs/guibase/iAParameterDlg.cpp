@@ -533,7 +533,7 @@ void iAParameterDlg::setOKEnabled(bool enabled)
 	m_buttonBox->button(QDialogButtonBox::Ok)->setEnabled(enabled);
 }
 
-void addParameter(iAParameterDlg::ParamListT params, QString const& name, iAValueType valueType,
+void addParameter(iAParameterDlg::ParamListT & params, QString const& name, iAValueType valueType,
 	QVariant defaultValue, double min, double max)
 {
 	params.push_back(iAAttributeDescriptor::createParam(name, valueType, defaultValue, min, max));

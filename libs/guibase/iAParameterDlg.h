@@ -78,7 +78,7 @@ private:
 	void updateROIPart(QString const& partName, int value);
 };
 
-iAguibase_API void addParameter(iAParameterDlg::ParamListT params, QString const& name, iAValueType valueType,
+iAguibase_API void addParameter(iAParameterDlg::ParamListT& params, QString const& name, iAValueType valueType,
 	QVariant defaultValue = 0.0, double min = std::numeric_limits<double>::lowest(),
 	double max = std::numeric_limits<double>::max());
 
