@@ -328,6 +328,12 @@ set(CMAKE_AUTOMOC ON)
 set(CMAKE_AUTOUIC ON)
 set(CMAKE_AUTORCC ON)
 set(QT_USE_QTXML TRUE)
+if (Qt5_DIR AND NOT QT_DIR)
+	set (QT_DIR "${Qt5_DIR}" CACHE PATH "" FORCE)
+endif()
+if (Qt6_DIR AND NOT QT_DIR)
+	set (QT_DIR "{Qt6_DIR}" CACHE PATH "" FORCE)
+endif()
 find_package(QT NAMES Qt6 Qt5 COMPONENTS Widgets OpenGLWidgets REQUIRED)
 # TO Do: Find way to automatically set QtxWidgets/Core/GuiTools for Qt >= 6
 # Problem: Qt is discovered somehow above already, but inside vtk/itk discover code;
