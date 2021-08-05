@@ -22,7 +22,6 @@
 
 #include "defines.h"
 #include "dlg_datatypeconversion.h"
-#include "dlg_openfile_sizecheck.h"
 #include "iACheckOpenGL.h"
 #include "iAJobListView.h"
 #include "iALogWidget.h"
@@ -30,6 +29,7 @@
 #include "iAParameterDlg.h"
 #include "iAProjectBase.h"
 #include "iAProjectRegistry.h"
+#include "iARawFileParamDlg.h"
 #include "iARenderer.h"
 #include "iASavableProject.h"
 #include "iASlicerImpl.h"    // for slicerModeToString
