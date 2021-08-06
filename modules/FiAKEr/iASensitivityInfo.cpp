@@ -1949,7 +1949,7 @@ namespace
 			// Questions:
 			// - do all need to match or only one?
 			// - one direction or both?
-			auto& fiberDissim = dissimMatrix[r1][r0].fiberDissim[f1];
+			auto& fiberDissim = dissimMatrix[static_cast<qvectorsizetype>(r1)][static_cast<qvectorsizetype>(r0)].fiberDissim[static_cast<qvectorsizetype>(f1)];
 			if (fiberDissim.size() == 0 ||
 				fiberDissim[MeasureIdx].size() == 0)  // potentially, there is no match between results at all
 			{
@@ -1972,7 +1972,7 @@ namespace
 				}
 				auto fm = uniqueFibers[uniqueID][m].second;
 				// check reverse match(es):
-				auto& revMatchDissim = dissimMatrix[rm][r1].fiberDissim[fm];
+				auto& revMatchDissim = dissimMatrix[static_cast<qvectorsizetype>(rm)][static_cast<qvectorsizetype>(r1)].fiberDissim[static_cast<qvectorsizetype>(fm)];
 				if (revMatchDissim.size() == 0 ||
 					revMatchDissim[MeasureIdx].size() == 0 ||
 					revMatchDissim[MeasureIdx][0].index != f1)
@@ -1988,7 +1988,7 @@ namespace
 					continue;
 				}
 				// check "other" fibers in same unique fiber cluster for match:
-				auto matchOther = dissimMatrix[r1][r0].fiberDissim[f1][MeasureIdx][0];
+				auto matchOther = dissimMatrix[static_cast<qvectorsizetype>(r1)][static_cast<qvectorsizetype>(r0)].fiberDissim[static_cast<qvectorsizetype>(f1)][MeasureIdx][0];
 				if (fm != matchOther.index)
 				{
 					/*
@@ -2566,7 +2566,7 @@ void iASensitivityInfo::spPointHighlighted(size_t resultIdx, bool state)
 			}
 			for (auto rSelFibID : m_baseFiberSelection[rSel])
 			{
-				auto& fiberDissim = m_resultDissimMatrix[rSel][resultIdx].fiberDissim[rSelFibID];
+				auto& fiberDissim = m_resultDissimMatrix[static_cast<qvectorsizetype>(rSel)][static_cast<qvectorsizetype>(resultIdx)].fiberDissim[static_cast<qvectorsizetype>(rSelFibID)];
 				if (fiberDissim.size() == 0)
 				{
 					continue;
