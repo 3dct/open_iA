@@ -2111,7 +2111,8 @@ void iASensitivityInfo::createGUI()
 	{
 		algoOutNames << charactName(charIdx);
 	}
-	m_gui->m_algoInfo = new iAAlgorithmInfo("Fiber Reconstruction", algoInNames, algoOutNames, ParamColor, OutputColor);
+	m_gui->m_algoInfo = new iAAlgorithmInfo("Fiber Reconstruction", algoInNames, algoOutNames, ParamColor, OutputColor,
+		aggregatedSensitivities);
 	m_gui->m_algoInfo->addShownOut(0);  // equivalent to addStackedBar in iAParameterInfluenceView constructor!
 	connect(m_gui->m_algoInfo, &iAAlgorithmInfo::inputClicked, m_gui->m_paramInfluenceView,
 		&iAParameterInfluenceView::setSelectedParam);
@@ -2445,11 +2446,13 @@ void iASensitivityInfo::computeSpatialOverview(iAProgress * progress)
 void iASensitivityInfo::changeMeasure(int newMeasure)
 {
 	m_gui->m_paramInfluenceView->setMeasure(newMeasure);
+	m_gui->m_algoInfo->setMeasure(newMeasure);
 }
 
 void iASensitivityInfo::changeAggregation(int newAggregation)
 {
 	m_gui->m_paramInfluenceView->setAggregation(newAggregation);
+	m_gui->m_algoInfo->setAggregation(newAggregation);
 }
 
 void iASensitivityInfo::outputBarAdded(int outType, int outIdx)

@@ -46,9 +46,12 @@ public:
 	static const int TextVPadding = 1;
 	static const int ArrowMinBottomDist = 1;
 	iAAlgorithmInfo(QString const& name, QStringList const& inNames, QStringList const& outNames,
-		QColor const & inColor, QColor const & outColor):
+		QColor const & inColor, QColor const & outColor, QVector<QVector<QVector<QVector<double>>>> const & agrSens):
 		m_name(name), m_inNames(inNames), m_outNames(outNames), m_inColor(inColor), m_outColor(outColor),
-		m_selectedIn(-1)
+		m_selectedIn(-1),
+		m_agrSens(agrSens),
+		m_measureIdx(0),
+		m_aggrType(0)
 	{
 		setSizePolicy(QSizePolicy::Expanding, QSizePolicy::MinimumExpanding);
 	}
@@ -95,7 +98,7 @@ public:
 		p.drawText(textRect, Qt::AlignCenter, text);
 	}
 	void drawConnections(QPainter& p, int left, QStringList const& strings, QVector<QRect>& rects,
-		QColor const& color, int selected, QVector<int> const & shown, QVector<int> const &sort)
+		QColor const& color, int selected, QVector<int> const & shown, QVector<int> const &sort, QVector<QPoint> & posOut, bool isLeft)
 	{
 		rects.clear();
 		int bottomDistance = boxHeight() / (strings.size() + 1);
@@ -108,6 +111,7 @@ public:
 		for (int idx = 0; idx < strings.size(); ++idx)
 		{
 			QString name = strings[ sort.size() > idx ? sort[idx] : idx ];
+			posOut.push_back(QPoint(left + (isLeft ? boxWidth():0), baseTop + idx * oneHeight));
 			drawArrow(p, left, baseTop + idx * oneHeight, boxWidth(), oneHeight,
 				name, rects, color, selected == idx, shown.size() == 0 || shown.contains(idx));
 		}
@@ -136,6 +140,17 @@ public:
 		m_inSort = inSortOrder;
 		update();
 	}
+	void setMeasure(int newMeasure)
+	{
+		m_measureIdx = newMeasure;
+		update();
+	}
+
+	void setAggregation(int newAggregation)
+	{
+		m_aggrType = newAggregation;
+		update();
+	}
 
 private:
 	void paintEvent(QPaintEvent* ev) override
@@ -147,10 +162,39 @@ private:
 
 		QRect algoBox(HMargin + boxWidth(), TopMargin, boxWidth(), boxHeight());
 		p.drawRect(algoBox);
-		p.drawText(algoBox, Qt::AlignCenter, m_name);
+		p.drawText(algoBox, Qt::AlignHCenter | Qt::AlignBottom, m_name);
+		QVector<QPoint> paramPt, characPt;
+		drawConnections(p, HMargin, m_inNames, m_inRects, m_inColor, m_selectedIn, QVector<int>(), m_inSort, paramPt, true);
+		drawConnections(p, HMargin + 2 * boxWidth(), m_outNames, m_outRects, m_outColor, -1, m_shownOut, QVector<int>(), characPt, false);
 
-		drawConnections(p, HMargin, m_inNames, m_inRects, m_inColor, m_selectedIn, QVector<int>(), m_inSort);
-		drawConnections(p, HMargin + 2 * boxWidth(), m_outNames, m_outRects, m_outColor, -1, m_shownOut, QVector<int>());
+		// determine min/max for proper scaling:
+		double minS = std::numeric_limits<double>::max();
+		double maxS = std::numeric_limits<double>::lowest();
+		for (int c=0; c<m_agrSens.size(); ++c)
+		{
+			auto const & d = m_agrSens[c][m_measureIdx][m_aggrType];
+			minS = std::min(minS, *std::min_element(d.begin(), d.end()));
+			maxS = std::max(maxS, *std::max_element(d.begin(), d.end()));
+		}
+		LOG(lvlDebug, QString("min=%1, max=%2").arg(minS).arg(maxS));
+		for (int charIdx=0; charIdx<m_agrSens.size(); ++charIdx)
+		{
+			for (int paramIdx=0; paramIdx<m_agrSens[charIdx][m_measureIdx][m_aggrType].size(); ++paramIdx)
+			{
+				auto pen = p.pen();
+				double normVal = (m_agrSens[charIdx][m_measureIdx][m_aggrType][paramIdx] - minS) / (maxS - minS);
+				LOG(lvlDebug, QString("p=%1, c=%2: val=%3, normVal=%4")
+					.arg(paramIdx).arg(charIdx)
+					.arg(m_agrSens[charIdx][m_measureIdx][m_aggrType][paramIdx])
+					.arg(normVal));
+				pen.setWidth(std::max(1.0, 3 * normVal));
+				const int C = 255;
+				int colorVal = C - (C*normVal);
+				pen.setColor(QColor(colorVal,colorVal,colorVal));
+				p.setPen(pen);
+				p.drawLine(paramPt[paramIdx], characPt[charIdx]);
+			}
+		}
 	}
 	void mousePressEvent(QMouseEvent* ev) override
 	{
@@ -187,4 +231,7 @@ private:
 	int m_selectedIn;
 	QVector<int> m_shownOut;
 	QVector<int> m_inSort;
+
+	QVector<QVector<QVector<QVector<double>>>> const & m_agrSens;
+	int m_measureIdx, m_aggrType;
 };

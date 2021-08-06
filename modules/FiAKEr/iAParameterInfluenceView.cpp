@@ -657,6 +657,7 @@ void iAParameterInfluenceView::addStackedBar(int outType, int outIdx)
 	int curBarIdx = static_cast<int>(m_table[0]->head->numberOfBars());  // not yet added to bars here so no -1
 	auto params = m_sensInf->m_variedParams;
 
+	// add the two charts that can be shown inside the matrix cells:
 	auto selectedResults = m_sensInf->selectedResults();
 	for (int paramIdx = 0; paramIdx < params.size(); ++paramIdx)
 	{
