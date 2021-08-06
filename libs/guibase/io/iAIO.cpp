@@ -1625,6 +1625,11 @@ bool iAIO::setupNKCReader(QString const& f)
 	m_rawFileParams.m_scalarType = VTK_TYPE_UINT16;
 	m_rawFileParams.m_byteOrder = VTK_FILE_BYTE_ORDER_BIG_ENDIAN;
 
+	//set Spacing
+	m_rawFileParams.m_spacing[0] = 1;
+	m_rawFileParams.m_spacing[1] = 1;
+	m_rawFileParams.m_spacing[2] = 1;
+
 	m_rawFileParams.m_headersize = file.size() - (m_rawFileParams.m_size[0] * m_rawFileParams.m_size[1] * 2);
 
 	m_fileName = f;
