@@ -228,7 +228,7 @@ void dlg_GEMSeControl::loadSamplingSlot()
 {
 	QString fileName = QFileDialog::getOpenFileName(this, tr("Load Sampling"),
 		QString(), // TODO get directory of current file
-		tr("Attribute Descriptor file (*.smp );;" ) );
+		tr("Attribute Descriptor file (*.smp );;All files (*)" ) );
 	if (fileName.isEmpty())
 	{
 		return;
@@ -293,7 +293,7 @@ void dlg_GEMSeControl::loadClusteringSlot()
 {
 	QString fileName = QFileDialog::getOpenFileName(this, tr("Load"),
 		QString(), // TODO get directory of current file
-		tr("Clustering filt(*.clt );;" ) );
+		tr("Clustering filt(*.clt );;All files (*)" ) );
 	if (!fileName.isEmpty())
 	{
 		m_cltFile = fileName;
@@ -428,7 +428,7 @@ void dlg_GEMSeControl::saveClustering()
 {
 	QString fileName = QFileDialog::getSaveFileName(this, tr("Save clustering"),
 		QString(), // TODO get directory of current file
-		tr("Clustering file (*.clt );;" ) );
+		tr("Clustering file (*.clt );;All files (*)" ) );
 	if (!fileName.isEmpty())
 	{
 		m_dlgGEMSe->StoreClustering(fileName);
@@ -445,7 +445,7 @@ void dlg_GEMSeControl::saveAll()
 {
 	QString fileName = QFileDialog::getSaveFileName(this, tr("Save all"),
 		QString(), // TODO get directory of current file
-		tr("GEMSe project (*.sea );;") );
+		tr("GEMSe project (*.sea );;All files (*)") );
 	if (fileName.isEmpty())
 	{
 		return;
@@ -543,7 +543,7 @@ void dlg_GEMSeControl::exportIDs()
 {
 	QString fileName = QFileDialog::getSaveFileName(this, tr("Export cluster IDs"),
 		QString(), // TODO get directory of current file
-		tr("Comma-separated values (*.csv);;"));
+		tr("Comma-separated values (*.csv);;All files (*)"));
 	if (fileName.isEmpty())
 	{
 		return;
@@ -631,10 +631,10 @@ void dlg_GEMSeControl::saveDerivedOutputSlot()
 	{
 		QString derivedOutputFileName = QFileDialog::getSaveFileName(this, tr("Save Derived Output"),
 			QString(), // TODO get directory of current file
-			tr("Derived Output (*.chr );;"));
+			tr("Derived Output (*.chr );;All files (*)"));
 		QString attributeDescriptorOutputFileName = QFileDialog::getSaveFileName(this, tr("Save Attribute Descriptor"),
 			QString(), // TODO get directory of current file
-			tr("Attribute Descriptor file (*.smp );;")
+			tr("Attribute Descriptor file (*.smp );;All files (*)")
 		);
 		if (derivedOutputFileName.isEmpty() || attributeDescriptorOutputFileName.isEmpty())
 		{
@@ -669,7 +669,7 @@ void dlg_GEMSeControl::exportAttributeRangeRanking()
 {
 	QString fileName = QFileDialog::getSaveFileName(this, tr("Store Attribute Range Rankings"),
 		QString(), // TODO get directory of current file
-		tr("Comma separated file (*.csv);;"));
+		tr("Comma separated file (*.csv);;All files (*)"));
 	if (!fileName.isEmpty())
 	{
 		m_dlgGEMSe->ExportAttributeRangeRanking(fileName);
@@ -680,7 +680,7 @@ void dlg_GEMSeControl::exportRankings()
 {
 	QString fileName = QFileDialog::getSaveFileName(this, tr("Store Rankings"),
 		QString(), // TODO get directory of current file
-		tr("Comma separated file (*.csv);;"));
+		tr("Comma separated file (*.csv);;All files (*)"));
 	if (!fileName.isEmpty())
 	{
 		m_dlgGEMSe->ExportRankings(fileName);
@@ -691,7 +691,7 @@ void dlg_GEMSeControl::importRankings()
 {
 	QString fileName = QFileDialog::getOpenFileName(this, tr("Load Rankings"),
 		QString(), // TODO get directory of current file
-		tr("Comma separated file (*.csv);;"));
+		tr("Comma separated file (*.csv);;All files (*)"));
 	if (!fileName.isEmpty())
 	{
 		m_dlgGEMSe->ImportRankings(fileName);

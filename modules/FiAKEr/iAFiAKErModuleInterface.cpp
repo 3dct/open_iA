@@ -248,7 +248,7 @@ void iAFiAKErModuleInterface::loadFiAKErProject()
 {
 	setupToolBar();
 	QString fileName = QFileDialog::getOpenFileName(m_mainWnd,
-		iAFiAKErController::FIAKERProjectID, m_mainWnd->path(), "FIAKER Project file (*.fpf);;");
+		iAFiAKErController::FIAKERProjectID, m_mainWnd->path(), "FIAKER Project file (*.fpf);;All files (*)");
 	if (fileName.isEmpty())
 	{
 		return;

@@ -26,7 +26,7 @@ void dlg_CSVReader::connectSignals()
 void dlg_CSVReader::btnAddFilesClicked()
 {
 	m_filenames.append(QFileDialog::getOpenFileNames(this, tr("Open Files"), m_path,
-		tr("Comma-seperated values (*.csv);;"), nullptr, QFileDialog::DontConfirmOverwrite));
+		tr("Comma-seperated values (*.csv);;All files (*)"), nullptr, QFileDialog::DontConfirmOverwrite));
 
 	if (m_filenames.isEmpty())
 	{

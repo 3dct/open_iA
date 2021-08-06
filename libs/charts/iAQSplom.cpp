@@ -1748,7 +1748,7 @@ void iAQSplom::changePointColor()
 void iAQSplom::saveSettingsSlot()
 {
 	QString fileName = QFileDialog::getSaveFileName(this, "Save settings", "",
-		tr("Settings file (*.ini);;"));
+		tr("Settings file (*.ini);;All files (*)"));
 	if (fileName.isEmpty())
 	{
 		return;
@@ -1763,7 +1763,7 @@ void iAQSplom::saveSettingsSlot()
 void iAQSplom::loadSettingsSlot()
 {
 	QString fileName = QFileDialog::getOpenFileName(this, "Load settings", "",
-		tr("Settings file (*.ini);;"));
+		tr("Settings file (*.ini);;All files (*)"));
 	if (fileName.isEmpty())
 	{
 		return;

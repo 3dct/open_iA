@@ -822,7 +822,7 @@ void dlg_labels::loadLabels()
 	QString fileName = QFileDialog::getOpenFileName(QApplication::activeWindow(), tr("Open Seed File"),
 		QString()  // TODO get directory of current file
 		,
-		tr("Seed file (*.seed);;All files (*.*)"));
+		tr("Seed file (*.seed);;All files (*)"));
 	if (fileName.isEmpty())
 	{
 		return;
@@ -837,7 +837,7 @@ void dlg_labels::storeLabels()
 {
 	QString fileName = QFileDialog::getSaveFileName(QApplication::activeWindow(), tr("Save Seed File"),
 		QString(),  // TODO get directory of current file
-		tr("Seed file (*.seed);;All files (*.*)"));
+		tr("Seed file (*.seed);;All files (*)"));
 	if (fileName.isEmpty())
 	{
 		return;
@@ -870,7 +870,7 @@ void dlg_labels::storeImage()
 	QString fileName = QFileDialog::getSaveFileName(QApplication::activeWindow(), tr("Save Seeds as Image"),
 		QString()  // TODO get directory of current file
 		,
-		tr("Seed file (*.mhd);;All files (*.*)"));
+		tr("Seed file (*.mhd);;All files (*)"));
 	if (fileName.isEmpty())
 	{
 		return;

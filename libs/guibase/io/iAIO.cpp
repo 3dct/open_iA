@@ -1509,7 +1509,7 @@ bool iAIO::setupPARSReader( QString const & f )
 		else
 		{
 			m_fileName = QFileDialog::getOpenFileName(m_parent, tr("Specify data File (file path in PARS is wrong)"),
-				"", tr("PRO (*.pro);;RAW files (*.raw);;"));
+				"", tr("PRO (*.pro);;RAW files (*.raw);;All files (*)"));
 		}
 	}
 	QFile file;
@@ -1568,7 +1568,7 @@ bool iAIO::setupVGIReader( QString const & f )
 	m_fileName = getParameterValues(f,"name",0, "[file1]", "=");
 	if (m_fileName == "") m_fileName = getParameterValues(f,"Name",0, "[file1]", "=");
 	if (m_fileName == "")
-		m_fileName = QFileDialog::getOpenFileName(m_parent, tr("Specify data File (file path in VGI is wrong)"), "", tr("RAW files (*.raw);;REC files (*.rec);;VOL files (*.vol);;"));
+		m_fileName = QFileDialog::getOpenFileName(m_parent, tr("Specify data File (file path in VGI is wrong)"), "", tr("RAW files (*.raw);;REC files (*.rec);;VOL files (*.vol);;All files (*)"));
 
 	QFileInfo pars(f);
 	if(!QFile::exists(m_fileName))	{
@@ -1579,7 +1579,7 @@ bool iAIO::setupVGIReader( QString const & f )
 		else if (m_fileName.lastIndexOf("/") > 0)
 			m_fileName = pars.canonicalPath() + "/" + m_fileName.section('/', -1);
 		else
-			m_fileName = QFileDialog::getOpenFileName(m_parent, tr("Specify data File (file path in VGI is wrong)"), "", tr("RAW files (*.raw);;REC files (*.rec);;VOL files (*.vol);;"));
+			m_fileName = QFileDialog::getOpenFileName(m_parent, tr("Specify data File (file path in VGI is wrong)"), "", tr("RAW files (*.raw);;REC files (*.rec);;VOL files (*.vol);;All files (*)"));
 	}
 
 	QFile file;

@@ -298,7 +298,7 @@ QSharedPointer<iASensitivityInfo> iASensitivityInfo::create(iAMdiChild* child,
 	{
 		parameterSetFileName = QFileDialog::getOpenFileName(child,
 			"Sensitivity: Parameter Sets file", data->folder,
-			"Comma-Separated Values (*.csv);;");
+			"Comma-Separated Values (*.csv);;All files (*)");
 	}
 	if (parameterSetFileName.isEmpty())
 	{

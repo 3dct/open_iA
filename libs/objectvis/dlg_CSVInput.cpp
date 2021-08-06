@@ -260,7 +260,7 @@ void dlg_CSVInput::exportTable()
 		origCSVInfo.append(in.readLine());
 	}
 	QString exportCSVFileName = QFileDialog::getSaveFileName(this, tr("Export CSV file"),
-		m_path, "CSV file (*.csv);;");
+		m_path, "CSV file (*.csv);;All files (*)");
 	if (exportCSVFileName.isEmpty())
 	{
 		LOG(lvlInfo, "Selected file name is empty or selection cancelled, aborting!");
@@ -465,7 +465,7 @@ void dlg_CSVInput::advancedModeToggled()
 void dlg_CSVInput::selectFileBtnClicked()
 {
 	QString fileName =
-		QFileDialog::getOpenFileName(this, tr("Open Files"), m_path, tr("Comma-separated values (*.csv);;"));
+		QFileDialog::getOpenFileName(this, tr("Open Files"), m_path, tr("Comma-separated values (*.csv);;All files (*)"));
 	if (fileName.isEmpty())
 	{
 		return;
@@ -477,7 +477,7 @@ void dlg_CSVInput::selectFileBtnClicked()
 void dlg_CSVInput::selectCurvedFileBtnClicked()
 {
 	QString fileName = QFileDialog::getOpenFileName(
-		this, tr("Open Files"), m_path, tr("Curved Fiber Information (*.csv);;")
+		this, tr("Open Files"), m_path, tr("Curved Fiber Information (*.csv);;All files (*)")
 	);
 	if (fileName.isEmpty())
 	{
@@ -725,7 +725,7 @@ QVariant dlg_CSVInput::loadGeneralSetting(QString const & settingName) const
 void dlg_CSVInput::exportButtonClicked()
 {
 	QString fileName = QFileDialog::getSaveFileName(this, tr("Save Settings"),
-		m_path, "Settings file (*.ini);;");
+		m_path, "Settings file (*.ini);;All files (*)");
 	if (fileName.isEmpty())
 	{
 		return;
@@ -741,7 +741,7 @@ void dlg_CSVInput::exportButtonClicked()
 void dlg_CSVInput::importButtonClicked()
 {
 	QString fileName = QFileDialog::getOpenFileName(this, tr("Load Settings"),
-		m_path, "Settings file (*.ini);;");
+		m_path, "Settings file (*.ini);;All files (*)");
 	if (fileName.isEmpty())
 	{
 		return;

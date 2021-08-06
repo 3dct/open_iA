@@ -513,7 +513,7 @@ void iASamplingSettingsDlg::saveSettings()
 		this,
 		"Store Sampling Settings",
 		QString(),
-		"Sampling Settings File (*.ssf);;");
+		"Sampling settings file (*.ssf);;All files (*)");
 	if (fileName.isEmpty())
 	{
 		return;
@@ -542,7 +542,7 @@ void iASamplingSettingsDlg::loadSettings()
 		this,
 		"Load Sampling Settings",
 		QString(),
-		"Sampling Settings File (*.ssf);;");
+		"Sampling settings file (*.ssf);;All files (*)");
 	if (fileName.isEmpty())
 	{
 		return;
@@ -635,7 +635,7 @@ void iASamplingSettingsDlg::chooseParameterDescriptor()
 {
 	QString fileName = QFileDialog::getOpenFileName(this, tr("Load Parameter Descriptor"),
 		QString(), // TODO get directory of current file
-		tr("Parameter Descriptor Text File (*.txt);;All Files (*);;"));
+		tr("Parameter descriptor file (*.txt);;All files (*)"));
 	if (!fileName.isEmpty())
 	{
 		m_ui->leParamDescriptor->setText(fileName);
@@ -647,7 +647,7 @@ void iASamplingSettingsDlg::chooseExecutable()
 {
 	QString fileName = QFileDialog::getOpenFileName(this, tr("Load Executable"),
 		QString(), // TODO get directory of current file
-		tr("Windows Executable (*.exe);;Batch Script (*.bat);;Shell Script (*.sh);;Any Executable (*);;"));
+		tr("Windows executable (*.exe);;Batch script (*.bat);;Shell script (*.sh);;Any executable (*)"));
 	if (!fileName.isEmpty())
 	{
 		m_ui->leExecutable->setText(fileName);
@@ -757,7 +757,7 @@ void iASamplingSettingsDlg::chooseParameterSetFile()
 		this,
 		"Load Parameter Set",
 		QString(),
-		"Parameter Set File (*.csv);;");
+		"Parameter set file (*.csv);;All files (*)");
 	if (fileName != "")
 	{
 		m_ui->leParameterSetFile->setText(fileName);
