@@ -501,7 +501,7 @@ void getBestMatches2(iAFiberData const& fiber, std::vector<iAFiberData> const& o
 	{
 		QVector<iAFiberSimilarity> similarities;
 		similarities.resize(static_cast<int>(candidates.size()));
-		for (qvectorsizetype bestMatchID = 0; bestMatchID < static_cast<int>(candidates.size()); ++bestMatchID)
+		for (qvectorsizetype bestMatchID = 0; bestMatchID < static_cast<qvectorsizetype>(candidates.size()); ++bestMatchID)
 		{
 			size_t refFiberID = candidates[bestMatchID];
 			similarities[bestMatchID].index = static_cast<quint32>(refFiberID);
@@ -1112,9 +1112,9 @@ void iASensitivityInfo::compute(iAProgress* progress)
 		m_resultDissimRanges[m].first = std::numeric_limits<double>::max();
 		m_resultDissimRanges[m].second = std::numeric_limits<double>::lowest();
 	}
-	for (int r1 = 1; r1 < static_cast<qvectorsizetype>(m_data->result.size()) && !m_aborted; ++r1)
+	for (qvectorsizetype r1 = 1; r1 < static_cast<qvectorsizetype>(m_data->result.size()) && !m_aborted; ++r1)
 	{
-		for (int r2 = 0; r2 < static_cast<qvectorsizetype>(m_data->result.size()) && !m_aborted; ++r2)
+		for (qvectorsizetype r2 = 0; r2 < static_cast<qvectorsizetype>(m_data->result.size()) && !m_aborted; ++r2)
 		{
 			if (r1 == r2)
 			{
