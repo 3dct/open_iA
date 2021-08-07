@@ -74,10 +74,19 @@ ENDIF()
 #-------------------------
 IF (CMAKE_CONFIGURATION_TYPES)
 	message(STATUS "Multi-configuration generator")
+	# On windows, both executable and dll's are considered RUNTIME, as well as executables on Mac OS...
 	SET (CMAKE_RUNTIME_OUTPUT_DIRECTORY_DEBUG "${CMAKE_BINARY_DIR}/x64/Debug")
 	SET (CMAKE_RUNTIME_OUTPUT_DIRECTORY_RELEASE "${CMAKE_BINARY_DIR}/x64/Release")
 	SET (CMAKE_RUNTIME_OUTPUT_DIRECTORY_RELWITHDEBINFO "${CMAKE_BINARY_DIR}/x64/RelWithDebInfo")
 	SET (CMAKE_RUNTIME_OUTPUT_DIRECTORY_MINSIZEREL "${CMAKE_BINARY_DIR}/x64/MinSizeRel")
+	if (APPLE)	# but .dylib's on Mac OS are considered LIBRARY (XCode generator - multi-config)
+		SET (CMAKE_LIBRARY_OUTPUT_DIRECTORY_DEBUG "${CMAKE_BINARY_DIR}/x64/Debug")
+		SET (CMAKE_LIBRARY_OUTPUT_DIRECTORY_RELEASE "${CMAKE_BINARY_DIR}/x64/Release")
+		SET (CMAKE_LIBRARY_OUTPUT_DIRECTORY_RELWITHDEBINFO "${CMAKE_BINARY_DIR}/x64/RelWithDebInfo")
+		SET (CMAKE_LIBRARY_OUTPUT_DIRECTORY_MINSIZEREL "${CMAKE_BINARY_DIR}/x64/MinSizeRel")
+	else()
+		MESSAGE(WARNING "Unknown multi-configuration generator!")
+	endif()
 ELSE()
 	message(STATUS "Single-configuration generator")
 	# Set a default build type if none was specified
@@ -674,7 +683,7 @@ ENDIF()
 
 IF (${CMAKE_SYSTEM_NAME} MATCHES "Darwin")
 	# Mac OS X specific code
-	MESSAGE (WARNING "You are using MacOS - note that we do not regularly build on Mac OS, expect there to be some errors.")
+	MESSAGE (WARNING "You are using MacOS - note that we do not regularly build on Mac OS, expect there to be some errors! Please report any issue you find at https://github.com/3dct/open_iA/issues!	")
 
 	SET(CMAKE_EXE_LINKER_FLAGS "${CMAKE_EXE_LINKER_FLAGS} -framework Cocoa -framework OpenGL")
 	SET(CMAKE_SHARED_LINKER_FLAGS "${CMAKE_SHARED_LINKER_FLAGS} -framework Cocoa -framework OpenGL")
