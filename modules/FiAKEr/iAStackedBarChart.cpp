@@ -47,6 +47,9 @@ namespace
 	const int MaxChartWidth = 150;
 }
 
+const int iAStackedBarChart::MaxBarHeight = 100;
+const int iAStackedBarChart::TextPadding = 5;
+
 class iABarData
 {
 public:
