@@ -76,6 +76,12 @@ iAModuleDispatcher::iAModuleDispatcher(iAMainWindow * mainWnd)
 {
 	m_mainWnd = mainWnd;
 	m_rootPath = QCoreApplication::applicationDirPath();
+#ifdef __APPLE__
+	// on apple, the executable resides in a subfolder of the "bundle"
+	m_rootPath = m_rootPath.left(m_rootPath.length() -
+		// hack - subtract the subfolder
+		QString("open_iA.app/Contents/MacOS").length());
+#endif
 }
 
 iAModuleDispatcher::iAModuleDispatcher(QString const & rootPath): m_mainWnd(nullptr)
