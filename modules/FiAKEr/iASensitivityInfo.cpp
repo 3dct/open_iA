@@ -1536,8 +1536,8 @@ private:
 	{
 		Q_UNUSED(ev);
 		QPainter p(this);
-		QString minStr = dblToStringWithUnits(m_lut->getRange()[0]);
-		QString maxStr = dblToStringWithUnits(m_lut->getRange()[1]);
+		QString minStr = dblToStringWithUnits(m_lut->getRange()[0], 9);
+		QString maxStr = dblToStringWithUnits(m_lut->getRange()[1], 9);
 #if QT_VERSION >= QT_VERSION_CHECK(5, 11, 0)
 		int textWidth = std::max(p.fontMetrics().horizontalAdvance(minStr), p.fontMetrics().horizontalAdvance(maxStr));
 #else
