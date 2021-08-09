@@ -62,12 +62,12 @@ namespace
 	};
 	const int LabelCount = 4;
 
-	QColor VariationHistogramColor(50, 50, 50, 255);
-	QColor AverageHistogramColor(150, 150, 150, 255);
-	QColor ParamSensitivityPlotColor(80, 80, 80, 255);
+	const QColor VariationHistogramColor(50, 50, 50, 255);
+	const QColor AverageHistogramColor(150, 150, 150, 255);
+	const QColor ParamSensitivityPlotColor(80, 80, 80, 255);
 
-	QColor ParamRowSelectedBGColor(245, 245, 245);
-	QColor ParamRowUnselectedBGColor(255, 255, 255);
+	//const QColor ParamRowSelectedBGColor(245, 245, 245);
+	//const QColor ParamRowUnselectedBGColor(255, 255, 255);
 }
 
 class iAParTableRow
