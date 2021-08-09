@@ -349,9 +349,13 @@ void iAParameterInfluenceView::addResultHistoPlot(size_t resultIdx, int paramIdx
 
 void iAParameterInfluenceView::setResultSelected(size_t resultIdx, bool state, QColor c)
 {
+	size_t inGroupIdx = resultIdx % m_sensInf->m_starGroupSize;
+	int branchIdx = (inGroupIdx != 0) ? (inGroupIdx - 1) % m_sensInf->m_numOfSTARSteps : 0;
+	size_t startResult = resultIdx - branchIdx;
+	size_t starCenter = (resultIdx / m_sensInf->m_starGroupSize) * m_sensInf->m_starGroupSize;
 	for (int paramIdx = 0; paramIdx < m_sensInf->m_variedParams.size(); ++paramIdx)
 	{
-		double paramValue = m_sensInf->m_paramValues[m_sensInf->m_variedParams[paramIdx]][resultIdx];
+		//double paramValue = m_sensInf->m_paramValues[m_sensInf->m_variedParams[paramIdx]][resultIdx];
 		for (int barIdx = 0; barIdx < m_table[paramIdx]->out.size(); ++barIdx)
 		{
 			if (m_visibleCharacts[barIdx].first == outCharacteristic)
@@ -360,7 +364,18 @@ void iAParameterInfluenceView::setResultSelected(size_t resultIdx, bool state, Q
 				auto plotKey = std::make_tuple(resultIdx, paramIdx, charIdx);
 				if (state)
 				{
-					m_table[paramIdx]->par[barIdx]->setXMarker(paramValue, c, Qt::DashLine);
+					if (inGroupIdx != 0)
+					{
+						for (size_t r = 0; r < m_sensInf->m_numOfSTARSteps; ++r)
+						{
+							auto rIdx = startResult + r;
+							double pv = m_sensInf->m_paramValues[m_sensInf->m_variedParams[paramIdx]][rIdx];
+							m_table[paramIdx]->par[barIdx]->setXMarker(
+								pv, (rIdx == resultIdx) ? c : QColor(192, 192, 192), Qt::DashLine);
+						}
+					}
+					double pv = m_sensInf->m_paramValues[m_sensInf->m_variedParams[paramIdx]][starCenter];
+					m_table[paramIdx]->par[barIdx]->setXMarker(pv, inGroupIdx != 0 ? QColor(192, 192, 192) : c, Qt::DashLine);
 					if (m_selectedResultHistoPlots.contains(plotKey))
 					{
 						LOG(lvlWarn, QString("Plot to be added already exists!"));
@@ -372,7 +387,17 @@ void iAParameterInfluenceView::setResultSelected(size_t resultIdx, bool state, Q
 				}
 				else
 				{
-					m_table[paramIdx]->par[barIdx]->removeXMarker(paramValue);
+					if (inGroupIdx != 0)
+					{
+						for (size_t r = 0; r < m_sensInf->m_numOfSTARSteps; ++r)
+						{
+							auto rIdx = startResult + r;
+							double pv = m_sensInf->m_paramValues[m_sensInf->m_variedParams[paramIdx]][rIdx];
+							m_table[paramIdx]->par[barIdx]->removeXMarker(pv);
+						}
+					}
+					double pv = m_sensInf->m_paramValues[m_sensInf->m_variedParams[paramIdx]][starCenter];
+					m_table[paramIdx]->par[barIdx]->removeXMarker(pv);
 					if (!m_selectedResultHistoPlots.contains(plotKey))
 					{
 						LOG(lvlWarn, QString("Plot to be removed does not exist!"));
