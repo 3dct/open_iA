@@ -167,7 +167,8 @@ private:
 		drawConnections(p, HMargin, m_inNames, m_inRects, m_inColor, m_selectedIn, QVector<int>(), m_inSort, paramPt, true);
 		drawConnections(p, HMargin + 2 * boxWidth(), m_outNames, m_outRects, m_outColor, -1, m_shownOut, QVector<int>(), characPt, false);
 
-		// determine min/max for proper scaling:
+		// determine max for proper scaling (determining min not needed - at no variation, the minimum is zero,
+		// so norming the minimum encountered to 0 would lead to omitting showing the smallest variation influence:
 		std::vector<double> maxS(m_agrSens.size());
 		for (int c=0; c<m_agrSens.size(); ++c)
 		{
@@ -181,10 +182,6 @@ private:
 			{
 				auto pen = p.pen();
 				double normVal = mapToNorm(0.0, maxS[charIdx], m_agrSens[charIdx][m_measureIdx][m_aggrType][paramIdx]);
-				LOG(lvlDebug, QString("p=%1, c=%2: val=%3, normVal=%4 (max=%6)")
-					.arg(paramIdx).arg(charIdx)
-					.arg(m_agrSens[charIdx][m_measureIdx][m_aggrType][paramIdx])
-					.arg(normVal).arg(minS[charIdx]).arg(maxS[charIdx]));
 				pen.setWidth(std::max(1.0, 3 * normVal));
 				const int C = 255;
 				int colorVal = C - (C*normVal);
