@@ -50,7 +50,7 @@ IF (openiA_TESTING_ENABLED)
 		# when running under cron, it's not running in an X session - we need to emulate one with xvfb!
 		SET (FileOpenTestBinary "${CMAKE_SOURCE_DIR}/test/run_with_xserver.sh" "${CMAKE_RUNTIME_OUTPUT_DIRECTORY}/${GUI_EXECUTABLE_TARGET}")
 	ENDIF()
-	ADD_TEST(NAME FileOpenTest COMMAND ${FileOpenTestBinary} ${CMAKE_SOURCE_DIR}/test/data/test2x2x2.mhd --quit 15000)
+	ADD_TEST(NAME FileOpenTest COMMAND ${FileOpenTestBinary} ${CMAKE_SOURCE_DIR}/test/data/test2x2x2.mhd --quit 5000)
 ENDIF()
 
 
