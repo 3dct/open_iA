@@ -168,25 +168,23 @@ private:
 		drawConnections(p, HMargin + 2 * boxWidth(), m_outNames, m_outRects, m_outColor, -1, m_shownOut, QVector<int>(), characPt, false);
 
 		// determine min/max for proper scaling:
-		double minS = std::numeric_limits<double>::max();
-		double maxS = std::numeric_limits<double>::lowest();
+		std::vector<double> maxS(m_agrSens.size());
 		for (int c=0; c<m_agrSens.size(); ++c)
 		{
 			auto const & d = m_agrSens[c][m_measureIdx][m_aggrType];
-			minS = std::min(minS, *std::min_element(d.begin(), d.end()));
-			maxS = std::max(maxS, *std::max_element(d.begin(), d.end()));
+			maxS[c] = *std::max_element(d.begin(), d.end());
 		}
-		LOG(lvlDebug, QString("min=%1, max=%2").arg(minS).arg(maxS));
+		//LOG(lvlDebug, QString("min=%1, max=%2").arg(minS).arg(maxS));
 		for (int charIdx=0; charIdx<m_agrSens.size(); ++charIdx)
 		{
 			for (int paramIdx=0; paramIdx<m_agrSens[charIdx][m_measureIdx][m_aggrType].size(); ++paramIdx)
 			{
 				auto pen = p.pen();
-				double normVal = (m_agrSens[charIdx][m_measureIdx][m_aggrType][paramIdx] - minS) / (maxS - minS);
-				LOG(lvlDebug, QString("p=%1, c=%2: val=%3, normVal=%4")
+				double normVal = mapToNorm(0.0, maxS[charIdx], m_agrSens[charIdx][m_measureIdx][m_aggrType][paramIdx]);
+				LOG(lvlDebug, QString("p=%1, c=%2: val=%3, normVal=%4 (max=%6)")
 					.arg(paramIdx).arg(charIdx)
 					.arg(m_agrSens[charIdx][m_measureIdx][m_aggrType][paramIdx])
-					.arg(normVal));
+					.arg(normVal).arg(minS[charIdx]).arg(maxS[charIdx]));
 				pen.setWidth(std::max(1.0, 3 * normVal));
 				const int C = 255;
 				int colorVal = C - (C*normVal);
