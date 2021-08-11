@@ -97,7 +97,7 @@ public:
 		}
 		p.drawText(textRect, Qt::AlignCenter, text);
 	}
-	void drawConnections(QPainter& p, int left, QStringList const& strings, QVector<QRect>& rects,
+	void drawConnectors(QPainter& p, int left, QStringList const& strings, QVector<QRect>& rects,
 		QColor const& color, int selected, QVector<int> const & shown, QVector<int> const &sort, QVector<QPoint> & posOut, bool isLeft)
 	{
 		rects.clear();
@@ -114,6 +114,36 @@ public:
 			posOut.push_back(QPoint(left + (isLeft ? boxWidth():0), baseTop + idx * oneHeight));
 			drawArrow(p, left, baseTop + idx * oneHeight, boxWidth(), oneHeight,
 				name, rects, color, selected == idx, shown.size() == 0 || shown.contains(idx));
+		}
+	}
+	void drawSensitivities(QPainter& p, QVector<QPoint> paramPt, QVector<QPoint> characPt)
+	{
+		// determine max for proper scaling (determining min not needed - at no variation, the minimum is zero,
+		// so norming the minimum encountered to 0 would lead to omitting showing the smallest variation influence:
+		std::vector<double> maxS(m_agrSens.size());
+		for (int c = 0; c < m_agrSens.size(); ++c)
+		{
+			auto const& d = m_agrSens[c][m_measureIdx][m_aggrType];
+			maxS[c] = *std::max_element(d.begin(), d.end());
+		}
+		//LOG(lvlDebug, QString("min=%1, max=%2").arg(minS).arg(maxS));
+		for (int charIdx = 0; charIdx < m_agrSens.size(); ++charIdx)
+		{
+			for (int paramIdx = 0; paramIdx < m_agrSens[charIdx][m_measureIdx][m_aggrType].size(); ++paramIdx)
+			{
+				auto pen = p.pen();
+				double normVal = mapToNorm(0.0, maxS[charIdx], m_agrSens[charIdx][m_measureIdx][m_aggrType][paramIdx]);
+				pen.setWidth(std::max(1.0, 3 * normVal));
+				if (!dblApproxEqual(normVal, 0.0))
+				{
+					// maybe draw in order of increasing sensitivities?
+					const int C = 255;
+					int colorVal = C - (C * normVal);
+					pen.setColor(QColor(colorVal, colorVal, colorVal));
+					p.setPen(pen);
+					p.drawLine(paramPt[paramIdx], characPt[charIdx]);
+				}
+			}
 		}
 	}
 	void setSelectedInput(int inIdx)
@@ -164,32 +194,10 @@ private:
 		p.drawRect(algoBox);
 		p.drawText(algoBox, Qt::AlignHCenter | Qt::AlignBottom, m_name);
 		QVector<QPoint> paramPt, characPt;
-		drawConnections(p, HMargin, m_inNames, m_inRects, m_inColor, m_selectedIn, QVector<int>(), m_inSort, paramPt, true);
-		drawConnections(p, HMargin + 2 * boxWidth(), m_outNames, m_outRects, m_outColor, -1, m_shownOut, QVector<int>(), characPt, false);
+		drawConnectors(p, HMargin, m_inNames, m_inRects, m_inColor, m_selectedIn, QVector<int>(), m_inSort, paramPt, true);
+		drawConnectors(p, HMargin + 2 * boxWidth(), m_outNames, m_outRects, m_outColor, -1, m_shownOut, QVector<int>(), characPt, false);
 
-		// determine max for proper scaling (determining min not needed - at no variation, the minimum is zero,
-		// so norming the minimum encountered to 0 would lead to omitting showing the smallest variation influence:
-		std::vector<double> maxS(m_agrSens.size());
-		for (int c=0; c<m_agrSens.size(); ++c)
-		{
-			auto const & d = m_agrSens[c][m_measureIdx][m_aggrType];
-			maxS[c] = *std::max_element(d.begin(), d.end());
-		}
-		//LOG(lvlDebug, QString("min=%1, max=%2").arg(minS).arg(maxS));
-		for (int charIdx=0; charIdx<m_agrSens.size(); ++charIdx)
-		{
-			for (int paramIdx=0; paramIdx<m_agrSens[charIdx][m_measureIdx][m_aggrType].size(); ++paramIdx)
-			{
-				auto pen = p.pen();
-				double normVal = mapToNorm(0.0, maxS[charIdx], m_agrSens[charIdx][m_measureIdx][m_aggrType][paramIdx]);
-				pen.setWidth(std::max(1.0, 3 * normVal));
-				const int C = 255;
-				int colorVal = C - (C*normVal);
-				pen.setColor(QColor(colorVal,colorVal,colorVal));
-				p.setPen(pen);
-				p.drawLine(paramPt[paramIdx], characPt[charIdx]);
-			}
-		}
+		drawSensitivities(p, paramPt, characPt);
 	}
 	void mousePressEvent(QMouseEvent* ev) override
 	{
