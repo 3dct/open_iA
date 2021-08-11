@@ -1,8 +1,8 @@
 set(DEPENDENCIES_LIBRARIES
-	iA::charts	          # also pulls in required iAqthelper
+	iA::charts	          # also pulls in required iA::qthelper
 	iA::objectvis
-	iA::renderer            # for iARendererImpl and iARendererViewSync
-	iA::slicer              # also pulls in iAguibase
+	iA::renderer          # for iARendererImpl and iARendererViewSync
+	iA::slicer            # also pulls in iA::guibase
 )
 set(DEPENDENCIES_VTK_MODULES
 	ChartsCore            # for vtkPlot

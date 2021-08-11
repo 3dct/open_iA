@@ -1,4 +1,4 @@
-SET (OPENIA_PRECOMPILE_HEADERS
+set(OPENIA_PRECOMPILE_HEADERS
 <iADiskData.h>
 <iALinePointers.h>
 <iALineSegment.h>
