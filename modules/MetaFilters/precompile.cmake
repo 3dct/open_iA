@@ -1,4 +1,4 @@
-SET (MetaFilters_PRECOMPILE_INCLUDES
+set(MetaFilters_PRECOMPILE_INCLUDES
 <iAAttributeDescriptor.h>
 <iAAttributes.h>
 <iAConnector.h>

@@ -1,4 +1,4 @@
-SET (FeatureScout_PRECOMPILE_INCLUDES
+set(FeatureScout_PRECOMPILE_INCLUDES
 <defines.h>
 <dlg_blobVisualization.h>
 <dlg_editPCClass.h>

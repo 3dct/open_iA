@@ -1,7 +1,7 @@
-SET( DEPENDENCIES_LIBRARIES
-	iAguibase
-	iAqthelper
+set(DEPENDENCIES_LIBRARIES
+	iA::guibase
+	iA::qthelper
 )
-SET( DEPENDENCIES_VTK_MODULES
+set(DEPENDENCIES_VTK_MODULES
 	FiltersStatistics       # for vtkPCAStatistics
 )

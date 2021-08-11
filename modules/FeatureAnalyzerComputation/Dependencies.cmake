@@ -1,8 +1,8 @@
-SET( DEPENDENCIES_LIBRARIES
-	iAcharts
-	iAguibase
+set(DEPENDENCIES_LIBRARIES
+	iA::charts
+	iA::guibase
 )
-#SET( DEPENDENCIES_ITK_MODULES
+#set(DEPENDENCIES_ITK_MODULES
 #	ITKAnisotropicSmoothing    # for CurvatureAnisotropicDiffusionImageFilter, GradientAnisotropicDiffusionImageFilter
 #	ITKConnectedComponents     # for ...ConnectedComponentImageFilter, RelabelComponentImageFilter
 #	ITKCurvatureFlow           # for CurvatureFlowImageFilter
@@ -21,6 +21,6 @@ SET( DEPENDENCIES_LIBRARIES
 #	ITKTransform               # for AffineTransform (dependency of LabelGeometryImageFilter)
 #	ITKWatersheds              # for MorphologicalWatershedImageFilter
 #)
-SET( DEPENDENCIES_IA_TOOLKIT_DIRS
+set(DEPENDENCIES_IA_TOOLKIT_DIRS
 	MaximumDistance
 )

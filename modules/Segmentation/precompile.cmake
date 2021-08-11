@@ -1,4 +1,4 @@
-SET (Segmentation_PRECOMPILE_INCLUDES <cmath>
+set(Segmentation_PRECOMPILE_INCLUDES <cmath>
 <defines.h>
 <iAConnector.h>
 <iAFilter.h>

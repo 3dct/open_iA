@@ -1,8 +1,8 @@
-SET( DEPENDENCIES_LIBRARIES
-	iAguibase
-	iArenderer    # for iARendererViewSync
+set(DEPENDENCIES_LIBRARIES
+	iA::guibase
+	iA::renderer    # for iARendererViewSync
 )
-SET( DEPENDENCIES_VTK_MODULES
+set(DEPENDENCIES_VTK_MODULES
 	ChartsCore  # for vtkAxis
 	RenderingContext2D    # for vtkContextActor, vtkContextScene, vtkContextTransform
 	RenderingContextOpenGL2 # for implementation of RenderingContext2D (?)
@@ -10,8 +10,8 @@ SET( DEPENDENCIES_VTK_MODULES
 	ViewsInfovis    # for vtkGraphItem
 )
 # for VTK < 9 we have to use VTK_USE_FILE anyway for module autoinitialization
-#IF (VTK_VERSION VERSION_LESS "9.0.0")
-#	LIST(APPEND DEPENDENCIES_VTK_MODULES
+#if (VTK_VERSION VERSION_LESS "9.0.0")
+#	list(APPEND DEPENDENCIES_VTK_MODULES
 #		ViewsCore     # for vtkViewsCoreModule.h, required by vtkViewsInfovisModule.h
 #	)
-#ENDIF()
+#endif()
