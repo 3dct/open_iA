@@ -26,6 +26,7 @@
 #include <iAProgress.h>
 #include <iASettings.h>
 
+#include <QPair>
 #include <QSharedPointer>
 #include <QStringList>
 #include <QVector>
@@ -45,32 +46,14 @@ class vtkRenderWindow;
 
 class QDockWidget;
 
-class iASensitivityInfo: public QObject, public iAAbortListener
+class iASensitivityData
 {
-	Q_OBJECT
 public:
-	static QSharedPointer<iASensitivityInfo> create(iAMdiChild* child,
-		QSharedPointer<iAFiberResultsCollection> data, QDockWidget* nextToDW,
-		int histogramBins, int skipColumns, std::vector<iAFiberResultUIData> const& resultUIs,
-		vtkRenderWindow* main3DWin,
-		QString parameterSetFileName = QString(),
-		QVector<int> const& charSelected = QVector<int>(),
-		QVector<int> const& charDiffMeasure = QVector<int>(),
-		iASettings const & projectFile = iASettings());
-	static QSharedPointer<iASensitivityInfo> load(iAMdiChild* child,
-		QSharedPointer<iAFiberResultsCollection> data, QDockWidget* nextToDW,
-		iASettings const & projectFile, QString const& projectFileName,
-		std::vector<iAFiberResultUIData> const& resultUIs, vtkRenderWindow* main3DWin);
-	static bool hasData(iASettings const& settings);
-	QString charactName(int selCharIdx) const;
+	iASensitivityData(QSharedPointer<iAFiberResultsCollection> data, QStringList const& paramNames,
+		std::vector<std::vector<double>> const& paramValues);
 
-	void saveProject(QSettings& projectFile, QString  const& fileName);
-
-	std::vector<size_t> selectedResults() const;
-	iAColorTheme const* selectedResultColorTheme() const;
-
-	// TODO: separate data from GUI code!
-
+	// DATA / COMPUTED DATA:
+	//
 	//! the "original" FIAKER data of all loaded results:
 	QSharedPointer<iAFiberResultsCollection> m_data;
 	//! the names of all parameters
@@ -92,9 +75,9 @@ public:
 	//! for which dissimilarity measure sensitivity was computed
 	//QVector<int> dissimMeasure;
 
-	QVector<                //! For each result,
-		QVector<	        //! for each characteristic,
-		QVector<double>>>   //! a histogram (bin)
+	QVector<                   //! For each result,
+		QVector<               //! for each characteristic,
+			QVector<double>>>  //! a histogram (bin)
 		m_charHistograms;
 
 	int m_numOfSTARSteps, m_starGroupSize;
@@ -104,29 +87,33 @@ public:
 	QVector<int> m_variedParams;  //!< indices of the parameters that were varied
 
 	//! sensitivity "field" for characteristics
-	QVector<    // characteristic (index in m_charSelected)
-		QVector<    // characteristics difference measure index (index in m_charDiffMeasure)
-		QVector<    // variation aggregation (see iASensitivityInfo::create)
-		QVector<    // parameter index (second index in paramSetValues / allParamValues)
-		QVector<    // parameter set index (first index in paramSetValues)
-		double>>>>> sensitivityField;
+	QVector<                  // characteristic (index in m_charSelected)
+		QVector<              // characteristics difference measure index (index in m_charDiffMeasure)
+			QVector<          // variation aggregation (see iASensitivityInfo::create)
+				QVector<      // parameter index (second index in paramSetValues / allParamValues)
+					QVector<  // parameter set index (first index in paramSetValues)
+						double>>>>>
+		sensitivityField;
 
 	//! averages over all parameter-sets of above field ("global sensitivity" for a parameter)
-	QVector<		// characteristis
-		QVector<    // difference measure
-		QVector<    // variation aggregation
-		QVector<    // parameter index
-		double>>>> aggregatedSensitivities;
+	QVector<              // characteristis
+		QVector<          // difference measure
+			QVector<      // variation aggregation
+				QVector<  // parameter index
+					double>>>>
+		aggregatedSensitivities;
 
 	//! sensitivity at each parameter regarding fiber count
-	QVector<        // variation aggregation
-		QVector<    // parameter index
-		QVector<    // parameter set index
-		double>>> sensitivityFiberCount;
+	QVector<          // variation aggregation
+		QVector<      // parameter index
+			QVector<  // parameter set index
+				double>>>
+		sensitivityFiberCount;
 	//! averages over all parameter-sets of above field ("global sensitivity" for a parameter, regarding fiber count)
-	QVector<        // variation aggregation
-		QVector<    // parameter index
-		double>> aggregatedSensitivitiesFiberCount;
+	QVector<      // variation aggregation
+		QVector<  // parameter index
+			double>>
+		aggregatedSensitivitiesFiberCount;
 
 	//! range of the fiber counts over all results
 	double m_fiberCountRange[2];
@@ -134,26 +121,28 @@ public:
 	QVector<double> fiberCountHistogram;
 
 	//! sensitivity "field" for dissimilarity measures
-	QVector<        // dissimilarity measure (index in m_resultDissimMeasures)
-		QVector<    // variation aggregation (see iASensitivityInfo::create)
-		QVector<    // parameter index (second index in paramSetValues / allParamValues)
-		QVector<    // parameter set index (first index in paramSetValues)
-		double>>>> sensDissimField;
+	QVector<              // dissimilarity measure (index in m_resultDissimMeasures)
+		QVector<          // variation aggregation (see iASensitivityInfo::create)
+			QVector<      // parameter index (second index in paramSetValues / allParamValues)
+				QVector<  // parameter set index (first index in paramSetValues)
+					double>>>>
+		sensDissimField;
 
 	//! averages over all parameter-sets of above field ("global sensitivity" for a parameter by dissimilarity measures)
-	QVector<        // dissimilarity measure (index in m_resultDissimMeasures)
-		QVector<    // variation aggregation
-		QVector<    // parameter index
-		double>>> aggregatedSensDissim;
+	QVector<          // dissimilarity measure (index in m_resultDissimMeasures)
+		QVector<      // variation aggregation
+			QVector<  // parameter index
+				double>>>
+		aggregatedSensDissim;
 
 	//! ranges of dissimilarity metrics (index1: dissimilarity metric; index2: min/max)
-	QVector<QPair<double,double>> m_dissimRanges;
+	QVector<QPair<double, double>> m_dissimRanges;
 	//! histograms of dissimilarity metrics (index1: dissimilarity metric; index2: bin)
 	QVector<QVector<double>> m_dissimHistograms;
 
 	// Histogram "variation" (i.e. average of differences in frequency)
 	// TODO: think about other measures (variation, ...) for differences between bins?
-	
+
 	/* not used for now - TODO: actual histogram of histograms
 	//! distribution of characteristics distributions ("histogram of histograms") across:
 	QVector<        // characteristics index
@@ -166,24 +155,27 @@ public:
 	*/
 
 	//!  difference at each bin of characteristics distribution (histogram above)
-	QVector<        // characteristics index
-		QVector<    // variation aggregation
-		QVector<    // parameter index
-		QVector<    // bin index
-		QVector<    // parameter set index
-		double>>>>> charHistVar;
+	QVector<                  // characteristics index
+		QVector<              // variation aggregation
+			QVector<          // parameter index
+				QVector<      // bin index
+					QVector<  // parameter set index
+						double>>>>>
+		charHistVar;
 
 	//! aggregation of differences at each bin of characteristics distribution over all parameter sets above
-	QVector<        // characteristics index
-		QVector<    // variation aggregation
-		QVector<    // parameter index
-		QVector<    // bin index
-		double>>>> charHistVarAgg;
+	QVector<              // characteristics index
+		QVector<          // variation aggregation
+			QVector<      // parameter index
+				QVector<  // bin index
+					double>>>>
+		charHistVarAgg;
 
 	//! aggregation of differences at each bin of characteristics distribution over all parameter sets above
 	QVector<      // characteristics index
 		QVector<  // bin index
-		double>> charHistAvg;
+			double>>
+		charHistAvg;
 
 	// per-object sensitivity:
 	// required: 1-1 match between fibers
@@ -221,6 +213,38 @@ public:
 
 	QVector<QPair<double, double>> m_resultDissimRanges;
 	int m_resultDissimOptimMeasureIdx;
+
+	QString charactName(int selCharIdx) const;
+};
+
+class iASensitivityViewState
+{
+public:
+	virtual std::vector<size_t> const & selectedResults() const =0;
+	virtual iAColorTheme const* selectedResultColorTheme() const =0;
+};
+
+class iASensitivityInfo: public QObject, public iAAbortListener
+{
+	Q_OBJECT
+public:
+	static QSharedPointer<iASensitivityInfo> create(iAMdiChild* child,
+		QSharedPointer<iAFiberResultsCollection> data, QDockWidget* nextToDW,
+		int histogramBins, int skipColumns, std::vector<iAFiberResultUIData> const& resultUIs,
+		vtkRenderWindow* main3DWin,
+		QString parameterSetFileName = QString(),
+		QVector<int> const& charSelected = QVector<int>(),
+		QVector<int> const& charDiffMeasure = QVector<int>(),
+		iASettings const & projectFile = iASettings());
+	static QSharedPointer<iASensitivityInfo> load(iAMdiChild* child,
+		QSharedPointer<iAFiberResultsCollection> data, QDockWidget* nextToDW,
+		iASettings const & projectFile, QString const& projectFileName,
+		std::vector<iAFiberResultUIData> const& resultUIs, vtkRenderWindow* main3DWin);
+	static bool hasData(iASettings const& settings);
+
+	void saveProject(QSettings& projectFile, QString  const& fileName);
+
+	iASensitivityData& data();
 
 	//! the GUI elements:
 	QSharedPointer<iASensitivityGUI> m_gui;
@@ -262,6 +286,8 @@ private:
 	iASettings m_projectToLoad;
 	//! image for holding overview over variation per voxel
 	vtkSmartPointer<vtkImageData> m_spatialOverview;
+
+	QSharedPointer<iASensitivityData> m_data;
 signals:
 	void aborted();
 	void resultSelected(size_t resultIdx, bool state);

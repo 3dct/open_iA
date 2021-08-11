@@ -28,7 +28,8 @@ class iAChartWidget;
 class iAColorTheme;
 class iAHistogramData;
 class iAStackedBarChart;
-class iASensitivityInfo;
+class iASensitivityData;
+class iASensitivityViewState;
 class iASingleColorTheme;
 class iAParTableRow;
 
@@ -47,7 +48,8 @@ class iAParameterInfluenceView : public QWidget
 {
 	Q_OBJECT
 public:
-	iAParameterInfluenceView(iASensitivityInfo* sensInf, QColor const& paramColor, QColor const& outputColor);
+	iAParameterInfluenceView(QSharedPointer<iASensitivityData> data, QSharedPointer<iASensitivityViewState> viewState,
+		QColor const& paramColor, QColor const& outputColor);
 	void setMeasure(int newMeasure);
 	void setAggregation(int newAggregation);
 	void setResultSelected(size_t resultIdx, bool state, QColor c);
@@ -90,8 +92,10 @@ private:
 
 	// pair output type / index
 	QVector<QPair<int,int>> m_visibleCharacts;
-	//! sensitivity information
-	iASensitivityInfo* m_sensInf;
+	//! sensitivity data
+	QSharedPointer<iASensitivityData> m_data;
+	//! view state:
+	QSharedPointer<iASensitivityViewState> m_viewState;
 	//! measure to use 
 	int m_measureIdx;
 	//! aggregation type
