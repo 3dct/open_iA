@@ -18,14 +18,17 @@
 * Contact: FH OÖ Forschungs & Entwicklungs GmbH, Campus Wels, CT-Gruppe,              *
 *          Stelzhamerstraße 23, 4600 Wels / Austria, Email: c.heinzl@fh-wels.at       *
 * ************************************************************************************/
-#include "iASensitivityDialog.h"
+#include "iACharacteristicsMeasureDlg.h"
 
 #include "iAFiberData.h"
 #include "iAFiberResult.h"
 
+#include "ui_CharacteristicsMeasureDialog.h"
+
 #include <iASPLOMData.h>
 
 #include <QStandardItemModel>
+
 
 QStringList const& DistributionDifferenceMeasureNames()
 {
@@ -59,10 +62,13 @@ namespace
 	}
 }
 
-iASensitivityDialog::iASensitivityDialog(QSharedPointer<iAFiberResultsCollection> data) :
+iACharacteristicsMeasureDlg::iACharacteristicsMeasureDlg(
+	QSharedPointer<iAFiberResultsCollection> data) :
 	m_characteristicsModel(new QStandardItemModel()),
-	m_diffMeasuresModel(new QStandardItemModel())
+	m_diffMeasuresModel(new QStandardItemModel()),
+	m_ui(new Ui_CharacteristicsMeasureDialog())
 {
+	m_ui->setupUi(this);
 	m_characteristicsModel->setHorizontalHeaderLabels(QStringList() << "Characteristic" << "Select" << "Min" << "Max");
 	for (int i = 0; i < static_cast<int>(data->m_resultIDColumn); ++i)
 	{
@@ -71,11 +77,11 @@ iASensitivityDialog::iASensitivityDialog(QSharedPointer<iAFiberResultsCollection
 		m_characteristicsModel->setItem(i, 2, new QStandardItem(QString::number(data->spmData->paramRange(i)[0])));
 		m_characteristicsModel->setItem(i, 3, new QStandardItem(QString::number(data->spmData->paramRange(i)[1])));
 	}
-	tvCharacteristic->setModel(m_characteristicsModel);
-	tvCharacteristic->horizontalHeader()->setSectionResizeMode(0, QHeaderView::Stretch);
-	tvCharacteristic->horizontalHeader()->setSectionResizeMode(1, QHeaderView::ResizeToContents);
-	tvCharacteristic->horizontalHeader()->setSectionResizeMode(2, QHeaderView::Stretch);
-	tvCharacteristic->horizontalHeader()->setSectionResizeMode(3, QHeaderView::Stretch);
+	m_ui->tvCharacteristic->setModel(m_characteristicsModel);
+	m_ui->tvCharacteristic->horizontalHeader()->setSectionResizeMode(0, QHeaderView::Stretch);
+	m_ui->tvCharacteristic->horizontalHeader()->setSectionResizeMode(1, QHeaderView::ResizeToContents);
+	m_ui->tvCharacteristic->horizontalHeader()->setSectionResizeMode(2, QHeaderView::Stretch);
+	m_ui->tvCharacteristic->horizontalHeader()->setSectionResizeMode(3, QHeaderView::Stretch);
 
 	m_diffMeasuresModel->setHorizontalHeaderLabels(QStringList() << "Difference" << "Select");
 	// Difference Between Mean, Min, Max ? other single measures?
@@ -85,17 +91,17 @@ iASensitivityDialog::iASensitivityDialog(QSharedPointer<iAFiberResultsCollection
 	}
 	//addCheckItem(diffMeasuresModel, 2, "Mutual information");
 	// ... some other measures from iAVectorDistance...?
-	tvDiffMeasures->setModel(m_diffMeasuresModel);
-	tvDiffMeasures->horizontalHeader()->setSectionResizeMode(0, QHeaderView::Stretch);
-	tvDiffMeasures->horizontalHeader()->setSectionResizeMode(1, QHeaderView::ResizeToContents);
+	m_ui->tvDiffMeasures->setModel(m_diffMeasuresModel);
+	m_ui->tvDiffMeasures->horizontalHeader()->setSectionResizeMode(0, QHeaderView::Stretch);
+	m_ui->tvDiffMeasures->horizontalHeader()->setSectionResizeMode(1, QHeaderView::ResizeToContents);
 }
 
-QVector<int> iASensitivityDialog::selectedCharacteristics() const
+QVector<int> iACharacteristicsMeasureDlg::selectedCharacteristics() const
 {
 	return selectedIndices(m_characteristicsModel);
 }
 
-QVector<int> iASensitivityDialog::selectedDiffMeasures() const
+QVector<int> iACharacteristicsMeasureDlg::selectedDiffMeasures() const
 {
 	return selectedIndices(m_diffMeasuresModel);
 }

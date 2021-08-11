@@ -20,28 +20,24 @@
 * ************************************************************************************/
 #pragma once
 
-#include "ui_CharacteristicsMeasureDialog.h"
-
-#include <qthelper/iAQTtoUIConnector.h>
-
 #include <QDialog>
 #include <QSharedPointer>
-
-using iACharacteristicsMeasureDialog = iAQTtoUIConnector<QDialog, Ui_CharacteristicsMeasureDialog>;
 
 QStringList const& DistributionDifferenceMeasureNames();
 
 class iAFiberResultsCollection;
+class Ui_CharacteristicsMeasureDialog;
 
 class QStandardItemModel;
 
-class iASensitivityDialog : public iACharacteristicsMeasureDialog
+class iACharacteristicsMeasureDlg : public QDialog
 {
 	Q_OBJECT
 public:
-	iASensitivityDialog(QSharedPointer<iAFiberResultsCollection> data);
+	iACharacteristicsMeasureDlg(QSharedPointer<iAFiberResultsCollection> data);
 	QVector<int> selectedCharacteristics() const;
 	QVector<int> selectedDiffMeasures() const;
 private:
 	QStandardItemModel* m_characteristicsModel, * m_diffMeasuresModel;
+	QSharedPointer<Ui_CharacteristicsMeasureDialog> m_ui;
 };

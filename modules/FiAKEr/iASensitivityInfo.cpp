@@ -69,7 +69,7 @@
 #include "iAMultidimensionalScaling.h"
 #include "iAParameterInfluenceView.h"
 #include "iARefDistCompute.h"
-#include "iASensitivityDialog.h"
+#include "iACharacteristicsMeasureDlg.h"
 #include "ui_DissimilarityMatrix.h"
 #include "ui_SensitivitySettings.h"
 
@@ -415,7 +415,7 @@ QSharedPointer<iASensitivityInfo> iASensitivityInfo::create(iAMdiChild* child,
 	// - dissimilarity measure(s)
 	if (charSelected.isEmpty())
 	{
-		iASensitivityDialog dlg(data);
+		iACharacteristicsMeasureDlg dlg(data);
 		if (dlg.exec() != QDialog::Accepted)
 		{
 			return QSharedPointer<iASensitivityInfo>();
