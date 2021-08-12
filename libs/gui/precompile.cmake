@@ -1,4 +1,4 @@
-SET (OPENIA_PRECOMPILE_HEADERS
+set(OPENIA_PRECOMPILE_HEADERS
 <dlg_datatypeconversion.h>
 <dlg_imageproperty.h>
 <dlg_slicer.h>

@@ -1,7 +1,7 @@
-SET( DEPENDENCIES_LIBRARIES
-	iAguibase
+set(DEPENDENCIES_LIBRARIES
+	iA::guibase
 )
-SET( DEPENDENCIES_VTK_MODULES
+set(DEPENDENCIES_VTK_MODULES
 	ChartsCore            # for vtkAxis
 	FiltersHybrid         # for vtkPolyDataSilhouette
 	ImagingHybrid         # for vtkSampleFunction used in iABlobCluster

@@ -1,4 +1,4 @@
-SET (FuzzyFeatureTracking_PRECOMPILE_INCLUDES <dlg_trackingGraph.h>
+set(FuzzyFeatureTracking_PRECOMPILE_INCLUDES <dlg_trackingGraph.h>
 <iAFeatureTracking.h>
 <iAGraph.h>
 <iAVolumeStack.h>

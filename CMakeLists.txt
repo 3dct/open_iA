@@ -1,45 +1,45 @@
-CMAKE_MINIMUM_REQUIRED ( VERSION 3.14 )
-# 3.13 required for VS_DEBUGGER_ENVIRONMENT!
+cmake_minimum_required(VERSION 3.14)
+# 3.13 required for VS_DEBUGGER_ENVIRONMENT property
 # 3.14 required for CMAKE_POLICY CMP0087 / Generator expressions in install code|script
 
-PROJECT ( open_iA LANGUAGES CXX )
+project(open_iA LANGUAGES CXX)
 
-SET(CMAKE_MODULE_PATH "${PROJECT_SOURCE_DIR}/cmake/Modules")
-SET(FLATPAK_APPID at.zfp.openia)
+set(CMAKE_MODULE_PATH "${PROJECT_SOURCE_DIR}/cmake/Modules")
+set(FLATPAK_APPID at.zfp.openia)
 
-SET (Toolkit_DIR "${PROJECT_SOURCE_DIR}/Toolkit")
+set(Toolkit_DIR "${PROJECT_SOURCE_DIR}/Toolkit")
 
-INCLUDE(Common)
+include(Common)
 
 #-------------------------
 # Subdirectories
 #-------------------------
-SET (TEST_DATA_DIR "${CMAKE_SOURCE_DIR}/test/data")
-ADD_SUBDIRECTORY(libs)
+set(TEST_DATA_DIR "${CMAKE_SOURCE_DIR}/test/data")
+add_subdirectory(libs)
 
-ADD_SUBDIRECTORY(cmd)     # Sets CMD test runner, used in modules
+add_subdirectory(cmd)     # Sets CMD test runner, used in modules
 
-SET (GUI_EXECUTABLE_TARGET open_iA)  # required in modules to set dependency on it
-SET (GUI_EXECUTABLE_FILE "${GUI_EXECUTABLE_TARGET}${CMAKE_EXECUTABLE_SUFFIX}")  # required in modules to use as debugger command
-ADD_SUBDIRECTORY(modules)
+set(GUI_EXECUTABLE_TARGET open_iA)  # required in modules to set dependency on it
+set(GUI_EXECUTABLE_FILE "${GUI_EXECUTABLE_TARGET}${CMAKE_EXECUTABLE_SUFFIX}")  # required in modules to use as debugger command
+add_subdirectory(modules)
 
 # modules might have added something to BUILD_INFO:
 configure_file("${CMAKE_SOURCE_DIR}/cmake/version.h.in" "${CMAKE_BINARY_DIR}/version.h" @ONLY)
 	
-ADD_SUBDIRECTORY(gui)
+add_subdirectory(gui)
 
-IF (openiA_TESTING_ENABLED)
-	ADD_SUBDIRECTORY(test)
-ENDIF()
+if (openiA_TESTING_ENABLED)
+	add_subdirectory(test)
+endif()
 
 #-------------------------
 # Installation
 #-------------------------
-ADD_SUBDIRECTORY(xinst)
+add_subdirectory(xinst)
 # Text files:
-INSTALL(FILES ${CMAKE_SOURCE_DIR}/LICENSE DESTINATION .)
-INSTALL(FILES ${CMAKE_SOURCE_DIR}/README.md DESTINATION .)
-IF (FLATPAK_BUILD)
-	INSTALL(FILES ${CMAKE_SOURCE_DIR}/${FLATPAK_APPID}.appdata.xml DESTINATION share/metainfo)
-ENDIF()
-include (CMakeCPack.cmake)
+install(FILES ${CMAKE_SOURCE_DIR}/LICENSE DESTINATION .)
+install(FILES ${CMAKE_SOURCE_DIR}/README.md DESTINATION .)
+if (FLATPAK_BUILD)
+	install(FILES ${CMAKE_SOURCE_DIR}/${FLATPAK_APPID}.appdata.xml DESTINATION share/metainfo)
+endif()
+include(CMakeCPack.cmake)

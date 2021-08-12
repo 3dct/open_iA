@@ -1,4 +1,4 @@
-SET (InSpectr_PRECOMPILE_INCLUDES <algorithm>
+set(InSpectr_PRECOMPILE_INCLUDES <algorithm>
 <cassert>
 <dlg_InSpectr.h>
 <iAAccumulatedXRFData.h>

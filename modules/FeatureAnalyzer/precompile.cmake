@@ -1,4 +1,4 @@
-SET (FeatureAnalyzer_PRECOMPILE_INCLUDES
+set(FeatureAnalyzer_PRECOMPILE_INCLUDES
 <defines.h>
 <FeatureAnalyzerHelpers.h>
 <iABoxPlotData.h>

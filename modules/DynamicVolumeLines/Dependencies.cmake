@@ -1,14 +1,14 @@
-SET( DEPENDENCIES_LIBRARIES
-	iAcharts    # for qcustomplot, also pulls in required iAqthelper
-	iAguibase
+set(DEPENDENCIES_LIBRARIES
+	iA::charts    # for qcustomplot, also pulls in required iAqthelper
+	iA::guibase
 )
-#SET( DEPENDENCIES_ITK_MODULES
+#set(DEPENDENCIES_ITK_MODULES
 #	ITKVtkGlue       # for ImageToVTKImageFilter
 #	ITKStatistics    # for ImageToHistogramFilter
 #)
-SET( DEPENDENCIES_INCLUDE_DIRS
+set(DEPENDENCIES_INCLUDE_DIRS
 	${CMAKE_CURRENT_SOURCE_DIR}/DynamicVolumeLines/CompactHilbert/include
 )
-SET( DEPENDENCIES_IA_TOOLKIT_DIRS
+set(DEPENDENCIES_IA_TOOLKIT_DIRS
 	FunctionalBoxplot
 )

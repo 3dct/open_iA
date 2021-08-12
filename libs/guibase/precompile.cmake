@@ -1,4 +1,4 @@
-SET (OPENIA_PRECOMPILE_HEADERS
+set(OPENIA_PRECOMPILE_HEADERS
 <cassert>
 <chrono>
 <cmath>

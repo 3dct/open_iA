@@ -1,4 +1,4 @@
-SET(MODULE_DESCRIPTION
+set(MODULE_DESCRIPTION
     "Elastix Registration"
 )
 

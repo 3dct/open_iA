@@ -1,34 +1,35 @@
-SET (LIB_TYPE SHARED)
-INCLUDE(Modules)
+set(LIB_TYPE SHARED)
+include(Modules)
 
-FILE(GLOB children RELATIVE ${CMAKE_CURRENT_SOURCE_DIR} "${CMAKE_CURRENT_SOURCE_DIR}/*")
+file(GLOB children RELATIVE ${CMAKE_CURRENT_SOURCE_DIR} "${CMAKE_CURRENT_SOURCE_DIR}/*")
 if (MSVC)
 	# Apply file grouping based on regular expressions for Visual Studio (applies to all projects in current folder)
-	SOURCE_GROUP("UI Files" REGULAR_EXPRESSION "[.](ui|qrc)$")
-	SOURCE_GROUP("Generated" REGULAR_EXPRESSION "ui_")
+	source_group("UI Files" REGULAR_EXPRESSION "[.](ui|qrc)$")
+	source_group("Generated" REGULAR_EXPRESSION "ui_")
 endif()
-FOREACH(libdir ${children})
 
+foreach(libdir ${children})
 	# todo: add check on whether any module requires lib (for objectvis only ATM?)
-	IF(IS_DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR}/${libdir})
+	if (IS_DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR}/${libdir})
 
-		IF (openiA_DEPENDENCY_INFO)
-			MESSAGE(STATUS "Library ${libdir}:")
-		ENDIF()
-		FILE( GLOB_RECURSE lib_SRCS "${libdir}/*.cpp" "${libdir}/*.h" )
+		if (openiA_DEPENDENCY_INFO)
+			message(STATUS "Library ${libdir}:")
+		endif()
+		file( GLOB_RECURSE lib_SRCS "${libdir}/*.cpp" "${libdir}/*.h" )
 		#FILE( GLOB_RECURSE lib_UI "${libdir}/*.ui" ) # not needed anymore apparently
-		FILE( GLOB_RECURSE lib_QRC "${libdir}/*.qrc" )
+		file( GLOB_RECURSE lib_QRC "${libdir}/*.qrc" )
 
-		set (libname "iA${libdir}")
+		set(libname "iA${libdir}")
 		# Generate core dll file / shared object:
 		add_library(${libname} ${LIB_TYPE} ${lib_SRCS} ${lib_QRC})
+		add_library(iA::${libdir} ALIAS ${libname})	# alias
 		
-		SET(VTK_REQUIRED_LIBS_PUBLIC)
-		SET(VTK_REQUIRED_LIBS_PRIVATE)
-		#SET(ITK_REQUIRED_LIBS_PUBLIC)
-		#SET(ITK_REQUIRED_LIBS_PRIVATE)
+		set(VTK_REQUIRED_LIBS_PUBLIC)
+		set(VTK_REQUIRED_LIBS_PRIVATE)
+		#set(ITK_REQUIRED_LIBS_PUBLIC)
+		#set(ITK_REQUIRED_LIBS_PRIVATE)
 		# link libraries, compile definitions and included directories:
-		INCLUDE(${CMAKE_CURRENT_SOURCE_DIR}/${libdir}/lib.cmake)
+		include(${CMAKE_CURRENT_SOURCE_DIR}/${libdir}/lib.cmake)
 
 		# simplify / remove duplication ( if/endif / public/private ITK/VTK ) ?
 		if (VTK_REQUIRED_LIBS_PUBLIC)
@@ -51,51 +52,51 @@ FOREACH(libdir ${children})
 			vtk_module_autoinit(TARGETS ${libname} MODULES ${VTK_LIBRARIES})
 		endif()
 
-		IF (openiA_PRECOMPILE)
-			IF (CMAKE_MAJOR_VERSION GREATER 4 OR
+		if (openiA_PRECOMPILE)
+			if (CMAKE_MAJOR_VERSION GREATER 4 OR
 			(CMAKE_MAJOR_VERSION EQUAL 3 AND CMAKE_MINOR_VERSION GREATER 15))
-				INCLUDE(${libdir}/precompile.cmake)
+				include(${libdir}/precompile.cmake)
 				target_precompile_headers(${libname} PRIVATE ${OPENIA_PRECOMPILE_HEADERS})
-			ENDIF()
-		ENDIF()
+			endif()
+		endif()
 
 		TARGET_INCLUDE_DIRECTORIES(${libname} PUBLIC
 			${CMAKE_CURRENT_SOURCE_DIR}/${libdir}
 			${CMAKE_CURRENT_BINARY_DIR} # for export header
 		)
-		IF (openiA_USE_IDE_FOLDERS)
+		if (openiA_USE_IDE_FOLDERS)
 			SET_PROPERTY(TARGET ${libname} PROPERTY FOLDER "Libraries")
-		ENDIF()
+		endif()
 		
-		IF(APPLE)
-			INCLUDE_DIRECTORIES( /System/Library/Frameworks )
-			FIND_LIBRARY(COCOA_LIBRARY Cocoa)
-			FIND_LIBRARY(GLUT_LIBRARY GLUT )
-			FIND_LIBRARY(OpenGL_LIBRARY OpenGL )
-			MARK_AS_ADVANCED(COCOA_LIBRARY
+		if (APPLE)
+			include_directories( /System/Library/Frameworks )
+			find_library(COCOA_LIBRARY Cocoa)
+			find_library(GLUT_LIBRARY GLUT )
+			find_library(OpenGL_LIBRARY OpenGL )
+			mark_as_advanced(COCOA_LIBRARY
 							 GLUT_LIBRARY
 							 OpenGL_LIBRARY)
-			SET(EXTRA_LIBS ${COCOA_LIBRARY} ${GLUT_LIBRARY} ${OpenGL_LIBRARY})
-			TARGET_LINK_LIBRARIES(${libname} PRIVATE ${EXTRA_LIBS})
+			set(EXTRA_LIBS ${COCOA_LIBRARY} ${GLUT_LIBRARY} ${OpenGL_LIBRARY})
+			target_link_libraries(${libname} PRIVATE ${EXTRA_LIBS})
 			#MESSAGE(STATUS "Extra Core: ${EXTRA_LIBS}")
-		ENDIF (APPLE)
+		endif()
 		
 		# Installation
-		IF (WIN32)
-			INSTALL (TARGETS ${libname} RUNTIME DESTINATION .)
-		ELSEIF (FLATPAK_BUILD)
-			INSTALL (TARGETS ${libname} LIBRARY DESTINATION lib)
-		ELSE ()
-			INSTALL (TARGETS ${libname} LIBRARY DESTINATION .)
-		ENDIF(WIN32)
+		if (WIN32)
+			install(TARGETS ${libname} RUNTIME DESTINATION .)
+		elseif (FLATPAK_BUILD)
+			install(TARGETS ${libname} LIBRARY DESTINATION lib)
+		else ()
+			install(TARGETS ${libname} LIBRARY DESTINATION .)
+		endif()
 
 		# Compiler Flags
-		IF (CMAKE_COMPILER_IS_GNUCXX OR "${CMAKE_CXX_COMPILER_ID}" STREQUAL "Clang")
+		if (CMAKE_COMPILER_IS_GNUCXX OR "${CMAKE_CXX_COMPILER_ID}" STREQUAL "Clang")
 			# see Ulrich Drepper - How to write Shared Libraries
 			#   (https://software.intel.com/sites/default/files/m/a/1/e/dsohowto.pdf)
 			#   (- fPIC vs. fpic) -> fPIC added automatically by CMake)
 			#   - why fvisibility=hidden
 			target_compile_options(${libname} PRIVATE -fvisibility=hidden)
-		ENDIF()
-	ENDIF()
-ENDFOREACH()
+		endif()
+	endif()
+endforeach()
