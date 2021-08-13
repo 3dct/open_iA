@@ -33,6 +33,7 @@ class iAChartAttributeMapper;
 class iAImageTreeNode;
 class iAImageTreeLeaf;
 
+// TODO: overlap with iAHistogramData / iAMapper?
 class iAParamHistogramData : public iAHistogramData
 {
 public:
@@ -77,5 +78,4 @@ private:
 		iAChartAttributeMapper const & chartAttrMap);
 	
 	bool m_log;
-	double m_minX, m_maxX;
 };
