@@ -59,11 +59,13 @@
 #include <QCheckBox>
 #include <QComboBox>
 #include <QDialogButtonBox>
+#include <QHBoxLayout>
 #include <QLabel>
 #include <QLineEdit>
 #include <QList>
 #include <QStringList>
 #include <QVariant>
+#include <QVBoxLayout>
 
 namespace
 {
