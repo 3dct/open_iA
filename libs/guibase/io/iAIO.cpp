@@ -34,7 +34,6 @@
 #include "iAProgress.h"
 #include "iARawFileParamDlg.h"
 #include "iAStringHelper.h"
-#include "iAVolumeStack.h"
 #include "iAToolsVTK.h"
 #include "iATypedCallHelper.h"
 

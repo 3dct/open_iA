@@ -20,11 +20,14 @@
 * ************************************************************************************/
 #include "dlg_volumePlayer.h"
 
+#include <iALog.h>
+#include <iAMathUtility.h>
+
 #include "iAChannelData.h"
-#include "iALog.h"
 #include "iAParameterDlg.h"
 #include "iARenderer.h"
 #include "iASlicer.h"
+
 #include "iAVolumeStack.h"
 #include "mdichild.h"
 
