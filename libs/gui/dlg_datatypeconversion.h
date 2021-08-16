@@ -20,8 +20,6 @@
 * ************************************************************************************/
 #pragma once
 
-#include "ui_DataTypeConversion.h"
-
 // charts
 #include "iAPlotData.h"
 
@@ -42,7 +40,7 @@ class QCheckBox;
 class QComboBox;
 class QLineEdit;
 
-class dlg_datatypeconversion : public QDialog, public Ui_DataTypeConversion
+class dlg_datatypeconversion : public QDialog
 {
 	Q_OBJECT
 
