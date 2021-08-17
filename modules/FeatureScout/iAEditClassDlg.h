@@ -22,39 +22,28 @@
 
 #include <QDialog>
 
-class QString;
-class QComboBox;
 class QDialogButtonBox;
 class QLineEdit;
 class QLabel;
-class QMessageBox;
+class QString;
 
-class dlg_editPCClass : public QDialog
+class iAClassEditDlg : public QDialog
 {
 	Q_OBJECT
-
 public:
-	dlg_editPCClass(QWidget *parent = 0);
-	~dlg_editPCClass();
-
-	static QString getClassInfo(QWidget *parent, const QString &title, const QString &text, QColor *color, bool *ok);
-	void setTextValue(const QString &text);
-	QString getTextValue();
-	void setColor(QColor *color);
-	void getColor(QColor *color);
-	void setupConnections();
-
-signals:
-
-private slots:
-	void getColorDialog();
-	void notifyTextChanged();
+	static QString getClassInfo(const QString &title, const QString &text, QColor &color, bool &ok);
 
 private:
-	QLabel *cNameLabel;
+	iAClassEditDlg();
+	void setTextValue(const QString &text);
+	QString getTextValue();
+	void setColor(QColor const & color);
+	void getColor(QColor & color);
+	void getColorDialog();
+
+	QLabel *cNameLabel, *cColorLabel;
 	QLineEdit *nameEdit;
 	QPushButton *colorButton;
-	QLabel *cColorLabel;
 	QDialogButtonBox *buttonBox;
 	QColor dcolor;
 };

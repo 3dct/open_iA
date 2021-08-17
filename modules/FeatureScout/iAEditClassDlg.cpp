@@ -18,7 +18,7 @@
 * Contact: FH OÖ Forschungs & Entwicklungs GmbH, Campus Wels, CT-Gruppe,              *
 *          Stelzhamerstraße 23, 4600 Wels / Austria, Email: c.heinzl@fh-wels.at       *
 * ************************************************************************************/
-#include "dlg_editPCClass.h"
+#include "iAClassEditDlg.h"
 
 #include <QColorDialog>
 #include <QGridLayout>
@@ -30,7 +30,7 @@
 #include <QVBoxLayout>
 
 
-dlg_editPCClass::dlg_editPCClass(QWidget *parent) : QDialog(parent)
+iAClassEditDlg::iAClassEditDlg() : QDialog()
 {
 	QVBoxLayout *mainLayout = new QVBoxLayout(this);
 	buttonBox = new QDialogButtonBox(QDialogButtonBox::Ok | QDialogButtonBox::Cancel);
@@ -43,7 +43,6 @@ dlg_editPCClass::dlg_editPCClass(QWidget *parent) : QDialog(parent)
 	colorButton->setText("Set Color:");
 	cColorLabel = new QLabel;
 
-
 	QWidget *page = new QWidget;
 	QGridLayout *layout = new QGridLayout(page);
 	layout->addWidget(cNameLabel, 0, 0);
@@ -54,51 +53,23 @@ dlg_editPCClass::dlg_editPCClass(QWidget *parent) : QDialog(parent)
 	mainLayout->addWidget(page);
 	mainLayout->addWidget(buttonBox);
 
-	this->setupConnections();
+	connect(colorButton, &QPushButton::clicked, this, &iAClassEditDlg::getColorDialog);
+	connect(buttonBox, &QDialogButtonBox::accepted, this, &iAClassEditDlg::accept);
+	connect(buttonBox, &QDialogButtonBox::rejected, this, &iAClassEditDlg::reject);
 }
 
-
-dlg_editPCClass::~dlg_editPCClass()
+QString iAClassEditDlg::getClassInfo(const QString& title, const QString& text, QColor& color, bool& ok)
 {
-
-}
-
-//void dlg_editPCClass::initComboBox()
-//{
-//	for(int i=0; i<colorNames.size(); ++i)
-//	{
-//		QColor color(colorNames[i]);
-//		colorEdit->insertItem(i, colorNames[i]);
-//		// or using Qt::DecorationRole
-//		colorEdit->setItemData(i, color, Qt::BackgroundColorRole);
-//	}
-//}
-
-void dlg_editPCClass::setupConnections()
-{
-	connect(colorButton, &QPushButton::clicked, this, &dlg_editPCClass::getColorDialog);
-	connect(nameEdit, &QLineEdit::textChanged, this, &dlg_editPCClass::notifyTextChanged);
-	connect(buttonBox, &QDialogButtonBox::accepted, this, &dlg_editPCClass::accept);
-	connect(buttonBox, &QDialogButtonBox::rejected, this, &dlg_editPCClass::reject);
-}
-
-QString dlg_editPCClass::getClassInfo(QWidget *parent, const QString &title, const QString &text, QColor *color, bool *ok)
-{
-	dlg_editPCClass dialog(parent);
+	iAClassEditDlg dialog;
 	dialog.setWindowTitle(title);
 	dialog.setTextValue(text);
 	dialog.setColor(color);
 
-	int ret = dialog.exec();
-	if(ok)
-		*ok = !!ret;
-	if(ret)
+	ok = dialog.exec() == QDialog::Accepted;
+	if (ok)
 	{
 		dialog.getColor(color);
-		return QString ("%1,%2,%3,%4").arg(dialog.getTextValue()).
-											arg(dialog.dcolor.red()).
-											arg(dialog.dcolor.green()).
-											arg(dialog.dcolor.blue());
+		return dialog.getTextValue();
 	}
 	else
 	{
@@ -106,37 +77,32 @@ QString dlg_editPCClass::getClassInfo(QWidget *parent, const QString &title, con
 	}
 }
 
-void dlg_editPCClass::setTextValue(const QString &text)
+void iAClassEditDlg::setTextValue(const QString& text)
 {
 	nameEdit->setText(text);
 }
 
-QString dlg_editPCClass::getTextValue()
+QString iAClassEditDlg::getTextValue()
 {
 	return nameEdit->text();
 }
 
-void dlg_editPCClass::setColor(QColor *color)
+void iAClassEditDlg::setColor(QColor const& color)
 {
-	this->dcolor.setRgba(color->rgba());
+	dcolor.setRgba(color.rgba());
 	cColorLabel->setAutoFillBackground(true);
 	QString str = QString("QLabel {background-color: rgba(%1, %2, %3, %4); }")
-		.arg(color->red()).arg(color->green()).arg(color->blue()).arg(color->alpha());
+		.arg(color.red()).arg(color.green()).arg(color.blue()).arg(color.alpha());
 	cColorLabel->setStyleSheet(str);
 }
 
-void dlg_editPCClass::getColor(QColor *color)
+void iAClassEditDlg::getColor(QColor& color)
 {
-	color->setRgba(dcolor.rgba());
+	color.setRgba(dcolor.rgba());
 }
 
-void dlg_editPCClass::getColorDialog()
+void iAClassEditDlg::getColorDialog()
 {
-	QColor gcolor = QColorDialog::getColor(this->dcolor, this, "Set Color", QColorDialog::ShowAlphaChannel);
-	this->setColor(&gcolor);
-}
-
-void dlg_editPCClass::notifyTextChanged()
-{
-	// catch empty text input
+	QColor gcolor = QColorDialog::getColor(dcolor, this, "Set Color", QColorDialog::ShowAlphaChannel);
+	setColor(gcolor);
 }
