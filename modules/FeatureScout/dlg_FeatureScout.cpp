@@ -1348,7 +1348,6 @@ void dlg_FeatureScout::CsvDVSaveButton()
 		disTable->AddColumn(extents.GetPointer());
 		disTable->AddColumn(populations.GetPointer());
 
-		//Writes csv file
 		if (saveFile)
 		{
 			std::ofstream file(getLocalEncodingFileName(filename).c_str(), std::ios::app);
@@ -1867,7 +1866,7 @@ void dlg_FeatureScout::showScatterPlot()
 void dlg_FeatureScout::showPCSettings()
 {
 	iAParameterDlg::ParamListT params;
-	addParameter(params, "Line Width", iAValueType::Continuous, m_pcLineWidth, 0.001, 100000);
+	addParameter(params, "Line Width", iAValueType::Continuous, QString::number(m_pcLineWidth, 'f', 2), 0.001, 100000);
 	addParameter(params, "Opacity", iAValueType::Discrete, m_pcOpacity, 0, 255);
 	addParameter(params, "Tick Count", iAValueType::Discrete, m_pcTickCount, 0, 255);
 	addParameter(params, "Font Size", iAValueType::Discrete, m_pcFontSize, 0, 255);
