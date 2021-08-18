@@ -1058,9 +1058,15 @@ void iAScatterPlot::drawPoints( QPainter &painter )
 		drawPoint(painter, p0d[i], p1d[i], ptRad, color);
 		++m_curVisiblePts;
 	}
-	auto const& selInds = m_viewData->filteredSelection(m_splomData);
+	// Draw selected points:
+	auto const& selInds = m_viewData->selection();
 	for (size_t idx : selInds)
 	{
+		if (!m_viewData->matchesFilter(m_splomData, idx))
+		{
+			LOG(lvlDebug, QString("Point %1 does not match current filter but is selected anyway!").arg(idx));
+			continue;
+		}
 		drawPoint(painter, p0d[idx], p1d[idx], ptRad, settings.selectionColor);
 	}
 
