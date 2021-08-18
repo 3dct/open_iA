@@ -21,9 +21,9 @@
 #include "dlg_FeatureScout.h"
 
 #include "dlg_blobVisualization.h"
-#include "dlg_editPCClass.h"
 #include "iABlobCluster.h"
 #include "iABlobManager.h"
+#include "iAClassEditDlg.h"
 #include "iAFeatureScoutSPLOM.h"
 #include "iAFSColorMaps.h"
 #include "iAMeanObject.h"
@@ -1025,9 +1025,7 @@ void dlg_FeatureScout::ClassAddButton()
 	QColor cColor = getClassColor(cid);
 
 	bool ok;
-
-	// class name and color input when calling AddClassDialog.
-	cText = dlg_editPCClass::getClassInfo(0, "FeatureScout", cText, &cColor, &ok).section(',', 0, 0);
+	cText = iAClassEditDlg::getClassInfo("FeatureScout: Add Class", cText, cColor, ok);
 	if (!ok)
 	{
 		return;
@@ -1350,7 +1348,6 @@ void dlg_FeatureScout::CsvDVSaveButton()
 		disTable->AddColumn(extents.GetPointer());
 		disTable->AddColumn(populations.GetPointer());
 
-		//Writes csv file
 		if (saveFile)
 		{
 			std::ofstream file(getLocalEncodingFileName(filename).c_str(), std::ios::app);
@@ -1869,7 +1866,7 @@ void dlg_FeatureScout::showScatterPlot()
 void dlg_FeatureScout::showPCSettings()
 {
 	iAParameterDlg::ParamListT params;
-	addParameter(params, "Line Width", iAValueType::Continuous, m_pcLineWidth, 0.001, 100000);
+	addParameter(params, "Line Width", iAValueType::Continuous, QString::number(m_pcLineWidth, 'f', 2), 0.001, 100000);
 	addParameter(params, "Opacity", iAValueType::Discrete, m_pcOpacity, 0, 255);
 	addParameter(params, "Tick Count", iAValueType::Discrete, m_pcTickCount, 0, 255);
 	addParameter(params, "Font Size", iAValueType::Discrete, m_pcFontSize, 0, 255);
@@ -2066,12 +2063,12 @@ void dlg_FeatureScout::classDoubleClicked(const QModelIndex& index)
 	if (index.parent().row() == -1 && index.isValid())
 	{
 		item = m_classTreeModel->item(index.row(), 0);
-		// Surpresses changeability items (class level) after dlg_editPCClass dialog.
+		// Surpresses changeability items (class level) after iAClassEditDlg dialog.
 		m_classTreeModel->itemFromIndex(index)->setEditable(false);
 	}
 	else if (index.parent().row() != -1 && index.isValid())
 	{	// An item was clicked.
-		// Surpresses changeability of items (single fiber level) after dlg_editPCClass dialog.
+		// Surpresses changeability of items (single fiber level) after iAClassEditDlg dialog.
 		m_classTreeModel->itemFromIndex(index)->setEditable(false);
 		return;
 	}
@@ -2090,7 +2087,7 @@ void dlg_FeatureScout::classDoubleClicked(const QModelIndex& index)
 		QString old_cText = item->text();
 		QColor new_cColor = old_cColor;
 		QString new_cText = old_cText;
-		new_cText = dlg_editPCClass::getClassInfo(0, "Class Explorer", new_cText, &new_cColor, &ok).section(',', 0, 0);
+		new_cText = iAClassEditDlg::getClassInfo("FeatureScout: Edit Class", new_cText, new_cColor, ok);
 
 		if (ok && (old_cText.compare(new_cText) != 0 || new_cColor != old_cColor))
 		{

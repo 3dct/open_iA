@@ -141,42 +141,36 @@ template<class T> void calcFeatureCharacteristics_template(iAConnector *image, i
 		{
 			continue;
 		}
-
-		std::vector<double> eigenvalue( 3 );
-		std::vector<double> eigenvector( 3 );
-		std::vector<double> centroid( 3 );
-		int dimX, dimY, dimZ;
-		double x1, x2, y1, y2, z1, z2, xm, ym, zm, phi, theta, a11, a22, a33, a12, a13, a23,
-			majorlength, minorlength, half_length, dx, dy, dz;
-
 		// Calculating start and and point of the pore's major principal axis
-		eigenvalue = labelGeometryImageFilter->GetEigenvalues( labelValue );
+		auto eigenvalue = labelGeometryImageFilter->GetEigenvalues(labelValue);
 		auto maxEigenvalue = std::max_element( std::begin( eigenvalue ), std::end( eigenvalue ) );
 		int maxEigenvaluePos = std::distance( std::begin( eigenvalue ), maxEigenvalue );
 
+		std::vector<double> eigenvector(3);
 		eigenvector[0] = labelGeometryImageFilter->GetEigenvectors( labelValue )[0][maxEigenvaluePos];
 		eigenvector[1] = labelGeometryImageFilter->GetEigenvectors( labelValue )[1][maxEigenvaluePos];
 		eigenvector[2] = labelGeometryImageFilter->GetEigenvectors( labelValue )[2][maxEigenvaluePos];
+		std::vector<double> centroid(3);
 		centroid[0] = labelGeometryImageFilter->GetCentroid( labelValue )[0];
 		centroid[1] = labelGeometryImageFilter->GetCentroid( labelValue )[1];
 		centroid[2] = labelGeometryImageFilter->GetCentroid( labelValue )[2];
 
-		half_length = labelGeometryImageFilter->GetMajorAxisLength( labelValue ) / 2.0;
+		double half_length = labelGeometryImageFilter->GetMajorAxisLength( labelValue ) / 2.0;
 
-		x1 = centroid[0] + half_length * eigenvector[0];
-		y1 = centroid[1] + half_length * eigenvector[1];
-		z1 = centroid[2] + half_length * eigenvector[2];
-		x2 = centroid[0] - half_length * eigenvector[0];
-		y2 = centroid[1] - half_length * eigenvector[1];
-		z2 = centroid[2] - half_length * eigenvector[2];
+		double x1 = centroid[0] + half_length * eigenvector[0];
+		double y1 = centroid[1] + half_length * eigenvector[1];
+		double z1 = centroid[2] + half_length * eigenvector[2];
+		double x2 = centroid[0] - half_length * eigenvector[0];
+		double y2 = centroid[1] - half_length * eigenvector[1];
+		double z2 = centroid[2] - half_length * eigenvector[2];
 
 		// Preparing orientation and tensor calculation
-		dx = x1 - x2;
-		dy = y1 - y2;
-		dz = z1 - z2;
-		xm = ( x1 + x2 ) / 2.0f;
-		ym = ( y1 + y2 ) / 2.0f;
-		zm = ( z1 + z2 ) / 2.0f;
+		double dx = x1 - x2;
+		double dy = y1 - y2;
+		double dz = z1 - z2;
+		double xm = ( x1 + x2 ) / 2.0f;
+		double ym = ( y1 + y2 ) / 2.0f;
+		double zm = ( z1 + z2 ) / 2.0f;
 
 		if ( dz < 0 )
 		{
@@ -185,14 +179,14 @@ template<class T> void calcFeatureCharacteristics_template(iAConnector *image, i
 			dz = z2 - z1;
 		}
 
-		phi = asin( dy / sqrt( dx*dx + dy*dy ) );
-		theta = acos( dz / sqrt( dx*dx + dy*dy + dz*dz ) );
-		a11 = cos( phi )*cos( phi )*sin( theta )*sin( theta );
-		a22 = sin( phi )*sin( phi )*sin( theta )*sin( theta );
-		a33 = cos( theta )*cos( theta );
-		a12 = cos( phi )*sin( theta )*sin( theta )*sin( phi );
-		a13 = cos( phi )*sin( theta )*cos( theta );
-		a23 = sin( phi )*sin( theta )*cos( theta );
+		double phi = asin( dy / sqrt( dx*dx + dy*dy ) );
+		double theta = acos( dz / sqrt( dx*dx + dy*dy + dz*dz ) );
+		double a11 = cos( phi )*cos( phi )*sin( theta )*sin( theta );
+		double a22 = sin( phi )*sin( phi )*sin( theta )*sin( theta );
+		double a33 = cos( theta )*cos( theta );
+		double a12 = cos( phi )*sin( theta )*sin( theta )*sin( phi );
+		double a13 = cos( phi )*sin( theta )*cos( theta );
+		double a23 = sin( phi )*sin( theta )*cos( theta );
 
 		phi = ( phi*180.0f ) / vtkMath::Pi();
 		theta = ( theta*180.0f ) / vtkMath::Pi();
@@ -216,11 +210,11 @@ template<class T> void calcFeatureCharacteristics_template(iAConnector *image, i
 			a13 = 0.0;
 			a23 = 0.0;
 		}
-		majorlength = labelGeometryImageFilter->GetMajorAxisLength( labelValue );
-		minorlength = labelGeometryImageFilter->GetMinorAxisLength( labelValue );
-		dimX = abs( labelGeometryImageFilter->GetBoundingBox( labelValue )[0] - labelGeometryImageFilter->GetBoundingBox( labelValue )[1] ) + 1;
-		dimY = abs( labelGeometryImageFilter->GetBoundingBox( labelValue )[2] - labelGeometryImageFilter->GetBoundingBox( labelValue )[3] ) + 1;
-		dimZ = abs( labelGeometryImageFilter->GetBoundingBox( labelValue )[4] - labelGeometryImageFilter->GetBoundingBox( labelValue )[5] ) + 1;
+		double majorlength = labelGeometryImageFilter->GetMajorAxisLength( labelValue );
+		double minorlength = labelGeometryImageFilter->GetMinorAxisLength( labelValue );
+		int dimX = abs( labelGeometryImageFilter->GetBoundingBox( labelValue )[0] - labelGeometryImageFilter->GetBoundingBox( labelValue )[1] ) + 1;
+		int dimY = abs( labelGeometryImageFilter->GetBoundingBox( labelValue )[2] - labelGeometryImageFilter->GetBoundingBox( labelValue )[3] ) + 1;
+		int dimZ = abs( labelGeometryImageFilter->GetBoundingBox( labelValue )[4] - labelGeometryImageFilter->GetBoundingBox( labelValue )[5] ) + 1;
 
 		// Calculation of other pore characteristics and writing the csv file
 		ShapeLabelObjectType *labelObject = labelMap->GetNthLabelObject( labelValue -1); // debug -1 delated	// labelMap index contaions first pore at 0
