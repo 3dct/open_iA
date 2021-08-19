@@ -34,7 +34,7 @@
 #include <QSettings>
 #include <QTextStream>
 
-namespace csvRegKeys
+namespace
 {
 	//Names for registry
 	static const QString DefaultFormat = "DefaultFormat";
@@ -82,7 +82,7 @@ dlg_CSVInput::dlg_CSVInput(bool volumeDataAvailable, QWidget * parent/* = 0,*/, 
 	m_mappingBoxes.push_back(m_ui->cmbbox_col_DimensionX);
 	m_mappingBoxes.push_back(m_ui->cmbbox_col_DimensionY);
 	m_mappingBoxes.push_back(m_ui->cmbbox_col_DimensionZ);
-	m_ui->cb_AdvancedMode->setChecked(loadGeneralSetting(csvRegKeys::AdvancedMode).toBool());
+	m_ui->cb_AdvancedMode->setChecked(loadGeneralSetting(AdvancedMode).toBool());
 	for (int i = 0; i < iACsvConfig::VisTypeCount; ++i)
 	{
 		m_ui->cmbbox_VisualizeAs->addItem(MapVisType2Str(static_cast<iACsvConfig::VisualizationType>(i)));
@@ -132,7 +132,7 @@ void dlg_CSVInput::initParameters()
 	}
 	m_ui->cmbbox_Format->addItems(formatEntries);
 	// load default format, and if that fails, load first format if available:
-	if (!loadFormatFromRegistry(loadGeneralSetting(csvRegKeys::DefaultFormat).toString()) && formatEntries.length() > 0)
+	if (!loadFormatFromRegistry(loadGeneralSetting(DefaultFormat).toString()) && formatEntries.length() > 0)
 	{
 		loadFormatFromRegistry(formatEntries[0]);
 	}
@@ -192,9 +192,9 @@ void dlg_CSVInput::okBtnClicked()
 	}
 	if (!m_ui->cmbbox_Format->currentText().isEmpty())
 	{
-		saveGeneralSetting(csvRegKeys::DefaultFormat, m_ui->cmbbox_Format->currentText());
+		saveGeneralSetting(DefaultFormat, m_ui->cmbbox_Format->currentText());
 	}
-	saveGeneralSetting(csvRegKeys::AdvancedMode, m_ui->cb_AdvancedMode->isChecked());
+	saveGeneralSetting(AdvancedMode, m_ui->cb_AdvancedMode->isChecked());
 	accept();
 }
 

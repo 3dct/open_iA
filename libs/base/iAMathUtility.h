@@ -31,8 +31,8 @@
 #include <vector>
 
 //! Make sure the given value is inside the given range.
-//! @param min the minimum value which should be returned
-//! @param max the maximum value which should be returned
+//! @param minVal the minimum value which should be returned
+//! @param maxVal the maximum value which should be returned
 //! @param value the value to check
 //! @return min if the given value is smaller or equal to min,
 //!         max if the given value is bigger or equal to max,
