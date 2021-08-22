@@ -64,29 +64,58 @@ public:
 	//! @deprecated should be set automatically - if not it's a bug that needs to be fixed inside the class, not by setting it from externally
 	void setYBounds(DataType yMin, DataType yMax);
 
-	//! create a histogram for a vtk image
+	//! create a histogram for a vtk image.
+	//! @param name the name of the plot
+	//! @param img a pointer to the vtk image for which to create the histogram
+	//! @param numBin the number of bins the data will be split into
+	//! @param imageInfo optional iAImageInfo struct that will be filled with the statistical information determined while computing the histogram
 	static QSharedPointer<iAHistogramData> create(QString const& name,
 		vtkImageData* img, size_t numBin, iAImageInfo* imageInfo = nullptr);
-	//! create a histogram for the given (raw) data vector
+	//! create a histogram for the given (raw) data vector.
+	//! @param name the name of the plot
+	//! @param type the type of the data values (continuous or discrete)
+	//! @param data the vector containing the raw data values
+	//! @param numBin the number of bins the data will be split into
+	//! @param minValue the minimum value in the data values (performance improvement if both minValue and maxValue are given; if left out, it is determined automatically)
+	//! @param maxValue the maximum value in the data values (performance improvement if both minValue and maxValue are given; if left out, it is determined automatically)
 	static QSharedPointer<iAHistogramData> create(QString const& name, iAValueType type,
 		const std::vector<DataType>& data, size_t numBin,
 		DataType minValue=std::numeric_limits<DataType>::infinity(),
 		DataType maxValue=std::numeric_limits<DataType>::infinity());
-	//! Create an empty histogram (with numBin bins, initialized to 0, and the given range).
+	//! Create an empty histogram.
 	//! Useful if you need a custom way of creating a histogram; use setBin to populate the values.
+	//! @param name the name of the plot
+	//! @param type the type of the data values (continuous or discrete)
+	//! @param minX minimum value in the data values
+	//! @param maxX minimum value in the data values
+	//! @param numBin the number of bins in the new histogram data (all initialized to 0).
 	static QSharedPointer<iAHistogramData> create(QString const& name, iAValueType type,
 		DataType minX, DataType maxX, size_t numBin);
 	//! Create from already computed histogram data.
-	//! @deprecated (because of data ownership issues, see below)
+	//! @deprecated (because of data ownership issues, see notes for histoData parameter)
+	//! @param name the name of the plot
+	//! @param type the type of the data values (continuous or discrete)
+	//! @param minX minimum value in the data values
+	//! @param maxX minimum value in the data values
 	//! @param numBin the number of bins - the number of items contained in histoData
 	//! @param histoData the histogram frequencies. note that the class DOES NOT take ownership of the given array:
 	//!        you have to delete the array manually!
 	static QSharedPointer<iAHistogramData> create(QString const& name, iAValueType type,
 		DataType minX, DataType maxX, size_t numBin, DataType* histoData);
 	//! Create from already computed histogram data in a std::vector.
+	//! @param name the name of the plot
+	//! @param type the type of the data values (continuous or discrete)
+	//! @param minX minimum value in the data values
+	//! @param maxX minimum value in the data values
+	//! @param histoData the histogram frequencies
 	static QSharedPointer<iAHistogramData> create(QString const& name, iAValueType type,
 		DataType minX, DataType maxX, std::vector<DataType> const& histoData);
 	//! Create from already computed histogram data in a QVector.
+	//! @param name the name of the plot
+	//! @param type the type of the data values (continuous or discrete)
+	//! @param minX minimum value in the data values
+	//! @param maxX minimum value in the data values
+	//! @param histoData the histogram frequencies
 	static QSharedPointer<iAHistogramData> create(QString const& name, iAValueType type,
 		DataType minX, DataType maxX, QVector<DataType> const& histoData);
 
