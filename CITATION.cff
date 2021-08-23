@@ -1,0 +1,23 @@
+cff-version: 1.2.0
+message: "If you want to reference the latest version of open_iA, please cite it as below. For a generic citation of open_iA, see https://github.com/3dct/open_ia/wiki#references--citing-open_ia"
+authors:
+- family-names: "Fröhler"
+  given-names: "Bernhard"
+  orcid: "https://orcid.org/0000-0003-1271-0838"
+- family-names: "Weinberger"
+  given-names: "Patrick"
+- family-names: "Heim"
+  given-names: "Anja"
+  orcid: "https://orcid.org/0000-0002-3670-5403"
+- family-names: "Gall"
+  given-names: "Alexander"
+  orcid: "https://orcid.org/0000-0002-3649-7368"
+- family-names: "Heinzl"
+  given-names: "Christoph"
+  orcid: "https://orcid.org/0000-0002-3173-8871"
+title: "open_iA"
+version: 2021.08
+doi: 10.5281/zenodo.5227268
+date-released: 2021-08-20
+license: GPL-3.0-or-later
+url: "https://github.com/3dct/open_iA"
