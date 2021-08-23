@@ -1,8 +1,8 @@
 /*************************************  open_iA  ************************************ *
 * **********   A tool for visual analysis and processing of 3D CT images   ********** *
 * *********************************************************************************** *
-* Copyright (C) 2016-2019  C. Heinzl, M. Reiter, A. Reh, W. Li, M. Arikan, Ar. &  Al. *
-*                          Amirkhanov, J. Weissenböck, B. Fröhler, M. Schiwarth       *
+* Copyright (C) 2016-2021  C. Heinzl, M. Reiter, A. Reh, W. Li, M. Arikan, Ar. &  Al. *
+*                 Amirkhanov, J. Weissenböck, B. Fröhler, M. Schiwarth, P. Weinberger *
 * *********************************************************************************** *
 * This program is free software: you can redistribute it and/or modify it under the   *
 * terms of the GNU General Public License as published by the Free Software           *
@@ -20,8 +20,22 @@
 * ************************************************************************************/
 #pragma once
 
+// FiAKEr:
+#include "iAFiberResult.h"            // for iAFiberSimilarity -> REFACTOR!!!
+#include "iAFiberResultUIData.h"
 #include "iASelectionInteractorStyle.h" // for iASelectionProvider
-#include "iAVtkWidgetFwd.h"
+#include "ui_FiAKErSettings.h"
+
+// FeatureScout:
+#include <iACsvConfig.h>
+
+// guibase:
+#include <iAQVTKWidget.h>
+#include <qthelper/iAQTtoUIConnector.h>
+#include <qthelper/iAWidgetSettingsMapper.h>
+
+// base
+#include <iASettings.h>
 
 #include <vtkSmartPointer.h>
 
@@ -32,10 +46,9 @@
 #include <vector>
 
 class iAFiberResultsCollection;
-class iAFiberCharUIData;
-class iAJobListView;
 class iAStackedBarChart;
 
+class iA3DColoredPolyObjectVis;
 class iA3DCylinderObjectVis;
 
 class iAChartWidget;
@@ -43,15 +56,16 @@ class iAColorTheme;
 class iADockWidgetWrapper;
 class iAMapper;
 class iAQSplom;
-class iARendererManager;
+class iARendererViewSync;
 class iARefDistCompute;
-class iASPLOMData;
+class iASensitivityInfo;
 class iAVolumeRenderer;
-class MainWindow;
+class iAMainWindow;
+class iAMdiChild;
 
 class vtkColorTransferFunction;
+class vtkCubeSource;
 class vtkPiecewiseFunction;
-class vtkImageData;
 class vtkTable;
 
 class QActionGroup;
@@ -60,37 +74,53 @@ class QCheckBox;
 class QComboBox;
 class QGridLayout;
 class QLabel;
+class QLineEdit;
 class QListView;
 class QModelIndex;
+class QSettings;
 class QSlider;
 class QSpinBox;
 class QStandardItemModel;
 class QTimer;
 class QTreeView;
 class QVBoxLayout;
-//class QWebEngineView;
 
-class iAFiAKErController : public QMainWindow, public iASelectionProvider
+class iAFixedAspectWidget;
+class iASignallingWidget;
+
+
+class iAFiAKErController: public QObject, public iASelectionProvider
 {
 	Q_OBJECT
 public:
-	typedef std::vector<std::vector<size_t> > SelectionType;
-	iAFiAKErController(MainWindow* mainWnd);
-	void start(QString const & path, QString const & configName, double stepShift);
-	~iAFiAKErController() override;
+	typedef iAQTtoUIConnector<QWidget, Ui_FIAKERSettings> iAFIAKERSettingsWidget;
+	typedef std::vector<std::vector<size_t>> SelectionType;
+	static const QString FIAKERProjectID;
+
+	iAFiAKErController(iAMainWindow* mainWnd, iAMdiChild* mdiChild);
+
+	void loadProject(QSettings const & projectFile, QString const & fileName);
+	void start(QString const & path, iACsvConfig const & config, double stepShift, bool useStepData, bool showPreview, bool createCharts);
 	std::vector<std::vector<size_t> > & selection() override;
-	static void loadAnalysis(MainWindow* mainWnd, QString const & folder);
 	void toggleDockWidgetTitleBars();
 	void toggleSettings();
+	//! Load given settings.
+	//! @param settings needs to be passed by value, as it's used in a lambda!
+	void loadSettings(iASettings settings);
+	void saveSettings(QSettings & settings);
+	//! Load additional data/state - a potentially set reference or sensitivity data
+	//! @param settings needs to be passed by value, as it's used in a lambda!
+	void loadAdditionalData(iASettings settings, QString projectFileName);
+	void saveProject(QSettings& projectFile, QString  const& fileName);
 signals:
 	void setupFinished();
-public slots:
-	void toggleFullScreen();
+	void referenceComputed();
+	void fiberSelectionChanged(SelectionType const& selection);
 private slots:
 	void toggleVis(int);
 	void toggleBoundingBox(int);
 	void referenceToggled();
-	void miniMouseEvent(QMouseEvent* ev);
+	//void previewMouseClick(Qt::MouseButton buttons, Qt::KeyboardModifiers modifiers);
 	void optimStepSliderChanged(int);
 	void mainOpacityChanged(int);
 	void contextOpacityChanged(int);
@@ -105,7 +135,6 @@ private slots:
 	void refDistAvailable();
 	void optimDataToggled(int);
 	void resultsLoaded();
-	void resultsLoadFailed(QString const & path);
 	void visualizeCylinderSamplePoints();
 	void hideSamplePoints();
 	void showReferenceToggled();
@@ -118,33 +147,46 @@ private slots:
 	void selectionModeChanged(int);
 	void distributionChoiceChanged(int index);
 	void histogramBinsChanged(int value);
-	void distributionColorThemeChanged(QString const & colorThemeName);
-	void resultColorThemeChanged(QString const & colorThemeName);
-	void stackedBarColorThemeChanged(QString const & colorThemeName);
-	void saveAnalysisClick();
-	void loadAnalysisClick();
+	void distributionColorThemeChanged(int index);
+	void resultColorThemeChanged(int index);
+	void stackedBarColorThemeChanged(int index);
 	void showReferenceInChartToggled();
+	void linkPreviewsToggled();
 	void distributionChartTypeChanged(int);
 	void diameterFactorChanged(int);
 	void contextDiameterFactorChanged(int);
 	void contextSpacingChanged(double value);
 	void showFiberContextChanged(int);
 	void mergeFiberContextBoxesChanged(int);
+	void showWireFrameChanged(int);
+	void showLinesChanged(int);
+	void showBoundingBoxChanged(int);
+	void updateBoundingBox();
 	// result view:
 	void stackedColSelect();
 	void switchStackMode(bool mode);
 	void colorByDistrToggled();
-	void setProjectReference();
-	void loadVolume(QString const & fileName);
+	void exportDissimilarities();
+	void sortByCurrentWeighting();
+	// settings view:
+	void update3D();
+	void applyRenderSettings();
+	// sensitivity:
+	void computeSensitivity();
+	void resetSensitivity();
+	// 3D view:
+	void showMainVis(size_t resultID, bool state);
+
+	void selectFibersFromSensitivity(SelectionType const& selection);
 private:
+	bool loadReferenceInternal(iASettings settings);
 	void changeDistributionSource(int index);
 	void updateHistogramColors();
-	QColor getResultColor(int resultID);
+	QColor getResultColor(size_t resultID);
 	void getResultFiberIDFromSpmID(size_t spmID, size_t & resultID, size_t & fiberID);
 	void clearSelection();
 	void newSelection(QString const & source);
 	size_t selectionSize() const;
-	void sortSelection(QString const & source);
 	void showSelectionInPlots();
 	void showSelectionInPlot(int chartID);
 	void showSelectionIn3DViews();
@@ -152,22 +194,24 @@ private:
 	bool isAnythingSelected() const;
 	void loadStateAndShow();
 	void addInteraction(QString const & interaction);
-	void toggleOptimStepChart(int index, bool visible);
-	QString diffName(int chartID) const;
+	void toggleOptimStepChart(size_t index, bool visible);
+	QString diffName(size_t chartID) const;
 	QString resultName(size_t resultID) const;
 	QString stackedBarColName(int index) const;
 	void setOptimStep(int optimStep);
 	void showSelectionDetail();
 	void hideSamplePointsPrivate();
 	void showSpatialOverview();
-	void setReference(size_t referenceID);
-	void showMainVis(size_t resultID, int state);
+	void setReference(size_t referenceID, std::vector<std::pair<int, bool>> measures, int optimizationMeasure, int bestMeasure);
 	void updateRefDistPlots();
 	bool matchQualityVisActive() const;
 	void updateFiberContext();
+	//void startFeatureScout(int resultID, iAMdiChild* newChild);
+	void visitAllVisibleVis(std::function<void(QSharedPointer<iA3DColoredPolyObjectVis>, size_t resultID)> func);
+	void setClippingPlanes(QSharedPointer<iA3DColoredPolyObjectVis> vis);
 
-	QWidget* setupMain3DView();
-	QWidget* setupSettingsView();
+	void setupMain3DView();
+	void setupSettingsView();
 	QWidget* setupOptimStepView();
 	QWidget* setupResultListView();
 	QWidget* setupProtocolView();
@@ -175,61 +219,82 @@ private:
 
 	//! all data about the fiber characteristics optimization results that are analyzed
 	QSharedPointer<iAFiberResultsCollection> m_data;
-	std::vector<iAFiberCharUIData> m_resultUIs;
+	std::vector<iAFiberResultUIData> m_resultUIs;
 
-	QSharedPointer<iARendererManager> m_renderManager;
+	QSharedPointer<iARendererViewSync> m_renderManager;
 	vtkSmartPointer<iASelectionInteractorStyle> m_style;
 	iAColorTheme const * m_resultColorTheme;
-	MainWindow* m_mainWnd;
+	iAMainWindow* m_mainWnd;
+	iAMdiChild* m_mdiChild;
 	size_t m_referenceID;
 	SelectionType m_selection;
 	vtkSmartPointer<vtkTable> m_refVisTable;
+	iACsvConfig m_config;
+	QString m_colorByThemeName;
+	bool m_useStepData, m_showPreviews, m_showCharts;
+	bool m_showFiberContext, m_mergeContextBoxes, m_showWireFrame, m_showLines;
+	double m_contextSpacing;
+	QString m_parameterFile; //! (.csv-)file containing eventual parameters used in creating the loaded results
+	std::vector<std::vector<double>> m_paramValues;
+
+	//! number of bins in histograms in result list
+	int m_histogramBins;
+	//! opacity (0..255) of current selection and of context
+	int m_selectionOpacity, m_contextOpacity;
+	//! factors for the diameter of the current selection and of the context (< 1 -> shrink, > 1 extend, = 1.0 no change)
+	double m_diameterFactor, m_contextDiameterFactor;
+	//! column index for the columns of the result list:
+	int m_nameActionColumn, m_previewColumn, m_histogramColumn, m_stackedBarColumn;
 
 	QSharedPointer<iA3DCylinderObjectVis> m_nearestReferenceVis;
 
-	vtkSmartPointer<vtkActor> m_sampleActor;
-	QString m_configName;
 	QTimer * m_playTimer;
 	iARefDistCompute* m_refDistCompute;
-	QString m_colorByThemeName;
+	iAWidgetMap m_settingsWidgetMap;
 
-	bool m_showFiberContext, m_mergeContextBoxes;
-	double m_contextSpacing;
-
-	// Elements of the different views:
+	// The different views and their elements:
 	std::vector<iADockWidgetWrapper*> m_views;
 	enum {
-		JobView, ResultListView, Main3DView, OptimStepChart, SPMView, ProtocolView, SelectionView, SettingsView, DockWidgetCount
+		ResultListView, OptimStepChart, SPMView, ProtocolView, SelectionView, SettingsView, DockWidgetCount
 	};
-	// Main Renderer:
-	iAVtkWidget* m_mainRenderer;
+	// 3D View:
+	void ensureMain3DViewCreated(size_t resultID);
+	vtkRenderWindow* m_main3DWin;
 	vtkSmartPointer<vtkRenderer> m_ren;
-	QLabel * m_defaultOpacityLabel, *m_contextOpacityLabel, *m_diameterFactorLabel, *m_contextDiameterFactorLabel;
-	QSlider* m_defaultOpacitySlider, *m_contextOpacitySlider;
 	QCheckBox* m_chkboxShowReference;
 	QCheckBox* m_chkboxShowLines;
 	QSpinBox* m_spnboxReferenceCount;
-	QComboBox* m_cmbboxSimilarityMeasure;
 	vtkSmartPointer<vtkActor> m_refLineActor;
 	QWidget* m_showReferenceWidget;
 	std::vector<vtkSmartPointer<vtkActor> > m_contextActors;
-	size_t m_projectReferenceID;
 	iAMapper* m_diameterFactorMapper;
-	QSharedPointer<iAVolumeRenderer> m_refRenderer;
-	vtkSmartPointer<vtkImageData> m_refImg;
-	vtkSmartPointer<vtkColorTransferFunction> m_refCF;
-	vtkSmartPointer<vtkPiecewiseFunction> m_refOF;
+	vtkSmartPointer<vtkActor> m_sampleActor;
+
+	vtkSmartPointer<vtkCubeSource> m_customBoundingBoxSource;
+	vtkSmartPointer<vtkPolyDataMapper> m_customBoundingBoxMapper;
+	vtkSmartPointer<vtkActor> m_customBoundingBoxActor;
 
 	// Results List:
 	void addStackedBar(int index);
 	void removeStackedBar(int index);
+	void updateResultList();
 	iAStackedBarChart* m_stackedBarsHeaders;
 	QGridLayout* m_resultsListLayout;
 	QCheckBox* m_colorByDistribution;
 	QComboBox* m_distributionChoice;
-	QCheckBox* m_showReferenceInChart;
-	QComboBox* m_distributionChartType;
-	QComboBox* m_resultColorThemeChoice;
+	iAQCheckBoxVector m_showResultVis;
+	iAQCheckBoxVector m_showResultBox;
+	QMap<size_t, int> m_resultListSorting;
+
+	// Settings View:
+	void addChartCB();
+	iAFIAKERSettingsWidget* m_settingsView;
+	// 3D view part
+	iAQLineEditVector m_teBoundingBox;
+	bool m_cameraInitialized;
+
+	// Optimization steps part
+	iAQCheckBoxVector m_chartCB;
 
 	// Scatter plot matrix:
 	void setSPMColorByResult();
@@ -240,11 +305,7 @@ private:
 	std::vector<iAChartWidget*> m_optimStepChart;
 	QSlider* m_optimStepSlider;
 	QVBoxLayout* m_optimChartLayout;
-	std::vector<QCheckBox*> m_chartCB;
-	size_t ChartCount;
-
-	// Jobs:
-	iAJobListView * m_jobs;
+	size_t m_chartCount;
 
 	// Interaction Protocol:
 	QTreeView* m_interactionProtocol;
@@ -256,4 +317,8 @@ private:
 	QStandardItemModel* m_selectionListModel;
 	QStandardItemModel* m_selectionDetailModel;
 	std::vector<SelectionType> m_selections;
+
+	// Sensitivity
+	QSharedPointer<iASensitivityInfo> m_sensitivityInfo;
+	void connectSensitivity();
 };

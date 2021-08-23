@@ -1,8 +1,8 @@
 /*************************************  open_iA  ************************************ *
 * **********   A tool for visual analysis and processing of 3D CT images   ********** *
 * *********************************************************************************** *
-* Copyright (C) 2016-2019  C. Heinzl, M. Reiter, A. Reh, W. Li, M. Arikan, Ar. &  Al. *
-*                          Amirkhanov, J. Weissenböck, B. Fröhler, M. Schiwarth       *
+* Copyright (C) 2016-2021  C. Heinzl, M. Reiter, A. Reh, W. Li, M. Arikan, Ar. &  Al. *
+*                 Amirkhanov, J. Weissenböck, B. Fröhler, M. Schiwarth, P. Weinberger *
 * *********************************************************************************** *
 * This program is free software: you can redistribute it and/or modify it under the   *
 * terms of the GNU General Public License as published by the Free Software           *
@@ -21,6 +21,9 @@
 #pragma once
 
 #include <vtkSmartPointer.h>
+#include <vtkTexture.h>
+#include <vtkActor.h>
+#include <vtkSkybox.h>
 
 #include <QObject>
 
@@ -28,6 +31,7 @@ class iAVRMainThread;
 
 class vtkOpenVRRenderer;
 class vtkRenderer;
+class vtkOpenVRRenderWindow;
 
 class iAVREnvironment: public QObject
 {
@@ -35,14 +39,30 @@ class iAVREnvironment: public QObject
 public:
 	iAVREnvironment();
 	vtkRenderer* renderer();
+	iAVRInteractor* interactor();
+	vtkOpenVRRenderWindow* renderWindow();
+	void update();
 	void start();
 	void stop();
+	void createLightKit();
+	double getInitialWorldScale();
 	bool isRunning() const;
 private slots:
 	void vrDone();
 private:
 	vtkSmartPointer<vtkOpenVRRenderer> m_renderer;
 	iAVRMainThread* m_vrMainThread;
+	vtkSmartPointer<vtkOpenVRRenderWindow> m_renderWindow;
+	vtkSmartPointer<iAVRInteractor> m_interactor;
+	vtkSmartPointer<vtkSkybox> skyboxActor;
+	//Stores the world scale at start
+	double m_worldScale;
+
+	void createSkybox(int skyboxImage);
+	vtkSmartPointer<vtkTexture> ReadCubeMap(std::string const& folderPath,
+		std::string const& fileRoot,
+		std::string const& ext, int const& key);
+
 signals:
 	void finished();
 };

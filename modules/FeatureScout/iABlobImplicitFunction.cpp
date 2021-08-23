@@ -1,8 +1,8 @@
 /*************************************  open_iA  ************************************ *
 * **********   A tool for visual analysis and processing of 3D CT images   ********** *
 * *********************************************************************************** *
-* Copyright (C) 2016-2019  C. Heinzl, M. Reiter, A. Reh, W. Li, M. Arikan, Ar. &  Al. *
-*                          Amirkhanov, J. Weissenböck, B. Fröhler, M. Schiwarth       *
+* Copyright (C) 2016-2021  C. Heinzl, M. Reiter, A. Reh, W. Li, M. Arikan, Ar. &  Al. *
+*                 Amirkhanov, J. Weissenböck, B. Fröhler, M. Schiwarth, P. Weinberger *
 * *********************************************************************************** *
 * This program is free software: you can redistribute it and/or modify it under the   *
 * terms of the GNU General Public License as published by the Free Software           *
@@ -32,7 +32,7 @@ iABlobImplicitFunction::iABlobImplicitFunction()
 {
 	m_blobManager = 0;
 
-	mb = NULL;
+	mb = nullptr;
 	mbSize = 0;
 	mbCount = 0;
 	mbExt = 1000;
@@ -52,7 +52,7 @@ void iABlobImplicitFunction::Allocate (const vtkIdType sz,
 	if (mb)
 	{
 		delete mb;
-		mb = NULL;
+		mb = nullptr;
 	}
 	mbCount = 0;
 	mbSize = 0;
@@ -119,23 +119,25 @@ double iABlobImplicitFunction::JustEvaluateFunction (double x[3])
 {
 	LineInfo* line;
 	double value = 0;
-	double pValue, pDist;
+	double pDist;
 	if (this->mbCount == 0)
+	{
 		return 0;
+	}
 
 	line = this->mb;
 	for (unsigned int i = 0; i < this->mbCount; i++, line++)
 	{
-		pValue = line->strength;
 		pDist = DistancePointToLine (line->point1, line->point2, x);
-		if(0 == i)
+		if (0 == i)
+		{
 			value = pDist;
-		else if(pDist <= value)
+		}
+		else if (pDist <= value)
+		{
 			value = pDist;
-		//value += (pValue / pDist);
+		}
 	}
-
-	//printf("EvalFun: %lf, %lf, %lf = %lf\n", x[0], x[1], x[2], value);
 
 	return value;
 }
@@ -145,7 +147,7 @@ double iABlobImplicitFunction::EvaluateFunction (double x[3])
 {
 	double value = JustEvaluateFunction (x);
 
-	if (m_blobManager != NULL)
+	if (m_blobManager != nullptr)
 	{
 		QList<iABlobCluster*>* list = m_blobManager->GetListObBlobClusters();
 		double otherVal;

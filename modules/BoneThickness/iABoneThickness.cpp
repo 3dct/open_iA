@@ -1,8 +1,8 @@
 /*************************************  open_iA  ************************************ *
 * **********   A tool for visual analysis and processing of 3D CT images   ********** *
 * *********************************************************************************** *
-* Copyright (C) 2016-2019  C. Heinzl, M. Reiter, A. Reh, W. Li, M. Arikan, Ar. &  Al. *
-*                          Amirkhanov, J. Weissenböck, B. Fröhler, M. Schiwarth       *
+* Copyright (C) 2016-2021  C. Heinzl, M. Reiter, A. Reh, W. Li, M. Arikan, Ar. &  Al. *
+*                 Amirkhanov, J. Weissenböck, B. Fröhler, M. Schiwarth, P. Weinberger *
 * *********************************************************************************** *
 * This program is free software: you can redistribute it and/or modify it under the   *
 * terms of the GNU General Public License as published by the Free Software           *
@@ -46,6 +46,7 @@
 #include <vtkPolyDataMapper.h>
 #include <vtkPointLocator.h>
 #include <vtkProperty.h>
+#include <vtkRenderWindow.h>
 #include <vtkRenderWindowInteractor.h>
 #include <vtkSphereSource.h>
 #include <vtkTable.h>
@@ -114,7 +115,7 @@ void iABoneThickness::calculate()
 	if (m_pPoints)
 	{
 		// Initialize point locator variable for detecting mesh vertices
-        vtkSmartPointer<vtkPointLocator> pPointLocator(vtkSmartPointer<vtkPointLocator>::New());
+		vtkSmartPointer<vtkPointLocator> pPointLocator(vtkSmartPointer<vtkPointLocator>::New());
 		pPointLocator->SetDataSet(m_pPolyData);
 		pPointLocator->BuildLocator();
 
@@ -129,11 +130,7 @@ void iABoneThickness::calculate()
 		// length of the normal vector for intersection test
 		const double dLength(0.5 * m_dRangeMax);
 
-		// dummy id variable for intersected cells
-		int subId (0);
-
 		// Go through each Landmark
-
 		for (vtkIdType id (0); id < idPoints; ++id)
 		{
 			// Get landmark position
@@ -143,8 +140,6 @@ void iABoneThickness::calculate()
 			// normal vector computed with PC3 of vertex cloud within certain radius around landmark
 			double pNormal[3];
 			getNormalInPoint(pPointLocator, pPoint, pNormal);
-
-			double dThickness(0.0);
 
 			// Allocate intersection variable
 			vtkSmartPointer<vtkPoints> intersectPoints1 = vtkSmartPointer<vtkPoints>::New();	// Intersection of positive normal vector
@@ -198,7 +193,7 @@ void iABoneThickness::calculate()
 					// if landmark is outside of the STL
 					if (flag1 == 1) {
 
-						// the closest of both intersections will be starting point of thickness calculation 
+						// the closest of both intersections will be starting point of thickness calculation
 						if (distance1 < distance2) {
 							intersectPoints1->GetPoint(0, x1);
 							intersectPoints1->GetPoint(1, x2);
@@ -249,7 +244,7 @@ void iABoneThickness::calculate()
 			else {
 				setResults(id, sqrt(vtkMath::Distance2BetweenPoints(x1, x2)), sqrt(vtkMath::Distance2BetweenPoints(pStart, x1)));
 			}
-			
+
 			// Store coordinates in order to draw thickness and projection lines
 			// Projection lines = green
 			// Thickness line = blue
@@ -270,7 +265,7 @@ void iABoneThickness::calculate()
 
 		// Calculate STD of thickness
 		m_dThicknessSTD = 0.0;
-		
+
 		for (int i = 0; i < m_daThickness->GetNumberOfTuples(); ++i) {
 			m_dThicknessSTD += (m_daThickness->GetValue(i) - m_dThicknessMean) * (m_daThickness->GetValue(i) - m_dThicknessMean);
 		}
@@ -287,7 +282,7 @@ void iABoneThickness::calculate()
 
 		// Calculate STD of surface distance
 		m_dSurfaceDistanceSTD = 0.0;
-		
+
 		for (int i = 0; i < m_daDistance->GetNumberOfTuples(); ++i) {
 			m_dSurfaceDistanceSTD += (m_daDistance->GetValue(i) - m_dSurfaceDistanceMean) * (m_daDistance->GetValue(i) - m_dSurfaceDistanceMean);
 		}
@@ -469,8 +464,8 @@ void iABoneThickness::save(const QString& _sFilename) const
 			const double* pPoint(m_pPoints->GetPoint(i));
 
 			tsOut << ii << "," << pPoint[0] << "," << pPoint[1] << "," << pPoint[2]
-				        << "," << m_daDistance->GetTuple1(i) << "," << m_daThickness->GetTuple1(i)
-				        << "," << "\n";
+			      << "," << m_daDistance->GetTuple1(i) << "," << m_daThickness->GetTuple1(i)
+			      << "," << "\n";
 		}
 
 		fFile.close();
@@ -645,7 +640,7 @@ void iABoneThickness::setResults(const int& _iPoint, const double& _dThickness, 
 		m_daThickness->SetTuple1(_iPoint, 0.0);
 		m_daDistance->SetTuple1(_iPoint, 0.0);
 	}
-	
+
 }
 
 

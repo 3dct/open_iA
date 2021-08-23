@@ -1,8 +1,8 @@
 /*************************************  open_iA  ************************************ *
 * **********   A tool for visual analysis and processing of 3D CT images   ********** *
 * *********************************************************************************** *
-* Copyright (C) 2016-2019  C. Heinzl, M. Reiter, A. Reh, W. Li, M. Arikan, Ar. &  Al. *
-*                          Amirkhanov, J. Weissenböck, B. Fröhler, M. Schiwarth       *
+* Copyright (C) 2016-2021  C. Heinzl, M. Reiter, A. Reh, W. Li, M. Arikan, Ar. &  Al. *
+*                 Amirkhanov, J. Weissenböck, B. Fröhler, M. Schiwarth, P. Weinberger *
 * *********************************************************************************** *
 * This program is free software: you can redistribute it and/or modify it under the   *
 * terms of the GNU General Public License as published by the Free Software           *
@@ -21,40 +21,86 @@
 #include "iAGEMSeModuleInterface.h"
 
 #include "iAGEMSeAttachment.h"
+#include "iAGEMSeProject.h"
+#include "iARepresentative.h"
 #include "iASEAFile.h"
 
-#include <dlg_modalities.h>
-#include <iAConsole.h>
+#include <iAConnector.h>
+#include <iALog.h>
+#include <iAFilter.h>
+#include <iAFilterRegistry.h>
 #include <iAModality.h>
-#include <iAModuleDispatcher.h>
-#include <mainwindow.h>
-#include <mdichild.h>
+#include <iAProjectRegistry.h>
+#include <iAMainWindow.h>
+#include <iAMdiChild.h>
 
+#include <QAction>
 #include <QFileDialog>
+#include <QMenu>
 
 #include <cassert>
 
+IAFILTER_DEFAULT_CLASS(iADifferenceMarker);
+
+IAFILTER_CREATE(iADifferenceMarker);
+
+iADifferenceMarker::iADifferenceMarker():
+	iAFilter("Difference marker", "Intensity", "Computes an image where differences are marked with the given marker value.<br/>"
+		"The filter is meant for labelled images; both input images are required to have the same data type. "
+		"It also works for any other voxel data types, but for "
+		"<em>Difference marker value</em> specifies the intensity value that should be used to mark regions"
+		"where the two given images deviate. Where the images are the same, "
+		"this same value will be used in the output image as well.", 2)
+{
+	addParameter("Difference marker value", iAValueType::Continuous);
+	setInputName(1u, "Difference to");
+}
+
+void iADifferenceMarker::performWork(QMap<QString, QVariant> const & params)
+{
+	QVector<iAITKIO::ImagePointer> imgs;
+	imgs.push_back(input()[0]->itkImage());
+	imgs.push_back(input()[1]->itkImage());
+	auto out = CalculateDifferenceMarkers(imgs, params["Difference marker value"].toDouble());
+	if (!out)
+	{
+		addMsg("No output generated, check additional messages in debug log.");
+	}
+	else
+	{
+		addOutput(out);
+	}
+}
+
 iAGEMSeModuleInterface::iAGEMSeModuleInterface():
-	m_toolbar(0)
+	m_toolbar(nullptr)
 {}
 
 void iAGEMSeModuleInterface::Initialize()
 {
-	if (!m_mainWnd)
-		return;
-	QMenu * toolsMenu = m_mainWnd->toolsMenu();
-	QMenu * menuEnsembles = getMenuWithTitle( toolsMenu, tr( "Image Ensembles" ), false );
-	
-	QAction * actionGEMSe = new QAction( tr("GEMSe"), nullptr);
-	AddActionToMenuAlphabeticallySorted(menuEnsembles, actionGEMSe, true);
-	connect(actionGEMSe, SIGNAL(triggered()), this, SLOT(StartGEMSe()));
+	REGISTER_FILTER(iADifferenceMarker);
 
-	QAction * actionPreCalculated = new QAction( tr("Load Segmentation Ensemble in GEMSe"), nullptr );
-	AddActionToMenuAlphabeticallySorted(menuEnsembles, actionPreCalculated, false);
-	connect(actionPreCalculated, SIGNAL(triggered()), this, SLOT(LoadPreCalculatedData()));
+	if (!m_mainWnd)
+	{
+		return;
+	}
+	Q_INIT_RESOURCE(GEMSe);
+
+	iAProjectRegistry::addProject<iAGEMSeProject>(iAGEMSeProject::ID);
+
+	QAction * actionGEMSe = new QAction(tr("GEMSe"), m_mainWnd);
+	m_mainWnd->makeActionChildDependent(actionGEMSe);
+	connect(actionGEMSe, &QAction::triggered, this, &iAGEMSeModuleInterface::startGEMSe);
+
+	QAction * actionPreCalculated = new QAction(tr("GEMSe - Load Ensemble (old)"), m_mainWnd);
+	connect(actionPreCalculated, &QAction::triggered, this, &iAGEMSeModuleInterface::loadPreCalculatedData);
+
+	QMenu* submenu = getOrAddSubMenu(m_mainWnd->toolsMenu(), tr("Image Ensembles"), true);
+	submenu->addAction(actionGEMSe);
+	submenu->addAction(actionPreCalculated);
 }
 
-void iAGEMSeModuleInterface::StartGEMSe()
+void iAGEMSeModuleInterface::startGEMSe()
 {
 	PrepareActiveChild();
 	if (!m_mdiChild)
@@ -62,93 +108,117 @@ void iAGEMSeModuleInterface::StartGEMSe()
 	AttachToMdiChild(m_mdiChild);
 }
 
-iAModuleAttachmentToChild* iAGEMSeModuleInterface::CreateAttachment(MainWindow* mainWnd, MdiChild * child)
+iAModuleAttachmentToChild* iAGEMSeModuleInterface::CreateAttachment(iAMainWindow* mainWnd, iAMdiChild * child)
 {
-	iAGEMSeAttachment* result = iAGEMSeAttachment::create( mainWnd, child);
+	auto result = iAGEMSeAttachment::create( mainWnd, child);
 	if (result)
 	{
-		SetupToolbar();
+		setupToolbar();
 	}
 	return result;
 }
 
-void iAGEMSeModuleInterface::LoadPreCalculatedData()
+void iAGEMSeModuleInterface::loadPreCalculatedData()
 {
 	QString fileName = QFileDialog::getOpenFileName(m_mainWnd,
 		tr("Load Precalculated Sampling & Clustering Data"),
 		m_mainWnd->activeMdiChild() ? m_mainWnd->activeMdiChild()->filePath() : QString(),
-		tr("GEMSe project (*.sea );;") );
-	if (fileName != "")
-	{
-		iASEAFile seaFile(fileName);
-		LoadPreCalculatedData(seaFile);
-	}
+		tr("GEMSe project (*.sea );;All files (*)") );
+	if (fileName.isEmpty())
+		return;
+	loadOldGEMSeProject(fileName);
 }
 
-void iAGEMSeModuleInterface::LoadPreCalculatedData(iASEAFile const & seaFile)
+void iAGEMSeModuleInterface::loadOldGEMSeProject(QString const & fileName)
 {
-	m_mdiChild = m_mainWnd->createMdiChild(false);
-	if (!seaFile.good())
-	{
-		DEBUG_LOG(QString("Precalculated GEMSe data %1 file could not be read.").arg(seaFile.GetSEAFileName()));
-		return;
-	}
 	if (m_seaFile)
 	{
-		DEBUG_LOG("A loading procedure is currently in progress. Please let this finish first.");
+		LOG(lvlWarn, "A loading procedure is currently in progress. Please let this finish first.");
 		return;
 	}
-	m_seaFile = QSharedPointer<iASEAFile>(new iASEAFile(seaFile));
-	connect(m_mdiChild, SIGNAL(fileLoaded()), this, SLOT(continuePreCalculatedDataLoading()));
-	if (!m_mdiChild->loadFile(seaFile.GetModalityFileName(), false))
+	m_seaFile = QSharedPointer<iASEAFile>::create(fileName);
+	if (!m_seaFile->good())
 	{
-		DEBUG_LOG(QString("Failed to load project '%1' referenced from precalculated GEMSe data file %2.")
-			.arg(seaFile.GetModalityFileName())
-			.arg(seaFile.GetSEAFileName()));
+		LOG(lvlError, QString("GEMSe data %1 file could not be read.").arg(m_seaFile->fileName()));
+		m_seaFile.clear();
+		return;
+	}
+	m_mdiChild = m_mainWnd->createMdiChild(false);
+	connect(m_mdiChild, &iAMdiChild::fileLoaded, this, &iAGEMSeModuleInterface::loadGEMSe);
+	if (!m_mdiChild->loadFile(m_seaFile->modalityFileName(), false))
+	{
+		LOG(lvlError, QString("Failed to load project '%1' referenced from precalculated GEMSe data file %2.")
+			.arg(m_seaFile->modalityFileName())
+			.arg(m_seaFile->fileName()));
 		m_seaFile.clear();
 		return;
 	}
 }
 
-void iAGEMSeModuleInterface::continuePreCalculatedDataLoading()
+void iAGEMSeModuleInterface::loadProject(iAMdiChild* mdiChild, QSettings const & metaFile, QString const & fileName)
 {
+	m_mdiChild = mdiChild;
+	m_seaFile = QSharedPointer<iASEAFile>::create(metaFile, fileName);
+	loadGEMSe();
+}
+
+void iAGEMSeModuleInterface::saveProject(QSettings & metaFile, QString const & fileName)
+{
+	iAGEMSeAttachment* gemseAttach = attachment<iAGEMSeAttachment>(m_mdiChild);
+	if (!gemseAttach)
+	{
+		LOG(lvlError, "Could not store project - no GEMSE module attached to current child!");
+		return;
+	}
+	gemseAttach->saveProject(metaFile, fileName);
+}
+
+void iAGEMSeModuleInterface::loadGEMSe()
+{
+	if (!m_seaFile->good())
+	{
+		LOG(lvlError, QString("GEMSe data in file '%1' could not be read.").arg(m_seaFile->fileName()));
+		m_seaFile.clear();
+		return;
+	}
 	// load segmentation explorer:
 	bool result = AttachToMdiChild( m_mdiChild );
-	iAGEMSeAttachment* gemseAttach = GetAttachment<iAGEMSeAttachment>();
+	iAGEMSeAttachment* gemseAttach = attachment<iAGEMSeAttachment>(m_mdiChild);
 	if (!result || !gemseAttach)
 	{
-		DEBUG_LOG("GEMSE module is not attached!");
+		LOG(lvlError, "GEMSE attachment could not be created!");
+		m_seaFile.clear();
 		return;
 	}
 	// load sampling data:
-	QMap<int, QString> const & samplings = m_seaFile->GetSamplings();
+	QMap<int, QString> const & samplings = m_seaFile->samplings();
 	for (int key : samplings.keys())
 	{
-		result &= gemseAttach->LoadSampling(samplings[key], m_seaFile->labelCount(), key);
+		result &= gemseAttach->loadSampling(samplings[key], m_seaFile->labelCount(), key);
 		if (!result)
 			break;
 	}
-	if (!result || !gemseAttach->LoadClustering(m_seaFile->GetClusteringFileName()))
+	if (!result || !gemseAttach->loadClustering(m_seaFile->clusteringFileName()))
 	{
-		DEBUG_LOG(QString("Loading precomputed GEMSe data from file %1 failed!").arg(m_seaFile->GetSEAFileName()));
+		LOG(lvlError, QString("Loading precomputed GEMSe data from file %1 failed!").arg(m_seaFile->fileName()));
 	}
-	if (m_seaFile->GetLayoutName() != "")
+	if (m_seaFile->layoutName() != "")
 	{
-		m_mdiChild->loadLayout(m_seaFile->GetLayoutName());
+		m_mdiChild->loadLayout(m_seaFile->layoutName());
 	}
-	if (m_seaFile->GetReferenceImage() != "")
+	if (m_seaFile->referenceImage() != "")
 	{
-		gemseAttach->LoadRefImg(m_seaFile->GetReferenceImage());
+		gemseAttach->loadRefImg(m_seaFile->referenceImage());
 	}
-	if (m_seaFile->GetHiddenCharts() != "")
+	if (m_seaFile->hiddenCharts() != "")
 	{
-		gemseAttach->SetSerializedHiddenCharts(m_seaFile->GetHiddenCharts());
+		gemseAttach->setSerializedHiddenCharts(m_seaFile->hiddenCharts());
 	}
-	gemseAttach->SetLabelInfo(m_seaFile->GetColorTheme(), m_seaFile->GetLabelNames());
+	gemseAttach->setLabelInfo(m_seaFile->colorTheme(), m_seaFile->labelNames());
 	m_seaFile.clear();
 }
 
-void iAGEMSeModuleInterface::SetupToolbar()
+void iAGEMSeModuleInterface::setupToolbar()
 {
 	if (m_toolbar)
 	{
@@ -157,90 +227,90 @@ void iAGEMSeModuleInterface::SetupToolbar()
 	m_toolbar = new iAGEMSeToolbar("GEMSe ToolBar", m_mainWnd);
 	m_mainWnd->addToolBar(Qt::BottomToolBarArea, m_toolbar);
 
-	connect(m_toolbar->action_ResetFilter, SIGNAL(triggered()), this, SLOT(ResetFilter()));
-	connect(m_toolbar->action_ToggleAutoShrink, SIGNAL(triggered()), this, SLOT(ToggleAutoShrink()));
-	connect(m_toolbar->action_ToggleTitleBar, SIGNAL(triggered()), this, SLOT(ToggleDockWidgetTitleBar()));
-	connect(m_toolbar->action_ExportIDs, SIGNAL(triggered()), this, SLOT(ExportClusterIDs()));
-	connect(m_toolbar->action_ExportAttributeRangeRanking, SIGNAL(triggered()), this, SLOT(ExportAttributeRangeRanking()));
-	connect(m_toolbar->action_ExportRanking, SIGNAL(triggered()), this, SLOT(ExportRankings()));
-	connect(m_toolbar->action_ImportRanking, SIGNAL(triggered()), this, SLOT(ImportRankings()));
+	connect(m_toolbar->action_ResetFilter, &QAction::triggered, this, &iAGEMSeModuleInterface::resetFilter);
+	connect(m_toolbar->action_ToggleAutoShrink, &QAction::triggered, this, &iAGEMSeModuleInterface::toggleAutoShrink);
+	connect(m_toolbar->action_ToggleTitleBar, &QAction::triggered, this, &iAGEMSeModuleInterface::toggleDockWidgetTitleBar);
+	connect(m_toolbar->action_ExportIDs, &QAction::triggered, this, &iAGEMSeModuleInterface::exportClusterIDs);
+	connect(m_toolbar->action_ExportAttributeRangeRanking, &QAction::triggered, this, &iAGEMSeModuleInterface::exportAttributeRangeRanking);
+	connect(m_toolbar->action_ExportRanking, &QAction::triggered, this, &iAGEMSeModuleInterface::exportRankings);
+	connect(m_toolbar->action_ImportRanking, &QAction::triggered, this, &iAGEMSeModuleInterface::importRankings);
 }
 
-void iAGEMSeModuleInterface::ResetFilter()
+void iAGEMSeModuleInterface::resetFilter()
 {
-	iAGEMSeAttachment* gemseAttach = GetAttachment<iAGEMSeAttachment>();
+	iAGEMSeAttachment* gemseAttach = attachment<iAGEMSeAttachment>(m_mainWnd->activeMdiChild());
 	if (!gemseAttach)
 	{
-		DEBUG_LOG("GEMSE module is not attached!");
+		LOG(lvlError, "GEMSE module is not attached!");
 		return;
 	}
-	gemseAttach->ResetFilter();
+	gemseAttach->resetFilter();
 }
 
-void iAGEMSeModuleInterface::ToggleAutoShrink()
+void iAGEMSeModuleInterface::toggleAutoShrink()
 {
-	iAGEMSeAttachment* gemseAttach = GetAttachment<iAGEMSeAttachment>();
+	iAGEMSeAttachment* gemseAttach = attachment<iAGEMSeAttachment>(m_mainWnd->activeMdiChild());
 	if (!gemseAttach)
 	{
-		DEBUG_LOG("GEMSE module is not attached!");
+		LOG(lvlError, "GEMSE module is not attached!");
 		return;
 	}
-	gemseAttach->ToggleAutoShrink();
+	gemseAttach->toggleAutoShrink();
 }
 
-void iAGEMSeModuleInterface::ToggleDockWidgetTitleBar()
+void iAGEMSeModuleInterface::toggleDockWidgetTitleBar()
 {
-	iAGEMSeAttachment* gemseAttach = GetAttachment<iAGEMSeAttachment>();
+	iAGEMSeAttachment* gemseAttach = attachment<iAGEMSeAttachment>(m_mainWnd->activeMdiChild());
 	if (!gemseAttach)
 	{
-		DEBUG_LOG("GEMSE module is not attached!");
+		LOG(lvlError, "GEMSE module is not attached!");
 		return;
 	}
-	gemseAttach->ToggleDockWidgetTitleBar();
+	gemseAttach->toggleDockWidgetTitleBar();
 }
 
-void iAGEMSeModuleInterface::ExportClusterIDs()
+void iAGEMSeModuleInterface::exportClusterIDs()
 {
-	iAGEMSeAttachment* gemseAttach = GetAttachment<iAGEMSeAttachment>();
+	iAGEMSeAttachment* gemseAttach = attachment<iAGEMSeAttachment>(m_mainWnd->activeMdiChild());
 	if (!gemseAttach)
 	{
-		DEBUG_LOG("GEMSE module is not attached!");
+		LOG(lvlError, "GEMSE module is not attached!");
 		return;
 	}
-	gemseAttach->ExportClusterIDs();
+	gemseAttach->exportClusterIDs();
 }
 
-void iAGEMSeModuleInterface::ExportAttributeRangeRanking()
+void iAGEMSeModuleInterface::exportAttributeRangeRanking()
 {
-	iAGEMSeAttachment* gemseAttach = GetAttachment<iAGEMSeAttachment>();
+	iAGEMSeAttachment* gemseAttach = attachment<iAGEMSeAttachment>(m_mainWnd->activeMdiChild());
 	if (!gemseAttach)
 	{
-		DEBUG_LOG("GEMSE module is not attached!");
+		LOG(lvlError, "GEMSE module is not attached!");
 		return;
 	}
-	gemseAttach->ExportAttributeRangeRanking();
-}
-
-
-void iAGEMSeModuleInterface::ExportRankings()
-{
-	iAGEMSeAttachment* gemseAttach = GetAttachment<iAGEMSeAttachment>();
-	if (!gemseAttach)
-	{
-		DEBUG_LOG("GEMSE module is not attached!");
-		return;
-	}
-	gemseAttach->ExportRankings();
+	gemseAttach->exportAttributeRangeRanking();
 }
 
 
-void iAGEMSeModuleInterface::ImportRankings()
+void iAGEMSeModuleInterface::exportRankings()
 {
-	iAGEMSeAttachment* gemseAttach = GetAttachment<iAGEMSeAttachment>();
+	iAGEMSeAttachment* gemseAttach = attachment<iAGEMSeAttachment>(m_mainWnd->activeMdiChild());
 	if (!gemseAttach)
 	{
-		DEBUG_LOG("GEMSE module is not attached!");
+		LOG(lvlError, "GEMSE module is not attached!");
 		return;
 	}
-	gemseAttach->ImportRankings();
+	gemseAttach->exportRankings();
+}
+
+
+void iAGEMSeModuleInterface::importRankings()
+{
+	iAGEMSeAttachment* gemseAttach = attachment<iAGEMSeAttachment>(m_mainWnd->activeMdiChild());
+	if (!gemseAttach)
+	{
+		LOG(lvlError, "GEMSE module is not attached!");
+		return;
+	}
+	gemseAttach->importRankings();
 }

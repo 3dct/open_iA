@@ -1,8 +1,8 @@
 /*************************************  open_iA  ************************************ *
 * **********   A tool for visual analysis and processing of 3D CT images   ********** *
 * *********************************************************************************** *
-* Copyright (C) 2016-2019  C. Heinzl, M. Reiter, A. Reh, W. Li, M. Arikan, Ar. &  Al. *
-*                          Amirkhanov, J. Weissenböck, B. Fröhler, M. Schiwarth       *
+* Copyright (C) 2016-2021  C. Heinzl, M. Reiter, A. Reh, W. Li, M. Arikan, Ar. &  Al. *
+*                 Amirkhanov, J. Weissenböck, B. Fröhler, M. Schiwarth, P. Weinberger *
 * *********************************************************************************** *
 * This program is free software: you can redistribute it and/or modify it under the   *
 * terms of the GNU General Public License as published by the Free Software           *
@@ -24,16 +24,16 @@
 #include <iAFilterRunnerGUI.h>
 
 class iAChartWidget;
-class MdiChild;
+class iAMdiChild;
 
 class iAQMeasure : public iAFilter
 {
 public:
 	static QSharedPointer<iAQMeasure> create();
 	void performWork(QMap<QString, QVariant> const & parameters) override;
-	void setupDebugGUI(iAChartWidget* chart, MdiChild* mdiChild);
+	void setupDebugGUI(iAChartWidget* chart, iAMdiChild* mdiChild);
 	iAChartWidget* m_chart;
-	MdiChild* m_mdiChild;
+	iAMdiChild* m_mdiChild;
 private:
 	iAQMeasure();
 };
@@ -43,7 +43,8 @@ class iAQMeasureRunner : public iAFilterRunnerGUI
 {
 public:
 	static QSharedPointer<iAFilterRunnerGUI> create();
-	void filterGUIPreparations(QSharedPointer<iAFilter> filter, MdiChild* mdiChild, MainWindow* mainWnd) override;
+	void filterGUIPreparations(QSharedPointer<iAFilter> filter,
+		iAMdiChild* mdiChild, iAMainWindow* mainWnd, QMap<QString, QVariant> const& params) override;
 };
 
 

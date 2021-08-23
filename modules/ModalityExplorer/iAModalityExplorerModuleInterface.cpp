@@ -1,8 +1,8 @@
 /*************************************  open_iA  ************************************ *
 * **********   A tool for visual analysis and processing of 3D CT images   ********** *
 * *********************************************************************************** *
-* Copyright (C) 2016-2019  C. Heinzl, M. Reiter, A. Reh, W. Li, M. Arikan, Ar. &  Al. *
-*                          Amirkhanov, J. Weissenböck, B. Fröhler, M. Schiwarth       *
+* Copyright (C) 2016-2021  C. Heinzl, M. Reiter, A. Reh, W. Li, M. Arikan, Ar. &  Al. *
+*                 Amirkhanov, J. Weissenböck, B. Fröhler, M. Schiwarth, P. Weinberger *
 * *********************************************************************************** *
 * This program is free software: you can redistribute it and/or modify it under the   *
 * terms of the GNU General Public License as published by the Free Software           *
@@ -22,24 +22,29 @@
 
 #include "iAModalityExplorerAttachment.h"
 
-#include <iAConsole.h>
-#include <mainwindow.h>
-#include <mdichild.h>
+#include <iALog.h>
+#include <iAMainWindow.h>
+#include <iAMdiChild.h>
+
+#include <QAction>
+#include <QMenu>
 
 void iAModalityExplorerModuleInterface::Initialize()
 {
 	if (!m_mainWnd)
+	{
 		return;
-	QMenu * toolsMenu = m_mainWnd->toolsMenu();
-	QMenu * menuMultiModalChannel = getMenuWithTitle( toolsMenu, QString( "Multi-Modal/-Channel Images" ), false );
+	}
+	QAction * actionModalitySPLOM = new QAction(tr("Modality SPLOM"), m_mainWnd);
+	connect(actionModalitySPLOM, &QAction::triggered, this, &iAModalityExplorerModuleInterface::ModalitySPLOM);
+	m_mainWnd->makeActionChildDependent(actionModalitySPLOM);
 
-	QAction * actionModalitySPLOM = new QAction(QApplication::translate("MainWindow", "Modality SPLOM", 0), m_mainWnd);
-	AddActionToMenuAlphabeticallySorted(menuMultiModalChannel, actionModalitySPLOM, true);
-	connect(actionModalitySPLOM, SIGNAL(triggered()), this, SLOT(ModalitySPLOM()));
+	QMenu* submenu = getOrAddSubMenu(m_mainWnd->toolsMenu(), tr("Multi-Modal/-Channel Images"));
+	addToMenuSorted(submenu, actionModalitySPLOM);
 }
 
 
-iAModuleAttachmentToChild* iAModalityExplorerModuleInterface::CreateAttachment(MainWindow* mainWnd, MdiChild * child)
+iAModuleAttachmentToChild* iAModalityExplorerModuleInterface::CreateAttachment(iAMainWindow* mainWnd, iAMdiChild * child)
 {
 	iAModalityExplorerAttachment* result = iAModalityExplorerAttachment::create( mainWnd, child);
 	return result;
@@ -50,7 +55,9 @@ void iAModalityExplorerModuleInterface::ModalitySPLOM()
 {
 	PrepareActiveChild();
 	bool result = AttachToMdiChild(m_mdiChild);
-	iAModalityExplorerAttachment* attach = GetAttachment<iAModalityExplorerAttachment>();
+	iAModalityExplorerAttachment* attach = attachment<iAModalityExplorerAttachment>(m_mdiChild);
 	if (!result || !attach)
-		DEBUG_LOG("ModalityExplorer could not be initialized!");
+	{
+		LOG(lvlError, "ModalityExplorer could not be initialized!");
+	}
 }

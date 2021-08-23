@@ -40,7 +40,7 @@ namespace itk
  * \ingroup Operators
  */
 template <class TInputImage>
-class ITK_EXPORT RemovePeaksOtsuThresholdImageCalculator : public Object
+class RemovePeaksOtsuThresholdImageCalculator : public Object
 {
 public:
   /** Standard class typedefs. */

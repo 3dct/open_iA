@@ -1,0 +1,76 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<ui version="4.0">
+ <class>CompVisMainWindow</class>
+ <widget class="QMainWindow" name="CompVisMainWindow">
+  <property name="geometry">
+   <rect>
+    <x>0</x>
+    <y>0</y>
+    <width>1182</width>
+    <height>781</height>
+   </rect>
+  </property>
+  <property name="windowTitle">
+   <string>CompVis</string>
+  </property>
+  <property name="toolButtonStyle">
+   <enum>Qt::ToolButtonTextBesideIcon</enum>
+  </property>
+  <property name="unifiedTitleAndToolBarOnMac">
+   <bool>true</bool>
+  </property>
+  <widget class="QWidget" name="centralwidget"/>
+  <widget class="QMenuBar" name="menuBar_CompVisMainWindow">
+   <property name="geometry">
+    <rect>
+     <x>0</x>
+     <y>0</y>
+     <width>1182</width>
+     <height>21</height>
+    </rect>
+   </property>
+   <widget class="QMenu" name="menuMDS">
+    <property name="title">
+     <string>MDS</string>
+    </property>
+    <addaction name="actionRecalculateMDS"/>
+   </widget>
+   <widget class="QMenu" name="menuOrdering">
+    <property name="title">
+     <string>Ordering</string>
+    </property>
+    <addaction name="actionAscending_to_Number_of_Objects"/>
+    <addaction name="actionDescending_to_Number_of_Objects"/>
+    <addaction name="separator"/>
+    <addaction name="actionAs_Loaded"/>
+   </widget>
+   <addaction name="menuMDS"/>
+   <addaction name="menuOrdering"/>
+  </widget>
+  <action name="actionRecalculateMDS">
+   <property name="text">
+    <string>Recalculate</string>
+   </property>
+   <property name="toolTip">
+    <string>Recalculate Multdimensional Scaling</string>
+   </property>
+  </action>
+  <action name="actionAscending_to_Number_of_Objects">
+   <property name="text">
+    <string>Ascending to Number of Objects</string>
+   </property>
+  </action>
+  <action name="actionDescending_to_Number_of_Objects">
+   <property name="text">
+    <string>Descending to Number of Objects</string>
+   </property>
+  </action>
+  <action name="actionAs_Loaded">
+   <property name="text">
+    <string>As Loaded</string>
+   </property>
+  </action>
+ </widget>
+ <resources/>
+ <connections/>
+</ui>

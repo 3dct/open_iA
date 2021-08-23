@@ -57,7 +57,7 @@ function(get_git_head_revision _refspecvar _hashvar)
 	if(NOT EXISTS "${GIT_DATA}")
 		file(MAKE_DIRECTORY "${GIT_DATA}")
 	endif()
-	IF (NOT IS_DIRECTORY "${GIT_DIR}")	# special treatment for submodules
+	IF (NOT IS_DIRECTORY "${GIT_DIR}")	# special treatment for submodules / worktrees
 		FILE(READ "${GIT_DIR}" NEW_GIT_DIR OFFSET 8)
 		STRING(REGEX REPLACE "\n$" "" NEW_GIT_DIR "${NEW_GIT_DIR}")
 		get_filename_component(GIT_DIR "${NEW_GIT_DIR}"
@@ -78,61 +78,67 @@ function(get_git_head_revision _refspecvar _hashvar)
 	set(${_hashvar} "${HEAD_HASH}" PARENT_SCOPE)
 endfunction()
 
-function(git_describe _var)
+function(git_describe out_nice out_shorthash)
 	if(NOT GIT_FOUND)
 		find_package(Git QUIET)
 	endif()
 	get_git_head_revision(refspec hash)
 	if(NOT GIT_FOUND)
-		set(${_var} "GIT-NOTFOUND" PARENT_SCOPE)
+		set(${out_nice} "GIT-NOTFOUND" PARENT_SCOPE)
+		set(${out_shorthash} "GIT-NOTFOUND" PARENT_SCOPE)
 		return()
 	endif()
 	if(NOT hash)
-		set(${_var} "HEAD-HASH-NOTFOUND" PARENT_SCOPE)
+		set(${out_nice} "GIT-HEAD-HASH-NOTFOUND" PARENT_SCOPE)
+		set(${out_shorthash} "GIT-HEAD-HASH-NOTFOUND" PARENT_SCOPE)
 		return()
 	endif()
-
-	# TODO sanitize
-	#if((${ARGN}" MATCHES "&&") OR
-	#	(ARGN MATCHES "||") OR
-	#	(ARGN MATCHES "\\;"))
-	#	message("Please report the following error to the project!")
-	#	message(FATAL_ERROR "Looks like someone's doing something nefarious with git_describe! Passed arguments ${ARGN}")
-	#endif()
-
-	#message(STATUS "Arguments to execute_process: ${ARGN}")
 
 	execute_process(COMMAND
 		"${GIT_EXECUTABLE}" describe ${hash} ${ARGN}
 		WORKING_DIRECTORY "${CMAKE_SOURCE_DIR}"
 		RESULT_VARIABLE res
 		OUTPUT_VARIABLE	out
-		ERROR_QUIET
+		ERROR_VARIABLE err
 		OUTPUT_STRIP_TRAILING_WHITESPACE)
-		
 	if(NOT res EQUAL 0)
-		set(out "${out}-${res}-NOTFOUND")
+		MESSAGE(WARNING "Problem executing `git describe ${hash} ${ARGN}`: ${err}")
+		set(out "GIT-VERSION-NOTFOUND")
+	else()
+		IF ("${out}" MATCHES "[a-zA-Z0-9.]*-[0-9]*-[0-9a-z]*")
+			STRING (FIND "${out}" "-" LASTHYPHENPOS REVERSE)
+			MATH(EXPR SHORTHASHSTART "${LASTHYPHENPOS}+2")
+			STRING(SUBSTRING "${out}" ${SHORTHASHSTART} -1 shorthash)
+			STRING(SUBSTRING "${out}" 0 "${LASTHYPHENPOS}" substrout)
+			STRING(FIND "${substrout}" "-" LASTHYPHENPOS REVERSE)
+			STRING(SUBSTRING "${substrout}" 0 "${LASTHYPHENPOS}" versionstr)
+			execute_process(COMMAND
+				"${GIT_EXECUTABLE}" rev-parse --abbrev-ref HEAD
+				WORKING_DIRECTORY "${CMAKE_SOURCE_DIR}"
+				RESULT_VARIABLE res
+				OUTPUT_VARIABLE	branch
+				ERROR_VARIABLE err
+				OUTPUT_STRIP_TRAILING_WHITESPACE)
+			if(NOT res EQUAL 0)
+				MESSAGE(WARNING "Problem getting current branch (through executing `git rev-parse --abrev-ref HEAD`): ${err}")
+				set(branch "GIT-BRANCH-NOTFOUND")
+			endif()
+			STRING(CONCAT out "${versionstr}" "-" "${branch}" "-" "${shorthash}")
+		ENDIF()
 	endif()
-	IF ("${out}" MATCHES "[a-zA-Z0-9.]*-[0-9]*-[0-9a-z]*")
-		STRING (FIND "${out}" "-" LASTHYPHENPOS REVERSE)
-		MATH(EXPR SHORTHASHSTART "${LASTHYPHENPOS}+2")
-		STRING(SUBSTRING "${out}" ${SHORTHASHSTART} -1 shorthash)
-		STRING(SUBSTRING "${out}" 0 "${LASTHYPHENPOS}" substrout)
-		STRING(FIND "${substrout}" "-" LASTHYPHENPOS REVERSE)
-		STRING(SUBSTRING "${substrout}" 0 "${LASTHYPHENPOS}" versionstr)
-		execute_process(COMMAND
-			"${GIT_EXECUTABLE}" rev-parse --abbrev-ref HEAD
-			WORKING_DIRECTORY "${CMAKE_SOURCE_DIR}"
-			RESULT_VARIABLE res
-			OUTPUT_VARIABLE	branch
-			ERROR_QUIET
-			OUTPUT_STRIP_TRAILING_WHITESPACE)
-		if(NOT res EQUAL 0)
-			set(branch "${branch}-${res}-error")
-		endif()
-		STRING(CONCAT out "${versionstr}" "-" "${branch}" "-" "${shorthash}")
-	ENDIF()
-	set(${_var} "${out}" PARENT_SCOPE)
+	set(${out_nice} "${out}" PARENT_SCOPE)
+	execute_process(COMMAND
+		"${GIT_EXECUTABLE}" rev-parse --short ${hash}
+		WORKING_DIRECTORY "${CMAKE_SOURCE_DIR}"
+		RESULT_VARIABLE res2
+		OUTPUT_VARIABLE	revparseout
+		ERROR_VARIABLE err
+		OUTPUT_STRIP_TRAILING_WHITESPACE)
+	if(NOT res2 EQUAL 0)
+		MESSAGE(WARNING "Problem executing `git rev-parse --short ${hash}`: ${err}")
+		set(revparseout "GIT-SHORTHASH-NOTFOUND")
+	endif()
+	set(${out_shorthash} "${revparseout}" PARENT_SCOPE)
 endfunction()
 
 function(git_get_exact_tag _var)

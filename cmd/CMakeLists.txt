@@ -1,60 +1,51 @@
-SET (EXECUTABLE_NAME open_iA_cmd)
+set(EXECUTABLE_NAME open_iA_cmd)
 
 # Generate executable:
-SET (MAIN_SOURCES "${open_iA_SOURCE_DIR}/cmd/main.cpp")
-ADD_EXECUTABLE( ${EXECUTABLE_NAME} ${MAIN_SOURCES} )
+set(MAIN_SOURCES "${CMAKE_CURRENT_SOURCE_DIR}/main.cpp"
+	"${CMAKE_CURRENT_SOURCE_DIR}/iACommandLineProcessor.cpp" "${CMAKE_CURRENT_SOURCE_DIR}/iACommandLineProcessor.h"
+	"${CMAKE_CURRENT_SOURCE_DIR}/iALoggerStdOut.cpp" "${CMAKE_CURRENT_SOURCE_DIR}/iALoggerStdOut.h")
+add_executable( ${EXECUTABLE_NAME} ${MAIN_SOURCES} )
 
-TARGET_LINK_LIBRARIES(${EXECUTABLE_NAME} PRIVATE ${CORE_LIBRARY_NAME})
-TARGET_INCLUDE_DIRECTORIES(${EXECUTABLE_NAME} PRIVATE ${CMAKE_BINARY_DIR}) # for version.h
-
-IF (openiA_USE_COTIRE)
-	cotire(${EXECUTABLE_NAME})
-ENDIF()
+target_link_libraries(${EXECUTABLE_NAME} PRIVATE iA::guibase)
+target_include_directories(${EXECUTABLE_NAME} PRIVATE ${CMAKE_BINARY_DIR}) # for version.h
 
 # Windows-specific configuration
-IF (MSVC)
-	SET(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} /bigobj")
-	IF (MSVC_VERSION GREATER_EQUAL 1910)
-		SET(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} /permissive-")
-	ENDIF()
-
-	IF (NOT "${DebugLibraryPaths}" STREQUAL "${CACHED_OPENIA_CMD_DBG_ENV_PATH}")
-		# force cmake to copy the files:
-		file(REMOVE ${CMAKE_CURRENT_BINARY_DIR}/open_iA_cmd.vcxproj.user)
-		# create .user files:
-		CONFIGURE_FILE(${open_iA_SOURCE_DIR}/cmd/open_iA_cmd.vcxproj.user ${CMAKE_CURRENT_BINARY_DIR}/ @ONLY)
-		# make sure visual studio reloads the projects:
-		execute_process(COMMAND cmake -E touch ${CMAKE_CURRENT_BINARY_DIR}/open_iA_cmd.vcxproj)
-		SET (CACHED_OPENIA_CMD_DBG_ENV_PATH "${DebugLibraryPaths}" CACHE INTERNAL "" FORCE)
-
-		SET (EXE_NAME "${EXECUTABLE_NAME}${CMAKE_EXECUTABLE_SUFFIX}")
+if (MSVC)
+	if (NOT "${WinDLLPaths}" STREQUAL "${CACHED_OPENIA_CMD_ENV_PATH}"
+		OR NOT EXISTS ${CMAKE_BINARY_DIR}/x64/open_iA_cmd_Release.bat
+	)
+		message(STATUS "CMD LIBRARY paths changed new=${WinDLLPaths}, cached=${CACHED_OPENIA_CMD_ENV_PATH}")
+		set(CACHED_OPENIA_CMD_ENV_PATH "${WinDLLPaths}" CACHE INTERNAL "" FORCE)
+		set(EXE_NAME "${EXECUTABLE_NAME}${CMAKE_EXECUTABLE_SUFFIX}")
 		foreach(CONFIG ${CMAKE_CONFIGURATION_TYPES})
-			set (ADDITIONAL_PATH ${${CONFIG}LibraryPaths})
-			file(REMOVE ${CMAKE_BINARY_DIR}/x64/open_iA_cmd_${CONFIG}.bat )
-			CONFIGURE_FILE(${open_iA_SOURCE_DIR}/cmake/run-tmpl.bat ${CMAKE_BINARY_DIR}/x64/open_iA_cmd_${CONFIG}.bat @ONLY)
+			string(REPLACE "$(Configuration)" "${CONFIG}" ADDITIONAL_PATH "${WinDLLPaths}")
+			file(REMOVE ${CMAKE_BINARY_DIR}/x64/open_iA_cmd_${CONFIG}.bat)
+			CONFIGURE_FILE(${CMAKE_CURRENT_SOURCE_DIR}/../cmake/run-tmpl.bat ${CMAKE_BINARY_DIR}/x64/open_iA_cmd_${CONFIG}.bat @ONLY)
 		endforeach()
-	ENDIF ()
-ENDIF (MSVC)
+	endif()
+	set_target_properties(${EXECUTABLE_NAME} PROPERTIES VS_DEBUGGER_ENVIRONMENT "PATH=${WinDLLPaths};%PATH%\nSCIFIO_PATH=${SCIFIO_PATH}")
+endif()
 
 # Test running filters from command line
 # TODO: check output (at the moment, it only whether the filters run without crashing)!
-IF (openiA_TESTING_ENABLED)
-	IF (MSVC)
+if (openiA_TESTING_ENABLED)
+	if (MSVC)
 		# use the created .bat which makes sure all required dll's are in the path:
-		SET (TEST_CMD_Binary "${CMAKE_BINARY_DIR}/x64/open_iA_cmd_Release.bat" PARENT_SCOPE)
-	ELSE()
-		SET (TEST_CMD_Binary "${CMAKE_RUNTIME_OUTPUT_DIRECTORY}/${EXECUTABLE_NAME}" PARENT_SCOPE)
-	ENDIF()
-ENDIF()
+		set(TEST_CMD_Binary "${CMAKE_BINARY_DIR}/x64/open_iA_cmd_Release.bat" PARENT_SCOPE)
+	else()
+		set(TEST_CMD_Binary "${CMAKE_RUNTIME_OUTPUT_DIRECTORY}/${EXECUTABLE_NAME}" PARENT_SCOPE)
+	endif()
+endif()
 
-IF (CMAKE_COMPILER_IS_GNUCXX)
-	SET (CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -fPIE")
-	SET (CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -fPIE")
-ENDIF()
+if (CMAKE_COMPILER_IS_GNUCXX OR "${CMAKE_CXX_COMPILER_ID}" STREQUAL "Clang")
+	target_compile_options(${EXECUTABLE_NAME} PRIVATE "-fPIE")
+endif()
 
 # Installation
-IF (FLATPAK_BUILD)
-    INSTALL (TARGETS ${EXECUTABLE_NAME} RUNTIME DESTINATION bin)
-ELSE()
-    INSTALL (TARGETS ${EXECUTABLE_NAME} RUNTIME DESTINATION .)
-ENDIF()
+if (FLATPAK_BUILD)
+	install(TARGETS ${EXECUTABLE_NAME} RUNTIME DESTINATION bin)
+elseif (APPLE)
+	install(TARGETS ${EXECUTABLE_NAME} BUNDLE DESTINATION .)
+else()
+	install(TARGETS ${EXECUTABLE_NAME} RUNTIME DESTINATION .)
+endif()

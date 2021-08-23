@@ -1,0 +1,11 @@
+<RCC>
+  <qresource prefix="/">
+    <file>images/activateSPM.png</file>
+    <file>images/FeatureScout_csvDV.png</file>
+    <file>images/FeatureScout_meanObject.png</file>
+    <file>images/MultiRendering.png</file>
+    <file>images/OrientationRendering.png</file>
+    <file>images/xml_save.png</file>
+    <file>images/settings_PC.png</file>
+  </qresource>
+</RCC>

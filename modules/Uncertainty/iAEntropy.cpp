@@ -1,8 +1,8 @@
 /*************************************  open_iA  ************************************ *
 * **********   A tool for visual analysis and processing of 3D CT images   ********** *
 * *********************************************************************************** *
-* Copyright (C) 2016-2019  C. Heinzl, M. Reiter, A. Reh, W. Li, M. Arikan, Ar. &  Al. *
-*                          Amirkhanov, J. Weissenböck, B. Fröhler, M. Schiwarth       *
+* Copyright (C) 2016-2021  C. Heinzl, M. Reiter, A. Reh, W. Li, M. Arikan, Ar. &  Al. *
+*                 Amirkhanov, J. Weissenböck, B. Fröhler, M. Schiwarth, P. Weinberger *
 * *********************************************************************************** *
 * This program is free software: you can redistribute it and/or modify it under the   *
 * terms of the GNU General Public License as published by the Free Software           *
@@ -21,7 +21,7 @@
 #include "iAEntropy.h"
 
 // in Toolkit/Ensemble
-#include <EntropyImageFilter.h>
+#include <iAEntropyImageFilter.h>
 
 #include <defines.h>    // for DIM
 #include <iAConnector.h>
@@ -42,7 +42,7 @@ iAEntropy::iAEntropy() :
 		"\"http://ieeexplore.ieee.org/document/6415481/\">"
 		"Visualization of Uncertainty without a Mean</a> by Kristin Potter et al.")
 {
-	addParameter("Normalize", Boolean, true);
+	addParameter("Normalize", iAValueType::Boolean, true);
 }
 
 IAFILTER_CREATE(iAEntropy)
@@ -52,7 +52,7 @@ template <typename PixelType>
 void entropy(iAFilter* filter, QMap<QString, QVariant> const & parameters)
 {
 	typedef itk::Image<PixelType, DIM> InputImageType;
-	typedef fhw::EntropyImageFilter<InputImageType, InputImageType> EntropyFilter;
+	typedef iAEntropyImageFilter<InputImageType, InputImageType> EntropyFilter;
 	auto entropyFilter = EntropyFilter::New();
 	for (int i = 0; i < filter->input().size(); ++i)
 	{

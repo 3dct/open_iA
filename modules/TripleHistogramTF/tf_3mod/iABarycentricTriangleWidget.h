@@ -1,8 +1,8 @@
 /*************************************  open_iA  ************************************ *
 * **********   A tool for visual analysis and processing of 3D CT images   ********** *
 * *********************************************************************************** *
-* Copyright (C) 2016-2019  C. Heinzl, M. Reiter, A. Reh, W. Li, M. Arikan, Ar. &  Al. *
-*                          Amirkhanov, J. Weissenböck, B. Fröhler, M. Schiwarth       *
+* Copyright (C) 2016-2021  C. Heinzl, M. Reiter, A. Reh, W. Li, M. Arikan, Ar. &  Al. *
+*                 Amirkhanov, J. Weissenböck, B. Fröhler, M. Schiwarth, P. Weinberger *
 * *********************************************************************************** *
 * This program is free software: you can redistribute it and/or modify it under the   *
 * terms of the GNU General Public License as published by the Free Software           *
@@ -20,8 +20,8 @@
 * ************************************************************************************/
 #pragma once
 
-#include "BarycentricTriangle.h"
-#include "BCoord.h"
+#include "iABarycentricTriangle.h"
+#include "iABCoord.h"
 
 #include <vtkSmartPointer.h>
 
@@ -41,22 +41,29 @@ class iABarycentricTriangleWidget : public QWidget
 	Q_OBJECT
 
 public:
-	iABarycentricTriangleWidget(QWidget* parent = 0, Qt::WindowFlags f = 0);
+#if QT_VERSION < QT_VERSION_CHECK(5, 15, 0)
+	iABarycentricTriangleWidget(QWidget* parent = nullptr, Qt::WindowFlags f = 0);
+#else
+	iABarycentricTriangleWidget(QWidget* parent = nullptr, Qt::WindowFlags f = Qt::WindowFlags());
+#endif
 
 	int getWidthForHeight(int height);
 	int getHeightForWidth(int width);
 
-	void recalculatePositions() { recalculatePositions(width(), height()); }
-	void recalculatePositions(int width, int height, BarycentricTriangle triange);
+	void recalculatePositions()
+	{
+		recalculatePositions(width(), height());
+	}
+	void recalculatePositions(int width, int height, iABarycentricTriangle triange);
 
-	BCoord getWeight();
-	void setWeight(BCoord newWeight);
+	iABCoord getWeight();
+	void setWeight(iABCoord newWeight);
 
 	void setTriangleRenderer(iABarycentricContextRenderer *triangleRenderer);
 	void setModalities(vtkSmartPointer<vtkImageData> d1, vtkSmartPointer<vtkImageData> d2, vtkSmartPointer<vtkImageData> d3);
 	void updateModalityNames(QString const name[3]);
 
-	BarycentricTriangle getTriangle() { return m_triangle; }
+	iABarycentricTriangle getTriangle() { return m_triangle; }
 
 	void paintTriangleFill(QPainter &p);
 	void paintTriangleBorder(QPainter &p);
@@ -64,7 +71,7 @@ public:
 	void paintControlPoint(QPainter &p);
 
 signals:
-	void weightsChanged(BCoord bCoord);
+	void weightsChanged(iABCoord bCoord);
 
 private slots:
 	void onHeatmapReady();
@@ -81,10 +88,10 @@ protected:
 	void mouseReleaseEvent(QMouseEvent* event);
 
 private:
-	BarycentricTriangle m_triangle;
+	iABarycentricTriangle m_triangle;
 	QPoint m_controlPoint;
 	QPoint m_controlPointOld;
-	BCoord m_controlPointBCoord;
+	iABCoord m_controlPointBCoord;
 
 	QSpinBox *m_spinBoxes[3];
 
@@ -102,21 +109,24 @@ private:
 	bool m_dragging = false;
 
 	void initializeControlPointPaths();
-	void updateControlPoint(BCoord bCoord, QPoint newPos, int a, int b, int c);
+	void updateControlPoint(iABCoord bCoord, QPoint newPos, int a, int b, int c);
 	void moveControlPointTo(QPoint newPos);
 
-	void updateControlPointCoordinates(BCoord bc) {
+	void updateControlPointCoordinates(iABCoord bc)
+	{
 		int a = bc[0] * 100;
 		int b = bc[1] * 100;
 		int c = 100 - a - b;
 		updateControlPointCoordinates(bc, a, b, c);
 	}
 
-	void updateControlPointCoordinates(BCoord bCoord, int a, int b, int c) {
+	void updateControlPointCoordinates(iABCoord bCoord, int a, int b, int c)
+{
 		updateControlPoint(bCoord, m_triangle.getCartesianCoordinates(bCoord), a, b, c);
 	}
 
-	void updateControlPointPosition(QPoint newPos) {
+	void updateControlPointPosition(QPoint newPos)
+	{
 		auto bc = m_triangle.getBarycentricCoordinates(newPos.x(), newPos.y());
 		int a = bc[0] * 100;
 		int b = bc[1] * 100;
@@ -124,7 +134,8 @@ private:
 		updateControlPoint(bc, newPos, a, b, c);
 	}
 
-	void updateControlPointPosition() {
+	void updateControlPointPosition()
+	{
 		updateControlPointCoordinates(m_controlPointBCoord);
 	}
 

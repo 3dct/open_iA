@@ -1,8 +1,8 @@
 /*************************************  open_iA  ************************************ *
 * **********   A tool for visual analysis and processing of 3D CT images   ********** *
 * *********************************************************************************** *
-* Copyright (C) 2016-2019  C. Heinzl, M. Reiter, A. Reh, W. Li, M. Arikan, Ar. &  Al. *
-*                          Amirkhanov, J. Weissenböck, B. Fröhler, M. Schiwarth       *
+* Copyright (C) 2016-2021  C. Heinzl, M. Reiter, A. Reh, W. Li, M. Arikan, Ar. &  Al. *
+*                 Amirkhanov, J. Weissenböck, B. Fröhler, M. Schiwarth, P. Weinberger *
 * *********************************************************************************** *
 * This program is free software: you can redistribute it and/or modify it under the   *
 * terms of the GNU General Public License as published by the Free Software           *
@@ -25,22 +25,26 @@
 #include "ui_dlg_DynamicVolumeLines.h"
 #include "ui_Multi3DView.h"
 
-#include <iAVtkWidgetFwd.h>
-#include <mdichild.h>
 #include <qthelper/iAQTtoUIConnector.h>
 #include <iAProgress.h>
+
+#include <vtkSmartPointer.h>
+
+#include <QDir>
 
 class iANonLinearAxisTicker;
 class iAOrientationWidget;
 class iASegmentTree;
 
+class iAMdiChild;
+class iAQVTKWidget;
 class iAVolumeRenderer;
 
+class vtkImageData;
 class vtkLookupTable;
 class vtkPoints;
 class vtkRenderer;
 class vtkRenderWindow;
-class vtkScalarBarActor;
 class vtkTextActor;
 
 typedef iAQTtoUIConnector<QDockWidget, Ui_dlg_DynamicVolumeLines>  DynamicVolumeLinesConnector;
@@ -51,7 +55,11 @@ class dlg_DynamicVolumeLines : public DynamicVolumeLinesConnector
 	Q_OBJECT
 
 public:
+#if QT_VERSION < QT_VERSION_CHECK(5,15,0)
 	dlg_DynamicVolumeLines(QWidget* parent, QDir datasetsDir, Qt::WindowFlags f = 0);
+#else
+	dlg_DynamicVolumeLines(QWidget* parent, QDir datasetsDir, Qt::WindowFlags f = Qt::WindowFlags());
+#endif
 	~dlg_DynamicVolumeLines();
 
 	QDir m_datasetsDir;
@@ -80,7 +88,6 @@ public slots:
 	void setSubHistBinCntFlag();
 	void updateHistColorMap(vtkSmartPointer<vtkLookupTable> LUT);
 	void compLevelRangeChanged();
-	void updateIntensityMapperProgress(int);
 
 signals:
 	void compLevelRangeChanged(QVector<double> compRange);
@@ -89,7 +96,7 @@ protected:
 	bool eventFilter(QObject * obj, QEvent * event) override;
 
 private:
-	MdiChild *m_mdiChild;
+	iAMdiChild *m_mdiChild;
 	QCustomPlot *m_nonlinearScaledPlot;
 	QCustomPlot *m_linearScaledPlot;
 	QCustomPlot *m_debugPlot;
@@ -120,12 +127,12 @@ private:
 	QList<vtkSmartPointer<vtkImageData>> m_imgDataList;
 	multi3DRendererView *m_MultiRendererView;
 
-	iAVtkOldWidget* wgtContainer;
+	iAQVTKWidget* m_wgtContainer;
 
 	vtkSmartPointer<vtkRenderer> m_mrvBGRen;
 	vtkSmartPointer<vtkTextActor> m_mrvTxtAct;
 	QSharedPointer<iAVolumeRenderer> m_volRen;
-		
+
 	void generateHilbertIdx();
 	void setupFBPGraphs(QCustomPlot* qcp, iAFunctionalBoxplot<double, double>* fbpData);
 	void setupScaledPlot(QCustomPlot* qcp);

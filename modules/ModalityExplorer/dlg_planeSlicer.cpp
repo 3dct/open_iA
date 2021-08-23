@@ -1,8 +1,8 @@
 /*************************************  open_iA  ************************************ *
 * **********   A tool for visual analysis and processing of 3D CT images   ********** *
 * *********************************************************************************** *
-* Copyright (C) 2016-2019  C. Heinzl, M. Reiter, A. Reh, W. Li, M. Arikan, Ar. &  Al. *
-*                          Amirkhanov, J. Weissenböck, B. Fröhler, M. Schiwarth       *
+* Copyright (C) 2016-2021  C. Heinzl, M. Reiter, A. Reh, W. Li, M. Arikan, Ar. &  Al. *
+*                 Amirkhanov, J. Weissenböck, B. Fröhler, M. Schiwarth, P. Weinberger *
 * *********************************************************************************** *
 * This program is free software: you can redistribute it and/or modify it under the   *
 * terms of the GNU General Public License as published by the Free Software           *
@@ -20,24 +20,23 @@
 * ************************************************************************************/
 #include "dlg_planeSlicer.h"
 
-#include <iAVtkWidget.h>
+#include <iAQVTKWidget.h>
 
 #include <vtkCamera.h>
 #include <vtkColorTransferFunction.h>
-#include <vtkGenericOpenGLRenderWindow.h>
 #include <vtkImageData.h>
 #include <vtkImageMapToColors.h>
 #include <vtkImageResliceMapper.h>
 #include <vtkImageProperty.h>
 #include <vtkImageSlice.h>
 #include <vtkOpenGLRenderer.h>
+#include <vtkRenderWindow.h>
 
 dlg_planeSlicer::dlg_planeSlicer() :
-	m_vtkWidget(new iAVtkWidget(this))
+	m_vtkWidget(new iAQVTKWidget(this))
 {
 	m_renderer = vtkSmartPointer<vtkOpenGLRenderer>::New();
-	m_vtkWidget->SetRenderWindow(vtkSmartPointer<vtkGenericOpenGLRenderWindow>::New());
-	m_vtkWidget->GetRenderWindow()->AddRenderer(m_renderer);
+	m_vtkWidget->renderWindow()->AddRenderer(m_renderer);
 	slicer->layout()->addWidget(m_vtkWidget);
 	m_renderer->SetBackground(1, 1, 1);
 
@@ -62,7 +61,7 @@ int dlg_planeSlicer::AddImage(vtkSmartPointer<vtkImageData> image, vtkSmartPoint
 	mapper->SetInputConnection(map->GetOutputPort());
 
 	m_images.push_back(imageSlice);
-	
+
 	m_renderer->AddViewProp(imageSlice);
 
 	return m_images.size() - 1;

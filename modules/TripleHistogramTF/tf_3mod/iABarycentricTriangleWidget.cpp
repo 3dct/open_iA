@@ -1,8 +1,8 @@
 /*************************************  open_iA  ************************************ *
 * **********   A tool for visual analysis and processing of 3D CT images   ********** *
 * *********************************************************************************** *
-* Copyright (C) 2016-2019  C. Heinzl, M. Reiter, A. Reh, W. Li, M. Arikan, Ar. &  Al. *
-*                          Amirkhanov, J. Weissenböck, B. Fröhler, M. Schiwarth       *
+* Copyright (C) 2016-2021  C. Heinzl, M. Reiter, A. Reh, W. Li, M. Arikan, Ar. &  Al. *
+*                 Amirkhanov, J. Weissenböck, B. Fröhler, M. Schiwarth, P. Weinberger *
 * *********************************************************************************** *
 * This program is free software: you can redistribute it and/or modify it under the   *
 * terms of the GNU General Public License as published by the Free Software           *
@@ -38,32 +38,28 @@
 static const qreal RAD60 = vtkMath::Pi() / 3.0;
 static const qreal SIN60 = sin(RAD60);
 static const qreal ONE_DIV_SIN60 = 1.0 / SIN60;
-static const qreal COS60 = 0.5;
-static const qreal ONE_DIV_THREE = 1.0 / 3.0;
 
 static const int CONTROL_POINT_RADIUS = 10;
 static const int MODALITY_LABEL_MARGIN = 10;
 static const int MODALITY_LABEL_MARGIN_TIMES_TWO = MODALITY_LABEL_MARGIN * 2;
-//static const int MODALITY_LABEL_HIGHLIGHT_PADDING = 5;
-//static const int MODALITY_LABEL_HIGHLIGHT_PADDING_TIMES_TWO = MODALITY_LABEL_HIGHLIGHT_PADDING * 2;
 
-static const char* WEIGHT_FORMAT = "%.0f%%"; //"%.2f%;
 
 iABarycentricTriangleWidget::iABarycentricTriangleWidget(QWidget * parent /*= 0*/, Qt::WindowFlags f /*= 0 */) :
 	QWidget(parent, f)
 {
 	m_controlPointBorderPen.setWidth(3);
-	m_controlPointBorderPen.setColor(Qt::black);
+	m_controlPointBorderPen.setColor(Qt::red);
 
 	m_controlPointCrossPen.setWidth(2);
-	m_controlPointCrossPen.setColor(Qt::black);
+	m_controlPointCrossPen.setColor(Qt::red);
 
 	//setMouseTracking(true); // to enable mouse move events without the mouse button needing to be pressed
 
 	initializeControlPointPaths();
 
 	QString mod[3] = { "A: ", "B: ", "C: " };
-	for (int i = 0; i < 3; i++) {
+	for (int i = 0; i < 3; i++)
+	{
 		auto sb = m_spinBoxes[i] = new QSpinBox(this);
 		sb->setRange(0, 100);
 		sb->setSingleStep(1);
@@ -72,67 +68,78 @@ iABarycentricTriangleWidget::iABarycentricTriangleWidget(QWidget * parent /*= 0*
 		sb->setStyleSheet("font-size: 10pt;");
 	}
 
-	connect(m_spinBoxes[0], SIGNAL(valueChanged(int)), this, SLOT(onSpinBoxValueChanged_1(int)));
-	connect(m_spinBoxes[1], SIGNAL(valueChanged(int)), this, SLOT(onSpinBoxValueChanged_2(int)));
-	connect(m_spinBoxes[2], SIGNAL(valueChanged(int)), this, SLOT(onSpinBoxValueChanged_3(int)));
+	connect(m_spinBoxes[0], QOverload<int>::of(&QSpinBox::valueChanged), this, &iABarycentricTriangleWidget::onSpinBoxValueChanged_1);
+	connect(m_spinBoxes[1], QOverload<int>::of(&QSpinBox::valueChanged), this, &iABarycentricTriangleWidget::onSpinBoxValueChanged_2);
+	connect(m_spinBoxes[2], QOverload<int>::of(&QSpinBox::valueChanged), this, &iABarycentricTriangleWidget::onSpinBoxValueChanged_3);
 }
 
-void iABarycentricTriangleWidget::onSpinBoxValueChanged_1(int newValue) {
+void iABarycentricTriangleWidget::onSpinBoxValueChanged_1(int newValue)
+{
 	int A = newValue;
 	double a = A / 100.0;
 	double rest = 1 - a;
-	
-	BCoord bc = getWeight();
+
+	iABCoord bc = getWeight();
 	double b = bc[1];
 	double c = bc[2];
 	double sum = b + c;
-	if (sum == 0) {
+	if (sum == 0)
+	{
 		b = rest / 2;
-	} else {
+	}
+	else
+	{
 		b = b / sum * rest;
 	}
 
 	int B = qRound(b * 100);
 	int C = 100 - A - B;
 
-	bc = BCoord(a, b);
+	bc = iABCoord(a, b);
 	updateControlPointCoordinates(bc, A, B, C);
 }
 
-void iABarycentricTriangleWidget::onSpinBoxValueChanged_2(int newValue) {
+void iABarycentricTriangleWidget::onSpinBoxValueChanged_2(int newValue)
+{
 	int B = newValue;
 	double b = B / 100.0;
 	double rest = 1 - b;
 
-	BCoord bc = getWeight();
+	iABCoord bc = getWeight();
 	double a = bc[0];
 	double c = bc[2];
 	double sum = a + c;
-	if (sum == 0) {
+	if (sum == 0)
+	{
 		a = rest / 2;
-	} else {
+	}
+	else
+	{
 		a = a / sum * rest;
 	}
 
 	int A = qRound(a * 100);
 	int C = 100 - A - B;
 
-	bc = BCoord(a, b);
+	bc = iABCoord(a, b);
 	updateControlPointCoordinates(bc, A, B, C);
 }
 
-void iABarycentricTriangleWidget::onSpinBoxValueChanged_3(int newValue) {
+void iABarycentricTriangleWidget::onSpinBoxValueChanged_3(int newValue)
+{
 	int C = newValue;
 	double c = C / 100.0;
 	double rest = 1 - c;
-	
-	BCoord bc = getWeight();
+
+	iABCoord bc = getWeight();
 	double a = bc[0];
 	double b = bc[1];
 	double sum = a + b;
-	if (sum == 0) {
+	if (sum == 0)
+	{
 		a = rest / 2;
-	} else {
+	} else
+	{
 		a = a / sum * rest;
 	}
 	b = 1 - a - c;
@@ -140,7 +147,7 @@ void iABarycentricTriangleWidget::onSpinBoxValueChanged_3(int newValue) {
 	int A = qRound(a * 100);
 	int B = 100 - A - C;
 
-	bc = BCoord(a, b);
+	bc = iABCoord(a, b);
 	updateControlPointCoordinates(bc, A, B, C);
 }
 
@@ -176,12 +183,13 @@ void iABarycentricTriangleWidget::mousePressEvent(QMouseEvent *event)
 
 void iABarycentricTriangleWidget::mouseMoveEvent(QMouseEvent *event)
 {
-	if (m_dragging) {
+	if (m_dragging)
+	{
 		updateControlPointPosition(event->pos());
 	}
 }
 
-void iABarycentricTriangleWidget::mouseReleaseEvent(QMouseEvent *event)
+void iABarycentricTriangleWidget::mouseReleaseEvent(QMouseEvent * /*event*/)
 {
 	m_dragging = false;
 }
@@ -191,7 +199,7 @@ void iABarycentricTriangleWidget::recalculatePositions(int width, int height)
 	recalculatePositions(width, height, true);
 }
 
-void iABarycentricTriangleWidget::recalculatePositions(int width, int height, BarycentricTriangle triangle)
+void iABarycentricTriangleWidget::recalculatePositions(int width, int height, iABarycentricTriangle triangle)
 {
 	m_triangle = triangle;
 	recalculatePositions(width, height, false);
@@ -200,7 +208,7 @@ void iABarycentricTriangleWidget::recalculatePositions(int width, int height, Ba
 void iABarycentricTriangleWidget::recalculatePositions(int width, int height, bool changeTriangle)
 {
 	int spinBoxHeight = m_spinBoxes[0]->sizeHint().height();
-	
+
 	int triangleSpacingLeft = MODALITY_LABEL_MARGIN; // LEFT margin of BOTTOM-LEFT modality
 	int triangleSpacingTop = spinBoxHeight + MODALITY_LABEL_MARGIN_TIMES_TWO; // complete height of TOP modality
 	int triangleSpacingRight = MODALITY_LABEL_MARGIN; // RIGHT margin of BOTTOM-RIGHT modality
@@ -209,10 +217,13 @@ void iABarycentricTriangleWidget::recalculatePositions(int width, int height, bo
 	int aw = width - triangleSpacingLeft - triangleSpacingRight; // available width (for the triangle)
 	int ah = height - triangleSpacingTop - triangleSpacingBottom; // available height (for the triangle)
 	int tw, th; // triangle's width and height
-	if (isTooWide(aw, ah)) {
+	if (isTooWide(aw, ah))
+	{
 		tw = aw;
 		th = getHeightForWidth(aw);
-	} else {
+	}
+	else
+	{
 		tw = getWidthForHeight(ah);
 		th = ah;
 	}
@@ -225,7 +236,8 @@ void iABarycentricTriangleWidget::recalculatePositions(int width, int height, bo
 	bottom = top + th;
 	centerX = left + (tw / 2);
 
-	if (changeTriangle) {
+	if (changeTriangle)
+	{
 		m_triangle.setXa(left);
 		m_triangle.setYa(bottom);
 		m_triangle.setXb(centerX);
@@ -251,13 +263,16 @@ void iABarycentricTriangleWidget::recalculatePositions(int width, int height, bo
 		QSize size3 = sb3->sizeHint();
 
 		QRect r1, r2, r3;
-		if (!changeTriangle) {
+		if (!changeTriangle)
+		{
 			// TRIANGLE MODE
 			r1 = QRect(m_triangle.getXa() - MODALITY_LABEL_MARGIN - size1.width(), m_triangle.getYa() - size1.height(), size1.width(), size1.height());
 			r2 = QRect(m_triangle.getXb() + MODALITY_LABEL_MARGIN, m_triangle.getYb() - size2.height(), size2.width(), size2.height());
 			r3 = QRect(m_triangle.getXc() - (size3.width() / 2), m_triangle.getYc() + MODALITY_LABEL_MARGIN, size3.width(), size3.height());
 
-		} else {
+		}
+		else
+		{
 			// STACK MODE
 			r1 = QRect(left, bottom + MODALITY_LABEL_MARGIN, size1.width(), size1.height());
 			r2 = QRect(centerX - (size2.width() / 2), top - MODALITY_LABEL_MARGIN - size2.height(), size2.width(), size2.height());
@@ -270,41 +285,45 @@ void iABarycentricTriangleWidget::recalculatePositions(int width, int height, bo
 	}
 
 	updateControlPointPosition();
-	if (m_triangleRenderer) {
+	if (m_triangleRenderer)
+	{
 		m_triangleRenderer->setTriangle(m_triangle);
 	}
 }
 
-void iABarycentricTriangleWidget::updateControlPoint(BCoord bCoord, QPoint newPos, int a, int b, int c)
+void iABarycentricTriangleWidget::updateControlPoint(iABCoord bCoord, QPoint newPos, int a, int b, int c)
 {
-	if (!bCoord.isInside()) {
+	if (!bCoord.isInside())
+	{
 		// Snap to edge
 
-		double a = bCoord.getAlpha();
-		double b = bCoord.getBeta();
-		double c = bCoord.getGamma();
+		double aSnap = bCoord.getAlpha();
+		double bSnap = bCoord.getBeta();
+		double cSnap = bCoord.getGamma();
 
-		a = a < 0 ? 0 : a;
-		b = b < 0 ? 0 : b;
-		c = c < 0 ? 0 : c;
-		double sum = a + b + c;
-		if (sum == 0) {
+		aSnap = aSnap < 0 ? 0 : aSnap;
+		bSnap = bSnap < 0 ? 0 : bSnap;
+		cSnap = cSnap < 0 ? 0 : cSnap;
+		double sum = aSnap + bSnap + cSnap;
+		if (sum == 0)
+		{
 			// No idea if this can possibly happen
 			// Probably good to be safe though
 			return;
 		}
 
-		a /= sum;
-		b /= sum;
+		aSnap /= sum;
+		bSnap /= sum;
 		//c /= sum;
 
-		bCoord = BCoord(a, b);
+		bCoord = iABCoord(aSnap, bSnap);
 		updateControlPointCoordinates(bCoord);
 		return;
 	}
 
 	int abc[3] = { a, b, c };
-	for (int i = 0; i < 3; i++) {
+	for (int i = 0; i < 3; i++)
+	{
 		auto sb = m_spinBoxes[i];
 		QSignalBlocker blocker(sb);
 		sb->setValue(abc[i]);
@@ -352,24 +371,26 @@ int iABarycentricTriangleWidget::getHeightForWidth(int width)
 	return (int)round(width * SIN60);
 }
 
-BCoord iABarycentricTriangleWidget::getWeight()
+iABCoord iABarycentricTriangleWidget::getWeight()
 {
 	return m_controlPointBCoord;
 }
 
-void iABarycentricTriangleWidget::setWeight(BCoord newWeight)
+void iABarycentricTriangleWidget::setWeight(iABCoord newWeight)
 {
 	updateControlPointCoordinates(newWeight);
 }
 
 void iABarycentricTriangleWidget::setTriangleRenderer(iABarycentricContextRenderer *triangleRenderer)
 {
-	if (m_triangleRenderer) {
-		disconnect(m_triangleRenderer, SIGNAL(heatmapReady()), this, SLOT(onHeatmapReady()));
+	if (m_triangleRenderer)
+	{
+		disconnect(m_triangleRenderer, &iABarycentricContextRenderer::heatmapReady, this, &iABarycentricTriangleWidget::onHeatmapReady);
 	}
 	m_triangleRenderer = triangleRenderer;
-	if (m_triangleRenderer) {
-		connect(m_triangleRenderer, SIGNAL(heatmapReady()), this, SLOT(onHeatmapReady()));
+	if (m_triangleRenderer)
+	{
+		connect(m_triangleRenderer, &iABarycentricContextRenderer::heatmapReady, this, &iABarycentricTriangleWidget::onHeatmapReady);
 	}
 }
 
@@ -381,7 +402,9 @@ void iABarycentricTriangleWidget::setModalities(vtkSmartPointer<vtkImageData> d1
 void iABarycentricTriangleWidget::updateModalityNames(QString const name[3])
 {
 	for (int i = 0; i < 3; ++i)
+	{
 		m_spinBoxes[i]->setPrefix(QString("%1: ").arg(name[i]));
+	}
 }
 
 void iABarycentricTriangleWidget::resizeEvent(QResizeEvent* event)
@@ -389,7 +412,8 @@ void iABarycentricTriangleWidget::resizeEvent(QResizeEvent* event)
 	recalculatePositions(event->size().width(), event->size().height());
 }
 
-void iABarycentricTriangleWidget::onHeatmapReady() {
+void iABarycentricTriangleWidget::onHeatmapReady()
+{
 	update();
 }
 
@@ -397,7 +421,7 @@ void iABarycentricTriangleWidget::onHeatmapReady() {
 // PAINT METHODS
 // ----------------------------------------------------------------------------------------------
 
-void iABarycentricTriangleWidget::paintEvent(QPaintEvent* event)
+void iABarycentricTriangleWidget::paintEvent(QPaintEvent* /*event*/)
 {
 	QPainter p(this);
 	paintContext(p);
@@ -426,19 +450,26 @@ void iABarycentricTriangleWidget::paintControlPoint(QPainter &p)
 	p.drawPath(m_controlPointBorderPainterPath);
 }
 
-void iABarycentricTriangleWidget::paintContext(QPainter &p) {
+void iABarycentricTriangleWidget::paintContext(QPainter &p)
+{
 	QImage *img = m_triangleRenderer->getImage();
 	QSize size = img->size();
 
-	if (img->isNull() || size.width() == 0 || size.height() == 0) {
+	if (img->isNull() || size.width() == 0 || size.height() == 0)
+	{
 		paintTriangleBorder(p);
 		paintTriangleFill(p);
-	} else {
+	}
+	else
+	{
 		QRect rect = m_triangleRenderer->getImageRect();
 
-		if (size != rect.size()) {
+		if (size != rect.size())
+		{
 			p.drawImage(rect, img->scaled(rect.size(), Qt::IgnoreAspectRatio, Qt::SmoothTransformation));
-		} else {
+		}
+		else
+		{
 			p.drawImage(rect, *img, img->rect());;
 		}
 	}

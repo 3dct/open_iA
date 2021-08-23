@@ -1,8 +1,8 @@
 /*************************************  open_iA  ************************************ *
 * **********   A tool for visual analysis and processing of 3D CT images   ********** *
 * *********************************************************************************** *
-* Copyright (C) 2016-2019  C. Heinzl, M. Reiter, A. Reh, W. Li, M. Arikan, Ar. &  Al. *
-*                          Amirkhanov, J. Weissenböck, B. Fröhler, M. Schiwarth       *
+* Copyright (C) 2016-2021  C. Heinzl, M. Reiter, A. Reh, W. Li, M. Arikan, Ar. &  Al. *
+*                 Amirkhanov, J. Weissenböck, B. Fröhler, M. Schiwarth, P. Weinberger *
 * *********************************************************************************** *
 * This program is free software: you can redistribute it and/or modify it under the   *
 * terms of the GNU General Public License as published by the Free Software           *
@@ -18,9 +18,9 @@
 * Contact: FH OÖ Forschungs & Entwicklungs GmbH, Campus Wels, CT-Gruppe,              *
 *          Stelzhamerstraße 23, 4600 Wels / Austria, Email: c.heinzl@fh-wels.at       *
 * ************************************************************************************/
- 
+
 #include "iAIntensityMapper.h"
-#include "io/iAITKIO.h"
+#include "iAITKIO.h"
 #include "iATypedCallHelper.h"
 
 #include <itkImageRegionIteratorWithIndex.h>
@@ -28,10 +28,11 @@
 
 #include <Hilbert.hpp>
 
+#include <QDir>
 
 template<class T>
-void getIntensities(iAProgress &imp, PathID m_pathID, ImagePointer &image, QList<icData> &intensityList, 
-	QList<vtkSmartPointer<vtkImageData>> &m_imgDataList, QList<double> &minEnsembleIntensityList, 
+void getIntensities(iAProgress &imp, PathID m_pathID, ImagePointer &image, QList<icData> &intensityList,
+	QList<vtkSmartPointer<vtkImageData>> &m_imgDataList, QList<double> &minEnsembleIntensityList,
 	QList<double> &maxEnsembleIntensityList, QList<QVector<unsigned int>> &coordList)
 {
 	typedef itk::Image< T, DIM >   InputImageType;
@@ -57,31 +58,44 @@ void getIntensities(iAProgress &imp, PathID m_pathID, ImagePointer &image, QList
 				unsigned int HilbertCnt = size[0] * size[1] * size[2];
 				int nbOfBitsPerDim[DIM];
 				for (int i = 0; i < DIM; ++i)
+				{
 					nbOfBitsPerDim[i] = ceil(sqrt((size[i] - 1)));
+				}
 
-				for (unsigned int h = 0; h < HilbertCnt; ++h)
-				{					
-					CFixBitVec *coordPtr = new CFixBitVec[HilbertCnt];
+				#pragma omp parallel for 
+				for (long h = 0; h < HilbertCnt; ++h)
+				{
+					CFixBitVec *coordPtr = new CFixBitVec[DIM];
 					CFixBitVec compHilbertIdx;
 					compHilbertIdx = (FBV_UINT)h;
-					Hilbert::compactIndexToCoords(coordPtr, 
+					Hilbert::compactIndexToCoords(coordPtr,
 						nbOfBitsPerDim, DIM, compHilbertIdx);
 
-					for (int i = 0; i < DIM; i++)
-						coord[i] = coordPtr[i].rack();
-				
-					delete[] coordPtr;
-					coordList.append(coord);
-					imp.emitProgress((h + 1) * 100 / HilbertCnt);
+
+					#pragma omp critical
+					{
+						for (int i = 0; i < DIM; i++)
+						{
+							coord[i] = coordPtr[i].rack();
+						}
+					
+						delete[] coordPtr;
+						coordList.append(coord);
+						if (coordList.size() % 64 == 0)
+						{
+							imp.emitProgress(coordList.size() * 100.0 / HilbertCnt);
+						}
+					}
 				}
 			}
-			
-			for (unsigned int h = 0; h < coordList.size(); ++h)
+
+			for (int h = 0; h < coordList.size(); ++h)
 			{
 				typename InputImageType::IndexType c;
 				for (int i = 0; i < DIM; i++)
+				{
 					c[i] = coordList[h][i];
-				
+				}
 				icData data(input->GetPixel(c), c);
 				intensityList.append(data);
 			}

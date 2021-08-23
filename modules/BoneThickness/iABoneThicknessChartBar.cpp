@@ -1,8 +1,8 @@
 /*************************************  open_iA  ************************************ *
 * **********   A tool for visual analysis and processing of 3D CT images   ********** *
 * *********************************************************************************** *
-* Copyright (C) 2016-2019  C. Heinzl, M. Reiter, A. Reh, W. Li, M. Arikan, Ar. &  Al. *
-*                          Amirkhanov, J. Weissenböck, B. Fröhler, M. Schiwarth       *
+* Copyright (C) 2016-2021  C. Heinzl, M. Reiter, A. Reh, W. Li, M. Arikan, Ar. &  Al. *
+*                 Amirkhanov, J. Weissenböck, B. Fröhler, M. Schiwarth, P. Weinberger *
 * *********************************************************************************** *
 * This program is free software: you can redistribute it and/or modify it under the   *
 * terms of the GNU General Public License as published by the Free Software           *
@@ -27,6 +27,7 @@
 
 #include <QMouseEvent>
 #include <QPainter>
+#include <QtGlobal> // for QT_VERSION
 
 iABoneThicknessChartBar::iABoneThicknessChartBar(QWidget* _pParent) : QWidget(_pParent)
 {
@@ -72,7 +73,11 @@ void iABoneThicknessChartBar::draw()
 	int iAxisW(0);
 	for (auto& pAxisYString : vAxisYString)
 	{
+#if QT_VERSION >= QT_VERSION_CHECK(5, 11, 0)
+		iAxisW = qMax(iAxisW, fomAxis.horizontalAdvance(pAxisYString));
+#else
 		iAxisW = qMax(iAxisW, fomAxis.width(pAxisYString));
+#endif
 	}
 
 	const QFontMetrics fomTitle(m_foTitle);
@@ -206,7 +211,11 @@ void iABoneThicknessChartBar::mousePressEvent(QMouseEvent* e)
 {
 	if (m_daThickness)
 	{
+#if QT_VERSION < QT_VERSION_CHECK(6, 0, 0)
 		const vtkIdType idSelected (selected(e->x(), e->y()));
+#else
+		const vtkIdType idSelected(selected(e->position().x(), e->position().y()));
+#endif
 
 		if ((idSelected == m_pBoneThicknessTable->selected()) || (idSelected < 0))
 		{

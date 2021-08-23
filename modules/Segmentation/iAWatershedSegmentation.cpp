@@ -1,8 +1,8 @@
 /*************************************  open_iA  ************************************ *
 * **********   A tool for visual analysis and processing of 3D CT images   ********** *
 * *********************************************************************************** *
-* Copyright (C) 2016-2019  C. Heinzl, M. Reiter, A. Reh, W. Li, M. Arikan, Ar. &  Al. *
-*                          Amirkhanov, J. Weissenböck, B. Fröhler, M. Schiwarth       *
+* Copyright (C) 2016-2021  C. Heinzl, M. Reiter, A. Reh, W. Li, M. Arikan, Ar. &  Al. *
+*                 Amirkhanov, J. Weissenböck, B. Fröhler, M. Schiwarth, P. Weinberger *
 * *********************************************************************************** *
 * This program is free software: you can redistribute it and/or modify it under the   *
 * terms of the GNU General Public License as published by the Free Software           *
@@ -26,21 +26,15 @@
 #include <iAToolsITK.h>
 #include <iATypedCallHelper.h>
 
-#include <itkCastImageFilter.h>
-#include <itkImageFileWriter.h>
+#pragma GCC diagnostic push
+#pragma GCC diagnostic ignored "-Wstrict-overflow"
 #include <itkMorphologicalWatershedImageFilter.h>
-#include <itkScalarToRGBPixelFunctor.h>
-#include <itkUnaryFunctorImageFilter.h>
 #include <itkWatershedImageFilter.h>
+#pragma GCC diagnostic pop
 
-#include <vtkImageData.h>
+// Watershed segmentation
 
-#include <QLocale>
-
-
-// Watershed segmentation 
-
-template<class T> 
+template<class T>
 void watershed(iAFilter* filter, QMap<QString, QVariant> const & parameters)
 {
 	typedef itk::Image< T, DIM >   InputImageType;
@@ -51,6 +45,7 @@ void watershed(iAFilter* filter, QMap<QString, QVariant> const & parameters)
 	wsFilter->SetInput( dynamic_cast< InputImageType * >( filter->input()[0]->itkImage() ) );
 	filter->progress()->observe( wsFilter );
 	wsFilter->Update();
+	// return is unsigned long long, but vtk can't handle that, so convert to ulong:
 	filter->addOutput( castImageTo<unsigned long>(wsFilter->GetOutput()) );
 }
 
@@ -67,8 +62,8 @@ iAWatershed::iAWatershed() :
 		"<a href=\"https://itk.org/Doxygen/html/classitk_1_1WatershedImageFilter.html\">"
 		"Watershed filter</a> in the ITK documentation.")
 {
-	addParameter("Level", Continuous, 0);
-	addParameter("Threshold", Continuous, 0);
+	addParameter("Level", iAValueType::Continuous, 0);
+	addParameter("Threshold", iAValueType::Continuous, 0);
 }
 
 void iAWatershed::performWork(QMap<QString, QVariant> const & parameters)
@@ -92,7 +87,7 @@ void morph_watershed(iAFilter* filter, QMap<QString, QVariant> const & parameter
 	mWSFilter->SetInput( dynamic_cast< InputImageType * >( filter->input()[0]->itkImage() ) );
 	filter->progress()->observe( mWSFilter );
 	mWSFilter->Update();
-	filter->addOutput( castImageTo<unsigned long>(mWSFilter->GetOutput()) );
+	filter->addOutput( mWSFilter->GetOutput() );
 }
 
 IAFILTER_CREATE(iAMorphologicalWatershed)
@@ -106,9 +101,9 @@ iAMorphologicalWatershed::iAMorphologicalWatershed() :
 		"<a href=\"https://itk.org/Doxygen/html/classitk_1_1MorphologicalWatershedImageFilter.html\">"
 		"Morphological Watershed filter</a> in the ITK documentation.</p>")
 {
-	addParameter("Level", Continuous, 0);
-	addParameter("Mark WS Lines", Boolean, false);
-	addParameter("Fully Connected", Boolean, false);
+	addParameter("Level", iAValueType::Continuous, 0);
+	addParameter("Mark WS Lines", iAValueType::Boolean, false);
+	addParameter("Fully Connected", iAValueType::Boolean, false);
 }
 
 void iAMorphologicalWatershed::performWork(QMap<QString, QVariant> const & parameters)

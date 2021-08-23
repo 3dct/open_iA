@@ -1,8 +1,8 @@
 /*************************************  open_iA  ************************************ *
 * **********   A tool for visual analysis and processing of 3D CT images   ********** *
 * *********************************************************************************** *
-* Copyright (C) 2016-2019  C. Heinzl, M. Reiter, A. Reh, W. Li, M. Arikan, Ar. &  Al. *
-*                          Amirkhanov, J. Weissenböck, B. Fröhler, M. Schiwarth       *
+* Copyright (C) 2016-2021  C. Heinzl, M. Reiter, A. Reh, W. Li, M. Arikan, Ar. &  Al. *
+*                 Amirkhanov, J. Weissenböck, B. Fröhler, M. Schiwarth, P. Weinberger *
 * *********************************************************************************** *
 * This program is free software: you can redistribute it and/or modify it under the   *
 * terms of the GNU General Public License as published by the Free Software           *
@@ -37,17 +37,18 @@ dlg_fileEdit::dlg_fileEdit( QWidget* parent /*= 0*/ ) :
 	QDialog( parent )
 {
 	setupUi( this );
-	connect( pbBrowse, SIGNAL( clicked( ) ), this, SLOT( onBrowseButtonClick( ) ) );
-	connect( cbType, SIGNAL( currentIndexChanged( int ) ), this, SLOT( fileTypeChanged( int ) ) );
+	connect( pbBrowse, &QPushButton::clicked, this, &dlg_fileEdit::onBrowseButtonClick);
+	connect( cbType, QOverload<int>::of(&QComboBox::currentIndexChanged), this, &dlg_fileEdit::fileTypeChanged);
 
 	int n = sizeof( FileTypes ) / sizeof( FileTypePair );
-	for( int i = 0; i < n; i++ ) {
+	for( int i = 0; i < n; i++ )
+	{
 		cbType->addItem( FileTypes[i].first );
 	}
 }
 
 dlg_fileEdit::~dlg_fileEdit( )
-{ /* net implemented yet*/ }
+{ /* not implemented yet*/ }
 
 void dlg_fileEdit::onBrowseButtonClick( )
 {

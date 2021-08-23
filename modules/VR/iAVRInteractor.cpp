@@ -1,8 +1,8 @@
 /*************************************  open_iA  ************************************ *
 * **********   A tool for visual analysis and processing of 3D CT images   ********** *
 * *********************************************************************************** *
-* Copyright (C) 2016-2019  C. Heinzl, M. Reiter, A. Reh, W. Li, M. Arikan, Ar. &  Al. *
-*                          Amirkhanov, J. Weissenböck, B. Fröhler, M. Schiwarth       *
+* Copyright (C) 2016-2021  C. Heinzl, M. Reiter, A. Reh, W. Li, M. Arikan, Ar. &  Al. *
+*                 Amirkhanov, J. Weissenböck, B. Fröhler, M. Schiwarth, P. Weinberger *
 * *********************************************************************************** *
 * This program is free software: you can redistribute it and/or modify it under the   *
 * terms of the GNU General Public License as published by the Free Software           *
@@ -25,11 +25,26 @@
 
 #include <QCoreApplication>
 
-
 vtkStandardNewMacro(iAVRInteractor);
 
 iAVRInteractor::iAVRInteractor()
-{}
+{
+}
+
+void iAVRInteractor::StartEventLoop()
+{
+	this->StartedMessageLoop = 1;
+	this->Done = false;
+
+	auto renWin = vtkOpenVRRenderWindow::SafeDownCast(this->RenderWindow);
+	auto ren = static_cast<vtkRenderer *>(renWin->GetRenderers()->GetItemAsObject(0));
+
+	while (!this->Done)
+	{
+		DoOneEvent(renWin, ren);
+		QCoreApplication::processEvents();
+	}
+}
 
 void iAVRInteractor::stop()
 {

@@ -1,8 +1,8 @@
 /*************************************  open_iA  ************************************ *
 * **********   A tool for visual analysis and processing of 3D CT images   ********** *
 * *********************************************************************************** *
-* Copyright (C) 2016-2019  C. Heinzl, M. Reiter, A. Reh, W. Li, M. Arikan, Ar. &  Al. *
-*                          Amirkhanov, J. Weissenböck, B. Fröhler, M. Schiwarth       *
+* Copyright (C) 2016-2021  C. Heinzl, M. Reiter, A. Reh, W. Li, M. Arikan, Ar. &  Al. *
+*                 Amirkhanov, J. Weissenböck, B. Fröhler, M. Schiwarth, P. Weinberger *
 * *********************************************************************************** *
 * This program is free software: you can redistribute it and/or modify it under the   *
 * terms of the GNU General Public License as published by the Free Software           *
@@ -24,7 +24,7 @@
 
 #include <iAMovieHelper.h>
 #include <iARenderer.h>
-#include <mdichild.h>
+#include <iAMdiChild.h>
 
 #include <itkImage.h>
 #include <itkImageFileReader.h>
@@ -45,7 +45,6 @@
 #include <vtkProperty.h>
 #include <vtkRenderer.h>
 #include <vtkRenderWindow.h>
-#include <vtkVersion.h>
 #include <vtkWindowToImageFilter.h>
 
 #include <QSettings>
@@ -63,32 +62,32 @@ namespace
 
 
 // Constructor
-iABlobManager::iABlobManager( void )
-	:m_range( 3000 ),
-	m_overlapThreshold( 100 ),
-	m_blurVariance( 32.0 ),
-	m_boundsProtrusionCoef( 1 ),
-	m_isSmoothingEnabled( true ),
-	m_isGaussianBlurEnabled( true ),
-	m_isSilhoetteEnabled( true ),
-	m_isBlobBodyEnabled( true ),
-	m_isLabelingEnabled( true ),
-	m_blobOpacity( 0.3 ),
-	m_silhouetteOpacity( 0.8 ),
-	m_depthPeelingEnabled( true ),
-	m_blobRen( 0 ),
-	m_labelRen( 0 )
+iABlobManager::iABlobManager( void ):
+	m_imageMask(vtkSmartPointer<vtkImageData>::New()),
+	m_blurVariance(32.0),
+	m_overlappingEnabled(false),
+	m_isSmoothingEnabled(true),
+	m_isGaussianBlurEnabled(true),
+	m_isSilhoetteEnabled(true),
+	m_isLabelingEnabled(true),
+	m_isBlobBodyEnabled(true),
+	m_range(3000),
+	m_boundsProtrusionCoef(1),
+	m_depthPeelingEnabled(true),
+	m_overlapThreshold(100),
+	m_blobOpacity(0.3),
+	m_silhouetteOpacity(0.8),
+	m_blobRen(nullptr),
+	m_labelRen(nullptr),
+	m_appendedBlobsPD(vtkSmartPointer<vtkAppendPolyData>::New()),
+	m_blobsLT(vtkSmartPointer<vtkLookupTable>::New()),
+	m_blobsDepthSort(vtkSmartPointer<vtkDepthSortPolyData>::New()),
+	m_blobsMapper(vtkSmartPointer<vtkPolyDataMapper>::New()),
+	m_blobsActor(vtkSmartPointer<vtkActor>::New()),
+	m_silhouette(vtkSmartPointer<vtkPolyDataSilhouette>::New()),
+	m_silhouetteMapper(vtkSmartPointer<vtkPolyDataMapper>::New()),
+	m_silhouetteActor(vtkSmartPointer<vtkActor>::New())
 {
-	m_imageMask = vtkSmartPointer<vtkImageData>::New();
-	m_appendedBlobsPD = vtkSmartPointer<vtkAppendPolyData>::New();
-	m_blobsLT = vtkSmartPointer<vtkLookupTable>::New();
-	m_blobsDepthSort = vtkSmartPointer<vtkDepthSortPolyData>::New();
-	m_blobsMapper = vtkSmartPointer<vtkPolyDataMapper>::New();
-	m_blobsActor = vtkSmartPointer<vtkActor>::New();
-	m_silhouette = vtkSmartPointer<vtkPolyDataSilhouette>::New();
-	m_silhouetteMapper = vtkSmartPointer<vtkPolyDataMapper>::New();
-	m_silhouetteActor = vtkSmartPointer<vtkActor>::New();
-
 	QSettings settings;
 	m_depthPeelingEnabled = settings.value( DepthPeelingKey, true ).toBool();
 }
@@ -104,8 +103,10 @@ void iABlobManager::Update( void )
 		m_blobsList[i]->Update();
 	}
 
-	if ( m_overlappingEnabled )
+	if (m_overlappingEnabled)
+	{
 		SmartOverlapping();
+	}
 
 	if ( m_depthPeelingEnabled )
 	{
@@ -254,7 +255,7 @@ bool iABlobManager::SmartOverlapping( void )
 					for ( int i = 0; i < size; ++i )
 					{
 						d1 = d1_out = m_blobsList[i]->GetImageData()->GetScalarComponentAsDouble( x, y, z, MAX_VALUE_COMPONENT );
-						for ( int j = 0; j < size, i != j; ++j )
+						for ( int j = 0; j < size && i != j; ++j )
 						{
 							d2 = d2_out = m_blobsList[j]->GetImageData()->GetScalarComponentAsDouble( x, y, z, MAX_VALUE_COMPONENT );
 							delta = fabs( d1 - d2 );
@@ -477,11 +478,6 @@ int* iABlobManager::GetDimensions()
 	return m_dimension;
 }
 
-void iABlobManager::SetBlobResolution( int resolution )
-{
-
-}
-
 void iABlobManager::SetSmoothing( bool isOn )
 {
 	m_isSmoothingEnabled = isOn;
@@ -615,27 +611,18 @@ bool iABlobManager::GetShowBlob() const
 	return m_isBlobBodyEnabled;
 }
 
-inline double lerp( double a, double b, double t )
-{
-	return a + ( b - a ) * t;
-}
-inline int lerp( int a, int b, double t )
-{
-	double ad = a, bd = b;
-	return (int) ( ad + ( bd - ad ) * t );
-}
 void iABlobManager::SaveMovie( QWidget *activeChild,
 							   iARenderer * raycaster,
 							   vtkCamera * cam,
-							   vtkRenderWindowInteractor * interactor,
+							   vtkRenderWindowInteractor * /*interactor*/,
 							   vtkRenderWindow * renWin,
 							   size_t numberOfFrames,
-							   const double range[2],
-							   const double blobOpacity[2],
-							   const double silhouetteOpacity[2],
-							   const double overlapThreshold[2],
-							   const double gaussianBlurVariance[2],
-							   const int dimX[2], const int dimY[2], const int dimZ[2],
+							   const double /*range*/[2],
+							   const double /*blobOpacity*/[2],
+							   const double /*silhouetteOpacity*/[2],
+							   const double /*overlapThreshold*/[2],
+							   const double /*gaussianBlurVariance*/[2],
+							   const int /*dimX*/[2], const int /*dimY*/[2], const int /*dimZ*/[2],
 							   const QString& fileName, int mode, int qual )
 {
 	if ( numberOfFrames <= 1 )
@@ -706,12 +693,12 @@ void iABlobManager::SaveMovie( QWidget *activeChild,
 	for ( size_t i = 0; i < numberOfFrames; ++i )
 	{
 		//double t = (double)i / (numberOfFrames-1);
-		//SetRange ( lerp(range[0], range[1], t) );
-		//SetBlobOpacity ( lerp(blobOpacity[0], blobOpacity[1], t) );
-		//SetSilhouetteOpacity ( lerp(silhouetteOpacity[0], silhouetteOpacity[1], t) );
-		//SetOverlapThreshold ( lerp(overlapThreshold[0], overlapThreshold[1], t) );
-		//SetGaussianBlurVariance ( lerp(gaussianBlurVariance[0], gaussianBlurVariance[1], t) );
-		//int dims[3] = {lerp(dimX[0], dimX[1], t), lerp(dimY[0], dimY[1], t), lerp(dimZ[0], dimZ[1], t)};
+		//SetRange ( std::lerp(range[0], range[1], t) );
+		//SetBlobOpacity ( std::lerp(blobOpacity[0], blobOpacity[1], t) );
+		//SetSilhouetteOpacity ( std::lerp(silhouetteOpacity[0], silhouetteOpacity[1], t) );
+		//SetOverlapThreshold ( std::lerp(overlapThreshold[0], overlapThreshold[1], t) );
+		//SetGaussianBlurVariance ( std::lerp(gaussianBlurVariance[0], gaussianBlurVariance[1], t) );
+		//int dims[3] = {std::lerp(dimX[0], dimX[1], t), std::lerp(dimY[0], dimY[1], t), std::lerp(dimZ[0], dimZ[1], t)};
 		//SetDimensions(dims);
 
 		//Update();
@@ -740,11 +727,11 @@ void iABlobManager::SaveMovie( QWidget *activeChild,
 		//if(mode != 0)
 		//cam->ApplyTransform(rot);
 
-		MdiChild * mdiChild = static_cast<MdiChild*>( activeChild );
+		iAMdiChild * mdiChild = static_cast<iAMdiChild*>( activeChild );
 		//mdiChild->sXZ->spinBoxXZ->setValue( i );
 		//mdiChild->updateViews();
 
-		raycaster->plane2()->SetOrigin( 0, mdiChild->imageData()->GetSpacing()[0] * ( mdiChild->imageData()->GetDimensions()[1] - i ), 0 );
+		raycaster->plane2()->SetOrigin( 0, mdiChild->imagePointer()->GetSpacing()[0] * ( mdiChild->imagePointer()->GetDimensions()[1] - i ), 0 );
 		raycaster->update();
 		//mdiChild->updateViews();
 

@@ -33,7 +33,7 @@ template<class TInputImage>
 RemovePeaksOtsuThresholdImageCalculator<TInputImage>
 ::RemovePeaksOtsuThresholdImageCalculator()
 {
-  m_Image = NULL;
+  m_Image = nullptr;
   m_Threshold = NumericTraits<PixelType>::Zero;
   m_NumberOfHistogramBins = 128;
   m_RegionSetByUser = false;
@@ -48,14 +48,12 @@ void
 RemovePeaksOtsuThresholdImageCalculator<TInputImage>
 ::Compute(void)
 {
-  unsigned int j;
-
   if ( !m_Image ) { return; }
   if( !m_RegionSetByUser )
     {
     m_Region = m_Image->GetRequestedRegion();
     }
-    
+
   //double totalPixels = (double) m_Region.GetNumberOfPixels();
   //if ( totalPixels == 0 ) { return; }
 
@@ -77,7 +75,7 @@ RemovePeaksOtsuThresholdImageCalculator<TInputImage>
   // create a histogram
   std::vector<double> relativeFrequency;
   relativeFrequency.resize( m_NumberOfHistogramBins );
-  for ( j = 0; j < m_NumberOfHistogramBins; j++ )
+  for (size_t j = 0; j < m_NumberOfHistogramBins; j++ )
     {
     relativeFrequency[j] = 0.0;
     }
@@ -93,7 +91,7 @@ RemovePeaksOtsuThresholdImageCalculator<TInputImage>
     unsigned int binNumber;
     PixelType value = iter.Get();
 
-    if ( value == imageMin ) 
+    if ( value == imageMin )
       {
       binNumber = 0;
       }
@@ -110,42 +108,43 @@ RemovePeaksOtsuThresholdImageCalculator<TInputImage>
     ++iter;
 
     }
-    
-    // apply median filter to histogram
-	double a, b, c;
-	std::vector<double> temp;
-	for ( int j = 0; j < m_NumberOfHistogramBins; j = j++ ) 
-	{	
-		(j == 0) ? a = 0 : a = relativeFrequency[j-1];
-		b = relativeFrequency[j];
-		(j == (m_NumberOfHistogramBins-1)) ? c = 0 : c = relativeFrequency[j+1];
 
-		if		(((b <= c) && (b >= a)) || ((b <= a) && (b >= c))) 
-			temp.push_back(b);
-		else if (((a <= c) && (a >= b)) || ((a <= b) && (a >= c))) 
-			temp.push_back(a);
-		else if (((c <= b) && (c >= a)) || ((c <= a) && (c >= b))) 
-			temp.push_back(c);
-	}
-	
-	double totalPixels = 0;
-	for ( int j = 0; j < m_NumberOfHistogramBins; j = j++ )
-	{
-		relativeFrequency[j] = temp[j];
-		totalPixels += temp[j];
-	}
-	
-	if ( totalPixels == 0 ) { return; }
-	    
- 
+  // apply median filter to histogram
+  double a, b, c;
+  std::vector<double> temp;
+  for (size_t j = 0; j < m_NumberOfHistogramBins; ++j )
+    {
+    (j == 0) ? a = 0 : a = relativeFrequency[j-1];
+    b = relativeFrequency[j];
+    (j == (m_NumberOfHistogramBins-1)) ? c = 0 : c = relativeFrequency[j+1];
+
+    if      (((b <= c) && (b >= a)) || ((b <= a) && (b >= c)))
+      temp.push_back(b);
+    else if (((a <= c) && (a >= b)) || ((a <= b) && (a >= c)))
+      temp.push_back(a);
+    else if (((c <= b) && (c >= a)) || ((c <= a) && (c >= b)))
+      temp.push_back(c);
+  }
+
+  double totalPixels = 0;
+  for (size_t j = 0; j < m_NumberOfHistogramBins; ++j )
+    {
+    relativeFrequency[j] = temp[j];
+    totalPixels += temp[j];
+    }
+
+  if ( totalPixels == 0 )
+    {
+    return;
+    }
+
   // normalize the frequencies
   double totalMean = 0.0;
-  for ( j = 0; j < m_NumberOfHistogramBins; j++ )
+  for (size_t j = 0; j < m_NumberOfHistogramBins; j++ )
     {
     relativeFrequency[j] /= totalPixels;
     totalMean += (j+1) * relativeFrequency[j];
     }
-
 
   // compute Otsu's threshold by maximizing the between-class
   // variance
@@ -164,10 +163,10 @@ RemovePeaksOtsuThresholdImageCalculator<TInputImage>
   double freqLeftOld = freqLeft;
   double meanLeftOld = meanLeft;
 
-  for ( j = 1; j < m_NumberOfHistogramBins; j++ )
+  for (size_t j = 1; j < m_NumberOfHistogramBins; j++ )
     {
     freqLeft += relativeFrequency[j];
-    meanLeft = ( meanLeftOld * freqLeftOld + 
+    meanLeft = ( meanLeftOld * freqLeftOld +
                  (j+1) * relativeFrequency[j] ) / freqLeft;
     if (freqLeft == 1.0)
       {
@@ -175,12 +174,12 @@ RemovePeaksOtsuThresholdImageCalculator<TInputImage>
       }
     else
       {
-      meanRight = ( totalMean - meanLeft * freqLeft ) / 
+      meanRight = ( totalMean - meanLeft * freqLeft ) /
         ( 1.0 - freqLeft );
       }
     double varBetween = freqLeft * ( 1.0 - freqLeft ) *
-	  vnl_math::sqr( meanLeft - meanRight );
-   
+      vnl_math::sqr( meanLeft - meanRight );
+
     if ( varBetween > maxVarBetween )
       {
       maxVarBetween = varBetween;
@@ -189,11 +188,11 @@ RemovePeaksOtsuThresholdImageCalculator<TInputImage>
 
     // cache old values
     freqLeftOld = freqLeft;
-    meanLeftOld = meanLeft; 
+    meanLeftOld = meanLeft;
 
-    } 
+    }
 
-  m_Threshold = static_cast<PixelType>( imageMin + 
+  m_Threshold = static_cast<PixelType>( imageMin +
                                         ( maxBinNumber + 1 ) / binMultiplier );
 }
 

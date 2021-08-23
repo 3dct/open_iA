@@ -28,10 +28,10 @@
 #include "itkImageRegionIterator.h"
 #include "itkVector.h"
 #include "itkArray.h"
-#if ITK_VERSION_MAJOR >= 5
-#include "itkMultiThreaderBase.h"
-#else
+#if ITK_VERSION_MAJOR < 5
 #include "itkMultiThreader.h"
+#else
+#include "itkMultiThreaderBase.h"
 #endif
 #include <vector>
 
@@ -105,7 +105,7 @@ namespace itk
 */
 template< class TInputImage, class TProbabilityPrecision = double,
           class TCentroidValuePrecision = double >
-class ITK_EXPORT FuzzyClassifierInitializationImageFilter :
+class FuzzyClassifierInitializationImageFilter :
     public ImageToImageFilter<
                TInputImage,
                VectorImage<

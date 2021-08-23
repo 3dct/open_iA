@@ -1,8 +1,8 @@
 /*************************************  open_iA  ************************************ *
 * **********   A tool for visual analysis and processing of 3D CT images   ********** *
 * *********************************************************************************** *
-* Copyright (C) 2016-2019  C. Heinzl, M. Reiter, A. Reh, W. Li, M. Arikan, Ar. &  Al. *
-*                          Amirkhanov, J. Weissenböck, B. Fröhler, M. Schiwarth       *
+* Copyright (C) 2016-2021  C. Heinzl, M. Reiter, A. Reh, W. Li, M. Arikan, Ar. &  Al. *
+*                 Amirkhanov, J. Weissenböck, B. Fröhler, M. Schiwarth, P. Weinberger *
 * *********************************************************************************** *
 * This program is free software: you can redistribute it and/or modify it under the   *
 * terms of the GNU General Public License as published by the Free Software           *
@@ -24,11 +24,12 @@
 #include "iAImageWidget.h"
 
 #include <iAChannelData.h>
-#include <iAConsole.h>
+#include <iALog.h>
 #include <iASlicer.h>
 #include <iASlicerMode.h>
 #include <iATransferFunction.h>
-#include <qthelper/iAQFlowLayout.h>
+
+#include <iAQFlowLayout.h>
 
 #include <vtkColorTransferFunction.h>
 #include <vtkPiecewiseFunction.h>
@@ -64,7 +65,7 @@ iASpatialView::iASpatialView(): QWidget(),
 {
 	m_sliceControl = new QSpinBox();
 	m_sliceControl->setMaximum(0);
-	connect(m_sliceControl, SIGNAL(valueChanged(int)), this, SLOT(SliceChanged(int)));
+	connect(m_sliceControl, QOverload<int>::of(&QSpinBox::valueChanged), this, &iASpatialView::SliceChanged);
 
 	auto sliceButtonBar = new QToolBar();			// same order as in iASlicerMode!
 	static const char* const slicerModeButtonLabels[] = { "YZ", "XY", "XZ" };
@@ -74,12 +75,12 @@ iASpatialView::iASpatialView(): QWidget(),
 		slicerModeButton[i]->setText(slicerModeButtonLabels[i]);
 		slicerModeButton[i]->setAutoExclusive(true);
 		slicerModeButton[i]->setCheckable(true);
-		connect(slicerModeButton[i], SIGNAL(clicked(bool)), this, SLOT(SlicerModeButtonClicked(bool)));
+		connect(slicerModeButton[i], &QToolButton::clicked, this, &iASpatialView::SlicerModeButtonClicked);
 		sliceButtonBar->addWidget(slicerModeButton[i]);
 	}
 	m_curMode = iASlicerMode::XY;
 	slicerModeButton[m_curMode]->setChecked(true);
-	
+
 	m_sliceBar = new QWidget();
 	m_sliceBar->setLayout(new QHBoxLayout());
 	m_sliceBar->layout()->setSpacing(0);
@@ -148,8 +149,7 @@ QToolButton* iASpatialView::AddImage(QString const & caption, vtkImagePointer im
 	button->setCheckable(true);
 	button->setAutoExclusive(false);
 	m_imageBar->layout()->addWidget(button);
-	connect(button, SIGNAL( clicked() ), this, SLOT( ImageButtonClicked() ) );
-	iAImageWidget* imgW = nullptr;
+	connect(button, &QToolButton::clicked, this, &iASpatialView::ImageButtonClicked);
 	m_images.insert(newImgID, ImageData(caption, img));
 	button->setProperty("imageID", newImgID);
 	++newImgID;
@@ -177,7 +177,7 @@ void iASpatialView::AddImageDisplay(int idx)
 {
 	if (m_guiElements.contains(idx))
 	{
-		DEBUG_LOG(QString("Image %1 already shown!").arg(idx));
+		LOG(lvlWarn, QString("Image %1 already shown!").arg(idx));
 		return;
 	}
 	ImageGUIElements gui;
@@ -188,7 +188,9 @@ void iASpatialView::AddImageDisplay(int idx)
 
 	vtkScalarsToColors* colors = m_labelImgLut;
 	if (m_images[idx].caption.contains("Uncertainty"))
+	{
 		colors = m_uncertaintyLut;
+	}
 	gui.imageWidget = new iAImageWidget(m_images[idx].image, colors);
 	auto label = new QLabel(m_images[idx].caption);
 	label->setSizePolicy(QSizePolicy::MinimumExpanding, QSizePolicy::Fixed);
@@ -222,7 +224,7 @@ void iASpatialView::StyleChanged()
 }
 
 
-void iASpatialView::SlicerModeButtonClicked(bool checked)
+void iASpatialView::SlicerModeButtonClicked(bool /*checked*/)
 {
 	int modeIdx = slicerModeButton.indexOf(qobject_cast<QToolButton*>(sender()));
 	if (m_curMode == modeIdx)
@@ -291,7 +293,7 @@ void iASpatialView::SetupSelection(vtkImagePointer selectionImg)
 {
 	m_ctf = BuildLabelOverlayLUT();
 	m_otf = BuildLabelOverlayOTF();
-	m_selectionData = QSharedPointer<iAChannelData>(new iAChannelData);
+	m_selectionData = QSharedPointer<iAChannelData>::create();
 	m_selectionData->setData(selectionImg, m_ctf, m_otf);
 }
 
@@ -314,7 +316,7 @@ void iASpatialView::AddMemberImage(QString const & caption, vtkImagePointer img,
 {
 	if (!img)
 	{
-		DEBUG_LOG("Image was null!");
+		LOG(lvlError, "Image was null!");
 		return;
 	}
 	if (!keep)

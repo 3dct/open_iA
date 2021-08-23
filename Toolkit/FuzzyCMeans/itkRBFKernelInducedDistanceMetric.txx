@@ -49,7 +49,7 @@ RBFKernelInducedDistanceMetric< TVector >
   MeasurementVectorTraitsType::Assert( this->GetOrigin(), measurementVectorSize,
     "RBFKernelInducedDistanceMetric::Evaluate Origin and input vector have different lengths" );
 
-  double subExpression = NumericTraits< double >::Zero;
+  double subExpression = NumericTraits< double >::ZeroValue();
 
   for(unsigned int i = 0; i < measurementVectorSize; i++)
     {
@@ -84,7 +84,7 @@ RBFKernelInducedDistanceMetric< TVector >
   MeasurementVectorTraitsType::Assert( x2, measurementVectorSize,
     "RBFKernelInducedDistanceMetric::Evaluate Second input vector and measurement vector set in the distance metric have unequal size." );
 
-  double subExpression = NumericTraits< double >::Zero;
+  double subExpression = NumericTraits< double >::ZeroValue();
 
   for(unsigned int i = 0; i < measurementVectorSize; i++)
     {

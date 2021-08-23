@@ -1,8 +1,8 @@
 /*************************************  open_iA  ************************************ *
 * **********   A tool for visual analysis and processing of 3D CT images   ********** *
 * *********************************************************************************** *
-* Copyright (C) 2016-2019  C. Heinzl, M. Reiter, A. Reh, W. Li, M. Arikan, Ar. &  Al. *
-*                          Amirkhanov, J. Weissenböck, B. Fröhler, M. Schiwarth       *
+* Copyright (C) 2016-2021  C. Heinzl, M. Reiter, A. Reh, W. Li, M. Arikan, Ar. &  Al. *
+*                 Amirkhanov, J. Weissenböck, B. Fröhler, M. Schiwarth, P. Weinberger *
 * *********************************************************************************** *
 * This program is free software: you can redistribute it and/or modify it under the   *
 * terms of the GNU General Public License as published by the Free Software           *
@@ -31,6 +31,7 @@
 
 class iAImageTree;
 class iAImageTreeNode;
+class iAProgress;
 class iASingleResult;
 
 class iAImageClusterer: public QThread, public iADurationEstimator, public iAAbortListener
@@ -38,7 +39,7 @@ class iAImageClusterer: public QThread, public iADurationEstimator, public iAAbo
 	Q_OBJECT
 public:
 
-	iAImageClusterer(int labelCount, QString const & outputDirectory);
+	iAImageClusterer(int labelCount, QString const & outputDirectory, iAProgress* progress);
 	void AddImage(QSharedPointer<iASingleResult> singleResult);
 
 	QSharedPointer<iAImageTree > GetResult();
@@ -46,12 +47,9 @@ public:
 	void abort() override;
 	bool IsAborted();
 	double elapsed() const override;
-	double estimatedTimeRemaining() const override;
-signals:
-	void Progress(int);
-	void Status(QString const &);
+	double estimatedTimeRemaining(double percent) const override;
 private:
-	void run();
+	void run() override;
 	QVector<QSharedPointer<iAImageTreeNode> > m_images;
 	QSharedPointer<iAImageTree> m_tree;
 	int m_labelCount;
@@ -61,4 +59,5 @@ private:
 	int m_currImage;
 	iAPerformanceTimer::DurationType m_imageDistCalcDuration;
 	QString m_outputDirectory;
+	iAProgress* m_progress;
 };

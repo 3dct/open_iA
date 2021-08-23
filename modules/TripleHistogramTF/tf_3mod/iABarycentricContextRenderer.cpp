@@ -1,8 +1,8 @@
 /*************************************  open_iA  ************************************ *
 * **********   A tool for visual analysis and processing of 3D CT images   ********** *
 * *********************************************************************************** *
-* Copyright (C) 2016-2019  C. Heinzl, M. Reiter, A. Reh, W. Li, M. Arikan, Ar. &  Al. *
-*                          Amirkhanov, J. Weissenböck, B. Fröhler, M. Schiwarth       *
+* Copyright (C) 2016-2021  C. Heinzl, M. Reiter, A. Reh, W. Li, M. Arikan, Ar. &  Al. *
+*                 Amirkhanov, J. Weissenböck, B. Fröhler, M. Schiwarth, P. Weinberger *
 * *********************************************************************************** *
 * This program is free software: you can redistribute it and/or modify it under the   *
 * terms of the GNU General Public License as published by the Free Software           *
@@ -20,9 +20,7 @@
 * ************************************************************************************/
 #include "iABarycentricContextRenderer.h"
 
-#include "BarycentricTriangle.h"
-
-#include <vtkVersion.h>
+#include "iABarycentricTriangle.h"
 
 #include <QPainter>
 #include <QImage>
@@ -35,33 +33,36 @@ static const int GRAY_VALUE_INTERVAL = 255 - GRAY_VALUE_MIN;
 static const int TIMER_HEATMAP_WAIT = 2000; // in milliseconds
 
 iABarycentricContextRenderer::iABarycentricContextRenderer() :
+	m_image(new QImage()),
 	m_timer_heatmap(new QTimer()),
-	m_timerWait_heatmap(TIMER_HEATMAP_WAIT),
-	m_image(new QImage())
+	m_timerWait_heatmap(TIMER_HEATMAP_WAIT)
 {
-	connect(m_timer_heatmap, SIGNAL(timeout()), this, SLOT(onHeatmapTimeout()));
+	connect(m_timer_heatmap, &QTimer::timeout, this, &iABarycentricContextRenderer::onHeatmapTimeout);
 }
 
-void iABarycentricContextRenderer::setModalities(vtkSmartPointer<vtkImageData> d1, vtkSmartPointer<vtkImageData> d2, vtkSmartPointer<vtkImageData> d3, BarycentricTriangle triangle)
+void iABarycentricContextRenderer::setModalities(vtkSmartPointer<vtkImageData> d1, vtkSmartPointer<vtkImageData> d2, vtkSmartPointer<vtkImageData> d3, iABarycentricTriangle triangle)
 {
 	calculateCoordinates(d1, d2, d3);
 	updateTriangle(triangle);
 }
 
-void iABarycentricContextRenderer::setTriangle(BarycentricTriangle triangle)
+void iABarycentricContextRenderer::setTriangle(iABarycentricTriangle triangle)
 {
 	updateTriangle(triangle);
 }
 
-QImage* iABarycentricContextRenderer::getImage() {
+QImage* iABarycentricContextRenderer::getImage()
+{
 	return m_image;
 }
 
-QRect iABarycentricContextRenderer::getImageRect() {
+QRect iABarycentricContextRenderer::getImageRect()
+{
 	return m_imageRect;
 }
 
-void iABarycentricContextRenderer::onHeatmapTimeout() {
+void iABarycentricContextRenderer::onHeatmapTimeout()
+{
 	drawImageNow();
 }
 
@@ -91,9 +92,12 @@ void iABarycentricContextRenderer::calculateCoordinates(vtkSmartPointer<vtkImage
 	//int numComponents = d1->GetNumberOfScalarComponents(); // TODO use this in another stage to make sure the modalities being used have 1 scalar component
 
 	double a, b, c, sum, *values;
-	for (int z = 0; z < dims[2]; z++) {
-		for (int y = 0; y < dims[1]; y++) {
-			for (int x = 0; x < dims[0]; x++) {
+	for (int z = 0; z < dims[2]; z++)
+	{
+		for (int y = 0; y < dims[1]; y++)
+		{
+			for (int x = 0; x < dims[0]; x++)
+			{
 
 				//a = static_cast<double*>(d1->GetScalarPointer(x, y, z))[0];
 				//b = static_cast<double*>(d2->GetScalarPointer(x, y, z))[0];
@@ -110,34 +114,38 @@ void iABarycentricContextRenderer::calculateCoordinates(vtkSmartPointer<vtkImage
 				sum = a + b + c;
 
 				values = static_cast<double*>(m_barycentricCoordinates->GetScalarPointer(x, y, z));
-				if (sum == 0) {
+				if (sum == 0)
+				{
 					values[0] = ONE_DIV_THREE;
 					values[1] = ONE_DIV_THREE;
-				} else {
+				}
+				else
+				{
 					values[0] = a / sum;
 					values[1] = b / sum;
 				}
-
 			}
 		}
 	}
 }
 
-void iABarycentricContextRenderer::updateTriangle(BarycentricTriangle triangle)
+void iABarycentricContextRenderer::updateTriangle(iABarycentricTriangle triangle)
 {
-	if (!m_barycentricCoordinates) {
+	if (!m_barycentricCoordinates)
+	{
 		return;
 	}
 
 	QRect rect = triangle.getBounds();
 	m_imageRect = rect;
-	m_triangle = BarycentricTriangle(
+	m_triangle = iABarycentricTriangle(
 		triangle.getXa() - rect.x(), triangle.getYa() - rect.y(),
 		triangle.getXb() - rect.x(), triangle.getYb() - rect.y(),
 		triangle.getXc() - rect.x(), triangle.getYc() - rect.y()
 	);
 
-	if (m_imageRect.size() != m_image->size()) {
+	if (m_imageRect.size() != m_image->size())
+	{
 		drawImageLater();
 	}
 }
@@ -160,15 +168,17 @@ void iABarycentricContextRenderer::drawImageNow()
 	// TODO: a vector of vectors or another vtkImageData?
 	QVector<QVector<int>> counts = QVector<QVector<int>>(height, QVector<int>(width, 0));
 	int max = 0;
-	int maxx, maxy;
 
 	// Go though the volume (m_barycentricCoordinates) and write to the counts 2D-vector
 	int *dims = m_barycentricCoordinates->GetDimensions();
 	double *values;
-	for (int z = 0; z < dims[2]; z++) {
-		for (int y = 0; y < dims[1]; y++) {
-			for (int x = 0; x < dims[0]; x++) {
-				
+	for (int z = 0; z < dims[2]; z++)
+	{
+		for (int y = 0; y < dims[1]; y++)
+		{
+			for (int x = 0; x < dims[0]; x++)
+			{
+
 				values = static_cast<double*>(m_barycentricCoordinates->GetScalarPointer(x, y, z));
 				QPoint cartesian = m_triangle.getCartesianCoordinates(values[0], values[1]);
 
@@ -180,10 +190,9 @@ void iABarycentricContextRenderer::drawImageNow()
 				cy = cy < 0 ? 0 : (cy >= height ? heightMinusOne : cy);
 
 				int count = counts[cy][cx] + 1;
-				if (count > max) {
+				if (count > max)
+				{
 					max = count;
-					maxx = cx;
-					maxy = cy;
 				}
 				counts[cy][cx] = count;
 
@@ -198,22 +207,28 @@ void iABarycentricContextRenderer::drawImageNow()
 	double k = (double)GRAY_VALUE_INTERVAL / (double)log(max);
 	int grayValue, count;
 	QPoint p;
-	for (int y = 0; y < height; y++) {
-		for (int x = 0; x < width; x++) {
+	for (int y = 0; y < height; y++)
+	{
+		for (int x = 0; x < width; x++)
+		{
 			p = QPoint(x, y);
-			if (m_triangle.contains(x, y)) {
+			if (m_triangle.contains(x, y))
+			{
 				count = counts[y][x];
-				if (count > 0) {
-
+				if (count > 0)
+				{
 					//grayValue = 255 - ((count * c) + GRAY_VALUE_MIN);
 					grayValue = 255 - (k * log(count) + GRAY_VALUE_MIN);
 					buf->setPixelColor(p, QColor(grayValue, grayValue, grayValue));
 
 				}
-				else {
+				else
+				{
 					buf->setPixelColor(p, Qt::white);
 				}
-			} else {
+			}
+			else
+			{
 				buf->setPixelColor(p, Qt::white);
 			}
 		}

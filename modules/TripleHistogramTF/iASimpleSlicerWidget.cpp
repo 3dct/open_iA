@@ -1,8 +1,8 @@
 /*************************************  open_iA  ************************************ *
 * **********   A tool for visual analysis and processing of 3D CT images   ********** *
 * *********************************************************************************** *
-* Copyright (C) 2016-2019  C. Heinzl, M. Reiter, A. Reh, W. Li, M. Arikan, Ar. &  Al. *
-*                          Amirkhanov, J. Weissenböck, B. Fröhler, M. Schiwarth       *
+* Copyright (C) 2016-2021  C. Heinzl, M. Reiter, A. Reh, W. Li, M. Arikan, Ar. &  Al. *
+*                 Amirkhanov, J. Weissenböck, B. Fröhler, M. Schiwarth, P. Weinberger *
 * *********************************************************************************** *
 * This program is free software: you can redistribute it and/or modify it under the   *
 * terms of the GNU General Public License as published by the Free Software           *
@@ -23,7 +23,7 @@
 #include <iAChannelData.h>
 #include <iAModality.h>
 #include <iAModalityTransfer.h>
-#include <iASlicer.h>
+#include <iASlicerImpl.h>
 
 #include <vtkCamera.h>
 #include <vtkColorTransferFunction.h>
@@ -38,7 +38,7 @@ iASimpleSlicerWidget::iASimpleSlicerWidget(QWidget * parent /*= 0*/, bool enable
 	QWidget(parent, f), m_enableInteraction(enableInteraction),
 	m_slicerTransform(vtkTransform::New())
 {
-	m_slicer = new iASlicer(this, iASlicerMode::XY, /* magicLens = */ false, /*bool decorations = */false, m_slicerTransform); // Hide everything except the slice itself
+	m_slicer = new iASlicerImpl(this, iASlicerMode::XY, /* magicLens = */ false, /*bool decorations = */false, m_slicerTransform); // Hide everything except the slice itself
 	setLayout(new QHBoxLayout);
 	layout()->setSpacing(0);
 	layout()->addWidget(m_slicer);
@@ -79,12 +79,12 @@ int iASimpleSlicerWidget::getSliceNumber()
 	return m_slicer->sliceNumber();
 }
 
-bool iASimpleSlicerWidget::hasHeightForWidth()
+bool iASimpleSlicerWidget::hasHeightForWidth() const
 {
 	return true;
 }
 
-int iASimpleSlicerWidget::heightForWidth(int width)
+int iASimpleSlicerWidget::heightForWidth(int width) const
 {
 	return width;
 }
@@ -102,7 +102,8 @@ void iASimpleSlicerWidget::changeModality(QSharedPointer<iAModality> modality)
 	m_slicer->addChannel(0, iAChannelData(modality->name(), imageData, colorFunction), true);
 	m_slicer->disableInteractor();
 
-	if (!m_enableInteraction) {
+	if (!m_enableInteraction)
+	{
 		vtkInteractorStyle *dummyStyle = vtkInteractorStyle::New();
 		m_slicer->interactor()->SetInteractorStyle(dummyStyle);
 	}
@@ -113,7 +114,6 @@ void iASimpleSlicerWidget::changeModality(QSharedPointer<iAModality> modality)
 
 	double xc = origin[0] + 0.5*(extent[0] + extent[1])*spacing[0];
 	double yc = origin[1] + 0.5*(extent[2] + extent[3])*spacing[1];
-	double xd = (extent[1] - extent[0] + 1)*spacing[0];
 	double yd = (extent[3] - extent[2] + 1)*spacing[1];
 
 	vtkCamera *camera = m_slicer->camera();

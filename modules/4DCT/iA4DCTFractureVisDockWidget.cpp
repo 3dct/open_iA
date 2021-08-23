@@ -1,8 +1,8 @@
 /*************************************  open_iA  ************************************ *
 * **********   A tool for visual analysis and processing of 3D CT images   ********** *
 * *********************************************************************************** *
-* Copyright (C) 2016-2019  C. Heinzl, M. Reiter, A. Reh, W. Li, M. Arikan, Ar. &  Al. *
-*                          Amirkhanov, J. Weissenböck, B. Fröhler, M. Schiwarth       *
+* Copyright (C) 2016-2021  C. Heinzl, M. Reiter, A. Reh, W. Li, M. Arikan, Ar. &  Al. *
+*                 Amirkhanov, J. Weissenböck, B. Fröhler, M. Schiwarth, P. Weinberger *
 * *********************************************************************************** *
 * This program is free software: you can redistribute it and/or modify it under the   *
 * terms of the GNU General Public License as published by the Free Software           *
@@ -34,13 +34,13 @@ iA4DCTFractureVisDockWidget::iA4DCTFractureVisDockWidget( QWidget * parent )
 	, m_data( nullptr )
 {
 	setupUi( this );
-	connect( pbSave, SIGNAL( clicked( ) ), this, SLOT( onSaveButtonClicked( ) ) );
-	connect( pbColorize, SIGNAL( clicked( ) ), this, SLOT( onColorizeButtonClicked( ) ) );
-	connect( cbLowIntensity, SIGNAL( colorChanged( QColor ) ), this, SLOT( onLowIntensityColorChanged( QColor ) ) );
-	connect( cbHighIntensity, SIGNAL( colorChanged( QColor ) ), this, SLOT( onHighIntensityColorChanged( QColor ) ) );
-	connect( cbColor, SIGNAL( colorChanged( QColor ) ), this, SLOT( onColorChanged( QColor ) ) );
-	connect( sAmbient, SIGNAL( valueChanged( int ) ), this, SLOT( onAmbientValueChanged( int ) ) );
-	connect( sOpacity, SIGNAL( valueChanged( int ) ), this, SLOT( onOpacityValueChanged( int ) ) );
+	connect( pbSave, &QPushButton::clicked, this, &iA4DCTFractureVisDockWidget::onSaveButtonClicked);
+	connect( pbColorize, &QPushButton::clicked, this, &iA4DCTFractureVisDockWidget::onColorizeButtonClicked);
+	connect( cbLowIntensity, &iAColorBox::colorChanged, this, &iA4DCTFractureVisDockWidget::onLowIntensityColorChanged);
+	connect( cbHighIntensity, &iAColorBox::colorChanged, this, &iA4DCTFractureVisDockWidget::onHighIntensityColorChanged);
+	connect( cbColor, &iAColorBox::colorChanged, this, &iA4DCTFractureVisDockWidget::onColorChanged);
+	connect( sAmbient, &QSlider::valueChanged, this, &iA4DCTFractureVisDockWidget::onAmbientValueChanged);
+	connect( sOpacity, &QSlider::valueChanged, this, &iA4DCTFractureVisDockWidget::onOpacityValueChanged);
 }
 
 void iA4DCTFractureVisDockWidget::attachTo( iAFractureVisModule * visModule )
@@ -77,9 +77,9 @@ void iA4DCTFractureVisDockWidget::onColorizeButtonClicked( )
 	emit updateRenderWindow( );
 }
 
-void iA4DCTFractureVisDockWidget::setData( iA4DCTData * data )
+void iA4DCTFractureVisDockWidget::setData( iA4DCTData * newData )
 {
-	m_data = data;
+	m_data = newData;
 }
 
 void iA4DCTFractureVisDockWidget::onLowIntensityColorChanged( const QColor & color )

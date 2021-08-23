@@ -1,0 +1,12 @@
+<RCC>
+  <qresource prefix="/">
+    <file>images/add_sel.png</file>
+    <file>images/compare_sel.png</file>
+    <file>images/filter.png</file>
+    <file>images/rem_sel.png</file>
+    <file>images/selection_list.png</file>
+    <file>images/switch_sel.png</file>
+    <file>images/treeView.png</file>
+    <file>images/vis_sel.png</file>
+  </qresource>
+</RCC>

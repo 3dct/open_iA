@@ -1,8 +1,8 @@
 /*************************************  open_iA  ************************************ *
 * **********   A tool for visual analysis and processing of 3D CT images   ********** *
 * *********************************************************************************** *
-* Copyright (C) 2016-2019  C. Heinzl, M. Reiter, A. Reh, W. Li, M. Arikan, Ar. &  Al. *
-*                          Amirkhanov, J. Weissenböck, B. Fröhler, M. Schiwarth       *
+* Copyright (C) 2016-2021  C. Heinzl, M. Reiter, A. Reh, W. Li, M. Arikan, Ar. &  Al. *
+*                 Amirkhanov, J. Weissenböck, B. Fröhler, M. Schiwarth, P. Weinberger *
 * *********************************************************************************** *
 * This program is free software: you can redistribute it and/or modify it under the   *
 * terms of the GNU General Public License as published by the Free Software           *
@@ -26,8 +26,8 @@
 #include <iAChannelSlicerData.h>
 #include <iAColorTheme.h>
 #include <iAConnector.h>
-#include <iAConsole.h>
-#include <iASlicer.h>
+#include <iALog.h>
+#include <iASlicerImpl.h>
 #include <iASlicerSettings.h>
 
 #include <vtkDiscretizableColorTransferFunction.h>
@@ -60,19 +60,19 @@ iAImagePreviewWidget::iAImagePreviewWidget(QString const & title, QWidget* paren
 	iASlicerMode mode, int labelCount, bool magicLens):
 	QWidget(parent),
 	m_isLabelImage(isLabel),
-	m_conn(0),
 	m_empty(true),
 	m_enableInteractions(commonCamera),
+	m_conn(nullptr),
+	m_slicerTransform(vtkTransform::New()),
 	m_title(title),
 	m_commonCamera(commonCamera),
 	m_labelCount(labelCount),
 	m_sliceNumber(SliceNumberNotSet),
 	m_mode(mode),
 	m_aspectRatio(1.0),
-	m_colorTheme(nullptr),
-	m_slicerTransform(vtkTransform::New())
+	m_colorTheme(nullptr)
 {
-	m_slicer = new iASlicer(this, mode, false, magicLens, m_slicerTransform);
+	m_slicer = new iASlicerImpl(this, mode, false, magicLens, m_slicerTransform);
 	m_slicer->setup(iASingleSlicerSettings());
 	m_slicer->setBackground(SLICER_BACKGROUND_COLOR[0], SLICER_BACKGROUND_COLOR[1], SLICER_BACKGROUND_COLOR[2]);
 	if (m_sliceNumber == SliceNumberNotSet)
@@ -91,10 +91,10 @@ iAImagePreviewWidget::iAImagePreviewWidget(QString const & title, QWidget* paren
 		m_slicer->disableInteractor();
 	}
 
-	connect(m_slicer, SIGNAL(clicked()), this, SIGNAL(clicked()));
-	connect(m_slicer, SIGNAL(rightClicked(int, int, int)), this, SLOT(SlicerRightClicked(int, int, int)));
-	connect(m_slicer, SIGNAL(oslicerPos(int, int, int, int)), this, SLOT(SlicerHovered(int, int, int, int)));
-	connect(m_slicer, SIGNAL(userInteraction()), this, SIGNAL(updated()));
+	connect(m_slicer, &iASlicer::clicked, this, &iAImagePreviewWidget::clicked);
+	connect(m_slicer, &iASlicer::rightClicked, this, &iAImagePreviewWidget::SlicerRightClicked);
+	connect(m_slicer, &iASlicer::oslicerPos, this, &iAImagePreviewWidget::SlicerHovered);
+	connect(m_slicer, &iASlicer::userInteraction, this, &iAImagePreviewWidget::updated);
 	setLayout(new QHBoxLayout);
 	layout()->setSpacing(0);
 	layout()->addWidget(m_slicer);
@@ -106,12 +106,12 @@ iAImagePreviewWidget::~iAImagePreviewWidget()
 	delete m_conn;
 }
 
-void iAImagePreviewWidget::SlicerRightClicked(int x, int y, int z)
+void iAImagePreviewWidget::SlicerRightClicked(int /*x*/, int /*y*/, int /*z*/)
 {
 	emit rightClicked();
 }
 
-void iAImagePreviewWidget::SlicerHovered(int x, int y, int z, int mode)
+void iAImagePreviewWidget::SlicerHovered(int /*x*/, int /*y*/, int /*z*/, int /*mode*/)
 {
 	emit mouseHover();
 }
@@ -203,7 +203,7 @@ void iAImagePreviewWidget::setImage(iAITKIO::ImagePointer const img, bool empty,
 {
 	if (!img)
 	{
-		DEBUG_LOG("iAImagePreviewWidget::setImage called with NULL image!\n");
+		LOG(lvlError, "iAImagePreviewWidget::setImage called with nullptr image!\n");
 		return;
 	}
 	if (!m_conn)
@@ -218,7 +218,7 @@ void iAImagePreviewWidget::addNoMapperChannel(vtkSmartPointer<vtkImageData> img)
 {
 	if (m_addChannelImgActor)
 	{
-		DEBUG_LOG("Failsafe Remove Actor required");
+		LOG(lvlError, "Failsafe Remove Actor required");
 		m_slicer->removeImageActor(m_addChannelImgActor);
 	}
 	m_addChannelImgActor = vtkSmartPointer<vtkImageActor>::New();
@@ -300,14 +300,16 @@ QSize iAImagePreviewWidget::sizeHint() const
 }
 
 
+/*
 #include <QResizeEvent>
 
 namespace
 {
 	const int Tolerance = 0;
 }
+*/
 
-void iAImagePreviewWidget::resizeEvent(QResizeEvent * event)
+void iAImagePreviewWidget::resizeEvent(QResizeEvent * /*event*/)
 {
 	/*
 	QSize newSize = event->size();

@@ -1,0 +1,58 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<component type="desktop-application">
+    <id>at.zfp.openia</id>
+    <launchable type="desktop-id">at.zfp.openia.desktop</launchable>
+    <name>open_iA</name>
+    <summary>Tool for visual analysis and processing of volumetric datasets</summary>
+    <description>
+        <p>
+        A tool for the visual analysis and processing of volumetric datasets, with a focus on industrial computed tomography.
+        </p>
+    </description>
+    <metadata_license>CC0-1.0</metadata_license>
+    <project_license>GPL-3.0</project_license>
+    <content_rating type="oars-1.0" />
+    <url type="homepage">https://3dct.github.io/open_iA</url>
+    <url type="help">https://github.com/3dct/open_iA/wiki</url>
+    <url type="bugtracker">https://github.com/3dct/open_iA/issues</url>
+    <screenshots>
+        <screenshot type="default">
+            <image>https://raw.githubusercontent.com/wiki/3dct/open_iA/images/interface.png</image>
+        </screenshot>
+        <screenshot>
+            <image>http://3dct.at/cms2/images/software/Anw-Software_iAnalyse2_B600px.jpg</image>
+        </screenshot>
+        <screenshot>
+            <image>http://3dct.at/cms2/images/software/open_iA_InSpectr.png</image>
+        </screenshot>
+        <screenshot>
+            <image>http://3dct.at/cms2/images/software/open_iA_GEMSe.png</image>
+        </screenshot>
+        <screenshot>
+            <image>http://3dct.at/cms2/images/PorosityAnalyzer.png</image>
+        </screenshot>
+        <screenshot>
+            <image>http://3dct.at/cms2/images/software/open_iA_4dct.png</image>
+        </screenshot>
+        <screenshot>
+            <image>http://3dct.at/cms2/images/software/open_iA_DynamicVolumeLines.png</image>
+        </screenshot>
+    </screenshots>
+    <releases>
+        <release version="2021.08" date="2021-08-20">
+            <description>
+                New tools for the comparative visualization of multi-dimensional data, new tools to guide in creating a transfer function for n-modal data, improved manual labelling capabilities, improvements/fixes to fuzzy feature tracking, improved sampling
+            </description>
+        </release>
+        <release version="2020.09" date="2020-09-17">
+            <description>
+                New AI module, improved filter sampling capabilities; transfer function editing bugfixes, multiple other small improvements.
+            </description>
+        </release>
+        <release version="2020.04" date="2020-04-27">
+            <description>
+                Improvements to the data dialog, better style and colors.
+            </description>
+        </release>
+  </releases>
+</component>

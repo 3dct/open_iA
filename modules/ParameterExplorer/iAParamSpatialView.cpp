@@ -1,8 +1,8 @@
 /*************************************  open_iA  ************************************ *
 * **********   A tool for visual analysis and processing of 3D CT images   ********** *
 * *********************************************************************************** *
-* Copyright (C) 2016-2019  C. Heinzl, M. Reiter, A. Reh, W. Li, M. Arikan, Ar. &  Al. *
-*                          Amirkhanov, J. Weissenböck, B. Fröhler, M. Schiwarth       *
+* Copyright (C) 2016-2021  C. Heinzl, M. Reiter, A. Reh, W. Li, M. Arikan, Ar. &  Al. *
+*                 Amirkhanov, J. Weissenböck, B. Fröhler, M. Schiwarth, P. Weinberger *
 * *********************************************************************************** *
 * This program is free software: you can redistribute it and/or modify it under the   *
 * terms of the GNU General Public License as published by the Free Software           *
@@ -25,12 +25,15 @@
 #include "iAHistogramCreator.h"
 #include "iAImageWidget.h"
 
-#include <charts/iADiagramFctWidget.h>
-#include <charts/iAPlotTypes.h>
+#include <iASlicerImpl.h>    // for mapSliceToGlobalAxis
+
+#include <iAChartWithFunctionsWidget.h>
+#include <iAPlotTypes.h>
+
 #include <iAConnector.h>
-#include <iAConsole.h>
+#include <iALog.h>
 #include <iASlicerMode.h>
-#include <io/iAFileUtils.h>
+#include <iAFileUtils.h>
 
 #include <vtkImageData.h>
 
@@ -41,20 +44,22 @@
 #include <QToolButton>
 #include <QVBoxLayout>
 
-iAParamSpatialView::iAParamSpatialView(iAParamTableView* table, QString const & basePath, iADiagramFctWidget* chartWidget, int binCount) :
+#include <cassert>
+
+iAParamSpatialView::iAParamSpatialView(iAParamTableView* table, QString const & basePath, iAChartWithFunctionsWidget* chartWidget, int binCount) :
 	m_table(table),
 	m_basePath(basePath),
-	m_imageWidget(nullptr),
 	m_curMode(iASlicerMode::XY),
+	m_sliceControl(new QSpinBox()),
+	m_imageWidget(nullptr),
 	m_settings(new QWidget),
 	m_imageContainer(new QWidget),
-	m_sliceControl(new QSpinBox()),
 	m_sliceNrInitialized(false),
 	m_chartWidget(chartWidget),
 	m_binCount(binCount)
 {
 	m_sliceControl->setMaximum(0);
-	connect(m_sliceControl, SIGNAL(valueChanged(int)), this, SLOT(SliceChanged(int)));
+	connect(m_sliceControl, QOverload<int>::of(&QSpinBox::valueChanged), this, &iAParamSpatialView::SliceChanged);
 
 	auto sliceButtonBar = new QToolBar();			// same order as in iASlicerMode!
 	static const char* const slicerModeButtonLabels[] = { "YZ", "XY", "XZ" };
@@ -64,7 +69,7 @@ iAParamSpatialView::iAParamSpatialView(iAParamTableView* table, QString const & 
 		slicerModeButton[i]->setText(slicerModeButtonLabels[i]);
 		slicerModeButton[i]->setAutoExclusive(true);
 		slicerModeButton[i]->setCheckable(true);
-		connect(slicerModeButton[i], SIGNAL(clicked(bool)), this, SLOT(SlicerModeButtonClicked(bool)));
+		connect(slicerModeButton[i], &QToolButton::clicked, this, &iAParamSpatialView::SlicerModeButtonClicked);
 		sliceButtonBar->addWidget(slicerModeButton[i]);
 	}
 	slicerModeButton[m_curMode]->setChecked(true);
@@ -77,7 +82,7 @@ iAParamSpatialView::iAParamSpatialView(iAParamTableView* table, QString const & 
 	sliceBar->layout()->addWidget(m_sliceControl);
 
 	m_settings->setLayout(new QHBoxLayout);
-	m_settings->layout()->setMargin(0);
+	m_settings->layout()->setContentsMargins(0, 0, 0, 0);
 	m_settings->layout()->setSpacing(2);
 	m_settings->setFixedHeight(24);
 	m_settings->layout()->addWidget(m_sliceControl);
@@ -96,9 +101,10 @@ void iAParamSpatialView::setImage(size_t id)
 {
 	if (!m_imageCache.contains(id))
 	{
-		if (id < 0 || id >= m_table->Table()->rowCount())
+		assert(m_table->Table()->rowCount() >= 0);
+		if (id >= static_cast<size_t>(m_table->Table()->rowCount()))
 		{
-			DEBUG_LOG("Invalid column index!");
+			LOG(lvlError, "Invalid column index!");
 			return;
 		}
 		QString fileName = m_table->Table()->item(id, 0)->text();	// assumes filename is in column 0!
@@ -115,7 +121,7 @@ void iAParamSpatialView::setImage(size_t id)
 		}
 		catch (std::exception & e)
 		{
-			DEBUG_LOG(QString("Could not load image %1: %2").arg(fileName).arg(e.what()));
+			LOG(lvlError, QString("Could not load image %1: %2").arg(fileName).arg(e.what()));
 			return;
 		}
 	}
@@ -126,8 +132,8 @@ void iAParamSpatialView::setImage(size_t id)
 	}
 	else
 	{
-		auto creator = QSharedPointer<iAHistogramCreator>(new iAHistogramCreator(img, m_binCount, id));
-		connect(creator.data(), SIGNAL(finished()), this, SLOT(HistogramReady()));
+		auto creator = QSharedPointer<iAHistogramCreator>::create(img, m_binCount, id);
+		connect(creator.data(), &iAHistogramCreator::finished, this, &iAParamSpatialView::HistogramReady);
 		m_histogramCreaters.push_back(creator);
 		creator->start();
 	}
@@ -154,7 +160,7 @@ void iAParamSpatialView::setImage(size_t id)
 	}
 }
 
-void iAParamSpatialView::SlicerModeButtonClicked(bool checked)
+void iAParamSpatialView::SlicerModeButtonClicked(bool /*checked*/)
 {
 	int modeIdx = slicerModeButton.indexOf(qobject_cast<QToolButton*>(sender()));
 	if (!m_imageWidget || m_curMode == modeIdx || modeIdx == -1)
@@ -184,7 +190,7 @@ void iAParamSpatialView::SwitchToHistogram(int id)
 	m_chartWidget->removePlot(m_curHistogramPlot);
 	QColor histoChartColor(SPLOMDotQColor);
 	histoChartColor.setAlpha(96);
-	m_curHistogramPlot = QSharedPointer<iAPlot>(new iABarGraphPlot(m_histogramCache[id], histoChartColor, 2));
+	m_curHistogramPlot = QSharedPointer<iABarGraphPlot>::create(m_histogramCache[id], histoChartColor, 2);
 	m_chartWidget->addPlot(m_curHistogramPlot);
 	m_chartWidget->update();
 }

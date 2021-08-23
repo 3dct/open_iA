@@ -1,8 +1,8 @@
 /*************************************  open_iA  ************************************ *
 * **********   A tool for visual analysis and processing of 3D CT images   ********** *
 * *********************************************************************************** *
-* Copyright (C) 2016-2019  C. Heinzl, M. Reiter, A. Reh, W. Li, M. Arikan, Ar. &  Al. *
-*                          Amirkhanov, J. Weissenböck, B. Fröhler, M. Schiwarth       *
+* Copyright (C) 2016-2021  C. Heinzl, M. Reiter, A. Reh, W. Li, M. Arikan, Ar. &  Al. *
+*                 Amirkhanov, J. Weissenböck, B. Fröhler, M. Schiwarth, P. Weinberger *
 * *********************************************************************************** *
 * This program is free software: you can redistribute it and/or modify it under the   *
 * terms of the GNU General Public License as published by the Free Software           *
@@ -32,7 +32,6 @@ public:
 	static const QString DefaultSPSFileName;
 	static const QString DefaultCHRFileName;
 	static const QString DefaultModalityFileName;
-	static const int DefaultLabelCount;
 
 	iAEnsembleDescriptorFile(QString const & ensembleFileName);
 	iAEnsembleDescriptorFile(
@@ -56,9 +55,9 @@ public:
 	QString const & LabelNames() const;
 	QString const & ColorTheme() const;
 
-	size_t SubEnsembleCount() const;
-	QVector<int> SubEnsemble(size_t idx) const;
-	int SubEnsembleID(size_t idx) const;
+	int subEnsembleCount() const;
+	QVector<int> subEnsemble(int idx) const;
+	int subEnsembleID(int idx) const;
 
 	void AddSubEnsemble(int id, QVector<int> const & members);
 

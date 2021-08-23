@@ -1,8 +1,8 @@
 /*************************************  open_iA  ************************************ *
 * **********   A tool for visual analysis and processing of 3D CT images   ********** *
 * *********************************************************************************** *
-* Copyright (C) 2016-2019  C. Heinzl, M. Reiter, A. Reh, W. Li, M. Arikan, Ar. &  Al. *
-*                          Amirkhanov, J. Weissenböck, B. Fröhler, M. Schiwarth       *
+* Copyright (C) 2016-2021  C. Heinzl, M. Reiter, A. Reh, W. Li, M. Arikan, Ar. &  Al. *
+*                 Amirkhanov, J. Weissenböck, B. Fröhler, M. Schiwarth, P. Weinberger *
 * *********************************************************************************** *
 * This program is free software: you can redistribute it and/or modify it under the   *
 * terms of the GNU General Public License as published by the Free Software           *
@@ -20,14 +20,15 @@
 * ************************************************************************************/
 #pragma once
 
-#include <charts/qcustomplot.h>
-#include <qthelper/iAQGLWidget.h>
+#include <qcustomplot.h>
+
+#include <QOpenGLWidget>
 
 #include <vtkSmartPointer.h>
 
 class vtkLookupTable;
 
-class iAScalingWidget : public iAQGLWidget
+class iAScalingWidget : public QOpenGLWidget
 {
 	Q_OBJECT
 
@@ -40,14 +41,14 @@ public:
 	void setNonlinearScalingVec(const QVector<double> &nls, const QVector<double> &impfv);
 	void setAxes(QCPAxis *nla, QCPAxis *la);
 	void setCursorPos(double lcp, double nlcp);
-	void setRange(double lowerIdx, double upperIdx, double nonlinearLowerRest, 
+	void setRange(double lowerIdx, double upperIdx, double nonlinearLowerRest,
 		double nonlinearUpperRest, double linearLowerRest, double linearUpperRest);
 	void setBkgrdThrRanges(const QList<QCPRange> &bkgrdRangeList);
 	void setSel(QCPDataSelection sel);
 	void setHistVisMode(bool histVisMode);
 
 	void setOverviewRange(double lowerIdx, double upperIdx, double nonlinearLowerRest,
-		double nonlinearUpperRest, double linearLowerRest, double linearUpperRest, 
+		double nonlinearUpperRest, double linearLowerRest, double linearUpperRest,
 		const QVector<double> &histBinImpFunctAvgVec, const QVector<double> &linearHistBinBoarderVec);
 
 protected:
@@ -62,7 +63,7 @@ private:
 	vtkSmartPointer<vtkLookupTable> m_lut;
 	double m_linearBarCursorPos, m_nonlinearBarCursorPos, m_nonlinearLowerIdx,
 		m_nonlinearUpperIdx, m_nonlinearLowerRest, m_nonlinearUpperRest,
-		m_linearLowerRest, m_linearUpperRest, m_prevNonlinearBarStartPosX, 
+		m_linearLowerRest, m_linearUpperRest, m_prevNonlinearBarStartPosX,
 		m_prevLinearBarStartPosX;
 	QList<QCPRange> m_bkgrdRangeList;
 	QCPDataSelection m_sel;

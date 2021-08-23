@@ -1,8 +1,8 @@
 /*************************************  open_iA  ************************************ *
 * **********   A tool for visual analysis and processing of 3D CT images   ********** *
 * *********************************************************************************** *
-* Copyright (C) 2016-2019  C. Heinzl, M. Reiter, A. Reh, W. Li, M. Arikan, Ar. &  Al. *
-*                          Amirkhanov, J. Weissenböck, B. Fröhler, M. Schiwarth       *
+* Copyright (C) 2016-2021  C. Heinzl, M. Reiter, A. Reh, W. Li, M. Arikan, Ar. &  Al. *
+*                 Amirkhanov, J. Weissenböck, B. Fröhler, M. Schiwarth, P. Weinberger *
 * *********************************************************************************** *
 * This program is free software: you can redistribute it and/or modify it under the   *
 * terms of the GNU General Public License as published by the Free Software           *
@@ -23,7 +23,8 @@
 #include "iAChartFilter.h"   // for iAResultFilter
 #include "iAImageTreeNode.h" // for LabelImagePointer
 
-#include <io/iAITKIO.h> // TODO: replace?
+#include <iAAttributes.h>
+#include <iAITKIO.h> // TODO: replace?
 
 #include <vtkSmartPointer.h>
 
@@ -37,7 +38,6 @@ class QSplitter;
 class QStandardItemModel;
 class QTextEdit;
 
-class iAAttributes;
 class iAChannelData;
 class iAChartAttributeMapper;
 class iAColorTheme;
@@ -78,7 +78,7 @@ public:
 	bool IsShowingCluster() const;
 	void setSliceNumber(int sliceNr);
 	void SetMagicLensOpacity(double opacity);
-	void SetMagicLensCount(int count);
+	void setMagicLensCount(int count);
 	void UpdateMagicLensColors();
 	void SetLabelInfo(iALabelInfo const & labelInfo, iAColorTheme const * colorTheme);
 	void SetRepresentativeType(int representativeType);
@@ -110,6 +110,7 @@ private:
 	void AddResultFilterPixel(int x, int y, int z);
 	void AddMagicLensInput(vtkSmartPointer<vtkImageData> img, vtkColorTransferFunction* ctf, vtkPiecewiseFunction* otf, QString const & name);
 	void UpdateComparisonNumbers();
+	int GetCurLabelRow() const;
 
 	iAImageTreeNode const * m_node;
 	iAImageTreeNode const * m_compareNode;
@@ -117,12 +118,14 @@ private:
 	iAImagePreviewWidget* m_compareWidget;
 	QPushButton *m_pbLike, *m_pbHate, *m_pbGoto;
 	QTextEdit* m_detailText;
+	QListView* m_lvLegend;
+	QWidget* m_cmpDetailsWidget;
+	QLabel* m_cmpDetailsLabel;
+	QStandardItemModel* m_labelItemModel;
 	bool m_showingClusterRepresentative;
 	ClusterImageType m_nullImage;
 	QSharedPointer<iAModalityList> m_modalities;
-	QStandardItemModel* m_labelItemModel;
 	int m_representativeType;
-	QListView* m_lvLegend;
 	LabelImagePointer m_refImg;
 
 	int m_magicLensCurrentModality;
@@ -144,8 +147,5 @@ private:
 	int m_labelCount;
 	double m_spacing[3];
 	int m_dimensions[3];
-	int GetCurLabelRow() const;
 	bool m_correctnessUncertaintyOverlayEnabled;
-	QWidget* m_cmpDetailsWidget;
-	QLabel* m_cmpDetailsLabel;
 };

@@ -1,8 +1,8 @@
 /*************************************  open_iA  ************************************ *
 * **********   A tool for visual analysis and processing of 3D CT images   ********** *
 * *********************************************************************************** *
-* Copyright (C) 2016-2019  C. Heinzl, M. Reiter, A. Reh, W. Li, M. Arikan, Ar. &  Al. *
-*                          Amirkhanov, J. Weissenböck, B. Fröhler, M. Schiwarth       *
+* Copyright (C) 2016-2021  C. Heinzl, M. Reiter, A. Reh, W. Li, M. Arikan, Ar. &  Al. *
+*                 Amirkhanov, J. Weissenböck, B. Fröhler, M. Schiwarth, P. Weinberger *
 * *********************************************************************************** *
 * This program is free software: you can redistribute it and/or modify it under the   *
 * terms of the GNU General Public License as published by the Free Software           *
@@ -21,15 +21,16 @@
 #include "iAEnsemble.h"
 
 #include "iAEnsembleDescriptorFile.h"
-#include "iAMember.h"
 #include "iASamplingResults.h"
+#include "iASingleResult.h"
 
 #include <iAConnector.h>
-#include <iAConsole.h>
+#include <iALog.h>
 #include <iAMathUtility.h>
 #include <iAModality.h>
 #include <iAModalityList.h>
 #include <iAToolsITK.h>
+#include <qthelper/iAQtEndl.h>
 
 #include <itkConstNeighborhoodIterator.h>
 
@@ -39,6 +40,13 @@
 #include <QFileInfo>
 #include <QTextStream>
 
+#include <cassert>
+
+
+iAUncertaintyImages::~iAUncertaintyImages()
+{}
+
+
 QSharedPointer<iAEnsemble> iAEnsemble::Create(int entropyBinCount,
 	QSharedPointer<iAEnsembleDescriptorFile> ensembleFile)
 {
@@ -46,9 +54,9 @@ QSharedPointer<iAEnsemble> iAEnsemble::Create(int entropyBinCount,
 	QMap<int, QString> const & samplings = ensembleFile->Samplings();
 	for (int key : samplings.keys())
 	{
-		if (!result->LoadSampling(samplings[key], ensembleFile->LabelCount(), key))
+		if (!result->LoadSampling(samplings[key], key))
 		{
-			DEBUG_LOG(QString("Ensemble: Could not load sampling '%1'!").arg(samplings[key]));
+			LOG(lvlError, QString("Ensemble: Could not load sampling '%1'!").arg(samplings[key]));
 			return QSharedPointer<iAEnsemble>();
 		}
 	}
@@ -63,22 +71,22 @@ QSharedPointer<iAEnsemble> iAEnsemble::Create(int entropyBinCount,
 		result->m_referenceImage = dynamic_cast<IntImage*>(itkImg.GetPointer());
 	}
 	// load sub ensembles:
-	for (int i = 0; i < ensembleFile->SubEnsembleCount(); ++i)
+	for (int i = 0; i < ensembleFile->subEnsembleCount(); ++i)
 	{
-		result->AddSubEnsemble(ensembleFile->SubEnsemble(i), ensembleFile->SubEnsembleID(i));
+		result->AddSubEnsemble(ensembleFile->subEnsemble(i), ensembleFile->subEnsembleID(i));
 	}
 	return result;
 }
 
 QSharedPointer<iAEnsemble> iAEnsemble::Create(int entropyBinCount,
-	QVector<QSharedPointer<iAMember> > member,
+	QVector<QSharedPointer<iASingleResult> > member,
 	QSharedPointer<iASamplingResults> superSet,	int labelCount, QString const & cachePath, int id,
 	IntImage::Pointer reference)
 {
-	QSharedPointer<iAEnsemble> result(new iAEnsemble(entropyBinCount));
-	QSharedPointer<iASamplingResults> samplingResults(new iASamplingResults(superSet->Attributes(),
-		"Subset", superSet->Path(), superSet->Executable(), superSet->AdditionalArguments(), superSet->name(), id));
-	samplingResults->SetMembers(member);
+	auto result = QSharedPointer<iAEnsemble>(new iAEnsemble(entropyBinCount));
+	auto samplingResults = QSharedPointer<iASamplingResults>::create(superSet->attributes(),
+		"Subset", superSet->path(), superSet->executable(), superSet->additionalArguments(), superSet->name(), id);
+	samplingResults->setMembers(member);
 	result->m_samplings.push_back(samplingResults);
 	result->m_cachePath = cachePath;
 	result->m_labelCount = labelCount;
@@ -87,27 +95,24 @@ QSharedPointer<iAEnsemble> iAEnsemble::Create(int entropyBinCount,
 	return result;
 }
 
-
 namespace
 {
-	/**
-	 * Calculate an entropy image out of a given collection of images.
-	 *
-	 * For each voxel, the given collection is interpreted as separate probability distribution
-	 * @param distribution the collection of images considered as probability distribution
-	 * @param normalize whether to normalize the entropy to the range [0..1]
-	 *        the maximum entropy appears when there is equal distribution among all alternatives
-	 *        (i.e. if distribution has N elements, then the entropy is maximum for a voxel if all
-	 *        values of the distribution for that voxel have the value 1/N)
-	 * @param probFactor factor to apply to the elements of distribution before calculating the entropy
-	 *        from it. This is useful if the given distribution does not contain probabilities, but
-	 *        e.g. a "histogram", that is, a number of occurences of that particular value among the
-	 *        set for which the entropy should be calculated. In that case, specify 1/(size of set)
-	 *        as factor
-	 * @return the entropy for each voxel in form of an image with pixel type double
-	 *        in case that the given distribution was empty, an empty smart ptr will be returned
-	 *        (equivalent of null).
-	 */
+	//! Calculate an entropy image out of a given collection of images.
+	//!
+	//! For each voxel, the given collection is interpreted as separate probability distribution
+	//! @param distribution the collection of images considered as probability distribution
+	//! @param normalize whether to normalize the entropy to the range [0..1]
+	//!        the maximum entropy appears when there is equal distribution among all alternatives
+	//!        (i.e. if distribution has N elements, then the entropy is maximum for a voxel if all
+	//!        values of the distribution for that voxel have the value 1/N)
+	//! @param probFactor factor to apply to the elements of distribution before calculating the entropy
+	//!        from it. This is useful if the given distribution does not contain probabilities, but
+	//!        e.g. a "histogram", that is, a number of occurences of that particular value among the
+	//!        set for which the entropy should be calculated. In that case, specify 1/(size of set)
+	//!        as factor
+	//! @return the entropy for each voxel in form of an image with pixel type double
+	//!        in case that the given distribution was empty, an empty smart ptr will be returned
+	//!        (equivalent of null).
 	template <typename TImage>
 	DoubleImage::Pointer CalculateEntropyImage(QVector<typename TImage::Pointer> distribution, bool normalize = true, double probFactor = 1.0)
 	{
@@ -120,12 +125,15 @@ namespace
 		double limit = std::log(distribution.size());  // max entropy: - N* (1/N * log(1/N)) = log(N)
 		double normalizeFactor = normalize ? 1.0 / limit : 1.0;
 		auto result = createImage<DoubleImage>(size, spacing);
+		assert(size[0] < static_cast<itk::SizeValueType>(std::numeric_limits<itk::IndexValueType>::max()) &&
+		       size[1] < static_cast<itk::SizeValueType>(std::numeric_limits<itk::IndexValueType>::max()) &&
+		       size[2] < static_cast<itk::SizeValueType>(std::numeric_limits<itk::IndexValueType>::max()));
 		itk::Index<3> idx; // optimize speed via iterators / direct access?
-		for (idx[0] = 0; idx[0] < size[0]; ++idx[0])
+		for (idx[0] = 0; static_cast<itk::SizeValueType>(idx[0]) < size[0]; ++idx[0])
 		{
-			for (idx[1] = 0; idx[1] < size[1]; ++idx[1])
+			for (idx[1] = 0; static_cast<itk::SizeValueType>(idx[1]) < size[1]; ++idx[1])
 			{
-				for (idx[2] = 0; idx[2] < size[2]; ++idx[2])
+				for (idx[2] = 0; static_cast<itk::SizeValueType>(idx[2]) < size[2]; ++idx[2])
 				{
 					double entropy = 0;
 					for (int l = 0; l < distribution.size(); ++l)
@@ -185,7 +193,7 @@ namespace
 		imgPointer = dynamic_cast<TImage*>(img.GetPointer()); // check pixelType?
 		if (!imgPointer)
 		{
-			DEBUG_LOG(QString("Error loading %1!").arg(label));
+			LOG(lvlError, QString("Error loading %1!").arg(label));
 			return false;
 		}
 		return true;
@@ -225,7 +233,7 @@ namespace
 		if (!in.open(QIODevice::ReadOnly | QIODevice::Text) ||
 			!in.isOpen())
 		{
-			DEBUG_LOG(QString("Couldn't open %1 for reading!").arg(fileName));
+			LOG(lvlError, QString("Couldn't open %1 for reading!").arg(fileName));
 			return false;
 		}
 		QTextStream inStream(&in);
@@ -236,7 +244,7 @@ namespace
 		in.close();
 		if (lines.size() != binCount)
 		{
-			DEBUG_LOG("Different histogram bin count than anticipated, readjusting buffer size.");
+			LOG(lvlWarn, "Different histogram bin count than anticipated, readjusting buffer size.");
 			delete[] destination;
 			binCount = lines.size();
 			destination = new double[binCount];
@@ -248,7 +256,7 @@ namespace
 			destination[cur] = line.toDouble(&ok);
 			if (!ok)
 			{
-				DEBUG_LOG(QString("Error while trying to convert %1 to number in histogram reading!").arg(line));
+				LOG(lvlError, QString("Error while trying to convert %1 to number in histogram reading!").arg(line));
 				return false;
 			}
 			++cur;
@@ -262,7 +270,7 @@ namespace
 		if (!out.open(QIODevice::WriteOnly | QIODevice::Text) ||
 			!out.isOpen())
 		{
-			DEBUG_LOG(QString("Couldn't open %1 for output!").arg(fileName));
+			LOG(lvlError, QString("Couldn't open %1 for output!").arg(fileName));
 			return false;
 		}
 		QTextStream outStream(&out);
@@ -280,11 +288,11 @@ namespace
 		if (!out.open(QIODevice::WriteOnly | QIODevice::Text) ||
 			!out.isOpen())
 		{
-			DEBUG_LOG(QString("Couldn't open %1 for output!").arg(fileName));
+			LOG(lvlError, QString("Couldn't open %1 for output!").arg(fileName));
 			return false;
 		}
 		QTextStream outStream(&out);
-		for (int i = 0; i < values.size(); ++i)
+		for (size_t i = 0; i < values.size(); ++i)
 		{
 			outStream << QString("%1\n").arg(values[i]);
 		}
@@ -303,7 +311,7 @@ namespace
 		if (!in.open(QIODevice::ReadOnly | QIODevice::Text) ||
 			!in.isOpen())
 		{
-			DEBUG_LOG(QString("Couldn't open %1 for reading!").arg(fileName));
+			LOG(lvlError, QString("Couldn't open %1 for reading!").arg(fileName));
 			return false;
 		}
 		QTextStream inStream(&in);
@@ -314,7 +322,7 @@ namespace
 			double val = line.toDouble(&ok);
 			if (!ok)
 			{
-				DEBUG_LOG(QString("Error while trying to convert %1 to number in histogram reading!").arg(line));
+				LOG(lvlError, QString("Error while trying to convert %1 to number in histogram reading!").arg(line));
 				return false;
 			}
 			values.push_back(val);
@@ -340,7 +348,6 @@ DoubleImage::Pointer NeighbourhoodEntropyImage(IntImage::Pointer intImage, int l
 	outIt.GoToBegin();
 	while (!it.IsAtEnd() && !outIt.IsAtEnd())
 	{
-		double sum = 0;
 		std::fill(labelHistogram, labelHistogram + labelCount, 0);
 		int valueCount = 0;
 		for (int i = 0; i < neighbourhoodSize; ++i)
@@ -366,7 +373,7 @@ DoubleImage::Pointer NeighbourhoodEntropyImage(IntImage::Pointer intImage, int l
 			}
 			entropy = clamp(0.0, limit, -entropy * normalizeFactor);
 		}
-		else
+		else // if on boundary
 		{
 			for (int l = 0; l < labelCount; ++l)
 			{
@@ -376,9 +383,9 @@ DoubleImage::Pointer NeighbourhoodEntropyImage(IntImage::Pointer intImage, int l
 					entropy += (prob * std::log(prob));
 				}
 			}
-			double limit = std::log(valueCount);  // max entropy: - N* (1/N * log(1/N)) = log(N)
-			double normalizeFactor = 1.0 / limit;
-			entropy = clamp(0.0, limit, -entropy * normalizeFactor);
+			double localLimit = std::log(valueCount);  // max entropy: - N* (1/N * log(1/N)) = log(N)
+			double localNormalizeFactor = 1.0 / localLimit;
+			entropy = clamp(0.0, localLimit, -entropy * localNormalizeFactor);
 		}
 		outIt.Set(entropy);
 		++it;
@@ -393,31 +400,31 @@ void iAEnsemble::CreateUncertaintyImages()
 	QDir qdir;
 	if (!qdir.mkpath(m_cachePath))
 	{
-		DEBUG_LOG(QString("Can't create cache directory %1!").arg(m_cachePath));
+		LOG(lvlError, QString("Can't create cache directory %1!").arg(m_cachePath));
 		return;
 	}
 	if (m_labelCount <= 0)
 	{
-		DEBUG_LOG(QString("Invalid label count: %1").arg(m_labelCount));
+		LOG(lvlError, QString("Invalid label count: %1").arg(m_labelCount));
 		return;
 	}
 	try
 	{
 		// also load slice images here?
-		if (m_samplings.size() == 0 || m_samplings[0]->Members().size() == 0)
+		if (m_samplings.size() == 0 || m_samplings[0]->members().size() == 0)
 		{
-			DEBUG_LOG("No samplings or no members found!");
+			LOG(lvlError, "No samplings or no members found!");
 			return;
 		}
 		itk::Index<3> idx;
-		itk::Size<3> size;
-		itk::Vector<double, 3> spacing;
+		itk::Size<3> size;               size   .Fill(0);
+		itk::Vector<double, 3> spacing;  spacing.Fill(1);
 
 		// also calculate neighbourhood uncertainty here?
 		size_t count = 0;
 		for (QSharedPointer<iASamplingResults> sampling : m_samplings)
 		{
-			count += sampling->Members().size();
+			count += sampling->members().size();
 		}
 		double factor = 1.0 / count;
 
@@ -431,9 +438,9 @@ void iAEnsemble::CreateUncertaintyImages()
 			m_labelDistr.clear();
 			for (QSharedPointer<iASamplingResults> sampling : m_samplings)
 			{
-				for (QSharedPointer<iAMember> member : sampling->Members())
+				for (QSharedPointer<iASingleResult> member : sampling->members())
 				{
-					iAITKIO::ImagePointer labelBaseImg = member->LabelImage();
+					iAITKIO::ImagePointer labelBaseImg = member->labelImage();
 					auto intlabelImg = dynamic_cast<IntImage*>(labelBaseImg.GetPointer());
 					if (m_labelDistr.empty())
 					{	// initialize empty sums:
@@ -445,11 +452,14 @@ void iAEnsemble::CreateUncertaintyImages()
 						size = intlabelImg->GetLargestPossibleRegion().GetSize();
 						spacing = intlabelImg->GetSpacing();
 					}
-					for (idx[0] = 0; idx[0] < size[0]; ++idx[0])
+					assert(size[0] < static_cast<itk::SizeValueType>(std::numeric_limits<itk::IndexValueType>::max()) &&
+					       size[1] < static_cast<itk::SizeValueType>(std::numeric_limits<itk::IndexValueType>::max()) &&
+					       size[2] < static_cast<itk::SizeValueType>(std::numeric_limits<itk::IndexValueType>::max()));
+					for (idx[0] = 0; static_cast<itk::SizeValueType>(idx[0]) < size[0]; ++idx[0])
 					{
-						for (idx[1] = 0; idx[1] < size[1]; ++idx[1])
+						for (idx[1] = 0; static_cast<itk::SizeValueType>(idx[1]) < size[1]; ++idx[1])
 						{
-							for (idx[2] = 0; idx[2] < size[2]; ++idx[2])
+							for (idx[2] = 0; static_cast<itk::SizeValueType>(idx[2]) < size[2]; ++idx[2])
 							{
 								int label = intlabelImg->GetPixel(idx);
 								// optimize speed via iterators / direct access?
@@ -482,9 +492,9 @@ void iAEnsemble::CreateUncertaintyImages()
 			double numberOfPixels = size[0] * size[1] * size[2];
 			for (QSharedPointer<iASamplingResults> sampling : m_samplings)
 			{
-				for (QSharedPointer<iAMember> member : sampling->Members())
+				for (QSharedPointer<iASingleResult> member : sampling->members())
 				{
-					QVector<DoubleImage::Pointer> probImgs = member->ProbabilityImgs(m_labelCount);
+					QVector<DoubleImage::Pointer> probImgs = member->probabilityImgs(m_labelCount);
 					auto memberEntropy = CalculateEntropyImage<DoubleImage>(probImgs);
 					double sum = 0;
 					itk::ImageRegionConstIterator<DoubleImage> it(memberEntropy, memberEntropy->GetLargestPossibleRegion());
@@ -526,9 +536,9 @@ void iAEnsemble::CreateUncertaintyImages()
 			m_neighbourhoodAvgEntropy3x3 = createImage<DoubleImage>(size, spacing);
 			for (QSharedPointer<iASamplingResults> sampling : m_samplings)
 			{
-				for (QSharedPointer<iAMember> member : sampling->Members())
+				for (QSharedPointer<iASingleResult> member : sampling->members())
 				{
-					auto labelImgOrig = member->LabelImage();
+					auto labelImgOrig = member->labelImage();
 					auto labelImg = dynamic_cast<IntImage*>(labelImgOrig.GetPointer());
 					DoubleImage::Pointer neighbourEntropyImg3x3 = NeighbourhoodEntropyImage(labelImg, m_labelCount, 1, size, spacing);
 					AddImageInPlace(m_neighbourhoodAvgEntropy3x3, neighbourEntropyImg3x3);
@@ -545,7 +555,7 @@ void iAEnsemble::CreateUncertaintyImages()
 	}
 	catch (itk::ExceptionObject & excp)
 	{
-		DEBUG_LOG(QString("ITK ERROR: %1").arg(excp.what()));
+		LOG(lvlError, QString("ITK ERROR: %1").arg(excp.what()));
 	}
 }
 
@@ -555,7 +565,7 @@ void iAEnsemble::WriteFullDataFile(QString const & filename, bool writeIntensiti
 	QFile allDataFile(filename);
 	if (!allDataFile.open(QIODevice::WriteOnly | QIODevice::Text))
 	{
-		DEBUG_LOG(QString("Could not open file '%1' for writing!").arg(filename));
+		LOG(lvlError, QString("Could not open file '%1' for writing!").arg(filename));
 		return;
 	}
 	QTextStream out(&allDataFile);
@@ -570,22 +580,25 @@ void iAEnsemble::WriteFullDataFile(QString const & filename, bool writeIntensiti
 	QVector<QVector<DoubleImage::Pointer>> memberProbImageCache;
 	for (auto s : m_samplings)
 	{
-		for (auto m : s->Members())
+		for (auto m : s->members())
 		{
-			auto itkImg = m->LabelImage();
+			auto itkImg = m->labelImage();
 			memberImageCache.push_back(itkImg);
-			
-			auto prob = m->ProbabilityImgs(LabelCount());
+
+			auto prob = m->probabilityImgs(LabelCount());
 			memberProbImageCache.push_back(prob);
 		}
 	}
 
+	assert(size[0] < static_cast<itk::SizeValueType>(std::numeric_limits<itk::IndexValueType>::max()) &&
+	       size[1] < static_cast<itk::SizeValueType>(std::numeric_limits<itk::IndexValueType>::max()) &&
+	       size[2] < static_cast<itk::SizeValueType>(std::numeric_limits<itk::IndexValueType>::max()));
 	// collect feature values for each pixel:
-	for (idx[2] = 0; idx[2] < size[2]; ++idx[2])
+	for (idx[2] = 0; static_cast<itk::SizeValueType>(idx[2]) < size[2]; ++idx[2])
 	{
-		for (idx[1] = 0; idx[1] < size[1]; ++idx[1])
+		for (idx[1] = 0; static_cast<itk::SizeValueType>(idx[1]) < size[1]; ++idx[1])
 		{
-			for (idx[0] = 0; idx[0] < size[0]; ++idx[0])
+			for (idx[0] = 0; static_cast<itk::SizeValueType>(idx[0]) < size[0]; ++idx[0])
 			{
 				QString line(QString::number(m_referenceImage->GetPixel(idx))+" ");
 
@@ -595,7 +608,7 @@ void iAEnsemble::WriteFullDataFile(QString const & filename, bool writeIntensiti
 				{
 					for (int m = 0; m < modalities->size(); ++m)
 					{
-						for (int c = 0; c < modalities->get(m)->componentCount(); ++c)
+						for (size_t c = 0; c < modalities->get(m)->componentCount(); ++c)
 						{
 							auto img = modalities->get(m)->component(c);
 							line += QString::number(++curFeature) + ":" + QString::number(img->GetScalarComponentAsDouble(idx[0], idx[1], idx[2], 0)) + " ";
@@ -630,57 +643,54 @@ void iAEnsemble::WriteFullDataFile(QString const & filename, bool writeIntensiti
 						line += QString::number(++curFeature) + ":" + QString::number(m_entropy[e]->GetScalarComponentAsDouble(idx[0], idx[1], idx[2], 0)) + " ";
 					}
 				}
-							// cut last space:
-				out << line.left(line.size()-1) << endl;
+				       // cut last space:
+				out << line.left(line.size()-1) << QTENDL;
 			}
 		}
 	}
 	allDataFile.close();
 }
 
-
 vtkImagePointer iAEnsemble::GetEntropy(int source) const
 {
 	return m_entropy[source];
 }
-
 
 vtkImagePointer iAEnsemble::GetReference() const
 {
 	return ConvertITK2VTK<IntImage>(m_referenceImage);
 }
 
-
 bool iAEnsemble::HasReference() const
 {
 	return m_referenceImage;
 }
 
-
-const char* const UncertaintyNames[] = {
-	"Algorithm Uncertainty",
-	"Neighborhood Uncertainty",
-	"Ensemble Uncertainty",
-};
-
+namespace
+{
+	const char* const UncertaintyNames[] = {
+		"Algorithm Uncertainty",
+		"Neighborhood Uncertainty",
+		"Ensemble Uncertainty",
+	};
+}
 
 QString iAEnsemble::GetSourceName(int sourceIdx) const
 {
 	return UncertaintyNames[sourceIdx];
 }
 
-
-bool iAEnsemble::LoadSampling(QString const & fileName, int labelCount, int id)
+bool iAEnsemble::LoadSampling(QString const & fileName, int id)
 {
 	if (fileName.isEmpty())
 	{
-		DEBUG_LOG("No filename given, not loading.");
+		LOG(lvlError, "No filename given, not loading.");
 		return false;
 	}
-	QSharedPointer<iASamplingResults> samplingResults = iASamplingResults::Load(fileName, id);
+	QSharedPointer<iASamplingResults> samplingResults = iASamplingResults::load(fileName, id);
 	if (!samplingResults)
 	{
-		DEBUG_LOG("Loading Sampling failed.");
+		LOG(lvlError, "Loading Sampling failed.");
 		return false;
 	}
 	m_samplings.push_back(samplingResults);
@@ -695,30 +705,25 @@ iAEnsemble::iAEnsemble(int entropyBinCount) :
 	std::fill(m_entropyHistogram, m_entropyHistogram + entropyBinCount, 0);
 }
 
-
 iAEnsemble::~iAEnsemble()
 {
 	delete[] m_entropyHistogram;
 }
-
 
 QVector<IntImage::Pointer> const & iAEnsemble::GetLabelDistribution() const
 {
 	return m_labelDistr;
 }
 
-
 int iAEnsemble::LabelCount() const
 {
 	return m_labelCount;
 }
 
-
 double * iAEnsemble::EntropyHistogram() const
 {
 	return m_entropyHistogram;
 }
-
 
 int iAEnsemble::EntropyBinCount() const
 {
@@ -730,18 +735,18 @@ size_t iAEnsemble::MemberCount() const
 	return m_memberEntropyAvg.size();
 }
 
-QSharedPointer<iAMember> const iAEnsemble::Member(size_t memberIdx) const
+QSharedPointer<iASingleResult> const iAEnsemble::Member(size_t memberIdx) const
 {
-	int s = 0;
 	for (int s=0; s<m_samplings.size(); ++s)
 	{
-		if (memberIdx < m_samplings[s]->Size())
+		assert(m_samplings[s]->size() > 0);
+		if (memberIdx < static_cast<size_t>(m_samplings[s]->size()))
 		{
-			return m_samplings[s]->Get(memberIdx);
+			return m_samplings[s]->get(memberIdx);
 		}
-		memberIdx -= m_samplings[s]->Size();
+		memberIdx -= m_samplings[s]->size();
 	}
-	return QSharedPointer<iAMember>();
+	return QSharedPointer<iASingleResult>();
 }
 
 std::vector<double> const & iAEnsemble::MemberAttribute(size_t idx) const
@@ -759,7 +764,6 @@ QSharedPointer<iASamplingResults> iAEnsemble::Sampling(size_t idx) const
 	return m_samplings[idx];
 }
 
-
 QString const & iAEnsemble::CachePath() const
 {
 	return m_cachePath;
@@ -767,7 +771,7 @@ QString const & iAEnsemble::CachePath() const
 
 QSharedPointer<iAEnsemble> iAEnsemble::AddSubEnsemble(QVector<int> memberIDs, int newEnsembleID)
 {
-	QVector<QSharedPointer<iAMember> > members;
+	QVector<QSharedPointer<iASingleResult> > members;
 	for (int memberID : memberIDs)
 	{
 		members.push_back(Member(memberID));
@@ -788,16 +792,14 @@ QVector<QSharedPointer<iAEnsemble> > iAEnsemble::SubEnsembles() const
 	return m_subEnsembles;
 }
 
-
 int iAEnsemble::ID() const
 {
 	if (m_samplings.size() > 1)
 	{
-		DEBUG_LOG("Ensemble with more than one sampling -> could make problems with ensemble IDs (1:1 mapping currently from Sampling ID to Ensemble ID!)");
+		LOG(lvlWarn, "Ensemble with more than one sampling -> could make problems with ensemble IDs (1:1 mapping currently from Sampling ID to Ensemble ID!)");
 	}
-	return m_samplings[0]->ID();
+	return m_samplings[0]->id();
 }
-
 
 QSharedPointer<iAEnsembleDescriptorFile> iAEnsemble::EnsembleFile()
 {

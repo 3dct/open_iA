@@ -1,8 +1,8 @@
 /*************************************  open_iA  ************************************ *
 * **********   A tool for visual analysis and processing of 3D CT images   ********** *
 * *********************************************************************************** *
-* Copyright (C) 2016-2019  C. Heinzl, M. Reiter, A. Reh, W. Li, M. Arikan, Ar. &  Al. *
-*                          Amirkhanov, J. Weissenböck, B. Fröhler, M. Schiwarth       *
+* Copyright (C) 2016-2021  C. Heinzl, M. Reiter, A. Reh, W. Li, M. Arikan, Ar. &  Al. *
+*                 Amirkhanov, J. Weissenböck, B. Fröhler, M. Schiwarth, P. Weinberger *
 * *********************************************************************************** *
 * This program is free software: you can redistribute it and/or modify it under the   *
 * terms of the GNU General Public License as published by the Free Software           *
@@ -19,28 +19,18 @@
 *          Stelzhamerstraße 23, 4600 Wels / Austria, Email: c.heinzl@fh-wels.at       *
 * ************************************************************************************/
 #include "iAScatterPlotView.h"
+#include "iAScatterPlotViewData.h"
 
 #include "iAUncertaintyColors.h"
 
-#include <charts/iAScatterPlot.h>
-#include <charts/iAScatterPlotWidget.h>
-#include <charts/iASPLOMData.h>
-#include <iAConsole.h>
+#include <iAScatterPlot.h>
+#include <iAScatterPlotWidget.h>
+#include <iASPLOMData.h>
+#include <iALog.h>
 #include <iAToolsVTK.h>
 #include <iAVtkDraw.h>
-#include <qthelper/iAQFlowLayout.h>
 
-#include <vtkAxis.h>
-#include <vtkChartXY.h>
-#include <vtkContextScene.h>
-#include <vtkContextView.h>
-#include <vtkFloatArray.h>
-#include <vtkImageData.h>
-#include <vtkPen.h>
-#include <vtkPlot.h>
-#include <vtkRenderer.h>
-#include <vtkTable.h>
-#include <vtkTextProperty.h>
+#include <iAQFlowLayout.h>
 
 #include <QHBoxLayout>
 #include <QLabel>
@@ -49,12 +39,15 @@
 #include <QVariant>
 #include <QVBoxLayout>
 
-#define VTK_CREATE(type, name) \
-	vtkSmartPointer<type> name = vtkSmartPointer<type>::New()
+#include <set>
 
 iAScatterPlotView::iAScatterPlotView():
-	m_scatterPlotWidget(nullptr),
-	m_scatterPlotContainer(new QWidget())
+	m_voxelCount(0),
+	m_xAxisChooser(new QWidget()),
+	m_yAxisChooser(new QWidget()),
+	m_settings(new QWidget()),
+	m_scatterPlotContainer(new QWidget()),
+	m_scatterPlotWidget(nullptr)
 {
 	setLayout(new QVBoxLayout());
 	layout()->setSpacing(0);
@@ -65,7 +58,6 @@ iAScatterPlotView::iAScatterPlotView():
 	m_scatterPlotContainer->setSizePolicy(QSizePolicy::MinimumExpanding, QSizePolicy::Expanding);
 	layout()->addWidget(m_scatterPlotContainer);
 
-	m_settings = new QWidget();
 	m_settings->setLayout(new QVBoxLayout);
 	m_settings->layout()->setSpacing(0);
 	m_settings->layout()->setContentsMargins(0, 4, 0, 0);
@@ -73,11 +65,10 @@ iAScatterPlotView::iAScatterPlotView():
 
 	auto datasetChoiceContainer = new QWidget();
 	datasetChoiceContainer->setLayout(new QVBoxLayout());
-	m_xAxisChooser = new QWidget();
+
 	m_xAxisChooser->setLayout(new iAQFlowLayout(0, 0, 0));
 	m_xAxisChooser->layout()->addWidget(new QLabel("X Axis:"));
 	m_xAxisChooser->setSizePolicy(QSizePolicy::MinimumExpanding, QSizePolicy::Fixed);
-	m_yAxisChooser = new QWidget();
 	m_yAxisChooser->setLayout(new iAQFlowLayout(0, 0, 0));
 	m_yAxisChooser->setSizePolicy(QSizePolicy::MinimumExpanding, QSizePolicy::Fixed);
 	m_yAxisChooser->layout()->addWidget(new QLabel("Y Axis:"));
@@ -94,7 +85,7 @@ void iAScatterPlotView::AddPlot(vtkImagePointer imgX, vtkImagePointer imgY, QStr
 	std::vector<size_t> selection;
 	if (m_scatterPlotWidget)
 	{
-		selection = m_scatterPlotWidget->GetSelection();
+		selection = m_scatterPlotWidget->viewData()->selection();
 		delete m_scatterPlotWidget;
 	}
 	// setup data object:
@@ -102,7 +93,7 @@ void iAScatterPlotView::AddPlot(vtkImagePointer imgX, vtkImagePointer imgY, QStr
 	m_voxelCount = static_cast<size_t>(dim[0]) * dim[1] * dim[2];
 	double* bufX = static_cast<double*>(imgX->GetScalarPointer());
 	double* bufY = static_cast<double*>(imgY->GetScalarPointer());
-	auto splomData = QSharedPointer<iASPLOMData>(new iASPLOMData());
+	auto splomData = QSharedPointer<iASPLOMData>::create();
 	splomData->paramNames().push_back(captionX);
 	splomData->paramNames().push_back(captionY);
 	std::vector<double> values0;
@@ -119,15 +110,13 @@ void iAScatterPlotView::AddPlot(vtkImagePointer imgX, vtkImagePointer imgY, QStr
 	m_scatterPlotWidget = new iAScatterPlotWidget(splomData);
 	QColor c(iAUncertaintyColors::ScatterPlotDots);
 	c.setAlpha(128);
-	m_scatterPlotWidget->SetSelectionMode(iAScatterPlot::Rectangle);
-	m_scatterPlotWidget->SetPlotColor(c, 0, 1);
-	m_scatterPlotWidget->SetSelectionColor(iAUncertaintyColors::SelectedPixel);
-	m_scatterPlotWidget->SetSelection(selection);
+	m_scatterPlotWidget->setSelectionMode(iAScatterPlot::Rectangle);
+	m_scatterPlotWidget->setPlotColor(c, 0, 1);
+	m_scatterPlotWidget->setSelectionColor(iAUncertaintyColors::SelectedPixel);
+	m_scatterPlotWidget->viewData()->setSelection(selection);
 	m_scatterPlotWidget->setMinimumWidth(width() / 2);
 	m_scatterPlotContainer->layout()->addWidget(m_scatterPlotWidget);
-	connect(m_scatterPlotWidget->m_scatterplot, SIGNAL(selectionModified()), this, SLOT(SelectionUpdated()));
-
-	StyleChanged();
+	connect(m_scatterPlotWidget, &iAScatterPlotWidget::selectionModified, this, &iAScatterPlotView::SelectionUpdated);
 }
 
 
@@ -135,7 +124,7 @@ void iAScatterPlotView::SetDatasets(QSharedPointer<iAUncertaintyImages> imgs)
 {
 	if (m_scatterPlotWidget)
 	{
-		m_scatterPlotWidget->GetSelection().clear();
+		m_scatterPlotWidget->viewData()->selection().clear();
 	}
 	for (auto widget : m_xAxisChooser->findChildren<QToolButton*>(QString(), Qt::FindDirectChildrenOnly))
 	{
@@ -166,8 +155,8 @@ void iAScatterPlotView::SetDatasets(QSharedPointer<iAUncertaintyImages> imgs)
 		{
 			yButton->setChecked(true);
 		}
-		connect(xButton, SIGNAL(clicked()), this, SLOT(XAxisChoice()));
-		connect(yButton, SIGNAL(clicked()), this, SLOT(YAxisChoice()));
+		connect(xButton, &QToolButton::clicked, this, &iAScatterPlotView::XAxisChoice);
+		connect(yButton, &QToolButton::clicked, this, &iAScatterPlotView::YAxisChoice);
 		m_xAxisChooser->layout()->addWidget(xButton);
 		m_yAxisChooser->layout()->addWidget(yButton);
 	}
@@ -192,7 +181,9 @@ void iAScatterPlotView::XAxisChoice()
 {
 	int imgId = qobject_cast<QToolButton*>(sender())->property("imgId").toInt();
 	if (imgId == m_xAxisChoice)
+	{
 		return;
+	}
 	m_xAxisChoice = imgId;
 	AddPlot(m_imgs->GetEntropy(m_xAxisChoice), m_imgs->GetEntropy(m_yAxisChoice),
 		m_imgs->GetSourceName(m_xAxisChoice), m_imgs->GetSourceName(m_yAxisChoice));
@@ -203,7 +194,9 @@ void iAScatterPlotView::YAxisChoice()
 {
 	int imgId = qobject_cast<QToolButton*>(sender())->property("imgId").toInt();
 	if (imgId == m_yAxisChoice)
+	{
 		return;
+	}
 	m_yAxisChoice = imgId;
 	AddPlot(m_imgs->GetEntropy(m_xAxisChoice), m_imgs->GetEntropy(m_yAxisChoice),
 		m_imgs->GetSourceName(m_xAxisChoice), m_imgs->GetSourceName(m_yAxisChoice));
@@ -211,7 +204,7 @@ void iAScatterPlotView::YAxisChoice()
 
 void iAScatterPlotView::SelectionUpdated()
 {
-	auto selectedPoints = m_scatterPlotWidget->GetSelection();
+	auto & selectedPoints = m_scatterPlotWidget->viewData()->selection();
 	std::set<size_t> selectedSet(selectedPoints.begin(), selectedPoints.end());
 	double* buf = static_cast<double*>(m_selectionImg->GetScalarPointer());
 	for (unsigned int v = 0; v<m_voxelCount; ++v)
@@ -232,8 +225,4 @@ vtkImagePointer iAScatterPlotView::GetSelectionImage()
 void iAScatterPlotView::ToggleSettings()
 {
 	m_settings->setVisible(!m_settings->isVisible());
-}
-
-void iAScatterPlotView::StyleChanged()
-{
 }

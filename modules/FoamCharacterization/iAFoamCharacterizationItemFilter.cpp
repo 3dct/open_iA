@@ -1,8 +1,8 @@
 /*************************************  open_iA  ************************************ *
 * **********   A tool for visual analysis and processing of 3D CT images   ********** *
 * *********************************************************************************** *
-* Copyright (C) 2016-2019  C. Heinzl, M. Reiter, A. Reh, W. Li, M. Arikan, Ar. &  Al. *
-*                          Amirkhanov, J. Weissenböck, B. Fröhler, M. Schiwarth       *
+* Copyright (C) 2016-2021  C. Heinzl, M. Reiter, A. Reh, W. Li, M. Arikan, Ar. &  Al. *
+*                 Amirkhanov, J. Weissenböck, B. Fröhler, M. Schiwarth, P. Weinberger *
 * *********************************************************************************** *
 * This program is free software: you can redistribute it and/or modify it under the   *
 * terms of the GNU General Public License as published by the Free Software           *
@@ -23,8 +23,8 @@
 #include "iAFoamCharacterizationDialogFilter.h"
 #include "iAFoamCharacterizationTable.h"
 
-#include "iAConnector.h"
-#include "iAProgress.h"
+#include <iAConnector.h>
+#include <iAProgress.h>
 
 #include <itkDiscreteGaussianImageFilter.h>
 #include <itkGradientAnisotropicDiffusionImageFilter.h>
@@ -34,9 +34,9 @@
 #include <vtkImageData.h>
 
 #include <QApplication>
+#include <QElapsedTimer>
 #include <QFile>
 #include <QThreadPool>
-#include <QTime>
 #include <QtMath>
 
 iAFoamCharacterizationItemFilter::iAFoamCharacterizationItemFilter
@@ -89,7 +89,7 @@ void iAFoamCharacterizationItemFilter::execute()
 {
 	setExecuting(true);
 
-	QTime t;
+	QElapsedTimer t;
 	t.start();
 
 	switch (m_eItemFilterType)
@@ -127,11 +127,11 @@ void iAFoamCharacterizationItemFilter::executeAnisotropic()
 	pFilter->SetConductanceParameter(m_dAnisotropicConductance);
 	pFilter->SetNumberOfIterations(m_uiAnisotropicIteration);
 	pFilter->SetTimeStep(m_dAnisotropicTimeStep);
-	
+
 	QScopedPointer<iAProgress> pObserver(new iAProgress());
 	pObserver->observe(pFilter);
-	connect(pObserver.data(), SIGNAL(progress(const int&)), this, SLOT(slotObserver(const int&)));
-	
+	connect(pObserver.data(), &iAProgress::progress, this, &iAFoamCharacterizationItemFilter::slotObserver);
+
 	pFilter->Update();
 
 	typedef itk::Image<typename itkFilter::OutputImagePixelType, 3> IntImageType;
@@ -158,7 +158,7 @@ void iAFoamCharacterizationItemFilter::executeGaussian()
 
 	QScopedPointer<iAProgress> pObserver(new iAProgress());
 	pObserver->observe(pFilter);
-	connect(pObserver.data(), SIGNAL(progress(const int&)), this, SLOT(slotObserver(const int&)));
+	connect(pObserver.data(), &iAProgress::progress, this, &iAFoamCharacterizationItemFilter::slotObserver);
 
 	pFilter->Update();
 
@@ -179,10 +179,10 @@ void iAFoamCharacterizationItemFilter::executeMedian()
 	radius.Fill(m_uiMedianRadius);
 	pFilter->SetRadius(radius);
 	pFilter->SetInput(dynamic_cast<itk::Image<unsigned short, 3>*> (pConnector->itkImage()));
-	
+
 	QScopedPointer<iAProgress> pObserver(new iAProgress());
 	pObserver->observe(pFilter);
-	connect(pObserver.data(), SIGNAL(progress(const int&)), this, SLOT(slotObserver(const int&)));
+	connect(pObserver.data(), &iAProgress::progress, this, &iAFoamCharacterizationItemFilter::slotObserver);
 
 	pFilter->Update();
 
@@ -448,7 +448,7 @@ void iAFoamCharacterizationItemFilter::executeNonLocalMeans()
 
 	QScopedPointer<iAProgress> pObserver(new iAProgress());
 	pObserver->observe(pFilter);
-	connect(pObserver.data(), SIGNAL(progress(const int&)), this, SLOT(slotObserver(const int&)));
+	connect(pObserver.data(), &iAProgress::progress, this, &iAFoamCharacterizationItemFilter::slotObserver);
 
 	pFilter->Update();
 

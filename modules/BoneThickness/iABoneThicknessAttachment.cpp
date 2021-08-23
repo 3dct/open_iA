@@ -1,8 +1,8 @@
 /*************************************  open_iA  ************************************ *
 * **********   A tool for visual analysis and processing of 3D CT images   ********** *
 * *********************************************************************************** *
-* Copyright (C) 2016-2019  C. Heinzl, M. Reiter, A. Reh, W. Li, M. Arikan, Ar. &  Al. *
-*                          Amirkhanov, J. Weissenböck, B. Fröhler, M. Schiwarth       *
+* Copyright (C) 2016-2021  C. Heinzl, M. Reiter, A. Reh, W. Li, M. Arikan, Ar. &  Al. *
+*                 Amirkhanov, J. Weissenböck, B. Fröhler, M. Schiwarth, P. Weinberger *
 * *********************************************************************************** *
 * This program is free software: you can redistribute it and/or modify it under the   *
 * terms of the GNU General Public License as published by the Free Software           *
@@ -24,11 +24,13 @@
 #include "iABoneThicknessSplitter.h"
 #include "iABoneThicknessTable.h"
 
-#include <qthelper/iADockWidgetWrapper.h>
-#include <iARenderer.h>
-#include <mdichild.h>
-#include <mainwindow.h>
+#include <iADockWidgetWrapper.h>
 
+#include <iARenderer.h>
+#include <iAMdiChild.h>
+#include <iAMainWindow.h>
+
+#include <QApplication>
 #include <QCheckBox>
 #include <QFileDialog>
 #include <QGridLayout>
@@ -36,7 +38,7 @@
 #include <QLabel>
 #include <QPushButton>
 
-iABoneThicknessAttachment::iABoneThicknessAttachment(MainWindow* mainWnd, MdiChild * child):
+iABoneThicknessAttachment::iABoneThicknessAttachment(iAMainWindow* mainWnd, iAMdiChild * child):
 	iAModuleAttachmentToChild(mainWnd, child)
 {
 	QWidget* pWidget(new QWidget());
@@ -44,18 +46,18 @@ iABoneThicknessAttachment::iABoneThicknessAttachment(MainWindow* mainWnd, MdiChi
 	m_pBoneThickness.reset(new iABoneThickness());
 	m_pBoneThicknessChartBar = new iABoneThicknessChartBar(pWidget);
 	m_pBoneThicknessTable = new iABoneThicknessTable(pWidget);
-	
+
 	m_pBoneThickness->set(m_child->renderer(), m_child->polyData(), m_pBoneThicknessChartBar, m_pBoneThicknessTable);
 	m_pBoneThicknessChartBar->set(m_pBoneThickness.data(), m_pBoneThicknessTable);
 	m_pBoneThicknessTable->set(m_pBoneThickness.data(), m_pBoneThicknessChartBar);
 
 	QPushButton* pPushButtonOpen(new QPushButton("Open control points file...", pWidget));
 	pPushButtonOpen->setIcon(qApp->style()->standardIcon(QStyle::SP_DialogOpenButton));
-	connect(pPushButtonOpen, SIGNAL(clicked()), this, SLOT(slotPushButtonOpen()));
+	connect(pPushButtonOpen, &QPushButton::clicked, this, &iABoneThicknessAttachment::slotPushButtonOpen);
 
 	QPushButton* pPushButtonSave(new QPushButton("Save table to file...", pWidget));
 	pPushButtonSave->setIcon(qApp->style()->standardIcon(QStyle::SP_DialogSaveButton));
-	connect(pPushButtonSave, SIGNAL(clicked()), this, SLOT(slotPushButtonSave()));
+	connect(pPushButtonSave, &QPushButton::clicked, this, &iABoneThicknessAttachment::slotPushButtonSave);
 
 	QGroupBox* pGroupBoxBound(new QGroupBox("Model Statistics", pWidget));
 	pGroupBoxBound->setFixedHeight(pGroupBoxBound->logicalDpiY() / 2);
@@ -85,7 +87,7 @@ iABoneThicknessAttachment::iABoneThicknessAttachment(MainWindow* mainWnd, MdiChi
 	m_pDoubleSpinBoxSphereRadius->setMaximum(1.0E+6);
 	m_pDoubleSpinBoxSphereRadius->setSingleStep(0.1);
 	m_pDoubleSpinBoxSphereRadius->setValue(m_pBoneThickness->sphereRadius());
-	connect(m_pDoubleSpinBoxSphereRadius, SIGNAL(editingFinished()), this, SLOT(slotDoubleSpinBoxSphereRadius()));
+	connect(m_pDoubleSpinBoxSphereRadius, &QDoubleSpinBox::editingFinished, this, &iABoneThicknessAttachment::slotDoubleSpinBoxSphereRadius);
 
 	QLabel* pLabelThicknessMaximum(new QLabel("Maximum thickness:", pGroupBoxSettings));
 	m_pDoubleSpinBoxThicknessMaximum = new QDoubleSpinBox(pGroupBoxSettings);
@@ -93,7 +95,7 @@ iABoneThicknessAttachment::iABoneThicknessAttachment(MainWindow* mainWnd, MdiChi
 	m_pDoubleSpinBoxThicknessMaximum->setMinimum(0.0);
 	m_pDoubleSpinBoxThicknessMaximum->setSingleStep(1.0);
 	m_pDoubleSpinBoxThicknessMaximum->setValue(m_pBoneThickness->thicknessMaximum());
-	connect(m_pDoubleSpinBoxThicknessMaximum, SIGNAL(editingFinished()), this, SLOT(slotDoubleSpinBoxThicknessMaximum()));
+	connect(m_pDoubleSpinBoxThicknessMaximum, &QDoubleSpinBox::editingFinished, this, &iABoneThicknessAttachment::slotDoubleSpinBoxThicknessMaximum);
 
 	QLabel* pLabelSurfaceDistanceMaximum(new QLabel("Maximum surface distance:", pGroupBoxSettings));
 	m_pDoubleSpinBoxSurfaceDistanceMaximum = new QDoubleSpinBox(pGroupBoxSettings);
@@ -101,15 +103,15 @@ iABoneThicknessAttachment::iABoneThicknessAttachment(MainWindow* mainWnd, MdiChi
 	m_pDoubleSpinBoxSurfaceDistanceMaximum->setMinimum(0.0);
 	m_pDoubleSpinBoxSurfaceDistanceMaximum->setSingleStep(1.0);
 	m_pDoubleSpinBoxSurfaceDistanceMaximum->setValue(m_pBoneThickness->surfaceDistanceMaximum());
-	connect(m_pDoubleSpinBoxSurfaceDistanceMaximum, SIGNAL(editingFinished()), this, SLOT(slotDoubleSpinBoxSurfaceDistanceMaximum()));
+	connect(m_pDoubleSpinBoxSurfaceDistanceMaximum, &QDoubleSpinBox::editingFinished, this, &iABoneThicknessAttachment::slotDoubleSpinBoxSurfaceDistanceMaximum);
 
 
 	QCheckBox* pCheckBoxTransparency(new QCheckBox("Use transparency", pGroupBoxSettings));
-	connect(pCheckBoxTransparency, SIGNAL(clicked(const bool&)), this, SLOT(slotCheckBoxTransparency(const bool&)));
+	connect(pCheckBoxTransparency, &QCheckBox::clicked, this, &iABoneThicknessAttachment::slotCheckBoxTransparency);
 
 	QCheckBox* pCheckBoxShowThickness(new QCheckBox("Thickness representation", pGroupBoxSettings));
 	pCheckBoxShowThickness->setChecked(m_pBoneThickness->showThickness());
-	connect(pCheckBoxShowThickness, SIGNAL(clicked(const bool&)), this, SLOT(slotCheckBoxShowThickness(const bool&)));
+	connect(pCheckBoxShowThickness, &QCheckBox::clicked, this, &iABoneThicknessAttachment::slotCheckBoxShowThickness);
 
 	QGridLayout* pGridLayoutSettings(new QGridLayout(pGroupBoxSettings));
 	pGridLayoutSettings->addWidget(pLabelSphereRadius, 0, 0, Qt::AlignRight);
@@ -129,7 +131,7 @@ iABoneThicknessAttachment::iABoneThicknessAttachment(MainWindow* mainWnd, MdiChi
 	pGridLayout->addWidget(pGroupBoxSettings, 3, 0, 1, 2);
 
 	iADockWidgetWrapper* pDockWidgetWrapper(new iADockWidgetWrapper(pWidget, tr("Bone thickness"), "BoneThickness"));
-	m_child->tabifyDockWidget(m_child->logDockWidget(), pDockWidgetWrapper);
+	m_child->tabifyDockWidget(m_child->renderDockWidget(), pDockWidgetWrapper);
 
 	pDockWidgetWrapper->adjustSize();
 	m_pBoneThicknessChartBar->resize(pBoneThicknessSplitter->width() / 2, pBoneThicknessSplitter->height());

@@ -59,7 +59,7 @@ namespace itk
 		m_OutsideValue = 0;
 		m_InsideValue = 1;
 
-		m_PointSet = NULL;
+		m_PointSet = nullptr;
 
 		this->Superclass::SetNumberOfRequiredInputs( 1 );
 		this->Superclass::SetNumberOfRequiredOutputs( 1 );

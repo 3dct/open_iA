@@ -1,8 +1,8 @@
 /*************************************  open_iA  ************************************ *
 * **********   A tool for visual analysis and processing of 3D CT images   ********** *
 * *********************************************************************************** *
-* Copyright (C) 2016-2019  C. Heinzl, M. Reiter, A. Reh, W. Li, M. Arikan, Ar. &  Al. *
-*                          Amirkhanov, J. Weissenböck, B. Fröhler, M. Schiwarth       *
+* Copyright (C) 2016-2021  C. Heinzl, M. Reiter, A. Reh, W. Li, M. Arikan, Ar. &  Al. *
+*                 Amirkhanov, J. Weissenböck, B. Fröhler, M. Schiwarth, P. Weinberger *
 * *********************************************************************************** *
 * This program is free software: you can redistribute it and/or modify it under the   *
 * terms of the GNU General Public License as published by the Free Software           *
@@ -33,7 +33,7 @@ class iAFuzzyFeatureTrackingAttachment : public iAModuleAttachmentToChild
 	Q_OBJECT
 
 public:
-	iAFuzzyFeatureTrackingAttachment( MainWindow * mainWnd, MdiChild * child );
+	iAFuzzyFeatureTrackingAttachment( iAMainWindow * mainWnd, iAMdiChild * child );
 	~iAFuzzyFeatureTrackingAttachment();
 
 protected:
@@ -44,7 +44,6 @@ protected:
 protected slots:
 	void updateViews();
 protected:
-	dlg_trackingGraph * trackingGraph;
 	dlg_dataView4DCT * m_dlgDataView4DCT;
 	dlg_trackingGraph * m_dlgTrackingGraph;
 	dlg_eventExplorer * m_dlgEventExplorer;

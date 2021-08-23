@@ -1,21 +1,22 @@
 #ifndef CL_COMMON_H
 #define CL_COMMON_H
 
+#include <iAVec3.h>
+
 #include <itkMacro.h>
+
 #include <QtGui>
 #include <QMessageBox>
-#include "iAmat4.h"
+
 
 // When the AMD OpenCL 1.2 installed, we need this line to do the work
 // if it does not work on your PC, just uncomment the following line 
 #define CL_USE_DEPRECATED_OPENCL_1_1_APIS
-#define CL_TARGET_OPENCL_VERSION 120
+// now defined via CMake option:
+//#define CL_TARGET_OPENCL_VERSION 120
+//#define CL_TARGET_OPENCL_VERSION 110
 
-#ifndef __APPLE__
-#ifndef __MACOSX
 #include "CL/cl.hpp"
-#endif
-#endif
 
 inline char const * descriptionOfError(cl_int err)
 {
@@ -135,7 +136,7 @@ inline int generateEmbeddableSource(QString src_filename, QString output_filenam
 
 inline cl_float4 Vec3_to_cl_float4(const iAVec3f & v)
 {
-	cl_float4 res = {v.x(), v.y(), v.z(), 0.0f};
+	cl_float4 res = { {v.x(), v.y(), v.z(), 0.0f} };
 	return res;
 }
 
@@ -181,9 +182,9 @@ inline void cl_init(cl::Device			& device_out,
 			{
 				cl_uint CU = 0, Clock = 0;
                 char buf[128];
-                itk_clSafeCall( clGetDeviceInfo((*d)(), CL_DEVICE_VENDOR, 128, buf, NULL) );
-				itk_clSafeCall( clGetDeviceInfo((*d)(), CL_DEVICE_MAX_COMPUTE_UNITS, sizeof(cl_uint), &CU,	 NULL) );
-				itk_clSafeCall( clGetDeviceInfo((*d)(), CL_DEVICE_MAX_CLOCK_FREQUENCY, sizeof(cl_uint), &Clock, NULL) );
+                itk_clSafeCall( clGetDeviceInfo((*d)(), CL_DEVICE_VENDOR, 128, buf, nullptr) );
+				itk_clSafeCall( clGetDeviceInfo((*d)(), CL_DEVICE_MAX_COMPUTE_UNITS, sizeof(cl_uint), &CU,	 nullptr) );
+				itk_clSafeCall( clGetDeviceInfo((*d)(), CL_DEVICE_MAX_CLOCK_FREQUENCY, sizeof(cl_uint), &Clock, nullptr) );
                 QString deviceVendor( buf );
                 if( devType == CL_DEVICE_TYPE_GPU && deviceVendor.contains("Intel", Qt::CaseInsensitive) ) //skip intel's gpu
                     continue;

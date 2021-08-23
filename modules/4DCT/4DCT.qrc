@@ -1,0 +1,29 @@
+<RCC>
+  <qresource prefix="/">
+    <file>images/4DCT_Add.png</file>
+    <file>images/4DCT_AddBoundingBox.png</file>
+    <file>images/4DCT_AddDefectView.png</file>
+    <file>images/4DCT_AddFractureView.png</file>
+    <file>images/4DCT_AddFractureVis.png</file>
+    <file>images/4DCT_ColorMapping.png</file>
+    <file>images/4DCT_Empty.png</file>
+    <file>images/4DCT_Extract.png</file>
+    <file>images/4DCT_Find.png</file>
+    <file>images/4DCT_First.png</file>
+    <file>images/4DCT_FractureView.png</file>
+    <file>images/4DCT_Last.png</file>
+    <file>images/4DCT_Load.png</file>
+    <file>images/4DCT_LoadFractureView.png</file>
+    <file>images/4DCT_Map.png</file>
+    <file>images/4DCT_Next.png</file>
+    <file>images/4DCT_Play.png</file>
+    <file>images/4DCT_Previous.png</file>
+    <file>images/4DCT_Save.png</file>
+    <file>images/4DCT_SaveAs.png</file>
+    <file>images/4DCT_SaveFractureView.png</file>
+    <file>images/4DCT_Settings.png</file>
+    <file>images/4DCT_SurfaceVis.png</file>
+    <file>images/4DCT_SurfaceVisAdd.png</file>
+    <file>images/4DCT_Visualization.png</file>
+  </qresource>
+</RCC>

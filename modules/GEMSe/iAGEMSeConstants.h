@@ -1,8 +1,8 @@
 /*************************************  open_iA  ************************************ *
 * **********   A tool for visual analysis and processing of 3D CT images   ********** *
 * *********************************************************************************** *
-* Copyright (C) 2016-2019  C. Heinzl, M. Reiter, A. Reh, W. Li, M. Arikan, Ar. &  Al. *
-*                          Amirkhanov, J. Weissenböck, B. Fröhler, M. Schiwarth       *
+* Copyright (C) 2016-2021  C. Heinzl, M. Reiter, A. Reh, W. Li, M. Arikan, Ar. &  Al. *
+*                 Amirkhanov, J. Weissenböck, B. Fröhler, M. Schiwarth, P. Weinberger *
 * *********************************************************************************** *
 * This program is free software: you can redistribute it and/or modify it under the   *
 * terms of the GNU General Public License as published by the Free Software           *
@@ -28,7 +28,7 @@
 
 // COMMON
 
-//! maximum number of preview widgets allowed at one time 
+//! maximum number of preview widgets allowed at one time
 const int MaxPreviewWidgets = 24;
 
 const int FontSize = 10;
@@ -65,7 +65,7 @@ const int TreePreviewSize        =  75;
 
 const int TreeInfoRegionWidth    =  40;
 //! @{
-//! size of expand button 
+//! size of expand button
 const int TreeButtonWidth  =  15;
 const int TreeButtonHeight =  20;
 //! @}
@@ -140,10 +140,6 @@ struct DefaultColors
 
 	static const QBrush CaptionBrush;
 };
-
-
-const QString SMPFileVersion("v8");
-const QString SMPFileFormatVersion("Sampling File " + SMPFileVersion);
 
 enum iARepresentativeType
 {

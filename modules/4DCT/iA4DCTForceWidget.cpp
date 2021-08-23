@@ -1,8 +1,8 @@
 /*************************************  open_iA  ************************************ *
 * **********   A tool for visual analysis and processing of 3D CT images   ********** *
 * *********************************************************************************** *
-* Copyright (C) 2016-2019  C. Heinzl, M. Reiter, A. Reh, W. Li, M. Arikan, Ar. &  Al. *
-*                          Amirkhanov, J. Weissenböck, B. Fröhler, M. Schiwarth       *
+* Copyright (C) 2016-2021  C. Heinzl, M. Reiter, A. Reh, W. Li, M. Arikan, Ar. &  Al. *
+*                 Amirkhanov, J. Weissenböck, B. Fröhler, M. Schiwarth, P. Weinberger *
 * *********************************************************************************** *
 * This program is free software: you can redistribute it and/or modify it under the   *
 * terms of the GNU General Public License as published by the Free Software           *
@@ -39,7 +39,7 @@ int iA4DCTForceWidget::getValue( )
 	return m_value;
 }
 
-void iA4DCTForceWidget::mouseDoubleClickEvent( QMouseEvent * event )
+void iA4DCTForceWidget::mouseDoubleClickEvent(QMouseEvent * /*event*/)
 {
 	QDialog * dialog = new QDialog( this );
 	Ui::ForceDialog dialogUi;

@@ -1,0 +1,27 @@
+<RCC>
+  <qresource prefix="/">
+    <file>images/dockwidget-close_bright.svg</file>
+    <file>images/dockwidget-close_dark.svg</file>
+    <file>images/dockwidget-float_bright.svg</file>
+    <file>images/dockwidget-float_dark.svg</file>
+    <file>images/info.png</file>
+    <file>images/load.png</file>
+    <file>images/mini_rect.png</file>
+    <file>images/open.png</file>
+    <file>images/paste.png</file>
+    <file>images/save.png</file>
+    <file>images/saveClass.png</file>
+    <file>images/savemov.png</file>
+    <file>images/savescreen.png</file>
+    <file>images/savestack.png</file>
+    <file>images/settings.png</file>
+    <file>images/toggle_titleBar.png</file>
+    <file>images/update.png</file>
+    <file>images/plus.svg</file>
+    <file>images/minus.svg</file>
+    <file>images/edit.svg</file>
+    <file>images/plus-dark.svg</file>
+    <file>images/minus-dark.svg</file>
+    <file>images/edit-dark.svg</file>
+  </qresource>
+</RCC>

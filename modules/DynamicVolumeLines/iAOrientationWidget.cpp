@@ -1,8 +1,8 @@
 /*************************************  open_iA  ************************************ *
 * **********   A tool for visual analysis and processing of 3D CT images   ********** *
 * *********************************************************************************** *
-* Copyright (C) 2016-2019  C. Heinzl, M. Reiter, A. Reh, W. Li, M. Arikan, Ar. &  Al. *
-*                          Amirkhanov, J. Weissenböck, B. Fröhler, M. Schiwarth       *
+* Copyright (C) 2016-2021  C. Heinzl, M. Reiter, A. Reh, W. Li, M. Arikan, Ar. &  Al. *
+*                 Amirkhanov, J. Weissenböck, B. Fröhler, M. Schiwarth, P. Weinberger *
 * *********************************************************************************** *
 * This program is free software: you can redistribute it and/or modify it under the   *
 * terms of the GNU General Public License as published by the Free Software           *
@@ -25,13 +25,13 @@
 
 const double minPixelSize = 2.0;
 
-iAOrientationWidget::iAOrientationWidget(QWidget* parent) : iAQGLWidget(parent)
+iAOrientationWidget::iAOrientationWidget(QWidget* parent) : QOpenGLWidget(parent)
 {
 	setMaximumWidth(100);
 	setFixedHeight(27);
 	setBackgroundRole(QPalette::Base);
 	setAutoFillBackground(true);
-	iAQGLFormat format;
+	QSurfaceFormat format;
 	format.setSamples(4);
 	this->setFormat(format);
 	this->setToolTip("The Orientation Widget shows the visible plot area\nin blue (the rest in gray)");
@@ -71,8 +71,14 @@ void iAOrientationWidget::paintGL()
 	double x = m_plot->xAxis->range().lower * width() / (m_upperLimitX - m_lowerLimitX);
 	double y = (m_upperLimitY - m_plot->yAxis->range().upper) * height() / (m_upperLimitY - m_lowerLimitY);
 	double w = m_plot->xAxis->range().size() * width() / (m_upperLimitX - m_lowerLimitX);
-	double h = m_plot->yAxis->range().size() * height() / (m_upperLimitY - m_lowerLimitY);	
-	if (w < minPixelSize) w = minPixelSize;
-	if (h < minPixelSize) h = minPixelSize;
+	double h = m_plot->yAxis->range().size() * height() / (m_upperLimitY - m_lowerLimitY);
+	if (w < minPixelSize)
+	{
+		w = minPixelSize;
+	}
+	if (h < minPixelSize)
+	{
+		h = minPixelSize;
+	}
 	painter.drawRect(x, y, w, h);
 }

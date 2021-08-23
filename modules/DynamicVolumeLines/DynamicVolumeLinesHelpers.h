@@ -1,8 +1,8 @@
 /*************************************  open_iA  ************************************ *
 * **********   A tool for visual analysis and processing of 3D CT images   ********** *
 * *********************************************************************************** *
-* Copyright (C) 2016-2019  C. Heinzl, M. Reiter, A. Reh, W. Li, M. Arikan, Ar. &  Al. *
-*                          Amirkhanov, J. Weissenböck, B. Fröhler, M. Schiwarth       *
+* Copyright (C) 2016-2021  C. Heinzl, M. Reiter, A. Reh, W. Li, M. Arikan, Ar. &  Al. *
+*                 Amirkhanov, J. Weissenböck, B. Fröhler, M. Schiwarth, P. Weinberger *
 * *********************************************************************************** *
 * This program is free software: you can redistribute it and/or modify it under the   *
 * terms of the GNU General Public License as published by the Free Software           *
@@ -20,7 +20,7 @@
 * ************************************************************************************/
 #pragma once
 
-#include <charts/qcustomplot.h>
+#include <qcustomplot.h>
 #include <defines.h>   // for DIM
 #include <iAColorTheme.h>
 
@@ -28,7 +28,12 @@
 #include <itkImage.h>
 #include <itkImageIOBase.h>
 
-#include <math.h>
+#include <QCheckBox>
+#include <QComboBox>
+#include <QSlider>
+#include <QToolButton>
+
+#include <cassert>
 
 typedef itk::ImageBase< DIM > ImageBaseType;
 typedef ImageBaseType::Pointer ImagePointer;
@@ -40,9 +45,9 @@ typedef iAFunctionalBoxplot< unsigned int, double> FunctionalBoxPlot;
 
 struct icData
 {
-	icData(double i, itk::Index<DIM> coord ) : 
+	icData(double i, itk::Index<DIM> coord ) :
 		intensity(i), x(coord[0]), y(coord[1]), z(coord[2]) {}
-	
+
 	double intensity;
 	unsigned int x;
 	unsigned int y;
@@ -89,7 +94,8 @@ inline QPen getDatasetPen(int datasetIdx, int datasetCnt, int penWidth, QString 
 	auto theme = iAColorThemeManager::instance().theme(themeName);
 	QPen datasetPen; datasetPen.setWidth(penWidth);
 	QColor datasetColor;
-	if (datasetCnt <= theme->size())
+	assert(datasetCnt > 0);
+	if (static_cast<size_t>(datasetCnt) <= theme->size())
 	{
 		datasetColor = theme->color(datasetIdx);
 	}
@@ -121,7 +127,7 @@ inline void hideGraphandRemoveFromLegend(QCustomPlot *nonlinearPlot, QCustomPlot
 	linearPlot->graph(graphIdx)->removeFromLegend();
 }
 
-inline void switchFBPMode(QString FBPMode, QCustomPlot *nonlinearPlot, QCustomPlot *linearPlot, 
+inline void switchFBPMode(QString FBPMode, QCustomPlot *nonlinearPlot, QCustomPlot *linearPlot,
 	int datasetsCnt, QSlider *sl_FBPTransparency)
 {
 	if (FBPMode == "only")
@@ -191,11 +197,11 @@ inline void switchLevelOfDetail(bool histVisMode, QCheckBox *cb_showFBP, QComboB
 	}
 }
 
-inline void setPlotVisibility(QToolButton *tb, QCustomPlot *qcp)
+inline void setPlotVisibility(QToolButton *tb, QCustomPlot *qcp, bool dark)
 {
-	qcp->isVisible() ? 
-		tb->setIcon(QIcon(":/images/add.png")) :
-		tb->setIcon(QIcon(":/images/minus.png"));
+	qcp->isVisible() ?
+		tb->setIcon(QIcon(QString(":/images/plus%1.svg").arg(dark?"-dark":""))) :
+		tb->setIcon(QIcon(QString(":/images/minus%1.svg").arg(dark?"-dark":"")));
 	qcp->setVisible(!qcp->isVisible());
 	qcp->update();
 }

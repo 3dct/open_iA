@@ -1,8 +1,8 @@
 /*************************************  open_iA  ************************************ *
 * **********   A tool for visual analysis and processing of 3D CT images   ********** *
 * *********************************************************************************** *
-* Copyright (C) 2016-2019  C. Heinzl, M. Reiter, A. Reh, W. Li, M. Arikan, Ar. &  Al. *
-*                          Amirkhanov, J. Weissenböck, B. Fröhler, M. Schiwarth       *
+* Copyright (C) 2016-2021  C. Heinzl, M. Reiter, A. Reh, W. Li, M. Arikan, Ar. &  Al. *
+*                 Amirkhanov, J. Weissenböck, B. Fröhler, M. Schiwarth, P. Weinberger *
 * *********************************************************************************** *
 * This program is free software: you can redistribute it and/or modify it under the   *
 * terms of the GNU General Public License as published by the Free Software           *
@@ -25,7 +25,7 @@
 #include <iAProgress.h>
 #include <iAToolsITK.h>
 #include <iATypedCallHelper.h>
-#include <mdichild.h>
+#include <iAMdiChild.h>
 
 #include <itkCastImageFilter.h>
 #include <itkExtractImageFilter.h>
@@ -38,6 +38,24 @@
 #include <itkTranslationTransform.h>
 
 #include <vtkImageData.h>
+
+//! Custom image similarity metric - "equal pixel rate", i.e.
+//!     number of equal pixels / number of total pixels
+template<class ImageType>
+double computeEqualPixelRate(typename ImageType::Pointer img, typename ImageType::Pointer ref)
+{
+	typename ImageType::RegionType reg = ref->GetLargestPossibleRegion();
+	int size = reg.GetSize()[0] * reg.GetSize()[1] * reg.GetSize()[2];
+	double sumEqual = 0.0f;
+#pragma omp parallel for reduction(+:sumEqual)
+	for (int i = 0; i < size; ++i)
+	{
+		if (img->GetBufferPointer()[i] != 0 &&
+			img->GetBufferPointer()[i] == ref->GetBufferPointer()[i])
+			++sumEqual;
+	}
+	return sumEqual / size;
+}
 
 template<class T>
 void similarity_metrics(iAFilter* filter, QMap<QString, QVariant> const & parameters)
@@ -57,9 +75,6 @@ void similarity_metrics(iAFilter* filter, QMap<QString, QVariant> const & parame
 	auto interpolator = InterpolatorType::New();
 	interpolator->SetInputImage(img);
 	typename TransformType::ParametersType params(transform->GetNumberOfParameters());
-	filter->addMsg(QString("ROI[Origin_XYZ; SIZE_XYZ] = [%1, %2, %3; %4, %5, %6]")
-		.arg(index[0]).arg(index[1]).arg(index[2])
-		.arg(size[0]).arg(size[1]).arg(size[2]));
 	double range = 0, imgMean = 0, imgVar = 0, refMean = 0, refVar = 0, mse = 0;
 	if (parameters["Peak Signal-to-Noise Ratio"].toBool() ||
 		parameters["Structural Similarity Index"].toBool() ||
@@ -140,10 +155,10 @@ void similarity_metrics(iAFilter* filter, QMap<QString, QVariant> const & parame
 		histogramFilter->SetInput(joinFilter->GetOutput());
 		histogramFilter->SetMarginalScale(10.0);
 		typedef typename HistogramFilterType::HistogramSizeType   HistogramSizeType;
-		HistogramSizeType size(2);
-		size[0] = parameters["Histogram Bins"].toDouble();  // number of bins for the first  channel
-		size[1] = parameters["Histogram Bins"].toDouble();  // number of bins for the second channel
-		histogramFilter->SetHistogramSize(size);
+		HistogramSizeType histSize(2);
+		histSize[0] = parameters["Histogram Bins"].toDouble();  // number of bins for the first  channel
+		histSize[1] = parameters["Histogram Bins"].toDouble();  // number of bins for the second channel
+		histogramFilter->SetHistogramSize(histSize);
 		/*
 		typedef typename HistogramFilterType::HistogramMeasurementVectorType HistogramMeasurementVectorType;
 		HistogramMeasurementVectorType binMinimum(3);
@@ -177,9 +192,9 @@ void similarity_metrics(iAFilter* filter, QMap<QString, QVariant> const & parame
 			++itr;
 		}
 
-		size[0] = parameters["Histogram Bins"].toDouble();  // number of bins for the first  channel
-		size[1] = 1;  // number of bins for the second channel
-		histogramFilter->SetHistogramSize(size);
+		histSize[0] = parameters["Histogram Bins"].toDouble();  // number of bins for the first  channel
+		histSize[1] = 1;  // number of bins for the second channel
+		histogramFilter->SetHistogramSize(histSize);
 		histogramFilter->Update();
 		itr = histogram->Begin();
 		end = histogram->End();
@@ -195,9 +210,9 @@ void similarity_metrics(iAFilter* filter, QMap<QString, QVariant> const & parame
 			++itr;
 		}
 
-		size[0] = 1;  // number of bins for the first channel
-		size[1] = parameters["Histogram Bins"].toDouble();  // number of bins for the second channel
-		histogramFilter->SetHistogramSize(size);
+		histSize[0] = 1;  // number of bins for the first channel
+		histSize[1] = parameters["Histogram Bins"].toDouble();  // number of bins for the second channel
+		histogramFilter->SetHistogramSize(histSize);
 		histogramFilter->Update();
 		itr = histogram->Begin();
 		end = histogram->End();
@@ -240,6 +255,10 @@ void similarity_metrics(iAFilter* filter, QMap<QString, QVariant> const & parame
 			((imgMean * imgMean + refMean * refMean + c1) * (imgVar + refVar + c2));
 		filter->addOutputValue("Structural Similarity Index", ssim);
 	}
+	if (parameters["Equal pixel rate"].toBool())
+	{
+		filter->addOutputValue("Equal pixel rate", computeEqualPixelRate<ImageType>(img, ref));
+	}
 }
 
 iASimilarity::iASimilarity() : iAFilter("Similarity", "Metrics",
@@ -264,30 +283,32 @@ iASimilarity::iASimilarity() : iAFilter("Similarity", "Metrics",
 	"between the images results in small measure values.<br/>"
 	"More Information on Mutual Information is given in the "
 	"<a href=\"https://itk.org/ItkSoftwareGuide.pdf\">ITK Software Guide</a> in the sections '3.10.4 Mutual "
-	"Information Metric' (pp. 262-264) and '5.3.2 Information Theory' (pp. 462-471)."
+	"Information Metric' (pp. 262-264) and '5.3.2 Information Theory' (pp. 462-471). "
 	"The <em>Structural Similarity Index</em> Metric (SSIM) is a metric calculated from mean, variance and covariance "
 	"of the two compared images. For more details see e.g. the "
 	"<a href=\"https://en.wikipedia.org/wiki/Structural_similarity\">Structural Similarity index article in wikipedia</a>, "
-	"the two parameters k1 and k2 are used exactly as defined there.",
+	"the two parameters k1 and k2 are used exactly as defined there. "
+	"<em>Equal pixel rate</em> computes the ratio between voxels with same value and the total voxel count.",
 	2, 0)
 {
-	addParameter("Index X", Discrete, 0);
-	addParameter("Index Y", Discrete, 0);
-	addParameter("Index Z", Discrete, 0);
-	addParameter("Size X", Discrete, 1);
-	addParameter("Size Y", Discrete, 1);
-	addParameter("Size Z", Discrete, 1);
-	addParameter("Mean Squared Error", Boolean, false);
-	addParameter("RMSE", Boolean, true);
-	addParameter("Normalized RMSE", Boolean, false);
-	addParameter("Peak Signal-to-Noise Ratio", Boolean, true);
-	addParameter("Mean Absolute Error", Boolean, true);
-	addParameter("Normalized Correlation", Boolean, false);
-	addParameter("Mutual Information", Boolean, false);
-	addParameter("Histogram Bins", Discrete, 256, 2);
-	addParameter("Structural Similarity Index", Boolean, true);
-	addParameter("Structural Similarity k1", Continuous, 0.01);
-	addParameter("Structural Similarity k2", Continuous, 0.03);
+	addParameter("Index X", iAValueType::Discrete, 0);
+	addParameter("Index Y", iAValueType::Discrete, 0);
+	addParameter("Index Z", iAValueType::Discrete, 0);
+	addParameter("Size X", iAValueType::Discrete, 1);
+	addParameter("Size Y", iAValueType::Discrete, 1);
+	addParameter("Size Z", iAValueType::Discrete, 1);
+	addParameter("Mean Squared Error", iAValueType::Boolean, false);
+	addParameter("RMSE", iAValueType::Boolean, true);
+	addParameter("Normalized RMSE", iAValueType::Boolean, false);
+	addParameter("Peak Signal-to-Noise Ratio", iAValueType::Boolean, true);
+	addParameter("Mean Absolute Error", iAValueType::Boolean, true);
+	addParameter("Normalized Correlation", iAValueType::Boolean, false);
+	addParameter("Mutual Information", iAValueType::Boolean, false);
+	addParameter("Histogram Bins", iAValueType::Discrete, 256, 2);
+	addParameter("Structural Similarity Index", iAValueType::Boolean, true);
+	addParameter("Structural Similarity k1", iAValueType::Continuous, 0.01);
+	addParameter("Structural Similarity k2", iAValueType::Continuous, 0.03);
+	addParameter("Equal pixel rate", iAValueType::Boolean, false);
 }
 
 IAFILTER_CREATE(iASimilarity)
@@ -299,18 +320,18 @@ void iASimilarity::performWork(QMap<QString, QVariant> const & parameters)
 
 QSharedPointer<iAFilterRunnerGUI> iASimilarityFilterRunner::create()
 {
-	return QSharedPointer<iAFilterRunnerGUI>(new iASimilarityFilterRunner());
+	return QSharedPointer<iASimilarityFilterRunner>::create();
 }
 
-QMap<QString, QVariant> iASimilarityFilterRunner::loadParameters(QSharedPointer<iAFilter> filter, MdiChild* sourceMdi)
+QMap<QString, QVariant> iASimilarityFilterRunner::loadParameters(QSharedPointer<iAFilter> filter, iAMdiChild* sourceMdi)
 {
 	auto params = iAFilterRunnerGUI::loadParameters(filter, sourceMdi);
 	int const * dim = sourceMdi->imagePointer()->GetDimensions();
-	if (params["Index X"].toUInt() >= dim[0])
+	if (params["Index X"].toInt() >= dim[0])
 		params["Index X"] = 0;
-	if (params["Index Y"].toUInt() >= dim[1])
+	if (params["Index Y"].toInt() >= dim[1])
 		params["Index Y"] = 0;
-	if (params["Index Z"].toUInt() >= dim[2])
+	if (params["Index Z"].toInt() >= dim[2])
 		params["Index Z"] = 0;
 	params["Size X"] = std::min(params["Size X"].toUInt(), dim[0] - params["Index X"].toUInt());
 	params["Size Y"] = std::min(params["Size Y"].toUInt(), dim[1] - params["Index Y"].toUInt());

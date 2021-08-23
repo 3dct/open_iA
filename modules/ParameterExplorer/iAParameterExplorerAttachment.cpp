@@ -1,8 +1,8 @@
 /*************************************  open_iA  ************************************ *
 * **********   A tool for visual analysis and processing of 3D CT images   ********** *
 * *********************************************************************************** *
-* Copyright (C) 2016-2019  C. Heinzl, M. Reiter, A. Reh, W. Li, M. Arikan, Ar. &  Al. *
-*                          Amirkhanov, J. Weissenböck, B. Fröhler, M. Schiwarth       *
+* Copyright (C) 2016-2021  C. Heinzl, M. Reiter, A. Reh, W. Li, M. Arikan, Ar. &  Al. *
+*                 Amirkhanov, J. Weissenböck, B. Fröhler, M. Schiwarth, P. Weinberger *
 * *********************************************************************************** *
 * This program is free software: you can redistribute it and/or modify it under the   *
 * terms of the GNU General Public License as published by the Free Software           *
@@ -27,15 +27,19 @@
 #include "iAParamSpatialView.h"
 #include "iAParamTableView.h"
 
-#include <mdichild.h>
-#include <qthelper/iADockWidgetWrapper.h>
+#include <iAMdiChild.h>
+#include <iAPreferences.h>
 
-iAParameterExplorerAttachment* iAParameterExplorerAttachment::create(MainWindow * mainWnd, MdiChild * child)
+#include <iADockWidgetWrapper.h>
+
+#include <QFileInfo>
+
+iAParameterExplorerAttachment* iAParameterExplorerAttachment::create(iAMainWindow * mainWnd, iAMdiChild * child)
 {
 	return new iAParameterExplorerAttachment(mainWnd, child);
 }
 
-iAParameterExplorerAttachment::iAParameterExplorerAttachment(MainWindow * mainWnd, MdiChild * child)
+iAParameterExplorerAttachment::iAParameterExplorerAttachment(iAMainWindow * mainWnd, iAMdiChild * child)
 	:iAModuleAttachmentToChild(mainWnd, child)
 {
 }
@@ -43,25 +47,27 @@ iAParameterExplorerAttachment::iAParameterExplorerAttachment(MainWindow * mainWn
 void iAParameterExplorerAttachment::LoadCSV(QString const & csvFileName)
 {
 	if (csvFileName.isEmpty())
+	{
 		return;
+	}
 	m_csvFileName = csvFileName;
 	m_tableView = new iAParamTableView(csvFileName);
 	m_spatialView = new iAParamSpatialView(m_tableView, QFileInfo(csvFileName).absolutePath(),
 		m_child->histogram(), m_child->preferences().HistogramBins);
 	m_SPLOMView = new iAParamSPLOMView(m_tableView, m_spatialView);
 	m_featuresView = new iAParamFeaturesView(m_tableView->Table());
-	connect(m_featuresView, SIGNAL(ShowFeature(int, bool)), m_SPLOMView, SLOT(ShowFeature(int, bool)));
-	connect(m_featuresView, SIGNAL(ShowFeature(int, bool)), m_tableView, SLOT(ShowFeature(int, bool)));
-	connect(m_featuresView, SIGNAL(InvertFeature(int, bool)), m_SPLOMView, SLOT(InvertFeature(int, bool)));
+	connect(m_featuresView, &iAParamFeaturesView::ShowFeature, m_SPLOMView, &iAParamSPLOMView::ShowFeature);
+	connect(m_featuresView, &iAParamFeaturesView::ShowFeature, m_tableView, &iAParamTableView::ShowFeature);
+	connect(m_featuresView, &iAParamFeaturesView::InvertFeature, m_SPLOMView, &iAParamSPLOMView::InvertFeature);
 	m_dockWidgets.push_back(new iADockWidgetWrapper(m_spatialView, "Spatial", "ParamSpatialView"));
 	m_dockWidgets.push_back(new iADockWidgetWrapper(m_SPLOMView, "Scatter Plot Matrix", "ParamSPLOMView"));
 	m_dockWidgets.push_back(new iADockWidgetWrapper(m_tableView, "Table", "ParamTableView"));
-	m_dockWidgets.push_back(m_child->histogramDockWidget());
 	m_dockWidgets.push_back(new iADockWidgetWrapper(m_featuresView, "Features", "ParamFeaturesView"));
-	m_child->splitDockWidget(m_child->logDockWidget(), m_dockWidgets[0], Qt::Horizontal);
+	//m_dockWidgets.push_back(m_child->histogramDockWidget());
+	m_child->splitDockWidget(m_child->renderDockWidget(), m_dockWidgets[0], Qt::Horizontal);
 	m_child->splitDockWidget(m_dockWidgets[0], m_dockWidgets[1], Qt::Horizontal);
 	m_child->splitDockWidget(m_dockWidgets[0], m_dockWidgets[2], Qt::Vertical);
-	m_child->splitDockWidget(m_dockWidgets[2], m_dockWidgets[4], Qt::Vertical);
+	m_child->splitDockWidget(m_dockWidgets[2], m_dockWidgets[3], Qt::Vertical);
 }
 
 void iAParameterExplorerAttachment::ToggleDockWidgetTitleBars()

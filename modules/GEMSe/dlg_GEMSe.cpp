@@ -1,8 +1,8 @@
 /*************************************  open_iA  ************************************ *
 * **********   A tool for visual analysis and processing of 3D CT images   ********** *
 * *********************************************************************************** *
-* Copyright (C) 2016-2019  C. Heinzl, M. Reiter, A. Reh, W. Li, M. Arikan, Ar. &  Al. *
-*                          Amirkhanov, J. Weissenböck, B. Fröhler, M. Schiwarth       *
+* Copyright (C) 2016-2021  C. Heinzl, M. Reiter, A. Reh, W. Li, M. Arikan, Ar. &  Al. *
+*                 Amirkhanov, J. Weissenböck, B. Fröhler, M. Schiwarth, P. Weinberger *
 * *********************************************************************************** *
 * This program is free software: you can redistribute it and/or modify it under the   *
 * terms of the GNU General Public License as published by the Free Software           *
@@ -43,7 +43,7 @@
 #include "iASingleResult.h"
 
 #include <iAAttributeDescriptor.h>
-#include <iAConsole.h>
+#include <iALog.h>
 #include <iALogger.h>
 #include <iAMathUtility.h>
 #include <iAToolsITK.h>
@@ -58,21 +58,21 @@ dlg_GEMSe::dlg_GEMSe(
 	iAColorTheme const * colorTheme)
 :
 	dlg_GEMSeUI(parent),
-	m_selectedCluster(0),
-	m_treeView(0),
-	m_detailView(0),
-	m_logger(logger),
-	m_cameraWidget(0),
-	m_exampleView(0),
-	m_favoriteWidget(0),
-	m_probingWidget(0),
-	m_selectedLeaf(0),
-	m_previewWidgetPool(0),
+	m_selectedLeaf(nullptr),
+	m_treeView(nullptr),
+	m_detailView(nullptr),
+	m_exampleView(nullptr),
+	m_cameraWidget(nullptr),
+	m_favoriteWidget(nullptr),
+	m_histogramContainer(nullptr),
+	m_scatterplot(nullptr),
+	m_probingWidget(nullptr),
 	m_colorTheme(colorTheme),
+	m_logger(logger),
+	m_previewWidgetPool(nullptr),
 	m_representativeType(iARepresentativeType::Difference)
 {
 }
-
 
 void dlg_GEMSe::SetTree(
 	QSharedPointer<iAImageTree > imageTree,
@@ -140,7 +140,7 @@ void dlg_GEMSe::SetTree(
 
 	if (m_pipelineNames.size() != m_samplings->size())
 	{
-		DEBUG_LOG("Insufficient number of pipeline names specified!");
+		LOG(lvlError, "Insufficient number of pipeline names specified!");
 		return;
 	}
 	m_histogramContainer = new iAHistogramContainer(m_chartAttributes, m_chartAttributeMapper, GetRoot().data(), m_pipelineNames);
@@ -153,38 +153,37 @@ void dlg_GEMSe::SetTree(
 	m_probingWidget->SetSelectedNode(m_selectedCluster.data());
 	wdProbing->layout()->addWidget(m_probingWidget);
 
-	connect(m_cameraWidget, SIGNAL(ModeChanged(iASlicerMode, int)), this, SLOT(SlicerModeChanged(iASlicerMode, int)));
-	connect(m_treeView, SIGNAL(clicked(QSharedPointer<iAImageTreeNode>)), this, SLOT(ClusterNodeClicked(QSharedPointer<iAImageTreeNode>)));
-	connect(m_treeView, SIGNAL(ImageClicked(QSharedPointer<iAImageTreeNode>)), this, SLOT(ClusterNodeImageClicked(QSharedPointer<iAImageTreeNode>)));
-	connect(m_treeView, SIGNAL(ImageRightClicked(iAImageTreeNode *)), this, SLOT(CompareAlternateSelected(iAImageTreeNode *)));
-	connect(m_treeView, SIGNAL(Expanded(QSharedPointer<iAImageTreeNode>)), this, SLOT(SelectCluster(QSharedPointer<iAImageTreeNode>)));
-	connect(m_treeView, SIGNAL(JumpedTo(QSharedPointer<iAImageTreeNode>)), this, SLOT(SelectCluster(QSharedPointer<iAImageTreeNode>)));
-	connect(m_treeView, SIGNAL(SelectionChanged()), this, SLOT(UpdateClusterChartData()));
-	connect(m_exampleView, SIGNAL(Selected(iAImageTreeLeaf *)), this, SLOT(ClusterLeafSelected(iAImageTreeLeaf *)));
-	connect(m_exampleView, SIGNAL(AlternateSelected(iAImageTreeNode *)), this, SLOT(CompareAlternateSelected(iAImageTreeNode *)));
-	connect(m_detailView, SIGNAL(Like()), this, SLOT(ToggleLike()));
-	connect(m_detailView, SIGNAL(Hate()), this, SLOT(ToggleHate()));
-	connect(m_detailView, SIGNAL(GoToCluster()), this, SLOT(GoToCluster()));
-	connect(m_detailView, SIGNAL(ResultFilterUpdate()), this, SLOT(UpdateResultFilter()));
-	connect(m_cameraWidget, SIGNAL(SliceChanged(int)), this, SLOT(SliceNumberChanged(int)));
-	connect(m_favoriteWidget, SIGNAL(clicked(iAImageTreeNode *)), this, SLOT(FavoriteClicked(iAImageTreeNode *)));
-	connect(m_favoriteWidget, SIGNAL(rightClicked(iAImageTreeNode *)), this, SLOT(CompareAlternateSelected(iAImageTreeNode *)));
-	connect(m_histogramContainer, SIGNAL(ChartSelectionUpdated()), this, SLOT(HistogramSelectionUpdated()));
-	connect(m_histogramContainer, SIGNAL(FilterChanged(int, double, double)), this, SLOT(FilterChanged(int, double, double)));
-	connect(m_histogramContainer, SIGNAL(ChartDblClicked(int)), this, SLOT(ChartDblClicked(int)));
+	connect(m_cameraWidget, &iACameraWidget::ModeChanged, this, &dlg_GEMSe::SlicerModeChanged);
+	connect(m_treeView, &iAImageTreeView::clicked, this, &dlg_GEMSe::ClusterNodeClicked);
+	connect(m_treeView, &iAImageTreeView::ImageClicked, this, &dlg_GEMSe::ClusterNodeImageClicked);
+	connect(m_treeView, &iAImageTreeView::ImageRightClicked, this, &dlg_GEMSe::CompareAlternateSelected);
+	connect(m_treeView, &iAImageTreeView::Expanded, this, &dlg_GEMSe::SelectCluster);
+	connect(m_treeView, &iAImageTreeView::JumpedTo, this, &dlg_GEMSe::SelectCluster);
+	connect(m_treeView, &iAImageTreeView::SelectionChanged, this, &dlg_GEMSe::UpdateClusterChartData);
+	connect(m_exampleView, &iAExampleImageWidget::Selected, this, &dlg_GEMSe::ClusterLeafSelected);
+	connect(m_exampleView, &iAExampleImageWidget::AlternateSelected, this, &dlg_GEMSe::CompareAlternateSelected);
+	connect(m_detailView, &iADetailView::Like, this, &dlg_GEMSe::ToggleLike);
+	connect(m_detailView, &iADetailView::Hate, this, &dlg_GEMSe::ToggleHate);
+	connect(m_detailView, &iADetailView::GoToCluster, this, &dlg_GEMSe::GoToCluster);
+	connect(m_detailView, &iADetailView::ResultFilterUpdate, this, &dlg_GEMSe::UpdateResultFilter);
+	connect(m_cameraWidget, &iACameraWidget::SliceChanged, this, &dlg_GEMSe::SliceNumberChanged);
+	connect(m_favoriteWidget, &iAFavoriteWidget::clicked, this, &dlg_GEMSe::FavoriteClicked);
+	connect(m_favoriteWidget, &iAFavoriteWidget::rightClicked, this, &dlg_GEMSe::CompareAlternateSelected);
+	connect(m_histogramContainer, &iAHistogramContainer::ChartSelectionUpdated, this, &dlg_GEMSe::HistogramSelectionUpdated);
+	connect(m_histogramContainer, QOverload<int,double,double>::of(&iAHistogramContainer::FilterChanged), this, &dlg_GEMSe::FilterChanged);
+	connect(m_histogramContainer, QOverload<int>::of(&iAHistogramContainer::ChartDblClicked), this, &dlg_GEMSe::ChartDblClicked);
 
 	// view updates:
-	connect(m_detailView,     SIGNAL(ViewUpdated()), this, SLOT(UpdateViews()) );
-	connect(m_cameraWidget,   SIGNAL(ViewUpdated()), this, SLOT(UpdateViews()) );
-	connect(m_treeView,       SIGNAL(ViewUpdated()), this, SLOT(UpdateViews()) );
-	connect(m_exampleView,    SIGNAL(ViewUpdated()), this, SLOT(UpdateViews()) );
-	connect(m_favoriteWidget, SIGNAL(ViewUpdated()), this, SLOT(UpdateViews()) );
+	connect(m_detailView,     &iADetailView::ViewUpdated, this, &dlg_GEMSe::UpdateViews);
+	connect(m_cameraWidget,   &iACameraWidget::ViewUpdated, this, &dlg_GEMSe::UpdateViews);
+	connect(m_treeView,       &iAImageTreeView::ViewUpdated, this, &dlg_GEMSe::UpdateViews);
+	connect(m_exampleView,    &iAExampleImageWidget::ViewUpdated, this, &dlg_GEMSe::UpdateViews);
+	connect(m_favoriteWidget, &iAFavoriteWidget::ViewUpdated, this, &dlg_GEMSe::UpdateViews);
 }
-
 
 void dlg_GEMSe::CreateMapper()
 {
-	m_chartAttributes = QSharedPointer<iAAttributes>(new iAAttributes());
+	m_chartAttributes = QSharedPointer<iAAttributes>::create();
 	m_chartAttributeMapper.Clear();
 	int nextChartID = 0;
 	m_pipelineNames.clear();
@@ -192,19 +191,19 @@ void dlg_GEMSe::CreateMapper()
 	{
 		QSharedPointer<iASamplingResults> sampling = m_samplings->at(samplingIdx);
 		m_pipelineNames.push_back(sampling->name());
-		int datasetID = sampling->GetID();
-		QSharedPointer<iAAttributes> attributes = sampling->GetAttributes();
+		int datasetID = sampling->id();
+		QSharedPointer<iAAttributes> attributes = sampling->attributes();
 		for (int attributeID = 0; attributeID < attributes->size(); ++attributeID)
 		{
 			int chartID = -1;
 			QSharedPointer<iAAttributeDescriptor> attribute = attributes->at(attributeID);
-			
+
 			// check if previous datasets have an attribute with the same name
 			if (samplingIdx > 0 &&
 				attribute->attribType() ==
 				iAAttributeDescriptor::DerivedOutput) // at the moment for derived output only
 			{
-				chartID = m_chartAttributes->find(attribute->name());
+				chartID = findAttribute(*m_chartAttributes.data(), attribute->name());
 			}
 			if (chartID != -1)
 			{	// reuse existing chart, only add mapping:
@@ -215,7 +214,7 @@ void dlg_GEMSe::CreateMapper()
 			}
 			else
 			{	// add chart and mapping:
-				m_chartAttributes->add(attribute);
+				m_chartAttributes->push_back(attribute);
 				chartID = nextChartID;
 				nextChartID++;
 				m_chartAttributeMapper.Add(datasetID, attributeID, chartID);
@@ -224,7 +223,6 @@ void dlg_GEMSe::CreateMapper()
 	}
 	m_MeasureChartIDStart = m_chartAttributes->size();
 }
-
 
 void dlg_GEMSe::ClusterNodeClicked(QSharedPointer<iAImageTreeNode> node)
 {
@@ -240,7 +238,6 @@ void dlg_GEMSe::ClusterNodeClicked(QSharedPointer<iAImageTreeNode> node)
 	}
 }
 
-
 void dlg_GEMSe::ClusterNodeImageClicked(QSharedPointer<iAImageTreeNode> node)
 {
 	if (node->GetFilteredSize() == 0)
@@ -253,7 +250,6 @@ void dlg_GEMSe::ClusterNodeImageClicked(QSharedPointer<iAImageTreeNode> node)
 		SelectCluster(node);
 	}
 }
-
 
 void dlg_GEMSe::SelectCluster(QSharedPointer<iAImageTreeNode> node)
 {
@@ -276,7 +272,6 @@ void dlg_GEMSe::SelectCluster(QSharedPointer<iAImageTreeNode> node)
 		m_detailView->SetNode(node.data(), m_chartAttributes, m_chartAttributeMapper);
 	}
 }
-
 
 void dlg_GEMSe::ClusterLeafSelected(iAImageTreeLeaf * node)
 {
@@ -302,25 +297,21 @@ void dlg_GEMSe::ClusterLeafSelected(iAImageTreeLeaf * node)
 	m_scatterplot->UpdateLeafPlot(m_selectedLeaf, m_chartAttributeMapper);
 }
 
-
 void dlg_GEMSe::CompareAlternateSelected(iAImageTreeNode * node)
 {
 	m_detailView->SetCompareNode(node);
 }
-
 
 void dlg_GEMSe::StoreClustering(QString const & fileName)
 {
 	m_treeView->GetTree()->Store(fileName);
 }
 
-
 void dlg_GEMSe::UpdateClusterChartData()
 {
 	QVector<QSharedPointer<iAImageTreeNode> > const selection =  m_treeView->CurrentSelection();
 	m_histogramContainer->UpdateClusterChartData(selection);
 }
-
 
 void dlg_GEMSe::HistogramSelectionUpdated()
 {
@@ -347,18 +338,15 @@ void dlg_GEMSe::HistogramSelectionUpdated()
 	}
 }
 
-
 void dlg_GEMSe::UpdateClusterFilteredChartData()
 {
 	m_histogramContainer->UpdateClusterFilteredChartData(m_selectedCluster.data(), m_chartFilter);
 }
 
-
 void dlg_GEMSe::UpdateFilteredChartData()
 {
 	m_histogramContainer->UpdateFilteredChartData(m_chartFilter);
 }
-
 
 void dlg_GEMSe::UpdateFilteredData()
 {
@@ -377,7 +365,6 @@ void dlg_GEMSe::UpdateFilteredData()
 	m_scatterplot->UpdateClusterPlot(m_selectedCluster.data(), m_chartFilter, m_chartAttributeMapper);
 }
 
-
 void dlg_GEMSe::FilterChanged(int chartID, double min, double max)
 {
 	if (m_chartAttributes->at(chartID)->coversWholeRange(min, max))
@@ -391,7 +378,6 @@ void dlg_GEMSe::FilterChanged(int chartID, double min, double max)
 	UpdateFilteredData();
 }
 
-
 void dlg_GEMSe::ResetFilters()
 {
 	if (!m_chartAttributes)
@@ -403,10 +389,9 @@ void dlg_GEMSe::ResetFilters()
 	UpdateFilteredData();
 }
 
-
-void dlg_GEMSe::SelectHistograms()
+void dlg_GEMSe::selectHistograms()
 {
-	m_histogramContainer->SelectHistograms();
+	m_histogramContainer->selectHistograms();
 	QVector<QSharedPointer<iAImageTreeNode> > const selection = m_treeView->CurrentSelection();
 	// order is important (to get the correct drawing order)
 	if (!m_chartFilter.MatchesAll())
@@ -420,13 +405,12 @@ void dlg_GEMSe::SelectHistograms()
 	}
 }
 
-
 void dlg_GEMSe::ToggleHate()
 {
 	iAImageTreeNode* node = (m_selectedLeaf) ? m_selectedLeaf : m_selectedCluster.data();
 	if (!node)
 	{
-		DEBUG_LOG("ToggleHate No node selected!");
+		LOG(lvlError, "ToggleHate: No node selected!");
 		return;
 	}
 	bool isHated = m_favoriteWidget->ToggleHate(node);
@@ -436,13 +420,12 @@ void dlg_GEMSe::ToggleHate()
 	UpdateAttributeRangeAttitude();
 }
 
-
 void dlg_GEMSe::ToggleLike()
 {
 	iAImageTreeNode* node = (m_selectedLeaf) ? m_selectedLeaf : m_selectedCluster.data();
 	if (!node)
 	{
-		DEBUG_LOG("ToggleHate No node selected!");
+		LOG(lvlError, "ToggleLike: No node selected!");
 		return;
 	}
 	m_favoriteWidget->ToggleLike(node);
@@ -451,24 +434,20 @@ void dlg_GEMSe::ToggleLike()
 	UpdateAttributeRangeAttitude();
 }
 
-
 void dlg_GEMSe::ExportAttributeRangeRanking(QString const & fileName)
 {
 	m_histogramContainer->ExportAttributeRangeRanking(fileName);
 }
-
 
 void dlg_GEMSe::UpdateAttributeRangeAttitude()
 {
 	m_histogramContainer->UpdateAttributeRangeAttitude();
 }
 
-
 void dlg_GEMSe::ExportRankings(QString const & fileName)
 {
 	ExportAttitudesToRankingFile(fileName, GetRoot().data());
 }
-
 
 void dlg_GEMSe::ImportRankings(QString const & fileName)
 {
@@ -477,7 +456,6 @@ void dlg_GEMSe::ImportRankings(QString const & fileName)
 	m_treeView->UpdateSubtreeHighlight();
 	// TODO: update detail view?
 }
-
 
 void dlg_GEMSe::GetSelection(QVector<QSharedPointer<iASingleResult> > & result)
 {
@@ -502,7 +480,6 @@ void dlg_GEMSe::AddConsensusImage(iAITKIO::ImagePointer imgData, QString const &
 	}
 }
 
-
 void dlg_GEMSe::AddConsensusNumbersImage(iAITKIO::ImagePointer imgData, QString const & name)
 {
 	QSharedPointer<iAFakeTreeNode> node(new iAFakeTreeNode(imgData, name));
@@ -515,12 +492,11 @@ void dlg_GEMSe::AddConsensusNumbersImage(iAITKIO::ImagePointer imgData, QString 
 	}
 }
 
-
 void dlg_GEMSe::JumpToNode(iAImageTreeNode * node, int stepLimit)
 {
 	if (!node)
 	{
-		DEBUG_LOG("JumpToNode: No node selected!");
+		LOG(lvlError, "JumpToNode: No node selected!");
 		return;
 	}
 	if (dynamic_cast<iAFakeTreeNode*>(node) || !m_treeView->JumpToNode(node, stepLimit))
@@ -529,18 +505,15 @@ void dlg_GEMSe::JumpToNode(iAImageTreeNode * node, int stepLimit)
 	}
 }
 
-
 void dlg_GEMSe::FavoriteClicked(iAImageTreeNode * node)
 {
 	JumpToNode(node, 0);
 }
 
-
 void dlg_GEMSe::GoToCluster()
 {
 	JumpToNode(m_selectedLeaf, 1);
 }
-
 
 void dlg_GEMSe::SliceNumberChanged(int sliceNr)
 {
@@ -548,12 +521,10 @@ void dlg_GEMSe::SliceNumberChanged(int sliceNr)
 	m_detailView->setSliceNumber(sliceNr);
 }
 
-
 void dlg_GEMSe::SlicerModeChanged(iASlicerMode mode, int sliceNr)
 {
 	m_previewWidgetPool->setSlicerMode(mode, sliceNr, m_cameraWidget->commonCamera());
 }
-
 
 void dlg_GEMSe::UpdateViews()
 {
@@ -561,17 +532,15 @@ void dlg_GEMSe::UpdateViews()
 	m_previewWidgetPool->updateViews();
 }
 
-
 void dlg_GEMSe::ShowImage(vtkSmartPointer<vtkImageData> imgData)
 {
 	if (!m_cameraWidget)
 	{
-		DEBUG_LOG("ShowImage: Camera Widget not set!");
+		LOG(lvlError, "ShowImage: Camera Widget not set!");
 		return;
 	}
 	m_cameraWidget->showImage(imgData);
 }
-
 
 QSharedPointer<iAImageTreeNode> dlg_GEMSe::GetCurrentCluster()
 {
@@ -589,7 +558,6 @@ void dlg_GEMSe::ChartDblClicked(int chartID)
 	GetClusterMinMax(m_selectedCluster.data(), chartID, min, max, m_chartAttributeMapper);
 	m_histogramContainer->SetSpanValues(chartID, min, max);
 }
-
 
 void dlg_GEMSe::CalculateRefImgComp(QSharedPointer<iAImageTreeNode> node, LabelImagePointer refImg,
 	int labelCount)
@@ -619,7 +587,7 @@ void dlg_GEMSe::CalculateRefImgComp(QSharedPointer<iAImageTreeNode> node, LabelI
 				debugOut += QString("\t%1").arg(leaf->GetAttribute(i));
 			}
 		}
-		DEBUG_LOG(debugOut);
+		LOG(lvlDebug, debugOut);
 		*/
 		// }
 		for (int i=0; i<measures.size(); ++i)
@@ -639,12 +607,11 @@ void dlg_GEMSe::CalculateRefImgComp(QSharedPointer<iAImageTreeNode> node, LabelI
 	}
 }
 
-
 void dlg_GEMSe::CalcRefImgComp(LabelImagePointer refImg)
 {
 	if (!refImg)
 	{
-		DEBUG_LOG("Reference image comparison calculate: NULL reference image (maybe wrong image type?)!");
+		LOG(lvlError, "Reference image comparison calculate: nullptr reference image (maybe wrong image type?)!");
 		return;
 	}
 	if (!m_treeView)
@@ -652,37 +619,37 @@ void dlg_GEMSe::CalcRefImgComp(LabelImagePointer refImg)
 		return;
 	}
 	int labelCount = m_treeView->GetTree()->labelCount();
-	m_MeasureChartIDStart = m_chartAttributes->find("Dice");
+	m_MeasureChartIDStart = findAttribute(*m_chartAttributes.data(), "Dice");
 	if (m_MeasureChartIDStart == -1)
 	{
 		QVector<QSharedPointer<iAAttributeDescriptor> > measures;
-		measures.push_back(QSharedPointer<iAAttributeDescriptor>(new iAAttributeDescriptor(
-			"Dice", iAAttributeDescriptor::DerivedOutput, Continuous)));
-		measures.push_back(QSharedPointer<iAAttributeDescriptor>(new iAAttributeDescriptor(
-			"Kappa", iAAttributeDescriptor::DerivedOutput, Continuous)));
-		measures.push_back(QSharedPointer<iAAttributeDescriptor>(new iAAttributeDescriptor(
-			"Overall Accuracy", iAAttributeDescriptor::DerivedOutput, Continuous)));
-		measures.push_back(QSharedPointer<iAAttributeDescriptor>(new iAAttributeDescriptor(
-			"Precision", iAAttributeDescriptor::DerivedOutput, Continuous)));
-		measures.push_back(QSharedPointer<iAAttributeDescriptor>(new iAAttributeDescriptor(
-			"Recall", iAAttributeDescriptor::DerivedOutput, Continuous)));
+		measures.push_back(QSharedPointer<iAAttributeDescriptor>::create(
+			"Dice", iAAttributeDescriptor::DerivedOutput, iAValueType::Continuous));
+		measures.push_back(QSharedPointer<iAAttributeDescriptor>::create(
+			"Kappa", iAAttributeDescriptor::DerivedOutput, iAValueType::Continuous));
+		measures.push_back(QSharedPointer<iAAttributeDescriptor>::create(
+			"Overall Accuracy", iAAttributeDescriptor::DerivedOutput, iAValueType::Continuous));
+		measures.push_back(QSharedPointer<iAAttributeDescriptor>::create(
+			"Precision", iAAttributeDescriptor::DerivedOutput, iAValueType::Continuous));
+		measures.push_back(QSharedPointer<iAAttributeDescriptor>::create(
+			"Recall", iAAttributeDescriptor::DerivedOutput, iAValueType::Continuous));
 		for (int i=0; i<labelCount; ++i)
 		{
-			measures.push_back(QSharedPointer<iAAttributeDescriptor>(new iAAttributeDescriptor(
-				QString("Dice %1").arg(i), iAAttributeDescriptor::DerivedOutput, Continuous)));
+			measures.push_back(QSharedPointer<iAAttributeDescriptor>::create(
+				QString("Dice %1").arg(i), iAAttributeDescriptor::DerivedOutput, iAValueType::Continuous));
 		}
 		m_MeasureChartIDStart = m_chartAttributes->size();
 		for (QSharedPointer<iAAttributeDescriptor> measure : measures)
 		{
 			int chartID = m_chartAttributes->size();
-			m_chartAttributes->add(measure);
+			m_chartAttributes->push_back(measure);
 			// add mappings:
 			for (int sampleIdx = 0; sampleIdx < m_samplings->size(); ++sampleIdx)
 			{
-				QSharedPointer<iAAttributes> attribs = m_samplings->at(sampleIdx)->GetAttributes();
+				QSharedPointer<iAAttributes> attribs = m_samplings->at(sampleIdx)->attributes();
 				int attributeID = attribs->size();
-				int datasetID = m_samplings->at(sampleIdx)->GetID();
-				attribs->add(measure);
+				int datasetID = m_samplings->at(sampleIdx)->id();
+				attribs->push_back(measure);
 				m_chartAttributeMapper.Add(datasetID, attributeID, chartID);
 			}
 		}
@@ -692,14 +659,13 @@ void dlg_GEMSe::CalcRefImgComp(LabelImagePointer refImg)
 		m_chartAttributes->at(i)->resetMinMax();
 	}
 
-	//DEBUG_LOG("Measures for ENSEMBLE:");
+	//LOG(lvlInfo, "Measures for ENSEMBLE:");
 	CalculateRefImgComp(GetRoot(), refImg, labelCount);	// rewrite using VisitLeafs !
 	m_histogramContainer->CreateCharts();
 	UpdateClusterChartData();
 	m_detailView->SetRefImg(refImg);
 	m_treeView->SetRefImg(refImg);
 }
-
 
 void dlg_GEMSe::setColorTheme(iAColorTheme const * colorTheme, iALabelInfo const * labelInfo)
 {
@@ -722,15 +688,18 @@ void dlg_GEMSe::setColorTheme(iAColorTheme const * colorTheme, iALabelInfo const
 void dlg_GEMSe::ToggleAutoShrink()
 {
 	if (!m_treeView)
+	{
 		return;
+	}
 	m_treeView->SetAutoShrink(!m_treeView->GetAutoShrink());
 }
-
 
 void dlg_GEMSe::SetIconSize(int iconSize)
 {
 	if (!m_treeView)
+	{
 		return;
+	}
 	m_treeView->SetIconSize(iconSize);
 }
 
@@ -738,7 +707,9 @@ void dlg_GEMSe::SetIconSize(int iconSize)
 bool dlg_GEMSe::SetRepresentativeType(int type, LabelImagePointer refImg)
 {
 	if (!m_treeView)
+	{
 		return false;
+	}
 	bool result = m_treeView->SetRepresentativeType(type, refImg);
 	if (!result)
 	{	// if it failed, reset to what tree view uses
@@ -758,16 +729,21 @@ int dlg_GEMSe::GetRepresentativeType() const
 	return m_treeView->GetRepresentativeType();
 }
 
-
 QString dlg_GEMSe::GetSerializedHiddenCharts() const
 {
 	if (!m_histogramContainer)
+	{
 		return QString();
+	}
 	return m_histogramContainer->GetSerializedHiddenCharts();
 }
 
 void dlg_GEMSe::SetSerializedHiddenCharts(QString const & hiddenCharts)
 {
+	if (!m_histogramContainer)
+	{
+		return;
+	}
 	m_histogramContainer->SetSerializedHiddenCharts(hiddenCharts);
 }
 
@@ -776,32 +752,38 @@ QSharedPointer<QVector<QSharedPointer<iASamplingResults> > > dlg_GEMSe::GetSampl
 	return m_samplings;
 }
 
-void dlg_GEMSe::SetMagicLensCount(int count)
+void dlg_GEMSe::setMagicLensCount(int count)
 {
-	m_detailView->SetMagicLensCount(count);
+	m_detailView->setMagicLensCount(count);
 }
 
-void dlg_GEMSe::FreeMemory()
+void dlg_GEMSe::freeMemory()
 {
-	m_treeView->FreeMemory(GetRoot(), false);
+	if (!m_treeView)
+	{
+		return;
+	}
+	m_treeView->freeMemory(GetRoot(), false);
 }
 
 void dlg_GEMSe::SetProbabilityProbing(bool enabled)
 {
 	if (enabled)
 	{
-		connect(m_detailView, SIGNAL(SlicerHover(int, int, int, int)), m_probingWidget, SLOT(ProbeUpdate(int, int, int, int)));
+		connect(m_detailView, &iADetailView::SlicerHover, m_probingWidget, &iAProbingWidget::ProbeUpdate);
 	}
 	else
 	{
-		disconnect(m_detailView, SIGNAL(SlicerHover(int, int, int, int)), m_probingWidget, SLOT(ProbeUpdate(int, int, int, int)));
+		disconnect(m_detailView, &iADetailView::SlicerHover, m_probingWidget, &iAProbingWidget::ProbeUpdate);
 	}
 }
 
 void dlg_GEMSe::DataTFChanged()
 {
 	if (!m_detailView)
+	{
 		return;
+	}
 	m_detailView->UpdateMagicLensColors();
 }
 

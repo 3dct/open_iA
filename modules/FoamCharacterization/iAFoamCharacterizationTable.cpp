@@ -1,8 +1,8 @@
 /*************************************  open_iA  ************************************ *
 * **********   A tool for visual analysis and processing of 3D CT images   ********** *
 * *********************************************************************************** *
-* Copyright (C) 2016-2019  C. Heinzl, M. Reiter, A. Reh, W. Li, M. Arikan, Ar. &  Al. *
-*                          Amirkhanov, J. Weissenböck, B. Fröhler, M. Schiwarth       *
+* Copyright (C) 2016-2021  C. Heinzl, M. Reiter, A. Reh, W. Li, M. Arikan, Ar. &  Al. *
+*                 Amirkhanov, J. Weissenböck, B. Fröhler, M. Schiwarth, P. Weinberger *
 * *********************************************************************************** *
 * This program is free software: you can redistribute it and/or modify it under the   *
 * terms of the GNU General Public License as published by the Free Software           *
@@ -28,6 +28,7 @@
 #include <vtkImageData.h>
 
 #include <QDropEvent>
+#include <QFile>
 #include <QHeaderView>
 #include <QMessageBox>
 #include <QPainter>
@@ -224,7 +225,11 @@ void iAFoamCharacterizationTable::dropEvent(QDropEvent* e)
 {
 	if ((e->source() == this) && (m_iRowDrag > -1))
 	{
+#if QT_VERSION < QT_VERSION_CHECK(6, 0, 0)
 		m_iRowDrop = indexAt(e->pos()).row();
+#else
+		m_iRowDrop = indexAt(e->position().toPoint()).row();
+#endif
 
 		if ((m_iRowDrop > -1) && (m_iRowDrag != m_iRowDrop))
 		{
@@ -367,7 +372,11 @@ void iAFoamCharacterizationTable::mouseDoubleClickEvent(QMouseEvent* e)
 
 	const int iMargin(100 * logicalDpiX() / 254);
 
+#if QT_VERSION < QT_VERSION_CHECK(6, 0, 0)
 	if (e->x() > iMargin)
+#else
+	if (e->position().x() > iMargin)
+#endif
 	{
 		QModelIndexList mlIndex(selectedIndexes());
 

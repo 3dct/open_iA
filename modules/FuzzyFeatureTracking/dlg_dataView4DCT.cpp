@@ -1,8 +1,8 @@
 /*************************************  open_iA  ************************************ *
 * **********   A tool for visual analysis and processing of 3D CT images   ********** *
 * *********************************************************************************** *
-* Copyright (C) 2016-2019  C. Heinzl, M. Reiter, A. Reh, W. Li, M. Arikan, Ar. &  Al. *
-*                          Amirkhanov, J. Weissenböck, B. Fröhler, M. Schiwarth       *
+* Copyright (C) 2016-2021  C. Heinzl, M. Reiter, A. Reh, W. Li, M. Arikan, Ar. &  Al. *
+*                 Amirkhanov, J. Weissenböck, B. Fröhler, M. Schiwarth, P. Weinberger *
 * *********************************************************************************** *
 * This program is free software: you can redistribute it and/or modify it under the   *
 * terms of the GNU General Public License as published by the Free Software           *
@@ -21,15 +21,17 @@
 #include "dlg_dataView4DCT.h"
 
 #include "ui_DataView4DCT.h"
+#include "iAFuzzyVTKWidget.h"
 
 #include <iAModalityTransfer.h>
-#include <iARenderer.h>
 #include <iATransferFunction.h>
 #include <iAVolumeRenderer.h>
 #include <iAVolumeStack.h>
-#include <mdichild.h>
+#include <iAVtkVersion.h>
+#include <iAMdiChild.h>
 #include <qthelper/iAQTtoUIConnector.h>
-#include <QVTKWidgetMouseReleaseWorkaround.h>
+
+#include <iARendererImpl.h>
 
 #include <vtkImageData.h>
 #include <vtkOpenGLRenderer.h>
@@ -43,20 +45,20 @@ dlg_dataView4DCT::dlg_dataView4DCT(QWidget *parent, iAVolumeStack* volumeStack):
 	dlg_dataView4DCTContainer(parent),
 	m_axesTransform(vtkSmartPointer<vtkTransform>::New())
 {
-	m_mdiChild = dynamic_cast<MdiChild*>(parent);
+	m_mdiChild = dynamic_cast<iAMdiChild*>(parent);
 	m_volumeStack = volumeStack;
 
 	m_rendererManager.addToBundle(m_mdiChild->renderer()->renderer());
 
 	// add widgets to window
-	int numOfVolumes = m_volumeStack->numberOfVolumes();
-	m_vtkWidgets = new QVTKWidgetMouseReleaseWorkaround*[numOfVolumes];
-	m_renderers = new iARenderer*[numOfVolumes];
+	size_t numOfVolumes = m_volumeStack->numberOfVolumes();
+	m_vtkWidgets = new iAFuzzyVTKWidget*[numOfVolumes];
+	m_renderers = new iARendererImpl*[numOfVolumes];
 	m_volumeRenderer = new iAVolumeRenderer*[numOfVolumes];
-	for(int i = 0; i < numOfVolumes; i++)
+	for(size_t i = 0; i < numOfVolumes; i++)
 	{
-		m_vtkWidgets[i] = new QVTKWidgetMouseReleaseWorkaround(this);
-		m_renderers[i] = new iARenderer(this);
+		m_vtkWidgets[i] = new iAFuzzyVTKWidget(this);
+		m_renderers[i] = new iARendererImpl(this);
 		// TODO: VOLUME: check if this is working!
 		iASimpleTransferFunction transferFunction(
 			m_volumeStack->colorTF(i),
@@ -64,32 +66,37 @@ dlg_dataView4DCT::dlg_dataView4DCT(QWidget *parent, iAVolumeStack* volumeStack):
 		);
 		m_volumeRenderer[i] = new iAVolumeRenderer(&transferFunction, m_volumeStack->volume(i));
 		m_renderers[i]->setAxesTransform(m_axesTransform);
+#if VTK_VERSION_NUMBER < VTK_VERSION_CHECK(9, 0, 0)
 		m_vtkWidgets[i]->SetRenderWindow(m_renderers[i]->renderWindow());
+#else
+		m_vtkWidgets[i]->setRenderWindow(m_renderers[i]->renderWindow());
+#endif
 		m_renderers[i]->initialize(m_volumeStack->volume(i), m_mdiChild->polyData());
 		m_volumeRenderer[i]->addTo(m_renderers[i]->renderer());
-		m_renderers[i]->applySettings( m_mdiChild->renderSettings() );
+		bool slicerVisibility[3] = { false, false, false };
+		m_renderers[i]->applySettings(m_mdiChild->renderSettings(), slicerVisibility );
 		m_volumeRenderer[i]->applySettings(m_mdiChild->volumeSettings());
-		
+
 		// setup renderers
 		m_renderers[i]->showHelpers(SHOW_HELPERS);
 		m_renderers[i]->renderer()->SetBackground(FOURDCT_BACGROUND[0], FOURDCT_BACGROUND[1], FOURDCT_BACGROUND[2]);
 		m_renderers[i]->renderer()->SetBackground2(FOURDCT_BACGROUND2[0], FOURDCT_BACGROUND2[1], FOURDCT_BACGROUND2[2]);
 
 		m_rendererManager.addToBundle(m_renderers[i]->renderer());
-		
+
 		this->dockWidgetContents->layout()->addWidget(m_vtkWidgets[i]);
 	}
 }
 
 dlg_dataView4DCT::~dlg_dataView4DCT()
 {
-	delete m_vtkWidgets;
-	delete m_renderers;
+	delete [] m_vtkWidgets;
+	delete [] m_renderers;
 }
 
 void dlg_dataView4DCT::update()
 {
-	for(int i = 0; i < m_volumeStack->numberOfVolumes(); i++)
+	for(size_t i = 0; i < m_volumeStack->numberOfVolumes(); i++)
 	{
 		m_renderers[i]->reInitialize(m_volumeStack->volume(i), m_mdiChild->polyData());
 		m_renderers[i]->update();

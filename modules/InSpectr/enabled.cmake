@@ -1,0 +1,16 @@
+set(SPECTRA_ARCHIVE "${CMAKE_CURRENT_SOURCE_DIR}/InSpectr/refSpectra.7z")
+foreach(cfg ${CMAKE_CONFIGURATION_TYPES})
+	string (TOUPPER "${cfg}" CFG)
+	set (SPECTRA_DIR "${CMAKE_RUNTIME_OUTPUT_DIRECTORY_${CFG}}/refSpectra")
+	if (NOT EXISTS "${SPECTRA_DIR}")
+		file(MAKE_DIRECTORY "${SPECTRA_DIR}")
+		include("${CMAKE_CURRENT_SOURCE_DIR}/InSpectr/extractSpectra.cmake")
+	endif()
+endforeach()
+
+install(DIRECTORY DESTINATION refSpectra)
+install(CODE "
+	set(SPECTRA_ARCHIVE \"${SPECTRA_ARCHIVE}\")
+	set(SPECTRA_DIR \"\${CMAKE_INSTALL_PREFIX}/refSpectra\")
+	include(\"${CMAKE_CURRENT_SOURCE_DIR}/InSpectr/extractSpectra.cmake\")
+")

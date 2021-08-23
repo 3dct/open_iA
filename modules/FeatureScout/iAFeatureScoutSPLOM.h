@@ -1,8 +1,8 @@
 /*************************************  open_iA  ************************************ *
 * **********   A tool for visual analysis and processing of 3D CT images   ********** *
 * *********************************************************************************** *
-* Copyright (C) 2016-2019  C. Heinzl, M. Reiter, A. Reh, W. Li, M. Arikan, Ar. &  Al. *
-*                          Amirkhanov, J. Weissenböck, B. Fröhler, M. Schiwarth       *
+* Copyright (C) 2016-2021  C. Heinzl, M. Reiter, A. Reh, W. Li, M. Arikan, Ar. &  Al. *
+*                 Amirkhanov, J. Weissenböck, B. Fröhler, M. Schiwarth, P. Weinberger *
 * *********************************************************************************** *
 * This program is free software: you can redistribute it and/or modify it under the   *
 * terms of the GNU General Public License as published by the Free Software           *
@@ -39,8 +39,7 @@ class iAFeatureScoutSPLOM: public QObject
 	Q_OBJECT
 public:
 	iAFeatureScoutSPLOM();
-	~iAFeatureScoutSPLOM();
-	void initScatterPlot(QDockWidget* container, vtkTable* csvTable, std::vector<char> const & columnVisibility);  //!< initialize SPLOM and show in given container
+	void initScatterPlot(vtkTable* csvTable, std::vector<char> const & columnVisibility);  //!< initialize SPLOM
 	void updateColumnVisibility(std::vector<char> const & columnVisibility); //!< update column visibility
 	void setParameterVisibility(size_t paramIndex, bool visible);      //!< matrix proxy method
 	void setDotColor(QColor const & color);                            //!< set color for all SPLOM dots (TODO: move range calculations to iASplomData!)
@@ -55,11 +54,12 @@ public:
 	bool isShown() const;
 	void clearSelection();
 	void enableSelection(bool enable);
+	QWidget* matrixWidget();                                           //!< return the GUI widget displaying the actual matrix
 signals:
 	void selectionModified(std::vector<size_t>);
 	void parameterVisibilityChanged(size_t paramIndex, bool visible);
 	void addClass();
-	void renderLUTChanges(QSharedPointer<iALookupTable> lut, int colInd);
+	void renderLUTChanges(QSharedPointer<iALookupTable> lut, size_t colInd);
 private:
 	iAQSplom * matrix;
 	bool selectionEnabled;

@@ -1,8 +1,8 @@
 /*************************************  open_iA  ************************************ *
 * **********   A tool for visual analysis and processing of 3D CT images   ********** *
 * *********************************************************************************** *
-* Copyright (C) 2016-2019  C. Heinzl, M. Reiter, A. Reh, W. Li, M. Arikan, Ar. &  Al. *
-*                          Amirkhanov, J. Weissenböck, B. Fröhler, M. Schiwarth       *
+* Copyright (C) 2016-2021  C. Heinzl, M. Reiter, A. Reh, W. Li, M. Arikan, Ar. &  Al. *
+*                 Amirkhanov, J. Weissenböck, B. Fröhler, M. Schiwarth, P. Weinberger *
 * *********************************************************************************** *
 * This program is free software: you can redistribute it and/or modify it under the   *
 * terms of the GNU General Public License as published by the Free Software           *
@@ -23,7 +23,7 @@
 #include "iAMultimodalWidget.h"
 
 #include "iAHistogramAbstract.h"
-#include "BCoord.h"
+#include "iABCoord.h"
 
 #include <iASlicerMode.h>
 
@@ -32,10 +32,10 @@
 class iABarycentricTriangleWidget;
 class iABarycentricContextRenderer;
 
-class iADiagramFctWidget;
+class iAChartWithFunctionsWidget;
 class iAModality;
 class iATransferFunction;
-class MdiChild;
+class iAMdiChild;
 
 class vtkColorTransferFunction;
 class vtkPiecewiseFunction;
@@ -50,24 +50,26 @@ class iATripleModalityWidget : public iAMultimodalWidget
 	Q_OBJECT
 
 public:
-	iATripleModalityWidget(QWidget* parent, MdiChild *mdiChild, Qt::WindowFlags f = 0);
+	iATripleModalityWidget(iAMdiChild *mdiChild);
 	~iATripleModalityWidget();
 
 	iAHistogramAbstractType getLayoutTypeAt(int comboBoxIndex);
 	void setHistogramAbstractType(iAHistogramAbstractType type);
 
-	iABarycentricTriangleWidget* w_triangle() {
+	iABarycentricTriangleWidget* w_triangle()
+	{
 		return m_triangleWidget;
 	}
 
-	QComboBox* w_layoutComboBox() {
+	QComboBox* w_layoutComboBox()
+	{
 		return m_layoutComboBox;
 	}
 
 private slots:
 	void layoutComboBoxIndexChanged(int newIndex);
-	void triangleWeightChanged(BCoord newWeights);
-	void weightsChangedSlot(BCoord newWeights);
+	void triangleWeightChanged(iABCoord newWeights);
+	void weightsChangedSlot(iABCoord newWeights);
 	void modalitiesLoaded_beforeUpdateSlot();
 
 private:

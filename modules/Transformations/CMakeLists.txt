@@ -1,3 +1,0 @@
-SET( MODULE_DESCRIPTION_OUT "Transformations:\n\t* Rotation\n\t* Translation\n\t* Flip" PARENT_SCOPE)
-
-SET( MODULE_DEFAULT_OPTION_VALUE_OUT OFF  PARENT_SCOPE)

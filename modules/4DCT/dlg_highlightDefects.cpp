@@ -1,8 +1,8 @@
 /*************************************  open_iA  ************************************ *
 * **********   A tool for visual analysis and processing of 3D CT images   ********** *
 * *********************************************************************************** *
-* Copyright (C) 2016-2019  C. Heinzl, M. Reiter, A. Reh, W. Li, M. Arikan, Ar. &  Al. *
-*                          Amirkhanov, J. Weissenböck, B. Fröhler, M. Schiwarth       *
+* Copyright (C) 2016-2021  C. Heinzl, M. Reiter, A. Reh, W. Li, M. Arikan, Ar. &  Al. *
+*                 Amirkhanov, J. Weissenböck, B. Fröhler, M. Schiwarth, P. Weinberger *
 * *********************************************************************************** *
 * This program is free software: you can redistribute it and/or modify it under the   *
 * terms of the GNU General Public License as published by the Free Software           *
@@ -32,11 +32,11 @@ dlg_highlightDefects::dlg_highlightDefects( QWidget * parent )
 	: QDialog( parent )
 {
 	setupUi( this );
-	connect( pbPullouts, SIGNAL( clicked( ) ), this, SLOT( pulloutsButtonClicked( ) ) );
-	connect( pbBreakages, SIGNAL( clicked( ) ), this, SLOT( breakagesButtonClicked( ) ) );
-	connect( pbCracks, SIGNAL( clicked( ) ), this, SLOT( cracksButtonClicked( ) ) );
-	connect( pbDebondings, SIGNAL( clicked( ) ), this, SLOT( debondingsButtonClicked( ) ) );
-	connect( pbLabeledImg, SIGNAL( clicked( ) ), this, SLOT( labeledImgButtonClicked( ) ) );
+	connect( pbPullouts,   &QPushButton::clicked, this, &dlg_highlightDefects::pulloutsButtonClicked);
+	connect( pbBreakages,  &QPushButton::clicked, this, &dlg_highlightDefects::breakagesButtonClicked);
+	connect( pbCracks,     &QPushButton::clicked, this, &dlg_highlightDefects::cracksButtonClicked);
+	connect( pbDebondings, &QPushButton::clicked, this, &dlg_highlightDefects::debondingsButtonClicked);
+	connect( pbLabeledImg, &QPushButton::clicked, this, &dlg_highlightDefects::labeledImgButtonClicked);
 
 	cbPullouts->setColor( PulloutColor );
 	cbBreakages->setColor( BreakageColor );

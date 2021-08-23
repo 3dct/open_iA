@@ -1,8 +1,8 @@
 /*************************************  open_iA  ************************************ *
 * **********   A tool for visual analysis and processing of 3D CT images   ********** *
 * *********************************************************************************** *
-* Copyright (C) 2016-2019  C. Heinzl, M. Reiter, A. Reh, W. Li, M. Arikan, Ar. &  Al. *
-*                          Amirkhanov, J. Weissenböck, B. Fröhler, M. Schiwarth       *
+* Copyright (C) 2016-2021  C. Heinzl, M. Reiter, A. Reh, W. Li, M. Arikan, Ar. &  Al. *
+*                 Amirkhanov, J. Weissenböck, B. Fröhler, M. Schiwarth, P. Weinberger *
 * *********************************************************************************** *
 * This program is free software: you can redistribute it and/or modify it under the   *
 * terms of the GNU General Public License as published by the Free Software           *
@@ -20,10 +20,11 @@
 * ************************************************************************************/
 #pragma once
 
-#include <QWidget>
-#include <QSlider>
-#include <QRect>
+#include <QPainterPath>
 #include <QPen>
+#include <QRect>
+#include <QSlider>
+#include <QWidget>
 
 #include <vtkSmartPointer.h>
 
@@ -44,13 +45,19 @@ class iAInterpolationSliderWidget : public QWidget
 
 public:
 	//iAInterpolationSliderWidget(Qt::Orientation orientation, QWidget* parent = Q_NULLPTR);
-	iAInterpolationSliderWidget(QWidget* parent = Q_NULLPTR);
+	iAInterpolationSliderWidget();
 
 	double getT();
 	void setT(double t);
 
-	void setWeightA(double t) { setT(1 - t); }
-	void setWeightB(double t) { setT(t); }
+	void setWeightA(double t)
+	{
+		setT(1 - t);
+	}
+	void setWeightB(double t)
+	{
+		setT(t);
+	}
 
 	void setTWaitingTimeMs(int waitingTimeMs);
 	void resetTWaitingTime();
@@ -87,7 +94,7 @@ class iAInterpolationSlider : public QWidget
 	Q_OBJECT
 
 public:
-	iAInterpolationSlider(QWidget* parent = Q_NULLPTR);
+	iAInterpolationSlider();
 
 	double getT();
 	void setT(double t);
@@ -99,9 +106,9 @@ public:
 
 protected:
 	void paintEvent(QPaintEvent* event) override;
-	void resizeEvent(QResizeEvent* event);
-	void mousePressEvent(QMouseEvent* event);
-	void mouseMoveEvent(QMouseEvent* event);
+	void resizeEvent(QResizeEvent* event) override;
+	void mousePressEvent(QMouseEvent* event) override;
+	void mouseMoveEvent(QMouseEvent* event) override;
 
 private:
 	void calculateCoordinatesNow();

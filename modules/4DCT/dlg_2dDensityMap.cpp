@@ -1,8 +1,8 @@
 /*************************************  open_iA  ************************************ *
 * **********   A tool for visual analysis and processing of 3D CT images   ********** *
 * *********************************************************************************** *
-* Copyright (C) 2016-2019  C. Heinzl, M. Reiter, A. Reh, W. Li, M. Arikan, Ar. &  Al. *
-*                          Amirkhanov, J. Weissenböck, B. Fröhler, M. Schiwarth       *
+* Copyright (C) 2016-2021  C. Heinzl, M. Reiter, A. Reh, W. Li, M. Arikan, Ar. &  Al. *
+*                 Amirkhanov, J. Weissenböck, B. Fröhler, M. Schiwarth, P. Weinberger *
 * *********************************************************************************** *
 * This program is free software: you can redistribute it and/or modify it under the   *
 * terms of the GNU General Public License as published by the Free Software           *
@@ -26,9 +26,9 @@
 dlg_2dDensityMap::dlg_2dDensityMap( QWidget * parent /*= 0 */ )
 	: QDialog( parent )
 {
-	setupUi( this );
-	connect( pbDefect,		SIGNAL( clicked( ) ), this, SLOT( defectButtonClicked( ) ) );
-	connect( pbLabeledImg,	SIGNAL( clicked( ) ), this, SLOT( labeledImgButtonClicked( ) ) );
+	setupUi(this);
+	connect(pbDefect,     &QPushButton::clicked, this, &dlg_2dDensityMap::defectButtonClicked);
+	connect(pbLabeledImg, &QPushButton::clicked, this, &dlg_2dDensityMap::labeledImgButtonClicked);
 	// default parameters
 	cbDefect->setColor( QColor( 255, 0, 0 ) );
 }

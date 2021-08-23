@@ -1,8 +1,8 @@
 /*************************************  open_iA  ************************************ *
 * **********   A tool for visual analysis and processing of 3D CT images   ********** *
 * *********************************************************************************** *
-* Copyright (C) 2016-2019  C. Heinzl, M. Reiter, A. Reh, W. Li, M. Arikan, Ar. &  Al. *
-*                          Amirkhanov, J. Weissenböck, B. Fröhler, M. Schiwarth       *
+* Copyright (C) 2016-2021  C. Heinzl, M. Reiter, A. Reh, W. Li, M. Arikan, Ar. &  Al. *
+*                 Amirkhanov, J. Weissenböck, B. Fröhler, M. Schiwarth, P. Weinberger *
 * *********************************************************************************** *
 * This program is free software: you can redistribute it and/or modify it under the   *
 * terms of the GNU General Public License as published by the Free Software           *
@@ -29,7 +29,7 @@
 #include <QString>
 #include <QVector>
 
-class MainWindow;
+class iAMainWindow;
 class iAStageView;
 
 class iA4DCTMainWin : public QMainWindow, public Ui::iA4DMainWin
@@ -37,7 +37,7 @@ class iA4DCTMainWin : public QMainWindow, public Ui::iA4DMainWin
 	Q_OBJECT
 
 public:
-								iA4DCTMainWin( MainWindow* parent = 0 );
+								iA4DCTMainWin( iAMainWindow* parent = 0 );
 								~iA4DCTMainWin( );
 	void						load( QString path );
 	void						save( QString path );
@@ -52,7 +52,7 @@ public slots:
 	void						addButtonClick( );
 
 private:
-	MainWindow *				m_mainWnd;
+	iAMainWindow *				m_mainWnd;
 	QVector<iAStageView *>		m_stages;
 	double						m_size[3];
 	iA4DCTData					m_data;

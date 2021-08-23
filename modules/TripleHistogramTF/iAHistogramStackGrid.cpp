@@ -1,8 +1,8 @@
 /*************************************  open_iA  ************************************ *
 * **********   A tool for visual analysis and processing of 3D CT images   ********** *
 * *********************************************************************************** *
-* Copyright (C) 2016-2019  C. Heinzl, M. Reiter, A. Reh, W. Li, M. Arikan, Ar. &  Al. *
-*                          Amirkhanov, J. Weissenböck, B. Fröhler, M. Schiwarth       *
+* Copyright (C) 2016-2021  C. Heinzl, M. Reiter, A. Reh, W. Li, M. Arikan, Ar. &  Al. *
+*                 Amirkhanov, J. Weissenböck, B. Fröhler, M. Schiwarth, P. Weinberger *
 * *********************************************************************************** *
 * This program is free software: you can redistribute it and/or modify it under the   *
 * terms of the GNU General Public License as published by the Free Software           *
@@ -18,11 +18,11 @@
 * Contact: FH OÖ Forschungs & Entwicklungs GmbH, Campus Wels, CT-Gruppe,              *
 *          Stelzhamerstraße 23, 4600 Wels / Austria, Email: c.heinzl@fh-wels.at       *
 * ************************************************************************************/
-
 #include "iAHistogramStackGrid.h"
 
-#include "charts/iADiagramFctWidget.h"
 #include "iASimpleSlicerWidget.h"
+
+#include <iAChartWithFunctionsWidget.h>
 
 #include <QGridLayout>
 #include <QResizeEvent>
@@ -30,7 +30,7 @@
 
 iAHistogramStackGrid::iAHistogramStackGrid(
 	QWidget *parent,
-	QVector<iADiagramFctWidget*> const & histograms,
+	QVector<iAChartWithFunctionsWidget*> const & histograms,
 	QVector<iASimpleSlicerWidget*> const & slicers,
 	QVector<QLabel*> const & labels,
 	Qt::WindowFlags f)
@@ -38,13 +38,14 @@ iAHistogramStackGrid::iAHistogramStackGrid(
 	: QWidget(parent, f)
 {
 	m_gridLayout = new QGridLayout(this);
-	for (int i = 0; i < histograms.size(); i++) {
+	for (int i = 0; i < histograms.size(); i++)
+	{
 		m_gridLayout->addWidget(histograms[i], i, 0);
 		m_gridLayout->addWidget(slicers[i], i, 1);
 		m_gridLayout->addWidget(labels[i], i, 2);
 	}
 	m_gridLayout->setSpacing(m_spacing);
-	m_gridLayout->setMargin(0);
+	m_gridLayout->setContentsMargins(0, 0, 0, 0);
 }
 
 void iAHistogramStackGrid::resizeEvent(QResizeEvent* event)

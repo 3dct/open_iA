@@ -1,8 +1,8 @@
 /*************************************  open_iA  ************************************ *
 * **********   A tool for visual analysis and processing of 3D CT images   ********** *
 * *********************************************************************************** *
-* Copyright (C) 2016-2019  C. Heinzl, M. Reiter, A. Reh, W. Li, M. Arikan, Ar. &  Al. *
-*                          Amirkhanov, J. Weissenböck, B. Fröhler, M. Schiwarth       *
+* Copyright (C) 2016-2021  C. Heinzl, M. Reiter, A. Reh, W. Li, M. Arikan, Ar. &  Al. *
+*                 Amirkhanov, J. Weissenböck, B. Fröhler, M. Schiwarth, P. Weinberger *
 * *********************************************************************************** *
 * This program is free software: you can redistribute it and/or modify it under the   *
 * terms of the GNU General Public License as published by the Free Software           *
@@ -22,10 +22,7 @@
 
 #include "iAChartFilter.h"	// try to avoid - but iAResultFilter is a template
 
-#include <io/iAITKIO.h> // TODO: replace?
-
-#include <itkImage.h>
-#include <itkSmartPointer.h>
+#include <iAITKImageTypes.h>
 
 #include <vtkSmartPointer.h>
 
@@ -40,16 +37,6 @@ class iASingleResult;
 
 typedef int ClusterIDType;
 typedef float ClusterDistanceType;
-
-// TODO: Replace with some other definition / template?
-const int DIM = 3;
-typedef int LabelPixelType;
-typedef itk::Image<LabelPixelType, DIM> LabelImageType;
-typedef LabelImageType::Pointer LabelImagePointer;
-
-typedef double ProbabilityPixel;
-typedef itk::Image<ProbabilityPixel, DIM> ProbabilityImageType;
-typedef ProbabilityImageType::Pointer ProbabilityImagePointer;
 
 typedef iAITKIO::ImagePointer ClusterImageType;
 
@@ -79,6 +66,7 @@ public:
 		Hated
 	};
 	iAImageTreeNode();
+	virtual ~iAImageTreeNode();
 	virtual int GetChildCount() const = 0;
 	virtual int GetClusterSize() const = 0;
 	virtual int GetFilteredSize() const = 0;

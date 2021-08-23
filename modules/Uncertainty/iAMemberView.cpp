@@ -1,8 +1,8 @@
 /*************************************  open_iA  ************************************ *
 * **********   A tool for visual analysis and processing of 3D CT images   ********** *
 * *********************************************************************************** *
-* Copyright (C) 2016-2019  C. Heinzl, M. Reiter, A. Reh, W. Li, M. Arikan, Ar. &  Al. *
-*                          Amirkhanov, J. Weissenböck, B. Fröhler, M. Schiwarth       *
+* Copyright (C) 2016-2021  C. Heinzl, M. Reiter, A. Reh, W. Li, M. Arikan, Ar. &  Al. *
+*                 Amirkhanov, J. Weissenböck, B. Fröhler, M. Schiwarth, P. Weinberger *
 * *********************************************************************************** *
 * This program is free software: you can redistribute it and/or modify it under the   *
 * terms of the GNU General Public License as published by the Free Software           *
@@ -22,10 +22,11 @@
 
 #include "iAUncertaintyColors.h"
 #include "iAEnsemble.h"
-#include "iAMember.h"
+#include "iASingleResult.h"
 
-#include <charts/qcustomplot.h>
+#include <qcustomplot.h>
 
+#include <QGuiApplication>
 #include <QHBoxLayout>
 
 #include <vector>
@@ -54,8 +55,8 @@ iAMemberView::iAMemberView():
 	layout()->addWidget(m_plot);
 	m_plot->setInteractions(QCP::iRangeDrag | QCP::iRangeZoom | QCP::iSelectPlottables | QCP::iMultiSelect);
 	m_plot->setMultiSelectModifier(Qt::ShiftModifier);
-	connect(m_plot, SIGNAL(mousePress(QMouseEvent *)), this, SLOT(ChartMousePress(QMouseEvent *)));
-	connect(m_plot, SIGNAL(mouseWheel(QWheelEvent*)), this, SLOT(mouseWheel(QWheelEvent*)));
+	connect(m_plot, &QCustomPlot::mousePress, this, &iAMemberView::ChartMousePress);
+	connect(m_plot, &QCustomPlot::mouseWheel, this, &iAMemberView::mouseWheel);
 }
 
 void iAMemberView::SetEnsemble(QSharedPointer<iAEnsemble> ensemble)
@@ -76,18 +77,18 @@ void iAMemberView::SetEnsemble(QSharedPointer<iAEnsemble> ensemble)
 
 	QVector<double> ticks;
 	QVector<QString> labels;
-	QVector<double> data;
+	QVector<double> meanData;
 
 	size_t cnt = 0;
 	for (double idx : m_sortedIndices)
 	{
 		ticks << cnt;
-		labels << QString::number(static_cast<int>(ensemble->Member(idx)->ID()));
-		data << ensemble->MemberAttribute(iAEnsemble::UncertaintyMean)[idx];
+		labels << QString::number(static_cast<int>(ensemble->Member(idx)->id()));
+		meanData << ensemble->MemberAttribute(iAEnsemble::UncertaintyMean)[idx];
 		++cnt;
 	}
 
-	QSharedPointer<QCPAxisTickerText> textTicker(new QCPAxisTickerText);
+	auto textTicker = QSharedPointer<QCPAxisTickerText>::create();
 	textTicker->addTicks(ticks, labels);
 	m_plot->xAxis->setTicker(textTicker);
 	m_plot->xAxis->setLabel("Member ID");
@@ -96,10 +97,10 @@ void iAMemberView::SetEnsemble(QSharedPointer<iAEnsemble> ensemble)
 	m_plot->yAxis->setRange(0, 1);
 	m_plot->axisRect()->setRangeDrag(Qt::Horizontal); // ... but allow dragging
 	m_plot->axisRect()->setRangeZoom(Qt::Horizontal); // and zooming in horizontal direction
-	mean->setData(ticks, data);
+	mean->setData(ticks, meanData);
 
-	connect(mean, SIGNAL(selectionChanged(QCPDataSelection const &)), this, SLOT(SelectionChanged(QCPDataSelection const &)));
-	connect(m_plot->xAxis, SIGNAL(rangeChanged(const QCPRange &)), this, SLOT(ChangedRange(QCPRange const &)));
+	connect(mean, QOverload<QCPDataSelection const&>::of(&QCPBars::selectionChanged), this, &iAMemberView::SelectionChanged);
+	connect(m_plot->xAxis, QOverload<const QCPRange&>::of(&QCPAxis::rangeChanged), this, &iAMemberView::ChangedRange);
 
 	StyleChanged();
 	m_plot->replot();
@@ -145,7 +146,7 @@ void iAMemberView::SelectionChanged(QCPDataSelection const & selection)
 	if (selection.dataRangeCount() == 1 && selection.dataRange(0).begin()+1 == selection.dataRange(0).end())
 	{
 		int barIdx = selection.dataRange(0).begin();
-		emit MemberSelected(m_ensemble->Member(m_sortedIndices[barIdx])->ID());
+		emit MemberSelected(m_ensemble->Member(m_sortedIndices[barIdx])->id());
 	}
 }
 
@@ -157,7 +158,7 @@ QVector<int > iAMemberView::SelectedMemberIDs() const
 	{
 		for (int barIdx = selection.dataRange(r).begin(); barIdx < selection.dataRange(r).end(); ++barIdx)
 		{
-			result.push_back(m_ensemble->Member(m_sortedIndices[barIdx])->ID());
+			result.push_back(m_ensemble->Member(m_sortedIndices[barIdx])->id());
 		}
 	}
 	return result;
@@ -165,8 +166,8 @@ QVector<int > iAMemberView::SelectedMemberIDs() const
 
 void iAMemberView::StyleChanged()
 {
-	QColor bg(QWidget::palette().color(QPalette::Background));
-	QColor fg(QWidget::palette().color(QPalette::Text));
+	QColor bg(qApp->palette().color(QPalette::Window));
+	QColor fg(qApp->palette().color(QPalette::Text));
 	m_plot->setBackground(bg);
 	m_plot->axisRect()->setBackground(bg);
 	for (auto a : m_plot->axisRect()->axes())

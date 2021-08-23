@@ -1,8 +1,8 @@
 /*************************************  open_iA  ************************************ *
 * **********   A tool for visual analysis and processing of 3D CT images   ********** *
 * *********************************************************************************** *
-* Copyright (C) 2016-2019  C. Heinzl, M. Reiter, A. Reh, W. Li, M. Arikan, Ar. &  Al. *
-*                          Amirkhanov, J. Weissenböck, B. Fröhler, M. Schiwarth       *
+* Copyright (C) 2016-2021  C. Heinzl, M. Reiter, A. Reh, W. Li, M. Arikan, Ar. &  Al. *
+*                 Amirkhanov, J. Weissenböck, B. Fröhler, M. Schiwarth, P. Weinberger *
 * *********************************************************************************** *
 * This program is free software: you can redistribute it and/or modify it under the   *
 * terms of the GNU General Public License as published by the Free Software           *
@@ -26,13 +26,12 @@
 #include "iAHistogramStack.h"
 #include "iAHistogramTriangle.h"
 
-#include <dlg_modalities.h>
 #include <iAModality.h>
 #include <iAModalityList.h>
 #include <iAModalityTransfer.h>
 #include <iARenderer.h>
 #include <iAVolumeRenderer.h>
-#include <mdichild.h>
+#include <iAMdiChild.h>
 
 #include <vtkCamera.h>
 #include <vtkImageData.h>
@@ -51,7 +50,7 @@
 #include <QDebug>
 
 
-dlg_tf_3mod::dlg_tf_3mod(MdiChild * mdiChild /*= 0*/, Qt::WindowFlags f /*= 0 */)
+dlg_tf_3mod::dlg_tf_3mod(iAMdiChild * mdiChild /*= 0*/, Qt::WindowFlags f /*= 0 */)
 	:
 	//TripleHistogramTFConnector(mdiChild, f), m_mdiChild(mdiChild)
 	QDockWidget("Triple Histogram Transfer Function", mdiChild, f)
@@ -68,6 +67,6 @@ dlg_tf_3mod::dlg_tf_3mod(MdiChild * mdiChild /*= 0*/, Qt::WindowFlags f /*= 0 */
 	dockWidgetContents->setObjectName(QStringLiteral("dockWidgetContents"));
 	QHBoxLayout *layout = new QHBoxLayout(dockWidgetContents);
 
-	m_tripleModalityWidget = new iATripleModalityWidget(dockWidgetContents, mdiChild);
+	m_tripleModalityWidget = new iATripleModalityWidget(mdiChild);
 	layout->addWidget(m_tripleModalityWidget);
 }

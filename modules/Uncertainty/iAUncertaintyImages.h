@@ -1,8 +1,8 @@
 /*************************************  open_iA  ************************************ *
 * **********   A tool for visual analysis and processing of 3D CT images   ********** *
 * *********************************************************************************** *
-* Copyright (C) 2016-2019  C. Heinzl, M. Reiter, A. Reh, W. Li, M. Arikan, Ar. &  Al. *
-*                          Amirkhanov, J. Weissenböck, B. Fröhler, M. Schiwarth       *
+* Copyright (C) 2016-2021  C. Heinzl, M. Reiter, A. Reh, W. Li, M. Arikan, Ar. &  Al. *
+*                 Amirkhanov, J. Weissenböck, B. Fröhler, M. Schiwarth, P. Weinberger *
 * *********************************************************************************** *
 * This program is free software: you can redistribute it and/or modify it under the   *
 * terms of the GNU General Public License as published by the Free Software           *
@@ -20,16 +20,11 @@
 * ************************************************************************************/
 #pragma once
 
-#include <itkImage.h>
-
 #include <vtkSmartPointer.h>
 
 class vtkImageData;
 
 typedef vtkSmartPointer<vtkImageData> vtkImagePointer;
-
-typedef itk::Image<double, 3> DoubleImage;
-typedef itk::Image<int, 3> IntImage;
 
 class QString;
 
@@ -43,6 +38,7 @@ public:
 		LabelDistributionEntropy,
 		SourceCount
 	};
+	virtual ~iAUncertaintyImages(); //!< implementation in iAEnsemble.cpp
 	virtual vtkImagePointer GetEntropy(int source) const =0;
 	virtual vtkImagePointer GetReference() const =0;
 	virtual QString GetSourceName(int source) const =0;

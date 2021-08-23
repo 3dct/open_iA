@@ -1,8 +1,8 @@
 /*************************************  open_iA  ************************************ *
 * **********   A tool for visual analysis and processing of 3D CT images   ********** *
 * *********************************************************************************** *
-* Copyright (C) 2016-2019  C. Heinzl, M. Reiter, A. Reh, W. Li, M. Arikan, Ar. &  Al. *
-*                          Amirkhanov, J. Weissenböck, B. Fröhler, M. Schiwarth       *
+* Copyright (C) 2016-2021  C. Heinzl, M. Reiter, A. Reh, W. Li, M. Arikan, Ar. &  Al. *
+*                 Amirkhanov, J. WeissenbÃ¶ck, B. FrÃ¶hler, M. Schiwarth, P. Weinberger *
 * *********************************************************************************** *
 * This program is free software: you can redistribute it and/or modify it under the   *
 * terms of the GNU General Public License as published by the Free Software           *
@@ -15,8 +15,8 @@
 * You should have received a copy of the GNU General Public License along with this   *
 * program.  If not, see http://www.gnu.org/licenses/                                  *
 * *********************************************************************************** *
-* Contact: FH OÖ Forschungs & Entwicklungs GmbH, Campus Wels, CT-Gruppe,              *
-*          Stelzhamerstraße 23, 4600 Wels / Austria, Email: c.heinzl@fh-wels.at       *
+* Contact: FH OÃ– Forschungs & Entwicklungs GmbH, Campus Wels, CT-Gruppe,              *
+*          StelzhamerstraÃŸe 23, 4600 Wels / Austria, Email: c.heinzl@fh-wels.at       *
 * ************************************************************************************/
 #include "iAParamFeaturesView.h"
 
@@ -33,7 +33,7 @@
 namespace
 {
 	const int ShowColumn = 0;
-	const int NameColumn = 1;
+	//const int NameColumn = 1;
 	const int InvertColumn = 2;
 }
 
@@ -57,7 +57,7 @@ iAParamFeaturesView::iAParamFeaturesView(QTableWidget* dataTable):
 		visibleW->setLayout(visibleL);
 		visibleCheckbox->setProperty("featureID", row);
 		visibleCheckbox->setChecked(row != 0);
-		connect(visibleCheckbox, SIGNAL(stateChanged(int)), this, SLOT(VisibleCheckChanged(int)));
+		connect(visibleCheckbox, &QCheckBox::stateChanged, this, &iAParamFeaturesView::VisibleCheckChanged);
 		m_featureTable->setCellWidget(row, ShowColumn, visibleW);
 		auto titleItem = new QTableWidgetItem(dataTable->item(0, row)->text());
 		titleItem->setFlags(titleItem->flags() & ~Qt::ItemIsEditable);
@@ -72,7 +72,7 @@ iAParamFeaturesView::iAParamFeaturesView(QTableWidget* dataTable):
 		invertW->setLayout(invertL);
 		invertCheckbox->setProperty("featureID", row);
 		m_featureTable->setCellWidget(row, InvertColumn, invertW);
-		connect(invertCheckbox, SIGNAL(stateChanged(int)), this, SLOT(InvertCheckChanged(int)));
+		connect(invertCheckbox, &QCheckBox::stateChanged, this, &iAParamFeaturesView::InvertCheckChanged);
 	}
 	m_featureTable->resizeColumnsToContents();
 	setLayout(new QVBoxLayout);
@@ -102,8 +102,8 @@ void iAParamFeaturesView::SaveSettings(QSettings & settings)
 		shownList << m_featureTable->cellWidget(row, ShowColumn)->findChildren<QCheckBox*>()[0]->isChecked();
 		invertedList << m_featureTable->cellWidget(row, InvertColumn)->findChildren<QCheckBox*>()[0]->isChecked();
 	}
-	settings.setValue("Shown", join(shownList, ","));
-	settings.setValue("Inverted", join(invertedList, ","));
+	settings.setValue("Shown", joinNumbersAsString(shownList, ","));
+	settings.setValue("Inverted", joinNumbersAsString(invertedList, ","));
 }
 
 void iAParamFeaturesView::LoadSettings(QSettings const & settings)

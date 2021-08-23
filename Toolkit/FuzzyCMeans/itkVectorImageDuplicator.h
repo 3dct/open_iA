@@ -48,7 +48,7 @@ namespace itk
  *
  */
 template <class TInputVectorImage>
-class ITK_EXPORT VectorImageDuplicator : public Object
+class VectorImageDuplicator : public Object
 {
 public:
   /** Standard class typedefs. */
@@ -85,7 +85,7 @@ public:
 protected:
   VectorImageDuplicator();
   virtual ~VectorImageDuplicator() {};
-  void PrintSelf(std::ostream& os, Indent indent) const;
+  void PrintSelf(std::ostream& os, Indent indent) const override;
 
 private:
   VectorImageDuplicator(const Self&); //purposely not implemented

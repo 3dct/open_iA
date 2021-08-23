@@ -6,9 +6,15 @@
    <rect>
     <x>0</x>
     <y>0</y>
-    <width>563</width>
-    <height>80</height>
+    <width>390</width>
+    <height>82</height>
    </rect>
+  </property>
+  <property name="minimumSize">
+   <size>
+    <width>0</width>
+    <height>0</height>
+   </size>
   </property>
   <property name="features">
    <set>QDockWidget::DockWidgetFeatureMask</set>
@@ -28,13 +34,13 @@
    </property>
    <layout class="QGridLayout" name="gridLayout">
     <property name="leftMargin">
-     <number>0</number>
+     <number>1</number>
     </property>
     <property name="topMargin">
      <number>0</number>
     </property>
     <property name="rightMargin">
-     <number>0</number>
+     <number>1</number>
     </property>
     <property name="bottomMargin">
      <number>0</number>
@@ -59,6 +65,21 @@
        </property>
        <widget class="QWidget" name="layoutWidget" native="true">
         <layout class="QVBoxLayout" name="verticalLayout">
+         <property name="spacing">
+          <number>4</number>
+         </property>
+         <property name="leftMargin">
+          <number>0</number>
+         </property>
+         <property name="topMargin">
+          <number>0</number>
+         </property>
+         <property name="rightMargin">
+          <number>0</number>
+         </property>
+         <property name="bottomMargin">
+          <number>0</number>
+         </property>
          <item>
           <layout class="QGridLayout" name="ClassLayout">
            <property name="rightMargin">
@@ -88,7 +109,7 @@
            </property>
            <layout class="QHBoxLayout" name="ButtonLayout">
             <property name="spacing">
-             <number>0</number>
+             <number>4</number>
             </property>
             <property name="leftMargin">
              <number>0</number>
@@ -113,19 +134,18 @@
               <property name="font">
                <font>
                 <pointsize>9</pointsize>
-                <weight>50</weight>
                 <bold>false</bold>
                </font>
               </property>
               <property name="toolTip">
-               <string>Add Class</string>
+               <string>Add class</string>
               </property>
               <property name="text">
-               <string>aC</string>
+               <string/>
               </property>
               <property name="icon">
-               <iconset resource="../../core/open_iA.qrc">
-                <normaloff>:/images/add.png</normaloff>:/images/add.png</iconset>
+               <iconset resource="../../libs/guibase/guibase.qrc">
+                <normaloff>:/images/plus.svg</normaloff>:/images/plus.svg</iconset>
               </property>
               <property name="iconSize">
                <size>
@@ -134,22 +154,6 @@
                </size>
               </property>
              </widget>
-            </item>
-            <item>
-             <spacer name="horizontalSpacer">
-              <property name="orientation">
-               <enum>Qt::Horizontal</enum>
-              </property>
-              <property name="sizeType">
-               <enum>QSizePolicy::Minimum</enum>
-              </property>
-              <property name="sizeHint" stdset="0">
-               <size>
-                <width>5</width>
-                <height>20</height>
-               </size>
-              </property>
-             </spacer>
             </item>
             <item>
              <widget class="QToolButton" name="delete_class">
@@ -162,7 +166,6 @@
               <property name="font">
                <font>
                 <pointsize>9</pointsize>
-                <weight>50</weight>
                 <bold>false</bold>
                </font>
               </property>
@@ -170,14 +173,14 @@
                <enum>Qt::TabFocus</enum>
               </property>
               <property name="toolTip">
-               <string>Delete Class</string>
+               <string>Delete selected class</string>
               </property>
               <property name="text">
-               <string>dC</string>
+               <string/>
               </property>
               <property name="icon">
-               <iconset resource="../../core/open_iA.qrc">
-                <normaloff>:/images/minus.png</normaloff>:/images/minus.png</iconset>
+               <iconset resource="../../libs/guibase/guibase.qrc">
+                <normaloff>:/images/minus.svg</normaloff>:/images/minus.svg</iconset>
               </property>
               <property name="iconSize">
                <size>
@@ -186,22 +189,6 @@
                </size>
               </property>
              </widget>
-            </item>
-            <item>
-             <spacer name="horizontalSpacer_3">
-              <property name="orientation">
-               <enum>Qt::Horizontal</enum>
-              </property>
-              <property name="sizeType">
-               <enum>QSizePolicy::Minimum</enum>
-              </property>
-              <property name="sizeHint" stdset="0">
-               <size>
-                <width>5</width>
-                <height>20</height>
-               </size>
-              </property>
-             </spacer>
             </item>
             <item>
              <widget class="QToolButton" name="save_class">
@@ -214,7 +201,6 @@
               <property name="font">
                <font>
                 <pointsize>9</pointsize>
-                <weight>50</weight>
                 <bold>false</bold>
                </font>
               </property>
@@ -228,7 +214,7 @@
                <string>sC</string>
               </property>
               <property name="icon">
-               <iconset resource="../../core/open_iA.qrc">
+               <iconset resource="../../libs/guibase/guibase.qrc">
                 <normaloff>:/images/saveClass.png</normaloff>:/images/saveClass.png</iconset>
               </property>
               <property name="iconSize">
@@ -238,22 +224,6 @@
                </size>
               </property>
              </widget>
-            </item>
-            <item>
-             <spacer name="horizontalSpacer_2">
-              <property name="orientation">
-               <enum>Qt::Horizontal</enum>
-              </property>
-              <property name="sizeType">
-               <enum>QSizePolicy::Minimum</enum>
-              </property>
-              <property name="sizeHint" stdset="0">
-               <size>
-                <width>5</width>
-                <height>20</height>
-               </size>
-              </property>
-             </spacer>
             </item>
             <item>
              <widget class="QToolButton" name="load_class">
@@ -266,7 +236,6 @@
               <property name="font">
                <font>
                 <pointsize>9</pointsize>
-                <weight>50</weight>
                 <bold>false</bold>
                </font>
               </property>
@@ -277,7 +246,7 @@
                <string>lC</string>
               </property>
               <property name="icon">
-               <iconset resource="../../core/open_iA.qrc">
+               <iconset resource="../../libs/guibase/guibase.qrc">
                 <normaloff>:/images/load.png</normaloff>:/images/load.png</iconset>
               </property>
               <property name="iconSize">
@@ -289,22 +258,6 @@
              </widget>
             </item>
             <item>
-             <spacer name="horizontalSpacer_5">
-              <property name="orientation">
-               <enum>Qt::Horizontal</enum>
-              </property>
-              <property name="sizeType">
-               <enum>QSizePolicy::Minimum</enum>
-              </property>
-              <property name="sizeHint" stdset="0">
-               <size>
-                <width>5</width>
-                <height>20</height>
-               </size>
-              </property>
-             </spacer>
-            </item>
-            <item>
              <widget class="QToolButton" name="wisetex_save">
               <property name="toolTip">
                <string>Save as Wisetex-XML</string>
@@ -313,7 +266,7 @@
                <string>wisetex_save</string>
               </property>
               <property name="icon">
-               <iconset resource="../../core/open_iA.qrc">
+               <iconset resource="FeatureScout.qrc">
                 <normaloff>:/images/xml_save.png</normaloff>:/images/xml_save.png</iconset>
               </property>
               <property name="iconSize">
@@ -325,22 +278,6 @@
              </widget>
             </item>
             <item>
-             <spacer name="horizontalSpacer_6">
-              <property name="orientation">
-               <enum>Qt::Horizontal</enum>
-              </property>
-              <property name="sizeType">
-               <enum>QSizePolicy::Minimum</enum>
-              </property>
-              <property name="sizeHint" stdset="0">
-               <size>
-                <width>5</width>
-                <height>20</height>
-               </size>
-              </property>
-             </spacer>
-            </item>
-            <item>
              <widget class="QToolButton" name="csv_dv">
               <property name="toolTip">
                <string>Show feature distribution and save as csv-file </string>
@@ -349,7 +286,7 @@
                <string>csv_dv</string>
               </property>
               <property name="icon">
-               <iconset resource="../../core/open_iA.qrc">
+               <iconset resource="FeatureScout.qrc">
                 <normaloff>:/images/FeatureScout_csvDV.png</normaloff>:/images/FeatureScout_csvDV.png</iconset>
               </property>
               <property name="iconSize">
@@ -361,7 +298,7 @@
              </widget>
             </item>
             <item>
-             <widget class="QPushButton" name="export_class">
+             <widget class="QToolButton" name="export_class">
               <property name="toolTip">
                <string>Export Classes to MHD</string>
               </property>
@@ -377,8 +314,8 @@
               </property>
               <property name="sizeHint" stdset="0">
                <size>
-                <width>40</width>
-                <height>20</height>
+                <width>0</width>
+                <height>0</height>
                </size>
               </property>
              </spacer>
@@ -391,6 +328,18 @@
       </widget>
       <widget class="QWidget" name="layoutWidget_2" native="true">
        <layout class="QGridLayout" name="ElementLayout">
+        <property name="leftMargin">
+         <number>0</number>
+        </property>
+        <property name="topMargin">
+         <number>0</number>
+        </property>
+        <property name="rightMargin">
+         <number>0</number>
+        </property>
+        <property name="bottomMargin">
+         <number>0</number>
+        </property>
         <property name="horizontalSpacing">
          <number>20</number>
         </property>
@@ -405,7 +354,8 @@
   </widget>
  </widget>
  <resources>
-  <include location="../../core/open_iA.qrc"/>
+  <include location="../../libs/guibase/guibase.qrc"/>
+  <include location="FeatureScout.qrc"/>
  </resources>
  <connections/>
 </ui>

@@ -1,8 +1,8 @@
 /*************************************  open_iA  ************************************ *
 * **********   A tool for visual analysis and processing of 3D CT images   ********** *
 * *********************************************************************************** *
-* Copyright (C) 2016-2019  C. Heinzl, M. Reiter, A. Reh, W. Li, M. Arikan, Ar. &  Al. *
-*                          Amirkhanov, J. Weissenböck, B. Fröhler, M. Schiwarth       *
+* Copyright (C) 2016-2021  C. Heinzl, M. Reiter, A. Reh, W. Li, M. Arikan, Ar. &  Al. *
+*                 Amirkhanov, J. Weissenböck, B. Fröhler, M. Schiwarth, P. Weinberger *
 * *********************************************************************************** *
 * This program is free software: you can redistribute it and/or modify it under the   *
 * terms of the GNU General Public License as published by the Free Software           *
@@ -22,12 +22,14 @@
 
 #include "iAUncertaintyImages.h"
 
+#include <iAITKImageTypes.h>
+
 #include <QSharedPointer>
 #include <QString>
 #include <QVector>
 
 class iAEnsembleDescriptorFile;
-class iAMember;
+class iASingleResult;
 class iAModalityList;
 class iASamplingResults;
 
@@ -39,12 +41,12 @@ public:
 		UncertaintyMean,
 		UncertaintyVar
 	};
-	~iAEnsemble();
+	~iAEnsemble() override;
 	//! create from string
 	static QSharedPointer<iAEnsemble> Create(int entropyBinCount,
 		QSharedPointer<iAEnsembleDescriptorFile> ensembleFile);
 	static QSharedPointer<iAEnsemble> Create(int entropyBinCount,
-		QVector<QSharedPointer<iAMember> > members,
+		QVector<QSharedPointer<iASingleResult> > members,
 		QSharedPointer<iASamplingResults> superSet, int labelCount, QString const & cachePath, int id,
 		IntImage::Pointer referenceImage);
 	vtkImagePointer GetEntropy(int source) const override;
@@ -55,7 +57,7 @@ public:
 	int LabelCount() const;
 	double * EntropyHistogram() const;
 	int EntropyBinCount() const;
-	QSharedPointer<iAMember> const Member(size_t memberIdx) const;
+	QSharedPointer<iASingleResult> const Member(size_t memberIdx) const;
 	size_t MemberCount() const;
 	std::vector<double> const & MemberAttribute(size_t idx) const;
 	QSharedPointer<iASamplingResults> Sampling(size_t idx) const;
@@ -67,7 +69,7 @@ public:
 	QSharedPointer<iAEnsembleDescriptorFile> EnsembleFile();
 	void WriteFullDataFile(QString const & filename, bool writeIntensities, bool writeMemberLabels, bool writeMemberProbabilities, bool writeEnsembleUncertainties, QSharedPointer<iAModalityList> modalities);
 private:
-	bool LoadSampling(QString const & fileName, int labelCount, int id);
+	bool LoadSampling(QString const & fileName, int id);
 	void CreateUncertaintyImages();
 	//! constructor; use static Create methods instead!
 	iAEnsemble(int entropyBinCount);

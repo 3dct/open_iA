@@ -1,8 +1,8 @@
 /*************************************  open_iA  ************************************ *
 * **********   A tool for visual analysis and processing of 3D CT images   ********** *
 * *********************************************************************************** *
-* Copyright (C) 2016-2019  C. Heinzl, M. Reiter, A. Reh, W. Li, M. Arikan, Ar. &  Al. *
-*                          Amirkhanov, J. Weissenböck, B. Fröhler, M. Schiwarth       *
+* Copyright (C) 2016-2021  C. Heinzl, M. Reiter, A. Reh, W. Li, M. Arikan, Ar. &  Al. *
+*                 Amirkhanov, J. Weissenböck, B. Fröhler, M. Schiwarth, P. Weinberger *
 * *********************************************************************************** *
 * This program is free software: you can redistribute it and/or modify it under the   *
 * terms of the GNU General Public License as published by the Free Software           *
@@ -22,31 +22,33 @@
 
 #include "iAFuzzyFeatureTrackingAttachment.h"
 
-#include <mainwindow.h>
-#include <mdichild.h>
+#include <iAMainWindow.h>
+#include <iAMdiChild.h>
+
+#include <QAction>
+#include <QMenu>
 
 iAFuzzyFeatureTrackingModuleInterface::iAFuzzyFeatureTrackingModuleInterface() {}
 
 void iAFuzzyFeatureTrackingModuleInterface::Initialize()
 {
 	if (!m_mainWnd)
+	{
 		return;
-	QMenu * toolsMenu = m_mainWnd->toolsMenu();
-	QAction * actionFuzzyFeatureTracking = new QAction( m_mainWnd );
-	actionFuzzyFeatureTracking->setText(QApplication::translate("MainWindow", "Fuzzy Feature Tracking (4DCT)", 0));
-	AddActionToMenuAlphabeticallySorted( toolsMenu,  actionFuzzyFeatureTracking );
-
-	//connect signals to slots
-	connect( actionFuzzyFeatureTracking, SIGNAL( triggered() ), this, SLOT( start_FuzzyFeatureTracking() ) );
+	}
+	QAction * actionFuzzyFeatureTracking = new QAction(tr("Fuzzy Feature Tracking"), m_mainWnd);
+	connect(actionFuzzyFeatureTracking, &QAction::triggered, this, &iAFuzzyFeatureTrackingModuleInterface::fuzzyFeatureTracking);
+	m_mainWnd->makeActionChildDependent(actionFuzzyFeatureTracking);
+	QMenu* featureAnalysisMenu = getOrAddSubMenu(m_mainWnd->toolsMenu(), tr("Feature Analysis"), true);
+	featureAnalysisMenu->addAction(actionFuzzyFeatureTracking);
 }
 
-bool iAFuzzyFeatureTrackingModuleInterface::start_FuzzyFeatureTracking()
+void iAFuzzyFeatureTrackingModuleInterface::fuzzyFeatureTracking()
 {
-	PrepareActiveChild();
-	return AttachToMdiChild( m_mdiChild );
+	AttachToMdiChild(m_mainWnd->activeMdiChild());
 }
 
-iAModuleAttachmentToChild * iAFuzzyFeatureTrackingModuleInterface::CreateAttachment( MainWindow* mainWnd, MdiChild * child )
+iAModuleAttachmentToChild * iAFuzzyFeatureTrackingModuleInterface::CreateAttachment( iAMainWindow* mainWnd, iAMdiChild * child )
 {
 	return new iAFuzzyFeatureTrackingAttachment( mainWnd, child );
 }

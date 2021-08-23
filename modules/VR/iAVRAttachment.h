@@ -1,8 +1,8 @@
 /*************************************  open_iA  ************************************ *
 * **********   A tool for visual analysis and processing of 3D CT images   ********** *
 * *********************************************************************************** *
-* Copyright (C) 2016-2019  C. Heinzl, M. Reiter, A. Reh, W. Li, M. Arikan, Ar. &  Al. *
-*                          Amirkhanov, J. Weissenböck, B. Fröhler, M. Schiwarth       *
+* Copyright (C) 2016-2021  C. Heinzl, M. Reiter, A. Reh, W. Li, M. Arikan, Ar. &  Al. *
+*                 Amirkhanov, J. Weissenböck, B. Fröhler, M. Schiwarth, P. Weinberger *
 * *********************************************************************************** *
 * This program is free software: you can redistribute it and/or modify it under the   *
 * terms of the GNU General Public License as published by the Free Software           *
@@ -27,7 +27,7 @@
 #include <QSharedPointer>
 
 class iAVolumeRenderer;
-class MainWindow;
+class iAMainWindow;
 
 class iA3DCylinderObjectVis;
 class iAVREnvironment;
@@ -40,7 +40,7 @@ class iAVRAttachment : public iAModuleAttachmentToChild
 {
 	Q_OBJECT
 public:
-	iAVRAttachment( MainWindow * mainWnd, MdiChild* child );
+	iAVRAttachment( iAMainWindow * mainWnd, iAMdiChild* child );
 private:
 	QSharedPointer<iAVolumeRenderer> m_volumeRenderer;
 	QSharedPointer<iAVREnvironment> m_vrEnv;

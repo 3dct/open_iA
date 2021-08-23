@@ -1,8 +1,8 @@
 /*************************************  open_iA  ************************************ *
 * **********   A tool for visual analysis and processing of 3D CT images   ********** *
 * *********************************************************************************** *
-* Copyright (C) 2016-2019  C. Heinzl, M. Reiter, A. Reh, W. Li, M. Arikan, Ar. &  Al. *
-*                          Amirkhanov, J. Weissenböck, B. Fröhler, M. Schiwarth       *
+* Copyright (C) 2016-2021  C. Heinzl, M. Reiter, A. Reh, W. Li, M. Arikan, Ar. &  Al. *
+*                 Amirkhanov, J. Weissenböck, B. Fröhler, M. Schiwarth, P. Weinberger *
 * *********************************************************************************** *
 * This program is free software: you can redistribute it and/or modify it under the   *
 * terms of the GNU General Public License as published by the Free Software           *
@@ -50,16 +50,16 @@ iAFoamCharacterizationDialog::iAFoamCharacterizationDialog(iAFoamCharacterizatio
 	m_pCheckBoxEnabled = new QCheckBox("Enabled", this);
 	m_pCheckBoxEnabled->setChecked(m_pItem->itemEnabled());
 	m_pCheckBoxEnabled->setWhatsThis("Enable / disable the item.");
-	
+
 	m_pDialogButtonBox = new QDialogButtonBox(this);
 
 	QPushButton* pPushButtonCancel(new QPushButton("Cancel", m_pDialogButtonBox));
 	pPushButtonCancel->setIcon(qApp->style()->standardIcon(QStyle::SP_DialogCancelButton));
-	connect(pPushButtonCancel, SIGNAL(clicked()), this, SLOT(slotPushButtonCancel()));
+	connect(pPushButtonCancel, &QPushButton::clicked, this, &iAFoamCharacterizationDialog::slotPushButtonCancel);
 
 	QPushButton* pPushButtonOk(new QPushButton("Ok", m_pDialogButtonBox));
 	pPushButtonOk->setIcon(qApp->style()->standardIcon(QStyle::SP_DialogOkButton));
-	connect(pPushButtonOk, SIGNAL(clicked()), this, SLOT(slotPushButtonOk()));
+	connect(pPushButtonOk, &QPushButton::clicked, this, &iAFoamCharacterizationDialog::slotPushButtonOk);
 
 	m_pDialogButtonBox->addButton(pPushButtonCancel, QDialogButtonBox::RejectRole);
 	m_pDialogButtonBox->addButton(pPushButtonOk, QDialogButtonBox::AcceptRole);

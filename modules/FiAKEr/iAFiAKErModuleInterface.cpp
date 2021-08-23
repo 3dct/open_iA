@@ -1,8 +1,8 @@
 /*************************************  open_iA  ************************************ *
 * **********   A tool for visual analysis and processing of 3D CT images   ********** *
 * *********************************************************************************** *
-* Copyright (C) 2016-2019  C. Heinzl, M. Reiter, A. Reh, W. Li, M. Arikan, Ar. &  Al. *
-*                          Amirkhanov, J. Weissenböck, B. Fröhler, M. Schiwarth       *
+* Copyright (C) 2016-2021  C. Heinzl, M. Reiter, A. Reh, W. Li, M. Arikan, Ar. &  Al. *
+*                 Amirkhanov, J. Weissenböck, B. Fröhler, M. Schiwarth, P. Weinberger *
 * *********************************************************************************** *
 * This program is free software: you can redistribute it and/or modify it under the   *
 * terms of the GNU General Public License as published by the Free Software           *
@@ -21,99 +21,303 @@
 #include "iAFiAKErModuleInterface.h"
 
 #include "iACsvConfig.h"
-#include "iAFiberCharData.h"
+#include "iAFiberResult.h"
 #include "iAFiAKErController.h"
+#include "iAFiAKErAttachment.h"
 
-#include "dlg_commoninput.h"
-#include "mainwindow.h"
+#include <iAFileUtils.h>
+#include <iAMainWindow.h>
+#include <iAMdiChild.h>
+#include <iAModalityList.h> // only required for initializing mdichild if no volume dataset loaded; should not be needed
+#include <iAModuleDispatcher.h>
+#include <iAParameterDlg.h>
+#include <iAProjectBase.h>
+#include <iAProjectRegistry.h>
 
 #include <QAction>
 #include <QFileDialog>
+#include <QMenu>
 #include <QMdiSubWindow>
+#include <QMessageBox>
+#include <QSettings>
+
+class iAFIAKERProject : public iAProjectBase
+{
+public:
+	iAFIAKERProject():
+		m_controller(nullptr)
+	{}
+	virtual ~iAFIAKERProject() override
+	{}
+	void loadProject(QSettings & projectFile, QString const & fileName) override
+	{
+		/*
+		// Remove UseMdiChild setting altogether, always open iAMdiChild?
+		if (projectFile.contains("UseMdiChild") && projectFile.value("UseMdiChild").toBool() == false)
+		{
+
+			QMessageBox::warning(nullptr, "FiAKEr", "Old project file detected (%1). "
+				"Due to an implementation change, this file cannot be loaded directly; "
+				"please open it in a text editor and remove the ")
+			return;
+		}
+		*/
+		if (!m_mdiChild)
+		{
+			LOG(lvlError, QString("Invalid FIAKER project file '%1': FIAKER requires a child window, "
+				"but UseMdiChild was apparently not specified in this project, as no child window available! "
+				"Please report this error, along with the project file, to the open_iA developers!").arg(fileName));
+			return;
+		}
+		iAFiAKErModuleInterface * fiaker = m_mainWindow->moduleDispatcher().module<iAFiAKErModuleInterface>();
+		fiaker->setupToolBar();
+		fiaker->loadProject(m_mdiChild, projectFile, fileName, this);
+	}
+	void saveProject(QSettings & projectFile, QString const & fileName) override
+	{
+		m_controller->saveProject(projectFile, fileName);
+	}
+	static QSharedPointer<iAProjectBase> create()
+	{
+		return QSharedPointer<iAFIAKERProject>::create();
+	}
+	void setController(iAFiAKErController* controller)
+	{
+		m_controller = controller;
+	}
+private:
+	iAFiAKErController* m_controller;
+};
+
+namespace
+{
+	const QString LastFormatKey("FIAKER/LastFormat");
+	const QString LastTimeStepOffsetKey("FIAKER/LastTimeStepOffsetKey");
+	const QString LastPathKey("FIAKER/LastPath");
+	const QString LastUseStepData("FIAKER/LastUseStepData");
+	const QString LastShowPreviews("FIAKER/LastShowPreviews");
+	const QString LastShowCharts("FIAKER/LastShowCharts");
+}
 
 void iAFiAKErModuleInterface::Initialize()
 {
 	if (!m_mainWnd)
+	{
 		return;
-	QMenu * toolsMenu = m_mainWnd->toolsMenu();
-	QMenu * fiakerMenu = getMenuWithTitle(toolsMenu, tr("FiAKEr"), false);
-	QAction * actionFiAKEr = new QAction( "Open Results Folder", nullptr );
+	}
+	iAProjectRegistry::addProject<iAFIAKERProject>(iAFiAKErController::FIAKERProjectID);
+
+	QAction * actionFiAKEr = new QAction(tr("Start FIAKER"), m_mainWnd);
+#if QT_VERSION < QT_VERSION_CHECK(5, 99, 0)
 	actionFiAKEr->setShortcut(QKeySequence(Qt::ALT + Qt::Key_R, Qt::Key_O));
-	AddActionToMenuAlphabeticallySorted(fiakerMenu, actionFiAKEr, false );
+#else
+	actionFiAKEr->setShortcut(QKeySequence(QKeyCombination(Qt::ALT, Qt::Key_R), QKeyCombination(Qt::Key_O)));
+#endif
 	connect(actionFiAKEr, &QAction::triggered, this, &iAFiAKErModuleInterface::startFiAKEr );
-	QAction * actionFiAKErProject = new QAction("Load Project", nullptr);
+
+	QAction* actionFiAKErProject = new QAction(tr("Load FIAKER (old .fpf files)"), m_mainWnd);
+#if QT_VERSION < QT_VERSION_CHECK(5, 99, 0)
 	actionFiAKErProject->setShortcut(QKeySequence(Qt::ALT + Qt::Key_R, Qt::Key_P));
-	AddActionToMenuAlphabeticallySorted(fiakerMenu, actionFiAKErProject, false);
+#else
+	actionFiAKErProject->setShortcut(QKeySequence(QKeyCombination(Qt::ALT, Qt::Key_R), QKeyCombination(Qt::Key_P)));
+#endif
 	connect(actionFiAKErProject, &QAction::triggered, this, &iAFiAKErModuleInterface::loadFiAKErProject);
+
+	QMenu* submenu = getOrAddSubMenu(m_mainWnd->toolsMenu(), tr("Feature Analysis"), true);
+	submenu->addAction(actionFiAKEr);
+	submenu->addAction(actionFiAKErProject);
+
+	QSettings s;
+	m_lastFormat = s.value(LastFormatKey, "").toString();
+	m_lastPath = s.value(LastPathKey, m_mainWnd->path()).toString();
+	m_lastUseStepData = s.value(LastUseStepData, true).toBool();
+	m_lastShowPreviews = s.value(LastShowPreviews, true).toBool();
+	m_lastShowCharts = s.value(LastShowCharts, true).toBool();
+	bool ok;
+	m_lastTimeStepOffset = s.value(LastTimeStepOffsetKey, 0).toDouble(&ok);
+	if (!ok)
+	{
+		LOG(lvlError, "FIAKER start: Invalid m_lastTimeStepOffset stored in settings!");
+	}
+}
+
+void iAFiAKErModuleInterface::SaveSettings() const
+{
+	QSettings s;
+	s.setValue(LastFormatKey, m_lastFormat);
+	s.setValue(LastPathKey, m_lastPath);
+	s.setValue(LastTimeStepOffsetKey, m_lastTimeStepOffset);
+	s.setValue(LastUseStepData, m_lastUseStepData);
+	s.setValue(LastShowPreviews, m_lastShowPreviews);
+	s.setValue(LastShowCharts, m_lastShowCharts);
 }
 
 void iAFiAKErModuleInterface::startFiAKEr()
 {
 	setupToolBar();
-	QString path = QFileDialog::getExistingDirectory(m_mainWnd, "Choose Folder containing Result csv", m_mainWnd->path());
-	if (path.isEmpty())
-		return;
-	
-	auto explorer = new iAFiAKErController(m_mainWnd);
-	QStringList parameterNames = QStringList() << "+CSV Format" << "#Step Coordinate Shift";
+	iAMdiChild* mdiChild(nullptr);
+	bool createdMdi = false;
+	if (m_mainWnd->activeMdiChild() && QMessageBox::question(m_mainWnd, "FIAKER",
+		"Load FIAKER in currently active window (If you choose No, FIAKER will be opened in a new window)?",
+		QMessageBox::Yes | QMessageBox::No) == QMessageBox::Yes)
+	{
+		mdiChild = m_mainWnd->activeMdiChild();
+	}
+	else
+	{
+		createdMdi = true;
+		mdiChild = m_mainWnd->createMdiChild(false);
+		mdiChild->show();
+	}
 	QStringList formatEntries = iACsvConfig::getListFromRegistry();
 	if (!formatEntries.contains(iAFiberResultsCollection::SimpleFormat))
+	{
 		formatEntries.append(iAFiberResultsCollection::SimpleFormat);
-	if (!formatEntries.contains(iAFiberResultsCollection::LegacyFormat))
-		formatEntries.append(iAFiberResultsCollection::LegacyFormat);
-	if (!formatEntries.contains(iACsvConfig::LegacyFiberFormat))
-		formatEntries.append(iACsvConfig::LegacyFiberFormat);
-	if (!formatEntries.contains(iACsvConfig::LegacyVoidFormat))
-		formatEntries.append(iACsvConfig::LegacyVoidFormat);
-	QList<QVariant> values;
-	values << formatEntries << 0;
-	dlg_commoninput dlg(m_mainWnd, "Choose CSV Format", parameterNames, values);
-	if (dlg.exec() != QDialog::Accepted)
+	}
+	if (!formatEntries.contains(iAFiberResultsCollection::FiakerFCPFormat))
+	{
+		formatEntries.append(iAFiberResultsCollection::FiakerFCPFormat);
+	}
+	if (!formatEntries.contains(iACsvConfig::FCPFiberFormat))
+	{
+		formatEntries.append(iACsvConfig::FCPFiberFormat);
+	}
+	if (!formatEntries.contains(iACsvConfig::FCVoidFormat))
+	{
+		formatEntries.append(iACsvConfig::FCVoidFormat);
+	}
+	selectOption(formatEntries, m_lastFormat);
+	iAParameterDlg::ParamListT params;
+	addParameter(params, "Result folder", iAValueType::Folder, m_lastPath);
+	addParameter(params, "CSV cormat", iAValueType::Categorical, formatEntries);
+	addParameter(params, "Step coordinate shift", iAValueType::Continuous, m_lastTimeStepOffset);
+	addParameter(params, "Use step data", iAValueType::Boolean, m_lastUseStepData);
+	addParameter(params, "Show mini previews in result list", iAValueType::Boolean, m_lastShowPreviews);
+	addParameter(params, "Show distribution charts in result list", iAValueType::Boolean, m_lastShowCharts);
+	QString descr("Starts FIAKER, a comparison tool for results from fiber reconstruction algorithms.<br/>"
+		"Choose a <em>Result folder</em> containing two or more fiber reconstruction results in .csv format. "
+		"Under <em>CSV format</em>, select the format in which data is stored in your .csv files. "
+		"You can test / modify the format via Tools->FeatureScout (just select a single one of your .csv's there, "
+		"and refine the format until it is shown properly, then store the format, then use it here. "
+		"<em>Step coordinate shift</em> defines a shift that is applied to all coordinates, in each dimension (x, y and z) "
+		"for the optimization step files. For the final results, "
+		"there is a similar setting available via the .csv format specification, see above. "
+		"<em>Use step data</em> determines whether FIAKER immediately uses information on curved files from the last step; "
+		"if unchecked, FIAKER will initially show the separate curved representation for the final result.<br/>"
+		"For more information on FIAKER, see the corresponding publications:"
+		"<ul><li>B. Fröhler, T. Elberfeld, T. Möller, H.-C. Hege, J. Weissenböck, "
+		"J. De Beenhouwer, J. Sijbers, J. Kastner, and C. Heinzl, "
+		"A Visual Tool for the Analysis of Algorithms for Tomographic Fiber Reconstruction in Materials Science, "
+		"Computer Graphics Forum 38 (3), 2019, pp. 273-283, doi: <a href=\"https://doi.org/10.1111/cgf.13688\">10.1111/cgf.13688</a>.</li>"
+		"<li>B. Fröhler, T. Elberfeld, T. Möller, H.-C. Hege, J. De Beenhouwer, J. Sijbers, J. Kastner, and Christoph Heinzl, "
+		"Analysis and comparison of algorithms for the tomographic reconstruction of curved fibres, "
+		"Nondestructive Testing and Evaluation 35 (3), 2020, pp. 328–341, "
+		"doi: <a href=\"https://doi.org/10.1080/10589759.2020.1774583\">10.1080/10589759.2020.1774583</a>.</li></ul>");
+	iAParameterDlg dlg(m_mainWnd, "Start FIAKER", params, descr);
+	if (dlg.exec() != QDialog::Accepted || dlg.parameterValues()["Result folder"].toString().isEmpty())
+	{
+		if (createdMdi)
+		{
+			m_mainWnd->closeMdiChild(mdiChild);
+		}
 		return;
-	QString configName = dlg.getComboBoxValue(0);
-	double stepShift = dlg.getDblValue(1);
-	//cmbbox_Format->addItems(formatEntries);
-	m_mainWnd->addSubWindow(explorer);
-	explorer->start(path, configName, stepShift);
+	}
+	auto values = dlg.parameterValues();
+	m_lastPath = values["Result folder"].toString();
+	m_lastFormat = values["CSV cormat"].toString();
+	m_lastTimeStepOffset = values["Step coordinate shift"].toDouble();
+	m_lastUseStepData = values["Use step data"].toBool();
+	m_lastShowPreviews = values["Show mini previews in result list"].toBool();
+	m_lastShowCharts = values["Show distribution charts in result list"].toBool();
+
+	AttachToMdiChild(mdiChild);
+	iAFiAKErAttachment* attach = attachment<iAFiAKErAttachment>(mdiChild);
+	m_mainWnd->setPath(m_lastPath);
+	if (createdMdi)
+	{
+		mdiChild->setWindowTitle(QString("FIAKER (%1)").arg(m_lastPath));
+	}
+	auto project = QSharedPointer<iAFIAKERProject>::create();
+	project->setController(attach->controller());
+	mdiChild->addProject(iAFiAKErController::FIAKERProjectID, project);
+	attach->controller()->start(m_lastPath, getCsvConfig(m_lastFormat), m_lastTimeStepOffset,
+		m_lastUseStepData, m_lastShowPreviews, m_lastShowCharts);
 }
 
 void iAFiAKErModuleInterface::loadFiAKErProject()
 {
 	setupToolBar();
-	iAFiAKErController::loadAnalysis(m_mainWnd, m_mainWnd->path());
+	QString fileName = QFileDialog::getOpenFileName(m_mainWnd,
+		iAFiAKErController::FIAKERProjectID, m_mainWnd->path(), "FIAKER Project file (*.fpf);;All files (*)");
+	if (fileName.isEmpty())
+	{
+		return;
+	}
+	iAMdiChild* newChild = m_mainWnd->createMdiChild(false);
+	newChild->show();
+	QSettings projectFile(fileName, QSettings::IniFormat);
+#if QT_VERSION < QT_VERSION_CHECK(5, 99, 0)
+	projectFile.setIniCodec("UTF-8");
+#endif
+	auto project = QSharedPointer<iAFIAKERProject>::create();
+	project->setMainWindow(m_mainWnd);
+	project->setChild(newChild);
+	loadProject(newChild, projectFile, fileName, project.data());
+	newChild->addProject(iAFiAKErController::FIAKERProjectID, project);
+}
+
+void iAFiAKErModuleInterface::loadProject(iAMdiChild* mdiChild, QSettings const& projectFile, QString const& fileName, iAFIAKERProject* project)
+{
+	if (mdiChild->modalities()->size() == 0)
+	{ // if no other data loaded yet, we need to make suare mdichild is initialized:
+		mdiChild->displayResult(mdiChild->windowTitle(), nullptr, nullptr);
+	}
+	AttachToMdiChild(mdiChild);
+	iAFiAKErAttachment* attach = attachment<iAFiAKErAttachment>(mdiChild);
+	auto controller = attach->controller();
+	project->setController(controller);
+	m_mainWnd->setPath(m_lastPath);
+	iASettings projectSettings = mapFromQSettings(projectFile);
+	connect(controller, &iAFiAKErController::setupFinished, [controller, projectSettings, fileName]
+		{
+			controller->loadAdditionalData(projectSettings, fileName);
+		});
+	controller->loadProject(projectFile, fileName);
+}
+
+iAModuleAttachmentToChild* iAFiAKErModuleInterface::CreateAttachment(iAMainWindow* mainWnd, iAMdiChild* child)
+{
+	return new iAFiAKErAttachment(mainWnd, child);
 }
 
 void iAFiAKErModuleInterface::setupToolBar()
 {
 	if (m_toolbar)
-		return;
-	m_toolbar = new iAFiAKErToolBar("FiAKEr Toolbar");
-	connect(m_toolbar->action_ToggleTitleBar, SIGNAL(triggered()), this, SLOT(toggleDockWidgetTitleBars()));
-	connect(m_toolbar->action_ToggleSettings, SIGNAL(triggered()), this, SLOT(toggleSettings()));
-	m_mainWnd->addToolBar(Qt::BottomToolBarArea, m_toolbar);
-}
-
-namespace
-{
-	iAFiAKErController* getActiveFiAKEr(MainWindow* mainWnd)
 	{
-		auto curWnd = mainWnd->mdiArea->currentSubWindow();
-		return (curWnd) ? qobject_cast<iAFiAKErController*>(curWnd->widget()) : nullptr;
+		return;
 	}
+	m_toolbar = new iAFiAKErToolBar("FiAKEr Toolbar");
+	connect(m_toolbar->action_ToggleTitleBar, &QAction::triggered, this, &iAFiAKErModuleInterface::toggleDockWidgetTitleBars);
+	connect(m_toolbar->action_ToggleSettings, &QAction::triggered, this, &iAFiAKErModuleInterface::toggleSettings);
+	m_mainWnd->addToolBar(Qt::BottomToolBarArea, m_toolbar);
 }
 
 void iAFiAKErModuleInterface::toggleDockWidgetTitleBars()
 {
-	auto fiakerController = getActiveFiAKEr(m_mainWnd);
-	if (!fiakerController)
+	iAFiAKErAttachment* attach = attachment<iAFiAKErAttachment>(m_mainWnd->activeMdiChild());
+	if (!attach)
+	{
 		return;
-	fiakerController->toggleDockWidgetTitleBars();
+	}
+	attach->controller()->toggleDockWidgetTitleBars();
 }
 
 void iAFiAKErModuleInterface::toggleSettings()
 {
-	auto fiakerController = getActiveFiAKEr(m_mainWnd);
-	if (!fiakerController)
+	iAFiAKErAttachment* attach = attachment<iAFiAKErAttachment>(m_mainWnd->activeMdiChild());
+	if (!attach)
+	{
 		return;
-	fiakerController->toggleSettings();
+	}
+	attach->controller()->toggleSettings();
 }

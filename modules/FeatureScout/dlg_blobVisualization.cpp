@@ -1,8 +1,8 @@
 /*************************************  open_iA  ************************************ *
 * **********   A tool for visual analysis and processing of 3D CT images   ********** *
 * *********************************************************************************** *
-* Copyright (C) 2016-2019  C. Heinzl, M. Reiter, A. Reh, W. Li, M. Arikan, Ar. &  Al. *
-*                          Amirkhanov, J. Weissenböck, B. Fröhler, M. Schiwarth       *
+* Copyright (C) 2016-2021  C. Heinzl, M. Reiter, A. Reh, W. Li, M. Arikan, Ar. &  Al. *
+*                 Amirkhanov, J. Weissenböck, B. Fröhler, M. Schiwarth, P. Weinberger *
 * *********************************************************************************** *
 * This program is free software: you can redistribute it and/or modify it under the   *
 * terms of the GNU General Public License as published by the Free Software           *
@@ -94,8 +94,8 @@ dlg_blobVisualization::dlg_blobVisualization (QWidget* parent) : QDialog (parent
 	mainLayout->addWidget (m_buttons);
 
 	// setup connections
-	connect (m_buttons, SIGNAL (accepted()), this, SLOT (accept()));
-	connect (m_buttons, SIGNAL (rejected()), this, SLOT (reject()));
+	connect (m_buttons, &QDialogButtonBox::accepted, this, &dlg_blobVisualization::accept);
+	connect (m_buttons, &QDialogButtonBox::rejected, this, &dlg_blobVisualization::reject);
 }
 
 dlg_blobVisualization::~dlg_blobVisualization (void)

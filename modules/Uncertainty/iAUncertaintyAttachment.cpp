@@ -1,8 +1,8 @@
 /*************************************  open_iA  ************************************ *
 * **********   A tool for visual analysis and processing of 3D CT images   ********** *
 * *********************************************************************************** *
-* Copyright (C) 2016-2019  C. Heinzl, M. Reiter, A. Reh, W. Li, M. Arikan, Ar. &  Al. *
-*                          Amirkhanov, J. Weissenböck, B. Fröhler, M. Schiwarth       *
+* Copyright (C) 2016-2021  C. Heinzl, M. Reiter, A. Reh, W. Li, M. Arikan, Ar. &  Al. *
+*                 Amirkhanov, J. Weissenböck, B. Fröhler, M. Schiwarth, P. Weinberger *
 * *********************************************************************************** *
 * This program is free software: you can redistribute it and/or modify it under the   *
 * terms of the GNU General Public License as published by the Free Software           *
@@ -24,34 +24,36 @@
 #include "iAEnsemble.h"
 #include "iAEnsembleView.h"
 #include "iAHistogramView.h"
-#include "iAMember.h"
 #include "iAMemberView.h"
 #include "iAScatterPlotView.h"
+#include "iASingleResult.h"
 #include "iASpatialView.h"
 #include "iAUncertaintyColors.h"
 
-#include <charts/iASimpleHistogramData.h>
-#include <dlg_imageproperty.h>
-#include <dlg_slicer.h>
-#include <iAConnector.h>
-#include <iAConsole.h>
-#include <iALookupTable.h>
 #include <iASlicerMode.h>
+#include <iAMdiChild.h>
+#include <iAMainWindow.h>
+
+#include <iADockWidgetWrapper.h>
+
+#include <iAHistogramData.h>
+
+#include <iAConnector.h>
+#include <iALog.h>
+#include <iALookupTable.h>
 #include <iAStringHelper.h>
-#include <mdichild.h>
-#include <mainwindow.h>
-#include <qthelper/iADockWidgetWrapper.h>
 
 #include <vtkLookupTable.h>
 
 #include <QDir>
+#include <QGuiApplication>
 
 const int EntropyBinCount = 100;
 
-iAUncertaintyAttachment::iAUncertaintyAttachment(MainWindow * mainWnd, MdiChild * child):
+iAUncertaintyAttachment::iAUncertaintyAttachment(iAMainWindow * mainWnd, iAMdiChild * child):
 	iAModuleAttachmentToChild(mainWnd, child),
-	m_newSubEnsembleID(1),
-	m_labelLut(vtkSmartPointer<vtkLookupTable>::New())
+	m_labelLut(vtkSmartPointer<vtkLookupTable>::New()),
+	m_newSubEnsembleID(1)
 {
 	m_scatterplotView = new iAScatterPlotView();
 	m_memberView = new iAMemberView();
@@ -65,16 +67,15 @@ iAUncertaintyAttachment::iAUncertaintyAttachment(MainWindow * mainWnd, MdiChild 
 	m_dockWidgets.push_back(new iADockWidgetWrapper(m_labelDistributionView, "Label Distribution", "UncLabelDistrView"));
 	m_dockWidgets.push_back(new iADockWidgetWrapper(m_uncertaintyDistributionView, "Uncertainty Distribution", "UncUncertaintyDistrView"));
 	m_dockWidgets.push_back(new iADockWidgetWrapper(m_ensembleView, "Ensemble View", "UncEnsembleView"));
-	connect(mainWnd, SIGNAL(styleChanged()), m_spatialView, SLOT(StyleChanged()));
-	connect(mainWnd, SIGNAL(styleChanged()), m_memberView, SLOT(StyleChanged()));
-	connect(mainWnd, SIGNAL(styleChanged()), m_scatterplotView, SLOT(StyleChanged()));
-	connect(m_scatterplotView, SIGNAL(SelectionChanged()), m_spatialView, SLOT(UpdateSelection()));
-	connect(m_memberView, SIGNAL(MemberSelected(int)), this, SLOT(MemberSelected(int)));
-	connect(m_ensembleView, SIGNAL(EnsembleSelected(QSharedPointer<iAEnsemble>)), this, SLOT(EnsembleSelected(QSharedPointer<iAEnsemble>)));
+	connect(mainWnd, &iAMainWindow::styleChanged, m_spatialView, &iASpatialView::StyleChanged);
+	connect(mainWnd, &iAMainWindow::styleChanged, m_memberView, &iAMemberView::StyleChanged);
+	connect(m_scatterplotView, &iAScatterPlotView::SelectionChanged, m_spatialView, &iASpatialView::UpdateSelection);
+	connect(m_memberView, &iAMemberView::MemberSelected, this, &iAUncertaintyAttachment::MemberSelected);
+	connect(m_ensembleView, &iAEnsembleView::EnsembleSelected, this, &iAUncertaintyAttachment::EnsembleSelected);
 }
 
 
-iAUncertaintyAttachment* iAUncertaintyAttachment::Create(MainWindow * mainWnd, MdiChild * child)
+iAUncertaintyAttachment* iAUncertaintyAttachment::Create(iAMainWindow * mainWnd, iAMdiChild * child)
 {
 	iAUncertaintyAttachment * newAttachment = new iAUncertaintyAttachment(mainWnd, child);
 	return newAttachment;
@@ -99,16 +100,16 @@ void iAUncertaintyAttachment::ToggleSettings()
 
 bool iAUncertaintyAttachment::LoadEnsemble(QString const & fileName)
 {
-	m_ensembleFile = QSharedPointer<iAEnsembleDescriptorFile>(new iAEnsembleDescriptorFile(fileName));
+	m_ensembleFile = QSharedPointer<iAEnsembleDescriptorFile>::create(fileName);
 	if (!m_ensembleFile->good())
 	{
-		DEBUG_LOG("Ensemble: Given data file could not be read.");
+		LOG(lvlError, "Ensemble: Given data file could not be read.");
 		return false;
 	}
-	connect(m_child, SIGNAL(fileLoaded()), this, SLOT(ContinueEnsembleLoading()));
+	connect(m_child, &iAMdiChild::fileLoaded, this, &iAUncertaintyAttachment::ContinueEnsembleLoading);
 	if (!m_child->loadFile(m_ensembleFile->ModalityFileName(), false))
 	{
-		DEBUG_LOG(QString("Failed to load project '%1'").arg(m_ensembleFile->ModalityFileName()));
+		LOG(lvlError, QString("Failed to load project '%1'").arg(m_ensembleFile->ModalityFileName()));
 		return false;
 	}
 	return true;
@@ -157,7 +158,7 @@ void iAUncertaintyAttachment::CalculateNewSubEnsemble()
 	auto memberIDs = m_memberView->SelectedMemberIDs();
 	if (memberIDs.empty())
 	{
-		DEBUG_LOG("No members selected!");
+		LOG(lvlError, "No members selected!");
 		return;
 	}
 	QSharedPointer<iAEnsemble> mainEnsemble = m_ensembleView->Ensembles()[0];
@@ -171,14 +172,14 @@ void iAUncertaintyAttachment::CalculateNewSubEnsemble()
 	} while (QDir(cachePath).exists());
 	QSharedPointer<iAEnsemble> newEnsemble = mainEnsemble->AddSubEnsemble(memberIDs, subEnsembleID);
 	mainEnsemble->EnsembleFile()->AddSubEnsemble(subEnsembleID, memberIDs);
-	m_ensembleView->AddEnsemble(QString("Subset: Members %1").arg(join(memberIDs, ",")), newEnsemble);
+	m_ensembleView->AddEnsemble(QString("Subset: Members %1").arg(joinNumbersAsString(memberIDs, ",")), newEnsemble);
 	mainEnsemble->Store();
 }
 
 
 void iAUncertaintyAttachment::MemberSelected(int memberIdx)
 {
-	iAITKIO::ImagePointer itkImg = m_currentEnsemble->Member(memberIdx)->LabelImage();
+	iAITKIO::ImagePointer itkImg = m_currentEnsemble->Member(memberIdx)->labelImage();
 	iAConnector con;
 	con.setImage(itkImg);
 	bool keep = QGuiApplication::keyboardModifiers().testFlag(Qt::ShiftModifier);
@@ -197,7 +198,8 @@ void iAUncertaintyAttachment::EnsembleSelected(QSharedPointer<iAEnsemble> ensemb
 	m_scatterplotView->SetDatasets(ensemble);
 	m_memberView->SetEnsemble(ensemble);
 	m_labelDistributionView->Clear();
-	auto labelDistributionHistogram = createHistogram<int>(ensemble->GetLabelDistribution(), ensemble->LabelCount(), 0, ensemble->LabelCount()-1, Discrete);
+	auto labelDistributionHistogram = createHistogramData<int>("Label Frequency", iAValueType::Discrete, ensemble->GetLabelDistribution(),
+		ensemble->LabelCount(), 0, ensemble->LabelCount() - 1);
 	double lutRange[2];
 	lutRange[0] = 0;
 	lutRange[1] = m_currentEnsemble->LabelCount();
@@ -220,7 +222,8 @@ void iAUncertaintyAttachment::EnsembleSelected(QSharedPointer<iAEnsemble> ensemb
 	QSharedPointer<iALookupTable> labelLookup(new iALookupTable(m_labelLut));
 	m_labelDistributionView->AddChart("Label", labelDistributionHistogram, iAUncertaintyColors::LabelDistributionBase, labelLookup);
 	m_uncertaintyDistributionView->Clear();
-	auto entropyHistogram = iASimpleHistogramData::create(0, 1, ensemble->EntropyBinCount(), ensemble->EntropyHistogram(), Continuous);
+	auto entropyHistogram = iAHistogramData::create("Frequency (Pixels)", iAValueType::Continuous,
+		0, 1, ensemble->EntropyBinCount(), ensemble->EntropyHistogram());
 	m_uncertaintyDistributionView->AddChart("Algorithm Uncertainty", entropyHistogram, iAUncertaintyColors::UncertaintyDistribution);
 	m_spatialView->SetDatasets(ensemble, m_labelLut);
 }

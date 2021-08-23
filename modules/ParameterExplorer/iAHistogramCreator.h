@@ -1,8 +1,8 @@
 /*************************************  open_iA  ************************************ *
 * **********   A tool for visual analysis and processing of 3D CT images   ********** *
 * *********************************************************************************** *
-* Copyright (C) 2016-2019  C. Heinzl, M. Reiter, A. Reh, W. Li, M. Arikan, Ar. &  Al. *
-*                          Amirkhanov, J. Weissenböck, B. Fröhler, M. Schiwarth       *
+* Copyright (C) 2016-2021  C. Heinzl, M. Reiter, A. Reh, W. Li, M. Arikan, Ar. &  Al. *
+*                 Amirkhanov, J. Weissenböck, B. Fröhler, M. Schiwarth, P. Weinberger *
 * *********************************************************************************** *
 * This program is free software: you can redistribute it and/or modify it under the   *
 * terms of the GNU General Public License as published by the Free Software           *
@@ -20,7 +20,7 @@
 * ************************************************************************************/
 #pragma once
 
-#include "charts/iAHistogramData.h"
+#include <iAHistogramData.h>
 
 #include <vtkImageData.h>
 #include <vtkSmartPointer.h>
@@ -28,6 +28,7 @@
 #include <QSharedPointer>
 #include <QThread>
 
+// TODO: use runAsync instead!
 class iAHistogramCreator : public QThread
 {
 	Q_OBJECT
@@ -39,7 +40,7 @@ public:
 	{}
 	virtual void run()
 	{
-		m_histogramData = iAHistogramData::create(m_img, m_binCount, nullptr);
+		m_histogramData = iAHistogramData::create("Frequency", m_img, m_binCount, nullptr);
 	}
 	QSharedPointer<iAHistogramData> GetData()
 	{

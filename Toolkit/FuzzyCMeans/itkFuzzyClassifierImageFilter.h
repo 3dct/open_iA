@@ -22,15 +22,7 @@
 #include "itkImageRegionConstIterator.h"
 #include "itkImageRegionIterator.h"
 
-#if ITK_VERSION_MAJOR < 4
-#ifdef ITK_USE_REVIEW_STATISTICS
-#include "itkMaximumDecisionRule2.h"
-#else
 #include "itkMaximumDecisionRule.h"
-#endif
-#else
-#include "itkMaximumDecisionRule.h"
-#endif
 
 namespace itk
 {
@@ -76,7 +68,7 @@ namespace itk
  * \ingroup ClassificationFilters
 */
 template< class TInputVectorImage, class TLabel = unsigned char >
-class ITK_EXPORT FuzzyClassifierImageFilter :
+class FuzzyClassifierImageFilter :
     public ImageToImageFilter<
                TInputVectorImage,
                Image< TLabel,
@@ -134,15 +126,7 @@ public:
 
   /** Decision rule used in the classification process to compare the
    * membership scores and return a class label. */
-#if ITK_VERSION_MAJOR < 4
-#ifdef ITK_USE_REVIEW_STATISTICS
-  typedef itk::Statistics::MaximumDecisionRule2 DecisionRuleType;
-#else
-  typedef itk::MaximumDecisionRule              DecisionRuleType;
-#endif
-#else
   typedef itk::Statistics::MaximumDecisionRule              DecisionRuleType;
-#endif
   typedef DecisionRuleType::Pointer             DecisionRulePointer;
 
 

@@ -1,8 +1,8 @@
 /*************************************  open_iA  ************************************ *
 * **********   A tool for visual analysis and processing of 3D CT images   ********** *
 * *********************************************************************************** *
-* Copyright (C) 2016-2019  C. Heinzl, M. Reiter, A. Reh, W. Li, M. Arikan, Ar. &  Al. *
-*                          Amirkhanov, J. Weissenböck, B. Fröhler, M. Schiwarth       *
+* Copyright (C) 2016-2021  C. Heinzl, M. Reiter, A. Reh, W. Li, M. Arikan, Ar. &  Al. *
+*                 Amirkhanov, J. Weissenböck, B. Fröhler, M. Schiwarth, P. Weinberger *
 * *********************************************************************************** *
 * This program is free software: you can redistribute it and/or modify it under the   *
 * terms of the GNU General Public License as published by the Free Software           *
@@ -30,7 +30,7 @@
 #include "iAQtCaptionWidget.h"
 
 #include <iAAttributeDescriptor.h>
-#include <iAConsole.h>
+#include <iALog.h>
 
 #include <QCheckBox>
 #include <QDialogButtonBox>
@@ -47,22 +47,22 @@ iAHistogramContainer::iAHistogramContainer(
 	iAChartAttributeMapper const & chartAttributeMapper,
 	iAImageTreeNode const * root,
 	QStringList const & pipelineNames):
+	m_paramChartWidget(new QWidget()),
+	m_derivedOutputChartWidget(new QWidget()),
+	m_paramChartContainer(new QWidget()),
+	m_derivedOutputChartContainer(new QWidget()),
+	m_paramChartLayout(nullptr),
+	m_chartContainer(new QSplitter()),
 	m_chartAttributes(chartAttributes),
 	m_chartAttributeMapper(chartAttributeMapper),
 	m_root(root),
-	m_paramChartLayout(0),
 	m_pipelineNames(pipelineNames)
 {
-	m_paramChartContainer = new QWidget();
-	m_paramChartWidget = new QWidget();
 	CreateGridLayout();
 	SetCaptionedContent(m_paramChartContainer, "Input Parameters", m_paramChartWidget);
-	m_chartContainer = new QSplitter();
-	m_derivedOutputChartContainer = new QWidget();
-	m_derivedOutputChartWidget = new QWidget();
 	m_derivedOutputChartWidget->setLayout(new QHBoxLayout());
 	m_derivedOutputChartWidget->layout()->setSpacing(ChartSpacing);
-	m_derivedOutputChartWidget->layout()->setMargin(0);
+	m_derivedOutputChartWidget->layout()->setContentsMargins(0, 0, 0, 0);
 	SetCaptionedContent(m_derivedOutputChartContainer, "Derived Output", m_derivedOutputChartWidget);
 }
 
@@ -71,7 +71,7 @@ void iAHistogramContainer::CreateGridLayout()
 	delete m_paramChartLayout;
 	m_paramChartLayout = new QGridLayout();
 	m_paramChartLayout->setSpacing(ChartSpacing);
-	m_paramChartLayout->setMargin(0);
+	m_paramChartLayout->setContentsMargins(0, 0, 0, 0);
 	m_paramChartWidget->setLayout(m_paramChartLayout);
 }
 
@@ -87,15 +87,15 @@ void iAHistogramContainer::CreateCharts()
 	int curMinDatasetID = 0;
 	int paramChartRow = 0;
 	int paramChartCol = 1;
-	QLabel* label = new QLabel(m_pipelineNames[paramChartRow]);
-	m_labels.push_back(label);
-	m_paramChartLayout->addWidget(label, paramChartRow, 0);
+	QLabel* lbPipelineName = new QLabel(m_pipelineNames[paramChartRow]);
+	m_labels.push_back(lbPipelineName);
+	m_paramChartLayout->addWidget(lbPipelineName, paramChartRow, 0);
 	int paramChartMaxCols = 0;
 	int derivedOutMaxCols = 0;
 	double maxValue = -1;
 	for (int chartID = 0; chartID != m_chartAttributes->size(); ++chartID)
 	{
-		QSharedPointer<iAAttributeDescriptor> attrib = m_chartAttributes->at(chartID);
+		auto attrib = m_chartAttributes->at(chartID);
 		if (attrib->min() == attrib->max() || m_disabledCharts.contains(chartID))
 		{
 			continue;
@@ -109,7 +109,7 @@ void iAHistogramContainer::CreateCharts()
 			(attrib->valueType() == iAValueType::Discrete || attrib->valueType() == iAValueType::Categorical) ?
 			std::min(static_cast<size_t>(attrib->max() - attrib->min() + 1), maxBin) :
 			maxBin;
-		QSharedPointer<iAParamHistogramData> data = iAParamHistogramData::create(
+		auto paramData = iAParamHistogramData::create(
 			m_root,
 			chartID,
 			attrib->valueType(),
@@ -118,22 +118,22 @@ void iAHistogramContainer::CreateCharts()
 			attrib->isLogScale(),
 			m_chartAttributeMapper,
 			numBin);
-		if (!data)
+		if (!paramData)
 		{
-			DEBUG_LOG(QString("ERROR: Creating chart #%1 data for attribute %2 failed!").arg(chartID)
+			LOG(lvlError, QString("Creating chart #%1 data for attribute %2 failed!").arg(chartID)
 				.arg(attrib->name()));
 			continue;
 		}
 		if (attrib->attribType() == iAAttributeDescriptor::Parameter)
 		{
-			maxValue = std::max(data->yBounds()[1], maxValue);
+			maxValue = std::max(paramData->yBounds()[1], maxValue);
 		}
-		m_charts.insert(chartID, new iAClusterAttribChart(attrib->name(), chartID, data,
+		m_charts.insert(chartID, new iAClusterAttribChart(attrib->name(), chartID, paramData,
 			attrib->nameMapper()));
 
-		connect(m_charts[chartID], SIGNAL(Toggled(bool)), this, SLOT(ChartSelected(bool)));
-		connect(m_charts[chartID], SIGNAL(FilterChanged(double, double)), this, SLOT(FilterChanged(double, double)));
-		connect(m_charts[chartID], SIGNAL(ChartDblClicked()), this, SLOT(ChartDblClicked()));
+		connect(m_charts[chartID], &iAClusterAttribChart::Toggled, this, &iAHistogramContainer::ChartSelected);
+		connect(m_charts[chartID], &iAClusterAttribChart::FilterChanged, this, QOverload<double,double>::of(&iAHistogramContainer::FilterChanged));
+		connect(m_charts[chartID], &iAClusterAttribChart::ChartDblClicked, this, QOverload<>::of(&iAHistogramContainer::ChartDblClicked));
 
 		if (attrib->attribType() == iAAttributeDescriptor::Parameter)
 		{
@@ -182,9 +182,9 @@ void iAHistogramContainer::UpdateClusterChartData(QVector<QSharedPointer<iAImage
 			continue;
 		}
 		m_charts[chartID]->ClearClusterData();
-		foreach(QSharedPointer<iAImageTreeNode> const node, selection)
+		for (auto const & node: selection)
 		{
-			QSharedPointer<iAAttributeDescriptor> attrib = m_chartAttributes->at(chartID);
+			auto attrib = m_chartAttributes->at(chartID);
 			m_charts[chartID]->AddClusterData(iAParamHistogramData::create(
 				node.data(), chartID,
 				attrib->valueType(),
@@ -216,7 +216,7 @@ void iAHistogramContainer::UpdateClusterFilteredChartData(
 		}
 		else
 		{
-			QSharedPointer<iAAttributeDescriptor> attrib = m_chartAttributes->at(chartID);
+			auto attrib = m_chartAttributes->at(chartID);
 			m_charts[chartID]->SetFilteredClusterData(iAParamHistogramData::create(
 				selectedNode, chartID,
 				attrib->valueType(),
@@ -240,7 +240,7 @@ void iAHistogramContainer::UpdateFilteredChartData(iAChartFilter const & chartFi
 			continue;
 		}
 		assert(m_charts[chartID]);
-		QSharedPointer<iAAttributeDescriptor> attrib = m_chartAttributes->at(chartID);
+		auto attrib = m_chartAttributes->at(chartID);
 		m_charts[chartID]->SetFilteredData(iAParamHistogramData::create(
 			m_root, chartID,
 			attrib->valueType(),
@@ -421,7 +421,7 @@ void iAHistogramContainer::ChartDblClicked()
 	assert(slider);
 	if (!slider)
 	{
-		DEBUG_LOG("ChartDblClicked called from non-slider widget.");
+		LOG(lvlError, "ChartDblClicked called from non-slider widget.");
 		return;
 	}
 	int chartID = slider->GetID();
@@ -435,7 +435,7 @@ void iAHistogramContainer::FilterChanged(double min, double max)
 	assert(slider);
 	if (!slider)
 	{
-		DEBUG_LOG("FilterChanged called from non-slider widget.");
+		LOG(lvlError, "FilterChanged called from non-slider widget.");
 		return;
 	}
 	int chartID = slider->GetID();
@@ -477,7 +477,7 @@ void iAHistogramContainer::SetSerializedHiddenCharts(QString const & hiddenChart
 }
 
 
-void iAHistogramContainer::SelectHistograms()
+void iAHistogramContainer::selectHistograms()
 {
 	QDialog dlg(this);
 	QVBoxLayout* layout = new QVBoxLayout();
@@ -514,8 +514,8 @@ void iAHistogramContainer::SelectHistograms()
 		layout->addWidget(box);
 	}
 	auto buttons = new QDialogButtonBox(QDialogButtonBox::Ok | QDialogButtonBox::Cancel);
-	connect(buttons, SIGNAL(accepted()), &dlg, SLOT(accept()));
-	connect(buttons, SIGNAL(rejected()), &dlg, SLOT(reject()));
+	connect(buttons, &QDialogButtonBox::accepted, &dlg, &QDialog::accept);
+	connect(buttons, &QDialogButtonBox::rejected, &dlg, &QDialog::reject);
 	layout->addWidget(buttons);
 	dlg.setLayout(layout);
 	if (dlg.exec() == QDialog::Accepted)

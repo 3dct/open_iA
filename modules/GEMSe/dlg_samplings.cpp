@@ -1,8 +1,8 @@
 /*************************************  open_iA  ************************************ *
 * **********   A tool for visual analysis and processing of 3D CT images   ********** *
 * *********************************************************************************** *
-* Copyright (C) 2016-2019  C. Heinzl, M. Reiter, A. Reh, W. Li, M. Arikan, Ar. &  Al. *
-*                          Amirkhanov, J. Weissenböck, B. Fröhler, M. Schiwarth       *
+* Copyright (C) 2016-2021  C. Heinzl, M. Reiter, A. Reh, W. Li, M. Arikan, Ar. &  Al. *
+*                 Amirkhanov, J. Weissenböck, B. Fröhler, M. Schiwarth, P. Weinberger *
 * *********************************************************************************** *
 * This program is free software: you can redistribute it and/or modify it under the   *
 * terms of the GNU General Public License as published by the Free Software           *
@@ -28,8 +28,8 @@ dlg_samplings::dlg_samplings():
 	m_itemModel(new QStandardItemModel()),
 	m_samplings(new QVector<SamplingResultPtr>())
 {
-	connect(pbAdd, SIGNAL(clicked()), this, SIGNAL(AddSampling()));
-	connect(pbRemove, SIGNAL(clicked()), this, SLOT(Remove()));
+	connect(pbAdd, &QPushButton::clicked, this, &dlg_samplings::AddSampling);
+	connect(pbRemove, &QPushButton::clicked, this, &dlg_samplings::Remove);
 	m_itemModel->setHorizontalHeaderItem(0, new QStandardItem("Samplings"));
 	lvSamplings->setModel(m_itemModel);
 }
@@ -41,7 +41,7 @@ QSharedPointer<iASamplingResults> dlg_samplings::GetSampling(int idx)
 
 void dlg_samplings::Add(QSharedPointer<iASamplingResults> samplingResults)
 {
-	QStandardItem* newItem = new QStandardItem(samplingResults->GetFileName());
+	QStandardItem* newItem = new QStandardItem(samplingResults->fileName());
 	m_samplings->push_back(samplingResults);
 	m_itemModel->appendRow(newItem);
 }

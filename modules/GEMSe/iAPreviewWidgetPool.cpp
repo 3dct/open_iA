@@ -1,8 +1,8 @@
 /*************************************  open_iA  ************************************ *
 * **********   A tool for visual analysis and processing of 3D CT images   ********** *
 * *********************************************************************************** *
-* Copyright (C) 2016-2019  C. Heinzl, M. Reiter, A. Reh, W. Li, M. Arikan, Ar. &  Al. *
-*                          Amirkhanov, J. Weissenböck, B. Fröhler, M. Schiwarth       *
+* Copyright (C) 2016-2021  C. Heinzl, M. Reiter, A. Reh, W. Li, M. Arikan, Ar. &  Al. *
+*                 Amirkhanov, J. Weissenböck, B. Fröhler, M. Schiwarth, P. Weinberger *
 * *********************************************************************************** *
 * This program is free software: you can redistribute it and/or modify it under the   *
 * terms of the GNU General Public License as published by the Free Software           *
@@ -22,12 +22,11 @@
 
 #include "iAImagePreviewWidget.h"
 
-#include <iAConsole.h>
+#include <iALog.h>
 
-iAPreviewWidgetPool::iAPreviewWidgetPool(int maxWidgets, vtkCamera* camera, iASlicerMode slicerMode, int labelCount, iAColorTheme const * colorTheme)
-	: m_slicerMode(slicerMode),
+iAPreviewWidgetPool::iAPreviewWidgetPool(int maxWidgets, vtkCamera* camera, iASlicerMode slicerMode, int labelCount, iAColorTheme const * colorTheme):
 	m_commonCamera(camera),
-	m_maxWidgets(maxWidgets),
+	m_slicerMode(slicerMode),
 	m_labelCount(labelCount),
 	m_colorTheme(colorTheme)
 {
@@ -42,12 +41,12 @@ iAPreviewWidgetPool::iAPreviewWidgetPool(int maxWidgets, vtkCamera* camera, iASl
 	std::fill(m_sliceNumber, m_sliceNumber+SlicerCount, iAImagePreviewWidget::SliceNumberNotSet);
 }
 
-iAImagePreviewWidget* iAPreviewWidgetPool::getWidget(QWidget* parent, bool magicLens)
+iAImagePreviewWidget* iAPreviewWidgetPool::getWidget(QWidget* parent, bool /*magicLens*/)
 {
 	if (m_pool.size() == 0)
 	{
 #if _DEBUG
-		DEBUG_LOG("No more slicer widgets available!\n");
+		LOG(lvlError, "No more slicer widgets available!\n");
 #endif
 		return 0;
 	}
@@ -70,7 +69,10 @@ void iAPreviewWidgetPool::returnWidget(iAImagePreviewWidget* widget)
 	widget->setParent(0);
 	int idx = m_visible.lastIndexOf(widget);
 	assert( idx != -1 );
-	if (idx != -1) m_visible.remove(idx);
+	if (idx != -1)
+	{
+		m_visible.remove(idx);
+	}
 	m_pool.push_back(widget);
 }
 
@@ -79,13 +81,13 @@ void iAPreviewWidgetPool::setSlicerMode(iASlicerMode mode, int sliceNr, vtkCamer
 	m_slicerMode = mode;
 	if (m_sliceNumber[m_slicerMode] != sliceNr && m_sliceNumber[m_slicerMode] != iAImagePreviewWidget::SliceNumberNotSet)
 	{
-		DEBUG_LOG(QString("Current and given sliceNumber unexpectedly don't match (sliceNr=%1 != m_sliceNumber[mode]=%2\n")
+		LOG(lvlError, QString("Current and given sliceNumber unexpectedly don't match (sliceNr=%1 != m_sliceNumber[mode]=%2\n")
 			.arg(sliceNr)
 			.arg(m_sliceNumber[m_slicerMode]));
 	}
 	m_sliceNumber[m_slicerMode] = sliceNr;
 	m_commonCamera = camera;
-	foreach(iAImagePreviewWidget* widget, m_visible)
+	for (iAImagePreviewWidget* widget: m_visible)
 	{
 		widget->setSlicerMode(mode, sliceNr, camera);
 	}
@@ -99,7 +101,7 @@ int iAPreviewWidgetPool::capacity()
 void iAPreviewWidgetPool::setSliceNumber(int sliceNumber)
 {
 	m_sliceNumber[m_slicerMode] = sliceNumber;
-	foreach(iAImagePreviewWidget* widget, m_visible)
+	for (iAImagePreviewWidget* widget: m_visible)
 	{
 		widget->setSliceNumber(sliceNumber);
 	}
@@ -107,7 +109,7 @@ void iAPreviewWidgetPool::setSliceNumber(int sliceNumber)
 
 void iAPreviewWidgetPool::updateViews()
 {
-	foreach(iAImagePreviewWidget* nodeWidget, m_visible)
+	for (iAImagePreviewWidget* nodeWidget: m_visible)
 	{
 		if (nodeWidget->isVisible())
 		{
@@ -119,11 +121,11 @@ void iAPreviewWidgetPool::updateViews()
 void iAPreviewWidgetPool::setColorTheme(iAColorTheme const * colorTheme)
 {
 	m_colorTheme = colorTheme;
-	foreach(iAImagePreviewWidget* nodeWidget, m_visible)
+	for (iAImagePreviewWidget* nodeWidget: m_visible)
 	{
 		nodeWidget->setColorTheme(colorTheme);
 	}
-	foreach(iAImagePreviewWidget* nodeWidget, m_pool)
+	for (iAImagePreviewWidget* nodeWidget: m_pool)
 	{
 		nodeWidget->setColorTheme(colorTheme);
 	}

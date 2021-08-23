@@ -1,8 +1,8 @@
 /*************************************  open_iA  ************************************ *
 * **********   A tool for visual analysis and processing of 3D CT images   ********** *
 * *********************************************************************************** *
-* Copyright (C) 2016-2019  C. Heinzl, M. Reiter, A. Reh, W. Li, M. Arikan, Ar. &  Al. *
-*                          Amirkhanov, J. Weissenböck, B. Fröhler, M. Schiwarth       *
+* Copyright (C) 2016-2021  C. Heinzl, M. Reiter, A. Reh, W. Li, M. Arikan, Ar. &  Al. *
+*                 Amirkhanov, J. Weissenböck, B. Fröhler, M. Schiwarth, P. Weinberger *
 * *********************************************************************************** *
 * This program is free software: you can redistribute it and/or modify it under the   *
 * terms of the GNU General Public License as published by the Free Software           *
@@ -23,9 +23,11 @@
 
 #include "iABimodalWidget.h"
 
-#include <mdichild.h>
+#include <iAMdiChild.h>
 
-dlg_tf_2mod::dlg_tf_2mod(MdiChild *mdiChild, Qt::WindowFlags f)
+#include <QHBoxLayout>
+
+dlg_tf_2mod::dlg_tf_2mod(iAMdiChild *mdiChild, Qt::WindowFlags f)
 	:
 	QDockWidget("Double Histogram Transfer Function", mdiChild, f),
 	m_mdiChild(mdiChild)
@@ -39,6 +41,6 @@ dlg_tf_2mod::dlg_tf_2mod(MdiChild *mdiChild, Qt::WindowFlags f)
 	dockWidgetContents->setObjectName(QStringLiteral("dockWidgetContents"));
 	QHBoxLayout *layout = new QHBoxLayout(dockWidgetContents);
 
-	m_bimodalWidget = new iABimodalWidget(dockWidgetContents, mdiChild);
+	m_bimodalWidget = new iABimodalWidget(mdiChild);
 	layout->addWidget(m_bimodalWidget);
 }

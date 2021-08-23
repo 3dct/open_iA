@@ -1,8 +1,8 @@
 /*************************************  open_iA  ************************************ *
 * **********   A tool for visual analysis and processing of 3D CT images   ********** *
 * *********************************************************************************** *
-* Copyright (C) 2016-2019  C. Heinzl, M. Reiter, A. Reh, W. Li, M. Arikan, Ar. &  Al. *
-*                          Amirkhanov, J. Weissenböck, B. Fröhler, M. Schiwarth       *
+* Copyright (C) 2016-2021  C. Heinzl, M. Reiter, A. Reh, W. Li, M. Arikan, Ar. &  Al. *
+*                 Amirkhanov, J. Weissenböck, B. Fröhler, M. Schiwarth, P. Weinberger *
 * *********************************************************************************** *
 * This program is free software: you can redistribute it and/or modify it under the   *
 * terms of the GNU General Public License as published by the Free Software           *
@@ -22,7 +22,8 @@
 
 #include "iA4DCTSettings.h"
 #include "iAStageView.h"
-#include "mainwindow.h"
+
+#include <iAMainWindow.h>
 
 #include <QMenu>
 #include <QAction>
@@ -34,9 +35,9 @@ iA4DCTListView::iA4DCTListView( QWidget* parent/*=0*/ ) :
 	QListView( parent )
 {
 	m_actOpen = new QAction( tr( "Open file" ), this );
-	connect( m_actOpen, SIGNAL( triggered( ) ), this, SLOT( openFile( ) ) );
+	connect( m_actOpen, &QAction::triggered, this, &iA4DCTListView::openFile);
 	m_actNew = new QAction( tr( "Add new file" ), this );
-	connect( m_actNew, SIGNAL( triggered( ) ), this, SLOT( addFile( ) ) );
+	connect( m_actNew, &QAction::triggered, this, &iA4DCTListView::addFile);
 
 	m_menu = new QMenu( this );
 	m_menu->addAction( m_actOpen );
@@ -75,20 +76,20 @@ void iA4DCTListView::contextMenuEvent( QContextMenuEvent* event )
 
 void iA4DCTListView::openFile( )
 {
-	MainWindow* win = qobject_cast<MainWindow*>( QApplication::activeWindow( ) );
-
 	QModelIndexList indexes = this->selectionModel( )->selectedIndexes( );
-	if( indexes.size( ) > 1 ) {
+	if( indexes.size( ) > 1 )
+	{
 		return;
 	}
-
-	if( win != NULL ) {
+	iAMainWindow* win = qobject_cast<iAMainWindow*>(QApplication::activeWindow());
+	if( win)
+	{
 		win->loadFile( m_data->at( indexes[0].row( ) ).Path, false );
 	}
 }
 
 void iA4DCTListView::addFile( )
 {
-	if( m_stageView != NULL )
+	if( m_stageView != nullptr )
 		m_stageView->addFile( );
 }

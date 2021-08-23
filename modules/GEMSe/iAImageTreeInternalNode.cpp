@@ -1,8 +1,8 @@
 /*************************************  open_iA  ************************************ *
 * **********   A tool for visual analysis and processing of 3D CT images   ********** *
 * *********************************************************************************** *
-* Copyright (C) 2016-2019  C. Heinzl, M. Reiter, A. Reh, W. Li, M. Arikan, Ar. &  Al. *
-*                          Amirkhanov, J. Weissenböck, B. Fröhler, M. Schiwarth       *
+* Copyright (C) 2016-2021  C. Heinzl, M. Reiter, A. Reh, W. Li, M. Arikan, Ar. &  Al. *
+*                 Amirkhanov, J. Weissenböck, B. Fröhler, M. Schiwarth, P. Weinberger *
 * *********************************************************************************** *
 * This program is free software: you can redistribute it and/or modify it under the   *
 * terms of the GNU General Public License as published by the Free Software           *
@@ -23,7 +23,7 @@
 #include "iAGEMSeConstants.h" // for iARepresentativeType -> move to iARepresentative?
 #include "iARepresentative.h"
 
-#include <iAConsole.h>
+#include <iALog.h>
 #include <iAMathUtility.h>
 #include <iAToolsITK.h>
 
@@ -41,11 +41,11 @@ iAImageTreeInternalNode::iAImageTreeInternalNode(
 	ClusterIDType id,
 	ClusterDistanceType distance
 ) :
-	m_children(a, b),
+	m_ID(id),
 	m_clusterSize(0),
 	m_filteredRepresentativeOutdated(true),
 	m_differenceMarkerValue(differenceMarkerValue),
-	m_ID(id),
+	m_children(a, b),
 	m_distance(distance),
 	m_cachePath(cachePath)
 {
@@ -161,7 +161,7 @@ ClusterImageType iAImageTreeInternalNode::CalculateRepresentative(int type, Labe
 		return m_representative[iARepresentativeType::AverageLabel];
 	}
 	default:
-		DEBUG_LOG("Requested to calculate invalid representative type!");
+		LOG(lvlError, "Requested to calculate invalid representative type!");
 		return ClusterImageType();
 	}
 }
@@ -193,7 +193,7 @@ ClusterImageType iAImageTreeInternalNode::CalculateFilteredRepresentative(int ty
 
 
 	default:
-		DEBUG_LOG("Requested to calculate invalid filtered representative type!");
+		LOG(lvlError, "Requested to calculate invalid filtered representative type!");
 		return ClusterImageType();
 	}
 }
@@ -229,11 +229,13 @@ void iAImageTreeInternalNode::GetExampleImages(QVector<iAImageTreeLeaf *> & resu
 					(GetFilteredSize() == GetChild(i)->GetFilteredSize()) ? amount : amount - 1
 				),
 				curAmount);
-			int sizeBefore = result.size();
+			//int sizeBefore = result.size();
 			if (curAmount == 0)
+			{
 				continue;
+			}
 			GetChild(i)->GetExampleImages(result, curAmount);
-			int imagesReturned = result.size() - sizeBefore;
+			//int imagesReturned = result.size() - sizeBefore;
 			amountLeft -= curAmount;
 		}
 	}
@@ -270,7 +272,7 @@ ClusterImageType const iAImageTreeInternalNode::GetRepresentativeImage(int type,
 		// fine, this just means that all images were filtered out!
 		if (!m_filteredRepresentative[type])
 		{
-		DEBUG_LOG("Filtered representative is NULL!");
+		LOG(lvlError, "Filtered representative is nullptr!");
 		}
 		*/
 		return m_filteredRepresentative[type];
@@ -295,7 +297,7 @@ ClusterImageType const iAImageTreeInternalNode::GetRepresentativeImage(int type,
 	}
 	if (!m_representative[type])
 	{
-		//DEBUG_LOG("Representative is NULL!");
+		//LOG(lvlError, "Representative is nullptr!");
 	}
 	return m_representative[type];
 }
@@ -325,7 +327,7 @@ ClusterIDType iAImageTreeInternalNode::GetID() const
 }
 
 
-double iAImageTreeInternalNode::GetAttribute(int id) const
+double iAImageTreeInternalNode::GetAttribute(int /*id*/) const
 {
 	assert(false);
 	return 0.0;
@@ -355,7 +357,7 @@ void iAImageTreeInternalNode::RecalculateFilteredRepresentative(int type, LabelI
 	m_filteredRepresentativeOutdated = false;
 	if (GetFilteredSize() == GetClusterSize())
 	{
-		DEBUG_LOG("RecalculateFilteredRepresentative called without need (not filtered!)");
+		LOG(lvlError, "RecalculateFilteredRepresentative called without need (not filtered!)");
 		// return;
 	}
 	m_filteredRepresentative[type] = CalculateFilteredRepresentative(type, refImg);
@@ -383,8 +385,8 @@ LabelPixelHistPtr iAImageTreeInternalNode::UpdateLabelDistribution() const
 	LabelPixelHistPtr childResult1 = GetChild(0)->UpdateLabelDistribution();
 	LabelPixelHistPtr childResult2 = GetChild(1)->UpdateLabelDistribution();
 
-	LabelImagePointer img = childResult1->hist.at(0);
-	LabelImageType::SizeType size = img->GetLargestPossibleRegion().GetSize();
+	LabelImagePointer child1Img = childResult1->hist.at(0);
+	LabelImageType::SizeType size = child1Img->GetLargestPossibleRegion().GetSize();
 	for (int l = 0; l < m_differenceMarkerValue; ++l)
 	{
 		typedef itk::AddImageFilter<LabelImageType> AddImgFilterType;
@@ -398,18 +400,18 @@ LabelPixelHistPtr iAImageTreeInternalNode::UpdateLabelDistribution() const
 
 	ProbabilityImagePointer labelEntropy = createImage<ProbabilityImageType>(
 		size,
-		img->GetSpacing()
+		child1Img->GetSpacing()
 		);
 	LabelImageType::IndexType idx;
 
 	double limit = -std::log(1.0 / m_differenceMarkerValue);
 	double normalizeFactor = 1 / limit;
 
-	for (idx[0] = 0; idx[0] < size[0]; ++idx[0])
-	{
-		for (idx[1] = 0; idx[1] < size[1]; ++idx[1])
+	for (idx[0] = 0; idx[0] >= 0 && static_cast<uint64_t>(idx[0]) < size[0]; ++idx[0])
+	{	// >= 0 checks to prevent signed int overflow!
+		for (idx[1] = 0; idx[1] >= 0 && static_cast<uint64_t>(idx[1]) < size[1]; ++idx[1])
 		{
-			for (idx[2] = 0; idx[2] < size[2]; ++idx[2])
+			for (idx[2] = 0; idx[2] >= 0 && static_cast<uint64_t>(idx[2]) < size[2]; ++idx[2])
 			{
 				double entropy = 0;
 				for (int l = 0; l < m_differenceMarkerValue; ++l)
@@ -450,8 +452,8 @@ CombinedProbPtr iAImageTreeInternalNode::UpdateProbabilities() const
 		return result;
 	}
 
-	ProbabilityImagePointer img = childResult1->prob.at(0);
-	ProbabilityImageType::SizeType size = img->GetLargestPossibleRegion().GetSize();
+	ProbabilityImagePointer child1Img = childResult1->prob.at(0);
+	ProbabilityImageType::SizeType size = child1Img->GetLargestPossibleRegion().GetSize();
 	for (int l = 0; l < m_differenceMarkerValue; ++l)
 	{
 		if (childResult1->prob.at(l) && childResult2->prob.at(l))
@@ -474,23 +476,23 @@ CombinedProbPtr iAImageTreeInternalNode::UpdateProbabilities() const
 
 	ProbabilityImagePointer averageEntropy = createImage<ProbabilityImageType>(
 		size,
-		img->GetSpacing()
+		child1Img->GetSpacing()
 		);
 	ProbabilityImageType::IndexType idx;
 
 	LabelImagePointer averageLabel = createImage<LabelImageType>(
 		size,
-		img->GetSpacing()
+		child1Img->GetSpacing()
 		);
 
 	double limit = -std::log(1.0 / m_differenceMarkerValue);
 	double normalizeFactor = 1 / limit;
 
-	for (idx[0] = 0; idx[0] < size[0]; ++idx[0])
-	{
-		for (idx[1] = 0; idx[1] < size[1]; ++idx[1])
+	for (idx[0] = 0; idx[0] >= 0 && static_cast<uint64_t>(idx[0]) < size[0]; ++idx[0])
+	{	// >= 0 checks to prevent signed int overflow!
+		for (idx[1] = 0; idx[1] >= 0 && static_cast<uint64_t>(idx[1]) < size[1]; ++idx[1])
 		{
-			for (idx[2] = 0; idx[2] < size[2]; ++idx[2])
+			for (idx[2] = 0; idx[2] >= 0 && static_cast<uint64_t>(idx[2]) < size[2]; ++idx[2])
 			{
 				double entropy = 0;
 				double probMax = -1;

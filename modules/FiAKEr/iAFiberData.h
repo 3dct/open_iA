@@ -1,8 +1,8 @@
 /*************************************  open_iA  ************************************ *
 * **********   A tool for visual analysis and processing of 3D CT images   ********** *
 * *********************************************************************************** *
-* Copyright (C) 2016-2019  C. Heinzl, M. Reiter, A. Reh, W. Li, M. Arikan, Ar. &  Al. *
-*                          Amirkhanov, J. Weissenböck, B. Fröhler, M. Schiwarth       *
+* Copyright (C) 2016-2021  C. Heinzl, M. Reiter, A. Reh, W. Li, M. Arikan, Ar. &  Al. *
+*                 Amirkhanov, J. Weissenböck, B. Fröhler, M. Schiwarth, P. Weinberger *
 * *********************************************************************************** *
 * This program is free software: you can redistribute it and/or modify it under the   *
 * terms of the GNU General Public License as published by the Free Software           *
@@ -18,14 +18,13 @@
 * Contact: FH OÖ Forschungs & Entwicklungs GmbH, Campus Wels, CT-Gruppe,              *
 *          Stelzhamerstraße 23, 4600 Wels / Austria, Email: c.heinzl@fh-wels.at       *
 * ************************************************************************************/
+#pragma once
 
-#include "iAvec3.h"
+#include "iAVec3.h"
 
 #include <QMap>
 
 #include <vector>
-
-typedef iAVec3T<double> Vec3D;
 
 class vtkTable;
 
@@ -41,15 +40,20 @@ const int DefaultSamplePoints = 200;
 struct iAFiberData
 {
 	double phi, theta, length, diameter;
-	Vec3D pts[3];
+	std::vector<iAVec3f> pts;
+	std::vector<iAVec3f> curvedPoints;
 	iAFiberData();
-	iAFiberData(vtkTable* table, size_t fiberID, QMap<uint, uint> const & mapping);
+	//! generate fiber data from given table, mapping, and optional curved points
+	iAFiberData(vtkTable* table, size_t fiberID, QMap<uint, uint> const & mapping, std::vector<iAVec3f> curvedPts /*= std::vector<iAVec3f>()*/);
+	//! generate from a vector containing start, middle end points (each 3 coordinates), phi, theta, length and diameter (i.e. 13 values overall)
 	iAFiberData(std::vector<double> const & data);
 	static iAFiberData getOrientationCorrected(iAFiberData const & source, iAFiberData const & other);
 };
 
+//! check if a point is contained in a fiber
+bool pointContainedInFiber(iAVec3f const& point, iAFiberData const& fiber);
 //! Samples points inside of the cylinder spanned by a single fiber
-void samplePoints(iAFiberData const & fiber, std::vector<Vec3D> & result, size_t numSamples=DefaultSamplePoints);
+void samplePoints(iAFiberData const & fiber, std::vector<iAVec3f> & result, size_t numSamples=DefaultSamplePoints);
 
 //! Computes the similarity between two fibers according to a given measure
 //! @param fiber1raw data of the first fiber
@@ -60,5 +64,7 @@ void samplePoints(iAFiberData const & fiber, std::vector<Vec3D> & result, size_t
 //! @param diagonalLength length of the diagonal of the dataset (i.e. the maximum possible length of a fiber)
 //! @param maxLength the maximum length difference in the dataset, i.e. the length of the longest fiber
 //!     in the dataset minus the length of the shortest one
-double getSimilarity(iAFiberData const & fiber1raw, iAFiberData const & fiber2,
+double getDissimilarity(iAFiberData const & fiber1raw, iAFiberData const & fiber2,
 	int measureID, double diagonalLength, double maxLength);
+
+QStringList getAvailableDissimilarityMeasureNames();

@@ -1,8 +1,8 @@
 /*************************************  open_iA  ************************************ *
 * **********   A tool for visual analysis and processing of 3D CT images   ********** *
 * *********************************************************************************** *
-* Copyright (C) 2016-2019  C. Heinzl, M. Reiter, A. Reh, W. Li, M. Arikan, Ar. &  Al. *
-*                          Amirkhanov, J. Weissenböck, B. Fröhler, M. Schiwarth       *
+* Copyright (C) 2016-2021  C. Heinzl, M. Reiter, A. Reh, W. Li, M. Arikan, Ar. &  Al. *
+*                 Amirkhanov, J. Weissenböck, B. Fröhler, M. Schiwarth, P. Weinberger *
 * *********************************************************************************** *
 * This program is free software: you can redistribute it and/or modify it under the   *
 * terms of the GNU General Public License as published by the Free Software           *
@@ -42,7 +42,7 @@ private:
 	float overlapThreshold;
 	float volumeThreshold;
 	float overallMatchingPercentage;
-	int maxSearchValue;
+	int m_maxSearchValue;
 	std::vector<std::pair<vtkIdType, std::vector<iAFeatureTrackingCorrespondence> > > *uToV;
 	std::vector<std::pair<vtkIdType, std::vector<iAFeatureTrackingCorrespondence> > > *vToU;
 	std::vector<std::pair<vtkIdType, std::vector<iAFeatureTrackingCorrespondence> > > *allUtoV;
@@ -61,7 +61,7 @@ public:
 	std::vector<iAFeatureTrackingCorrespondence> FromUtoV(unsigned int uId);
 	std::vector<iAFeatureTrackingCorrespondence> FromVtoU(unsigned int vId);
 	float GetOverallMatchingPercentage();
-		
+
 	size_t getNumberOfEventsInU();
 	size_t getNumberOfEventsInV();
 	vtkSmartPointer<vtkTable> getU();

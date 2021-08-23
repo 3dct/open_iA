@@ -1,8 +1,8 @@
 /*************************************  open_iA  ************************************ *
 * **********   A tool for visual analysis and processing of 3D CT images   ********** *
 * *********************************************************************************** *
-* Copyright (C) 2016-2019  C. Heinzl, M. Reiter, A. Reh, W. Li, M. Arikan, Ar. &  Al. *
-*                          Amirkhanov, J. Weissenböck, B. Fröhler, M. Schiwarth       *
+* Copyright (C) 2016-2021  C. Heinzl, M. Reiter, A. Reh, W. Li, M. Arikan, Ar. &  Al. *
+*                 Amirkhanov, J. Weissenböck, B. Fröhler, M. Schiwarth, P. Weinberger *
 * *********************************************************************************** *
 * This program is free software: you can redistribute it and/or modify it under the   *
 * terms of the GNU General Public License as published by the Free Software           *
@@ -20,7 +20,7 @@
 * ************************************************************************************/
 #pragma once
 
-#include "BarycentricTriangle.h"
+#include "iABarycentricTriangle.h"
 
 #include <vtkSmartPointer.h>
 #include <vtkImageData.h>
@@ -37,21 +37,21 @@ class iABarycentricContextRenderer : public QWidget
 
 public:
 	iABarycentricContextRenderer();
-	void setModalities(vtkSmartPointer<vtkImageData> d1, vtkSmartPointer<vtkImageData> d2, vtkSmartPointer<vtkImageData> d3, BarycentricTriangle triangle);
-	void setTriangle(BarycentricTriangle triangle);
+	void setModalities(vtkSmartPointer<vtkImageData> d1, vtkSmartPointer<vtkImageData> d2, vtkSmartPointer<vtkImageData> d3, iABarycentricTriangle triangle);
+	void setTriangle(iABarycentricTriangle triangle);
 	QImage* getImage();
 	QRect getImageRect();
 
 private:
 	void calculateCoordinates(vtkSmartPointer<vtkImageData> d1, vtkSmartPointer<vtkImageData> d2, vtkSmartPointer<vtkImageData> d3);
-	void updateTriangle(BarycentricTriangle triangle);
+	void updateTriangle(iABarycentricTriangle triangle);
 	void drawImageLater();
 	void drawImageNow();
 
 	vtkSmartPointer<vtkImageData> m_barycentricCoordinates;
 	QImage *m_image;
 	QRect m_imageRect;
-	BarycentricTriangle m_triangle;
+	iABarycentricTriangle m_triangle;
 
 	QTimer *m_timer_heatmap;
 	int m_timerWait_heatmap;

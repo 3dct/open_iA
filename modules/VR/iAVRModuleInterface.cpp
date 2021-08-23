@@ -1,8 +1,8 @@
 /*************************************  open_iA  ************************************ *
 * **********   A tool for visual analysis and processing of 3D CT images   ********** *
 * *********************************************************************************** *
-* Copyright (C) 2016-2019  C. Heinzl, M. Reiter, A. Reh, W. Li, M. Arikan, Ar. &  Al. *
-*                          Amirkhanov, J. Weissenböck, B. Fröhler, M. Schiwarth       *
+* Copyright (C) 2016-2021  C. Heinzl, M. Reiter, A. Reh, W. Li, M. Arikan, Ar. &  Al. *
+*                 Amirkhanov, J. Weissenböck, B. Fröhler, M. Schiwarth, P. Weinberger *
 * *********************************************************************************** *
 * This program is free software: you can redistribute it and/or modify it under the   *
 * terms of the GNU General Public License as published by the Free Software           *
@@ -29,61 +29,61 @@
 #include "iACsvConfig.h"
 #include "iACsvVtkTableCreator.h"
 
-#include <dlg_commoninput.h>
-#include <iAConsole.h>
-#include <iAModality.h>
-#include <iAModalityTransfer.h>
-#include <iAVolumeRenderer.h>
-#include <mainwindow.h>
-#include <mdichild.h>
+#include <iALog.h>
+#include <iAMainWindow.h>
+
 
 #include <openvr.h>
 
 #include <vtkFloatArray.h>
 #include <vtkTable.h>
 
+#include <QAction>
+#include <QMenu>
 #include <QMessageBox>
 
 void iAVRModuleInterface::Initialize()
 {
 	if (!m_mainWnd)
+	{
 		return;
+	}
 
-	QMenu * toolsMenu = m_mainWnd->toolsMenu();
-	QMenu* vrMenu = getMenuWithTitle(toolsMenu, tr("VR"), false);
-
-	QAction * actionVRInfo = new QAction(tr("Info"), nullptr);
-	AddActionToMenuAlphabeticallySorted(vrMenu, actionVRInfo, false);
+	QAction * actionVRInfo = new QAction(tr("Info"), m_mainWnd);
 	connect(actionVRInfo, &QAction::triggered, this, &iAVRModuleInterface::info);
 
-	QAction * actionVRRender = new QAction(tr("Rendering"), nullptr);
-	AddActionToMenuAlphabeticallySorted(vrMenu, actionVRRender, true);
+	QAction * actionVRRender = new QAction(tr("Rendering"), m_mainWnd);
 	connect(actionVRRender, &QAction::triggered, this, &iAVRModuleInterface::render);
+	m_mainWnd->makeActionChildDependent(actionVRRender);
 
-	m_actionVRShowFibers = new QAction(tr("Show Fibers"), nullptr);
-	AddActionToMenuAlphabeticallySorted(vrMenu, m_actionVRShowFibers, false);
+	m_actionVRShowFibers = new QAction(tr("Show Fibers"), m_mainWnd);
 	connect(m_actionVRShowFibers, &QAction::triggered, this, &iAVRModuleInterface::showFibers);
+
+	QMenu* vrMenu = getOrAddSubMenu(m_mainWnd->toolsMenu(), tr("VR"), false);
+	vrMenu->addAction(actionVRInfo);
+	vrMenu->addAction(actionVRRender);
+	vrMenu->addAction(m_actionVRShowFibers);
 }
 
 void iAVRModuleInterface::info()
 {
-	DEBUG_LOG(QString("VR Information:"));
-	DEBUG_LOG(QString("    Is Runtime installed: %1").arg(vr::VR_IsRuntimeInstalled() ? "yes" : "no"));
+	LOG(lvlInfo, QString("VR Information:"));
+	LOG(lvlInfo, QString("    Is Runtime installed: %1").arg(vr::VR_IsRuntimeInstalled() ? "yes" : "no"));
 	const uint32_t MaxRuntimePathLength = 1024;
 	uint32_t actualLength;
-#if OPENVR_VERSION_MINOR > 3
+#if OPENVR_VERSION_MAJOR > 1 || (OPENVR_VERSION_MAJOR == 1 && OPENVR_VERSION_MINOR > 3)
 	char runtimePath[MaxRuntimePathLength];
 	vr::VR_GetRuntimePath(runtimePath, MaxRuntimePathLength, &actualLength);
 #else // OpenVR <= 1.3.22:
 	char const * runtimePath = vr::VR_RuntimePath();
 #endif
-	DEBUG_LOG(QString("    OpenVR runtime path: %1").arg(runtimePath));
-	DEBUG_LOG(QString("    Head-mounted display present: %1").arg(vr::VR_IsHmdPresent() ? "yes" : "no"));
+	LOG(lvlInfo, QString("    OpenVR runtime path: %1").arg(runtimePath));
+	LOG(lvlInfo, QString("    Head-mounted display present: %1").arg(vr::VR_IsHmdPresent() ? "yes" : "no"));
 	vr::EVRInitError eError = vr::VRInitError_None;
 	auto pHMD = vr::VR_Init(&eError, vr::VRApplication_Scene);
 	if (eError != vr::VRInitError_None)
 	{
-		DEBUG_LOG(QString("    Unable to init VR runtime: %1").arg(vr::VR_GetVRInitErrorAsEnglishDescription(eError)));
+		LOG(lvlError, QString("    Unable to init VR runtime: %1").arg(vr::VR_GetVRInitErrorAsEnglishDescription(eError)));
 	}
 	else
 	{
@@ -91,11 +91,11 @@ void iAVRModuleInterface::info()
 		{
 			uint32_t width, height;
 			pHMD->GetRecommendedRenderTargetSize(&width, &height);
-			DEBUG_LOG(QString("    Head-mounted display present, recommended render target size: %1x%2 ").arg(width).arg(height));
+			LOG(lvlInfo, QString("    Head-mounted display present, recommended render target size: %1x%2 ").arg(width).arg(height));
 		}
 		else
 		{
-			DEBUG_LOG(QString("    Head-mounted display could not be initialized: %1").arg(vr::VR_GetVRInitErrorAsEnglishDescription(eError)));
+			LOG(lvlInfo, QString("    Head-mounted display could not be initialized: %1").arg(vr::VR_GetVRInitErrorAsEnglishDescription(eError)));
 		}
 	}
 	vr::VR_Shutdown();
@@ -104,7 +104,9 @@ void iAVRModuleInterface::info()
 void iAVRModuleInterface::render()
 {
 	if (!vrAvailable())
+	{
 		return;
+	}
 	PrepareActiveChild();
 	AttachToMdiChild( m_mdiChild );
 }
@@ -119,31 +121,59 @@ void iAVRModuleInterface::showFibers()
 		m_vrEnv->stop();
 		return;
 	}
-
 	if (!vrAvailable())
+	{
 		return;
+	}
 	dlg_CSVInput dlg(false);
 	if (dlg.exec() != QDialog::Accepted)
+	{
 		return;
+	}
 	iACsvConfig csvConfig = dlg.getConfig();
 	if (csvConfig.visType == iACsvConfig::UseVolume)
+	{
 		return;
+	}
 
 	iACsvVtkTableCreator creator;
 	iACsvIO io;
 	if (!io.loadCSV(creator, csvConfig))
+	{
 		return;
+	}
+
+	std::map<size_t, std::vector<iAVec3f> > curvedFiberInfo;
+
+	if (csvConfig.visType == iACsvConfig::Cylinders || csvConfig.visType == iACsvConfig::Lines)
+	{
+		if(!readCurvedFiberInfo(csvConfig.curvedFiberFileName, curvedFiberInfo))
+		{
+			curvedFiberInfo = std::map<size_t, std::vector<iAVec3f>>();
+		}
+	}
 
 	if (!vrAvailable())
+	{
 		return;
-
+	}
+	if (m_vrEnv)
+	{
+		return;
+	}
+	//Create Environment
+	m_vrEnv.reset(new iAVREnvironment());
 	connect(m_vrEnv.data(), &iAVREnvironment::finished, this, &iAVRModuleInterface::vrDone);
 	m_actionVRShowFibers->setText("Stop Show Fibers");
 
 	m_objectTable = creator.table();
-	m_cylinderVis.reset(new iA3DCylinderObjectVis(m_vrEnv->renderer(), m_objectTable, io.getOutputMapping(), QColor(255, 0, 0), std::map<size_t, std::vector<iAVec3f> >() ));
-	m_cylinderVis->show();
+	//Create InteractorStyle
+	m_style = vtkSmartPointer<iAVRInteractorStyle>::New();
 
+	//Create VR Main
+	m_vrMain = new iAVRMain(m_vrEnv.data(), m_style, m_objectTable, io, curvedFiberInfo);
+
+	// Start Render Loop HERE!
 	m_vrEnv->start();
 }
 
@@ -162,7 +192,7 @@ bool iAVRModuleInterface::vrAvailable()
 	return true;
 }
 
-iAModuleAttachmentToChild * iAVRModuleInterface::CreateAttachment( MainWindow* mainWnd, MdiChild* child)
+iAModuleAttachmentToChild * iAVRModuleInterface::CreateAttachment( iAMainWindow* mainWnd, iAMdiChild* child)
 {
 	return new iAVRAttachment( mainWnd, child );
 }

@@ -1,8 +1,8 @@
 /*************************************  open_iA  ************************************ *
 * **********   A tool for visual analysis and processing of 3D CT images   ********** *
 * *********************************************************************************** *
-* Copyright (C) 2016-2019  C. Heinzl, M. Reiter, A. Reh, W. Li, M. Arikan, Ar. &  Al. *
-*                          Amirkhanov, J. Weissenböck, B. Fröhler, M. Schiwarth       *
+* Copyright (C) 2016-2021  C. Heinzl, M. Reiter, A. Reh, W. Li, M. Arikan, Ar. &  Al. *
+*                 Amirkhanov, J. Weissenböck, B. Fröhler, M. Schiwarth, P. Weinberger *
 * *********************************************************************************** *
 * This program is free software: you can redistribute it and/or modify it under the   *
 * terms of the GNU General Public License as published by the Free Software           *
@@ -64,26 +64,34 @@ iASegmentTree::~iASegmentTree()
 void iASegmentTree::hist_build()
 {
 	for (int i = m_inputElemCnt - 1; i > 0; --i)
+	{
 		std::transform(m_hist[i << 1].begin(), m_hist[i << 1].end(), m_hist[i << 1 | 1].begin(),
 			std::back_inserter(m_hist[i]), std::plus<int>());
+	}
 }
 
 void iASegmentTree::sum_build()
 {
 	for (int i = m_inputElemCnt - 1; i > 0; --i)
+	{
 		m_avg[i] = m_avg[i << 1] + m_avg[i << 1 | 1];
+	}
 }
 
 void iASegmentTree::min_build()
-{  
+{
 	for (int i = m_inputElemCnt - 1; i > 0; --i)
+	{
 		m_min[i] = std::min(m_min[i << 1], m_min[i << 1 | 1]);
+	}
 }
 
 void iASegmentTree::max_build()
-{ 
+{
 	for (int i = m_inputElemCnt - 1; i > 0; --i)
+	{
 		m_max[i] = std::max(m_max[i << 1], m_max[i << 1 | 1]);
+	}
 }
 
 std::vector<int> iASegmentTree::hist_query(int l, int r)
@@ -119,35 +127,47 @@ double iASegmentTree::avg_query(int l, int r)
 	for (l += m_inputElemCnt, r += m_inputElemCnt; l < r; l >>= 1, r >>= 1)
 	{
 		if (l & 1)
+		{
 			avgVal += m_avg[l++];
+		}
 		if (r & 1)
+		{
 			avgVal += m_avg[--r];
+		}
 	}
 	return avgVal / nbCnt;
 }
 
 int iASegmentTree::min_query(int l, int r)
-{ 
+{
 	int minVal = INT_MAX;
 	for (l += m_inputElemCnt, r += m_inputElemCnt; l < r; l >>= 1, r >>= 1)
 	{
 		if (l & 1)
+		{
 			minVal = std::min(minVal, m_min[l++]);
+		}
 		if (r & 1)
+		{
 			minVal = std::min(m_min[--r], minVal);
+		}
 	}
 	return minVal;
 }
 
 int iASegmentTree::max_query(int l, int r)
-{  
+{
 	int maxVal = INT_MIN;
 	for (l += m_inputElemCnt, r += m_inputElemCnt; l < r; l >>= 1, r >>= 1)
 	{
 		if (l & 1)
+		{
 			maxVal = std::max(maxVal, m_max[l++]);
+		}
 		if (r & 1)
+		{
 			maxVal = std::max(m_max[--r], maxVal);
+		}
 	}
 	return maxVal;
 }

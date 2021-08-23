@@ -1,8 +1,8 @@
 /*************************************  open_iA  ************************************ *
 * **********   A tool for visual analysis and processing of 3D CT images   ********** *
 * *********************************************************************************** *
-* Copyright (C) 2016-2019  C. Heinzl, M. Reiter, A. Reh, W. Li, M. Arikan, Ar. &  Al. *
-*                          Amirkhanov, J. Weissenböck, B. Fröhler, M. Schiwarth       *
+* Copyright (C) 2016-2021  C. Heinzl, M. Reiter, A. Reh, W. Li, M. Arikan, Ar. &  Al. *
+*                 Amirkhanov, J. Weissenböck, B. Fröhler, M. Schiwarth, P. Weinberger *
 * *********************************************************************************** *
 * This program is free software: you can redistribute it and/or modify it under the   *
 * terms of the GNU General Public License as published by the Free Software           *
@@ -21,7 +21,7 @@
 #include "iASegmentationMetrics.h"
 
 #include <iAConnector.h>
-#include <iAConsole.h>
+#include <iALog.h>
 #include <iATypedCallHelper.h>
 
 #include <itkLabelOverlapMeasuresImageFilter.h>
@@ -37,7 +37,7 @@ void CalculateSegmentationMetrics(iAFilter* filter)
 	ImagePointer segmentedPtr = dynamic_cast<ImageType*>(filter->input()[1]->itkImage());
 	if (!groundTruthPtr || !segmentedPtr)
 	{
-		DEBUG_LOG("Input images do not have the same type, but are required to!");
+		LOG(lvlError, "Input images do not have the same type, but are required to!");
 		return;
 	}
 	diceFilter->SetSourceImage(groundTruthPtr);
@@ -80,7 +80,7 @@ iASegmentationMetrics::iASegmentationMetrics() :
 		"Label Overlap Measures Filter</a> in the ITK documentation.", 2, 0)
 {}
 
-void iASegmentationMetrics::performWork(QMap<QString, QVariant> const & parameters)
+void iASegmentationMetrics::performWork(QMap<QString, QVariant> const & /*parameters*/)
 {
 	switch (inputPixelType())
 	{	// only int types, so ITK_TYPED_CALL won't work

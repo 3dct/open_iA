@@ -1,8 +1,8 @@
 /*************************************  open_iA  ************************************ *
 * **********   A tool for visual analysis and processing of 3D CT images   ********** *
 * *********************************************************************************** *
-* Copyright (C) 2016-2019  C. Heinzl, M. Reiter, A. Reh, W. Li, M. Arikan, Ar. &  Al. *
-*                          Amirkhanov, J. Weissenböck, B. Fröhler, M. Schiwarth       *
+* Copyright (C) 2016-2021  C. Heinzl, M. Reiter, A. Reh, W. Li, M. Arikan, Ar. &  Al. *
+*                 Amirkhanov, J. Weissenböck, B. Fröhler, M. Schiwarth, P. Weinberger *
 * *********************************************************************************** *
 * This program is free software: you can redistribute it and/or modify it under the   *
 * terms of the GNU General Public License as published by the Free Software           *
@@ -25,11 +25,12 @@
 #include "iA4DCTProjectReaderWriter.h"
 #include "iA4DCTSettings.h"
 #include "iA4DCTVisWin.h"
-#include "iAConsole.h"
 #include "iAMhdFileInfo.h"
 #include "iAPreviewMaker.h"
 #include "iAStageView.h"
-#include "mainwindow.h"
+
+#include <iALog.h>
+#include <iAMainWindow.h>
 
 #include <itkImageFileReader.h>
 #include <itkImageRegionIterator.h>
@@ -52,10 +53,9 @@
 #include <QStringListModel>
 #include <QTextStream>
 #include <QVBoxLayout>
-#include <QXmlSimpleReader>
 #include <QXmlStreamWriter>
 
-iA4DCTMainWin::iA4DCTMainWin( MainWindow* parent /*= 0*/ )
+iA4DCTMainWin::iA4DCTMainWin( iAMainWindow* parent /*= 0*/ )
 	: QMainWindow( parent )
 	, m_mainWnd( parent )
 {
@@ -63,9 +63,9 @@ iA4DCTMainWin::iA4DCTMainWin( MainWindow* parent /*= 0*/ )
 
 	m_size[0] = 100.; m_size[1] = 100.; m_size[2] = 100.;
 
-	connect( actionAdd, SIGNAL( triggered( ) ), this, SLOT( addButtonClick( ) ) );
-	connect( actionVisualization, SIGNAL( triggered( ) ), this, SLOT( openVisualizationWin( ) ) );
-	connect( actionSave, SIGNAL( triggered( ) ), this, SLOT( save( ) ) );
+	connect( actionAdd, &QAction::triggered, this, &iA4DCTMainWin::addButtonClick);
+	connect( actionVisualization, &QAction::triggered, this, &iA4DCTMainWin::openVisualizationWin);
+	connect( actionSave, &QAction::triggered, this, QOverload<>::of(&iA4DCTMainWin::save));
 }
 
 iA4DCTMainWin::~iA4DCTMainWin( )
@@ -137,11 +137,11 @@ void iA4DCTMainWin::addButtonClick( )
 
 void iA4DCTMainWin::openVisualizationWin( )
 {
-	MainWindow * mainWin = qobject_cast<MainWindow*>( qApp->activeWindow( ) );
+	iAMainWindow * mainWin = qobject_cast<iAMainWindow*>( qApp->activeWindow( ) );
 	iA4DCTVisWin* visWin = new iA4DCTVisWin( this );
 	visWin->setImageSize( m_size );
 	visWin->setNumberOfStages( m_stages.size( ) );
-	mainWin->mdiArea->addSubWindow( visWin );
+	mainWin->addSubWindow( visWin );
 	visWin->showMaximized( );
 }
 

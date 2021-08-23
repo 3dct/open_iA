@@ -1,8 +1,8 @@
 /*************************************  open_iA  ************************************ *
 * **********   A tool for visual analysis and processing of 3D CT images   ********** *
 * *********************************************************************************** *
-* Copyright (C) 2016-2019  C. Heinzl, M. Reiter, A. Reh, W. Li, M. Arikan, Ar. &  Al. *
-*                          Amirkhanov, J. Weissenböck, B. Fröhler, M. Schiwarth       *
+* Copyright (C) 2016-2021  C. Heinzl, M. Reiter, A. Reh, W. Li, M. Arikan, Ar. &  Al. *
+*                 Amirkhanov, J. Weissenböck, B. Fröhler, M. Schiwarth, P. Weinberger *
 * *********************************************************************************** *
 * This program is free software: you can redistribute it and/or modify it under the   *
 * terms of the GNU General Public License as published by the Free Software           *
@@ -24,10 +24,11 @@
 #include <iAAttributeDescriptor.h>
 #include <iAConnector.h>
 #include <iAProgress.h>
+#include <iAStringHelper.h>
 #include <iATypedCallHelper.h>
 
 // from Toolkit/MaximumDistance
-#include <itkMaximumDistance.h>
+#include <iAMaximumDistanceFilter.h>
 
 #include <itkAdaptiveOtsuThresholdImageFilter.h>
 #include <itkBinaryThresholdImageFilter.h>
@@ -45,10 +46,25 @@
 #include <itkRemovePeaksOtsuThresholdImageFilter.h>
 #include <itkRenyiEntropyThresholdImageFilter.h>
 #include <itkShanbhagThresholdImageFilter.h>
+#include <itkThresholdLabelerImageFilter.h>
 #include <itkTriangleThresholdImageFilter.h>
 #include <itkYenThresholdImageFilter.h>
 
-#include <QLocale>
+// No operation (simply pass-through image)
+
+IAFILTER_CREATE(iACopy)
+
+void iACopy::performWork(QMap<QString, QVariant> const & /*parameters*/)
+{
+	addOutput(input()[0]->itkImage());
+}
+
+iACopy::iACopy() :
+	iAFilter("Copy", "",
+		"Copy the input image to output."
+		"That is, this filter simply directly returns the input, without any modifications.")
+{
+}
 
 // Binary Threshold
 
@@ -87,16 +103,67 @@ iABinaryThreshold::iABinaryThreshold() :
 		"<a href=\"https://itk.org/Doxygen/html/classitk_1_1BinaryThresholdImageFilter.html\">"
 		"Binary Threshold Filter</a> in the ITK documentation.")
 {
-	addParameter("Lower threshold", Continuous, 0);
-	addParameter("Upper threshold", Continuous, 32768);
-	addParameter("Outside value", Continuous, 0);
-	addParameter("Inside value", Continuous, 1);
+	addParameter("Lower threshold", iAValueType::Continuous, 0);
+	addParameter("Upper threshold", iAValueType::Continuous, 32768);
+	addParameter("Outside value", iAValueType::Continuous, 0);
+	addParameter("Inside value", iAValueType::Continuous, 1);
 }
+
+
+// Multi Threshold
+
+template <class T>
+void multi_threshold(iAFilter* filter, QMap<QString, QVariant> const& parameters)
+{
+
+	std::vector<T> thresholds;
+
+	QString numString = parameters["Thresholds"].toString().replace(" ", "");
+	;
+	auto numberStringArray = numString.split(";");
+
+
+	for (QString numberString : numberStringArray)
+	{
+		bool ok;
+		thresholds.push_back(iAConverter<T>::toT(numberString, &ok));
+	}
+
+	typedef itk::Image<T, 3> InputImageType;
+	typedef itk::Image<T, 3> OutputImageType;
+	typedef itk::ThresholdLabelerImageFilter<InputImageType, OutputImageType> BTIFType;
+	auto multiThreshFilter = BTIFType::New();
+	multiThreshFilter->SetThresholds(thresholds);
+	multiThreshFilter->SetInput(dynamic_cast<InputImageType*>(filter->input()[0]->itkImage()));
+	filter->progress()->observe(multiThreshFilter);
+	multiThreshFilter->Update();
+	filter->addOutput(multiThreshFilter->GetOutput());
+}
+
+IAFILTER_CREATE(iAMultiThreshold)
+
+void iAMultiThreshold::performWork(QMap<QString, QVariant> const& parameters)
+{
+	ITK_TYPED_CALL(multi_threshold, inputPixelType(), this, parameters);
+}
+
+iAMultiThreshold::iAMultiThreshold() :
+	iAFilter("Multi Thresholding", "Segmentation/Global Thresholding",
+
+		"Label an input image according to a set of thresholds<br/>"
+		"This filter produces an output image whose pixels are labeled progressively according to the classes identified by a set of thresholds.Values equal to a threshold is considered to be in the lower class."
+		"<a href=\"https://itk.org/Doxygen/html/classitk_1_1ThresholdLabelerImageFilter.html\">"
+		"Multi Threshold Filter</a> in the ITK documentation.<br/>"
+		"The thresholds are seperated with semicolon \";\"")
+{
+	addParameter("Thresholds", iAValueType::String);
+}
+
 
 
 // Robust Automatic Threshold (RAT)
 
-template<class T> 
+template<class T>
 void rats_threshold(iAFilter* filter, QMap<QString, QVariant> const & parameters)
 {
 	typedef typename itk::Image< T, 3 >   InputImageType;
@@ -106,7 +173,7 @@ void rats_threshold(iAFilter* filter, QMap<QString, QVariant> const & parameters
 	typename GMFType::Pointer gmfilter = GMFType::New();
 	gmfilter->SetInput( dynamic_cast< InputImageType * >( filter->input()[0]->itkImage() ) );
 	filter->progress()->observe( gmfilter );
-	gmfilter->Update(); 
+	gmfilter->Update();
 	typedef typename itk::RobustAutomaticThresholdImageFilter < InputImageType, GradientImageType, OutputImageType > RATType;
 	auto ratsFilter = RATType::New();
 	ratsFilter->SetInput( dynamic_cast< InputImageType * >( filter->input()[0]->itkImage() ) );
@@ -137,15 +204,15 @@ iARatsThreshold::iARatsThreshold() :
 		"<a href=\"https://itk.org/Doxygen/html/classitk_1_1RobustAutomaticThresholdImageFilter.html\">"
 		"RATS Filter</a> in the ITK documentation.")
 {
-	addParameter("Power", Continuous, 1);
-	addParameter("Outside value", Continuous, 0);
-	addParameter("Inside value", Continuous, 1);
+	addParameter("Power", iAValueType::Continuous, 1);
+	addParameter("Outside value", iAValueType::Continuous, 0);
+	addParameter("Inside value", iAValueType::Continuous, 1);
 }
 
 
 // Otsu's Threshold
 
-template<class T> 
+template<class T>
 void otsu_threshold(iAFilter* filter, QMap<QString, QVariant> const & parameters)
 {
 	typedef typename itk::Image< T, 3 >   InputImageType;
@@ -195,10 +262,10 @@ iAOtsuThreshold::iAOtsuThreshold() :
 		"<a href=\"https://itk.org/Doxygen/html/classitk_1_1OtsuThresholdImageFilter.html\">"
 		"Otsu Threshold Filter</a> in the ITK documentation.")
 {
-	addParameter("Number of histogram bins", Discrete, 128, 2);
-	addParameter("Outside value", Continuous, 0);
-	addParameter("Inside value", Continuous, 1);
-	addParameter("Remove peaks", Boolean, false);
+	addParameter("Number of histogram bins", iAValueType::Discrete, 128, 2);
+	addParameter("Outside value", iAValueType::Continuous, 0);
+	addParameter("Inside value", iAValueType::Continuous, 1);
+	addParameter("Remove peaks", iAValueType::Boolean, false);
 }
 
 
@@ -242,14 +309,14 @@ iAAdaptiveOtsuThreshold::iAAdaptiveOtsuThreshold() :
 		"<a href=\"https://github.com/ITKTools/ITKTools/blob/master/src/thresholdimage/itkAdaptiveOtsuThresholdImageFilter.h\">"
 		"Adaptive Otsu Threshold source code</a> in the ITKTools.")
 {
-	addParameter("Number of histogram bins", Discrete, 256, 2);
-	addParameter("Outside value", Continuous, 0);
-	addParameter("Inside value", Continuous, 1);
-	addParameter("Radius", Continuous, 8);
-	addParameter("Samples", Discrete, 5000);
-	addParameter("Levels", Discrete, 3);
-	addParameter("Control points", Discrete, 50, 1);
-	addParameter("Spline order", Discrete, 3, 2);
+	addParameter("Number of histogram bins", iAValueType::Discrete, 256, 2);
+	addParameter("Outside value", iAValueType::Continuous, 0);
+	addParameter("Inside value", iAValueType::Continuous, 1);
+	addParameter("Radius", iAValueType::Continuous, 8);
+	addParameter("Samples", iAValueType::Discrete, 5000);
+	addParameter("Levels", iAValueType::Discrete, 3);
+	addParameter("Control points", iAValueType::Discrete, 50, 1);
+	addParameter("Spline order", iAValueType::Discrete, 3, 2);
 }
 
 
@@ -268,8 +335,10 @@ void otsu_multiple_threshold(iAFilter* filter, QMap<QString, QVariant> const & p
 	otsumultiFilter->SetValleyEmphasis( parameters["Valley emphasis"].toBool() );
 	filter->progress()->observe( otsumultiFilter );
 	otsumultiFilter->Update();
-	for (int i = 0; i< otsumultiFilter->GetThresholds().size(); i++)
+	for (size_t i = 0; i < otsumultiFilter->GetThresholds().size(); i++)
+	{
 		filter->addOutputValue(QString("Otsu multiple threshold %1").arg(i), otsumultiFilter->GetThresholds()[i]);
+	}
 	filter->addOutput(otsumultiFilter->GetOutput());
 }
 
@@ -287,9 +356,9 @@ iAOtsuMultipleThreshold::iAOtsuMultipleThreshold() :
 		"<a href=\"https://itk.org/Doxygen/html/classitk_1_1OtsuMultipleThresholdsImageFilter.html\">"
 		"Otsu Multiple Threshold Filter</a> in the ITK documentation.")
 {
-	addParameter("Number of histogram bins", Discrete, 256, 2);
-	addParameter("Number of thresholds", Discrete, 2, 1);
-	addParameter("Valley emphasis", Boolean, 1);
+	addParameter("Number of histogram bins", iAValueType::Discrete, 256, 2);
+	addParameter("Number of thresholds", iAValueType::Discrete, 2, 1);
+	addParameter("Valley emphasis", iAValueType::Boolean, 1);
 }
 
 
@@ -299,15 +368,14 @@ template<class T>
 void maximum_distance(iAFilter* filter, QMap<QString, QVariant> const & parameters)
 {
 	typedef itk::Image< T, 3 >   InputImageType;
-	typedef itk::Image< T, 3 >   OutputImageType;
-	typedef itk::MaximumDistance< InputImageType > MaximumDistanceType;
+	typedef iAMaximumDistanceFilter< InputImageType > MaximumDistanceType;
 	auto maxFilter = MaximumDistanceType::New();
 	maxFilter->SetInput(dynamic_cast< InputImageType * >(filter->input()[0]->itkImage()));
-	maxFilter->SetBins(parameters["Number of histogram bins"].toDouble());
+	maxFilter->SetBinWidth(parameters["Width of histogram bin"].toDouble());
 	if (parameters["Use low intensity"].toBool())
+	{
 		maxFilter->SetCentre(parameters["Low intensity"].toDouble());
-	else
-		maxFilter->SetCentre(32767);
+	} // if not set, centre / low intensity will be automatically determined as maximum possible pixelType value / 2
 	filter->progress()->observe(maxFilter);
 	maxFilter->Update();
 	filter->addOutput(maxFilter->GetOutput());
@@ -325,11 +393,12 @@ IAFILTER_CREATE(iAMaximumDistance)
 
 iAMaximumDistance::iAMaximumDistance() :
 	iAFilter("Maximum Distance", "Segmentation/Global Thresholding",
-		"A global threshold based on the maximum distance of peaks in the histogram, for voids segmentation.")
+		"A global threshold based on the maximum distance of peaks in the histogram, for voids segmentation.<br/>"
+		"Note: This filter only works with images with a positive integer pixel data type (unsigned char, unsigned short, unsigned int).")
 {
-	addParameter("Number of histogram bins", Discrete, 256, 2);
-	addParameter("Low intensity", Continuous, 0);
-	addParameter("Use low intensity", Boolean, false);
+	addParameter("Width of histogram bin", iAValueType::Discrete, 256, 1);
+	addParameter("Low intensity", iAValueType::Continuous, 0);
+	addParameter("Use low intensity", iAValueType::Boolean, false);
 }
 
 
@@ -384,15 +453,19 @@ IAFILTER_CREATE(iAParameterlessThresholding)
 
 iAParameterlessThresholding::iAParameterlessThresholding() :
 	iAFilter("Parameterless Thresholding", "Segmentation/Global Thresholding",
-		"Performs a \"parameterless\" global thresholding, that is, a thresholding"
-		"where the threshold is determined automatically based on the histogram."
+		"Performs a parameterless global thresholding (threshold determined automatically based on histogram).<br/>"
 		"Several different <em>Method</em>s for determining the threshold are available, "
-		"you can also set the <em>Number of histogram")
+		"you can also set the <em>Number of histogram bins</em> employed in the histogram used for determining the threshold. "
+		"The <em>Outside value</em> is assigned to values below the computed threshold value, the <em>Inside value</em> is assigned to values above threshold value.<br/>"
+		"For more information, see the "
+		"<a href=\"https://itk.org/Doxygen/html/classitk_1_1OtsuMultipleThresholdsImageFilter.html\">"
+		"Otsu Multiple Threshold Filter</a> in the ITK documentation."
+	)
 {
-	addParameter("Method", Categorical, GetParameterlessThresholdingNames());
-	addParameter("Number of histogram bins", Discrete, 128, 2);
-	addParameter("Outside value", Continuous, 0);
-	addParameter("Inside value", Continuous, 1);
+	addParameter("Method", iAValueType::Categorical, GetParameterlessThresholdingNames());
+	addParameter("Number of histogram bins", iAValueType::Discrete, 128, 2);
+	addParameter("Outside value", iAValueType::Continuous, 0);
+	addParameter("Inside value", iAValueType::Continuous, 1);
 }
 
 template <typename T>

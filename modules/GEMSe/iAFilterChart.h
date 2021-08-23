@@ -1,8 +1,8 @@
 /*************************************  open_iA  ************************************ *
 * **********   A tool for visual analysis and processing of 3D CT images   ********** *
 * *********************************************************************************** *
-* Copyright (C) 2016-2019  C. Heinzl, M. Reiter, A. Reh, W. Li, M. Arikan, Ar. &  Al. *
-*                          Amirkhanov, J. Weissenböck, B. Fröhler, M. Schiwarth       *
+* Copyright (C) 2016-2021  C. Heinzl, M. Reiter, A. Reh, W. Li, M. Arikan, Ar. &  Al. *
+*                 Amirkhanov, J. Weissenböck, B. Fröhler, M. Schiwarth, P. Weinberger *
 * *********************************************************************************** *
 * This program is free software: you can redistribute it and/or modify it under the   *
 * terms of the GNU General Public License as published by the Free Software           *
@@ -20,12 +20,14 @@
 * ************************************************************************************/
 #pragma once
 
-#include <charts/iAChartWidget.h>
+#include <iAChartWidget.h>
+
 #include <iAValueType.h>
 
 class iAParamHistogramData;
 class iANameMapper;
 
+// TODO: Merge with FeatureAnalyzer: iARangeSliderDiagramWidget
 class iAFilterChart: public iAChartWidget
 {
 	Q_OBJECT
@@ -62,7 +64,7 @@ private:
 	QSharedPointer<iAParamHistogramData> m_data;
 	QSharedPointer<iANameMapper> m_nameMapper;
 	double m_markedLocation;
-	QVector<QColor> m_binColors;
+	std::vector<QColor> m_binColors;
 	double m_minSliderPos, m_maxSliderPos;
 	int m_selectedHandle;
 	int m_selectionOffset;

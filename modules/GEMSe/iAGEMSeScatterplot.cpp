@@ -1,8 +1,8 @@
 /*************************************  open_iA  ************************************ *
 * **********   A tool for visual analysis and processing of 3D CT images   ********** *
 * *********************************************************************************** *
-* Copyright (C) 2016-2019  C. Heinzl, M. Reiter, A. Reh, W. Li, M. Arikan, Ar. &  Al. *
-*                          Amirkhanov, J. Weissenböck, B. Fröhler, M. Schiwarth       *
+* Copyright (C) 2016-2021  C. Heinzl, M. Reiter, A. Reh, W. Li, M. Arikan, Ar. &  Al. *
+*                 Amirkhanov, J. Weissenböck, B. Fröhler, M. Schiwarth, P. Weinberger *
 * *********************************************************************************** *
 * This program is free software: you can redistribute it and/or modify it under the   *
 * terms of the GNU General Public License as published by the Free Software           *
@@ -33,7 +33,6 @@
 #include <vtkChartXY.h>
 #include <vtkContextView.h>
 #include <vtkContextScene.h>
-#include <vtkGenericOpenGLRenderWindow.h>
 #include <vtkPlot.h>
 #include <vtkTable.h>
 
@@ -41,15 +40,14 @@
 #include <QWidget>
 
 iAGEMSeScatterplot::iAGEMSeScatterplot(QWidget* parent):
-	m_singlePlot(0),
-	m_clusterPlot(0),
+	m_clusterPlot(nullptr),
+	m_singlePlot(nullptr),
 	m_parent(parent),
 	m_chart1ID(-1),
 	m_chart2ID(-1)
 {
-	SetRenderWindow(vtkSmartPointer<vtkGenericOpenGLRenderWindow>::New());
 	vtkSmartPointer<vtkContextView> contextView(vtkSmartPointer<vtkContextView>::New());
-	contextView->SetRenderWindow(GetRenderWindow());
+	contextView->SetRenderWindow(renderWindow());
 	m_chart = vtkSmartPointer<vtkChartXY>::New();
 	m_chart->SetSelectionMode(vtkContextScene::SELECTION_NONE);
 	contextView->GetScene()->AddItem(m_chart);

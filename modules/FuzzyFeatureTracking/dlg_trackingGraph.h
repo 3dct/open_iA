@@ -1,8 +1,8 @@
 /*************************************  open_iA  ************************************ *
 * **********   A tool for visual analysis and processing of 3D CT images   ********** *
 * *********************************************************************************** *
-* Copyright (C) 2016-2019  C. Heinzl, M. Reiter, A. Reh, W. Li, M. Arikan, Ar. &  Al. *
-*                          Amirkhanov, J. Weissenböck, B. Fröhler, M. Schiwarth       *
+* Copyright (C) 2016-2021  C. Heinzl, M. Reiter, A. Reh, W. Li, M. Arikan, Ar. &  Al. *
+*                 Amirkhanov, J. Weissenböck, B. Fröhler, M. Schiwarth, P. Weinberger *
 * *********************************************************************************** *
 * This program is free software: you can redistribute it and/or modify it under the   *
 * terms of the GNU General Public License as published by the Free Software           *
@@ -21,25 +21,16 @@
 #pragma once
 
 #include "ui_TrackingGraph.h"
-#include "iATrackingGraphItem.h"
-
-#include <iAVtkWidgetFwd.h>
 
 #include <vtkSmartPointer.h>
 
 #include <QDockWidget>
-#include <QWidget>
 
-#include <map>
+class iATrackingGraphItem;
 
-class vtkRenderer;
-class vtkContextInteractorStyle;
-class vtkRenderWindowInteractor;
-class vtkContextTransform;
-class vtkContextActor;
+class iAQVTKWidget;
+
 class vtkMutableDirectedGraph;
-class vtkContextScene;
-
 
 class dlg_trackingGraph : public QDockWidget, private Ui_TrackingGraph
 {
@@ -47,21 +38,9 @@ class dlg_trackingGraph : public QDockWidget, private Ui_TrackingGraph
 
 public:
 	dlg_trackingGraph(QWidget* parent);
-
-	void updateGraph(vtkMutableDirectedGraph* g, int nunRanks, std::map<vtkIdType, int> nodesToLayers, std::map<int, std::map<vtkIdType, int>> graphToTableId);
+	void updateGraph(vtkSmartPointer<vtkMutableDirectedGraph> g, size_t numRanks);
 
 private:
-	iAVtkOldWidget* graphWidget;
-
-	vtkSmartPointer<vtkMutableDirectedGraph>	m_graph;
-	vtkSmartPointer<iATrackingGraphItem>		m_graphItem;
-	vtkSmartPointer<vtkContextActor>			m_actor;
-	vtkSmartPointer<vtkContextTransform>		m_trans;
-	vtkSmartPointer<vtkRenderer>				m_renderer;
-	vtkSmartPointer<vtkContextScene>			m_contextScene;
-	vtkSmartPointer<vtkContextInteractorStyle>	m_interactorStyle;
-	vtkSmartPointer<vtkRenderWindowInteractor>	m_interactor;
-
-	std::map<vtkIdType, int>					m_nodesToLayers;
-	std::map<int, std::map<vtkIdType, int>>		m_graphToTableId;
+	iAQVTKWidget* m_graphWidget;
+	vtkSmartPointer<iATrackingGraphItem> m_graphItem;
 };
