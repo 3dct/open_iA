@@ -42,6 +42,6 @@ preferred-citation:
   doi: "10.21105/joss.01185"
   journal: "Journal of Open Source Software"
   title: "open_iA: A tool for processing and visual analysis of industrial computed tomography datasets"
-  issue:35
+  issue: 35
   volume: 4
   year: 2019
