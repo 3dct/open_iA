@@ -69,7 +69,7 @@ void iAVRMip::createMIPPanels(int octreeLevel, int feature, std::vector<std::vec
 		colorData->SetNumberOfComponents(4);
 
 		std::vector<QColor>* col = calculateMIPColoring(viewPlane[i], octreeLevel, feature, calculatedValues);
-		//for (int region = 0; region < m_fiberCoverage->at(octreeLevel).size(); region++)
+		//for (int region = 0; region < m_objectCoverage->at(octreeLevel).size(); region++)
 		for (int gridCell = 0; gridCell < gridSize * gridSize; gridCell++)
 		{
 			colorData->InsertNextTuple4(col->at(gridCell).red(), col->at(gridCell).green(), col->at(gridCell).blue(), col->at(gridCell).alpha());
@@ -122,7 +122,7 @@ void iAVRMip::createSingleMIPPanel(int octreeLevel, int feature, int viewDir, do
 	colorData->SetNumberOfComponents(4);
 
 	std::vector<QColor>* col = calculateMIPColoring(viewPlane[viewDir], octreeLevel, feature, calculatedValues);
-	//for (int region = 0; region < m_fiberCoverage->at(octreeLevel).size(); region++)
+	//for (int region = 0; region < m_objectCoverage->at(octreeLevel).size(); region++)
 	for (int gridCell = 0; gridCell < gridSize * gridSize; gridCell++)
 	{
 		colorData->InsertNextTuple4(col->at(gridCell).red(), col->at(gridCell).green(), col->at(gridCell).blue(), col->at(gridCell).alpha());

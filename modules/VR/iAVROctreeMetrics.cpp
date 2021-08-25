@@ -42,7 +42,7 @@ iAVROctreeMetrics::iAVROctreeMetrics(vtkTable* objectTable, iACsvIO io, std::vec
 void iAVROctreeMetrics::calculateWeightedAverage(vtkIdType octreeLevel, vtkIdType feature)
 {
 	if (!isAlreadyCalculated->at(octreeLevel).at(feature)) {
-		//LOG(lvlDebug,QString("Possible Regions: %1\n").arg(m_fiberCoverage->at(octreeLevel).size()));
+		//LOG(lvlDebug,QString("Possible Regions: %1\n").arg(m_objectCoverage->at(octreeLevel).size()));
 
 		for (size_t region = 0; region < m_fiberCoverage->at(octreeLevel).size(); region++)
 		{

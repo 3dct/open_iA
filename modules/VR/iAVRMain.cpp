@@ -26,6 +26,7 @@
 #include "iAVROctree.h"
 #include "iAVRInteractorStyle.h"
 #include "iAVRSlider.h"
+#include "iA3DColoredPolyObjectVis.h"
 
 #include "vtkRenderer.h"
 #include "vtkIdList.h"
@@ -74,7 +75,7 @@ iAVRMain::iAVRMain(iAVREnvironment* vrEnv, iAVRInteractorStyle* style, vtkTable*
 	//Define Octree
 	currentOctreeLevel = 0;
 	m_octrees = new std::vector<iAVROctree*>();
-	generateOctrees(OCTREE_MAX_LEVEL, OCTREE_POINTS_PER_REGION, m_volume->getVolumeData());
+	generateOctrees(OCTREE_MAX_LEVEL, OCTREE_POINTS_PER_REGION, m_volume->getPolyObject()->getPolyData());
 	//m_octrees->at(currentOctreeLevel)->generateOctreeRepresentation(currentOctreeLevel, OCTREE_COLOR);
 	//m_octrees->at(currentOctreeLevel)->show();
 
@@ -87,14 +88,14 @@ iAVRMain::iAVRMain(iAVREnvironment* vrEnv, iAVRInteractorStyle* style, vtkTable*
 	fiberMetrics = new iAVROctreeMetrics(m_objectTable, m_io, m_octrees);
 	histogramMetrics = new iAVRHistogramMetric(m_objectTable, m_io, m_octrees);
 
-	//Fiber Cocerage
-	m_fiberCoverageCalc = new iAVRObjectCoverage(m_objectTable, m_io, csvConfig,m_octrees, m_volume);
-	m_fiberCoverageCalc->mapAllPointiDsAndCalculateFiberCoverage();
+	//Fiber Coverage
+	m_fiberCoverageCalc = new iAVRObjectCoverage(m_objectTable, m_io, csvConfig, m_curvedFiberInfo, m_octrees, m_volume);
+	m_fiberCoverageCalc->calculateObjectCoverage();
 	
-	m_volume->setFiberCoverageData(m_fiberCoverageCalc->getFiberCoverage());
-	m_modelInMiniature->setFiberCoverageData(m_fiberCoverageCalc->getFiberCoverage());
-	fiberMetrics->setFiberCoverageData(m_fiberCoverageCalc->getFiberCoverage());
-	histogramMetrics->setFiberCoverageData(m_fiberCoverageCalc->getFiberCoverage());
+	m_volume->setFiberCoverageData(m_fiberCoverageCalc->getObjectCoverage());
+	m_modelInMiniature->setFiberCoverageData(m_fiberCoverageCalc->getObjectCoverage());
+	fiberMetrics->setFiberCoverageData(m_fiberCoverageCalc->getObjectCoverage());
+	histogramMetrics->setFiberCoverageData(m_fiberCoverageCalc->getObjectCoverage());
 	fiberMetrics->getMaxCoverageFiberPerRegion();
 
 	//Add InteractorStyle
@@ -632,7 +633,7 @@ void iAVRMain::pickFibersinRegion(int leafRegion)
 	std::vector<size_t> selection = std::vector<size_t>();
 
 	
-	for (auto fiber : *m_fiberCoverageCalc->getFiberCoverage()->at(currentOctreeLevel).at(leafRegion)) {
+	for (auto fiber : *m_fiberCoverageCalc->getObjectCoverage()->at(currentOctreeLevel).at(leafRegion)) {
 		//LOG(lvlImportant,QString("Nr. [%1]").arg(fiber.first));
 		selection.push_back(fiber.first);
 	}
@@ -678,7 +679,7 @@ void iAVRMain::multiPickMiMRegion()
 
 		for (size_t i = 0; i < multiPickIDs->size(); i++)
 		{
-			for (auto fiber : *m_fiberCoverageCalc->getFiberCoverage()->at(currentOctreeLevel).at(multiPickIDs->at(i))) {
+			for (auto fiber : *m_fiberCoverageCalc->getObjectCoverage()->at(currentOctreeLevel).at(multiPickIDs->at(i))) {
 				selection.push_back(fiber.first);
 			}
 		}

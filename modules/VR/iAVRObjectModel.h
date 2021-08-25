@@ -49,7 +49,7 @@ public:
 	double getCubeSize(int region);
 	void setNodeColor(std::vector<vtkIdType> regions, std::vector<QColor> color);
 	void resetNodeColor();
-	vtkSmartPointer<vtkPolyData> getVolumeData();
+	iA3DColoredPolyObjectVis* getPolyObject();
 	void renderSelection(std::vector<size_t> const& sortedSelInds, int classID, QColor const& classColor, QStandardItem* activeClassItem);
 	void moveFibersByMaxCoverage(std::vector<std::vector<std::vector<vtkIdType>>>* m_maxCoverage, double offset, bool relativMovement);
 	void moveFibersbyAllCoveredRegions(double offset, bool relativMovement);
