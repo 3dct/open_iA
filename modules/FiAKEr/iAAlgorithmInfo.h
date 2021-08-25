@@ -67,85 +67,6 @@ public:
 	{
 		return fontMetrics().height() + 2 * TextVPadding + ArrowTextDistance;
 	}
-	void drawArrow(QPainter& p, int left, int top, int width, int height, QString const& text,
-		QVector<QRect>& rects, QColor const& color, bool selected, bool useColor)
-	{
-		int right = left + width;
-		p.drawLine(left, top, right, top);
-		p.drawLine(right - ArrowHeadSize, top - ArrowHeadSize, right, top);
-		p.drawLine(right - ArrowHeadSize, top + ArrowHeadSize, right, top);
-#if QT_VERSION >= QT_VERSION_CHECK(5, 11, 0)
-		int textWidth = p.fontMetrics().horizontalAdvance(text);
-#else
-		int textWidth = p.fontMetrics().width(text);
-#endif
-		int boxHeight = p.fontMetrics().height() + 2 * TextVPadding;
-		QRect textRect(left + ArrowTextLeft,
-			top - ArrowTextDistance - boxHeight,
-			std::min(textWidth + 2 * TextHPadding, width - ArrowTextLeft - ArrowHeadSize),
-			std::min(height, boxHeight));
-		rects.push_back(textRect);
-		QPainterPath path;
-		path.addRoundedRect(textRect, RoundedCornerRadius, RoundedCornerRadius);
-		if (useColor)
-		{
-			p.fillPath(path, color);
-		}
-		if (selected)
-		{
-			p.drawPath(path);
-		}
-		p.drawText(textRect, Qt::AlignCenter, text);
-	}
-	void drawConnectors(QPainter& p, int left, QStringList const& strings, QVector<QRect>& rects,
-		QColor const& color, int selected, QVector<int> const & shown, QVector<int> const &sort, QVector<QPoint> & posOut, bool isLeft)
-	{
-		rects.clear();
-		int bottomDistance = boxHeight() / (strings.size() + 1);
-		double fontToBoxRatio = static_cast<double>(bottomDistance) / oneEntryHeight();
-		int arrowBottomDistance = clamp(ArrowMinBottomDist, bottomDistance,
-			static_cast<int>(mapValue(1.0, 4.0,	ArrowMinBottomDist, bottomDistance, fontToBoxRatio)));
-		//int arrowBottomDistance = ArrowBottomDist;
-		int oneHeight = (boxHeight() - arrowBottomDistance) / strings.size();
-		int baseTop = TopMargin + oneHeight;
-		for (int idx = 0; idx < strings.size(); ++idx)
-		{
-			QString name = strings[ sort.size() > idx ? sort[idx] : idx ];
-			posOut.push_back(QPoint(left + (isLeft ? boxWidth():0), baseTop + idx * oneHeight));
-			drawArrow(p, left, baseTop + idx * oneHeight, boxWidth(), oneHeight,
-				name, rects, color, selected == idx, shown.size() == 0 || shown.contains(idx));
-		}
-	}
-	void drawSensitivities(QPainter& p, QVector<QPoint> paramPt, QVector<QPoint> characPt)
-	{
-		// determine max for proper scaling (determining min not needed - at no variation, the minimum is zero,
-		// so norming the minimum encountered to 0 would lead to omitting showing the smallest variation influence:
-		std::vector<double> maxS(m_agrSens.size());
-		for (int c = 0; c < m_agrSens.size(); ++c)
-		{
-			auto const& d = m_agrSens[c][m_measureIdx][m_aggrType];
-			maxS[c] = *std::max_element(d.begin(), d.end());
-		}
-		//LOG(lvlDebug, QString("min=%1, max=%2").arg(minS).arg(maxS));
-		for (int charIdx = 0; charIdx < m_agrSens.size(); ++charIdx)
-		{
-			for (int paramIdx = 0; paramIdx < m_agrSens[charIdx][m_measureIdx][m_aggrType].size(); ++paramIdx)
-			{
-				auto pen = p.pen();
-				double normVal = mapToNorm(0.0, maxS[charIdx], m_agrSens[charIdx][m_measureIdx][m_aggrType][paramIdx]);
-				pen.setWidth(std::max(1.0, 3 * normVal));
-				if (!dblApproxEqual(normVal, 0.0))
-				{
-					// maybe draw in order of increasing sensitivities?
-					const int C = 255;
-					int colorVal = C - (C * normVal);
-					pen.setColor(QColor(colorVal, colorVal, colorVal));
-					p.setPen(pen);
-					p.drawLine(paramPt[paramIdx], characPt[charIdx]);
-				}
-			}
-		}
-	}
 	void setSelectedInput(int inIdx)
 	{
 		m_selectedIn = inIdx;
@@ -183,6 +104,108 @@ public:
 	}
 
 private:
+	void drawArrow(QPainter& p, int left, int top, int width, int height, QString const& text, QVector<QRect>& rects,
+		QColor const& color, bool selected, bool useColor)
+	{
+		int right = left + width;
+		p.drawLine(left, top, right, top);
+		p.drawLine(right - ArrowHeadSize, top - ArrowHeadSize, right, top);
+		p.drawLine(right - ArrowHeadSize, top + ArrowHeadSize, right, top);
+#if QT_VERSION >= QT_VERSION_CHECK(5, 11, 0)
+		int textWidth = p.fontMetrics().horizontalAdvance(text);
+#else
+		int textWidth = p.fontMetrics().width(text);
+#endif
+		int boxHeight = p.fontMetrics().height() + 2 * TextVPadding;
+		QRect textRect(left + ArrowTextLeft, top - ArrowTextDistance - boxHeight,
+			std::min(textWidth + 2 * TextHPadding, width - ArrowTextLeft - ArrowHeadSize), std::min(height, boxHeight));
+		rects.push_back(textRect);
+		QPainterPath path;
+		path.addRoundedRect(textRect, RoundedCornerRadius, RoundedCornerRadius);
+		if (useColor)
+		{
+			p.fillPath(path, color);
+		}
+		if (selected)
+		{
+			p.drawPath(path);
+		}
+		p.drawText(textRect, Qt::AlignCenter, text);
+	}
+	void drawConnectors(QPainter& p, int left, QStringList const& strings, QVector<QRect>& rects, QColor const& color,
+		int selected, QVector<int> const& shown, QVector<int> const& sort, QVector<QPoint>& posOut, bool isLeft)
+	{
+		rects.clear();
+		int bottomDistance = boxHeight() / (strings.size() + 1);
+		double fontToBoxRatio = static_cast<double>(bottomDistance) / oneEntryHeight();
+		int arrowBottomDistance = clamp(ArrowMinBottomDist, bottomDistance,
+			static_cast<int>(mapValue(1.0, 4.0, ArrowMinBottomDist, bottomDistance, fontToBoxRatio)));
+		//int arrowBottomDistance = ArrowBottomDist;
+		int oneHeight = (boxHeight() - arrowBottomDistance) / strings.size();
+		int baseTop = TopMargin + oneHeight;
+		for (int idx = 0; idx < strings.size(); ++idx)
+		{
+			QString name = strings[sort.size() > idx ? sort[idx] : idx];
+			posOut.push_back(QPoint(left + (isLeft ? boxWidth() : 0), baseTop + idx * oneHeight));
+			drawArrow(p, left, baseTop + idx * oneHeight, boxWidth(), oneHeight, name, rects, color, selected == idx,
+				shown.size() == 0 || shown.contains(idx));
+		}
+	}
+	void drawSensitivities(QPainter& p, QVector<QPoint> paramPt, QVector<QPoint> characPt)
+	{
+		// determine max for proper scaling (determining min not needed - at no variation, the minimum is zero,
+		// so norming the minimum encountered to 0 would lead to omitting showing the smallest variation influence:
+		std::vector<double> maxS(m_agrSens.size());
+		for (int c = 0; c < m_agrSens.size(); ++c)
+		{
+			auto const& d = m_agrSens[c][m_measureIdx][m_aggrType];
+			maxS[c] = *std::max_element(d.begin(), d.end());
+		}
+		//LOG(lvlDebug, QString("min=%1, max=%2").arg(minS).arg(maxS));
+		const int C = 255;
+		for (int charIdx = 0; charIdx < m_agrSens.size(); ++charIdx)
+		{
+			for (int paramIdx = 0; paramIdx < m_agrSens[charIdx][m_measureIdx][m_aggrType].size(); ++paramIdx)
+			{
+				double normVal = mapToNorm(0.0, maxS[charIdx], m_agrSens[charIdx][m_measureIdx][m_aggrType][paramIdx]);
+				if (!dblApproxEqual(normVal, 0.0))
+				{
+					// maybe draw in order of increasing sensitivities?
+					int colorVal = C - (C * normVal);
+					auto pen = p.pen();
+					pen.setColor(QColor(colorVal, colorVal, colorVal));
+					pen.setWidth(std::max(1.0, 3 * normVal));
+					p.setPen(pen);
+					p.drawLine(paramPt[paramIdx], characPt[charIdx]);
+				}
+			}
+		}
+	}
+	void drawLegend(QPainter& p)
+	{
+		const int LineWidth = 15;
+		const int LegendNumEntries = 4;
+		const int LegendMargin  = 6;
+		const int LegendSpacing = 3;
+		auto fm = p.fontMetrics();
+		auto halfHeight = fm.height() * 0.25;
+		const int C = 255;
+		p.drawText(LegendMargin, height() - LegendMargin - LegendNumEntries * fm.height(), "Sensitivity:");
+		for (int i=0; i<LegendNumEntries; ++i)
+		{
+			double normVal = static_cast<double>(i) / LegendNumEntries;
+			int colorVal = C - (C * normVal);
+			auto pen = p.pen();
+			pen.setColor(QColor(colorVal, colorVal, colorVal));
+			pen.setWidth(std::max(1.0, 3 * normVal));
+			p.setPen(pen);
+			int y = height() - LegendMargin - (LegendNumEntries - 1 - i) * fm.height();
+			p.drawLine(LegendMargin, y - halfHeight, LegendMargin + LineWidth, y - halfHeight);
+			pen.setColor(qApp->palette().color(QWidget::foregroundRole()));
+			p.setPen(pen);
+			p.drawText(LegendMargin + LineWidth + LegendSpacing, y, QString::number(normVal, 'f', 2));
+		}
+	}
 	void paintEvent(QPaintEvent* ev) override
 	{
 		Q_UNUSED(ev);
@@ -196,8 +219,8 @@ private:
 		QVector<QPoint> paramPt, characPt;
 		drawConnectors(p, HMargin, m_inNames, m_inRects, m_inColor, m_selectedIn, QVector<int>(), m_inSort, paramPt, true);
 		drawConnectors(p, HMargin + 2 * boxWidth(), m_outNames, m_outRects, m_outColor, -1, m_shownOut, QVector<int>(), characPt, false);
-
 		drawSensitivities(p, paramPt, characPt);
+		drawLegend(p);
 	}
 	void mousePressEvent(QMouseEvent* ev) override
 	{
