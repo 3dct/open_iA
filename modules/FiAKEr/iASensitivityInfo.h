@@ -264,6 +264,7 @@ private:
 	QString dissimilarityMatrixCacheFileName() const;
 	QString spatialOverviewCacheFileName() const;
 	QString uniqueFiberVarCacheFileName(size_t uIdx) const;
+	QString volumePercentageCacheFileName() const;
 	bool readDissimilarityMatrixCache(QVector<int>& measures);
 	void writeDissimilarityMatrixCache(QVector<int> const& measures) const;
 	QWidget* setupMatrixView(QVector<int> const& measures);

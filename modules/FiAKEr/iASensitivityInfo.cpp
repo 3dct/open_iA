@@ -33,6 +33,7 @@
 #include <iALUT.h>
 #include <iAMathUtility.h>
 #include <iAPerformanceHelper.h>
+#include <qthelper/iAQtEndl.h>
 #include <iAQVTKWidget.h>
 #include <iARunAsync.h>
 #include <iAStackedBarChart.h>    // for add HeaderLabel
@@ -1284,6 +1285,11 @@ QString iASensitivityInfo::dissimilarityMatrixCacheFileName() const
 	return cacheFileName("dissimilarityMatrix.cache");
 }
 
+QString iASensitivityInfo::volumePercentageCacheFileName() const
+{
+	return cacheFileName("volumePercentages.csv");
+}
+
 QString iASensitivityInfo::spatialOverviewCacheFileName() const
 {
 	return cacheFileName("spatialOverview-v0.mhd");
@@ -2048,7 +2054,8 @@ namespace
 			minC[i] = clamp(0, size[i] + 1, minC[i]);
 			maxC[i] = clamp(0, size[i] + 1, maxC[i]);
 		}
-		
+
+#pragma omp parallel for
 		for (int x = minC[0]; x < maxC[0]; ++x)
 		{
 			for (int y = minC[1]; y < maxC[1]; ++y)
@@ -2315,14 +2322,18 @@ void iASensitivityInfo::computeSpatialOverview(iAProgress * progress)
 	progress->emitProgress(0);
 	iAVec3d origin = overallBB[0];
 
-	int overallVoxels = volSize * volSize * volSize;
-#pragma omp parallel for
-	for (int r = 0; r < static_cast<int>(resultCount); ++r)			// int as loop variable required here for OpenMP < 3 on Visual C++!
+	QFile volPercentOutFile(volumePercentageCacheFileName());
+	if (!volPercentOutFile.open(QIODevice::WriteOnly))
 	{
-		if (m_aborted)	// apparently a good way to stop OpenMP thread:
-		{	// https://stackoverflow.com/questions/54293086
-			continue;
-		}
+		LOG(lvlError,
+			QString("FIAKER fiber volume percentage: Cannot open file %1 for writing!").arg(volumePercentageCacheFileName()));
+		return;
+	}
+	QTextStream volPercentOut(&volPercentOutFile);
+	size_t overallVoxels = volSize * volSize * volSize;
+	volPercentOut << "ResultID,Percentage,FiberVoxel(overall=" << overallVoxels << ")" << QTENDL;
+	for (size_t r = 0; r < resultCount && !m_aborted; ++r)
+	{
 		auto resultFiberImg = allocateImage(VTK_FLOAT, size, spacing.data());
 		resultFiberImg->SetOrigin(origin.data());
 		fillImage(resultFiberImg, 0);
@@ -2332,7 +2343,7 @@ void iASensitivityInfo::computeSpatialOverview(iAProgress * progress)
 			projectFiberToImage(d.fiberData[f], d.fiberBB[f], resultFiberImg, size, spacing, origin);
 		}
 		// count voxels != 0:
-		int fiberVoxels = 0;
+		size_t fiberVoxels = 0;
 		FOR_VTKIMG_PIXELS(resultFiberImg, x, y, z)
 		{
 			if (resultFiberImg->GetScalarComponentAsDouble(x, y, z, 0) != 0)
@@ -2344,13 +2355,15 @@ void iASensitivityInfo::computeSpatialOverview(iAProgress * progress)
 				break;
 			}
 		}
-		LOG(lvlInfo, QString("Result %1: Fibers take up ~ %2 %% of the volume (%3 of %4 voxels).")
-			.arg(r).arg(static_cast<double>(fiberVoxels)/overallVoxels)
+		double volPercent = (100.0 * fiberVoxels) / overallVoxels;
+		volPercentOut << r << "," << volPercent << "," << fiberVoxels << QTENDL;
+		LOG(lvlInfo, QString("Result %1: Fibers take up ~ %2 % of the volume (%3 of %4 voxels).")
+			.arg(r).arg(volPercent)
 			.arg(fiberVoxels).arg(overallVoxels));
 	}
+	volPercentOutFile.close();
 
 	// NEW spatial overview over variability:
-	// do in background!
 
 	// find overall bounding box
 	// determine (fixed?) dimensions (s_x, s_y, s_z)
@@ -2382,7 +2395,7 @@ void iASensitivityInfo::computeSpatialOverview(iAProgress * progress)
 	h.start("Finding unique fibers", false);
 	progress->setStatus("Finding unique fibers");
 	progress->emitProgress(0);
-	for (size_t r1 = 0; r1 < resultCount; ++r1)
+	for (size_t r1 = 0; r1 < resultCount && !m_aborted; ++r1)
 	{
 		auto const& d = m_data->m_data->result[r1];
 		for (size_t f1 = 0; f1 < d.fiberCount; ++f1)
@@ -2427,7 +2440,7 @@ void iASensitivityInfo::computeSpatialOverview(iAProgress * progress)
 	m_spatialOverview = allocateImage(VTK_FLOAT, size, spacing.data());
 	m_spatialOverview->SetOrigin(origin.data());
 	fillImage(m_spatialOverview, 0);
-	for (size_t uIdx = 0; uIdx < m_data->m_uniqueFibers.size(); ++uIdx)
+	for (size_t uIdx = 0; uIdx < m_data->m_uniqueFibers.size() && !m_aborted; ++uIdx)
 	{
 		progress->setStatus(QString("Determining fiber variation image for unique fiber %1").arg(uIdx));
 		auto const& u = m_data->m_uniqueFibers[uIdx];
@@ -2436,6 +2449,10 @@ void iASensitivityInfo::computeSpatialOverview(iAProgress * progress)
 		fillImage(uniqueFiberVarImg, 0);
 		for (auto s : u)
 		{
+			if (m_aborted)
+			{
+				break;
+			}
 			auto const& r = m_data->m_data->result[s.first];
 			projectFiberToImage(r.fiberData[s.second], r.fiberBB[s.second], uniqueFiberVarImg, size, spacing, origin);
 		}
