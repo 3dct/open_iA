@@ -20,11 +20,14 @@
 * ************************************************************************************/
 #include "dlg_volumePlayer.h"
 
-#include "dlg_commoninput.h"
+#include <iALog.h>
+#include <iAMathUtility.h>
+
 #include "iAChannelData.h"
-#include "iALog.h"
+#include "iAParameterDlg.h"
 #include "iARenderer.h"
 #include "iASlicer.h"
+
 #include "iAVolumeStack.h"
 #include "mdichild.h"
 
@@ -220,16 +223,16 @@ void dlg_volumePlayer::updateView(int r, int /*c*/)
 
 void dlg_volumePlayer::editMaxSpeed()
 {
-	QStringList inList		= (QStringList() << tr("#Speed (one step/msec)"));
-	QList<QVariant> inPara	= (QList<QVariant>() << tr("%1").arg(getCurrentSpeed()));
-
-	dlg_commoninput dlg(m_mdiChild, "Set speed", inList, inPara, nullptr);
-
+	iAParameterDlg::ParamListT param;
+	addParameter(param, "Speed (one step/msec)", iAValueType::Continuous, QString::number(getCurrentSpeed(), 'f', 2), TIMER_MIN_SPEED, TIMER_MAX_SPEED);
+	iAParameterDlg dlg(m_mdiChild, "Set speed", param, nullptr);
 	if (dlg.exec() == QDialog::Accepted)
 	{
-		float speed = (float)dlg.getDblValue(0);
+		float speed = clamp(TIMER_MIN_SPEED, TIMER_MAX_SPEED, dlg.parameterValues()["Speed (one step/msec)"].toFloat());
 		m_timer.setInterval((int)((1/speed) * SECONDS_TO_MILISECONDS));
-		this->speedValue->setText(QString::number(speed, 'f', 2));
+		QSignalBlocker block(speedSlider);
+		speedSlider->setValue(mapValue(TIMER_MIN_SPEED, TIMER_MAX_SPEED, speedSlider->minimum(), speedSlider->maximum(), speed));
+		speedValue->setText(QString::number(speed, 'f', 2));
 	}
 }
 
@@ -339,8 +342,7 @@ void dlg_volumePlayer::fileNameActive()
 
 float dlg_volumePlayer::getCurrentSpeed()
 {
-	float speed = TIMER_MIN_SPEED + (TIMER_MAX_SPEED - TIMER_MIN_SPEED) * ((float)speedSlider->value() / speedSlider->maximum());
-	return speed;
+	return mapValue(speedSlider->minimum(), speedSlider->maximum(), TIMER_MIN_SPEED, TIMER_MAX_SPEED, speedSlider->value());
 }
 
 void dlg_volumePlayer::blendingStateChanged(int state)

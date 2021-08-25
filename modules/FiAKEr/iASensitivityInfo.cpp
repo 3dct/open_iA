@@ -33,6 +33,7 @@
 #include <iALUT.h>
 #include <iAMathUtility.h>
 #include <iAPerformanceHelper.h>
+#include <iAQVTKWidget.h>
 #include <iARunAsync.h>
 #include <iAStackedBarChart.h>    // for add HeaderLabel
 #include <iAStringHelper.h>
@@ -106,7 +107,6 @@
 #include <QFile>
 #include <QFileDialog>
 #include <QLabel>
-//#include <QMainWindow>
 #include <QMessageBox>
 #include <QRadioButton>
 #include <QScrollArea>
@@ -118,6 +118,12 @@
 
 #include <array>
 #include <set>
+
+#if QT_VERSION < QT_VERSION_CHECK(6,0,0)
+using qvectorsizetype = int;
+#else
+using qvectorsizetype = size_t;
+#endif
 
 QDataStream& operator<<(QDataStream& out, const iAResultPairInfo& pairInfo)
 {
@@ -148,6 +154,16 @@ namespace
 	QColor ScatterPlotPointColor(80, 80, 80, 128);
 
 	const int SelectedAggregationMeasureIdx = 3;
+	/*
+	void logMeshSize(QString const& name, vtkSmartPointer<vtkPolyData> mesh)
+	{
+		const double* b1 = mesh->GetBounds();
+		LOG(lvlDebug, QString(name + ": %1, %2, %3, %4 (mesh: %5 cells, %6 points)")
+				.arg(b1[0]).arg(b1[1]).arg(b1[2]).arg(b1[3])
+				.arg(mesh->GetNumberOfCells())
+				.arg(mesh->GetNumberOfPoints()));
+	}
+	*/
 }
 
 // Factor out as generic CSV reading class also used by iACsvIO?
@@ -253,17 +269,17 @@ inline bool boundingBoxesIntersect(iAAABB const& bb1, iAAABB const& bb2)
 		bb1[MaxIdx].z() > bb2[MinIdx].z() && bb2[MaxIdx].z() > bb1[MinIdx].z();
 }
 
-std::vector<int> intersectingBoundingBox(iAAABB const& fixedFiberBB, std::vector<iAAABB> const& otherFiberBBs)
+std::vector<size_t> intersectingBoundingBox(iAAABB const& fixedFiberBB, std::vector<iAAABB> const& otherFiberBBs)
 {
-	std::vector<int> resultIDs;
-	for (int r = 0; r < otherFiberBBs.size(); ++r)
+	std::vector<size_t> fiberIDs;
+	for (size_t f = 0; f < otherFiberBBs.size(); ++f)
 	{
-		if (boundingBoxesIntersect(fixedFiberBB, otherFiberBBs[r]))
+		if (boundingBoxesIntersect(fixedFiberBB, otherFiberBBs[f]))
 		{
-			resultIDs.push_back(r);
+			fiberIDs.push_back(f);
 		}
 	}
-	return resultIDs;
+	return fiberIDs;
 }
 
 } // namespace
@@ -275,14 +291,14 @@ void iASensitivityInfo::abort()
 
 QSharedPointer<iASensitivityInfo> iASensitivityInfo::create(iAMdiChild* child,
 	QSharedPointer<iAFiberResultsCollection> data, QDockWidget* nextToDW, int histogramBins, int skipColumns,
-	std::vector<iAFiberResultUIData> const& resultUIs, iAVtkWidget* main3DWidget, QString parameterSetFileName,
+	std::vector<iAFiberResultUIData> const& resultUIs, vtkRenderWindow* main3DWin, QString parameterSetFileName,
 	QVector<int> const & charSelected, QVector<int> const & charDiffMeasure, iASettings const & projectFile)
 {
 	if (parameterSetFileName.isEmpty())
 	{
 		parameterSetFileName = QFileDialog::getOpenFileName(child,
 			"Sensitivity: Parameter Sets file", data->folder,
-			"Comma-Separated Values (*.csv);;");
+			"Comma-Separated Values (*.csv);;All files (*)");
 	}
 	if (parameterSetFileName.isEmpty())
 	{
@@ -309,24 +325,24 @@ QSharedPointer<iASensitivityInfo> iASensitivityInfo::create(iAMdiChild* child,
 	}
 	// data in m_paramValues is indexed [col(=parameter index)][row(=parameter set index)]
 	QSharedPointer<iASensitivityInfo> sensitivity(
-		new iASensitivityInfo(data, parameterSetFileName, skipColumns, paramNames, paramValues, child, nextToDW, resultUIs, main3DWidget));
+		new iASensitivityInfo(data, parameterSetFileName, skipColumns, paramNames, paramValues, child, nextToDW, resultUIs, main3DWin));
 
 	// find min/max, for all columns
 	sensitivity->m_paramMin.resize(static_cast<int>(paramValues.size()));
 	sensitivity->m_paramMax.resize(static_cast<int>(paramValues.size()));
 	//LOG(lvlInfo, QString("Parameter values size: %1x%2").arg(paramValues.size()).arg(paramValues[0].size()));
-	for (int p = 0; p < paramValues.size(); ++p)
+	for (size_t p = 0; p < paramValues.size(); ++p)
 	{
 		sensitivity->m_paramMin[p] = *std::min_element(paramValues[p].begin(), paramValues[p].end());
 		sensitivity->m_paramMax[p] = *std::max_element(paramValues[p].begin(), paramValues[p].end());
 	}
 
 	// countOfVariedParams = number of parameters for which min != max (except column 0, which is the ID):
-	for (int p = 1; p < sensitivity->m_paramMin.size(); ++p)
+	for (size_t p = 1; p < sensitivity->m_paramMin.size(); ++p)
 	{
 		if (sensitivity->m_paramMin[p] != sensitivity->m_paramMax[p])
 		{
-			sensitivity->m_variedParams.push_back(p);
+			sensitivity->m_variedParams.push_back(static_cast<int>(p));
 		}
 	}
 	if (sensitivity->m_variedParams.size() == 0)
@@ -351,7 +367,7 @@ QSharedPointer<iASensitivityInfo> iASensitivityInfo::create(iAMdiChild* child,
 	double diffCheck = std::abs(curCheckValue - checkValue0);
 	//LOG(lvlDebug, QString("checkValue0=%1, curCheckValue=%2, diffCheck=%3").arg(checkValue0).arg(curCheckValue).arg(diffCheck));
 	double remainder = 0;
-	int row = 2;
+	size_t row = 2;
 	// first, continue, as long as first varied parameter is a multiple of diffCheck away from checkValue0:
 	while (row < paramValues[sensitivity->m_variedParams[0]].size() &&
 		!dblApproxEqual(curCheckValue, checkValue0) &&
@@ -373,7 +389,7 @@ QSharedPointer<iASensitivityInfo> iASensitivityInfo::create(iAMdiChild* child,
 		++row;
 	}
 
-	sensitivity->m_starGroupSize = row - 1;
+	sensitivity->m_starGroupSize = static_cast<int>(row - 1);
 	sensitivity->m_numOfSTARSteps = (sensitivity->m_starGroupSize - 1) / sensitivity->m_variedParams.size();
 	if (paramValues[0].size() % sensitivity->m_starGroupSize != 0)
 	{
@@ -455,7 +471,7 @@ QSharedPointer<iASensitivityInfo> iASensitivityInfo::create(iAMdiChild* child,
 iASensitivityInfo::iASensitivityInfo(QSharedPointer<iAFiberResultsCollection> data,
 	QString const& parameterFileName, int skipColumns, QStringList const& paramNames,
 	std::vector<std::vector<double>> const & paramValues, iAMdiChild* child, QDockWidget* nextToDW,
-	std::vector<iAFiberResultUIData> const & resultUIs, iAVtkWidget* main3DWidget) :
+	std::vector<iAFiberResultUIData> const & resultUIs, vtkRenderWindow* main3DWin) :
 	m_data(data),
 	m_paramNames(paramNames),
 	m_paramValues(paramValues),
@@ -463,14 +479,14 @@ iASensitivityInfo::iASensitivityInfo(QSharedPointer<iAFiberResultsCollection> da
 	m_skipColumns(skipColumns),
 	m_child(child),
 	m_nextToDW(nextToDW),
-	m_aborted(false),
 	m_resultUIs(resultUIs),
-	m_main3DWidget(main3DWidget)
+	m_main3DWin(main3DWin),
+	m_aborted(false)
 {
 }
 
 void getBestMatches2(iAFiberData const& fiber, std::vector<iAFiberData> const& otherFibers,
-	QVector<QVector<iAFiberSimilarity>>& bestMatches, std::vector<int> const& candidates,
+	QVector<QVector<iAFiberSimilarity>>& bestMatches, std::vector<size_t> const& candidates,
 	double diagonalLength, double maxLength, std::vector<std::pair<int, bool>>& measuresToCompute)
 {
 	int bestMatchesStartIdx = bestMatches.size();
@@ -485,7 +501,7 @@ void getBestMatches2(iAFiberData const& fiber, std::vector<iAFiberData> const& o
 	{
 		QVector<iAFiberSimilarity> similarities;
 		similarities.resize(static_cast<int>(candidates.size()));
-		for (iARefDistCompute::ContainerSizeType bestMatchID = 0; bestMatchID < candidates.size(); ++bestMatchID)
+		for (qvectorsizetype bestMatchID = 0; bestMatchID < static_cast<qvectorsizetype>(candidates.size()); ++bestMatchID)
 		{
 			size_t refFiberID = candidates[bestMatchID];
 			similarities[bestMatchID].index = static_cast<quint32>(refFiberID);
@@ -506,10 +522,10 @@ void getBestMatches2(iAFiberData const& fiber, std::vector<iAFiberData> const& o
 void iASensitivityInfo::compute(iAProgress* progress)
 {
 	progress->setStatus("Storing parameter set values");
-	for (int p = 0; p < m_paramValues[0].size(); p += m_starGroupSize)
+	for (size_t p = 0; p < m_paramValues[0].size(); p += m_starGroupSize)
 	{
 		QVector<double> parameterSet;
-		for (int v = 0; v < m_paramValues.size(); ++v)
+		for (size_t v = 0; v < m_paramValues.size(); ++v)
 		{
 			parameterSet.push_back(m_paramValues[v][p]);
 		}
@@ -533,12 +549,12 @@ void iASensitivityInfo::compute(iAProgress* progress)
 	}
 	*/
 
-	for (int rIdx = 0; rIdx < m_data->result.size(); ++rIdx)
+	for (size_t rIdx = 0; rIdx < m_data->result.size(); ++rIdx)
 	{
 		progress->emitProgress(static_cast<int>(100 * rIdx / m_data->result.size()));
 		auto const& r = m_data->result[rIdx];
 		// TODO: skip some columns? like ID...
-		m_charHistograms[rIdx].reserve(numCharSelected);
+		m_charHistograms[static_cast<qvectorsizetype>(rIdx)].reserve(numCharSelected);
 		for (auto charIdx: m_charSelected)
 		{
 			// make sure of all histograms for the same characteristic have the same range
@@ -550,7 +566,7 @@ void iASensitivityInfo::compute(iAProgress* progress)
 				fiberData[fiberID] = r.table->GetValue(fiberID, charIdx).ToDouble();
 			}
 			auto histogram = createHistogram(fiberData, m_histogramBins, rangeMin, rangeMax);
-			m_charHistograms[rIdx].push_back(histogram);
+			m_charHistograms[static_cast<qvectorsizetype>(rIdx)].push_back(histogram);
 		}
 	}
 	if (m_aborted)
@@ -710,7 +726,7 @@ void iASensitivityInfo::compute(iAProgress* progress)
 	progress->setStatus("Computing fiber count histogram.");
 
 	QVector<double> fiberCounts;
-	for (int resultIdx = 0; resultIdx < m_data->result.size(); ++resultIdx)
+	for (size_t resultIdx = 0; resultIdx < m_data->result.size(); ++resultIdx)
 	{
 		fiberCounts.push_back(m_data->result[resultIdx].fiberCount);
 	}
@@ -1090,15 +1106,15 @@ void iASensitivityInfo::compute(iAProgress* progress)
 	}
 
 	// determine dissimilarity ranges:
-	m_resultDissimRanges.resize(m_resultDissimMeasures.size());
+	m_resultDissimRanges.resize(static_cast<qvectorsizetype>(m_resultDissimMeasures.size()));
 	for (int m = 0; m < m_resultDissimRanges.size(); ++m)
 	{
 		m_resultDissimRanges[m].first = std::numeric_limits<double>::max();
 		m_resultDissimRanges[m].second = std::numeric_limits<double>::lowest();
 	}
-	for (int r1 = 1; r1 < m_data->result.size() && !m_aborted; ++r1)
+	for (qvectorsizetype r1 = 1; r1 < static_cast<qvectorsizetype>(m_data->result.size()) && !m_aborted; ++r1)
 	{
-		for (int r2 = 0; r2 < m_data->result.size() && !m_aborted; ++r2)
+		for (qvectorsizetype r2 = 0; r2 < static_cast<qvectorsizetype>(m_data->result.size()) && !m_aborted; ++r2)
 		{
 			if (r1 == r2)
 			{
@@ -1566,7 +1582,8 @@ struct iAPolyDataRenderer
 class iASensitivityGUI
 {
 public:
-	iASensitivityGUI(iASensitivityInfo* sensInf):
+	iASensitivityGUI(iASensitivityInfo* sensInf) :
+		m_sensInf(sensInf),
 		m_paramInfluenceView(nullptr),
 		m_settings(nullptr),
 		m_paramSP(nullptr),
@@ -1576,7 +1593,6 @@ public:
 		m_matrixWidget(nullptr),
 		m_parameterListView(nullptr),
 		m_algoInfo(nullptr),
-		m_sensInf(sensInf),
 		m_diff3DWidget(nullptr),
 		m_diff3DRenderManager(/*sharedCamera = */true),
 		m_diff3DEmptyRenderer(vtkSmartPointer<vtkRenderer>::New()),
@@ -1629,7 +1645,7 @@ public:
 	vtkSmartPointer<vtkRenderer> m_diff3DEmptyRenderer;
 	vtkSmartPointer<vtkCornerAnnotation> m_diff3DEmptyText;
 
-	void updateScatterPlotLUT(int starGroupSize, int numOfSTARSteps, size_t resultCount, int numInputParams,
+	void updateScatterPlotLUT(int starGroupSize, int numOfSTARSteps, size_t resultCount, size_t numInputParams,
 		iADissimilarityMatrixType const & resultDissimMatrix, QVector<QPair<double, double> > const & dissimRanges,
 		int measureIdx, QString const & colorScaleName)
 	{
@@ -1734,7 +1750,7 @@ public:
 			{
 				continue;
 			}
-			for (int parIdx = 0; parIdx < numInputParams; ++parIdx)
+			for (size_t parIdx = 0; parIdx < numInputParams; ++parIdx)
 			{
 				int lineSize = 1;
 				if (hiGrpAll.find(groupID) != hiGrpAll.end())
@@ -1866,14 +1882,14 @@ bool iASensitivityInfo::hasData(iASettings const& settings)
 
 QSharedPointer<iASensitivityInfo> iASensitivityInfo::load(iAMdiChild* child,
 	QSharedPointer<iAFiberResultsCollection> data, QDockWidget* nextToDW, iASettings const& projectFile,
-	QString const& projectFileName, std::vector<iAFiberResultUIData> const& resultUIs, iAVtkWidget* main3DWidget)
+	QString const& projectFileName, std::vector<iAFiberResultUIData> const& resultUIs, vtkRenderWindow* main3DWin)
 {
 	QString parameterSetFileName = MakeAbsolute(QFileInfo(projectFileName).absolutePath(), projectFile.value(ProjectParameterFile).toString());
 	QVector<int> charsSelected = stringToVector<QVector<int>, int>(projectFile.value(ProjectCharacteristics).toString());
 	QVector<int> charDiffMeasure = stringToVector<QVector<int>, int>(projectFile.value(ProjectCharDiffMeasures).toString());
 	int skipColumns = projectFile.value(ProjectSkipParameterCSVColumns, 1).toInt();
 	int histogramBins = projectFile.value(ProjectHistogramBins, 20).toInt();
-	return iASensitivityInfo::create(child, data, nextToDW, histogramBins, skipColumns, resultUIs, main3DWidget,
+	return iASensitivityInfo::create(child, data, nextToDW, histogramBins, skipColumns, resultUIs, main3DWin,
 		parameterSetFileName, charsSelected, charDiffMeasure, projectFile);
 }
 
@@ -1909,6 +1925,7 @@ private:
 
 namespace
 {
+/*
 	iAVec3i mapPointToIndex(iAVec3f const& pt, double const* origin, double const* spacing, int const* size)
 	{
 		iAVec3i result;
@@ -1918,7 +1935,7 @@ namespace
 		}
 		return result;
 	}
-
+*/
 	const size_t NoMatch = std::numeric_limits<size_t>::max();
 
 	size_t findMatch(iADissimilarityMatrixType const& dissimMatrix, iASensitivityInfo::UniqueFibersT const& uniqueFibers,
@@ -1932,7 +1949,7 @@ namespace
 			// Questions:
 			// - do all need to match or only one?
 			// - one direction or both?
-			auto& fiberDissim = dissimMatrix[r1][r0].fiberDissim[f1];
+			auto& fiberDissim = dissimMatrix[static_cast<qvectorsizetype>(r1)][static_cast<qvectorsizetype>(r0)].fiberDissim[static_cast<qvectorsizetype>(f1)];
 			if (fiberDissim.size() == 0 ||
 				fiberDissim[MeasureIdx].size() == 0)  // potentially, there is no match between results at all
 			{
@@ -1946,7 +1963,7 @@ namespace
 			auto f0 = match.index;
 			auto cand = std::make_pair(r0, f0);
 			size_t uniqueID = mapFiberToUnique[cand];
-			for (int m = 0; m < uniqueFibers[uniqueID].size(); ++m)
+			for (size_t m = 0; m < uniqueFibers[uniqueID].size(); ++m)
 			{
 				auto rm = uniqueFibers[uniqueID][m].first;
 				if (rm == r1)	// if another fiber of same result was already added to that unique fiber,
@@ -1955,7 +1972,7 @@ namespace
 				}
 				auto fm = uniqueFibers[uniqueID][m].second;
 				// check reverse match(es):
-				auto& revMatchDissim = dissimMatrix[rm][r1].fiberDissim[fm];
+				auto& revMatchDissim = dissimMatrix[static_cast<qvectorsizetype>(rm)][static_cast<qvectorsizetype>(r1)].fiberDissim[static_cast<qvectorsizetype>(fm)];
 				if (revMatchDissim.size() == 0 ||
 					revMatchDissim[MeasureIdx].size() == 0 ||
 					revMatchDissim[MeasureIdx][0].index != f1)
@@ -1971,7 +1988,7 @@ namespace
 					continue;
 				}
 				// check "other" fibers in same unique fiber cluster for match:
-				auto matchOther = dissimMatrix[r1][r0].fiberDissim[f1][MeasureIdx][0];
+				auto matchOther = dissimMatrix[static_cast<qvectorsizetype>(r1)][static_cast<qvectorsizetype>(r0)].fiberDissim[static_cast<qvectorsizetype>(f1)][MeasureIdx][0];
 				if (fm != matchOther.index)
 				{
 					/*
@@ -2138,14 +2155,14 @@ void iASensitivityInfo::createGUI()
 	spParamNames.push_back("Filter");  // just for filtering results only from current "STAR plane"
 	size_t resultCount = m_data->result.size();
 	m_gui->m_mdsData->setParameterNames(spParamNames, resultCount);
-	for (int c = 0; c < spParamNames.size(); ++c)
+	for (size_t c = 0; c < spParamNames.size(); ++c)
 	{
 		m_gui->m_mdsData->data()[c].resize(resultCount);
 	}
 	for (int p = 0; p < m_variedParams.size(); ++p)
 	{  // set parameter values:
 		int origParamIdx = m_variedParams[p];
-		for (int r = 0; r < resultCount; ++r)
+		for (size_t r = 0; r < resultCount; ++r)
 		{
 			m_gui->m_mdsData->data()[p][r] = m_paramValues[origParamIdx][r];
 		}
@@ -2210,11 +2227,7 @@ void iASensitivityInfo::createGUI()
 	m_gui->m_diff3DWidget = new iAQVTKWidget();
 	auto dwDiff3D = new iADockWidgetWrapper(m_gui->m_diff3DWidget, "Difference 3D", "foeDiff3D");
 	m_child->splitDockWidget(dwSettings, dwDiff3D, Qt::Horizontal);
-#if VTK_VERSION_NUMBER < VTK_VERSION_CHECK(9, 0, 0)
-	m_gui->m_diff3DRenderManager.addToBundle(m_main3DWidget->GetRenderWindow()->GetRenderers()->GetFirstRenderer());
-#else
-	m_gui->m_diff3DRenderManager.addToBundle(m_main3DWidget->renderWindow()->GetRenderers()->GetFirstRenderer());
-#endif
+	m_gui->m_diff3DRenderManager.addToBundle(m_main3DWin->GetRenderers()->GetFirstRenderer());
 	m_gui->m_diff3DWidget->renderWindow()->AddRenderer(m_gui->m_diff3DEmptyRenderer);
 
 	spVisibleParamChanged();
@@ -2286,7 +2299,7 @@ void iASensitivityInfo::computeSpatialOverview(iAProgress * progress)
 
 	int overallVoxels = volSize * volSize * volSize;
 #pragma omp parallel for
-	for (int r = 0; r < resultCount; ++r)
+	for (int r = 0; r < static_cast<int>(resultCount); ++r)			// int as loop variable required here for OpenMP < 3 on Visual C++!
 	{
 		if (m_aborted)	// apparently a good way to stop OpenMP thread:
 		{	// https://stackoverflow.com/questions/54293086
@@ -2477,10 +2490,10 @@ void iASensitivityInfo::updateDissimilarity()
 	int dissimIdx = m_gui->m_settings->cmbboxDissimilarity->currentIndex();
 	iAMatrixType distMatrix(m_data->result.size(), std::vector<double>(m_data->result.size()));
 	//LOG(lvlDebug, "Distance Matrix:");
-	for (int r1 = 0; r1 < distMatrix.size(); ++r1)
+	for (qvectorsizetype r1 = 0; r1 < static_cast<qvectorsizetype>(distMatrix.size()); ++r1)
 	{
 		QString line;
-		for (int r2 = 0; r2 < distMatrix.size(); ++r2)
+		for (qvectorsizetype r2 = 0; r2 < static_cast<qvectorsizetype>(distMatrix.size()); ++r2)
 		{
 			distMatrix[r1][r2] = m_resultDissimMatrix[r1][r2].avgDissim[dissimIdx];
 			line += " " + QString::number(distMatrix[r1][r2], 'f', 2).rightJustified(5);
@@ -2489,9 +2502,9 @@ void iASensitivityInfo::updateDissimilarity()
 	}
 	auto mds = computeMDS(distMatrix, 2, 100);
 	//LOG(lvlDebug, "MDS:");
-	for (int i = 0; i < mds.size(); ++i)
+	for (size_t i = 0; i < mds.size(); ++i)
 	{
-		for (int c = 0; c < mds[0].size(); ++c)
+		for (size_t c = 0; c < mds[0].size(); ++c)
 		{
 			m_gui->m_mdsData->data()[m_gui->spColIdxMDSX + c][i] = mds[i][c];
 		}
@@ -2540,7 +2553,7 @@ void iASensitivityInfo::spPointHighlighted(size_t resultIdx, bool state)
 	{	// add fibers matching the selection in m_baseFiberSelection to current selection:
 		auto it = std::find(m_resultDissimMeasures.begin(), m_resultDissimMeasures.end(), std::make_pair(7, true));
 		int measIdx = (it != m_resultDissimMeasures.end()) ? it - m_resultDissimMeasures.begin() : 0;
-		for (int rSel = 0; rSel < m_baseFiberSelection.size(); ++rSel)
+		for (size_t rSel = 0; rSel < m_baseFiberSelection.size(); ++rSel)
 		{
 			if (m_baseFiberSelection[rSel].size() == 0)
 			{
@@ -2553,7 +2566,7 @@ void iASensitivityInfo::spPointHighlighted(size_t resultIdx, bool state)
 			}
 			for (auto rSelFibID : m_baseFiberSelection[rSel])
 			{
-				auto& fiberDissim = m_resultDissimMatrix[rSel][resultIdx].fiberDissim[rSelFibID];
+				auto& fiberDissim = m_resultDissimMatrix[static_cast<qvectorsizetype>(rSel)][static_cast<qvectorsizetype>(resultIdx)].fiberDissim[static_cast<qvectorsizetype>(rSelFibID)];
 				if (fiberDissim.size() == 0)
 				{
 					continue;
@@ -2654,22 +2667,6 @@ iAColorTheme const * iASensitivityInfo::selectedResultColorTheme() const
 	return iAColorThemeManager::instance().theme(m_gui->m_settings->cmbboxSPHighlightColorScale->currentText());
 }
 
-namespace
-{
-	void logMeshSize(QString const& name, vtkSmartPointer<vtkPolyData> mesh)
-	{
-		const double* b1 = mesh->GetBounds();
-		LOG(lvlDebug,
-			QString(name + ": %1, %2, %3, %4 (mesh: %5 cells, %6 points)")
-				.arg(b1[0])
-				.arg(b1[1])
-				.arg(b1[2])
-				.arg(b1[3])
-				.arg(mesh->GetNumberOfCells())
-				.arg(mesh->GetNumberOfPoints()));
-	}
-}
-
 void iASensitivityInfo::updateDifferenceView()
 {
 	//iATimeGuard timer("ShowDifference");
@@ -2708,7 +2705,7 @@ void iASensitivityInfo::updateDifferenceView()
 		resultData->renderer->SetBackground(bgColor.redF(), bgColor.greenF(), bgColor.blueF());
 		resultData->renderer->SetViewport(
 			static_cast<double>(i) / hp.size(), 0, static_cast<double>(i + 1) / hp.size(), 1);
-		for (int f = 0; f < resultData->data.size(); ++f)
+		for (size_t f = 0; f < resultData->data.size(); ++f)
 		{
 			auto diffMapper = vtkSmartPointer<vtkPolyDataMapper>::New();
 			diffMapper->SetInputData(resultData->data[f]);
@@ -2736,13 +2733,8 @@ void iASensitivityInfo::updateDifferenceView()
 
 		//m_diffActor->GetProperty()->SetPointSize(2);
 		/*
-	#if VTK_VERSION_NUMBER < VTK_VERSION_CHECK(9, 0, 0)
-		m_main3DWidget->GetRenderWindow()->GetRenderers()->GetFirstRenderer()->AddActor(m_diffActor);
-		m_main3DWidget->GetRenderWindow()->Render();
-	#else
-		m_main3DWidget->renderWindow()->GetRenderers()->GetFirstRenderer()->AddActor(m_diffActor);
-		m_main3DWidget->renderWindow()->Render();
-	#endif
+		m_main3DWin->GetRenderers()->GetFirstRenderer()->AddActor(m_diffActor);
+		m_main3DWin->Render();
 		m_main3DWidget->update();
 		*/
 

@@ -40,8 +40,10 @@ namespace Hilbert
 		)
 	{
 		l = 0;
-    switch ( jn )
-    {
+#pragma GCC diagnostic push
+#pragma GCC diagnostic ignored "-Wimplicit-fallthrough="
+		switch ( jn )
+		{
 #define GETLOC_CASE(i)		case (i+1): if (p[jo+i].racks()[ir]&im) l|=(FBV1<<i)
 #define GETLOC_CASE2(i) \
 			GETLOC_CASE((i+1)); \
@@ -63,6 +65,7 @@ namespace Hilbert
 #endif
 			GETLOC_CASE32(0);
 		}
+#pragma GCC diagnostic pop
 		return;
 	}
 

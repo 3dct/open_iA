@@ -72,7 +72,7 @@ iAbase_API void addImages(vtkSmartPointer<vtkImageData> imgDst, vtkSmartPointer<
 iAbase_API void multiplyImage(vtkSmartPointer<vtkImageData> imgDst, double value);
 
 //! Stores an image on disk (typically in .mhd format).
-//! @param image the image to store
+//! @param img the image to store
 //! @param filename the name of the file to write to.
 //! @param useCompression whether the file should be compressed (.zraw) or not (.raw) in case we are storing .mhd files
 iAbase_API void storeImage(vtkSmartPointer<vtkImageData> img, QString const & filename, bool useCompression = true);
@@ -80,13 +80,13 @@ iAbase_API void storeImage(vtkSmartPointer<vtkImageData> img, QString const & fi
 //! Read an image from disk into a VTK image.
 //! @param filename the name of the file to read.
 //! @param releaseFlag whether the ITK release flag should be set on the ITK image reader
-//! @return the vtk image as read from the given file
+//! @param ptr the smart pointer in which to store the loaded image (it will be assigned a new vtkImageData)
 iAbase_API void readImage(QString const& filename, bool releaseFlag, vtkSmartPointer<vtkImageData>& ptr);
 
 //! Write a single slice image to a common 2D picture format
 //! @param filename the name of the file to write to; this is expected to have an extension of tif, png, jpg or bmp;
 //!        the type of the file written will be chosen according to this extension
-//! @param imageData the image to write; this already needs to be a 2D image (i.e., size in Z dimension = 1)
+//! @param img the image to write; this already needs to be a 2D image (i.e., size in Z dimension = 1)
 iAbase_API void writeSingleSliceImage(QString const & filename, vtkImageData* img);
 
 //! Returns the size (in bytes) of the given VTK type.

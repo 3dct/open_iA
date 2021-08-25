@@ -22,7 +22,7 @@
 
 #include "iAguibase_export.h"
 
-#include "iAVtkWidget.h"
+#include "iAQVTKWidget.h"
 
 #include <vtkSmartPointer.h>
 

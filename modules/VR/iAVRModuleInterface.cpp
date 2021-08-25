@@ -113,7 +113,10 @@ void iAVRModuleInterface::render()
 
 void iAVRModuleInterface::showFibers()
 {
-	if (m_vrEnv)
+	if (!m_vrEnv)
+		m_vrEnv.reset(new iAVREnvironment());
+
+	if (m_vrEnv->isRunning())
 	{
 		m_vrEnv->stop();
 		return;
@@ -164,7 +167,6 @@ void iAVRModuleInterface::showFibers()
 	m_actionVRShowFibers->setText("Stop Show Fibers");
 
 	m_objectTable = creator.table();
-
 	//Create InteractorStyle
 	m_style = vtkSmartPointer<iAVRInteractorStyle>::New();
 
@@ -173,8 +175,6 @@ void iAVRModuleInterface::showFibers()
 
 	// Start Render Loop HERE!
 	m_vrEnv->start();
-
-	m_vrEnv.reset(nullptr);
 }
 
 bool iAVRModuleInterface::vrAvailable()

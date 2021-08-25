@@ -1,3 +1,3 @@
-SET(MODULE_DESCRIPTION
+set(MODULE_DESCRIPTION
 	"Uncertainty:\nTools for exploring the uncertainty in segmentation ensembles"
 )

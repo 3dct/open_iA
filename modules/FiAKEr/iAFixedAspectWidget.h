@@ -20,12 +20,21 @@
 * ************************************************************************************/
 #pragma once
 
-#include "iAVtkVersion.h"
+#include "iASignallingWidget.h"
+#include "iAQVTKWidget.h"
 
-#if (VTK_VERSION_NUMBER >= VTK_VERSION_CHECK(8, 2, 0))
-	class QVTKOpenGLNativeWidget;
-	using iAVtkWidget = QVTKOpenGLNativeWidget;
-#else
-	class QVTKOpenGLWidget;
-	using iAVtkWidget = QVTKOpenGLWidget;
-#endif
+class iAColoredWidget;
+
+//! Keeps the aspect ratio of a contained iAQVTKWidget fixed
+//! by placing two other resizable widgets around it as padding.
+class iAFixedAspectWidget: public iASignallingWidget
+{
+	Q_OBJECT
+public:
+	iAFixedAspectWidget(double aspect=1.0, Qt::Alignment verticalAlign = Qt::AlignVCenter);
+	iAQVTKWidget* vtkWidget();
+	void setBGRole(QPalette::ColorRole role);
+private:
+	iAQVTKWidget* m_widget;
+	iAColoredWidget* m_fill1, * m_fill2;
+};

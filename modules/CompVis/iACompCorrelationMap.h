@@ -56,7 +56,7 @@ private:
 	
 	void initializeLutForEdges();
 	void initializeLegend(vtkScalarBarWidget* widget);
-	void initializeEdges(QStringList attrNames);
+	void initializeEdges();
 	double colorEdges(vtkIdType startVertex, vtkIdType endVertex, std::map<QString, Correlation::CorrelationStore>* correlations, std::map<vtkIdType, QString>* vertices);
 
 	void initializeArcs();
@@ -87,10 +87,6 @@ private:
 	iAQVTKWidget* m_qvtkWidget;
 	vtkSmartPointer<vtkRenderer> m_renderer;
 
-	int m_numberOfAttr;
-	double m_radius = 0.75;
-	double m_PI = std::atan(1) * 4;
-	QStringList m_attrNames;
 	//stores for every vertex its name
 	std::map<vtkIdType, QString>* m_vertices;
 
@@ -267,7 +263,7 @@ private:
 		std::map<QString, Correlation::CorrelationStore>* m_correlations;
 
 		const int K = 1;
-		const double MASS = 1;
+		//const double MASS = 1;
 
 		double minDist;
 		double maxDist;
@@ -334,7 +330,7 @@ private:
 			vtkSmartPointer<vtkLookupTable> lutForLabels;
 	};
 
-	vtkSmartPointer<GraphInteractorStyle> style;
+	
 	vtkSmartPointer<CorrelationGraphLayout> m_graphLayout;
 	vtkSmartPointer<vtkGraphLayoutView> m_graphLayoutView;
 	vtkSmartPointer<vtkViewTheme> m_theme;
@@ -356,6 +352,13 @@ private:
 
 	std::vector<vtkSmartPointer<vtkActor>>* glyphActors;
 	std::vector<vtkSmartPointer<vtkTextActor>>* legendActors;
+
+	vtkSmartPointer<GraphInteractorStyle> style;
+
+	double m_radius = 0.75;
+	double m_PI = std::atan(1) * 4;
+	QStringList m_attrNames;
+	int m_numberOfAttr;
 
 };
 

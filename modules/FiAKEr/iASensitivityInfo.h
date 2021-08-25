@@ -38,16 +38,12 @@ class iAFiberResultUIData;
 class iAFiberResultsCollection;
 class iASensitivityGUI;
 
-// for mesh difference:
-// {
-#include "iAVtkWidget.h"
 class vtkActor;
 class vtkImageData;
 class vtkPolyData;
-// }
+class vtkRenderWindow;
 
 class QDockWidget;
-//class QMainWindow;
 
 class iASensitivityInfo: public QObject, public iAAbortListener
 {
@@ -56,7 +52,7 @@ public:
 	static QSharedPointer<iASensitivityInfo> create(iAMdiChild* child,
 		QSharedPointer<iAFiberResultsCollection> data, QDockWidget* nextToDW,
 		int histogramBins, int skipColumns, std::vector<iAFiberResultUIData> const& resultUIs,
-		iAVtkWidget* main3DWidget,
+		vtkRenderWindow* main3DWin,
 		QString parameterSetFileName = QString(),
 		QVector<int> const& charSelected = QVector<int>(),
 		QVector<int> const& charDiffMeasure = QVector<int>(),
@@ -64,7 +60,7 @@ public:
 	static QSharedPointer<iASensitivityInfo> load(iAMdiChild* child,
 		QSharedPointer<iAFiberResultsCollection> data, QDockWidget* nextToDW,
 		iASettings const & projectFile, QString const& projectFileName,
-		std::vector<iAFiberResultUIData> const& resultUIs, iAVtkWidget* main3DWidget);
+		std::vector<iAFiberResultUIData> const& resultUIs, vtkRenderWindow* main3DWin);
 	static bool hasData(iASettings const& settings);
 	QString charactName(int selCharIdx) const;
 
@@ -238,7 +234,7 @@ private:
 	iASensitivityInfo(QSharedPointer<iAFiberResultsCollection> data,
 		QString const& parameterFileName, int skipColumns, QStringList const& paramNames,
 		std::vector<std::vector<double>> const& paramValues, iAMdiChild* child,
-		QDockWidget* nextToDW, std::vector<iAFiberResultUIData> const& resultUIs, iAVtkWidget* main3DWidget);
+		QDockWidget* nextToDW, std::vector<iAFiberResultUIData> const& resultUIs, vtkRenderWindow* main3DWin);
 	void compute(iAProgress* p);
 	QString cacheFileName(QString fileName) const;
 	QString dissimilarityMatrixCacheFileName() const;
@@ -258,7 +254,7 @@ private:
 	iAMdiChild* m_child;
 	QDockWidget* m_nextToDW;
 	std::vector<iAFiberResultUIData> const& m_resultUIs;
-	iAVtkWidget* m_main3DWidget;
+	vtkRenderWindow* m_main3DWin;
 
 	// for computation:
 	bool m_aborted;

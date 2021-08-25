@@ -48,6 +48,6 @@ struct iARawFileParameters
 	int  m_scalarType;
 	//! The byte order (little endian or big endian) in VTK type constants.
 	//! See VTK_FILE_BYTE_ORDER_ defines in include file <vtkImageReader.h>
-	//! this type is mapped to list index in raw file dialog in mapVTKByteOrderToIdx in dlg_openfile_sizecheck
+	//! this type is mapped to list index in raw file dialog in mapVTKByteOrderToIdx in iARawFileParamDlg
 	int m_byteOrder;
 };

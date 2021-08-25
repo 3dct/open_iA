@@ -55,7 +55,7 @@ struct csvFileData
 class iACsvDataStorage
 {
    public:
-	iACsvDataStorage(QStringList* csvFiles, QListView* listView);
+	iACsvDataStorage(QStringList* csvFiles);
 	//read in the csv file
 	QList<QStringList>* readCSV(QString csvFile);
 	//store the csv file data in a csvFileData data structure

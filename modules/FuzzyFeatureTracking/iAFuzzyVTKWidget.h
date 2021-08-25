@@ -20,7 +20,7 @@
 * ************************************************************************************/
 #pragma once
 
-#include "iAVtkWidget.h"
+#include <iAQVTKWidget.h>
 
 #include <QMouseEvent>
 

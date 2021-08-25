@@ -1,8 +1,8 @@
-SET( DEPENDENCIES_LIBRARIES
-	iAcharts         # also pulls in required iAqthelper
-	iAguibase
+set(DEPENDENCIES_LIBRARIES
+	iA::charts         # also pulls in required iAqthelper
+	iA::guibase
 )
-#SET( DEPENDENCIES_ITK_MODULES
+#set(DEPENDENCIES_ITK_MODULES
 #	ITKImageAdaptors        # for NthElementImageAdaptor (dependency of GradientRecursiveGaussianImageFilter)
 #	ITKImageCompose         # for JoinImageFilter
 #	ITKImageFunction        # for ...ImageFunction (dependency of ImageToImageMetric

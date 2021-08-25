@@ -9,7 +9,7 @@
 namespace
 {
 
-	void initializeRandom(iAMatrixType& result, size_t rows, size_t cols)
+	void initializeOutput(iAMatrixType& result, size_t rows, size_t cols, bool initRandom)
 	{
 		std::mt19937 rng;
 		rng.seed(std::random_device{}());
@@ -20,7 +20,7 @@ namespace
 			result[r].resize(cols);
 			for (size_t c = 0; c < cols; ++c)
 			{
-				result[r][c] = dist(rng);
+				result[r][c] = initRandom ? dist(rng) : static_cast<double>(r + c) /(rows+cols);
 			}
 		}
 	}
@@ -163,7 +163,7 @@ QString matrixToString(iAMatrixType const& input)
 }
 
 std::vector<std::vector<double>> computeMDS(std::vector<std::vector<double>> const& distanceMatrix,
-	int outputDimensions, int iterations, double maxError/*, iADistanceMetricID distanceMetric*/)
+	int outputDimensions, int iterations, double maxError/*, iADistanceMetricID distanceMetric*/, bool initRandom)
 {
 	//LOG(lvlDebug, QString("DistanceMatrix: %1").arg(matrixToString(distanceMatrix)));
 
@@ -173,7 +173,7 @@ std::vector<std::vector<double>> computeMDS(std::vector<std::vector<double>> con
 	auto numElems = distanceMatrix.size();
 	assert(numElems > 2 && numElems == distanceMatrix[0].size()); // at least 3 elements and quadratic matrix
 	iAMatrixType X;
-	initializeRandom(X, numElems, outputDimensions);
+	initializeOutput(X, numElems, outputDimensions, initRandom);
 	//LOG(lvlDebug, QString("init X: %1").arg(matrixToString(X)));
 		
 	//LOG(lvlDebug, QString("init X:\n%1").arg(matrixToString(X)));

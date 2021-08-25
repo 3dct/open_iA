@@ -29,11 +29,13 @@
 // FeatureScout:
 #include <iACsvConfig.h>
 
-// Core:
-#include <iASettings.h>
-#include <iAVtkWidget.h>
+// guibase:
+#include <iAQVTKWidget.h>
 #include <qthelper/iAQTtoUIConnector.h>
 #include <qthelper/iAWidgetSettingsMapper.h>
+
+// base
+#include <iASettings.h>
 
 #include <vtkSmartPointer.h>
 
@@ -257,7 +259,7 @@ private:
 	};
 	// 3D View:
 	void ensureMain3DViewCreated(size_t resultID);
-	iAVtkWidget* m_main3DWidget;
+	vtkRenderWindow* m_main3DWin;
 	vtkSmartPointer<vtkRenderer> m_ren;
 	QCheckBox* m_chkboxShowReference;
 	QCheckBox* m_chkboxShowLines;

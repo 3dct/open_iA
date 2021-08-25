@@ -1,4 +1,4 @@
-SET (OPENIA_PRECOMPILE_HEADERS
+set(OPENIA_PRECOMPILE_HEADERS
 <algorithm>
 <cassert>
 <cmath>
@@ -18,7 +18,6 @@ SET (OPENIA_PRECOMPILE_HEADERS
 <iATransferFunction.h>
 <iATypedCallHelper.h>
 <iAValueType.h>
-<iAVtkVersion.h>
 <itkImageBase.h>
 <itkImageFileReader.h>
 <itkImageFileWriter.h>

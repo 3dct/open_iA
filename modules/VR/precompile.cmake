@@ -1,2 +1,2 @@
-SET (VR_PRECOMPILE_INCLUDES <iAVREnvironment.h>
+set(VR_PRECOMPILE_INCLUDES <iAVREnvironment.h>
 <vtkSmartPointer.h>)

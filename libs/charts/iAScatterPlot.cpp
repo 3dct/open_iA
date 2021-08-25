@@ -986,28 +986,7 @@ void iAScatterPlot::drawPoints( QPainter &painter )
 			double curPtSize = ptSize * settings.pickedPointMagnification;
 			glPointSize(curPtSize);
 			glBegin(GL_POINTS);
-			QColor color;
-			if (settings.highlightDrawMode.testFlag(iAScatterPlot::CategoricalColor))
-			{
-				if (settings.highlightColorTheme)
-				{
-					color = settings.highlightColorTheme->color(i);
-				}
-				else if (settings.highlightColor.isValid())
-				{
-					color = settings.highlightColor;
-				}
-			}
-			else if (m_lut->initialized())
-			{
-				double val = m_splomData->paramData(m_colInd)[idx];
-				color = m_lut->getQColor(val);
-			}
-			if (!color.isValid())
-			{
-				LOG(lvlWarn, QString("CategoricalColor set but no highlight color specified!"));
-				color.setRgb(0, 0, 0);
-			}
+			auto color = highlightColorPoint(i, idx);
 			glColor4f(color.redF(), color.greenF(), color.blueF(), color.alphaF());
 			double tx = p2tx(p0d[idx]);
 			double ty = p2ty(p1d[idx]);
@@ -1079,9 +1058,15 @@ void iAScatterPlot::drawPoints( QPainter &painter )
 		drawPoint(painter, p0d[i], p1d[i], ptRad, color);
 		++m_curVisiblePts;
 	}
-	auto const& selInds = m_viewData->filteredSelection(m_splomData);
+	// Draw selected points:
+	auto const& selInds = m_viewData->selection();
 	for (size_t idx : selInds)
 	{
+		if (!m_viewData->matchesFilter(m_splomData, idx))
+		{
+			LOG(lvlDebug, QString("Point %1 does not match current filter but is selected anyway!").arg(idx));
+			continue;
+		}
 		drawPoint(painter, p0d[idx], p1d[idx], ptRad, settings.selectionColor);
 	}
 
@@ -1092,28 +1077,7 @@ void iAScatterPlot::drawPoints( QPainter &painter )
 		for (size_t i = 0; i < m_viewData->highlightedPoints().size(); ++i)
 		{
 			auto idx = m_viewData->highlightedPoints()[i];
-			QColor color;
-			if (settings.highlightDrawMode.testFlag(iAScatterPlot::CategoricalColor))
-			{
-				if (settings.highlightColorTheme)
-				{
-					color = settings.highlightColorTheme->color(i);
-				}
-				else if (settings.highlightColor.isValid())
-				{
-					color = settings.highlightColor;
-				}
-			}
-			else if (m_lut->initialized())
-			{
-				double val = m_splomData->paramData(m_colInd)[idx];
-				color = m_lut->getQColor(val);
-			}
-			if (!color.isValid())
-			{
-				LOG(lvlWarn, QString("CategoricalColor set but no highlight color specified!"));
-				color.setRgb(0, 0, 0);
-			}
+			auto color = highlightColorPoint(i, idx);
 			color.setAlpha(255);
 			drawPoint(painter, p0d[idx], m_splomData->paramData(m_paramIndices[1])[idx], magPtRad, color);
 		}
@@ -1379,4 +1343,31 @@ double iAScatterPlot::pcc()
 		m_pccValid = true;
 	}
 	return m_pcc;
+}
+
+QColor iAScatterPlot::highlightColorPoint(size_t i, size_t idx)
+{
+	QColor color;
+	if (settings.highlightDrawMode.testFlag(iAScatterPlot::CategoricalColor))
+	{
+		if (settings.highlightColorTheme)
+		{
+			color = settings.highlightColorTheme->color(i);
+		}
+		else if (settings.highlightColor.isValid())
+		{
+			color = settings.highlightColor;
+		}
+	}
+	else if (m_lut->initialized())
+	{
+		double val = m_splomData->paramData(m_colInd)[idx];
+		color = m_lut->getQColor(val);
+	}
+	if (!color.isValid())
+	{
+		LOG(lvlWarn, QString("CategoricalColor set but no highlight color specified!"));
+		color.setRgb(0, 0, 0);
+	}
+	return color;
 }

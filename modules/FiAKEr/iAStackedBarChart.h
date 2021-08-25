@@ -32,8 +32,8 @@ class iAStackedBarChart: public iASignallingWidget
 {
 	Q_OBJECT
 public:
-	static const int MaxBarHeight = 100;
-	static const int TextPadding = 5;
+	static const int MaxBarHeight;
+	static const int TextPadding;
 	iAStackedBarChart(iAColorTheme const* theme, QGridLayout* gL, int row, int col,
 		bool header = false, bool last = false);
 	void addBar(QString const& name, double value, double maxValue, double minValDiff);

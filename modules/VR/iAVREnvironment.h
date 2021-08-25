@@ -27,8 +27,9 @@
 
 #include <QObject>
 
+class iAVRMainThread;
+
 class vtkOpenVRRenderer;
-class iAVRInteractor;
 class vtkRenderer;
 class vtkOpenVRRenderWindow;
 
@@ -45,8 +46,12 @@ public:
 	void stop();
 	void createLightKit();
 	double getInitialWorldScale();
+	bool isRunning() const;
+private slots:
+	void vrDone();
 private:
 	vtkSmartPointer<vtkOpenVRRenderer> m_renderer;
+	iAVRMainThread* m_vrMainThread;
 	vtkSmartPointer<vtkOpenVRRenderWindow> m_renderWindow;
 	vtkSmartPointer<iAVRInteractor> m_interactor;
 	vtkSmartPointer<vtkSkybox> skyboxActor;

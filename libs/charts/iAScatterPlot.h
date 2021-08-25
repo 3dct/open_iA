@@ -240,6 +240,7 @@ protected:
 private:
 	double scc();
 	double pcc();
+	QColor highlightColorPoint(size_t i, size_t idx);
 	double m_pcc, m_scc;                                             //!< correlation coefficients between the two given data columns
 	bool m_pccValid, m_sccValid;                                     //!< indicates whether current cached values cor correlation coefficients can be used
 };

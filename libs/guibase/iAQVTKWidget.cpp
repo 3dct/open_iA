@@ -18,25 +18,33 @@
 * Contact: FH OÖ Forschungs & Entwicklungs GmbH, Campus Wels, CT-Gruppe,              *
 *          Stelzhamerstraße 23, 4600 Wels / Austria, Email: c.heinzl@fh-wels.at       *
 * ************************************************************************************/
-#pragma once
+#include "iAQVTKWidget.h"
 
-#include "iAqthelper_export.h"
+#include <vtkGenericOpenGLRenderWindow.h>
 
-#include "iASignallingWidget.h"
-#include "iAVtkWidget.h"
+iAQVTKWidget::iAQVTKWidget(QWidget* parent) : iAVtkWidget(parent)
+{  // before version 9, VTK did not set a default render window, let's do this...
+#if VTK_VERSION_NUMBER < VTK_VERSION_CHECK(9, 0, 0)
+	auto renWin = vtkSmartPointer<vtkGenericOpenGLRenderWindow>::New();
+	SetRenderWindow(renWin);
+#endif
+	setFormat(iAVtkWidget::defaultFormat());
+}
 
-class iAColoredWidget;
-
-//! Keeps the aspect ratio of a contained iAQVTKWidget fixed
-//! by placing two other resizable widgets around it as padding.
-class iAqthelper_API iAFixedAspectWidget: public iASignallingWidget
+#if VTK_VERSION_NUMBER < VTK_VERSION_CHECK(9, 0, 0)
+// There also were no Qt-style methods to retrieve render window and interactor, let's provide them:
+vtkRenderWindow* iAQVTKWidget::renderWindow()
 {
-	Q_OBJECT
-public:
-	iAFixedAspectWidget(double aspect=1.0, Qt::Alignment verticalAlign = Qt::AlignVCenter);
-	iAQVTKWidget* vtkWidget();
-	void setBGRole(QPalette::ColorRole role);
-private:
-	iAQVTKWidget* m_widget;
-	iAColoredWidget* m_fill1, * m_fill2;
-};
+	return GetRenderWindow();
+}
+QVTKInteractor* iAQVTKWidget::interactor()
+{
+	return GetInteractor();
+}
+#endif
+
+void iAQVTKWidget::updateAll()
+{
+	renderWindow()->Render();
+	update();
+}

@@ -1,4 +1,4 @@
-SET (ParameterExplorer_PRECOMPILE_INCLUDES
+set(ParameterExplorer_PRECOMPILE_INCLUDES
 <iALog.h>
 <iAParamSpatialView.h>
 <iAParamTableView.h>

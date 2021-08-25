@@ -28,7 +28,7 @@
 #include <iALookupTable.h>
 #include <iALUT.h>
 #include <iAQtVTKBindings.h>
-#include <iAVtkWidget.h>
+#include <iAQVTKWidget.h>
 
 #include <vtkIdTypeArray.h>
 #include <vtkLookupTable.h>
@@ -54,9 +54,9 @@ iASPMView::iASPMView(iAMainWindow *mWnd,  QWidget * parent /*= 0*/, Qt::WindowFl
 	m_splom(new iAFAQSplom(mWnd, parent)),
 	m_SPLOMSelection( vtkSmartPointer<vtkIdTypeArray>::New() ),
 	m_lut( vtkSmartPointer<vtkLookupTable>::New() ),
+	m_SBQVTKWidget(new iAQVTKWidget()),
 	m_sbRen( vtkSmartPointer<vtkRenderer>::New() ),
-	m_sbActor( vtkSmartPointer<vtkScalarBarActor>::New() ),
-	m_SBQVTKWidget(new iAQVTKWidget())
+	m_sbActor(vtkSmartPointer<vtkScalarBarActor>::New())
 {
 	QHBoxLayout *layoutHB2 = new QHBoxLayout( this );
 	layoutHB2->setContentsMargins(0, 0, 0, 0);

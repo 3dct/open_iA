@@ -1,10 +1,12 @@
-SET( DEPENDENCIES_LIBRARIES
-	iAcharts      # also pulls in required iAqthelper
-	iAguibase
-	iAobjectvis
-	iArenderer    # for iARendererViewSync
+set(DEPENDENCIES_LIBRARIES
+	iA::charts      # also pulls in required iAqthelper
+	iA::guibase
+	iA::objectvis
+	iA::renderer    # for iARendererViewSync
+)
+set(DEPENDENCIES_MODULES
 	Segmentation  # required for distance measures; maybe move these to core?
 )
-SET( DEPENDENCIES_VTK_MODULES
+set(DEPENDENCIES_VTK_MODULES
 	FiltersExtraction           # for vtkExtractGeometry used iASelectionInteractorStyle
 )

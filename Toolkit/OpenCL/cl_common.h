@@ -16,11 +16,7 @@
 //#define CL_TARGET_OPENCL_VERSION 120
 //#define CL_TARGET_OPENCL_VERSION 110
 
-#ifndef __APPLE__
-#ifndef __MACOSX
 #include "CL/cl.hpp"
-#endif
-#endif
 
 inline char const * descriptionOfError(cl_int err)
 {

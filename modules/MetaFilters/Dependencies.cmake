@@ -1,11 +1,11 @@
-SET( DEPENDENCIES_LIBRARIES
-	iAguibase
-	iAqthelper
+set(DEPENDENCIES_LIBRARIES
+	iA::guibase
+	iA::qthelper
 )
-#SET( DEPENDENCIES_ITK_MODULES
+#set(DEPENDENCIES_ITK_MODULES
 #	ITKConnectedComponents    # for RelabelComponentImageFilter
 #	ITKImageLabel                # for ScanlineFilterCommon, dependency of ConnectedComponentImageFilter
 #)
-SET( DEPENDENCIES_IA_TOOLKIT_DIRS
+set(DEPENDENCIES_IA_TOOLKIT_DIRS
 	Entropy
 )

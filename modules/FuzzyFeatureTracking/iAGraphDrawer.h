@@ -23,6 +23,7 @@
 #include "iAGraph.h"
 #include "iAGraphStat.h"
 
+#include <cstddef>
 #include <vector>
 
 class iAGraphDrawer

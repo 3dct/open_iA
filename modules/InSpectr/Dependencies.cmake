@@ -1,9 +1,9 @@
-SET( DEPENDENCIES_LIBRARIES
-	iAcharts           # also pulls in required iAqthelper
-	iAguibase
-	iArenderer
+set(DEPENDENCIES_LIBRARIES
+	iA::charts           # also pulls in required iAqthelper
+	iA::guibase
+	iA::renderer
 )
-#SET( DEPENDENCIES_ITK_MODULES
+#set(DEPENDENCIES_ITK_MODULES
 #	ITKImageAdaptors         # for NthElementImageAdaptor (dependency of GradientRecursiveGaussianImageFilter)
 #	ITKImageGradient         # for GradientRecursiveGaussianImageFilter (dependency of PointSetToImageMetric)
 #	ITKOptimizers            # for SingleValuedCostFunction (dependency of ImageToImageMetric)
@@ -12,6 +12,6 @@ SET( DEPENDENCIES_LIBRARIES
 #	ITKSpatialObjects        # for SpatialObject (dependency of ImageToImageMetric)
 #	ITKTransform             # for IdentityTransform, TranslationTransform
 #)
-SET( DEPENDENCIES_IA_TOOLKIT_DIRS
+set(DEPENDENCIES_IA_TOOLKIT_DIRS
 	FunctionalBoxplot
 )

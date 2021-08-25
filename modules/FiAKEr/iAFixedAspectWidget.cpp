@@ -21,7 +21,6 @@
 #include "iAFixedAspectWidget.h"
 
 #include "iALog.h"
-#include "iAVtkWidget.h"
 
 #include <QApplication>    // for qApp->palette()
 #include <QPainter>

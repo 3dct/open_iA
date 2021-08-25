@@ -143,7 +143,7 @@ void iAMultidimensionalScaling::normalizeMatrix()
 			csvFileData currDataset = m_inputData->at(ind);
 
 			//find max of each column for all datasets
-			for (int row = 0; row < currDataset.values->size(); row++)
+			for (int row = 0; row < ((int)currDataset.values->size()); row++)
 			{
 				double curVal = currDataset.values->at(row).at(col + 1);
 
@@ -156,11 +156,11 @@ void iAMultidimensionalScaling::normalizeMatrix()
 	
 		//normalize column according to maxVal
 		int rowU = 0;
-		for (int ind = 0; ind < m_inputData->count(); ind++)
+		for (int ind = 0; ind < ((int)m_inputData->count()); ind++)
 		{
 			csvFileData currDataset = m_inputData->at(ind);
 
-			for (int row = 0; row < currDataset.values->size(); row++)
+			for (int row = 0; row < ((int)currDataset.values->size()); row++)
 			{
 				double curVal = currDataset.values->at(row).at(col + 1);
 
@@ -202,7 +202,7 @@ void iAMultidimensionalScaling::calculateProximityDistance()
 
 iASimilarityDistance* iAMultidimensionalScaling::initializeDistanceMetric()
 {
-	iASimilarityDistance* d;
+	iASimilarityDistance* d = nullptr;
 	if (m_activeDisM == MDS::DistanceMetric::EuclideanDistance)
 	{
 		d = new iAEuclideanDistance();

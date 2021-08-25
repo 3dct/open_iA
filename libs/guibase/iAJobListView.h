@@ -38,11 +38,12 @@ class iAguibase_API iAJobListView : public QWidget
 {
 	Q_OBJECT
 public:
-	//! Access to the single instance of this class
+	//! Access to the single instance of this class (singleton).
 	static iAJobListView* get();
-	//! Typical way of adding a job via its name, the progress observer,
+	//! Typical way of adding a job. Specify its name, the progress observer,
 	//! the task (to whose finished signal the removal of the entry is connected),
 	//! and optional abort listener and progress estimator
+	//! @anchor addJobParams
 	//! @param name the name of the job/operation that is run;
 	//!        it is always shown at the top of the list entry, in bold
 	//! @param p the progress observer that reports on the job's progress;
@@ -54,13 +55,13 @@ public:
 	//!        or a QFuture as returned by runAsync (see iARunAsync.h)
 	//! @param abortListener optional listener to presses of the abort button;
 	//!        the abort button will be disabled if the default nullptr value is passed here
-	//! @param estimator an iADurationEstimator derived class providing information
-	//!        on both the elapsed time as well as the estimated remaining time.
-	//!        By default, a simple estimation based on the current finished percentage
-	//!        and the time elapsed so far will be used.
+	//! @param estimator an estimator for the remaining duration of the job, in case
+	//!        an unusual way of computing the elapsed and/or estimated remaining time
+	//!        is required. By default, a simple estimation based on the current
+	//!        finished percentage and the time elapsed so far will be used.
 	void addJob(QString name, iAProgress* p, QObject* t, iAAbortListener* abortListener = nullptr,
 		QSharedPointer<iADurationEstimator> estimator = QSharedPointer<iADurationEstimator>());
-	//! Add a job bound to the life time of the returned object;
+	//! Add a job bound to the life time of the returned object.
 	//! useful for situations where no finished signal can be connected
 	//! (e.g. if a synchronous operation is run)
 	//! the job will stay in the list as long as somebody holds a reference
@@ -69,46 +70,40 @@ public:
 	//! the variable holding the returned pointer goes out of scope at the
 	//! end of the method, the job will be removed automatically from the list.
 	//! Example:
-	//! #include "iAJobListView.h"
-	//! #include "iAProgress.h"
-	//! ...
-	//! void myComputeMethod()
-	//! {
-	//!     iAProgress p;
-	//!     auto jobListHandle = iAJobListView::get()->addJob("Compute Job", &p);
-	//!     while (computing)
+	//!
+	//! 
+	//!     #include "iAJobListView.h"
+	//!     #include "iAProgress.h"
+	//!     ...
+	//!     void myComputeMethod()
 	//!     {
-	//!         // ... do computation
-	//!         p.emitProgress(percent);
-	//!     }
-	//! }  // here, jobListHandle goes out of scope, and the job will be automatically
-	//! removed from the list!
-	//! @param name the name of the job/operation that is run;
-	//!        it is always shown at the top of the list entry, in bold
-	//! @param p the progress observer that reports on the job's progress;
-	//!        its progress signal connects to the job entries' progress bar,
-	//!        and the setStatus signal connects to a secondary text information
-	//!        shown below the name of the task (in non-bold font)
-	//! @return an object which will keep the job in the list, as long it's alive
-	//!        therefore marked as nondiscard (because if not stored, the job is
-	//!        removed immediately again)
+	//!         iAProgress p;
+	//!         auto jobListHandle = iAJobListView::get()->addJob("Compute Job", &p);
+	//!         while (computing)
+	//!         {
+	//!             // ... do computation
+	//!             p.emitProgress(percent);
+	//!         }
+	//!     }  // here, jobListHandle goes out of scope, and the job will be automatically removed from the list!
+	//!
+	//! For comments on the parameters, see @ref addJobParams "the other addJob variant".
 #if __cplusplus >= 201703L
 	[[nodiscard]]
 #endif
 	QSharedPointer<QObject>	addJob(QString name, iAProgress* p, iAAbortListener* abortListener = nullptr,
 		QSharedPointer<iADurationEstimator> estimator = QSharedPointer<iADurationEstimator>());
-	//! destructor; automatically cancels any still running jobs,
-	//! and even for jobs it's not able to cancel, removes their finish action
+	//! Destructor, automatically cancels any still running jobs.
+	//! Even for jobs it's not able to cancel, removes their finish action.
 	~iAJobListView();
 signals:
-	//! Emitted when all jobs are done; is used in main window to hide widget
-	//! as it means that no more jobs are currently running.
+	//! Emitted when all jobs are done.
+	//! Is used in main window to hide widget as it means that no more jobs are currently running.
 	void allJobsDone();
-	//! Emitted when a job is added; used in main window to show widget, as it
-	//! indicates that there is at least on currently running job.
+	//! Emitted when a job is added.
+	//! Used in main window to show widget, as it indicates that there is at least on currently running job.
 	void jobAdded(QObject* o);
 	//! Used to link the GUI part of adding a job to the backend part.
-	//! required for decoupling these two to allow adding jobs from a backend thread
+	//! Required for decoupling these two to allow adding jobs from a backend thread
 	void newJobSignal();
 private slots:
 	//! Linked to newJobSignal, does the GUI part of adding a new job.

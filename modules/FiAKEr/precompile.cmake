@@ -1,4 +1,4 @@
-SET (FiAKEr_PRECOMPILE_INCLUDES
+set(FiAKEr_PRECOMPILE_INCLUDES
 <iASPLOMData.h>
 <iACsvConfig.h>
 <iAFiAKErController.h>

@@ -53,6 +53,9 @@ public:
 	SelectionType& selection();
 	SelectionType const& selection() const;
 	void setSelection(SelectionType const& selection);
+	//! returns the index of the selected points in the filtered list of points
+	//! i.e. the index of those points that are selected in a list which only contains those points which match the current filter
+	//! NOTE: Only useful if you actually have such a filtered list! As is e.g. currently created in iAScatterPlot::drawPoints when SP_OLDOPENGL is defined...
 	SelectionType const& filteredSelection(QSharedPointer<iASPLOMData> splomData) const;
 	void setFilteredSelection(SelectionType const& filteredSelection, QSharedPointer<iASPLOMData> splomData);
 	void clearSelection();

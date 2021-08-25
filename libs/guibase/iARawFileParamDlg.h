@@ -22,14 +22,15 @@
 
 #include "iAguibase_export.h"
 
+#include "iAParameterDlg.h"
+
 #include <QObject>
 
-class dlg_commoninput;
 struct iARawFileParameters;
 
 class QLabel;
 
-class iAguibase_API dlg_openfile_sizecheck : public QObject
+class iAguibase_API iARawFileParamDlg : public QObject
 {
 	Q_OBJECT
 
@@ -38,33 +39,22 @@ public:
 	//! @param fileName         File name of the RAW file.
 	//! @param parent           The parent widget.
 	//! @param title            The window title.
-	//! @param additionalLabels List of additional input parameter labels (@see dlg_commoninput).
-	//! @param additionalValues List of additional input parameter values (@see dlg_commoninput).
+	//! @param additionalParams List of additional input parameters (@see iAParamDlg).
 	//! @param [out] rawFileParams The parameters of the raw file that were set by the user.
-	dlg_openfile_sizecheck (QString const & fileName, QWidget *parent, QString const & title,
-		QStringList const & additionalLabels, QList<QVariant> const & additionalValues, iARawFileParameters & rawFileParams);
-	~dlg_openfile_sizecheck();
+	iARawFileParamDlg(QString const& fileName, QWidget* parent, QString const& title,
+		iAParameterDlg::ParamListT const& additionalParams, iARawFileParameters& rawFileParams);
+	~iARawFileParamDlg();
 	//! Checks whether or not the user has accepted the input dialog.
 	//! @return true if the user accepted (i.e. clicked "OK"), false if he cancelled.
 	bool accepted() const;
-	//! The number of fixed parameters which the dialog creates itself.
-	//! Use this to determine where the first user-specified parameters
-	//! (additionalLabels/additionalValues parameter in constructor) started.
-	//! @return the number of fixed parameters used by the dialog itself;
-	//!     this is also the index of the first user-specified parameter.
-	int fixedParams() const;
-	//! access to the underlying common input dialog, mainly for accessing values entered by user.
-	//! @return the common input dialog.
-	dlg_commoninput const * inputDlg() const;
+	//! access to the values entered by user.
+	QMap<QString, QVariant> parameterValues() const;  // make const &, cache
+
 private:
 	qint64 m_fileSize;
-	QLabel * m_actualSizeLabel;
-	QLabel * m_proposedSizeLabel;
-	int m_sizeXIdx, m_sizeYIdx, m_sizeZIdx, m_voxelSizeIdx, m_headerSizeIdx;
-	double * dlg;
-	dlg_commoninput* m_inputDlg;
+	QLabel * m_actualSizeLabel, * m_proposedSizeLabel;
+	iAParameterDlg* m_inputDlg;
 	bool m_accepted;
-	int m_fixedParams;
 private slots:
 	//! update labels indicating whether current parameters fit the actual file size
 	void checkFileSize();

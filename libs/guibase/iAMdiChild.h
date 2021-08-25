@@ -22,8 +22,6 @@
 
 #include "iAguibase_export.h"
 
-#include "iAVtkWidgetFwd.h"
-
 #include <vtkSmartPointer.h>
 
 #include <QMainWindow>
@@ -110,8 +108,6 @@ public:
 
 	//! Access to the 3D renderer widget
 	virtual iARenderer* renderer() = 0;
-	//! Access to the 3D renderer vtk widget
-	virtual iAVtkWidget* renderVtkWidget() = 0;
 
 	virtual iAChartWithFunctionsWidget* histogram() = 0;
 	
@@ -312,6 +308,8 @@ public slots:
 	virtual void updateViews() = 0;
 	//! Update all slice views
 	virtual void updateSlicers() = 0;
+	//! Update 3D renderer
+	virtual void updateRenderer() = 0;
 	//! method "enabling render windows", basically called when dataset is ready to be shown
 	//! but quite convoluted and confusing, so:
 	//! @deprecated. will be removed soon, no direct replacement

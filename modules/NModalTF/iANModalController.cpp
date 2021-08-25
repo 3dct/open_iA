@@ -532,34 +532,6 @@ namespace
 		}
 	}
 
-	inline void setRgba(const vtkSmartPointer<vtkImageData>& img, const int& x, const int& y, const int& z,
-		const Rgb& color, const float& alpha = 255)
-	{
-		for (int i = 0; i < 3; ++i) img->SetScalarComponentFromFloat(x, y, z, i, color[i]);
-		img->SetScalarComponentFromFloat(x, y, z, 3, alpha);
-	}
-
-	inline double getScalar(const vtkSmartPointer<vtkImageData>& img, const int& x, const int& y, const int& z)
-	{
-		return img->GetScalarComponentAsDouble(x, y, z, 0);
-	}
-
-	inline void setRgba(unsigned char* ptr, const int& id, const Rgb& color, const float& alpha = 255)
-	{
-		ptr[id + 0] = color[0];
-		ptr[id + 1] = color[1];
-		ptr[id + 2] = color[2];
-		ptr[id + 3] = alpha;
-		//unsigned char rgba[4] = { color[0], color[1], color[2], alpha };
-		//memcpy(&ptr[id], rgba, 4 * sizeof(unsigned char));
-	}
-
-	template <typename T>
-	inline double getScalar(T* ptr, const int& id)
-	{
-		return ptr[id];
-	}
-
 	constexpr int NUM_SLICERS = iASlicerMode::SlicerCount;
 
 	constexpr iASlicerMode slicerModes[NUM_SLICERS] = {
@@ -570,7 +542,9 @@ namespace
 
 	constexpr int slicerAxes[NUM_SLICERS] = {0, 2, 1};  // X, Z, Y (compatible with layout of slicerModes array)
 
+#ifndef NDEBUG
 	constexpr int slicerCoordSwapIndices[NUM_SLICERS][NUM_SLICERS] = {{2, 0, 1}, {0, 1, 2}, {0, 2, 1}};
+#endif
 
 	inline void swapIndices(const int (&xyz_orig)[3], int mainSlicerIndex, int (&xyz_out)[3])
 	{
@@ -595,11 +569,41 @@ namespace
 
 #define iANModal_USE_GETSCALARPOINTER
 #ifdef iANModal_USE_GETSCALARPOINTER
+namespace
+{
+	inline void setRgba(unsigned char* ptr, const int& id, const Rgb& color, const float& alpha = 255)
+	{
+		ptr[id + 0] = color[0];
+		ptr[id + 1] = color[1];
+		ptr[id + 2] = color[2];
+		ptr[id + 3] = alpha;
+		//unsigned char rgba[4] = { color[0], color[1], color[2], alpha };
+		//memcpy(&ptr[id], rgba, 4 * sizeof(unsigned char));
+	}
+
+	template <typename T>
+	inline double getScalar(T* ptr, const int& id)
+	{
+		return ptr[id];
+	}
+}
 #define iANModal_IF_USE_GETSCALARPOINTER(a) a
-#define iANModal_GET_SCALAR(img, ptr) getScalar(ptr, id_scalar)
 #define iANModal_GET_SCALAR(img, ptr) getScalar(ptr, id_scalar)
 #define iANModal_SET_COLOR(img, ptr, color, alpha) setRgba(ptr, id_rgba, color, alpha)
 #else
+namespace
+{
+	inline double getScalar(const vtkSmartPointer<vtkImageData>& img, const int& x, const int& y, const int& z)
+	{
+		return img->GetScalarComponentAsDouble(x, y, z, 0);
+	}
+	inline void setRgba(const vtkSmartPointer<vtkImageData>& img, const int& x, const int& y, const int& z,
+		const Rgb& color, const float& alpha = 255)
+	{
+		for (int i = 0; i < 3; ++i) img->SetScalarComponentFromFloat(x, y, z, i, color[i]);
+		img->SetScalarComponentFromFloat(x, y, z, 3, alpha);
+	}
+}
 #define iANModal_IF_USE_GETSCALARPOINTER(a)
 #define iANModal_GET_SCALAR(img, ptr) getScalar(img, x, y, z)
 #define iANModal_SET_COLOR(img, ptr, color, alpha) setRgba(img, x, y, z, color, alpha)
@@ -680,9 +684,7 @@ void iANModalController::updateMainSlicers()
 
 #ifdef iANModal_USE_GETSCALARPOINTER
 		auto ptr = static_cast<unsigned char*>(sliceImg2D_out->GetScalarPointer());
-		unsigned char* maskPtr = nullptr;
-		if (m_mask)
-			maskPtr = static_cast<unsigned char*>(m_mask->GetScalarPointer());
+		unsigned char* maskPtr = m_mask ? static_cast<unsigned char*>(m_mask->GetScalarPointer()) : nullptr;
 #ifndef NDEBUG
 		int numVoxels = sliceImg2D_out->GetDimensions()[0] * sliceImg2D_out->GetDimensions()[1] *
 			sliceImg2D_out->GetDimensions()[2];

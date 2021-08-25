@@ -283,9 +283,9 @@ void iA3DLabelledVolumeVis::renderSingle(IndexType selectedObjID, int /*classID*
 				{
 					oTF->AddPoint( hid - 0.5, backAlpha, 0.5, 1.0 );
 					oTF->AddPoint( hid, alpha, 0.5, 1.0 );
+					oTF->AddPoint( hid + 0.3, backAlpha, 0.5, 1.0 );
 					cTF->AddRGBPoint( hid - 0.5, backRGB[0], backRGB[1], backRGB[2], 0.5, 1.0 );
 					cTF->AddRGBPoint( hid, red, green, blue, 0.5, 1.0 );
-					oTF->AddPoint( hid + 0.3, backAlpha, 0.5, 1.0 );
 					cTF->AddRGBPoint( hid + 0.3, backRGB[0], backRGB[1], backRGB[2], 0.5, 1.0 );
 					break;
 				}
@@ -389,9 +389,9 @@ void iA3DLabelledVolumeVis::multiClassRendering( QList<QColor> const & classColo
 				{
 					oTF->AddPoint(hid - 0.5, backAlpha, 0.5, 1.0);
 					oTF->AddPoint(hid, alpha, 0.5, 1.0);
+					oTF->AddPoint(hid + 0.3, backAlpha, 0.5, 1.0);
 					cTF->AddRGBPoint(hid - 0.5, backRGB[0], backRGB[1], backRGB[2], 0.5, 1.0);
 					cTF->AddRGBPoint(hid, red, green, blue, 0.5, 1.0);
-					oTF->AddPoint(hid + 0.3, backAlpha, 0.5, 1.0);
 					cTF->AddRGBPoint(hid + 0.3, backRGB[0], backRGB[1], backRGB[2], 0.5, 1.0);
 					break;
 				}

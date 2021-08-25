@@ -20,6 +20,7 @@
 * ************************************************************************************/
 #include "iAVREnvironment.h"
 
+#include "iAConsole.h"
 #include "iAVRInteractor.h"
 
 #include <iALog.h>
@@ -28,8 +29,6 @@
 #include <vtkOpenVRRenderWindow.h>
 #include <vtkOpenVRCamera.h>
 #include <vtkPNGReader.h>
-#include <vtkJPEGReader.h>
-#include <vtkEquirectangularToCubeMapTexture.h>
 #include <vtkImageFlip.h>
 #include <vtkLight.h>
 #include <vtkLightKit.h>
@@ -38,7 +37,47 @@
 #include <qstring.h>
 #include <QCoreApplication>
 
-iAVREnvironment::iAVREnvironment():	m_renderer(vtkSmartPointer<vtkOpenVRRenderer>::New()), m_renderWindow(vtkSmartPointer<vtkOpenVRRenderWindow>::New()), m_interactor(vtkSmartPointer<iAVRInteractor>::New())
+
+#include <QThread>
+
+class iAVRMainThread : public QThread
+{
+public:
+	iAVRMainThread(vtkSmartPointer<vtkOpenVRRenderer> ren):
+		m_renderer(ren)
+	{}
+	void run() override
+	{
+		auto renderWindow = vtkSmartPointer<vtkOpenVRRenderWindow>::New();
+		renderWindow->AddRenderer(m_renderer);
+		// MultiSamples needs to be set to 0 to make Volume Rendering work:
+		// http://vtk.1045678.n5.nabble.com/Problems-in-rendering-volume-with-vtkOpenVR-td5739143.html
+		renderWindow->SetMultiSamples(0);
+		m_interactor->SetRenderWindow(renderWindow);
+		auto camera = vtkSmartPointer<vtkOpenVRCamera>::New();
+
+		m_renderer->SetActiveCamera(camera);
+		m_renderer->ResetCamera();
+		m_renderer->ResetCameraClippingRange();
+		renderWindow->Render();
+		m_worldScale = m_interactor->GetPhysicalScale();
+		m_interactor->GetPickingManager()->EnabledOn();
+		m_interactor->Start();
+	}
+	void stop()
+	{
+		m_interactor->stop();
+	}
+private:
+	vtkSmartPointer<vtkOpenVRRenderer> m_renderer;
+	vtkSmartPointer<iAVRInteractor> m_interactor;
+};
+
+
+
+
+iAVREnvironment::iAVREnvironment():	m_renderer(vtkSmartPointer<vtkOpenVRRenderer>::New()), m_renderWindow(vtkSmartPointer<vtkOpenVRRenderWindow>::New()), m_interactor(vtkSmartPointer<iAVRInteractor>::New()),
+	m_vrMainThread(nullptr)
 {	
 	createSkybox(0);
 	createLightKit();
@@ -67,37 +106,29 @@ void iAVREnvironment::update()
 
 void iAVREnvironment::start()
 {
-	static int runningInstances = 0;
-	// "poor man's" check for trying to run two VR sessions in parallel:
-	if (runningInstances >= 1)
+	if (m_vrMainThread)
 	{
 		LOG(lvlWarn, "Cannot start more than one VR session in parallel!");
 		emit finished();
 		return;
 	}
-	++runningInstances;
-	m_renderWindow->AddRenderer(m_renderer);
-	// MultiSamples needs to be set to 0 to make Volume Rendering work:
-	// http://vtk.1045678.n5.nabble.com/Problems-in-rendering-volume-with-vtkOpenVR-td5739143.html
-	m_renderWindow->SetMultiSamples(0);
-	m_interactor->SetRenderWindow(m_renderWindow);
-	auto camera = vtkSmartPointer<vtkOpenVRCamera>::New();
-
-	m_renderer->SetActiveCamera(camera);
-	m_renderer->ResetCamera();
-	m_renderer->ResetCameraClippingRange();
-	m_renderWindow->Render();
-	m_worldScale = m_interactor->GetPhysicalScale();
-	m_interactor->GetPickingManager()->EnabledOn();
 	m_interactor->Start();
+	m_vrMainThread = new iAVRMainThread(m_renderer);
+	connect(m_vrMainThread, &QThread::finished, this, &iAVREnvironment::vrDone);
+	m_vrMainThread->start();
 	--runningInstances;
 	emit finished();
 }
 
 void iAVREnvironment::stop()
 {
-	if (m_interactor)
-		m_interactor->stop();
+	if (!m_vrMainThread)
+	{
+		DEBUG_LOG("VR Environment not running!");
+		return;
+	}
+	if (m_vrMainThread)
+		m_vrMainThread->stop();
 }
 
 void iAVREnvironment::createLightKit()
@@ -174,5 +205,16 @@ vtkSmartPointer<vtkTexture> iAVREnvironment::ReadCubeMap(std::string const& fold
 		++i;
 	}
 	return texture;
+}
+
+bool iAVREnvironment::isRunning() const
+{
+	return m_vrMainThread;
+}
+
+void iAVREnvironment::vrDone()
+{
+	delete m_vrMainThread;
+	m_vrMainThread = nullptr;
 }
 

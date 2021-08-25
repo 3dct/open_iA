@@ -1,4 +1,4 @@
-SET (OPENIA_PRECOMPILE_HEADERS
+set(OPENIA_PRECOMPILE_HEADERS
 <cassert>
 <chrono>
 <cmath>
@@ -11,10 +11,8 @@ SET (OPENIA_PRECOMPILE_HEADERS
 <vector>
 
 <defines.h>
-<dlg_commoninput.h>
 <dlg_modalities.h>
 <dlg_modalityProperties.h>
-<dlg_openfile_sizecheck.h>
 <iAAbortListener.h>
 <iAAbstractMagicLensWidget.h>
 <iAAlgorithm.h>
@@ -44,6 +42,8 @@ SET (OPENIA_PRECOMPILE_HEADERS
 <iAParameterDlg.h>
 <iAPerformanceHelper.h>
 <iAProgress.h>
+<iAQVTKWidget.h>
+<iARawFileParamDlg.h>
 <iASlicerMode.h>
 <iAStringHelper.h>
 <iAToolsVTK.h>
@@ -54,7 +54,6 @@ SET (OPENIA_PRECOMPILE_HEADERS
 <iAVolumeStack.h>
 <iAvtkInteractStyleActor.h>
 <iAVtkVersion.h>
-<iAVtkWidget.h>
 <iAXmlSettings.h>
 
 <itkImage.h>

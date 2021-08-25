@@ -497,7 +497,10 @@ void iAChartWidget::drawXAxis(QPainter &painter)
 		QString text = xAxisTickMarkLabel(value, stepWidth);
 		int markerX = markerPos(static_cast<int>(xMapper().srcToDst(value)), i, stepCount);
 		painter.drawLine(markerX, TickWidth, markerX, -1);
-		int textWidth =
+		int textWidth = 1 +
+			// + 1 is required - apparently width of QRect passed to drawRect below
+			// needs to be larger than that width the text actually requires.
+			// Without it, we often get text output like "0." where e.g. "0.623" would be the actual text
 #if QT_VERSION >= QT_VERSION_CHECK(5, 11, 0)
 			fm.horizontalAdvance(text);
 #else
@@ -1223,8 +1226,8 @@ void iAChartWidget::exportData()
 	{
 		LOG(lvlInfo, "More than one plot available, exporting only first!");
 		/*
-		QVector<QSharedPointer<iAAttributeDescriptor>> params;
-		params.push_back(iAAttributeDescriptor::createParam("Plot index", iAValueType::Discrete, 0, 0, m_plots.size()));
+		iAParameterDlg::ParamListT params;
+		addParameter(params, "Plot index", iAValueType::Discrete, 0, 0, m_plots.size());
 		iAParameterDlg dlg(this, "Choose plot", params, "More than one plot available - please choose which one you want to export!");
 		if (dlg.exec() != QDialog::Accepted)
 		{

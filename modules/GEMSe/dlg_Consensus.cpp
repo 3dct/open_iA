@@ -34,17 +34,17 @@
 #include <iAProbabilisticVotingImageFilter.h>
 #include <iAUndecidedPixelClassifierImageFilter.h>
 
-#include <dlg_commoninput.h>
 #include <iAColorTheme.h>
+#include <iAFileUtils.h>
 #include <iAJobListView.h>
 #include <iALog.h>
 #include <iALookupTable.h>
-#include <iAParameterNames.h>
-#include <iAToolsITK.h>
-#include <iAVtkWidget.h>
-#include <iAFileUtils.h>
-#include <io/iAIOProvider.h>
 #include <iAMdiChild.h>
+#include <iAParameterDlg.h>
+#include <iAParameterNames.h>
+#include <iAQVTKWidget.h>
+#include <iAToolsITK.h>
+#include <io/iAIOProvider.h>
 
 #include <iADockWidgetWrapper.h>
 
@@ -971,19 +971,15 @@ void dlg_Consensus::LoadConfig()
 				parameterSets->push_back(singleParameterSet);
 			}
 		}
-		QStringList parameters;	parameters
-			<< "#Executable"
-			<< "#Additional Parameters";
-		QList<QVariant> values; values
-			<< samplingResults->executable()
-			<< samplingResults->additionalArguments();
-		dlg_commoninput checkAlgoParams(m_mdiChild, "Check/Correct Algorithm Parameters", parameters, values, nullptr);
-		if (checkAlgoParams.exec() != QDialog::Accepted)
+		iAParameterDlg::ParamListT dlgParams;
+		addParameter(dlgParams, "Executable", iAValueType::String, samplingResults->executable());
+		addParameter(dlgParams, "Additional Parameters", iAValueType::String, samplingResults->additionalArguments());
+		iAParameterDlg dlg(m_mdiChild, "Check/Correct Algorithm Parameters", dlgParams);
+		if (dlg.exec() != QDialog::Accepted)
 		{
 			return;
 		}
-		QString executable = checkAlgoParams.getText(0);
-		QString additionalParameters = checkAlgoParams.getText(1);
+		auto paramValues = dlg.parameterValues();
 		QSharedPointer<iARerunSamplingMethod> generator(
 			new iARerunSamplingMethod(parameterSets,
 				QString("Holdout Comparison, Algorithm %1").arg(s)));
@@ -993,8 +989,8 @@ void dlg_Consensus::LoadConfig()
 		params.insert(spnSamplingMethod, generator->name());
 		params.insert(spnNumberOfLabels, m_labelCount);
 		params.insert(spnOutputFolder, outputFolder);
-		params.insert(spnExecutable, executable);
-		params.insert(spnAdditionalArguments, additionalParameters);
+		params.insert(spnExecutable, paramValues["Executable"].toString());
+		params.insert(spnAdditionalArguments, paramValues["Additional Parameters"].toString());
 		params.insert(spnAlgorithmType, atExternal);
 		params.insert(spnAlgorithmName, samplingResults->name());
 		params.insert(spnBaseName, "label.mhd");

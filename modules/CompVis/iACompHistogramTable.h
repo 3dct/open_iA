@@ -38,15 +38,15 @@ class iACompHistogramTable : public QDockWidget, public Ui_CompHistogramTable
 	void reinitializeHistogramTable(iAMultidimensionalScaling* newMds);
 
 	//draw Histogram table according to the similiarity values calculated for a picked row
-	void drawHistogramTableAccordingToSimilarity(int bins, vtkSmartPointer<vtkActor> referenceData);
+	void drawHistogramTableAccordingToSimilarity(vtkSmartPointer<vtkActor> referenceData);
 	//draw Histogram table according to the similiarity values calculated for a picked row AND CELL
-	void drawHistogramTableAccordingToCellSimilarity(int bins, Pick::PickedMap* m_picked);
+	void drawHistogramTableAccordingToCellSimilarity(Pick::PickedMap* m_picked);
 	//draw Histogram table with rows ordered ascending to its amount of objects
-	void drawHistogramTableInAscendingOrder(int bins);
+	void drawHistogramTableInAscendingOrder();
 	//draw Histogram table with rows ordered descending to its amount of objects
-	void drawHistogramTableInDescendingOrder(int bins);
+	void drawHistogramTableInDescendingOrder();
 	//draw Histogram table with rows ordered according to loading the datasets
-	void drawHistogramTableInOriginalOrder(int bins);
+	void drawHistogramTableInOriginalOrder();
 	//draw Histogram table after manual repositioning is finsihed
 	void drawReorderedHistogramTable();
 
@@ -207,35 +207,10 @@ class iACompHistogramTable : public QDockWidget, public Ui_CompHistogramTable
 	vtkSmartPointer<vtkRenderer> m_renderer;
 	vtkSmartPointer<vtkLookupTable> m_lut;
 
-	//amount of bins
-	int m_bins;
-	//amount of datasets
-	int m_amountDatasets;
-	//number of elements per color
-	double m_BinRangeLength;
-	//number of planes
-	double m_colSize;
-	//number of subdivisions
-	double m_rowSize;
-	//stores the screen ratio
-	double screenRatio;
-
-	double m_windowWidth;
-	double m_windowHeight;
 	
-	bool m_initialRendering;
-
-	//each dataset is one plane row
-	const int m_ColForData = 1;
-	//minimal amount of bins
-	const int minBins = 10;
-	//maximal amount of bins
-	const int maxBins = 80;
 	//amount of colors
 	int m_tableSize;
 
-	//amount of bins that are drawn in the selected rows
-	int m_binsZoomed;
 
 	//stores the actors needed for the point representation
 	std::vector<vtkSmartPointer<vtkActor>>* m_pointRepresentationActors;
@@ -246,7 +221,6 @@ class iACompHistogramTable : public QDockWidget, public Ui_CompHistogramTable
 
 	std::map<vtkSmartPointer<vtkActor>, std::vector< vtkSmartPointer<vtkActor> >* >* originalPlaneZoomedPlanePair;
 	
-
 	//stores the actors added to display the border of the selected cells
 	//have to be removed before any calculation for zooming can take place!
 	std::vector<vtkSmartPointer<vtkActor>>* m_highlighingActors;
@@ -277,8 +251,7 @@ class iACompHistogramTable : public QDockWidget, public Ui_CompHistogramTable
 	std::vector<int>* m_originalOrderOfIndicesDatasets;
 	
 	std::map<int, std::vector<double>>* m_drawingPositionForRegions;
-	int m_oldDrawingPosition;
-	int m_newDrawingPosition;
+	
 
 	//stores the order of the indices of each dataset during the manual repositioning of an actor
 	std::vector<int>* m_newOrderOfIndicesDatasets;
@@ -296,4 +269,35 @@ class iACompHistogramTable : public QDockWidget, public Ui_CompHistogramTable
 	//stores the text actors drawn to show the number of objects for each dataset
 	std::vector<vtkSmartPointer<vtkTextActor>>* m_barTextActors;
 	std::vector<vtkSmartPointer<vtkActor>>* m_stippledActors;
+
+	bool m_initialRendering;
+
+	int m_oldDrawingPosition;
+	int m_newDrawingPosition;
+
+	//number of elements per color
+	double m_BinRangeLength;
+
+	//amount of datasets
+	int m_amountDatasets;
+	//amount of bins
+	int m_bins;
+	//amount of bins that are drawn in the selected rows
+	int m_binsZoomed;
+	//number of planes
+	double m_colSize;
+	//number of subdivisions
+	double m_rowSize;
+	//stores the screen ratio
+	double screenRatio;
+
+	double m_windowWidth;
+	double m_windowHeight;
+
+	//each dataset is one plane row
+	const int m_ColForData = 1;
+	//minimal amount of bins
+	const int minBins = 10;
+	//maximal amount of bins
+	const int maxBins = 80;
 };

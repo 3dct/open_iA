@@ -26,7 +26,7 @@
 #include <qcustomplot.h>
 #include <defines.h>
 #include <iALUT.h>
-#include <iAVtkWidget.h>
+#include <iAQVTKWidget.h>
 
 #include <vtkColorTransferFunction.h>
 #include <vtkLookupTable.h>
@@ -55,9 +55,9 @@ void SetWidgetSelectionStyle(QWidget * w, bool isSelected)
 iAPDMView::iAPDMView( QWidget * parent /*= 0*/, Qt::WindowFlags f /*= 0 */ )
 	: PorosityAnalyzerPDMConnector( parent, f ),
 	m_lut( vtkSmartPointer<vtkLookupTable>::New() ),
+	m_sbWidget(new iAQVTKWidget()),
 	m_sbRen( vtkSmartPointer<vtkRenderer>::New() ),
-	m_sbActor( vtkSmartPointer<vtkScalarBarActor>::New() ),
-	m_sbWidget(new iAQVTKWidget())
+	m_sbActor(vtkSmartPointer<vtkScalarBarActor>::New())
 {
 	QSettings settings( organisationName, applicationName );
 	this->dsbCMRange->setValue( settings.value( "FeatureAnalyzer/GUI/CMRange", 2.0 ).toDouble() );

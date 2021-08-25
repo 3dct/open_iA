@@ -1,8 +1,8 @@
-SET( DEPENDENCIES_LIBRARIES
-	iAcharts
-	iAguibase
-	iAslicer    # for iASlicerImpl
+set(DEPENDENCIES_LIBRARIES
+	iA::charts
+	iA::guibase
+	iA::slicer    # for iASlicerImpl
 )
-SET (DEPENDENCIES_MODULES
+set(DEPENDENCIES_MODULES
 	Labelling
 )

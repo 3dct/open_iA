@@ -1,4 +1,4 @@
-SET (FeatureAnalyzerComputation_PRECOMPILE_INCLUDES
+set(FeatureAnalyzerComputation_PRECOMPILE_INCLUDES
 <defines.h>
 <dlg_ParamSpaceSampling.h>
 <FeatureAnalyzerHelpers.h>

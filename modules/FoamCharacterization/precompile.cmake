@@ -1,4 +1,4 @@
-SET (FoamCharacterization_PRECOMPILE_INCLUDES <iAConnector.h>
+set(FoamCharacterization_PRECOMPILE_INCLUDES <iAConnector.h>
 <iAFoamCharacterizationDialog.h>
 <iAFoamCharacterizationItem.h>
 <iAFoamCharacterizationItemBinarization.h>
