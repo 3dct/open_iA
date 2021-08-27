@@ -63,6 +63,7 @@
 
 // FIAKER
 #include "iAAlgorithmInfo.h"
+const QString iAAlgorithmInfo::LegendCaption("Sensitivity:");
 #include "iAFiberResult.h"
 #include "iAFiberResultUIData.h"
 #include "iAFiberData.h"
@@ -112,6 +113,7 @@
 #include <QRadioButton>
 #include <QScrollArea>
 #include <QSpinBox>
+#include <QSplitter>
 #include <QTableView>
 #include <QtConcurrent>
 #include <QTextStream>
@@ -2217,16 +2219,10 @@ void iASensitivityInfo::createGUI()
 	m_gui->m_paramSP->setSelectionEnabled(false);
 	auto sortedParams = m_gui->m_paramInfluenceView->paramIndicesSorted();
 	m_gui->m_paramSP->setVisibleParameters(sortedParams[0], sortedParams[1]);
+	m_gui->m_paramSP->setMinimumWidth(50);
 	connect(m_gui->m_paramSP, &iAScatterPlotWidget::pointHighlighted, this, &iASensitivityInfo::spPointHighlighted);
 	connect(m_gui->m_paramSP, &iAScatterPlotWidget::highlightChanged, this, &iASensitivityInfo::spHighlightChanged);
-	connect(
-		m_gui->m_paramSP, &iAScatterPlotWidget::visibleParamChanged, this, &iASensitivityInfo::spVisibleParamChanged);
-	auto dwParamSP = new iADockWidgetWrapper(m_gui->m_paramSP, "Results in Parameter Space", "foeParamSP");
-	m_child->splitDockWidget(m_gui->m_dwParamInfluence, dwParamSP, Qt::Vertical);
-
-	m_gui->m_colorMapWidget = new iAColorMapWidget();
-	auto dwColorMap = new iADockWidgetWrapper(m_gui->m_colorMapWidget, "Dissimilarity Color Map", "foeColorMap");
-	m_child->splitDockWidget(dwParamSP, dwColorMap, Qt::Horizontal);
+	connect(m_gui->m_paramSP, &iAScatterPlotWidget::visibleParamChanged, this, &iASensitivityInfo::spVisibleParamChanged);
 
 	m_gui->m_mdsSP = new iAScatterPlotWidget(m_gui->m_mdsData, true);
 	m_gui->m_mdsSP->setPointRadius(4);
@@ -2237,11 +2233,24 @@ void iASensitivityInfo::createGUI()
 	m_gui->m_mdsSP->setHighlightDrawMode(iAScatterPlot::Enlarged | iAScatterPlot::CategoricalColor);
 	m_gui->m_mdsSP->setSelectionEnabled(false);
 	m_gui->m_mdsSP->setVisibleParameters(m_gui->spColIdxMDSX, m_gui->spColIdxMDSY);
+	m_gui->m_mdsSP->setMinimumWidth(50);
 	connect(m_gui->m_mdsSP, &iAScatterPlotWidget::pointHighlighted, this, &iASensitivityInfo::spPointHighlighted);
 	connect(m_gui->m_mdsSP, &iAScatterPlotWidget::highlightChanged, this, &iASensitivityInfo::spHighlightChanged);
-	//connect(m_gui->m_mdsSP, &iAScatterPlotWidget::visibleParamChanged, this, &iASensitivityInfo::spVisibleParamChanged);
-	auto dwMdsSP = new iADockWidgetWrapper(m_gui->m_mdsSP, "MDS Results Overview", "foeMdsSP");
-	m_child->splitDockWidget(dwParamSP, dwMdsSP, Qt::Vertical);
+
+	m_gui->m_colorMapWidget = new iAColorMapWidget();
+	m_gui->m_colorMapWidget->setMinimumWidth(50);
+	m_gui->m_colorMapWidget->setMaximumWidth(100);
+
+	auto splitter = new QSplitter();
+	splitter->setOrientation(Qt::Horizontal);
+	splitter->setChildrenCollapsible(true);
+	splitter->addWidget(m_gui->m_paramSP);
+	splitter->addWidget(m_gui->m_mdsSP);
+	splitter->addWidget(m_gui->m_mdsSP);
+	splitter->addWidget(m_gui->m_colorMapWidget);
+	
+	auto dwSP = new iADockWidgetWrapper(splitter, "Constellation Charts", "foeParamSP");
+	m_child->splitDockWidget(m_gui->m_dwParamInfluence, dwSP, Qt::Vertical);
 
 	m_gui->updateScatterPlotLUT();
 
