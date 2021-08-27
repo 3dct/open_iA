@@ -130,7 +130,7 @@ public:
 	//! Set position of x axis caption (Center/Left, Bottom/Top, via Qt::Align... flags).
 	void setCaptionPosition(Qt::Alignment captionAlignment);
 	//! Set whether x axis caption should be shown or not.
-	void setShowXAxisLabel(bool show);
+	void showXAxisLabel(bool show);
 	//! Add a plot to the chart.
 	void addPlot(QSharedPointer<iAPlot> plot);
 	//! Remove a plot from the chart.

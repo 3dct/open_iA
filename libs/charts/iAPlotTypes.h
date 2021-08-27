@@ -50,7 +50,7 @@ private:
 class iAcharts_API iALinePlot: public iAPlot
 {
 public:
-	iALinePlot(QSharedPointer<iAPlotData> data, QColor const & color);
+	iALinePlot(QSharedPointer<iAPlotData> data, QColor const& color);
 	void setLineWidth(int width);
 private:
 	int m_lineWidth;
@@ -85,7 +85,7 @@ private:
 class iAcharts_API iABarGraphPlot: public iAPlot
 {
 public:
-	iABarGraphPlot(QSharedPointer<iAPlotData> data, QColor const & color, int margin=0);
+	iABarGraphPlot(QSharedPointer<iAPlotData> data, QColor const& color, int margin = 0);
 	void draw(QPainter& painter, size_t startIdx, size_t endIdx, iAMapper const& xMapper, iAMapper const& yMapper) const override;
 	void setLookupTable(QSharedPointer<iALookupTable> lut);
 private:

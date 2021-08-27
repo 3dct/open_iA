@@ -694,7 +694,7 @@ void iAParameterInfluenceView::addStackedBar(int outType, int outIdx)
 		QPalette::ColorRole bgRole = (paramIdx == m_selectedParam) ? QPalette::AlternateBase : QPalette::Window;
 
 		auto outChart = new iAChartWidget(this, "", (curBarIdx == 0) ? "Var. from " + paramName : "");
-		outChart->setShowXAxisLabel(false);
+		outChart->showXAxisLabel(false);
 		outChart->setEmptyText("");
 		outChart->setBackgroundRole(bgRole);
 		//outChart->setMinimumHeight(80);

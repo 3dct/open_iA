@@ -727,7 +727,7 @@ void iAChartWidget::setCaptionPosition(Qt::Alignment captionAlignment)
 	m_captionPosition = captionAlignment;
 }
 
-void iAChartWidget::setShowXAxisLabel(bool show)
+void iAChartWidget::showXAxisLabel(bool show)
 {
 	m_showXAxisLabel = show;
 }

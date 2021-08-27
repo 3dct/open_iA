@@ -724,7 +724,7 @@ QWidget* iAFiAKErController::setupResultListView()
 		if (m_showCharts)
 		{
 			ui.histoChart = new iAChartWidget(resultList, "Fiber Length", "");
-			ui.histoChart->setShowXAxisLabel(false);
+			ui.histoChart->showXAxisLabel(false);
 			ui.histoChart->setMinimumWidth(HistogramMinWidth);
 			ui.histoChart->setSizePolicy(QSizePolicy::Expanding, QSizePolicy::Expanding);
 		}

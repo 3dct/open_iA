@@ -108,7 +108,7 @@ namespace
 
 // iALinePlot
 
-iALinePlot::iALinePlot(QSharedPointer<iAPlotData> data, QColor const & color) :
+iALinePlot::iALinePlot(QSharedPointer<iAPlotData> data, QColor const& color) :
 	iAPlot(data, color),
 	m_lineWidth(1)
 {}
@@ -136,7 +136,7 @@ void iALinePlot::draw(QPainter& painter, size_t startIdx, size_t endIdx, iAMappe
 
 // iAFilledLinePlot
 
-iAFilledLinePlot::iAFilledLinePlot(QSharedPointer<iAPlotData> data, QColor const & color):
+iAFilledLinePlot::iAFilledLinePlot(QSharedPointer<iAPlotData> data, QColor const& color) :
 	iAPlot(data, color)
 {}
 
@@ -164,7 +164,7 @@ void iAFilledLinePlot::draw(QPainter& painter, size_t startIdx, size_t endIdx, i
 
 // iAStepFunctionPlot
 
-iAStepFunctionPlot::iAStepFunctionPlot(QSharedPointer<iAPlotData> data, QColor const & color) :
+iAStepFunctionPlot::iAStepFunctionPlot(QSharedPointer<iAPlotData> data, QColor const& color) :
 	iAPlot(data, color)
 {}
 
@@ -195,7 +195,7 @@ void iAStepFunctionPlot::draw(QPainter& painter, size_t startIdx, size_t endIdx,
 
 // iABarGraphPlot
 
-iABarGraphPlot::iABarGraphPlot(QSharedPointer<iAPlotData> data, QColor const & color, int margin):
+iABarGraphPlot::iABarGraphPlot(QSharedPointer<iAPlotData> data, QColor const& color, int margin) :
 	iAPlot(data, color),
 	m_margin(margin)
 {}
@@ -225,7 +225,7 @@ void iABarGraphPlot::setLookupTable(QSharedPointer<iALookupTable> lut)
 
 // iAPlotCollection
 
-iAPlotCollection::iAPlotCollection():
+iAPlotCollection::iAPlotCollection() :
 	iAPlot(QSharedPointer<iAPlotData>(), QColor())
 {}
 
