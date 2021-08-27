@@ -41,6 +41,13 @@ iAPlot::iAPlot(QSharedPointer<iAPlotData> data, QColor const & color):
 
 iAPlot::~iAPlot() {}
 
+void iAPlot::drawLegendItem(QPainter& painter, QRect const& rect)
+{
+	painter.setPen(m_color);
+	int y = rect.center().y();
+	painter.drawLine(rect.left(), y, rect.right(), y);
+}
+
 QSharedPointer<iAPlotData> iAPlot::data()
 {
 	return m_data;
@@ -162,6 +169,11 @@ void iAFilledLinePlot::draw(QPainter& painter, size_t startIdx, size_t endIdx, i
 	painter.fillPath(tmpPath, QBrush(getFillColor()));
 }
 
+void iAFilledLinePlot::drawLegendItem(QPainter& painter, QRect const& rect)
+{
+	painter.fillRect(rect, QBrush(getFillColor()));
+}
+
 // iAStepFunctionPlot
 
 iAStepFunctionPlot::iAStepFunctionPlot(QSharedPointer<iAPlotData> data, QColor const& color) :
@@ -193,6 +205,11 @@ void iAStepFunctionPlot::draw(QPainter& painter, size_t startIdx, size_t endIdx,
 	painter.fillPath(tmpPath, QBrush(getFillColor()));
 }
 
+void iAStepFunctionPlot::drawLegendItem(QPainter& painter, QRect const& rect)
+{
+	painter.fillRect(rect, QBrush(getFillColor()));
+}
+
 // iABarGraphPlot
 
 iABarGraphPlot::iABarGraphPlot(QSharedPointer<iAPlotData> data, QColor const& color, int margin) :
@@ -216,6 +233,11 @@ void iABarGraphPlot::draw(QPainter& painter, size_t startIdx, size_t endIdx, iAM
 		}
 		painter.fillRect(QRect(x, 1, barWidth, h), fillColor);
 	}
+}
+
+void iABarGraphPlot::drawLegendItem(QPainter& painter, QRect const& rect)
+{	// TODO: figure out what todo do if m_lut is set...
+	painter.fillRect(rect, QBrush(color()));
 }
 
 void iABarGraphPlot::setLookupTable(QSharedPointer<iALookupTable> lut)

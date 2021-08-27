@@ -120,6 +120,7 @@ iAChartWidget::iAChartWidget(QWidget* parent, QString const & xLabel, QString co
 	m_contextMenu(new QMenu(this)),
 	m_showTooltip(true),
 	m_showXAxisLabel(true),
+	m_showLegend(false),
 	m_fontHeight(0),
 	m_yMaxTickLabelWidth(0),
 	m_customXBounds(false),
@@ -400,6 +401,64 @@ void iAChartWidget::drawAxes(QPainter& painter)
 {
 	drawXAxis(painter);
 	drawYAxis(painter);
+}
+
+namespace
+{
+	int maxTextWidth(QFontMetrics fm, QStringList const& strings)
+	{
+		// determine max width:
+		int width = 0;
+		for (auto str : strings)
+		{
+#if QT_VERSION >= QT_VERSION_CHECK(5, 11, 0)
+			width = std::max(width, fm.horizontalAdvance(str));
+#else
+			width = std::max(fm.width(str));
+#endif
+		}
+		return width;
+	}
+}
+
+void iAChartWidget::drawLegend(QPainter& painter)
+{
+	if (!m_showLegend)
+	{
+		return;
+	}
+	QStringList legendItems;
+	for (int pi = 0; pi < m_plots.size(); ++pi)
+	{
+		legendItems << m_plots[pi]->data()->name();
+	}
+	const int LegendPadding = 4;
+	const int LegendMargin = 5;
+	const int LineHeight = painter.fontMetrics().height();
+	const int LegendItemWidth = 20;
+	const int LegendItemSpacing = 2;
+	const int TextMaxWidth = maxTextWidth(painter.fontMetrics(), legendItems);
+	QSize boxSize(
+		LegendItemWidth + TextMaxWidth + 3 * LegendPadding,
+		LineHeight * m_plots.size() + 2 * LegendPadding
+	);
+	QPoint upLeft(width() - boxSize.width() - LegendMargin, LegendMargin);
+	QRect boxRect(upLeft, boxSize);
+	QColor bgColor = qApp->palette().color(QWidget::backgroundRole());
+	painter.fillRect(boxRect, bgColor);
+	painter.setPen(qApp->palette().color(QPalette::Text));
+	painter.drawRect(boxRect);
+	const int LegendColorLeft = upLeft.x() + LegendPadding;
+	const int TextLeft = LegendColorLeft + LegendItemWidth + LegendPadding;
+	for (int pi = 0; pi < m_plots.size(); ++pi)
+	{
+		int top = upLeft.y() + LegendPadding + pi * LineHeight;
+		QRect legendItemRect(LegendColorLeft, top + LegendItemSpacing, LegendItemWidth, LineHeight - LegendItemSpacing);
+		m_plots[pi]->drawLegendItem(painter, legendItemRect);
+		painter.setPen(qApp->palette().color(QPalette::Text));
+		QRect textRect(TextLeft, top, TextMaxWidth + LegendPadding, LineHeight);
+		painter.drawText(textRect, m_plots[pi]->data()->name());
+	}
 }
 
 bool iAChartWidget::categoricalAxis() const
@@ -730,6 +789,11 @@ void iAChartWidget::setCaptionPosition(Qt::Alignment captionAlignment)
 void iAChartWidget::showXAxisLabel(bool show)
 {
 	m_showXAxisLabel = show;
+}
+
+void iAChartWidget::showLegend(bool show)
+{
+	m_showLegend = show;
 }
 
 void iAChartWidget::addPlot(QSharedPointer<iAPlot> plot)
@@ -1153,6 +1217,7 @@ void iAChartWidget::drawAll(QPainter & painter)
 #else
 	m_yMaxTickLabelWidth = fm.width("4.44M");
 #endif
+	painter.save();
 	painter.translate(-xMapper().srcToDst(visibleXStart()) + leftMargin(), -bottomMargin());
 	drawImageOverlays(painter);
 	//change the origin of the window to left bottom
@@ -1179,6 +1244,8 @@ void iAChartWidget::drawAll(QPainter & painter)
 	painter.scale(1, -1);
 	painter.setRenderHint(QPainter::Antialiasing, false);
 	drawAxes(painter);
+	painter.restore();
+	drawLegend(painter);
 }
 
 void iAChartWidget::setXMarker(double xPos, QColor const& color, Qt::PenStyle penStyle)

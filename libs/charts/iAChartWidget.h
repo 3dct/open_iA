@@ -131,6 +131,8 @@ public:
 	void setCaptionPosition(Qt::Alignment captionAlignment);
 	//! Set whether x axis caption should be shown or not.
 	void showXAxisLabel(bool show);
+	//! Set whether legend should be shown or not.
+	void showLegend(bool show);
 	//! Add a plot to the chart.
 	void addPlot(QSharedPointer<iAPlot> plot);
 	//! Remove a plot from the chart.
@@ -204,6 +206,7 @@ protected:
 
 	virtual void drawPlots(QPainter& painter);
 	virtual void drawAxes(QPainter& painter);
+	virtual void drawLegend(QPainter& painter);
 	virtual QString xAxisTickMarkLabel(double value, double stepWidth);
 
 	void zoomAlongY(double value, bool deltaMode);
@@ -248,8 +251,7 @@ private:
 	std::vector<std::pair<QSharedPointer<QImage>, bool> > m_overlays;
 	QMenu* m_contextMenu;
 	QPoint m_contextPos;
-	bool m_showTooltip;
-	bool m_showXAxisLabel;
+	bool m_showTooltip, m_showXAxisLabel, m_showLegend;
 	int  m_fontHeight;
 	int  m_yMaxTickLabelWidth;
 	bool m_customXBounds, m_customYBounds;
