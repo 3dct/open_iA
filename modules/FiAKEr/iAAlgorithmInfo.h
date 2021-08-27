@@ -45,6 +45,13 @@ public:
 	static const int TextHPadding = 3;
 	static const int TextVPadding = 1;
 	static const int ArrowMinBottomDist = 1;
+
+	static const QString LegendCaption;		// see iASensitivityInfo.cpp
+	const int LegendLineWidth = 15;
+	const int LegendNumEntries = 4;
+	const int LegendMargin = 6;
+	const int LegendSpacing = 3;
+
 	iAAlgorithmInfo(QString const& name, QStringList const& inNames, QStringList const& outNames,
 		QColor const & inColor, QColor const & outColor, QVector<QVector<QVector<QVector<double>>>> const & agrSens):
 		m_name(name), m_inNames(inNames), m_outNames(outNames), m_inColor(inColor), m_outColor(outColor),
@@ -54,10 +61,6 @@ public:
 		m_aggrType(0)
 	{
 		setSizePolicy(QSizePolicy::Expanding, QSizePolicy::MinimumExpanding);
-	}
-	int boxWidth() const
-	{
-		return (geometry().width() - 2 * HMargin) / 3;
 	}
 	int boxHeight() const
 	{
@@ -132,7 +135,21 @@ private:
 		}
 		p.drawText(textRect, Qt::AlignCenter, text);
 	}
-	void drawConnectors(QPainter& p, int left, QStringList const& strings, QVector<QRect>& rects, QColor const& color,
+	int connectorWidth(QFontMetrics fm, QStringList const & strings)
+	{
+		// determine max width:
+		int width = 0;
+		for (auto str : strings)
+		{
+#if QT_VERSION >= QT_VERSION_CHECK(5, 11, 0)
+			width = std::max(width, fm.horizontalAdvance(str));
+#else
+			width = std::max(fm.width(str));
+#endif
+		}
+		return width;
+	}
+	void drawConnectors(QPainter& p, int left, int width, QStringList const& strings, QVector<QRect>& rects, QColor const& color,
 		int selected, QVector<int> const& shown, QVector<int> const& sort, QVector<QPoint>& posOut, bool isLeft)
 	{
 		rects.clear();
@@ -146,8 +163,8 @@ private:
 		for (int idx = 0; idx < strings.size(); ++idx)
 		{
 			QString name = strings[sort.size() > idx ? sort[idx] : idx];
-			posOut.push_back(QPoint(left + (isLeft ? boxWidth() : 0), baseTop + idx * oneHeight));
-			drawArrow(p, left, baseTop + idx * oneHeight, boxWidth(), oneHeight, name, rects, color, selected == idx,
+			posOut.push_back(QPoint(left + (isLeft ? width : 0), baseTop + idx * oneHeight));
+			drawArrow(p, left, baseTop + idx * oneHeight, width, oneHeight, name, rects, color, selected == idx,
 				shown.size() == 0 || shown.contains(idx));
 		}
 	}
@@ -183,14 +200,10 @@ private:
 	}
 	void drawLegend(QPainter& p)
 	{
-		const int LineWidth = 15;
-		const int LegendNumEntries = 4;
-		const int LegendMargin  = 6;
-		const int LegendSpacing = 3;
 		auto fm = p.fontMetrics();
 		auto halfHeight = fm.height() * 0.25;
 		const int C = 255;
-		p.drawText(LegendMargin, height() - LegendMargin - LegendNumEntries * fm.height(), "Sensitivity:");
+		p.drawText(LegendMargin, height() - LegendMargin - LegendNumEntries * fm.height(), LegendCaption);
 		for (int i=0; i<LegendNumEntries; ++i)
 		{
 			double normVal = static_cast<double>(i) / LegendNumEntries;
@@ -200,10 +213,10 @@ private:
 			pen.setWidth(std::max(1.0, 3 * normVal));
 			p.setPen(pen);
 			int y = height() - LegendMargin - (LegendNumEntries - 1 - i) * fm.height();
-			p.drawLine(LegendMargin, y - halfHeight, LegendMargin + LineWidth, y - halfHeight);
+			p.drawLine(LegendMargin, y - halfHeight, LegendMargin + LegendLineWidth, y - halfHeight);
 			pen.setColor(qApp->palette().color(QWidget::foregroundRole()));
 			p.setPen(pen);
-			p.drawText(LegendMargin + LineWidth + LegendSpacing, y, QString::number(normVal, 'f', 2));
+			p.drawText(LegendMargin + LegendLineWidth + LegendSpacing, y, QString::number(normVal, 'f', 2));
 		}
 	}
 	void paintEvent(QPaintEvent* ev) override
@@ -213,12 +226,28 @@ private:
 		p.setRenderHint(QPainter::Antialiasing);
 		p.setPen(qApp->palette().color(QWidget::foregroundRole()));
 
-		QRect algoBox(HMargin + boxWidth(), TopMargin, boxWidth(), boxHeight());
+		int leftConnectorW = connectorWidth(p.fontMetrics(), m_inNames) + 2 * ArrowTextLeft + 2 * RoundedCornerRadius;
+		// to make sure there's space for the legend:
+		leftConnectorW = std::max(leftConnectorW,
+#if QT_VERSION >= QT_VERSION_CHECK(5, 11, 0)
+			p.fontMetrics().horizontalAdvance(LegendCaption) + 2*LegendMargin
+#else
+			p.fontMetrics().width(text);
+#endif
+		);
+
+		int rightConnectorW = connectorWidth(p.fontMetrics(), m_outNames) + 2 * ArrowTextLeft + 2 * RoundedCornerRadius;
+		//if (leftConnectorW + rightConnectorW > width())
+		//{
+			// reduce?
+		//}
+		QRect algoBox(HMargin + leftConnectorW, TopMargin, width() - (2*HMargin+leftConnectorW+rightConnectorW), boxHeight());
 		p.drawRect(algoBox);
 		p.drawText(algoBox, Qt::AlignHCenter | Qt::AlignBottom, m_name);
 		QVector<QPoint> paramPt, characPt;
-		drawConnectors(p, HMargin, m_inNames, m_inRects, m_inColor, m_selectedIn, QVector<int>(), m_inSort, paramPt, true);
-		drawConnectors(p, HMargin + 2 * boxWidth(), m_outNames, m_outRects, m_outColor, -1, m_shownOut, QVector<int>(), characPt, false);
+		drawConnectors(p, HMargin, leftConnectorW, m_inNames, m_inRects, m_inColor, m_selectedIn, QVector<int>(), m_inSort, paramPt, true);
+		drawConnectors(p, HMargin + leftConnectorW + algoBox.width(), rightConnectorW, m_outNames, m_outRects, m_outColor, -1, m_shownOut, QVector<int>(),
+			characPt, false);
 		drawSensitivities(p, paramPt, characPt);
 		drawLegend(p);
 	}
