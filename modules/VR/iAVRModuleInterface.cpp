@@ -157,12 +157,7 @@ void iAVRModuleInterface::showFibers()
 	{
 		return;
 	}
-	if (m_vrEnv)
-	{
-		return;
-	}
-	//Create Environment
-	m_vrEnv.reset(new iAVREnvironment());
+
 	connect(m_vrEnv.data(), &iAVREnvironment::finished, this, &iAVRModuleInterface::vrDone);
 	m_actionVRShowFibers->setText("Stop Show Fibers");
 

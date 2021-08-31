@@ -23,6 +23,7 @@
 #include <vtkSmartPointer.h>
 #include <vtkTexture.h>
 #include <vtkActor.h>
+#include <vtkOpenVRRenderWindowInteractor.h>
 #include <vtkSkybox.h>
 
 #include <QObject>
@@ -33,13 +34,15 @@ class vtkOpenVRRenderer;
 class vtkRenderer;
 class vtkOpenVRRenderWindow;
 
+class iAVRInteractor;
+
 class iAVREnvironment: public QObject
 {
 	Q_OBJECT
 public:
 	iAVREnvironment();
 	vtkRenderer* renderer();
-	iAVRInteractor* interactor();
+	vtkOpenVRRenderWindowInteractor* interactor();
 	vtkOpenVRRenderWindow* renderWindow();
 	void update();
 	void start();
@@ -50,14 +53,15 @@ public:
 private slots:
 	void vrDone();
 private:
-	vtkSmartPointer<vtkOpenVRRenderer> m_renderer;
 	iAVRMainThread* m_vrMainThread;
+	vtkSmartPointer<vtkOpenVRRenderer> m_renderer;
 	vtkSmartPointer<vtkOpenVRRenderWindow> m_renderWindow;
-	vtkSmartPointer<iAVRInteractor> m_interactor;
+	vtkSmartPointer<vtkOpenVRRenderWindowInteractor> m_interactor;
 	vtkSmartPointer<vtkSkybox> skyboxActor;
 	//Stores the world scale at start
 	double m_worldScale;
 
+	void storeInitialWorldScale();
 	void createSkybox(int skyboxImage);
 	vtkSmartPointer<vtkTexture> ReadCubeMap(std::string const& folderPath,
 		std::string const& fileRoot,

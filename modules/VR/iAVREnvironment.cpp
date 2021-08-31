@@ -20,7 +20,6 @@
 * ************************************************************************************/
 #include "iAVREnvironment.h"
 
-#include "iAConsole.h"
 #include "iAVRInteractor.h"
 
 #include <iALog.h>
@@ -37,46 +36,34 @@
 #include <qstring.h>
 #include <QCoreApplication>
 
-
 #include <QThread>
 
 class iAVRMainThread : public QThread
 {
 public:
-	iAVRMainThread(vtkSmartPointer<vtkOpenVRRenderer> ren):
-		m_renderer(ren)
+	iAVRMainThread(vtkSmartPointer<vtkOpenVRRenderer> ren, vtkSmartPointer<vtkOpenVRRenderWindow> renderWindow, vtkSmartPointer<vtkOpenVRRenderWindowInteractor> interactor):
+		m_renderer(ren), m_renderWindow(renderWindow), m_interactor(interactor)
 	{}
 	void run() override
 	{
-		auto renderWindow = vtkSmartPointer<vtkOpenVRRenderWindow>::New();
-		renderWindow->AddRenderer(m_renderer);
-		// MultiSamples needs to be set to 0 to make Volume Rendering work:
-		// http://vtk.1045678.n5.nabble.com/Problems-in-rendering-volume-with-vtkOpenVR-td5739143.html
-		renderWindow->SetMultiSamples(0);
-		m_interactor->SetRenderWindow(renderWindow);
-		auto camera = vtkSmartPointer<vtkOpenVRCamera>::New();
-
-		m_renderer->SetActiveCamera(camera);
-		m_renderer->ResetCamera();
-		m_renderer->ResetCameraClippingRange();
-		renderWindow->Render();
-		m_worldScale = m_interactor->GetPhysicalScale();
-		m_interactor->GetPickingManager()->EnabledOn();
+		m_renderWindow->Render();
 		m_interactor->Start();
 	}
 	void stop()
 	{
-		m_interactor->stop();
+		m_interactor->SetDone(true);
+		//m_renderWindow->Finalize();
 	}
 private:
 	vtkSmartPointer<vtkOpenVRRenderer> m_renderer;
-	vtkSmartPointer<iAVRInteractor> m_interactor;
+	vtkSmartPointer<vtkOpenVRRenderWindow> m_renderWindow;
+	vtkSmartPointer<vtkOpenVRRenderWindowInteractor> m_interactor;
 };
 
 
 
 
-iAVREnvironment::iAVREnvironment():	m_renderer(vtkSmartPointer<vtkOpenVRRenderer>::New()), m_renderWindow(vtkSmartPointer<vtkOpenVRRenderWindow>::New()), m_interactor(vtkSmartPointer<iAVRInteractor>::New()),
+iAVREnvironment::iAVREnvironment():	m_renderer(vtkSmartPointer<vtkOpenVRRenderer>::New()), m_renderWindow(vtkSmartPointer<vtkOpenVRRenderWindow>::New()), m_interactor(vtkSmartPointer<vtkOpenVRRenderWindowInteractor>::New()),
 	m_vrMainThread(nullptr)
 {	
 	createSkybox(0);
@@ -89,7 +76,7 @@ vtkRenderer* iAVREnvironment::renderer()
 	return m_renderer;
 }
 
-iAVRInteractor* iAVREnvironment::interactor()
+vtkOpenVRRenderWindowInteractor* iAVREnvironment::interactor()
 {
 	return m_interactor;
 }
@@ -112,23 +99,40 @@ void iAVREnvironment::start()
 		emit finished();
 		return;
 	}
-	m_interactor->Start();
-	m_vrMainThread = new iAVRMainThread(m_renderer);
+	m_renderWindow->AddRenderer(m_renderer);
+	// MultiSamples needs to be set to 0 to make Volume Rendering work:
+	// http://vtk.1045678.n5.nabble.com/Problems-in-rendering-volume-with-vtkOpenVR-td5739143.html
+	m_renderWindow->SetMultiSamples(0);
+	m_interactor->SetRenderWindow(m_renderWindow);
+	auto camera = vtkSmartPointer<vtkOpenVRCamera>::New();
+
+	m_renderer->SetActiveCamera(camera);
+	m_renderer->ResetCamera();
+	m_renderer->ResetCameraClippingRange();
+	m_interactor->GetPickingManager()->EnabledOn();
+
+	m_vrMainThread = new iAVRMainThread(m_renderer, m_renderWindow, m_interactor);
 	connect(m_vrMainThread, &QThread::finished, this, &iAVREnvironment::vrDone);
+	m_vrMainThread->setObjectName("vrMainThread");
 	m_vrMainThread->start();
-	--runningInstances;
-	emit finished();
+	//TODO: Wait for thread to finish or the rendering might not have started yet
+	storeInitialWorldScale();
+	//emit finished();
 }
 
 void iAVREnvironment::stop()
 {
 	if (!m_vrMainThread)
 	{
-		DEBUG_LOG("VR Environment not running!");
+		LOG(lvlWarn, "VR Environment not running!");
 		return;
 	}
 	if (m_vrMainThread)
+	{
 		m_vrMainThread->stop();
+		emit finished();
+	}
+		
 }
 
 void iAVREnvironment::createLightKit()
@@ -141,6 +145,11 @@ void iAVREnvironment::createLightKit()
 double iAVREnvironment::getInitialWorldScale()
 {
 	return m_worldScale;
+}
+
+void iAVREnvironment::storeInitialWorldScale()
+{
+	m_worldScale = m_interactor->GetPhysicalScale();
 }
 
 void iAVREnvironment::createSkybox(int skyboxImage)

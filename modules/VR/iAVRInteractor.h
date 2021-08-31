@@ -27,7 +27,6 @@ class iAVRInteractor : public vtkOpenVRRenderWindowInteractor
 public:
 	static iAVRInteractor *New();
 	vtkTypeMacro(iAVRInteractor, vtkOpenVRRenderWindowInteractor);
-	void stop();
 protected:
 	iAVRInteractor();
 };
