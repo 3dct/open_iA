@@ -67,7 +67,6 @@ void iAVRObjectModel::resetVolume()
 	else if(m_csvConfig.visType == iACsvConfig::Ellipses)
 	{
 		m_PolyObjectVis = new iA3DEllipseObjectVis(m_renderer, m_objectTable, m_io.getOutputMapping(), QColor(140, 140, 140, 255));
-		m_PolyObjectVis->setShowWireFrame(true);
 	}
 	m_volumeActor = m_PolyObjectVis->getActor();
 	//m_volumeActor->AddPosition(1,200,1);
