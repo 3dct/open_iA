@@ -26,7 +26,8 @@
 
 #include "iAAbortListener.h"
 
-#ifdef _WIN32
+// with Visual Studio 2022 preview, using AVIWriter leads to unresolved externals...
+#if defined(_WIN32) and defined(_MSC_VER) and _MSC_VER < 1930
 #include <vtkAVIWriter.h>
 #endif
 #ifdef VTK_USE_OGGTHEORA_ENCODER
@@ -53,7 +54,7 @@ vtkSmartPointer<vtkGenericMovieWriter> GetMovieWriter(QString const & fileName, 
 		movieWriter = oggwriter;
 	}
 #endif
-#ifdef _WIN32
+#if defined(_WIN32) and defined(_MSC_VER) and _MSC_VER < 1930
 	if (fileName.endsWith(".avi")) {
 		vtkSmartPointer<vtkAVIWriter> aviwriter;
 		aviwriter = vtkSmartPointer<vtkAVIWriter>::New();
@@ -75,7 +76,7 @@ QString GetAvailableMovieFormats()
 #ifdef VTK_USE_OGGTHEORA_ENCODER
 	movie_file_types += "OGG (*.ogv);;";
 #endif
-#ifdef _WIN32
+#if defined(_WIN32) and defined(_MSC_VER) and _MSC_VER < 1930
 	movie_file_types += "AVI (*.avi);;";
 #endif
 	return movie_file_types;
