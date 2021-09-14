@@ -21,6 +21,7 @@
 #include "iAVRInteractor.h"
 
 #include <vtkObjectFactory.h>
+#include <vtkOpenVRRenderWindow.h>
 #include <vtkRendererCollection.h>
 
 #include <QCoreApplication>
