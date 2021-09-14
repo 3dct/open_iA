@@ -128,7 +128,9 @@ void iAChartTransferFunction::draw(QPainter &painter, QColor color, int lineWidt
 		painter.setPen(pen);
 		c.setRgbF(colorTFValue[1], colorTFValue[2], colorTFValue[3], 0.588);
 		gradKey = static_cast<double>(x2) / gradientWidth;
-		assert(gradKey >= 0 && gradKey <= 1);
+
+		//Assertion used to find issue with QLog entry gradKey bvigger than 1
+		//assert(gradKey >= 0 && gradKey <= 1);
 		m_gradient.setColorAt(gradKey, c);
 		x1 = x2;
 		y1 = y2;
