@@ -35,22 +35,24 @@ class iAAlgorithmInfo : public QWidget
 {
 	Q_OBJECT
 public:
-	static const int ArrowHeadSize = 5;
+	//static const int ArrowHeadSize = 5;
 	static const int ArrowTextDistance = 1;
 	static const int ArrowTextLeft = 5;
 	static const int RoundedCornerRadius = 3;
 	static const int TopMargin = 1;
-	static const int BottomMargin = ArrowHeadSize;
+	static const int BottomMargin = 5; // ArrowHeadSize;
 	static const int HMargin = 1;
 	static const int TextHPadding = 3;
 	static const int TextVPadding = 1;
 	static const int ArrowMinBottomDist = 1;
+	static const int MaxLineWidth = 4;
 
 	static const QString LegendCaption;		// see iASensitivityInfo.cpp
-	const int LegendLineWidth = 15;
-	const int LegendNumEntries = 4;
-	const int LegendMargin = 6;
-	const int LegendSpacing = 3;
+	static const int LegendLineWidth = 15;
+	static const int LegendNumEntries = 3;
+	static const int LegendMargin = 6;
+	static const int LegendSpacing = 3;
+	static const int LegendHeightMin = 70;
 
 	iAAlgorithmInfo(QString const& name, QStringList const& inNames, QStringList const& outNames,
 		QColor const & inColor, QColor const & outColor, QVector<QVector<QVector<QVector<double>>>> const & agrSens):
@@ -107,13 +109,13 @@ public:
 	}
 
 private:
-	void drawArrow(QPainter& p, int left, int top, int width, int height, QString const& text, QVector<QRect>& rects,
+	void drawInOut(QPainter& p, int left, int top, int width, int height, QString const& text, QVector<QRect>& rects,
 		QColor const& color, bool selected, bool useColor)
 	{
 		int right = left + width;
 		p.drawLine(left, top, right, top);
-		p.drawLine(right - ArrowHeadSize, top - ArrowHeadSize, right, top);
-		p.drawLine(right - ArrowHeadSize, top + ArrowHeadSize, right, top);
+		//p.drawLine(right - ArrowHeadSize, top - ArrowHeadSize, right, top);
+		//p.drawLine(right - ArrowHeadSize, top + ArrowHeadSize, right, top);
 #if QT_VERSION >= QT_VERSION_CHECK(5, 11, 0)
 		int textWidth = p.fontMetrics().horizontalAdvance(text);
 #else
@@ -121,7 +123,8 @@ private:
 #endif
 		int boxHeight = p.fontMetrics().height() + 2 * TextVPadding;
 		QRect textRect(left + ArrowTextLeft, top - ArrowTextDistance - boxHeight,
-			std::min(textWidth + 2 * TextHPadding, width - ArrowTextLeft - ArrowHeadSize), std::min(height, boxHeight));
+			std::min(textWidth + 2 * TextHPadding, width - ArrowTextLeft /* - ArrowHeadSize */),
+			std::min(height, boxHeight));
 		rects.push_back(textRect);
 		QPainterPath path;
 		path.addRoundedRect(textRect, RoundedCornerRadius, RoundedCornerRadius);
@@ -164,7 +167,7 @@ private:
 		{
 			QString name = strings[sort.size() > idx ? sort[idx] : idx];
 			posOut.push_back(QPoint(left + (isLeft ? width : 0), baseTop + idx * oneHeight));
-			drawArrow(p, left, baseTop + idx * oneHeight, width, oneHeight, name, rects, color, selected == idx,
+			drawInOut(p, left, baseTop + idx * oneHeight, width, oneHeight, name, rects, color, selected == idx,
 				shown.size() == 0 || shown.contains(idx));
 		}
 	}
@@ -191,33 +194,53 @@ private:
 					int colorVal = C - (C * normVal);
 					auto pen = p.pen();
 					pen.setColor(QColor(colorVal, colorVal, colorVal));
-					pen.setWidth(std::max(1.0, 3 * normVal));
+					pen.setWidth(std::max(1.0, MaxLineWidth * normVal));
 					p.setPen(pen);
 					p.drawLine(paramPt[paramIdx], characPt[charIdx]);
 				}
 			}
 		}
 	}
-	void drawLegend(QPainter& p)
+	void drawLegend(QPainter& p, int leftWidth)
 	{
 		auto fm = p.fontMetrics();
-		auto halfHeight = fm.height() * 0.25;
+		const double LegendHeight = std::max(LegendHeightMin, LegendNumEntries * fm.height());
+		const double LegendEntryHeight = LegendHeight / LegendNumEntries;
+		const int LegendTextWidth = leftWidth - LegendMargin - LegendLineWidth;
 		const int C = 255;
-		p.drawText(LegendMargin, height() - LegendMargin - LegendNumEntries * fm.height(), LegendCaption);
+		p.drawText(LegendMargin, height() - LegendMargin - LegendHeight - LegendSpacing, LegendCaption);
+		auto pen = p.pen();
+		pen.setColor(qApp->palette().color(QWidget::foregroundRole()));
+		p.setPen(pen);
+		double const LegendBottom = height() - LegendMargin;
 		for (int i=0; i<LegendNumEntries; ++i)
 		{
-			double normVal = static_cast<double>(i) / LegendNumEntries;
-			int colorVal = C - (C * normVal);
-			auto pen = p.pen();
-			pen.setColor(QColor(colorVal, colorVal, colorVal));
-			pen.setWidth(std::max(1.0, 3 * normVal));
-			p.setPen(pen);
-			int y = height() - LegendMargin - (LegendNumEntries - 1 - i) * fm.height();
-			p.drawLine(LegendMargin, y - halfHeight, LegendMargin + LegendLineWidth, y - halfHeight);
-			pen.setColor(qApp->palette().color(QWidget::foregroundRole()));
-			p.setPen(pen);
-			p.drawText(LegendMargin + LegendLineWidth + LegendSpacing, y, QString::number(normVal, 'f', 2));
+			double normVal = static_cast<double>(i) / (LegendNumEntries-1);
+			QRect textRect(LegendMargin + LegendLineWidth + LegendSpacing,
+				LegendBottom - (LegendNumEntries - i) * LegendEntryHeight,
+				LegendTextWidth, LegendEntryHeight);
+			p.drawText(textRect, Qt::AlignLeft |
+				((i == 0) ?
+					Qt::AlignTop :
+					((i == LegendNumEntries-1) ?
+						Qt::AlignBottom :
+						Qt::AlignVCenter)),
+				QString::number(normVal, 'f', 2));
 		}
+		QPolygon poly;
+		int legendCenterX = LegendMargin + LegendSpacing + LegendLineWidth / 2;
+		poly.push_back(QPoint(legendCenterX, LegendBottom - (LegendNumEntries * LegendEntryHeight)));
+		poly.push_back(QPoint(legendCenterX - MaxLineWidth / 2, LegendBottom));
+		poly.push_back(QPoint(legendCenterX + MaxLineWidth / 2, LegendBottom));
+		poly.push_back(poly[0]); // close loop back to point 0
+		QPainterPath path;
+		path.addPolygon(poly);
+		QLinearGradient gradient;
+		gradient.setColorAt(0, QColor(255, 255, 255));
+		gradient.setColorAt(1, QColor(0, 0, 0));
+		gradient.setStart(poly[0]);
+		gradient.setFinalStop(QPoint(legendCenterX, LegendBottom));
+		p.fillPath(path, gradient);
 	}
 	void paintEvent(QPaintEvent* ev) override
 	{
@@ -249,7 +272,7 @@ private:
 		drawConnectors(p, HMargin + leftConnectorW + algoBox.width(), rightConnectorW, m_outNames, m_outRects, m_outColor, -1, m_shownOut, QVector<int>(),
 			characPt, false);
 		drawSensitivities(p, paramPt, characPt);
-		drawLegend(p);
+		drawLegend(p, leftConnectorW);
 	}
 	void mousePressEvent(QMouseEvent* ev) override
 	{
