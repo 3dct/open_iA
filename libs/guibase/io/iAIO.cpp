@@ -37,6 +37,9 @@
 #include "iAToolsVTK.h"
 #include "iATypedCallHelper.h"
 
+#include "iAFilter.h"
+#include "iAFilterRegistry.h"
+
 #include <itkBMPImageIO.h>
 #include <itkMacro.h>    // for itkExceptionObject, which (starting with ITK 5.1), may not be included directly
 #include <itkGDCMImageIO.h>
@@ -535,7 +538,7 @@ void iAIO::run()
 			case RAW_READER:
 			case PARS_READER:
 			case NKC_READER:
-				readImageData(); break;
+				readNKC(); break;
 			case VGI_READER:
 				readImageData(); break;
 			case VOLUME_STACK_READER:
@@ -799,6 +802,7 @@ bool IsHDF5ITKImage(hid_t file_id)
 #include "ui_OpenHDF5.h"
 typedef iAQTtoUIConnector<QDialog, Ui_dlgOpenHDF5> OpenHDF5Dlg;
 #endif
+
 
 bool iAIO::setupIO( iAIOType type, QString f, bool c, int channel)
 {
@@ -1309,6 +1313,34 @@ void iAIO::readImageData()
 	storeIOSettings();
 }
 
+void iAIO::readNKC()
+{
+	readImageData();
+
+
+	iAConnector con;
+	con.setImage(getVtkImageData());
+	QScopedPointer<iAProgress> pObserver(new iAProgress());
+	auto filter = iAFilterRegistry::filter("Value Shift");
+	filter->setProgress(pObserver.data());
+
+	filter->addInput(&con, "");
+	QMap<QString, QVariant> parameters;
+	parameters["ValueToReplace"] = 65533;
+	parameters["Replace"] = 0;
+	filter->run(parameters);
+
+	auto filterScale = iAFilterRegistry::filter("Shift and Scale");
+	filterScale->setProgress(pObserver.data());
+
+	filterScale->addInput(filter->output().first(), "");
+	QMap<QString, QVariant> parametersScale;
+	parametersScale["Shift"] = -m_Parameter["Offset"].toInt();
+	parametersScale["Scale"] = m_Parameter["Scale"].toFloat();
+	filterScale->run(parametersScale);
+
+	getVtkImageData()->DeepCopy(filterScale->output().first()->vtkImage());
+}
 
 void iAIO::readMetaImage( )
 {
@@ -1620,6 +1652,25 @@ bool iAIO::setupNKCReader(QString const& f)
 		m_rawFileParams.m_size[1] = rows.toInt();
 	}
 
+	QRegularExpression regexOffset("value offset : (\\d*)\\D");
+	QRegularExpressionMatch matchOffset = regexOffset.match(text);
+	if (matchOffset.hasMatch())
+	{
+		QString Offset = matchOffset.captured(1);
+		auto value = Offset.toInt();
+		m_Parameter.insert("Offset", QVariant(value));
+		
+	}
+
+	QRegularExpression regexScale("value coefficient : (\\d.\\d*)\\D");
+	QRegularExpressionMatch matchScale = regexScale.match(text);
+	if (matchScale.hasMatch())
+	{
+		QString scale = matchScale.captured(1);
+		auto value = scale.toFloat();
+		m_Parameter.insert("Scale", QVariant(value));
+	}
+
 	m_rawFileParams.m_size[2] = 1;
 	m_rawFileParams.m_scalarType = VTK_TYPE_UINT16;
 	m_rawFileParams.m_byteOrder = VTK_FILE_BYTE_ORDER_BIG_ENDIAN;
@@ -1628,6 +1679,7 @@ bool iAIO::setupNKCReader(QString const& f)
 	m_rawFileParams.m_spacing[0] = 1;
 	m_rawFileParams.m_spacing[1] = 1;
 	m_rawFileParams.m_spacing[2] = 1;
+
 
 	m_rawFileParams.m_headersize = file.size() - (m_rawFileParams.m_size[0] * m_rawFileParams.m_size[1] * 2);
 

@@ -103,7 +103,8 @@ private:
 
 	void readVolumeStack( );
 	void readVolumeMHDStack( );
-	void readImageData( );
+	void readImageData();
+	void readNKC();
 	void readMetaImage( );
 	void readSTL( );
 	//! Reads a series of DICOM images.
@@ -133,6 +134,9 @@ private:
 	vtkStringArray* m_fileNameArray;
 	bool m_compression = false;
 	iARawFileParameters m_rawFileParams;
+
+	//Generic Temp Parameter 
+	QMap<QString, QVariant> m_Parameter;
 
 	int m_ioID;
 	std::vector<vtkSmartPointer<vtkImageData> > * m_volumes;
