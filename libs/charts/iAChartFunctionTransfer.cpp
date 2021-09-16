@@ -56,7 +56,7 @@ void iAChartTransferFunction::draw(QPainter &painter, QColor color, int lineWidt
 	painter.setPen(pen);
 	painter.setBrush(QColor(128, 128, 128, 255));
 
-	double gradientWidth = m_chart->chartWidth()*m_chart->xZoom();
+	double gradientWidth = m_chart->fullChartWidth();
 
 	m_gradient = QLinearGradient();
 	m_gradient.setStart(0, 0);
@@ -80,9 +80,7 @@ void iAChartTransferFunction::draw(QPainter &painter, QColor color, int lineWidt
 	int y1 = opacity2PixelY(opacityTFValue[1]);
 
 	QColor c; c.setRgbF(colorTFValue[1], colorTFValue[2], colorTFValue[3], 0.588);
-	double gradKey = static_cast<double>(x1) / gradientWidth;
-	assert(gradKey >= 0 && gradKey <= 1);
-	m_gradient.setColorAt(gradKey, c);
+	m_gradient.setColorAt(static_cast<double>(x1) / gradientWidth, c);
 
 	int lastX = x1;
 	for ( int i = 1; i < m_tf->opacityTF()->GetSize(); i++)
@@ -127,9 +125,7 @@ void iAChartTransferFunction::draw(QPainter &painter, QColor color, int lineWidt
 
 		painter.setPen(pen);
 		c.setRgbF(colorTFValue[1], colorTFValue[2], colorTFValue[3], 0.588);
-		gradKey = static_cast<double>(x2) / gradientWidth;
-		assert(gradKey >= 0 && gradKey <= 1);
-		m_gradient.setColorAt(gradKey, c);
+		m_gradient.setColorAt(static_cast<double>(x2) / gradientWidth, c);
 		x1 = x2;
 		y1 = y2;
 	}

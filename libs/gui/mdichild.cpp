@@ -1557,84 +1557,48 @@ bool MdiChild::editSlicerSettings(iASlicerSettings const& slicerSettings)
 
 bool MdiChild::loadTransferFunction()
 {
-	if (!m_histogram)
-	{
-		return false;
-	}
 	m_histogram->loadTransferFunction();
 	return true;
 }
 
 bool MdiChild::saveTransferFunction()
 {
-	if (!m_histogram)
-	{
-		return false;
-	}
 	m_histogram->saveTransferFunction();
 	return true;
 }
 
 int MdiChild::deletePoint()
 {
-	if (!m_histogram)
-	{
-		return -1;
-	}
 	return m_histogram->deletePoint();
 }
 
 void MdiChild::resetView()
 {
-	if (!m_histogram)
-	{
-		return;
-	}
 	m_histogram->resetView();
 }
 
 void MdiChild::changeColor()
 {
-	if (!m_histogram)
-	{
-		return;
-	}
 	m_histogram->changeColor();
 }
 
 int MdiChild::selectedFuncPoint()
 {
-	if (!m_histogram)
-	{
-		return -1;
-	}
 	return m_histogram->selectedFuncPoint();
 }
 
 int MdiChild::isFuncEndPoint(int index)
 {
-	if (!m_histogram)
-	{
-		return -1;
-	}
 	return m_histogram->isFuncEndPoint(index);
 }
 
 void MdiChild::setHistogramFocus()
 {
-	if (!m_histogram)
-	{
-		return;
-	}
 	m_histogram->setFocus(Qt::OtherFocusReason);
 }
 
 void MdiChild::resetTrf()
 {
-	if (!m_histogram)
-	{
-		return;
-	}
 	m_histogram->resetTrf();
 	LOG(lvlInfo, tr("Resetting Transfer Functions."));
 }
