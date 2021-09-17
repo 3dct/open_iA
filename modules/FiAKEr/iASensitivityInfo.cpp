@@ -1655,6 +1655,7 @@ public:
 	iAAlgorithmInfo* m_algoInfo;
 
 	iAQVTKWidget* m_diff3DWidget;
+	iADockWidgetWrapper* m_dwDiff3D;
 	iARendererViewSync m_diff3DRenderManager;
 	std::vector<QSharedPointer<iAPolyDataRenderer>> m_diff3DRenderers;
 
@@ -2259,10 +2260,11 @@ void iASensitivityInfo::createGUI()
 	m_gui->m_mdsSP->setPointInfo(ptInfo);
 
 	m_gui->m_diff3DWidget = new iAQVTKWidget();
-	auto dwDiff3D = new iADockWidgetWrapper(m_gui->m_diff3DWidget, "Difference 3D", "foeDiff3D");
-	m_child->splitDockWidget(dwSettings, dwDiff3D, Qt::Horizontal);
+	m_gui->m_dwDiff3D = new iADockWidgetWrapper(m_gui->m_diff3DWidget, "Difference 3D", "foeDiff3D");
+	m_child->splitDockWidget(dwSettings, m_gui->m_dwDiff3D, Qt::Horizontal);
 	m_gui->m_diff3DRenderManager.addToBundle(m_main3DWin->GetRenderers()->GetFirstRenderer());
 	m_gui->m_diff3DWidget->renderWindow()->AddRenderer(m_gui->m_diff3DEmptyRenderer);
+	m_gui->m_dwDiff3D->hide();
 
 	spVisibleParamChanged();
 	updateDissimilarity();
@@ -2868,10 +2870,12 @@ void iASensitivityInfo::updateDifferenceView()
 	}
 	if (m_gui->m_diff3DRenderers.size() == 0 && !renWin->GetRenderers()->IsItemPresent(m_gui->m_diff3DEmptyRenderer))
 	{
+		m_gui->m_dwDiff3D->hide();
 		renWin->AddRenderer(m_gui->m_diff3DEmptyRenderer);
 	}
 	else if (m_gui->m_diff3DRenderers.size() > 0 && renWin->GetRenderers()->IsItemPresent(m_gui->m_diff3DEmptyRenderer))
 	{
+		m_gui->m_dwDiff3D->show();
 		renWin->RemoveRenderer(m_gui->m_diff3DEmptyRenderer);
 	}
 	renWin->Render();
