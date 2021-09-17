@@ -52,7 +52,7 @@ public:
 	static const int LegendNumEntries = 3;
 	static const int LegendMargin = 6;
 	static const int LegendSpacing = 3;
-	static const int LegendHeightMin = 70;
+	static const int LegendHeightMin = 50;
 
 	iAAlgorithmInfo(QString const& name, QStringList const& inNames, QStringList const& outNames,
 		QColor const & inColor, QColor const & outColor, QVector<QVector<QVector<QVector<double>>>> const & agrSens):
@@ -60,7 +60,10 @@ public:
 		m_selectedIn(-1),
 		m_agrSens(agrSens),
 		m_measureIdx(0),
-		m_aggrType(0)
+		m_aggrType(0),
+		m_inWidth(1),
+		m_outWidth(1),
+		m_boxMinWidth(1)
 	{
 		setSizePolicy(QSizePolicy::Expanding, QSizePolicy::MinimumExpanding);
 	}
@@ -153,15 +156,15 @@ private:
 		return width;
 	}
 	void drawConnectors(QPainter& p, int left, int width, QStringList const& strings, QVector<QRect>& rects, QColor const& color,
-		int selected, QVector<int> const& shown, QVector<int> const& sort, QVector<QPoint>& posOut, bool isLeft)
+		int selected, QVector<int> const& shown, QVector<int> const& sort, QVector<QPoint>& posOut, bool isLeft, int connHeight)
 	{
 		rects.clear();
-		int bottomDistance = boxHeight() / (strings.size() + 1);
+		int bottomDistance = connHeight / (strings.size() + 1);
 		double fontToBoxRatio = static_cast<double>(bottomDistance) / oneEntryHeight();
 		int arrowBottomDistance = clamp(ArrowMinBottomDist, bottomDistance,
 			static_cast<int>(mapValue(1.0, 4.0, ArrowMinBottomDist, bottomDistance, fontToBoxRatio)));
 		//int arrowBottomDistance = ArrowBottomDist;
-		int oneHeight = (boxHeight() - arrowBottomDistance) / strings.size();
+		int oneHeight = (connHeight - arrowBottomDistance) / strings.size();
 		int baseTop = TopMargin + oneHeight;
 		for (int idx = 0; idx < strings.size(); ++idx)
 		{
@@ -187,7 +190,8 @@ private:
 		{
 			for (int paramIdx = 0; paramIdx < m_agrSens[charIdx][m_measureIdx][m_aggrType].size(); ++paramIdx)
 			{
-				double normVal = mapToNorm(0.0, maxS[charIdx], m_agrSens[charIdx][m_measureIdx][m_aggrType][paramIdx]);
+				int pIdx = m_inSort.size() > 0 ? m_inSort[paramIdx] : paramIdx;
+				double normVal = mapToNorm(0.0, maxS[charIdx], m_agrSens[charIdx][m_measureIdx][m_aggrType][pIdx]);
 				if (!dblApproxEqual(normVal, 0.0))
 				{
 					// maybe draw in order of increasing sensitivities?
@@ -208,10 +212,8 @@ private:
 		const double LegendEntryHeight = LegendHeight / LegendNumEntries;
 		const int LegendTextWidth = leftWidth - LegendMargin - LegendLineWidth;
 		const int C = 255;
+		p.setPen(qApp->palette().color(QWidget::foregroundRole()));
 		p.drawText(LegendMargin, height() - LegendMargin - LegendHeight - LegendSpacing, LegendCaption);
-		auto pen = p.pen();
-		pen.setColor(qApp->palette().color(QWidget::foregroundRole()));
-		p.setPen(pen);
 		double const LegendBottom = height() - LegendMargin;
 		for (int i=0; i<LegendNumEntries; ++i)
 		{
@@ -249,9 +251,9 @@ private:
 		p.setRenderHint(QPainter::Antialiasing);
 		p.setPen(qApp->palette().color(QWidget::foregroundRole()));
 
-		int leftConnectorW = connectorWidth(p.fontMetrics(), m_inNames) + 2 * ArrowTextLeft + 2 * RoundedCornerRadius;
+		m_inWidth = connectorWidth(p.fontMetrics(), m_inNames) + 2 * ArrowTextLeft + 2 * RoundedCornerRadius;
 		// to make sure there's space for the legend:
-		leftConnectorW = std::max(leftConnectorW,
+		m_inWidth = std::max(m_inWidth,
 #if QT_VERSION >= QT_VERSION_CHECK(5, 11, 0)
 			p.fontMetrics().horizontalAdvance(LegendCaption) + 2*LegendMargin
 #else
@@ -259,20 +261,27 @@ private:
 #endif
 		);
 
-		int rightConnectorW = connectorWidth(p.fontMetrics(), m_outNames) + 2 * ArrowTextLeft + 2 * RoundedCornerRadius;
+		m_outWidth = connectorWidth(p.fontMetrics(), m_outNames) + 2 * ArrowTextLeft + 2 * RoundedCornerRadius;
 		//if (leftConnectorW + rightConnectorW > width())
 		//{
 			// reduce?
 		//}
-		QRect algoBox(HMargin + leftConnectorW, TopMargin, width() - (2*HMargin+leftConnectorW+rightConnectorW), boxHeight());
+		m_boxMinWidth =
+#if QT_VERSION >= QT_VERSION_CHECK(5, 11, 0)
+			p.fontMetrics().horizontalAdvance(m_name);
+#else
+			p.fontMetrics().width(m_name);
+#endif
+		QRect algoBox(HMargin + m_inWidth, TopMargin, width() - (2 * HMargin + m_inWidth + m_outWidth), boxHeight());
 		p.drawRect(algoBox);
 		p.drawText(algoBox, Qt::AlignHCenter | Qt::AlignBottom, m_name);
 		QVector<QPoint> paramPt, characPt;
-		drawConnectors(p, HMargin, leftConnectorW, m_inNames, m_inRects, m_inColor, m_selectedIn, QVector<int>(), m_inSort, paramPt, true);
-		drawConnectors(p, HMargin + leftConnectorW + algoBox.width(), rightConnectorW, m_outNames, m_outRects, m_outColor, -1, m_shownOut, QVector<int>(),
-			characPt, false);
+		drawConnectors(p, HMargin, m_inWidth, m_inNames, m_inRects, m_inColor, m_selectedIn, QVector<int>(), m_inSort, paramPt, true,
+			boxHeight() - LegendHeightMin - LegendMargin - LegendSpacing - p.fontMetrics().height());
+		drawConnectors(p, HMargin + m_inWidth + algoBox.width(), m_outWidth, m_outNames, m_outRects, m_outColor, -1, m_shownOut, QVector<int>(),
+			characPt, false, boxHeight());
 		drawSensitivities(p, paramPt, characPt);
-		drawLegend(p, leftConnectorW);
+		drawLegend(p, m_inWidth);
 	}
 	void mousePressEvent(QMouseEvent* ev) override
 	{
@@ -296,7 +305,7 @@ private:
 	}
 	QSize sizeHint() const override
 	{
-		return QSize(1, oneEntryHeight() * std::max(m_inNames.size(), m_outNames.size()));
+		return QSize(m_inWidth + m_outWidth + m_boxMinWidth, oneEntryHeight() * std::max(m_inNames.size(), m_outNames.size()));
 	}
 signals:
 	void inputClicked(int inIdx);
@@ -312,4 +321,5 @@ private:
 
 	QVector<QVector<QVector<QVector<double>>>> const & m_agrSens;
 	int m_measureIdx, m_aggrType;
+	int m_inWidth, m_outWidth, m_boxMinWidth;
 };
