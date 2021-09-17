@@ -46,7 +46,6 @@
 #include "iAChartFunctionGaussian.h"
 #include "iAChartFunctionTransfer.h"
 #include "iAChartWithFunctionsWidget.h"
-#include "iAFunctionColors.h"
 
 // base
 #include "iAFileUtils.h"    // for fileNameOnly
@@ -1865,6 +1864,8 @@ void MainWindow::readSettings()
 	iALogWidget::get()->setLogToFile(prefLogToFile, logFileName);
 	iALogWidget::get()->setLogLevel(static_cast<iALogLevel>(settings.value("Preferences/prefLogLevel", lvlInfo).toInt()));
 	iALogWidget::get()->setFileLogLevel(static_cast<iALogLevel>(settings.value("Preferences/prefFileLogLevel", lvlWarn).toInt()));
+	iALogWidget::get()->setLogVTK(settings.value("Preferences/prefLogVTK", true).toBool());
+	iALogWidget::get()->setLogITK(settings.value("Preferences/prefLogITK", true).toBool());
 	auto f = QApplication::font();
 	f.setPointSize(m_defaultPreferences.FontSize);
 	QApplication::setFont(f);
@@ -1992,9 +1993,12 @@ void MainWindow::writeSettings()
 	settings.setValue("Preferences/prefMagicLensSize", m_defaultPreferences.MagicLensSize);
 	settings.setValue("Preferences/prefMagicLensFrameWidth", m_defaultPreferences.MagicLensFrameWidth);
 	settings.setValue("Preferences/fontSize", m_defaultPreferences.FontSize);
+
 	settings.setValue("Preferences/prefLogToFile", iALogWidget::get()->isLogToFileOn());
 	settings.setValue("Preferences/prefLogFile", iALogWidget::get()->logFileName());
 	settings.setValue("Preferences/prefLogLevel", iALogWidget::get()->logLevel());
+	settings.setValue("Preferences/prefLogVTK", iALogWidget::get()->logVTK());
+	settings.setValue("Preferences/prefLogITK", iALogWidget::get()->logITK());
 	settings.setValue("Preferences/prefFileLogLevel", iALogWidget::get()->fileLogLevel());
 
 	settings.setValue("Renderer/rsShowSlicers", m_defaultRenderSettings.ShowSlicers);

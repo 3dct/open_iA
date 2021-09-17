@@ -44,10 +44,15 @@ public:
 	//! singleton pattern - retrieve logger instance
 	static iALogWidget* get();
 	static void shutdown();
+	//! log given text with given log level
 	void log(iALogLevel lvl, QString const & text) override;
+	//! enable/disable logging to file with given name
 	void setLogToFile(bool value, QString const & fileName, bool verbose=false);
+	//! whether logging to file is enabled
 	bool isLogToFileOn() const;
+	//! the name of the file used for logging
 	QString logFileName() const;
+	//! whether an error occurred when logging to file
 	bool isFileLogError() const;
 	//! set log level for the log written to file
 	//! (can diverge from the log in the console!)
@@ -59,6 +64,14 @@ public:
 	void setLogLevel(iALogLevel lvl) override;
 	//! sets whether the log window should open when new messages come in
 	void setOpenOnNewMessage(bool openOnNewMessage);
+	//! whether logging of VTK messages is enabled
+	bool logVTK() const;
+	//! enabled/disable logging of VTK messages is enabled
+	void setLogVTK(bool enabled);
+	//! whether logging of ITK messages is enabled
+	bool logITK() const;
+	//! enabled/disable logging of ITK messages is enabled
+	void setLogITK(bool enabled);
 signals:
 	//! decouple logging methods from GUI logging (to allow logging from any thread):
 	void logSignal(int lvl, QString const & text);
@@ -67,6 +80,9 @@ private slots:
 	void logSlot(int lvl, QString const & text);
 	void setLogLevelSlot(int selectedIdx);
 	void clear();
+	void toggleITK(int state);
+	void toggleVTK(int state);
+
 private:
 	//! private constructor - retrieve (single) instance via get!
 	iALogWidget();

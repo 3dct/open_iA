@@ -31,6 +31,7 @@
 
 #include <vector>
 
+class QColor;
 class QMenu;
 class QPaintEvent;
 class QPainter;
@@ -39,6 +40,9 @@ class iAChartFunction;
 class iATFTableDlg;
 class iATransferFunction;
 class iAXmlSettings;
+
+//! Preset colors for functions (TODO: maybe use iAColorTheme instead?)
+iAcharts_API QColor* FunctionColors();
 
 //! A chart widget that can also show functions overlaid over the chart area (transfer function, Gaussian and Bezier curves)
 class iAcharts_API iAChartWithFunctionsWidget : public iAChartWidget

@@ -9,7 +9,6 @@ set(OPENIA_PRECOMPILE_HEADERS
 <iAChartFunctionTransfer.h>
 <iAChartWidget.h>
 <iAChartWithFunctionsWidget.h>
-<iAFunctionColors.h>
 <iAHistogramData.h>
 <iALog.h>
 <iALookupTable.h>
