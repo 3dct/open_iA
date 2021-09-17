@@ -46,7 +46,6 @@
 #include "iAChartFunctionGaussian.h"
 #include "iAChartFunctionTransfer.h"
 #include "iAChartWithFunctionsWidget.h"
-#include "iAFunctionColors.h"
 
 // base
 #include "iAFileUtils.h"    // for fileNameOnly
