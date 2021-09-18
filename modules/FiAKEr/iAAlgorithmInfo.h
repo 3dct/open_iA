@@ -54,6 +54,12 @@ public:
 	static const int LegendSpacing = 3;
 	static const int LegendHeightMin = 50;
 
+	enum DisplayMode
+	{
+		Box,
+		Matrix
+	};
+
 	iAAlgorithmInfo(QString const& name, QStringList const& inNames, QStringList const& outNames,
 		QColor const & inColor, QColor const & outColor, QVector<QVector<QVector<QVector<double>>>> const & agrSens):
 		m_name(name), m_inNames(inNames), m_outNames(outNames), m_inColor(inColor), m_outColor(outColor),
@@ -63,7 +69,8 @@ public:
 		m_aggrType(0),
 		m_inWidth(1),
 		m_outWidth(1),
-		m_boxMinWidth(1)
+		m_boxMinWidth(1),
+		m_mode(Box)
 	{
 		setSizePolicy(QSizePolicy::Expanding, QSizePolicy::MinimumExpanding);
 	}
@@ -108,6 +115,12 @@ public:
 	void setAggregation(int newAggregation)
 	{
 		m_aggrType = newAggregation;
+		update();
+	}
+
+	void setMode(int mode)
+	{
+		m_mode = static_cast<DisplayMode>(mode);
 		update();
 	}
 
@@ -272,40 +285,100 @@ private:
 #else
 			p.fontMetrics().width(m_name);
 #endif
-		QRect algoBox(HMargin + m_inWidth, TopMargin, width() - (2 * HMargin + m_inWidth + m_outWidth), boxHeight());
-		p.drawRect(algoBox);
-		p.drawText(algoBox, Qt::AlignHCenter | Qt::AlignBottom, m_name);
-		QVector<QPoint> paramPt, characPt;
-		drawConnectors(p, HMargin, m_inWidth, m_inNames, m_inRects, m_inColor, m_selectedIn, QVector<int>(), m_inSort, paramPt, true,
-			boxHeight() - LegendHeightMin - LegendMargin - LegendSpacing - p.fontMetrics().height());
-		drawConnectors(p, HMargin + m_inWidth + algoBox.width(), m_outWidth, m_outNames, m_outRects, m_outColor, -1, m_shownOut, QVector<int>(),
-			characPt, false, boxHeight());
-		drawSensitivities(p, paramPt, characPt);
-		drawLegend(p, m_inWidth);
+
+		if (m_mode == Box)
+		{
+			QRect algoBox(
+				HMargin + m_inWidth, TopMargin, width() - (2 * HMargin + m_inWidth + m_outWidth), boxHeight());
+			p.drawRect(algoBox);
+			p.drawText(algoBox, Qt::AlignHCenter | Qt::AlignBottom, m_name);
+			QVector<QPoint> paramPt, characPt;
+			drawConnectors(p, HMargin, m_inWidth, m_inNames, m_inRects, m_inColor, m_selectedIn, QVector<int>(),
+				m_inSort, paramPt, true,
+				boxHeight() - LegendHeightMin - LegendMargin - LegendSpacing - p.fontMetrics().height());
+			drawConnectors(p, HMargin + m_inWidth + algoBox.width(), m_outWidth, m_outNames, m_outRects, m_outColor, -1,
+				m_shownOut, QVector<int>(), characPt, false, boxHeight());
+			drawSensitivities(p, paramPt, characPt);
+			drawLegend(p, m_inWidth);
+		}
+		else
+		{
+			QRect matrixRect(HMargin + m_inWidth,
+				HMargin + m_outWidth + TextHPadding,
+				width() - (2*HMargin+m_inWidth),
+				height() - (2*HMargin+m_outWidth));
+			int cellWidth = matrixRect.width() / m_outNames.size();
+			int cellHeight = matrixRect.height() / m_inNames.size();
+
+			// draw labels:
+			for (int inIdx = 0; inIdx < m_inNames.size(); ++inIdx)
+			{
+				p.drawText(QRect(HMargin, matrixRect.top() + inIdx * cellHeight, m_inWidth, cellHeight),
+					Qt::AlignVCenter, m_inNames[inIdx]);
+			}
+			p.save();
+			p.rotate(-90);
+			for (int outIdx = 0; outIdx < m_outNames.size(); ++outIdx)
+			{
+				QRect yRect(-(matrixRect.top()-TextHPadding), matrixRect.left() + outIdx * cellWidth, m_outWidth, cellWidth);
+				p.drawText(yRect, Qt::AlignVCenter, m_outNames[outIdx]);
+			}
+			p.restore();
+
+			// draw sensitivities:
+			std::vector<double> maxS(m_agrSens.size());
+			for (int c = 0; c < m_agrSens.size(); ++c)
+			{
+				auto const& d = m_agrSens[c][m_measureIdx][m_aggrType];
+				maxS[c] = *std::max_element(d.begin(), d.end());
+			}
+			//LOG(lvlDebug, QString("min=%1, max=%2").arg(minS).arg(maxS));
+			const int C = 255;
+			for (int inIdx = 0; inIdx < m_inNames.size(); ++inIdx)
+			{
+				for (int outIdx = 0; outIdx < m_outNames.size(); ++outIdx)
+				{
+					int pIdx = m_inSort.size() > 0 ? m_inSort[inIdx] : inIdx;
+					double normVal = mapToNorm(0.0, maxS[outIdx], m_agrSens[outIdx][m_measureIdx][m_aggrType][pIdx]);
+					int colorVal = C - (C * normVal);
+					QRect boxRect(
+						matrixRect.left() + outIdx * cellWidth,
+						matrixRect.top() + inIdx * cellHeight,
+						cellWidth, cellHeight);
+					p.fillRect(boxRect, QColor(colorVal, colorVal, colorVal));
+					//p.drawRect(boxRect);
+				}
+			}
+		}
 	}
 	void mousePressEvent(QMouseEvent* ev) override
 	{
-		for (int rIdx = 0; rIdx < m_inRects.size(); ++rIdx)
+		if (m_mode == Box)
 		{
-			if (m_inRects[rIdx].contains(ev->pos()))
+			for (int rIdx = 0; rIdx < m_inRects.size(); ++rIdx)
 			{
-				int clickedIn = (rIdx < m_inSort.size()) ? m_inSort[rIdx] : rIdx;
-				emit inputClicked(clickedIn);
-				return;
+				if (m_inRects[rIdx].contains(ev->pos()))
+				{
+					int clickedIn = (rIdx < m_inSort.size()) ? m_inSort[rIdx] : rIdx;
+					emit inputClicked(clickedIn);
+					return;
+				}
 			}
-		}
-		for (int rIdx = 0; rIdx < m_outRects.size(); ++rIdx)
-		{
-			if (m_outRects[rIdx].contains(ev->pos()))
+			for (int rIdx = 0; rIdx < m_outRects.size(); ++rIdx)
 			{
-				emit outputClicked(rIdx);
-				return;
+				if (m_outRects[rIdx].contains(ev->pos()))
+				{
+					emit outputClicked(rIdx);
+					return;
+				}
 			}
 		}
 	}
 	QSize sizeHint() const override
 	{
-		return QSize(m_inWidth + m_outWidth + m_boxMinWidth, oneEntryHeight() * std::max(m_inNames.size(), m_outNames.size()));
+		return (m_mode == Box) ?
+			QSize(m_inWidth + m_outWidth + m_boxMinWidth, oneEntryHeight() * std::max(m_inNames.size(), m_outNames.size())) :
+			QSize(1, 1);
 	}
 signals:
 	void inputClicked(int inIdx);
@@ -322,4 +395,5 @@ private:
 	QVector<QVector<QVector<QVector<double>>>> const & m_agrSens;
 	int m_measureIdx, m_aggrType;
 	int m_inWidth, m_outWidth, m_boxMinWidth;
+	DisplayMode m_mode;
 };
