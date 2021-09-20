@@ -57,11 +57,12 @@
         </property>
        </widget>
       </item>
-      <item row="1" column="1" colspan="2">
-       <widget class="QComboBox" name="cmbboxSPColorMap"/>
-      </item>
-      <item row="2" column="1" colspan="2">
-       <widget class="QComboBox" name="cmbboxSPHighlightColorScale"/>
+      <item row="2" column="0">
+       <widget class="QLabel" name="lbSPHighlightColorScale">
+        <property name="text">
+         <string>TextLabel</string>
+        </property>
+       </widget>
       </item>
       <item row="0" column="1">
        <widget class="QRadioButton" name="rbBar">
@@ -80,10 +81,16 @@
         </property>
        </widget>
       </item>
-      <item row="2" column="0">
-       <widget class="QLabel" name="lbSPHighlightColorScale">
+      <item row="2" column="1" colspan="2">
+       <widget class="QComboBox" name="cmbboxSPHighlightColorScale"/>
+      </item>
+      <item row="1" column="1" colspan="2">
+       <widget class="QComboBox" name="cmbboxSPColorMap"/>
+      </item>
+      <item row="4" column="0" colspan="3">
+       <widget class="QCheckBox" name="cbUnselectedSTARLines">
         <property name="text">
-         <string>TextLabel</string>
+         <string>Connecting lines for unselected STARs</string>
         </property>
        </widget>
       </item>
@@ -94,11 +101,25 @@
         </property>
        </widget>
       </item>
-      <item row="3" column="0" colspan="3">
-       <widget class="QCheckBox" name="cbUnselectedSTARLines">
+      <item row="3" column="0">
+       <widget class="QLabel" name="label">
         <property name="text">
-         <string>Connecting lines for unselected STARs</string>
+         <string>Algorithm Info</string>
         </property>
+       </widget>
+      </item>
+      <item row="3" column="1" colspan="2">
+       <widget class="QComboBox" name="cmbboxAlgoInfoMode">
+        <item>
+         <property name="text">
+          <string>Box</string>
+         </property>
+        </item>
+        <item>
+         <property name="text">
+          <string>Matrix</string>
+         </property>
+        </item>
        </widget>
       </item>
      </layout>

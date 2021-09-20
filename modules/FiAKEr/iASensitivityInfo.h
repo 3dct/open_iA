@@ -307,6 +307,7 @@ public slots:
 	void fiberSelectionChanged(std::vector<std::vector<size_t>> const& selection);
 	void histoChartTypeToggled(bool checked);
 	void styleChanged();
+	void algoInfoModeChanged(int mode);
 private slots:
 	void dissimMatrixMeasureChanged(int);
 	void dissimMatrixParameterChanged(int);
