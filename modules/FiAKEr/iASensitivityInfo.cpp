@@ -2565,7 +2565,8 @@ void iASensitivityInfo::updateDissimilarity()
 void iASensitivityInfo::spPointHighlighted(size_t resultIdx, bool state)
 {
 	int paramID = -1;
-	auto const& hp = m_gui->m_paramSP->viewData()->highlightedPoints();
+	auto sender = qobject_cast<iAScatterPlotWidget*>(QObject::sender());
+	auto const& hp = sender->viewData()->highlightedPoints();
 	auto t = iAColorThemeManager::instance().theme(m_gui->m_settings->cmbboxSPHighlightColorScale->currentText());
 	QColor resultColor = t->color(hp.size() - 1);
 	if (!state)
@@ -2581,7 +2582,7 @@ void iASensitivityInfo::spPointHighlighted(size_t resultIdx, bool state)
 	m_gui->m_paramInfluenceView->setSelectedParam(paramID);
 	emit resultSelected(resultIdx, state);
 
-	iAScatterPlotWidget* otherSP = (QObject::sender() == m_gui->m_paramSP) ? m_gui->m_mdsSP : m_gui->m_paramSP;
+	iAScatterPlotWidget* otherSP = (sender == m_gui->m_paramSP) ? m_gui->m_mdsSP : m_gui->m_paramSP;
 	if (state)
 	{
 		otherSP->viewData()->addHighlightedPoint(resultIdx);
