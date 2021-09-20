@@ -7,7 +7,7 @@
     <x>0</x>
     <y>0</y>
     <width>253</width>
-    <height>225</height>
+    <height>228</height>
    </rect>
   </property>
   <property name="windowTitle">
@@ -57,10 +57,30 @@
         </property>
        </widget>
       </item>
-      <item row="2" column="0">
-       <widget class="QLabel" name="lbSPHighlightColorScale">
+      <item row="2" column="1" colspan="2">
+       <widget class="QComboBox" name="cmbboxSPHighlightColorScale"/>
+      </item>
+      <item row="3" column="0">
+       <widget class="QLabel" name="label">
         <property name="text">
-         <string>TextLabel</string>
+         <string>Algorithm Info</string>
+        </property>
+       </widget>
+      </item>
+      <item row="0" column="0">
+       <widget class="QLabel" name="lbHistograms">
+        <property name="text">
+         <string>Histograms as</string>
+        </property>
+       </widget>
+      </item>
+      <item row="1" column="1" colspan="2">
+       <widget class="QComboBox" name="cmbboxSPColorMap"/>
+      </item>
+      <item row="1" column="0">
+       <widget class="QLabel" name="lbSPColorScale">
+        <property name="text">
+         <string>SP Color Scale</string>
         </property>
        </widget>
       </item>
@@ -74,37 +94,17 @@
         </property>
        </widget>
       </item>
-      <item row="0" column="0">
-       <widget class="QLabel" name="lbHistograms">
+      <item row="2" column="0">
+       <widget class="QLabel" name="lbSPHighlightColorScale">
         <property name="text">
-         <string>Histograms as</string>
+         <string>TextLabel</string>
         </property>
        </widget>
       </item>
-      <item row="2" column="1" colspan="2">
-       <widget class="QComboBox" name="cmbboxSPHighlightColorScale"/>
-      </item>
-      <item row="1" column="1" colspan="2">
-       <widget class="QComboBox" name="cmbboxSPColorMap"/>
-      </item>
-      <item row="4" column="0" colspan="3">
+      <item row="5" column="0" colspan="3">
        <widget class="QCheckBox" name="cbUnselectedSTARLines">
         <property name="text">
          <string>Connecting lines for unselected STARs</string>
-        </property>
-       </widget>
-      </item>
-      <item row="1" column="0">
-       <widget class="QLabel" name="lbSPColorScale">
-        <property name="text">
-         <string>SP Color Scale</string>
-        </property>
-       </widget>
-      </item>
-      <item row="3" column="0">
-       <widget class="QLabel" name="label">
-        <property name="text">
-         <string>Algorithm Info</string>
         </property>
        </widget>
       </item>
@@ -120,6 +120,13 @@
           <string>Matrix</string>
          </property>
         </item>
+       </widget>
+      </item>
+      <item row="4" column="1" colspan="2">
+       <widget class="QCheckBox" name="cbAlgoMaxPerOut">
+        <property name="text">
+         <string>Normalize per Output</string>
+        </property>
        </widget>
       </item>
      </layout>

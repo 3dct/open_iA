@@ -41,7 +41,7 @@ public:
 	static const int RoundedCornerRadius = 3;
 	static const int TopMargin = 1;
 	static const int BottomMargin = 5; // ArrowHeadSize;
-	static const int HMargin = 1;
+	static const int HMargin = 2;
 	static const int TextHPadding = 3;
 	static const int TextVPadding = 1;
 	static const int ArrowMinBottomDist = 1;
@@ -49,30 +49,58 @@ public:
 
 	static const QString LegendCaption;		// see iASensitivityInfo.cpp
 	static const int LegendLineWidth = 15;
-	static const int LegendNumEntries = 3;
+	static const int LegendNumEntries = 2;
 	static const int LegendMargin = 6;
 	static const int LegendSpacing = 3;
-	static const int LegendHeightMin = 50;
+	static const int LegendHeightMin = 40;
+
+	static const int MatrixMinBoxSize = 3;
 
 	enum DisplayMode
 	{
 		Box,
-		Matrix
+		Matrix,
+		DefaultDisplayMode = Matrix
 	};
 
-	iAAlgorithmInfo(QString const& name, QStringList const& inNames, QStringList const& outNames,
-		QColor const & inColor, QColor const & outColor, QVector<QVector<QVector<QVector<double>>>> const & agrSens):
-		m_name(name), m_inNames(inNames), m_outNames(outNames), m_inColor(inColor), m_outColor(outColor),
+	iAAlgorithmInfo(QString const& name, QStringList const& inNames, QStringList const& outNames, QColor const& inColor,
+		QColor const& outColor, QVector<QVector<QVector<QVector<double>>>> const& agrSens) :
+		m_name(name),
+		m_inNames(inNames),
+		m_outNames(outNames),
+		m_inColor(inColor),
+		m_outColor(outColor),
 		m_selectedIn(-1),
 		m_agrSens(agrSens),
+		m_maxS(m_agrSens.size()),
+		//m_maxO(),
 		m_measureIdx(0),
 		m_aggrType(0),
 		m_inWidth(1),
 		m_outWidth(1),
 		m_boxMinWidth(1),
-		m_mode(Box)
+		m_legendWidth(1),
+		m_displayMode(DefaultDisplayMode),
+		m_normalizePerOut(false)
 	{
 		setSizePolicy(QSizePolicy::Expanding, QSizePolicy::MinimumExpanding);
+		updateSensitivityMax();
+	}
+	void updateSensitivityMax()
+	{
+		// determine max sensitivity (per output characteristic)
+		// for proper scaling (determining min not needed - at no variation, the minimum is zero,
+		// so norming the minimum encountered to 0 would lead to omitting showing the smallest variation influence:
+		m_maxO = std::numeric_limits<double>::lowest();
+		for (int c = 0; c < m_agrSens.size(); ++c)
+		{
+			auto const& d = m_agrSens[c][m_measureIdx][m_aggrType];
+			m_maxS[c] = *std::max_element(d.begin(), d.end());
+			if (m_maxS[c] > m_maxO)
+			{
+				m_maxO = m_maxS[c];
+			}
+		}
 	}
 	int boxHeight() const
 	{
@@ -109,18 +137,26 @@ public:
 	void setMeasure(int newMeasure)
 	{
 		m_measureIdx = newMeasure;
+		updateSensitivityMax();
 		update();
 	}
 
 	void setAggregation(int newAggregation)
 	{
 		m_aggrType = newAggregation;
+		updateSensitivityMax();
 		update();
 	}
 
 	void setMode(int mode)
 	{
-		m_mode = static_cast<DisplayMode>(mode);
+		m_displayMode = static_cast<DisplayMode>(mode);
+		update();
+	}
+
+	void setNormalizePerOutput(bool maxPerOut)
+	{
+		m_normalizePerOut = maxPerOut;
 		update();
 	}
 
@@ -189,14 +225,6 @@ private:
 	}
 	void drawSensitivities(QPainter& p, QVector<QPoint> paramPt, QVector<QPoint> characPt)
 	{
-		// determine max for proper scaling (determining min not needed - at no variation, the minimum is zero,
-		// so norming the minimum encountered to 0 would lead to omitting showing the smallest variation influence:
-		std::vector<double> maxS(m_agrSens.size());
-		for (int c = 0; c < m_agrSens.size(); ++c)
-		{
-			auto const& d = m_agrSens[c][m_measureIdx][m_aggrType];
-			maxS[c] = *std::max_element(d.begin(), d.end());
-		}
 		//LOG(lvlDebug, QString("min=%1, max=%2").arg(minS).arg(maxS));
 		const int C = 255;
 		for (int charIdx = 0; charIdx < m_agrSens.size(); ++charIdx)
@@ -204,7 +232,7 @@ private:
 			for (int paramIdx = 0; paramIdx < m_agrSens[charIdx][m_measureIdx][m_aggrType].size(); ++paramIdx)
 			{
 				int pIdx = m_inSort.size() > 0 ? m_inSort[paramIdx] : paramIdx;
-				double normVal = mapToNorm(0.0, maxS[charIdx], m_agrSens[charIdx][m_measureIdx][m_aggrType][pIdx]);
+				double normVal = mapVal(charIdx, m_agrSens[charIdx][m_measureIdx][m_aggrType][pIdx]);
 				if (!dblApproxEqual(normVal, 0.0))
 				{
 					// maybe draw in order of increasing sensitivities?
@@ -218,16 +246,22 @@ private:
 			}
 		}
 	}
-	void drawLegend(QPainter& p, int leftWidth)
+	void drawLegend(QPainter& p, int leftWidth, bool top)
 	{
 		auto fm = p.fontMetrics();
 		const double LegendHeight = std::max(LegendHeightMin, LegendNumEntries * fm.height());
 		const double LegendEntryHeight = LegendHeight / LegendNumEntries;
 		const int LegendTextWidth = leftWidth - LegendMargin - LegendLineWidth;
 		const int C = 255;
+		double const LegendBottom = top ? LegendHeight + fm.height() + LegendSpacing : height() - LegendMargin;
 		p.setPen(qApp->palette().color(QWidget::foregroundRole()));
-		p.drawText(LegendMargin, height() - LegendMargin - LegendHeight - LegendSpacing, LegendCaption);
-		double const LegendBottom = height() - LegendMargin;
+		p.drawText(LegendMargin, LegendBottom - LegendHeight - LegendSpacing, LegendCaption);
+		m_legendWidth = LegendMargin +
+#if QT_VERSION >= QT_VERSION_CHECK(5, 11, 0)
+			fm.horizontalAdvance(LegendCaption);
+#else
+			fm.width(LegendCaption);
+#endif
 		for (int i=0; i<LegendNumEntries; ++i)
 		{
 			double normVal = static_cast<double>(i) / (LegendNumEntries-1);
@@ -286,7 +320,7 @@ private:
 			p.fontMetrics().width(m_name);
 #endif
 
-		if (m_mode == Box)
+		if (m_displayMode == Box)
 		{
 			QRect algoBox(
 				HMargin + m_inWidth, TopMargin, width() - (2 * HMargin + m_inWidth + m_outWidth), boxHeight());
@@ -299,25 +333,31 @@ private:
 			drawConnectors(p, HMargin + m_inWidth + algoBox.width(), m_outWidth, m_outNames, m_outRects, m_outColor, -1,
 				m_shownOut, QVector<int>(), characPt, false, boxHeight());
 			drawSensitivities(p, paramPt, characPt);
-			drawLegend(p, m_inWidth);
+			drawLegend(p, m_inWidth, false);
 		}
 		else
 		{
+			drawLegend(p, m_inWidth, true);
 			QRect matrixRect(HMargin + m_inWidth,
 				HMargin + m_outWidth + TextHPadding,
 				width() - (2*HMargin+m_inWidth),
-				height() - (2*HMargin+m_outWidth));
+				height() - (2*HMargin+m_outWidth+TextHPadding));
 			int cellWidth = matrixRect.width() / m_outNames.size();
 			int cellHeight = matrixRect.height() / m_inNames.size();
 
 			// draw labels:
+			p.drawText(QRect(0, 0, matrixRect.left(), matrixRect.top()), Qt::AlignHCenter | Qt::AlignBottom, "In");
 			for (int inIdx = 0; inIdx < m_inNames.size(); ++inIdx)
 			{
 				p.drawText(QRect(HMargin, matrixRect.top() + inIdx * cellHeight, m_inWidth, cellHeight),
-					Qt::AlignVCenter, m_inNames[inIdx]);
+					Qt::AlignVCenter,	//Qt::AlignTop,
+					m_inNames[inIdx]);
 			}
 			p.save();
 			p.rotate(-90);
+			const int VertCaptHeight = p.fontMetrics().height();
+			p.drawText(QRect(-(matrixRect.top() - TextHPadding), matrixRect.left() - VertCaptHeight - HMargin, m_outWidth, VertCaptHeight),
+				Qt::AlignHCenter | Qt::AlignTop, "Out");
 			for (int outIdx = 0; outIdx < m_outNames.size(); ++outIdx)
 			{
 				QRect yRect(-(matrixRect.top()-TextHPadding), matrixRect.left() + outIdx * cellWidth, m_outWidth, cellWidth);
@@ -325,21 +365,15 @@ private:
 			}
 			p.restore();
 
-			// draw sensitivities:
-			std::vector<double> maxS(m_agrSens.size());
-			for (int c = 0; c < m_agrSens.size(); ++c)
-			{
-				auto const& d = m_agrSens[c][m_measureIdx][m_aggrType];
-				maxS[c] = *std::max_element(d.begin(), d.end());
-			}
 			//LOG(lvlDebug, QString("min=%1, max=%2").arg(minS).arg(maxS));
+			// draw sensitivities :
 			const int C = 255;
 			for (int inIdx = 0; inIdx < m_inNames.size(); ++inIdx)
 			{
 				for (int outIdx = 0; outIdx < m_outNames.size(); ++outIdx)
 				{
 					int pIdx = m_inSort.size() > 0 ? m_inSort[inIdx] : inIdx;
-					double normVal = mapToNorm(0.0, maxS[outIdx], m_agrSens[outIdx][m_measureIdx][m_aggrType][pIdx]);
+					double normVal = mapVal(outIdx, m_agrSens[outIdx][m_measureIdx][m_aggrType][pIdx]);
 					int colorVal = C - (C * normVal);
 					QRect boxRect(
 						matrixRect.left() + outIdx * cellWidth,
@@ -349,11 +383,25 @@ private:
 					//p.drawRect(boxRect);
 				}
 			}
+
+			// draw matrix grid lines:
+			p.setPen(qApp->palette().color(QPalette::AlternateBase));
+			p.drawRect(matrixRect);
+			for (int inIdx = 1; inIdx < m_inNames.size(); ++inIdx)
+			{
+				int y = matrixRect.top() + inIdx * cellHeight;
+				p.drawLine(matrixRect.left(), y, matrixRect.right(), y);
+			}
+			for (int outIdx = 1; outIdx < m_outNames.size(); ++outIdx)
+			{
+				int x = matrixRect.left() + outIdx * cellWidth;
+				p.drawLine(x, matrixRect.top(), x, matrixRect.bottom());
+			}
 		}
 	}
 	void mousePressEvent(QMouseEvent* ev) override
 	{
-		if (m_mode == Box)
+		if (m_displayMode == Box)
 		{
 			for (int rIdx = 0; rIdx < m_inRects.size(); ++rIdx)
 			{
@@ -376,14 +424,19 @@ private:
 	}
 	QSize sizeHint() const override
 	{
-		return (m_mode == Box) ?
+		return (m_displayMode == Box) ?
 			QSize(m_inWidth + m_outWidth + m_boxMinWidth, oneEntryHeight() * std::max(m_inNames.size(), m_outNames.size())) :
-			QSize(1, 1);
+			QSize(m_inWidth + m_outNames.size() * MatrixMinBoxSize, m_outWidth + m_inNames.size() * MatrixMinBoxSize);
 	}
 signals:
 	void inputClicked(int inIdx);
 	void outputClicked(int outIdx);
 private:
+	double mapVal(int inIdx, double val)
+	{
+		return mapToNorm(0.0, m_normalizePerOut ? m_maxS[inIdx] : m_maxO, val);
+	}
+
 	QString m_name;
 	QStringList m_inNames, m_outNames;
 	QVector<QRect> m_inRects, m_outRects;
@@ -393,7 +446,11 @@ private:
 	QVector<int> m_inSort;
 
 	QVector<QVector<QVector<QVector<double>>>> const & m_agrSens;
+	std::vector<double> m_maxS;
+	double m_maxO;
 	int m_measureIdx, m_aggrType;
-	int m_inWidth, m_outWidth, m_boxMinWidth;
-	DisplayMode m_mode;
+	// some widths as determined during painting:
+	int m_inWidth, m_outWidth, m_boxMinWidth, m_legendWidth;
+	DisplayMode m_displayMode;
+	bool m_normalizePerOut;
 };

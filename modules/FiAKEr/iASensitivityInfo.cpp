@@ -1426,7 +1426,9 @@ public:
 		connect(cmbboxSPColorMap, QOverload<int>::of(&QComboBox::currentIndexChanged), sensInf, &iASensitivityInfo::updateSPDifferenceColors);
 		connect(cmbboxSPHighlightColorScale, QOverload<int>::of(&QComboBox::currentIndexChanged), sensInf,
 			&iASensitivityInfo::updateSPHighlightColors);
+		cmbboxAlgoInfoMode->setCurrentIndex(iAAlgorithmInfo::DefaultDisplayMode);
 		connect(cmbboxAlgoInfoMode, QOverload<int>::of(&QComboBox::currentIndexChanged), sensInf, &iASensitivityInfo::algoInfoModeChanged);
+		connect(cbAlgoMaxPerOut, &QCheckBox::stateChanged, sensInf, &iASensitivityInfo::algoInfoNormPerOutChanged);
 
 		connect(cbUnselectedSTARLines, &QCheckBox::stateChanged, sensInf, &iASensitivityInfo::updateSPDifferenceColors);
 
@@ -2900,4 +2902,9 @@ void iASensitivityInfo::styleChanged()
 void iASensitivityInfo::algoInfoModeChanged(int mode)
 {
 	m_gui->m_algoInfo->setMode(mode);
+}
+
+void iASensitivityInfo::algoInfoNormPerOutChanged(int state)
+{
+	m_gui->m_algoInfo->setNormalizePerOutput(state == Qt::Checked);
 }
