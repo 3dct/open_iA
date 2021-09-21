@@ -162,10 +162,13 @@ public:
 
 private:
 	void drawInOut(QPainter& p, int left, int top, int width, int height, QString const& text, QVector<QRect>& rects,
-		QColor const& color, bool selected, bool useColor)
+		QColor const& color, bool selected, bool useColor, bool verticalText, bool drawLine)
 	{
 		int right = left + width;
-		p.drawLine(left, top, right, top);
+		if (drawLine)
+		{
+			p.drawLine(left, top, right, top);
+		}
 		//p.drawLine(right - ArrowHeadSize, top - ArrowHeadSize, right, top);
 		//p.drawLine(right - ArrowHeadSize, top + ArrowHeadSize, right, top);
 #if QT_VERSION >= QT_VERSION_CHECK(5, 11, 0)
@@ -177,6 +180,22 @@ private:
 		QRect textRect(left + ArrowTextLeft, top - ArrowTextDistance - boxHeight,
 			std::min(textWidth + 2 * TextHPadding, width - ArrowTextLeft /* - ArrowHeadSize */),
 			std::min(height, boxHeight));
+		if (verticalText)
+		{
+			textRect.setLeft(left);
+			textRect.setTop(top);
+			textRect.setWidth(width);
+			textRect.setHeight(height);
+			(left + ArrowTextLeft, top - ArrowTextDistance - boxHeight,
+				std::min(textWidth + 2 * TextHPadding, width - ArrowTextLeft /* - ArrowHeadSize */),
+				std::min(height, boxHeight));
+			LOG(lvlDebug,
+				QString("   Rect TEXT: l=%1, t=%2, w=%3, h=%4")
+					.arg(textRect.left())
+					.arg(textRect.top())
+					.arg(textRect.width())
+					.arg(textRect.height()));
+		}
 		rects.push_back(textRect);
 		QPainterPath path;
 		path.addRoundedRect(textRect, RoundedCornerRadius, RoundedCornerRadius);
@@ -188,7 +207,24 @@ private:
 		{
 			p.drawPath(path);
 		}
-		p.drawText(textRect, Qt::AlignCenter, text);
+		if (verticalText)
+		{
+			p.save();
+			p.rotate(-90);
+			QRect rotRect(-(height+HMargin), left, height, width);
+			LOG(lvlDebug,
+				QString("   Rect VERT: l=%1, t=%2, w=%3, h=%4")
+					.arg(rotRect.left())
+					.arg(rotRect.top())
+					.arg(rotRect.width())
+					.arg(rotRect.height()));
+			p.drawText(rotRect, Qt::AlignCenter, text);
+			p.restore();
+		}
+		else
+		{
+			p.drawText(textRect, Qt::AlignCenter, text);
+		}
 	}
 	int connectorWidth(QFontMetrics fm, QStringList const & strings)
 	{
@@ -220,7 +256,7 @@ private:
 			QString name = strings[sort.size() > idx ? sort[idx] : idx];
 			posOut.push_back(QPoint(left + (isLeft ? width : 0), baseTop + idx * oneHeight));
 			drawInOut(p, left, baseTop + idx * oneHeight, width, oneHeight, name, rects, color, selected == idx,
-				shown.size() == 0 || shown.contains(idx));
+				shown.size() == 0 || shown.contains(idx), false, true);
 		}
 	}
 	void drawSensitivities(QPainter& p, QVector<QPoint> paramPt, QVector<QPoint> characPt)
@@ -327,11 +363,14 @@ private:
 			p.drawRect(algoBox);
 			p.drawText(algoBox, Qt::AlignHCenter | Qt::AlignBottom, m_name);
 			QVector<QPoint> paramPt, characPt;
-			drawConnectors(p, HMargin, m_inWidth, m_inNames, m_inRects, m_inColor, m_selectedIn, QVector<int>(),
+			drawConnectors(p, HMargin, m_inWidth, m_inNames,
+				m_inRects, m_inColor, m_selectedIn, QVector<int>(),
 				m_inSort, paramPt, true,
 				boxHeight() - LegendHeightMin - LegendMargin - LegendSpacing - p.fontMetrics().height());
-			drawConnectors(p, HMargin + m_inWidth + algoBox.width(), m_outWidth, m_outNames, m_outRects, m_outColor, -1,
-				m_shownOut, QVector<int>(), characPt, false, boxHeight());
+			drawConnectors(p, HMargin + m_inWidth + algoBox.width(), m_outWidth, m_outNames,
+				m_outRects, m_outColor, -1, m_shownOut,
+				QVector<int>(), characPt, false,
+				boxHeight());
 			drawSensitivities(p, paramPt, characPt);
 			drawLegend(p, m_inWidth, false);
 		}
@@ -346,24 +385,43 @@ private:
 			int cellHeight = matrixRect.height() / m_inNames.size();
 
 			// draw labels:
+			m_inRects.clear();
+			m_outRects.clear();
 			p.drawText(QRect(0, 0, matrixRect.left(), matrixRect.top()), Qt::AlignHCenter | Qt::AlignBottom, "In");
 			for (int inIdx = 0; inIdx < m_inNames.size(); ++inIdx)
 			{
+				/*
 				p.drawText(QRect(HMargin, matrixRect.top() + inIdx * cellHeight, m_inWidth, cellHeight),
 					Qt::AlignVCenter,	//Qt::AlignTop,
 					m_inNames[inIdx]);
+				*/
+				int pIdx = m_inSort.size() > 0 ? m_inSort[inIdx] : inIdx;
+				drawInOut(p, HMargin, matrixRect.top() + inIdx * cellHeight, m_inWidth, cellHeight, m_inNames[pIdx],
+					m_inRects, m_inColor, m_selectedIn == pIdx, true, false, false);
+				
 			}
-			p.save();
-			p.rotate(-90);
 			const int VertCaptHeight = p.fontMetrics().height();
 			p.drawText(QRect(-(matrixRect.top() - TextHPadding), matrixRect.left() - VertCaptHeight - HMargin, m_outWidth, VertCaptHeight),
 				Qt::AlignHCenter | Qt::AlignTop, "Out");
+			LOG(lvlDebug, "PAINT");
 			for (int outIdx = 0; outIdx < m_outNames.size(); ++outIdx)
 			{
-				QRect yRect(-(matrixRect.top()-TextHPadding), matrixRect.left() + outIdx * cellWidth, m_outWidth, cellWidth);
-				p.drawText(yRect, Qt::AlignVCenter, m_outNames[outIdx]);
+				LOG(lvlDebug,
+					QString("   Rect OLD: l=%1, t=%2, w=%3, h=%4")
+						.arg(-(matrixRect.top() - TextHPadding))
+						.arg(matrixRect.left() + outIdx * cellWidth)
+						.arg(m_outWidth)
+						.arg(cellWidth));
+				LOG(lvlDebug,
+					QString("   Rect NOW: l=%1, t=%2, w=%3, h=%4")
+						.arg(matrixRect.left() + outIdx * cellWidth)
+						.arg(TextHPadding)
+						.arg(cellWidth)
+						.arg(m_outWidth));
+				drawInOut(p, matrixRect.left() + outIdx * cellWidth, /* matrixRect.top() - TextHPadding */ TextHPadding,
+					cellWidth, m_outWidth, m_outNames[outIdx],
+					m_outRects, m_outColor, false, m_shownOut.size() == 0 || m_shownOut.contains(outIdx), true, false);
 			}
-			p.restore();
 
 			//LOG(lvlDebug, QString("min=%1, max=%2").arg(minS).arg(maxS));
 			// draw sensitivities :
@@ -401,24 +459,21 @@ private:
 	}
 	void mousePressEvent(QMouseEvent* ev) override
 	{
-		if (m_displayMode == Box)
+		for (int rIdx = 0; rIdx < m_inRects.size(); ++rIdx)
 		{
-			for (int rIdx = 0; rIdx < m_inRects.size(); ++rIdx)
+			if (m_inRects[rIdx].contains(ev->pos()))
 			{
-				if (m_inRects[rIdx].contains(ev->pos()))
-				{
-					int clickedIn = (rIdx < m_inSort.size()) ? m_inSort[rIdx] : rIdx;
-					emit inputClicked(clickedIn);
-					return;
-				}
+				int clickedIn = (rIdx < m_inSort.size()) ? m_inSort[rIdx] : rIdx;
+				emit inputClicked(clickedIn);
+				return;
 			}
-			for (int rIdx = 0; rIdx < m_outRects.size(); ++rIdx)
+		}
+		for (int rIdx = 0; rIdx < m_outRects.size(); ++rIdx)
+		{
+			if (m_outRects[rIdx].contains(ev->pos()))
 			{
-				if (m_outRects[rIdx].contains(ev->pos()))
-				{
-					emit outputClicked(rIdx);
-					return;
-				}
+				emit outputClicked(rIdx);
+				return;
 			}
 		}
 	}
