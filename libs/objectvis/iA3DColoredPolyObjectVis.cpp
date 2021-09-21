@@ -39,54 +39,16 @@ namespace
 	const int TransparentAlpha = 32;
 }
 
-iA3DColoredPolyObjectVis::iA3DColoredPolyObjectVis(vtkRenderer* ren, vtkTable* objectTable, QSharedPointer<QMap<uint, uint> > columnMapping,
+iA3DColoredPolyObjectVis::iA3DColoredPolyObjectVis(vtkTable* objectTable, QSharedPointer<QMap<uint, uint> > columnMapping,
 	QColor const & color) :
-	iA3DObjectVis(ren, objectTable, columnMapping),
-	m_mapper(vtkSmartPointer<vtkPolyDataMapper>::New()),
+	iA3DObjectVis(objectTable, columnMapping),
 	m_colors(vtkSmartPointer<vtkUnsignedCharArray>::New()),
-	m_actor(vtkSmartPointer<vtkActor>::New()),
-	m_visible(false),
 	m_contextAlpha(DefaultContextOpacity),
 	m_selectionAlpha(DefaultSelectionOpacity),
 	m_baseColor(color),
 	m_selectionColor(SelectedColor),
-	m_outlineFilter(vtkSmartPointer<vtkOutlineFilter>::New()),
-	m_outlineMapper(vtkSmartPointer<vtkPolyDataMapper>::New()),
-	m_outlineActor(vtkSmartPointer<vtkActor>::New()),
-	m_clippingPlanesEnabled(false),
 	m_selectionActive(false)
 {
-	m_mapper->SetScalarModeToUsePointFieldData();
-	m_mapper->ScalarVisibilityOn();
-	m_actor->SetMapper(m_mapper);
-}
-
-void iA3DColoredPolyObjectVis::show()
-{
-	if (m_visible)
-	{
-		return;
-	}
-	m_ren->AddActor(m_actor);
-	m_visible = true;
-}
-
-void iA3DColoredPolyObjectVis::hide()
-{
-	if (!m_visible)
-	{
-		return;
-	}
-	m_ren->RemoveActor(m_actor);
-	m_visible = false;
-}
-
-void iA3DColoredPolyObjectVis::updateRenderer()
-{
-	if (m_visible)
-	{
-		iA3DObjectVis::updateRenderer();
-	}
 }
 
 void iA3DColoredPolyObjectVis::renderSelection(std::vector<size_t> const & sortedSelInds, int classID, QColor const & constClassColor, QStandardItem* /*activeClassItem*/)
@@ -122,7 +84,6 @@ void iA3DColoredPolyObjectVis::renderSelection(std::vector<size_t> const & sorte
 			}
 		}
 	}
-	updatePolyMapper();
 }
 
 void iA3DColoredPolyObjectVis::renderSingle(IndexType selectedObjID, int classID, QColor const & constClassColor, QStandardItem* /*activeClassItem*/)
@@ -138,7 +99,6 @@ void iA3DColoredPolyObjectVis::renderSingle(IndexType selectedObjID, int classID
 		int curClassID = m_objectTable->GetValue(objID, m_objectTable->GetNumberOfColumns() - 1).ToInt();
 		setObjectColor(objID, (selectedObjID > 0 && objID + 1 == selectedObjID) ? SelectedColor : (curClassID == classID) ? classColor : nonClassColor);
 	}
-	updatePolyMapper();
 }
 
 void iA3DColoredPolyObjectVis::multiClassRendering(QList<QColor> const & classColors, QStandardItem* /*rootItem*/, double /*alpha*/)
@@ -148,7 +108,6 @@ void iA3DColoredPolyObjectVis::multiClassRendering(QList<QColor> const & classCo
 		int classID = m_objectTable->GetValue(objID, m_objectTable->GetNumberOfColumns() - 1).ToInt();
 		setObjectColor(objID, classColors.at(classID));
 	}
-	updatePolyMapper();
 }
 
 void iA3DColoredPolyObjectVis::renderOrientationDistribution(vtkImageData* oi)
@@ -158,7 +117,6 @@ void iA3DColoredPolyObjectVis::renderOrientationDistribution(vtkImageData* oi)
 		QColor color = getOrientationColor(oi, objID);
 		setObjectColor(objID, color);
 	}
-	updatePolyMapper();
 }
 
 void iA3DColoredPolyObjectVis::renderLengthDistribution(vtkColorTransferFunction* ctFun, vtkFloatArray* /*extents*/, double /*halfInc*/, int /*filterID*/, double const * /*range*/)
@@ -168,7 +126,6 @@ void iA3DColoredPolyObjectVis::renderLengthDistribution(vtkColorTransferFunction
 		QColor color = getLengthColor(ctFun, objID);
 		setObjectColor(objID, color);
 	}
-	updatePolyMapper();
 }
 
 void iA3DColoredPolyObjectVis::setObjectColor(IndexType objIdx, QColor const & qcolor)
@@ -185,18 +142,7 @@ void iA3DColoredPolyObjectVis::setObjectColor(IndexType objIdx, QColor const & q
 			m_colors->SetComponent(objectStartPointIdx(objIdx) + p, c, color[c]);
 		}
 	}
-}
-
-void iA3DColoredPolyObjectVis::updatePolyMapper()
-{
-	m_colors->Modified();
-	m_mapper->Update();
-	updateRenderer();
-}
-
-bool iA3DColoredPolyObjectVis::visible() const
-{
-	return m_visible;
+	emit updated();
 }
 
 void iA3DColoredPolyObjectVis::setSelectionOpacity(int selectionAlpha)
@@ -207,33 +153,6 @@ void iA3DColoredPolyObjectVis::setSelectionOpacity(int selectionAlpha)
 void iA3DColoredPolyObjectVis::setContextOpacity(int contextAlpha)
 {
 	m_contextAlpha = contextAlpha;
-}
-
-void iA3DColoredPolyObjectVis::setShowWireFrame(bool show)
-{
-	if (show)
-	{
-		m_actor->GetProperty()->SetRepresentationToWireframe();
-	}
-	else
-	{
-		m_actor->GetProperty()->SetRepresentationToSurface();
-	}
-	updatePolyMapper();
-}
-
-vtkSmartPointer<vtkActor> iA3DColoredPolyObjectVis::getActor()
-{
-	return m_actor;
-}
-
-void iA3DColoredPolyObjectVis::setupBoundingBox()
-{
-	m_outlineFilter->SetInputData(getPolyData());
-	m_outlineMapper->SetInputConnection(m_outlineFilter->GetOutputPort());
-	m_outlineActor->GetProperty()->SetColor(0, 0, 0);
-	m_outlineActor->PickableOff();
-	m_outlineActor->SetMapper(m_outlineMapper);
 }
 
 void iA3DColoredPolyObjectVis::setupOriginalIds()
@@ -265,20 +184,7 @@ void iA3DColoredPolyObjectVis::setupColors()
 	{
 		m_colors->InsertNextTypedTuple(c);
 	}
-	m_mapper->SelectColorArray("Colors");
-}
-
-void iA3DColoredPolyObjectVis::showBoundingBox()
-{
-	m_outlineMapper->Update();
-	m_ren->AddActor(m_outlineActor);
-	updateRenderer();
-}
-
-void iA3DColoredPolyObjectVis::hideBoundingBox()
-{
-	m_ren->RemoveActor(m_outlineActor);
-	updateRenderer();
+	emit updated();
 }
 
 double const * iA3DColoredPolyObjectVis::bounds()
@@ -337,26 +243,7 @@ void iA3DColoredPolyObjectVis::updateColorSelectionRendering()
 		}
 		setObjectColor(objID, color);
 	}
-	updatePolyMapper();
-}
-
-void iA3DColoredPolyObjectVis::setClippingPlanes(vtkPlane* planes[3])
-{
-	if (m_clippingPlanesEnabled)
-	{
-		return;
-	}
-	m_clippingPlanesEnabled = true;
-	for (int i = 0; i < 3; ++i)
-	{
-		m_mapper->AddClippingPlane(planes[i]);
-	}
-}
-
-void iA3DColoredPolyObjectVis::removeClippingPlanes()
-{
-	m_mapper->RemoveAllClippingPlanes();
-	m_clippingPlanesEnabled = false;
+	emit updated();
 }
 
 iA3DColoredPolyObjectVis::IndexType iA3DColoredPolyObjectVis::objectPointCount(IndexType /*ptIdx*/) const
@@ -377,4 +264,9 @@ iA3DColoredPolyObjectVis::IndexType iA3DColoredPolyObjectVis::allPointCount() co
 		pointCount += objectPointCount(objID);
 	}
 	return pointCount;
+}
+
+vtkAlgorithmOutput* iA3DColoredPolyObjectVis::output()
+{
+	return nullptr;
 }

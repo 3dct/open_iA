@@ -33,9 +33,9 @@
 #include <vtkTable.h>
 
 
-iA3DCylinderObjectVis::iA3DCylinderObjectVis(vtkRenderer* ren, vtkTable* objectTable, QSharedPointer<QMap<uint, uint> > columnMapping,
+iA3DCylinderObjectVis::iA3DCylinderObjectVis(vtkTable* objectTable, QSharedPointer<QMap<uint, uint> > columnMapping,
 	QColor const & color, std::map<size_t, std::vector<iAVec3f> > const & curvedFiberData, int numberOfCylinderSides, size_t segmentSkip):
-	iA3DLineObjectVis( ren, objectTable, columnMapping, color, curvedFiberData, segmentSkip),
+	iA3DLineObjectVis(objectTable, columnMapping, color, curvedFiberData, segmentSkip),
 	m_tubeFilter(vtkSmartPointer<iAvtkTubeFilter>::New()),
 	m_contextFactors(nullptr),
 	m_objectCount(objectTable->GetNumberOfRows()),
@@ -75,7 +75,7 @@ void iA3DCylinderObjectVis::setDiameterFactor(double diameterFactor)
 	m_tubeFilter->SetRadiusFactor(diameterFactor);
 	m_tubeFilter->Modified();
 	m_tubeFilter->Update();
-	updateRenderer();
+	emit updated();
 }
 
 void iA3DCylinderObjectVis::setContextDiameterFactor(double contextDiameterFactor)

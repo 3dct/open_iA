@@ -33,9 +33,9 @@
 #include <vtkTable.h>
 #include <vtkUnsignedCharArray.h>
 
-iA3DLineObjectVis::iA3DLineObjectVis(vtkRenderer* ren, vtkTable* objectTable, QSharedPointer<QMap<uint, uint> > columnMapping, QColor const & color,
+iA3DLineObjectVis::iA3DLineObjectVis(vtkTable* objectTable, QSharedPointer<QMap<uint, uint> > columnMapping, QColor const & color,
 	std::map<size_t, std::vector<iAVec3f> > const & curvedFiberData, size_t segmentSkip):
-	iA3DColoredPolyObjectVis(ren, objectTable, columnMapping, color),
+	iA3DColoredPolyObjectVis(objectTable, columnMapping, color),
 	m_linePolyData(vtkSmartPointer<vtkPolyData>::New()),
 	m_points(vtkSmartPointer<vtkPoints>::New()),
 	m_curvedFiberData(curvedFiberData),
@@ -93,11 +93,7 @@ iA3DLineObjectVis::iA3DLineObjectVis(vtkRenderer* ren, vtkTable* objectTable, QS
 	m_linePolyData->SetLines(lines);
 	setupColors();
 	m_linePolyData->GetPointData()->AddArray(m_colors);
-	setupBoundingBox();
 	setupOriginalIds();
-
-	m_mapper->SetInputData(m_linePolyData);
-	m_actor->SetMapper(m_mapper);
 }
 
 void iA3DLineObjectVis::updateValues(std::vector<std::vector<double> > const & values, int straightOrCurved)
@@ -140,7 +136,7 @@ void iA3DLineObjectVis::updateValues(std::vector<std::vector<double> > const & v
 		}
 	}
 	m_points->Modified();
-	updatePolyMapper();
+	emit updateMapper();
 }
 
 vtkPolyData* iA3DLineObjectVis::getPolyData()

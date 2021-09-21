@@ -28,11 +28,8 @@
 
 class iALookupTable;
 
-class vtkActor;
-class vtkOutlineFilter;
-class vtkPlane;
+class vtkAlgorithmOutput;
 class vtkPolyData;
-class vtkPolyDataMapper;
 class vtkUnsignedCharArray;
 
 class iAobjectvis_API iA3DColoredPolyObjectVis : public iA3DObjectVis
@@ -40,9 +37,8 @@ class iAobjectvis_API iA3DColoredPolyObjectVis : public iA3DObjectVis
 public:
 	static const int DefaultContextOpacity = 8;
 	static const int DefaultSelectionOpacity = 128;
-	iA3DColoredPolyObjectVis(vtkRenderer* ren, vtkTable* objectTable, QSharedPointer<QMap<uint, uint> > columnMapping, QColor const & neutralColor);
-	void show() override;
-	void hide();
+	iA3DColoredPolyObjectVis(vtkTable* objectTable, QSharedPointer<QMap<uint, uint> > columnMapping, QColor const & neutralColor);
+
 	//! @{ "legacy" methods for various selection/coloring options, specific to FeatureScout module
 	void renderSelection(std::vector<size_t> const & sortedSelInds, int classID, QColor const & classColor, QStandardItem* activeClassItem) override;
 	void renderSingle(IndexType selectedObjID, int classID, QColor const & classColors, QStandardItem* activeClassItem) override;
@@ -53,7 +49,6 @@ public:
 	void setSelectionOpacity(int selectionAlpha);
 	void setContextOpacity(int contextAlpha);
 	bool visible() const;
-	vtkSmartPointer<vtkActor> getActor();
 	virtual vtkPolyData* getPolyData() = 0;
 	virtual vtkPolyData* finalPoly() = 0;
 	//!  @{ bounding box / bounds
@@ -67,9 +62,6 @@ public:
 	void setLookupTable(QSharedPointer<iALookupTable> lut, size_t paramIndex);
 	void updateColorSelectionRendering();
 	virtual QString visualizationStatistics() const =0;
-	virtual void setShowLines(bool /*lines*/) {} // not ideal, should not be here
-	void setClippingPlanes(vtkPlane* planes[3]);
-	void removeClippingPlanes();
 	//! extract one mesh per selected object
 	virtual std::vector<vtkSmartPointer<vtkPolyData>> extractSelectedObjects(QColor c = QColor()) const = 0;
 	//! Get the index of the first point of a given object.
@@ -84,36 +76,24 @@ public:
 	//! @return the number of points in all objects, i.e. the sum of objectPointCount over all object indices.
 	IndexType allPointCount() const;
 
+	virtual vtkAlgorithmOutput* output();
+
 protected:
-	vtkSmartPointer<vtkPolyDataMapper> m_mapper;
 	vtkSmartPointer<vtkUnsignedCharArray> m_colors;
-	vtkSmartPointer<vtkActor> m_actor;
-	bool m_visible;
 	int m_contextAlpha;
 	int m_selectionAlpha;
 	QColor m_baseColor;
 	QColor m_selectionColor;
-	vtkSmartPointer<vtkOutlineFilter> m_outlineFilter;
-	vtkSmartPointer<vtkPolyDataMapper> m_outlineMapper;
-	vtkSmartPointer<vtkActor> m_outlineActor;
 	std::vector<size_t> m_selection;
-	bool m_clippingPlanesEnabled;
 
 	//! Set an object to a specified color.
 	//! @param objIdx index of the object.
 	//! @param qcolor new color of the object.
 	void setObjectColor(IndexType objIdx, QColor const & qcolor);
-	//! Triggers an update of the color mapper and the renderer.
-	void updatePolyMapper();
-	//! Prepare the filters providing the bounding box.
-	void setupBoundingBox();
 	//! Set up the mapping from object parts to object IDs.
 	void setupOriginalIds();
 	//! Set up the array of colors for each object.
 	void setupColors();
-
-	//! Updates the renderer; but only if the own actor is actually shown.
-	void updateRenderer() override;
 
 private:
 

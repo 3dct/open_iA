@@ -30,9 +30,9 @@
 
 #include <QStandardItem>
 
-iA3DLabelledVolumeVis::iA3DLabelledVolumeVis(vtkRenderer* ren, vtkColorTransferFunction* color, vtkPiecewiseFunction* opac,
+iA3DLabelledVolumeVis::iA3DLabelledVolumeVis(vtkColorTransferFunction* color, vtkPiecewiseFunction* opac,
 		vtkTable* objectTable, QSharedPointer<QMap<uint, uint> > columnMapping, double const * bounds ):
-	iA3DObjectVis(ren, objectTable, columnMapping),
+	iA3DObjectVis(objectTable, columnMapping),
 	oTF(opac),
 	cTF(color)
 {
@@ -216,7 +216,7 @@ void iA3DLabelledVolumeVis::renderSelection( std::vector<size_t> const & sortedS
 		oTF->AddPoint( m_objectTable->GetNumberOfRows() + 0.3, backAlpha, 0.5, 1.0 );
 		cTF->AddRGBPoint( m_objectTable->GetNumberOfRows() + 0.3, backRGB[0], backRGB[1], backRGB[2], 0.5, 1.0 );
 	}
-	updateRenderer();
+	emit updated();
 }
 
 void iA3DLabelledVolumeVis::renderSingle(IndexType selectedObjID, int /*classID*/, QColor const & classColor, QStandardItem* activeClassItem )
@@ -327,7 +327,7 @@ void iA3DLabelledVolumeVis::renderSingle(IndexType selectedObjID, int /*classID*
 			cTF->AddRGBPoint( m_objectTable->GetNumberOfRows() + 0.3, backRGB[0], backRGB[1], backRGB[2], 0.5, 1.0 );
 		}
 	}
-	updateRenderer();
+	emit updated();
 }
 
 void iA3DLabelledVolumeVis::multiClassRendering( QList<QColor> const & classColors, QStandardItem* rootItem, double alpha )
@@ -434,7 +434,7 @@ void iA3DLabelledVolumeVis::multiClassRendering( QList<QColor> const & classColo
 			cTF->AddRGBPoint(m_objectTable->GetNumberOfRows() + 0.3, backRGB[0], backRGB[1], backRGB[2], 0.5, 1.0);
 		}
 	}
-	updateRenderer();
+	emit updated();
 }
 
 void iA3DLabelledVolumeVis::renderOrientationDistribution( vtkImageData* oi )
@@ -454,6 +454,7 @@ void iA3DLabelledVolumeVis::renderOrientationDistribution( vtkImageData* oi )
 		oTF->AddPoint( objID + 1, alpha );
 		cTF->AddRGBPoint( objID + 1, color.redF(), color.greenF(), color.blueF() );
 	}
+	emit updated();
 }
 
 void iA3DLabelledVolumeVis::renderLengthDistribution( vtkColorTransferFunction* ctFun, vtkFloatArray* extents, double halfInc, int filterID, double const * range )
@@ -526,7 +527,7 @@ void iA3DLabelledVolumeVis::renderLengthDistribution( vtkColorTransferFunction* 
 		cTF->AddRGBPoint( objID + 1 - 0.5, color.redF(), color.greenF(), color.blueF() );
 		cTF->AddRGBPoint( objID + 1 + 0.3, color.redF(), color.greenF(), color.blueF() );
 	}
-	updateRenderer();
+	emit updated();
 }
 
 double const * iA3DLabelledVolumeVis::bounds()
