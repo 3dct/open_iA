@@ -63,7 +63,6 @@
 
 // FIAKER
 #include "iAAlgorithmInfo.h"
-const QString iAAlgorithmInfo::LegendCaption("Sensitivity:");
 #include "iAFiberResult.h"
 #include "iAFiberResultUIData.h"
 #include "iAFiberData.h"
@@ -2152,6 +2151,9 @@ void iASensitivityInfo::createGUI()
 		&iAParameterInfluenceView::toggleCharacteristic);
 	connect(m_gui->m_paramInfluenceView, &iAParameterInfluenceView::orderChanged, m_gui->m_algoInfo,
 		&iAAlgorithmInfo::setInSortOrder);
+	connect(m_gui->m_paramInfluenceView, &iAParameterInfluenceView::parameterChanged, [this]() {
+		m_gui->m_algoInfo->setSelectedInput(m_gui->m_paramInfluenceView->selectedRow());
+	});
 	m_gui->m_algoInfo->setInSortOrder(m_gui->m_paramInfluenceView->paramIndicesSorted());
 	auto dwAlgoInfo = new iADockWidgetWrapper(m_gui->m_algoInfo, "Algorithm Details", "foeAlgorithmInfo");
 	m_child->splitDockWidget(dwSettings, dwAlgoInfo, Qt::Horizontal);
