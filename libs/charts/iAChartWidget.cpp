@@ -1140,12 +1140,6 @@ void iAChartWidget::drawAll(QPainter & painter)
 	{
 		return;
 	}
-	if (!m_xMapper || !m_yMapper)
-	{
-		createMappers();
-	}
-	m_xMapper->update(m_xBounds[0], m_xBounds[1], 0, fullChartWidth());
-	m_yMapper->update(m_yMappingMode == Logarithmic && m_yBounds[0] <= 0 ? LogYMapModeMin : m_yBounds[0], m_yBounds[1], 0, m_yZoom*(chartHeight()-1));
 	QFontMetrics fm = painter.fontMetrics();
 	m_fontHeight = fm.height();
 #if QT_VERSION >= QT_VERSION_CHECK(5, 11, 0)
@@ -1153,6 +1147,14 @@ void iAChartWidget::drawAll(QPainter & painter)
 #else
 	m_yMaxTickLabelWidth = fm.width("4.44M");
 #endif
+	if (!m_xMapper || !m_yMapper)
+	{
+		createMappers();
+	}
+	m_xMapper->update(m_xBounds[0], m_xBounds[1], 0, fullChartWidth());
+	m_yMapper->update(m_yMappingMode == Logarithmic && m_yBounds[0] <= 0 ? LogYMapModeMin : m_yBounds[0], m_yBounds[1],
+		0, m_yZoom * (chartHeight() - 1));
+	painter.save();
 	painter.translate(-xMapper().srcToDst(visibleXStart()) + leftMargin(), -bottomMargin());
 	drawImageOverlays(painter);
 	//change the origin of the window to left bottom
