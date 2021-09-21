@@ -1335,7 +1335,7 @@ void iAIO::readNKC()
 
 	filterScale->addInput(filter->output().first(), "");
 	QMap<QString, QVariant> parametersScale;
-	parametersScale["Shift"] = -m_Parameter["Offset"].toInt();
+	parametersScale["Shift"] = m_Parameter["Offset"].toInt();
 	parametersScale["Scale"] = m_Parameter["Scale"].toFloat();
 	filterScale->run(parametersScale);
 
