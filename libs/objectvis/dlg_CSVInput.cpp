@@ -82,6 +82,7 @@ dlg_CSVInput::dlg_CSVInput(bool volumeDataAvailable, QWidget * parent/* = 0,*/, 
 	m_mappingBoxes.push_back(m_ui->cmbbox_col_DimensionX);
 	m_mappingBoxes.push_back(m_ui->cmbbox_col_DimensionY);
 	m_mappingBoxes.push_back(m_ui->cmbbox_col_DimensionZ);
+	m_mappingBoxes.push_back(m_ui->cmbbox_col_CurvedLength);
 	m_ui->cb_AdvancedMode->setChecked(loadGeneralSetting(AdvancedMode).toBool());
 	for (int i = 0; i < iACsvConfig::VisTypeCount; ++i)
 	{

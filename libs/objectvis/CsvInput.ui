@@ -652,13 +652,6 @@
          <item row="7" column="1">
           <widget class="QComboBox" name="cmbbox_col_PosEndZ"/>
          </item>
-         <item row="7" column="2" colspan="2">
-          <widget class="QCheckBox" name="cb_ComputeTensors">
-           <property name="text">
-            <string>Compute Tensors</string>
-           </property>
-          </widget>
-         </item>
          <item row="1" column="4">
           <widget class="QLabel" name="lbl_col_phi">
            <property name="enabled">
@@ -908,6 +901,27 @@
          </item>
          <item row="3" column="3">
           <widget class="QComboBox" name="cmbbox_col_PosCenterZ">
+           <property name="enabled">
+            <bool>true</bool>
+           </property>
+          </widget>
+         </item>
+         <item row="7" column="4" colspan="2">
+          <widget class="QCheckBox" name="cb_ComputeTensors">
+           <property name="text">
+            <string>Compute Tensors</string>
+           </property>
+          </widget>
+         </item>
+         <item row="7" column="2">
+          <widget class="QLabel" name="lbl_col_length_2">
+           <property name="text">
+            <string>Curved Length</string>
+           </property>
+          </widget>
+         </item>
+         <item row="7" column="3">
+          <widget class="QComboBox" name="cmbbox_col_CurvedLength">
            <property name="enabled">
             <bool>true</bool>
            </property>
