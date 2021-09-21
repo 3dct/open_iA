@@ -60,9 +60,6 @@ iA3DCylinderObjectVis::iA3DCylinderObjectVis(vtkTable* objectTable, QSharedPoint
 	m_tubeFilter->SetNumberOfSides(numberOfCylinderSides);
 	m_tubeFilter->SetVaryRadiusToVaryRadiusByAbsoluteScalar();
 	m_tubeFilter->Update();
-	m_mapper->SetInputConnection(m_tubeFilter->GetOutputPort());
-
-	m_outlineFilter->SetInputConnection(m_tubeFilter->GetOutputPort());
 }
 
 iA3DCylinderObjectVis::~iA3DCylinderObjectVis()
