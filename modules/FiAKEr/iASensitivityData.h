@@ -71,10 +71,12 @@ public:
 	QVector<int> m_charDiffMeasure;
 	//! for which dissimilarity measure sensitivity was computed
 	//QVector<int> dissimMeasure;
-
-	QVector<                   //! For each result,
-		QVector<               //! for each characteristic,
-		QVector<double>>>  //! a histogram (bin)
+	
+	//! characteristics histogram for each result and characteristic
+	QVector<          // For each result,
+		QVector<      // for each characteristic,
+		QVector<      // characteristic histogram bin
+		double>>> 
 		m_charHistograms;
 
 	int m_numOfSTARSteps, m_starGroupSize;
@@ -83,32 +85,49 @@ public:
 
 	QVector<int> m_variedParams;  //!< indices of the parameters that were varied
 
-	//! sensitivity "field" for characteristics
-	QVector<                  // characteristic (index in m_charSelected)
-		QVector<              // characteristics difference measure index (index in m_charDiffMeasure)
-		QVector<          // variation aggregation (see iASensitivityInfo::create)
+	//! sensitivity "field" for characteristics distributions
+	QVector<          // characteristic (index in m_charSelected)
+		QVector<      // characteristics difference measure index (index in m_charDiffMeasure)
+		QVector<      // variation aggregation (see iASensitivityInfo::create)
 		QVector<      // parameter index (second index in paramSetValues / allParamValues)
-		QVector<  // parameter set index (first index in paramSetValues)
+		QVector<      // parameter set index (first index in paramSetValues)
 		double>>>>>
 		sensitivityField;
 
-	//! averages over all parameter-sets of above field ("global sensitivity" for a parameter)
-	QVector<              // characteristis
-		QVector<          // difference measure
+	//! averages over all parameter-sets of above char. distribution field ("global sensitivity" for a parameter)
+	QVector<          // characteristis
+		QVector<      // difference measure
 		QVector<      // variation aggregation
-		QVector<  // parameter index
+		QVector<      // parameter index
 		double>>>>
 		aggregatedSensitivities;
+
+	//! sensitivity "field" for characteristics - pairwise match differences
+	QVector<          // characteristic (index in m_charSelected)
+		QVector<      // characteristics difference measure index (index in m_charDiffMeasure)
+		QVector<      // variation aggregation (see iASensitivityInfo::create)
+		QVector<      // parameter index (second index in paramSetValues / allParamValues)
+		QVector<      // parameter set index (first index in paramSetValues)
+		double>>>>>
+		sensitivityFieldPWDiff;
+
+	//! averages over all parameter-sets of above pairwise match diff. field ("global sensitivity" for a parameter)
+	QVector<          // characteristis
+		QVector<      // difference measure
+		QVector<      // variation aggregation
+		QVector<      // parameter index
+		double>>>>
+		aggregatedSensitivitiesPWDiff;
 
 	//! sensitivity at each parameter regarding fiber count
 	QVector<          // variation aggregation
 		QVector<      // parameter index
-		QVector<  // parameter set index
+		QVector<      // parameter set index
 		double>>>
 		sensitivityFiberCount;
 	//! averages over all parameter-sets of above field ("global sensitivity" for a parameter, regarding fiber count)
-	QVector<      // variation aggregation
-		QVector<  // parameter index
+	QVector<          // variation aggregation
+		QVector<      // parameter index
 		double>>
 		aggregatedSensitivitiesFiberCount;
 
@@ -118,17 +137,17 @@ public:
 	QVector<double> fiberCountHistogram;
 
 	//! sensitivity "field" for dissimilarity measures
-	QVector<              // dissimilarity measure (index in m_resultDissimMeasures)
-		QVector<          // variation aggregation (see iASensitivityInfo::create)
+	QVector<          // dissimilarity measure (index in m_resultDissimMeasures)
+		QVector<      // variation aggregation (see iASensitivityInfo::create)
 		QVector<      // parameter index (second index in paramSetValues / allParamValues)
-		QVector<  // parameter set index (first index in paramSetValues)
+		QVector<      // parameter set index (first index in paramSetValues)
 		double>>>>
 		sensDissimField;
 
 	//! averages over all parameter-sets of above field ("global sensitivity" for a parameter by dissimilarity measures)
 	QVector<          // dissimilarity measure (index in m_resultDissimMeasures)
 		QVector<      // variation aggregation
-		QVector<  // parameter index
+		QVector<      // parameter index
 		double>>>
 		aggregatedSensDissim;
 
@@ -142,35 +161,35 @@ public:
 
 	/* not used for now - TODO: actual histogram of histograms
 	//! distribution of characteristics distributions ("histogram of histograms") across:
-	QVector<        // characteristics index
-		QVector<    // variation aggregation
-		QVector<    // parameter index
-		QVector<    // bin index
-		QVector<    // parameter set index
-		QVector<    // index of value (stores frequency values of original histogram)
+	QVector<          // characteristics index
+		QVector<      // variation aggregation
+		QVector<      // parameter index
+		QVector<      // bin index
+		QVector<      // parameter set index
+		QVector<      // index of value (stores frequency values of original histogram)
 		double>>>>>> charHistHist;
 	*/
 
 	//!  difference at each bin of characteristics distribution (histogram above)
-	QVector<                  // characteristics index
-		QVector<              // variation aggregation
-		QVector<          // parameter index
+	QVector<          // characteristics index
+		QVector<      // variation aggregation
+		QVector<      // parameter index
 		QVector<      // bin index
-		QVector<  // parameter set index
+		QVector<      // parameter set index
 		double>>>>>
 		charHistVar;
 
 	//! aggregation of differences at each bin of characteristics distribution over all parameter sets above
-	QVector<              // characteristics index
-		QVector<          // variation aggregation
+	QVector<          // characteristics index
+		QVector<      // variation aggregation
 		QVector<      // parameter index
-		QVector<  // bin index
+		QVector<      // bin index
 		double>>>>
 		charHistVarAgg;
 
 	//! aggregation of differences at each bin of characteristics distribution over all parameter sets above
-	QVector<      // characteristics index
-		QVector<  // bin index
+	QVector<          // characteristics index
+		QVector<      // bin index
 		double>>
 		charHistAvg;
 
