@@ -40,6 +40,12 @@ class vtkTable;
 class QColor;
 class QStandardItem;
 
+class iAobjectvis_API iA3DObjectActor
+{
+public:
+
+};
+
 //! Base class for 3D visualizations of objects (e.g. fibers or pores) defined in a table
 //! use the factory method create3DObjectVis to create a specific instance!
 class iAobjectvis_API iA3DObjectVis: public QObject
