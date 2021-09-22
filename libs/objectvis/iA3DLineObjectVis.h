@@ -35,8 +35,8 @@ public:
 	iA3DLineObjectVis(vtkTable* objectTable, QSharedPointer<QMap<uint, uint> > columnMapping,
 		QColor const & color, std::map<size_t, std::vector<iAVec3f> > const & curvedFiberData, size_t segmentSkip );
 	void updateValues( std::vector<std::vector<double> > const & values, int straightOrCurved);
-	vtkPolyData* getPolyData() override;
-	vtkPolyData* finalPoly() override;
+	vtkPolyData* polyData() override;
+	vtkPolyData* finalPolyData() override;
 	QString visualizationStatistics() const override;
 	std::vector<vtkSmartPointer<vtkPolyData>> extractSelectedObjects(QColor c) const override;
 	IndexType objectStartPointIdx(IndexType objIdx) const override;

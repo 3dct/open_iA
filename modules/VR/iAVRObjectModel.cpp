@@ -24,6 +24,7 @@
 #include <iA3DColoredPolyObjectVis.h>
 #include <iA3DCylinderObjectVis.h>
 #include <iA3DEllipseObjectVis.h>
+#include <iA3DPolyObjectActor.h>
 #include <iAVROctreeMetrics.h>
 
 #include <vtkVariantArray.h>
@@ -62,13 +63,15 @@ void iAVRObjectModel::resetVolume()
 {
 	if(m_csvConfig.visType == iACsvConfig::Cylinders)
 	{
-		m_PolyObjectVis = new iA3DCylinderObjectVis(m_renderer, m_objectTable, m_io.getOutputMapping(), QColor(140, 140, 140, 255), m_curvedFiberInfo);
+		m_PolyObjectVis = new iA3DCylinderObjectVis(m_objectTable, m_io.getOutputMapping(), QColor(140, 140, 140, 255), m_curvedFiberInfo);
 	}
 	else if(m_csvConfig.visType == iACsvConfig::Ellipses)
 	{
-		m_PolyObjectVis = new iA3DEllipseObjectVis(m_renderer, m_objectTable, m_io.getOutputMapping(), QColor(140, 140, 140, 255));
+		m_PolyObjectVis = new iA3DEllipseObjectVis(m_objectTable, m_io.getOutputMapping(), QColor(140, 140, 140, 255));
 	}
-	m_volumeActor = m_PolyObjectVis->getActor();
+	m_PolyObjectActor = m_PolyObjectVis->createPolyActor(m_renderer);
+	m_PolyObjectActor->show();
+	m_volumeActor = m_PolyObjectActor->actor();
 	//m_volumeActor->AddPosition(1,200,1);
 }
 
@@ -216,7 +219,7 @@ void iAVRObjectModel::moveFibersByMaxCoverage(std::vector<std::vector<std::vecto
 
 			for (auto pointID = m_PolyObjectVis->objectStartPointIdx(fiberID); pointID < endPointID; ++pointID)
 			{
-				iAVec3d currentPoint = iAVec3d(m_PolyObjectVis->getPolyData()->GetPoint(pointID));
+				iAVec3d currentPoint = iAVec3d(m_PolyObjectVis->polyData()->GetPoint(pointID));
 				iAVec3d currentRegionCenterPoint = iAVec3d(regionCenterPoint);
 				iAVec3d normDirection = currentRegionCenterPoint - centerPos;
 				double currentLength = normDirection.length();
@@ -227,12 +230,12 @@ void iAVRObjectModel::moveFibersByMaxCoverage(std::vector<std::vector<std::vecto
 				else move = normDirection * offset;
 				iAVec3d newPoint = currentPoint + move;
 
-				m_PolyObjectVis->getPolyData()->GetPoints()->SetPoint(pointID, newPoint.data());
+				m_PolyObjectVis->polyData()->GetPoints()->SetPoint(pointID, newPoint.data());
 			}
 		}
 	}
 	
-	m_PolyObjectVis->getPolyData()->GetPoints()->GetData()->Modified();
+	m_PolyObjectVis->polyData()->GetPoints()->GetData()->Modified();
 }
 
 //! Moves all fibers from the octree center away.
@@ -263,7 +266,7 @@ void iAVRObjectModel::moveFibersbyAllCoveredRegions(double offset, bool relativM
 		for (auto element : *m_fiberCoverage->at(m_octree->getLevel()).at(region))
 		{
 
-			iAVec3d currentPoint = iAVec3d(m_PolyObjectVis->getPolyData()->GetPoint(element.first));
+			iAVec3d currentPoint = iAVec3d(m_PolyObjectVis->polyData()->GetPoint(element.first));
 
 			iAVec3d regionCenterPoint = iAVec3d(glyph3D->GetPolyDataInput(0)->GetPoint(region));
 			iAVec3d normDirection = regionCenterPoint - centerPos;
@@ -276,11 +279,11 @@ void iAVRObjectModel::moveFibersbyAllCoveredRegions(double offset, bool relativM
 			else move = normDirection * offset * element.second;
 			iAVec3d newPoint = currentPoint + move;
 
-			m_PolyObjectVis->getPolyData()->GetPoints()->SetPoint(element.first, newPoint.data());
+			m_PolyObjectVis->polyData()->GetPoints()->SetPoint(element.first, newPoint.data());
 
 		}
 	}
-	m_PolyObjectVis->getPolyData()->GetPoints()->GetData()->Modified();
+	m_PolyObjectVis->polyData()->GetPoints()->GetData()->Modified();
 }
 
 //! Moves all fibers from the octree center away.
@@ -329,15 +332,15 @@ void iAVRObjectModel::moveFibersbyOctant(std::vector<std::vector<std::vector<vtk
 			auto endPointID = m_PolyObjectVis->objectStartPointIdx(fiberID) + m_PolyObjectVis->objectPointCount(fiberID);
 			for (auto pointID = m_PolyObjectVis->objectStartPointIdx(fiberID); pointID < endPointID; ++pointID)
 			{
-				iAVec3d currentPoint = iAVec3d(m_PolyObjectVis->getPolyData()->GetPoint(pointID));
+				iAVec3d currentPoint = iAVec3d(m_PolyObjectVis->polyData()->GetPoint(pointID));
 				iAVec3d newPoint = currentPoint + move;
 
-				m_PolyObjectVis->getPolyData()->GetPoints()->SetPoint(pointID, newPoint.data());
+				m_PolyObjectVis->polyData()->GetPoints()->SetPoint(pointID, newPoint.data());
 			}
 		}
 		
 	}
-	m_PolyObjectVis->getPolyData()->GetPoints()->GetData()->Modified();
+	m_PolyObjectVis->polyData()->GetPoints()->GetData()->Modified();
 }
 
 void iAVRObjectModel::createSimilarityNetwork(std::vector<std::vector<std::vector<double>>>* similarityMetric, double maxFibersInRegions, double worldSize)

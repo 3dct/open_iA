@@ -31,11 +31,11 @@ class iAobjectvis_API iA3DEllipseObjectVis : public iA3DColoredPolyObjectVis
 public:
 	static const int DefaultPhiRes = 10;
 	static const int DefaultThetaRes = 10;
-	iA3DEllipseObjectVis(vtkRenderer* ren, vtkTable* objectTable, QSharedPointer<QMap<uint, uint> > columnMapping,
+	iA3DEllipseObjectVis(vtkTable* objectTable, QSharedPointer<QMap<uint, uint> > columnMapping,
 		QColor const & color, int phiRes = DefaultPhiRes, int thetaRes = DefaultThetaRes);
 	double const * bounds() override;
-	vtkPolyData* getPolyData() override;
-	vtkPolyData* finalPoly() override;
+	vtkPolyData* polyData() override;
+	vtkPolyData* finalPolyData() override;
 	QString visualizationStatistics() const override;
 	std::vector<vtkSmartPointer<vtkPolyData>> extractSelectedObjects(QColor c) const override;
 	IndexType objectStartPointIdx(IndexType objIdx) const override;

@@ -20,17 +20,13 @@
 * ************************************************************************************/
 #include "iA3DColoredPolyObjectVis.h"
 
+#include "iA3DPolyObjectActor.h"
+
 #include <iALookupTable.h>
 
-#include <vtkActor.h>
 #include <vtkIdTypeArray.h>
-#include <vtkOutlineFilter.h>
 #include <vtkPointData.h>
 #include <vtkPolyData.h>
-#include <vtkPolyDataMapper.h>
-#include <vtkProperty.h>
-#include <vtkRenderer.h>
-#include <vtkRendererCollection.h>
 #include <vtkTable.h>
 #include <vtkUnsignedCharArray.h>
 
@@ -84,6 +80,8 @@ void iA3DColoredPolyObjectVis::renderSelection(std::vector<size_t> const & sorte
 			}
 		}
 	}
+	m_colors->Modified();
+	emit dataChanged();
 }
 
 void iA3DColoredPolyObjectVis::renderSingle(IndexType selectedObjID, int classID, QColor const & constClassColor, QStandardItem* /*activeClassItem*/)
@@ -99,6 +97,8 @@ void iA3DColoredPolyObjectVis::renderSingle(IndexType selectedObjID, int classID
 		int curClassID = m_objectTable->GetValue(objID, m_objectTable->GetNumberOfColumns() - 1).ToInt();
 		setObjectColor(objID, (selectedObjID > 0 && objID + 1 == selectedObjID) ? SelectedColor : (curClassID == classID) ? classColor : nonClassColor);
 	}
+	m_colors->Modified();
+	emit dataChanged();
 }
 
 void iA3DColoredPolyObjectVis::multiClassRendering(QList<QColor> const & classColors, QStandardItem* /*rootItem*/, double /*alpha*/)
@@ -108,6 +108,8 @@ void iA3DColoredPolyObjectVis::multiClassRendering(QList<QColor> const & classCo
 		int classID = m_objectTable->GetValue(objID, m_objectTable->GetNumberOfColumns() - 1).ToInt();
 		setObjectColor(objID, classColors.at(classID));
 	}
+	m_colors->Modified();
+	emit dataChanged();
 }
 
 void iA3DColoredPolyObjectVis::renderOrientationDistribution(vtkImageData* oi)
@@ -117,6 +119,8 @@ void iA3DColoredPolyObjectVis::renderOrientationDistribution(vtkImageData* oi)
 		QColor color = getOrientationColor(oi, objID);
 		setObjectColor(objID, color);
 	}
+	m_colors->Modified();
+	emit dataChanged();
 }
 
 void iA3DColoredPolyObjectVis::renderLengthDistribution(vtkColorTransferFunction* ctFun, vtkFloatArray* /*extents*/, double /*halfInc*/, int /*filterID*/, double const * /*range*/)
@@ -126,6 +130,8 @@ void iA3DColoredPolyObjectVis::renderLengthDistribution(vtkColorTransferFunction
 		QColor color = getLengthColor(ctFun, objID);
 		setObjectColor(objID, color);
 	}
+	m_colors->Modified();
+	emit dataChanged();
 }
 
 void iA3DColoredPolyObjectVis::setObjectColor(IndexType objIdx, QColor const & qcolor)
@@ -142,7 +148,6 @@ void iA3DColoredPolyObjectVis::setObjectColor(IndexType objIdx, QColor const & q
 			m_colors->SetComponent(objectStartPointIdx(objIdx) + p, c, color[c]);
 		}
 	}
-	emit updated();
 }
 
 void iA3DColoredPolyObjectVis::setSelectionOpacity(int selectionAlpha)
@@ -167,7 +172,7 @@ void iA3DColoredPolyObjectVis::setupOriginalIds()
 			ids->SetTuple1(objectStartPointIdx(objID) + pt, objID);
 		}
 	}
-	getPolyData()->GetPointData()->AddArray(ids);
+	polyData()->GetPointData()->AddArray(ids);
 }
 
 void iA3DColoredPolyObjectVis::setupColors()
@@ -184,12 +189,13 @@ void iA3DColoredPolyObjectVis::setupColors()
 	{
 		m_colors->InsertNextTypedTuple(c);
 	}
-	emit updated();
+	m_colors->Modified();
+	emit dataChanged();
 }
 
 double const * iA3DColoredPolyObjectVis::bounds()
 {
-	return getPolyData()->GetBounds();
+	return polyData()->GetBounds();
 }
 
 void iA3DColoredPolyObjectVis::setSelection(std::vector<size_t> const & sortedSelInds, bool selectionActive)
@@ -243,7 +249,8 @@ void iA3DColoredPolyObjectVis::updateColorSelectionRendering()
 		}
 		setObjectColor(objID, color);
 	}
-	emit updated();
+	m_colors->Modified();
+	emit dataChanged();
 }
 
 iA3DColoredPolyObjectVis::IndexType iA3DColoredPolyObjectVis::objectPointCount(IndexType /*ptIdx*/) const
@@ -269,4 +276,17 @@ iA3DColoredPolyObjectVis::IndexType iA3DColoredPolyObjectVis::allPointCount() co
 vtkAlgorithmOutput* iA3DColoredPolyObjectVis::output()
 {
 	return nullptr;
+}
+
+QSharedPointer<iA3DObjectActor> iA3DColoredPolyObjectVis::createActor(vtkRenderer* ren)
+{
+	return createPolyActor(ren);
+}
+
+QSharedPointer<iA3DPolyObjectActor> iA3DColoredPolyObjectVis::createPolyActor(vtkRenderer* ren)
+{
+	auto result = QSharedPointer<iA3DPolyObjectActor>::create(ren, this);
+	connect(this, &iA3DObjectVis::dataChanged, result.data(), &iA3DPolyObjectActor::updateMapper);
+	connect(this, &iA3DObjectVis::renderRequired, result.data(), &iA3DPolyObjectActor::updateRenderer);
+	return result;
 }

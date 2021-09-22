@@ -24,12 +24,13 @@
 
 #include <vtkColorTransferFunction.h>
 #include <vtkImageData.h>
+#include <vtkRenderer.h>
 #include <vtkTable.h>
 
 #include <QColor>
 #include <QtMath>
 
-iA3DObjectVis::iA3DObjectVis(vtkTable* objectTable, QSharedPointer<QMap<uint, uint> > columnMapping ):
+iA3DObjectVis::iA3DObjectVis(vtkTable* objectTable, QSharedPointer<QMap<uint, uint> > columnMapping):
 	m_objectTable(objectTable),
 	m_columnMapping(columnMapping)
 {}
@@ -54,3 +55,19 @@ QColor iA3DObjectVis::getLengthColor( vtkColorTransferFunction* cTFun, IndexType
 }
 
 const QColor iA3DObjectVis::SelectedColor(255, 0, 0, 255);
+
+
+// iA3DObjectActor
+
+iA3DObjectActor::iA3DObjectActor(vtkRenderer* ren):
+	m_ren(ren)
+{}
+
+void iA3DObjectActor::updateRenderer()
+{
+	m_ren->Render();
+	emit updated();
+}
+
+void iA3DObjectActor::show()
+{}

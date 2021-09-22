@@ -136,15 +136,15 @@ void iA3DLineObjectVis::updateValues(std::vector<std::vector<double> > const & v
 		}
 	}
 	m_points->Modified();
-	emit updateMapper();
+	emit dataChanged();
 }
 
-vtkPolyData* iA3DLineObjectVis::getPolyData()
+vtkPolyData* iA3DLineObjectVis::polyData()
 {
 	return m_linePolyData;
 }
 
-vtkPolyData* iA3DLineObjectVis::finalPoly()
+vtkPolyData* iA3DLineObjectVis::finalPolyData()
 {
 	return m_linePolyData;
 }

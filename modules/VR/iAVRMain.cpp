@@ -75,7 +75,7 @@ iAVRMain::iAVRMain(iAVREnvironment* vrEnv, iAVRInteractorStyle* style, vtkTable*
 	//Define Octree
 	currentOctreeLevel = 0;
 	m_octrees = new std::vector<iAVROctree*>();
-	generateOctrees(OCTREE_MAX_LEVEL, OCTREE_POINTS_PER_REGION, m_volume->getPolyObject()->getPolyData());
+	generateOctrees(OCTREE_MAX_LEVEL, OCTREE_POINTS_PER_REGION, m_volume->getPolyObject()->polyData());
 	//m_octrees->at(currentOctreeLevel)->generateOctreeRepresentation(currentOctreeLevel, OCTREE_COLOR);
 	//m_octrees->at(currentOctreeLevel)->show();
 

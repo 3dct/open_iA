@@ -65,7 +65,7 @@ std::vector<std::vector<std::unordered_map<vtkIdType, double>*>>* iAVRObjectCove
 //! Returns -1 if point is not found in csv
 vtkIdType iAVRObjectCoverage::getObjectiD(vtkIdType polyPoint)
 {
-	auto arr = m_volume->getPolyObject()->getPolyData()->GetPointData()->GetAbstractArray("");
+	auto arr = m_volume->getPolyObject()->polyData()->GetPointData()->GetAbstractArray("");
 
 	if (arr != nullptr)
 	{
@@ -171,8 +171,8 @@ void iAVRObjectCoverage::calculateCurvedLineCoverage()
 				for (auto pointID = m_volume->getPolyObject()->objectStartPointIdx(row); pointID < endPointID - 1; ++pointID)
 				{
 					double startPos[3]{}, endPos[3]{};
-					m_volume->getPolyObject()->getPolyData()->GetPoint(pointID, startPos);
-					m_volume->getPolyObject()->getPolyData()->GetPoint(pointID+1, endPos);
+					m_volume->getPolyObject()->polyData()->GetPoint(pointID, startPos);
+					m_volume->getPolyObject()->polyData()->GetPoint(pointID+1, endPos);
 
 					getOctreeFiberCoverage(startPos, endPos, level, row, lineLength);
 				}

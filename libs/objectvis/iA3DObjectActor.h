@@ -20,31 +20,25 @@
 * ************************************************************************************/
 #pragma once
 
-#include "iA3DLineObjectVis.h"
+#include "iAobjectvis_export.h"
 
-class iAvtkTubeFilter;
+#include <QObject>
 
-class iAobjectvis_API iA3DCylinderObjectVis : public iA3DLineObjectVis
+class vtkRenderer;
+
+//! Base class for visualizing a given iA3DObjectVis (which delivers the data for the 3D objects to visualize).
+//! For each iA3DObjectVis-derived object you can create multiple iA3DObjectActor (for example through the
+//! iA3DObjectVis::createActor method, or through specialized methods for that purpose in subclasses).
+class iAobjectvis_API iA3DObjectActor : public QObject
 {
+	Q_OBJECT
 public:
-	static const int DefaultNumberOfCylinderSides = 12;
-	iA3DCylinderObjectVis(vtkTable* objectTable, QSharedPointer<QMap<uint, uint> > columnMapping,
-		QColor const & color, std::map<size_t, std::vector<iAVec3f> > const & curvedFiberData,
-		int numberOfCylinderSides = DefaultNumberOfCylinderSides, size_t segmentSkip = 1);
-	virtual ~iA3DCylinderObjectVis();
-	void setDiameterFactor(double diameterFactor);
-	void setContextDiameterFactor(double contextDiameterFactor);
-	void setSelection(std::vector<size_t> const & sortedSelInds, bool selectionActive) override;
-	QString visualizationStatistics() const override;
-	vtkPolyData* finalPolyData() override;
-	vtkAlgorithmOutput* output() override;
-	std::vector<vtkSmartPointer<vtkPolyData>> extractSelectedObjects(QColor c) const override;
-
-private:
-	vtkSmartPointer<iAvtkTubeFilter> m_tubeFilter;
-	float* m_contextFactors;
-	IndexType m_objectCount;
-	float m_contextDiameterFactor;
-	bool m_lines;
+	iA3DObjectActor(vtkRenderer* ren);
+	virtual void show();
+	virtual void updateRenderer();
+signals:
+	void updated();
+protected:
+	vtkRenderer* m_ren;
 };
-
+// implementations: see end of iA3DObjectVis.cpp

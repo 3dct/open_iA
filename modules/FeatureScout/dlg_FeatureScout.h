@@ -49,6 +49,7 @@ class iAMdiChild;
 class iAQVTKWidget;
 
 class iA3DObjectVis;
+class iA3DObjectActor;
 
 class iAConnector;
 class iALookupTable;
@@ -252,5 +253,6 @@ private:
 
 	QSharedPointer<iAFeatureScoutSPLOM> m_splom;
 	QSharedPointer<iA3DObjectVis> m_3dvis;
+	QSharedPointer<iA3DObjectActor> m_3dactor;
 	QSharedPointer<iAMeanObject> m_meanObject;
 };

@@ -36,6 +36,8 @@ public:
 	void renderOrientationDistribution(vtkImageData* oi ) override;
 	void renderLengthDistribution(vtkColorTransferFunction* ctFun, vtkFloatArray* extents, double halfInc, int filterID, double const * range ) override;
 	double const * bounds() override;
+	QSharedPointer<iA3DObjectActor> createActor(vtkRenderer* ren) override;
+
 private:
 	vtkPiecewiseFunction     *oTF;
 	vtkColorTransferFunction *cTF;

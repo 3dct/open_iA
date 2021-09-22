@@ -20,7 +20,7 @@
 * ************************************************************************************/
 #include "iA3DNoVis.h"
 
-iA3DNoVis::iA3DNoVis():iA3DObjectVis(nullptr, nullptr, QSharedPointer<QMap<uint,uint>>())
+iA3DNoVis::iA3DNoVis(): iA3DObjectVis(nullptr, QSharedPointer<QMap<uint,uint>>())
 {
 	std::fill(m_dummyBounds, m_dummyBounds + 3, 0);
 	std::fill(m_dummyBounds +3, m_dummyBounds + 6, 1);
@@ -44,4 +44,9 @@ void iA3DNoVis::renderLengthDistribution(vtkColorTransferFunction* /*cTFun*/, vt
 double const * iA3DNoVis::bounds()
 {
 	return m_dummyBounds;
+}
+
+QSharedPointer<iA3DObjectActor> iA3DNoVis::createActor(vtkRenderer* ren)
+{
+	return QSharedPointer<iA3DObjectActor>::create(ren);
 }

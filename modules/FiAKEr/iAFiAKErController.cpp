@@ -52,6 +52,7 @@
 // objectvis
 #include "iA3DCylinderObjectVis.h"
 #include "iA3DEllipseObjectVis.h"
+#include "iA3DPolyObjectActor.h"
 #include "iACsvConfig.h"
 #include "iACsvVectorTableCreator.h"
 
@@ -552,18 +553,18 @@ QWidget* iAFiAKErController::setupOptimStepView()
 
 namespace
 {
-	QSharedPointer<iA3DColoredPolyObjectVis> create3DVis(vtkRenderer* renderer,
+	QSharedPointer<iA3DColoredPolyObjectVis> create3DVis(
 		vtkSmartPointer<vtkTable> table, QSharedPointer<QMap<uint, uint> > mapping, QColor const & color, int objectType,
 		std::map<size_t, std::vector<iAVec3f> > const & curvedFiberData)
 	{
 		switch (objectType)
 		{
-		case iACsvConfig::Ellipses: return QSharedPointer<iA3DEllipseObjectVis>::create(renderer, table, mapping, color);
+		case iACsvConfig::Ellipses: return QSharedPointer<iA3DEllipseObjectVis>::create(table, mapping, color);
 		default:
 #if __cplusplus >= 201703L
 			[[fallthrough]];
 #endif
-		case iACsvConfig::Cylinders: return QSharedPointer<iA3DCylinderObjectVis>::create(renderer, table, mapping, color, curvedFiberData, 6, 3);
+		case iACsvConfig::Cylinders: return QSharedPointer<iA3DCylinderObjectVis>::create(table, mapping, color, curvedFiberData, 6, 3);
 		}
 	}
 }
@@ -748,14 +749,15 @@ QWidget* iAFiAKErController::setupResultListView()
 			ren->SetMaximumNumberOfPeels(10);
 			renWin->AddRenderer(ren);
 			ui.vtkWidget->setProperty("resultID", static_cast<qulonglong>(resultID));
-			ui.mini3DVis = create3DVis(ren, d.table, d.mapping, resultColor, m_data->objectType, curveInfo);
+			ui.mini3DVis = create3DVis(d.table, d.mapping, resultColor, m_data->objectType, curveInfo);
 			ui.mini3DVis->setColor(resultColor);
-			ui.mini3DVis->show();
+			ui.mini3DActor = ui.mini3DVis->createPolyActor(ren);
+			ui.mini3DActor->show();
 			ren->ResetCamera();
 			ui.previewWidget->setProperty("resultID", static_cast<qulonglong>(resultID));
 			connect(ui.previewWidget, &iASignallingWidget::dblClicked, this, &iAFiAKErController::referenceToggled);
 			//connect(ui.previewWidget, &iASignallingWidget::clicked, this, &iAFiAKErController::previewMouseClick);
-			connect(ui.mini3DVis.data(), &iA3DObjectVis::updated, ui.vtkWidget, &iAQVTKWidget::updateAll);
+			connect(ui.mini3DActor.data(), &iA3DObjectActor::updated, ui.vtkWidget, &iAQVTKWidget::updateAll);
 		}
 		QString bboxText = QString("Bounding box: (x: %1..%2, y: %3..%4, z: %5..%6)")
 			.arg(d.bbox[0][0]).arg(d.bbox[0][1]).arg(d.bbox[0][2])
@@ -1232,7 +1234,7 @@ void iAFiAKErController::colorByDistrToggled()
 					continue;
 				}
 				auto mainVis = m_resultUIs[resultID].main3DVis;
-				if (mainVis && mainVis->visible())
+				if (mainVis && m_resultUIs[resultID].main3DActor->visible())
 				{
 					mainVis->setColor(getResultColor(resultID));
 				}
@@ -1372,7 +1374,7 @@ namespace
 {
 	bool resultSelected(std::vector<iAFiberResultUIData> const & uiCollection, size_t resultID)
 	{
-		return (uiCollection[resultID].main3DVis && uiCollection[resultID].main3DVis->visible());
+		return (uiCollection[resultID].main3DVis && uiCollection[resultID].main3DActor->visible());
 	}
 	bool noResultSelected(std::vector<iAFiberResultUIData> const & uiCollection)
 	{
@@ -1516,11 +1518,12 @@ void iAFiAKErController::ensureMain3DViewCreated(size_t resultID)
 			(m_useStepData && d.stepData == iAFiberResult::CurvedStepData) ?
 			getCurvedStepInfo(d) : d.curveInfo;
 		QColor resultColor(getResultColor(resultID));
-		ui.main3DVis = create3DVis(m_ren, d.table, d.mapping, resultColor, m_data->objectType, curveInfo);
+		ui.main3DVis = create3DVis(d.table, d.mapping, resultColor, m_data->objectType, curveInfo);
+		ui.main3DActor = ui.main3DVis->createPolyActor(m_ren);
 		ui.nameActions->setToolTip(ui.nameActions->toolTip() +
 			"Visualization details: " + ui.main3DVis->visualizationStatistics());
 		// iA3DColoredObjectVis::updateRenderer makes sure this connection is only triggered if vis is currently shown:
-		connect(ui.main3DVis.data(), &iA3DObjectVis::updated, this, &iAFiAKErController::update3D);
+		connect(ui.main3DActor.data(), &iA3DObjectActor::updated, this, &iAFiAKErController::update3D);
 	}
 }
 
@@ -1533,9 +1536,9 @@ void iAFiAKErController::showMainVis(size_t resultID, bool state)
 		ensureMain3DViewCreated(resultID);
 		ui.main3DVis->setSelectionOpacity(m_selectionOpacity);
 		ui.main3DVis->setContextOpacity(m_contextOpacity);
-		ui.main3DVis->setShowWireFrame(m_showWireFrame);
-		ui.main3DVis->setShowLines(m_showLines);
-		setClippingPlanes(ui.main3DVis);
+		ui.main3DActor->setShowWireFrame(m_showWireFrame);
+		ui.main3DActor->setShowSimple(m_showLines);
+		setClippingPlanes(ui.main3DActor);
 		auto vis = dynamic_cast<iA3DCylinderObjectVis*>(ui.main3DVis.data());
 		if (vis)
 		{
@@ -1598,13 +1601,13 @@ void iAFiAKErController::showMainVis(size_t resultID, bool state)
 				std::min(d.stepValues.size() - 1, static_cast<size_t>(m_optimStepSlider->value()))],
 				d.stepData);
 		}
-		ui.main3DVis->show();
+		ui.main3DActor->show();
 		if (!m_cameraInitialized)
 		{
 			m_ren->ResetCamera();
 			m_cameraInitialized = true;
 		}
-		m_style->addInput(resultID, ui.main3DVis->getPolyData(), ui.main3DVis->getActor() );
+		m_style->addInput(resultID, ui.main3DVis->polyData(), ui.main3DActor->actor());
 		m_spm->viewData()->addFilter(m_data->m_resultIDColumn, resultID);
 	}
 	else
@@ -1647,7 +1650,7 @@ void iAFiAKErController::showMainVis(size_t resultID, bool state)
 				}
 			}
 		}
-		ui.main3DVis->hide();
+		ui.main3DActor->hide();
 		m_style->removeInput(resultID);
 		m_spm->viewData()->removeFilter(m_data->m_resultIDColumn, resultID);
 	}
@@ -1671,7 +1674,7 @@ void iAFiAKErController::toggleBoundingBox(int state)
 	if (state == Qt::Checked)
 	{
 		ensureMain3DViewCreated(resultID);
-		ui.main3DVis->showBoundingBox();
+		ui.main3DActor->showBoundingBox();
 		if (!m_cameraInitialized)
 		{
 			m_ren->ResetCamera();
@@ -1680,7 +1683,7 @@ void iAFiAKErController::toggleBoundingBox(int state)
 	}
 	else
 	{
-		ui.main3DVis->hideBoundingBox();
+		ui.main3DActor->hideBoundingBox();
 	}
 }
 
@@ -1815,7 +1818,7 @@ void iAFiAKErController::showSelectionIn3DViews()
 	for (size_t resultID = 0; resultID < m_resultUIs.size(); ++resultID)
 	{
 		auto& vis = m_resultUIs[resultID];
-		if (vis.main3DVis && vis.main3DVis->visible())
+		if (vis.main3DVis && vis.main3DActor->visible())
 		{
 			vis.main3DVis->setSelection(m_selection[resultID], anythingSelected);
 		}
@@ -1967,7 +1970,7 @@ void iAFiAKErController::setOptimStep(int optimStep)
 		for (size_t resultID = 0; resultID < m_data->result.size(); ++resultID)
 		{
 			auto main3DVis = m_resultUIs[resultID].main3DVis;
-			if (main3DVis && main3DVis->visible() &&
+			if (main3DVis && m_resultUIs[resultID].main3DActor->visible() &&
 				m_data->objectType == iACsvConfig::Cylinders &&
 				m_data->result[resultID].stepData != iAFiberResult::NoStepData)
 			{
@@ -1986,7 +1989,7 @@ void iAFiAKErController::mainOpacityChanged(int opacity)
 	addInteraction(QString("Set main opacity to %1.").arg(opacity));
 	m_settingsView->lbOpacityDefaultValue->setText(QString::number(opacity, 'f', 2));
 	m_selectionOpacity = opacity;
-	visitAllVisibleVis([opacity](QSharedPointer<iA3DColoredPolyObjectVis> vis, size_t /*resultID*/)
+	visitAllVisibleVis([opacity](QSharedPointer<iA3DColoredPolyObjectVis> vis, QSharedPointer<iA3DPolyObjectActor> actor, size_t /*resultID*/)
 	{
 		vis->setSelectionOpacity(opacity);
 		vis->updateColorSelectionRendering();
@@ -1998,7 +2001,8 @@ void iAFiAKErController::contextOpacityChanged(int opacity)
 	addInteraction(QString("Set context opacity to %1.").arg(opacity));
 	m_settingsView->lbOpacityContextValue->setText(QString::number(opacity, 'f', 2));
 	m_contextOpacity = opacity;
-	visitAllVisibleVis([opacity](QSharedPointer<iA3DColoredPolyObjectVis> vis, size_t /*resultID*/)
+	visitAllVisibleVis(
+		[opacity](QSharedPointer<iA3DColoredPolyObjectVis> vis,	QSharedPointer<iA3DPolyObjectActor> actor, size_t /*resultID*/)
 	{
 		vis->setContextOpacity(opacity);
 		vis->updateColorSelectionRendering();
@@ -2015,7 +2019,8 @@ void iAFiAKErController::diameterFactorChanged(int diameterFactorInt)
 	m_diameterFactor = m_diameterFactorMapper->dstToSrc(diameterFactorInt);
 	addInteraction(QString("Set diameter modification factor to %1.").arg(m_diameterFactor));
 	m_settingsView->lbDiameterFactorDefaultValue->setText(QString::number(m_diameterFactor, 'f', 2));
-	visitAllVisibleVis([=](QSharedPointer<iA3DColoredPolyObjectVis> vis, size_t /*resultID*/)
+	visitAllVisibleVis([=](QSharedPointer<iA3DColoredPolyObjectVis> vis, QSharedPointer<iA3DPolyObjectActor> actor,
+						   size_t /*resultID*/)
 	{
 		(dynamic_cast<iA3DCylinderObjectVis*>(vis.data()))->setDiameterFactor(m_diameterFactor);
 	});
@@ -2030,7 +2035,8 @@ void iAFiAKErController::contextDiameterFactorChanged(int contextDiameterFactorI
 	m_contextDiameterFactor = m_diameterFactorMapper->dstToSrc(contextDiameterFactorInt);
 	addInteraction(QString("Set context diameter modification factor to %1.").arg(m_contextDiameterFactor));
 	m_settingsView->lbDiameterFactorContextValue->setText(QString::number(m_contextDiameterFactor, 'f', 2));
-	visitAllVisibleVis([=](QSharedPointer<iA3DColoredPolyObjectVis> vis, size_t /*resultID*/)
+	visitAllVisibleVis([=](QSharedPointer<iA3DColoredPolyObjectVis> vis, QSharedPointer<iA3DPolyObjectActor> actor,
+						   size_t /*resultID*/)
 	{
 		(dynamic_cast<iA3DCylinderObjectVis*>(vis.data()))->setContextDiameterFactor(m_contextDiameterFactor);
 	});
@@ -2048,18 +2054,19 @@ void iAFiAKErController::mergeFiberContextBoxesChanged(int newState)
 	updateFiberContext();
 }
 
-void iAFiAKErController::visitAllVisibleVis(std::function<void(QSharedPointer<iA3DColoredPolyObjectVis>, size_t)> func)
+void iAFiAKErController::visitAllVisibleVis(
+	std::function<void(QSharedPointer<iA3DColoredPolyObjectVis>, QSharedPointer<iA3DPolyObjectActor>, size_t)> func)
 {
 	for (size_t resultID = 0; resultID < m_resultUIs.size(); ++resultID)
 	{
 		auto& vis = m_resultUIs[resultID];
 		if (vis.mini3DVis)
 		{
-			func(vis.mini3DVis, resultID);
+			func(vis.mini3DVis, vis.mini3DActor, resultID);
 		}
-		if (vis.main3DVis && vis.main3DVis->visible())
+		if (vis.main3DVis && vis.main3DActor->visible())
 		{
-			func(vis.main3DVis, resultID);
+			func(vis.main3DVis, vis.main3DActor, resultID);
 		}
 	}
 }
@@ -2067,18 +2074,20 @@ void iAFiAKErController::visitAllVisibleVis(std::function<void(QSharedPointer<iA
 void iAFiAKErController::showWireFrameChanged(int newState)
 {
 	m_showWireFrame = (newState == Qt::Checked);
-	visitAllVisibleVis([this](QSharedPointer<iA3DColoredPolyObjectVis> vis, size_t /*resultID*/)
+	visitAllVisibleVis([this](QSharedPointer<iA3DColoredPolyObjectVis> vis, QSharedPointer<iA3DPolyObjectActor> actor,
+						   size_t /*resultID*/)
 	{
-		vis->setShowWireFrame(m_showWireFrame);
+		actor->setShowWireFrame(m_showWireFrame);
 	});
 }
 
 void iAFiAKErController::showLinesChanged(int newState)
 {
 	m_showLines = (newState == Qt::Checked);
-	visitAllVisibleVis([this](QSharedPointer<iA3DColoredPolyObjectVis> vis, size_t /*resultID*/)
+	visitAllVisibleVis([this](QSharedPointer<iA3DColoredPolyObjectVis> vis, QSharedPointer<iA3DPolyObjectActor> actor,
+						   size_t /*resultID*/)
 	{
-		vis->setShowLines(m_showLines);
+		actor->setShowSimple(m_showLines);
 	});
 }
 
@@ -2508,8 +2517,8 @@ void iAFiAKErController::showSpatialOverview()
 	size_t colID = m_data->result[m_referenceID].table->GetNumberOfColumns()-1;
 	ref3D->setLookupTable(lut, colID);
 	ref3D->updateColorSelectionRendering();
-	setClippingPlanes(ref3D);
-	ref3D->show();
+	setClippingPlanes(m_resultUIs[m_referenceID].main3DActor);
+	m_resultUIs[m_referenceID].main3DActor->show();
 	update3D();
 	if (!m_cameraInitialized)
 	{
@@ -2533,7 +2542,7 @@ void iAFiAKErController::spmLookupTableChanged()
 	//     - update color theme name if changed in SPM settings
 	for (size_t resultID = 0; resultID < m_resultUIs.size(); ++resultID)
 	{
-		if (m_resultUIs[resultID].main3DVis && m_resultUIs[resultID].main3DVis->visible() && (!matchQualityVisActive() || resultID != m_referenceID))
+		if (m_resultUIs[resultID].main3DVis && m_resultUIs[resultID].main3DActor->visible() && (!matchQualityVisActive() || resultID != m_referenceID))
 		{
 			m_resultUIs[resultID].main3DVis->setLookupTable(lut, colorLookupParam);
 		}
@@ -2573,9 +2582,10 @@ void iAFiAKErController::changeReferenceDisplay()
 	bool showRef = m_chkboxShowReference->isChecked();
 	int refCount = std::min(iARefDistCompute::MaxNumberOfCloseFibers, m_spnboxReferenceCount->value());
 
-	if (m_nearestReferenceVis)
+	if (m_nearestReferenceActor)
 	{
-		m_nearestReferenceVis->hide();
+		m_nearestReferenceActor->hide();
+		m_nearestReferenceActor.clear();
 		m_nearestReferenceVis.clear();
 	}
 
@@ -2651,14 +2661,15 @@ void iAFiAKErController::changeReferenceDisplay()
 		}
 	}
 
-	m_nearestReferenceVis = QSharedPointer<iA3DCylinderObjectVis>::create(m_ren, m_refVisTable,
+	m_nearestReferenceVis = QSharedPointer<iA3DCylinderObjectVis>::create(m_refVisTable,
 		m_data->result[m_referenceID].mapping, QColor(0,0,0), refCurvedFiberInfo);
+	m_nearestReferenceActor = m_nearestReferenceVis->createPolyActor(m_ren);
 	/*
 	QSharedPointer<iALookupTable> lut(new iALookupTable);
 	*lut.data() = iALUT::Build(m_data->spmData->paramRange(m_data->spmData->numParams()-iARefDistCompute::EndColumns-iARefDistCompute::SimilarityMeasureCount+similarityMeasure),
 		m_colorByThemeName, 256, SelectionOpacity);
 	*/
-	m_nearestReferenceVis->show();
+	m_nearestReferenceActor->show();
 	// for now, color by reference result color:
 	m_nearestReferenceVis->setColor(getResultColor(m_referenceID));
 	// ... and set up color coding by it!
@@ -2986,17 +2997,17 @@ void iAFiAKErController::update3D()
 	m_mdiChild->updateRenderer();
 }
 
-void iAFiAKErController::setClippingPlanes(QSharedPointer<iA3DColoredPolyObjectVis> vis)
+void iAFiAKErController::setClippingPlanes(QSharedPointer<iA3DPolyObjectActor> actor)
 {
 	if (m_mdiChild->renderSettings().ShowSlicers)
 	{
 		auto iaren = m_mdiChild->renderer();
 		vtkPlane* planes[3] = { iaren->plane1(), iaren->plane2(), iaren->plane3() };
-		vis->setClippingPlanes(planes);
+		actor->setClippingPlanes(planes);
 	}
 	else
 	{
-		vis->removeClippingPlanes();
+		actor->removeClippingPlanes();
 	}
 }
 
@@ -3019,9 +3030,9 @@ void iAFiAKErController::applyRenderSettings()
 			ren->SetBackground(bgBottom.redF(), bgBottom.greenF(), bgBottom.blueF());
 		}
 
-		if (mainVis && mainVis->visible())
+		if (mainVis && m_resultUIs[resultID].main3DActor->visible())
 		{
-			setClippingPlanes(mainVis);
+			setClippingPlanes(m_resultUIs[resultID].main3DActor);
 		}
 	}
 }

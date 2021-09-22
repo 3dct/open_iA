@@ -27,11 +27,14 @@
 #include <vtkRenderWindowInteractor.h>
 #include <vtkLookupTable.h>
 
-#include <QStandardItem>
+#include <QSharedPointer>
 
 #include <unordered_map>
 
 class iA3DColoredPolyObjectVis;
+class iA3DPolyObjectActor;
+
+class QStandardItem;
 
 //! Class which represents the rendered volume
 class iAVRObjectModel: public iAVRCubicVis
@@ -65,6 +68,7 @@ private:
 	vtkSmartPointer<vtkActor> m_RegionLinksActor;
 	vtkSmartPointer<vtkActor> m_RegionNodesActor;
 	iA3DColoredPolyObjectVis* m_PolyObjectVis;
+	QSharedPointer<iA3DPolyObjectActor> m_PolyObjectActor;
 	vtkSmartPointer<vtkTable> m_objectTable;
 	vtkSmartPointer<vtkPolyData> m_linePolyData;
 	iACsvIO m_io;

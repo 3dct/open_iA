@@ -24,52 +24,58 @@
 
 #include "iA3DObjectActor.h"
 
-#include <iAVec3.h>
+#include <vtkSmartPointer.h>
 
-#include <vtkType.h>
+class iA3DColoredPolyObjectVis;
 
-#include <QList>
-#include <QMap>
-#include <QSharedPointer>
-
-#include <vector>
-
-class vtkColorTransferFunction;
-class vtkFloatArray;
-class vtkImageData;
+class vtkActor;
+class vtkOutlineFilter;
+class vtkPlane;
+class vtkPolyDataMapper;
 class vtkRenderer;
-class vtkTable;
 
-class QColor;
-class QStandardItem;
-
-//! Base class for 3D visualizations of objects (e.g. fibers or pores) defined in a table
-//! use the factory method create3DObjectVis to create a specific instance!
-class iAobjectvis_API iA3DObjectVis: public QObject
+//! Displays data from objects in a class derived from iA3DColoredPolyObjectVis
+class iAobjectvis_API iA3DPolyObjectActor: public iA3DObjectActor
 {
-	Q_OBJECT
 public:
-	//! the type used for indices into the data table.
-	//! (Implementation Note: if vtkTable is replaced by something else, e.g. SPMData or a general table class, this might need to be adapted)
-	typedef vtkIdType IndexType;
-	static const QColor SelectedColor;
-	iA3DObjectVis(vtkTable* objectTable, QSharedPointer<QMap<uint, uint> > columnMapping );
-	virtual ~iA3DObjectVis();
-	virtual void renderSelection( std::vector<size_t> const & sortedSelInds, int classID, QColor const & classColor, QStandardItem* activeClassItem ) =0;
-	virtual void renderSingle(IndexType selectedObjID, int classID, QColor const & classColor, QStandardItem* activeClassItem ) =0;
-	virtual void multiClassRendering( QList<QColor> const & classColors, QStandardItem* rootItem, double alpha ) =0;
-	virtual void renderOrientationDistribution( vtkImageData* oi ) =0;
-	virtual void renderLengthDistribution( vtkColorTransferFunction* cTFun, vtkFloatArray* extents, double halfInc, int filterID, double const * range ) =0;
-	virtual double const* bounds() = 0;
-	virtual QSharedPointer<iA3DObjectActor> createActor(vtkRenderer* ren) = 0;
+	//! create a new visualization of the given 3D object in the given renderer
+	//! @param ren the VTK renderer to which the 3D object will be added
+	//! @param obj the polydata object that is dislayed
+	iA3DPolyObjectActor(vtkRenderer* ren, iA3DColoredPolyObjectVis* obj);
+	~iA3DPolyObjectActor();
+	//! show the object
+	void show() override;
+	//! hide the object
+	void hide();
+	//! whether the object is currently shown
+	bool visible() const;
+	//! show the object's bounding box
+	void showBoundingBox();
+	//! hide the object's bounding box
+	void hideBoundingBox();
+	//! switch between "simplest" vis (e.g. lines) and default complex vis (e.g. cylinder)
+	void setShowSimple(bool simple);
+	//! switch between "normal" surface display mode and wireframe display
+	void setShowWireFrame(bool show);
+	//! set given planes as clipping planes for the viewed object
+	void setClippingPlanes(vtkPlane* planes[3]);
+	//! remove any clipping planes
+	void removeClippingPlanes();
+	//! retrieve actor that contains object (think of removing this method!)
+	vtkActor* actor();
+	//! update the renderer displaying the object.
+	void updateRenderer() override;
+	//! Triggers an update of the color mapper and the renderer.
+	void updateMapper();
 
-signals:
-	void renderRequired();
-	void dataChanged();
+private:
+	bool m_visible, m_clippingPlanesEnabled, m_simple;
+	iA3DColoredPolyObjectVis* m_obj;
 
-protected:
-	QColor getOrientationColor( vtkImageData* oi, IndexType objID ) const;
-	QColor getLengthColor( vtkColorTransferFunction* ctFun, IndexType objID ) const;
-	vtkTable* m_objectTable;
-	QSharedPointer<QMap<uint, uint> > m_columnMapping;
+	vtkSmartPointer<vtkPolyDataMapper> m_mapper;
+	vtkSmartPointer<vtkActor> m_actor;
+
+	vtkSmartPointer<vtkOutlineFilter> m_outlineFilter;
+	vtkSmartPointer<vtkPolyDataMapper> m_outlineMapper;
+	vtkSmartPointer<vtkActor> m_outlineActor;
 };

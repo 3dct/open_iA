@@ -32,9 +32,9 @@
 #include <vtkTable.h>
 #include <vtkUnsignedCharArray.h>
 
-iA3DEllipseObjectVis::iA3DEllipseObjectVis(vtkRenderer* ren, vtkTable* objectTable, QSharedPointer<QMap<uint, uint> > columnMapping,
+iA3DEllipseObjectVis::iA3DEllipseObjectVis(vtkTable* objectTable, QSharedPointer<QMap<uint, uint> > columnMapping,
 	QColor const & color, int phiRes, int thetaRes) :
-	iA3DColoredPolyObjectVis(ren, objectTable, columnMapping, color),
+	iA3DColoredPolyObjectVis(objectTable, columnMapping, color),
 	m_pointsPerEllipse((phiRes - 2) * thetaRes + 2)
 {
 	auto fullPolySource = vtkSmartPointer<vtkAppendPolyData>::New();
@@ -63,8 +63,6 @@ iA3DEllipseObjectVis::iA3DEllipseObjectVis(vtkRenderer* ren, vtkTable* objectTab
 	setupColors();
 	m_fullPoly->GetPointData()->AddArray(m_colors);
 	assert ( objectPointCount(0)*objectTable->GetNumberOfRows() == fullPolySource->GetOutput()->GetNumberOfPoints() );
-	m_mapper->SetInputData(m_fullPoly);
-	setupBoundingBox();
 	setupOriginalIds();
 }
 
@@ -73,12 +71,12 @@ double const * iA3DEllipseObjectVis::bounds()
 	return m_fullPoly->GetBounds();
 }
 
-vtkPolyData* iA3DEllipseObjectVis::getPolyData()
+vtkPolyData* iA3DEllipseObjectVis::polyData()
 {
 	return m_fullPoly;
 }
 
-vtkPolyData* iA3DEllipseObjectVis::finalPoly()
+vtkPolyData* iA3DEllipseObjectVis::finalPolyData()
 {
 	return m_fullPoly;
 }

@@ -26,6 +26,7 @@
 
 #include <QColor>
 
+class iA3DPolyObjectActor;
 class iALookupTable;
 
 class vtkAlgorithmOutput;
@@ -48,15 +49,11 @@ public:
 	//! @}
 	void setSelectionOpacity(int selectionAlpha);
 	void setContextOpacity(int contextAlpha);
-	bool visible() const;
-	virtual vtkPolyData* getPolyData() = 0;
-	virtual vtkPolyData* finalPoly() = 0;
-	//!  @{ bounding box / bounds
-	void showBoundingBox();
-	void hideBoundingBox();
+	virtual vtkPolyData* polyData() = 0;
+	virtual vtkPolyData* finalPolyData() = 0;
+
 	double const * bounds() override;
 	//! @}
-	void setShowWireFrame(bool show);
 	virtual void setSelection(std::vector<size_t> const & sortedSelInds, bool selectionActive);
 	void setColor(QColor const & color);
 	void setLookupTable(QSharedPointer<iALookupTable> lut, size_t paramIndex);
@@ -77,6 +74,15 @@ public:
 	IndexType allPointCount() const;
 
 	virtual vtkAlgorithmOutput* output();
+
+	//! create "actor" class for visualizing this data collection
+	QSharedPointer<iA3DObjectActor> createActor(vtkRenderer* ren) override;
+
+	//! same as createActor, but retrieve derived class more specific for visualizing
+	//! a 3D colored poly data object; use this if you need to access methods
+	//! from the iA3DPolyObjectActor class which are not available through the
+	//! iA3DObjectActor interface.
+	QSharedPointer<iA3DPolyObjectActor> createPolyActor(vtkRenderer* ren);
 
 protected:
 	vtkSmartPointer<vtkUnsignedCharArray> m_colors;

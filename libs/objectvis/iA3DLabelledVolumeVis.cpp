@@ -216,7 +216,7 @@ void iA3DLabelledVolumeVis::renderSelection( std::vector<size_t> const & sortedS
 		oTF->AddPoint( m_objectTable->GetNumberOfRows() + 0.3, backAlpha, 0.5, 1.0 );
 		cTF->AddRGBPoint( m_objectTable->GetNumberOfRows() + 0.3, backRGB[0], backRGB[1], backRGB[2], 0.5, 1.0 );
 	}
-	emit updated();
+	emit renderRequired();
 }
 
 void iA3DLabelledVolumeVis::renderSingle(IndexType selectedObjID, int /*classID*/, QColor const & classColor, QStandardItem* activeClassItem )
@@ -327,7 +327,7 @@ void iA3DLabelledVolumeVis::renderSingle(IndexType selectedObjID, int /*classID*
 			cTF->AddRGBPoint( m_objectTable->GetNumberOfRows() + 0.3, backRGB[0], backRGB[1], backRGB[2], 0.5, 1.0 );
 		}
 	}
-	emit updated();
+	emit renderRequired();
 }
 
 void iA3DLabelledVolumeVis::multiClassRendering( QList<QColor> const & classColors, QStandardItem* rootItem, double alpha )
@@ -434,7 +434,7 @@ void iA3DLabelledVolumeVis::multiClassRendering( QList<QColor> const & classColo
 			cTF->AddRGBPoint(m_objectTable->GetNumberOfRows() + 0.3, backRGB[0], backRGB[1], backRGB[2], 0.5, 1.0);
 		}
 	}
-	emit updated();
+	emit renderRequired();
 }
 
 void iA3DLabelledVolumeVis::renderOrientationDistribution( vtkImageData* oi )
@@ -454,7 +454,7 @@ void iA3DLabelledVolumeVis::renderOrientationDistribution( vtkImageData* oi )
 		oTF->AddPoint( objID + 1, alpha );
 		cTF->AddRGBPoint( objID + 1, color.redF(), color.greenF(), color.blueF() );
 	}
-	emit updated();
+	emit renderRequired();
 }
 
 void iA3DLabelledVolumeVis::renderLengthDistribution( vtkColorTransferFunction* ctFun, vtkFloatArray* extents, double halfInc, int filterID, double const * range )
@@ -527,10 +527,18 @@ void iA3DLabelledVolumeVis::renderLengthDistribution( vtkColorTransferFunction* 
 		cTF->AddRGBPoint( objID + 1 - 0.5, color.redF(), color.greenF(), color.blueF() );
 		cTF->AddRGBPoint( objID + 1 + 0.3, color.redF(), color.greenF(), color.blueF() );
 	}
-	emit updated();
+	emit renderRequired();
 }
 
 double const * iA3DLabelledVolumeVis::bounds()
 {
 	return m_bounds;
+}
+
+QSharedPointer<iA3DObjectActor> iA3DLabelledVolumeVis::createActor(vtkRenderer* ren)
+{
+	auto result = QSharedPointer<iA3DObjectActor>::create(ren);
+	connect(this, &iA3DObjectVis::dataChanged, result.data(), &iA3DObjectActor::updateRenderer);
+	connect(this, &iA3DObjectVis::renderRequired, result.data(), &iA3DObjectActor::updateRenderer);
+	return result;
 }

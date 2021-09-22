@@ -169,17 +169,17 @@ namespace
 		{
 		default:
 		case iACsvConfig::UseVolume:
-			return QSharedPointer<iA3DLabelledVolumeVis>::create(mdi->renderer()->renderer(),
+			return QSharedPointer<iA3DLabelledVolumeVis>::create(
 				mdi->modality(0)->transfer()->colorTF(), mdi->modality(0)->transfer()->opacityTF(),
 				table, columnMapping, mdi->imagePointer()->GetBounds());
 		case iACsvConfig::Lines:
-			return QSharedPointer<iA3DLineObjectVis>::create(mdi->renderer()->renderer(), table,
+			return QSharedPointer<iA3DLineObjectVis>::create(table,
 				columnMapping, color, curvedFiberInfo, segmentSkip);
 		case iACsvConfig::Cylinders:
-			return QSharedPointer<iA3DCylinderObjectVis>::create(mdi->renderer()->renderer(), table,
+			return QSharedPointer<iA3DCylinderObjectVis>::create(table,
 				columnMapping, color, curvedFiberInfo, numberOfCylinderSides, segmentSkip);
 		case iACsvConfig::Ellipses:
-			return QSharedPointer<iA3DEllipseObjectVis>::create(mdi->renderer()->renderer(), table,
+			return QSharedPointer<iA3DEllipseObjectVis>::create(table,
 				columnMapping, color);
 		case iACsvConfig::NoVis:
 			return QSharedPointer<iA3DNoVis>::create();
@@ -245,7 +245,8 @@ dlg_FeatureScout::dlg_FeatureScout(iAMdiChild* parent, iAObjectType fid, QString
 	{
 		SingleRendering();
 	}
-	m_3dvis->show();
+	m_3dactor = m_3dvis->createActor(parent->renderer()->renderer());
+	m_3dactor->show();
 	parent->renderer()->renderer()->ResetCamera();
 	m_blobManager->SetRenderers(parent->renderer()->renderer(), m_renderer->labelRenderer());
 	m_blobManager->SetBounds(m_3dvis->bounds());
