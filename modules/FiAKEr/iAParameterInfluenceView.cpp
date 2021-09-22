@@ -22,7 +22,7 @@
 
 #include "iAFiberResult.h"
 #include "iAFiberData.h" // for getAvailableDissimilarityMeasureNames
-#include "iASensitivityInfo.h"
+#include "iASensitivityData.h"
 #include "iAStackedBarChart.h"
 #include "iAClickableLabel.h"
 
