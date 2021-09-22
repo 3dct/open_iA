@@ -24,9 +24,6 @@
 
 #include <vtkColorTransferFunction.h>
 #include <vtkImageData.h>
-//#include <vtkOpenGLRenderer.h>
-//#include <vtkRenderer.h>
-//#include <vtkRendererCollection.h>
 #include <vtkTable.h>
 
 #include <QColor>
