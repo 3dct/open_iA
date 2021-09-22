@@ -423,6 +423,14 @@ void iAAlgorithmInfo::paintEvent(QPaintEvent* ev)
 			int x = matrixRect.left() + outIdx * cellWidth;
 			p.drawLine(x, matrixRect.top(), x, matrixRect.bottom());
 		}
+
+		// highlight "selected" columns:
+		p.setPen(qApp->palette().color(QWidget::foregroundRole()));
+		for (auto i : m_shownOut)
+		{
+			int x = matrixRect.left() + i * cellWidth;
+			p.drawRect(x, matrixRect.top(), cellWidth, matrixRect.height());
+		}
 	}
 }
 void iAAlgorithmInfo::mousePressEvent(QMouseEvent* ev)
