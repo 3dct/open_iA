@@ -75,18 +75,9 @@ private:
 		QString const& parameterFileName, int skipColumns, QStringList const& paramNames,
 		std::vector<std::vector<double>> const& paramValues, iAMdiChild* child,
 		QDockWidget* nextToDW, std::vector<iAFiberResultUIData> const& resultUIs, vtkRenderWindow* main3DWin);
-	void compute(iAProgress* p);
-	QString cacheFileName(QString fileName) const;
-	QString dissimilarityMatrixCacheFileName() const;
-	QString spatialOverviewCacheFileName() const;
-	QString uniqueFiberVarCacheFileName(size_t uIdx) const;
-	QString volumePercentageCacheFileName() const;
-	bool readDissimilarityMatrixCache(QVector<int>& measures);
-	void writeDissimilarityMatrixCache(QVector<int> const& measures) const;
 	QWidget* setupMatrixView(QVector<int> const& measures);
 
 	void updateDifferenceView();
-	void computeSpatialOverview(iAProgress* p);
 	void showSpatialOverview();
 	
 	QString m_parameterFileName;
@@ -101,8 +92,6 @@ private:
 	bool m_aborted;
 	//! "temporary" copy of project to load:
 	iASettings m_projectToLoad;
-	//! image for holding overview over variation per voxel
-	vtkSmartPointer<vtkImageData> m_spatialOverview;
 
 	QSharedPointer<iASensitivityData> m_data;
 signals:

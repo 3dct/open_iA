@@ -22,6 +22,8 @@
 
 #include <iAMatrixWidget.h> // for iADissimilarityMatrixType
 
+#include <vtkSmartPointer.h>
+
 #include <QPair>
 #include <QSharedPointer>
 #include <QStringList>
@@ -31,14 +33,21 @@
 
 class iAFiberResultsCollection;
 
+class iAProgress;
 class iAColorTheme;
+
+class vtkImageData;
 
 class iASensitivityData
 {
 public:
-	// implementation in iASensitivityInfo.cpp (since it's only this one constructor and no other methods in this class)
 	iASensitivityData(QSharedPointer<iAFiberResultsCollection> data, QStringList const& paramNames,
 		std::vector<std::vector<double>> const& paramValues);
+	void compute(iAProgress* progress);
+	void computeSpatialOverview(iAProgress* p);
+	QString spatialOverviewCacheFileName() const;
+	QString dissimilarityMatrixCacheFileName() const;
+	void abort();
 
 	// DATA / COMPUTED DATA:
 	//
@@ -202,7 +211,19 @@ public:
 	QVector<QPair<double, double>> m_resultDissimRanges;
 	int m_resultDissimOptimMeasureIdx;
 
+	//! image for holding overview over variation per voxel
+	vtkSmartPointer<vtkImageData> m_spatialOverview;
+
 	QString charactName(int selCharIdx) const;
+
+private:
+	QString cacheFileName(QString fileName) const;
+	QString uniqueFiberVarCacheFileName(size_t uIdx) const;
+	QString volumePercentageCacheFileName() const;
+	bool readDissimilarityMatrixCache(QVector<int>& measures);
+	void writeDissimilarityMatrixCache(QVector<int> const& measures) const;
+
+	bool m_aborted;
 };
 
 class iASensitivityViewState
@@ -211,3 +232,10 @@ public:
 	virtual std::vector<size_t> const& selectedResults() const = 0;
 	virtual iAColorTheme const* selectedResultColorTheme() const = 0;
 };
+
+
+#if QT_VERSION < QT_VERSION_CHECK(6, 0, 0)
+using qvectorsizetype = int;
+#else
+using qvectorsizetype = size_t;
+#endif
