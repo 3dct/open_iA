@@ -143,7 +143,7 @@ void iAHessianEigenanalysis::performWork(QMap<QString, QVariant> const & paramet
 IAFILTER_CREATE(iAHessianEigenanalysis)
 
 iAHessianEigenanalysis::iAHessianEigenanalysis() :
-	iAFilter("Eigen analysis of Hessian", "Gradient/Derivative",
+	iAFilter("Eigen analysis of Hessian", "Gradient",
 		"Computes the Eigen analysis of the Hessian of an image.<br/>"
 		"Computes first the Hessian of an image, and then the eigen analysis "
 		"of the Hessian, and outputs the three lambda images from this eigen"
@@ -180,7 +180,7 @@ void iALaplacian::performWork(QMap<QString, QVariant> const & parameters)
 IAFILTER_CREATE(iALaplacian)
 
 iALaplacian::iALaplacian() :
-	iAFilter("Laplacian of Gaussian", "Gradient/Derivative",
+	iAFilter("Laplacian of Gaussian", "Gradient",
 		"Computes the Laplacian of Gaussian (LoG) of an image.<br/>"
 		"Computes the Laplacian of Gaussian (LoG) of an image by convolution "
 		"with the second derivative of a Gaussian. This filter is "

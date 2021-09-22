@@ -39,6 +39,10 @@ public:
 	}
 	void DisplayText(const char* someText) override
 	{
+		if (!m_enabled)
+		{
+			return;
+		}
 		iALogLevel lvl = lvlWarn;
 	#if VTK_VERSION_NUMBER >= VTK_VERSION_CHECK(8,2,0)
 		switch (GetCurrentMessageType())
@@ -59,11 +63,22 @@ public:
 	#endif
 		LOG(lvl, someText);
 	}
+	void setEnabled(bool enabled)
+	{
+		m_enabled = enabled;
+	}
+	bool enabled() const
+	{
+		return m_enabled;
+	}
+
 private:
-	iALogRedirectVTK()
+	iALogRedirectVTK(): m_enabled(true)
 	{}
 	iALogRedirectVTK(const iALogRedirectVTK &) = delete;
 	void operator=(const iALogRedirectVTK &) = delete;
+
+	bool m_enabled;
 };
 
 vtkStandardNewMacro(iALogRedirectVTK);
