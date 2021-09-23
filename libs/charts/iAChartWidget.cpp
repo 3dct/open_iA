@@ -440,7 +440,7 @@ void iAChartWidget::drawLegend(QPainter& painter)
 	const int TextMaxWidth = maxTextWidth(painter.fontMetrics(), legendItems);
 	QSize boxSize(
 		LegendItemWidth + TextMaxWidth + 3 * LegendPadding,
-		LineHeight * m_plots.size() + 2 * LegendPadding
+		LineHeight * static_cast<int>(m_plots.size()) + 2 * LegendPadding
 	);
 	QPoint upLeft(width() - boxSize.width() - LegendMargin, LegendMargin);
 	QRect boxRect(upLeft, boxSize);
