@@ -646,7 +646,7 @@ public:
 	iAScatterPlotWidget* m_paramSP;
 	//! scatter plot for the MDS 2D plot of all results
 	iAScatterPlotWidget* m_mdsSP;
-	
+
 	//! lookup table for points in scatter plot
 	QSharedPointer<iALookupTable> m_lut;
 	iAColorMapWidget* m_colorMapWidget;
@@ -1114,7 +1114,7 @@ void iASensitivityInfo::createGUI()
 	splitter->addWidget(m_gui->m_mdsSP);
 	splitter->addWidget(m_gui->m_mdsSP);
 	splitter->addWidget(m_gui->m_colorMapWidget);
-	
+
 	auto dwSP = new iADockWidgetWrapper(splitter, "Constellation Charts", "foeParamSP");
 	m_child->splitDockWidget(m_gui->m_dwParamInfluence, dwSP, Qt::Vertical);
 
@@ -1144,7 +1144,7 @@ void iASensitivityInfo::createGUI()
 void iASensitivityInfo::showSpatialOverview()
 {
 	// show image
-	QSharedPointer<iAModalityList> mods(new iAModalityList());	
+	QSharedPointer<iAModalityList> mods(new iAModalityList());
 	mods->add(QSharedPointer<iAModality>::create("Avg fiber occupancy per voxel",
 		data().spatialOverviewCacheFileName(), 1, m_data->m_spatialOverview, iAModality::MainRenderer));
 	m_child->setModalities(mods);

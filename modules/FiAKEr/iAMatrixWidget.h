@@ -162,7 +162,7 @@ private:
 				p.fillRect(cellRect, color);
 			}
 		}
-		
+
 		// showAxes currently buggy - crashes!
 		if (m_showAxes)
 		{

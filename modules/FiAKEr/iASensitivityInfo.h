@@ -79,7 +79,7 @@ private:
 
 	void updateDifferenceView();
 	void showSpatialOverview();
-	
+
 	QString m_parameterFileName;
 	int m_skipColumns;
 	// UI elements:

@@ -96,7 +96,7 @@ private:
 	QSharedPointer<iASensitivityData> m_data;
 	//! view state:
 	QSharedPointer<iASensitivityViewState> m_viewState;
-	//! measure to use 
+	//! measure to use
 	int m_measureIdx;
 	//! aggregation type
 	int m_aggrType;
