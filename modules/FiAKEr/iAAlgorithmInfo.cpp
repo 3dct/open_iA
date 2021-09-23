@@ -28,6 +28,7 @@
 #include <QMouseEvent>
 #include <QPainter>
 #include <QPainterPath>
+#include <QToolTip>
 
 namespace
 {
@@ -81,6 +82,7 @@ iAAlgorithmInfo::iAAlgorithmInfo(QString const& name, QStringList const& inNames
 	m_normalizePerOut(false)
 {
 	setSizePolicy(QSizePolicy::Expanding, QSizePolicy::MinimumExpanding);
+	setMouseTracking(true);
 }
 
 void iAAlgorithmInfo::updateMatrixMax()
@@ -339,15 +341,15 @@ void iAAlgorithmInfo::paintEvent(QPaintEvent* ev)
 	else
 	{
 		drawLegend(p, m_inWidth, true);
-		QRect matrixRect(HMargin + m_inWidth, HMargin + m_outWidth + TextHPadding,
+		m_matrixRect = QRect(HMargin + m_inWidth, HMargin + m_outWidth + TextHPadding,
 			width() - (2 * HMargin + m_inWidth), height() - (2 * HMargin + m_outWidth + TextHPadding));
-		int cellWidth = matrixRect.width() / m_outNames.size();
-		int cellHeight = matrixRect.height() / m_inNames.size();
+		int cellWidth = m_matrixRect.width() / m_outNames.size();
+		int cellHeight = m_matrixRect.height() / m_inNames.size();
 
 		// draw labels:
 		m_inRects.clear();
 		m_outRects.clear();
-		p.drawText(QRect(0, 0, matrixRect.left(), matrixRect.top()), Qt::AlignHCenter | Qt::AlignBottom, "In");
+		p.drawText(QRect(0, 0, m_matrixRect.left(), m_matrixRect.top()), Qt::AlignHCenter | Qt::AlignBottom, "In");
 		for (int inIdx = 0; inIdx < m_inNames.size(); ++inIdx)
 		{
 			/*
@@ -356,17 +358,17 @@ void iAAlgorithmInfo::paintEvent(QPaintEvent* ev)
 				m_inNames[inIdx]);
 			*/
 			int pIdx = m_inSort.size() > 0 ? m_inSort[inIdx] : inIdx;
-			QRect textRect(HMargin, matrixRect.top() + inIdx * cellHeight + TextVPadding, m_inWidth - 2*HMargin,
+			QRect textRect(HMargin, m_matrixRect.top() + inIdx * cellHeight + TextVPadding, m_inWidth - 2 * HMargin,
 				cellHeight - 2 * TextVPadding);
 			drawInOut(p, textRect, m_inNames[pIdx], m_inRects, m_inColor, m_selectedIn == pIdx, true, false);
 		}
 		const int VertCaptHeight = p.fontMetrics().height();
 		drawVerticalText(p,
-			QRect(matrixRect.left() - VertCaptHeight - HMargin, matrixRect.top() - TextHPadding, VertCaptHeight, m_outWidth),
-			Qt::AlignHCenter | Qt::AlignTop, "Out");
+			QRect(m_matrixRect.left() - VertCaptHeight - HMargin, m_matrixRect.top() - TextHPadding, VertCaptHeight,
+				m_outWidth), Qt::AlignHCenter | Qt::AlignTop, "Out");
 		for (int outIdx = 0; outIdx < m_outNames.size(); ++outIdx)
 		{
-			QRect textRect(matrixRect.left() + outIdx * cellWidth + TextVPadding,
+			QRect textRect(m_matrixRect.left() + outIdx * cellWidth + TextVPadding,
 				TextHPadding, cellWidth - 2 * TextVPadding, m_outWidth - TextHPadding);
 			drawInOut(p, textRect, m_outNames[outIdx], m_outRects, m_outColor, false,
 				m_shownOut.size() == 0 || m_shownOut.contains(outIdx), true);
@@ -381,7 +383,7 @@ void iAAlgorithmInfo::paintEvent(QPaintEvent* ev)
 				int pIdx = m_inSort.size() > 0 ? m_inSort[inIdx] : inIdx;
 				double normVal = mapVal(outIdx, m_matrix[outIdx][pIdx]);
 				int colorVal = C - (C * normVal);
-				QRect boxRect(matrixRect.left() + outIdx * cellWidth, matrixRect.top() + inIdx * cellHeight,
+				QRect boxRect(m_matrixRect.left() + outIdx * cellWidth, m_matrixRect.top() + inIdx * cellHeight,
 					cellWidth, cellHeight);
 				p.fillRect(boxRect, QColor(colorVal, colorVal, colorVal));
 			}
@@ -389,27 +391,28 @@ void iAAlgorithmInfo::paintEvent(QPaintEvent* ev)
 
 		// draw matrix grid lines:
 		p.setPen(qApp->palette().color(QPalette::AlternateBase));
-		p.drawRect(matrixRect);
+		p.drawRect(m_matrixRect);
 		for (int inIdx = 1; inIdx < m_inNames.size(); ++inIdx)
 		{
-			int y = matrixRect.top() + inIdx * cellHeight;
-			p.drawLine(matrixRect.left(), y, matrixRect.right(), y);
+			int y = m_matrixRect.top() + inIdx * cellHeight;
+			p.drawLine(m_matrixRect.left(), y, m_matrixRect.right(), y);
 		}
 		for (int outIdx = 1; outIdx < m_outNames.size(); ++outIdx)
 		{
-			int x = matrixRect.left() + outIdx * cellWidth;
-			p.drawLine(x, matrixRect.top(), x, matrixRect.bottom());
+			int x = m_matrixRect.left() + outIdx * cellWidth;
+			p.drawLine(x, m_matrixRect.top(), x, m_matrixRect.bottom());
 		}
 
 		// highlight "selected" columns:
 		p.setPen(qApp->palette().color(QWidget::foregroundRole()));
 		for (auto i : m_shownOut)
 		{
-			int x = matrixRect.left() + i * cellWidth;
-			p.drawRect(x, matrixRect.top(), cellWidth, matrixRect.height());
+			int x = m_matrixRect.left() + i * cellWidth;
+			p.drawRect(x, m_matrixRect.top(), cellWidth, m_matrixRect.height());
 		}
 	}
 }
+
 void iAAlgorithmInfo::mousePressEvent(QMouseEvent* ev)
 {
 	for (int rIdx = 0; rIdx < m_inRects.size(); ++rIdx)
@@ -431,6 +434,32 @@ void iAAlgorithmInfo::mousePressEvent(QMouseEvent* ev)
 		}
 	}
 }
+
+void iAAlgorithmInfo::mouseMoveEvent(QMouseEvent* event)
+{
+	if (m_displayMode == Box)
+	{
+		return;
+	}
+	int cellWidth  = m_matrixRect.width() / m_outNames.size();
+	int cellHeight = m_matrixRect.height() / m_inNames.size();
+
+#if QT_VERSION < QT_VERSION_CHECK(5, 99, 0)
+	QPointF mousePoint(event->x(), event->y());
+#else
+	QPointF mousePoint(event->position());
+#endif
+	if (!m_matrixRect.contains(mousePoint.x(), mousePoint.y()))
+	{
+		QToolTip::hideText();
+		return;
+	}
+	QPointF matrixPoint = mousePoint - m_matrixRect.topLeft();
+	int col = clamp(0, m_matrix.size()-1, static_cast<int>(matrixPoint.x() / cellWidth));  // out
+	int row = clamp(0, m_matrix[col].size()-1, static_cast<int>(matrixPoint.y() / cellHeight)); // in
+	QToolTip::showText(event->globalPos(), QString("in %1, out %2: %3").arg(row).arg(col).arg(m_matrix[col][row]));
+}
+
 QSize iAAlgorithmInfo::sizeHint() const
 {
 	return (m_displayMode == Box)

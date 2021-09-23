@@ -63,6 +63,7 @@ private:
 	void drawLegend(QPainter& p, int leftWidth, bool top);
 	void paintEvent(QPaintEvent* ev) override;
 	void mousePressEvent(QMouseEvent* ev) override;
+	void mouseMoveEvent(QMouseEvent* event) override;
 	QSize sizeHint() const override;
 signals:
 	void inputClicked(int inIdx);
@@ -85,4 +86,5 @@ private:
 	int m_inWidth, m_outWidth, m_boxMinWidth, m_legendWidth;
 	DisplayMode m_displayMode;
 	bool m_normalizePerOut;
+	QRect m_matrixRect;
 };
