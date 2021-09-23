@@ -373,7 +373,7 @@ void iASensitivityData::compute(iAProgress* progress)
 	//                 for each point in parameter space (of base sampling method)
 	//                     compute local change by that difference measure
 
-	progress->setStatus("Computing characteristics sensitivities.");
+	progress->setStatus("Computing sensitivities based on characteristics distribution differences.");
 	const int NumOfVarianceAggregation = 4;
 
 	paramStep.fill(0.0, m_variedParams.size());
@@ -809,6 +809,25 @@ void iASensitivityData::compute(iAProgress* progress)
 	else
 	{
 		progress->setStatus("Computing dissimilarity between all result pairs.");
+		// Thoughts on per-object sensitivity:
+		// required: 1-1 match between fibers
+		// currently compute on the fly, based on bounding boxes of fibers;
+		// for further improvement, spatial subdivision structure would be required
+
+		// Questions:
+		// options for characteristic comparison:
+		//    1. compute characteristic distribution difference
+		//        - advantage: dissimilarity measure independent
+		//        - disadvantage: distribution could be same even if lots of differences for single fibers
+		//    2. compute matching fibers; then compute characteristic difference; then average this
+		//        - advantage: represents actual differences better
+		//        - disadvantage: depending on dissimilarity measure (since best match could be computed per dissimiliarity measure
+		//    example: compare
+		//         - result 1 with fibers a (len=5), b (len=3) and c (len=2)
+		//         - result 2 with fibers A (len 3), B (len=2) and C (len=5)
+		//         - best matches between result1&2: a <-> A, b <-> B, c <-> C
+		//         - option 1 -> exactly the same, 1x5, 1x3, 1x2
+		//         - option 2 -> length differences: 2, 1, 3
 		int measureCount = static_cast<int>(m_resultDissimMeasures.size());
 		int resultCount = static_cast<int>(m_data->result.size());
 		m_resultDissimMatrix = iADissimilarityMatrixType(
@@ -1061,133 +1080,139 @@ void iASensitivityData::compute(iAProgress* progress)
 		m_dissimHistograms.push_back(dissimHistogram);
 	}
 
-	progress->setStatus("Computing pairwise characteristics differences");
+	progress->setStatus("Computing sensitivities based on pairwise characteristics differences.");
 	sensitivityFieldPWDiff.resize(numCharSelected);
 	aggregatedSensitivitiesPWDiff.resize(numCharSelected);
+	const int MeasureIdx = 0;
 	for (int charIdx = 0; charIdx < numCharSelected && !m_aborted; ++charIdx)
 	{
 		progress->emitProgress(100 * charIdx / numCharSelected);
-		//int charactID = m_charSelected[charIdx];
-		//auto charactName = spmData->parameterName(charactID);
-		//LOG(lvlDebug, QString("Characteristic %1 (%2):").arg(charIdx).arg(charactName));
-		sensitivityFieldPWDiff[charIdx].resize(m_charDiffMeasure.size());
-		aggregatedSensitivitiesPWDiff[charIdx].resize(m_charDiffMeasure.size());
-		for (int diffMeasureIdx = 0; diffMeasureIdx < m_charDiffMeasure.size(); ++diffMeasureIdx)
+		auto& field = sensitivityFieldPWDiff[charIdx];
+		field.resize(NumOfVarianceAggregation);
+		auto& agg = aggregatedSensitivitiesPWDiff[charIdx];
+		agg.resize(NumOfVarianceAggregation);
+		for (int i = 0; i < NumOfVarianceAggregation; ++i)
 		{
-			//LOG(lvlDebug, QString("    Difference Measure %1 (%2)").arg(diffMeasure).arg(DistributionDifferenceMeasureNames()[diffMeasure]));
-			auto& field = sensitivityFieldPWDiff[charIdx][diffMeasureIdx];
-			field.resize(NumOfVarianceAggregation);
-			auto& agg = aggregatedSensitivitiesPWDiff[charIdx][diffMeasureIdx];
-			agg.resize(NumOfVarianceAggregation);
+			field[i].resize(m_variedParams.size());
+			agg[i].fill(0.0, m_variedParams.size());
+		}
+		for (int paramIdx = 0; paramIdx < m_variedParams.size(); ++paramIdx)
+		{
 			for (int i = 0; i < NumOfVarianceAggregation; ++i)
 			{
-				field[i].resize(m_variedParams.size());
-				agg[i].fill(0.0, m_variedParams.size());
+				field[i][paramIdx].resize(paramSetValues.size());
 			}
-			for (int paramIdx = 0; paramIdx < m_variedParams.size(); ++paramIdx)
+			// TODO: unify with other loops over STARs
+			int origParamColIdx = m_variedParams[paramIdx];
+			// aggregation types:
+			//     - for now: one step average, left only, right only, average over all steps
+			//     - future: overall (weighted) average, values over multiples of step size, ...
+			int numAllLeft = 0, numAllRight = 0, numAllLeftRight = 0, numAllTotal = 0;
+			for (int paramSetIdx = 0; paramSetIdx < paramSetValues.size(); ++paramSetIdx)
 			{
-				for (int i = 0; i < NumOfVarianceAggregation; ++i)
+				int resultIdxGroupStart = m_starGroupSize * paramSetIdx;
+				int resultIdxParamStart = resultIdxGroupStart + 1 + paramIdx * m_numOfSTARSteps;
+
+				// first - then + steps (both skipped if value +/- step exceeds bounds
+				double groupStartParamVal = m_paramValues[origParamColIdx][resultIdxGroupStart];
+				double paramStartParamVal = m_paramValues[origParamColIdx][resultIdxParamStart];
+				double paramDiff = paramStartParamVal - groupStartParamVal;
+				double leftVar = 0;
+				int numLeftRight = 0;
+				if (paramDiff > 0)
 				{
-					field[i][paramIdx].resize(paramSetValues.size());
+					leftVar = characteristicsDifference(charIdx, resultIdxGroupStart, resultIdxParamStart, MeasureIdx);
+					++numLeftRight;
+					++numAllLeft;
 				}
-				// TODO: unify with other loops over STARs
-				//QString paramName(m_paramNames[m_variedParams[paramIdx]]);
-				//LOG(lvlDebug, QString("  Parameter %1 (%2):").arg(paramIdx).arg(paramName));
-				int origParamColIdx = m_variedParams[paramIdx];
-				// aggregation types:
-				//     - for now: one step average, left only, right only, average over all steps
-				//     - future: overall (weighted) average, values over multiples of step size, ...
-				int numAllLeft = 0, numAllRight = 0, numAllLeftRight = 0, numAllTotal = 0;
-				for (int paramSetIdx = 0; paramSetIdx < paramSetValues.size(); ++paramSetIdx)
+
+				int k = 1;
+				while (paramDiff > 0 && k < m_numOfSTARSteps)
 				{
-					int resultIdxGroupStart = m_starGroupSize * paramSetIdx;
-					int resultIdxParamStart = resultIdxGroupStart + 1 + paramIdx * m_numOfSTARSteps;
-
-					// first - then + steps (both skipped if value +/- step exceeds bounds
-					double groupStartParamVal = m_paramValues[origParamColIdx][resultIdxGroupStart];
-					double paramStartParamVal = m_paramValues[origParamColIdx][resultIdxParamStart];
-					double paramDiff = paramStartParamVal - groupStartParamVal;
-					//LOG(lvlDebug, QString("      Parameter Set %1; start: %2 (value %3), param start: %4 (value %5); diff: %6")
-					//	.arg(paramSetIdx).arg(resultIdxGroupStart).arg(groupStartParamVal)
-					//	.arg(resultIdxParamStart).arg(paramStartParamVal).arg(paramDiff));
-					double leftVar = 0;
-					int numLeftRight = 0;
-					if (paramDiff > 0)
-					{
-						leftVar = distributionDifference(m_charHistograms[resultIdxGroupStart][charIdx],
-							m_charHistograms[resultIdxParamStart][charIdx], m_charDiffMeasure[diffMeasureIdx]);
-						//LOG(lvlDebug, QString("        Left var available: %1").arg(leftVar));
-						++numLeftRight;
-						++numAllLeft;
-					}
-
-					int k = 1;
-					while (paramDiff > 0 && k < m_numOfSTARSteps)
-					{
-						double paramVal = m_paramValues[origParamColIdx][resultIdxParamStart + k];
-						paramDiff = paramStartParamVal - paramVal;
-						++k;
-					}
-					double rightVar = 0;
-					if (paramDiff < 0)  // additional check required??
-					{
-						int firstPosStepIdx = resultIdxParamStart + (k - 1);
-						rightVar = distributionDifference(m_charHistograms[resultIdxGroupStart][charIdx],
-							m_charHistograms[firstPosStepIdx][charIdx], m_charDiffMeasure[diffMeasureIdx]);
-						//LOG(lvlDebug, QString("        Right var available: %1").arg(rightVar));
-						++numLeftRight;
-						++numAllRight;
-					}
-					double sumTotal = 0;
-					bool wasSmaller = true;
-					for (int i = 0; i < m_numOfSTARSteps; ++i)
-					{
-						int compareIdx = (i == 0) ? resultIdxGroupStart : (resultIdxParamStart + i - 1);
-						double paramVal = m_paramValues[origParamColIdx][resultIdxParamStart + i];
-						if (paramVal > paramStartParamVal && wasSmaller)
-						{
-							wasSmaller = false;
-							compareIdx = resultIdxGroupStart;
-						}
-						// pairwise CharacteristicsDiffs:
-						// - direction? both?
-						// go over all fibers in result a, sum up differences in given characteristic to best match in result b
-						// maybe use different difference measures?
-						double difference = 0.0;
-							/*
-							pairwiseCharacteristicsDiffs(RESULT_CHAR_COMBO(compareIdx, charIdx),
-							RESULT_CHAR_COMBO(resultIdxParamStart + i, charIdx) );
-							*/
-						sumTotal += difference;
-					}
-					numAllLeftRight += numLeftRight;
-					numAllTotal += m_numOfSTARSteps;
-					double meanLeftRightVar = (leftVar + rightVar) / numLeftRight;
-					double meanTotal = sumTotal / m_numOfSTARSteps;
-					//LOG(lvlDebug, QString("        (left+right)/(numLeftRight=%1) = %2").arg(numLeftRight).arg(meanLeftRightVar));
-					//LOG(lvlDebug, QString("        (sum total var = %1) / (m_numOfSTARSteps = %2)  = %3")
-					//	.arg(sumTotal).arg(m_numOfSTARSteps).arg(meanTotal));
-					field[0][paramIdx][paramSetIdx] = meanLeftRightVar;
-					field[1][paramIdx][paramSetIdx] = leftVar;
-					field[2][paramIdx][paramSetIdx] = rightVar;
-					field[3][paramIdx][paramSetIdx] = meanTotal;
-
-					agg[0][paramIdx] += meanLeftRightVar;
-					agg[1][paramIdx] += leftVar;
-					agg[2][paramIdx] += rightVar;
-					agg[3][paramIdx] += meanTotal;
+					double paramVal = m_paramValues[origParamColIdx][resultIdxParamStart + k];
+					paramDiff = paramStartParamVal - paramVal;
+					++k;
 				}
-				assert(numAllLeftRight == (numAllLeft + numAllRight));
-				agg[0][paramIdx] /= numAllLeftRight;
-				agg[1][paramIdx] /= numAllLeft;
-				agg[2][paramIdx] /= numAllRight;
-				agg[3][paramIdx] /= numAllTotal;
-				//LOG(lvlDebug, QString("      LeftRight=%1, Left=%2, Right=%3, Total=%4")
-				//	.arg(agg[0]).arg(agg[1]).arg(agg[2]).arg(agg[3]));
+				double rightVar = 0;
+				if (paramDiff < 0)  // additional check required??
+				{
+					int firstPosStepIdx = resultIdxParamStart + (k - 1);
+					rightVar = characteristicsDifference(charIdx, resultIdxGroupStart, firstPosStepIdx, MeasureIdx);
+					++numLeftRight;
+					++numAllRight;
+				}
+				double sumTotal = 0;
+				bool wasSmaller = true;
+				for (int i = 0; i < m_numOfSTARSteps; ++i)
+				{
+					int compareIdx = (i == 0) ? resultIdxGroupStart : (resultIdxParamStart + i - 1);
+					double paramVal = m_paramValues[origParamColIdx][resultIdxParamStart + i];
+					if (paramVal > paramStartParamVal && wasSmaller)
+					{
+						wasSmaller = false;
+						compareIdx = resultIdxGroupStart;
+					}
+					double difference = characteristicsDifference(charIdx, compareIdx, resultIdxParamStart + i, MeasureIdx);
+					sumTotal += difference;
+				}
+				numAllLeftRight += numLeftRight;
+				numAllTotal += m_numOfSTARSteps;
+				double meanLeftRightVar = (leftVar + rightVar) / numLeftRight;
+				double meanTotal = sumTotal / m_numOfSTARSteps;
+				field[0][paramIdx][paramSetIdx] = meanLeftRightVar;
+				field[1][paramIdx][paramSetIdx] = leftVar;
+				field[2][paramIdx][paramSetIdx] = rightVar;
+				field[3][paramIdx][paramSetIdx] = meanTotal;
+
+				agg[0][paramIdx] += meanLeftRightVar;
+				agg[1][paramIdx] += leftVar;
+				agg[2][paramIdx] += rightVar;
+				agg[3][paramIdx] += meanTotal;
 			}
+			assert(numAllLeftRight == (numAllLeft + numAllRight));
+			agg[0][paramIdx] /= numAllLeftRight;
+			agg[1][paramIdx] /= numAllLeft;
+			agg[2][paramIdx] /= numAllRight;
+			agg[3][paramIdx] /= numAllTotal;
 		}
 	}
+}
 
+double oneSidedCharacteristicsDifference(int charIdx, iAResultPairInfo const& mat, iAFiberResult const & r0, iAFiberResult const & r1, qvectorsizetype measureIdx)
+{
+	double diffSum = 0.0;
+	for (qvectorsizetype f0 = 0; f0 < r0.fiberCount; ++f0)
+	{
+		// take best-matching fiber in r1
+		// compute difference in characteristic charIdx
+		size_t f1 = mat.fiberDissim[f0][measureIdx][0]
+						.index;  // best match to fiber f0 in result r1 with dissimilarity measure measureIdx
+		double f0Val = r0.table->GetValue(f0, charIdx).ToDouble();
+		double f1Val = r1.table->GetValue(f1, charIdx).ToDouble();
+		diffSum += std::abs(f0Val - f1Val);
+	}
+	diffSum /= r0.fiberCount;
+	return diffSum;
+}
+
+// pairwise CharacteristicsDiffs:
+// - direction? both?
+// go over all fibers in result a, sum up differences in given characteristic to best match in result b
+// maybe use different difference measures?#
+double iASensitivityData::characteristicsDifference(int charIdx, qvectorsizetype r0Idx, qvectorsizetype r1Idx, int measureIdx)
+{
+	// get result data:
+	auto& r0 = m_data->result[r0Idx];
+	auto& r1 = m_data->result[r1Idx];
+
+	// get dissimilarity matrix:
+	auto& mat01 = m_resultDissimMatrix[r0Idx][r1Idx];
+	auto& mat10 = m_resultDissimMatrix[r1Idx][r0Idx];
+
+	double diff01 = oneSidedCharacteristicsDifference(charIdx, mat01, r0, r1, measureIdx);
+	double diff10 = oneSidedCharacteristicsDifference(charIdx, mat10, r1, r0, measureIdx);
+	return (diff01 + diff10) / 2.0;
+	// compute geometric average
 }
 
 void iASensitivityData::computeSpatialOverview(iAProgress* progress)

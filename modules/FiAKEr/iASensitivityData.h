@@ -38,16 +38,29 @@ class iAColorTheme;
 
 class vtkImageData;
 
+#if QT_VERSION < QT_VERSION_CHECK(6, 0, 0)
+using qvectorsizetype = int;
+#else
+using qvectorsizetype = size_t;
+#endif
+
 class iASensitivityData
 {
 public:
 	iASensitivityData(QSharedPointer<iAFiberResultsCollection> data, QStringList const& paramNames,
 		std::vector<std::vector<double>> const& paramValues);
+	//! compute characteristics
 	void compute(iAProgress* progress);
+	//! compute voxelized spatial overview over sensitivity (utilizing unique fibers)
 	void computeSpatialOverview(iAProgress* p);
+	//! name of the cache file for the spatial overview image
 	QString spatialOverviewCacheFileName() const;
+	//! name of the cache file for the dissimilarity matrix
 	QString dissimilarityMatrixCacheFileName() const;
+	//! abort the sensitivity computation in case one is running
 	void abort();
+	//! name of characteristic with given index
+	QString charactName(int charIdx) const;
 
 	// DATA / COMPUTED DATA:
 	//
@@ -71,12 +84,12 @@ public:
 	QVector<int> m_charDiffMeasure;
 	//! for which dissimilarity measure sensitivity was computed
 	//QVector<int> dissimMeasure;
-	
+
 	//! characteristics histogram for each result and characteristic
 	QVector<          // For each result,
 		QVector<      // for each characteristic,
 		QVector<      // characteristic histogram bin
-		double>>> 
+		double>>>
 		m_charHistograms;
 
 	int m_numOfSTARSteps, m_starGroupSize;
@@ -87,7 +100,7 @@ public:
 
 	//! sensitivity "field" for characteristics distributions
 	QVector<          // characteristic (index in m_charSelected)
-		QVector<      // characteristics difference measure index (index in m_charDiffMeasure)
+		QVector<      // characteristics distribution difference measure index (index in m_charDiffMeasure)
 		QVector<      // variation aggregation (see iASensitivityInfo::create)
 		QVector<      // parameter index (second index in paramSetValues / allParamValues)
 		QVector<      // parameter set index (first index in paramSetValues)
@@ -96,7 +109,7 @@ public:
 
 	//! averages over all parameter-sets of above char. distribution field ("global sensitivity" for a parameter)
 	QVector<          // characteristis
-		QVector<      // difference measure
+		QVector<      // characteristics distribution difference measure
 		QVector<      // variation aggregation
 		QVector<      // parameter index
 		double>>>>
@@ -104,19 +117,19 @@ public:
 
 	//! sensitivity "field" for characteristics - pairwise match differences
 	QVector<          // characteristic (index in m_charSelected)
-		QVector<      // characteristics difference measure index (index in m_charDiffMeasure)
+		//QVector<      // characteristics difference measure index
 		QVector<      // variation aggregation (see iASensitivityInfo::create)
 		QVector<      // parameter index (second index in paramSetValues / allParamValues)
 		QVector<      // parameter set index (first index in paramSetValues)
-		double>>>>>
+		double>>>>
 		sensitivityFieldPWDiff;
 
 	//! averages over all parameter-sets of above pairwise match diff. field ("global sensitivity" for a parameter)
 	QVector<          // characteristis
-		QVector<      // difference measure
+		//QVector<      // difference measure
 		QVector<      // variation aggregation
 		QVector<      // parameter index
-		double>>>>
+		double>>>
 		aggregatedSensitivitiesPWDiff;
 
 	//! sensitivity at each parameter regarding fiber count
@@ -193,47 +206,33 @@ public:
 		double>>
 		charHistAvg;
 
-	// per-object sensitivity:
-	// required: 1-1 match between fibers
-	// compute on the fly? spatial subdivision structure required...
-
-	// Questions:
-	// options for characteristic comparison:
-	//    1. compute characteristic distribution difference
-	//        - advantage: dissimilarity measure independent
-	//        - disadvantage: distribution could be same even if lots of differences for single fibers
-	//    2. compute matching fibers; then compute characteristic difference; then average this
-	//        - advantage: represents actual differences better
-	//        - disadvantage: depending on dissimilarity measure (since best match could be computed per dissimiliarity measure
-	//    example: compare
-	//         - result 1 with fibers a (len=5), b (len=3) and c (len=2)
-	//         - result 2 with fibers A (len 3), B (len=2) and C (len=5)
-	//         - best matches between result1&2: a <-> A, b <-> B, c <-> C
-	//         - option 1 -> exactly the same, 1x5, 1x3, 1x2
-	//         - option 2 -> length differences: 2, 1, 3
-
-	// dissimilarity pairs:
+	//! the dissimilarity measures that were used in computing the below dissimilarity matrix
 	std::vector<std::pair<int, bool>> m_resultDissimMeasures;
+	//! dissimilarity information for all result pairs
 	iADissimilarityMatrixType m_resultDissimMatrix;
+	//! the ranges of result dissimilarity pairs: (result1, result2) -> dissimilarity
+	QVector<QPair<double, double>> m_resultDissimRanges;
 
 	// unique fibers:
 	//! one fiber is identified by resultID, fiberID
 	using FiberKeyT = std::pair<size_t, size_t>;
-	//! list of unique fibers; outside vectors: unique fibers; inside vector: "matches"
+	//! data structure for list of unique fibers; outside vectors: unique fibers; inside vector: "matches"
 	using UniqueFibersT = std::vector<std::vector<FiberKeyT>>;
-
+	//! data structure to speed up unique fiber finding process: stores the unique fiber ID for every <resultID, fiberID> pair
 	using FiberToUniqueMapT = QMap<std::pair<size_t, size_t>, size_t>;
 
+	//! list of unique fibers
 	UniqueFibersT m_uniqueFibers;
+	//! map to speed up unique fiber finding process
 	FiberToUniqueMapT m_mapFiberToUnique;
 
-	QVector<QPair<double, double>> m_resultDissimRanges;
+	//! the dissimilarity measure that should be used to "optimize" computation of other dissimilarity measures
+	//! (by only taking the first n matches according to this measure)
+	//! probably unused currently, due to other optimization (by only considering fibers with matching bounding boxes)
 	int m_resultDissimOptimMeasureIdx;
 
 	//! image for holding overview over variation per voxel
 	vtkSmartPointer<vtkImageData> m_spatialOverview;
-
-	QString charactName(int selCharIdx) const;
 
 private:
 	QString cacheFileName(QString fileName) const;
@@ -241,6 +240,8 @@ private:
 	QString volumePercentageCacheFileName() const;
 	bool readDissimilarityMatrixCache(QVector<int>& measures);
 	void writeDissimilarityMatrixCache(QVector<int> const& measures) const;
+
+	double characteristicsDifference(int charIdx, qvectorsizetype r1Idx, qvectorsizetype r2Idx, int measureIdx);
 
 	bool m_aborted;
 };
@@ -251,10 +252,3 @@ public:
 	virtual std::vector<size_t> const& selectedResults() const = 0;
 	virtual iAColorTheme const* selectedResultColorTheme() const = 0;
 };
-
-
-#if QT_VERSION < QT_VERSION_CHECK(6, 0, 0)
-using qvectorsizetype = int;
-#else
-using qvectorsizetype = size_t;
-#endif
