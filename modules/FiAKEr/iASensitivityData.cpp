@@ -1121,7 +1121,7 @@ void iASensitivityData::compute(iAProgress* progress)
 				int numLeftRight = 0;
 				if (paramDiff > 0)
 				{
-					leftVar = characteristicsDifference(charIdx, resultIdxGroupStart, resultIdxParamStart, MeasureIdx);
+					leftVar = characteristicsDifference(m_charSelected[charIdx], resultIdxGroupStart, resultIdxParamStart, MeasureIdx);
 					++numLeftRight;
 					++numAllLeft;
 				}
@@ -1137,7 +1137,7 @@ void iASensitivityData::compute(iAProgress* progress)
 				if (paramDiff < 0)  // additional check required??
 				{
 					int firstPosStepIdx = resultIdxParamStart + (k - 1);
-					rightVar = characteristicsDifference(charIdx, resultIdxGroupStart, firstPosStepIdx, MeasureIdx);
+					rightVar = characteristicsDifference(m_charSelected[charIdx], resultIdxGroupStart, firstPosStepIdx, MeasureIdx);
 					++numLeftRight;
 					++numAllRight;
 				}
@@ -1152,7 +1152,7 @@ void iASensitivityData::compute(iAProgress* progress)
 						wasSmaller = false;
 						compareIdx = resultIdxGroupStart;
 					}
-					double difference = characteristicsDifference(charIdx, compareIdx, resultIdxParamStart + i, MeasureIdx);
+					double difference = characteristicsDifference(m_charSelected[charIdx], compareIdx, resultIdxParamStart + i, MeasureIdx);
 					sumTotal += difference;
 				}
 				numAllLeftRight += numLeftRight;

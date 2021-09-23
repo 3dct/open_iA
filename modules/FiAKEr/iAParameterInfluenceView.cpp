@@ -227,9 +227,16 @@ void iAParameterInfluenceView::addColumnAction(int objectType, int charactIdx, b
 	}
 }
 
-void iAParameterInfluenceView::setMeasure(int newMeasure)
+void iAParameterInfluenceView::setDistributionMeasure(int newMeasure)
 {
 	m_measureIdx = newMeasure;
+	updateStackedBars();
+	emit parameterChanged();
+}
+
+void iAParameterInfluenceView::setCharDiffMeasure(int newMeasure)
+{
+	m_charDiffMeasureIdx = newMeasure;
 	updateStackedBars();
 	emit parameterChanged();
 }
@@ -508,7 +515,10 @@ void iAParameterInfluenceView::updateStackedBars()
 	for (auto col : m_visibleCharacts)
 	{
 		auto const& d =
-		 ((col.first == outCharacteristic)  ? m_data->aggregatedSensitivities[col.second][m_measureIdx] :
+		 ((col.first == outCharacteristic)  ?
+			 (m_charDiffMeasureIdx == 0 ?
+				 m_data->aggregatedSensitivities[col.second][m_measureIdx] :
+				 m_data->aggregatedSensitivitiesPWDiff[col.second]) :
 		     ((col.first == outFiberCount)  ? m_data->aggregatedSensitivitiesFiberCount
 		 /*(col.first == outDissimilarity)*/: m_data->aggregatedSensDissim[col.second]))[m_aggrType];
 		// TODO: unify with addStackedBar
@@ -602,9 +612,11 @@ void iAParameterInfluenceView::updateStackedBarHistogram(QString const & barName
 
 	auto parChart = m_table[paramIdx]->par[barIdx];
 	parChart->clearPlots();
-	auto const& d = ((outType == outCharacteristic)
-		? m_data->sensitivityField[outIdx][m_measureIdx][m_aggrType]
-		: (outType == outFiberCount)
+	auto const& d = ((outType == outCharacteristic) ?
+		(m_charDiffMeasureIdx == 0 ?
+				 m_data->sensitivityField[outIdx][m_measureIdx][m_aggrType] :
+				 m_data->sensitivityFieldPWDiff[outIdx][m_aggrType]) :
+		(outType == outFiberCount)
 			? m_data->sensitivityFiberCount[m_aggrType]
 			: /* (outType == outDissimilarity)*/ m_data->sensDissimField[outIdx][m_aggrType])[paramIdx];
 	auto plotData = iAXYPlotData::create("Sensitivity " + columnName(outType, outIdx), iAValueType::Continuous, d.size());
@@ -677,7 +689,10 @@ void iAParameterInfluenceView::addStackedBar(int outType, int outIdx)
 	auto title(columnName(outType, outIdx));
 	LOG(lvlDebug, QString("Showing stacked bar for characteristic %1").arg(title));
 	auto const& d = (
-		   (outType == outCharacteristic)  ? m_data->aggregatedSensitivities[outIdx][m_measureIdx]:
+		   (outType == outCharacteristic)  ?
+				(m_charDiffMeasureIdx == 0 ?
+					m_data->aggregatedSensitivities[outIdx][m_measureIdx] :
+					m_data->aggregatedSensitivitiesPWDiff[outIdx]) :
 		      ((outType == outFiberCount)  ? m_data->aggregatedSensitivitiesFiberCount
 		/*(col.first == outDissimilarity)*/: m_data->aggregatedSensDissim[outIdx]))[m_aggrType];
 

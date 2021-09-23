@@ -87,7 +87,7 @@ public:
 
 	//! characteristics histogram for each result and characteristic
 	QVector<          // For each result,
-		QVector<      // for each characteristic,
+		QVector<      // for each characteristic (index in _selected_ characteristics, not in overall!),
 		QVector<      // characteristic histogram bin
 		double>>>
 		m_charHistograms;

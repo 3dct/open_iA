@@ -79,6 +79,7 @@ private:
 
 	void updateDifferenceView();
 	void showSpatialOverview();
+	QVector<QVector<double>> currentAggregatedSensitivityMatrix();
 
 	QString m_parameterFileName;
 	int m_skipColumns;
@@ -101,7 +102,8 @@ signals:
 	void viewDifference(size_t result1, size_t result2);
 public slots:
 	void changeAggregation(int newAggregation);
-	void changeMeasure(int newMeasure);
+	void changeDistributionMeasure(int newMeasure);
+	void changedCharDiffMeasure(int newMeasure);
 	void updateDissimilarity();
 	void spHighlightChanged();
 	void updateSPDifferenceColors();

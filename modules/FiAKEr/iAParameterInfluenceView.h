@@ -50,7 +50,8 @@ class iAParameterInfluenceView : public QWidget
 public:
 	iAParameterInfluenceView(QSharedPointer<iASensitivityData> data, QSharedPointer<iASensitivityViewState> viewState,
 		QColor const& paramColor, QColor const& outputColor);
-	void setMeasure(int newMeasure);
+	void setDistributionMeasure(int newMeasure);
+	void setCharDiffMeasure(int newMeasure);
 	void setAggregation(int newAggregation);
 	void setResultSelected(size_t resultIdx, bool state, QColor c);
 	int selectedMeasure() const;
@@ -96,8 +97,10 @@ private:
 	QSharedPointer<iASensitivityData> m_data;
 	//! view state:
 	QSharedPointer<iASensitivityViewState> m_viewState;
-	//! measure to use
+	//! values from which distribution difference measure to show
 	int m_measureIdx;
+	//! whether to show values from distribution based (0) or pairwise characteristics difference measures
+	int m_charDiffMeasureIdx;
 	//! aggregation type
 	int m_aggrType;
 	int m_selectedParam, m_selectedCol;

@@ -65,19 +65,14 @@ namespace
 }
 
 iAAlgorithmInfo::iAAlgorithmInfo(QString const& name, QStringList const& inNames, QStringList const& outNames,
-	QColor const& inColor,
-	QColor const& outColor, QVector<QVector<QVector<QVector<double>>>> const& agrSens) :
+	QColor const& inColor, QColor const& outColor) :
 	m_name(name),
 	m_inNames(inNames),
 	m_outNames(outNames),
 	m_inColor(inColor),
 	m_outColor(outColor),
 	m_selectedIn(-1),
-	m_agrSens(agrSens),
-	m_maxS(m_agrSens.size()),
-	//m_maxO(),
-	m_measureIdx(0),
-	m_aggrType(0),
+	m_maxPerColumn(m_outNames.size()),
 	m_inWidth(1),
 	m_outWidth(1),
 	m_boxMinWidth(1),
@@ -86,24 +81,20 @@ iAAlgorithmInfo::iAAlgorithmInfo(QString const& name, QStringList const& inNames
 	m_normalizePerOut(false)
 {
 	setSizePolicy(QSizePolicy::Expanding, QSizePolicy::MinimumExpanding);
-	updateSensitivityMax();
 }
 
-void iAAlgorithmInfo::updateSensitivityMax()
+void iAAlgorithmInfo::updateMatrixMax()
 {
 	// determine max sensitivity (per output characteristic)
 	// for proper scaling (determining min not needed - at no variation, the minimum is zero,
 	// so norming the minimum encountered to 0 would lead to omitting showing the smallest variation influence:
-	m_maxO = std::numeric_limits<double>::lowest();
-	for (int c = 0; c < m_agrSens.size(); ++c)
+	assert(m_matrix.size() == m_outNames.size());
+	for (int col = 0; col < m_matrix.size(); ++col)
 	{
-		auto const& d = m_agrSens[c][m_measureIdx][m_aggrType];
-		m_maxS[c] = *std::max_element(d.begin(), d.end());
-		if (m_maxS[c] > m_maxO)
-		{
-			m_maxO = m_maxS[c];
-		}
+		assert(m_matrix[col].size() == m_inNames.size());
+		m_maxPerColumn[col] = *std::max_element(m_matrix[col].begin(), m_matrix[col].end());
 	}
+	m_maxTotal = *std::max_element(m_maxPerColumn.begin(), m_maxPerColumn.end());
 }
 
 int iAAlgorithmInfo::boxHeight() const
@@ -141,20 +132,6 @@ void iAAlgorithmInfo::removeShownOut(int outIdx)
 void iAAlgorithmInfo::setInSortOrder(QVector<int> const& inSortOrder)
 {
 	m_inSort = inSortOrder;
-	update();
-}
-
-void iAAlgorithmInfo::setMeasure(int newMeasure)
-{
-	m_measureIdx = newMeasure;
-	updateSensitivityMax();
-	update();
-}
-
-void iAAlgorithmInfo::setAggregation(int newAggregation)
-{
-	m_aggrType = newAggregation;
-	updateSensitivityMax();
 	update();
 }
 
@@ -250,15 +227,15 @@ void iAAlgorithmInfo::drawConnectors(QPainter& p, int left, int width, QStringLi
 	}
 }
 
-void iAAlgorithmInfo::drawSensitivities(QPainter& p, QVector<QPoint> paramPt, QVector<QPoint> characPt)
+void iAAlgorithmInfo::drawMatrixLinks(QPainter& p, QVector<QPoint> inPt, QVector<QPoint> outPt)
 {
 	const int C = 255;
-	for (int charIdx = 0; charIdx < m_agrSens.size(); ++charIdx)
+	for (int outIdx = 0; outIdx < m_matrix.size(); ++outIdx)
 	{
-		for (int paramIdx = 0; paramIdx < m_agrSens[charIdx][m_measureIdx][m_aggrType].size(); ++paramIdx)
+		for (int inIdx = 0; inIdx < m_matrix[outIdx].size(); ++inIdx)
 		{
-			int pIdx = m_inSort.size() > 0 ? m_inSort[paramIdx] : paramIdx;
-			double normVal = mapVal(charIdx, m_agrSens[charIdx][m_measureIdx][m_aggrType][pIdx]);
+			int pIdx = m_inSort.size() > 0 ? m_inSort[inIdx] : inIdx;
+			double normVal = mapVal(outIdx, m_matrix[outIdx][pIdx]);
 			if (!dblApproxEqual(normVal, 0.0))
 			{
 				// maybe draw in order of increasing sensitivities?
@@ -267,7 +244,7 @@ void iAAlgorithmInfo::drawSensitivities(QPainter& p, QVector<QPoint> paramPt, QV
 				pen.setColor(QColor(colorVal, colorVal, colorVal));
 				pen.setWidth(std::max(1.0, MaxLineWidth * normVal));
 				p.setPen(pen);
-				p.drawLine(paramPt[paramIdx], characPt[charIdx]);
+				p.drawLine(inPt[inIdx], outPt[outIdx]);
 			}
 		}
 	}
@@ -350,13 +327,13 @@ void iAAlgorithmInfo::paintEvent(QPaintEvent* ev)
 			HMargin + m_inWidth, TopMargin, width() - (2 * HMargin + m_inWidth + m_outWidth), boxHeight());
 		p.drawRect(algoBox);
 		p.drawText(algoBox, Qt::AlignHCenter | Qt::AlignBottom, m_name);
-		QVector<QPoint> paramPt, characPt;
-		drawConnectors(p, HMargin, m_inWidth, m_inNames, m_inRects, m_inColor, m_selectedIn, QVector<int>(),
-			m_inSort, paramPt, true,
+		QVector<QPoint> inPt, outPt;
+		drawConnectors(p, HMargin, m_inWidth, m_inNames, m_inRects, m_inColor, m_selectedIn, QVector<int>(), m_inSort,
+			inPt, true,
 			boxHeight() - LegendHeightMin - LegendMargin - LegendSpacing - p.fontMetrics().height());
 		drawConnectors(p, HMargin + m_inWidth + algoBox.width(), m_outWidth, m_outNames, m_outRects, m_outColor, -1,
-			m_shownOut, QVector<int>(), characPt, false, boxHeight());
-		drawSensitivities(p, paramPt, characPt);
+			m_shownOut, QVector<int>(), outPt, false, boxHeight());
+		drawMatrixLinks(p, inPt, outPt);
 		drawLegend(p, m_inWidth, false);
 	}
 	else
@@ -397,12 +374,12 @@ void iAAlgorithmInfo::paintEvent(QPaintEvent* ev)
 
 		// draw sensitivities :
 		const int C = 255;
-		for (int inIdx = 0; inIdx < m_inNames.size(); ++inIdx)
+		for (int outIdx = 0; outIdx < m_matrix.size(); ++outIdx)
 		{
-			for (int outIdx = 0; outIdx < m_outNames.size(); ++outIdx)
+			for (int inIdx = 0; inIdx < m_matrix[outIdx].size(); ++inIdx)
 			{
 				int pIdx = m_inSort.size() > 0 ? m_inSort[inIdx] : inIdx;
-				double normVal = mapVal(outIdx, m_agrSens[outIdx][m_measureIdx][m_aggrType][pIdx]);
+				double normVal = mapVal(outIdx, m_matrix[outIdx][pIdx]);
 				int colorVal = C - (C * normVal);
 				QRect boxRect(matrixRect.left() + outIdx * cellWidth, matrixRect.top() + inIdx * cellHeight,
 					cellWidth, cellHeight);
@@ -456,13 +433,20 @@ void iAAlgorithmInfo::mousePressEvent(QMouseEvent* ev)
 }
 QSize iAAlgorithmInfo::sizeHint() const
 {
-return (m_displayMode == Box)
-	? QSize(m_inWidth + m_outWidth + m_boxMinWidth,
-			oneEntryHeight() * std::max(m_inNames.size(), m_outNames.size()))
-	: QSize(m_inWidth + m_outNames.size() * MatrixMinBoxSize, m_outWidth + m_inNames.size() * MatrixMinBoxSize);
+	return (m_displayMode == Box)
+		? QSize(m_inWidth + m_outWidth + m_boxMinWidth,
+				oneEntryHeight() * std::max(m_inNames.size(), m_outNames.size()))
+		: QSize(m_inWidth + m_outNames.size() * MatrixMinBoxSize, m_outWidth + m_inNames.size() * MatrixMinBoxSize);
 }
 
-double iAAlgorithmInfo::mapVal(int inIdx, double val)
+void iAAlgorithmInfo::setMatrix(iAMatrixType const& matrix)
 {
-	return mapToNorm(0.0, m_normalizePerOut ? m_maxS[inIdx] : m_maxO, val);
+	m_matrix = matrix;
+	updateMatrixMax();
+	update();
+}
+
+double iAAlgorithmInfo::mapVal(int outIdx, double val)
+{
+	return mapToNorm(0.0, m_normalizePerOut ? m_maxPerColumn[outIdx] : m_maxTotal, val);
 }

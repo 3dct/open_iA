@@ -120,7 +120,7 @@ namespace
 	QColor OutputColor(255, 200, 200, 255);
 	QColor ScatterPlotPointColor(80, 80, 80, 128);
 
-	const int SelectedAggregationMeasureIdx = 3;
+	const int DefaultAggregationMeasureIdx = 3;
 	/*
 	void logMeshSize(QString const& name, vtkSmartPointer<vtkPolyData> mesh)
 	{
@@ -410,7 +410,7 @@ public:
 	{
 		cmbboxMeasure->addItems(DistributionDifferenceMeasureNames());
 		cmbboxAggregation->addItems(AggregationNames());
-		cmbboxAggregation->setCurrentIndex(SelectedAggregationMeasureIdx);
+		cmbboxAggregation->setCurrentIndex(DefaultAggregationMeasureIdx);
 
 		QStringList dissimilarities;
 		for (auto dissim : sensInf->data().m_resultDissimMeasures)
@@ -425,8 +425,9 @@ public:
 		cmbboxSPHighlightColorScale->addItems(iAColorThemeManager::instance().availableThemes());
 		cmbboxSPHighlightColorScale->setCurrentText("Brewer Set2 (max. 8)");
 
-		connect(cmbboxMeasure, QOverload<int>::of(&QComboBox::currentIndexChanged), sensInf, &iASensitivityInfo::changeMeasure);
+		connect(cmbboxMeasure, QOverload<int>::of(&QComboBox::currentIndexChanged), sensInf, &iASensitivityInfo::changeDistributionMeasure);
 		connect(cmbboxAggregation, QOverload<int>::of(&QComboBox::currentIndexChanged), sensInf, &iASensitivityInfo::changeAggregation);
+		connect(cmbboxCharDiff, QOverload<int>::of(&QComboBox::currentIndexChanged), sensInf, &iASensitivityInfo::changedCharDiffMeasure);
 
 		connect(cmbboxDissimilarity, QOverload<int>::of(&QComboBox::currentIndexChanged), sensInf, &iASensitivityInfo::updateDissimilarity);
 		connect(cmbboxSPColorMap, QOverload<int>::of(&QComboBox::currentIndexChanged), sensInf, &iASensitivityInfo::updateSPDifferenceColors);
@@ -1002,8 +1003,7 @@ void iASensitivityInfo::createGUI()
 	{
 		algoOutNames << m_data->charactName(charIdx);
 	}
-	m_gui->m_algoInfo = new iAAlgorithmInfo("Fiber Reconstruction", algoInNames, algoOutNames, ParamColor, OutputColor,
-		m_data->aggregatedSensitivities);
+	m_gui->m_algoInfo = new iAAlgorithmInfo("Fiber Reconstruction", algoInNames, algoOutNames, ParamColor, OutputColor);
 	m_gui->m_algoInfo->addShownOut(0);  // equivalent to addStackedBar in iAParameterInfluenceView constructor!
 	connect(m_gui->m_algoInfo, &iAAlgorithmInfo::inputClicked, m_gui->m_paramInfluenceView,
 		&iAParameterInfluenceView::setSelectedParam);
@@ -1133,7 +1133,7 @@ void iASensitivityInfo::createGUI()
 
 	spVisibleParamChanged();
 	updateDissimilarity();
-	changeAggregation(SelectedAggregationMeasureIdx);
+	changeAggregation(DefaultAggregationMeasureIdx);
 
 	if (!m_projectToLoad.isEmpty())
 	{
@@ -1150,16 +1150,41 @@ void iASensitivityInfo::showSpatialOverview()
 	m_child->setModalities(mods);
 }
 
-void iASensitivityInfo::changeMeasure(int newMeasure)
+QVector<QVector<double>> iASensitivityInfo::currentAggregatedSensitivityMatrix()
 {
-	m_gui->m_paramInfluenceView->setMeasure(newMeasure);
-	m_gui->m_algoInfo->setMeasure(newMeasure);
+	int charDiffMode = m_gui->m_settings->cmbboxCharDiff->currentIndex();
+	int aggrType = m_gui->m_paramInfluenceView->selectedAggrType();
+	int measure = m_gui->m_paramInfluenceView->selectedMeasure();
+
+	QVector<QVector<double>> result(data().m_charSelected.size());
+	for (int c=0; c<data().m_charSelected.size(); ++c)
+	{
+		result[c].resize(data().m_variedParams.size());
+		for (int r = 0; r < data().m_variedParams.size(); ++r)
+		{
+			result[c][r] = (charDiffMode == 0) ? data().aggregatedSensitivities[c][measure][aggrType][r]
+											   : data().aggregatedSensitivitiesPWDiff[c][aggrType][r];
+		}
+	}
+	return result;
 }
 
 void iASensitivityInfo::changeAggregation(int newAggregation)
 {
 	m_gui->m_paramInfluenceView->setAggregation(newAggregation);
-	m_gui->m_algoInfo->setAggregation(newAggregation);
+	m_gui->m_algoInfo->setMatrix(currentAggregatedSensitivityMatrix());
+}
+
+void iASensitivityInfo::changeDistributionMeasure(int newMeasure)
+{
+	m_gui->m_paramInfluenceView->setDistributionMeasure(newMeasure);
+	m_gui->m_algoInfo->setMatrix(currentAggregatedSensitivityMatrix());
+}
+
+void iASensitivityInfo::changedCharDiffMeasure(int newMeasure)
+{
+	m_gui->m_paramInfluenceView->setCharDiffMeasure(newMeasure);
+	m_gui->m_algoInfo->setMatrix(currentAggregatedSensitivityMatrix());
 }
 
 void iASensitivityInfo::outputBarAdded(int outType, int outIdx)
