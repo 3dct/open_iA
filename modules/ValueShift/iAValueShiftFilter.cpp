@@ -36,15 +36,14 @@ void derivative(iAFilter* filter, QMap<QString, QVariant> const & params)
 	auto valueToReplace = params["ValueToReplace"].toInt();
 	auto replaceValue = params["Replace"].toInt();
 
-	#pragma omp parallel for
 	for (it.GoToBegin(); !it.IsAtEnd(); ++it)
 	{
-		if (it.Value() == valueToReplace)
+		if ((int)it.Value() == valueToReplace)
 		{
 			itOut.SetIndex(it.GetIndex())  ;
 			itOut.Set(0.0);
 		}
-		else if (it.Value() > replaceValue)
+		else if ((int)it.Value() > replaceValue)
 		{
 			itOut.SetIndex(it.GetIndex()) ;
 			auto value = it.Value();
