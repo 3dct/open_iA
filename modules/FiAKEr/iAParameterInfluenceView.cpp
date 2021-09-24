@@ -85,6 +85,7 @@ iAParameterInfluenceView::iAParameterInfluenceView(QSharedPointer<iASensitivityD
 	m_data(data),
 	m_viewState(viewState),
 	m_measureIdx(0),
+	m_charDiffMeasureIdx(0),
 	m_aggrType(0),
 	m_selectedParam(-1),
 	m_selectedCol(-1),
