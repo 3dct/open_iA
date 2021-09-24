@@ -444,9 +444,12 @@ void iAChartWidget::drawLegend(QPainter& painter)
 	);
 	QPoint upLeft(width() - boxSize.width() - LegendMargin, LegendMargin);
 	QRect boxRect(upLeft, boxSize);
-	QColor bgColor = qApp->palette().color(QWidget::backgroundRole());
-	painter.fillRect(boxRect, bgColor);
-	painter.setPen(qApp->palette().color(QPalette::Text));
+	// Pen settings: SolidLine and SquareCap are default, but MiterJoin is       xxxxx
+	// required instead of default BevelJoin to avoid one pixel in the lower     x   x
+	// left corner to be left out (see "image" on right how rectangle would      x   x
+	// look like with BevelJoin)                                                  xxxx
+	painter.setPen(QPen(qApp->palette().color(QPalette::Text), 1, Qt::SolidLine, Qt::SquareCap, Qt::MiterJoin));
+	painter.setBrush(qApp->palette().color(QWidget::backgroundRole()));
 	painter.drawRect(boxRect);
 	const int LegendColorLeft = upLeft.x() + LegendPadding;
 	const int TextLeft = LegendColorLeft + LegendItemWidth + LegendPadding;
@@ -1194,7 +1197,6 @@ void iAChartWidget::paintEvent(QPaintEvent* /*event*/)
 
 void iAChartWidget::drawAll(QPainter & painter)
 {
-	painter.setRenderHint(QPainter::Antialiasing);
 	if (m_plots.empty())
 	{
 		painter.drawText(QRect(0, 0, width(), height()), Qt::AlignCenter, m_emptyText);
@@ -1219,6 +1221,7 @@ void iAChartWidget::drawAll(QPainter & painter)
 	m_yMapper->update(m_yMappingMode == Logarithmic && m_yBounds[0] <= 0 ? LogYMapModeMin : m_yBounds[0], m_yBounds[1],
 		0, m_yZoom * (chartHeight() - 1));
 	painter.save();
+	painter.setRenderHint(QPainter::Antialiasing, true);
 	painter.translate(-xMapper().srcToDst(visibleXStart()) + leftMargin(), -bottomMargin());
 	drawImageOverlays(painter);
 	//change the origin of the window to left bottom
@@ -1243,6 +1246,7 @@ void iAChartWidget::drawAll(QPainter & painter)
 	drawAfterPlots(painter);
 
 	painter.scale(1, -1);
+	// axis, tick lines, legend rectangle etc. are transparent and more than 1 pixel width with AntiAliasing on
 	painter.setRenderHint(QPainter::Antialiasing, false);
 	drawAxes(painter);
 	painter.restore();
