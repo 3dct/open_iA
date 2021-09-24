@@ -55,6 +55,8 @@ public:
 	void computeSpatialOverview(iAProgress* p);
 	//! name of the cache file for the spatial overview image
 	QString spatialOverviewCacheFileName() const;
+	//! name of the cache file for the average fiber/voxel image (basically ~ mean objects)
+	QString averageFiberVoxelCacheFileName() const;
 	//! name of the cache file for the dissimilarity matrix
 	QString dissimilarityMatrixCacheFileName() const;
 	//! abort the sensitivity computation in case one is running
@@ -233,10 +235,13 @@ public:
 
 	//! image for holding overview over variation per voxel
 	vtkSmartPointer<vtkImageData> m_spatialOverview;
+	
+	vtkSmartPointer<vtkImageData> m_averageFiberVoxel;
 
 private:
 	QString cacheFileName(QString fileName) const;
 	QString uniqueFiberVarCacheFileName(size_t uIdx) const;
+	QString resultFiberCacheFileName(size_t uIdx) const;
 	QString volumePercentageCacheFileName() const;
 	bool readDissimilarityMatrixCache(QVector<int>& measures);
 	void writeDissimilarityMatrixCache(QVector<int> const& measures) const;

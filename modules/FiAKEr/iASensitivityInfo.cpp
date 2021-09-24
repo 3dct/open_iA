@@ -1143,10 +1143,22 @@ void iASensitivityInfo::createGUI()
 
 void iASensitivityInfo::showSpatialOverview()
 {
+	if (!m_data->m_spatialOverview && !m_data->m_averageFiberVoxel)	// the computation of any of the two images (or both) might have been aborted
+	{
+		return;
+	}
 	// show image
 	QSharedPointer<iAModalityList> mods(new iAModalityList());
-	mods->add(QSharedPointer<iAModality>::create("Avg fiber occupancy per voxel",
-		data().spatialOverviewCacheFileName(), 1, m_data->m_spatialOverview, iAModality::MainRenderer));
+	if (m_data->m_spatialOverview)
+	{
+		mods->add(QSharedPointer<iAModality>::create("Avg unique fiber/voxel", data().spatialOverviewCacheFileName(), 1,
+			m_data->m_spatialOverview, iAModality::MainRenderer));
+	}
+	if (m_data->m_averageFiberVoxel)
+	{
+		mods->add(QSharedPointer<iAModality>::create("Mean objects (fibers/voxel)",
+			data().averageFiberVoxelCacheFileName(), 1, m_data->m_averageFiberVoxel, iAModality::MainRenderer));
+	}
 	m_child->setModalities(mods);
 }
 

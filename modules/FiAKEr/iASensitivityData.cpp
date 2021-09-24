@@ -1217,14 +1217,6 @@ double iASensitivityData::characteristicsDifference(int charIdx, qvectorsizetype
 
 void iASensitivityData::computeSpatialOverview(iAProgress* progress)
 {
-	// check for cached spatial overview image:
-	if (QFile::exists(spatialOverviewCacheFileName()))
-	{
-		progress->setStatus(QString("Loading cached spatial overview from '%1'.").arg(spatialOverviewCacheFileName()));
-		readImage(spatialOverviewCacheFileName(), false, m_spatialOverview);
-		return;
-	}
-
 	// initialize 3D overview:
 	// required: for each result, and each fiber - quality of match to best-matching fiber in all others
 	// 	   Q: how to aggregate one value per fiber?
@@ -1264,49 +1256,97 @@ void iASensitivityData::computeSpatialOverview(iAProgress* progress)
 	iAVec3d origin = overallBB[0];
 
 	QFile volPercentOutFile(volumePercentageCacheFileName());
-	if (!volPercentOutFile.open(QIODevice::WriteOnly))
+	if (volPercentOutFile.exists() && QFile::exists(averageFiberVoxelCacheFileName()))
 	{
-		LOG(lvlError,
-			QString("FIAKER fiber volume percentage: Cannot open file %1 for writing!")
-				.arg(volumePercentageCacheFileName()));
+		progress->setStatus(QString("Loading average fiber volume coverage cache from %1.").arg(averageFiberVoxelCacheFileName()));
+		readImage(averageFiberVoxelCacheFileName(), false, m_averageFiberVoxel);
+	}
+	else
+	{
+		m_averageFiberVoxel = allocateImage(VTK_FLOAT, size, spacing.data());
+		m_averageFiberVoxel->SetOrigin(origin.data());
+		if (!volPercentOutFile.open(QIODevice::WriteOnly | QIODevice::Append))
+		{
+			LOG(lvlError,
+				QString("FIAKER fiber volume percentage: Cannot open file %1 for writing!")
+					.arg(volumePercentageCacheFileName()));
+			return;
+		}
+		QTextStream volPercentOut(&volPercentOutFile);
+		size_t overallVoxels = volSize * volSize * volSize;
+		if (volPercentOutFile.size() == 0)		// to support resuming
+		{
+			volPercentOut << "ResultID,Percentage,FiberVoxel(overall=" << overallVoxels << ")" << QTENDL;
+		}
+		for (size_t r = 0; r < resultCount && !m_aborted; ++r)
+		{
+			progress->setStatus(QString("Computing fiber volume coverage for result %1.").arg(r));
+			vtkSmartPointer<vtkImageData> resultFiberImg;
+			QString resultCacheFileName = resultFiberCacheFileName(r);
+			if (QFile::exists(resultCacheFileName))
+			{
+				readImage(resultCacheFileName, false, resultFiberImg);
+			}
+			else
+			{
+				resultFiberImg = allocateImage(VTK_FLOAT, size, spacing.data());
+				resultFiberImg->SetOrigin(origin.data());
+				fillImage(resultFiberImg, 0);
+				auto const& d = m_data->result[r];
+				for (size_t f = 0; f < d.fiberCount && !m_aborted; ++f)
+				{
+					projectFiberToImage(d.fiberData[f], d.fiberBB[f], resultFiberImg, size, spacing, origin);
+				}
+				// count voxels != 0:
+				size_t fiberVoxels = 0;
+				FOR_VTKIMG_PIXELS(resultFiberImg, x, y, z)
+				{
+					if (resultFiberImg->GetScalarComponentAsDouble(x, y, z, 0) != 0)
+					{
+						++fiberVoxels;
+					}
+					if (m_aborted)
+					{
+						break;
+					}
+				}
+				if (m_aborted)
+				{	// on aborting, also skip writing volume percentage and result fiber image, as they might be incorrect anyway.
+					break;
+				}
+				double volPercent = (100.0 * fiberVoxels) / overallVoxels;
+				volPercentOut << r << "," << volPercent << "," << fiberVoxels << QTENDL;
+				LOG(lvlInfo,
+					QString("Result %1: Fibers take up ~ %2 % of the volume (%3 of %4 voxels).")
+						.arg(r)
+						.arg(volPercent)
+						.arg(fiberVoxels)
+						.arg(overallVoxels));
+				storeImage(resultFiberImg, resultCacheFileName, true);
+			}
+			addImages(m_averageFiberVoxel, resultFiberImg);
+			progress->emitProgress(100 * (r + 1) / resultCount);
+		}
+		volPercentOutFile.close();
+		if (m_aborted)	// avoid storing incomplete image
+		{
+			return;
+		}
+		multiplyImage(m_averageFiberVoxel, 1.0 / resultCount);
+		storeImage(m_averageFiberVoxel, averageFiberVoxelCacheFileName());
+	}
+	if (m_aborted)
+	{
 		return;
 	}
-	QTextStream volPercentOut(&volPercentOutFile);
-	size_t overallVoxels = volSize * volSize * volSize;
-	volPercentOut << "ResultID,Percentage,FiberVoxel(overall=" << overallVoxels << ")" << QTENDL;
-	for (size_t r = 0; r < resultCount && !m_aborted; ++r)
+
+	// check for cached spatial overview image:
+	if (QFile::exists(spatialOverviewCacheFileName()))
 	{
-		auto resultFiberImg = allocateImage(VTK_FLOAT, size, spacing.data());
-		resultFiberImg->SetOrigin(origin.data());
-		fillImage(resultFiberImg, 0);
-		auto const& d = m_data->result[r];
-		for (size_t f = 0; f < d.fiberCount && !m_aborted; ++f)
-		{
-			projectFiberToImage(d.fiberData[f], d.fiberBB[f], resultFiberImg, size, spacing, origin);
-		}
-		// count voxels != 0:
-		size_t fiberVoxels = 0;
-		FOR_VTKIMG_PIXELS(resultFiberImg, x, y, z)
-		{
-			if (resultFiberImg->GetScalarComponentAsDouble(x, y, z, 0) != 0)
-			{
-				++fiberVoxels;
-			}
-			if (m_aborted)
-			{
-				break;
-			}
-		}
-		double volPercent = (100.0 * fiberVoxels) / overallVoxels;
-		volPercentOut << r << "," << volPercent << "," << fiberVoxels << QTENDL;
-		LOG(lvlInfo,
-			QString("Result %1: Fibers take up ~ %2 % of the volume (%3 of %4 voxels).")
-				.arg(r)
-				.arg(volPercent)
-				.arg(fiberVoxels)
-				.arg(overallVoxels));
+		progress->setStatus(QString("Loading cached spatial overview from '%1'.").arg(spatialOverviewCacheFileName()));
+		readImage(spatialOverviewCacheFileName(), false, m_spatialOverview);
+		return;
 	}
-	volPercentOutFile.close();
 
 	// NEW spatial overview over variability:
 
@@ -1366,6 +1406,10 @@ void iASensitivityData::computeSpatialOverview(iAProgress* progress)
 		progress->emitProgress(100 * (r1 + 1) / resultCount);
 	}
 	h.stop();
+	if (m_aborted)
+	{
+		return;
+	}
 
 	LOG(lvlDebug, QString("Found %1 unique fibers across results!").arg(m_uniqueFibers.size()));
 
@@ -1411,7 +1455,11 @@ void iASensitivityData::computeSpatialOverview(iAProgress* progress)
 
 		progress->emitProgress(100 * (uIdx + 1) / m_uniqueFibers.size());
 	}
-	multiplyImage(m_spatialOverview, m_uniqueFibers.size());
+	if (m_aborted)	// avoid storing incomplete spatial overview image
+	{
+		return;
+	}
+	multiplyImage(m_spatialOverview, 1.0 / m_uniqueFibers.size());
 	h.stop();
 
 	// build overall variability image: (-> incorporated in loop above)
@@ -1443,9 +1491,19 @@ QString iASensitivityData::spatialOverviewCacheFileName() const
 	return cacheFileName("spatialOverview-v0.mhd");
 }
 
+QString iASensitivityData::averageFiberVoxelCacheFileName() const
+{
+	return cacheFileName("averageFiberVoxels-v0.mhd");
+}
+
 QString iASensitivityData::uniqueFiberVarCacheFileName(size_t uIdx) const
 {
 	return cacheFileName(QString("uniqueFiberVar-%1-v0.mhd").arg(uIdx));
+}
+
+QString iASensitivityData::resultFiberCacheFileName(size_t rIdx) const
+{
+	return cacheFileName(QString("result-%1-v0.mhd").arg(rIdx));
 }
 
 bool iASensitivityData::readDissimilarityMatrixCache(QVector<int>& measures)
