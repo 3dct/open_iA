@@ -106,5 +106,4 @@ public:
 
 signals:
 	void styleChanged();
-	void histogramAvailable();
 };
