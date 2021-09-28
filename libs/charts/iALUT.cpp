@@ -23,7 +23,7 @@
 
 #include "iAColorTheme.h"
 #include "iALookupTable.h"
-#include "iAVtkVersion.h"
+#include "iAToolsVTK.h"
 
 #include <QColor>
 
@@ -1650,23 +1650,7 @@ int iALUT::BuildLUT( vtkSmartPointer<vtkLookupTable> pLUT, double const * lutRan
 		c.setRgb(189,  0, 38); ctf->AddRGBPoint(1.0 , c.redF(), c.greenF(), c.blueF());
 		break;
 	}
-#if VTK_VERSION_NUMBER <= VTK_VERSION_CHECK(8, 0, 0)
-	double lutRangeNonConst[2];
-	std::copy(lutRange, lutRange + 2, lutRangeNonConst);
-	pLUT->SetRange(lutRangeNonConst);
-	pLUT->SetTableRange(lutRangeNonConst);
-#else
-	pLUT->SetRange( lutRange );
-	pLUT->SetTableRange( lutRange );
-#endif
-	pLUT->SetNumberOfColors( numCols );
-	for( int i = 0; i < numCols; ++i )
-	{
-		double rgb[3];
-		ctf->GetColor( (double)i / numCols, rgb );
-		pLUT->SetTableValue( i, rgb[0], rgb[1], rgb[2] );
-	}
-	pLUT->Build();
+	convertTFToLUT(pLUT, ctf, nullptr, numCols, lutRange);
 	return ctf->GetSize();
 }
 
