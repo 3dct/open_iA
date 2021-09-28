@@ -2663,7 +2663,7 @@ void MdiChild::histogramDataAvailable(int modalityIdx)
 		splitDockWidget(m_dwRenderer, m_dwHistogram, Qt::Vertical);
 		addProfile();
 	}
-	emit histogramAvailable();
+	emit histogramAvailable(modalityIdx);
 }
 
 size_t MdiChild::histogramNewBinCount(QSharedPointer<iAModality> mod)

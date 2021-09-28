@@ -404,7 +404,7 @@ private:
 
 	void setupViewInternal(bool active);
 
-	void setHistogramModality(int modalityIdx);
+	void setHistogramModality(int modalityIdx) override;
 	void displayHistogram(int modalityIdx);
 	int  currentModality() const;
 	void initModalities();
