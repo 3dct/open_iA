@@ -35,9 +35,9 @@ class vtkPiecewiseFunction;
 namespace iALUT
 {
 	iAcharts_API const QStringList&  GetColorMapNames();
-	iAcharts_API int BuildLUT( vtkSmartPointer<vtkLookupTable> pLUT, double const * lutRange, QString colorMap, int numCols = 256 );
-	iAcharts_API int BuildLUT( vtkSmartPointer<vtkLookupTable> pLUT, double rangeFrom, double rangeTo, QString colorMap, int numCols = 256 );
-	iAcharts_API iALookupTable Build(double const * lutRange, QString colorMap, int numCols, double alpha);
+	iAcharts_API int BuildLUT(vtkSmartPointer<vtkLookupTable> pLUT, double const * lutRange, QString colorMap, int numCols = 256, bool reverse = false);
+	iAcharts_API int BuildLUT(vtkSmartPointer<vtkLookupTable> pLUT, double rangeFrom, double rangeTo, QString colorMap, int numCols = 256, bool reverse = false);
+	iAcharts_API iALookupTable Build(double const * lutRange, QString colorMap, int numCols, double alpha, bool reverse = false);
 
 	iAcharts_API vtkSmartPointer<vtkPiecewiseFunction> BuildLabelOpacityTF(int labelCount);
 	iAcharts_API vtkSmartPointer<vtkLookupTable> BuildLabelColorTF(int labelCount, iAColorTheme const * colorTheme);

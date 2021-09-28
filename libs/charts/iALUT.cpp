@@ -31,6 +31,8 @@
 #include <vtkLookupTable.h>
 #include <vtkPiecewiseFunction.h>
 
+// TODO: extract to resource file that is read from disk at startup!
+
 const QStringList colormaps = QStringList()
 // diverging:
 	<< "Diverging blue-gray-red"
@@ -68,6 +70,122 @@ const QStringList& iALUT::GetColorMapNames()
 
 namespace
 {
+
+double divergingBlueGrayRed[][3] = {
+	{0.230, 0.299, 0.754},
+	{0.865, 0.865, 0.865},
+	{0.706, 0.016, 0.150}
+};
+
+double blackBody[][3] = {                   // Black Body http://www.kennethmoreland.com/color-advice/
+	{0.0, 0.0, 0.0},
+	{0.251720295995, 0.0884210421079, 0.0696046995283},
+	{0.493237985431, 0.12134447042, 0.108818616983},
+	{0.721654217074, 0.19689465803, 0.128274044848},
+	{0.857243660245, 0.396604712155, 0.039717323074},
+	{0.893886453749, 0.631451293491, 0.0130550121463},
+	{0.913697911059, 0.845646813981, 0.222765707352},
+	{1.0, 1.0, 1.0}
+};
+
+double extendedBlackBody[][3] = {           // Extended Black Body http://www.kennethmoreland.com/color-advice/
+	{0.0, 0.0, 0.0},
+	{0.169638222229, 0.0586571629275, 0.420432193125},
+	{0.363946896841, 0.0, 0.784994035048},
+	{0.774966161238, 0.0, 0.455769190891},
+	{0.923364177686, 0.326317530516, 0.233758094872},
+	{0.961153380556, 0.593535622168, 0.189790175914},
+	{0.913697911059, 0.845646813981, 0.222765707352},
+	{1.0, 1.0, 1.0}
+};
+
+double kindlmann[][3] = {                   // Kindlmann http://www.kennethmoreland.com/color-advice/
+	{0.0, 0.0, 0.0},
+	{0.2058836328, 0.0200081348995, 0.419451331093},
+	{0.0335272327849, 0.22111999029, 0.703052629353},
+	{0.021854471454, 0.451151641812, 0.380313980138},
+	{0.0298263835637, 0.624285254063, 0.133059337268},
+	{0.395075620074, 0.771599170072, 0.0373892404385},
+	{0.976621102575, 0.813785197546, 0.509571446188},
+	{1.0, 1.0, 1.0}
+};
+
+double extendedKindlmann[][3] = {           // Kindlmann Extended http://www.kennethmoreland.com/color-advice/
+	{0.0, 0.0, 0.0},
+	{0.165244050347, 0.0224832200874, 0.47021606479},
+	{0.0147354562034, 0.305005386829, 0.208719146502},
+	{0.154492186368, 0.456128474882, 0.0218404104551},
+	{0.866948968961, 0.388363362964, 0.0413685026023},
+	{0.978023338129, 0.539236804307, 0.792434027154},
+	{0.898924549826, 0.805934065795, 0.990584977084},
+	{1.0, 1.0, 1.0}
+};
+
+unsigned char cbSingleHueOrange[][3] = {    // ColorBrewer single hue 5-class oranges (from orange to neutral)
+	{166, 54, 3},
+	{230, 85, 13},
+	{253, 141, 60},
+	{253, 190, 133},
+	{254, 237, 222}
+};
+
+unsigned char cbSingleHueGray[][3] = {      // ColorBrewer single hue 5-class grays
+	{37, 37, 37},
+	{99, 99, 99},
+	{150, 150, 150},
+	{204, 204, 204},
+	{247, 247, 247}
+};
+
+unsigned char cbSingleHueRed[][3] = {       // ColorBrewer single hue 5-class reds (from neutral to red)
+	{254, 229, 217},
+	{252, 174, 145},
+	{251, 106, 74},
+	{222, 45, 38},
+	{165, 15, 21}
+};
+
+unsigned char cbQual12ClassSet3[][3] = {    // ColorBrewer qualitative 12-class Set3
+	{141, 211, 199},
+	{255, 255, 179},
+	{190, 186, 218},
+	{251, 128, 114},
+	{128, 177, 211},
+	{253, 180,  98},
+	{179, 222, 105},
+	{252, 205, 229},
+	{217, 217, 217},
+	{188, 128, 189},
+	{204, 235, 197},
+	{255, 237, 111}
+};
+
+unsigned char cbQual9ClassSet1[][3] = {    // ColorBrewer qualitative 9-class Set1
+	{228, 26, 28},
+	{55, 126, 184},
+	{77, 175, 74},
+	{152, 78, 163},
+	{255, 127, 0},
+	{255, 255, 51},
+	{166, 86, 40},
+	{247, 129, 191},
+	{153, 153, 153}
+};
+
+unsigned char cbQual12ClassPaired[][3] = {  // ColorBrewer qualitative 12-class Paired
+	{166, 206, 227},
+	{31, 120, 180},
+	{178, 223, 138},
+	{51, 160, 44},
+	{251, 154, 153},
+	{227, 26, 28},
+	{253, 191, 111},
+	{255, 127, 0},
+	{202, 178, 214},
+	{106, 61, 154},
+	{255, 255, 153},
+	{177, 89, 40},
+};
 
 // "Jet" (=standard) Rainbow color map
 // Source: https://bugs.launchpad.net/inkscape/+bug/236508
@@ -1463,207 +1581,86 @@ double viridis_data[][3] = {
 	{0.993248, 0.906157, 0.143936}
 };
 
-void addByteData(vtkSmartPointer<vtkColorTransferFunction> ctf, unsigned char const data[][3], int count)
+unsigned char cbYlOrBr5Class[][3] = {       // Brewer YlOrBr 5c
+	{255, 255, 212},
+	{254, 217, 142},
+	{254, 153, 41},
+	{217, 95, 14},
+	{153, 52, 4},
+};
+
+unsigned char cbYlOrRd5Class[][3] = {	    // Brewer YlOrRd 5c
+	{255, 255, 178},
+	{254, 204, 92},
+	{253, 141, 60},
+	{240, 59, 32},
+	{189, 0, 38},
+};
+
+void addByteData(vtkSmartPointer<vtkColorTransferFunction> ctf, unsigned char const data[][3], int count, bool reverse)
 {
+	double maxV = static_cast<double>(count - 1);
 	for (int i = 0; i < count; ++i)
 	{
-		ctf->AddRGBPoint(static_cast<double>(i) / count, data[i][0] / 255.0, data[i][1] / 255.0, data[i][2] / 255.0);
+		ctf->AddRGBPoint((reverse ? (maxV - i) : i) / maxV, data[i][0] / 255.0, data[i][1] / 255.0, data[i][2] / 255.0);
 	}
 }
 
-void addData(vtkSmartPointer<vtkColorTransferFunction> ctf, double const data[][3], int count)
+void addData(vtkSmartPointer<vtkColorTransferFunction> ctf, double const data[][3], int count, bool reverse)
 {
+	double maxV = static_cast<double>(count - 1);
 	for (int i = 0; i < count; ++i)
 	{
-		ctf->AddRGBPoint(static_cast<double>(i) / count, data[i][0], data[i][1], data[i][2]);
+		ctf->AddRGBPoint((reverse ? (maxV - i) : i) / maxV, data[i][0], data[i][1], data[i][2]);
 	}
 }
 
-}
+} // namespace
 
-
-int iALUT::BuildLUT( vtkSmartPointer<vtkLookupTable> pLUT, double const * lutRange, QString colorMap, int numCols /*= 256 */)
+int iALUT::BuildLUT(vtkSmartPointer<vtkLookupTable> pLUT, double const * lutRange, QString colorMap, int numCols /*= 256 */, bool reverse /*= false*/)
 {
 	auto ctf = vtkSmartPointer<vtkColorTransferFunction>::New();
 	ctf->SetColorSpaceToLab();
 	QColor c;
 	switch(colormaps.indexOf(colorMap))
 	{
-	case 0:     // Diverging blue-gray-red
-		ctf->AddRGBPoint(0.0, 0.230, 0.299, 0.754);
-		ctf->AddRGBPoint(0.5, 0.865, 0.865, 0.865);
-		ctf->AddRGBPoint(1.0, 0.706, 0.016, 0.150);
-		break;
-
-	case 1:     // Diverging red-gray-blue
-		ctf->AddRGBPoint(0.0, 0.706, 0.016, 0.150);
-		ctf->AddRGBPoint(0.5, 0.865, 0.865, 0.865);
-		ctf->AddRGBPoint(1.0, 0.230, 0.299, 0.754);
-		break;
-
-	case 2:     // Black Body http://www.kennethmoreland.com/color-advice/
-		ctf->AddRGBPoint(0.0, 0.0, 0.0, 0.0);
-		ctf->AddRGBPoint(0.142857142857, 0.251720295995, 0.0884210421079, 0.0696046995283);
-		ctf->AddRGBPoint(0.285714285714, 0.493237985431, 0.12134447042, 0.108818616983);
-		ctf->AddRGBPoint(0.428571428571, 0.721654217074, 0.19689465803, 0.128274044848);
-		ctf->AddRGBPoint(0.571428571429, 0.857243660245, 0.396604712155, 0.039717323074);
-		ctf->AddRGBPoint(0.714285714286, 0.893886453749, 0.631451293491, 0.0130550121463);
-		ctf->AddRGBPoint(0.857142857143, 0.913697911059, 0.845646813981, 0.222765707352);
-		ctf->AddRGBPoint(1.0, 1.0, 1.0, 1.0);
-		break;
-
-	case 3:     // Extended Black Body http://www.kennethmoreland.com/color-advice/
-		ctf->AddRGBPoint(0.0, 0.0, 0.0, 0.0);
-		ctf->AddRGBPoint(0.142857142857, 0.169638222229, 0.0586571629275, 0.420432193125);
-		ctf->AddRGBPoint(0.285714285714, 0.363946896841, 0.0, 0.784994035048);
-		ctf->AddRGBPoint(0.428571428571, 0.774966161238, 0.0, 0.455769190891);
-		ctf->AddRGBPoint(0.571428571429, 0.923364177686, 0.326317530516, 0.233758094872);
-		ctf->AddRGBPoint(0.714285714286, 0.961153380556, 0.593535622168, 0.189790175914);
-		ctf->AddRGBPoint(0.857142857143, 0.913697911059, 0.845646813981, 0.222765707352);
-		ctf->AddRGBPoint(1.0, 1.0, 1.0, 1.0);
-		break;
-
-	case 4:     // Kindlmann http://www.kennethmoreland.com/color-advice/
-		ctf->AddRGBPoint(0.0, 0.0, 0.0, 0.0);
-		ctf->AddRGBPoint(0.142857142857, 0.2058836328, 0.0200081348995, 0.419451331093);
-		ctf->AddRGBPoint(0.285714285714, 0.0335272327849, 0.22111999029, 0.703052629353);
-		ctf->AddRGBPoint(0.428571428571, 0.021854471454, 0.451151641812, 0.380313980138);
-		ctf->AddRGBPoint(0.571428571429, 0.0298263835637, 0.624285254063, 0.133059337268);
-		ctf->AddRGBPoint(0.714285714286, 0.395075620074, 0.771599170072, 0.0373892404385);
-		ctf->AddRGBPoint(0.857142857143, 0.976621102575, 0.813785197546, 0.509571446188);
-		ctf->AddRGBPoint(1.0, 1.0, 1.0, 1.0);
-		break;
-
-	case 5:     // Kindlmann Extended http://www.kennethmoreland.com/color-advice/
-		ctf->AddRGBPoint(0.0, 0.0, 0.0, 0.0);
-		ctf->AddRGBPoint(0.142857142857, 0.165244050347, 0.0224832200874, 0.47021606479);
-		ctf->AddRGBPoint(0.285714285714, 0.0147354562034, 0.305005386829, 0.208719146502);
-		ctf->AddRGBPoint(0.428571428571, 0.154492186368, 0.456128474882, 0.0218404104551);
-		ctf->AddRGBPoint(0.571428571429, 0.866948968961, 0.388363362964, 0.0413685026023);
-		ctf->AddRGBPoint(0.714285714286, 0.978023338129, 0.539236804307, 0.792434027154);
-		ctf->AddRGBPoint(0.857142857143, 0.898924549826, 0.805934065795, 0.990584977084);
-		ctf->AddRGBPoint(1.0, 1.0, 1.0, 1.0);
-		break;
-
-	case 6:     // ColorBrewer single hue 5-class oranges (from orange to neutral)
-		c.setRgb(166, 54, 3);	 ctf->AddRGBPoint(0.0, c.redF(), c.greenF(), c.blueF());
-		c.setRgb(230, 85, 13);	 ctf->AddRGBPoint(0.25, c.redF(), c.greenF(), c.blueF());
-		c.setRgb(253, 141, 60);	 ctf->AddRGBPoint(0.5, c.redF(), c.greenF(), c.blueF());
-		c.setRgb(253, 190, 133); ctf->AddRGBPoint(0.75, c.redF(), c.greenF(), c.blueF());
-		c.setRgb(254, 237, 222); ctf->AddRGBPoint(1.0, c.redF(), c.greenF(), c.blueF());
-		break;
-
-	case 7:     // ColorBrewer single hue 5-class grays
-		c.setRgb(37, 37, 37);	 ctf->AddRGBPoint(0.0, c.redF(), c.greenF(), c.blueF());
-		c.setRgb(99, 99, 99);	 ctf->AddRGBPoint(0.25, c.redF(), c.greenF(), c.blueF());
-		c.setRgb(150, 150, 150); ctf->AddRGBPoint(0.5, c.redF(), c.greenF(), c.blueF());
-		c.setRgb(204, 204, 204); ctf->AddRGBPoint(0.75, c.redF(), c.greenF(), c.blueF());
-		c.setRgb(247, 247, 247); ctf->AddRGBPoint(1.0, c.redF(), c.greenF(), c.blueF());
-		break;
-	case 8:     // ColorBrewer single hue 5-class oranges (from neutral to orange)
-		c.setRgb(254, 237, 222); ctf->AddRGBPoint(0.0, c.redF(), c.greenF(), c.blueF());
-		c.setRgb(253, 190, 133); ctf->AddRGBPoint(0.25, c.redF(), c.greenF(), c.blueF());
-		c.setRgb(253, 141, 60);	 ctf->AddRGBPoint(0.5, c.redF(), c.greenF(), c.blueF());
-		c.setRgb(230, 85, 13);	 ctf->AddRGBPoint(0.75, c.redF(), c.greenF(), c.blueF());
-		c.setRgb(166, 54, 3);	 ctf->AddRGBPoint(1.0, c.redF(), c.greenF(), c.blueF());
-		break;
-
-	case 9:     // ColorBrewer single hue 5-class reds (from neutral to red)
-		c.setRgb(254, 229, 217); ctf->AddRGBPoint(0.0, c.redF(), c.greenF(), c.blueF());
-		c.setRgb(252, 174, 145); ctf->AddRGBPoint(0.25, c.redF(), c.greenF(), c.blueF());
-		c.setRgb(251, 106, 74);	 ctf->AddRGBPoint(0.5, c.redF(), c.greenF(), c.blueF());
-		c.setRgb(222, 45, 38);	 ctf->AddRGBPoint(0.75, c.redF(), c.greenF(), c.blueF());
-		c.setRgb(165, 15, 21);	 ctf->AddRGBPoint(1.0, c.redF(), c.greenF(), c.blueF());
-		break;
-
-	case 10:    // ColorBrewer qualitative 12-class Set3
-		c.setRgb(141, 211, 199); ctf->AddRGBPoint(0.0, c.redF(), c.greenF(), c.blueF());
-		c.setRgb(255, 255, 179); ctf->AddRGBPoint(0.09, c.redF(), c.greenF(), c.blueF());
-		c.setRgb(190, 186, 218); ctf->AddRGBPoint(0.18, c.redF(), c.greenF(), c.blueF());
-		c.setRgb(251, 128, 114); ctf->AddRGBPoint(0.27, c.redF(), c.greenF(), c.blueF());
-		c.setRgb(128, 177, 211); ctf->AddRGBPoint(0.36, c.redF(), c.greenF(), c.blueF());
-		c.setRgb(253, 180, 98);  ctf->AddRGBPoint(0.45, c.redF(), c.greenF(), c.blueF());
-		c.setRgb(179, 222, 105); ctf->AddRGBPoint(0.54, c.redF(), c.greenF(), c.blueF());
-		c.setRgb(252, 205, 229); ctf->AddRGBPoint(0.63, c.redF(), c.greenF(), c.blueF());
-		c.setRgb(217, 217, 217); ctf->AddRGBPoint(0.72, c.redF(), c.greenF(), c.blueF());
-		c.setRgb(188, 128, 189); ctf->AddRGBPoint(0.81, c.redF(), c.greenF(), c.blueF());
-		c.setRgb(204, 235, 197); ctf->AddRGBPoint(0.90, c.redF(), c.greenF(), c.blueF());
-		c.setRgb(255, 237, 111); ctf->AddRGBPoint(1.0, c.redF(), c.greenF(), c.blueF());
-		break;
-
-	case 11:    // ColorBrewer qualitative 9-class Set1
-		c.setRgb(228, 26, 28);   ctf->AddRGBPoint(0.0, c.redF(), c.greenF(), c.blueF());
-		c.setRgb(55, 126, 184);  ctf->AddRGBPoint(0.125, c.redF(), c.greenF(), c.blueF());
-		c.setRgb(77, 175, 74);   ctf->AddRGBPoint(0.25, c.redF(), c.greenF(), c.blueF());
-		c.setRgb(152, 78, 163);  ctf->AddRGBPoint(0.375, c.redF(), c.greenF(), c.blueF());
-		c.setRgb(255, 127, 0);   ctf->AddRGBPoint(0.5, c.redF(), c.greenF(), c.blueF());
-		c.setRgb(255, 255, 51);  ctf->AddRGBPoint(0.625, c.redF(), c.greenF(), c.blueF());
-		c.setRgb(166, 86, 40);   ctf->AddRGBPoint(0.75, c.redF(), c.greenF(), c.blueF());
-		c.setRgb(247, 129, 191); ctf->AddRGBPoint(0.875, c.redF(), c.greenF(), c.blueF());
-		c.setRgb(153, 153, 153); ctf->AddRGBPoint(1.0, c.redF(), c.greenF(), c.blueF());
-		break;
-
-	case 12:    // ColorBrewer qualitative 12-class Paired
-		c.setRgb(166, 206, 227); ctf->AddRGBPoint(0.0, c.redF(), c.greenF(), c.blueF());
-		c.setRgb( 31, 120, 180); ctf->AddRGBPoint(0.09, c.redF(), c.greenF(), c.blueF());
-		c.setRgb(178, 223, 138); ctf->AddRGBPoint(0.18, c.redF(), c.greenF(), c.blueF());
-		c.setRgb( 51, 160,  44); ctf->AddRGBPoint(0.27, c.redF(), c.greenF(), c.blueF());
-		c.setRgb(251, 154, 153); ctf->AddRGBPoint(0.36, c.redF(), c.greenF(), c.blueF());
-		c.setRgb(227,  26,  28); ctf->AddRGBPoint(0.45, c.redF(), c.greenF(), c.blueF());
-		c.setRgb(253, 191, 111); ctf->AddRGBPoint(0.54, c.redF(), c.greenF(), c.blueF());
-		c.setRgb(255, 127,   0); ctf->AddRGBPoint(0.63, c.redF(), c.greenF(), c.blueF());
-		c.setRgb(202, 178, 214); ctf->AddRGBPoint(0.72, c.redF(), c.greenF(), c.blueF());
-		c.setRgb(106,  61, 154); ctf->AddRGBPoint(0.81, c.redF(), c.greenF(), c.blueF());
-		c.setRgb(255, 255, 153); ctf->AddRGBPoint(0.90, c.redF(), c.greenF(), c.blueF());
-		c.setRgb(177,  89,  40); ctf->AddRGBPoint(1.00, c.redF(), c.greenF(), c.blueF());
-		break;
-	case 13:
-		addByteData(ctf, jet_data_byte, 72);
-		break;
-	case 14:
-		addData(ctf, turbo_data, 256);
-		break;
-	case 15:
-		addData(ctf, magma_data, 256);
-		break;
-	case 16:
-		addData(ctf, inferno_data, 256);
-		break;
-	case 17:
-		addData(ctf, plasma_data, 256);
-		break;
-	case 18:
-		addData(ctf, viridis_data, 256);
-		break;
-	case 19: // Brewer YlOrBr 5c
-		c.setRgb(255,255,212); ctf->AddRGBPoint(0.0 , c.redF(), c.greenF(), c.blueF());
-		c.setRgb(254,217,142); ctf->AddRGBPoint(0.25, c.redF(), c.greenF(), c.blueF());
-		c.setRgb(254,153, 41); ctf->AddRGBPoint(0.5 , c.redF(), c.greenF(), c.blueF());
-		c.setRgb(217, 95, 14); ctf->AddRGBPoint(0.75, c.redF(), c.greenF(), c.blueF());
-		c.setRgb(153, 52,  4); ctf->AddRGBPoint(1.0 , c.redF(), c.greenF(), c.blueF());
-		break;
-	case 20: // Brewer YlOrRd 5c
-		c.setRgb(255,255,178); ctf->AddRGBPoint(0.0 , c.redF(), c.greenF(), c.blueF());
-		c.setRgb(254,204, 92); ctf->AddRGBPoint(0.25, c.redF(), c.greenF(), c.blueF());
-		c.setRgb(253,141, 60); ctf->AddRGBPoint(0.5 , c.redF(), c.greenF(), c.blueF());
-		c.setRgb(240, 59, 32); ctf->AddRGBPoint(0.75, c.redF(), c.greenF(), c.blueF());
-		c.setRgb(189,  0, 38); ctf->AddRGBPoint(1.0 , c.redF(), c.greenF(), c.blueF());
-		break;
+	case  0: addData    (ctf, divergingBlueGrayRed, 3,  reverse); break;
+	case  1: addData    (ctf, divergingBlueGrayRed, 3, !reverse); break;
+	case  2: addData    (ctf, blackBody,            8,  reverse); break;
+	case  3: addData    (ctf, extendedBlackBody,    8,  reverse); break;
+	case  4: addData    (ctf, kindlmann,            8,  reverse); break;
+	case  5: addData    (ctf, extendedKindlmann,    8,  reverse); break;
+	case  6: addByteData(ctf, cbSingleHueOrange,    5,  reverse); break;
+	case  7: addByteData(ctf, cbSingleHueGray,      5,  reverse); break;
+	case  8: addByteData(ctf, cbSingleHueOrange,    5, !reverse); break;
+	case  9: addByteData(ctf, cbSingleHueRed,       5,  reverse); break;
+	case 10: addByteData(ctf, cbQual12ClassSet3,   12,  reverse); break;
+	case 11: addByteData(ctf, cbQual9ClassSet1,     9,  reverse); break;
+	case 12: addByteData(ctf, cbQual12ClassPaired, 12,  reverse); break;
+	case 13: addByteData(ctf, jet_data_byte,       72,  reverse); break;
+	case 14: addData    (ctf, turbo_data,         256,  reverse); break;
+	case 15: addData    (ctf, magma_data,         256,  reverse); break;
+	case 16: addData    (ctf, inferno_data,       256,  reverse); break;
+	case 17: addData    (ctf, plasma_data,        256,  reverse); break;
+	case 18: addData    (ctf, viridis_data,       256,  reverse); break;
+	case 19: addByteData(ctf, cbYlOrBr5Class,       5,  reverse); break;
+	case 20: addByteData(ctf, cbYlOrRd5Class,       5,  reverse); break;
 	}
 	convertTFToLUT(pLUT, ctf, nullptr, numCols, lutRange);
 	return ctf->GetSize();
 }
 
-int iALUT::BuildLUT( vtkSmartPointer<vtkLookupTable> pLUT, double rangeFrom, double rangeTo, QString colorMap, int numCols /*= 256 */)
+int iALUT::BuildLUT(vtkSmartPointer<vtkLookupTable> pLUT, double rangeFrom, double rangeTo, QString colorMap,
+	int numCols /*= 256 */, bool reverse /*= false*/)
 {
 	double lutRange[2] = { rangeFrom, rangeTo };
-	return BuildLUT( pLUT, lutRange, colorMap, numCols);
+	return BuildLUT( pLUT, lutRange, colorMap, numCols, reverse);
 }
 
-iALookupTable iALUT::Build(double const * lutRange, QString colorMap, int numCols, double /*alpha*/)
+iALookupTable iALUT::Build(double const * lutRange, QString colorMap, int numCols, double /*alpha*/, bool reverse /*= false*/)
 {
 	vtkSmartPointer<vtkLookupTable> vtkLUT(vtkSmartPointer<vtkLookupTable>::New());
-	BuildLUT(vtkLUT, lutRange, colorMap, numCols);
+	BuildLUT(vtkLUT, lutRange, colorMap, numCols, reverse);
 	iALookupTable result(vtkLUT);
 	return result;
 }
