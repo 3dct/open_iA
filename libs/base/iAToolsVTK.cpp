@@ -22,11 +22,13 @@
 
 #include "iAConnector.h"
 #include "iAFileUtils.h"
-#include "iALog.h"
-#include "iAProgress.h"
-#include "iAVtkDraw.h"
 #include "iAITKIO.h"
+#include "iALog.h"
+#include "iAMathUtility.h"      // for mapValue
+#include "iAProgress.h"
 #include "iATypedCallHelper.h"
+#include "iAVtkDraw.h"
+#include "iAVtkVersion.h"
 
 #include <vtkBMPWriter.h>
 #include <vtkCamera.h>
@@ -38,6 +40,10 @@
 #include <vtkPNGWriter.h>
 #include <vtkTIFFWriter.h>
 #include <vtkSmartVolumeMapper.h>
+
+#include <vtkColorTransferFunction.h>
+#include <vtkLookupTable.h>
+#include <vtkPiecewiseFunction.h>
 
 #include <QFileInfo>
 #include <QRegularExpression>
@@ -349,4 +355,47 @@ void setCamPosition(vtkCamera* cam, iACameraPosition pos)
 		cam->SetViewUp(0, 0, 1); cam->SetPosition(1, 1, 1); break;
 	}
 	cam->SetFocalPoint(0, 0, 0);
+}
+
+
+
+void convertLUTToTF(vtkSmartPointer<vtkLookupTable> lut, vtkSmartPointer<vtkColorTransferFunction> ctf,
+	vtkSmartPointer<vtkPiecewiseFunction> otf, double alphaOverride)
+{
+	ctf->RemoveAllPoints();
+	otf->RemoveAllPoints();
+	double const* range = lut->GetRange();
+	for (long long i = 0; i < lut->GetNumberOfColors(); ++i)
+	{
+		double const* rgba = lut->GetTableValue(i);
+		double value = mapValue(0ll, lut->GetNumberOfColors() - 1, range[0], range[1], i);
+		ctf->AddRGBPoint(value, rgba[0], rgba[1], rgba[2]);
+		otf->AddPoint(value, alphaOverride >= 0 ? alphaOverride : rgba[3]);
+	}
+}
+
+void convertTFToLUT(vtkSmartPointer<vtkLookupTable> lut, vtkSmartPointer<vtkScalarsToColors> ctf,
+	vtkSmartPointer<vtkPiecewiseFunction> otf, int numCols, double const* lutRange)
+{
+	double rgb[3];
+	double const* inRange = ctf->GetRange();
+	double const* outRange = lutRange ? lutRange : inRange;
+#if VTK_VERSION_NUMBER <= VTK_VERSION_CHECK(8, 0, 0)
+	double rangeNonConst[2];
+	std::copy(outRange, outRange + 2, rangeNonConst);
+	lut->SetRange(rangeNonConst);
+	lut->SetTableRange(rangeNonConst);
+#else
+	lut->SetRange(outRange);
+	lut->SetTableRange(outRange);
+#endif
+	lut->SetNumberOfTableValues(numCols);
+	for (long long i = 0; i < numCols; ++i)
+	{
+		double value = mapValue(0ll, lut->GetNumberOfColors() - 1, inRange[0], inRange[1], i);
+		ctf->GetColor(value, rgb);
+		double alpha = otf ? otf->GetValue(value) : 1.0;
+		lut->SetTableValue(i, rgb[0], rgb[1], rgb[2], alpha);
+	}
+	lut->Build();
 }

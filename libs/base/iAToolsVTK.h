@@ -32,6 +32,11 @@ class iAProgress;
 class vtkCamera;
 class vtkImageData;
 
+class vtkColorTransferFunction;
+class vtkLookupTable;
+class vtkPiecewiseFunction;
+class vtkScalarsToColors;
+
 class QString;
 
 //! Create a VTK image that has the same properties (type, size, spacing) as the given image.
@@ -152,3 +157,9 @@ enum iACameraPosition
 };
 
 iAbase_API void setCamPosition(vtkCamera* cam, iACameraPosition mode);
+
+// maybe better in iALUT (but that is in charts library -> move that to separate colors lib? to base?)
+iAbase_API void convertLUTToTF(vtkSmartPointer<vtkLookupTable> src, vtkSmartPointer<vtkColorTransferFunction> ctf,
+	vtkSmartPointer<vtkPiecewiseFunction> otf, double alphaOverride = -1);
+iAbase_API void convertTFToLUT(vtkSmartPointer<vtkLookupTable> dst, vtkSmartPointer<vtkScalarsToColors> ctf,
+	vtkSmartPointer<vtkPiecewiseFunction> otf, int numCols, double const* lutRange = nullptr);
