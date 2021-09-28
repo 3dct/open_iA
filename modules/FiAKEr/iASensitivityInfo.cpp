@@ -1170,7 +1170,7 @@ void iASensitivityInfo::showSpatialOverview()
 			auto mod = m_child->modality(modalityIdx);
 			double const* range = mod->image()->GetScalarRange();
 			vtkSmartPointer<vtkLookupTable> lut = vtkSmartPointer<vtkLookupTable>::New();
-			iALUT::BuildLUT(lut, range, "Matplotlib: Plasma", 128);
+			iALUT::BuildLUT(lut, range, "Matplotlib: Plasma", 128, true);
 			auto ctf = mod->transfer()->colorTF();
 			auto otf = mod->transfer()->opacityTF();
 			const double AlphaOverride = 0.2;
