@@ -149,6 +149,7 @@ private slots:
 	void histogramBinsChanged(int value);
 	void distributionColorThemeChanged(int index);
 	void resultColorThemeChanged(int index);
+	void setResultColorTheme(QString const& colorThemeName);
 	void stackedBarColorThemeChanged(int index);
 	void showReferenceInChartToggled();
 	void linkPreviewsToggled();
@@ -269,6 +270,9 @@ private:
 	std::vector<vtkSmartPointer<vtkActor> > m_contextActors;
 	iAMapper* m_diameterFactorMapper;
 	vtkSmartPointer<vtkActor> m_sampleActor;
+
+	bool m_colorOnlyShownResults;
+	std::vector<size_t> m_shownResults;
 
 	vtkSmartPointer<vtkCubeSource> m_customBoundingBoxSource;
 	vtkSmartPointer<vtkPolyDataMapper> m_customBoundingBoxMapper;

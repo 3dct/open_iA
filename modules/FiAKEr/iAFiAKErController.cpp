@@ -236,6 +236,7 @@ iAFiAKErController::iAFiAKErController(iAMainWindow* mainWnd, iAMdiChild* mdiChi
 	m_stackedBarColumn(3),
 	m_playTimer(new QTimer(mainWnd)),
 	m_refDistCompute(nullptr),
+	m_colorOnlyShownResults(false),
 	m_cameraInitialized(false),
 	m_spm(new iAQSplom())
 {
@@ -1007,6 +1008,10 @@ bool iAFiAKErController::matchQualityVisActive() const
 void iAFiAKErController::resultColorThemeChanged(int index)
 {
 	QString const colorThemeName = m_settingsView->cmbboxResultColors->itemText(index);
+}
+
+void iAFiAKErController::setResultColorTheme(QString const& colorThemeName)
+{
 	addInteraction(QString("Changed result color theme to '%1'.").arg(colorThemeName));
 	m_resultColorTheme = iAColorThemeManager::instance().theme(colorThemeName);
 
@@ -1056,12 +1061,14 @@ void iAFiAKErController::connectSensitivity()
 		return;
 	}
 	// "hack" go get results all to have same color; TODO: set in settings / use resultColorThemeChanged?
-	m_resultColorTheme = iAColorThemeManager::instance().theme("Gray");
+	m_resultColorTheme = iAColorThemeManager::instance().theme(iASensitivityInfo::DefaultResultColorScale); // "Gray"
+	m_colorOnlyShownResults = true;
 	connect(m_sensitivityInfo.data(), &iASensitivityInfo::aborted, this, &iAFiAKErController::resetSensitivity);
 	connect(m_sensitivityInfo.data(), &iASensitivityInfo::resultSelected, this, &iAFiAKErController::showMainVis);
 	connect(this, &iAFiAKErController::fiberSelectionChanged, m_sensitivityInfo.data(), &iASensitivityInfo::fiberSelectionChanged);
 	connect(m_sensitivityInfo.data(), &iASensitivityInfo::fibersToSelect, this,
 		&iAFiAKErController::selectFibersFromSensitivity);
+	connect(m_sensitivityInfo.data(), &iASensitivityInfo::resultColorsChanged, this, &iAFiAKErController::setResultColorTheme);
 	connect(m_mainWnd, &iAMainWindow::styleChanged, m_sensitivityInfo.data(), &iASensitivityInfo::styleChanged);
 }
 
@@ -1556,7 +1563,7 @@ void iAFiAKErController::showMainVis(size_t resultID, bool state)
 		}
 		else
 		{
-			ui.main3DVis->setColor(getResultColor(resultID));
+			ui.main3DVis->setColor(getResultColor(m_colorOnlyShownResults ? m_shownResults.size() : resultID));
 		}
 		if (ui.startPlotIdx != NoPlotsIdx)
 		{
@@ -1606,6 +1613,7 @@ void iAFiAKErController::showMainVis(size_t resultID, bool state)
 		}
 		m_style->addInput(resultID, ui.main3DVis->getPolyData(), ui.main3DVis->getActor() );
 		m_spm->viewData()->addFilter(m_data->m_resultIDColumn, resultID);
+		m_shownResults.push_back(resultID);
 	}
 	else
 	{
@@ -1650,6 +1658,18 @@ void iAFiAKErController::showMainVis(size_t resultID, bool state)
 		ui.main3DVis->hide();
 		m_style->removeInput(resultID);
 		m_spm->viewData()->removeFilter(m_data->m_resultIDColumn, resultID);
+		auto it = std::find(m_shownResults.begin(), m_shownResults.end(), resultID);
+		assert(it != m_shownResults.end());
+		if (m_colorOnlyShownResults)
+		{
+			size_t removeIdx = it - m_shownResults.begin();
+			for (size_t i = removeIdx + 1; i < m_shownResults.size(); ++i)
+			{
+				m_resultUIs[m_shownResults[i]].main3DVis->setColor(getResultColor(i-1));
+			}
+		}
+		m_shownResults.erase(it);
+
 	}
 	for (size_t c = 0; c < m_chartCount; ++c)
 	{

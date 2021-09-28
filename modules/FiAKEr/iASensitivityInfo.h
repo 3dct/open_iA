@@ -58,6 +58,8 @@ public:
 		std::vector<iAFiberResultUIData> const& resultUIs, vtkRenderWindow* main3DWin);
 	static bool hasData(iASettings const& settings);
 
+	static const QString DefaultResultColorScale;
+
 	void saveProject(QSettings& projectFile, QString  const& fileName);
 
 	iASensitivityData& data();
@@ -100,6 +102,7 @@ signals:
 	void resultSelected(size_t resultIdx, bool state);
 	void fibersToSelect(std::vector<std::vector<size_t>> const & selection);
 	void viewDifference(size_t result1, size_t result2);
+	void resultColorsChanged(QString const & themeName);
 public slots:
 	void changeAggregation(int newAggregation);
 	void changeDistributionMeasure(int newMeasure);

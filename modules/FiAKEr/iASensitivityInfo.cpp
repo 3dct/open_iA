@@ -133,6 +133,8 @@ namespace
 	*/
 }
 
+const QString iASensitivityInfo::DefaultResultColorScale("Brewer Set2 (max. 8)");
+
 // Factor out as generic CSV reading class also used by iACsvIO?
 bool readParameterCSV(QString const& fileName, QString const& encoding, QString const& columnSeparator,
 	iACsvTableCreator& tblCreator, size_t resultCount, int skipColumns)
@@ -423,7 +425,7 @@ public:
 		cmbboxSPColorMap->setCurrentText("Brewer single hue 5c grays");
 
 		cmbboxSPHighlightColorScale->addItems(iAColorThemeManager::instance().availableThemes());
-		cmbboxSPHighlightColorScale->setCurrentText("Brewer Set2 (max. 8)");
+		cmbboxSPHighlightColorScale->setCurrentText(iASensitivityInfo::DefaultResultColorScale);
 
 		connect(cmbboxMeasure, QOverload<int>::of(&QComboBox::currentIndexChanged), sensInf, &iASensitivityInfo::changeDistributionMeasure);
 		connect(cmbboxAggregation, QOverload<int>::of(&QComboBox::currentIndexChanged), sensInf, &iASensitivityInfo::changeAggregation);
@@ -1365,10 +1367,12 @@ void iASensitivityInfo::updateSPDifferenceColors()
 
 void iASensitivityInfo::updateSPHighlightColors()
 {
-	auto theme = iAColorThemeManager::instance().theme(m_gui->m_settings->cmbboxSPHighlightColorScale->currentText());
+	QString colorThemeName = m_gui->m_settings->cmbboxSPHighlightColorScale->currentText();
+	auto theme = iAColorThemeManager::instance().theme(colorThemeName);
 	m_gui->m_paramSP->setHighlightColorTheme(theme);
 	m_gui->m_mdsSP->setHighlightColorTheme(theme);
 	m_gui->m_paramInfluenceView->updateHighlightColors(m_gui->m_paramSP->viewData()->highlightedPoints(), theme);
+	emit resultColorsChanged(colorThemeName);
 }
 
 void iASensitivityInfo::spHighlightChanged()
