@@ -46,7 +46,13 @@
 
 namespace
 {
-	enum ColumnIndices { colParamName = 0, colMin = 1, colMax = 2, colStep = 3, colStackedBar = 4
+	enum ColumnIndices
+	{
+		colParamName = 0,
+		colMin = 1,
+		colMax = 2,
+		colStep = 3,
+		colStackedBar = 4
 		//, colHistogram = 5
 	};
 	const int GridSpacing = 2;
@@ -68,6 +74,13 @@ namespace
 
 	//const QColor ParamRowSelectedBGColor(245, 245, 245);
 	//const QColor ParamRowUnselectedBGColor(255, 255, 255);
+
+	QColor barGraphColor(QColor const& color)
+	{
+		QColor c(color);
+		c.setAlpha(64);  // we need a transparent color for bars
+		return c;
+	}
 }
 
 class iAParTableRow
@@ -438,7 +451,8 @@ void iAParameterInfluenceView::updateHighlightColors(std::vector<size_t> highlig
 					int charIdx = m_visibleCharacts[barIdx].second;
 					m_table[paramIdx]->par[barIdx]->setXMarker(paramValue, theme->color(i), Qt::DashLine);
 					auto plotKey = std::make_tuple(resultIdx, paramIdx, charIdx);
-					m_selectedResultHistoPlots[plotKey]->setColor(theme->color(i));
+					m_selectedResultHistoPlots[plotKey]->setColor(
+						m_histogramChartType == "Bars" ? barGraphColor(theme->color(i)) : theme->color(i));
 				}
 
 			}
@@ -552,9 +566,7 @@ QSharedPointer<iAPlot> iAParameterInfluenceView::createHistoPlot(QSharedPointer<
 {	// m_histogramChartType values need to match values from SensitivitySettings.ui file
 	if (m_histogramChartType == "Bars")
 	{
-		QColor c(color);
-		c.setAlpha(64);		// we need a transparent color for bars
-		return QSharedPointer<iABarGraphPlot>::create(histoData, c);
+		return QSharedPointer<iABarGraphPlot>::create(histoData, barGraphColor(color));
 	}
 	else if (m_histogramChartType == "Lines")
 	{
