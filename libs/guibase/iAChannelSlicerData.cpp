@@ -23,6 +23,7 @@
 #include "iAChannelData.h"
 #include "iALog.h"
 #include "iASlicerMode.h"
+#include "iAToolsVTK.h"		// for convertTFToLUT
 
 #include <vtkActor.h>
 #include <vtkImageActor.h>
@@ -124,22 +125,7 @@ void iAChannelSlicerData::updateLUT()
 	{
 		return;
 	}
-	double rgb[3];
-	double range[2];
-	input()->GetScalarRange(range);
-	m_lut->SetRange(range);
-	const int numCols = 1024;
-	m_lut->SetNumberOfTableValues(numCols);
-	double scalVal = range[0];
-	double scalValDelta = (range[1] - range[0]) / (numCols - 1);
-	for (int i = 0; i < numCols; ++i)
-	{
-		m_cTF->GetColor(scalVal, rgb);
-		double alpha = m_oTF->GetValue(scalVal);
-		m_lut->SetTableValue(i, rgb[0], rgb[1], rgb[2], alpha);
-		scalVal += scalValDelta;
-	}
-	m_lut->Build();
+	convertTFToLUT(m_lut, m_cTF, m_oTF, 1024);
 }
 
 void iAChannelSlicerData::update(iAChannelData const& chData)
