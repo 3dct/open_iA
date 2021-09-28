@@ -43,6 +43,7 @@
 #include <iAMdiChild.h>
 #include <iAModality.h>
 #include <iAModalityList.h>
+#include <iAModalityTransfer.h>
 #include <qthelper/iAQTtoUIConnector.h>
 #include <qthelper/iAWidgetSettingsMapper.h>
 
@@ -68,6 +69,7 @@
 #include "ui_SensitivitySettings.h"
 
 #include <vtkImageData.h>
+#include <vtkLookupTable.h>
 #include <vtkNew.h>
 #include <vtkPolyData.h>
 #include <vtkPolyDataMapper.h>
@@ -1153,15 +1155,39 @@ void iASensitivityInfo::showSpatialOverview()
 	QSharedPointer<iAModalityList> mods(new iAModalityList());
 	if (m_data->m_spatialOverview)
 	{
-		mods->add(QSharedPointer<iAModality>::create("Avg unique fiber/voxel", data().spatialOverviewCacheFileName(), 1,
-			m_data->m_spatialOverview, iAModality::MainRenderer));
+		mods->add(QSharedPointer<iAModality>::create("Avg unique fiber/voxel", data().spatialOverviewCacheFileName(),
+			1, m_data->m_spatialOverview, iAModality::MainRenderer));
 	}
 	if (m_data->m_averageFiberVoxel)
 	{
 		mods->add(QSharedPointer<iAModality>::create("Mean objects (fibers/voxel)",
 			data().averageFiberVoxelCacheFileName(), 1, m_data->m_averageFiberVoxel, iAModality::MainRenderer));
 	}
+
 	m_child->setModalities(mods);
+	connect(m_child, &iAMdiChild::histogramAvailable, [this](int modalityIdx)
+		{
+			auto mod = m_child->modality(modalityIdx);
+			double const* range = mod->image()->GetScalarRange();
+			vtkSmartPointer<vtkLookupTable> lut = vtkSmartPointer<vtkLookupTable>::New();
+			iALUT::BuildLUT(lut, range, "Matplotlib: Plasma", 128);
+			auto ctf = mod->transfer()->colorTF();
+			auto otf = mod->transfer()->opacityTF();
+			const double AlphaOverride = 0.2;
+			const double MinPoint = 0.001;
+			convertLUTToTF(lut, ctf, otf, AlphaOverride);
+			double rgb0[4];
+			ctf->GetColor(0.0, rgb0);
+			ctf->AddRGBPoint(0.0, 0.0, 0.0, 0.0);
+			ctf->AddRGBPoint(MinPoint, rgb0[0], rgb0[1], rgb0[2]);
+			otf->AddPoint(0.0, 0.0);
+			otf->AddPoint(MinPoint, AlphaOverride);
+			mod->updateRenderer();
+		});
+	for (int m = 0; m < mods->size(); ++m)
+	{
+		m_child->setHistogramModality(m);
+	}
 }
 
 QVector<QVector<double>> iASensitivityInfo::currentAggregatedSensitivityMatrix()
