@@ -267,7 +267,7 @@ namespace
 						}
 						else
 						{
-							throw e;
+							throw;
 						}
 					}
 
