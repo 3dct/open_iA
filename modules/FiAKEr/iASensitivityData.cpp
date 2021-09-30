@@ -437,7 +437,7 @@ void iASensitivityData::compute(iAProgress* progress)
 
 					double leftVar = 0;
 					int numLeftRight = 0;
-					if (paramDiff > 0)
+					if (paramDiff < 0)
 					{
 						leftVar = distributionDifference(
 							m_charHistograms[resultIdxGroupStart][charIdx],
@@ -449,14 +449,14 @@ void iASensitivityData::compute(iAProgress* progress)
 					}
 
 					int k = 1;
-					while (paramDiff > 0 && k < m_numOfSTARSteps)
+					while (paramDiff < 0 && k < m_numOfSTARSteps)
 					{
 						double paramVal = m_paramValues[origParamColIdx][resultIdxParamStart + k];
 						paramDiff = paramStartParamVal - paramVal;
 						++k;
 					}
 					double rightVar = 0;
-					if (paramDiff < 0) // additional check required??
+					if (paramDiff > 0) // additional check required??
 					{
 						int firstPosStepIdx = resultIdxParamStart + (k - 1);
 						rightVar = distributionDifference(
@@ -572,7 +572,7 @@ void iASensitivityData::compute(iAProgress* progress)
 
 			double leftVar = 0;
 			int numLeftRight = 0;
-			if (paramDiff > 0)
+			if (paramDiff < 0)
 			{
 				leftVar = std::abs(static_cast<double>(m_data->result[resultIdxGroupStart].fiberCount) -
 					m_data->result[resultIdxParamStart].fiberCount);
@@ -582,14 +582,14 @@ void iASensitivityData::compute(iAProgress* progress)
 			}
 
 			int k = 1;
-			while (paramDiff > 0 && k < m_numOfSTARSteps)
+			while (paramDiff < 0 && k < m_numOfSTARSteps)
 			{
 				double paramVal = m_paramValues[origParamColIdx][resultIdxParamStart + k];
 				paramDiff = paramStartParamVal - paramVal;
 				++k;
 			}
 			double rightVar = 0;
-			if (paramDiff < 0) // additional check required??
+			if (paramDiff > 0) // additional check required??
 			{
 				int firstPosStepIdx = resultIdxParamStart + (k - 1);
 				rightVar = std::abs(static_cast<double>(m_data->result[resultIdxGroupStart].fiberCount) -
@@ -704,7 +704,7 @@ void iASensitivityData::compute(iAProgress* progress)
 					}
 					*/
 					charHistVar[charIdx][0][paramIdx][bin][paramSetIdx] = 0;
-					if (paramDiff > 0)
+					if (paramDiff < 0)
 					{
 						// left-only:
 						//charHistHist[charIdx][0][paramIdx][bin][paramSetIdx].push_back(m_charHistograms[resultIdxParamStart][charIdx][bin]);
@@ -720,14 +720,14 @@ void iASensitivityData::compute(iAProgress* progress)
 					}
 
 					int k = 1;
-					while (paramDiff > 0 && k < m_numOfSTARSteps)
+					while (paramDiff < 0 && k < m_numOfSTARSteps)
 					{
 						double paramVal = m_paramValues[origParamColIdx][resultIdxParamStart + k];
 						paramDiff = paramStartParamVal - paramVal;
 						++k;
 					}
 					charHistVar[charIdx][1][paramIdx][bin][paramSetIdx] = 0;
-					if (paramDiff < 0) // additional check required??
+					if (paramDiff > 0) // additional check required??
 					{
 						int firstPosStepIdx = resultIdxParamStart + (k - 1);
 						// left-only:
@@ -1013,7 +1013,7 @@ void iASensitivityData::compute(iAProgress* progress)
 
 				double leftVar = 0;
 				int numLeftRight = 0;
-				if (paramDiff > 0)
+				if (paramDiff < 0)
 				{
 					leftVar = m_resultDissimMatrix[resultIdxGroupStart][resultIdxParamStart].avgDissim[m];
 					//std::abs(static_cast<double>(m_data->result[resultIdxGroupStart].fiberCount) - m_data->result[resultIdxParamStart].fiberCount);
@@ -1023,14 +1023,14 @@ void iASensitivityData::compute(iAProgress* progress)
 				}
 
 				int k = 1;
-				while (paramDiff > 0 && k < m_numOfSTARSteps)
+				while (paramDiff < 0 && k < m_numOfSTARSteps)
 				{
 					double paramVal = m_paramValues[origParamColIdx][resultIdxParamStart + k];
 					paramDiff = paramStartParamVal - paramVal;
 					++k;
 				}
 				double rightVar = 0;
-				if (paramDiff < 0)  // additional check required??
+				if (paramDiff > 0)  // additional check required??
 				{
 					int firstPosStepIdx = resultIdxParamStart + (k - 1);
 					rightVar = m_resultDissimMatrix[resultIdxGroupStart][firstPosStepIdx].avgDissim[m];
@@ -1119,7 +1119,7 @@ void iASensitivityData::compute(iAProgress* progress)
 				double paramDiff = paramStartParamVal - groupStartParamVal;
 				double leftVar = 0;
 				int numLeftRight = 0;
-				if (paramDiff > 0)
+				if (paramDiff < 0)
 				{
 					leftVar = characteristicsDifference(m_charSelected[charIdx], resultIdxGroupStart, resultIdxParamStart, MeasureIdx);
 					++numLeftRight;
@@ -1127,14 +1127,14 @@ void iASensitivityData::compute(iAProgress* progress)
 				}
 
 				int k = 1;
-				while (paramDiff > 0 && k < m_numOfSTARSteps)
+				while (paramDiff < 0 && k < m_numOfSTARSteps)
 				{
 					double paramVal = m_paramValues[origParamColIdx][resultIdxParamStart + k];
 					paramDiff = paramStartParamVal - paramVal;
 					++k;
 				}
 				double rightVar = 0;
-				if (paramDiff < 0)  // additional check required??
+				if (paramDiff > 0)  // additional check required??
 				{
 					int firstPosStepIdx = resultIdxParamStart + (k - 1);
 					rightVar = characteristicsDifference(m_charSelected[charIdx], resultIdxGroupStart, firstPosStepIdx, MeasureIdx);
