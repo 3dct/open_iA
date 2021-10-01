@@ -28,7 +28,6 @@
 
 #include <QMouseEvent>
 #include <QRubberBand>
-#include <QToolTip>
 #include <QTableWidget>
 
 class iAHistogramData;
