@@ -21,7 +21,7 @@
 #include "dlg_imageproperty.h"
 
 #include "iAImageInfo.h"
-#include "iAToolsVTK.h"
+#include "iAToolsVTK.h"    // for mapVTKTypeToReadableDataType
 
 #include <vtkImageData.h>
 
@@ -30,20 +30,15 @@ dlg_imageproperty::dlg_imageproperty(QWidget *parent) : QDockWidget(parent)
 	setupUi(this);
 }
 
-void dlg_imageproperty::EnterMsg(QString txt)
-{
-	lWidget->addItem(txt);
-}
-
-void dlg_imageproperty::Clear()
+void dlg_imageproperty::clear()
 {
 	lWidget->clear();
 }
 
-void dlg_imageproperty::AddInfo(vtkImageData* src, iAImageInfo const & info, QString const & name, size_t channelCount)
+void dlg_imageproperty::addInfo(vtkImageData* src, iAImageInfo const & info, QString const & name, size_t channelCount)
 {
-	EnterMsg(name);
-	EnterMsg( QString( "    %1: [%2 %3]  [%4 %5]  [%6 %7]" )
+	lWidget->addItem(name);
+	lWidget->addItem(QString("    %1: [%2 %3]  [%4 %5]  [%6 %7]")
 		.arg(tr("Extent"))
 		.arg( src->GetExtent()[0] )
 		.arg( src->GetExtent()[1] )
@@ -52,19 +47,19 @@ void dlg_imageproperty::AddInfo(vtkImageData* src, iAImageInfo const & info, QSt
 		.arg( src->GetExtent()[4] )
 		.arg( src->GetExtent()[5] ) );
 
-	EnterMsg( QString( "    %1:  %2  %3  %4" )
+	lWidget->addItem(QString("    %1:  %2  %3  %4")
 		.arg(tr("Spacing"))
 		.arg( src->GetSpacing()[0] )
 		.arg( src->GetSpacing()[1] )
 		.arg( src->GetSpacing()[2] ) );
 
-	EnterMsg( QString( "    %1: %2 %3 %4" )
+	lWidget->addItem(QString("    %1: %2 %3 %4")
 		.arg(tr("Origin"))
 		.arg( src->GetOrigin()[0] )
 		.arg( src->GetOrigin()[1] )
 		.arg( src->GetOrigin()[2] ) );
 
-	EnterMsg( QString("    %1: %2")
+	lWidget->addItem(QString("    %1: %2")
 		.arg(tr("Datatype"))
 		.arg(mapVTKTypeToReadableDataType(src->GetScalarType()) ) );
 
@@ -83,22 +78,27 @@ void dlg_imageproperty::AddInfo(vtkImageData* src, iAImageInfo const & info, QSt
 	{
 		componentStr = QString::number(src->GetNumberOfScalarComponents());
 	}
-	EnterMsg( QString( "    %1: %2" )
+	lWidget->addItem(QString("    %1: %2")
 		.arg(tr("Components"))
 		.arg(componentStr) );
 
 	if ( src->GetNumberOfScalarComponents() == 1 ) //No histogram statistics for rgb, rgba or vector pixel type images
 	{
 		if (info.isComputing())
-			EnterMsg("    Statistics are currently computing...");
+		{
+			lWidget->addItem("    Statistics are currently computing...");
+		}
 		else if (info.voxelCount() == 0)
-			EnterMsg("    Statistics not computed yet. Activate modality (by clicking on it) to do so.");
+		{
+			lWidget->addItem("    Statistics not computed yet. Activate modality (by clicking on it) to do so.");
+		}
 		else
-			EnterMsg(tr("    VoxelCount: %1;  Min: %2;  Max: %3;  Mean: %4;  StdDev: %5;")
+		{
+			lWidget->addItem(tr("    VoxelCount: %1;  Min: %2;  Max: %3;  Mean: %4;  StdDev: %5;")
 				.arg(info.voxelCount())
 				.arg(info.min()).arg(info.max())
 				.arg(info.mean()).arg(info.standardDeviation()));
+		}
 	}
 	lWidget->scrollToBottom();
-	this->show();
 }

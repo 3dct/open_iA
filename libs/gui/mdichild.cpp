@@ -1839,10 +1839,10 @@ void MdiChild::updateImageProperties()
 	{
 		return;
 	}
-	m_dwImgProperty->Clear();
+	m_dwImgProperty->clear();
 	for (int i = 0; i < modalities()->size(); ++i)
 	{
-		m_dwImgProperty->AddInfo(modality(i)->image(), modality(i)->info(), modality(i)->name(),
+		m_dwImgProperty->addInfo(modality(i)->image(), modality(i)->info(), modality(i)->name(),
 			(i == 0 &&
 				modality(i)->componentCount() == 1 &&
 				m_volumeStack->numberOfVolumes() > 1) ?
