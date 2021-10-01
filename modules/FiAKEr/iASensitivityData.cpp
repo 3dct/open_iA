@@ -1181,16 +1181,31 @@ void iASensitivityData::compute(iAProgress* progress)
 double oneSidedCharacteristicsDifference(int charIdx, iAResultPairInfo const& mat, iAFiberResult const & r0, iAFiberResult const & r1, qvectorsizetype measureIdx)
 {
 	double diffSum = 0.0;
+	double diffMax = std::numeric_limits<double>::lowest();
+	qvectorsizetype numNoMatch = 0;
 	for (qvectorsizetype f0 = 0; f0 < r0.fiberCount; ++f0)
 	{
+		auto& matches = mat.fiberDissim[f0];
+		if (matches.size() == 0)
+		{	// handle case of no match:
+			++numNoMatch;
+			continue;
+		}
 		// take best-matching fiber in r1
 		// compute difference in characteristic charIdx
-		size_t f1 = mat.fiberDissim[f0][measureIdx][0]
+		size_t f1 = matches[measureIdx][0]
 						.index;  // best match to fiber f0 in result r1 with dissimilarity measure measureIdx
 		double f0Val = r0.table->GetValue(f0, charIdx).ToDouble();
 		double f1Val = r1.table->GetValue(f1, charIdx).ToDouble();
-		diffSum += std::abs(f0Val - f1Val);
+		double diff = std::abs(f0Val - f1Val);
+		diffSum += diff;
+		if (diff > diffMax)
+		{
+			diffMax = diff;
+		}
 	}
+	diffSum += diffMax * numNoMatch;	// in absence of a highest possible difference, just add the current measured maximum
+	//LOG(lvlDebug, QString("measure=%1, characteristic=%2, max diff=%3, no match: %4 times").arg(measureIdx).arg(charIdx).arg(diffMax).arg(numNoMatch));
 	diffSum /= r0.fiberCount;
 	return diffSum;
 }
@@ -1201,6 +1216,7 @@ double oneSidedCharacteristicsDifference(int charIdx, iAResultPairInfo const& ma
 // maybe use different difference measures?#
 double iASensitivityData::characteristicsDifference(int charIdx, qvectorsizetype r0Idx, qvectorsizetype r1Idx, int measureIdx)
 {
+	//LOG(lvlDebug, QString("r1=%1 <-> r2=%2: ").arg(r0Idx).arg(r1Idx));
 	// get result data:
 	auto& r0 = m_data->result[r0Idx];
 	auto& r1 = m_data->result[r1Idx];
