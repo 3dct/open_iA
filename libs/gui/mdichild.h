@@ -405,7 +405,10 @@ private:
 	void setupViewInternal(bool active);
 
 	void setHistogramModality(int modalityIdx) override;
+	//! display histogram - if not computed yet, trigger computation
 	void displayHistogram(int modalityIdx);
+	//! if available, show histogram (i.e. does not trigger computation, as displayHistogram does)
+	void showHistogram(int modalityIdx);
 	int  currentModality() const;
 	void initModalities();
 	void initVolumeRenderers();

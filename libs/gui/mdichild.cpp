@@ -2642,11 +2642,11 @@ void MdiChild::modalityAdded(int modalityIdx)
 	}
 }
 
-void MdiChild::histogramDataAvailable(int modalityIdx)
+void MdiChild::showHistogram(int modalityIdx)
 {
 	if (modalityIdx < 0 || modalityIdx >= modalities()->size())
 	{
-		LOG(lvlWarn, QString("histogramDataAvailable: Modality %1 not available!").arg(modalityIdx));
+		LOG(lvlWarn, QString("showHistogram: Modality %1 not available!").arg(modalityIdx));
 		return;
 	}
 	QString modalityName = modality(modalityIdx)->name();
@@ -2654,12 +2654,16 @@ void MdiChild::histogramDataAvailable(int modalityIdx)
 	LOG(lvlDebug, QString("Displaying histogram for modality %1.").arg(modalityName));
 	m_histogram->removePlot(m_histogramPlot);
 	m_histogramPlot = QSharedPointer<iABarGraphPlot>::create(
-		modality(modalityIdx)->histogramData(),
-		qApp->palette().color(QPalette::Shadow));
+		modality(modalityIdx)->histogramData(), qApp->palette().color(QPalette::Shadow));
 	m_histogram->addPlot(m_histogramPlot);
 	m_histogram->setXCaption("Histogram " + modalityName);
 	m_histogram->setTransferFunction(modality(modalityIdx)->transfer().data());
 	m_histogram->update();
+}
+
+void MdiChild::histogramDataAvailable(int modalityIdx)
+{
+	showHistogram(modalityIdx);
 	updateImageProperties();
 	if (!findChild<iADockWidgetWrapper*>("Histogram"))
 	{
@@ -2716,7 +2720,7 @@ void MdiChild::displayHistogram(int modalityIdx)
 	size_t newBinCount = histogramNewBinCount(mod);
 	if (histogramComputed(newBinCount, mod))
 	{
-		histogramDataAvailable(modalityIdx);
+		showHistogram(modalityIdx);
 		return;
 	}
 
