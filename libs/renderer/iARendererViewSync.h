@@ -65,7 +65,14 @@ public:
 	void addToBundle(vtkRenderer* renderer);
 	//! Remove given renderer from bundle. Stops synchronizing this renderers'
 	//! viewing parameters with the other renderers in the bundle.
-	bool removeFromBundle(vtkRenderer* renderer);
+	//! @param renderer the renderer to remove from the bundle
+	//! @param resetCamera whether the camera of the removed renderer should be reset to a new one
+	//!        with a copy of the settings of the common renderer; set to false for example if the
+	//!        renderer is not used after removing from bundle, or if you set your own camera.
+	//!        Note that when resetCamera=false, and you reuse the renderer afterwards, but don't
+	//!        set your own camera to the renderer, camera updates will still be shared to other
+	//!        renderers added to the bundle, but updates will not propagate anymore!
+	bool removeFromBundle(vtkRenderer* renderer, bool resetCamera = true);
 	//! Remove all renderers from the bundle synchronized by this class.
 	void removeAll();
 

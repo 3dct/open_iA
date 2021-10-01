@@ -84,7 +84,7 @@ void iARendererViewSync::addToBundle(vtkRenderer* renderer)
 	m_rendererObserverTags.insert(renderer, observeTag);
 }
 
-bool iARendererViewSync::removeFromBundle(vtkRenderer* renderer)
+bool iARendererViewSync::removeFromBundle(vtkRenderer* renderer, bool resetCamera)
 {
 	if(!m_rendererObserverTags.contains(renderer))
 	{
@@ -92,9 +92,12 @@ bool iARendererViewSync::removeFromBundle(vtkRenderer* renderer)
 		LOG(lvlWarn, "iARenderManager::removeFromBundle called with renderer which isn't part of the Bundle!");
 		return false;
 	}
-	vtkSmartPointer<vtkCamera> newCam = vtkSmartPointer<vtkCamera>::New();
-	newCam->DeepCopy(renderer->GetActiveCamera());
-	renderer->SetActiveCamera(newCam);
+	if (resetCamera)
+	{
+		vtkSmartPointer<vtkCamera> newCam = vtkSmartPointer<vtkCamera>::New();
+		newCam->DeepCopy(renderer->GetActiveCamera());
+		renderer->SetActiveCamera(newCam);
+	}
 	renderer->RemoveObserver(m_rendererObserverTags[renderer]);
 	m_rendererObserverTags.remove(renderer);
 	return true;
@@ -105,7 +108,7 @@ void iARendererViewSync::removeAll()
 	m_commonCamera = nullptr;
 	for (auto  r: m_rendererObserverTags.keys())
 	{
-		removeFromBundle( r );
+		removeFromBundle(r, false);
 	}
 }
 
