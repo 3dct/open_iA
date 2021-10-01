@@ -58,7 +58,7 @@ public:
 		std::vector<iAFiberResultUIData> const& resultUIs, vtkRenderWindow* main3DWin);
 	static bool hasData(iASettings const& settings);
 
-	static const QString DefaultResultColorScale;
+	static const QString DefaultResultColorMap;
 
 	void saveProject(QSettings& projectFile, QString  const& fileName);
 
@@ -111,6 +111,7 @@ public slots:
 	void spHighlightChanged();
 	void updateSPDifferenceColors();
 	void updateSPHighlightColors();
+	void updateSpatialOverviewColors();
 	void createGUI();
 	void outputBarAdded(int outType, int outIdx);
 	void outputBarRemoved(int outType, int outIdx);
@@ -126,6 +127,7 @@ private slots:
 	void spPointHighlighted(size_t resultIdx, bool state);
 	void spVisibleParamChanged();
 	void parResultSelected(size_t resultIdx, Qt::KeyboardModifiers modifiers);
+	void setSpatialOverviewTF(int modalityIdx);
 };
 
 // Factor out as generic CSV reading class also used by iACsvIO?

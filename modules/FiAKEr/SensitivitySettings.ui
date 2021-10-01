@@ -140,7 +140,7 @@
        <number>4</number>
       </property>
       <item row="2" column="0">
-       <widget class="QLabel" name="lbSPHighlightColorScale">
+       <widget class="QLabel" name="lbSPHighlightColorMap">
         <property name="text">
          <string>Result Colors</string>
         </property>
@@ -163,13 +163,6 @@
         </property>
        </widget>
       </item>
-      <item row="8" column="0" colspan="3">
-       <widget class="QCheckBox" name="cbUnselectedSTARLines">
-        <property name="text">
-         <string>Connecting lines for unselected STARs in SP</string>
-        </property>
-       </widget>
-      </item>
       <item row="0" column="0">
        <widget class="QLabel" name="lbHistograms">
         <property name="text">
@@ -185,7 +178,7 @@
        </widget>
       </item>
       <item row="2" column="1" colspan="2">
-       <widget class="QComboBox" name="cmbboxSPHighlightColorScale"/>
+       <widget class="QComboBox" name="cmbboxSPHighlightColorMap"/>
       </item>
       <item row="5" column="1" colspan="2">
        <widget class="QComboBox" name="cmbboxAlgoInfoMode">
@@ -201,13 +194,6 @@
         </item>
        </widget>
       </item>
-      <item row="7" column="0">
-       <widget class="QLabel" name="lbSPColorScale">
-        <property name="text">
-         <string>Scatterplot Colors</string>
-        </property>
-       </widget>
-      </item>
       <item row="6" column="0" colspan="3">
        <widget class="QCheckBox" name="cbAlgoMaxPerOut">
         <property name="text">
@@ -215,8 +201,32 @@
         </property>
        </widget>
       </item>
-      <item row="7" column="1" colspan="2">
+      <item row="3" column="0">
+       <widget class="QLabel" name="lbSPColorMap">
+        <property name="text">
+         <string>Scatterplot Colors</string>
+        </property>
+       </widget>
+      </item>
+      <item row="3" column="1" colspan="2">
        <widget class="QComboBox" name="cmbboxSPColorMap"/>
+      </item>
+      <item row="4" column="0" colspan="3">
+       <widget class="QCheckBox" name="cbUnselectedSTARLines">
+        <property name="text">
+         <string>Connecting lines for unselected STARs in SP</string>
+        </property>
+       </widget>
+      </item>
+      <item row="1" column="0">
+       <widget class="QLabel" name="lbSpatialOverviewColorMap">
+        <property name="text">
+         <string>Spatial Overview Colors</string>
+        </property>
+       </widget>
+      </item>
+      <item row="1" column="1" colspan="2">
+       <widget class="QComboBox" name="cmbboxSpatialOverviewColorMap"/>
       </item>
      </layout>
     </widget>

@@ -21,6 +21,7 @@
 #include "iASensitivityInfo.h"
 
 // charts
+#include <iAChartWithFunctionsWidget.h>	// only for calling update() on mdichild's histogram() !
 #include <iASPLOMData.h>
 #include <iAScatterPlotWidget.h>
 #include <iAScatterPlotViewData.h>
@@ -135,7 +136,7 @@ namespace
 	*/
 }
 
-const QString iASensitivityInfo::DefaultResultColorScale("Brewer Set2 (max. 8)");
+const QString iASensitivityInfo::DefaultResultColorMap("Brewer Set2 (max. 8)");
 
 // Factor out as generic CSV reading class also used by iACsvIO?
 bool readParameterCSV(QString const& fileName, QString const& encoding, QString const& columnSeparator,
@@ -426,8 +427,11 @@ public:
 		cmbboxSPColorMap->addItems(iALUT::GetColorMapNames());
 		cmbboxSPColorMap->setCurrentText("Brewer single hue 5c grays");
 
-		cmbboxSPHighlightColorScale->addItems(iAColorThemeManager::instance().availableThemes());
-		cmbboxSPHighlightColorScale->setCurrentText(iASensitivityInfo::DefaultResultColorScale);
+		cmbboxSpatialOverviewColorMap->addItems(iALUT::GetColorMapNames());	// TODO: filter for linear (non-diverging) color maps
+		cmbboxSpatialOverviewColorMap->setCurrentText("Matplotlib: Plasma");
+
+		cmbboxSPHighlightColorMap->addItems(iAColorThemeManager::instance().availableThemes());
+		cmbboxSPHighlightColorMap->setCurrentText(iASensitivityInfo::DefaultResultColorMap);
 
 		connect(cmbboxMeasure, QOverload<int>::of(&QComboBox::currentIndexChanged), sensInf, &iASensitivityInfo::changeDistributionMeasure);
 		connect(cmbboxAggregation, QOverload<int>::of(&QComboBox::currentIndexChanged), sensInf, &iASensitivityInfo::changeAggregation);
@@ -435,8 +439,10 @@ public:
 
 		connect(cmbboxDissimilarity, QOverload<int>::of(&QComboBox::currentIndexChanged), sensInf, &iASensitivityInfo::updateDissimilarity);
 		connect(cmbboxSPColorMap, QOverload<int>::of(&QComboBox::currentIndexChanged), sensInf, &iASensitivityInfo::updateSPDifferenceColors);
-		connect(cmbboxSPHighlightColorScale, QOverload<int>::of(&QComboBox::currentIndexChanged), sensInf,
+		connect(cmbboxSPHighlightColorMap, QOverload<int>::of(&QComboBox::currentIndexChanged), sensInf,
 			&iASensitivityInfo::updateSPHighlightColors);
+		connect(cmbboxSpatialOverviewColorMap, QOverload<int>::of(&QComboBox::currentIndexChanged), sensInf,
+			&iASensitivityInfo::updateSpatialOverviewColors);
 		cmbboxAlgoInfoMode->setCurrentIndex(iAAlgorithmInfo::DefaultDisplayMode);
 		connect(cmbboxAlgoInfoMode, QOverload<int>::of(&QComboBox::currentIndexChanged), sensInf, &iASensitivityInfo::algoInfoModeChanged);
 		connect(cbAlgoMaxPerOut, &QCheckBox::stateChanged, sensInf, &iASensitivityInfo::algoInfoNormPerOutChanged);
@@ -834,7 +840,7 @@ public:
 
 	iAColorTheme const* selectedResultColorTheme() const override
 	{
-		return iAColorThemeManager::instance().theme(m_settings->cmbboxSPHighlightColorScale->currentText());
+		return iAColorThemeManager::instance().theme(m_settings->cmbboxSPHighlightColorMap->currentText());
 	}
 };
 
@@ -1084,7 +1090,7 @@ void iASensitivityInfo::createGUI()
 	m_gui->m_paramSP->setPickedPointFactor(1.5);
 	m_gui->m_paramSP->setFixPointsEnabled(true);
 	m_gui->m_paramSP->setHighlightColorTheme(
-		iAColorThemeManager::instance().theme(m_gui->m_settings->cmbboxSPHighlightColorScale->currentText()));
+		iAColorThemeManager::instance().theme(m_gui->m_settings->cmbboxSPHighlightColorMap->currentText()));
 	m_gui->m_paramSP->setHighlightDrawMode(iAScatterPlot::Enlarged | iAScatterPlot::CategoricalColor);
 	m_gui->m_paramSP->setSelectionEnabled(false);
 	auto sortedParams = m_gui->m_paramInfluenceView->paramIndicesSorted();
@@ -1099,7 +1105,7 @@ void iASensitivityInfo::createGUI()
 	m_gui->m_mdsSP->setPickedPointFactor(1.5);
 	m_gui->m_mdsSP->setFixPointsEnabled(true);
 	m_gui->m_mdsSP->setHighlightColorTheme(
-		iAColorThemeManager::instance().theme(m_gui->m_settings->cmbboxSPHighlightColorScale->currentText()));
+		iAColorThemeManager::instance().theme(m_gui->m_settings->cmbboxSPHighlightColorMap->currentText()));
 	m_gui->m_mdsSP->setHighlightDrawMode(iAScatterPlot::Enlarged | iAScatterPlot::CategoricalColor);
 	m_gui->m_mdsSP->setSelectionEnabled(false);
 	m_gui->m_mdsSP->setVisibleParameters(m_gui->spColIdxMDSX, m_gui->spColIdxMDSY);
@@ -1165,29 +1171,40 @@ void iASensitivityInfo::showSpatialOverview()
 	}
 
 	m_child->setModalities(mods);
-	connect(m_child, &iAMdiChild::histogramAvailable, [this](int modalityIdx)
-		{
-			auto mod = m_child->modality(modalityIdx);
-			double const* range = mod->image()->GetScalarRange();
-			vtkSmartPointer<vtkLookupTable> lut = vtkSmartPointer<vtkLookupTable>::New();
-			iALUT::BuildLUT(lut, range, "Matplotlib: Plasma", 128, true);
-			auto ctf = mod->transfer()->colorTF();
-			auto otf = mod->transfer()->opacityTF();
-			const double AlphaOverride = 0.2;
-			const double MinPoint = 0.001;
-			convertLUTToTF(lut, ctf, otf, AlphaOverride);
-			double rgb0[4];
-			ctf->GetColor(0.0, rgb0);
-			ctf->AddRGBPoint(0.0, 0.0, 0.0, 0.0);
-			ctf->AddRGBPoint(MinPoint, rgb0[0], rgb0[1], rgb0[2]);
-			otf->AddPoint(0.0, 0.0);
-			otf->AddPoint(MinPoint, AlphaOverride);
-			mod->updateRenderer();
-		});
+	connect(m_child, &iAMdiChild::histogramAvailable, this, &iASensitivityInfo::setSpatialOverviewTF);
 	for (int m = 0; m < mods->size(); ++m)
 	{
 		m_child->setHistogramModality(m);
 	}
+}
+
+void iASensitivityInfo::setSpatialOverviewTF(int modalityIdx)
+{
+	auto mod = m_child->modality(modalityIdx);
+	double const* range = mod->image()->GetScalarRange();
+	vtkSmartPointer<vtkLookupTable> lut = vtkSmartPointer<vtkLookupTable>::New();
+	iALUT::BuildLUT(lut, range, m_gui->m_settings->cmbboxSpatialOverviewColorMap->currentText(), 5, true);
+	auto ctf = mod->transfer()->colorTF();
+	auto otf = mod->transfer()->opacityTF();
+	const double AlphaOverride = 0.2;
+	const double MinPoint = 0.001;
+	convertLUTToTF(lut, ctf, otf, AlphaOverride);
+	double rgb0[4];
+	ctf->GetColor(0.0, rgb0);
+	ctf->AddRGBPoint(0.0, 0.0, 0.0, 0.0);
+	ctf->AddRGBPoint(MinPoint, rgb0[0], rgb0[1], rgb0[2]);
+	otf->AddPoint(0.0, 0.0);
+	otf->AddPoint(MinPoint, AlphaOverride);
+	mod->updateRenderer();
+}
+
+void iASensitivityInfo::updateSpatialOverviewColors()
+{
+	for (int m = 0; m < m_child->modalities()->size(); ++m)
+	{
+		setSpatialOverviewTF(m);
+	}
+	m_child->histogram()->update();
 }
 
 QVector<QVector<double>> iASensitivityInfo::currentAggregatedSensitivityMatrix()
@@ -1293,11 +1310,11 @@ void iASensitivityInfo::spPointHighlighted(size_t resultIdx, bool state)
 	int paramID = -1;
 	auto sender = qobject_cast<iAScatterPlotWidget*>(QObject::sender());
 	auto const& hp = sender->viewData()->highlightedPoints();
-	auto t = iAColorThemeManager::instance().theme(m_gui->m_settings->cmbboxSPHighlightColorScale->currentText());
+	auto t = iAColorThemeManager::instance().theme(m_gui->m_settings->cmbboxSPHighlightColorMap->currentText());
 	QColor resultColor = t->color(hp.size() - 1);
 	if (!state)
 	{
-		auto theme = iAColorThemeManager::instance().theme(m_gui->m_settings->cmbboxSPHighlightColorScale->currentText());
+		auto theme = iAColorThemeManager::instance().theme(m_gui->m_settings->cmbboxSPHighlightColorMap->currentText());
 		m_gui->m_paramInfluenceView->updateHighlightColors(hp, theme);
 	}
 	if (state && resultIdx % m_data->m_starGroupSize != 0)
@@ -1393,7 +1410,7 @@ void iASensitivityInfo::updateSPDifferenceColors()
 
 void iASensitivityInfo::updateSPHighlightColors()
 {
-	QString colorThemeName = m_gui->m_settings->cmbboxSPHighlightColorScale->currentText();
+	QString colorThemeName = m_gui->m_settings->cmbboxSPHighlightColorMap->currentText();
 	auto theme = iAColorThemeManager::instance().theme(colorThemeName);
 	m_gui->m_paramSP->setHighlightColorTheme(theme);
 	m_gui->m_mdsSP->setHighlightColorTheme(theme);
@@ -1451,7 +1468,7 @@ void iASensitivityInfo::updateDifferenceView()
 	m_gui->m_diff3DRenderers.clear();
 	// TODO: determine "central" resultID to compare to / fixed comparison point determined by user?
 
-	auto t = iAColorThemeManager::instance().theme(m_gui->m_settings->cmbboxSPHighlightColorScale->currentText());
+	auto t = iAColorThemeManager::instance().theme(m_gui->m_settings->cmbboxSPHighlightColorMap->currentText());
 	for (size_t i=0; i<hp.size(); ++i)
 	{
 		auto rID = hp[i];

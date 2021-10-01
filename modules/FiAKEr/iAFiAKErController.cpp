@@ -1061,7 +1061,7 @@ void iAFiAKErController::connectSensitivity()
 		return;
 	}
 	// "hack" go get results all to have same color; TODO: set in settings / use resultColorThemeChanged?
-	m_resultColorTheme = iAColorThemeManager::instance().theme(iASensitivityInfo::DefaultResultColorScale); // "Gray"
+	m_resultColorTheme = iAColorThemeManager::instance().theme(iASensitivityInfo::DefaultResultColorMap); // "Gray"
 	m_colorOnlyShownResults = true;
 	connect(m_sensitivityInfo.data(), &iASensitivityInfo::aborted, this, &iAFiAKErController::resetSensitivity);
 	connect(m_sensitivityInfo.data(), &iASensitivityInfo::resultSelected, this, &iAFiAKErController::showMainVis);
