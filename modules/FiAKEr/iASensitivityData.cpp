@@ -1281,6 +1281,7 @@ void iASensitivityData::computeSpatialOverview(iAProgress* progress)
 	{
 		m_averageFiberVoxel = allocateImage(VTK_FLOAT, size, spacing.data());
 		m_averageFiberVoxel->SetOrigin(origin.data());
+		fillImage(m_averageFiberVoxel, 0);
 		if (!volPercentOutFile.open(QIODevice::WriteOnly | QIODevice::Append))
 		{
 			LOG(lvlError,
@@ -1346,6 +1347,7 @@ void iASensitivityData::computeSpatialOverview(iAProgress* progress)
 		volPercentOutFile.close();
 		if (m_aborted)	// avoid storing incomplete image
 		{
+			m_averageFiberVoxel = nullptr;	// and clear incomplete image
 			return;
 		}
 		multiplyImage(m_averageFiberVoxel, 1.0 / resultCount);
