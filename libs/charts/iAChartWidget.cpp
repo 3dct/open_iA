@@ -1168,6 +1168,11 @@ void iAChartWidget::setEmptyText(QString const& text)
 }
 
 #ifdef CHART_OPENGL
+void iAChartWidget::initializeGL()
+{
+	initializeOpenGLFunctions();
+}
+
 void iAChartWidget::paintGL()
 #else
 void iAChartWidget::paintEvent(QPaintEvent* /*event*/)

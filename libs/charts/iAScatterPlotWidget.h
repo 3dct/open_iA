@@ -23,6 +23,7 @@
 #ifdef CHART_OPENGL
 #include <QOpenGLWidget>
 using iAChartParentWidget = QOpenGLWidget;
+#include <QOpenGLFunctions>
 #else
 #include <QWidget>
 using iAChartParentWidget = QWidget;
@@ -49,6 +50,9 @@ public:
 //! Widget for using a single scatter plot (outside of a SPLOM)
 // TODO: minimize duplication between iAScatterPlotWidget and iAQSplom!
 class iAcharts_API iAScatterPlotWidget : public iAChartParentWidget
+#ifdef CHART_OPENGL
+	, public QOpenGLFunctions
+#endif
 {
 	Q_OBJECT
 public:
@@ -79,6 +83,7 @@ public:
 	const size_t* paramIndices() const;  //!< Get column indices of visible X and Y parameters in data table
 protected:
 #ifdef CHART_OPENGL
+	void initializeGL() override;
 	void paintGL() override;
 #else
 	void paintEvent(QPaintEvent* event) override;
