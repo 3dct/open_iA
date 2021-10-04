@@ -329,7 +329,7 @@ void iABatchFilter::performWork(QMap<QString, QVariant> const & parameters)
 			LOG(lvlError, QString("Batch processing: Error while processing file '%1': %2").arg(fileName).arg(e.what()));
 			if (!parameters["Continue on error"].toBool())
 			{
-				throw e;
+				throw;
 			}
 		}
 		progress()->emitProgress( (curLine - 1.0) * 100.0 / files.size() );

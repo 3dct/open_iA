@@ -1662,7 +1662,7 @@ bool iAIO::setupNKCReader(QString const& f)
 		
 	}
 
-	QRegularExpression regexScale("value coefficient : (\\d.\\d*)\\D");
+	QRegularExpression regexScale("value coefficient : (\\d.\\d*E?-?\\d?)\\D");
 	QRegularExpressionMatch matchScale = regexScale.match(text);
 	if (matchScale.hasMatch())
 	{
