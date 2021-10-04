@@ -24,6 +24,7 @@
 #ifdef CHART_OPENGL
 #include <QOpenGLWidget>
 using iAChartParentWidget = QOpenGLWidget;
+#include <QOpenGLFunctions>
 #else
 #include <QWidget>
 using iAChartParentWidget = QWidget;
@@ -44,6 +45,9 @@ class QRubberBand;
 
 //! A chart widget which can show an arbitrary number of plots.
 class iAcharts_API iAChartWidget : public iAChartParentWidget
+#ifdef CHART_OPENGL
+	, public QOpenGLFunctions
+#endif
 {
 	Q_OBJECT
 public:
@@ -220,6 +224,7 @@ protected:
 	void wheelEvent(QWheelEvent *event) override;
 	void leaveEvent(QEvent *event) override;
 #ifdef CHART_OPENGL
+	void initializeGL() override;
 	void paintGL() override;
 #else
 	void paintEvent(QPaintEvent *event) override;
