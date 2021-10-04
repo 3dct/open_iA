@@ -1469,6 +1469,8 @@ void iASensitivityInfo::updateDifferenceView()
 	// TODO: determine "central" resultID to compare to / fixed comparison point determined by user?
 
 	auto t = iAColorThemeManager::instance().theme(m_gui->m_settings->cmbboxSPHighlightColorMap->currentText());
+
+	int measureIdx = m_gui->m_settings->dissimMeasIdx();
 	for (size_t i=0; i<hp.size(); ++i)
 	{
 		auto rID = hp[i];
@@ -1526,20 +1528,17 @@ void iASensitivityInfo::updateDifferenceView()
 		if (i > 0 && m_currentFiberSelection[hp[0]].size() > 0 && m_currentFiberSelection[rID].size() > 0)
 		{
 			auto refResID = hp[0];
-			size_t refFiberID = m_currentFiberSelection[refResID][0];
+			
+			// TODO:
+			//	- do for all fibers
+			//  - compare to "matching" fiber in "reference" (result hp[0])
+			//  - highlight hp[0] somehow special?
+
 			auto& ref = m_data->m_data->result[refResID];
 			auto const& refMapping = *ref.mapping.data();
-			auto refIt = ref.curveInfo.find(refFiberID);
-			iAFiberData refFiber(ref.table, refFiberID, refMapping,
-				refIt != ref.curveInfo.end() ? refIt->second : std::vector<iAVec3f>());
 
 			auto& d = m_data->m_data->result[rID];
 			auto const& mapping = *d.mapping.data();
-			std::vector<iAVec3f> sampledPoints;
-			size_t fiber0ID = m_currentFiberSelection[rID][0];
-			auto it = d.curveInfo.find(fiber0ID);
-			iAFiberData sampleFiber(
-				d.table, fiber0ID, mapping, it != d.curveInfo.end() ? it->second : std::vector<iAVec3f>());
 
 			vtkNew<vtkPolyData> ptData;
 			vtkNew<vtkPoints> points;
@@ -1547,52 +1546,68 @@ void iASensitivityInfo::updateDifferenceView()
 			colors->SetNumberOfComponents(3);
 			colors->SetName("Colors");
 
-			// direction fiber -> refFiber
-			// everything that's in the fiber but not in the reference -> color red
-			samplePoints(sampleFiber, sampledPoints, 10000);
-			size_t newPts = 0;
-			for (size_t s = 0; s < sampledPoints.size(); ++s)
+			for (size_t fidx = 0; fidx < m_currentFiberSelection[rID].size(); ++fidx)
 			{
-				if (!pointContainedInFiber(sampledPoints[s], refFiber))
-				{
-					double pt[3];
-					for (int c = 0; c < 3; ++c) pt[c] = sampledPoints[s][c];
-					points->InsertNextPoint(pt);
-					++newPts;
-				}
-			}
-			unsigned char onlyInThisColor[3] = {    // Qt documentation states that red/green/blue deliver 0..255, so cast is OK
-				static_cast<unsigned char>(t->color(i).red()),
-				static_cast<unsigned char>(t->color(i).green()),
-				static_cast<unsigned char>(t->color(i).blue())
-			};
-			for (size_t s = 0; s < newPts; ++s)
-			{
-				colors->InsertNextTypedTuple(onlyInThisColor);
-			}
+				size_t fiber0ID = m_currentFiberSelection[rID][fidx];
+				auto it = d.curveInfo.find(fiber0ID);
+				iAFiberData sampleFiber(
+					d.table, fiber0ID, mapping, it != d.curveInfo.end() ? it->second : std::vector<iAVec3f>());
 
-			// direction refFiber -> fiber
-			// -> color blue
-			samplePoints(refFiber, sampledPoints, 10000);
-			newPts = 0;
-			for (size_t s = 0; s < sampledPoints.size(); ++s)
-			{
-				if (!pointContainedInFiber(sampledPoints[s], sampleFiber))
+				size_t refFiberID =
+					m_data->m_resultDissimMatrix[rID][refResID].fiberDissim[fiber0ID][measureIdx][0].index;
+				assert(std::find(m_currentFiberSelection[refResID].begin(), m_currentFiberSelection[refResID].end(),
+						   refFiberID) != m_currentFiberSelection[refResID].end());
+
+				//size_t refFiberID = m_currentFiberSelection[refResID][0];
+				auto refIt = ref.curveInfo.find(refFiberID);
+				iAFiberData refFiber(ref.table, refFiberID, refMapping,
+					refIt != ref.curveInfo.end() ? refIt->second : std::vector<iAVec3f>());
+
+				std::vector<iAVec3f> sampledPoints;
+
+				// direction fiber -> refFiber
+				// everything that's in the fiber but not in the reference -> color red
+				samplePoints(sampleFiber, sampledPoints, 10000);
+				size_t newPts = 0;
+				for (size_t s = 0; s < sampledPoints.size(); ++s)
 				{
-					double pt[3];
-					for (int c = 0; c < 3; ++c) pt[c] = sampledPoints[s][c];
-					points->InsertNextPoint(pt);
-					++newPts;
+					if (!pointContainedInFiber(sampledPoints[s], refFiber))
+					{
+						double pt[3];
+						for (int c = 0; c < 3; ++c) pt[c] = sampledPoints[s][c];
+						points->InsertNextPoint(pt);
+						++newPts;
+					}
 				}
-			}
-			unsigned char onlyInRefColor[3] = {
-				static_cast<unsigned char>(t->color(0).red()),
-				static_cast<unsigned char>(t->color(0).green()),
-				static_cast<unsigned char>(t->color(0).blue())
-			};
-			for (size_t s = 0; s < newPts; ++s)
-			{
-				colors->InsertNextTypedTuple(onlyInRefColor);
+				unsigned char onlyInThisColor[3] = {
+					// Qt documentation states that red/green/blue deliver 0..255, so cast is OK
+					static_cast<unsigned char>(t->color(i).red()), static_cast<unsigned char>(t->color(i).green()),
+					static_cast<unsigned char>(t->color(i).blue())};
+				for (size_t s = 0; s < newPts; ++s)
+				{
+					colors->InsertNextTypedTuple(onlyInThisColor);
+				}
+
+				// direction refFiber -> fiber
+				// -> color blue
+				samplePoints(refFiber, sampledPoints, 10000);
+				newPts = 0;
+				for (size_t s = 0; s < sampledPoints.size(); ++s)
+				{
+					if (!pointContainedInFiber(sampledPoints[s], sampleFiber))
+					{
+						double pt[3];
+						for (int c = 0; c < 3; ++c) pt[c] = sampledPoints[s][c];
+						points->InsertNextPoint(pt);
+						++newPts;
+					}
+				}
+				unsigned char onlyInRefColor[3] = {static_cast<unsigned char>(t->color(0).red()),
+					static_cast<unsigned char>(t->color(0).green()), static_cast<unsigned char>(t->color(0).blue())};
+				for (size_t s = 0; s < newPts; ++s)
+				{
+					colors->InsertNextTypedTuple(onlyInRefColor);
+				}
 			}
 
 			ptData->SetPoints(points.GetPointer());
