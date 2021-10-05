@@ -79,7 +79,7 @@ iAAlgorithmInfo::iAAlgorithmInfo(QString const& name, QStringList const& inNames
 	m_boxMinWidth(1),
 	m_legendWidth(1),
 	m_displayMode(DefaultDisplayMode),
-	m_normalizePerOut(false)
+	m_normalizePerOutput(false)
 {
 	setSizePolicy(QSizePolicy::Expanding, QSizePolicy::MinimumExpanding);
 	setMouseTracking(true);
@@ -145,7 +145,7 @@ void iAAlgorithmInfo::setMode(int mode)
 
 void iAAlgorithmInfo::setNormalizePerOutput(bool maxPerOut)
 {
-	m_normalizePerOut = maxPerOut;
+	m_normalizePerOutput = maxPerOut;
 	update();
 }
 
@@ -477,5 +477,5 @@ void iAAlgorithmInfo::setMatrix(iAMatrixType const& matrix)
 
 double iAAlgorithmInfo::mapVal(int outIdx, double val)
 {
-	return mapToNorm(0.0, m_normalizePerOut ? m_maxPerColumn[outIdx] : m_maxTotal, val);
+	return mapToNorm(0.0, m_normalizePerOutput ? m_maxPerColumn[outIdx] : m_maxTotal, val);
 }

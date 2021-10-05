@@ -62,6 +62,7 @@ public:
 	QVector<int> const& paramIndicesSorted() const;  //! return parameter indices in current sort order (by variation)
 	void updateHighlightColors(std::vector<size_t> highlighted, iAColorTheme const* theme);
 	void setHighlightedParams(QSet<int> hiParam);
+	void setNormalizePerOutput(bool norm);
 public slots:
 	void showStackedBar();
 	void selectStackedBar(int outputType, int idx);
@@ -113,6 +114,7 @@ private:
 	QMap<std::tuple<size_t, int, int>, QSharedPointer<iAPlot>> m_selectedResultHistoPlots;
 	QString m_histogramChartType;
 	QSet<int> m_highlightedParams;
+	bool m_normalizePerOutput;
 signals:
 	void parameterChanged();
 	void barAdded(int outType, int outIdx);

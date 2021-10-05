@@ -119,7 +119,7 @@ public slots:
 	void histoChartTypeToggled(bool checked);
 	void styleChanged();
 	void algoInfoModeChanged(int mode);
-	void algoInfoNormPerOutChanged(int state);
+	void normalizePerOutputChanged(int state);
 private slots:
 	void dissimMatrixMeasureChanged(int);
 	void dissimMatrixParameterChanged(int);

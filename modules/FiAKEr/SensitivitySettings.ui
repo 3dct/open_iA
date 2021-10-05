@@ -7,7 +7,7 @@
     <x>0</x>
     <y>0</y>
     <width>261</width>
-    <height>273</height>
+    <height>296</height>
    </rect>
   </property>
   <property name="windowTitle">
@@ -195,9 +195,9 @@
        </widget>
       </item>
       <item row="6" column="0" colspan="3">
-       <widget class="QCheckBox" name="cbAlgoMaxPerOut">
+       <widget class="QCheckBox" name="cbNormalizePerOutput">
         <property name="text">
-         <string>Normalize Algorithm sensitivity per Output</string>
+         <string>Normalize Sensitivity per Output</string>
         </property>
        </widget>
       </item>

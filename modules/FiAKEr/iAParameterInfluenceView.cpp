@@ -108,7 +108,8 @@ iAParameterInfluenceView::iAParameterInfluenceView(QSharedPointer<iASensitivityD
 	m_sort(data->m_variedParams.size()),
 	m_sortLastOut(-1),
 	m_sortLastDesc(true),
-	m_histogramChartType("Bars")    // needs to match value from radio buttons in SensitivitySettings.ui
+	m_histogramChartType("Bars"),    // needs to match value from radio buttons in SensitivitySettings.ui
+	m_normalizePerOutput(false)
 {
 	for (int i=0; i<m_sort.size(); ++i)
 	{
@@ -245,21 +246,21 @@ void iAParameterInfluenceView::setDistributionMeasure(int newMeasure)
 {
 	m_measureIdx = newMeasure;
 	updateStackedBars();
-	emit parameterChanged();
+	emit parameterChanged();		// not sure why this is emitted here - selected input parameter should not have changed?
 }
 
 void iAParameterInfluenceView::setCharDiffMeasure(int newMeasure)
 {
 	m_charDiffMeasureIdx = newMeasure;
 	updateStackedBars();
-	emit parameterChanged();
+	emit parameterChanged();  // not sure why this is emitted here - selected input parameter should not have changed?
 }
 
 void iAParameterInfluenceView::setAggregation(int newAggregation)
 {
 	m_aggrType = newAggregation;
 	updateStackedBars();
-	emit parameterChanged();
+	emit parameterChanged();  // not sure why this is emitted here - selected input parameter should not have changed?
 }
 
 int iAParameterInfluenceView::selectedMeasure() const { return m_measureIdx; }
@@ -466,6 +467,12 @@ void iAParameterInfluenceView::setHighlightedParams(QSet<int> hiParam)
 	addTableWidgets();
 }
 
+void iAParameterInfluenceView::setNormalizePerOutput(bool norm)
+{
+	m_normalizePerOutput = norm;
+	updateStackedBars();
+}
+
 void iAParameterInfluenceView::paramChartClicked(double x, Qt::KeyboardModifiers modifiers)
 {
 	// search for parameter value "closest" to clicked x;
@@ -633,9 +640,15 @@ void iAParameterInfluenceView::updateStackedBarHistogram(QString const & barName
 			? m_data->sensitivityFiberCount[m_aggrType]
 			: /* (outType == outDissimilarity)*/ m_data->sensDissimField[outIdx][m_aggrType])[paramIdx];
 	auto plotData = iAXYPlotData::create("Sensitivity " + columnName(outType, outIdx), iAValueType::Continuous, d.size());
+
+	double normalizeFactor = 1.0;
+	if (m_normalizePerOutput)
+	{	// maybe do in computation already / merge with max determination in iAAlgorithmInfo ?
+		normalizeFactor = 1.0 / (*std::max_element(d.begin(), d.end()));
+	}
 	for (int i = 0; i < d.size(); ++i)
 	{
-		plotData->addValue(m_data->paramSetValues[i][m_data->m_variedParams[paramIdx]], d[i]);
+		plotData->addValue(m_data->paramSetValues[i][m_data->m_variedParams[paramIdx]], d[i] * normalizeFactor);
 	}
 	parChart->resetYBounds();
 	parChart->addPlot(QSharedPointer<iALinePlot>::create(plotData, ParamSensitivityPlotColor));

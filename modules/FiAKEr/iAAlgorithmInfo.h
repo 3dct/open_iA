@@ -85,6 +85,6 @@ private:
 	// some widths as determined during painting:
 	int m_inWidth, m_outWidth, m_boxMinWidth, m_legendWidth;
 	DisplayMode m_displayMode;
-	bool m_normalizePerOut;
+	bool m_normalizePerOutput;
 	QRect m_matrixRect;
 };
