@@ -40,6 +40,7 @@
 
 class iAVRMainThread : public QThread
 {
+
 public:
 	iAVRMainThread(vtkSmartPointer<vtkOpenVRRenderer> ren, vtkSmartPointer<vtkOpenVRRenderWindow> renderWindow, vtkSmartPointer<vtkOpenVRRenderWindowInteractor> interactor):
 		m_renderer(ren), m_renderWindow(renderWindow), m_interactor(interactor)
@@ -66,6 +67,7 @@ private:
 iAVREnvironment::iAVREnvironment():	m_renderer(vtkSmartPointer<vtkOpenVRRenderer>::New()), m_renderWindow(vtkSmartPointer<vtkOpenVRRenderWindow>::New()), m_interactor(vtkSmartPointer<vtkOpenVRRenderWindowInteractor>::New()),
 	m_vrMainThread(nullptr)
 {	
+	m_worldScale = -1.0;
 	createSkybox(0);
 	createLightKit();
 	//m_renderer->SetShowFloor(true);
@@ -144,6 +146,7 @@ void iAVREnvironment::createLightKit()
 
 double iAVREnvironment::getInitialWorldScale()
 {
+	if (m_worldScale == -1.0) storeInitialWorldScale(); // if not set
 	return m_worldScale;
 }
 

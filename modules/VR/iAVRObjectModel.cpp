@@ -59,6 +59,7 @@ iAVRObjectModel::iAVRObjectModel(vtkRenderer* ren, vtkTable* objectTable, iACsvI
 	resetVolume();
 }
 
+//Todo save initial volume and reset to that
 void iAVRObjectModel::resetVolume()
 {
 	if(m_csvConfig.visType == iACsvConfig::Cylinders)
@@ -70,9 +71,7 @@ void iAVRObjectModel::resetVolume()
 		m_PolyObjectVis = new iA3DEllipseObjectVis(m_objectTable, m_io.getOutputMapping(), QColor(140, 140, 140, 255));
 	}
 	m_PolyObjectActor = m_PolyObjectVis->createPolyActor(m_renderer);
-	m_PolyObjectActor->show();
 	m_volumeActor = m_PolyObjectActor->actor();
-	//m_volumeActor->AddPosition(1,200,1);
 }
 
 void iAVRObjectModel::showVolume()
