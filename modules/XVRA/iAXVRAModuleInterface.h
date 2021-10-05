@@ -7,5 +7,6 @@ class iAXVRAModuleInterface : public iAGUIModuleInterface
 public:
 	void Initialize() override;
 private slots:
-	void testAction();
+	void info();
+	void startXVRA();
 };

@@ -1,3 +1,3 @@
 set(MODULE_DESCRIPTION
-	"Immersive Workspace to analyze fiber characteristics with virtual reality"
+	"Cross-Virtuality Analysis of X-Ray Computed Tomography Data"
 )

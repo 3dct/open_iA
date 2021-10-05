@@ -4,6 +4,7 @@
 #include <iAModuleDispatcher.h>
 
 #include <QAction>
+#include <QMenu>
 #include <QMessageBox>
 
 void iAXVRAModuleInterface::Initialize()
@@ -12,14 +13,28 @@ void iAXVRAModuleInterface::Initialize()
 	{
 	    return;        // in that case, we do not do anything as we can not add a menu entry there
 	}
-	QAction * actionTest = new QAction(tr("Test"), m_mainWnd);
-	connect(actionTest, &QAction::triggered, this, &iAXVRAModuleInterface::testAction);
+	QAction* actionXVRAInfo = new QAction(tr("Info"), m_mainWnd);
+	connect(actionXVRAInfo, &QAction::triggered, this, &iAXVRAModuleInterface::info);
+
+	QAction * actionXVRAStart = new QAction(tr("Start XVRA"), m_mainWnd);
+	connect(actionXVRAStart, &QAction::triggered, this, &iAXVRAModuleInterface::startXVRA);
+
+	QMenu* vrMenu = getOrAddSubMenu(m_mainWnd->toolsMenu(), tr("XVRA"), false);
+	vrMenu->addAction(actionXVRAStart);
+	vrMenu->addAction(actionXVRAInfo);
+
 	// m_mainWnd->makeActionChildDependent(actionTest);   // uncomment this to enable action only if child window is open
-	addToMenuSorted(m_mainWnd->toolsMenu(), actionTest);
 	//m_mainWnd->moduleDispatcher().module<iAVRModuleInterface>();
 }
 
-void iAXVRAModuleInterface::testAction()
+void iAXVRAModuleInterface::info()
 {
-	QMessageBox::information(m_mainWnd, "Test Module", "This is the Test Module!");
+	QMessageBox::information(m_mainWnd, "XVRA Module", "Cross-Virtuality Analysis of Rich X-Ray Computed Tomography Data for Materials Science Applications");
+}
+
+void iAXVRAModuleInterface::startXVRA()
+{
+	//Start csv dialog (-> PolyObject)
+	//Start Featurescout
+	//Start VR
 }
