@@ -199,6 +199,9 @@ namespace
 	const QString ProjectVisibleStepCharts("VisibleStepCharts");
 	const QString ProjectCurrentStep("CurrentStep");
 	// }
+
+	const int CylinderSides = 12;
+	const int SegmentSkip = 1;
 }
 
 
@@ -564,7 +567,7 @@ namespace
 #if __cplusplus >= 201703L
 			[[fallthrough]];
 #endif
-		case iACsvConfig::Cylinders: return QSharedPointer<iA3DCylinderObjectVis>::create(renderer, table, mapping, color, curvedFiberData, 6, 3);
+		case iACsvConfig::Cylinders: return QSharedPointer<iA3DCylinderObjectVis>::create(renderer, table, mapping, color, curvedFiberData, CylinderSides, SegmentSkip);
 		}
 	}
 }
