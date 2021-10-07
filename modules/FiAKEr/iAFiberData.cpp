@@ -224,7 +224,8 @@ namespace
 		return sqrt(sqdiffsum);
 	}
 
-	void sampleSegmentPoints(iAVec3f const & start, iAVec3f const & dir, double radius, std::vector<iAVec3f> & result, size_t numSamples)
+	void sampleSegmentPoints(iAVec3f const& start, iAVec3f const& dir, double radius, std::vector<iAVec3f>& result,
+		size_t numSamples, double RadiusFactor)
 	{
 		std::random_device r;
 		std::default_random_engine generator(r());
@@ -258,7 +259,7 @@ namespace
 		for (size_t i = 0; i < numSamples; ++i)
 		{
 			size_t angleIdx = angleRnd(generator);
-			double newRadius = radius * std::sqrt(radiusRnd(generator));
+			double newRadius = radius * std::sqrt(radiusRnd(generator)) * RadiusFactor;
 			double t = posRnd(generator);
 			result.push_back(start + dir * t + perpDirs[angleIdx] * newRadius);
 			//LOG(lvlInfo, QString("    Sampled point: (%1, %2, %3)").arg(result[i][0]).arg(result[i][1]).arg(result[i][2]));
@@ -369,7 +370,7 @@ bool pointContainedInFiber(iAVec3f const& point, iAFiberData const& fiber)
 	}
 }
 
-void samplePoints(iAFiberData const & fiber, std::vector<iAVec3f> & result, size_t numSamples)
+void samplePoints(iAFiberData const& fiber, std::vector<iAVec3f>& result, size_t numSamples, double RadiusFactor)
 {
 	result.reserve(numSamples);
 
@@ -377,7 +378,7 @@ void samplePoints(iAFiberData const & fiber, std::vector<iAVec3f> & result, size
 	if (fiber.curvedPoints.empty())
 	{
 		iAVec3f dir = fiber.pts[PtEnd] - fiber.pts[PtStart];
-		sampleSegmentPoints(fiber.pts[PtStart], dir, fiber.diameter / 2.0, result, numSamples );
+		sampleSegmentPoints(fiber.pts[PtStart], dir, fiber.diameter / 2.0, result, numSamples, RadiusFactor);
 	}
 	else
 	{
@@ -398,7 +399,8 @@ void samplePoints(iAFiberData const & fiber, std::vector<iAVec3f> & result, size
 			iAVec3f start(fiber.curvedPoints[i]);
 			sampleSegmentPoints(start, dir, fiber.diameter / 2.0, result,
 				// spread number of samples according to length ratio, make sure 1 point per segment
-				std::max(static_cast<size_t>(1), static_cast<size_t>(numSamples * dir.length() / curvedLength)));
+				std::max(static_cast<size_t>(1), static_cast<size_t>(numSamples * dir.length() / curvedLength)),
+				RadiusFactor);
 		}
 	}
 }

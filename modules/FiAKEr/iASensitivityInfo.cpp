@@ -69,12 +69,15 @@
 #include "ui_DissimilarityMatrix.h"
 #include "ui_SensitivitySettings.h"
 
+#include <vtkExtractSurface.h>
 #include <vtkImageData.h>
 #include <vtkLookupTable.h>
 #include <vtkNew.h>
+#include <vtkPCANormalEstimation.h>
 #include <vtkPolyData.h>
 #include <vtkPolyDataMapper.h>
 #include <vtkRenderWindow.h>
+#include <vtkSignedDistance.h>
 #include <vtkSmartPointer.h>
 #include <vtkTable.h>
 
@@ -603,6 +606,22 @@ private:
 	}
 };
 
+struct iAPolyActor
+{
+	vtkSmartPointer<vtkPolyData> poly;
+	vtkSmartPointer<vtkPolyDataMapper> mapper;
+	vtkSmartPointer<vtkActor> actor;
+	iAPolyActor(vtkPolyData* in):
+		poly(in),
+		mapper(vtkSmartPointer<vtkPolyDataMapper>::New()),
+		actor(vtkSmartPointer<vtkActor>::New())
+	{
+		//resultData->diffPoints->GetPointData()->SetScalars(colors);
+		mapper->SetInputData(poly);
+		actor->SetMapper(mapper);
+	}
+};
+
 struct iAPolyDataRenderer
 {
 	vtkSmartPointer<vtkRenderer> renderer;
@@ -610,9 +629,7 @@ struct iAPolyDataRenderer
 	std::vector<vtkSmartPointer<vtkActor>> actor;
 	vtkSmartPointer<vtkCornerAnnotation> text;
 
-	vtkSmartPointer<vtkPolyData> diffPoints;
-	vtkSmartPointer<vtkPolyDataMapper> diffPtMapper;
-	vtkSmartPointer<vtkActor> diffActor;
+	std::vector<iAPolyActor> diffPolys;
 };
 
 class iASensitivityGUI : public iASensitivityViewState
@@ -1451,8 +1468,128 @@ iASensitivityData& iASensitivityInfo::data()
 	return *m_data.data();
 }
 
+namespace
+{
+	vtkSmartPointer<vtkPolyDataAlgorithm> MakeExtractSurface(vtkPolyData* polyData)
+	{
+		double bounds[6];
+		polyData->GetBounds(bounds);
+		double range[3];
+		for (int i = 0; i < 3; ++i)
+		{
+			range[i] = bounds[2 * i + 1] - bounds[2 * i];
+		}
+
+		int sampleSize = polyData->GetNumberOfPoints() * .00005;
+		if (sampleSize < 10)
+		{
+			sampleSize = 50;
+		}
+
+		// Do we need to estimate normals?
+		auto distance = vtkSmartPointer<vtkSignedDistance>::New();
+		if (polyData->GetPointData()->GetNormals())
+		{
+			LOG(lvlDebug, "ExtractSurface: Using normals from input");
+			distance->SetInputData(polyData);
+		}
+		else
+		{
+			LOG(lvlDebug, "ExtractSurface: Estimating normals using PCANormalEstimation");
+			auto normals = vtkSmartPointer<vtkPCANormalEstimation>::New();
+			normals->SetInputData(polyData);
+			normals->SetSampleSize(sampleSize);
+			normals->SetNormalOrientationToGraphTraversal();
+			normals->FlipNormalsOn();
+			distance->SetInputConnection(normals->GetOutputPort());
+		}
+		const int Dimension = 256;
+		double radius;
+		radius = std::max(std::max(range[0], range[1]), range[2]) / static_cast<double>(Dimension) * 4;  // ~4 voxels
+
+		distance->SetRadius(radius);
+		distance->SetDimensions(Dimension, Dimension, Dimension);
+		distance->SetBounds(bounds[0] - range[0] * .1, bounds[1] + range[0] * .1, bounds[2] - range[1] * .1,
+			bounds[3] + range[1] * .1, bounds[4] - range[2] * .1, bounds[5] + range[2] * .1);
+
+		auto surface = vtkSmartPointer<vtkExtractSurface>::New();
+		surface->SetInputConnection(distance->GetOutputPort());
+		surface->SetRadius(radius * .99);
+		return surface;
+	}
+
+	vtkSmartPointer<vtkUnsignedCharArray> createColorArray(QColor const& c, size_t size)
+	{
+		auto colors = vtkSmartPointer<vtkUnsignedCharArray>::New();
+		colors->SetNumberOfComponents(3);
+		colors->SetName("Colors");
+		unsigned char onlyInThisColor[3] = {// Qt documentation states that red/green/blue deliver 0..255, so cast is OK
+			static_cast<unsigned char>(c.red()), static_cast<unsigned char>(c.green()),
+			static_cast<unsigned char>(c.blue())};
+		for (size_t s = 0; s < size; ++s)
+		{
+			colors->InsertNextTypedTuple(onlyInThisColor);
+		}
+		return colors;
+	}
+
+	const int SamplePointNum = 10000;
+
+	vtkSmartPointer<vtkPolyData> sampleDifferencePoints(iAFiberData const& sampleFiber, iAFiberData const& refFiber, size_t & newPts)
+	{
+		vtkNew<vtkPoints> points;
+		std::vector<iAVec3f> sampledPoints;
+		// direction fiber -> refFiber
+		// everything that's in the fiber but not in the reference -> color red
+		samplePoints(sampleFiber, sampledPoints, SamplePointNum, 0.9);			 // * 0.95 to avoid sampling artefacts ("noise" points) close to the boundary of the cylinder
+		newPts = 0;
+		for (size_t s = 0; s < sampledPoints.size(); ++s)
+		{
+			if (!pointContainedInFiber(sampledPoints[s], refFiber))
+			{
+				double pt[3];
+				for (int c = 0; c < 3; ++c)
+				{
+					pt[c] = sampledPoints[s][c];
+				}
+				points->InsertNextPoint(pt);
+				++newPts;
+			}
+		}
+		auto ptData = vtkSmartPointer<vtkPolyData>::New();
+		ptData->SetPoints(points.GetPointer());
+		return ptData;
+	}
+
+	iAPolyActor createPolyDifference(iAFiberData const & sampleFiber, iAFiberData const & refFiber, QColor const & color)
+	{
+		size_t newPts;
+		auto ptData = sampleDifferencePoints(sampleFiber, refFiber, newPts);
+		auto surfaceCreator = MakeExtractSurface(ptData);
+		surfaceCreator->Update();
+		iAPolyActor p(surfaceCreator->GetOutput());
+		p.actor->GetProperty()->SetDiffuseColor(color.redF(), color.blueF(), color.greenF());
+		p.actor->GetProperty()->SetSpecular(.6);
+		p.actor->GetProperty()->SetSpecularPower(50.0);
+		return p;
+	}
+	iAPolyActor createPointDifference(iAFiberData const& sampleFiber, iAFiberData const& refFiber, QColor const& color)
+	{
+		size_t newPts;
+		auto ptData = sampleDifferencePoints(sampleFiber, refFiber, newPts);
+		ptData->GetPointData()->SetScalars(createColorArray(color, newPts));
+		auto vertexFilter = vtkSmartPointer<vtkVertexGlyphFilter>::New();
+		vertexFilter->SetInputData(ptData.GetPointer());
+		vertexFilter->Update();
+		iAPolyActor p(vertexFilter->GetOutput());
+		p.actor->GetProperty()->SetPointSize(4);
+		return p;
+	}
+}
+
 void iASensitivityInfo::updateDifferenceView()
 {
+	bool const meshify = false;
 	//iATimeGuard timer("ShowDifference");
 	auto renWin = m_gui->m_diff3DWidget->renderWindow();
 	auto const& hp = m_gui->m_paramSP->viewData()->highlightedPoints();
@@ -1470,6 +1607,7 @@ void iASensitivityInfo::updateDifferenceView()
 
 	auto t = iAColorThemeManager::instance().theme(m_gui->m_settings->cmbboxSPHighlightColorMap->currentText());
 
+	auto createPolyFunc = (meshify) ? createPolyDifference : createPointDifference;
 	int measureIdx = m_gui->m_settings->dissimMeasIdx();
 	for (size_t i=0; i<hp.size(); ++i)
 	{
@@ -1480,7 +1618,8 @@ void iASensitivityInfo::updateDifferenceView()
 			continue;
 		}
 		auto resultData = QSharedPointer<iAPolyDataRenderer>::create();
-		resultData->data = m_resultUIs[rID].main3DVis->extractSelectedObjects(QColor(128, 128, 128));
+		QColor color = t->color(i);
+		resultData->data = m_resultUIs[rID].main3DVis->extractSelectedObjects(QColor(128, 128, 128));  // color given here isn't used ...
 		if (resultData->data.size() == 0)
 		{
 			//LOG(lvlDebug, QString("Result %1: No selected fibers!").arg(rID));
@@ -1499,7 +1638,8 @@ void iASensitivityInfo::updateDifferenceView()
 			resultData->actor[resultData->actor.size()-1]->SetMapper(diffMapper);
 			resultData->actor[resultData->actor.size() - 1]->GetProperty()->SetOpacity(0.3);
 			diffMapper->SetScalarModeToUsePointFieldData();
-			resultData->actor[resultData->actor.size() - 1]->GetProperty()->SetColor(0.5, 0.5, 0.5);
+			resultData->actor[resultData->actor.size() - 1]->GetProperty()->SetColor(
+				i == 0 ? color.redF() : 0.5, i == 0 ? color.greenF() : 0.5, i == 0 ? color.blueF() : 0.5);  // ... color is set here instead
 			diffMapper->Update();
 			resultData->renderer->AddActor(resultData->actor[f]);
 		}
@@ -1508,7 +1648,6 @@ void iASensitivityInfo::updateDifferenceView()
 		resultData->text->SetLinearFontScaleFactor(2);
 		resultData->text->SetNonlinearFontScaleFactor(1);
 		resultData->text->SetMaximumFontSize(18);
-		QColor color = t->color(i);
 		resultData->text->GetTextProperty()->SetColor(color.redF(), color.greenF(), color.blueF());
 		resultData->text->SetText(2, txt.toStdString().c_str());
 		// ToDo: add fiber id ;
@@ -1534,97 +1673,26 @@ void iASensitivityInfo::updateDifferenceView()
 			//  - compare to "matching" fiber in "reference" (result hp[0])
 			//  - highlight hp[0] somehow special?
 
-			auto& ref = m_data->m_data->result[refResID];
-			auto const& refMapping = *ref.mapping.data();
-
-			auto& d = m_data->m_data->result[rID];
-			auto const& mapping = *d.mapping.data();
-
-			vtkNew<vtkPolyData> ptData;
-			vtkNew<vtkPoints> points;
-			auto colors = vtkSmartPointer<vtkUnsignedCharArray>::New();
-			colors->SetNumberOfComponents(3);
-			colors->SetName("Colors");
-
 			for (size_t fidx = 0; fidx < m_currentFiberSelection[rID].size(); ++fidx)
 			{
 				size_t fiber0ID = m_currentFiberSelection[rID][fidx];
-				auto it = d.curveInfo.find(fiber0ID);
-				iAFiberData sampleFiber(
-					d.table, fiber0ID, mapping, it != d.curveInfo.end() ? it->second : std::vector<iAVec3f>());
+				auto const& sampleFiber = m_data->m_data->result[refResID].fiberData[fiber0ID];
+				quint32 refFiberID = m_data->m_resultDissimMatrix[rID][refResID].fiberDissim[static_cast<int>(fiber0ID)][measureIdx][0].index;
 
-				size_t refFiberID =
-					m_data->m_resultDissimMatrix[rID][refResID].fiberDissim[fiber0ID][measureIdx][0].index;
-				assert(std::find(m_currentFiberSelection[refResID].begin(), m_currentFiberSelection[refResID].end(),
-						   refFiberID) != m_currentFiberSelection[refResID].end());
-
+				// original try: assert that the best match will always be in selection:
+				//assert(std::find(m_currentFiberSelection[refResID].begin(), m_currentFiberSelection[refResID].end(), refFiberID) != m_currentFiberSelection[refResID].end());
+				// but of course this need not always be the case;
+				// should we do something about this case? probably not a whole lot there can be done; but it could look confusing to users...
 				//size_t refFiberID = m_currentFiberSelection[refResID][0];
-				auto refIt = ref.curveInfo.find(refFiberID);
-				iAFiberData refFiber(ref.table, refFiberID, refMapping,
-					refIt != ref.curveInfo.end() ? refIt->second : std::vector<iAVec3f>());
+				// potential error here: refFiberID is larger than fiber count in reference
+				//	-> check where this comes from - wrong dissimilarity matrix computation? invalid cache file?
 
-				std::vector<iAVec3f> sampledPoints;
-
-				// direction fiber -> refFiber
-				// everything that's in the fiber but not in the reference -> color red
-				samplePoints(sampleFiber, sampledPoints, 10000);
-				size_t newPts = 0;
-				for (size_t s = 0; s < sampledPoints.size(); ++s)
-				{
-					if (!pointContainedInFiber(sampledPoints[s], refFiber))
-					{
-						double pt[3];
-						for (int c = 0; c < 3; ++c) pt[c] = sampledPoints[s][c];
-						points->InsertNextPoint(pt);
-						++newPts;
-					}
-				}
-				unsigned char onlyInThisColor[3] = {
-					// Qt documentation states that red/green/blue deliver 0..255, so cast is OK
-					static_cast<unsigned char>(t->color(i).red()), static_cast<unsigned char>(t->color(i).green()),
-					static_cast<unsigned char>(t->color(i).blue())};
-				for (size_t s = 0; s < newPts; ++s)
-				{
-					colors->InsertNextTypedTuple(onlyInThisColor);
-				}
-
-				// direction refFiber -> fiber
-				// -> color blue
-				samplePoints(refFiber, sampledPoints, 10000);
-				newPts = 0;
-				for (size_t s = 0; s < sampledPoints.size(); ++s)
-				{
-					if (!pointContainedInFiber(sampledPoints[s], sampleFiber))
-					{
-						double pt[3];
-						for (int c = 0; c < 3; ++c) pt[c] = sampledPoints[s][c];
-						points->InsertNextPoint(pt);
-						++newPts;
-					}
-				}
-				unsigned char onlyInRefColor[3] = {static_cast<unsigned char>(t->color(0).red()),
-					static_cast<unsigned char>(t->color(0).green()), static_cast<unsigned char>(t->color(0).blue())};
-				for (size_t s = 0; s < newPts; ++s)
-				{
-					colors->InsertNextTypedTuple(onlyInRefColor);
-				}
+				auto const& refFiber = m_data->m_data->result[rID].fiberData[refFiberID];
+				resultData->diffPolys.push_back(createPolyFunc(sampleFiber, refFiber, color));
+				resultData->renderer->AddActor(resultData->diffPolys[resultData->diffPolys.size()-1].actor);
+				resultData->diffPolys.push_back(createPolyFunc(refFiber, sampleFiber, t->color(0)));
+				resultData->renderer->AddActor(resultData->diffPolys[resultData->diffPolys.size() - 1].actor);
 			}
-
-			ptData->SetPoints(points.GetPointer());
-			auto vertexFilter = vtkSmartPointer<vtkVertexGlyphFilter>::New();
-			vertexFilter->SetInputData(ptData.GetPointer());
-			vertexFilter->Update();
-
-			resultData->diffPoints = vtkSmartPointer<vtkPolyData>::New();
-			resultData->diffPoints->DeepCopy(vertexFilter->GetOutput());
-			resultData->diffPoints->GetPointData()->SetScalars(colors);
-			resultData->diffPtMapper = vtkSmartPointer<vtkPolyDataMapper>::New();
-			resultData->diffPtMapper->SetInputData(resultData->diffPoints);
-			resultData->diffActor = vtkSmartPointer<vtkActor>::New();
-			resultData->diffActor->SetMapper(resultData->diffPtMapper);
-			resultData->diffPtMapper->Update();
-			resultData->diffActor->GetProperty()->SetPointSize(4);
-			resultData->renderer->AddActor(resultData->diffActor);
 		}
 		renWin->AddRenderer(resultData->renderer);
 		m_gui->m_diff3DRenderManager.addToBundle(resultData->renderer);

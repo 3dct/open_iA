@@ -9,4 +9,5 @@ set(DEPENDENCIES_MODULES
 )
 set(DEPENDENCIES_VTK_MODULES
 	FiltersExtraction           # for vtkExtractGeometry used iASelectionInteractorStyle
+	FiltersPoints               # for vtkSignedDistance, vtkPCANormalEstimation, vtkExtractSurface
 )
