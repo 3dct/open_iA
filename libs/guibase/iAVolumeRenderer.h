@@ -78,6 +78,8 @@ public:
 
 	iAVolumeSettings const & volumeSettings() const;
 	bool isRendered() const;
+	bool isVisible() const;
+
 private:
 	iAVolumeSettings m_volSettings;
 	vtkSmartPointer<vtkVolume> m_volume;
