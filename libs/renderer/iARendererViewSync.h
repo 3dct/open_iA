@@ -76,6 +76,9 @@ public:
 	//! Remove all renderers from the bundle synchronized by this class.
 	void removeAll();
 
+	//! whether this renderer view sync instance uses a shared camera or not
+	bool sharedCamera() const;
+
 private:
 	//! @{ No copy construction or assignment
 	iARendererViewSync(const iARendererViewSync&) = delete;

@@ -39,6 +39,10 @@ namespace
 		dstCam->SetPosition(srcCam->GetPosition());
 		dstCam->SetFocalPoint(srcCam->GetFocalPoint());
 		dstCam->SetClippingRange(srcCam->GetClippingRange());
+		if (srcCam->GetParallelProjection() != dstCam->GetParallelProjection())
+		{
+			dstCam->SetParallelProjection(srcCam->GetParallelProjection());
+		}
 		if (srcCam->GetParallelProjection())
 		{
 			dstCam->SetParallelScale(srcCam->GetParallelScale());
@@ -92,7 +96,7 @@ bool iARendererViewSync::removeFromBundle(vtkRenderer* renderer, bool resetCamer
 		LOG(lvlWarn, "iARenderManager::removeFromBundle called with renderer which isn't part of the Bundle!");
 		return false;
 	}
-	if (resetCamera)
+	if (resetCamera && m_sharedCamera)
 	{
 		vtkSmartPointer<vtkCamera> newCam = vtkSmartPointer<vtkCamera>::New();
 		newCam->DeepCopy(renderer->GetActiveCamera());
@@ -112,15 +116,20 @@ void iARendererViewSync::removeAll()
 	}
 }
 
+bool iARendererViewSync::sharedCamera() const
+{
+	return m_sharedCamera;
+}
+
 void iARendererViewSync::redrawOtherRenderers(vtkObject* caller, long unsigned int /*eventId*/, void* /*callData*/)
 {
 	if (m_updateInProgress || !caller)
 	{
 		return;
 	}
-	m_updateInProgress = true;	// thread-safety?
+	m_updateInProgress = true;  // thread-safety?
 	auto sourceCam = ((vtkRenderer*)caller)->GetActiveCamera();
-	for (auto r: m_rendererObserverTags.keys())
+	for (auto r : m_rendererObserverTags.keys())
 	{
 		if (r == caller)
 		{
@@ -131,7 +140,7 @@ void iARendererViewSync::redrawOtherRenderers(vtkObject* caller, long unsigned i
 			copyCameraParams(r->GetActiveCamera(), sourceCam);
 		}
 		if (r->GetRenderWindow())
-		{	// don't update renderers already removed from render window:
+		{  // don't update renderers already removed from render window:
 			r->GetRenderWindow()->Render();
 		}
 	}
