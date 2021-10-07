@@ -128,6 +128,7 @@ private slots:
 	void spVisibleParamChanged();
 	void parResultSelected(size_t resultIdx, Qt::KeyboardModifiers modifiers);
 	void setSpatialOverviewTF(int modalityIdx);
+	void spatialOverviewVisibilityChanged(bool visible);
 };
 
 // Factor out as generic CSV reading class also used by iACsvIO?

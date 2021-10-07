@@ -41,10 +41,13 @@
 #include <iAVec3.h>
 
 // guibase:
+#include <dlg_modalities.h> // for modalityVisibilityChanged
 #include <iAMdiChild.h>
 #include <iAModality.h>
 #include <iAModalityList.h>
 #include <iAModalityTransfer.h>
+#include <iARenderer.h>
+#include <iAVolumeRenderer.h>
 #include <qthelper/iAQTtoUIConnector.h>
 #include <qthelper/iAWidgetSettingsMapper.h>
 
@@ -71,15 +74,22 @@
 
 #include <vtkExtractSurface.h>
 #include <vtkImageData.h>
+#include <vtkInteractorStyleTrackballCamera.h>
 #include <vtkLookupTable.h>
 #include <vtkNew.h>
 #include <vtkPCANormalEstimation.h>
 #include <vtkPolyData.h>
 #include <vtkPolyDataMapper.h>
 #include <vtkRenderWindow.h>
+#include <vtkScalarBarActor.h>
+#include <vtkScalarBarRepresentation.h>
+#include <vtkScalarBarWidget.h>
 #include <vtkSignedDistance.h>
 #include <vtkSmartPointer.h>
 #include <vtkTable.h>
+#include <vtkTextActor.h>
+#include <vtkTextWidget.h>
+#include <vtkTextRepresentation.h>
 
 // for mesh differences:
 #include "iARendererViewSync.h"
@@ -89,10 +99,10 @@
 #include <vtkTextProperty.h>
 
 // for sampled points display:
-#include <vtkVertexGlyphFilter.h>
-#include <vtkUnsignedCharArray.h>
 #include <vtkPointData.h>
 #include <vtkProperty.h>
+#include <vtkVertexGlyphFilter.h>
+#include <vtkUnsignedCharArray.h>
 
 #include <QDialog>
 #include <QDialogButtonBox>
@@ -699,6 +709,9 @@ public:
 	vtkSmartPointer<vtkRenderer> m_diff3DEmptyRenderer;
 	vtkSmartPointer<vtkCornerAnnotation> m_diff3DEmptyText;
 
+	vtkSmartPointer<vtkScalarBarWidget> m_scalarBarWidget;
+	vtkSmartPointer<vtkTextWidget> m_scalarBarMinText, m_scalarBarMaxText;
+
 	void updateScatterPlotLUT()
 	{
 		//LOG(lvlDebug, "\nNEW LUT:");
@@ -1189,6 +1202,8 @@ void iASensitivityInfo::showSpatialOverview()
 
 	m_child->setModalities(mods);
 	connect(m_child, &iAMdiChild::histogramAvailable, this, &iASensitivityInfo::setSpatialOverviewTF);
+	connect(m_child->dataDockWidget(), &dlg_modalities::modalityVisibilityChanged, this,
+		&iASensitivityInfo::spatialOverviewVisibilityChanged);
 	for (int m = 0; m < mods->size(); ++m)
 	{
 		m_child->setHistogramModality(m);
@@ -1208,11 +1223,109 @@ void iASensitivityInfo::setSpatialOverviewTF(int modalityIdx)
 	convertLUTToTF(lut, ctf, otf, AlphaOverride);
 	double rgb0[4];
 	ctf->GetColor(0.0, rgb0);
-	ctf->AddRGBPoint(0.0, 0.0, 0.0, 0.0);
+	ctf->AddRGBPoint(0.0, 1.0, 1.0, 1.0);
 	ctf->AddRGBPoint(MinPoint, rgb0[0], rgb0[1], rgb0[2]);
 	otf->AddPoint(0.0, 0.0);
 	otf->AddPoint(MinPoint, AlphaOverride);
 	mod->updateRenderer();
+	// show scalar bar widget if not shown yet:
+
+	if (!m_gui->m_scalarBarWidget)
+	{
+		const int VTKFontSize = 20;
+		// TODO: Extract to separate class, e.g. iAVTKTextLabelScalarBar...?
+		auto interactor = m_child->renderer()->renderWindow()->GetInteractor();
+		m_gui->m_scalarBarWidget = vtkSmartPointer<vtkScalarBarWidget>::New();
+		m_gui->m_scalarBarWidget->GetScalarBarRepresentation()->SetOrientation(1);
+		m_gui->m_scalarBarWidget->GetScalarBarRepresentation()->SetPosition (0.85, 0.1);
+		m_gui->m_scalarBarWidget->GetScalarBarRepresentation()->SetPosition2(0.1 , 0.8);  // relative to position above -> specifies size of box, not an actual position
+		m_gui->m_scalarBarWidget->GetScalarBarActor()->SetLabelFormat("");
+		//m_gui->m_scalarBarWidget->GetScalarBarActor()->SetTitleTextProperty(m_textProperty);
+		//m_gui->m_scalarBarWidget->GetScalarBarActor()->SetLabelTextProperty(m_textProperty);
+		m_gui->m_scalarBarWidget->GetScalarBarActor()->SetNumberOfLabels(0);
+		m_gui->m_scalarBarWidget->GetScalarBarActor()->SetUnconstrainedFontSize(true);
+		m_gui->m_scalarBarWidget->GetScalarBarActor()->GetTitleTextProperty()->SetFontSize(VTKFontSize);
+		m_gui->m_scalarBarWidget->GetScalarBarActor()->GetTitleTextProperty()->BoldOff();
+		m_gui->m_scalarBarWidget->GetScalarBarActor()->GetTitleTextProperty()->SetJustificationToLeft();
+		m_gui->m_scalarBarWidget->GetScalarBarActor()->GetTitleTextProperty()->SetVerticalJustificationToTop();
+		m_gui->m_scalarBarWidget->GetScalarBarActor()->GetTitleTextProperty()->ItalicOff();
+		m_gui->m_scalarBarWidget->GetScalarBarActor()->GetTitleTextProperty()->SetColor(0, 0, 0);
+		m_gui->m_scalarBarWidget->GetScalarBarActor()->GetTitleTextProperty()->ShadowOff();
+		//m_gui->m_scalarBarWidget->GetScalarBarActor()->GetTitleTextProperty()->SetFontFamilyToArial();
+		m_gui->m_scalarBarWidget->GetScalarBarActor()->SetTitle("Covered by");
+		m_gui->m_scalarBarWidget->SetRepositionable(false);
+		m_gui->m_scalarBarWidget->SetResizable(false);
+		m_gui->m_scalarBarWidget->SetInteractor(interactor);
+		m_gui->m_scalarBarWidget->GetScalarBarActor()->SetLookupTable(ctf);
+		m_gui->m_scalarBarWidget->On();
+
+		m_gui->m_scalarBarMinText = vtkSmartPointer<vtkTextWidget>::New();
+		vtkNew<vtkTextRepresentation> minTextRep;
+		minTextRep->SetPosition (0.9, 0.835);
+		minTextRep->SetPosition2(0.1, 0.05);
+		m_gui->m_scalarBarMinText = vtkSmartPointer<vtkTextWidget>::New();
+		m_gui->m_scalarBarMinText->SetRepresentation(minTextRep);
+		m_gui->m_scalarBarMinText->SetInteractor(interactor);
+		m_gui->m_scalarBarMinText->GetTextActor()->SetInput("All");
+		m_gui->m_scalarBarMinText->GetTextActor()->SetTextScaleModeToNone();
+		m_gui->m_scalarBarMinText->GetTextActor()->GetTextProperty()->SetFontFamilyToArial();
+		m_gui->m_scalarBarMinText->GetTextActor()->GetTextProperty()->SetFontSize(VTKFontSize);
+		m_gui->m_scalarBarMinText->GetTextActor()->GetTextProperty()->SetColor(0, 0, 0);
+		m_gui->m_scalarBarMinText->GetTextActor()->GetTextProperty()->SetJustificationToLeft();
+		m_gui->m_scalarBarMinText->GetTextActor()->GetTextProperty()->SetVerticalJustificationToTop();
+		m_gui->m_scalarBarMinText->EnabledOff();
+		m_gui->m_scalarBarMinText->ResizableOff();
+		auto minBorderRep = m_gui->m_scalarBarMinText->GetBorderRepresentation();
+		minBorderRep->SetShowHorizontalBorder(false);
+		minBorderRep->SetShowVerticalBorder(false);
+		m_gui->m_scalarBarMinText->On();
+		
+		m_gui->m_scalarBarMaxText = vtkSmartPointer<vtkTextWidget>::New();
+		vtkNew<vtkTextRepresentation> maxTextRep;
+		maxTextRep->SetPosition (0.9, 0.115);
+		maxTextRep->SetPosition2(0.1, 0.05);
+		m_gui->m_scalarBarMaxText = vtkSmartPointer<vtkTextWidget>::New();
+		m_gui->m_scalarBarMaxText->SetRepresentation(maxTextRep);
+		m_gui->m_scalarBarMaxText->SetInteractor(interactor);
+		m_gui->m_scalarBarMaxText->GetTextActor()->SetInput("None");
+		m_gui->m_scalarBarMaxText->GetTextActor()->SetTextScaleModeToNone();
+		m_gui->m_scalarBarMaxText->GetTextActor()->GetTextProperty()->SetFontFamilyToArial();
+		m_gui->m_scalarBarMaxText->GetTextActor()->GetTextProperty()->SetFontSize(VTKFontSize);
+		m_gui->m_scalarBarMaxText->GetTextActor()->GetTextProperty()->SetColor(0, 0, 0);
+		m_gui->m_scalarBarMaxText->GetTextActor()->GetTextProperty()->SetJustificationToLeft();
+		m_gui->m_scalarBarMaxText->GetTextActor()->GetTextProperty()->SetVerticalJustificationToBottom();
+		m_gui->m_scalarBarMaxText->EnabledOff();
+		m_gui->m_scalarBarMaxText->ResizableOff();
+		auto maxBorderRep = m_gui->m_scalarBarMaxText->GetBorderRepresentation();
+		maxBorderRep->SetShowHorizontalBorder(false);
+		maxBorderRep->SetShowVerticalBorder(false);
+		m_gui->m_scalarBarMaxText->On();
+
+	}
+}
+
+void iASensitivityInfo::spatialOverviewVisibilityChanged(bool visible)
+{
+	if (visible)
+	{	// if current modality was made visible -> make sure scalar bar widget is shown
+		m_gui->m_scalarBarWidget->On();
+		m_gui->m_scalarBarMinText->On();
+		m_gui->m_scalarBarMaxText->On();
+		m_child->updateRenderer();
+		return;
+	}
+	for (int m=0; m<m_child->modalities()->size(); ++m)
+	{
+		if (m_child->modality(m)->renderer()->isVisible())
+		{	// ..or any other modality is visible  -> Nothing to do
+			return;
+		}
+	}
+	// hide scalar bar
+	m_gui->m_scalarBarWidget->Off();
+	m_gui->m_scalarBarMinText->Off();
+	m_gui->m_scalarBarMaxText->Off();
+	m_child->updateRenderer();
 }
 
 void iASensitivityInfo::updateSpatialOverviewColors()
