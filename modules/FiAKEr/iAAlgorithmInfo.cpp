@@ -280,7 +280,16 @@ void iAAlgorithmInfo::drawLegend(QPainter& p, int leftWidth, bool top)
 	}
 	QPolygon poly;
 	int legendCenterX = LegendMargin + LegendSpacing + LegendLineWidth / 2;
-	poly.push_back(QPoint(legendCenterX, LegendBottom - (LegendNumEntries * LegendEntryHeight)));
+	int LegendTop = LegendBottom - (LegendNumEntries * LegendEntryHeight);
+	if (top)
+	{
+		poly.push_back(QPoint(legendCenterX + MaxLineWidth / 2, LegendTop));
+		poly.push_back(QPoint(legendCenterX - MaxLineWidth / 2, LegendTop));
+	}
+	else
+	{
+		poly.push_back(QPoint(legendCenterX, LegendTop));
+	}
 	poly.push_back(QPoint(legendCenterX - MaxLineWidth / 2, LegendBottom));
 	poly.push_back(QPoint(legendCenterX + MaxLineWidth / 2, LegendBottom));
 	poly.push_back(poly[0]);  // close loop back to point 0
