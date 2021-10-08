@@ -1756,13 +1756,13 @@ void iASensitivityInfo::updateDifferenceView()
 			diffMapper->Update();
 			resultData->renderer->AddActor(resultData->actor[f]);
 		}
-		auto txt = QString("Result %1").arg(rID);
+		auto txt = QString(i==0? "Reference (#%1)": "Comparison to #%1").arg(rID);
 		resultData->text = vtkSmartPointer<vtkCornerAnnotation>::New();
 		resultData->text->SetLinearFontScaleFactor(2);
 		resultData->text->SetNonlinearFontScaleFactor(1);
 		resultData->text->SetMaximumFontSize(18);
 		resultData->text->GetTextProperty()->SetColor(color.redF(), color.greenF(), color.blueF());
-		resultData->text->SetText(2, txt.toStdString().c_str());
+		resultData->text->SetText(vtkCornerAnnotation::UpperEdge, txt.toStdString().c_str());
 		// ToDo: add fiber id ;
 		//auto textColor = qApp->palette().color(QPalette::Text);
 		//resultData->text->GetTextProperty()->SetColor(textColor.redF(), textColor.greenF(), textColor.blueF());
