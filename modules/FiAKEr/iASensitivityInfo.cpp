@@ -632,7 +632,7 @@ struct iAPolyActor
 	}
 };
 
-struct iAPolyDataRenderer
+struct iAFiberDiffRenderer
 {
 	vtkSmartPointer<vtkRenderer> renderer;
 	std::vector<vtkSmartPointer<vtkPolyData>> data;
@@ -704,7 +704,7 @@ public:
 	iAQVTKWidget* m_diff3DWidget;
 	iADockWidgetWrapper* m_dwDiff3D;
 	iARendererViewSync m_diff3DRenderManager;
-	std::vector<QSharedPointer<iAPolyDataRenderer>> m_diff3DRenderers;
+	std::vector<QSharedPointer<iAFiberDiffRenderer>> m_diff3DRenderers;
 
 	vtkSmartPointer<vtkRenderer> m_diff3DEmptyRenderer;
 	vtkSmartPointer<vtkCornerAnnotation> m_diff3DEmptyText;
@@ -1730,7 +1730,7 @@ void iASensitivityInfo::updateDifferenceView()
 			LOG(lvlDebug, QString("Result %1: 3D vis not initialized!").arg(rID));
 			continue;
 		}
-		auto resultData = QSharedPointer<iAPolyDataRenderer>::create();
+		auto resultData = QSharedPointer<iAFiberDiffRenderer>::create();
 		QColor color = t->color(i);
 		resultData->data = m_resultUIs[rID].main3DVis->extractSelectedObjects(QColor(128, 128, 128));  // color given here isn't used ...
 		if (resultData->data.size() == 0)
