@@ -69,7 +69,7 @@ private:
 	vtkSmartPointer<vtkActor> m_RegionLinksActor;
 	vtkSmartPointer<vtkActor> m_RegionNodesActor;
 	iA3DColoredPolyObjectVis* m_polyObject;
-	vtkSmartPointer<vtkPolyData> m_initialPoints;
+	vtkSmartPointer<vtkPoints> m_initialPoints;
 	QSharedPointer<iA3DPolyObjectActor> m_PolyObjectActor;
 	vtkSmartPointer<vtkTable> m_objectTable;
 	vtkSmartPointer<vtkPolyData> m_linePolyData;

@@ -51,7 +51,7 @@ iAVRObjectModel::iAVRObjectModel(vtkRenderer* ren, iA3DColoredPolyObjectVis* pol
 	m_RegionNodesActor = vtkSmartPointer<vtkActor>::New();
 	m_lut = vtkSmartPointer<vtkLookupTable>::New();
 	nodeGlyphResetColor = vtkSmartPointer<vtkUnsignedCharArray>::New();
-	m_initialPoints = vtkSmartPointer<vtkPolyData>::New();
+	m_initialPoints = vtkSmartPointer<vtkPoints>::New();
 
 	m_volumeVisible = false;
 	m_regionLinksVisible = false;
@@ -59,22 +59,24 @@ iAVRObjectModel::iAVRObjectModel(vtkRenderer* ren, iA3DColoredPolyObjectVis* pol
 
 	// Initial Volume 
 	//Copy of m_polyObject's data 
-	m_initialPoints->DeepCopy(polyObject->polyData());
-	resetVolume();
+	m_initialPoints->DeepCopy(polyObject->polyData()->GetPoints());
+	m_PolyObjectActor = m_polyObject->createPolyActor(m_renderer);
+	m_volumeActor = m_PolyObjectActor->actor();
 }
 
 //Todo save initial volume and reset to that
 void iAVRObjectModel::resetVolume()
 {
-	//Reset
-	LOG(lvlInfo, QString("Reset"));
-	//m_polyObject->polyData()->DeepCopy(m_initialPoints);
-	m_PolyObjectActor = m_polyObject->createPolyActor(m_renderer);
-	m_volumeActor = m_PolyObjectActor->actor();
+	m_polyObject->polyData()->GetPoints()->DeepCopy(m_initialPoints);
+	//m_PolyObjectActor->updated();
+	//m_PolyObjectActor = m_polyObject->createPolyActor(m_renderer);
+	//m_volumeActor = m_PolyObjectActor->actor();
 }
 
 void iAVRObjectModel::showVolume()
 {
+	//m_PolyObjectActor->show();
+	
 	if (m_volumeVisible)
 	{
 		return;
@@ -85,6 +87,8 @@ void iAVRObjectModel::showVolume()
 
 void iAVRObjectModel::hideVolume()
 {
+	//m_PolyObjectActor->hide();
+	
 	if (!m_volumeVisible)
 	{
 		return;

@@ -55,7 +55,6 @@ private:
 	void calculateCurvedLineCoverage();
 	void calculateEllipseCoverage();
 	vtkSmartPointer<vtkPoints> getOctreeFiberCoverage(double startPoint[3], double endPoint[3], vtkIdType octreeLevel, vtkIdType fiber, double fiberLength);
-	bool checkIntersectionWithBox(double startPoint[3], double endPoint[3], std::vector<std::vector<iAVec3d>>* planePoints, double bounds[6], double intersection[3]);
 	bool checkIntersectionWithBox(double startPoint[3], double endPoint[3], double bounds[6], double intersection[3]);
 	double calculateLineCoverageRatio(double startPoint[3], double endPoint[3], double lineLength);
 	void storeObjectCoverage(vtkIdType octreeLevel, vtkIdType region, vtkIdType fiber, double coverage);
