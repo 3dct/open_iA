@@ -380,7 +380,7 @@ void iAAlgorithmInfo::paintEvent(QPaintEvent* ev)
 			QRect textRect(m_matrixRect.left() + outIdx * cellWidth + TextVPadding,
 				TextHPadding, cellWidth - 2 * TextVPadding, m_outWidth - TextHPadding);
 			drawInOut(p, textRect, m_outNames[outIdx], m_outRects, m_outColor, false,
-				m_shownOut.size() == 0 || m_shownOut.contains(outIdx), true);
+				m_shownOut.contains(outIdx), true);
 		}
 
 		// draw sensitivities :

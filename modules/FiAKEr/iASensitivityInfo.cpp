@@ -1261,7 +1261,7 @@ void iASensitivityInfo::setSpatialOverviewTF(int modalityIdx)
 
 		m_gui->m_scalarBarMinText = vtkSmartPointer<vtkTextWidget>::New();
 		vtkNew<vtkTextRepresentation> minTextRep;
-		minTextRep->SetPosition (0.9, 0.835);
+		minTextRep->SetPosition (0.9, 0.855);
 		minTextRep->SetPosition2(0.1, 0.05);
 		m_gui->m_scalarBarMinText = vtkSmartPointer<vtkTextWidget>::New();
 		m_gui->m_scalarBarMinText->SetRepresentation(minTextRep);
@@ -1282,7 +1282,7 @@ void iASensitivityInfo::setSpatialOverviewTF(int modalityIdx)
 		
 		m_gui->m_scalarBarMaxText = vtkSmartPointer<vtkTextWidget>::New();
 		vtkNew<vtkTextRepresentation> maxTextRep;
-		maxTextRep->SetPosition (0.9, 0.115);
+		maxTextRep->SetPosition (0.9, 0.125);
 		maxTextRep->SetPosition2(0.1, 0.05);
 		m_gui->m_scalarBarMaxText = vtkSmartPointer<vtkTextWidget>::New();
 		m_gui->m_scalarBarMaxText->SetRepresentation(maxTextRep);
