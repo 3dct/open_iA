@@ -223,7 +223,6 @@ void iASSSlicer::initBPDChans( QString const & minFile, QString const & medFile,
 		slicer->setChannelOpacity( contourChans[i]->id, 0.0 );
 
 		iAChannelSlicerData * chanSData = slicer->channel( contourChans[i]->id );
-		chanSData = slicer->channel( contourChans[i]->id );
 		chanSData->setContourLineParams( lineWidths[i] );
 		chanSData->setContoursColor( contRGBs[i] );
 		chanSData->setContoursOpacity( 0.8 );
