@@ -57,8 +57,8 @@
 #define OCTREE_COLOR QColor(126, 0, 223, 255)
 //#define OCTREE_COLOR QColor(130, 10, 10, 255)
 
-iAVRMain::iAVRMain(iAVREnvironment* vrEnv, iAVRInteractorStyle* style, vtkTable* objectTable, iACsvIO io, iACsvConfig csvConfig, std::map<size_t, std::vector<iAVec3f> > curvedFiberInfo): m_vrEnv(vrEnv),
-	m_style(style),	m_objectTable(objectTable),	m_io(io), m_curvedFiberInfo(curvedFiberInfo)
+iAVRMain::iAVRMain(iAVREnvironment* vrEnv, iAVRInteractorStyle* style, iA3DColoredPolyObjectVis* polyObject, vtkTable* objectTable, iACsvIO io, iACsvConfig csvConfig): m_vrEnv(vrEnv),
+	m_style(style), m_polyObject(polyObject), m_objectTable(objectTable), m_io(io)
 {
 	// For true TranslucentGeometry
 	//https://vtk.org/Wiki/VTK/Examples/Cxx/Visualization/CorrectlyRenderTranslucentGeometry#CorrectlyRenderTranslucentGeometry.cxx
@@ -70,7 +70,7 @@ iAVRMain::iAVRMain(iAVREnvironment* vrEnv, iAVRInteractorStyle* style, vtkTable*
 
 	//Initialize Cube Vis
 	m_modelInMiniature = new iAVRModelInMiniature(m_vrEnv->renderer());
-	m_volume = new iAVRObjectModel(m_vrEnv->renderer(), m_objectTable, m_io, csvConfig, m_curvedFiberInfo);
+	m_volume = new iAVRObjectModel(m_vrEnv->renderer(), m_polyObject, m_objectTable, m_io, csvConfig);
 
 	//Define Octree
 	currentOctreeLevel = 0;
@@ -89,7 +89,7 @@ iAVRMain::iAVRMain(iAVREnvironment* vrEnv, iAVRInteractorStyle* style, vtkTable*
 	histogramMetrics = new iAVRHistogramMetric(m_objectTable, m_io, m_octrees);
 
 	//Fiber Coverage
-	m_fiberCoverageCalc = new iAVRObjectCoverage(m_objectTable, m_io, csvConfig, m_curvedFiberInfo, m_octrees, m_volume);
+	m_fiberCoverageCalc = new iAVRObjectCoverage(m_objectTable, m_io, csvConfig, m_octrees, m_volume);
 	m_fiberCoverageCalc->calculateObjectCoverage();
 	
 	m_volume->setFiberCoverageData(m_fiberCoverageCalc->getObjectCoverage());

@@ -25,7 +25,9 @@
 
 // FeatureScout - 3D cylinder visualization
 #include "dlg_CSVInput.h"
+#include "iA3DLineObjectVis.h"
 #include "iA3DCylinderObjectVis.h"
+#include "iA3DEllipseObjectVis.h"
 #include "iACsvConfig.h"
 #include "iACsvVtkTableCreator.h"
 
@@ -56,13 +58,13 @@ void iAVRModuleInterface::Initialize()
 	connect(actionVRRender, &QAction::triggered, this, &iAVRModuleInterface::render);
 	m_mainWnd->makeActionChildDependent(actionVRRender);
 
-	m_actionVRShowFibers = new QAction(tr("Show Fibers"), m_mainWnd);
-	connect(m_actionVRShowFibers, &QAction::triggered, this, &iAVRModuleInterface::showFibers);
+	m_actionVRStartAnalysis = new QAction(tr("Start Analysis"), m_mainWnd);
+	connect(m_actionVRStartAnalysis, &QAction::triggered, this, &iAVRModuleInterface::startAnalysis);
 
 	QMenu* vrMenu = getOrAddSubMenu(m_mainWnd->toolsMenu(), tr("VR"), false);
 	vrMenu->addAction(actionVRInfo);
 	vrMenu->addAction(actionVRRender);
-	vrMenu->addAction(m_actionVRShowFibers);
+	vrMenu->addAction(m_actionVRStartAnalysis);
 }
 
 void iAVRModuleInterface::info()
@@ -111,7 +113,7 @@ void iAVRModuleInterface::render()
 	AttachToMdiChild( m_mdiChild );
 }
 
-void iAVRModuleInterface::showFibers()
+void iAVRModuleInterface::startAnalysis()
 {
 	if (!m_vrEnv)
 		m_vrEnv.reset(new iAVREnvironment());
@@ -125,51 +127,11 @@ void iAVRModuleInterface::showFibers()
 	{
 		return;
 	}
-	dlg_CSVInput dlg(false);
-	if (dlg.exec() != QDialog::Accepted)
-	{
-		return;
-	}
-	iACsvConfig csvConfig = dlg.getConfig();
-	if (csvConfig.visType == iACsvConfig::UseVolume)
-	{
-		return;
-	}
 
-	iACsvVtkTableCreator creator;
-	iACsvIO io;
-	if (!io.loadCSV(creator, csvConfig))
-	{
-		return;
-	}
-
-	std::map<size_t, std::vector<iAVec3f> > curvedFiberInfo;
-
-	if (csvConfig.visType == iACsvConfig::Cylinders || csvConfig.visType == iACsvConfig::Lines)
-	{
-		if(!readCurvedFiberInfo(csvConfig.curvedFiberFileName, curvedFiberInfo))
-		{
-			curvedFiberInfo = std::map<size_t, std::vector<iAVec3f>>();
-		}
-	}
-
-	if (!vrAvailable())
-	{
-		return;
-	}
+	ImNDT();
 
 	connect(m_vrEnv.data(), &iAVREnvironment::finished, this, &iAVRModuleInterface::vrDone);
-	m_actionVRShowFibers->setText("Stop Show Fibers");
-
-	m_objectTable = creator.table();
-	//Create InteractorStyle
-	m_style = vtkSmartPointer<iAVRInteractorStyle>::New();
-
-	//Create VR Main
-	m_vrMain = new iAVRMain(m_vrEnv.data(), m_style, m_objectTable, io, csvConfig, curvedFiberInfo);
-
-	// Start Render Loop HERE!
-	m_vrEnv->start();
+	m_actionVRStartAnalysis->setText("Stop Analysis");
 }
 
 bool iAVRModuleInterface::vrAvailable()
@@ -187,6 +149,91 @@ bool iAVRModuleInterface::vrAvailable()
 	return true;
 }
 
+// Start ImNDT and load parameters
+void iAVRModuleInterface::ImNDT()
+{
+	//Create InteractorStyle
+	m_style = vtkSmartPointer<iAVRInteractorStyle>::New();
+
+	//Create VR Main
+	if (!loadImNDT()) return;
+
+	// Start Render Loop HERE!
+	m_vrEnv->start();
+}
+
+// Start ImNDT with pre-loaded data
+void iAVRModuleInterface::ImNDT(iA3DColoredPolyObjectVis* polyObject, vtkTable* objectTable, iACsvIO io, iACsvConfig csvConfig)
+{
+	//Create InteractorStyle
+	m_style = vtkSmartPointer<iAVRInteractorStyle>::New();
+
+	//Create VR Main
+	//TODO: CHECK IF PolyObject is not Volume OR NoVis
+	m_polyObject = QSharedPointer<iA3DColoredPolyObjectVis>(polyObject);
+	m_vrMain = new iAVRMain(m_vrEnv.data(), m_style, m_polyObject.data(), m_objectTable, io, csvConfig);
+
+	// Start Render Loop HERE!
+	m_vrEnv->start();
+}
+
+bool iAVRModuleInterface::loadImNDT()
+{
+	dlg_CSVInput dlg(false);
+	if (dlg.exec() != QDialog::Accepted)
+	{
+		return false;
+	}
+	iACsvConfig csvConfig = dlg.getConfig();
+
+	iACsvVtkTableCreator creator;
+	iACsvIO io;
+	if (!io.loadCSV(creator, csvConfig))
+	{
+		return false;
+	}
+
+	std::map<size_t, std::vector<iAVec3f> > curvedFiberInfo;
+
+	if (csvConfig.visType == iACsvConfig::Cylinders || csvConfig.visType == iACsvConfig::Lines)
+	{
+		if (!readCurvedFiberInfo(csvConfig.curvedFiberFileName, curvedFiberInfo))
+		{
+			curvedFiberInfo = std::map<size_t, std::vector<iAVec3f>>();
+		}
+	}
+
+	m_objectTable = creator.table();
+
+	//Create PolyObject
+	create3DPolyObjectVis(m_objectTable, io, csvConfig, curvedFiberInfo);
+
+	m_vrMain = new iAVRMain(m_vrEnv.data(), m_style, m_polyObject.data(), m_objectTable, io, csvConfig);
+
+	return true;
+}
+
+bool iAVRModuleInterface::create3DPolyObjectVis(vtkTable* objectTable, iACsvIO io, iACsvConfig csvConfig, std::map<size_t, std::vector<iAVec3f> > curvedFiberInfo)
+{
+	switch (csvConfig.visType)
+	{
+	default:
+	case iACsvConfig::UseVolume:
+		return false;
+	case iACsvConfig::Lines:	
+		m_polyObject = QSharedPointer<iA3DColoredPolyObjectVis>(new iA3DLineObjectVis(objectTable, io.getOutputMapping(), QColor(140, 140, 140, 255), curvedFiberInfo, 1));
+		break;
+	case iACsvConfig::Cylinders:
+		m_polyObject = QSharedPointer<iA3DColoredPolyObjectVis>(new iA3DCylinderObjectVis(objectTable, io.getOutputMapping(), QColor(140, 140, 140, 255), curvedFiberInfo));
+		break;
+	case iACsvConfig::Ellipses:
+		m_polyObject = QSharedPointer<iA3DColoredPolyObjectVis>(new iA3DEllipseObjectVis(objectTable, io.getOutputMapping(), QColor(140, 140, 140, 255)));
+		break;
+	case iACsvConfig::NoVis:
+		return false;
+	}
+}
+
 iAModuleAttachmentToChild * iAVRModuleInterface::CreateAttachment( iAMainWindow* mainWnd, iAMdiChild* child)
 {
 	return new iAVRAttachment( mainWnd, child );
@@ -194,5 +241,5 @@ iAModuleAttachmentToChild * iAVRModuleInterface::CreateAttachment( iAMainWindow*
 
 void iAVRModuleInterface::vrDone()
 {
-	m_actionVRShowFibers->setText("Show Fibers");
+	m_actionVRStartAnalysis->setText("Start Analysis");
 }

@@ -36,7 +36,7 @@
 class iAVRObjectCoverage
 {
 public:
-	iAVRObjectCoverage(vtkTable* objectTable, iACsvIO io, iACsvConfig csvConfig, std::map<size_t, std::vector<iAVec3f> > curvedFiberInfo, std::vector<iAVROctree*>* octrees, iAVRObjectModel* volume);
+	iAVRObjectCoverage(vtkTable* objectTable, iACsvIO io, iACsvConfig csvConfig, std::vector<iAVROctree*>* octrees, iAVRObjectModel* volume);
 	void calculateObjectCoverage();
 	std::vector<std::vector<std::unordered_map<vtkIdType, double>*>>* getObjectCoverage();
 	vtkIdType getObjectiD(vtkIdType polyPoint);
@@ -45,7 +45,6 @@ private:
 	vtkSmartPointer<vtkTable> m_objectTable;
 	iACsvIO m_io;
 	iACsvConfig m_csvConfig;
-	std::map<size_t, std::vector<iAVec3f> > m_curvedFiberInfo;
 	std::vector<iAVROctree*>* m_octrees;
 	iAVRObjectModel* m_volume;
 	//Stores for the [octree level] in an [octree region] a map of its objectIDs with their coverage
