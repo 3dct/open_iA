@@ -27,8 +27,7 @@
 
 #include "iA3DColoredPolyObjectVis.h"
 
-iAVRObjectCoverage::iAVRObjectCoverage(vtkTable* objectTable, iACsvIO io, iACsvConfig csvConfig, std::map<size_t, std::vector<iAVec3f> > curvedFiberInfo, std::vector<iAVROctree*>* octrees, iAVRObjectModel* volume) : m_objectTable(objectTable), m_io(io), m_csvConfig(csvConfig),
-m_curvedFiberInfo(curvedFiberInfo), m_octrees(octrees), m_volume(volume)
+iAVRObjectCoverage::iAVRObjectCoverage(vtkTable* objectTable, iACsvIO io, iACsvConfig csvConfig, std::vector<iAVROctree*>* octrees, iAVRObjectModel* volume) : m_objectTable(objectTable), m_io(io), m_csvConfig(csvConfig), m_octrees(octrees), m_volume(volume)
 {
 	m_objectCoverage = new std::vector<std::vector<std::unordered_map<vtkIdType, double>*>>();
 	initialize();

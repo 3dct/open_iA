@@ -27,6 +27,7 @@
 #include <QSharedPointer>
 
 #include "iAVRMain.h"
+#include "iA3DColoredPolyObjectVis.h"
 #include "iAVRInteractorStyle.h"
 
 class iAVREnvironment;
@@ -39,17 +40,22 @@ class iAVRModuleInterface : public iAGUIModuleInterface{
 	Q_OBJECT
 public:
 	void Initialize() override;
+	void ImNDT();
+	void ImNDT(iA3DColoredPolyObjectVis* polyObject, vtkTable* objectTable, iACsvIO io, iACsvConfig csvConfig);
 private:
 	iAModuleAttachmentToChild* CreateAttachment(iAMainWindow* mainWnd, iAMdiChild* child) override;
 	bool vrAvailable();
+	bool loadImNDT();
+	bool create3DPolyObjectVis(vtkTable* objectTable, iACsvIO io, iACsvConfig csvConfig, std::map<size_t, std::vector<iAVec3f> > curvedFiberInfo);
 	QSharedPointer<iAVREnvironment> m_vrEnv;
+	QSharedPointer<iA3DColoredPolyObjectVis> m_polyObject;
 	iAVRMain* m_vrMain;
 	vtkSmartPointer<iAVRInteractorStyle> m_style;
 	vtkSmartPointer<vtkTable> m_objectTable;
-	QAction* m_actionVRShowFibers;
+	QAction* m_actionVRStartAnalysis;
 private slots:
 	void info();
 	void render();
-	void showFibers();
+	void startAnalysis();
 	void vrDone();
 };

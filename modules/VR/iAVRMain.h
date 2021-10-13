@@ -22,6 +22,7 @@
 
 #include "vtkSmartPointer.h"
 #include "iAVREnvironment.h"
+#include "iA3DColoredPolyObjectVis.h"
 #include "iAVRObjectCoverage.h"
 #include "iAVROctreeMetrics.h"
 #include "iAVRHistogramMetric.h"
@@ -82,7 +83,7 @@ class iAVRMip;
 class iAVRMain
 {
 public:
-	iAVRMain(iAVREnvironment* vrEnv, iAVRInteractorStyle* style, vtkTable* objectTable, iACsvIO io, iACsvConfig csvConfig, std::map<size_t, std::vector<iAVec3f> > curvedFiberInfo);
+	iAVRMain(iAVREnvironment* vrEnv, iAVRInteractorStyle* style, iA3DColoredPolyObjectVis* polyObject, vtkTable* objectTable, iACsvIO io, iACsvConfig csvConfig);
 	void startInteraction(vtkEventDataDevice3D* device, vtkProp3D* pickedProp, double eventPosition[3], double eventOrientation[4]); //Press, Touch
 	void endInteraction(vtkEventDataDevice3D* device, vtkProp3D* pickedProp, double eventPosition[3], double eventOrientation[4]); //Release, Untouch
 	void onMove(vtkEventDataDevice3D* device, double movePosition[3], double eventOrientation[4]); //Movement
@@ -96,6 +97,7 @@ private:
 	iAVRObjectModel* m_volume;
 	vtkSmartPointer<vtkPolyData> m_extendedCylinderVisData; // Data extended with additional intersection points
 	vtkSmartPointer<iAVRInteractorStyle> m_style;
+	iA3DColoredPolyObjectVis* m_polyObject;
 	vtkSmartPointer<vtkTable> m_objectTable;
 
 	bool m_networkGraphMode;
@@ -105,7 +107,6 @@ private:
 	iAVRColorLegend* m_MiMColorLegend;
 	iAVRMip* m_MiMMip;
 	iACsvIO m_io;
-	std::map<size_t, std::vector<iAVec3f> > m_curvedFiberInfo;
 	iAVROctreeMetrics* fiberMetrics;
 	iAVRHistogramMetric* histogramMetrics;
 	iAVRHistogramPairVis* m_distributionVis;

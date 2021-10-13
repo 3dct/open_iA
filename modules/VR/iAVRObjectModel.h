@@ -26,6 +26,7 @@
 #include <vtkTable.h>
 #include <vtkRenderWindowInteractor.h>
 #include <vtkLookupTable.h>
+#include <vtkPointData.h>
 
 #include <QSharedPointer>
 
@@ -40,7 +41,7 @@ class QStandardItem;
 class iAVRObjectModel: public iAVRCubicVis
 {
 public:
-	iAVRObjectModel(vtkRenderer* ren, vtkTable* objectTable, iACsvIO io, iACsvConfig csvConfig, std::map<size_t, std::vector<iAVec3f> > curvedFiberInfo);
+	iAVRObjectModel(vtkRenderer* ren, iA3DColoredPolyObjectVis* polyObject, vtkTable* objectTable, iACsvIO io, iACsvConfig csvConfig);
 	void resetVolume();
 	void showVolume();
 	void hideVolume();
@@ -67,13 +68,13 @@ private:
 	vtkSmartPointer<vtkActor> m_volumeActor;
 	vtkSmartPointer<vtkActor> m_RegionLinksActor;
 	vtkSmartPointer<vtkActor> m_RegionNodesActor;
-	iA3DColoredPolyObjectVis* m_PolyObjectVis;
+	iA3DColoredPolyObjectVis* m_polyObject;
+	vtkSmartPointer<vtkPoints> m_initialPoints;
 	QSharedPointer<iA3DPolyObjectActor> m_PolyObjectActor;
 	vtkSmartPointer<vtkTable> m_objectTable;
 	vtkSmartPointer<vtkPolyData> m_linePolyData;
 	iACsvIO m_io;
 	iACsvConfig m_csvConfig;
-	std::map<size_t, std::vector<iAVec3f> > m_curvedFiberInfo;
 	vtkSmartPointer<vtkLookupTable> m_lut;
 	vtkSmartPointer<vtkDoubleArray> nodeGlyphScales;
 	vtkSmartPointer<vtkUnsignedCharArray> linkGlyphColor;

@@ -36,7 +36,7 @@
 class iAVRObjectCoverage
 {
 public:
-	iAVRObjectCoverage(vtkTable* objectTable, iACsvIO io, iACsvConfig csvConfig, std::map<size_t, std::vector<iAVec3f> > curvedFiberInfo, std::vector<iAVROctree*>* octrees, iAVRObjectModel* volume);
+	iAVRObjectCoverage(vtkTable* objectTable, iACsvIO io, iACsvConfig csvConfig, std::vector<iAVROctree*>* octrees, iAVRObjectModel* volume);
 	void calculateObjectCoverage();
 	std::vector<std::vector<std::unordered_map<vtkIdType, double>*>>* getObjectCoverage();
 	vtkIdType getObjectiD(vtkIdType polyPoint);
@@ -45,7 +45,6 @@ private:
 	vtkSmartPointer<vtkTable> m_objectTable;
 	iACsvIO m_io;
 	iACsvConfig m_csvConfig;
-	std::map<size_t, std::vector<iAVec3f> > m_curvedFiberInfo;
 	std::vector<iAVROctree*>* m_octrees;
 	iAVRObjectModel* m_volume;
 	//Stores for the [octree level] in an [octree region] a map of its objectIDs with their coverage
@@ -56,7 +55,6 @@ private:
 	void calculateCurvedLineCoverage();
 	void calculateEllipseCoverage();
 	vtkSmartPointer<vtkPoints> getOctreeFiberCoverage(double startPoint[3], double endPoint[3], vtkIdType octreeLevel, vtkIdType fiber, double fiberLength);
-	bool checkIntersectionWithBox(double startPoint[3], double endPoint[3], std::vector<std::vector<iAVec3d>>* planePoints, double bounds[6], double intersection[3]);
 	bool checkIntersectionWithBox(double startPoint[3], double endPoint[3], double bounds[6], double intersection[3]);
 	double calculateLineCoverageRatio(double startPoint[3], double endPoint[3], double lineLength);
 	void storeObjectCoverage(vtkIdType octreeLevel, vtkIdType region, vtkIdType fiber, double coverage);
