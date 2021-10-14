@@ -17,6 +17,12 @@
 #include "vtkPolyDataMapper.h"
 #include "vtkProperty.h"
 
+#include "vtkProgrammableGlyphFilter.h"
+#include "vtkDoubleArray.h"
+#include "vtkPointData.h"
+
+
+
 iACompTable::iACompTable(iACompHistogramVis* vis) :
 	m_vis(vis),
 	m_lut(vtkSmartPointer<vtkLookupTable>::New()),
@@ -46,6 +52,162 @@ void iACompTable::initializeRenderer()
 	m_mainRenderer->SetUseFXAA(true);
 }
 
+/********************************************  Rendering ********************************************/
+void iACompTable::constructBins(iACompHistogramTableData* data, bin::BinType* currRowData,
+	vtkSmartPointer<vtkDoubleArray> originArray,
+	vtkSmartPointer<vtkDoubleArray> point1Array, vtkSmartPointer<vtkDoubleArray> point2Array,
+	vtkSmartPointer<vtkUnsignedCharArray> colorArray, int currentColumn, double offset)
+{
+	int numberOfBins = currRowData->size();
+
+	//drawing positions
+	double min_x = 0.0;
+	double max_x = m_vis->getRowSize();
+	double min_y = (m_vis->getColSize() * currentColumn) + offset;
+	double max_y = min_y + m_vis->getColSize();
+
+	//xOffset is added to prevent bins from overlapping
+	double xOffset = 0.0;  //m_vis->getRowSize() * 0.5; //0.05
+
+	double intervalStart = 0.0;
+	for (int i = 0; i < numberOfBins; i++)
+	{
+		double minVal = data->getMinVal();
+		double maxVal = data->getMaxVal();
+		double currVal;
+		if (i < numberOfBins - 1)
+		{
+			if (currRowData->at(1 + i).size() >= 1)
+			{
+				currVal = currRowData->at(1 + i).at(0);
+
+				if (currVal == data->getMaxVal())
+					currVal = currVal * 0.99;
+			}
+			else
+			{
+				currVal = data->getMaxVal() * 0.99;
+			}
+		}
+		else
+		{
+			currVal = data->getMaxVal();
+		}
+
+		double percent = iACompVisOptions::calculatePercentofRange(currVal, minVal, maxVal);
+
+		//calculate min & max position for each bin
+		double posXMin = intervalStart;
+		double posXMax = iACompVisOptions::calculateValueAccordingToPercent(min_x, max_x, percent);
+
+		originArray->InsertTuple3(i, posXMin, min_y, 0.0);
+		point1Array->InsertTuple3(i, posXMax + xOffset, min_y, 0.0);  //width
+		point2Array->InsertTuple3(i, posXMin, max_y, 0.0);            // height
+
+		/////////////////
+		//// DEBUG INFO
+		//// Check input
+		//double v1[3], v2[3], normal[3];
+		//double origin[3] = {posXMin, min_y, 0.0};
+		//double point1[3] = {posXMax , min_y, 0.0};
+		//double point2[3] = {posXMin, max_y, 0.0};
+
+		//for (int k = 0; k < 3; k++)
+		//{
+		//	v1[k] = point1[k] - origin[k];
+		//	v2[k] = point2[k] - origin[k];
+		//}
+		//
+		//vtkMath::Cross(v1, v2, normal);
+		//if (vtkMath::Normalize(normal) == 0.0)
+		//{
+		//	LOG(lvlDebug,
+		//		"NOT Working : " + QString::number(normal[0]) + ", " + QString::number(normal[1]) + ", " +
+		//			QString::number(normal[2]) + ") ");
+		//}
+		/////////////////
+
+		intervalStart = posXMax + xOffset;
+
+		//calculate color for each bin
+		double numberOfObjects = currRowData->at(i).size();
+		double* rgbBorder;
+		double rgb[3] = {0.0, 0.0, 0.0};
+		double maxNumber = m_lut->GetRange()[1];
+		double minNumber = m_lut->GetRange()[0];
+
+		if (numberOfObjects > maxNumber)
+		{
+			if (m_useDarkerLut)
+			{
+				rgbBorder = m_lutDarker->GetAboveRangeColor();
+			}
+			else
+			{
+				rgbBorder = m_lut->GetAboveRangeColor();
+			}
+
+			unsigned char ucrgb[3];
+			iACompVisOptions::getColorArray3(rgbBorder, ucrgb);
+			colorArray->InsertTuple3(i, ucrgb[0], ucrgb[1], ucrgb[2]);
+		}
+		else if (numberOfObjects < minNumber)
+		{
+			if (m_useDarkerLut)
+			{
+				rgbBorder = m_lutDarker->GetBelowRangeColor();
+			}
+			else
+			{
+				rgbBorder = m_lut->GetBelowRangeColor();
+			}
+
+			unsigned char ucrgb[3];
+			iACompVisOptions::getColorArray3(rgbBorder, ucrgb);
+			colorArray->InsertTuple3(i, ucrgb[0], ucrgb[1], ucrgb[2]);
+		}
+		else
+		{
+			if (m_useDarkerLut)
+			{
+				m_lutDarker->GetColor(numberOfObjects, rgb);
+			}
+			else
+			{
+				m_lut->GetColor(numberOfObjects, rgb);
+			}
+
+			unsigned char ucrgb[3];
+			iACompVisOptions::getColorArray3(rgb, ucrgb);
+			colorArray->InsertTuple3(i, ucrgb[0], ucrgb[1], ucrgb[2]);
+		}
+	}
+}
+
+void buildGlyphRepresentation(void* arg)
+{
+	vtkProgrammableGlyphFilter* glyphFilter = (vtkProgrammableGlyphFilter*)arg;
+	double origin[3];
+	double point1[3];
+	double point2[3];
+
+	int pid = glyphFilter->GetPointId();
+	glyphFilter->GetPointData()->GetArray("originArray")->GetTuple(pid, origin);
+	glyphFilter->GetPointData()->GetArray("point1Array")->GetTuple(pid, point1);
+	glyphFilter->GetPointData()->GetArray("point2Array")->GetTuple(pid, point2);
+
+	vtkSmartPointer<vtkPlaneSource> plane = vtkSmartPointer<vtkPlaneSource>::New();
+	plane->SetXResolution(1);
+	plane->SetYResolution(1);
+
+	plane->SetOrigin(origin);
+	plane->SetPoint1(point1);
+	plane->SetPoint2(point2);
+	plane->Update();
+
+	glyphFilter->SetSourceData(plane->GetOutput());
+}
+
 void iACompTable::addDatasetName(int currDataset, double* position)
 {
 	QStringList* filenames = m_vis->getDataStorage()->getDatasetNames();
@@ -54,7 +216,7 @@ void iACompTable::addDatasetName(int currDataset, double* position)
 	name.erase(0, name.find_last_of("/\\") + 1);
 	//erase .csv
 	size_t pos = name.find(".csv");
-	name.erase(pos, name.length()-1);
+	name.erase(pos, name.length() - 1);
 
 	vtkSmartPointer<vtkTextActor> legend = vtkSmartPointer<vtkTextActor>::New();
 	legend->SetTextScaleModeToNone();

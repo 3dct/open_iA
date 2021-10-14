@@ -104,6 +104,7 @@ void iACompHistogramTable::initializeBinCalculation(iAMultidimensionalScaling* m
 	histogramCalculation->calculateUniformBinning();
 	histogramCalculation->calculateBayesianBlocks();
 	histogramCalculation->calculateNaturalBreaks();
+	histogramCalculation->calculateDensityEstimation();
 	
 	//add new binning methods here
 }
@@ -240,6 +241,11 @@ iACompNaturalBreaksData* iACompHistogramTable::getNaturalBreaksData()
 	return histogramCalculation->getNaturalBreaksData();
 }
 
+iACompKernelDensityEstimationData* iACompHistogramTable::getKernelDensityEstimationData()
+{
+	return histogramCalculation->getKernelDensityEstimationData();
+}
+
 void iACompHistogramTable::resetOtherCharts()
 {
 	m_main->resetOtherCharts();
@@ -303,7 +309,6 @@ void iACompHistogramTable::drawDatasetsInOriginalOrder()
 	histogramVis->drawDatasetsInOriginalOrder();
 }
 
-
 /**************************  Change Table Visualization Methods  ******************************/
 void iACompHistogramTable::drawUniformTable()
 {
@@ -319,3 +324,9 @@ void iACompHistogramTable::drawNaturalBreaksTable()
 {
 	histogramVis->drawNaturalBreaksTable();
 }
+
+void iACompHistogramTable::drawCurveTable()
+{
+	histogramVis->drawCurveTable();
+}
+

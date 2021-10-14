@@ -51,7 +51,8 @@ namespace iACompVisOptions
 
 	const int LINE_WIDTH = 5; //3
 
-	void getColorArray(double colors[3], unsigned char result[3]);
+	void getColorArray3(double colors[3], unsigned char result[3]);
+	void getColorArray4(double colors[4], unsigned char result[4]);
 
 	QColor getQColor(const unsigned char colors[3]);
 

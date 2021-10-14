@@ -23,11 +23,13 @@ class iACompHistogramTable
 	iACompUniformBinningData* getUniformBinningData();
 	iACompBayesianBlocksData* getBayesianBlocksData();
 	iACompNaturalBreaksData* getNaturalBreaksData();
+	iACompKernelDensityEstimationData* getKernelDensityEstimationData();
 
 	/**************************  Change Table Visualization Methods  ******************************/
 	void drawUniformTable();
 	void drawBayesianBlocksTable();
 	void drawNaturalBreaksTable();
+	void drawCurveTable();
 
 	/******************************************  Update  ******************************/
 	void resetOtherCharts();

@@ -12,12 +12,7 @@ class vtkUnsignedCharArray;
 class vtkDoubleArray;
 class vtkActor;
 
-
-
-//because of vtk this method has to be placed outside the class
-void buildGlyphRepresentation(void* arg);
-
-class iACompVariableTable :public iACompTable
+class iACompVariableTable : public iACompTable
 {
 public:
 
@@ -83,16 +78,7 @@ private:
 	//offset contains: the offset by how much the plane will be drawn above the previous plane
 	void drawRow(int currDataInd, int currentColumn, double offset);
 
-	void constructBins(bin::BinType* currRowData, 
-		vtkSmartPointer<vtkDoubleArray> originArray,
-		vtkSmartPointer<vtkDoubleArray> point1Array,
-		vtkSmartPointer<vtkDoubleArray> point2Array, 
-		vtkSmartPointer<vtkUnsignedCharArray> colorArray,
-		int currentColumn, 
-		double offset);
-
 	void reinitalizeState();
-
 
 	//used for drawing computations
 	//It either stores the bayesianBlocksData or the JenksNaturalBreaksData, depending on the interaction of the user

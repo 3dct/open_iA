@@ -85,22 +85,12 @@ void iACompVariableTableInteractorStyle::OnRightButtonDown()
 
 void iACompVariableTableInteractorStyle::OnMouseWheelForward()
 {
-	//camera zoom in
-	if (this->GetInteractor()->GetControlKey())
-	{
-		generalZoomIn();
-		return;
-	}
+	iACompTableInteractorStyle::OnMouseWheelForward();
 }
 
 void iACompVariableTableInteractorStyle::OnMouseWheelBackward()
 {
-	//camera zoom in
-	if (this->GetInteractor()->GetControlKey())
-	{
-		generalZoomOut();
-		return;
-	}
+	iACompTableInteractorStyle::OnMouseWheelBackward();
 }
 
 void iACompVariableTableInteractorStyle::OnKeyPress()
@@ -135,6 +125,15 @@ void iACompVariableTableInteractorStyle::Pan()
 {
 }
 
+void iACompVariableTableInteractorStyle::resetHistogramTable()
+{
+	m_visualization->removeHighlightedCells();
+	removeBarChart();
+
+	m_visualization->drawHistogramTable();
+	m_visualization->renderWidget();
+}
+
 bool iACompVariableTableInteractorStyle::removeBarChart()
 {
 	if (m_visualization->getBarChartAmountObjectsActive())
@@ -156,17 +155,6 @@ void iACompVariableTableInteractorStyle::setPickList(std::vector<vtkSmartPointer
 	}
 }
 
-
-void iACompVariableTableInteractorStyle::resetHistogramTable()
-{
-	m_visualization->removeHighlightedCells();
-	removeBarChart();
-
-	m_visualization->drawHistogramTable();
-	m_visualization->renderWidget();
-}
-
-
 void iACompVariableTableInteractorStyle::updateCharts()
 {
 	QList<bin::BinType*>* zoomedRowDataMDS;
@@ -174,10 +162,6 @@ void iACompVariableTableInteractorStyle::updateCharts()
 
 	std::tie(zoomedRowDataMDS, selectedObjectAttributes) = m_visualization->getSelectedData(m_picked);
 	m_zoomedRowData = zoomedRowDataMDS;
-
-	//change histogram table
-	//variableTable->drawLinearZoom(
-	//	m_picked, variableTable->getBins(), variableTable->getBinsZoomed(), m_zoomedRowData);
 
 	updateOtherCharts(selectedObjectAttributes);
 }

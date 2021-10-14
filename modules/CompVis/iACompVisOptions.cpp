@@ -17,9 +17,17 @@
 
 namespace iACompVisOptions
 {
-	void getColorArray(double colors[3], unsigned char result[3])
+	void getColorArray3(double colors[3], unsigned char result[3])
 	{
 		for (size_t j = 0; j < 3; ++j)
+		{
+			result[j] = static_cast<unsigned char>(colors[j] * 255);
+		}
+	}
+
+	void getColorArray4(double colors[4], unsigned char result[4])
+	{
+		for (size_t j = 0; j < 4; ++j)
 		{
 			result[j] = static_cast<unsigned char>(colors[j] * 255);
 		}

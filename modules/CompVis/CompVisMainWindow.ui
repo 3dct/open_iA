@@ -51,6 +51,8 @@
     <addaction name="actionUniform"/>
     <addaction name="actionBayesian_Blocks"/>
     <addaction name="actionNatual_Breaks"/>
+    <addaction name="separator"/>
+    <addaction name="actionCurve_Representation"/>
    </widget>
    <addaction name="menuMDS"/>
    <addaction name="menuOrdering"/>
@@ -92,6 +94,11 @@
   <action name="actionNatual_Breaks">
    <property name="text">
     <string>Natual Breaks</string>
+   </property>
+  </action>
+  <action name="actionCurve_Representation">
+   <property name="text">
+    <string>Curve Representation</string>
    </property>
   </action>
  </widget>

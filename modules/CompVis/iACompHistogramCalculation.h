@@ -3,12 +3,14 @@
 #include "iACompUniformBinning.h"
 #include "iACompBayesianBlocks.h"
 #include "iACompNaturalBreaks.h"
+#include "iACompKernelDensityEstimation.h"
 
 class iAMultidimensionalScaling;
 class iACsvDataStorage;
 class iACompUniformBinningData;
 class iACompBayesianBlocksData;
 class iACompNaturalBreaksData;
+class iACompKernelDensityEstimationData;
 
 class iACompHistogramCalculation
 {
@@ -35,6 +37,13 @@ public:
 	iACompNaturalBreaksData* getNaturalBreaksData();
 
 	void calculateNaturalBreaks();
+
+	/************************** DBScan Clustering ***************************************/
+
+
+	/************************** Kernel Density Estimation ***************************************/
+	iACompKernelDensityEstimationData* getKernelDensityEstimationData();
+	void calculateDensityEstimation();
 
 	//TODO add other binning techniques
 
@@ -66,4 +75,6 @@ private:
 	iACompNaturalBreaksData* m_naturalBreaksData;
 	iACompNaturalBreaks* m_naturalBreaks;
 
+	iACompKernelDensityEstimationData* m_densityEstimationData;
+	iACompKernelDensityEstimation* m_densityEstimation;
 };

@@ -100,6 +100,29 @@ void iACompTableInteractorStyle::OnMouseWheelForward()
 		generalZoomIn();
 		return;
 	}
+	else
+	{
+		if (m_main->getActiveVisualization() == iACompVisOptions::activeVisualization::UniformTable)
+		{
+			m_main->drawCombiTable();
+		}
+		else if (m_main->getActiveVisualization() == iACompVisOptions::activeVisualization::VariableTable)
+		{
+			m_main->drawCombiTable();
+		}
+		else if (m_main->getActiveVisualization() == iACompVisOptions::activeVisualization::CombTable)
+		{
+			m_main->drawCurveTable();
+		}
+		else if (m_main->getActiveVisualization() == iACompVisOptions::activeVisualization::CurveVisualization)
+		{
+
+		}
+		else
+		{
+
+		}
+	}
 }
 
 void iACompTableInteractorStyle::OnMouseWheelBackward()
@@ -109,6 +132,40 @@ void iACompTableInteractorStyle::OnMouseWheelBackward()
 	{
 		generalZoomOut();
 		return;
+	}
+	else
+	{
+		if (m_main->getActiveVisualization() == iACompVisOptions::activeVisualization::UniformTable)
+		{
+			
+		}
+		else if (m_main->getActiveVisualization() == iACompVisOptions::activeVisualization::VariableTable)
+		{
+		
+		}
+		else if (m_main->getActiveVisualization() == iACompVisOptions::activeVisualization::CombTable)
+		{
+			if (m_main->getActiveBinning() == iACompVisOptions::binningType::Uniform ||
+				m_main->getActiveBinning() == iACompVisOptions::binningType::Undefined)
+			{
+				m_main->drawUniformTable();
+			}
+			else if (m_main->getActiveBinning() == iACompVisOptions::binningType::JenksNaturalBreaks)
+			{
+				m_main->drawNaturalBreaksTable();
+			}
+			else if(m_main->getActiveBinning() == iACompVisOptions::binningType::BayesianBlocks)
+			{
+				m_main->drawBayesianBlocksTable();
+			}
+		}
+		else if (m_main->getActiveVisualization() == iACompVisOptions::activeVisualization::CurveVisualization)
+		{
+			m_main->drawCombiTable();
+		}
+		else
+		{
+		}
 	}
 }
 

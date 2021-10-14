@@ -1,3 +1,4 @@
+#pragma once
 #include "iACompHistogramCalculation.h"
 
 //CompVis
@@ -6,14 +7,16 @@
 #include "iACompUniformBinningData.h"
 #include "iACompBayesianBlocksData.h"
 #include "iACompNaturalBreaksData.h"
+#include "iACompKernelDensityEstimationData.h"
 
 
 //C++
 #include <vector>
 
 iACompHistogramCalculation::iACompHistogramCalculation(iAMultidimensionalScaling* mds, iACsvDataStorage* dataStorage) :
-	m_mds(mds),
-	m_dataStorage(dataStorage)
+	m_mds(mds), 
+	m_dataStorage(dataStorage), 
+	m_densityEstimation(nullptr)
 {
 
 	std::vector<double>* histbinlist = csvDataType::arrayTypeToVector(m_mds->getResultMatrix());
@@ -97,7 +100,7 @@ iACompBayesianBlocksData* iACompHistogramCalculation::getBayesianBlocksData()
 /******************************************  Natural Breaks  **********************************/
 void iACompHistogramCalculation::calculateNaturalBreaks()
 {
-	 m_naturalBreaksData = new iACompNaturalBreaksData();
+	m_naturalBreaksData = new iACompNaturalBreaksData();
 	m_naturalBreaksData->setMinVal(m_minVal);
 	m_naturalBreaksData->setMaxVal(m_maxVal);
 	m_naturalBreaksData->setAmountObjectsEveryDataset(m_amountObjectsEveryDataset);
@@ -111,4 +114,28 @@ void iACompHistogramCalculation::calculateNaturalBreaks()
 iACompNaturalBreaksData* iACompHistogramCalculation::getNaturalBreaksData()
 {
 	return m_naturalBreaksData;
+}
+
+
+/******************************************  Kernel Density Estimation  **********************************/
+void iACompHistogramCalculation::calculateDensityEstimation()
+{
+	//TODO add datastructure for storage
+	m_densityEstimationData = new iACompKernelDensityEstimationData();
+	m_densityEstimationData->setMinVal(m_minVal);
+	m_densityEstimationData->setMaxVal(m_maxVal);
+	m_densityEstimationData->setAmountObjectsEveryDataset(m_amountObjectsEveryDataset);
+	m_densityEstimationData->setMaxAmountInAllBins(m_uniformBinningData->getMaxAmountInAllBins());
+	m_densityEstimationData->setObjectsPerBinUB(m_uniformBinningData->getNumberOfObjectsPerBinAllDatasets());
+	m_densityEstimationData->setObjectsPerBinNB(m_naturalBreaksData->getNumberOfObjectsPerBinAllDatasets());
+	m_densityEstimationData->setObjectsPerBinBB(m_bayesianBlocksData->getNumberOfObjectsPerBinAllDatasets());
+
+	m_densityEstimation = new iACompKernelDensityEstimation(m_dataStorage, m_amountObjectsEveryDataset, m_datasets);
+	m_densityEstimation->setDataStructure(m_densityEstimationData);
+	m_densityEstimation->calculateCurve(m_uniformBinningData, m_bayesianBlocksData, m_naturalBreaksData);
+}
+
+iACompKernelDensityEstimationData* iACompHistogramCalculation::getKernelDensityEstimationData()
+{
+	return m_densityEstimationData;
 }

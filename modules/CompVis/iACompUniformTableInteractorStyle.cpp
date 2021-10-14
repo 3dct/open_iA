@@ -346,50 +346,54 @@ void iACompUniformTableInteractorStyle::OnRightButtonDown()
 
 void iACompUniformTableInteractorStyle::OnMouseWheelForward()
 {
+	iACompTableInteractorStyle::OnMouseWheelForward();
+
 	reinitializeState();
 
-	//camera zoom in
-	if (this->GetInteractor()->GetControlKey())
-	{
-		generalZoomIn();
-		return;
-	}
+	////camera zoom in
+	//if (this->GetInteractor()->GetControlKey())
+	//{
+	//	generalZoomIn();
+	//	return;
+	//}
 
-	//histogram zoom in
-	if (m_controlBinsInZoomedRows)
-	{
-		//non linear zooming in
-		nonLinearZoomIn();
-	}
-	else
-	{
-		//linear zooming in
-		linearZoomInHistogram();
-	}
+	////histogram zoom in
+	//if (m_controlBinsInZoomedRows)
+	//{
+	//	//non linear zooming in
+	//	nonLinearZoomIn();
+	//}
+	//else
+	//{
+	//	//linear zooming in
+	//	linearZoomInHistogram();
+	//}
 }
 
 void iACompUniformTableInteractorStyle::OnMouseWheelBackward()
 {
+	iACompTableInteractorStyle::OnMouseWheelBackward();
+
 	reinitializeState();
 
-	//camera zoom out
-	if (this->GetInteractor()->GetControlKey())
-	{  
-		generalZoomOut();
-		return;
-	}
+	////camera zoom out
+	//if (this->GetInteractor()->GetControlKey())
+	//{  
+	//	generalZoomOut();
+	//	return;
+	//}
 
-	//histogram zoom out
-	if (m_controlBinsInZoomedRows)
-	{
-		//non linear zooming out
-		nonLinearZoomOut();
-	}
-	else
-	{
-		//linear zooming out
-		linearZoomOutHistogram();
-	}
+	////histogram zoom out
+	//if (m_controlBinsInZoomedRows)
+	//{
+	//	//non linear zooming out
+	//	nonLinearZoomOut();
+	//}
+	//else
+	//{
+	//	//linear zooming out
+	//	linearZoomOutHistogram();
+	//}
 }
 
 void iACompUniformTableInteractorStyle::linearZoomInHistogram()

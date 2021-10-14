@@ -14,7 +14,8 @@ iACompHistogramTableData::iACompHistogramTableData() :
 	zoomedBinData(bin::initialize(1)),
 	binDataObjects(new QList<std::vector<csvDataType::ArrayType*>*>()),
 	amountObjectsEveryDataset(new std::vector<int>),
-	m_maxAmountInAllBins(0)
+	m_maxAmountInAllBins(0),
+	m_binsBoundaries(nullptr)
 {
 }
 
@@ -80,14 +81,35 @@ void iACompHistogramTableData::setZoomedBinData(bin::BinType* newZoomedBinData)
 	zoomedBinData = newZoomedBinData;
 }
 
-
 int iACompHistogramTableData::getMaxAmountInAllBins()
 {
 	return m_maxAmountInAllBins;
 }
+
 void iACompHistogramTableData::setMaxAmountInAllBins(int newMaxAmountInAllBins)
 {
 	m_maxAmountInAllBins = newMaxAmountInAllBins;
+}
+
+QList<std::vector<double>>* iACompHistogramTableData::getNumberOfObjectsPerBinAllDatasets()
+{
+	QList<std::vector<double>>* result = new QList<std::vector<double>>();
+
+	for (int dataId = 0; dataId < binData->size(); dataId++)
+	{  //datasets
+		bin::BinType* currDataset = binData->at(dataId);
+
+		std::vector<double> bins = std::vector<double>(currDataset->size(), 0);
+		for (int binId = 0; binId < currDataset->size(); binId++)
+		{  //bins
+			std::vector<double> currBin = currDataset->at(binId);
+			bins.at(binId) = currBin.size();
+		}
+
+		result->push_back(bins);
+	}
+
+	return result;
 }
 
 /************************** debug methods ***************************************/

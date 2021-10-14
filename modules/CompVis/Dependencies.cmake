@@ -14,5 +14,12 @@ SET( DEPENDENCIES_VTK_MODULES
 	FiltersStatistics
 	FiltersExtraction
 	FiltersProgrammable
+	CommonComputationalGeometry
+	
 )
+IF (EIGEN3_FOUND)
+	SET( DEPENDENCIES_INCLUDE_DIRS
+		${EIGEN3_INCLUDE_DIR}
+	)
+ENDIF()
 

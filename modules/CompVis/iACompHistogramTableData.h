@@ -33,7 +33,12 @@ class iACompHistogramTableData
 	iACompHistogramTableData();
 
 	//returns for every dataset each bin defined by its lower boundary
-	virtual QList<std::vector<double>>* getBinRange() = 0;
+	virtual QList<std::vector<double>>* getBinBoundaries() = 0;
+	//set for each dataset for each bin its lowerBoundary
+	virtual void setBinBoundaries(QList<std::vector<double>>* binBoundaries) = 0;
+
+	//get the for each dataset for each bin the number of objects contained
+	virtual QList<std::vector<double>>* getNumberOfObjectsPerBinAllDatasets();
 	
 	//returns the value of the maximum value in the whole dataset
 	double getMaxVal();
@@ -70,7 +75,6 @@ class iACompHistogramTableData
 	//minimum value in all datasets
 	double m_minVal;
 	
-
 	//vector that stores the number of elements for every dataset
 	//i.e. dataset_1 stores 10 objects...
 	std::vector<int>* amountObjectsEveryDataset;
@@ -82,7 +86,6 @@ class iACompHistogramTableData
 	//stores selected data points, which have been divided into bins again
 	bin::BinType* zoomedBinData;
 	
-
 	//stores the fiber ids for all datasets according to their bin
 	//contains the attributes of the selected objects (fibers,...) like Id,...
 	QList<std::vector<csvDataType::ArrayType*>*>* binDataObjects;
@@ -90,4 +93,7 @@ class iACompHistogramTableData
 	//maximum amount of numbers in a bin (calculated for all bins)
 	//calculated through the uniform binning appraoch!
 	int m_maxAmountInAllBins;
+
+	//stores for each dataset the lower boundary of each bin
+	QList<std::vector<double>>* m_binsBoundaries;
 };

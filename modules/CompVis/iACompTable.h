@@ -10,7 +10,6 @@
 #include <map>
  
 //CompVis
-//class iACompTableInteractorStyle;
 #include "iACompTableInteractorStyle.h"
 class iACompHistogramVis;
 
@@ -21,7 +20,11 @@ class vtkRenderer;
 class vtkPlaneSource;
 class vtkTextActor;
 class vtkActor;
+class vtkUnsignedCharArray;
 
+
+//because of vtk this method has to be placed outside the class
+void buildGlyphRepresentation(void* arg);
 
 class iACompTable
 {
@@ -67,7 +70,6 @@ public:
 
 	std::vector<int>* getIndexOfPickedRows();
 	
-
 protected:
 
 	virtual void initializeTable() = 0;
@@ -96,6 +98,12 @@ protected:
 	void initializeRenderer();
 	//add the name of the dataset left beside its correpsonding row
 	void addDatasetName(int currDataset, double* position);
+
+	/*** Rendering ***/
+	virtual void constructBins(iACompHistogramTableData* data, bin::BinType* currRowData,
+		vtkSmartPointer<vtkDoubleArray> originArray,
+		vtkSmartPointer<vtkDoubleArray> point1Array, vtkSmartPointer<vtkDoubleArray> point2Array,
+		vtkSmartPointer<vtkUnsignedCharArray> colorArray, int currentColumn, double offset);
 
 	/*** Ordering/Ranking ***/
 	//draws the bar chart for showing the number of objects for each dataset

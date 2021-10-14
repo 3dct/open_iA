@@ -36,6 +36,7 @@ class iACompVisMain
 	void enableUniformTable();
 	void enableBayesianBlocks();
 	void enableNaturalBreaks();
+	void enableCurveTable();
 
 	void orderHistogramTableAscending();
 	void orderHistogramTableDescending();

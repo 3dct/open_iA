@@ -15,7 +15,7 @@
 #include "vtkLookupTable.h"
 #include "vtkActor.h"
 #include "vtkColorTransferFunction.h"
-#include "vtkProgrammableGlyphFilter.h"
+
 #include "vtkPlaneSource.h"
 #include "vtkPolyDataMapper.h"
 #include "vtkCellData.h"
@@ -26,7 +26,7 @@
 #include "vtkAlgorithmOutput.h"
 #include "vtkAlgorithm.h"
 #include "vtkDoubleArray.h"
-
+#include "vtkProgrammableGlyphFilter.h"
 
 #include "vtkSelectionNode.h"
 #include "vtkSelection.h"
@@ -340,9 +340,6 @@ void iACompVariableTable::drawHistogramTable()
 		m_mainRenderer->RemoveAllViewProps();
 	}
 
-	
-
-
 	m_vis->calculateRowWidthAndHeight(m_vis->getWindowWidth(), m_vis->getWindowHeight(), m_vis->getAmountDatasets());
 
 	//draw cells from bottom to top --> so start with last dataset and go to first
@@ -388,7 +385,7 @@ void iACompVariableTable::drawRow(int currDataInd, int currentColumn, double off
 	colorArray->SetNumberOfComponents(3);
 	colorArray->SetNumberOfTuples(numberOfBins);
 
-	constructBins(currDataset, originArray, point1Array, point2Array, colorArray, currentColumn, offset);
+	this->constructBins(m_activeData, currDataset, originArray, point1Array, point2Array, colorArray, currentColumn, offset);
 
 	polydata->GetPointData()->AddArray(originArray);
 	polydata->GetPointData()->AddArray(point1Array);
@@ -431,176 +428,14 @@ void iACompVariableTable::drawRow(int currDataInd, int currentColumn, double off
 
 	m_mainRenderer->AddActor(actor);
 
-
 	m_originalRowActors->push_back(actor);
 	//store row and for each row the index which dataset it is showing
 	m_rowDataIndexPair->insert({actor, currDataInd});
 	
-
 	//add name of dataset/row
 	double y = (m_vis->getColSize() * currentColumn) + offset;
 	double pos[3] = {-(m_vis->getRowSize()) * 0.05, y + (m_vis->getColSize() * 0.5), 0.0};
 	addDatasetName(currDataInd, pos);
-}
-
-void iACompVariableTable::constructBins(
-	bin::BinType* currRowData, 
-	vtkSmartPointer<vtkDoubleArray> originArray,
-	vtkSmartPointer<vtkDoubleArray> point1Array,
-	vtkSmartPointer<vtkDoubleArray> point2Array, 
-	vtkSmartPointer<vtkUnsignedCharArray> colorArray, 
-	int currentColumn,
-	double offset
-	)
-{
-	int numberOfBins = currRowData->size();
-
-	//drawing positions
-	double min_x = 0.0;
-	double max_x = m_vis->getRowSize();
-	double min_y = (m_vis->getColSize() * currentColumn) + offset;
-	double max_y = min_y + m_vis->getColSize();
-
-	//xOffset is added to prevent bins from overlapping
-	double xOffset = 0.0;  //m_vis->getRowSize() * 0.5; //0.05
-	
-	double intervalStart = 0.0;
-	for (int i = 0; i < numberOfBins; i++)
-	{ 
-		double minVal = m_activeData->getMinVal();
-		double maxVal = m_activeData->getMaxVal();
-		double currVal;
-		if ( i < numberOfBins-1)
-		{
-			if (currRowData->at(1 + i).size() >= 1)
-			{
-				currVal = currRowData->at(1 + i).at(0);
-
-				if (currVal == m_activeData->getMaxVal())
-					currVal = currVal * 0.99;
-			}
-			else
-			{
-				currVal = m_activeData->getMaxVal() * 0.99;
-			}
-		}
-		else
-		{
-			currVal = m_activeData->getMaxVal();
-		}
-		
-		double percent = iACompVisOptions::calculatePercentofRange(currVal, minVal, maxVal);
-
-		//calculate min & max position for each bin
-		double posXMin = intervalStart;
-		double posXMax = iACompVisOptions::calculateValueAccordingToPercent(min_x, max_x, percent);
-
-		originArray->InsertTuple3(i, posXMin, min_y, 0.0);
-		point1Array->InsertTuple3(i, posXMax + xOffset, min_y, 0.0);  //width
-		point2Array->InsertTuple3(i, posXMin, max_y, 0.0); // height
-		
-		/////////////////
-		//// DEBUG INFO
-		//// Check input
-		//double v1[3], v2[3], normal[3];
-		//double origin[3] = {posXMin, min_y, 0.0};
-		//double point1[3] = {posXMax , min_y, 0.0};
-		//double point2[3] = {posXMin, max_y, 0.0};
-
-		//for (int k = 0; k < 3; k++)
-		//{
-		//	v1[k] = point1[k] - origin[k];
-		//	v2[k] = point2[k] - origin[k];
-		//}
-		//
-		//vtkMath::Cross(v1, v2, normal);
-		//if (vtkMath::Normalize(normal) == 0.0)
-		//{
-		//	LOG(lvlDebug,
-		//		"NOT Working : " + QString::number(normal[0]) + ", " + QString::number(normal[1]) + ", " +
-		//			QString::number(normal[2]) + ") ");
-		//}
-		/////////////////
-		
-		intervalStart = posXMax + xOffset;
-
-		//calculate color for each bin
-		double numberOfObjects = currRowData->at(i).size();
-		double* rgbBorder;
-		double rgb[3] = {0.0, 0.0 ,0.0};
-		double maxNumber = m_lut->GetRange()[1];
-		double minNumber = m_lut->GetRange()[0];
-		
-		if (numberOfObjects > maxNumber)
-		{
-			if (m_useDarkerLut)
-			{
-				rgbBorder = m_lutDarker->GetAboveRangeColor();
-			}
-			else
-			{
-				rgbBorder = m_lut->GetAboveRangeColor();
-			}
-			
-			unsigned char ucrgb [3];
-			iACompVisOptions::getColorArray(rgbBorder, ucrgb);
-			colorArray->InsertTuple3(i, ucrgb[0], ucrgb[1], ucrgb[2]);
-		}
-		else if (numberOfObjects < minNumber)
-		{
-			if (m_useDarkerLut)
-			{
-				rgbBorder = m_lutDarker->GetBelowRangeColor();
-			}
-			else
-			{
-				rgbBorder = m_lut->GetBelowRangeColor();
-			}
-			
-			unsigned char ucrgb[3];
-			iACompVisOptions::getColorArray(rgbBorder, ucrgb);
-			colorArray->InsertTuple3(i, ucrgb[0], ucrgb[1], ucrgb[2]);
-		}
-		else
-		{
-			if (m_useDarkerLut)
-			{
-				m_lutDarker->GetColor(numberOfObjects, rgb);
-			}
-			else
-			{
-				m_lut->GetColor(numberOfObjects, rgb);
-			}
-			
-			unsigned char ucrgb[3];
-			iACompVisOptions::getColorArray(rgb, ucrgb);
-			colorArray->InsertTuple3(i, ucrgb[0], ucrgb[1], ucrgb[2]);
-		}
-	}
-}
-
-void buildGlyphRepresentation(void *arg)
-{
-	vtkProgrammableGlyphFilter* glyphFilter = (vtkProgrammableGlyphFilter*)arg;
-	double origin[3];
-	double point1[3];
-	double point2[3];
-
-	int pid = glyphFilter->GetPointId();
-	glyphFilter->GetPointData()->GetArray("originArray")->GetTuple(pid, origin);
-	glyphFilter->GetPointData()->GetArray("point1Array")->GetTuple(pid, point1);
-	glyphFilter->GetPointData()->GetArray("point2Array")->GetTuple(pid, point2);
-
-	vtkSmartPointer<vtkPlaneSource> plane = vtkSmartPointer<vtkPlaneSource>::New();
-	plane->SetXResolution(1);
-	plane->SetYResolution(1);
-
-	plane->SetOrigin(origin);
-	plane->SetPoint1(point1);
-	plane->SetPoint2(point2);
-	plane->Update();
-
-	glyphFilter->SetSourceData(plane->GetOutput());
 }
 
 void iACompVariableTable::reinitalizeState()

@@ -67,6 +67,7 @@ void dlg_VisMainWindow::createMenu()
 	connect(actionBayesian_Blocks, &QAction::triggered, this, &dlg_VisMainWindow::enableBayesianBlocks);
 	connect(actionNatual_Breaks, &QAction::triggered, this, &dlg_VisMainWindow::enableNaturalBreaks);
 
+	connect(actionCurve_Representation, &QAction::triggered, this, &dlg_VisMainWindow::enableCurveTable);
 }
 
 void dlg_VisMainWindow::reorderHistogramTableAscending()
@@ -93,7 +94,13 @@ void dlg_VisMainWindow::enableBayesianBlocks()
 {
 	m_main->enableBayesianBlocks();
 }
+
 void dlg_VisMainWindow::enableNaturalBreaks()
 {
 	m_main->enableNaturalBreaks();
+}
+
+void dlg_VisMainWindow::enableCurveTable()
+{
+	m_main->enableCurveTable();
 }

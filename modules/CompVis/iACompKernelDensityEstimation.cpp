@@ -1,0 +1,149 @@
+#include "iACompKernelDensityEstimation.h"
+
+#include "iACompUniformBinningData.h"
+#include "iACompBayesianBlocksData.h"
+#include "iACompNaturalBreaksData.h"
+
+#include <vector>
+
+iACompKernelDensityEstimation::iACompKernelDensityEstimation(
+	iACsvDataStorage* dataStorage, std::vector<int>* amountObjectsEveryDataset, bin::BinType* datasets):
+	m_dataStorage(dataStorage), 
+	m_datasets(datasets), 
+	m_kdeData(nullptr)
+{
+	numSteps = (*std::minmax_element(amountObjectsEveryDataset->begin(), amountObjectsEveryDataset->end()).second) * 2;
+
+	LOG(lvlDebug, "numSteps = " + QString::number(numSteps));
+}
+
+void iACompKernelDensityEstimation::setDataStructure(iACompKernelDensityEstimationData* datastructure)
+{
+	m_kdeData = datastructure;
+}
+
+void iACompKernelDensityEstimation::calculateCurve(
+	iACompUniformBinningData* uData, iACompBayesianBlocksData* bbData, iACompNaturalBreaksData* nbData)
+{
+	//resulting kde-data
+	QList<kdeData::kdeBins>* kdeDataUniform = new QList<kdeData::kdeBins>();
+	QList<kdeData::kdeBins>* kdeDataNB = new QList<kdeData::kdeBins>();
+	QList<kdeData::kdeBins>* kdeDataBB = new QList<kdeData::kdeBins>();
+
+	//get binned data
+	QList<bin::BinType*>* uDataStore = uData->getBinData();
+	QList<bin::BinType*>* bbDataStore = bbData->getBinData();
+	QList<bin::BinType*>* nbDataStore = nbData->getBinData();
+
+	//data preparation
+	for (size_t dataID = 0; dataID < m_datasets->size(); dataID++)
+	{
+		kdeData::kdeBin* result = new kdeData::kdeBin();
+		calculateKDE(&m_datasets->at(dataID), result);
+
+		kdeData::kdeBins* kdeUniform = kdeData::initializeBins(uDataStore->at(dataID)->size());
+		std::vector<double> binBoundariesUB = uData->getBinBoundaries()->at(dataID);
+		calculateKDEBinning(result, uData->getMaxVal(), &binBoundariesUB, kdeUniform);
+
+		kdeData::kdeBins* kdeNB = kdeData::initializeBins(nbDataStore->at(dataID)->size());
+		std::vector<double> binBoundariesNB = nbData->getBinBoundaries()->at(dataID);
+		calculateKDEBinning(result, nbData->getMaxVal(), &binBoundariesNB, kdeNB);
+		
+		kdeData::kdeBins* kdeBB = kdeData::initializeBins(bbDataStore->at(dataID)->size());
+		std::vector<double> binBoundariesBB = bbData->getBinBoundaries()->at(dataID);
+		calculateKDEBinning(result, bbData->getMaxVal(), &binBoundariesBB, kdeBB);
+
+		kdeDataUniform->append(*kdeUniform);
+		kdeDataNB->append(*kdeNB);
+		kdeDataBB->append(*kdeBB);
+	}
+
+	m_kdeData->setKDEDataUniform(kdeDataUniform);
+	m_kdeData->setKDEDataNB(kdeDataNB);
+	m_kdeData->setKDEDataBB(kdeDataBB);
+}
+
+void iACompKernelDensityEstimation::calculateKDE(std::vector<double>* dataIn, kdeData::kdeBin* results)
+{
+	realMatrixType samples(dataIn->size(), 1);
+
+	for (size_t i = 0; i < dataIn->size(); ++i)
+	{
+		samples(i) = dataIn->at(i);
+	}
+
+	// create a plottable data
+	
+	auto result = std::minmax_element(dataIn->begin(), dataIn->end());
+	double xMax = *result.second;
+	double xMin = *result.first;
+
+	double kdeMax = -INFINITY;
+	double kdeMin = INFINITY;
+
+	const realScalarType dx = (xMax - xMin) / (realScalarType)numSteps;
+
+	//build kde
+	kdeType kde(samples);
+	for (indexType i = 0; i < numSteps; ++i)
+	{
+		realVectorType samp(1);
+		realScalarType xi = xMin + i * dx;
+		samp(0) = xi; 
+		
+		double kdeValue = kde.computePDF(samp);
+
+		kdeData::kdePair pair = {xi, kdeValue};
+		results->push_back(pair);
+
+		if (kdeValue > kdeMax)
+		{
+			kdeMax = kdeValue;		
+		}
+
+		if (kdeValue < kdeMin)
+		{
+			kdeMin = kdeValue;
+		}
+	}
+
+	m_kdeData->setMaxKDEVal(kdeMax);
+	m_kdeData->setMinKDEVal(kdeMin);
+}
+
+void iACompKernelDensityEstimation::calculateKDEBinning(
+	kdeData::kdeBin* input, double maxMDSVal, std::vector<double>* binBoundaries, kdeData::kdeBins* result)
+{
+	for (int pairId = 0; pairId < input->size(); pairId++)
+	{
+		kdeData::kdePair pair = input->at(pairId); 
+		double mdsVal = pair[0];
+		
+		for (int bin = 0; bin < binBoundaries->size(); bin++)
+		{  //look for the boundaries of each bin
+
+			double lowerBorder;
+			double upperBorder;
+
+			if (bin < binBoundaries->size() - 1)
+			{
+				lowerBorder = binBoundaries->at(bin);
+				upperBorder = binBoundaries->at(bin + 1);
+			}
+			else
+			{
+				lowerBorder = binBoundaries->at(bin);
+				upperBorder = maxMDSVal;
+			}
+
+			if (mdsVal >= lowerBorder && mdsVal < upperBorder)
+			{
+				result->at(bin).push_back(pair);
+				break;
+			}
+		}
+	}
+	
+	//Debug
+	//kdeData::debug(result);
+}

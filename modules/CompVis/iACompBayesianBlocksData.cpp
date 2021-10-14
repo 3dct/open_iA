@@ -7,7 +7,6 @@ iACompBayesianBlocksData::iACompBayesianBlocksData() :
 {
 }
 
-
 void iACompBayesianBlocksData::calculateNumberOfObjectsInEachBin(
 	QList<std::vector<csvDataType::ArrayType*>*>* thisBinDataObjects)
 {
@@ -36,7 +35,8 @@ void iACompBayesianBlocksData::setBinBoundaries(QList<std::vector<double>>* binB
 	m_binsBoundaries = binBoundaries;
 }
 
-QList<std::vector<double>>* iACompBayesianBlocksData::getBinRange()
+QList<std::vector<double>>* iACompBayesianBlocksData::getBinBoundaries()
 {
 	return m_binsBoundaries;
 }
+

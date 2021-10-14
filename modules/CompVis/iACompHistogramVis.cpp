@@ -4,6 +4,8 @@
 #include "iACompUniformTable.h"
 #include "iACompVariableTable.h"
 #include "iACompHistogramTable.h"
+#include "iACompCurve.h"
+#include "iACompCombiTable.h"
 
 
 //iA
@@ -30,6 +32,8 @@ iACompHistogramVis::iACompHistogramVis(iACompHistogramTable* table, iAMainWindow
 	m_windowHeight(-1),
 	m_drawingPositionForRegions(new std::map<int, std::vector<double>>()),
 	mainCamera(vtkSmartPointer<vtkCamera>::New()),
+	m_AreaOpacity(0.65),
+	m_lineWidth(3),
 	m_activeVis(iACompVisOptions::activeVisualization::Undefined),
 	m_activeBinning(iACompVisOptions::binningType::Undefined)
 {
@@ -97,15 +101,16 @@ void iACompHistogramVis::showAFresh()
 	}
 	else if (m_activeVis == iACompVisOptions::activeVisualization::CombTable)
 	{
+		showCombiTable();
 	}
 	else if (m_activeVis == iACompVisOptions::activeVisualization::CurveVisualization)
 	{
+		showCurve();
 	}
 	else
 	{
 		showUniformTable();
 	}
-
 }
 
 void iACompHistogramVis::calculateRowWidthAndHeight(double width, double heigth, double numberOfDatasets)
@@ -148,7 +153,11 @@ void iACompHistogramVis::initializeVisualization()
 	m_uniformTable = new iACompUniformTable(this, m_main->getUniformBinningData());
 
 	m_variableTable = new iACompVariableTable(this, m_main->getBayesianBlocksData(), m_main->getNaturalBreaksData());
+
+	m_curveTable = new iACompCurve(this, m_main->getKernelDensityEstimationData(), m_lineWidth,m_AreaOpacity);
 	
+	m_combiTable = new iACompCombiTable(this, m_main->getKernelDensityEstimationData(), m_lineWidth, m_AreaOpacity);
+
 	//add additional visualizations
 }
 
@@ -186,6 +195,18 @@ void iACompHistogramVis::drawNaturalBreaksTable()
 	showAFresh();
 }
 
+void iACompHistogramVis::drawCurveTable()
+{
+	m_activeVis = iACompVisOptions::activeVisualization::CurveVisualization;
+	showAFresh();
+}
+
+void iACompHistogramVis::drawCombiTable()
+{
+	m_activeVis = iACompVisOptions::activeVisualization::CombTable;
+	showAFresh();
+}
+
 /*************** Rendering ****************************/
 void iACompHistogramVis::showUniformTable()
 {
@@ -211,11 +232,27 @@ void iACompHistogramVis::showVariableTable()
 }
 
 void iACompHistogramVis::showCombiTable()
-{ //TODO implement visualization of combi table
+{
+	//remove the other visualization
+	removeAllRendererFromWidget();
+	m_variableTable->setInactive();
+
+	//activate combination table visualization
+	m_combiTable->setInteractorStyleToWidget(m_combiTable->getInteractorStyle());
+	m_combiTable->addRendererToWidget();
+	m_combiTable->setActive();
 }
 
 void iACompHistogramVis::showCurve()
-{  //TODO implement visualization of curve (kernel density estimation)
+{  
+	//remove the other visualization
+	removeAllRendererFromWidget();
+	m_variableTable->setInactive();
+
+	//activate curve visualization
+	m_curveTable->setInteractorStyleToWidget(m_curveTable->getInteractorStyle());
+	m_curveTable->addRendererToWidget();
+	m_curveTable->setActive();
 }
 
 void iACompHistogramVis::addRendererToWidget(vtkSmartPointer<vtkRenderer> renderer)
@@ -263,6 +300,16 @@ void iACompHistogramVis::removeAllRendererFromWidget()
 }
 
 /****************************************** Getter & Setter **********************************************/
+iACompVisOptions::binningType iACompHistogramVis::getActiveBinning()
+{
+	return m_activeBinning;
+}
+
+iACompVisOptions::activeVisualization iACompHistogramVis::getActiveVisualization()
+{
+	return m_activeVis;
+}
+
 int iACompHistogramVis::getAmountDatasets()
 {
 	return m_amountDatasets;

@@ -16,15 +16,14 @@ public:
 	//calculates the bin datastructure for (a) specifically selected bin(s)
 	virtual bin::BinType* calculateBins(bin::BinType* data, int currData);
 
-	
-
 	virtual void setDataStructure(iACompHistogramTableData* datastore);
 	//set how many bins should be computed for each dataset - has to be set before calling calculateBins()!
 	void setCurrentNumberOfBins(int currentNumberOfBins);
 
-
 	int getMaxAmountInAllBins();
 
+	//computet for each dataset for each bin its lowerBoundary
+	std::vector<double> calculateBinBoundaries(double minVal, double maxVal, int numberOfBins);
 
 private:
 

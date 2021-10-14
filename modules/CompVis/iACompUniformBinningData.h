@@ -8,7 +8,12 @@ public:
 	iACompUniformBinningData();
 
 	//returns for every dataset each bin defined by its lower boundary
-	virtual QList<std::vector<double>>* getBinRange();
+	virtual QList<std::vector<double>>* getBinBoundaries() override;
+	//set for each dataset for each bin its lowerBoundary
+	virtual void setBinBoundaries(QList<std::vector<double>>* binBoundaries) override;
+
+	//get the for each dataset for each bin the number of objects contained
+	//virtual QList<std::vector<double>>* getNumberOfObjectsPerBinAllDatasets() override;
 
 	//returns the maximum amount of numbers in all bins --> i.e. there are maximum 5 values in one bin
 	int getMaxAmountInAllBins();
@@ -23,6 +28,5 @@ private:
 
 	//maximum amount of numbers in a bin (calculated for all bins)
 	int m_maxAmountInAllBins;
-
 
 };

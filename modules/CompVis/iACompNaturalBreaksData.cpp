@@ -3,8 +3,7 @@
 
 iACompNaturalBreaksData::iACompNaturalBreaksData() :
 	iACompHistogramTableData(),
-	m_numberOfObjectsPerBin(nullptr),
-	m_binsBoundaries(nullptr)
+	m_numberOfObjectsPerBin(nullptr)
 {
 }
 
@@ -36,7 +35,7 @@ void iACompNaturalBreaksData::setBinBoundaries(QList<std::vector<double>>* binBo
 	m_binsBoundaries = binBoundaries;
 }
 
-QList<std::vector<double>>* iACompNaturalBreaksData::getBinRange()
+QList<std::vector<double>>* iACompNaturalBreaksData::getBinBoundaries()
 {
 	return m_binsBoundaries;
 }

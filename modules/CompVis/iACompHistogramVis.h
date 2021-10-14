@@ -17,6 +17,8 @@ class iACompUniformBinningData;
 class iACompUniformTable;
 class iACompVariableTable;
 class iACompHistogramTable;
+class iACompCurve;
+class iACompCombiTable;
 class iACsvDataStorage;
 
 //vtk
@@ -61,6 +63,8 @@ public:
 	double getWindowWidth();
 	double getRowSize();
 	double getColSize();
+	iACompVisOptions::binningType getActiveBinning();
+	iACompVisOptions::activeVisualization getActiveVisualization();
 
 	iACsvDataStorage* getDataStorage();
 
@@ -81,6 +85,8 @@ public:
 	void drawUniformTable();
 	void drawBayesianBlocksTable();
 	void drawNaturalBreaksTable();
+	void drawCurveTable();
+	void drawCombiTable();
 
 	/*** Recalculate Data Binning ****/
 	iACompHistogramTableData* recalculateBinning(iACompVisOptions::binningType binningType, int numberOfBins);
@@ -138,6 +144,10 @@ private:
 	//stores the screen ratio
 	double m_screenRatio;
 
+	/*** Coloring/Representation of Curves in Visualizations ***/
+	double m_AreaOpacity;  //polygons should have a certain opacity between [0,1]
+	double m_lineWidth;  //thickness of curve
+
 	/*************** initialization ****************************/
 	//true when first rendering, otherwise false
 	bool m_initialRendering;
@@ -165,6 +175,8 @@ private:
 	/*************** Visualizations ****************************/
 	iACompUniformTable* m_uniformTable;
 	iACompVariableTable* m_variableTable;
+	iACompCurve* m_curveTable;
+	iACompCombiTable* m_combiTable;
 
 	iACompHistogramTable* m_main;
 

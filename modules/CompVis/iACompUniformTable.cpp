@@ -385,7 +385,7 @@ void iACompUniformTable::colorBinsOfRow(vtkUnsignedCharArray* colors, bin::BinTy
 		}
 
 		unsigned char ucrgb[3];
-		iACompVisOptions::getColorArray(rgb, ucrgb);
+		iACompVisOptions::getColorArray3(rgb, ucrgb);
 		colors->InsertNextTuple3(ucrgb[0], ucrgb[1], ucrgb[2]);
 	}
 }
@@ -717,7 +717,7 @@ void iACompUniformTable::colorRowForZoom(vtkUnsignedCharArray* colors, int currB
 			double rgb[3];
 			m_lut->GetColor(-1, rgb);
 			unsigned char ucrgb[3];
-			iACompVisOptions::getColorArray(rgb, ucrgb);
+			iACompVisOptions::getColorArray3(rgb, ucrgb);
 			colors->InsertNextTuple3(ucrgb[0], ucrgb[1], ucrgb[2]);
 		}
 		return;

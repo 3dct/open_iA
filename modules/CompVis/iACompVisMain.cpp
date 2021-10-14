@@ -149,6 +149,11 @@ void iACompVisMain::enableNaturalBreaks()
 	m_HistogramTableDockWidget->drawNaturalBreaksTable();
 }
 
+void iACompVisMain::enableCurveTable()
+{
+	m_HistogramTableDockWidget->drawCurveTable();
+}
+
 /******************************************  Order Methods  **********************************/
 void iACompVisMain::orderHistogramTableAscending()
 {

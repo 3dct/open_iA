@@ -4,7 +4,8 @@
 
 iACompUniformBinning::iACompUniformBinning(iACsvDataStorage* dataStorage, std::vector<int>* amountObjectsEveryDataset, bin::BinType* datasets) :
 	iACompBinning(dataStorage, amountObjectsEveryDataset, datasets), 
-	m_uniformBinningData(nullptr), 
+	m_maxAmountInAllBins(-1),
+	m_uniformBinningData(nullptr),
 	m_currentNumberOfBins(-1)
 {
 }
@@ -16,7 +17,6 @@ void iACompUniformBinning::setDataStructure(iACompHistogramTableData* datastore)
 
 void iACompUniformBinning::calculateBins()
 {
-
 	QList<bin::BinType*>*  binData = new QList<bin::BinType*>;          //stores MDS values
 	QList<std::vector<csvDataType::ArrayType*>*>* binDataObjects = new QList<std::vector<csvDataType::ArrayType*>*>;  //stores data of selected objects attributes
 
@@ -27,12 +27,14 @@ void iACompUniformBinning::calculateBins()
 	double length = std::abs(maxVal) + std::abs(minVal);
 	double binLength = length / m_currentNumberOfBins;
 
+	QList<std::vector<double>>* binBoundaries = new QList<std::vector<double>>();
+
 	for (int i = 0; i < m_uniformBinningData->getAmountObjectsEveryDataset()->size(); i++)
 	{// do for every dataset
 
 		std::vector<double> values = m_datasets->at(i);
 		bin::BinType* bins = bin::initialize(m_currentNumberOfBins);
-
+		
 		//initalize
 		std::vector<csvDataType::ArrayType*>* binsWithFiberIds = new std::vector<csvDataType::ArrayType*>();
 		for (int k = 0; k < m_currentNumberOfBins; k++)
@@ -74,10 +76,10 @@ void iACompUniformBinning::calculateBins()
 			datasetInd--;
 		}
 
-
 		initializeMaxAmountInBins(bins, initialNumberBins);
 		binData->push_back(bins);
 		binDataObjects->push_back(binsWithFiberIds);
+		binBoundaries->push_back(calculateBinBoundaries(minVal, maxVal, m_currentNumberOfBins));
 	}
 
 	/*LOG(lvlDebug,"");
@@ -103,6 +105,24 @@ void iACompUniformBinning::calculateBins()
 	m_uniformBinningData->setBinData(binData);
 	m_uniformBinningData->setBinDataObjects(binDataObjects);
 	m_uniformBinningData->setMaxAmountInAllBins(m_maxAmountInAllBins);
+	m_uniformBinningData->setBinBoundaries(binBoundaries);
+}
+
+std::vector<double> iACompUniformBinning::calculateBinBoundaries(
+	double minVal, double maxVal, int numberOfBins)
+{
+	double length = std::abs(maxVal) + std::abs(minVal);
+	double binLength = length / m_currentNumberOfBins;
+
+	std::vector<double> bins = std::vector<double>();
+
+	for (size_t b = 0; b < m_currentNumberOfBins; b++)
+	{
+		double lowerBound = minVal + (binLength * b);
+		bins.push_back(lowerBound);
+	}
+	
+	return bins;
 }
 
 bin::BinType* iACompUniformBinning::calculateBins(bin::BinType* data, int currData)
@@ -154,7 +174,6 @@ int iACompUniformBinning::getMaxAmountInAllBins()
 {
 	return m_maxAmountInAllBins;
 }
-
 
 void iACompUniformBinning::initializeMaxAmountInBins(bin::BinType* bins, int initialNumberBins)
 {

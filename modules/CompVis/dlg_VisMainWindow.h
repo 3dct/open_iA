@@ -36,6 +36,7 @@ class dlg_VisMainWindow : public QMainWindow, public Ui_CompVisMainWindow
 	void enableUniformTable();
 	void enableBayesianBlocks();
 	void enableNaturalBreaks();
+	void enableCurveTable();
 
 	iACompVisMain* m_main;
 	QList<csvFileData>* m_data;
