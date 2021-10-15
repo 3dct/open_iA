@@ -275,7 +275,7 @@ void iAAlgorithmInfo::drawLegend(QPainter& p, int leftWidth, bool top)
 			LegendBottom - (LegendNumEntries - i) * LegendEntryHeight, LegendTextWidth, LegendEntryHeight);
 		p.drawText(textRect,
 			Qt::AlignLeft |
-				((i == 0) ? Qt::AlignTop : ((i == LegendNumEntries - 1) ? Qt::AlignBottom : Qt::AlignVCenter)),
+				((i == 0) ? Qt::AlignTop : ((i == (LegendNumEntries - 1)) ? Qt::AlignBottom : Qt::AlignVCenter)),
 			QString::number(normVal, 'f', 2));
 	}
 	QPolygon poly;
