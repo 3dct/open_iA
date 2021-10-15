@@ -147,6 +147,32 @@ namespace
 				.arg(mesh->GetNumberOfPoints()));
 	}
 	*/
+	const int VTKFontSize = 20;
+
+	
+	vtkSmartPointer<vtkTextWidget> createVTKTextWidget(double x, double y, double w, double h, const char* text, vtkRenderWindowInteractor* interactor)
+	{
+		auto result = vtkSmartPointer<vtkTextWidget>::New();
+		vtkNew<vtkTextRepresentation> textRep;
+		textRep->SetPosition(x, y);
+		textRep->SetPosition2(w, h);
+		result = vtkSmartPointer<vtkTextWidget>::New();
+		result->SetRepresentation(textRep);
+		result->SetInteractor(interactor);
+		result->GetTextActor()->SetInput(text);
+		result->GetTextActor()->SetTextScaleModeToNone();
+		result->GetTextActor()->GetTextProperty()->SetFontFamilyToArial();
+		result->GetTextActor()->GetTextProperty()->SetFontSize(VTKFontSize);
+		result->GetTextActor()->GetTextProperty()->SetColor(0, 0, 0);
+		//result->GetTextActor()->GetTextProperty()->SetJustificationToLeft();	// default
+		//result->GetTextActor()->GetTextProperty()->SetVerticalJustification(align);	//top or bottom doesn't seem to make a difference...
+		result->EnabledOff();
+		result->ResizableOff();
+		result->GetBorderRepresentation()->SetShowHorizontalBorder(false);
+		result->GetBorderRepresentation()->SetShowVerticalBorder(false);
+		result->On();
+		return result;
+	}
 }
 
 const QString iASensitivityInfo::DefaultResultColorMap("Brewer Set2 (max. 8)");
@@ -662,8 +688,8 @@ public:
 		m_diff3DEmptyText(vtkSmartPointer<vtkCornerAnnotation>::New())
 	{
 		m_diff3DEmptyText->SetLinearFontScaleFactor(2);
-		m_diff3DEmptyText->SetNonlinearFontScaleFactor(1);
-		m_diff3DEmptyText->SetMaximumFontSize(18);
+		m_diff3DEmptyText->SetNonlinearFontScaleFactor(1.2);
+		m_diff3DEmptyText->SetMaximumFontSize(VTKFontSize);
 		m_diff3DEmptyText->SetText(2, "No Fiber/Result selected");
 		auto textColor = qApp->palette().color(QPalette::Text);
 		m_diff3DEmptyText->GetTextProperty()->SetColor(textColor.redF(), textColor.greenF(), textColor.blueF());
@@ -710,7 +736,7 @@ public:
 	vtkSmartPointer<vtkCornerAnnotation> m_diff3DEmptyText;
 
 	vtkSmartPointer<vtkScalarBarWidget> m_scalarBarWidget;
-	vtkSmartPointer<vtkTextWidget> m_scalarBarMinText, m_scalarBarMaxText;
+	vtkSmartPointer<vtkTextWidget> m_scalarBarMinText, m_scalarBarMaxText, m_scalarBarTitleText;
 
 	void updateScatterPlotLUT()
 	{
@@ -1169,6 +1195,8 @@ void iASensitivityInfo::createGUI()
 	m_child->splitDockWidget(dwSettings, m_gui->m_dwDiff3D, Qt::Horizontal);
 	m_gui->m_diff3DRenderManager.addToBundle(m_main3DWin->GetRenderers()->GetFirstRenderer());
 	m_gui->m_diff3DWidget->renderWindow()->AddRenderer(m_gui->m_diff3DEmptyRenderer);
+	m_gui->m_diff3DWidget->renderWindow()->Render();
+	m_gui->m_diff3DWidget->update();
 	m_gui->m_dwDiff3D->hide();
 
 	spVisibleParamChanged();
@@ -1232,75 +1260,60 @@ void iASensitivityInfo::setSpatialOverviewTF(int modalityIdx)
 
 	if (!m_gui->m_scalarBarWidget)
 	{
-		const int VTKFontSize = 20;
+		double scalarBarX = 0.85;
+		double scalarBarY = 0.1;
+		double scalarBarWidth = 0.1;
+		double scalarBarHeight = 0.8;
+		double scalarBarTop = scalarBarY + scalarBarHeight;  // in VTK, y starts from lower window edge!
 		// TODO: Extract to separate class, e.g. iAVTKTextLabelScalarBar...?
 		auto interactor = m_child->renderer()->renderWindow()->GetInteractor();
 		m_gui->m_scalarBarWidget = vtkSmartPointer<vtkScalarBarWidget>::New();
 		m_gui->m_scalarBarWidget->GetScalarBarRepresentation()->SetOrientation(1);
-		m_gui->m_scalarBarWidget->GetScalarBarRepresentation()->SetPosition (0.85, 0.1);
-		m_gui->m_scalarBarWidget->GetScalarBarRepresentation()->SetPosition2(0.1 , 0.8);  // relative to position above -> specifies size of box, not an actual position
+		m_gui->m_scalarBarWidget->GetScalarBarRepresentation()->SetPosition(scalarBarX, scalarBarY);
+		m_gui->m_scalarBarWidget->GetScalarBarRepresentation()->SetPosition2(scalarBarWidth, scalarBarHeight);  // relative to position above -> specifies size of box, not an actual position
 		m_gui->m_scalarBarWidget->GetScalarBarActor()->SetLabelFormat("");
 		//m_gui->m_scalarBarWidget->GetScalarBarActor()->SetTitleTextProperty(m_textProperty);
 		//m_gui->m_scalarBarWidget->GetScalarBarActor()->SetLabelTextProperty(m_textProperty);
 		m_gui->m_scalarBarWidget->GetScalarBarActor()->SetNumberOfLabels(0);
 		m_gui->m_scalarBarWidget->GetScalarBarActor()->SetUnconstrainedFontSize(true);
-		m_gui->m_scalarBarWidget->GetScalarBarActor()->GetTitleTextProperty()->SetFontSize(VTKFontSize);
-		m_gui->m_scalarBarWidget->GetScalarBarActor()->GetTitleTextProperty()->BoldOff();
-		m_gui->m_scalarBarWidget->GetScalarBarActor()->GetTitleTextProperty()->SetJustificationToLeft();
-		m_gui->m_scalarBarWidget->GetScalarBarActor()->GetTitleTextProperty()->SetVerticalJustificationToTop();
-		m_gui->m_scalarBarWidget->GetScalarBarActor()->GetTitleTextProperty()->ItalicOff();
-		m_gui->m_scalarBarWidget->GetScalarBarActor()->GetTitleTextProperty()->SetColor(0, 0, 0);
-		m_gui->m_scalarBarWidget->GetScalarBarActor()->GetTitleTextProperty()->ShadowOff();
+		//m_gui->m_scalarBarWidget->GetScalarBarActor()->GetTitleTextProperty()->SetFontSize(VTKFontSize);
+		//m_gui->m_scalarBarWidget->GetScalarBarActor()->GetTitleTextProperty()->BoldOff();
+		//m_gui->m_scalarBarWidget->GetScalarBarActor()->GetTitleTextProperty()->SetJustificationToLeft();
+		//m_gui->m_scalarBarWidget->GetScalarBarActor()->GetTitleTextProperty()->SetVerticalJustificationToTop();
+		//m_gui->m_scalarBarWidget->GetScalarBarActor()->GetTitleTextProperty()->ItalicOff();
+		//m_gui->m_scalarBarWidget->GetScalarBarActor()->GetTitleTextProperty()->SetColor(0, 0, 0);
+		//m_gui->m_scalarBarWidget->GetScalarBarActor()->GetTitleTextProperty()->ShadowOff();
 		//m_gui->m_scalarBarWidget->GetScalarBarActor()->GetTitleTextProperty()->SetFontFamilyToArial();
-		m_gui->m_scalarBarWidget->GetScalarBarActor()->SetTitle("Covered by");
+		m_gui->m_scalarBarWidget->GetScalarBarActor()->SetTitle("");
 		m_gui->m_scalarBarWidget->SetRepositionable(false);
 		m_gui->m_scalarBarWidget->SetResizable(false);
 		m_gui->m_scalarBarWidget->SetInteractor(interactor);
 		m_gui->m_scalarBarWidget->GetScalarBarActor()->SetLookupTable(ctf);
 		m_gui->m_scalarBarWidget->On();
 
-		m_gui->m_scalarBarMinText = vtkSmartPointer<vtkTextWidget>::New();
-		vtkNew<vtkTextRepresentation> minTextRep;
-		minTextRep->SetPosition (0.9, 0.855);
-		minTextRep->SetPosition2(0.1, 0.05);
-		m_gui->m_scalarBarMinText = vtkSmartPointer<vtkTextWidget>::New();
-		m_gui->m_scalarBarMinText->SetRepresentation(minTextRep);
-		m_gui->m_scalarBarMinText->SetInteractor(interactor);
-		m_gui->m_scalarBarMinText->GetTextActor()->SetInput("All");
-		m_gui->m_scalarBarMinText->GetTextActor()->SetTextScaleModeToNone();
-		m_gui->m_scalarBarMinText->GetTextActor()->GetTextProperty()->SetFontFamilyToArial();
-		m_gui->m_scalarBarMinText->GetTextActor()->GetTextProperty()->SetFontSize(VTKFontSize);
-		m_gui->m_scalarBarMinText->GetTextActor()->GetTextProperty()->SetColor(0, 0, 0);
-		m_gui->m_scalarBarMinText->GetTextActor()->GetTextProperty()->SetJustificationToLeft();
-		m_gui->m_scalarBarMinText->GetTextActor()->GetTextProperty()->SetVerticalJustificationToTop();
-		m_gui->m_scalarBarMinText->EnabledOff();
-		m_gui->m_scalarBarMinText->ResizableOff();
-		auto minBorderRep = m_gui->m_scalarBarMinText->GetBorderRepresentation();
-		minBorderRep->SetShowHorizontalBorder(false);
-		minBorderRep->SetShowVerticalBorder(false);
-		m_gui->m_scalarBarMinText->On();
-		
-		m_gui->m_scalarBarMaxText = vtkSmartPointer<vtkTextWidget>::New();
-		vtkNew<vtkTextRepresentation> maxTextRep;
-		maxTextRep->SetPosition (0.9, 0.125);
-		maxTextRep->SetPosition2(0.1, 0.05);
-		m_gui->m_scalarBarMaxText = vtkSmartPointer<vtkTextWidget>::New();
-		m_gui->m_scalarBarMaxText->SetRepresentation(maxTextRep);
-		m_gui->m_scalarBarMaxText->SetInteractor(interactor);
-		m_gui->m_scalarBarMaxText->GetTextActor()->SetInput("None");
-		m_gui->m_scalarBarMaxText->GetTextActor()->SetTextScaleModeToNone();
-		m_gui->m_scalarBarMaxText->GetTextActor()->GetTextProperty()->SetFontFamilyToArial();
-		m_gui->m_scalarBarMaxText->GetTextActor()->GetTextProperty()->SetFontSize(VTKFontSize);
-		m_gui->m_scalarBarMaxText->GetTextActor()->GetTextProperty()->SetColor(0, 0, 0);
-		m_gui->m_scalarBarMaxText->GetTextActor()->GetTextProperty()->SetJustificationToLeft();
-		m_gui->m_scalarBarMaxText->GetTextActor()->GetTextProperty()->SetVerticalJustificationToBottom();
-		m_gui->m_scalarBarMaxText->EnabledOff();
-		m_gui->m_scalarBarMaxText->ResizableOff();
-		auto maxBorderRep = m_gui->m_scalarBarMaxText->GetBorderRepresentation();
-		maxBorderRep->SetShowHorizontalBorder(false);
-		maxBorderRep->SetShowVerticalBorder(false);
-		m_gui->m_scalarBarMaxText->On();
+		double textX = 0.9;
+		double textPadding = 0.02;
+		double textHeight = 0.07;
+		m_gui->m_scalarBarTitleText = createVTKTextWidget(
+			scalarBarX, scalarBarTop, (1 - scalarBarX), textHeight, "Covered by", interactor);
 
+		double textWidth = 0.1;
+		//vtkNew<vtkTextRenderer> textRenderer;
+		//double textPadding = 0.03;
+		//int bbox[4];
+		//textRenderer->GetBoundingBox(m_gui->m_scalarBarTitleText->GetTextActor()->GetTextProperty(), "All", bbox,
+		//	m_child->renderer()->renderWindow()->GetDPI());
+		//int const* size = m_child->renderer()->renderWindow()->GetSize();
+		//double textHeight = static_cast<float>(bbox[4]) / size[2];
+		//LOG(lvlDebug,
+		//	QString("size: %1, %2. bbox: %5, %6, %7, %8; textHeight: %9")
+		//		.arg(size[0]).arg(size[1])
+		//		.arg(bbox[0]).arg(bbox[1]).arg(bbox[2]).arg(bbox[3])
+		//		.arg(textHeight));
+		m_gui->m_scalarBarMinText = createVTKTextWidget(
+			textX, scalarBarTop - textHeight, textWidth, textHeight, "All", interactor);
+		m_gui->m_scalarBarMaxText = createVTKTextWidget(
+			textX, scalarBarY + textPadding, textWidth, textHeight, "None", interactor);
 	}
 }
 
@@ -1759,8 +1772,8 @@ void iASensitivityInfo::updateDifferenceView()
 		auto txt = QString(i==0? "Reference (#%1)": "Comparison to #%1").arg(rID);
 		resultData->text = vtkSmartPointer<vtkCornerAnnotation>::New();
 		resultData->text->SetLinearFontScaleFactor(2);
-		resultData->text->SetNonlinearFontScaleFactor(1);
-		resultData->text->SetMaximumFontSize(18);
+		resultData->text->SetNonlinearFontScaleFactor(1.2);
+		resultData->text->SetMaximumFontSize(VTKFontSize);
 		resultData->text->GetTextProperty()->SetColor(color.redF(), color.greenF(), color.blueF());
 		resultData->text->SetText(vtkCornerAnnotation::UpperEdge, txt.toStdString().c_str());
 		// ToDo: add fiber id ;
