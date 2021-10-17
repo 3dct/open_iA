@@ -18,37 +18,32 @@
 * Contact: FH OÖ Forschungs & Entwicklungs GmbH, Campus Wels, CT-Gruppe,              *
 *          Stelzhamerstraße 23, 4600 Wels / Austria, Email: c.heinzl@fh-wels.at       *
 * ************************************************************************************/
-#include "iAFeatureScoutAttachment.h"
+#include "iA3DObjectFactory.h"
 
-#include "dlg_FeatureScout.h"
+#include "iA3DLabelledVolumeVis.h"
+#include "iA3DLineObjectVis.h"
+#include "iA3DCylinderObjectVis.h"
+#include "iA3DNoVis.h"
+#include "iA3DEllipseObjectVis.h"
 
-#include <iA3DObjectFactory.h>
-
-#include <iAModality.h>
-
-iAFeatureScoutAttachment::iAFeatureScoutAttachment(iAMainWindow* mainWnd, iAMdiChild * child) :
-	iAModuleAttachmentToChild(mainWnd, child)
+QSharedPointer<iA3DObjectVis> create3DObjectVis(int visualization, vtkTable* table,
+	QSharedPointer<QMap<uint, uint>> columnMapping, QColor const& color,
+	std::map<size_t, std::vector<iAVec3f>>& curvedFiberInfo, int numberOfCylinderSides, size_t segmentSkip,
+	vtkColorTransferFunction* ctf, vtkPiecewiseFunction* otf, double const* bounds)
 {
-}
-
-void iAFeatureScoutAttachment::init(int filterID, QString const & fileName, vtkSmartPointer<vtkTable> csvtbl,
-	int visType, QSharedPointer<QMap<uint, uint> > columnMapping, std::map<size_t,
-	std::vector<iAVec3f> > & curvedFiberInfo, int cylinderQuality, size_t segmentSkip)
-{
-	auto objvis = create3DObjectVis(visType, csvtbl, columnMapping,
-		QColor(dlg_FeatureScout::UnclassifiedColorName), curvedFiberInfo, cylinderQuality, segmentSkip,
-		visType == iACsvConfig::UseVolume ? m_child->modality(0)->transfer()->colorTF() : nullptr,
-		visType == iACsvConfig::UseVolume ? m_child->modality(0)->transfer()->opacityTF() : nullptr,
-		visType == iACsvConfig::UseVolume ? m_child->modality(0)->image()->GetBounds() : nullptr);
-	imgFS = new dlg_FeatureScout(m_child, static_cast<iAObjectType>(filterID),
-		fileName, csvtbl, visType, columnMapping, objvis);
-}
-
-void iAFeatureScoutAttachment::FeatureScout_Options(int idx)
-{
-	if (!imgFS)
+	switch (visualization)
 	{
-		return;
+	default:
+	case iACsvConfig::UseVolume:
+		return QSharedPointer<iA3DLabelledVolumeVis>::create(ctf, otf, table, columnMapping, bounds);
+	case iACsvConfig::Lines:
+		return QSharedPointer<iA3DLineObjectVis>::create(table, columnMapping, color, curvedFiberInfo, segmentSkip);
+	case iACsvConfig::Cylinders:
+		return QSharedPointer<iA3DCylinderObjectVis>::create(
+			table, columnMapping, color, curvedFiberInfo, numberOfCylinderSides, segmentSkip);
+	case iACsvConfig::Ellipses:
+		return QSharedPointer<iA3DEllipseObjectVis>::create(table, columnMapping, color);
+	case iACsvConfig::NoVis:
+		return QSharedPointer<iA3DNoVis>::create();
 	}
-	imgFS->changeFeatureScout_Options(idx);
 }

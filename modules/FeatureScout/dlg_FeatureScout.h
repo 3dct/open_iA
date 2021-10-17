@@ -30,7 +30,6 @@
 
 #include <vtkSmartPointer.h>
 
-#include <map>
 #include <vector>
 
 typedef iAQTtoUIConnector<QDockWidget, Ui_FeatureScoutPP> dlg_PolarPlot;
@@ -91,9 +90,10 @@ class dlg_FeatureScout : public QDockWidget, public Ui_FeatureScoutCE
 {
 	Q_OBJECT
 public:
-	dlg_FeatureScout(iAMdiChild *parent, iAObjectType fid, QString const & fileName,
-		vtkSmartPointer<vtkTable> csvtbl, int vis, QSharedPointer<QMap<uint, uint> > columnMapping, std::map<size_t,
-		std::vector<iAVec3f> > & curvedFiberInfo, int cylinderQuality, size_t segmentSkip);
+	static const QString UnclassifiedColorName;
+	dlg_FeatureScout(iAMdiChild *parent, iAObjectType fid, QString const & fileName, vtkSmartPointer<vtkTable> csvtbl,
+		int visType, QSharedPointer<QMap<uint, uint>> columnMapping,
+		QSharedPointer<iA3DObjectVis> objvis);
 	~dlg_FeatureScout();
 	void changeFeatureScout_Options(int idx);
 private slots:

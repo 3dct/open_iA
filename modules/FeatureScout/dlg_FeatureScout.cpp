@@ -28,11 +28,8 @@
 #include "iAFSColorMaps.h"
 #include "iAMeanObject.h"
 
-#include "iA3DLabelledVolumeVis.h"
+#include "iA3DObjectVis.h"
 #include "iA3DLineObjectVis.h"
-#include "iA3DCylinderObjectVis.h"
-#include "iA3DNoVis.h"
-#include "iA3DEllipseObjectVis.h"
 #include "iACsvIO.h"
 #include "iAObjectType.h"
 
@@ -160,38 +157,14 @@ namespace
 		rmLengthDistribution,
 		rmMeanObject
 	};
-
-	QSharedPointer<iA3DObjectVis> create3DObjectVis(int visualization, iAMdiChild* mdi, vtkTable* table,
-		QSharedPointer<QMap<uint, uint> > columnMapping, QColor const& color,
-		std::map<size_t, std::vector<iAVec3f> >& curvedFiberInfo, int numberOfCylinderSides, size_t segmentSkip)
-	{
-		switch (visualization)
-		{
-		default:
-		case iACsvConfig::UseVolume:
-			return QSharedPointer<iA3DLabelledVolumeVis>::create(
-				mdi->modality(0)->transfer()->colorTF(), mdi->modality(0)->transfer()->opacityTF(),
-				table, columnMapping, mdi->imagePointer()->GetBounds());
-		case iACsvConfig::Lines:
-			return QSharedPointer<iA3DLineObjectVis>::create(table,
-				columnMapping, color, curvedFiberInfo, segmentSkip);
-		case iACsvConfig::Cylinders:
-			return QSharedPointer<iA3DCylinderObjectVis>::create(table,
-				columnMapping, color, curvedFiberInfo, numberOfCylinderSides, segmentSkip);
-		case iACsvConfig::Ellipses:
-			return QSharedPointer<iA3DEllipseObjectVis>::create(table,
-				columnMapping, color);
-		case iACsvConfig::NoVis:
-			return QSharedPointer<iA3DNoVis>::create();
-		}
-	}
 }
 
 const int dlg_FeatureScout::PCMinTicksCount = 2;
+const QString dlg_FeatureScout::UnclassifiedColorName("darkGray");
 
 dlg_FeatureScout::dlg_FeatureScout(iAMdiChild* parent, iAObjectType fid, QString const& fileName,
-	vtkSmartPointer<vtkTable> csvtbl, int vis, QSharedPointer<QMap<uint, uint>> columnMapping,
-	std::map<size_t, std::vector<iAVec3f>>& curvedFiberInfo, int cylinderQuality, size_t segmentSkip) :
+	vtkSmartPointer<vtkTable> csvtbl, int visType, QSharedPointer<QMap<uint, uint>> columnMapping,
+	QSharedPointer<iA3DObjectVis> objvis) :
 	QDockWidget(parent),
 	m_activeChild(parent),
 	m_elementCount(csvtbl->GetNumberOfColumns()),
@@ -200,7 +173,7 @@ dlg_FeatureScout::dlg_FeatureScout(iAMdiChild* parent, iAObjectType fid, QString
 	m_draw3DPolarPlot(false),
 	m_renderMode(rmSingleClass),
 	m_singleObjectSelected(false),
-	m_visualization(vis),
+	m_visualization(visType),
 	m_sourcePath(parent->filePath()),
 	m_csvTable(csvtbl),
 	m_chartTable(vtkSmartPointer<vtkTable>::New()),
@@ -219,7 +192,8 @@ dlg_FeatureScout::dlg_FeatureScout(iAMdiChild* parent, iAObjectType fid, QString
 	m_dwSPM(nullptr),
 	m_dwPP(nullptr),
 	m_columnMapping(columnMapping),
-	m_splom(new iAFeatureScoutSPLOM())
+	m_splom(new iAFeatureScoutSPLOM()),
+	m_3dvis(objvis)
 {
 	setupUi(this);
 	this->setupPolarPlotResolution(3.0);
@@ -235,13 +209,13 @@ dlg_FeatureScout::dlg_FeatureScout(iAMdiChild* parent, iAObjectType fid, QString
 	setupViews();
 	setupModel();
 	setupConnections();
-	m_3dvis = create3DObjectVis(vis, parent, csvtbl, m_columnMapping, m_colorList.at(0), curvedFiberInfo, cylinderQuality, segmentSkip);
-	if (vis != iACsvConfig::UseVolume && m_activeChild->modalities()->size() == 0)
+
+	if (visType != iACsvConfig::UseVolume && m_activeChild->modalities()->size() == 0)
 	{
 		parent->displayResult(QString("FeatureScout - %1 (%2)").arg(QFileInfo(fileName).fileName())
 			.arg(MapObjectTypeToString(m_filterID)), nullptr, nullptr);
 	}
-	if (vis == iACsvConfig::UseVolume)
+	if (visType == iACsvConfig::UseVolume)
 	{
 		SingleRendering();
 	}
@@ -572,7 +546,7 @@ void dlg_FeatureScout::initClassTreeModel()
 {
 	QStandardItem* rootItem = m_classTreeModel->invisibleRootItem();
 	QList<QStandardItem*> stammItem = prepareRow("Unclassified", QString("%1").arg(m_objectCount), "100");
-	stammItem.first()->setData(QColor("darkGray"), Qt::DecorationRole);
+	stammItem.first()->setData(QColor(UnclassifiedColorName), Qt::DecorationRole);
 	m_colorList.push_back(QColor("darkGray"));
 
 	rootItem->appendRow(stammItem);

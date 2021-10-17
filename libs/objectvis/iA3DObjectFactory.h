@@ -18,37 +18,25 @@
 * Contact: FH OÖ Forschungs & Entwicklungs GmbH, Campus Wels, CT-Gruppe,              *
 *          Stelzhamerstraße 23, 4600 Wels / Austria, Email: c.heinzl@fh-wels.at       *
 * ************************************************************************************/
-#include "iAFeatureScoutAttachment.h"
+#pragma once
 
-#include "dlg_FeatureScout.h"
+#include "iAobjectvis_export.h"
 
-#include <iA3DObjectFactory.h>
+#include <QColor>
+#include <QMap>
+#include <QSharedPointer>
 
-#include <iAModality.h>
+#include <map>
+#include <vector>
 
-iAFeatureScoutAttachment::iAFeatureScoutAttachment(iAMainWindow* mainWnd, iAMdiChild * child) :
-	iAModuleAttachmentToChild(mainWnd, child)
-{
-}
+#include "iAVec3.h"
 
-void iAFeatureScoutAttachment::init(int filterID, QString const & fileName, vtkSmartPointer<vtkTable> csvtbl,
-	int visType, QSharedPointer<QMap<uint, uint> > columnMapping, std::map<size_t,
-	std::vector<iAVec3f> > & curvedFiberInfo, int cylinderQuality, size_t segmentSkip)
-{
-	auto objvis = create3DObjectVis(visType, csvtbl, columnMapping,
-		QColor(dlg_FeatureScout::UnclassifiedColorName), curvedFiberInfo, cylinderQuality, segmentSkip,
-		visType == iACsvConfig::UseVolume ? m_child->modality(0)->transfer()->colorTF() : nullptr,
-		visType == iACsvConfig::UseVolume ? m_child->modality(0)->transfer()->opacityTF() : nullptr,
-		visType == iACsvConfig::UseVolume ? m_child->modality(0)->image()->GetBounds() : nullptr);
-	imgFS = new dlg_FeatureScout(m_child, static_cast<iAObjectType>(filterID),
-		fileName, csvtbl, visType, columnMapping, objvis);
-}
+class iA3DObjectVis;
 
-void iAFeatureScoutAttachment::FeatureScout_Options(int idx)
-{
-	if (!imgFS)
-	{
-		return;
-	}
-	imgFS->changeFeatureScout_Options(idx);
-}
+class vtkPiecewiseFunction;
+class vtkTable;
+
+iAobjectvis_API QSharedPointer<iA3DObjectVis> create3DObjectVis(int visualization, vtkTable* table,
+	QSharedPointer<QMap<uint, uint>> columnMapping, QColor const& color,
+	std::map<size_t, std::vector<iAVec3f>>& curvedFiberInfo, int numberOfCylinderSides, size_t segmentSkip,
+	vtkColorTransferFunction* ctf = nullptr, vtkPiecewiseFunction* otf = nullptr, double const* bounds = nullptr);
