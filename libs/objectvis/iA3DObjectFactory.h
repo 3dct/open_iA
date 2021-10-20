@@ -39,5 +39,5 @@ class vtkTable;
 
 iAobjectvis_API QSharedPointer<iA3DObjectVis> create3DObjectVis(int visualization, vtkTable* table,
 	QSharedPointer<QMap<uint, uint>> columnMapping, QColor const& color,
-	std::map<size_t, std::vector<iAVec3f>>& curvedFiberInfo, int numberOfCylinderSides, size_t segmentSkip,
+	std::map<size_t, std::vector<iAVec3f>>& curvedFiberInfo, int numberOfCylinderSides = 12, size_t segmentSkip = 1,
 	vtkColorTransferFunction* ctf = nullptr, vtkPiecewiseFunction* otf = nullptr, double const* bounds = nullptr);

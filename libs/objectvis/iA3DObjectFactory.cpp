@@ -27,6 +27,8 @@
 #include "iA3DEllipseObjectVis.h"
 #include "iACsvConfig.h"
 
+#include <iALog.h>
+
 QSharedPointer<iA3DObjectVis> create3DObjectVis(int visualization, vtkTable* table,
 	QSharedPointer<QMap<uint, uint>> columnMapping, QColor const& color,
 	std::map<size_t, std::vector<iAVec3f>>& curvedFiberInfo, int numberOfCylinderSides, size_t segmentSkip,
@@ -36,6 +38,11 @@ QSharedPointer<iA3DObjectVis> create3DObjectVis(int visualization, vtkTable* tab
 	{
 	default:
 	case iACsvConfig::UseVolume:
+		if (!ctf || !otf || !bounds)
+		{
+			LOG(lvlWarn, "Labelled Volume visualization requested, but no transfer functions or bounds specified. Disabling 3D visualization!");
+			return QSharedPointer<iA3DNoVis>::create();
+		}
 		return QSharedPointer<iA3DLabelledVolumeVis>::create(ctf, otf, table, columnMapping, bounds);
 	case iACsvConfig::Lines:
 		return QSharedPointer<iA3DLineObjectVis>::create(table, columnMapping, color, curvedFiberInfo, segmentSkip);
