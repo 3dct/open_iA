@@ -1193,6 +1193,7 @@ void iAChartWidget::drawAll(QPainter & painter)
 	painter.scale(1, -1);
 	painter.setRenderHint(QPainter::Antialiasing, false);
 	drawAxes(painter);
+	painter.restore();
 }
 
 void iAChartWidget::setXMarker(double xPos, QColor const& color, Qt::PenStyle penStyle)
