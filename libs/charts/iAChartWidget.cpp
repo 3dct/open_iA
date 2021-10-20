@@ -382,7 +382,7 @@ QString iAChartWidget::xAxisTickMarkLabel(double value, double stepWidth)
 {
 	int placesBeforeComma = requiredDigits(value);
 	int placesAfterComma = (stepWidth < 10) ? requiredDigits(10 / stepWidth) : 0;
-	if ((!m_plots.empty() && m_plots[0]->data()->valueType() == iAValueType::Continuous) || placesAfterComma > 1)
+	if ((!m_plots.empty() && m_plots[0]->data()->valueType() == iAValueType::Continuous) || placesAfterComma >= 1)
 	{
 		QString result = QString::number(value, 'g', ((value > 0) ? placesBeforeComma + placesAfterComma : placesAfterComma));
 		if (result.contains("e")) // only 4 digits for scientific notation:
@@ -502,6 +502,13 @@ void iAChartWidget::drawXAxis(QPainter &painter)
 		do
 		{
 			stepWidth = xRange() / stepCount;
+			if (m_plots[0]->data()->valueType() == iAValueType::Discrete)
+			{	// make sure to only use "full integers" as step width
+				stepWidth = (std::ceil(xRange() / std::floor(stepWidth)) < stepCount * 2) ?
+					std::floor(stepWidth)	// floor leads to an increasing stepCount, so, use
+					: std::ceil(stepWidth); // ceil instead if there's danger that stepCount grows
+				stepCount = std::ceil(xRange() / stepWidth); // (as the loop condition requires stepCount to get smaller)
+			}
 			overlap = false;
 			for (size_t i = 0; i<stepCount && !overlap; ++i)
 			{
@@ -700,7 +707,7 @@ void iAChartWidget::updateXBounds(size_t startPlot)
 	{                             // update   partial            full
 		m_xBounds[0]     = (startPlot != 0) ? m_xBounds[0]     : std::numeric_limits<double>::max();
 		m_xBounds[1]     = (startPlot != 0) ? m_xBounds[1]     : std::numeric_limits<double>::lowest();
-		m_maxXAxisSteps = 0;
+		m_maxXAxisSteps  = (startPlot != 0) ? m_maxXAxisSteps   : 0;
 		for (size_t curPlot = std::max(static_cast<size_t>(0), startPlot); curPlot < m_plots.size(); ++curPlot)
 		{
 			auto d = m_plots[curPlot]->data();
