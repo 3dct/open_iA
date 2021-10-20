@@ -1335,7 +1335,7 @@ void iAIO::readNKC()
 
 	filterScale->addInput(filter->output().first(), "");
 	QMap<QString, QVariant> parametersScale;
-	parametersScale["Shift"] = -m_Parameter["Offset"].toInt();
+	parametersScale["Shift"] = m_Parameter["Offset"].toInt();
 	parametersScale["Scale"] = m_Parameter["Scale"].toFloat();
 	filterScale->run(parametersScale);
 
@@ -1662,7 +1662,7 @@ bool iAIO::setupNKCReader(QString const& f)
 		
 	}
 
-	QRegularExpression regexScale("value coefficient : (\\d.\\d*)\\D");
+	QRegularExpression regexScale("value coefficient : (\\d.\\d*E?-?\\d?)\\D");
 	QRegularExpressionMatch matchScale = regexScale.match(text);
 	if (matchScale.hasMatch())
 	{

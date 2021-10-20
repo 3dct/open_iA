@@ -84,6 +84,7 @@ signals:
 	void modalityAvailable(int modalityIdx);
 	void modalitySelected(int modalityIdx);
 	void modalitiesChanged(bool spacingChanged, double const * newSpacing);
+	void modalityVisibilityChanged(bool visible);
 
 private slots:
 	void addClicked();

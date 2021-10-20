@@ -49,6 +49,7 @@ QSize iAOrientationWidget::minimumSizeHint() const
 
 void iAOrientationWidget::initializeGL()
 {
+	initializeOpenGLFunctions();
 	glClearColor(0.3, 0.3, 0.3, 1.0);
 }
 

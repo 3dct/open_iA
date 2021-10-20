@@ -107,6 +107,11 @@ bool iAVolumeRenderer::isRendered() const
 	return m_currentRenderer;
 }
 
+bool iAVolumeRenderer::isVisible() const
+{
+	return isRendered() && m_volume->GetVisibility();
+}
+
 const iAVolumeSettings& iAVolumeRenderer::volumeSettings() const
 {
 	return m_volSettings;

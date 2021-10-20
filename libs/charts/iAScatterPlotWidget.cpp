@@ -209,6 +209,11 @@ QSharedPointer<iALookupTable> iAScatterPlotWidget::lookupTable() const
 }
 
 #ifdef CHART_OPENGL
+void iAScatterPlotWidget::initializeGL()
+{
+	initializeOpenGLFunctions();
+}
+
 void iAScatterPlotWidget::paintGL()
 #else
 void iAScatterPlotWidget::paintEvent(QPaintEvent* event)

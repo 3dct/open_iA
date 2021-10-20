@@ -20,11 +20,12 @@
 * ************************************************************************************/
 #pragma once
 
+#include <QOpenGLFunctions>
 #include <QOpenGLWidget>
 
 #include <QPixmap>
 
-class iAPreviewSPLOM : public QOpenGLWidget
+class iAPreviewSPLOM : public QOpenGLWidget, public QOpenGLFunctions
 {
 	Q_OBJECT
 
@@ -42,6 +43,7 @@ public:
 	QRectF GetROI() const;
 
 protected:
+	void initializeGL() override;
 	void paintGL( ) override;				//!< Draws SPLOM.
 	void resizeEvent( QResizeEvent * event ) override;
 	void mousePressEvent(QMouseEvent * event) override;

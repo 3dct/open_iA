@@ -486,7 +486,8 @@ void dlg_modalities::setChecked(QListWidgetItem* item, Qt::CheckState checked)
 	setModalityVisibility(mod, checked == Qt::Checked);
 }
 
-void dlg_modalities::setModalityVisibility(QSharedPointer<iAModality> mod, bool visible) {
+void dlg_modalities::setModalityVisibility(QSharedPointer<iAModality> mod, bool visible)
+{
 	QSharedPointer<iAVolumeRenderer> renderer = mod->renderer();
 	if (!renderer)
 	{
@@ -494,6 +495,7 @@ void dlg_modalities::setModalityVisibility(QSharedPointer<iAModality> mod, bool 
 	}
 	renderer->showVolume(visible);
 	m_mainRenderer->GetRenderWindow()->Render();
+	emit modalityVisibilityChanged(visible);
 }
 
 QSharedPointer<iAModalityList const> dlg_modalities::modalities() const

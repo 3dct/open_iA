@@ -30,8 +30,6 @@
 #include <iALog.h>
 #include <iALUT.h>
 
-#include <iAQFlowLayout.h>
-
 #include <vtkColorTransferFunction.h>
 #include <vtkLookupTable.h>
 #include <vtkPiecewiseFunction.h>

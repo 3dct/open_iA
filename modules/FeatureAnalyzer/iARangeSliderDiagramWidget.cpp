@@ -27,6 +27,8 @@
 #include <iAMathUtility.h>
 #include <iATransferFunction.h>
 
+#include <QToolTip>
+
 #include <cassert>
 
 QSharedPointer<iAHistogramData> createFilteredPlotData(

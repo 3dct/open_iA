@@ -30,6 +30,7 @@
 
 #include <QDateTime>
 
+#include <cassert>
 #include <fstream>
 
 
