@@ -217,19 +217,20 @@ bool iAVRModuleInterface::create3DPolyObjectVis(vtkTable* objectTable, iACsvIO i
 {
 	switch (csvConfig.visType)
 	{
-	default:
 	case iACsvConfig::UseVolume:
 		return false;
 	case iACsvConfig::Lines:	
 		m_polyObject = QSharedPointer<iA3DColoredPolyObjectVis>(new iA3DLineObjectVis(objectTable, io.getOutputMapping(), QColor(140, 140, 140, 255), curvedFiberInfo, 1));
-		break;
+		return true;
 	case iACsvConfig::Cylinders:
 		m_polyObject = QSharedPointer<iA3DColoredPolyObjectVis>(new iA3DCylinderObjectVis(objectTable, io.getOutputMapping(), QColor(140, 140, 140, 255), curvedFiberInfo));
-		break;
+		return true;
 	case iACsvConfig::Ellipses:
 		m_polyObject = QSharedPointer<iA3DColoredPolyObjectVis>(new iA3DEllipseObjectVis(objectTable, io.getOutputMapping(), QColor(140, 140, 140, 255)));
-		break;
+		return true;
 	case iACsvConfig::NoVis:
+		return false;
+	default:
 		return false;
 	}
 }
