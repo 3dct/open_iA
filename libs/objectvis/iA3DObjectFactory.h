@@ -33,6 +33,7 @@
 
 class iA3DObjectVis;
 
+class vtkColorTransferFunction;
 class vtkPiecewiseFunction;
 class vtkTable;
 

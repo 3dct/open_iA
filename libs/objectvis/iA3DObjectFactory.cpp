@@ -25,6 +25,7 @@
 #include "iA3DCylinderObjectVis.h"
 #include "iA3DNoVis.h"
 #include "iA3DEllipseObjectVis.h"
+#include "iACsvConfig.h"
 
 QSharedPointer<iA3DObjectVis> create3DObjectVis(int visualization, vtkTable* table,
 	QSharedPointer<QMap<uint, uint>> columnMapping, QColor const& color,

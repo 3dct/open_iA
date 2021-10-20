@@ -23,8 +23,13 @@
 #include "dlg_FeatureScout.h"
 
 #include <iA3DObjectFactory.h>
+#include <iACsvConfig.h>
 
 #include <iAModality.h>
+#include <iAModalityTransfer.h>
+#include <iAMdiChild.h>
+
+#include <vtkTable.h>
 
 iAFeatureScoutAttachment::iAFeatureScoutAttachment(iAMainWindow* mainWnd, iAMdiChild * child) :
 	iAModuleAttachmentToChild(mainWnd, child)
