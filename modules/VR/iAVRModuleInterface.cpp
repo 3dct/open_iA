@@ -26,8 +26,7 @@
 // FeatureScout - 3D cylinder visualization
 #include "dlg_CSVInput.h"
 #include "iA3DLineObjectVis.h"
-#include "iA3DCylinderObjectVis.h"
-#include "iA3DEllipseObjectVis.h"
+#include "iA3DObjectFactory.h"
 #include "iACsvConfig.h"
 #include "iACsvVtkTableCreator.h"
 
@@ -170,6 +169,8 @@ void iAVRModuleInterface::ImNDT(iA3DColoredPolyObjectVis* polyObject, vtkTable* 
 
 	//Create VR Main
 	//TODO: CHECK IF PolyObject is not Volume OR NoVis
+	// PROBLEMATIC: will "take ownership" of polyObject, but when using object factory outside already,
+	//    then we have two separate Qsharedpointers who know nothing of each other -> double delete!
 	m_polyObject = QSharedPointer<iA3DColoredPolyObjectVis>(polyObject);
 	m_vrMain = new iAVRMain(m_vrEnv.data(), m_style, m_polyObject.data(), m_objectTable, io, csvConfig);
 
@@ -206,32 +207,18 @@ bool iAVRModuleInterface::loadImNDT()
 	m_objectTable = creator.table();
 
 	//Create PolyObject
-	create3DPolyObjectVis(m_objectTable, io, csvConfig, curvedFiberInfo);
+	m_polyObject = create3DObjectVis(
+		csvConfig.visType, m_objectTable, io.getOutputMapping(), QColor(140, 140, 140, 255), curvedFiberInfo)
+					   .dynamicCast<iA3DColoredPolyObjectVis>();
+	if (!m_polyObject)
+	{
+		LOG(lvlError, "Invalid 3D object visualization!");
+	}
+	//create3DPolyObjectVis(, io, csvConfig, curvedFiberInfo);
 
 	m_vrMain = new iAVRMain(m_vrEnv.data(), m_style, m_polyObject.data(), m_objectTable, io, csvConfig);
 
 	return true;
-}
-
-bool iAVRModuleInterface::create3DPolyObjectVis(vtkTable* objectTable, iACsvIO io, iACsvConfig csvConfig, std::map<size_t, std::vector<iAVec3f> > curvedFiberInfo)
-{
-	switch (csvConfig.visType)
-	{
-	default:
-	case iACsvConfig::UseVolume:
-		return false;
-	case iACsvConfig::Lines:	
-		m_polyObject = QSharedPointer<iA3DColoredPolyObjectVis>(new iA3DLineObjectVis(objectTable, io.getOutputMapping(), QColor(140, 140, 140, 255), curvedFiberInfo, 1));
-		break;
-	case iACsvConfig::Cylinders:
-		m_polyObject = QSharedPointer<iA3DColoredPolyObjectVis>(new iA3DCylinderObjectVis(objectTable, io.getOutputMapping(), QColor(140, 140, 140, 255), curvedFiberInfo));
-		break;
-	case iACsvConfig::Ellipses:
-		m_polyObject = QSharedPointer<iA3DColoredPolyObjectVis>(new iA3DEllipseObjectVis(objectTable, io.getOutputMapping(), QColor(140, 140, 140, 255)));
-		break;
-	case iACsvConfig::NoVis:
-		return false;
-	}
 }
 
 iAModuleAttachmentToChild * iAVRModuleInterface::CreateAttachment( iAMainWindow* mainWnd, iAMdiChild* child)

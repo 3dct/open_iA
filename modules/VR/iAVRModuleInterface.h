@@ -46,7 +46,6 @@ private:
 	iAModuleAttachmentToChild* CreateAttachment(iAMainWindow* mainWnd, iAMdiChild* child) override;
 	bool vrAvailable();
 	bool loadImNDT();
-	bool create3DPolyObjectVis(vtkTable* objectTable, iACsvIO io, iACsvConfig csvConfig, std::map<size_t, std::vector<iAVec3f> > curvedFiberInfo);
 	QSharedPointer<iAVREnvironment> m_vrEnv;
 	QSharedPointer<iA3DColoredPolyObjectVis> m_polyObject;
 	iAVRMain* m_vrMain;
