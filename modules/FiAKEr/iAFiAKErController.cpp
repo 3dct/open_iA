@@ -390,7 +390,7 @@ void iAFiAKErController::addChartCB()
 	++m_chartCount;
 	auto cb = new QCheckBox(diffName(m_chartCount-1));
 	cb->setChecked(false);
-	cb->setEnabled(false);
+	cb->setEnabled(true);
 	cb->setProperty("chartID", static_cast<qulonglong>(m_chartCount - 1));
 	connect(cb, &QCheckBox::stateChanged, this, &iAFiAKErController::optimDataToggled);
 	m_settingsView->checkboxContainer->layout()->addWidget(cb);
