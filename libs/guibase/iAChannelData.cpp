@@ -148,13 +148,3 @@ vtkSmartPointer<vtkImageData> iAChannelData::image() const
 {
 	return m_image;
 }
-
-bool iAChannelData::isSimilarityRenderingEnabled() const
-{
-	return m_similarityRenderingEnabled;
-}
-
-void iAChannelData::setSimilarityRenderingEnabled(bool enabled)
-{
-	m_similarityRenderingEnabled = enabled;
-}
