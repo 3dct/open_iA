@@ -162,16 +162,15 @@ void iAVRModuleInterface::ImNDT()
 }
 
 // Start ImNDT with pre-loaded data
-void iAVRModuleInterface::ImNDT(iA3DColoredPolyObjectVis* polyObject, vtkTable* objectTable, iACsvIO io, iACsvConfig csvConfig)
+void iAVRModuleInterface::ImNDT(QSharedPointer<iA3DColoredPolyObjectVis> polyObject, vtkSmartPointer<vtkTable> objectTable, iACsvIO io, iACsvConfig csvConfig)
 {
 	//Create InteractorStyle
 	m_style = vtkSmartPointer<iAVRInteractorStyle>::New();
 
 	//Create VR Main
 	//TODO: CHECK IF PolyObject is not Volume OR NoVis
-	// PROBLEMATIC: will "take ownership" of polyObject, but when using object factory outside already,
-	//    then we have two separate Qsharedpointers who know nothing of each other -> double delete!
-	m_polyObject = QSharedPointer<iA3DColoredPolyObjectVis>(polyObject);
+	m_polyObject = polyObject;
+	m_objectTable = objectTable;
 	m_vrMain = new iAVRMain(m_vrEnv.data(), m_style, m_polyObject.data(), m_objectTable, io, csvConfig);
 
 	// Start Render Loop HERE!

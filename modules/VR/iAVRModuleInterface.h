@@ -41,7 +41,9 @@ class iAVRModuleInterface : public iAGUIModuleInterface{
 public:
 	void Initialize() override;
 	void ImNDT();
-	void ImNDT(iA3DColoredPolyObjectVis* polyObject, vtkTable* objectTable, iACsvIO io, iACsvConfig csvConfig);
+	void ImNDT(QSharedPointer<iA3DColoredPolyObjectVis> polyObject, vtkSmartPointer<vtkTable> objectTable, iACsvIO io,
+		iACsvConfig csvConfig);
+
 private:
 	iAModuleAttachmentToChild* CreateAttachment(iAMainWindow* mainWnd, iAMdiChild* child) override;
 	bool vrAvailable();
