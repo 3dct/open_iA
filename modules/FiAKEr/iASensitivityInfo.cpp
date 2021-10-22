@@ -1802,7 +1802,7 @@ void iASensitivityInfo::updateDifferenceView()
 			for (size_t fidx = 0; fidx < m_currentFiberSelection[rID].size(); ++fidx)
 			{
 				size_t fiber0ID = m_currentFiberSelection[rID][fidx];
-				auto const& sampleFiber = m_data->m_data->result[refResID].fiberData[fiber0ID];
+				auto const& sampleFiber = m_data->m_data->result[rID].fiberData[fiber0ID];
 				quint32 refFiberID = m_data->m_resultDissimMatrix[rID][refResID].fiberDissim[static_cast<int>(fiber0ID)][measureIdx][0].index;
 
 				// original try: assert that the best match will always be in selection:
@@ -1813,7 +1813,7 @@ void iASensitivityInfo::updateDifferenceView()
 				// potential error here: refFiberID is larger than fiber count in reference
 				//	-> check where this comes from - wrong dissimilarity matrix computation? invalid cache file?
 
-				auto const& refFiber = m_data->m_data->result[rID].fiberData[refFiberID];
+				auto const& refFiber = m_data->m_data->result[refResID].fiberData[refFiberID];
 				resultData->diffPolys.push_back(createPolyFunc(sampleFiber, refFiber, color));
 				resultData->renderer->AddActor(resultData->diffPolys[resultData->diffPolys.size()-1].actor);
 				resultData->diffPolys.push_back(createPolyFunc(refFiber, sampleFiber, t->color(0)));
