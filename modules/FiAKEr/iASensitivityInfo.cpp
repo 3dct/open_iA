@@ -1204,7 +1204,7 @@ void iASensitivityInfo::createGUI()
 	m_gui->m_mdsSP->setPointInfo(ptInfo);
 
 	m_gui->m_diff3DWidget = new iAQVTKWidget();
-	m_gui->m_dwDiff3D = new iADockWidgetWrapper(m_gui->m_diff3DWidget, "Difference 3D", "foeDiff3D");
+	m_gui->m_dwDiff3D = new iADockWidgetWrapper(m_gui->m_diff3DWidget, "Fiber Difference", "foeDiff3D");
 	m_child->splitDockWidget(dwSettings, m_gui->m_dwDiff3D, Qt::Horizontal);
 	m_gui->m_diff3DRenderManager.addToBundle(m_main3DWin->GetRenderers()->GetFirstRenderer());
 	m_gui->m_diff3DWidget->renderWindow()->AddRenderer(m_gui->m_diff3DEmptyRenderer);
