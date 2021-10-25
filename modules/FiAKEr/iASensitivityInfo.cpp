@@ -448,6 +448,12 @@ class iASensitivitySettingsView: public iASensitivitySettingsUI
 	const QString ProjectChartType = "SensitivityChartType";
 	const QString ProjectColorScale = "SensitivitySPColorScale";
 	const QString ProjectUnselectedSTARLines = "SensitivityUnselectedSTARLines";
+	const QString ProjectCharacteristicsDifference = "SensitivityCharacteristicsDifference";
+	const QString ProjectNormalizePerOutput = "SensitivityNormalizePerOutput";
+	const QString ProjectColorInOut = "SensitivityColorInOut";
+	const QString ProjectSpatialOverviewColorMap = "SensitivitySpatialOverviewColorMap";
+	const QString ProjectSPHighlightColorMap = "SensitivitySPHighlightColorMap";
+	const QString ProjectSPColorMap = "SensitivitySPColorMap";
 
 public:
 	iASensitivitySettingsView(iASensitivityInfo* sensInf)
@@ -504,6 +510,12 @@ public:
 		m_settingsWidgetMap.insert(ProjectChartType, &m_rgChartType);
 		m_settingsWidgetMap.insert(ProjectColorScale, cmbboxSPColorMap);
 		m_settingsWidgetMap.insert(ProjectUnselectedSTARLines, cbUnselectedSTARLines);
+		m_settingsWidgetMap.insert(ProjectCharacteristicsDifference, cmbboxCharDiff);
+		m_settingsWidgetMap.insert(ProjectNormalizePerOutput, cbNormalizePerOutput);
+		m_settingsWidgetMap.insert(ProjectColorInOut, cbColoredInOut);
+		//m_settingsWidgetMap.insert(ProjectSpatialOverviewColorMap, cmbboxSpatialOverviewColorMap);
+		m_settingsWidgetMap.insert(ProjectSPHighlightColorMap, cmbboxSPHighlightColorMap);
+		m_settingsWidgetMap.insert(ProjectSPColorMap, cmbboxSPColorMap);
 	}
 	void loadSettings(iASettings const & s)
 	{
