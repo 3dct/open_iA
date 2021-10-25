@@ -485,6 +485,7 @@ public:
 		cmbboxAlgoInfoMode->setCurrentIndex(iAAlgorithmInfo::DefaultDisplayMode);
 		connect(cmbboxAlgoInfoMode, QOverload<int>::of(&QComboBox::currentIndexChanged), sensInf, &iASensitivityInfo::algoInfoModeChanged);
 		connect(cbNormalizePerOutput, &QCheckBox::stateChanged, sensInf, &iASensitivityInfo::normalizePerOutputChanged);
+		connect(cbColoredInOut, &QCheckBox::stateChanged, sensInf, &iASensitivityInfo::colorInOutChanged);
 
 		connect(cbUnselectedSTARLines, &QCheckBox::stateChanged, sensInf, &iASensitivityInfo::updateSPDifferenceColors);
 
@@ -1860,4 +1861,13 @@ void iASensitivityInfo::normalizePerOutputChanged(int state)
 {
 	m_gui->m_algoInfo->setNormalizePerOutput(state == Qt::Checked);
 	m_gui->m_paramInfluenceView->setNormalizePerOutput(state == Qt::Checked);
+}
+
+void iASensitivityInfo::colorInOutChanged(int state)
+{
+	QColor highlightGray(qApp->palette().color(QPalette::Button ) );
+	QColor inColor(state == Qt::Checked ? ParamColor : highlightGray);
+	QColor outColor(state == Qt::Checked ? OutputColor : highlightGray);
+	m_gui->m_algoInfo->setInOutColor(inColor, outColor);
+	m_gui->m_paramInfluenceView->setInOutColor(inColor, outColor);
 }

@@ -6,8 +6,8 @@
    <rect>
     <x>0</x>
     <y>0</y>
-    <width>261</width>
-    <height>296</height>
+    <width>246</width>
+    <height>318</height>
    </rect>
   </property>
   <property name="windowTitle">
@@ -29,6 +29,129 @@
    <property name="spacing">
     <number>4</number>
    </property>
+   <item row="3" column="0">
+    <widget class="QGroupBox" name="gbDisplay">
+     <property name="title">
+      <string>Display</string>
+     </property>
+     <layout class="QGridLayout" name="glDisplay">
+      <property name="leftMargin">
+       <number>4</number>
+      </property>
+      <property name="topMargin">
+       <number>4</number>
+      </property>
+      <property name="rightMargin">
+       <number>4</number>
+      </property>
+      <property name="bottomMargin">
+       <number>4</number>
+      </property>
+      <property name="spacing">
+       <number>4</number>
+      </property>
+      <item row="5" column="1" colspan="2">
+       <widget class="QComboBox" name="cmbboxAlgoInfoMode">
+        <item>
+         <property name="text">
+          <string>Box</string>
+         </property>
+        </item>
+        <item>
+         <property name="text">
+          <string>Matrix</string>
+         </property>
+        </item>
+       </widget>
+      </item>
+      <item row="2" column="1" colspan="2">
+       <widget class="QComboBox" name="cmbboxSPHighlightColorMap"/>
+      </item>
+      <item row="1" column="0">
+       <widget class="QLabel" name="lbSpatialOverviewColorMap">
+        <property name="text">
+         <string>Spatial Overview Colors</string>
+        </property>
+       </widget>
+      </item>
+      <item row="5" column="0">
+       <widget class="QLabel" name="lbAlgorithmInfoDisplayMode">
+        <property name="text">
+         <string>Algorithm Display Mode</string>
+        </property>
+       </widget>
+      </item>
+      <item row="0" column="0">
+       <widget class="QLabel" name="lbHistograms">
+        <property name="text">
+         <string>Histograms as</string>
+        </property>
+       </widget>
+      </item>
+      <item row="0" column="2">
+       <widget class="QRadioButton" name="rbLines">
+        <property name="text">
+         <string>Lines</string>
+        </property>
+       </widget>
+      </item>
+      <item row="2" column="0">
+       <widget class="QLabel" name="lbSPHighlightColorMap">
+        <property name="text">
+         <string>Result Colors</string>
+        </property>
+       </widget>
+      </item>
+      <item row="1" column="1" colspan="2">
+       <widget class="QComboBox" name="cmbboxSpatialOverviewColorMap"/>
+      </item>
+      <item row="0" column="1">
+       <widget class="QRadioButton" name="rbBar">
+        <property name="text">
+         <string>Bars</string>
+        </property>
+        <property name="checked">
+         <bool>true</bool>
+        </property>
+       </widget>
+      </item>
+      <item row="4" column="0" colspan="3">
+       <widget class="QCheckBox" name="cbUnselectedSTARLines">
+        <property name="text">
+         <string>Connecting lines for unselected STARs in SP</string>
+        </property>
+       </widget>
+      </item>
+      <item row="3" column="1" colspan="2">
+       <widget class="QComboBox" name="cmbboxSPColorMap"/>
+      </item>
+      <item row="3" column="0">
+       <widget class="QLabel" name="lbSPColorMap">
+        <property name="text">
+         <string>Scatterplot Colors</string>
+        </property>
+       </widget>
+      </item>
+      <item row="8" column="0">
+       <widget class="QCheckBox" name="cbColoredInOut">
+        <property name="text">
+         <string>Colored In/Out</string>
+        </property>
+        <property name="checked">
+         <bool>true</bool>
+        </property>
+       </widget>
+      </item>
+      <item row="6" column="0" colspan="3">
+       <widget class="QCheckBox" name="cbNormalizePerOutput">
+        <property name="text">
+         <string>Normalize Sensitivity per Output</string>
+        </property>
+       </widget>
+      </item>
+     </layout>
+    </widget>
+   </item>
    <item row="2" column="0">
     <widget class="QGroupBox" name="gbData">
      <property name="title">
@@ -118,120 +241,7 @@
      </layout>
     </widget>
    </item>
-   <item row="3" column="0">
-    <widget class="QGroupBox" name="gbDisplay">
-     <property name="title">
-      <string>Display</string>
-     </property>
-     <layout class="QGridLayout" name="glDisplay">
-      <property name="leftMargin">
-       <number>4</number>
-      </property>
-      <property name="topMargin">
-       <number>4</number>
-      </property>
-      <property name="rightMargin">
-       <number>4</number>
-      </property>
-      <property name="bottomMargin">
-       <number>4</number>
-      </property>
-      <property name="spacing">
-       <number>4</number>
-      </property>
-      <item row="2" column="0">
-       <widget class="QLabel" name="lbSPHighlightColorMap">
-        <property name="text">
-         <string>Result Colors</string>
-        </property>
-       </widget>
-      </item>
-      <item row="0" column="1">
-       <widget class="QRadioButton" name="rbBar">
-        <property name="text">
-         <string>Bars</string>
-        </property>
-        <property name="checked">
-         <bool>true</bool>
-        </property>
-       </widget>
-      </item>
-      <item row="5" column="0">
-       <widget class="QLabel" name="lbAlgorithmInfoDisplayMode">
-        <property name="text">
-         <string>Algorithm Display Mode</string>
-        </property>
-       </widget>
-      </item>
-      <item row="0" column="0">
-       <widget class="QLabel" name="lbHistograms">
-        <property name="text">
-         <string>Histograms as</string>
-        </property>
-       </widget>
-      </item>
-      <item row="0" column="2">
-       <widget class="QRadioButton" name="rbLines">
-        <property name="text">
-         <string>Lines</string>
-        </property>
-       </widget>
-      </item>
-      <item row="2" column="1" colspan="2">
-       <widget class="QComboBox" name="cmbboxSPHighlightColorMap"/>
-      </item>
-      <item row="5" column="1" colspan="2">
-       <widget class="QComboBox" name="cmbboxAlgoInfoMode">
-        <item>
-         <property name="text">
-          <string>Box</string>
-         </property>
-        </item>
-        <item>
-         <property name="text">
-          <string>Matrix</string>
-         </property>
-        </item>
-       </widget>
-      </item>
-      <item row="6" column="0" colspan="3">
-       <widget class="QCheckBox" name="cbNormalizePerOutput">
-        <property name="text">
-         <string>Normalize Sensitivity per Output</string>
-        </property>
-       </widget>
-      </item>
-      <item row="3" column="0">
-       <widget class="QLabel" name="lbSPColorMap">
-        <property name="text">
-         <string>Scatterplot Colors</string>
-        </property>
-       </widget>
-      </item>
-      <item row="3" column="1" colspan="2">
-       <widget class="QComboBox" name="cmbboxSPColorMap"/>
-      </item>
-      <item row="4" column="0" colspan="3">
-       <widget class="QCheckBox" name="cbUnselectedSTARLines">
-        <property name="text">
-         <string>Connecting lines for unselected STARs in SP</string>
-        </property>
-       </widget>
-      </item>
-      <item row="1" column="0">
-       <widget class="QLabel" name="lbSpatialOverviewColorMap">
-        <property name="text">
-         <string>Spatial Overview Colors</string>
-        </property>
-       </widget>
-      </item>
-      <item row="1" column="1" colspan="2">
-       <widget class="QComboBox" name="cmbboxSpatialOverviewColorMap"/>
-      </item>
-     </layout>
-    </widget>
-   </item>
-   <item row="4" column="0">
+   <item row="6" column="0">
     <spacer name="verticalSpacer">
      <property name="orientation">
       <enum>Qt::Vertical</enum>

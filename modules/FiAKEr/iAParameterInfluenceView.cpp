@@ -94,7 +94,7 @@ public:
 };
 
 iAParameterInfluenceView::iAParameterInfluenceView(QSharedPointer<iASensitivityData> data,
-	QSharedPointer<iASensitivityViewState> viewState, QColor const& paramColor, QColor const& outputColor) :
+	QSharedPointer<iASensitivityViewState> viewState, QColor const& inColor, QColor const& outColor) :
 	m_data(data),
 	m_viewState(viewState),
 	m_measureIdx(0),
@@ -103,7 +103,7 @@ iAParameterInfluenceView::iAParameterInfluenceView(QSharedPointer<iASensitivityD
 	m_selectedParam(-1),
 	m_selectedCol(-1),
 	m_paramListLayout(new QGridLayout()),
-	m_stackedBarTheme(new iASingleColorTheme("OneOutputColorTheme", outputColor)),
+	m_stackedBarTheme(QSharedPointer<iASingleColorTheme>::create("OneOutputColorTheme", outColor)),
 	m_table(data->m_variedParams.size()),
 	m_sort(data->m_variedParams.size()),
 	m_sortLastOut(-1),
@@ -167,7 +167,6 @@ iAParameterInfluenceView::iAParameterInfluenceView(QSharedPointer<iASensitivityD
 		double minVal = *std::min_element(paramVec.begin(), paramVec.end()),
 			maxVal = *std::max_element(paramVec.begin(), paramVec.end());
 		row->labels[colParamName] = new iAClickableLabel(paramName, true);
-		row->labels[colParamName]->setStyleSheet("QLabel { background-color : " + paramColor.name() + "; }");
 		row->labels[colMin] = new iAClickableLabel(QString::number(minVal, 'f', digitsAfterComma(data->paramStep[paramIdx])), false);
 		row->labels[colMax] = new iAClickableLabel(QString::number(maxVal, 'f', digitsAfterComma(data->paramStep[paramIdx])), false);
 		row->labels[colStep] = new iAClickableLabel(QString::number(data->paramStep[paramIdx]), false);
@@ -182,6 +181,7 @@ iAParameterInfluenceView::iAParameterInfluenceView(QSharedPointer<iASensitivityD
 		//m_diffChart.push_back(new iAChartWidget(this, "Characteristics distribution", ));
 		//m_paramListLayout->addWidget(m_diffChart[paramIdx], 1 + paramIdx, colHistogram);
 	}
+	setInColor(inColor);
 	for (int charactIdx = 0; charactIdx < data->m_charSelected.size(); ++charactIdx)
 	{
 		addColumnAction(outCharacteristic, charactIdx, charactIdx == 0);
@@ -864,4 +864,32 @@ void iAParameterInfluenceView::removeStackedBar(int outType, int outIdx)
 	}
 	updateChartY();
 	emit barRemoved(outType, outIdx);
+}
+
+void iAParameterInfluenceView::setInColor(QColor const& inColor)
+{
+	for (int paramIdx = 0; paramIdx < m_table.size(); ++paramIdx)
+	{
+		m_table[paramIdx].data()->labels[colParamName]->setStyleSheet(
+			"QLabel { background-color : " + inColor.name() + "; }");
+	}
+}
+
+void iAParameterInfluenceView::setInOutColorPrivate(QColor const& inColor, QColor const& outColor)
+{
+	setInColor(inColor);
+	auto newColorTheme = QSharedPointer<iASingleColorTheme>::create("OneOutputColorTheme", outColor);
+	for (int r = 0; r < m_table.size(); ++r)
+	{
+		auto row = m_table[r].data();
+		row->head->setColorTheme(newColorTheme.data());
+		row->bars->setColorTheme(newColorTheme.data());
+	}
+	m_stackedBarTheme = newColorTheme;
+}
+
+void iAParameterInfluenceView::setInOutColor(QColor const& inColor, QColor const& outColor)
+{
+	setInOutColorPrivate(inColor, outColor);
+	update();
 }

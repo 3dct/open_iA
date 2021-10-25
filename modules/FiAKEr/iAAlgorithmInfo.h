@@ -51,6 +51,7 @@ public:
 	void setMode(int mode);
 	void setNormalizePerOutput(bool maxPerOut);
 	void setMatrix(iAMatrixType const& matrix);
+	void setInOutColor(QColor const& inColor, QColor const& outColor);
 
 private:
 	void drawInOut(QPainter& p, QRect textRect, QString const& text, QVector<QRect>& rects, QColor const& color,

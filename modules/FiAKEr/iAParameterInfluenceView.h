@@ -63,6 +63,8 @@ public:
 	void updateHighlightColors(std::vector<size_t> highlighted, iAColorTheme const* theme);
 	void setHighlightedParams(QSet<int> hiParam);
 	void setNormalizePerOutput(bool norm);
+	void setInOutColor(QColor const& inColor, QColor const& outColor);
+
 public slots:
 	void showStackedBar();
 	void selectStackedBar(int outputType, int idx);
@@ -91,6 +93,8 @@ private:
 	void setActionChecked(int outType, int outIdx, bool checked);
 	QSharedPointer<iAPlot> createHistoPlot(QSharedPointer<iAHistogramData> data, QColor color);
 	void addResultHistoPlot(size_t resultIdx, int charIdx, int paramIdx, QColor c);
+	void setInColor(QColor const& inColor);
+	void setInOutColorPrivate(QColor const& inColor, QColor const& outColor);
 
 	// pair output type / index
 	QVector<QPair<int,int>> m_visibleCharacts;

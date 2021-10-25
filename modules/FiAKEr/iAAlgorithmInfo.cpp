@@ -488,3 +488,10 @@ double iAAlgorithmInfo::mapVal(int outIdx, double val)
 {
 	return mapToNorm(0.0, m_normalizePerOutput ? m_maxPerColumn[outIdx] : m_maxTotal, val);
 }
+
+void iAAlgorithmInfo::setInOutColor(QColor const& inColor, QColor const& outColor)
+{
+	m_inColor = inColor;
+	m_outColor = outColor;
+	update();
+}

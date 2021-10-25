@@ -120,6 +120,7 @@ public slots:
 	void styleChanged();
 	void algoInfoModeChanged(int mode);
 	void normalizePerOutputChanged(int state);
+	void colorInOutChanged(int state);
 private slots:
 	void dissimMatrixMeasureChanged(int);
 	void dissimMatrixParameterChanged(int);
