@@ -101,6 +101,8 @@ std::vector<std::vector<std::vector<vtkIdType>>>* iAVROctreeMetrics::getMaxCover
 std::vector<double> iAVROctreeMetrics::getMinMaxAvgRegionValues(vtkIdType octreeLevel, vtkIdType feature)
 {
 	std::vector<double> minMax = std::vector<double>(2);
+	//If Level is not calculated do computation
+	getRegionAverage(octreeLevel, feature);
 	auto minMaxElem = std::minmax_element(m_calculatedAverage->at(octreeLevel).at(feature).begin(), m_calculatedAverage->at(octreeLevel).at(feature).end());
 	minMax.at(0) = *minMaxElem.first;
 	minMax.at(1) = *minMaxElem.second;

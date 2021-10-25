@@ -42,6 +42,7 @@
 #include <vtkUnsignedCharArray.h>
 #include <vtkCleanPolyData.h>
 #include <vtkCubeSource.h>
+      
 
 iAVRObjectModel::iAVRObjectModel(vtkRenderer* ren, iA3DColoredPolyObjectVis* polyObject, vtkTable* objectTable, iACsvIO io, iACsvConfig csvConfig) :iAVRCubicVis{ ren }, m_polyObject(polyObject), m_objectTable(objectTable), m_io(io), m_csvConfig(csvConfig)
 {
@@ -58,15 +59,20 @@ iAVRObjectModel::iAVRObjectModel(vtkRenderer* ren, iA3DColoredPolyObjectVis* pol
 	m_regionLinkDrawRadius = 0.5;
 
 	// Initial Volume 
-	//Copy of m_polyObject's data 
+	// Copy of m_polyObject's data 
+	// Other way of copying?:  vtkDataSet->CopyData()
+	// Like in objectvis\iAvtkTubeFilter.cpp 
 	m_initialPoints->DeepCopy(polyObject->polyData()->GetPoints());
 	m_PolyObjectActor = m_polyObject->createPolyActor(m_renderer);
 	m_volumeActor = m_PolyObjectActor->actor();
 }
 
-//Todo save initial volume and reset to that
+//Resets to the initial volume
 void iAVRObjectModel::resetVolume()
 {
+	// vtkSmartPointer<vtkPoints> temp = vtkSmartPointer<vtkPoints>::New();
+	// temp->DeepCopy(m_initialPoints);
+	// m_polyObject->polyData()->SetPoints(temp);
 	m_polyObject->polyData()->GetPoints()->DeepCopy(m_initialPoints);
 	//m_PolyObjectActor->updated();
 	//m_PolyObjectActor = m_polyObject->createPolyActor(m_renderer);
