@@ -86,7 +86,7 @@ class QTreeView;
 class QTableView;
 class QXmlStreamWriter;
 
-class dlg_FeatureScout : public QDockWidget, public Ui_FeatureScoutCE
+class FeatureScout_API dlg_FeatureScout : public QDockWidget, public Ui_FeatureScoutCE
 {
 	Q_OBJECT
 public:

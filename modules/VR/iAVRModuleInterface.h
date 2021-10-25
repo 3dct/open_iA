@@ -21,6 +21,7 @@
 #pragma once
 
 #include <iAGUIModuleInterface.h>
+#include <VR_export.h>
 
 #include <vtkSmartPointer.h>
 
@@ -36,7 +37,7 @@ class vtkTable;
 
 class QAction;
 
-class iAVRModuleInterface : public iAGUIModuleInterface{
+class VR_API iAVRModuleInterface : public iAGUIModuleInterface{
 	Q_OBJECT
 public:
 	void Initialize() override;
