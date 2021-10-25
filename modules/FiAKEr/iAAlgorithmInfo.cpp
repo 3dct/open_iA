@@ -165,7 +165,7 @@ void iAAlgorithmInfo::drawInOut(QPainter& p, QRect textRect, QString const& text
 		p.drawPath(path);
 	}
 	// add some inner padding:
-	textRect.adjust(RoundedCornerRadius, RoundedCornerRadius, -RoundedCornerRadius, -RoundedCornerRadius);
+	textRect.adjust(RoundedCornerRadius, TextVPadding, -RoundedCornerRadius, -TextVPadding);
 	if (verticalText)
 	{
 		drawVerticalText(p, textRect, Qt::AlignLeft | Qt::AlignVCenter, text);
@@ -206,7 +206,8 @@ void iAAlgorithmInfo::drawConnectors(QPainter& p, int left, int width, QStringLi
 	int baseTop = TopMargin + oneHeight;
 	for (int idx = 0; idx < strings.size(); ++idx)
 	{
-		QString name = strings[sort.size() > idx ? sort[idx] : idx];
+		auto sortIdx = sort.size() > idx ? sort[idx] : idx;
+		QString name = strings[sortIdx];
 		posOut.push_back(QPoint(left + (isLeft ? width : 0), baseTop + idx * oneHeight));
 		int top = baseTop + idx * oneHeight;
 		int right = left + width;
@@ -215,12 +216,12 @@ void iAAlgorithmInfo::drawConnectors(QPainter& p, int left, int width, QStringLi
 #else
 		int textWidth = p.fontMetrics().width(text);
 #endif
-		int boxHeight = p.fontMetrics().height() + 2 * TextVPadding;
+		int boxHeight = p.fontMetrics().height() +  2 * (TextVPadding+RoundedCornerRadius);
 		QRect textRect(left + ArrowTextLeft, top - ArrowTextDistance - boxHeight,
 			std::min(textWidth + 2 * TextHPadding, width - ArrowTextLeft /* - ArrowHeadSize */),
 			std::min(oneHeight, boxHeight));
 		drawInOut(
-			p, textRect, name, rects, color, selected == idx, shown.size() == 0 || shown.contains(idx), false);
+			p, textRect, name, rects, color, selected == sortIdx, shown.size() == 0 || shown.contains(idx), false);
 
 		// draw line (/arrow) underneath text:
 		p.drawLine(left, top, right, top);
