@@ -454,6 +454,7 @@ class iASensitivitySettingsView: public iASensitivitySettingsUI
 	const QString ProjectSpatialOverviewColorMap = "SensitivitySpatialOverviewColorMap";
 	const QString ProjectSPHighlightColorMap = "SensitivitySPHighlightColorMap";
 	const QString ProjectSPColorMap = "SensitivitySPColorMap";
+	const QString ProjectLimitSpatialOverviewRange = "SensitivityLimitSpatialOverviewRange";
 
 public:
 	iASensitivitySettingsView(iASensitivityInfo* sensInf)
@@ -492,6 +493,7 @@ public:
 		connect(cmbboxAlgoInfoMode, QOverload<int>::of(&QComboBox::currentIndexChanged), sensInf, &iASensitivityInfo::algoInfoModeChanged);
 		connect(cbNormalizePerOutput, &QCheckBox::stateChanged, sensInf, &iASensitivityInfo::normalizePerOutputChanged);
 		connect(cbColoredInOut, &QCheckBox::stateChanged, sensInf, &iASensitivityInfo::colorInOutChanged);
+		connect(cbLimitSpatialOverviewRange, &QCheckBox::stateChanged, sensInf, &iASensitivityInfo::updateSpatialOverviewColors);
 
 		connect(cbUnselectedSTARLines, &QCheckBox::stateChanged, sensInf, &iASensitivityInfo::updateSPDifferenceColors);
 
@@ -516,6 +518,7 @@ public:
 		//m_settingsWidgetMap.insert(ProjectSpatialOverviewColorMap, cmbboxSpatialOverviewColorMap);
 		m_settingsWidgetMap.insert(ProjectSPHighlightColorMap, cmbboxSPHighlightColorMap);
 		m_settingsWidgetMap.insert(ProjectSPColorMap, cmbboxSPColorMap);
+		m_settingsWidgetMap.insert(ProjectLimitSpatialOverviewRange, cbLimitSpatialOverviewRange);
 	}
 	void loadSettings(iASettings const & s)
 	{
@@ -1254,7 +1257,16 @@ void iASensitivityInfo::showSpatialOverview()
 void iASensitivityInfo::setSpatialOverviewTF(int modalityIdx)
 {
 	auto mod = m_child->modality(modalityIdx);
-	double const* range = mod->image()->GetScalarRange();
+	double range[2];
+	if (m_gui->m_settings->cbLimitSpatialOverviewRange->isChecked())
+	{  // for "mean objects", fix range to 0..1
+		range[0] = 0.0;
+		range[1] = 1.0;
+	}
+	else
+	{
+		mod->image()->GetScalarRange(range);
+	}
 	vtkSmartPointer<vtkLookupTable> lut = vtkSmartPointer<vtkLookupTable>::New();
 	iALUT::BuildLUT(lut, range, m_gui->m_settings->cmbboxSpatialOverviewColorMap->currentText(), 5, true);
 	auto ctf = mod->transfer()->colorTF();

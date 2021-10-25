@@ -6,8 +6,8 @@
    <rect>
     <x>0</x>
     <y>0</y>
-    <width>246</width>
-    <height>318</height>
+    <width>249</width>
+    <height>340</height>
    </rect>
   </property>
   <property name="windowTitle">
@@ -50,6 +50,91 @@
       <property name="spacing">
        <number>4</number>
       </property>
+      <item row="2" column="0">
+       <widget class="QLabel" name="lbSPHighlightColorMap">
+        <property name="text">
+         <string>Result Colors</string>
+        </property>
+       </widget>
+      </item>
+      <item row="4" column="0" colspan="3">
+       <widget class="QCheckBox" name="cbUnselectedSTARLines">
+        <property name="text">
+         <string>Connecting lines for unselected STARs in SP</string>
+        </property>
+       </widget>
+      </item>
+      <item row="8" column="0">
+       <widget class="QCheckBox" name="cbColoredInOut">
+        <property name="text">
+         <string>Colored In/Out</string>
+        </property>
+        <property name="checked">
+         <bool>true</bool>
+        </property>
+       </widget>
+      </item>
+      <item row="1" column="1" colspan="2">
+       <widget class="QComboBox" name="cmbboxSpatialOverviewColorMap"/>
+      </item>
+      <item row="0" column="0">
+       <widget class="QLabel" name="lbHistograms">
+        <property name="text">
+         <string>Histograms as</string>
+        </property>
+       </widget>
+      </item>
+      <item row="1" column="0">
+       <widget class="QLabel" name="lbSpatialOverviewColorMap">
+        <property name="text">
+         <string>Spatial Overview Colors</string>
+        </property>
+       </widget>
+      </item>
+      <item row="3" column="1" colspan="2">
+       <widget class="QComboBox" name="cmbboxSPColorMap"/>
+      </item>
+      <item row="2" column="1" colspan="2">
+       <widget class="QComboBox" name="cmbboxSPHighlightColorMap"/>
+      </item>
+      <item row="5" column="0">
+       <widget class="QLabel" name="lbAlgorithmInfoDisplayMode">
+        <property name="text">
+         <string>Algorithm Display Mode</string>
+        </property>
+       </widget>
+      </item>
+      <item row="0" column="1">
+       <widget class="QRadioButton" name="rbBar">
+        <property name="text">
+         <string>Bars</string>
+        </property>
+        <property name="checked">
+         <bool>true</bool>
+        </property>
+       </widget>
+      </item>
+      <item row="3" column="0">
+       <widget class="QLabel" name="lbSPColorMap">
+        <property name="text">
+         <string>Scatterplot Colors</string>
+        </property>
+       </widget>
+      </item>
+      <item row="0" column="2">
+       <widget class="QRadioButton" name="rbLines">
+        <property name="text">
+         <string>Lines</string>
+        </property>
+       </widget>
+      </item>
+      <item row="6" column="0" colspan="3">
+       <widget class="QCheckBox" name="cbNormalizePerOutput">
+        <property name="text">
+         <string>Normalize Sensitivity per Output</string>
+        </property>
+       </widget>
+      </item>
       <item row="5" column="1" colspan="2">
        <widget class="QComboBox" name="cmbboxAlgoInfoMode">
         <item>
@@ -64,88 +149,13 @@
         </item>
        </widget>
       </item>
-      <item row="2" column="1" colspan="2">
-       <widget class="QComboBox" name="cmbboxSPHighlightColorMap"/>
-      </item>
-      <item row="1" column="0">
-       <widget class="QLabel" name="lbSpatialOverviewColorMap">
+      <item row="9" column="0" colspan="3">
+       <widget class="QCheckBox" name="cbLimitSpatialOverviewRange">
         <property name="text">
-         <string>Spatial Overview Colors</string>
-        </property>
-       </widget>
-      </item>
-      <item row="5" column="0">
-       <widget class="QLabel" name="lbAlgorithmInfoDisplayMode">
-        <property name="text">
-         <string>Algorithm Display Mode</string>
-        </property>
-       </widget>
-      </item>
-      <item row="0" column="0">
-       <widget class="QLabel" name="lbHistograms">
-        <property name="text">
-         <string>Histograms as</string>
-        </property>
-       </widget>
-      </item>
-      <item row="0" column="2">
-       <widget class="QRadioButton" name="rbLines">
-        <property name="text">
-         <string>Lines</string>
-        </property>
-       </widget>
-      </item>
-      <item row="2" column="0">
-       <widget class="QLabel" name="lbSPHighlightColorMap">
-        <property name="text">
-         <string>Result Colors</string>
-        </property>
-       </widget>
-      </item>
-      <item row="1" column="1" colspan="2">
-       <widget class="QComboBox" name="cmbboxSpatialOverviewColorMap"/>
-      </item>
-      <item row="0" column="1">
-       <widget class="QRadioButton" name="rbBar">
-        <property name="text">
-         <string>Bars</string>
+         <string>Limit Spatial Overview Range to 0..1</string>
         </property>
         <property name="checked">
          <bool>true</bool>
-        </property>
-       </widget>
-      </item>
-      <item row="4" column="0" colspan="3">
-       <widget class="QCheckBox" name="cbUnselectedSTARLines">
-        <property name="text">
-         <string>Connecting lines for unselected STARs in SP</string>
-        </property>
-       </widget>
-      </item>
-      <item row="3" column="1" colspan="2">
-       <widget class="QComboBox" name="cmbboxSPColorMap"/>
-      </item>
-      <item row="3" column="0">
-       <widget class="QLabel" name="lbSPColorMap">
-        <property name="text">
-         <string>Scatterplot Colors</string>
-        </property>
-       </widget>
-      </item>
-      <item row="8" column="0">
-       <widget class="QCheckBox" name="cbColoredInOut">
-        <property name="text">
-         <string>Colored In/Out</string>
-        </property>
-        <property name="checked">
-         <bool>true</bool>
-        </property>
-       </widget>
-      </item>
-      <item row="6" column="0" colspan="3">
-       <widget class="QCheckBox" name="cbNormalizePerOutput">
-        <property name="text">
-         <string>Normalize Sensitivity per Output</string>
         </property>
        </widget>
       </item>
