@@ -10,9 +10,7 @@
 #include "iA3DColoredPolyObjectVis.h"
 
 class dlg_FeatureScout;
-class iAVRMain;
-class iAVREnvironment;
-class iAVRInteractorStyle;
+class iAVRModuleInterface;
 
 class iAXVRAModuleInterface : public iAGUIModuleInterface
 {
@@ -20,12 +18,9 @@ class iAXVRAModuleInterface : public iAGUIModuleInterface
 public:
 	void Initialize() override;
 private:
-	QSharedPointer<iAVREnvironment> m_vrEnv;
 	QSharedPointer<iA3DColoredPolyObjectVis> m_polyObject;
 	dlg_FeatureScout* m_fsMain;
-	iAVRMain* m_vrMain;
-	vtkSmartPointer<iAVRInteractorStyle> m_style;
-	vtkSmartPointer<vtkTable> m_objectTable;
+	iAVRModuleInterface* m_vrMain;
 private slots:
 	void info();
 	void startXVRA();

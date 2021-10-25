@@ -41,7 +41,6 @@ class VR_API iAVRModuleInterface : public iAGUIModuleInterface{
 	Q_OBJECT
 public:
 	void Initialize() override;
-	void ImNDT();
 	void ImNDT(QSharedPointer<iA3DColoredPolyObjectVis> polyObject, vtkSmartPointer<vtkTable> objectTable, iACsvIO io,
 		iACsvConfig csvConfig);
 
@@ -53,6 +52,8 @@ private:
 	QSharedPointer<iA3DColoredPolyObjectVis> m_polyObject;
 	iAVRMain* m_vrMain;
 	vtkSmartPointer<iAVRInteractorStyle> m_style;
+	iACsvConfig m_csvConfig;
+	iACsvIO m_io;
 	vtkSmartPointer<vtkTable> m_objectTable;
 	QAction* m_actionVRStartAnalysis;
 private slots:

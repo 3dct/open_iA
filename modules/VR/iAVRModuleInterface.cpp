@@ -114,20 +114,10 @@ void iAVRModuleInterface::render()
 
 void iAVRModuleInterface::startAnalysis()
 {
-	if (!m_vrEnv)
-		m_vrEnv.reset(new iAVREnvironment());
+	//Create VR Main
+	if (!loadImNDT()) return;
 
-	if (m_vrEnv->isRunning())
-	{
-		m_vrEnv->stop();
-		return;
-	}
-	if (!vrAvailable())
-	{
-		return;
-	}
-
-	ImNDT();
+	ImNDT(m_polyObject, m_objectTable, m_io, m_csvConfig);
 
 	connect(m_vrEnv.data(), &iAVREnvironment::finished, this, &iAVRModuleInterface::vrDone);
 	m_actionVRStartAnalysis->setText("Stop Analysis");
@@ -148,22 +138,22 @@ bool iAVRModuleInterface::vrAvailable()
 	return true;
 }
 
-// Start ImNDT and load parameters
-void iAVRModuleInterface::ImNDT()
-{
-	//Create InteractorStyle
-	m_style = vtkSmartPointer<iAVRInteractorStyle>::New();
-
-	//Create VR Main
-	if (!loadImNDT()) return;
-
-	// Start Render Loop HERE!
-	m_vrEnv->start();
-}
-
 // Start ImNDT with pre-loaded data
 void iAVRModuleInterface::ImNDT(QSharedPointer<iA3DColoredPolyObjectVis> polyObject, vtkSmartPointer<vtkTable> objectTable, iACsvIO io, iACsvConfig csvConfig)
 {
+	if (!m_vrEnv)
+		m_vrEnv.reset(new iAVREnvironment());
+
+	if (m_vrEnv->isRunning())
+	{
+		m_vrEnv->stop();
+		return;
+	}
+	if (!vrAvailable())
+	{
+		return;
+	}
+
 	//Create InteractorStyle
 	m_style = vtkSmartPointer<iAVRInteractorStyle>::New();
 
@@ -184,20 +174,20 @@ bool iAVRModuleInterface::loadImNDT()
 	{
 		return false;
 	}
-	iACsvConfig csvConfig = dlg.getConfig();
+	m_csvConfig = dlg.getConfig();
 
 	iACsvVtkTableCreator creator;
-	iACsvIO io;
-	if (!io.loadCSV(creator, csvConfig))
+
+	if (!m_io.loadCSV(creator, m_csvConfig))
 	{
 		return false;
 	}
 
 	std::map<size_t, std::vector<iAVec3f> > curvedFiberInfo;
 
-	if (csvConfig.visType == iACsvConfig::Cylinders || csvConfig.visType == iACsvConfig::Lines)
+	if (m_csvConfig.visType == iACsvConfig::Cylinders || m_csvConfig.visType == iACsvConfig::Lines)
 	{
-		if (!readCurvedFiberInfo(csvConfig.curvedFiberFileName, curvedFiberInfo))
+		if (!readCurvedFiberInfo(m_csvConfig.curvedFiberFileName, curvedFiberInfo))
 		{
 			curvedFiberInfo = std::map<size_t, std::vector<iAVec3f>>();
 		}
@@ -207,15 +197,13 @@ bool iAVRModuleInterface::loadImNDT()
 
 	//Create PolyObject
 	m_polyObject = create3DObjectVis(
-		csvConfig.visType, m_objectTable, io.getOutputMapping(), QColor(140, 140, 140, 255), curvedFiberInfo)
+		m_csvConfig.visType, m_objectTable, m_io.getOutputMapping(), QColor(140, 140, 140, 255), curvedFiberInfo)
 					   .dynamicCast<iA3DColoredPolyObjectVis>();
 	if (!m_polyObject)
 	{
 		LOG(lvlError, "Invalid 3D object visualization!");
+		return false;
 	}
-	//create3DPolyObjectVis(, io, csvConfig, curvedFiberInfo);
-
-	m_vrMain = new iAVRMain(m_vrEnv.data(), m_style, m_polyObject.data(), m_objectTable, io, csvConfig);
 
 	return true;
 }

@@ -9,6 +9,8 @@
 #include "iACsvConfig.h"
 #include "iACsvVtkTableCreator.h"
 
+#include "iAVRModuleInterface.h"
+
 #include <QAction>
 #include <QMenu>
 #include <QMessageBox>
@@ -66,7 +68,7 @@ void iAXVRAModuleInterface::startXVRA()
 		}
 	}
 
-	m_objectTable = creator.table();
+	vtkSmartPointer<vtkTable> m_objectTable = creator.table();
 
 	//Create PolyObject
 	m_polyObject = create3DObjectVis(
@@ -79,34 +81,12 @@ void iAXVRAModuleInterface::startXVRA()
 
 
 	/***** Start Featurescout *****/
-	//m_fsMain = new iAFeatureScoutAttachment(m_mainWnd, m_mdiChild);
-	//m_fsMain->init(csvConfig.objectType, csvConfig.fileName, creator.table(), csvConfig.visType, io.getOutputMapping(),
-	//	curvedFiberInfo, csvConfig.cylinderQuality, csvConfig.segmentSkip);
-
 	m_fsMain = new dlg_FeatureScout(m_mainWnd->createMdiChild(false), csvConfig.objectType, csvConfig.fileName, creator.table(),
 		csvConfig.visType, io.getOutputMapping(), m_polyObject);
 
-
 	/***** Start VR *****/
 
-	//if (!m_vrEnv)
-	//	m_vrEnv.reset(new iAVREnvironment());
+	m_vrMain = new iAVRModuleInterface();
+	m_vrMain->ImNDT(m_polyObject, m_objectTable, io, csvConfig);
 
-	//if (m_vrEnv->isRunning())
-	//{
-	//	m_vrEnv->stop();
-	//	return;
-	//}
-
-	////if (!vrAvailable())
-	////{
-	////	return;
-	////}
-
-	////Create InteractorStyle
-	//m_style = vtkSmartPointer<iAVRInteractorStyle>::New();
-	//m_vrMain = new iAVRMain(m_vrEnv.data(), m_style, m_polyObject.data(), m_objectTable, io, csvConfig);
-
-	//// Start Render Loop HERE!
-	//m_vrEnv->start();
 }
