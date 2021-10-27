@@ -112,6 +112,7 @@ public slots:
 	void updateSPDifferenceColors();
 	void updateSPHighlightColors();
 	void updateSpatialOverviewColors();
+	void updateSPDist(int value);
 	void createGUI();
 	void outputBarAdded(int outType, int outIdx);
 	void outputBarRemoved(int outType, int outIdx);

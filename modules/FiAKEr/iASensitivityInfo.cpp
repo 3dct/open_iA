@@ -494,6 +494,7 @@ public:
 		connect(cbNormalizePerOutput, &QCheckBox::stateChanged, sensInf, &iASensitivityInfo::normalizePerOutputChanged);
 		connect(cbColoredInOut, &QCheckBox::stateChanged, sensInf, &iASensitivityInfo::colorInOutChanged);
 		connect(cbLimitSpatialOverviewRange, &QCheckBox::stateChanged, sensInf, &iASensitivityInfo::updateSpatialOverviewColors);
+		connect(sbSPDist, QOverload<int>::of(&QSpinBox::valueChanged), sensInf, &iASensitivityInfo::updateSPDist);
 
 		connect(cbUnselectedSTARLines, &QCheckBox::stateChanged, sensInf, &iASensitivityInfo::updateSPDifferenceColors);
 
@@ -1373,6 +1374,11 @@ void iASensitivityInfo::updateSpatialOverviewColors()
 		setSpatialOverviewTF(m);
 	}
 	m_child->histogram()->update();
+}
+
+void iASensitivityInfo::updateSPDist(int value)
+{
+	m_gui->m_splitter->setHandleWidth(value);
 }
 
 QVector<QVector<double>> iASensitivityInfo::currentAggregatedSensitivityMatrix()
