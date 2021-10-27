@@ -43,7 +43,7 @@ namespace
 	const int TextVPadding = 1;
 	const int ArrowMinBottomDist = 1;
 	
-	const int DefaultMaxLineWidth = 4;
+	const int DefaultMaxLineWidth = 5;
 
 	const int LegendLineWidth = 15;
 	const int LegendNumEntries = 2;
@@ -313,6 +313,7 @@ void iAAlgorithmInfo::drawLegend(QPainter& p, int leftWidth, bool top)
 	QPolygon poly;
 	int legendCenterX = LegendMargin + LegendSpacing + LegendLineWidth / 2;
 	int LegendTop = LegendBottom - (LegendNumEntries * LegendEntryHeight);
+	p.save();
 	if (top)
 	{
 		poly.push_back(QPoint(legendCenterX + m_legendLineWidth / 2, LegendTop));
@@ -320,6 +321,7 @@ void iAAlgorithmInfo::drawLegend(QPainter& p, int leftWidth, bool top)
 	}
 	else
 	{
+		p.setRenderHint(QPainter::Antialiasing);
 		poly.push_back(QPoint(legendCenterX, LegendTop));
 	}
 	poly.push_back(QPoint(legendCenterX - m_legendLineWidth / 2, LegendBottom));
@@ -333,6 +335,7 @@ void iAAlgorithmInfo::drawLegend(QPainter& p, int leftWidth, bool top)
 	gradient.setStart(poly[0]);
 	gradient.setFinalStop(QPoint(legendCenterX, LegendBottom));
 	p.fillPath(path, gradient);
+	p.restore();
 }
 
 void iAAlgorithmInfo::paintEvent(QPaintEvent* ev)

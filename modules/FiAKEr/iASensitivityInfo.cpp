@@ -461,6 +461,7 @@ class iASensitivitySettingsView: public iASensitivitySettingsUI
 	const QString ProjectLegendWidth = "SensitivityLegendWidth";
 	const QString ProjectShowArrows = "SensitivityShowArrows";
 	const QString ProjectHighlightSelected = "SensitivityHighlightSelected";
+	const QString ProjectMergeHighlight = "SensitivityMergeHighlight";
 
 public:
 	iASensitivitySettingsView(iASensitivityInfo* sensInf)
@@ -542,6 +543,7 @@ public:
 		m_settingsWidgetMap.insert(ProjectLegendWidth, sbLegendWidth);
 		m_settingsWidgetMap.insert(ProjectShowArrows, cbShowArrows);
 		m_settingsWidgetMap.insert(ProjectHighlightSelected, cbHighlightSelected);
+		m_settingsWidgetMap.insert(ProjectMergeHighlight, cbMergeHighlights);
 	}
 	void loadSettings(iASettings const & s)
 	{

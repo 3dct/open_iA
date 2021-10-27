@@ -252,7 +252,7 @@
           <number>30</number>
          </property>
          <property name="value">
-          <number>1</number>
+          <number>5</number>
          </property>
         </widget>
        </item>
@@ -308,6 +308,9 @@
         <widget class="QCheckBox" name="cbMergeHighlights">
          <property name="text">
           <string>Merge highlights</string>
+         </property>
+         <property name="checked">
+          <bool>true</bool>
          </property>
         </widget>
        </item>
