@@ -18,9 +18,9 @@
 * Contact: FH OÖ Forschungs & Entwicklungs GmbH, Campus Wels, CT-Gruppe,              *
 *          Stelzhamerstraße 23, 4600 Wels / Austria, Email: c.heinzl@fh-wels.at       *
 * ************************************************************************************/
-#include "iAVRModuleInterface.h"
+#include "iAImNDTModuleInterface.h"
 
-#include "iAVRAttachment.h"
+#include "iAImNDTAttachment.h"
 #include "iAVREnvironment.h"
 
 // FeatureScout - 3D cylinder visualization
@@ -42,7 +42,7 @@
 #include <QMenu>
 #include <QMessageBox>
 
-void iAVRModuleInterface::Initialize()
+void iAImNDTModuleInterface::Initialize()
 {
 	if (!m_mainWnd)
 	{
@@ -50,14 +50,14 @@ void iAVRModuleInterface::Initialize()
 	}
 
 	QAction * actionVRInfo = new QAction(tr("Info"), m_mainWnd);
-	connect(actionVRInfo, &QAction::triggered, this, &iAVRModuleInterface::info);
+	connect(actionVRInfo, &QAction::triggered, this, &iAImNDTModuleInterface::info);
 
 	QAction * actionVRRender = new QAction(tr("Rendering"), m_mainWnd);
-	connect(actionVRRender, &QAction::triggered, this, &iAVRModuleInterface::render);
+	connect(actionVRRender, &QAction::triggered, this, &iAImNDTModuleInterface::render);
 	m_mainWnd->makeActionChildDependent(actionVRRender);
 
 	m_actionVRShowFibers = new QAction(tr("Show Fibers"), m_mainWnd);
-	connect(m_actionVRShowFibers, &QAction::triggered, this, &iAVRModuleInterface::showFibers);
+	connect(m_actionVRShowFibers, &QAction::triggered, this, &iAImNDTModuleInterface::showFibers);
 
 	QMenu* vrMenu = getOrAddSubMenu(m_mainWnd->toolsMenu(), tr("VR"), false);
 	vrMenu->addAction(actionVRInfo);
@@ -65,7 +65,7 @@ void iAVRModuleInterface::Initialize()
 	vrMenu->addAction(m_actionVRShowFibers);
 }
 
-void iAVRModuleInterface::info()
+void iAImNDTModuleInterface::info()
 {
 	LOG(lvlInfo, QString("VR Information:"));
 	LOG(lvlInfo, QString("    Is Runtime installed: %1").arg(vr::VR_IsRuntimeInstalled() ? "yes" : "no"));
@@ -101,7 +101,7 @@ void iAVRModuleInterface::info()
 	vr::VR_Shutdown();
 }
 
-void iAVRModuleInterface::render()
+void iAImNDTModuleInterface::render()
 {
 	if (!vrAvailable())
 	{
@@ -111,7 +111,7 @@ void iAVRModuleInterface::render()
 	AttachToMdiChild( m_mdiChild );
 }
 
-void iAVRModuleInterface::showFibers()
+void iAImNDTModuleInterface::showFibers()
 {
 	if (m_vrEnv)
 	{
@@ -160,16 +160,16 @@ void iAVRModuleInterface::showFibers()
 	}
 	//Create Environment
 	m_vrEnv.reset(new iAVREnvironment());
-	connect(m_vrEnv.data(), &iAVREnvironment::finished, this, &iAVRModuleInterface::vrDone);
+	connect(m_vrEnv.data(), &iAVREnvironment::finished, this, &iAImNDTModuleInterface::vrDone);
 	m_actionVRShowFibers->setText("Stop Show Fibers");
 
 	m_objectTable = creator.table();
 
 	//Create InteractorStyle
-	m_style = vtkSmartPointer<iAVRInteractorStyle>::New();
+	m_style = vtkSmartPointer<iAImNDTInteractorStyle>::New();
 
 	//Create VR Main
-	m_vrMain = new iAVRMain(m_vrEnv.data(), m_style, m_objectTable, io, csvConfig, curvedFiberInfo);
+	m_vrMain = new iAImNDTMain(m_vrEnv.data(), m_style, m_objectTable, io, csvConfig, curvedFiberInfo);
 
 	// Start Render Loop HERE!
 	m_vrEnv->start();
@@ -177,7 +177,7 @@ void iAVRModuleInterface::showFibers()
 	m_vrEnv.reset(nullptr);
 }
 
-bool iAVRModuleInterface::vrAvailable()
+bool iAImNDTModuleInterface::vrAvailable()
 {
 	if (!vr::VR_IsRuntimeInstalled())
 	{
@@ -192,12 +192,12 @@ bool iAVRModuleInterface::vrAvailable()
 	return true;
 }
 
-iAModuleAttachmentToChild * iAVRModuleInterface::CreateAttachment( iAMainWindow* mainWnd, iAMdiChild* child)
+iAModuleAttachmentToChild * iAImNDTModuleInterface::CreateAttachment( iAMainWindow* mainWnd, iAMdiChild* child)
 {
-	return new iAVRAttachment( mainWnd, child );
+	return new iAImNDTAttachment( mainWnd, child );
 }
 
-void iAVRModuleInterface::vrDone()
+void iAImNDTModuleInterface::vrDone()
 {
 	m_actionVRShowFibers->setText("Show Fibers");
 }

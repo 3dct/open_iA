@@ -20,32 +20,36 @@
 * ************************************************************************************/
 #pragma once
 
-#include <iAModuleAttachmentToChild.h>
+#include <iAGUIModuleInterface.h>
 
 #include <vtkSmartPointer.h>
 
 #include <QSharedPointer>
 
-class iAVolumeRenderer;
-class iAMainWindow;
+#include "iAImNDTMain.h"
+#include "iAImNDTInteractorStyle.h"
 
-class iA3DCylinderObjectVis;
 class iAVREnvironment;
 
 class vtkTable;
 
-class QPushButton;
+class QAction;
 
-class iAVRAttachment : public iAModuleAttachmentToChild
-{
+class iAImNDTModuleInterface : public iAGUIModuleInterface{
 	Q_OBJECT
 public:
-	iAVRAttachment( iAMainWindow * mainWnd, iAMdiChild* child );
+	void Initialize() override;
 private:
-	QSharedPointer<iAVolumeRenderer> m_volumeRenderer;
+	iAModuleAttachmentToChild* CreateAttachment(iAMainWindow* mainWnd, iAMdiChild* child) override;
+	bool vrAvailable();
 	QSharedPointer<iAVREnvironment> m_vrEnv;
-	QPushButton* m_toggleVR;
+	iAImNDTMain* m_vrMain;
+	vtkSmartPointer<iAImNDTInteractorStyle> m_style;
+	vtkSmartPointer<vtkTable> m_objectTable;
+	QAction* m_actionVRShowFibers;
 private slots:
-	void toggleVR();
+	void info();
+	void render();
+	void showFibers();
 	void vrDone();
 };

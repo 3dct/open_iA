@@ -18,38 +18,59 @@
 * Contact: FH OÖ Forschungs & Entwicklungs GmbH, Campus Wels, CT-Gruppe,              *
 *          Stelzhamerstraße 23, 4600 Wels / Austria, Email: c.heinzl@fh-wels.at       *
 * ************************************************************************************/
-#pragma once
+#include "iAImNDTAttachment.h"
 
-#include <iAGUIModuleInterface.h>
+#include "iAVREnvironment.h"
 
-#include <vtkSmartPointer.h>
+// FeatureScout - 3D cylinder visualization
+#include "iA3DCylinderObjectVis.h"
+#include "iACsvConfig.h"
 
-#include <QSharedPointer>
+// qthelper
+#include <iADockWidgetWrapper.h>
 
-#include "iAVRMain.h"
-#include "iAVRInteractorStyle.h"
+// core
+#include <iAModality.h>
+#include <iAModalityTransfer.h>
+#include <iAVolumeRenderer.h>
 
-class iAVREnvironment;
+#include <vtkFloatArray.h>
+#include <vtkTable.h>
 
-class vtkTable;
+// must be after vtk includes, otherwise -> #error:  gl.h included before glew.h
+#include <iAMdiChild.h>
+#include <iAMainWindow.h>
 
-class QAction;
+#include <QPushButton>
 
-class iAVRModuleInterface : public iAGUIModuleInterface{
-	Q_OBJECT
-public:
-	void Initialize() override;
-private:
-	iAModuleAttachmentToChild* CreateAttachment(iAMainWindow* mainWnd, iAMdiChild* child) override;
-	bool vrAvailable();
-	QSharedPointer<iAVREnvironment> m_vrEnv;
-	iAVRMain* m_vrMain;
-	vtkSmartPointer<iAVRInteractorStyle> m_style;
-	vtkSmartPointer<vtkTable> m_objectTable;
-	QAction* m_actionVRShowFibers;
-private slots:
-	void info();
-	void render();
-	void showFibers();
-	void vrDone();
-};
+iAImNDTAttachment::iAImNDTAttachment( iAMainWindow * mainWnd, iAMdiChild* child )
+	: iAModuleAttachmentToChild( mainWnd, child )
+{
+	m_toggleVR = new QPushButton("Start VR");
+	iADockWidgetWrapper* vrDockWidget = new iADockWidgetWrapper(m_toggleVR, "VR", "vrDockWidget");
+	connect(m_toggleVR, &QPushButton::clicked, this, &iAImNDTAttachment::toggleVR);
+	child->splitDockWidget(child->renderDockWidget(), vrDockWidget, Qt::Horizontal);
+}
+
+void iAImNDTAttachment::toggleVR()
+{
+	if (m_vrEnv)
+	{
+		m_vrEnv->stop();
+		return;
+	}
+	m_toggleVR->setText("Stop VR");
+	m_vrEnv.reset(new iAVREnvironment);
+	connect(m_vrEnv.data(), &iAVREnvironment::finished, this, &iAImNDTAttachment::vrDone);
+	m_volumeRenderer = QSharedPointer<iAVolumeRenderer>::create(m_child->modality(0)->transfer().data(), m_child->modality(0)->image());
+	m_volumeRenderer->applySettings(m_child->volumeSettings());
+	m_volumeRenderer->addTo(m_vrEnv->renderer());
+	m_volumeRenderer->addBoundingBoxTo(m_vrEnv->renderer());
+	m_vrEnv->start();
+	m_vrEnv.reset(nullptr);
+}
+
+void iAImNDTAttachment::vrDone()
+{
+	m_toggleVR->setText("Start VR");
+}

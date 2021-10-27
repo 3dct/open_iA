@@ -18,13 +18,13 @@
 * Contact: FH OÖ Forschungs & Entwicklungs GmbH, Campus Wels, CT-Gruppe,              *
 *          Stelzhamerstraße 23, 4600 Wels / Austria, Email: c.heinzl@fh-wels.at       *
 * ************************************************************************************/
-#include "iAVRMain.h"
+#include "iAImNDTMain.h"
 
 #include <iALog.h>
 #include "iAVRInteractor.h"
 #include "iAVRModelInMiniature.h"
 #include "iAVROctree.h"
-#include "iAVRInteractorStyle.h"
+#include "iAImNDTInteractorStyle.h"
 #include "iAVRSlider.h"
 #include "iA3DColoredPolyObjectVis.h"
 
@@ -57,7 +57,7 @@
 #define OCTREE_COLOR QColor(126, 0, 223, 255)
 //#define OCTREE_COLOR QColor(130, 10, 10, 255)
 
-iAVRMain::iAVRMain(iAVREnvironment* vrEnv, iAVRInteractorStyle* style, vtkTable* objectTable, iACsvIO io, iACsvConfig csvConfig, std::map<size_t, std::vector<iAVec3f> > curvedFiberInfo): m_vrEnv(vrEnv),
+iAImNDTMain::iAImNDTMain(iAVREnvironment* vrEnv, iAImNDTInteractorStyle* style, vtkTable* objectTable, iACsvIO io, iACsvConfig csvConfig, std::map<size_t, std::vector<iAVec3f> > curvedFiberInfo): m_vrEnv(vrEnv),
 	m_style(style),	m_objectTable(objectTable),	m_io(io), m_curvedFiberInfo(curvedFiberInfo)
 {
 	// For true TranslucentGeometry
@@ -185,7 +185,7 @@ iAVRMain::iAVRMain(iAVREnvironment* vrEnv, iAVRInteractorStyle* style, vtkTable*
 
 //! Defines the action executed for specific controller inputs
 //! Position and Orientation are in WorldCoordinates and Orientation is in Degree
-void iAVRMain::startInteraction(vtkEventDataDevice3D* device, vtkProp3D* pickedProp, double eventPosition[3], double eventOrientation[4])
+void iAImNDTMain::startInteraction(vtkEventDataDevice3D* device, vtkProp3D* pickedProp, double eventPosition[3], double eventOrientation[4])
 {
 	m_vrEnv->interactor()->GetTouchPadPosition(device->GetDevice(), device->GetInput(), touchPadPosition);
 
@@ -249,7 +249,7 @@ void iAVRMain::startInteraction(vtkEventDataDevice3D* device, vtkProp3D* pickedP
 	}
 }
 
-void iAVRMain::endInteraction(vtkEventDataDevice3D* device, vtkProp3D* pickedProp, double eventPosition[3], double eventOrientation[4])
+void iAImNDTMain::endInteraction(vtkEventDataDevice3D* device, vtkProp3D* pickedProp, double eventPosition[3], double eventOrientation[4])
 {
 	Q_UNUSED(eventPosition);
 	Q_UNUSED(eventOrientation);
@@ -284,7 +284,7 @@ void iAVRMain::endInteraction(vtkEventDataDevice3D* device, vtkProp3D* pickedPro
 	m_vrEnv->update();
 }
 
-void iAVRMain::onMove(vtkEventDataDevice3D * device, double movePosition[3], double eventOrientation[4])
+void iAImNDTMain::onMove(vtkEventDataDevice3D * device, double movePosition[3], double eventOrientation[4])
 {
 	vtkSmartPointer<vtkCamera> cam = m_vrEnv->renderer()->GetActiveCamera();
 	double initialScale = m_vrEnv->interactor()->GetPhysicalScale();
@@ -410,7 +410,7 @@ void iAVRMain::onMove(vtkEventDataDevice3D * device, double movePosition[3], dou
 }
 
 //! Corrects the size of elements based on the new physical scale of the environment
-void iAVRMain::onZoom()
+void iAImNDTMain::onZoom()
 {
 	auto scaleDiff = (1.0 / calculateWorldScaleFactor());
 
@@ -418,7 +418,7 @@ void iAVRMain::onZoom()
 	m_MiMColorLegend->setScale(scaleDiff);
 }
 
-void iAVRMain::setInputScheme(vtkEventDataDevice device, vtkEventDataDeviceInput input, vtkEventDataAction action, iAVRInteractionOptions options, iAVROperations operation)
+void iAImNDTMain::setInputScheme(vtkEventDataDevice device, vtkEventDataDeviceInput input, vtkEventDataAction action, iAVRInteractionOptions options, iAVROperations operation)
 {
 	inputScheme* scheme = m_style->getInputScheme();
 
@@ -437,7 +437,7 @@ void iAVRMain::setInputScheme(vtkEventDataDevice device, vtkEventDataDeviceInput
 }
 
 //! Returns which InteractionOption is for the currently picked Object available 
-int iAVRMain::getOptionForObject(vtkProp3D* pickedProp)
+int iAImNDTMain::getOptionForObject(vtkProp3D* pickedProp)
 {
 	if (pickedProp == nullptr)
 	{
@@ -453,13 +453,13 @@ int iAVRMain::getOptionForObject(vtkProp3D* pickedProp)
 	}
 }
 
-void iAVRMain::addPropToOptionID(vtkProp3D* prop, iAVRInteractionOptions iD)
+void iAImNDTMain::addPropToOptionID(vtkProp3D* prop, iAVRInteractionOptions iD)
 {
 	m_ActorToOptionID.insert(std::make_pair(prop, static_cast<int>(iD)));
 }
 
 //! Test method inserts colored point at given Position
-void iAVRMain::drawPoint(std::vector<double*>* pos, QColor color)
+void iAImNDTMain::drawPoint(std::vector<double*>* pos, QColor color)
 {
 	m_vrEnv->renderer()->RemoveActor(pointsActor);
 
@@ -489,7 +489,7 @@ void iAVRMain::drawPoint(std::vector<double*>* pos, QColor color)
 }
 
 //! Generates octrees until maxLevel is reached or no more leafNodes are added through later levels
-void iAVRMain::generateOctrees(int maxLevel, int maxPointsPerRegion, vtkPolyData* dataSet)
+void iAImNDTMain::generateOctrees(int maxLevel, int maxPointsPerRegion, vtkPolyData* dataSet)
 {
 	int lastLeafNodeAmount = 0;
 	for(auto level = 0; level <= maxLevel; level++)
@@ -505,7 +505,7 @@ void iAVRMain::generateOctrees(int maxLevel, int maxPointsPerRegion, vtkPolyData
 	if(m_octrees->empty()) LOG(lvlDebug, QString("NO OCTREE GENERATED"));
 }
 
-void iAVRMain::calculateMetrics()
+void iAImNDTMain::calculateMetrics()
 {
 
 	m_MiMColorLegend->hide();
@@ -529,7 +529,7 @@ void iAVRMain::calculateMetrics()
 	
 }
 
-void iAVRMain::colorMiMCubes(std::vector<vtkIdType>* regionIDs)
+void iAImNDTMain::colorMiMCubes(std::vector<vtkIdType>* regionIDs)
 {
 
 	std::vector<QColor>* rgba = m_MiMColorLegend->getColors(currentOctreeLevel, currentFeature, fiberMetrics->getRegionAverage(currentOctreeLevel, currentFeature));
@@ -544,7 +544,7 @@ void iAVRMain::colorMiMCubes(std::vector<vtkIdType>* regionIDs)
 }
 
 //! Returns the difference between the intial world scaling and the current scaling
-double iAVRMain::calculateWorldScaleFactor()
+double iAImNDTMain::calculateWorldScaleFactor()
 {
 	double currentScale = m_vrEnv->interactor()->GetPhysicalScale();
 	auto temp = m_vrEnv->getInitialWorldScale()/ currentScale;
@@ -553,7 +553,7 @@ double iAVRMain::calculateWorldScaleFactor()
 }
 
 //! Increases/Decreases the current octree level and feature. Recalculates the Model in Miniature Object.
-void iAVRMain::changeOctreeAndMetric()
+void iAImNDTMain::changeOctreeAndMetric()
 {
 	iAVRTouchpadPosition touchpadPos = m_style->getTouchedPadSide(touchPadPosition);
 
@@ -604,7 +604,7 @@ void iAVRMain::changeOctreeAndMetric()
 	updateModelInMiniatureData();
 }
 
-void iAVRMain::pickSingleFiber(double eventPosition[3])
+void iAImNDTMain::pickSingleFiber(double eventPosition[3])
 {
 	std::vector<size_t> selection = std::vector<size_t>();
 	// Find the closest points to TestPoint
@@ -617,7 +617,7 @@ void iAVRMain::pickSingleFiber(double eventPosition[3])
 }
 
 //! Picks all fibers in the region clicked by the user.
-void iAVRMain::pickFibersinRegion(double eventPosition[3], double eventOrientation[4])
+void iAImNDTMain::pickFibersinRegion(double eventPosition[3], double eventOrientation[4])
 {
 	vtkIdType cellID = m_volume->getClosestCellID(eventPosition, eventOrientation);
 
@@ -628,7 +628,7 @@ void iAVRMain::pickFibersinRegion(double eventPosition[3], double eventOrientati
 }
 
 //! Picks all fibers in the octree region defined by the leaf node ID.
-void iAVRMain::pickFibersinRegion(int leafRegion)
+void iAImNDTMain::pickFibersinRegion(int leafRegion)
 {
 	std::vector<size_t> selection = std::vector<size_t>();
 
@@ -647,7 +647,7 @@ void iAVRMain::pickFibersinRegion(int leafRegion)
 	m_volume->renderSelection(selection, 0, QColor(140, 140, 140, 255), nullptr);
 }
 
-void iAVRMain::pickMimRegion(double eventPosition[3], double eventOrientation[4])
+void iAImNDTMain::pickMimRegion(double eventPosition[3], double eventOrientation[4])
 {
 	vtkIdType cellID = m_modelInMiniature->getClosestCellID(eventPosition, eventOrientation);
 
@@ -671,7 +671,7 @@ void iAVRMain::pickMimRegion(double eventPosition[3], double eventOrientation[4]
 }
 
 //! Methods ends the multi picking mode and renders selection
-void iAVRMain::multiPickMiMRegion()
+void iAImNDTMain::multiPickMiMRegion()
 {	
 	if(!multiPickIDs->empty())
 	{
@@ -725,7 +725,7 @@ void iAVRMain::multiPickMiMRegion()
 	}
 }
 
-void iAVRMain::resetSelection()
+void iAImNDTMain::resetSelection()
 {
 	m_volume->renderSelection(std::vector<size_t>(), 0, QColor(140, 140, 140, 255), nullptr);
 	m_volume->removeHighlightedGlyphs();
@@ -743,7 +743,7 @@ void iAVRMain::resetSelection()
 }
 
 //! Updates the data (Octree, Metrics,...) and the position for the current MiM
-void iAVRMain::updateModelInMiniatureData()
+void iAImNDTMain::updateModelInMiniatureData()
 {
 	int controllerID = static_cast<int>(vtkEventDataDevice::LeftController);
 	
@@ -759,7 +759,7 @@ void iAVRMain::updateModelInMiniatureData()
 	onZoom();
 }
 
-void iAVRMain::spawnModelInMiniature(double eventPosition[3], bool hide)
+void iAImNDTMain::spawnModelInMiniature(double eventPosition[3], bool hide)
 {
 	if(!hide)
 	{
@@ -784,7 +784,7 @@ void iAVRMain::spawnModelInMiniature(double eventPosition[3], bool hide)
 	}
 }
 
-void iAVRMain::pressLeftTouchpad()
+void iAImNDTMain::pressLeftTouchpad()
 {
 	auto initWorldScale = m_vrEnv->getInitialWorldScale();
 	double offsetMiM = initWorldScale * 0.022;
@@ -854,7 +854,7 @@ void iAVRMain::pressLeftTouchpad()
 	}
 }
 
-void iAVRMain::changeMiMDisplacementType()
+void iAImNDTMain::changeMiMDisplacementType()
 {
 	currentMiMDisplacementType++;
 
@@ -880,12 +880,12 @@ void iAVRMain::changeMiMDisplacementType()
 	m_3DTextLabels->at(0)->hide();	
 }
 
-void iAVRMain::flipDistributionVis()
+void iAImNDTMain::flipDistributionVis()
 {
 	m_distributionVis->flipThroughHistograms(sign);
 }
 
-void iAVRMain::displayNodeLinkD()
+void iAImNDTMain::displayNodeLinkD()
 {
 
 	if (!m_networkGraphMode)
