@@ -50,7 +50,7 @@ void iAImNDTModuleInterface::Initialize()
 		return;
 	}
 
-	QAction * actionVRInfo = new QAction(tr("Info"), m_mainWnd);
+	QAction * actionVRInfo = new QAction(tr("VR Info"), m_mainWnd);
 	connect(actionVRInfo, &QAction::triggered, this, &iAImNDTModuleInterface::info);
 
 	QAction * actionVRRender = new QAction(tr("Rendering"), m_mainWnd);
@@ -60,7 +60,7 @@ void iAImNDTModuleInterface::Initialize()
 	m_actionVRStartAnalysis = new QAction(tr("Start Analysis"), m_mainWnd);
 	connect(m_actionVRStartAnalysis, &QAction::triggered, this, &iAImNDTModuleInterface::startAnalysis);
 
-	QMenu* vrMenu = getOrAddSubMenu(m_mainWnd->toolsMenu(), tr("VR"), false);
+	QMenu* vrMenu = getOrAddSubMenu(m_mainWnd->toolsMenu(), tr("ImNDT"), false);
 	vrMenu->addAction(actionVRInfo);
 	vrMenu->addAction(actionVRRender);
 	vrMenu->addAction(m_actionVRStartAnalysis);
@@ -114,13 +114,21 @@ void iAImNDTModuleInterface::render()
 
 void iAImNDTModuleInterface::startAnalysis()
 {
-	//Create VR Main
-	if (!loadImNDT()) return;
 
-	ImNDT(m_polyObject, m_objectTable, m_io, m_csvConfig);
+	if (!m_vrMain)
+	{
+		//Create VR Main
+		if (!loadImNDT()) return;
 
-	connect(m_vrEnv.data(), &iAVREnvironment::finished, this, &iAImNDTModuleInterface::vrDone);
-	m_actionVRStartAnalysis->setText("Stop Analysis");
+		ImNDT(m_polyObject, m_objectTable, m_io, m_csvConfig);
+
+		connect(m_vrEnv.data(), &iAVREnvironment::finished, this, &iAImNDTModuleInterface::vrDone);
+		m_actionVRStartAnalysis->setText("Stop Analysis");
+	}
+	else
+	{
+		m_vrEnv->stop();
+	}
 }
 
 bool iAImNDTModuleInterface::vrAvailable()
@@ -215,5 +223,7 @@ iAModuleAttachmentToChild * iAImNDTModuleInterface::CreateAttachment( iAMainWind
 
 void iAImNDTModuleInterface::vrDone()
 {
+	delete m_vrMain;
+	m_vrMain = nullptr;
 	m_actionVRStartAnalysis->setText("Start Analysis");
 }

@@ -183,6 +183,13 @@ iAImNDTMain::iAImNDTMain(iAVREnvironment* vrEnv, iAImNDTInteractorStyle* style, 
 	}
 }
 
+iAImNDTMain::~iAImNDTMain()
+{
+	delete m_vrEnv, m_polyObject;
+	m_vrEnv = nullptr;
+	m_polyObject = nullptr;
+}
+
 //! Defines the action executed for specific controller inputs
 //! Position and Orientation are in WorldCoordinates and Orientation is in Degree
 void iAImNDTMain::startInteraction(vtkEventDataDevice3D* device, vtkProp3D* pickedProp, double eventPosition[3], double eventOrientation[4])

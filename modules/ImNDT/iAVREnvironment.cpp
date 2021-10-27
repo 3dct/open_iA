@@ -53,7 +53,7 @@ public:
 	void stop()
 	{
 		m_interactor->SetDone(true);
-		//m_renderWindow->Finalize();
+		//m_renderWindow->Finalize();	
 	}
 private:
 	vtkSmartPointer<vtkOpenVRRenderer> m_renderer;
