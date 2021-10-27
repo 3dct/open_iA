@@ -511,6 +511,7 @@ public:
 		connect(cmbboxAlgoInfoMode, QOverload<int>::of(&QComboBox::currentIndexChanged), sensInf, &iASensitivityInfo::algoInfoModeChanged);
 		connect(cbShowArrows, &QCheckBox::stateChanged, sensInf, &iASensitivityInfo::algoToggleArrowHeads);
 		connect(cbHighlightSelected, &QCheckBox::stateChanged, sensInf, &iASensitivityInfo::algoToggleShowHighlight);
+		connect(cbMergeHighlights, &QCheckBox::stateChanged, sensInf, &iASensitivityInfo::algoToggleMergeHighlight);
 		connect(sbLegendWidth, QOverload<int>::of(&QSpinBox::valueChanged), sensInf, &iASensitivityInfo::algoSetLegendWidth);
 		connect(cbNormalizePerOutput, &QCheckBox::stateChanged, sensInf, &iASensitivityInfo::normalizePerOutputChanged);
 		connect(cbColoredInOut, &QCheckBox::stateChanged, sensInf, &iASensitivityInfo::colorInOutChanged);
@@ -1924,6 +1925,11 @@ void iASensitivityInfo::algoToggleArrowHeads(int state)
 void iASensitivityInfo::algoToggleShowHighlight(int state)
 {
 	m_gui->m_algoInfo->setShowHighlight(state == Qt::Checked);
+}
+
+void iASensitivityInfo::algoToggleMergeHighlight(int state)
+{
+	m_gui->m_algoInfo->setMergeHighlight(state == Qt::Checked);
 }
 
 void iASensitivityInfo::normalizePerOutputChanged(int state)

@@ -83,7 +83,8 @@ iAAlgorithmInfo::iAAlgorithmInfo(QString const& name, QStringList const& inNames
 	m_displayMode(DefaultDisplayMode),
 	m_normalizePerOutput(false),
 	m_showArrows(false),
-	m_showHighlight(false)
+	m_showHighlight(false),
+	m_mergeHighlight(true)
 {
 	setSizePolicy(QSizePolicy::Expanding, QSizePolicy::MinimumExpanding);
 	setMouseTracking(true);
@@ -122,6 +123,7 @@ void iAAlgorithmInfo::setSelectedInput(int inIdx)
 void iAAlgorithmInfo::addShownOut(int outIdx)
 {
 	m_shownOut.push_back(outIdx);
+	std::sort(m_shownOut.begin(), m_shownOut.end());
 }
 
 void iAAlgorithmInfo::removeShownOut(int outIdx)
@@ -162,6 +164,12 @@ void iAAlgorithmInfo::setShowArrows(bool showArrows)
 void iAAlgorithmInfo::setShowHighlight(bool showHighlight)
 {
 	m_showHighlight = showHighlight;
+	update();
+}
+
+void iAAlgorithmInfo::setMergeHighlight(bool mergeHighlight)
+{
+	m_mergeHighlight = mergeHighlight;
 	update();
 }
 
@@ -436,10 +444,35 @@ void iAAlgorithmInfo::paintEvent(QPaintEvent* ev)
 		{
 			// TODO: merge neighbouring columns!
 			p.setPen(qApp->palette().color(QWidget::foregroundRole()));
-			for (auto i : m_shownOut)
+			if (m_mergeHighlight)
 			{
-				int x = m_matrixRect.left() + i * cellWidth;
-				p.drawRect(x, m_matrixRect.top(), cellWidth, m_matrixRect.height());
+				QVector<int>::size_type startIdx = 0;
+				while (startIdx < m_shownOut.size())
+				{
+					int startColIdx = m_shownOut[startIdx];
+					int endIdx = startIdx + 1;
+					while (endIdx < m_shownOut.size() && m_shownOut[endIdx] == (startColIdx + (endIdx - startIdx)) )
+					{
+						++endIdx;
+					}
+					LOG(lvlDebug,
+						QString("start: %1 (%2), end: %3 (%4)")
+							.arg(startIdx)
+							.arg(startColIdx)
+							.arg(endIdx)
+							.arg(endIdx < m_shownOut.size() ? m_shownOut[endIdx] : -1));
+					int x = m_matrixRect.left() + startColIdx * cellWidth;
+					p.drawRect(x, m_matrixRect.top(), (endIdx - startIdx) * cellWidth, m_matrixRect.height());
+					startIdx = endIdx;
+				}
+			}
+			else
+			{
+				for (auto i : m_shownOut)
+				{
+					int x = m_matrixRect.left() + i * cellWidth;
+					p.drawRect(x, m_matrixRect.top(), cellWidth, m_matrixRect.height());
+				}
 			}
 		}
 	}

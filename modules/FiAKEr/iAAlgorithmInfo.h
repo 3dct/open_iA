@@ -52,6 +52,7 @@ public:
 	void setNormalizePerOutput(bool maxPerOut);
 	void setShowArrows(bool showArrows);
 	void setShowHighlight(bool showHighlight);
+	void setMergeHighlight(bool mergeHighlight);
 	void setMatrix(iAMatrixType const& matrix);
 	void setInOutColor(QColor const& inColor, QColor const& outColor);
 	void setLegendLineWidth(int lineWidth);
@@ -89,6 +90,6 @@ private:
 	// some widths as determined during painting:
 	int m_inWidth, m_outWidth, m_boxMinWidth, m_legendWidth, m_legendLineWidth;
 	DisplayMode m_displayMode;
-	bool m_normalizePerOutput, m_showArrows, m_showHighlight;
+	bool m_normalizePerOutput, m_showArrows, m_showHighlight, m_mergeHighlight;
 	QRect m_matrixRect;
 };

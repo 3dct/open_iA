@@ -122,6 +122,7 @@ public slots:
 	void algoInfoModeChanged(int mode);
 	void algoToggleArrowHeads(int state);
 	void algoToggleShowHighlight(int state);
+	void algoToggleMergeHighlight(int state);
 	void algoSetLegendWidth(int value);
 	void normalizePerOutputChanged(int state);
 	void colorInOutChanged(int state);
