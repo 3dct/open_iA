@@ -74,16 +74,16 @@ enum class iAVROperations {
 
 class iAVRModelInMiniature;
 class iAVROctree; 
-class iAVRInteractorStyle;
+class iAImNDTInteractorStyle;
 class iAVRSlider;
 class iAVRColorLegend;
 class iAVRMip;
 
 //!
-class iAVRMain
+class iAImNDTMain
 {
 public:
-	iAVRMain(iAVREnvironment* vrEnv, iAVRInteractorStyle* style, iA3DColoredPolyObjectVis* polyObject, vtkTable* objectTable, iACsvIO io, iACsvConfig csvConfig);
+	iAImNDTMain(iAVREnvironment* vrEnv, iAImNDTInteractorStyle* style, iA3DColoredPolyObjectVis* polyObject, vtkTable* objectTable, iACsvIO io, iACsvConfig csvConfig);
 	void startInteraction(vtkEventDataDevice3D* device, vtkProp3D* pickedProp, double eventPosition[3], double eventOrientation[4]); //Press, Touch
 	void endInteraction(vtkEventDataDevice3D* device, vtkProp3D* pickedProp, double eventPosition[3], double eventOrientation[4]); //Release, Untouch
 	void onMove(vtkEventDataDevice3D* device, double movePosition[3], double eventOrientation[4]); //Movement
@@ -96,7 +96,7 @@ private:
 	iAVRModelInMiniature* m_modelInMiniature;
 	iAVRObjectModel* m_volume;
 	vtkSmartPointer<vtkPolyData> m_extendedCylinderVisData; // Data extended with additional intersection points
-	vtkSmartPointer<iAVRInteractorStyle> m_style;
+	vtkSmartPointer<iAImNDTInteractorStyle> m_style;
 	iA3DColoredPolyObjectVis* m_polyObject;
 	vtkSmartPointer<vtkTable> m_objectTable;
 

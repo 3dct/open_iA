@@ -18,14 +18,14 @@
 * Contact: FH OÖ Forschungs & Entwicklungs GmbH, Campus Wels, CT-Gruppe,              *
 *          Stelzhamerstraße 23, 4600 Wels / Austria, Email: c.heinzl@fh-wels.at       *
 * ************************************************************************************/
-#include "iAVRInteractorStyle.h"
+#include "iAImNDTInteractorStyle.h"
 
 #include <iALog.h>
 #include <vtkObjectFactory.h>
 #include "vtkOpenVRRenderWindowInteractor.h"
 #include "vtkPropPicker.h"
 #include "vtkPointPicker.h"
-#include "iAVRMain.h"
+#include "iAImNDTMain.h"
 #include "vtkActor.h"
 #include "vtkProperty.h"
 #include "vtkPolyDataMapper.h"
@@ -36,10 +36,10 @@
 
 #include <vtkMath.h>
 
-vtkStandardNewMacro(iAVRInteractorStyle);
+vtkStandardNewMacro(iAImNDTInteractorStyle);
 
 //! Reimplements the Constructor
-iAVRInteractorStyle::iAVRInteractorStyle()
+iAImNDTInteractorStyle::iAImNDTInteractorStyle()
 {
 	// Initialize with 0 = None
 	std::vector<int> a(NUMBER_OF_OPTIONS, 0);
@@ -50,14 +50,14 @@ iAVRInteractorStyle::iAVRInteractorStyle()
 	m_activeInput = new std::vector<int>(NUMBER_OF_DEVICES, -1);
 }
 
-void iAVRInteractorStyle::setVRMain(iAVRMain* vrMain)
+void iAImNDTInteractorStyle::setVRMain(iAImNDTMain* vrMain)
 {
 	m_vrMain = vrMain;
 }
 
 //! Calls, depending on Device - its input and action, the corresponding method
 //! Events can occure through left/right Controller and its input (trigger, grip, Trackpad,...) and an Action (Press, Release, Touch,...)
-void iAVRInteractorStyle::OnButton3D(vtkEventData* edata)
+void iAImNDTInteractorStyle::OnButton3D(vtkEventData* edata)
 {    
 	// Used Device
 	vtkEventDataDevice3D* device = edata->GetAsEventDataDevice3D();
@@ -97,7 +97,7 @@ void iAVRInteractorStyle::OnButton3D(vtkEventData* edata)
 }
 
 //! Is called when a Controller moves. Forwards the event to the main class
-void iAVRInteractorStyle::OnMove3D(vtkEventData * edata)
+void iAImNDTInteractorStyle::OnMove3D(vtkEventData * edata)
 {
 	// Used Device
 	vtkEventDataDevice3D* device = edata->GetAsEventDataDevice3D();
@@ -131,7 +131,7 @@ void iAVRInteractorStyle::OnMove3D(vtkEventData * edata)
 
 }
 
-void iAVRInteractorStyle::OnPinch()
+void iAImNDTInteractorStyle::OnPinch()
 {
 	double dyf = this->Interactor->GetScale() / this->Interactor->GetLastScale();
 	vtkCamera* camera = this->CurrentRenderer->GetActiveCamera();
@@ -144,19 +144,19 @@ void iAVRInteractorStyle::OnPinch()
 
 //! Returns a vector for the input scheme
 //! For every [device] an [inputID] and its [action] on an selection [option] a specific interaction is specified
-inputScheme * iAVRInteractorStyle::getInputScheme()
+inputScheme * iAImNDTInteractorStyle::getInputScheme()
 {
 	return m_inputScheme;
 }
 
-std::vector<int>* iAVRInteractorStyle::getActiveInput()
+std::vector<int>* iAImNDTInteractorStyle::getActiveInput()
 {
 	return m_activeInput;
 }
 
 //! Calculates the vector of the diagonals in the touchpad "square" and returns if the position is Up, Right, Down or left on the pad.
 //! The touchpad forms a square from (-1,-1) to (1,1)
-iAVRTouchpadPosition iAVRInteractorStyle::getTouchedPadSide(float position[3])
+iAVRTouchpadPosition iAImNDTInteractorStyle::getTouchedPadSide(float position[3])
 {
 	vtkVector2f p0 = vtkVector2f(-1,-1);
 	vtkVector2f p1 = vtkVector2f(1, 1);
@@ -175,7 +175,7 @@ iAVRTouchpadPosition iAVRInteractorStyle::getTouchedPadSide(float position[3])
 	return iAVRTouchpadPosition::Unknown;
 }
 
-iAVRViewDirection iAVRInteractorStyle::getViewDirection(double viewDir[3])
+iAVRViewDirection iAImNDTInteractorStyle::getViewDirection(double viewDir[3])
 {
 	double maxVal = 0;
 	int maxDir = -1;

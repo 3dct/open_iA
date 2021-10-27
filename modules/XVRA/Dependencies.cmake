@@ -4,7 +4,7 @@ set(DEPENDENCIES_LIBRARIES
 )
 set(DEPENDENCIES_MODULES
 	FeatureScout           
-	VR
+	ImNDT
 )
 
 # Check whether boost (from astra) has histogram.hpp (only available in boost >= 1.70)

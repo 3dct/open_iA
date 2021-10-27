@@ -9,7 +9,7 @@
 #include "iACsvConfig.h"
 #include "iACsvVtkTableCreator.h"
 
-#include "iAVRModuleInterface.h"
+#include "iAImNDTModuleInterface.h"
 
 #include <QAction>
 #include <QMenu>
@@ -86,7 +86,7 @@ void iAXVRAModuleInterface::startXVRA()
 
 	/***** Start VR *****/
 
-	m_vrMain = new iAVRModuleInterface();
+	m_vrMain = new iAImNDTModuleInterface();
 	m_vrMain->ImNDT(m_polyObject, m_objectTable, io, csvConfig);
 
 }

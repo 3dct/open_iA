@@ -21,15 +21,15 @@
 #pragma once
 
 #include <iAGUIModuleInterface.h>
-#include <VR_export.h>
+#include <ImNDT_export.h>
 
 #include <vtkSmartPointer.h>
 
 #include <QSharedPointer>
 
-#include "iAVRMain.h"
+#include "iAImNDTMain.h"
 #include "iA3DColoredPolyObjectVis.h"
-#include "iAVRInteractorStyle.h"
+#include "iAImNDTInteractorStyle.h"
 
 class iAVREnvironment;
 
@@ -37,7 +37,7 @@ class vtkTable;
 
 class QAction;
 
-class VR_API iAVRModuleInterface : public iAGUIModuleInterface{
+class ImNDT_API iAImNDTModuleInterface : public iAGUIModuleInterface{
 	Q_OBJECT
 public:
 	void Initialize() override;
@@ -50,8 +50,8 @@ private:
 	bool loadImNDT();
 	QSharedPointer<iAVREnvironment> m_vrEnv;
 	QSharedPointer<iA3DColoredPolyObjectVis> m_polyObject;
-	iAVRMain* m_vrMain;
-	vtkSmartPointer<iAVRInteractorStyle> m_style;
+	iAImNDTMain* m_vrMain;
+	vtkSmartPointer<iAImNDTInteractorStyle> m_style;
 	iACsvConfig m_csvConfig;
 	iACsvIO m_io;
 	vtkSmartPointer<vtkTable> m_objectTable;

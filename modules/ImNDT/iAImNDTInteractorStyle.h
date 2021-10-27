@@ -23,7 +23,7 @@
 #include <vtkOpenVRInteractorStyle.h>
 #include <vtkSmartPointer.h>
 #include "vtkEventData.h"
-#include "iAVRMain.h"
+#include "iAImNDTMain.h"
 
 #define NUMBER_OF_DEVICES static_cast<int>(vtkEventDataDevice::NumberOfDevices)
 #define NUMBER_OF_INPUTS static_cast<int>(vtkEventDataDeviceInput::NumberOfInputs)
@@ -53,13 +53,13 @@ enum class iAVRViewDirection {
 };
 
 //! Base Class for specific interaction callbacks
-class iAVRInteractorStyle : public vtkOpenVRInteractorStyle
+class iAImNDTInteractorStyle : public vtkOpenVRInteractorStyle
 {
    public:
-	static iAVRInteractorStyle* New();
-	vtkTypeMacro(iAVRInteractorStyle, vtkOpenVRInteractorStyle);
+	static iAImNDTInteractorStyle* New();
+	vtkTypeMacro(iAImNDTInteractorStyle, vtkOpenVRInteractorStyle);
 
-	void setVRMain(iAVRMain* vrMain);
+	void setVRMain(iAImNDTMain* vrMain);
 	void OnButton3D(vtkEventData* edata) override;
 	void OnMove3D(vtkEventData* edata) override;
 	void OnPinch() override;
@@ -70,10 +70,10 @@ class iAVRInteractorStyle : public vtkOpenVRInteractorStyle
 	iAVRViewDirection getViewDirection(double viewDir[3]);
 
    protected:
-	iAVRInteractorStyle();
+	iAImNDTInteractorStyle();
 
    private:
-	iAVRMain* m_vrMain;
+	iAImNDTMain* m_vrMain;
 	double m_eventPosition[3];
 	double m_eventOrientation[4];
 	double m_movePosition[3];

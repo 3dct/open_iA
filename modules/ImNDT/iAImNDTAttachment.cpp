@@ -18,7 +18,7 @@
 * Contact: FH OÖ Forschungs & Entwicklungs GmbH, Campus Wels, CT-Gruppe,              *
 *          Stelzhamerstraße 23, 4600 Wels / Austria, Email: c.heinzl@fh-wels.at       *
 * ************************************************************************************/
-#include "iAVRAttachment.h"
+#include "iAImNDTAttachment.h"
 
 #include "iAVREnvironment.h"
 
@@ -43,17 +43,17 @@
 
 #include <QPushButton>
 
-iAVRAttachment::iAVRAttachment( iAMainWindow * mainWnd, iAMdiChild* child )
+iAImNDTAttachment::iAImNDTAttachment( iAMainWindow * mainWnd, iAMdiChild* child )
 	: iAModuleAttachmentToChild( mainWnd, child ),
 	m_vrEnv(new iAVREnvironment)
 {
 	m_toggleVR = new QPushButton("Start VR");
 	iADockWidgetWrapper* vrDockWidget = new iADockWidgetWrapper(m_toggleVR, "VR", "vrDockWidget");
-	connect(m_toggleVR, &QPushButton::clicked, this, &iAVRAttachment::toggleVR);
+	connect(m_toggleVR, &QPushButton::clicked, this, &iAImNDTAttachment::toggleVR);
 	child->splitDockWidget(child->renderDockWidget(), vrDockWidget, Qt::Horizontal);
 }
 
-void iAVRAttachment::toggleVR()
+void iAImNDTAttachment::toggleVR()
 {
 	if (m_vrEnv->isRunning())
 	{
@@ -61,7 +61,7 @@ void iAVRAttachment::toggleVR()
 		return;
 	}
 	m_toggleVR->setText("Stop VR");
-	connect(m_vrEnv.data(), &iAVREnvironment::finished, this, &iAVRAttachment::vrDone);
+	connect(m_vrEnv.data(), &iAVREnvironment::finished, this, &iAImNDTAttachment::vrDone);
 	m_volumeRenderer = QSharedPointer<iAVolumeRenderer>::create(m_child->modality(0)->transfer().data(), m_child->modality(0)->image());
 	m_volumeRenderer->applySettings(m_child->volumeSettings());
 	m_volumeRenderer->addTo(m_vrEnv->renderer());
@@ -69,7 +69,7 @@ void iAVRAttachment::toggleVR()
 	m_vrEnv->start();
 }
 
-void iAVRAttachment::vrDone()
+void iAImNDTAttachment::vrDone()
 {
 	m_toggleVR->setText("Start VR");
 }

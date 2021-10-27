@@ -36,11 +36,11 @@ class vtkTable;
 
 class QPushButton;
 
-class iAVRAttachment : public iAModuleAttachmentToChild
+class iAImNDTAttachment : public iAModuleAttachmentToChild
 {
 	Q_OBJECT
 public:
-	iAVRAttachment( iAMainWindow * mainWnd, iAMdiChild* child );
+	iAImNDTAttachment( iAMainWindow * mainWnd, iAMdiChild* child );
 private:
 	QSharedPointer<iAVolumeRenderer> m_volumeRenderer;
 	QSharedPointer<iAVREnvironment> m_vrEnv;
