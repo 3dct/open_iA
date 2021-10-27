@@ -455,12 +455,6 @@ void iAAlgorithmInfo::paintEvent(QPaintEvent* ev)
 					{
 						++endIdx;
 					}
-					LOG(lvlDebug,
-						QString("start: %1 (%2), end: %3 (%4)")
-							.arg(startIdx)
-							.arg(startColIdx)
-							.arg(endIdx)
-							.arg(endIdx < m_shownOut.size() ? m_shownOut[endIdx] : -1));
 					int x = m_matrixRect.left() + startColIdx * cellWidth;
 					p.drawRect(x, m_matrixRect.top(), (endIdx - startIdx) * cellWidth, m_matrixRect.height());
 					startIdx = endIdx;
