@@ -32,7 +32,7 @@
 
 namespace
 {
-	//const int ArrowHeadSize = 5;
+	const int ArrowHeadSize = 5;
 	const int ArrowTextDistance = 1;
 	const int ArrowTextLeft = 5;
 	const int RoundedCornerRadius = 3;
@@ -42,7 +42,8 @@ namespace
 	const int TextHPadding = 3;
 	const int TextVPadding = 1;
 	const int ArrowMinBottomDist = 1;
-	const int MaxLineWidth = 4;
+	
+	const int DefaultMaxLineWidth = 4;
 
 	const int LegendLineWidth = 15;
 	const int LegendNumEntries = 2;
@@ -78,8 +79,11 @@ iAAlgorithmInfo::iAAlgorithmInfo(QString const& name, QStringList const& inNames
 	m_outWidth(1),
 	m_boxMinWidth(1),
 	m_legendWidth(1),
+	m_legendLineWidth(DefaultMaxLineWidth),
 	m_displayMode(DefaultDisplayMode),
-	m_normalizePerOutput(false)
+	m_normalizePerOutput(false),
+	m_showArrows(false),
+	m_showHighlight(false)
 {
 	setSizePolicy(QSizePolicy::Expanding, QSizePolicy::MinimumExpanding);
 	setMouseTracking(true);
@@ -146,6 +150,18 @@ void iAAlgorithmInfo::setMode(int mode)
 void iAAlgorithmInfo::setNormalizePerOutput(bool maxPerOut)
 {
 	m_normalizePerOutput = maxPerOut;
+	update();
+}
+
+void iAAlgorithmInfo::setShowArrows(bool showArrows)
+{
+	m_showArrows = showArrows;
+	update();
+}
+
+void iAAlgorithmInfo::setShowHighlight(bool showHighlight)
+{
+	m_showHighlight = showHighlight;
 	update();
 }
 
@@ -218,20 +234,25 @@ void iAAlgorithmInfo::drawConnectors(QPainter& p, int left, int width, QStringLi
 #endif
 		int boxHeight = p.fontMetrics().height() +  2 * (TextVPadding+RoundedCornerRadius);
 		QRect textRect(left + ArrowTextLeft, top - ArrowTextDistance - boxHeight,
-			std::min(textWidth + 2 * TextHPadding, width - ArrowTextLeft /* - ArrowHeadSize */),
+			std::min(textWidth + 2 * TextHPadding, width - ArrowTextLeft - (m_showArrows ? ArrowHeadSize : 0) ),
 			std::min(oneHeight, boxHeight));
 		drawInOut(
 			p, textRect, name, rects, color, selected == sortIdx, shown.size() == 0 || shown.contains(idx), false);
 
 		// draw line (/arrow) underneath text:
 		p.drawLine(left, top, right, top);
-		//p.drawLine(right - ArrowHeadSize, top - ArrowHeadSize, right, top);
-		//p.drawLine(right - ArrowHeadSize, top + ArrowHeadSize, right, top);
+		if (m_showArrows)
+		{
+			p.drawLine(right - ArrowHeadSize, top - ArrowHeadSize, right, top);
+			p.drawLine(right - ArrowHeadSize, top + ArrowHeadSize, right, top);
+		}
 	}
 }
 
-void iAAlgorithmInfo::drawMatrixLinks(QPainter& p, QVector<QPoint> inPt, QVector<QPoint> outPt)
+void iAAlgorithmInfo::drawBoxLinks(QPainter& p, QVector<QPoint> inPt, QVector<QPoint> outPt)
 {
+	p.save();
+	p.setRenderHint(QPainter::Antialiasing);
 	const int C = 255;
 	for (int outIdx = 0; outIdx < m_matrix.size(); ++outIdx)
 	{
@@ -245,12 +266,14 @@ void iAAlgorithmInfo::drawMatrixLinks(QPainter& p, QVector<QPoint> inPt, QVector
 				int colorVal = C - (C * normVal);
 				auto pen = p.pen();
 				pen.setColor(QColor(colorVal, colorVal, colorVal));
-				pen.setWidth(std::max(1.0, MaxLineWidth * normVal));
+				pen.setWidth(std::max(1.0, m_legendLineWidth * normVal));
+				pen.setCapStyle(Qt::FlatCap);
 				p.setPen(pen);
 				p.drawLine(inPt[inIdx], outPt[outIdx]);
 			}
 		}
 	}
+	p.restore();
 }
 
 void iAAlgorithmInfo::drawLegend(QPainter& p, int leftWidth, bool top)
@@ -284,15 +307,15 @@ void iAAlgorithmInfo::drawLegend(QPainter& p, int leftWidth, bool top)
 	int LegendTop = LegendBottom - (LegendNumEntries * LegendEntryHeight);
 	if (top)
 	{
-		poly.push_back(QPoint(legendCenterX + MaxLineWidth / 2, LegendTop));
-		poly.push_back(QPoint(legendCenterX - MaxLineWidth / 2, LegendTop));
+		poly.push_back(QPoint(legendCenterX + m_legendLineWidth / 2, LegendTop));
+		poly.push_back(QPoint(legendCenterX - m_legendLineWidth / 2, LegendTop));
 	}
 	else
 	{
 		poly.push_back(QPoint(legendCenterX, LegendTop));
 	}
-	poly.push_back(QPoint(legendCenterX - MaxLineWidth / 2, LegendBottom));
-	poly.push_back(QPoint(legendCenterX + MaxLineWidth / 2, LegendBottom));
+	poly.push_back(QPoint(legendCenterX - m_legendLineWidth / 2, LegendBottom));
+	poly.push_back(QPoint(legendCenterX + m_legendLineWidth / 2, LegendBottom));
 	poly.push_back(poly[0]);  // close loop back to point 0
 	QPainterPath path;
 	path.addPolygon(poly);
@@ -308,7 +331,7 @@ void iAAlgorithmInfo::paintEvent(QPaintEvent* ev)
 {
 	Q_UNUSED(ev);
 	QPainter p(this);
-	p.setRenderHint(QPainter::Antialiasing);
+	p.setRenderHint(QPainter::Antialiasing, false);
 	p.setPen(qApp->palette().color(QWidget::foregroundRole()));
 
 	m_inWidth = connectorWidth(p.fontMetrics(), m_inNames) + 2 * ArrowTextLeft + 2 * RoundedCornerRadius;
@@ -345,7 +368,7 @@ void iAAlgorithmInfo::paintEvent(QPaintEvent* ev)
 			boxHeight() - LegendHeightMin - LegendMargin - LegendSpacing - p.fontMetrics().height());
 		drawConnectors(p, HMargin + m_inWidth + algoBox.width(), m_outWidth, m_outNames, m_outRects, m_outColor, -1,
 			m_shownOut, QVector<int>(), outPt, false, boxHeight());
-		drawMatrixLinks(p, inPt, outPt);
+		drawBoxLinks(p, inPt, outPt);
 		drawLegend(p, m_inWidth, false);
 	}
 	else
@@ -362,11 +385,6 @@ void iAAlgorithmInfo::paintEvent(QPaintEvent* ev)
 		p.drawText(QRect(0, 0, m_matrixRect.left(), m_matrixRect.top()), Qt::AlignHCenter | Qt::AlignBottom, "In");
 		for (int inIdx = 0; inIdx < m_inNames.size(); ++inIdx)
 		{
-			/*
-			p.drawText(QRect(HMargin, matrixRect.top() + inIdx * cellHeight, m_inWidth, cellHeight),
-				Qt::AlignVCenter,	//Qt::AlignTop,
-				m_inNames[inIdx]);
-			*/
 			int pIdx = m_inSort.size() > 0 ? m_inSort[inIdx] : inIdx;
 			QRect textRect(HMargin, m_matrixRect.top() + inIdx * cellHeight + TextVPadding, m_inWidth - 2 * HMargin,
 				cellHeight - 2 * TextVPadding);
@@ -414,11 +432,15 @@ void iAAlgorithmInfo::paintEvent(QPaintEvent* ev)
 		}
 
 		// highlight "selected" columns:
-		p.setPen(qApp->palette().color(QWidget::foregroundRole()));
-		for (auto i : m_shownOut)
+		if (m_showHighlight)
 		{
-			int x = m_matrixRect.left() + i * cellWidth;
-			p.drawRect(x, m_matrixRect.top(), cellWidth, m_matrixRect.height());
+			// TODO: merge neighbouring columns!
+			p.setPen(qApp->palette().color(QWidget::foregroundRole()));
+			for (auto i : m_shownOut)
+			{
+				int x = m_matrixRect.left() + i * cellWidth;
+				p.drawRect(x, m_matrixRect.top(), cellWidth, m_matrixRect.height());
+			}
 		}
 	}
 }
@@ -494,5 +516,11 @@ void iAAlgorithmInfo::setInOutColor(QColor const& inColor, QColor const& outColo
 {
 	m_inColor = inColor;
 	m_outColor = outColor;
+	update();
+}
+
+void iAAlgorithmInfo::setLegendLineWidth(int lineWidth)
+{
+	m_legendLineWidth = lineWidth;
 	update();
 }

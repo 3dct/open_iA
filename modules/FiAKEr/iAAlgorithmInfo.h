@@ -50,8 +50,11 @@ public:
 	void setInSortOrder(QVector<int> const& inSortOrder);
 	void setMode(int mode);
 	void setNormalizePerOutput(bool maxPerOut);
+	void setShowArrows(bool showArrows);
+	void setShowHighlight(bool showHighlight);
 	void setMatrix(iAMatrixType const& matrix);
 	void setInOutColor(QColor const& inColor, QColor const& outColor);
+	void setLegendLineWidth(int lineWidth);
 
 private:
 	void drawInOut(QPainter& p, QRect textRect, QString const& text, QVector<QRect>& rects, QColor const& color,
@@ -60,7 +63,7 @@ private:
 	void drawConnectors(QPainter& p, int left, int width, QStringList const& strings, QVector<QRect>& rects,
 		QColor const& color, int selected, QVector<int> const& shown, QVector<int> const& sort, QVector<QPoint>& posOut,
 		bool isLeft, int connHeight);
-	void drawMatrixLinks(QPainter& p, QVector<QPoint> inPt, QVector<QPoint> outPt);
+	void drawBoxLinks(QPainter& p, QVector<QPoint> inPt, QVector<QPoint> outPt);
 	void drawLegend(QPainter& p, int leftWidth, bool top);
 	void paintEvent(QPaintEvent* ev) override;
 	void mousePressEvent(QMouseEvent* ev) override;
@@ -84,8 +87,8 @@ private:
 	std::vector<double> m_maxPerColumn;
 	double m_maxTotal;
 	// some widths as determined during painting:
-	int m_inWidth, m_outWidth, m_boxMinWidth, m_legendWidth;
+	int m_inWidth, m_outWidth, m_boxMinWidth, m_legendWidth, m_legendLineWidth;
 	DisplayMode m_displayMode;
-	bool m_normalizePerOutput;
+	bool m_normalizePerOutput, m_showArrows, m_showHighlight;
 	QRect m_matrixRect;
 };

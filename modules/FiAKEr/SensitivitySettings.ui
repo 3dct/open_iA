@@ -6,8 +6,8 @@
    <rect>
     <x>0</x>
     <y>0</y>
-    <width>220</width>
-    <height>184</height>
+    <width>210</width>
+    <height>127</height>
    </rect>
   </property>
   <property name="windowTitle">
@@ -32,7 +32,7 @@
    <item row="2" column="0">
     <widget class="QTabWidget" name="tabWidget">
      <property name="currentIndex">
-      <number>1</number>
+      <number>2</number>
      </property>
      <widget class="QWidget" name="tabData">
       <attribute name="title">
@@ -134,133 +134,6 @@
        </item>
       </layout>
      </widget>
-     <widget class="QWidget" name="tabDisplay">
-      <attribute name="title">
-       <string>Display</string>
-      </attribute>
-      <layout class="QGridLayout" name="gridDisplay">
-       <property name="leftMargin">
-        <number>4</number>
-       </property>
-       <property name="topMargin">
-        <number>4</number>
-       </property>
-       <property name="rightMargin">
-        <number>4</number>
-       </property>
-       <property name="bottomMargin">
-        <number>4</number>
-       </property>
-       <property name="spacing">
-        <number>4</number>
-       </property>
-       <item row="11" column="1" colspan="2">
-        <widget class="QSpinBox" name="sbSPDist">
-         <property name="suffix">
-          <string/>
-         </property>
-         <property name="prefix">
-          <string/>
-         </property>
-         <property name="maximum">
-          <number>100</number>
-         </property>
-         <property name="value">
-          <number>5</number>
-         </property>
-        </widget>
-       </item>
-       <item row="7" column="0" colspan="3">
-        <widget class="QCheckBox" name="cbLimitSpatialOverviewRange">
-         <property name="text">
-          <string>Fix Spatial Overview Range to 0..1</string>
-         </property>
-         <property name="checked">
-          <bool>true</bool>
-         </property>
-        </widget>
-       </item>
-       <item row="1" column="0">
-        <widget class="QLabel" name="lbAlgorithmInfoDisplayMode">
-         <property name="text">
-          <string>Algor. Detail</string>
-         </property>
-        </widget>
-       </item>
-       <item row="2" column="2">
-        <widget class="QRadioButton" name="rbLines">
-         <property name="text">
-          <string>Lines</string>
-         </property>
-        </widget>
-       </item>
-       <item row="11" column="0">
-        <widget class="QLabel" name="label">
-         <property name="text">
-          <string>SP Distance</string>
-         </property>
-        </widget>
-       </item>
-       <item row="2" column="0">
-        <widget class="QLabel" name="lbHistograms">
-         <property name="text">
-          <string>Histograms as</string>
-         </property>
-        </widget>
-       </item>
-       <item row="2" column="1">
-        <widget class="QRadioButton" name="rbBar">
-         <property name="text">
-          <string>Bars</string>
-         </property>
-         <property name="checked">
-          <bool>true</bool>
-         </property>
-        </widget>
-       </item>
-       <item row="1" column="1" colspan="2">
-        <widget class="QComboBox" name="cmbboxAlgoInfoMode">
-         <item>
-          <property name="text">
-           <string>Box</string>
-          </property>
-         </item>
-         <item>
-          <property name="text">
-           <string>Matrix</string>
-          </property>
-         </item>
-        </widget>
-       </item>
-       <item row="9" column="0" colspan="3">
-        <widget class="QCheckBox" name="cbNormalizePerOutput">
-         <property name="text">
-          <string>Normalize Sensitivity per Output</string>
-         </property>
-        </widget>
-       </item>
-       <item row="10" column="0" colspan="3">
-        <widget class="QCheckBox" name="cbUnselectedSTARLines">
-         <property name="text">
-          <string>SP: Connecting lines for all stars</string>
-         </property>
-        </widget>
-       </item>
-       <item row="13" column="0" colspan="3">
-        <spacer name="verticalSpacer">
-         <property name="orientation">
-          <enum>Qt::Vertical</enum>
-         </property>
-         <property name="sizeHint" stdset="0">
-          <size>
-           <width>20</width>
-           <height>40</height>
-          </size>
-         </property>
-        </spacer>
-       </item>
-      </layout>
-     </widget>
      <widget class="QWidget" name="tabColors">
       <attribute name="title">
        <string>Colors</string>
@@ -328,6 +201,202 @@
         <widget class="QCheckBox" name="cbColoredInOut">
          <property name="text">
           <string>Colored In/Out</string>
+         </property>
+         <property name="checked">
+          <bool>true</bool>
+         </property>
+        </widget>
+       </item>
+      </layout>
+     </widget>
+     <widget class="QWidget" name="tabAlgo">
+      <attribute name="title">
+       <string>Algo</string>
+      </attribute>
+      <layout class="QGridLayout" name="gridAlgo">
+       <property name="leftMargin">
+        <number>4</number>
+       </property>
+       <property name="topMargin">
+        <number>4</number>
+       </property>
+       <property name="rightMargin">
+        <number>4</number>
+       </property>
+       <property name="bottomMargin">
+        <number>4</number>
+       </property>
+       <property name="spacing">
+        <number>4</number>
+       </property>
+       <item row="2" column="0">
+        <widget class="QLabel" name="label_2">
+         <property name="text">
+          <string>Legend Width</string>
+         </property>
+        </widget>
+       </item>
+       <item row="1" column="0">
+        <widget class="QLabel" name="lbAlgorithmInfoDisplayMode">
+         <property name="text">
+          <string>Mode</string>
+         </property>
+        </widget>
+       </item>
+       <item row="2" column="1">
+        <widget class="QSpinBox" name="sbLegendWidth">
+         <property name="minimum">
+          <number>1</number>
+         </property>
+         <property name="maximum">
+          <number>30</number>
+         </property>
+         <property name="value">
+          <number>1</number>
+         </property>
+        </widget>
+       </item>
+       <item row="1" column="1">
+        <widget class="QComboBox" name="cmbboxAlgoInfoMode">
+         <item>
+          <property name="text">
+           <string>Box</string>
+          </property>
+         </item>
+         <item>
+          <property name="text">
+           <string>Matrix</string>
+          </property>
+         </item>
+        </widget>
+       </item>
+       <item row="10" column="0" colspan="2">
+        <widget class="QCheckBox" name="cbNormalizePerOutput">
+         <property name="text">
+          <string>Normalize per Output</string>
+         </property>
+        </widget>
+       </item>
+       <item row="13" column="0" colspan="2">
+        <spacer name="verticalSpacer">
+         <property name="orientation">
+          <enum>Qt::Vertical</enum>
+         </property>
+         <property name="sizeHint" stdset="0">
+          <size>
+           <width>20</width>
+           <height>40</height>
+          </size>
+         </property>
+        </spacer>
+       </item>
+       <item row="11" column="0">
+        <widget class="QCheckBox" name="cbShowArrows">
+         <property name="text">
+          <string>Show Arrows</string>
+         </property>
+        </widget>
+       </item>
+       <item row="11" column="1">
+        <widget class="QCheckBox" name="cbHighlightSelected">
+         <property name="text">
+          <string>Highlight selected</string>
+         </property>
+        </widget>
+       </item>
+      </layout>
+     </widget>
+     <widget class="QWidget" name="tabOther">
+      <attribute name="title">
+       <string>Other</string>
+      </attribute>
+      <layout class="QGridLayout" name="gridDisplay2">
+       <property name="leftMargin">
+        <number>4</number>
+       </property>
+       <property name="topMargin">
+        <number>4</number>
+       </property>
+       <property name="rightMargin">
+        <number>4</number>
+       </property>
+       <property name="bottomMargin">
+        <number>4</number>
+       </property>
+       <property name="spacing">
+        <number>4</number>
+       </property>
+       <item row="7" column="0" colspan="3">
+        <spacer name="verticalSpacer_4">
+         <property name="orientation">
+          <enum>Qt::Vertical</enum>
+         </property>
+         <property name="sizeHint" stdset="0">
+          <size>
+           <width>20</width>
+           <height>40</height>
+          </size>
+         </property>
+        </spacer>
+       </item>
+       <item row="2" column="0">
+        <widget class="QLabel" name="lbHistograms">
+         <property name="text">
+          <string>Histograms as</string>
+         </property>
+        </widget>
+       </item>
+       <item row="2" column="2">
+        <widget class="QRadioButton" name="rbLines">
+         <property name="text">
+          <string>Lines</string>
+         </property>
+        </widget>
+       </item>
+       <item row="2" column="1">
+        <widget class="QRadioButton" name="rbBar">
+         <property name="text">
+          <string>Bars</string>
+         </property>
+         <property name="checked">
+          <bool>true</bool>
+         </property>
+        </widget>
+       </item>
+       <item row="0" column="0" colspan="3">
+        <widget class="QCheckBox" name="cbUnselectedSTARLines">
+         <property name="text">
+          <string>SP: Connecting lines for all stars</string>
+         </property>
+        </widget>
+       </item>
+       <item row="1" column="0">
+        <widget class="QLabel" name="label">
+         <property name="text">
+          <string>SP Distance</string>
+         </property>
+        </widget>
+       </item>
+       <item row="1" column="1" colspan="2">
+        <widget class="QSpinBox" name="sbSPSpacing">
+         <property name="suffix">
+          <string/>
+         </property>
+         <property name="prefix">
+          <string/>
+         </property>
+         <property name="maximum">
+          <number>100</number>
+         </property>
+         <property name="value">
+          <number>5</number>
+         </property>
+        </widget>
+       </item>
+       <item row="4" column="0" colspan="3">
+        <widget class="QCheckBox" name="cbLimitSpatialOverviewRange">
+         <property name="text">
+          <string>0..1 Spatial Overview Range</string>
          </property>
          <property name="checked">
           <bool>true</bool>

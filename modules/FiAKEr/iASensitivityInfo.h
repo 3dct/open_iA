@@ -112,7 +112,7 @@ public slots:
 	void updateSPDifferenceColors();
 	void updateSPHighlightColors();
 	void updateSpatialOverviewColors();
-	void updateSPDist(int value);
+	void updateSPSpacing(int value);
 	void createGUI();
 	void outputBarAdded(int outType, int outIdx);
 	void outputBarRemoved(int outType, int outIdx);
@@ -120,6 +120,9 @@ public slots:
 	void histoChartTypeToggled(bool checked);
 	void styleChanged();
 	void algoInfoModeChanged(int mode);
+	void algoToggleArrowHeads(int state);
+	void algoToggleShowHighlight(int state);
+	void algoSetLegendWidth(int value);
 	void normalizePerOutputChanged(int state);
 	void colorInOutChanged(int state);
 private slots:

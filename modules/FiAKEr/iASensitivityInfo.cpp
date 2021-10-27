@@ -442,6 +442,8 @@ class iASensitivitySettingsView: public iASensitivitySettingsUI
 {
 	iAWidgetMap m_settingsWidgetMap;
 	iAQRadioButtonVector m_rgChartType;
+
+	// only used once anyway - merge to where it is used?
 	const QString ProjectMeasure = "SensitivityCharacteristicsMeasure";
 	const QString ProjectAggregation = "SensitivityAggregation";
 	const QString ProjectDissimilarity = "SensitivityDissimilarity";
@@ -455,10 +457,15 @@ class iASensitivitySettingsView: public iASensitivitySettingsUI
 	const QString ProjectSPHighlightColorMap = "SensitivitySPHighlightColorMap";
 	const QString ProjectSPColorMap = "SensitivitySPColorMap";
 	const QString ProjectLimitSpatialOverviewRange = "SensitivityLimitSpatialOverviewRange";
+	const QString ProjectSPSpacing   = "SensitivitySPSpacing";
+	const QString ProjectLegendWidth = "SensitivityLegendWidth";
+	const QString ProjectShowArrows = "SensitivityShowArrows";
+	const QString ProjectHighlightSelected = "SensitivityHighlightSelected";
 
 public:
 	iASensitivitySettingsView(iASensitivityInfo* sensInf)
 	{
+		// Data:
 		cmbboxMeasure->addItems(DistributionDifferenceMeasureNames());
 		cmbboxAggregation->addItems(AggregationNames());
 		cmbboxAggregation->setCurrentIndex(DefaultAggregationMeasureIdx);
@@ -470,6 +477,12 @@ public:
 		}
 		cmbboxDissimilarity->addItems(dissimilarities);
 
+		cmbboxAggregation->setMinimumWidth(50);
+		cmbboxMeasure->setMinimumWidth(50);
+		cmbboxDissimilarity->setMinimumWidth(50);
+		cmbboxCharDiff->setMinimumWidth(50);
+
+		// Colors:
 		cmbboxSPColorMap->addItems(iALUT::GetColorMapNames());
 		cmbboxSPColorMap->setCurrentText("Brewer single hue 5c grays");
 
@@ -478,6 +491,11 @@ public:
 
 		cmbboxSPHighlightColorMap->addItems(iAColorThemeManager::instance().availableThemes());
 		cmbboxSPHighlightColorMap->setCurrentText(iASensitivityInfo::DefaultResultColorMap);
+
+		cmbboxSPColorMap->setMinimumWidth(50);
+		cmbboxSpatialOverviewColorMap->setMinimumWidth(50);
+		cmbboxSPHighlightColorMap->setMinimumWidth(50);
+		cmbboxAlgoInfoMode->setMinimumWidth(50);
 
 		connect(cmbboxMeasure, QOverload<int>::of(&QComboBox::currentIndexChanged), sensInf, &iASensitivityInfo::changeDistributionMeasure);
 		connect(cmbboxAggregation, QOverload<int>::of(&QComboBox::currentIndexChanged), sensInf, &iASensitivityInfo::changeAggregation);
@@ -491,19 +509,18 @@ public:
 			&iASensitivityInfo::updateSpatialOverviewColors);
 		cmbboxAlgoInfoMode->setCurrentIndex(iAAlgorithmInfo::DefaultDisplayMode);
 		connect(cmbboxAlgoInfoMode, QOverload<int>::of(&QComboBox::currentIndexChanged), sensInf, &iASensitivityInfo::algoInfoModeChanged);
+		connect(cbShowArrows, &QCheckBox::stateChanged, sensInf, &iASensitivityInfo::algoToggleArrowHeads);
+		connect(cbHighlightSelected, &QCheckBox::stateChanged, sensInf, &iASensitivityInfo::algoToggleShowHighlight);
+		connect(sbLegendWidth, QOverload<int>::of(&QSpinBox::valueChanged), sensInf, &iASensitivityInfo::algoSetLegendWidth);
 		connect(cbNormalizePerOutput, &QCheckBox::stateChanged, sensInf, &iASensitivityInfo::normalizePerOutputChanged);
 		connect(cbColoredInOut, &QCheckBox::stateChanged, sensInf, &iASensitivityInfo::colorInOutChanged);
 		connect(cbLimitSpatialOverviewRange, &QCheckBox::stateChanged, sensInf, &iASensitivityInfo::updateSpatialOverviewColors);
-		connect(sbSPDist, QOverload<int>::of(&QSpinBox::valueChanged), sensInf, &iASensitivityInfo::updateSPDist);
+		connect(sbSPSpacing, QOverload<int>::of(&QSpinBox::valueChanged), sensInf, &iASensitivityInfo::updateSPSpacing);
 
 		connect(cbUnselectedSTARLines, &QCheckBox::stateChanged, sensInf, &iASensitivityInfo::updateSPDifferenceColors);
 
 		connect(rbBar, &QRadioButton::toggled, sensInf, &iASensitivityInfo::histoChartTypeToggled);
 		connect(rbLines, &QRadioButton::toggled, sensInf, &iASensitivityInfo::histoChartTypeToggled);
-
-		cmbboxAggregation->setMinimumWidth(80);
-		cmbboxMeasure->setMinimumWidth(80);
-		cmbboxDissimilarity->setMinimumWidth(80);
 
 		m_rgChartType.push_back(rbBar);
 		m_rgChartType.push_back(rbLines);
@@ -516,10 +533,14 @@ public:
 		m_settingsWidgetMap.insert(ProjectCharacteristicsDifference, cmbboxCharDiff);
 		m_settingsWidgetMap.insert(ProjectNormalizePerOutput, cbNormalizePerOutput);
 		m_settingsWidgetMap.insert(ProjectColorInOut, cbColoredInOut);
-		//m_settingsWidgetMap.insert(ProjectSpatialOverviewColorMap, cmbboxSpatialOverviewColorMap);
+		m_settingsWidgetMap.insert(ProjectSpatialOverviewColorMap, cmbboxSpatialOverviewColorMap);
 		m_settingsWidgetMap.insert(ProjectSPHighlightColorMap, cmbboxSPHighlightColorMap);
 		m_settingsWidgetMap.insert(ProjectSPColorMap, cmbboxSPColorMap);
 		m_settingsWidgetMap.insert(ProjectLimitSpatialOverviewRange, cbLimitSpatialOverviewRange);
+		m_settingsWidgetMap.insert(ProjectSPSpacing, sbSPSpacing);
+		m_settingsWidgetMap.insert(ProjectLegendWidth, sbLegendWidth);
+		m_settingsWidgetMap.insert(ProjectShowArrows, cbShowArrows);
+		m_settingsWidgetMap.insert(ProjectHighlightSelected, cbHighlightSelected);
 	}
 	void loadSettings(iASettings const & s)
 	{
@@ -1196,7 +1217,7 @@ void iASensitivityInfo::createGUI()
 
 	m_gui->m_colorMapWidget = new iAColorMapWidget();
 	m_gui->m_colorMapWidget->setMinimumWidth(50);
-	m_gui->m_colorMapWidget->setMaximumWidth(100);
+	m_gui->m_colorMapWidget->setMaximumWidth(200);
 
 	m_gui->m_splitter = new QSplitter();
 	m_gui->m_splitter->setOrientation(Qt::Horizontal);
@@ -1384,7 +1405,7 @@ void iASensitivityInfo::updateSpatialOverviewColors()
 	m_child->histogram()->update();
 }
 
-void iASensitivityInfo::updateSPDist(int value)
+void iASensitivityInfo::updateSPSpacing(int value)
 {
 	m_gui->m_splitter->setHandleWidth(value);
 }
@@ -1895,6 +1916,16 @@ void iASensitivityInfo::algoInfoModeChanged(int mode)
 	m_gui->m_algoInfo->setMode(mode);
 }
 
+void iASensitivityInfo::algoToggleArrowHeads(int state)
+{
+	m_gui->m_algoInfo->setShowArrows(state == Qt::Checked);
+}
+
+void iASensitivityInfo::algoToggleShowHighlight(int state)
+{
+	m_gui->m_algoInfo->setShowHighlight(state == Qt::Checked);
+}
+
 void iASensitivityInfo::normalizePerOutputChanged(int state)
 {
 	m_gui->m_algoInfo->setNormalizePerOutput(state == Qt::Checked);
@@ -1908,4 +1939,9 @@ void iASensitivityInfo::colorInOutChanged(int state)
 	QColor outColor(state == Qt::Checked ? OutputColor : highlightGray);
 	m_gui->m_algoInfo->setInOutColor(inColor, outColor);
 	m_gui->m_paramInfluenceView->setInOutColor(inColor, outColor);
+}
+
+void iASensitivityInfo::algoSetLegendWidth(int value)
+{
+	m_gui->m_algoInfo->setLegendLineWidth(value);
 }
