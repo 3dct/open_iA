@@ -690,19 +690,21 @@ class iASensitivityGUI : public iASensitivityViewState
 public:
 	iASensitivityGUI(iASensitivityInfo* sensInf) :
 		m_sensInf(sensInf),
-		m_paramInfluenceView(nullptr),
 		m_settings(nullptr),
 		m_paramSP(nullptr),
 		m_mdsSP(nullptr),
+		m_splitter(nullptr),
 		m_colorMapWidget(nullptr),
+		m_paramInfluenceView(nullptr),
 		m_dwParamInfluence(nullptr),
-		m_matrixWidget(nullptr),
-		m_parameterListView(nullptr),
 		m_algoInfo(nullptr),
 		m_diff3DWidget(nullptr),
+		m_dwDiff3D(nullptr),
 		m_diff3DRenderManager(/*sharedCamera = */false),
 		m_diff3DEmptyRenderer(vtkSmartPointer<vtkRenderer>::New()),
-		m_diff3DEmptyText(vtkSmartPointer<vtkCornerAnnotation>::New())
+		m_diff3DEmptyText(vtkSmartPointer<vtkCornerAnnotation>::New()),
+		m_matrixWidget(nullptr),
+		m_parameterListView(nullptr)
 	{
 		m_diff3DEmptyText->SetLinearFontScaleFactor(2);
 		m_diff3DEmptyText->SetNonlinearFontScaleFactor(1.2);
@@ -717,43 +719,45 @@ public:
 	//! sensitivity information
 	iASensitivityInfo* m_sensInf;
 
-	//! Param Influence List
-	iAParameterInfluenceView* m_paramInfluenceView;
-
 	//! Overall settings
 	iASensitivitySettingsView* m_settings;
 
+	//! @{ Scatter Plots View
 	//! scatter plot for the parameter space plot of all results
 	iAScatterPlotWidget* m_paramSP;
 	//! scatter plot for the MDS 2D plot of all results
 	iAScatterPlotWidget* m_mdsSP;
-
+	QSplitter* m_splitter;
 	//! lookup table for points in scatter plot
 	QSharedPointer<iALookupTable> m_lut;
 	iAColorMapWidget* m_colorMapWidget;
-
-	iADockWidgetWrapper* m_dwParamInfluence;
-
 	// table used in parameter space / MDS scatter plot:
 	QSharedPointer<iASPLOMData> m_mdsData;
 	// indices of the columns added in addition to parameters;
 	size_t spColIdxMDSX, spColIdxMDSY, spColIdxID, spColIdxDissimilarity, spColIdxFilter;
+	//! }
 
-	iADissimilarityMatrixType m_dissimilarityMatrix;
-	iAMatrixWidget* m_matrixWidget;
-	iAParameterListView* m_parameterListView;
+	//! @{ Param Influence List
+	iAParameterInfluenceView* m_paramInfluenceView;
+	iADockWidgetWrapper* m_dwParamInfluence;
+	//! @}
+	
 	iAAlgorithmInfo* m_algoInfo;
 
+	//! @{ Fiber Difference View
 	iAQVTKWidget* m_diff3DWidget;
 	iADockWidgetWrapper* m_dwDiff3D;
 	iARendererViewSync m_diff3DRenderManager;
 	std::vector<QSharedPointer<iAFiberDiffRenderer>> m_diff3DRenderers;
-
 	vtkSmartPointer<vtkRenderer> m_diff3DEmptyRenderer;
 	vtkSmartPointer<vtkCornerAnnotation> m_diff3DEmptyText;
-
 	vtkSmartPointer<vtkScalarBarWidget> m_scalarBarWidget;
 	vtkSmartPointer<vtkTextWidget> m_scalarBarMinText, m_scalarBarMaxText, m_scalarBarTitleText;
+	//! @}
+
+	iADissimilarityMatrixType m_dissimilarityMatrix;
+	iAMatrixWidget* m_matrixWidget;
+	iAParameterListView* m_parameterListView;
 
 	void updateScatterPlotLUT()
 	{
@@ -1065,7 +1069,8 @@ void iASensitivityInfo::createGUI()
 	m_gui->m_settings = new iASensitivitySettingsView(this);
 	auto dwSettings = new iADockWidgetWrapper(m_gui->m_settings, "Sensitivity Settings", "foeSensitivitySettings");
 	m_child->splitDockWidget(m_nextToDW, dwSettings, Qt::Horizontal);
-
+	
+	//////////// Parameter Influence View                   ////////////
 	m_gui->m_paramInfluenceView = new iAParameterInfluenceView(m_data, m_gui, ParamColor, OutputColor);
 	m_gui->m_dwParamInfluence =
 		new iADockWidgetWrapper(m_gui->m_paramInfluenceView, "Parameter Influence", "foeParamInfluence");
@@ -1076,6 +1081,7 @@ void iASensitivityInfo::createGUI()
 		&iASensitivityInfo::parResultSelected);
 	m_child->splitDockWidget(dwSettings, m_gui->m_dwParamInfluence, Qt::Vertical);
 
+	//////////// Algorithm Detail View (/ In-Out Matrix)    ////////////
 	QStringList algoInNames;
 	for (auto p : m_data->m_variedParams)
 	{
@@ -1115,6 +1121,8 @@ void iASensitivityInfo::createGUI()
 	auto dwParamView = new iADockWidgetWrapper(m_gui->m_parameterListView, "Parameter View", "foeParameters");
 	m_child->splitDockWidget(m_gui->m_dwParamInfluence, dwParamView, Qt::Vertical);
 
+
+	//////////// Constellation Charts View (Scatter Plots)  ////////////
 	m_gui->m_mdsData = QSharedPointer<iASPLOMData>(new iASPLOMData());
 	std::vector<QString> spParamNames;
 	for (auto p : m_data->m_variedParams)
@@ -1190,15 +1198,15 @@ void iASensitivityInfo::createGUI()
 	m_gui->m_colorMapWidget->setMinimumWidth(50);
 	m_gui->m_colorMapWidget->setMaximumWidth(100);
 
-	auto splitter = new QSplitter();
-	splitter->setOrientation(Qt::Horizontal);
-	splitter->setChildrenCollapsible(true);
-	splitter->addWidget(m_gui->m_paramSP);
-	splitter->addWidget(m_gui->m_mdsSP);
-	splitter->addWidget(m_gui->m_mdsSP);
-	splitter->addWidget(m_gui->m_colorMapWidget);
+	m_gui->m_splitter = new QSplitter();
+	m_gui->m_splitter->setOrientation(Qt::Horizontal);
+	m_gui->m_splitter->setChildrenCollapsible(true);
+	m_gui->m_splitter->addWidget(m_gui->m_paramSP);
+	m_gui->m_splitter->addWidget(m_gui->m_mdsSP);
+	m_gui->m_splitter->addWidget(m_gui->m_mdsSP);
+	m_gui->m_splitter->addWidget(m_gui->m_colorMapWidget);
 
-	auto dwSP = new iADockWidgetWrapper(splitter, "Constellation Charts", "foeParamSP");
+	auto dwSP = new iADockWidgetWrapper(m_gui->m_splitter, "Constellation Charts", "foeParamSP");
 	m_child->splitDockWidget(m_gui->m_dwParamInfluence, dwSP, Qt::Vertical);
 
 	m_gui->updateScatterPlotLUT();
