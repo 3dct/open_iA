@@ -1,7 +1,6 @@
 #include "iAXVRAModuleInterface.h"
 
 #include "iAMainWindow.h"
-#include "iAModuleDispatcher.h"
 
 #include "dlg_FeatureScout.h"
 #include "iA3DObjectFactory.h"
@@ -83,6 +82,9 @@ void iAXVRAModuleInterface::startXVRA()
 	/***** Start Featurescout *****/
 	m_fsMain = new dlg_FeatureScout(m_mainWnd->createMdiChild(false), csvConfig.objectType, csvConfig.fileName, creator.table(),
 		csvConfig.visType, io.getOutputMapping(), m_polyObject);
+
+	//Add something to renderer
+	//m_mainWnd->activeMdiChild()->renderer()->renderer()->AddActor();
 
 	/***** Start VR *****/
 
