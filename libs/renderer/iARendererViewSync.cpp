@@ -30,6 +30,7 @@
 #include <vtkSmartPointer.h>
 
 #include <cassert>
+#include <set>
 
 namespace
 {
@@ -64,6 +65,7 @@ iARendererViewSync::~iARendererViewSync()
 
 void iARendererViewSync::addToBundle(vtkRenderer* renderer)
 {
+	m_renderers.push_back(renderer);
 	if (m_sharedCamera)
 	{
 		if (!m_commonCamera)
@@ -73,28 +75,38 @@ void iARendererViewSync::addToBundle(vtkRenderer* renderer)
 		else
 		{
 			renderer->SetActiveCamera(m_commonCamera);
+			return; // no need to add observer to same camera more than once
 		}
 	}
 	else
 	{
 		if (m_rendererObserverTags.size() > 0)
 		{
-			auto sourceCam = m_rendererObserverTags.keys()[0]->GetActiveCamera();
+			auto sourceCam = m_rendererObserverTags.keys()[0];
 			copyCameraParams(renderer->GetActiveCamera(), sourceCam);
 			renderer->GetActiveCamera()->SetParallelProjection(sourceCam->GetParallelProjection());
 		}
 	}
-	auto observeTag = renderer->AddObserver(vtkCommand::EndEvent, this, &iARendererViewSync::redrawOtherRenderers);
-	m_rendererObserverTags.insert(renderer, observeTag);
+	auto observeTag = renderer->GetActiveCamera()->AddObserver(vtkCommand::ModifiedEvent, this, &iARendererViewSync::redrawOtherRenderers);
+
+	m_rendererObserverTags.insert(renderer->GetActiveCamera(), observeTag);
 }
 
 bool iARendererViewSync::removeFromBundle(vtkRenderer* renderer, bool resetCamera)
 {
-	if(!m_rendererObserverTags.contains(renderer))
+	auto it = std::find(m_renderers.begin(), m_renderers.end(), renderer);
+	if (it == m_renderers.end())
 	{
 		assert(false);
 		LOG(lvlWarn, "iARenderManager::removeFromBundle called with renderer which isn't part of the Bundle!");
 		return false;
+	}
+	m_renderers.erase(it);
+	if (!m_sharedCamera || m_renderers.size() == 0)
+	{
+		auto cam = renderer->GetActiveCamera();
+		cam->RemoveObserver(m_rendererObserverTags[cam]);
+		m_rendererObserverTags.remove(cam);
 	}
 	if (resetCamera && m_sharedCamera)
 	{
@@ -102,15 +114,13 @@ bool iARendererViewSync::removeFromBundle(vtkRenderer* renderer, bool resetCamer
 		newCam->DeepCopy(renderer->GetActiveCamera());
 		renderer->SetActiveCamera(newCam);
 	}
-	renderer->RemoveObserver(m_rendererObserverTags[renderer]);
-	m_rendererObserverTags.remove(renderer);
 	return true;
 }
 
 void iARendererViewSync::removeAll()
 {
 	m_commonCamera = nullptr;
-	for (auto  r: m_rendererObserverTags.keys())
+	for (auto r : m_renderers)
 	{
 		removeFromBundle(r, false);
 	}
@@ -128,20 +138,31 @@ void iARendererViewSync::redrawOtherRenderers(vtkObject* caller, long unsigned i
 		return;
 	}
 	m_updateInProgress = true;  // thread-safety?
-	auto sourceCam = ((vtkRenderer*)caller)->GetActiveCamera();
-	for (auto r : m_rendererObserverTags.keys())
+	auto sourceCam = static_cast<vtkCamera*>(caller);
+	std::set<vtkRenderWindow*> updatedWindows;
+	if (!m_sharedCamera)
 	{
-		if (r == caller)
+		for (auto r : m_renderers)
 		{
-			continue;
+			if (r->GetActiveCamera() == caller)
+			{   // the window from which the call originated doesn't need to be updated:
+				updatedWindows.insert(r->GetRenderWindow());
+			}
+			else
+			{   // for all others, update camera:
+				copyCameraParams(r->GetActiveCamera(), sourceCam);
+			}
 		}
-		if (!m_sharedCamera)
+	}
+	// Update all render windows:
+	for (auto r : m_renderers)
+	{
+		auto rw = r->GetRenderWindow();
+		// no update if renderer was already removed from render window, or if that window was already updated
+		if (rw && updatedWindows.find(rw) == updatedWindows.end())
 		{
-			copyCameraParams(r->GetActiveCamera(), sourceCam);
-		}
-		if (r->GetRenderWindow())
-		{  // don't update renderers already removed from render window:
 			r->GetRenderWindow()->Render();
+			updatedWindows.insert(r->GetRenderWindow());
 		}
 	}
 	m_updateInProgress = false;
