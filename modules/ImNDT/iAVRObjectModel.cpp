@@ -44,7 +44,8 @@
 #include <vtkCubeSource.h>
       
 
-iAVRObjectModel::iAVRObjectModel(vtkRenderer* ren, iA3DColoredPolyObjectVis* polyObject, vtkTable* objectTable, iACsvIO io, iACsvConfig csvConfig) :iAVRCubicVis{ ren }, m_polyObject(polyObject), m_objectTable(objectTable), m_io(io), m_csvConfig(csvConfig)
+iAVRObjectModel::iAVRObjectModel(vtkRenderer* ren, iA3DColoredPolyObjectVis* polyObject, vtkTable* objectTable, iACsvIO io, iACsvConfig csvConfig):
+	iAVRCubicVis{ ren }, m_polyObject(polyObject), m_objectTable(objectTable), m_io(io), m_csvConfig(csvConfig)
 {
 	defaultColor = QColor(126, 0, 223, 255);
 	m_volumeActor = vtkSmartPointer<vtkActor>::New();

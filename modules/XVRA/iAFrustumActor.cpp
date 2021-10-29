@@ -10,11 +10,11 @@
 #include <vtkPlanes.h>
 #include <vtkShrinkPolyData.h>
 
-iAFrustumActor::iAFrustumActor(vtkRenderer* ren, vtkCamera* cam): m_ren(ren), m_cam(cam)
+iAFrustumActor::iAFrustumActor(vtkRenderer* ren, vtkCamera* cam):
+	m_ren(ren), m_cam(cam), m_frustumActor(vtkSmartPointer<vtkActor>::New())
 {
 	m_visible = false;
-	vtkNew<vtkActor> m_frustumActor;
-	createFrustumActor();
+	setupFrustumActor();
 }
 
 void iAFrustumActor::show()
@@ -38,7 +38,7 @@ void iAFrustumActor::hide()
 }
 
 //! Computes the frustum based on the given camera and creates a actor
-void iAFrustumActor::createFrustumActor()
+void iAFrustumActor::setupFrustumActor()
 {
 	double planesArray[24];
 

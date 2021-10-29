@@ -24,6 +24,8 @@ class vtkRenderer;
 class vtkCamera;
 class vtkActor;
 
+#include <vtkSmartPointer.h>
+
 //! Creates and displays the frustum of a given camera
 class iAFrustumActor
 {
@@ -35,8 +37,8 @@ public:
 private:
 	vtkRenderer* m_ren;
 	vtkCamera* m_cam;
-	vtkActor* m_frustumActor;
+	vtkSmartPointer<vtkActor> m_frustumActor;
 	bool m_visible;
 
-	void createFrustumActor();
+	void setupFrustumActor();
 };

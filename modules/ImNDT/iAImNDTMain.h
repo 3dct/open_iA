@@ -20,9 +20,7 @@
 * ************************************************************************************/
 #pragma once
 
-#include "vtkSmartPointer.h"
 #include "iAVREnvironment.h"
-#include "iA3DColoredPolyObjectVis.h"
 #include "iAVRObjectCoverage.h"
 #include "iAVROctreeMetrics.h"
 #include "iAVRHistogramMetric.h"
@@ -31,14 +29,17 @@
 #include "iAVRMip.h"
 #include "iAVRHistogramPairVis.h"
 #include "iAVRObjectModel.h"
+
+#include "iA3DColoredPolyObjectVis.h"
 #include "iACsvIO.h"
 
-#include "vtkEventData.h"
-#include "vtkTable.h"
-#include "vtkDataSet.h"
-#include "vtkProp3D.h"
-#include "vtkPolyData.h"
-#include "vtkPlaneSource.h"
+#include <vtkDataSet.h>
+#include <vtkEventData.h>
+#include <vtkProp3D.h>
+#include <vtkPolyData.h>
+#include <vtkPlaneSource.h>
+#include <vtkSmartPointer.h>
+#include <vtkTable.h>
 
 #include <unordered_map>
 
