@@ -27,6 +27,8 @@
 #include "iAFeatureScoutSPLOM.h"
 #include "iAFSColorMaps.h"
 #include "iAMeanObject.h"
+#include "ui_FeatureScoutClassExplorer.h"
+#include "ui_FeatureScoutPolarPlot.h"
 
 #include "iA3DLabelledVolumeVis.h"
 #include "iA3DLineObjectVis.h"
@@ -113,16 +115,13 @@
 #include <vtkTextProperty.h>
 #include <vtkVariantArray.h>
 
-#include <QtMath>
-#include <QXmlStreamReader>
-#include <QXmlStreamWriter>
-#include <QDockWidget>
 #include <QFileDialog>
 #include <QFileInfo>
 #include <QHeaderView>
 #include <QInputDialog>
 #include <QMenu>
 #include <QMessageBox>
+#include <QProgressBar>
 #include <QPushButton>
 #include <QString>
 #include <QStandardItem>
@@ -130,7 +129,9 @@
 #include <QStringList>
 #include <QTableView>
 #include <QTreeView>
-#include <QProgressBar>
+#include <QtMath>
+#include <QXmlStreamReader>
+#include <QXmlStreamWriter>
 
 #include <cmath>
 
@@ -187,6 +188,16 @@ namespace
 	}
 }
 
+// define class here directly instead of using iAQTtoUIConnector; when using iAQTtoUIConnector we cannot forward-define because of the templates!
+class iAPolarPlotWidget : public QDockWidget, public Ui_FeatureScoutPP
+{
+public:
+	iAPolarPlotWidget(QWidget* parent) : QDockWidget(parent)
+	{
+		setupUi(this);
+	}
+};
+
 const int dlg_FeatureScout::PCMinTicksCount = 2;
 
 dlg_FeatureScout::dlg_FeatureScout(iAMdiChild* parent, iAObjectType fid, QString const& fileName,
@@ -219,9 +230,10 @@ dlg_FeatureScout::dlg_FeatureScout(iAMdiChild* parent, iAObjectType fid, QString
 	m_dwSPM(nullptr),
 	m_dwPP(nullptr),
 	m_columnMapping(columnMapping),
-	m_splom(new iAFeatureScoutSPLOM())
+	m_splom(new iAFeatureScoutSPLOM()),
+	m_ui(new Ui_FeatureScoutCE)
 {
-	setupUi(this);
+	m_ui->setupUi(this);
 	this->setupPolarPlotResolution(3.0);
 
 	m_chartTable->DeepCopy(m_csvTable);
@@ -429,8 +441,8 @@ void dlg_FeatureScout::setupViews()
 	m_classTreeView->setContextMenuPolicy(Qt::CustomContextMenu);
 
 	// set Widgets for the table views
-	this->ClassLayout->addWidget(m_classTreeView);
-	this->ElementLayout->addWidget(m_elementTableView);
+	m_ui->ClassLayout->addWidget(m_classTreeView);
+	m_ui->ElementLayout->addWidget(m_elementTableView);
 	// set models
 	m_elementTableView->setModel(m_elementTableModel);
 	m_classTreeView->setModel(m_classTreeModel);
@@ -706,13 +718,13 @@ void dlg_FeatureScout::setupConnections()
 	connect(m_objectAdd, &QAction::triggered, this, &dlg_FeatureScout::addObject);
 	connect(m_objectDelete, &QAction::triggered, this, &dlg_FeatureScout::deleteObject);
 	connect(m_classTreeView, &QTreeView::customContextMenuRequested, this, &dlg_FeatureScout::showContextMenu);
-	connect(this->add_class, &QToolButton::clicked, this, &dlg_FeatureScout::ClassAddButton);
-	connect(this->save_class, &QToolButton::released, this, &dlg_FeatureScout::ClassSaveButton);
-	connect(this->load_class, &QToolButton::released, this, &dlg_FeatureScout::ClassLoadButton);
-	connect(this->delete_class, &QToolButton::clicked, this, &dlg_FeatureScout::ClassDeleteButton);
-	connect(this->wisetex_save, &QToolButton::released, this, &dlg_FeatureScout::WisetexSaveButton);
-	connect(this->export_class, &QPushButton::clicked, this, &dlg_FeatureScout::ExportClassButton);
-	connect(this->csv_dv, &QToolButton::released, this, &dlg_FeatureScout::CsvDVSaveButton);
+	connect(m_ui->add_class, &QToolButton::clicked, this, &dlg_FeatureScout::ClassAddButton);
+	connect(m_ui->save_class, &QToolButton::released, this, &dlg_FeatureScout::ClassSaveButton);
+	connect(m_ui->load_class, &QToolButton::released, this, &dlg_FeatureScout::ClassLoadButton);
+	connect(m_ui->delete_class, &QToolButton::clicked, this, &dlg_FeatureScout::ClassDeleteButton);
+	connect(m_ui->wisetex_save, &QToolButton::released, this, &dlg_FeatureScout::WisetexSaveButton);
+	connect(m_ui->export_class, &QPushButton::clicked, this, &dlg_FeatureScout::ExportClassButton);
+	connect(m_ui->csv_dv, &QToolButton::released, this, &dlg_FeatureScout::CsvDVSaveButton);
 
 	connect(m_elementTableModel, &QStandardItemModel::itemChanged, this, &dlg_FeatureScout::updateVisibility);
 	connect(m_classTreeView, &QTreeView::clicked, this, &dlg_FeatureScout::classClicked);
@@ -3028,7 +3040,7 @@ void dlg_FeatureScout::initFeatureScoutUI()
 	m_polarPlotWidget = new iAQVTKWidget();
 	m_lengthDistrWidget = new iAQVTKWidget();
 	m_dwPC = new iADockWidgetWrapper(m_pcWidget, "Parallel Coordinates", "FeatureScoutPC");
-	m_dwPP = new dlg_PolarPlot(this);
+	m_dwPP = new iAPolarPlotWidget(this);
 	m_dwPP->legendLayout->addWidget(m_polarPlotWidget);
 	m_activeChild->addDockWidget(Qt::RightDockWidgetArea, this);
 	m_activeChild->addDockWidget(Qt::RightDockWidgetArea, m_dwPC);

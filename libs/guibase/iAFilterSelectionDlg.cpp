@@ -51,6 +51,10 @@ iAFilterSelectionDlg::iAFilterSelectionDlg(QWidget * parent, QString const & pre
 	m_ui->splitter->setCollapsible(1, true);
 }
 
+iAFilterSelectionDlg::~iAFilterSelectionDlg()
+{
+}
+
 void iAFilterSelectionDlg::filterChanged(QString const & filter)
 {
 	for (int row = 0; row < m_ui->lwFilterList->count(); ++row)

@@ -60,11 +60,7 @@ class iASPMView : public iAPorosityAnalyzerSPMConnector
 	Q_OBJECT
 
 public:
-#if QT_VERSION < QT_VERSION_CHECK(5, 15, 0)
-	iASPMView(iAMainWindow *mWnd, QWidget * parent = 0, Qt::WindowFlags f = 0 );
-#else
-	iASPMView(iAMainWindow* mWnd, QWidget* parent = nullptr, Qt::WindowFlags f = Qt::WindowFlags());
-#endif
+	iASPMView(iAMainWindow* mWnd, QWidget* parent = nullptr);
 	~iASPMView();
 	void setSelection( iASelection * sel );
 	void setDatasetsDir( QString datasetsDir );

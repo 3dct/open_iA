@@ -24,6 +24,8 @@
 
 #include <QDialog>
 
+#include <memory>    // for unique_ptr
+
 class Ui_FilterSelectionDlg;
 
 class QListWidgetItem;
@@ -37,6 +39,7 @@ public:
 	//! @param parent the parent widget of the dialog (dialog will be a top level window if you pass nullptr)
 	//! @param preselectedFilter the name of a filter that should be preselected in the dialog
 	iAFilterSelectionDlg(QWidget * parent, QString const & preselectedFilter = "");
+	~iAFilterSelectionDlg();	// required to enable forward-declaring unique_ptr...
 	//! Retrieve the name of the filter that the user has selected.
 	//! @return a filter name as it can be passed to iAFilterRegistry::filter() for creating an instance of the filter.
 	QString selectedFilterName() const;
@@ -51,5 +54,5 @@ private:
 	//! check whether one (shown) item is selected, and if it is, show its description and enable OK button.
 	void updateOKAndDescription();
 	int m_curMatches;
-	QSharedPointer<Ui_FilterSelectionDlg> m_ui;
+	const std::unique_ptr<Ui_FilterSelectionDlg> m_ui;
 };

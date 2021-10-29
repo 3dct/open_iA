@@ -46,8 +46,8 @@ const QString contextMenuStyle(
 	"background: gray}" );
 }
 
-iATreeView::iATreeView( QWidget * parent /*= 0*/, Qt::WindowFlags f /*= 0 */ )
-	: TreeViewConnector( parent, f ),
+iATreeView::iATreeView(QWidget* parent) :
+	TreeViewConnector(parent),
 	m_contextMenu( new QMenu( this ) ),
 	m_selectedRunsData( new QTableWidget() ),
 	m_selectedPCData( new QTableWidget() ),

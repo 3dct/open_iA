@@ -86,8 +86,8 @@ void winModCallback(vtkObject *caller, long unsigned int vtkNotUsed(eventId),
 	r->GetActors2D()->GetLastActor2D()->SetPosition(r_centerX, r_centerY);
 }
 
-dlg_DynamicVolumeLines::dlg_DynamicVolumeLines(QWidget *parent /*= 0*/, QDir datasetsDir, Qt::WindowFlags f /*= 0 */) :
-	DynamicVolumeLinesConnector(parent, f),
+dlg_DynamicVolumeLines::dlg_DynamicVolumeLines(QWidget* parent, QDir datasetsDir) :
+	DynamicVolumeLinesConnector(parent),
 	m_datasetsDir(datasetsDir),
 	m_mdiChild(static_cast<iAMdiChild*>(parent)),
 	m_nonlinearScaledPlot(new QCustomPlot(dockWidgetContents)),

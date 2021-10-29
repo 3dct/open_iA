@@ -20,8 +20,8 @@
 * ************************************************************************************/
 #include "iASelectionsView.h"
 
-iASelectionsView::iASelectionsView( QWidget * parent /*= 0*/, Qt::WindowFlags f /*= 0 */ )
-	: SelectionsConnector( parent, f ),
+iASelectionsView::iASelectionsView(QWidget* parent) :
+	SelectionsConnector(parent),
 	m_curSelection( new iASelection() ),
 	m_selCounter( 1 )
 {

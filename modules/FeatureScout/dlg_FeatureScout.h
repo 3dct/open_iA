@@ -22,24 +22,26 @@
 
 #include "iAFeatureScoutModuleInterface.h"
 #include "iAObjectType.h"
-#include "ui_FeatureScoutClassExplorer.h"
-#include "ui_FeatureScoutPolarPlot.h"
 
 #include <iAVec3.h>
-#include <qthelper/iAQTtoUIConnector.h>
 
 #include <vtkSmartPointer.h>
 
-#include <map>
-#include <vector>
+#include <QDockWidget>
+#include <QMap>
+#include <QSharedPointer>
 
-typedef iAQTtoUIConnector<QDockWidget, Ui_FeatureScoutPP> dlg_PolarPlot;
+#include <map>
+#include <memory>    // for std::unique_ptr
+#include <vector>
 
 class dlg_blobVisualization;
 class iABlobCluster;
 class iABlobManager;
 class iAFeatureScoutSPLOM;
 class iAMeanObject;
+class iAPolarPlotWidget;
+class Ui_FeatureScoutCE;
 
 class iADockWidgetWrapper;
 class iAModalityTransfer;
@@ -86,7 +88,7 @@ class QTreeView;
 class QTableView;
 class QXmlStreamWriter;
 
-class dlg_FeatureScout : public QDockWidget, public Ui_FeatureScoutCE
+class FeatureScout_API dlg_FeatureScout : public QDockWidget
 {
 	Q_OBJECT
 public:
@@ -225,7 +227,7 @@ private:
 
 	iARenderer* m_renderer;
 	iABlobManager* m_blobManager;
-	QMap <QString, iABlobCluster*> m_blobMap;
+	QMap<QString, iABlobCluster*> m_blobMap;
 
 	//! @{ polar plot view
 	int m_gPhi, m_gThe;
@@ -245,8 +247,9 @@ private:
 
 	int m_mousePressPos[2];
 
-	iADockWidgetWrapper * m_dwPC, *m_dwDV, *m_dwSPM;
-	dlg_PolarPlot * m_dwPP;
+	iADockWidgetWrapper* m_dwPC, *m_dwDV, *m_dwSPM;
+	iAPolarPlotWidget* m_dwPP;
+	const std::unique_ptr<Ui_FeatureScoutCE> m_ui;
 
 	QSharedPointer<QMap<uint, uint>> m_columnMapping;
 
