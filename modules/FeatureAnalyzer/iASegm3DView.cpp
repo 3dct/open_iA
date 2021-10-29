@@ -56,7 +56,8 @@
 #include <QHBoxLayout>
 #include <QLabel>
 
-iASegm3DView::iASegm3DView( QWidget * parent /*= 0*/, Qt::WindowFlags f /*= 0 */ ) : Segm3DViewContainer( parent, f ),
+iASegm3DView::iASegm3DView(QWidget* parent) :
+	Segm3DViewContainer(parent),
 	m_layout( new QHBoxLayout( wgtContainer ) ),
 	m_renMgr( new iARendererViewSync ),
 	m_range( 0.0 )

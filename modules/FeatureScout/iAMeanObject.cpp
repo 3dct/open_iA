@@ -31,7 +31,6 @@
 #include <iAQVTKWidget.h>
 #include <iARunAsync.h>
 #include <iAMdiChild.h>
-#include <qthelper/iAQTtoUIConnector.h>
 
 #include <iAChartWithFunctionsWidget.h>
 
@@ -70,31 +69,22 @@
 #include <QStandardItem>
 #include <QFileDialog>
 
-typedef iAQTtoUIConnector<QDialog, Ui_MOTFView> iAUIMeanObjectTFView;
-typedef iAQTtoUIConnector<QDockWidget, Ui_FeatureScoutMO> iAUIMeanObjectDockWidget;
-
-class iAMeanObjectTFView : public iAUIMeanObjectTFView
+class iAMeanObjectTFView : public QDialog, public Ui_MOTFView
 {
 public:
-#if QT_VERSION < QT_VERSION_CHECK(5, 15, 0)
-	iAMeanObjectTFView(QWidget* parent = nullptr, Qt::WindowFlags f = 0)
-#else
-	iAMeanObjectTFView(QWidget* parent = nullptr, Qt::WindowFlags f = Qt::WindowFlags())
-#endif
-	: iAUIMeanObjectTFView(parent, f)
-	{}
+	iAMeanObjectTFView(QWidget* parent = nullptr) : QDialog(parent)
+	{
+		setupUi(this);
+	}
 };
 
-class iAMeanObjectDockWidget : public iAUIMeanObjectDockWidget
+class iAMeanObjectDockWidget : public QDockWidget, public Ui_FeatureScoutMO
 {
 public:
-#if QT_VERSION < QT_VERSION_CHECK(5, 15, 0)
-	iAMeanObjectDockWidget(QWidget* parent = nullptr, Qt::WindowFlags f = 0)
-#else
-	iAMeanObjectDockWidget(QWidget* parent = nullptr, Qt::WindowFlags f = Qt::WindowFlags())
-#endif
-	: iAUIMeanObjectDockWidget(parent, f)
-	{}
+	iAMeanObjectDockWidget(QWidget* parent = nullptr) : QDockWidget(parent)
+	{
+		setupUi(this);
+	}
 };
 
 class iAMeanObjectData

@@ -52,8 +52,8 @@ void SetWidgetSelectionStyle(QWidget * w, bool isSelected)
 	}
 }
 
-iAPDMView::iAPDMView( QWidget * parent /*= 0*/, Qt::WindowFlags f /*= 0 */ )
-	: PorosityAnalyzerPDMConnector( parent, f ),
+iAPDMView::iAPDMView(QWidget* parent) :
+	PorosityAnalyzerPDMConnector(parent),
 	m_lut( vtkSmartPointer<vtkLookupTable>::New() ),
 	m_sbWidget(new iAQVTKWidget()),
 	m_sbRen( vtkSmartPointer<vtkRenderer>::New() ),

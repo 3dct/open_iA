@@ -189,7 +189,7 @@ namespace
 }
 
 // define class here directly instead of using iAQTtoUIConnector; when using iAQTtoUIConnector we cannot forward-define because of the templates!
-class iAPolarPlotWidget:public QDockWidget, public Ui_FeatureScoutPP
+class iAPolarPlotWidget : public QDockWidget, public Ui_FeatureScoutPP
 {
 public:
 	iAPolarPlotWidget(QWidget* parent) : QDockWidget(parent)

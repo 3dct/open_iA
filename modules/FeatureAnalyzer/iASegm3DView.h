@@ -84,11 +84,7 @@ class iASegm3DView : public Segm3DViewContainer
 {
 	Q_OBJECT
 public:
-#if QT_VERSION < QT_VERSION_CHECK(5, 15, 0)
-	iASegm3DView( QWidget * parent = 0, Qt::WindowFlags f = 0 );
-#else
-	iASegm3DView(QWidget* parent = nullptr, Qt::WindowFlags f = Qt::WindowFlags());
-#endif
+	iASegm3DView(QWidget* parent = nullptr);
 	~iASegm3DView();
 	void SetDataToVisualize( QList<vtkImageData*> imgData,
 		QList<vtkPolyData*> polyData,
