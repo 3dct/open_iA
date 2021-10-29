@@ -55,11 +55,7 @@ class iAPDMView : public PorosityAnalyzerPDMConnector
 	Q_OBJECT
 
 public:
-#if QT_VERSION < QT_VERSION_CHECK(5, 15, 0)
-	iAPDMView( QWidget * parent = 0, Qt::WindowFlags f = 0 );
-#else
-	iAPDMView(QWidget* parent = nullptr, Qt::WindowFlags f = Qt::WindowFlags());
-#endif
+	iAPDMView(QWidget* parent = nullptr);
 	~iAPDMView();
 
 	QModelIndexList SelectedIndices() const { return m_selectedIndices; }

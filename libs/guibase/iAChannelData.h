@@ -59,12 +59,6 @@ public:
 	void setName(QString name);
 	QString const & name() const;
 
-	// check if this can be somehow refactored (not needed for each kind of channel):
-	// begin
-	bool isSimilarityRenderingEnabled() const;
-	void setSimilarityRenderingEnabled(bool enabled);
-	// end
-
 	vtkSmartPointer<vtkImageData> image() const;
 	vtkPiecewiseFunction * opacityTF() const;
 	vtkScalarsToColors * colorTF() const;

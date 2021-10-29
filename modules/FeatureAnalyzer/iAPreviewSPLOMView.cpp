@@ -26,8 +26,8 @@
 #include <QPixmap>
 #include <QDir>
 
-iAPreviewSPLOMView::iAPreviewSPLOMView( QWidget * parent /*= 0*/, Qt::WindowFlags f /*= 0 */ ) :
-	PreviewSPLOMConnector( parent, f ),
+iAPreviewSPLOMView::iAPreviewSPLOMView(QWidget* parent) :
+	PreviewSPLOMConnector(parent),
 	m_preview( new iAPreviewSPLOM( this ) ),
 	m_slicePxmp( new QPixmap ),
 	m_datasetsLoaded( false )
