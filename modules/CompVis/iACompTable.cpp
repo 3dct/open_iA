@@ -20,6 +20,8 @@
 #include "vtkProgrammableGlyphFilter.h"
 #include "vtkDoubleArray.h"
 #include "vtkPointData.h"
+#include "vtkPolyData.h"
+#include "vtkCellData.h"
 
 
 
@@ -54,12 +56,10 @@ void iACompTable::initializeRenderer()
 
 /********************************************  Rendering ********************************************/
 void iACompTable::constructBins(iACompHistogramTableData* data, bin::BinType* currRowData,
-	vtkSmartPointer<vtkDoubleArray> originArray,
-	vtkSmartPointer<vtkDoubleArray> point1Array, vtkSmartPointer<vtkDoubleArray> point2Array,
-	vtkSmartPointer<vtkUnsignedCharArray> colorArray, int currentColumn, double offset)
+	vtkSmartPointer<vtkDoubleArray> originArray, vtkSmartPointer<vtkDoubleArray> point1Array,
+	vtkSmartPointer<vtkDoubleArray> point2Array, vtkSmartPointer<vtkUnsignedCharArray> colorArray, int currDataInd,
+	int currentColumn, double offset)
 {
-	int numberOfBins = currRowData->size();
-
 	//drawing positions
 	double min_x = 0.0;
 	double max_x = m_vis->getRowSize();
@@ -70,38 +70,29 @@ void iACompTable::constructBins(iACompHistogramTableData* data, bin::BinType* cu
 	double xOffset = 0.0;  //m_vis->getRowSize() * 0.5; //0.05
 
 	double intervalStart = 0.0;
+	std::vector<double> binBoundaries = data->getBinBoundaries()->at(currDataInd);
+	int numberOfBins = binBoundaries.size();
+
 	for (int i = 0; i < numberOfBins; i++)
 	{
 		double minVal = data->getMinVal();
 		double maxVal = data->getMaxVal();
-		double currVal;
-		if (i < numberOfBins - 1)
+		//double lowerBoundary = binBoundaries.at(i);
+		double upperBoundary = maxVal;
+		if (i != (numberOfBins-1))
 		{
-			if (currRowData->at(1 + i).size() >= 1)
-			{
-				currVal = currRowData->at(1 + i).at(0);
-
-				if (currVal == data->getMaxVal())
-					currVal = currVal * 0.99;
-			}
-			else
-			{
-				currVal = data->getMaxVal() * 0.99;
-			}
+			// 0.9999 required for correct drawing of vtkPlaneSource, when the bin only contains 1 value
+			upperBoundary = binBoundaries.at(i + 1) * 0.999999;
 		}
-		else
-		{
-			currVal = data->getMaxVal();
-		}
-
-		double percent = iACompVisOptions::calculatePercentofRange(currVal, minVal, maxVal);
+	
+		double percentUpperBoundary = iACompVisOptions::calculatePercentofRange(upperBoundary, minVal, maxVal);
 
 		//calculate min & max position for each bin
 		double posXMin = intervalStart;
-		double posXMax = iACompVisOptions::calculateValueAccordingToPercent(min_x, max_x, percent);
+		double posXMax = iACompVisOptions::calculateValueAccordingToPercent(min_x, max_x, percentUpperBoundary);
 
 		originArray->InsertTuple3(i, posXMin, min_y, 0.0);
-		point1Array->InsertTuple3(i, posXMax + xOffset, min_y, 0.0);  //width
+		point1Array->InsertTuple3(i, (posXMax + xOffset) , min_y, 0.0);  //width
 		point2Array->InsertTuple3(i, posXMin, max_y, 0.0);            // height
 
 		/////////////////
@@ -123,7 +114,7 @@ void iACompTable::constructBins(iACompHistogramTableData* data, bin::BinType* cu
 		//{
 		//	LOG(lvlDebug,
 		//		"NOT Working : " + QString::number(normal[0]) + ", " + QString::number(normal[1]) + ", " +
-		//			QString::number(normal[2]) + ") ");
+		//			QString::number(normal[2]));
 		//}
 		/////////////////
 
@@ -182,6 +173,21 @@ void iACompTable::constructBins(iACompHistogramTableData* data, bin::BinType* cu
 			colorArray->InsertTuple3(i, ucrgb[0], ucrgb[1], ucrgb[2]);
 		}
 	}
+
+	//store drawing coordinates of bins
+	vtkSmartPointer<vtkPoints> binPoints = vtkSmartPointer<vtkPoints>::New();
+	binPoints->SetDataTypeToDouble();
+	binPoints->SetNumberOfPoints(numberOfBins);
+
+	vtkSmartPointer<vtkPolyData> polydata = vtkSmartPointer<vtkPolyData>::New();
+	polydata->SetPoints(binPoints);
+	polydata->GetPointData()->AddArray(originArray);
+	polydata->GetPointData()->AddArray(point1Array);
+	polydata->GetPointData()->AddArray(point2Array);
+	polydata->GetCellData()->AddArray(colorArray);
+	polydata->GetCellData()->SetActiveScalars("colorArray");
+
+	data->storeBinPolyData(polydata);
 }
 
 void buildGlyphRepresentation(void* arg)

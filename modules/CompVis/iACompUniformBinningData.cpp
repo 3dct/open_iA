@@ -32,24 +32,3 @@ void iACompUniformBinningData::setBinBoundaries(QList<std::vector<double>>* binB
 {
 	m_binsBoundaries = binBoundaries;
 }
-
-//QList<std::vector<double>>* iACompUniformBinningData::getNumberOfObjectsPerBinAllDatasets()
-//{
-//	QList<std::vector<double>>* result = new QList<std::vector<double>>();
-//
-//	for (int dataId = 0; dataId < binData->size(); dataId++)
-//	{ //datasets
-//		bin::BinType* currDataset = binData->at(dataId);
-//
-//		std::vector<double> bins = std::vector<double>(currDataset->size(), 0);
-//		for (int binId = 0; binId < currDataset->size(); binId++)
-//		{ //bins
-//			std::vector<double> currBin = currDataset->at(binId);
-//			bins.at(binId) = currBin.size();
-//		}
-//		
-//		result->push_back(bins);
-//	}
-//	
-//	return result;
-//}

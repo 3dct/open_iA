@@ -75,6 +75,11 @@ void iACompVariableTable::setActive()
 		drawHistogramTable();
 		renderWidget();
 	}
+	else if (m_lastState == iACompVisOptions::lastState::Changed)
+	{
+		drawHistogramTable();
+		renderWidget();
+	}
 }
 
 void iACompVariableTable::setInactive()
@@ -338,6 +343,7 @@ void iACompVariableTable::drawHistogramTable()
 	if (m_mainRenderer->GetViewProps()->GetNumberOfItems() > 0)
 	{
 		m_mainRenderer->RemoveAllViewProps();
+		m_activeData->resetBinPolyData();
 	}
 
 	m_vis->calculateRowWidthAndHeight(m_vis->getWindowWidth(), m_vis->getWindowHeight(), m_vis->getAmountDatasets());
@@ -385,7 +391,8 @@ void iACompVariableTable::drawRow(int currDataInd, int currentColumn, double off
 	colorArray->SetNumberOfComponents(3);
 	colorArray->SetNumberOfTuples(numberOfBins);
 
-	this->constructBins(m_activeData, currDataset, originArray, point1Array, point2Array, colorArray, currentColumn, offset);
+	this->constructBins(
+		m_activeData, currDataset, originArray, point1Array, point2Array, colorArray, currDataInd, currentColumn, offset);
 
 	polydata->GetPointData()->AddArray(originArray);
 	polydata->GetPointData()->AddArray(point1Array);
@@ -393,7 +400,7 @@ void iACompVariableTable::drawRow(int currDataInd, int currentColumn, double off
 	polydata->GetCellData()->AddArray(colorArray); 
 	polydata->GetCellData()->SetActiveScalars("colorArray");
 
-	 vtkSmartPointer<vtkPlaneSource> planeSource = vtkSmartPointer<vtkPlaneSource>::New();
+	vtkSmartPointer<vtkPlaneSource> planeSource = vtkSmartPointer<vtkPlaneSource>::New();
 	planeSource->SetOutputPointsPrecision(vtkAlgorithm::DOUBLE_PRECISION);
 	planeSource->SetCenter(0, 0, 0);
 	planeSource->Update();

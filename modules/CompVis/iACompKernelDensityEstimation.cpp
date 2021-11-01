@@ -7,14 +7,10 @@
 #include <vector>
 
 iACompKernelDensityEstimation::iACompKernelDensityEstimation(
-	iACsvDataStorage* dataStorage, std::vector<int>* amountObjectsEveryDataset, bin::BinType* datasets):
-	m_dataStorage(dataStorage), 
-	m_datasets(datasets), 
-	m_kdeData(nullptr)
+	iACsvDataStorage* dataStorage, std::vector<int>* amountObjectsEveryDataset, bin::BinType* datasets) :
+	m_dataStorage(dataStorage), m_datasets(datasets), m_kdeData(nullptr), m_maxKDE(-INFINITY), m_minKDE(INFINITY)
 {
-	numSteps = (*std::minmax_element(amountObjectsEveryDataset->begin(), amountObjectsEveryDataset->end()).second) * 2;
-
-	LOG(lvlDebug, "numSteps = " + QString::number(numSteps));
+	numSteps = 1000; //(*std::minmax_element(amountObjectsEveryDataset->begin(), amountObjectsEveryDataset->end()).second);
 }
 
 void iACompKernelDensityEstimation::setDataStructure(iACompKernelDensityEstimationData* datastructure)
@@ -48,7 +44,7 @@ void iACompKernelDensityEstimation::calculateCurve(
 		kdeData::kdeBins* kdeNB = kdeData::initializeBins(nbDataStore->at(dataID)->size());
 		std::vector<double> binBoundariesNB = nbData->getBinBoundaries()->at(dataID);
 		calculateKDEBinning(result, nbData->getMaxVal(), &binBoundariesNB, kdeNB);
-		
+
 		kdeData::kdeBins* kdeBB = kdeData::initializeBins(bbDataStore->at(dataID)->size());
 		std::vector<double> binBoundariesBB = bbData->getBinBoundaries()->at(dataID);
 		calculateKDEBinning(result, bbData->getMaxVal(), &binBoundariesBB, kdeBB);
@@ -73,18 +69,15 @@ void iACompKernelDensityEstimation::calculateKDE(std::vector<double>* dataIn, kd
 	}
 
 	// create a plottable data
-	
 	auto result = std::minmax_element(dataIn->begin(), dataIn->end());
 	double xMax = *result.second;
 	double xMin = *result.first;
-
-	double kdeMax = -INFINITY;
-	double kdeMin = INFINITY;
 
 	const realScalarType dx = (xMax - xMin) / (realScalarType)numSteps;
 
 	//build kde
 	kdeType kde(samples);
+
 	for (indexType i = 0; i < numSteps; ++i)
 	{
 		realVectorType samp(1);
@@ -96,19 +89,19 @@ void iACompKernelDensityEstimation::calculateKDE(std::vector<double>* dataIn, kd
 		kdeData::kdePair pair = {xi, kdeValue};
 		results->push_back(pair);
 
-		if (kdeValue > kdeMax)
+		if (kdeValue >= m_maxKDE)
 		{
-			kdeMax = kdeValue;		
+			m_maxKDE = kdeValue;		
 		}
 
-		if (kdeValue < kdeMin)
+		if (kdeValue < m_minKDE)
 		{
-			kdeMin = kdeValue;
+			m_minKDE = kdeValue;
 		}
 	}
 
-	m_kdeData->setMaxKDEVal(kdeMax);
-	m_kdeData->setMinKDEVal(kdeMin);
+	m_kdeData->setMaxKDEVal(m_maxKDE);
+	m_kdeData->setMinKDEVal(m_minKDE);
 }
 
 void iACompKernelDensityEstimation::calculateKDEBinning(
@@ -125,7 +118,7 @@ void iACompKernelDensityEstimation::calculateKDEBinning(
 			double lowerBorder;
 			double upperBorder;
 
-			if (bin < binBoundaries->size() - 1)
+			if (bin < (binBoundaries->size() - 1))
 			{
 				lowerBorder = binBoundaries->at(bin);
 				upperBorder = binBoundaries->at(bin + 1);
@@ -136,12 +129,31 @@ void iACompKernelDensityEstimation::calculateKDEBinning(
 				upperBorder = maxMDSVal;
 			}
 
-			if (mdsVal >= lowerBorder && mdsVal < upperBorder)
+			bool greaterLowerBorder = false;
+			bool smallerUpperBorder = false;
+			
+			if (mdsVal >= lowerBorder) greaterLowerBorder = true;
+			if (mdsVal < upperBorder) smallerUpperBorder = true;
+
+			if (greaterLowerBorder && smallerUpperBorder)
+			{
+				/*LOG(lvlDebug, "");
+				LOG(lvlDebug, "bin" + QString::number(bin));
+				LOG(lvlDebug, "lowerBorder" + QString::number(lowerBorder));
+				LOG(lvlDebug, "upperBorder" + QString::number(upperBorder));
+				LOG(lvlDebug, "pair:" + QString::number(pair[0]) + ", " + QString::number(pair[1]));*/
+
+				result->at(bin).push_back(pair);
+				break;
+			}
+
+			if ((bin == binBoundaries->size() - 1) && mdsVal == upperBorder)
 			{
 				result->at(bin).push_back(pair);
 				break;
 			}
 		}
+
 	}
 	
 	//Debug

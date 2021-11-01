@@ -52,5 +52,11 @@ private:
 	iACompKernelDensityEstimationData* m_kdeData;
 
 	indexType numSteps;  //TODO CHANGE
+
+	//stores the maxmial kde value for all datasets
+	double m_maxKDE;
+
+	//stores the minimal kde value for all datasets
+	double m_minKDE;
 	
 };

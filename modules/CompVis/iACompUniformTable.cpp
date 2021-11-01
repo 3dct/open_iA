@@ -40,6 +40,9 @@
 
 #include <vtkBorderRepresentation.h>
 #include <vtkBorderWidget.h>
+#include <vtkDoubleArray.h>
+#include <vtkPointData.h>
+#include <vtkCellData.h>
 
 iACompUniformTable::iACompUniformTable(iACompHistogramVis* vis, iACompUniformBinningData* uniformBinningData) :
 	iACompTable(vis), 
@@ -93,6 +96,7 @@ void iACompUniformTable::setActive()
 
 		//init camera
 		initializeCamera();
+		m_lastState = iACompVisOptions::lastState::Defined;
 	}
 	else if (m_lastState == iACompVisOptions::lastState::Defined)
 	{
@@ -100,7 +104,12 @@ void iACompUniformTable::setActive()
 
 		drawHistogramTable(m_bins);
 		renderWidget();
-	}	
+	}
+	else if (m_lastState == iACompVisOptions::lastState::Changed)
+	{
+		drawHistogramTable(m_bins);
+		renderWidget();
+	}
 }
 
 void iACompUniformTable::setInactive()
@@ -287,6 +296,7 @@ void iACompUniformTable::drawHistogramTable(int bins)
 	if (m_mainRenderer->GetViewProps()->GetNumberOfItems() > 0)
 	{
 		m_mainRenderer->RemoveAllViewProps();
+		m_uniformBinningData->resetBinPolyData();
 	}
 	m_originalPlaneActors->clear();
 	m_zoomedPlaneActors->clear();
@@ -297,11 +307,10 @@ void iACompUniformTable::drawHistogramTable(int bins)
 	{
 		int dataInd = m_vis->getOrderOfIndicesDatasets()->at(currCol);
 		drawRow(dataInd, currCol, bins, 0);
+		storeBinData(dataInd,currCol, 0);
 	}
 
 	renderWidget();
-
-	m_lastState = iACompVisOptions::lastState::Defined;
 }
 
 vtkSmartPointer<vtkPlaneSource> iACompUniformTable::drawRow(int currDataInd, int currentColumn, int amountOfBins, double offset)
@@ -1145,6 +1154,115 @@ vtkSmartPointer<vtkPoints> iACompUniformTable::calculatePointPosition(
 	}
 
 	return result;
+}
+
+void iACompUniformTable::storeBinData(int currDataInd, int currentColumn, double offset)
+{
+	bin::BinType* currDataset = m_uniformBinningData->getBinData()->at(currDataInd);
+	double numberOfBins = currDataset->size();
+
+	//each row consists of a certain number of bins and each bin will be drawn as glyph
+	vtkSmartPointer<vtkPoints> glyphPoints = vtkSmartPointer<vtkPoints>::New();
+	glyphPoints->SetDataTypeToDouble();
+	glyphPoints->SetNumberOfPoints(numberOfBins);
+
+	vtkSmartPointer<vtkPolyData> polydata = vtkSmartPointer<vtkPolyData>::New();
+	polydata->SetPoints(glyphPoints);
+
+	vtkSmartPointer<vtkDoubleArray> originArray = vtkSmartPointer<vtkDoubleArray>::New();
+	originArray->SetName("originArray");
+	originArray->SetNumberOfComponents(3);
+	originArray->SetNumberOfTuples(numberOfBins);
+
+	vtkSmartPointer<vtkDoubleArray> point1Array = vtkSmartPointer<vtkDoubleArray>::New();
+	point1Array->SetName("point1Array");
+	point1Array->SetNumberOfComponents(3);
+	point1Array->SetNumberOfTuples(numberOfBins);
+
+	vtkSmartPointer<vtkDoubleArray> point2Array = vtkSmartPointer<vtkDoubleArray>::New();
+	point2Array->SetName("point2Array");
+	point2Array->SetNumberOfComponents(3);
+	point2Array->SetNumberOfTuples(numberOfBins);
+
+	//drawing positions
+	double min_x = 0.0;
+	double max_x = m_vis->getRowSize();
+	double min_y = (m_vis->getColSize() * currentColumn) + offset;
+	double max_y = min_y + m_vis->getColSize();
+
+	vtkSmartPointer<vtkUnsignedCharArray> colorArray = vtkSmartPointer<vtkUnsignedCharArray>::New();
+	colorArray->SetName("colorArray");
+	colorArray->SetNumberOfComponents(3);
+	colorArray->SetNumberOfTuples(numberOfBins);
+
+	for (int i = 0; i < numberOfBins; i++)
+	{
+		double xMin = min_x + (((max_x - min_x) / numberOfBins) * i);
+		double xMax = min_x + (((max_x - min_x) / numberOfBins) * (i + 1));
+		originArray->InsertTuple3(i, xMin, min_y, 0.0);
+		point1Array->InsertTuple3(i, xMax, min_y, 0.0);   //width
+		point2Array->InsertTuple3(i, xMin, max_y, 0.0);  //height
+
+		double numberOfObjects = currDataset->at(i).size();
+		double* rgbBorder;
+		double rgb[3] = {0.0, 0.0, 0.0};
+		double maxNumber = m_lut->GetRange()[1];
+		double minNumber = m_lut->GetRange()[0];
+
+		if (numberOfObjects > maxNumber)
+		{
+			if (m_useDarkerLut)
+			{
+				rgbBorder = m_lutDarker->GetAboveRangeColor();
+			}
+			else
+			{
+				rgbBorder = m_lut->GetAboveRangeColor();
+			}
+
+			unsigned char ucrgb[3];
+			iACompVisOptions::getColorArray3(rgbBorder, ucrgb);
+			colorArray->InsertTuple3(i, ucrgb[0], ucrgb[1], ucrgb[2]);
+		}
+		else if (numberOfObjects < minNumber)
+		{
+			if (m_useDarkerLut)
+			{
+				rgbBorder = m_lutDarker->GetBelowRangeColor();
+			}
+			else
+			{
+				rgbBorder = m_lut->GetBelowRangeColor();
+			}
+
+			unsigned char ucrgb[3];
+			iACompVisOptions::getColorArray3(rgbBorder, ucrgb);
+			colorArray->InsertTuple3(i, ucrgb[0], ucrgb[1], ucrgb[2]);
+		}
+		else
+		{
+			if (m_useDarkerLut)
+			{
+				m_lutDarker->GetColor(numberOfObjects, rgb);
+			}
+			else
+			{
+				m_lut->GetColor(numberOfObjects, rgb);
+			}
+
+			unsigned char ucrgb[3];
+			iACompVisOptions::getColorArray3(rgb, ucrgb);
+			colorArray->InsertTuple3(i, ucrgb[0], ucrgb[1], ucrgb[2]);
+		}
+	}
+
+	polydata->GetPointData()->AddArray(originArray);
+	polydata->GetPointData()->AddArray(point1Array);
+	polydata->GetPointData()->AddArray(point2Array);
+	polydata->GetCellData()->AddArray(colorArray);
+	polydata->GetCellData()->SetActiveScalars("colorArray");
+
+	m_uniformBinningData->storeBinPolyData(polydata);
 }
 
 /******************************************  Interaction  **********************************************/

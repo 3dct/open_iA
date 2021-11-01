@@ -116,11 +116,11 @@ void iACompTableInteractorStyle::OnMouseWheelForward()
 		}
 		else if (m_main->getActiveVisualization() == iACompVisOptions::activeVisualization::CurveVisualization)
 		{
-
+			return;
 		}
 		else
 		{
-
+			return;
 		}
 	}
 }
@@ -137,11 +137,11 @@ void iACompTableInteractorStyle::OnMouseWheelBackward()
 	{
 		if (m_main->getActiveVisualization() == iACompVisOptions::activeVisualization::UniformTable)
 		{
-			
+			return;
 		}
 		else if (m_main->getActiveVisualization() == iACompVisOptions::activeVisualization::VariableTable)
 		{
-		
+			return;
 		}
 		else if (m_main->getActiveVisualization() == iACompVisOptions::activeVisualization::CombTable)
 		{

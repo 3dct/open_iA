@@ -45,6 +45,8 @@ public:
 	void drawHistogramTableAccordingToSimilarity(vtkSmartPointer<vtkActor> referenceData);
 	//draw Histogram table after manual repositioning is finsihed
 	void drawReorderedHistogramTable();
+	//store the drawing coordinates of the bins
+	void storeBinData(int currDataInd, int currentColumn, double offset);
 
 	//draws the selected row and bins
 	//zoomed rows cannot be selected again --> when selected they only disappear

@@ -31,22 +31,23 @@ public:
 	virtual std::tuple<QList<bin::BinType*>*, QList<std::vector<csvDataType::ArrayType*>*>*> getSelectedData(
 		Pick::PickedMap* map) override;
 
-	protected:
+protected:
 
-		/*** Rendering ***/
-		virtual void drawRow(int currDataInd, int currentColumn, double offset) override;
+	/*** Rendering ***/
+	//draw initial Histogram Table
+	virtual void drawHistogramTable();
+	virtual void drawRow(int currDataInd, int currentColumn, double offset) override;
 
 private:
 
 	/*** Rendering ***/
-
 	/**
-	 * @brief draws a single bin of an dataset
-	 * @param drawingPoints - contains for all bins the lower and upper boundary [x_min, x_max]
-	 * @param numberOfObjectsInsideBin - contains the number of objects which are located inside each bin
-	 * @param drawingDimensions - contains the dimensions of the drawing area [x_min, x_max, y_min, y_max]
+	 * @brief draws all bins of all datasets
+	 * @param binPolyData - contains the drawing positions and color of the bins
 	*/
-	void drawBins(std::vector<std::vector<double>>* drawingPoints, std::vector<double>* numberOfObjectsInBins, double drawingDimensions[4]);
+	void drawBins(QList<vtkSmartPointer<vtkPolyData>>* binPolyData);
+	vtkSmartPointer<vtkPolyData> drawCurve(double drawingDimensions[4], kdeData::kdeBins currDataset,
+		vtkSmartPointer<vtkPolyData> currBinPolyData, int currDataInd, int currentColumn, double offset);
 
 	/*** Interaction ***/
 	vtkSmartPointer<iACompCombiTableInteractionStyle> m_interactionStyle;

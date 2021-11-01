@@ -55,8 +55,8 @@ void iACompNaturalBreaks::calculateBins()
 				currBinningStrategy, currentNumberOfBins, sortedUniqueValueCounts);
 	
 			//Debug Output
-			LOG(lvlDebug, "Results of Natural Breaks: ");
-			for (double breakValue : currBinningStrategy) LOG(lvlDebug, QString::number(breakValue));
+			/*LOG(lvlDebug, "Results of Natural Breaks: ");
+			for (double breakValue : currBinningStrategy) LOG(lvlDebug, QString::number(breakValue));*/
 
 			//calculate for each dataset the adaptive histogram according to its lower bounds of each bin
 			bins = bin::initialize(currentNumberOfBins);
@@ -193,9 +193,9 @@ void iACompNaturalBreaks::test()
 	FishersNaturalBreaks::ClassifyJenksFisherFromValueCountPairs(resultingbreaksArray, k, sortedUniqueValueCounts);
 
 	//Debug Output
-	LOG(lvlDebug, "Results of Natural Breaks: ");
+	/*LOG(lvlDebug, "Results of Natural Breaks: ");
 	for (double breakValue : resultingbreaksArray)
-		LOG(lvlDebug, QString::number(breakValue));
+		LOG(lvlDebug, QString::number(breakValue));*/
 }
 
 //-----------------------------------------------------------------------------------------------------------//

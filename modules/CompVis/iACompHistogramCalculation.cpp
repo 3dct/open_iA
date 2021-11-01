@@ -129,6 +129,13 @@ void iACompHistogramCalculation::calculateDensityEstimation()
 	m_densityEstimationData->setObjectsPerBinUB(m_uniformBinningData->getNumberOfObjectsPerBinAllDatasets());
 	m_densityEstimationData->setObjectsPerBinNB(m_naturalBreaksData->getNumberOfObjectsPerBinAllDatasets());
 	m_densityEstimationData->setObjectsPerBinBB(m_bayesianBlocksData->getNumberOfObjectsPerBinAllDatasets());
+	m_densityEstimationData->setNumberOfObjectsPerBinUB(m_uniformBinningData->getNumberOfObjectsPerBinAllDatasets());
+	m_densityEstimationData->setNumberOfObjectsPerBinNB(m_naturalBreaksData->getNumberOfObjectsPerBinAllDatasets());
+	m_densityEstimationData->setNumberOfObjectsPerBinBB(m_bayesianBlocksData->getNumberOfObjectsPerBinAllDatasets());
+	m_densityEstimationData->setBoundariesUB(m_uniformBinningData->getBinBoundaries());
+	m_densityEstimationData->setBoundariesNB(m_naturalBreaksData->getBinBoundaries());
+	m_densityEstimationData->setBoundariesBB(m_bayesianBlocksData->getBinBoundaries());
+
 
 	m_densityEstimation = new iACompKernelDensityEstimation(m_dataStorage, m_amountObjectsEveryDataset, m_datasets);
 	m_densityEstimation->setDataStructure(m_densityEstimationData);

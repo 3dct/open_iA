@@ -12,9 +12,6 @@ public:
 	//set for each dataset for each bin its lowerBoundary
 	virtual void setBinBoundaries(QList<std::vector<double>>* binBoundaries) override;
 
-	//get the for each dataset for each bin the number of objects contained
-	//virtual QList<std::vector<double>>* getNumberOfObjectsPerBinAllDatasets() override;
-
 	//returns the maximum amount of numbers in all bins --> i.e. there are maximum 5 values in one bin
 	int getMaxAmountInAllBins();
 	void setMaxAmountInAllBins(int newMaxAmountInAllBins);

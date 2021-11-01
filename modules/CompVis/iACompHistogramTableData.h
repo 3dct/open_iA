@@ -8,6 +8,8 @@
 //Qt
 #include <qlist.h>
 
+class vtkPolyData;
+
 struct bin
 {
 	//BinType corresponds to a datastructure and can varying row length for each column and vice versa
@@ -68,6 +70,13 @@ class iACompHistogramTableData
 
 	void debugBinDataObjects();
 
+	/*** Rendering Information***/
+	//store vtkPolyData that stores the drawn bin borders of a single dataset
+	void storeBinPolyData(vtkSmartPointer<vtkPolyData> newBinPolyData);
+	//reset the store of the bin boundaries
+	void resetBinPolyData();
+	QList<vtkSmartPointer<vtkPolyData>>* getBinPolyData();
+
    protected:
 	
 	//maximum value in all datasets
@@ -96,4 +105,7 @@ class iACompHistogramTableData
 
 	//stores for each dataset the lower boundary of each bin
 	QList<std::vector<double>>* m_binsBoundaries;
+
+	//stores the borders of the bins of each dataset
+	QList<vtkSmartPointer<vtkPolyData>>* m_binPolyDatasets;
 };

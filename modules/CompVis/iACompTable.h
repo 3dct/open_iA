@@ -69,7 +69,7 @@ public:
 	virtual void removeHighlightedCells();
 
 	std::vector<int>* getIndexOfPickedRows();
-	
+
 protected:
 
 	virtual void initializeTable() = 0;
@@ -102,9 +102,9 @@ protected:
 	/*** Rendering ***/
 	virtual void constructBins(iACompHistogramTableData* data, bin::BinType* currRowData,
 		vtkSmartPointer<vtkDoubleArray> originArray,
-		vtkSmartPointer<vtkDoubleArray> point1Array, vtkSmartPointer<vtkDoubleArray> point2Array,
-		vtkSmartPointer<vtkUnsignedCharArray> colorArray, int currentColumn, double offset);
-
+		vtkSmartPointer<vtkDoubleArray> point1Array, vtkSmartPointer<vtkDoubleArray> point2Array, vtkSmartPointer<vtkUnsignedCharArray> colorArray, int currDataInd,
+		int currentColumn, double offset);
+	
 	/*** Ordering/Ranking ***/
 	//draws the bar chart for showing the number of objects for each dataset
 	virtual void drawBarChartShowingAmountOfObjects(std::vector<int> amountObjectsEveryDataset) = 0;

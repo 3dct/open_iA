@@ -3,6 +3,8 @@
 //CompVis
 #include "iACsvDataStorage.h"
 
+//vtk
+#include <vtkPolyData.h>
 
 //C++
 #include <vector>
@@ -15,7 +17,8 @@ iACompHistogramTableData::iACompHistogramTableData() :
 	binDataObjects(new QList<std::vector<csvDataType::ArrayType*>*>()),
 	amountObjectsEveryDataset(new std::vector<int>),
 	m_maxAmountInAllBins(0),
-	m_binsBoundaries(nullptr)
+	m_binsBoundaries(nullptr),
+	m_binPolyDatasets(new QList<vtkSmartPointer<vtkPolyData>>())
 {
 }
 
@@ -110,6 +113,22 @@ QList<std::vector<double>>* iACompHistogramTableData::getNumberOfObjectsPerBinAl
 	}
 
 	return result;
+}
+
+/************************** rendering information storage methods ***************************************/
+void iACompHistogramTableData::resetBinPolyData()
+{
+	m_binPolyDatasets->clear();
+}
+
+void iACompHistogramTableData::storeBinPolyData(vtkSmartPointer<vtkPolyData> newBinPolyData)
+{
+		m_binPolyDatasets->append(newBinPolyData);
+}
+
+QList<vtkSmartPointer<vtkPolyData>>* iACompHistogramTableData::getBinPolyData()
+{
+	return m_binPolyDatasets;
 }
 
 /************************** debug methods ***************************************/

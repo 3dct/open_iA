@@ -6,7 +6,9 @@
 #include "iACompHistogramTable.h"
 #include "iACompCurve.h"
 #include "iACompCombiTable.h"
-
+#include "iACompUniformBinningData.h"
+#include "iACompNaturalBreaksData.h"
+#include "iACompBayesianBlocksData.h"
 
 //iA
 #include "iAMainWindow.h"
@@ -32,7 +34,7 @@ iACompHistogramVis::iACompHistogramVis(iACompHistogramTable* table, iAMainWindow
 	m_windowHeight(-1),
 	m_drawingPositionForRegions(new std::map<int, std::vector<double>>()),
 	mainCamera(vtkSmartPointer<vtkCamera>::New()),
-	m_AreaOpacity(0.65),
+	m_AreaOpacity(0.15), //0.65
 	m_lineWidth(3),
 	m_activeVis(iACompVisOptions::activeVisualization::Undefined),
 	m_activeBinning(iACompVisOptions::binningType::Undefined)
@@ -212,10 +214,11 @@ void iACompHistogramVis::showUniformTable()
 {
 	//remove the other visualization
 	removeAllRendererFromWidget();
-	m_variableTable->setInactive();
+	//m_variableTable->setInactive();
 
 	//activate uniform table visualization
 	m_uniformTable->setInteractorStyleToWidget(m_uniformTable->getInteractorStyle());
+	m_uniformTable->getInteractorStyle()->setIACompHistogramVis(this);
 	m_uniformTable->addRendererToWidget();
 	m_uniformTable->setActive();
 }
@@ -227,6 +230,7 @@ void iACompHistogramVis::showVariableTable()
 
 	m_variableTable->setActiveBinning(m_activeBinning);
 	m_variableTable->setInteractorStyleToWidget(m_variableTable->getInteractorStyle());
+	m_variableTable->getInteractorStyle()->setIACompHistogramVis(this);
 	m_variableTable->addRendererToWidget();
 	m_variableTable->setActive();
 }
@@ -235,10 +239,14 @@ void iACompHistogramVis::showCombiTable()
 {
 	//remove the other visualization
 	removeAllRendererFromWidget();
-	m_variableTable->setInactive();
+	//m_variableTable->setInactive();
 
 	//activate combination table visualization
 	m_combiTable->setInteractorStyleToWidget(m_combiTable->getInteractorStyle());
+	m_combiTable->getInteractorStyle()->setIACompHistogramVis(this);
+	m_combiTable->setUBBinData(m_main->getUniformBinningData()->getBinPolyData());
+	m_combiTable->setNBBinData(m_main->getNaturalBreaksData()->getBinPolyData());
+	m_combiTable->setBBBinData(m_main->getBayesianBlocksData()->getBinPolyData());
 	m_combiTable->addRendererToWidget();
 	m_combiTable->setActive();
 }
@@ -247,10 +255,14 @@ void iACompHistogramVis::showCurve()
 {  
 	//remove the other visualization
 	removeAllRendererFromWidget();
-	m_variableTable->setInactive();
+	//m_variableTable->setInactive();
 
 	//activate curve visualization
 	m_curveTable->setInteractorStyleToWidget(m_curveTable->getInteractorStyle());
+	m_curveTable->getInteractorStyle()->setIACompHistogramVis(this);
+	m_curveTable->setUBBinData(m_main->getUniformBinningData()->getBinPolyData());
+	m_curveTable->setNBBinData(m_main->getNaturalBreaksData()->getBinPolyData());
+	m_curveTable->setBBBinData(m_main->getBayesianBlocksData()->getBinPolyData());
 	m_curveTable->addRendererToWidget();
 	m_curveTable->setActive();
 }

@@ -79,13 +79,13 @@ void iACompBayesianBlocks::calculateBins()
 
 		//////////////////////////////////////////////////////////////////////////////////////
 		//DEBUG
-		LOG(lvlDebug, "Resulting Bins (?) = " + QString::number(currBinningStrategy.size()));
+		/*LOG(lvlDebug, "Resulting Bins (?) = " + QString::number(currBinningStrategy.size()));
 		for (int j = 0; j < currBinningStrategy.size(); j++)
 		{
 			LOG(lvlDebug, "value at " + QString::number(j) + " = " + QString::number(currBinningStrategy.at(j)));
 		}
 
-		LOG(lvlDebug, " ");
+		LOG(lvlDebug, " ");*/
 		//////////////////////////////////////////////////////////////////////////////////////
 		
 		int datasetInd = values.size();

@@ -47,7 +47,6 @@ std::vector<int>* iACompKernelDensityEstimationData::getAmountObjectsEveryDatase
 }
 
 
-
 void iACompKernelDensityEstimationData::setMaxVal(double newMax)
 {
 	m_maxVal = newMax;
@@ -135,6 +134,63 @@ QList<std::vector<double>>* iACompKernelDensityEstimationData::getObjectsPerBinB
 void iACompKernelDensityEstimationData::setObjectsPerBinBB(QList<std::vector<double>>* featuresPerBinUB)
 {
 	m_objectsPerBinBB = featuresPerBinUB;
+}
+
+
+QList<std::vector<double>>* iACompKernelDensityEstimationData::getNumberOfObjectsPerBinUB()
+{
+	return m_numberOfObjectsBinUB;
+}
+
+void iACompKernelDensityEstimationData::setNumberOfObjectsPerBinUB(QList<std::vector<double>>* numberOfFeaturesPerBinUB)
+{
+	m_numberOfObjectsBinUB = numberOfFeaturesPerBinUB;
+}
+
+QList<std::vector<double>>* iACompKernelDensityEstimationData::getNumberOfObjectsPerBinNB()
+{
+	return m_numberOfObjectsBinNB;
+}
+
+void iACompKernelDensityEstimationData::setNumberOfObjectsPerBinNB(QList<std::vector<double>>* numberOfFeaturesPerBinNB)
+{
+	m_numberOfObjectsBinNB = numberOfFeaturesPerBinNB;
+}
+
+QList<std::vector<double>>* iACompKernelDensityEstimationData::getNumberOfObjectsPerBinBB()
+{
+	return m_numberOfObjectsBinBB;
+}
+void iACompKernelDensityEstimationData::setNumberOfObjectsPerBinBB(QList<std::vector<double>>* numberOfFeaturesPerBinBB)
+{
+	m_numberOfObjectsBinBB = numberOfFeaturesPerBinBB;
+}
+
+QList<std::vector<double>>* iACompKernelDensityEstimationData::getBoundariesUB()
+{
+	return m_BoundariesBinUB;
+}
+void iACompKernelDensityEstimationData::setBoundariesUB(QList<std::vector<double>>* boundariesUB)
+{
+	m_BoundariesBinUB = boundariesUB;
+}
+
+QList<std::vector<double>>* iACompKernelDensityEstimationData::getBoundariesNB()
+{ 
+	return m_BoundariesBinNB;
+}
+void iACompKernelDensityEstimationData::setBoundariesNB(QList<std::vector<double>>* boundariesNB)
+{
+	m_BoundariesBinNB = boundariesNB;
+}
+
+QList<std::vector<double>>* iACompKernelDensityEstimationData::getBoundariesBB()
+{
+	return m_BoundariesBinBB;
+}
+void iACompKernelDensityEstimationData::setBoundariesBB(QList<std::vector<double>>* boundariesBB)
+{
+	m_BoundariesBinBB = boundariesBB;
 }
 
 /************************** kde methods ***************************************/

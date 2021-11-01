@@ -71,6 +71,24 @@ public:
 	QList<std::vector<double>>* getObjectsPerBinBB();
 	void setObjectsPerBinBB(QList<std::vector<double>>* featuresPerBinUB);
 
+	QList<std::vector<double>>* getNumberOfObjectsPerBinUB();
+	void setNumberOfObjectsPerBinUB(QList<std::vector<double>>* numberOfFeaturesPerBinUB);
+
+	QList<std::vector<double>>* getNumberOfObjectsPerBinNB();
+	void setNumberOfObjectsPerBinNB(QList<std::vector<double>>* numberOfFeaturesPerBinNB);
+
+	QList<std::vector<double>>* getNumberOfObjectsPerBinBB();
+	void setNumberOfObjectsPerBinBB(QList<std::vector<double>>* numberOfFeaturesPerBinBB);
+
+	QList<std::vector<double>>* getBoundariesUB();
+	void setBoundariesUB(QList<std::vector<double>>* boundariesUB);
+
+	QList<std::vector<double>>* getBoundariesNB();
+	void setBoundariesNB(QList<std::vector<double>>* boundariesNB);
+
+	QList<std::vector<double>>* getBoundariesBB();
+	void setBoundariesBB(QList<std::vector<double>>* boundariesBB);
+
 protected:
 	//maximum MDS value in all datasets
 	double m_maxVal;
@@ -99,6 +117,20 @@ protected:
 	QList<std::vector<double>>* m_objectsPerBinNB;
 	//stores for each dataset for each bin how many mds values are stored computed by bayesian blocks binning
 	QList<std::vector<double>>* m_objectsPerBinBB;
+
+	//stores the real number of mds values (not comupted by KDE) in each bin (uniform binning) of each dataset
+	QList<std::vector<double>>* m_numberOfObjectsBinUB;
+	//stores the real number (not comupted by KDE) of mds values in each bin (natural breaks binning) of each dataset
+	QList<std::vector<double>>* m_numberOfObjectsBinNB;
+	//stores the real number of mds values (not comupted by KDE) in each bin (bayesian blocks binning) of each dataset
+	QList<std::vector<double>>* m_numberOfObjectsBinBB;
+
+	//stores for each dataset the lower boundary of each bin (uniform binning)
+	QList<std::vector<double>>* m_BoundariesBinUB;
+	//stores for each dataset the lower boundary of each bin (natural breaks binning)
+	QList<std::vector<double>>* m_BoundariesBinNB;
+	//stores for each dataset the lower boundary of each bin (bayesian blocks binning)
+	QList<std::vector<double>>* m_BoundariesBinBB;
 	
 	//maximum amount of numbers in a bin (calculated for all bins)
 	//calculated through the uniform binning appraoch!

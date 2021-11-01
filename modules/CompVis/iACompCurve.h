@@ -42,7 +42,7 @@ public:
 	
 	/*** Rendering ***/
 	//draw initial Histogram Table
-	void drawHistogramTable();
+	virtual void drawHistogramTable();
 
 	/*** Update THIS ***/
 	virtual void showSelectionOfCorrelationMap(std::map<int, double>* dataIndxSelectedType) override;
@@ -52,6 +52,14 @@ public:
 	virtual void highlightSelectedCell(vtkSmartPointer<vtkActor> pickedActor, vtkIdType pickedCellId) override;
 	virtual std::tuple<QList<bin::BinType*>*, QList<std::vector<csvDataType::ArrayType*>*>*> getSelectedData(
 		Pick::PickedMap* map) override;
+
+	void setUBBinData(QList<vtkSmartPointer<vtkPolyData>>* ubPolyData);
+	void setNBBinData(QList<vtkSmartPointer<vtkPolyData>>* nbPolyData);
+	void setBBBinData(QList<vtkSmartPointer<vtkPolyData>>* bbPolyData);
+
+	QList<vtkSmartPointer<vtkPolyData>>* getUBBinData();
+	QList<vtkSmartPointer<vtkPolyData>>* getNBBinData();
+	QList<vtkSmartPointer<vtkPolyData>>* getBBBinData();
 
 protected:
 	/***  Initialization  ***/
@@ -74,17 +82,23 @@ protected:
 	double calculateUniformBinRange();
 
 	QList<kdeData::kdeBins>* getActiveData();
-	
+	QList<vtkSmartPointer<vtkPolyData>>* getActiveBinPolyData();
+
 	QList<std::vector<double>>* getNumberOfObjectsInsideBin();
+	QList<std::vector<double>>* getNumberOfObjectsOfActiveData();
+	QList<std::vector<double>>* getBoundariesofActiveData();
 
 	/*** Rendering ***/
 	virtual void drawRow(int currDataInd, int currentColumn, double offset);
 	//draw white border around each datatset
 	vtkSmartPointer<vtkPolyData> drawLine(vtkSmartPointer<vtkPoints> points);
-	//draw curve segments
-	vtkSmartPointer<vtkPolyData> drawCurve(vtkSmartPointer<vtkPoints> drawingPoints, int numberOfObjectsInsideBin);
+
+	//draw curve
+	vtkSmartPointer<vtkPolyData> drawCurve(double drawingDimensions[4], kdeData::kdeBins currDatase,
+		vtkSmartPointer<vtkPolyData> currBinPolyData, int currDataInd, int currentColumn, double offset);
 	//draw inside of curve segments as polygons
 	vtkSmartPointer<vtkPolyData> drawPolygon(vtkSmartPointer<vtkPoints> points, int numberOfObjectsInsideBin);
+
 	//fill the color array according to the given colortable
 	void colorCurve(vtkSmartPointer<vtkPoints> points, vtkSmartPointer<vtkUnsignedCharArray> colorArray,
 		int numberOfObjectsInsideBin);
@@ -104,6 +118,13 @@ protected:
 
 	//stores the actors that contain the original rows
 	std::vector<vtkSmartPointer<vtkActor>>* m_originalRowActors;
+
+	//stores the borders of the uniform bins of each dataset
+	QList<vtkSmartPointer<vtkPolyData>>* m_UBbinPolyDatasets;
+	//stores the borders of the natural breaks bins of each dataset
+	QList<vtkSmartPointer<vtkPolyData>>* m_NBbinPolyDatasets;
+	//stores the borders of the bayesian breaks bins of each dataset
+	QList<vtkSmartPointer<vtkPolyData>>* m_BBbinPolyDatasets;
 
 private:
 	

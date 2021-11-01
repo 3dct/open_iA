@@ -6,7 +6,9 @@
 
 vtkStandardNewMacro(iACompCombiTableInteractionStyle);
 
-iACompCombiTableInteractionStyle::iACompCombiTableInteractionStyle() : m_visualization(nullptr)
+iACompCombiTableInteractionStyle::iACompCombiTableInteractionStyle() :
+	iACompTableInteractorStyle(),
+	m_visualization(nullptr)
 {
 }
 

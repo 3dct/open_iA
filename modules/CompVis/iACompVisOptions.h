@@ -10,8 +10,9 @@ namespace iACompVisOptions
 	/*************** Reinitialization of Charts ****************************/
 	enum class lastState
 	{
-		Undefined,
-		Defined
+		Undefined, //visualization before it was rendered for the first time
+		Defined, //visualization in a defined state - only renderWidget() has to be called
+		Changed //something was changed in the visualization and everything has to be drawn again
 	};
 
 	/*************** Binning Calculation ****************************/
