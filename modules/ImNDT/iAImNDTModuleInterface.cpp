@@ -43,6 +43,7 @@
 #include <QMenu>
 #include <QMessageBox>
 
+
 void iAImNDTModuleInterface::Initialize()
 {
 	if (!m_mainWnd)
@@ -173,6 +174,11 @@ void iAImNDTModuleInterface::ImNDT(QSharedPointer<iA3DColoredPolyObjectVis> poly
 
 	// Start Render Loop HERE!
 	m_vrEnv->start();
+}
+
+vtkRenderer* iAImNDTModuleInterface::getRenderer()
+{
+	return m_vrEnv->renderer();
 }
 
 bool iAImNDTModuleInterface::loadImNDT()

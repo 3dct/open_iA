@@ -2,6 +2,7 @@
 
 #include "vtkRenderer.h"
 #include "vtkCamera.h"
+#include "vtkCameraActor.h"
 #include "vtkActor.h"
 #include <vtkFrustumSource.h>
 #include <vtkMapper.h>
@@ -41,8 +42,9 @@ void iAFrustumActor::hide()
 void iAFrustumActor::setupFrustumActor()
 {
 	double planesArray[24];
+	double aspect = m_ren->GetAspect()[0] / m_ren->GetAspect()[1];
 
-	m_cam->GetFrustumPlanes(1.0, planesArray);
+	m_cam->GetFrustumPlanes(aspect, planesArray);
 
 	vtkNew<vtkPlanes> planes;
 	planes->SetFrustumPlanes(planesArray);
@@ -59,5 +61,6 @@ void iAFrustumActor::setupFrustumActor()
 	mapper->SetInputConnection(shrink->GetOutputPort());
 
 	m_frustumActor->SetMapper(mapper);
+	m_frustumActor->GetProperty()->SetColor(1.0, 0.50, 0.0);
 	m_frustumActor->GetProperty()->EdgeVisibilityOn();
 }

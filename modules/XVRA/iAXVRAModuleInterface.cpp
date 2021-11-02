@@ -1,6 +1,10 @@
 #include "iAXVRAModuleInterface.h"
 
 #include "iAMainWindow.h"
+#include "iAMdiChild.h"
+#include "iARenderer.h"
+#include "vtkOpenglRenderer.h"
+#include "vtkCamera.h"
 
 #include "dlg_FeatureScout.h"
 #include "iA3DObjectFactory.h"
@@ -9,6 +13,8 @@
 #include "iACsvVtkTableCreator.h"
 
 #include "iAImNDTModuleInterface.h"
+
+#include "iAFrustumActor.h"
 
 #include <QAction>
 #include <QMenu>
@@ -83,12 +89,22 @@ void iAXVRAModuleInterface::startXVRA()
 	m_fsMain = new dlg_FeatureScout(m_mainWnd->createMdiChild(false), csvConfig.objectType, csvConfig.fileName, creator.table(),
 		csvConfig.visType, io.getOutputMapping(), m_polyObject);
 
-	//Add something to renderer
-	//m_mainWnd->activeMdiChild()->renderer()->renderer()->AddActor();
-
 	/***** Start VR *****/
 
 	m_vrMain = new iAImNDTModuleInterface();
 	m_vrMain->ImNDT(m_polyObject, m_objectTable, io, csvConfig);
 
+	/***** Add Camera Frustum *****/
+
+	//Get camera from featureScout
+	vtkSmartPointer<vtkCamera> fsCam = m_mainWnd->activeMdiChild()->renderer()->camera(); //m_mainWnd->activeMdiChild()->renderer()->renderer()->GetActiveCamera();
+
+	//Get camera from featureScout
+	vtkSmartPointer<vtkCamera> vrCam = m_vrMain->getRenderer()->GetActiveCamera();
+
+	vrFrustum = new iAFrustumActor(m_vrMain->getRenderer(), fsCam); // frustum of featurescout shown in vr
+	fsFrustum = new iAFrustumActor(m_mainWnd->activeMdiChild()->renderer()->renderer(), vrCam); // frustum of vr shown in featurescout
+
+	fsFrustum->show();
+	vrFrustum->show();
 }
