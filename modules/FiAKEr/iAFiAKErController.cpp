@@ -46,7 +46,6 @@
 #include <io/iAIOProvider.h>
 #include <iAMainWindow.h>
 #include <iAMdiChild.h>
-#include <qthelper/iAQTtoUIConnector.h>
 #include <qthelper/iAQtEndl.h>
 
 // objectvis
