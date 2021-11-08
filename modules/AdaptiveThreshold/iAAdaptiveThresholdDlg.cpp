@@ -235,7 +235,7 @@ void iAAdaptiveThresholdDlg::computeNormalizeAndComputeLokalPeaks(threshold_defs
 		m_thresCalculator.specifyRange(m_greyThresholds, m_movingFrequencies,
 			m_NormalizedGlobalValueRangeXY, m_xMinRef, m_xMaxRef);
 
-		m_resultingthrPeaks = determineLocalPeaks(ranges, m_resultingthrPeaks); //Peak Air (lokal Maxium) and Peak Min (lokal Min) are calculated
+		m_resultingthrPeaks = determineLocalPeaks(ranges); //Peak Air (lokal Maxium) and Peak Min (lokal Min) are calculated
 		//m_ maxPeakMaterialRanges;
 		peakNormalization(m_maxPeakMaterialRanges, ranges, m_resultingthrPeaks);
 
@@ -329,14 +329,13 @@ void iAAdaptiveThresholdDlg::calculateIntermediateResults(threshold_defs::iAThre
 	m_thresCalculator.setCalculatedResults(resultingthrPeaks);
 }
 
-threshold_defs::iAThresMinMax iAAdaptiveThresholdDlg::determineLocalPeaks(threshold_defs::iAPeakRanges& ranges, threshold_defs::iAThresMinMax resultingthrPeaks)
+threshold_defs::iAThresMinMax iAAdaptiveThresholdDlg::determineLocalPeaks(threshold_defs::iAPeakRanges& ranges)
 {
 	//input grauwerte und moving freqs, output is paramRanges
 	m_thresCalculator.specifyRange(m_greyThresholds, m_movingFrequencies, m_paramRanges, ranges.XRangeMin, ranges.XRangeMax/*x_min, x_max*/);
 
 	//calculate lokal peaks
-	resultingthrPeaks = m_thresCalculator.calcMinMax(m_paramRanges);
-	return resultingthrPeaks;
+	return m_thresCalculator.calcMinMax(m_paramRanges);
 }
 
 void iAAdaptiveThresholdDlg::OptionallyUpdateThrPeaks(bool selectedData, threshold_defs::iAThresMinMax& thrPeaks)
@@ -491,7 +490,7 @@ void iAAdaptiveThresholdDlg::determineIntersectionAndFinalThreshold()
 	{
 		//calculate fair/2
 		QPointF lokalMaxHalf = m_thresCalculator.getPointAirPeakHalf();
-		QString peakHalf = QString("fmin/2 %1 %2").arg(lokalMaxHalf.x()).arg(lokalMaxHalf.y());
+		//QString peakHalf = QString("fmin/2 %1 %2").arg(lokalMaxHalf.x()).arg(lokalMaxHalf.y());
 
 		//TODO REPLACE BY MAX limits
 		//fair_half end point for visualisation only

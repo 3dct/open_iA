@@ -336,12 +336,12 @@ std::vector<double>* csvDataType::arrayTypeToVector(ArrayType* input)
 	int amountCols = getColumns(input);
 	int amountRows = getRows(input);
 
-	std::vector<double>* result = new std::vector<double>(amountRows);
-
 	if (amountCols <= 0 || amountCols > 1)
 	{
 		return nullptr;
 	}
+
+	std::vector<double>* result = new std::vector<double>(amountRows);
 
 	for (int r1 = 0; r1 < amountRows; r1++)
 	{
