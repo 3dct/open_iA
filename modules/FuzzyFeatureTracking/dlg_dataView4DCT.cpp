@@ -29,7 +29,6 @@
 #include <iAVolumeStack.h>
 #include <iAVtkVersion.h>
 #include <iAMdiChild.h>
-#include <qthelper/iAQTtoUIConnector.h>
 
 #include <iARendererImpl.h>
 
@@ -41,7 +40,7 @@ const double	FOURDCT_BACGROUND[3]	= {1, 1, 1};
 const double	FOURDCT_BACGROUND2[3]	= {1, 1, 1};
 const bool		SHOW_HELPERS			= false;
 
-dlg_dataView4DCT::dlg_dataView4DCT(QWidget *parent, iAVolumeStack* volumeStack):
+dlg_dataView4DCT::dlg_dataView4DCT(QWidget* parent, iAVolumeStack* volumeStack):
 	dlg_dataView4DCTContainer(parent),
 	m_axesTransform(vtkSmartPointer<vtkTransform>::New())
 {

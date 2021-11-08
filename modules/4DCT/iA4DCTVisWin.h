@@ -23,7 +23,6 @@
 // Ui
 #include "ui_iA4DCTVisWin.h"
 // iA
-#include "qthelper/iAQTtoUIConnector.h"
 #include "iAVisModulesCollection.h"
 // vtk
 #include <vtkOrientationMarkerWidget.h>
@@ -56,7 +55,7 @@ class iA4DCTVisWin : public QMainWindow, public Ui::VisWin
 {
 	Q_OBJECT
 public:
-						iA4DCTVisWin( iA4DCTMainWin * parent = 0 );
+						iA4DCTVisWin(iA4DCTMainWin* parent = nullptr);
 						~iA4DCTVisWin( );
 	void				setImageSize( double * size );
 	void				setNumberOfStages( int number );

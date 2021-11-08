@@ -223,10 +223,10 @@ void iAMeanObject::render(QStringList const & classNames, QList<vtkSmartPointer<
 
 	for (int currClass = 1; currClass < classCount; ++currClass)
 	{
-		std::map<int, int>* meanObjectIds = new std::map<int, int>();
+		std::map<int, int> meanObjectIds;
 		for (int j = 0; j < tableList[currClass]->GetNumberOfRows(); ++j)
 		{
-			meanObjectIds->operator[](tableList[currClass]->GetValue(j, 0).ToInt()) =
+			meanObjectIds[tableList[currClass]->GetValue(j, 0).ToInt()] =
 				tableList[currClass]->GetValue(j, 0).ToFloat();
 		}
 
@@ -246,7 +246,7 @@ void iAMeanObject::render(QStringList const & classNames, QList<vtkSmartPointer<
 
 		int progress = 0;
 		std::map<int, int>::const_iterator it;
-		for (it = meanObjectIds->begin(); it != meanObjectIds->end(); ++it)
+		for (it = meanObjectIds.begin(); it != meanObjectIds.end(); ++it)
 		{
 			mask->SetLabel(it->first);
 			mask->Update();
@@ -272,7 +272,7 @@ void iAMeanObject::render(QStringList const & classNames, QList<vtkSmartPointer<
 			addImage = addFilter->GetOutput();
 
 			double percentage = round((currClass - 1) * 100.0 / (classCount - 1) +
-				(progress + 1.0) * (100.0 / (classCount - 1)) / meanObjectIds->size());
+				(progress + 1.0) * (100.0 / (classCount - 1)) / meanObjectIds.size());
 			p.emitProgress(percentage);
 			QCoreApplication::processEvents();
 			++progress;
@@ -288,7 +288,7 @@ void iAMeanObject::render(QStringList const & classNames, QList<vtkSmartPointer<
 		casterIteratorType casterImgIt(caster->GetOutput(), caster->GetOutput()->GetLargestPossibleRegion());
 		for (casterImgIt.GoToBegin(); !casterImgIt.IsAtEnd(); ++casterImgIt)
 		{
-			casterImgIt.Set(casterImgIt.Get() / meanObjectIds->size());
+			casterImgIt.Set(casterImgIt.Get() / meanObjectIds.size());
 		}
 
 		// Convert resulting MObject ITK image to an VTK image

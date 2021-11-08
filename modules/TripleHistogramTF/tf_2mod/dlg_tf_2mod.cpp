@@ -27,9 +27,9 @@
 
 #include <QHBoxLayout>
 
-dlg_tf_2mod::dlg_tf_2mod(iAMdiChild *mdiChild, Qt::WindowFlags f)
+dlg_tf_2mod::dlg_tf_2mod(iAMdiChild* mdiChild)
 	:
-	QDockWidget("Double Histogram Transfer Function", mdiChild, f),
+	QDockWidget("Double Histogram Transfer Function", mdiChild),
 	m_mdiChild(mdiChild)
 {
 	// Initialize dock widget
