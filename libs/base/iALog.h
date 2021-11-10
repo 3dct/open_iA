@@ -26,8 +26,6 @@
 #define LOG(lvlInfo, msg) std::cout << msg.toStdString() << std::endl;
 #else
 
-#include "iAbase_export.h"
-
 #include "iALogger.h"
 
 //! Singleton providing access to the global logger object.
