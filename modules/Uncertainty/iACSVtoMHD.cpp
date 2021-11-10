@@ -26,7 +26,6 @@
 #include <iAProgress.h>
 #include <iAToolsVTK.h>
 #include <iAVtkDraw.h>
-#include <iAMdiChild.h>
 
 #include <vtkImageData.h>
 
