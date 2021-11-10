@@ -1,6 +1,5 @@
 set(CompVis_PRECOMPILE_INCLUDES
 <iALog.h>
-<iAMdiChild.h>
 <iAVec3.h>
 <map>
 <QColor>

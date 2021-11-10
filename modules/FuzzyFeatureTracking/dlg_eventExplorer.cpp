@@ -26,7 +26,6 @@
 #include <iALog.h>
 #include <iAVolumeStack.h>
 #include <iAQVTKWidget.h>
-#include <iAMdiChild.h>
 
 #include <vtkAxis.h>
 #include <vtkChartXY.h>
