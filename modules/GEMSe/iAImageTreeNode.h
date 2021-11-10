@@ -23,6 +23,7 @@
 #include "iAChartFilter.h"	// try to avoid - but iAResultFilter is a template
 
 #include <iAITKImageTypes.h>
+#include <iAITKIO.h>
 
 #include <vtkSmartPointer.h>
 

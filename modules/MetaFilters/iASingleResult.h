@@ -24,6 +24,7 @@
 
 #include <iAAttributes.h>
 #include <iAITKImageTypes.h>
+#include <iAITKIO.h>
 
 #include <QSharedPointer>
 #include <QString>
