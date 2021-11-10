@@ -24,7 +24,7 @@ void iACompUniformBinning::calculateBins()
 	double minVal = m_uniformBinningData->getMinVal();
 	double maxVal = m_uniformBinningData->getMaxVal();
 
-	double length = std::abs(maxVal) + std::abs(minVal);
+	double length = std::abs(maxVal) - std::abs(minVal);
 	double binLength = length / m_currentNumberOfBins;
 
 	QList<std::vector<double>>* binBoundaries = new QList<std::vector<double>>();
@@ -111,7 +111,7 @@ void iACompUniformBinning::calculateBins()
 std::vector<double> iACompUniformBinning::calculateBinBoundaries(
 	double minVal, double maxVal, int numberOfBins)
 {
-	double length = std::abs(maxVal) + std::abs(minVal);
+	double length = std::abs(maxVal) - std::abs(minVal);
 	double binLength = length / m_currentNumberOfBins;
 
 	std::vector<double> bins = std::vector<double>();

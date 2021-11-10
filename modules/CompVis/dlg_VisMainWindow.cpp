@@ -5,20 +5,25 @@
 #include "iACompVisMain.h"
 #include "iAMdiChild.h"
 
-dlg_VisMainWindow::dlg_VisMainWindow(QList<csvFileData>* data, iAMultidimensionalScaling* mds, iAMainWindow* parent, iACompVisMain* main)
-	:
+dlg_VisMainWindow::dlg_VisMainWindow(iACsvDataStorage* dataStorage, iAMultidimensionalScaling* mds, iAMainWindow* parent, iACompVisMain* main, bool computeMDSFlag) :
 	QMainWindow(parent), 
 	m_main(main),
-	m_data(data),
-	m_mds(mds)
+	m_dataStorage(dataStorage),
+	m_data(dataStorage->getData()), 
+	m_mds(mds),
+	m_computeMDSFlag(computeMDSFlag)
 {
 	//setup iAMainWindow
 	parent->addSubWindow(this);
 	setupUi(this);
 
-	//start mds dialog
-	startMDSDialog();
-
+	if (m_computeMDSFlag)
+	{
+		//start mds dialog
+		startMDSDialog();
+		m_dataStorage->setMDSData(m_mds->getResultMatrix());
+	}
+	
 	//finish iAMainWindow setup
 	createMenu();
 	this->showMaximized();
@@ -37,8 +42,11 @@ void dlg_VisMainWindow::recalculateMDS()
 {
 	m_main->reintitalizeMetrics();
 
-	startMDSDialog();
-
+	if (m_computeMDSFlag)
+	{
+		startMDSDialog();
+		m_dataStorage->setMDSData(m_mds->getResultMatrix());
+	}
 	//m_main->reinitializeCharts();
 }
 

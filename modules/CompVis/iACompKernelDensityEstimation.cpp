@@ -10,7 +10,7 @@ iACompKernelDensityEstimation::iACompKernelDensityEstimation(
 	iACsvDataStorage* dataStorage, std::vector<int>* amountObjectsEveryDataset, bin::BinType* datasets) :
 	m_dataStorage(dataStorage), m_datasets(datasets), m_kdeData(nullptr), m_maxKDE(-INFINITY), m_minKDE(INFINITY)
 {
-	numSteps = 1000; //(*std::minmax_element(amountObjectsEveryDataset->begin(), amountObjectsEveryDataset->end()).second);
+	numSteps = 1000;  //(*std::minmax_element(amountObjectsEveryDataset->begin(), amountObjectsEveryDataset->end()).second); //
 }
 
 void iACompKernelDensityEstimation::setDataStructure(iACompKernelDensityEstimationData* datastructure)
@@ -30,6 +30,7 @@ void iACompKernelDensityEstimation::calculateCurve(
 	QList<bin::BinType*>* uDataStore = uData->getBinData();
 	QList<bin::BinType*>* bbDataStore = bbData->getBinData();
 	QList<bin::BinType*>* nbDataStore = nbData->getBinData();
+
 
 	//data preparation
 	for (size_t dataID = 0; dataID < m_datasets->size(); dataID++)

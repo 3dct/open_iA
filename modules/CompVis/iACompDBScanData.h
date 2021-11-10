@@ -1,14 +1,14 @@
 #pragma once
 #include "iACompHistogramTableData.h"
 
-class iACompBayesianBlocksData : public iACompHistogramTableData
+class iACompDBScanData : public iACompHistogramTableData
 {
 public:
-
-	iACompBayesianBlocksData();
+	iACompDBScanData();
 
 	//returns for every dataset each bin defined by its lower boundary
 	virtual QList<std::vector<double>>* getBinBoundaries() override;
+
 	//set for each dataset for each bin its lowerBoundary
 	virtual void setBinBoundaries(QList<std::vector<double>>* binBoundaries) override;
 
@@ -17,11 +17,9 @@ public:
 	void calculateNumberOfObjectsInEachBin(QList<std::vector<csvDataType::ArrayType*>*>* thisBinDataObjects);
 
 private:
-
 	//stores for each dataset how many objects are located in each bin
 	bin::BinType* m_numberOfObjectsPerBin;
 
 	//stores for each bin of each dataset its boundaries, where [lowerBound, upperBound[
 	QList<std::vector<double>>* m_binsBoundaries;
-
 };

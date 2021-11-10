@@ -9,7 +9,7 @@
 #include <QPushButton>
 
 
-dlg_CSVReader::dlg_CSVReader() : QDialog()
+dlg_CSVReader::dlg_CSVReader() : QDialog(), m_computeMDSFlag(true)
 {
 	setupUi(this);
 	connectSignals();
@@ -21,7 +21,6 @@ void dlg_CSVReader::connectSignals()
 	connect(btnDeleteFile, &QPushButton::clicked, this, &dlg_CSVReader::btnDeleteFileClicked);
 	connect(buttonBox, &QDialogButtonBox::accepted, this, &dlg_CSVReader::okBtnClicked);
 }
-
 
 void dlg_CSVReader::btnAddFilesClicked()
 {
@@ -61,10 +60,25 @@ void dlg_CSVReader::okBtnClicked()
 {
 	m_dataStorage = new iACsvDataStorage(&m_filenames);
 
+	if (noMDSCheckBox->isChecked())
+	{
+		noMDSChecked();
+	}
+
 	this->accept();
+}
+
+void dlg_CSVReader::noMDSChecked()
+{
+	m_computeMDSFlag = false;
 }
 
 iACsvDataStorage* dlg_CSVReader::getCsvDataStorage()
 {
 	return m_dataStorage;
+}
+
+bool dlg_CSVReader::getMDSState()
+{
+	return m_computeMDSFlag;
 }

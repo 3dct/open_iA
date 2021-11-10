@@ -83,24 +83,24 @@
 
 
 iACompHistogramTable::iACompHistogramTable(
-	iAMainWindow* parent, iAMultidimensionalScaling* mds, iACsvDataStorage* dataStorage, iACompVisMain* main) :
+	iAMainWindow* parent, iACsvDataStorage* dataStorage, iACompVisMain* main, bool MDSComputedFlag) :
 	m_main(main),
-	m_inputData(mds->getCSVFileData()),
+	m_inputData(dataStorage->getData()),
 	m_dataStorage(dataStorage)
 {
 	std::vector<int>* dataResolution = csvFileData::getAmountObjectsEveryDataset(m_inputData);
 	m_amountDatasets = (int)dataResolution->size();
 
 	//initialize datastructure
-	initializeBinCalculation(mds);
+	initializeBinCalculation(MDSComputedFlag);
 
 	//initialize visualization
 	histogramVis = new iACompHistogramVis(this, parent, m_amountDatasets);
 }
 
-void iACompHistogramTable::initializeBinCalculation(iAMultidimensionalScaling* mds)
+void iACompHistogramTable::initializeBinCalculation(bool mdsComputedFlag)
 {
-	histogramCalculation = new iACompHistogramCalculation(mds, m_dataStorage);
+	histogramCalculation = new iACompHistogramCalculation(m_dataStorage, mdsComputedFlag);
 	histogramCalculation->calculateUniformBinning();
 	histogramCalculation->calculateBayesianBlocks();
 	histogramCalculation->calculateNaturalBreaks();

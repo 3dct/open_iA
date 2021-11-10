@@ -92,12 +92,19 @@ protected:
 	virtual void drawRow(int currDataInd, int currentColumn, double offset);
 	//draw white border around each datatset
 	vtkSmartPointer<vtkPolyData> drawLine(vtkSmartPointer<vtkPoints> points);
+	//draw white ticks
+	void drawTicks(double numberOfTicks, double drawingDimensions[4]);
 
-	//draw curve
-	vtkSmartPointer<vtkPolyData> drawCurve(double drawingDimensions[4], kdeData::kdeBins currDatase,
+	//draw curve and polygons
+	void drawCurveAndPolygon(double drawingDimensions[4], kdeData::kdeBins currDatase,
 		vtkSmartPointer<vtkPolyData> currBinPolyData, int currDataInd, int currentColumn, double offset);
-	//draw inside of curve segments as polygons
-	vtkSmartPointer<vtkPolyData> drawPolygon(vtkSmartPointer<vtkPoints> points, int numberOfObjectsInsideBin);
+	//draw curve segments (add to renderer)
+	void drawCurve(
+		vtkSmartPointer<vtkPoints> points, vtkSmartPointer<vtkUnsignedCharArray> colorArray);
+	//draw polygons (add to renderer) - the polygons are combined to a uniform vtkPolyData-Object and contain their colorArrays
+	void drawPolygon(vtkSmartPointer<vtkPolyData> polygonPolyData);
+	//create polygons
+	vtkSmartPointer<vtkPolyData> createPolygon(vtkSmartPointer<vtkPoints> points, int numberOfObjectsInsideBin);
 
 	//fill the color array according to the given colortable
 	void colorCurve(vtkSmartPointer<vtkPoints> points, vtkSmartPointer<vtkUnsignedCharArray> colorArray,

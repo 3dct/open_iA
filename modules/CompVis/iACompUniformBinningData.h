@@ -18,6 +18,9 @@ public:
 
 	int getInitialNumberOfBins();
 
+	//compute the initial number of bins
+	int computeSturgesRule();
+
 private:
 
 	//amount of bins in the histogram for all rows/datasets

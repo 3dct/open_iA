@@ -170,8 +170,8 @@ void iACompCurve::makeLUTFromCTF()
 		std::string upperString = initializeLegendLabels(sHigh);
 
 		//position description in the middle of each color bar in the scalarBar legend
-		//m_lut->SetAnnotation(low + ((high - low) * 0.5), lowerString + " - " + upperString);
-		m_lut->SetAnnotation(low + ((high - low) * 0.5), lowerString);
+		m_lut->SetAnnotation(low + ((high - low) * 0.5), lowerString + " - " + upperString);
+		//m_lut->SetAnnotation(low + ((high - low) * 0.5), lowerString);
 
 		//store min and max value of the dataset
 		if (i == 0)
@@ -187,7 +187,7 @@ void iACompCurve::makeLUTFromCTF()
 	m_lut->SetTableRange(min, max);
 
 	double col[3];
-	iACompVisOptions::getDoubleArray(iACompVisOptions::BACKGROUNDCOLOR_WHITE, col);
+	iACompVisOptions::getDoubleArray(iACompVisOptions::BACKGROUNDCOLOR_BLACK, col);  //iACompVisOptions::BACKGROUNDCOLOR_WHITE
 	m_lut->SetBelowRangeColor(col[0], col[1], col[2], 1);
 	m_lut->UseBelowRangeColorOn();
 
@@ -438,7 +438,6 @@ void iACompCurve::drawHistogramTable()
 	m_vis->calculateRowWidthAndHeight(m_vis->getWindowWidth(), m_vis->getWindowHeight(), m_vis->getAmountDatasets());
 
 	//draw cells from bottom to top --> so start with last dataset and go to first
-
 	for (int currCol = 0; currCol < m_vis->getAmountDatasets(); currCol++)
 	{
 		int dataInd = m_vis->getOrderOfIndicesDatasets()->at(currCol);
@@ -468,28 +467,19 @@ void iACompCurve::drawRow(int currDataInd, int currentColumn, double offset)
 	linePoints->InsertNextPoint(min_x, min_y, 0.0);
 	vtkSmartPointer<vtkPolyData> lineData = drawLine(linePoints);
 
-	vtkSmartPointer<vtkPolyData> curveData = drawCurve(
-		drawingDimensions, currDataset, getActiveBinPolyData()->at(currentColumn), currDataInd, currentColumn, offset);
+	//draw 4 tick axes
+	double numberOfTicks = 4;
+	drawTicks(numberOfTicks, drawingDimensions);
 
-	// Setup actor and mapper
-	vtkNew<vtkPolyDataMapper> mapper;
-	mapper->SetInputData(curveData);
-	mapper->SetColorModeToDefault();
-	mapper->SetScalarModeToUseCellData();
-	mapper->GetInput()->GetCellData()->SetScalars(curveData->GetCellData()->GetArray("colorArray"));
-	mapper->ScalarVisibilityOn();
-	
-	vtkNew<vtkActor> actor;
-	actor->SetMapper(mapper);
-
-	m_mainRenderer->AddActor(actor);
+	//draw curve and polygons
+	drawCurveAndPolygon(drawingDimensions, currDataset, getActiveBinPolyData()->at(currentColumn), currDataInd, currentColumn, offset);
 	
 	//add name of dataset/row
 	double pos[3] = {-(m_vis->getRowSize()) * 0.05, min_y + (m_vis->getColSize() * 0.5), 0.0};
 	addDatasetName(currDataInd, pos);
 }
 
-vtkSmartPointer<vtkPolyData>  iACompCurve::drawCurve(double drawingDimensions[4], kdeData::kdeBins currDataset,
+void iACompCurve::drawCurveAndPolygon(double drawingDimensions[4], kdeData::kdeBins currDataset,
 	vtkSmartPointer<vtkPolyData> currBinPolyData, int currDataInd, int currentColumn, double offset)
 {
 	double min_x = drawingDimensions[0];
@@ -526,12 +516,12 @@ vtkSmartPointer<vtkPolyData>  iACompCurve::drawCurve(double drawingDimensions[4]
 		binColorArray->SetName("binColorArray");
 		binColorArray->SetNumberOfComponents(3);
 
-		if (numberOfObjects == 0)
+		if (numberOfObjects == 0)  //numberOfObjects == 0
 		{
 			binPoints->InsertNextPoint(binXMin, min_y, 0.0);
 			binPoints->InsertNextPoint(binXMax, min_y, 0.0);
 		}
-		else if (numberOfObjects == 1)
+		else if (numberOfObjects == 1)  //numberOfObjects == 1
 		{
 			vtkSmartPointer<vtkPoints> point = vtkSmartPointer<vtkPoints>::New();
 			double p[3] = {binXMin + ((binXMax - binXMin) * 0.5), min_y, 0.0};
@@ -607,7 +597,7 @@ vtkSmartPointer<vtkPolyData>  iACompCurve::drawCurve(double drawingDimensions[4]
 			for (int j = 0; j < binPoints->GetNumberOfPoints(); j++)
 			{
 				double* p = binPoints->GetPoint(j);
-				if (p[0] >= binXMin && p[0] <= binXMax)
+				if ((p[0] >= binXMin) && (p[0] < binXMax))
 				{
 					finalBinPoints->InsertNextPoint(p);
 				}
@@ -655,9 +645,10 @@ vtkSmartPointer<vtkPolyData>  iACompCurve::drawCurve(double drawingDimensions[4]
 			finalBinPoints->GetPoint(finalBinPoints->GetNumberOfPoints() - 1)[2]);
 		polygonPoints->InsertNextPoint(finalBinPoints->GetPoint(0)[0], min_y, finalBinPoints->GetPoint(0)[2]);
 		polygonPoints->InsertNextPoint(finalBinPoints->GetPoint(0));
-		vtkSmartPointer<vtkPolyData> thisPolygonData = drawPolygon(polygonPoints, numberOfObjectsForColor);
 
-		//Append polydata
+		vtkSmartPointer<vtkPolyData> thisPolygonData = createPolygon(polygonPoints, numberOfObjectsForColor);
+
+		//Append polydata polygons
 		appendFilter->AddInputData(thisPolygonData);
 		appendFilter->Update();
 		
@@ -677,11 +668,14 @@ vtkSmartPointer<vtkPolyData>  iACompCurve::drawCurve(double drawingDimensions[4]
 	}
 
 	vtkSmartPointer<vtkPolyData> finalPolyData = appendFilter->GetOutput();
-	
-	return finalPolyData;
+	//draw the polygon
+	drawPolygon(finalPolyData);
+
+	//draw the curve
+	drawCurve(curvePoints, colorArray);
 }
 
-vtkSmartPointer<vtkPolyData> iACompCurve::drawPolygon(vtkSmartPointer<vtkPoints> points, int numberOfObjectsInsideBin)
+vtkSmartPointer<vtkPolyData> iACompCurve::createPolygon(vtkSmartPointer<vtkPoints> points, int numberOfObjectsInsideBin)
 {
 	vtkNew<vtkPolygon> polygon;
 	polygon->GetPointIds()->SetNumberOfIds(points->GetNumberOfPoints());
@@ -708,6 +702,57 @@ vtkSmartPointer<vtkPolyData> iACompCurve::drawPolygon(vtkSmartPointer<vtkPoints>
 	polyData->GetCellData()->SetActiveScalars("colorArray");
 
 	return polyData;
+}
+
+void iACompCurve::drawPolygon(vtkSmartPointer<vtkPolyData> polygonPolyData)
+{
+	// Setup actor and mapper
+	vtkNew<vtkPolyDataMapper> mapper;
+	mapper->SetInputData(polygonPolyData);
+	mapper->SetColorModeToDefault();
+	mapper->SetScalarModeToUseCellData();
+	mapper->GetInput()->GetCellData()->SetScalars(polygonPolyData->GetCellData()->GetArray("colorArray"));
+	mapper->ScalarVisibilityOn();
+
+	vtkNew<vtkActor> actor;
+	actor->SetMapper(mapper);
+
+	m_mainRenderer->AddActor(actor);
+}
+
+void iACompCurve::drawCurve(
+	vtkSmartPointer<vtkPoints> curvePoints, vtkSmartPointer<vtkUnsignedCharArray> colorArray)
+{
+	vtkNew<vtkPolyLine> polyLine;
+	polyLine->GetPointIds()->SetNumberOfIds(curvePoints->GetNumberOfPoints());
+	for (unsigned int i = 0; i < curvePoints->GetNumberOfPoints(); i++)
+	{
+		polyLine->GetPointIds()->SetId(i, i);
+	}
+
+	// Create a cell array to store the lines in and add the lines to it
+	vtkNew<vtkCellArray> cells;
+	cells->InsertNextCell(polyLine);
+
+	vtkNew<vtkPolyData> curvePolyData;
+	curvePolyData->SetPoints(curvePoints);
+	curvePolyData->SetLines(cells);
+	curvePolyData->GetPointData()->AddArray(colorArray);
+	curvePolyData->GetPointData()->SetActiveScalars("colorArray");
+	vtkNew<vtkPolyDataMapper> lineMapper;
+	lineMapper->SetInputData(curvePolyData);
+	lineMapper->SetScalarRange(curvePolyData->GetScalarRange());
+	lineMapper->SetColorModeToDefault();
+	lineMapper->SetScalarModeToUsePointData();
+	lineMapper->GetInput()->GetPointData()->SetScalars(curvePolyData->GetPointData()->GetArray("colorArray"));
+	lineMapper->InterpolateScalarsBeforeMappingOff();
+	//lineMapper->ScalarVisibilityOn();
+
+	vtkSmartPointer<vtkActor> actor = vtkSmartPointer<vtkActor>::New();
+	actor->SetMapper(lineMapper);
+	actor->GetProperty()->SetLineWidth(m_lineWidth);
+
+	m_mainRenderer->AddActor(actor);
 }
 
 vtkSmartPointer<vtkPolyData> iACompCurve::drawLine(vtkSmartPointer<vtkPoints> points)
@@ -754,6 +799,65 @@ vtkSmartPointer<vtkPolyData> iACompCurve::drawLine(vtkSmartPointer<vtkPoints> po
 	m_mainRenderer->AddActor(actor);
 
 	return polyData;
+}
+
+void iACompCurve::drawTicks(double numberOfTicks, double drawingDimensions[4])
+{
+	double min_x = drawingDimensions[0];
+	double max_x = drawingDimensions[1];
+	double min_y = drawingDimensions[2];
+	double max_y = drawingDimensions[3];
+
+	double tickLength = (max_x - min_x) * 0.01;
+	double yheight = max_y - min_y;
+	double tickDistance = yheight / numberOfTicks;
+
+	vtkNew<vtkAppendPolyData> appendFilter;
+	for (int i = 0; i < numberOfTicks; i++)
+	{
+		vtkSmartPointer<vtkPoints> tickPoints = vtkSmartPointer<vtkPoints>::New();
+		tickPoints->InsertNextPoint(min_x - (tickLength), min_y + (tickDistance * i), 0.0);
+		tickPoints->InsertNextPoint(min_x + (tickLength), min_y + (tickDistance * i), 0.0);
+
+		vtkNew<vtkPolyLine> polyLine;
+		polyLine->GetPointIds()->SetNumberOfIds(tickPoints->GetNumberOfPoints());
+		for (unsigned int j = 0; j < tickPoints->GetNumberOfPoints(); j++)
+		{
+			polyLine->GetPointIds()->SetId(j, j);
+		}
+
+		// Create a cell array to store the lines in and add the lines to it
+		vtkNew<vtkCellArray> cells;
+		cells->InsertNextCell(polyLine);
+
+		vtkSmartPointer<vtkUnsignedCharArray> colorArray = vtkSmartPointer<vtkUnsignedCharArray>::New();
+		colorArray->SetName("colorArray");
+		colorArray->SetNumberOfComponents(3);
+		colorArray->SetNumberOfTuples(tickPoints->GetNumberOfPoints());
+
+		for (int pointId = 0; pointId < tickPoints->GetNumberOfPoints(); pointId++)
+		{
+			colorArray->InsertTuple3(pointId, 255, 255, 255);
+		}
+
+		// Create a polydata to store everything in
+		vtkNew<vtkPolyData> tickPolyData;
+		tickPolyData->SetPoints(tickPoints);
+		tickPolyData->SetLines(cells);
+		tickPolyData->GetCellData()->AddArray(colorArray);
+		tickPolyData->GetCellData()->SetActiveScalars("colorArray");
+
+		appendFilter->AddInputData(tickPolyData);
+	}
+
+	// Setup actor and mapper
+	vtkNew<vtkPolyDataMapper> mapper;
+	mapper->SetInputConnection(appendFilter->GetOutputPort());
+	
+	vtkNew<vtkActor> actor;
+	actor->SetMapper(mapper);
+
+	m_mainRenderer->AddActor(actor);
 }
 
 void iACompCurve::colorCurve(vtkSmartPointer<vtkPoints> points, vtkSmartPointer<vtkUnsignedCharArray> colorArray,

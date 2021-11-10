@@ -47,7 +47,9 @@ class iACompHistogramTable
 		iACompVisOptions::binningType binningType, bin::BinType* data, int currBin, int amountOfBins);
 
 
-	iACompHistogramTable(iAMainWindow* parent, iAMultidimensionalScaling* mds, iACsvDataStorage* m_dataStorage, iACompVisMain* main);
+	//iACompHistogramTable(iAMainWindow* parent, iAMultidimensionalScaling* mds, iACsvDataStorage* m_dataStorage, iACompVisMain* main);
+	iACompHistogramTable(
+		iAMainWindow* parent, iACsvDataStorage* m_dataStorage, iACompVisMain* main, bool MDSComputedFlag);
 
 	void reinitializeHistogramTable(iAMultidimensionalScaling* newMds);
 
@@ -56,15 +58,20 @@ class iACompHistogramTable
    private:
 
 	   //initialize the various binning methods
-	   void initializeBinCalculation(iAMultidimensionalScaling* mds);
+	   void initializeBinCalculation(bool mdsComputedFlag);
 
-	iACompVisMain* m_main;
-	iACsvDataStorage* m_dataStorage;
+		iACompVisMain* m_main;
+		iACsvDataStorage* m_dataStorage;
 
-	QList<csvFileData>* m_inputData;
+		//holds the data for which the MDS will be calculated
+		//list containing all csv-files
+		//data = [[headerOfCSV1,valuesOfCSV1], [headerOfCSV2,valuesOfCSV2],...]
+		//header = [name1,name2,...] --> Strings
+		//values = [ [f1_val1,f1_val2,...], [f2_val1,f2_val2,...]]
+		QList<csvFileData>* m_inputData;
 
-	iACompHistogramCalculation* histogramCalculation;
-	iACompHistogramVis* histogramVis;
+		iACompHistogramCalculation* histogramCalculation;
+		iACompHistogramVis* histogramVis;
 
-	int m_amountDatasets;
+		int m_amountDatasets;
 };

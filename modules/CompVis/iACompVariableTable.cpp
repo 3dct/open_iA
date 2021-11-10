@@ -275,8 +275,8 @@ void iACompVariableTable::makeLUTDarker()
 		std::string upperString = initializeLegendLabels(sHigh);
 
 		//position description in the middle of each color bar in the scalarBar legend
-		//m_lut->SetAnnotation(low + ((high - low) * 0.5), lowerString + " - " + upperString);
-		m_lutDarker->SetAnnotation(low + ((high - low) * 0.5), lowerString);
+		m_lut->SetAnnotation(low + ((high - low) * 0.5), lowerString + " - " + upperString);
+		//m_lutDarker->SetAnnotation(low + ((high - low) * 0.5), lowerString);
 
 		//store min and max value of the dataset
 		if (i == 0)
@@ -306,11 +306,11 @@ void iACompVariableTable::makeLUTDarker()
 	double col[3];
 	iACompVisOptions::getDoubleArray(iACompVisOptions::BACKGROUNDCOLOR_GREY, col);
 	m_lutDarker->SetBelowRangeColor(col[0], col[1], col[2], 1);
-	m_lutDarker->UseBelowRangeColorOn();
+	m_lutDarker->UseBelowRangeColorOff();  //m_lutDarker->UseBelowRangeColorOn();
 
 	double* colAbove = ctf->GetColor(1);
 	m_lutDarker->SetAboveRangeColor(colAbove[0], colAbove[1], colAbove[2], 1);
-	m_lutDarker->UseAboveRangeColorOn();
+	m_lutDarker->UseBelowRangeColorOff();  //m_lutDarker->UseAboveRangeColorOn();
 }
 
 double iACompVariableTable::calculateUniformBinRange()

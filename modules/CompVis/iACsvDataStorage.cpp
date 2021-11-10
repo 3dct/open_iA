@@ -7,8 +7,10 @@
 #include <cstdlib>
 
 iACsvDataStorage::iACsvDataStorage(QStringList* csvFiles) :
-	m_filenames(csvFiles),
-	m_data(new QList<csvFileData>())
+	m_filenames(csvFiles), 
+	m_data(new QList<csvFileData>()),
+	m_totalNumberOfObjects(0),
+	m_MDSData(nullptr)
 {
 	for (int ind = 0; ind < m_filenames->size(); ind++)
 	{
@@ -146,6 +148,17 @@ QStringList* iACsvDataStorage::getAttributeNames()
 	return this->getData()->at(0).header;
 }
 
+/*********************** store data computed by MDS ******************************************/
+csvDataType::ArrayType* iACsvDataStorage::getMDSData()
+{
+	return m_MDSData;
+}
+
+void iACsvDataStorage::setMDSData(csvDataType::ArrayType* mdsData)
+{
+	m_MDSData = mdsData;
+}
+
 /*********************** csvFileData methods ******************************************/
 std::vector<int>* csvFileData::getAmountObjectsEveryDataset(QList<csvFileData>* data)
 {
@@ -159,6 +172,7 @@ std::vector<int>* csvFileData::getAmountObjectsEveryDataset(QList<csvFileData>* 
 	
 	return result;
 }
+
 
 /***********************  csvDataType methods  ******************************************/
 void csvDataType::initialize(int rows, int columns, csvDataType::ArrayType* result)

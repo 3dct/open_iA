@@ -8,30 +8,64 @@
 #include "iACompBayesianBlocksData.h"
 #include "iACompNaturalBreaksData.h"
 #include "iACompKernelDensityEstimationData.h"
+#include "iACompBinning.h"
 
 
 //C++
 #include <vector>
 
-iACompHistogramCalculation::iACompHistogramCalculation(iAMultidimensionalScaling* mds, iACsvDataStorage* dataStorage) :
-	m_mds(mds), 
-	m_dataStorage(dataStorage), 
+iACompHistogramCalculation::iACompHistogramCalculation(iACsvDataStorage* dataStorage, bool mdsComputed) :
+	m_dataStorage(dataStorage),
+	m_amountObjectsEveryDataset(new std::vector<int>()),
 	m_densityEstimation(nullptr)
 {
 
-	std::vector<double>* histbinlist = csvDataType::arrayTypeToVector(m_mds->getResultMatrix());
+	//read in MDS values for loaded datasets
+	std::vector<double>* histbinlist = new std::vector<double>();
+
+	if (mdsComputed)
+	{ //data originates from multidimensional distributions and was reduced via MDS to 1D
+		histbinlist = csvDataType::arrayTypeToVector(dataStorage->getMDSData());
+		orderDataPointsByDatasetAffiliation(histbinlist);
+	}
+	else
+	{ //data originates from univariate distributions
+		
+		QList<csvFileData>* datasets = dataStorage->getData();
+		
+		//set datasets which stores the values for the binning calculations
+		m_datasets = new bin::BinType();
+
+		for (int i = 0; i < datasets->size(); i++)
+		{
+			csvFileData dataset = datasets->at(i);
+			
+			std::vector<double> distribution = std::vector<double>();
+
+			for (int row = 0; row < (dataset.values->size()); row++)
+			{
+				distribution.push_back(dataset.values->at(row).at(1));
+			}
+
+			m_datasets->push_back(distribution);
+
+			histbinlist->insert(histbinlist->end(), distribution.begin(), distribution.end());
+		}
+
+		m_amountObjectsEveryDataset = csvFileData::getAmountObjectsEveryDataset(m_dataStorage->getData());
+	}
+	 
 	auto result = std::minmax_element(histbinlist->begin(), histbinlist->end());
 
 	m_maxVal = *result.second;
 	m_minVal = *result.first;
-
-	orderDataPointsByDatasetAffiliation(histbinlist);
 }
+
 
 void iACompHistogramCalculation::orderDataPointsByDatasetAffiliation(std::vector<double>* histbinlist)
 {
 	m_datasets = new bin::BinType();
-	m_amountObjectsEveryDataset = csvFileData::getAmountObjectsEveryDataset(m_mds->getCSVFileData());
+	m_amountObjectsEveryDataset = csvFileData::getAmountObjectsEveryDataset(m_dataStorage->getData());
 
 	int add = 0;
 	for (int i = 0; i < m_amountObjectsEveryDataset->size(); i++)
@@ -53,12 +87,17 @@ void iACompHistogramCalculation::calculateUniformBinning()
 	m_uniformBinningData->setMinVal(m_minVal);
 	m_uniformBinningData->setMaxVal(m_maxVal);
 	m_uniformBinningData->setAmountObjectsEveryDataset(m_amountObjectsEveryDataset);
+	m_uniformBinningData->computeSturgesRule();
 
 	m_uniformBinning =
 		new iACompUniformBinning(m_dataStorage, m_amountObjectsEveryDataset, m_datasets);
 	m_uniformBinning->setDataStructure(m_uniformBinningData);
 	m_uniformBinning->setCurrentNumberOfBins(m_uniformBinningData->getInitialNumberOfBins());
 	m_uniformBinning->calculateBins();
+	
+	//evaluate binning
+	LOG(lvlDebug, "Uniform Binning");
+	m_uniformBinning->calculateSilhouetteCoefficient(m_uniformBinningData);
 }
 
 void iACompHistogramCalculation::calculateUniformBinning(int numberOfBins)
@@ -90,6 +129,10 @@ void iACompHistogramCalculation::calculateBayesianBlocks()
 	m_bayesianBlocks = new iACompBayesianBlocks(m_dataStorage, m_amountObjectsEveryDataset, m_datasets);
 	m_bayesianBlocks->setDataStructure(m_bayesianBlocksData);
 	m_bayesianBlocks->calculateBins();
+
+	//evaluate binning
+	LOG(lvlDebug, "Bayesian Blocks");
+	m_bayesianBlocks->calculateSilhouetteCoefficient(m_bayesianBlocksData);
 }
 
 iACompBayesianBlocksData* iACompHistogramCalculation::getBayesianBlocksData()
@@ -109,6 +152,10 @@ void iACompHistogramCalculation::calculateNaturalBreaks()
 	m_naturalBreaks = new iACompNaturalBreaks(m_dataStorage, m_amountObjectsEveryDataset, m_datasets);
 	m_naturalBreaks->setDataStructure(m_naturalBreaksData);
 	m_naturalBreaks->calculateBins();
+
+	//evaluate binning
+	LOG(lvlDebug, "Natural Breaks");
+	m_naturalBreaks->calculateSilhouetteCoefficient(m_naturalBreaksData);
 }
 
 iACompNaturalBreaksData* iACompHistogramCalculation::getNaturalBreaksData()

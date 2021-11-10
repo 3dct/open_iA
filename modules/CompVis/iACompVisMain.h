@@ -81,4 +81,6 @@ class iACompVisMain
 	iACompHistogramTable* m_HistogramTableDockWidget;
 	iACompBoxPlot* m_BoxPlotDockWidget;
 	iACompCorrelationMap* m_CorrelationMapDockWidget;
+
+	bool m_computeMDSFlag;
 };

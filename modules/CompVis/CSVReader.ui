@@ -166,6 +166,16 @@
     </widget>
    </item>
    <item>
+    <widget class="QCheckBox" name="noMDSCheckBox">
+     <property name="text">
+      <string>loading univariate distributions (no MDS is computed)</string>
+     </property>
+     <property name="checked">
+      <bool>false</bool>
+     </property>
+    </widget>
+   </item>
+   <item>
     <widget class="QDialogButtonBox" name="buttonBox">
      <property name="sizePolicy">
       <sizepolicy hsizetype="Expanding" vsizetype="Fixed">

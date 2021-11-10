@@ -16,6 +16,8 @@ class dlg_CSVReader : public QDialog, public Ui_CSVReader
 	dlg_CSVReader();
 
 	iACsvDataStorage* getCsvDataStorage();
+
+	bool getMDSState();
 	
    private slots:
 	//! On button click for selecting one/several CSV files
@@ -25,6 +27,8 @@ class dlg_CSVReader : public QDialog, public Ui_CSVReader
 	//! handles a click on the OK button
 	void okBtnClicked();
 
+	void noMDSChecked();
+
    private:
 	//! connect signals and slots of all dialog controls
 	void connectSignals();
@@ -32,5 +36,7 @@ class dlg_CSVReader : public QDialog, public Ui_CSVReader
 	QString m_path;
 	QStringList m_filenames;
 	iACsvDataStorage* m_dataStorage;
+
+	bool m_computeMDSFlag;
 
 };

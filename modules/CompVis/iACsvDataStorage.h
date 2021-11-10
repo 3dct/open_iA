@@ -8,6 +8,8 @@
 
 #include <vector>
 
+class iACompHistogramTableData;
+
 namespace csvDataType
 {
 	//using ValueType = double;
@@ -73,6 +75,11 @@ class iACsvDataStorage
 	//returns the total number of objects in all datasets
 	int getTotalNumberOfObjects();
 
+	//get the 1d mds matrix result
+	csvDataType::ArrayType* getMDSData();
+	//set the 1d mds matrix result
+	void setMDSData(csvDataType::ArrayType* mdsData);
+
    private:
 	//fill a list with the attribute names
 	void initializeHeader(QList<QStringList>* list, QStringList* headers);
@@ -92,4 +99,7 @@ class iACsvDataStorage
 
 	//stores the overall number of objects of all datasets
 	int m_totalNumberOfObjects;
+
+	//stores the resulting 1D matrix of the mds computation
+	csvDataType::ArrayType* m_MDSData;
 };

@@ -5,7 +5,6 @@
 #include "iACompNaturalBreaks.h"
 #include "iACompKernelDensityEstimation.h"
 
-class iAMultidimensionalScaling;
 class iACsvDataStorage;
 class iACompUniformBinningData;
 class iACompBayesianBlocksData;
@@ -16,7 +15,7 @@ class iACompHistogramCalculation
 {
 
 public:
-	iACompHistogramCalculation(iAMultidimensionalScaling* mds, iACsvDataStorage* dataStorage);
+	iACompHistogramCalculation(iACsvDataStorage* dataStorage, bool mdsComputed);
 
 	/************************** Uniform Binning ***************************************/
 	iACompUniformBinningData* getUniformBinningData();
@@ -39,7 +38,7 @@ public:
 	void calculateNaturalBreaks();
 
 	/************************** DBScan Clustering ***************************************/
-
+	//TODO
 
 	/************************** Kernel Density Estimation ***************************************/
 	iACompKernelDensityEstimationData* getKernelDensityEstimationData();
@@ -51,8 +50,7 @@ private:
 
 	void orderDataPointsByDatasetAffiliation(std::vector<double>* histbinlist);
 
-	//conatins the calcuation of the Multdimensional Scaling
-	iAMultidimensionalScaling* m_mds;
+
 	iACsvDataStorage* m_dataStorage;
 
 	//vector that stores the number of elements for every dataset

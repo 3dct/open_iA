@@ -44,6 +44,8 @@
 #include <vtkPointData.h>
 #include <vtkCellData.h>
 
+#include "vtkProgrammableGlyphFilter.h"
+
 iACompUniformTable::iACompUniformTable(iACompHistogramVis* vis, iACompUniformBinningData* uniformBinningData) :
 	iACompTable(vis), 
 	m_uniformBinningData(uniformBinningData),
@@ -307,7 +309,7 @@ void iACompUniformTable::drawHistogramTable(int bins)
 	{
 		int dataInd = m_vis->getOrderOfIndicesDatasets()->at(currCol);
 		drawRow(dataInd, currCol, bins, 0);
-		storeBinData(dataInd,currCol, 0);
+		//storeBinData(dataInd,currCol, 0);
 	}
 
 	renderWidget();
@@ -315,56 +317,214 @@ void iACompUniformTable::drawHistogramTable(int bins)
 
 vtkSmartPointer<vtkPlaneSource> iACompUniformTable::drawRow(int currDataInd, int currentColumn, int amountOfBins, double offset)
 {
-	vtkSmartPointer<vtkPlaneSource> aPlane = vtkSmartPointer<vtkPlaneSource>::New();
-	aPlane->SetXResolution(amountOfBins);
-	aPlane->SetYResolution(m_ColForData);
+	bin::BinType* currDataset = m_uniformBinningData->getBinData()->at(currDataInd);
+	double numberOfBins = currDataset->size();
 
-	double x = m_vis->getRowSize();
-	double y = (m_vis->getColSize() * currentColumn) + offset;
-	aPlane->SetOrigin(0, y, 0.0);
-	aPlane->SetPoint1(x, y, 0.0);               //width
-	aPlane->SetPoint2(0, y + m_vis->getColSize(), 0.0);  // height
-	aPlane->Update();
+	//each row consists of a certain number of bins and each bin will be drawn as glyph
+	vtkSmartPointer<vtkPoints> glyphPoints = vtkSmartPointer<vtkPoints>::New();
+	glyphPoints->SetDataTypeToDouble();
+	glyphPoints->SetNumberOfPoints(numberOfBins);
 
-	vtkSmartPointer<vtkUnsignedCharArray> colorData = vtkSmartPointer<vtkUnsignedCharArray>::New();
-	colorData->SetName("colors");
-	colorData->SetNumberOfComponents(3);
-	colorRow(colorData, currDataInd, amountOfBins);
-	aPlane->GetOutput()->GetCellData()->SetScalars(colorData);
+	vtkSmartPointer<vtkPolyData> polydata = vtkSmartPointer<vtkPolyData>::New();
+	polydata->SetPoints(glyphPoints);
 
-	// Setup actor and mapper
-	vtkSmartPointer<vtkPolyDataMapper> mapper = vtkSmartPointer<vtkPolyDataMapper>::New();
-	mapper->SetInputConnection(aPlane->GetOutputPort());
-	mapper->SetScalarModeToUseCellData();
-	mapper->Update();
+	vtkSmartPointer<vtkDoubleArray> originArray = vtkSmartPointer<vtkDoubleArray>::New();
+	originArray->SetName("originArray");
+	originArray->SetNumberOfComponents(3);
+	originArray->SetNumberOfTuples(numberOfBins);
+
+	vtkSmartPointer<vtkDoubleArray> point1Array = vtkSmartPointer<vtkDoubleArray>::New();
+	point1Array->SetName("point1Array");
+	point1Array->SetNumberOfComponents(3);
+	point1Array->SetNumberOfTuples(numberOfBins);
+
+	vtkSmartPointer<vtkDoubleArray> point2Array = vtkSmartPointer<vtkDoubleArray>::New();
+	point2Array->SetName("point2Array");
+	point2Array->SetNumberOfComponents(3);
+	point2Array->SetNumberOfTuples(numberOfBins);
+
+	//drawing positions
+	double min_x = 0.0;
+	double max_x = m_vis->getRowSize();
+	double min_y = (m_vis->getColSize() * currentColumn) + offset;
+	double max_y = min_y + m_vis->getColSize();
+
+	vtkSmartPointer<vtkUnsignedCharArray> colorArray = vtkSmartPointer<vtkUnsignedCharArray>::New();
+	colorArray->SetName("colorArray");
+	colorArray->SetNumberOfComponents(3);
+	colorArray->SetNumberOfTuples(numberOfBins);
+
+	for (int i = 0; i < numberOfBins; i++)
+	{
+		//compute bin boundaries in drawing coordinates
+		double minBoundary = m_uniformBinningData->getBinBoundaries()->at(currDataInd).at(i);
+		double xMin = iACompVisOptions::histogramNormalization(minBoundary, min_x, max_x, m_uniformBinningData->getMinVal(), m_uniformBinningData->getMaxVal());
+
+		double maxBoundary = m_uniformBinningData->getMaxVal();
+		if (i != numberOfBins-1)
+		{
+			maxBoundary = m_uniformBinningData->getBinBoundaries()->at(currDataInd).at(i+1);
+		}
+		double xMax = iACompVisOptions::histogramNormalization(
+			maxBoundary, min_x, max_x, m_uniformBinningData->getMinVal(), m_uniformBinningData->getMaxVal());
+
+		originArray->InsertTuple3(i, xMin, min_y, 0.0);
+		point1Array->InsertTuple3(i, xMax, min_y, 0.0);  //width
+		point2Array->InsertTuple3(i, xMin, max_y, 0.0);  //height
+
+		double numberOfObjects = currDataset->at(i).size();
+		double* rgbBorder;
+		double rgb[3] = {0.0, 0.0, 0.0};
+		double maxNumber = m_lut->GetRange()[1];
+		double minNumber = m_lut->GetRange()[0];
+
+		if (numberOfObjects > maxNumber)
+		{
+			if (m_useDarkerLut)
+			{
+				rgbBorder = m_lutDarker->GetAboveRangeColor();
+			}
+			else
+			{
+				rgbBorder = m_lut->GetAboveRangeColor();
+			}
+
+			unsigned char ucrgb[3];
+			iACompVisOptions::getColorArray3(rgbBorder, ucrgb);
+			colorArray->InsertTuple3(i, ucrgb[0], ucrgb[1], ucrgb[2]);
+		}
+		else if (numberOfObjects < minNumber)
+		{
+			if (m_useDarkerLut)
+			{
+				rgbBorder = m_lutDarker->GetBelowRangeColor();
+			}
+			else
+			{
+				rgbBorder = m_lut->GetBelowRangeColor();
+			}
+
+			unsigned char ucrgb[3];
+			iACompVisOptions::getColorArray3(rgbBorder, ucrgb);
+			colorArray->InsertTuple3(i, ucrgb[0], ucrgb[1], ucrgb[2]);
+		}
+		else
+		{
+			if (m_useDarkerLut)
+			{
+				m_lutDarker->GetColor(numberOfObjects, rgb);
+			}
+			else
+			{
+				m_lut->GetColor(numberOfObjects, rgb);
+			}
+
+			unsigned char ucrgb[3];
+			iACompVisOptions::getColorArray3(rgb, ucrgb);
+			colorArray->InsertTuple3(i, ucrgb[0], ucrgb[1], ucrgb[2]);
+		}
+	}
+
+	polydata->GetPointData()->AddArray(originArray);
+	polydata->GetPointData()->AddArray(point1Array);
+	polydata->GetPointData()->AddArray(point2Array);
+	polydata->GetCellData()->AddArray(colorArray);
+	polydata->GetCellData()->SetActiveScalars("colorArray");
+
+	m_uniformBinningData->storeBinPolyData(polydata);
+
+	vtkSmartPointer<vtkPlaneSource> planeSource = vtkSmartPointer<vtkPlaneSource>::New();
+	planeSource->SetOutputPointsPrecision(vtkAlgorithm::DOUBLE_PRECISION);
+	planeSource->SetCenter(0, 0, 0);
+	planeSource->Update();
+
+	vtkSmartPointer<vtkProgrammableGlyphFilter> glypher = vtkSmartPointer<vtkProgrammableGlyphFilter>::New();
+	glypher->SetInputData(polydata);
+	glypher->SetSourceData(planeSource->GetOutput());
+	glypher->SetGlyphMethod(buildGlyphRepresentation, glypher);
+	glypher->Update();
+
+	vtkSmartPointer<vtkPolyDataMapper> glyphMapper = vtkSmartPointer<vtkPolyDataMapper>::New();
+	glyphMapper->SetInputConnection(glypher->GetOutputPort());
+	glyphMapper->SetColorModeToDefault();
+	glyphMapper->SetScalarModeToUseCellData();
+	glyphMapper->GetInput()->GetCellData()->SetScalars(colorArray);
+	glyphMapper->ScalarVisibilityOn();
 
 	vtkSmartPointer<vtkActor> actor = vtkSmartPointer<vtkActor>::New();
-	actor->SetMapper(mapper);
-
+	actor->SetMapper(glyphMapper);
 	if (!m_useDarkerLut)
-	{ //the edges of the cells are drawn
+	{  //the edges of the cells are drawn
 		actor->GetProperty()->EdgeVisibilityOn();
 		double col[3];
 		iACompVisOptions::getDoubleArray(iACompVisOptions::BACKGROUNDCOLOR_BLACK, col);
 		actor->GetProperty()->SetEdgeColor(col[0], col[1], col[2]);
-		actor->GetProperty()->SetLineWidth(actor->GetProperty()->GetLineWidth()*1.5);
+		actor->GetProperty()->SetLineWidth(actor->GetProperty()->GetLineWidth() * 1.5);
 	}
 	else
-	{ //not showing the edges of the cells
+	{  //not showing the edges of the cells
 		actor->GetProperty()->EdgeVisibilityOff();
 	}
 
 	m_mainRenderer->AddActor(actor);
 
-	//store row and for each row the index which dataset it is showing
 	m_originalPlaneActors->push_back(actor);
-	m_rowDataIndexPair->insert({ actor, currDataInd });
+	//store row and for each row the index which dataset it is showing
+	m_rowDataIndexPair->insert({actor, currDataInd});
+
+
+	//OLD CODE
+	//vtkSmartPointer<vtkPlaneSource> aPlane = vtkSmartPointer<vtkPlaneSource>::New();
+	//aPlane->SetXResolution(amountOfBins);
+	//aPlane->SetYResolution(m_ColForData);
+
+	double x = m_vis->getRowSize();
+	double y = (m_vis->getColSize() * currentColumn) + offset;
+	//aPlane->SetOrigin(0, y, 0.0);
+	//aPlane->SetPoint1(x, y, 0.0);               //width
+	//aPlane->SetPoint2(0, y + m_vis->getColSize(), 0.0);  // height
+	//aPlane->Update();
+
+	//vtkSmartPointer<vtkUnsignedCharArray> colorData = vtkSmartPointer<vtkUnsignedCharArray>::New();
+	//colorData->SetName("colors");
+	//colorData->SetNumberOfComponents(3);
+	//colorRow(colorData, currDataInd, amountOfBins);
+	//aPlane->GetOutput()->GetCellData()->SetScalars(colorData);
+
+	//// Setup actor and mapper
+	//vtkSmartPointer<vtkPolyDataMapper> mapper = vtkSmartPointer<vtkPolyDataMapper>::New();
+	//mapper->SetInputConnection(aPlane->GetOutputPort());
+	//mapper->SetScalarModeToUseCellData();
+	//mapper->Update();
+
+	//vtkSmartPointer<vtkActor> actor = vtkSmartPointer<vtkActor>::New();
+	//actor->SetMapper(mapper);
+
+	//if (!m_useDarkerLut)
+	//{ //the edges of the cells are drawn
+	//	actor->GetProperty()->EdgeVisibilityOn();
+	//	double col[3];
+	//	iACompVisOptions::getDoubleArray(iACompVisOptions::BACKGROUNDCOLOR_BLACK, col);
+	//	actor->GetProperty()->SetEdgeColor(col[0], col[1], col[2]);
+	//	actor->GetProperty()->SetLineWidth(actor->GetProperty()->GetLineWidth()*1.5);
+	//}
+	//else
+	//{ //not showing the edges of the cells
+	//	actor->GetProperty()->EdgeVisibilityOff();
+	//}
+
+	//m_mainRenderer->AddActor(actor);
+
+	////store row and for each row the index which dataset it is showing
+	//m_originalPlaneActors->push_back(actor);
+	//m_rowDataIndexPair->insert({ actor, currDataInd });
 
 	//add name of dataset/row
 	double pos[3] = { -(m_vis->getRowSize()) * 0.05, y + (m_vis->getColSize()* 0.5), 0.0 };
 	addDatasetName(currDataInd, pos);
 
-	return aPlane;
+	//return aPlane;
+	return nullptr;
 }
 
 void iACompUniformTable::colorRow(vtkUnsignedCharArray* colors, int currDataset, int numberOfBins)
@@ -1197,8 +1357,19 @@ void iACompUniformTable::storeBinData(int currDataInd, int currentColumn, double
 
 	for (int i = 0; i < numberOfBins; i++)
 	{
-		double xMin = min_x + (((max_x - min_x) / numberOfBins) * i);
-		double xMax = min_x + (((max_x - min_x) / numberOfBins) * (i + 1));
+		//compute bin boundaries in drawing coordinates
+		double minBoundary = m_uniformBinningData->getBinBoundaries()->at(currDataInd).at(i);
+		double xMin = iACompVisOptions::histogramNormalization(
+			minBoundary, min_x, max_x, m_uniformBinningData->getMinVal(), m_uniformBinningData->getMaxVal());
+
+		double maxBoundary = m_uniformBinningData->getMaxVal();
+		if (i != numberOfBins - 1)
+		{
+			maxBoundary = m_uniformBinningData->getBinBoundaries()->at(currDataInd).at(i + 1);
+		}
+		double xMax = iACompVisOptions::histogramNormalization(
+			maxBoundary, min_x, max_x, m_uniformBinningData->getMinVal(), m_uniformBinningData->getMaxVal());
+
 		originArray->InsertTuple3(i, xMin, min_y, 0.0);
 		point1Array->InsertTuple3(i, xMax, min_y, 0.0);   //width
 		point2Array->InsertTuple3(i, xMin, max_y, 0.0);  //height

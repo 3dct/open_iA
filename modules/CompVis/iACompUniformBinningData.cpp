@@ -32,3 +32,15 @@ void iACompUniformBinningData::setBinBoundaries(QList<std::vector<double>>* binB
 {
 	m_binsBoundaries = binBoundaries;
 }
+
+int iACompUniformBinningData::computeSturgesRule()
+{
+	//compute sturges rule according to dataset with the most elements in it
+	std::vector<int>* numberOfObjectsAllDatasets = this->getAmountObjectsEveryDataset();
+	auto result = std::minmax_element(std::begin(*numberOfObjectsAllDatasets), std::end(*numberOfObjectsAllDatasets));  
+	int n = *result.second; 
+
+	m_bins = 1 + std::log2(n);
+
+	return m_bins;
+}

@@ -18,8 +18,7 @@
 #include <QMessageBox>
 #include <QBoxLayout>
 
-iACompVisMain::iACompVisMain(iAMainWindow* mainWin):
-	m_mainWindow(mainWin)
+iACompVisMain::iACompVisMain(iAMainWindow* mainWin) : m_mainWindow(mainWin), m_computeMDSFlag(true)
 {
 	//load data
 	if (!loadData()) 
@@ -33,13 +32,14 @@ iACompVisMain::iACompVisMain(iAMainWindow* mainWin):
 	initializeCorrelationCoefficient();
 
 	//open iAMainWindow with its dockWidgets
-	m_mainW = new dlg_VisMainWindow(m_dataStorage->getData(), m_mds, m_mainWindow, this);
+	m_mainW = new dlg_VisMainWindow(m_dataStorage, m_mds, m_mainWindow, this, m_computeMDSFlag);
 
 	QVBoxLayout* layout1 = new QVBoxLayout;
 	m_mainW->centralwidget->setLayout(layout1);
 
 	//add histogram table
-	m_HistogramTableDockWidget = new iACompHistogramTable(mainWin, m_mds, m_dataStorage, this);
+	//m_HistogramTableDockWidget = new iACompHistogramTable(mainWin, m_mds, m_dataStorage, this);
+	m_HistogramTableDockWidget = new iACompHistogramTable(mainWin, m_dataStorage, this, m_computeMDSFlag);
 	layout1->addWidget(m_HistogramTableDockWidget->getHistogramTableVis());
 
 	QHBoxLayout* layout2 = new QHBoxLayout;
@@ -75,6 +75,7 @@ bool iACompVisMain::loadData()
 	}
 
 	m_dataStorage = dlg->getCsvDataStorage();
+	m_computeMDSFlag = dlg->getMDSState();
 
 	if(m_dataStorage->getDatasetNames()->size() == 0)
 	{

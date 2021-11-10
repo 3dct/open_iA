@@ -19,7 +19,8 @@ class dlg_VisMainWindow : public QMainWindow, public Ui_CompVisMainWindow
 	Q_OBJECT
 
    public:
-	dlg_VisMainWindow(QList<csvFileData>* data, iAMultidimensionalScaling* mds, iAMainWindow* parent, iACompVisMain* main);
+	dlg_VisMainWindow(iACsvDataStorage* dataStorage, iAMultidimensionalScaling* mds, iAMainWindow* parent,
+		iACompVisMain* main, bool computeMDSFlag);
 	QList<csvFileData>* getData();
 	void startMDSDialog();
 
@@ -42,6 +43,10 @@ class dlg_VisMainWindow : public QMainWindow, public Ui_CompVisMainWindow
 	QList<csvFileData>* m_data;
 	iAMultidimensionalScaling* m_mds;
 	dlg_MultidimensionalScalingDialog* m_MDSD;
+
+	iACsvDataStorage* m_dataStorage;
+
+	bool m_computeMDSFlag;
 	
 
    private slots:
