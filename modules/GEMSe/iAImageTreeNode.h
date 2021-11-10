@@ -39,7 +39,7 @@ class iASingleResult;
 typedef int ClusterIDType;
 typedef float ClusterDistanceType;
 
-typedef iAITKIO::ImagePointer ClusterImageType;
+using ClusterImageType = iAITKIO::ImagePointer;
 
 class vtkImageData;
 

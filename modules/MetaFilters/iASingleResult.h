@@ -21,6 +21,7 @@
 #pragma once
 
 #include "MetaFilters_export.h"
+#include "iAITKIO.h"
 
 #include <iAAttributes.h>
 #include <iAITKImageTypes.h>

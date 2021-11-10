@@ -39,7 +39,6 @@
 #include "iAObjectType.h"
 
 #include <dlg_modalities.h>
-#include <iAmat4.h>
 #include <iAMovieHelper.h>
 #include <iAModality.h>
 #include <iAModalityTransfer.h>
@@ -53,9 +52,6 @@
 
 // qthelper:
 #include <iADockWidgetWrapper.h>
-
-// charts:
-#include <iAChartWithFunctionsWidget.h>
 
 // base:
 #include <defines.h>    // for DIM
@@ -92,7 +88,6 @@
 #include <vtkNew.h>
 #include <vtkOpenGLRenderer.h>
 #include <vtkPen.h>
-#include <vtkPiecewiseFunction.h>
 #include <vtkPlot.h>
 #include <vtkPlotParallelCoordinates.h>
 #include <vtkPointData.h>
@@ -119,10 +114,8 @@
 #include <QFileDialog>
 #include <QFileInfo>
 #include <QHeaderView>
-#include <QInputDialog>
 #include <QMenu>
 #include <QMessageBox>
-#include <QProgressBar>
 #include <QPushButton>
 #include <QString>
 #include <QStandardItem>
@@ -131,7 +124,6 @@
 #include <QTableView>
 #include <QTreeView>
 #include <QtMath>
-#include <QXmlStreamReader>
 #include <QXmlStreamWriter>
 
 #include <cmath>
