@@ -20,6 +20,7 @@
 * ************************************************************************************/
 #pragma once
 
+class vtkCameraActor;
 class vtkRenderer;
 class vtkCamera;
 class vtkActor;
@@ -37,7 +38,7 @@ public:
 private:
 	vtkRenderer* m_ren;
 	vtkCamera* m_cam;
-	vtkSmartPointer<vtkActor> m_frustumActor;
+	vtkSmartPointer<vtkCameraActor> m_frustumActor;
 	bool m_visible;
 
 	void setupFrustumActor();

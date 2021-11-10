@@ -3,7 +3,7 @@
 #include "vtkRenderer.h"
 #include "vtkCamera.h"
 #include "vtkCameraActor.h"
-#include "vtkActor.h"
+#include "vtkCameraActor.h"
 #include <vtkFrustumSource.h>
 #include <vtkMapper.h>
 #include <vtkPolyDataMapper.h>
@@ -12,7 +12,7 @@
 #include <vtkShrinkPolyData.h>
 
 iAFrustumActor::iAFrustumActor(vtkRenderer* ren, vtkCamera* cam):
-	m_ren(ren), m_cam(cam), m_frustumActor(vtkSmartPointer<vtkActor>::New())
+	m_ren(ren), m_cam(cam), m_frustumActor(vtkSmartPointer<vtkCameraActor>::New())
 {
 	m_visible = false;
 	setupFrustumActor();
@@ -41,26 +41,29 @@ void iAFrustumActor::hide()
 //! Computes the frustum based on the given camera and creates a actor
 void iAFrustumActor::setupFrustumActor()
 {
-	double planesArray[24];
-	double aspect = m_ren->GetAspect()[0] / m_ren->GetAspect()[1];
 
-	m_cam->GetFrustumPlanes(aspect, planesArray);
+	m_frustumActor->SetCamera(m_cam);
 
-	vtkNew<vtkPlanes> planes;
-	planes->SetFrustumPlanes(planesArray);
+	//double planesArray[24];
+	//double aspect = m_ren->GetAspect()[0] / m_ren->GetAspect()[1];
 
-	vtkNew<vtkFrustumSource> frustumSource;
-	frustumSource->ShowLinesOff();
-	frustumSource->SetPlanes(planes);
+	//m_cam->GetFrustumPlanes(1.0, planesArray);
 
-	vtkNew<vtkShrinkPolyData> shrink;
-	shrink->SetInputConnection(frustumSource->GetOutputPort());
-	shrink->SetShrinkFactor(.9);
+	//vtkNew<vtkPlanes> planes;
+	//planes->SetFrustumPlanes(planesArray);
 
-	vtkNew<vtkPolyDataMapper> mapper;
-	mapper->SetInputConnection(shrink->GetOutputPort());
+	//vtkNew<vtkFrustumSource> frustumSource;
+	//frustumSource->ShowLinesOff();
+	//frustumSource->SetPlanes(planes);
 
-	m_frustumActor->SetMapper(mapper);
-	m_frustumActor->GetProperty()->SetColor(1.0, 0.50, 0.0);
-	m_frustumActor->GetProperty()->EdgeVisibilityOn();
+	//vtkNew<vtkShrinkPolyData> shrink;
+	//shrink->SetInputConnection(frustumSource->GetOutputPort());
+	//shrink->SetShrinkFactor(.9);
+
+	//vtkNew<vtkPolyDataMapper> mapper;
+	//mapper->SetInputConnection(shrink->GetOutputPort());
+
+	//m_frustumActor->SetMapper(mapper);
+	//m_frustumActor->GetProperty()->SetColor(1.0, 0.50, 0.0);
+	//m_frustumActor->GetProperty()->EdgeVisibilityOn();
 }
