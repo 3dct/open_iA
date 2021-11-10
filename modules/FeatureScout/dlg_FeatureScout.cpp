@@ -113,6 +113,7 @@
 #include <vtkStructuredGridGeometryFilter.h>
 #include <vtkTable.h>
 #include <vtkTextProperty.h>
+#include <vtkUnicodeString.h>
 #include <vtkVariantArray.h>
 
 #include <QFileDialog>
