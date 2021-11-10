@@ -421,7 +421,7 @@ void dlg_modalities::configureInterActorStyles(QSharedPointer<iAModality> editMo
 	//intialize slicers and 3D interactor for registration
 	for (int i = 0; i <= iASlicerMode::SlicerCount; ++i)
 	{
-		m_manualMoveStyle[i]->initialize(img, volRend, props, i, m_mdiChild);
+		m_manualMoveStyle[i]->initialize(img, volRend, props, i);
 	}
 }
 

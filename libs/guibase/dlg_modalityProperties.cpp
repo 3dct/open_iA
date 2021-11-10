@@ -23,7 +23,6 @@
 #include "iAModality.h"
 #include "iAToolsVTK.h"
 #include "iAVolumeRenderer.h"
-#include "iAMainWindow.h"
 
 #include <vtkVolume.h>
 #include <vtkVolumeProperty.h>
