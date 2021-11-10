@@ -30,8 +30,6 @@
 #include "iAQGLWidget.h"
 #include "iAStringHelper.h"
 
-#include <vtkMath.h>
-
 #include <QAction>
 #include <QApplication>    // for qApp->palette()
 #include <QFileDialog>
