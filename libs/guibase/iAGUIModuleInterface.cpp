@@ -28,7 +28,6 @@
 #include <itkMacro.h>    // for itk::ExceptionObject
 
 #include <QMenu>
-#include <QMessageBox>
 #include <QStatusBar>
 #include <QString>
 

@@ -23,16 +23,9 @@
 #include "iAVtkVersion.h"
 
 #include <QVTKInteractor.h>
-#include <vtkActor2D.h>
 #include <vtkActor2DCollection.h>
 #include <vtkCamera.h>
-#include <vtkCellArray.h>
 #include <vtkMath.h>
-#include <vtkPoints.h>
-#include <vtkPolyLine.h>
-#include <vtkPolyData.h>
-#include <vtkPolyDataMapper2D.h>
-#include <vtkProperty2D.h>
 #include <vtkRenderer.h>
 #include <vtkRendererCollection.h>
 #include <vtkRenderWindow.h>

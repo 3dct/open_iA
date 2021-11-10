@@ -24,14 +24,10 @@
 #include "iAToolsVTK.h"    // for mapVTKTypeToReadableDataType, readableDataTypes, ...
 
 #include <QComboBox>
-#include <QDialogButtonBox>
 #include <QFileInfo>
 #include <QLabel>
 #include <QLayout>
-#include <QPushButton>
 #include <QSpinBox>
-
-#include <cassert>
 
 namespace
 {

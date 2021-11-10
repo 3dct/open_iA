@@ -29,8 +29,6 @@
 #include "iATypedCallHelper.h"
 #include "iAVolumeRenderer.h"
 
-#include <vtkVolume.h>
-
 #include <cassert>
 #include <limits>
 

@@ -20,7 +20,6 @@
 * ************************************************************************************/
 #include "iAModuleDispatcher.h"
 
-#include "iALog.h"
 #include "iAFilter.h"
 #include "iAFilterRunnerRegistry.h"
 #include "iAFilterRunnerGUI.h"

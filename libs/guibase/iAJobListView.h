@@ -22,8 +22,6 @@
 
 #include "iAguibase_export.h"
 
-#include <QAtomicInteger>
-#include <QMap>
 #include <QStack>
 #include <QWidget>
 

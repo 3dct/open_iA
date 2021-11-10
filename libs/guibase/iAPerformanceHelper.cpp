@@ -24,8 +24,6 @@
 
 #include <QString>
 
-#include <iomanip>
-
 /*
  * Author:  David Robert Nadeau
  * Site:    http://NadeauSoftware.com/

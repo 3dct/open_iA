@@ -76,7 +76,6 @@
 #include <vtkColorTransferFunction.h>
 #include <vtkCornerAnnotation.h>
 #include <vtkGenericOpenGLRenderWindow.h>
-#include <vtkImageActor.h>
 #include <vtkImageExtractComponents.h>
 #include <vtkImageReslice.h>
 #include <vtkMath.h>
@@ -93,6 +92,7 @@
 // TODO: VOLUME: check all places using modality(0)->transfer() !
 
 #include <QByteArray>
+#include <QCloseEvent>
 #include <QFile>
 #include <QFileDialog>
 #include <QMainWindow>

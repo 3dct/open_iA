@@ -27,8 +27,6 @@
 
 #include <vtkCamera.h>
 #include <vtkCellPicker.h>
-#include <vtkCommand.h>
-#include <vtkImageActor.h>
 #include <vtkImageData.h>
 #include <vtkImageReslice.h>
 #include <vtkMath.h>

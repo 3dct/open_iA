@@ -21,7 +21,6 @@
 #include "iAAbstractMagicLensWidget.h"
 
 #include "defines.h" // for DefaultMagicLensSize
-#include "iALog.h"
 #include "iAVtkVersion.h"
 
 #include <QVTKInteractor.h>

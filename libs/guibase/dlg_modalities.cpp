@@ -21,7 +21,6 @@
 #include "dlg_modalities.h"
 
 #include "dlg_modalityProperties.h"
-#include "iAChannelData.h"
 #include "iAChannelSlicerData.h"
 #include "iALog.h"
 #include "iAFast3DMagicLensWidget.h"
@@ -41,18 +40,12 @@
 #include <QVTKInteractor.h>
 #include <vtkColorTransferFunction.h>
 #include <vtkImageData.h>
-#include <vtkInteractorStyleSwitch.h>
 #include <vtkPiecewiseFunction.h>
 #include <vtkRenderer.h>
-#include <vtkRendererCollection.h>
 #include <vtkRenderWindow.h>
-#include <vtkVolume.h>
 
 #include <QFileDialog>
-#include <QSettings>
 #include <QSignalBlocker>
-
-#include <cassert>
 
 
 dlg_modalities::dlg_modalities(iAFast3DMagicLensWidget* magicLensWidget,

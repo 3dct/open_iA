@@ -24,7 +24,6 @@
 
 #include <vtkSmartPointer.h>
 
-#include <QtGui/QPalette>
 #include <QTimer>
 
 #include <vector>
