@@ -282,7 +282,7 @@ namespace
 				if (!ok)
 				{
 					std::cout << "Invalid value '" << args[a].toStdString()
-							  << "' for input separation, expected a int!\n";
+					          << "' for input separation, expected a int!\n";
 					return 1;
 				}
 				filter->setFirstInputChannels(inputSeparation);
@@ -299,7 +299,7 @@ namespace
 					if (!ok)
 					{
 						std::cout << "Invalid value '" << args[a].toStdString()
-								  << "' for log level, expected an int between 1 and 5!\n";
+						          << "' for log level, expected an int between 1 and 5!\n";
 					}
 					else
 					{
@@ -418,7 +418,7 @@ namespace
 				for (int p = 0; p < parameters.size(); ++p)
 				{
 					std::cout << "    " << filter->parameters()[p]->name().toStdString()
-						<< "=" << parameters[filter->parameters()[p]->name()].toString().toStdString() << std::endl;
+					          << "=" << parameters[filter->parameters()[p]->name()].toString().toStdString() << std::endl;
 				}
 			}
 			iAProgress progress;
