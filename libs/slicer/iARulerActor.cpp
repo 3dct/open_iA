@@ -27,16 +27,9 @@
 #include <vtkCellData.h>
 #include <vtkCommand.h>
 #include <vtkCoordinate.h>
-#include <vtkEvent.h>
 #include <vtkMath.h>
 #include <vtkObjectFactory.h>
-#include <vtkPoints.h>
-#include <vtkPolyData.h>
-#include <vtkPolyDataMapper2D.h>
 #include <vtkRenderer.h>
-#include <vtkTextMapper.h>
-#include <vtkTextProperty.h>
-#include <vtkUnsignedCharArray.h>
 #include <vtkWindow.h>
 
 #include <algorithm>

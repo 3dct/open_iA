@@ -24,8 +24,8 @@
 
 #include <vtkSmartPointer.h>
 
-#include <QContiguousCache>
 #include <QSharedPointer>
+#include <QVector>
 
 class QWidget;
 

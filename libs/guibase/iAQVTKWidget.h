@@ -22,7 +22,7 @@
 
 #include "iAguibase_export.h"
 
-#include "iAVtkVersion.h"
+#include <iAVtkVersion.h>    // required for VTK < 9.0
 
 #if (VTK_VERSION_NUMBER >= VTK_VERSION_CHECK(8, 2, 0))
 	#include <QVTKOpenGLNativeWidget.h>

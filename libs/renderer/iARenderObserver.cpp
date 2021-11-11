@@ -20,13 +20,18 @@
 * ************************************************************************************/
 #include "iARenderObserver.h"
 
-#include <vtkImageData.h>
-#include <vtkActorCollection.h>
 #include <vtkCamera.h>
+#include <vtkCellLocator.h>
+#include <vtkImageData.h>
+#include <vtkLineSource.h>
 #include <vtkMath.h>
+#include <vtkMatrix4x4.h>
+#include <vtkNew.h>
 #include <vtkPlane.h>
 #include <vtkPointData.h>
-#include <vtkSmartPointer.h>
+#include <vtkProbeFilter.h>
+#include <vtkTransform.h>
+#include <vtkWorldPointPicker.h>
 
 #include <QTextStream>
 
@@ -182,7 +187,7 @@ void iARenderObserver::Execute(vtkObject * caller,
 					double origin[3];
 					PickVolume(origin);
 
-					vtkSmartPointer<vtkMatrix4x4> matrix = vtkSmartPointer<vtkMatrix4x4>::New();
+					vtkNew<vtkMatrix4x4> matrix;
 					matrix->DeepCopy(m_pTrans->GetMatrix());
 					matrix->SetElement(0, 3, origin[0]);
 					matrix->SetElement(1, 3, origin[1]);

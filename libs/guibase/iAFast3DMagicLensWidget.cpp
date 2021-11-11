@@ -20,7 +20,7 @@
 * ************************************************************************************/
 #include "iAFast3DMagicLensWidget.h"
 
-#include "iAVtkVersion.h"
+#include <iAVtkVersion.h>    // required for VTK < 9.0
 
 #include <QVTKInteractor.h>
 #include <vtkActor2DCollection.h>

@@ -25,7 +25,7 @@
 #include <vtkOutputWindow.h>
 #include <vtkObjectFactory.h>
 
-#include <iAVtkVersion.h>
+#include <iAVtkVersion.h>    // required for VTK < 9.0
 
 //! Redirects all log output from VTK to the LOG macro (i.e. iALog)
 class iALogRedirectVTK : public vtkOutputWindow

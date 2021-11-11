@@ -12,7 +12,7 @@
 =========================================================================*/
 #include "iAvtkTubeFilter.h"
 
-#include <iAVtkVersion.h>
+#include <iAVtkVersion.h>    // required for VTK < 9.0
 
 #include <vtkCellArray.h>
 #include <vtkCellData.h>

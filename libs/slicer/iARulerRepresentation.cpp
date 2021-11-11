@@ -20,15 +20,14 @@
 * ************************************************************************************/
 #include "iARulerRepresentation.h"
 
+#include <iAVtkVersion.h>    // required for VTK < 9.0
+
 #include "iARulerActor.h"
-#include <iAVtkVersion.h>
 
 #include <vtkObjectFactory.h>
 #include <vtkPropCollection.h>
 #include <vtkSmartPointer.h>
-#include <vtkTextProperty.h>
 #include <vtkActor2D.h>
-#include <vtkMapper2D.h>
 
 
 vtkStandardNewMacro(iARulerRepresentation);

@@ -28,7 +28,7 @@
 
 #include "iALogger.h"
 
-#include <QString>
+#include <QString>    // do not remove! required for linux build!
 
 //! Singleton providing access to the global logger object.
 //! Before first access (via get()), a specific logger needs to be set

@@ -45,7 +45,6 @@
 #include <vtkColorTransferFunction.h>
 #include <vtkImageData.h>
 #include <vtkLookupTable.h>
-#include <vtkMetaImageWriter.h>
 #include <vtkPiecewiseFunction.h>
 
 #include <QLabel>

@@ -24,7 +24,6 @@
 #include "iARulerRepresentation.h"
 
 #include <vtkCallbackCommand.h>
-#include <vtkCoordinate.h>
 #include <vtkObjectFactory.h>
 #include <vtkRenderer.h>
 #include <vtkRenderWindow.h>  // for VTK_CURSOR_DEFAULT
