@@ -22,6 +22,7 @@
 
 // Qt
 #include <QHash>
+#include <QVector>
 
 namespace iA4DCTDefects
 {
