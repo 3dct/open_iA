@@ -23,13 +23,9 @@
 #include "iA4DCTMainWin.h"
 #include "iA4DCTData.h"
 
-#include <QFileInfo>
 #include <QDir>
-#include <QVector>
 #include <QXmlStreamWriter>
-#include <QDomDocument>
 #include <QDomElement>
-#include <QDomNodeList>
 
 void iA4DCTProjectReaderWriter::save( iA4DCTMainWin * mainWin, QString path )
 {

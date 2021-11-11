@@ -21,8 +21,6 @@
 #pragma once
 
 // Qt
-#include <QVector>
-#include <QString>
 #include <QHash>
 
 namespace iA4DCTDefects

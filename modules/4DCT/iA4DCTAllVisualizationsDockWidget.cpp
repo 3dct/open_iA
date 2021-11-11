@@ -24,7 +24,6 @@
 #include "iAVisModuleItem.h"
 #include "iAVisModule.h"
 
-#include <QStringList>
 #include <QModelIndex>
 #include <QVector>
 #include <QMessageBox>
