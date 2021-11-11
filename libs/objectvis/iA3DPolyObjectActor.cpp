@@ -42,16 +42,16 @@ iA3DPolyObjectActor::iA3DPolyObjectActor(vtkRenderer* ren, iA3DColoredPolyObject
 	m_outlineMapper(vtkSmartPointer<vtkPolyDataMapper>::New()),
 	m_outlineActor(vtkSmartPointer<vtkActor>::New())
 {
-	if (obj->output())
+	if (obj->finalPolyData())
 	{
-		m_mapper->SetInputConnection(obj->output());
-		m_outlineFilter->SetInputConnection(obj->output());
+		m_polyData = obj->finalPolyData();
 	}
 	else
 	{
-		m_mapper->SetInputData(obj->polyData());
-		m_outlineFilter->SetInputData(obj->polyData());
+		m_polyData = obj->polyData();
 	}
+	m_mapper->SetInputData(m_polyData);
+	m_outlineFilter->SetInputData(m_polyData);
 	m_mapper->SetScalarModeToUsePointFieldData();
 	m_mapper->ScalarVisibilityOn();
 	m_mapper->SelectColorArray("Colors");
@@ -138,12 +138,6 @@ void iA3DPolyObjectActor::hideBoundingBox()
 
 void iA3DPolyObjectActor::setShowSimple(bool simple)
 {
-	if (m_obj->output() == nullptr)
-	{
-		LOG(lvlWarn,
-			"iA3DPolyObjectActor::setShowSimple called on visualization which has no 'complex' visualization to show "
-			"anyway...");
-	}
 	m_simple = simple;
 	if (m_simple)
 	{
@@ -151,7 +145,7 @@ void iA3DPolyObjectActor::setShowSimple(bool simple)
 	}
 	else
 	{
-		m_mapper->SetInputConnection(m_obj->output());
+		m_mapper->SetInputData(m_obj->finalPolyData());
 	}
 }
 

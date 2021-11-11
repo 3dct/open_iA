@@ -37,7 +37,7 @@ public:
 	void setSelection(std::vector<size_t> const & sortedSelInds, bool selectionActive) override;
 	QString visualizationStatistics() const override;
 	vtkPolyData* finalPolyData() override;
-	vtkAlgorithmOutput* output() override;
+	//vtkAlgorithmOutput* output() override;
 	std::vector<vtkSmartPointer<vtkPolyData>> extractSelectedObjects(QColor c) const override;
 
 private:

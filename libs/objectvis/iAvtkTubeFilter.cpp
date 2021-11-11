@@ -299,6 +299,7 @@ int iAvtkTubeFilter::RequestData(
     // Generate the points around the polyline. The tube is not stripped
     // if the polyline is bad.
     //
+	//TODO: Check Points Before
     if ( !this->GeneratePoints(offset,npts,pts,inPts,newPts,pd,outPD,
                                newNormals,inScalars,range,inVectors,
                                maxSpeed,inNormals) )
@@ -306,7 +307,8 @@ int iAvtkTubeFilter::RequestData(
       vtkWarningMacro(<< "Could not generate points!");
       continue; //skip tubing this polyline
     }
-
+	//TODO: Check Points After Tube
+    
     // Generate the strips for this polyline (including caps)
     //
     this->GenerateStrips(offset,npts,pts,inCellId,cd,outCD,newStrips);

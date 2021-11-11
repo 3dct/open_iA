@@ -97,14 +97,14 @@ void iAXVRAModuleInterface::startXVRA()
 	/***** Add Camera Frustum *****/
 
 	//Get camera from featureScout
-	vtkSmartPointer<vtkCamera> fsCam = m_mainWnd->activeMdiChild()->renderer()->camera(); //m_mainWnd->activeMdiChild()->renderer()->renderer()->GetActiveCamera();
+	//vtkSmartPointer<vtkCamera> fsCam = m_mainWnd->activeMdiChild()->renderer()->camera(); //m_mainWnd->activeMdiChild()->renderer()->renderer()->GetActiveCamera();
 
-	//Get camera from featureScout
-	vtkSmartPointer<vtkCamera> vrCam = m_vrMain->getRenderer()->GetActiveCamera();
+	////Get camera from featureScout
+	//vtkSmartPointer<vtkCamera> vrCam = m_vrMain->getRenderer()->GetActiveCamera();
 
-	vrFrustum = new iAFrustumActor(m_vrMain->getRenderer(), fsCam); // frustum of featurescout shown in vr
-	fsFrustum = new iAFrustumActor(m_mainWnd->activeMdiChild()->renderer()->renderer(), vrCam); // frustum of vr shown in featurescout
+	//vrFrustum = new iAFrustumActor(m_vrMain->getRenderer(), fsCam); // frustum of featurescout shown in vr
+	//fsFrustum = new iAFrustumActor(m_mainWnd->activeMdiChild()->renderer()->renderer(), vrCam); // frustum of vr shown in featurescout
 
-	fsFrustum->show();
-	vrFrustum->show();
+	//fsFrustum->show();
+	//vrFrustum->show();
 }

@@ -31,6 +31,7 @@ class iA3DColoredPolyObjectVis;
 class vtkActor;
 class vtkOutlineFilter;
 class vtkPlane;
+class vtkPolyData;
 class vtkPolyDataMapper;
 class vtkRenderer;
 
@@ -78,4 +79,6 @@ private:
 	vtkSmartPointer<vtkOutlineFilter> m_outlineFilter;
 	vtkSmartPointer<vtkPolyDataMapper> m_outlineMapper;
 	vtkSmartPointer<vtkActor> m_outlineActor;
+
+	vtkSmartPointer<vtkPolyData> m_polyData;
 };

@@ -73,7 +73,7 @@ public:
 	//! @return the number of points in all objects, i.e. the sum of objectPointCount over all object indices.
 	IndexType allPointCount() const;
 
-	virtual vtkAlgorithmOutput* output();
+	//virtual vtkAlgorithmOutput* output();
 
 	//! create "actor" class for visualizing this data collection
 	QSharedPointer<iA3DObjectActor> createActor(vtkRenderer* ren) override;

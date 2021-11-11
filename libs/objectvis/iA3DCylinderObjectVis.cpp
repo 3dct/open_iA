@@ -135,10 +135,12 @@ vtkPolyData* iA3DCylinderObjectVis::finalPolyData()
 	return m_tubeFilter->GetOutput();
 }
 
+/*
 vtkAlgorithmOutput* iA3DCylinderObjectVis::output()
 {
 	return m_tubeFilter->GetOutputPort();
 }
+*/
 
 std::vector<vtkSmartPointer<vtkPolyData>> iA3DCylinderObjectVis::extractSelectedObjects(QColor color) const
 {

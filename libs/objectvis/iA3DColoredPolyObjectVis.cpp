@@ -272,11 +272,12 @@ iA3DColoredPolyObjectVis::IndexType iA3DColoredPolyObjectVis::allPointCount() co
 	}
 	return pointCount;
 }
-
+/*
 vtkAlgorithmOutput* iA3DColoredPolyObjectVis::output()
 {
 	return nullptr;
 }
+*/
 
 QSharedPointer<iA3DObjectActor> iA3DColoredPolyObjectVis::createActor(vtkRenderer* ren)
 {
