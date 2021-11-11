@@ -120,11 +120,11 @@ void relabelComponentImageFilter(iAFilter* filter, QMap<QString, QVariant> const
 		long int no_of_Objects = rccFilter->GetNumberOfObjects();
 		std::ofstream myfile;
 		myfile.open(getLocalEncodingFileName(parameters["Label file"].toString()));
-		myfile << " Total Objects " << "," << no_of_Objects << endl;
-		myfile << "Object Number" << "," << "Object Size (PhysicalUnits)" << endl;
+		myfile << " Total Objects " << "," << no_of_Objects << "\n";
+		myfile << "Object Number" << "," << "Object Size (PhysicalUnits)\n";
 		for (int i = 0; i < no_of_Objects; i++)
 		{
-			myfile << i << "," << rccFilter->GetSizeOfObjectsInPhysicalUnits()[i] << endl;
+			myfile << i << "," << rccFilter->GetSizeOfObjectsInPhysicalUnits()[i] << "\n";
 		}
 		myfile.close();
 	}

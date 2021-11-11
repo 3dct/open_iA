@@ -125,9 +125,9 @@ void iARulerWidget::MoveAction(vtkAbstractWidget *w)
 }
 
 
-void iARulerWidget::PrintSelf(ostream& os, vtkIndent indent)
+void iARulerWidget::PrintSelf(std::ostream& os, vtkIndent indent)
 {
 	this->Superclass::PrintSelf(os,indent);
 
-	os << indent << "Repositionable: " << this->Repositionable << endl;
+	os << indent << "Repositionable: " << this->Repositionable << "\n";
 }

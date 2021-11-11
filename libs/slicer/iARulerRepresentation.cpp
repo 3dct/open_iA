@@ -66,11 +66,11 @@ void iARulerRepresentation::SetScalarBarActor(iARulerActor* actor)
 }
 
 
-void iARulerRepresentation::PrintSelf(ostream &os, vtkIndent indent)
+void iARulerRepresentation::PrintSelf(std::ostream &os, vtkIndent indent)
 {
 	this->Superclass::PrintSelf(os, indent);
 
-	os << indent << "RulerActor: " << this->RulerActor << endl;
+	os << indent << "RulerActor: " << this->RulerActor << "\n";
 }
 
 

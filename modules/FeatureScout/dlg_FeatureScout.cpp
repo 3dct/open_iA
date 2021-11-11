@@ -1364,9 +1364,9 @@ void dlg_FeatureScout::CsvDVSaveButton()
 				file << QString("%1 Distribution of '%2'")
 					.arg(m_csvTable->GetColumnName(characteristicsList.at(characteristicIdx)))
 					.arg(m_activeClassItem->text()).toStdString()
-					<< endl;
+					<< "\n";
 
-				file << "HistoBinID;" << "HistoBinCenter" << "Frequency;" << endl;
+				file << "HistoBinID;" << "HistoBinCenter" << "Frequency;" << "\n";
 
 				for (vtkIdType row = 0; row < tRowNb; ++row)
 				{
@@ -1380,7 +1380,7 @@ void dlg_FeatureScout::CsvDVSaveButton()
 								<< std::setprecision(20) << tVal.ToDouble() << ";";
 							break;
 						case 1:
-							file << tVal.ToTypeUInt64() << endl;
+							file << tVal.ToTypeUInt64() << "\n";
 							break;
 						}
 					}
