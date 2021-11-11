@@ -31,6 +31,7 @@
 #include <QProgressBar>
 #include <QTimer>
 #include <QToolButton>
+#include <QVariant>
 #include <QVBoxLayout>
 
 #include <chrono>

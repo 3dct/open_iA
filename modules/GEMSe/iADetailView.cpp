@@ -59,6 +59,7 @@
 #include <QSplitter>
 #include <QStandardItemModel>
 #include <QTextEdit>
+#include <QThread>
 
 iADetailView::iADetailView(
 		iAImagePreviewWidget* prevWdgt,

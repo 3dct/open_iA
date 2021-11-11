@@ -24,6 +24,8 @@
 
 #include <QString>
 
+#include <chrono>
+
 /*
  * Author:  David Robert Nadeau
  * Site:    http://NadeauSoftware.com/
