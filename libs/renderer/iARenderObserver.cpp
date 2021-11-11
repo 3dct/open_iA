@@ -192,7 +192,7 @@ void iARenderObserver::Execute(vtkObject * caller,
 					matrix->SetElement(0, 3, origin[0]);
 					matrix->SetElement(1, 3, origin[1]);
 					matrix->SetElement(2, 3, origin[2]);
-					m_pTrans->SetMatrix(matrix);
+					m_pTrans->SetMatrix(matrix.GetPointer());
 				}
 				break;
 				case '1':
