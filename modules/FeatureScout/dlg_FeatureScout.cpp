@@ -179,6 +179,27 @@ namespace
 			return QSharedPointer<iA3DNoVis>::create();
 		}
 	}
+
+	float calculateAverage(vtkDataArray* arr)
+	{
+		double sum = 0.0;
+		for (int i = 0; i < arr->GetNumberOfTuples(); ++i)
+		{
+			sum = sum + arr->GetVariantValue(i).ToDouble();
+		}
+		return sum / arr->GetNumberOfTuples();
+	}
+
+	QList<QStandardItem*> prepareRow(const QString& first, const QString& second, const QString& third)
+	{
+		// prepare the class header rows for class tree view first grade child unter rootitem
+		// for adding child object to this class, use item.first()->appendRow()
+		QList<QStandardItem*> rowItems;
+		rowItems << new QStandardItem(first);
+		rowItems << new QStandardItem(second);
+		rowItems << new QStandardItem(third);
+		return rowItems;
+	}
 }
 
 // define class here directly instead of using iAQTtoUIConnector; when using iAQTtoUIConnector we cannot forward-define because of the templates!
@@ -501,7 +522,7 @@ void dlg_FeatureScout::calculateElementTable()
 		mmr->GetRange(range);
 		v1Arr->SetValue(i, range[0]);
 		v2Arr->SetValue(i, range[1]);
-		v3Arr->SetValue(i, this->calculateAverage(mmr));
+		v3Arr->SetValue(i, calculateAverage(mmr));
 	}
 
 	// add new values
@@ -678,31 +699,6 @@ void dlg_FeatureScout::PrintTableList(const QList<vtkSmartPointer<vtkTable>>& Ou
 }
 */
 // END DEBUG FUNCTIONS
-
-float dlg_FeatureScout::calculateAverage(vtkDataArray* arr)
-{
-	double av = 0.0;
-	double sum = 0.0;
-
-	for (int i = 0; i < arr->GetNumberOfTuples(); ++i)
-	{
-		sum = sum + arr->GetVariantValue(i).ToDouble();
-	}
-
-	av = sum / arr->GetNumberOfTuples();
-	return av;
-}
-
-QList<QStandardItem*> dlg_FeatureScout::prepareRow(const QString& first, const QString& second, const QString& third)
-{
-	// prepare the class header rows for class tree view first grade child unter rootitem
-	// for adding child object to this class, use item.first()->appendRow()
-	QList<QStandardItem*> rowItems;
-	rowItems << new QStandardItem(first);
-	rowItems << new QStandardItem(second);
-	rowItems << new QStandardItem(third);
-	return rowItems;
-}
 
 void dlg_FeatureScout::setupConnections()
 {
@@ -1714,7 +1710,7 @@ void dlg_FeatureScout::ClassLoadButton()
 				const QString count = reader.attributes().value(CountAttribute).toString();
 				const QString percent = reader.attributes().value(PercentAttribute).toString();
 
-				QList<QStandardItem*> stammItem = this->prepareRow(name, count, percent);
+				QList<QStandardItem*> stammItem = prepareRow(name, count, percent);
 				stammItem.first()->setData(QColor(color), Qt::DecorationRole);
 				m_colorList.append(QColor(color));
 				rootItem->appendRow(stammItem);
@@ -2906,10 +2902,10 @@ void dlg_FeatureScout::updatePolarPlotView(vtkTable* it)
 
 void dlg_FeatureScout::setupPolarPlotResolution(float grad)
 {
-	m_gPhi = vtkMath::Floor(360.0 / grad);
-	m_gThe = vtkMath::Floor(90.0 / grad);
-	m_PolarPlotPhiResolution = 360.0 / m_gPhi;
-	m_PolarPlotThetaResolution = 90.0 / m_gThe;
+	m_gPhi = vtkMath::Floor(360.0f / grad);
+	m_gThe = vtkMath::Floor(90.0f / grad);
+	m_PolarPlotPhiResolution = 360.0f / m_gPhi;
+	m_PolarPlotThetaResolution = 90.0f / m_gThe;
 	m_gThe = m_gThe + 1;
 }
 

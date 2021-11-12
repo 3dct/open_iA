@@ -153,7 +153,6 @@ private:
 	std::vector<size_t> getPCSelection();
 	void updateAxisProperties();               //!< set properties for all axes in parallel coordinates: font size, tick count
 	//! @}
-	float calculateAverage(vtkDataArray* arr); //!< calculate the average value of a 1D array
 	void calculateElementTable();
 	void setActiveClassItem(QStandardItem* item, int situ = 0);
 	double calculateOpacity(QStandardItem *item);
@@ -161,7 +160,6 @@ private:
 	void updateLookupTable(double alpha = 0.7);
 	void updateClassStatistics(QStandardItem *item);
 	int calcOrientationProbability(vtkTable *t, vtkTable *ot);
-	QList<QStandardItem *> prepareRow(const QString &first, const QString &second, const QString &third);
 	void writeClassesAndChildren(QXmlStreamWriter *writer, QStandardItem *item);
 	void writeWisetex(QXmlStreamWriter *writer);
 	//void autoAddClass(int NbOfClasses);
