@@ -211,7 +211,7 @@ dlg_FeatureScout::dlg_FeatureScout(iAMdiChild* parent, iAObjectType fid, QString
 	m_multiClassLUT(vtkSmartPointer<vtkLookupTable>::New()),
 	m_classTreeModel(new QStandardItemModel()),
 	m_elementTableModel(nullptr),
-	m_pcLineWidth(0.1),
+	m_pcLineWidth(0.1f),
 	m_pcFontSize(15),
 	m_pcTickCount(10),
 	m_pcOpacity(90),
@@ -222,9 +222,9 @@ dlg_FeatureScout::dlg_FeatureScout(iAMdiChild* parent, iAObjectType fid, QString
 	m_dwDV(nullptr),
 	m_dwSPM(nullptr),
 	m_dwPP(nullptr),
+	m_ui(new Ui_FeatureScoutCE),
 	m_columnMapping(columnMapping),
-	m_splom(new iAFeatureScoutSPLOM()),
-	m_ui(new Ui_FeatureScoutCE)
+	m_splom(new iAFeatureScoutSPLOM())
 {
 	m_ui->setupUi(this);
 	this->setupPolarPlotResolution(3.0);
@@ -529,7 +529,11 @@ void dlg_FeatureScout::initElementTableModel(int idx)
 				QString str;
 				if (j == 0)
 				{
+#if VTK_VERSION_NUMBER < VTK_VERSION_CHECK(9, 1, 0)
 					str = QString::fromUtf8(v.ToUnicodeString().utf8_str()).trimmed();
+#else
+					str = QString::fromUtf8(v.ToString().c_str()).trimmed();
+#endif
 				}
 				else
 				{
@@ -583,7 +587,11 @@ void dlg_FeatureScout::initClassTreeModel()
 	for (int i = 0; i < m_objectCount; ++i)
 	{
 		vtkVariant v = m_chartTable->GetColumn(0)->GetVariantValue(i);
+#if VTK_VERSION_NUMBER < VTK_VERSION_CHECK(9, 1, 0)
 		QStandardItem* item = new QStandardItem(QString::fromUtf8(v.ToUnicodeString().utf8_str()).trimmed());
+#else
+		QStandardItem* item = new QStandardItem(QString::fromUtf8(v.ToString().c_str()).trimmed());
+#endif
 		stammItem.first()->appendRow(item);
 	}
 	m_activeClassItem = stammItem.first();
@@ -2313,9 +2321,14 @@ void dlg_FeatureScout::writeClassesAndChildren(QXmlStreamWriter* writer, QStanda
 			for (int j = 0; j < m_elementCount; ++j)
 			{
 				vtkVariant v = m_csvTable->GetValue(item->child(i)->text().toInt() - 1, j);
-				QString str = QString::fromUtf8(v.ToUnicodeString().utf8_str()).trimmed();
 				vtkVariant v1 = m_elementTable->GetValue(j, 0);
+#if VTK_VERSION_NUMBER < VTK_VERSION_CHECK(9, 1, 0)
+				QString str = QString::fromUtf8(v.ToUnicodeString().utf8_str()).trimmed();
 				QString str1 = filterToXMLAttributeName(QString::fromUtf8(v1.ToUnicodeString().utf8_str()).trimmed());
+#else
+				QString str = QString::fromUtf8(v.ToString().c_str()).trimmed();
+				QString str1 = filterToXMLAttributeName(QString::fromUtf8(v1.ToString().c_str()).trimmed());
+#endif
 				writer->writeAttribute(str1, str);
 			}
 			writer->writeEndElement(); // end object tag
