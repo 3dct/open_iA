@@ -2287,18 +2287,18 @@ namespace
 	QString filterToXMLAttributeName(QString const& str)
 	{
 		QString result(str);
-		QRegularExpression validFirstChar("^[a-zA-Z_:]");
+		const QRegularExpression validFirstChar("^[a-zA-Z_:]");
 		while (!validFirstChar.match(result).hasMatch() && result.size() > 0)
 		{
 			result.remove(0, 1);
 		}
-		QRegularExpression invalidChars("[^a-zA-Z0-9_:.-]");
+		const QRegularExpression invalidChars("[^a-zA-Z0-9_:.-]");
 		result.remove(invalidChars);
 		return result;
 	}
 }
 
-void dlg_FeatureScout::writeClassesAndChildren(QXmlStreamWriter* writer, QStandardItem* item)
+void dlg_FeatureScout::writeClassesAndChildren(QXmlStreamWriter* writer, QStandardItem* item) const
 {
 	// check if it is a class item
 	if (item->hasChildren())
