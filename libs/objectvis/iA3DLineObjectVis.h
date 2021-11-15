@@ -46,10 +46,10 @@ protected:
 	vtkSmartPointer<vtkPolyData> m_linePolyData;
 	vtkSmartPointer<vtkPoints> m_points;
 	std::map<size_t, std::vector<iAVec3f>> m_curvedFiberData;
-
-private:
 	//! maps the object ID to (first=) the first index in the points array that belongs to this object, and (second=) the number of points
 	std::vector<std::pair<IndexType, IndexType>> m_objectPointMap;
+private:
+
 	IndexType m_totalNumOfSegments;
 };
 

@@ -46,6 +46,9 @@ public:
 
   void SetIndividualFactors(float* indivFactors);
 
+  std::vector<std::pair<vtkIdType, vtkIdType>> GetFinalObjectPointMap();
+
+
   //! Construct object with radius 0.5, radius variation turned off, the
   //! number of sides set to 3, and radius factor of 10.
   static iAvtkTubeFilter *New();
@@ -188,6 +191,7 @@ protected:
   int OutputPointsPrecision;
   double TextureLength; //!< this length is mapped to [0,1) texture space
   float* IndividualFactors;
+  std::vector<std::pair<vtkIdType, vtkIdType>> m_finalObjectPointMap; //! maps the final object ID to (first=) the first index in the points array that belongs to this object, and (second=) the number of points
 
   // Helper methods
   int GeneratePoints(vtkIdType offset, vtkIdType npts, vtkIdType *pts,

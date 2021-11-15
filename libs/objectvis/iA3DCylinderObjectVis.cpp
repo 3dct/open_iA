@@ -60,6 +60,9 @@ iA3DCylinderObjectVis::iA3DCylinderObjectVis(vtkTable* objectTable, QSharedPoint
 	m_tubeFilter->SetNumberOfSides(numberOfCylinderSides);
 	m_tubeFilter->SetVaryRadiusToVaryRadiusByAbsoluteScalar();
 	m_tubeFilter->Update();
+	// add final point number
+	m_objectPointMap = m_tubeFilter->GetFinalObjectPointMap();
+	//auto number = m_tubeFilter->GetOutput()->GetPoints()->GetNumberOfPoints();
 }
 
 iA3DCylinderObjectVis::~iA3DCylinderObjectVis()
@@ -133,6 +136,16 @@ vtkPolyData* iA3DCylinderObjectVis::finalPolyData()
 {
 	m_tubeFilter->Update();
 	return m_tubeFilter->GetOutput();
+}
+
+iA3DObjectVis::IndexType iA3DCylinderObjectVis::finalObjectStartPointIdx(IndexType objIdx) const
+{
+	return m_finalObjectPointMap[objIdx].first;
+}
+
+iA3DObjectVis::IndexType iA3DCylinderObjectVis::finalObjectPointCount(IndexType objIdx) const
+{
+	return m_finalObjectPointMap[objIdx].second;
 }
 
 /*
