@@ -24,8 +24,6 @@
 #include "iAMapper.h"
 #include "iAMathUtility.h"
 
-#include <vtkImageData.h>
-
 #include <QPen>
 #include <QPainter>
 #include <QMouseEvent>

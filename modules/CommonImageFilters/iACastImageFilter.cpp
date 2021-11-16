@@ -29,7 +29,6 @@
 #include <iATypedCallHelper.h>
 #include <itkFHWRescaleIntensityImageFilter.h>
 
-#include <itkCastImageFilter.h>
 #include <itkImageRegionConstIterator.h>
 #include <itkImageRegionIterator.h>
 #include <itkImageIterator.h>

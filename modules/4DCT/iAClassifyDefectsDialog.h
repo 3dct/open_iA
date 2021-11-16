@@ -21,7 +21,6 @@
 #pragma once
 
 // qt
-#include <QDialog>
 // ui
 #include "ui_iAClassifyDefectsDialog.h"
 

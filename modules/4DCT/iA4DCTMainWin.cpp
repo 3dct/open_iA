@@ -29,31 +29,20 @@
 #include "iAPreviewMaker.h"
 #include "iAStageView.h"
 
-#include <iALog.h>
 #include <iAMainWindow.h>
 
 #include <itkImageFileReader.h>
-#include <itkImageRegionIterator.h>
 #include <itkImageFileWriter.h>
 
-#include <QDialog>
-#include <QDir>
 #include <QFileDialog>
 #include <QFileInfo>
 #include <QHBoxLayout>
 #include <QInputDialog>
-#include <QKeySequence>
-#include <QLabel>
-#include <QListView>
 #include <QPixmap>
 #include <QPlainTextEdit>
-#include <QPushButton>
 #include <QSettings>
 #include <QStringList>
-#include <QStringListModel>
 #include <QTextStream>
-#include <QVBoxLayout>
-#include <QXmlStreamWriter>
 
 iA4DCTMainWin::iA4DCTMainWin( iAMainWindow* parent /*= 0*/ )
 	: QMainWindow( parent )

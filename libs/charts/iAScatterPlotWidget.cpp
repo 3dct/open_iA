@@ -27,9 +27,6 @@
 #include "iAScatterPlotViewData.h"
 #include "iASPLOMData.h"
 
-#include <vtkLookupTable.h>
-#include <vtkSmartPointer.h>
-
 #include <QApplication>    // for qApp->palette()
 
 #include <QActionGroup>

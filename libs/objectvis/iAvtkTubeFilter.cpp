@@ -12,7 +12,7 @@
 =========================================================================*/
 #include "iAvtkTubeFilter.h"
 
-#include <iAVtkVersion.h>
+#include <iAVtkVersion.h>    // required for VTK < 9.0
 
 #include <vtkCellArray.h>
 #include <vtkCellData.h>
@@ -853,28 +853,24 @@ const char *iAvtkTubeFilter::GetGenerateTCoordsAsString(void)
   }
 }
 
-void iAvtkTubeFilter::PrintSelf(ostream& os, vtkIndent indent)
+void iAvtkTubeFilter::PrintSelf(std::ostream& os, vtkIndent indent)
 {
   this->Superclass::PrintSelf(os,indent);
 
   os << indent << "Radius: " << this->Radius << "\n";
-  os << indent << "Vary Radius: " << this->GetVaryRadiusAsString() << endl;
+  os << indent << "Vary Radius: " << this->GetVaryRadiusAsString() << "\n";
   os << indent << "Radius Factor: " << this->RadiusFactor << "\n";
   os << indent << "Number Of Sides: " << this->NumberOfSides << "\n";
   os << indent << "On Ratio: " << this->OnRatio << "\n";
   os << indent << "Offset: " << this->Offset << "\n";
-
   os << indent << "Use Default Normal: "
      << (this->UseDefaultNormal ? "On\n" : "Off\n");
   os << indent << "Sides Share Vertices: "
      << (this->SidesShareVertices ? "On\n" : "Off\n");
   os << indent << "Default Normal: " << "( " << this->DefaultNormal[0] <<
-     ", " << this->DefaultNormal[1] << ", " << this->DefaultNormal[2] <<
-     " )\n";
+     ", " << this->DefaultNormal[1] << ", " << this->DefaultNormal[2] <<" )\n";
   os << indent << "Capping: " << (this->Capping ? "On\n" : "Off\n");
-  os << indent << "Generate TCoords: "
-     << this->GetGenerateTCoordsAsString() << endl;
-  os << indent << "Texture Length: " << this->TextureLength << endl;
-  os << indent << "Output Points Precision: " << this->OutputPointsPrecision
-     << endl;
+  os << indent << "Generate TCoords: " << this->GetGenerateTCoordsAsString() << "\n";
+  os << indent << "Texture Length: " << this->TextureLength << "\n";
+  os << indent << "Output Points Precision: " << this->OutputPointsPrecision << "\n";
 }

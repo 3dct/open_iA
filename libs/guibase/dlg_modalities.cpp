@@ -21,7 +21,6 @@
 #include "dlg_modalities.h"
 
 #include "dlg_modalityProperties.h"
-#include "iAChannelData.h"
 #include "iAChannelSlicerData.h"
 #include "iALog.h"
 #include "iAFast3DMagicLensWidget.h"
@@ -41,18 +40,12 @@
 #include <QVTKInteractor.h>
 #include <vtkColorTransferFunction.h>
 #include <vtkImageData.h>
-#include <vtkInteractorStyleSwitch.h>
 #include <vtkPiecewiseFunction.h>
 #include <vtkRenderer.h>
-#include <vtkRendererCollection.h>
 #include <vtkRenderWindow.h>
-#include <vtkVolume.h>
 
 #include <QFileDialog>
-#include <QSettings>
 #include <QSignalBlocker>
-
-#include <cassert>
 
 
 dlg_modalities::dlg_modalities(iAFast3DMagicLensWidget* magicLensWidget,
@@ -421,7 +414,7 @@ void dlg_modalities::configureInterActorStyles(QSharedPointer<iAModality> editMo
 	//intialize slicers and 3D interactor for registration
 	for (int i = 0; i <= iASlicerMode::SlicerCount; ++i)
 	{
-		m_manualMoveStyle[i]->initialize(img, volRend, props, i, m_mdiChild);
+		m_manualMoveStyle[i]->initialize(img, volRend, props, i);
 	}
 }
 

@@ -44,7 +44,7 @@
 #include <itkNormalizeImageFilter.h>
 #include <itkRescaleIntensityImageFilter.h>
 
-#include <vtkColorTransferFunction.h>
+#include <vtkColorTransferFunction.h>    // required for Linux build
 #include <vtkImageActor.h>
 #include <vtkImageData.h>
 #include <vtkImageMapper3D.h>

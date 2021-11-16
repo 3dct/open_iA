@@ -29,7 +29,6 @@
 
 #include <vtkSmartPointer.h>
 
-#include <QSlider>
 #include <QComboBox>
 #include <QWidget>
 #include <QVector>
@@ -39,6 +38,7 @@ class iAMdiChild;
 
 class vtkCamera;
 class vtkColorTransferFunction;
+class vtkImageData;
 class vtkPiecewiseFunction;
 class vtkSmartVolumeMapper;
 class vtkRenderer;

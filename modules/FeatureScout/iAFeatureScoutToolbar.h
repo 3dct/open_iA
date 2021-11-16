@@ -22,8 +22,6 @@
 
 #include "ui_FeatureScoutToolBar.h"
 
-#include <qthelper/iAQTtoUIConnector.h>
-
 #include <QToolBar>
 
 class iAFeatureScoutToolbar : public QToolBar, public Ui_FeatureScoutToolBar
@@ -31,6 +29,6 @@ class iAFeatureScoutToolbar : public QToolBar, public Ui_FeatureScoutToolBar
 public:
 	iAFeatureScoutToolbar(QWidget* parent) : QToolBar("FeatureScout ToolBar", parent)
 	{
-		this->setupUi(this);
+		setupUi(this);
 	}
 };

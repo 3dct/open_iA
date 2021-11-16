@@ -29,7 +29,6 @@
 
 #include <QSharedPointer>
 #include <QString>
-#include <QThread>
 
 #include <vector>
 

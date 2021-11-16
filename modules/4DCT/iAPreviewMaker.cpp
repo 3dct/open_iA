@@ -27,7 +27,6 @@
 #include <itkImageFileReader.h>
 #include <itkExtractImageFilter.h>
 #include <itkImageFileWriter.h>
-#include <itkImageIORegion.h>
 #include <itkImageIOBase.h>
 
 void iAPreviewMaker::makeUsingType( QString fileName, QString thumbFileName )

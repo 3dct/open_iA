@@ -28,7 +28,6 @@
 
 #include <QPen>
 #include <QPainter>
-#include <QMouseEvent>
 
 namespace
 {

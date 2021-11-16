@@ -35,7 +35,6 @@
 #include <QCheckBox>
 #include <QComboBox>
 #include <QDialogButtonBox>
-#include <QErrorMessage>
 #include <QLabel>
 #include <QLineEdit>
 #include <QPlainTextEdit>

@@ -23,7 +23,7 @@
 #include "dlg_ParamSpaceSampling.h"
 #include "FeatureAnalyzerHelpers.h"
 
-#include <defines.h>
+#include <defines.h>    // for organisationName / applicationName
 
 #include <QDrag>
 #include <QDragEnterEvent>

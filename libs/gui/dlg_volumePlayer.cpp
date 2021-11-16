@@ -25,7 +25,6 @@
 
 #include "iAChannelData.h"
 #include "iAParameterDlg.h"
-#include "iARenderer.h"
 #include "iASlicer.h"
 
 #include "iAVolumeStack.h"

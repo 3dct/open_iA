@@ -23,7 +23,6 @@
 #include "iAFileUtils.h"
 
 #include <vtkMetaImageReader.h>
-#include <vtkImageData.h>
 
 iA4DCTFileManager& iA4DCTFileManager::getInstance( )
 {

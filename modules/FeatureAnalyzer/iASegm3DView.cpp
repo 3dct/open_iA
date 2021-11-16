@@ -20,7 +20,7 @@
 * ************************************************************************************/
 #include "iASegm3DView.h"
 
-#include <defines.h>
+#include <defines.h>    // for organisationName / applicationName
 #include <iALog.h>
 #include <iAFast3DMagicLensWidget.h>
 #include <iALUT.h>

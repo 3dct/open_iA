@@ -21,8 +21,7 @@
 #include "iAAbstractMagicLensWidget.h"
 
 #include "defines.h" // for DefaultMagicLensSize
-#include "iALog.h"
-#include "iAVtkVersion.h"
+#include <iAVtkVersion.h>    // required for VTK < 9.0
 
 #include <QVTKInteractor.h>
 #include <vtkActor2D.h>

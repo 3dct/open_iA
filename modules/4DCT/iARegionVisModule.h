@@ -25,7 +25,6 @@
 // vtk
 #include <vtkSmartPointer.h>
 // Qt
-#include <QString>
 #include <QColor>
 // itk
 #include <itkImage.h>

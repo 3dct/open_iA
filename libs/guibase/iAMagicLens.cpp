@@ -24,8 +24,6 @@
 #include "iALog.h"
 #include "iAMathUtility.h"
 
-#include <QVTKInteractor.h>
-#include <QVTKInteractorAdapter.h>
 #include <vtkActor2D.h>
 #include <vtkCamera.h>
 #include <vtkGenericOpenGLRenderWindow.h>
@@ -35,10 +33,10 @@
 #include <vtkImageReslice.h>
 #include <vtkMath.h>
 #include <vtkPolyData.h>
+#include <vtkPolyDataMapper2D.h>
 #include <vtkPolyLine.h>
 #include <vtkProperty2D.h>
 #include <vtkRenderer.h>
-#include <vtkRendererCollection.h>
 #include <vtkScalarsToColors.h>
 #include <vtkSmartPointer.h>
 #include <vtkTextActor.h>

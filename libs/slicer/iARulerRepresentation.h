@@ -28,7 +28,7 @@ class iARulerRepresentation : public vtkBorderRepresentation
 {
 public:
   vtkTypeMacro(iARulerRepresentation, vtkBorderRepresentation);
-  void PrintSelf(ostream &os, vtkIndent indent) override;
+  void PrintSelf(std::ostream &os, vtkIndent indent) override;
   static iARulerRepresentation *New();
 
   //! The prop that is placed in the renderer.

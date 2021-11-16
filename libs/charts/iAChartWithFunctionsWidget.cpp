@@ -24,24 +24,18 @@
 #include "iAChartFunctionBezier.h"
 #include "iAChartFunctionGaussian.h"
 #include "iAChartFunctionTransfer.h"
-#include "iAPlotData.h"
 
 #include "iALog.h"
 #include "iAMapper.h"
 #include "iAMathUtility.h"
 #include "iAXmlSettings.h"
 
-#include <vtkColorTransferFunction.h>
 #include <vtkMath.h>
-#include <vtkPiecewiseFunction.h>
 
 #include <QFileDialog>
 #include <QMenu>
-#include <QMessageBox>
 #include <QMouseEvent>
 #include <QPainter>
-
-#include <cassert>
 
 QColor* FunctionColors()
 {

@@ -23,7 +23,6 @@
 #include "defines.h"
 #include "iAAbortListener.h"
 #include "iALog.h"
-#include "iAChannelData.h"
 #include "iAJobListView.h"
 #include "iALineSegment.h"
 #include "iAMovieHelper.h"
@@ -47,12 +46,9 @@
 #include <vtkDataSetMapper.h>
 #include <vtkExtractSelectedFrustum.h>
 #include <vtkGenericMovieWriter.h>
-#include <vtkGenericRenderWindowInteractor.h>
 #include <vtkImageData.h>
-#include <vtkImageCast.h>
 #include <vtkInteractorStyleRubberBandPick.h>
 #include <vtkInteractorStyleSwitch.h>
-#include <vtkLineSource.h>
 #include <vtkLogoRepresentation.h>
 #include <vtkLogoWidget.h>
 #include <vtkObjectFactory.h>

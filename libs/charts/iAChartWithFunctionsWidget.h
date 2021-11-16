@@ -21,12 +21,10 @@
 #pragma once
 
 #include "iAChartWidget.h"
-#include "iAPlotData.h"
 
 #include "iAcharts_export.h"
 
 #include <QDomNode>
-#include <QPoint>
 #include <QString>
 
 #include <vector>

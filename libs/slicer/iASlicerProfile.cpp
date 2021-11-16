@@ -29,7 +29,6 @@
 #include <vtkCellArray.h>
 #include <vtkConeSource.h>
 #include <vtkImageData.h>
-#include <vtkLineSource.h>
 #include <vtkPoints.h>
 #include <vtkPolyData.h>
 #include <vtkPolyDataMapper.h>

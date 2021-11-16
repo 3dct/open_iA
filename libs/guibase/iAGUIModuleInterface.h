@@ -26,7 +26,6 @@
 #include "iALog.h"
 #include "iAModuleInterface.h"
 
-#include <QObject>
 #include <QVector>
 
 class iAMainWindow;

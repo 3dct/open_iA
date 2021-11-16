@@ -21,7 +21,6 @@
 #pragma once
 
 // Qt
-#include <QString>
 #include <QVector>
 
 class iAVisModule;

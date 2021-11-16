@@ -1,7 +1,5 @@
 #include "iAPlotData.h"
 
-#include "iAMathUtility.h"
-
 #include <QString>
 
 
