@@ -91,7 +91,8 @@ iAImNDTMain::iAImNDTMain(iAVREnvironment* vrEnv, iAImNDTInteractorStyle* style, 
 	//Fiber Coverage
 	m_fiberCoverageCalc = new iAVRObjectCoverage(m_objectTable, m_io, csvConfig, m_octrees, m_volume);
 	m_fiberCoverageCalc->calculateObjectCoverage();
-	
+
+
 	m_volume->setFiberCoverageData(m_fiberCoverageCalc->getObjectCoverage());
 	m_modelInMiniature->setFiberCoverageData(m_fiberCoverageCalc->getObjectCoverage());
 	fiberMetrics->setFiberCoverageData(m_fiberCoverageCalc->getObjectCoverage());

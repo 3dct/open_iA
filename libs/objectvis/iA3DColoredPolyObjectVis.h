@@ -73,6 +73,18 @@ public:
 	//! @return the number of points in all objects, i.e. the sum of objectPointCount over all object indices.
 	IndexType allPointCount() const;
 
+	//! Get the index of the first point of a given final object.
+	//! @param objIdx the index of the object.
+	//! @return the index of the first point in the final object.
+	virtual IndexType finalObjectStartPointIdx(IndexType objIdx) const;
+	//! Get the number of points representing a given final object.
+	//! @param objIdx the index of the object.
+	//! @return the number of points in the final object.
+	virtual IndexType finalObjectPointCount(IndexType objIdx) const;
+	//! Get the number of points in all final objects.
+	//! @return the number of points in all objects, i.e. the sum of objectPointCount over all object indices.
+	IndexType finalAllPointCount() const;
+
 	//virtual vtkAlgorithmOutput* output();
 
 	//! create "actor" class for visualizing this data collection

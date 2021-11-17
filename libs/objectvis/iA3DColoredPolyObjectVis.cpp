@@ -272,6 +272,27 @@ iA3DColoredPolyObjectVis::IndexType iA3DColoredPolyObjectVis::allPointCount() co
 	}
 	return pointCount;
 }
+
+iA3DColoredPolyObjectVis::IndexType iA3DColoredPolyObjectVis::finalObjectPointCount(IndexType ptIdx) const
+{
+	return objectPointCount(ptIdx);
+}
+
+iA3DColoredPolyObjectVis::IndexType iA3DColoredPolyObjectVis::finalObjectStartPointIdx(IndexType ptIdx) const
+{
+	return objectStartPointIdx(ptIdx);
+}
+
+iA3DColoredPolyObjectVis::IndexType iA3DColoredPolyObjectVis::finalAllPointCount() const
+{
+	IndexType pointCount = 0;
+	for (IndexType objID = 0; objID < m_objectTable->GetNumberOfRows(); ++objID)
+	{
+		pointCount += finalObjectPointCount(objID);
+	}
+	return pointCount;
+}
+
 /*
 vtkAlgorithmOutput* iA3DColoredPolyObjectVis::output()
 {
