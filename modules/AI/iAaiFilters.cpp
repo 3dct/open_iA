@@ -38,7 +38,10 @@
 #include "onnxruntime_cxx_api.h"
 
 #ifdef ONNX_CUDA
-	#include "cuda_provider_factory.h"
+	//#define ONNX_CUDA_NEW	// uncomment this if compiling with ONNX >= 1.9.1 (maybe already for >= 1.8.0?)
+	#ifndef ONNX_CUDA_NEW
+		#include "cuda_provider_factory.h"
+	#endif
 #else
 	#include "dml_provider_factory.h"
 #endif
@@ -210,7 +213,12 @@ void executeDNN(iAFilter* filter, QMap<QString, QVariant> const & parameters)
 	if (parameters["use GPU"].toBool())
 	{
 #ifdef ONNX_CUDA
-		Ort::ThrowOnError(OrtSessionOptionsAppendExecutionProvider_CUDA(session_options, 0));
+		#ifdef ONNX_CUDA_NEW
+			OrtCUDAProviderOptions options;
+			session_options.AppendExecutionProvider_CUDA(options);
+		#else
+			Ort::ThrowOnError(OrtSessionOptionsAppendExecutionProvider_CUDA(session_options, 0));
+		#endif
 #else
 		session_options.DisableMemPattern();
 		session_options.SetExecutionMode(ExecutionMode::ORT_SEQUENTIAL);
