@@ -5,5 +5,5 @@ if (UNIX OR openiA_ONNX_CUDA)
 endif()
 
 if (openiA_ONNX_CUDA_NEW)
-	target_compile_definitions(ONNX_CUDA_NEW)
+	target_compile_definitions(AI PRIVATE ONNX_CUDA_NEW)
 endif()
