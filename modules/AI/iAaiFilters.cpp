@@ -38,7 +38,6 @@
 #include "onnxruntime_cxx_api.h"
 
 #ifdef ONNX_CUDA
-	//#define ONNX_CUDA_NEW	// uncomment this if compiling with ONNX >= 1.9.1 (maybe already for >= 1.8.0?)
 	#ifndef ONNX_CUDA_NEW
 		#include "cuda_provider_factory.h"
 	#endif
