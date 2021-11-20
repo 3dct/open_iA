@@ -91,13 +91,14 @@ void iALogWidget::logSlot(int lvl, QString const & text)
 	}
 }
 
-void iALogWidget::setLogToFile(bool value, QString const & fileName, bool verbose)
+void iALogWidget::setLogToFile(bool enable, QString const & fileName, bool verbose)
 {
-	if (verbose && m_logToFile != value)
+	if (verbose && m_logToFile != enable)
 	{
-		logSlot(lvlInfo, QString("%1 logging to file '%2'...").arg(value ? "Enabling" : "Disabling").arg(m_logFileName));
+		logSlot(lvlInfo, QString("%1 logging to file '%2'...").arg(enable ? "Enabling" : "Disabling")
+			.arg(enable ? fileName : m_logFileName));
 	}
-	m_logToFile = value;
+	m_logToFile = enable;
 	m_logFileName = fileName;
 }
 

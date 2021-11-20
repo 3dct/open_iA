@@ -47,7 +47,7 @@ public:
 	//! log given text with given log level
 	void log(iALogLevel lvl, QString const & text) override;
 	//! enable/disable logging to file with given name
-	void setLogToFile(bool value, QString const & fileName, bool verbose=false);
+	void setLogToFile(bool enable, QString const& fileName, bool verbose = false);
 	//! whether logging to file is enabled
 	bool isLogToFileOn() const;
 	//! the name of the file used for logging
