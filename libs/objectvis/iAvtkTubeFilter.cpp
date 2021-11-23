@@ -312,8 +312,9 @@ int iAvtkTubeFilter::RequestData(
       vtkWarningMacro(<< "Could not generate points!");
       continue; //skip tubing this polyline
     }
+
 	//Store number of final points for each line
-	m_finalObjectPointMap.push_back(std::make_pair(inCellId, newPts->GetNumberOfPoints() - offset));
+	m_finalObjectPointMap.push_back(std::make_pair(offset, newPts->GetNumberOfPoints() - offset));
 
     // Generate the strips for this polyline (including caps)
     //
