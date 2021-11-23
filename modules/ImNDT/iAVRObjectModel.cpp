@@ -85,7 +85,6 @@ void iAVRObjectModel::showVolume()
 		return;
 	}
 	m_renderer->AddActor(m_volumeActor);
-	m_volumeActor->GetProperty()->SetRepresentationToWireframe();
 	m_volumeVisible = true;
 }
 
