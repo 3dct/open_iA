@@ -21,12 +21,10 @@
 #include "iAVRObjectModel.h"
 
 #include <iA3DColoredPolyObjectVis.h>
-#include <iA3DPolyObjectActor.h>
 #include <iALog.h>
 #include <iAVROctreeMetrics.h>
 
 #include <vtkCellArray.h>
-#include <vtkCellData.h>
 #include <vtkCubeSource.h>
 #include <vtkDataSet.h>
 #include <vtkDoubleArray.h>
@@ -38,6 +36,7 @@
 #include <vtkTubeFilter.h>
 #include <vtkUnsignedCharArray.h>
 #include <vtkVariantArray.h>
+#include <vtkPointData.h>
 
 
 iAVRObjectModel::iAVRObjectModel(vtkRenderer* ren, iA3DColoredPolyObjectVis* polyObject, vtkTable* objectTable, iACsvIO io, iACsvConfig csvConfig):
@@ -60,8 +59,12 @@ iAVRObjectModel::iAVRObjectModel(vtkRenderer* ren, iA3DColoredPolyObjectVis* pol
 	// Other way of copying?:  vtkDataSet->CopyData()
 	// Like in objectvis\iAvtkTubeFilter.cpp 
 	m_initialPoints->DeepCopy(polyObject->finalPolyData()->GetPoints());
-	m_PolyObjectActor = m_polyObject->createPolyActor(m_renderer);
-	m_volumeActor = m_PolyObjectActor->actor();
+	//m_PolyObjectActor = m_polyObject->createPolyActor(m_renderer);
+	//m_volumeActor = m_PolyObjectActor->actor();
+
+	vtkNew<vtkPolyDataMapper> mapper;
+	mapper->SetInputData(m_polyObject->finalPolyData());
+	m_volumeActor->SetMapper(mapper);
 }
 
 //Resets to the initial volume
@@ -71,6 +74,10 @@ void iAVRObjectModel::resetVolume()
 	// temp->DeepCopy(m_initialPoints);
 	// m_polyObject->polyData()->SetPoints(temp);
 	m_polyObject->finalPolyData()->GetPoints()->DeepCopy(m_initialPoints);
+
+	vtkNew<vtkPolyDataMapper> mapper;
+	mapper->SetInputData(m_polyObject->finalPolyData());
+	m_volumeActor->SetMapper(mapper);
 	//m_PolyObjectActor->updated();
 	//m_PolyObjectActor = m_polyObject->createPolyActor(m_renderer);
 	//m_volumeActor = m_PolyObjectActor->actor();
@@ -124,6 +131,7 @@ void iAVRObjectModel::hideRegionLinks()
 
 vtkSmartPointer<vtkActor> iAVRObjectModel::getVolumeActor()
 {
+	//return m_PolyObjectActor->actor();
 	return m_volumeActor;
 }
 

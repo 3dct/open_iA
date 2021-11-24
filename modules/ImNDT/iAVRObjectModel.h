@@ -26,12 +26,9 @@
 #include <vtkTable.h>
 #include <vtkRenderWindowInteractor.h>
 #include <vtkLookupTable.h>
-#include <vtkPointData.h>
 
-#include <QSharedPointer>
 
-#include <unordered_map>
-
+class vtkPointData;
 class iA3DColoredPolyObjectVis;
 class iA3DPolyObjectActor;
 
@@ -70,7 +67,7 @@ private:
 	vtkSmartPointer<vtkActor> m_RegionNodesActor;
 	iA3DColoredPolyObjectVis* m_polyObject;
 	vtkSmartPointer<vtkPoints> m_initialPoints;
-	QSharedPointer<iA3DPolyObjectActor> m_PolyObjectActor;
+	//QSharedPointer<iA3DPolyObjectActor> m_PolyObjectActor;
 	vtkSmartPointer<vtkTable> m_objectTable;
 	vtkSmartPointer<vtkPolyData> m_linePolyData;
 	iACsvIO m_io;
