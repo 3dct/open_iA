@@ -247,6 +247,7 @@ dlg_FeatureScout::dlg_FeatureScout(iAMdiChild* parent, iAObjectType fid, QString
 	}
 	m_3dactor = m_3dvis->createActor(parent->renderer()->renderer());
 	m_3dactor->show();
+	connect(m_3dactor.data(), &iA3DObjectActor::updated, m_activeChild, &iAMdiChild::updateRenderer);
 	parent->renderer()->renderer()->ResetCamera();
 	m_blobManager->SetRenderers(parent->renderer()->renderer(), m_renderer->labelRenderer());
 	m_blobManager->SetBounds(m_3dvis->bounds());
