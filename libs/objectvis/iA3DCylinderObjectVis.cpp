@@ -133,7 +133,7 @@ QString iA3DCylinderObjectVis::visualizationStatistics() const
 
 vtkPolyData* iA3DCylinderObjectVis::finalPolyData()
 {
-	m_tubeFilter->Update();
+	//m_tubeFilter->Update();
 	return m_tubeFilter->GetOutput();
 }
 

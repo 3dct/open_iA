@@ -64,6 +64,9 @@ iAVRObjectModel::iAVRObjectModel(vtkRenderer* ren, iA3DColoredPolyObjectVis* pol
 
 	vtkNew<vtkPolyDataMapper> mapper;
 	mapper->SetInputData(m_polyObject->finalPolyData());
+	mapper->SetScalarModeToUsePointFieldData();
+	mapper->ScalarVisibilityOn();
+	mapper->SelectColorArray("Colors");
 	m_volumeActor->SetMapper(mapper);
 }
 
@@ -77,6 +80,9 @@ void iAVRObjectModel::resetVolume()
 
 	vtkNew<vtkPolyDataMapper> mapper;
 	mapper->SetInputData(m_polyObject->finalPolyData());
+	mapper->SetScalarModeToUsePointFieldData();
+	mapper->ScalarVisibilityOn();
+	mapper->SelectColorArray("Colors");
 	m_volumeActor->SetMapper(mapper);
 	//m_PolyObjectActor->updated();
 	//m_PolyObjectActor = m_polyObject->createPolyActor(m_renderer);

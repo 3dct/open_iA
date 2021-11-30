@@ -41,29 +41,5 @@ void iAFrustumActor::hide()
 //! Computes the frustum based on the given camera and creates a actor
 void iAFrustumActor::setupFrustumActor()
 {
-
 	m_frustumActor->SetCamera(m_cam);
-
-	//double planesArray[24];
-	//double aspect = m_ren->GetAspect()[0] / m_ren->GetAspect()[1];
-
-	//m_cam->GetFrustumPlanes(1.0, planesArray);
-
-	//vtkNew<vtkPlanes> planes;
-	//planes->SetFrustumPlanes(planesArray);
-
-	//vtkNew<vtkFrustumSource> frustumSource;
-	//frustumSource->ShowLinesOff();
-	//frustumSource->SetPlanes(planes);
-
-	//vtkNew<vtkShrinkPolyData> shrink;
-	//shrink->SetInputConnection(frustumSource->GetOutputPort());
-	//shrink->SetShrinkFactor(.9);
-
-	//vtkNew<vtkPolyDataMapper> mapper;
-	//mapper->SetInputConnection(shrink->GetOutputPort());
-
-	//m_frustumActor->SetMapper(mapper);
-	//m_frustumActor->GetProperty()->SetColor(1.0, 0.50, 0.0);
-	//m_frustumActor->GetProperty()->EdgeVisibilityOn();
 }
