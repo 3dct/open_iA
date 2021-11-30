@@ -225,7 +225,6 @@ private:
 	void copyFunctions(MdiChild* oldChild, MdiChild* newChild);
 	void loadTLGICTData(QString const & baseDirectory);
 	bool keepOpen();
-	//MdiChild* findMdiChild(const QString& fileName);
 
 	static const int MaxRecentFiles = 8;
 

@@ -26,7 +26,6 @@
 #include "iAFilterSelectionDlg.h"
 #include "iAGUIModuleInterface.h"
 #include "iALogger.h"
-#include "iAModuleInterface.h"
 #include "iAMainWindow.h"
 
 #include <QCoreApplication>

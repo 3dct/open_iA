@@ -29,6 +29,7 @@
 #include "iAParameterDlg.h"
 #include "iAProjectBase.h"
 #include "iAProjectRegistry.h"
+#include "iAQMenuHelper.h"
 #include "iARawFileParamDlg.h"
 #include "iARenderer.h"
 #include "iASavableProject.h"
@@ -2186,22 +2187,6 @@ iAMdiChild * MainWindow::secondNonActiveChild()
 		mdiwindows.at(1) : mdiwindows.at(0);
 }
 
-/*
-MdiChild* MainWindow::findMdiChild(const QString &fileName)
-{
-	QString canonicalFilePath = QFileInfo(fileName).canonicalFilePath();
-
-	for (iAMdiChild* mdiChild : mdiChildList())
-	{
-		if (mdiChild->currentFile() == canonicalFilePath)
-		{
-			return mdiChild;
-		}
-	}
-	return nullptr;
-}
-*/
-
 void MainWindow::setActiveSubWindow(QWidget *window)
 {
 	if (!window)
@@ -2408,15 +2393,12 @@ void MainWindow::toggleOpenListOnAddedJob()
 void MainWindow::listDockWidgetsInMenu()
 {
 	m_ui->menuDockWidgets->clear();
-	for (auto dockWidget : findChildren<QDockWidget*>())
+	if (activeChild())
 	{
-		QAction* act(new QAction(dockWidget->windowTitle(), this));
-		act->setCheckable(true);
-		act->setChecked(dockWidget->isVisible());
-		connect(act, &QAction::triggered, [dockWidget] {
-			dockWidget->setVisible(!dockWidget->isVisible());
-			});
-		m_ui->menuDockWidgets->addAction(act);
+		for (auto dockWidget : activeChild()->findChildren<QDockWidget*>())
+		{
+			addToMenuSorted(m_ui->menuDockWidgets, dockWidget->toggleViewAction());
+		}
 	}
 }
 
