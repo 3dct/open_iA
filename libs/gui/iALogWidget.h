@@ -75,7 +75,6 @@ public:
 signals:
 	//! decouple logging methods from GUI logging (to allow logging from any thread):
 	void logSignal(int lvl, QString const & text);
-	void logVisibilityChanged(bool newVisibility);
 private slots:
 	void logSlot(int lvl, QString const & text);
 	void setLogLevelSlot(int selectedIdx);
@@ -86,8 +85,8 @@ private slots:
 private:
 	//! private constructor - retrieve (single) instance via get!
 	iALogWidget();
-	//! virtual destructor, explicitly implemented to avoid having to include iALogRedirectITK
-	virtual ~iALogWidget();
+	//! destructor explicitly implemented to avoid having to include iALogRedirectITK
+	~iALogWidget();
 	//! @{ prevent copying:
 	iALogWidget(iALogWidget const&)    = delete;
 	void operator=(iALogWidget const&) = delete;

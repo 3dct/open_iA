@@ -53,7 +53,6 @@ void iALogWidget::logSlot(int lvl, QString const & text)
 		if (!isVisible() && m_openOnNewMessage)
 		{
 			show();
-			emit logVisibilityChanged(true);
 		}
 		QString msg = QString("%1 %2 %3")
 			.arg(QLocale().toString(QTime::currentTime(), "hh:mm:ss"))
@@ -150,9 +149,7 @@ iALogWidget::iALogWidget() :
 	connect(this, &iALogWidget::logSignal, this, &iALogWidget::logSlot);
 }
 
-iALogWidget::~iALogWidget()
-{
-}
+iALogWidget::~iALogWidget() = default;
 
 iALogWidget* iALogWidget::get()
 {
@@ -173,7 +170,6 @@ void iALogWidget::clear()
 
 void iALogWidget::closeEvent(QCloseEvent* event)
 {
-	emit logVisibilityChanged(false);
 	QDockWidget::closeEvent(event);
 }
 

@@ -203,8 +203,10 @@
     <addaction name="actionClose"/>
     <addaction name="actionCloseAll"/>
     <addaction name="separator"/>
-    <addaction name="actionShowLog"/>
     <addaction name="actionOpenLogOnNewMessage"/>
+    <addaction name="separator"/>
+    <addaction name="actionOpenListOnAddedJob"/>
+    <addaction name="separator"/>
     <addaction name="actionMainWindowStatusBar"/>
    </widget>
    <widget class="QMenu" name="menuHelp">
@@ -1046,14 +1048,6 @@
     <enum>Qt::ApplicationShortcut</enum>
    </property>
   </action>
-  <action name="actionShowLog">
-   <property name="checkable">
-    <bool>true</bool>
-   </property>
-   <property name="text">
-    <string>Show Log</string>
-   </property>
-  </action>
   <action name="actionBuildInformation">
    <property name="text">
     <string>Build Information</string>
@@ -1117,7 +1111,7 @@
     <bool>true</bool>
    </property>
    <property name="text">
-    <string>Open Log on New Message</string>
+    <string>Open Log on new message</string>
    </property>
   </action>
   <action name="actionEditProfilePoints">
@@ -1149,6 +1143,17 @@
    </property>
    <property name="text">
     <string>Sub-Windows</string>
+   </property>
+  </action>
+  <action name="actionOpenListOnAddedJob">
+   <property name="checkable">
+    <bool>true</bool>
+   </property>
+   <property name="checked">
+    <bool>true</bool>
+   </property>
+   <property name="text">
+    <string>Show job list only while job is running</string>
    </property>
   </action>
  </widget>
