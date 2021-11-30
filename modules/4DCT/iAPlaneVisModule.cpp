@@ -22,7 +22,6 @@
 
 #include "iA4DCTVisWin.h"
 
-#include <vtkImageCast.h>
 #include <vtkImageShiftScale.h>
 #include <vtkMatrix4x4.h>
 #include <vtkPolyDataMapper.h>

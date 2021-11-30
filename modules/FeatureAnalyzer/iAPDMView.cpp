@@ -24,7 +24,7 @@
 #include "iAHMData.h"
 
 #include <qcustomplot.h>
-#include <defines.h>
+#include <defines.h>    // for organisationName / applicationName
 #include <iALUT.h>
 #include <iAQVTKWidget.h>
 

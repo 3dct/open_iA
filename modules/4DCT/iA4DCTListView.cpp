@@ -20,7 +20,6 @@
 * ************************************************************************************/
 #include "iA4DCTListView.h"
 
-#include "iA4DCTSettings.h"
 #include "iAStageView.h"
 
 #include <iAMainWindow.h>

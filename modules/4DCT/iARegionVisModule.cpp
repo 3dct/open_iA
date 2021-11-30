@@ -36,7 +36,6 @@
 #include <vtkImageData.h>
 #include <vtkMarchingCubes.h>
 #include <vtkMetaImageReader.h>
-#include <vtkMetaImageReader.h>
 #include <vtkPolyDataMapper.h>
 #include <vtkPolyDataSilhouette.h>
 #include <vtkProperty.h>

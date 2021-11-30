@@ -20,8 +20,6 @@
 * ************************************************************************************/
 #pragma once
 
-#include <iAITKIO.h>
-
 #include <itkImage.h>
 
 // TODO: Replace with some other definition / template?

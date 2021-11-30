@@ -27,7 +27,7 @@
 #include "iASSViewSetings.h"
 #include "FeatureAnalyzerHelpers.h"
 
-#include <defines.h>
+#include <defines.h>    // for organisationName / applicationName
 #include <iABoxPlotData.h>
 #include <iAChannelData.h>
 #include <iAFileUtils.h>

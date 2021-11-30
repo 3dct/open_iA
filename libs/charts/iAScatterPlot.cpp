@@ -27,16 +27,13 @@
 #include "iAScatterPlotViewData.h"
 #include "iASPLOMData.h"
 
-#include <QAbstractTextDocumentLayout>
 #include <QApplication>
 #include <QColor>
 #include <QDebug>
-#include <QtMath>
 #include <QPainter>
 #include <QPalette>
 #include <QPen>
 #include <QPolygon>
-#include <QPropertyAnimation>
 #include <QWheelEvent>
 
 

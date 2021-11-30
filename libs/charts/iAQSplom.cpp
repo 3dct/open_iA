@@ -51,7 +51,6 @@
 #include <QSettings>
 #include <QWheelEvent>
 #include <QtGlobal> // for QT_VERSION
-#include <QtMath>
 
 namespace
 { // apparently QFontMetric width is not returning the full width of the string - correction constant:

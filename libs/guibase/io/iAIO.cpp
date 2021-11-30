@@ -33,7 +33,6 @@
 #include "iAParameterDlg.h"
 #include "iAProgress.h"
 #include "iARawFileParamDlg.h"
-#include "iAStringHelper.h"
 #include "iAToolsVTK.h"
 #include "iATypedCallHelper.h"
 
@@ -86,11 +85,8 @@
 #include <hdf5.h>
 #include <QStack>
 #include <QStandardItemModel>
-#include <QTextEdit>
-#include <QTreeView>
 #endif
 
-#include <algorithm>
 #include <cmath>
 #include <fstream>
 #include <iostream>

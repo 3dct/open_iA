@@ -41,8 +41,6 @@
 #include <vtkTubeFilter.h>
 #include <vtkVectorText.h>
 
-#include <QPixmap>
-
 //appearance settings
 #define LABEL_SCALE 1.0//26.0
 #define LABEL_TUBE_RAD 0.3

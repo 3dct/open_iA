@@ -20,9 +20,6 @@
 * ************************************************************************************/
 #pragma once
 
-#include <QColor>
-#include <QString>
-
 class iAVolumeSettings
 {
 public:

@@ -23,6 +23,5 @@
 // iA
 #include "iA4DCTStageData.h"
 // Qt
-#include <QList>
 
 typedef QList<iA4DCTStageData *> iA4DCTData;

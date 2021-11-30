@@ -24,7 +24,6 @@
 
 #include <QVector>
 
-#include <string>
 #include <vector>
 
 class Fiber;

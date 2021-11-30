@@ -25,21 +25,16 @@
 #include <QObject>
 
 #include <vtkCommand.h>
-#include <vtkPlaneSource.h>
 #include <vtkPolyDataMapper.h>
 #include <vtkRenderer.h>
 #include <vtkRenderWindowInteractor.h>
 
-#include <vtkTransform.h>
-#include <vtkLineSource.h>
-#include <vtkProbeFilter.h>
-#include <vtkCellLocator.h>
-#include <vtkDoubleArray.h>
-
-#include <vtkWorldPointPicker.h>
-
+class vtkLineSource;
 class vtkPicker;
 class vtkPlane;
+class vtkProbeFilter;
+class vtkCellLocator;
+class vtkWorldPointPicker;
 
 //! Observes the mouse movements in an iARenderer.
 //! This class servers the iARenderer class to observe mouse movement and to extract coordinates

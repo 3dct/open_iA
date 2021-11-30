@@ -22,7 +22,9 @@
 
 #ifdef CHART_OPENGL
 #include <QOpenGLWidget>
+#ifdef SP_OLDOPENGL
 #include <QOpenGLBuffer>
+#endif
 using iAChartParentWidget = QOpenGLWidget;
 #else
 #include <QWidget>

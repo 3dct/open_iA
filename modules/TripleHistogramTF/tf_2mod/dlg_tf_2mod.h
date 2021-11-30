@@ -26,18 +26,12 @@ class iAMdiChild;
 class iATripleModalityWidget;
 class iABimodalWidget;
 
-//typedef iAQTtoUIConnector<QDockWidget, Ui_dlg_TripleHistogramTF> TripleHistogramTFConnector;
-
-class dlg_tf_2mod : public QDockWidget//public TripleHistogramTFConnector
+class dlg_tf_2mod : public QDockWidget
 {
 	Q_OBJECT
 
 public:
-#if QT_VERSION < QT_VERSION_CHECK(5, 15, 0)
-	dlg_tf_2mod(iAMdiChild* parent, Qt::WindowFlags f = 0);
-#else
-	dlg_tf_2mod(iAMdiChild* parent, Qt::WindowFlags f = Qt::WindowFlags());
-#endif
+	dlg_tf_2mod(iAMdiChild* parent);
 
 private:
 	iAMdiChild *m_mdiChild;

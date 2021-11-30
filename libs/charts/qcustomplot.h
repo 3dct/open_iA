@@ -62,14 +62,11 @@
 #include <QtGui/QPainter>
 #include <QtGui/QPainterPath>
 #include <QtGui/QPaintEvent>
-#include <QtGui/QMouseEvent>
-#include <QtGui/QWheelEvent>
 #include <QtGui/QPixmap>
 #include <QtCore/QVector>
 #include <QtCore/QString>
 #include <QtCore/QDateTime>
 #include <QtCore/QMultiMap>
-#include <QtCore/QFlags>
 #include <QtCore/QDebug>
 #include <QtCore/QStack>
 #include <QtCore/QCache>
@@ -146,8 +143,9 @@ class QCPBars;
   
   It provides QMetaObject-based reflection of its enums and flags via \a QCP::staticMetaObject.
 */
-#ifndef Q_MOC_RUN
+//#ifndef Q_MOC_RUN
 namespace QCP {
+/*
 #else
 class QCP { // when in moc-run, make it look like a class, so we get Q_GADGET, Q_ENUMS/Q_FLAGS features in namespace
   Q_GADGET
@@ -166,6 +164,7 @@ class QCP { // when in moc-run, make it look like a class, so we get Q_GADGET, Q
   Q_ENUMS(SelectionType)
 public:
 #endif
+*/
 
 /*!
   Defines the different units in which the image resolution can be specified in the export

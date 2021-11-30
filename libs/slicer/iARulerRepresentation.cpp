@@ -20,15 +20,14 @@
 * ************************************************************************************/
 #include "iARulerRepresentation.h"
 
+#include <iAVtkVersion.h>    // required for VTK < 9.0
+
 #include "iARulerActor.h"
-#include <iAVtkVersion.h>
 
 #include <vtkObjectFactory.h>
 #include <vtkPropCollection.h>
 #include <vtkSmartPointer.h>
-#include <vtkTextProperty.h>
 #include <vtkActor2D.h>
-#include <vtkMapper2D.h>
 
 
 vtkStandardNewMacro(iARulerRepresentation);
@@ -67,11 +66,11 @@ void iARulerRepresentation::SetScalarBarActor(iARulerActor* actor)
 }
 
 
-void iARulerRepresentation::PrintSelf(ostream &os, vtkIndent indent)
+void iARulerRepresentation::PrintSelf(std::ostream &os, vtkIndent indent)
 {
 	this->Superclass::PrintSelf(os, indent);
 
-	os << indent << "RulerActor: " << this->RulerActor << endl;
+	os << indent << "RulerActor: " << this->RulerActor << "\n";
 }
 
 

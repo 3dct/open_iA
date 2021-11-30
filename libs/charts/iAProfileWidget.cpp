@@ -24,6 +24,7 @@
 #include "iAMapper.h"
 
 #include <QApplication>    // for qApp->palette()
+#include <QHelpEvent>    // required for Linux build
 #include <QPainter>
 #include <QToolTip>
 

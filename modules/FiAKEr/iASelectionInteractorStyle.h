@@ -57,7 +57,6 @@ public:
 		smDrag,
 		smClick
 	};
-	iASelectionInteractorStyle();
 	static iASelectionInteractorStyle* New();
 	vtkTypeMacro(iASelectionInteractorStyle, vtkInteractorStyleTrackballCamera);
 
@@ -74,7 +73,16 @@ public:
 	void setRenderer(vtkRenderer* renderer);
 signals:
 	void selectionChanged();
+
 private:
+	//! disable default constructor.
+	iASelectionInteractorStyle();
+
+	//! @{ disable copying.
+	void operator=(const iASelectionInteractorStyle&) = delete;
+	iASelectionInteractorStyle(const iASelectionInteractorStyle&) = delete;
+	//! @}
+
 	void pick();
 	void updateModeLabel();
 	void updateSelectionRect();

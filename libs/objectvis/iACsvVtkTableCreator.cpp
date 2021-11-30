@@ -70,7 +70,7 @@ vtkSmartPointer<vtkTable> iACsvVtkTableCreator::table()
 //void iACsvVtkTableCreator::debugTable(const bool useTabSeparator)
 //{
 //	std::string separator = (useTabSeparator) ? "\t" : ",";
-//	ofstream debugfile;
+//	std::ofstream debugfile;
 //	debugfile.open("C:/Users/p41883/Desktop/inputData.txt");
 //	if (debugfile.is_open())
 //	{

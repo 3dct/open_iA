@@ -36,7 +36,6 @@ set(OPENIA_PRECOMPILE_HEADERS
 <QPainter>
 <QPen>
 <QPolygon>
-<QPropertyAnimation>
 <QSharedPointer>
 <QString>
 <QtGlobal>

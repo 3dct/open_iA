@@ -33,7 +33,6 @@
 #include <vtkRendererCollection.h>
 #include <vtkSmartPointer.h>
 #include <vtkSphereSource.h>
-#include <vtkSphereSource.h>
 
 // Define interaction style
 class MouseInteractorStylePP : public vtkInteractorStyleTrackballCamera

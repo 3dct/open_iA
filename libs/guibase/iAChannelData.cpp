@@ -20,26 +20,11 @@
 * ************************************************************************************/
 #include "iAChannelData.h"
 
-#include <vtkActor.h>
-#include <vtkImageActor.h>
 #include <vtkImageData.h>
-#include <vtkImageMapper3D.h>
-#include <vtkImageMapToColors.h>
-#include <vtkImageReslice.h>
-#include <vtkLookupTable.h>
-#include <vtkMarchingContourFilter.h>
 #include <vtkPiecewiseFunction.h>
-#include <vtkPolyDataMapper.h>
-#include <vtkProperty.h>
 #include <vtkScalarsToColors.h>
-#include <vtkTransform.h>
 
-#include <QObject>
 #include <QString>
-#include <QWidget>
-
-#include <cassert>
-
 
 
 iAChannelData::iAChannelData():

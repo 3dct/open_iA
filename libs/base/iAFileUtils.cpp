@@ -24,7 +24,6 @@
 #include "iAStringHelper.h"
 
 #include <QCollator>
-#include <QDir>
 #include <QDirIterator>
 #include <QString>
 
