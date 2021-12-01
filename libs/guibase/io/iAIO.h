@@ -65,7 +65,7 @@ public:
 	//! @param compression whether to use compression (if file format supports it)
 	//! @param channel which channel to read/write (if file format supports more than one)
 	//! @return true if successful, false if not.
-	bool setupIO(iAIOType type, QString fileName, bool compression = false, int channel=-1);
+	bool setupIO(iAIOType type, QString fileName, bool compression = false, int channel=-1, bool addJob = true);
 	//! Set additional information for the current file
 	void setAdditionalInfo(QString const & additionalInfo);
 	//! Get additional information (if any, e.g. for a volume stack)

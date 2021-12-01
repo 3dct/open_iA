@@ -800,14 +800,18 @@ typedef iAQTtoUIConnector<QDialog, Ui_dlgOpenHDF5> OpenHDF5Dlg;
 #endif
 
 
-bool iAIO::setupIO( iAIOType type, QString f, bool c, int channel)
+bool iAIO::setupIO( iAIOType type, QString f, bool c, int channel, bool addJob)
 {
 	m_ioID = type;
 	m_channel = channel;
 
 	m_fileDir = QFileInfo(f).absoluteDir();
 
-	iAJobListView::get()->addJob(QString("%1 file(s)").arg((m_ioID >= MHD_WRITER) ? "Writing":"Reading"), ProgressObserver(), this);
+	if (addJob)
+	{
+		iAJobListView::get()->addJob(
+			QString("%1 file(s)").arg((m_ioID >= MHD_WRITER) ? "Writing" : "Reading"), ProgressObserver(), this);
+	}
 	// TODO: hook for plugins!
 	switch (m_ioID)
 	{
