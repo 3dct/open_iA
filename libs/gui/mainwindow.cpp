@@ -111,7 +111,7 @@ MainWindow::MainWindow(QString const & appName, QString const & version, QString
 	m_gitVersion(version),
 	m_buildInformation(buildInformation),
 	m_ui(new Ui_MainWindow()),
-	m_openJobListOnNewJob(true),
+	m_openJobListOnNewJob(false),
 	m_dwJobs(dwJobs)
 {
 	m_ui->setupUi(this);
