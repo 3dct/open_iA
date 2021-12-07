@@ -31,6 +31,7 @@
 #include "iAVRHistogramPairVis.h"
 #include "iAVRObjectModel.h"
 #include "iACsvIO.h"
+#include "iAVRFrontCamera.h"
 
 #include "vtkEventData.h"
 #include "vtkTable.h"
@@ -40,6 +41,8 @@
 #include "vtkPlaneSource.h"
 
 #include <unordered_map>
+
+class vtkOpenVRTrackedCamera;
 
 // Enumeration of different interaction options for different Objects
 enum class iAVRInteractionOptions {
@@ -135,6 +138,9 @@ private:
 	int sign;
 	vtkSmartPointer<vtkActor> pointsActor;
 
+	iAVRFrontCamera* arViewer;
+	bool arEnabled = false;
+
 	void setInputScheme(vtkEventDataDevice device, vtkEventDataDeviceInput input, vtkEventDataAction action, iAVRInteractionOptions options, iAVROperations operation);
 	int getOptionForObject(vtkProp3D* pickedProp);
 	void addPropToOptionID(vtkProp3D* prop, iAVRInteractionOptions iD);
@@ -158,4 +164,5 @@ private:
 	void changeMiMDisplacementType();
 	void flipDistributionVis();
 	void displayNodeLinkD();
+	void createArView();
 };

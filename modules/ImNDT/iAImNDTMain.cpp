@@ -46,9 +46,15 @@
 #include "vtkVertexGlyphFilter.h"
 #include "vtkScalarBarActor.h"
 #include "vtkOpenVRCamera.h"
+#include "vtkOpenVRTrackedCamera.h"
+#include "vtkOpenVRTrackedCameraPreview.h"
+
+#include <vtkOpenVRRenderer.h>
 
 
 #include <QColor>
+#include <vtkImageCanvasSource2D.h>
+#include <vtkImageMapper3D.h>
 
 //Octree Max Level
 #define OCTREE_MAX_LEVEL 3
@@ -231,6 +237,7 @@ void iAImNDTMain::startInteraction(vtkEventDataDevice3D* device, vtkProp3D* pick
 		this->pressLeftTouchpad();
 		break;
 	case iAVROperations::ChangeMiMDisplacementType:
+		createArView();
 		this->changeMiMDisplacementType();
 		break;
 	case iAVROperations::DisplayNodeLinkDiagram:
@@ -321,6 +328,16 @@ void iAImNDTMain::onMove(vtkEventDataDevice3D * device, double movePosition[3], 
 	//Movement of Head
 	if (deviceID == static_cast<int>(vtkEventDataDevice::HeadMountedDisplay))
 	{
+		if (arEnabled)
+		{
+			//arCam->UpdateDisplayPosition();
+			//arCam->DisplayRefreshTimeout(); // Needed for GetCameraPreviewImage()->GetSourceImage() !!
+			//arCam->BuildRepresentation();
+			//arTexture->SetInputData(arCam->GetCameraPreviewImage()->GetSourceImage());
+			//arTexture->Update();
+			arViewer->refreshImage();
+		}
+
 		double* tempFocalPos = cam->GetFocalPoint();
 		focalPoint[0] = tempFocalPos[0];
 		focalPoint[1] = tempFocalPos[1];
@@ -913,4 +930,17 @@ void iAImNDTMain::displayNodeLinkD()
 
 		m_networkGraphMode = false;
 	}
+}
+
+void iAImNDTMain::createArView()
+{
+	if (!arEnabled)
+	{
+		arViewer = new iAVRFrontCamera(m_vrEnv->renderer(), m_vrEnv->renderWindow());
+		arViewer->initialize();
+		arViewer->buildRepresentation();
+		arEnabled = true;
+	}
+
+	arViewer->refreshImage();
 }

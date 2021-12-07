@@ -40,7 +40,7 @@
 
 iAVREnvironment::iAVREnvironment():	m_renderer(vtkSmartPointer<vtkOpenVRRenderer>::New()), m_renderWindow(vtkSmartPointer<vtkOpenVRRenderWindow>::New()), m_interactor(vtkSmartPointer<iAVRInteractor>::New())
 {	
-	createSkybox(0);
+	//createSkybox(0);
 	createLightKit();
 	//m_renderer->SetShowFloor(true);
 }
@@ -79,7 +79,7 @@ void iAVREnvironment::start()
 	m_renderWindow->AddRenderer(m_renderer);
 	// MultiSamples needs to be set to 0 to make Volume Rendering work:
 	// http://vtk.1045678.n5.nabble.com/Problems-in-rendering-volume-with-vtkOpenVR-td5739143.html
-	m_renderWindow->SetMultiSamples(0);
+	//m_renderWindow->SetMultiSamples(0);
 	m_interactor->SetRenderWindow(m_renderWindow);
 	auto camera = vtkSmartPointer<vtkOpenVRCamera>::New();
 
