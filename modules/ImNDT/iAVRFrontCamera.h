@@ -26,6 +26,12 @@
 #include <vtkSmartPointer.h>
 #include <openvr.h>
 
+class vtkExtractVOI;
+class vtkPolyDataMapper;
+class vtkPolyData;
+class vtkCellArray;
+class vtkPolygon;
+class vtkOpenVRRenderer;
 class vtkActor;
 class vtkImageData;
 class vtkRenderer;
@@ -42,9 +48,18 @@ public:
 	/*Build representation */
 	void buildRepresentation();
 
+	/*Show AR View */
+	void show();
+	void hide();
+
+	//void switch Background ?
+
 	void refreshImage();
 
+
 private:
+	bool m_visible;
+
 	/** Vive System */
 	vr::IVRSystem* m_pHMD;
 
@@ -73,17 +88,36 @@ private:
 	vr::CameraVideoStreamFrameHeader_t m_frameHeader;
 
 	/** Image source to fill and return for display */
-	vtkImageData* m_sourceImage;
+	vtkSmartPointer<vtkImageData> m_sourceImage;
+	vtkSmartPointer<vtkImageData> m_leftImage;
+	vtkSmartPointer<vtkImageData> m_rightImage;
+	//vtkSmartPointer<vtkExtractVOI> extractLeftImage;
+	//vtkSmartPointer<vtkExtractVOI> extractRightImage;
+
 	vtkSmartPointer<vtkTexture> m_sourceTexture;
+	vtkSmartPointer<vtkTexture> m_leftTexture;
+	vtkSmartPointer<vtkTexture> m_rightTexture;
+	vtkSmartPointer<vtkFloatArray> m_textureCoordinates;
 
 	vtkSmartPointer<vtkOpenVRRenderWindow> m_renderWindow;
 	vtkSmartPointer<vtkRenderer> m_renderer;
-	vtkSmartPointer<vtkActor> m_actor;
+	vtkSmartPointer<vtkOpenVRRenderer> m_backgroundRenderer;
+	vtkSmartPointer<vtkActor> m_cameraActor;
+	vtkSmartPointer<vtkPolyDataMapper> m_camerMapper;
+
+	/*Surface of m_cameraActor*/
+	vtkSmartPointer<vtkPoints> m_points;
+	vtkSmartPointer<vtkPolygon> m_polygon;
+	vtkSmartPointer<vtkCellArray> m_polygons;
+	vtkSmartPointer<vtkPolyData> m_polygonPolyData;
 
 	void getFrameSize();
-	void allocateImage();
+	void allocateImages();
 	void loadVideoStream();
 	void createImage();
+	void createLeftAndRightEyeImage();
+	void createActor();
 
+	void saveImageAsPNG(int type);
 };
 

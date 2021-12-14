@@ -330,11 +330,6 @@ void iAImNDTMain::onMove(vtkEventDataDevice3D * device, double movePosition[3], 
 	{
 		if (arEnabled)
 		{
-			//arCam->UpdateDisplayPosition();
-			//arCam->DisplayRefreshTimeout(); // Needed for GetCameraPreviewImage()->GetSourceImage() !!
-			//arCam->BuildRepresentation();
-			//arTexture->SetInputData(arCam->GetCameraPreviewImage()->GetSourceImage());
-			//arTexture->Update();
 			arViewer->refreshImage();
 		}
 
