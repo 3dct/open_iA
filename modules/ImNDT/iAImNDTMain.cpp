@@ -46,8 +46,6 @@
 #include "vtkVertexGlyphFilter.h"
 #include "vtkScalarBarActor.h"
 #include "vtkOpenVRCamera.h"
-#include "vtkOpenVRTrackedCamera.h"
-#include "vtkOpenVRTrackedCameraPreview.h"
 
 #include <vtkOpenVRRenderer.h>
 

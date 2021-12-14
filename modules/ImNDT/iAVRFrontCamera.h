@@ -3,6 +3,7 @@
 * *********************************************************************************** *
 * Copyright (C) 2016-2021  C. Heinzl, M. Reiter, A. Reh, W. Li, M. Arikan, Ar. &  Al. *
 *                 Amirkhanov, J. Weissenböck, B. Fröhler, M. Schiwarth, P. Weinberger *
+*                 A. Gall															  *
 * *********************************************************************************** *
 * This program is free software: you can redistribute it and/or modify it under the   *
 * terms of the GNU General Public License as published by the Free Software           *
@@ -27,10 +28,6 @@
 #include <openvr.h>
 
 class vtkExtractVOI;
-class vtkPolyDataMapper;
-class vtkPolyData;
-class vtkCellArray;
-class vtkPolygon;
 class vtkOpenVRRenderer;
 class vtkActor;
 class vtkImageData;
@@ -91,8 +88,6 @@ private:
 	vtkSmartPointer<vtkImageData> m_sourceImage;
 	vtkSmartPointer<vtkImageData> m_leftImage;
 	vtkSmartPointer<vtkImageData> m_rightImage;
-	//vtkSmartPointer<vtkExtractVOI> extractLeftImage;
-	//vtkSmartPointer<vtkExtractVOI> extractRightImage;
 
 	vtkSmartPointer<vtkTexture> m_sourceTexture;
 	vtkSmartPointer<vtkTexture> m_leftTexture;
@@ -103,20 +98,12 @@ private:
 	vtkSmartPointer<vtkRenderer> m_renderer;
 	vtkSmartPointer<vtkOpenVRRenderer> m_backgroundRenderer;
 	vtkSmartPointer<vtkActor> m_cameraActor;
-	vtkSmartPointer<vtkPolyDataMapper> m_camerMapper;
-
-	/*Surface of m_cameraActor*/
-	vtkSmartPointer<vtkPoints> m_points;
-	vtkSmartPointer<vtkPolygon> m_polygon;
-	vtkSmartPointer<vtkCellArray> m_polygons;
-	vtkSmartPointer<vtkPolyData> m_polygonPolyData;
 
 	void getFrameSize();
 	void allocateImages();
 	void loadVideoStream();
 	void createImage();
 	void createLeftAndRightEyeImage();
-	void createActor();
 
 	void saveImageAsPNG(int type);
 };

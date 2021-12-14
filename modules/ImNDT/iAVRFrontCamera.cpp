@@ -3,6 +3,7 @@
 * *********************************************************************************** *
 * Copyright (C) 2016-2021  C. Heinzl, M. Reiter, A. Reh, W. Li, M. Arikan, Ar. &  Al. *
 *                 Amirkhanov, J. Weissenböck, B. Fröhler, M. Schiwarth, P. Weinberger *
+*                 A. Gall															  *
 * *********************************************************************************** *
 * This program is free software: you can redistribute it and/or modify it under the   *
 * terms of the GNU General Public License as published by the Free Software           *
@@ -24,14 +25,9 @@
 
 #include <iALog.h>
 
-#include <vtkFloatArray.h>
 #include <vtkImageData.h>
 #include <vtkOpenVRCamera.h>
 #include <vtkOpenVRRenderer.h>
-#include <vtkPlaneSource.h>
-#include <vtkPointData.h>
-#include <vtkPolyDataMapper.h>;
-#include <vtkPolygon.h>
 #include <vtkProperty.h>
 #include <vtkTexture.h>;
 #include <vtkExtractVOI.h>
@@ -130,31 +126,6 @@ void iAVRFrontCamera::buildRepresentation()
 	m_backgroundRenderer->InteractiveOff();
 	m_renderer->SetLayer(1);
 
-	//m_backgroundRenderer->AddActor(m_cameraActor);
-	//m_renderer->Render();
-
-	//// Set up the background camera to fill the renderer with the image
-	//double origin[3];
-	//double spacing[3];
-	//int extent[6];
-	//m_sourceImage->GetOrigin(origin);
-	//m_sourceImage->GetSpacing(spacing);
-	//m_sourceImage->GetExtent(extent);
-
-	///*Camera to be used on the background renderer to not shift the view*/
-	//vtkSmartPointer<vtkOpenVRCamera> camera = vtkSmartPointer<vtkOpenVRCamera>::New();
-	////camera->ParallelProjectionOn();
-
-	//double xc = origin[0] + 0.5 * (extent[0] + extent[1]) * spacing[0];
-	//double yc = origin[1] + 0.5 * (extent[2] + extent[3]) * spacing[1];
-	//double yd = (extent[3] - extent[2] + 1) * spacing[1];
-	//double d = m_renderer->GetActiveCamera()->GetDistance();
-	//camera->SetParallelScale(0.5 * yd);
-	//camera->SetFocalPoint(xc, yc, 0.0);
-	//camera->SetPosition(xc, yc, d);
-
-	//m_backgroundRenderer->SetActiveCamera(camera);
-	// Render again to set the correct view
 	m_renderWindow->Render();
 }
 
@@ -335,12 +306,6 @@ void iAVRFrontCamera::createImage()
 void iAVRFrontCamera::createLeftAndRightEyeImage()
 {
 	const int* dims = m_sourceImage->GetDimensions();
-	//vtkImageData* sourceCopy1 = vtkImageData::New();
-	//vtkImageData* sourceCopy2 = vtkImageData::New();
-	//sourceCopy1->ShallowCopy(m_sourceImage);
-	//sourceCopy2->ShallowCopy(m_sourceImage);
-
-	LOG(lvlInfo, QString("Size Source Image: Width: %1 Height: %2 Length: %3").arg(dims[0]).arg(dims[1]).arg(dims[2]));
 
 	vtkSmartPointer<vtkExtractVOI> extractLeftImage = vtkSmartPointer<vtkExtractVOI>::New();
 	extractLeftImage->SetInputData(m_sourceImage);
@@ -360,11 +325,6 @@ void iAVRFrontCamera::createLeftAndRightEyeImage()
 	//auto yl = std::ceil(((double)dims[1] - 1.0) / 2.0);
 	//m_leftImage->CopyAndCastFrom(m_sourceImage, 0, dims[0] - 1, std::ceil(((double)dims[1] - 1.0) / 2.0), dims[1] - 1, 0, dims[2] - 1);
 
-	const int* dimsL = m_leftImage->GetDimensions();
-	const int* dimsR = m_rightImage->GetDimensions();
-	LOG(lvlInfo, QString("Size m_leftImage: Width: %1 Height: %2 Length: %3").arg(dimsL[0]).arg(dimsL[1]).arg(dimsL[2]));
-	LOG(lvlInfo, QString("Size m_rightImage: Width: %1 Height: %2 Length: %3").arg(dimsR[0]).arg(dimsR[1]).arg(dimsR[2]));
-
 	m_leftImage->Modified();
 	m_rightImage->Modified();
 
@@ -372,71 +332,6 @@ void iAVRFrontCamera::createLeftAndRightEyeImage()
 	m_rightTexture->Modified();
 	m_rightTexture->SetInputData(m_rightImage);
 	m_rightTexture->Modified();
-}
-
-void iAVRFrontCamera::createActor()
-{
-
-	//Todo Call getFrameSize() 
-	// Setup  points
-	double wid = (double)m_cameraFrameWidth * 1 / 2.7093968447574269e+02; //to multiply by 1/fx (camera calibration) so the scale can be set to one 
-	double hei = (double)m_cameraFrameHeight * 1 / 2.7093968447574269e+02; // to multiply by 1/fy so the scale can bet set to 1 
-	double a = wid / 2.0;
-	double b = hei / 2.0;
-	double c = -50.0;
-
-	//Setup
-	m_points = vtkSmartPointer<vtkPoints>::New();
-	m_polygon = vtkSmartPointer<vtkPolygon>::New();
-	m_polygons = vtkSmartPointer<vtkCellArray>::New();
-	m_polygonPolyData = vtkSmartPointer<vtkPolyData>::New();
-
-	// Create the polygon
-	int n = 10;
-	m_polygon->GetPointIds()->SetNumberOfIds(2 * (n + 1)); //make a quad
-
-	m_textureCoordinates = vtkSmartPointer<vtkFloatArray>::New();
-	m_textureCoordinates->SetNumberOfComponents(2);
-	m_textureCoordinates->SetName("TextureCoordinates");
-
-
-	for (int i = 0; i <= n; i++)
-	{
-		double fac = (double)i;
-		m_points->InsertNextPoint(-a + 2.0 * fac * a / n, -b, 0.0);
-		float tuple[3] = { fac / n, 0.0, 0.0 };
-		m_textureCoordinates->InsertNextTuple(tuple);
-	}
-	for (int i = 0; i <= n; i++)
-	{
-		double fac = (double)i;
-		m_points->InsertNextPoint(a - 2.0 * fac * a / n, b, 0.0);
-		float tuple[3] = { 1.0 - fac / n, 1.0, 0.0 };
-		m_textureCoordinates->InsertNextTuple(tuple);
-	}
-
-	for (int i = 0; i < 2 * (n + 1); i++)
-		m_polygon->GetPointIds()->SetId(i, i);
-
-	//Add the polygon to a list of polygons
-	m_polygons->InsertNextCell(m_polygon);
-
-	m_polygonPolyData->SetPoints(m_points); //geometry
-	m_polygonPolyData->SetPolys(m_polygons); //topology
-
-	m_polygonPolyData->GetPointData()->SetTCoords(m_textureCoordinates);
-
-	//Mapper and texture
-	m_sourceTexture = vtkSmartPointer<vtkTexture>::New();
-	m_camerMapper = vtkSmartPointer<vtkPolyDataMapper>::New();
-	m_camerMapper->SetInputData(m_polygonPolyData);
-	m_sourceTexture->SetInputData(m_sourceImage);
-	m_sourceTexture->Modified();
-
-	//Actor
-	m_cameraActor = vtkSmartPointer<vtkActor>::New();
-	m_cameraActor->SetMapper(m_camerMapper);
-	m_cameraActor->SetTexture(m_sourceTexture);
 }
 
 //! Saves the camera image as PNG
