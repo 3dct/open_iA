@@ -22,7 +22,6 @@
 
 #include "iALog.h"
 
-#include <QCoreApplication>
 #include <QFileInfo>
 
 void CheckSCIFIO(QString const &

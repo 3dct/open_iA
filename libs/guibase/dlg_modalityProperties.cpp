@@ -23,11 +23,6 @@
 #include "iAModality.h"
 #include "iAToolsVTK.h"
 #include "iAVolumeRenderer.h"
-#include "iAMainWindow.h"
-
-#include <vtkVolume.h>
-#include <vtkVolumeProperty.h>
-#include <vtkRenderer.h>
 
 dlg_modalityProperties::dlg_modalityProperties(QWidget * parent, QSharedPointer<iAModality> modality):
 	dlg_modalityPropertiesUI(parent), m_modality(modality)

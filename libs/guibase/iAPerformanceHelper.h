@@ -22,7 +22,6 @@
 
 #include "iAguibase_export.h"
 
-#include <chrono>
 #include <string>
 
 class QString;

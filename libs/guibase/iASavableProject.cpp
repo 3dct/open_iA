@@ -24,7 +24,6 @@
 
 #include <QApplication>
 #include <QFileDialog>
-#include <QMessageBox>
 
 bool iASavableProject::saveProject(QString const & basePath)
 {

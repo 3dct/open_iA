@@ -22,8 +22,6 @@
 
 #include <vtkCommand.h>
 
-#include <cassert>
-
 //! Throws an exception when observing an error in itk objects.
 class iAExceptionThrowingErrorObserver : public vtkCommand
 {

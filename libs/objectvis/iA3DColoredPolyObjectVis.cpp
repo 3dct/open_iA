@@ -22,6 +22,7 @@
 
 #include "iA3DPolyObjectActor.h"
 
+#include <iALog.h>
 #include <iALookupTable.h>
 
 #include <vtkIdTypeArray.h>
@@ -80,7 +81,6 @@ void iA3DColoredPolyObjectVis::renderSelection(std::vector<size_t> const & sorte
 			}
 		}
 	}
-	m_colors->Modified();
 	emit dataChanged();
 }
 
@@ -97,7 +97,6 @@ void iA3DColoredPolyObjectVis::renderSingle(IndexType selectedObjID, int classID
 		int curClassID = m_objectTable->GetValue(objID, m_objectTable->GetNumberOfColumns() - 1).ToInt();
 		setObjectColor(objID, (selectedObjID > 0 && objID + 1 == selectedObjID) ? SelectedColor : (curClassID == classID) ? classColor : nonClassColor);
 	}
-	m_colors->Modified();
 	emit dataChanged();
 }
 
@@ -108,7 +107,6 @@ void iA3DColoredPolyObjectVis::multiClassRendering(QList<QColor> const & classCo
 		int classID = m_objectTable->GetValue(objID, m_objectTable->GetNumberOfColumns() - 1).ToInt();
 		setObjectColor(objID, classColors.at(classID));
 	}
-	m_colors->Modified();
 	emit dataChanged();
 }
 
@@ -119,7 +117,6 @@ void iA3DColoredPolyObjectVis::renderOrientationDistribution(vtkImageData* oi)
 		QColor color = getOrientationColor(oi, objID);
 		setObjectColor(objID, color);
 	}
-	m_colors->Modified();
 	emit dataChanged();
 }
 
@@ -130,12 +127,26 @@ void iA3DColoredPolyObjectVis::renderLengthDistribution(vtkColorTransferFunction
 		QColor color = getLengthColor(ctFun, objID);
 		setObjectColor(objID, color);
 	}
-	m_colors->Modified();
 	emit dataChanged();
 }
 
 void iA3DColoredPolyObjectVis::setObjectColor(IndexType objIdx, QColor const & qcolor)
 {
+	auto const poly = finalPolyData() ? finalPolyData() : polyData();
+	auto const colorsAbstr = poly->GetPointData()->GetAbstractArray("Colors");
+	if (!colorsAbstr)
+	{
+		LOG(lvlDebug, "Colors array not found!");
+	}
+	auto const colors = dynamic_cast<vtkUnsignedCharArray*>(colorsAbstr);
+	if (!colors)
+	{
+		LOG(lvlDebug, "Colors array has wrong type!");
+	}
+	auto const pntCnt = finalPolyData() ? &iA3DColoredPolyObjectVis::finalObjectPointCount
+										: &iA3DColoredPolyObjectVis::objectPointCount;
+	auto const startPntIdx = finalPolyData() ? &iA3DColoredPolyObjectVis::finalObjectStartPointIdx
+											 : &iA3DColoredPolyObjectVis::objectStartPointIdx;
 	unsigned char color[4];
 	color[0] = qcolor.red();
 	color[1] = qcolor.green();
@@ -143,11 +154,12 @@ void iA3DColoredPolyObjectVis::setObjectColor(IndexType objIdx, QColor const & q
 	color[3] = qcolor.alpha();
 	for (int c = 0; c < 4; ++c)
 	{
-		for (IndexType p = 0; p < objectPointCount(objIdx); ++p)
+		for (IndexType p = 0; p < (this->*pntCnt)(objIdx); ++p)
 		{
-			m_colors->SetComponent(objectStartPointIdx(objIdx) + p, c, color[c]);
+			colors->SetComponent( (this->*startPntIdx)(objIdx) + p, c, color[c]);
 		}
 	}
+	colors->Modified();
 }
 
 void iA3DColoredPolyObjectVis::setSelectionOpacity(int selectionAlpha)

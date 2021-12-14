@@ -23,7 +23,7 @@
 
 #include "iAColorTheme.h"
 #include "iALookupTable.h"
-#include "iAVtkVersion.h"
+#include "iAVtkVersion.h"    // required for VTK < 9.0
 
 #include <QColor>
 

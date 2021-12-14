@@ -27,7 +27,6 @@
 #include <iATypedCallHelper.h>
 
 #include <itkBSplineInterpolateImageFunction.h>
-#include <itkChangeInformationImageFilter.h>
 #include <itkConstantPadImageFilter.h>
 #include <itkImageIOBase.h>
 #include <itkNearestNeighborInterpolateImageFunction.h>

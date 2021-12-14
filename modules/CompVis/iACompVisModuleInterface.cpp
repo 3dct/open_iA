@@ -6,8 +6,7 @@
 #include "dlg_CSVReader.h"
 #include "iACompVisMain.h"
 
-#include <iAMdiChild.h>
-#include "iAMainWindow.h"
+#include <iAMainWindow.h>
 
 #include <QMessageBox>
 

@@ -20,38 +20,38 @@
 * ************************************************************************************/
 #include "iASlicerImpl.h"
 
-#include "defines.h"    // for NotExistingChannel
-#include "iAAbortListener.h"
-#include "iAChannelData.h"
-#include "iAChannelSlicerData.h"
-#include "iAConnector.h"
-#include "iAJobListView.h"
-#include "iALog.h"
-#include "iAMagicLens.h"
-#include "iAMathUtility.h"
-#include "iAModality.h"
-#include "iAMovieHelper.h"
-#include "iAParameterDlg.h"
-#include "iAProgress.h"
-#include "iARulerWidget.h"
-#include "iARulerRepresentation.h"
+#include <defines.h>    // for NotExistingChannel
+#include <iAAbortListener.h>
+#include <iAChannelData.h>
+#include <iAChannelSlicerData.h>
+#include <iAConnector.h>
+#include <iAJobListView.h>
+#include <iALog.h>
+#include <iAMagicLens.h>
+#include <iAMathUtility.h>
+#include <iAMovieHelper.h>
+#include <iAParameterDlg.h>
+#include <iAProgress.h>
+#include <iARulerWidget.h>
+#include <iARulerRepresentation.h>
+#include <iASlicerSettings.h>
+#include <iAStringHelper.h>
+#include <iAToolsITK.h>
+#include <iAToolsVTK.h>
+#include <iAVtkVersion.h>    // required for VTK < 9.0
+#include <io/iAIOProvider.h>
+
+// slicer
 #include "iASlicerProfile.h"
 #include "iASlicerProfileHandles.h"
-#include "iASlicerSettings.h"
 #include "iASnakeSpline.h"
-#include "iAStringHelper.h"
-#include "iAToolsITK.h"
-#include "iAToolsVTK.h"
-#include "iAVtkVersion.h"
 #include "iAVtkText.h"
-#include "io/iAIOProvider.h"
 
 // need to get rid of these dependencies:
 #include "iAMainWindow.h"
 #include "iAMdiChild.h"
 
 #include <vtkActor.h>
-#include <vtkAxisActor2D.h>
 #include <vtkCamera.h>
 #include <vtkCommand.h>
 #include <vtkCubeSource.h>
@@ -61,19 +61,14 @@
 #include <vtkGenericOpenGLRenderWindow.h>
 #include <vtkImageActor.h>
 #include <vtkImageBlend.h>
-#include <vtkImageCast.h>
-#include <vtkImageChangeInformation.h>
 #include <vtkImageData.h>
-#include <vtkImageMapper3D.h>
 #include <vtkImageProperty.h>
-#include <vtkImageResample.h>
 #include <vtkImageReslice.h>
 #include <vtkInteractorStyleImage.h>
 #include <vtkLineSource.h>
 #include <vtkLogoRepresentation.h>
 #include <vtkLogoWidget.h>
 #include <vtkLookupTable.h>
-#include <vtkMarchingContourFilter.h>
 #include <vtkMath.h>
 #include <vtkMatrix4x4.h>
 #include <vtkPoints.h>
@@ -88,7 +83,6 @@
 #include <vtkScalarBarRepresentation.h>
 #include <vtkScalarBarWidget.h>
 #include <vtkTextActor3D.h>
-#include <vtkTextMapper.h>
 #include <vtkTextProperty.h>
 #include <vtkThinPlateSplineTransform.h>
 #include <vtkTransform.h>
@@ -100,8 +94,6 @@
 #include <QCoreApplication>
 #include <QFileDialog>
 #include <QIcon>
-#include <QKeyEvent>
-#include <QtMath>
 #include <QMenu>
 #include <QMessageBox>
 #include <QMouseEvent>

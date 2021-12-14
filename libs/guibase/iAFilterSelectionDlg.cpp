@@ -51,9 +51,7 @@ iAFilterSelectionDlg::iAFilterSelectionDlg(QWidget * parent, QString const & pre
 	m_ui->splitter->setCollapsible(1, true);
 }
 
-iAFilterSelectionDlg::~iAFilterSelectionDlg()
-{
-}
+iAFilterSelectionDlg::~iAFilterSelectionDlg() = default;
 
 void iAFilterSelectionDlg::filterChanged(QString const & filter)
 {

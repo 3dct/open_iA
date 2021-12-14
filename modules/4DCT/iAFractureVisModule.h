@@ -27,7 +27,6 @@
 // itk
 #include <itkImage.h>
 // Qt
-#include <QString>
 #include <QColor>
 
 class vtkActor;

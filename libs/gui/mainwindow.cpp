@@ -60,7 +60,6 @@
 #include <vtkImageData.h>
 #include <vtkOpenGLRenderer.h>
 #include <vtkPiecewiseFunction.h>
-#include <vtkSmartVolumeMapper.h>
 
 #include <QActionGroup>
 #include <QCloseEvent>

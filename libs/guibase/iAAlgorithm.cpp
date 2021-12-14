@@ -29,8 +29,6 @@
 #include <vtkImageData.h>
 #include <vtkPolyData.h>
 
-#include <QMessageBox>
-
 iAAlgorithm::iAAlgorithm( QString fn, vtkImageData* idata, vtkPolyData* p, iALogger * logger, QObject *parent )
 	: QThread( parent ),
 	m_isRunning(false),

@@ -22,7 +22,6 @@
 
 #include <defines.h>    // for DIM
 #include <iAConnector.h>
-#include <iALog.h>
 #include <iAProgress.h>
 #include <iATypedCallHelper.h>
 

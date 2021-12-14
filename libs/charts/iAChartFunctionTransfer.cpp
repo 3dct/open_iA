@@ -26,7 +26,6 @@
 #include "iAMathUtility.h"
 
 #include <vtkColorTransferFunction.h>
-#include <vtkImageData.h>
 #include <vtkPiecewiseFunction.h>
 
 #include <QColorDialog>

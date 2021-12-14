@@ -24,8 +24,6 @@
 
 #include "iAcharts_export.h"
 
-#include <QMouseEvent>
-
 // FORWARD DECLARATIONS
 class vtkPolyData;
 class vtkDataArray;

@@ -21,7 +21,6 @@
 #pragma once
 
 class vtkColorTransferFunction;
-class vtkImageData;
 class vtkPiecewiseFunction;
 
 #include <vtkSmartPointer.h>

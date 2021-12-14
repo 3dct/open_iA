@@ -26,7 +26,6 @@
 #include <iAProgress.h>
 #include <iATypedCallHelper.h>
 
-#include <itkCastImageFilter.h>
 #include <itkDerivativeImageFilter.h>
 #ifdef ITKHigherOrderGradient
 #include <itkHigherOrderAccurateDerivativeImageFilter.h>       // HigherOrderAccurateGradient ITK Module

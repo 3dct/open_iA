@@ -70,13 +70,12 @@
 #include <iAProgress.h>
 #include <iAToolsVTK.h>
 #include <iATransferFunction.h>
-#include <iAVtkVersion.h>
+#include <iAVtkVersion.h>    // required for VTK < 9.0
 
 #include <vtkCamera.h>
 #include <vtkColorTransferFunction.h>
 #include <vtkCornerAnnotation.h>
 #include <vtkGenericOpenGLRenderWindow.h>
-#include <vtkImageActor.h>
 #include <vtkImageExtractComponents.h>
 #include <vtkImageReslice.h>
 #include <vtkMath.h>
@@ -93,6 +92,7 @@
 // TODO: VOLUME: check all places using modality(0)->transfer() !
 
 #include <QByteArray>
+#include <QCloseEvent>
 #include <QFile>
 #include <QFileDialog>
 #include <QMainWindow>
