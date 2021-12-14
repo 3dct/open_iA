@@ -46,12 +46,15 @@
 vtkStandardNewMacro(iACompHistogramTableInteractorStyle);
 
 iACompHistogramTableInteractorStyle::iACompHistogramTableInteractorStyle() :
+	m_visualization(nullptr),
 	m_picked(new Pick::PickedMap()),
 	m_controlBinsInZoomedRows(false),
 	m_pointRepresentationOn(false),
-	m_zoomLevel(1),
-	m_actorPicker(vtkSmartPointer<vtkPropPicker>::New()),
 	m_zoomOn(true),
+	m_zoomLevel(1),
+	m_zoomedRowData(nullptr),
+	m_main(nullptr),
+	m_actorPicker(vtkSmartPointer<vtkPropPicker>::New()),
 	m_currentlyPickedActor(vtkSmartPointer<vtkActor>::New()),
 	m_panActive(false)
 {
@@ -87,7 +90,7 @@ void iACompHistogramTableInteractorStyle::OnKeyRelease()
 			//only one actor is allowed to be picked --> otherwise the calculation is not working
 			if (m_picked->size() == 1)
 			{
-				m_visualization->drawHistogramTableAccordingToCellSimilarity(m_visualization->getBins(), m_picked);
+				m_visualization->drawHistogramTableAccordingToCellSimilarity(m_picked);
 
 				//reset selection variables
 				m_picked->clear();
@@ -367,7 +370,7 @@ void iACompHistogramTableInteractorStyle::OnRightButtonDown()
 	else
 	{	//order datasets according to every bin
 		m_visualization->highlightSelectedRow(pickedA);
-		m_visualization->drawHistogramTableAccordingToSimilarity(m_visualization->getBins(), pickedA);
+		m_visualization->drawHistogramTableAccordingToSimilarity(pickedA);
 	}
 }
 
@@ -519,7 +522,6 @@ void iACompHistogramTableInteractorStyle::updateCharts()
 
 void iACompHistogramTableInteractorStyle::updateOtherCharts(QList<std::vector<csvDataType::ArrayType*>*>* selectedObjectAttributes)
 {
-	std::vector<int>* indexOfPickedRows = m_visualization->getIndexOfPickedRows();
 	csvDataType::ArrayType* selectedData = formatPickedObjects(selectedObjectAttributes);
 
 	std::map<int, std::vector<double>>* pickStatistic = calculatePickedObjects(m_zoomedRowData);
@@ -535,7 +537,7 @@ std::map<int, std::vector<double>>* iACompHistogramTableInteractorStyle::calcula
 	//get number of all object in this dataset
 	std::vector<int>* amountObjectsEveryDataset = m_visualization->getAmountObjectsEveryDataset();
 
-	for(int i = 0; i < zoomedRowData->size(); i++)
+	for(int i = 0; i < ((int)zoomedRowData->size()); i++)
 	{
 		std::vector<double> container = std::vector<double>(2, 0);
 		double totalNumber = 0;
@@ -546,7 +548,7 @@ std::map<int, std::vector<double>>* iACompHistogramTableInteractorStyle::calcula
 
 		//get number of picked objects
 		bin::BinType* bins = zoomedRowData->at(i);
-		for (int binInd = 0; binInd < bins->size(); binInd++)
+		for (int binInd = 0; binInd < ((int)bins->size()); binInd++)
 		{ //sum over all bins to get amount of picked objects
 			pickedNumber += bins->at(binInd).size();
 		}
@@ -569,12 +571,10 @@ void iACompHistogramTableInteractorStyle::setPickList(std::vector<vtkSmartPointe
 {
 	m_actorPicker->InitializePickList();
 
-	for (int i = 0; i < originalRowActors->size(); i++)
+	for (int i = 0; i < ((int)originalRowActors->size()); i++)
 	{
 		m_actorPicker->AddPickList(originalRowActors->at(i));
 	}
-
-	//m_actorPicker->SetPickFromList(true);
 }
 
 csvDataType::ArrayType* iACompHistogramTableInteractorStyle::formatPickedObjects(QList<std::vector<csvDataType::ArrayType*>*>* zoomedRowData)

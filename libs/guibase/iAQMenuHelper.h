@@ -20,23 +20,14 @@
 * ************************************************************************************/
 #pragma once
 
-#include "iAqthelper_export.h"
+#include "iAguibase_export.h"
 
-#include "iASignallingWidget.h"
-#include "iAVtkWidget.h"
+class QAction;
+class QMenu;
+class QString;
 
-class iAColoredWidget;
+//! Search in the given menu for a menu with the given title; if it doesn't exist, add it (alphabetically sorted).
+iAguibase_API QMenu* getOrAddSubMenu(QMenu* parentMenu, QString const& title, bool addSeparator = false);
 
-//! Keeps the aspect ratio of a contained iAQVTKWidget fixed
-//! by placing two other resizable widgets around it as padding.
-class iAqthelper_API iAFixedAspectWidget: public iASignallingWidget
-{
-	Q_OBJECT
-public:
-	iAFixedAspectWidget(double aspect=1.0, Qt::Alignment verticalAlign = Qt::AlignVCenter);
-	iAQVTKWidget* vtkWidget();
-	void setBGRole(QPalette::ColorRole role);
-private:
-	iAQVTKWidget* m_widget;
-	iAColoredWidget* m_fill1, * m_fill2;
-};
+//! Add a given action to a menu, such that the (previously sorted) menu stays alphabetically sorted.
+iAguibase_API void addToMenuSorted(QMenu* menu, QAction* action);

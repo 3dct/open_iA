@@ -161,8 +161,6 @@ public:
 	vtkPolyData* polyData() override;
 	//! Access to the 3D renderer widget
 	iARenderer* renderer() override;
-	//! Access to the 3D renderer vtk widget
-	iAVtkWidget* renderVtkWidget() override;
 	//! Access slicer for given mode (use iASlicerMode enum for mode values)
 	iASlicer* slicer(int mode) override;
 	//! Access to the scroll bar next to a slicer
@@ -320,6 +318,7 @@ public slots:
 	void enableRenderWindows() override;
 	void updateSlicer(int index);
 	void updateSlicers() override;
+	void updateRenderer() override;
 	void updateViews() override;
 	void addStatusMsg(QString const& txt) override;
 	void setupView(bool active = false);

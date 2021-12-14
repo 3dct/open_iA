@@ -173,13 +173,7 @@ bool iAFilterRunnerGUI::askForParameters(QSharedPointer<iAFilter> filter, QMap<Q
 		{
 			QStringList comboValues = p->defaultValue().toStringList();
 			QString storedValue = paramValues[p->name()].toString();
-			for (int i = 0; i < comboValues.size(); ++i)
-			{
-				if (comboValues[i] == storedValue)
-				{
-					comboValues[i] = "!" + comboValues[i];
-				}
-			}
+			selectOption(comboValues, storedValue);
 			p->setDefaultValue(comboValues);
 		}
 		else
@@ -220,8 +214,7 @@ bool iAFilterRunnerGUI::askForParameters(QSharedPointer<iAFilter> filter, QMap<Q
 		}
 		for (int i = 1; i < filter->requiredInputs(); ++i)
 		{
-			dlgParams.push_back(iAAttributeDescriptor::createParam(
-				QString("%1").arg(filter->inputName(i)), iAValueType::Categorical, mdiChildrenNames));
+			addParameter(dlgParams, QString("%1").arg(filter->inputName(i)), iAValueType::Categorical, mdiChildrenNames);
 		}
 	}
 	iAParameterDlg dlg(mainWnd, filter->name(), dlgParams, filter->description());

@@ -26,9 +26,9 @@
 #define LOG(lvlInfo, msg) std::cout << msg.toStdString() << std::endl;
 #else
 
-#include "iAbase_export.h"
-
 #include "iALogger.h"
+
+#include <QString>    // do not remove! required for linux build!
 
 //! Singleton providing access to the global logger object.
 //! Before first access (via get()), a specific logger needs to be set

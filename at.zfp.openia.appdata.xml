@@ -39,6 +39,11 @@
         </screenshot>
     </screenshots>
     <releases>
+        <release version="2021.08" date="2021-08-20">
+            <description>
+                New tools for the comparative visualization of multi-dimensional data, new tools to guide in creating a transfer function for n-modal data, improved manual labelling capabilities, improvements/fixes to fuzzy feature tracking, improved sampling
+            </description>
+        </release>
         <release version="2020.09" date="2020-09-17">
             <description>
                 New AI module, improved filter sampling capabilities; transfer function editing bugfixes, multiple other small improvements.

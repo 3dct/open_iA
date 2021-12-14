@@ -22,7 +22,6 @@
 
 #include "iAguibase_export.h"
 
-#include <chrono>
 #include <string>
 
 class QString;
@@ -116,7 +115,7 @@ private:
 class iAguibase_API iATimeGuard
 {
 public:
-	//! starts measuring and writes according message (and optionally memory
+	//! Starts measuring and writes according message (and optionally memory.
 	//! usage) to the debug console
 	iATimeGuard(std::string const & caption = "", bool printMemUsage = true);
 	//! output an intermediate time with an optional caption
@@ -129,10 +128,12 @@ private:
 	iAPerformanceHelper m_perfHelper;
 };
 
-//! Helper method for getting the current memory usage
+//! Helper method for getting the current memory usage.
 //! @return the number of bytes currently in use by the application
 size_t getCurrentRSS();
 
-//! format the given time in a human-readable format
+//! Format the given time in a human-readable format.
 //! @param duration the time to format (in seconds)
+//! @param showMS whether to show the milliseconds part
+//! @param shortNames if true, use short time span names (s, m, h, d), otherwise (default), use long names (second, minute, hour, day)
 iAguibase_API QString formatDuration(double duration, bool showMS = true, bool shortNames=false);

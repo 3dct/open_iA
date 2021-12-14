@@ -1,1 +1,1 @@
-SET (ModalityExplorer_PRECOMPILE_INCLUDES <iAMdiChild.h>)
+set(ModalityExplorer_PRECOMPILE_INCLUDES <iAMdiChild.h>)

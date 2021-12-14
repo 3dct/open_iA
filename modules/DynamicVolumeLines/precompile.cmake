@@ -1,4 +1,4 @@
-SET (DynamicVolumeLines_PRECOMPILE_INCLUDES
+set(DynamicVolumeLines_PRECOMPILE_INCLUDES
 <qcustomplot.h>
 <dlg_DynamicVolumeLines.h>
 <iALUT.h>

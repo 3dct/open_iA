@@ -1,3 +1,3 @@
-SET(MODULE_DESCRIPTION
+set(MODULE_DESCRIPTION
 	"Use Dynamic Volume Lines"
 )

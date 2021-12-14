@@ -20,14 +20,12 @@
 * ************************************************************************************/
 #include "iAModuleDispatcher.h"
 
-#include "iALog.h"
 #include "iAFilter.h"
 #include "iAFilterRunnerRegistry.h"
 #include "iAFilterRunnerGUI.h"
 #include "iAFilterSelectionDlg.h"
 #include "iAGUIModuleInterface.h"
 #include "iALogger.h"
-#include "iAModuleInterface.h"
 #include "iAMainWindow.h"
 
 #include <QCoreApplication>
@@ -38,21 +36,24 @@
 #ifdef _MSC_VER
 #define CALLCONV __stdcall
 
-//Returns the last Win32 error, in string format. Returns an empty string if there is no error.
+// inspired by https://stackoverflow.com/a/17387176
 QString GetLastErrorAsString()
 {
-	DWORD errorMessageID = ::GetLastError();
+	const DWORD errorMessageID = ::GetLastError();
 	if (errorMessageID == 0)
 	{
 		return QString();
 	}
-	LPSTR messageBuffer = nullptr;
-	size_t size = FormatMessageA(FORMAT_MESSAGE_ALLOCATE_BUFFER | FORMAT_MESSAGE_FROM_SYSTEM | FORMAT_MESSAGE_IGNORE_INSERTS,
-		nullptr, errorMessageID, MAKELANGID(LANG_NEUTRAL, SUBLANG_DEFAULT), (LPSTR)&messageBuffer, 0, nullptr);
-	std::string message(messageBuffer, size);
+	wchar_t * messageBuffer = nullptr;
+	const DWORD size = FormatMessageW(FORMAT_MESSAGE_ALLOCATE_BUFFER | FORMAT_MESSAGE_FROM_SYSTEM | FORMAT_MESSAGE_IGNORE_INSERTS,
+		nullptr, errorMessageID, MAKELANGID(LANG_NEUTRAL, SUBLANG_DEFAULT), (LPWSTR)&messageBuffer, 0, nullptr);
+	if (size == 0)
+	{
+		return QString("Details on the error could not be determined.");
+	}
+	QString result(QString::fromWCharArray(messageBuffer).trimmed());
 	LocalFree(messageBuffer);
-	QString result(message.c_str());
-	return result.trimmed();
+	return result;
 }
 
 #else
@@ -76,6 +77,12 @@ iAModuleDispatcher::iAModuleDispatcher(iAMainWindow * mainWnd)
 {
 	m_mainWnd = mainWnd;
 	m_rootPath = QCoreApplication::applicationDirPath();
+#ifdef __APPLE__
+	// on apple, the executable resides in a subfolder of the "bundle"
+	m_rootPath = m_rootPath.left(m_rootPath.length() -
+		// hack - subtract the subfolder
+		QString("open_iA.app/Contents/MacOS").length());
+#endif
 }
 
 iAModuleDispatcher::iAModuleDispatcher(QString const & rootPath): m_mainWnd(nullptr)

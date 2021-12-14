@@ -151,6 +151,7 @@ int iAFilter::outputCount() const
 void iAFilter::clearInput()
 {
 	m_input.clear();
+	m_fileNames.clear();
 }
 
 // TODO: Allow to check type of input files (e.g. to check if input images are

@@ -45,7 +45,7 @@ class dlg_dataView4DCT : public dlg_dataView4DCTContainer
 {
 	Q_OBJECT
 public:
-	dlg_dataView4DCT(QWidget *parent, iAVolumeStack* volumeStack);
+	dlg_dataView4DCT(QWidget* parent, iAVolumeStack* volumeStack);
 	~dlg_dataView4DCT();
 	void update();
 

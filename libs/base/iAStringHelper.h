@@ -194,7 +194,12 @@ iAbase_API QString padOrTruncate(QString const & str, int size);
 iAbase_API QString stripHTML(QString const & html);
 
 //! returns the value converted to string, with units (K, M, G, T, P) applied for every 10³ factor over 1000
-iAbase_API QString dblToStringWithUnits(double value, double switchFactor = 10);
+//! @param value the value to convert to a string
+//! @param switchFactor the multiple of the "base unit" under which to switch to next lower unit;
+//!      example: if value = 0.101 and switchFactor is at default 100, the returned string will be "0.1"
+//!               with the same value and a switchFactor of 102 (or any other value larger than 101),
+//!               the result will be 101m
+iAbase_API QString dblToStringWithUnits(double value, double switchFactor = 999);
 
 //! join any list as string - the conversion of the single items happens via the passed-in lambda
 //! FnType is something like a function taking an Element parameter and has a QString(-compatible)

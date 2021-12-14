@@ -28,7 +28,6 @@
 
 #include <itkAdaptiveHistogramEqualizationImageFilter.h>
 #include <itkAddImageFilter.h>
-#include <itkCastImageFilter.h>
 #include <itkHistogramMatchingImageFilter.h>
 #include <itkIntensityWindowingImageFilter.h>
 #include <itkInvertIntensityImageFilter.h>

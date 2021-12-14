@@ -40,18 +40,14 @@ class iASegm3DView;
 class vtkPolyData;
 class iARendererViewSync;
 
-typedef iAQTtoUIConnector<QDockWidget, Ui_SSView>  PorosityAnalyzerSSConnector;
+typedef iAQTtoUIConnector<QDockWidget, Ui_SSView>  FeatureAnalyzerSSConnector;
 
-class iASSView : public PorosityAnalyzerSSConnector
+class iASSView : public FeatureAnalyzerSSConnector
 {
 	Q_OBJECT
 
 public:
-#if QT_VERSION < QT_VERSION_CHECK(5, 15, 0)
-	iASSView( QWidget * parent = 0, Qt::WindowFlags f = 0 );
-#else
-	iASSView(QWidget* parent = nullptr, Qt::WindowFlags f = Qt::WindowFlags());
-#endif
+	iASSView(QWidget* parent = nullptr);
 	~iASSView();
 	void attachSegm3DView( iASegm3DView * m_segm3DView );
 

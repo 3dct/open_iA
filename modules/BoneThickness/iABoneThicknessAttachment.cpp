@@ -212,18 +212,18 @@ void iABoneThicknessAttachment::slotPushButtonOpen()
 {
 	QPushButton* pPushButtonOpen ((QPushButton*) sender());
 
-	QFileDialog* pFileDialog (new QFileDialog());
-	pFileDialog->setAcceptMode(QFileDialog::AcceptOpen);
-	pFileDialog->setDefaultSuffix("txt");
-	pFileDialog->setFileMode(QFileDialog::ExistingFile);
-	pFileDialog->setNameFilter("Point file (*.txt)");
-	pFileDialog->setWindowTitle(pPushButtonOpen->text());
+	QFileDialog pFileDialog;
+	pFileDialog.setAcceptMode(QFileDialog::AcceptOpen);
+	pFileDialog.setDefaultSuffix("txt");
+	pFileDialog.setFileMode(QFileDialog::ExistingFile);
+	pFileDialog.setNameFilter("Point file (*.txt)");
+	pFileDialog.setWindowTitle(pPushButtonOpen->text());
 
-	if (pFileDialog->exec())
+	if (pFileDialog.exec())
 	{
 		qApp->setOverrideCursor(Qt::WaitCursor);
 		qApp->processEvents();
-		m_pBoneThickness->open(pFileDialog->selectedFiles().first());
+		m_pBoneThickness->open(pFileDialog.selectedFiles().first());
 		m_pBoneThickness->calculate();
 		setStatistics();
 		m_pBoneThickness->setChart(m_pBoneThicknessChartBar);
@@ -231,28 +231,24 @@ void iABoneThicknessAttachment::slotPushButtonOpen()
 		m_pBoneThickness->setWindow();
 		qApp->restoreOverrideCursor();
 	}
-
-	delete pFileDialog;
 }
 
 void iABoneThicknessAttachment::slotPushButtonSave()
 {
 	QPushButton* pPushButtonSave((QPushButton*)sender());
 
-	QFileDialog* pFileDialog(new QFileDialog());
-	pFileDialog->setAcceptMode(QFileDialog::AcceptSave);
-	pFileDialog->setDefaultSuffix("csv");
-	pFileDialog->setFileMode(QFileDialog::ExistingFile);
-	pFileDialog->setNameFilter("CSV file (*.csv)");
-	pFileDialog->setWindowTitle(pPushButtonSave->text());
+	QFileDialog pFileDialog;
+	pFileDialog.setAcceptMode(QFileDialog::AcceptSave);
+	pFileDialog.setDefaultSuffix("csv");
+	pFileDialog.setFileMode(QFileDialog::ExistingFile);
+	pFileDialog.setNameFilter("CSV file (*.csv)");
+	pFileDialog.setWindowTitle(pPushButtonSave->text());
 
-	if (pFileDialog->exec())
+	if (pFileDialog.exec())
 	{
 		qApp->setOverrideCursor(Qt::WaitCursor);
 		qApp->processEvents();
-		m_pBoneThickness->save(pFileDialog->selectedFiles().first());
+		m_pBoneThickness->save(pFileDialog.selectedFiles().first());
 		qApp->restoreOverrideCursor();
 	}
-
-	delete pFileDialog;
 }

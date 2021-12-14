@@ -190,6 +190,11 @@ void iANModalPCAModalityReducer::ownPCA(std::vector<iAConnector>& c)
 		LOG(lvlWarn, QString("Input image (number of voxels: %1) exceeds size that can be handled "
 			"(current voxel number maximum: %2)!").arg(numVoxels).arg(std::numeric_limits<int>::max()));
 	}
+	if (numInputs >= std::numeric_limits<int>::max())
+	{
+		LOG(lvlWarn, QString("Number of input images (%1) exceeds size that can be handled "
+			"(current limit: %2)!").arg(numInputs).arg(std::numeric_limits<int>::max()));
+	}
 
 	// Set up input matrix
 	vnl_matrix<double> inputs(numInputs, numVoxels);
@@ -248,7 +253,7 @@ void iANModalPCAModalityReducer::ownPCA(std::vector<iAConnector>& c)
 			double mean = 0;
 			// TODO: Use omp reduction?
 #pragma omp for nowait
-			for (int i = 0; i < numVoxels; i++)
+			for (int i = 0; i < static_cast<int>(numVoxels); i++)
 			{
 				//means[img_i] += inputs[img_i][i];
 				mean += inputs[img_i][i];
@@ -275,7 +280,7 @@ void iANModalPCAModalityReducer::ownPCA(std::vector<iAConnector>& c)
 			{
 				double innerProd_thread = 0;
 #pragma omp for nowait
-				for (int i = 0; i < numVoxels; i++)
+				for (int i = 0; i < static_cast<int>(numVoxels); i++)
 				{
 					auto mx = inputs[ix][i] - means[ix];
 					auto my = inputs[iy][i] - means[iy];
@@ -292,7 +297,7 @@ void iANModalPCAModalityReducer::ownPCA(std::vector<iAConnector>& c)
 
 		// Fill upper triangle (make symmetric)
 #pragma omp for
-		for (int ix = 0; ix < (numInputs - 1); ix++)
+		for (int ix = 0; ix < static_cast<int>(numInputs - 1); ix++)
 		{
 			for (size_t iy = ix + 1; iy < numInputs; iy++)
 			{
@@ -342,7 +347,7 @@ void iANModalPCAModalityReducer::ownPCA(std::vector<iAConnector>& c)
 		for (size_t row_i = 0; row_i < numOutputs; row_i++)
 		{
 #pragma omp for nowait
-			for (int col_i = 0; col_i < numVoxels; col_i++)
+			for (int col_i = 0; col_i < static_cast<int>(numVoxels); col_i++)
 			{
 				reconstructed[row_i][col_i] = 0;
 			}
@@ -358,7 +363,7 @@ void iANModalPCAModalityReducer::ownPCA(std::vector<iAConnector>& c)
 				auto evec_elem = evecs_innerProd[row_i][vec_i];
 				//double reconstructed_thread = 0;
 #pragma omp for nowait
-				for (int col_i = 0; col_i < numVoxels; col_i++)
+				for (int col_i = 0; col_i < static_cast<int>(numVoxels); col_i++)
 				{
 					auto voxel_value = inputs[row_i][col_i];
 					reconstructed[vec_i][col_i] += (voxel_value * evec_elem);
@@ -375,7 +380,7 @@ void iANModalPCAModalityReducer::ownPCA(std::vector<iAConnector>& c)
 			double min_thread = DBL_MAX;
 
 #pragma omp for
-			for (int i = 0; i < numVoxels; i++)
+			for (int i = 0; i < static_cast<int>(numVoxels); i++)
 			{
 				auto rec = reconstructed[vec_i][i];
 				//max_val = max_val > rec ? max_val : rec;
@@ -393,7 +398,7 @@ void iANModalPCAModalityReducer::ownPCA(std::vector<iAConnector>& c)
 #pragma omp barrier
 
 #pragma omp for nowait
-			for (int i = 0; i < numVoxels; i++)
+			for (int i = 0; i < static_cast<int>(numVoxels); i++)
 			{
 				auto old = reconstructed[vec_i][i];
 				reconstructed[vec_i][i] = (old - min_val) / (max_val - min_val) * 65535.0;

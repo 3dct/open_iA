@@ -1,7 +1,7 @@
-SET( DEPENDENCIES_LIBRARIES
-	iAcharts
-	iAguibase
+set(DEPENDENCIES_LIBRARIES
+	iA::charts
+	iA::guibase
 )
-SET( DEPENDENCIES_VTK_MODULES
+set(DEPENDENCIES_VTK_MODULES
 	RenderingImage    # for vtkImageResliceMapper
 )

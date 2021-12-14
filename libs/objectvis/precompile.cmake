@@ -1,4 +1,4 @@
-SET (OPENIA_PRECOMPILE_HEADERS
+set(OPENIA_PRECOMPILE_HEADERS
 <iA3DColoredPolyObjectVis.h>
 <iA3DLineObjectVis.h>
 <iA3DObjectVis.h>

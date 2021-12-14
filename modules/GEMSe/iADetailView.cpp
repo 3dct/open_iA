@@ -45,7 +45,6 @@
 #include <vtkColorTransferFunction.h>
 #include <vtkImageData.h>
 #include <vtkLookupTable.h>
-#include <vtkMetaImageWriter.h>
 #include <vtkPiecewiseFunction.h>
 
 #include <QLabel>
@@ -59,6 +58,7 @@
 #include <QSplitter>
 #include <QStandardItemModel>
 #include <QTextEdit>
+#include <QThread>
 
 iADetailView::iADetailView(
 		iAImagePreviewWidget* prevWdgt,

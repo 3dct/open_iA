@@ -18,14 +18,39 @@
 * Contact: FH OÖ Forschungs & Entwicklungs GmbH, Campus Wels, CT-Gruppe,              *
 *          Stelzhamerstraße 23, 4600 Wels / Austria, Email: c.heinzl@fh-wels.at       *
 * ************************************************************************************/
-#pragma once
+#include "iAQMenuHelper.h"
 
-#include "iAVtkVersion.h"
+#include <QMenu>
 
-#if (VTK_VERSION_NUMBER >= VTK_VERSION_CHECK(8, 2, 0))
-	class QVTKOpenGLNativeWidget;
-	using iAVtkWidget = QVTKOpenGLNativeWidget;
-#else
-	class QVTKOpenGLWidget;
-	using iAVtkWidget = QVTKOpenGLWidget;
-#endif
+void addToMenuSorted(QMenu* menu, QAction* action)
+{
+	for (QAction* curAct : menu->actions())
+	{
+		if (curAct->text() > action->text())
+		{
+			menu->insertAction(curAct, action);
+			return;
+		}
+	}
+	menu->addAction(action);
+}
+
+QMenu* getOrAddSubMenu(QMenu* parentMenu, QString const& title, bool addSeparator)
+{
+	QList<QMenu*> submenus = parentMenu->findChildren<QMenu*>();
+	for (int i = 0; i < submenus.size(); ++i)
+	{
+		if (submenus.at(i)->title() == title)
+		{
+			if (addSeparator && !submenus.at(i)->isEmpty())
+			{
+				submenus.at(i)->addSeparator();
+			}
+			return submenus.at(i);
+		}
+	}
+	QMenu* result = new QMenu(parentMenu);
+	result->setTitle(title);
+	addToMenuSorted(parentMenu, result->menuAction());
+	return result;
+}

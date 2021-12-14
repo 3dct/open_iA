@@ -24,11 +24,9 @@
 #include "iATransferFunction.h"
 #include "iAVolumeSettings.h"
 
-#include <vtkColorTransferFunction.h>
 #include <vtkImageData.h>
 #include <vtkOpenGLRenderer.h>
 #include <vtkProperty.h>
-#include <vtkRendererCollection.h>
 
 bool IsFlat(int extent[6])
 {
@@ -105,6 +103,11 @@ void iAVolumeRenderer::setMovable(bool movable)
 bool iAVolumeRenderer::isRendered() const
 {
 	return m_currentRenderer;
+}
+
+bool iAVolumeRenderer::isVisible() const
+{
+	return isRendered() && m_volume->GetVisibility();
 }
 
 const iAVolumeSettings& iAVolumeRenderer::volumeSettings() const

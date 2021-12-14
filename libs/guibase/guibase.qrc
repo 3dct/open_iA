@@ -1,9 +1,5 @@
 <RCC>
   <qresource prefix="/">
-    <file>images/dockwidget-close_bright.svg</file>
-    <file>images/dockwidget-close_dark.svg</file>
-    <file>images/dockwidget-float_bright.svg</file>
-    <file>images/dockwidget-float_dark.svg</file>
     <file>images/info.png</file>
     <file>images/load.png</file>
     <file>images/mini_rect.png</file>

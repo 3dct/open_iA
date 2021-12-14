@@ -25,15 +25,12 @@
 
 #include "iALog.h"
 #include "iAModuleInterface.h"
+#include "iAQMenuHelper.h"    // to make getOrAddSubmenu / addToMenuSorted available as before
 
-#include <QObject>
 #include <QVector>
 
 class iAMainWindow;
 class iAMdiChild;
-
-class QMenu;
-class QAction;
 
 //! Base class for a module interface.
 //! A class derived from this class, and having a name in the form iA<ModuleName>ModuleInterface needs to be part of each module.
@@ -95,12 +92,6 @@ protected slots:
 	void attachedChildClosed();
 	void detach();
 };
-
-//! In the given menu, search for a menu with the given title; if it doesn't exist, add (alphabetically sorted).
-iAguibase_API QMenu* getOrAddSubMenu(QMenu* parentMenu, QString const& title, bool addSeparator=false);
-
-//! Add a given action to a menu, such that the (previously sorted) menu stays alphabetically sorted.
-iAguibase_API void addToMenuSorted(QMenu* menu, QAction* action);
 
 template <class T>
 T* iAGUIModuleInterface::attachment(iAMdiChild* child)

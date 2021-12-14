@@ -96,7 +96,7 @@ private:
 	void createVisualisation(threshold_defs::iAParametersRanges paramRanges, threshold_defs::iAThresMinMax thrPeaks);
 	void visualizeSeries(threshold_defs::iAParametersRanges ParamRanges, QColor color, QString *seriesName);
 
-	threshold_defs::iAThresMinMax determineLocalPeaks(threshold_defs::iAPeakRanges& ranges, threshold_defs::iAThresMinMax resultingthrPeaks);
+	threshold_defs::iAThresMinMax determineLocalPeaks(threshold_defs::iAPeakRanges& ranges);
 	void visualizeFinalThreshold(double resThres);
 	void OptionallyUpdateThrPeaks(bool selectedData, threshold_defs::iAThresMinMax& thrPeaks);
 

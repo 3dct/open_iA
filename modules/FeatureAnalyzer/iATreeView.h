@@ -46,11 +46,7 @@ class iATreeView : public TreeViewConnector
 	Q_OBJECT
 
 public:
-#if QT_VERSION < QT_VERSION_CHECK(5, 15, 0)
-	iATreeView( QWidget * parent = 0, Qt::WindowFlags f = 0 );
-#else
-	iATreeView(QWidget* parent = nullptr, Qt::WindowFlags f = Qt::WindowFlags());
-#endif
+	iATreeView(QWidget* parent = nullptr);
 	virtual ~iATreeView();
 	void SetData( QTableWidget * const data, const QMap<QString, double> * gtPorosityMap, int runsOffset );
 	QList<QTreeWidgetItem *> * getLastSelectedItems();

@@ -26,7 +26,6 @@
 #include "iAMathUtility.h"
 
 #include <vtkColorTransferFunction.h>
-#include <vtkImageData.h>
 #include <vtkPiecewiseFunction.h>
 
 #include <QColorDialog>
@@ -56,7 +55,7 @@ void iAChartTransferFunction::draw(QPainter &painter, QColor color, int lineWidt
 	painter.setPen(pen);
 	painter.setBrush(QColor(128, 128, 128, 255));
 
-	double gradientWidth = m_chart->chartWidth()*m_chart->xZoom();
+	double gradientWidth = m_chart->fullChartWidth();
 
 	m_gradient = QLinearGradient();
 	m_gradient.setStart(0, 0);
@@ -80,7 +79,7 @@ void iAChartTransferFunction::draw(QPainter &painter, QColor color, int lineWidt
 	int y1 = opacity2PixelY(opacityTFValue[1]);
 
 	QColor c; c.setRgbF(colorTFValue[1], colorTFValue[2], colorTFValue[3], 0.588);
-	m_gradient.setColorAt(static_cast<double>(x1) / gradientWidth, c );
+	m_gradient.setColorAt(static_cast<double>(x1) / gradientWidth, c);
 
 	int lastX = x1;
 	for ( int i = 1; i < m_tf->opacityTF()->GetSize(); i++)

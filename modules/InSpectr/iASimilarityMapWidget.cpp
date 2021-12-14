@@ -75,6 +75,7 @@ int steepestGradientPos( int x, int y, int dx, int dy, iASimilarityMapWidget::Im
 //						- getValue( curPos[0], curPos[1], ptr, dims );
 		nextGradient = getNeighborhoodAvrg( nextPos[0], nextPos[1], ptr, dims )
 						- getNeighborhoodAvrg( curPos[0], curPos[1], ptr, dims );
+		++iterCount;
 	} while( nextGradient <= 0 );
 	if (dx != 0)
 	{
@@ -304,6 +305,7 @@ void iASimilarityMapWidget::findPeak( int x, int y )
 				}
 			}
 		}
+		++iterCount;
 	}
 	while( curVal < betterVal );
 	m_peakPos[0] = pos[0]; m_peakPos[1] = pos[1];

@@ -1,9 +1,9 @@
-SET( DEPENDENCIES_LIBRARIES
-	iAcharts      # also pulls in required iAqthelper
-	iAobjectvis
-	iAguibase
+set(DEPENDENCIES_LIBRARIES
+	iA::charts      # also pulls in required iAqthelper
+	iA::objectvis
+	iA::guibase
 )
-SET( DEPENDENCIES_VTK_MODULES
+set(DEPENDENCIES_VTK_MODULES
 	ChartsCore            # for vtkAxis
 	FiltersHybrid         # for vtkPolyDataSilhouette
 	ImagingHybrid         # for vtkSampleFunction used in iABlobCluster
@@ -12,12 +12,12 @@ SET( DEPENDENCIES_VTK_MODULES
 	ViewsContext2D        # for vtkContextView, vtkContextInteractorStyle
 )
 # for VTK < 9 we have to use VTK_USE_FILE anyway for module autoinitialization
-#IF (VTK_VERSION VERSION_LESS "9.0.0")
-#	LIST(APPEND DEPENDENCIES_VTK_MODULES
+#if (VTK_VERSION VERSION_LESS "9.0.0")
+#	list(APPEND DEPENDENCIES_VTK_MODULES
 #		ViewsCore     # for vtkViewsCoreModule.h, required by vtkViewsContext2DModule.h (dlg_FeatureScout)
 #	)
-#ENDIF()
-#SET( DEPENDENCIES_ITK_MODULES
+#endif()
+#set(DEPENDENCIES_ITK_MODULES
 #	ITKLabelMap                            # for LabelImageToLabelMapFilter, LabelMapMaskImageFilter
 #	ITKSmoothing                           # for DiscreteGaussianImageFilter
 #	ITKThresholding                        # for BinaryThresholdImageFilter

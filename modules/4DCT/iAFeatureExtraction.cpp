@@ -25,7 +25,6 @@
 #include <iAFileUtils.h>
 
 #include <itkImage.h>
-#include <itkImageRegionIterator.h>
 #include <itkImageFileReader.h>
 #include <itkLabelGeometryImageFilter2.h>
 

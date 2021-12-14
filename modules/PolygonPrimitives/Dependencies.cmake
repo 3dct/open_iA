@@ -1,3 +1,3 @@
-SET( DEPENDENCIES_LIBRARIES
-	iAguibase
+set(DEPENDENCIES_LIBRARIES
+	iA::guibase
 )

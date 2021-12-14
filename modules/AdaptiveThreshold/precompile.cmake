@@ -1,4 +1,4 @@
-SET (AdaptiveThreshold_PRECOMPILE_INCLUDES <algorithm>
+set(AdaptiveThreshold_PRECOMPILE_INCLUDES <algorithm>
 <iAChartVisHelper.h>
 <iALog.h>
 <iAPlotData.h>

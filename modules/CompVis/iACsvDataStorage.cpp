@@ -6,7 +6,7 @@
 
 #include <cstdlib>
 
-iACsvDataStorage::iACsvDataStorage(QStringList* csvFiles, QListView* listView) :
+iACsvDataStorage::iACsvDataStorage(QStringList* csvFiles) :
 	m_filenames(csvFiles),
 	m_data(new QList<csvFileData>())
 {
@@ -28,7 +28,7 @@ iACsvDataStorage::iACsvDataStorage(QStringList* csvFiles, QListView* listView) :
 	//calculate overall number of objects of all datasets
 	std::vector<int>* objectsPerDataset = csvFileData::getAmountObjectsEveryDataset(m_data);
 	int sum = 0;
-	for(int i = 0; i < objectsPerDataset->size(); i++)
+	for(int i = 0; i < ((int)objectsPerDataset->size()); i++)
 	{
 		sum += objectsPerDataset->at(i);
 	}
@@ -336,12 +336,12 @@ std::vector<double>* csvDataType::arrayTypeToVector(ArrayType* input)
 	int amountCols = getColumns(input);
 	int amountRows = getRows(input);
 
-	std::vector<double>* result = new std::vector<double>(amountRows);
-
 	if (amountCols <= 0 || amountCols > 1)
 	{
 		return nullptr;
 	}
+
+	std::vector<double>* result = new std::vector<double>(amountRows);
 
 	for (int r1 = 0; r1 < amountRows; r1++)
 	{

@@ -27,7 +27,7 @@
 #include "iASSViewSetings.h"
 #include "FeatureAnalyzerHelpers.h"
 
-#include <defines.h>
+#include <defines.h>    // for organisationName / applicationName
 #include <iABoxPlotData.h>
 #include <iAChannelData.h>
 #include <iAFileUtils.h>
@@ -56,16 +56,16 @@ inline double NormalizedSliderValue(QSlider * slider)
 
 void loadImageData( QString const & fileName, vtkSmartPointer<vtkImageData> & imgData );
 
-iASSView::iASSView( QWidget * parent /*= 0*/, Qt::WindowFlags f /*= 0 */ )
-	: PorosityAnalyzerSSConnector( parent, f ),
-	m_SSViewSettings( new iASSViewSettings( this, f ) ),
+iASSView::iASSView(QWidget* parent) :
+	FeatureAnalyzerSSConnector(parent),
+	m_SSViewSettings( new iASSViewSettings(this) ),
 	m_slicerTransform( vtkSmartPointer<vtkTransform>::New() ),
 	m_slicerTF( vtkSmartPointer<vtkColorTransferFunction>::New() ),
 	m_modeInd( 0 ),
 	m_sliceMgr( new iARendererViewSync ),
 	m_imgData( vtkSmartPointer<vtkImageData>::New() ),
 	m_slicerViewsLayout( new QHBoxLayout(slicerWidget) ),
-	m_segm3DViewExtrnl( 0 ),
+	m_segm3DViewExtrnl(nullptr),
 	m_runsOffset( -10000 )
 {
 	m_slicerViewsLayout->setContentsMargins(0, 0, 0, 0);

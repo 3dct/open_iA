@@ -27,7 +27,6 @@
 #include <QString>
 
 #include <cstddef> // for size_t
-#include <cmath>   // for log
 
 //! Abstract base class providing data used for drawing a plot in a chart.
 class iAcharts_API iAPlotData

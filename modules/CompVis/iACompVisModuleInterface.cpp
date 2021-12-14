@@ -6,8 +6,7 @@
 #include "dlg_CSVReader.h"
 #include "iACompVisMain.h"
 
-#include <iAMdiChild.h>
-#include "iAMainWindow.h"
+#include <iAMainWindow.h>
 
 #include <QMessageBox>
 
@@ -28,5 +27,6 @@ void iACompVisModuleInterface::Initialize()
 
 void iACompVisModuleInterface::CompVis()
 {
-	iACompVisMain* main = new iACompVisMain(m_mainWnd);
+	//iACompVisMain* main = new iACompVisMain(m_mainWnd);
+	new iACompVisMain(m_mainWnd);
 }

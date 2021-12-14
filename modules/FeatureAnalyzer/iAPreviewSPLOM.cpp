@@ -73,6 +73,11 @@ QRectF iAPreviewSPLOM::GetROI() const
 	return m_locRoi;
 }
 
+void iAPreviewSPLOM::initializeGL()
+{
+	initializeOpenGLFunctions();
+}
+
 void iAPreviewSPLOM::paintGL( )
 {
 	QPainter painter( this );

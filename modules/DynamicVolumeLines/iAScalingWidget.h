@@ -22,13 +22,14 @@
 
 #include <qcustomplot.h>
 
+#include <QOpenGLFunctions>
 #include <QOpenGLWidget>
 
 #include <vtkSmartPointer.h>
 
 class vtkLookupTable;
 
-class iAScalingWidget : public QOpenGLWidget
+class iAScalingWidget : public QOpenGLWidget, public QOpenGLFunctions
 {
 	Q_OBJECT
 

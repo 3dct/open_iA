@@ -1,12 +1,12 @@
-SET (FeatureScout_PRECOMPILE_INCLUDES
+set(FeatureScout_PRECOMPILE_INCLUDES
 <defines.h>
 <dlg_blobVisualization.h>
-<dlg_editPCClass.h>
 <dlg_FeatureScout.h>
 <iABlobCluster.h>
 <iABlobImplicitFunction.h>
 <iABlobManager.h>
 <iAChartWithFunctionsWidget.h>
+<iAClassEditDlg.h>
 <iACsvIO.h>
 <iAFeatureScoutAttachment.h>
 <iAFeatureScoutModuleInterface.h>
@@ -21,9 +21,9 @@ SET (FeatureScout_PRECOMPILE_INCLUDES
 <iAModalityTransfer.h>
 <iAMovieHelper.h>
 <iAObjectType.h>
+<iAQVTKWidget.h>
 <iARenderer.h>
 <iAVec3.h>
-<iAVtkWidget.h>
 <itkImageRegionIterator.h>
 <itkImageToVTKImageFilter.h>
 <itkVTKImageToImageFilter.h>

@@ -30,8 +30,6 @@
 #include "iAQGLWidget.h"
 #include "iAStringHelper.h"
 
-#include <vtkMath.h>
-
 #include <QAction>
 #include <QApplication>    // for qApp->palette()
 #include <QFileDialog>
@@ -381,7 +379,7 @@ QString iAChartWidget::xAxisTickMarkLabel(double value, double stepWidth)
 {
 	int placesBeforeComma = requiredDigits(value);
 	int placesAfterComma = (stepWidth < 10) ? requiredDigits(10 / stepWidth) : 0;
-	if ((!m_plots.empty() && m_plots[0]->data()->valueType() == iAValueType::Continuous) || placesAfterComma > 1)
+	if ((!m_plots.empty() && m_plots[0]->data()->valueType() == iAValueType::Continuous) || placesAfterComma >= 1)
 	{
 		QString result = QString::number(value, 'g', ((value > 0) ? placesBeforeComma + placesAfterComma : placesAfterComma));
 		if (result.contains("e")) // only 4 digits for scientific notation:
@@ -440,6 +438,13 @@ void iAChartWidget::drawXAxis(QPainter &painter)
 		do
 		{
 			stepWidth = xRange() / stepCount;
+			if (m_plots[0]->data()->valueType() == iAValueType::Discrete)
+			{	// make sure to only use "full integers" as step width
+				stepWidth = (std::ceil(xRange() / std::floor(stepWidth)) < stepCount * 2) ?
+					std::floor(stepWidth)	// floor leads to an increasing stepCount, so, use
+					: std::ceil(stepWidth); // ceil instead if there's danger that stepCount grows
+				stepCount = std::ceil(xRange() / stepWidth); // (as the loop condition requires stepCount to get smaller)
+			}
 			overlap = false;
 			for (size_t i = 0; i<stepCount && !overlap; ++i)
 			{
@@ -497,7 +502,10 @@ void iAChartWidget::drawXAxis(QPainter &painter)
 		QString text = xAxisTickMarkLabel(value, stepWidth);
 		int markerX = markerPos(static_cast<int>(xMapper().srcToDst(value)), i, stepCount);
 		painter.drawLine(markerX, TickWidth, markerX, -1);
-		int textWidth =
+		int textWidth = 1 +
+			// + 1 is required - apparently width of QRect passed to drawRect below
+			// needs to be larger than that width the text actually requires.
+			// Without it, we often get text output like "0." where e.g. "0.623" would be the actual text
 #if QT_VERSION >= QT_VERSION_CHECK(5, 11, 0)
 			fm.horizontalAdvance(text);
 #else
@@ -635,7 +643,7 @@ void iAChartWidget::updateXBounds(size_t startPlot)
 	{                             // update   partial            full
 		m_xBounds[0]     = (startPlot != 0) ? m_xBounds[0]     : std::numeric_limits<double>::max();
 		m_xBounds[1]     = (startPlot != 0) ? m_xBounds[1]     : std::numeric_limits<double>::lowest();
-		m_maxXAxisSteps = 0;
+		m_maxXAxisSteps  = (startPlot != 0) ? m_maxXAxisSteps   : 0;
 		for (size_t curPlot = std::max(static_cast<size_t>(0), startPlot); curPlot < m_plots.size(); ++curPlot)
 		{
 			auto d = m_plots[curPlot]->data();
@@ -1098,14 +1106,21 @@ void iAChartWidget::setEmptyText(QString const& text)
 }
 
 #ifdef CHART_OPENGL
+void iAChartWidget::initializeGL()
+{
+	initializeOpenGLFunctions();
+}
+
 void iAChartWidget::paintGL()
 #else
 void iAChartWidget::paintEvent(QPaintEvent* /*event*/)
 #endif
 {
 #if (defined(CHART_OPENGL) && defined(OPENGL_DEBUG))
+#ifndef NDEBUG
 	QOpenGLContext* ctx = QOpenGLContext::currentContext();
 	assert(ctx);
+#endif
 	QOpenGLDebugLogger logger(this);
 	logger.initialize();  // initializes in the current context, i.e. ctx
 	connect(&logger, &QOpenGLDebugLogger::messageLogged,
@@ -1137,12 +1152,6 @@ void iAChartWidget::drawAll(QPainter & painter)
 	{
 		return;
 	}
-	if (!m_xMapper || !m_yMapper)
-	{
-		createMappers();
-	}
-	m_xMapper->update(m_xBounds[0], m_xBounds[1], 0, fullChartWidth());
-	m_yMapper->update(m_yMappingMode == Logarithmic && m_yBounds[0] <= 0 ? LogYMapModeMin : m_yBounds[0], m_yBounds[1], 0, m_yZoom*(chartHeight()-1));
 	QFontMetrics fm = painter.fontMetrics();
 	m_fontHeight = fm.height();
 #if QT_VERSION >= QT_VERSION_CHECK(5, 11, 0)
@@ -1150,6 +1159,14 @@ void iAChartWidget::drawAll(QPainter & painter)
 #else
 	m_yMaxTickLabelWidth = fm.width("4.44M");
 #endif
+	if (!m_xMapper || !m_yMapper)
+	{
+		createMappers();
+	}
+	m_xMapper->update(m_xBounds[0], m_xBounds[1], 0, fullChartWidth());
+	m_yMapper->update(m_yMappingMode == Logarithmic && m_yBounds[0] <= 0 ? LogYMapModeMin : m_yBounds[0], m_yBounds[1],
+		0, m_yZoom * (chartHeight() - 1));
+	painter.save();
 	painter.translate(-xMapper().srcToDst(visibleXStart()) + leftMargin(), -bottomMargin());
 	drawImageOverlays(painter);
 	//change the origin of the window to left bottom
@@ -1176,6 +1193,7 @@ void iAChartWidget::drawAll(QPainter & painter)
 	painter.scale(1, -1);
 	painter.setRenderHint(QPainter::Antialiasing, false);
 	drawAxes(painter);
+	painter.restore();
 }
 
 void iAChartWidget::setXMarker(double xPos, QColor const& color, Qt::PenStyle penStyle)
@@ -1223,8 +1241,8 @@ void iAChartWidget::exportData()
 	{
 		LOG(lvlInfo, "More than one plot available, exporting only first!");
 		/*
-		QVector<QSharedPointer<iAAttributeDescriptor>> params;
-		params.push_back(iAAttributeDescriptor::createParam("Plot index", iAValueType::Discrete, 0, 0, m_plots.size()));
+		iAParameterDlg::ParamListT params;
+		addParameter(params, "Plot index", iAValueType::Discrete, 0, 0, m_plots.size());
 		iAParameterDlg dlg(this, "Choose plot", params, "More than one plot available - please choose which one you want to export!");
 		if (dlg.exec() != QDialog::Accepted)
 		{

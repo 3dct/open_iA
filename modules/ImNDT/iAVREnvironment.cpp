@@ -28,8 +28,6 @@
 #include <vtkOpenVRRenderWindow.h>
 #include <vtkOpenVRCamera.h>
 #include <vtkPNGReader.h>
-#include <vtkJPEGReader.h>
-#include <vtkEquirectangularToCubeMapTexture.h>
 #include <vtkImageFlip.h>
 #include <vtkLight.h>
 #include <vtkLightKit.h>

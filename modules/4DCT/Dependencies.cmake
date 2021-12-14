@@ -1,11 +1,11 @@
-SET( DEPENDENCIES_LIBRARIES
-	iAguibase
-	iArenderer         # for iARendererViewSync
+set(DEPENDENCIES_LIBRARIES
+	iA::guibase
+	iA::renderer         # for iARendererViewSync
 )
-SET( DEPENDENCIES_VTK_MODULES
+set(DEPENDENCIES_VTK_MODULES
 	FiltersHybrid      # for vtkDepthSortPolyData
 )
-#SET( DEPENDENCIES_ITK_MODULES
+#set(DEPENDENCIES_ITK_MODULES
 #	ITKLabelMap        # for LabelObject, LabelMap
 #	ITKReview          # for LabelGeometryImageFilter
 #	ITKSmoothing       # for DiscreteGaussianImageFilter

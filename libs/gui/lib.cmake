@@ -1,8 +1,8 @@
-TARGET_LINK_LIBRARIES(${libname} PUBLIC iAguibase)
-TARGET_LINK_LIBRARIES(${libname} PRIVATE
-	iAcharts iAqthelper iArenderer iAslicer
+target_link_libraries(${libname} PUBLIC iA::guibase)
+target_link_libraries(${libname} PRIVATE
+	iA::charts iA::qthelper iA::renderer iA::slicer
 )
-SET( VTK_REQUIRED_LIBS_PRIVATE
+set(VTK_REQUIRED_LIBS_PRIVATE
 	CommonComputationalGeometry # for vtkParametricSpline used in iAParametricSpline
 )
 if (openiA_CHART_OPENGL)

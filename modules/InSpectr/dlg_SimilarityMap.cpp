@@ -65,7 +65,7 @@ void dlg_SimilarityMap::loadMap()
 		QApplication::activeWindow(),
 		tr("Open File"),
 		(dynamic_cast<iAMdiChild*>(parent()))->filePath(),
-		tr("MetaImages (*.mhd *.mha );;") );
+		tr("MetaImages (*.mhd *.mha );;All files (*)") );
 	if (mapFileName.isEmpty())
 	{
 		return;

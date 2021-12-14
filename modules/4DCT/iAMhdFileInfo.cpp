@@ -20,7 +20,6 @@
 * ************************************************************************************/
 #include "iAMhdFileInfo.h"
 
-#include <QByteArray>
 #include <QStringList>
 
 iAMhdFileInfo::iAMhdFileInfo( QString fileName )

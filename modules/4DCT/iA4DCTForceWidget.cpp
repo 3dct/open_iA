@@ -41,15 +41,14 @@ int iA4DCTForceWidget::getValue( )
 
 void iA4DCTForceWidget::mouseDoubleClickEvent(QMouseEvent * /*event*/)
 {
-	QDialog * dialog = new QDialog( this );
+	QDialog dialog( this );
 	Ui::ForceDialog dialogUi;
-	dialogUi.setupUi( dialog );
+	dialogUi.setupUi( &dialog );
 	dialogUi.spinBox->setValue( m_value );
-	if( dialog->exec( ) == QDialog::Accepted )
+	if( dialog.exec( ) == QDialog::Accepted )
 	{
 		int newValue = dialogUi.spinBox->value( );
 		setValue( newValue );
 		emit valueChanged( newValue );
 	}
-	delete dialog;
 }

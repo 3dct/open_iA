@@ -1,4 +1,4 @@
-SET (FeatureAnalyzer_PRECOMPILE_INCLUDES
+set(FeatureAnalyzer_PRECOMPILE_INCLUDES
 <defines.h>
 <FeatureAnalyzerHelpers.h>
 <iABoxPlotData.h>
@@ -24,6 +24,7 @@ SET (FeatureAnalyzer_PRECOMPILE_INCLUDES
 <iAPreviewSPLOM.h>
 <iAPreviewSPLOMView.h>
 <iAQtVTKBindings.h>
+<iAQVTKWidget.h>
 <iARangeSliderDiagramView.h>
 <iARangeSliderDiagramWidget.h>
 <iARendererViewSync.h>
@@ -36,7 +37,6 @@ SET (FeatureAnalyzer_PRECOMPILE_INCLUDES
 <iASSView.h>
 <iATransferFunction.h>
 <iATreeView.h>
-<iAVtkWidget.h>
 <QCheckBox>
 <QColor>
 <QDir>

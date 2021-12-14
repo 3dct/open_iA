@@ -1,10 +1,10 @@
-SET( DEPENDENCIES_LIBRARIES
-	iAbase
+set(DEPENDENCIES_LIBRARIES
+	iA::base
 )
 if (OPENCL_FOUND)
-	LIST(APPEND DEPENDENCIES_LIBRARIES OpenCL)    # not ideal - only required for TARGET_VERSION defines
+	list(APPEND DEPENDENCIES_LIBRARIES OpenCL)    # not ideal - only required for TARGET_VERSION defines
 endif()
-#SET( DEPENDENCIES_ITK_MODULES
+#set(DEPENDENCIES_ITK_MODULES
 #	ITKAnisotropicSmoothing      # for CurvatureAnisotropicDiffusionImageFilter, GradientAnisotropicDiffusionImageFilter
 #	ITKConnectedComponents       # for ...ConnectedComponentImageFilter, RelabelComponentImageFilter
 #	ITKConvolution               # for ConvolutionImageFilter
@@ -27,16 +27,16 @@ endif()
 #	ITKTestKernel                # for PipelineMonitorImageFilter
 #	ITKTransform                 # for Transform, dependency of ResampleImageFilter
 #)
-#IF (ITK_VERSION VERSION_LESS "5.0.0" AND OPENCL_FOUND)
-#	LIST(APPEND DEPENDENCIES_ITK_MODULES
+#if (ITK_VERSION VERSION_LESS "5.0.0" AND OPENCL_FOUND)
+#	list(APPEND DEPENDENCIES_ITK_MODULES
 #		ITKGPUCommon               # for itkGPUImage.h, required by iASmoothing
 #		ITKGPUAnisotropicSmoothing # for itkGPUGradientAnisotropicDiffusionImageFilter
 #		ITKGPUFiniteDifference     # for itkGPUDenseFiniteDifferenceImageFilter, required by itkGPUAnisotropicDiffusionImageFilter
 #	)
-#ENDIF()
-#IF (HigherOrderAccurateGradient_LOADED)
-#	LIST (APPEND DEPENDENCIES_ITK_MODULES HigherOrderAccurateGradient)
-#ENDIF()
-SET( DEPENDENCIES_IA_TOOLKIT_DIRS
+#endif()
+#if (HigherOrderAccurateGradient_LOADED)
+#	list(APPEND DEPENDENCIES_ITK_MODULES HigherOrderAccurateGradient)
+#endif()
+set(DEPENDENCIES_IA_TOOLKIT_DIRS
 	RemovePeaksOtsu    # for itkFHWRescaleIntensityImageFilter
 )

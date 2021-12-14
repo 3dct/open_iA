@@ -21,7 +21,6 @@
 #pragma once
 
 // Qt
-#include <QWidget>
 #include <QColor>
 #include <QColorDialog>
 

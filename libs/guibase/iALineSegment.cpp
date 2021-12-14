@@ -22,7 +22,6 @@
 
 #include <vtkActor.h>
 #include <vtkLineSource.h>
-#include <vtkPoints.h>
 #include <vtkPolyDataMapper.h>
 
 iALineSegment::iALineSegment():

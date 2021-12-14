@@ -31,7 +31,7 @@
 #include <QProgressBar>
 #include <QTimer>
 #include <QToolButton>
-#include <QVariant>
+#include <QVariant>    // required for Linux build
 #include <QVBoxLayout>
 
 #include <chrono>

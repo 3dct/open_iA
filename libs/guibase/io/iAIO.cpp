@@ -21,8 +21,6 @@
 #include "iAIO.h"
 
 #include "defines.h"
-#include "dlg_commoninput.h"
-#include "dlg_openfile_sizecheck.h"
 #include "iAAmiraMeshIO.h"
 #include "iAConnector.h"
 #include "iALog.h"
@@ -32,11 +30,14 @@
 #include "iAJobListView.h"
 #include "iAModalityList.h"
 #include "iAOIFReader.h"
+#include "iAParameterDlg.h"
 #include "iAProgress.h"
-#include "iAStringHelper.h"
-#include "iAVolumeStack.h"
+#include "iARawFileParamDlg.h"
 #include "iAToolsVTK.h"
 #include "iATypedCallHelper.h"
+
+#include "iAFilter.h"
+#include "iAFilterRegistry.h"
 
 #include <itkBMPImageIO.h>
 #include <itkMacro.h>    // for itkExceptionObject, which (starting with ITK 5.1), may not be included directly
@@ -56,6 +57,7 @@
 
 #include <vtkBMPReader.h>
 #include <vtkImageData.h>
+#include <vtkImageImport.h>
 #include <vtkJPEGReader.h>
 #include <vtkPNGReader.h>
 #include <vtkPolyData.h>
@@ -82,17 +84,14 @@
 #define H5_USE_110_API
 #include <hdf5.h>
 #include <QStack>
+#include <QStandardItemModel>
 #endif
 
-#include <algorithm>
 #include <cmath>
 #include <fstream>
 #include <iostream>
 #include <string>
 #include <vector>
-
-
-#include "defines.h"
 
 #include <QMap>
 
@@ -284,116 +283,133 @@ iAIO::~iAIO()
 	m_fileNameArray->Delete();
 }
 
-#ifdef USE_HDF5
-QString MapHDF5TypeToString(H5T_class_t hdf5Type)
+namespace
 {
-	switch (hdf5Type)
+	QString const FileNameBase("File name base");
+	QString const Extension   ("Extension");
+	QString const NumDigits   ("Number of digits in index");
+	QString const MinimumIndex("Minimum index");
+	QString const MaximumIndex("Maximum index");
+
+	void addSeriesParameters(iAParameterDlg::ParamListT& params, QString const& base, QString const& ext, int digits, int const * index)
 	{
-		case H5T_NO_CLASS  : return QString("No Class");
-		case H5T_INTEGER   : return QString("Integer");
-		case H5T_FLOAT	   : return QString("Float");
-		case H5T_TIME	   : return QString("Time");
-		case H5T_STRING	   : return QString("String");
-		case H5T_BITFIELD  : return QString("Bitfield");
-		case H5T_OPAQUE	   : return QString("Opaque");
-		case H5T_COMPOUND  : return QString("Compound");
-		case H5T_REFERENCE : return QString("Reference");
-		case H5T_ENUM	   : return QString("Enum");
-		case H5T_VLEN	   : return QString("VLen");
-		case H5T_ARRAY     : return QString("Array");
-		default: return QString("Unknown");
+		addParameter(params, FileNameBase, iAValueType::String, base);
+		addParameter(params, Extension, iAValueType::String, ext);
+		addParameter(params, NumDigits, iAValueType::Discrete, digits);
+		addParameter(params, MinimumIndex, iAValueType::Discrete, index[0]);
+		addParameter(params, MaximumIndex, iAValueType::Discrete, index[1]);
 	}
 }
+
+#ifdef USE_HDF5
 
 namespace
 {
 	const int InvalidHDF5Type = -1;
-}
 
-int GetNumericVTKTypeFromHDF5Type(H5T_class_t hdf5Type, size_t numBytes, H5T_sign_t sign)
-{
-	switch (hdf5Type)
+	QString MapHDF5TypeToString(H5T_class_t hdf5Type)
 	{
-	case H5T_INTEGER: {
-		switch (numBytes)
+		switch (hdf5Type)
 		{
-		case 1: return (sign == H5T_SGN_NONE) ? VTK_UNSIGNED_CHAR : VTK_CHAR;
-		case 2: return (sign == H5T_SGN_NONE) ? VTK_UNSIGNED_SHORT : VTK_SHORT;
-		case 4: return (sign == H5T_SGN_NONE) ? VTK_UNSIGNED_INT : VTK_INT;
-		case 8: return (sign == H5T_SGN_NONE) ? VTK_UNSIGNED_LONG_LONG : VTK_LONG_LONG;
-		default: return InvalidHDF5Type;
+			case H5T_NO_CLASS  : return QString("No Class");
+			case H5T_INTEGER   : return QString("Integer");
+			case H5T_FLOAT	   : return QString("Float");
+			case H5T_TIME	   : return QString("Time");
+			case H5T_STRING	   : return QString("String");
+			case H5T_BITFIELD  : return QString("Bitfield");
+			case H5T_OPAQUE	   : return QString("Opaque");
+			case H5T_COMPOUND  : return QString("Compound");
+			case H5T_REFERENCE : return QString("Reference");
+			case H5T_ENUM	   : return QString("Enum");
+			case H5T_VLEN	   : return QString("VLen");
+			case H5T_ARRAY     : return QString("Array");
+			default: return QString("Unknown");
 		}
 	}
-	case H5T_FLOAT: {
-		switch (numBytes)
+	int GetNumericVTKTypeFromHDF5Type(H5T_class_t hdf5Type, size_t numBytes, H5T_sign_t sign)
+	{
+		switch (hdf5Type)
 		{
-			case 4:  return VTK_FLOAT;
-			case 8:  return VTK_DOUBLE;
+		case H5T_INTEGER: {
+			switch (numBytes)
+			{
+			case 1: return (sign == H5T_SGN_NONE) ? VTK_UNSIGNED_CHAR : VTK_CHAR;
+			case 2: return (sign == H5T_SGN_NONE) ? VTK_UNSIGNED_SHORT : VTK_SHORT;
+			case 4: return (sign == H5T_SGN_NONE) ? VTK_UNSIGNED_INT : VTK_INT;
+			case 8: return (sign == H5T_SGN_NONE) ? VTK_UNSIGNED_LONG_LONG : VTK_LONG_LONG;
 			default: return InvalidHDF5Type;
+			}
+		}
+		case H5T_FLOAT: {
+			switch (numBytes)
+			{
+				case 4:  return VTK_FLOAT;
+				case 8:  return VTK_DOUBLE;
+				default: return InvalidHDF5Type;
+			}
+		}
+		default: return InvalidHDF5Type;
 		}
 	}
-	default: return InvalidHDF5Type;
-	}
-}
 
-hid_t GetHDF5ReadType(H5T_class_t hdf5Type, size_t numBytes, H5T_sign_t sign)
-{
-	switch (hdf5Type)
+	hid_t GetHDF5ReadType(H5T_class_t hdf5Type, size_t numBytes, H5T_sign_t sign)
 	{
-	case H5T_INTEGER: {
-		switch (numBytes)
+		switch (hdf5Type)
 		{
-		case 1: return (sign == H5T_SGN_NONE) ? H5T_NATIVE_UCHAR : H5T_NATIVE_SCHAR;
-		case 2: return (sign == H5T_SGN_NONE) ? H5T_NATIVE_USHORT : H5T_NATIVE_SHORT;
-		case 4: return (sign == H5T_SGN_NONE) ? H5T_NATIVE_UINT : H5T_NATIVE_INT;
-		case 8: return (sign == H5T_SGN_NONE) ? H5T_NATIVE_ULLONG : H5T_NATIVE_LLONG;
+		case H5T_INTEGER: {
+			switch (numBytes)
+			{
+			case 1: return (sign == H5T_SGN_NONE) ? H5T_NATIVE_UCHAR : H5T_NATIVE_SCHAR;
+			case 2: return (sign == H5T_SGN_NONE) ? H5T_NATIVE_USHORT : H5T_NATIVE_SHORT;
+			case 4: return (sign == H5T_SGN_NONE) ? H5T_NATIVE_UINT : H5T_NATIVE_INT;
+			case 8: return (sign == H5T_SGN_NONE) ? H5T_NATIVE_ULLONG : H5T_NATIVE_LLONG;
+			default: return InvalidHDF5Type;
+			}
+		}
+		case H5T_FLOAT: {
+			switch (numBytes)
+			{
+			case 4:  return H5T_NATIVE_FLOAT;
+			case 8:  return H5T_NATIVE_DOUBLE;
+			default: return InvalidHDF5Type;
+			}
+		}
 		default: return InvalidHDF5Type;
 		}
 	}
-	case H5T_FLOAT: {
-		switch (numBytes)
-		{
-		case 4:  return H5T_NATIVE_FLOAT;
-		case 8:  return H5T_NATIVE_DOUBLE;
-		default: return InvalidHDF5Type;
-		}
+
+	// typedef herr_t(*H5E_walk2_t)(unsigned n, const H5E_error2_t *err_desc, void *client_data)
+	herr_t errorfunc(unsigned /*n*/, const H5E_error2_t *err, void * /*client_data*/)
+	{
+		/*
+		hid_t       cls_id;     class ID
+		hid_t       maj_num;	major error ID
+		hid_t       min_num;	minor error number
+		unsigned	line;		line in file where error occurs
+		const char	*func_name; function in which error occurred
+		const char	*file_name;	file in which error occurred
+		const char	*desc;
+		*/
+		LOG(lvlError, QString("HDF5 error: class=%1 maj_num=%2(%3) min_num=%4(%5) file=%6:%7 func=%8 desc=%9")
+			.arg(err->cls_id)
+			.arg(err->maj_num)
+			.arg(H5Eget_major(err->maj_num))
+			.arg(err->min_num)
+			.arg(H5Eget_minor(err->min_num))
+			.arg(err->file_name)
+			.arg(err->line)
+			.arg(err->func_name)
+			.arg(err->desc));
+		return 0;
 	}
-	default: return InvalidHDF5Type;
+
+	void printHDF5ErrorsToConsole()
+	{
+		hid_t err_stack = H5Eget_current_stack();
+		/*herr_t walkresult = */ H5Ewalk(err_stack, H5E_WALK_UPWARD, errorfunc, nullptr);
 	}
 }
 
-// typedef herr_t(*H5E_walk2_t)(unsigned n, const H5E_error2_t *err_desc, void *client_data)
-herr_t errorfunc(unsigned /*n*/, const H5E_error2_t *err, void * /*client_data*/)
-{
-	/*
-	hid_t       cls_id;     class ID
-	hid_t       maj_num;	major error ID
-	hid_t       min_num;	minor error number
-	unsigned	line;		line in file where error occurs
-	const char	*func_name; function in which error occurred
-	const char	*file_name;	file in which error occurred
-	const char	*desc;
-	*/
-	LOG(lvlError, QString("HDF5 error: class=%1 maj_num=%2(%3) min_num=%4(%5) file=%6:%7 func=%8 desc=%9")
-		.arg(err->cls_id)
-		.arg(err->maj_num)
-		.arg(H5Eget_major(err->maj_num))
-		.arg(err->min_num)
-		.arg(H5Eget_minor(err->min_num))
-		.arg(err->file_name)
-		.arg(err->line)
-		.arg(err->func_name)
-		.arg(err->desc));
-	return 0;
-}
-
-void printHDF5ErrorsToConsole()
-{
-	hid_t err_stack = H5Eget_current_stack();
-	/*herr_t walkresult = */ H5Ewalk(err_stack, H5E_WALK_UPWARD, errorfunc, nullptr);
-}
-
-#include <vtkImageImport.h>
 
 void iAIO::readHDF5File()
 {
@@ -518,7 +534,7 @@ void iAIO::run()
 			case RAW_READER:
 			case PARS_READER:
 			case NKC_READER:
-				readImageData(); break;
+				readNKC(); break;
 			case VGI_READER:
 				readImageData(); break;
 			case VOLUME_STACK_READER:
@@ -615,10 +631,6 @@ void iAIO::run()
 
 
 #ifdef USE_HDF5
-#include <QTextEdit>
-#include <QTreeView>
-#include <QStandardItemModel>
-
 namespace
 {
 
@@ -786,6 +798,7 @@ bool IsHDF5ITKImage(hid_t file_id)
 #include "ui_OpenHDF5.h"
 typedef iAQTtoUIConnector<QDialog, Ui_dlgOpenHDF5> OpenHDF5Dlg;
 #endif
+
 
 bool iAIO::setupIO( iAIOType type, QString f, bool c, int channel)
 {
@@ -1296,6 +1309,34 @@ void iAIO::readImageData()
 	storeIOSettings();
 }
 
+void iAIO::readNKC()
+{
+	readImageData();
+
+
+	iAConnector con;
+	con.setImage(getVtkImageData());
+	QScopedPointer<iAProgress> pObserver(new iAProgress());
+	auto filter = iAFilterRegistry::filter("Value Shift");
+	filter->setProgress(pObserver.data());
+
+	filter->addInput(&con, "");
+	QMap<QString, QVariant> parameters;
+	parameters["ValueToReplace"] = 65533;
+	parameters["Replace"] = 0;
+	filter->run(parameters);
+
+	auto filterScale = iAFilterRegistry::filter("Shift and Scale");
+	filterScale->setProgress(pObserver.data());
+
+	filterScale->addInput(filter->output().first(), "");
+	QMap<QString, QVariant> parametersScale;
+	parametersScale["Shift"] = m_Parameter["Offset"].toInt();
+	parametersScale["Scale"] = m_Parameter["Scale"].toFloat();
+	filterScale->run(parametersScale);
+
+	getVtkImageData()->DeepCopy(filterScale->output().first()->vtkImage());
+}
 
 void iAIO::readMetaImage( )
 {
@@ -1318,27 +1359,21 @@ bool iAIO::setupVolumeStackMHDReader(QString const & f)
 {
 	int indexRange[2] = {0, 0};
 	int digitsInIndex = 0;
-
 	m_fileNamesBase = f;
 	m_extension = "." + QFileInfo(f).suffix();
-	QStringList inList		= (QStringList()
-		<< tr("#File Names Base") << tr("#Extension")
-		<< tr("#Number of Digits in Index")
-		<< tr("#Minimum Index")  << tr("#Maximum Index") );
-	QList<QVariant> inPara	= (QList<QVariant>()
-		<< m_fileNamesBase << m_extension
-		<< tr("%1").arg(digitsInIndex)
-		<< tr("%1").arg(indexRange[0]) << tr("%1").arg(indexRange[1]) );
-
-	dlg_commoninput dlg(m_parent, "Set file parameters", inList, inPara, nullptr);
-
+	iAParameterDlg::ParamListT params;
+	addSeriesParameters(params, m_fileNamesBase, m_extension, digitsInIndex, indexRange);
+	iAParameterDlg dlg(m_parent, "Set file parameters", params);
 	if (dlg.exec() != QDialog::Accepted)
+	{
 		return false;
-
-	m_fileNamesBase = dlg.getText(0);
-	m_extension = dlg.getText(1);
-	digitsInIndex = dlg.getDblValue(2);
-	indexRange[0] = dlg.getDblValue(3); indexRange[1]= dlg.getDblValue(4);
+	}
+	auto values = dlg.parameterValues();
+	m_fileNamesBase = values[FileNameBase].toString();
+	m_extension = values[Extension].toString();
+	digitsInIndex = values[NumDigits].toInt();
+	indexRange[0] = values[MinimumIndex].toInt();
+	indexRange[1] = values[MaximumIndex].toInt();
 	fillFileNameArray(indexRange, digitsInIndex);
 	return true;
 }
@@ -1446,29 +1481,19 @@ bool iAIO::setupVolumeStackReader(QString const & f)
 	int digitsInIndex = 0;
 	m_fileNamesBase = f;
 	m_extension = "." + QFileInfo(f).suffix();
-
-	QStringList additionalLabels = (QStringList()
-		<< tr("#File Names Base")
-		<< tr("#Extension")
-		<< tr("#Number of Digits in Index")
-		<< tr("#Minimum Index")
-		<< tr("#Maximum Index"));
-	QList<QVariant> additionalValues = (QList<QVariant>()
-		<< m_fileNamesBase
-		<< m_extension
-		<< tr("%1").arg(digitsInIndex)
-		<< tr("%1").arg(indexRange[0])
-		<< tr("%1").arg(indexRange[1]));
-
-	dlg_openfile_sizecheck dlg(f, m_parent, "RAW file specs", additionalLabels, additionalValues, m_rawFileParams);
+	iAParameterDlg::ParamListT params;
+	addSeriesParameters(params, m_fileNamesBase, m_extension, digitsInIndex, indexRange);
+	iARawFileParamDlg dlg(f, m_parent, "RAW file specs", params, m_rawFileParams);
 	if (!dlg.accepted())
+	{
 		return false;
-
-	m_fileNamesBase = dlg.inputDlg()->getText(dlg.fixedParams());
-	m_extension = dlg.inputDlg()->getText(dlg.fixedParams()+1);
-	digitsInIndex = dlg.inputDlg()->getDblValue(dlg.fixedParams()+2);
-	indexRange[0] = dlg.inputDlg()->getDblValue(dlg.fixedParams()+3);
-	indexRange[1]= dlg.inputDlg()->getDblValue(dlg.fixedParams()+4);
+	}
+	auto values = dlg.parameterValues();
+	m_fileNamesBase = values[FileNameBase].toString();
+	m_extension = values[Extension].toString();
+	digitsInIndex = values[NumDigits].toInt();
+	indexRange[0] = values[MinimumIndex].toInt();
+	indexRange[1] = values[MaximumIndex].toInt();
 	fillFileNameArray(indexRange, digitsInIndex);
 	return true;
 }
@@ -1476,7 +1501,7 @@ bool iAIO::setupVolumeStackReader(QString const & f)
 bool iAIO::setupRAWReader( QString const & f )
 {
 	m_fileName = f;
-	dlg_openfile_sizecheck dlg(f, m_parent, "RAW file specs", QStringList(), QVariantList(), m_rawFileParams);
+	iARawFileParamDlg dlg(f, m_parent, "RAW file specs", iAParameterDlg::ParamListT(), m_rawFileParams);
 	return dlg.accepted();
 }
 
@@ -1490,23 +1515,29 @@ bool iAIO::setupPARSReader( QString const & f )
 	m_rawFileParams.m_spacing[1] = getParameterValues(f, "det_pitch:", 1).toDouble() / (getParameterValues(f, "geo_SD:", 0).toDouble() / getParameterValues(f, "geo_SO:", 0).toDouble());
 	m_rawFileParams.m_spacing[2] = m_rawFileParams.m_spacing[0] > m_rawFileParams.m_spacing[1] ? m_rawFileParams.m_spacing[1] : m_rawFileParams.m_spacing[0];
 
-	if(getParameterValues(f,"proj_datatype:",0) == "intensity")
-		m_rawFileParams.m_scalarType = VTK_UNSIGNED_SHORT;
-	else
-		m_rawFileParams.m_scalarType = VTK_FLOAT;
+	m_rawFileParams.m_scalarType = (getParameterValues(f, "proj_datatype:", 0) == "intensity") ? VTK_UNSIGNED_SHORT: VTK_FLOAT;
 
 	m_fileName = getParameterValues(f,"proj_filename_template_1:",0);
 	QFileInfo pars(f);
 	if(!QFile::exists(m_fileName))
 	{
 		if ((m_fileName.lastIndexOf("\\") == -1) && (m_fileName.lastIndexOf("/") == -1))
+		{
 			m_fileName = pars.canonicalPath() + "/" + m_fileName;
+		}
 		else if (m_fileName.lastIndexOf("\\") > 0)
+		{
 			m_fileName = pars.canonicalPath() + "/" + m_fileName.section('\\', -1);
+		}
 		else if (m_fileName.lastIndexOf("/") > 0)
+		{
 			m_fileName = pars.canonicalPath() + "/" + m_fileName.section('/', -1);
+		}
 		else
-			m_fileName = QFileDialog::getOpenFileName(m_parent, tr("Specify data File (file path in PARS is wrong)"), "", tr("PRO (*.pro);;RAW files (*.raw);;"));
+		{
+			m_fileName = QFileDialog::getOpenFileName(m_parent, tr("Specify data File (file path in PARS is wrong)"),
+				"", tr("PRO (*.pro);;RAW files (*.raw);;All files (*)"));
+		}
 	}
 	QFile file;
 	file.setFileName(m_fileName);
@@ -1515,8 +1546,10 @@ bool iAIO::setupPARSReader( QString const & f )
 		LOG(lvlError, QString("PARS reader: Cannot open data file '%1'!").arg(m_fileName));
 		return false;
 	}
-	else file.close();
-
+	else
+	{
+		file.close();
+	}
 	return true;
 }
 
@@ -1562,7 +1595,7 @@ bool iAIO::setupVGIReader( QString const & f )
 	m_fileName = getParameterValues(f,"name",0, "[file1]", "=");
 	if (m_fileName == "") m_fileName = getParameterValues(f,"Name",0, "[file1]", "=");
 	if (m_fileName == "")
-		m_fileName = QFileDialog::getOpenFileName(m_parent, tr("Specify data File (file path in VGI is wrong)"), "", tr("RAW files (*.raw);;REC files (*.rec);;VOL files (*.vol);;"));
+		m_fileName = QFileDialog::getOpenFileName(m_parent, tr("Specify data File (file path in VGI is wrong)"), "", tr("RAW files (*.raw);;REC files (*.rec);;VOL files (*.vol);;All files (*)"));
 
 	QFileInfo pars(f);
 	if(!QFile::exists(m_fileName))	{
@@ -1573,7 +1606,7 @@ bool iAIO::setupVGIReader( QString const & f )
 		else if (m_fileName.lastIndexOf("/") > 0)
 			m_fileName = pars.canonicalPath() + "/" + m_fileName.section('/', -1);
 		else
-			m_fileName = QFileDialog::getOpenFileName(m_parent, tr("Specify data File (file path in VGI is wrong)"), "", tr("RAW files (*.raw);;REC files (*.rec);;VOL files (*.vol);;"));
+			m_fileName = QFileDialog::getOpenFileName(m_parent, tr("Specify data File (file path in VGI is wrong)"), "", tr("RAW files (*.raw);;REC files (*.rec);;VOL files (*.vol);;All files (*)"));
 	}
 
 	QFile file;
@@ -1603,22 +1636,46 @@ bool iAIO::setupNKCReader(QString const& f)
 	QRegularExpressionMatch matchColumns = regexColumns.match(text);
 	if (matchColumns.hasMatch())
 	{
-		QString columns = matchColumns.captured(1); 
+		QString columns = matchColumns.captured(1);
 		m_rawFileParams.m_size[0] = columns.toInt();
-											  
 	}
 
 	QRegularExpression regexRows("number of raws : (\\d*)\\D");
 	QRegularExpressionMatch matchRows = regexRows.match(text);
 	if (matchRows.hasMatch())
 	{
-		QString rows = matchRows.captured(1);  
+		QString rows = matchRows.captured(1);
 		m_rawFileParams.m_size[1] = rows.toInt();
+	}
+
+	QRegularExpression regexOffset("value offset : (\\d*)\\D");
+	QRegularExpressionMatch matchOffset = regexOffset.match(text);
+	if (matchOffset.hasMatch())
+	{
+		QString Offset = matchOffset.captured(1);
+		auto value = Offset.toInt();
+		m_Parameter.insert("Offset", QVariant(value));
+		
+	}
+
+	QRegularExpression regexScale("value coefficient : (\\d.\\d*E?-?\\d?)\\D");
+	QRegularExpressionMatch matchScale = regexScale.match(text);
+	if (matchScale.hasMatch())
+	{
+		QString scale = matchScale.captured(1);
+		auto value = scale.toFloat();
+		m_Parameter.insert("Scale", QVariant(value));
 	}
 
 	m_rawFileParams.m_size[2] = 1;
 	m_rawFileParams.m_scalarType = VTK_TYPE_UINT16;
 	m_rawFileParams.m_byteOrder = VTK_FILE_BYTE_ORDER_BIG_ENDIAN;
+
+	//set Spacing
+	m_rawFileParams.m_spacing[0] = 1;
+	m_rawFileParams.m_spacing[1] = 1;
+	m_rawFileParams.m_spacing[2] = 1;
+
 
 	m_rawFileParams.m_headersize = file.size() - (m_rawFileParams.m_size[0] * m_rawFileParams.m_size[1] * 2);
 
@@ -1707,7 +1764,7 @@ void writeImageStack_template(QString const & fileName, iAProgress* p, iAConnect
 		auto imgIO = itk::TIFFImageIO::New();
 		writer->SetImageIO(imgIO);
 	}
-	
+
 	QString length = QString::number(size[2]);
 	QString format(fi.absolutePath() + "/" + fi.baseName() + "%0" + QString::number(length.size()) + "d." + fi.completeSuffix());
 	nameGenerator->SetSeriesFormat( getLocalEncodingFileName(format).c_str());
@@ -1726,7 +1783,7 @@ void iAIO::writeImageStack( )
 	const ScalarPixelType pixelType = getConnector()->itkScalarPixelType();
 	const PixelType imagePixelType = getConnector()->itkPixelType();
 	ITK_EXTENDED_TYPED_CALL(writeImageStack_template, pixelType, imagePixelType,
-		m_fileName, ProgressObserver(), getConnector(), false);  //compression Hard coded to false, because the used m_compression was used for stl 
+		m_fileName, ProgressObserver(), getConnector(), false);  //compression Hard coded to false, because the used m_compression was used for stl
 	addMsg(tr("%1 Image Stack saved; base file name: %2")
 		.arg(QFileInfo(m_fileName).completeSuffix().toUpper())
 		.arg(m_fileName));
@@ -1743,32 +1800,33 @@ bool iAIO::setupStackReader( QString const & f )
 	int indexRange[2];
 	int digits;
 	determineStackParameters(f, m_fileNamesBase, m_extension, indexRange, digits);
-	QStringList inList = (QStringList()
-		<< tr("#File Names Base") << tr("#Extension")
-		<< tr("#Number of Digits in Index")
-		<< tr("#Minimum Index") << tr("#Maximum Index")
-		<< tr("*Step")
-		<< tr("#Spacing X") << tr("#Spacing Y") << tr("#Spacing Z")
-		<< tr("#Origin X") << tr("#Origin Y") << tr("#Origin Z"));
-	QList<QVariant> inPara = (QList<QVariant>()
-		<< m_fileNamesBase << m_extension
-		<< tr("%1").arg(digits)
-		<< tr("%1").arg(indexRange[0]) << tr("%1").arg(indexRange[1])
-		<< QString::number(1)
-		<< tr("%1").arg(m_rawFileParams.m_spacing[0]) << tr("%1").arg(m_rawFileParams.m_spacing[1]) << tr("%1").arg(m_rawFileParams.m_spacing[2])
-		<< tr("%1").arg(m_rawFileParams.m_origin[0])  << tr("%1").arg(m_rawFileParams.m_origin[1])  << tr("%1").arg(m_rawFileParams.m_origin[2]));
-
-	dlg_commoninput dlg(m_parent, "Set file parameters", inList, inPara, "Please check these automatically determined settings:");
+	iAParameterDlg::ParamListT params;
+	addSeriesParameters(params, m_fileNamesBase, m_extension, digits, indexRange);
+	addParameter(params, "Step", iAValueType::Discrete, 1);
+	addParameter(params, "Spacing X", iAValueType::Continuous, m_rawFileParams.m_spacing[0]);
+	addParameter(params, "Spacing Y", iAValueType::Continuous, m_rawFileParams.m_spacing[1]);
+	addParameter(params, "Spacing Z", iAValueType::Continuous, m_rawFileParams.m_spacing[2]);
+	addParameter(params, "Origin X", iAValueType::Continuous, m_rawFileParams.m_origin[0]);
+	addParameter(params, "Origin Y", iAValueType::Continuous, m_rawFileParams.m_origin[1]);
+	addParameter(params, "Origin Z", iAValueType::Continuous, m_rawFileParams.m_origin[2]);
+	iAParameterDlg dlg(m_parent, "Set file parameters", params, "Please check these automatically determined settings:");
 	if (dlg.exec() != QDialog::Accepted)
+	{
 		return false;
-
-	m_fileNamesBase = dlg.getText(0);
-	m_extension = dlg.getText(1);
-	digits = dlg.getDblValue(2);
-	indexRange[0] = dlg.getDblValue(3); indexRange[1]= dlg.getDblValue(4);
-	int stepSize = dlg.getIntValue(5);
-	m_rawFileParams.m_spacing[0] = dlg.getDblValue(6); m_rawFileParams.m_spacing[1] = dlg.getDblValue(7);  m_rawFileParams.m_spacing[2] = dlg.getDblValue(8);
-	m_rawFileParams.m_origin [0] = dlg.getDblValue(9); m_rawFileParams.m_origin [1] = dlg.getDblValue(10); m_rawFileParams.m_origin [2] = dlg.getDblValue(11);
+	}
+	auto values = dlg.parameterValues();
+	m_fileNamesBase = values[FileNameBase].toString();
+	m_extension = values[Extension].toString();
+	digits = values[NumDigits].toInt();
+	indexRange[0] = values[MinimumIndex].toInt();
+	indexRange[1] = values[MaximumIndex].toInt();
+	int stepSize = values["Step"].toInt();
+	m_rawFileParams.m_spacing[0] = values["Spacing X"].toDouble();
+	m_rawFileParams.m_spacing[1] = values["Spacing Y"].toDouble();
+	m_rawFileParams.m_spacing[2] = values["Spacing Z"].toDouble();
+	m_rawFileParams.m_origin[0] = values["Origin X"].toDouble();
+	m_rawFileParams.m_origin[1] = values["Origin Y"].toDouble();
+	m_rawFileParams.m_origin[2] = values["Origin Z"].toDouble();
 	fillFileNameArray(indexRange, digits, stepSize);
 	return true;
 }

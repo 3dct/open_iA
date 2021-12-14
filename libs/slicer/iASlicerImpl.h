@@ -25,7 +25,7 @@
 #include "iASlicer.h"
 #include "iASlicerMode.h"
 #include "iASlicerSettings.h"    // for iASingleSlicerSettings
-#include "iAVtkWidget.h"
+#include "iAQVTKWidget.h"
 
 #include <vtkSmartPointer.h>
 

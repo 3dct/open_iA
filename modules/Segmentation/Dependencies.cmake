@@ -1,7 +1,7 @@
-SET( DEPENDENCIES_LIBRARIES
-	iAbase
+set(DEPENDENCIES_LIBRARIES
+	iA::base
 )
-#SET( DEPENDENCIES_ITK_MODULES
+#set(DEPENDENCIES_ITK_MODULES
 #	ITKClassifiers               # for ScalarImageKmeansImageFilter
 #	ITKConnectedComponents       # for ConnectedComponentImageFilter (dependency of MorphologicalWatershedImageFilter)
 #	ITKDistanceMap               # for DanielssonDistanceMapImageFilter (dependency of CannySegmentationLevelSetFilter)
@@ -18,14 +18,14 @@ SET( DEPENDENCIES_LIBRARIES
 #	ITKThresholding              # for BinaryThresholdImageFilter
 #	ITKWatersheds                # for MorphologicalWatershedImageFilter, WatershedImageFilter, ...
 #)
-SET( DEPENDENCIES_IA_TOOLKIT_DIRS
+set(DEPENDENCIES_IA_TOOLKIT_DIRS
 	AdaptiveOtsuThreshold
 	MaximumDistance
 	RemovePeaksOtsu
 	FuzzyCMeans
 )
-IF (EIGEN3_FOUND)
-	SET( DEPENDENCIES_INCLUDE_DIRS
+if (EIGEN3_FOUND)
+	set(DEPENDENCIES_INCLUDE_DIRS
 		${EIGEN3_INCLUDE_DIR}
 	)
-ENDIF()
+endif()

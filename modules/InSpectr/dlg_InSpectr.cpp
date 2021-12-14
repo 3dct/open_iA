@@ -41,10 +41,10 @@
 #include <iAFunctionalBoxplot.h>
 #include <iAJobListView.h>
 #include <iAMdiChild.h>
+#include <iAQVTKWidget.h>
 #include <iARenderer.h>
 #include <iARunAsync.h>
 #include <iASlicer.h>
-#include <iAVtkWidget.h>
 #include <io/iAIO.h>
 
 #include <iADockWidgetWrapper.h>
@@ -697,7 +697,7 @@ void dlg_InSpectr::loadDecomposition()
 		QApplication::activeWindow(),
 		tr("Load File"),
 		(dynamic_cast<iAMdiChild*>(parent()))->filePath(),
-		tr("Volstack files (*.volstack);;")
+		tr("Volstack files (*.volstack);;All files (*)")
 	);
 	if (fileName.isEmpty())
 	{
@@ -740,7 +740,7 @@ void dlg_InSpectr::storeDecomposition()
 		QApplication::activeWindow(),
 		tr("Save File"),
 		QDir::currentPath(),
-		tr("Volstack files (*.volstack);;")
+		tr("Volstack files (*.volstack);;All files (*)")
 	);
 	if (fileName.isEmpty())
 	{
@@ -1099,7 +1099,7 @@ void dlg_InSpectr::computeSimilarityMap()
 		QApplication::activeWindow(),
 		tr("Save Similarity Map"),
 		QDir::currentPath(),
-		tr("MetaImage (*.mhd);;")
+		tr("MetaImage (*.mhd);;All files (*)")
 	);
 	if (fileName.isEmpty())
 	{

@@ -50,17 +50,17 @@
 #include <QStatusBar>
 #include <QTreeWidget>
 
-iAFeatureAnalyzer::iAFeatureAnalyzer(iAMainWindow *mWnd, const QString & resDir, const QString & datasetsDir, QWidget * parent /*= 0*/, Qt::WindowFlags f /*= 0 */ ):
-	FeatureAnalyzerConnector( parent, f ),
+iAFeatureAnalyzer::iAFeatureAnalyzer(iAMainWindow* mWnd, const QString& resDir, const QString& datasetsDir, QWidget* parent):
+	FeatureAnalyzerConnector(parent),
 	m_dataDir( resDir ),
 	m_datasetsDir( datasetsDir ),
-	m_spmView( new iASPMView(mWnd, parent, f ) ),
-	m_treeView( new iATreeView( nullptr, f ) ),
-	m_pdmView( new iAPDMView( parent, f ) ),
-	m_ssView( new iASSView( parent, f ) ),
-	m_selView( new iASelectionsView( nullptr, f ) ),
-	m_segm3DView( new iASegm3DView( parent, f ) ),
-	m_prvSplomView( new iAPreviewSPLOMView( parent, f ) ),
+	m_spmView( new iASPMView(mWnd, parent) ),
+	m_treeView( new iATreeView( nullptr ) ),
+	m_pdmView( new iAPDMView(parent) ),
+	m_ssView( new iASSView(parent) ),
+	m_selView( new iASelectionsView( nullptr ) ),
+	m_segm3DView( new iASegm3DView(parent) ),
+	m_prvSplomView( new iAPreviewSPLOMView(parent) ),
 	m_runsOffset( -1 ),
 	m_visanMW( new QMainWindow( nullptr ) )
 {
@@ -82,7 +82,7 @@ iAFeatureAnalyzer::iAFeatureAnalyzer(iAMainWindow *mWnd, const QString & resDir,
 	m_prvSplomView->sliderPreviewSize->setValue( defaultPopupSizePercentage );
 	m_spmView->setSPLOMPreviewSize(defaultPopupSizePercentage);
 	
-	iARangeSliderDiagramView * rangeSliderDiagramView =  new iARangeSliderDiagramView( parent, f );
+	iARangeSliderDiagramView * rangeSliderDiagramView = new iARangeSliderDiagramView(parent);
 
 	connect( m_treeView, &iATreeView::loadSelectionToSPMSignal, m_spmView, &iASPMView::setData);
 	connect( m_treeView, &iATreeView::loadSelectionToSSSignal, m_ssView, &iASSView::SetData);

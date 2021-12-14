@@ -1,4 +1,4 @@
-SET (OPENIA_PRECOMPILE_HEADERS
+set(OPENIA_PRECOMPILE_HEADERS
 <algorithm>
 <cassert>
 <cmath>
@@ -9,7 +9,6 @@ SET (OPENIA_PRECOMPILE_HEADERS
 <iAChartFunctionTransfer.h>
 <iAChartWidget.h>
 <iAChartWithFunctionsWidget.h>
-<iAFunctionColors.h>
 <iAHistogramData.h>
 <iALog.h>
 <iALookupTable.h>
@@ -37,7 +36,6 @@ SET (OPENIA_PRECOMPILE_HEADERS
 <QPainter>
 <QPen>
 <QPolygon>
-<QPropertyAnimation>
 <QSharedPointer>
 <QString>
 <QtGlobal>
