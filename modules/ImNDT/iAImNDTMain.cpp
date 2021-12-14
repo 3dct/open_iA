@@ -20,39 +20,32 @@
 * ************************************************************************************/
 #include "iAImNDTMain.h"
 
-#include <iALog.h>
-#include "iAVRInteractor.h"
-#include "iAVRModelInMiniature.h"
-#include "iAVROctree.h"
-#include "iAImNDTInteractorStyle.h"
-#include "iAVRSlider.h"
 #include "iA3DColoredPolyObjectVis.h"
+#include "iAImNDTInteractorStyle.h"
+#include "iAVR3DText.h"
+#include "iAVRColorLegend.h"
+#include "iAVRFrontCamera.h"
+#include "iAVRHistogramPairVis.h"
+#include "iAVRInteractor.h"
+#include "iAVRMip.h"
+#include "iAVRModelInMiniature.h"
+#include "iAVRObjectModel.h"
+#include "iAVROctree.h"
+#include "iAVRSlider.h"
+#include <iALog.h>
 
-#include "vtkRenderer.h"
-#include "vtkIdList.h"
-#include "vtkProperty.h"
-#include "vtkProperty2D.h"
-#include "vtkTextProperty.h"
 #include "vtkActor.h"
-#include "vtkActorCollection.h"
-#include "vtkPropCollection.h"
-#include "vtkPointData.h"
-#include "vtkAbstractPropPicker.h"
-#include "vtkUnsignedCharArray.h"
-#include "vtkPolyDataMapper.h"
-#include <vtkPlaneSource.h>
 #include "vtkIntersectionPolyDataFilter.h"
 #include "vtkLineSource.h"
-#include "vtkVertexGlyphFilter.h"
-#include "vtkScalarBarActor.h"
 #include "vtkOpenVRCamera.h"
-
-#include <vtkOpenVRRenderer.h>
-
+#include "vtkPolyData.h"
+#include "vtkPolyDataMapper.h"
+#include "vtkProp3D.h"
+#include "vtkProperty.h"
+#include "vtkRenderer.h"
+#include "vtkVertexGlyphFilter.h"
 
 #include <QColor>
-#include <vtkImageCanvasSource2D.h>
-#include <vtkImageMapper3D.h>
 
 //Octree Max Level
 #define OCTREE_MAX_LEVEL 3
@@ -235,7 +228,6 @@ void iAImNDTMain::startInteraction(vtkEventDataDevice3D* device, vtkProp3D* pick
 		this->pressLeftTouchpad();
 		break;
 	case iAVROperations::ChangeMiMDisplacementType:
-		createArView();
 		this->changeMiMDisplacementType();
 		break;
 	case iAVROperations::DisplayNodeLinkDiagram:
@@ -925,15 +917,22 @@ void iAImNDTMain::displayNodeLinkD()
 	}
 }
 
-void iAImNDTMain::createArView()
+bool iAImNDTMain::toggleArView()
 {
 	if (!arEnabled)
 	{
+		m_vrEnv->hideSkybox();
 		arViewer = new iAVRFrontCamera(m_vrEnv->renderer(), m_vrEnv->renderWindow());
 		arViewer->initialize();
 		arViewer->buildRepresentation();
+		arViewer->refreshImage();
 		arEnabled = true;
+
+		return arEnabled;
 	}
 
-	arViewer->refreshImage();
+	arEnabled = false;
+	m_vrEnv->showSkybox();
+
+	return arEnabled;
 }

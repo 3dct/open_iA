@@ -56,13 +56,18 @@ void iAImNDTModuleInterface::Initialize()
 	connect(actionVRRender, &QAction::triggered, this, &iAImNDTModuleInterface::render);
 	m_mainWnd->makeActionChildDependent(actionVRRender);
 
-	m_actionVRShowFibers = new QAction(tr("Show Fibers"), m_mainWnd);
+	m_actionVRShowFibers = new QAction(tr("Start Analysis"), m_mainWnd);
 	connect(m_actionVRShowFibers, &QAction::triggered, this, &iAImNDTModuleInterface::showFibers);
 
-	QMenu* vrMenu = getOrAddSubMenu(m_mainWnd->toolsMenu(), tr("VR"), false);
+	m_actionVR_ARView = new QAction(tr("Start AR Environment"), m_mainWnd);
+	connect(m_actionVR_ARView, &QAction::triggered, this, &iAImNDTModuleInterface::startARView);
+	m_actionVR_ARView->setDisabled(true);
+
+	QMenu* vrMenu = getOrAddSubMenu(m_mainWnd->toolsMenu(), tr("ImNDT"), false);
 	vrMenu->addAction(actionVRInfo);
 	vrMenu->addAction(actionVRRender);
 	vrMenu->addAction(m_actionVRShowFibers);
+	vrMenu->addAction(m_actionVR_ARView);
 }
 
 void iAImNDTModuleInterface::info()
@@ -171,10 +176,25 @@ void iAImNDTModuleInterface::showFibers()
 	//Create VR Main
 	m_vrMain = new iAImNDTMain(m_vrEnv.data(), m_style, m_objectTable, io, csvConfig, curvedFiberInfo);
 
+	m_actionVR_ARView->setEnabled(true);
+
 	// Start Render Loop HERE!
 	m_vrEnv->start();
 
 	m_vrEnv.reset(nullptr);
+}
+
+void iAImNDTModuleInterface::startARView()
+{
+	if(m_vrMain->toggleArView())
+	{
+		m_actionVR_ARView->setText("Stop AR Environment");
+	}
+	else
+	{
+		m_actionVR_ARView->setText("Start AR Environment");
+	}
+	
 }
 
 bool iAImNDTModuleInterface::vrAvailable()
@@ -200,4 +220,5 @@ iAModuleAttachmentToChild * iAImNDTModuleInterface::CreateAttachment( iAMainWind
 void iAImNDTModuleInterface::vrDone()
 {
 	m_actionVRShowFibers->setText("Show Fibers");
+	m_actionVR_ARView->setDisabled(true);
 }

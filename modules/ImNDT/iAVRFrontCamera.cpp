@@ -151,6 +151,8 @@ void iAVRFrontCamera::hide()
 
 void iAVRFrontCamera::refreshImage()
 {
+	m_renderWindow->MakeCurrent();
+
 	if (!m_VRTrackedCamera || !m_VRTrackedCameraHandle)
 	{
 		return;

@@ -47,9 +47,12 @@ private:
 	vtkSmartPointer<iAImNDTInteractorStyle> m_style;
 	vtkSmartPointer<vtkTable> m_objectTable;
 	QAction* m_actionVRShowFibers;
+	QAction* m_actionVR_ARView;
+
 private slots:
 	void info();
 	void render();
 	void showFibers();
+	void startARView();
 	void vrDone();
 };

@@ -20,29 +20,28 @@
 * ************************************************************************************/
 #pragma once
 
-#include "vtkSmartPointer.h"
+#include "iACsvIO.h"
 #include "iAVREnvironment.h"
+#include "iAVRHistogramMetric.h"
 #include "iAVRObjectCoverage.h"
 #include "iAVROctreeMetrics.h"
-#include "iAVRHistogramMetric.h"
-#include "iAVR3DText.h"
-#include "iAVRColorLegend.h"
-#include "iAVRMip.h"
-#include "iAVRHistogramPairVis.h"
-#include "iAVRObjectModel.h"
-#include "iACsvIO.h"
-#include "iAVRFrontCamera.h"
-
 #include "vtkEventData.h"
+#include "vtkSmartPointer.h"
 #include "vtkTable.h"
-#include "vtkDataSet.h"
-#include "vtkProp3D.h"
-#include "vtkPolyData.h"
-#include "vtkPlaneSource.h"
-
 #include <unordered_map>
 
 class vtkOpenVRTrackedCamera;
+class iAImNDTInteractorStyle;
+class iAVR3DText;
+class iAVRColorLegend;
+class iAVRColorLegend;
+class iAVRFrontCamera;
+class iAVRHistogramPairVis;
+class iAVRMip;
+class iAVRModelInMiniature;
+class iAVRObjectModel;
+class iAVROctree;
+class iAVRSlider;
 
 // Enumeration of different interaction options for different Objects
 enum class iAVRInteractionOptions {
@@ -74,13 +73,6 @@ enum class iAVROperations {
   NumberOfOperations
 };
 
-class iAVRModelInMiniature;
-class iAVROctree; 
-class iAImNDTInteractorStyle;
-class iAVRSlider;
-class iAVRColorLegend;
-class iAVRMip;
-
 //!
 class iAImNDTMain
 {
@@ -90,6 +82,7 @@ public:
 	void endInteraction(vtkEventDataDevice3D* device, vtkProp3D* pickedProp, double eventPosition[3], double eventOrientation[4]); //Release, Untouch
 	void onMove(vtkEventDataDevice3D* device, double movePosition[3], double eventOrientation[4]); //Movement
 	void onZoom();
+	bool toggleArView();
 	vtkIdType currentOctreeLevel;
 
 private:
@@ -164,5 +157,5 @@ private:
 	void changeMiMDisplacementType();
 	void flipDistributionVis();
 	void displayNodeLinkD();
-	void createArView();
+	
 };

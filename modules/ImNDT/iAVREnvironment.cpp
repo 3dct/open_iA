@@ -38,9 +38,10 @@
 
 iAVREnvironment::iAVREnvironment():	m_renderer(vtkSmartPointer<vtkOpenVRRenderer>::New()), m_renderWindow(vtkSmartPointer<vtkOpenVRRenderWindow>::New()), m_interactor(vtkSmartPointer<iAVRInteractor>::New())
 {	
-	//createSkybox(0);
 	createLightKit();
-	//m_renderer->SetShowFloor(true);
+
+	createSkybox(0);
+	showSkybox();
 }
 
 vtkRenderer* iAVREnvironment::renderer()
@@ -98,6 +99,46 @@ void iAVREnvironment::stop()
 		m_interactor->stop();
 }
 
+void iAVREnvironment::showSkybox()
+{
+	if (m_skyBoxVisible)
+	{
+		return;
+	}
+	m_renderer->AddActor(skyboxActor);
+	m_skyBoxVisible = true;
+}
+
+void iAVREnvironment::hideSkybox()
+{
+	if (!m_skyBoxVisible)
+	{
+		return;
+	}
+	m_renderer->RemoveActor(skyboxActor);
+	m_skyBoxVisible = false;
+}
+
+void iAVREnvironment::showFloor()
+{
+	if (m_floorVisible)
+	{
+		return;
+	}
+	m_renderer->SetShowFloor(true);
+	m_floorVisible = true;
+}
+
+void iAVREnvironment::hideFloor()
+{
+	if (!m_floorVisible)
+	{
+		return;
+	}
+	m_renderer->SetShowFloor(false);
+	m_floorVisible = false;
+}
+
 void iAVREnvironment::createLightKit()
 {
 	vtkSmartPointer<vtkLightKit> light = vtkSmartPointer<vtkLightKit>::New();
@@ -128,7 +169,6 @@ void iAVREnvironment::createSkybox(int skyboxImage)
 
 	skyboxActor = vtkSmartPointer<vtkSkybox>::New();
 	skyboxActor->SetTexture(skybox);
-	m_renderer->AddActor(skyboxActor);
 }
 
 vtkSmartPointer<vtkTexture> iAVREnvironment::ReadCubeMap(std::string const& folderPath,
