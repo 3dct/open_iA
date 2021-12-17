@@ -115,9 +115,8 @@ MdiChild::MdiChild(MainWindow* mainWnd, iAPreferences const& prefs, bool unsaved
 	m_reInitializeRenderWindows(true),
 	m_raycasterInitialized(false),
 	m_snakeSlicer(false),
-	m_worldProfilePoints(vtkPoints::New()),
-	m_worldSnakePoints(vtkPoints::New()),
-	m_parametricSpline(iAParametricSpline::New()),
+	m_worldSnakePoints(vtkSmartPointer<vtkPoints>::New()),
+	m_parametricSpline(vtkSmartPointer<iAParametricSpline>::New()),
 	m_imageData(vtkSmartPointer<vtkImageData>::New()),
 	m_polyData(vtkPolyData::New()),
 	m_axesTransform(vtkTransform::New()),
@@ -179,8 +178,6 @@ MdiChild::MdiChild(MainWindow* mainWnd, iAPreferences const& prefs, bool unsaved
 	setModalities(modList);
 	applyViewerPreferences();
 	connectSignalsToSlots();
-
-	m_worldProfilePoints->Allocate(2);
 	connect(mainWnd, &MainWindow::fullScreenToggled, this, &MdiChild::toggleFullScreen);
 	connect(mainWnd, &MainWindow::styleChanged, this, &MdiChild::styleChanged);
 }
