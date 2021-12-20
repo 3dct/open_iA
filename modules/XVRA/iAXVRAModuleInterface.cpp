@@ -32,12 +32,15 @@ void iAXVRAModuleInterface::Initialize()
 	QAction * actionXVRAStart = new QAction(tr("Start XVRA"), m_mainWnd);
 	connect(actionXVRAStart, &QAction::triggered, this, &iAXVRAModuleInterface::startXVRA);
 
-	QMenu* vrMenu = getOrAddSubMenu(m_mainWnd->toolsMenu(), tr("XVRA"), false);
-	vrMenu->addAction(actionXVRAStart);
-	vrMenu->addAction(actionXVRAInfo);
+	m_actionXVRA_ARView = new QAction(tr("Start AR Environment"), m_mainWnd);
+	connect(m_actionXVRA_ARView, &QAction::triggered, this, &iAXVRAModuleInterface::startARView);
+	m_actionXVRA_ARView->setDisabled(true);
 
-	// m_mainWnd->makeActionChildDependent(actionTest);   // uncomment this to enable action only if child window is open
-	//m_mainWnd->moduleDispatcher().module<dlg_FeatureScout>();
+	QMenu* vrMenu = getOrAddSubMenu(m_mainWnd->toolsMenu(), tr("XVRA"), false);
+	vrMenu->addAction(actionXVRAInfo);
+	vrMenu->addAction(actionXVRAStart);
+	vrMenu->addAction(m_actionXVRA_ARView);
+
 }
 
 void iAXVRAModuleInterface::info()
@@ -97,14 +100,30 @@ void iAXVRAModuleInterface::startXVRA()
 	/***** Add Camera Frustum *****/
 
 	//Get camera from featureScout
-	vtkSmartPointer<vtkCamera> fsCam = m_mainWnd->activeMdiChild()->renderer()->camera(); //m_mainWnd->activeMdiChild()->renderer()->renderer()->GetActiveCamera();
+	//vtkSmartPointer<vtkCamera> fsCam = m_mainWnd->activeMdiChild()->renderer()->camera(); //m_mainWnd->activeMdiChild()->renderer()->renderer()->GetActiveCamera();
 
 	//Get camera from featureScout
-	vtkSmartPointer<vtkCamera> vrCam = m_vrMain->getRenderer()->GetActiveCamera();
+	//vtkSmartPointer<vtkCamera> vrCam = m_vrMain->getRenderer()->GetActiveCamera();
 
 	//vrFrustum = new iAFrustumActor(m_vrMain->getRenderer(), fsCam); // frustum of featurescout shown in vr
-	fsFrustum = new iAFrustumActor(m_mainWnd->activeMdiChild()->renderer()->renderer(), vrCam); // frustum of vr shown in featurescout
+	//fsFrustum = new iAFrustumActor(m_mainWnd->activeMdiChild()->renderer()->renderer(), vrCam); // frustum of vr shown in featurescout
 
 	//vrFrustum->show();
-	fsFrustum->show();
+	//fsFrustum->show();
+
+	//Enable AR Mode
+	m_actionXVRA_ARView->setEnabled(true);
+}
+
+void iAXVRAModuleInterface::startARView()
+{
+	if (m_vrMain->toggleARView())
+	{
+		m_actionXVRA_ARView->setText("Stop AR Environment");
+	}
+	else
+	{
+		m_actionXVRA_ARView->setText("Start AR Environment");
+	}
+
 }

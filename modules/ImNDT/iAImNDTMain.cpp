@@ -20,33 +20,30 @@
 * ************************************************************************************/
 #include "iAImNDTMain.h"
 
-#include <iALog.h>
-#include "iAVRInteractor.h"
-#include "iAVRModelInMiniature.h"
-#include "iAVROctree.h"
-#include "iAImNDTInteractorStyle.h"
-#include "iAVRSlider.h"
 #include "iA3DColoredPolyObjectVis.h"
+#include "iAImNDTInteractorStyle.h"
+#include "iAVR3DText.h"
+#include "iAVRColorLegend.h"
+#include "iAVRFrontCamera.h"
+#include "iAVRHistogramPairVis.h"
+#include "iAVRInteractor.h"
+#include "iAVRMip.h"
+#include "iAVRModelInMiniature.h"
+#include "iAVRObjectModel.h"
+#include "iAVROctree.h"
+#include "iAVRSlider.h"
+#include <iALog.h>
 
-#include "vtkRenderer.h"
-#include "vtkIdList.h"
-#include "vtkProperty.h"
-#include "vtkProperty2D.h"
-#include "vtkTextProperty.h"
 #include "vtkActor.h"
-#include "vtkActorCollection.h"
-#include "vtkPropCollection.h"
-#include "vtkPointData.h"
-#include "vtkAbstractPropPicker.h"
-#include "vtkUnsignedCharArray.h"
-#include "vtkPolyDataMapper.h"
-#include <vtkPlaneSource.h>
 #include "vtkIntersectionPolyDataFilter.h"
 #include "vtkLineSource.h"
-#include "vtkVertexGlyphFilter.h"
-#include "vtkScalarBarActor.h"
 #include "vtkOpenVRCamera.h"
-
+#include "vtkPolyData.h"
+#include "vtkPolyDataMapper.h"
+#include "vtkProp3D.h"
+#include "vtkProperty.h"
+#include "vtkRenderer.h"
+#include "vtkVertexGlyphFilter.h"
 
 #include <QColor>
 
@@ -57,9 +54,10 @@
 #define OCTREE_COLOR QColor(126, 0, 223, 255)
 //#define OCTREE_COLOR QColor(130, 10, 10, 255)
 
-iAImNDTMain::iAImNDTMain(iAVREnvironment* vrEnv, iAImNDTInteractorStyle* style, iA3DColoredPolyObjectVis* polyObject, vtkTable* objectTable, iACsvIO io, iACsvConfig csvConfig): m_vrEnv(vrEnv),
-	m_style(style), m_polyObject(polyObject), m_objectTable(objectTable), m_io(io)
+iAImNDTMain::iAImNDTMain(iAVREnvironment* vrEnv, iAImNDTInteractorStyle* style, iA3DColoredPolyObjectVis* polyObject, vtkTable* objectTable, iACsvIO io, iACsvConfig csvConfig) : m_vrEnv(vrEnv),
+		m_style(style), m_polyObject(polyObject), m_objectTable(objectTable), m_io(io)
 {
+
 	// For true TranslucentGeometry
 	//https://vtk.org/Wiki/VTK/Examples/Cxx/Visualization/CorrectlyRenderTranslucentGeometry#CorrectlyRenderTranslucentGeometry.cxx
 	//m_vrEnv->renderer()->SetUseDepthPeeling(true);
@@ -329,6 +327,11 @@ void iAImNDTMain::onMove(vtkEventDataDevice3D * device, double movePosition[3], 
 	//Movement of Head
 	if (deviceID == static_cast<int>(vtkEventDataDevice::HeadMountedDisplay))
 	{
+		if (arEnabled)
+		{
+			arViewer->refreshImage();
+		}
+
 		double* tempFocalPos = cam->GetFocalPoint();
 		focalPoint[0] = tempFocalPos[0];
 		focalPoint[1] = tempFocalPos[1];
@@ -921,4 +924,24 @@ void iAImNDTMain::displayNodeLinkD()
 
 		m_networkGraphMode = false;
 	}
+}
+
+bool iAImNDTMain::toggleArView()
+{
+	if (!arEnabled)
+	{
+		m_vrEnv->hideSkybox();
+		arViewer = new iAVRFrontCamera(m_vrEnv->renderer(), m_vrEnv->renderWindow());
+		arViewer->initialize();
+		arViewer->buildRepresentation();
+		arViewer->refreshImage();
+		arEnabled = true;
+
+		return arEnabled;
+	}
+
+	arEnabled = false;
+	m_vrEnv->showSkybox();
+
+	return arEnabled;
 }

@@ -24,7 +24,9 @@ private:
 	iAImNDTModuleInterface* m_vrMain;
 	iAFrustumActor* fsFrustum;
 	iAFrustumActor* vrFrustum;
+	QAction* m_actionXVRA_ARView;
 private slots:
 	void info();
 	void startXVRA();
+	void startARView();
 };

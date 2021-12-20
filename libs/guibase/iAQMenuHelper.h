@@ -20,53 +20,14 @@
 * ************************************************************************************/
 #pragma once
 
-#include <iAGUIModuleInterface.h>
-#include <ImNDT_export.h>
-
-#include <vtkSmartPointer.h>
-
-#include <QSharedPointer>
-
-#include "iAImNDTMain.h"
-#include "iA3DColoredPolyObjectVis.h"
-#include "iAImNDTInteractorStyle.h"
-
-class iAVREnvironment;
-
-class vtkTable;
+#include "iAguibase_export.h"
 
 class QAction;
+class QMenu;
+class QString;
 
+//! Search in the given menu for a menu with the given title; if it doesn't exist, add it (alphabetically sorted).
+iAguibase_API QMenu* getOrAddSubMenu(QMenu* parentMenu, QString const& title, bool addSeparator = false);
 
-class ImNDT_API iAImNDTModuleInterface : public iAGUIModuleInterface{
-	Q_OBJECT
-public:
-	void Initialize() override;
-	void ImNDT(QSharedPointer<iA3DColoredPolyObjectVis> polyObject, vtkSmartPointer<vtkTable> objectTable, iACsvIO io,
-		iACsvConfig csvConfig);
-	vtkRenderer* getRenderer();
-	bool toggleARView();
-
-private:
-	iAModuleAttachmentToChild* CreateAttachment(iAMainWindow* mainWnd, iAMdiChild* child) override;
-	bool vrAvailable();
-	bool loadImNDT();
-	QSharedPointer<iAVREnvironment> m_vrEnv;
-	QSharedPointer<iA3DColoredPolyObjectVis> m_polyObject;
-	iAImNDTMain* m_vrMain;
-	vtkSmartPointer<iAImNDTInteractorStyle> m_style;
-	iACsvConfig m_csvConfig;
-	iACsvIO m_io;
-	vtkSmartPointer<vtkTable> m_objectTable;
-
-	QAction* m_actionVRStartAnalysis;
-	QAction* m_actionVR_ARView;
-
-private slots:
-	void info();
-	void render();
-
-	void startAnalysis();
-	void startARView();
-	void vrDone();
-};
+//! Add a given action to a menu, such that the (previously sorted) menu stays alphabetically sorted.
+iAguibase_API void addToMenuSorted(QMenu* menu, QAction* action);

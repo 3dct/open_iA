@@ -58,13 +58,21 @@ void iAImNDTModuleInterface::Initialize()
 	connect(actionVRRender, &QAction::triggered, this, &iAImNDTModuleInterface::render);
 	m_mainWnd->makeActionChildDependent(actionVRRender);
 
+
 	m_actionVRStartAnalysis = new QAction(tr("Start Analysis"), m_mainWnd);
 	connect(m_actionVRStartAnalysis, &QAction::triggered, this, &iAImNDTModuleInterface::startAnalysis);
+
+
+	m_actionVR_ARView = new QAction(tr("Start AR Environment"), m_mainWnd);
+	connect(m_actionVR_ARView, &QAction::triggered, this, &iAImNDTModuleInterface::startARView);
+	m_actionVR_ARView->setDisabled(true);
 
 	QMenu* vrMenu = getOrAddSubMenu(m_mainWnd->toolsMenu(), tr("ImNDT"), false);
 	vrMenu->addAction(actionVRInfo);
 	vrMenu->addAction(actionVRRender);
+
 	vrMenu->addAction(m_actionVRStartAnalysis);
+	vrMenu->addAction(m_actionVR_ARView);
 }
 
 void iAImNDTModuleInterface::info()
@@ -113,6 +121,7 @@ void iAImNDTModuleInterface::render()
 	AttachToMdiChild( m_mdiChild );
 }
 
+
 void iAImNDTModuleInterface::startAnalysis()
 {
 
@@ -124,11 +133,13 @@ void iAImNDTModuleInterface::startAnalysis()
 		ImNDT(m_polyObject, m_objectTable, m_io, m_csvConfig);
 
 		connect(m_vrEnv.data(), &iAVREnvironment::finished, this, &iAImNDTModuleInterface::vrDone);
+		m_actionVR_ARView->setEnabled(true);
 		m_actionVRStartAnalysis->setText("Stop Analysis");
 	}
 	else
 	{
 		m_vrEnv->stop();
+		m_actionVR_ARView->setDisabled(true);
 	}
 }
 
@@ -181,6 +192,19 @@ vtkRenderer* iAImNDTModuleInterface::getRenderer()
 	return m_vrEnv->renderer();
 }
 
+void iAImNDTModuleInterface::startARView()
+{
+	if(toggleARView())
+	{
+		m_actionVR_ARView->setText("Stop AR Environment");
+	}
+	else
+	{
+		m_actionVR_ARView->setText("Start AR Environment");
+	}
+	
+}
+
 bool iAImNDTModuleInterface::loadImNDT()
 {
 	dlg_CSVInput dlg(false);
@@ -222,6 +246,11 @@ bool iAImNDTModuleInterface::loadImNDT()
 	return true;
 }
 
+bool iAImNDTModuleInterface::toggleARView()
+{
+	return m_vrMain->toggleArView();
+}
+
 iAModuleAttachmentToChild * iAImNDTModuleInterface::CreateAttachment( iAMainWindow* mainWnd, iAMdiChild* child)
 {
 	return new iAImNDTAttachment( mainWnd, child );
@@ -232,4 +261,5 @@ void iAImNDTModuleInterface::vrDone()
 	delete m_vrMain;
 	m_vrMain = nullptr;
 	m_actionVRStartAnalysis->setText("Start Analysis");
+	m_actionVR_ARView->setDisabled(true);
 }

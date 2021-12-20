@@ -47,7 +47,10 @@ public:
 	void update();
 	void start();
 	void stop();
-	void createLightKit();
+	void showSkybox();
+	void hideSkybox();
+	void showFloor();
+	void hideFloor();
 	double getInitialWorldScale();
 	bool isRunning() const;
 private slots:
@@ -60,8 +63,11 @@ private:
 	vtkSmartPointer<vtkSkybox> skyboxActor;
 	//Stores the world scale at start
 	double m_worldScale;
+	bool m_skyBoxVisible = false;
+	bool m_floorVisible = false;
 
 	void storeInitialWorldScale();
+	void createLightKit();
 	void createSkybox(int skyboxImage);
 	vtkSmartPointer<vtkTexture> ReadCubeMap(std::string const& folderPath,
 		std::string const& fileRoot,

@@ -18,55 +18,39 @@
 * Contact: FH OÖ Forschungs & Entwicklungs GmbH, Campus Wels, CT-Gruppe,              *
 *          Stelzhamerstraße 23, 4600 Wels / Austria, Email: c.heinzl@fh-wels.at       *
 * ************************************************************************************/
-#pragma once
+#include "iAQMenuHelper.h"
 
-#include <iAGUIModuleInterface.h>
-#include <ImNDT_export.h>
+#include <QMenu>
 
-#include <vtkSmartPointer.h>
+void addToMenuSorted(QMenu* menu, QAction* action)
+{
+	for (QAction* curAct : menu->actions())
+	{
+		if (curAct->text() > action->text())
+		{
+			menu->insertAction(curAct, action);
+			return;
+		}
+	}
+	menu->addAction(action);
+}
 
-#include <QSharedPointer>
-
-#include "iAImNDTMain.h"
-#include "iA3DColoredPolyObjectVis.h"
-#include "iAImNDTInteractorStyle.h"
-
-class iAVREnvironment;
-
-class vtkTable;
-
-class QAction;
-
-
-class ImNDT_API iAImNDTModuleInterface : public iAGUIModuleInterface{
-	Q_OBJECT
-public:
-	void Initialize() override;
-	void ImNDT(QSharedPointer<iA3DColoredPolyObjectVis> polyObject, vtkSmartPointer<vtkTable> objectTable, iACsvIO io,
-		iACsvConfig csvConfig);
-	vtkRenderer* getRenderer();
-	bool toggleARView();
-
-private:
-	iAModuleAttachmentToChild* CreateAttachment(iAMainWindow* mainWnd, iAMdiChild* child) override;
-	bool vrAvailable();
-	bool loadImNDT();
-	QSharedPointer<iAVREnvironment> m_vrEnv;
-	QSharedPointer<iA3DColoredPolyObjectVis> m_polyObject;
-	iAImNDTMain* m_vrMain;
-	vtkSmartPointer<iAImNDTInteractorStyle> m_style;
-	iACsvConfig m_csvConfig;
-	iACsvIO m_io;
-	vtkSmartPointer<vtkTable> m_objectTable;
-
-	QAction* m_actionVRStartAnalysis;
-	QAction* m_actionVR_ARView;
-
-private slots:
-	void info();
-	void render();
-
-	void startAnalysis();
-	void startARView();
-	void vrDone();
-};
+QMenu* getOrAddSubMenu(QMenu* parentMenu, QString const& title, bool addSeparator)
+{
+	QList<QMenu*> submenus = parentMenu->findChildren<QMenu*>();
+	for (int i = 0; i < submenus.size(); ++i)
+	{
+		if (submenus.at(i)->title() == title)
+		{
+			if (addSeparator && !submenus.at(i)->isEmpty())
+			{
+				submenus.at(i)->addSeparator();
+			}
+			return submenus.at(i);
+		}
+	}
+	QMenu* result = new QMenu(parentMenu);
+	result->setTitle(title);
+	addToMenuSorted(parentMenu, result->menuAction());
+	return result;
+}

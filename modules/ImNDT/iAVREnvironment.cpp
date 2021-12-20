@@ -68,8 +68,9 @@ iAVREnvironment::iAVREnvironment():	m_renderer(vtkSmartPointer<vtkOpenVRRenderer
 	m_vrMainThread(nullptr)
 {	
 	m_worldScale = -1.0;
-	createSkybox(0);
 	createLightKit();
+	createSkybox(0);
+	showSkybox();
 	//m_renderer->SetShowFloor(true);
 }
 
@@ -104,7 +105,7 @@ void iAVREnvironment::start()
 	m_renderWindow->AddRenderer(m_renderer);
 	// MultiSamples needs to be set to 0 to make Volume Rendering work:
 	// http://vtk.1045678.n5.nabble.com/Problems-in-rendering-volume-with-vtkOpenVR-td5739143.html
-	m_renderWindow->SetMultiSamples(0);
+	//m_renderWindow->SetMultiSamples(0);
 	m_interactor->SetRenderWindow(m_renderWindow);
 	auto camera = vtkSmartPointer<vtkOpenVRCamera>::New();
 
@@ -117,6 +118,7 @@ void iAVREnvironment::start()
 	connect(m_vrMainThread, &QThread::finished, this, &iAVREnvironment::vrDone);
 	m_vrMainThread->setObjectName("ImNDTRenderThread");
 	m_vrMainThread->start();
+
 	//TODO: Wait for thread to finish or the rendering might not have started yet
 	storeInitialWorldScale();
 	//emit finished();
@@ -135,6 +137,46 @@ void iAVREnvironment::stop()
 		emit finished();
 	}
 		
+}
+
+void iAVREnvironment::showSkybox()
+{
+	if (m_skyBoxVisible)
+	{
+		return;
+	}
+	m_renderer->AddActor(skyboxActor);
+	m_skyBoxVisible = true;
+}
+
+void iAVREnvironment::hideSkybox()
+{
+	if (!m_skyBoxVisible)
+	{
+		return;
+	}
+	m_renderer->RemoveActor(skyboxActor);
+	m_skyBoxVisible = false;
+}
+
+void iAVREnvironment::showFloor()
+{
+	if (m_floorVisible)
+	{
+		return;
+	}
+	m_renderer->SetShowFloor(true);
+	m_floorVisible = true;
+}
+
+void iAVREnvironment::hideFloor()
+{
+	if (!m_floorVisible)
+	{
+		return;
+	}
+	m_renderer->SetShowFloor(false);
+	m_floorVisible = false;
 }
 
 void iAVREnvironment::createLightKit()
@@ -173,7 +215,6 @@ void iAVREnvironment::createSkybox(int skyboxImage)
 
 	skyboxActor = vtkSmartPointer<vtkSkybox>::New();
 	skyboxActor->SetTexture(skybox);
-	m_renderer->AddActor(skyboxActor);
 }
 
 vtkSmartPointer<vtkTexture> iAVREnvironment::ReadCubeMap(std::string const& folderPath,

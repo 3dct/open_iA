@@ -531,6 +531,11 @@ if (OPENCL_FOUND)
 	target_compile_definitions(OpenCL INTERFACE __CL_ENABLE_EXCEPTIONS
 		CL_HPP_TARGET_OPENCL_VERSION=${CL_TARGET_OPENCL_VERSION}
 		CL_TARGET_OPENCL_VERSION=${CL_TARGET_OPENCL_VERSION})
+	if (openiA_OPENCL_VERSION MATCHES "^2")
+		target_compile_definitions(OpenCL INTERFACE CL_VERSION_2_0)
+	else()
+		target_compile_definitions(OpenCL INTERFACE CL_USE_DEPRECATED_OPENCL_1_2_APIS)
+	endif()
 	target_link_libraries(OpenCL INTERFACE ${OPENCL_LIBRARIES})
 	target_include_directories(OpenCL INTERFACE ${OPENCL_INCLUDE_DIRS} ${Toolkit_DIR}/OpenCL)
 	message(STATUS "OpenCL: include=${OPENCL_INCLUDE_DIRS}, libraries=${OPENCL_LIBRARIES}")
