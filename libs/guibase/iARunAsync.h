@@ -30,7 +30,9 @@
 //!         linked via signal-slot mechanism, so this runs in whatever thread
 //!         it "belongs" to
 //! @param context the object in whose context the finish function should run.
-//!         main idea behind it is that once the object context links to is destroyed,
+//!         (should? serve two purposes: context provides thread that finish function runs in; and when context deleted, so are connections)
+//!         TODO: STOP THREAD - through future watcher?
+//!         second purpose behind it is that once the object context links to is destroyed,
 //!         so is the connection; used to handle for example the case of terminating
 //!         the application; if you pass a context object here that automatically gets
 //!         destroyed with the application (e.g. some GUI element), then your finished
@@ -41,7 +43,7 @@
 template <typename RunnerT, typename FinishT>
 QFutureWatcher<void>* runAsync(RunnerT runner, FinishT finish, QObject* context)
 {
-	auto futureWatcher = new QFutureWatcher<void>();
+	auto futureWatcher = new QFutureWatcher<void>(context); // shouldn' I use context as parent here?
 	QObject::connect(futureWatcher, &QFutureWatcher<void>::finished, context, finish);
 	QObject::connect(futureWatcher, &QFutureWatcher<void>::finished, futureWatcher, &QFutureWatcher<void>::deleteLater);
 	auto future = QtConcurrent::run(runner);
