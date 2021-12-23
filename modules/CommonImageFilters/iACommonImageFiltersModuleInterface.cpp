@@ -64,6 +64,7 @@ void iACommonImageFiltersModuleInterface::Initialize()
 	REGISTER_FILTER(iAStreamedFFTCorrelation);
 
 	// Geometric transformations
+	REGISTER_FILTER(iAExtractComponent);
 	REGISTER_FILTER(iASimpleResampleFilter);
 	REGISTER_FILTER(iAResampleFilter);
 	REGISTER_FILTER(iAExtractImageFilter);

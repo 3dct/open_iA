@@ -35,6 +35,47 @@
 #include <itkWindowedSincInterpolateImageFunction.h>
 
 #include <vtkImageData.h>
+#include <vtkImageExtractComponents.h>
+
+#include <QtConcurrent/qtconcurrentfilter.h>
+
+IAFILTER_CREATE(iAExtractComponent)
+
+void iAExtractComponent::performWork(QMap<QString, QVariant> const& parameters)
+{
+	int const componentNr = parameters["Component to extract"].toInt();
+	auto img = input()[0]->vtkImage();
+	if (componentNr > img->GetNumberOfScalarComponents())
+	{
+		LOG(lvlWarn,
+			QString("Invalid value for 'Component to extract': %1 exceeds valid range 1..%2")
+				.arg(componentNr)
+				.arg(img->GetNumberOfScalarComponents()));
+		return;
+	}
+	auto extractFilter = vtkSmartPointer<vtkImageExtractComponents>::New();
+	extractFilter->SetInputData(img);
+	extractFilter->SetComponents(componentNr);
+	progress()->observe(extractFilter);
+	extractFilter->Update();
+	addOutput(extractFilter->GetOutput());
+}
+
+iAExtractComponent::iAExtractComponent() :
+	iAFilter("Extract Component", "Geometric Transformations",
+		"Extract single component from multi-component image.<br/>"
+		"For more information, see the "
+		"<a href=\"https://vtk.org/doc/nightly/html/classvtkImageExtractComponents.html\">"
+		"Extract Components</a> filter in the VTK documentation.")
+{
+	addParameter("Component to extract", iAValueType::Discrete, 1, 1, 1);
+}
+
+void iAExtractComponent::adaptParametersToInput(QMap<QString, QVariant>& /* params */, vtkSmartPointer<vtkImageData> img)
+{
+	paramsWritable()[0]->adjustMinMax(img->GetNumberOfScalarComponents());
+}
+
 
 namespace
 {
