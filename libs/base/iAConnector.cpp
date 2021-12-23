@@ -113,7 +113,7 @@ void iAConnector::setImage(ImageBaseType * image)
 	m_VTKImage = nullptr;
 }
 
-void iAConnector::updateImageVTK()
+void iAConnector::updateImageVTK() const
 {
 	iAConnector::ITKScalarPixelType componentType = itkScalarPixelType();
 	iAConnector::ITKPixelType pixelType = itkPixelType();
@@ -133,7 +133,7 @@ void iAConnector::setImage(vtkSmartPointer<vtkImageData> imageData)
 	m_ITKImage = nullptr;
 }
 
-void iAConnector::updateImageITK()
+void iAConnector::updateImageITK() const
 {
 	m_isTypeInitialized = false;
 	int scalarType = m_VTKImage->GetScalarType();
@@ -142,7 +142,7 @@ void iAConnector::updateImageITK()
 	m_ITKImage = dynamic_cast<ImageBaseType*>(m_itkImporter->GetOutputs()[0].GetPointer());
 }
 
-vtkSmartPointer<vtkImageData> iAConnector::vtkImage()
+vtkSmartPointer<vtkImageData> iAConnector::vtkImage() const
 {
 	if (!m_VTKImage && m_ITKImage)
 	{
@@ -152,7 +152,7 @@ vtkSmartPointer<vtkImageData> iAConnector::vtkImage()
 	return m_VTKImage;
 }
 
-iAConnector::ImageBaseType* iAConnector::itkImage()
+iAConnector::ImageBaseType* iAConnector::itkImage() const
 {
 	if (!m_ITKImage && m_VTKImage)
 	{
@@ -162,7 +162,7 @@ iAConnector::ImageBaseType* iAConnector::itkImage()
 	return m_ITKImage;
 }
 
-void iAConnector::updateScalarType()
+void iAConnector::updateScalarType() const
 {
 	if (!m_ITKImage)
 	{
@@ -172,7 +172,7 @@ void iAConnector::updateScalarType()
 	m_itkScalarType = ::itkScalarPixelType(m_ITKImage);
 }
 
-iAConnector::ITKScalarPixelType iAConnector::itkScalarPixelType()
+iAConnector::ITKScalarPixelType iAConnector::itkScalarPixelType() const
 {
 	if (!m_isTypeInitialized)
 	{
@@ -181,7 +181,7 @@ iAConnector::ITKScalarPixelType iAConnector::itkScalarPixelType()
 	return m_itkScalarType;
 }
 
-void iAConnector::updatePixelType()
+void iAConnector::updatePixelType() const
 {
 	if (!m_ITKImage)
 	{
@@ -191,7 +191,7 @@ void iAConnector::updatePixelType()
 	m_itkPixelType = ::itkPixelType( m_ITKImage );
 }
 
-iAConnector::ITKPixelType iAConnector::itkPixelType()
+iAConnector::ITKPixelType iAConnector::itkPixelType() const
 {
 	if (!m_isPixelTypeInitialized)
 	{

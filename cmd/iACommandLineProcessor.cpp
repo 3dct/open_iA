@@ -168,14 +168,14 @@ namespace
 				std::cout << "    " << filter->inputName(i).toStdString() << "\n";
 			}
 		}
-		if (filter->outputCount() == 0)
+		if (filter->plannedOutputCount() == 0)
 		{
 			std::cout << "No output images.\n";
 		}
 		else
 		{
 			std::cout << "Output images:\n";
-			for (int i = 0; i < filter->outputCount(); ++i)
+			for (int i = 0; i < filter->plannedOutputCount(); ++i)
 			{
 				std::cout << "    " << filter->outputName(i).toStdString() << "\n";
 			}
@@ -383,7 +383,7 @@ namespace
 			std::cout << "Missing input files - please specify at least one after the -i parameter" << std::endl;
 			return 1;
 		}
-		if (outputFiles.size() < filter->outputCount())
+		if (outputFiles.size() < filter->plannedOutputCount())
 		{
 			std::cout << "Missing output files - please specify at least one after the -o parameter" << std::endl;
 			return 1;
@@ -407,9 +407,9 @@ namespace
 				}
 				iAITKIO::ScalarPixelType pixelType;
 				iAITKIO::ImagePointer img = iAITKIO::readFile(inputFiles[i], pixelType, false);
-				iAConnector * con = new iAConnector();
-				con->setImage(img);
-				filter->addInput(con, inputFiles[i]);
+				//iAConnector * con = new iAConnector();
+				//con->setImage(img);
+				filter->addInput(img, inputFiles[i]);
 			}
 
 			if (!quiet)
@@ -434,10 +434,10 @@ namespace
 				return 1;
 			}
 			// write output file(s)
-			for (int o = 0; o < filter->output().size(); ++o)
+			for (int o = 0; o < filter->finalOutputCount(); ++o)
 			{
 				QString outFileName;
-				if (filter->output().size() == 1 ||  o < outputFiles.size()-1)
+				if (filter->finalOutputCount() == 1 || o < outputFiles.size() - 1)
 				{
 					outFileName = outputFiles[o];
 				}
@@ -460,7 +460,7 @@ namespace
 						.arg(o).arg(outFileName).arg(compress ? "on" : "off").toStdString()
 						<< std::endl;
 				}
-				iAITKIO::writeFile(outFileName, filter->output()[o]->itkImage(), filter->output()[o]->itkScalarPixelType(), compress);
+				iAITKIO::writeFile(outFileName, filter->output(o)->itkImage(), filter->output(o)->itkScalarPixelType(), compress);
 			}
 			for (auto outputValue : filter->outputValues())
 			{

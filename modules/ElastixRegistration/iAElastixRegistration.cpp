@@ -222,11 +222,11 @@ void derivative(iAFilter* filter, QMap<QString, QVariant> const & params)
 	typedef  itk::ImageFileWriter< OutputImageType  > WriterType;
 	typename WriterType::Pointer fixedWriter = WriterType::New();
 	fixedWriter->SetFileName(fixedImagePath.toStdString());
-	fixedWriter->SetInput(dynamic_cast<OutputImageType *>(filter->input()[0]->itkImage()));
+	fixedWriter->SetInput(dynamic_cast<OutputImageType *>(filter->input(0)->itkImage()));
 
 	typename WriterType::Pointer movingWriter = WriterType::New();
 	movingWriter->SetFileName(movingImagePath.toStdString());
-	movingWriter->SetInput(dynamic_cast<OutputImageType *>(filter->input()[1]->itkImage()));
+	movingWriter->SetInput(dynamic_cast<OutputImageType *>(filter->input(1)->itkImage()));
 
 	try
 	{

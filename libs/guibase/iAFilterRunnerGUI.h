@@ -42,6 +42,7 @@ class vtkImageData;
 //!
 //! Used in iAFilterRunnerGUI::run (see below) as thread to run a descendant of iAFilter inside its
 //! own thread
+//! needs to be in the .h file so that moc'ing it works.
 class iAguibase_API iAFilterRunnerGUIThread : public iAAlgorithm, public iAAbortListener
 {
 	Q_OBJECT
@@ -51,6 +52,7 @@ public:
 	void performWork() override;
 	QSharedPointer<iAFilter> filter();
 	void addInput(vtkImageData* img, QString const& fileName);
+	size_t inputCount() const;
 	void abort() override;
 private:
 	QSharedPointer<iAFilter> m_filter;

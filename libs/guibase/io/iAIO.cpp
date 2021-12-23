@@ -1313,29 +1313,26 @@ void iAIO::readNKC()
 {
 	readImageData();
 
-
-	iAConnector con;
-	con.setImage(getVtkImageData());
-	QScopedPointer<iAProgress> pObserver(new iAProgress());
+	iAProgress pObserver;
 	auto filter = iAFilterRegistry::filter("Value Shift");
-	filter->setProgress(pObserver.data());
+	filter->setProgress(&pObserver);
 
-	filter->addInput(&con, "");
+	filter->addInput(getVtkImageData(), "");
 	QMap<QString, QVariant> parameters;
 	parameters["ValueToReplace"] = 65533;
 	parameters["Replace"] = 0;
 	filter->run(parameters);
 
 	auto filterScale = iAFilterRegistry::filter("Shift and Scale");
-	filterScale->setProgress(pObserver.data());
+	filterScale->setProgress(&pObserver);
 
-	filterScale->addInput(filter->output().first(), "");
+	filterScale->addInput(filter->output(0)->itkImage(), "");
 	QMap<QString, QVariant> parametersScale;
 	parametersScale["Shift"] = m_Parameter["Offset"].toInt();
 	parametersScale["Scale"] = m_Parameter["Scale"].toFloat();
 	filterScale->run(parametersScale);
 
-	getVtkImageData()->DeepCopy(filterScale->output().first()->vtkImage());
+	getVtkImageData()->DeepCopy(filterScale->output(0)->vtkImage());
 }
 
 void iAIO::readMetaImage( )

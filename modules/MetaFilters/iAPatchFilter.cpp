@@ -77,9 +77,9 @@ namespace
 		}
 		typedef itk::Image<T, DIM> InputImageType;
 		typedef itk::Image<double, DIM> OutputImageType;
-		auto size = dynamic_cast<InputImageType*>(patchFilter->input()[0]->itkImage())->GetLargestPossibleRegion().GetSize();
+		auto size = dynamic_cast<InputImageType*>(patchFilter->input(0)->itkImage())->GetLargestPossibleRegion().GetSize();
 		//LOG(lvlInfo, QString("Size: (%1, %2, %3)").arg(size[0]).arg(size[1]).arg(size[2]));
-		auto inputSpacing = dynamic_cast<InputImageType*>(patchFilter->input()[0]->itkImage())->GetSpacing();
+		auto inputSpacing = dynamic_cast<InputImageType*>(patchFilter->input(0)->itkImage())->GetSpacing();
 
 		QStringList filterParamStrs = splitPossiblyQuotedString(parameters["Parameters"].toString());
 		if (filter->parameters().size() != filterParamStrs.size())
@@ -97,7 +97,7 @@ namespace
 
 		QVector<iAConnector*> inputImages;
 		inputImages.push_back(new iAConnector);
-		inputImages[0]->setImage(patchFilter->input()[0]->itkImage());
+		inputImages[0]->setImage(patchFilter->input(0)->itkImage());
 		QVector<iAConnector*> smallImageInput;
 		smallImageInput.push_back(new iAConnector);
 		// TODO: read from con array?
@@ -201,20 +201,19 @@ namespace
 						filter->clearInput();
 						for (int i = 0; i < smallImageInput.size(); ++i)
 						{  // maybe modify original filename to reflect that only a patch of it is passed on?
-							filter->addInput(smallImageInput[i], patchFilter->fileNames()[i]);
+							filter->addInput(smallImageInput[i]->itkImage(), patchFilter->fileNames()[i]);
 						}
 						filter->run(filterParams);
 
 						// get output images and values from filter:
-						int outputCount = std::max(filter->outputCount(), static_cast<int>(filter->output().size()));
-						for (int o = 0; o < outputCount; ++o)
+						for (size_t o = 0; o < filter->finalOutputCount(); ++o)
 						{
 							QFileInfo fi(parameters["Output image base name"].toString());
 							QString outFileName = QString("%1/%2-patch%3%4.%5")
 								.arg(fi.absolutePath())
 								.arg(fi.baseName())
 								.arg(curOp)
-								.arg(filter->outputCount() == 1 ? "" : "-"+filter->outputName(o))
+								.arg(filter->finalOutputCount() == 1 ? "" : "-"+filter->outputName(o))
 								.arg(fi.completeSuffix());
 							if (QFile::exists(outFileName))
 							{
@@ -229,7 +228,7 @@ namespace
 										.arg(spnContinueOnError).toStdString());
 								}
 							}
-							storeImage(filter->output()[o]->itkImage(), outFileName, compress);
+							storeImage(filter->output(o)->itkImage(), outFileName, compress);
 						}
 						if (filter->outputValues().size() > 0)
 						{

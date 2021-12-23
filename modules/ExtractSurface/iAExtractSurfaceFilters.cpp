@@ -196,7 +196,7 @@ namespace
 
 void iAExtractSurface::performWork(QMap<QString, QVariant> const & parameters)
 {
-	auto surfaceFilter = createSurfaceFilter(parameters, input()[0]->vtkImage(), progress());
+	auto surfaceFilter = createSurfaceFilter(parameters, input(0)->vtkImage(), progress());
 	if (!surfaceFilter)
 	{
 		LOG(lvlError, "Generated surface filter is null");
@@ -269,7 +269,7 @@ iAExtractSurface::iAExtractSurface() :
 
 void iATriangulation::performWork(QMap<QString, QVariant> const& parameters) {
 
-	auto surfaceFilter = createSurfaceFilter(parameters, input()[0]->vtkImage(), progress());
+	auto surfaceFilter = createSurfaceFilter(parameters, input(0)->vtkImage(), progress());
 	if (!surfaceFilter)
 	{
 		LOG(lvlError, "Generated surface filter is null");

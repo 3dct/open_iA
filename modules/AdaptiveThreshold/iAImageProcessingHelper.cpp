@@ -84,10 +84,6 @@ void iAImageProcessingHelper::prepareFilter(double greyThresholdLower, double gr
 	{
 		throw std::invalid_argument("Change order of values");
 	}
-
-	iAConnector con;
-	con.setImage(m_child->imagePointer());
-
 	QScopedPointer<iAProgress> pObserver(new iAProgress());
 	//connect(pObserver.data(), &iAProgress::pprogress, this, &iAImageProcessingHelper::slotObserver);
 	auto filter = iAFilterRegistry::filter("Binary Thresholding");
@@ -96,7 +92,7 @@ void iAImageProcessingHelper::prepareFilter(double greyThresholdLower, double gr
 		throw std::invalid_argument("Could not retrieve Binary Thresholding filter. Make sure Segmentation plugin was loaded correctly!");
 	}
 	filter->setProgress(pObserver.data());
-	filter->addInput(&con, m_child->currentFile());
+	filter->addInput(m_child->imagePointer(), m_child->currentFile());
 	QMap<QString, QVariant> parameters;
 	parameters["Lower threshold"] = greyThresholdLower;
 	parameters["Upper threshold"] = greyThresholdUpper;
@@ -106,7 +102,7 @@ void iAImageProcessingHelper::prepareFilter(double greyThresholdLower, double gr
 
 	iAMdiChild* newChild = m_child->mainWnd()->createMdiChild(true);
 	newChild->show();
-	newChild->displayResult("Adaptive Thresholding", filter->output()[0]->vtkImage());
+	newChild->displayResult("Adaptive Thresholding", filter->output(0)->vtkImage());
 	newChild->enableRenderWindows();
 }
 

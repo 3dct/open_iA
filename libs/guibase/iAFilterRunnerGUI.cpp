@@ -23,12 +23,14 @@
 // base
 #include "iAAttributeDescriptor.h"
 #include "iAFileUtils.h"
-#include "iALogger.h"
+#include "iAFilter.h"
+#include "iALog.h"
+//#include "iALogger.h"
+#include "iAProgress.h"
 
+// guibase
 #include "dlg_modalities.h"
 #include "iAConnector.h"
-#include "iALog.h"
-#include "iAFilter.h"
 #include "iAJobListView.h"
 #include "iAMainWindow.h"
 #include "iAMdiChild.h"
@@ -72,21 +74,22 @@ void iAFilterRunnerGUIThread::performWork()
 	assert(Connectors().size() == m_fileNames.size());
 	for (int i = 0; i < Connectors().size(); ++i)
 	{
-		m_filter->addInput(Connectors()[i], m_fileNames[i]);
+		m_filter->addInput(Connectors()[i]->vtkImage(), m_fileNames[i]);
 	}
 	if (!m_filter->run(m_paramValues))
 	{
-		m_filter->logger()->log(lvlError, "Running filter failed!");
+		LOG(lvlError, "Running filter failed!");
 		return;
 	}
 	if (m_aborted)
 	{
 		return;
 	}
-	allocConnectors(m_filter->output().size());
-	for (int i = 0; i < m_filter->output().size(); ++i)
+	// available via m_filter->output()
+	allocConnectors(m_filter->finalOutputCount());
+	for (int i = 0; i < m_filter->finalOutputCount(); ++i)
 	{
-		Connectors()[i]->setImage(m_filter->output()[i]->itkImage());
+		Connectors()[i]->setImage(m_filter->output(i)->itkImage());
 	}
 }
 
@@ -103,8 +106,15 @@ QSharedPointer<iAFilter> iAFilterRunnerGUIThread::filter()
 
 void iAFilterRunnerGUIThread::addInput(vtkImageData* img, QString const& fileName)
 {
+	//	m_filter->addInput(img, fileName);
 	AddImage(img);
 	m_fileNames.push_back(fileName);
+}
+
+size_t iAFilterRunnerGUIThread::inputCount() const
+{
+	// return m_filter->inputCount();
+	return Connectors().size();
 }
 
 
@@ -198,7 +208,7 @@ bool iAFilterRunnerGUI::askForParameters(QSharedPointer<iAFilter> filter, QMap<Q
 			otherMdis.push_back(mdi);
 		}
 	}
-	if (askForAdditionalInput && filter->requiredInputs() > (otherMdis.size()+1) )
+	if (askForAdditionalInput && filter->requiredInputs() > static_cast<unsigned int>(otherMdis.size()+1) )
 	{
 		QMessageBox::warning(mainWnd, filter->name(),
 			QString("This filter requires %1 datasets, only %2 open file(s)!")
@@ -212,7 +222,7 @@ bool iAFilterRunnerGUI::askForParameters(QSharedPointer<iAFilter> filter, QMap<Q
 		{
 			mdiChildrenNames << mdi->windowTitle().replace("[*]", "");
 		}
-		for (int i = 1; i < filter->requiredInputs(); ++i)
+		for (unsigned int i = 1; i < filter->requiredInputs(); ++i)
 		{
 			addParameter(dlgParams, QString("%1").arg(filter->inputName(i)), iAValueType::Categorical, mdiChildrenNames);
 		}
@@ -232,10 +242,10 @@ bool iAFilterRunnerGUI::askForParameters(QSharedPointer<iAFilter> filter, QMap<Q
 	paramValues = dlg.parameterValues();
 	if (askForAdditionalInput && filter->requiredInputs() > 1)
 	{
-		for (int i = 1; i < filter->requiredInputs(); ++i)
+		for (unsigned int i = 1; i < filter->requiredInputs(); ++i)
 		{
 			QString selectedFile = paramValues[QString("%1").arg(filter->inputName(i))].toString();
-			int mdiIdx = mdiChildrenNames.indexOf(selectedFile);
+			int const mdiIdx = mdiChildrenNames.indexOf(selectedFile);
 			for (int m = 0; m < otherMdis[mdiIdx]->modalities()->size(); ++m)
 			{
 				m_additionalInput.push_back(otherMdis[mdiIdx]->modality(m)->image());
@@ -281,7 +291,7 @@ void iAFilterRunnerGUI::run(QSharedPointer<iAFilter> filter, iAMainWindow* mainW
 	oldTitle = oldTitle.replace("[*]", "").trimmed();
 	QString newTitle(filter->outputName(0, filter->name()) + " " + oldTitle);
 	m_sourceFileName = sourceMdi->modality(0)->fileName();
-	auto mdiChild = filter->outputCount() > 0 ? mainWnd->resultChild(sourceMdi, newTitle) :
+	auto mdiChild = filter->plannedOutputCount() > 0 ? mainWnd->resultChild(sourceMdi, newTitle) :
 		sourceMdi;
 
 	if (!mdiChild)
@@ -308,7 +318,7 @@ void iAFilterRunnerGUI::run(QSharedPointer<iAFilter> filter, iAMainWindow* mainW
 	{
 		thread->addInput(m_additionalInput[a], m_additionalFileNames[a]);
 	}
-	if (thread->Connectors().size() < filter->requiredInputs())
+	if (thread->inputCount() < filter->requiredInputs())
 	{
 		LOG(lvlError, QString("Not enough inputs specified, filter %1 requires %2 input images!")
 			.arg(filter->name()).arg(filter->requiredInputs()));
@@ -361,15 +371,15 @@ void iAFilterRunnerGUI::filterFinished()
 	{
 		mdiChild->polyData()->DeepCopy(thread->filter()->polyOutput());
 	}
-	if (thread->filter()->output().size() > 1)
+	if (thread->filter()->finalOutputCount() > 1)
 	{
-		for (int p = 1; p < thread->filter()->output().size(); ++p)
+		for (int p = 1; p < thread->filter()->finalOutputCount(); ++p)
 		{
 			auto img = vtkSmartPointer<vtkImageData>::New();
 			// some filters apparently clean up the result image
 			// (disregarding that a smart pointer still points to it...)
 			// so let's copy it to be on the safe side!
-			img->DeepCopy(thread->filter()->output()[p]->vtkImage());
+			img->DeepCopy(thread->filter()->output(p)->vtkImage());
 			auto mod = QSharedPointer<iAModality>::create(thread->filter()->outputName(p, QString("Extra Out %1").arg(p)), "", -1, img, 0);
 			mdiChild->modalities()->add(mod);
 			// signal to add it to list automatically is created to late to be effective here, we have to add it to list ourselves:

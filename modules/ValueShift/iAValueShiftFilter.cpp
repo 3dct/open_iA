@@ -20,7 +20,7 @@ void derivative(iAFilter* filter, QMap<QString, QVariant> const & params)
 	typedef itk::ImageRegionIterator<InputImageType> InImageIterator;
 	typedef itk::ImageRegionIterator<OutputImageType> OutImageIterator;
 
-	auto im = dynamic_cast<InputImageType*>(filter->input()[0]->itkImage());
+	auto im = dynamic_cast<InputImageType*>(filter->input(0)->itkImage());
 	typename InputImageType::RegionType region = im->GetLargestPossibleRegion();
 
 
@@ -56,7 +56,7 @@ void derivative(iAFilter* filter, QMap<QString, QVariant> const & params)
 
 void iAValueShiftFilter::performWork(QMap<QString, QVariant> const & parameters)
 {
-	ITK_TYPED_CALL(derivative, input()[0]->itkScalarPixelType(), this, parameters);
+	ITK_TYPED_CALL(derivative, input(0)->itkScalarPixelType(), this, parameters);
 }
 
 IAFILTER_CREATE(iAValueShiftFilter)

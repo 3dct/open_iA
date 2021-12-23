@@ -44,7 +44,7 @@ IAFILTER_CREATE(iAExtractComponent)
 void iAExtractComponent::performWork(QMap<QString, QVariant> const& parameters)
 {
 	int const componentNr = parameters["Component to extract"].toInt();
-	auto img = input()[0]->vtkImage();
+	auto img = input(0)->vtkImage();
 	if (componentNr > img->GetNumberOfScalarComponents())
 	{
 		LOG(lvlWarn,
@@ -88,8 +88,8 @@ namespace
 template<typename T> void simpleResampler(iAFilter* filter, QMap<QString, QVariant> const & parameters)
 {
 	double VoxelScale = 0.999; //Used because otherwise is a one voxel border with 0
-	auto inImg = filter->input()[0]->itkImage();
-	auto inSize = filter->input()[0]->vtkImage()->GetDimensions();
+	auto inImg = filter->input(0)->itkImage();
+	auto inSize = filter->input(0)->vtkImage()->GetDimensions();
 
 	typedef itk::Image<T, DIM> InputImageType;
 	typedef itk::ResampleImageFilter<InputImageType, InputImageType> ResampleFilterType;
@@ -221,7 +221,7 @@ void resampler(iAFilter* filter, QMap<QString, QVariant> const& parameters)
 		auto interpolator = InterpolatorType::New();
 		resampler->SetInterpolator(interpolator);
 	}
-	resampler->SetInput(dynamic_cast<InputImageType*>(filter->input()[0]->itkImage()));
+	resampler->SetInput(dynamic_cast<InputImageType*>(filter->input(0)->itkImage()));
 	resampler->SetOutputOrigin(origin);
 	resampler->SetOutputSpacing(spacing);
 	resampler->SetSize(size);
@@ -288,7 +288,7 @@ void extractImage(iAFilter* filter, QMap<QString, QVariant> const & parameters)
 	typename EIFType::InputImageRegionType region; region.SetIndex(index); region.SetSize(size);
 
 	auto extractFilter = EIFType::New();
-	extractFilter->SetInput(dynamic_cast< InputImageType * >(filter->input()[0]->itkImage()));
+	extractFilter->SetInput(dynamic_cast< InputImageType * >(filter->input(0)->itkImage()));
 	extractFilter->SetExtractionRegion(region);
 	filter->progress()->observe(extractFilter);
 	extractFilter->Update();
@@ -358,7 +358,7 @@ template<typename T> void padImage(iAFilter* filter, QMap<QString, QVariant> con
 	upperPadSize[2] = parameters["Upper Z padding"].toUInt();
 
 	auto padFilter = PadType::New();
-	padFilter->SetInput(dynamic_cast< InputImageType * >(filter->input()[0]->itkImage()));
+	padFilter->SetInput(dynamic_cast< InputImageType * >(filter->input(0)->itkImage()));
 	padFilter->SetPadLowerBound(lowerPadSize);
 	padFilter->SetPadUpperBound(upperPadSize);
 	padFilter->SetConstant(parameters["Value"].toDouble());
