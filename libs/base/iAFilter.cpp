@@ -404,6 +404,11 @@ void iAFilter::setOutputName(unsigned int i, QString const & name)
 	m_outputNames.insert(i, name);
 }
 
+iAAttributes& iAFilter::paramsWritable()
+{
+	return m_parameters;
+}
+
 void iAFilter::addParameter(QString const & name, iAValueType valueType,
 	QVariant defaultValue, double min, double max)
 {

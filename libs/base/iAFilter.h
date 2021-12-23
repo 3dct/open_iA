@@ -196,6 +196,9 @@ protected:
 	//! Set the name of the output with the given index.
 	void setOutputName(unsigned int i, QString const & name);
 
+	//! "Writable" list of the filter parameters.
+	iAAttributes & paramsWritable();
+
 private:
 	//! The actual implementation of the filter.
 	//! @param parameters the map of parameters to use in this specific filter run
