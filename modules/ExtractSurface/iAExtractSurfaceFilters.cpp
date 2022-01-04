@@ -209,11 +209,15 @@ void iAExtractSurface::performWork(QMap<QString, QVariant> const & parameters)
 
 	if (parameters["Simplification Algorithm"].toString() == "None")
 	{
+		surfaceFilter->Update();
+		setPolyOutput(surfaceFilter->GetOutput());
 		stlWriter->SetInputConnection(surfaceFilter->GetOutputPort());
 	}
 	else
 	{
 		auto simplifyFilter = createDecimation(parameters, surfaceFilter, progress());
+		simplifyFilter->Update();
+		setPolyOutput(simplifyFilter->GetOutput());
 		stlWriter->SetInputConnection(simplifyFilter->GetOutputPort());
 	}
 	stlWriter->Write();
@@ -308,6 +312,8 @@ void iATriangulation::performWork(QMap<QString, QVariant> const& parameters) {
 
 	stlWriter->SetInputData(smoothing->GetOutput());
 	stlWriter->Write();
+
+	setPolyOutput(smoothing->GetOutput());
 }
 
 
