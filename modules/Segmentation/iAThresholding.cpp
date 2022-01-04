@@ -213,7 +213,7 @@ iARatsThreshold::iARatsThreshold() :
 // Otsu's Threshold
 namespace
 {
-	const int OtsuThresholdDefaultNumBins = 128;
+	constexpr int OtsuThresholdDefaultNumBins = 128;
 }
 
 template<class T>
@@ -226,8 +226,8 @@ void otsu_threshold(iAFilter* filter, QMap<QString, QVariant> const & parameters
 	double numBins = parameters["Number of histogram bins"].toDouble();
 	double maxBins = std::numeric_limits<unsigned int>::max();
 	if (numBins < maxBins)
-	{
-		maxBins = std::numeric_limits<T>::max() + 1;
+	{	// max bins must be smaller than unsigned int max, but also smaller than number of values in current datatype!
+		maxBins = static_cast<double>(std::numeric_limits<T>::max()) + 1.0;
 	}
 	if (numBins < 2 || numBins > maxBins)
 	{
