@@ -97,8 +97,6 @@ public:
 	iAAttributes const & parameters() const;
 	//! Set the logger to be used for status output / error messages.
 	void setLogger(iALogger* logger);
-	//! Set the facility for progress reporting.
-	void setProgress(iAProgress* progress);
 	//! if required, adapt (loaded/default) parameters to image
 	//! only used from GUI for the moment
 	//! if feature is implemented where parameters can be omitted (on command line),
@@ -238,7 +236,7 @@ private:
 	QVector<QPair<QString, QVariant> > m_outputValues;
 	//! The class that is watched for progress.
 	//! Typically you will call m_progress->observe(someItkFilter) to set up the progress observation
-	iAProgress* m_progress;
+	std::unique_ptr<iAProgress> m_progress;
 	//! The logger.
 	iALogger* m_log;
 	//! Describes the parameters of the algorithm.

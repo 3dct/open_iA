@@ -1312,10 +1312,7 @@ void iAIO::readImageData()
 void iAIO::readNKC()
 {
 	readImageData();
-
-	iAProgress pObserver;
 	auto filter = iAFilterRegistry::filter("Value Shift");
-	filter->setProgress(&pObserver);
 
 	filter->addInput(getVtkImageData(), "");
 	QMap<QString, QVariant> parameters;
@@ -1324,8 +1321,6 @@ void iAIO::readNKC()
 	filter->run(parameters);
 
 	auto filterScale = iAFilterRegistry::filter("Shift and Scale");
-	filterScale->setProgress(&pObserver);
-
 	filterScale->addInput(filter->output(0)->itkImage(), "");
 	QMap<QString, QVariant> parametersScale;
 	parametersScale["Shift"] = m_Parameter["Offset"].toInt();

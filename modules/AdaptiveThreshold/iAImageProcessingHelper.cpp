@@ -84,14 +84,12 @@ void iAImageProcessingHelper::prepareFilter(double greyThresholdLower, double gr
 	{
 		throw std::invalid_argument("Change order of values");
 	}
-	QScopedPointer<iAProgress> pObserver(new iAProgress());
-	//connect(pObserver.data(), &iAProgress::pprogress, this, &iAImageProcessingHelper::slotObserver);
 	auto filter = iAFilterRegistry::filter("Binary Thresholding");
+	//connect(filter->progress(), &iAProgress::pprogress, this, &iAImageProcessingHelper::slotObserver);
 	if (!filter)
 	{
 		throw std::invalid_argument("Could not retrieve Binary Thresholding filter. Make sure Segmentation plugin was loaded correctly!");
 	}
-	filter->setProgress(pObserver.data());
 	filter->addInput(m_child->imagePointer(), m_child->currentFile());
 	QMap<QString, QVariant> parameters;
 	parameters["Lower threshold"] = greyThresholdLower;

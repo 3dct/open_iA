@@ -23,6 +23,7 @@
 #include "iAAttributeDescriptor.h"
 #include "iAConnector.h"
 #include "iALog.h"
+#include "iAProgress.h"
 #include "iAStringHelper.h"
 
 #include <vtkImageData.h>
@@ -37,20 +38,19 @@ namespace
 	{
 		auto con = std::make_shared<iAConnector>();
 		con->setImage(itkImg);
-		con->modified();
 		return con;
 	}
 	std::shared_ptr<iAConnector> createConnector(vtkSmartPointer<vtkImageData> vtkImg)
 	{
 		auto con = std::make_shared<iAConnector>();
 		con->setImage(vtkImg);
-		con->modified();
 		return con;
 	}
 }
 
 iAFilter::iAFilter(QString const & name, QString const & category, QString const & description,
 	unsigned int requiredInputs, unsigned int outputCount) :
+	m_progress(std::make_unique<iAProgress>()),
 	m_log(iALog::get()),
 	m_name(name),
 	m_category(category),
@@ -210,11 +210,6 @@ itk::ImageIOBase::IOComponentType iAFilter::inputPixelType() const
 void iAFilter::setLogger(iALogger* log)
 {
 	m_log = log;
-}
-
-void iAFilter::setProgress(iAProgress* progress)
-{
-	m_progress = progress;
 }
 
 bool iAFilter::run(QMap<QString, QVariant> const & parameters)
@@ -384,7 +379,7 @@ void iAFilter::addMsg(QString const & msg)
 
 iAProgress* iAFilter::progress()
 {
-	return m_progress;
+	return m_progress.get();
 }
 
 iALogger* iAFilter::logger()

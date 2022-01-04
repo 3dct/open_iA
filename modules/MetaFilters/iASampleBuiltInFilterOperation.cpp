@@ -69,8 +69,6 @@ void iASampleBuiltInFilterOperation::performWork()
 	{
 		filter->addInput(m_input[i]->vtkImage(), m_inputFileNames[i]);
 	}
-	iAProgress p;	// dummy progress swallowing progress from filter which we don't want to propagate
-	filter->setProgress(&p);
 	filter->setLogger(m_logger);
 	filter->run(m_parameters);
 	// adapted from iACommandLineProcessor; maybe this could be merged?

@@ -456,7 +456,6 @@ bool MdiChild::displayResult(QString const& title, vtkImageData* image, vtkPolyD
 {
 	// TODO: image is actually not the final imagedata here (or at least not always)
 	//    -> maybe skip all image-related initializations?
-	addStatusMsg("Creating Result View");
 	if (poly)
 	{
 		m_polyData->ReleaseData();
@@ -487,7 +486,6 @@ bool MdiChild::displayResult(QString const& title, vtkImageData* image, vtkPolyD
 		m_visibility &= (XY | TAB);
 	}
 	changeVisibility(m_visibility);
-	addStatusMsg("Ready");
 	return true;
 }
 

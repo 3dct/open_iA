@@ -421,10 +421,8 @@ namespace
 					          << "=" << parameters[filter->parameters()[p]->name()].toString().toStdString() << std::endl;
 				}
 			}
-			iAProgress progress;
 			iACommandLineProgressIndicator progressIndicator(50, quiet);
-			QObject::connect(&progress, &iAProgress::progress, &progressIndicator, &iACommandLineProgressIndicator::Progress);
-			filter->setProgress(&progress);
+			QObject::connect(filter->progress(), &iAProgress::progress, &progressIndicator, &iACommandLineProgressIndicator::Progress);
 			if (!filter->checkParameters(parameters))
 			{   // output already happened in CheckParameters via logger
 				return 1;

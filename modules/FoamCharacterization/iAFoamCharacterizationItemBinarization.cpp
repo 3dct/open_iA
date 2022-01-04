@@ -97,10 +97,8 @@ void iAFoamCharacterizationItemBinarization::execute()
 
 void iAFoamCharacterizationItemBinarization::executeBinarization()
 {
-	iAProgress p;
-	connect(&p, &iAProgress::progress, this, &iAFoamCharacterizationItemBinarization::slotObserver);
 	auto filter = iAFilterRegistry::filter("Binary Thresholding");
-	filter->setProgress(&p);
+	connect(filter->progress(), &iAProgress::progress, this, &iAFoamCharacterizationItemBinarization::slotObserver);
 	filter->addInput(m_pImageData, "");
 	QMap<QString, QVariant> parameters;
 	parameters["Lower threshold"] = m_usLowerThreshold;
@@ -114,10 +112,8 @@ void iAFoamCharacterizationItemBinarization::executeBinarization()
 
 void iAFoamCharacterizationItemBinarization::executeOtzu()
 {
-	iAProgress p;
-	connect(&p, &iAProgress::progress, this, &iAFoamCharacterizationItemBinarization::slotObserver);
 	auto filter = iAFilterRegistry::filter("Otsu Threshold");
-	filter->setProgress(&p	);
+	connect(filter->progress(), &iAProgress::progress, this, &iAFoamCharacterizationItemBinarization::slotObserver);
 	filter->addInput(m_pImageData, "");
 	QMap<QString, QVariant> parameters;
 	parameters["Remove peaks"] = false;

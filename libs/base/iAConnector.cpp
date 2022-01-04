@@ -202,6 +202,7 @@ iAConnector::ITKPixelType iAConnector::itkPixelType() const
 
 void iAConnector::modified()
 {
+	assert(m_ITKImage || m_VTKImage);
 	if (m_ITKImage)
 	{
 		m_ITKImage->Modified();
@@ -210,5 +211,6 @@ void iAConnector::modified()
 	{
 		m_VTKImage->Modified();
 	}
-	updateScalarType();
+	m_isTypeInitialized = false;
+	m_isPixelTypeInitialized = false;
 }

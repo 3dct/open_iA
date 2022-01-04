@@ -25,6 +25,7 @@
 //! Collection of generic open_iA program preferences.
 class iAPreferences
 {
+	// TODO: currently, all of these are stored per MdiChild; some of them should be global though
 public:
 	int HistogramBins,
 		StatisticalExtent,

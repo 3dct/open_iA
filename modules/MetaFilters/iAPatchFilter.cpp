@@ -113,7 +113,6 @@ namespace
 			smallImageInput.push_back(new iAConnector);
 		}
 
-		iAProgress dummyProgress;
 		QStringList outputBuffer;
 
 		int curOp = 0;
@@ -153,7 +152,6 @@ namespace
 			}
 		}
 		filter->setLogger(patchFilter->logger());
-		filter->setProgress(&dummyProgress);
 		// iterate over all patches:
 		itk::Index<DIM> outIdx; outIdx[0] = 0;
 		for (size_t x = 0; x < size[0] && !patchFilter->isAborted(); x += stepSize[0])

@@ -320,6 +320,7 @@ public slots:
 	void updateSlicers() override;
 	void updateRenderer() override;
 	void updateViews() override;
+	//! @deprecated use logging or global status bar (iAMainWindow::statusBar) instead
 	void addStatusMsg(QString const& txt) override;
 	void setupView(bool active = false);
 	void setupStackView(bool active = false);
