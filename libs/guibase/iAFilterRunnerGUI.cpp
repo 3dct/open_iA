@@ -69,7 +69,8 @@ iAFilterRunnerGUIThread::iAFilterRunnerGUIThread(QSharedPointer<iAFilter> filter
 
 void iAFilterRunnerGUIThread::run()
 {
-	QElapsedTimer m_time;
+	QElapsedTimer time;
+	time.start();
 	try
 	{
 		if (!m_filter->run(m_paramValues))
@@ -82,14 +83,14 @@ void iAFilterRunnerGUIThread::run()
 			return;
 		}
 	}
-	catch (itk::ExceptionObject& excep)
+	catch (itk::ExceptionObject& e)
 	{
 		LOG(lvlError, tr("%1 terminated unexpectedly. Error: %2; in File %3, Line %4. Elapsed time: %5")
 				   .arg(m_filter->name())
-				   .arg(excep.GetDescription())
-				   .arg(excep.GetFile())
-				   .arg(excep.GetLine())
-				.arg(formatDuration(m_time.elapsed() / 1000.0, true, false)));
+				   .arg(e.GetDescription())
+				   .arg(e.GetFile())
+				   .arg(e.GetLine())
+				.arg(formatDuration(time.elapsed() / 1000.0, true, false)));
 		return;
 	}
 	catch (const std::exception& e)
@@ -97,13 +98,13 @@ void iAFilterRunnerGUIThread::run()
 		LOG(lvlError, tr("%1 terminated unexpectedly. Error: %2. Elapsed time: %3")
 				   .arg(m_filter->name())
 				   .arg(e.what())
-				   .arg(formatDuration(m_time.elapsed() / 1000.0, true, false)));
+				.arg(formatDuration(time.elapsed() / 1000.0, true, false)));
 		return;
 	}
 	LOG(lvlInfo,
 		tr("%1 finished. Elapsed time: %2")
 			.arg(m_filter->name())
-			.arg(formatDuration(m_time.elapsed() / 1000.0, true, false)));
+			.arg(formatDuration(time.elapsed() / 1000.0, true, false)));
 }
 
 void iAFilterRunnerGUIThread::abort()
