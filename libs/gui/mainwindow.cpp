@@ -1443,16 +1443,19 @@ void MainWindow::raycasterLoadCameraSettings()
 iAMdiChild* MainWindow::resultChild(iAMdiChild* iaOldChild, QString const & title)
 {
 	auto oldChild = dynamic_cast<MdiChild*>(iaOldChild);
-	if (oldChild->resultInNewWindow())
+	if (!oldChild || oldChild->resultInNewWindow())
 	{
 		// TODO: copy all modality images, or don't copy anything here and use image from old child directly,
 		// or nothing at all until new image available!
 		// Note that filters currently get their input from this child already!
-		vtkSmartPointer<vtkImageData> imageData = oldChild->imagePointer();
 		MdiChild* newChild = dynamic_cast<MdiChild*>(createMdiChild(true));
 		newChild->show();
-		newChild->displayResult(title, imageData);
-		copyFunctions(oldChild, newChild);
+		if (oldChild)
+		{
+			vtkSmartPointer<vtkImageData> imageData = oldChild->imagePointer();
+			newChild->displayResult(title, imageData);
+			copyFunctions(oldChild, newChild);
+		}
 		return newChild;
 	}
 	oldChild->prepareForResult();
