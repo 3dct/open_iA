@@ -1,11 +1,6 @@
 #pragma once
 #include <iAGUIModuleInterface.h>
 
-#include <vtkSmartPointer.h>
-#include <vtkTable.h>
-
-#include <QSharedPointer>
-
 // FeatureScout
 #include "iA3DColoredPolyObjectVis.h"
 

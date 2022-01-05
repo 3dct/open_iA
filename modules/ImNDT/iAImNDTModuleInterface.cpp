@@ -36,7 +36,6 @@
 
 #include <openvr.h>
 
-#include <vtkFloatArray.h>
 #include <vtkTable.h>
 
 #include <QAction>
