@@ -160,9 +160,9 @@ QMap<QString, QVariant> iAFilterRunnerGUI::loadParameters(QSharedPointer<iAFilte
 	for (auto param : params)
 	{
 		QVariant defaultValue = (param->valueType() == iAValueType::Categorical) ? "" : param->defaultValue();
-		QVariant value = (param->valueType() == iAValueType::FileNameSave) ?
-			pathFileBaseName(sourceMdi->fileInfo()) + param->defaultValue().toString() :
-			settings.value(SettingName(filter, param->name()), defaultValue);
+		QVariant value = (param->valueType() == iAValueType::FileNameSave && sourceMdi)
+			? pathFileBaseName(sourceMdi->fileInfo()) + param->defaultValue().toString()
+			: settings.value(SettingName(filter, param->name()), defaultValue);
 		result.insert(param->name(), value);
 	}
 	return result;
@@ -245,7 +245,10 @@ bool iAFilterRunnerGUI::askForParameters(QSharedPointer<iAFilter> filter, QMap<Q
 	iAParameterDlg dlg(mainWnd, filter->name(), dlgParams, filter->description());
 	dlg.setModal(false);
 	dlg.hide();	dlg.show(); // required to apply change in modality!
-	dlg.setSourceMdi(sourceMdi, mainWnd);
+	if (sourceMdi)
+	{
+		dlg.setSourceMdi(sourceMdi, mainWnd);
+	}
 	if (showROI)
 	{
 		dlg.showROI();
@@ -286,7 +289,7 @@ void iAFilterRunnerGUI::run(QSharedPointer<iAFilter> filter, iAMainWindow* mainW
 		return;
 	}
 	QMap<QString, QVariant> paramValues = loadParameters(filter, sourceMdi);
-	filter->adaptParametersToInput(paramValues, sourceMdi->modality(0)->image());
+	filter->adaptParametersToInput(paramValues, sourceMdi? sourceMdi->modality(0)->image(): nullptr);
 
 	if (!askForParameters(filter, paramValues, sourceMdi, mainWnd, true))
 	{
@@ -302,10 +305,10 @@ void iAFilterRunnerGUI::run(QSharedPointer<iAFilter> filter, iAMainWindow* mainW
 		return;
 	}
 
-	QString oldTitle(sourceMdi->windowTitle());
+	QString oldTitle(sourceMdi ? sourceMdi->windowTitle() : "");
 	oldTitle = oldTitle.replace("[*]", "").trimmed();
 	QString newTitle(filter->outputName(0, filter->name()) + " " + oldTitle);
-	m_sourceFileName = sourceMdi->modality(0)->fileName();
+	m_sourceFileName = sourceMdi ? sourceMdi->modality(0)->fileName() : "";
 
 	filterGUIPreparations(filter, sourceMdi, mainWnd, paramValues);
 	auto thread = new iAFilterRunnerGUIThread(filter, paramValues, sourceMdi);
@@ -315,11 +318,14 @@ void iAFilterRunnerGUI::run(QSharedPointer<iAFilter> filter, iAMainWindow* mainW
 		emit finished();
 		return;
 	}
-	for (int m = 0; m < sourceMdi->modalities()->size(); ++m)
+	if (sourceMdi)
 	{
-		thread->addInput(sourceMdi->modality(m)->image(), sourceMdi->modality(m)->fileName());
+		for (int m = 0; m < sourceMdi->modalities()->size(); ++m)
+		{
+			thread->addInput(sourceMdi->modality(m)->image(), sourceMdi->modality(m)->fileName());
+		}
+		filter->setFirstInputChannels(sourceMdi->modalities()->size());
 	}
-	filter->setFirstInputChannels(sourceMdi->modalities()->size());
 	for (int a=0; a < m_additionalInput.size(); ++a)
 	{
 		thread->addInput(m_additionalInput[a], m_additionalFileNames[a]);
@@ -331,7 +337,7 @@ void iAFilterRunnerGUI::run(QSharedPointer<iAFilter> filter, iAMainWindow* mainW
 		emit finished();
 		return;
 	}
-	if (sourceMdi->preferences().PrintParameters && !filter->parameters().isEmpty())
+	if (mainWnd->defaultPreferences().PrintParameters && !filter->parameters().isEmpty())
 	{
 		LOG(lvlInfo, QString("Starting %1 filter with parameters:").arg(filter->name()));
 		for (int p = 0; p < filter->parameters().size(); ++p)
