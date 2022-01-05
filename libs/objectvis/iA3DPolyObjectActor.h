@@ -26,6 +26,7 @@
 
 #include <vtkSmartPointer.h>
 
+class iARenderDeleteListener;
 class iA3DColoredPolyObjectVis;
 
 class vtkActor;
@@ -36,7 +37,7 @@ class vtkPolyDataMapper;
 class vtkRenderer;
 
 //! Displays data from objects in a class derived from iA3DColoredPolyObjectVis
-class iAobjectvis_API iA3DPolyObjectActor: public iA3DObjectActor
+class iAobjectvis_API iA3DPolyObjectActor : public iA3DObjectActor
 {
 public:
 	//! create a new visualization of the given 3D object in the given renderer
@@ -70,7 +71,7 @@ public:
 	void updateMapper();
 
 private:
-	bool m_visible, m_clippingPlanesEnabled, m_simple;
+	bool m_visible, m_clippingPlanesEnabled, m_simple, m_outlineVisible;
 	iA3DColoredPolyObjectVis* m_obj;
 
 	vtkSmartPointer<vtkPolyDataMapper> m_mapper;
@@ -81,4 +82,6 @@ private:
 	vtkSmartPointer<vtkActor> m_outlineActor;
 
 	vtkSmartPointer<vtkPolyData> m_polyData;
+	unsigned long m_renObserverTag;
+	vtkSmartPointer<iARenderDeleteListener> m_renderDeleteListener;
 };

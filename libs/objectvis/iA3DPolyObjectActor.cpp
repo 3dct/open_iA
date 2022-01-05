@@ -22,25 +22,46 @@
 
 #include <iA3DColoredPolyObjectVis.h>
 
-#include <iALog.h>
-
 #include <vtkActor.h>
+#include <vtkCommand.h>
 #include <vtkOutlineFilter.h>
 #include <vtkPolyDataMapper.h>
 #include <vtkProperty.h>
 #include <vtkRenderer.h>
+
+class iARenderDeleteListener : public vtkCommand
+{
+public:
+	static iARenderDeleteListener* New()
+	{
+		return new iARenderDeleteListener();
+	}
+	void setObjActor(iA3DObjectActor* objActor)
+	{
+		m_objActor = objActor;
+	}
+	void Execute(vtkObject*, unsigned long, void*) override
+	{
+		m_objActor->clearRenderer();;
+	}
+private:
+	iA3DObjectActor* m_objActor;
+};
+
 
 iA3DPolyObjectActor::iA3DPolyObjectActor(vtkRenderer* ren, iA3DColoredPolyObjectVis* obj) :
 	iA3DObjectActor(ren),
 	m_visible(false),
 	m_clippingPlanesEnabled(false),
 	m_simple(false),
+	m_outlineVisible(false),
 	m_obj(obj),
 	m_mapper(vtkSmartPointer<vtkPolyDataMapper>::New()),
 	m_actor(vtkSmartPointer<vtkActor>::New()),
 	m_outlineFilter(vtkSmartPointer<vtkOutlineFilter>::New()),
 	m_outlineMapper(vtkSmartPointer<vtkPolyDataMapper>::New()),
-	m_outlineActor(vtkSmartPointer<vtkActor>::New())
+	m_outlineActor(vtkSmartPointer<vtkActor>::New()),
+	m_renderDeleteListener(vtkSmartPointer<iARenderDeleteListener>::New())
 {
 	if (obj->finalPolyData())
 	{
@@ -61,10 +82,17 @@ iA3DPolyObjectActor::iA3DPolyObjectActor(vtkRenderer* ren, iA3DColoredPolyObject
 	m_outlineActor->GetProperty()->SetColor(0, 0, 0);
 	m_outlineActor->PickableOff();
 	m_outlineActor->SetMapper(m_outlineMapper);
+
+	m_renderDeleteListener->setObjActor(this);
+	m_renObserverTag = m_ren->AddObserver(vtkCommand::DeleteEvent, m_renderDeleteListener);
 }
 
 iA3DPolyObjectActor::~iA3DPolyObjectActor()
 {
+	if (m_ren)
+	{
+		m_ren->RemoveObserver(m_renObserverTag);
+	}
 	if (m_visible)
 	{
 		hide();
@@ -73,7 +101,7 @@ iA3DPolyObjectActor::~iA3DPolyObjectActor()
 
 void iA3DPolyObjectActor::show()
 {
-	if (m_visible)
+	if (m_visible || !m_ren)
 	{
 		return;
 	}
@@ -83,7 +111,7 @@ void iA3DPolyObjectActor::show()
 
 void iA3DPolyObjectActor::hide()
 {
-	if (!m_visible)
+	if (!m_visible || !m_ren)
 	{
 		return;
 	}
@@ -93,7 +121,7 @@ void iA3DPolyObjectActor::hide()
 
 void iA3DPolyObjectActor::updateRenderer()
 {
-	if (m_visible)
+	if (m_visible || m_outlineVisible)
 	{
 		iA3DObjectActor::updateRenderer();
 	}
@@ -125,14 +153,24 @@ vtkActor* iA3DPolyObjectActor::actor()
 
 void iA3DPolyObjectActor::showBoundingBox()
 {
+	if (m_outlineVisible || !m_ren)
+	{
+		return;
+	}
 	m_outlineMapper->Update();
 	m_ren->AddActor(m_outlineActor);
+	m_outlineVisible = true;
 	updateRenderer();
 }
 
 void iA3DPolyObjectActor::hideBoundingBox()
 {
+	if (!m_outlineVisible || !m_ren)
+	{
+		return;
+	}
 	m_ren->RemoveActor(m_outlineActor);
+	m_outlineVisible = false;
 	updateRenderer();
 }
 

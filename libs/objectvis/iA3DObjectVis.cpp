@@ -65,9 +65,18 @@ iA3DObjectActor::iA3DObjectActor(vtkRenderer* ren):
 
 void iA3DObjectActor::updateRenderer()
 {
+	if (!m_ren)
+	{
+		return;
+	}
 	m_ren->Render();
 	emit updated();
 }
 
 void iA3DObjectActor::show()
 {}
+
+void iA3DObjectActor::clearRenderer()
+{
+	m_ren = nullptr;
+}

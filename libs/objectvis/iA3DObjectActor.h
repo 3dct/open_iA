@@ -36,6 +36,7 @@ public:
 	iA3DObjectActor(vtkRenderer* ren);
 	virtual void show();
 	virtual void updateRenderer();
+	void clearRenderer();
 signals:
 	void updated();
 protected:

@@ -308,8 +308,6 @@ iARendererImpl::iARendererImpl(QObject *par): iARenderer(par),
 
 iARendererImpl::~iARendererImpl(void)
 {
-	m_ren->RemoveAllObservers();
-	m_renWin->RemoveAllObservers();
 	if (m_renderObserver)
 	{
 		m_renderObserver->Delete();
