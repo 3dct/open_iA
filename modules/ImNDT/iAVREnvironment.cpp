@@ -35,6 +35,7 @@
 
 #include <qstring.h>
 #include <QCoreApplication>
+#include <QMessageBox>
 
 #include <QThread>
 
@@ -47,6 +48,13 @@ public:
 	{}
 	void run() override
 	{
+		m_renderWindow->Initialize();
+		if (!vr::VRInput())
+		{
+			m_msg = "Headset not available or turned off. Please attach, turn on and try again!";
+			LOG(lvlWarn, "Headset not available or turned off. Please attach, turn on and try again!");
+			return;
+		}
 		m_renderWindow->Render();
 		m_interactor->Start();
 	}
@@ -55,10 +63,16 @@ public:
 		m_interactor->SetDone(true);
 		//m_renderWindow->Finalize();	
 	}
+	QString message() const
+	{
+		return m_msg;
+	}
+
 private:
 	vtkSmartPointer<vtkOpenVRRenderer> m_renderer;
 	vtkSmartPointer<vtkOpenVRRenderWindow> m_renderWindow;
 	vtkSmartPointer<vtkOpenVRRenderWindowInteractor> m_interactor;
+	QString m_msg;
 };
 
 
@@ -267,6 +281,10 @@ bool iAVREnvironment::isRunning() const
 
 void iAVREnvironment::vrDone()
 {
+	if (!m_vrMainThread->message().isEmpty())
+	{
+		QMessageBox::warning(nullptr, "VR Problems", m_vrMainThread->message());
+	}
 	delete m_vrMainThread;
 	m_vrMainThread = nullptr;
 }
