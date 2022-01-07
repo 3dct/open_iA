@@ -51,7 +51,7 @@ if (openiA_TESTING_ENABLED)
 		set(FileOpenTestBinary "${CMAKE_SOURCE_DIR}/test/run_with_gl.sh" "${CMAKE_RUNTIME_OUTPUT_DIRECTORY}/${GUI_EXECUTABLE_TARGET}")
 
 	endif()
-	add_test(NAME FileOpenTest COMMAND ${FileOpenTestBinary} ${CMAKE_SOURCE_DIR}/test/data/test2x2x2.mhd --quit 8000)
+	add_test(NAME FileOpenTest COMMAND ${FileOpenTestBinary} ${CMAKE_SOURCE_DIR}/test/data/test2x2x2.mhd --quit 100)
 endif()
 
 
