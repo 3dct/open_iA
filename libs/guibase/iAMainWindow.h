@@ -105,6 +105,9 @@ public:
 	virtual QString const& currentFile() const = 0;
 
 signals:
+	//! Triggered whenever the user has changed the style of the program (bright/dark/...) via the preferences.
 	void styleChanged();
-	void histogramAvailable();
+	//! Triggered whenever the active child window has changed.
+	//! Use for example to adapt UI's depending on the current child (toolbars etc.)
+	void childChanged();
 };

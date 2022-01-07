@@ -61,7 +61,7 @@ signals:
 	void actorsUpdated();
 
 private:
-	//! disable default constructor.
+	//! Default constructor - only callable via ::New().
 	iAvtkInteractStyleActor();
 
 	//! @{ disable copying.
