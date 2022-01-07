@@ -6,12 +6,17 @@
 #include "vtkOpenglRenderer.h"
 #include "vtkCamera.h"
 
-#include "dlg_FeatureScout.h"
+// objectvis
 #include "iA3DObjectFactory.h"
 #include "dlg_CSVInput.h"
 #include "iACsvConfig.h"
 #include "iACsvVtkTableCreator.h"
 
+// FeatureScout
+#include "dlg_FeatureScout.h"
+#include "iAFeatureScoutToolbar.h"
+
+// ImNDT
 #include "iAImNDTModuleInterface.h"
 
 #include "iAFrustumActor.h"
@@ -89,8 +94,10 @@ void iAXVRAModuleInterface::startXVRA()
 
 
 	/***** Start Featurescout *****/
-	m_fsMain = new dlg_FeatureScout(m_mainWnd->createMdiChild(false), csvConfig.objectType, csvConfig.fileName, creator.table(),
+	auto child = m_mainWnd->createMdiChild(false);
+	m_fsMain = new dlg_FeatureScout(child, csvConfig.objectType, csvConfig.fileName, creator.table(),
 		csvConfig.visType, io.getOutputMapping(), m_polyObject);
+	iAFeatureScoutToolbar::addForChild(m_mainWnd, child);
 
 	/***** Start VR *****/
 
