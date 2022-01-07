@@ -38,7 +38,7 @@ iAFeatureScoutAttachment::iAFeatureScoutAttachment(iAMainWindow* mainWnd, iAMdiC
 
 iAFeatureScoutAttachment::~iAFeatureScoutAttachment()
 {
-	delete imgFS;
+	delete m_featureScout;
 }
 
 void iAFeatureScoutAttachment::init(int filterID, QString const & fileName, vtkSmartPointer<vtkTable> csvtbl,
@@ -50,15 +50,7 @@ void iAFeatureScoutAttachment::init(int filterID, QString const & fileName, vtkS
 		visType == iACsvConfig::UseVolume ? m_child->modality(0)->transfer()->colorTF() : nullptr,
 		visType == iACsvConfig::UseVolume ? m_child->modality(0)->transfer()->opacityTF() : nullptr,
 		visType == iACsvConfig::UseVolume ? m_child->modality(0)->image()->GetBounds() : nullptr);
-	imgFS = new dlg_FeatureScout(m_child, static_cast<iAObjectType>(filterID),
+	m_featureScout = new dlg_FeatureScout(
+		m_child, static_cast<iAObjectType>(filterID),
 		fileName, csvtbl, visType, columnMapping, objvis);
-}
-
-void iAFeatureScoutAttachment::FeatureScout_Options(int idx)
-{
-	if (!imgFS)
-	{
-		return;
-	}
-	imgFS->changeFeatureScout_Options(idx);
 }

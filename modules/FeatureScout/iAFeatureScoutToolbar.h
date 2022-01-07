@@ -20,15 +20,33 @@
 * ************************************************************************************/
 #pragma once
 
-#include "ui_FeatureScoutToolBar.h"
+#include "FeatureScout_export.h"
 
 #include <QToolBar>
 
-class iAFeatureScoutToolbar : public QToolBar, public Ui_FeatureScoutToolBar
+class iAMainWindow;
+class iAMdiChild;
+class Ui_FeatureScoutToolBar;
+
+//! Manages the FeatureScout toolbar.
+class FeatureScout_API iAFeatureScoutToolbar : public QToolBar
 {
+	Q_OBJECT
 public:
-	iAFeatureScoutToolbar(QWidget* parent) : QToolBar("FeatureScout ToolBar", parent)
-	{
-		setupUi(this);
-	}
+	//! add child for which a FeatureScout toolbar should be available.
+	static void addForChild(iAMainWindow* mainWnd, iAMdiChild* child);
+	//! @{ disable copying/moving.
+	void operator=(const iAFeatureScoutToolbar&) = delete;
+	iAFeatureScoutToolbar(const iAFeatureScoutToolbar&) = delete;
+	//! @}
+private slots:
+	void buttonClicked();
+	void childClosed();
+	void childChanged();
+private:
+	explicit iAFeatureScoutToolbar(iAMainWindow* mainWnd);
+	~iAFeatureScoutToolbar() override; // required for std::unique_ptr
+	static iAFeatureScoutToolbar* tlbFeatureScout;
+	std::unique_ptr<Ui_FeatureScoutToolBar> m_ui;
+	iAMainWindow* m_mainWnd;
 };

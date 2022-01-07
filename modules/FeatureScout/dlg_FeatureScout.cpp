@@ -185,6 +185,8 @@ public:
 };
 
 const int dlg_FeatureScout::PCMinTicksCount = 2;
+
+const QString dlg_FeatureScout::DlgObjectName("FeatureScoutMainDlg");
 const QString dlg_FeatureScout::UnclassifiedColorName("darkGray");
 
 dlg_FeatureScout::dlg_FeatureScout(iAMdiChild* parent, iAObjectType fid, QString const& fileName,
@@ -222,6 +224,7 @@ dlg_FeatureScout::dlg_FeatureScout(iAMdiChild* parent, iAObjectType fid, QString
 	m_3dvis(objvis)
 {
 	m_ui->setupUi(this);
+	setObjectName(DlgObjectName);
 	this->setupPolarPlotResolution(3.0);
 
 	m_chartTable->DeepCopy(m_csvTable);
@@ -710,7 +713,7 @@ void dlg_FeatureScout::setupConnections()
 	connect(m_splom.data(), &iAFeatureScoutSPLOM::renderLUTChanges, this, &dlg_FeatureScout::renderLUTChanges);
 }
 
-void dlg_FeatureScout::MultiClassRendering()
+void dlg_FeatureScout::multiClassRendering()
 {
 	showOrientationDistribution();
 	QStandardItem* rootItem = m_classTreeModel->invisibleRootItem();
@@ -763,7 +766,7 @@ void dlg_FeatureScout::RenderSelection(std::vector<size_t> const& selInds)
 	m_3dvis->renderSelection(sortedSelInds, selectedClassID, classColor, m_activeClassItem);
 }
 
-void dlg_FeatureScout::RenderMeanObject()
+void dlg_FeatureScout::renderMeanObject()
 {
 	if (m_visualization != iACsvConfig::UseVolume)
 	{
@@ -791,7 +794,7 @@ void dlg_FeatureScout::RenderMeanObject()
 		m_colorList);
 }
 
-void dlg_FeatureScout::RenderOrientation()
+void dlg_FeatureScout::renderOrientation()
 {
 	m_renderMode = rmOrientation;
 	setPCChartData(true);
@@ -878,7 +881,7 @@ void dlg_FeatureScout::RenderOrientation()
 	renW->Render();
 }
 
-void dlg_FeatureScout::RenderLengthDistribution()
+void dlg_FeatureScout::renderLengthDistribution()
 {
 	m_renderMode = rmLengthDistribution;
 	setPCChartData(true);
@@ -1709,7 +1712,7 @@ void dlg_FeatureScout::ClassLoadButton()
 			this->recalculateChartTable(rootItem->child(i));
 		}
 		this->setActiveClassItem(rootItem->child(0), 0);
-		MultiClassRendering();
+		multiClassRendering();
 	}
 	else
 	{
@@ -1815,6 +1818,7 @@ void dlg_FeatureScout::showScatterPlot()
 {
 	if (m_dwSPM)
 	{
+		QMessageBox::information(this, "FeatureScout", "Scatterplot Matrix already created.");
 		return;
 	}
 	QSignalBlocker spmBlock(m_splom.data()); //< no need to trigger updates while we're creating SPM
@@ -3028,7 +3032,7 @@ void dlg_FeatureScout::initFeatureScoutUI()
 	{
 		m_dwPP->hide();
 	}
-	connect(m_dwPP->orientationColorMap, QOverload<int>::of(&QComboBox::currentIndexChanged), this, &dlg_FeatureScout::RenderOrientation);
+	connect(m_dwPP->orientationColorMap, QOverload<int>::of(&QComboBox::currentIndexChanged), this, &dlg_FeatureScout::renderOrientation);
 
 	if (m_visualization == iACsvConfig::UseVolume)
 	{
@@ -3041,36 +3045,6 @@ void dlg_FeatureScout::initFeatureScoutUI()
 		m_activeChild->slicerDockWidget(i)->hide();
 	}
 	m_activeChild->dataDockWidget()->hide();
-}
-
-void dlg_FeatureScout::changeFeatureScout_Options(int idx)
-{
-	switch (idx)
-	{
-	case 0:         // option menu, do nothing
-	default:
-		break;
-	case 1:			// blob Rendering, trigger OpenBlobVisDialog()
-		this->OpenBlobVisDialog();
-		break;
-
-	case 3: MultiClassRendering();      break;
-	case 4: RenderMeanObject();         break;
-	case 5: RenderOrientation();        break;
-	case 7: RenderLengthDistribution(); break;
-
-	case 6:			// plot scatterplot matrix
-		if (m_dwSPM)
-		{
-			QMessageBox::information(this, "FeatureScout", "Scatterplot Matrix already created.");
-			return;
-		}
-		showScatterPlot();
-		break;
-	case 8:
-		showPCSettings();
-		break;
-	}
 }
 
 void dlg_FeatureScout::updateAxisProperties()

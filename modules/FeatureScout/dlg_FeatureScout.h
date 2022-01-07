@@ -20,10 +20,8 @@
 * ************************************************************************************/
 #pragma once
 
-#include "iAFeatureScoutModuleInterface.h"
+#include "FeatureScout_export.h"
 #include "iAObjectType.h"
-
-#include <iAVec3.h>
 
 #include <vtkSmartPointer.h>
 
@@ -92,12 +90,18 @@ class FeatureScout_API dlg_FeatureScout : public QDockWidget
 {
 	Q_OBJECT
 public:
+	static const QString DlgObjectName;
 	static const QString UnclassifiedColorName;
 	dlg_FeatureScout(iAMdiChild *parent, iAObjectType fid, QString const & fileName, vtkSmartPointer<vtkTable> csvtbl,
 		int visType, QSharedPointer<QMap<uint, uint>> columnMapping,
 		QSharedPointer<iA3DObjectVis> objvis);
 	~dlg_FeatureScout();
-	void changeFeatureScout_Options(int idx);
+	void showPCSettings();            //!< show settings dialog for parallel coordinates
+	void showScatterPlot();           //!< show the scatter plot matrix
+	void multiClassRendering();       //!< multi-class rendering
+	void renderLengthDistribution();  //!< render fiber-length distribution
+	void renderMeanObject();          //!< compute and render a mean object for each class
+	void renderOrientation();         //!< color all objects according to their orientation
 private slots:
 	void SaveBlobMovie();
 	void ClassSaveButton();
@@ -107,7 +111,6 @@ private slots:
 	void WisetexSaveButton();
 	void ExportClassButton(); //!< The export defined classes to MDH File.
 	void CsvDVSaveButton();
-	void RenderOrientation();
 	void classClicked(const QModelIndex &index);
 	void classDoubleClicked(const QModelIndex &index);
 	void EnableBlobRendering();
@@ -130,8 +133,6 @@ private slots:
 private:
 	//create labelled output image based on defined classes
 	template <class T> void CreateLabelledOutputMask(iAConnector & con, const QString & fOutPath);
-	void showScatterPlot();
-	void showPCSettings();
 	void setupModel();
 	void setupViews();
 	void setupConnections();  //!< define signal and slots connections
@@ -167,10 +168,7 @@ private:
 	bool OpenBlobVisDialog();
 	//! @{ 3D-rendering-related methods:
 	void SingleRendering(int objectID = -10000);          //!< render a single object (if objectID > 0) or a single class
-	void MultiClassRendering();                           //!< multi-class rendering
 	void RenderSelection(std::vector<size_t> const & selInds); //!< render a selection (+ the class that contains it)
-	void RenderLengthDistribution();                      //!< render fiber-length distribution
-	void RenderMeanObject();                              //!< compute and render a mean object for each class
 	//! @}
 
 	//! @{ members referencing iAMdiChild, used for 3D rendering

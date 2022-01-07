@@ -44,7 +44,6 @@ public:
 	//! can de-register itself, before renderer gets destroyed - if destroyed through MdiChild's
 	//! destructing its child widgets, then this happens after renderer is destroyed!
 	~iAFeatureScoutAttachment();
-	void FeatureScout_Options(int idx);
 private:
-	dlg_FeatureScout * imgFS;
+	dlg_FeatureScout * m_featureScout;
 };
