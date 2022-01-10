@@ -723,6 +723,16 @@ void iACompCurve::drawPolygon(vtkSmartPointer<vtkPolyData> polygonPolyData)
 void iACompCurve::drawCurve(
 	vtkSmartPointer<vtkPoints> curvePoints, vtkSmartPointer<vtkUnsignedCharArray> colorArray)
 {
+	////color should be white for user study
+	//colorArray = vtkSmartPointer<vtkUnsignedCharArray>::New();
+	//colorArray->SetName("colorArray");
+	//colorArray->SetNumberOfComponents(3);
+	//colorArray->SetNumberOfTuples(curvePoints->GetNumberOfPoints());
+	//for (int i = 0; i < curvePoints->GetNumberOfPoints(); i++)
+	//{
+	//	colorArray->InsertTuple3(i, 255,255,255);
+	//}
+
 	vtkNew<vtkPolyLine> polyLine;
 	polyLine->GetPointIds()->SetNumberOfIds(curvePoints->GetNumberOfPoints());
 	for (unsigned int i = 0; i < curvePoints->GetNumberOfPoints(); i++)

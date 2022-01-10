@@ -14,6 +14,7 @@
 #include <vtkSmartPointer.h>
 #include <vtkRenderWindow.h>
 #include <vtkRenderWindowInteractor.h>
+#include <vtkCallbackCommand.h>
 
 #include <vtkActor.h>
 
@@ -57,21 +58,27 @@ namespace Pick
 	};
 }
 
-//vtkStandardNewMacro(iACompTableInteractorStyle);
-
 iACompTableInteractorStyle::iACompTableInteractorStyle() : 
+	vtkInteractorStyleTrackballCamera(),
 	m_main(nullptr), 
 	m_zoomLevel(1), 
 	m_zoomOn(true), 
 	m_picked(new Pick::PickedMap()),
 	m_pickedOld(new Pick::PickedMap()),
-	m_zoomedRowData(nullptr)
+	m_zoomedRowData(nullptr),
+	m_DButtonPressed(false)
 {
+
 }
 
 void iACompTableInteractorStyle::setIACompHistogramVis(iACompHistogramVis* main)
 {
 	m_main = main;
+}
+
+void iACompTableInteractorStyle::OnEnter()
+{
+	LOG(lvlInfo, "Please click on the background to activate the keyboard.");
 }
 
 void iACompTableInteractorStyle::OnLeftButtonDown()
@@ -94,102 +101,169 @@ void iACompTableInteractorStyle::OnRightButtonDown()
 
 void iACompTableInteractorStyle::OnMouseWheelForward()
 {
-	//camera zoom in
-	if (this->GetInteractor()->GetControlKey())
+	onKeyDPressedMouseWheelForward();
+}
+
+void iACompTableInteractorStyle::changeDistributionVisualizationForward()
+{
+	if (m_main->getActiveVisualization() == iACompVisOptions::activeVisualization::UniformTable)
 	{
-		generalZoomIn();
-		return;
+		m_main->drawCombiTable();
+	}
+	else if (m_main->getActiveVisualization() == iACompVisOptions::activeVisualization::VariableTable)
+	{
+		m_main->drawCombiTable();
+	}
+	else if (m_main->getActiveVisualization() == iACompVisOptions::activeVisualization::CombTable)
+	{
+		m_main->drawCurveTable();
+	}
+	else if (m_main->getActiveVisualization() == iACompVisOptions::activeVisualization::CurveVisualization)
+	{
 	}
 	else
 	{
-		if (m_main->getActiveVisualization() == iACompVisOptions::activeVisualization::UniformTable)
-		{
-			m_main->drawCombiTable();
-		}
-		else if (m_main->getActiveVisualization() == iACompVisOptions::activeVisualization::VariableTable)
-		{
-			m_main->drawCombiTable();
-		}
-		else if (m_main->getActiveVisualization() == iACompVisOptions::activeVisualization::CombTable)
-		{
-			m_main->drawCurveTable();
-		}
-		else if (m_main->getActiveVisualization() == iACompVisOptions::activeVisualization::CurveVisualization)
-		{
-			return;
-		}
-		else
-		{
-			return;
-		}
+	}
+}
+
+void iACompTableInteractorStyle::onKeyDPressedMouseWheelForward()
+{
+	if (m_DButtonPressed == true)
+	{
+		changeDistributionVisualizationForward();
+	}
+}
+
+void iACompTableInteractorStyle::onKeyDPressedMouseWheelBackward()
+{
+	if (m_DButtonPressed == true)
+	{
+		changeDistributionVisualizationBackward();
 	}
 }
 
 void iACompTableInteractorStyle::OnMouseWheelBackward()
 {
-	//camera zoom in
-	if (this->GetInteractor()->GetControlKey())
+	onKeyDPressedMouseWheelBackward();
+}
+
+void iACompTableInteractorStyle::changeDistributionVisualizationBackward()
+{
+	if (m_main->getActiveVisualization() == iACompVisOptions::activeVisualization::UniformTable)
 	{
-		generalZoomOut();
 		return;
+	}
+	else if (m_main->getActiveVisualization() == iACompVisOptions::activeVisualization::VariableTable)
+	{
+		return;
+	}
+	else if (m_main->getActiveVisualization() == iACompVisOptions::activeVisualization::CombTable)
+	{
+		if (m_main->getActiveBinning() == iACompVisOptions::binningType::Uniform ||
+			m_main->getActiveBinning() == iACompVisOptions::binningType::Undefined)
+		{
+			m_main->drawUniformTable();
+		}
+		else if (m_main->getActiveBinning() == iACompVisOptions::binningType::JenksNaturalBreaks)
+		{
+			m_main->drawNaturalBreaksTable();
+		}
+		else if (m_main->getActiveBinning() == iACompVisOptions::binningType::BayesianBlocks)
+		{
+			m_main->drawBayesianBlocksTable();
+		}
+	}
+	else if (m_main->getActiveVisualization() == iACompVisOptions::activeVisualization::CurveVisualization)
+	{
+		m_main->drawCombiTable();
 	}
 	else
 	{
-		if (m_main->getActiveVisualization() == iACompVisOptions::activeVisualization::UniformTable)
-		{
-			return;
-		}
-		else if (m_main->getActiveVisualization() == iACompVisOptions::activeVisualization::VariableTable)
-		{
-			return;
-		}
-		else if (m_main->getActiveVisualization() == iACompVisOptions::activeVisualization::CombTable)
-		{
-			if (m_main->getActiveBinning() == iACompVisOptions::binningType::Uniform ||
-				m_main->getActiveBinning() == iACompVisOptions::binningType::Undefined)
-			{
-				m_main->drawUniformTable();
-			}
-			else if (m_main->getActiveBinning() == iACompVisOptions::binningType::JenksNaturalBreaks)
-			{
-				m_main->drawNaturalBreaksTable();
-			}
-			else if(m_main->getActiveBinning() == iACompVisOptions::binningType::BayesianBlocks)
-			{
-				m_main->drawBayesianBlocksTable();
-			}
-		}
-		else if (m_main->getActiveVisualization() == iACompVisOptions::activeVisualization::CurveVisualization)
-		{
-			m_main->drawCombiTable();
-		}
-		else
-		{
-		}
 	}
 }
 
 void iACompTableInteractorStyle::OnKeyPress()
 {
+	vtkRenderWindowInteractor* interactor = this->GetInteractor();
+	if (interactor == nullptr)
+	{
+		return;
+	}
+
+	char* keyInChar = interactor->GetKeySym();
+	if (keyInChar == nullptr)
+	{
+		return;
+	}
+
+	std::string key(keyInChar);
+
+	//when d is pressed --> the visualization is switched to adaptive tile maps
+	if (key == "d")
+	{
+		m_DButtonPressed = true;
+	}
 }
 void iACompTableInteractorStyle::OnKeyRelease()
 {
+	vtkRenderWindowInteractor* interactor = this->GetInteractor();
+
+	if (interactor == nullptr)
+	{
+		return;
+	}
+
+	char* keyInChar = interactor->GetKeySym();
+
+	if (keyInChar == nullptr)
+	{
+		return;
+	}
+
+	std::string key(keyInChar);
+
+	if (key == "d")
+	{
+		m_DButtonPressed = false;
+	}
 }
 
 void iACompTableInteractorStyle::Pan()
 {
 }
 
-void iACompTableInteractorStyle::generalZoomIn()
+bool iACompTableInteractorStyle::generalZoomIn()
 {
-	m_main->getCamera()->Zoom(m_zoomLevel + 0.05);
-	m_main->renderWidget();
+	//camera zoom in
+	vtkRenderWindowInteractor* interactor = this->GetInteractor();
+	if (interactor != nullptr)
+	{
+		if (interactor->GetControlKey())
+		{
+			m_main->getCamera()->Zoom(m_zoomLevel + 0.05);
+			m_main->renderWidget();
+			return true;
+		}
+		return false;
+	}
+	return false;
 }
 
-void iACompTableInteractorStyle::generalZoomOut()
+bool iACompTableInteractorStyle::generalZoomOut()
 {
-	m_main->getCamera()->Zoom(m_zoomLevel - 0.05);
-	m_main->renderWidget();
+	//camera zoom in
+	vtkRenderWindowInteractor* interactor = this->GetInteractor();
+	if (interactor != nullptr)
+	{
+		if (interactor->GetControlKey())
+		{
+			m_main->getCamera()->Zoom(m_zoomLevel - 0.05);
+			m_main->renderWidget();
+			return true;
+		}
+		return false;
+	}
+	return false;
 }
 
 void iACompTableInteractorStyle::storePickedActorAndCell(vtkSmartPointer<vtkActor> pickedA, vtkIdType id)

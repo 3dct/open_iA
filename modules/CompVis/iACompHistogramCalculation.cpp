@@ -17,6 +17,13 @@
 iACompHistogramCalculation::iACompHistogramCalculation(iACsvDataStorage* dataStorage, bool mdsComputed) :
 	m_dataStorage(dataStorage),
 	m_amountObjectsEveryDataset(new std::vector<int>()),
+	m_uniformBinningData(nullptr),
+	m_uniformBinning(nullptr),
+	m_bayesianBlocksData(nullptr),
+	m_bayesianBlocks(nullptr),
+	m_naturalBreaksData(nullptr),
+	m_naturalBreaks(nullptr),
+	m_densityEstimationData(nullptr),
 	m_densityEstimation(nullptr)
 {
 
@@ -87,7 +94,7 @@ void iACompHistogramCalculation::calculateUniformBinning()
 	m_uniformBinningData->setMinVal(m_minVal);
 	m_uniformBinningData->setMaxVal(m_maxVal);
 	m_uniformBinningData->setAmountObjectsEveryDataset(m_amountObjectsEveryDataset);
-	m_uniformBinningData->computeSturgesRule();
+	//m_uniformBinningData->computeSturgesRule();
 
 	m_uniformBinning =
 		new iACompUniformBinning(m_dataStorage, m_amountObjectsEveryDataset, m_datasets);
@@ -167,7 +174,6 @@ iACompNaturalBreaksData* iACompHistogramCalculation::getNaturalBreaksData()
 /******************************************  Kernel Density Estimation  **********************************/
 void iACompHistogramCalculation::calculateDensityEstimation()
 {
-	//TODO add datastructure for storage
 	m_densityEstimationData = new iACompKernelDensityEstimationData();
 	m_densityEstimationData->setMinVal(m_minVal);
 	m_densityEstimationData->setMaxVal(m_maxVal);

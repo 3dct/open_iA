@@ -59,6 +59,10 @@ namespace iACompVisOptions
 
 	double histogramNormalization(double value, double newMin, double newMax, double oldMin, double oldMax);
 
+	std::vector<double> calculateBinBoundaries(double minVal, double maxVal, int numberOfBins);
+
+	double computeIntervalLength(double minVal, double maxVal);
+
 	void getDoubleArray(const unsigned char colors[3], double result[3]);
 
 	double round_up(double value, int decimal_places);

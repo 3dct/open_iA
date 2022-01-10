@@ -29,14 +29,14 @@ private:
 
 	//calculates the maximum number of elements in a bin (over all bins)
 	void initializeMaxAmountInBins(bin::BinType* bins, int initialNumberBins);
+
+	double computeIntervalLength(double minVal, double maxVal);
 	
-/*	//amount of bins in the histogram for all rows/datasets
-	int m_bins;
-*/
+
 	//maximum amount of numbers in a bin (calculated for all bins)
 	int m_maxAmountInAllBins;
 
-
+	//data store saving the result of the computations done in this class
 	iACompUniformBinningData* m_uniformBinningData;
 
 	//amount of bins that will be calculated for the next histogram

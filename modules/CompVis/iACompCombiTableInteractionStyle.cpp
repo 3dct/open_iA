@@ -37,16 +37,25 @@ void iACompCombiTableInteractionStyle::OnRightButtonDown()
 void iACompCombiTableInteractionStyle::OnMouseWheelForward()
 {
 	iACompTableInteractorStyle::OnMouseWheelForward();
+
+	//camera zoom
+	bool zoomed = generalZoomIn();
+
 }
 void iACompCombiTableInteractionStyle::OnMouseWheelBackward()
 {
 	iACompTableInteractorStyle::OnMouseWheelBackward();
+
+	//camera zoom
+	bool zoomed = generalZoomOut();
 }
 void iACompCombiTableInteractionStyle::OnKeyPress()
 {
+	iACompTableInteractorStyle::OnKeyPress();
 }
 void iACompCombiTableInteractionStyle::OnKeyRelease()
 {
+	iACompTableInteractorStyle::OnKeyRelease();
 }
 
 void iACompCombiTableInteractionStyle::Pan()

@@ -95,4 +95,6 @@ class iACompUniformTableInteractorStyle : public iACompTableInteractorStyle
 	//controls if the number of bins is modified or if the point representation should be drawn
 	//true --> point representation is drawn
 	bool m_pointRepresentationOn;
+
+	
 };

@@ -23,6 +23,8 @@
 #include "vtkPolyData.h"
 #include "vtkCellData.h"
 
+#include "vtkDoubleArray.h"
+
 
 
 iACompTable::iACompTable(iACompHistogramVis* vis) :
@@ -247,32 +249,45 @@ void iACompTable::addDatasetName(int currDataset, double* position)
 }
 
 /********************************************  Ordering/Ranking ********************************************/
-void iACompTable::createBarChart(
-	vtkSmartPointer<vtkPlaneSource> currPlane, int currAmountObjects, int maxAmountObjects)
+void iACompTable::createBarChart(vtkSmartPointer<vtkPolyData> currPolyData, int currAmountObjects, int maxAmountObjects)
 {
+	vtkSmartPointer<vtkDoubleArray> originArray = vtkDoubleArray::SafeDownCast(currPolyData->GetPointData()->GetArray("originArray"));
+	vtkSmartPointer<vtkDoubleArray> point1Array = vtkDoubleArray::SafeDownCast(currPolyData->GetPointData()->GetArray("point1Array"));
+	vtkSmartPointer<vtkDoubleArray> point2Array = vtkDoubleArray::SafeDownCast(currPolyData->GetPointData()->GetArray("point2Array"));
+
+	double origin[3];
+	originArray->GetTuple(0, origin);
+
+	double point1[3];
+	point1Array->GetTuple(point1Array->GetNumberOfTuples()-1, point1);
+
+	double point2[3];
+	point2Array->GetTuple(0, point2);
+
 	//calculate height of bar
-	double maxHeight = currPlane->GetPoint2()[1] - currPlane->GetOrigin()[1];
-	double height25 = currPlane->GetOrigin()[1] + (maxHeight * 0.25);
-	double height75 = currPlane->GetOrigin()[1] + (maxHeight * 0.75);
+	double maxHeight = point2[1] - origin[1];
+	double height25 = origin[1] + (maxHeight * 0.25);
+	double height75 = origin[1] + (maxHeight * 0.75);
 	
 	//calculate width of bar
-	double maxWidth = currPlane->GetPoint1()[0] - currPlane->GetOrigin()[0];
+	double maxWidth = point1[0] - origin[0];
 	double percent = ((double)currAmountObjects) / ((double)maxAmountObjects);
 	double correctWidth = maxWidth * percent;
-	double correctX = (currPlane->GetOrigin()[0]) + correctWidth;
+	double correctX = origin[0] + correctWidth;
 
 	double positions[4] = 
 	{
-		currPlane->GetOrigin()[0], correctX,  //x_min, x_max
+		origin[0], correctX,  //x_min, x_max
 		height25, height75                    //y_min, y_max
 	};
 
 	createBars(positions);
 
-	double textPosition[3] = {currPlane->GetPoint1()[0], //x_max
-							  currPlane->GetOrigin()[1], //y_min
-							  currPlane->GetPoint2()[1] //y_max
-							  };
+	double textPosition[3] = {
+								point1[0],  //x_max
+								origin[1],  //y_min
+								point2[1]   //y_max
+							 };
 
 	createAmountOfObjectsText(textPosition, currAmountObjects);
 }
@@ -500,6 +515,7 @@ void iACompTable::addLegendRendererToWidget()
 void iACompTable::setInteractorStyleToWidget(vtkSmartPointer<iACompTableInteractorStyle> interactorStyle)
 {
 	m_vis->setInteractorStyleToWidget(interactorStyle);
+	
 }
 
 void iACompTable::renderWidget()

@@ -110,7 +110,7 @@ protected:
 	virtual void drawBarChartShowingAmountOfObjects(std::vector<int> amountObjectsEveryDataset) = 0;
 
 	//creates the bar actors for showing the number of objects for each dataset
-	void createBarChart(vtkSmartPointer<vtkPlaneSource> currPlane, int currAmountObjects, int maxAmountObjects);
+	void createBarChart(vtkSmartPointer<vtkPolyData> currPolyData, int currAmountObjects, int maxAmountObjects);
 
 	//creates the bar actors for showing the number of objects for each dataset
 	void createBarChart(double* points, int currAmountObjects, int maxAmountObjects);
@@ -137,6 +137,7 @@ protected:
 	//amount of colors
 	int m_tableSize;
 
+	
 	/*** Rendering ***/
 	//renderer for the color legend at the right side of the widget
 	vtkSmartPointer<vtkRenderer> m_rendererColorLegend;
@@ -148,12 +149,14 @@ protected:
 	//as soon as showEvent() has finished the first time, the state is set to defined
 	iACompVisOptions::lastState m_lastState;
 
+	
 	/*** Ordering ***/
 	//stores the bar actors drawn to show the number of objects for each dataset
 	std::vector<vtkSmartPointer<vtkActor>>* m_barActors;
 	//stores the text actors drawn to show the number of objects for each dataset
 	std::vector<vtkSmartPointer<vtkTextActor>>* m_barTextActors;
 
+	
 	/*** Interaction ***/
 	//stores the actors added to display the border of the selected cells
 	//have to be removed before any calculation for zooming can take place!

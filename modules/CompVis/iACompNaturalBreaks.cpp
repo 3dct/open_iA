@@ -128,7 +128,7 @@ void iACompNaturalBreaks::calculateBins()
 	m_naturalBreaksData->calculateNumberOfObjectsInEachBin(binDataObjects);
 	m_naturalBreaksData->setBinBoundaries(binningStrategies);
 
-	m_naturalBreaksData->debugBinDataObjects();
+	//m_naturalBreaksData->debugBinDataObjects();
 }
 
 double iACompNaturalBreaks::computeGoodnessOfVarianceFit(

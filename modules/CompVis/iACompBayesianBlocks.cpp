@@ -162,7 +162,7 @@ void iACompBayesianBlocks::calculateBins()
 	m_bayesianBlocksData->calculateNumberOfObjectsInEachBin(binDataObjects);
 	m_bayesianBlocksData->setBinBoundaries(binningStrategies);
 
-	m_bayesianBlocksData->debugBinDataObjects();
+	//m_bayesianBlocksData->debugBinDataObjects();
 }
 
 

@@ -47,6 +47,7 @@ public:
 	virtual void OnMouseWheelBackward();
 	virtual void OnKeyPress();
 	virtual void OnKeyRelease();
+	virtual void OnEnter();
 
 	virtual void Pan();
 
@@ -61,11 +62,17 @@ protected:
 
 	virtual void resetHistogramTable()  = 0;
 
+	/*** ***/
+	void changeDistributionVisualizationForward();
+	void changeDistributionVisualizationBackward();
+	void onKeyDPressedMouseWheelForward();
+	void onKeyDPressedMouseWheelBackward();
+
 	/*** Interaction Camera Zoom ***/
 	//general zooming in executed by the camera
-	void generalZoomIn();
+	bool generalZoomIn();
 	//general zooming out executed by the camera
-	void generalZoomOut();
+	bool generalZoomOut();
 
 	/*** Interaction Picking ***/
 	virtual void storePickedActorAndCell(vtkSmartPointer<vtkActor> pickedA, vtkIdType id);
@@ -91,6 +98,8 @@ protected:
 	Pick::PickedMap* m_pickedOld;
 
 	QList<bin::BinType*>* m_zoomedRowData;
+
+	bool m_DButtonPressed;
 };
 
 

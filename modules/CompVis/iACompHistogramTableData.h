@@ -24,6 +24,8 @@ struct bin
 	static void debugBinType(BinType* input);
 	//copies the specified cells into a new BinType object
 	static bin::BinType* copyCells(bin::BinType* input, std::vector<vtkIdType>* indexOfCellsToCopy);
+	//returns the minimum and maximum value contained in the BinyType object
+	static std::vector<double>* getMinimumAndMaximum(bin::BinType* input);
 	
 };
 

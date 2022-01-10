@@ -50,10 +50,15 @@ iACompUniformTableInteractorStyle::iACompUniformTableInteractorStyle() :
 	m_actorPicker->SetPickFromList(true);
 }
 
-void iACompUniformTableInteractorStyle::OnKeyPress(){}
+void iACompUniformTableInteractorStyle::OnKeyPress()
+{
+	iACompTableInteractorStyle::OnKeyPress();
+}
 
 void iACompUniformTableInteractorStyle::OnKeyRelease()
 {
+	iACompTableInteractorStyle::OnKeyRelease();
+
 	vtkRenderWindowInteractor* interactor = this->GetInteractor();
 	std::string key = interactor->GetKeySym();
 
@@ -139,7 +144,7 @@ void iACompUniformTableInteractorStyle::OnLeftButtonDown()
 	{
 		if(m_pointRepresentationOn || m_controlBinsInZoomedRows)
 		{//when non-linear zoom is active --> do nothing
-			//resetHistogramTable();
+			
 		}else
 		{ //manual reordering only working when NO non-linear zoom is active
 			m_currentlyPickedActor = pickedA;
@@ -346,54 +351,53 @@ void iACompUniformTableInteractorStyle::OnRightButtonDown()
 
 void iACompUniformTableInteractorStyle::OnMouseWheelForward()
 {
-	iACompTableInteractorStyle::OnMouseWheelForward();
-
 	reinitializeState();
 
-	////camera zoom in
-	//if (this->GetInteractor()->GetControlKey())
-	//{
-	//	generalZoomIn();
-	//	return;
-	//}
+	iACompTableInteractorStyle::OnMouseWheelForward();
 
-	////histogram zoom in
-	//if (m_controlBinsInZoomedRows)
-	//{
-	//	//non linear zooming in
-	//	nonLinearZoomIn();
-	//}
-	//else
-	//{
-	//	//linear zooming in
-	//	linearZoomInHistogram();
-	//}
+	//camera zoom
+	bool zoomed = generalZoomIn();
+	
+	if (m_DButtonPressed == false && !zoomed)
+	{
+		//histogram zoom in
+		if (m_controlBinsInZoomedRows)
+		{
+			LOG(lvlDebug, "Non-Linear Zooming...");
+			//non linear zooming in
+			nonLinearZoomIn();
+		}
+		else
+		{
+			//linear zooming in
+			linearZoomInHistogram();
+		}
+	}
 }
 
 void iACompUniformTableInteractorStyle::OnMouseWheelBackward()
 {
-	iACompTableInteractorStyle::OnMouseWheelBackward();
-
 	reinitializeState();
 
-	////camera zoom out
-	//if (this->GetInteractor()->GetControlKey())
-	//{  
-	//	generalZoomOut();
-	//	return;
-	//}
+	iACompTableInteractorStyle::OnMouseWheelBackward();
 
-	////histogram zoom out
-	//if (m_controlBinsInZoomedRows)
-	//{
-	//	//non linear zooming out
-	//	nonLinearZoomOut();
-	//}
-	//else
-	//{
-	//	//linear zooming out
-	//	linearZoomOutHistogram();
-	//}
+	//camera zoom
+	bool zoomed = generalZoomOut();
+
+	if (m_DButtonPressed == false && !zoomed)
+	{
+		//histogram zoom out
+		if (m_controlBinsInZoomedRows)
+		{
+			//non linear zooming out
+			nonLinearZoomOut();
+		}
+		else
+		{
+			//linear zooming out
+			linearZoomOutHistogram();
+		}
+	}
 }
 
 void iACompUniformTableInteractorStyle::linearZoomInHistogram()
@@ -405,6 +409,7 @@ void iACompUniformTableInteractorStyle::linearZoomInHistogram()
 		bins = bins * 2;
 
 		m_visualization->setBins(bins);
+		m_visualization->recomputeBinning();
 		m_visualization->drawHistogramTable(bins);
 	}
 }
@@ -417,6 +422,7 @@ void iACompUniformTableInteractorStyle::linearZoomOutHistogram()
 		bins = bins / 2;
 
 		m_visualization->setBins(bins);
+		m_visualization->recomputeBinning();
 		m_visualization->drawHistogramTable(bins);
 	}
 }
@@ -428,7 +434,7 @@ void iACompUniformTableInteractorStyle::nonLinearZoomIn()
 	{
 		bins = bins * 2;
 		m_visualization->setBinsZoomed(bins);
-		m_visualization->redrawZoomedRow(bins);
+		m_visualization->zoomInZoomedRow(bins);
 	}
 	else if (bins == m_visualization->getMaxBins())
 	{  //draw point representation
@@ -447,14 +453,14 @@ void iACompUniformTableInteractorStyle::nonLinearZoomOut()
 		m_visualization->removePointRepresentation();
 
 		m_visualization->setBinsZoomed(bins);
-		m_visualization->redrawZoomedRow(bins);
+		m_visualization->zoomInZoomedRow(bins);
 	}
 	else if (bins > m_visualization->getMinBins() && bins <= m_visualization->getMaxBins())
 	{
 		bins = bins / 2;
 
 		m_visualization->setBinsZoomed(bins);
-		m_visualization->redrawZoomedRow(bins);
+		m_visualization->zoomInZoomedRow(bins);
 	}
 }
 

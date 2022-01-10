@@ -24,7 +24,7 @@ void iACompUniformBinning::calculateBins()
 	double minVal = m_uniformBinningData->getMinVal();
 	double maxVal = m_uniformBinningData->getMaxVal();
 
-	double length = std::abs(maxVal) - std::abs(minVal);
+	double length = computeIntervalLength(minVal, maxVal);
 	double binLength = length / m_currentNumberOfBins;
 
 	QList<std::vector<double>>* binBoundaries = new QList<std::vector<double>>();
@@ -67,7 +67,7 @@ void iACompUniformBinning::calculateBins()
 					data->push_back(object);
 					//binsWithFiberIds->at(b) = data;
 
-					//LOG(lvlDebug,"fibers stored = " + QString::number(data->size()) + " --> at Bin: " + QString::number(b));
+					//LOG(lvlDebug,"fibers stored = " + QString::number(values.at(v)) + " --> at Bin: " + QString::number(b));
 
 					break;
 				}
@@ -111,7 +111,7 @@ void iACompUniformBinning::calculateBins()
 std::vector<double> iACompUniformBinning::calculateBinBoundaries(
 	double minVal, double maxVal, int numberOfBins)
 {
-	double length = std::abs(maxVal) - std::abs(minVal);
+	double length = computeIntervalLength(minVal, maxVal);
 	double binLength = length / m_currentNumberOfBins;
 
 	std::vector<double> bins = std::vector<double>();
@@ -125,12 +125,33 @@ std::vector<double> iACompUniformBinning::calculateBinBoundaries(
 	return bins;
 }
 
+double iACompUniformBinning::computeIntervalLength(double minVal, double maxVal)
+{
+	double length;
+
+	if (minVal < 0 || maxVal >= 0)
+	{
+		length = std::abs(minVal - maxVal);
+	}
+	else if (minVal < 0 && maxVal < 0)
+	{
+		length = std::abs(minVal) - std::abs(maxVal);
+	}
+	else if (minVal >= 0.0 && maxVal >= 0)
+	{
+		length = std::abs(maxVal) - std::abs(minVal);
+	}
+
+	return length;
+}
+
 bin::BinType* iACompUniformBinning::calculateBins(bin::BinType* data, int currData)
 {
 	size_t amountVals = data->at(currData).size();
 
 	if (amountVals == 0)
 	{
+		m_uniformBinningData->setZoomedBinData(nullptr);
 		return nullptr;
 	}
 

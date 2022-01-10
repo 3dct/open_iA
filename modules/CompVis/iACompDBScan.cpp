@@ -17,7 +17,6 @@ void iACompDBScan::calculateBins()
 {
 	//TODO implement DB-Scan Clustering
 
-
 	QList<bin::BinType*>* binData = new QList<bin::BinType*>;  //stores MDS values
 	QList<std::vector<csvDataType::ArrayType*>*>* binDataObjects =
 		new QList<std::vector<csvDataType::ArrayType*>*>;  //stores data of selected objects attributes
@@ -50,7 +49,7 @@ void iACompDBScan::calculateBins()
 	m_dbData->calculateNumberOfObjectsInEachBin(binDataObjects);
 	m_dbData->setBinBoundaries(binningStrategies);
 
-	m_dbData->debugBinDataObjects();
+	//m_dbData->debugBinDataObjects();
 }
 
 bin::BinType* iACompDBScan::calculateBins(bin::BinType* data, int currData)

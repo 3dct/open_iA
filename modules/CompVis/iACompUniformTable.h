@@ -45,8 +45,6 @@ public:
 	void drawHistogramTableAccordingToSimilarity(vtkSmartPointer<vtkActor> referenceData);
 	//draw Histogram table after manual repositioning is finsihed
 	void drawReorderedHistogramTable();
-	//store the drawing coordinates of the bins
-	void storeBinData(int currDataInd, int currentColumn, double offset);
 
 	//draws the selected row and bins
 	//zoomed rows cannot be selected again --> when selected they only disappear
@@ -57,7 +55,7 @@ public:
 
 	//redraw the selected bin(s)/row(s) with a specified amount of bins
 	//selectedBinNumber contains the number of bins that should be drawn for each selected bin in the row(s)
-	void redrawZoomedRow(int selectedBinNumber);
+	void zoomInZoomedRow(int selectedBinNumber);
 
 	void drawPointRepresentation();
 
@@ -82,6 +80,9 @@ public:
 	// and the selected dataset with its object IDs
 	virtual std::tuple<QList<bin::BinType*>*, QList<std::vector<csvDataType::ArrayType*>*>*> getSelectedData(
 		Pick::PickedMap* map) override;
+
+	/****************************************** Recompute Binning **********************************************/
+	void recomputeBinning();
 
 	/******************************************  Getter & Setter  **********************************************/
 	//return the actors representing the original rows
@@ -118,13 +119,15 @@ protected:
 
 private:
 
+	vtkSmartPointer<vtkPolyData> initializeRow(int numberOfBins);
+
 	/******************************************  Rendering  *******************************************/
 	//draw each row from bottom to top --> the higher the column number, the further on the top it is drawn
 	//currDataInd: contains the index to the current datastructure
 	//currentColumn: contains the index at which location it is drawn
 	//amountOfBins: contains the number how many bins are drawn
 	//offset contains: the offset by how much the plane will be drawn above the previous plane
-	vtkSmartPointer<vtkPlaneSource> drawRow(int currDataInd, int currentColumn, int amountOfBins, double offset);
+	vtkSmartPointer<vtkPolyData> drawRow(int currDataInd, int currentColumn, int amountOfBins, double offset);
 
 	//draw the zoomed row beneath its parent row
 	//currDataInd: contains the index to the current datastructure
@@ -132,15 +135,16 @@ private:
 	//amountOfBins: contains the number how many bins are drawn per selected cell in the original plane
 	//currentData is: the data of the selected cell in the original plane
 	//offset contains: the offset by how much the zoomed plane will be drawn above the previous plane
-	std::vector<vtkSmartPointer<vtkPlaneSource>>* drawZoomedRow(int currentColumn, int amountOfBins,
+	std::vector<vtkSmartPointer<vtkPolyData>>* drawZoomedRow(int currentColumn, int amountOfBins,
 		bin::BinType* currentData, double offsetHeight, std::vector<vtkIdType>* cellIdsOriginalPlane);
 	
-	vtkSmartPointer<vtkPlaneSource> drawZoomedPlanes(
+	//draw the individual zoomed row for a cell that was selected in its original row
+	vtkSmartPointer<vtkPolyData> drawZoomedPlane(
 		int bins, double startX, double startY, double endX, double endY, int currBinIndex, bin::BinType* currentData);
 	
 	//draw the line from each selected cell of the original row plane to the zoomed row plane and border the bins in the zoomed row accrodingly
-	void drawLineBetweenRowAndZoomedRow(std::vector<vtkSmartPointer<vtkPlaneSource>>* zoomedRowPlanes,
-		vtkSmartPointer<vtkPlaneSource> originalRowPlane, std::vector<vtkIdType>* cellIdsOriginalPlane);
+	void drawLineBetweenRowAndZoomedRow(std::vector<vtkSmartPointer<vtkPolyData>>* zoomedRowPlanes,
+		vtkSmartPointer<vtkPolyData> originalRowPlane, std::vector<vtkIdType>* cellIdsOriginalPlane);
 	
 	//draw a line from start- to endPoint with a certain color and width
 	vtkSmartPointer<vtkActor> drawLine(double* startPoint, double* endPoint, double lineColor[3], double lineWidth);
@@ -148,8 +152,9 @@ private:
 	
 	//color the planes according to the colors and the amount of elements each bin stores
 	void colorRow(vtkUnsignedCharArray* colors, int currDataset, int numberOfBins);
-	void colorBinsOfRow(vtkUnsignedCharArray* colors, bin::BinType* data, int amountOfBins);
-	void colorRowForZoom(vtkUnsignedCharArray* colors, int currBin, bin::BinType* data, int amountOfBins);
+	void colorBinOfRow(vtkUnsignedCharArray* colors, int position, double numberOfObjectsInBin);
+	void drawZoomForZoomedRow(
+		vtkSmartPointer<vtkActor> zoomedRowActor, int currBin, bin::BinType* data, int amountOfBins);
 
 	//draw a polyline according to specified points with a certain color and width
 	vtkSmartPointer<vtkActor> drawPolyLine(vtkSmartPointer<vtkPoints> points, double lineColor[3], double lineWidth);

@@ -45,8 +45,45 @@ namespace iACompVisOptions
 
 	double histogramNormalization(double value, double newMin, double newMax, double oldMin, double oldMax)
 	{
-		double result = ((newMax - newMin) * ((value - oldMin) / (oldMax - oldMin))) + newMin;
+		//double result = ((newMax - newMin) * ((value - oldMin) / (oldMax - oldMin))) + newMin;
+		double result = newMin + ((value - oldMin) * ((newMax - newMin) / (oldMax - oldMin)));
 		return result;
+	}
+
+	std::vector<double> calculateBinBoundaries(double minVal, double maxVal, int numberOfBins)
+	{
+		double length = computeIntervalLength(minVal, maxVal);
+		double binLength = length / numberOfBins;
+
+		std::vector<double> bins = std::vector<double>();
+
+		for (size_t b = 0; b < numberOfBins; b++)
+		{
+			double lowerBound = minVal + (binLength * b);
+			bins.push_back(lowerBound);
+		}
+
+		return bins;
+	}
+
+	double computeIntervalLength(double minVal, double maxVal)
+	{
+		double length;
+
+		if (minVal < 0 || maxVal >= 0)
+		{
+			length = std::abs(minVal - maxVal);
+		}
+		else if (minVal < 0 && maxVal < 0)
+		{
+			length = std::abs(minVal) - std::abs(maxVal);
+		}
+		else if (minVal >= 0.0 && maxVal >= 0)
+		{
+			length = std::abs(maxVal) - std::abs(minVal);
+		}
+
+		return length;
 	}
 
 	 void getDoubleArray(const unsigned char colors[3], double result[3])

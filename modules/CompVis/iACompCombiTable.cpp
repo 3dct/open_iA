@@ -92,6 +92,11 @@ void iACompCombiTable::drawRow(int currDataInd, int currentColumn, double offset
 	linePoints->InsertNextPoint(min_x, min_y, 0.0);
 	vtkSmartPointer<vtkPolyData> lineData = drawLine(linePoints);
 
+	//draw 4 tick axes
+	double numberOfTicks = 4;
+	drawTicks(numberOfTicks, drawingDimensions);
+
+	//draw curve
 	vtkSmartPointer<vtkPolyData> curveData = this->drawCurve(
 		drawingDimensions, currDataset, getActiveBinPolyData()->at(currentColumn), currDataInd, currentColumn, offset);
 
@@ -102,7 +107,6 @@ void iACompCombiTable::drawRow(int currDataInd, int currentColumn, double offset
 	lineMapper->SetScalarModeToUsePointData();
 	lineMapper->GetInput()->GetPointData()->SetScalars(curveData->GetPointData()->GetArray("colorArray"));
 	lineMapper->InterpolateScalarsBeforeMappingOff();
-	//lineMapper->ScalarVisibilityOn();
 
 	vtkSmartPointer<vtkActor> actor = vtkSmartPointer<vtkActor>::New();
 	actor->SetMapper(lineMapper);

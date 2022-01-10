@@ -86,18 +86,27 @@ void iACompVariableTableInteractorStyle::OnRightButtonDown()
 void iACompVariableTableInteractorStyle::OnMouseWheelForward()
 {
 	iACompTableInteractorStyle::OnMouseWheelForward();
+	
+	//camera zoom
+	bool zoomed = generalZoomIn();
 }
 
 void iACompVariableTableInteractorStyle::OnMouseWheelBackward()
 {
 	iACompTableInteractorStyle::OnMouseWheelBackward();
+	
+	//camera zoom
+	bool zoomed = generalZoomOut();
 }
 
 void iACompVariableTableInteractorStyle::OnKeyPress()
 {
+	iACompTableInteractorStyle::OnKeyPress();
 }
 void iACompVariableTableInteractorStyle::OnKeyRelease()
 {
+	iACompTableInteractorStyle::OnKeyRelease();
+
 	vtkRenderWindowInteractor* interactor = this->GetInteractor();
 	std::string key = interactor->GetKeySym();
 

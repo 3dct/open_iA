@@ -218,3 +218,36 @@ bin::BinType* bin::copyCells(bin::BinType* input, std::vector<vtkIdType>* indexO
 
 	return output;
 }
+
+
+std::vector<double>* bin::getMinimumAndMaximum(bin::BinType* input)
+{
+	std::vector<double>* result = new std::vector<double>();
+
+	double min = INFINITY;
+	double max = -INFINITY;
+
+	for (int i = 0; i < input->size(); i++)
+	{
+		std::vector<double> bin = input->at(i);
+
+		for (int k = 0; k < bin.size(); k++)
+		{
+			double val = bin.at(k);
+			if (min > val)
+			{
+				min = val;
+			}
+
+			if (max < val)
+			{
+				max = val;
+			}
+		}
+	}
+
+	result->push_back(min);
+	result->push_back(max);
+
+	return result;
+}

@@ -36,16 +36,24 @@ void iACompCurveInteractorStyle::OnRightButtonDown()
 void iACompCurveInteractorStyle::OnMouseWheelForward()
 {
 	iACompTableInteractorStyle::OnMouseWheelForward();
+
+	//camera zoom
+	bool zoomed = generalZoomIn();
 }
 void iACompCurveInteractorStyle::OnMouseWheelBackward()
 {
 	iACompTableInteractorStyle::OnMouseWheelBackward();
+
+	//camera zoom
+	bool zoomed = generalZoomOut();
 }
 void iACompCurveInteractorStyle::OnKeyPress()
 {
+	iACompTableInteractorStyle::OnKeyPress();
 }
 void iACompCurveInteractorStyle::OnKeyRelease()
 {
+	iACompTableInteractorStyle::OnKeyRelease();
 }
 
 void iACompCurveInteractorStyle::Pan()
