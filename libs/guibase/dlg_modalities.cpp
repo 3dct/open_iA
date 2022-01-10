@@ -20,15 +20,14 @@
 * ************************************************************************************/
 #include "dlg_modalities.h"
 
-#include "dlg_commoninput.h"
 #include "dlg_modalityProperties.h"
-#include "iAChannelData.h"
 #include "iAChannelSlicerData.h"
 #include "iALog.h"
 #include "iAFast3DMagicLensWidget.h"
 #include "iAModality.h"
 #include "iAModalityList.h"
 #include "iAModalityTransfer.h"
+#include "iAParameterDlg.h"
 #include "iARenderer.h"
 #include "iASlicer.h"
 #include "iAVolumeRenderer.h"
@@ -41,18 +40,12 @@
 #include <QVTKInteractor.h>
 #include <vtkColorTransferFunction.h>
 #include <vtkImageData.h>
-#include <vtkInteractorStyleSwitch.h>
 #include <vtkPiecewiseFunction.h>
 #include <vtkRenderer.h>
-#include <vtkRendererCollection.h>
 #include <vtkRenderWindow.h>
-#include <vtkVolume.h>
 
 #include <QFileDialog>
-#include <QSettings>
 #include <QSignalBlocker>
-
-#include <cassert>
 
 
 dlg_modalities::dlg_modalities(iAFast3DMagicLensWidget* magicLensWidget,
@@ -114,20 +107,18 @@ void dlg_modalities::addClicked()
 	bool split = false;
 	if (CanHaveMultipleChannels(fileName))
 	{
-		QStringList inList;
-		inList << tr("$Split Channels");
-		QList<QVariant> inPara;
-		inPara << tr("%1").arg(true);
-		QString descr("Input file potentially has multiple channels. "
+		iAParameterDlg::ParamListT params;
+		addParameter(params, "Split Channels", iAValueType::Boolean, true);
+		iAParameterDlg dlg(this, "Multi-channel input", params,
+			"Input file potentially has multiple channels. "
 			"Should they be split into separate datasets, "
 			"or kept as one dataset with multiple components ?");
-		dlg_commoninput splitInput(this, "Multi-channel input", inList, inPara, descr);
-		if (splitInput.exec() != QDialog::Accepted)
+		if (dlg.exec() != QDialog::Accepted)
 		{
 			LOG(lvlInfo, "Aborted by user.");
 			return;
 		}
-		split = splitInput.getCheckValue(0);
+		split = dlg.parameterValues()["Split Channels"].toBool();
 	}
 	ModalityCollection mods = iAModalityList::load(fileName, "", -1, split, DefaultRenderFlags);
 	for (auto mod : mods)
@@ -423,7 +414,7 @@ void dlg_modalities::configureInterActorStyles(QSharedPointer<iAModality> editMo
 	//intialize slicers and 3D interactor for registration
 	for (int i = 0; i <= iASlicerMode::SlicerCount; ++i)
 	{
-		m_manualMoveStyle[i]->initialize(img, volRend, props, i, m_mdiChild);
+		m_manualMoveStyle[i]->initialize(img, volRend, props, i);
 	}
 }
 
@@ -488,7 +479,8 @@ void dlg_modalities::setChecked(QListWidgetItem* item, Qt::CheckState checked)
 	setModalityVisibility(mod, checked == Qt::Checked);
 }
 
-void dlg_modalities::setModalityVisibility(QSharedPointer<iAModality> mod, bool visible) {
+void dlg_modalities::setModalityVisibility(QSharedPointer<iAModality> mod, bool visible)
+{
 	QSharedPointer<iAVolumeRenderer> renderer = mod->renderer();
 	if (!renderer)
 	{
@@ -496,6 +488,7 @@ void dlg_modalities::setModalityVisibility(QSharedPointer<iAModality> mod, bool 
 	}
 	renderer->showVolume(visible);
 	m_mainRenderer->GetRenderWindow()->Render();
+	emit modalityVisibilityChanged(visible);
 }
 
 QSharedPointer<iAModalityList const> dlg_modalities::modalities() const

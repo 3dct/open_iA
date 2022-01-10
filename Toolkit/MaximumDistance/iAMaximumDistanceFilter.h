@@ -55,8 +55,8 @@ public:
 	//! @param lowIntensity taken as the range to calculate the low intensity.
 	void SetCentre(double lowIntensity);
 
-	//! Set number of values in a histogram bin.
-	//! @param bin the number of values in a histogram bin.
+	//! Set the width of a bin in the histogram.
+	//! @param binWidth the width of a bin in the histogram.
 	void SetBinWidth(double binWidth);
 
 	//! Get maximum distance threshold.

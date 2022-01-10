@@ -1,4 +1,4 @@
-SET (Uncertainty_PRECOMPILE_INCLUDES <iAConnector.h>
+set(Uncertainty_PRECOMPILE_INCLUDES <iAConnector.h>
 <iAEnsemble.h>
 <iAEnsembleDescriptorFile.h>
 <iALog.h>

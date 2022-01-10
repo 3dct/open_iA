@@ -22,7 +22,6 @@
 
 // iA
 #include "iA4DCTData.h"
-#include "qthelper/iAQTtoUIConnector.h"
 #include "ui_iA4DCTMainWin.h"
 // Qt
 #include <QMainWindow>
@@ -37,7 +36,7 @@ class iA4DCTMainWin : public QMainWindow, public Ui::iA4DMainWin
 	Q_OBJECT
 
 public:
-								iA4DCTMainWin( iAMainWindow* parent = 0 );
+								iA4DCTMainWin(iAMainWindow* parent = nullptr);
 								~iA4DCTMainWin( );
 	void						load( QString path );
 	void						save( QString path );

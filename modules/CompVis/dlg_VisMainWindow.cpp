@@ -3,7 +3,6 @@
 //iA
 #include "iAMainWindow.h"
 #include "iACompVisMain.h"
-#include "iAMdiChild.h"
 
 dlg_VisMainWindow::dlg_VisMainWindow(iACsvDataStorage* dataStorage, iAMultidimensionalScaling* mds, iAMainWindow* parent, iACompVisMain* main, bool computeMDSFlag) :
 	QMainWindow(parent), 

@@ -32,10 +32,12 @@
 #include "iAPaintWidget.h"
 #include "iAStabilityWidget.h"
 
-#include <iAPlotTypes.h>
 #include <iAChartWidget.h>
 #include <iAHistogramData.h>
-#include <iAVtkWidget.h>
+#include <iAPlotTypes.h>
+
+#include <iAQVTKWidget.h>
+
 #include <iAFileUtils.h>
 
 #include <itkMacro.h>    // for itk::ExceptionObject
@@ -735,16 +737,16 @@ void iADreamCaster::RenderViewsSlot()
 		{
 			if(isStopped)
 			{
-				if(s1_o) delete [] s1_o;
-				if(corners) delete [] corners;
-				if(dxs) delete [] dxs;
-				if(dys) delete [] dys;
-				if(xs) delete [] xs;
-				if(ys) delete [] ys;
-				if(zs) delete [] zs;
-				if(rotsX) delete [] rotsX;
-				if(rotsY) delete [] rotsY;
-				if(rotsZ) delete [] rotsZ;
+				delete [] s1_o;
+				delete [] corners;
+				delete [] dxs;
+				delete [] dys;
+				delete [] xs;
+				delete [] ys;
+				delete [] zs;
+				delete [] rotsX;
+				delete [] rotsY;
+				delete [] rotsZ;
 
 				return;
 			}
@@ -877,16 +879,16 @@ void iADreamCaster::RenderViewsSlot()
 				batch_counter=0;
 			}
 		}
-		if(s1_o) delete [] s1_o;
-		if(corners) delete [] corners;
-		if(dxs) delete [] dxs;
-		if(dys) delete [] dys;
-		if(xs) delete [] xs;
-		if(ys) delete [] ys;
-		if(zs) delete [] zs;
-		if(rotsX) delete [] rotsX;
-		if(rotsY) delete [] rotsY;
-		if(rotsZ) delete [] rotsZ;
+		delete [] s1_o;
+		delete [] corners;
+		delete [] dxs;
+		delete [] dys;
+		delete [] xs;
+		delete [] ys;
+		delete [] zs;
+		delete [] rotsX;
+		delete [] rotsY;
+		delete [] rotsZ;
 
 		totalTime = totalQTime.elapsed();//GetTickCount() - totalStart;
 		char t2[] = "00:00.000";

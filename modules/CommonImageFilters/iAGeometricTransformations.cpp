@@ -27,7 +27,6 @@
 #include <iATypedCallHelper.h>
 
 #include <itkBSplineInterpolateImageFunction.h>
-#include <itkChangeInformationImageFilter.h>
 #include <itkConstantPadImageFilter.h>
 #include <itkImageIOBase.h>
 #include <itkNearestNeighborInterpolateImageFunction.h>
@@ -47,20 +46,17 @@ namespace
 
 template<typename T> void simpleResampler(iAFilter* filter, QMap<QString, QVariant> const & parameters)
 {
-
 	double VoxelScale = 0.999; //Used because otherwise is a one voxel border with 0
+	auto inImg = filter->input()[0]->itkImage();
+	auto inSize = filter->input()[0]->vtkImage()->GetDimensions();
 
 	typedef itk::Image<T, DIM> InputImageType;
 	typedef itk::ResampleImageFilter<InputImageType, InputImageType> ResampleFilterType;
 	auto resampler = ResampleFilterType::New();
-	typename ResampleFilterType::OriginPointType origin;
-	origin[0] = filter->input()[0]->itkImage()->GetOrigin()[0];
-	origin[1] = filter->input()[0]->itkImage()->GetOrigin()[1];
-	origin[2] = filter->input()[0]->itkImage()->GetOrigin()[2];
 	typename ResampleFilterType::SpacingType spacing;
-	spacing[0] = filter->input()[0]->itkImage()->GetSpacing()[0] * ((double)filter->input()[0]->vtkImage()->GetDimensions()[0] / parameters["Size X"].toDouble() * VoxelScale);
-	spacing[1] = filter->input()[0]->itkImage()->GetSpacing()[1] * ((double)filter->input()[0]->vtkImage()->GetDimensions()[1] / parameters["Size Y"].toDouble() * VoxelScale);
-	spacing[2] = filter->input()[0]->itkImage()->GetSpacing()[2] * ((double)filter->input()[0]->vtkImage()->GetDimensions()[2] / parameters["Size Z"].toDouble() * VoxelScale);
+	spacing[0] = inImg->GetSpacing()[0] * (static_cast<double>(inSize[0]) / parameters["Size X"].toDouble() * VoxelScale);
+	spacing[1] = inImg->GetSpacing()[1] * (static_cast<double>(inSize[1]) / parameters["Size Y"].toDouble() * VoxelScale);
+	spacing[2] = inImg->GetSpacing()[2] * (static_cast<double>(inSize[2]) / parameters["Size Z"].toDouble() * VoxelScale);
 	typename ResampleFilterType::SizeType size;
 	size[0] = parameters["Size X"].toUInt();
 	size[1] = parameters["Size Y"].toUInt();
@@ -96,8 +92,8 @@ template<typename T> void simpleResampler(iAFilter* filter, QMap<QString, QVaria
 		auto interpolator = InterpolatorType::New();
 		resampler->SetInterpolator(interpolator);
 	}
-	resampler->SetInput( dynamic_cast< InputImageType * >(filter->input()[0]->itkImage() ) );
-	resampler->SetOutputOrigin( origin );
+	resampler->SetInput(dynamic_cast<InputImageType*>(inImg));
+	resampler->SetOutputOrigin(inImg->GetOrigin());
 	resampler->SetOutputSpacing( spacing );
 	resampler->SetSize( size );
 	resampler->SetDefaultPixelValue( 0 );

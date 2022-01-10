@@ -5,8 +5,7 @@
 
 //iA
 #include "iAMainWindow.h"
-#include "iAVtkVersion.h"
-#include "iAVtkWidget.h"
+
 
 //vtk
 
@@ -101,6 +100,7 @@ iACompBoxPlot::iACompBoxPlot(iAMainWindow* parent, iACsvDataStorage* dataStorage
 	m_view->SetRenderWindow(m_qvtkWidget->renderWindow());
 	m_view->SetInteractor(m_qvtkWidget->interactor());
 }
+
 
 void iACompBoxPlot::initializeChart()
 {

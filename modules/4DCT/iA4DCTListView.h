@@ -24,7 +24,6 @@
 #include "iA4DCTFileData.h"
 // Qt
 #include <QListView>
-#include <QList>
 
 class QMenu;
 class iAStageView;

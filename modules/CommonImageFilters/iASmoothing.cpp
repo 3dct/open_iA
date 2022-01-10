@@ -39,9 +39,6 @@
 // now defined via CMake option:
 //#define CL_TARGET_OPENCL_VERSION 110
 #include <itkGPUImage.h>
-#include <itkGPUKernelManager.h>
-#include <itkGPUContextManager.h>
-#include <itkGPUImageToImageFilter.h>
 #include <itkGPUGradientAnisotropicDiffusionImageFilter.h>
 #if ITK_VERSION_NUMBER >= ITK_VERSION_CHECK(5, 1, 0)
 // split into a separate file starting with ITK 5.1 (previously included in itkGPUGradientAnisotropicDiffusionImageFilter.h)

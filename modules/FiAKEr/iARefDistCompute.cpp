@@ -520,7 +520,7 @@ bool iARefDistCompute::readResultRefComparison(QFile& cacheFile, size_t resultID
 			if (!m_data->m_measures.contains(m))
 			{
 				m_data->m_measures.push_back(m);
-				m_measuresToCompute.push_back(std::make_pair(m, false));
+				m_measuresToCompute.push_back(std::make_pair(static_cast<int>(m), false));
 			}
 		}
 		first = false;

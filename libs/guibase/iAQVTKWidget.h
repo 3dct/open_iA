@@ -18,9 +18,31 @@
 * Contact: FH OÖ Forschungs & Entwicklungs GmbH, Campus Wels, CT-Gruppe,              *
 *          Stelzhamerstraße 23, 4600 Wels / Austria, Email: c.heinzl@fh-wels.at       *
 * ************************************************************************************/
-#include "iAcharts_export.h"
+#pragma once
 
-#include <QColor>
+#include "iAguibase_export.h"
 
-// define preset colors for functions
-iAcharts_API QColor * FunctionColors();
+#include <iAVtkVersion.h>    // required for VTK < 9.0
+
+#if (VTK_VERSION_NUMBER >= VTK_VERSION_CHECK(8, 2, 0))
+	#include <QVTKOpenGLNativeWidget.h>
+	using iAVtkWidget = QVTKOpenGLNativeWidget;
+#else
+	#include <QVTKOpenGLWidget.h>
+	using iAVtkWidget = QVTKOpenGLWidget;
+#endif
+
+//! Unified interface to a Qt widget with VTK content, providing consistent usage for VTK versions 8 to 9.
+class iAguibase_API iAQVTKWidget: public iAVtkWidget
+{
+public:
+	//! Creates the widget; makes sure its inner vtk render window is set, and sets an appropriate surface format
+	iAQVTKWidget(QWidget* parent = nullptr);
+#if VTK_VERSION_NUMBER < VTK_VERSION_CHECK(9, 0, 0)
+	//! access to VTK render window (compatibility method to VTK 9 for VTK 8)
+	vtkRenderWindow* renderWindow();
+	//! access to VTK interactor (compatibility method to provide same interface as VTK 9, when using VTK 8)
+	QVTKInteractor* interactor();
+#endif
+	void updateAll();
+};

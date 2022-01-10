@@ -28,10 +28,9 @@
 #include <iAJobListView.h>
 #include <iAModalityTransfer.h>
 #include <iAMultiStepProgressObserver.h>
+#include <iAQVTKWidget.h>
 #include <iARunAsync.h>
 #include <iAMdiChild.h>
-#include <qthelper/iAQTtoUIConnector.h>
-#include <iAVtkWidget.h>
 
 #include <iAChartWithFunctionsWidget.h>
 
@@ -70,31 +69,22 @@
 #include <QStandardItem>
 #include <QFileDialog>
 
-typedef iAQTtoUIConnector<QDialog, Ui_MOTFView> iAUIMeanObjectTFView;
-typedef iAQTtoUIConnector<QDockWidget, Ui_FeatureScoutMO> iAUIMeanObjectDockWidget;
-
-class iAMeanObjectTFView : public iAUIMeanObjectTFView
+class iAMeanObjectTFView : public QDialog, public Ui_MOTFView
 {
 public:
-#if QT_VERSION < QT_VERSION_CHECK(5, 15, 0)
-	iAMeanObjectTFView(QWidget* parent = nullptr, Qt::WindowFlags f = 0)
-#else
-	iAMeanObjectTFView(QWidget* parent = nullptr, Qt::WindowFlags f = Qt::WindowFlags())
-#endif
-	: iAUIMeanObjectTFView(parent, f)
-	{}
+	iAMeanObjectTFView(QWidget* parent = nullptr) : QDialog(parent)
+	{
+		setupUi(this);
+	}
 };
 
-class iAMeanObjectDockWidget : public iAUIMeanObjectDockWidget
+class iAMeanObjectDockWidget : public QDockWidget, public Ui_FeatureScoutMO
 {
 public:
-#if QT_VERSION < QT_VERSION_CHECK(5, 15, 0)
-	iAMeanObjectDockWidget(QWidget* parent = nullptr, Qt::WindowFlags f = 0)
-#else
-	iAMeanObjectDockWidget(QWidget* parent = nullptr, Qt::WindowFlags f = Qt::WindowFlags())
-#endif
-	: iAUIMeanObjectDockWidget(parent, f)
-	{}
+	iAMeanObjectDockWidget(QWidget* parent = nullptr) : QDockWidget(parent)
+	{
+		setupUi(this);
+	}
 };
 
 class iAMeanObjectData
@@ -233,10 +223,10 @@ void iAMeanObject::render(QStringList const & classNames, QList<vtkSmartPointer<
 
 	for (int currClass = 1; currClass < classCount; ++currClass)
 	{
-		std::map<int, int>* meanObjectIds = new std::map<int, int>();
+		std::map<int, int> meanObjectIds;
 		for (int j = 0; j < tableList[currClass]->GetNumberOfRows(); ++j)
 		{
-			meanObjectIds->operator[](tableList[currClass]->GetValue(j, 0).ToInt()) =
+			meanObjectIds[tableList[currClass]->GetValue(j, 0).ToInt()] =
 				tableList[currClass]->GetValue(j, 0).ToFloat();
 		}
 
@@ -256,7 +246,7 @@ void iAMeanObject::render(QStringList const & classNames, QList<vtkSmartPointer<
 
 		int progress = 0;
 		std::map<int, int>::const_iterator it;
-		for (it = meanObjectIds->begin(); it != meanObjectIds->end(); ++it)
+		for (it = meanObjectIds.begin(); it != meanObjectIds.end(); ++it)
 		{
 			mask->SetLabel(it->first);
 			mask->Update();
@@ -282,7 +272,7 @@ void iAMeanObject::render(QStringList const & classNames, QList<vtkSmartPointer<
 			addImage = addFilter->GetOutput();
 
 			double percentage = round((currClass - 1) * 100.0 / (classCount - 1) +
-				(progress + 1.0) * (100.0 / (classCount - 1)) / meanObjectIds->size());
+				(progress + 1.0) * (100.0 / (classCount - 1)) / meanObjectIds.size());
 			p.emitProgress(percentage);
 			QCoreApplication::processEvents();
 			++progress;
@@ -298,7 +288,7 @@ void iAMeanObject::render(QStringList const & classNames, QList<vtkSmartPointer<
 		casterIteratorType casterImgIt(caster->GetOutput(), caster->GetOutput()->GetLargestPossibleRegion());
 		for (casterImgIt.GoToBegin(); !casterImgIt.IsAtEnd(); ++casterImgIt)
 		{
-			casterImgIt.Set(casterImgIt.Get() / meanObjectIds->size());
+			casterImgIt.Set(casterImgIt.Get() / meanObjectIds.size());
 		}
 
 		// Convert resulting MObject ITK image to an VTK image

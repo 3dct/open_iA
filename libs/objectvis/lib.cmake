@@ -1,5 +1,5 @@
-TARGET_LINK_LIBRARIES(${libname} PUBLIC	iAbase)
-SET( VTK_REQUIRED_LIBS_PRIVATE
+target_link_libraries(${libname} PUBLIC	iA::base)
+set(VTK_REQUIRED_LIBS_PRIVATE
 	FiltersModeling         # for vtkOutlineFilter
 )
 # for VTK < 9 we have to use VTK_USE_FILE anyway for module autoinitialization

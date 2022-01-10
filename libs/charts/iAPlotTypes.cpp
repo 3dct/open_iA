@@ -29,14 +29,12 @@
 #include <QPainterPath>
 #include <QPolygon>
 
-#include <cmath>
-
 // iAPlot
 
 iAPlot::iAPlot(QSharedPointer<iAPlotData> data, QColor const & color):
-	iAColorable(color),
 	m_data(data),
-	m_visible(true)
+	m_visible(true),
+	m_color(color)
 {}
 
 iAPlot::~iAPlot() {}
@@ -56,6 +54,16 @@ void iAPlot::setVisible(bool visible)
 	m_visible = visible;
 }
 
+void iAPlot::setColor(QColor const& color)
+{
+	m_color = color;
+}
+
+QColor const iAPlot::color() const
+{
+	return m_color;
+}
+
 // iASelectedBinPlot
 
 iASelectedBinPlot::iASelectedBinPlot(QSharedPointer<iAPlotData> proxyData, size_t idx /*= 0*/, QColor const & color /*= Qt::red */ ) :
@@ -71,7 +79,7 @@ void iASelectedBinPlot::draw(QPainter& painter, size_t startIdx, size_t endIdx, 
 	int x = xMapper.srcToDst(m_data->xValue(m_idx));
 	int barWidth = xMapper.srcToDst(m_data->xValue(m_idx + 1)) - x;
 	int h = painter.device()->height();
-	painter.setPen(getColor());
+	painter.setPen(color());
 	painter.drawRect(QRect(x, 0, barWidth, h));
 }
 
@@ -119,7 +127,7 @@ void iALinePlot::draw(QPainter& painter, size_t startIdx, size_t endIdx, iAMappe
 	buildLinePolygon(poly, m_data, startIdx, endIdx, xMapper, yMapper);
 	QPen pen(painter.pen());
 	pen.setWidth(m_lineWidth);
-	pen.setColor(getColor());
+	pen.setColor(color());
 	painter.setPen(pen);
 	painter.drawPolyline(poly);
 }
@@ -132,8 +140,7 @@ iAFilledLinePlot::iAFilledLinePlot(QSharedPointer<iAPlotData> data, QColor const
 
 QColor iAFilledLinePlot::getFillColor() const
 {
-	QColor fillColor = getColor();
-	return fillColor;
+	return color();
 }
 
 void iAFilledLinePlot::draw(QPainter& painter, size_t startIdx, size_t endIdx, iAMapper const & xMapper, iAMapper const & yMapper) const
@@ -161,8 +168,8 @@ iAStepFunctionPlot::iAStepFunctionPlot(QSharedPointer<iAPlotData> data, QColor c
 
 QColor iAStepFunctionPlot::getFillColor() const
 {
-	QColor fillColor = getColor();
-	fillColor.setAlpha(getColor().alpha() / 3);
+	QColor fillColor = color();
+	fillColor.setAlpha(color().alpha() / 3);
 	return fillColor;
 }
 
@@ -193,7 +200,7 @@ iABarGraphPlot::iABarGraphPlot(QSharedPointer<iAPlotData> data, QColor const & c
 
 void iABarGraphPlot::draw(QPainter& painter, size_t startIdx, size_t endIdx, iAMapper const & xMapper, iAMapper const & yMapper) const
 {
-	QColor fillColor = getColor();
+	QColor fillColor = color();
 	for (size_t idx = startIdx; idx <= endIdx; ++idx)
 	{
 		int x = xMapper.srcToDst(m_data->xValue(idx));
@@ -269,7 +276,7 @@ QSharedPointer<iAPlotData> iAPlotCollection::data()
 
 void iAPlotCollection::setColor(QColor const & color)
 {
-	iAColorable::setColor(color);
+	iAPlot::setColor(color);
 	for (auto drawer : m_drawers)
 	{
 		drawer->setColor(color);

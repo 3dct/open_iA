@@ -22,12 +22,11 @@
 
 #include "iAguibase_export.h"
 
-class vtkPoints;
+#include <vtkSmartPointer.h>
+
 class vtkActor;
 class vtkPolyDataMapper;
 class vtkLineSource;
-
-#include <vtkSmartPointer.h>
 
 //! Collection of vtk classes required for displaying a line segment.
 struct iAguibase_API iALineSegment

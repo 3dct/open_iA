@@ -21,8 +21,6 @@
 #pragma once
 
 // Qt
-#include <QMap>
-#include <QPixmap>
 #include <QLabel>
 
 class iAPreview : public QLabel

@@ -1,5 +1,3 @@
-# Doxyfile 1.8.3.1
-
 # This file describes the settings to be used by the documentation system
 # doxygen (www.doxygen.org) for a project
 #
@@ -206,13 +204,6 @@ TAB_SIZE               = 4
 # You can put \n's in the value part of an alias to insert newlines.
 
 ALIASES                = 
-
-# This tag can be used to specify a number of word-keyword mappings (TCL only). 
-# A mapping has the form "name=value". For example adding 
-# "class=itcl::class" will allow you to use the command class in the 
-# itcl::class meaning.
-
-TCL_SUBST              = 
 
 # Set the OPTIMIZE_OUTPUT_FOR_C tag to YES if your project consists of C 
 # sources only. Doxygen will then generate output that is more tailored for C. 
@@ -486,7 +477,7 @@ SORT_BRIEF_DOCS        = YES
 # This tag will be ignored for brief docs if SORT_BRIEF_DOCS is set to NO 
 # and ignored for detailed docs if SORT_MEMBER_DOCS is set to NO.
 
-SORT_MEMBERS_CTORS_1ST = NO
+SORT_MEMBERS_CTORS_1ST = YES
 
 # If the SORT_GROUP_NAMES tag is set to YES then doxygen will sort the 
 # hierarchy of group names into alphabetical order. If set to NO (the default) 
@@ -661,7 +652,7 @@ WARN_LOGFILE           =
 # directories like "/usr/src/myproject". Separate the files or directories 
 # with spaces.
 
-INPUT                  = doxy-main.md core Toolkit
+INPUT                  = doxy-main.md libs Toolkit
 # modules gui
 
 # This tag can be used to specify the character encoding of the source files 
@@ -728,9 +719,7 @@ RECURSIVE              = YES
 # Note that relative paths are relative to the directory from which doxygen is 
 # run.
 
-EXCLUDE                = core/PyQSS.py core/PyQSS_ALA.py \
-                         core/src/charts/qcustomplot.cpp \
-                         core/src/charts/qcustomplot.h
+EXCLUDE                = libs/charts/qcustomplot.cpp libs/charts/qcustomplot.h
 
 # The EXCLUDE_SYMLINKS tag can be used to select whether or not files or 
 # directories that are symbolic links (a Unix file system feature) are excluded 
@@ -884,12 +873,6 @@ VERBATIM_HEADERS       = NO
 # contains a lot of classes, structs, unions or interfaces.
 
 ALPHABETICAL_INDEX     = YES
-
-# If the alphabetical index is enabled (see ALPHABETICAL_INDEX) then 
-# the COLS_IN_ALPHA_INDEX tag can be used to specify the number of columns 
-# in which this list will be split (can be a number in the range [1..20])
-
-COLS_IN_ALPHA_INDEX    = 1
 
 # In case all classes in a project start with a common prefix, all 
 # classes will be put under the same header in the alphabetical index. 
@@ -1397,13 +1380,6 @@ LATEX_BATCHMODE        = NO
 
 LATEX_HIDE_INDICES     = NO
 
-# If LATEX_SOURCE_CODE is set to YES then doxygen will include 
-# source code with syntax highlighting in the LaTeX output. 
-# Note that which sources are shown also depends on other settings 
-# such as SOURCE_BROWSER.
-
-LATEX_SOURCE_CODE      = NO
-
 # The LATEX_BIB_STYLE tag can be used to specify the style to use for the 
 # bibliography, e.g. plainnat, or ieeetr. The default style is "plain". See 
 # http://en.wikipedia.org/wiki/BibTeX for more info.
@@ -1724,7 +1700,7 @@ GROUP_GRAPHS           = YES
 # collaboration diagrams in a style similar to the OMG's Unified Modeling 
 # Language.
 
-UML_LOOK               = YES
+UML_LOOK               = NO
 
 # If the UML_LOOK tag is enabled, the fields and methods are shown inside 
 # the class node. If there are many fields or methods and many nodes the 
@@ -1745,14 +1721,14 @@ TEMPLATE_RELATIONS     = NO
 # file showing the direct and indirect include dependencies of the file with 
 # other documented files.
 
-INCLUDE_GRAPH          = YES
+INCLUDE_GRAPH          = NO
 
 # If the ENABLE_PREPROCESSING, SEARCH_INCLUDES, INCLUDED_BY_GRAPH, and 
 # HAVE_DOT tags are set to YES then doxygen will generate a graph for each 
 # documented header file showing the documented files that directly or 
 # indirectly include this file.
 
-INCLUDED_BY_GRAPH      = YES
+INCLUDED_BY_GRAPH      = NO
 
 # If the CALL_GRAPH and HAVE_DOT options are set to YES then 
 # doxygen will generate a call dependency graph for every global function 

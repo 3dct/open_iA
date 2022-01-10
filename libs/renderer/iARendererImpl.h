@@ -31,7 +31,6 @@
 
 #include <QObject>
 
-#include <set>
 #include <vector>
 
 struct iALineSegment;

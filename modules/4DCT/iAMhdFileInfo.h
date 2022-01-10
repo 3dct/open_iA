@@ -21,7 +21,6 @@
 #pragma once
 
 // Qt
-#include <QString>
 #include <QFile>
 
 class iAMhdFileInfo

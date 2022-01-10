@@ -1,8 +1,8 @@
-SET( DEPENDENCIES_LIBRARIES
-	iAguibase
-	iAqthelper
+set(DEPENDENCIES_LIBRARIES
+	iA::guibase
+	iA::qthelper
 )
-#SET( DEPENDENCIES_ITK_MODULES
+#set(DEPENDENCIES_ITK_MODULES
 #	ITKAnisotropicSmoothing    # for GradientAnisotropicDiffusionImageFilter
 #	ITKDenoising               # for PatchBasedDenoisingBaseImageFilter
 #	ITKDistanceMap             # for itkDanielssonDistanceMapImageFilter

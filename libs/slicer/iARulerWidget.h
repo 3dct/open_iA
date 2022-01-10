@@ -30,7 +30,7 @@ class iARulerWidget : public vtkBorderWidget
 public:
   static iARulerWidget *New();
   vtkTypeMacro(iARulerWidget, vtkBorderWidget);
-  void PrintSelf(ostream& os, vtkIndent indent) override;
+  void PrintSelf(std::ostream& os, vtkIndent indent) override;
 
   //! Specify an instance of vtkWidgetRepresentation used to represent this
   //! widget in the scene. Note that the representation is a subclass of vtkProp

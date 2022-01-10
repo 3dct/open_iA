@@ -20,8 +20,9 @@
 * ************************************************************************************/
 #include "dlg_datatypeconversion.h"
 
-#include "iAVtkWidget.h"
-#include "io/iARawFileParameters.h"
+// guibase
+#include <iAQVTKWidget.h>
+#include <io/iARawFileParameters.h>
 
 // charts
 #include <iAChartWidget.h>
@@ -36,7 +37,6 @@
 #include <iAToolsVTK.h>
 #include <iATransferFunction.h>    // for GetDefault... functions
 #include <iATypedCallHelper.h>
-#include <iAVtkVersion.h>
 
 #include <itkChangeInformationImageFilter.h>
 #include <itkExtractImageFilter.h>
@@ -44,14 +44,12 @@
 #include <itkNormalizeImageFilter.h>
 #include <itkRescaleIntensityImageFilter.h>
 
-#include <vtkColorTransferFunction.h>
+#include <vtkColorTransferFunction.h>    // required for Linux build
 #include <vtkImageActor.h>
 #include <vtkImageData.h>
 #include <vtkImageMapper3D.h>
 #include <vtkImageMapToColors.h>
 #include <vtkInteractorStyleImage.h>
-#include <vtkMatrix4x4.h>
-#include <vtkMetaImageWriter.h>
 #include <vtkPlaneSource.h>
 #include <vtkPolyDataMapper.h>
 #include <vtkProperty.h>
@@ -60,11 +58,14 @@
 
 #include <QCheckBox>
 #include <QComboBox>
+#include <QDialogButtonBox>
+#include <QHBoxLayout>
 #include <QLabel>
 #include <QLineEdit>
 #include <QList>
 #include <QStringList>
 #include <QVariant>
+#include <QVBoxLayout>
 
 namespace
 {
@@ -174,13 +175,6 @@ template <class T> void extractSliceImage(typename itk::Image<T, 3>::Pointer itk
 
 	image->setImage(rescalefilter->GetOutput());
 	image->modified();
-
-	// DEBUG:
-	//vtkSmartPointer<vtkMetaImageWriter> metaImageWriter = vtkSmartPointer<vtkMetaImageWriter>::New();
-	//metaImageWriter->SetFileName("xyimage.mhd");
-	//metaImageWriter->SetInputData(xyconvertimage->vtkImage());
-	//metaImageWriter->SetCompression(0);
-	//metaImageWriter->Write();
 }
 
 template<class T> void DataTypeConversion_template(QString const & filename, iARawFileParameters const & p, unsigned int zSkip, size_t numBins,
@@ -408,7 +402,7 @@ QVBoxLayout* setupSliceWidget(iAQVTKWidget* &widget, vtkSmartPointer<vtkPlaneSou
 dlg_datatypeconversion::dlg_datatypeconversion(QWidget *parent, QString const & filename, iARawFileParameters const & p,
 	unsigned int zSkip, size_t numBins, double* inPara) : QDialog (parent)
 {
-	setupUi(this);
+	setLayout(new QVBoxLayout());
 
 	m_roiimage = new iAConnector();
 	m_xyimage = new iAConnector();
@@ -440,7 +434,7 @@ dlg_datatypeconversion::dlg_datatypeconversion(QWidget *parent, QString const & 
 	hboxlayout->addLayout(xzboxlayout);
 	hboxlayout->addLayout(yzboxlayout);
 
-	verticalLayout->addLayout(hboxlayout);
+	qobject_cast<QVBoxLayout*>(layout())->addLayout(hboxlayout);
 
 	//data entry
 	QLabel *label5 = new QLabel("Output Datatype", this);
@@ -456,7 +450,7 @@ dlg_datatypeconversion::dlg_datatypeconversion(QWidget *parent, QString const & 
 	hbox0->addWidget(cbDataType);
 	hbox0->addWidget(chConvertROI);
 	//hbox0->addWidget(chUseMaxDatatypeRange);
-	verticalLayout->addLayout(hbox0);
+	qobject_cast<QVBoxLayout*>(layout())->addLayout(hbox0);
 
 	QLabel *label1 = new QLabel("Lower Range", this);
 	label1->setMinimumWidth(50);
@@ -473,7 +467,7 @@ dlg_datatypeconversion::dlg_datatypeconversion(QWidget *parent, QString const & 
 	hbox1->addWidget(leRangeLower);
 	hbox1->addWidget(label2);
 	hbox1->addWidget(leRangeUpper);
-	verticalLayout->addLayout(hbox1);
+	qobject_cast<QVBoxLayout*>(layout())->addLayout(hbox1);
 
 	QLabel *label3 = new QLabel("Minimum Output Value", this);
 	label3->setMinimumWidth(50);
@@ -490,7 +484,7 @@ dlg_datatypeconversion::dlg_datatypeconversion(QWidget *parent, QString const & 
 	hbox2->addWidget(leOutputMin);
 	hbox2->addWidget(label4);
 	hbox2->addWidget(leOutputMax);
-	verticalLayout->addLayout(hbox2);
+	qobject_cast<QVBoxLayout*>(layout())->addLayout(hbox2);
 
 	QLabel *label6 = new QLabel("X Origin", this);
 	label6->setMinimumWidth(50);
@@ -509,7 +503,7 @@ dlg_datatypeconversion::dlg_datatypeconversion(QWidget *parent, QString const & 
 	hbox3->addWidget(leXOrigin);
 	hbox3->addWidget(label7);
 	hbox3->addWidget(leXSize);
-	verticalLayout->addLayout(hbox3);
+	qobject_cast<QVBoxLayout*>(layout())->addLayout(hbox3);
 
 	QLabel *label8 = new QLabel("Y Origin", this);
 	label8->setMinimumWidth(50);
@@ -528,7 +522,7 @@ dlg_datatypeconversion::dlg_datatypeconversion(QWidget *parent, QString const & 
 	hbox4->addWidget(leYOrigin);
 	hbox4->addWidget(label9);
 	hbox4->addWidget(leYSize);
-	verticalLayout->addLayout(hbox4);
+	qobject_cast<QVBoxLayout*>(layout())->addLayout(hbox4);
 
 	QLabel *label10 = new QLabel("Z Origin", this);
 	label10->setMinimumWidth(50);
@@ -547,18 +541,24 @@ dlg_datatypeconversion::dlg_datatypeconversion(QWidget *parent, QString const & 
 	hbox5->addWidget(leZOrigin);
 	hbox5->addWidget(label11);
 	hbox5->addWidget(leZSize);
-	verticalLayout->addLayout(hbox5);
+	qobject_cast<QVBoxLayout*>(layout())->addLayout(hbox5);
 
 	updatevalues( inPara );
 
-	verticalLayout->addWidget(buttonBox);
+	auto buttonBox = new QDialogButtonBox();
+	buttonBox->setStandardButtons(QDialogButtonBox::Cancel | QDialogButtonBox::Ok);
+	qobject_cast<QVBoxLayout*>(layout())->addWidget(buttonBox);
 
+	connect(buttonBox, &QDialogButtonBox::accepted, this, &QDialog::accept);
+	connect(buttonBox, &QDialogButtonBox::rejected, this, &QDialog::reject);
 	connect(leXOrigin, &QLineEdit::textChanged, this, &dlg_datatypeconversion::update);
 	connect(leXSize,   &QLineEdit::textChanged, this, &dlg_datatypeconversion::update);
 	connect(leYOrigin, &QLineEdit::textChanged, this, &dlg_datatypeconversion::update);
 	connect(leYSize,   &QLineEdit::textChanged, this, &dlg_datatypeconversion::update);
 	connect(leZOrigin, &QLineEdit::textChanged, this, &dlg_datatypeconversion::update);
 	connect(leZSize,   &QLineEdit::textChanged, this, &dlg_datatypeconversion::update);
+
+	setWindowTitle("Open with datatype conversion");
 }
 
 dlg_datatypeconversion::~dlg_datatypeconversion()
@@ -592,7 +592,7 @@ void dlg_datatypeconversion::createHistogram(iAPlotData::DataType* histbinlist, 
 	chart->addPlot(QSharedPointer<iABarGraphPlot>::create(histogramData, QColor(70, 70, 70, 255)));
 	chart->update();
 	chart->setMinimumHeight(80);
-	verticalLayout->addWidget(chart);
+	qobject_cast<QVBoxLayout*>(layout())->addWidget(chart);
 }
 
 // unify with iAIntensity shiftScale?

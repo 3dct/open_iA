@@ -9,7 +9,7 @@
 // core
 #include "iAMainWindow.h"
 #include "iAVtkVersion.h"
-#include "iAVtkWidget.h"
+#include "iAQVTKWidget.h"
 
 //vtk
 #include <vtkObjectFactory.h> //for macro!
@@ -154,17 +154,17 @@ void iACompBarChart::initializeBarChart()
 		colorsOriginal->InsertNextTypedTuple(iACompVisOptions::BACKGROUNDCOLOR_LIGHTGREY);
 	}
 
-	vtkSmartPointer<vtkPolyData> data = vtkSmartPointer<vtkPolyData>::New();
-	data->SetPoints(barPositionsOriginal);
-	data->GetPointData()->AddArray(colorsOriginal);
-	data->GetPointData()->AddArray(scalesOriginal);
+	vtkSmartPointer<vtkPolyData> polyData = vtkSmartPointer<vtkPolyData>::New();
+	polyData->SetPoints(barPositionsOriginal);
+	polyData->GetPointData()->AddArray(colorsOriginal);
+	polyData->GetPointData()->AddArray(scalesOriginal);
 
 	//initialize for interaction
-	style->buildPointLocatorOriginal(data);
+	style->buildPointLocatorOriginal(polyData);
 
 	double col[3];
 	iACompVisOptions::getDoubleArray(iACompVisOptions::BACKGROUNDCOLOR_LIGHTGREY, col);
-	m_originalBarChart = addBars(data, colorArrayName, scaleArrayName, 1, col);
+	m_originalBarChart = addBars(polyData, colorArrayName, scaleArrayName, 1, col);
 	
 	m_view->GetScene()->AddItem(m_area);
 	m_view->GetRenderWindow()->SetMultiSamples(0);
@@ -272,13 +272,13 @@ void iACompBarChart::initializeAxes(std::vector<double>* orderedPos)
 	m_view->Update();
 }
 
-vtkSmartPointer<vtkPropItem> iACompBarChart::addBars(vtkSmartPointer<vtkPolyData> data, std::string colorArrayName, std::string scaleArrayName, double opacity, double col[3])
+vtkSmartPointer<vtkPropItem> iACompBarChart::addBars(vtkSmartPointer<vtkPolyData> polyData, std::string colorArrayName, std::string scaleArrayName, double opacity, double col[3])
 {
 	vtkSmartPointer<vtkCubeSource> cubeSource = vtkSmartPointer<vtkCubeSource>::New();
 
 	vtkSmartPointer<vtkGlyph3DMapper> glyph3Dmapper = vtkSmartPointer<vtkGlyph3DMapper>::New();
 	glyph3Dmapper->SetSourceConnection(cubeSource->GetOutputPort());
-	glyph3Dmapper->SetInputData(data);
+	glyph3Dmapper->SetInputData(polyData);
 	glyph3Dmapper->SetScalarModeToUsePointFieldData();
 	glyph3Dmapper->SetScaleArray(scaleArrayName.c_str());
 	glyph3Dmapper->SetScaleModeToScaleByVectorComponents();
@@ -453,18 +453,18 @@ void iACompBarChart::updateBarChart(std::vector<double>* coefficientsOriginal, s
 		colors->InsertNextTypedTuple(iACompVisOptions::HIGHLIGHTCOLOR_GREEN);
 	}
 
-	vtkSmartPointer<vtkPolyData> data = vtkSmartPointer<vtkPolyData>::New();
-	data->SetPoints(barPositionsSelected);
-	data->GetPointData()->AddArray(colors);
-	data->GetPointData()->AddArray(scales);
+	vtkSmartPointer<vtkPolyData> polyData = vtkSmartPointer<vtkPolyData>::New();
+	polyData->SetPoints(barPositionsSelected);
+	polyData->GetPointData()->AddArray(colors);
+	polyData->GetPointData()->AddArray(scales);
 
 	//initialize for interaction
-	style->buildPointLocatorSelected(data);
+	style->buildPointLocatorSelected(polyData);
 
 	double col[3];
 	iACompVisOptions::getDoubleArray(iACompVisOptions::HIGHLIGHTCOLOR_GREEN, col);
 
-	m_selectedBarChart = addBars(data, colorArrayName, scaleArrayName, 0.5, col);
+	m_selectedBarChart = addBars(polyData, colorArrayName, scaleArrayName, 0.5, col);
 
 	this->renderWidget();
 }
@@ -502,18 +502,18 @@ void iACompBarChart::updateOriginalBarChart(std::vector<double>* selected_ordere
 		colorsOriginal->InsertNextTypedTuple(iACompVisOptions::BACKGROUNDCOLOR_LIGHTGREY);
 	}
 
-	vtkSmartPointer<vtkPolyData> data = vtkSmartPointer<vtkPolyData>::New();
-	data->SetPoints(barPositionsOriginal);
-	data->GetPointData()->AddArray(colorsOriginal);
-	data->GetPointData()->AddArray(scalesOriginal);
+	vtkSmartPointer<vtkPolyData> polyData = vtkSmartPointer<vtkPolyData>::New();
+	polyData->SetPoints(barPositionsOriginal);
+	polyData->GetPointData()->AddArray(colorsOriginal);
+	polyData->GetPointData()->AddArray(scalesOriginal);
 
 	//initialize for interaction
-	style->buildPointLocatorOriginalRepositioned(data);
+	style->buildPointLocatorOriginalRepositioned(polyData);
 
 	double col[3];
 	iACompVisOptions::getDoubleArray(iACompVisOptions::BACKGROUNDCOLOR_LIGHTGREY, col);
 
-	m_originalBarChartRepositioned = addBars(data, colorArrayName, scaleArrayName, 1, col);
+	m_originalBarChartRepositioned = addBars(polyData, colorArrayName, scaleArrayName, 1, col);
 
 }
 
@@ -615,24 +615,24 @@ void iACompBarChart::BarChartInteractorStyle::setOuterClass(iACompBarChart* oute
 	m_outerClass = outerClass;
 }
 
-void iACompBarChart::BarChartInteractorStyle::buildPointLocatorOriginal(vtkSmartPointer<vtkPolyData> data)
+void iACompBarChart::BarChartInteractorStyle::buildPointLocatorOriginal(vtkSmartPointer<vtkPolyData> polyData)
 {
 	m_barIndexPositionPairOriginal->clear();
 
 	pointLocatorOriginal = vtkSmartPointer<vtkPointLocator>::New();
-	pointLocatorOriginal->SetDataSet(data);
+	pointLocatorOriginal->SetDataSet(polyData);
 	pointLocatorOriginal->AutomaticOn();
 	pointLocatorOriginal->SetNumberOfPointsPerBucket(1);
 	pointLocatorOriginal->BuildLocator();
 
-	for(int i = 0; i < data->GetNumberOfPoints(); i++)
+	for(int i = 0; i < polyData->GetNumberOfPoints(); i++)
 	{
 		int index = i;
 		std::vector<double> positions = std::vector<double>(4,0);
-		double xMiddle = data->GetPoint(i)[0];
+		double xMiddle = polyData->GetPoint(i)[0];
 
-		double width = data->GetPointData()->GetArray("ScalesOriginal")->GetTuple3(i)[0];
-		double height = data->GetPointData()->GetArray("ScalesOriginal")->GetTuple3(i)[1] / 2;
+		double width = polyData->GetPointData()->GetArray("ScalesOriginal")->GetTuple3(i)[0];
+		double height = polyData->GetPointData()->GetArray("ScalesOriginal")->GetTuple3(i)[1] / 2;
 
 		double xMin = xMiddle - (width*0.5);
 		double xMax = xMiddle + (width*0.5);
@@ -648,25 +648,25 @@ void iACompBarChart::BarChartInteractorStyle::buildPointLocatorOriginal(vtkSmart
 	}
 }
 
-void iACompBarChart::BarChartInteractorStyle::buildPointLocatorSelected(vtkSmartPointer<vtkPolyData> data)
+void iACompBarChart::BarChartInteractorStyle::buildPointLocatorSelected(vtkSmartPointer<vtkPolyData> polyData)
 {
 	m_selectedPointLocatorEmpty = false;
 	m_barIndexPositionPairSelected->clear();
 
 	pointLocatorSelected = vtkSmartPointer<vtkPointLocator>::New();
-	pointLocatorSelected->SetDataSet(data);
+	pointLocatorSelected->SetDataSet(polyData);
 	pointLocatorSelected->AutomaticOn();
 	pointLocatorSelected->SetNumberOfPointsPerBucket(1);
 	pointLocatorSelected->BuildLocator();
 
-	for (int i = 0; i < data->GetNumberOfPoints(); i++)
+	for (int i = 0; i < polyData->GetNumberOfPoints(); i++)
 	{
 		int index = i;
 		std::vector<double> positions = std::vector<double>(4, 0);
-		double xMiddle = data->GetPoint(i)[0];
+		double xMiddle = polyData->GetPoint(i)[0];
 
-		double width = data->GetPointData()->GetArray("ScalesArraySelected")->GetTuple3(i)[0];
-		double height = data->GetPointData()->GetArray("ScalesArraySelected")->GetTuple3(i)[1] / 2;
+		double width = polyData->GetPointData()->GetArray("ScalesArraySelected")->GetTuple3(i)[0];
+		double height = polyData->GetPointData()->GetArray("ScalesArraySelected")->GetTuple3(i)[1] / 2;
 
 		double xMin = xMiddle - (width*0.5);
 		double xMax = xMiddle + (width*0.5);
@@ -682,24 +682,24 @@ void iACompBarChart::BarChartInteractorStyle::buildPointLocatorSelected(vtkSmart
 	}
 }
 
-void iACompBarChart::BarChartInteractorStyle::buildPointLocatorOriginalRepositioned(vtkSmartPointer<vtkPolyData> data)
+void iACompBarChart::BarChartInteractorStyle::buildPointLocatorOriginalRepositioned(vtkSmartPointer<vtkPolyData> polyData)
 {
 	m_barIndexPositionPairOriginalRepositioned->clear();
 
 	pointLocatorSelected = vtkSmartPointer<vtkPointLocator>::New();
-	pointLocatorSelected->SetDataSet(data);
+	pointLocatorSelected->SetDataSet(polyData);
 	pointLocatorSelected->AutomaticOn();
 	pointLocatorSelected->SetNumberOfPointsPerBucket(1);
 	pointLocatorSelected->BuildLocator();
 
-	for (int i = 0; i < data->GetNumberOfPoints(); i++)
+	for (int i = 0; i < polyData->GetNumberOfPoints(); i++)
 	{
 		int index = i;
 		std::vector<double> positions = std::vector<double>(4, 0);
-		double xMiddle = data->GetPoint(i)[0];
+		double xMiddle = polyData->GetPoint(i)[0];
 
-		double width = data->GetPointData()->GetArray("ScalesOriginalRepositioned")->GetTuple3(i)[0];
-		double height = data->GetPointData()->GetArray("ScalesOriginalRepositioned")->GetTuple3(i)[1] / 2;
+		double width = polyData->GetPointData()->GetArray("ScalesOriginalRepositioned")->GetTuple3(i)[0];
+		double height = polyData->GetPointData()->GetArray("ScalesOriginalRepositioned")->GetTuple3(i)[1] / 2;
 
 		double xMin = xMiddle - (width*0.5);
 		double xMax = xMiddle + (width*0.5);

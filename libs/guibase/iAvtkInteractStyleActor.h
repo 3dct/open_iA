@@ -20,33 +20,18 @@
 * ************************************************************************************/
 #pragma once
 
-#include "iAChannelSlicerData.h"
-
 #include <vtkInteractorStyleTrackballActor.h>
 #include <vtkSmartPointer.h>
-
-//#include <vtkTransform.h>
 
 #include <QObject>
 
 class iAChannelSlicerData;
 class iAVolumeRenderer;
-class iAMdiChild;
-class vtkProp3D;
-class vtkImageReslice;
 
 class vtkImageData;
-class vtkTransform;
-class vtkLineSource;
-//TODO REmove
-class vtkTransformFilter;
-class vtkCubeSource;
-//class vtkPlaneSource;
-class vtkPolyDataMapper;
-class vtkSphereSource;
-class vtkTransform;
-class vtkImageActor;
 class vtkImageReslice;
+class vtkProp3D;
+class vtkTransform;
 
 enum transformationMode
 {
@@ -70,8 +55,7 @@ public:
 	void Spin() override;
 	//! @}
 
-	void initialize(vtkImageData* img, iAVolumeRenderer* volRend, iAChannelSlicerData* slicerChannel[4],
-		int currentMode, iAMdiChild* mdiChild);
+	void initialize(vtkImageData* img, iAVolumeRenderer* volRend, iAChannelSlicerData* slicerChannel[4], int currentMode);
 
 signals:
 	void actorsUpdated();
@@ -85,7 +69,6 @@ private:
 	iAvtkInteractStyleActor(const iAvtkInteractStyleActor&) = delete;
 	//! @}
 
-	iAMdiChild* m_mdiChild;
 	iAVolumeRenderer* m_volumeRenderer;
 	bool m_is3D;  //!< true if style assigned to 3D renderer, false if assigned to a slicer
 	vtkImageData* m_image;

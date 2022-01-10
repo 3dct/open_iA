@@ -286,12 +286,11 @@ void iAPlot3DVtk::Pick( double xpos, double ypos)
 
 void iAPlot3DVtk::SetPalette( int count, double *colors )
 {
-	if (m_lookupTable!=0)
+	if (m_lookupTable != nullptr)
 	{
 		m_lookupTable->Delete();
-		m_lookupTable=0;
 	}
-	if (m_lookupTable==0) m_lookupTable = vtkLookupTable::New();
+	m_lookupTable = vtkLookupTable::New();
 	m_lookupTable->SetNumberOfTableValues(count);
 	for( int i = 0; i < count; i++)
 	{
@@ -311,12 +310,11 @@ void iAPlot3DVtk::SetPalette( int count, double *colors )
 void iAPlot3DVtk::SetPalette( int count, unsigned int r1, unsigned int g1, unsigned int b1, unsigned int r2, unsigned int g2, unsigned int b2 )
 {
 	//m_lookupTable->SetRampToLinear();
-	if (m_lookupTable!=0)
+	if (m_lookupTable != nullptr)
 	{
 		m_lookupTable->Delete();
-		m_lookupTable=0;
 	}
-	if (m_lookupTable==0) m_lookupTable = vtkLookupTable::New();
+	m_lookupTable = vtkLookupTable::New();
 	m_lookupTable->SetNumberOfTableValues(count);//
 	double dr = (double)r2-(double)r1;
 	double dg = (double)g2-(double)g1;

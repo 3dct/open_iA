@@ -11,8 +11,7 @@
 
 //iA
 #include <iAMainWindow.h>
-#include <iAVtkWidget.h>
-#include <iAVtkVersion.h>
+#include <iAQVTKWidget.h>
 
 //Qt
 #include <QColor>

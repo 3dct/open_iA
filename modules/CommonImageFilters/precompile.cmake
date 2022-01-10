@@ -1,4 +1,4 @@
-SET (CommonImageFilters_PRECOMPILE_INCLUDES
+set(CommonImageFilters_PRECOMPILE_INCLUDES
 <defines.h>
 <iACastImageFilter.h>
 <iAConnectedComponentFilters.h>

@@ -22,7 +22,8 @@
 
 #include "iATrackingGraphItem.h"
 #include "iAVtkGraphDrawer.h"
-#include "iAVtkWidget.h"
+
+#include <iAQVTKWidget.h>
 
 #include <vtkContextActor.h>
 #include <vtkContextInteractorStyle.h>

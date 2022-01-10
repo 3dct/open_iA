@@ -55,11 +55,7 @@ class dlg_DynamicVolumeLines : public DynamicVolumeLinesConnector
 	Q_OBJECT
 
 public:
-#if QT_VERSION < QT_VERSION_CHECK(5,15,0)
-	dlg_DynamicVolumeLines(QWidget* parent, QDir datasetsDir, Qt::WindowFlags f = 0);
-#else
-	dlg_DynamicVolumeLines(QWidget* parent, QDir datasetsDir, Qt::WindowFlags f = Qt::WindowFlags());
-#endif
+	dlg_DynamicVolumeLines(QWidget* parent, QDir datasetsDir);
 	~dlg_DynamicVolumeLines();
 
 	QDir m_datasetsDir;

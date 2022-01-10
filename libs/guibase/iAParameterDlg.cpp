@@ -29,13 +29,12 @@
 #include "iAStringHelper.h"
 #include "io/iAFileChooserWidget.h"
 #include "iAMdiChild.h"
-#include "ui_CommonInput.h"
 
 #include <vtkImageData.h>
 
 #include <QCheckBox>
 #include <QComboBox>
-#include <QErrorMessage>
+#include <QDialogButtonBox>
 #include <QLabel>
 #include <QLineEdit>
 #include <QPlainTextEdit>
@@ -78,17 +77,22 @@ iAParameterDlg::iAParameterDlg(QWidget* parent, QString const& title, ParamListT
 	m_sourceMdiChild(nullptr),
 	m_sourceMdiChildClosed(false),
 	m_widgetList(parameters.size()),
-	m_parameters(parameters),
-	m_ui(new Ui_CommonInput())
+	m_parameters(parameters)
 {
-	m_ui->setupUi(this);
+	auto gridLayout = new QGridLayout();
+	setLayout(gridLayout);
+	gridLayout->setContentsMargins(4, 4, 4, 4);
+	m_buttonBox = new QDialogButtonBox();
+	m_buttonBox->setStandardButtons(QDialogButtonBox::Cancel|QDialogButtonBox::Ok);
+	connect(m_buttonBox, &QDialogButtonBox::accepted, this, &QDialog::accept);
+	connect(m_buttonBox, &QDialogButtonBox::rejected, this, &QDialog::reject);
 	if (title.isEmpty())
 	{
 		LOG(lvlError, "No window title entered. Please give a window title");
 		auto lbl = new QLabel("No window title entered. Please give a window title");
-		m_ui->gridLayout->addWidget(lbl, 0, 0);
-		m_ui->buttonBox->button(QDialogButtonBox::Ok)->setEnabled(false);
-		m_ui->gridLayout->addWidget(m_ui->buttonBox, 1, 0);
+		gridLayout->addWidget(lbl, 0, 0);
+		m_buttonBox->button(QDialogButtonBox::Ok)->setEnabled(false);
+		gridLayout->addWidget(m_buttonBox, 1, 0);
 		return;
 	}
 	this->setWindowTitle(title);
@@ -104,7 +108,7 @@ iAParameterDlg::iAParameterDlg(QWidget* parent, QString const& title, ParamListT
 		info->setDocument(doc);
 		info->setReadOnly(true);
 		info->setOpenExternalLinks(true);
-		m_ui->gridLayout->addWidget(info, 0, 0);
+		gridLayout->addWidget(info, 0, 0);
 		// make sure that description can be easily resized; parameters have scroll bar
 		scrollArea->setSizePolicy(QSizePolicy::Expanding, QSizePolicy::Fixed);
 	}
@@ -268,8 +272,8 @@ iAParameterDlg::iAParameterDlg(QWidget* parent, QString const& title, ParamListT
 	pal.setColor(scrollArea->backgroundRole(), Qt::transparent);
 	scrollArea->setPalette(pal);
 
-	m_ui->gridLayout->addWidget(scrollArea, 1, 0);
-	m_ui->gridLayout->addWidget(m_ui->buttonBox, 2, 0);  // add the ok and cancel button to the gridlayout
+	gridLayout->addWidget(scrollArea, 1, 0);
+	gridLayout->addWidget(m_buttonBox, 2, 0);
 }
 
 void  iAParameterDlg::setSourceMdi(iAMdiChild* child, iAMainWindow* mainWnd)
@@ -521,4 +525,26 @@ int iAParameterDlg::exec()
 		m_sourceMdiChild->setROIVisible(false);
 	}
 	return result;
+}
+
+void iAParameterDlg::setOKEnabled(bool enabled)
+{
+	m_buttonBox->button(QDialogButtonBox::Ok)->setEnabled(enabled);
+}
+
+void addParameter(iAParameterDlg::ParamListT & params, QString const& name, iAValueType valueType,
+	QVariant defaultValue, double min, double max)
+{
+	params.push_back(iAAttributeDescriptor::createParam(name, valueType, defaultValue, min, max));
+}
+
+void selectOption(QStringList& options, QString const& selected)
+{
+	for (int i = 0; i < options.size(); ++i)
+	{
+		if (options[i].compare(selected, Qt::CaseInsensitive) == 0)
+		{
+			options[i] = "!" + options[i];
+		}
+	}
 }

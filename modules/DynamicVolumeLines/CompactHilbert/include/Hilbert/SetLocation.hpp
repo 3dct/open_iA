@@ -79,11 +79,14 @@ namespace Hilbert
 			}
 
 			int dj = n - j;
+#pragma GCC diagnostic push
+#pragma GCC diagnostic ignored "-Wimplicit-fallthrough="
 			switch ( n - j )
 			{
 				default: dj = 32;
 				SETBIT32(0);
 			}
+#pragma GCC diagnostic pop
 			j += dj;
 		}
 

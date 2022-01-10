@@ -706,7 +706,11 @@ QDockWidget
 	{
 		image: url(Resource/Icons/dock-hover.png);
 	}
-	
+	QDockWidget::close-button, QDockWidget::float-button
+	{	/* keeps title bar "slim", there otherwise seems to be some default padding applied. */
+		padding: 0;
+	}
+
 /****************************************************************************
 QSplitter
 ****************************************************************************/

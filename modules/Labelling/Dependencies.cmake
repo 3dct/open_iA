@@ -1,5 +1,5 @@
-SET( DEPENDENCIES_LIBRARIES
-	iAguibase
-	iAslicer    # for mapSliceToGlobalAxis
-	iAcharts    # for iALUT
+set(DEPENDENCIES_LIBRARIES
+	iA::guibase
+	iA::slicer    # for mapSliceToGlobalAxis
+	iA::charts    # for iALUT
 )

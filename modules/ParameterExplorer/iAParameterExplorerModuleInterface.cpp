@@ -98,7 +98,7 @@ void iAParameterExplorerModuleInterface::StartParameterExplorer()
 		return;
 	}
 	QString csvFileName = QFileDialog::getOpenFileName(m_mainWnd,
-		tr("Select CSV File"), m_mdiChild->filePath(), tr("CSV Files (*.csv);;"));
+		tr("Select CSV File"), m_mdiChild->filePath(), tr("CSV Files (*.csv);;All files (*)"));
 	if (csvFileName.isEmpty())
 	{
 		return;
@@ -116,7 +116,7 @@ void iAParameterExplorerModuleInterface::SaveState()
 		return;
 	}
 	QString stateFileName = QFileDialog::getSaveFileName(m_mainWnd, "Save Parameter Explorer State",
-		m_mdiChild->filePath(), "Parameter Explorer State (*.pes);;");
+		m_mdiChild->filePath(), "Parameter Explorer State (*.pes);;All files (*)");
 	if (stateFileName.isEmpty())
 	{
 		return;
@@ -132,7 +132,7 @@ void iAParameterExplorerModuleInterface::SaveState()
 void iAParameterExplorerModuleInterface::LoadState()
 {
 	QString stateFileName = QFileDialog::getOpenFileName(m_mainWnd, "Save Parameter Explorer State",
-		"", "Parameter Explorer State (*.pes);;");
+		"", "Parameter Explorer State (*.pes);;All files (*)");
 	if (stateFileName.isEmpty())
 	{
 		return;

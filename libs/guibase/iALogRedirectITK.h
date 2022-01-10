@@ -44,34 +44,48 @@ public:
 		}
 		return m_instance;
 	}
+	void logMsg(iALogLevel lvl, const char *t)
+	{
+		if (!m_enabled)
+		{
+			return;
+		}
+		LOG(lvl, QString("ITK %1").arg(t));
+	}
 
 	void DisplayDebugText(const char *t) override
 	{
-		LOG(lvlDebug, QString("ITK %1").arg(t));
+		logMsg(lvlDebug, t);
 	}
-
 	void DisplayErrorText(const char* t) override
 	{
-		LOG(lvlError, QString("ITK %1").arg(t));
+		logMsg(lvlError, t);
 	}
-
 	void DisplayGenericOutputText(const char* t) override
 	{
-		LOG(lvlInfo, QString("ITK %1").arg(t));
+		logMsg(lvlInfo, t);
 	}
-
 	void DisplayText(const char* t) override
 	{
-		LOG(lvlInfo, QString("ITK %1").arg(t));
+		logMsg(lvlInfo, t);
 	}
-
 	void DisplayWarningText(const char* t) override
 	{
-		LOG(lvlWarn, QString("ITK %1").arg(t));
+		logMsg(lvlWarn, t);
+	}
+
+	void setEnabled(bool enabled)
+	{
+		m_enabled = enabled;
+	}
+	bool enabled() const
+	{
+		return m_enabled;
 	}
 
 private:
 	static Pointer m_instance;
+	bool m_enabled = true;
 };
 
 iALogRedirectITK::Pointer iALogRedirectITK::m_instance;

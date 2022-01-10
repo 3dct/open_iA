@@ -24,12 +24,9 @@
 #include "iALog.h"
 #include "iASlicerMode.h"
 #include "iAVolumeRenderer.h"
-#include "iAMdiChild.h"
 
 #include <vtkCamera.h>
 #include <vtkCellPicker.h>
-#include <vtkCommand.h>
-#include <vtkImageActor.h>
 #include <vtkImageData.h>
 #include <vtkImageReslice.h>
 #include <vtkMath.h>
@@ -42,7 +39,7 @@
 vtkStandardNewMacro(iAvtkInteractStyleActor);
 
 iAvtkInteractStyleActor::iAvtkInteractStyleActor() :
-	m_mdiChild(nullptr), m_volumeRenderer(nullptr), m_is3D(false), m_rotationEnabled(false)
+	m_volumeRenderer(nullptr), m_is3D(false), m_rotationEnabled(false)
 {
 	m_transform3D = vtkSmartPointer<vtkTransform>::New();
 	for (int i = 0; i < 3; ++i)
@@ -149,7 +146,7 @@ void iAvtkInteractStyleActor::OnMouseMove()
 }
 
 void iAvtkInteractStyleActor::initialize(vtkImageData* img, iAVolumeRenderer* volRend,
-	iAChannelSlicerData* slicerChannel[3], int currentMode, iAMdiChild* mdiChild)
+	iAChannelSlicerData* slicerChannel[3], int currentMode)
 {
 	if (!img)
 	{
@@ -164,11 +161,6 @@ void iAvtkInteractStyleActor::initialize(vtkImageData* img, iAVolumeRenderer* vo
 	}
 	m_currentSliceMode = currentMode;
 	m_is3D = (m_currentSliceMode == iASlicerMode::SlicerCount);
-	if (!mdiChild)
-	{
-		LOG(lvlInfo, "iAMdiChild not set!");
-	}
-	m_mdiChild = mdiChild;
 	m_image->GetSpacing(m_imageSpacing);
 
 	if (!m_is3D)

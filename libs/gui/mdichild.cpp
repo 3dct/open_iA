@@ -35,7 +35,6 @@
 #include <iASlicerImpl.h>
 
 // core
-#include <dlg_commoninput.h>
 #include <dlg_modalities.h>
 #include <iAAlgorithm.h>
 #include <iAChannelData.h>
@@ -45,6 +44,7 @@
 #include <iAModalityList.h>
 #include <iAModalityTransfer.h>
 #include <iAMovieHelper.h>
+#include <iAParameterDlg.h>
 #include <iAPreferences.h>
 #include <iAProjectBase.h>
 #include <iAProjectRegistry.h>
@@ -70,13 +70,12 @@
 #include <iAProgress.h>
 #include <iAToolsVTK.h>
 #include <iATransferFunction.h>
-#include <iAVtkVersion.h>
+#include <iAVtkVersion.h>    // required for VTK < 9.0
 
 #include <vtkCamera.h>
 #include <vtkColorTransferFunction.h>
 #include <vtkCornerAnnotation.h>
 #include <vtkGenericOpenGLRenderWindow.h>
-#include <vtkImageActor.h>
 #include <vtkImageExtractComponents.h>
 #include <vtkImageReslice.h>
 #include <vtkMath.h>
@@ -93,6 +92,7 @@
 // TODO: VOLUME: check all places using modality(0)->transfer() !
 
 #include <QByteArray>
+#include <QCloseEvent>
 #include <QFile>
 #include <QFileDialog>
 #include <QMainWindow>
@@ -115,9 +115,8 @@ MdiChild::MdiChild(MainWindow* mainWnd, iAPreferences const& prefs, bool unsaved
 	m_reInitializeRenderWindows(true),
 	m_raycasterInitialized(false),
 	m_snakeSlicer(false),
-	m_worldProfilePoints(vtkPoints::New()),
-	m_worldSnakePoints(vtkPoints::New()),
-	m_parametricSpline(iAParametricSpline::New()),
+	m_worldSnakePoints(vtkSmartPointer<vtkPoints>::New()),
+	m_parametricSpline(vtkSmartPointer<iAParametricSpline>::New()),
 	m_imageData(vtkSmartPointer<vtkImageData>::New()),
 	m_polyData(vtkPolyData::New()),
 	m_axesTransform(vtkTransform::New()),
@@ -179,8 +178,6 @@ MdiChild::MdiChild(MainWindow* mainWnd, iAPreferences const& prefs, bool unsaved
 	setModalities(modList);
 	applyViewerPreferences();
 	connectSignalsToSlots();
-
-	m_worldProfilePoints->Allocate(2);
 	connect(mainWnd, &MainWindow::fullScreenToggled, this, &MdiChild::toggleFullScreen);
 	connect(mainWnd, &MainWindow::styleChanged, this, &MdiChild::styleChanged);
 }
@@ -635,11 +632,6 @@ iARenderer* MdiChild::renderer()
 	return m_renderer;
 }
 
-iAVtkWidget* MdiChild::renderVtkWidget()
-{
-	return m_dwRenderer->vtkWidgetRC;
-}
-
 bool MdiChild::updateVolumePlayerView(int updateIndex, bool isApplyForAll)
 {
 	// TODO: VOLUME: Test!!! copy from currently selected instead of fixed 0 index?
@@ -825,19 +817,19 @@ int MdiChild::chooseModalityNr(QString const& caption)
 	{
 		return 0;
 	}
-	QStringList parameters = (QStringList() << tr("+Channel"));
 	QStringList modalityNames;
 	for (int i = 0; i < modalities()->size(); ++i)
 	{
 		modalityNames << modality(i)->name();
 	}
-	QList<QVariant> values = (QList<QVariant>() << modalityNames);
-	dlg_commoninput modalityChoice(this, caption, parameters, values, nullptr);
+	iAParameterDlg::ParamListT params;
+	addParameter(params, "Channel", iAValueType::Categorical, modalityNames);
+	iAParameterDlg modalityChoice(this, caption, params);
 	if (modalityChoice.exec() != QDialog::Accepted)
 	{
 		return -1;
 	}
-	return modalityChoice.getComboBoxIndex(0);
+	return modalityNames.indexOf(modalityChoice.parameterValues()["Channel"].toString());
 }
 
 int MdiChild::chooseComponentNr(int modalityNr)
@@ -851,20 +843,20 @@ int MdiChild::chooseComponentNr(int modalityNr)
 	{
 		return 0;
 	}
-	QStringList parameters = (QStringList() << tr("+Component"));
 	QStringList components;
 	for (int i = 0; i < nrOfComponents; ++i)
 	{
 		components << QString::number(i);
 	}
 	components << "All components";
-	QList<QVariant> values = (QList<QVariant>() << components);
-	dlg_commoninput componentChoice(this, "Choose Component", parameters, values, nullptr);
+	iAParameterDlg::ParamListT params;
+	addParameter(params, "Component", iAValueType::Categorical, components);
+	iAParameterDlg componentChoice(this, "Choose Component", params);
 	if (componentChoice.exec() != QDialog::Accepted)
 	{
 		return -1;
 	}
-	return componentChoice.getComboBoxIndex(0);
+	return components.indexOf(componentChoice.parameterValues()["Component"].toString());
 }
 
 bool MdiChild::save()
@@ -1078,11 +1070,7 @@ bool MdiChild::saveFile(const QString& f, int modalityNr, int componentNr)
 void MdiChild::updateViews()
 {
 	updateSlicers();
-
-	m_renderer->update();
-	m_renderer->renderWindow()->GetInteractor()->Modified();
-	m_renderer->renderWindow()->GetInteractor()->Render();
-	m_dwRenderer->vtkWidgetRC->update();
+	updateRenderer();
 	emit viewsUpdated();
 }
 
@@ -1128,21 +1116,17 @@ void MdiChild::saveMovRC()
 		return;
 	}
 
-	QString mode;
-	int imode = 0;
-
 	QStringList modes = (QStringList() << tr("Rotate Z") << tr("Rotate X") << tr("Rotate Y"));
-	QStringList inList = (QStringList() << tr("+Rotation mode"));
-	QList<QVariant> inPara = (QList<QVariant>() << modes);
-	dlg_commoninput dlg(this, "Save movie options", inList, inPara,
+	iAParameterDlg::ParamListT params;
+	addParameter(params, "Rotation mode", iAValueType::Categorical, modes);
+	iAParameterDlg dlg(this, "Save movie options", params,
 		"Creates a movie by rotating the object around a user-defined axis in the 3D renderer.");
 	if (dlg.exec() != QDialog::Accepted)
 	{
 		return;
 	}
-
-	mode = dlg.getComboBoxValue(0);
-	imode = dlg.getComboBoxIndex(0);
+	QString mode = dlg.parameterValues()["Rotation mode"].toString();
+	int imode = modes.indexOf(mode);
 
 	// Show standard save file dialog using available movie file types.
 	m_renderer->saveMovie(QFileDialog::getSaveFileName(this, tr("Export movie %1").arg(mode),
@@ -1570,84 +1554,48 @@ bool MdiChild::editSlicerSettings(iASlicerSettings const& slicerSettings)
 
 bool MdiChild::loadTransferFunction()
 {
-	if (!m_histogram)
-	{
-		return false;
-	}
 	m_histogram->loadTransferFunction();
 	return true;
 }
 
 bool MdiChild::saveTransferFunction()
 {
-	if (!m_histogram)
-	{
-		return false;
-	}
 	m_histogram->saveTransferFunction();
 	return true;
 }
 
 int MdiChild::deletePoint()
 {
-	if (!m_histogram)
-	{
-		return -1;
-	}
 	return m_histogram->deletePoint();
 }
 
 void MdiChild::resetView()
 {
-	if (!m_histogram)
-	{
-		return;
-	}
 	m_histogram->resetView();
 }
 
 void MdiChild::changeColor()
 {
-	if (!m_histogram)
-	{
-		return;
-	}
 	m_histogram->changeColor();
 }
 
 int MdiChild::selectedFuncPoint()
 {
-	if (!m_histogram)
-	{
-		return -1;
-	}
 	return m_histogram->selectedFuncPoint();
 }
 
 int MdiChild::isFuncEndPoint(int index)
 {
-	if (!m_histogram)
-	{
-		return -1;
-	}
 	return m_histogram->isFuncEndPoint(index);
 }
 
 void MdiChild::setHistogramFocus()
 {
-	if (!m_histogram)
-	{
-		return;
-	}
 	m_histogram->setFocus(Qt::OtherFocusReason);
 }
 
 void MdiChild::resetTrf()
 {
-	if (!m_histogram)
-	{
-		return;
-	}
 	m_histogram->resetTrf();
 	LOG(lvlInfo, tr("Resetting Transfer Functions."));
 }
@@ -2096,13 +2044,20 @@ uint MdiChild::createChannel()
 	return newChannelID;
 }
 
-
 void MdiChild::updateSlicers()
 {
 	for (int s = 0; s < 3; ++s)
 	{
 		m_slicer[s]->update();
 	}
+}
+
+void MdiChild::updateRenderer()
+{
+	m_renderer->update();
+	m_renderer->renderWindow()->GetInteractor()->Modified();
+	m_renderer->renderWindow()->GetInteractor()->Render();
+	m_dwRenderer->vtkWidgetRC->update();
 }
 
 void MdiChild::updateChannelOpacity(uint id, double opacity)

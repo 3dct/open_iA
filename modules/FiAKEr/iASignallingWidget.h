@@ -18,28 +18,19 @@
 * Contact: FH OÖ Forschungs & Entwicklungs GmbH, Campus Wels, CT-Gruppe,              *
 *          Stelzhamerstraße 23, 4600 Wels / Austria, Email: c.heinzl@fh-wels.at       *
 * ************************************************************************************/
-#include "iAColorable.h"
+#pragma once
 
-iAColorable::~iAColorable()
-{}
+#include <QWidget>
 
-const QColor iAColorable::DefaultColor(0, 0, 0, 255);
-
-iAColorable::iAColorable():
-	m_color(DefaultColor)
-{}
-
-iAColorable::iAColorable(QColor const & color):
-	m_color(color)
+//! A widget that emits signals on click and double click.
+class iASignallingWidget: public QWidget
 {
-}
-
-void iAColorable::setColor(QColor const & color)
-{
-	m_color = color;
-}
-
-QColor const iAColorable::getColor() const
-{
-	return m_color;
-}
+	Q_OBJECT
+signals:
+	void dblClicked();
+	void clicked(Qt::MouseButton button, Qt::KeyboardModifiers modifiers);
+private:
+	void mouseDoubleClickEvent(QMouseEvent* ev) override;
+	void mouseReleaseEvent(QMouseEvent* ev) override;
+	void paintEvent(QPaintEvent* ev) override;
+};

@@ -21,12 +21,14 @@
 #include "dlg_FeatureScout.h"
 
 #include "dlg_blobVisualization.h"
-#include "dlg_editPCClass.h"
 #include "iABlobCluster.h"
 #include "iABlobManager.h"
+#include "iAClassEditDlg.h"
 #include "iAFeatureScoutSPLOM.h"
 #include "iAFSColorMaps.h"
 #include "iAMeanObject.h"
+#include "ui_FeatureScoutClassExplorer.h"
+#include "ui_FeatureScoutPolarPlot.h"
 
 #include "iA3DLabelledVolumeVis.h"
 #include "iA3DLineObjectVis.h"
@@ -36,29 +38,23 @@
 #include "iACsvIO.h"
 #include "iAObjectType.h"
 
-#include <dlg_commoninput.h>
 #include <dlg_modalities.h>
-#include <iAmat4.h>
 #include <iAMovieHelper.h>
-#include <iARenderer.h>
-#include <iAVtkWidget.h>
 #include <iAModality.h>
 #include <iAModalityTransfer.h>
 #include <iAModalityList.h>
 #include <iAMdiChild.h>
 #include <iAParameterDlg.h>
 #include <iAPreferences.h>
+#include <iAQVTKWidget.h>
+#include <iARenderer.h>
 #include <iATypedCallHelper.h>
 
 // qthelper:
 #include <iADockWidgetWrapper.h>
 
-// charts:
-#include <iAChartWithFunctionsWidget.h>
-
 // base:
 #include <defines.h>    // for DIM
-#include <iAAttributeDescriptor.h>
 #include <iAConnector.h>
 #include <iAFileUtils.h>
 #include <iALog.h>
@@ -92,7 +88,6 @@
 #include <vtkNew.h>
 #include <vtkOpenGLRenderer.h>
 #include <vtkPen.h>
-#include <vtkPiecewiseFunction.h>
 #include <vtkPlot.h>
 #include <vtkPlotParallelCoordinates.h>
 #include <vtkPointData.h>
@@ -113,16 +108,12 @@
 #include <vtkStructuredGridGeometryFilter.h>
 #include <vtkTable.h>
 #include <vtkTextProperty.h>
+#include <vtkUnicodeString.h>
 #include <vtkVariantArray.h>
 
-#include <QtMath>
-#include <QXmlStreamReader>
-#include <QXmlStreamWriter>
-#include <QDockWidget>
 #include <QFileDialog>
 #include <QFileInfo>
 #include <QHeaderView>
-#include <QInputDialog>
 #include <QMenu>
 #include <QMessageBox>
 #include <QPushButton>
@@ -132,7 +123,8 @@
 #include <QStringList>
 #include <QTableView>
 #include <QTreeView>
-#include <QProgressBar>
+#include <QtMath>
+#include <QXmlStreamWriter>
 
 #include <cmath>
 
@@ -187,7 +179,38 @@ namespace
 			return QSharedPointer<iA3DNoVis>::create();
 		}
 	}
+
+	float calculateAverage(vtkDataArray* arr)
+	{
+		double sum = 0.0;
+		for (int i = 0; i < arr->GetNumberOfTuples(); ++i)
+		{
+			sum = sum + arr->GetVariantValue(i).ToDouble();
+		}
+		return sum / arr->GetNumberOfTuples();
+	}
+
+	QList<QStandardItem*> prepareRow(const QString& first, const QString& second, const QString& third)
+	{
+		// prepare the class header rows for class tree view first grade child unter rootitem
+		// for adding child object to this class, use item.first()->appendRow()
+		QList<QStandardItem*> rowItems;
+		rowItems << new QStandardItem(first);
+		rowItems << new QStandardItem(second);
+		rowItems << new QStandardItem(third);
+		return rowItems;
+	}
 }
+
+// define class here directly instead of using iAQTtoUIConnector; when using iAQTtoUIConnector we cannot forward-define because of the templates!
+class iAPolarPlotWidget : public QDockWidget, public Ui_FeatureScoutPP
+{
+public:
+	iAPolarPlotWidget(QWidget* parent) : QDockWidget(parent)
+	{
+		setupUi(this);
+	}
+};
 
 const int dlg_FeatureScout::PCMinTicksCount = 2;
 
@@ -209,7 +232,7 @@ dlg_FeatureScout::dlg_FeatureScout(iAMdiChild* parent, iAObjectType fid, QString
 	m_multiClassLUT(vtkSmartPointer<vtkLookupTable>::New()),
 	m_classTreeModel(new QStandardItemModel()),
 	m_elementTableModel(nullptr),
-	m_pcLineWidth(0.1),
+	m_pcLineWidth(0.1f),
 	m_pcFontSize(15),
 	m_pcTickCount(10),
 	m_pcOpacity(90),
@@ -220,10 +243,11 @@ dlg_FeatureScout::dlg_FeatureScout(iAMdiChild* parent, iAObjectType fid, QString
 	m_dwDV(nullptr),
 	m_dwSPM(nullptr),
 	m_dwPP(nullptr),
+	m_ui(new Ui_FeatureScoutCE),
 	m_columnMapping(columnMapping),
 	m_splom(new iAFeatureScoutSPLOM())
 {
-	setupUi(this);
+	m_ui->setupUi(this);
 	this->setupPolarPlotResolution(3.0);
 
 	m_chartTable->DeepCopy(m_csvTable);
@@ -431,8 +455,8 @@ void dlg_FeatureScout::setupViews()
 	m_classTreeView->setContextMenuPolicy(Qt::CustomContextMenu);
 
 	// set Widgets for the table views
-	this->ClassLayout->addWidget(m_classTreeView);
-	this->ElementLayout->addWidget(m_elementTableView);
+	m_ui->ClassLayout->addWidget(m_classTreeView);
+	m_ui->ElementLayout->addWidget(m_elementTableView);
 	// set models
 	m_elementTableView->setModel(m_elementTableModel);
 	m_classTreeView->setModel(m_classTreeModel);
@@ -498,7 +522,7 @@ void dlg_FeatureScout::calculateElementTable()
 		mmr->GetRange(range);
 		v1Arr->SetValue(i, range[0]);
 		v2Arr->SetValue(i, range[1]);
-		v3Arr->SetValue(i, this->calculateAverage(mmr));
+		v3Arr->SetValue(i, calculateAverage(mmr));
 	}
 
 	// add new values
@@ -526,7 +550,11 @@ void dlg_FeatureScout::initElementTableModel(int idx)
 				QString str;
 				if (j == 0)
 				{
+#if VTK_VERSION_NUMBER < VTK_VERSION_CHECK(9, 1, 0)
 					str = QString::fromUtf8(v.ToUnicodeString().utf8_str()).trimmed();
+#else
+					str = QString::fromUtf8(v.ToString().c_str()).trimmed();
+#endif
 				}
 				else
 				{
@@ -580,7 +608,11 @@ void dlg_FeatureScout::initClassTreeModel()
 	for (int i = 0; i < m_objectCount; ++i)
 	{
 		vtkVariant v = m_chartTable->GetColumn(0)->GetVariantValue(i);
+#if VTK_VERSION_NUMBER < VTK_VERSION_CHECK(9, 1, 0)
 		QStandardItem* item = new QStandardItem(QString::fromUtf8(v.ToUnicodeString().utf8_str()).trimmed());
+#else
+		QStandardItem* item = new QStandardItem(QString::fromUtf8(v.ToString().c_str()).trimmed());
+#endif
 		stammItem.first()->appendRow(item);
 	}
 	m_activeClassItem = stammItem.first();
@@ -668,31 +700,6 @@ void dlg_FeatureScout::PrintTableList(const QList<vtkSmartPointer<vtkTable>>& Ou
 */
 // END DEBUG FUNCTIONS
 
-float dlg_FeatureScout::calculateAverage(vtkDataArray* arr)
-{
-	double av = 0.0;
-	double sum = 0.0;
-
-	for (int i = 0; i < arr->GetNumberOfTuples(); ++i)
-	{
-		sum = sum + arr->GetVariantValue(i).ToDouble();
-	}
-
-	av = sum / arr->GetNumberOfTuples();
-	return av;
-}
-
-QList<QStandardItem*> dlg_FeatureScout::prepareRow(const QString& first, const QString& second, const QString& third)
-{
-	// prepare the class header rows for class tree view first grade child unter rootitem
-	// for adding child object to this class, use item.first()->appendRow()
-	QList<QStandardItem*> rowItems;
-	rowItems << new QStandardItem(first);
-	rowItems << new QStandardItem(second);
-	rowItems << new QStandardItem(third);
-	return rowItems;
-}
-
 void dlg_FeatureScout::setupConnections()
 {
 	// create ClassTreeView context menu actions
@@ -708,13 +715,13 @@ void dlg_FeatureScout::setupConnections()
 	connect(m_objectAdd, &QAction::triggered, this, &dlg_FeatureScout::addObject);
 	connect(m_objectDelete, &QAction::triggered, this, &dlg_FeatureScout::deleteObject);
 	connect(m_classTreeView, &QTreeView::customContextMenuRequested, this, &dlg_FeatureScout::showContextMenu);
-	connect(this->add_class, &QToolButton::clicked, this, &dlg_FeatureScout::ClassAddButton);
-	connect(this->save_class, &QToolButton::released, this, &dlg_FeatureScout::ClassSaveButton);
-	connect(this->load_class, &QToolButton::released, this, &dlg_FeatureScout::ClassLoadButton);
-	connect(this->delete_class, &QToolButton::clicked, this, &dlg_FeatureScout::ClassDeleteButton);
-	connect(this->wisetex_save, &QToolButton::released, this, &dlg_FeatureScout::WisetexSaveButton);
-	connect(this->export_class, &QPushButton::clicked, this, &dlg_FeatureScout::ExportClassButton);
-	connect(this->csv_dv, &QToolButton::released, this, &dlg_FeatureScout::CsvDVSaveButton);
+	connect(m_ui->add_class, &QToolButton::clicked, this, &dlg_FeatureScout::ClassAddButton);
+	connect(m_ui->save_class, &QToolButton::released, this, &dlg_FeatureScout::ClassSaveButton);
+	connect(m_ui->load_class, &QToolButton::released, this, &dlg_FeatureScout::ClassLoadButton);
+	connect(m_ui->delete_class, &QToolButton::clicked, this, &dlg_FeatureScout::ClassDeleteButton);
+	connect(m_ui->wisetex_save, &QToolButton::released, this, &dlg_FeatureScout::WisetexSaveButton);
+	connect(m_ui->export_class, &QPushButton::clicked, this, &dlg_FeatureScout::ExportClassButton);
+	connect(m_ui->csv_dv, &QToolButton::released, this, &dlg_FeatureScout::CsvDVSaveButton);
 
 	connect(m_elementTableModel, &QStandardItemModel::itemChanged, this, &dlg_FeatureScout::updateVisibility);
 	connect(m_classTreeView, &QTreeView::clicked, this, &dlg_FeatureScout::classClicked);
@@ -1027,9 +1034,7 @@ void dlg_FeatureScout::ClassAddButton()
 	QColor cColor = getClassColor(cid);
 
 	bool ok;
-
-	// class name and color input when calling AddClassDialog.
-	cText = dlg_editPCClass::getClassInfo(0, "FeatureScout", cText, &cColor, &ok).section(',', 0, 0);
+	cText = iAClassEditDlg::getClassInfo("FeatureScout: Add Class", cText, cColor, ok);
 	if (!ok)
 	{
 		return;
@@ -1204,18 +1209,15 @@ void dlg_FeatureScout::writeWisetex(QXmlStreamWriter* writer)
 
 void dlg_FeatureScout::CsvDVSaveButton()
 {
-	//Gets the selected rows out of elementTable
+	// Get selected rows out of elementTable
 	QModelIndexList indexes = m_elementTableView->selectionModel()->selection().indexes();
 	QList<ushort> characteristicsList;
-	QStringList inList;
-	QList<QVariant> inPara;
 
-	//Creates to checkboxes
-	inList.append(QString("$Save file"));
-	inPara.append(false);
-	inList.append(QString("$Show histograms"));
-	inPara.append(true);
-
+	
+	iAParameterDlg::ParamListT params;
+	addParameter(params, "Save file", iAValueType::Boolean, false);
+	addParameter(params, "Show histograms", iAValueType::Boolean, true);
+	QStringList colNames;
 	for (int i = 0; i < indexes.count(); ++i)
 	{
 		//Ensures that indices are unique
@@ -1227,14 +1229,12 @@ void dlg_FeatureScout::CsvDVSaveButton()
 
 		QString columnName(m_elementTable->GetColumn(0)->GetVariantValue(characteristicsList.at(i)).ToString().c_str());
 		columnName.remove("Â");
-
-		inList.append(QString("#HistoMin for %1").arg(columnName));
-		inList.append(QString("#HistoMax for %1").arg(columnName));
-		inList.append(QString("#HistoBinNbr for %1").arg(columnName));
-
-		inPara.append(m_elementTable->GetColumn(1)->GetVariantValue(characteristicsList.at(i)).ToFloat());
-		inPara.append(m_elementTable->GetColumn(2)->GetVariantValue(characteristicsList.at(i)).ToFloat());
-		inPara.append(100);
+		colNames.push_back(columnName);
+		addParameter(params, QString("HistoMin for %1").arg(columnName), iAValueType::Continuous,
+			m_elementTable->GetColumn(1)->GetVariantValue(characteristicsList.at(i)).ToFloat());
+		addParameter(params, QString("HistoMax for %1").arg(columnName), iAValueType::Continuous,
+			m_elementTable->GetColumn(2)->GetVariantValue(characteristicsList.at(i)).ToFloat());
+		addParameter(params, QString("HistoBinNbr for %1").arg(columnName), iAValueType::Discrete, 100, 2);
 	}
 
 	if (characteristicsList.count() == 0)
@@ -1243,14 +1243,14 @@ void dlg_FeatureScout::CsvDVSaveButton()
 		return;
 	}
 
-	dlg_commoninput dlg(this, "DistributionViewCSVSaveDialog", inList, inPara, nullptr);
+	iAParameterDlg dlg(this, "Save Distribution CSV", params);
 	if (dlg.exec() != QDialog::Accepted)
 	{
 		return;
 	}
-
-	bool saveFile = dlg.getCheckValue(0) == 2;
-	bool showHistogram = dlg.getCheckValue(1) == 2;
+	auto values = dlg.parameterValues();
+	bool saveFile = values["Save file"].toBool();
+	bool showHistogram = values["Show histograms"].toBool();
 	if (!saveFile && !showHistogram)
 	{
 		QMessageBox::warning(this, "FeatureScout", "Please check either 'Save file' or 'Show histogram' (or both).");
@@ -1281,18 +1281,15 @@ void dlg_FeatureScout::CsvDVSaveButton()
 		double range[2] = { 0.0, 0.0 };
 		vtkDataArray* length = vtkDataArray::SafeDownCast(
 			m_tableList[m_activeClassItem->index().row()]->GetColumn(characteristicsList.at(characteristicIdx)));
-		range[0] = dlg.getDblValue(3 * characteristicIdx + 2);
-		range[1] = dlg.getDblValue(3 * characteristicIdx + 3);
-		//length->GetRange(range);
+		range[0] = values[QString("HistoMin for %1").arg(colNames[characteristicIdx])].toDouble();
+		range[1] = values[QString("HistoMax for %1").arg(colNames[characteristicIdx])].toDouble();
 
 		if (range[0] == range[1])
 		{
 			range[1] = range[0] + 1.0;
 		}
 
-		int numberOfBins = dlg.getDblValue(3 * characteristicIdx + 4);
-		//int numberOfBins = dlg.getDblValue(row+2);
-		//double inc = (range[1] - range[0]) / (numberOfBins) * 1.001; //test
+		int numberOfBins = values[QString("HistoBinNbr for %1").arg(colNames[characteristicIdx])].toInt();
 		double inc = (range[1] - range[0]) / (numberOfBins);
 		double halfInc = inc / 2.0;
 
@@ -1301,7 +1298,6 @@ void dlg_FeatureScout::CsvDVSaveButton()
 		extents->SetNumberOfTuples(numberOfBins);
 
 		float* centers = static_cast<float*>(extents->GetVoidPointer(0));
-		//double min = range[0] - 0.0005*inc + halfInc;	//test
 		double min = range[0] + halfInc;
 
 		for (int j = 0; j < numberOfBins; ++j)
@@ -1361,7 +1357,6 @@ void dlg_FeatureScout::CsvDVSaveButton()
 		disTable->AddColumn(extents.GetPointer());
 		disTable->AddColumn(populations.GetPointer());
 
-		//Writes csv file
 		if (saveFile)
 		{
 			std::ofstream file(getLocalEncodingFileName(filename).c_str(), std::ios::app);
@@ -1373,9 +1368,9 @@ void dlg_FeatureScout::CsvDVSaveButton()
 				file << QString("%1 Distribution of '%2'")
 					.arg(m_csvTable->GetColumnName(characteristicsList.at(characteristicIdx)))
 					.arg(m_activeClassItem->text()).toStdString()
-					<< endl;
+					<< "\n";
 
-				file << "HistoBinID;" << "HistoBinCenter" << "Frequency;" << endl;
+				file << "HistoBinID;" << "HistoBinCenter" << "Frequency;" << "\n";
 
 				for (vtkIdType row = 0; row < tRowNb; ++row)
 				{
@@ -1389,7 +1384,7 @@ void dlg_FeatureScout::CsvDVSaveButton()
 								<< std::setprecision(20) << tVal.ToDouble() << ";";
 							break;
 						case 1:
-							file << tVal.ToTypeUInt64() << endl;
+							file << tVal.ToTypeUInt64() << "\n";
 							break;
 						}
 					}
@@ -1509,21 +1504,20 @@ void dlg_FeatureScout::CreateLabelledOutputMask(iAConnector& con, const QString&
 	typedef itk::Image<T, DIM>   InputImageType;
 	typedef itk::Image<ClassIDType, DIM>   OutputImageType;
 
-	QMap<size_t, ClassIDType> currentEntries;
-
 	QString mode1 = "Export all classes";
 	QString mode2 = "Export single selected class";
-	QStringList modes = (QStringList() << tr(mode1.toStdString().c_str()) << tr(mode2.toStdString().c_str()));
-	QStringList inList = (QStringList() << tr("+Classification"));
-	QList<QVariant> inPara = (QList<QVariant>() << modes);
-	dlg_commoninput dlg(this, "Save classification options", inList, inPara, nullptr);
+	QStringList modes = (QStringList() << mode1 << mode2);
+	iAParameterDlg::ParamListT params;
+	addParameter(params, "Classification", iAValueType::Categorical, modes);
+	iAParameterDlg dlg(this, "Save classification options", params);
 	if (dlg.exec() != QDialog::Accepted)
 	{
 		return;
 	}
-	QString mode = dlg.getComboBoxValue(0);
-	bool exportAllClassified = (mode.compare(mode1) == 0); //if export all selected else single class export
+	QString mode = dlg.parameterValues()["Classification"].toString();
+	bool exportAllClassified = (mode == mode1);
 
+	QMap<size_t, ClassIDType> currentEntries;
 	// Skip first, as classes start with 1, 0 is the uncategorized class
 	for (int i = 1; i < m_classTreeModel->invisibleRootItem()->rowCount(); i++)
 	{
@@ -1716,7 +1710,7 @@ void dlg_FeatureScout::ClassLoadButton()
 				const QString count = reader.attributes().value(CountAttribute).toString();
 				const QString percent = reader.attributes().value(PercentAttribute).toString();
 
-				QList<QStandardItem*> stammItem = this->prepareRow(name, count, percent);
+				QList<QStandardItem*> stammItem = prepareRow(name, count, percent);
 				stammItem.first()->setData(QColor(color), Qt::DecorationRole);
 				m_colorList.append(QColor(color));
 				rootItem->appendRow(stammItem);
@@ -1881,17 +1875,17 @@ void dlg_FeatureScout::showScatterPlot()
 void dlg_FeatureScout::showPCSettings()
 {
 	iAParameterDlg::ParamListT params;
-	params.push_back(iAAttributeDescriptor::createParam("Line Width", iAValueType::Continuous, m_pcLineWidth, 0.001, 100000));
-	params.push_back(iAAttributeDescriptor::createParam("Opacity", iAValueType::Discrete, m_pcOpacity, 0, 255));
-	params.push_back(iAAttributeDescriptor::createParam("Tick Count", iAValueType::Discrete, m_pcTickCount, 0, 255));
-	params.push_back(iAAttributeDescriptor::createParam("Font Size", iAValueType::Discrete, m_pcFontSize, 0, 255));
+	addParameter(params, "Line Width", iAValueType::Continuous, QString::number(m_pcLineWidth, 'f', 2), 0.001, 100000);
+	addParameter(params, "Opacity", iAValueType::Discrete, m_pcOpacity, 0, 255);
+	addParameter(params, "Tick Count", iAValueType::Discrete, m_pcTickCount, 0, 255);
+	addParameter(params, "Font Size", iAValueType::Discrete, m_pcFontSize, 0, 255);
 
 	iAParameterDlg pcSettingsDlg(this, "Parallel Coordinates Settings", params);
 	if (pcSettingsDlg.exec() != QDialog::Accepted)
 	{
 		return;
 	}
-	auto const& values = pcSettingsDlg.parameterValues();
+	auto values = pcSettingsDlg.parameterValues();
 	m_pcLineWidth = values["Line Width"].toFloat();
 	m_pcOpacity   = values["Opacity"].toInt();
 	m_pcTickCount = values["Tick Count"].toInt();
@@ -2078,12 +2072,12 @@ void dlg_FeatureScout::classDoubleClicked(const QModelIndex& index)
 	if (index.parent().row() == -1 && index.isValid())
 	{
 		item = m_classTreeModel->item(index.row(), 0);
-		// Surpresses changeability items (class level) after dlg_editPCClass dialog.
+		// Surpresses changeability items (class level) after iAClassEditDlg dialog.
 		m_classTreeModel->itemFromIndex(index)->setEditable(false);
 	}
 	else if (index.parent().row() != -1 && index.isValid())
 	{	// An item was clicked.
-		// Surpresses changeability of items (single fiber level) after dlg_editPCClass dialog.
+		// Surpresses changeability of items (single fiber level) after iAClassEditDlg dialog.
 		m_classTreeModel->itemFromIndex(index)->setEditable(false);
 		return;
 	}
@@ -2102,7 +2096,7 @@ void dlg_FeatureScout::classDoubleClicked(const QModelIndex& index)
 		QString old_cText = item->text();
 		QColor new_cColor = old_cColor;
 		QString new_cText = old_cText;
-		new_cText = dlg_editPCClass::getClassInfo(0, "Class Explorer", new_cText, &new_cColor, &ok).section(',', 0, 0);
+		new_cText = iAClassEditDlg::getClassInfo("FeatureScout: Edit Class", new_cText, new_cColor, ok);
 
 		if (ok && (old_cText.compare(new_cText) != 0 || new_cColor != old_cColor))
 		{
@@ -2293,18 +2287,18 @@ namespace
 	QString filterToXMLAttributeName(QString const& str)
 	{
 		QString result(str);
-		QRegularExpression validFirstChar("^[a-zA-Z_:]");
+		const QRegularExpression validFirstChar("^[a-zA-Z_:]");
 		while (!validFirstChar.match(result).hasMatch() && result.size() > 0)
 		{
 			result.remove(0, 1);
 		}
-		QRegularExpression invalidChars("[^a-zA-Z0-9_:.-]");
+		const QRegularExpression invalidChars("[^a-zA-Z0-9_:.-]");
 		result.remove(invalidChars);
 		return result;
 	}
 }
 
-void dlg_FeatureScout::writeClassesAndChildren(QXmlStreamWriter* writer, QStandardItem* item)
+void dlg_FeatureScout::writeClassesAndChildren(QXmlStreamWriter* writer, QStandardItem* item) const
 {
 	// check if it is a class item
 	if (item->hasChildren())
@@ -2323,9 +2317,14 @@ void dlg_FeatureScout::writeClassesAndChildren(QXmlStreamWriter* writer, QStanda
 			for (int j = 0; j < m_elementCount; ++j)
 			{
 				vtkVariant v = m_csvTable->GetValue(item->child(i)->text().toInt() - 1, j);
-				QString str = QString::fromUtf8(v.ToUnicodeString().utf8_str()).trimmed();
 				vtkVariant v1 = m_elementTable->GetValue(j, 0);
+#if VTK_VERSION_NUMBER < VTK_VERSION_CHECK(9, 1, 0)
+				QString str = QString::fromUtf8(v.ToUnicodeString().utf8_str()).trimmed();
 				QString str1 = filterToXMLAttributeName(QString::fromUtf8(v1.ToUnicodeString().utf8_str()).trimmed());
+#else
+				QString str = QString::fromUtf8(v.ToString().c_str()).trimmed();
+				QString str1 = filterToXMLAttributeName(QString::fromUtf8(v1.ToString().c_str()).trimmed());
+#endif
 				writer->writeAttribute(str1, str);
 			}
 			writer->writeEndElement(); // end object tag
@@ -2903,78 +2902,55 @@ void dlg_FeatureScout::updatePolarPlotView(vtkTable* it)
 
 void dlg_FeatureScout::setupPolarPlotResolution(float grad)
 {
-	m_gPhi = vtkMath::Floor(360.0 / grad);
-	m_gThe = vtkMath::Floor(90.0 / grad);
-	m_PolarPlotPhiResolution = 360.0 / m_gPhi;
-	m_PolarPlotThetaResolution = 90.0 / m_gThe;
+	m_gPhi = vtkMath::Floor(360.0f / grad);
+	m_gThe = vtkMath::Floor(90.0f / grad);
+	m_PolarPlotPhiResolution = 360.0f / m_gPhi;
+	m_PolarPlotThetaResolution = 90.0f / m_gThe;
 	m_gThe = m_gThe + 1;
 }
 
 bool dlg_FeatureScout::OpenBlobVisDialog()
 {
-	QStringList inList = (QStringList()
-		<< tr("^Range:")
-		<< tr("$Blob body:")
-		<< tr("$Use Depth peeling:")
-		<< tr("^Blob opacity [0,1]:")
-		<< tr("$Silhouettes:")
-		<< tr("^Silhouettes opacity [0,1]:")
-		<< tr("$3D labels:")
-		<< tr("$Smart overlapping:")
-		<< tr("^Separation distance (if smart overlapping):")
-		<< tr("$Smooth after smart overlapping:")
-		<< tr("$Gaussian blurring of the blob:")
-		<< tr("*Gaussian blur variance:")
-		<< tr("*Dimension X")
-		<< tr("*Dimension Y")
-		<< tr("*Dimension Z")
-		);
-	QList<QVariant> inPara;
 	iABlobCluster* blob = nullptr;
 	if (m_blobMap.contains(m_activeClassItem->text()))
 	{
 		blob = m_blobMap[m_activeClassItem->text()];
 	}
-
-	inPara
-		<< tr("%1").arg(blob ? blob->GetRange() : m_blobManager->GetRange())
-		<< tr("%1").arg(blob ? blob->GetShowBlob() : m_blobManager->GetShowBlob())
-		<< tr("%1").arg(m_blobManager->GetUseDepthPeeling())
-		<< tr("%1").arg(blob ? blob->GetBlobOpacity() : m_blobManager->GetBlobOpacity())
-		<< tr("%1").arg(blob ? blob->GetSilhouette() : m_blobManager->GetSilhouettes())
-		<< tr("%1").arg(blob ? blob->GetSilhouetteOpacity() : m_blobManager->GetSilhouetteOpacity())
-		<< tr("%1").arg(blob ? blob->GetLabel() : m_blobManager->GetLabeling())
-		<< tr("%1").arg(m_blobManager->OverlappingIsEnabled())
-		<< tr("%1").arg(m_blobManager->GetOverlapThreshold())
-		<< tr("%1").arg(blob ? blob->GetSmoothing() : m_blobManager->GetSmoothing())
-		<< tr("%1").arg(m_blobManager->GetGaussianBlur())
-		<< tr("%1").arg(blob ? blob->GetGaussianBlurVariance() : m_blobManager->GetGaussianBlurVariance())
-		<< tr("%1").arg(blob ? blob->GetDimensions()[0] : m_blobManager->GetDimensions()[0])
-		<< tr("%1").arg(blob ? blob->GetDimensions()[1] : m_blobManager->GetDimensions()[1])
-		<< tr("%1").arg(blob ? blob->GetDimensions()[2] : m_blobManager->GetDimensions()[2]);
-	dlg_commoninput dlg(this, "Blob rendering preferences", inList, inPara, nullptr);
+	iAParameterDlg::ParamListT params;
+	addParameter(params, "Range:", iAValueType::Continuous, blob ? blob->GetRange() : m_blobManager->GetRange());
+	addParameter(params, "Blob body:", iAValueType::Boolean, blob ? blob->GetShowBlob() : m_blobManager->GetShowBlob());
+	addParameter(params, "Use Depth peeling:", iAValueType::Boolean, m_blobManager->GetUseDepthPeeling());
+	addParameter(params, "Blob opacity [0,1]:", iAValueType::Continuous, blob ? blob->GetBlobOpacity() : m_blobManager->GetBlobOpacity());
+	addParameter(params, "Silhouettes:", iAValueType::Boolean, blob ? blob->GetSilhouette() : m_blobManager->GetSilhouettes());
+	addParameter(params, "Silhouettes opacity [0,1]:", iAValueType::Continuous, blob ? blob->GetSilhouetteOpacity() : m_blobManager->GetSilhouetteOpacity());
+	addParameter(params, "3D labels:", iAValueType::Boolean, blob ? blob->GetLabel() : m_blobManager->GetLabeling());
+	addParameter(params, "Smart overlapping:", iAValueType::Boolean, m_blobManager->OverlappingIsEnabled());
+	addParameter(params, "Separation distance (if smart overlapping):", iAValueType::Continuous, m_blobManager->GetOverlapThreshold());
+	addParameter(params, "Smooth after smart overlapping:", iAValueType::Boolean, blob ? blob->GetSmoothing() : m_blobManager->GetSmoothing());
+	addParameter(params, "Gaussian blurring of the blob:", iAValueType::Boolean, m_blobManager->GetGaussianBlur());
+	addParameter(params, "Gaussian blur variance:", iAValueType::Continuous, blob ? blob->GetGaussianBlurVariance() : m_blobManager->GetGaussianBlurVariance());
+	addParameter(params, "Dimension X", iAValueType::Discrete, blob ? blob->GetDimensions()[0] : m_blobManager->GetDimensions()[0]);
+	addParameter(params, "Dimension Y", iAValueType::Discrete, blob ? blob->GetDimensions()[1] : m_blobManager->GetDimensions()[1]);
+	addParameter(params, "Dimension Z", iAValueType::Discrete, blob ? blob->GetDimensions()[2] : m_blobManager->GetDimensions()[2]);
+	iAParameterDlg dlg(this, "Blob rendering preferences", params);
 	if (dlg.exec() != QDialog::Accepted)
 	{
 		return false;
 	}
-	int i = 0;
-	m_blobManager->SetRange(dlg.getDblValue(i++));
-	m_blobManager->SetShowBlob(dlg.getCheckValue(i++) != 0);
-	m_blobManager->SetUseDepthPeeling(dlg.getCheckValue(i++));
-	m_blobManager->SetBlobOpacity(dlg.getDblValue(i++));
-	m_blobManager->SetSilhouettes(dlg.getCheckValue(i++) != 0);
-	m_blobManager->SetSilhouetteOpacity(dlg.getDblValue(i++));
-	m_blobManager->SetLabeling(dlg.getCheckValue(i++) != 0);
-	m_blobManager->SetOverlappingEnabled(dlg.getCheckValue(i++) != 0);
-	m_blobManager->SetOverlapThreshold(dlg.getDblValue(i++));
-	m_blobManager->SetSmoothing(dlg.getCheckValue(i++));
-	m_blobManager->SetGaussianBlur(dlg.getCheckValue(i++));
-	m_blobManager->SetGaussianBlurVariance(dlg.getIntValue(i++));
-
-	int dimens[3];
-	dimens[0] = dlg.getIntValue(i++);
-	dimens[1] = dlg.getIntValue(i++);
-	dimens[2] = dlg.getIntValue(i++);
+	auto values = dlg.parameterValues();
+	m_blobManager->SetRange(values["Range:"].toDouble());
+	m_blobManager->SetShowBlob(values["Blob body:"].toBool());
+	m_blobManager->SetUseDepthPeeling(values["Use Depth peeling:"].toBool());
+	m_blobManager->SetBlobOpacity(values["Blob opacity [0,1]:"].toDouble());
+	m_blobManager->SetSilhouettes(values["Silhouettes:"].toBool());
+	m_blobManager->SetSilhouetteOpacity(values["Silhouettes opacity [0,1]:"].toDouble());
+	m_blobManager->SetLabeling(values["3D labels:"].toBool());
+	m_blobManager->SetOverlappingEnabled(values["Smart overlapping:"].toBool());
+	m_blobManager->SetOverlapThreshold(values["Separation distance (if smart overlapping):"].toDouble());
+	m_blobManager->SetSmoothing(values["Smooth after smart overlapping:"].toBool());
+	m_blobManager->SetGaussianBlur(values["Gaussian blurring of the blob:"].toBool());
+	m_blobManager->SetGaussianBlurVariance(values["Gaussian blur variance:"].toDouble());
+	int dimens[3] = {values["Dimension X"].toInt(), values["Dimension Y"].toInt(), values["Dimension Z"].toInt()};
 	m_blobManager->SetDimensions(dimens);
 	return true;
 }
@@ -2987,103 +2963,56 @@ void dlg_FeatureScout::SaveBlobMovie()
 		QMessageBox::information(this, "Movie Export", "Sorry, but movie export support is disabled.");
 		return;
 	}
+	iAParameterDlg::ParamListT params;
 	QStringList modes = (QStringList() << tr("No rotation") << tr("Rotate Z") << tr("Rotate X") << tr("Rotate Y"));
-	QStringList inList = (QStringList() << tr("+Rotation mode"));
-	QList<QVariant> inPara = (QList<QVariant>() << modes);
-	dlg_commoninput dlg(this, "Save movie options", inList, inPara, nullptr);
+	addParameter(params, "Rotation mode", iAValueType::Categorical, modes);
+	addParameter(params, "Number of frames:", iAValueType::Discrete, 24, 1);
+	addParameter(params, "Range from:", iAValueType::Continuous, m_blobManager->GetRange());
+	addParameter(params, "Range to:", iAValueType::Continuous, m_blobManager->GetRange());
+	addParameter(params, "Blob body:", iAValueType::Boolean, m_blobManager->GetShowBlob());
+	addParameter(params, "Blob opacity from [0,1]:", iAValueType::Continuous, m_blobManager->GetBlobOpacity(), 0, 1);
+	addParameter(params, "Blob opacity to:", iAValueType::Continuous, m_blobManager->GetBlobOpacity(), 0, 1);
+	addParameter(params, "Silhouettes:", iAValueType::Boolean, m_blobManager->GetSilhouettes());
+	addParameter(params, "Silhouettes opacity from [0,1]:", iAValueType::Continuous, m_blobManager->GetSilhouetteOpacity());
+	addParameter(params, "Silhouettes opacity to:", iAValueType::Continuous, m_blobManager->GetSilhouetteOpacity());
+	addParameter(params, "3D labels:", iAValueType::Boolean, m_blobManager->GetLabeling());
+	addParameter(params, "Smart overlapping:", iAValueType::Boolean, m_blobManager->OverlappingIsEnabled());
+	addParameter(params, "Separation distance from (if smart overlapping):", iAValueType::Continuous, m_blobManager->GetOverlapThreshold());
+	addParameter(params, "Separation distance to:", iAValueType::Continuous, m_blobManager->GetOverlapThreshold());
+	addParameter(params, "Smooth after smart overlapping:", iAValueType::Boolean, m_blobManager->GetSmoothing());
+	addParameter(params, "Gaussian blurring of the blob:", iAValueType::Boolean, m_blobManager->GetGaussianBlur());
+	addParameter(params, "Gaussian blur variance from:", iAValueType::Continuous, m_blobManager->GetGaussianBlurVariance());
+	addParameter(params, "Gaussian blur variance to:", iAValueType::Continuous, m_blobManager->GetGaussianBlurVariance());
+	addParameter(params, "Dimension X from", iAValueType::Discrete, m_blobManager->GetDimensions()[0]);
+	addParameter(params, "Dimension X to:" , iAValueType::Discrete, m_blobManager->GetDimensions()[0]);
+	addParameter(params, "Dimension Y from", iAValueType::Discrete, m_blobManager->GetDimensions()[1]);
+	addParameter(params, "Dimension Y to:" , iAValueType::Discrete, m_blobManager->GetDimensions()[1]);
+	addParameter(params, "Dimension Z from", iAValueType::Discrete, m_blobManager->GetDimensions()[2]);
+	addParameter(params, "Dimension Z to:" , iAValueType::Discrete, m_blobManager->GetDimensions()[2]);
+
+	iAParameterDlg dlg(this, "Blob movie rendering options", params);
 	if (dlg.exec() != QDialog::Accepted)
 	{
 		return;
 	}
-	QString mode = dlg.getComboBoxValue(0);
-	int imode = dlg.getComboBoxIndex(0);
-	inList.clear();
-	inList = (QStringList()
-		<< tr("*Number of frames:")
-		<< tr("^Range from:") << tr("^Range to:")
-		<< tr("$Blob body:")
-		<< tr("^Blob opacity [0,1]:") << tr("^Blob opacity to:")
-		<< tr("$Silhouettes:")
-		<< tr("^Silhouettes opacity [0,1]:") << tr("^Silhouettes opacity to:")
-		<< tr("$3D labels:")
-		<< tr("$Smart overlapping:")
-		<< tr("^Separation distance (if smart overlapping):") << tr("^ Separation distance to:")
-		<< tr("$Smooth after smart overlapping:")
-		<< tr("$Gaussian blurring of the blob:")
-		<< tr("*Gaussian blur variance:") << tr("*Gaussian blur variance to:")
-		<< tr("*Dimension X") << tr("*Dimension X to:")
-		<< tr("*Dimension Y") << tr("*Dimension Y to:")
-		<< tr("*Dimension Z") << tr("*Dimension Z to:")
-		);
-	inPara.clear();
-	inPara
-		<< tr("%1").arg(24)
-		<< tr("%1").arg(m_blobManager->GetRange()) << tr("%1").arg(m_blobManager->GetRange())
-		<< tr("%1").arg(m_blobManager->GetShowBlob())
-		<< tr("%1").arg(m_blobManager->GetBlobOpacity()) << tr("%1").arg(m_blobManager->GetBlobOpacity())
-		<< tr("%1").arg(m_blobManager->GetSilhouettes())
-		<< tr("%1").arg(m_blobManager->GetSilhouetteOpacity()) << tr("%1").arg(m_blobManager->GetSilhouetteOpacity())
-		<< tr("%1").arg(m_blobManager->GetLabeling())
-		<< tr("%1").arg(m_blobManager->OverlappingIsEnabled())
-		<< tr("%1").arg(m_blobManager->GetOverlapThreshold()) << tr("%1").arg(m_blobManager->GetOverlapThreshold())
-		<< tr("%1").arg(m_blobManager->GetSmoothing())
-		<< tr("%1").arg(m_blobManager->GetGaussianBlur())
-		<< tr("%1").arg(m_blobManager->GetGaussianBlurVariance()) << tr("%1").arg(m_blobManager->GetGaussianBlurVariance())
-		<< tr("%1").arg(m_blobManager->GetDimensions()[0]) << tr("%1").arg(m_blobManager->GetDimensions()[0])
-		<< tr("%1").arg(m_blobManager->GetDimensions()[1]) << tr("%1").arg(m_blobManager->GetDimensions()[1])
-		<< tr("%1").arg(m_blobManager->GetDimensions()[2]) << tr("%1").arg(m_blobManager->GetDimensions()[2]);
-	dlg_commoninput dlg2(this, "Blob rendering preferences", inList, inPara, nullptr);
-	if (dlg2.exec() != QDialog::Accepted)
-		return;
-
-	int i = 0;
-	double range[2];
-	double blobOpacity[2];
-	double silhouetteOpacity[2];
-	double overlapThreshold[2];
-	double gaussianBlurVariance[2];
-	int dimX[2]; int dimY[2]; int dimZ[2];
-
-	size_t numFrames = dlg.getIntValue(i++);
-	for (int ind = 0; ind < 2; ++ind)
-	{
-		range[ind] = dlg.getDblValue(i++);
-	}
-	m_blobManager->SetShowBlob(dlg.getCheckValue(i++) != 0);
-	for (int ind = 0; ind < 2; ++ind)
-	{
-		blobOpacity[ind] = dlg.getDblValue(i++);
-	}
-	m_blobManager->SetSilhouettes(dlg.getCheckValue(i++) != 0);
-	for (int ind = 0; ind < 2; ++ind)
-	{
-		silhouetteOpacity[ind] = dlg.getDblValue(i++);
-	}
-	m_blobManager->SetLabeling(dlg.getCheckValue(i++) != 0);
-	m_blobManager->SetOverlappingEnabled(dlg.getCheckValue(i++) != 0);
-	for (int ind = 0; ind < 2; ++ind)
-	{
-		overlapThreshold[ind] = dlg.getDblValue(i++);
-	}
-	m_blobManager->SetSmoothing(dlg.getCheckValue(i++));
-	m_blobManager->SetGaussianBlur(dlg.getCheckValue(i++));
-	for (int ind = 0; ind < 2; ++ind)
-	{
-		gaussianBlurVariance[ind] = dlg.getIntValue(i++);
-	}
-
-	for (int ind = 0; ind < 2; ++ind)
-	{
-		dimX[ind] = dlg.getIntValue(i++);
-	}
-	for (int ind = 0; ind < 2; ++ind)
-	{
-		dimY[ind] = dlg.getIntValue(i++);
-	}
-	for (int ind = 0; ind < 2; ++ind)
-	{
-		dimZ[ind] = dlg.getIntValue(i++);
-	}
+	auto values = dlg.parameterValues();
+	QString mode = values["Rotation mode"].toString();
+	int imode = modes.indexOf(mode);
+	m_blobManager->SetShowBlob(values["Blob body:"].toBool());
+	m_blobManager->SetSilhouettes(values["Silhouettes:"].toBool());
+	m_blobManager->SetLabeling(values["3D labels:"].toBool());
+	m_blobManager->SetOverlappingEnabled(values["Smart overlapping:"].toBool());
+	m_blobManager->SetSmoothing(values["Smooth after smart overlapping:"].toBool());
+	m_blobManager->SetGaussianBlur(values["Gaussian blurring of the blob:"].toBool());
+	size_t numFrames = values["Number of frames:"].toInt();
+	double range[2] = {values["Range from:"].toDouble(), values["Range to:"].toDouble()};
+	double blobOpacity[2] = {values["Blob opacity from [0,1]:"].toDouble(), values["Blob opacity to:"].toDouble()};
+	double silhouetteOpacity[2] = {values["Silhouettes opacity from [0,1]:"].toDouble(), values["Silhouettes opacity to:"].toDouble()};
+	double overlapThreshold[2] = {values["Separation distance from (if smart overlapping):"].toDouble(), values["Separation distance to:"].toDouble()};
+	double gaussianBlurVariance[2] = {values["Gaussian blur variance from:"].toDouble(), values["Gaussian blur variance to:"].toDouble()};
+	int dimX[2] = {values["Dimension X from"].toInt(), values["Dimension X to"].toInt()};
+	int dimY[2] = {values["Dimension Y from"].toInt(), values["Dimension Y to"].toInt()};
+	int dimZ[2] = {values["Dimension Z from"].toInt(), values["Dimension Z to"].toInt()};
 
 	QFileInfo fileInfo = m_activeChild->fileInfo();
 
@@ -3113,7 +3042,7 @@ void dlg_FeatureScout::initFeatureScoutUI()
 	m_polarPlotWidget = new iAQVTKWidget();
 	m_lengthDistrWidget = new iAQVTKWidget();
 	m_dwPC = new iADockWidgetWrapper(m_pcWidget, "Parallel Coordinates", "FeatureScoutPC");
-	m_dwPP = new dlg_PolarPlot(this);
+	m_dwPP = new iAPolarPlotWidget(this);
 	m_dwPP->legendLayout->addWidget(m_polarPlotWidget);
 	m_activeChild->addDockWidget(Qt::RightDockWidgetArea, this);
 	m_activeChild->addDockWidget(Qt::RightDockWidgetArea, m_dwPC);

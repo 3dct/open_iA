@@ -1,5 +1,4 @@
-SET (OPENIA_PRECOMPILE_HEADERS
-<iASignallingWidget.h>
+set(OPENIA_PRECOMPILE_HEADERS
 <QPainter>
 <QtGlobal>
 )

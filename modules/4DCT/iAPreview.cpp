@@ -21,7 +21,6 @@
 #include "iAPreview.h"
 
 #include <QMouseEvent>
-#include <QToolTip>
 #include <QCursor>
 
 iAPreview::iAPreview( QWidget* parent /*= 0*/ ) :

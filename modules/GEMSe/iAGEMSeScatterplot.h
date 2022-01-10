@@ -21,7 +21,8 @@
 #pragma once
 
 #include <iAAttributes.h>
-#include <iAVtkWidget.h>
+
+#include <iAQVTKWidget.h>
 
 #include <vtkSmartPointer.h>
 

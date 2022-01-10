@@ -40,11 +40,7 @@ class iASelectionsView : public SelectionsConnector
 	Q_OBJECT
 
 public:
-#if QT_VERSION < QT_VERSION_CHECK(5, 15, 0)
-	iASelectionsView( QWidget * parent = 0, Qt::WindowFlags f = 0 );
-#else
-	iASelectionsView(QWidget* parent = nullptr, Qt::WindowFlags f = Qt::WindowFlags());
-#endif
+	iASelectionsView(QWidget* parent = nullptr);
 	~iASelectionsView();
 
 signals:

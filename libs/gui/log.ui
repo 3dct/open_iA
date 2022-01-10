@@ -6,12 +6,12 @@
    <rect>
     <x>0</x>
     <y>0</y>
-    <width>207</width>
-    <height>300</height>
+    <width>321</width>
+    <height>162</height>
    </rect>
   </property>
   <property name="windowTitle">
-   <string>Log</string>
+   <string>Log Messages</string>
   </property>
   <widget class="QWidget" name="centralwidget">
    <layout class="QVBoxLayout" name="verticalLayout">
@@ -64,6 +64,26 @@
        </item>
        <item>
         <widget class="QComboBox" name="cmbboxLogLevel"/>
+       </item>
+       <item>
+        <widget class="QCheckBox" name="cbVTK">
+         <property name="text">
+          <string>VTK</string>
+         </property>
+         <property name="checked">
+          <bool>true</bool>
+         </property>
+        </widget>
+       </item>
+       <item>
+        <widget class="QCheckBox" name="cbITK">
+         <property name="text">
+          <string>ITK</string>
+         </property>
+         <property name="checked">
+          <bool>true</bool>
+         </property>
+        </widget>
        </item>
        <item>
         <spacer name="horizontalSpacer">

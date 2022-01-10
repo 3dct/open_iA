@@ -20,9 +20,6 @@
 * ************************************************************************************/
 #pragma once
 
-// Qt
-#include <QString>
-#include <QWidget>
 // iA
 #include "iA4DCTStageData.h"
 // Ui

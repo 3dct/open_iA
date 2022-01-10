@@ -26,7 +26,6 @@
 #include "iA4DCTData.h"
 // QT
 #include <QDockWidget>
-#include <QColor>
 
 class iAFractureVisModule;
 

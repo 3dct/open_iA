@@ -24,25 +24,33 @@
 #include "iAChartFunctionBezier.h"
 #include "iAChartFunctionGaussian.h"
 #include "iAChartFunctionTransfer.h"
-#include "iAFunctionColors.h"
-#include "iAPlotData.h"
 
 #include "iALog.h"
 #include "iAMapper.h"
 #include "iAMathUtility.h"
 #include "iAXmlSettings.h"
 
-#include <vtkColorTransferFunction.h>
 #include <vtkMath.h>
-#include <vtkPiecewiseFunction.h>
 
 #include <QFileDialog>
 #include <QMenu>
-#include <QMessageBox>
 #include <QMouseEvent>
 #include <QPainter>
 
-#include <cassert>
+QColor* FunctionColors()
+{
+	static QColor FunctColors[7] = {
+		QColor(0, 0, 0),
+		QColor(0, 255, 0),
+		QColor(255, 0, 0),
+		QColor(255, 255, 0),
+		QColor(0, 255, 255),
+		QColor(255, 0, 255),
+		QColor(255, 255, 255)
+	};
+	return FunctColors;
+}
+
 
 iAChartWithFunctionsWidget::iAChartWithFunctionsWidget(QWidget *parent,
 	QString const & xLabel, QString const & yLabel) :

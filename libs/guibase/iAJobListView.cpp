@@ -31,7 +31,7 @@
 #include <QProgressBar>
 #include <QTimer>
 #include <QToolButton>
-#include <QVariant>
+#include <QVariant>    // required for Linux build
 #include <QVBoxLayout>
 
 #include <chrono>
@@ -115,6 +115,11 @@ iAJobListView::~iAJobListView()
 			j->abortListener->abort();
 		}
 	}
+}
+
+bool iAJobListView::isAnyJobRunning() const
+{
+	return !m_jobs.isEmpty() || !m_pendingJobs.isEmpty();
 }
 
 QWidget* iAJobListView::addJobWidget(QSharedPointer<iAJob> j)

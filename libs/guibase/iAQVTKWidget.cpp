@@ -18,18 +18,33 @@
 * Contact: FH OÖ Forschungs & Entwicklungs GmbH, Campus Wels, CT-Gruppe,              *
 *          Stelzhamerstraße 23, 4600 Wels / Austria, Email: c.heinzl@fh-wels.at       *
 * ************************************************************************************/
-#include "iAFunctionColors.h"
+#include "iAQVTKWidget.h"
 
-QColor* FunctionColors()
+#include <vtkGenericOpenGLRenderWindow.h>
+
+iAQVTKWidget::iAQVTKWidget(QWidget* parent) : iAVtkWidget(parent)
+{  // before version 9, VTK did not set a default render window, let's do this...
+#if VTK_VERSION_NUMBER < VTK_VERSION_CHECK(9, 0, 0)
+	auto renWin = vtkSmartPointer<vtkGenericOpenGLRenderWindow>::New();
+	SetRenderWindow(renWin);
+#endif
+	setFormat(iAVtkWidget::defaultFormat());
+}
+
+#if VTK_VERSION_NUMBER < VTK_VERSION_CHECK(9, 0, 0)
+// There also were no Qt-style methods to retrieve render window and interactor, let's provide them:
+vtkRenderWindow* iAQVTKWidget::renderWindow()
 {
-	static QColor FunctColors[7] = {
-		QColor(0, 0, 0)
-		, QColor(0, 255, 0)
-		, QColor(255, 0, 0)
-		, QColor(255, 255, 0)
-		, QColor(0, 255, 255)
-		, QColor(255, 0, 255)
-		, QColor(255, 255, 255)
-	};
-	return FunctColors;
+	return GetRenderWindow();
+}
+QVTKInteractor* iAQVTKWidget::interactor()
+{
+	return GetInteractor();
+}
+#endif
+
+void iAQVTKWidget::updateAll()
+{
+	renderWindow()->Render();
+	update();
 }

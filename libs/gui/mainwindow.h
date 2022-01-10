@@ -46,6 +46,7 @@ class vtkCamera;
 class vtkImageData;
 
 class MdiChild;
+class iADockWidgetWrapper;
 class iAModalityList;
 class iAModuleDispatcher;
 class iATransferFunction;
@@ -59,7 +60,7 @@ class iAgui_API MainWindow : public iAMainWindow
 	Q_OBJECT
 
 public:
-	MainWindow(QString const & appName, QString const & version, QString const& buildInformation, QString const & splashImage);
+	MainWindow(QString const & appName, QString const & version, QString const& buildInformation, QString const & splashImage, iADockWidgetWrapper* dwJobs);
 	~MainWindow() override;
 	static int runGUI(int argc, char * argv[], QString const & appName, QString const & version, QString const& buildInformation,
 		QString const & splashPath, QString const & iconPath);
@@ -162,7 +163,6 @@ private slots:
 	void linkViews();
 	void linkMDIs();
 	void enableInteraction();
-	void toggleLog();
 	void toggleFullScreen();
 	void toggleMenu();
 	void renderSettings();
@@ -187,6 +187,7 @@ private slots:
 	void listDockWidgetsInMenu();
 	void toggleMainWindowStatusBar();
 	void toggleOpenLogOnNewMessage();
+	void toggleOpenListOnAddedJob();
 	void toggleChildStatusBar();
 	void toggleToolbar();
 	void about();
@@ -204,7 +205,6 @@ private slots:
 	void noPointSelected();
 	void endPointSelected();
 	void setHistogramFocus();
-	void logVisibilityChanged(bool newVisibility);
 	void toggleMdiViewMode();
 
 private:
@@ -225,7 +225,6 @@ private:
 	void copyFunctions(MdiChild* oldChild, MdiChild* newChild);
 	void loadTLGICTData(QString const & baseDirectory);
 	bool keepOpen();
-	//MdiChild* findMdiChild(const QString& fileName);
 
 	static const int MaxRecentFiles = 8;
 
@@ -264,4 +263,9 @@ private:
 	QString m_gitVersion, m_buildInformation;
 
 	QSharedPointer<Ui_MainWindow> m_ui;
+
+	//! the job list dock widget
+	iADockWidgetWrapper* m_dwJobs;
+	//! whether the job list should be automatically shown when a new job is added to the list:
+	bool m_openJobListOnNewJob;
 };

@@ -22,8 +22,6 @@
 
 #include "iAguibase_export.h"
 
-#include <vtkSmartPointer.h>
-
 #include <QElapsedTimer>
 #include <QThread>
 #include <QVector>

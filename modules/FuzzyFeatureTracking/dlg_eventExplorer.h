@@ -66,7 +66,7 @@ private:
 	void setOpacity(int eventType, int value);
 	void updateCheckBox(int eventType, int checked);
 	void updateCharts();
-	void addPlot(int eventType, size_t chartID);
+	void addPlot(size_t eventType, size_t chartID);
 
 	iAVolumeStack* m_volumeStack;
 	size_t m_numberOfCharts;
