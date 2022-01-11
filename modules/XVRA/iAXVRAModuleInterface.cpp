@@ -107,16 +107,21 @@ void iAXVRAModuleInterface::startXVRA()
 	/***** Add Camera Frustum *****/
 
 	//Get camera from featureScout
-	//vtkSmartPointer<vtkCamera> fsCam = m_mainWnd->activeMdiChild()->renderer()->camera(); //m_mainWnd->activeMdiChild()->renderer()->renderer()->GetActiveCamera();
+	vtkSmartPointer<vtkCamera> fsCam = m_mainWnd->activeMdiChild()->renderer()->camera(); //m_mainWnd->activeMdiChild()->renderer()->renderer()->GetActiveCamera();
 
 	//Get camera from featureScout
-	//vtkSmartPointer<vtkCamera> vrCam = m_vrMain->getRenderer()->GetActiveCamera();
+	vtkSmartPointer<vtkCamera> vrCam = m_vrMain->getRenderer()->GetActiveCamera();
 
-	//vrFrustum = new iAFrustumActor(m_vrMain->getRenderer(), fsCam); // frustum of featurescout shown in vr
-	//fsFrustum = new iAFrustumActor(m_mainWnd->activeMdiChild()->renderer()->renderer(), vrCam); // frustum of vr shown in featurescout
+	double const* bounds = m_polyObject->bounds();
+	double maxSize = std::max({bounds[1] - bounds[0], bounds[3] - bounds[2], bounds[5] - bounds[4]});
+	vrFrustum = new iAFrustumActor(m_vrMain->getRenderer(), fsCam, maxSize/10);  // frustum of featurescout shown in vr
+	fsFrustum = new iAFrustumActor(m_mainWnd->activeMdiChild()->renderer()->labelRenderer(), vrCam, maxSize / 10);  // frustum of vr shown in featurescout
 
-	//vrFrustum->show();
-	//fsFrustum->show();
+	//causes invalid access; maybe mutex required?
+	//connect(fsFrustum, &iAFrustumActor::updateRequired, m_mainWnd->activeMdiChild(), &iAMdiChild::updateRenderer);
+
+	vrFrustum->show();
+	fsFrustum->show();
 
 	//Enable AR Mode
 	m_actionXVRA_ARView->setEnabled(true);

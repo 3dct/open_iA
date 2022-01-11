@@ -20,25 +20,40 @@
 * ************************************************************************************/
 #pragma once
 
-class vtkCameraActor;
-class vtkRenderer;
-class vtkCamera;
 class vtkActor;
+class vtkCamera;
+class vtkCubeSource;
+class vtkRenderer;
+class vtkSphereSource;
 
+#include <vtkCommand.h>
 #include <vtkSmartPointer.h>
 
-//! Creates and displays the frustum of a given camera
-class iAFrustumActor
+#include <QObject>
+#include <QElapsedTimer>
+
+//! Tracks the frustum of a given camera and displays in the given renderer.
+class iAFrustumActor: public QObject, public vtkCommand
 {
+	Q_OBJECT
 public:
-	iAFrustumActor(vtkRenderer* ren, vtkCamera* cam);
+	iAFrustumActor(vtkRenderer* ren, vtkCamera* cam, double size);
 	void show();
 	void hide();
+	void Execute(vtkObject*, unsigned long, void*) override;
+signals:
+	void updateRequired();
 
 private:
 	vtkRenderer* m_ren;
 	vtkCamera* m_cam;
-	vtkSmartPointer<vtkCameraActor> m_frustumActor;
+	double m_size;
+	QElapsedTimer m_timer;
+	vtkSmartPointer<vtkActor> m_camPosActor;
+	vtkSmartPointer<vtkActor> m_camDirActor;
+	vtkSmartPointer<vtkSphereSource> m_camPosSource;
+	vtkSmartPointer<vtkCubeSource> m_camDirSource;
+
 	bool m_visible;
 
 	void setupFrustumActor();
