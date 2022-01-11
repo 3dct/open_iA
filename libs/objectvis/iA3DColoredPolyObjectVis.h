@@ -96,6 +96,8 @@ public:
 	//! iA3DObjectActor interface.
 	QSharedPointer<iA3DPolyObjectActor> createPolyActor(vtkRenderer* ren);
 
+	std::vector<size_t> const& selection() const;
+
 protected:
 	vtkSmartPointer<vtkUnsignedCharArray> m_colors;
 	int m_contextAlpha;

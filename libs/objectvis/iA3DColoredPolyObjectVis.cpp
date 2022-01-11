@@ -50,6 +50,7 @@ iA3DColoredPolyObjectVis::iA3DColoredPolyObjectVis(vtkTable* objectTable, QShare
 
 void iA3DColoredPolyObjectVis::renderSelection(std::vector<size_t> const & sortedSelInds, int classID, QColor const & constClassColor, QStandardItem* /*activeClassItem*/)
 {
+	m_selection = sortedSelInds;
 	QColor BackColor(128, 128, 128, 0);
 	size_t currentObjectIndexInSelection = 0;
 	IndexType curSelObjID = -1;
@@ -215,6 +216,11 @@ void iA3DColoredPolyObjectVis::setSelection(std::vector<size_t> const & sortedSe
 	m_selection = sortedSelInds;
 	m_selectionActive = selectionActive;
 	updateColorSelectionRendering();
+}
+
+std::vector<size_t> const& iA3DColoredPolyObjectVis::selection() const
+{
+	return m_selection;
 }
 
 void iA3DColoredPolyObjectVis::setColor(QColor const &color)
