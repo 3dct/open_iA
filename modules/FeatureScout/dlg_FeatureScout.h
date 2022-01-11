@@ -102,6 +102,8 @@ public:
 	void renderLengthDistribution();  //!< render fiber-length distribution
 	void renderMeanObject();          //!< compute and render a mean object for each class
 	void renderOrientation();         //!< color all objects according to their orientation
+public slots:
+	void selectionChanged3D();
 private slots:
 	void SaveBlobMovie();
 	void ClassSaveButton();
@@ -123,6 +125,8 @@ private slots:
 	void spSelInformsPCChart(std::vector<size_t> const & selInds);
 	void spParameterVisibilityChanged(size_t paramIndex, bool enabled);
 	//! @}
+	//! set selection in the parallel coordinates charts
+	void setPCSelection(std::vector<size_t> const& sortedSelInds);
 	//! @{ parallel coordinate chart related methods:
 	void pcRightButtonPressed(vtkObject* obj, unsigned long, void* client_data, void*, vtkCommand* command);
 	void pcRightButtonReleased(vtkObject* obj, unsigned long, void* client_data, void*, vtkCommand* command);

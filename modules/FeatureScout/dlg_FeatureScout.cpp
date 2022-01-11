@@ -881,6 +881,20 @@ void dlg_FeatureScout::renderOrientation()
 	renW->Render();
 }
 
+void dlg_FeatureScout::selectionChanged3D()
+{
+	auto vis = dynamic_cast<iA3DColoredPolyObjectVis*>(m_3dvis.data());
+	if (!vis)
+	{
+		LOG(lvlError, "Invalid VIS for 3D selection change!");
+		return;
+	}
+	auto sel = vis->selection();
+	setPCSelection(sel);
+	m_splom->setFilteredSelection(sel);	// TODO: test with classes!
+	LOG(lvlError, QString("New selection with %1 selected objects!").arg(sel.size()));
+}
+
 void dlg_FeatureScout::renderLengthDistribution()
 {
 	m_renderMode = rmLengthDistribution;
@@ -1882,10 +1896,15 @@ void dlg_FeatureScout::showPCSettings()
 }
 
 void dlg_FeatureScout::spSelInformsPCChart(std::vector<size_t> const& selInds)
-{	// If scatter plot selection changes, Parallel Coordinates gets informed
+{  // If scatter plot selection changes, Parallel Coordinates gets informed
 	RenderSelection(selInds);
 	QCoreApplication::processEvents();
 	auto sortedSelInds = m_splom->getFilteredSelection();
+	setPCSelection(sortedSelInds);
+}
+
+void dlg_FeatureScout::setPCSelection(std::vector<size_t> const& sortedSelInds)
+{
 	int countSelection = sortedSelInds.size();
 	auto vtk_selInd = vtkSmartPointer<vtkIdTypeArray>::New();
 	vtk_selInd->Allocate(countSelection);

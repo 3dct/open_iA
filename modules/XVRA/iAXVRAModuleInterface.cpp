@@ -125,6 +125,8 @@ void iAXVRAModuleInterface::startXVRA()
 
 	//Enable AR Mode
 	m_actionXVRA_ARView->setEnabled(true);
+
+	connect(m_vrMain, &iAImNDTModuleInterface::selectionChanged, m_fsMain, &dlg_FeatureScout::selectionChanged3D);
 }
 
 void iAXVRAModuleInterface::startARView()
