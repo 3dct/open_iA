@@ -76,8 +76,9 @@ enum class iAVROperations {
 };
 
 //!
-class iAImNDTMain
+class iAImNDTMain: public QObject
 {
+	Q_OBJECT
 public:
 	iAImNDTMain(iAVREnvironment* vrEnv, iAImNDTInteractorStyle* style, iA3DColoredPolyObjectVis* polyObject, vtkTable* objectTable, iACsvIO io, iACsvConfig csvConfig);
 	~iAImNDTMain();
@@ -87,6 +88,9 @@ public:
 	void onZoom();
 	bool toggleArView();
 	vtkIdType currentOctreeLevel;
+
+signals:
+	void selectionChanged();
 
 private:
 	iAVREnvironment* m_vrEnv;
@@ -160,5 +164,4 @@ private:
 	void changeMiMDisplacementType();
 	void flipDistributionVis();
 	void displayNodeLinkD();
-	
 };

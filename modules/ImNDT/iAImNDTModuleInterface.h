@@ -69,4 +69,7 @@ private slots:
 	void startAnalysis();
 	void startARView();
 	void vrDone();
+
+signals:
+	void selectionChanged();
 };

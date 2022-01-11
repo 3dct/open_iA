@@ -181,6 +181,7 @@ void iAImNDTModuleInterface::ImNDT(QSharedPointer<iA3DColoredPolyObjectVis> poly
 	m_polyObject = polyObject;
 	m_objectTable = objectTable;
 	m_vrMain = new iAImNDTMain(m_vrEnv.data(), m_style, m_polyObject.data(), m_objectTable, io, csvConfig);
+	connect(m_vrMain, &iAImNDTMain::selectionChanged, this, &iAImNDTModuleInterface::selectionChanged);
 
 	// Start Render Loop HERE!
 	m_vrEnv->start();

@@ -625,6 +625,7 @@ void iAImNDTMain::pickSingleFiber(double eventPosition[3])
 	selection.push_back(rowiD);
 
 	m_volume->renderSelection(selection, 0, QColor(140, 140, 140, 255), nullptr);
+	emit selectionChanged();
 }
 
 //! Picks all fibers in the region clicked by the user.
@@ -656,6 +657,7 @@ void iAImNDTMain::pickFibersinRegion(int leafRegion)
 
 	multiPickIDs->clear();
 	m_volume->renderSelection(selection, 0, QColor(140, 140, 140, 255), nullptr);
+	emit selectionChanged();
 }
 
 void iAImNDTMain::pickMimRegion(double eventPosition[3], double eventOrientation[4])
@@ -699,7 +701,11 @@ void iAImNDTMain::multiPickMiMRegion()
 		selection.erase(std::unique(selection.begin(), selection.end()), selection.end());
 
 		//If not Network Mode then render fibers
-		if(!m_networkGraphMode)	m_volume->renderSelection(selection, 0, QColor(140, 140, 140, 255), nullptr);
+		if (!m_networkGraphMode)
+		{
+			m_volume->renderSelection(selection, 0, QColor(140, 140, 140, 255), nullptr);
+			emit selectionChanged();
+		}
 		else
 		{
 			m_distributionVis->hide();
@@ -739,6 +745,7 @@ void iAImNDTMain::multiPickMiMRegion()
 void iAImNDTMain::resetSelection()
 {
 	m_volume->renderSelection(std::vector<size_t>(), 0, QColor(140, 140, 140, 255), nullptr);
+	emit selectionChanged();
 	m_volume->removeHighlightedGlyphs();
 	if(modelInMiniatureActive)
 	{
