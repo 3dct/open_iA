@@ -35,7 +35,7 @@ public:
 	//! initialize vector from three values (of potentially different type)
 	explicit iAVec3T(T px, T py, T pz);
 	//! initialize vector components from an array
-	explicit iAVec3T(T data[3]);
+	explicit iAVec3T(T const data[3]);
 	//! initialize vector components from another vector
 	template <typename ParamType>
 	iAVec3T(const iAVec3T<ParamType>& v);
@@ -158,7 +158,7 @@ iAVec3T<T>::iAVec3T(T val)
 }
 
 template <typename T>
-iAVec3T<T>::iAVec3T(T data[3])
+iAVec3T<T>::iAVec3T(T const data[3])
 {
 	for (int i = 0; i < 3; ++i)
 	{
