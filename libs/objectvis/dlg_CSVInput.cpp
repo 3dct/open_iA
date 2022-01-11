@@ -37,8 +37,13 @@
 namespace
 {
 	//Names for registry
-	static const QString DefaultFormat = "DefaultFormat";
-	static const QString AdvancedMode = "AdvancedMode";
+	const QString DefaultFormat = "DefaultFormat";
+	const QString AdvancedMode = "AdvancedMode";
+
+	
+	const QString CfgKeyPreviousCSVs("PreviousCSVFiles");
+	const QString CfgKeyLRU("LRU%1");
+	constexpr int MaxLRU = 25;
 }
 
 namespace
@@ -90,6 +95,17 @@ dlg_CSVInput::dlg_CSVInput(bool volumeDataAvailable, QWidget * parent/* = 0,*/, 
 	}
 	advancedModeToggled();
 	initParameters();
+
+	// load list of recently loaded files:
+	QSettings settings;
+	settings.beginGroup(CfgKeyPreviousCSVs);
+	int curNr = 0;
+	while (settings.contains(CfgKeyLRU.arg(curNr)))
+	{
+		m_ui->cmbbox_FileName->addItem(settings.value(CfgKeyLRU.arg(curNr)).toString());
+		++curNr;
+	}
+	
 	connectSignals();
 	m_ui->list_ColumnSelection->installEventFilter(this);
 }
@@ -101,7 +117,7 @@ void dlg_CSVInput::setPath(QString const & path)
 
 void dlg_CSVInput::setFileName(QString const & fileName)
 {
-	m_ui->ed_FileName->setText(fileName);
+	m_ui->cmbbox_FileName->setCurrentText(fileName);
 	updatePreview();
 }
 
@@ -196,6 +212,16 @@ void dlg_CSVInput::okBtnClicked()
 		saveGeneralSetting(DefaultFormat, m_ui->cmbbox_Format->currentText());
 	}
 	saveGeneralSetting(AdvancedMode, m_ui->cb_AdvancedMode->isChecked());
+
+	// save list of recently loaded files:
+	QSettings settings;
+	settings.beginGroup(CfgKeyPreviousCSVs);
+	settings.setValue(CfgKeyLRU.arg(0), m_ui->cmbbox_FileName->currentText());
+	for (int curNr = 1; curNr < MaxLRU && curNr-1 < m_ui->cmbbox_FileName->count(); ++curNr)
+	{
+		settings.setValue(CfgKeyLRU.arg(curNr), m_ui->cmbbox_FileName->itemText(curNr-1));
+	}
+
 	accept();
 }
 
@@ -471,7 +497,7 @@ void dlg_CSVInput::selectFileBtnClicked()
 	{
 		return;
 	}
-	m_ui->ed_FileName->setText(fileName);
+	m_ui->cmbbox_FileName->setCurrentText(fileName);
 	updatePreview();
 }
 
@@ -537,7 +563,7 @@ void dlg_CSVInput::showConfigParams()
 
 void dlg_CSVInput::assignFormatSettings()
 {
-	m_confParams.fileName = m_ui->ed_FileName->text();
+	m_confParams.fileName = m_ui->cmbbox_FileName->currentText();
 	m_confParams.curvedFiberFileName = m_ui->cb_CurvedFiberInfo->isChecked() ? m_ui->ed_CurvedFileName->text() : "";
 	assignObjectTypes();
 	m_confParams.columnSeparator = ColumnSeparators()[m_ui->cmbbox_ColSeparator->currentIndex()];
