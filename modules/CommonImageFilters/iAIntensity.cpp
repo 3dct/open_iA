@@ -335,27 +335,23 @@ iAAdaptiveHistogramEqualization::iAAdaptiveHistogramEqualization() :
 template<class T> 
 void replaceAndShift(iAFilter* filter, QMap<QString, QVariant> const & params)
 {
-	using InputImageType = itk::Image<T, DIM> ;
-	using OutputImageType = itk::Image<float, DIM> ;
-	typedef itk::ImageRegionIterator<InputImageType> InImageIterator;
-	typedef itk::ImageRegionIterator<OutputImageType> OutImageIterator;
-
-	auto im = dynamic_cast<InputImageType*>(filter->input(0)->itkImage());
-	typename InputImageType::RegionType region = im->GetLargestPossibleRegion();
-
-	typename OutputImageType::Pointer imgOut = OutputImageType::New();
+	using ImageType = itk::Image<T, DIM>;
+	typedef itk::ImageRegionIterator<ImageType> ImageIterator;
+	auto im = dynamic_cast<ImageType*>(filter->input(0)->itkImage());
+	typename ImageType::RegionType region = im->GetLargestPossibleRegion();
+	auto imgOut = ImageType::New();
 	imgOut->SetRegions(region);
 	imgOut->Allocate();
-	//imgOut->FillBuffer(0);
 
-	InImageIterator it(im, im->GetRequestedRegion());
-	OutImageIterator itOut(imgOut, imgOut->GetRequestedRegion());
+	ImageIterator it(im, im->GetRequestedRegion());
+	ImageIterator itOut(imgOut, imgOut->GetRequestedRegion());
 
 	auto valueToReplace = params["Value To Replace"].value<T>();
 	auto replacement = params["Replacement"].value<T>();
 	if (valueToReplace == replacement)
 	{
-		LOG(lvlInfo, "Parameters 'Value To Replace' and 'Replacement' have the same value, output image will be the unchanged input image!")
+		LOG(lvlWarn, "Parameters 'Value To Replace' and 'Replacement' may not have the same value!");
+		return;
 	}
 	auto start = valueToReplace < replacement ? valueToReplace + 1 : replacement;
 	auto end   = valueToReplace > replacement ? valueToReplace - 1 : replacement;
@@ -369,8 +365,11 @@ void replaceAndShift(iAFilter* filter, QMap<QString, QVariant> const & params)
 		}
 		else if (it.Value() >= start && it.Value() <= end)
 		{
-			auto value = it.Value();
-			itOut.Set(value + ofs);
+			itOut.Set(it.Value() + ofs);
+		}
+		else
+		{
+			itOut.Set(it.Value());
 		}
 	}
 	filter->addOutput(imgOut);
@@ -378,6 +377,13 @@ void replaceAndShift(iAFilter* filter, QMap<QString, QVariant> const & params)
 
 void iAReplaceAndShiftFilter::performWork(QMap<QString, QVariant> const& parameters)
 {
+	if (input(0)->itkScalarPixelType() == itk::ImageIOBase::FLOAT ||
+		input(0)->itkScalarPixelType() == itk::ImageIOBase::DOUBLE)
+	{
+		LOG(lvlWarn, "Replace and shift is executed on a real-valued (float/double) input image. "
+			"This only makes sense if the input image only contains discrete values; "
+			"and even then, comparisons might fail. You have been warned!");
+	}
 	ITK_TYPED_CALL(replaceAndShift, input(0)->itkScalarPixelType(), this, parameters);
 }
 
