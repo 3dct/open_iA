@@ -111,8 +111,8 @@ MainWindow::MainWindow(QString const & appName, QString const & version, QString
 	m_gitVersion(version),
 	m_buildInformation(buildInformation),
 	m_ui(new Ui_MainWindow()),
-	m_openJobListOnNewJob(false),
-	m_dwJobs(dwJobs)
+	m_dwJobs(dwJobs),
+	m_openJobListOnNewJob(false)
 {
 	m_ui->setupUi(this);
 	setAcceptDrops(true);
@@ -202,6 +202,12 @@ void MainWindow::hideSplashSlot()
 
 void MainWindow::quitTimerSlot()
 {
+	if (iAJobListView::get()->isAnyJobRunning())
+	{
+		constexpr int RecheckTimeMS = 1000;
+		m_quitTimer->start(RecheckTimeMS);
+		return;
+	}
 	delete m_quitTimer;
 	qApp->closeAllWindows();
 }

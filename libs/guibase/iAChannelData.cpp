@@ -31,7 +31,6 @@ iAChannelData::iAChannelData():
 	m_enabled(false),
 	m_opacity(1.0),
 	m_threeD(false),
-	m_similarityRenderingEnabled(false),
 	m_cTF(nullptr),
 	m_oTF(nullptr)
 {}
@@ -40,7 +39,6 @@ iAChannelData::iAChannelData(QString const & name, vtkSmartPointer<vtkImageData>
 	m_enabled(false),
 	m_opacity(1.0),
 	m_threeD(false),
-	m_similarityRenderingEnabled(false),
 	m_image(image),
 	m_cTF(ctf),
 	m_oTF(otf),

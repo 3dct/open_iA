@@ -211,22 +211,40 @@ iARatsThreshold::iARatsThreshold() :
 
 
 // Otsu's Threshold
+namespace
+{
+	const int OtsuThresholdDefaultNumBins = 128;
+}
 
 template<class T>
 void otsu_threshold(iAFilter* filter, QMap<QString, QVariant> const & parameters)
 {
-	typedef typename itk::Image< T, 3 >   InputImageType;
-	typedef typename itk::Image< T, 3 >   OutputImageType;
-	typedef typename itk::OtsuThresholdImageFilter < InputImageType, OutputImageType > OTIFType;
-	typedef typename itk::RemovePeaksOtsuThresholdImageFilter < InputImageType, OutputImageType > RPOTIFType;
+	typedef typename itk::Image<T, 3> InputImageType;
+	typedef typename itk::Image<T, 3> OutputImageType; // output is always binary, so using (unsigned) char might make sense;
+	// especially for real-valued types same type as input doesn't make sense!
 
+	double numBins = parameters["Number of histogram bins"].toDouble();
+	double maxBins = std::numeric_limits<unsigned int>::max();
+	if (numBins < maxBins)
+	{
+		maxBins = std::numeric_limits<T>::max() + 1;
+	}
+	if (numBins < 2 || numBins > maxBins)
+	{
+		LOG(lvlWarn,
+			QString("Number of histogram bins outside of valid range 2..%1, resetting it to default value %2")
+				.arg(maxBins)
+				.arg(OtsuThresholdDefaultNumBins));
+		numBins = OtsuThresholdDefaultNumBins;
+	}
 	if (parameters["Remove peaks"].toBool())
 	{
+		typedef typename itk::RemovePeaksOtsuThresholdImageFilter<InputImageType, OutputImageType> RPOTIFType;
 		auto otsuFilter = RPOTIFType::New();
-		otsuFilter->SetNumberOfHistogramBins( T (parameters["Number of histogram bins"].toDouble()) );
-		otsuFilter->SetOutsideValue( T(parameters["Outside value"].toDouble()) );
-		otsuFilter->SetInsideValue( T(parameters["Inside value"].toDouble()) );
-		otsuFilter->SetInput( dynamic_cast< InputImageType * >( filter->input()[0]->itkImage() ) );
+		otsuFilter->SetNumberOfHistogramBins(static_cast<unsigned int>(numBins));
+		otsuFilter->SetOutsideValue(static_cast<T>(parameters["Outside value"].toDouble()));
+		otsuFilter->SetInsideValue(static_cast<T>(parameters["Inside value"].toDouble()));
+		otsuFilter->SetInput(dynamic_cast<InputImageType*>( filter->input()[0]->itkImage() ) );
 		filter->progress()->observe( otsuFilter );
 		otsuFilter->Update();
 		filter->addOutputValue("Otsu threshold", (double)otsuFilter->GetThreshold());
@@ -234,11 +252,12 @@ void otsu_threshold(iAFilter* filter, QMap<QString, QVariant> const & parameters
 	}
 	else
 	{
+		typedef typename itk::OtsuThresholdImageFilter<InputImageType, OutputImageType> OTIFType;
 		auto otsuFilter = OTIFType::New();
-		otsuFilter->SetNumberOfHistogramBins( T (parameters["Number of histogram bins"].toDouble()) );
-		otsuFilter->SetOutsideValue( T(parameters["Outside value"].toDouble()) );
-		otsuFilter->SetInsideValue( T(parameters["Inside value"].toDouble()) );
-		otsuFilter->SetInput( dynamic_cast< InputImageType * >( filter->input()[0]->itkImage() ) );
+		otsuFilter->SetNumberOfHistogramBins(static_cast<unsigned int>(numBins));
+		otsuFilter->SetOutsideValue( static_cast<T>(parameters["Outside value"].toDouble()) );
+		otsuFilter->SetInsideValue(static_cast<T>(parameters["Inside value"].toDouble()));
+		otsuFilter->SetInput(dynamic_cast< InputImageType * >( filter->input()[0]->itkImage() ) );
 		filter->progress()->observe( otsuFilter );
 		otsuFilter->Update();
 		filter->addOutputValue("Otsu threshold", (double)otsuFilter->GetThreshold());
@@ -266,6 +285,7 @@ iAOtsuThreshold::iAOtsuThreshold() :
 	addParameter("Outside value", iAValueType::Continuous, 0);
 	addParameter("Inside value", iAValueType::Continuous, 1);
 	addParameter("Remove peaks", iAValueType::Boolean, false);
+	addOutputValue("Otsu threshold");
 }
 
 
