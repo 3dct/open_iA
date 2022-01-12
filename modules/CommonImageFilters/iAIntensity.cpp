@@ -29,6 +29,8 @@
 #include <itkAdaptiveHistogramEqualizationImageFilter.h>
 #include <itkAddImageFilter.h>
 #include <itkHistogramMatchingImageFilter.h>
+#include <itkImageIterator.h>
+#include <itkImageRegionIterator.h>
 #include <itkIntensityWindowingImageFilter.h>
 #include <itkInvertIntensityImageFilter.h>
 #include <itkMaskImageFilter.h>
@@ -327,6 +329,70 @@ iAAdaptiveHistogramEqualization::iAAdaptiveHistogramEqualization() :
 	addParameter("Radius", iAValueType::Discrete, 5, 1);
 }
 
+
+// iAReplaceValueFilter
+
+template<class T> 
+void replaceAndShift(iAFilter* filter, QMap<QString, QVariant> const & params)
+{
+	using InputImageType = itk::Image<T, DIM> ;
+	using OutputImageType = itk::Image<float, DIM> ;
+	typedef itk::ImageRegionIterator<InputImageType> InImageIterator;
+	typedef itk::ImageRegionIterator<OutputImageType> OutImageIterator;
+
+	auto im = dynamic_cast<InputImageType*>(filter->input(0)->itkImage());
+	typename InputImageType::RegionType region = im->GetLargestPossibleRegion();
+
+	typename OutputImageType::Pointer imgOut = OutputImageType::New();
+	imgOut->SetRegions(region);
+	imgOut->Allocate();
+	//imgOut->FillBuffer(0);
+
+	InImageIterator it(im, im->GetRequestedRegion());
+	OutImageIterator itOut(imgOut, imgOut->GetRequestedRegion());
+
+	auto valueToReplace = params["Value To Replace"].value<T>();
+	auto replacement = params["Replacement"].value<T>();
+	if (valueToReplace == replacement)
+	{
+		LOG(lvlInfo, "Parameters 'Value To Replace' and 'Replacement' have the same value, output image will be the unchanged input image!")
+	}
+	auto start = valueToReplace < replacement ? valueToReplace + 1 : replacement;
+	auto end   = valueToReplace > replacement ? valueToReplace - 1 : replacement;
+	T ofs = replacement < valueToReplace ? +1 : -1;
+
+	for (it.GoToBegin(); !it.IsAtEnd(); ++it, ++itOut)
+	{
+		if (it.Value() == valueToReplace)
+		{
+			itOut.Set(replacement);
+		}
+		else if (it.Value() >= start && it.Value() <= end)
+		{
+			auto value = it.Value();
+			itOut.Set(value + ofs);
+		}
+	}
+	filter->addOutput(imgOut);
+}
+
+void iAReplaceAndShiftFilter::performWork(QMap<QString, QVariant> const& parameters)
+{
+	ITK_TYPED_CALL(replaceAndShift, input(0)->itkScalarPixelType(), this, parameters);
+}
+
+IAFILTER_CREATE(iAReplaceAndShiftFilter)
+
+iAReplaceAndShiftFilter::iAReplaceAndShiftFilter() :
+	iAFilter("Replace and Shift", "Intensity",
+		"Replace one intensity value by another, and shift values in between accordingly.<br/>"
+		"The intensity value specified by <em>Value To Replace</em> is replaced by the value specified as <em>Replacement</em>."
+		"All values between the two (including the <em>Replacement</em> but excluding the <em>Value to Replace</em> are shifted by one in direction of the <em>Value to Replace</em>.<br/>"
+		"Only makes sense for discrete value types (not for floating point images).")
+{
+	addParameter("Value To Replace", iAValueType::Discrete, 0, 0);
+	addParameter("Replacement", iAValueType::Discrete, 0, 0);
+}
 
 
 

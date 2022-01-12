@@ -92,6 +92,7 @@ void iACommonImageFiltersModuleInterface::Initialize()
 	REGISTER_FILTER(iANormalizeIntensityFilter);
 	REGISTER_FILTER(iARescaleIntensityFilter);
 	REGISTER_FILTER(iAShiftScaleIntensityFilter);
+	REGISTER_FILTER(iAReplaceAndShiftFilter);
 	// Filters requiring 2 input images:
 	REGISTER_FILTER(iAAddFilter);
 	REGISTER_FILTER(iADifferenceFilter);
