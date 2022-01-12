@@ -807,7 +807,7 @@ bool iAIO::setupIO( iAIOType type, QString f, bool c, int channel)
 
 	m_fileDir = QFileInfo(f).absoluteDir();
 
-	iAJobListView::get()->addJob(QString("%1 file(s)").arg((m_ioID >= MHD_WRITER) ? "Writing":"Reading"), ProgressObserver(), this);
+	iAJobListView::get()->addJob(QString("%1 file(s) '%2'").arg((m_ioID >= MHD_WRITER) ? "Writing":"Reading").arg(f), ProgressObserver(), this);
 	// TODO: hook for plugins!
 	switch (m_ioID)
 	{

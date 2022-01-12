@@ -291,7 +291,7 @@ void iAFiAKErController::start(QString const & path, iACsvConfig const & config,
 			}
 			m_mdiChild->parent()->deleteLater(); // deletes QMdiSubWindow which this widget is child of
 		});
-	iAJobListView::get()->addJob("Loading results...", resultsLoader->progress(), resultsLoader, resultsLoader);
+	iAJobListView::get()->addJob("Loading results", resultsLoader->progress(), resultsLoader, resultsLoader);
 	resultsLoader->start();
 }
 
