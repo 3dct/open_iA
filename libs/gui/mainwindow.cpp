@@ -202,6 +202,12 @@ void MainWindow::hideSplashSlot()
 
 void MainWindow::quitTimerSlot()
 {
+	if (iAJobListView::get()->isAnyJobRunning())
+	{
+		constexpr int RecheckTimeMS = 1000;
+		m_quitTimer->start(RecheckTimeMS);
+		return;
+	}
 	delete m_quitTimer;
 	qApp->closeAllWindows();
 }

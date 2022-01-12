@@ -117,6 +117,11 @@ iAJobListView::~iAJobListView()
 	}
 }
 
+bool iAJobListView::isAnyJobRunning() const
+{
+	return !m_jobs.isEmpty() || !m_pendingJobs.isEmpty();
+}
+
 QWidget* iAJobListView::addJobWidget(QSharedPointer<iAJob> j)
 {
 	{
