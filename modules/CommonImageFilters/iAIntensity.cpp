@@ -657,7 +657,7 @@ void fillHistogramm(iAFilter* filter, QMap<QString, QVariant> const& params)
 
 iAHistogramFill::iAHistogramFill() :
 	iAFilter("Histogram Fill", "Intensity",
-		"Packs a histogram so that consecutive values starting from 0 are used. "
+		"Packs a histogram so that consecutive values starting from 0 are used.<br/>"
 		"Only useful for integer images. For example, if you have an image containing the values "
 		"2, 5, 6 and 8, these would be translated to 0, 1, 2 and 3 respectively (2 -> 0, 5 -> 1, 6 -> 2, 8 -> 3).")
 {
