@@ -38,6 +38,7 @@
 #include <QTextStream>
 
 #include <iostream>
+#include <map>
 
 iACommandLineProgressIndicator::iACommandLineProgressIndicator(int numberOfSteps, bool quiet) :
 	m_lastDots(0),
@@ -78,16 +79,31 @@ namespace
 		return brpos != -1 ? desc.left(brpos) : desc;
 	}
 
-	void PrintListOfAvailableFilters()
+	void PrintListOfAvailableFilters(QString sortBy)
 	{
 		auto filterFactories = iAFilterRegistry::filterFactories();
-		// sort filters by name?
 		std::cout << "Available filters:\n";
+		std::map<std::string, std::map<std::string, std::string>> filterMap;
+		bool sortByCat = sortBy == "category" || sortBy == "fullCategory";
 		for (auto factory : filterFactories)
 		{
 			auto filter = factory->create();
-			std::cout << filter->name().toStdString() << "\n"
-			          << "        " << stripHTML(AbbreviateDesc(filter->description())).toStdString() << "\n\n";
+			std::string category = (sortBy == "category") ? filter->category().toStdString() :
+				((sortBy == "fullCategory") ? filter->fullCategory().toStdString() : "");
+			filterMap[category].insert(std::make_pair(
+				filter->name().toStdString(), stripHTML(AbbreviateDesc(filter->description())).toStdString()));
+		}
+		for (auto c: filterMap)
+		{
+			if (sortByCat)
+			{
+				std::cout << (c.first.empty() ? "Uncategorized" : c.first) << ":\n";
+			}
+			for (auto f : c.second)
+			{
+				std::string prefix(sortByCat ? 4 : 0, ' ');
+				std::cout << prefix << f.first << "\n" << prefix << "    " << f.second << "\n";
+			}
 		}
 	}
 
@@ -211,10 +227,10 @@ namespace
 	{
 		std::cout << "open_iA command line tool, version " << version << ".\n"
 			<< "Usage:\n"
-			<< "  > open_iA_cmd (-l|-h ...|-r ...|-p ...)\n"
+			<< "  > open_iA_cmd (-l [...]|-h ...|-r ...|-p ...)\n"
 			<< "Options:\n"
-			<< "     -l\n"
-			<< "         List available filters\n"
+			<< "     -l [name|category|fullCategory]\n"
+			<< "         List available filters, sorted by name (default) or by category\n"
 			<< "     -h FilterName\n"
 			<< "         Print help on a specific filter\n"
 			<< "     -r FilterName -i Input -o Output -p Parameters [-q] [-c] [-f] [-s n]\n"
@@ -265,6 +281,7 @@ namespace
 		bool compress = false;
 		bool overwrite = false;
 		int mode = None;
+		// TODO: use command line parsing library instead!
 		for (int a = 1; a < args.size(); ++a)
 		{
 			switch (mode)
@@ -484,7 +501,7 @@ int ProcessCommandLine(int argc, char const * const * argv, const char * version
 	dispatcher->InitializeModules(iALoggerStdOut::get());
 	if (argc > 1 && QString(argv[1]) == "-l")
 	{
-		PrintListOfAvailableFilters();
+		PrintListOfAvailableFilters(argc > 2 ? QString(argv[2]) : QString("name") );
 	}
 	else if (argc > 2 && QString(argv[1]) == "-h")
 	{
