@@ -179,9 +179,12 @@ QSharedPointer<iAHistogramData> iAHistogramData::create(QString const& name,
 	if (valueType == iAValueType::Discrete)
 	{	// make sure we have bins of integer step size:
 		double stepSize = std::ceil(valueRange / numBin);
+		// adapt numBin so that the maximum is as close as possible to the last number in actual data:
+		numBin = std::ceil(valueRange / stepSize);
 		double newMax = scalarRange[0] + static_cast<int>(stepSize * numBin);
 		histRange = newMax - scalarRange[0];
-	}   // check above guarantees that numBin is smaller than int max, so cast below is safe!
+	}
+	// The check above guarantees that numBin is smaller than int max, so the cast to int below is safe!
 	accumulate->SetComponentExtent(0, static_cast<int>(numBin - 1), 0, 0, 0, 0);
 	if (dblApproxEqual(valueRange, histRange))
 	{  // to put max values in max bin (as vtkImageAccumulate otherwise would cut off with < max)
