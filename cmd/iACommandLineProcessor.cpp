@@ -163,7 +163,7 @@ namespace
 		else
 		{
 			std::cout << "Input images:\n";
-			for (int i = 0; i < filter->requiredInputs(); ++i)
+			for (unsigned int  i = 0; i < filter->requiredInputs(); ++i)
 			{
 				std::cout << "    " << filter->inputName(i).toStdString() << "\n";
 			}
@@ -175,7 +175,7 @@ namespace
 		else
 		{
 			std::cout << "Output images:\n";
-			for (int i = 0; i < filter->plannedOutputCount(); ++i)
+			for (unsigned int i = 0; i < filter->plannedOutputCount(); ++i)
 			{
 				std::cout << "    " << filter->outputName(i).toStdString() << "\n";
 			}
@@ -378,19 +378,21 @@ namespace
 		}
 
 		// Argument checks:
-		if (inputFiles.size() == 0)
+		if (static_cast<unsigned int>(inputFiles.size()) != filter->requiredInputs())
 		{
-			std::cout << "Missing input files - please specify at least one after the -i parameter" << std::endl;
+			std::cout << "Incorrect number of input files: filter requires "
+				<< filter->requiredInputs() << " input files, but "
+				<< inputFiles.size() << " were specified after the -i parameter." << std::endl;
 			return 1;
 		}
-		if (outputFiles.size() < filter->plannedOutputCount())
+		if (static_cast<unsigned int>(outputFiles.size()) < filter->plannedOutputCount())
 		{
 			std::cout << "Missing output files - please specify at least one after the -o parameter" << std::endl;
 			return 1;
 		}
 		if (parameters.size() != filter->parameters().size())
 		{
-			std::cout << QString("Invalid number of parameters: %2 expected, %1 were given.")
+			std::cout << QString("Incorrect number of parameters: %2 expected, %1 were given.")
 				.arg(parameters.size())
 				.arg(filter->parameters().size()).toStdString()
 				<< std::endl;
