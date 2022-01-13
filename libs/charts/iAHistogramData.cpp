@@ -177,10 +177,10 @@ QSharedPointer<iAHistogramData> iAHistogramData::create(QString const& name,
 	}
 	auto valueType = isVtkIntegerImage(img) ? iAValueType::Discrete : iAValueType::Continuous;
 	if (valueType == iAValueType::Discrete)
-	{	// make sure we have bins of integer step size:
-		double stepSize = std::ceil(valueRange / numBin);
+	{	// make sure we have bins of integer step size; round to closest integral number, so that actual numBin is closest to desired numBin
+		double stepSize = std::round((valueRange+1) / numBin);
 		// adapt numBin so that the maximum is as close as possible to the last number in actual data:
-		numBin = std::ceil(valueRange / stepSize);
+		numBin = std::ceil((valueRange+1) / stepSize);
 		double newMax = scalarRange[0] + static_cast<int>(stepSize * numBin);
 		histRange = newMax - scalarRange[0];
 	}
