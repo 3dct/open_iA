@@ -1,8 +1,11 @@
 #pragma once
 
-#include <qcolor.h>
+#include <vtkSmartPointer.h>
 
-#include "vtkSmartPointer.h"
+#include <QColor>
+
+#include <vector>
+
 class vtkActor;
 
 namespace iACompVisOptions
@@ -36,9 +39,11 @@ namespace iACompVisOptions
 
 	std::string cutStringAfterNDecimal(std::string input, int decimal_places);
 
-	void copyVector(std::vector<int>* toCopy, std::vector<int>* copied);
-
-	void copyVector(std::vector<double>* toCopy, std::vector<double>* copied);
+	template <typename T>
+	void copyVector(std::vector<T> const * toCopy, std::vector<T>* copied)
+	{
+		std::copy(toCopy->begin(), toCopy->end(), copied->begin());
+	}
 
 	void stippledLine(vtkSmartPointer<vtkActor> actor, int lineStipplePattern, int lineStippleRepeat);
 };

@@ -1,10 +1,6 @@
 #include "iACompVisOptions.h"
 
-//Qt
-#include "qstring.h"
-
 //vtk
-#include "vtkUnsignedCharArray.h"
 #include "vtkDoubleArray.h"
 #include "vtkTexture.h"
 #include "vtkImageData.h"
@@ -12,8 +8,6 @@
 #include "vtkActor.h"
 #include "vtkMapper.h"
 #include "vtkPointData.h"
-
-#include <vector>
 
 namespace iACompVisOptions
 {
@@ -64,22 +58,6 @@ namespace iACompVisOptions
 		std::size_t pos = input.find(".");
 		std::string result = input.substr(0, (pos + 1) + decimal_places);
 		return result;
-	}
-
-	void copyVector(std::vector<int>* toCopy, std::vector<int>* copied)
-	{
-		for (int i = 0; i < ((int)toCopy->size()); i++)
-		{
-			copied->at(i) = toCopy->at(i);
-		}
-	}
-
-	void copyVector(std::vector<double>* toCopy, std::vector<double>* copied)
-	{
-		for (int i = 0; i < ((int)toCopy->size()); i++)
-		{
-			copied->at(i) = toCopy->at(i);
-		}
 	}
 
 	void stippledLine(vtkSmartPointer<vtkActor> actor, int lineStipplePattern, int lineStippleRepeat)
