@@ -453,7 +453,7 @@ namespace
 				return 1;
 			}
 			// write output file(s)
-			for (int o = 0; o < filter->finalOutputCount(); ++o)
+			for (size_t o = 0; o < filter->finalOutputCount(); ++o)
 			{
 				QString outFileName;
 				if (filter->finalOutputCount() == 1 || o < outputFiles.size() - 1)
