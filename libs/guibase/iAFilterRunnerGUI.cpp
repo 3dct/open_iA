@@ -383,7 +383,7 @@ void iAFilterRunnerGUI::filterFinished()
 				filterNameSaveForFilename + "." + sourceFI.suffix();
 			newChild->modality(0)->setFileName(suggestedFileName);
 		}
-		for (int p = 1; p < filter->finalOutputCount(); ++p)
+		for (size_t p = 1; p < filter->finalOutputCount(); ++p)
 		{
 			auto img = vtkSmartPointer<vtkImageData>::New();
 			// some filters apparently clean up the result image
