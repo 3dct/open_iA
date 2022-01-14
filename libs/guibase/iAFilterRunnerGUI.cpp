@@ -43,6 +43,7 @@
 #include <vtkImageData.h>
 #include <vtkPolyData.h>
 
+#include <QElapsedTimer>
 #include <QFileInfo>
 #include <QMessageBox>
 #include <QRegularExpression>
