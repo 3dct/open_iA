@@ -22,34 +22,37 @@
 
 //iA
 #include "iAMainWindow.h"
+
 #include "iACompVisMain.h"
+#include "dlg_MultidimensionalScalingDialog.h"
 
 dlg_VisMainWindow::dlg_VisMainWindow(QList<csvFileData>* data, iAMultidimensionalScaling* mds, iAMainWindow* parent, iACompVisMain* main)
 	:
 	QMainWindow(parent), 
 	m_main(main),
 	m_data(data),
-	m_mds(mds)
+	m_mds(mds),
+	m_failed(false)
 {
 	//setup iAMainWindow
 	parent->addSubWindow(this);
 	setupUi(this);
 
 	//start mds dialog
-	startMDSDialog();
+	if (!startMDSDialog())
+	{
+		m_failed = true;
+	}
 
 	//finish iAMainWindow setup
 	createMenu();
 	this->showMaximized();
 }
 
-void dlg_VisMainWindow::startMDSDialog()
+bool dlg_VisMainWindow::startMDSDialog()
 {
-	m_MDSD = new dlg_MultidimensionalScalingDialog(m_data, m_mds);
-	if (m_MDSD->exec() != QDialog::Accepted)
-	{
-		return;
-	}
+	dlg_MultidimensionalScalingDialog dlg(m_data, m_mds);
+	return (dlg.exec() == QDialog::Accepted);
 }
 
 void dlg_VisMainWindow::recalculateMDS()
@@ -70,6 +73,11 @@ void dlg_VisMainWindow::updateMDS(iAMultidimensionalScaling* newMds)
 QList<csvFileData>* dlg_VisMainWindow::getData()
 {
 	return m_data;
+}
+
+bool dlg_VisMainWindow::failed() const
+{
+	return m_failed;
 }
 
 void dlg_VisMainWindow::createMenu()

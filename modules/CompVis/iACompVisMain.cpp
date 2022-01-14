@@ -45,7 +45,7 @@ iACompVisMain::iACompVisMain(iAMainWindow* mainWin):
 	if (!loadData()) 
 	{	//quit the program when no data was selected
 		return;
-	};
+	}
 
 	//calculate metrics
 	initializeMDS();
@@ -54,6 +54,11 @@ iACompVisMain::iACompVisMain(iAMainWindow* mainWin):
 
 	//open iAMainWindow with its dockWidgets
 	m_mainW = new dlg_VisMainWindow(m_dataStorage->getData(), m_mds, m_mainWindow, this);
+	if (m_mainW->failed())
+	{
+		delete m_mainW;
+		return;
+	}
 
 	QVBoxLayout* layout1 = new QVBoxLayout;
 	m_mainW->centralwidget->setLayout(layout1);

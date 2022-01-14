@@ -23,7 +23,6 @@
 #include "ui_CompVisMainWindow.h"
 
 //iA
-#include "dlg_MultidimensionalScalingDialog.h"
 #include "iACsvDataStorage.h"
 
 
@@ -41,12 +40,13 @@ class dlg_VisMainWindow : public QMainWindow, public Ui_CompVisMainWindow
    public:
 	dlg_VisMainWindow(QList<csvFileData>* data, iAMultidimensionalScaling* mds, iAMainWindow* parent, iACompVisMain* main);
 	QList<csvFileData>* getData();
-	void startMDSDialog();
+	bool failed() const;
 
 	void recalculateMDS();
 	void updateMDS(iAMultidimensionalScaling* newMds);
 
    private:
+	bool startMDSDialog();
 	void createMenu();
 
 	void reorderHistogramTableAscending();
@@ -56,8 +56,5 @@ class dlg_VisMainWindow : public QMainWindow, public Ui_CompVisMainWindow
 	iACompVisMain* m_main;
 	QList<csvFileData>* m_data;
 	iAMultidimensionalScaling* m_mds;
-	dlg_MultidimensionalScalingDialog* m_MDSD;
-	
-
-   private slots:
+	bool m_failed;
 };

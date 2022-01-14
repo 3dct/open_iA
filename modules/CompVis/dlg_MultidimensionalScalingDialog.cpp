@@ -20,9 +20,6 @@
 * ************************************************************************************/
 #include "dlg_MultidimensionalScalingDialog.h"
 
-//Debug
-#include "iALog.h"
-
 //QT
 #include "qbuttongroup.h"
 #include "qstringlist.h"

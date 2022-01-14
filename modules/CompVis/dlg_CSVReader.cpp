@@ -20,10 +20,6 @@
 * ************************************************************************************/
 #include "dlg_CSVReader.h"
 
-//Debug
-#include "iALog.h"
-
-#include <QDirIterator>
 #include <QFileDialog>
 #include <QStringListModel>
 #include <QPushButton>

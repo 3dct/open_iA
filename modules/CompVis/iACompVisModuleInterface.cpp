@@ -20,15 +20,10 @@
 * ************************************************************************************/
 #include "iACompVisModuleInterface.h"
 
-//testing
-#include "iALog.h"
-
 #include "dlg_CSVReader.h"
 #include "iACompVisMain.h"
 
 #include <iAMainWindow.h>
-
-#include <QMessageBox>
 
 
 void iACompVisModuleInterface::Initialize()

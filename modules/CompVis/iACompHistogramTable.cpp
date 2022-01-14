@@ -21,7 +21,7 @@
 #include "iACompHistogramTable.h"
 
 //Debug
-#include "iALog.h"
+//#include "iALog.h"
 
 //CompVis
 #include "iACompVisOptions.h"
@@ -33,6 +33,7 @@
 
 //Qt
 #include <QColor>
+#include <QVBoxLayout>
 
 //vtk
 #include <vtkActor.h>
@@ -49,9 +50,7 @@
 #include <vtkPolyData.h>
 #include <vtkProperty.h>
 
-#include <vtkColorSeries.h>
 #include <vtkColorTransferFunction.h>
-#include <vtkDataObject.h>
 #include <vtkNamedColors.h>
 #include <vtkOutlineFilter.h>
 

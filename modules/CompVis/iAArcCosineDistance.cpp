@@ -23,7 +23,7 @@
 #include <cmath>
 
 //Debug
-#include "iALog.h"
+//#include "iALog.h"
 
 iAArcCosineDistance::iAArcCosineDistance(
 	std::vector<double>* weights, csvDataType::ArrayType* data, int amountOfCharas, int amountOfElems) :

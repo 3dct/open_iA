@@ -22,9 +22,6 @@
 
 #include "iACompHistogramTableData.h"
 
-//DEBUG
-#include "iALog.h"
-
 iACoefficientOfVariation::iACoefficientOfVariation(iACsvDataStorage* dataStorage):
 	m_coeffOfVar(new std::vector<double>()),
 	m_maxValForEachAttr(new std::vector<double>()),

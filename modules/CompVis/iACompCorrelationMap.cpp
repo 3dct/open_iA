@@ -102,6 +102,8 @@
 #include <vtkCubeSource.h>
 #include <vtkSphereSource.h>
 
+#include <QVBoxLayout>
+
 vtkStandardNewMacro(iACompCorrelationMap::CorrelationGraphLayout);
 vtkStandardNewMacro(iACompCorrelationMap::GraphInteractorStyle);
 
