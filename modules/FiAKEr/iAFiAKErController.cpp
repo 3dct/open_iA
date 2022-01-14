@@ -562,6 +562,7 @@ namespace
 #if __cplusplus >= 201703L
 			[[fallthrough]];
 #endif
+			// fall through
 		case iACsvConfig::Cylinders: return QSharedPointer<iA3DCylinderObjectVis>::create(renderer, table, mapping, color, curvedFiberData, 6, 3);
 		}
 	}

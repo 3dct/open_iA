@@ -1089,6 +1089,7 @@ void iAQSplom::paintEvent(QPaintEvent* event)
 #if __cplusplus >= 201703L
 		[[fallthrough]];
 #endif
+		// fall through
 	case cmByParameter  : scalarBarCaption = m_splomData->parameterName(m_colorLookupParam); break;
 	default:              scalarBarCaption = "Unknown"; break;
 	}
@@ -1637,6 +1638,7 @@ void iAQSplom::updateLookupTable()
 #if __cplusplus >= 201703L
 			[[fallthrough]];
 #endif
+			// fall through
 		case cmCustom:
 			m_lut->setOpacity(alpha);
 	}

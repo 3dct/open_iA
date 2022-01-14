@@ -815,18 +815,22 @@ bool iAIO::setupIO( iAIOType type, QString f, bool c, int channel)
 #if __cplusplus >= 201703L
 			[[fallthrough]];
 #endif
+			// fall through
 		case STL_WRITER:
 #if __cplusplus >= 201703L
 			[[fallthrough]];
 #endif
+			// fall through
 		case MHD_READER:
 #if __cplusplus >= 201703L
 			[[fallthrough]];
 #endif
+			// fall through
 		case STL_READER:
 #if __cplusplus >= 201703L
 			[[fallthrough]];
 #endif
+			// fall through
 		case VTK_READER:
 			m_fileName = f; m_compression = c; break;
 		case RAW_READER:
@@ -841,14 +845,17 @@ bool iAIO::setupIO( iAIOType type, QString f, bool c, int channel)
 #if __cplusplus >= 201703L
 			[[fallthrough]];
 #endif
+			// fall through
 		case JPG_STACK_READER:
 #if __cplusplus >= 201703L
 			[[fallthrough]];
 #endif
+			// fall through
 		case PNG_STACK_READER:
 #if __cplusplus >= 201703L
 			[[fallthrough]];
 #endif
+			// fall through
 		case BMP_STACK_READER:
 			return setupStackReader(f);
 		case VOLUME_STACK_READER:
@@ -864,47 +871,58 @@ bool iAIO::setupIO( iAIOType type, QString f, bool c, int channel)
 #if __cplusplus >= 201703L
 			[[fallthrough]];
 #endif
+			// fall through
 		case TIF_STACK_WRITER:
 #if __cplusplus >= 201703L
 			[[fallthrough]];
 #endif
+			// fall through
 		case JPG_STACK_WRITER:
 #if __cplusplus >= 201703L
 			[[fallthrough]];
 #endif
+			// fall through
 		case PNG_STACK_WRITER:
 #if __cplusplus >= 201703L
 			[[fallthrough]];
 #endif
+			// fall through
 		case BMP_STACK_WRITER:
 #if __cplusplus >= 201703L
 			[[fallthrough]];
 #endif
+			// fall through
 		case DCM_READER:
 #if __cplusplus >= 201703L
 			[[fallthrough]];
 #endif
+			// fall through
 		case DCM_WRITER:
 #if __cplusplus >= 201703L
 			[[fallthrough]];
 #endif
+			// fall through
 		//case NRRD_READER:
 		case OIF_READER:
 #if __cplusplus >= 201703L
 			[[fallthrough]];
 #endif
+			// fall through
 		case AM_READER:
 #if __cplusplus >= 201703L
 			[[fallthrough]];
 #endif
+			// fall through
 		case AM_WRITER:
 #if __cplusplus >= 201703L
 			[[fallthrough]];
 #endif
+			// fall through
 		case CSV_WRITER:
 #if __cplusplus >= 201703L
 			[[fallthrough]];
 #endif
+			// fall through
 		case VTI_READER:
 			m_fileName = f; break;
 #ifdef USE_HDF5
@@ -1024,6 +1042,7 @@ bool iAIO::setupIO( iAIOType type, QString f, bool c, int channel)
 #if __cplusplus >= 201703L
 			[[fallthrough]];
 #endif
+			// fall through
 		default:
 			LOG(lvlError, QString("Unknown IO type '%1' for file '%2'!").arg(m_ioID).arg(f));
 			addMsg(tr("Unknown IO type"));

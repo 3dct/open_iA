@@ -325,6 +325,7 @@ void iAvtkInteractStyleActor::rotate2D()
 #if __cplusplus >= 201703L
 		[[fallthrough]];
 #endif
+		// fall through
 	case iASlicerMode::YZ:
 		rotationDir = transformationMode::x;
 		break;
