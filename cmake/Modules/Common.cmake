@@ -608,15 +608,11 @@ if (${avx_support_index} EQUAL -1)
 endif()
 set(BUILD_INFO "${BUILD_INFO}    \"Advanced Vector Extensions support: ${openiA_AVX_SUPPORT}\\n\"\n")
 
-#message(STATUS "Aiming for C++20 support.")
-#set(CMAKE_CXX_STANDARD 20)
-# Enabling C++20 can cause problems as e.g. ITK 5.0.1 is not yet fully C++20 compatible!
-message(STATUS "Aiming for C++17 support.")
-set(CMAKE_CXX_STANDARD 17)
+set(CMAKE_CXX_STANDARD 14)
+# - C++17 can cause problems with ITK 4.12.2 (throw clauses -> "ISO c++1z does not allow dynamic exception specifications")
+# - C++20 can cause problems with ITK 5.0.1 (not yet fully C++20 compatible)!
 set(CMAKE_CXX_EXTENSIONS OFF)
-# use CMAKE_CXX_STANDARD_REQUIRED? e.g.:
-# set(CMAKE_CXX_STANDARD 11)
-# set(CMAKE_CXX_STANDARD_REQUIRED ON)
+set(CMAKE_CXX_STANDARD_REQUIRED ON)
 if (MSVC)
 	# /bigobj            increase the number of sections in .obj file (65,279 -> 2^32), exceeded by some compilations
 	# /Zc:__cplusplus    set correct value in __cplusplus macro (https://docs.microsoft.com/en-us/cpp/build/reference/zc-cplusplus)
