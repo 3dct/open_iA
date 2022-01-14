@@ -689,7 +689,7 @@ void iACompHistogramTable::drawLinearZoom(Pick::PickedMap* map, int notSelectedB
 	double newHeight = m_windowHeight - (((m_windowHeight*distance) * 4)*map->size()) - (((m_windowHeight*distanceToParent))*map->size());
 	calculateRowWidthAndHeight(m_windowWidth, newHeight, m_amountDatasets+map->size());
 
-	std::vector<vtkSmartPointer<vtkPlaneSource>>* zoomedPlanes;
+	std::vector<vtkSmartPointer<vtkPlaneSource>>* zoomedPlanes = nullptr;
 	vtkSmartPointer<vtkPlaneSource> originalPlane;
 
 	for (int counter = 0; counter < m_amountDatasets; counter++)
@@ -1185,10 +1185,10 @@ void iACompHistogramTable::drawLineBetweenRowAndZoomedRow(std::vector<vtkSmartPo
 		if(i == 0)
 		{
 			//left line
-			vtkSmartPointer<vtkPoints> points = vtkSmartPointer<vtkPoints>::New();
-			points->InsertNextPoint(leftUp);
-			points->InsertNextPoint(leftDown);
-			drawPolyLine(points, col, iACompVisOptions::LINE_WIDTH);
+			vtkSmartPointer<vtkPoints> pointsLeft = vtkSmartPointer<vtkPoints>::New();
+			pointsLeft->InsertNextPoint(leftUp);
+			pointsLeft->InsertNextPoint(leftDown);
+			drawPolyLine(pointsLeft, col, iACompVisOptions::LINE_WIDTH);
 
 			if(cellIdsOriginalPlane->size() > 1)
 			{

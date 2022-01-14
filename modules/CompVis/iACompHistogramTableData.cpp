@@ -20,7 +20,7 @@ iACompHistogramTableData::iACompHistogramTableData(iAMultidimensionalScaling* md
 	amountObjectsEveryDataset = csvFileData::getAmountObjectsEveryDataset(m_mds->getCSVFileData());
 	
 	int add = 0;
-	for (int i = 0; i < ((int)amountObjectsEveryDataset->size()); i++)
+	for (size_t i = 0; i < amountObjectsEveryDataset->size(); ++i)
 	{ 
 		std::vector<double>::const_iterator first = histbinlist->begin() + add;
 		add += amountObjectsEveryDataset->at(i);
@@ -43,7 +43,7 @@ QList<bin::BinType*>* iACompHistogramTableData::calculateBins(int numberOfBins)
 	double length = std::abs(m_maxVal) + std::abs(m_minVal);
 	double binLength = length / numberOfBins;
 
-	for (int i = 0; i < ((int)amountObjectsEveryDataset->size()); i++)
+	for (size_t i = 0; i < amountObjectsEveryDataset->size(); ++i)
 	{// do for every dataset
 
 		std::vector<double> values = datasets->at(i);
@@ -51,7 +51,7 @@ QList<bin::BinType*>* iACompHistogramTableData::calculateBins(int numberOfBins)
 
 		//initalize
 		std::vector<csvDataType::ArrayType*>* binsWithFiberIds = new std::vector<csvDataType::ArrayType*>();
-		for(int i= 0; i < numberOfBins; i++)
+		for(int j= 0; j < numberOfBins; ++j)
 		{
 			csvDataType::ArrayType* init = new csvDataType::ArrayType();
 			binsWithFiberIds->push_back(init);
@@ -60,9 +60,9 @@ QList<bin::BinType*>* iACompHistogramTableData::calculateBins(int numberOfBins)
 		int datasetInd = values.size();
 	
 		//check for every value inside a dataset for the corresponding bin
-		for (int v = 0; v < ((int)values.size()); v++)
+		for (size_t v = 0; v < values.size(); ++v)
 		{
-			for (int b = 0; b < numberOfBins; b++)
+			for (int b = 0; b < numberOfBins; ++b)
 			{
 				bool inside = checkRange(values.at(v), m_minVal + (binLength * b), m_minVal + (binLength * (b+1)));
 
@@ -215,16 +215,16 @@ bin::BinType* bin::initialize(int amountBins)
 
 void bin::debugBinType(BinType* input)
 {
-	int amountCols = input->size();
+	const size_t amountCols = input->size();
 
 	//DEBUG
 	LOG(lvlDebug," ");
 	LOG(lvlDebug,"Bins: " + QString::number(amountCols));
 	LOG(lvlDebug,"Bin Matrix: ");
-	for (int col1 = 0; col1 < amountCols; col1++)
+	for (size_t col1 = 0; col1 < amountCols; ++col1)
 	{
 		LOG(lvlDebug,"Bin " + QString::number(col1) + ":");
-		for (int r1 = 0; r1 < ((int)input->at(col1).size()); r1++)
+		for (size_t r1 = 0; r1 < input->at(col1).size(); ++r1)
 		{
 			LOG(lvlDebug,"  Values " + QString::number(r1) + ": " + QString::number(input->at(col1).at(r1)));
 		}
@@ -241,9 +241,9 @@ QList<bin::BinType*>* bin::DeepCopy(QList<bin::BinType*>* input)
 		bin::BinType* curBin = input->at(binInd);
 		bin::BinType* newBin = initialize(curBin->size());
 
-		for (int indVals = 0; indVals < ((int)curBin->size()); indVals++)
+		for (size_t indVals = 0; indVals < curBin->size(); ++indVals)
 		{
-			newBin->at(indVals) = (curBin->at(indVals));
+			newBin->at(indVals) = curBin->at(indVals);
 		}
 
 		output->append(newBin);
@@ -256,7 +256,7 @@ bin::BinType* bin::copyCells(bin::BinType* input, std::vector<vtkIdType>* indexO
 {
 	bin::BinType* output = new bin::BinType();
 
-	for(int i = 0; i < ((int)indexOfCellsToCopy->size()); i++)
+	for(size_t i = 0; i < indexOfCellsToCopy->size(); ++i)
 	{
 		output->push_back( input->at(indexOfCellsToCopy->at(i)) );
 	}
