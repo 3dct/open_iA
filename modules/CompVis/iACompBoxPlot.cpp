@@ -708,11 +708,11 @@ void iACompBoxPlot::resetBoxPlot()
 
 	// Set the labels
 	QStringList* attrNames = m_dataStorage->getAttributeNamesWithoutLabel();
-	vtkSmartPointer<vtkStringArray> labels = vtkSmartPointer<vtkStringArray>::New();
+	vtkSmartPointer<vtkStringArray> newLabels = vtkSmartPointer<vtkStringArray>::New();
 
 	for (int i = 0; i < m_numberOfAttr; i++)
 	{
-		labels->InsertNextValue(attrNames->at(i).toStdString());
+		newLabels->InsertNextValue(attrNames->at(i).toStdString());
 	}
 
 	currentQuartileTable->DeepCopy(outTable);
@@ -734,7 +734,7 @@ void iACompBoxPlot::resetBoxPlot()
 	for (int i = 0; i < ((int)m_legendAttributes->size()); i++)
 	{
 		vtkSmartPointer<vtkTextActor> legend = m_legendAttributes->at(i);
-		legend->SetInput(labels->GetValue(m_orderedPositions->at(i)));
+		legend->SetInput(newLabels->GetValue(m_orderedPositions->at(i)));
 		legend->Modified();
 	}
 

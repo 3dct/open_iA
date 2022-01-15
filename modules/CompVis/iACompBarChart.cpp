@@ -456,8 +456,8 @@ void iACompBarChart::updateBarChart(std::vector<double>* coefficientsOriginal, s
 
 	selected_orderedPositions = sortWithMemory(coefficientsSelected);
 
-	updateOriginalBarChart(selected_orderedPositions);
-	updateLabels(selected_orderedPositions);
+	updateOriginalBarChart();
+	updateLabels();
 	
 	//double maxVal = coefficientsSelected->at(0); //first value is the biggest
 	double maxNumberObjects = m_dataStorage->getTotalNumberOfObjects();
@@ -515,7 +515,7 @@ void iACompBarChart::updateBarChart(std::vector<double>* coefficientsOriginal, s
 	this->renderWidget();
 }
 
-void iACompBarChart::updateOriginalBarChart(std::vector<double>* selected_orderedPositions)
+void iACompBarChart::updateOriginalBarChart()
 {
 	m_area->GetDrawAreaItem()->RemoveItem(m_originalBarChart);
 
@@ -563,7 +563,7 @@ void iACompBarChart::updateOriginalBarChart(std::vector<double>* selected_ordere
 
 }
 
-void iACompBarChart::updateLabels(std::vector<double>* selected_orderedPositions)
+void iACompBarChart::updateLabels()
 {
 	vtkAxis *axisBottom = m_area->GetAxis(vtkAxis::BOTTOM);
 

@@ -92,9 +92,9 @@ private:
 	//adds all bars to the drawing area
 	vtkSmartPointer<vtkPropItem> addBars(vtkSmartPointer<vtkPolyData> data, std::string colorArrayName, std::string scaleArrayName, double opacity, double col[3]);
 	//redraw the data of the original bar chart but with positions according to the selected bar chart
-	void updateOriginalBarChart(std::vector<double>* selected_orderedPositions);
+	void updateOriginalBarChart();
 	//update the label position according to the selected bar chart
-	void updateLabels(std::vector<double>* selected_orderedPositions);
+	void updateLabels();
 	//reset the label position according to the original bar chart
 	void resetLabels();
 

@@ -187,7 +187,7 @@ class iACompHistogramTable : public QDockWidget, public Ui_CompHistogramTable
 	//amountOfBins: contains the number how many bins are drawn per selected cell in the original plane
 	//currentData is: the data of the selected cell in the original plane
 	//offset contains: the offset by how much the zoomed plane will be drawn above the previous plane
-	std::vector<vtkSmartPointer<vtkPlaneSource>>* drawZoomedRow(int currDataInd, int currentColumn, int amountOfBins, bin::BinType* currentData, double offsetHeight, std::vector<vtkIdType>* cellIdsOriginalPlane);
+	std::vector<vtkSmartPointer<vtkPlaneSource>>* drawZoomedRow(/*int currDataInd,*/ int currentColumn, int amountOfBins, bin::BinType* currentData, double offsetHeight, std::vector<vtkIdType>* cellIdsOriginalPlane);
 	
 	vtkSmartPointer<vtkPlaneSource> drawZoomedPlanes(int bins, double startX, double startY, double endX, double endY, int currBinIndex, bin::BinType* currentData);
 	

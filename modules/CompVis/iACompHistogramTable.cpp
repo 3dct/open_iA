@@ -727,7 +727,7 @@ void iACompHistogramTable::drawLinearZoom(Pick::PickedMap* map, int notSelectedB
 			//draw zoomed dataset
 			std::map<int, std::vector<vtkIdType>*>::const_iterator pos = m_pickedCellsforPickedRow->find(indData);
 			std::vector<vtkIdType>* cellIds = pos->second;
-			zoomedPlanes = drawZoomedRow(indData, currCol, selectedBinNumber, thisZoomedRowData->last(), offset, cellIds);
+			zoomedPlanes = drawZoomedRow(/*indData, */currCol, selectedBinNumber, thisZoomedRowData->last(), offset, cellIds);
 			thisZoomedRowData->removeLast();
 
 			currCol += 1;
@@ -836,7 +836,7 @@ vtkSmartPointer<vtkPlaneSource> iACompHistogramTable::drawRow(int currDataInd, i
 }
 
 std::vector<vtkSmartPointer<vtkPlaneSource>>* iACompHistogramTable::drawZoomedRow(
-	int currDataInd, int currentColumn, int amountOfBins, bin::BinType* currentData, double offsetHeight, std::vector<vtkIdType>* cellIdsOriginalPlane)
+	/*int currDataInd,*/ int currentColumn, int amountOfBins, bin::BinType* currentData, double offsetHeight, std::vector<vtkIdType>* cellIdsOriginalPlane)
 {
 	std::vector<vtkSmartPointer<vtkPlaneSource>>* zoomedPlanes = new std::vector<vtkSmartPointer<vtkPlaneSource>>();
 
@@ -1071,12 +1071,12 @@ void iACompHistogramTable::drawPointRepresentation()
 				double lineColor[3];
 				iACompVisOptions::getDoubleArray(iACompVisOptions::BACKGROUNDCOLOR_LIGHTGREY, lineColor);
 
-				std::vector<double> data = m_zoomedRowData->at(zoomedRowDataInd)->at(zoomedRowInd);
+				std::vector<double> zoomedData = m_zoomedRowData->at(zoomedRowDataInd)->at(zoomedRowInd);
 
 
 				double newY = ymin + ((ymax - ymin) / 2.0);
 				//(newXMin + radius) --> so that min & max points do not lie on border
-				vtkSmartPointer<vtkPoints> points = calculatePointPosition(data, (xmin + radius), (xmax - radius), newY, *minMaxPerBin.at(zoomedRowInd));
+				vtkSmartPointer<vtkPoints> points = calculatePointPosition(zoomedData, (xmin + radius), (xmax - radius), newY, *minMaxPerBin.at(zoomedRowInd));
 				if (points == nullptr)
 				{
 					continue;
@@ -1561,9 +1561,9 @@ void iACompHistogramTable::colorRow(vtkUnsignedCharArray* colors, int currDatase
 	colorBinsOfRow(colors, binData->at(currDataset), binData->at(currDataset)->size());
 }
 
-void iACompHistogramTable::colorRowForZoom(vtkUnsignedCharArray* colors, int currBin, bin::BinType* data, int amountOfBins)
+void iACompHistogramTable::colorRowForZoom(vtkUnsignedCharArray* colors, int currBin, bin::BinType* curData, int amountOfBins)
 {
-	bin::BinType* binData = m_histData->calculateBins(data, currBin, amountOfBins);
+	bin::BinType* binData = m_histData->calculateBins(curData, currBin, amountOfBins);
 
 	if (binData == nullptr)
 	{
