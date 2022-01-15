@@ -608,9 +608,18 @@ if (${avx_support_index} EQUAL -1)
 endif()
 set(BUILD_INFO "${BUILD_INFO}    \"Advanced Vector Extensions support: ${openiA_AVX_SUPPORT}\\n\"\n")
 
-set(CMAKE_CXX_STANDARD 14)
-# - C++17 can cause problems with ITK 4.12.2 (throw clauses -> "ISO c++1z does not allow dynamic exception specifications")
-# - C++20 can cause problems with ITK 5.0.1 (not yet fully C++20 compatible)!
+if (${QT_VERSION_MAJOR} GREATER_EQUAL 6)
+	# Qt 6 requires C++ 17, but causes problems with ITK 4.12.2 (throw clauses -> "ISO c++1z does not allow dynamic exception specifications")
+	if (ITK_VERSION VERSION_LESS "5.0.0")
+		MESSAGE(SEND_ERROR "You have chosen Qt >= 6.0 in combination with ITK <= 5.0. "
+			"Qt >= 6 requires to use the C++17 standard, but ITK <= 5 does not work with C++17. "
+			"Please either choose a Qt version < 6.0 or an ITK version >= 5.0!")
+	endif()
+	set(CMAKE_CXX_STANDARD 17)
+else()
+	set(CMAKE_CXX_STANDARD 14)
+endif()
+# - C++20 can cause problems with ITK 5.0.1 (apparently in some experiments it wasn't yet fully C++20 compatible; though not sure on specifics)!
 set(CMAKE_CXX_EXTENSIONS OFF)
 set(CMAKE_CXX_STANDARD_REQUIRED ON)
 if (MSVC)
