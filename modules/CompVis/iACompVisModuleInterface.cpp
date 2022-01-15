@@ -42,6 +42,5 @@ void iACompVisModuleInterface::Initialize()
 
 void iACompVisModuleInterface::CompVis()
 {
-	//iACompVisMain* main = new iACompVisMain(m_mainWnd);
-	new iACompVisMain(m_mainWnd);
+	iACompVisMain::start(m_mainWnd);
 }

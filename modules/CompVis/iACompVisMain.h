@@ -39,9 +39,8 @@ class iAHistogramData;
 
 class iACompVisMain
 {
-   public:
-	iACompVisMain(iAMainWindow* mainWin);
-
+public:
+	static void start(iAMainWindow* mainWin);
 	//load the CSV datasets
 	//when nothing was loaded it returns false
 	bool loadData();
@@ -72,10 +71,12 @@ class iACompVisMain
 	void updateHistogramTableFromCorrelationMap(std::map<int, double>* dataIndxSelectedType);
 	void resetHistogramTableFromCorrelationMap();
 
-   private:
+private:
+	iACompVisMain(iAMainWindow* mainWin);
 	void initializeMDS();
 	void initializeVariationCoefficient();
 	void initializeCorrelationCoefficient();
+	void initGUI();
 
 	void noDatasetChosenMessage();
 

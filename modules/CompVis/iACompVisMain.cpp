@@ -38,28 +38,38 @@
 #include <QMessageBox>
 #include <QBoxLayout>
 
-iACompVisMain::iACompVisMain(iAMainWindow* mainWin):
-	m_mainWindow(mainWin)
+iACompVisMain::iACompVisMain(iAMainWindow* mainWin) : m_mainWindow(mainWin)
 {
+}
+
+void iACompVisMain::start(iAMainWindow* mainWin)
+{
+	auto result = new iACompVisMain(mainWin);
 	//load data
-	if (!loadData()) 
-	{	//quit the program when no data was selected
+	if (!result->loadData())
+	{  //quit the program when no data was selected
 		return;
 	}
 
 	//calculate metrics
-	initializeMDS();
-	initializeVariationCoefficient();
-	initializeCorrelationCoefficient();
+	result->initializeMDS();
+	result->initializeVariationCoefficient();
+	result->initializeCorrelationCoefficient();
 
 	//open iAMainWindow with its dockWidgets
-	m_mainW = new dlg_VisMainWindow(m_dataStorage->getData(), m_mds, m_mainWindow, this);
-	if (m_mainW->failed())
+	result->m_mainW = new dlg_VisMainWindow(result->m_dataStorage->getData(), result->m_mds, result->m_mainWindow, result);
+	if (result->m_mainW->failed())
 	{
-		delete m_mainW;
+		result->m_mainW->parent()->deleteLater();
 		return;
 	}
+	result->initGUI();
+	// ensure that iACompVisMain is deleted when dlg_VisMainWindow is closed
+	QObject::connect(result->m_mainW, &QObject::destroyed, [result] { delete result; });
+}
 
+void iACompVisMain::initGUI()
+{
 	QVBoxLayout* layout1 = new QVBoxLayout;
 	m_mainW->centralwidget->setLayout(layout1);
 
