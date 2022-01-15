@@ -668,14 +668,6 @@ if (CMAKE_COMPILER_IS_GNUCXX)
 endif()
 
 if (CMAKE_COMPILER_IS_GNUCXX OR "${CMAKE_CXX_COMPILER_ID}" STREQUAL "Clang")
-	# Make sure at least C++ 0x is supported:
-	# check if that is required with CMAKE_CXX_STANDARD definition above!
-	include(CheckCXXCompilerFlag)
-	CHECK_CXX_COMPILER_FLAG("-std=c++0x" COMPILER_SUPPORTS_CXX0X)
-	if (NOT COMPILER_SUPPORTS_CXX0X)
-		message(WARNING "The used compiler ${CMAKE_CXX_COMPILER} has no C++0x/11 support. Please use a newer C++ compiler.")
-	endif()
-
 	set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -pipe -fpermissive -fopenmp -march=core2 -O2 -msse4.2")
 	set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -pipe -fopenmp -march=core2 -O2 -msse4.2")
 
