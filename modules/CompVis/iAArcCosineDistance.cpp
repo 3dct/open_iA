@@ -84,7 +84,7 @@ csvDataType::ArrayType* iAArcCosineDistance::calculateProximityDistance()
 	return m_distanceMatrix;
 }
 
-double iAArcCosineDistance::calculateCounter(std::vector<double> e1, std::vector<double> e2)
+double iAArcCosineDistance::calculateCounter(std::vector<double> const& e1, std::vector<double> const& e2)
 {
 	double result = 0.0;
 	
@@ -107,7 +107,7 @@ double iAArcCosineDistance::calculateCounter(std::vector<double> e1, std::vector
 	return result;
 }
 
-double iAArcCosineDistance::calculateDenominator(std::vector<double> e1, std::vector<double> e2)
+double iAArcCosineDistance::calculateDenominator(std::vector<double> const& e1, std::vector<double> const& e2)
 {
 	double result1 = 0.0;
 	double result2 = 0.0;

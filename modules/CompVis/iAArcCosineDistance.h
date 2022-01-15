@@ -29,12 +29,12 @@ Interdisciplinary Sciences: Computational Life Sciences, Springer Science and Bu
 */
 class iAArcCosineDistance : public iAProximityDistance
 {
-   public:
+public:
 	iAArcCosineDistance(std::vector<double>* weights, csvDataType::ArrayType* data, int amountOfCharas, int amountOfElems);
 	virtual csvDataType::ArrayType* calculateProximityDistance();
 
-	private:
-	double calculateCounter(std::vector<double> e1, std::vector<double> e2);
-	double calculateDenominator(std::vector<double> e1, std::vector<double> e2);
+private:
+	double calculateCounter(std::vector<double> const& e1, std::vector<double> const& e2);
+	double calculateDenominator(std::vector<double> const& e1, std::vector<double> const& e2);
 
 };
