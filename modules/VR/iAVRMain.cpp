@@ -566,13 +566,13 @@ void iAVRMain::changeOctreeAndMetric()
 		m_volume->resetVolume();
 		addPropToOptionID(vtkProp3D::SafeDownCast(m_volume->getVolumeActor()), iAVRInteractionOptions::Volume);
 
-		if (touchpadPos == iAVRTouchpadPosition::Up)
+		if (touchpadPos == iAVRTouchpadPosition::Up && currentOctreeLevel < static_cast<int>(m_octrees->size()) - 1)
 		{
-			if (currentOctreeLevel < m_octrees->size() - 1)	currentOctreeLevel++;
+			currentOctreeLevel++;
 		}
-		if (touchpadPos == iAVRTouchpadPosition::Down)
+		if (touchpadPos == iAVRTouchpadPosition::Down && currentOctreeLevel > OCTREE_MIN_LEVEL)
 		{
-			if (currentOctreeLevel > OCTREE_MIN_LEVEL)	currentOctreeLevel--;
+			currentOctreeLevel--;
 		}
 
 		QString text = QString("Octree Level %1").arg(currentOctreeLevel);
