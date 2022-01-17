@@ -108,9 +108,9 @@ void iASVMImageFilter::performWork(QMap<QString, QVariant> const & parameters)
 		if (seed.second < labelMin) labelMin = seed.second;
 		if (seed.second > labelMax) labelMax = seed.second;
 		problem.x[seedIdx] = &x_space[curSpaceIdx];
-		for (int m = 0; m < inputCount(); ++m)
+		for (size_t m = 0; m < inputCount(); ++m)
 		{
-			x_space[curSpaceIdx].index = m;
+			x_space[curSpaceIdx].index = static_cast<int>(m);
 			x_space[curSpaceIdx].value = input(m)->vtkImage()
 				->GetScalarComponentAsDouble(seed.first.x, seed.first.y, seed.first.z, 0);
 				// TODO: potentially slow! use GetScalarPointer instead?

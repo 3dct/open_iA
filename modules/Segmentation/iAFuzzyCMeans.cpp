@@ -328,7 +328,7 @@ void mskfcm(iAFilter* filter, QMap<QString, QVariant> const & parameters)
 #endif
 	classifier->SetNumberOfClasses(numberOfClasses);
 	typename TFuzzyClassifier::CentroidArrayType centroidsArray;
-	for (int i = 0; i < numberOfClasses; i++)
+	for (unsigned int i = 0; i < numberOfClasses; i++)
 	{
 		centroidsArray.push_back(centroids[i]);
 	}

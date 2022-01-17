@@ -255,14 +255,12 @@ IAFILTER_CREATE(iARandomWalker)
 
 void iARandomWalker::performWork(QMap<QString, QVariant> const & parameters)
 {
-
-
 	int const * dim = input(0)->vtkImage()->GetDimensions();
 	double const * spc = input(0)->vtkImage()->GetSpacing();
 	QVector<iARWInputChannel> inputChannels;
 	iARWInputChannel inputChannel;
 	auto vtkPixelAccess = QSharedPointer<iAvtkPixelVectorArray>::create(dim);
-	for (int i = 0; i < inputCount(); ++i)
+	for (size_t i = 0; i < inputCount(); ++i)
 	{
 		vtkPixelAccess->AddImage(input(i)->vtkImage());
 	}
@@ -482,12 +480,12 @@ void iAExtendedRandomWalker::performWork(QMap<QString, QVariant> const & paramet
 	iAImageGraph imageGraph(dim[0], dim[1], dim[2], iAImageCoordinate::ColRowDepMajor);
 
 	QVector<iAConnector const*> priorModel;
-	for (int p = firstInputChannels(); p < inputCount(); ++p)
+	for (size_t p = firstInputChannels(); p < inputCount(); ++p)
 	{
 		priorModel.push_back(input(p));
 	}
 
-	if (inputChannels.size() == 0)
+	if (inputChannels.empty())
 	{
 		addMsg("Input Channels must not be empty!");
 		return;
@@ -655,7 +653,7 @@ void iAMaximumDecisionRule::performWork(QMap<QString, QVariant> const & /*parame
 	int const * dim = input(0)->vtkImage()->GetDimensions();
 	double const * spc = input(0)->vtkImage()->GetSpacing();
 	QVector<iAITKIO::ImagePointer> probImgs;
-	for (int i = 0; i < inputCount(); ++i)
+	for (size_t i = 0; i < inputCount(); ++i)
 	{
 		probImgs.push_back(input(i)->itkImage());
 	}
