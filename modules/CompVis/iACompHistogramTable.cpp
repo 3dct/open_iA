@@ -1102,7 +1102,8 @@ void iACompHistogramTable::removePointRepresentation()
 	m_pointRepresentationActors->clear();
 }
 
-vtkSmartPointer<vtkPoints> iACompHistogramTable::calculatePointPosition(std::vector<double> dataPoints, double newMinX, double newMaxX, double y, std::vector<double> currMinMax)
+vtkSmartPointer<vtkPoints> iACompHistogramTable::calculatePointPosition(
+	std::vector<double> dataPoints, double newMinX, double newMaxX, double y, std::vector<double> /*currMinMax*/)
 {
 
 	/*LOG(lvlDebug,"dataPoints.size() = " + QString::number(dataPoints.size()));
