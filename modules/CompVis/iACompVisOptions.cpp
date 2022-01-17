@@ -1,10 +1,26 @@
+/*************************************  open_iA  ************************************ *
+* **********   A tool for visual analysis and processing of 3D CT images   ********** *
+* *********************************************************************************** *
+* Copyright (C) 2016-2021  C. Heinzl, M. Reiter, A. Reh, W. Li, M. Arikan, Ar. &  Al. *
+*                 Amirkhanov, J. Weissenböck, B. Fröhler, M. Schiwarth, P. Weinberger *
+* *********************************************************************************** *
+* This program is free software: you can redistribute it and/or modify it under the   *
+* terms of the GNU General Public License as published by the Free Software           *
+* Foundation, either version 3 of the License, or (at your option) any later version. *
+*                                                                                     *
+* This program is distributed in the hope that it will be useful, but WITHOUT ANY     *
+* WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS FOR A     *
+* PARTICULAR PURPOSE.  See the GNU General Public License for more details.           *
+*                                                                                     *
+* You should have received a copy of the GNU General Public License along with this   *
+* program.  If not, see http://www.gnu.org/licenses/                                  *
+* *********************************************************************************** *
+* Contact: FH OÖ Forschungs & Entwicklungs GmbH, Campus Wels, CT-Gruppe,              *
+*          Stelzhamerstraße 23, 4600 Wels / Austria, Email: c.heinzl@fh-wels.at       *
+* ************************************************************************************/
 #include "iACompVisOptions.h"
 
-//Qt
-#include "qstring.h"
-
 //vtk
-#include "vtkUnsignedCharArray.h"
 #include "vtkDoubleArray.h"
 #include "vtkTexture.h"
 #include "vtkImageData.h"
@@ -12,8 +28,6 @@
 #include "vtkActor.h"
 #include "vtkMapper.h"
 #include "vtkPointData.h"
-
-#include <vector>
 
 namespace iACompVisOptions
 {
@@ -64,22 +78,6 @@ namespace iACompVisOptions
 		std::size_t pos = input.find(".");
 		std::string result = input.substr(0, (pos + 1) + decimal_places);
 		return result;
-	}
-
-	void copyVector(std::vector<int>* toCopy, std::vector<int>* copied)
-	{
-		for (int i = 0; i < ((int)toCopy->size()); i++)
-		{
-			copied->at(i) = toCopy->at(i);
-		}
-	}
-
-	void copyVector(std::vector<double>* toCopy, std::vector<double>* copied)
-	{
-		for (int i = 0; i < ((int)toCopy->size()); i++)
-		{
-			copied->at(i) = toCopy->at(i);
-		}
 	}
 
 	void stippledLine(vtkSmartPointer<vtkActor> actor, int lineStipplePattern, int lineStippleRepeat)

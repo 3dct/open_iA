@@ -103,7 +103,7 @@ void iATLGICTLoader::start(MdiChild* child)
 	m_child = child;
 	m_child->show();
 	LOG(lvlInfo, tr("Loading TLGI-CT data."));
-	iAJobListView::get()->addJob("Loading TLGI-CT data.", m_multiStepObserver->progressObject(), this);
+	iAJobListView::get()->addJob("Loading TLGI-CT data", m_multiStepObserver->progressObject(), this);
 	connect(this, &iATLGICTLoader::finished, this, &iATLGICTLoader::finishUp);		// this needs to be last, as it deletes this object!
 	QThread::start();
 }

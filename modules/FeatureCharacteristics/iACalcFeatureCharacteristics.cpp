@@ -34,7 +34,7 @@
 #include <vtkImageData.h>
 #include <vtkMath.h>
 
-template<class T> void calcFeatureCharacteristics_template(iAConnector *image, iAProgress* progress,
+template<class T> void calcFeatureCharacteristics_template(iAConnector const * image, iAProgress* progress,
 	QString pathCSV, bool feretDiameter, bool calculateAdvancedChars, bool calculateRoundness)
 {
 	// Cast image to type long
@@ -342,7 +342,7 @@ IAFILTER_CREATE(iACalcFeatureCharacteristics)
 void iACalcFeatureCharacteristics::performWork(QMap<QString, QVariant> const & parameters)
 {
 	QString pathCSV = parameters["Output CSV filename"].toString();
-	ITK_TYPED_CALL(calcFeatureCharacteristics_template, inputPixelType(), input()[0], progress(), pathCSV,
+	ITK_TYPED_CALL(calcFeatureCharacteristics_template, inputPixelType(), input(0), progress(), pathCSV,
 		parameters["Calculate Feret Diameter"].toBool(), parameters["Calculate advanced void parameters"].toBool(), parameters["Calculate roundness"].toBool());
 	addMsg(QString("Feature csv file created in: %1").arg(pathCSV));
 }

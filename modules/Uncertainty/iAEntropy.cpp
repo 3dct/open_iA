@@ -54,9 +54,9 @@ void entropy(iAFilter* filter, QMap<QString, QVariant> const & parameters)
 	typedef itk::Image<PixelType, DIM> InputImageType;
 	typedef iAEntropyImageFilter<InputImageType, InputImageType> EntropyFilter;
 	auto entropyFilter = EntropyFilter::New();
-	for (int i = 0; i < filter->input().size(); ++i)
+	for (size_t i = 0; i < filter->inputCount(); ++i)
 	{
-		entropyFilter->SetInput(i, dynamic_cast<InputImageType*>(filter->input()[i]->itkImage()));
+		entropyFilter->SetInput(i, dynamic_cast<InputImageType*>(filter->input(i)->itkImage()));
 	}
 	entropyFilter->SetNormalize(parameters["Normalize"].toBool());
 	entropyFilter->Update();

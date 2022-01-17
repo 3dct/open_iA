@@ -456,7 +456,6 @@ bool MdiChild::displayResult(QString const& title, vtkImageData* image, vtkPolyD
 {
 	// TODO: image is actually not the final imagedata here (or at least not always)
 	//    -> maybe skip all image-related initializations?
-	addStatusMsg("Creating Result View");
 	if (poly)
 	{
 		m_polyData->ReleaseData();
@@ -487,7 +486,6 @@ bool MdiChild::displayResult(QString const& title, vtkImageData* image, vtkPolyD
 		m_visibility &= (XY | TAB);
 	}
 	changeVisibility(m_visibility);
-	addStatusMsg("Ready");
 	return true;
 }
 
@@ -2592,7 +2590,7 @@ void MdiChild::computeStatisticsAsync(std::function<void()> callbackSlot, QShare
 	updateImageProperties();
 	auto compute = [mod] { mod->computeImageStatistics(); };
 	auto fw = runAsync(compute, callbackSlot, this);
-	iAJobListView::get()->addJob(QString("Computing statistics for modality %1...")
+	iAJobListView::get()->addJob(QString("Computing statistics for modality %1")
 		.arg(mod->name()), nullptr, fw);
 }
 
@@ -2695,7 +2693,7 @@ void MdiChild::computeHistogramAsync(std::function<void()> callbackSlot, size_t 
 		callbackSlot,
 		this);
 		// TODO: find way of terminating computation in case modality is deleted/application closed!
-	iAJobListView::get()->addJob(QString("Computing histogram for modality %1...")
+	iAJobListView::get()->addJob(QString("Computing histogram for modality %1")
 		.arg(mod->name()), nullptr, fw);
 }
 

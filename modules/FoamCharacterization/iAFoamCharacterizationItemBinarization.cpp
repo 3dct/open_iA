@@ -97,40 +97,32 @@ void iAFoamCharacterizationItemBinarization::execute()
 
 void iAFoamCharacterizationItemBinarization::executeBinarization()
 {
-	iAConnector con;
-	con.setImage(m_pImageData);
-	QScopedPointer<iAProgress> pObserver(new iAProgress());
-	connect(pObserver.data(), &iAProgress::progress, this, &iAFoamCharacterizationItemBinarization::slotObserver);
 	auto filter = iAFilterRegistry::filter("Binary Thresholding");
-	filter->setProgress(pObserver.data());
-	filter->addInput(&con, "");
+	connect(filter->progress(), &iAProgress::progress, this, &iAFoamCharacterizationItemBinarization::slotObserver);
+	filter->addInput(m_pImageData, "");
 	QMap<QString, QVariant> parameters;
 	parameters["Lower threshold"] = m_usLowerThreshold;
 	parameters["Upper threshold"] = m_usUpperThreshold;
 	parameters["Inside value"] = 0;
 	parameters["Outside value"] = 1;
 	filter->run(parameters);
-	m_pImageData->DeepCopy(filter->output()[0]->vtkImage());
-	m_pImageData->CopyInformationFromPipeline(filter->output()[0]->vtkImage()->GetInformation());
+	m_pImageData->DeepCopy(filter->output(0)->vtkImage());
+	m_pImageData->CopyInformationFromPipeline(filter->output(0)->vtkImage()->GetInformation());
 }
 
 void iAFoamCharacterizationItemBinarization::executeOtzu()
 {
-	iAConnector con;
-	con.setImage(m_pImageData);
-	QScopedPointer<iAProgress> pObserver(new iAProgress());
-	connect(pObserver.data(), &iAProgress::progress, this, &iAFoamCharacterizationItemBinarization::slotObserver);
 	auto filter = iAFilterRegistry::filter("Otsu Threshold");
-	filter->setProgress(pObserver.data());
-	filter->addInput(&con, "");
+	connect(filter->progress(), &iAProgress::progress, this, &iAFoamCharacterizationItemBinarization::slotObserver);
+	filter->addInput(m_pImageData, "");
 	QMap<QString, QVariant> parameters;
 	parameters["Remove peaks"] = false;
 	parameters["Number of histogram bins"] = m_uiOtzuHistogramBins;
 	parameters["Outside value"] = 1;
 	parameters["Inside value"] = 0;
 	filter->run(parameters);
-	m_pImageData->DeepCopy(filter->output()[0]->vtkImage());
-	m_pImageData->CopyInformationFromPipeline(filter->output()[0]->vtkImage()->GetInformation());
+	m_pImageData->DeepCopy(filter->output(0)->vtkImage());
+	m_pImageData->CopyInformationFromPipeline(filter->output(0)->vtkImage()->GetInformation());
 }
 
 iAFoamCharacterizationItemBinarization::EItemFilterType iAFoamCharacterizationItemBinarization::itemFilterType() const

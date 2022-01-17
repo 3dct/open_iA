@@ -246,7 +246,10 @@ void iAModuleDispatcher::InitializeModules(iALogger* logger)
 		}
 		QAction * filterAction = new QAction(tr(filter->name().toStdString().c_str()), m_mainWnd);
 		addToMenuSorted(filterMenu, filterAction);
-		m_mainWnd->makeActionChildDependent(filterAction);
+		if (filter->requiredInputs() > 0)
+		{
+			m_mainWnd->makeActionChildDependent(filterAction);
+		}
 		filterAction->setData(i);
 		connect(filterAction, &QAction::triggered, this, &iAModuleDispatcher::executeFilter);
 	}

@@ -819,18 +819,22 @@ bool iAIO::setupIO( iAIOType type, QString f, bool c, int channel, bool addJob)
 #if __cplusplus >= 201703L
 			[[fallthrough]];
 #endif
+			// fall through
 		case STL_WRITER:
 #if __cplusplus >= 201703L
 			[[fallthrough]];
 #endif
+			// fall through
 		case MHD_READER:
 #if __cplusplus >= 201703L
 			[[fallthrough]];
 #endif
+			// fall through
 		case STL_READER:
 #if __cplusplus >= 201703L
 			[[fallthrough]];
 #endif
+			// fall through
 		case VTK_READER:
 			m_fileName = f; m_compression = c; break;
 		case RAW_READER:
@@ -845,14 +849,17 @@ bool iAIO::setupIO( iAIOType type, QString f, bool c, int channel, bool addJob)
 #if __cplusplus >= 201703L
 			[[fallthrough]];
 #endif
+			// fall through
 		case JPG_STACK_READER:
 #if __cplusplus >= 201703L
 			[[fallthrough]];
 #endif
+			// fall through
 		case PNG_STACK_READER:
 #if __cplusplus >= 201703L
 			[[fallthrough]];
 #endif
+			// fall through
 		case BMP_STACK_READER:
 			return setupStackReader(f);
 		case VOLUME_STACK_READER:
@@ -868,47 +875,58 @@ bool iAIO::setupIO( iAIOType type, QString f, bool c, int channel, bool addJob)
 #if __cplusplus >= 201703L
 			[[fallthrough]];
 #endif
+			// fall through
 		case TIF_STACK_WRITER:
 #if __cplusplus >= 201703L
 			[[fallthrough]];
 #endif
+			// fall through
 		case JPG_STACK_WRITER:
 #if __cplusplus >= 201703L
 			[[fallthrough]];
 #endif
+			// fall through
 		case PNG_STACK_WRITER:
 #if __cplusplus >= 201703L
 			[[fallthrough]];
 #endif
+			// fall through
 		case BMP_STACK_WRITER:
 #if __cplusplus >= 201703L
 			[[fallthrough]];
 #endif
+			// fall through
 		case DCM_READER:
 #if __cplusplus >= 201703L
 			[[fallthrough]];
 #endif
+			// fall through
 		case DCM_WRITER:
 #if __cplusplus >= 201703L
 			[[fallthrough]];
 #endif
+			// fall through
 		//case NRRD_READER:
 		case OIF_READER:
 #if __cplusplus >= 201703L
 			[[fallthrough]];
 #endif
+			// fall through
 		case AM_READER:
 #if __cplusplus >= 201703L
 			[[fallthrough]];
 #endif
+			// fall through
 		case AM_WRITER:
 #if __cplusplus >= 201703L
 			[[fallthrough]];
 #endif
+			// fall through
 		case CSV_WRITER:
 #if __cplusplus >= 201703L
 			[[fallthrough]];
 #endif
+			// fall through
 		case VTI_READER:
 			m_fileName = f; break;
 #ifdef USE_HDF5
@@ -1028,6 +1046,7 @@ bool iAIO::setupIO( iAIOType type, QString f, bool c, int channel, bool addJob)
 #if __cplusplus >= 201703L
 			[[fallthrough]];
 #endif
+			// fall through
 		default:
 			LOG(lvlError, QString("Unknown IO type '%1' for file '%2'!").arg(m_ioID).arg(f));
 			addMsg(tr("Unknown IO type"));
@@ -1316,30 +1335,22 @@ void iAIO::readImageData()
 void iAIO::readNKC()
 {
 	readImageData();
-
-
-	iAConnector con;
-	con.setImage(getVtkImageData());
-	QScopedPointer<iAProgress> pObserver(new iAProgress());
 	auto filter = iAFilterRegistry::filter("Value Shift");
-	filter->setProgress(pObserver.data());
 
-	filter->addInput(&con, "");
+	filter->addInput(getVtkImageData(), "");
 	QMap<QString, QVariant> parameters;
 	parameters["ValueToReplace"] = 65533;
 	parameters["Replace"] = 0;
 	filter->run(parameters);
 
 	auto filterScale = iAFilterRegistry::filter("Shift and Scale");
-	filterScale->setProgress(pObserver.data());
-
-	filterScale->addInput(filter->output().first(), "");
+	filterScale->addInput(filter->output(0)->itkImage(), "");
 	QMap<QString, QVariant> parametersScale;
 	parametersScale["Shift"] = m_Parameter["Offset"].toInt();
 	parametersScale["Scale"] = m_Parameter["Scale"].toFloat();
 	filterScale->run(parametersScale);
 
-	getVtkImageData()->DeepCopy(filterScale->output().first()->vtkImage());
+	getVtkImageData()->DeepCopy(filterScale->output(0)->vtkImage());
 }
 
 void iAIO::readMetaImage( )

@@ -44,9 +44,6 @@ public:
 	iAAlgorithm( QString fn, vtkImageData* i, vtkPolyData* p, iALogger * l, QObject *parent = nullptr );
 	virtual ~iAAlgorithm();
 
-	void Start(); //!< Start counting the running time and set the start time
-	int Stop();   //!< Get the elapsed time since Start call
-
 	void setup(QString fn, vtkImageData* i, vtkPolyData* p, iALogger * l );
 	void addMsg(QString txt);
 
@@ -78,6 +75,8 @@ signals:
 	void aprogress(int i);
 
 protected:
+	void Start();  //!< Start counting the running time and set the start time
+	int Stop();    //!< Get the elapsed time since Start call
 	//! Performs the actual work. The method in this class performs some basic
 	//! actions (like printing messages when the algorithm started and stopped,
 	//! and basic error checking by catching any exceptions). Typically you will
@@ -92,7 +91,6 @@ protected:
 	void setImageData(vtkImageData* imgData);
 
 private:
-	bool m_isRunning;
 	QElapsedTimer m_time;
 	QString m_filterName;
 	vtkImageData *m_image;

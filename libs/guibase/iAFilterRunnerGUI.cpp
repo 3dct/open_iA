@@ -23,23 +23,27 @@
 // base
 #include "iAAttributeDescriptor.h"
 #include "iAFileUtils.h"
-#include "iALogger.h"
+#include "iAFilter.h"
+#include "iALog.h"
+//#include "iALogger.h"
+#include "iAProgress.h"
 
+// guibase
 #include "dlg_modalities.h"
 #include "iAConnector.h"
-#include "iALog.h"
-#include "iAFilter.h"
 #include "iAJobListView.h"
 #include "iAMainWindow.h"
 #include "iAMdiChild.h"
 #include "iAModality.h"
 #include "iAModalityList.h"
 #include "iAParameterDlg.h"
+#include "iAPerformanceHelper.h"    // for formatDuration
 #include "iAPreferences.h"
 
 #include <vtkImageData.h>
 #include <vtkPolyData.h>
 
+#include <QElapsedTimer>
 #include <QFileInfo>
 #include <QMessageBox>
 #include <QRegularExpression>
@@ -56,38 +60,52 @@ class vtkImageData;
 
 // iAFilterRunnerGUIThread
 
-iAFilterRunnerGUIThread::iAFilterRunnerGUIThread(QSharedPointer<iAFilter> filter,
-	QMap<QString, QVariant> paramValues, iAMdiChild* mdiChild, QString const & fileName) :
-	iAAlgorithm(filter->name(), mdiChild->imagePointer(), mdiChild->polyData(), iALog::get(), mdiChild),
+iAFilterRunnerGUIThread::iAFilterRunnerGUIThread(QSharedPointer<iAFilter> filter, QMap<QString, QVariant> paramValues, iAMdiChild* sourceMDI) :
 	m_filter(filter),
 	m_paramValues(paramValues),
+	m_sourceMDI(sourceMDI),
 	m_aborted(false)
 {
-	m_fileNames.push_back(fileName);
 }
 
-void iAFilterRunnerGUIThread::performWork()
+void iAFilterRunnerGUIThread::run()
 {
-	m_filter->setProgress(ProgressObserver());
-	assert(Connectors().size() == m_fileNames.size());
-	for (int i = 0; i < Connectors().size(); ++i)
+	QElapsedTimer time;
+	time.start();
+	try
 	{
-		m_filter->addInput(Connectors()[i], m_fileNames[i]);
+		if (!m_filter->run(m_paramValues))
+		{
+			LOG(lvlError, "Running filter failed!");
+			return;
+		}
+		if (m_aborted)
+		{
+			return;
+		}
 	}
-	if (!m_filter->run(m_paramValues))
+	catch (itk::ExceptionObject& e)
 	{
-		m_filter->logger()->log(lvlError, "Running filter failed!");
+		LOG(lvlError, tr("%1 terminated unexpectedly. Error: %2; in File %3, Line %4. Elapsed time: %5")
+				   .arg(m_filter->name())
+				   .arg(e.GetDescription())
+				   .arg(e.GetFile())
+				   .arg(e.GetLine())
+				.arg(formatDuration(time.elapsed() / 1000.0, true, false)));
 		return;
 	}
-	if (m_aborted)
+	catch (const std::exception& e)
 	{
+		LOG(lvlError, tr("%1 terminated unexpectedly. Error: %2. Elapsed time: %3")
+				   .arg(m_filter->name())
+				   .arg(e.what())
+				.arg(formatDuration(time.elapsed() / 1000.0, true, false)));
 		return;
 	}
-	allocConnectors(m_filter->output().size());
-	for (int i = 0; i < m_filter->output().size(); ++i)
-	{
-		Connectors()[i]->setImage(m_filter->output()[i]->itkImage());
-	}
+	LOG(lvlInfo,
+		tr("%1 finished. Elapsed time: %2")
+			.arg(m_filter->name())
+			.arg(formatDuration(time.elapsed() / 1000.0, true, false)));
 }
 
 void iAFilterRunnerGUIThread::abort()
@@ -103,8 +121,17 @@ QSharedPointer<iAFilter> iAFilterRunnerGUIThread::filter()
 
 void iAFilterRunnerGUIThread::addInput(vtkImageData* img, QString const& fileName)
 {
-	AddImage(img);
-	m_fileNames.push_back(fileName);
+	m_filter->addInput(img, fileName);
+}
+
+size_t iAFilterRunnerGUIThread::inputCount() const
+{
+	return m_filter->inputCount();
+}
+
+iAMdiChild* iAFilterRunnerGUIThread::sourceMDI()
+{
+	return m_sourceMDI;
 }
 
 
@@ -135,9 +162,9 @@ QMap<QString, QVariant> iAFilterRunnerGUI::loadParameters(QSharedPointer<iAFilte
 	for (auto param : params)
 	{
 		QVariant defaultValue = (param->valueType() == iAValueType::Categorical) ? "" : param->defaultValue();
-		QVariant value = (param->valueType() == iAValueType::FileNameSave) ?
-			pathFileBaseName(sourceMdi->fileInfo()) + param->defaultValue().toString() :
-			settings.value(SettingName(filter, param->name()), defaultValue);
+		QVariant value = (param->valueType() == iAValueType::FileNameSave && sourceMdi)
+			? pathFileBaseName(sourceMdi->fileInfo()) + param->defaultValue().toString()
+			: settings.value(SettingName(filter, param->name()), defaultValue);
 		result.insert(param->name(), value);
 	}
 	return result;
@@ -198,7 +225,7 @@ bool iAFilterRunnerGUI::askForParameters(QSharedPointer<iAFilter> filter, QMap<Q
 			otherMdis.push_back(mdi);
 		}
 	}
-	if (askForAdditionalInput && filter->requiredInputs() > (otherMdis.size()+1) )
+	if (askForAdditionalInput && filter->requiredInputs() > static_cast<unsigned int>(otherMdis.size()+1) )
 	{
 		QMessageBox::warning(mainWnd, filter->name(),
 			QString("This filter requires %1 datasets, only %2 open file(s)!")
@@ -212,7 +239,7 @@ bool iAFilterRunnerGUI::askForParameters(QSharedPointer<iAFilter> filter, QMap<Q
 		{
 			mdiChildrenNames << mdi->windowTitle().replace("[*]", "");
 		}
-		for (int i = 1; i < filter->requiredInputs(); ++i)
+		for (unsigned int i = 1; i < filter->requiredInputs(); ++i)
 		{
 			addParameter(dlgParams, QString("%1").arg(filter->inputName(i)), iAValueType::Categorical, mdiChildrenNames);
 		}
@@ -220,7 +247,10 @@ bool iAFilterRunnerGUI::askForParameters(QSharedPointer<iAFilter> filter, QMap<Q
 	iAParameterDlg dlg(mainWnd, filter->name(), dlgParams, filter->description());
 	dlg.setModal(false);
 	dlg.hide();	dlg.show(); // required to apply change in modality!
-	dlg.setSourceMdi(sourceMdi, mainWnd);
+	if (sourceMdi)
+	{
+		dlg.setSourceMdi(sourceMdi, mainWnd);
+	}
 	if (showROI)
 	{
 		dlg.showROI();
@@ -232,10 +262,10 @@ bool iAFilterRunnerGUI::askForParameters(QSharedPointer<iAFilter> filter, QMap<Q
 	paramValues = dlg.parameterValues();
 	if (askForAdditionalInput && filter->requiredInputs() > 1)
 	{
-		for (int i = 1; i < filter->requiredInputs(); ++i)
+		for (unsigned int i = 1; i < filter->requiredInputs(); ++i)
 		{
 			QString selectedFile = paramValues[QString("%1").arg(filter->inputName(i))].toString();
-			int mdiIdx = mdiChildrenNames.indexOf(selectedFile);
+			int const mdiIdx = mdiChildrenNames.indexOf(selectedFile);
 			for (int m = 0; m < otherMdis[mdiIdx]->modalities()->size(); ++m)
 			{
 				m_additionalInput.push_back(otherMdis[mdiIdx]->modality(m)->image());
@@ -261,7 +291,7 @@ void iAFilterRunnerGUI::run(QSharedPointer<iAFilter> filter, iAMainWindow* mainW
 		return;
 	}
 	QMap<QString, QVariant> paramValues = loadParameters(filter, sourceMdi);
-	filter->adaptParametersToInput(paramValues, sourceMdi->modality(0)->image());
+	filter->adaptParametersToInput(paramValues, sourceMdi? sourceMdi->modality(0)->image(): nullptr);
 
 	if (!askForParameters(filter, paramValues, sourceMdi, mainWnd, true))
 	{
@@ -277,50 +307,44 @@ void iAFilterRunnerGUI::run(QSharedPointer<iAFilter> filter, iAMainWindow* mainW
 		return;
 	}
 
-	QString oldTitle(sourceMdi->windowTitle());
+	QString oldTitle(sourceMdi ? sourceMdi->windowTitle() : "");
 	oldTitle = oldTitle.replace("[*]", "").trimmed();
 	QString newTitle(filter->outputName(0, filter->name()) + " " + oldTitle);
-	m_sourceFileName = sourceMdi->modality(0)->fileName();
-	auto mdiChild = filter->outputCount() > 0 ? mainWnd->resultChild(sourceMdi, newTitle) :
-		sourceMdi;
+	m_sourceFileName = sourceMdi ? sourceMdi->modality(0)->fileName() : "";
 
-	if (!mdiChild)
-	{
-		mainWnd->statusBar()->showMessage("Cannot create result child!", 5000);
-		emit finished();
-		return;
-	}
-	filterGUIPreparations(filter, mdiChild, mainWnd, paramValues);
-	iAFilterRunnerGUIThread* thread = new iAFilterRunnerGUIThread(filter, paramValues, mdiChild, sourceMdi->modality(0)->fileName());
+	filterGUIPreparations(filter, sourceMdi, mainWnd, paramValues);
+	auto thread = new iAFilterRunnerGUIThread(filter, paramValues, sourceMdi);
 	if (!thread)
 	{
 		mainWnd->statusBar()->showMessage("Cannot create result calculation thread!", 5000);
 		emit finished();
 		return;
 	}
-	// TODO: move all image adding here?
-	for (int m = 1; m < sourceMdi->modalities()->size(); ++m)
+	if (sourceMdi)
 	{
-		thread->addInput(sourceMdi->modality(m)->image(), sourceMdi->modality(m)->fileName());
+		for (int m = 0; m < sourceMdi->modalities()->size(); ++m)
+		{
+			thread->addInput(sourceMdi->modality(m)->image(), sourceMdi->modality(m)->fileName());
+		}
+		filter->setFirstInputChannels(sourceMdi->modalities()->size());
 	}
-	filter->setFirstInputChannels(sourceMdi->modalities()->size());
 	for (int a=0; a < m_additionalInput.size(); ++a)
 	{
 		thread->addInput(m_additionalInput[a], m_additionalFileNames[a]);
 	}
-	if (thread->Connectors().size() < filter->requiredInputs())
+	if (thread->inputCount() < filter->requiredInputs())
 	{
 		LOG(lvlError, QString("Not enough inputs specified, filter %1 requires %2 input images!")
 			.arg(filter->name()).arg(filter->requiredInputs()));
 		emit finished();
 		return;
 	}
-	if (mdiChild->preferences().PrintParameters && !filter->parameters().isEmpty())
+	if (mainWnd->defaultPreferences().PrintParameters && !filter->parameters().isEmpty())
 	{
-		LOG(lvlInfo, QString("Starting %1 filter with parameters:").arg(thread->filter()->name()));
-		for (int p = 0; p < thread->filter()->parameters().size(); ++p)
+		LOG(lvlInfo, QString("Starting %1 filter with parameters:").arg(filter->name()));
+		for (int p = 0; p < filter->parameters().size(); ++p)
 		{
-			auto paramDescriptor = thread->filter()->parameters()[p];
+			auto paramDescriptor = filter->parameters()[p];
 			QString paramName = paramDescriptor->name();
 			QString paramValue = paramDescriptor->valueType() == iAValueType::Boolean ?
 				(paramValues[paramName].toBool() ? "yes" : "no")
@@ -332,54 +356,51 @@ void iAFilterRunnerGUI::run(QSharedPointer<iAFilter> filter, iAMainWindow* mainW
 	{
 		LOG(lvlInfo, QString("Starting %1 filter.").arg(thread->filter()->name()));
 	}
-	connectThreadSignals(mdiChild, thread);
-	mdiChild->addStatusMsg(filter->name());
-	iAJobListView::get()->addJob(filter->name(), thread->ProgressObserver(), thread, filter->canAbort() ? thread : nullptr);
+	connect(thread, &QThread::finished, this, &iAFilterRunnerGUI::filterFinished);
+	iAJobListView::get()->addJob(filter->name(), filter->progress(), thread, filter->canAbort() ? thread : nullptr);
 	mainWnd->statusBar()->showMessage(filter->name(), 5000);
 	thread->start();
-}
-
-void iAFilterRunnerGUI::connectThreadSignals(iAMdiChild* mdiChild, iAFilterRunnerGUIThread* thread)
-{
-	connect(thread, &QThread::finished, this, &iAFilterRunnerGUI::filterFinished);
-	mdiChild->connectThreadSignalsToChildSlots(thread);
 }
 
 void iAFilterRunnerGUI::filterFinished()
 {
 	auto thread = qobject_cast<iAFilterRunnerGUIThread*>(sender());
-	// add additional output as additional modalities here
-	// "default" output 0 is handled elsewhere (via obscure iAMdiChild::rendererDeactivated / iAAlgorithm::updateVtkImageData)
-	auto mdiChild = qobject_cast<iAMdiChild*>(thread->parent());
-	// set default file name suggestion
-	QFileInfo sourceFI(m_sourceFileName);
-	QString suggestedFileName = sourceFI.absolutePath() + "/" + sourceFI.completeBaseName() + "-" +
-		thread->filter()->name().replace(QRegularExpression("[\\\\/:*?\"<>| ]"), "_") + "." +
-		sourceFI.suffix();
-	mdiChild->modality(0)->setFileName(suggestedFileName);
-	if (thread->filter()->polyOutput())
+	auto filter = thread->filter();
+	if (filter->finalOutputCount() > 0 || filter->polyOutput())
 	{
-		mdiChild->polyData()->DeepCopy(thread->filter()->polyOutput());
-	}
-	if (thread->filter()->output().size() > 1)
-	{
-		for (int p = 1; p < thread->filter()->output().size(); ++p)
+		QFileInfo sourceFI(m_sourceFileName);
+		QString newName(filter->name() + " " + sourceFI.baseName());
+		iAMdiChild* newChild = thread->sourceMDI()->mainWnd()->resultChild(thread->sourceMDI(), newName);
+		newChild->show();
+		// TODO: cleanup to add all modalities below!
+		newChild->displayResult(newName, filter->finalOutputCount() > 0 ? filter->output(0)->vtkImage() : nullptr,
+			filter->polyOutput() ? filter->polyOutput(): nullptr);
+		newChild->enableRenderWindows();
+		if (filter->finalOutputCount() > 0)
+		{
+			auto filterNameSaveForFilename = filter->name().replace(QRegularExpression("[\\\\/:*?\"<>| ]"), "_");
+			QString suggestedFileName = sourceFI.absolutePath() + "/" + sourceFI.completeBaseName() + "-" +
+				filterNameSaveForFilename + "." + sourceFI.suffix();
+			newChild->modality(0)->setFileName(suggestedFileName);
+		}
+		for (size_t p = 1; p < filter->finalOutputCount(); ++p)
 		{
 			auto img = vtkSmartPointer<vtkImageData>::New();
 			// some filters apparently clean up the result image
 			// (disregarding that a smart pointer still points to it...)
 			// so let's copy it to be on the safe side!
-			img->DeepCopy(thread->filter()->output()[p]->vtkImage());
-			auto mod = QSharedPointer<iAModality>::create(thread->filter()->outputName(p, QString("Extra Out %1").arg(p)), "", -1, img, 0);
-			mdiChild->modalities()->add(mod);
+			img->DeepCopy(filter->output(p)->vtkImage());
+			QString outputName = filter->outputName(p, QString("Output %1").arg(p));
+			auto mod = QSharedPointer<iAModality>::create(outputName, "", -1, img, 0);
+			newChild->modalities()->add(mod);
 			// signal to add it to list automatically is created to late to be effective here, we have to add it to list ourselves:
-			mdiChild->dataDockWidget()->modalityAdded(mod);
+			newChild->dataDockWidget()->modalityAdded(mod);
 		}
 	}
-	for (auto outputValue : thread->filter()->outputValues())
+	for (auto outputValue : filter->outputValues())
 	{
 		LOG(lvlImportant, QString("%1: %2").arg(outputValue.first).arg(outputValue.second.toString()));
 	}
-
+	thread->deleteLater();
 	emit finished();
 }

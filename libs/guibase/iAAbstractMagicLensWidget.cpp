@@ -150,6 +150,7 @@ bool iAAbstractMagicLensWidget::event(QEvent* event)
 #if __cplusplus >= 201703L
 		[[fallthrough]];
 #endif
+		// fall through
 	}
 	default:
 		return iAVtkWidget::event(event);

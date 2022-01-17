@@ -39,7 +39,7 @@ void canny_edge_detection(iAFilter* filter, QMap<QString, QVariant> const & para
 {
 	using EdgeDetectionType = itk::CannyEdgeDetectionImageFilter<RealImageType, RealImageType>;
 
-	auto inImg = castImageTo<RealPixelType>(filter->input()[0]->itkImage());
+	auto inImg = castImageTo<RealPixelType>(filter->input(0)->itkImage());
 	auto canny = EdgeDetectionType::New();
 	canny->SetVariance(parameters["Variance"].toDouble());
 	canny->SetMaximumError(parameters["Maximum error"].toDouble());
@@ -81,7 +81,7 @@ void sobel_edge_detection(iAFilter* filter, QMap<QString, QVariant> const& param
 	Q_UNUSED(parameters);
 	using EdgeDetectionType = itk::SobelEdgeDetectionImageFilter<RealImageType, RealImageType> ;
 
-	auto inImg = castImageTo<RealPixelType>(filter->input()[0]->itkImage());
+	auto inImg = castImageTo<RealPixelType>(filter->input(0)->itkImage());
 	auto edgeDetector = EdgeDetectionType::New();
 	edgeDetector->SetInput(dynamic_cast<RealImageType*>(inImg.GetPointer()));
 	filter->progress()->observe(edgeDetector);

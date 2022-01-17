@@ -33,8 +33,8 @@ void CalculateSegmentationMetrics(iAFilter* filter)
 	typedef typename ImageType::Pointer ImagePointer;
 	typedef itk::LabelOverlapMeasuresImageFilter<ImageType > DiceFilterType;
 	auto diceFilter = DiceFilterType::New();
-	ImagePointer groundTruthPtr = dynamic_cast<ImageType*>(filter->input()[0]->itkImage());
-	ImagePointer segmentedPtr = dynamic_cast<ImageType*>(filter->input()[1]->itkImage());
+	ImagePointer groundTruthPtr = dynamic_cast<ImageType*>(filter->input(0)->itkImage());
+	ImagePointer segmentedPtr = dynamic_cast<ImageType*>(filter->input(1)->itkImage());
 	if (!groundTruthPtr || !segmentedPtr)
 	{
 		LOG(lvlError, "Input images do not have the same type, but are required to!");

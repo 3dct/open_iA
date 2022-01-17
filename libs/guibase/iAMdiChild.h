@@ -27,6 +27,8 @@
 #include <QMainWindow>
 #include <QSharedPointer>
 
+#include <functional>
+
 class dlg_modalities;
 class iAAlgorithm;
 class iAChannelData;
@@ -94,8 +96,6 @@ public:
 	virtual QDockWidget* imagePropertyDockWidget() = 0;
 	//! Access to histogram dock widget
 	virtual QDockWidget* histogramDockWidget() = 0;
-
-
 
 	//! Access slicer for given mode (use iASlicerMode enum for mode values)
 	virtual iASlicer* slicer(int mode) = 0;
