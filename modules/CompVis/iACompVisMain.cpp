@@ -57,7 +57,7 @@ void iACompVisMain::start(iAMainWindow* mainWin)
 	result->initializeCorrelationCoefficient();
 
 	//open iAMainWindow with its dockWidgets
-	result->m_mainW = new dlg_VisMainWindow(result->m_dataStorage->getData(), result->m_mds, result->m_mainWindow, result);
+	result->m_mainW = new dlg_VisMainWindow(result->m_dataStorage->getData(), result->m_mds, mainWin, result);
 	if (result->m_mainW->failed())
 	{
 		result->m_mainW->parent()->deleteLater();
@@ -101,7 +101,7 @@ void iACompVisMain::initGUI()
 
 bool iACompVisMain::loadData()
 {
-	dlg_CSVReader* dlg = new dlg_CSVReader();
+	dlg_CSVReader* dlg = new dlg_CSVReader(m_mainWindow);
 
 	if (dlg->exec() != QDialog::Accepted)
 	{

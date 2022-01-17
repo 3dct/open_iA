@@ -26,8 +26,8 @@
 #include <QHeaderView>
 #include "qstring.h"
 
-dlg_MultidimensionalScalingDialog::dlg_MultidimensionalScalingDialog(QList<csvFileData>* data, iAMultidimensionalScaling* mds) :
-	QDialog(),
+dlg_MultidimensionalScalingDialog::dlg_MultidimensionalScalingDialog(QWidget* parent, QList<csvFileData>* data, iAMultidimensionalScaling* mds) :
+	QDialog(parent),
 	m_data(data),
 	m_weights(mds->getWeights()),
 	m_mds(mds)

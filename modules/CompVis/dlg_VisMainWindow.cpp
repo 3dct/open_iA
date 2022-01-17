@@ -51,7 +51,7 @@ dlg_VisMainWindow::dlg_VisMainWindow(QList<csvFileData>* data, iAMultidimensiona
 
 bool dlg_VisMainWindow::startMDSDialog()
 {
-	dlg_MultidimensionalScalingDialog dlg(m_data, m_mds);
+	dlg_MultidimensionalScalingDialog dlg(this, m_data, m_mds);
 	return (dlg.exec() == QDialog::Accepted);
 }
 

@@ -25,7 +25,7 @@
 #include <QPushButton>
 
 
-dlg_CSVReader::dlg_CSVReader() : QDialog()
+dlg_CSVReader::dlg_CSVReader(QWidget* parent) : QDialog(parent)
 {
 	setupUi(this);
 	connectSignals();
