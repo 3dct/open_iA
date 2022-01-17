@@ -456,7 +456,7 @@ namespace
 			for (size_t o = 0; o < filter->finalOutputCount(); ++o)
 			{
 				QString outFileName;
-				if (filter->finalOutputCount() == 1 || o < outputFiles.size() - 1)
+				if (filter->finalOutputCount() == 1 || static_cast<qsizetype>(o) < outputFiles.size() - 1)
 				{
 					outFileName = outputFiles[o];
 				}
