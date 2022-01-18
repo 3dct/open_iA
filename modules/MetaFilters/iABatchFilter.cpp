@@ -289,7 +289,7 @@ void iABatchFilter::performWork(QMap<QString, QVariant> const & parameters)
 			QString textToAdd = (outputBuffer[curLine].isEmpty() || values.empty() ? "" : ",") + values.join(",");
 			outputBuffer[curLine] += textToAdd;
 			++curLine;
-			for (int o = 0; o < filter->finalOutputCount(); ++o)
+			for (size_t o = 0; o < filter->finalOutputCount(); ++o)
 			{
 				QFileInfo fi(outDir + "/" + relFileName);
 				QString multiFileSuffix = filter->finalOutputCount() > 1 ? QString::number(o) : "";

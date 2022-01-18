@@ -25,7 +25,7 @@
 #include "iACsvDataStorage.h"
 #include "iAMultidimensionalScaling.h"
 //Qt
-#include "qdialog.h"
+#include <QDialog>
 #include <QCheckBox>
 
 class dlg_MultidimensionalScalingDialog : public QDialog, public Ui_MultidimensionalScalingDialog
@@ -33,7 +33,7 @@ class dlg_MultidimensionalScalingDialog : public QDialog, public Ui_Multidimensi
 	Q_OBJECT
 
    public:
-	dlg_MultidimensionalScalingDialog(QList<csvFileData>* data, iAMultidimensionalScaling* mds);
+	dlg_MultidimensionalScalingDialog(QWidget* parent, QList<csvFileData>* data, iAMultidimensionalScaling* mds);
 
    public slots:
 	void onCellChanged(int row, int column);
