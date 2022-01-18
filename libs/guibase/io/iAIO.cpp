@@ -1335,12 +1335,12 @@ void iAIO::readImageData()
 void iAIO::readNKC()
 {
 	readImageData();
-	auto filter = iAFilterRegistry::filter("Value Shift");
+	auto filter = iAFilterRegistry::filter("Replace and Shift");
 
 	filter->addInput(getVtkImageData(), "");
 	QMap<QString, QVariant> parameters;
-	parameters["ValueToReplace"] = 65533;
-	parameters["Replace"] = 0;
+	parameters["Value To Replace"] = 65533;
+	parameters["Replacement"] = 0;
 	filter->run(parameters);
 
 	auto filterScale = iAFilterRegistry::filter("Shift and Scale");
