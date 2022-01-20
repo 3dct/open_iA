@@ -1343,8 +1343,18 @@ void iAIO::readNKC()
 	parameters["Replacement"] = 0;
 	filter->run(parameters);
 
+	auto dataTypeConversion = iAFilterRegistry::filter("Datatype Conversion");
+
+	dataTypeConversion->addInput(filter->output(0)->itkImage(), "");
+	QMap<QString, QVariant> parametersConversion;
+	parametersConversion["Data Type"] = "32 bit floating point number (7 digits, float)";
+	parametersConversion["Rescale Range"] = false;
+	parametersConversion["Automatic Input Range"] = true;
+	parametersConversion["Use Full OutputRange"] = true;
+	dataTypeConversion->run(parametersConversion);
+
 	auto filterScale = iAFilterRegistry::filter("Shift and Scale");
-	filterScale->addInput(filter->output(0)->itkImage(), "");
+	filterScale->addInput(dataTypeConversion->output(0)->itkImage(), "");
 	QMap<QString, QVariant> parametersScale;
 	parametersScale["Shift"] = m_Parameter["Offset"].toInt();
 	parametersScale["Scale"] = m_Parameter["Scale"].toFloat();
