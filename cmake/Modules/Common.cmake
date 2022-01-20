@@ -791,8 +791,8 @@ set(BUILD_INFO "${BUILD_INFO}    \"git revision: ${openiA_HASH}\\n\"\n")
 add_compile_definitions(UNICODE _UNICODE)    # Enable Unicode
 
 if (UNIX)
-    set(CMAKE_INSTALL_RPATH "\$ORIGIN")      # Set RunPath in all created libraries / executables to $ORIGIN
-    #    set(CMAKE_BUILD_RPATH_USE_ORIGIN ON)
+	set(CMAKE_INSTALL_RPATH "\$ORIGIN")      # Set RunPath in all created libraries / executables to $ORIGIN
+	#    set(CMAKE_BUILD_RPATH_USE_ORIGIN ON)
 endif()
 
 
