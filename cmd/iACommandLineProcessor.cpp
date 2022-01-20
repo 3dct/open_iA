@@ -35,6 +35,7 @@
 #include "iAValueType.h"
 
 #include <QFileInfo>
+#include <QtGlobal> // for QT_VERSION
 #include <QTextStream>
 
 #include <iostream>
@@ -265,6 +266,10 @@ namespace
 		else if (arg == "-v") return LogLevel;
 		else return InvalidParameter;
 	}
+
+#if QT_VERSION < QT_VERSION_CHECK(5, 10, 0)
+	using qsizetype = qint64;
+#endif
 
 	int RunFilter(QStringList const & args)
 	{
