@@ -45,7 +45,8 @@ iACompUniformTableInteractorStyle::iACompUniformTableInteractorStyle() :
 	m_currentlyPickedActor(vtkSmartPointer<vtkActor>::New()),
 	m_panActive(false),
 	m_controlBinsInZoomedRows(false),
-	m_pointRepresentationOn(false)
+	m_pointRepresentationOn(false),
+	m_panCamera(false)
 {
 	m_actorPicker->SetPickFromList(true);
 }
@@ -166,6 +167,13 @@ void iACompUniformTableInteractorStyle::OnLeftButtonUp()
 
 void iACompUniformTableInteractorStyle::OnMouseMove()
 {
+	if (m_panCamera)
+	{  //pan the camera so the whole table is better visible
+		vtkInteractorStyleTrackballCamera::OnMouseMove();
+		return;
+	}
+	
+	//move row of histogram table to new position
 	int x = this->Interactor->GetEventPosition()[0];
 	int y = this->Interactor->GetEventPosition()[1];
 
@@ -209,6 +217,14 @@ void iACompUniformTableInteractorStyle::manualTableRelocatingStop()
 
 void iACompUniformTableInteractorStyle::Pan()
 {
+	if (m_panCamera)
+	{ //pan the camera so the whole table is better visible
+		vtkInteractorStyleTrackballCamera::Pan();
+		return;
+	}
+	
+	
+	//move row of histogram table to new position
 	m_panActive = true;
 
 	//move picked actor
@@ -282,7 +298,12 @@ void iACompUniformTableInteractorStyle::resetHistogramTable()
 
 	m_controlBinsInZoomedRows = false;
 	m_pointRepresentationOn = false;
+	
+	m_visualization->clearRenderer();
 	m_visualization->drawHistogramTable(m_visualization->getBins());
+
+	m_visualization->getRenderer()->ResetCamera();
+	m_visualization->renderWidget();
 
 	resetOtherCharts();
 }
@@ -291,8 +312,17 @@ void iACompUniformTableInteractorStyle::OnMiddleButtonDown()
 {
 	reinitializeState();
 
+	m_panCamera = true;
+
 	// Forward events
-	vtkInteractorStyleTrackballCamera::OnMiddleButtonDown();
+	iACompTableInteractorStyle::OnMiddleButtonDown();
+}
+
+void iACompUniformTableInteractorStyle::OnMiddleButtonUp()
+{
+	m_panCamera = false;
+
+	vtkInteractorStyleTrackballCamera::OnMiddleButtonUp();
 }
 
 void iACompUniformTableInteractorStyle::OnRightButtonDown()
@@ -363,7 +393,6 @@ void iACompUniformTableInteractorStyle::OnMouseWheelForward()
 		//histogram zoom in
 		if (m_controlBinsInZoomedRows)
 		{
-			LOG(lvlDebug, "Non-Linear Zooming...");
 			//non linear zooming in
 			nonLinearZoomIn();
 		}
@@ -479,7 +508,8 @@ void iACompUniformTableInteractorStyle::updateCharts()
 	m_zoomedRowData = zoomedRowDataMDS;
 
 	//change histogram table
-	m_visualization->drawLinearZoom(m_picked, m_visualization->getBins(), m_visualization->getBinsZoomed(), m_zoomedRowData);
+	m_visualization->drawNonLinearZoom(
+		m_picked, m_visualization->getBins(), m_visualization->getBinsZoomed(), m_zoomedRowData);
 
 	updateOtherCharts(selectedObjectAttributes);
 }

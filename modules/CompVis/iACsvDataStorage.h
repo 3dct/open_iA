@@ -3,12 +3,20 @@
 //Debug
 #include <iALog.h>
 
+//QT
 #include <QString>
 #include <QListView>
 
 #include <vector>
 
+//vtk
+#include "vtkSmartPointer.h"
+
+class iACsvIO;
+class iACsvConfig;
 class iACompHistogramTableData;
+class dlg_CSVInput;
+class vtkTable;
 
 namespace csvDataType
 {
@@ -51,7 +59,6 @@ struct csvFileData
 
 	//returns the amount of objects of each single csv dataset
 	static std::vector<int>* getAmountObjectsEveryDataset(QList<csvFileData>* data);
-
 };
 
 class iACsvDataStorage
@@ -75,10 +82,16 @@ class iACsvDataStorage
 	//returns the total number of objects in all datasets
 	int getTotalNumberOfObjects();
 
+	/*** MDS Calculation ***/
 	//get the 1d mds matrix result
 	csvDataType::ArrayType* getMDSData();
 	//set the 1d mds matrix result
 	void setMDSData(csvDataType::ArrayType* mdsData);
+
+	/*** 3D Rendering ***/
+	std::vector<vtkSmartPointer<vtkTable>>* getObjectTables();
+	std::vector<iACsvIO*>* getIOs();
+	std::vector<const iACsvConfig*>* getCsvConfigs();
 
    private:
 	//fill a list with the attribute names
@@ -87,6 +100,8 @@ class iACsvDataStorage
 	void initializeValueArray(QList<QStringList>* list, int const attrCount, csvDataType::ArrayType* values);
 	//resize the file to header & values without meta info in the first columns
 	void customizeCSVFile(QList<QStringList>* list);
+	//creates a vtkTable storing the object that should be drawn and their mapping
+	void initializeObjectTableFor3DRendering();
 
 	//name of csvFiles
 	QStringList* m_filenames;
@@ -102,4 +117,11 @@ class iACsvDataStorage
 
 	//stores the resulting 1D matrix of the mds computation
 	csvDataType::ArrayType* m_MDSData;
+
+
+	/*** Initialization for Rendering with iAobjectvis***/
+	std::vector<vtkSmartPointer<vtkTable>>* m_objectTables;
+	std::vector<iACsvIO*>* m_ios;
+	std::vector<const iACsvConfig*>* m_csvConfigs;
+	std::vector<dlg_CSVInput*>* m_dlgs;
 };

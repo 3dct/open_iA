@@ -19,7 +19,7 @@ class iACompHistogramTable;
 class iACompBoxPlot;
 class iACompCorrelationMap;
 class iAHistogramData;
-
+class iAComp3DView;
 
 class iACompVisMain
 {
@@ -52,11 +52,13 @@ class iACompVisMain
 	void updateBarChart(csvDataType::ArrayType* selectedData, std::map<int, std::vector<double>>* pickStatistic);
 	void updateBoxPlot(csvDataType::ArrayType* selectedData);
 	void updateCorrelationMap(csvDataType::ArrayType* selectedData, std::map<int, std::vector<double>>* pickStatistic);
+	void update3DView(csvDataType::ArrayType* selectedData, std::map<int, std::vector<double>>* pickStatistic);
 
 	void resetOtherCharts();
 	void resetBarChart();
 	void resetBoxPlot();
 	void resetCorrelationMap();
+	void reset3DViews();
 
 	void updateHistogramTableFromCorrelationMap(std::map<int, double>* dataIndxSelectedType);
 	void resetHistogramTableFromCorrelationMap();
@@ -81,6 +83,7 @@ class iACompVisMain
 	iACompHistogramTable* m_HistogramTableDockWidget;
 	iACompBoxPlot* m_BoxPlotDockWidget;
 	iACompCorrelationMap* m_CorrelationMapDockWidget;
+	iAComp3DView* m_3DViewDockWidget;
 
 	bool m_computeMDSFlag;
 };

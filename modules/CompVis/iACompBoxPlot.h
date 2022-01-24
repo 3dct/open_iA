@@ -16,8 +16,10 @@
 //CompVis
 class iAMainWindow;
 
+//iA
 class iAQVTKWidget;
 
+//vtk
 class vtkContextView;
 class vtkTable;
 class vtkTextActor;

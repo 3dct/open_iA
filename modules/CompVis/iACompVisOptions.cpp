@@ -1,5 +1,9 @@
 #include "iACompVisOptions.h"
 
+
+//Debug
+#include <iALog.h>
+
 //Qt
 #include "qstring.h"
 
@@ -202,4 +206,12 @@ namespace iACompVisOptions
 		return percent * (max - min) + min;
 	}
 
+	QString getLabel(QString input)
+	{
+		int ind = input.lastIndexOf('/');
+		QString newLow = input.mid(ind+1,input.size());
+
+		QString result = newLow.replace(".csv", "");
+		return result;
+	}
 }

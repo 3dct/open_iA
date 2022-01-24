@@ -51,7 +51,8 @@ public:
 	//map contains the selected actor with its selected bins
 	//selectedBinNumber represents number of bins of all other rows, which were not selected
 	//selectedBinNumber represents number of bins that should be drawn in the zoomed in row
-	void drawLinearZoom(Pick::PickedMap* map, int notSelectedBinNumber, int selectedBinNumber, QList<bin::BinType*>* zoomedRowData);
+	void drawNonLinearZoom(
+		Pick::PickedMap* map, int notSelectedBinNumber, int selectedBinNumber, QList<bin::BinType*>* zoomedRowData);
 
 	//redraw the selected bin(s)/row(s) with a specified amount of bins
 	//selectedBinNumber contains the number of bins that should be drawn for each selected bin in the row(s)
@@ -68,6 +69,7 @@ public:
 	void highlightSelectedRow(vtkSmartPointer<vtkActor> pickedActor);
 
 	void removePointRepresentation();
+
 	//remove the bar chart visulaiztion showing the number of objects for each dataset
 	void removeBarCharShowingAmountOfObjects();
 

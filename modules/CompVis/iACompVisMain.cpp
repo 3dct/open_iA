@@ -13,12 +13,15 @@
 #include "iAMultidimensionalScaling.h"
 #include "iACoefficientOfVariation.h"
 #include "iACorrelationCoefficient.h"
+#include "iAComp3DView.h"
 
 //QT
 #include <QMessageBox>
 #include <QBoxLayout>
 
-iACompVisMain::iACompVisMain(iAMainWindow* mainWin) : m_mainWindow(mainWin), m_computeMDSFlag(true)
+iACompVisMain::iACompVisMain(iAMainWindow* mainWin) : 
+	m_mainWindow(mainWin), 
+	m_computeMDSFlag(true)
 {
 	//load data
 	if (!loadData()) 
@@ -26,7 +29,7 @@ iACompVisMain::iACompVisMain(iAMainWindow* mainWin) : m_mainWindow(mainWin), m_c
 		return;
 	};
 
-	//calculate metrics
+	//calculate metrics & initialize data structure
 	initializeMDS();
 	initializeVariationCoefficient();
 	initializeCorrelationCoefficient();
@@ -34,11 +37,20 @@ iACompVisMain::iACompVisMain(iAMainWindow* mainWin) : m_mainWindow(mainWin), m_c
 	//open iAMainWindow with its dockWidgets
 	m_mainW = new dlg_VisMainWindow(m_dataStorage, m_mds, m_mainWindow, this, m_computeMDSFlag);
 
+	QHBoxLayout* layout3D = new QHBoxLayout;
+	m_mainW->centralwidget->setLayout(layout3D);
+	
+	//add 3D View
+	QGridLayout* gridL = new QGridLayout;
+	layout3D->insertLayout(0, gridL); 
+	m_3DViewDockWidget = new iAComp3DView(m_mainWindow, m_dataStorage);
+	m_3DViewDockWidget->constructGridLayout(gridL);
+
 	QVBoxLayout* layout1 = new QVBoxLayout;
-	m_mainW->centralwidget->setLayout(layout1);
+	layout3D->insertLayout(0,layout1);
+	//m_mainW->centralwidget->setLayout(layout1);
 
 	//add histogram table
-	//m_HistogramTableDockWidget = new iACompHistogramTable(mainWin, m_mds, m_dataStorage, this);
 	m_HistogramTableDockWidget = new iACompHistogramTable(mainWin, m_dataStorage, this, m_computeMDSFlag);
 	layout1->addWidget(m_HistogramTableDockWidget->getHistogramTableVis());
 
@@ -88,7 +100,7 @@ bool iACompVisMain::loadData()
 
 void iACompVisMain::noDatasetChosenMessage()
 {
-	LOG(lvlDebug,QString("No Dataset was chosen. Therefore the module CompVis closed."));
+	LOG(lvlError,QString("No Dataset was chosen. Therefore the module CompVis closed."));
 }
 
 /******************************************  Initialization Methods  **********************************/
@@ -183,6 +195,15 @@ void iACompVisMain::updateOtherCharts(csvDataType::ArrayType* selectedData, std:
 
 	//Choropleth Map
 	updateCorrelationMap(selectedData, pickStatistic);
+
+	//3D View
+	update3DView(selectedData, pickStatistic);
+}
+
+void iACompVisMain::update3DView(
+	csvDataType::ArrayType* selectedData, std::map<int, std::vector<double>>* pickStatistic)
+{
+	m_3DViewDockWidget->update3DViews(selectedData, pickStatistic);
 }
 
 void iACompVisMain::updateCorrelationMap(csvDataType::ArrayType* selectedData, std::map<int, std::vector<double>>* pickStatistic)
@@ -207,6 +228,7 @@ void iACompVisMain::resetOtherCharts()
 	resetBarChart();
 	resetBoxPlot(); 
 	resetCorrelationMap();
+	reset3DViews();
 }
 
 void iACompVisMain::resetBarChart()
@@ -222,6 +244,11 @@ void iACompVisMain::resetBoxPlot()
 void iACompVisMain::resetCorrelationMap()
 {
 	m_CorrelationMapDockWidget->resetCorrelationMap();
+}
+
+void iACompVisMain::reset3DViews()
+{
+	m_3DViewDockWidget->reset3DViews();
 }
 
 void iACompVisMain::updateHistogramTableFromCorrelationMap(std::map<int, double>* dataIndxSelectedType)

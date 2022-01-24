@@ -46,6 +46,8 @@
 
 #include "vtkProgrammableGlyphFilter.h"
 
+#include "vtkCamera.h"
+
 iACompUniformTable::iACompUniformTable(iACompHistogramVis* vis, iACompUniformBinningData* uniformBinningData) :
 	iACompTable(vis), 
 	m_uniformBinningData(uniformBinningData),
@@ -94,10 +96,14 @@ void iACompUniformTable::setActive()
 
 	if (m_lastState == iACompVisOptions::lastState::Undefined)
 	{
-		drawHistogramTable(m_bins);
-
 		//init camera
 		initializeCamera();
+
+		drawHistogramTable(m_bins);
+
+		m_mainRenderer->ResetCamera();
+		renderWidget();
+
 		m_lastState = iACompVisOptions::lastState::Defined;
 	}
 	else if (m_lastState == iACompVisOptions::lastState::Defined)
@@ -105,11 +111,15 @@ void iACompUniformTable::setActive()
 		m_interactionStyle->reinitializeState();
 
 		drawHistogramTable(m_bins);
+		
+		m_mainRenderer->ResetCamera();
 		renderWidget();
 	}
 	else if (m_lastState == iACompVisOptions::lastState::Changed)
 	{
 		drawHistogramTable(m_bins);
+		
+		m_mainRenderer->ResetCamera();
 		renderWidget();
 	}
 }
@@ -403,15 +413,6 @@ vtkSmartPointer<vtkPolyData> iACompUniformTable::drawRow(int currDataInd, int cu
 	return row;
 }
 
-//void iACompUniformTable::colorRow(vtkUnsignedCharArray* colors, int currDataset, int numberOfBins)
-//{
-//	m_uniformBinningData = static_cast<iACompUniformBinningData*>(m_vis->recalculateBinning(iACompVisOptions::binningType::Uniform, numberOfBins));
-//	QList<bin::BinType*>* binData = m_uniformBinningData->getBinData();
-//	calculateBinRange();
-//
-//	//colorBinOfRow(colors, currDataset, (binData->at(currDataset)->size()));
-//}
-
 void iACompUniformTable::colorBinOfRow(vtkUnsignedCharArray* colorArray, int position, double numberOfObjectsInBin)
 {
 	double* rgbBorder;
@@ -591,7 +592,7 @@ void iACompUniformTable::drawHistogramTableAccordingToCellSimilarity(Pick::Picke
 	}
 }
 
-void iACompUniformTable::drawLinearZoom(
+void iACompUniformTable::drawNonLinearZoom(
 	Pick::PickedMap* map, int notSelectedBinNumber, int selectedBinNumber, QList<bin::BinType*>* zoomedRowData)
 {
 	QList<bin::BinType*>* thisZoomedRowData = bin::DeepCopy(zoomedRowData);
@@ -612,8 +613,10 @@ void iACompUniformTable::drawLinearZoom(
 
 	double windowHeight = m_vis->getWindowHeight();
 	double windowWidth = m_vis->getWindowWidth();
-	double newHeight = windowHeight - (((windowHeight * distance) * 4) * map->size()) -
-		(((windowHeight * distanceToParent)) * map->size());
+	//double newHeight = windowHeight - (((windowHeight * distance) * 4) * map->size()) -
+	//	(((windowHeight * distanceToParent)) * map->size());
+	double newHeight = windowHeight - (((windowHeight * distance) ) * map->size()) - (((windowHeight * distanceToParent)) * map->size()); //////////////////////////////////
+
 	m_vis->calculateRowWidthAndHeight(windowWidth, newHeight, m_vis->getAmountDatasets() + map->size());
 
 	std::vector<vtkSmartPointer<vtkPolyData>>* zoomedPlanes = new std::vector<vtkSmartPointer<vtkPolyData>>();
@@ -690,6 +693,9 @@ void iACompUniformTable::drawLinearZoom(
 	}
 
 	renderWidget();
+
+	m_mainRenderer->ResetCamera();
+	renderWidget();
 }
 
 std::vector<vtkSmartPointer<vtkPolyData>>* iACompUniformTable::drawZoomedRow(int currentColumn,
@@ -716,7 +722,7 @@ std::vector<vtkSmartPointer<vtkPolyData>>* iACompUniformTable::drawZoomedRow(int
 	double startX = -rowSize * 0.35;
 	double endX = startX + widthRange;
 	double startY = (colSize * currentColumn) + offsetHeight;
-	double endY = startY + (1.5 * colSize);
+	double endY = startY + (colSize);  //startY + (1.5 * colSize); ///////////////////////////////
 
 	for (int i = 0; i < cellIdsOriginalPlane->size(); i++)
 	{
@@ -1463,126 +1469,6 @@ vtkSmartPointer<vtkPoints> iACompUniformTable::calculatePointPosition(
 
 	return result;
 }
-
-//void iACompUniformTable::storeBinData(int currDataInd, int currentColumn, double offset)
-//{
-//	bin::BinType* currDataset = m_uniformBinningData->getBinData()->at(currDataInd);
-//	double numberOfBins = currDataset->size();
-//
-//	//each row consists of a certain number of bins and each bin will be drawn as glyph
-//	vtkSmartPointer<vtkPoints> glyphPoints = vtkSmartPointer<vtkPoints>::New();
-//	glyphPoints->SetDataTypeToDouble();
-//	glyphPoints->SetNumberOfPoints(numberOfBins);
-//
-//	vtkSmartPointer<vtkPolyData> polydata = vtkSmartPointer<vtkPolyData>::New();
-//	polydata->SetPoints(glyphPoints);
-//
-//	vtkSmartPointer<vtkDoubleArray> originArray = vtkSmartPointer<vtkDoubleArray>::New();
-//	originArray->SetName("originArray");
-//	originArray->SetNumberOfComponents(3);
-//	originArray->SetNumberOfTuples(numberOfBins);
-//
-//	vtkSmartPointer<vtkDoubleArray> point1Array = vtkSmartPointer<vtkDoubleArray>::New();
-//	point1Array->SetName("point1Array");
-//	point1Array->SetNumberOfComponents(3);
-//	point1Array->SetNumberOfTuples(numberOfBins);
-//
-//	vtkSmartPointer<vtkDoubleArray> point2Array = vtkSmartPointer<vtkDoubleArray>::New();
-//	point2Array->SetName("point2Array");
-//	point2Array->SetNumberOfComponents(3);
-//	point2Array->SetNumberOfTuples(numberOfBins);
-//
-//	//drawing positions
-//	double min_x = 0.0;
-//	double max_x = m_vis->getRowSize();
-//	double min_y = (m_vis->getColSize() * currentColumn) + offset;
-//	double max_y = min_y + m_vis->getColSize();
-//
-//	vtkSmartPointer<vtkUnsignedCharArray> colorArray = vtkSmartPointer<vtkUnsignedCharArray>::New();
-//	colorArray->SetName("colorArray");
-//	colorArray->SetNumberOfComponents(3);
-//	colorArray->SetNumberOfTuples(numberOfBins);
-//
-//	for (int i = 0; i < numberOfBins; i++)
-//	{
-//		//compute bin boundaries in drawing coordinates
-//		double minBoundary = m_uniformBinningData->getBinBoundaries()->at(currDataInd).at(i);
-//		double xMin = iACompVisOptions::histogramNormalization(
-//			minBoundary, min_x, max_x, m_uniformBinningData->getMinVal(), m_uniformBinningData->getMaxVal());
-//
-//		double maxBoundary = m_uniformBinningData->getMaxVal();
-//		if (i != numberOfBins - 1)
-//		{
-//			maxBoundary = m_uniformBinningData->getBinBoundaries()->at(currDataInd).at(i + 1);
-//		}
-//		double xMax = iACompVisOptions::histogramNormalization(
-//			maxBoundary, min_x, max_x, m_uniformBinningData->getMinVal(), m_uniformBinningData->getMaxVal());
-//
-//		originArray->InsertTuple3(i, xMin, min_y, 0.0);
-//		point1Array->InsertTuple3(i, xMax, min_y, 0.0);   //width
-//		point2Array->InsertTuple3(i, xMin, max_y, 0.0);  //height
-//
-//		double numberOfObjects = currDataset->at(i).size();
-//		double* rgbBorder;
-//		double rgb[3] = {0.0, 0.0, 0.0};
-//		double maxNumber = m_lut->GetRange()[1];
-//		double minNumber = m_lut->GetRange()[0];
-//
-//		if (numberOfObjects > maxNumber)
-//		{
-//			if (m_useDarkerLut)
-//			{
-//				rgbBorder = m_lutDarker->GetAboveRangeColor();
-//			}
-//			else
-//			{
-//				rgbBorder = m_lut->GetAboveRangeColor();
-//			}
-//
-//			unsigned char ucrgb[3];
-//			iACompVisOptions::getColorArray3(rgbBorder, ucrgb);
-//			colorArray->InsertTuple3(i, ucrgb[0], ucrgb[1], ucrgb[2]);
-//		}
-//		else if (numberOfObjects < minNumber)
-//		{
-//			if (m_useDarkerLut)
-//			{
-//				rgbBorder = m_lutDarker->GetBelowRangeColor();
-//			}
-//			else
-//			{
-//				rgbBorder = m_lut->GetBelowRangeColor();
-//			}
-//
-//			unsigned char ucrgb[3];
-//			iACompVisOptions::getColorArray3(rgbBorder, ucrgb);
-//			colorArray->InsertTuple3(i, ucrgb[0], ucrgb[1], ucrgb[2]);
-//		}
-//		else
-//		{
-//			if (m_useDarkerLut)
-//			{
-//				m_lutDarker->GetColor(numberOfObjects, rgb);
-//			}
-//			else
-//			{
-//				m_lut->GetColor(numberOfObjects, rgb);
-//			}
-//
-//			unsigned char ucrgb[3];
-//			iACompVisOptions::getColorArray3(rgb, ucrgb);
-//			colorArray->InsertTuple3(i, ucrgb[0], ucrgb[1], ucrgb[2]);
-//		}
-//	}
-//
-//	polydata->GetPointData()->AddArray(originArray);
-//	polydata->GetPointData()->AddArray(point1Array);
-//	polydata->GetPointData()->AddArray(point2Array);
-//	polydata->GetCellData()->AddArray(colorArray);
-//	polydata->GetCellData()->SetActiveScalars("colorArray");
-//
-//	m_uniformBinningData->storeBinPolyData(polydata);
-//}
 
 /******************************************  Interaction  **********************************************/
 std::tuple<QList<bin::BinType*>*, QList<std::vector<csvDataType::ArrayType*>*>*> iACompUniformTable::getSelectedData(

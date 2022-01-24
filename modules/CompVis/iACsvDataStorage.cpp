@@ -1,8 +1,22 @@
 #include "iACsvDataStorage.h"
 
+
+//iAobjectvis
+#include "iACsvIO.h"
+#include "dlg_CSVInput.h"
+#include "iACsvConfig.h"
+#include "iACsvVtkTableCreator.h"
+#include "iACsvConfig.h"
+#include "dlg_CSVInput.h"
+
+//QT
 #include <QMessageBox>
 #include <QFile>
 #include <QTextStream>
+
+//vtk
+#include "vtkTable.h"
+
 
 #include <cstdlib>
 
@@ -10,7 +24,11 @@ iACsvDataStorage::iACsvDataStorage(QStringList* csvFiles) :
 	m_filenames(csvFiles), 
 	m_data(new QList<csvFileData>()),
 	m_totalNumberOfObjects(0),
-	m_MDSData(nullptr)
+	m_MDSData(nullptr),
+	m_objectTables(new std::vector<vtkSmartPointer<vtkTable>>()),
+	m_ios(new std::vector<iACsvIO*>()),
+	m_csvConfigs(new std::vector<const iACsvConfig*>()),
+	m_dlgs(new std::vector<dlg_CSVInput*>())
 {
 	for (int ind = 0; ind < m_filenames->size(); ind++)
 	{
@@ -18,13 +36,16 @@ iACsvDataStorage::iACsvDataStorage(QStringList* csvFiles) :
 
 		if (list == nullptr)
 		{
-			//QMessageBox::information(this, "CompVis",
-			//	"CSV File could not be read! "
-			//	"Please try again or specify another file.");
+			LOG(lvlError, QString("Unable to read file '%1'").arg(m_filenames->at(ind)));
 			return;
 		}
-
+		
+		//create data structure for MDS and CompVis
 		storeCSVToVectorArray(list);
+
+		//create data structure for 3DVis for library iAobjectvis
+		initializeObjectTableFor3DRendering();
+
 	}
 
 	//calculate overall number of objects of all datasets
@@ -36,6 +57,30 @@ iACsvDataStorage::iACsvDataStorage(QStringList* csvFiles) :
 	}
 
 	m_totalNumberOfObjects = sum;
+}
+
+void iACsvDataStorage::initializeObjectTableFor3DRendering()
+{
+	dlg_CSVInput* dlg = new dlg_CSVInput(false);
+	if (dlg->exec() != QDialog::Accepted)
+	{
+		return;
+	}
+	
+	const iACsvConfig* csvConfig = &dlg->getConfig();
+	iACsvVtkTableCreator creator;
+	iACsvIO* io = new iACsvIO();
+	
+	if (!io->loadCSV(creator, *csvConfig))
+	{
+		return;
+	}
+
+	vtkSmartPointer<vtkTable> objectTable = creator.table();
+	m_objectTables->push_back(objectTable);
+	m_ios->push_back(io);
+	m_csvConfigs->push_back(csvConfig);
+	m_dlgs->push_back(dlg);
 }
 
 QList<QStringList>* iACsvDataStorage::readCSV(QString csvFile)
@@ -146,6 +191,22 @@ QStringList* iACsvDataStorage::getAttributeNamesWithoutLabel()
 QStringList* iACsvDataStorage::getAttributeNames()
 {
 	return this->getData()->at(0).header;
+}
+
+/*********************** 3D Rendering ******************************************/
+std::vector<vtkSmartPointer<vtkTable>>* iACsvDataStorage::getObjectTables()
+{
+	return m_objectTables;
+}
+
+std::vector<iACsvIO*>* iACsvDataStorage::getIOs()
+{
+	return m_ios;
+}
+
+std::vector<const iACsvConfig*>* iACsvDataStorage::getCsvConfigs()
+{
+	return m_csvConfigs;
 }
 
 /*********************** store data computed by MDS ******************************************/

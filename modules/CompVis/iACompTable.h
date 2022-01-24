@@ -39,11 +39,15 @@ public:
 	void addLegendRendererToWidget();
 	void setInteractorStyleToWidget(vtkSmartPointer<iACompTableInteractorStyle> interactorStyle);
 	void renderWidget();
+	void clearRenderer();
 
 	//set the visualization is active (it will be drawn)
 	virtual void setActive() = 0;
 	//set the visualization inactive (it will no longer be drawn)
 	virtual void setInactive() = 0;
+
+	//returns the rendering view: the mainrenderer of the table has only 0.85 space available, the other space belongs to the legend
+	int getRenderingView();
 
 	/*** Ordering/Ranking ***/
 	//draw Histogram table with rows ordered ascending to its amount of objects
@@ -176,6 +180,8 @@ protected:
 
 	//stores for each row which dataset is currently drawn inside
 	std::map<vtkSmartPointer<vtkActor>, int>* m_rowDataIndexPair;
+
+	double m_renderingView;
 
 private:
 	

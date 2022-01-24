@@ -78,7 +78,7 @@ void iACompTableInteractorStyle::setIACompHistogramVis(iACompHistogramVis* main)
 
 void iACompTableInteractorStyle::OnEnter()
 {
-	LOG(lvlInfo, "Please click on the background to activate the keyboard.");
+	//LOG(lvlInfo, "Please click on the background to activate the keyboard.");
 }
 
 void iACompTableInteractorStyle::OnLeftButtonDown()
@@ -94,7 +94,9 @@ void iACompTableInteractorStyle::OnMouseMove()
 
 void iACompTableInteractorStyle::OnMiddleButtonDown()
 {
+	vtkInteractorStyleTrackballCamera::OnMiddleButtonDown();
 }
+
 void iACompTableInteractorStyle::OnRightButtonDown()
 {
 }

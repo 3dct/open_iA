@@ -61,7 +61,6 @@ void iACompHistogramVis::showEvent(QShowEvent* event)
 {
 	QDockWidget::showEvent(event);
 
-
 	if (m_initialRendering)
 	{
 		showInitally();
@@ -74,7 +73,7 @@ void iACompHistogramVis::showEvent(QShowEvent* event)
 
 void iACompHistogramVis::showInitally()
 {
-	m_windowWidth = m_qvtkWidget->width();
+	m_windowWidth = m_qvtkWidget->width() * 0.85;  /////////////////////m_uniformTable->getRenderingView()
 	m_windowHeight = m_qvtkWidget->height();
 
 	calculateRowWidthAndHeight(m_windowWidth, m_windowHeight, m_amountDatasets);
@@ -119,9 +118,9 @@ void iACompHistogramVis::calculateRowWidthAndHeight(double width, double heigth,
 {
 	if (heigth > width)
 	{
-		m_screenRatio = width / heigth;
+		m_screenRatio = width/heigth;
 		m_colSize = 1;
-		m_rowSize = (m_screenRatio / numberOfDatasets);
+		m_rowSize = numberOfDatasets/m_screenRatio;
 	}
 	else
 	{
@@ -281,7 +280,8 @@ void iACompHistogramVis::renderWidget()
 	#if VTK_VERSION_NUMBER < VTK_VERSION_CHECK(9, 0, 0)
 		m_qvtkWidget->GetRenderWindow()->GetInteractor()->Render();
 	#else
-		m_qvtkWidget->renderWindow()->GetInteractor()->Render();
+		//m_qvtkWidget->renderWindow()->GetInteractor()->Render();
+	m_qvtkWidget->renderWindow()->Render(); ////////////////////////////////
 	#endif
 }
 

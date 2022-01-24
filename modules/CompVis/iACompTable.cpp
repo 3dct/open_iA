@@ -24,7 +24,7 @@
 #include "vtkCellData.h"
 
 #include "vtkDoubleArray.h"
-
+#include "vtkCamera.h"
 
 
 iACompTable::iACompTable(iACompHistogramVis* vis) :
@@ -42,7 +42,8 @@ iACompTable::iACompTable(iACompHistogramVis* vis) :
 	m_indexOfPickedRow(new std::vector<int>()),
 	m_pickedCellsforPickedRow(new std::map<int, std::vector<vtkIdType>*>()),
 	m_zoomedRowData(nullptr),
-	m_rowDataIndexPair(new std::map<vtkSmartPointer<vtkActor>, int>())
+	m_rowDataIndexPair(new std::map<vtkSmartPointer<vtkActor>, int>()),
+	m_renderingView(0.8)
 {
 	initializeRenderer();
 }
@@ -52,7 +53,7 @@ void iACompTable::initializeRenderer()
 	double col[3];
 	iACompVisOptions::getDoubleArray(iACompVisOptions::BACKGROUNDCOLOR_GREY, col);
 	m_mainRenderer->SetBackground(col);
-	m_mainRenderer->SetViewport(0, 0, 0.85, 1);
+	m_mainRenderer->SetViewport(0, 0, m_renderingView, 1);
 	m_mainRenderer->SetUseFXAA(true);
 }
 
@@ -248,6 +249,11 @@ void iACompTable::addDatasetName(int currDataset, double* position)
 	m_mainRenderer->AddActor(legend);
 }
 
+
+int iACompTable::getRenderingView()
+{
+	return m_renderingView;
+}
 /********************************************  Ordering/Ranking ********************************************/
 void iACompTable::createBarChart(vtkSmartPointer<vtkPolyData> currPolyData, int currAmountObjects, int maxAmountObjects)
 {
@@ -432,11 +438,11 @@ void iACompTable::initializeLegend()
 	scalarBar->SetLookupTable(m_lut);
 	scalarBar->SetHeight(0.9);  //scalarBar is set so high, that the blacckground above the title cannot be seen anymore
 	scalarBar->GetPositionCoordinate()->SetCoordinateSystemToNormalizedViewport();
-	scalarBar->GetPositionCoordinate()->SetValue(0.40, 0.15, 0.0);
+	scalarBar->GetPositionCoordinate()->SetValue(0.25, 0.15, 0.0); //0.40, 0.15, 0.0
 	scalarBar->SetWidth(0.15);
 	scalarBar->SetUnconstrainedFontSize(1);
 
-	scalarBar->SetTitle("Number of Objects");
+	scalarBar->SetTitle("Number \n of \n Objects");
 	scalarBar->SetNumberOfLabels(0);
 	scalarBar->SetTextPositionToPrecedeScalarBar();
 
@@ -450,9 +456,10 @@ void iACompTable::initializeLegend()
 	scalarBar->SetBarRatio(1);
 
 	//title properties
-	scalarBar->GetTitleTextProperty()->SetLineOffset(50);
+	scalarBar->GetTitleTextProperty()->SetLineOffset(25);//50
 	scalarBar->GetTitleTextProperty()->BoldOn();
-	scalarBar->GetTitleTextProperty()->SetFontSize(iACompVisOptions::FONTSIZE_TITLE);
+	scalarBar->GetTitleTextProperty()->SetFontSize(
+		iACompVisOptions::FONTSIZE_TITLE);
 	
 	double col1[3];
 	iACompVisOptions::getDoubleArray(iACompVisOptions::FONTCOLOR_TITLE, col1);
@@ -486,13 +493,16 @@ void iACompTable::initializeLegend()
 	iACompVisOptions::getDoubleArray(iACompVisOptions::BACKGROUNDCOLOR_BLACK, col4);
 	scalarBar->GetBackgroundProperty()->SetColor(col4);
 	scalarBar->GetBackgroundProperty()->SetLineWidth(scalarBar->GetBackgroundProperty()->GetLineWidth() * 7);
+	scalarBar->Modified();
 
 	// Setup render window, renderer, and interactor
-	m_rendererColorLegend->SetViewport(0.85, 0, 1, 1);
+	m_rendererColorLegend->SetViewport(m_renderingView, 0, 1, 1);
 	double col5[3];
 	iACompVisOptions::getDoubleArray(iACompVisOptions::BACKGROUNDCOLOR_GREY, col5);
 	m_rendererColorLegend->SetBackground(col5);
 	m_rendererColorLegend->AddActor2D(scalarBar);
+	
+	m_rendererColorLegend->ResetCamera();
 }
 
 /****************************************** Getter & Setter **********************************************/
@@ -515,12 +525,16 @@ void iACompTable::addLegendRendererToWidget()
 void iACompTable::setInteractorStyleToWidget(vtkSmartPointer<iACompTableInteractorStyle> interactorStyle)
 {
 	m_vis->setInteractorStyleToWidget(interactorStyle);
-	
 }
 
 void iACompTable::renderWidget()
 {
 	m_vis->renderWidget();
+}
+
+void iACompTable::clearRenderer()
+{
+	m_mainRenderer->RemoveAllViewProps();
 }
 
 vtkSmartPointer<vtkRenderer> iACompTable::getRenderer()

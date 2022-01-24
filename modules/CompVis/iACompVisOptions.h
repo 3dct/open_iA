@@ -1,6 +1,7 @@
 #pragma once
 
 #include <qcolor.h>
+#include <QString>
 
 #include "vtkSmartPointer.h"
 class vtkActor;
@@ -81,5 +82,6 @@ namespace iACompVisOptions
 	//calculates a value at a specific percentage in any range interval (with positive and negative values)
 	double calculateValueAccordingToPercent(double min, double max, double percent);
 
-
+	//return the label of the dataset from the whole path
+	QString getLabel(QString input);
 };

@@ -28,6 +28,7 @@ class iACompUniformTableInteractorStyle : public iACompTableInteractorStyle
 	virtual void OnMouseMove() override;
 
 	virtual void OnMiddleButtonDown() override;
+	virtual void OnMiddleButtonUp() override;
 	virtual void OnRightButtonDown() override;
 	virtual void OnMouseWheelForward() override;
 	virtual void OnMouseWheelBackward() override;
@@ -96,5 +97,5 @@ class iACompUniformTableInteractorStyle : public iACompTableInteractorStyle
 	//true --> point representation is drawn
 	bool m_pointRepresentationOn;
 
-	
+	bool m_panCamera;
 };

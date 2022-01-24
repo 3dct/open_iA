@@ -147,6 +147,8 @@ double iACompUniformBinning::computeIntervalLength(double minVal, double maxVal)
 
 bin::BinType* iACompUniformBinning::calculateBins(bin::BinType* data, int currData)
 {
+	if (currData >= data->size()) return nullptr;
+
 	size_t amountVals = data->at(currData).size();
 
 	if (amountVals == 0)

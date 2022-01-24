@@ -30,6 +30,7 @@ void iACompCombiTableInteractionStyle::OnMouseMove()
 
 void iACompCombiTableInteractionStyle::OnMiddleButtonDown()
 {
+	vtkInteractorStyleTrackballCamera::OnMiddleButtonDown();
 }
 void iACompCombiTableInteractionStyle::OnRightButtonDown()
 {

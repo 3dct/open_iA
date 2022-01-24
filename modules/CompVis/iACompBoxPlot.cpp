@@ -5,12 +5,12 @@
 
 //iA
 #include "iAMainWindow.h"
-
+#include "iAQVTKWidget.h"
 
 //vtk
 
 #include "vtkRenderer.h"
-#include <vtkRenderWindow.h>
+#include "vtkRenderWindow.h"
 #include "vtkContextView.h"
 #include "vtkContextScene.h"
 
