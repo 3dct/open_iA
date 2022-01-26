@@ -47,7 +47,9 @@ public:
 	//! Set the VTK image and make it available as ITK image
 	void setImage(vtkSmartPointer<vtkImageData> image);
 	//! Sets the ITK image and make it available as VTK image
-	void setImage(ImageBaseType * image);
+	void setImage(ImageBaseType* image);
+	//! Set the linked ITK/VTK images as modified
+	void modified();
 
 	//! Get the VTK image
 	vtkSmartPointer<vtkImageData> vtkImage() const;
@@ -58,27 +60,25 @@ public:
 	ITKScalarPixelType itkScalarPixelType() const;
 	//! Get the type of the pixel (SCALAR or RGBA)
 	ITKPixelType itkPixelType() const;
-	//! Set the linked ITK/VTK images as modified
-	void modified();
 
 private:
 	//! @{ Update one image using the respective other
-	void updateImageITK();
-	void updateImageVTK();
+	void updateImageITK() const;
+	void updateImageVTK() const;
 	//! @}
 	void updateScalarType() const;
 	void updatePixelType() const;
 
-	ImagePointer m_ITKImage;                   //!< The pointer for the ITK image
-	vtkSmartPointer<vtkImageData> m_VTKImage;  //!< The pointer for the VTK image
+	mutable ImagePointer m_ITKImage;                   //!< The pointer for the ITK image
+	mutable vtkSmartPointer<vtkImageData> m_VTKImage;  //!< The pointer for the VTK image
 	mutable ITKScalarPixelType m_itkScalarType;//!< cached ITK scalar type
 	mutable bool m_isTypeInitialized;          //!< indication whether cached scalar type (m_itkScalarType) is already initialized
 	mutable ITKPixelType m_itkPixelType;       //!< ITK pixel type (possible values: SCALAR or RGBA)
 	mutable bool m_isPixelTypeInitialized;     //!< indication whether cached pixel type (m_itkPixelType) is already initialized
 
 	//! @{ ITK/VTK export/import filters:
-	ProcessObjectPointer m_itkImporter;
-	ProcessObjectPointer m_itkExporter;
+	mutable ProcessObjectPointer m_itkImporter;
+	mutable ProcessObjectPointer m_itkExporter;
 	vtkSmartPointer<vtkImageExport> m_vtkExporter;
 	vtkSmartPointer<vtkImageImport> m_vtkImporter;
 	//! @}

@@ -56,11 +56,11 @@ void pca(iAFilter* filter, QMap<QString, QVariant> const & parameters)
 	typedef itk::ImagePCAShapeModelEstimator<ImageType, ImageType>  EstimatorType;
 
 	auto pcaFilter = EstimatorType::New();
-	pcaFilter->SetNumberOfTrainingImages(filter->input().size());
+	pcaFilter->SetNumberOfTrainingImages(filter->inputCount());
 	pcaFilter->SetNumberOfPrincipalComponentsRequired(parameters["Cutoff"].toUInt());
-	for (int k = 0; k < filter->input().size(); k++)
+	for (size_t k = 0; k < filter->inputCount(); k++)
 	{
-		pcaFilter->SetInput(static_cast<unsigned int>(k), dynamic_cast<ImageType*>(filter->input()[k]->itkImage()));
+		pcaFilter->SetInput(static_cast<unsigned int>(k), dynamic_cast<ImageType*>(filter->input(k)->itkImage()));
 	}
 	pcaFilter->Update();
 	auto scaler = ScaleType::New();

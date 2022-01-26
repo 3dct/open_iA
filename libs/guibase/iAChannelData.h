@@ -66,7 +66,6 @@ private:
 	bool m_enabled;
 	double m_opacity;
 	bool m_threeD;
-	bool m_similarityRenderingEnabled;
 	vtkSmartPointer<vtkImageData>       m_image;
 	vtkScalarsToColors*                 m_cTF;
 	vtkPiecewiseFunction*               m_oTF;

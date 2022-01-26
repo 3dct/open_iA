@@ -42,7 +42,7 @@ void watershed(iAFilter* filter, QMap<QString, QVariant> const & parameters)
 	auto wsFilter = WIFType::New();
 	wsFilter->SetLevel ( parameters["Level"].toDouble() );
 	wsFilter->SetThreshold ( parameters["Threshold"].toDouble() );
-	wsFilter->SetInput( dynamic_cast< InputImageType * >( filter->input()[0]->itkImage() ) );
+	wsFilter->SetInput( dynamic_cast< InputImageType * >( filter->input(0)->itkImage() ) );
 	filter->progress()->observe( wsFilter );
 	wsFilter->Update();
 	// return is unsigned long long, but vtk can't handle that, so convert to ulong:
@@ -84,7 +84,7 @@ void morph_watershed(iAFilter* filter, QMap<QString, QVariant> const & parameter
 	mWSFilter->SetMarkWatershedLine(parameters["Mark WS Lines"].toBool());
 	mWSFilter->SetFullyConnected(parameters["Fully Connected"].toBool());
 	mWSFilter->SetLevel( parameters["Level"].toDouble() );
-	mWSFilter->SetInput( dynamic_cast< InputImageType * >( filter->input()[0]->itkImage() ) );
+	mWSFilter->SetInput( dynamic_cast< InputImageType * >( filter->input(0)->itkImage() ) );
 	filter->progress()->observe( mWSFilter );
 	mWSFilter->Update();
 	filter->addOutput( mWSFilter->GetOutput() );

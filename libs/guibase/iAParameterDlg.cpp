@@ -58,6 +58,7 @@ namespace
 #if __cplusplus >= 201703L
 			[[fallthrough]];
 #endif
+			// fall through
 		case iAValueType::FileNameOpen:  return iAFileChooserWidget::FileNameOpen;
 		case iAValueType::FileNamesOpen: return iAFileChooserWidget::FileNamesOpen;
 		case iAValueType::FileNameSave:  return iAFileChooserWidget::FileNameSave;
@@ -198,6 +199,7 @@ iAParameterDlg::iAParameterDlg(QWidget* parent, QString const& title, ParamListT
 #if __cplusplus >= 201703L
 			[[fallthrough]];
 #endif
+			// fall through
 		case iAValueType::String:
 		{
 			auto textEdit = new QLineEdit(m_container);
@@ -224,14 +226,17 @@ iAParameterDlg::iAParameterDlg(QWidget* parent, QString const& title, ParamListT
 #if __cplusplus >= 201703L
 			[[fallthrough]];
 #endif
+			// fall through
 		case iAValueType::FileNamesOpen:
 #if __cplusplus >= 201703L
 			[[fallthrough]];
 #endif
+			// fall through
 		case iAValueType::FileNameSave:
 #if __cplusplus >= 201703L
 			[[fallthrough]];
 #endif
+			// fall through
 		case iAValueType::Folder:
 		{
 			newWidget = createFileChooser(p->valueType(), p->defaultValue().toString());
@@ -467,6 +472,7 @@ QMap<QString, QVariant> iAParameterDlg::parameterValues() const
 #if __cplusplus >= 201703L
 			[[fallthrough]];
 #endif
+			// fall through
 		case iAValueType::String:
 		{
 			QLineEdit* t = qobject_cast<QLineEdit*>(m_widgetList[i]);
@@ -492,14 +498,17 @@ QMap<QString, QVariant> iAParameterDlg::parameterValues() const
 #if __cplusplus >= 201703L
 			[[fallthrough]];
 #endif
+			// fall through
 		case iAValueType::FileNamesOpen:
 #if __cplusplus >= 201703L
 			[[fallthrough]];
 #endif
+			// fall through
 		case iAValueType::FileNameSave:
 #if __cplusplus >= 201703L
 			[[fallthrough]];
 #endif
+			// fall through
 		case iAValueType::Folder:
 		{
 			iAFileChooserWidget* t = qobject_cast<iAFileChooserWidget*>(m_widgetList[i]);

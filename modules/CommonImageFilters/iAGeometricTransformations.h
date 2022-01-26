@@ -22,6 +22,17 @@
 
 #include <iAFilter.h>
 
+class iAExtractComponent : public iAFilter
+{
+public:
+	static QSharedPointer<iAExtractComponent> create();
+	void adaptParametersToInput(QMap<QString, QVariant>& params, vtkSmartPointer<vtkImageData> img) override;
+
+private:
+	void performWork(QMap<QString, QVariant> const& parameters) override;
+	iAExtractComponent();
+};
+
 class iASimpleResampleFilter : public iAFilter
 {
 public:

@@ -292,7 +292,7 @@ void iAFiAKErController::start(QString const & path, iACsvConfig const & config,
 			}
 			m_mdiChild->parent()->deleteLater(); // deletes QMdiSubWindow which this widget is child of
 		});
-	iAJobListView::get()->addJob("Loading results...", resultsLoader->progress(), resultsLoader, resultsLoader);
+	iAJobListView::get()->addJob("Loading results", resultsLoader->progress(), resultsLoader, resultsLoader);
 	resultsLoader->start();
 }
 
@@ -563,6 +563,7 @@ namespace
 #if __cplusplus >= 201703L
 			[[fallthrough]];
 #endif
+			// fall through
 		case iACsvConfig::Cylinders: return QSharedPointer<iA3DCylinderObjectVis>::create(table, mapping, color, curvedFiberData, 6, 3);
 		}
 	}

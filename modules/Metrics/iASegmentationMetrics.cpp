@@ -33,8 +33,8 @@ void CalculateSegmentationMetrics(iAFilter* filter)
 	typedef typename ImageType::Pointer ImagePointer;
 	typedef itk::LabelOverlapMeasuresImageFilter<ImageType > DiceFilterType;
 	auto diceFilter = DiceFilterType::New();
-	ImagePointer groundTruthPtr = dynamic_cast<ImageType*>(filter->input()[0]->itkImage());
-	ImagePointer segmentedPtr = dynamic_cast<ImageType*>(filter->input()[1]->itkImage());
+	ImagePointer groundTruthPtr = dynamic_cast<ImageType*>(filter->input(0)->itkImage());
+	ImagePointer segmentedPtr = dynamic_cast<ImageType*>(filter->input(1)->itkImage());
 	if (!groundTruthPtr || !segmentedPtr)
 	{
 		LOG(lvlError, "Input images do not have the same type, but are required to!");
@@ -78,7 +78,12 @@ iASegmentationMetrics::iASegmentationMetrics() :
 		"For more information, see the <a href="
 		"\"https://itk.org/Doxygen/html/classitk_1_1LabelOverlapMeasuresImageFilter.html\">"
 		"Label Overlap Measures Filter</a> in the ITK documentation.", 2, 0)
-{}
+{
+	addOutputValue("Total Overlap");
+	addOutputValue("Union Overlap (Jaccard)");
+	addOutputValue("Mean Overlap (Dice)");
+	addOutputValue("Volume Similarity");
+}
 
 void iASegmentationMetrics::performWork(QMap<QString, QVariant> const & /*parameters*/)
 {

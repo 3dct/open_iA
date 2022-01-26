@@ -1,7 +1,27 @@
+/*************************************  open_iA  ************************************ *
+* **********   A tool for visual analysis and processing of 3D CT images   ********** *
+* *********************************************************************************** *
+* Copyright (C) 2016-2021  C. Heinzl, M. Reiter, A. Reh, W. Li, M. Arikan, Ar. &  Al. *
+*                 Amirkhanov, J. Weissenböck, B. Fröhler, M. Schiwarth, P. Weinberger *
+* *********************************************************************************** *
+* This program is free software: you can redistribute it and/or modify it under the   *
+* terms of the GNU General Public License as published by the Free Software           *
+* Foundation, either version 3 of the License, or (at your option) any later version. *
+*                                                                                     *
+* This program is distributed in the hope that it will be useful, but WITHOUT ANY     *
+* WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS FOR A     *
+* PARTICULAR PURPOSE.  See the GNU General Public License for more details.           *
+*                                                                                     *
+* You should have received a copy of the GNU General Public License along with this   *
+* program.  If not, see http://www.gnu.org/licenses/                                  *
+* *********************************************************************************** *
+* Contact: FH OÖ Forschungs & Entwicklungs GmbH, Campus Wels, CT-Gruppe,              *
+*          Stelzhamerstraße 23, 4600 Wels / Austria, Email: c.heinzl@fh-wels.at       *
+* ************************************************************************************/
 #include "iACompHistogramTable.h"
 
 //Debug
-#include "iALog.h"
+//#include "iALog.h"
 
 //CompVis
 #include "iACompVisOptions.h"
@@ -13,6 +33,7 @@
 
 //Qt
 #include <QColor>
+#include <QVBoxLayout>
 
 //vtk
 #include <vtkActor.h>
@@ -29,9 +50,7 @@
 #include <vtkPolyData.h>
 #include <vtkProperty.h>
 
-#include <vtkColorSeries.h>
 #include <vtkColorTransferFunction.h>
-#include <vtkDataObject.h>
 #include <vtkNamedColors.h>
 #include <vtkOutlineFilter.h>
 
@@ -689,7 +708,7 @@ void iACompHistogramTable::drawLinearZoom(Pick::PickedMap* map, int notSelectedB
 	double newHeight = m_windowHeight - (((m_windowHeight*distance) * 4)*map->size()) - (((m_windowHeight*distanceToParent))*map->size());
 	calculateRowWidthAndHeight(m_windowWidth, newHeight, m_amountDatasets+map->size());
 
-	std::vector<vtkSmartPointer<vtkPlaneSource>>* zoomedPlanes;
+	std::vector<vtkSmartPointer<vtkPlaneSource>>* zoomedPlanes = nullptr;
 	vtkSmartPointer<vtkPlaneSource> originalPlane;
 
 	for (int counter = 0; counter < m_amountDatasets; counter++)
@@ -708,7 +727,7 @@ void iACompHistogramTable::drawLinearZoom(Pick::PickedMap* map, int notSelectedB
 			//draw zoomed dataset
 			std::map<int, std::vector<vtkIdType>*>::const_iterator pos = m_pickedCellsforPickedRow->find(indData);
 			std::vector<vtkIdType>* cellIds = pos->second;
-			zoomedPlanes = drawZoomedRow(indData, currCol, selectedBinNumber, thisZoomedRowData->last(), offset, cellIds);
+			zoomedPlanes = drawZoomedRow(/*indData, */currCol, selectedBinNumber, thisZoomedRowData->last(), offset, cellIds);
 			thisZoomedRowData->removeLast();
 
 			currCol += 1;
@@ -817,7 +836,7 @@ vtkSmartPointer<vtkPlaneSource> iACompHistogramTable::drawRow(int currDataInd, i
 }
 
 std::vector<vtkSmartPointer<vtkPlaneSource>>* iACompHistogramTable::drawZoomedRow(
-	int currDataInd, int currentColumn, int amountOfBins, bin::BinType* currentData, double offsetHeight, std::vector<vtkIdType>* cellIdsOriginalPlane)
+	/*int currDataInd,*/ int currentColumn, int amountOfBins, bin::BinType* currentData, double offsetHeight, std::vector<vtkIdType>* cellIdsOriginalPlane)
 {
 	std::vector<vtkSmartPointer<vtkPlaneSource>>* zoomedPlanes = new std::vector<vtkSmartPointer<vtkPlaneSource>>();
 
@@ -1052,12 +1071,12 @@ void iACompHistogramTable::drawPointRepresentation()
 				double lineColor[3];
 				iACompVisOptions::getDoubleArray(iACompVisOptions::BACKGROUNDCOLOR_LIGHTGREY, lineColor);
 
-				std::vector<double> data = m_zoomedRowData->at(zoomedRowDataInd)->at(zoomedRowInd);
+				std::vector<double> zoomedData = m_zoomedRowData->at(zoomedRowDataInd)->at(zoomedRowInd);
 
 
 				double newY = ymin + ((ymax - ymin) / 2.0);
 				//(newXMin + radius) --> so that min & max points do not lie on border
-				vtkSmartPointer<vtkPoints> points = calculatePointPosition(data, (xmin + radius), (xmax - radius), newY, *minMaxPerBin.at(zoomedRowInd));
+				vtkSmartPointer<vtkPoints> points = calculatePointPosition(zoomedData, (xmin + radius), (xmax - radius), newY, *minMaxPerBin.at(zoomedRowInd));
 				if (points == nullptr)
 				{
 					continue;
@@ -1185,10 +1204,10 @@ void iACompHistogramTable::drawLineBetweenRowAndZoomedRow(std::vector<vtkSmartPo
 		if(i == 0)
 		{
 			//left line
-			vtkSmartPointer<vtkPoints> points = vtkSmartPointer<vtkPoints>::New();
-			points->InsertNextPoint(leftUp);
-			points->InsertNextPoint(leftDown);
-			drawPolyLine(points, col, iACompVisOptions::LINE_WIDTH);
+			vtkSmartPointer<vtkPoints> pointsLeft = vtkSmartPointer<vtkPoints>::New();
+			pointsLeft->InsertNextPoint(leftUp);
+			pointsLeft->InsertNextPoint(leftDown);
+			drawPolyLine(pointsLeft, col, iACompVisOptions::LINE_WIDTH);
 
 			if(cellIdsOriginalPlane->size() > 1)
 			{
@@ -1542,9 +1561,9 @@ void iACompHistogramTable::colorRow(vtkUnsignedCharArray* colors, int currDatase
 	colorBinsOfRow(colors, binData->at(currDataset), binData->at(currDataset)->size());
 }
 
-void iACompHistogramTable::colorRowForZoom(vtkUnsignedCharArray* colors, int currBin, bin::BinType* data, int amountOfBins)
+void iACompHistogramTable::colorRowForZoom(vtkUnsignedCharArray* colors, int currBin, bin::BinType* curData, int amountOfBins)
 {
-	bin::BinType* binData = m_histData->calculateBins(data, currBin, amountOfBins);
+	bin::BinType* binData = m_histData->calculateBins(curData, currBin, amountOfBins);
 
 	if (binData == nullptr)
 	{

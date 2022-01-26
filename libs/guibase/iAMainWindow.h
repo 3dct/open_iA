@@ -26,6 +26,7 @@
 
 class iAMdiChild;
 class iAModuleDispatcher;
+class iAPreferences;
 
 class QMdiSubWindow;
 class QString;
@@ -85,6 +86,8 @@ public:
 
 
 	// Various:
+	//! retrieve the default preferences.
+	virtual iAPreferences const& defaultPreferences() const = 0;
 
 	//! mark a QAction (typically added to filters or tools menu by a module)
 	//! as depending on an MDI child window being open and active

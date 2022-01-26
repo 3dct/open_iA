@@ -164,6 +164,7 @@ QSharedPointer<iARandomGenerator> createRandomGenerator(QSharedPointer<iAAttribu
 #if __cplusplus >= 201703L
 		[[fallthrough]];
 #endif
+		// fall through
 	case iAValueType::Categorical:
 		return QSharedPointer<iACategoryRandom>::create(a->defaultValue().toStringList());
 	case iAValueType::Discrete:

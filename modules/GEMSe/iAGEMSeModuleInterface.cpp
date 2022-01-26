@@ -59,8 +59,8 @@ iADifferenceMarker::iADifferenceMarker():
 void iADifferenceMarker::performWork(QMap<QString, QVariant> const & params)
 {
 	QVector<iAITKIO::ImagePointer> imgs;
-	imgs.push_back(input()[0]->itkImage());
-	imgs.push_back(input()[1]->itkImage());
+	imgs.push_back(input(0)->itkImage());
+	imgs.push_back(input(1)->itkImage());
 	auto out = CalculateDifferenceMarkers(imgs, params["Difference marker value"].toDouble());
 	if (!out)
 	{
