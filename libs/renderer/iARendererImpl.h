@@ -259,6 +259,7 @@ private:
 	//! flag indicating whether renderer is initialized
 	bool m_initialized;
 
-	//! for touch interaction: scale when touch started
-	double m_touchStartScale;
+	// for touch interaction:
+	double m_touchStartScale;   //! scale when touch started (if parallel projection used)
+	iAVec3d m_touchStartCamPos; //! camera position (for non-parallel projection)
 };
