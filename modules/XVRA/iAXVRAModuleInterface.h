@@ -14,6 +14,7 @@ class iAXVRAModuleInterface : public iAGUIModuleInterface
 {
 	Q_OBJECT
 public:
+	iAXVRAModuleInterface();
 	void Initialize() override;
 private:
 	QSharedPointer<iA3DColoredPolyObjectVis> m_polyObject;
@@ -23,6 +24,7 @@ private:
 	iAFrustumActor* vrFrustum;
 	QAction* m_actionXVRA_ARView;
 	QTimer m_updateRenderer;
+	bool m_updateRequired;
 private slots:
 	void info();
 	void startXVRA();

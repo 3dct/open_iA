@@ -26,6 +26,17 @@
 #include <QMessageBox>
 #include <QTimer>
 
+
+iAXVRAModuleInterface::iAXVRAModuleInterface() :
+	m_fsMain(nullptr),
+	m_vrMain(nullptr),
+	fsFrustum(nullptr),
+	vrFrustum(nullptr),
+	m_actionXVRA_ARView(nullptr),
+	m_updateRequired(false)
+{
+}
+
 void iAXVRAModuleInterface::Initialize()
 {
 	if (!m_mainWnd)    // if m_mainWnd is not set, we are running in command line mode
@@ -118,14 +129,16 @@ void iAXVRAModuleInterface::startXVRA()
 	vrFrustum = new iAFrustumActor(m_vrMain->getRenderer(), fsCam, maxSize/10);  // frustum of featurescout shown in vr
 	fsFrustum = new iAFrustumActor(m_mainWnd->activeMdiChild()->renderer()->renderer(), vrCam, maxSize / 10);  // frustum of vr shown in featurescout
 
-	//causes invalid access; maybe mutex required?
 	m_updateRenderer.callOnTimeout([this, child]()
 	{
-		child->updateRenderer();
-		//m_updateRenderer.start();
+		if (m_updateRequired)
+		{	// trigger an update to renderer if camera indicator has changed
+			child->updateRenderer();
+		}
+		m_updateRequired = false;
 	});
-	m_updateRenderer.setInterval(500);
-	//m_updateRenderer.setSingleShot(true);
+	m_updateRenderer.setInterval(200);	// maximum update interval
+	connect(fsFrustum, &iAFrustumActor::updateRequired, [this]() { m_updateRequired = true; });
 	m_updateRenderer.start();
 	vrFrustum->show();
 	fsFrustum->show();
