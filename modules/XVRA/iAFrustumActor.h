@@ -22,7 +22,7 @@
 
 class vtkActor;
 class vtkCamera;
-class vtkCubeSource;
+class vtkLineSource;
 class vtkRenderer;
 class vtkSphereSource;
 
@@ -48,11 +48,11 @@ private:
 	vtkRenderer* m_ren;
 	vtkCamera* m_cam;
 	double m_size;
-	QElapsedTimer m_timer;
+	QElapsedTimer m_lastUpdate;
 	vtkSmartPointer<vtkActor> m_camPosActor;
 	vtkSmartPointer<vtkActor> m_camDirActor;
 	vtkSmartPointer<vtkSphereSource> m_camPosSource;
-	vtkSmartPointer<vtkCubeSource> m_camDirSource;
+	vtkSmartPointer<vtkLineSource> m_camDirSource;
 
 	bool m_visible;
 

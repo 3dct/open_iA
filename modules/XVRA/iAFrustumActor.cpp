@@ -4,11 +4,11 @@
 
 #include <vtkActor.h>
 #include <vtkCamera.h>
-#include <vtkCubeSource.h>
-#include <vtkSphereSource.h>
-#include <vtkRenderer.h>
+#include <vtkLineSource.h>
 #include <vtkPolyDataMapper.h>
 #include <vtkProperty.h>
+#include <vtkRenderer.h>
+#include <vtkSphereSource.h>
 #include <vtkTransform.h>
 
 iAFrustumActor::iAFrustumActor(vtkRenderer* ren, vtkCamera* cam, double size) :
@@ -18,7 +18,7 @@ iAFrustumActor::iAFrustumActor(vtkRenderer* ren, vtkCamera* cam, double size) :
 	m_camPosActor(vtkSmartPointer<vtkActor>::New()),
 	m_camDirActor(vtkSmartPointer<vtkActor>::New()),
 	m_camPosSource(vtkSmartPointer<vtkSphereSource>::New()),
-	m_camDirSource(vtkSmartPointer<vtkCubeSource>::New()),
+	m_camDirSource(vtkSmartPointer<vtkLineSource>::New()),
 	m_visible(false)
 {
 	vtkNew<vtkPolyDataMapper> camPosMapper;
@@ -29,49 +29,36 @@ iAFrustumActor::iAFrustumActor(vtkRenderer* ren, vtkCamera* cam, double size) :
 	m_camPosActor->GetProperty()->SetColor(0, 255, 0);
 
 	vtkNew<vtkPolyDataMapper> camDirMapper;
-	m_camDirSource->SetXLength(size * 2);
-	m_camDirSource->SetYLength(size * 0.5);
-	m_camDirSource->SetZLength(size * 0.5);
+	m_camDirSource->SetPoint1(100.0, 0.0, 0.0);
+	m_camDirSource->SetPoint2(  0.0, 0.0, 0.0);
 	camDirMapper->SetInputConnection(m_camDirSource->GetOutputPort());
 	m_camDirActor->SetMapper(camDirMapper);
 	m_camDirActor->GetProperty()->SetOpacity(0.2);
 	m_camDirActor->GetProperty()->SetColor(0, 255, 0);
+	m_camDirActor->GetProperty()->SetLineWidth(5);
 
 	cam->AddObserver(vtkCommand::ModifiedEvent, this);
-	m_timer.start();
+	m_lastUpdate.start();
 }
 
 void iAFrustumActor::Execute(vtkObject*, unsigned long, void*)
 {
 	const int UpdateIntervalMS = 40;
-	if (m_timer.elapsed() < UpdateIntervalMS)
+	if (m_lastUpdate.elapsed() < UpdateIntervalMS)
 	{	// rate-limit the update to 25 fps
 		return;
+		// TODO: what if it's last update in a row?
 	}
 	iAVec3d pos(m_cam->GetPosition());
 	iAVec3d dir(m_cam->GetDirectionOfProjection());
 	dir.normalize();
-	// move a little from camera pos towards focal point
-	iAVec3d dirVecPos(pos + dir * m_size * 0.5);
-	//double const* up = m_cam->GetViewUp();
-	//double const* ori = m_cam->GetOrientation();
+	iAVec3d dirVecPos(pos + dir * m_size * 5);
 	
 	m_camPosSource->SetCenter(pos.data());
-
-	//m_camDirActor->SetPosition(dirVecPos[0], dirVecPos[1], dirVecPos[2]);
-	//m_camDirActor->SetOrientation(ori[2], ori[1], ori[0]);
-
-	iAVec3d initDir(1, 0, 0);
-	auto axisVec = crossProduct(initDir, dir);
-	auto angle = std::acos(dotProduct(initDir, dir));
-	vtkNew<vtkTransform> t;
-	//t->PostMultiply();
-	t->PreMultiply();
-	t->RotateWXYZ(angle, axisVec.data());
-	t->Translate(dirVecPos.data());
-	m_camDirActor->SetUserTransform(t);
+	m_camDirSource->SetPoint1(pos.data());
+	m_camDirSource->SetPoint2(dirVecPos.data());
 	
-	m_timer.start();
+	m_lastUpdate.start();
 
 	emit updateRequired();
 }
