@@ -24,6 +24,7 @@
 #include <QAction>
 #include <QMenu>
 #include <QMessageBox>
+#include <QTimer>
 
 void iAXVRAModuleInterface::Initialize()
 {
@@ -118,8 +119,14 @@ void iAXVRAModuleInterface::startXVRA()
 	fsFrustum = new iAFrustumActor(m_mainWnd->activeMdiChild()->renderer()->labelRenderer(), vrCam, maxSize / 10);  // frustum of vr shown in featurescout
 
 	//causes invalid access; maybe mutex required?
-	//connect(fsFrustum, &iAFrustumActor::updateRequired, m_mainWnd->activeMdiChild(), &iAMdiChild::updateRenderer);
-
+	m_updateRenderer.callOnTimeout([this, child]()
+	{
+		child->updateRenderer();
+		//m_updateRenderer.start();
+	});
+	m_updateRenderer.setInterval(500);
+	//m_updateRenderer.setSingleShot(true);
+	m_updateRenderer.start();
 	vrFrustum->show();
 	fsFrustum->show();
 

@@ -4,6 +4,8 @@
 // FeatureScout
 #include "iA3DColoredPolyObjectVis.h"
 
+#include <QTimer>
+
 class dlg_FeatureScout;
 class iAImNDTModuleInterface;
 class iAFrustumActor;
@@ -20,6 +22,7 @@ private:
 	iAFrustumActor* fsFrustum;
 	iAFrustumActor* vrFrustum;
 	QAction* m_actionXVRA_ARView;
+	QTimer m_updateRenderer;
 private slots:
 	void info();
 	void startXVRA();
