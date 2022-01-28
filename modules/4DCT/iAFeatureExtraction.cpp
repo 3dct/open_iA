@@ -46,7 +46,7 @@ void iAFeatureExtraction::run(QString inputImgPath, QString outputImgPath)
 
 	labelImage = labelReader->GetOutput();
 
-	double origin[2] = {0.0, 0.0};
+	double origin[3] = {0.0, 0.0, 0.0};
 	labelImage->SetOrigin(origin);
 
 	typedef itk::LabelGeometryImageFilter2<ImageType> LabelGeometryImageFilterType;
