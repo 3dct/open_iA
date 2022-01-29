@@ -47,7 +47,8 @@ iAguibase_API mapQString2int const & extensionToIdStack();
 iAguibase_API mapQString2int const & extensionToSaveId();
 
 //! Class currently containing most IO operations (file reading and writing).
-//! Should be split up into readers for specific formats!
+//! Should refactored to an abstract interface for reading (/writing -> separately!) files.
+//! implementations of specific formats should then register with a factory!
 class iAguibase_API iAIO : public iAAlgorithm
 {
 	Q_OBJECT

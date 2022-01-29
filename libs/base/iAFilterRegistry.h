@@ -48,7 +48,7 @@ class iAbase_API iAFilterRegistry
 {
 public:
 	//! Adds a given filter factory to the registry, which will be run with the default
-	//! GUI runner. REGISTER_FILTER provide simplified access to this method.
+	//! GUI runner. REGISTER_FILTER provides simplified access to this method.
 	static void addFilterFactory(QSharedPointer<iAIFilterFactory> factory);
 	//! Retrieve a list of all currently registered filter (factories)
 	static QVector<QSharedPointer<iAIFilterFactory>> const & filterFactories();

@@ -21,6 +21,9 @@
 #include "mainwindow.h"
 
 #include "defines.h"
+#include "iADataSet.h"
+#include "iAProgress.h"
+
 #include "dlg_datatypeconversion.h"
 #include "iACheckOpenGL.h"
 #include "iAJobListView.h"
@@ -32,6 +35,7 @@
 #include "iAQMenuHelper.h"
 #include "iARawFileParamDlg.h"
 #include "iARenderer.h"
+#include "iARunAsync.h"
 #include "iASavableProject.h"
 #include "iASlicerImpl.h"    // for slicerModeToString
 #include "io/iAIOProvider.h"
@@ -59,6 +63,7 @@
 #include <vtkCamera.h>
 #include <vtkColorTransferFunction.h>
 #include <vtkImageData.h>
+#include <vtkPolyData.h>
 #include <vtkOpenGLRenderer.h>
 #include <vtkPiecewiseFunction.h>
 
@@ -309,7 +314,7 @@ void MainWindow::openRaw()
 	}
 
 	iAMdiChild *child = createMdiChild(false);
-	QString t; t = fileName; t.truncate(t.lastIndexOf('/'));
+	QString t(fileName); t.truncate(t.lastIndexOf('/'));
 	m_path = t;
 	if (dynamic_cast<MdiChild*>(child)->loadRaw(fileName))
 	{
@@ -371,8 +376,14 @@ void MainWindow::loadFile(QString const & fileName)
 	}
 }
 
+struct iALoadedData
+{
+	std::unique_ptr<iADataSet> data;
+};
+
 void MainWindow::loadFile(QString fileName, bool isStack)
 {
+	Q_UNUSED(isStack);
 	if (fileName.isEmpty())
 	{
 		return;
@@ -380,6 +391,7 @@ void MainWindow::loadFile(QString fileName, bool isStack)
 	statusBar()->showMessage(tr("Loading data..."), 5000);
 	QString t; t = fileName; t.truncate(t.lastIndexOf('/'));
 	m_path = t;
+	/*
 	if (QString::compare(QFileInfo(fileName).suffix(), "STL", Qt::CaseInsensitive) == 0)
 	{
 		if (activeMdiChild())
@@ -448,6 +460,23 @@ void MainWindow::loadFile(QString fileName, bool isStack)
 		statusBar()->showMessage(tr("FILE LOADING FAILED!"), 10000);
 		child->close();
 	}
+	*/
+	auto d = new iALoadedData();
+	auto p = new iAProgress();
+	auto future = runAsync([d, p, fileName]()
+	{
+		d->data = iAio::loadFile(fileName, p);
+	}, [this, d, p]()
+	{
+		if (d->data)
+		{
+			iAMdiChild* child = createMdiChild(false);
+			child->displayResult("test", d->data->image(), d->data->poly());
+		}
+		delete d;
+		delete p;
+	}, this);
+	iAJobListView::get()->addJob(QString("Loading file '%1'").arg(fileName), p, future);
 }
 
 void MainWindow::loadFiles(QStringList fileNames)
@@ -2661,6 +2690,7 @@ void MainWindow::initResources()
 int MainWindow::runGUI(int argc, char * argv[], QString const & appName, QString const & version,
 	QString const& buildInformation, QString const & splashPath, QString const & iconPath)
 {
+	iAio::setupDefaultIOFactories();
 	QCoreApplication::setAttribute(Qt::AA_UseDesktopOpenGL, true);
 	QCoreApplication::setAttribute(Qt::AA_ShareOpenGLContexts, true);
 #if defined(__APPLE__) && defined(__MACH__)
