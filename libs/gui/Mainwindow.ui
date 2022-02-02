@@ -72,6 +72,7 @@
      <bool>true</bool>
     </property>
     <addaction name="actionOpen"/>
+    <addaction name="actionOpenNew"/>
     <addaction name="actionOpenRaw"/>
     <addaction name="actionOpenImageStack"/>
     <addaction name="actionOpenVolumeStack"/>
@@ -1154,6 +1155,11 @@
    </property>
    <property name="text">
     <string>Show job list only while job is running</string>
+   </property>
+  </action>
+  <action name="actionOpenNew">
+   <property name="text">
+    <string>Open (new) ...</string>
    </property>
   </action>
  </widget>

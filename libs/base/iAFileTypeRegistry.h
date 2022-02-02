@@ -14,7 +14,7 @@ class iAFileIO
 {
 public:
 	virtual ~iAFileIO();
-	virtual std::unique_ptr<iADataSet> load(QString const& fileName, iAProgress* p) = 0;
+	virtual iADataSet* load(QString const& fileName, iAProgress* p) = 0;
 };
 
 
@@ -74,6 +74,12 @@ void iAFileTypeRegistry::addFileType(QString const& fileExtension)
 class iAITKFileIO : public iAFileIO
 {
 public:
-	std::unique_ptr<iADataSet> load(QString const& fileName, iAProgress* p) override;
+	iADataSet* load(QString const& fileName, iAProgress* p) override;
 	//static std::shared_ptr<iAFileIO> create();
+};
+
+class iAGraphFileIO: public iAFileIO
+{
+public:
+	iADataSet* load(QString const& fileName, iAProgress* p) override;
 };

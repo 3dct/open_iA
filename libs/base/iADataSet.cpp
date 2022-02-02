@@ -1,5 +1,6 @@
 #include "iADataSet.h"
 #include "iAFileTypeRegistry.h"
+#include "iAToolsVTK.h"
 
 #include <QFileInfo>
 
@@ -8,7 +9,7 @@
 
 namespace iAio
 {
-	std::unique_ptr<iADataSet> loadFile(QString const& fileName, iAProgress* p, iADataSetTypes allowedTypes)
+	iADataSet* loadFile(QString const& fileName, iAProgress* p, iADataSetTypes allowedTypes)
 	{
 		QFileInfo fi(fileName);
 		// special handling for directory ? TLGICT-loader... -> fi.isDir();
@@ -21,9 +22,11 @@ namespace iAio
 					.arg(fi.suffix()));
 			return {};
 		}
-		// TODO: maybe include type in io already if known for which type file can contain
+		// TODO: include type in io already to indicate which type file can contain (and check here / only try loaders for allowedTypes)
 
 		auto result = io->load(fileName, p);  // error handling -> exceptions?
+
+		//storeImage(result->image(), "C:/fh/testnewio3.mhd", false);
 		if (!allowedTypes.testFlag(result->type()))
 		{
 			LOG(lvlWarn,
@@ -38,13 +41,31 @@ namespace iAio
 	void setupDefaultIOFactories()
 	{
 		iAFileTypeRegistry::addFileType<iAITKFileIO>("mhd");
+		iAFileTypeRegistry::addFileType<iAGraphFileIO>("txt");
+	}
+
+	iAbase_API QString getRegisteredFileTypes(iADataSetTypes allowedTypes)
+	{
+		Q_UNUSED(allowedTypes);
+		return QString("Meta Images (*.mhd *.mha);;"
+			   "Graph files (*.txt *.pdb);;");  // (Brookhaven "Protein Data Bank" format
 	}
 }
 
 iADataSet::iADataSet(iADataSetType type, QString const& name, QString const& fileName,
 	vtkSmartPointer<vtkImageData> img, vtkSmartPointer<vtkPolyData> mesh) :
-	m_type(type), m_name(name), m_fileName(fileName), m_img(img), m_mesh(mesh)
+	m_type(type), m_name(name), m_fileName(fileName),
+	m_img(vtkSmartPointer<vtkImageData>::New()), m_mesh(vtkSmartPointer<vtkPolyData>::New())
 {
+	if (img)
+	{
+		m_img->DeepCopy(img);
+		//storeImage(m_img, "C:/fh/testnewio2.5vtk.mhd", false);
+	}
+	if (mesh)
+	{
+		m_mesh->DeepCopy(mesh);
+	}
 }
 iADataSetType iADataSet::type() const
 {

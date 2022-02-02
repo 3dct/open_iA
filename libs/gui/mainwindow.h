@@ -29,9 +29,14 @@
 #include "iAVolumeSettings.h"
 #include "io/iARawFileParameters.h"
 
+#include <vtkSmartPointer.h>
+
 #include <QMdiArea>
 #include <QMdiSubWindow>
 
+#include <vector>
+
+class vtkPolyData;
 class QAction;
 class QActionGroup;
 class QComboBox;
@@ -144,6 +149,7 @@ private slots:
 	void quitTimerSlot();
 	void hideSplashSlot();
 	void open();
+	void openNew();
 	void openRaw();
 	void openImageStack();
 	void openVolumeStack();
@@ -268,4 +274,7 @@ private:
 	iADockWidgetWrapper* m_dwJobs;
 	//! whether the job list should be automatically shown when a new job is added to the list:
 	bool m_openJobListOnNewJob;
+
+	// TODO: move to iAModality...? new "global" data repository?
+	std::vector<vtkSmartPointer<vtkPolyData>> m_loadedPoly;
 };

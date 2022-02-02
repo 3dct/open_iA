@@ -10,8 +10,8 @@
 #include <QFlags>
 #include <QString>
 
-#include <memory>
-#include <vector>
+//#include <memory>
+//#include <vector>
 
 class iADataSet;
 class iAProgress;
@@ -60,8 +60,12 @@ private:
 // maybe: vector of datasets?
 namespace iAio
 {
-	iAbase_API std::unique_ptr<iADataSet> loadFile(QString const& fileName, iAProgress* p, iADataSetTypes allowedTypes = dstVolume | dstMesh);
+	//! load a file with any registered file type
+	iAbase_API iADataSet* loadFile(QString const& fileName, iAProgress* p, iADataSetTypes allowedTypes = dstVolume | dstMesh);
+	//! set up the default file loaders included in the base library
 	iAbase_API void setupDefaultIOFactories();
+	//! retrieve list of file types for file open dialog
+	iAbase_API QString getRegisteredFileTypes(iADataSetTypes allowedTypes = dstVolume | dstMesh);
 }
 
 /*

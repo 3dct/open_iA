@@ -378,7 +378,7 @@ void MainWindow::loadFile(QString const & fileName)
 
 struct iALoadedData
 {
-	std::unique_ptr<iADataSet> data;
+	iADataSet* data;
 };
 
 void MainWindow::loadFile(QString fileName, bool isStack)
@@ -389,9 +389,9 @@ void MainWindow::loadFile(QString fileName, bool isStack)
 		return;
 	}
 	statusBar()->showMessage(tr("Loading data..."), 5000);
-	QString t; t = fileName; t.truncate(t.lastIndexOf('/'));
+	QString t(fileName);
+	t.truncate(t.lastIndexOf('/'));
 	m_path = t;
-	/*
 	if (QString::compare(QFileInfo(fileName).suffix(), "STL", Qt::CaseInsensitive) == 0)
 	{
 		if (activeMdiChild())
@@ -450,7 +450,7 @@ void MainWindow::loadFile(QString fileName, bool isStack)
 		}
 	}
 	// Todo: hook for plugins?
-	iAMdiChild *child = createMdiChild(false);
+	iAMdiChild* child = createMdiChild(false);
 	if (child->loadFile(fileName, isStack))
 	{
 		child->show();
@@ -460,19 +460,44 @@ void MainWindow::loadFile(QString fileName, bool isStack)
 		statusBar()->showMessage(tr("FILE LOADING FAILED!"), 10000);
 		child->close();
 	}
-	*/
+}
+
+void MainWindow::openNew()
+{
+	QString fileName = QFileDialog::getOpenFileName(this, tr("Open Files (new)"), m_path, iAio::getRegisteredFileTypes());
+	if (fileName.isEmpty())
+	{
+		return;
+	}
+	statusBar()->showMessage(tr("Loading data..."), 5000);
+	QString t;
+	t = fileName;
+	t.truncate(t.lastIndexOf('/'));
+	m_path = t;
 	auto d = new iALoadedData();
 	auto p = new iAProgress();
 	auto future = runAsync([d, p, fileName]()
 	{
-		d->data = iAio::loadFile(fileName, p);
+		try
+		{
+			d->data = iAio::loadFile(fileName, p);
+			//storeImage(d->data->image(), "C:/fh/testnewio-mainwnd-afterLoad.mhd", false);
+		}
+		catch (itk::ExceptionObject & e)
+		{
+			LOG(lvlError, QString("ERROR loading file %1: %2").arg(fileName).arg(e.GetDescription()));
+		}
 	}, [this, d, p]()
 	{
 		if (d->data)
 		{
+			//storeImage(d->data->image(), "C:/fh/testnewio-mainwnd-finished.mhd", false);
 			iAMdiChild* child = createMdiChild(false);
+			m_loadedPoly.push_back(d->data->poly());	// store somewhere else!!!
 			child->displayResult("test", d->data->image(), d->data->poly());
+			child->enableRenderWindows();
 		}
+		delete d->data;
 		delete d;
 		delete p;
 	}, this);
@@ -1766,6 +1791,7 @@ void MainWindow::connectSignalsToSlots()
 {
 	// "File menu entries:
 	connect(m_ui->actionOpen, &QAction::triggered, this, &MainWindow::open);
+	connect(m_ui->actionOpenNew, &QAction::triggered, this, &MainWindow::openNew);
 	connect(m_ui->actionOpenRaw, &QAction::triggered, this, &MainWindow::openRaw);
 	connect(m_ui->actionOpenImageStack, &QAction::triggered, this, &MainWindow::openImageStack);
 	connect(m_ui->actionOpenVolumeStack, &QAction::triggered, this, &MainWindow::openVolumeStack);
