@@ -192,16 +192,19 @@ QWidget* iAJobListView::addJobWidget(QSharedPointer<iAJob> j)
 
 	if (j->progress)
 	{
-		connect(j->progress, &iAProgress::progress, jobWidget, [progressBar, j, remainingLabel](double value)
+		QWeakPointer<iADurationEstimator> estim(j->estimator);	// reduce scope of captured var & don't capture shared pointer (-> mem leak)
+		connect(j->progress, &iAProgress::progress, jobWidget, [progressBar, estim, remainingLabel](double value)
 			{
 				progressBar->setValue(value*10);
-				double estRem = j->estimator->estimatedTimeRemaining(value);
+				auto estimator = estim.lock();
+				double estRem = estimator ? estimator->estimatedTimeRemaining(value) : 0;
 				remainingLabel->setText(
 					QString("Remaining: %1").arg((estRem == -1) ? "unknown" : formatDuration(estRem, false, true)));
 			});
-		connect(j->progress, &iAProgress::statusChanged, [statusLabel, j](QString const& msg)
+		QString jobName(j->name);
+		connect(j->progress, &iAProgress::statusChanged, [statusLabel, jobName](QString const& msg)
 			{
-				LOG(lvlDebug, QString("Job '%1': %2").arg(j->name).arg(msg));
+				LOG(lvlDebug, QString("Job '%1': %2").arg(jobName).arg(msg));
 				statusLabel->setText(msg);
 			});
 	}
