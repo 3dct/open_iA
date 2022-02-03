@@ -1,8 +1,10 @@
 #include "iAFileTypeRegistry.h"
 
 #include <vtkPointData.h>
+#include <vtkUnsignedCharArray.h>
 
 #include <QFileInfo>
+#include <QTextStream>
 
 
 iAFileIO::~iAFileIO()

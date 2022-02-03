@@ -337,6 +337,7 @@ endif()
 if (Qt6_DIR AND NOT QT_DIR)
 	set(QT_DIR "{Qt6_DIR}" CACHE PATH "" FORCE)
 endif()
+# not sure how the following works exactly currently - OpenGLWidgets is only available in Qt >= 6 I think...
 find_package(QT NAMES Qt6 Qt5 COMPONENTS Widgets OpenGLWidgets REQUIRED)
 # TO Do: Find way to automatically set QtxWidgets/Core/GuiTools for Qt >= 6
 # Problem: Qt is discovered somehow above already, but inside vtk/itk discover code;
