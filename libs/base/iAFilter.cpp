@@ -129,12 +129,12 @@ void iAFilter::clearOutput()
 
 void iAFilter::addOutput(itk::ImageBase<3>* itkImg)
 {
-	m_output.emplace_back(createConnector(itkImg));
+	m_output.push_back(createConnector(itkImg));
 }
 
 void iAFilter::addOutput(vtkSmartPointer<vtkImageData> vtkImg)
 {
-	m_output.emplace_back(createConnector(vtkImg));
+	m_output.push_back(createConnector(vtkImg));
 }
 
 void iAFilter::setPolyOutput(vtkSmartPointer<vtkPolyData> mesh)
@@ -183,7 +183,7 @@ void iAFilter::addInput(vtkSmartPointer<vtkImageData> vtkImg, QString const& fil
 
 void iAFilter::addInput(std::shared_ptr<iAConnector> con, QString const& fileName)
 {
-	m_input.emplace_back(con);
+	m_input.push_back(con);
 	m_fileNames.push_back(fileName);
 }
 
