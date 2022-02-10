@@ -464,7 +464,7 @@ void MainWindow::loadFile(QString fileName, bool isStack)
 
 void MainWindow::openNew()
 {
-	QString fileName = QFileDialog::getOpenFileName(this, tr("Open Files (new)"), m_path, iAio::getRegisteredFileTypes());
+	QString fileName = QFileDialog::getOpenFileName(this, tr("Open Files (new)"), m_path, iANewIO::getRegisteredFileTypes());
 	if (fileName.isEmpty())
 	{
 		return;
@@ -476,18 +476,19 @@ void MainWindow::openNew()
 	m_path = t;
 	auto d = new iALoadedData();
 	auto p = new iAProgress();
-	auto future = runAsync([d, p, fileName]()
+	//auto future = runAsync([d, p, fileName]()
 	{
 		try
 		{
-			d->data = iAio::loadFile(fileName, p);
+			d->data = iANewIO::loadFile(fileName, p);
 			//storeImage(d->data->image(), "C:/fh/testnewio-mainwnd-afterLoad.mhd", false);
 		}
 		catch (itk::ExceptionObject & e)
 		{
 			LOG(lvlError, QString("ERROR loading file %1: %2").arg(fileName).arg(e.GetDescription()));
 		}
-	}, [this, d, p]()
+	}
+	//, [this, d, p]()
 	{
 		if (d->data)
 		{
@@ -500,8 +501,9 @@ void MainWindow::openNew()
 		delete d->data;
 		delete d;
 		delete p;
-	}, this);
-	iAJobListView::get()->addJob(QString("Loading file '%1'").arg(fileName), p, future);
+	}
+	//, this);
+	//iAJobListView::get()->addJob(QString("Loading file '%1'").arg(fileName), p, future);
 }
 
 void MainWindow::loadFiles(QStringList fileNames)
@@ -2716,7 +2718,7 @@ void MainWindow::initResources()
 int MainWindow::runGUI(int argc, char * argv[], QString const & appName, QString const & version,
 	QString const& buildInformation, QString const & splashPath, QString const & iconPath)
 {
-	iAio::setupDefaultIOFactories();
+	iANewIO::setupDefaultIOFactories();
 	QCoreApplication::setAttribute(Qt::AA_UseDesktopOpenGL, true);
 	QCoreApplication::setAttribute(Qt::AA_ShareOpenGLContexts, true);
 #if defined(__APPLE__) && defined(__MACH__)

@@ -58,7 +58,7 @@ private:
 };
 
 // maybe: vector of datasets?
-namespace iAio
+namespace iANewIO
 {
 	//! load a file with any registered file type
 	iAbase_API iADataSet* loadFile(QString const& fileName, iAProgress* p, iADataSetTypes allowedTypes = dstVolume | dstMesh);

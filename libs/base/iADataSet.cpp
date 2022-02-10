@@ -7,7 +7,7 @@
 #include <vtkImageData.h>
 #include <vtkPolyData.h>
 
-namespace iAio
+namespace iANewIO
 {
 	iADataSet* loadFile(QString const& fileName, iAProgress* p, iADataSetTypes allowedTypes)
 	{

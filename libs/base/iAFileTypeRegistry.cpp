@@ -118,7 +118,7 @@ iADataSet* iAGraphFileIO::load(QString const& fileName, iAProgress* p)
 	vtkNew<vtkPoints> pts;
 	//vtkNew<vtkIdList> pointIds;
 	//vtkNew<vtkCellArray> polyPoint;
-	size_t curVert = 0;
+	//size_t curVert = 0;
 	QString line = "";
 	while (!in.atEnd() && line != "$$")
 	{
@@ -171,5 +171,8 @@ iADataSet* iAGraphFileIO::load(QString const& fileName, iAProgress* p)
 
 	myPolyData->SetLines(lines);
 	myPolyData->GetPointData()->AddArray(colors);
+
+	// HEAP CORRUPTION - try with small example vtkPolyData?
+
 	return new iADataSet(dstMesh, QFileInfo(fileName).baseName(), fileName, nullptr, myPolyData);
 }
