@@ -47,8 +47,10 @@ namespace iANewIO
 	iAbase_API QString getRegisteredFileTypes(iADataSetTypes allowedTypes)
 	{
 		Q_UNUSED(allowedTypes);
-		return QString("Meta Images (*.mhd *.mha);;"
-			   "Graph files (*.txt *.pdb);;");  // (Brookhaven "Protein Data Bank" format
+		// TODO: put together from list of available file loaders!
+		return QString("Any supported format (*.mhd *.mha *.txt);;"
+				"Meta Images (*.mhd *.mha);;"
+			   "Graph files (*.txt *.pdb);;");  // (Brookhaven "Protein Data Bank" format (?)
 	}
 }
 

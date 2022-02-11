@@ -3,7 +3,6 @@
 #include <vtkPointData.h>
 #include <vtkUnsignedCharArray.h>
 
-#include <QFileInfo>
 #include <QTextStream>
 
 
@@ -92,7 +91,12 @@ iADataSet* iAGraphFileIO::load(QString const& fileName, iAProgress* p)
 {
 	//vtkNew<vtkPDBReader> reader;
 	//reader->SetInput
+	// not sure that's the right "PDB" file type...
 	Q_UNUSED(p);
+
+	vtkNew<vtkPolyData> myPolyData;
+
+
 	QFile file(fileName);
 	//const auto size = file.size();
 	if (!file.open(QIODevice::ReadOnly))
@@ -120,6 +124,7 @@ iADataSet* iAGraphFileIO::load(QString const& fileName, iAProgress* p)
 	//vtkNew<vtkCellArray> polyPoint;
 	//size_t curVert = 0;
 	QString line = "";
+	int numberOfPoints = 0;
 	while (!in.atEnd() && line != "$$")
 	{
 		line = in.readLine();
@@ -138,19 +143,22 @@ iADataSet* iAGraphFileIO::load(QString const& fileName, iAProgress* p)
 			unsigned char c[3] = {static_cast<unsigned char>(color.red()), static_cast<unsigned char>(color.green()),
 				static_cast<unsigned char>(color.blue())};
 			colors->InsertNextTypedTuple(c);
+			++numberOfPoints;
 		}
 		//auto remains = file.bytesAvailable();
 		//auto progress = ((size - remains) * 100) / size;
 	}
-	vtkNew<vtkPolyData> myPolyData;
 	myPolyData->SetPoints(pts);
+	LOG(lvlInfo, QString("number of points: %1 / %2").arg(pts->GetNumberOfPoints()).arg(numberOfPoints));
 	//myPolyData->SetVerts(polyPoint);
 	//myPolyData->GetCellData()->SetScalars(colors);
 
 	line = "";
+	in.readLine();    // skip header
 
 	// read edges
 	vtkNew<vtkCellArray> lines;
+	size_t numberOfLines = 0;
 	while (!in.atEnd() && line != "$$")
 	{
 		line = in.readLine();
@@ -159,20 +167,34 @@ iADataSet* iAGraphFileIO::load(QString const& fileName, iAProgress* p)
 		{
 
 			vtkNew<vtkLine> lineNEW;
-			lineNEW->GetPointIds()->SetId(0, tokens[1].toInt());
-			lineNEW->GetPointIds()->SetId(1, tokens[2].toInt());
+			bool ok;
+			int pt1 = tokens[1].toInt(&ok) - 1;
+			if (!ok || pt1 < 0 || pt1 >= pts->GetNumberOfPoints())
+			{
+				LOG(lvlInfo, QString("Invalid point index 1 in line %1: %2").arg(line).arg(pt1));
+			}
+			int pt2 = tokens[2].toInt(&ok)-1;
+			if (!ok || pt2 < 0 || pt2 >= pts->GetNumberOfPoints())
+			{
+				LOG(lvlInfo, QString("Invalid point index 2 in line %1: %2").arg(line).arg(pt2));
+			}
+			lineNEW->GetPointIds()->SetId(0, pt1);
+			lineNEW->GetPointIds()->SetId(1, pt2);
+
+			//LOG(lvlInfo, QString("inserting line : %1 -> %2").arg(pt1).arg(pt2));
 			lines->InsertNextCell(lineNEW);
+			++numberOfLines;
 		}
 		//auto remains = file.bytesAvailable();
 		//auto progress = ((size - remains) * 100) / size;
 	}
+	LOG(lvlInfo, QString("Number of lines: %1").arg(numberOfLines));
 
 	// skip last section for now
 
 	myPolyData->SetLines(lines);
 	myPolyData->GetPointData()->AddArray(colors);
-
-	// HEAP CORRUPTION - try with small example vtkPolyData?
+	
 
 	return new iADataSet(dstMesh, QFileInfo(fileName).baseName(), fileName, nullptr, myPolyData);
 }

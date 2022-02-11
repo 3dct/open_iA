@@ -83,6 +83,11 @@
 #include <QtXml/QDomDocument>
 #include <QDesktopServices>
 
+// TODO:: for graph points - move somewhere else!
+#include <vtkSphereSource.h>
+#include <vtkGlyph3DMapper.h>
+#include <vtkProperty.h>
+
 const int MainWindow::MaxRecentFiles;
 
 template <typename T>
@@ -490,13 +495,33 @@ void MainWindow::openNew()
 	}
 	//, [this, d, p]()
 	{
+		
 		if (d->data)
 		{
 			//storeImage(d->data->image(), "C:/fh/testnewio-mainwnd-finished.mhd", false);
 			iAMdiChild* child = createMdiChild(false);
 			m_loadedPoly.push_back(d->data->poly());	// store somewhere else!!!
+
+			// Glyph the points
+			// TODO: fix memory leaks...
+			auto sphere = vtkSphereSource::New();
+			sphere->SetPhiResolution(21);
+			sphere->SetThetaResolution(21);
+			sphere->SetRadius(0.5);
+
+			auto pointMapper = vtkGlyph3DMapper::New();
+			pointMapper->SetInputData(d->data->poly());
+			pointMapper->SetSourceConnection(sphere->GetOutputPort());
+
+			auto  pointActor = vtkActor::New();
+			pointActor->SetMapper(pointMapper);
+			pointActor->GetProperty()->SetColor(1.0, 0.0, 0.0);
+
 			child->displayResult("test", d->data->image(), d->data->poly());
 			child->enableRenderWindows();
+
+			child->renderer()->renderer()->AddActor(pointActor);
+			child->renderer()->renderer()->ResetCamera();
 		}
 		delete d->data;
 		delete d;
