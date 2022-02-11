@@ -245,7 +245,7 @@ void iARefDistCompute::run()
 		if (m_measuresToCompute.size() == 0)
 		{
 			LOG(lvlWarn, QString("Tried to set reference without specifying which measure to use. "
-				"This might happen if you use an old project file. In this case, please select the reference again."))
+				"This might happen if you use an old project file. In this case, please select the reference again."));
 			return;
 		}
 		writeResultCache[resultID] = true;

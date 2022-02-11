@@ -49,6 +49,6 @@ private:
     //! @}
 };
 
-#define LOG(l, t) { if (iALog::get()) iALog::get()->log(l, t); }
+iAbase_API void LOG(iALogLevel level, QString const& msg);
 
 #endif

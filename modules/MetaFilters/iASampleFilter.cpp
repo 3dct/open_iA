@@ -161,7 +161,7 @@ bool iASampleFilterRunnerGUI::askForParameters(QSharedPointer<iAFilter> filter, 
 	iASamplingSettingsDlg dlg(mainWnd, sourceMdi->modalities()->size(), parameters);
 	if (dlg.exec() != QDialog::Accepted)
 	{
-		LOG(lvlInfo, "Aborted sampling.")
+		LOG(lvlInfo, "Aborted sampling.");
 		return false;
 	}
 

@@ -87,3 +87,11 @@ iALogLevel iALogger::logLevel() const
 {
 	return m_logLevel;
 }
+
+void LOG(iALogLevel level, QString const& msg)
+{
+	if (iALog::get())
+	{
+		iALog::get()->log(level, msg);
+	}
+}

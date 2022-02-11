@@ -37,7 +37,7 @@ void iAThresholdCalculator::testPeakDetect()
 {
 	std::vector<double> data{ 6.1, 8.0, 9.0, 14.1, 10.0,14.3, 12.1, 14.4 };
 	double res = m_calcHelper.findMaxPeak(data);
-	LOG(lvlInfo, QString("max peak %1").arg(res))
+	LOG(lvlInfo, QString("max peak %1").arg(res));
 }
 
 threshold_defs::iAThresIndx iAThresholdCalculator::testFindIndex(double value) {
