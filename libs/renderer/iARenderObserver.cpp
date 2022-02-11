@@ -425,6 +425,10 @@ void iARenderObserver::SetAxis(Axis axis, double pickedAxis[3])
 
 void iARenderObserver::CheckPos(int dim)
 {
+	if (!m_pImageData)
+	{
+		return;
+	}
 	int dims[3];
 	m_pImageData->GetDimensions(dims);
 

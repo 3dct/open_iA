@@ -92,8 +92,11 @@ void iASampleBuiltInFilterOperation::performWork()
 				"Check 'Overwrite output' to overwrite existing files.").arg(outFileName));
 			return;
 		}
-		LOG(lvlInfo, QString("Writing output %1 to file: '%2' (compression: %3)")
-				.arg(o).arg(outFileName).arg(m_compressOutput ? "on" : "off"))
+		LOG(lvlInfo,
+			QString("Writing output %1 to file: '%2' (compression: %3)")
+				.arg(o)
+				.arg(outFileName)
+				.arg(m_compressOutput ? "on" : "off"));
 		iAITKIO::writeFile(outFileName, filter->output(o)->itkImage(), filter->output(o)->itkScalarPixelType(), m_compressOutput);
 	}
 	/*

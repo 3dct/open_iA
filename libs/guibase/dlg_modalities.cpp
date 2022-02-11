@@ -402,7 +402,7 @@ void dlg_modalities::configureInterActorStyles(QSharedPointer<iAModality> editMo
 	{
 		if (!m_mdiChild->slicer(i)->hasChannel(chID))
 		{
-			LOG(lvlWarn, "This modality cannot be moved as it isn't active in slicer, please select another one!")
+			LOG(lvlWarn, "This modality cannot be moved as it isn't active in slicer, please select another one!");
 			return;
 		}
 		else

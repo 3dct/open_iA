@@ -2110,12 +2110,12 @@ void iAFiAKErController::updateBoundingBox()
 		newBounds[i * 2] = m_teBoundingBox[i]->text().toDouble(&ok);
 		if (!ok)
 		{
-			LOG(lvlError, QString("Invalid bounding box value: %1").arg(m_teBoundingBox[i]->text()))
+			LOG(lvlError, QString("Invalid bounding box value: %1").arg(m_teBoundingBox[i]->text()));
 		}
 		newBounds[i * 2 + 1] = m_teBoundingBox[i + 3]->text().toDouble(&ok);
 		if (!ok)
 		{
-			LOG(lvlError, QString("Invalid bounding box value: %1").arg(m_teBoundingBox[i]->text()))
+			LOG(lvlError, QString("Invalid bounding box value: %1").arg(m_teBoundingBox[i]->text()));
 		}
 	}
 	m_customBoundingBoxSource->SetBounds(newBounds);

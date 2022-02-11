@@ -1168,9 +1168,12 @@ void iAIO::readVTKFile()
 			int extentSize = extent[i * 2 + 1] - extent[i * 2] + 1;
 			if (numComp != 1 || numValues != extentSize)
 			{
-				LOG(lvlWarn, QString("Don't know how to handle situation where number of components is %1 "
-					"and number of values=%2 not equal to extentSize=%3")
-					.arg(numComp).arg(numValues).arg(extentSize))
+				LOG(lvlWarn,
+					QString("Don't know how to handle situation where number of components is %1 "
+							"and number of values=%2 not equal to extentSize=%3")
+						.arg(numComp)
+						.arg(numValues)
+						.arg(extentSize));
 			}
 			if (numValues < 2)
 			{
