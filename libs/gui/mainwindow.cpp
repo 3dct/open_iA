@@ -481,7 +481,7 @@ void MainWindow::openNew()
 	m_path = t;
 	auto d = new iALoadedData();
 	auto p = new iAProgress();
-	//auto future = runAsync([d, p, fileName]()
+	auto future = runAsync([d, p, fileName]()
 	{
 		try
 		{
@@ -493,7 +493,7 @@ void MainWindow::openNew()
 			LOG(lvlError, QString("ERROR loading file %1: %2").arg(fileName).arg(e.GetDescription()));
 		}
 	}
-	//, [this, d, p]()
+	, [this, d, p]()
 	{
 		
 		if (d->data)
@@ -527,8 +527,8 @@ void MainWindow::openNew()
 		delete d;
 		delete p;
 	}
-	//, this);
-	//iAJobListView::get()->addJob(QString("Loading file '%1'").arg(fileName), p, future);
+	, this);
+	iAJobListView::get()->addJob(QString("Loading file '%1'").arg(fileName), p, future);
 }
 
 void MainWindow::loadFiles(QStringList fileNames)
