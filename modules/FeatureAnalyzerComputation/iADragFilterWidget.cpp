@@ -175,7 +175,7 @@ iADragFilterWidget::iADragFilterWidget( QString datasetDir, QStringList datasetL
 		otsu->setToolTip("<p>The <b>Otsu Threshold</b> filter creates a binary thresholded image that "
 			"separates an image into foreground and background components.The filter computes the threshold "
 			"using the OtsuThresholdCalculator and applies that theshold to the input image using the BinaryThresholdImageFilter.</p>"
-			"<p>http ://hdl.handle.net/10380/3279 or http://www.insight-journal.org/browse/publication/811 </p>");
+			"<p>http://hdl.handle.net/10380/3279 or http://www.insight-journal.org/browse/publication/811 </p>");
 		otsu->move( columnGutter * xIdx++, yIdx * rowStartOffset + rowGutter * yGutterIdx );
 		otsu->show();
 		otsu->setAttribute( Qt::WA_DeleteOnClose );
@@ -351,7 +351,7 @@ iADragFilterWidget::iADragFilterWidget( QString datasetDir, QStringList datasetL
 			"and a image of gradient magnitude of that image. The threshold is computed as the mean of the "
 			"pixel values in the input image weighted by the pixel values in the gradient image. The threshold "
 			"computed that way should be the mean pixel value where the intensity change the most.</p>"
-			"<p>Lehmann G.http ://hdl.handle.net/1926/370 http://www.insight-journal.org/browse/publication/134 </p>");
+			"<p>Lehmann G. http://hdl.handle.net/1926/370 or http://www.insight-journal.org/browse/publication/134 </p>");
 		rats->move( columnGutter * xIdx++, yIdx * rowStartOffset + rowGutter * yGutterIdx );
 		rats->show();
 		rats->setAttribute( Qt::WA_DeleteOnClose );

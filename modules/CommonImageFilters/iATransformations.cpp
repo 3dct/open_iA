@@ -39,7 +39,9 @@ static typename TImageType::PointType image_center(TImageType * image)
 	typename TImageType::PointType center = origin;
 
 	for (int k = 0; k < DIM; k++)
+	{
 		center[k] += (spacing[k] * size[k]) / 2.0;
+	}
 	return center;
 }
 
@@ -47,7 +49,9 @@ template < class TImageType >
 static typename TImageType::PointType center_image(TImageType * image, typename TImageType::PointType * oldOrigin = nullptr)
 {
 	if (oldOrigin != nullptr)
+	{
 		*oldOrigin = image->GetOrigin();
+	}
 	typename TImageType::PointType center = image_center<TImageType>(image);
 	image->SetOrigin(center);
 	return center;
@@ -82,7 +86,7 @@ void iAFlipAxis::performWork(QMap<QString, QVariant> const & parameters)
 IAFILTER_CREATE(iAFlipAxis)
 
 iAFlipAxis::iAFlipAxis() :
-	iAFilter("Flip Axis", "Transformations",
+	iAFilter("Flip Axis", "Geometric Transformations",
 		"Flip the image across one of the three coordinate axes.<br/>"
 		"For more information, see the "
 		"<a href=\"https://itk.org/Doxygen/html/classitk_1_1FlipImageFilter.html\">"
@@ -145,7 +149,7 @@ void iAPermuteAxes::performWork(QMap<QString, QVariant> const& parameters)
 IAFILTER_CREATE(iAPermuteAxes)
 
 iAPermuteAxes::iAPermuteAxes() :
-	iAFilter("Permute Axes", "Transformations",
+	iAFilter("Permute Axes", "Geometric Transformations",
 		"Permutes the image axes according to a user specified order.<br/>"
 		"The i-th axis of the output image corresponds with the order[i]-th "
 		"axis of the input image.<br/>"
@@ -216,7 +220,7 @@ void iARotate::performWork(QMap<QString, QVariant> const & parameters)
 IAFILTER_CREATE(iARotate)
 
 iARotate::iARotate() :
-	iAFilter("Rotate", "Transformations",
+	iAFilter("Rotate", "Geometric Transformations",
 		"Rotate the image around one of the three coordinate axes.<br/>"
 		"For more information, see the "
 		"<a href=\"https://itk.org/Doxygen/html/classitk_1_1AffineTransform.html\">"
@@ -257,7 +261,7 @@ void iATranslate::performWork(QMap<QString, QVariant> const & parameters)
 IAFILTER_CREATE(iATranslate)
 
 iATranslate::iATranslate() :
-	iAFilter("Translate", "Transformations",
+	iAFilter("Translate", "Geometric Transformations",
 		"Translate the image.<br/>"
 		".<br/>"
 		"For more information, see the "

@@ -242,7 +242,7 @@ iAResampleFilter::iAResampleFilter() :
 	iAFilter("Resample", "Geometric Transformations",
 		"Resample the image to a new size.<br/>"
 		"For more information, see the "
-		"<a href=\"https ://itk.org/Doxygen/html/classitk_1_1ResampleImageFilter.html\">"
+		"<a href=\"https://itk.org/Doxygen/html/classitk_1_1ResampleImageFilter.html\">"
 		"Resample Filter</a> in the ITK documentation.")
 {
 	addParameter("Origin X", iAValueType::Discrete, 0);
