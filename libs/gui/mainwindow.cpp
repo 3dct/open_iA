@@ -469,6 +469,20 @@ void MainWindow::loadFile(QString fileName, bool isStack)
 
 void MainWindow::openNew()
 {
+	iAMdiChild* child = activeMdiChild();
+	if (child)
+	{
+		auto result = QMessageBox::question(
+			this, "", "Load data into the active window?", QMessageBox::Yes | QMessageBox::No | QMessageBox::Cancel);
+		if (result == QMessageBox::Cancel)
+		{
+			return;
+		}
+		if (result == QMessageBox::No)
+		{
+			child = nullptr;
+		}
+	}
 	QString fileName = QFileDialog::getOpenFileName(this, tr("Open Files (new)"), m_path, iANewIO::getRegisteredFileTypes());
 	if (fileName.isEmpty())
 	{
@@ -493,17 +507,17 @@ void MainWindow::openNew()
 			LOG(lvlError, QString("ERROR loading file %1: %2").arg(fileName).arg(e.GetDescription()));
 		}
 	}
-	, [this, d, p]()
+	, [this, d, p, child]()
 	{
 		
 		if (d->data)
 		{
 			//storeImage(d->data->image(), "C:/fh/testnewio-mainwnd-finished.mhd", false);
-			iAMdiChild* child = createMdiChild(false);
+			iAMdiChild* targetChild = child ? child :  createMdiChild(false);
 			m_loadedPoly.push_back(d->data->poly());	// store somewhere else!!!
 
 			// Glyph the points
-			// TODO: fix memory leaks...
+			// TODO: move somewhere else, fix memory leaks...
 			auto sphere = vtkSphereSource::New();
 			sphere->SetPhiResolution(21);
 			sphere->SetThetaResolution(21);
@@ -517,11 +531,14 @@ void MainWindow::openNew()
 			pointActor->SetMapper(pointMapper);
 			pointActor->GetProperty()->SetColor(1.0, 0.0, 0.0);
 
-			child->displayResult("test", d->data->image(), d->data->poly());
-			child->enableRenderWindows();
+			targetChild->displayResult("test", d->data->image(), d->data->poly());
+			if (!child)
+			{
+				targetChild->enableRenderWindows();
+			}
 
-			child->renderer()->renderer()->AddActor(pointActor);
-			child->renderer()->renderer()->ResetCamera();
+			targetChild->renderer()->renderer()->AddActor(pointActor);
+			targetChild->renderer()->renderer()->ResetCamera();
 		}
 		delete d->data;
 		delete d;
