@@ -533,10 +533,10 @@ void iAIO::run()
 				readVTKFile(); break;
 			case RAW_READER:
 			case PARS_READER:
-			case NKC_READER:
-				readNKC(); break;
 			case VGI_READER:
 				readImageData(); break;
+			case NKC_READER:
+				readNKC(); break;
 			case VOLUME_STACK_READER:
 				readVolumeStack(); break;
 			case VOLUME_STACK_MHD_READER:
@@ -1339,6 +1339,13 @@ void iAIO::readNKC()
 {
 	readImageData();
 	auto filter = iAFilterRegistry::filter("Replace and Shift");
+	if (!filter)
+	{
+		LOG(lvlError,
+			QString("Reading NKC file %1 requires 'Replace and Shift' filter, but filter could not be found!")
+				.arg(m_fileName));
+		return;
+	}
 
 	filter->addInput(getVtkImageData(), "");
 	QMap<QString, QVariant> parameters;
@@ -1347,6 +1354,13 @@ void iAIO::readNKC()
 	filter->run(parameters);
 
 	auto dataTypeConversion = iAFilterRegistry::filter("Datatype Conversion");
+	if (!filter)
+	{
+		LOG(lvlError,
+			QString("Reading NKC file %1 requires 'Datatype Conversion' filter, but filter could not be found!")
+				.arg(m_fileName));
+		return;
+	}
 
 	dataTypeConversion->addInput(filter->output(0)->itkImage(), "");
 	QMap<QString, QVariant> parametersConversion;
@@ -1357,6 +1371,13 @@ void iAIO::readNKC()
 	dataTypeConversion->run(parametersConversion);
 
 	auto filterScale = iAFilterRegistry::filter("Shift and Scale");
+	if (!filter)
+	{
+		LOG(lvlError,
+			QString("Reading NKC file %1 requires 'Shift and Scale' filter, but filter could not be found!")
+				.arg(m_fileName));
+		return;
+	}
 	filterScale->addInput(dataTypeConversion->output(0)->itkImage(), "");
 	QMap<QString, QVariant> parametersScale;
 	parametersScale["Shift"] = m_Parameter["Offset"].toInt();
