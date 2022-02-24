@@ -533,6 +533,7 @@ void iAIO::run()
 				readVTKFile(); break;
 			case RAW_READER:
 			case PARS_READER:
+				readImageData(); break;
 			case NKC_READER:
 				readNKC(); break;
 			case VGI_READER:
