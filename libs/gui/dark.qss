@@ -290,7 +290,11 @@ QTabBar
 	{
 		padding: 2px 12px 2px 12px;
 	}
-	/* QTabBar::tab:selected no need to style, default is white color and black background */
+	QTabBar::tab:selected /* only needed for theme switch; default white color and black background would be fine, but they aren't set automatically at switching theme
+	in reverse to bright theme, on theme switch, for dark theme, only :selected works but not ::tab, no idea why */
+	{
+		color: rgb(255, 255, 255);
+	}
 	QTabBar::tab:!selected
 	{
 		margin-top: 3px;
