@@ -93,10 +93,7 @@ iA3DPolyObjectActor::~iA3DPolyObjectActor()
 	{
 		m_ren->RemoveObserver(m_renObserverTag);
 	}
-	if (m_visible)
-	{
-		hide();
-	}
+	hide();
 }
 
 void iA3DPolyObjectActor::show()
