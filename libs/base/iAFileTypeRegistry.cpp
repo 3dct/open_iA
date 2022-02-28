@@ -87,12 +87,51 @@ std::shared_ptr<iAFileIO> iAITKFileIO::create()
 #include <vtkCellData.h>
 #include <vtkLine.h>
 
+// TODO: move to separate iAAABB class and re-use in FIAKER/FiberSA
+#include <iAVec3.h>
+class iAAABB
+{
+public:
+	iAAABB()
+	{
+		box[0].fill(std::numeric_limits<double>::max());
+		box[1].fill(std::numeric_limits<double>::lowest());
+	}
+	void addPointToBox(iAVec3d const & pt)
+	{
+		for (int i = 0; i < 3; ++i)
+		{
+			box[0][i] = std::min(box[0][i], pt[i]);
+			box[1][i] = std::max(box[1][i], pt[i]);
+		}
+		
+	}
+	iAVec3d const & topLeft() const
+	{
+		return box[0];
+	}
+	iAVec3d const& bottomRight() const
+	{
+		return box[1];
+	}
+
+private:
+	std::array<iAVec3d, 2> box;
+};
+
+QString toStr(iAAABB const & box)
+{
+	return QString("%1, %2; %3, %4").arg(box.topLeft().x()).arg(box.topLeft().y()).arg(box.bottomRight().x()).arg(box.bottomRight().y());
+}
+
 iADataSet* iAGraphFileIO::load(QString const& fileName, iAProgress* p)
 {
 	//vtkNew<vtkPDBReader> reader;
 	//reader->SetInput
 	// not sure that's the right "PDB" file type...
 	Q_UNUSED(p);
+
+	double spacing[3] = {11.4, 11.4, 11.4};	// get as parameter?
 
 	vtkNew<vtkPolyData> myPolyData;
 
@@ -102,7 +141,7 @@ iADataSet* iAGraphFileIO::load(QString const& fileName, iAProgress* p)
 	if (!file.open(QIODevice::ReadOnly))
 	{
 		LOG(lvlError,
-			QString("Could not open CSV file '%1' for reading! "
+			QString("Could not open file '%1' for reading! "
 					"It probably does not exist!")
 				.arg(fileName));
 		return nullptr;
@@ -125,18 +164,21 @@ iADataSet* iAGraphFileIO::load(QString const& fileName, iAProgress* p)
 	//size_t curVert = 0;
 	QString line = "";
 	int numberOfPoints = 0;
+
+	iAAABB bbox;
 	while (!in.atEnd() && line != "$$")
 	{
 		line = in.readLine();
 		auto tokens = line.split("\t");
 		if (tokens.size() == 7)
 		{
-			double pos[3] = {
-				tokens[2].toDouble(),
-				tokens[3].toDouble(),
-				tokens[4].toDouble(),
-			};
-			pts->InsertNextPoint(pos);
+			iAVec3d pos(
+				tokens[2].toDouble() * spacing[0],
+				tokens[3].toDouble() * spacing[1],
+				tokens[4].toDouble() * spacing[2]
+			);
+			bbox.addPointToBox(pos);
+			pts->InsertNextPoint(pos.data());
 			QColor color(tokens[5]);
 			//pointIds->InsertNextId(curVert);
 			//polyPoint->InsertNextCell(pointIds);
@@ -148,8 +190,23 @@ iADataSet* iAGraphFileIO::load(QString const& fileName, iAProgress* p)
 		//auto remains = file.bytesAvailable();
 		//auto progress = ((size - remains) * 100) / size;
 	}
+	assert(numberOfPoints == pts->GetNumberOfPoints());
+	
+	// some axes are flipped in comparison to our image data:
+	for (int i = 0; i < numberOfPoints; ++i)
+	{
+		double pt[3];
+		pts->GetPoint(i, pt);
+		std::swap(pt[0], pt[1]);
+		//pt[0] = bbox.bottomRight().x() - pt[0];
+		//pt[1] = bbox.bottomRight().y() - pt[1];
+		pts->SetPoint(i, pt);
+	}
+	
+
 	myPolyData->SetPoints(pts);
-	LOG(lvlInfo, QString("number of points: %1 / %2").arg(pts->GetNumberOfPoints()).arg(numberOfPoints));
+	LOG(lvlInfo, QString("%1 points in box %3").arg(pts->GetNumberOfPoints()).arg(toStr(bbox)));
+
 	//myPolyData->SetVerts(polyPoint);
 	//myPolyData->GetCellData()->SetScalars(colors);
 
