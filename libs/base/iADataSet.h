@@ -3,15 +3,11 @@
 #include "iAbase_export.h"
 
 #include "iALog.h"
-//#include "iAVec3.h"
 
 #include <vtkSmartPointer.h>
 
 #include <QFlags>
 #include <QString>
-
-//#include <memory>
-//#include <vector>
 
 class iADataSet;
 class iAProgress;
@@ -57,11 +53,15 @@ private:
 	// }
 };
 
+class iAFileIO;
+
 // maybe: vector of datasets?
+// move to iAFileIO or similar?
 namespace iANewIO
 {
-	//! load a file with any registered file type
-	iAbase_API iADataSet* loadFile(QString const& fileName, iAProgress* p, iADataSetTypes allowedTypes = dstVolume | dstMesh);
+	//! get a I/O object for a file with the given filename
+	iAbase_API std::shared_ptr<iAFileIO> createIO(
+		QString fileName, iADataSetTypes allowedTypes = dstVolume | dstMesh);
 	//! set up the default file loaders included in the base library
 	iAbase_API void setupDefaultIOFactories();
 	//! retrieve list of file types for file open dialog

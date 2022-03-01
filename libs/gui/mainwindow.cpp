@@ -84,6 +84,8 @@
 #include <QDesktopServices>
 
 // TODO:: for graph points - move somewhere else!
+#include "iAFileTypeRegistry.h"
+
 #include <vtkGlyph3DMapper.h>
 #include <vtkPolyDataMapper.h>
 #include <vtkProperty.h>
@@ -468,6 +470,35 @@ void MainWindow::loadFile(QString fileName, bool isStack)
 	}
 }
 
+
+bool askForParameters(MainWindow* mainWnd, iAAttributes const& parameters, QMap<QString, QVariant>& values)
+{
+	iAAttributes dlgParams;
+	for (auto param : parameters)
+	{
+		QSharedPointer<iAAttributeDescriptor> p(param->clone());
+		if (p->valueType() == iAValueType::Categorical)
+		{
+			QStringList comboValues = p->defaultValue().toStringList();
+			QString storedValue = values[p->name()].toString();
+			selectOption(comboValues, storedValue);
+			p->setDefaultValue(comboValues);
+		}
+		else
+		{
+			p->setDefaultValue(values[p->name()]);
+		}
+		dlgParams.push_back(p);
+	}
+	iAParameterDlg dlg(mainWnd, "Parameters", dlgParams);
+	if (dlg.exec() != QDialog::Accepted)
+	{
+		return false;
+	}
+	values = dlg.parameterValues();
+	return true;
+}
+
 void MainWindow::openNew()
 {
 	iAMdiChild* child = activeMdiChild();
@@ -489,18 +520,31 @@ void MainWindow::openNew()
 	{
 		return;
 	}
+	auto io = iANewIO::createIO(fileName, dstVolume | dstMesh);
+	if (!io)
+	{
+		return;
+	}
+	QMap<QString, QVariant> paramValues;
+	if (io->parameters().size() > 0)
+	{
+		if (!askForParameters(this, io->parameters(), paramValues))
+		{
+			return;
+		}
+	}
 	statusBar()->showMessage(tr("Loading data..."), 5000);
 	QString t;
 	t = fileName;
 	t.truncate(t.lastIndexOf('/'));
 	m_path = t;
-	auto d = new iALoadedData();
-	auto p = new iAProgress();
-	auto future = runAsync([d, p, fileName]()
+	auto d = std::make_shared<iALoadedData>();
+	auto p = std::make_shared<iAProgress>();
+	auto future = runAsync([d, p, fileName, io, paramValues]()
 	{
 		try
 		{
-			d->data = iANewIO::loadFile(fileName, p);
+			d->data = io->load(p.get(), paramValues);
 			//storeImage(d->data->image(), "C:/fh/testnewio-mainwnd-afterLoad.mhd", false);
 		}
 		catch (itk::ExceptionObject & e)
@@ -550,11 +594,9 @@ void MainWindow::openNew()
 			targetChild->renderer()->renderer()->ResetCamera();
 		}
 		delete d->data;
-		delete d;
-		delete p;
 	}
 	, this);
-	iAJobListView::get()->addJob(QString("Loading file '%1'").arg(fileName), p, future);
+	iAJobListView::get()->addJob(QString("Loading file '%1'").arg(fileName), p.get(), future);
 }
 
 void MainWindow::loadFiles(QStringList fileNames)

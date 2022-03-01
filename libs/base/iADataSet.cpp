@@ -9,8 +9,11 @@
 
 namespace iANewIO
 {
-	iADataSet* loadFile(QString const& fileName, iAProgress* p, iADataSetTypes allowedTypes)
+	std::shared_ptr<iAFileIO> createIO(QString fileName, iADataSetTypes allowedTypes)
 	{
+
+	//iADataSet* loadFile(QString const& fileName, iAProgress* p, iAParamSource paramSource, iADataSetTypes allowedTypes)
+	//{
 		QFileInfo fi(fileName);
 		// special handling for directory ? TLGICT-loader... -> fi.isDir();
 		auto io = iAFileTypeRegistry::createIO(fi.suffix());
@@ -22,20 +25,17 @@ namespace iANewIO
 					.arg(fi.suffix()));
 			return {};
 		}
-		// TODO: include type in io already to indicate which type file can contain (and check here / only try loaders for allowedTypes)
-
-		auto result = io->load(fileName, p);  // error handling -> exceptions?
-
-		//storeImage(result->image(), "C:/fh/testnewio3.mhd", false);
-		if (!allowedTypes.testFlag(result->type()))
+		io->setup(fileName);
+		// TODO: extend type check in io / only try loaders for allowedTypes (but how to handle file types that can contain multiple?)
+		if (!allowedTypes.testFlag(io->type()))
 		{
 			LOG(lvlWarn,
 				QString("Failed to load %1: The loaded dataset type %2 does not match allowed any allowed type.")
 					.arg(fileName)
-					.arg(result->type()));
+					.arg(io->type()));
 			return {};
 		}
-		return result;
+		return io;
 	}
 
 	void setupDefaultIOFactories()

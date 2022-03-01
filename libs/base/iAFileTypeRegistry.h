@@ -1,5 +1,7 @@
 #pragma once
 
+#include "iAAttributes.h"
+#include "iADataSet.h"    // for iADataSetType...
 #include "iALog.h"
 
 #include <QMap>
@@ -7,18 +9,41 @@
 
 #include <memory>
 
-class iADataSet;
 class iAProgress;
 
-class iAFileIO
+class iAbase_API iAFileIO
 {
 public:
+	iAFileIO(iADataSetType type);
+	void setup(QString const& fileName);  // TODO: make possible to also use e.g. folder name or list of files
 	virtual ~iAFileIO();
-	virtual iADataSet* load(QString const& fileName, iAProgress* p) = 0;
+	virtual iADataSet* load(iAProgress* p, QMap<QString, QVariant> const& paramValues) = 0;
+	// copied from iAFilter - maybe reuse? move to new common base class iAParameterizedSomething ...?
+	iAAttributes const& parameters() const;
+	iADataSetType type() const;
+
+protected:
+	//! Adds the description of a parameter to the filter.
+	//! @param name the parameter's name
+	//! @param valueType the type of value this parameter can have
+	//! @param defaultValue the default value of the parameter; for Categorical
+	//!     valueTypes, this should be the list of possible values
+	//! @param min the minimum value this parameter can have (inclusive).
+	//! @param max the maximum value this parameter can have (inclusive)
+	void addParameter(QString const& name, iAValueType valueType, QVariant defaultValue = 0.0,
+		double min = std::numeric_limits<double>::lowest(), double max = std::numeric_limits<double>::max());
+
+	QString m_fileName;
+
+private:
+	iAAttributes m_parameters;
+	iADataSetType m_type;					// TODO: make possible to reflect files which can contain multipe types
 };
 
 
-//! Generic factory class with shared pointers (unique pointers -> trouble in static context?). TODO: Replace iAGenericFactory with this one!
+//! Generic factory class with shared pointers
+// (unique pointers -> trouble in static context?). TODO: Replace iAGenericFactory with this one!
+// error C2280: "std::unique_ptr<iAIFileIOFactory,std::default_delete<iAIFileIOFactory>> &std::unique_ptr<iAIFileIOFactory,std::default_delete<iAIFileIOFactory>>::operator =(const std::unique_ptr<iAIFileIOFactory,std::default_delete<iAIFileIOFactory>> &)" : Es wurde versucht, auf eine gelöschte Funktion zu verweisen
 template <typename BaseType>
 class iAUPFactory
 {
@@ -74,12 +99,13 @@ void iAFileTypeRegistry::addFileType(QString const& fileExtension)
 class iAITKFileIO : public iAFileIO
 {
 public:
-	iADataSet* load(QString const& fileName, iAProgress* p) override;
-	//static std::shared_ptr<iAFileIO> create();
+	iAITKFileIO();
+	iADataSet* load(iAProgress* p, QMap<QString, QVariant> const& parameters) override;
 };
 
 class iAGraphFileIO: public iAFileIO
 {
 public:
-	iADataSet* load(QString const& fileName, iAProgress* p) override;
+	iAGraphFileIO();
+	iADataSet* load(iAProgress* p, QMap<QString, QVariant> const& parameters) override;
 };

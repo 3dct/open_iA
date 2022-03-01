@@ -5,9 +5,31 @@
 
 #include <QTextStream>
 
+iAFileIO::iAFileIO(iADataSetType type): m_type(type)
+{}
+
+void iAFileIO::setup(QString const & fileName)
+{
+	m_fileName = fileName;
+}
 
 iAFileIO::~iAFileIO()
 {}
+
+void iAFileIO::addParameter(QString const& name, iAValueType valueType, QVariant defaultValue, double min, double max)
+{
+	m_parameters.push_back(iAAttributeDescriptor::createParam(name, valueType, defaultValue, min, max));
+}
+
+iAAttributes const& iAFileIO::parameters() const
+{
+	return m_parameters;
+}
+
+iADataSetType iAFileIO::type() const
+{
+	return m_type;
+}
 
 
 QMap<QString, std::shared_ptr<iAIFileIOFactory>> iAFileTypeRegistry::m_fileTypes;
@@ -55,23 +77,28 @@ void read_image_template(QString const& fileName, iAProgress* progress, iAConnec
 	con.modified();
 }
 
-iADataSet* iAITKFileIO::load(QString const& fileName, iAProgress* p)
+iAITKFileIO::iAITKFileIO() :
+	iAFileIO(iADataSetType::dstVolume)
+{}
+
+iADataSet* iAITKFileIO::load(iAProgress* p, QMap<QString, QVariant> const& parameters)
 {
+	Q_UNUSED(parameters);
 	typedef itk::ImageIOBase::IOComponentType ScalarPixelType;
 	typedef itk::ImageIOBase::IOPixelType PixelType;
 	auto imageIO = itk::ImageIOFactory::CreateImageIO(
-		getLocalEncodingFileName(fileName).c_str(), itk::ImageIOFactory::ReadMode);
+		getLocalEncodingFileName(m_fileName).c_str(), itk::ImageIOFactory::ReadMode);
 	if (!imageIO)
 		throw std::invalid_argument("Could not find a reader that could handle the format of the specified file!");
-	imageIO->SetFileName(getLocalEncodingFileName(fileName).c_str());
+	imageIO->SetFileName(getLocalEncodingFileName(m_fileName).c_str());
 	imageIO->ReadImageInformation();
 	const ScalarPixelType pixelType = imageIO->GetComponentType();
 	const PixelType imagePixelType = imageIO->GetPixelType();
 	iAConnector con;
-	ITK_EXTENDED_TYPED_CALL(read_image_template, pixelType, imagePixelType, fileName, p, con);
+	ITK_EXTENDED_TYPED_CALL(read_image_template, pixelType, imagePixelType, m_fileName, p, con);
 	storeImage(con.itkImage(), "C:/fh/testnewio2.mhd", false);
 	return new iADataSet(
-		dstVolume, QFileInfo(fileName).baseName(), fileName, con.vtkImage(), nullptr);
+		dstVolume, QFileInfo(m_fileName).baseName(), m_fileName, con.vtkImage(), nullptr);
 }
 
 /*
@@ -124,26 +151,33 @@ QString toStr(iAAABB const & box)
 	return QString("%1, %2; %3, %4").arg(box.topLeft().x()).arg(box.topLeft().y()).arg(box.bottomRight().x()).arg(box.bottomRight().y());
 }
 
-iADataSet* iAGraphFileIO::load(QString const& fileName, iAProgress* p)
+iAGraphFileIO::iAGraphFileIO() : iAFileIO(iADataSetType::dstMesh)
 {
-	//vtkNew<vtkPDBReader> reader;
-	//reader->SetInput
-	// not sure that's the right "PDB" file type...
+	addParameter("Spacing X", iAValueType::Continuous, 1.0);
+	addParameter("Spacing Y", iAValueType::Continuous, 1.0);
+	addParameter("Spacing Z", iAValueType::Continuous, 1.0);
+}
+
+iADataSet* iAGraphFileIO::load(iAProgress* p, QMap<QString, QVariant> const& params)
+{
+	// maybe we could also use vtkPDBReader, but not sure that's the right "PDB" file type...
 	Q_UNUSED(p);
 
-	double spacing[3] = {11.4, 11.4, 11.4};	// get as parameter?
+	double spacing[3] = {
+		params["Spacing X"].toDouble(),
+		params["Spacing Y"].toDouble(),
+		params["Spacing Z"].toDouble()
+	};
 
 	vtkNew<vtkPolyData> myPolyData;
 
-
-	QFile file(fileName);
+	QFile file(m_fileName);
 	//const auto size = file.size();
 	if (!file.open(QIODevice::ReadOnly))
 	{
 		LOG(lvlError,
-			QString("Could not open file '%1' for reading! "
-					"It probably does not exist!")
-				.arg(fileName));
+			QString("Could not open file '%1' for reading! It probably does not exist!")
+				.arg(m_fileName));
 		return nullptr;
 	}
 	QStringList origCSVInfo;
@@ -251,7 +285,6 @@ iADataSet* iAGraphFileIO::load(QString const& fileName, iAProgress* p)
 
 	myPolyData->SetLines(lines);
 	myPolyData->GetPointData()->AddArray(colors);
-	
 
-	return new iADataSet(dstMesh, QFileInfo(fileName).baseName(), fileName, nullptr, myPolyData);
+	return new iADataSet(dstMesh, QFileInfo(m_fileName).baseName(), m_fileName, nullptr, myPolyData);
 }
