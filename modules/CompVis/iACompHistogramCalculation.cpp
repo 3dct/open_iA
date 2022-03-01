@@ -103,7 +103,7 @@ void iACompHistogramCalculation::calculateUniformBinning()
 	m_uniformBinning->calculateBins();
 	
 	//evaluate binning
-	LOG(lvlDebug, "Uniform Binning");
+	//LOG(lvlDebug, "Uniform Binning");
 	m_uniformBinning->calculateSilhouetteCoefficient(m_uniformBinningData);
 }
 
@@ -138,7 +138,7 @@ void iACompHistogramCalculation::calculateBayesianBlocks()
 	m_bayesianBlocks->calculateBins();
 
 	//evaluate binning
-	LOG(lvlDebug, "Bayesian Blocks");
+	//LOG(lvlDebug, "Bayesian Blocks");
 	m_bayesianBlocks->calculateSilhouetteCoefficient(m_bayesianBlocksData);
 }
 
@@ -161,7 +161,7 @@ void iACompHistogramCalculation::calculateNaturalBreaks()
 	m_naturalBreaks->calculateBins();
 
 	//evaluate binning
-	LOG(lvlDebug, "Natural Breaks");
+	//LOG(lvlDebug, "Natural Breaks");
 	m_naturalBreaks->calculateSilhouetteCoefficient(m_naturalBreaksData);
 }
 

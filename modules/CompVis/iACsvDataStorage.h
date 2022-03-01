@@ -118,10 +118,10 @@ class iACsvDataStorage
 	//stores the resulting 1D matrix of the mds computation
 	csvDataType::ArrayType* m_MDSData;
 
-
 	/*** Initialization for Rendering with iAobjectvis***/
 	std::vector<vtkSmartPointer<vtkTable>>* m_objectTables;
 	std::vector<iACsvIO*>* m_ios;
 	std::vector<const iACsvConfig*>* m_csvConfigs;
 	std::vector<dlg_CSVInput*>* m_dlgs;
+
 };

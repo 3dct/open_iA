@@ -20,8 +20,7 @@
 #include <QBoxLayout>
 
 iACompVisMain::iACompVisMain(iAMainWindow* mainWin) : 
-	m_mainWindow(mainWin), 
-	m_computeMDSFlag(true)
+	m_mainWindow(mainWin)
 {
 	//load data
 	if (!loadData()) 
@@ -35,23 +34,25 @@ iACompVisMain::iACompVisMain(iAMainWindow* mainWin) :
 	initializeCorrelationCoefficient();
 
 	//open iAMainWindow with its dockWidgets
-	m_mainW = new dlg_VisMainWindow(m_dataStorage, m_mds, m_mainWindow, this, m_computeMDSFlag);
+	m_mainW = new dlg_VisMainWindow(m_dataStorage, m_mds, m_mainWindow, this, iACompVisOptions::getComputeNoMDS());
 
 	QHBoxLayout* layout3D = new QHBoxLayout;
 	m_mainW->centralwidget->setLayout(layout3D);
 	
 	//add 3D View
-	QGridLayout* gridL = new QGridLayout;
-	layout3D->insertLayout(0, gridL); 
-	m_3DViewDockWidget = new iAComp3DView(m_mainWindow, m_dataStorage);
-	m_3DViewDockWidget->constructGridLayout(gridL);
+	if (iACompVisOptions::getShow3DViews())
+	{
+		QGridLayout* gridL = new QGridLayout;
+		layout3D->insertLayout(0, gridL);
+		m_3DViewDockWidget = new iAComp3DView(m_mainWindow, m_dataStorage);
+		m_3DViewDockWidget->constructGridLayout(gridL);
+	}
 
 	QVBoxLayout* layout1 = new QVBoxLayout;
 	layout3D->insertLayout(0,layout1);
-	//m_mainW->centralwidget->setLayout(layout1);
 
 	//add histogram table
-	m_HistogramTableDockWidget = new iACompHistogramTable(mainWin, m_dataStorage, this, m_computeMDSFlag);
+	m_HistogramTableDockWidget = new iACompHistogramTable(mainWin, m_dataStorage, this, iACompVisOptions::getComputeNoMDS());
 	layout1->addWidget(m_HistogramTableDockWidget->getHistogramTableVis());
 
 	QHBoxLayout* layout2 = new QHBoxLayout;
@@ -87,7 +88,6 @@ bool iACompVisMain::loadData()
 	}
 
 	m_dataStorage = dlg->getCsvDataStorage();
-	m_computeMDSFlag = dlg->getMDSState();
 
 	if(m_dataStorage->getDatasetNames()->size() == 0)
 	{
@@ -197,7 +197,10 @@ void iACompVisMain::updateOtherCharts(csvDataType::ArrayType* selectedData, std:
 	updateCorrelationMap(selectedData, pickStatistic);
 
 	//3D View
-	update3DView(selectedData, pickStatistic);
+	if (iACompVisOptions::getShow3DViews())
+	{
+		update3DView(selectedData, pickStatistic);
+	}
 }
 
 void iACompVisMain::update3DView(
@@ -228,7 +231,12 @@ void iACompVisMain::resetOtherCharts()
 	resetBarChart();
 	resetBoxPlot(); 
 	resetCorrelationMap();
-	reset3DViews();
+
+	//3D View
+	if (iACompVisOptions:: getShow3DViews())
+	{
+		reset3DViews();
+	}
 }
 
 void iACompVisMain::resetBarChart()

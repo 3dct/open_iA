@@ -28,6 +28,7 @@
 #include <vtkPolygon.h>
 #include <vtkAppendPolyData.h>
 #include <vtkCleanPolyData.h>
+#include <vtkAppendFilter.h>
 
 iACompCurve::iACompCurve(
 	iACompHistogramVis* vis, iACompKernelDensityEstimationData* kdeData, double lineWidth, double opacity) :
@@ -482,6 +483,200 @@ void iACompCurve::drawRow(int currDataInd, int currentColumn, double offset)
 void iACompCurve::drawCurveAndPolygon(double drawingDimensions[4], kdeData::kdeBins currDataset,
 	vtkSmartPointer<vtkPolyData> currBinPolyData, int currDataInd, int currentColumn, double offset)
 {
+	//double min_x = drawingDimensions[0];
+	//double max_x = drawingDimensions[1];
+	//double min_y = drawingDimensions[2];
+	//double max_y = drawingDimensions[3];
+
+	//int numberOfBins = currDataset.size();
+
+	//vtkSmartPointer<vtkPoints> curvePoints = vtkSmartPointer<vtkPoints>::New();
+	//vtkNew<vtkAppendPolyData> appendFilter;
+
+	//int numberOPoints = 0;
+	//for (int i = 0; i < numberOfBins; i++)
+	//{
+	//	numberOPoints = numberOPoints + currDataset.at(i).size();
+	//}
+
+	//vtkSmartPointer<vtkUnsignedCharArray> colorArray = vtkSmartPointer<vtkUnsignedCharArray>::New();
+	//colorArray->SetName("colorArray");
+	//colorArray->SetNumberOfComponents(3);
+
+	//for (int binId = 0; binId < numberOfBins; binId++)
+	//{
+	//	int numberOfObjectsForColor = (int)getNumberOfObjectsOfActiveData()->at(currDataInd).at(binId);
+	//	int numberOfObjects = currDataset.at(binId).size();
+	//	double binXMin = currBinPolyData->GetPointData()->GetArray("originArray")->GetTuple3(binId)[0];
+	//	double binXMax = currBinPolyData->GetPointData()->GetArray("point1Array")->GetTuple3(binId)[0];
+
+	//	vtkSmartPointer<vtkPoints> finalBinPoints = vtkSmartPointer<vtkPoints>::New();
+	//	vtkSmartPointer<vtkPoints> binPoints = vtkSmartPointer<vtkPoints>::New();
+
+	//	vtkSmartPointer<vtkUnsignedCharArray> binColorArray = vtkSmartPointer<vtkUnsignedCharArray>::New();
+	//	binColorArray->SetName("binColorArray");
+	//	binColorArray->SetNumberOfComponents(3);
+
+	//	if (numberOfObjects == 0)  //numberOfObjects == 0
+	//	{
+	//		binPoints->InsertNextPoint(binXMin, min_y, 0.0);
+	//		binPoints->InsertNextPoint(binXMax, min_y, 0.0);
+	//	}
+	//	else if (numberOfObjects == 1)  //numberOfObjects == 1
+	//	{
+	//		vtkSmartPointer<vtkPoints> point = vtkSmartPointer<vtkPoints>::New();
+	//		double p[3] = {binXMin + ((binXMax - binXMin) * 0.5), min_y, 0.0};
+	//		if (currDataset.at(binId).size() != 0)
+	//		{
+	//			//fill vtkPoints with points of this bin
+	//			computePoints(&currDataset.at(binId), currentColumn, offset, point);
+	//			p[0] = point->GetPoint(0)[0];
+	//			p[1] = point->GetPoint(0)[1];
+	//			p[2] = point->GetPoint(0)[2];
+	//		}
+
+	//		binPoints->InsertNextPoint(binXMin, p[1], 0.0);
+	//		binPoints->InsertNextPoint(p);
+	//		binPoints->InsertNextPoint(binXMax, p[1], 0.0);
+	//	}
+	//	else
+	//	{
+	//		//fill vtkPoints with points of this bin
+	//		computePoints(&currDataset.at(binId), currentColumn, offset, binPoints);
+	//	}
+
+	//	//look if start and endpoint of bin are inside
+	//	double startP[3] = {0.0, 0.0, 0.0};
+	//	double endP[3] = {0.0, 0.0, 0.0};
+	//	bool minXContained = false;
+	//	bool maxXContained = false;
+	//	for (int i = 0; i < binPoints->GetNumberOfPoints(); i++)
+	//	{
+	//		if (binXMin == binPoints->GetPoint(i)[0])
+	//		{
+	//			minXContained = true;
+	//		}
+
+	//		if (binXMax == binPoints->GetPoint(i)[0])
+	//		{
+	//			maxXContained = true;
+	//		}
+
+	//		if (minXContained && maxXContained)
+	//		{
+	//			break;
+	//		}
+	//	}
+
+	//	if (!minXContained)
+	//	{
+	//		double lastPoint[3] = {min_x, min_y, 0.0};
+
+	//		if (binId != 0)
+	//		{
+	//			startP[0] = binXMin;
+	//			startP[1] = curvePoints->GetPoint(curvePoints->GetNumberOfPoints() - 1)[1];
+	//			startP[2] = 0.0;
+	//		}
+	//		else
+	//		{
+	//			startP[0] = binXMin;
+	//			startP[1] = lastPoint[1];
+	//			startP[2] = 0.0;
+	//		}
+
+	//		finalBinPoints->InsertNextPoint(startP);
+	//	}
+
+	//	//fill intermediate points
+	//	if (finalBinPoints->GetNumberOfPoints() == 0)
+	//	{
+	//		finalBinPoints->InsertPoints(0, binPoints->GetNumberOfPoints(), 0, binPoints);
+	//	}
+	//	else
+	//	{
+	//		for (int j = 0; j < binPoints->GetNumberOfPoints(); j++)
+	//		{
+	//			double* p = binPoints->GetPoint(j);
+	//			if ((p[0] >= binXMin) && (p[0] < binXMax))
+	//			{
+	//				finalBinPoints->InsertNextPoint(p);
+	//			}
+	//		}
+	//	}
+
+	//	if (!maxXContained)
+	//	{
+	//		//	get points of next segment
+	//		double nextPoint[3] = {0.0, min_y, 0.0};
+
+	//		vtkSmartPointer<vtkPoints> pointsOfNextSegment = vtkSmartPointer<vtkPoints>::New();
+	//		bool nextSegmentIsAvailable = (binId < (numberOfBins - 1)) && (currDataset.at(binId + 1).size() != 0);
+	//		if (nextSegmentIsAvailable)
+	//		{
+	//			computePoints(&currDataset.at(binId + 1), currentColumn, offset, pointsOfNextSegment);
+	//			for (int nP = 0; nP < pointsOfNextSegment->GetNumberOfPoints(); nP++)
+	//			{
+	//				nextPoint[0] = pointsOfNextSegment->GetPoint(0)[0];
+	//				nextPoint[1] = binPoints->GetPoint(binPoints->GetNumberOfPoints() - 1)[1];
+	//				nextPoint[2] = pointsOfNextSegment->GetPoint(0)[2];
+	//			}
+
+	//			endP[0] = binXMax;
+	//			endP[1] = nextPoint[1];
+	//			endP[2] = 0.0;
+	//		}
+	//		else
+	//		{
+	//			endP[0] = binXMax;
+	//			endP[1] = min_y;
+	//			endP[2] = 0.0;
+	//		}
+
+	//		finalBinPoints->InsertNextPoint(endP);
+	//	}
+
+	//	binColorArray->SetNumberOfTuples(finalBinPoints->GetNumberOfPoints());
+	//	colorCurve(finalBinPoints, binColorArray, numberOfObjectsForColor);
+
+	//	//draw polygon of bin
+	//	vtkSmartPointer<vtkPoints> polygonPoints = vtkSmartPointer<vtkPoints>::New();
+	//	polygonPoints->InsertPoints(0, finalBinPoints->GetNumberOfPoints(), 0, finalBinPoints);
+	//	polygonPoints->InsertNextPoint(finalBinPoints->GetPoint(finalBinPoints->GetNumberOfPoints() - 1)[0], min_y,
+	//		finalBinPoints->GetPoint(finalBinPoints->GetNumberOfPoints() - 1)[2]);
+	//	polygonPoints->InsertNextPoint(finalBinPoints->GetPoint(0)[0], min_y, finalBinPoints->GetPoint(0)[2]);
+	//	polygonPoints->InsertNextPoint(finalBinPoints->GetPoint(0));
+
+	//	vtkSmartPointer<vtkPolyData> thisPolygonData = createPolygon(polygonPoints, numberOfObjectsForColor);
+
+	//	//Append polydata polygons
+	//	appendFilter->AddInputData(thisPolygonData);
+	//	appendFilter->Update();
+	//	
+	//	//fill resutling points and color array
+	//	if (curvePoints->GetNumberOfPoints() == 0)
+	//	{
+	//		curvePoints->InsertPoints(0, finalBinPoints->GetNumberOfPoints(), 0, finalBinPoints);
+	//		colorArray->InsertTuples(0, binColorArray->GetNumberOfTuples(), 0, binColorArray);
+	//	}
+	//	else
+	//	{
+	//		curvePoints->InsertPoints(
+	//			curvePoints->GetNumberOfPoints(), finalBinPoints->GetNumberOfPoints(), 0, finalBinPoints);
+	//		colorArray->InsertTuples(
+	//			colorArray->GetNumberOfTuples(), binColorArray->GetNumberOfTuples(), 0, binColorArray);
+	//	}
+	//}
+
+	////vtkSmartPointer<vtkPolyData> finalPolyData = appendFilter->GetOutput();
+	//
+	////draw the polygon
+	////drawPolygon(finalPolyData);
+	//drawPolygon(curvePoints, colorArray, min_y);
+
+	////draw the curve
+	////drawCurve(curvePoints, colorArray);
+
 	double min_x = drawingDimensions[0];
 	double max_x = drawingDimensions[1];
 	double min_y = drawingDimensions[2];
@@ -490,8 +685,6 @@ void iACompCurve::drawCurveAndPolygon(double drawingDimensions[4], kdeData::kdeB
 	int numberOfBins = currDataset.size();
 
 	vtkSmartPointer<vtkPoints> curvePoints = vtkSmartPointer<vtkPoints>::New();
-	vtkNew<vtkAppendPolyData> appendFilter;
-
 	int numberOPoints = 0;
 	for (int i = 0; i < numberOfBins; i++)
 	{
@@ -516,12 +709,12 @@ void iACompCurve::drawCurveAndPolygon(double drawingDimensions[4], kdeData::kdeB
 		binColorArray->SetName("binColorArray");
 		binColorArray->SetNumberOfComponents(3);
 
-		if (numberOfObjects == 0)  //numberOfObjects == 0
+		if (numberOfObjects == 0)
 		{
 			binPoints->InsertNextPoint(binXMin, min_y, 0.0);
 			binPoints->InsertNextPoint(binXMax, min_y, 0.0);
 		}
-		else if (numberOfObjects == 1)  //numberOfObjects == 1
+		else if (numberOfObjects == 1)
 		{
 			vtkSmartPointer<vtkPoints> point = vtkSmartPointer<vtkPoints>::New();
 			double p[3] = {binXMin + ((binXMax - binXMin) * 0.5), min_y, 0.0};
@@ -597,7 +790,7 @@ void iACompCurve::drawCurveAndPolygon(double drawingDimensions[4], kdeData::kdeB
 			for (int j = 0; j < binPoints->GetNumberOfPoints(); j++)
 			{
 				double* p = binPoints->GetPoint(j);
-				if ((p[0] >= binXMin) && (p[0] < binXMax))
+				if (p[0] >= binXMin && p[0] <= binXMax)
 				{
 					finalBinPoints->InsertNextPoint(p);
 				}
@@ -638,20 +831,6 @@ void iACompCurve::drawCurveAndPolygon(double drawingDimensions[4], kdeData::kdeB
 		binColorArray->SetNumberOfTuples(finalBinPoints->GetNumberOfPoints());
 		colorCurve(finalBinPoints, binColorArray, numberOfObjectsForColor);
 
-		//draw polygon of bin
-		vtkSmartPointer<vtkPoints> polygonPoints = vtkSmartPointer<vtkPoints>::New();
-		polygonPoints->InsertPoints(0, finalBinPoints->GetNumberOfPoints(), 0, finalBinPoints);
-		polygonPoints->InsertNextPoint(finalBinPoints->GetPoint(finalBinPoints->GetNumberOfPoints() - 1)[0], min_y,
-			finalBinPoints->GetPoint(finalBinPoints->GetNumberOfPoints() - 1)[2]);
-		polygonPoints->InsertNextPoint(finalBinPoints->GetPoint(0)[0], min_y, finalBinPoints->GetPoint(0)[2]);
-		polygonPoints->InsertNextPoint(finalBinPoints->GetPoint(0));
-
-		vtkSmartPointer<vtkPolyData> thisPolygonData = createPolygon(polygonPoints, numberOfObjectsForColor);
-
-		//Append polydata polygons
-		appendFilter->AddInputData(thisPolygonData);
-		appendFilter->Update();
-		
 		//fill resutling points and color array
 		if (curvePoints->GetNumberOfPoints() == 0)
 		{
@@ -667,9 +846,7 @@ void iACompCurve::drawCurveAndPolygon(double drawingDimensions[4], kdeData::kdeB
 		}
 	}
 
-	vtkSmartPointer<vtkPolyData> finalPolyData = appendFilter->GetOutput();
-	//draw the polygon
-	drawPolygon(finalPolyData);
+	drawPolygon(curvePoints,colorArray, min_y);
 
 	//draw the curve
 	drawCurve(curvePoints, colorArray);
@@ -704,18 +881,74 @@ vtkSmartPointer<vtkPolyData> iACompCurve::createPolygon(vtkSmartPointer<vtkPoint
 	return polyData;
 }
 
-void iACompCurve::drawPolygon(vtkSmartPointer<vtkPolyData> polygonPolyData)
+void iACompCurve::drawPolygon(vtkSmartPointer<vtkPoints> curvePoints, vtkSmartPointer<vtkUnsignedCharArray> colorArray, double bottomY)
 {
-	// Setup actor and mapper
-	vtkNew<vtkPolyDataMapper> mapper;
-	mapper->SetInputData(polygonPolyData);
-	mapper->SetColorModeToDefault();
-	mapper->SetScalarModeToUseCellData();
-	mapper->GetInput()->GetCellData()->SetScalars(polygonPolyData->GetCellData()->GetArray("colorArray"));
-	mapper->ScalarVisibilityOn();
+	vtkNew<vtkAppendPolyData> appendFilter;
 
-	vtkNew<vtkActor> actor;
-	actor->SetMapper(mapper);
+	for (unsigned int i = 0; i < curvePoints->GetNumberOfPoints()-1; i++)
+	{ //compute each bin individually
+		
+		int numberOfPointsFormingBin = 5;
+
+		//compute color array of bin
+		vtkSmartPointer<vtkUnsignedCharArray> currBinColorArray = vtkSmartPointer<vtkUnsignedCharArray>::New();
+		currBinColorArray->SetNumberOfTuples(numberOfPointsFormingBin);
+		currBinColorArray->SetNumberOfComponents(3);
+		currBinColorArray->SetName("CurrBinColorArray");
+		double* color = colorArray->GetTuple3(i);
+		for (int j = 0; j < numberOfPointsFormingBin; j++)
+		{
+			currBinColorArray->InsertTuple3(j, color[0], color[1], color[2]);
+		}
+		
+		//compute points of bin
+		vtkSmartPointer<vtkPoints> currBinCurvePoints = vtkSmartPointer<vtkPoints>::New();
+		currBinCurvePoints->SetNumberOfPoints(numberOfPointsFormingBin);
+		
+		double currPoint[3];
+		curvePoints->GetPoint(i, currPoint);
+		double nextPoint[3];
+		curvePoints->GetPoint(vtkIdType(i + 1), nextPoint);
+
+		currBinCurvePoints->InsertPoint(0, currPoint);
+		currBinCurvePoints->InsertPoint(1, nextPoint);
+		currBinCurvePoints->InsertPoint(2, nextPoint[0], bottomY, nextPoint[2]);
+		currBinCurvePoints->InsertPoint(3, currPoint[0], bottomY, currPoint[2]);
+		currBinCurvePoints->InsertPoint(4, currPoint);
+
+		vtkNew<vtkPolygon> polygon;
+		polygon->GetPointIds()->SetNumberOfIds(numberOfPointsFormingBin);
+		for (unsigned int j = 0; j < numberOfPointsFormingBin; j++)
+		{
+			polygon->GetPointIds()->SetId(j, j);
+		}
+
+		// Create a cell array to store the lines in and add the lines to it
+		vtkNew<vtkCellArray> cells;
+		cells->InsertNextCell(polygon);
+
+		vtkNew<vtkPolyData> curvePolyData;
+		curvePolyData->SetPoints(currBinCurvePoints);
+		curvePolyData->SetPolys(cells);
+		curvePolyData->GetCellData()->SetScalars(currBinColorArray);
+		
+		appendFilter->AddInputData(curvePolyData);
+	}
+	
+	appendFilter->Update();
+
+	// Remove any duplicate points.
+	vtkNew<vtkCleanPolyData> cleanFilter;
+	cleanFilter->SetInputConnection(appendFilter->GetOutputPort());
+	cleanFilter->Update();
+
+	vtkNew<vtkPolyDataMapper> lineMapper;
+	lineMapper->SetInputConnection(cleanFilter->GetOutputPort());
+	lineMapper->SetScalarRange(colorArray->GetRange());
+	lineMapper->SetColorModeToDirectScalars();
+
+	vtkSmartPointer<vtkActor> actor = vtkSmartPointer<vtkActor>::New();
+	actor->SetMapper(lineMapper);
 
 	m_mainRenderer->AddActor(actor);
 }
@@ -756,7 +989,6 @@ void iACompCurve::drawCurve(
 	lineMapper->SetScalarModeToUsePointData();
 	lineMapper->GetInput()->GetPointData()->SetScalars(curvePolyData->GetPointData()->GetArray("colorArray"));
 	lineMapper->InterpolateScalarsBeforeMappingOff();
-	//lineMapper->ScalarVisibilityOn();
 
 	vtkSmartPointer<vtkActor> actor = vtkSmartPointer<vtkActor>::New();
 	actor->SetMapper(lineMapper);

@@ -90,6 +90,7 @@ iACompBoxPlot::iACompBoxPlot(iAMainWindow* parent, iACsvDataStorage* dataStorage
 	setupUi(this);
 
 	this->setFeatures(DockWidgetVerticalTitleBar);
+	this->setWindowTitle("Box Plot");
 
 	QVBoxLayout* layout = new QVBoxLayout;
 	dockWidgetContents->setLayout(layout);

@@ -112,14 +112,14 @@ void iACompUniformTable::setActive()
 
 		drawHistogramTable(m_bins);
 		
-		m_mainRenderer->ResetCamera();
+		//m_mainRenderer->ResetCamera();
 		renderWidget();
 	}
 	else if (m_lastState == iACompVisOptions::lastState::Changed)
 	{
 		drawHistogramTable(m_bins);
 		
-		m_mainRenderer->ResetCamera();
+		//m_mainRenderer->ResetCamera();
 		renderWidget();
 	}
 }
@@ -1315,7 +1315,7 @@ void iACompUniformTable::drawPointRepresentation()
 				m_pointRepresentationActors->push_back(lineActor);
 
 				//draw indiviudal data points
-				double radius = (m_vis->getColSize() * 0.5) * 0.25;
+				double radius = m_vis->getColSize() * 0.10;
 				double lineWidth = 1;
 				double circleColor[3];
 				iACompVisOptions::getDoubleArray(iACompVisOptions::BACKGROUNDCOLOR_LIGHTGREY, circleColor);
@@ -1948,15 +1948,30 @@ void iACompUniformTable::showSelectionOfCorrelationMap(std::map<int, double>* da
 
 				vtkSmartPointer<vtkAlgorithm> algorithm =
 					selectedAct->GetMapper()->GetInputConnection(0, 0)->GetProducer();
-				vtkSmartPointer<vtkPlaneSource> oldPlane = vtkPlaneSource::SafeDownCast(algorithm);
+				vtkSmartPointer<vtkPolyDataAlgorithm> polyDataAlgorithm = vtkPolyDataAlgorithm::SafeDownCast(algorithm);
+				vtkSmartPointer<vtkPolyData> currPolyData = polyDataAlgorithm->GetPolyDataInput(0);
+
+				vtkSmartPointer<vtkDoubleArray> originArray =
+					vtkDoubleArray::SafeDownCast(currPolyData->GetPointData()->GetArray("originArray"));
+				vtkSmartPointer<vtkDoubleArray> point1Array =
+					vtkDoubleArray::SafeDownCast(currPolyData->GetPointData()->GetArray("point1Array"));
+				vtkSmartPointer<vtkDoubleArray> point2Array =
+					vtkDoubleArray::SafeDownCast(currPolyData->GetPointData()->GetArray("point2Array"));
 
 				if (iter->second == 0.0)
 				{  // is outer arc --> highlight whole dataset
 
+					double originPlane[3];
+					originArray->GetTuple(0, originPlane);
+					double point1Plane[3];
+					point1Array->GetTuple(point1Array->GetNumberOfTuples() - 1, point1Plane);
+					double point2Plane[3];
+
+					point2Array->GetTuple(0, point2Plane);
 					double col[3];
 					iACompVisOptions::getDoubleArray(iACompVisOptions::BACKGROUNDCOLOR_LIGHTGREY, col);
 
-					drawStippledTexture(oldPlane->GetOrigin(), oldPlane->GetPoint1(), oldPlane->GetPoint2(), col);
+					drawStippledTexture(originPlane, point1Plane, point2Plane, col);
 				}
 				else if (iter->second == 1.0)
 				{  // is selected inner arc --> highlight selected cells
@@ -1967,23 +1982,19 @@ void iACompUniformTable::showSelectionOfCorrelationMap(std::map<int, double>* da
 					{
 						std::vector<vtkIdType>* cells = pos->second;
 
-						double startX = oldPlane->GetOrigin()[0];
-						double cellWidth = (oldPlane->GetPoint1()[0] - oldPlane->GetOrigin()[0]) / m_bins;
-
 						for (int i = 0; i < cells->size(); i++)
 						{
 							vtkIdType cellId = cells->at(i);
 
-							double startXCell = startX + (cellWidth * cellId);
-							double endXCell = startXCell + cellWidth;
-
-							double origin[3] = {startXCell, oldPlane->GetOrigin()[1], oldPlane->GetOrigin()[2]};
-							double point1[3] = {endXCell, oldPlane->GetPoint1()[1], oldPlane->GetPoint1()[2]};
-							double point2[3] = {startXCell, oldPlane->GetPoint2()[1], oldPlane->GetPoint2()[2]};
+							double origin[3];
+							originArray->GetTuple(cellId, origin);
+							double point1[3];
+							point1Array->GetTuple(cellId, point1);
+							double point2[3];
+							point2Array->GetTuple(cellId, point2);
 
 							double col[3];
 							iACompVisOptions::getDoubleArray(iACompVisOptions::HIGHLIGHTCOLOR_GREEN, col);
-
 							drawStippledTexture(origin, point1, point2, col);
 						}
 					}
@@ -1997,24 +2008,20 @@ void iACompUniformTable::showSelectionOfCorrelationMap(std::map<int, double>* da
 						std::vector<vtkIdType>* cells = pos->second;
 						std::vector<vtkIdType>::iterator cellIterator;
 
-						double startX = oldPlane->GetOrigin()[0];
-						double cellWidth = (oldPlane->GetPoint1()[0] - oldPlane->GetOrigin()[0]) / m_bins;
-
 						for (int i = 0; i < m_bins; i++)
 						{
+							double origin[3];
+							originArray->GetTuple(i, origin);
+							double point1[3];
+							point1Array->GetTuple(i, point1);
+							double point2[3];
+							point2Array->GetTuple(i, point2);
+
 							cellIterator = std::find(cells->begin(), cells->end(), i);
 							if (cellIterator == cells->end())
 							{  //when the cell is not one of the selected ones
-								double startXCell = startX + (cellWidth * i);
-								double endXCell = startXCell + cellWidth;
-
-								double origin[3] = {startXCell, oldPlane->GetOrigin()[1], oldPlane->GetOrigin()[2]};
-								double point1[3] = {endXCell, oldPlane->GetPoint1()[1], oldPlane->GetPoint1()[2]};
-								double point2[3] = {startXCell, oldPlane->GetPoint2()[1], oldPlane->GetPoint2()[2]};
-
 								double col[3];
 								iACompVisOptions::getDoubleArray(iACompVisOptions::BACKGROUNDCOLOR_LIGHTERGREY, col);
-
 								drawStippledTexture(origin, point1, point2, col);
 							}
 						}

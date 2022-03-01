@@ -176,6 +176,13 @@
     </widget>
    </item>
    <item>
+    <widget class="QCheckBox" name="show3DViewsCheckBox">
+     <property name="text">
+      <string>show 3D views</string>
+     </property>
+    </widget>
+   </item>
+   <item>
     <widget class="QDialogButtonBox" name="buttonBox">
      <property name="sizePolicy">
       <sizepolicy hsizetype="Expanding" vsizetype="Fixed">

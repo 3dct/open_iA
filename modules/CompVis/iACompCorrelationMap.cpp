@@ -110,6 +110,7 @@ iACompCorrelationMap::iACompCorrelationMap(iAMainWindow* parent, iACorrelationCo
 	m_lastState(iACompVisOptions::lastState::Undefined)
 {
 	setupUi(this);
+	this->setWindowTitle("Correlation Widget");
 
 	QVBoxLayout* layout = new QVBoxLayout;
 	dockWidgetContents->setLayout(layout);

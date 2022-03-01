@@ -84,6 +84,4 @@ class iACompVisMain
 	iACompBoxPlot* m_BoxPlotDockWidget;
 	iACompCorrelationMap* m_CorrelationMapDockWidget;
 	iAComp3DView* m_3DViewDockWidget;
-
-	bool m_computeMDSFlag;
 };

@@ -214,4 +214,23 @@ namespace iACompVisOptions
 		QString result = newLow.replace(".csv", "");
 		return result;
 	}
+
+	/*************** Initialization of Computation & GUI Options ****************************/
+	void setComputeNoMDS(bool val)
+	{
+		computeNoMDS = val;
+	}
+	void setShow3DViews(bool val)
+	{
+		show3DViews = val;
+	}
+
+	bool getComputeNoMDS()
+	{
+		return computeNoMDS;
+	}
+	bool getShow3DViews()
+	{
+		return show3DViews; 
+	}
 }

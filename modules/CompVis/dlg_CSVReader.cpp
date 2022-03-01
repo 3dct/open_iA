@@ -2,6 +2,7 @@
 
 //Debug
 #include "iALog.h"
+#include "iACompVisOptions.h"
 
 #include <QDirIterator>
 #include <QFileDialog>
@@ -9,7 +10,7 @@
 #include <QPushButton>
 
 
-dlg_CSVReader::dlg_CSVReader() : QDialog(), m_computeMDSFlag(true)
+dlg_CSVReader::dlg_CSVReader() : QDialog()
 {
 	setupUi(this);
 	connectSignals();
@@ -58,27 +59,28 @@ void dlg_CSVReader::btnDeleteFileClicked()
 
 void dlg_CSVReader::okBtnClicked()
 {
-	m_dataStorage = new iACsvDataStorage(&m_filenames);
-
 	if (noMDSCheckBox->isChecked())
 	{
 		noMDSChecked();
 	}
+
+	if (show3DViewsCheckBox->isChecked())
+	{
+		//m_compute3DViews = true;
+		iACompVisOptions::setShow3DViews(true);
+	}
+
+	m_dataStorage = new iACsvDataStorage(&m_filenames);
 
 	this->accept();
 }
 
 void dlg_CSVReader::noMDSChecked()
 {
-	m_computeMDSFlag = false;
+	iACompVisOptions::setComputeNoMDS(false);
 }
 
 iACsvDataStorage* dlg_CSVReader::getCsvDataStorage()
 {
 	return m_dataStorage;
-}
-
-bool dlg_CSVReader::getMDSState()
-{
-	return m_computeMDSFlag;
 }

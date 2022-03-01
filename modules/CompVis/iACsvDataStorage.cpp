@@ -1,5 +1,7 @@
 #include "iACsvDataStorage.h"
 
+//CompVis
+#include "iACompVisOptions.h"
 
 //iAobjectvis
 #include "iACsvIO.h"
@@ -43,8 +45,12 @@ iACsvDataStorage::iACsvDataStorage(QStringList* csvFiles) :
 		//create data structure for MDS and CompVis
 		storeCSVToVectorArray(list);
 
+	
 		//create data structure for 3DVis for library iAobjectvis
-		initializeObjectTableFor3DRendering();
+		if (iACompVisOptions::getShow3DViews())
+		{
+			initializeObjectTableFor3DRendering();
+		}
 
 	}
 

@@ -249,11 +249,11 @@ void iACompTable::addDatasetName(int currDataset, double* position)
 	m_mainRenderer->AddActor(legend);
 }
 
-
 int iACompTable::getRenderingView()
 {
 	return m_renderingView;
 }
+
 /********************************************  Ordering/Ranking ********************************************/
 void iACompTable::createBarChart(vtkSmartPointer<vtkPolyData> currPolyData, int currAmountObjects, int maxAmountObjects)
 {
@@ -438,11 +438,11 @@ void iACompTable::initializeLegend()
 	scalarBar->SetLookupTable(m_lut);
 	scalarBar->SetHeight(0.9);  //scalarBar is set so high, that the blacckground above the title cannot be seen anymore
 	scalarBar->GetPositionCoordinate()->SetCoordinateSystemToNormalizedViewport();
-	scalarBar->GetPositionCoordinate()->SetValue(0.25, 0.15, 0.0); //0.40, 0.15, 0.0
+	scalarBar->GetPositionCoordinate()->SetValue(0.25, 0.15, 0.0);  //0.25, 0.15, 0.0
 	scalarBar->SetWidth(0.15);
 	scalarBar->SetUnconstrainedFontSize(1);
 
-	scalarBar->SetTitle("Number \n of \n Objects");
+	scalarBar->SetTitle("Number \n of Objects");
 	scalarBar->SetNumberOfLabels(0);
 	scalarBar->SetTextPositionToPrecedeScalarBar();
 

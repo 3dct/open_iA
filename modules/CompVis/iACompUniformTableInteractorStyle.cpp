@@ -302,7 +302,7 @@ void iACompUniformTableInteractorStyle::resetHistogramTable()
 	m_visualization->clearRenderer();
 	m_visualization->drawHistogramTable(m_visualization->getBins());
 
-	m_visualization->getRenderer()->ResetCamera();
+	//m_visualization->getRenderer()->ResetCamera();
 	m_visualization->renderWidget();
 
 	resetOtherCharts();

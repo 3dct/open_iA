@@ -74,6 +74,7 @@ iACompBarChart::iACompBarChart(iAMainWindow* parent, iACoefficientOfVariation* c
 {
 	setupUi(this);
 	this->setFeatures(DockWidgetVerticalTitleBar);
+	this->setWindowTitle("Bar Chart");
 
 	QVBoxLayout* layout = new QVBoxLayout;
 	dockWidgetContents->setLayout(layout);

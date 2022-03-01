@@ -75,12 +75,12 @@ std::vector<double>* iACompBinning::calculateSilhouetteCoefficient(iACompHistogr
 		 resultPerDataset->push_back(silhouette / allPoints.size());
 	}
 
-	//DEBUG
-	for (int s = 0; s < resultPerDataset->size(); s++)
-	{
-		//LOG(lvlDebug, "silhouette for dataset " + QString::number(s) + ": " + QString::number(resultPerDataset->at(s)));
-		LOG(lvlDebug, QString::number(resultPerDataset->at(s)));
-	}
+	////DEBUG
+	//for (int s = 0; s < resultPerDataset->size(); s++)
+	//{
+	//	//LOG(lvlDebug, "silhouette for dataset " + QString::number(s) + ": " + QString::number(resultPerDataset->at(s)));
+	//	LOG(lvlDebug, QString::number(resultPerDataset->at(s)));
+	//}
 
 	return resultPerDataset;
 	

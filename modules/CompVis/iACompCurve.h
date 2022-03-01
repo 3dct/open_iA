@@ -102,7 +102,7 @@ protected:
 	void drawCurve(
 		vtkSmartPointer<vtkPoints> points, vtkSmartPointer<vtkUnsignedCharArray> colorArray);
 	//draw polygons (add to renderer) - the polygons are combined to a uniform vtkPolyData-Object and contain their colorArrays
-	void drawPolygon(vtkSmartPointer<vtkPolyData> polygonPolyData);
+	void drawPolygon(vtkSmartPointer<vtkPoints> curvePoints, vtkSmartPointer<vtkUnsignedCharArray> colorArray, double bottomY);
 	//create polygons
 	vtkSmartPointer<vtkPolyData> createPolygon(vtkSmartPointer<vtkPoints> points, int numberOfObjectsInsideBin);
 
