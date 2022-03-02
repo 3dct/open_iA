@@ -561,21 +561,6 @@ void MainWindow::openNew()
 			iAMdiChild* targetChild = child ? child :  createMdiChild(false);
 			m_loadedPoly.push_back(d->data->poly());	// store somewhere else!!!
 			
-			// Glyph the points
-			// TODO: move somewhere else, fix memory leaks...
-			auto sphere = vtkSphereSource::New();
-			sphere->SetPhiResolution(21);
-			sphere->SetThetaResolution(21);
-			sphere->SetRadius(0.5);
-
-			auto pointMapper = vtkGlyph3DMapper::New();
-			pointMapper->SetInputData(d->data->poly());
-			pointMapper->SetSourceConnection(sphere->GetOutputPort());
-
-			auto  pointActor = vtkActor::New();
-			pointActor->SetMapper(pointMapper);
-			pointActor->GetProperty()->SetColor(1.0, 0.0, 0.0);
-
 			if (!child)
 			{
 				targetChild->displayResult("test", d->data->image(), d->data->poly());
@@ -586,12 +571,29 @@ void MainWindow::openNew()
 				auto lineMapper = vtkPolyDataMapper::New();
 				lineMapper->SetInputData(d->data->poly());
 				auto lineActor = vtkActor::New();
-				pointActor->SetMapper(lineMapper);
+				lineActor->SetMapper(lineMapper);
+				lineActor->GetProperty()->SetColor(0.0, 1.0, 0.0);
 				targetChild->renderer()->renderer()->AddActor(lineActor);
+
 			}
 
+			// Glyph the points
+			// TODO: move somewhere else, fix memory leaks...
+			auto sphere = vtkSphereSource::New();
+			sphere->SetPhiResolution(21);
+			sphere->SetThetaResolution(21);
+			sphere->SetRadius(5);
+			vtkNew<vtkPoints> pointsPoints;
+			pointsPoints->DeepCopy(d->data->poly()->GetPoints());
+			vtkNew<vtkPolyData> glyphPoints;
+			glyphPoints->SetPoints(pointsPoints);
+			auto pointMapper = vtkGlyph3DMapper::New();
+			pointMapper->SetInputData(glyphPoints);
+			pointMapper->SetSourceConnection(sphere->GetOutputPort());
+			auto pointActor = vtkActor::New();
+			pointActor->SetMapper(pointMapper);
+			pointActor->GetProperty()->SetColor(1.0, 0.0, 0.0);
 			targetChild->renderer()->renderer()->AddActor(pointActor);
-			targetChild->renderer()->renderer()->ResetCamera();
 		}
 		delete d->data;
 	}
