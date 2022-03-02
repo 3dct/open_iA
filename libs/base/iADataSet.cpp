@@ -54,39 +54,50 @@ namespace iANewIO
 	}
 }
 
-iADataSet::iADataSet(iADataSetType type, QString const& name, QString const& fileName,
-	vtkSmartPointer<vtkImageData> img, vtkSmartPointer<vtkPolyData> mesh) :
-	m_type(type), m_name(name), m_fileName(fileName),
-	m_img(vtkSmartPointer<vtkImageData>::New()), m_mesh(vtkSmartPointer<vtkPolyData>::New())
+iADataSet::iADataSet(iADataSetType type, QString const& name, QString const& fileName) :
+	m_type(type), m_name(name), m_fileName(fileName)
 {
-	if (img)
-	{
-		m_img->DeepCopy(img);
-		//storeImage(m_img, "C:/fh/testnewio2.5vtk.mhd", false);
-	}
-	if (mesh)
-	{
-		m_mesh->DeepCopy(mesh);
-	}
 }
+
 iADataSetType iADataSet::type() const
 {
 	return m_type;
 }
+
 QString const& iADataSet::name() const
 {
 	return m_name;
 }
+
 QString const& iADataSet::fileName() const
 {
 	return m_fileName;
 }
 
-vtkSmartPointer<vtkImageData> iADataSet::image()
+QString iADataSet::info() const
 {
-	return m_img;
- }
-vtkSmartPointer<vtkPolyData> iADataSet::poly()
+	return "";
+}
+
+iAGraphData::iAGraphData(QString const& name, QString const& fileName, vtkSmartPointer<vtkPolyData> mesh):
+	iADataSet(iADataSetType::dstGraph, name, fileName),
+	m_mesh(mesh)
+{
+}
+
+vtkSmartPointer<vtkPolyData> iAGraphData::poly()
 {
 	return m_mesh;
+}
+
+
+iAImageData::iAImageData(QString const& name, QString const& fileName, vtkSmartPointer<vtkImageData> img):
+	iADataSet(iADataSetType::dstVolume, name, fileName),
+	m_img(img)
+{
+}
+
+vtkSmartPointer<vtkImageData> iAImageData::image()
+{
+	return m_img;
 }

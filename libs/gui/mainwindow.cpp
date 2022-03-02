@@ -83,13 +83,7 @@
 #include <QtXml/QDomDocument>
 #include <QDesktopServices>
 
-// TODO:: for graph points - move somewhere else!
 #include "iAFileTypeRegistry.h"
-
-#include <vtkGlyph3DMapper.h>
-#include <vtkPolyDataMapper.h>
-#include <vtkProperty.h>
-#include <vtkSphereSource.h>
 
 const int MainWindow::MaxRecentFiles;
 
@@ -386,7 +380,7 @@ void MainWindow::loadFile(QString const & fileName)
 
 struct iALoadedData
 {
-	iADataSet* data;
+	std::shared_ptr<iADataSet> data;
 };
 
 void MainWindow::loadFile(QString fileName, bool isStack)
@@ -558,44 +552,9 @@ void MainWindow::openNew()
 		if (d->data)
 		{
 			//storeImage(d->data->image(), "C:/fh/testnewio-mainwnd-finished.mhd", false);
-			iAMdiChild* targetChild = child ? child :  createMdiChild(false);
-			m_loadedPoly.push_back(d->data->poly());	// store somewhere else!!!
-			
-			if (!child)
-			{
-				targetChild->displayResult("test", d->data->image(), d->data->poly());
-				targetChild->enableRenderWindows();
-			}
-			else
-			{
-				auto lineMapper = vtkPolyDataMapper::New();
-				lineMapper->SetInputData(d->data->poly());
-				auto lineActor = vtkActor::New();
-				lineActor->SetMapper(lineMapper);
-				lineActor->GetProperty()->SetColor(0.0, 1.0, 0.0);
-				targetChild->renderer()->renderer()->AddActor(lineActor);
-
-			}
-
-			// Glyph the points
-			// TODO: move somewhere else, fix memory leaks...
-			auto sphere = vtkSphereSource::New();
-			sphere->SetPhiResolution(21);
-			sphere->SetThetaResolution(21);
-			sphere->SetRadius(5);
-			vtkNew<vtkPoints> pointsPoints;
-			pointsPoints->DeepCopy(d->data->poly()->GetPoints());
-			vtkNew<vtkPolyData> glyphPoints;
-			glyphPoints->SetPoints(pointsPoints);
-			auto pointMapper = vtkGlyph3DMapper::New();
-			pointMapper->SetInputData(glyphPoints);
-			pointMapper->SetSourceConnection(sphere->GetOutputPort());
-			auto pointActor = vtkActor::New();
-			pointActor->SetMapper(pointMapper);
-			pointActor->GetProperty()->SetColor(1.0, 0.0, 0.0);
-			targetChild->renderer()->renderer()->AddActor(pointActor);
+			iAMdiChild* targetChild = child ? child : createMdiChild(false);
+			targetChild->addDataset(d->data);
 		}
-		delete d->data;
 	}
 	, this);
 	iAJobListView::get()->addJob(QString("Loading file '%1'").arg(fileName), p.get(), future);

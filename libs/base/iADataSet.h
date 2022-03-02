@@ -18,7 +18,8 @@ class vtkImageData;
 enum iADataSetType
 {
 	dstVolume = 1,
-	dstMesh = 2
+	dstMesh = 2,
+	dstGraph = 3
 };
 
 Q_DECLARE_FLAGS(iADataSetTypes, iADataSetType)
@@ -28,29 +29,39 @@ Q_DECLARE_OPERATORS_FOR_FLAGS(iADataSetTypes)
 class iAbase_API iADataSet
 {
 public:
-	iADataSet(iADataSetType type, QString const& name, QString const& fileName, vtkSmartPointer<vtkImageData> img, vtkSmartPointer<vtkPolyData> mesh);
 	//iAVec3d bounds();
 	//virtual double const* bounds() const = 0;
 	//virtual QString information() const =0;
 	iADataSetType type() const;
 	QString const& name() const;
 	QString const& fileName() const;
+	virtual QString info() const;
 
-	// TODO: move to descendant classes, make collections of images(?):
-	// {
-	vtkSmartPointer<vtkImageData> image();
-	vtkSmartPointer<vtkPolyData> poly();
-	// }
+protected:
+	iADataSet(iADataSetType type, QString const& name, QString const& fileName);
 
 private:
 	iADataSetType m_type;
 	QString m_name;
 	QString m_fileName;
-	// TODO: move to descendant classes, make collections of images(?):
-	// {
-	vtkSmartPointer<vtkImageData> m_img;
+};
+
+class iAbase_API iAGraphData : public iADataSet
+{
+public:
+	iAGraphData(QString const& name, QString const& fileName, vtkSmartPointer<vtkPolyData> mesh);
+	vtkSmartPointer<vtkPolyData> poly();
+private:
 	vtkSmartPointer<vtkPolyData> m_mesh;
-	// }
+};
+
+class iAbase_API iAImageData : public iADataSet
+{
+public:
+	iAImageData(QString const& name, QString const& fileName, vtkSmartPointer<vtkImageData> img);
+	vtkSmartPointer<vtkImageData> image();
+private:
+	vtkSmartPointer<vtkImageData> m_img;
 };
 
 class iAFileIO;

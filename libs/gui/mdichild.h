@@ -78,6 +78,7 @@ class iAAbortListener;
 class dlg_modalities;
 class iAAlgorithm;
 class iAChannelData;
+class iADataSetRenderer;
 class iADockWidgetWrapper;
 class iAIO;
 class iAModality;
@@ -101,6 +102,7 @@ public:
 	bool loadFile(const QString &f, bool isStack) override;
 	bool loadRaw(const QString &f);
 	bool displayResult(QString const & title, vtkImageData* image = nullptr, vtkPolyData* poly = nullptr) override;
+	void addDataset(std::shared_ptr<iADataSet> dataset) override;
 	void prepareForResult();
 	bool save();
 	bool saveAs();
@@ -500,4 +502,8 @@ private:
 	QMap<QString, QSharedPointer<iAProjectBase>> m_projects;  //!< list of currently active "projects" (i.e. Tools)
 	iAInteractionMode m_interactionMode;                      //!< current interaction mode in slicers/renderer (see iAInteractionMode)
 	bool m_slicerVisibility[3];
+
+	//! datasets:
+	std::vector<std::shared_ptr<iADataSet>> m_datasets;
+	std::vector<std::shared_ptr<iADataSetRenderer>> m_dataRenderers;
 };

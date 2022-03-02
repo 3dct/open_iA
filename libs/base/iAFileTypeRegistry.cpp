@@ -81,7 +81,7 @@ iAITKFileIO::iAITKFileIO() :
 	iAFileIO(iADataSetType::dstVolume)
 {}
 
-iADataSet* iAITKFileIO::load(iAProgress* p, QMap<QString, QVariant> const& parameters)
+std::shared_ptr<iADataSet> iAITKFileIO::load(iAProgress* p, QMap<QString, QVariant> const& parameters)
 {
 	Q_UNUSED(parameters);
 	typedef itk::ImageIOBase::IOComponentType ScalarPixelType;
@@ -97,8 +97,7 @@ iADataSet* iAITKFileIO::load(iAProgress* p, QMap<QString, QVariant> const& param
 	iAConnector con;
 	ITK_EXTENDED_TYPED_CALL(read_image_template, pixelType, imagePixelType, m_fileName, p, con);
 	storeImage(con.itkImage(), "C:/fh/testnewio2.mhd", false);
-	return new iADataSet(
-		dstVolume, QFileInfo(m_fileName).baseName(), m_fileName, con.vtkImage(), nullptr);
+	return std::make_shared<iAImageData>(QFileInfo(m_fileName).baseName(), m_fileName, con.vtkImage());
 }
 
 /*
@@ -158,7 +157,7 @@ iAGraphFileIO::iAGraphFileIO() : iAFileIO(iADataSetType::dstMesh)
 	addParameter("Spacing Z", iAValueType::Continuous, 1.0);
 }
 
-iADataSet* iAGraphFileIO::load(iAProgress* p, QMap<QString, QVariant> const& params)
+std::shared_ptr<iADataSet> iAGraphFileIO::load(iAProgress* p, QMap<QString, QVariant> const& params)
 {
 	// maybe we could also use vtkPDBReader, but not sure that's the right "PDB" file type...
 	Q_UNUSED(p);
@@ -279,12 +278,12 @@ iADataSet* iAGraphFileIO::load(iAProgress* p, QMap<QString, QVariant> const& par
 		//auto remains = file.bytesAvailable();
 		//auto progress = ((size - remains) * 100) / size;
 	}
-	LOG(lvlInfo, QString("Number of lines: %1").arg(numberOfLines));
+	//LOG(lvlInfo, QString("Number of lines: %1").arg(numberOfLines));
 
 	// skip last section for now
 
 	myPolyData->SetLines(lines);
 	myPolyData->GetPointData()->AddArray(colors);
 
-	return new iADataSet(dstMesh, QFileInfo(m_fileName).baseName(), m_fileName, nullptr, myPolyData);
+	return std::make_shared<iAGraphData>(QFileInfo(m_fileName).baseName(), m_fileName, myPolyData);
 }

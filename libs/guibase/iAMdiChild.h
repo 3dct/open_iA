@@ -33,6 +33,7 @@ class dlg_modalities;
 class iAAlgorithm;
 class iAChannelData;
 class iAChartWithFunctionsWidget;
+class iADataSet;
 class iAIO;
 class iAMainWindow;
 class iAModality;
@@ -210,8 +211,11 @@ public:
 	//! "set" rednder settings
 	virtual bool editRendererSettings(iARenderSettings const& rs, iAVolumeSettings const& vs) = 0;
 
+	//! add a dataset
+	virtual void addDataset(std::shared_ptr<iADataSet> dataset) = 0;
+
 	//! display an image or a mesh
-	//! might be deprecated soon.
+	//! @deprecated use addDataset instead
 	//! Use modality methods instead - though probably still required for first dataset at the moment.
 	virtual bool displayResult(QString const& title, vtkImageData* image = nullptr, vtkPolyData* poly = nullptr) = 0;
 

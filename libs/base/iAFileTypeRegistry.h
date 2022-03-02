@@ -17,7 +17,7 @@ public:
 	iAFileIO(iADataSetType type);
 	void setup(QString const& fileName);  // TODO: make possible to also use e.g. folder name or list of files
 	virtual ~iAFileIO();
-	virtual iADataSet* load(iAProgress* p, QMap<QString, QVariant> const& paramValues) = 0;
+	virtual std::shared_ptr<iADataSet> load(iAProgress* p, QMap<QString, QVariant> const& paramValues) = 0;
 	// copied from iAFilter - maybe reuse? move to new common base class iAParameterizedSomething ...?
 	iAAttributes const& parameters() const;
 	iADataSetType type() const;
@@ -100,12 +100,12 @@ class iAITKFileIO : public iAFileIO
 {
 public:
 	iAITKFileIO();
-	iADataSet* load(iAProgress* p, QMap<QString, QVariant> const& parameters) override;
+	std::shared_ptr<iADataSet> load(iAProgress* p, QMap<QString, QVariant> const& parameters) override;
 };
 
 class iAGraphFileIO: public iAFileIO
 {
 public:
 	iAGraphFileIO();
-	iADataSet* load(iAProgress* p, QMap<QString, QVariant> const& parameters) override;
+	std::shared_ptr<iADataSet> load(iAProgress* p, QMap<QString, QVariant> const& parameters) override;
 };

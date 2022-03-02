@@ -34,11 +34,12 @@
 // slicer
 #include <iASlicerImpl.h>
 
-// core
+// guibase
 #include <dlg_modalities.h>
 #include <iAAlgorithm.h>
 #include <iAChannelData.h>
 #include <iAChannelSlicerData.h>
+#include <iADataSetRenderer.h>
 #include <iAJobListView.h>
 #include <iAModality.h>
 #include <iAModalityList.h>
@@ -450,6 +451,15 @@ void MdiChild::showPoly()
 	m_dwRenderer->show();
 	m_visibility &= (RC | TAB);
 	changeVisibility(m_visibility);
+}
+
+void MdiChild::addDataset(std::shared_ptr<iADataSet> dataset)
+{
+	m_datasets.push_back(dataset);
+	auto dataRenderer = createDataRenderer(dataset.get(), renderer());
+	dataRenderer->show();
+	m_dataRenderers.push_back(dataRenderer);
+	//addToRenderer(dataset);
 }
 
 bool MdiChild::displayResult(QString const& title, vtkImageData* image, vtkPolyData* poly)	// = opening new window
