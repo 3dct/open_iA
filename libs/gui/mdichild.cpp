@@ -459,7 +459,6 @@ void MdiChild::addDataset(std::shared_ptr<iADataSet> dataset)
 	auto dataRenderer = createDataRenderer(dataset.get(), renderer());
 	dataRenderer->show();
 	m_dataRenderers.push_back(dataRenderer);
-	//addToRenderer(dataset);
 }
 
 bool MdiChild::displayResult(QString const& title, vtkImageData* image, vtkPolyData* poly)	// = opening new window
