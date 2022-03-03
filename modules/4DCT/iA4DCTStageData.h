@@ -22,7 +22,6 @@
 
 // Qt
 #include <QList>
-#include <QString>
 // iA
 #include "iA4DCTFileData.h"
 

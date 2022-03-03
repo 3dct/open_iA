@@ -531,6 +531,11 @@ if (OPENCL_FOUND)
 	target_compile_definitions(OpenCL INTERFACE __CL_ENABLE_EXCEPTIONS
 		CL_HPP_TARGET_OPENCL_VERSION=${CL_TARGET_OPENCL_VERSION}
 		CL_TARGET_OPENCL_VERSION=${CL_TARGET_OPENCL_VERSION})
+	if (openiA_OPENCL_VERSION MATCHES "^2")
+		target_compile_definitions(OpenCL INTERFACE CL_VERSION_2_0)
+	else()
+		target_compile_definitions(OpenCL INTERFACE CL_USE_DEPRECATED_OPENCL_1_2_APIS)
+	endif()
 	target_link_libraries(OpenCL INTERFACE ${OPENCL_LIBRARIES})
 	target_include_directories(OpenCL INTERFACE ${OPENCL_INCLUDE_DIRS} ${Toolkit_DIR}/OpenCL)
 	message(STATUS "OpenCL: include=${OPENCL_INCLUDE_DIRS}, libraries=${OPENCL_LIBRARIES}")
@@ -603,15 +608,20 @@ if (${avx_support_index} EQUAL -1)
 endif()
 set(BUILD_INFO "${BUILD_INFO}    \"Advanced Vector Extensions support: ${openiA_AVX_SUPPORT}\\n\"\n")
 
-#message(STATUS "Aiming for C++20 support.")
-#set(CMAKE_CXX_STANDARD 20)
-# Enabling C++20 can cause problems as e.g. ITK 5.0.1 is not yet fully C++20 compatible!
-message(STATUS "Aiming for C++17 support.")
-set(CMAKE_CXX_STANDARD 17)
+if (${QT_VERSION_MAJOR} GREATER_EQUAL 6)
+	# Qt 6 requires C++ 17, but causes problems with ITK 4.12.2 (throw clauses -> "ISO c++1z does not allow dynamic exception specifications")
+	if (ITK_VERSION VERSION_LESS "5.0.0")
+		MESSAGE(SEND_ERROR "You have chosen Qt >= 6.0 in combination with ITK <= 5.0. "
+			"Qt >= 6 requires to use the C++17 standard, but ITK <= 5 does not work with C++17. "
+			"Please either choose a Qt version < 6.0 or an ITK version >= 5.0!")
+	endif()
+	set(CMAKE_CXX_STANDARD 17)
+else()
+	set(CMAKE_CXX_STANDARD 14)
+endif()
+# - C++20 can cause problems with ITK 5.0.1 (apparently in some experiments it wasn't yet fully C++20 compatible; though not sure on specifics)!
 set(CMAKE_CXX_EXTENSIONS OFF)
-# use CMAKE_CXX_STANDARD_REQUIRED? e.g.:
-# set(CMAKE_CXX_STANDARD 11)
-# set(CMAKE_CXX_STANDARD_REQUIRED ON)
+set(CMAKE_CXX_STANDARD_REQUIRED ON)
 if (MSVC)
 	# /bigobj            increase the number of sections in .obj file (65,279 -> 2^32), exceeded by some compilations
 	# /Zc:__cplusplus    set correct value in __cplusplus macro (https://docs.microsoft.com/en-us/cpp/build/reference/zc-cplusplus)
@@ -658,14 +668,6 @@ if (CMAKE_COMPILER_IS_GNUCXX)
 endif()
 
 if (CMAKE_COMPILER_IS_GNUCXX OR "${CMAKE_CXX_COMPILER_ID}" STREQUAL "Clang")
-	# Make sure at least C++ 0x is supported:
-	# check if that is required with CMAKE_CXX_STANDARD definition above!
-	include(CheckCXXCompilerFlag)
-	CHECK_CXX_COMPILER_FLAG("-std=c++0x" COMPILER_SUPPORTS_CXX0X)
-	if (NOT COMPILER_SUPPORTS_CXX0X)
-		message(WARNING "The used compiler ${CMAKE_CXX_COMPILER} has no C++0x/11 support. Please use a newer C++ compiler.")
-	endif()
-
 	set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -pipe -fpermissive -fopenmp -march=core2 -O2 -msse4.2")
 	set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -pipe -fopenmp -march=core2 -O2 -msse4.2")
 
@@ -789,8 +791,8 @@ set(BUILD_INFO "${BUILD_INFO}    \"git revision: ${openiA_HASH}\\n\"\n")
 add_compile_definitions(UNICODE _UNICODE)    # Enable Unicode
 
 if (UNIX)
-    set(CMAKE_INSTALL_RPATH "\$ORIGIN")      # Set RunPath in all created libraries / executables to $ORIGIN
-    #    set(CMAKE_BUILD_RPATH_USE_ORIGIN ON)
+	set(CMAKE_INSTALL_RPATH "\$ORIGIN")      # Set RunPath in all created libraries / executables to $ORIGIN
+	#    set(CMAKE_BUILD_RPATH_USE_ORIGIN ON)
 endif()
 
 

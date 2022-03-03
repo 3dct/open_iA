@@ -32,7 +32,6 @@
 
 #include <vtkBMPWriter.h>
 #include <vtkCamera.h>
-#include <vtkImageCast.h>
 #include <vtkImageData.h>
 #include <vtkImageWriter.h>
 #include <vtkJPEGWriter.h>

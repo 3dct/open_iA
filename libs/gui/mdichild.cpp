@@ -70,13 +70,12 @@
 #include <iAProgress.h>
 #include <iAToolsVTK.h>
 #include <iATransferFunction.h>
-#include <iAVtkVersion.h>
+#include <iAVtkVersion.h>    // required for VTK < 9.0
 
 #include <vtkCamera.h>
 #include <vtkColorTransferFunction.h>
 #include <vtkCornerAnnotation.h>
 #include <vtkGenericOpenGLRenderWindow.h>
-#include <vtkImageActor.h>
 #include <vtkImageExtractComponents.h>
 #include <vtkImageReslice.h>
 #include <vtkMath.h>
@@ -93,6 +92,7 @@
 // TODO: VOLUME: check all places using modality(0)->transfer() !
 
 #include <QByteArray>
+#include <QCloseEvent>
 #include <QFile>
 #include <QFileDialog>
 #include <QMainWindow>
@@ -115,9 +115,8 @@ MdiChild::MdiChild(MainWindow* mainWnd, iAPreferences const& prefs, bool unsaved
 	m_reInitializeRenderWindows(true),
 	m_raycasterInitialized(false),
 	m_snakeSlicer(false),
-	m_worldProfilePoints(vtkPoints::New()),
-	m_worldSnakePoints(vtkPoints::New()),
-	m_parametricSpline(iAParametricSpline::New()),
+	m_worldSnakePoints(vtkSmartPointer<vtkPoints>::New()),
+	m_parametricSpline(vtkSmartPointer<iAParametricSpline>::New()),
 	m_imageData(vtkSmartPointer<vtkImageData>::New()),
 	m_polyData(vtkPolyData::New()),
 	m_axesTransform(vtkTransform::New()),
@@ -179,8 +178,6 @@ MdiChild::MdiChild(MainWindow* mainWnd, iAPreferences const& prefs, bool unsaved
 	setModalities(modList);
 	applyViewerPreferences();
 	connectSignalsToSlots();
-
-	m_worldProfilePoints->Allocate(2);
 	connect(mainWnd, &MainWindow::fullScreenToggled, this, &MdiChild::toggleFullScreen);
 	connect(mainWnd, &MainWindow::styleChanged, this, &MdiChild::styleChanged);
 }
@@ -459,7 +456,6 @@ bool MdiChild::displayResult(QString const& title, vtkImageData* image, vtkPolyD
 {
 	// TODO: image is actually not the final imagedata here (or at least not always)
 	//    -> maybe skip all image-related initializations?
-	addStatusMsg("Creating Result View");
 	if (poly)
 	{
 		m_polyData->ReleaseData();
@@ -490,7 +486,6 @@ bool MdiChild::displayResult(QString const& title, vtkImageData* image, vtkPolyD
 		m_visibility &= (XY | TAB);
 	}
 	changeVisibility(m_visibility);
-	addStatusMsg("Ready");
 	return true;
 }
 
@@ -2598,7 +2593,7 @@ void MdiChild::computeStatisticsAsync(std::function<void()> callbackSlot, QShare
 	updateImageProperties();
 	auto compute = [mod] { mod->computeImageStatistics(); };
 	auto fw = runAsync(compute, callbackSlot, this);
-	iAJobListView::get()->addJob(QString("Computing statistics for modality %1...")
+	iAJobListView::get()->addJob(QString("Computing statistics for modality %1")
 		.arg(mod->name()), nullptr, fw);
 }
 
@@ -2705,7 +2700,7 @@ void MdiChild::computeHistogramAsync(std::function<void()> callbackSlot, size_t 
 		callbackSlot,
 		this);
 		// TODO: find way of terminating computation in case modality is deleted/application closed!
-	iAJobListView::get()->addJob(QString("Computing histogram for modality %1...")
+	iAJobListView::get()->addJob(QString("Computing histogram for modality %1")
 		.arg(mod->name()), nullptr, fw);
 }
 

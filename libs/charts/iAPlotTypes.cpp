@@ -29,8 +29,6 @@
 #include <QPainterPath>
 #include <QPolygon>
 
-#include <cmath>
-
 // iAPlot
 
 iAPlot::iAPlot(QSharedPointer<iAPlotData> data, QColor const & color):

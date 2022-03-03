@@ -52,7 +52,7 @@ void iAProjectRegistry::addProject(QString const & projectIdentifier)
 {
 	if (m_projectTypes.contains(projectIdentifier))
 	{
-		LOG(lvlWarn, QString("Trying to add already registered project type %1 again!").arg(projectIdentifier))
+		LOG(lvlWarn, QString("Trying to add already registered project type %1 again!").arg(projectIdentifier));
 	}
 	m_projectTypes.insert(projectIdentifier, QSharedPointer<iAIProjectFactory>(new iAProjectFactory<ProjectType>()));
 }

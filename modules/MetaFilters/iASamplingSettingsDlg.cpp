@@ -847,10 +847,10 @@ void iASamplingSettingsDlg::runClicked()
 				if (mainWnd)
 				{
 					auto child = mainWnd->activeMdiChild();
-					int curChildInputCount = child->modalities()->size();
-					int childCount = mainWnd->mdiChildList().size();
-					int inputCount = (curChildInputCount + childCount - 1);
-					if (filter->requiredInputs() > inputCount)
+					int const curChildInputCount = child->modalities()->size();
+					int const childCount = mainWnd->mdiChildList().size();
+					int const inputCount = (curChildInputCount + childCount - 1);
+					if (static_cast<int>(filter->requiredInputs()) > inputCount)
 					{
 						msg += QString("Filter requires more inputs (%1) "
 							"than the number of datasets currently loaded (%2)!\n")

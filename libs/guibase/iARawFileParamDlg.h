@@ -52,10 +52,12 @@ public:
 
 private:
 	qint64 m_fileSize;
-	QLabel * m_actualSizeLabel, * m_proposedSizeLabel;
+	QLabel * m_proposedSizeLabel;
 	iAParameterDlg* m_inputDlg;
 	bool m_accepted;
 private slots:
 	//! update labels indicating whether current parameters fit the actual file size
 	void checkFileSize();
+	//! guess file parameters from file name
+	void guessParameters(QString fileName);
 };

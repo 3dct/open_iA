@@ -39,9 +39,6 @@
 // now defined via CMake option:
 //#define CL_TARGET_OPENCL_VERSION 110
 #include <itkGPUImage.h>
-#include <itkGPUKernelManager.h>
-#include <itkGPUContextManager.h>
-#include <itkGPUImageToImageFilter.h>
 #include <itkGPUGradientAnisotropicDiffusionImageFilter.h>
 #if ITK_VERSION_NUMBER >= ITK_VERSION_CHECK(5, 1, 0)
 // split into a separate file starting with ITK 5.1 (previously included in itkGPUGradientAnisotropicDiffusionImageFilter.h)
@@ -56,7 +53,7 @@ typedef itk::Image<RealType, DIM> RealImageType;
 template<class T> void medianFilter(iAFilter* filter, QMap<QString, QVariant> const & params)
 {
 	typedef itk::MedianImageFilter<RealImageType, RealImageType > FilterType;
-	auto realImage = castImageTo<RealType>(filter->input()[0]->itkImage());
+	auto realImage = castImageTo<RealType>(filter->input(0)->itkImage());
 	auto medianFilter = FilterType::New();
 	typename FilterType::InputSizeType indexRadius;
 	indexRadius[0] = params["Kernel radius X"].toDouble();
@@ -112,7 +109,7 @@ void recursiveGaussian(iAFilter* filter, QMap<QString, QVariant> const & params)
 	typedef itk::RecursiveGaussianImageFilter<RealImageType, RealImageType > RGSFYZType;
 	typename RGSFYZType::Pointer rgsfilterY = RGSFYZType::New();
 	typename RGSFYZType::Pointer rgsfilterZ = RGSFYZType::New();
-	rgsfilterX->SetInput(dynamic_cast<InputImageType*>(filter->input()[0]->itkImage()));
+	rgsfilterX->SetInput(dynamic_cast<InputImageType*>(filter->input(0)->itkImage()));
 	rgsfilterY->SetInput(rgsfilterX->GetOutput());
 	rgsfilterZ->SetInput(rgsfilterY->GetOutput());
 	rgsfilterX->SetDirection(0); // 0 --> X direction
@@ -163,7 +160,7 @@ void discreteGaussian(iAFilter* filter, QMap<QString, QVariant> const & params)
 {
 	typedef itk::Image<T, DIM> InputImageType;
 	typedef itk::DiscreteGaussianImageFilter<RealImageType, RealImageType > DGIFType;
-	auto realImage = castImageTo<RealType>(dynamic_cast<InputImageType *>(filter->input()[0]->itkImage()));
+	auto realImage = castImageTo<RealType>(dynamic_cast<InputImageType *>(filter->input(0)->itkImage()));
 	typename DGIFType::Pointer dgFilter = DGIFType::New();
 	dgFilter->SetVariance(params["Variance"].toDouble());
 	dgFilter->SetMaximumError(params["Maximum error"].toDouble());
@@ -211,7 +208,7 @@ void patchBasedDenoising(iAFilter* filter, QMap<QString, QVariant> const & param
 	typedef itk::PatchBasedDenoisingImageFilter<ImageType, ImageType> NonLocalMeansFilter;
 	auto nlmFilter(NonLocalMeansFilter::New());
 	itkProcess = nlmFilter.GetPointer();
-	nlmFilter->SetInput(dynamic_cast<ImageType*>(filter->input()[0]->itkImage()));
+	nlmFilter->SetInput(dynamic_cast<ImageType*>(filter->input(0)->itkImage()));
 	nlmFilter->SetNumberOfIterations(params["Number of iterations"].toDouble());
 	nlmFilter->SetKernelBandwidthEstimation(params["Kernel bandwidth estimation"].toBool());
 	nlmFilter->SetPatchRadius(params["Patch radius"].toDouble());
@@ -281,7 +278,7 @@ void gradientAnisotropicDiffusion(iAFilter* filter, QMap<QString, QVariant> cons
 {
 	typedef itk::Image<T, DIM> InputImageType;
 	typedef itk::GradientAnisotropicDiffusionImageFilter<RealImageType, RealImageType> GADIFType;
-	auto realImage = castImageTo<RealType>(dynamic_cast<InputImageType *>(filter->input()[0]->itkImage()));
+	auto realImage = castImageTo<RealType>(dynamic_cast<InputImageType *>(filter->input(0)->itkImage()));
 	auto gadFilter = GADIFType::New();
 	gadFilter->SetNumberOfIterations(params["Number of iterations"].toUInt());
 	gadFilter->SetTimeStep(params["Time step"].toDouble());
@@ -340,7 +337,7 @@ void GPU_gradient_anisotropic_diffusion(iAFilter* filter, QMap<QString, QVariant
 	gadFilter->SetNumberOfIterations(params["Number of iterations"].toUInt());
 	gadFilter->SetTimeStep(params["Time Step"].toDouble());
 	gadFilter->SetConductanceParameter(params["Conductance"].toDouble());
-	gadFilter->SetInput(dynamic_cast<InputImageType *>(filter->input()[0]->itkImage()));
+	gadFilter->SetInput(dynamic_cast<InputImageType *>(filter->input(0)->itkImage()));
 	filter->progress()->observe(gadFilter);
 	gadFilter->Update();
 	if (params["Convert back to input type"].toBool())
@@ -381,7 +378,7 @@ void curvatureAnisotropicDiffusion(iAFilter* filter, QMap<QString, QVariant> con
 {
 	typedef itk::Image<T, DIM> InputImageType;
 	typedef itk::CurvatureAnisotropicDiffusionImageFilter<RealImageType, RealImageType > CADIFType;
-	auto realImage = castImageTo<RealType>(dynamic_cast<InputImageType*>(filter->input()[0]->itkImage()));
+	auto realImage = castImageTo<RealType>(dynamic_cast<InputImageType*>(filter->input(0)->itkImage()));
 	auto cadFilter = CADIFType::New();
 	cadFilter->SetNumberOfIterations(params["Number of iterations"].toUInt());
 	cadFilter->SetTimeStep(params["Time step"].toDouble());
@@ -429,7 +426,7 @@ void curvatureFlow(iAFilter* filter, QMap<QString, QVariant> const & params)
 	typedef typename itk::Image<T, DIM>   InputImageType;
 	typedef itk::CurvatureFlowImageFilter<InputImageType, RealImageType> CFFType;
 	auto cfFfilter = CFFType::New();
-	cfFfilter->SetInput(dynamic_cast<InputImageType*>(filter->input()[0]->itkImage()));
+	cfFfilter->SetInput(dynamic_cast<InputImageType*>(filter->input(0)->itkImage()));
 	cfFfilter->SetNumberOfIterations(params["Number of iterations"].toUInt());
 	cfFfilter->SetTimeStep(params["Time step"].toDouble());
 	filter->progress()->observe(cfFfilter);
@@ -475,7 +472,7 @@ void bilateralFilter(iAFilter* filter, QMap<QString, QVariant> const & params)
 	auto biFilter = BIFType::New();
 	biFilter->SetRangeSigma(params["Range sigma"].toDouble());
 	biFilter->SetDomainSigma(params["Domain sigma"].toDouble());
-	biFilter->SetInput(dynamic_cast< InputImageType * >(filter->input()[0]->itkImage()));
+	biFilter->SetInput(dynamic_cast< InputImageType * >(filter->input(0)->itkImage()));
 	filter->progress()->observe(biFilter);
 	biFilter->Update();
 	if (params["Convert back to input type"].toBool())

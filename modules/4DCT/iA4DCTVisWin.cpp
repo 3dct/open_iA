@@ -20,20 +20,16 @@
 * ************************************************************************************/
 #include "iA4DCTVisWin.h"
 
-#include <iAVtkVersion.h>
-
 #include "dlg_4DCTFileOpen.h"
 #include "dlg_regionView.h"
 #include "iA4DCTAllVisualizationsDockWidget.h"
 #include "iA4DCTBoundingBoxDockWidget.h"
-#include "iA4DCTData.h"
 #include "iA4DCTDefectVisDockWidget.h"
 #include "iA4DCTFileData.h"
 #include "iA4DCTFractureVisDockWidget.h"
 #include "iA4DCTMainWin.h"
 #include "iA4DCTPlaneDockWidget.h"
 #include "iA4DCTRegionViewDockWidget.h"
-#include "iA4DCTSettings.h"
 #include "iA4DCTToolsDockWidget.h"
 #include "iABoundingBoxVisModule.h"
 #include "iADefectVisModule.h"
@@ -45,23 +41,19 @@
 #include "iAVisModuleItem.h"
 #include "iA4DCTRegionMarkerModule.h"
 
-#include <QFileDialog>
+ #include <iAVtkVersion.h>    // required for VTK < 9.0
+
 #include <QSettings>
 #include <QString>
 #include <QVector>
 
-#include <itkBinaryThresholdImageFilter.h>
-#include <itkDiscreteGaussianImageFilter.h>
 #include <itkImageFileReader.h>
 #include <itkImageFileWriter.h>
-#include <itkImageToVTKImageFilter.h>
-#include <itkMinimumMaximumImageCalculator.h>
 #include <itkResampleImageFilter.h>
 
 #include <vtkAxesActor.h>
 #include <vtkCamera.h>
 #include <vtkGenericOpenGLRenderWindow.h>
-#include <vtkRenderWindowInteractor.h>
 #include <vtkRenderer.h>
 #include <vtkRendererCollection.h>
 #include <vtkLegendScaleActor.h>

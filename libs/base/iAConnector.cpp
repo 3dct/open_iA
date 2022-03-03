@@ -91,8 +91,8 @@ void SetupPipelineITKtoVTK(
 
 
 iAConnector::iAConnector() :
-	m_ITKImage(ImageBaseType::New()),
-	m_VTKImage(vtkSmartPointer<vtkImageData>::New()),
+	m_ITKImage(nullptr),
+	m_VTKImage(nullptr),
 	m_itkScalarType(itk::ImageIOBase::UNKNOWNCOMPONENTTYPE),
 	m_isTypeInitialized(false),
 	m_itkPixelType( itk::ImageIOBase::UNKNOWNPIXELTYPE ),
@@ -103,20 +103,20 @@ iAConnector::iAConnector() :
 
 void iAConnector::setImage(ImageBaseType * image)
 {
-	m_isTypeInitialized = false;
 	if (this->m_ITKImage.GetPointer() == image)
 	{
 		return;
 	}
+	m_isTypeInitialized = false;
+	m_isPixelTypeInitialized = false;
 	m_ITKImage = image;
-	updateImageVTK();
+	m_VTKImage = nullptr;
 }
 
-void iAConnector::updateImageVTK()
+void iAConnector::updateImageVTK() const
 {
 	iAConnector::ITKScalarPixelType componentType = itkScalarPixelType();
 	iAConnector::ITKPixelType pixelType = itkPixelType();
-	m_VTKImage = 0;
 	ITK_EXTENDED_TYPED_CALL(SetupPipelineITKtoVTK, componentType, pixelType, m_ITKImage, m_itkExporter, m_vtkImporter);
 	m_VTKImage = m_vtkImporter->GetOutput();
 }
@@ -127,32 +127,47 @@ void iAConnector::setImage(vtkSmartPointer<vtkImageData> imageData)
 	{
 		return;
 	}
+	m_isTypeInitialized = false;
+	m_isPixelTypeInitialized = false;
 	m_VTKImage = imageData;
-	updateImageITK();
+	m_ITKImage = nullptr;
 }
 
-void iAConnector::updateImageITK()
+void iAConnector::updateImageITK() const
 {
 	m_isTypeInitialized = false;
 	int scalarType = m_VTKImage->GetScalarType();
 	int compCount = m_VTKImage->GetNumberOfScalarComponents();
-	m_ITKImage = 0;
-	VTK_EXTENDED_TYPED_CALL( SetupPipelineVTKtoITK, scalarType, compCount, m_VTKImage, m_vtkExporter, m_itkImporter );
+	VTK_EXTENDED_TYPED_CALL(SetupPipelineVTKtoITK, scalarType, compCount, m_VTKImage, m_vtkExporter, m_itkImporter);
 	m_ITKImage = dynamic_cast<ImageBaseType*>(m_itkImporter->GetOutputs()[0].GetPointer());
 }
 
 vtkSmartPointer<vtkImageData> iAConnector::vtkImage() const
 {
+	if (!m_VTKImage && m_ITKImage)
+	{
+		updateImageVTK();
+	}
+	// if (!m_VTKImage ...
 	return m_VTKImage;
 }
 
 iAConnector::ImageBaseType* iAConnector::itkImage() const
 {
+	if (!m_ITKImage && m_VTKImage)
+	{
+		updateImageITK();
+	}
+	// if (!m_ITKImage ...
 	return m_ITKImage;
 }
 
 void iAConnector::updateScalarType() const
 {
+	if (!m_ITKImage)
+	{
+		updateImageITK();
+	}
 	m_isTypeInitialized = true;
 	m_itkScalarType = ::itkScalarPixelType(m_ITKImage);
 }
@@ -168,6 +183,10 @@ iAConnector::ITKScalarPixelType iAConnector::itkScalarPixelType() const
 
 void iAConnector::updatePixelType() const
 {
+	if (!m_ITKImage)
+	{
+		updateImageITK();
+	}
 	m_isPixelTypeInitialized = true;
 	m_itkPixelType = ::itkPixelType( m_ITKImage );
 }
@@ -183,7 +202,15 @@ iAConnector::ITKPixelType iAConnector::itkPixelType() const
 
 void iAConnector::modified()
 {
-	m_ITKImage->Modified();
-	m_VTKImage->Modified();
-	updateScalarType();
+	assert(m_ITKImage || m_VTKImage);
+	if (m_ITKImage)
+	{
+		m_ITKImage->Modified();
+	}
+	if (m_VTKImage)
+	{
+		m_VTKImage->Modified();
+	}
+	m_isTypeInitialized = false;
+	m_isPixelTypeInitialized = false;
 }

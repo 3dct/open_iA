@@ -22,7 +22,6 @@
 
 #include "iAguibase_export.h"
 
-#include <chrono>
 #include <string>
 
 class QString;
@@ -138,3 +137,6 @@ size_t getCurrentRSS();
 //! @param showMS whether to show the milliseconds part
 //! @param shortNames if true, use short time span names (s, m, h, d), otherwise (default), use long names (second, minute, hour, day)
 iAguibase_API QString formatDuration(double duration, bool showMS = true, bool shortNames=false);
+// TODO: refactor to use milliseconds input?
+//iAguibase_API QString formatDurationSeconds(double duration, bool showMS = true, bool shortNames = false);
+//iAguibase_API QString formatDurationMS(uint64_t ms, bool showMS = true, bool shortNames = false);

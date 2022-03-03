@@ -33,7 +33,6 @@
 #include "iAParameterDlg.h"
 #include "iAProgress.h"
 #include "iARawFileParamDlg.h"
-#include "iAStringHelper.h"
 #include "iAToolsVTK.h"
 #include "iATypedCallHelper.h"
 
@@ -86,11 +85,8 @@
 #include <hdf5.h>
 #include <QStack>
 #include <QStandardItemModel>
-#include <QTextEdit>
-#include <QTreeView>
 #endif
 
-#include <algorithm>
 #include <cmath>
 #include <fstream>
 #include <iostream>
@@ -537,10 +533,10 @@ void iAIO::run()
 				readVTKFile(); break;
 			case RAW_READER:
 			case PARS_READER:
-			case NKC_READER:
-				readNKC(); break;
 			case VGI_READER:
 				readImageData(); break;
+			case NKC_READER:
+				readNKC(); break;
 			case VOLUME_STACK_READER:
 				readVolumeStack(); break;
 			case VOLUME_STACK_MHD_READER:
@@ -804,14 +800,18 @@ typedef iAQTtoUIConnector<QDialog, Ui_dlgOpenHDF5> OpenHDF5Dlg;
 #endif
 
 
-bool iAIO::setupIO( iAIOType type, QString f, bool c, int channel)
+bool iAIO::setupIO( iAIOType type, QString f, bool c, int channel, bool addJob)
 {
 	m_ioID = type;
 	m_channel = channel;
 
 	m_fileDir = QFileInfo(f).absoluteDir();
 
-	iAJobListView::get()->addJob(QString("%1 file(s)").arg((m_ioID >= MHD_WRITER) ? "Writing":"Reading"), ProgressObserver(), this);
+	if (addJob)
+	{
+		iAJobListView::get()->addJob(
+			QString("%1 file(s)").arg((m_ioID >= MHD_WRITER) ? "Writing" : "Reading"), ProgressObserver(), this);
+	}
 	// TODO: hook for plugins!
 	switch (m_ioID)
 	{
@@ -819,18 +819,22 @@ bool iAIO::setupIO( iAIOType type, QString f, bool c, int channel)
 #if __cplusplus >= 201703L
 			[[fallthrough]];
 #endif
+			// fall through
 		case STL_WRITER:
 #if __cplusplus >= 201703L
 			[[fallthrough]];
 #endif
+			// fall through
 		case MHD_READER:
 #if __cplusplus >= 201703L
 			[[fallthrough]];
 #endif
+			// fall through
 		case STL_READER:
 #if __cplusplus >= 201703L
 			[[fallthrough]];
 #endif
+			// fall through
 		case VTK_READER:
 			m_fileName = f; m_compression = c; break;
 		case RAW_READER:
@@ -845,14 +849,17 @@ bool iAIO::setupIO( iAIOType type, QString f, bool c, int channel)
 #if __cplusplus >= 201703L
 			[[fallthrough]];
 #endif
+			// fall through
 		case JPG_STACK_READER:
 #if __cplusplus >= 201703L
 			[[fallthrough]];
 #endif
+			// fall through
 		case PNG_STACK_READER:
 #if __cplusplus >= 201703L
 			[[fallthrough]];
 #endif
+			// fall through
 		case BMP_STACK_READER:
 			return setupStackReader(f);
 		case VOLUME_STACK_READER:
@@ -868,47 +875,58 @@ bool iAIO::setupIO( iAIOType type, QString f, bool c, int channel)
 #if __cplusplus >= 201703L
 			[[fallthrough]];
 #endif
+			// fall through
 		case TIF_STACK_WRITER:
 #if __cplusplus >= 201703L
 			[[fallthrough]];
 #endif
+			// fall through
 		case JPG_STACK_WRITER:
 #if __cplusplus >= 201703L
 			[[fallthrough]];
 #endif
+			// fall through
 		case PNG_STACK_WRITER:
 #if __cplusplus >= 201703L
 			[[fallthrough]];
 #endif
+			// fall through
 		case BMP_STACK_WRITER:
 #if __cplusplus >= 201703L
 			[[fallthrough]];
 #endif
+			// fall through
 		case DCM_READER:
 #if __cplusplus >= 201703L
 			[[fallthrough]];
 #endif
+			// fall through
 		case DCM_WRITER:
 #if __cplusplus >= 201703L
 			[[fallthrough]];
 #endif
+			// fall through
 		//case NRRD_READER:
 		case OIF_READER:
 #if __cplusplus >= 201703L
 			[[fallthrough]];
 #endif
+			// fall through
 		case AM_READER:
 #if __cplusplus >= 201703L
 			[[fallthrough]];
 #endif
+			// fall through
 		case AM_WRITER:
 #if __cplusplus >= 201703L
 			[[fallthrough]];
 #endif
+			// fall through
 		case CSV_WRITER:
 #if __cplusplus >= 201703L
 			[[fallthrough]];
 #endif
+			// fall through
 		case VTI_READER:
 			m_fileName = f; break;
 #ifdef USE_HDF5
@@ -1028,6 +1046,7 @@ bool iAIO::setupIO( iAIOType type, QString f, bool c, int channel)
 #if __cplusplus >= 201703L
 			[[fallthrough]];
 #endif
+			// fall through
 		default:
 			LOG(lvlError, QString("Unknown IO type '%1' for file '%2'!").arg(m_ioID).arg(f));
 			addMsg(tr("Unknown IO type"));
@@ -1149,9 +1168,12 @@ void iAIO::readVTKFile()
 			int extentSize = extent[i * 2 + 1] - extent[i * 2] + 1;
 			if (numComp != 1 || numValues != extentSize)
 			{
-				LOG(lvlWarn, QString("Don't know how to handle situation where number of components is %1 "
-					"and number of values=%2 not equal to extentSize=%3")
-					.arg(numComp).arg(numValues).arg(extentSize))
+				LOG(lvlWarn,
+					QString("Don't know how to handle situation where number of components is %1 "
+							"and number of values=%2 not equal to extentSize=%3")
+						.arg(numComp)
+						.arg(numValues)
+						.arg(extentSize));
 			}
 			if (numValues < 2)
 			{
@@ -1316,30 +1338,53 @@ void iAIO::readImageData()
 void iAIO::readNKC()
 {
 	readImageData();
+	auto filter = iAFilterRegistry::filter("Replace and Shift");
+	if (!filter)
+	{
+		LOG(lvlError,
+			QString("Reading NKC file %1 requires 'Replace and Shift' filter, but filter could not be found!")
+				.arg(m_fileName));
+		return;
+	}
 
-
-	iAConnector con;
-	con.setImage(getVtkImageData());
-	QScopedPointer<iAProgress> pObserver(new iAProgress());
-	auto filter = iAFilterRegistry::filter("Value Shift");
-	filter->setProgress(pObserver.data());
-
-	filter->addInput(&con, "");
+	filter->addInput(getVtkImageData(), "");
 	QMap<QString, QVariant> parameters;
-	parameters["ValueToReplace"] = 65533;
-	parameters["Replace"] = 0;
+	parameters["Value To Replace"] = 65533;
+	parameters["Replacement"] = 0;
 	filter->run(parameters);
 
-	auto filterScale = iAFilterRegistry::filter("Shift and Scale");
-	filterScale->setProgress(pObserver.data());
+	auto dataTypeConversion = iAFilterRegistry::filter("Datatype Conversion");
+	if (!filter)
+	{
+		LOG(lvlError,
+			QString("Reading NKC file %1 requires 'Datatype Conversion' filter, but filter could not be found!")
+				.arg(m_fileName));
+		return;
+	}
 
-	filterScale->addInput(filter->output().first(), "");
+	dataTypeConversion->addInput(filter->output(0)->itkImage(), "");
+	QMap<QString, QVariant> parametersConversion;
+	parametersConversion["Data Type"] = "32 bit floating point number (7 digits, float)";
+	parametersConversion["Rescale Range"] = false;
+	parametersConversion["Automatic Input Range"] = true;
+	parametersConversion["Use Full OutputRange"] = true;
+	dataTypeConversion->run(parametersConversion);
+
+	auto filterScale = iAFilterRegistry::filter("Shift and Scale");
+	if (!filter)
+	{
+		LOG(lvlError,
+			QString("Reading NKC file %1 requires 'Shift and Scale' filter, but filter could not be found!")
+				.arg(m_fileName));
+		return;
+	}
+	filterScale->addInput(dataTypeConversion->output(0)->itkImage(), "");
 	QMap<QString, QVariant> parametersScale;
 	parametersScale["Shift"] = m_Parameter["Offset"].toInt();
 	parametersScale["Scale"] = m_Parameter["Scale"].toFloat();
 	filterScale->run(parametersScale);
 
-	getVtkImageData()->DeepCopy(filterScale->output().first()->vtkImage());
+	getVtkImageData()->DeepCopy(filterScale->output(0)->vtkImage());
 }
 
 void iAIO::readMetaImage( )

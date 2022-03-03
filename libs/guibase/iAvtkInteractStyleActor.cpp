@@ -27,8 +27,6 @@
 
 #include <vtkCamera.h>
 #include <vtkCellPicker.h>
-#include <vtkCommand.h>
-#include <vtkImageActor.h>
 #include <vtkImageData.h>
 #include <vtkImageReslice.h>
 #include <vtkMath.h>
@@ -327,6 +325,7 @@ void iAvtkInteractStyleActor::rotate2D()
 #if __cplusplus >= 201703L
 		[[fallthrough]];
 #endif
+		// fall through
 	case iASlicerMode::YZ:
 		rotationDir = transformationMode::x;
 		break;

@@ -20,47 +20,14 @@
 * ************************************************************************************/
 #pragma once
 
-#include <iAFilter.h>
+#include "iAguibase_export.h"
 
-class iAExtractComponent : public iAFilter
-{
-public:
-	static QSharedPointer<iAExtractComponent> create();
-	void adaptParametersToInput(QMap<QString, QVariant>& params, vtkSmartPointer<vtkImageData> img) override;
+class QAction;
+class QMenu;
+class QString;
 
-private:
-	void performWork(QMap<QString, QVariant> const& parameters) override;
-	iAExtractComponent();
-};
+//! Search in the given menu for a menu with the given title; if it doesn't exist, add it (alphabetically sorted).
+iAguibase_API QMenu* getOrAddSubMenu(QMenu* parentMenu, QString const& title, bool addSeparator = false);
 
-class iASimpleResampleFilter : public iAFilter
-{
-public:
-	static QSharedPointer<iASimpleResampleFilter> create();
-	void adaptParametersToInput(QMap<QString, QVariant>& params, vtkSmartPointer<vtkImageData> img) override;
-private:
-	void performWork(QMap<QString, QVariant> const& parameters) override;
-	iASimpleResampleFilter();
-};
-
-class iAResampleFilter : public iAFilter
-{
-public:
-	static QSharedPointer<iAResampleFilter> create();
-	void adaptParametersToInput(QMap<QString, QVariant>& params, vtkSmartPointer<vtkImageData> img) override;
-private:
-	void performWork(QMap<QString, QVariant> const& parameters) override;
-	iAResampleFilter();
-};
-
-class iAExtractImageFilter : public iAFilter
-{
-public:
-	static QSharedPointer<iAExtractImageFilter> create();
-	void adaptParametersToInput(QMap<QString, QVariant>& params, vtkSmartPointer<vtkImageData> img) override;
-private:
-	void performWork(QMap<QString, QVariant> const& parameters) override;
-	iAExtractImageFilter();
-};
-
-IAFILTER_DEFAULT_CLASS(iAPadImageFilter);
+//! Add a given action to a menu, such that the (previously sorted) menu stays alphabetically sorted.
+iAguibase_API void addToMenuSorted(QMenu* menu, QAction* action);

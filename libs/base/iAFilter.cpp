@@ -23,6 +23,7 @@
 #include "iAAttributeDescriptor.h"
 #include "iAConnector.h"
 #include "iALog.h"
+#include "iAProgress.h"
 #include "iAStringHelper.h"
 
 #include <vtkImageData.h>
@@ -30,8 +31,26 @@
 #include <QColor>
 #include <QFileInfo>
 
+namespace
+{
+	// TODO: maybe move to iAConnector class itself!
+	std::shared_ptr<iAConnector> createConnector(itk::ImageBase<3>* itkImg)
+	{
+		auto con = std::make_shared<iAConnector>();
+		con->setImage(itkImg);
+		return con;
+	}
+	std::shared_ptr<iAConnector> createConnector(vtkSmartPointer<vtkImageData> vtkImg)
+	{
+		auto con = std::make_shared<iAConnector>();
+		con->setImage(vtkImg);
+		return con;
+	}
+}
+
 iAFilter::iAFilter(QString const & name, QString const & category, QString const & description,
 	unsigned int requiredInputs, unsigned int outputCount) :
+	m_progress(std::make_unique<iAProgress>()),
 	m_log(iALog::get()),
 	m_name(name),
 	m_category(category),
@@ -72,7 +91,7 @@ iAAttributes const & iAFilter::parameters() const
 	return m_parameters;
 }
 
-int iAFilter::requiredInputs() const
+unsigned int iAFilter::requiredInputs() const
 {
 	return m_requiredInputs;
 }
@@ -105,27 +124,17 @@ QVector<QPair<QString, QVariant> > const & iAFilter::outputValues() const
 
 void iAFilter::clearOutput()
 {
-	for (iAConnector* con : m_output)
-	{
-		delete con;
-	}
 	m_output.clear();
 }
 
 void iAFilter::addOutput(itk::ImageBase<3>* itkImg)
 {
-	iAConnector * con = new iAConnector();
-	con->setImage(itkImg);
-	con->modified();
-	m_output.push_back(con);
+	m_output.emplace_back(createConnector(itkImg));
 }
 
-void iAFilter::addOutput(vtkSmartPointer<vtkImageData> img)
+void iAFilter::addOutput(vtkSmartPointer<vtkImageData> vtkImg)
 {
-	iAConnector * con = new iAConnector();
-	con->setImage(img);
-	con->modified();
-	m_output.push_back(con);
+	m_output.emplace_back(createConnector(vtkImg));
 }
 
 void iAFilter::setPolyOutput(vtkSmartPointer<vtkPolyData> mesh)
@@ -138,12 +147,17 @@ vtkSmartPointer<vtkPolyData> iAFilter::polyOutput() const
 	return m_outputMesh;
 }
 
-QVector<iAConnector*> const & iAFilter::output() const
+iAConnector const * iAFilter::output(size_t idx) const
 {
-	return m_output;
+	return m_output[idx].get();
 }
 
-int iAFilter::outputCount() const
+size_t iAFilter::finalOutputCount() const
+{
+	return m_output.size();
+}
+
+unsigned int iAFilter::plannedOutputCount() const
 {
 	return m_outputCount;
 }
@@ -151,20 +165,36 @@ int iAFilter::outputCount() const
 void iAFilter::clearInput()
 {
 	m_input.clear();
+	m_fileNames.clear();
 }
 
-// TODO: Allow to check type of input files (e.g. to check if input images are
-// of a specific type, or all of the same type), e.g. in addInput or
-// checkParameters.
-void iAFilter::addInput(iAConnector* con, QString const& fileName)
+// TODO: Allow to check type of input files
+// (e.g. to check if input images are of a specific type,
+// or all of the same type), e.g. in addInput or checkParameters.
+void iAFilter::addInput(itk::ImageBase<3>* itkImg, QString const& fileName)
 {
-	m_input.push_back(con);
+	addInput(createConnector(itkImg), fileName);
+}
+
+void iAFilter::addInput(vtkSmartPointer<vtkImageData> vtkImg, QString const& fileName)
+{
+	addInput(createConnector(vtkImg), fileName);
+}
+
+void iAFilter::addInput(std::shared_ptr<iAConnector> con, QString const& fileName)
+{
+	m_input.emplace_back(con);
 	m_fileNames.push_back(fileName);
 }
 
-QVector<iAConnector*> const & iAFilter::input() const
+iAConnector const * iAFilter::input(size_t idx) const
 {
-	return m_input;
+	return m_input[idx].get();
+}
+
+size_t iAFilter::inputCount() const
+{
+	return m_input.size();
 }
 
 QVector<QString> const& iAFilter::fileNames() const
@@ -180,11 +210,6 @@ itk::ImageIOBase::IOComponentType iAFilter::inputPixelType() const
 void iAFilter::setLogger(iALogger* log)
 {
 	m_log = log;
-}
-
-void iAFilter::setProgress(iAProgress* progress)
-{
-	m_progress = progress;
 }
 
 bool iAFilter::run(QMap<QString, QVariant> const & parameters)
@@ -354,7 +379,7 @@ void iAFilter::addMsg(QString const & msg)
 
 iAProgress* iAFilter::progress()
 {
-	return m_progress;
+	return m_progress.get();
 }
 
 iALogger* iAFilter::logger()
@@ -401,6 +426,11 @@ QString iAFilter::outputName(unsigned int i, QString defaultName) const
 void iAFilter::setOutputName(unsigned int i, QString const & name)
 {
 	m_outputNames.insert(i, name);
+}
+
+iAAttributes& iAFilter::paramsWritable()
+{
+	return m_parameters;
 }
 
 void iAFilter::addParameter(QString const & name, iAValueType valueType,

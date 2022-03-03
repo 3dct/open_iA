@@ -23,7 +23,6 @@
 #include <vtkImageData.h>
 #include <vtkLineSource.h>
 #include <vtkProbeFilter.h>
-#include <vtkLineSource.h>
 
 struct iAProfileProbe
 {

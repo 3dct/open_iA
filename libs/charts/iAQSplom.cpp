@@ -51,7 +51,6 @@
 #include <QSettings>
 #include <QWheelEvent>
 #include <QtGlobal> // for QT_VERSION
-#include <QtMath>
 
 namespace
 { // apparently QFontMetric width is not returning the full width of the string - correction constant:
@@ -934,8 +933,10 @@ void iAQSplom::paintEvent(QPaintEvent* event)
 #endif
 {
 #if (defined(CHART_OPENGL) && defined(OPENGL_DEBUG))
+#ifndef NDEBUG
 	QOpenGLContext* ctx = QOpenGLContext::currentContext();
 	assert(ctx);
+#endif
 	QOpenGLDebugLogger logger(this);
 	logger.initialize();  // initializes in the current context, i.e. ctx
 	connect(&logger, &QOpenGLDebugLogger::messageLogged,
@@ -1088,6 +1089,7 @@ void iAQSplom::paintEvent(QPaintEvent* event)
 #if __cplusplus >= 201703L
 		[[fallthrough]];
 #endif
+		// fall through
 	case cmByParameter  : scalarBarCaption = m_splomData->parameterName(m_colorLookupParam); break;
 	default:              scalarBarCaption = "Unknown"; break;
 	}
@@ -1636,6 +1638,7 @@ void iAQSplom::updateLookupTable()
 #if __cplusplus >= 201703L
 			[[fallthrough]];
 #endif
+			// fall through
 		case cmCustom:
 			m_lut->setOpacity(alpha);
 	}

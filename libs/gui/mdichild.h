@@ -320,6 +320,7 @@ public slots:
 	void updateSlicers() override;
 	void updateRenderer() override;
 	void updateViews() override;
+	//! @deprecated use logging or global status bar (iAMainWindow::statusBar) instead
 	void addStatusMsg(QString const& txt) override;
 	void setupView(bool active = false);
 	void setupStackView(bool active = false);
@@ -449,9 +450,8 @@ private:
 	//! @{ snake slicer related:
 	bool m_snakeSlicer;           //!< whether snake slicer is enabled
 	vtkAbstractTransform *m_savedSlicerTransform[3];
-	vtkPoints *m_worldProfilePoints;
-	vtkPoints *m_worldSnakePoints;
-	iAParametricSpline *m_parametricSpline;
+	vtkSmartPointer<vtkPoints> m_worldSnakePoints;
+	vtkSmartPointer<iAParametricSpline> m_parametricSpline;
 	//! @}
 
 	//! smart pointer to first image data shown in mdiChild.

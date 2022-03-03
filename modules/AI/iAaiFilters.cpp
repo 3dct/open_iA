@@ -38,7 +38,9 @@
 #include "onnxruntime_cxx_api.h"
 
 #ifdef ONNX_CUDA
-	#include "cuda_provider_factory.h"
+	#ifndef ONNX_CUDA_NEW
+		#include "cuda_provider_factory.h"
+	#endif
 #else
 	#include "dml_provider_factory.h"
 #endif
@@ -190,7 +192,7 @@ void executeDNN(iAFilter* filter, QMap<QString, QVariant> const & parameters)
 
 	using FilterType = itk::CastImageFilter<InputImageType, ImageType>;
 	typename FilterType::Pointer castFilter = FilterType::New();
-	castFilter->SetInput(dynamic_cast<InputImageType *>(filter->input()[0]->itkImage()));
+	castFilter->SetInput(dynamic_cast<InputImageType *>(filter->input(0)->itkImage()));
 	castFilter->Update();
 	auto itk_img = castFilter->GetOutput();
 
@@ -210,7 +212,12 @@ void executeDNN(iAFilter* filter, QMap<QString, QVariant> const & parameters)
 	if (parameters["use GPU"].toBool())
 	{
 #ifdef ONNX_CUDA
-		Ort::ThrowOnError(OrtSessionOptionsAppendExecutionProvider_CUDA(session_options, 0));
+		#ifdef ONNX_CUDA_NEW
+			OrtCUDAProviderOptions options;
+			session_options.AppendExecutionProvider_CUDA(options);
+		#else
+			Ort::ThrowOnError(OrtSessionOptionsAppendExecutionProvider_CUDA(session_options, 0));
+		#endif
 #else
 		session_options.DisableMemPattern();
 		session_options.SetExecutionMode(ExecutionMode::ORT_SEQUENTIAL);
@@ -407,7 +414,7 @@ void executeDNN(iAFilter* filter, QMap<QString, QVariant> const & parameters)
 	}
 	for (auto outputImage : outputs)
 	{
-		outputImage->SetSpacing(filter->input()[0]->itkImage()->GetSpacing());
+		outputImage->SetSpacing(filter->input(0)->itkImage()->GetSpacing());
 		filter->addOutput(outputImage);
 	}
 }
@@ -416,7 +423,7 @@ IAFILTER_CREATE(iAai)
 
 void iAai::performWork(QMap<QString, QVariant> const & parameters)
 {
-	ITK_TYPED_CALL(executeDNN, input()[0]->itkScalarPixelType(), this, parameters);
+	ITK_TYPED_CALL(executeDNN, input(0)->itkScalarPixelType(), this, parameters);
 }
 
 iAai::iAai() :

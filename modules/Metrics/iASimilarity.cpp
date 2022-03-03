@@ -64,8 +64,8 @@ void similarity_metrics(iAFilter* filter, QMap<QString, QVariant> const & parame
 	size_t size[3], index[3];
 	size[0] = parameters["Size X"].toUInt(); size[1] = parameters["Size Y"].toUInt(); size[2] = parameters["Size Z"].toUInt();
 	index[0] = parameters["Index X"].toUInt(); index[1] = parameters["Index Y"].toUInt(); index[2] = parameters["Index Z"].toUInt();
-	auto activeExtract = extractImage(filter->input()[0]->itkImage(), index, size);
-	auto nonActiveExtract = extractImage(filter->input()[1]->itkImage(), index, size);
+	auto activeExtract = extractImage(filter->input(0)->itkImage(), index, size);
+	auto nonActiveExtract = extractImage(filter->input(1)->itkImage(), index, size);
 	ImageType* img = dynamic_cast<ImageType*>(activeExtract.GetPointer());
 	ImageType* ref = dynamic_cast<ImageType*>(nonActiveExtract.GetPointer());
 	typedef itk::TranslationTransform < double, DIM > TransformType;

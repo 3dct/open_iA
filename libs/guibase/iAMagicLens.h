@@ -22,12 +22,10 @@
 
 #include "iAguibase_export.h"
 
-#include <vtkPolyDataMapper2D.h>
 #include <vtkSmartPointer.h>
 
-#include <QContiguousCache>
-#include <QImage>
 #include <QSharedPointer>
+#include <QVector>
 
 class QWidget;
 
@@ -38,6 +36,7 @@ class vtkImageActor;
 class vtkImageMapToColors;
 class vtkImageReslice;
 class vtkPolyData;
+class vtkPolyDataMapper2D;
 class vtkProp;
 class vtkRenderer;
 class vtkScalarsToColors;

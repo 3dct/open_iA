@@ -25,7 +25,7 @@
 #include <vtkOutputWindow.h>
 #include <vtkObjectFactory.h>
 
-#include <iAVtkVersion.h>
+#include <iAVtkVersion.h>    // required for VTK < 9.0
 
 //! Redirects all log output from VTK to the LOG macro (i.e. iALog)
 class iALogRedirectVTK : public vtkOutputWindow
@@ -53,10 +53,12 @@ public:
 	#if __cplusplus >= 201703L
 			[[fallthrough]];
 	#endif
+			// fall through
 		case MESSAGE_TYPE_WARNING        :
 	#if __cplusplus >= 201703L
 			[[fallthrough]];
 	#endif
+			// fall through
 		case MESSAGE_TYPE_GENERIC_WARNING: lvl = lvlWarn;  break;
 		case MESSAGE_TYPE_DEBUG          : lvl = lvlDebug; break;
 		}

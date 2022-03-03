@@ -37,8 +37,8 @@ void laplacianSegmentationLevelSet(iAFilter* filter, QMap<QString, QVariant> con
 	using OutputPixelType = float;
 	using LevelSetFilter = itk::LaplacianSegmentationLevelSetImageFilter<InputImageType, FeatureImageType, OutputPixelType>;
 	auto laplacianSegmentation = LevelSetFilter::New();
-	laplacianSegmentation->SetInput(dynamic_cast<InputImageType*>(filter->input()[0]->itkImage()));
-	laplacianSegmentation->SetFeatureImage(dynamic_cast<FeatureImageType*>(filter->input()[1]->itkImage()));
+	laplacianSegmentation->SetInput(dynamic_cast<InputImageType*>(filter->input(0)->itkImage()));
+	laplacianSegmentation->SetFeatureImage(dynamic_cast<FeatureImageType*>(filter->input(1)->itkImage()));
 	laplacianSegmentation->SetMaximumRMSError(parameters["Maximum RMS error"].toDouble());
 	laplacianSegmentation->SetNumberOfIterations(parameters["Number of iterations"].toULongLong());
 	laplacianSegmentation->SetAdvectionScaling(parameters["Advection scaling"].toDouble());
@@ -87,8 +87,8 @@ void cannySegmentationLevelSet(iAFilter* filter, QMap<QString, QVariant> const &
 	using OutputPixelType = float;
 	using LevelSetFilter = itk::CannySegmentationLevelSetImageFilter<InputImageType, FeatureImageType, OutputPixelType>;
 	auto cannySegmentation = LevelSetFilter::New();
-	cannySegmentation->SetInput(dynamic_cast<InputImageType*>(filter->input()[0]->itkImage()));
-	cannySegmentation->SetFeatureImage(dynamic_cast<FeatureImageType*>(filter->input()[1]->itkImage()));
+	cannySegmentation->SetInput(dynamic_cast<InputImageType*>(filter->input(0)->itkImage()));
+	cannySegmentation->SetFeatureImage(dynamic_cast<FeatureImageType*>(filter->input(1)->itkImage()));
 	cannySegmentation->SetMaximumRMSError(parameters["Maximum RMS error"].toDouble());
 	cannySegmentation->SetNumberOfIterations(parameters["Number of iterations"].toULongLong());
 	cannySegmentation->SetAdvectionScaling(parameters["Advection scaling"].toDouble());
@@ -135,7 +135,7 @@ void zeroCrossing(iAFilter* filter, QMap<QString, QVariant> const & parameters)
 	using InputImageType = itk::Image<T, DIM>;
 	using ZeroCrossingFilter = itk::ZeroCrossingImageFilter<InputImageType, InputImageType>;
 	auto zeroCrossingFilter = ZeroCrossingFilter::New();
-	zeroCrossingFilter->SetInput(dynamic_cast<InputImageType*>(filter->input()[0]->itkImage()));
+	zeroCrossingFilter->SetInput(dynamic_cast<InputImageType*>(filter->input(0)->itkImage()));
 	zeroCrossingFilter->SetForegroundValue(parameters["Foreground value"].toDouble());
 	zeroCrossingFilter->SetBackgroundValue(parameters["Background value"].toDouble());
 	filter->progress()->observe(zeroCrossingFilter);

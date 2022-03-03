@@ -27,9 +27,6 @@
 #include "iAScatterPlotViewData.h"
 #include "iASPLOMData.h"
 
-#include <vtkLookupTable.h>
-#include <vtkSmartPointer.h>
-
 #include <QApplication>    // for qApp->palette()
 
 #include <QActionGroup>
@@ -220,8 +217,10 @@ void iAScatterPlotWidget::paintEvent(QPaintEvent* event)
 #endif
 {
 #if (defined(CHART_OPENGL) && defined(OPENGL_DEBUG))
+#ifndef NDEBUG
 	QOpenGLContext* ctx = QOpenGLContext::currentContext();
 	assert(ctx);
+#endif
 	QOpenGLDebugLogger logger(this);
 	logger.initialize();  // initializes in the current context, i.e. ctx
 	connect(&logger, &QOpenGLDebugLogger::messageLogged,

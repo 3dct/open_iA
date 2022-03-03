@@ -39,7 +39,7 @@ void connectedComponentFilter(iAFilter* filter, QMap<QString, QVariant> const & 
 	typedef itk::Image<long, DIM> OutputImageType;
 	typedef itk::ConnectedComponentImageFilter< InputImageType, OutputImageType > CCIFType;
 	auto ccFilter = CCIFType::New();
-	ccFilter->SetInput( dynamic_cast< InputImageType * >(filter->input()[0]->itkImage()) );
+	ccFilter->SetInput( dynamic_cast< InputImageType * >(filter->input(0)->itkImage()) );
 	ccFilter->SetBackgroundValue(0);
 	ccFilter->SetFullyConnected(parameters["Fully Connected"].toBool());
 	filter->progress()->observe(ccFilter);
@@ -78,7 +78,7 @@ void scalarConnectedComponentFilter(iAFilter* filter, QMap<QString, QVariant> co
 	typedef itk::Image<long, DIM>   OutputImageType;
 	typedef itk::ScalarConnectedComponentImageFilter< InputImageType, OutputImageType > SCCIFType;
 	typename SCCIFType::Pointer sccFilter = SCCIFType::New();
-	sccFilter->SetInput( dynamic_cast<InputImageType *>(filter->input()[0]->itkImage()) );
+	sccFilter->SetInput( dynamic_cast<InputImageType *>(filter->input(0)->itkImage()) );
 	sccFilter->SetDistanceThreshold(parameters["Distance Threshold"].toDouble());
 	filter->progress()->observe(sccFilter);
 	sccFilter->Update();
@@ -111,7 +111,7 @@ void relabelComponentImageFilter(iAFilter* filter, QMap<QString, QVariant> const
 	typedef itk::Image<long, DIM>   OutputImageType;
 	typedef itk::RelabelComponentImageFilter< InputImageType, OutputImageType > RCIFType;
 	typename RCIFType::Pointer rccFilter = RCIFType::New();
-	rccFilter->SetInput( dynamic_cast< InputImageType * >(filter->input()[0]->itkImage()) );
+	rccFilter->SetInput( dynamic_cast< InputImageType * >(filter->input(0)->itkImage()) );
 	rccFilter->SetMinimumObjectSize(parameters["Minimum object size"].toInt());
 	filter->progress()->observe(rccFilter);
 	rccFilter->Update();
@@ -120,11 +120,11 @@ void relabelComponentImageFilter(iAFilter* filter, QMap<QString, QVariant> const
 		long int no_of_Objects = rccFilter->GetNumberOfObjects();
 		std::ofstream myfile;
 		myfile.open(getLocalEncodingFileName(parameters["Label file"].toString()));
-		myfile << " Total Objects " << "," << no_of_Objects << endl;
-		myfile << "Object Number" << "," << "Object Size (PhysicalUnits)" << endl;
+		myfile << " Total Objects " << "," << no_of_Objects << "\n";
+		myfile << "Object Number" << "," << "Object Size (PhysicalUnits)\n";
 		for (int i = 0; i < no_of_Objects; i++)
 		{
-			myfile << i << "," << rccFilter->GetSizeOfObjectsInPhysicalUnits()[i] << endl;
+			myfile << i << "," << rccFilter->GetSizeOfObjectsInPhysicalUnits()[i] << "\n";
 		}
 		myfile.close();
 	}

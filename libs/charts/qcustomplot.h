@@ -62,14 +62,11 @@
 #include <QtGui/QPainter>
 #include <QtGui/QPainterPath>
 #include <QtGui/QPaintEvent>
-#include <QtGui/QMouseEvent>
-#include <QtGui/QWheelEvent>
 #include <QtGui/QPixmap>
 #include <QtCore/QVector>
 #include <QtCore/QString>
 #include <QtCore/QDateTime>
 #include <QtCore/QMultiMap>
-#include <QtCore/QFlags>
 #include <QtCore/QDebug>
 #include <QtCore/QStack>
 #include <QtCore/QCache>

@@ -31,7 +31,7 @@
 #include <QProgressBar>
 #include <QTimer>
 #include <QToolButton>
-#include <QVariant>
+#include <QVariant>    // required for Linux build
 #include <QVBoxLayout>
 
 #include <chrono>
@@ -115,6 +115,11 @@ iAJobListView::~iAJobListView()
 			j->abortListener->abort();
 		}
 	}
+}
+
+bool iAJobListView::isAnyJobRunning() const
+{
+	return !m_jobs.isEmpty() || !m_pendingJobs.isEmpty();
 }
 
 QWidget* iAJobListView::addJobWidget(QSharedPointer<iAJob> j)
@@ -225,10 +230,10 @@ void iAJobListView::newJobSlot()
 		j = m_pendingJobs.pop();
 	}
 	auto jobWidget = addJobWidget(j);
-	LOG(lvlDebug, QString("Job added: %1").arg(j->name));
+	LOG(lvlDebug, QString("Job started: %1.").arg(j->name));
 	connect(j->object, &QObject::destroyed, [this, jobWidget, j]()
 	{
-		LOG(lvlDebug, QString("Job '%1': Done.").arg(j->name));
+		LOG(lvlDebug, QString("Job done: '%1'.").arg(j->name));
 		int remainingJobs = 0;
 		{
 			std::lock_guard<std::mutex> guard(jobsMutex);

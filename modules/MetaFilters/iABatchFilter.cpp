@@ -122,7 +122,7 @@ void iABatchFilter::performWork(QMap<QString, QVariant> const & parameters)
 		return;
 	}
 	QString batchDir = parameters["Image folder"].toString();
-	QVector<iAConnector*> inputImages;
+	QVector<iAITKIO::ImagePointer> inputImages;
 	QStringList additionalInput = splitPossiblyQuotedString(parameters["Additional Input"].toString());
 	QStringList additionalFileNames;
 	for (QString fileName : additionalInput)
@@ -133,11 +133,9 @@ void iABatchFilter::performWork(QMap<QString, QVariant> const & parameters)
 		}
 		fileName = MakeAbsolute(batchDir, fileName);
 		additionalFileNames.push_back(fileName);
-		auto newCon = new iAConnector();
 		iAITKIO::ScalarPixelType pixelType;
 		iAITKIO::ImagePointer img = iAITKIO::readFile(fileName, pixelType, false);
-		newCon->setImage(img);
-		inputImages.push_back(newCon);
+		inputImages.push_back(img);
 	}
 
 	for (int i = 0; i < filterParamStrs.size(); ++i)
@@ -160,8 +158,6 @@ void iABatchFilter::performWork(QMap<QString, QVariant> const & parameters)
 			file.close();
 		}
 	}
-	iAProgress dummyProgress;	// dummy progress swallowing progress from filter which we don't want to propagate
-	filter->setProgress(&dummyProgress);
 	filter->setLogger(logger());
 
 	QStringList filters = parameters["File mask"].toString().split(";");
@@ -214,7 +210,6 @@ void iABatchFilter::performWork(QMap<QString, QVariant> const & parameters)
 		try
 		{
 			filter->clearInput();
-			iAConnector con;
 			if (QFileInfo(fileName).isDir())
 			{
 				filterParams["Folder name"] = fileName;
@@ -225,8 +220,7 @@ void iABatchFilter::performWork(QMap<QString, QVariant> const & parameters)
 				{
 					iAITKIO::ScalarPixelType pixelType;
 					iAITKIO::ImagePointer img = iAITKIO::readFile(fileName, pixelType, false);
-					con.setImage(img);
-					filter->addInput(&con, fileName);
+					filter->addInput(img, fileName);
 					for (int i = 0; i < inputImages.size(); ++i)
 					{
 						filter->addInput(inputImages[i], additionalFileNames[i]);
@@ -295,10 +289,10 @@ void iABatchFilter::performWork(QMap<QString, QVariant> const & parameters)
 			QString textToAdd = (outputBuffer[curLine].isEmpty() || values.empty() ? "" : ",") + values.join(",");
 			outputBuffer[curLine] += textToAdd;
 			++curLine;
-			for (int o = 0; o < filter->output().size(); ++o)
+			for (size_t o = 0; o < filter->finalOutputCount(); ++o)
 			{
 				QFileInfo fi(outDir + "/" + relFileName);
-				QString multiFileSuffix = filter->output().size() > 1 ? QString::number(o) : "";
+				QString multiFileSuffix = filter->finalOutputCount() > 1 ? QString::number(o) : "";
 				QString outName = QString("%1/%2%3%4.%5").arg(fi.absolutePath()).arg(
 					parameters["Output format"].toString().contains("MetaImage") ? fi.fileName() : fi.baseName())
 					.arg(outSuffix).arg(multiFileSuffix).arg(
@@ -319,8 +313,8 @@ void iABatchFilter::performWork(QMap<QString, QVariant> const & parameters)
 				}
 				else
 				{
-					iAITKIO::writeFile(outName, filter->output()[o]->itkImage(),
-						filter->output()[o]->itkScalarPixelType(), useCompression);
+					iAITKIO::writeFile(outName, filter->output(o)->itkImage(),
+						filter->output(o)->itkScalarPixelType(), useCompression);
 				}
 			}
 		}

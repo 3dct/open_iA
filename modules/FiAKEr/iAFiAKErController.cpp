@@ -295,7 +295,7 @@ void iAFiAKErController::start(QString const & path, iACsvConfig const & config,
 			}
 			m_mdiChild->parent()->deleteLater(); // deletes QMdiSubWindow which this widget is child of
 		});
-	iAJobListView::get()->addJob("Loading results...", resultsLoader->progress(), resultsLoader, resultsLoader);
+	iAJobListView::get()->addJob("Loading results", resultsLoader->progress(), resultsLoader, resultsLoader);
 	resultsLoader->start();
 }
 
@@ -566,6 +566,7 @@ namespace
 #if __cplusplus >= 201703L
 			[[fallthrough]];
 #endif
+			// fall through
 		case iACsvConfig::Cylinders: return QSharedPointer<iA3DCylinderObjectVis>::create(renderer, table, mapping, color, curvedFiberData, CylinderSides, SegmentSkip);
 		}
 	}
@@ -2132,12 +2133,12 @@ void iAFiAKErController::updateBoundingBox()
 		newBounds[i * 2] = m_teBoundingBox[i]->text().toDouble(&ok);
 		if (!ok)
 		{
-			LOG(lvlError, QString("Invalid bounding box value: %1").arg(m_teBoundingBox[i]->text()))
+			LOG(lvlError, QString("Invalid bounding box value: %1").arg(m_teBoundingBox[i]->text()));
 		}
 		newBounds[i * 2 + 1] = m_teBoundingBox[i + 3]->text().toDouble(&ok);
 		if (!ok)
 		{
-			LOG(lvlError, QString("Invalid bounding box value: %1").arg(m_teBoundingBox[i]->text()))
+			LOG(lvlError, QString("Invalid bounding box value: %1").arg(m_teBoundingBox[i]->text()));
 		}
 	}
 	m_customBoundingBoxSource->SetBounds(newBounds);

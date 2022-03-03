@@ -29,6 +29,7 @@
 #include "iAParameterDlg.h"
 #include "iAProjectBase.h"
 #include "iAProjectRegistry.h"
+#include "iAQMenuHelper.h"
 #include "iARawFileParamDlg.h"
 #include "iARenderer.h"
 #include "iASavableProject.h"
@@ -60,7 +61,6 @@
 #include <vtkImageData.h>
 #include <vtkOpenGLRenderer.h>
 #include <vtkPiecewiseFunction.h>
-#include <vtkSmartVolumeMapper.h>
 
 #include <QActionGroup>
 #include <QCloseEvent>
@@ -106,11 +106,13 @@ T* MainWindow::activeChild()
 	return nullptr;
 }
 
-MainWindow::MainWindow(QString const & appName, QString const & version, QString const & buildInformation, QString const & splashImage ):
+MainWindow::MainWindow(QString const & appName, QString const & version, QString const & buildInformation, QString const & splashImage, iADockWidgetWrapper* dwJobs) :
 	m_moduleDispatcher( new iAModuleDispatcher( this ) ),
 	m_gitVersion(version),
 	m_buildInformation(buildInformation),
-	m_ui(new Ui_MainWindow())
+	m_ui(new Ui_MainWindow()),
+	m_dwJobs(dwJobs),
+	m_openJobListOnNewJob(false)
 {
 	m_ui->setupUi(this);
 	setAcceptDrops(true);
@@ -158,6 +160,8 @@ MainWindow::MainWindow(QString const & appName, QString const & version, QString
 
 	m_ui->actionDeletePoint->setEnabled(false);
 	m_ui->actionChangeColor->setEnabled(false);
+	m_ui->menuWindow->insertAction(m_ui->actionOpenLogOnNewMessage, iALogWidget::get()->toggleViewAction());
+	m_ui->menuWindow->insertAction(m_ui->actionOpenListOnAddedJob, m_dwJobs->toggleViewAction());
 
 	m_splashScreen->showMessage(tr("\n      Version: %1").arg (m_gitVersion), Qt::AlignTop, QColor(255, 255, 255));
 
@@ -198,6 +202,12 @@ void MainWindow::hideSplashSlot()
 
 void MainWindow::quitTimerSlot()
 {
+	if (iAJobListView::get()->isAnyJobRunning())
+	{
+		constexpr int RecheckTimeMS = 1000;
+		m_quitTimer->start(RecheckTimeMS);
+		return;
+	}
 	delete m_quitTimer;
 	qApp->closeAllWindows();
 }
@@ -997,11 +1007,6 @@ void MainWindow::enableInteraction()
 	}
 }
 
-void MainWindow::toggleLog()
-{
-	iALogWidget::get()->setVisible(m_ui->actionShowLog->isChecked());
-}
-
 void MainWindow::toggleFullScreen()
 {
 	bool fullScreen = m_ui->actionFullScreenMode->isChecked();
@@ -1444,16 +1449,19 @@ void MainWindow::raycasterLoadCameraSettings()
 iAMdiChild* MainWindow::resultChild(iAMdiChild* iaOldChild, QString const & title)
 {
 	auto oldChild = dynamic_cast<MdiChild*>(iaOldChild);
-	if (oldChild->resultInNewWindow())
+	if (!oldChild || oldChild->resultInNewWindow())
 	{
 		// TODO: copy all modality images, or don't copy anything here and use image from old child directly,
 		// or nothing at all until new image available!
 		// Note that filters currently get their input from this child already!
-		vtkSmartPointer<vtkImageData> imageData = oldChild->imagePointer();
 		MdiChild* newChild = dynamic_cast<MdiChild*>(createMdiChild(true));
 		newChild->show();
-		newChild->displayResult(title, imageData);
-		copyFunctions(oldChild, newChild);
+		if (oldChild)
+		{
+			vtkSmartPointer<vtkImageData> imageData = oldChild->imagePointer();
+			newChild->displayResult(title, imageData);
+			copyFunctions(oldChild, newChild);
+		}
 		return newChild;
 	}
 	oldChild->prepareForResult();
@@ -1768,12 +1776,10 @@ void MainWindow::connectSignalsToSlots()
 	connect(m_ui->actionLinkViews, &QAction::triggered, this, &MainWindow::linkViews);
 	connect(m_ui->actionLinkMdis, &QAction::triggered, this, &MainWindow::linkMDIs);
 	connect(m_ui->actionEnableInteraction, &QAction::triggered, this, &MainWindow::enableInteraction);
-	connect(m_ui->actionShowLog, &QAction::triggered, this, &MainWindow::toggleLog);
 	connect(m_ui->actionFullScreenMode, &QAction::triggered, this, &MainWindow::toggleFullScreen);
 	connect(m_ui->actionShowMenu, &QAction::triggered, this, &MainWindow::toggleMenu);
 	connect(m_ui->actionShowToolbar, &QAction::triggered, this, &MainWindow::toggleToolbar);
 	connect(m_ui->actionMainWindowStatusBar, &QAction::triggered, this, &MainWindow::toggleMainWindowStatusBar);
-	connect(m_ui->actionOpenLogOnNewMessage, &QAction::triggered, this, &MainWindow::toggleOpenLogOnNewMessage);
 	connect(m_ui->menuDockWidgets, &QMenu::aboutToShow, this, &MainWindow::listDockWidgetsInMenu);
 	// Enable these actions also when menu not visible:
 	addAction(m_ui->actionFullScreenMode);
@@ -1789,6 +1795,8 @@ void MainWindow::connectSignalsToSlots()
 	connect(m_ui->actionNextWindow, &QAction::triggered, m_ui->mdiArea, &QMdiArea::activateNextSubWindow);
 	connect(m_ui->actionPrevWindow, &QAction::triggered, m_ui->mdiArea, &QMdiArea::activatePreviousSubWindow);
 	connect(m_ui->actionChildStatusBar, &QAction::triggered, this, &MainWindow::toggleChildStatusBar);
+	connect(m_ui->actionOpenLogOnNewMessage, &QAction::triggered, this, &MainWindow::toggleOpenLogOnNewMessage);
+	connect(m_ui->actionOpenListOnAddedJob, &QAction::triggered, this, &MainWindow::toggleOpenListOnAddedJob);
 
 	connect(m_ui->actionTabbed, &QAction::triggered, this, &MainWindow::toggleMdiViewMode);
 	connect(m_ui->actionSubWindows, &QAction::triggered, this, &MainWindow::toggleMdiViewMode);
@@ -1837,8 +1845,6 @@ void MainWindow::connectSignalsToSlots()
 	connect(m_ui->actionResetLayout,  &QAction::triggered, this, &MainWindow::resetLayout);
 
 	connect(m_ui->mdiArea, &QMdiArea::subWindowActivated, this, &MainWindow::updateMenus);
-
-	connect(iALogWidget::get(), &iALogWidget::logVisibilityChanged, this, &MainWindow::logVisibilityChanged);
 }
 
 void MainWindow::readSettings()
@@ -1927,13 +1933,20 @@ void MainWindow::readSettings()
 	m_spRenderSettings = settings.value("Parameters/spRenderSettings").toBool();
 	m_spSlicerSettings = settings.value("Parameters/spSlicerSettings").toBool();
 
-	m_ui->actionShowLog->setChecked(settings.value("Parameters/ShowLog", false).toBool());
+	bool showLog = settings.value("Parameters/ShowLog", false).toBool();
+	iALogWidget::get()->toggleViewAction()->setChecked(showLog);
+	iALogWidget::get()->setVisible(showLog);
+	m_ui->actionOpenLogOnNewMessage->setChecked(settings.value("Parameters/OpenLogOnNewMessages", true).toBool());
+	toggleOpenLogOnNewMessage();
+	bool showJobs = settings.value("Parameters/ShowJobs", false).toBool();
+	m_dwJobs->toggleViewAction()->setChecked(showJobs);
+	m_dwJobs->setVisible(showJobs);
+	m_ui->actionOpenListOnAddedJob->setChecked(settings.value("Parameters/OpenListOnAddedJob", true).toBool());
+	toggleOpenListOnAddedJob();
 	m_ui->actionShowToolbar->setChecked(settings.value("Parameters/ShowToolbar", true).toBool());
 	toggleToolbar();
 	m_ui->actionMainWindowStatusBar->setChecked(settings.value("Parameters/ShowMainStatusBar", true).toBool());
 	toggleMainWindowStatusBar();
-	m_ui->actionOpenLogOnNewMessage->setChecked(settings.value("Parameters/OpenLogOnNewMessages", true).toBool());
-	toggleOpenLogOnNewMessage();
 	auto viewMode = static_cast<QMdiArea::ViewMode>(settings.value("Parameters/ViewMode", QMdiArea::SubWindowView).toInt());
 	m_ui->mdiArea->setViewMode(viewMode);
 	if (viewMode == QMdiArea::SubWindowView)
@@ -2055,11 +2068,13 @@ void MainWindow::writeSettings()
 	settings.setValue("Parameters/spRenderSettings", m_spRenderSettings);
 	settings.setValue("Parameters/spSlicerSettings", m_spSlicerSettings);
 
-	settings.setValue("Parameters/ShowLog", m_ui->actionShowLog->isChecked());
+	settings.setValue("Parameters/ShowLog", iALogWidget::get()->toggleViewAction()->isChecked());
+	settings.setValue("Parameters/ShowJobs", m_dwJobs->toggleViewAction()->isChecked());
 	settings.setValue("Parameters/ViewMode", m_ui->mdiArea->viewMode());
 	settings.setValue("Parameters/ShowToolbar", m_ui->actionShowToolbar->isChecked());
 	settings.setValue("Parameters/ShowMainStatusBar", m_ui->actionMainWindowStatusBar->isChecked());
 	settings.setValue("Parameters/OpenLogOnNewMessages", m_ui->actionOpenLogOnNewMessage->isChecked());
+	settings.setValue("Parameters/OpenListOnAddedJob", m_ui->actionOpenListOnAddedJob->isChecked());
 
 	settings.setValue("OpenWithDataTypeConversion/owdtcs", m_owdtcs);
 	settings.setValue("OpenWithDataTypeConversion/owdtcx", m_rawFileParams.m_size[0]);
@@ -2181,22 +2196,6 @@ iAMdiChild * MainWindow::secondNonActiveChild()
 		mdiwindows.at(1) : mdiwindows.at(0);
 }
 
-/*
-MdiChild* MainWindow::findMdiChild(const QString &fileName)
-{
-	QString canonicalFilePath = QFileInfo(fileName).canonicalFilePath();
-
-	for (iAMdiChild* mdiChild : mdiChildList())
-	{
-		if (mdiChild->currentFile() == canonicalFilePath)
-		{
-			return mdiChild;
-		}
-	}
-	return nullptr;
-}
-*/
-
 void MainWindow::setActiveSubWindow(QWidget *window)
 {
 	if (!window)
@@ -2230,12 +2229,6 @@ void MainWindow::setHistogramFocus()
 	{
 		activeMDI()->setHistogramFocus();
 	}
-}
-
-void MainWindow::logVisibilityChanged(bool newVisibility)
-{
-	QSignalBlocker block(m_ui->actionShowLog);
-	m_ui->actionShowLog->setChecked(newVisibility);
 }
 
 void MainWindow::toggleMdiViewMode()
@@ -2389,18 +2382,33 @@ void MainWindow::toggleOpenLogOnNewMessage()
 	iALogWidget::get()->setOpenOnNewMessage(m_ui->actionOpenLogOnNewMessage->isChecked());
 }
 
+void MainWindow::toggleOpenListOnAddedJob()
+{
+	if (m_openJobListOnNewJob == m_ui->actionOpenListOnAddedJob->isChecked())
+	{	// no change
+		return;
+	}
+	m_openJobListOnNewJob = m_ui->actionOpenListOnAddedJob->isChecked();
+	if (m_openJobListOnNewJob)
+	{
+		connect(iAJobListView::get(), &iAJobListView::jobAdded, m_dwJobs, &QWidget::show);
+		connect(iAJobListView::get(), &iAJobListView::allJobsDone, m_dwJobs, &QWidget::hide);
+	}
+	else
+	{
+		disconnect(iAJobListView::get(), &iAJobListView::jobAdded, m_dwJobs, nullptr);
+	}
+}
+
 void MainWindow::listDockWidgetsInMenu()
 {
 	m_ui->menuDockWidgets->clear();
-	for (auto dockWidget : findChildren<QDockWidget*>())
+	if (activeChild())
 	{
-		QAction* act(new QAction(dockWidget->windowTitle(), this));
-		act->setCheckable(true);
-		act->setChecked(dockWidget->isVisible());
-		connect(act, &QAction::triggered, [dockWidget] {
-			dockWidget->setVisible(!dockWidget->isVisible());
-			});
-		m_ui->menuDockWidgets->addAction(act);
+		for (auto dockWidget : activeChild()->findChildren<QDockWidget*>())
+		{
+			addToMenuSorted(m_ui->menuDockWidgets, dockWidget->toggleViewAction());
+		}
 	}
 }
 
@@ -2685,14 +2693,11 @@ int MainWindow::runGUI(int argc, char * argv[], QString const & appName, QString
 	}
 	app.setAttribute(Qt::AA_DontCreateNativeWidgetSiblings);
 	iALog::setLogger(iALogWidget::get());
-	MainWindow mainWin(appName, version, buildInformation, splashPath);
+	auto dwJobs = new iADockWidgetWrapper(iAJobListView::get(), "Job List", "Jobs");
+	MainWindow mainWin(appName, version, buildInformation, splashPath, dwJobs);
 	mainWin.addDockWidget(Qt::RightDockWidgetArea, iALogWidget::get());
-	auto dwJobs = new iADockWidgetWrapper(iAJobListView::get(), "Jobs", "Jobs");
 	mainWin.splitDockWidget(iALogWidget::get(), dwJobs, Qt::Vertical);
 	dwJobs->setFeatures(dwJobs->features() & ~QDockWidget::DockWidgetVerticalTitleBar);
-	dwJobs->hide();
-	connect(iAJobListView::get(), &iAJobListView::jobAdded, dwJobs, &QDockWidget::show);
-	connect(iAJobListView::get(), &iAJobListView::allJobsDone, dwJobs, &QDockWidget::hide);
 	CheckSCIFIO(QCoreApplication::applicationDirPath());
 	mainWin.loadArguments(argc, argv);
 	// TODO: unify with logo in slicer/renderer!
@@ -2706,6 +2711,5 @@ int MainWindow::runGUI(int argc, char * argv[], QString const & appName, QString
 		app.setWindowIcon(QIcon(QPixmap(":/images/Xmas.png")));
 	}
 	mainWin.show();
-	mainWin.toggleLog();
 	return app.exec();
 }

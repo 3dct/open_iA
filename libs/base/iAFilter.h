@@ -36,6 +36,8 @@
 #include <QString>
 #include <QVector>
 
+#include <memory>
+
 class iAConnector;
 class iALogger;
 class iAProgress;
@@ -95,8 +97,6 @@ public:
 	iAAttributes const & parameters() const;
 	//! Set the logger to be used for status output / error messages.
 	void setLogger(iALogger* logger);
-	//! Set the facility for progress reporting.
-	void setProgress(iAProgress* progress);
 	//! if required, adapt (loaded/default) parameters to image
 	//! only used from GUI for the moment
 	//! if feature is implemented where parameters can be omitted (on command line),
@@ -117,8 +117,11 @@ public:
 	//! Call this in case you are re-using a filter already called before,
 	//! and you want to call it with new input images
 	void clearInput();
+	//! @{
 	//! Adds an image as input.
-	void addInput(iAConnector* con, QString const & fileName);
+	void addInput(itk::ImageBase<3>* img, QString const& fileName);
+	void addInput(vtkSmartPointer<vtkImageData> img, QString const& fileName);
+	//! @}
 	//! Initialize and run the filter.
 	//! @param parameters the map of parameters to use in this specific filter run
 	bool run(QMap<QString, QVariant> const & parameters);
@@ -137,10 +140,22 @@ public:
 	//! Returns the number of image inputs required by this filter.
 	//! for typical image filters, this returns 1.
 	//! @return the number of images required as input
-	int requiredInputs() const;
-	//! input/output connectors.
-	QVector<iAConnector*> const & input() const;
-	QVector<iAConnector*> const & output() const;
+	unsigned int requiredInputs() const;
+
+	//! Get input with the given index.
+	//! @see inputCount for the number of available inputs
+	iAConnector const * input(size_t idx) const;
+	//! Get the number of available inputs (that were already added to the filter).
+	size_t inputCount() const;
+
+	//! get output with the given index.
+	//! @see outputCount for the number of available inputs
+	iAConnector const * output(size_t idx) const;
+	//! Get the number of available outputs.
+	//! Only set after the filter has run and the outputs are actually produced!
+	//! see plannedOutputCount() for the number of probable outcomes before the filter has run!
+	size_t finalOutputCount() const;
+
 	QVector<QString> const & fileNames() const;
 
 	itk::ImageIOBase::IOComponentType inputPixelType() const;
@@ -172,7 +187,7 @@ public:
 	//! Retrieves output mesh if existing.
 	vtkSmartPointer<vtkPolyData> polyOutput() const;
 	//! The planned number of outputs the filter will produce.
-	int outputCount() const;
+	unsigned int plannedOutputCount() const;
 	//! Adds some message to the targeted output place for this filter.
 	//! Typically this will go into the log window of the result MdiChild
 	//! @param msg the message to print
@@ -196,26 +211,32 @@ protected:
 	//! Set the name of the output with the given index.
 	void setOutputName(unsigned int i, QString const & name);
 
+	//! "Writable" list of the filter parameters.
+	iAAttributes & paramsWritable();
+
 private:
 	//! The actual implementation of the filter.
 	//! @param parameters the map of parameters to use in this specific filter run
 	virtual void performWork(QMap<QString, QVariant> const & parameters) = 0;
 	//! Clears the output values.
 	void clearOutput();
+	//! internal helper for adding input
+	void addInput(std::shared_ptr<iAConnector> con, QString const& fileName);
 
 	//! input images.
-	QVector<iAConnector*> m_input;
+	std::vector<std::shared_ptr<iAConnector>> m_input;
 	//! file names of the input images.
 	QVector<QString> m_fileNames;
 	//! output images (if any).
-	QVector<iAConnector*> m_output;
+	// TODO: make unique_ptr: -> compile error: `attempting to reference deleted function` in iAFilterRegistry...
+	std::vector<std::shared_ptr<iAConnector>> m_output;
 	//! output mesh (if any).
 	vtkSmartPointer<vtkPolyData> m_outputMesh;
 	//! output values (if any).
 	QVector<QPair<QString, QVariant> > m_outputValues;
 	//! The class that is watched for progress.
 	//! Typically you will call m_progress->observe(someItkFilter) to set up the progress observation
-	iAProgress* m_progress;
+	std::unique_ptr<iAProgress> m_progress;
 	//! The logger.
 	iALogger* m_log;
 	//! Describes the parameters of the algorithm.
@@ -229,11 +250,11 @@ private:
 	//! Name, category and description of the filter.
 	QString m_name, m_category, m_description;
 	//! Number of input images required by the filter.
-	int m_requiredInputs;
+	unsigned int m_requiredInputs;
 	//! Number of output images produced by the filter.
-	int m_outputCount;
+	unsigned int m_outputCount;
 	//! In case this filter requires two "kinds" of inputs, this marks the number of inputs belonging to the first kind.
-	int m_firstInputChannels;
+	unsigned int m_firstInputChannels;
 };
 
 //! Convenience Macro for creating the static Create method for your filter

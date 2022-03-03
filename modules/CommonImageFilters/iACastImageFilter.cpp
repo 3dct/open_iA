@@ -29,7 +29,6 @@
 #include <iATypedCallHelper.h>
 #include <itkFHWRescaleIntensityImageFilter.h>
 
-#include <itkCastImageFilter.h>
 #include <itkImageRegionConstIterator.h>
 #include <itkImageRegionIterator.h>
 #include <itkImageIterator.h>
@@ -46,7 +45,7 @@ template <class InT, class OutT> void castImage(iAFilter* filter)
 	typedef itk::Image<OutT, DIM> OutputImageType;
 	typedef itk::CastImageFilter<InputImageType, OutputImageType> OTIFType;
 	typename OTIFType::Pointer castFilter = OTIFType::New();
-	castFilter->SetInput(dynamic_cast<InputImageType *>(filter->input()[0]->itkImage()));
+	castFilter->SetInput(dynamic_cast<InputImageType *>(filter->input(0)->itkImage()));
 	filter->progress()->observe(castFilter);
 	castFilter->Update();
 	filter->addOutput(castFilter->GetOutput());
@@ -83,11 +82,11 @@ void dataTypeConversion(iAFilter* filter, QMap<QString, QVariant> const & parame
 	typedef itk::Image<OutT, DIM> OutputImageType;
 	typedef itk::FHWRescaleIntensityImageFilter<InputImageType, OutputImageType> RIIFType;
 	typename RIIFType::Pointer rescaleFilter = RIIFType::New();
-	rescaleFilter->SetInput(dynamic_cast<InputImageType *>(filter->input()[0]->itkImage()));
+	rescaleFilter->SetInput(dynamic_cast<InputImageType *>(filter->input(0)->itkImage()));
 	if (parameters["Automatic Input Range"].toBool())
 	{
 		double minVal, maxVal;
-		getStatistics(filter->input()[0]->itkImage(), &minVal, &maxVal);
+		getStatistics(filter->input(0)->itkImage(), &minVal, &maxVal);
 		rescaleFilter->SetInputMinimum(minVal);
 		rescaleFilter->SetInputMaximum(maxVal);
 	}
@@ -182,7 +181,7 @@ iACastImageFilter::iACastImageFilter() :
 template<class T>
 void convertToRGB(iAFilter * filter, QMap<QString, QVariant> const & params)
 {
-	iAITKIO::ImagePointer input = filter->input()[0]->itkImage();
+	iAITKIO::ImagePointer input = filter->input(0)->itkImage();
 	if (filter->inputPixelType() != itk::ImageIOBase::ULONG)
 		input = castImageTo<unsigned long>(input);
 

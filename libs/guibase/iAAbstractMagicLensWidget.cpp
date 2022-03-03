@@ -21,8 +21,7 @@
 #include "iAAbstractMagicLensWidget.h"
 
 #include "defines.h" // for DefaultMagicLensSize
-#include "iALog.h"
-#include "iAVtkVersion.h"
+#include <iAVtkVersion.h>    // required for VTK < 9.0
 
 #include <QVTKInteractor.h>
 #include <vtkActor2D.h>
@@ -148,10 +147,11 @@ bool iAAbstractMagicLensWidget::event(QEvent* event)
 			return true;
 		}
 		// other cases should be handled by default event handler, i.e. fall-through:
+	}
 #if __cplusplus >= 201703L
 		[[fallthrough]];
 #endif
-	}
+		// fall through
 	default:
 		return iAVtkWidget::event(event);
 	}

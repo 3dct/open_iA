@@ -18,32 +18,39 @@
 * Contact: FH OÖ Forschungs & Entwicklungs GmbH, Campus Wels, CT-Gruppe,              *
 *          Stelzhamerstraße 23, 4600 Wels / Austria, Email: c.heinzl@fh-wels.at       *
 * ************************************************************************************/
-#pragma once
+#include "iAQMenuHelper.h"
 
-#include "iAguibase_export.h"
+#include <QMenu>
 
-#include <QPainter>
-#include <QStyle>
-#include <QWidget>
-#include <QStyleOption>
-
-//! iAQWidgetToolbar has different looks.
-class iAguibase_API iAQWidgetToolbar : public QWidget
+void addToMenuSorted(QMenu* menu, QAction* action)
 {
-	Q_OBJECT
-public:
-#if QT_VERSION < QT_VERSION_CHECK(5,15,0)
-	explicit iAQWidgetToolbar(QWidget* parent = nullptr, Qt::WindowFlags f = 0) : QWidget(parent, f) {};
-#else
-	explicit iAQWidgetToolbar(QWidget* parent = nullptr, Qt::WindowFlags f = Qt::WindowFlags()) : QWidget(parent, f) {};
-#endif
-protected:
-
-	void paintEvent(QPaintEvent *)//needed so that stylesheet can be applied
+	for (QAction* curAct : menu->actions())
 	{
-		QStyleOption opt;
-		opt.initFrom(this);
-		QPainter p(this);
-		QWidget::style()->drawPrimitive(QStyle::PE_Widget, &opt, &p, this);
+		if (curAct->text() > action->text())
+		{
+			menu->insertAction(curAct, action);
+			return;
+		}
 	}
-};
+	menu->addAction(action);
+}
+
+QMenu* getOrAddSubMenu(QMenu* parentMenu, QString const& title, bool addSeparator)
+{
+	QList<QMenu*> submenus = parentMenu->findChildren<QMenu*>();
+	for (int i = 0; i < submenus.size(); ++i)
+	{
+		if (submenus.at(i)->title() == title)
+		{
+			if (addSeparator && !submenus.at(i)->isEmpty())
+			{
+				submenus.at(i)->addSeparator();
+			}
+			return submenus.at(i);
+		}
+	}
+	QMenu* result = new QMenu(parentMenu);
+	result->setTitle(title);
+	addToMenuSorted(parentMenu, result->menuAction());
+	return result;
+}

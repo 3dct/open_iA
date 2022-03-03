@@ -39,7 +39,6 @@
 #include "iAObjectType.h"
 
 #include <dlg_modalities.h>
-#include <iAmat4.h>
 #include <iAMovieHelper.h>
 #include <iAModality.h>
 #include <iAModalityTransfer.h>
@@ -53,9 +52,6 @@
 
 // qthelper:
 #include <iADockWidgetWrapper.h>
-
-// charts:
-#include <iAChartWithFunctionsWidget.h>
 
 // base:
 #include <defines.h>    // for DIM
@@ -92,7 +88,6 @@
 #include <vtkNew.h>
 #include <vtkOpenGLRenderer.h>
 #include <vtkPen.h>
-#include <vtkPiecewiseFunction.h>
 #include <vtkPlot.h>
 #include <vtkPlotParallelCoordinates.h>
 #include <vtkPointData.h>
@@ -119,10 +114,8 @@
 #include <QFileDialog>
 #include <QFileInfo>
 #include <QHeaderView>
-#include <QInputDialog>
 #include <QMenu>
 #include <QMessageBox>
-#include <QProgressBar>
 #include <QPushButton>
 #include <QString>
 #include <QStandardItem>
@@ -131,7 +124,6 @@
 #include <QTableView>
 #include <QTreeView>
 #include <QtMath>
-#include <QXmlStreamReader>
 #include <QXmlStreamWriter>
 
 #include <cmath>
@@ -187,6 +179,27 @@ namespace
 			return QSharedPointer<iA3DNoVis>::create();
 		}
 	}
+
+	float calculateAverage(vtkDataArray* arr)
+	{
+		double sum = 0.0;
+		for (int i = 0; i < arr->GetNumberOfTuples(); ++i)
+		{
+			sum = sum + arr->GetVariantValue(i).ToDouble();
+		}
+		return sum / arr->GetNumberOfTuples();
+	}
+
+	QList<QStandardItem*> prepareRow(const QString& first, const QString& second, const QString& third)
+	{
+		// prepare the class header rows for class tree view first grade child unter rootitem
+		// for adding child object to this class, use item.first()->appendRow()
+		QList<QStandardItem*> rowItems;
+		rowItems << new QStandardItem(first);
+		rowItems << new QStandardItem(second);
+		rowItems << new QStandardItem(third);
+		return rowItems;
+	}
 }
 
 // define class here directly instead of using iAQTtoUIConnector; when using iAQTtoUIConnector we cannot forward-define because of the templates!
@@ -219,7 +232,7 @@ dlg_FeatureScout::dlg_FeatureScout(iAMdiChild* parent, iAObjectType fid, QString
 	m_multiClassLUT(vtkSmartPointer<vtkLookupTable>::New()),
 	m_classTreeModel(new QStandardItemModel()),
 	m_elementTableModel(nullptr),
-	m_pcLineWidth(0.1),
+	m_pcLineWidth(0.1f),
 	m_pcFontSize(15),
 	m_pcTickCount(10),
 	m_pcOpacity(90),
@@ -230,9 +243,9 @@ dlg_FeatureScout::dlg_FeatureScout(iAMdiChild* parent, iAObjectType fid, QString
 	m_dwDV(nullptr),
 	m_dwSPM(nullptr),
 	m_dwPP(nullptr),
+	m_ui(new Ui_FeatureScoutCE),
 	m_columnMapping(columnMapping),
-	m_splom(new iAFeatureScoutSPLOM()),
-	m_ui(new Ui_FeatureScoutCE)
+	m_splom(new iAFeatureScoutSPLOM())
 {
 	m_ui->setupUi(this);
 	this->setupPolarPlotResolution(3.0);
@@ -509,7 +522,7 @@ void dlg_FeatureScout::calculateElementTable()
 		mmr->GetRange(range);
 		v1Arr->SetValue(i, range[0]);
 		v2Arr->SetValue(i, range[1]);
-		v3Arr->SetValue(i, this->calculateAverage(mmr));
+		v3Arr->SetValue(i, calculateAverage(mmr));
 	}
 
 	// add new values
@@ -537,7 +550,11 @@ void dlg_FeatureScout::initElementTableModel(int idx)
 				QString str;
 				if (j == 0)
 				{
+#if VTK_VERSION_NUMBER < VTK_VERSION_CHECK(9, 1, 0)
 					str = QString::fromUtf8(v.ToUnicodeString().utf8_str()).trimmed();
+#else
+					str = QString::fromUtf8(v.ToString().c_str()).trimmed();
+#endif
 				}
 				else
 				{
@@ -591,7 +608,11 @@ void dlg_FeatureScout::initClassTreeModel()
 	for (int i = 0; i < m_objectCount; ++i)
 	{
 		vtkVariant v = m_chartTable->GetColumn(0)->GetVariantValue(i);
+#if VTK_VERSION_NUMBER < VTK_VERSION_CHECK(9, 1, 0)
 		QStandardItem* item = new QStandardItem(QString::fromUtf8(v.ToUnicodeString().utf8_str()).trimmed());
+#else
+		QStandardItem* item = new QStandardItem(QString::fromUtf8(v.ToString().c_str()).trimmed());
+#endif
 		stammItem.first()->appendRow(item);
 	}
 	m_activeClassItem = stammItem.first();
@@ -678,31 +699,6 @@ void dlg_FeatureScout::PrintTableList(const QList<vtkSmartPointer<vtkTable>>& Ou
 }
 */
 // END DEBUG FUNCTIONS
-
-float dlg_FeatureScout::calculateAverage(vtkDataArray* arr)
-{
-	double av = 0.0;
-	double sum = 0.0;
-
-	for (int i = 0; i < arr->GetNumberOfTuples(); ++i)
-	{
-		sum = sum + arr->GetVariantValue(i).ToDouble();
-	}
-
-	av = sum / arr->GetNumberOfTuples();
-	return av;
-}
-
-QList<QStandardItem*> dlg_FeatureScout::prepareRow(const QString& first, const QString& second, const QString& third)
-{
-	// prepare the class header rows for class tree view first grade child unter rootitem
-	// for adding child object to this class, use item.first()->appendRow()
-	QList<QStandardItem*> rowItems;
-	rowItems << new QStandardItem(first);
-	rowItems << new QStandardItem(second);
-	rowItems << new QStandardItem(third);
-	return rowItems;
-}
 
 void dlg_FeatureScout::setupConnections()
 {
@@ -1372,9 +1368,9 @@ void dlg_FeatureScout::CsvDVSaveButton()
 				file << QString("%1 Distribution of '%2'")
 					.arg(m_csvTable->GetColumnName(characteristicsList.at(characteristicIdx)))
 					.arg(m_activeClassItem->text()).toStdString()
-					<< endl;
+					<< "\n";
 
-				file << "HistoBinID;" << "HistoBinCenter" << "Frequency;" << endl;
+				file << "HistoBinID;" << "HistoBinCenter" << "Frequency;" << "\n";
 
 				for (vtkIdType row = 0; row < tRowNb; ++row)
 				{
@@ -1388,7 +1384,7 @@ void dlg_FeatureScout::CsvDVSaveButton()
 								<< std::setprecision(20) << tVal.ToDouble() << ";";
 							break;
 						case 1:
-							file << tVal.ToTypeUInt64() << endl;
+							file << tVal.ToTypeUInt64() << "\n";
 							break;
 						}
 					}
@@ -1714,7 +1710,7 @@ void dlg_FeatureScout::ClassLoadButton()
 				const QString count = reader.attributes().value(CountAttribute).toString();
 				const QString percent = reader.attributes().value(PercentAttribute).toString();
 
-				QList<QStandardItem*> stammItem = this->prepareRow(name, count, percent);
+				QList<QStandardItem*> stammItem = prepareRow(name, count, percent);
 				stammItem.first()->setData(QColor(color), Qt::DecorationRole);
 				m_colorList.append(QColor(color));
 				rootItem->appendRow(stammItem);
@@ -2291,18 +2287,18 @@ namespace
 	QString filterToXMLAttributeName(QString const& str)
 	{
 		QString result(str);
-		QRegularExpression validFirstChar("^[a-zA-Z_:]");
+		const QRegularExpression validFirstChar("^[a-zA-Z_:]");
 		while (!validFirstChar.match(result).hasMatch() && result.size() > 0)
 		{
 			result.remove(0, 1);
 		}
-		QRegularExpression invalidChars("[^a-zA-Z0-9_:.-]");
+		const QRegularExpression invalidChars("[^a-zA-Z0-9_:.-]");
 		result.remove(invalidChars);
 		return result;
 	}
 }
 
-void dlg_FeatureScout::writeClassesAndChildren(QXmlStreamWriter* writer, QStandardItem* item)
+void dlg_FeatureScout::writeClassesAndChildren(QXmlStreamWriter* writer, QStandardItem* item) const
 {
 	// check if it is a class item
 	if (item->hasChildren())
@@ -2321,9 +2317,14 @@ void dlg_FeatureScout::writeClassesAndChildren(QXmlStreamWriter* writer, QStanda
 			for (int j = 0; j < m_elementCount; ++j)
 			{
 				vtkVariant v = m_csvTable->GetValue(item->child(i)->text().toInt() - 1, j);
-				QString str = QString::fromUtf8(v.ToUnicodeString().utf8_str()).trimmed();
 				vtkVariant v1 = m_elementTable->GetValue(j, 0);
+#if VTK_VERSION_NUMBER < VTK_VERSION_CHECK(9, 1, 0)
+				QString str = QString::fromUtf8(v.ToUnicodeString().utf8_str()).trimmed();
 				QString str1 = filterToXMLAttributeName(QString::fromUtf8(v1.ToUnicodeString().utf8_str()).trimmed());
+#else
+				QString str = QString::fromUtf8(v.ToString().c_str()).trimmed();
+				QString str1 = filterToXMLAttributeName(QString::fromUtf8(v1.ToString().c_str()).trimmed());
+#endif
 				writer->writeAttribute(str1, str);
 			}
 			writer->writeEndElement(); // end object tag
@@ -2901,10 +2902,10 @@ void dlg_FeatureScout::updatePolarPlotView(vtkTable* it)
 
 void dlg_FeatureScout::setupPolarPlotResolution(float grad)
 {
-	m_gPhi = vtkMath::Floor(360.0 / grad);
-	m_gThe = vtkMath::Floor(90.0 / grad);
-	m_PolarPlotPhiResolution = 360.0 / m_gPhi;
-	m_PolarPlotThetaResolution = 90.0 / m_gThe;
+	m_gPhi = vtkMath::Floor(360.0f / grad);
+	m_gThe = vtkMath::Floor(90.0f / grad);
+	m_PolarPlotPhiResolution = 360.0f / m_gPhi;
+	m_PolarPlotThetaResolution = 90.0f / m_gThe;
 	m_gThe = m_gThe + 1;
 }
 

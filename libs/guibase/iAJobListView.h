@@ -22,8 +22,6 @@
 
 #include "iAguibase_export.h"
 
-#include <QAtomicInteger>
-#include <QMap>
 #include <QStack>
 #include <QWidget>
 
@@ -40,6 +38,8 @@ class iAguibase_API iAJobListView : public QWidget
 public:
 	//! Access to the single instance of this class (singleton).
 	static iAJobListView* get();
+	//! Checks whether any jobs are still running or pending to be added
+	bool isAnyJobRunning() const;
 	//! Typical way of adding a job. Specify its name, the progress observer,
 	//! the task (to whose finished signal the removal of the entry is connected),
 	//! and optional abort listener and progress estimator

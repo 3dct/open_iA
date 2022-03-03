@@ -28,7 +28,6 @@
 #include <vtkOrientationMarkerWidget.h>
 #include <vtkSmartPointer.h>
 // Qt
-#include <QDockWidget>
 #include <QMainWindow>
 #include <QTimer>
 

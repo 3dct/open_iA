@@ -23,7 +23,6 @@
 #include "iAVec3.h"
 // std
 #include <ostream>
-#include <istream>
 
 struct iAFeature
 {

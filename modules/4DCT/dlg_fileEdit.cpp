@@ -23,7 +23,6 @@
 #include "iA4DCTSettings.h"
 
 #include <QSettings>
-#include <QFileInfo>
 #include <QFileDialog>
 #include <QString>
 
