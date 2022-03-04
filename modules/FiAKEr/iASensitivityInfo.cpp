@@ -1382,6 +1382,7 @@ void iASensitivityInfo::spatialOverviewVisibilityChanged(bool visible)
 		m_gui->m_scalarBarWidget->On();
 		m_gui->m_scalarBarMinText->On();
 		m_gui->m_scalarBarMaxText->On();
+		m_gui->m_scalarBarTitleText->On();
 		m_child->updateRenderer();
 		return;
 	}
@@ -1396,6 +1397,7 @@ void iASensitivityInfo::spatialOverviewVisibilityChanged(bool visible)
 	m_gui->m_scalarBarWidget->Off();
 	m_gui->m_scalarBarMinText->Off();
 	m_gui->m_scalarBarMaxText->Off();
+	m_gui->m_scalarBarTitleText->Off();
 	m_child->updateRenderer();
 }
 
