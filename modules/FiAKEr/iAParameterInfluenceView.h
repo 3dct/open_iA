@@ -65,12 +65,20 @@ public:
 	void setNormalizePerOutput(bool norm);
 	void setInOutColor(QColor const& inColor, QColor const& outColor);
 
+signals:
+	void parameterChanged();
+	void barAdded(int outType, int outIdx);
+	void barRemoved(int outType, int outIdx);
+	void resultSelected(size_t resultIdx, Qt::KeyboardModifiers modifiers);
+	void orderChanged(QVector<int> const & sortOrder);
+
 public slots:
 	void showStackedBar();
 	void selectStackedBar(int outputType, int idx);
 	void sortListByBar(int barIdx);
 	void setSelectedParam(int param);
 	void toggleCharacteristic(int charactIdx);
+
 private slots:
 	void paramChangedSlot();
 	void setBarWeights(std::vector<double> const& weights);
@@ -119,10 +127,4 @@ private:
 	QString m_histogramChartType;
 	QSet<int> m_highlightedParams;
 	bool m_normalizePerOutput;
-signals:
-	void parameterChanged();
-	void barAdded(int outType, int outIdx);
-	void barRemoved(int outType, int outIdx);
-	void resultSelected(size_t resultIdx, Qt::KeyboardModifiers modifiers);
-	void orderChanged(QVector<int> const & sortOrder);
 };

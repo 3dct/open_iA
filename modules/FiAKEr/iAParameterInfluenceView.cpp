@@ -463,6 +463,10 @@ void iAParameterInfluenceView::updateHighlightColors(std::vector<size_t> highlig
 
 void iAParameterInfluenceView::setHighlightedParams(QSet<int> hiParam)
 {
+	if (hiParam.size() == 0)
+	{
+		return;
+	}
 	m_highlightedParams = hiParam;
 	addTableWidgets();
 }

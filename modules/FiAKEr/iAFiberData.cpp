@@ -374,7 +374,6 @@ void samplePoints(iAFiberData const& fiber, std::vector<iAVec3f>& result, size_t
 {
 	result.reserve(numSamples);
 
-	// TODO: iterate over curved fiber segments
 	if (fiber.curvedPoints.empty())
 	{
 		iAVec3f dir = fiber.pts[PtEnd] - fiber.pts[PtStart];
