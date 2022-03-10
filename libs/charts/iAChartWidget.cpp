@@ -441,14 +441,14 @@ void iAChartWidget::drawLegend(QPainter& painter)
 		LineHeight * static_cast<int>(m_plots.size()) + 2 * LegendPadding
 	);
 	QPoint upLeft(width() - boxSize.width() - LegendMargin, LegendMargin);
-	QRect boxRect(upLeft, boxSize);
+	m_legendBox = QRect(upLeft, boxSize);
 	// Pen settings: SolidLine and SquareCap are default, but MiterJoin is       xxxxx
 	// required instead of default BevelJoin to avoid one pixel in the lower     x   x
 	// left corner to be left out (see "image" on right how rectangle would      x   x
 	// look like with BevelJoin)                                                  xxxx
 	painter.setPen(QPen(qApp->palette().color(QPalette::Text), 1, Qt::SolidLine, Qt::SquareCap, Qt::MiterJoin));
 	painter.setBrush(qApp->palette().color(QWidget::backgroundRole()));
-	painter.drawRect(boxRect);
+	painter.drawRect(m_legendBox);
 	const int LegendColorLeft = upLeft.x() + LegendPadding;
 	const int TextLeft = LegendColorLeft + LegendItemWidth + LegendPadding;
 	for (int pi = 0; pi < m_plots.size(); ++pi)
@@ -899,12 +899,6 @@ bool iAChartWidget::event(QEvent *event)
 	{
 		return iAChartParentWidget::event(event);
 	}
-	// maybe use mouseMove / setToolTip instead?
-	if (m_plots.empty() || !m_showTooltip)
-	{
-		QToolTip::hideText();
-		event->ignore();
-	}
 	QHelpEvent *helpEvent = static_cast<QHelpEvent *>(event);
 	showDataTooltip(helpEvent);
 	return true;
@@ -912,8 +906,10 @@ bool iAChartWidget::event(QEvent *event)
 
 void iAChartWidget::showDataTooltip(QHelpEvent* event)
 {
-	if (m_plots.empty() || !m_xMapper)
+	if (m_plots.empty() || !m_xMapper || !m_showTooltip ||
+		(m_showLegend && m_legendBox.contains(event->pos())))
 	{
+		QToolTip::hideText();
 		return;
 	}
 	int mouseX = clamp(0, geometry().width(), event->x()) - leftMargin();
@@ -1006,9 +1002,13 @@ void iAChartWidget::mousePressEvent(QMouseEvent *event)
 	switch(event->button())
 	{
 	case Qt::LeftButton:
-		if (((event->modifiers() & Qt::ShiftModifier) == Qt::ShiftModifier) &&
-			((event->modifiers() & Qt::ControlModifier) == Qt::ControlModifier) &&
-			((event->modifiers() & Qt::AltModifier) == Qt::AltModifier))
+		if (m_legendBox.contains(event->pos()))
+		{
+
+		}
+		else if (event->modifiers().testFlag(Qt::ShiftModifier) &&
+			event->modifiers().testFlag(Qt::ControlModifier) &&
+			event->modifiers().testFlag(Qt::AltModifier))
 		{
 #if QT_VERSION < QT_VERSION_CHECK(5, 99, 0)
 			m_zoomYPos = event->y();
@@ -1018,8 +1018,8 @@ void iAChartWidget::mousePressEvent(QMouseEvent *event)
 			m_yZoomStart = m_yZoom;
 			changeMode(Y_ZOOM_MODE, event);
 		}
-		else if (((event->modifiers() & Qt::ShiftModifier) == Qt::ShiftModifier) &&
-			((event->modifiers() & Qt::ControlModifier) == Qt::ControlModifier))
+		else if (event->modifiers().testFlag(Qt::ShiftModifier) &&
+			event->modifiers().testFlag(Qt::ControlModifier))
 		{
 #if QT_VERSION < QT_VERSION_CHECK(5, 99, 0)
 			m_zoomXPos = event->x();
@@ -1031,7 +1031,7 @@ void iAChartWidget::mousePressEvent(QMouseEvent *event)
 			m_xZoomStart = m_xZoom;
 			changeMode(X_ZOOM_MODE, event);
 		}
-		else if ((event->modifiers() & Qt::ShiftModifier) == Qt::ShiftModifier)
+		else if (event->modifiers().testFlag(Qt::ShiftModifier))
 		{
 			changeMode(MOVE_VIEW_MODE, event);
 		}

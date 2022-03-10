@@ -270,4 +270,5 @@ private:
 	size_t m_maxXAxisSteps;
 	bool m_drawXAxisAtZero;
 	QString m_emptyText;
+	QRect m_legendBox;
 };
