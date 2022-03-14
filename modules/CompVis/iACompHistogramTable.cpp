@@ -329,3 +329,7 @@ void iACompHistogramTable::drawCurveTable()
 	histogramVis->drawCurveTable();
 }
 
+void iACompHistogramTable::drawWhiteCurveTable()
+{
+	histogramVis->drawWhiteCurveTable();
+}

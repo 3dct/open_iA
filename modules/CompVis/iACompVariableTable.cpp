@@ -134,16 +134,29 @@ void iACompVariableTable::makeLUTFromCTF()
 	vtkSmartPointer<vtkColorTransferFunction> ctf = vtkSmartPointer<vtkColorTransferFunction>::New();
 	ctf->SetColorSpaceToRGB();
 
-	QColor c1 = QColor(103, 21, 45);
-	QColor c2 = QColor(128, 0, 38);
-	QColor c3 = QColor(189, 0, 38);
-	QColor c4 = QColor(227, 26, 28);
-	QColor c5 = QColor(252, 78, 42);
-	QColor c6 = QColor(253, 141, 60);
-	QColor c7 = QColor(254, 178, 76);
-	QColor c8 = QColor(254, 217, 118);
-	QColor c9 = QColor(255, 237, 160);
-	QColor c10 = QColor(255, 255, 204);
+	//QColor c1 = QColor(103, 21, 45);
+	//QColor c2 = QColor(128, 0, 38);
+	//QColor c3 = QColor(189, 0, 38);
+	//QColor c4 = QColor(227, 26, 28);
+	//QColor c5 = QColor(252, 78, 42);
+	//QColor c6 = QColor(253, 141, 60);
+	//QColor c7 = QColor(254, 178, 76);
+	//QColor c8 = QColor(254, 217, 118);
+	//QColor c9 = QColor(255, 237, 160);
+	//QColor c10 = QColor(255, 255, 204);
+
+	//Virdis: dark blue to yellow
+	QColor c10 = QColor(68, 1, 84);
+	QColor c9 = QColor(72, 40, 120);
+	QColor c8 = QColor(62, 73, 137);
+	QColor c7 = QColor(49, 104, 142);
+	QColor c6 = QColor(38, 130, 142);
+	QColor c5 = QColor(31, 158, 137);
+	QColor c4 = QColor(53, 183, 121);
+	QColor c3 = QColor(110, 206, 88);
+	QColor c2 = QColor(181, 222, 43);
+	QColor c1 = QColor(253, 231, 37);
+	
 
 	ctf->AddRGBPoint(1.0, c1.redF(), c1.greenF(), c1.blueF());
 	ctf->AddRGBPoint(0.9, c1.redF(), c1.greenF(), c1.blueF());

@@ -61,6 +61,8 @@ public:
 	QList<vtkSmartPointer<vtkPolyData>>* getNBBinData();
 	QList<vtkSmartPointer<vtkPolyData>>* getBBBinData();
 
+	void setDrawWhite(bool drawWhite);
+
 protected:
 	/***  Initialization  ***/
 	virtual void initializeTable() override;
@@ -105,6 +107,7 @@ protected:
 	void drawPolygon(vtkSmartPointer<vtkPoints> curvePoints, vtkSmartPointer<vtkUnsignedCharArray> colorArray, double bottomY);
 	//create polygons
 	vtkSmartPointer<vtkPolyData> createPolygon(vtkSmartPointer<vtkPoints> points, int numberOfObjectsInsideBin);
+	void drawWhiteCurve(vtkSmartPointer<vtkPoints> curvePoints);
 
 	//fill the color array according to the given colortable
 	void colorCurve(vtkSmartPointer<vtkPoints> points, vtkSmartPointer<vtkUnsignedCharArray> colorArray,
@@ -132,6 +135,8 @@ protected:
 	QList<vtkSmartPointer<vtkPolyData>>* m_NBbinPolyDatasets;
 	//stores the borders of the bayesian breaks bins of each dataset
 	QList<vtkSmartPointer<vtkPolyData>>* m_BBbinPolyDatasets;
+
+	bool m_drawWhiteCurves;
 
 private:
 	

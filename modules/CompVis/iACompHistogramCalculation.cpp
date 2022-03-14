@@ -94,7 +94,7 @@ void iACompHistogramCalculation::calculateUniformBinning()
 	m_uniformBinningData->setMinVal(m_minVal);
 	m_uniformBinningData->setMaxVal(m_maxVal);
 	m_uniformBinningData->setAmountObjectsEveryDataset(m_amountObjectsEveryDataset);
-	//m_uniformBinningData->computeSturgesRule();
+	m_uniformBinningData->computeSturgesRule();
 
 	m_uniformBinning =
 		new iACompUniformBinning(m_dataStorage, m_amountObjectsEveryDataset, m_datasets);

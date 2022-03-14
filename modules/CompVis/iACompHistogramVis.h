@@ -56,6 +56,8 @@ public:
 	void showCombiTable();
 	//render the curve representation
 	void showCurve();
+	//render the curve representation only with white lines
+	void showWhiteCurve();
 
 	/*** Getter & Setter ****/
 	int getAmountDatasets();
@@ -87,6 +89,7 @@ public:
 	void drawNaturalBreaksTable();
 	void drawCurveTable();
 	void drawCombiTable();
+	void drawWhiteCurveTable();
 
 	/*** Recalculate Data Binning ****/
 	iACompHistogramTableData* recalculateBinning(iACompVisOptions::binningType binningType, int numberOfBins);

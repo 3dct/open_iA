@@ -34,7 +34,7 @@ iACompHistogramVis::iACompHistogramVis(iACompHistogramTable* table, iAMainWindow
 	m_windowHeight(-1),
 	m_drawingPositionForRegions(new std::map<int, std::vector<double>>()),
 	mainCamera(vtkSmartPointer<vtkCamera>::New()),
-	m_AreaOpacity(0.15), //0.65
+	m_AreaOpacity(0.25), //0.15
 	m_lineWidth(3),
 	m_activeVis(iACompVisOptions::activeVisualization::Undefined),
 	m_activeBinning(iACompVisOptions::binningType::Undefined)
@@ -107,6 +107,10 @@ void iACompHistogramVis::showAFresh()
 	else if (m_activeVis == iACompVisOptions::activeVisualization::CurveVisualization)
 	{
 		showCurve();
+	}
+	else if (m_activeVis == iACompVisOptions::activeVisualization::WhiteCurveVisualization)
+	{
+		showWhiteCurve();
 	}
 	else
 	{
@@ -196,6 +200,12 @@ void iACompHistogramVis::drawNaturalBreaksTable()
 	showAFresh();
 }
 
+void iACompHistogramVis::drawWhiteCurveTable()
+{
+	m_activeVis = iACompVisOptions::activeVisualization::WhiteCurveVisualization;
+	showAFresh();
+}
+
 void iACompHistogramVis::drawCurveTable()
 {
 	m_activeVis = iACompVisOptions::activeVisualization::CurveVisualization;
@@ -264,6 +274,14 @@ void iACompHistogramVis::showCurve()
 	m_curveTable->setBBBinData(m_main->getBayesianBlocksData()->getBinPolyData());
 	m_curveTable->addRendererToWidget();
 	m_curveTable->setActive();
+}
+
+void iACompHistogramVis::showWhiteCurve()
+{
+	m_curveTable->setDrawWhite(true);
+	showCurve();
+
+	m_curveTable->setDrawWhite(false);
 }
 
 void iACompHistogramVis::addRendererToWidget(vtkSmartPointer<vtkRenderer> renderer)

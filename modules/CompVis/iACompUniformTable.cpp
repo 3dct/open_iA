@@ -142,7 +142,8 @@ void iACompUniformTable::makeLUTFromCTF()
 	vtkSmartPointer<vtkColorTransferFunction> ctf = vtkSmartPointer<vtkColorTransferFunction>::New();
 	ctf->SetColorSpaceToRGB();
 
-	QColor c1 = QColor(103, 21, 45);
+	//yellow to dark red
+	/*QColor c1 = QColor(103, 21, 45);
 	QColor c2 = QColor(128, 0, 38);
 	QColor c3 = QColor(189, 0, 38);
 	QColor c4 = QColor(227, 26, 28);
@@ -151,7 +152,55 @@ void iACompUniformTable::makeLUTFromCTF()
 	QColor c7 = QColor(254, 178, 76);
 	QColor c8 = QColor(254, 217, 118);
 	QColor c9 = QColor(255, 237, 160);
-	QColor c10 = QColor(255, 255, 204);
+	QColor c10 = QColor(255, 255, 204);*/
+
+	//Virdis: yellow to dark blue
+	/*QColor c1 = QColor(68, 1, 84);
+	QColor c2 = QColor(72, 40, 120);
+	QColor c3 = QColor(62, 73, 137);
+	QColor c4 = QColor(49, 104, 142);
+	QColor c5 = QColor(38, 130, 142);
+	QColor c6 = QColor(31, 158, 137);
+	QColor c7 = QColor(53, 183, 121);
+	QColor c8 = QColor(110, 206, 88);
+	QColor c9 = QColor(181, 222, 43);
+	QColor c10 = QColor(253, 231, 37);*/
+
+	//Virdis: dark blue to yellow
+	QColor c10 = QColor(68, 1, 84);
+	QColor c9 = QColor(72, 40, 120);
+	QColor c8 = QColor(62, 73, 137);
+	QColor c7 = QColor(49, 104, 142);
+	QColor c6 = QColor(38, 130, 142);
+	QColor c5 = QColor(31, 158, 137);
+	QColor c4 = QColor(53, 183, 121);
+	QColor c3 = QColor(110, 206, 88);
+	QColor c2 = QColor(181, 222, 43);
+	QColor c1 = QColor(253, 231, 37);
+
+	//Magma:Yellow to Blue
+	/*QColor c10 = QColor(252, 253, 191);
+	QColor c9 = QColor(254, 202, 141);
+	QColor c8 = QColor(253, 150, 104);
+	QColor c7 = QColor(241, 96, 93);
+	QColor c6 = QColor(205, 64, 113);
+	QColor c5 = QColor(158, 47, 127);
+	QColor c4 = QColor(114, 31, 129);
+	QColor c3 = QColor(68, 15, 118);
+	QColor c2 = QColor(24, 15, 61);
+	QColor c1 = QColor(0, 0, 4);*/
+
+	//Magma:Blue to Yellow
+	/*QColor c1 = QColor(252, 253, 191);
+	QColor c2 = QColor(254, 202, 141);
+	QColor c3 = QColor(253, 150, 104);
+	QColor c4 = QColor(241, 96, 93);
+	QColor c5 = QColor(205, 64, 113);
+	QColor c6 = QColor(158, 47, 127);
+	QColor c7 = QColor(114, 31, 129);
+	QColor c8 = QColor(68, 15, 118);
+	QColor c9 = QColor(24, 15, 61);
+	QColor c10 = QColor(0, 0, 4);*/
 
 	ctf->AddRGBPoint(1.0, c1.redF(), c1.greenF(), c1.blueF());
 	ctf->AddRGBPoint(0.9, c1.redF(), c1.greenF(), c1.blueF());

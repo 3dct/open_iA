@@ -30,6 +30,7 @@ class iACompHistogramTable
 	void drawBayesianBlocksTable();
 	void drawNaturalBreaksTable();
 	void drawCurveTable();
+	void drawWhiteCurveTable();
 
 	/******************************************  Update  ******************************/
 	void resetOtherCharts();

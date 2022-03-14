@@ -41,7 +41,8 @@ namespace iACompVisOptions
 		UniformTable, 
 		VariableTable, 
 		CombTable, 
-		CurveVisualization 
+		CurveVisualization,
+		WhiteCurveVisualization
 	};
 	
 	/*************** Rendering ****************************/

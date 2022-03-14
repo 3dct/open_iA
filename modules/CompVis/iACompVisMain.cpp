@@ -164,7 +164,7 @@ void iACompVisMain::enableNaturalBreaks()
 
 void iACompVisMain::enableCurveTable()
 {
-	m_HistogramTableDockWidget->drawCurveTable();
+	m_HistogramTableDockWidget->drawWhiteCurveTable();
 }
 
 /******************************************  Order Methods  **********************************/
