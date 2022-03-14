@@ -41,7 +41,7 @@ iAPlot::~iAPlot() {}
 
 void iAPlot::drawLegendItem(QPainter& painter, QRect const& rect)
 {
-	painter.setPen(m_color);
+	painter.setPen(visible()? m_color: QColor(m_color.red(), m_color.green(), m_color.blue(), 64));
 	int y = rect.center().y();
 	painter.drawLine(rect.left(), y, rect.right(), y);
 }
@@ -167,9 +167,27 @@ void iAFilledLinePlot::draw(QPainter& painter, size_t startIdx, size_t endIdx, i
 	painter.fillPath(tmpPath, QBrush(getFillColor()));
 }
 
+namespace
+{
+	void drawBoxLegendItem(QPainter& painter, QRect const& rect, QColor const & col, bool visible)
+	{
+		if (visible)
+		{
+			painter.fillRect(rect, QBrush(col));
+		}
+		else
+		{
+			painter.save();
+			painter.setPen(QPen(col, 2));
+			painter.drawRect(rect);
+			painter.restore();
+		}
+	}
+}
+
 void iAFilledLinePlot::drawLegendItem(QPainter& painter, QRect const& rect)
 {
-	painter.fillRect(rect, QBrush(getFillColor()));
+	drawBoxLegendItem(painter, rect, getFillColor(), visible());
 }
 
 // iAStepFunctionPlot
@@ -205,7 +223,7 @@ void iAStepFunctionPlot::draw(QPainter& painter, size_t startIdx, size_t endIdx,
 
 void iAStepFunctionPlot::drawLegendItem(QPainter& painter, QRect const& rect)
 {
-	painter.fillRect(rect, QBrush(getFillColor()));
+	drawBoxLegendItem(painter, rect, getFillColor(), visible());
 }
 
 // iABarGraphPlot
@@ -235,7 +253,7 @@ void iABarGraphPlot::draw(QPainter& painter, size_t startIdx, size_t endIdx, iAM
 
 void iABarGraphPlot::drawLegendItem(QPainter& painter, QRect const& rect)
 {	// TODO: figure out what todo do if m_lut is set...
-	painter.fillRect(rect, QBrush(color()));
+	drawBoxLegendItem(painter, rect, color(), visible());
 }
 
 void iABarGraphPlot::setLookupTable(QSharedPointer<iALookupTable> lut)

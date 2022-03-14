@@ -144,7 +144,7 @@ public:
 	//! Remove all plots from the chart.
 	void clearPlots();
 	//! Retrieve all plots currently in the chart.
-	std::vector< QSharedPointer< iAPlot > > const & plots();
+	std::vector<QSharedPointer<iAPlot>> const & plots();
 	//! Add an image overlay to the chart.
 	void addImageOverlay(QSharedPointer<QImage> imgOverlay, bool stretch=true);
 	//! Remove an image overlay from the chart.
@@ -193,6 +193,10 @@ signals:
 	//! @param x coordinate x of the click position, in chart coordinates
 	//! @param modifiers modifier keys that were pressed at time of click
 	void clicked(double x, /*double y,*/ Qt::KeyboardModifiers modifiers);
+
+	//! Emitted when a plot is clicked in the legend
+	//! @param the index of the plot that was clicked (in the vector accessible via plots())
+	void legendPlotClicked(size_t plotID);
 
 protected:
 	QString m_xCaption, m_yCaption;

@@ -456,7 +456,12 @@ void iAChartWidget::drawLegend(QPainter& painter)
 		int top = upLeft.y() + LegendPadding + pi * LineHeight;
 		QRect legendItemRect(LegendColorLeft, top + LegendItemSpacing, LegendItemWidth, LineHeight - LegendItemSpacing);
 		m_plots[pi]->drawLegendItem(painter, legendItemRect);
-		painter.setPen(qApp->palette().color(QPalette::Text));
+		auto textColor = qApp->palette().color(QPalette::Text);
+		if (!m_plots[pi]->visible())
+		{	// theme-agnostic way of making text appear less opaque:
+			textColor.setAlpha(92);
+		}
+		painter.setPen(textColor);
 		QRect textRect(TextLeft, top, TextMaxWidth + LegendPadding, LineHeight);
 		painter.drawText(textRect, m_plots[pi]->data()->name());
 	}
@@ -1002,9 +1007,19 @@ void iAChartWidget::mousePressEvent(QMouseEvent *event)
 	switch(event->button())
 	{
 	case Qt::LeftButton:
+#if QT_VERSION < QT_VERSION_CHECK(5, 99, 0)
 		if (m_legendBox.contains(event->pos()))
 		{
-
+			auto yPos = event->pos().y();
+#else
+		if (m_legendBox.contains(event->position()))
+		{
+			auto yPos = event->position().y();
+#endif
+			auto plotIdx = clamp(0ull, m_plots.size() - 1,
+				mapValue(m_legendBox.top(), m_legendBox.bottom(), 0ull, m_plots.size(), yPos));
+			m_plots[plotIdx]->setVisible(!m_plots[plotIdx]->visible());		// make option to let the implementer using iAChartWidget decide whether he wants to provide this functionality to users?
+			emit legendPlotClicked(plotIdx);
 		}
 		else if (event->modifiers().testFlag(Qt::ShiftModifier) &&
 			event->modifiers().testFlag(Qt::ControlModifier) &&
