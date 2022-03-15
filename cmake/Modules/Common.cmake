@@ -313,6 +313,7 @@ else()
 endif()
 message(STATUS "    VTK_LIB_DIR: ${VTK_LIB_DIR}")
 list(APPEND BUNDLE_DIRS "${VTK_LIB_DIR}")
+option(VTK_USE_AVIWRITER "Enable usage of *.avi (an old Windows movie file format) writer. Note that enabling this might cause linker errors, since we cannot reliably determine whether VTK builds the required parts or not." OFF)
 if ( vtkoggtheora_LOADED OR vtkogg_LOADED OR
      (VTK_ogg_FOUND EQUAL 1 AND VTK_theora_FOUND EQUAL 1 AND VTK_IOOggTheora_FOUND EQUAL 1) )
 	message(STATUS "    Video: Ogg Theora Encoder available")
