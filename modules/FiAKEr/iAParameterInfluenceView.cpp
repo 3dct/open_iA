@@ -748,7 +748,7 @@ void iAParameterInfluenceView::addStackedBar(int outType, int outIdx)
 		//connect(outChart, &iAChartWidget::clicked, this, &iAParameterInfluenceView::);
 		connect(outChart, &iAChartWidget::axisChanged, this, &iAParameterInfluenceView::charactChartAxisChanged);
 
-		auto parChart = new iAChartWidget(this, paramName, (curBarIdx == 0) ? "Sens. " + title : "");
+		auto parChart = new iAChartWidget(this, paramName, (curBarIdx == 0) ? "Sensitivity Variation" : "");
 		parChart->setEmptyText("");
 		parChart->setBackgroundRole(bgRole);
 		parChart->setProperty("paramIdx", paramIdx);
@@ -850,9 +850,8 @@ void iAParameterInfluenceView::removeStackedBar(int outType, int outIdx)
 		int newNumBars = m_table[rowIdx]->bars->numberOfBars();
 		if (newNumBars > 0)
 		{
-			m_table[rowIdx]->out[0]->setYCaption(
-				"Var. from " + paramName);  // to make sure if first chart is removed that new first gets caption
-			m_table[rowIdx]->out[0]->setYCaption("Sens. " + m_table[rowIdx]->bars->barName(0));
+			m_table[rowIdx]->out[0]->setYCaption("Var. from " + paramName);  // to make sure if first chart is removed that new first gets caption
+			m_table[rowIdx]->par[0]->setYCaption("Sensitivity Variation"/*" + m_table[rowIdx]->bars->barName(0)*/);
 			for (int i = barIdx; i < newNumBars; ++i)
 			{  // addWidget automatically removes it from position where it was before
 				m_paramListLayout->addWidget(

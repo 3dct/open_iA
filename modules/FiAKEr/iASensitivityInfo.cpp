@@ -1097,7 +1097,7 @@ void iASensitivityInfo::createGUI()
 	//////////// Parameter Influence View                   ////////////
 	m_gui->m_paramInfluenceView = new iAParameterInfluenceView(m_data, m_gui, ParamColor, OutputColor);
 	m_gui->m_dwParamInfluence =
-		new iADockWidgetWrapper(m_gui->m_paramInfluenceView, "Parameter Influence", "foeParamInfluence");
+		new iADockWidgetWrapper(m_gui->m_paramInfluenceView, "Parameter Influence View", "foeParamInfluence");
 	connect(m_gui->m_paramInfluenceView, &iAParameterInfluenceView::barAdded, this, &iASensitivityInfo::outputBarAdded);
 	connect(
 		m_gui->m_paramInfluenceView, &iAParameterInfluenceView::barRemoved, this, &iASensitivityInfo::outputBarRemoved);
@@ -1128,8 +1128,9 @@ void iASensitivityInfo::createGUI()
 		m_gui->m_algoInfo->setSelectedInput(m_gui->m_paramInfluenceView->selectedRow());
 	});
 	m_gui->m_algoInfo->setInSortOrder(m_gui->m_paramInfluenceView->paramIndicesSorted());
-	auto dwAlgoInfo = new iADockWidgetWrapper(m_gui->m_algoInfo, "Algorithm Details", "foeAlgorithmInfo");
+	auto dwAlgoInfo = new iADockWidgetWrapper(m_gui->m_algoInfo, "In-Out Matrix", "foeAlgorithmInfo");
 	m_child->splitDockWidget(dwSettings, dwAlgoInfo, Qt::Horizontal);
+	m_child->renderDockWidget()->setWindowTitle("Spatial View");
 
 	QVector<int> measures;
 	for (auto d : m_data->m_resultDissimMeasures)
@@ -1146,7 +1147,7 @@ void iASensitivityInfo::createGUI()
 	m_child->splitDockWidget(m_gui->m_dwParamInfluence, dwParamView, Qt::Vertical);
 
 
-	//////////// Constellation Charts View (Scatter Plots)  ////////////
+	//////////// Constellation Plots (Scatter Plots)  ////////////
 	m_gui->m_mdsData = QSharedPointer<iASPLOMData>(new iASPLOMData());
 	std::vector<QString> spParamNames;
 	for (auto p : m_data->m_variedParams)
@@ -1230,7 +1231,7 @@ void iASensitivityInfo::createGUI()
 	m_gui->m_splitter->addWidget(m_gui->m_mdsSP);
 	m_gui->m_splitter->addWidget(m_gui->m_colorMapWidget);
 
-	auto dwSP = new iADockWidgetWrapper(m_gui->m_splitter, "Constellation Charts", "foeParamSP");
+	auto dwSP = new iADockWidgetWrapper(m_gui->m_splitter, "Constellation Plots", "foeParamSP");
 	m_child->splitDockWidget(m_gui->m_dwParamInfluence, dwSP, Qt::Vertical);
 
 	m_gui->updateScatterPlotLUT();
@@ -1240,7 +1241,7 @@ void iASensitivityInfo::createGUI()
 	m_gui->m_mdsSP->setPointInfo(ptInfo);
 
 	m_gui->m_diff3DWidget = new iAQVTKWidget();
-	m_gui->m_dwDiff3D = new iADockWidgetWrapper(m_gui->m_diff3DWidget, "Fiber Difference", "foeDiff3D");
+	m_gui->m_dwDiff3D = new iADockWidgetWrapper(m_gui->m_diff3DWidget, "Fiber Difference View", "foeDiff3D");
 	m_child->splitDockWidget(dwSettings, m_gui->m_dwDiff3D, Qt::Horizontal);
 	m_gui->m_diff3DRenderManager.addToBundle(m_main3DWin->GetRenderers()->GetFirstRenderer());
 	m_gui->m_diff3DWidget->renderWindow()->AddRenderer(m_gui->m_diff3DEmptyRenderer);
