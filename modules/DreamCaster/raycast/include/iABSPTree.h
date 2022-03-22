@@ -1,7 +1,7 @@
 /*************************************  open_iA  ************************************ *
 * **********   A tool for visual analysis and processing of 3D CT images   ********** *
 * *********************************************************************************** *
-* Copyright (C) 2016-2021  C. Heinzl, M. Reiter, A. Reh, W. Li, M. Arikan, Ar. &  Al. *
+* Copyright (C) 2016-2022  C. Heinzl, M. Reiter, A. Reh, W. Li, M. Arikan, Ar. &  Al. *
 *                 Amirkhanov, J. Weissenböck, B. Fröhler, M. Schiwarth, P. Weinberger *
 * *********************************************************************************** *
 * This program is free software: you can redistribute it and/or modify it under the   *
@@ -35,15 +35,6 @@ extern iADreamCaster * dcast;
 class iABSPNode
 {
 public:
-	iABSPNode()
-	{
-		internal1=0;
-		internal2=0;
-		masked_vars=0;
-	}
-	~iABSPNode()
-	{
-	}
 	//! Splits current node's AABB by maximum dimension. Creates two child-nodes with derived AABBs.
 	//! @param[in]  p_aabb parent's aabb
 	//! @param[out] l_aabb left child's aabb
@@ -341,17 +332,22 @@ public:
 		masked_vars&=0xdf;//off
 		if(has) masked_vars|=0x20;//on
 	}
-
-	unsigned int internal1, internal2; //!< shared data, depends if node is leaf or not
-	unsigned int masked_vars;          //!< Is this node a leaf-node first bit -- is leaf, has left, has right, else -- axis index
-	inline unsigned int tri_start() const {return internal1;}
-	inline unsigned int tri_count() const {return internal2;}
-	inline unsigned int offset()    const {return internal1;}
-	inline float & splitCoord()       {return *((float*)&internal2);}
+	union OffsetOrSplitCoord
+	{
+		unsigned int u;
+		float f;
+	};
+	unsigned int internal1{};        //!< either tri_start or offset, depends if node is leaf or not
+	OffsetOrSplitCoord internal2{};  //!< either tri_count or split coord, depends if node is leaf or not
+	unsigned int masked_vars{};      //!< Is this node a leaf-node first bit -- is leaf, has left, has right, else -- axis index
+	inline unsigned int tri_start() const       { return internal1; }
+	inline unsigned int tri_count() const       { return internal2.u; }
+	inline unsigned int offset()    const       { return internal1; }
+	inline float & splitCoord()                 { return internal2.f; }
 	inline void set_tri_start(unsigned int val) { internal1=val; }
-	inline void set_tri_count(unsigned int val) { internal2=val; }
+	inline void set_tri_count(unsigned int val) { internal2.u=val; }
 	inline void set_offset(unsigned int val)    { internal1=val; }
-	inline void set_splitCoord(float val)       { internal2=*((unsigned int*)&val); }
+	inline void set_splitCoord(float val)       { internal2.f=val; }
 	inline iABSPNode *get_left(std::vector<iABSPNode*> &nodes)  { return nodes[offset()]; }
 	inline iABSPNode *get_right(std::vector<iABSPNode*> &nodes) { return nodes[offset()+1]; }
 	inline iABSPNode *get_left(const std::vector<iABSPNode*> &nodes)  { return nodes[offset()]; }

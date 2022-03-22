@@ -52,8 +52,7 @@ General
 	QSpinBox,
 	QDoubleSpinBox,
 	QProgressBar,
-	QComboBox,
-	QTabBar::tab
+	QComboBox
 	{
 		background: qlineargradient(spread:pad,
 			x1:0, y1:0,
@@ -67,8 +66,7 @@ General
 	QSpinBox:hover,
 	QDoubleSpinBox:hover,
 	QComboBox:hover,
-	.QDateTimeEdit:hover,
-	QTabBar::tab:hover
+	.QDateTimeEdit:hover
 	{
 		background: qlineargradient(spread:pad,
 			x1:0, y1:0,
@@ -94,7 +92,6 @@ General
 	QProgressBar,
 	QSlider::groove:horizontal,
 	QSpinBox,
-	QTabBar::tab,
 	QWidget[qssClass="jobList"]
 	{
 		border: 1px solid rgba(100, 100, 100, 255);
@@ -283,46 +280,25 @@ QPushButton
 QTabWidget
 QTabBar
 ****************************************************************************/
-	QTabWidget::pane
-	{
-		/* The tab widget frame */
-		/*position: absolute;*/
-		top: -1px;
-		border: 1px solid rgba(80, 80, 80, 255);
-		/*border-radius: 5px;*/
-	}
-	QTabBar
-	{
-		background: none;
-	}
+/* Style the tab using the tab sub-control. Note that it reads QTabBar _not_ QTabWidget
+       styling options here unfortunately are very limited;
+       background / background-color are not effective in ::tab, except for :selected,
+       (but there we would prefer the bright "default anyway)
+       only color (and margin/padding) actually seems to be working
+*/
 	QTabBar::tab
 	{
-		/* Style the tab using the tab sub-control. Note that it reads QTabBar _not_ QTabWidget */
-		color: rgba(230, 230, 230, 255);
-		border-top-left-radius: 2px;
-		border-top-right-radius: 2px;
 		padding: 2px 12px 2px 12px;
 	}
-	QTabBar::tab:selected, QTabBar::tab:selected:hover
+	QTabBar::tab:selected /* only needed for theme switch; default white color and black background would be fine, but they aren't set automatically at switching theme
+	in reverse to bright theme, on theme switch, for dark theme, only :selected works but not ::tab, no idea why */
 	{
-		border-top: 1px solid rgba(120, 120, 120, 255);
-		border-left: 1px solid rgba(120, 120, 120, 255);
-		border-right: 1px solid rgba(120, 120, 120, 255);
-		background: qlineargradient(spread:pad,
-			x1:0, y1:0,
-			x2:0, y2:1,
-			stop:0 rgba(80, 80, 80, 255),
-			stop:0.617 rgba(73, 73, 73, 255),
-			stop:1 rgba(70, 70, 70, 255)
-		);
+		color: rgb(255, 255, 255);
 	}
 	QTabBar::tab:!selected
 	{
 		margin-top: 3px;
-	}
-	QTabBar::tab:pressed
-	{
-		background-color: rgba(120, 120, 120, 255);
+		color: rgb(120, 120, 120);
 	}
 	QTabBar::scroller
 	{   /* the width of the scroll buttons */
@@ -331,7 +307,6 @@ QTabBar
 	QTabBar QToolButton
 	{	/* the scroll buttons are tool buttons */
 		color: rgba(255, 168, 0, 255);
-		background-color: rgba(40, 40, 40, 255);
 	}
 /****************************************************************************
 QLabel

@@ -36,6 +36,9 @@ set(VTK_REQUIRED_LIBS_PUBLIC
 if ("${VTK_VIDEO_SUPPORT}" STREQUAL "ogg")
 	target_compile_definitions(${libname} PRIVATE VTK_USE_OGGTHEORA_ENCODER)
 endif()
+if (VTK_USE_AVIWRITER)
+	target_compile_definitions(${libname} PRIVATE VTK_USE_AVIWRITER)
+endif()
 if (HDF5_FOUND)
 	# as HDF5 is required only in core, we could link privately, but under Linux this leads
 	# to gui and cmd also requiring linking to it separately, it's easier to link PUBLIC here:

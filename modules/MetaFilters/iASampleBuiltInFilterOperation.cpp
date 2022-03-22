@@ -1,7 +1,7 @@
 /*************************************  open_iA  ************************************ *
 * **********   A tool for visual analysis and processing of 3D CT images   ********** *
 * *********************************************************************************** *
-* Copyright (C) 2016-2021  C. Heinzl, M. Reiter, A. Reh, W. Li, M. Arikan, Ar. &  Al. *
+* Copyright (C) 2016-2022  C. Heinzl, M. Reiter, A. Reh, W. Li, M. Arikan, Ar. &  Al. *
 *                 Amirkhanov, J. Weissenböck, B. Fröhler, M. Schiwarth, P. Weinberger *
 * *********************************************************************************** *
 * This program is free software: you can redistribute it and/or modify it under the   *
@@ -92,8 +92,11 @@ void iASampleBuiltInFilterOperation::performWork()
 				"Check 'Overwrite output' to overwrite existing files.").arg(outFileName));
 			return;
 		}
-		LOG(lvlInfo, QString("Writing output %1 to file: '%2' (compression: %3)")
-				.arg(o).arg(outFileName).arg(m_compressOutput ? "on" : "off"))
+		LOG(lvlInfo,
+			QString("Writing output %1 to file: '%2' (compression: %3)")
+				.arg(o)
+				.arg(outFileName)
+				.arg(m_compressOutput ? "on" : "off"));
 		iAITKIO::writeFile(outFileName, filter->output(o)->itkImage(), filter->output(o)->itkScalarPixelType(), m_compressOutput);
 	}
 	/*

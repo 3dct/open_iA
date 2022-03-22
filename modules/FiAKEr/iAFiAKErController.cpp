@@ -1,7 +1,7 @@
 /*************************************  open_iA  ************************************ *
 * **********   A tool for visual analysis and processing of 3D CT images   ********** *
 * *********************************************************************************** *
-* Copyright (C) 2016-2021  C. Heinzl, M. Reiter, A. Reh, W. Li, M. Arikan, Ar. &  Al. *
+* Copyright (C) 2016-2022  C. Heinzl, M. Reiter, A. Reh, W. Li, M. Arikan, Ar. &  Al. *
 *                 Amirkhanov, J. Weissenböck, B. Fröhler, M. Schiwarth, P. Weinberger *
 * *********************************************************************************** *
 * This program is free software: you can redistribute it and/or modify it under the   *
@@ -2110,12 +2110,12 @@ void iAFiAKErController::updateBoundingBox()
 		newBounds[i * 2] = m_teBoundingBox[i]->text().toDouble(&ok);
 		if (!ok)
 		{
-			LOG(lvlError, QString("Invalid bounding box value: %1").arg(m_teBoundingBox[i]->text()))
+			LOG(lvlError, QString("Invalid bounding box value: %1").arg(m_teBoundingBox[i]->text()));
 		}
 		newBounds[i * 2 + 1] = m_teBoundingBox[i + 3]->text().toDouble(&ok);
 		if (!ok)
 		{
-			LOG(lvlError, QString("Invalid bounding box value: %1").arg(m_teBoundingBox[i]->text()))
+			LOG(lvlError, QString("Invalid bounding box value: %1").arg(m_teBoundingBox[i]->text()));
 		}
 	}
 	m_customBoundingBoxSource->SetBounds(newBounds);
