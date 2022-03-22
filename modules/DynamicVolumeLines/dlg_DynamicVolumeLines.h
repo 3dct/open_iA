@@ -20,6 +20,8 @@
 * ************************************************************************************/
 #pragma once
 
+#include "DynamicVolumeLines_export.h"
+
 #include "iAScalingWidget.h"
 #include "DynamicVolumeLinesHelpers.h"
 #include "ui_dlg_DynamicVolumeLines.h"
@@ -50,7 +52,7 @@ class vtkTextActor;
 typedef iAQTtoUIConnector<QDockWidget, Ui_dlg_DynamicVolumeLines>  DynamicVolumeLinesConnector;
 typedef iAQTtoUIConnector<QDockWidget, Ui_Multi3DRendererView> multi3DRendererView;
 
-class dlg_DynamicVolumeLines : public DynamicVolumeLinesConnector
+class DynamicVolumeLines_API dlg_DynamicVolumeLines : public DynamicVolumeLinesConnector
 {
 	Q_OBJECT
 
