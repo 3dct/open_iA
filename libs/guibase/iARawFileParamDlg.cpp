@@ -1,7 +1,7 @@
 /*************************************  open_iA  ************************************ *
 * **********   A tool for visual analysis and processing of 3D CT images   ********** *
 * *********************************************************************************** *
-* Copyright (C) 2016-2021  C. Heinzl, M. Reiter, A. Reh, W. Li, M. Arikan, Ar. &  Al. *
+* Copyright (C) 2016-2022  C. Heinzl, M. Reiter, A. Reh, W. Li, M. Arikan, Ar. &  Al. *
 *                 Amirkhanov, J. Weissenböck, B. Fröhler, M. Schiwarth, P. Weinberger *
 * *********************************************************************************** *
 * This program is free software: you can redistribute it and/or modify it under the   *
@@ -29,6 +29,7 @@
 #include <QLabel>
 #include <QLayout>
 #include <QPushButton>
+#include <QRegularExpression>
 #include <QSpinBox>
 
 namespace
@@ -145,36 +146,40 @@ void iARawFileParamDlg::checkFileSize()
 
 void iARawFileParamDlg::guessParameters(QString fileName)
 {
-	QRegExp sizeRegEx("(\\d+)x(\\d+)x(\\d+)");
+	QRegularExpression sizeRegEx("(\\d+)x(\\d+)x(\\d+)");
 	// TODO: also recognize trailing k/K for 1000
-	if (sizeRegEx.indexIn(fileName) != -1)
+	auto sizeMatch = sizeRegEx.match(fileName);
+	if (sizeMatch.hasMatch())
 	{
-		m_inputDlg->setValue("Size X", sizeRegEx.cap(1));
-		m_inputDlg->setValue("Size Y", sizeRegEx.cap(2));
-		m_inputDlg->setValue("Size Z", sizeRegEx.cap(3));
+		m_inputDlg->setValue("Size X", sizeMatch.captured(1));
+		m_inputDlg->setValue("Size Y", sizeMatch.captured(2));
+		m_inputDlg->setValue("Size Z", sizeMatch.captured(3));
 	}
 	QString spcGrp("(\\d+(?:[.-]\\d+)?)(um|mm)");
-	QRegExp spcRegEx1(QString("%1x%2x%3").arg(spcGrp).arg(spcGrp).arg(spcGrp));
-	if (spcRegEx1.indexIn(fileName) != -1)
+	QRegularExpression spcRegEx1(QString("%1x%2x%3").arg(spcGrp).arg(spcGrp).arg(spcGrp));
+	auto spc1Match = spcRegEx1.match(fileName);
+	if (spc1Match.hasMatch())
 	{
-		m_inputDlg->setValue("Spacing X", spcRegEx1.cap(1).replace("-", "."));
-		m_inputDlg->setValue("Spacing Y", spcRegEx1.cap(3).replace("-", "."));
-		m_inputDlg->setValue("Spacing Z", spcRegEx1.cap(5).replace("-", "."));
+		m_inputDlg->setValue("Spacing X", spc1Match.captured(1).replace("-", "."));
+		m_inputDlg->setValue("Spacing Y", spc1Match.captured(3).replace("-", "."));
+		m_inputDlg->setValue("Spacing Z", spc1Match.captured(5).replace("-", "."));
 	}
 	else
 	{
-		QRegExp spcRegEx2(spcGrp);
-		if (spcRegEx2.indexIn(fileName) != -1)
+		QRegularExpression spcRegEx2(spcGrp);
+		auto spc2Match = spcRegEx2.match(fileName);
+		if (spc2Match.hasMatch())
 		{
-			m_inputDlg->setValue("Spacing X", spcRegEx2.cap(1).replace("-", "."));
-			m_inputDlg->setValue("Spacing Y", spcRegEx2.cap(1).replace("-", "."));
-			m_inputDlg->setValue("Spacing Z", spcRegEx2.cap(1).replace("-", "."));
+			m_inputDlg->setValue("Spacing X", spc2Match.captured(1).replace("-", "."));
+			m_inputDlg->setValue("Spacing Y", spc2Match.captured(1).replace("-", "."));
+			m_inputDlg->setValue("Spacing Z", spc2Match.captured(1).replace("-", "."));
 		}
 	}
-	QRegExp scalarTypeRegEx("(\\d+)bit");
-	if (scalarTypeRegEx.indexIn(fileName) != -1)
+	QRegularExpression scalarTypeRegEx("(\\d+)bit");
+	auto scalarTypeMatch = scalarTypeRegEx.match(fileName);
+	if (scalarTypeMatch.hasMatch())
 	{
-		auto bits = scalarTypeRegEx.cap(1);
+		auto bits = scalarTypeMatch.captured(1);
 		int vtkTypeID = (bits == "8") ? VTK_UNSIGNED_CHAR
 			: (bits == "16")          ? VTK_UNSIGNED_SHORT
 			: (bits == "32")          ? VTK_UNSIGNED_INT

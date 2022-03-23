@@ -1,7 +1,7 @@
 /*************************************  open_iA  ************************************ *
 * **********   A tool for visual analysis and processing of 3D CT images   ********** *
 * *********************************************************************************** *
-* Copyright (C) 2016-2021  C. Heinzl, M. Reiter, A. Reh, W. Li, M. Arikan, Ar. &  Al. *
+* Copyright (C) 2016-2022  C. Heinzl, M. Reiter, A. Reh, W. Li, M. Arikan, Ar. &  Al. *
 *                 Amirkhanov, J. Weissenböck, B. Fröhler, M. Schiwarth, P. Weinberger *
 * *********************************************************************************** *
 * This program is free software: you can redistribute it and/or modify it under the   *
@@ -52,6 +52,7 @@
 #include "iAFileUtils.h"    // for fileNameOnly
 #include "iALog.h"
 #include "iALogLevelMappings.h"
+#include "iALUT.h"
 #include "iAMathUtility.h"
 #include "iAToolsVTK.h"
 #include "iAXmlSettings.h"
@@ -2693,6 +2694,7 @@ int MainWindow::runGUI(int argc, char * argv[], QString const & appName, QString
 	}
 	app.setAttribute(Qt::AA_DontCreateNativeWidgetSiblings);
 	iALog::setLogger(iALogWidget::get());
+	iALUT::loadMaps(QCoreApplication::applicationDirPath() + "/colormaps");
 	auto dwJobs = new iADockWidgetWrapper(iAJobListView::get(), "Job List", "Jobs");
 	MainWindow mainWin(appName, version, buildInformation, splashPath, dwJobs);
 	mainWin.addDockWidget(Qt::RightDockWidgetArea, iALogWidget::get());

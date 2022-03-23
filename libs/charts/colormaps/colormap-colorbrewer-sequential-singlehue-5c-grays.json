@@ -1,0 +1,14 @@
+{
+	"name": "ColorBrewer sequential single hue (5c) grays",
+	"source": "https://colorbrewer2.org",
+	"type": "continuous",
+	"subType": "sequential",
+	"colorRange": 255.0,
+	"colors" : [
+		[ 37,  37,  37],	
+		[ 99,  99,  99],	
+		[150, 150, 150],
+		[204, 204, 204],
+		[247, 247, 247]
+	]
+}

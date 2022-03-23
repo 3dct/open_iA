@@ -1,0 +1,14 @@
+{
+	"name": "ColorBrewer sequential single hue (5c) oranges",
+	"source": "https://colorbrewer2.org",
+	"type": "continuous",
+	"subType": "sequential",
+	"colorRange": 255.0,
+	"colors" : [
+		[166,  54,   3],
+		[230,  85,  13],
+		[253, 141,  60],
+		[253, 190, 133],
+		[254, 237, 222]
+	]
+}

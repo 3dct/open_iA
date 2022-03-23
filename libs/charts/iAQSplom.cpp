@@ -1,7 +1,7 @@
 /*************************************  open_iA  ************************************ *
 * **********   A tool for visual analysis and processing of 3D CT images   ********** *
 * *********************************************************************************** *
-* Copyright (C) 2016-2021  C. Heinzl, M. Reiter, A. Reh, W. Li, M. Arikan, Ar. &  Al. *
+* Copyright (C) 2016-2022  C. Heinzl, M. Reiter, A. Reh, W. Li, M. Arikan, Ar. &  Al. *
 *                 Amirkhanov, J. Weissenböck, B. Fröhler, M. Schiwarth, P. Weinberger *
 * *********************************************************************************** *
 * This program is free software: you can redistribute it and/or modify it under the   *
@@ -299,7 +299,7 @@ iAQSplom::iAQSplom(QWidget * parent):
 	connect(m_settingsDlg->rbContinuous, &QRadioButton::toggled, this, &iAQSplom::setContinousParamMode);
 	connect(m_settingsDlg->rbQualitative, &QRadioButton::toggled, this, &iAQSplom::setQualitativeParamMode);
 	connect(m_settingsDlg->cbColorRangeMode, QOverload<int>::of(&QComboBox::currentIndexChanged), this, &iAQSplom::colorRangeModeChanged);
-	m_settingsDlg->cbColorTheme->addItems(iALUT::GetColorMapNames());
+	m_settingsDlg->cbColorTheme->addItems(iALUT::colorMapNames());
 	m_settingsDlg->cbColorThemeQual->addItems(iAColorThemeManager::instance().availableThemes());
 	m_settingsDlg->cbColorThemeQual->setCurrentIndex(1); // to avoid "Black" default theme
 	connect(m_settingsDlg->cbColorTheme, QOverload<int>::of(&QComboBox::currentIndexChanged), this, &iAQSplom::setColorThemeFromComboBox);

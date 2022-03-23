@@ -1,0 +1,17 @@
+{
+	"name": "ColorBrewer qualitative 9-class Set1",
+	"source": "https://colorbrewer2.org",
+	"type": "categorical",
+	"colorRange": 255.0,
+	"colors" : [
+		[228,  26,  28],
+		[ 55, 126, 184],
+		[ 77, 175,  74],
+		[152,  78, 163],
+		[255, 127,   0],
+		[255, 255,  51],
+		[166,  86,  40],
+		[247, 129, 191],
+		[153, 153, 153]
+	]
+}
