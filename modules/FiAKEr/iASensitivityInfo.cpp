@@ -1098,7 +1098,8 @@ void iASensitivityInfo::createGUI()
 	m_child->splitDockWidget(m_nextToDW, dwSettings, Qt::Horizontal);
 	
 	//////////// Parameter Influence View                   ////////////
-	m_gui->m_paramInfluenceView = new iAParameterInfluenceView(m_data, m_gui, ParamColor, OutputColor);
+	QColor headerColor(qApp->palette().color(QPalette::Button));
+	m_gui->m_paramInfluenceView = new iAParameterInfluenceView(m_data, m_gui, headerColor, headerColor /*ParamColor, OutputColor*/);
 	m_gui->m_dwParamInfluence =
 		new iADockWidgetWrapper(m_gui->m_paramInfluenceView, "Parameter Influence View", "foeParamInfluence");
 	connect(m_gui->m_paramInfluenceView, &iAParameterInfluenceView::barAdded, this, &iASensitivityInfo::outputBarAdded);
@@ -1119,7 +1120,7 @@ void iASensitivityInfo::createGUI()
 	{
 		algoOutNames << m_data->charactName(charIdx);
 	}
-	m_gui->m_algoInfo = new iAAlgorithmInfo("Fiber Reconstruction", algoInNames, algoOutNames, ParamColor, OutputColor);
+	m_gui->m_algoInfo =	new iAAlgorithmInfo("Fiber Reconstruction", algoInNames, algoOutNames, headerColor, headerColor/*ParamColor, OutputColor*/);
 	m_gui->m_algoInfo->addShownOut(0);  // equivalent to addStackedBar in iAParameterInfluenceView constructor!
 	connect(m_gui->m_algoInfo, &iAAlgorithmInfo::inputClicked, m_gui->m_paramInfluenceView,
 		&iAParameterInfluenceView::setSelectedParam);
