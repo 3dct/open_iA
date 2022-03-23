@@ -162,7 +162,7 @@ int iALUT::BuildLUT( vtkSmartPointer<vtkLookupTable> pLUT, double const * lutRan
 		return 0;
 	}
 	auto ctf = m_colorMaps[colorMap];
-	convertTFToLUT(pLUT, ctf, nullptr, numCols, lutRange);
+	convertTFToLUT(pLUT, ctf, nullptr, numCols, lutRange, reverse);
 	return ctf->GetSize();
 }
 

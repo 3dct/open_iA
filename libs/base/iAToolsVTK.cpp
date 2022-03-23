@@ -374,7 +374,7 @@ void convertLUTToTF(vtkSmartPointer<vtkLookupTable> lut, vtkSmartPointer<vtkColo
 }
 
 void convertTFToLUT(vtkSmartPointer<vtkLookupTable> lut, vtkSmartPointer<vtkScalarsToColors> ctf,
-	vtkSmartPointer<vtkPiecewiseFunction> otf, int numCols, double const* lutRange)
+	vtkSmartPointer<vtkPiecewiseFunction> otf, int numCols, double const* lutRange, bool reverse)
 {
 	double rgb[3];
 	double const* inRange = ctf->GetRange();
@@ -394,7 +394,7 @@ void convertTFToLUT(vtkSmartPointer<vtkLookupTable> lut, vtkSmartPointer<vtkScal
 		double value = mapValue(0ll, lut->GetNumberOfColors() - 1, inRange[0], inRange[1], i);
 		ctf->GetColor(value, rgb);
 		double alpha = otf ? otf->GetValue(value) : 1.0;
-		lut->SetTableValue(i, rgb[0], rgb[1], rgb[2], alpha);
+		lut->SetTableValue( reverse ? numCols - 1 - i : i, rgb[0], rgb[1], rgb[2], alpha);
 	}
 	lut->Build();
 }

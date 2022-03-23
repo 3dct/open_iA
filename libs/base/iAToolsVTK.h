@@ -162,4 +162,4 @@ iAbase_API void setCamPosition(vtkCamera* cam, iACameraPosition mode);
 iAbase_API void convertLUTToTF(vtkSmartPointer<vtkLookupTable> src, vtkSmartPointer<vtkColorTransferFunction> ctf,
 	vtkSmartPointer<vtkPiecewiseFunction> otf, double alphaOverride = -1);
 iAbase_API void convertTFToLUT(vtkSmartPointer<vtkLookupTable> dst, vtkSmartPointer<vtkScalarsToColors> ctf,
-	vtkSmartPointer<vtkPiecewiseFunction> otf, int numCols, double const* lutRange = nullptr);
+	vtkSmartPointer<vtkPiecewiseFunction> otf, int numCols, double const* lutRange = nullptr, bool reverse = false);

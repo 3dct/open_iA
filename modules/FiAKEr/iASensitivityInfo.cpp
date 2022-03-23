@@ -485,9 +485,9 @@ public:
 
 		// Colors:
 		cmbboxSPColorMap->addItems(iALUT::colorMapNames());
-		cmbboxSPColorMap->setCurrentText("Brewer single hue 5c grays");
+		cmbboxSPColorMap->setCurrentText("ColorBrewer sequential single hue (5c) grays");
 
-		cmbboxSpatialOverviewColorMap->addItems(iALUT::GetColorMapNames());	// TODO: filter for linear (non-diverging) color maps
+		cmbboxSpatialOverviewColorMap->addItems(iALUT::colorMapNames());	// TODO: filter for linear (non-diverging) color maps
 		cmbboxSpatialOverviewColorMap->setCurrentText("Matplotlib: Plasma");
 
 		cmbboxSPHighlightColorMap->addItems(iAColorThemeManager::instance().availableThemes());
