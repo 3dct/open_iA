@@ -299,7 +299,7 @@ iAQSplom::iAQSplom(QWidget * parent):
 	connect(m_settingsDlg->rbContinuous, &QRadioButton::toggled, this, &iAQSplom::setContinousParamMode);
 	connect(m_settingsDlg->rbQualitative, &QRadioButton::toggled, this, &iAQSplom::setQualitativeParamMode);
 	connect(m_settingsDlg->cbColorRangeMode, QOverload<int>::of(&QComboBox::currentIndexChanged), this, &iAQSplom::colorRangeModeChanged);
-	m_settingsDlg->cbColorTheme->addItems(iALUT::GetColorMapNames());
+	m_settingsDlg->cbColorTheme->addItems(iALUT::colorMapNames());
 	m_settingsDlg->cbColorThemeQual->addItems(iAColorThemeManager::instance().availableThemes());
 	m_settingsDlg->cbColorThemeQual->setCurrentIndex(1); // to avoid "Black" default theme
 	connect(m_settingsDlg->cbColorTheme, QOverload<int>::of(&QComboBox::currentIndexChanged), this, &iAQSplom::setColorThemeFromComboBox);

@@ -24,21 +24,29 @@
 
 #include <vtkSmartPointer.h>
 
+#include <QMap>
 #include <QStringList>
+
 
 class iAColorTheme;
 class iALookupTable;
 
+class vtkColorTransferFunction;
 class vtkLookupTable;
 class vtkPiecewiseFunction;
 
-namespace iALUT
+class iAcharts_API iALUT
 {
-	iAcharts_API const QStringList&  GetColorMapNames();
-	iAcharts_API int BuildLUT( vtkSmartPointer<vtkLookupTable> pLUT, double const * lutRange, QString colorMap, int numCols = 256 );
-	iAcharts_API int BuildLUT( vtkSmartPointer<vtkLookupTable> pLUT, double rangeFrom, double rangeTo, QString colorMap, int numCols = 256 );
-	iAcharts_API iALookupTable Build(double const * lutRange, QString colorMap, int numCols, double alpha);
+public:
+	static QStringList colorMapNames();
+	static void loadMaps(QString const& folder);
+	static int BuildLUT(vtkSmartPointer<vtkLookupTable> pLUT, double const* lutRange, QString colorMap, int numCols = 256);
+	static int BuildLUT(vtkSmartPointer<vtkLookupTable> pLUT, double rangeFrom, double rangeTo, QString colorMap, int numCols = 256);
+	static iALookupTable Build(double const* lutRange, QString colorMap, int numCols, double alpha);
 
-	iAcharts_API vtkSmartPointer<vtkPiecewiseFunction> BuildLabelOpacityTF(int labelCount);
-	iAcharts_API vtkSmartPointer<vtkLookupTable> BuildLabelColorTF(int labelCount, iAColorTheme const * colorTheme);
-}
+	static vtkSmartPointer<vtkPiecewiseFunction> BuildLabelOpacityTF(int labelCount);
+	static vtkSmartPointer<vtkLookupTable> BuildLabelColorTF(int labelCount, iAColorTheme const* colorTheme);
+
+private:
+	static QMap<QString, vtkSmartPointer<vtkColorTransferFunction>> m_colorMaps;
+};

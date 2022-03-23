@@ -52,6 +52,7 @@
 #include "iAFileUtils.h"    // for fileNameOnly
 #include "iALog.h"
 #include "iALogLevelMappings.h"
+#include "iALUT.h"
 #include "iAMathUtility.h"
 #include "iAToolsVTK.h"
 #include "iAXmlSettings.h"
@@ -2692,6 +2693,7 @@ int MainWindow::runGUI(int argc, char * argv[], QString const & appName, QString
 	}
 	app.setAttribute(Qt::AA_DontCreateNativeWidgetSiblings);
 	iALog::setLogger(iALogWidget::get());
+	iALUT::loadMaps(QCoreApplication::applicationDirPath() + "/colormaps");
 	auto dwJobs = new iADockWidgetWrapper(iAJobListView::get(), "Job List", "Jobs");
 	MainWindow mainWin(appName, version, buildInformation, splashPath, dwJobs);
 	mainWin.addDockWidget(Qt::RightDockWidgetArea, iALogWidget::get());

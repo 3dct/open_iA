@@ -88,7 +88,7 @@ void iALinearColorGradientBar::mouseDoubleClickEvent(QMouseEvent * /*event*/)
 
 	bool ok;
 	QString colormapName = QInputDialog::getItem(this, tr("Change Histogram Colormap"),
-		tr(""), iALUT::GetColorMapNames(), 0, false, &ok);
+		tr(""), iALUT::colorMapNames(), 0, false, &ok);
 
 	if (!ok)
 	{

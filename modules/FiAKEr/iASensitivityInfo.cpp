@@ -1397,7 +1397,7 @@ public:
 		}
 		cmbboxDissimilarity->addItems(dissimilarities);
 
-		cmbboxSPColorMap->addItems(iALUT::GetColorMapNames());
+		cmbboxSPColorMap->addItems(iALUT::colorMapNames());
 		cmbboxSPColorMap->setCurrentText("Brewer single hue 5c grays");
 
 		cmbboxSPHighlightColorScale->addItems(iAColorThemeManager::instance().availableThemes());
@@ -1485,7 +1485,7 @@ public:
 			paramMatrix->setSortParameter(p);
 			paramMatrix->setSizePolicy(QSizePolicy::Expanding, QSizePolicy::Expanding);
 			paramMatrix->setData(0);
-			paramMatrix->setLookupTable(iALUT::Build(paramMatrix->range(), iALUT::GetColorMapNames()[0], 255, 255));
+			paramMatrix->setLookupTable(iALUT::Build(paramMatrix->range(), iALUT::colorMapNames()[0], 255, 255));
 			m_matrixPerParam.push_back(paramMatrix);
 			paramListLayout->addWidget(paramMatrix, p + 1, MatrixCol);
 		}
@@ -1505,7 +1505,7 @@ public:
 	{
 		for (auto paramMatrix : m_matrixPerParam)
 		{
-			paramMatrix->setLookupTable(iALUT::Build(paramMatrix->range(), iALUT::GetColorMapNames()[idx], 255, 255));
+			paramMatrix->setLookupTable(iALUT::Build(paramMatrix->range(), iALUT::colorMapNames()[idx], 255, 255));
 			paramMatrix->update();
 		}
 	}
@@ -1807,7 +1807,7 @@ QWidget* iASensitivityInfo::setupMatrixView(QVector<int> const& measures)
 	}
 	dissimDockContent->cbMeasure->addItems(computedMeasureNames);
 	dissimDockContent->cbParameter->addItems(m_paramNames);
-	dissimDockContent->cbColorMap->addItems(iALUT::GetColorMapNames());
+	dissimDockContent->cbColorMap->addItems(iALUT::colorMapNames());
 	connect(dissimDockContent->cbMeasure, QOverload<int>::of(&QComboBox::currentIndexChanged),
 		this, &iASensitivityInfo::dissimMatrixMeasureChanged);
 	connect(dissimDockContent->cbParameter, QOverload<int>::of(&QComboBox::currentIndexChanged),
@@ -1817,7 +1817,7 @@ QWidget* iASensitivityInfo::setupMatrixView(QVector<int> const& measures)
 	m_gui->m_matrixWidget = new iAMatrixWidget(m_resultDissimMatrix, m_paramValues, true, false);
 	m_gui->m_matrixWidget->setSortParameter(0);
 	m_gui->m_matrixWidget->setData(0);
-	m_gui->m_matrixWidget->setLookupTable(iALUT::Build(m_gui->m_matrixWidget->range(), iALUT::GetColorMapNames()[0], 255, 255));
+	m_gui->m_matrixWidget->setLookupTable(iALUT::Build(m_gui->m_matrixWidget->range(), iALUT::colorMapNames()[0], 255, 255));
 	dissimDockContent->matrix->layout()->addWidget(m_gui->m_matrixWidget);
 	return dissimDockContent;
 }
@@ -1837,7 +1837,7 @@ void iASensitivityInfo::dissimMatrixParameterChanged(int idx)
 
 void iASensitivityInfo::dissimMatrixColorMapChanged(int idx)
 {
-	m_gui->m_matrixWidget->setLookupTable(iALUT::Build(m_gui->m_matrixWidget->range(), iALUT::GetColorMapNames()[idx], 255, 255));
+	m_gui->m_matrixWidget->setLookupTable(iALUT::Build(m_gui->m_matrixWidget->range(), iALUT::colorMapNames()[idx], 255, 255));
 	m_gui->m_matrixWidget->update();
 	m_gui->m_parameterListView->dissimMatrixColorMapChanged(idx);
 }

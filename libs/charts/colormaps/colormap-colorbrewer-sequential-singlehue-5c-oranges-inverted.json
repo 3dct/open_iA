@@ -1,0 +1,14 @@
+{
+	"name": "ColorBrewer sequential single hue (5c) oranges inverted",
+	"source": "https://colorbrewer2.org",
+	"type": "continuous",
+	"subType": "sequential",
+	"colorRange": 255.0,
+	"colors" : [
+		[254, 237, 222],
+		[253, 190, 133],
+		[253, 141,  60],
+		[230,  85,  13],
+		[166,  54,   3]
+	]
+}

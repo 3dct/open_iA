@@ -215,7 +215,7 @@ iAFiAKErController::iAFiAKErController(iAMainWindow* mainWnd, iAMdiChild* mdiChi
 	m_mainWnd(mainWnd),
 	m_mdiChild(mdiChild),
 	m_referenceID(NoResult),
-	m_colorByThemeName(iALUT::GetColorMapNames()[0]),
+	m_colorByThemeName(iALUT::colorMapNames()[0]),
 	m_useStepData(false),
 	m_showPreviews(false),
 	m_showCharts(false),
@@ -477,7 +477,7 @@ void iAFiAKErController::setupSettingsView()
 	m_settingsView->cmbboxStackedBarChartColors->addItems(iAColorThemeManager::instance().availableThemes());
 	m_settingsView->cmbboxStackedBarChartColors->setCurrentText(DefaultStackedBarColorTheme);
 
-	m_settingsView->cmbboxDistributionColors->addItems(iALUT::GetColorMapNames());
+	m_settingsView->cmbboxDistributionColors->addItems(iALUT::colorMapNames());
 	m_settingsView->cmbboxDistributionColors->setCurrentIndex(0);
 
 	m_settingsView->cmbboxResultColors->addItems(iAColorThemeManager::instance().availableThemes());

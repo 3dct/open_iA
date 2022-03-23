@@ -1,0 +1,11 @@
+{
+	"name": "Diverging blue-gray-red",
+	"type": "continuous",
+	"subType": "diverging",
+	"colorRange": 1.0,
+	"colors" : [
+		[0.230, 0.299, 0.754],
+		[0.865, 0.865, 0.865],
+		[0.706, 0.016, 0.150]
+	]
+}
