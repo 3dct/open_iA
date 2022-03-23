@@ -1394,6 +1394,7 @@ void iASensitivityData::computeSpatialOverview(iAProgress* progress)
 	//     go to that uniqueID and add
 	//         (and maybe check others?)
 
+	/*
 	iAPerformanceHelper h;
 	h.start("Finding unique fibers", false);
 	progress->setStatus("Finding unique fibers");
@@ -1487,6 +1488,7 @@ void iASensitivityData::computeSpatialOverview(iAProgress* progress)
 	// divide a by number of unique fibers
 
 	storeImage(m_spatialOverview, spatialOverviewCacheFileName());
+	*/
 }
 
 QString iASensitivityData::cacheFileName(QString fileName) const
