@@ -7,7 +7,7 @@
     <x>0</x>
     <y>0</y>
     <width>205</width>
-    <height>147</height>
+    <height>174</height>
    </rect>
   </property>
   <property name="windowTitle">
@@ -32,7 +32,7 @@
    <item row="2" column="0">
     <widget class="QTabWidget" name="tabWidget">
      <property name="currentIndex">
-      <number>2</number>
+      <number>3</number>
      </property>
      <widget class="QWidget" name="tabData">
       <attribute name="title">
@@ -410,6 +410,30 @@
          </property>
          <property name="checked">
           <bool>true</bool>
+         </property>
+        </widget>
+       </item>
+       <item row="5" column="0" colspan="3">
+        <widget class="QPushButton" name="pbRecomputeMDS">
+         <property name="text">
+          <string>Recompute MDS</string>
+         </property>
+        </widget>
+       </item>
+       <item row="6" column="0">
+        <widget class="QLabel" name="label_3">
+         <property name="text">
+          <string>MDS Iterations:</string>
+         </property>
+        </widget>
+       </item>
+       <item row="6" column="1" colspan="2">
+        <widget class="QSpinBox" name="sbMDSIterations">
+         <property name="minimum">
+          <number>1</number>
+         </property>
+         <property name="maximum">
+          <number>100000</number>
          </property>
         </widget>
        </item>

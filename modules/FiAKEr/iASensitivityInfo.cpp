@@ -110,6 +110,7 @@
 #include <QFileDialog>
 #include <QLabel>
 #include <QMessageBox>
+#include <QPushButton>
 #include <QRadioButton>
 #include <QScrollArea>
 #include <QSpinBox>
@@ -523,6 +524,8 @@ public:
 
 		connect(rbBar, &QRadioButton::toggled, sensInf, &iASensitivityInfo::histoChartTypeToggled);
 		connect(rbLines, &QRadioButton::toggled, sensInf, &iASensitivityInfo::histoChartTypeToggled);
+
+		connect(pbRecomputeMDS, &QPushButton::pressed, sensInf, &iASensitivityInfo::updateDissimilarity);
 
 		m_rgChartType.push_back(rbBar);
 		m_rgChartType.push_back(rbLines);
@@ -1501,7 +1504,7 @@ void iASensitivityInfo::updateDissimilarity()
 		}
 		//LOG(lvlDebug, QString("%1:%2").arg(r1).arg(line));
 	}
-	auto mds = computeMDS(distMatrix, 2, 100);
+	auto mds = computeMDS(distMatrix, 2, m_gui->m_settings->sbMDSIterations->value());
 	//LOG(lvlDebug, "MDS:");
 	for (size_t i = 0; i < mds.size(); ++i)
 	{
@@ -1512,6 +1515,7 @@ void iASensitivityInfo::updateDissimilarity()
 		//LOG(lvlDebug, QString("%1: %2, %3").arg(i).arg(mds[i][0]).arg(mds[i][1]));
 	}
 	m_gui->m_mdsData->updateRanges();
+	m_gui->m_mdsSP->update();
 }
 
 void iASensitivityInfo::spPointHighlighted(size_t resultIdx, bool state)
