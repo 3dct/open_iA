@@ -1012,12 +1012,12 @@ void iAChartWidget::mousePressEvent(QMouseEvent *event)
 		{
 			auto yPos = event->pos().y();
 #else
-		if (m_legendBox.contains(event->position()))
+		if (m_legendBox.contains(event->position().toPoint()))
 		{
-			auto yPos = event->position().y();
+			auto yPos = event->position().toPoint().y();
 #endif
-			auto plotIdx = clamp(0ull, m_plots.size() - 1,
-				mapValue(m_legendBox.top(), m_legendBox.bottom(), 0ull, m_plots.size(), yPos));
+			auto plotIdx = clamp(static_cast<size_t>(0), m_plots.size() - 1,
+				mapValue(m_legendBox.top(), m_legendBox.bottom(), static_cast<size_t>(0), m_plots.size(), yPos));
 			m_plots[plotIdx]->setVisible(!m_plots[plotIdx]->visible());		// make option to let the implementer using iAChartWidget decide whether he wants to provide this functionality to users?
 			emit legendPlotClicked(plotIdx);
 		}

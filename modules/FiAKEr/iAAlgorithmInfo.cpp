@@ -517,8 +517,8 @@ void iAAlgorithmInfo::mouseMoveEvent(QMouseEvent* event)
 		return;
 	}
 	QPointF matrixPoint = mousePoint - m_matrixRect.topLeft();
-	int col = clamp(0, m_matrix.size()-1, static_cast<int>(matrixPoint.x() / cellWidth));  // out
-	int row = clamp(0, m_matrix[col].size()-1, static_cast<int>(matrixPoint.y() / cellHeight)); // in
+	int col = clamp(0, static_cast<int>(m_matrix.size()-1), static_cast<int>(matrixPoint.x() / cellWidth));  // out
+	int row = clamp(0, static_cast<int>(m_matrix[col].size()-1), static_cast<int>(matrixPoint.y() / cellHeight)); // in
 	QToolTip::showText(event->globalPos(), QString("%1/%2: %3").arg(m_inNames[row]).arg(m_outNames[col]).arg(m_matrix[col][row]));
 }
 
