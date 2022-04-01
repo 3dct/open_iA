@@ -632,7 +632,7 @@ private:
 	std::vector<iAMatrixWidget*> m_matrixPerParam;
 };
 
-
+// TODO: generalize / merge with iALinearColorGradientBar in DynamicVolumeLines?
 class iAColorMapWidget: public QWidget
 {
 public:
@@ -1636,6 +1636,19 @@ void iASensitivityInfo::spHighlightChanged()
 {
 	updateSPDifferenceColors();
 	updateDifferenceView();
+
+	// show/hide spatial overview(s) depending on whether any results are highlighted
+	bool newVis = m_gui->m_paramSP->viewData()->highlightedPoints().empty();
+	//bool anyChange = false;
+	for (int m = 0; m < m_child->modalities()->size(); ++m)
+	{
+		if (newVis != m_child->modalities()->get(m)->renderer()->isVisible())
+		{
+			m_child->modalities()->get(m)->renderer()->showVolume(newVis);
+			//anyChange = true;
+		}
+	}
+	spatialOverviewVisibilityChanged(newVis);
 }
 
 void iASensitivityInfo::spVisibleParamChanged()
