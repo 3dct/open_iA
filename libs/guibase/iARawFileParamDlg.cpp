@@ -73,7 +73,8 @@ iARawFileParamDlg::iARawFileParamDlg(QString const& fileName, QWidget* parent, Q
 	params.append(additionalParams);
 	m_inputDlg = new iAParameterDlg(parent, title, params);
 
-	auto fileNameLabel = new QLabel(QString("File Name: %1").arg(fileName));
+	auto fileNameLabel = new QLabel(QString("File Name: %1").arg(QFileInfo(fileName).fileName()));
+	fileNameLabel->setToolTip(fileName);
 	m_inputDlg->layout()->addWidget(fileNameLabel);
 	auto guessFromFileNameButton = new QPushButton("Guess parameters from filename");
 	m_inputDlg->layout()->addWidget(guessFromFileNameButton);
