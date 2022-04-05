@@ -519,7 +519,9 @@ void iAAlgorithmInfo::mouseMoveEvent(QMouseEvent* event)
 	QPointF matrixPoint = mousePoint - m_matrixRect.topLeft();
 	int col = clamp(0, static_cast<int>(m_matrix.size()-1), static_cast<int>(matrixPoint.x() / cellWidth));  // out
 	int row = clamp(0, static_cast<int>(m_matrix[col].size()-1), static_cast<int>(matrixPoint.y() / cellHeight)); // in
-	QToolTip::showText(event->globalPos(), QString("%1/%2: %3").arg(m_inNames[row]).arg(m_outNames[col]).arg(m_matrix[col][row]));
+	auto sortIdx = m_inSort.size() > row ? m_inSort[row] : row;
+	QToolTip::showText(event->globalPos(),
+		QString("%1/%2: %3").arg(m_inNames[sortIdx]).arg(m_outNames[col]).arg(m_matrix[col][sortIdx]));
 }
 
 QSize iAAlgorithmInfo::sizeHint() const
