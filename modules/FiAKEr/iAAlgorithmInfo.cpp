@@ -257,10 +257,11 @@ void iAAlgorithmInfo::drawConnectors(QPainter& p, int left, int width, QStringLi
 	}
 }
 
-void iAAlgorithmInfo::drawBoxLinks(QPainter& p, QVector<QPoint> inPt, QVector<QPoint> outPt)
+void iAAlgorithmInfo::drawBoxLinks(QPainter& p, QVector<QPoint> inPt, QVector<QPoint> outPt, QRect const & algoBox)
 {
 	p.save();
 	p.setRenderHint(QPainter::Antialiasing);
+	p.setClipRect(algoBox);
 	const int C = 255;
 	for (int outIdx = 0; outIdx < m_matrix.size(); ++outIdx)
 	{
@@ -379,7 +380,7 @@ void iAAlgorithmInfo::paintEvent(QPaintEvent* ev)
 			boxHeight() - LegendHeightMin - LegendMargin - LegendSpacing - p.fontMetrics().height());
 		drawConnectors(p, HMargin + m_inWidth + algoBox.width(), m_outWidth, m_outNames, m_outRects, m_outColor, -1,
 			m_shownOut, QVector<int>(), outPt, false, boxHeight());
-		drawBoxLinks(p, inPt, outPt);
+		drawBoxLinks(p, inPt, outPt, algoBox);
 		drawLegend(p, m_inWidth, false);
 	}
 	else

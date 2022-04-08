@@ -64,7 +64,7 @@ private:
 	void drawConnectors(QPainter& p, int left, int width, QStringList const& strings, QVector<QRect>& rects,
 		QColor const& color, int selected, QVector<int> const& shown, QVector<int> const& sort, QVector<QPoint>& posOut,
 		bool isLeft, int connHeight);
-	void drawBoxLinks(QPainter& p, QVector<QPoint> inPt, QVector<QPoint> outPt);
+	void drawBoxLinks(QPainter& p, QVector<QPoint> inPt, QVector<QPoint> outPt, QRect const& algoBox);
 	void drawLegend(QPainter& p, int leftWidth, bool top);
 	void paintEvent(QPaintEvent* ev) override;
 	void mousePressEvent(QMouseEvent* ev) override;
