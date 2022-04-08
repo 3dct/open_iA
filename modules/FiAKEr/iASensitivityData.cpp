@@ -898,7 +898,7 @@ void iASensitivityData::compute(iAProgress* progress)
 					}
 				}
 				LOG(lvlDebug, QString("Result %1x%2: %3 candidates on average, %4 with no bounding box intersections out of %5")
-					.arg(r1).arg(r2).arg(candSum / r1FibCount).arg(noCanDo).arg(r1FibCount));
+					.arg(r1).arg(r2).arg(static_cast<double>(candSum) / r1FibCount).arg(noCanDo).arg(r1FibCount));
 				for (int m = 0; m < measureCount; ++m)
 				{
 					mat.avgDissim[m] /= r2MatchCount[m];
