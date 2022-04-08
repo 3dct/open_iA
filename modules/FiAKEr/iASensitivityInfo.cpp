@@ -1873,13 +1873,11 @@ void iASensitivityInfo::updateDifferenceView()
 		m_main3DWidget->update();
 		*/
 
-		// show differences - for now only for 1st fiber, to 1st fiber of 1st selected result:
 		if (i > 0 && m_currentFiberSelection[hp[0]].size() > 0 && m_currentFiberSelection[rID].size() > 0)
 		{
 			auto refResID = hp[0];
 			
 			// TODO:
-			//	- do for all fibers
 			//  - compare to "matching" fiber in "reference" (result hp[0])
 			//  - highlight hp[0] somehow special?
 
@@ -1903,6 +1901,7 @@ void iASensitivityInfo::updateDifferenceView()
 				resultData->diffPolys.push_back(createPolyFunc(refFiber, sampleFiber, t->color(0)));
 				resultData->renderer->AddActor(resultData->diffPolys[resultData->diffPolys.size() - 1].actor);
 			}
+			// TODO: handle fibers only existing in reference
 		}
 		renWin->AddRenderer(resultData->renderer);
 		m_gui->m_diff3DRenderManager.addToBundle(resultData->renderer);
