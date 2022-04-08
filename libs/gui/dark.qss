@@ -92,6 +92,7 @@ General
 	QProgressBar,
 	QSlider::groove:horizontal,
 	QSpinBox,
+	QTabBar::tab,
 	QWidget[qssClass="jobList"]
 	{
 		border: 1px solid rgba(100, 100, 100, 255);
@@ -289,16 +290,33 @@ QTabBar
 	QTabBar::tab
 	{
 		padding: 2px 12px 2px 12px;
+		/* only effective for QTabWidget (not applied to tabbed QDockWidgets):  */
+		border-top-left-radius: 5px;
+		border-top-right-radius: 5px;
 	}
-	QTabBar::tab:selected /* only needed for theme switch; default white color and black background would be fine, but they aren't set automatically at switching theme
-	in reverse to bright theme, on theme switch, for dark theme, only :selected works but not ::tab, no idea why */
+	QTabBar::tab:selected
 	{
+		/* only needed for theme switch; default white color and black background would be fine, but they aren't set automatically at switching theme
+		in reverse to bright theme, on theme switch, for dark theme, only :selected works but not ::tab, no idea why */
 		color: rgb(255, 255, 255);
+		background: qlineargradient(spread:pad,
+			x1:0, y1:0,
+			x2:0, y2:1,
+			stop:0 rgba(50, 50, 50, 255),
+			stop:1 rgba(0, 0, 0, 255)
+		);
 	}
 	QTabBar::tab:!selected
 	{
 		margin-top: 3px;
 		color: rgb(120, 120, 120);
+		/* only effective for QTabWidget (not applied to tabbed QDockWidgets):  */
+		background: qlineargradient(spread:pad,
+			x1:0, y1:0,
+			x2:0, y2:1,
+			stop:0 rgba(20, 20, 20, 255),
+			stop:1 rgba(40, 40, 40, 255)
+		);
 	}
 	QTabBar::scroller
 	{   /* the width of the scroll buttons */
