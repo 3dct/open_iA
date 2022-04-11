@@ -27,7 +27,7 @@
 #include "iAScatterPlotViewData.h"
 #include "iASPLOMData.h"
 
-#include <QApplication>    // for qApp->palette()
+#include <QApplication>
 
 #include <QActionGroup>
 #include <QMenu>
@@ -243,8 +243,8 @@ void iAScatterPlotWidget::paintEvent(QPaintEvent* event)
 #endif
 	}
 	painter.setRenderHint(QPainter::Antialiasing);
-	QColor bgColor(qApp->palette().color(QWidget::backgroundRole()));
-	QColor fg(qApp->palette().color(QPalette::Text));
+	QColor bgColor(QApplication::palette().color(QWidget::backgroundRole()));
+	QColor fg(QApplication::palette().color(QPalette::Text));
 	m_scatterplot->settings.tickLabelColor = fg;
 #if (defined(CHART_OPENGL))
 	painter.beginNativePainting();
@@ -305,9 +305,9 @@ void iAScatterPlotWidget::drawTooltip(QPainter& painter)
 	double pPM = m_scatterplot->settings.pickedPointMagnification;
 	double ptRad = m_scatterplot->getPointRadius();
 	popupPos.setY(popupPos.y() - pPM * ptRad);
-	QColor popupFillColor(qApp->palette().color(QPalette::Window));
+	QColor popupFillColor(QApplication::palette().color(QPalette::Window));
 	painter.setBrush(popupFillColor);
-	QColor popupBorderColor(qApp->palette().color(QPalette::Dark));
+	QColor popupBorderColor(QApplication::palette().color(QPalette::Dark));
 	painter.setPen(popupBorderColor);
 	painter.translate(popupPos);
 	QString text = "<b>#" + QString::number(curInd) + "</b><br> " +
@@ -332,7 +332,7 @@ void iAScatterPlotWidget::drawTooltip(QPainter& painter)
 
 	painter.translate(-popupWidthHalf, -popupHeight - tipDim[1]);
 	QAbstractTextDocumentLayout::PaintContext ctx;
-	QColor popupTextColor(qApp->palette().color(QPalette::ToolTipText));  // = settings.popupTextColor;
+	QColor popupTextColor(QApplication::palette().color(QPalette::ToolTipText));  // = settings.popupTextColor;
 	ctx.palette.setColor(QPalette::Text, popupTextColor);
 	doc.documentLayout()->draw(&painter, ctx); //doc.drawContents( &painter );
 	painter.restore();

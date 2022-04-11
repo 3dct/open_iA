@@ -22,7 +22,7 @@
 
 #include "iALog.h"
 
-#include <QApplication>    // for qApp->palette()
+#include <QApplication>
 #include <QPainter>
 #include <QVBoxLayout>
 
@@ -35,7 +35,7 @@ public:
 	void paintEvent(QPaintEvent* /*ev*/) override
 	{
 		QPainter p(this);
-		p.fillRect(rect(), qApp->palette().color(QWidget::backgroundRole()));
+		p.fillRect(rect(), QApplication::palette().color(QWidget::backgroundRole()));
 	}
 };
 

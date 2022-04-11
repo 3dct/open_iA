@@ -57,7 +57,7 @@ iAFoamCharacterizationItemDistanceTransform::iAFoamCharacterizationItemDistanceT
 void iAFoamCharacterizationItemDistanceTransform::dialog()
 {
 	QScopedPointer<iAFoamCharacterizationDialogDistanceTransform> pDialog
-											       (new iAFoamCharacterizationDialogDistanceTransform(this, qApp->focusWidget()));
+											       (new iAFoamCharacterizationDialogDistanceTransform(this, QApplication::focusWidget()));
 	pDialog->exec();
 }
 

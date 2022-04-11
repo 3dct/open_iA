@@ -126,7 +126,7 @@ void iA4DCTMainWin::addButtonClick( )
 
 void iA4DCTMainWin::openVisualizationWin( )
 {
-	iAMainWindow * mainWin = qobject_cast<iAMainWindow*>( qApp->activeWindow( ) );
+	iAMainWindow* mainWin = qobject_cast<iAMainWindow*>(QApplication::activeWindow());
 	iA4DCTVisWin* visWin = new iA4DCTVisWin( this );
 	visWin->setImageSize( m_size );
 	visWin->setNumberOfStages( m_stages.size( ) );

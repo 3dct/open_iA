@@ -54,11 +54,11 @@ iAFoamCharacterizationDialog::iAFoamCharacterizationDialog(iAFoamCharacterizatio
 	m_pDialogButtonBox = new QDialogButtonBox(this);
 
 	QPushButton* pPushButtonCancel(new QPushButton("Cancel", m_pDialogButtonBox));
-	pPushButtonCancel->setIcon(qApp->style()->standardIcon(QStyle::SP_DialogCancelButton));
+	pPushButtonCancel->setIcon(QApplication::style()->standardIcon(QStyle::SP_DialogCancelButton));
 	connect(pPushButtonCancel, &QPushButton::clicked, this, &iAFoamCharacterizationDialog::slotPushButtonCancel);
 
 	QPushButton* pPushButtonOk(new QPushButton("Ok", m_pDialogButtonBox));
-	pPushButtonOk->setIcon(qApp->style()->standardIcon(QStyle::SP_DialogOkButton));
+	pPushButtonOk->setIcon(QApplication::style()->standardIcon(QStyle::SP_DialogOkButton));
 	connect(pPushButtonOk, &QPushButton::clicked, this, &iAFoamCharacterizationDialog::slotPushButtonOk);
 
 	m_pDialogButtonBox->addButton(pPushButtonCancel, QDialogButtonBox::RejectRole);

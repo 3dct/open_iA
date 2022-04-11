@@ -31,7 +31,7 @@
 #include "iAStringHelper.h"
 
 #include <QAction>
-#include <QApplication>    // for qApp->palette()
+#include <QApplication>
 #include <QFileDialog>
 #include <QIcon>
 #include <QMenu>
@@ -425,7 +425,7 @@ double iAChartWidget::visibleXEnd() const
 
 void iAChartWidget::drawXAxis(QPainter &painter)
 {
-	painter.setPen(qApp->palette().color(QPalette::Text));
+	painter.setPen(QApplication::palette().color(QPalette::Text));
 	QFontMetrics fm = painter.fontMetrics();
 	size_t stepCount = m_maxXAxisSteps;
 	double stepWidth;
@@ -517,7 +517,7 @@ void iAChartWidget::drawXAxis(QPainter &painter)
 	}
 
 	//draw the x axis
-	painter.setPen(qApp->palette().color(QPalette::Text));
+	painter.setPen(QApplication::palette().color(QPalette::Text));
 	int xAxisStart = xMapper().srcToDst(visibleXStart());
 	painter.drawLine(xAxisStart, -1, xAxisStart+chartWidth(), -1);
 	if (m_drawXAxisAtZero && std::abs(-1.0-yMapper().srcToDst(0)) > 5) // if axis at bottom is at least 5 pixels away from zero point, draw additional line
@@ -543,11 +543,11 @@ void iAChartWidget::drawYAxis(QPainter &painter)
 	}
 	painter.save();
 	painter.translate(xMapper().srcToDst(visibleXStart()), 0);
-	QColor bgColor = qApp->palette().color(QWidget::backgroundRole());
+	QColor bgColor = QApplication::palette().color(QWidget::backgroundRole());
 	painter.fillRect(QRect(-leftMargin(), -chartHeight(), leftMargin(), geometry().height()), bgColor);
 	QFontMetrics fm = painter.fontMetrics();
 	int aheight = chartHeight() - 1;
-	painter.setPen(qApp->palette().color(QPalette::Text));
+	painter.setPen(QApplication::palette().color(QPalette::Text));
 
 	// at most, make Y_AXIS_STEPS, but reduce to number actually fitting in current height:
 	int stepNumber = std::min(AxisTicksYMax, static_cast<int>(aheight / (m_fontHeight*1.1)));
@@ -1128,7 +1128,7 @@ void iAChartWidget::paintEvent(QPaintEvent* /*event*/)
 	logger.startLogging();
 #endif
 	QPainter p(this);
-	QColor bgColor(qApp->palette().color(QWidget::backgroundRole()));
+	QColor bgColor(QApplication::palette().color(QWidget::backgroundRole()));
 #ifdef CHART_OPENGL
 	p.beginNativePainting();
 	glClearColor(bgColor.red() / 255.0, bgColor.green() / 255.0, bgColor.blue() / 255.0, 1.0);

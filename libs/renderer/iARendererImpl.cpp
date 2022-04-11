@@ -1008,7 +1008,7 @@ void iARendererImpl::setBackgroundColors(iARenderSettings const& settings)
 	QColor bgBottom(settings.BackgroundBottom);
 	if (settings.UseStyleBGColor)
 	{
-		bgBottom = bgTop = qApp->palette().color(QPalette::Window);
+		bgBottom = bgTop = QApplication::palette().color(QPalette::Window);
 	}
 	m_ren->SetBackground2(bgTop.redF(), bgTop.greenF(), bgTop.blueF());
 	m_ren->SetBackground(bgBottom.redF(), bgBottom.greenF(), bgBottom.blueF());

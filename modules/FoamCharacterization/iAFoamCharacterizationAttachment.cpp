@@ -53,15 +53,15 @@ iAFoamCharacterizationAttachment::iAFoamCharacterizationAttachment(iAMainWindow*
 	QGroupBox* pGroupBox1(new QGroupBox("Foam characterization", pWidget));
 
 	QPushButton* pPushButtonOpen(new QPushButton("Open table...", pWidget));
-	pPushButtonOpen->setIcon(qApp->style()->standardIcon(QStyle::SP_DialogOpenButton));
+	pPushButtonOpen->setIcon(QApplication::style()->standardIcon(QStyle::SP_DialogOpenButton));
 	connect(pPushButtonOpen, &QPushButton::clicked, this, &iAFoamCharacterizationAttachment::slotPushButtonOpen);
 
 	QPushButton* pPushButtonSave(new QPushButton("Save table...", pWidget));
-	pPushButtonSave->setIcon(qApp->style()->standardIcon(QStyle::SP_DialogSaveButton));
+	pPushButtonSave->setIcon(QApplication::style()->standardIcon(QStyle::SP_DialogSaveButton));
 	connect(pPushButtonSave, &QPushButton::clicked, this, &iAFoamCharacterizationAttachment::slotPushButtonSave);
 
 	QPushButton* pPushButtonClear(new QPushButton("Clear table...", pWidget));
-	pPushButtonClear->setIcon(qApp->style()->standardIcon(QStyle::SP_FileIcon));
+	pPushButtonClear->setIcon(QApplication::style()->standardIcon(QStyle::SP_FileIcon));
 	connect(pPushButtonClear, &QPushButton::clicked, this, &iAFoamCharacterizationAttachment::slotPushButtonClear);
 
 	QPushButton* pPushButtonFilter(new QPushButton("Add filter", pWidget));
@@ -87,16 +87,16 @@ iAFoamCharacterizationAttachment::iAFoamCharacterizationAttachment(iAMainWindow*
 	m_pTable = new iAFoamCharacterizationTable(m_pImageData, pWidget);
 
 	QPushButton* pPushButtonExecute(new QPushButton("Execute", pWidget));
-	pPushButtonExecute->setIcon(qApp->style()->standardIcon(QStyle::SP_DialogApplyButton));
+	pPushButtonExecute->setIcon(QApplication::style()->standardIcon(QStyle::SP_DialogApplyButton));
 	connect(pPushButtonExecute, &QPushButton::clicked, this, &iAFoamCharacterizationAttachment::slotPushButtonExecute);
 
 	m_pPushButtonAnalysis = new QPushButton("Analysis", pWidget);
-	m_pPushButtonAnalysis->setIcon(qApp->style()->standardIcon(QStyle::SP_FileDialogStart));
+	m_pPushButtonAnalysis->setIcon(QApplication::style()->standardIcon(QStyle::SP_FileDialogStart));
 	m_pPushButtonAnalysis->setEnabled(false);
 	connect(m_pPushButtonAnalysis, &QPushButton::clicked, this, &iAFoamCharacterizationAttachment::slotPushButtonAnalysis);
 
 	QPushButton* pPushButtonRestore(new QPushButton("Restore image", pWidget));
-	pPushButtonRestore->setIcon(qApp->style()->standardIcon(QStyle::SP_DriveHDIcon));
+	pPushButtonRestore->setIcon(QApplication::style()->standardIcon(QStyle::SP_DriveHDIcon));
 	connect(pPushButtonRestore, &QPushButton::clicked, this, &iAFoamCharacterizationAttachment::slotPushButtonRestore);
 
 	QGridLayout* pGridLayout1(new QGridLayout(pGroupBox1));
@@ -152,11 +152,11 @@ void iAFoamCharacterizationAttachment::slotPushButtonExecute()
 	     == QMessageBox::Yes
 	   )
 	{
-		qApp->setOverrideCursor(Qt::WaitCursor);
-		qApp->processEvents();
+		QApplication::setOverrideCursor(Qt::WaitCursor);
+		QApplication::processEvents();
 		m_pTable->execute();
 		m_child->enableRenderWindows();
-		qApp->restoreOverrideCursor();
+		QApplication::restoreOverrideCursor();
 
 		m_pPushButtonAnalysis->setEnabled(true);
 	}
@@ -180,10 +180,10 @@ void iAFoamCharacterizationAttachment::slotPushButtonOpen()
 
 	if (pFileDialog->exec())
 	{
-		qApp->setOverrideCursor(Qt::WaitCursor);
-		qApp->processEvents();
+		QApplication::setOverrideCursor(Qt::WaitCursor);
+		QApplication::processEvents();
 		m_pTable->open(pFileDialog->selectedFiles().first());
-		qApp->restoreOverrideCursor();
+		QApplication::restoreOverrideCursor();
 	}
 }
 
@@ -193,12 +193,12 @@ void iAFoamCharacterizationAttachment::slotPushButtonRestore()
 		 == QMessageBox::Yes
 	   )
 	{
-		qApp->setOverrideCursor(Qt::WaitCursor);
-		qApp->processEvents();
+		QApplication::setOverrideCursor(Qt::WaitCursor);
+		QApplication::processEvents();
 		m_pImageData->DeepCopy(m_pImageRestore);
 		m_pTable->reset();
 		m_child->enableRenderWindows();
-		qApp->restoreOverrideCursor();
+		QApplication::restoreOverrideCursor();
 	}
 }
 
@@ -214,10 +214,10 @@ void iAFoamCharacterizationAttachment::slotPushButtonSave()
 
 	if (pFileDialog->exec())
 	{
-		qApp->setOverrideCursor(Qt::WaitCursor);
-		qApp->processEvents();
+		QApplication::setOverrideCursor(Qt::WaitCursor);
+		QApplication::processEvents();
 		m_pTable->save(pFileDialog->selectedFiles().first());
-		qApp->restoreOverrideCursor();
+		QApplication::restoreOverrideCursor();
 	}
 }
 

@@ -62,7 +62,7 @@ iAFoamCharacterizationItemBinarization::iAFoamCharacterizationItemBinarization
 void iAFoamCharacterizationItemBinarization::dialog()
 {
 	QScopedPointer<iAFoamCharacterizationDialogBinarization> pDialog
-		(new iAFoamCharacterizationDialogBinarization(this, qApp->focusWidget()));
+		(new iAFoamCharacterizationDialogBinarization(this, QApplication::focusWidget()));
 	pDialog->exec();
 }
 

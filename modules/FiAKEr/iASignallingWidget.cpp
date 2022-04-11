@@ -20,7 +20,7 @@
 * ************************************************************************************/
 #include "iASignallingWidget.h"
 
-#include <QApplication>    // for qApp->palette()
+#include <QApplication>
 #include <QMouseEvent>
 #include <QPainter>
 
@@ -37,5 +37,5 @@ void iASignallingWidget::mouseReleaseEvent(QMouseEvent* ev)
 void iASignallingWidget::paintEvent(QPaintEvent* /*ev*/)
 {
 	QPainter painter(this);
-	painter.fillRect(rect(), qApp->palette().color(QWidget::backgroundRole()));
+	painter.fillRect(rect(), QApplication::palette().color(QWidget::backgroundRole()));
 }
