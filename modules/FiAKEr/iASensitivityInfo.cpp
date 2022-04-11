@@ -737,9 +737,9 @@ public:
 		m_diff3DEmptyText->SetNonlinearFontScaleFactor(1.2);
 		m_diff3DEmptyText->SetMaximumFontSize(VTKFontSize);
 		m_diff3DEmptyText->SetText(2, "No Fiber/Result selected");
-		auto textColor = qApp->palette().color(QPalette::Text);
+		auto textColor = QApplication::palette().color(QPalette::Text);
 		m_diff3DEmptyText->GetTextProperty()->SetColor(textColor.redF(), textColor.greenF(), textColor.blueF());
-		auto bgColor = qApp->palette().color(QPalette::Window);
+		auto bgColor = QApplication::palette().color(QPalette::Window);
 		m_diff3DEmptyRenderer->SetBackground(bgColor.redF(), bgColor.greenF(), bgColor.blueF());
 		m_diff3DEmptyRenderer->AddViewProp(m_diff3DEmptyText);
 	}
@@ -1098,7 +1098,7 @@ void iASensitivityInfo::createGUI()
 	m_child->splitDockWidget(m_nextToDW, dwSettings, Qt::Horizontal);
 	
 	//////////// Parameter Influence View                   ////////////
-	QColor headerColor(qApp->palette().color(QPalette::Button));
+	QColor headerColor(QApplication::palette().color(QPalette::Button));
 	m_gui->m_paramInfluenceView = new iAParameterInfluenceView(m_data, m_gui, headerColor, headerColor /*ParamColor, OutputColor*/);
 	m_gui->m_dwParamInfluence =
 		new iADockWidgetWrapper(m_gui->m_paramInfluenceView, "Parameter Influence View", "foeParamInfluence");
@@ -1836,7 +1836,7 @@ void iASensitivityInfo::updateDifferenceView()
 			continue;
 		}
 		resultData->renderer = vtkSmartPointer<vtkRenderer>::New();
-		auto bgColor(qApp->palette().color(QPalette::Window));
+		auto bgColor(QApplication::palette().color(QPalette::Window));
 		resultData->renderer->SetBackground(bgColor.redF(), bgColor.greenF(), bgColor.blueF());
 		resultData->renderer->SetViewport(
 			static_cast<double>(i) / hp.size(), 0, static_cast<double>(i + 1) / hp.size(), 1);
@@ -1861,7 +1861,7 @@ void iASensitivityInfo::updateDifferenceView()
 		resultData->text->GetTextProperty()->SetColor(color.redF(), color.greenF(), color.blueF());
 		resultData->text->SetText(vtkCornerAnnotation::UpperEdge, txt.toStdString().c_str());
 		// ToDo: add fiber id ;
-		//auto textColor = qApp->palette().color(QPalette::Text);
+		//auto textColor = QApplication::palette().color(QPalette::Text);
 		//resultData->text->GetTextProperty()->SetColor(textColor.redF(), textColor.greenF(), textColor.blueF());
 		//cornerAnnotation->GetTextProperty()->BoldOn();
 		resultData->renderer->AddViewProp(resultData->text);

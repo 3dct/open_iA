@@ -2240,7 +2240,7 @@ namespace
 {
 	void setResultBackground(iAFiberResultUIData & ui, QPalette::ColorRole role)
 	{
-		QColor color(qApp->palette().color(role));
+		QColor color(QApplication::palette().color(role));
 		ui.nameActions->setBackgroundRole(role);
 		ui.topFiller->setStyleSheet("background-color: " + color.name());
 		ui.bottomFiller->setStyleSheet("background-color: " + color.name());

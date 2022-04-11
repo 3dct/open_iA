@@ -293,7 +293,7 @@ void iAAlgorithmInfo::drawLegend(QPainter& p, int leftWidth, bool top)
 	const int LegendTextWidth = leftWidth - LegendMargin - LegendLineWidth;
 	const int C = 255;
 	double const LegendBottom = top ? LegendHeight + fm.height() + LegendSpacing : height() - LegendMargin;
-	p.setPen(qApp->palette().color(QWidget::foregroundRole()));
+	p.setPen(QApplication::palette().color(QWidget::foregroundRole()));
 	p.drawText(LegendMargin, LegendBottom - LegendHeight - LegendSpacing, LegendCaption);
 	m_legendWidth = LegendMargin +
 #if QT_VERSION >= QT_VERSION_CHECK(5, 11, 0)
@@ -344,7 +344,7 @@ void iAAlgorithmInfo::paintEvent(QPaintEvent* ev)
 	Q_UNUSED(ev);
 	QPainter p(this);
 	p.setRenderHint(QPainter::Antialiasing, false);
-	p.setPen(qApp->palette().color(QWidget::foregroundRole()));
+	p.setPen(QApplication::palette().color(QWidget::foregroundRole()));
 
 	m_inWidth = connectorWidth(p.fontMetrics(), m_inNames) + 2 * ArrowTextLeft + 2 * RoundedCornerRadius;
 	// to make sure there's space for the legend:
@@ -430,7 +430,7 @@ void iAAlgorithmInfo::paintEvent(QPaintEvent* ev)
 		}
 
 		// draw matrix grid lines:
-		p.setPen(qApp->palette().color(QPalette::AlternateBase));
+		p.setPen(QApplication::palette().color(QPalette::AlternateBase));
 		p.drawRect(m_matrixRect);
 		for (int inIdx = 1; inIdx < m_inNames.size(); ++inIdx)
 		{
@@ -447,7 +447,7 @@ void iAAlgorithmInfo::paintEvent(QPaintEvent* ev)
 		if (m_showHighlight)
 		{
 			// TODO: merge neighbouring columns!
-			p.setPen(qApp->palette().color(QWidget::foregroundRole()));
+			p.setPen(QApplication::palette().color(QWidget::foregroundRole()));
 			if (m_mergeHighlight)
 			{
 				QVector<int>::size_type startIdx = 0;

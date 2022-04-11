@@ -20,7 +20,7 @@
 * ************************************************************************************/
 #include "iAClickableLabel.h"
 
-#include <QApplication>    // for qApp->palette()
+#include <QApplication>
 #include <QFontMetrics>
 #include <QMouseEvent>
 #include <QPainter>
@@ -46,7 +46,7 @@ void iAClickableLabel::paintEvent(QPaintEvent* ev)
 	if (m_vertical)
 	{
 		QPainter painter(this);
-		painter.setPen(qApp->palette().color(QPalette::Text));
+		painter.setPen(QApplication::palette().color(QPalette::Text));
 #if QT_VERSION >= QT_VERSION_CHECK(5, 11, 0)
 		painter.translate( painter.fontMetrics().height(), (geometry().height() + painter.fontMetrics().horizontalAdvance(text())) / 2 );
 #else

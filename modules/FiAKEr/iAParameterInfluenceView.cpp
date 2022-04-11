@@ -37,7 +37,7 @@
 #include <iAXYPlotData.h>
 
 #include <QAction>
-#include <QApplication>    // for qApp->palette()
+#include <QApplication>
 #include <QGridLayout>
 #include <QHBoxLayout>
 #include <QLabel>
@@ -501,7 +501,7 @@ void iAParameterInfluenceView::setSelectedParam(int param)
 		for (int col = colMin; col <= colStep; ++col)
 		{
 			m_table[paramIdx]->labels[col]->setAutoFillBackground(true);
-			m_table[paramIdx]->labels[col]->setPalette(qApp->palette());
+			m_table[paramIdx]->labels[col]->setPalette(QApplication::palette());
 			m_table[paramIdx]->labels[col]->setBackgroundRole(bgRole);
 		}
 		m_table[paramIdx]->head->setBackgroundRole(bgRole);
