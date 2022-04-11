@@ -596,7 +596,7 @@ void iAParameterInfluenceView::updateStackedBarHistogram(QString const & barName
 	auto outChart = m_table[paramIdx]->out[barIdx];
 	outChart->clearPlots();
 	outChart->resetYBounds();
-	double rng[2];
+	std::array<double, 2> rng;
 	if (outType == outCharacteristic)
 	{
 		auto r = m_data->m_data->spmData->paramRange(m_data->m_charSelected[outIdx]);

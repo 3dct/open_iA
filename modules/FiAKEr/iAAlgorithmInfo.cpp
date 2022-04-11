@@ -73,18 +73,9 @@ iAAlgorithmInfo::iAAlgorithmInfo(QString const& name, QStringList const& inNames
 	m_outNames(outNames),
 	m_inColor(inColor),
 	m_outColor(outColor),
-	m_selectedIn(-1),
 	m_maxPerColumn(m_outNames.size()),
-	m_inWidth(1),
-	m_outWidth(1),
-	m_boxMinWidth(1),
-	m_legendWidth(1),
 	m_legendLineWidth(DefaultMaxLineWidth),
-	m_displayMode(DefaultDisplayMode),
-	m_normalizePerOutput(false),
-	m_showArrows(false),
-	m_showHighlight(false),
-	m_mergeHighlight(true)
+	m_displayMode(DefaultDisplayMode)
 {
 	setSizePolicy(QSizePolicy::Expanding, QSizePolicy::MinimumExpanding);
 	setMouseTracking(true);
@@ -200,7 +191,7 @@ void iAAlgorithmInfo::drawInOut(QPainter& p, QRect textRect, QString const& text
 	}
 }
 
-int iAAlgorithmInfo::connectorWidth(QFontMetrics fm, QStringList const& strings)
+int iAAlgorithmInfo::connectorWidth(QFontMetrics fm, QStringList const& strings) const
 {
 	// determine max width:
 	int width = 0;

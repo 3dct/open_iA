@@ -232,8 +232,14 @@ private:
 	vtkSmartPointer<vtkTable> m_refVisTable;
 	iACsvConfig m_config;
 	QString m_colorByThemeName;
-	bool m_useStepData, m_showPreviews, m_showCharts;
-	bool m_showFiberContext, m_mergeContextBoxes, m_showWireFrame, m_showLines;
+	bool m_useStepData = false,
+		m_showPreviews = false,
+		m_showCharts = false,
+		m_showFiberContext = false,
+		m_mergeContextBoxes = false,
+		m_showWireFrame = false,
+		m_showLines = false;
+
 	double m_contextSpacing;
 	QString m_parameterFile; //! (.csv-)file containing eventual parameters used in creating the loaded results
 	std::vector<std::vector<double>> m_paramValues;

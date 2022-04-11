@@ -60,7 +60,7 @@ public:
 private:
 	void drawInOut(QPainter& p, QRect textRect, QString const& text, QVector<QRect>& rects, QColor const& color,
 		bool selected, bool useColor, bool verticalText);
-	int connectorWidth(QFontMetrics fm, QStringList const& strings);
+	int connectorWidth(QFontMetrics fm, QStringList const& strings) const;
 	void drawConnectors(QPainter& p, int left, int width, QStringList const& strings, QVector<QRect>& rects,
 		QColor const& color, int selected, QVector<int> const& shown, QVector<int> const& sort, QVector<QPoint>& posOut,
 		bool isLeft, int connHeight);
@@ -80,16 +80,23 @@ private:
 	QStringList m_inNames, m_outNames;
 	QVector<QRect> m_inRects, m_outRects;
 	QColor m_inColor, m_outColor;
-	int m_selectedIn;
+	int m_selectedIn = -1;
 	QVector<int> m_shownOut;
 	QVector<int> m_inSort;
 
 	iAMatrixType m_matrix;
 	std::vector<double> m_maxPerColumn;
-	double m_maxTotal;
+	double m_maxTotal = 1.0;
 	// some widths as determined during painting:
-	int m_inWidth, m_outWidth, m_boxMinWidth, m_legendWidth, m_legendLineWidth;
+	int m_inWidth = 1,
+		m_outWidth = 1,
+		m_boxMinWidth = 1,
+		m_legendWidth = 1,
+		m_legendLineWidth;
 	DisplayMode m_displayMode;
-	bool m_normalizePerOutput, m_showArrows, m_showHighlight, m_mergeHighlight;
+	bool m_normalizePerOutput = false,
+		m_showArrows = false,
+		m_showHighlight = false,
+		m_mergeHighlight = true;
 	QRect m_matrixRect;
 };
