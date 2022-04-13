@@ -446,8 +446,8 @@ void iAChartWidget::drawLegend(QPainter& painter)
 	// required instead of default BevelJoin to avoid one pixel in the lower     x   x
 	// left corner to be left out (see "image" on right how rectangle would      x   x
 	// look like with BevelJoin)                                                  xxxx
-	painter.setPen(QPen(qApp->palette().color(QPalette::Text), 1, Qt::SolidLine, Qt::SquareCap, Qt::MiterJoin));
-	painter.setBrush(qApp->palette().color(QWidget::backgroundRole()));
+	painter.setPen(QPen(QApplication::palette().color(QPalette::Text), 1, Qt::SolidLine, Qt::SquareCap, Qt::MiterJoin));
+	painter.setBrush(QApplication::palette().color(QWidget::backgroundRole()));
 	painter.drawRect(m_legendBox);
 	const int LegendColorLeft = upLeft.x() + LegendPadding;
 	const int TextLeft = LegendColorLeft + LegendItemWidth + LegendPadding;

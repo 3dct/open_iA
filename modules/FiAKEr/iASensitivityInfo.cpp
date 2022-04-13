@@ -1962,7 +1962,7 @@ void iASensitivityInfo::normalizePerOutputChanged(int state)
 
 void iASensitivityInfo::colorInOutChanged(int state)
 {
-	QColor highlightGray(qApp->palette().color(QPalette::Button ) );
+	QColor highlightGray(QApplication::palette().color(QPalette::Button));
 	QColor inColor(state == Qt::Checked ? ParamColor : highlightGray);
 	QColor outColor(state == Qt::Checked ? OutputColor : highlightGray);
 	m_gui->m_algoInfo->setInOutColor(inColor, outColor);
