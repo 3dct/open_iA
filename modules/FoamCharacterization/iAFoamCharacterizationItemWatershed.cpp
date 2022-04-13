@@ -57,7 +57,7 @@ iAFoamCharacterizationItemWatershed::iAFoamCharacterizationItemWatershed(iAFoamC
 void iAFoamCharacterizationItemWatershed::dialog()
 {
 	QScopedPointer<iAFoamCharacterizationDialogWatershed> pDialog
-	                                                      (new iAFoamCharacterizationDialogWatershed(this, qApp->focusWidget()));
+	                                                      (new iAFoamCharacterizationDialogWatershed(this, QApplication::focusWidget()));
 	pDialog->exec();
 }
 

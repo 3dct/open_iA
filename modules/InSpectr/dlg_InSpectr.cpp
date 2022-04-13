@@ -206,7 +206,7 @@ void dlg_InSpectr::init(double minEnergy, double maxEnergy, bool haveEnergyLevel
 	m_initialized = true;
 
 	m_colormapRen = vtkSmartPointer<vtkRenderer>::New();
-	QColor bgc(qApp->palette().color(QWidget::backgroundRole()));
+	QColor bgc(QApplication::palette().color(QWidget::backgroundRole()));
 	m_colormapRen->SetBackground(bgc.redF(), bgc.blueF(), bgc.greenF());
 
 	horizontalLayout_8->insertWidget(0, m_colormapWidget);

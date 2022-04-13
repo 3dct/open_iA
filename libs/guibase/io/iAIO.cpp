@@ -508,7 +508,7 @@ void iAIO::readProject()
 
 void iAIO::run()
 {
-	qApp->processEvents();
+	QApplication::processEvents();
 	try
 	{
 		switch (m_ioID)

@@ -56,8 +56,8 @@ iAFoamCharacterizationDialogAnalysis::iAFoamCharacterizationDialogAnalysis(vtkIm
 
 void iAFoamCharacterizationDialogAnalysis::analyse()
 {
-	qApp->setOverrideCursor(Qt::WaitCursor);
-	qApp->processEvents();
+	QApplication::setOverrideCursor(Qt::WaitCursor);
+	QApplication::processEvents();
 
 	QScopedPointer<iAConnector> pConnector(new iAConnector());
 	pConnector->setImage(m_pImageData);
@@ -100,7 +100,7 @@ void iAFoamCharacterizationDialogAnalysis::analyse()
 		}
 	}
 
-	qApp->restoreOverrideCursor();
+	QApplication::restoreOverrideCursor();
 }
 
 QSize iAFoamCharacterizationDialogAnalysis::sizeHint() const

@@ -1923,9 +1923,9 @@ void iASensitivityInfo::updateDifferenceView()
 
 void iASensitivityInfo::styleChanged()
 {
-	auto textColor = qApp->palette().color(QPalette::Text);
+	auto textColor = QApplication::palette().color(QPalette::Text);
 	m_gui->m_diff3DEmptyText->GetTextProperty()->SetColor(textColor.redF(), textColor.greenF(), textColor.blueF());
-	auto bgColor = qApp->palette().color(QPalette::Window);
+	auto bgColor = QApplication::palette().color(QPalette::Window);
 	m_gui->m_diff3DEmptyRenderer->SetBackground(bgColor.redF(), bgColor.greenF(), bgColor.blueF());
 	for (auto r : m_gui->m_diff3DRenderers)
 	{

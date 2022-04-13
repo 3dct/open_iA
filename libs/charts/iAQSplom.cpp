@@ -38,7 +38,7 @@
 
 #include <QAbstractTextDocumentLayout>
 #include <QActionGroup>
-#include <QApplication>    // for qApp->palette()
+#include <QApplication>
 #include <QColorDialog>
 #include <QFileDialog>
 #include <QListWidgetItem>
@@ -948,7 +948,7 @@ void iAQSplom::paintEvent(QPaintEvent* event)
 	QColor bgColor(settings.backgroundColor);
 	if (!bgColor.isValid())
 	{
-		bgColor = qApp->palette().color(QWidget::backgroundRole());
+		bgColor = QApplication::palette().color(QWidget::backgroundRole());
 	}
 
 #ifdef CHART_OPENGL
@@ -960,7 +960,7 @@ void iAQSplom::paintEvent(QPaintEvent* event)
 	Q_UNUSED(event);
 	painter.fillRect(rect(), bgColor);
 #endif
-	painter.setPen(qApp->palette().color(QPalette::Text));
+	painter.setPen(QApplication::palette().color(QPalette::Text));
 	if (m_visiblePlots.size() < 2)
 	{
 		painter.drawText(geometry(), Qt::AlignCenter, "Too few parameters selected!");
@@ -1037,7 +1037,7 @@ void iAQSplom::paintEvent(QPaintEvent* event)
 	{
 		return;
 	}
-	painter.setPen(qApp->palette().color(QPalette::Text));
+	painter.setPen(QApplication::palette().color(QPalette::Text));
 	// Draw scalar bar:
 	// maybe reuse code from iALinearColorGradientBar (DynamicVolumeLines)
 	QPoint topLeft = getMaxRect().topLeft();
@@ -1551,7 +1551,7 @@ void iAQSplom::drawTicks( QPainter & painter, QList<double> const & ticksX, QLis
 {
 	painter.save();
 	//painter.setPen( m_visiblePlots[1][0]->settings.tickLabelColor );
-	painter.setPen(qApp->palette().color(QPalette::Text));
+	painter.setPen(QApplication::palette().color(QPalette::Text));
 	QPoint * tOfs = &settings.tickOffsets;
 	long tSpc = settings.tickLabelsOffset;
 	for( long i = 0; i < ticksY.size(); ++i )

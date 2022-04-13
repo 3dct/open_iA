@@ -81,7 +81,7 @@ double iAFoamCharacterizationItemFilter::anisotropicTimeStep() const
 
 void iAFoamCharacterizationItemFilter::dialog()
 {
-	QScopedPointer<iAFoamCharacterizationDialogFilter> pDialog(new iAFoamCharacterizationDialogFilter(this, qApp->focusWidget()));
+	QScopedPointer<iAFoamCharacterizationDialogFilter> pDialog(new iAFoamCharacterizationDialogFilter(this, QApplication::focusWidget()));
 	pDialog->exec();
 }
 

@@ -210,7 +210,7 @@ void MainWindow::quitTimerSlot()
 		return;
 	}
 	delete m_quitTimer;
-	qApp->closeAllWindows();
+	QApplication::closeAllWindows();
 }
 
 bool MainWindow::keepOpen()
@@ -2257,7 +2257,7 @@ void MainWindow::applyQSS()
 		styleFile.close();
 		qApp->setStyleSheet(style);
 
-		QPalette p = qApp->palette();
+		QPalette p = QApplication::palette();
 		p.setColor(QPalette::Window,          m_qssName.contains("bright") ? QColor(255, 255, 255) : QColor(  0,   0,   0));
 		p.setColor(QPalette::Base,            m_qssName.contains("bright") ? QColor(255, 255, 255) : QColor(  0,   0,   0));
 		p.setColor(QPalette::ToolTipBase,     m_qssName.contains("bright") ? QColor(255, 255, 255) : QColor(  0,   0,   0));
@@ -2276,7 +2276,7 @@ void MainWindow::applyQSS()
 		p.setColor(QPalette::PlaceholderText, m_qssName.contains("bright") ? QColor(  0,   0,   0) : QColor(255, 255, 255));
 #endif
 		p.setColor(QPalette::WindowText,      m_qssName.contains("bright") ? QColor(  0,   0,   0) : QColor(255, 255, 255));
-		qApp->setPalette(p);
+		QApplication::setPalette(p);
 		emit styleChanged();
 	}
 }
@@ -2704,7 +2704,7 @@ int MainWindow::runGUI(int argc, char * argv[], QString const & appName, QString
 	mainWin.loadArguments(argc, argv);
 	// TODO: unify with logo in slicer/renderer!
 	app.setWindowIcon(QIcon(QPixmap(iconPath)));
-	qApp->setStyle(new iAProxyStyle(qApp->style()));
+	QApplication::setStyle(new iAProxyStyle(QApplication::style()));
 	mainWin.setWindowIcon(QIcon(QPixmap(iconPath)));
 	if (QDate::currentDate().dayOfYear() >= 350)
 	{
