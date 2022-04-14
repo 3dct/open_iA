@@ -74,14 +74,12 @@ const int iAScatterPlotWidget::TextPadding = 5;
 
 
 iAScatterPlotWidget::iAScatterPlotWidget():
-	m_viewData(new iAScatterPlotViewData()),
-	m_columnSelection(false)
+	m_viewData(new iAScatterPlotViewData())
 {
 	initWidget();
 }
 
 iAScatterPlotWidget::iAScatterPlotWidget(QSharedPointer<iASPLOMData> data, bool columnSelection) :
-	m_data(data),
 	m_viewData(new iAScatterPlotViewData()),
 	m_columnSelection(columnSelection)
 {
@@ -91,7 +89,7 @@ iAScatterPlotWidget::iAScatterPlotWidget(QSharedPointer<iASPLOMData> data, bool 
 
 void iAScatterPlotWidget::initWidget()
 {
-	#ifdef CHART_OPENGL
+#ifdef CHART_OPENGL
 	auto fmt = defaultQOpenGLWidgetFormat();
 #ifdef SP_OLDOPENGL
 	fmt.setStereo(true);

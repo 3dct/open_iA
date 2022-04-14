@@ -641,7 +641,7 @@ void iAParameterInfluenceView::updateStackedBarHistogram(QString const & barName
 
 	auto parChart = m_table[paramIdx]->par[barIdx];
 	//parChart->clearPlots();
-	auto data = QSharedPointer<iASPLOMData>::create();
+	auto spData = QSharedPointer<iASPLOMData>::create();
 	auto const& d = ((outType == outCharacteristic) ?
 		(m_charDiffMeasureIdx == 0 ?
 				 m_data->sensitivityField[outIdx][m_measureIdx][m_aggrType] :
@@ -653,22 +653,23 @@ void iAParameterInfluenceView::updateStackedBarHistogram(QString const & barName
 	std::vector<QString> paramNames;
 	paramNames.push_back(columnName(outType, outIdx));
 	paramNames.push_back("Sensitivity");
-	data->setParameterNames(paramNames);
+	spData->setParameterNames(paramNames);
 
 	double normalizeFactor = 1.0;
 	if (m_normalizePerOutput)
 	{	// maybe do in computation already / merge with max determination in iAAlgorithmInfo ?
-		normalizeFactor = 1.0 / (*std::max_element(d.begin(), d.end()));
+		double maxEl = *std::max_element(d.begin(), d.end());
+		normalizeFactor = (maxEl != 0) ? (1 / maxEl) : 1.0;
 	}
 	for (int i = 0; i < d.size(); ++i)
 	{
 		//plotData->addValue(m_data->paramSetValues[i][m_data->m_variedParams[paramIdx]], d[i] * normalizeFactor);
-		data->data()[0].push_back(m_data->paramSetValues[i][m_data->m_variedParams[paramIdx]]);
-		data->data()[1].push_back(d[i] * normalizeFactor);
+		spData->data()[0].push_back(m_data->paramSetValues[i][m_data->m_variedParams[paramIdx]]);
+		spData->data()[1].push_back(d[i] * normalizeFactor);
 	}
 	//parChart->resetYBounds();
 	//parChart->addPlot(QSharedPointer<iALinePlot>::create(plotData, ParamSensitivityPlotColor));
-	parChart->setData(data);
+	parChart->setData(spData);
 	parChart->update();
 }
 
@@ -699,8 +700,8 @@ void iAParameterInfluenceView::updateChartY()
 			chart->update();
 		}
 	};
-	double yMaxOut = std::numeric_limits<double>::lowest(),
-	       yMaxPar = std::numeric_limits<double>::lowest();
+	double yMaxOut = std::numeric_limits<double>::lowest();
+	// double yMaxPar = std::numeric_limits<double>::lowest();
 	for (auto chartRow : m_table)
 	{
 		yMaxOut = getChartMax(chartRow->out, yMaxOut);
