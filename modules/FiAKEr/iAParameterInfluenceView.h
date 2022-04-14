@@ -84,7 +84,8 @@ private slots:
 	void setBarWeights(std::vector<double> const& weights);
 	void setBarNormalizeMode(bool normalizePerBar);
 	void setBarDoStack(bool doStack);
-	void paramChartClicked(double x, Qt::KeyboardModifiers modifiers);
+	//void paramChartClicked(double x, Qt::KeyboardModifiers modifiers);
+	void paramChartClicked(size_t idx, bool state);
 	void paramChartAxisChanged();
 	void charactChartAxisChanged();
 

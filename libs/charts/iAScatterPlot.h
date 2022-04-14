@@ -115,10 +115,11 @@ public:
 	void setHighlightColorTheme(iAColorTheme const* theme);
 	void setHighlightDrawMode(HighlightDrawModes drawMode);
 
+	double p2x( double pval ) const;                                 //!< Parameter scalar value to X coordinate (pixels)
+
 protected:
 	int p2binx( double p ) const;                                    //!< Get grid bin index using parameter value X
 	int p2biny( double p ) const;                                    //!< Get grid bin index using parameter value Y
-	double p2x( double pval ) const;                                 //!< Parameter scalar value to X coordinate (pixels)
 	double p2tx( double pval ) const;                                //!< Parameter scalar value to normalized X coordinate [0,1]
 	double x2p( double x ) const;                                    //!< X coordinate (pixels) to parameter value
 	double p2y( double pval ) const;                                 //!< Parameter scalar value to Y coordinate (pixels)
