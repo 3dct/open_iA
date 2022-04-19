@@ -47,7 +47,6 @@ class iANonLocalMeans : public iAFilter
 public:
 	static QSharedPointer<iANonLocalMeans> create();
 	void abort() override;
-	bool canAbort() const override;
 private:
 	void performWork(QMap<QString, QVariant> const& parameters) override;
 	iANonLocalMeans();
