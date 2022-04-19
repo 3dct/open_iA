@@ -148,10 +148,11 @@ namespace
 				.arg(mesh->GetNumberOfPoints()));
 	}
 	*/
+	const float dpR = 2.0; // ToDO: this should be set automatically according to current device scale, but devicePixelRatio doesn't seem to do it...
 	const int VTKFontSize = 20;
 
 	
-	vtkSmartPointer<vtkTextWidget> createVTKTextWidget(double x, double y, double w, double h, const char* text, vtkRenderWindowInteractor* interactor)
+	vtkSmartPointer<vtkTextWidget> createVTKTextWidget(double x, double y, double w, double h, const char* text, vtkRenderWindowInteractor* interactor, float devicePixelRatio)
 	{
 		auto result = vtkSmartPointer<vtkTextWidget>::New();
 		vtkNew<vtkTextRepresentation> textRep;
@@ -163,7 +164,7 @@ namespace
 		result->GetTextActor()->SetInput(text);
 		result->GetTextActor()->SetTextScaleModeToNone();
 		result->GetTextActor()->GetTextProperty()->SetFontFamilyToArial();
-		result->GetTextActor()->GetTextProperty()->SetFontSize(VTKFontSize);
+		result->GetTextActor()->GetTextProperty()->SetFontSize(static_cast<int>(VTKFontSize * devicePixelRatio));
 		result->GetTextActor()->GetTextProperty()->SetColor(0, 0, 0);
 		//result->GetTextActor()->GetTextProperty()->SetJustificationToLeft();	// default
 		//result->GetTextActor()->GetTextProperty()->SetVerticalJustification(align);	//top or bottom doesn't seem to make a difference...
@@ -715,7 +716,7 @@ struct iAFiberDiffRenderer
 class iASensitivityGUI : public iASensitivityViewState
 {
 public:
-	iASensitivityGUI(iASensitivityInfo* sensInf) :
+	iASensitivityGUI(iASensitivityInfo* sensInf, float devicePixelRatio) :
 		m_sensInf(sensInf),
 		m_settings(nullptr),
 		m_paramSP(nullptr),
@@ -735,7 +736,7 @@ public:
 	{
 		m_diff3DEmptyText->SetLinearFontScaleFactor(2);
 		m_diff3DEmptyText->SetNonlinearFontScaleFactor(1.2);
-		m_diff3DEmptyText->SetMaximumFontSize(VTKFontSize);
+		m_diff3DEmptyText->SetMaximumFontSize(VTKFontSize * devicePixelRatio);
 		m_diff3DEmptyText->SetText(2, "No Fiber/Result selected");
 		auto textColor = QApplication::palette().color(QPalette::Text);
 		m_diff3DEmptyText->GetTextProperty()->SetColor(textColor.redF(), textColor.greenF(), textColor.blueF());
@@ -1082,7 +1083,7 @@ void iASensitivityInfo::createGUI()
 		emit aborted();
 		return;
 	}
-	m_gui.reset(new iASensitivityGUI(this));
+	m_gui.reset(new iASensitivityGUI(this, dpR));
 
 	iAProgress* spatP = new iAProgress();
 	auto spatialVariationComputation = runAsync([this, spatP] { data().computeSpatialOverview(spatP); },
@@ -1357,8 +1358,8 @@ void iASensitivityInfo::setSpatialOverviewTF(int modalityIdx)
 		double textX = 0.9;
 		double textPadding = 0.02;
 		double textHeight = 0.07;
-		m_gui->m_scalarBarTitleText = createVTKTextWidget(
-			scalarBarX, scalarBarTop, (1 - scalarBarX), textHeight, "Covered by", interactor);
+		m_gui->m_scalarBarTitleText = createVTKTextWidget(scalarBarX, scalarBarTop, (1 - scalarBarX), textHeight,
+			"Covered by", interactor, dpR);
 
 		double textWidth = 0.1;
 		//vtkNew<vtkTextRenderer> textRenderer;
@@ -1373,10 +1374,8 @@ void iASensitivityInfo::setSpatialOverviewTF(int modalityIdx)
 		//		.arg(size[0]).arg(size[1])
 		//		.arg(bbox[0]).arg(bbox[1]).arg(bbox[2]).arg(bbox[3])
 		//		.arg(textHeight));
-		m_gui->m_scalarBarMinText = createVTKTextWidget(
-			textX, scalarBarTop - textHeight, textWidth, textHeight, "All", interactor);
-		m_gui->m_scalarBarMaxText = createVTKTextWidget(
-			textX, scalarBarY + textPadding, textWidth, textHeight, "None", interactor);
+		m_gui->m_scalarBarMinText = createVTKTextWidget(textX, scalarBarTop - textHeight, textWidth, textHeight, "All", interactor, dpR);
+		m_gui->m_scalarBarMaxText = createVTKTextWidget(textX, scalarBarY + textPadding, textWidth, textHeight, "None", interactor, dpR);
 	}
 }
 
@@ -1857,7 +1856,7 @@ void iASensitivityInfo::updateDifferenceView()
 		resultData->text = vtkSmartPointer<vtkCornerAnnotation>::New();
 		resultData->text->SetLinearFontScaleFactor(2);
 		resultData->text->SetNonlinearFontScaleFactor(1.2);
-		resultData->text->SetMaximumFontSize(VTKFontSize);
+		resultData->text->SetMaximumFontSize(VTKFontSize * dpR);
 		resultData->text->GetTextProperty()->SetColor(color.redF(), color.greenF(), color.blueF());
 		resultData->text->SetText(vtkCornerAnnotation::UpperEdge, txt.toStdString().c_str());
 		// ToDo: add fiber id ;

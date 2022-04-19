@@ -221,12 +221,12 @@ void iAScatterPlot::printTicksInfo( QList<double> * posX, QList<double> * posY, 
 	for (double t : m_ticksX)
 	{
 		posX->push_back( p2x( t ) + m_globRect.x() );
-		textX->push_back( QString::number( t ) );
+		textX->push_back( QString::number( (std::abs(t) < 1e-10) ? 0 : t ) );
 	}
 	for (double t : m_ticksY)
 	{
 		posY->push_back( p2y( t ) + m_globRect.y() );
-		textY->push_back( QString::number( t ) );
+		textY->push_back( QString::number( (std::abs(t) < 1e-10) ? 0 : t ) );
 	}
 }
 
