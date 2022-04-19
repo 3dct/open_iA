@@ -35,7 +35,6 @@ public:
 		QSharedPointer<iAAttributes> parameterSpecs, QString const& parameterRangeFile, QString const& parameterSetFile,
 		QString const& derivedOutFile, int samplingID);
 	void abort() override;
-	bool canAbort() const override;
 private:
 	void performWork(QMap<QString, QVariant> const& parameters) override;
 	bool checkParameters(QMap<QString, QVariant> const& parameters) override;

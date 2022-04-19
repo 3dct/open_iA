@@ -327,8 +327,7 @@ iAPatchFilter::iAPatchFilter():
 		.arg(spnFilter)
 		.arg(spnCompressOutput)
 		.arg(spnContinueOnError)
-		, 1, 0),
-	m_aborted(false)
+		, 1, 0, true)
 {
 	addParameter("Patch size X", iAValueType::Discrete, 1, 1);
 	addParameter("Patch size Y", iAValueType::Discrete, 1, 1);
@@ -351,21 +350,6 @@ iAPatchFilter::iAPatchFilter():
 void iAPatchFilter::performWork(QMap<QString, QVariant> const & parameters)
 {
 	ITK_TYPED_CALL(patch, inputPixelType(), this, parameters);
-}
-
-void iAPatchFilter::abort()
-{
-	m_aborted = true;
-}
-
-bool iAPatchFilter::canAbort() const
-{
-	return true;
-}
-
-bool iAPatchFilter::isAborted() const
-{
-	return m_aborted;
 }
 
 IAFILTER_CREATE(iAPatchFilter);

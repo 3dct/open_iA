@@ -42,7 +42,7 @@ IAFILTER_CREATE(iASampleFilter)
 iASampleFilter::iASampleFilter() :
 	iAFilter("Sample Filter", "Image Ensembles",
 		SampleFilterDescription,
-		1, 0),
+		1, 0, true),
 	m_sampler(nullptr)
 {
 	addParameter(spnAlgorithmName, iAValueType::String, "");
@@ -138,11 +138,6 @@ void iASampleFilter::abort()
 	{
 		m_sampler->abort();
 	}
-}
-
-bool iASampleFilter::canAbort() const
-{
-	return true;
 }
 
 

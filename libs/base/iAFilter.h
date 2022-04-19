@@ -80,8 +80,11 @@ public:
 	//!     make sure that you leave it at the default value of 1 or set it to some value
 	//!     other than zero, because setting it to zero has immediate side effects (e.g.
 	//!     not opening a result window if configured, in  the GUI).
+	//! @param supportsAbort whether the filter supports aborting. The typical way of aborting
+	//!     is by checking the boolean flag accessible via isAbort, but derived classes
+	//!     can implement custom abort listeners through overriding the abort() function
 	iAFilter(QString const & name, QString const & category, QString const & description = "",
-		unsigned int requiredInputs = 1, unsigned int outputCount = 1);
+		unsigned int requiredInputs = 1, unsigned int outputCount = 1, bool supportsAbort = false);
 	//! Virtual destructor because of inheritance (mostly to avoid warnings about missing virtual destructor).
 	virtual ~iAFilter();
 	//! Retrieve the filter name.
@@ -203,7 +206,10 @@ public:
 	//! Abort the filter.
 	void abort() override;
 	//! Whether the filter supports aborting
-	virtual bool canAbort() const;
+	bool canAbort() const;
+	//! Whether the filter was aborted by the user
+	bool isAborted() const;
+
 protected:
 	//! Set the name of the input with the given index.
 	void setInputName(unsigned int i, QString const & name);
@@ -255,6 +261,10 @@ private:
 	unsigned int m_outputCount;
 	//! In case this filter requires two "kinds" of inputs, this marks the number of inputs belonging to the first kind.
 	unsigned int m_firstInputChannels;
+	//! flag storing whether the filter supports aborting
+	bool m_canAbort;
+	//! flag storing whether the filter was aborted by the user
+	bool m_isAborted = false;
 };
 
 //! Convenience Macro for creating the static Create method for your filter
