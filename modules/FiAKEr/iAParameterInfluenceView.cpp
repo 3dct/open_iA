@@ -478,12 +478,10 @@ void iAParameterInfluenceView::setNormalizePerOutput(bool norm)
 	updateStackedBars();
 }
 
-//void iAParameterInfluenceView::paramChartClicked(double x, Qt::KeyboardModifiers modifiers)
-void iAParameterInfluenceView::paramChartClicked(size_t idx, bool state)
+void iAParameterInfluenceView::paramChartClicked(double x, double /* y */, Qt::KeyboardModifiers modifiers)
 {
 	// search for parameter value "closest" to clicked x;
-	/*
-	auto chart = qobject_cast<iAChartWidget*>(QObject::sender());
+	auto chart = qobject_cast<iAScatterPlotWidget*>(QObject::sender());
 	int variedParamIdx = chart->property("paramIdx").toInt();
 	auto& paramValues = m_data->m_paramValues[m_data->m_variedParams[variedParamIdx]];
 	auto minDistElem = std::min_element(paramValues.begin(), paramValues.end(), [x](double a, double b) {
@@ -491,9 +489,7 @@ void iAParameterInfluenceView::paramChartClicked(size_t idx, bool state)
 	});
 	// select the result that is closest to the currently selected one in the other parameters!
 	int resultIdx = minDistElem - paramValues.begin();
-	*/
-	Qt::KeyboardModifiers modifiers; // TODO: fake modifiers for now -> change parameter? fill modifiers somehow?
-	emit resultSelected(idx, modifiers);
+	emit resultSelected(resultIdx, modifiers);
 }
 
 void iAParameterInfluenceView::setSelectedParam(int param)
@@ -640,7 +636,6 @@ void iAParameterInfluenceView::updateStackedBarHistogram(QString const & barName
 	outChart->update();
 
 	auto parChart = m_table[paramIdx]->par[barIdx];
-	//parChart->clearPlots();
 	auto spData = QSharedPointer<iASPLOMData>::create();
 	auto const& d = ((outType == outCharacteristic) ?
 		(m_charDiffMeasureIdx == 0 ?
@@ -649,7 +644,6 @@ void iAParameterInfluenceView::updateStackedBarHistogram(QString const & barName
 		(outType == outFiberCount)
 			? m_data->sensitivityFiberCount[m_aggrType]
 			: /* (outType == outDissimilarity)*/ m_data->sensDissimField[outIdx][m_aggrType])[paramIdx];
-	//auto plotData = iAXYPlotData::create("Sensitivity " + columnName(outType, outIdx), iAValueType::Continuous, d.size());
 	std::vector<QString> paramNames;
 	paramNames.push_back(columnName(outType, outIdx));
 	paramNames.push_back("Sensitivity");
@@ -663,13 +657,16 @@ void iAParameterInfluenceView::updateStackedBarHistogram(QString const & barName
 	}
 	for (int i = 0; i < d.size(); ++i)
 	{
-		//plotData->addValue(m_data->paramSetValues[i][m_data->m_variedParams[paramIdx]], d[i] * normalizeFactor);
 		spData->data()[0].push_back(m_data->paramSetValues[i][m_data->m_variedParams[paramIdx]]);
 		spData->data()[1].push_back(d[i] * normalizeFactor);
 	}
 	//parChart->resetYBounds();
-	//parChart->addPlot(QSharedPointer<iALinePlot>::create(plotData, ParamSensitivityPlotColor));
 	parChart->setData(spData);
+	parChart->setDrawGridLines(false);
+	parChart->setPlotColor(QColor(64, 64,64), 0, 1);
+	parChart->setPointRadius(3.5);
+	parChart->setSelectionColor(QColor(0,0,0));
+	parChart->setSelectionEnabled(false);
 	parChart->update();
 }
 
@@ -768,14 +765,13 @@ void iAParameterInfluenceView::addStackedBar(int outType, int outIdx)
 		//parChart->setEmptyText("");
 		parChart->setBackgroundRole(bgRole);
 		parChart->setProperty("paramIdx", paramIdx);
-		double parMin = m_data->m_paramMin[varParIdx],
-			parMax = m_data->m_paramMax[varParIdx],
-			parPad = (parMax - parMin) / 100.0; // add 1% of range on both sides to make sure all markers will be visible
-		//parChart->setXBounds(parMin - parPad, parMax + parPad);
 		m_table[paramIdx]->par.push_back(parChart);
-		//connect(parChart, &iAChartWidget::clicked, this, &iAParameterInfluenceView::paramChartClicked);
+		//double parMin = m_data->m_paramMin[varParIdx],
+		//	parMax = m_data->m_paramMax[varParIdx],
+		//	double parPad = (parMax - parMin) / 100.0; // add 1% of range on both sides to make sure all markers will be visible
+		//parChart->setXBounds(parMin - parPad, parMax + parPad);
 		//connect(parChart, &iAChartWidget::axisChanged, this, &iAParameterInfluenceView::paramChartAxisChanged);
-		connect(parChart, &iAScatterPlotWidget::pointHighlighted, this, &iAParameterInfluenceView::paramChartClicked);
+		connect(parChart, &iAScatterPlotWidget::chartClicked, this, &iAParameterInfluenceView::paramChartClicked);
 		//parChart->setMinimumHeight(80);
 		for (size_t i=0; i<selectedResults.size(); ++i)
 		{
