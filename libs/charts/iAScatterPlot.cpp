@@ -62,7 +62,8 @@ iAScatterPlot::Settings::Settings() :
 	selectionMode(Polygon),
 	selectionEnabled(false),
 	showPCC(false),
-	showSCC(false)
+	showSCC(false),
+	drawGridLines(true)
 {}
 
 iAScatterPlot::iAScatterPlot(iAScatterPlotViewData* viewData, iAChartParentWidget* parent,
@@ -414,6 +415,10 @@ void iAScatterPlot::SPLOMMousePressEvent( QMouseEvent * event )
 		{
 			m_selPoly.append(locPos);
 		}
+	}
+	else if (event->buttons() & Qt::LeftButton)
+	{
+		emit chartClicked(x2p(locPos.x()), y2p(locPos.y()), event->modifiers());
 	}
 }
 
@@ -1140,19 +1145,22 @@ void iAScatterPlot::drawBorder( QPainter &painter )
 void iAScatterPlot::drawTicks( QPainter &painter )
 {
 	painter.save();
-	QPen p;
-	p.setColor( /*settings.tickLineColor*/ QApplication::palette().color(QPalette::Mid) );
-	p.setStyle( Qt::DotLine );
-	painter.setPen( p );
-	for (double t: m_ticksX)
+	if (settings.drawGridLines)
 	{
-		double loc_t = p2x( t );
-		painter.drawLine( QPointF( loc_t, m_locRect.top() ), QPointF( loc_t, m_locRect.bottom() ) );
-	}
-	for (double t : m_ticksY)
-	{
-		double loc_t = p2y( t );
-		painter.drawLine( QPointF( m_locRect.left(), loc_t ), QPointF( m_locRect.right(), loc_t ) );
+		QPen p;
+		p.setColor(/*settings.tickLineColor*/ QApplication::palette().color(QPalette::Mid));
+		p.setStyle(Qt::DotLine);
+		painter.setPen(p);
+		for (double t : m_ticksX)
+		{
+			double loc_t = p2x(t);
+			painter.drawLine(QPointF(loc_t, m_locRect.top()), QPointF(loc_t, m_locRect.bottom()));
+		}
+		for (double t : m_ticksY)
+		{
+			double loc_t = p2y(t);
+			painter.drawLine(QPointF(m_locRect.left(), loc_t), QPointF(m_locRect.right(), loc_t));
+		}
 	}
 
 	//if maximized plot also draw tick labels

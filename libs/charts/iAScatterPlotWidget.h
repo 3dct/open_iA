@@ -64,6 +64,7 @@ public:
 	iAScatterPlotWidget();
 	iAScatterPlotWidget(QSharedPointer<iASPLOMData> data, bool columnSelection = false);
 	void initWidget();
+	iASPLOMData const* data() const;
 	void setData(QSharedPointer<iASPLOMData> data);
 	void setLookupTable(QSharedPointer<iALookupTable> lut, size_t paramIdx);
 	QSharedPointer<iALookupTable> lookupTable() const;
@@ -81,6 +82,7 @@ public:
 	void setSelectionEnabled(bool enabled);
 	//! proxy method for setting visible parameters in contained iAScatterPlot
 	void setVisibleParameters(size_t p1, size_t p2);
+	void setDrawGridLines(bool enabled);
 
 	void setXMarker(double xPos, QColor const& color, Qt::PenStyle penStyle)
 	{
@@ -145,6 +147,7 @@ signals:
 	void highlightChanged();
 	void selectionModified();
 	void visibleParamChanged();
+	void chartClicked(double x, double y, Qt::KeyboardModifiers	modifiers);  //!< Emitted when a point in the chart is clicked (and no selection or fixed point selection happened)
 private slots:
 	void xParamChanged();
 	void yParamChanged();

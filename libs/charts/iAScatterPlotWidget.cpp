@@ -144,7 +144,13 @@ void iAScatterPlotWidget::setData(QSharedPointer<iASPLOMData> d)
 	connect(m_viewData.data(), &iAScatterPlotViewData::filterChanged, this, &iAScatterPlotWidget::updateFilter);
 	connect(m_scatterplot.data(), &iAScatterPlot::currentPointModified, this, &iAScatterPlotWidget::currentPointUpdated);
 	connect(m_scatterplot.data(), &iAScatterPlot::selectionModified, this, &iAScatterPlotWidget::selectionModified);
+	connect(m_scatterplot.data(), &iAScatterPlot::chartClicked, this, &iAScatterPlotWidget::chartClicked);
 	update();
+}
+
+iASPLOMData const* iAScatterPlotWidget::data() const
+{
+	return m_data.data();
 }
 
 void iAScatterPlotWidget::currentPointUpdated(size_t index)
@@ -161,6 +167,11 @@ void iAScatterPlotWidget::setSelectionEnabled(bool enabled)
 void iAScatterPlotWidget::setVisibleParameters(size_t p1, size_t p2)
 {
 	m_scatterplot->setIndices(p1, p2);
+}
+
+void iAScatterPlotWidget::setDrawGridLines(bool enabled)
+{
+	m_scatterplot->settings.drawGridLines = enabled;
 }
 
 QSharedPointer<iAScatterPlotViewData> iAScatterPlotWidget::viewData()
