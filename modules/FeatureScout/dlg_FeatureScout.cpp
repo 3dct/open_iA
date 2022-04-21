@@ -54,6 +54,7 @@
 #include <iADockWidgetWrapper.h>
 
 // base:
+#include "iAToolsVTK.h"
 #include <defines.h>    // for DIM
 #include <iAConnector.h>
 #include <iAFileUtils.h>
@@ -261,6 +262,15 @@ dlg_FeatureScout::dlg_FeatureScout(iAMdiChild* parent, iAObjectType fid, QString
 	setupViews();
 	setupModel();
 	setupConnections();
+	if (vis == iACsvConfig::UseVolume &&
+	// check whether volume has proper type and has a matching number of labeled objects:
+		(!isVtkIntegerImage(m_activeChild->modality(0)->image()) ||
+			m_activeChild->modality(0)->info().min() != 0 ||
+			m_activeChild->modality(0)->info().max() != m_objectCount) )
+	{
+		QMessageBox::warning(parent, "FeatureScout",
+			"The loaded dataset does not appear to be a labeled dataset fulfilling the requirements for the labeled volume visualization! The 3D visualization will not work. Please use a different visualization and/or check the FeatureScout documentation at https://github.com/3dct/open_iA/wiki/FeatureScout!");
+	}
 	m_3dvis = create3DObjectVis(vis, parent, csvtbl, m_columnMapping, m_colorList.at(0), curvedFiberInfo, cylinderQuality, segmentSkip);
 	if (vis != iACsvConfig::UseVolume && m_activeChild->modalities()->size() == 0)
 	{
@@ -791,7 +801,7 @@ void dlg_FeatureScout::RenderMeanObject()
 {
 	if (m_visualization != iACsvConfig::UseVolume)
 	{
-		QMessageBox::warning(this, "FeatureScout", "Mean objects feature only available for the Labelled Volume visualization at the moment!");
+		QMessageBox::warning(this, "FeatureScout", "Mean objects feature only available for the Labeled Volume visualization at the moment!");
 		return;
 	}
 	int classCount = m_classTreeModel->invisibleRootItem()->rowCount();
