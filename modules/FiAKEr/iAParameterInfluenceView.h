@@ -27,6 +27,7 @@
 class iAChartWidget;
 class iAColorTheme;
 class iAHistogramData;
+class iALookupTable;
 class iAStackedBarChart;
 class iASensitivityData;
 class iASensitivityViewState;
@@ -127,4 +128,5 @@ private:
 	QString m_histogramChartType;
 	QSet<int> m_highlightedParams;
 	bool m_normalizePerOutput;
+	QSharedPointer<iALookupTable> m_sortParamLUT;
 };

@@ -30,6 +30,8 @@
 #include <iALog.h>
 
 // charts:
+#include "iALUT.h"
+
 #include <iAChartWidget.h>
 #include <iAHistogramData.h>
 #include <iAPlotTypes.h>
@@ -110,7 +112,8 @@ iAParameterInfluenceView::iAParameterInfluenceView(QSharedPointer<iASensitivityD
 	m_sortLastOut(-1),
 	m_sortLastDesc(true),
 	m_histogramChartType("Bars"),    // needs to match value from radio buttons in SensitivitySettings.ui
-	m_normalizePerOutput(false)
+	m_normalizePerOutput(false),
+	m_sortParamLUT(QSharedPointer<iALookupTable>::create(QColor(64, 64, 64)))
 {
 	for (int i=0; i<m_sort.size(); ++i)
 	{
@@ -321,6 +324,39 @@ void iAParameterInfluenceView::sortListByBar(int barIdx)
 	});
 	//LOG(lvlDebug, joinNumbersAsString(m_sort, ","));
 	addTableWidgets();
+
+	// update coloring of scatter plots by highest-sorteed parameter
+	auto firstParam = m_data->m_variedParams[m_sort[0]];
+	auto const& pset = m_data->paramSetValues;
+	double maxRange[2] = {std::numeric_limits<double>::max(), std::numeric_limits<double>::lowest()};
+	for (int i = 0; i < pset.size(); ++i)
+	{
+		auto val = pset[i][firstParam];
+		if (val < maxRange[0])
+		{
+			maxRange[0] = val;
+		}
+		if (val > maxRange[1])
+		{
+			maxRange[1] = val;
+		}
+	}
+	*m_sortParamLUT = iALUT::Build(maxRange, "Matplotlib: Plasma", 5, 1.0);
+
+	for (int rowIdx = 0; rowIdx < m_table.size(); ++rowIdx)
+	{
+		for (int c = 0; c < m_table[rowIdx]->par.size(); ++c)
+		{
+			auto spData = m_table[rowIdx]->par[c]->data();
+			for (int i = 0; i < pset.size(); ++i)
+			{
+				spData->data()[2][i] = pset[i][firstParam];
+			}
+			m_table[rowIdx]->par[c]->update();
+		}
+	}
+
+	//parChart->setLookupTable( iALUT::Build());
 	emit orderChanged(m_sort);
 }
 
@@ -647,6 +683,7 @@ void iAParameterInfluenceView::updateStackedBarHistogram(QString const & barName
 	std::vector<QString> paramNames;
 	paramNames.push_back(columnName(outType, outIdx));
 	paramNames.push_back("Sensitivity");
+	paramNames.push_back("Highest");
 	spData->setParameterNames(paramNames);
 
 	double normalizeFactor = 1.0;
@@ -655,18 +692,19 @@ void iAParameterInfluenceView::updateStackedBarHistogram(QString const & barName
 		double maxEl = *std::max_element(d.begin(), d.end());
 		normalizeFactor = (maxEl != 0) ? (1 / maxEl) : 1.0;
 	}
-	for (int i = 0; i < d.size(); ++i)
+	for (int i = 0; i < m_data->paramSetValues.size(); ++i)
 	{
 		spData->data()[0].push_back(m_data->paramSetValues[i][m_data->m_variedParams[paramIdx]]);
 		spData->data()[1].push_back(d[i] * normalizeFactor);
+		spData->data()[2].push_back(m_data->paramSetValues[i][m_data->m_variedParams[m_sort[0]]]);
 	}
 	//parChart->resetYBounds();
 	parChart->setData(spData);
 	parChart->setDrawGridLines(false);
-	parChart->setPlotColor(QColor(64, 64,64), 0, 1);
 	parChart->setPointRadius(3.5);
 	parChart->setSelectionColor(QColor(0,0,0));
 	parChart->setSelectionEnabled(false);
+	parChart->setLookupTable(m_sortParamLUT, 2);
 	parChart->update();
 }
 
