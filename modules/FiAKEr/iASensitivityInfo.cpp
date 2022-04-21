@@ -1908,12 +1908,18 @@ void iASensitivityInfo::updateDifferenceView()
 	}
 	if (m_gui->m_diff3DRenderers.size() == 0 && !renWin->GetRenderers()->IsItemPresent(m_gui->m_diff3DEmptyRenderer))
 	{
-		m_gui->m_dwDiff3D->hide();
+		if (m_gui->m_settings->cbAutoHideDiffView->isChecked())
+		{
+			m_gui->m_dwDiff3D->hide();
+		}
 		renWin->AddRenderer(m_gui->m_diff3DEmptyRenderer);
 	}
 	else if (m_gui->m_diff3DRenderers.size() > 0 && renWin->GetRenderers()->IsItemPresent(m_gui->m_diff3DEmptyRenderer))
 	{
-		m_gui->m_dwDiff3D->show();
+		if (m_gui->m_settings->cbAutoHideDiffView->isChecked())
+		{
+			m_gui->m_dwDiff3D->show();
+		}
 		renWin->RemoveRenderer(m_gui->m_diff3DEmptyRenderer);
 	}
 	renWin->Render();

@@ -7,7 +7,7 @@
     <x>0</x>
     <y>0</y>
     <width>205</width>
-    <height>174</height>
+    <height>196</height>
    </rect>
   </property>
   <property name="windowTitle">
@@ -29,7 +29,7 @@
    <property name="spacing">
     <number>4</number>
    </property>
-   <item row="2" column="0">
+   <item row="1" column="0">
     <widget class="QTabWidget" name="tabWidget">
      <property name="currentIndex">
       <number>3</number>
@@ -336,23 +336,19 @@
        <property name="spacing">
         <number>4</number>
        </property>
-       <item row="7" column="0" colspan="3">
-        <spacer name="verticalSpacer_4">
-         <property name="orientation">
-          <enum>Qt::Vertical</enum>
+       <item row="1" column="1" colspan="2">
+        <widget class="QSpinBox" name="sbSPSpacing">
+         <property name="suffix">
+          <string/>
          </property>
-         <property name="sizeHint" stdset="0">
-          <size>
-           <width>20</width>
-           <height>40</height>
-          </size>
+         <property name="prefix">
+          <string/>
          </property>
-        </spacer>
-       </item>
-       <item row="2" column="0">
-        <widget class="QLabel" name="lbHistograms">
-         <property name="text">
-          <string>Histograms as</string>
+         <property name="maximum">
+          <number>100</number>
+         </property>
+         <property name="value">
+          <number>5</number>
          </property>
         </widget>
        </item>
@@ -360,16 +356,6 @@
         <widget class="QRadioButton" name="rbLines">
          <property name="text">
           <string>Lines</string>
-         </property>
-        </widget>
-       </item>
-       <item row="2" column="1">
-        <widget class="QRadioButton" name="rbBar">
-         <property name="text">
-          <string>Bars</string>
-         </property>
-         <property name="checked">
-          <bool>true</bool>
          </property>
         </widget>
        </item>
@@ -387,21 +373,42 @@
          </property>
         </widget>
        </item>
-       <item row="1" column="1" colspan="2">
-        <widget class="QSpinBox" name="sbSPSpacing">
-         <property name="suffix">
-          <string/>
-         </property>
-         <property name="prefix">
-          <string/>
-         </property>
-         <property name="maximum">
-          <number>100</number>
-         </property>
-         <property name="value">
-          <number>5</number>
+       <item row="5" column="0" colspan="3">
+        <widget class="QPushButton" name="pbRecomputeMDS">
+         <property name="text">
+          <string>Recompute MDS</string>
          </property>
         </widget>
+       </item>
+       <item row="2" column="1">
+        <widget class="QRadioButton" name="rbBar">
+         <property name="text">
+          <string>Bars</string>
+         </property>
+         <property name="checked">
+          <bool>true</bool>
+         </property>
+        </widget>
+       </item>
+       <item row="6" column="0">
+        <widget class="QLabel" name="label_3">
+         <property name="text">
+          <string>MDS Iterations:</string>
+         </property>
+        </widget>
+       </item>
+       <item row="8" column="0" colspan="3">
+        <spacer name="verticalSpacer_4">
+         <property name="orientation">
+          <enum>Qt::Vertical</enum>
+         </property>
+         <property name="sizeHint" stdset="0">
+          <size>
+           <width>20</width>
+           <height>40</height>
+          </size>
+         </property>
+        </spacer>
        </item>
        <item row="4" column="0" colspan="3">
         <widget class="QCheckBox" name="cbLimitSpatialOverviewRange">
@@ -410,20 +417,6 @@
          </property>
          <property name="checked">
           <bool>true</bool>
-         </property>
-        </widget>
-       </item>
-       <item row="5" column="0" colspan="3">
-        <widget class="QPushButton" name="pbRecomputeMDS">
-         <property name="text">
-          <string>Recompute MDS</string>
-         </property>
-        </widget>
-       </item>
-       <item row="6" column="0">
-        <widget class="QLabel" name="label_3">
-         <property name="text">
-          <string>MDS Iterations:</string>
          </property>
         </widget>
        </item>
@@ -437,6 +430,20 @@
          </property>
          <property name="value">
           <number>500</number>
+         </property>
+        </widget>
+       </item>
+       <item row="2" column="0">
+        <widget class="QLabel" name="lbHistograms">
+         <property name="text">
+          <string>Histograms as</string>
+         </property>
+        </widget>
+       </item>
+       <item row="7" column="0" colspan="3">
+        <widget class="QCheckBox" name="cbAutoHideDiffView">
+         <property name="text">
+          <string>Automatically hide difference view</string>
          </property>
         </widget>
        </item>
