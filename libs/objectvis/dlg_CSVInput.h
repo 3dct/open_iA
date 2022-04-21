@@ -145,6 +145,9 @@ private:
 	//! Catches events from list view to be able  to react on delete key event
 	bool eventFilter(QObject *obj, QEvent *event) override;
 
+	//! ask for a name for a format (for saving/exporting)
+	QString askForFormatName(bool forLocalSave);
+
 	iACsvConfig m_confParams;
 	QString m_path;
 	QVector<QComboBox*> m_mappingBoxes;
