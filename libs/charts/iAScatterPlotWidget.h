@@ -64,7 +64,7 @@ public:
 	iAScatterPlotWidget();
 	iAScatterPlotWidget(QSharedPointer<iASPLOMData> data, bool columnSelection = false);
 	void initWidget();
-	iASPLOMData const* data() const;
+	iASPLOMData * data();
 	void setData(QSharedPointer<iASPLOMData> data);
 	void setLookupTable(QSharedPointer<iALookupTable> lut, size_t paramIdx);
 	QSharedPointer<iALookupTable> lookupTable() const;

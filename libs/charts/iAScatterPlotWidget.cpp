@@ -148,7 +148,7 @@ void iAScatterPlotWidget::setData(QSharedPointer<iASPLOMData> d)
 	update();
 }
 
-iASPLOMData const* iAScatterPlotWidget::data() const
+iASPLOMData * iAScatterPlotWidget::data()
 {
 	return m_data.data();
 }
