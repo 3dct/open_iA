@@ -272,16 +272,16 @@ void iAScatterPlotWidget::paintEvent(QPaintEvent* event)
 
 	QFontMetrics fm = painter.fontMetrics();
 #if QT_VERSION >= QT_VERSION_CHECK(5, 11, 0)
-	if (m_fontHeight != fm.height() || m_maxTickLabelWidth != fm.horizontalAdvance("-0.99"))
+	if (m_fontHeight != fm.height() || m_maxTickLabelWidth != fm.horizontalAdvance("-0.999"))
 	{
 		m_fontHeight = fm.height();
-		m_maxTickLabelWidth = fm.horizontalAdvance("-0.99");
+		m_maxTickLabelWidth = fm.horizontalAdvance("-0.999");
 		adjustScatterPlotSize();
 #else
-	if (m_fontHeight != fm.height() || m_maxTickLabelWidth != fm.width("-0.99"))
+	if (m_fontHeight != fm.height() || m_maxTickLabelWidth != fm.width("-0.999"))
 	{
 		m_fontHeight = fm.height();
-		m_maxTickLabelWidth = fm.width("-0.99");
+		m_maxTickLabelWidth = fm.width("-0.999");
 #endif
 	}
 	painter.setRenderHint(QPainter::Antialiasing);
@@ -329,10 +329,10 @@ void iAScatterPlotWidget::paintEvent(QPaintEvent* event)
 	// print axes labels:
 	painter.save();
 	painter.setPen(m_scatterplot->settings.tickLabelColor);
-	painter.drawText(QRectF(-PaddingLeft(), height() - fm.height() - TextPadding, width(), fm.height()),
+	painter.drawText(QRectF(PaddingLeft(), height() - fm.height() - TextPadding, width()-PaddingLeft(), fm.height()),
 			Qt::AlignHCenter | Qt::AlignTop, m_data->parameterName(m_scatterplot->getIndices()[0]));
 	painter.rotate(-90);
-	painter.drawText(QRectF(-height(), 0, height(), fm.height()), Qt::AlignCenter | Qt::AlignTop, m_data->parameterName(m_scatterplot->getIndices()[1]));
+	painter.drawText(QRectF(-(height()-PaddingBottom()), 0, height()-PaddingBottom(), fm.height()), Qt::AlignHCenter | Qt::AlignTop, m_data->parameterName(m_scatterplot->getIndices()[1]));
 	painter.restore();
 
 	drawTooltip(painter);
