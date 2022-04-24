@@ -580,7 +580,8 @@ void iAScatterPlot::applyMarginToRanges()
 {
 	m_prX[0] = m_splomData->paramRange(m_paramIndices[0])[0];
 	m_prX[1] = m_splomData->paramRange(m_paramIndices[0])[1];
-	m_prY[0] = m_splomData->paramRange(m_paramIndices[1])[0];
+	LOG(lvlWarn, "Workaround in place for axis y starting at 0!");
+	m_prY[0] = std::min(0.0, m_splomData->paramRange(m_paramIndices[1])[0]);
 	m_prY[1] = m_splomData->paramRange(m_paramIndices[1])[1];
 	if ( m_prX[0] == m_prX[1] )
 	{
