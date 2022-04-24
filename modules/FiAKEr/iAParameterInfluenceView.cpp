@@ -814,6 +814,7 @@ void iAParameterInfluenceView::addStackedBar(int outType, int outIdx)
 		auto parChart = new iAScatterPlotWidget();
 		//parChart->setEmptyText("");
 		parChart->setBackgroundRole(bgRole);
+		parChart->setShowToolTips(false);
 		parChart->setProperty("paramIdx", paramIdx);
 		m_table[paramIdx]->par.push_back(parChart);
 		//double parMin = m_data->m_paramMin[varParIdx],
