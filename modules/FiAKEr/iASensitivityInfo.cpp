@@ -489,6 +489,9 @@ public:
 		cmbboxSPColorMap->addItems(iALUT::colorMapNames());
 		cmbboxSPColorMap->setCurrentText("ColorBrewer sequential single hue (5c) grays");
 
+		cmbBoxSPParameterColorMap->addItems(iALUT::colorMapNames());
+		cmbBoxSPParameterColorMap->setCurrentText("Matplotlib: Plasma");
+
 		cmbboxSpatialOverviewColorMap->addItems(iALUT::colorMapNames());	// TODO: filter for linear (non-diverging) color maps
 		cmbboxSpatialOverviewColorMap->setCurrentText("Matplotlib: Plasma");
 
@@ -1109,6 +1112,9 @@ void iASensitivityInfo::createGUI()
 	connect(m_gui->m_paramInfluenceView, &iAParameterInfluenceView::resultSelected, this,
 		&iASensitivityInfo::parResultSelected);
 	m_child->splitDockWidget(dwSettings, m_gui->m_dwParamInfluence, Qt::Vertical);
+
+	connect(m_gui->m_settings->cmbBoxSPParameterColorMap, &QComboBox::currentTextChanged, m_gui->m_paramInfluenceView,
+		&iAParameterInfluenceView::setSPParameterColorMap);
 
 	//////////// Algorithm Detail View (/ In-Out Matrix)    ////////////
 	QStringList algoInNames;

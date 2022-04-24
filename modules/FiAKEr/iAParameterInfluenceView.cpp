@@ -113,7 +113,8 @@ iAParameterInfluenceView::iAParameterInfluenceView(QSharedPointer<iASensitivityD
 	m_sortLastDesc(true),
 	m_histogramChartType("Bars"),    // needs to match value from radio buttons in SensitivitySettings.ui
 	m_normalizePerOutput(false),
-	m_sortParamLUT(QSharedPointer<iALookupTable>::create(QColor(64, 64, 64)))
+	m_sortParamLUT(QSharedPointer<iALookupTable>::create(QColor(64, 64, 64))),
+	m_spColorMapName("Matplotlib: Plasma")
 {
 	for (int i=0; i<m_sort.size(); ++i)
 	{
@@ -297,6 +298,12 @@ void iAParameterInfluenceView::toggleCharacteristic(int charactIdx)
 	toggleBar(!shown, outCharacteristic, charactIdx);
 }
 
+void iAParameterInfluenceView::setSPParameterColorMap(QString const& colorMapName)
+{
+	m_spColorMapName = colorMapName;
+	updateSPColoring();
+}
+
 void iAParameterInfluenceView::toggleBar(bool show, int outType, int outIdx)
 {
 	if (show)
@@ -325,6 +332,14 @@ void iAParameterInfluenceView::sortListByBar(int barIdx)
 	//LOG(lvlDebug, joinNumbersAsString(m_sort, ","));
 	addTableWidgets();
 
+	updateSPColoring();
+
+	//parChart->setLookupTable( iALUT::Build());
+	emit orderChanged(m_sort);
+}
+
+void iAParameterInfluenceView::updateSPColoring()
+{
 	// update coloring of scatter plots by highest-sorteed parameter
 	auto firstParam = m_data->m_variedParams[m_sort[0]];
 	auto const& pset = m_data->paramSetValues;
@@ -341,7 +356,7 @@ void iAParameterInfluenceView::sortListByBar(int barIdx)
 			maxRange[1] = val;
 		}
 	}
-	*m_sortParamLUT = iALUT::Build(maxRange, "Matplotlib: Plasma", 5, 1.0);
+	*m_sortParamLUT = iALUT::Build(maxRange, m_spColorMapName, 5, 1.0);
 
 	for (int rowIdx = 0; rowIdx < m_table.size(); ++rowIdx)
 	{
@@ -355,9 +370,6 @@ void iAParameterInfluenceView::sortListByBar(int barIdx)
 			m_table[rowIdx]->par[c]->update();
 		}
 	}
-
-	//parChart->setLookupTable( iALUT::Build());
-	emit orderChanged(m_sort);
 }
 
 void iAParameterInfluenceView::paramChangedSlot()

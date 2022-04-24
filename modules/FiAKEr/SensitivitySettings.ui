@@ -32,7 +32,7 @@
    <item row="1" column="0">
     <widget class="QTabWidget" name="tabWidget">
      <property name="currentIndex">
-      <number>3</number>
+      <number>1</number>
      </property>
      <widget class="QWidget" name="tabData">
       <attribute name="title">
@@ -154,10 +154,37 @@
        <property name="spacing">
         <number>4</number>
        </property>
+       <item row="2" column="0">
+        <widget class="QLabel" name="lbSPColorMap">
+         <property name="text">
+          <string>Scatterplots</string>
+         </property>
+        </widget>
+       </item>
+       <item row="0" column="0">
+        <widget class="QLabel" name="lbSpatialOverviewColorMap">
+         <property name="text">
+          <string>Spatial Overview</string>
+         </property>
+        </widget>
+       </item>
        <item row="1" column="1">
         <widget class="QComboBox" name="cmbboxSPHighlightColorMap"/>
        </item>
-       <item row="4" column="0" colspan="2">
+       <item row="2" column="1">
+        <widget class="QComboBox" name="cmbboxSPColorMap"/>
+       </item>
+       <item row="1" column="0">
+        <widget class="QLabel" name="lbSPHighlightColorMap">
+         <property name="text">
+          <string>Results</string>
+         </property>
+        </widget>
+       </item>
+       <item row="0" column="1">
+        <widget class="QComboBox" name="cmbboxSpatialOverviewColorMap"/>
+       </item>
+       <item row="5" column="0" colspan="2">
         <spacer name="verticalSpacer_2">
          <property name="orientation">
           <enum>Qt::Vertical</enum>
@@ -170,34 +197,7 @@
          </property>
         </spacer>
        </item>
-       <item row="0" column="0">
-        <widget class="QLabel" name="lbSpatialOverviewColorMap">
-         <property name="text">
-          <string>Spatial Overview</string>
-         </property>
-        </widget>
-       </item>
-       <item row="1" column="0">
-        <widget class="QLabel" name="lbSPHighlightColorMap">
-         <property name="text">
-          <string>Results</string>
-         </property>
-        </widget>
-       </item>
-       <item row="0" column="1">
-        <widget class="QComboBox" name="cmbboxSpatialOverviewColorMap"/>
-       </item>
-       <item row="2" column="1">
-        <widget class="QComboBox" name="cmbboxSPColorMap"/>
-       </item>
-       <item row="2" column="0">
-        <widget class="QLabel" name="lbSPColorMap">
-         <property name="text">
-          <string>Scatterplots</string>
-         </property>
-        </widget>
-       </item>
-       <item row="3" column="0" colspan="2">
+       <item row="4" column="0" colspan="2">
         <widget class="QCheckBox" name="cbColoredInOut">
          <property name="text">
           <string>Colored In/Out</string>
@@ -206,6 +206,16 @@
           <bool>false</bool>
          </property>
         </widget>
+       </item>
+       <item row="3" column="0">
+        <widget class="QLabel" name="label_4">
+         <property name="text">
+          <string>SP - Parameter</string>
+         </property>
+        </widget>
+       </item>
+       <item row="3" column="1">
+        <widget class="QComboBox" name="cmbBoxSPParameterColorMap"/>
        </item>
       </layout>
      </widget>

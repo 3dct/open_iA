@@ -79,6 +79,7 @@ public slots:
 	void sortListByBar(int barIdx);
 	void setSelectedParam(int param);
 	void toggleCharacteristic(int charactIdx);
+	void setSPParameterColorMap(QString const& colorMapName);
 
 private slots:
 	void paramChangedSlot();
@@ -104,6 +105,7 @@ private:
 	void addResultHistoPlot(size_t resultIdx, int charIdx, int paramIdx, QColor c);
 	void setInColor(QColor const& inColor);
 	void setInOutColorPrivate(QColor const& inColor, QColor const& outColor);
+	void updateSPColoring();
 
 	// pair output type / index
 	QVector<QPair<int,int>> m_visibleCharacts;
@@ -129,4 +131,5 @@ private:
 	QSet<int> m_highlightedParams;
 	bool m_normalizePerOutput;
 	QSharedPointer<iALookupTable> m_sortParamLUT;
+	QString m_spColorMapName;
 };
