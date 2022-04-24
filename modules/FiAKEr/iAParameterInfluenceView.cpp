@@ -693,7 +693,7 @@ void iAParameterInfluenceView::updateStackedBarHistogram(QString const & barName
 			? m_data->sensitivityFiberCount[m_aggrType]
 			: /* (outType == outDissimilarity)*/ m_data->sensDissimField[outIdx][m_aggrType])[paramIdx];
 	std::vector<QString> paramNames;
-	paramNames.push_back(columnName(outType, outIdx));
+	paramNames.push_back(m_data->m_paramNames[m_data->m_variedParams[paramIdx]]);
 	paramNames.push_back("Sensitivity");
 	paramNames.push_back("Highest");
 	spData->setParameterNames(paramNames);
