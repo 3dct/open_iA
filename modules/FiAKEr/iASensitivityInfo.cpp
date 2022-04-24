@@ -1330,7 +1330,7 @@ void iASensitivityInfo::setSpatialOverviewTF(int modalityIdx)
 
 	if (!m_gui->m_scalarBarWidget)
 	{
-		double scalarBarX = 0.85;
+		double scalarBarX = 0.75;
 		double scalarBarY = 0.1;
 		double scalarBarWidth = 0.1;
 		double scalarBarHeight = 0.8;
@@ -1361,7 +1361,7 @@ void iASensitivityInfo::setSpatialOverviewTF(int modalityIdx)
 		m_gui->m_scalarBarWidget->GetScalarBarActor()->SetLookupTable(ctf);
 		m_gui->m_scalarBarWidget->On();
 
-		double textX = 0.9;
+		double textX = 0.8;
 		double textPadding = 0.02;
 		double textHeight = 0.07;
 		m_gui->m_scalarBarTitleText = createVTKTextWidget(scalarBarX, scalarBarTop, (1 - scalarBarX), textHeight,
