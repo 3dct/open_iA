@@ -67,7 +67,7 @@ iAScatterPlot::Settings::Settings() :
 {}
 
 iAScatterPlot::iAScatterPlot(iAScatterPlotViewData* viewData, iAChartParentWidget* parent,
-	int numTicks /*= 5*/, bool isMaximizedPlot /*= false */):
+	int numTicks /*= 5*/, bool isMaximizedPlot /*= false */, bool useZeroYAxis /*= false*/):
 	QObject(parent),
 	settings(),
 	m_parentWidget(parent),
@@ -92,7 +92,8 @@ iAScatterPlot::iAScatterPlot(iAScatterPlotViewData* viewData, iAChartParentWidge
 	m_pcc(0),
 	m_scc(0),
 	m_pccValid(false),
-	m_sccValid(false)
+	m_sccValid(false),
+	m_useZeroYAxis(useZeroYAxis)
 {
 	m_paramIndices[0] = 0; m_paramIndices[1] = 1;
 	initGrid();
@@ -581,7 +582,8 @@ void iAScatterPlot::applyMarginToRanges()
 	m_prX[0] = m_splomData->paramRange(m_paramIndices[0])[0];
 	m_prX[1] = m_splomData->paramRange(m_paramIndices[0])[1];
 	LOG(lvlWarn, "Workaround in place for axis y starting at 0!");
-	m_prY[0] = std::min(0.0, m_splomData->paramRange(m_paramIndices[1])[0]);
+	m_prY[0] = m_useZeroYAxis
+		? m_splomData->paramRange(m_paramIndices[1])[0] : std::min(0.0, m_splomData->paramRange(m_paramIndices[1])[0]);
 	m_prY[1] = m_splomData->paramRange(m_paramIndices[1])[1];
 	if ( m_prX[0] == m_prX[1] )
 	{

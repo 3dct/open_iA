@@ -71,7 +71,7 @@ public:
 	//! @param parent the parent widget
 	//! @param numTicks the number of ticks in x and y direction
 	//! @param isMaximizedPlot whether this is a maximized plot
-	iAScatterPlot(iAScatterPlotViewData * spViewData, iAChartParentWidget* parent, int numTicks = 5, bool isMaximizedPlot = false);
+	iAScatterPlot(iAScatterPlotViewData * spViewData, iAChartParentWidget* parent, int numTicks = 5, bool isMaximizedPlot = false, bool useZeroYAxis = false);
 	~iAScatterPlot();
 
 	void setData(size_t x, size_t y, QSharedPointer<iASPLOMData> &splomData ); //!< Set data to the scatter plot using indices of X and Y parameters and the raw SPLOM data
@@ -248,6 +248,7 @@ private:
 	QColor highlightColorPoint(size_t i, size_t idx);
 	double m_pcc, m_scc;                                             //!< correlation coefficients between the two given data columns
 	bool m_pccValid, m_sccValid;                                     //!< indicates whether current cached values cor correlation coefficients can be used
+	bool m_useZeroYAxis;                                             //!< whether y axis should use zero as minimum (data range minimum otherwise)
 };
 
 Q_DECLARE_OPERATORS_FOR_FLAGS(iAScatterPlot::HighlightDrawModes);

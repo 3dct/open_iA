@@ -73,8 +73,9 @@ const int iAScatterPlotWidget::PaddingRight = 5;
 const int iAScatterPlotWidget::TextPadding = 5;
 
 
-iAScatterPlotWidget::iAScatterPlotWidget():
-	m_viewData(new iAScatterPlotViewData())
+iAScatterPlotWidget::iAScatterPlotWidget(bool useZeroYAxis) :
+	m_viewData(new iAScatterPlotViewData()),
+	m_useZeroYAxis(useZeroYAxis)
 {
 	initWidget();
 }
@@ -104,7 +105,7 @@ void iAScatterPlotWidget::setData(QSharedPointer<iASPLOMData> d)
 {
 	m_data = d;
 	m_pointInfo = QSharedPointer<iADefaultScatterPlotPointInfo>::create(d);
-	m_scatterplot = QSharedPointer<iAScatterPlot>::create(m_viewData.data(), this);
+	m_scatterplot = QSharedPointer<iAScatterPlot>::create(m_viewData.data(), this, 5, false, m_useZeroYAxis);
 	m_scatterplot->settings.selectionEnabled = true;
 	d->updateRanges();
 	if (d->numPoints() > std::numeric_limits<int>::max())

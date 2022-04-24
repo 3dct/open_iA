@@ -61,7 +61,7 @@ public:
 	int PaddingBottom();
 	int PaddingLeft();
 	static const int TextPadding;
-	iAScatterPlotWidget();
+	iAScatterPlotWidget(bool useZeroYAxis = false);
 	iAScatterPlotWidget(QSharedPointer<iASPLOMData> data, bool columnSelection = false);
 	void initWidget();
 	iASPLOMData * data();
@@ -128,7 +128,8 @@ private:
 		m_maxTickLabelWidth = 0;
 	bool m_fixPointsEnabled = false,
 		m_columnSelection = false,
-		m_showTooltip = true;
+		m_showTooltip = true,
+		m_useZeroYAxis = false;
 	QSharedPointer<iAScatterPlotPointInfo> m_pointInfo;
 	QMenu *m_contextMenu = nullptr,    //!< the context menu for picking the two visible parameters
 		*m_xMenu = nullptr,
