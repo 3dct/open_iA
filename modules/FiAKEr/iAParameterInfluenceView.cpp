@@ -367,6 +367,7 @@ void iAParameterInfluenceView::updateSPColoring()
 			{
 				spData->data()[2][i] = pset[i][firstParam];
 			}
+			spData->updateRange(2);
 			m_table[rowIdx]->par[c]->update();
 		}
 	}

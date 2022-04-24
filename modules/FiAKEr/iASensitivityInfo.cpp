@@ -735,7 +735,8 @@ public:
 		m_diff3DEmptyRenderer(vtkSmartPointer<vtkRenderer>::New()),
 		m_diff3DEmptyText(vtkSmartPointer<vtkCornerAnnotation>::New()),
 		m_matrixWidget(nullptr),
-		m_parameterListView(nullptr)
+		m_parameterListView(nullptr),
+		m_parameterSPColorMap("Matplotlib: Plasma") // should match m_spColorMapName in iAParameterInfluenceView
 	{
 		m_diff3DEmptyText->SetLinearFontScaleFactor(2);
 		m_diff3DEmptyText->SetNonlinearFontScaleFactor(1.2);
@@ -790,8 +791,11 @@ public:
 	iAMatrixWidget* m_matrixWidget;
 	iAParameterListView* m_parameterListView;
 
+	QString m_parameterSPColorMap;
+
 	void updateScatterPlotLUT()
 	{
+
 		//LOG(lvlDebug, "\nNEW LUT:");
 		//std::set<int> hiGrp;
 		//std::set<std::pair<int, int> > hiGrpParam;
@@ -851,29 +855,38 @@ public:
 		m_scatterPlot->setLookupTable(m_lut, m_mdsData->numParams() - 1);
 		*/
 
-		for (size_t curResultIdx = 0; curResultIdx < m_sensInf->data().m_data->result.size(); ++curResultIdx)
+		if (m_paramSP->viewData()->highlightedPoints().empty())
 		{
-			size_t refResultIdx;
-			if (selectedResults().size() == 1)
-			{  // color by difference to currently selected result
-				refResultIdx = selectedResults()[0];
-			}
-			else
-			{  // color by difference to STAR center
-				refResultIdx = curResultIdx - (curResultIdx % m_sensInf->data().m_starGroupSize);
-			}
-			m_mdsData->data()[spColIdxDissimilarity][curResultIdx] =
-				m_sensInf->data().m_resultDissimMatrix[static_cast<int>(curResultIdx)][static_cast<int>(refResultIdx)]
-					.avgDissim[measureIdx];
+			auto firstParam = m_paramInfluenceView->paramIndicesSorted()[0];
+			*m_lut = iALUT::Build(m_mdsData->paramRange(firstParam), m_parameterSPColorMap, 5, 1.0);
+			m_mdsSP->setLookupTable(m_lut, firstParam);
+			m_paramSP->setLookupTable(m_lut, firstParam);
 		}
-		m_mdsData->updateRanges();
-		//auto rng = m_mdsData->paramRange(m_mdsData->numParams() - SPDissimilarityOffset);
-		double rng[2];
-		rng[0] = m_sensInf->data().m_resultDissimRanges.size() > 0 ? m_sensInf->data().m_resultDissimRanges[measureIdx].first : 0;
-		rng[1] = m_sensInf->data().m_resultDissimRanges.size() > 0 ? m_sensInf->data().m_resultDissimRanges[measureIdx].second : 1;
-		*m_lut.data() = iALUT::Build(rng, m_settings->spColorMap(), 255, 0);
-		m_paramSP->setLookupTable(m_lut, spColIdxDissimilarity);
-		m_mdsSP->setLookupTable(m_lut, spColIdxDissimilarity);
+		else
+		{
+			for (size_t curResultIdx = 0; curResultIdx < m_sensInf->data().m_data->result.size(); ++curResultIdx)
+			{
+				size_t refResultIdx;
+				// color by difference to currently selected result
+				refResultIdx = selectedResults()[0];
+				m_mdsData->data()[spColIdxDissimilarity][curResultIdx] =
+					m_sensInf->data()
+						.m_resultDissimMatrix[static_cast<int>(curResultIdx)][static_cast<int>(refResultIdx)]
+						.avgDissim[measureIdx];
+			}
+			m_mdsData->updateRanges();
+			//auto rng = m_mdsData->paramRange(m_mdsData->numParams() - SPDissimilarityOffset);
+			double rng[2];
+			rng[0] = m_sensInf->data().m_resultDissimRanges.size() > 0
+				? m_sensInf->data().m_resultDissimRanges[measureIdx].first
+				: 0;
+			rng[1] = m_sensInf->data().m_resultDissimRanges.size() > 0
+				? m_sensInf->data().m_resultDissimRanges[measureIdx].second
+				: 1;
+			*m_lut.data() = iALUT::Build(rng, m_settings->spColorMap(), 255, 0);
+			m_paramSP->setLookupTable(m_lut, spColIdxDissimilarity);
+			m_mdsSP->setLookupTable(m_lut, spColIdxDissimilarity);
+		}
 
 		m_colorMapWidget->setColorMap(m_paramSP->lookupTable());
 		m_colorMapWidget->update();
@@ -1115,6 +1128,9 @@ void iASensitivityInfo::createGUI()
 
 	connect(m_gui->m_settings->cmbBoxSPParameterColorMap, &QComboBox::currentTextChanged, m_gui->m_paramInfluenceView,
 		&iAParameterInfluenceView::setSPParameterColorMap);
+	connect(m_gui->m_settings->cmbBoxSPParameterColorMap, &QComboBox::currentTextChanged, this,
+		&iASensitivityInfo::setSPParameterColorMap);
+
 
 	//////////// Algorithm Detail View (/ In-Out Matrix)    ////////////
 	QStringList algoInNames;
@@ -1620,6 +1636,12 @@ void iASensitivityInfo::parResultSelected(size_t resultIdx, Qt::KeyboardModifier
 {
 	m_gui->m_paramSP->toggleHighlightedPoint(resultIdx, modifiers);
 	// mdsSP will get updated through signal triggered by paramSP
+}
+
+void iASensitivityInfo::setSPParameterColorMap(QString const& colorMapName)
+{
+	m_gui->m_parameterSPColorMap = colorMapName;
+	m_gui->updateScatterPlotLUT();
 }
 
 void iASensitivityInfo::updateSPDifferenceColors()
