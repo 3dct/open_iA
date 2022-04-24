@@ -447,7 +447,9 @@ void iAChartWidget::drawLegend(QPainter& painter)
 	// left corner to be left out (see "image" on right how rectangle would      x   x
 	// look like with BevelJoin)                                                  xxxx
 	painter.setPen(QPen(QApplication::palette().color(QPalette::Text), 1, Qt::SolidLine, Qt::SquareCap, Qt::MiterJoin));
-	painter.setBrush(QApplication::palette().color(QWidget::backgroundRole()));
+	QColor bgColor(QApplication::palette().color(QWidget::backgroundRole()));
+	bgColor.setAlpha(128);
+	painter.setBrush(bgColor);
 	painter.drawRect(m_legendBox);
 	const int LegendColorLeft = upLeft.x() + LegendPadding;
 	const int TextLeft = LegendColorLeft + LegendItemWidth + LegendPadding;
