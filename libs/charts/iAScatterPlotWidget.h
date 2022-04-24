@@ -74,6 +74,7 @@ public:
 	void setPickedPointFactor(double factor);
 	void setPointRadius(double pointRadius);
 	void setFixPointsEnabled(bool enabled);
+	void setShowToolTips(bool enabled);
 	void setPointInfo(QSharedPointer<iAScatterPlotPointInfo> pointInfo);
 	void toggleHighlightedPoint(size_t curPoint, Qt::KeyboardModifiers modifiers);
 	void setHighlightColor(QColor hltCol);
@@ -126,7 +127,8 @@ private:
 	int m_fontHeight = 0,
 		m_maxTickLabelWidth = 0;
 	bool m_fixPointsEnabled = false,
-		m_columnSelection = false;
+		m_columnSelection = false,
+		m_showTooltip = true;
 	QSharedPointer<iAScatterPlotPointInfo> m_pointInfo;
 	QMenu *m_contextMenu = nullptr,    //!< the context menu for picking the two visible parameters
 		*m_xMenu = nullptr,

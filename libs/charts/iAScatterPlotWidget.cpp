@@ -335,7 +335,10 @@ void iAScatterPlotWidget::paintEvent(QPaintEvent* event)
 	painter.drawText(QRectF(-(height()-PaddingBottom()), 0, height()-PaddingBottom(), fm.height()), Qt::AlignHCenter | Qt::AlignTop, m_data->parameterName(m_scatterplot->getIndices()[1]));
 	painter.restore();
 
-	drawTooltip(painter);
+	if (m_showTooltip)
+	{
+		drawTooltip(painter);
+	}
 }
 
 void iAScatterPlotWidget::drawTooltip(QPainter& painter)
@@ -583,6 +586,11 @@ void iAScatterPlotWidget::setPointRadius(double pointRadius)
 void iAScatterPlotWidget::setFixPointsEnabled(bool enabled)
 {
 	m_fixPointsEnabled = enabled;
+}
+
+void iAScatterPlotWidget::setShowToolTips(bool enabled)
+{
+	m_showTooltip = enabled;
 }
 
 void iAScatterPlotWidget::setPointInfo(QSharedPointer<iAScatterPlotPointInfo> pointInfo)
