@@ -867,8 +867,14 @@ public:
 			for (size_t curResultIdx = 0; curResultIdx < m_sensInf->data().m_data->result.size(); ++curResultIdx)
 			{
 				size_t refResultIdx;
-				// color by difference to currently selected result
-				refResultIdx = selectedResults()[0];
+				if (selectedResults().size() == 1)
+				{	// color by difference to currently selected result
+					refResultIdx = selectedResults()[0];
+				}
+				else
+				{  // color by difference to STAR center
+					refResultIdx = curResultIdx - (curResultIdx % m_sensInf->data().m_starGroupSize);
+				}
 				m_mdsData->data()[spColIdxDissimilarity][curResultIdx] =
 					m_sensInf->data()
 						.m_resultDissimMatrix[static_cast<int>(curResultIdx)][static_cast<int>(refResultIdx)]
