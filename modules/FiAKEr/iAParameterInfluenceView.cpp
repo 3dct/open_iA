@@ -714,7 +714,7 @@ void iAParameterInfluenceView::updateStackedBarHistogram(QString const & barName
 	//parChart->resetYBounds();
 	parChart->setData(spData);
 	parChart->setDrawGridLines(false);
-	parChart->setPointRadius(3.5);
+	parChart->setPointRadius(6);
 	parChart->setSelectionColor(QColor(0,0,0));
 	parChart->setSelectionEnabled(false);
 	parChart->setLookupTable(m_sortParamLUT, 2);
@@ -816,7 +816,6 @@ void iAParameterInfluenceView::addStackedBar(int outType, int outIdx)
 		//parChart->setEmptyText("");
 		parChart->setBackgroundRole(bgRole);
 		parChart->setShowToolTips(false);
-		parChart->setPointRadius(6);
 		parChart->setProperty("paramIdx", paramIdx);
 		m_table[paramIdx]->par.push_back(parChart);
 		//double parMin = m_data->m_paramMin[varParIdx],
