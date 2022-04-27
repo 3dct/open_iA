@@ -1886,7 +1886,7 @@ void iASensitivityInfo::updateDifferenceView()
 			diffMapper->Update();
 			resultData->renderer->AddActor(resultData->actor[f]);
 		}
-		auto txt = QString(i==0? "Reference (#%1)": "Comparison to #%1").arg(rID);
+		auto txt = QString(i==0? "Ref. (#%1)": "Comp. to #%1").arg(rID);
 		resultData->text = vtkSmartPointer<vtkCornerAnnotation>::New();
 		resultData->text->SetLinearFontScaleFactor(2);
 		resultData->text->SetNonlinearFontScaleFactor(1.2);
