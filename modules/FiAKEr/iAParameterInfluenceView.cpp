@@ -816,6 +816,7 @@ void iAParameterInfluenceView::addStackedBar(int outType, int outIdx)
 		//parChart->setEmptyText("");
 		parChart->setBackgroundRole(bgRole);
 		parChart->setShowToolTips(false);
+		parChart->setPointRadius(6);
 		parChart->setProperty("paramIdx", paramIdx);
 		m_table[paramIdx]->par.push_back(parChart);
 		//double parMin = m_data->m_paramMin[varParIdx],

@@ -148,7 +148,7 @@ namespace
 				.arg(mesh->GetNumberOfPoints()));
 	}
 	*/
-	const float dpR = 2.0; // ToDO: this should be set automatically according to current device scale, but devicePixelRatio doesn't seem to do it...
+	const float dpR = 3.0; // ToDO: this should be set automatically according to current device scale, but devicePixelRatio doesn't seem to do it...
 	const int VTKFontSize = 20;
 
 	
@@ -1225,8 +1225,8 @@ void iASensitivityInfo::createGUI()
 	m_gui->m_lut->allocate(m_data->m_data->result.size());
 
 	m_gui->m_paramSP = new iAScatterPlotWidget(m_gui->m_mdsData, true);
-	m_gui->m_paramSP->setPointRadius(4);
-	m_gui->m_paramSP->setPickedPointFactor(1.5);
+	m_gui->m_paramSP->setPointRadius(6);
+	m_gui->m_paramSP->setPickedPointFactor(2.5);
 	m_gui->m_paramSP->setFixPointsEnabled(true);
 	m_gui->m_paramSP->setHighlightColorTheme(
 		iAColorThemeManager::instance().theme(m_gui->m_settings->cmbboxSPHighlightColorMap->currentText()));
@@ -1240,8 +1240,8 @@ void iASensitivityInfo::createGUI()
 	connect(m_gui->m_paramSP, &iAScatterPlotWidget::visibleParamChanged, this, &iASensitivityInfo::spVisibleParamChanged);
 
 	m_gui->m_mdsSP = new iAScatterPlotWidget(m_gui->m_mdsData, true);
-	m_gui->m_mdsSP->setPointRadius(4);
-	m_gui->m_mdsSP->setPickedPointFactor(1.5);
+	m_gui->m_mdsSP->setPointRadius(6);
+	m_gui->m_mdsSP->setPickedPointFactor(2.5);
 	m_gui->m_mdsSP->setFixPointsEnabled(true);
 	m_gui->m_mdsSP->setHighlightColorTheme(
 		iAColorThemeManager::instance().theme(m_gui->m_settings->cmbboxSPHighlightColorMap->currentText()));
@@ -1825,7 +1825,7 @@ namespace
 		vertexFilter->SetInputData(ptData.GetPointer());
 		vertexFilter->Update();
 		iAPolyActor p(vertexFilter->GetOutput());
-		p.actor->GetProperty()->SetPointSize(4);
+		p.actor->GetProperty()->SetPointSize(8);
 		return p;
 	}
 }
