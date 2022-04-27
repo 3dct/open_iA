@@ -149,7 +149,7 @@ public:
 	}
 	QSize sizeHint() const override
 	{
-		return QSize(10, fontMetrics().lineSpacing() + 2 * BarVSpacing);  // font height?
+		return QSize(10, fontMetrics().height() + fontMetrics().lineSpacing() + 2 * BarVSpacing);  // font height?
 	}
 	void contextMenuEvent(QContextMenuEvent* ev) override
 	{
