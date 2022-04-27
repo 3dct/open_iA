@@ -711,8 +711,8 @@ void iAParameterInfluenceView::updateStackedBarHistogram(QString const & barName
 		spData->data()[1].push_back(d[i] * normalizeFactor);
 		spData->data()[2].push_back(m_data->paramSetValues[i][m_data->m_variedParams[m_sort[0]]]);
 	}
-	//parChart->resetYBounds();
 	parChart->setData(spData);
+	parChart->resetYBounds();
 	parChart->setDrawGridLines(false);
 	parChart->setPointRadius(6);
 	parChart->setSelectionColor(QColor(0,0,0));
@@ -732,33 +732,39 @@ QVector<int> const& iAParameterInfluenceView::paramIndicesSorted() const
 	return m_sort;
 }
 
+template <typename ChartType>
+void setChartYBounds(QVector<ChartType*> const& c, double yMax)
+{
+	for (auto chart : c)
+	{
+		chart->setYBounds(0, yMax);
+		chart->update();
+	}
+}
+
+template <typename ChartType>
+double getChartYMax(QVector<ChartType*> const& c, double yMax)
+{
+	for (auto chart : c)
+	{
+		yMax = std::max(yMax, chart->yBounds()[1]);
+	}
+	return yMax;
+}
+
 void iAParameterInfluenceView::updateChartY()
 {
-	auto getChartMax = [](QVector<iAChartWidget*> const& c, double yMax) {
-		for (auto chart : c)
-		{
-			yMax = std::max(yMax, chart->yBounds()[1]);
-		}
-		return yMax;
-	};
-	auto setChartYBounds = [](QVector<iAChartWidget*> const& c, double yMax) {
-		for (auto chart : c)
-		{
-			chart->setYBounds(0, yMax);
-			chart->update();
-		}
-	};
 	double yMaxOut = std::numeric_limits<double>::lowest();
-	// double yMaxPar = std::numeric_limits<double>::lowest();
+	double yMaxPar = std::numeric_limits<double>::lowest();
 	for (auto chartRow : m_table)
 	{
-		yMaxOut = getChartMax(chartRow->out, yMaxOut);
-		//yMaxPar = getChartMax(chartRow->par, yMaxPar);
+		yMaxOut = getChartYMax(chartRow->out, yMaxOut);
+		yMaxPar = getChartYMax(chartRow->par, yMaxPar);
 	}
 	for (auto chartRow : m_table)
 	{
 		setChartYBounds(chartRow->out, yMaxOut);
-		//setChartYBounds(chartRow->par, yMaxPar);
+		setChartYBounds(chartRow->par, yMaxPar);
 	}
 }
 
@@ -929,6 +935,7 @@ void iAParameterInfluenceView::removeStackedBar(int outType, int outIdx)
 			for (int b = 0; b < newNumBars; ++b)
 			{
 				m_table[rowIdx]->out[b]->resetYBounds();
+				m_table[rowIdx]->par[b]->resetYBounds();
 			}
 		}
 	}
