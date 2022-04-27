@@ -67,7 +67,7 @@ iAScatterPlot::Settings::Settings() :
 {}
 
 iAScatterPlot::iAScatterPlot(iAScatterPlotViewData* viewData, iAChartParentWidget* parent,
-	int numTicks /*= 5*/, bool isMaximizedPlot /*= false */, bool useZeroYAxis /*= false*/):
+	int numTicks /*= 5*/, bool isMaximizedPlot /*= false */):
 	QObject(parent),
 	settings(),
 	m_parentWidget(parent),
@@ -92,8 +92,7 @@ iAScatterPlot::iAScatterPlot(iAScatterPlotViewData* viewData, iAChartParentWidge
 	m_pcc(0),
 	m_scc(0),
 	m_pccValid(false),
-	m_sccValid(false),
-	m_useZeroYAxis(useZeroYAxis)
+	m_sccValid(false)
 {
 	m_paramIndices[0] = 0; m_paramIndices[1] = 1;
 	initGrid();
@@ -465,6 +464,29 @@ double iAScatterPlot::p2x( double pval ) const
 	return applyTransformX(pixelX);
 }
 
+double const* iAScatterPlot::yBounds() const
+{
+	return m_prY;
+}
+
+void iAScatterPlot::setYBounds(double yMin, double yMax)
+{
+	m_prY[0] = yMin;
+	m_prY[1] = yMax;
+	m_useFixedYAxis = true;
+	applyMarginToRanges();
+	updateGrid();
+	updatePoints();
+}
+
+void iAScatterPlot::resetYBounds()
+{
+	m_useFixedYAxis = false;
+	applyMarginToRanges();
+	updateGrid();
+	updatePoints();
+}
+
 double iAScatterPlot::x2p( double x ) const
 {
 	double rangeSrc[2] = { m_locRect.left(), m_locRect.right() };
@@ -581,22 +603,27 @@ void iAScatterPlot::applyMarginToRanges()
 {
 	m_prX[0] = m_splomData->paramRange(m_paramIndices[0])[0];
 	m_prX[1] = m_splomData->paramRange(m_paramIndices[0])[1];
-	LOG(lvlWarn, "Workaround in place for axis y starting at 0!");
-	m_prY[0] = m_useZeroYAxis
-		? m_splomData->paramRange(m_paramIndices[1])[0] : std::min(0.0, m_splomData->paramRange(m_paramIndices[1])[0]);
-	m_prY[1] = m_splomData->paramRange(m_paramIndices[1])[1];
-	if ( m_prX[0] == m_prX[1] )
+	if (m_prX[0] == m_prX[1])
 	{
-		m_prX[0] -= 0.1; m_prX[1] += 0.1;
+		m_prX[0] -= 0.1;
+		m_prX[1] += 0.1;
 	}
-	if ( m_prY[0] == m_prY[1] )
+	double prLenX = m_prX[1] - m_prX[0];
+	m_prX[0] -= settings.rangeMargin * prLenX;
+	m_prX[1] += settings.rangeMargin * prLenX;
+	if (!m_useFixedYAxis)
 	{
-		m_prY[0] -= 0.1; m_prY[1] += 0.1;
+		m_prY[0] = m_splomData->paramRange(m_paramIndices[1])[0];
+		m_prY[1] = m_splomData->paramRange(m_paramIndices[1])[1];
+		if (m_prY[0] == m_prY[1])
+		{
+			m_prY[0] -= 0.1;
+			m_prY[1] += 0.1;
+		}
+		double prLenY = m_prY[1] - m_prY[0];
+		m_prY[0] -= settings.rangeMargin * prLenY;
+		m_prY[1] += settings.rangeMargin * prLenY;
 	}
-	double rM = settings.rangeMargin;
-	double prLenX = m_prX[1] - m_prX[0], prLenY = m_prY[1] - m_prY[0];
-	m_prX[0] -= rM * prLenX; m_prX[1] += rM * prLenX;
-	m_prY[0] -= rM * prLenY; m_prY[1] += rM * prLenY;
 	calculateNiceSteps();
 }
 

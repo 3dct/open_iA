@@ -73,9 +73,8 @@ const int iAScatterPlotWidget::PaddingRight = 5;
 const int iAScatterPlotWidget::TextPadding = 5;
 
 
-iAScatterPlotWidget::iAScatterPlotWidget(bool useZeroYAxis) :
-	m_viewData(new iAScatterPlotViewData()),
-	m_useZeroYAxis(useZeroYAxis)
+iAScatterPlotWidget::iAScatterPlotWidget() :
+	m_viewData(new iAScatterPlotViewData())
 {
 	initWidget();
 }
@@ -105,7 +104,7 @@ void iAScatterPlotWidget::setData(QSharedPointer<iASPLOMData> d)
 {
 	m_data = d;
 	m_pointInfo = QSharedPointer<iADefaultScatterPlotPointInfo>::create(d);
-	m_scatterplot = QSharedPointer<iAScatterPlot>::create(m_viewData.data(), this, 5, false, m_useZeroYAxis);
+	m_scatterplot = QSharedPointer<iAScatterPlot>::create(m_viewData.data(), this, 5, false);
 	m_scatterplot->settings.selectionEnabled = true;
 	d->updateRanges();
 	if (d->numPoints() > std::numeric_limits<int>::max())
@@ -173,6 +172,21 @@ void iAScatterPlotWidget::setVisibleParameters(size_t p1, size_t p2)
 void iAScatterPlotWidget::setDrawGridLines(bool enabled)
 {
 	m_scatterplot->settings.drawGridLines = enabled;
+}
+
+double const* iAScatterPlotWidget::yBounds() const
+{
+	return m_scatterplot->yBounds();
+}
+
+void iAScatterPlotWidget::setYBounds(double yMin, double yMax)
+{
+	m_scatterplot->setYBounds(yMin, yMax);
+}
+
+void iAScatterPlotWidget::resetYBounds()
+{
+	m_scatterplot->resetYBounds();
 }
 
 QSharedPointer<iAScatterPlotViewData> iAScatterPlotWidget::viewData()
