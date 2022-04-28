@@ -375,15 +375,15 @@ void iAScatterPlotWidget::drawTooltip(QPainter& painter)
 	QColor popupBorderColor(QApplication::palette().color(QPalette::Dark));
 	painter.setPen(popupBorderColor);
 	painter.translate(popupPos);
-	QString text = "<b>#" + QString::number(curInd) + "</b><br> " +
-		m_pointInfo->text(pInds, curInd);
+	QString text = "<b>#" + QString::number(curInd) + "</b><br> " + m_pointInfo->text(pInds, curInd);
+	double docScale = 1.0;
 	QTextDocument doc;
 	doc.setHtml(text);
 	int popupWidth = 200;	// = settings.popupWidth
 	doc.setTextWidth(popupWidth);
 	double tipDim[2] = { 5, 10 }; // = settings.popupTipDim
-	double popupWidthHalf = popupWidth / 2; // settings.popupWidth / 2
-	auto popupHeight = doc.size().height();
+	double popupWidthHalf = popupWidth * docScale / 2; // settings.popupWidth / 2
+	auto popupHeight = doc.size().height() * docScale;
 	QPointF points[7] = {
 		QPointF(0, 0),
 		QPointF(-tipDim[0], -tipDim[1]),
@@ -399,6 +399,7 @@ void iAScatterPlotWidget::drawTooltip(QPainter& painter)
 	QAbstractTextDocumentLayout::PaintContext ctx;
 	QColor popupTextColor(QApplication::palette().color(QPalette::ToolTipText));  // = settings.popupTextColor;
 	ctx.palette.setColor(QPalette::Text, popupTextColor);
+	painter.scale(docScale, docScale);
 	doc.documentLayout()->draw(&painter, ctx); //doc.drawContents( &painter );
 	painter.restore();
 }
