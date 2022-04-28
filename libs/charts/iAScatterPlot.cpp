@@ -43,7 +43,7 @@ iAScatterPlot::Settings::Settings() :
 	tickSpacing( 5 ),
 	maximizedParamsOffset( 5 ),
 	textRectHeight( 30 ),
-	rangeMargin( 0.08 ),
+	rangeMargin( 0.1 ),
 	pointRadius( 1.5/*2.5*/ ),
 	maximizedPointMagnification( 1.7 ),
 	defaultGridDimensions( 100 ),
