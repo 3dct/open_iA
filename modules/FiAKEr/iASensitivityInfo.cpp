@@ -435,6 +435,7 @@ iASensitivityInfo::iASensitivityInfo(QSharedPointer<iAFiberResultsCollection> da
 	m_main3DWin(main3DWin),
 	m_aborted(false)
 {
+	child->set3DControlVisibility(false);
 }
 
 typedef iAQTtoUIConnector<QWidget, Ui_SensitivitySettings> iASensitivitySettingsUI;
