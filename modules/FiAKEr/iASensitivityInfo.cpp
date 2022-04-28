@@ -163,7 +163,7 @@ namespace
 		result->SetInteractor(interactor);
 		result->GetTextActor()->SetInput(text);
 		result->GetTextActor()->SetTextScaleModeToNone();
-		result->GetTextActor()->GetTextProperty()->SetFontFamilyToArial();
+		result->GetTextActor()->GetTextProperty()->SetFontFamilyAsString("MS Shell Dlg 2");
 		result->GetTextActor()->GetTextProperty()->SetFontSize(static_cast<int>(VTKFontSize * devicePixelRatio));
 		result->GetTextActor()->GetTextProperty()->SetColor(0, 0, 0);
 		//result->GetTextActor()->GetTextProperty()->SetJustificationToLeft();	// default
@@ -739,6 +739,7 @@ public:
 	{
 		m_diff3DEmptyText->SetLinearFontScaleFactor(2);
 		m_diff3DEmptyText->SetNonlinearFontScaleFactor(1.2);
+		m_diff3DEmptyText->GetTextProperty()->SetFontFamilyAsString("MS Shell Dlg 2");
 		m_diff3DEmptyText->SetMaximumFontSize(VTKFontSize * devicePixelRatio);
 		m_diff3DEmptyText->SetText(2, "No Fiber/Result selected");
 		auto textColor = QApplication::palette().color(QPalette::Text);
@@ -1890,6 +1891,7 @@ void iASensitivityInfo::updateDifferenceView()
 		resultData->text->SetLinearFontScaleFactor(2);
 		resultData->text->SetNonlinearFontScaleFactor(1.2);
 		resultData->text->SetMaximumFontSize(VTKFontSize * dpR);
+		resultData->text->GetTextProperty()->SetFontFamilyAsString("MS Shell Dlg 2");
 		resultData->text->GetTextProperty()->SetColor(color.redF(), color.greenF(), color.blueF());
 		resultData->text->SetText(vtkCornerAnnotation::UpperEdge, txt.toStdString().c_str());
 		// ToDo: add fiber id ;

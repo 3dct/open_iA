@@ -85,6 +85,7 @@ iASelectionInteractorStyle::iASelectionInteractorStyle() :
 	m_showModeActor->GetTextProperty()->SetColor(0.0, 0.0, 0.0);
 	m_showModeActor->GetTextProperty()->SetBackgroundColor(1.0, 1.0, 1.0);
 	m_showModeActor->GetTextProperty()->SetBackgroundOpacity(0.5);
+	m_showModeActor->GetTextProperty()->SetFontFamilyAsString("MS Shell Dlg 2");
 	m_showModeActor->GetTextProperty()->SetFontSize(FontSize);
 	m_showModeActor->SetPosition(TextMargin, TextMargin);
 
