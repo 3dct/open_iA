@@ -168,8 +168,7 @@ namespace
 		result->GetTextActor()->GetTextProperty()->SetColor(0, 0, 0);
 		//result->GetTextActor()->GetTextProperty()->SetJustificationToLeft();	// default
 		//result->GetTextActor()->GetTextProperty()->SetVerticalJustification(align);	//top or bottom doesn't seem to make a difference...
-		result->EnabledOff();
-		result->ResizableOff();
+		result->ProcessEventsOff();
 		result->GetBorderRepresentation()->SetShowHorizontalBorder(false);
 		result->GetBorderRepresentation()->SetShowVerticalBorder(false);
 		result->On();
