@@ -795,7 +795,7 @@ void iAParameterInfluenceView::addStackedBar(int outType, int outIdx)
 		      ((outType == outFiberCount)  ? m_data->aggregatedSensitivitiesFiberCount
 		/*(col.first == outDissimilarity)*/: m_data->aggregatedSensDissim[outIdx]))[m_aggrType];
 
-	int curBarIdx = static_cast<int>(m_table[0]->head->numberOfBars());  // not yet added to bars here so no -1
+	//int curBarIdx = static_cast<int>(m_table[0]->head->numberOfBars());  // not yet added to bars here so no -1
 	auto params = m_data->m_variedParams;
 
 	// add the two charts that can be shown inside the matrix cells:
@@ -807,7 +807,7 @@ void iAParameterInfluenceView::addStackedBar(int outType, int outIdx)
 		//QColor color = (paramIdx == m_selectedParam) ? ParamRowSelectedBGColor : ParamRowUnselectedBGColor;
 		QPalette::ColorRole bgRole = (paramIdx == m_selectedParam) ? QPalette::AlternateBase : QPalette::Window;
 
-		auto outChart = new iAChartWidget(this, "", (curBarIdx == 0) ? "Var. from " + paramName : "");
+		auto outChart = new iAChartWidget(this, "", /*(curBarIdx == 0) ? */ "Var. from " + paramName /*: ""*/);
 		outChart->showLegend(true);
 		outChart->showXAxisLabel(false);
 		outChart->setEmptyText("");
@@ -924,7 +924,7 @@ void iAParameterInfluenceView::removeStackedBar(int outType, int outIdx)
 		int newNumBars = m_table[rowIdx]->bars->numberOfBars();
 		if (newNumBars > 0)
 		{
-			m_table[rowIdx]->out[0]->setYCaption("Var. from " + paramName);  // to make sure if first chart is removed that new first gets caption
+			//m_table[rowIdx]->out[0]->setYCaption("Var. from " + paramName);  // to make sure if first chart is removed that new first gets caption
 			//m_table[rowIdx]->par[0]->setYCaption("Sensitivity"/*" + m_table[rowIdx]->bars->barName(0)*/);
 			for (int i = barIdx; i < newNumBars; ++i)
 			{  // addWidget automatically removes it from position where it was before
