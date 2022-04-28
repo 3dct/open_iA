@@ -714,7 +714,8 @@ void iAParameterInfluenceView::updateStackedBarHistogram(QString const & barName
 	parChart->setData(spData);
 	parChart->resetYBounds();
 	parChart->setDrawGridLines(false);
-	parChart->setPointRadius(6);
+	parChart->setPointRadius(3);
+	parChart->setPickedPointFactor(1.0);  // disable picking / make invisible
 	parChart->setSelectionColor(QColor(0,0,0));
 	parChart->setSelectionEnabled(false);
 	parChart->setLookupTable(m_sortParamLUT, 2);
