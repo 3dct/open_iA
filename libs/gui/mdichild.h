@@ -311,6 +311,7 @@ public:
 //signals:
 //	void preferencesChanged();
 
+	void set3DControlVisibility(bool visible) override;
 
 public slots:
 	void maximizeRC();

@@ -2705,6 +2705,11 @@ void MdiChild::computeHistogramAsync(std::function<void()> callbackSlot, size_t 
 		.arg(mod->name()), nullptr, fw);
 }
 
+void MdiChild::set3DControlVisibility(bool visible)
+{
+	m_dwRenderer->widget3D->setVisible(visible);
+}
+
 void MdiChild::displayHistogram(int modalityIdx)
 {
 	if (modalityIdx < 0 || modalityIdx >= modalities()->size())

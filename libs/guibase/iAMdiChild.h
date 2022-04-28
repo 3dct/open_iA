@@ -267,6 +267,7 @@ public:
 	virtual void computeHistogramAsync(std::function<void()> callbackSlot, size_t newBinCount, QSharedPointer<iAModality>) = 0;
 	virtual void setHistogramModality(int modalityIdx) = 0;
 	//! @}
+	virtual void set3DControlVisibility(bool visible) = 0;
 signals:
 	void closed();
 	//! @deprecated. no direct replacement
