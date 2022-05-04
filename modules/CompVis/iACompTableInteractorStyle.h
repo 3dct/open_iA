@@ -36,20 +36,21 @@ public:
 	//initialization
 	void setIACompHistogramVis(iACompHistogramVis* main);
 
-	virtual void OnLeftButtonDown();
-	virtual void OnLeftButtonUp();
+	virtual void OnLeftButtonDown() override;
+	virtual void OnLeftButtonUp() override;
 
-	virtual void OnMouseMove();
+	virtual void OnMouseMove() override;
 
-	virtual void OnMiddleButtonDown();
-	virtual void OnRightButtonDown();
-	virtual void OnMouseWheelForward();
-	virtual void OnMouseWheelBackward();
-	virtual void OnKeyPress();
-	virtual void OnKeyRelease();
-	virtual void OnEnter();
+	virtual void OnMiddleButtonDown() override;
+	virtual void OnMiddleButtonUp() override;
+	virtual void OnRightButtonDown() override;
+	virtual void OnMouseWheelForward() override;
+	virtual void OnMouseWheelBackward() override;
+	virtual void OnKeyPress() override;
+	virtual void OnKeyRelease() override;
+	virtual void OnEnter() override;
 
-	virtual void Pan();
+	virtual void Pan() override;
 
 	virtual void updateCharts() = 0;
 	virtual void updateOtherCharts(QList<std::vector<csvDataType::ArrayType*>*>* selectedObjectAttributes) = 0;

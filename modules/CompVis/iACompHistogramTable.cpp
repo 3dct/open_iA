@@ -94,7 +94,7 @@ iACompHistogramTable::iACompHistogramTable(
 	initializeBinCalculation(MDSComputedFlag);
 
 	//initialize visualization
-	histogramVis = new iACompHistogramVis(this, parent, m_amountDatasets);
+	histogramVis = new iACompHistogramVis(this, parent, m_amountDatasets, MDSComputedFlag);
 }
 
 void iACompHistogramTable::initializeBinCalculation(bool mdsComputedFlag)
@@ -108,106 +108,13 @@ void iACompHistogramTable::initializeBinCalculation(bool mdsComputedFlag)
 	//add new binning methods here
 }
 
-void iACompHistogramTable::reinitializeHistogramTable(iAMultidimensionalScaling* newMds)
-{ //TODO reinitialize HistogramTable for recalculateMDS!
-	/*
-	m_mds = newMds;
-	m_inputData = m_mds->getCSVFileData();
-
-	m_BinRangeLength = 0;
-	m_lut = vtkSmartPointer<vtkLookupTable>::New();
-	m_tableSize = 10;
-
-	m_pointRepresentationActors->clear();
-	delete m_pointRepresentationActors;
-	m_pointRepresentationActors = new std::vector<vtkSmartPointer<vtkActor>>();
-
-	m_datasetNameActors->clear();
-	delete m_datasetNameActors;
-	m_datasetNameActors = new std::vector<vtkSmartPointer<vtkActor>>();
-
-	m_highlighingActors->clear();
-	delete m_highlighingActors;
-	m_highlighingActors = new std::vector<vtkSmartPointer<vtkActor>>();
-
-	m_originalPlaneActors->clear();
-	delete m_originalPlaneActors;
-	m_originalPlaneActors = new std::vector<vtkSmartPointer<vtkActor>>();
-
-	m_zoomedPlaneActors->clear();
-	delete m_zoomedPlaneActors;
-	m_zoomedPlaneActors = new std::vector<vtkSmartPointer<vtkActor>>();
-
-	originalPlaneZoomedPlanePair->clear();
-	delete originalPlaneZoomedPlanePair;
-	originalPlaneZoomedPlanePair = new std::map<vtkSmartPointer<vtkActor>, std::vector<vtkSmartPointer<vtkActor>>*>();
+void iACompHistogramTable::reinitializeHistogramTable()
+{ 
+	//reinitialize datastructure
+	initializeBinCalculation(true);
 	
-	m_rowDataIndexPair->clear();
-	delete m_rowDataIndexPair;
-	m_rowDataIndexPair = new std::map<vtkSmartPointer<vtkActor>, int>();
-	
-	m_drawingPositionForRegions->clear();
-	delete m_drawingPositionForRegions;
-	m_drawingPositionForRegions = new std::map<int, std::vector<double>>();
-	
-	m_highlightRowActor = vtkSmartPointer<vtkActor>::New();
-	
-	m_useDarkerLut = false;
-	
-	m_lutDarker = vtkSmartPointer<vtkLookupTable>::New();
-
-	m_barActors->clear();
-	delete m_barActors;
-	m_barActors = new std::vector<vtkSmartPointer<vtkActor>>();
-
-	m_barTextActors->clear();
-	delete m_barTextActors;
-	m_barTextActors = new std::vector<vtkSmartPointer<vtkTextActor>>();
-
-	m_stippledActors->clear();
-	delete m_stippledActors;
-	m_stippledActors = new std::vector<vtkSmartPointer<vtkActor>>();
-
-	std::vector<int>* dataResolution = csvFileData::getAmountObjectsEveryDataset(m_inputData);
-	m_amountDatasets = dataResolution->size();
-
-	m_orderOfIndicesDatasets->clear();
-	delete m_orderOfIndicesDatasets;
-	m_orderOfIndicesDatasets = new std::vector<int>(m_amountDatasets, 0);
-
-	m_originalOrderOfIndicesDatasets->clear();
-	delete m_originalOrderOfIndicesDatasets;
-	m_originalOrderOfIndicesDatasets = new std::vector<int>(m_amountDatasets, 0);
-
-	m_newOrderOfIndicesDatasets->clear();
-	delete m_newOrderOfIndicesDatasets;
-	m_newOrderOfIndicesDatasets = new std::vector<int>(m_amountDatasets, 0);
-
-	m_bins = minBins;
-	m_binsZoomed = minBins;
-
-	//initialize datastructure
-	calculateHistogramTable();
-
-	m_qvtkWidget->renderWindow()->RemoveRenderer(m_renderer);
-
-	m_renderer = vtkSmartPointer<vtkRenderer>::New();
-	double col1[3];
-	iACompVisOptions::getDoubleArray(iACompVisOptions::BACKGROUNDCOLOR_GREY, col1);
-	m_renderer->SetBackground(col1);
-	m_renderer->SetViewport(0, 0, 0.8, 1);
-	m_renderer->SetUseFXAA(true);
-
-	m_qvtkWidget->renderWindow()->AddRenderer(m_renderer);
-
-	calculateRowWidthAndHeight(m_windowWidth, m_windowHeight, m_amountDatasets);
-
-	//initialize drawing areas of rows for manual repositioning
-	determineRowAreas();
-
-	//initialize visualization
-	initializeHistogramTable();
-	*/
+	//reinitalize visualization
+	histogramVis->reinitialize();
 }
 
 std::vector<int>* iACompHistogramTable::getAmountObjectsEveryDataset()
@@ -218,6 +125,11 @@ std::vector<int>* iACompHistogramTable::getAmountObjectsEveryDataset()
 iACsvDataStorage* iACompHistogramTable::getDataStorage()
 {
 	return m_dataStorage;
+}
+
+void iACompHistogramTable::setDataStorage(iACsvDataStorage* storage)
+{
+	m_dataStorage = storage;
 }
 
 iACompHistogramVis* iACompHistogramTable::getHistogramTableVis()
@@ -275,6 +187,12 @@ iACompHistogramTableData* iACompHistogramTable::recalculateBinning(iACompVisOpti
 	return nullptr;
 }
 
+iACompKernelDensityEstimationData* iACompHistogramTable::recomputeKernelDensityCurveUB()
+{
+	histogramCalculation->recalculateDensityEstimationUniformBinning();
+	return histogramCalculation->getKernelDensityEstimationData();
+}
+
 iACompHistogramTableData* iACompHistogramTable::calculateSpecificBins(
 	iACompVisOptions::binningType binningType, bin::BinType* data, int currBin, int amountOfBins)
 {
@@ -306,6 +224,16 @@ void iACompHistogramTable::drawDatasetsInDescendingOrder()
 void iACompHistogramTable::drawDatasetsInOriginalOrder()
 {
 	histogramVis->drawDatasetsInOriginalOrder();
+}
+
+void iACompHistogramTable::deactivateOrderingButton()
+{
+	m_main->deactivateOrderingButton();
+}
+
+void iACompHistogramTable::activateOrderingButton()
+{
+	m_main->activateOrderingButton();
 }
 
 /**************************  Change Table Visualization Methods  ******************************/

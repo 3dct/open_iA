@@ -40,6 +40,11 @@ public:
 	void setInteractorStyleToWidget(vtkSmartPointer<iACompTableInteractorStyle> interactorStyle);
 	void renderWidget();
 	void clearRenderer();
+	
+	//get the length/range of the bin, which is depending on the bin storing the highest number of objects
+	double getBinRangeLength();
+	//set the length/range of the bin, which is depending on the bin storing the highest number of objects
+	void setBinRangeLength(double binRangeLength);
 
 	//set the visualization is active (it will be drawn)
 	virtual void setActive() = 0;
@@ -80,11 +85,12 @@ protected:
 	virtual void initializeInteraction() = 0;
 
 	//create the color lookuptable
-	virtual void makeLUTFromCTF() = 0;
-	virtual void makeLUTDarker() = 0;
+	virtual void makeLUTFromCTF();
+	virtual void makeLUTDarker();
 
 	//define the range of the color map bins for the visualization
 	virtual void calculateBinRange() = 0;
+	
 
 	//initialize the camera. The camera set by vtk in iACompUniformTable and will be given to all other tables.
 	virtual void initializeCamera() = 0;
@@ -102,7 +108,15 @@ protected:
 	void initializeRenderer();
 	//add the name of the dataset left beside its correpsonding row
 	void addDatasetName(int currDataset, double* position);
-
+	//draw a x-axis descripition, but only when univariate datasets are drawn
+	void drawXAxis(double drawingDimensions[4]);
+	//draw tick labels
+	void addTickLabels(
+		double minVal, double maxVal, vtkSmartPointer<vtkPoints> tickPoints);
+	//draw ticks for every dataset
+	vtkSmartPointer<vtkPoints> drawXTicks(
+		double drawingDimensions[4], double yheigth, double tickLength);
+	
 	/*** Rendering ***/
 	virtual void constructBins(iACompHistogramTableData* data, bin::BinType* currRowData,
 		vtkSmartPointer<vtkDoubleArray> originArray,
@@ -153,6 +167,8 @@ protected:
 	//as soon as showEvent() has finished the first time, the state is set to defined
 	iACompVisOptions::lastState m_lastState;
 
+	//number of ticks of the x-axis
+	double m_numberOfTicks;
 	
 	/*** Ordering ***/
 	//stores the bar actors drawn to show the number of objects for each dataset
@@ -182,6 +198,10 @@ protected:
 	std::map<vtkSmartPointer<vtkActor>, int>* m_rowDataIndexPair;
 
 	double m_renderingView;
+
+	//number of elements per color
+	//is depending on the binning techique, especially on the bin containing the highest number of objects
+	double m_BinRangeLength;
 
 private:
 	

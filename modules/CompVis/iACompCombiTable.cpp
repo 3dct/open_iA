@@ -68,6 +68,14 @@ void iACompCombiTable::drawHistogramTable()
 		drawRow(dataInd, currCol, 0);
 	}
 
+	//draw x-axis on the bottom
+	double min_x = 0.0;
+	double max_x = m_vis->getRowSize();
+	double max_y = m_vis->getColSize() * -0.25;
+	double min_y = m_vis->getColSize() * -0.75;
+	double drawingDimensions[4] = {min_x, max_x, min_y, max_y};
+	drawXAxis(drawingDimensions);
+
 	renderWidget();
 }
 
@@ -117,6 +125,15 @@ void iACompCombiTable::drawRow(int currDataInd, int currentColumn, double offset
 	//add name of dataset/row
 	double pos[3] = {-(m_vis->getRowSize()) * 0.05, min_y + (m_vis->getColSize() * 0.5), 0.0};
 	addDatasetName(currDataInd, pos);
+
+	//add X Ticks
+	if (m_vis->getXAxis())
+	{
+		double drawingDimensions[4] = {min_x, max_x, min_y, max_y};
+		double yheight = min_y;
+		double tickLength = (max_y - min_y) * 0.05;
+		drawXTicks(drawingDimensions, yheight, tickLength);
+	}
 }
 
 vtkSmartPointer<vtkPolyData> iACompCombiTable::drawCurve(double drawingDimensions[4], kdeData::kdeBins currDataset,

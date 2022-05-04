@@ -25,6 +25,11 @@
 
 #include "vtkDoubleArray.h"
 #include "vtkCamera.h"
+#include "vtkAppendPolyData.h"
+#include "vtkLineSource.h"
+#include "vtkPolyLine.h"
+
+#include "vtkColorTransferFunction.h"
 
 
 iACompTable::iACompTable(iACompHistogramVis* vis) :
@@ -36,6 +41,7 @@ iACompTable::iACompTable(iACompHistogramVis* vis) :
 	m_mainRenderer(vtkSmartPointer<vtkRenderer>::New()),
 	m_rendererColorLegend(vtkSmartPointer<vtkRenderer>::New()),
 	m_lastState(iACompVisOptions::lastState::Undefined),
+	m_numberOfTicks(20),
 	m_barActors(new std::vector<vtkSmartPointer<vtkActor>>()),
 	m_barTextActors(new std::vector<vtkSmartPointer<vtkTextActor>>()),
 	m_highlighingActors(new std::vector<vtkSmartPointer<vtkActor>>),
@@ -43,7 +49,8 @@ iACompTable::iACompTable(iACompHistogramVis* vis) :
 	m_pickedCellsforPickedRow(new std::map<int, std::vector<vtkIdType>*>()),
 	m_zoomedRowData(nullptr),
 	m_rowDataIndexPair(new std::map<vtkSmartPointer<vtkActor>, int>()),
-	m_renderingView(0.8)
+	m_renderingView(0.8),
+	m_BinRangeLength(0.0)
 {
 	initializeRenderer();
 }
@@ -55,6 +62,198 @@ void iACompTable::initializeRenderer()
 	m_mainRenderer->SetBackground(col);
 	m_mainRenderer->SetViewport(0, 0, m_renderingView, 1);
 	m_mainRenderer->SetUseFXAA(true);
+}
+
+void iACompTable::makeLUTFromCTF()
+{
+	vtkSmartPointer<vtkColorTransferFunction> ctf = vtkSmartPointer<vtkColorTransferFunction>::New();
+	ctf->SetColorSpaceToRGB();
+	
+	//Black Body Radiation
+	//QColor c1 = QColor(103, 21, 45);
+	//QColor c2 = QColor(128, 0, 38);
+	//QColor c3 = QColor(189, 0, 38);
+	//QColor c4 = QColor(227, 26, 28);
+	//QColor c5 = QColor(252, 78, 42);
+	//QColor c6 = QColor(253, 141, 60);
+	//QColor c7 = QColor(254, 178, 76);
+	//QColor c8 = QColor(254, 217, 118);
+	//QColor c9 = QColor(255, 237, 160);
+	//QColor c10 = QColor(255, 255, 204);
+	
+	//Virdis: dark blue to yellow
+	QColor c10 = QColor(68, 1, 84);
+	QColor c9 = QColor(72, 40, 120);
+	QColor c8 = QColor(62, 73, 137);
+	QColor c7 = QColor(49, 104, 142);
+	QColor c6 = QColor(38, 130, 142);
+	QColor c5 = QColor(31, 158, 137);
+	QColor c4 = QColor(53, 183, 121);
+	QColor c3 = QColor(110, 206, 88);
+	QColor c2 = QColor(181, 222, 43);
+	QColor c1 = QColor(253, 231, 37);
+	
+	
+	ctf->AddRGBPoint(1.0, c1.redF(), c1.greenF(), c1.blueF());
+	ctf->AddRGBPoint(0.9, c1.redF(), c1.greenF(), c1.blueF());
+	ctf->AddRGBPoint(0.8, c2.redF(), c2.greenF(), c2.blueF());
+	ctf->AddRGBPoint(0.7, c3.redF(), c3.greenF(), c3.blueF());
+	ctf->AddRGBPoint(0.6, c4.redF(), c4.greenF(), c4.blueF());
+	ctf->AddRGBPoint(0.5, c5.redF(), c5.greenF(), c5.blueF());
+	ctf->AddRGBPoint(0.4, c6.redF(), c6.greenF(), c6.blueF());
+	ctf->AddRGBPoint(0.3, c7.redF(), c7.greenF(), c7.blueF());
+	ctf->AddRGBPoint(0.2, c8.redF(), c8.greenF(), c8.blueF());
+	ctf->AddRGBPoint(0.1, c9.redF(), c9.greenF(), c9.blueF());
+	ctf->AddRGBPoint(0.0, c10.redF(), c10.greenF(), c10.blueF());
+	
+	m_lut->SetNumberOfTableValues(m_tableSize);
+	m_lut->Build();
+	
+	double min = 0;
+	double max = 0;
+	int startVal = 1;
+	
+	
+	for (size_t i = 0; i < m_tableSize; i++)
+	{
+		double* rgb;
+		rgb = ctf->GetColor(static_cast<double>(i) / (double)m_tableSize);
+		m_lut->SetTableValue(i, rgb);
+	
+		//make format of annotations
+		double low = round_up(startVal + (i * m_BinRangeLength), 2);
+		double high = round_up(startVal + ((i + 1) * m_BinRangeLength), 2);
+	
+		std::string sLow = std::to_string(low);
+		std::string sHigh = std::to_string(high);
+	
+		std::string lowerString = initializeLegendLabels(sLow);
+		std::string upperString = initializeLegendLabels(sHigh);
+	
+		//position description in the middle of each color bar in the scalarBar legend
+		m_lut->SetAnnotation(low + ((high - low) * 0.5), lowerString + " - " + upperString);
+	
+		//store min and max value of the dataset
+		if (i == 0)
+		{
+			min = low;
+		}
+		else if (i == m_tableSize - 1)
+		{
+			max = high;
+		}
+	}
+	
+	m_lut->SetTableRange(min, max);
+	
+	double col[3];
+	iACompVisOptions::getDoubleArray(iACompVisOptions::BACKGROUNDCOLOR_GREY, col);
+	m_lut->SetBelowRangeColor(col[0], col[1], col[2], 1);
+	m_lut->UseBelowRangeColorOn();
+	
+	double* colAbove = ctf->GetColor(1);
+	m_lut->SetAboveRangeColor(colAbove[0], colAbove[1], colAbove[2], 1);
+	m_lut->UseAboveRangeColorOn();
+}
+
+void iACompTable::makeLUTDarker()
+{
+	vtkSmartPointer<vtkColorTransferFunction> ctf = vtkSmartPointer<vtkColorTransferFunction>::New();
+	ctf->SetColorSpaceToRGB();
+
+	//Black Body Radiation
+	/* QColor c1 = QColor(51, 10, 23);
+	QColor c2 = QColor(64, 0, 19);
+	QColor c3 = QColor(64, 0, 19);
+	QColor c4 = QColor(113, 13, 14);
+	QColor c5 = QColor(126, 39, 21);
+	QColor c6 = QColor(126, 70, 30);
+	QColor c7 = QColor(127, 89, 38);
+	QColor c8 = QColor(127, 108, 59);
+	QColor c9 = QColor(127, 118, 80);
+	QColor c10 = QColor(127, 127, 102);*/
+
+	//Virdis DARKER: dark blue to yellow
+	QColor c10 = QColor(27, 0, 33);    //68, 1, 84
+	QColor c9 = QColor(41, 23, 69);    //72, 40, 120
+	QColor c8 = QColor(39, 46, 87);    //62, 73, 137
+	QColor c7 = QColor(32, 67, 92);    //49, 104, 142
+	QColor c6 = QColor(25, 84, 92);    //38, 130, 142
+	QColor c5 = QColor(21, 107, 93);   //31, 158, 137
+	QColor c4 = QColor(38, 133, 87);   //53, 183, 121
+	QColor c3 = QColor(83, 156, 67);   //110, 206, 88
+	QColor c2 = QColor(139, 171, 32);  //181, 222, 43
+	QColor c1 = QColor(201, 184, 30);  //253, 231, 37
+
+	ctf->AddRGBPoint(1.0, c1.redF(), c1.greenF(), c1.blueF());
+	ctf->AddRGBPoint(0.9, c1.redF(), c1.greenF(), c1.blueF());
+	ctf->AddRGBPoint(0.8, c2.redF(), c2.greenF(), c2.blueF());
+	ctf->AddRGBPoint(0.7, c3.redF(), c3.greenF(), c3.blueF());
+	ctf->AddRGBPoint(0.6, c4.redF(), c4.greenF(), c4.blueF());
+	ctf->AddRGBPoint(0.5, c5.redF(), c5.greenF(), c5.blueF());
+	ctf->AddRGBPoint(0.4, c6.redF(), c6.greenF(), c6.blueF());
+	ctf->AddRGBPoint(0.3, c7.redF(), c7.greenF(), c7.blueF());
+	ctf->AddRGBPoint(0.2, c8.redF(), c8.greenF(), c8.blueF());
+	ctf->AddRGBPoint(0.1, c9.redF(), c9.greenF(), c9.blueF());
+	ctf->AddRGBPoint(0.0, c10.redF(), c10.greenF(), c10.blueF());
+	
+	m_lutDarker->SetNumberOfTableValues(m_tableSize);
+	m_lutDarker->Build();
+	
+	double min = 0;
+	double max = 0;
+	int startVal = 1;
+	
+	for (size_t i = 0; i < m_tableSize; i++)
+	{
+		double* rgb;
+		rgb = ctf->GetColor(static_cast<double>(i) / (double)m_tableSize);
+		m_lutDarker->SetTableValue(i, rgb);
+	
+		//make format of annotations
+		double low = round_up(startVal + (i * m_BinRangeLength), 2);
+		double high = round_up(startVal + ((i + 1) * m_BinRangeLength), 2);
+	
+		std::string sLow = std::to_string(low);
+		std::string sHigh = std::to_string(high);
+	
+		std::string lowerString = initializeLegendLabels(sLow);
+		std::string upperString = initializeLegendLabels(sHigh);
+	
+		//position description in the middle of each color bar in the scalarBar legend
+		m_lut->SetAnnotation(low + ((high - low) * 0.5), lowerString + " - " + upperString);
+	
+		//store min and max value of the dataset
+		if (i == 0)
+		{
+			min = low;
+		}
+		else if (i == m_tableSize - 1)
+		{
+			max = high;
+		}
+	}
+	
+	m_lutDarker->SetTableRange(min, max);
+	
+	double col[3];
+	iACompVisOptions::getDoubleArray(iACompVisOptions::BACKGROUNDCOLOR_GREY, col);
+	m_lutDarker->SetBelowRangeColor(col[0], col[1], col[2], 1);
+	m_lutDarker->UseBelowRangeColorOff();
+	
+	double* colAbove = ctf->GetColor(1);
+	m_lutDarker->SetAboveRangeColor(colAbove[0], colAbove[1], colAbove[2], 1);
+	m_lutDarker->UseBelowRangeColorOff();  
+}
+
+double iACompTable::getBinRangeLength()
+{ 
+	return m_BinRangeLength;
+}
+
+void iACompTable::setBinRangeLength(double binRangeLength)
+{
+	m_BinRangeLength = binRangeLength;
 }
 
 /********************************************  Rendering ********************************************/
@@ -254,6 +453,142 @@ int iACompTable::getRenderingView()
 	return m_renderingView;
 }
 
+void iACompTable::drawXAxis(double drawingDimensions[4])
+{
+	if (m_vis->getXAxis())
+	{  //draw x-axis on the bottom of the visualization
+		double min_x = drawingDimensions[0];
+		double max_x = drawingDimensions[1];
+		double min_y = drawingDimensions[2];
+		double max_y = drawingDimensions[3];
+
+		double yheight = min_y + ((max_y - min_y) * 0.5);
+		double tickLength = yheight * 0.5;
+	
+		//draw x-Axis at the bottom of the visualization
+		vtkSmartPointer<vtkLineSource> lineSource = vtkSmartPointer<vtkLineSource>::New();
+		lineSource->SetPoint1(min_x, yheight, 0.0);
+		lineSource->SetPoint2(max_x, yheight, 0.0);
+		vtkSmartPointer<vtkPolyDataMapper> xAxisMapper = vtkSmartPointer<vtkPolyDataMapper>::New();
+		xAxisMapper->SetInputConnection(lineSource->GetOutputPort());
+		vtkNew<vtkActor> xAxisActor;
+		xAxisActor->SetMapper(xAxisMapper);
+		m_mainRenderer->AddActor(xAxisActor);
+
+		//draw ticks on x-axis
+		vtkSmartPointer<vtkPoints> tickLabelPoints = drawXTicks(drawingDimensions, yheight, tickLength);
+
+		//add value names at tick positions
+		double minVal = m_vis->getDataStorage()->getMinVal();
+		double maxVal = m_vis->getDataStorage()->getMaxVal();
+		addTickLabels(minVal, maxVal, tickLabelPoints);
+	}
+}
+
+vtkSmartPointer<vtkPoints> iACompTable::drawXTicks(double drawingDimensions[4], double yheigth, double tickLength)
+{
+	double min_x = drawingDimensions[0];
+	double max_x = drawingDimensions[1];
+	double min_y = drawingDimensions[2];
+	double max_y = drawingDimensions[3];
+
+	double tickDistance = max_x / (m_numberOfTicks - 1);  //compute the regions inbetween the ticks
+
+	vtkSmartPointer<vtkAppendPolyData> appendFilter = vtkSmartPointer<vtkAppendPolyData>::New();
+
+	//draw ticks on x-axis line
+	vtkSmartPointer<vtkPoints> tickLabelPoints = vtkSmartPointer<vtkPoints>::New();
+	for (int i = 0; i < m_numberOfTicks; i++)
+	{
+		vtkSmartPointer<vtkPoints> tickPoints = vtkSmartPointer<vtkPoints>::New();
+		tickPoints->InsertNextPoint(min_x + (tickDistance * i), yheigth - tickLength, 0.0);  //upper
+		tickPoints->InsertNextPoint(min_x + (tickDistance * i), yheigth + tickLength, 0.0);  //lower
+
+		//store point of tick on the bottom
+		tickLabelPoints->InsertNextPoint(
+			min_x + (tickDistance * i), yheigth + (tickLength * 1.1), 0.0);  //lower because axis is positioned below 0!
+
+		vtkSmartPointer<vtkPolyLine> polyLine = vtkSmartPointer<vtkPolyLine>::New();
+		polyLine->GetPointIds()->SetNumberOfIds(tickPoints->GetNumberOfPoints());
+		for (unsigned int j = 0; j < tickPoints->GetNumberOfPoints(); j++)
+		{
+			polyLine->GetPointIds()->SetId(j, j);
+		}
+
+		// Create a cell array to store the lines in and add the lines to it
+		vtkSmartPointer<vtkCellArray> cells = vtkSmartPointer<vtkCellArray>::New();
+		cells->InsertNextCell(polyLine);
+
+		vtkSmartPointer<vtkUnsignedCharArray> colorArray = vtkSmartPointer<vtkUnsignedCharArray>::New();
+		colorArray->SetName("colorArray");
+		colorArray->SetNumberOfComponents(3);
+		colorArray->SetNumberOfTuples(tickPoints->GetNumberOfPoints());
+
+		for (int pointId = 0; pointId < tickPoints->GetNumberOfPoints(); pointId++)
+		{
+			colorArray->InsertTuple3(pointId, 255, 255, 255);
+		}
+
+		// Create a polydata to store everything in
+		vtkSmartPointer<vtkPolyData> tickPolyData = vtkSmartPointer<vtkPolyData>::New();
+		tickPolyData->SetPoints(tickPoints);
+		tickPolyData->SetLines(cells);
+		tickPolyData->GetCellData()->AddArray(colorArray);
+		tickPolyData->GetCellData()->SetActiveScalars("colorArray");
+
+		appendFilter->AddInputData(tickPolyData);
+	}
+
+	vtkSmartPointer<vtkPolyDataMapper> xAxisMapper = vtkSmartPointer<vtkPolyDataMapper>::New();
+	xAxisMapper->SetInputConnection(appendFilter->GetOutputPort());
+
+	vtkNew<vtkActor> xAxisActor;
+	xAxisActor->SetMapper(xAxisMapper);
+
+	m_mainRenderer->AddActor(xAxisActor);
+
+	return tickLabelPoints;
+}
+
+void iACompTable::addTickLabels(
+	double minVal, double maxVal, vtkSmartPointer<vtkPoints> tickPoints)
+{
+	double offset = (maxVal - minVal) / m_numberOfTicks;
+
+	for (int i = 0; i < m_numberOfTicks; i++)
+		//for each tick add a label
+	{
+		//compute correct name
+		double numberName = std::round((minVal + (offset * i)) * 100.0) / 100.0; // 1 decimal place
+		std::string nameTooLong = std::to_string(numberName);
+		std::string name = nameTooLong.substr(0, nameTooLong.find(".", 0)+3);
+
+		double* position = tickPoints->GetPoint(i);
+		 
+		vtkSmartPointer<vtkTextActor> legend = vtkSmartPointer<vtkTextActor>::New();
+		legend->SetTextScaleModeToNone();
+		legend->SetInput(name.c_str());
+		legend->GetPositionCoordinate()->SetCoordinateSystemToWorld();
+		legend->GetPositionCoordinate()->SetValue(position[0], position[1], position[2]);
+
+		vtkSmartPointer<vtkTextProperty> legendProperty = legend->GetTextProperty();
+		legendProperty->BoldOff();
+		legendProperty->ItalicOff();
+		legendProperty->ShadowOff();
+		legendProperty->SetFontFamilyToArial();
+		double col[3];
+		iACompVisOptions::getDoubleArray(iACompVisOptions::FONTCOLOR_TITLE, col);
+		legendProperty->SetColor(col);
+		legendProperty->SetFontSize(iACompVisOptions::FONTSIZE_TEXT);
+		legendProperty->SetVerticalJustificationToCentered();
+		legendProperty->SetJustification(VTK_TEXT_RIGHT);
+		legendProperty->SetOrientation(45);
+		legendProperty->Modified();
+
+		m_mainRenderer->AddActor(legend);
+	}
+}
+
 /********************************************  Ordering/Ranking ********************************************/
 void iACompTable::createBarChart(vtkSmartPointer<vtkPolyData> currPolyData, int currAmountObjects, int maxAmountObjects)
 {
@@ -284,7 +619,7 @@ void iACompTable::createBarChart(vtkSmartPointer<vtkPolyData> currPolyData, int 
 	double positions[4] = 
 	{
 		origin[0], correctX,  //x_min, x_max
-		height25, height75                    //y_min, y_max
+		height25, height75    //y_min, y_max
 	};
 
 	createBars(positions);

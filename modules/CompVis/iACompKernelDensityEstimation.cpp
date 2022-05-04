@@ -31,7 +31,6 @@ void iACompKernelDensityEstimation::calculateCurve(
 	QList<bin::BinType*>* bbDataStore = bbData->getBinData();
 	QList<bin::BinType*>* nbDataStore = nbData->getBinData();
 
-
 	//data preparation
 	for (size_t dataID = 0; dataID < m_datasets->size(); dataID++)
 	{
@@ -58,6 +57,29 @@ void iACompKernelDensityEstimation::calculateCurve(
 	m_kdeData->setKDEDataUniform(kdeDataUniform);
 	m_kdeData->setKDEDataNB(kdeDataNB);
 	m_kdeData->setKDEDataBB(kdeDataBB);
+}
+
+void iACompKernelDensityEstimation::calculateCurveUB(iACompUniformBinningData* uData)
+{
+	//resulting kde-data
+	QList<kdeData::kdeBins>* kdeDataUniform = new QList<kdeData::kdeBins>();
+
+	//get binned data
+	QList<bin::BinType*>* uDataStore = uData->getBinData();
+
+	for (size_t dataID = 0; dataID < m_datasets->size(); dataID++)
+	{
+		kdeData::kdeBin* result = new kdeData::kdeBin();
+		calculateKDE(&m_datasets->at(dataID), result);
+
+		kdeData::kdeBins* kdeUniform = kdeData::initializeBins(uDataStore->at(dataID)->size());
+		std::vector<double> binBoundariesUB = uData->getBinBoundaries()->at(dataID);
+		calculateKDEBinning(result, uData->getMaxVal(), &binBoundariesUB, kdeUniform);
+
+		kdeDataUniform->append(*kdeUniform);
+	}
+
+	m_kdeData->setKDEDataUniform(kdeDataUniform);
 }
 
 void iACompKernelDensityEstimation::calculateKDE(std::vector<double>* dataIn, kdeData::kdeBin* results)

@@ -23,19 +23,11 @@ class iACompVariableTableInteractorStyle : public iACompTableInteractorStyle
 		//initialize the visualization for which the interactionStyle will be applicable
 		void setVariableTableVisualization(iACompVariableTable* visualization);
 
-		virtual void OnLeftButtonDown();
-		virtual void OnLeftButtonUp();
-
-		virtual void OnMouseMove();
-
-		virtual void OnMiddleButtonDown();
-		virtual void OnRightButtonDown();
-		virtual void OnMouseWheelForward();
-		virtual void OnMouseWheelBackward();
-		virtual void OnKeyPress();
-		virtual void OnKeyRelease();
-
-		virtual void Pan();
+		virtual void OnLeftButtonDown() override;
+		virtual void OnMouseWheelForward() override;
+		virtual void OnMouseWheelBackward() override;
+		virtual void OnKeyPress() override;
+		virtual void OnKeyRelease() override;
 
 		virtual void updateCharts() override;
 		virtual void updateOtherCharts(QList<std::vector<csvDataType::ArrayType*>*>* selectedObjectAttributes) override;

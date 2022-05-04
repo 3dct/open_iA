@@ -27,6 +27,11 @@ class dlg_VisMainWindow : public QMainWindow, public Ui_CompVisMainWindow
 	void recalculateMDS();
 	void updateMDS(iAMultidimensionalScaling* newMds);
 
+	//deactivates the ordering button
+	void deactivateOrdering();
+	//activates the ordering button
+	void activateOrdering();
+
    private:
 	void createMenu();
 

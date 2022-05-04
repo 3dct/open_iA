@@ -21,20 +21,8 @@ public:
 
 	//init table visualization
 	void setVisualization(iACompCombiTable* visualization);
-
-	virtual void OnLeftButtonDown() override;
-	virtual void OnLeftButtonUp() override;
-
-	virtual void OnMouseMove() override;
-
-	virtual void OnMiddleButtonDown() override;
-	virtual void OnRightButtonDown() override;
 	virtual void OnMouseWheelForward() override;
 	virtual void OnMouseWheelBackward() override;
-	virtual void OnKeyPress() override;
-	virtual void OnKeyRelease() override;
-
-	virtual void Pan() override;
 
 	virtual void updateCharts() override;
 	virtual void updateOtherCharts(QList<std::vector<csvDataType::ArrayType*>*>* selectedObjectAttributes) override;

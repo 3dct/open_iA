@@ -34,7 +34,7 @@ iACompVisMain::iACompVisMain(iAMainWindow* mainWin) :
 	initializeCorrelationCoefficient();
 
 	//open iAMainWindow with its dockWidgets
-	m_mainW = new dlg_VisMainWindow(m_dataStorage, m_mds, m_mainWindow, this, iACompVisOptions::getComputeNoMDS());
+	m_mainW = new dlg_VisMainWindow(m_dataStorage, m_mds, m_mainWindow, this, iACompVisOptions::getComputeMDS());
 
 	QHBoxLayout* layout3D = new QHBoxLayout;
 	m_mainW->centralwidget->setLayout(layout3D);
@@ -52,7 +52,7 @@ iACompVisMain::iACompVisMain(iAMainWindow* mainWin) :
 	layout3D->insertLayout(0,layout1);
 
 	//add histogram table
-	m_HistogramTableDockWidget = new iACompHistogramTable(mainWin, m_dataStorage, this, iACompVisOptions::getComputeNoMDS());
+	m_HistogramTableDockWidget = new iACompHistogramTable(mainWin, m_dataStorage, this, iACompVisOptions::getComputeMDS());
 	layout1->addWidget(m_HistogramTableDockWidget->getHistogramTableVis());
 
 	QHBoxLayout* layout2 = new QHBoxLayout;
@@ -119,30 +119,14 @@ void iACompVisMain::initializeCorrelationCoefficient()
 	m_corCoeff = new iACorrelationCoefficient(m_dataStorage);
 }
 
-void iACompVisMain::reintitalizeMetrics()
-{
-	//calculate metrics
-	initializeMDS();
-	m_mainW->updateMDS(m_mds);
-
-	initializeVariationCoefficient();
-	initializeCorrelationCoefficient();
-}
-
-void iACompVisMain::reinitializeCharts()
-{ //TODO repair recalculate MDS!
+void iACompVisMain::reinitializeCharts(iACsvDataStorage* storage)
+{	
 	//reinitialize histogram table
-	//m_HistogramTableDockWidget->reinitializeHistogramTable(m_mds);
+	m_HistogramTableDockWidget->setDataStorage(storage);
+	m_HistogramTableDockWidget->reinitializeHistogramTable();
 
-	//reinitialize correlation map
-	//m_CorrelationMapDockWidget->reinitializeCorrelationMap(m_corCoeff);
-
-	//reinitialize bar chart
-	//m_BarChartDockWidget->reinitializeBarChart(m_cofVar);
-
-	//reinitialize box plot
-//	m_BoxPlotDockWidget->setOrderedPositions(m_BarChartDockWidget->getOrderedPositions());
-//	m_BoxPlotDockWidget->reinitializeBoxPlot();
+	//reset all other charts
+	resetOtherCharts();
 }
 
 /******************************************  Change Table Visualization Methods  **********************************/
@@ -165,6 +149,16 @@ void iACompVisMain::enableNaturalBreaks()
 void iACompVisMain::enableCurveTable()
 {
 	m_HistogramTableDockWidget->drawWhiteCurveTable();
+}
+
+void iACompVisMain::deactivateOrderingButton()
+{
+	m_mainW->deactivateOrdering();
+}
+
+void iACompVisMain::activateOrderingButton()
+{
+	m_mainW->activateOrdering();
 }
 
 /******************************************  Order Methods  **********************************/

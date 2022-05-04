@@ -216,18 +216,18 @@ namespace iACompVisOptions
 	}
 
 	/*************** Initialization of Computation & GUI Options ****************************/
-	void setComputeNoMDS(bool val)
+	void setComputeMDS(bool val)
 	{
-		computeNoMDS = val;
+		computeMDS = val;
 	}
 	void setShow3DViews(bool val)
 	{
 		show3DViews = val;
 	}
 
-	bool getComputeNoMDS()
+	bool getComputeMDS()
 	{
-		return computeNoMDS;
+		return computeMDS;
 	}
 	bool getShow3DViews()
 	{

@@ -30,7 +30,9 @@ iACsvDataStorage::iACsvDataStorage(QStringList* csvFiles) :
 	m_objectTables(new std::vector<vtkSmartPointer<vtkTable>>()),
 	m_ios(new std::vector<iACsvIO*>()),
 	m_csvConfigs(new std::vector<const iACsvConfig*>()),
-	m_dlgs(new std::vector<dlg_CSVInput*>())
+	m_dlgs(new std::vector<dlg_CSVInput*>()),
+	m_minVal(0.0),
+	m_maxVal(0.0)
 {
 	for (int ind = 0; ind < m_filenames->size(); ind++)
 	{
@@ -197,6 +199,27 @@ QStringList* iACsvDataStorage::getAttributeNamesWithoutLabel()
 QStringList* iACsvDataStorage::getAttributeNames()
 {
 	return this->getData()->at(0).header;
+}
+
+
+double iACsvDataStorage::getMinVal()
+{
+	return m_minVal;
+}
+
+void iACsvDataStorage::setMinVal(double minVal)
+{
+	m_minVal = minVal;
+}
+
+double iACsvDataStorage::getMaxVal()
+{
+	return m_maxVal;
+}
+
+void iACsvDataStorage::setMaxVal(double maxVal)
+{
+	m_maxVal = maxVal;
 }
 
 /*********************** 3D Rendering ******************************************/

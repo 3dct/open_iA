@@ -82,6 +82,15 @@ class iACsvDataStorage
 	//returns the total number of objects in all datasets
 	int getTotalNumberOfObjects();
 
+	//get the minimum value of all distributions/csv files
+	double getMinVal();
+	//set the minimum value of all distributions/csv files
+	void setMinVal(double minVal);
+	//get the maximum value of all distributions/csv files
+	double getMaxVal();
+	//set the maximum value of all distributions/csv files
+	void setMaxVal(double maxVal);
+
 	/*** MDS Calculation ***/
 	//get the 1d mds matrix result
 	csvDataType::ArrayType* getMDSData();
@@ -123,5 +132,10 @@ class iACsvDataStorage
 	std::vector<iACsvIO*>* m_ios;
 	std::vector<const iACsvConfig*>* m_csvConfigs;
 	std::vector<dlg_CSVInput*>* m_dlgs;
+
+	//minimum value of all distributions/csv files
+	double m_minVal;
+	//maximum value of all distributions/csv file
+	double m_maxVal;
 
 };

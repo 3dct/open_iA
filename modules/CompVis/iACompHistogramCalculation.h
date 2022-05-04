@@ -43,8 +43,9 @@ public:
 	/************************** Kernel Density Estimation ***************************************/
 	iACompKernelDensityEstimationData* getKernelDensityEstimationData();
 	void calculateDensityEstimation();
+	void recalculateDensityEstimationUniformBinning();
 
-	//TODO add other binning techniques
+	//add other binning techniques here
 
 private:
 

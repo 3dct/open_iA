@@ -406,6 +406,11 @@ QList<vtkSmartPointer<vtkPolyData>>* iACompCurve::getBBBinData()
 	return m_BBbinPolyDatasets;
 }
 
+void iACompCurve::setKDEData(iACompKernelDensityEstimationData* kdeData)
+{
+	m_kdeData = kdeData;
+}
+
 QList<std::vector<double>>* iACompCurve::getNumberOfObjectsInsideBin()
 {
 	if (m_vis->getActiveBinning() == iACompVisOptions::binningType::Uniform)
@@ -463,6 +468,14 @@ void iACompCurve::drawHistogramTable()
 		drawRow(dataInd, currCol, 0);
 	}
 
+	//draw x-axis on the bottom
+	double min_x = 0.0;
+	double max_x = m_vis->getRowSize();
+	double max_y = m_vis->getColSize() * -0.25;
+	double min_y = m_vis->getColSize() * -0.75;
+	double drawingDimensions[4] = {min_x, max_x, min_y, max_y};
+	drawXAxis(drawingDimensions);
+
 	renderWidget();
 }
 
@@ -496,6 +509,15 @@ void iACompCurve::drawRow(int currDataInd, int currentColumn, double offset)
 	//add name of dataset/row
 	double pos[3] = {-(m_vis->getRowSize()) * 0.05, min_y + (m_vis->getColSize() * 0.5), 0.0};
 	addDatasetName(currDataInd, pos);
+
+	//add X Ticks
+	if (m_vis->getXAxis())
+	{
+		double drawingDimensions[4] = {min_x, max_x, min_y, max_y};
+		double yheight = min_y;
+		double tickLength = (max_y - min_y) * 0.05;
+		drawXTicks(drawingDimensions, yheight, tickLength);
+	}
 }
 
 void iACompCurve::drawCurveAndPolygon(double drawingDimensions[4], kdeData::kdeBins currDataset,
@@ -1177,6 +1199,7 @@ void iACompCurve::removeSelectionOfCorrelationMap()
 void iACompCurve::highlightSelectedCell(vtkSmartPointer<vtkActor> pickedActor, vtkIdType pickedCellId)
 {
 }
+
 std::tuple<QList<bin::BinType*>*, QList<std::vector<csvDataType::ArrayType*>*>*> iACompCurve::getSelectedData(
 	Pick::PickedMap* map)
 {

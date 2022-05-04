@@ -98,4 +98,5 @@ class iACompUniformTableInteractorStyle : public iACompTableInteractorStyle
 	bool m_pointRepresentationOn;
 
 	bool m_panCamera;
+	bool m_recomputeUBCurve;
 };

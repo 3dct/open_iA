@@ -111,6 +111,8 @@ void iACompVariableTable::initializeCamera()
 /****************************************** Initialization **********************************************/
 void iACompVariableTable::initializeTable()
 {
+	m_BinRangeLength = calculateUniformBinRange();
+
 	//setup color table
 	makeLUTFromCTF();
 	makeLUTDarker();
@@ -127,203 +129,6 @@ void iACompVariableTable::initializeInteraction()
 	m_interactionStyle->setVariableTableVisualization(this);
 	m_interactionStyle->SetDefaultRenderer(m_mainRenderer);
 	m_interactionStyle->setIACompHistogramVis(m_vis);
-}
-
-void iACompVariableTable::makeLUTFromCTF()
-{
-	vtkSmartPointer<vtkColorTransferFunction> ctf = vtkSmartPointer<vtkColorTransferFunction>::New();
-	ctf->SetColorSpaceToRGB();
-
-	//QColor c1 = QColor(103, 21, 45);
-	//QColor c2 = QColor(128, 0, 38);
-	//QColor c3 = QColor(189, 0, 38);
-	//QColor c4 = QColor(227, 26, 28);
-	//QColor c5 = QColor(252, 78, 42);
-	//QColor c6 = QColor(253, 141, 60);
-	//QColor c7 = QColor(254, 178, 76);
-	//QColor c8 = QColor(254, 217, 118);
-	//QColor c9 = QColor(255, 237, 160);
-	//QColor c10 = QColor(255, 255, 204);
-
-	//Virdis: dark blue to yellow
-	QColor c10 = QColor(68, 1, 84);
-	QColor c9 = QColor(72, 40, 120);
-	QColor c8 = QColor(62, 73, 137);
-	QColor c7 = QColor(49, 104, 142);
-	QColor c6 = QColor(38, 130, 142);
-	QColor c5 = QColor(31, 158, 137);
-	QColor c4 = QColor(53, 183, 121);
-	QColor c3 = QColor(110, 206, 88);
-	QColor c2 = QColor(181, 222, 43);
-	QColor c1 = QColor(253, 231, 37);
-	
-
-	ctf->AddRGBPoint(1.0, c1.redF(), c1.greenF(), c1.blueF());
-	ctf->AddRGBPoint(0.9, c1.redF(), c1.greenF(), c1.blueF());
-	ctf->AddRGBPoint(0.8, c2.redF(), c2.greenF(), c2.blueF());
-	ctf->AddRGBPoint(0.7, c3.redF(), c3.greenF(), c3.blueF());
-	ctf->AddRGBPoint(0.6, c4.redF(), c4.greenF(), c4.blueF());
-	ctf->AddRGBPoint(0.5, c5.redF(), c5.greenF(), c5.blueF());
-	ctf->AddRGBPoint(0.4, c6.redF(), c6.greenF(), c6.blueF());
-	ctf->AddRGBPoint(0.3, c7.redF(), c7.greenF(), c7.blueF());
-	ctf->AddRGBPoint(0.2, c8.redF(), c8.greenF(), c8.blueF());
-	ctf->AddRGBPoint(0.1, c9.redF(), c9.greenF(), c9.blueF());
-	ctf->AddRGBPoint(0.0, c10.redF(), c10.greenF(), c10.blueF());
-
-	m_lut->SetNumberOfTableValues(m_tableSize);
-	m_lut->Build();
-
-	double min = 0;
-	double max = 0;
-	int startVal = 1;
-
-	double binRange = calculateUniformBinRange();
-
-	for (size_t i = 0; i < m_tableSize; i++)
-	{
-		double* rgb;
-		rgb = ctf->GetColor(static_cast<double>(i) / (double)m_tableSize);
-		m_lut->SetTableValue(i, rgb);
-
-		//make format of annotations
-		double low = round_up(startVal + (i * binRange), 2);
-		double high = round_up(startVal + ((i + 1) * binRange), 2);
-
-		std::string sLow = std::to_string(low);
-		std::string sHigh = std::to_string(high);
-
-		std::string lowerString = initializeLegendLabels(sLow);
-		std::string upperString = initializeLegendLabels(sHigh);
-
-		//position description in the middle of each color bar in the scalarBar legend
-		//m_lut->SetAnnotation(low + ((high - low) * 0.5), lowerString + " - " + upperString);
-		m_lut->SetAnnotation(low + ((high - low) * 0.5), lowerString);
-
-		//store min and max value of the dataset
-		if (i == 0)
-		{
-			min = low;
-		}
-		else if (i == m_tableSize - 1)
-		{
-			max = high;
-		}
-	}
-
-	m_lut->SetTableRange(min, max);
-
-	/*double rgbMin[3];
-	m_lut->GetColor(min, rgbMin);
-	double rgbMax[3];
-	m_lut->GetColor(max, rgbMax);
-	LOG(lvlDebug,
-		" LUT min = " + QString::number(min) + " with rgb = " + QString::number(rgbMin[0] * 255) + ", " +
-			QString::number(rgbMin[1] * 255) + ", " + QString::number(rgbMin[2] * 255));
-	LOG(lvlDebug,
-		" LUT max = " + QString::number(max) + " with rgb = " + QString::number(rgbMax[0] * 255) + ", " +
-			QString::number(rgbMax[1] * 255) + ", " + QString::number(rgbMax[2] * 255));
-	*/
-
-	double col[3];
-	iACompVisOptions::getDoubleArray(iACompVisOptions::BACKGROUNDCOLOR_GREY, col);
-	m_lut->SetBelowRangeColor(col[0], col[1], col[2], 1);
-	m_lut->UseBelowRangeColorOn();
-
-	double* colAbove = ctf->GetColor(1);
-	m_lut->SetAboveRangeColor(colAbove[0], colAbove[1], colAbove[2], 1);
-	m_lut->UseAboveRangeColorOn();
-}
-
-void iACompVariableTable::makeLUTDarker()
-{
-	vtkSmartPointer<vtkColorTransferFunction> ctf = vtkSmartPointer<vtkColorTransferFunction>::New();
-	ctf->SetColorSpaceToRGB();
-
-	QColor c1 = QColor(51, 10, 23);
-	QColor c2 = QColor(64, 0, 19);
-	QColor c3 = QColor(64, 0, 19);
-	QColor c4 = QColor(113, 13, 14);
-	QColor c5 = QColor(126, 39, 21);
-	QColor c6 = QColor(126, 70, 30);
-	QColor c7 = QColor(127, 89, 38);
-	QColor c8 = QColor(127, 108, 59);
-	QColor c9 = QColor(127, 118, 80);
-	QColor c10 = QColor(127, 127, 102);
-
-	ctf->AddRGBPoint(1.0, c1.redF(), c1.greenF(), c1.blueF());
-	ctf->AddRGBPoint(0.9, c1.redF(), c1.greenF(), c1.blueF());
-	ctf->AddRGBPoint(0.8, c2.redF(), c2.greenF(), c2.blueF());
-	ctf->AddRGBPoint(0.7, c3.redF(), c3.greenF(), c3.blueF());
-	ctf->AddRGBPoint(0.6, c4.redF(), c4.greenF(), c4.blueF());
-	ctf->AddRGBPoint(0.5, c5.redF(), c5.greenF(), c5.blueF());
-	ctf->AddRGBPoint(0.4, c6.redF(), c6.greenF(), c6.blueF());
-	ctf->AddRGBPoint(0.3, c7.redF(), c7.greenF(), c7.blueF());
-	ctf->AddRGBPoint(0.2, c8.redF(), c8.greenF(), c8.blueF());
-	ctf->AddRGBPoint(0.1, c9.redF(), c9.greenF(), c9.blueF());
-	ctf->AddRGBPoint(0.0, c10.redF(), c10.greenF(), c10.blueF());
-
-	m_lutDarker->SetNumberOfTableValues(m_tableSize);
-	m_lutDarker->Build();
-
-	double min = 0;
-	double max = 0;
-	int startVal = 1;
-
-	double binRange = calculateUniformBinRange();
-
-	for (size_t i = 0; i < m_tableSize; i++)
-	{
-		double* rgb;
-		rgb = ctf->GetColor(static_cast<double>(i) / (double)m_tableSize);
-		m_lutDarker->SetTableValue(i, rgb);
-
-		//make format of annotations
-		double low = round_up(startVal + (i * binRange), 2);
-		double high = round_up(startVal + ((i + 1) * binRange), 2);
-
-		std::string sLow = std::to_string(low);
-		std::string sHigh = std::to_string(high);
-
-		std::string lowerString = initializeLegendLabels(sLow);
-		std::string upperString = initializeLegendLabels(sHigh);
-
-		//position description in the middle of each color bar in the scalarBar legend
-		m_lut->SetAnnotation(low + ((high - low) * 0.5), lowerString + " - " + upperString);
-		//m_lutDarker->SetAnnotation(low + ((high - low) * 0.5), lowerString);
-
-		//store min and max value of the dataset
-		if (i == 0)
-		{
-			min = low;
-		}
-		else if (i == m_tableSize - 1)
-		{
-			max = high;
-		}
-	}
-
-	m_lutDarker->SetTableRange(min, max);
-
-	/*double rgbMin[3];
-	m_lut->GetColor(min, rgbMin);
-	double rgbMax[3];
-	m_lut->GetColor(max, rgbMax);
-	LOG(lvlDebug,
-		" LUT min = " + QString::number(min) + " with rgb = " + QString::number(rgbMin[0] * 255) + ", " +
-			QString::number(rgbMin[1] * 255) + ", " + QString::number(rgbMin[2] * 255));
-	LOG(lvlDebug,
-		" LUT max = " + QString::number(max) + " with rgb = " + QString::number(rgbMax[0] * 255) + ", " +
-			QString::number(rgbMax[1] * 255) + ", " + QString::number(rgbMax[2] * 255));
-	*/
-
-	double col[3];
-	iACompVisOptions::getDoubleArray(iACompVisOptions::BACKGROUNDCOLOR_GREY, col);
-	m_lutDarker->SetBelowRangeColor(col[0], col[1], col[2], 1);
-	m_lutDarker->UseBelowRangeColorOff();  //m_lutDarker->UseBelowRangeColorOn();
-
-	double* colAbove = ctf->GetColor(1);
-	m_lutDarker->SetAboveRangeColor(colAbove[0], colAbove[1], colAbove[2], 1);
-	m_lutDarker->UseBelowRangeColorOff();  //m_lutDarker->UseAboveRangeColorOn();
 }
 
 double iACompVariableTable::calculateUniformBinRange()
@@ -367,6 +172,14 @@ void iACompVariableTable::drawHistogramTable()
 		int dataInd = m_vis->getOrderOfIndicesDatasets()->at(currCol);
 		drawRow(dataInd, currCol, 0);
 	}
+
+	//draw x-axis on the bottom
+	double min_x = 0.0;
+	double max_x = m_vis->getRowSize();
+	double max_y = m_vis->getColSize() * -0.25;
+	double min_y = m_vis->getColSize() * -0.75;
+	double drawingDimensions[4] = {min_x, max_x, min_y, max_y};
+	drawXAxis(drawingDimensions);
 
 	renderWidget();
 }
@@ -456,6 +269,21 @@ void iACompVariableTable::drawRow(int currDataInd, int currentColumn, double off
 	double y = (m_vis->getColSize() * currentColumn) + offset;
 	double pos[3] = {-(m_vis->getRowSize()) * 0.05, y + (m_vis->getColSize() * 0.5), 0.0};
 	addDatasetName(currDataInd, pos);
+
+	//add X Ticks
+	if (m_vis->getXAxis())
+	{
+		//drawing positions
+		double min_x = 0.0;
+		double max_x = m_vis->getRowSize();
+		double min_y = (m_vis->getColSize() * currentColumn) + offset;
+		double max_y = min_y + m_vis->getColSize();
+
+		double drawingDimensions[4] = {min_x, max_x, min_y, max_y};
+		double yheight = min_y;
+		double tickLength = (max_y - min_y) * 0.05;
+		drawXTicks(drawingDimensions, yheight, tickLength);
+	}
 }
 
 void iACompVariableTable::reinitalizeState()

@@ -60,10 +60,6 @@ protected:
 	virtual void initializeTable() override;
 	virtual void initializeInteraction() override;
 
-	//create the color lookuptable
-	virtual void makeLUTFromCTF() override;
-	virtual void makeLUTDarker() override;
-
 	//define the range of the color map bins for the visualization
 	void calculateBinRange();
 	//define the range of the color map bins for the visualization

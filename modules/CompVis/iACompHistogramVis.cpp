@@ -24,14 +24,15 @@
 #include "vtkRendererCollection.h"
 #include "vtkCamera.h"
 
-
-iACompHistogramVis::iACompHistogramVis(iACompHistogramTable* table, iAMainWindow* parent, int amountDatasets) :
+iACompHistogramVis::iACompHistogramVis(
+	iACompHistogramTable* table, iAMainWindow* parent, int amountDatasets, bool MDSComputedFlag) :
 	m_main(table),
 	QDockWidget(parent),
 	m_amountDatasets(amountDatasets),
 	m_initialRendering(true),
 	m_windowWidth(-1),
 	m_windowHeight(-1),
+	xAxis(false),
 	m_drawingPositionForRegions(new std::map<int, std::vector<double>>()),
 	mainCamera(vtkSmartPointer<vtkCamera>::New()),
 	m_AreaOpacity(0.25), //0.15
@@ -49,12 +50,28 @@ iACompHistogramVis::iACompHistogramVis(iACompHistogramTable* table, iAMainWindow
 
 	//3. initialize GUI
 	setupUi(this);
-
+	
 	QVBoxLayout* layout = new QVBoxLayout;
 	dockWidgetContents->setLayout(layout);
 
 	m_qvtkWidget = new QVTKOpenGLNativeWidget(this);
 	layout->addWidget(m_qvtkWidget);
+
+	//4.initialize x-axis when univariate datasets are drawn
+	if (!MDSComputedFlag)
+	{
+		xAxis = true;
+	}
+}
+void iACompHistogramVis::reinitialize()
+{
+	//m_orderOfIndicesDatasets = new std::vector<int>(m_amountDatasets, 0);
+	//m_originalOrderOfIndicesDatasets = new std::vector<int>(m_amountDatasets, 0);
+	//m_newOrderOfIndicesDatasets = new std::vector<int>(m_amountDatasets, 0);
+
+	initializeVisualization();
+
+	showAFresh();
 }
 
 void iACompHistogramVis::showEvent(QShowEvent* event)
@@ -177,6 +194,7 @@ void iACompHistogramVis::initializeOrderOfIndices()
 		dataIndex--;
 	}
 }
+
 
 /*************** Update Table Visualization ****************************/
 void iACompHistogramVis::drawUniformTable()
@@ -410,6 +428,9 @@ void iACompHistogramVis::setCamera(vtkSmartPointer<vtkCamera> newCamera)
 	mainCamera = newCamera;
 }
 
+bool iACompHistogramVis::getXAxis(){
+	return xAxis;
+}
 
 /****************************************** Recalculate Data Binning **********************************************/
 
@@ -422,6 +443,14 @@ iACompHistogramTableData* iACompHistogramVis::calculateSpecificBins(
 	iACompVisOptions::binningType binningType, bin::BinType* dataBins, int currBin, int amountOfBins)
 {
 	return m_main->calculateSpecificBins(binningType, dataBins, currBin, amountOfBins);
+}
+
+void iACompHistogramVis::recomputeKernelDensityCurveUB()
+{
+	iACompKernelDensityEstimationData* kdeData = m_main->recomputeKernelDensityCurveUB();
+
+	m_curveTable->setKDEData(kdeData);
+	m_combiTable->setKDEData(kdeData);
 }
 
 /******************************************  Update  OTHERS **********************************************/
@@ -584,4 +613,14 @@ std::vector<int>* iACompHistogramVis::reorderAccordingTo(std::vector<int>* newPo
 	}
 
 	return result;
+}
+
+void iACompHistogramVis::deactivateOrderingButton()
+{
+	m_main->deactivateOrderingButton();
+}
+
+void iACompHistogramVis::activateOrderingButton()
+{
+	m_main->activateOrderingButton();
 }

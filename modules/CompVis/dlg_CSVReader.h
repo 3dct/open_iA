@@ -25,7 +25,7 @@ class dlg_CSVReader : public QDialog, public Ui_CSVReader  //public dlg_CSVInput
 	//! handles a click on the OK button
 	void okBtnClicked();
 
-	void noMDSChecked();
+	void checkMDS();
 
    private:
 	//! connect signals and slots of all dialog controls

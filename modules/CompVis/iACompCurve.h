@@ -56,6 +56,7 @@ public:
 	void setUBBinData(QList<vtkSmartPointer<vtkPolyData>>* ubPolyData);
 	void setNBBinData(QList<vtkSmartPointer<vtkPolyData>>* nbPolyData);
 	void setBBBinData(QList<vtkSmartPointer<vtkPolyData>>* bbPolyData);
+	void setKDEData(iACompKernelDensityEstimationData* kdeData);
 
 	QList<vtkSmartPointer<vtkPolyData>>* getUBBinData();
 	QList<vtkSmartPointer<vtkPolyData>>* getNBBinData();

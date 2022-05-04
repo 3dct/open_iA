@@ -3,6 +3,7 @@
 //iA
 #include "iAMainWindow.h"
 #include "iACompVisMain.h"
+#include "iACompVisOptions.h"
 
 dlg_VisMainWindow::dlg_VisMainWindow(iACsvDataStorage* dataStorage, iAMultidimensionalScaling* mds, iAMainWindow* parent, iACompVisMain* main, bool computeMDSFlag) :
 	QMainWindow(parent), 
@@ -15,12 +16,17 @@ dlg_VisMainWindow::dlg_VisMainWindow(iACsvDataStorage* dataStorage, iAMultidimen
 	//setup iAMainWindow
 	parent->addSubWindow(this);
 	setupUi(this);
-
+	
 	if (m_computeMDSFlag)
 	{
 		//start mds dialog
 		startMDSDialog();
 		m_dataStorage->setMDSData(m_mds->getResultMatrix());
+	}
+	else
+	{
+		//when univariate data is loaded, MDSbutton is deactivated
+		menuMDS->setDisabled(true);
 	}
 	
 	//finish iAMainWindow setup
@@ -39,14 +45,12 @@ void dlg_VisMainWindow::startMDSDialog()
 
 void dlg_VisMainWindow::recalculateMDS()
 {
-	m_main->reintitalizeMetrics();
-
-	if (m_computeMDSFlag)
-	{
-		startMDSDialog();
-		m_dataStorage->setMDSData(m_mds->getResultMatrix());
-	}
-	//m_main->reinitializeCharts();
+	//recompute MDS
+	startMDSDialog();
+	m_dataStorage->setMDSData(m_mds->getResultMatrix());
+	
+	//reset all charts
+	m_main->reinitializeCharts(m_dataStorage);
 }
 
 void dlg_VisMainWindow::updateMDS(iAMultidimensionalScaling* newMds)
@@ -95,19 +99,33 @@ void dlg_VisMainWindow::reorderHistogramTableAsLoaded()
 void dlg_VisMainWindow::enableUniformTable()
 {
 	m_main->enableUniformTable();
+	m_main->activateOrderingButton();
 }
 
 void dlg_VisMainWindow::enableBayesianBlocks()
 {
 	m_main->enableBayesianBlocks();
+	m_main->activateOrderingButton();
 }
 
 void dlg_VisMainWindow::enableNaturalBreaks()
 {
 	m_main->enableNaturalBreaks();
+	m_main->activateOrderingButton();
 }
 
 void dlg_VisMainWindow::enableCurveTable()
 {
 	m_main->enableCurveTable();
+	m_main->deactivateOrderingButton();
+}
+
+void dlg_VisMainWindow::deactivateOrdering()
+{
+	menuOrdering->setDisabled(true);
+}
+
+void dlg_VisMainWindow::activateOrdering()
+{
+	menuOrdering->setEnabled(true);
 }

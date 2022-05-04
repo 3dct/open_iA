@@ -90,11 +90,17 @@ void iACompTableInteractorStyle::OnLeftButtonUp()
 
 void iACompTableInteractorStyle::OnMouseMove()
 {
+	vtkInteractorStyleTrackballCamera::OnMouseMove();
 }
 
 void iACompTableInteractorStyle::OnMiddleButtonDown()
 {
 	vtkInteractorStyleTrackballCamera::OnMiddleButtonDown();
+}
+
+void iACompTableInteractorStyle::OnMiddleButtonUp()
+{
+	vtkInteractorStyleTrackballCamera::OnMiddleButtonUp();
 }
 
 void iACompTableInteractorStyle::OnRightButtonDown()
@@ -111,14 +117,20 @@ void iACompTableInteractorStyle::changeDistributionVisualizationForward()
 	if (m_main->getActiveVisualization() == iACompVisOptions::activeVisualization::UniformTable)
 	{
 		m_main->drawCombiTable();
+
+		m_main->deactivateOrderingButton();
 	}
 	else if (m_main->getActiveVisualization() == iACompVisOptions::activeVisualization::VariableTable)
 	{
 		m_main->drawCombiTable();
+
+		m_main->deactivateOrderingButton();
 	}
 	else if (m_main->getActiveVisualization() == iACompVisOptions::activeVisualization::CombTable)
 	{
 		m_main->drawCurveTable();
+
+		m_main->deactivateOrderingButton();
 	}
 	else if (m_main->getActiveVisualization() == iACompVisOptions::activeVisualization::CurveVisualization)
 	{
@@ -165,19 +177,27 @@ void iACompTableInteractorStyle::changeDistributionVisualizationBackward()
 			m_main->getActiveBinning() == iACompVisOptions::binningType::Undefined)
 		{
 			m_main->drawUniformTable();
+
+			m_main->activateOrderingButton();
 		}
 		else if (m_main->getActiveBinning() == iACompVisOptions::binningType::JenksNaturalBreaks)
 		{
 			m_main->drawNaturalBreaksTable();
+
+			m_main->activateOrderingButton();
 		}
 		else if (m_main->getActiveBinning() == iACompVisOptions::binningType::BayesianBlocks)
 		{
 			m_main->drawBayesianBlocksTable();
+
+			m_main->activateOrderingButton();
 		}
 	}
 	else if (m_main->getActiveVisualization() == iACompVisOptions::activeVisualization::CurveVisualization)
 	{
 		m_main->drawCombiTable();
+
+		m_main->deactivateOrderingButton();
 	}
 	else
 	{
@@ -232,6 +252,7 @@ void iACompTableInteractorStyle::OnKeyRelease()
 
 void iACompTableInteractorStyle::Pan()
 {
+	vtkInteractorStyleTrackballCamera::Pan();
 }
 
 bool iACompTableInteractorStyle::generalZoomIn()

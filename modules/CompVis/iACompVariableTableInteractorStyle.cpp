@@ -68,21 +68,6 @@ void iACompVariableTableInteractorStyle::OnLeftButtonDown()
 	m_visualization->renderWidget();
 }
 
-void iACompVariableTableInteractorStyle::OnLeftButtonUp()
-{
-}
-
-void iACompVariableTableInteractorStyle::OnMouseMove()
-{
-}
-
-void iACompVariableTableInteractorStyle::OnMiddleButtonDown()
-{
-}
-void iACompVariableTableInteractorStyle::OnRightButtonDown()
-{
-}
-
 void iACompVariableTableInteractorStyle::OnMouseWheelForward()
 {
 	iACompTableInteractorStyle::OnMouseWheelForward();
@@ -128,10 +113,6 @@ void iACompVariableTableInteractorStyle::OnKeyRelease()
 			
 		}
 	}
-}
-
-void iACompVariableTableInteractorStyle::Pan()
-{
 }
 
 void iACompVariableTableInteractorStyle::resetHistogramTable()

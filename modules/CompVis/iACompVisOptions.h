@@ -9,13 +9,13 @@ class vtkActor;
 namespace iACompVisOptions
 {
 	/*************** Initialization of Computation & GUI Options ****************************/
-	static bool computeNoMDS; //initialized in dlg_CSVReader, since depending on user input at beginning
+	static bool computeMDS; //initialized in dlg_CSVReader, since depending on user input at beginning
 	static bool show3DViews; //initialized in dlg_CSVReader, since depending on user input at beginning
 
-	void setComputeNoMDS(bool val);
+	void setComputeMDS(bool val);
 	void setShow3DViews(bool val);
 
-	bool getComputeNoMDS();
+	bool getComputeMDS();
 	bool getShow3DViews();
 
 	/*************** Reinitialization of Charts ****************************/

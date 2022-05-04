@@ -40,13 +40,13 @@ vtkStandardNewMacro(iACompUniformTableInteractorStyle);
 iACompUniformTableInteractorStyle::iACompUniformTableInteractorStyle() :
 	iACompTableInteractorStyle(),
 	m_visualization(nullptr),
-	//m_zoomedRowData(nullptr),
 	m_actorPicker(vtkSmartPointer<vtkPropPicker>::New()),
 	m_currentlyPickedActor(vtkSmartPointer<vtkActor>::New()),
 	m_panActive(false),
 	m_controlBinsInZoomedRows(false),
 	m_pointRepresentationOn(false),
-	m_panCamera(false)
+	m_panCamera(false),
+	m_recomputeUBCurve(false)
 {
 	m_actorPicker->SetPickFromList(true);
 }
@@ -114,7 +114,7 @@ void iACompUniformTableInteractorStyle::OnLeftButtonDown()
 		return;
 	}
 
-	int is = m_actorPicker->Pick(pos[0], pos[1], 0, this->CurrentRenderer); //this->GetDefaultRenderer()
+	int is = m_actorPicker->Pick(pos[0], pos[1], 0, this->CurrentRenderer);
 	if (is == 0) 
 	{
 		resetHistogramTable();
@@ -222,7 +222,6 @@ void iACompUniformTableInteractorStyle::Pan()
 		vtkInteractorStyleTrackballCamera::Pan();
 		return;
 	}
-	
 	
 	//move row of histogram table to new position
 	m_panActive = true;
@@ -383,8 +382,13 @@ void iACompUniformTableInteractorStyle::OnMouseWheelForward()
 {
 	reinitializeState();
 
+	if (m_DButtonPressed == true && m_recomputeUBCurve == true)
+	{
+		m_main->recomputeKernelDensityCurveUB();
+		m_recomputeUBCurve = false;
+	}
 	iACompTableInteractorStyle::OnMouseWheelForward();
-
+	
 	//camera zoom
 	bool zoomed = generalZoomIn();
 	
@@ -400,6 +404,7 @@ void iACompUniformTableInteractorStyle::OnMouseWheelForward()
 		{
 			//linear zooming in
 			linearZoomInHistogram();
+			m_recomputeUBCurve = true;
 		}
 	}
 }
@@ -408,7 +413,13 @@ void iACompUniformTableInteractorStyle::OnMouseWheelBackward()
 {
 	reinitializeState();
 
+	if (m_DButtonPressed == true && m_recomputeUBCurve == true)
+	{
+		m_main->recomputeKernelDensityCurveUB();
+		m_recomputeUBCurve = false;
+	}
 	iACompTableInteractorStyle::OnMouseWheelBackward();
+
 
 	//camera zoom
 	bool zoomed = generalZoomOut();
@@ -425,6 +436,7 @@ void iACompUniformTableInteractorStyle::OnMouseWheelBackward()
 		{
 			//linear zooming out
 			linearZoomOutHistogram();
+			m_recomputeUBCurve = true;
 		}
 	}
 }

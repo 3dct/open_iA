@@ -32,11 +32,11 @@
 #include "vtkUnstructuredGrid.h"
 #include "vtkPolyLine.h"
 #include "vtkProp.h"
-#include "vtkNamedColors.h"
 #include "vtkLineSource.h"
 #include "vtkSphereSource.h"
 #include "vtkGlyph2D.h"
 #include "vtkProperty2D.h"
+#include "vtkNamedColors.h"
 
 #include <vtkBorderRepresentation.h>
 #include <vtkBorderWidget.h>
@@ -53,7 +53,6 @@ iACompUniformTable::iACompUniformTable(iACompHistogramVis* vis, iACompUniformBin
 	m_uniformBinningData(uniformBinningData),
 	m_originalPlaneActors(new std::vector<vtkSmartPointer<vtkActor>>()),
 	m_zoomedPlaneActors(new std::vector<vtkSmartPointer<vtkActor>>()),
-	m_BinRangeLength(0),
 	originalPlaneZoomedPlanePair(new std::map<vtkSmartPointer<vtkActor>, std::vector<vtkSmartPointer<vtkActor>>*>()),
 	m_highlightRowActor(vtkSmartPointer<vtkActor>::New()),
 	m_pointRepresentationActors(new std::vector<vtkSmartPointer<vtkActor>>()),
@@ -62,8 +61,9 @@ iACompUniformTable::iACompUniformTable(iACompHistogramVis* vis, iACompUniformBin
 	m_newDrawingPosition(-1),
 	m_interactionStyle(vtkSmartPointer<iACompUniformTableInteractorStyle>::New())
 {
-	m_bins = minBins;
-	m_binsZoomed = minBins;
+	m_bins = m_uniformBinningData->getInitialNumberOfBins();
+	m_binsZoomed = m_bins;
+	minBins = m_bins;
 
 	//initialize interaction
 	initializeInteraction();
@@ -74,6 +74,9 @@ iACompUniformTable::iACompUniformTable(iACompHistogramVis* vis, iACompUniformBin
 
 void iACompUniformTable::initializeTable()
 {
+	//the color scheme is depending on the uniform binning
+	calculateBinRange();
+
 	//setup color table
 	makeLUTFromCTF();
 	makeLUTDarker();
@@ -135,204 +138,6 @@ void iACompUniformTable::initializeCamera()
 }
 
 /******************************************  Coloring (LookupTable)  **********************************/
-void iACompUniformTable::makeLUTFromCTF()
-{
-	calculateBinRange();
-
-	vtkSmartPointer<vtkColorTransferFunction> ctf = vtkSmartPointer<vtkColorTransferFunction>::New();
-	ctf->SetColorSpaceToRGB();
-
-	//yellow to dark red
-	/*QColor c1 = QColor(103, 21, 45);
-	QColor c2 = QColor(128, 0, 38);
-	QColor c3 = QColor(189, 0, 38);
-	QColor c4 = QColor(227, 26, 28);
-	QColor c5 = QColor(252, 78, 42);
-	QColor c6 = QColor(253, 141, 60);
-	QColor c7 = QColor(254, 178, 76);
-	QColor c8 = QColor(254, 217, 118);
-	QColor c9 = QColor(255, 237, 160);
-	QColor c10 = QColor(255, 255, 204);*/
-
-	//Virdis: yellow to dark blue
-	/*QColor c1 = QColor(68, 1, 84);
-	QColor c2 = QColor(72, 40, 120);
-	QColor c3 = QColor(62, 73, 137);
-	QColor c4 = QColor(49, 104, 142);
-	QColor c5 = QColor(38, 130, 142);
-	QColor c6 = QColor(31, 158, 137);
-	QColor c7 = QColor(53, 183, 121);
-	QColor c8 = QColor(110, 206, 88);
-	QColor c9 = QColor(181, 222, 43);
-	QColor c10 = QColor(253, 231, 37);*/
-
-	//Virdis: dark blue to yellow
-	QColor c10 = QColor(68, 1, 84);
-	QColor c9 = QColor(72, 40, 120);
-	QColor c8 = QColor(62, 73, 137);
-	QColor c7 = QColor(49, 104, 142);
-	QColor c6 = QColor(38, 130, 142);
-	QColor c5 = QColor(31, 158, 137);
-	QColor c4 = QColor(53, 183, 121);
-	QColor c3 = QColor(110, 206, 88);
-	QColor c2 = QColor(181, 222, 43);
-	QColor c1 = QColor(253, 231, 37);
-
-	//Magma:Yellow to Blue
-	/*QColor c10 = QColor(252, 253, 191);
-	QColor c9 = QColor(254, 202, 141);
-	QColor c8 = QColor(253, 150, 104);
-	QColor c7 = QColor(241, 96, 93);
-	QColor c6 = QColor(205, 64, 113);
-	QColor c5 = QColor(158, 47, 127);
-	QColor c4 = QColor(114, 31, 129);
-	QColor c3 = QColor(68, 15, 118);
-	QColor c2 = QColor(24, 15, 61);
-	QColor c1 = QColor(0, 0, 4);*/
-
-	//Magma:Blue to Yellow
-	/*QColor c1 = QColor(252, 253, 191);
-	QColor c2 = QColor(254, 202, 141);
-	QColor c3 = QColor(253, 150, 104);
-	QColor c4 = QColor(241, 96, 93);
-	QColor c5 = QColor(205, 64, 113);
-	QColor c6 = QColor(158, 47, 127);
-	QColor c7 = QColor(114, 31, 129);
-	QColor c8 = QColor(68, 15, 118);
-	QColor c9 = QColor(24, 15, 61);
-	QColor c10 = QColor(0, 0, 4);*/
-
-	ctf->AddRGBPoint(1.0, c1.redF(), c1.greenF(), c1.blueF());
-	ctf->AddRGBPoint(0.9, c1.redF(), c1.greenF(), c1.blueF());
-	ctf->AddRGBPoint(0.8, c2.redF(), c2.greenF(), c2.blueF());
-	ctf->AddRGBPoint(0.7, c3.redF(), c3.greenF(), c3.blueF());
-	ctf->AddRGBPoint(0.6, c4.redF(), c4.greenF(), c4.blueF());
-	ctf->AddRGBPoint(0.5, c5.redF(), c5.greenF(), c5.blueF());
-	ctf->AddRGBPoint(0.4, c6.redF(), c6.greenF(), c6.blueF());
-	ctf->AddRGBPoint(0.3, c7.redF(), c7.greenF(), c7.blueF());
-	ctf->AddRGBPoint(0.2, c8.redF(), c8.greenF(), c8.blueF());
-	ctf->AddRGBPoint(0.1, c9.redF(), c9.greenF(), c9.blueF());
-	ctf->AddRGBPoint(0.0, c10.redF(), c10.greenF(), c10.blueF());
-
-	m_lut->SetNumberOfTableValues(m_tableSize);
-	m_lut->Build();
-
-	double min = 0;
-	double max = 0;
-	int startVal = 1;
-	
-	for (size_t i = 0; i < m_tableSize; i++)
-	{
-		double* rgb;
-
-		//make format of annotations
-		double low = round_up(startVal + (i * m_BinRangeLength), 2);
-		double high = round_up(startVal + ((i + 1) * m_BinRangeLength), 2);
-
-		std::string sLow = std::to_string(low);
-		std::string sHigh = std::to_string(high);
-
-		std::string lowerString = initializeLegendLabels(sLow);
-		std::string upperString = initializeLegendLabels(sHigh);
-
-		//store min and max value of the dataset
-		if (i == 0)
-		{
-			min = low;
-		}
-		else if (i == m_tableSize - 1)
-		{
-			max = high;
-		}
-
-		
-		rgb = ctf->GetColor(static_cast<double>(i) / (double)m_tableSize);
-		m_lut->SetTableValue(i, rgb);
-		//position description in the middle of each color bar in the scalarBar legend
-		m_lut->SetAnnotation(low + ((high - low) * 0.5), lowerString + " - " + upperString);
-	}
-
-	m_lut->SetTableRange(min, max);
-
-	double col[3];
-	iACompVisOptions::getDoubleArray(iACompVisOptions::BACKGROUNDCOLOR_GREY, col);
-	m_lut->SetBelowRangeColor(col[0], col[1], col[2], 1);
-	m_lut->UseBelowRangeColorOn();
-}
-
-void iACompUniformTable::makeLUTDarker()
-{
-	vtkSmartPointer<vtkColorTransferFunction> ctf = vtkSmartPointer<vtkColorTransferFunction>::New();
-	ctf->SetColorSpaceToRGB();
-
-	QColor c1 = QColor(51, 10, 23);
-	QColor c2 = QColor(64, 0, 19);
-	QColor c3 = QColor(64, 0, 19);
-	QColor c4 = QColor(113, 13, 14);
-	QColor c5 = QColor(126, 39, 21);
-	QColor c6 = QColor(126, 70, 30);
-	QColor c7 = QColor(127, 89, 38);
-	QColor c8 = QColor(127, 108, 59);
-	QColor c9 = QColor(127, 118, 80);
-	QColor c10 = QColor(127, 127, 102);
-
-	ctf->AddRGBPoint(1.0, c1.redF(), c1.greenF(), c1.blueF());
-	ctf->AddRGBPoint(0.9, c1.redF(), c1.greenF(), c1.blueF());
-	ctf->AddRGBPoint(0.8, c2.redF(), c2.greenF(), c2.blueF());
-	ctf->AddRGBPoint(0.7, c3.redF(), c3.greenF(), c3.blueF());
-	ctf->AddRGBPoint(0.6, c4.redF(), c4.greenF(), c4.blueF());
-	ctf->AddRGBPoint(0.5, c5.redF(), c5.greenF(), c5.blueF());
-	ctf->AddRGBPoint(0.4, c6.redF(), c6.greenF(), c6.blueF());
-	ctf->AddRGBPoint(0.3, c7.redF(), c7.greenF(), c7.blueF());
-	ctf->AddRGBPoint(0.2, c8.redF(), c8.greenF(), c8.blueF());
-	ctf->AddRGBPoint(0.1, c9.redF(), c9.greenF(), c9.blueF());
-	ctf->AddRGBPoint(0.0, c10.redF(), c10.greenF(), c10.blueF());
-
-	m_lutDarker->SetNumberOfTableValues(m_tableSize);
-	m_lutDarker->Build();
-
-	double min = 0;
-	double max = 0;
-	int startVal = 1;
-
-	for (size_t i = 0; i < m_tableSize; i++)
-	{
-		double* rgb;
-		rgb = ctf->GetColor(static_cast<double>(i) / (double)m_tableSize);
-		m_lutDarker->SetTableValue(i, rgb);
-
-		//make format of annotations
-		double low = round_up(startVal + (i * m_BinRangeLength), 2);
-		double high = round_up(startVal + ((i + 1) * m_BinRangeLength), 2);
-
-		std::string sLow = std::to_string(low);
-		std::string sHigh = std::to_string(high);
-
-		std::string lowerString = initializeLegendLabels(sLow);
-		std::string upperString = initializeLegendLabels(sHigh);
-
-		//position description in the middle of each color bar in the scalarBar legend
-		m_lutDarker->SetAnnotation(low + ((high - low) * 0.5), lowerString + " - " + upperString);
-
-		//store min and max value of the dataset
-		if (i == 0)
-		{
-			min = low;
-		}
-		else if (i == m_tableSize - 1)
-		{
-			max = high;
-		}
-	}
-
-	m_lutDarker->SetTableRange(min, max);
-
-	double col[3];
-	iACompVisOptions::getDoubleArray(iACompVisOptions::BACKGROUNDCOLOR_GREY, col);
-	m_lutDarker->SetBelowRangeColor(col[0], col[1], col[2], 1);
-	m_lutDarker->UseBelowRangeColorOn();
-}
-
 void iACompUniformTable::calculateBinRange()
 {
 	int maxAmountInAllBins = m_uniformBinningData->getMaxAmountInAllBins();
@@ -371,6 +176,14 @@ void iACompUniformTable::drawHistogramTable(int bins)
 		m_uniformBinningData->storeBinPolyData(row);
 	}
 
+	//draw x-axis on the bottom
+	double min_x = 0.0;
+	double max_x = m_vis->getRowSize();
+	double max_y = m_vis->getColSize() * -0.25;
+	double min_y = m_vis->getColSize() * -0.75;
+	double drawingDimensions[4] = {min_x, max_x, min_y, max_y};
+	drawXAxis(drawingDimensions);
+
 	renderWidget();
 }
 
@@ -391,27 +204,9 @@ vtkSmartPointer<vtkPolyData> iACompUniformTable::drawRow(int currDataInd, int cu
 	double min_y = (m_vis->getColSize() * currentColumn) + offset;
 	double max_y = min_y + m_vis->getColSize();
 
-	for (int i = 0; i < numberOfBins; i++)
-	{
-		//compute bin boundaries in drawing coordinates
-		double minBoundary = m_uniformBinningData->getBinBoundaries()->at(currDataInd).at(i);
-		double xMin = iACompVisOptions::histogramNormalization(minBoundary, min_x, max_x, m_uniformBinningData->getMinVal(), m_uniformBinningData->getMaxVal());
-
-		double maxBoundary = m_uniformBinningData->getMaxVal();
-		if (i != numberOfBins-1)
-		{
-			maxBoundary = m_uniformBinningData->getBinBoundaries()->at(currDataInd).at(i+1);
-		}
-		double xMax = iACompVisOptions::histogramNormalization(
-			maxBoundary, min_x, max_x, m_uniformBinningData->getMinVal(), m_uniformBinningData->getMaxVal());
-
-		originArray->InsertTuple3(i, xMin, min_y, 0.0);
-		point1Array->InsertTuple3(i, xMax, min_y, 0.0);  //width
-		point2Array->InsertTuple3(i, xMin, max_y, 0.0);  //height
-
-		double numberOfObjects = currDataset->at(i).size();
-		colorBinOfRow(colorArray, i, numberOfObjects);
-	}
+	this->constructBins(m_uniformBinningData, currDataset, originArray, point1Array, point2Array, colorArray,
+		currDataInd,
+		currentColumn, offset);
 
 	vtkSmartPointer<vtkPlaneSource> planeSource = vtkSmartPointer<vtkPlaneSource>::New();
 	planeSource->SetOutputPointsPrecision(vtkAlgorithm::DOUBLE_PRECISION);
@@ -458,6 +253,15 @@ vtkSmartPointer<vtkPolyData> iACompUniformTable::drawRow(int currDataInd, int cu
 	//add name of dataset/row
 	double pos[3] = { -(m_vis->getRowSize()) * 0.05, y + (m_vis->getColSize()* 0.5), 0.0 };
 	addDatasetName(currDataInd, pos);
+
+	//add X Ticks
+	if (m_vis->getXAxis())
+	{
+		double drawingDimensions[4] = {min_x, max_x, min_y, max_y};
+		double yheight = min_y;
+		double tickLength = (max_y - min_y) * 0.05;
+		drawXTicks(drawingDimensions, yheight, tickLength);
+	}
 
 	return row;
 }

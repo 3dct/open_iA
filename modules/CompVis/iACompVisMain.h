@@ -30,8 +30,8 @@ class iACompVisMain
 	//when nothing was loaded it returns false
 	bool loadData();
 
-	void reinitializeCharts();
-	void reintitalizeMetrics();
+	//reinitalize all charts after the MDS is recomputed
+	void reinitializeCharts(iACsvDataStorage* storage);
 
 	void enableUniformTable();
 	void enableBayesianBlocks();
@@ -41,6 +41,10 @@ class iACompVisMain
 	void orderHistogramTableAscending();
 	void orderHistogramTableDescending();
 	void orderHistogramTableAsLoaded();
+	//deactivates the ordering button in the menu
+	void deactivateOrderingButton();
+	//activates the ordering button in the menu
+	void activateOrderingButton();
 
 	//update all charts according to the Histogram Table selection
 	//zoomedRowData stores bin data of selected rows that will be zoomed.

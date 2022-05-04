@@ -59,10 +59,7 @@ void dlg_CSVReader::btnDeleteFileClicked()
 
 void dlg_CSVReader::okBtnClicked()
 {
-	if (noMDSCheckBox->isChecked())
-	{
-		noMDSChecked();
-	}
+	checkMDS();
 
 	if (show3DViewsCheckBox->isChecked())
 	{
@@ -75,9 +72,16 @@ void dlg_CSVReader::okBtnClicked()
 	this->accept();
 }
 
-void dlg_CSVReader::noMDSChecked()
+void dlg_CSVReader::checkMDS()
 {
-	iACompVisOptions::setComputeNoMDS(false);
+	if (noMDSCheckBox->isChecked())
+	{
+		iACompVisOptions::setComputeMDS(false);
+	}
+	else
+	{
+		iACompVisOptions::setComputeMDS(true);
+	}
 }
 
 iACsvDataStorage* dlg_CSVReader::getCsvDataStorage()

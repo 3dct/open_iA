@@ -17,24 +17,6 @@ void iACompCombiTableInteractionStyle::setVisualization(iACompCombiTable* visual
 	m_visualization = visualization;
 }
 
-void iACompCombiTableInteractionStyle::OnLeftButtonDown()
-{
-}
-void iACompCombiTableInteractionStyle::OnLeftButtonUp()
-{
-}
-
-void iACompCombiTableInteractionStyle::OnMouseMove()
-{
-}
-
-void iACompCombiTableInteractionStyle::OnMiddleButtonDown()
-{
-	vtkInteractorStyleTrackballCamera::OnMiddleButtonDown();
-}
-void iACompCombiTableInteractionStyle::OnRightButtonDown()
-{
-}
 void iACompCombiTableInteractionStyle::OnMouseWheelForward()
 {
 	iACompTableInteractorStyle::OnMouseWheelForward();
@@ -49,18 +31,6 @@ void iACompCombiTableInteractionStyle::OnMouseWheelBackward()
 
 	//camera zoom
 	bool zoomed = generalZoomOut();
-}
-void iACompCombiTableInteractionStyle::OnKeyPress()
-{
-	iACompTableInteractorStyle::OnKeyPress();
-}
-void iACompCombiTableInteractionStyle::OnKeyRelease()
-{
-	iACompTableInteractorStyle::OnKeyRelease();
-}
-
-void iACompCombiTableInteractionStyle::Pan()
-{
 }
 
 void iACompCombiTableInteractionStyle::updateCharts()

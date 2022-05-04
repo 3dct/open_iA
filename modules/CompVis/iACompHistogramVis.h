@@ -32,9 +32,10 @@ class iACompHistogramVis : public QDockWidget, public Ui_CompHistogramTable
 {
 
 public:
-	iACompHistogramVis(iACompHistogramTable* table, iAMainWindow* parent, int amountDatasets);
+	iACompHistogramVis(iACompHistogramTable* table, iAMainWindow* parent, int amountDatasets, bool MDSComputedFlag);
 	
 	void showEvent(QShowEvent* event);
+	void reinitialize();
 
 	/*** Rendering ****/
 	//calculate the height and width each row can have to fit into the screen
@@ -83,6 +84,8 @@ public:
 	vtkSmartPointer<vtkCamera> getCamera();
 	void setCamera(vtkSmartPointer<vtkCamera> newCamera);
 
+	bool getXAxis();
+
 	/*** Update Table Visualization ****/
 	void drawUniformTable();
 	void drawBayesianBlocksTable();
@@ -95,6 +98,7 @@ public:
 	iACompHistogramTableData* recalculateBinning(iACompVisOptions::binningType binningType, int numberOfBins);
 	iACompHistogramTableData* calculateSpecificBins(
 		iACompVisOptions::binningType binningType, bin::BinType* data, int currBin, int amountOfBins);
+	void recomputeKernelDensityCurveUB();
 
 	/*** Update OTHERS ****/
 	void resetOtherCharts();
@@ -111,6 +115,10 @@ public:
 	void drawDatasetsInDescendingOrder();
 	//draw the datasets with rows ordered according to loading the datasets
 	void drawDatasetsInOriginalOrder();
+	//deactivates the ordering button in the menu
+	void deactivateOrderingButton();
+	//activates the ordering button in the menu
+	void activateOrderingButton();
 
 	//sorts the input vector according to the given orderStyle ascending(0) or descending(1)
 	std::vector<int>* sortWithMemory(std::vector<int> input, int orderStyle);
@@ -158,6 +166,8 @@ private:
 	double m_windowWidth;
 	//initial window height of drawing area
 	double m_windowHeight;
+	//is true, when univariate distirbutions are visualized, is false when MDS data is visualized
+	bool xAxis;
 
 	/*************** arrays storing the different dataset orderings ****************************/
 	//stores the order of the indices of each dataset

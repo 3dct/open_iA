@@ -31,6 +31,9 @@ public:
 
 	//compute the curve for all datasets
 	void calculateCurve(iACompUniformBinningData* uData, iACompBayesianBlocksData* bbData, iACompNaturalBreaksData* nbData);
+	
+	//compute the curve only for the uniform binning
+	void calculateCurveUB(iACompUniformBinningData* uData);
 
 private:
 
@@ -51,7 +54,7 @@ private:
 
 	iACompKernelDensityEstimationData* m_kdeData;
 
-	indexType numSteps;  //TODO CHANGE
+	indexType numSteps;
 
 	//stores the maxmial kde value for all datasets
 	double m_maxKDE;

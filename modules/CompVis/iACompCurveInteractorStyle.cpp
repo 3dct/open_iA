@@ -16,23 +16,6 @@ void iACompCurveInteractorStyle::setCurveVisualization(iACompCurve* visualizatio
 	m_visualization = visualization;
 }
 
-void iACompCurveInteractorStyle::OnLeftButtonDown()
-{
-}
-void iACompCurveInteractorStyle::OnLeftButtonUp()
-{
-}
-
-void iACompCurveInteractorStyle::OnMouseMove()
-{
-}
-
-void iACompCurveInteractorStyle::OnMiddleButtonDown()
-{
-}
-void iACompCurveInteractorStyle::OnRightButtonDown()
-{
-}
 void iACompCurveInteractorStyle::OnMouseWheelForward()
 {
 	iACompTableInteractorStyle::OnMouseWheelForward();
@@ -46,18 +29,6 @@ void iACompCurveInteractorStyle::OnMouseWheelBackward()
 
 	//camera zoom
 	bool zoomed = generalZoomOut();
-}
-void iACompCurveInteractorStyle::OnKeyPress()
-{
-	iACompTableInteractorStyle::OnKeyPress();
-}
-void iACompCurveInteractorStyle::OnKeyRelease()
-{
-	iACompTableInteractorStyle::OnKeyRelease();
-}
-
-void iACompCurveInteractorStyle::Pan()
-{
 }
 
 void iACompCurveInteractorStyle::updateCharts()

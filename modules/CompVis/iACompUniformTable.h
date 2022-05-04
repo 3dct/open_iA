@@ -98,8 +98,6 @@ public:
 	const int getMinBins();
 	const int getMaxBins();
 
-	//std::vector<int>* getIndexOfPickedRows();
-
 	vtkSmartPointer<iACompUniformTableInteractorStyle> getInteractorStyle();
 
 	/******************************************  Update THIS  **********************************************/
@@ -110,10 +108,6 @@ protected:
 
 	virtual void initializeTable();
 	virtual void initializeInteraction();
-
-	//create the color lookuptable
-	virtual void makeLUTFromCTF();
-	virtual void makeLUTDarker();
 
 	//define the range of the bins for the visualization
 	//for uniform binning, the range of the objects is divded by the number of bins
@@ -187,7 +181,7 @@ private:
 	std::vector<vtkSmartPointer<vtkActor>>* m_zoomedPlaneActors;
 
 	//number of elements per color
-	double m_BinRangeLength;
+	//double m_BinRangeLength;
 
 	std::map<vtkSmartPointer<vtkActor>, std::vector<vtkSmartPointer<vtkActor>>*>* originalPlaneZoomedPlanePair;
 
@@ -196,7 +190,7 @@ private:
 	//amount of bins that are drawn in the selected rows
 	int m_binsZoomed;
 	//minimal amount of bins
-	const int minBins = 10;
+	int minBins;
 	//maximal amount of bins
 	const int maxBins = 80;
 	//each dataset is one plane row

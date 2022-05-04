@@ -66,8 +66,10 @@ iACompHistogramCalculation::iACompHistogramCalculation(iACsvDataStorage* dataSto
 
 	m_maxVal = *result.second;
 	m_minVal = *result.first;
-}
 
+	dataStorage->setMaxVal(m_maxVal);
+	dataStorage->setMinVal(m_minVal);
+}
 
 void iACompHistogramCalculation::orderDataPointsByDatasetAffiliation(std::vector<double>* histbinlist)
 {
@@ -103,7 +105,7 @@ void iACompHistogramCalculation::calculateUniformBinning()
 	m_uniformBinning->calculateBins();
 	
 	//evaluate binning
-	//LOG(lvlDebug, "Uniform Binning");
+	LOG(lvlDebug, "Uniform Binning");
 	m_uniformBinning->calculateSilhouetteCoefficient(m_uniformBinningData);
 }
 
@@ -138,7 +140,7 @@ void iACompHistogramCalculation::calculateBayesianBlocks()
 	m_bayesianBlocks->calculateBins();
 
 	//evaluate binning
-	//LOG(lvlDebug, "Bayesian Blocks");
+	LOG(lvlDebug, "Bayesian Blocks");
 	m_bayesianBlocks->calculateSilhouetteCoefficient(m_bayesianBlocksData);
 }
 
@@ -161,7 +163,7 @@ void iACompHistogramCalculation::calculateNaturalBreaks()
 	m_naturalBreaks->calculateBins();
 
 	//evaluate binning
-	//LOG(lvlDebug, "Natural Breaks");
+	LOG(lvlDebug, "Natural Breaks");
 	m_naturalBreaks->calculateSilhouetteCoefficient(m_naturalBreaksData);
 }
 
@@ -169,7 +171,6 @@ iACompNaturalBreaksData* iACompHistogramCalculation::getNaturalBreaksData()
 {
 	return m_naturalBreaksData;
 }
-
 
 /******************************************  Kernel Density Estimation  **********************************/
 void iACompHistogramCalculation::calculateDensityEstimation()
@@ -193,6 +194,16 @@ void iACompHistogramCalculation::calculateDensityEstimation()
 	m_densityEstimation = new iACompKernelDensityEstimation(m_dataStorage, m_amountObjectsEveryDataset, m_datasets);
 	m_densityEstimation->setDataStructure(m_densityEstimationData);
 	m_densityEstimation->calculateCurve(m_uniformBinningData, m_bayesianBlocksData, m_naturalBreaksData);
+}
+
+void iACompHistogramCalculation::recalculateDensityEstimationUniformBinning()
+{
+	m_densityEstimationData->setNumberOfObjectsPerBinUB(m_uniformBinningData->getNumberOfObjectsPerBinAllDatasets());
+	m_densityEstimationData->setNumberOfObjectsPerBinUB(m_uniformBinningData->getNumberOfObjectsPerBinAllDatasets());
+	m_densityEstimationData->setBoundariesUB(m_uniformBinningData->getBinBoundaries());
+
+	m_densityEstimation->setDataStructure(m_densityEstimationData);
+	m_densityEstimation->calculateCurveUB(m_uniformBinningData);
 }
 
 iACompKernelDensityEstimationData* iACompHistogramCalculation::getKernelDensityEstimationData()

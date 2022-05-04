@@ -18,6 +18,7 @@ class iACompHistogramTable
    public:
 	/************************** Setter & Getter ***************************************/
 	iACsvDataStorage* getDataStorage();
+	void setDataStorage(iACsvDataStorage* storage);
 	iACompHistogramVis* getHistogramTableVis();
 
 	iACompUniformBinningData* getUniformBinningData();
@@ -42,17 +43,22 @@ class iACompHistogramTable
 	void drawDatasetsInDescendingOrder();
 	//draw the datasets with rows ordered according to loading the datasets
 	void drawDatasetsInOriginalOrder();
+	//deactivates the ordering button in the menu
+	void deactivateOrderingButton();
+	//activates the ordering button in the menu
+	void activateOrderingButton();
 
 	iACompHistogramTableData* recalculateBinning(iACompVisOptions::binningType binningType, int numberOfBins);
 	iACompHistogramTableData* calculateSpecificBins(
 		iACompVisOptions::binningType binningType, bin::BinType* data, int currBin, int amountOfBins);
+	iACompKernelDensityEstimationData* recomputeKernelDensityCurveUB();
 
 
 	//iACompHistogramTable(iAMainWindow* parent, iAMultidimensionalScaling* mds, iACsvDataStorage* m_dataStorage, iACompVisMain* main);
 	iACompHistogramTable(
 		iAMainWindow* parent, iACsvDataStorage* m_dataStorage, iACompVisMain* main, bool MDSComputedFlag);
 
-	void reinitializeHistogramTable(iAMultidimensionalScaling* newMds);
+	void reinitializeHistogramTable();
 
 	std::vector<int>* getAmountObjectsEveryDataset();
 
