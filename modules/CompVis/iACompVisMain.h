@@ -24,7 +24,11 @@
 
 #include "iACsvDataStorage.h"
 #include "dlg_VisMainWindow.h"
-//#include "iACompHistogramTableData.h"
+#include "iACompHistogramTableData.h"
+#include "vtkSmartPointer.h"
+
+//QT
+#include "qlist.h"
 
 class iAMultidimensionalScaling;
 class iACoefficientOfVariation;

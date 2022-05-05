@@ -53,7 +53,7 @@ auto dbscan(const std::vector<std::pair<float, float>>& data, float eps, int min
     using namespace nanoflann;
     using  my_kd_tree_t = KDTreeSingleIndexAdaptor<L2_Simple_Adaptor<float, decltype(adapt)>, decltype(adapt), 2>;
 
-    auto index = my_kd_tree_t(2, adapt, nanoflann::KDTreeSingleIndexAdaptorParams(10));
+    my_kd_tree_t index(2, adapt, nanoflann::KDTreeSingleIndexAdaptorParams(10));
     index.buildIndex();
 
     auto visited  = std::vector<bool>(data.size());

@@ -135,6 +135,7 @@ void iACompHistogramTable::reinitializeHistogramTable()
 	
 	//reinitalize visualization
 	histogramVis->reinitialize();
+	drawUniformTable();
 }
 
 std::vector<int>* iACompHistogramTable::getAmountObjectsEveryDataset()

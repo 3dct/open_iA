@@ -65,13 +65,7 @@ iACompHistogramVis::iACompHistogramVis(
 }
 void iACompHistogramVis::reinitialize()
 {
-	//m_orderOfIndicesDatasets = new std::vector<int>(m_amountDatasets, 0);
-	//m_originalOrderOfIndicesDatasets = new std::vector<int>(m_amountDatasets, 0);
-	//m_newOrderOfIndicesDatasets = new std::vector<int>(m_amountDatasets, 0);
-
 	initializeVisualization();
-
-	showAFresh();
 }
 
 void iACompHistogramVis::showEvent(QShowEvent* event)

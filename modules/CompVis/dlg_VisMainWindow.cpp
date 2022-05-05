@@ -29,11 +29,11 @@
 dlg_VisMainWindow::dlg_VisMainWindow(iACsvDataStorage* dataStorage, iAMultidimensionalScaling* mds, iAMainWindow* parent, iACompVisMain* main, bool computeMDSFlag) :
 	QMainWindow(parent), 
 	m_main(main),
-
 	m_dataStorage(dataStorage),
 	m_data(dataStorage->getData()), 
 	m_mds(mds),
-	m_computeMDSFlag(computeMDSFlag)
+	m_computeMDSFlag(computeMDSFlag),
+	m_failed(false)
 {
 	//setup iAMainWindow
 	parent->addSubWindow(this);

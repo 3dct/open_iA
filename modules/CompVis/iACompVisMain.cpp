@@ -58,7 +58,7 @@ void iACompVisMain::start(iAMainWindow* mainWin)
 	result->initializeCorrelationCoefficient();
 
 	//open iAMainWindow with its dockWidgets
-	result->m_mainW = new dlg_VisMainWindow(result->m_dataStorage, result->m_mds, mainWin, result, true);
+	result->m_mainW = new dlg_VisMainWindow(result->m_dataStorage, result->m_mds, mainWin, result, iACompVisOptions::getComputeMDS());
 
 	if (result->m_mainW->failed())
 	{
