@@ -197,7 +197,7 @@ void iACompCurve::makeLUTFromCTF()
 		{
 			min = low;
 		}
-		else if (i == m_tableSize - 1)
+		else if (i == m_tableSize - 1.0)
 		{
 			max = high;
 		}
@@ -277,7 +277,7 @@ void iACompCurve::makeLUTDarker()
 		{
 			min = low;
 		}
-		else if (i == m_tableSize - 1)
+		else if (i == m_tableSize - 1.0)
 		{
 			max = high;
 		}
@@ -482,12 +482,11 @@ void iACompCurve::drawHistogramTable()
 void iACompCurve::drawRow(int currDataInd, int currentColumn, double offset)
 {
 	kdeData::kdeBins currDataset = getActiveData()->at(currDataInd);
-	int numberOfBins = currDataset.size();
 
 	double min_x = 0.0;
 	double min_y = (m_vis->getColSize() * currentColumn) + offset;
 	double max_x = m_vis->getRowSize();
-	double max_y = (m_vis->getColSize() * (1+currentColumn)) + offset;
+	double max_y = (m_vis->getColSize() * (1.0+currentColumn)) + offset;
 	double drawingDimensions[4] = {min_x, max_x, min_y, max_y};
 
 	//draw border line
@@ -513,7 +512,6 @@ void iACompCurve::drawRow(int currDataInd, int currentColumn, double offset)
 	//add X Ticks
 	if (m_vis->getXAxis())
 	{
-		double drawingDimensions[4] = {min_x, max_x, min_y, max_y};
 		double yheight = min_y;
 		double tickLength = (max_y - min_y) * 0.05;
 		drawXTicks(drawingDimensions, yheight, tickLength);
@@ -524,17 +522,15 @@ void iACompCurve::drawCurveAndPolygon(double drawingDimensions[4], kdeData::kdeB
 	vtkSmartPointer<vtkPolyData> currBinPolyData, int currDataInd, int currentColumn, double offset)
 {
 	double min_x = drawingDimensions[0];
-	double max_x = drawingDimensions[1];
 	double min_y = drawingDimensions[2];
-	double max_y = drawingDimensions[3];
 
-	int numberOfBins = currDataset.size();
+	int numberOfBins = static_cast<int>(currDataset.size());
 
 	vtkSmartPointer<vtkPoints> curvePoints = vtkSmartPointer<vtkPoints>::New();
 	int numberOPoints = 0;
-	for (int i = 0; i < numberOfBins; i++)
+	for (auto i = 0; i < numberOfBins; i++)
 	{
-		numberOPoints = numberOPoints + currDataset.at(i).size();
+		numberOPoints = numberOPoints + static_cast<int>(currDataset.at(i).size());
 	}
 
 	vtkSmartPointer<vtkUnsignedCharArray> colorArray = vtkSmartPointer<vtkUnsignedCharArray>::New();
@@ -544,7 +540,7 @@ void iACompCurve::drawCurveAndPolygon(double drawingDimensions[4], kdeData::kdeB
 	for (int binId = 0; binId < numberOfBins; binId++)
 	{
 		int numberOfObjectsForColor = (int)getNumberOfObjectsOfActiveData()->at(currDataInd).at(binId);
-		int numberOfObjects = currDataset.at(binId).size();
+		int numberOfObjects = static_cast<int>(currDataset.at(binId).size());
 		double binXMin = currBinPolyData->GetPointData()->GetArray("originArray")->GetTuple3(binId)[0];
 		double binXMax = currBinPolyData->GetPointData()->GetArray("point1Array")->GetTuple3(binId)[0];
 
@@ -649,10 +645,10 @@ void iACompCurve::drawCurveAndPolygon(double drawingDimensions[4], kdeData::kdeB
 			double nextPoint[3] = {0.0, min_y, 0.0};
 
 			vtkSmartPointer<vtkPoints> pointsOfNextSegment = vtkSmartPointer<vtkPoints>::New();
-			bool nextSegmentIsAvailable = (binId < (numberOfBins - 1)) && (currDataset.at(binId + 1).size() != 0);
+			bool nextSegmentIsAvailable = (binId < (numberOfBins - 1.0)) && (currDataset.at(binId + 1.0).size() != 0);
 			if (nextSegmentIsAvailable)
 			{
-				computePoints(&currDataset.at(binId + 1), currentColumn, offset, pointsOfNextSegment);
+				computePoints(&currDataset.at(binId + 1.0), currentColumn, offset, pointsOfNextSegment);
 				for (int nP = 0; nP < pointsOfNextSegment->GetNumberOfPoints(); nP++)
 				{
 					nextPoint[0] = pointsOfNextSegment->GetPoint(0)[0];
@@ -804,7 +800,7 @@ void iACompCurve::drawPolygon(vtkSmartPointer<vtkPoints> curvePoints, vtkSmartPo
 		double currPoint[3];
 		curvePoints->GetPoint(i, currPoint);
 		double nextPoint[3];
-		curvePoints->GetPoint(vtkIdType(i + 1), nextPoint);
+		curvePoints->GetPoint(vtkIdType(i + 1.0), nextPoint);
 
 		currBinCurvePoints->InsertPoint(0, currPoint);
 		currBinCurvePoints->InsertPoint(1, nextPoint);
@@ -814,7 +810,7 @@ void iACompCurve::drawPolygon(vtkSmartPointer<vtkPoints> curvePoints, vtkSmartPo
 
 		vtkNew<vtkPolygon> polygon;
 		polygon->GetPointIds()->SetNumberOfIds(numberOfPointsFormingBin);
-		for (unsigned int j = 0; j < numberOfPointsFormingBin; j++)
+		for (int j = 0; j < numberOfPointsFormingBin; j++)
 		{
 			polygon->GetPointIds()->SetId(j, j);
 		}
@@ -1006,7 +1002,8 @@ void iACompCurve::colorCurve(vtkSmartPointer<vtkPoints> points, vtkSmartPointer<
 
 	for (int pointId = 0; pointId < points->GetNumberOfPoints(); pointId++)
 	{
-		double* rgb = computeColor(numberOfObjects);
+		double rgb[3];
+		computeColor(numberOfObjects, rgb);
 
 		unsigned char ucrgb[3];
 		iACompVisOptions::getColorArray3(rgb, ucrgb);
@@ -1019,7 +1016,8 @@ void iACompCurve::colorPolygon(
 {
 	for (int pointId = 0; pointId < points->GetNumberOfPoints(); pointId++)
 	{
-		double* rgb = computeColor((double) numberOfObjectsInsideBin);
+		double rgb[3];
+		computeColor((double) numberOfObjectsInsideBin, rgb);
 
 		double rgba[4] = {
 			rgb[0],
@@ -1034,10 +1032,10 @@ void iACompCurve::colorPolygon(
 	}
 }
 
-double* iACompCurve::computeColor(double numberOfObjects)
+double* iACompCurve::computeColor(double numberOfObjects, double result[3])
 {
 	double rgb[3] = {0.0, 0.0, 0.0};
-	double* rgbBorder;
+	double* rgbBorder = nullptr;
 
 	double maxNumber = m_lut->GetRange()[1];
 	double minNumber = m_lut->GetRange()[0];
@@ -1082,21 +1080,26 @@ double* iACompCurve::computeColor(double numberOfObjects)
 		}
 	}
 
-	double* result;
 	if(isBorder)
 	{
-		return rgbBorder;
+		result[0] = rgbBorder[0];
+		result[1] = rgbBorder[1];
+		result[2] = rgbBorder[2];
 	}
 	else
 	{
-		return rgb;
+		result[0] = rgb[0];
+		result[1] = rgb[1];
+		result[2] = rgb[2];
 	}
+
+	return result;
 }
 
 void iACompCurve::computePoints(
 	kdeData::kdeBin* currBinData, int currentColumn, double offset, vtkSmartPointer<vtkPoints> points)
 {
-	int numberOfPoints = currBinData->size();
+	int numberOfPoints = static_cast<int>(currBinData->size());
 
 	//drawing positions of square where the line should be drawn inbetween
 	double min_x = 0.0;
@@ -1187,7 +1190,7 @@ void iACompCurve::drawBarChartShowingAmountOfObjects(std::vector<int> amountObje
 }
 
 /****************************************** Update THIS **********************************************/
-void iACompCurve::showSelectionOfCorrelationMap(std::map<int, double>* dataIndxSelectedType)
+void iACompCurve::showSelectionOfCorrelationMap(std::map<int, double>*)
 {
 }
 
@@ -1196,12 +1199,12 @@ void iACompCurve::removeSelectionOfCorrelationMap()
 }
 
 /****************************************** Interaction Picking **********************************************/
-void iACompCurve::highlightSelectedCell(vtkSmartPointer<vtkActor> pickedActor, vtkIdType pickedCellId)
+void iACompCurve::highlightSelectedCell(vtkSmartPointer<vtkActor>, vtkIdType)
 {
 }
 
 std::tuple<QList<bin::BinType*>*, QList<std::vector<csvDataType::ArrayType*>*>*> iACompCurve::getSelectedData(
-	Pick::PickedMap* map)
+	Pick::PickedMap*)
 {
 	auto tuple = std::make_tuple(nullptr, nullptr);
 	return tuple;

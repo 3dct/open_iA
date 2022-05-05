@@ -1,7 +1,7 @@
 /*************************************  open_iA  ************************************ *
 * **********   A tool for visual analysis and processing of 3D CT images   ********** *
 * *********************************************************************************** *
-* Copyright (C) 2016-2021  C. Heinzl, M. Reiter, A. Reh, W. Li, M. Arikan, Ar. &  Al. *
+* Copyright (C) 2016-2022  C. Heinzl, M. Reiter, A. Reh, W. Li, M. Arikan, Ar. &  Al. *
 *                 Amirkhanov, J. Weissenböck, B. Fröhler, M. Schiwarth, P. Weinberger *
 * *********************************************************************************** *
 * This program is free software: you can redistribute it and/or modify it under the   *
@@ -67,17 +67,15 @@ void iASampleBuiltInFilterOperation::performWork()
 	assert(m_input.size() == m_inputFileNames.size());
 	for (int i=0; i<m_input.size(); ++i)
 	{
-		filter->addInput(m_input[i], m_inputFileNames[i]);
+		filter->addInput(m_input[i]->vtkImage(), m_inputFileNames[i]);
 	}
-	iAProgress p;	// dummy progress swallowing progress from filter which we don't want to propagate
-	filter->setProgress(&p);
 	filter->setLogger(m_logger);
 	filter->run(m_parameters);
 	// adapted from iACommandLineProcessor; maybe this could be merged?
-	for (int o = 0; o < filter->output().size(); ++o)
+	for (size_t o = 0; o < filter->finalOutputCount(); ++o)
 	{
 		QString outFileName;
-		if (filter->output().size() == 1)
+		if (filter->finalOutputCount() == 1)
 		{
 			outFileName = m_outputFileName;
 		}
@@ -94,9 +92,12 @@ void iASampleBuiltInFilterOperation::performWork()
 				"Check 'Overwrite output' to overwrite existing files.").arg(outFileName));
 			return;
 		}
-		LOG(lvlInfo, QString("Writing output %1 to file: '%2' (compression: %3)")
-				.arg(o).arg(outFileName).arg(m_compressOutput ? "on" : "off"))
-		iAITKIO::writeFile(outFileName, filter->output()[o]->itkImage(), filter->output()[o]->itkScalarPixelType(), m_compressOutput);
+		LOG(lvlInfo,
+			QString("Writing output %1 to file: '%2' (compression: %3)")
+				.arg(o)
+				.arg(outFileName)
+				.arg(m_compressOutput ? "on" : "off"));
+		iAITKIO::writeFile(outFileName, filter->output(o)->itkImage(), filter->output(o)->itkScalarPixelType(), m_compressOutput);
 	}
 	/*
 	// required options:

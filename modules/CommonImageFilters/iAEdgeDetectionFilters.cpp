@@ -1,7 +1,7 @@
 /*************************************  open_iA  ************************************ *
 * **********   A tool for visual analysis and processing of 3D CT images   ********** *
 * *********************************************************************************** *
-* Copyright (C) 2016-2021  C. Heinzl, M. Reiter, A. Reh, W. Li, M. Arikan, Ar. &  Al. *
+* Copyright (C) 2016-2022  C. Heinzl, M. Reiter, A. Reh, W. Li, M. Arikan, Ar. &  Al. *
 *                 Amirkhanov, J. Weissenböck, B. Fröhler, M. Schiwarth, P. Weinberger *
 * *********************************************************************************** *
 * This program is free software: you can redistribute it and/or modify it under the   *
@@ -39,7 +39,7 @@ void canny_edge_detection(iAFilter* filter, QMap<QString, QVariant> const & para
 {
 	using EdgeDetectionType = itk::CannyEdgeDetectionImageFilter<RealImageType, RealImageType>;
 
-	auto inImg = castImageTo<RealPixelType>(filter->input()[0]->itkImage());
+	auto inImg = castImageTo<RealPixelType>(filter->input(0)->itkImage());
 	auto canny = EdgeDetectionType::New();
 	canny->SetVariance(parameters["Variance"].toDouble());
 	canny->SetMaximumError(parameters["Maximum error"].toDouble());
@@ -81,7 +81,7 @@ void sobel_edge_detection(iAFilter* filter, QMap<QString, QVariant> const& param
 	Q_UNUSED(parameters);
 	using EdgeDetectionType = itk::SobelEdgeDetectionImageFilter<RealImageType, RealImageType> ;
 
-	auto inImg = castImageTo<RealPixelType>(filter->input()[0]->itkImage());
+	auto inImg = castImageTo<RealPixelType>(filter->input(0)->itkImage());
 	auto edgeDetector = EdgeDetectionType::New();
 	edgeDetector->SetInput(dynamic_cast<RealImageType*>(inImg.GetPointer()));
 	filter->progress()->observe(edgeDetector);

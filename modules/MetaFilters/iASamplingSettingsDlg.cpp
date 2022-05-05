@@ -1,7 +1,7 @@
 /*************************************  open_iA  ************************************ *
 * **********   A tool for visual analysis and processing of 3D CT images   ********** *
 * *********************************************************************************** *
-* Copyright (C) 2016-2021  C. Heinzl, M. Reiter, A. Reh, W. Li, M. Arikan, Ar. &  Al. *
+* Copyright (C) 2016-2022  C. Heinzl, M. Reiter, A. Reh, W. Li, M. Arikan, Ar. &  Al. *
 *                 Amirkhanov, J. Weissenböck, B. Fröhler, M. Schiwarth, P. Weinberger *
 * *********************************************************************************** *
 * This program is free software: you can redistribute it and/or modify it under the   *
@@ -847,10 +847,10 @@ void iASamplingSettingsDlg::runClicked()
 				if (mainWnd)
 				{
 					auto child = mainWnd->activeMdiChild();
-					int curChildInputCount = child->modalities()->size();
-					int childCount = mainWnd->mdiChildList().size();
-					int inputCount = (curChildInputCount + childCount - 1);
-					if (filter->requiredInputs() > inputCount)
+					int const curChildInputCount = child->modalities()->size();
+					int const childCount = mainWnd->mdiChildList().size();
+					int const inputCount = (curChildInputCount + childCount - 1);
+					if (static_cast<int>(filter->requiredInputs()) > inputCount)
 					{
 						msg += QString("Filter requires more inputs (%1) "
 							"than the number of datasets currently loaded (%2)!\n")

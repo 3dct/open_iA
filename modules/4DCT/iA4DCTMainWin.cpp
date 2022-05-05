@@ -1,7 +1,7 @@
 /*************************************  open_iA  ************************************ *
 * **********   A tool for visual analysis and processing of 3D CT images   ********** *
 * *********************************************************************************** *
-* Copyright (C) 2016-2021  C. Heinzl, M. Reiter, A. Reh, W. Li, M. Arikan, Ar. &  Al. *
+* Copyright (C) 2016-2022  C. Heinzl, M. Reiter, A. Reh, W. Li, M. Arikan, Ar. &  Al. *
 *                 Amirkhanov, J. Weissenböck, B. Fröhler, M. Schiwarth, P. Weinberger *
 * *********************************************************************************** *
 * This program is free software: you can redistribute it and/or modify it under the   *
@@ -126,7 +126,7 @@ void iA4DCTMainWin::addButtonClick( )
 
 void iA4DCTMainWin::openVisualizationWin( )
 {
-	iAMainWindow * mainWin = qobject_cast<iAMainWindow*>( qApp->activeWindow( ) );
+	iAMainWindow* mainWin = qobject_cast<iAMainWindow*>(QApplication::activeWindow());
 	iA4DCTVisWin* visWin = new iA4DCTVisWin( this );
 	visWin->setImageSize( m_size );
 	visWin->setNumberOfStages( m_stages.size( ) );

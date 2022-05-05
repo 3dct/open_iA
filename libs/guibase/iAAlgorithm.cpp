@@ -1,7 +1,7 @@
 /*************************************  open_iA  ************************************ *
 * **********   A tool for visual analysis and processing of 3D CT images   ********** *
 * *********************************************************************************** *
-* Copyright (C) 2016-2021  C. Heinzl, M. Reiter, A. Reh, W. Li, M. Arikan, Ar. &  Al. *
+* Copyright (C) 2016-2022  C. Heinzl, M. Reiter, A. Reh, W. Li, M. Arikan, Ar. &  Al. *
 *                 Amirkhanov, J. Weissenböck, B. Fröhler, M. Schiwarth, P. Weinberger *
 * *********************************************************************************** *
 * This program is free software: you can redistribute it and/or modify it under the   *
@@ -31,7 +31,6 @@
 
 iAAlgorithm::iAAlgorithm( QString fn, vtkImageData* idata, vtkPolyData* p, iALogger * logger, QObject *parent )
 	: QThread( parent ),
-	m_isRunning(false),
 	m_filterName(fn),
 	m_image(idata),
 	m_polyData(p),
@@ -102,12 +101,10 @@ void iAAlgorithm::setImageData(vtkImageData* imgData)
 void iAAlgorithm::Start()
 {
 	m_time.start();
-	m_isRunning = true;
 }
 
 int iAAlgorithm::Stop()
 {
-	m_isRunning = false;
 	return m_time.elapsed();
 }
 

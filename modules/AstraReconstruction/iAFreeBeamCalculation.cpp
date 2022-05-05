@@ -1,7 +1,7 @@
 /*************************************  open_iA  ************************************ *
 * **********   A tool for visual analysis and processing of 3D CT images   ********** *
 * *********************************************************************************** *
-* Copyright (C) 2016-2021  C. Heinzl, M. Reiter, A. Reh, W. Li, M. Arikan, Ar. &  Al. *
+* Copyright (C) 2016-2022  C. Heinzl, M. Reiter, A. Reh, W. Li, M. Arikan, Ar. &  Al. *
 *                 Amirkhanov, J. Weissenböck, B. Fröhler, M. Schiwarth, P. Weinberger *
 * *********************************************************************************** *
 * This program is free software: you can redistribute it and/or modify it under the   *
@@ -41,9 +41,9 @@ void freeBeamCalculation(QMap<QString, QVariant> const & params, iAFilter* filte
 	double I0 = params["Manual I0"].toDouble();
 	typedef itk::Image< InPixelType, DIM > InputImageType;
 	typedef itk::Image< OutPixelType, DIM > OutputImageType;
-	const typename OutputImageType::SpacingType& outputSpacing = dynamic_cast<InputImageType *>(filter->input()[0]->itkImage())->GetSpacing();
-	const typename OutputImageType::PointType& outputOrigin = dynamic_cast<InputImageType *>(filter->input()[0]->itkImage())->GetOrigin();
-	typename OutputImageType::RegionType outputRegion = dynamic_cast<InputImageType *>(filter->input()[0]->itkImage())->GetLargestPossibleRegion();
+	const typename OutputImageType::SpacingType& outputSpacing = dynamic_cast<InputImageType *>(filter->input(0)->itkImage())->GetSpacing();
+	const typename OutputImageType::PointType& outputOrigin = dynamic_cast<InputImageType *>(filter->input(0)->itkImage())->GetOrigin();
+	typename OutputImageType::RegionType outputRegion = dynamic_cast<InputImageType *>(filter->input(0)->itkImage())->GetLargestPossibleRegion();
 	typename OutputImageType::Pointer outputImage = OutputImageType::New();
 	outputImage->SetRegions(outputRegion);
 	outputImage->SetSpacing(outputSpacing);
@@ -69,11 +69,11 @@ void freeBeamCalculation(QMap<QString, QVariant> const & params, iAFilter* filte
 		typename EIFType::InputImageRegionType::SizeType roiSize;
 		roiSize[0] = params["Size X"].toUInt();
 		roiSize[1] = params["Size Y"].toUInt();
-		roiSize[2] =  filter->input()[0]->itkImage()->GetLargestPossibleRegion().GetSize()[2];
+		roiSize[2] =  filter->input(0)->itkImage()->GetLargestPossibleRegion().GetSize()[2];
 		typename EIFType::InputImageRegionType::IndexType roiIndex;
 		roiIndex[0] = params["Index X"].toUInt(); roiIndex[1] = params["Index Y"].toUInt(); roiIndex[2] = 0;
 		typename EIFType::InputImageRegionType roiRegion; roiRegion.SetIndex(roiIndex); roiRegion.SetSize(roiSize);
-		roiFilter->SetInput(dynamic_cast<InputImageType *>(filter->input()[0]->itkImage()));
+		roiFilter->SetInput(dynamic_cast<InputImageType *>(filter->input(0)->itkImage()));
 		roiFilter->SetExtractionRegion(roiRegion);
 		roiFilter->Update();
 
@@ -100,8 +100,8 @@ void freeBeamCalculation(QMap<QString, QVariant> const & params, iAFilter* filte
 		inputROIIt.SetFirstDirection(direction[1]);
 		inputROIIt.SetSecondDirection(direction[0]);
 		outputROISliceIt.SetDirection(1 - direction[0]);
-		SliceConstIteratorType inputIt(dynamic_cast<InputImageType *>(filter->input()[0]->itkImage()),
-			dynamic_cast<InputImageType *>(filter->input()[0]->itkImage())->GetLargestPossibleRegion());
+		SliceConstIteratorType inputIt(dynamic_cast<InputImageType *>(filter->input(0)->itkImage()),
+			dynamic_cast<InputImageType *>(filter->input(0)->itkImage())->GetLargestPossibleRegion());
 		SliceIteratorType outputIt(outputImage, outputImage->GetLargestPossibleRegion());
 		inputIt.SetFirstDirection(direction[1]);
 		inputIt.SetSecondDirection(direction[0]);
@@ -158,7 +158,7 @@ void freeBeamCalculation(QMap<QString, QVariant> const & params, iAFilter* filte
 	}
 	else
 	{
-		auto img = dynamic_cast<InputImageType *>(filter->input()[0]->itkImage());
+		auto img = dynamic_cast<InputImageType *>(filter->input(0)->itkImage());
 		typedef itk::ImageRegionConstIterator< InputImageType > InputIteratorType;
 		typedef itk::ImageRegionIterator< OutputImageType > OutputIteratorType;
 		InputIteratorType inputIt(img, img->GetLargestPossibleRegion());

@@ -1,7 +1,7 @@
 /*************************************  open_iA  ************************************ *
 * **********   A tool for visual analysis and processing of 3D CT images   ********** *
 * *********************************************************************************** *
-* Copyright (C) 2016-2021  C. Heinzl, M. Reiter, A. Reh, W. Li, M. Arikan, Ar. &  Al. *
+* Copyright (C) 2016-2022  C. Heinzl, M. Reiter, A. Reh, W. Li, M. Arikan, Ar. &  Al. *
 *                 Amirkhanov, J. Weissenböck, B. Fröhler, M. Schiwarth, P. Weinberger *
 * *********************************************************************************** *
 * This program is free software: you can redistribute it and/or modify it under the   *
@@ -77,9 +77,9 @@ namespace
 		}
 		typedef itk::Image<T, DIM> InputImageType;
 		typedef itk::Image<double, DIM> OutputImageType;
-		auto size = dynamic_cast<InputImageType*>(patchFilter->input()[0]->itkImage())->GetLargestPossibleRegion().GetSize();
+		auto size = dynamic_cast<InputImageType*>(patchFilter->input(0)->itkImage())->GetLargestPossibleRegion().GetSize();
 		//LOG(lvlInfo, QString("Size: (%1, %2, %3)").arg(size[0]).arg(size[1]).arg(size[2]));
-		auto inputSpacing = dynamic_cast<InputImageType*>(patchFilter->input()[0]->itkImage())->GetSpacing();
+		auto inputSpacing = dynamic_cast<InputImageType*>(patchFilter->input(0)->itkImage())->GetSpacing();
 
 		QStringList filterParamStrs = splitPossiblyQuotedString(parameters["Parameters"].toString());
 		if (filter->parameters().size() != filterParamStrs.size())
@@ -97,7 +97,7 @@ namespace
 
 		QVector<iAConnector*> inputImages;
 		inputImages.push_back(new iAConnector);
-		inputImages[0]->setImage(patchFilter->input()[0]->itkImage());
+		inputImages[0]->setImage(patchFilter->input(0)->itkImage());
 		QVector<iAConnector*> smallImageInput;
 		smallImageInput.push_back(new iAConnector);
 		// TODO: read from con array?
@@ -113,7 +113,6 @@ namespace
 			smallImageInput.push_back(new iAConnector);
 		}
 
-		iAProgress dummyProgress;
 		QStringList outputBuffer;
 
 		int curOp = 0;
@@ -153,7 +152,6 @@ namespace
 			}
 		}
 		filter->setLogger(patchFilter->logger());
-		filter->setProgress(&dummyProgress);
 		// iterate over all patches:
 		itk::Index<DIM> outIdx; outIdx[0] = 0;
 		for (size_t x = 0; x < size[0] && !patchFilter->isAborted(); x += stepSize[0])
@@ -201,20 +199,19 @@ namespace
 						filter->clearInput();
 						for (int i = 0; i < smallImageInput.size(); ++i)
 						{  // maybe modify original filename to reflect that only a patch of it is passed on?
-							filter->addInput(smallImageInput[i], patchFilter->fileNames()[i]);
+							filter->addInput(smallImageInput[i]->itkImage(), patchFilter->fileNames()[i]);
 						}
 						filter->run(filterParams);
 
 						// get output images and values from filter:
-						int outputCount = std::max(filter->outputCount(), static_cast<int>(filter->output().size()));
-						for (int o = 0; o < outputCount; ++o)
+						for (size_t o = 0; o < filter->finalOutputCount(); ++o)
 						{
 							QFileInfo fi(parameters["Output image base name"].toString());
 							QString outFileName = QString("%1/%2-patch%3%4.%5")
 								.arg(fi.absolutePath())
 								.arg(fi.baseName())
 								.arg(curOp)
-								.arg(filter->outputCount() == 1 ? "" : "-"+filter->outputName(o))
+								.arg(filter->finalOutputCount() == 1 ? "" : "-"+filter->outputName(o))
 								.arg(fi.completeSuffix());
 							if (QFile::exists(outFileName))
 							{
@@ -229,7 +226,7 @@ namespace
 										.arg(spnContinueOnError).toStdString());
 								}
 							}
-							storeImage(filter->output()[o]->itkImage(), outFileName, compress);
+							storeImage(filter->output(o)->itkImage(), outFileName, compress);
 						}
 						if (filter->outputValues().size() > 0)
 						{
@@ -330,8 +327,7 @@ iAPatchFilter::iAPatchFilter():
 		.arg(spnFilter)
 		.arg(spnCompressOutput)
 		.arg(spnContinueOnError)
-		, 1, 0),
-	m_aborted(false)
+		, 1, 0, true)
 {
 	addParameter("Patch size X", iAValueType::Discrete, 1, 1);
 	addParameter("Patch size Y", iAValueType::Discrete, 1, 1);
@@ -354,21 +350,6 @@ iAPatchFilter::iAPatchFilter():
 void iAPatchFilter::performWork(QMap<QString, QVariant> const & parameters)
 {
 	ITK_TYPED_CALL(patch, inputPixelType(), this, parameters);
-}
-
-void iAPatchFilter::abort()
-{
-	m_aborted = true;
-}
-
-bool iAPatchFilter::canAbort() const
-{
-	return true;
-}
-
-bool iAPatchFilter::isAborted() const
-{
-	return m_aborted;
 }
 
 IAFILTER_CREATE(iAPatchFilter);

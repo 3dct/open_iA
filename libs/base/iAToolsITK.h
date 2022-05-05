@@ -1,7 +1,7 @@
 /*************************************  open_iA  ************************************ *
 * **********   A tool for visual analysis and processing of 3D CT images   ********** *
 * *********************************************************************************** *
-* Copyright (C) 2016-2021  C. Heinzl, M. Reiter, A. Reh, W. Li, M. Arikan, Ar. &  Al. *
+* Copyright (C) 2016-2022  C. Heinzl, M. Reiter, A. Reh, W. Li, M. Arikan, Ar. &  Al. *
 *                 Amirkhanov, J. Weissenböck, B. Fröhler, M. Schiwarth, P. Weinberger *
 * *********************************************************************************** *
 * This program is free software: you can redistribute it and/or modify it under the   *
@@ -223,9 +223,8 @@ iAITKIO::ImagePointer castImageTo(iAITKIO::ImagePointer img)
 			LOG(lvlError, "Invalid/Unknown itk pixel datatype in rescale!");
 #if __cplusplus >= 201703L
 			[[fallthrough]];
-#else
-			/* fall through */
 #endif
+			// fall through
 		case itk::ImageIOBase::DOUBLE:
 			return internalCastImageTo<itk::Image<double, 3>, itk::Image<ResultPixelType, 3> >(img);
 	}
@@ -276,10 +275,9 @@ iAITKIO::ImagePointer rescaleImageTo(iAITKIO::ImagePointer img, double min, doub
 	default:
 		LOG(lvlError, "Invalid/Unknown itk pixel datatype in rescale!");
 #if __cplusplus >= 201703L
-			[[fallthrough]];
-#else
-			/* fall through */
+		[[fallthrough]];
 #endif
+		// fall through
 	case itk::ImageIOBase::DOUBLE:
 		return internalRescaleImageTo<itk::Image<double, 3>, itk::Image<ResultPixelType, 3> >(img, min, max);
 	}

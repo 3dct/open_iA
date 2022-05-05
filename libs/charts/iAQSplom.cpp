@@ -1,7 +1,7 @@
 /*************************************  open_iA  ************************************ *
 * **********   A tool for visual analysis and processing of 3D CT images   ********** *
 * *********************************************************************************** *
-* Copyright (C) 2016-2021  C. Heinzl, M. Reiter, A. Reh, W. Li, M. Arikan, Ar. &  Al. *
+* Copyright (C) 2016-2022  C. Heinzl, M. Reiter, A. Reh, W. Li, M. Arikan, Ar. &  Al. *
 *                 Amirkhanov, J. Weissenböck, B. Fröhler, M. Schiwarth, P. Weinberger *
 * *********************************************************************************** *
 * This program is free software: you can redistribute it and/or modify it under the   *
@@ -38,7 +38,7 @@
 
 #include <QAbstractTextDocumentLayout>
 #include <QActionGroup>
-#include <QApplication>    // for qApp->palette()
+#include <QApplication>
 #include <QColorDialog>
 #include <QFileDialog>
 #include <QListWidgetItem>
@@ -299,7 +299,7 @@ iAQSplom::iAQSplom(QWidget * parent):
 	connect(m_settingsDlg->rbContinuous, &QRadioButton::toggled, this, &iAQSplom::setContinousParamMode);
 	connect(m_settingsDlg->rbQualitative, &QRadioButton::toggled, this, &iAQSplom::setQualitativeParamMode);
 	connect(m_settingsDlg->cbColorRangeMode, QOverload<int>::of(&QComboBox::currentIndexChanged), this, &iAQSplom::colorRangeModeChanged);
-	m_settingsDlg->cbColorTheme->addItems(iALUT::GetColorMapNames());
+	m_settingsDlg->cbColorTheme->addItems(iALUT::colorMapNames());
 	m_settingsDlg->cbColorThemeQual->addItems(iAColorThemeManager::instance().availableThemes());
 	m_settingsDlg->cbColorThemeQual->setCurrentIndex(1); // to avoid "Black" default theme
 	connect(m_settingsDlg->cbColorTheme, QOverload<int>::of(&QComboBox::currentIndexChanged), this, &iAQSplom::setColorThemeFromComboBox);
@@ -948,7 +948,7 @@ void iAQSplom::paintEvent(QPaintEvent* event)
 	QColor bgColor(settings.backgroundColor);
 	if (!bgColor.isValid())
 	{
-		bgColor = qApp->palette().color(QWidget::backgroundRole());
+		bgColor = QApplication::palette().color(QWidget::backgroundRole());
 	}
 
 #ifdef CHART_OPENGL
@@ -960,7 +960,7 @@ void iAQSplom::paintEvent(QPaintEvent* event)
 	Q_UNUSED(event);
 	painter.fillRect(rect(), bgColor);
 #endif
-	painter.setPen(qApp->palette().color(QPalette::Text));
+	painter.setPen(QApplication::palette().color(QPalette::Text));
 	if (m_visiblePlots.size() < 2)
 	{
 		painter.drawText(geometry(), Qt::AlignCenter, "Too few parameters selected!");
@@ -1037,7 +1037,7 @@ void iAQSplom::paintEvent(QPaintEvent* event)
 	{
 		return;
 	}
-	painter.setPen(qApp->palette().color(QPalette::Text));
+	painter.setPen(QApplication::palette().color(QPalette::Text));
 	// Draw scalar bar:
 	// maybe reuse code from iALinearColorGradientBar (DynamicVolumeLines)
 	QPoint topLeft = getMaxRect().topLeft();
@@ -1089,6 +1089,7 @@ void iAQSplom::paintEvent(QPaintEvent* event)
 #if __cplusplus >= 201703L
 		[[fallthrough]];
 #endif
+		// fall through
 	case cmByParameter  : scalarBarCaption = m_splomData->parameterName(m_colorLookupParam); break;
 	default:              scalarBarCaption = "Unknown"; break;
 	}
@@ -1550,7 +1551,7 @@ void iAQSplom::drawTicks( QPainter & painter, QList<double> const & ticksX, QLis
 {
 	painter.save();
 	//painter.setPen( m_visiblePlots[1][0]->settings.tickLabelColor );
-	painter.setPen(qApp->palette().color(QPalette::Text));
+	painter.setPen(QApplication::palette().color(QPalette::Text));
 	QPoint * tOfs = &settings.tickOffsets;
 	long tSpc = settings.tickLabelsOffset;
 	for( long i = 0; i < ticksY.size(); ++i )
@@ -1637,6 +1638,7 @@ void iAQSplom::updateLookupTable()
 #if __cplusplus >= 201703L
 			[[fallthrough]];
 #endif
+			// fall through
 		case cmCustom:
 			m_lut->setOpacity(alpha);
 	}

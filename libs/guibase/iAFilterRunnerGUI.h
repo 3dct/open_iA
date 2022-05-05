@@ -1,7 +1,7 @@
 /*************************************  open_iA  ************************************ *
 * **********   A tool for visual analysis and processing of 3D CT images   ********** *
 * *********************************************************************************** *
-* Copyright (C) 2016-2021  C. Heinzl, M. Reiter, A. Reh, W. Li, M. Arikan, Ar. &  Al. *
+* Copyright (C) 2016-2022  C. Heinzl, M. Reiter, A. Reh, W. Li, M. Arikan, Ar. &  Al. *
 *                 Amirkhanov, J. Weissenböck, B. Fröhler, M. Schiwarth, P. Weinberger *
 * *********************************************************************************** *
 * This program is free software: you can redistribute it and/or modify it under the   *
@@ -23,12 +23,12 @@
 #include "iAguibase_export.h"
 
 #include "iAAbortListener.h"
-#include "iAAlgorithm.h"
 
 #include <vtkSmartPointer.h>
 
 #include <QMap>
 #include <QSharedPointer>
+#include <QThread>
 #include <QVariant>
 #include <QVector>
 
@@ -42,20 +42,23 @@ class vtkImageData;
 //!
 //! Used in iAFilterRunnerGUI::run (see below) as thread to run a descendant of iAFilter inside its
 //! own thread
-class iAguibase_API iAFilterRunnerGUIThread : public iAAlgorithm, public iAAbortListener
+//! needs to be in the .h file so that moc'ing it works.
+class iAguibase_API iAFilterRunnerGUIThread : public QThread, public iAAbortListener
 {
 	Q_OBJECT
 public:
-	iAFilterRunnerGUIThread(QSharedPointer<iAFilter> filter,
-		QMap<QString, QVariant> paramValues, iAMdiChild* mdiChild, QString const& fileName);
-	void performWork() override;
+	iAFilterRunnerGUIThread(QSharedPointer<iAFilter> filter, QMap<QString, QVariant> paramValues, iAMdiChild* sourceMDI);
+	void run() override;
 	QSharedPointer<iAFilter> filter();
 	void addInput(vtkImageData* img, QString const& fileName);
+	size_t inputCount() const;
 	void abort() override;
+	iAMdiChild* sourceMDI();
+
 private:
 	QSharedPointer<iAFilter> m_filter;
 	QMap<QString, QVariant> m_paramValues;
-	QVector<QString> m_fileNames;
+	iAMdiChild* m_sourceMDI;
 	bool m_aborted;
 };
 
@@ -116,12 +119,6 @@ public:
 	//!     by the user
 	virtual void storeParameters(QSharedPointer<iAFilter> filter, QMap<QString, QVariant> & paramValues);
 
-	//! Connect the filter thread to the appropriate signals. If you override this,
-	//! you probably will want to still make sure to call this method to make sure
-	//! the result gets updated in the mdi child
-	//! @param mdiChild the child window into which the results should go
-	//! @param thread the thread used to run the filter
-	virtual void connectThreadSignals(iAMdiChild* mdiChild, iAFilterRunnerGUIThread* thread);
 private slots:
 	void filterFinished();
 signals:

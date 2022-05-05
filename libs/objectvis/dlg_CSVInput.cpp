@@ -1,7 +1,7 @@
 /*************************************  open_iA  ************************************ *
 * **********   A tool for visual analysis and processing of 3D CT images   ********** *
 * *********************************************************************************** *
-* Copyright (C) 2016-2021  C. Heinzl, M. Reiter, A. Reh, W. Li, M. Arikan, Ar. &  Al. *
+* Copyright (C) 2016-2022  C. Heinzl, M. Reiter, A. Reh, W. Li, M. Arikan, Ar. &  Al. *
 *                 Amirkhanov, J. Weissenböck, B. Fröhler, M. Schiwarth, P. Weinberger *
 * *********************************************************************************** *
 * This program is free software: you can redistribute it and/or modify it under the   *
@@ -37,12 +37,9 @@
 namespace
 {
 	//Names for registry
-	static const QString DefaultFormat = "DefaultFormat";
-	static const QString AdvancedMode = "AdvancedMode";
-}
+	const QString DefaultFormat = "DefaultFormat";
+	const QString AdvancedMode = "AdvancedMode";
 
-namespace
-{
 	QStringList const & ColumnSeparators()
 	{
 		static QStringList colSeparators;
@@ -56,6 +53,16 @@ namespace
 	const char* NotMapped = "Not mapped";
 
 	static const QString IniFormatName = "FormatName";
+
+	QStringList getComboBoxItems(QComboBox* cmbbox)
+	{
+		QStringList itemsInComboBox;
+		for (int i = 0; i < cmbbox->count(); i++)
+		{
+			itemsInComboBox << cmbbox->itemText(i);
+		}
+		return itemsInComboBox;
+	}
 }
 
 dlg_CSVInput::dlg_CSVInput(bool volumeDataAvailable, QWidget * parent/* = 0,*/, Qt::WindowFlags f/* f = 0*/)
@@ -119,8 +126,6 @@ iACsvConfig const & dlg_CSVInput::getConfig() const
 
 void dlg_CSVInput::initParameters()
 {
-	m_ui->ed_FormatName->setValidator(new QRegularExpressionValidator(
-		QRegularExpression("[A-Za-z0-9_]{0,30}"), this));  // limit input to format names
 	QStringList formatEntries = iACsvConfig::getListFromRegistry();
 	if (!formatEntries.contains(iACsvConfig::FCPFiberFormat))
 	{
@@ -180,12 +185,12 @@ void dlg_CSVInput::okBtnClicked()
 	QString errorMsg;
 	if (!m_confParams.isValid(errorMsg))
 	{
-		QMessageBox::warning(this, tr("FeatureScout"), errorMsg);
+		QMessageBox::warning(this, tr("CSV Input"), errorMsg);
 		return;
 	}
 	if (m_confParams.visType == iACsvConfig::UseVolume && !m_volumeDataAvailable)
 	{
-		QMessageBox::information(this, "FeatureScout", "You have selected to use the 'Labelled Volume' Visualization. "
+		QMessageBox::information(this, "CSV Input", "You have selected to use the 'Labelled Volume' Visualization. "
 			"This requires a volume dataset to be loaded which contains the labelled objects, "
 			"yet there is either no open window or the active window does not contain volume data!");
 		return;
@@ -202,7 +207,7 @@ void dlg_CSVInput::loadSelectedFormatSettings(const QString &formatName)
 {
 	if (!loadFormatFromRegistry(formatName))
 	{
-		QMessageBox::warning(this, tr("FeatureScout"), tr("Format not available (or name empty)!"));
+		QMessageBox::warning(this, tr("CSV Input"), tr("Format not available (or name empty)!"));
 		return;
 	}
 	showConfigParams();
@@ -297,7 +302,7 @@ void dlg_CSVInput::exportTable()
 	QMessageBox msgBox;
 	msgBox.setIcon(QMessageBox::Icon::Information);
 	msgBox.setText(QString("CSV file successfully saved under: %1").arg(exportCSVFileName));
-	msgBox.setWindowTitle("FeatureScout");
+	msgBox.setWindowTitle("CSV Input");
 	msgBox.exec();
 	return;
 }
@@ -308,12 +313,73 @@ void dlg_CSVInput::switchObjectType(const QString & /*ObjectInputType*/)
 	updateColumnMappingInputs();
 }
 
+QString dlg_CSVInput::askForFormatName(bool forLocalSave)
+{
+	auto line = new QWidget;
+	auto label = new QLabel("Format name:");
+	auto edit = new QLineEdit(m_ui->cmbbox_Format->currentText());
+	edit->setValidator(new QRegularExpressionValidator(
+		QRegularExpression("[^/]{0,50}"), this));  // limit input to valid format names
+	line->setLayout(new QHBoxLayout);
+	line->layout()->setContentsMargins(4, 4, 4, 4);
+	line->layout()->setSpacing(4);
+	line->layout()->addWidget(label);
+	line->layout()->addWidget(edit);
+	auto buttonBox = new QWidget;
+	buttonBox->setLayout(new QHBoxLayout);
+	buttonBox->layout()->setContentsMargins(4, 4, 4, 4);
+	buttonBox->layout()->setSpacing(4);
+	auto okBtn = new QPushButton(tr("OK"));
+	auto cancelBtn = new QPushButton(tr("Cancel"));
+	buttonBox->layout()->addWidget(okBtn);
+	buttonBox->layout()->addWidget(cancelBtn);
+	QDialog dlg;
+	dlg.setMinimumWidth(400);
+	dlg.setLayout(new QVBoxLayout);
+	dlg.layout()->setContentsMargins(4, 4, 4, 4);
+	dlg.layout()->setSpacing(4);
+	dlg.layout()->addWidget(line);
+	dlg.layout()->addWidget(buttonBox);
+	connect(okBtn, &QPushButton::pressed, this,
+		[&] {
+			if (forLocalSave)
+			{
+				auto formatName = edit->text();
+				if (formatName == iACsvConfig::FCPFiberFormat || formatName == iACsvConfig::FCVoidFormat)
+				{
+					auto reply = QMessageBox::question(this, "CSV Input",
+						QString("The specified format name '%1' is the name of a predefined format. If you continue, the "
+								"predefined format will be overwritten (you can restore the predefined format by "
+								"deleting the saved format, and reloading the dialog). Continue?")
+							.arg(formatName),
+						QMessageBox::Yes | QMessageBox::No);
+					if (reply != QMessageBox::Yes)
+					{
+						return;
+					}
+				}
+				else if (getComboBoxItems(m_ui->cmbbox_Format).contains(formatName))
+				{
+					auto reply = QMessageBox::question(this, "CSV Input",
+						QString("A format with the name '%1' already exists. Do you want to overwrite it?").arg(formatName),
+						QMessageBox::Yes | QMessageBox::No);
+					if (reply != QMessageBox::Yes)
+					{
+						return;
+					}
+				}
+			}
+			dlg.accept();
+		});
+	connect(cancelBtn, &QPushButton::pressed, &dlg, &QDialog::close);
+	return (dlg.exec() == QDialog::Accepted) ? edit->text() : "";
+}
+
 void dlg_CSVInput::saveFormatBtnClicked()
 {
-	QString formatName = m_ui->ed_FormatName->text();
+	QString formatName = askForFormatName(true);
 	if (formatName.trimmed().isEmpty())
 	{
-		QMessageBox::warning(this, tr("FeatureScout"), tr("Please enter a format name!"));
 		return;
 	}
 	assignFormatSettings();
@@ -324,8 +390,7 @@ void dlg_CSVInput::saveFormatBtnClicked()
 void dlg_CSVInput::deleteFormatBtnClicked()
 {
 	QString formatName = m_ui->cmbbox_Format->currentText();
-	QMessageBox::StandardButton reply;
-	reply = QMessageBox::warning(this, tr("FeatureScout"),
+	auto reply = QMessageBox::warning(this, tr("CSV Input"),
 		tr("Format '%1' will be deleted permanently. Do you want to proceed?").arg(formatName),
 		QMessageBox::Yes | QMessageBox::No);
 	if (reply != QMessageBox::Yes)
@@ -730,10 +795,14 @@ void dlg_CSVInput::exportButtonClicked()
 	{
 		return;
 	}
+	QString formatName = askForFormatName(false);
+	if (formatName.trimmed().isEmpty())
+	{
+		return;
+	}
 	assignFormatSettings();
 	assignSelectedCols();
 	QSettings settings(fileName, QSettings::IniFormat);
-	QString formatName = m_ui->ed_FormatName->text();
 	settings.setValue(IniFormatName, formatName);
 	m_confParams.save(settings, formatName);
 }
@@ -750,12 +819,11 @@ void dlg_CSVInput::importButtonClicked()
 	QString formatName = settings.value(IniFormatName).toString();
 	if (formatName.isEmpty())
 	{
-		QMessageBox::information(this, "FeatureScout", "Invalid format settings file, cannot read format name");
+		QMessageBox::information(this, "CSV Input", "Invalid format settings file, cannot read format name");
 		return;
 	}
 	m_confParams.load(settings, formatName);
 	showConfigParams();
-	m_ui->ed_FormatName->setText(formatName);
 	saveFormatToRegistry(formatName);
 }
 
@@ -764,7 +832,6 @@ bool dlg_CSVInput::loadFormatFromRegistry(const QString & formatName)
 	bool result = loadFormatFromRegistry(formatName, m_confParams);
 	if (result)
 	{
-		m_ui->ed_FormatName->setText(formatName);
 		m_ui->cmbbox_Format->setCurrentText(formatName);
 	}
 	return result;
@@ -800,7 +867,7 @@ void dlg_CSVInput::saveFormatToRegistry(const QString &formatName)
 	QSignalBlocker fmtBlocker(m_ui->cmbbox_Format);
 	if (formatEntries.contains(formatName, Qt::CaseSensitivity::CaseInsensitive))
 	{
-		auto reply = QMessageBox::warning(this, tr("FeatureScout"),
+		auto reply = QMessageBox::warning(this, tr("CSV Input"),
 			tr("Format '%1' already exists. Do you want to overwrite it?").arg(formatName),
 			QMessageBox::Yes | QMessageBox::No);
 		if (reply != QMessageBox::Yes)

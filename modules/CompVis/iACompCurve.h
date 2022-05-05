@@ -116,7 +116,7 @@ protected:
 	void colorPolygon(vtkSmartPointer<vtkPoints> points, vtkSmartPointer<vtkUnsignedCharArray> colorArray,
 		int numberOfObjectsInsideBin);
 
-	double* computeColor(double numberOfObjects);
+	double* computeColor(double numberOfObjects, double result[3]);
 	void computePoints(
 		kdeData::kdeBin* currBinData, int currentColumn, double offset, vtkSmartPointer<vtkPoints> points);
 

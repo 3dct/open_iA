@@ -41,6 +41,9 @@ get_filename_component(_gitdescmoddir ${CMAKE_CURRENT_LIST_FILE} PATH)
 
 function(get_git_head_revision _refspecvar _hashvar)
 	set(GIT_PARENT_DIR "${CMAKE_SOURCE_DIR}")
+	if (${ARGC} GREATER 2)
+		list (GET ARGV 2 GIT_PARENT_DIR)
+	endif()
 	set(GIT_DIR "${GIT_PARENT_DIR}/.git")
 	while(NOT EXISTS "${GIT_DIR}")	# .git dir not found, search parent directories
 		set(GIT_PREVIOUS_PARENT "${GIT_PARENT_DIR}")
@@ -82,7 +85,15 @@ function(git_describe out_nice out_shorthash)
 	if(NOT GIT_FOUND)
 		find_package(Git QUIET)
 	endif()
-	get_git_head_revision(refspec hash)
+	set(EXTRA_ARG "")
+	if (${ARGC} GREATER 2)
+		list (GET ARGV 2 EXTRA_ARG)
+	endif()
+	set(MYPATH ${CMAKE_SOURCE_DIR})
+	if (${ARGC} GREATER 3)
+		list (GET ARGV 3 MYPATH)
+	endif()
+	get_git_head_revision(refspec hash ${MYPATH})
 	if(NOT GIT_FOUND)
 		set(${out_nice} "GIT-NOTFOUND" PARENT_SCOPE)
 		set(${out_shorthash} "GIT-NOTFOUND" PARENT_SCOPE)
@@ -95,14 +106,14 @@ function(git_describe out_nice out_shorthash)
 	endif()
 
 	execute_process(COMMAND
-		"${GIT_EXECUTABLE}" describe ${hash} ${ARGN}
-		WORKING_DIRECTORY "${CMAKE_SOURCE_DIR}"
+		"${GIT_EXECUTABLE}" describe ${hash} ${EXTRA_ARG}
+		WORKING_DIRECTORY "${MYPATH}"
 		RESULT_VARIABLE res
 		OUTPUT_VARIABLE	out
 		ERROR_VARIABLE err
 		OUTPUT_STRIP_TRAILING_WHITESPACE)
 	if(NOT res EQUAL 0)
-		MESSAGE(WARNING "Problem executing `git describe ${hash} ${ARGN}`: ${err}")
+		MESSAGE(WARNING "Problem executing `git describe ${hash} ${EXTRA_ARG}`: ${err}")
 		set(out "GIT-VERSION-NOTFOUND")
 	else()
 		IF ("${out}" MATCHES "[a-zA-Z0-9.]*-[0-9]*-[0-9a-z]*")
@@ -114,7 +125,7 @@ function(git_describe out_nice out_shorthash)
 			STRING(SUBSTRING "${substrout}" 0 "${LASTHYPHENPOS}" versionstr)
 			execute_process(COMMAND
 				"${GIT_EXECUTABLE}" rev-parse --abbrev-ref HEAD
-				WORKING_DIRECTORY "${CMAKE_SOURCE_DIR}"
+				WORKING_DIRECTORY "${MYPATH}"
 				RESULT_VARIABLE res
 				OUTPUT_VARIABLE	branch
 				ERROR_VARIABLE err
@@ -129,7 +140,7 @@ function(git_describe out_nice out_shorthash)
 	set(${out_nice} "${out}" PARENT_SCOPE)
 	execute_process(COMMAND
 		"${GIT_EXECUTABLE}" rev-parse --short ${hash}
-		WORKING_DIRECTORY "${CMAKE_SOURCE_DIR}"
+		WORKING_DIRECTORY "${MYPATH}"
 		RESULT_VARIABLE res2
 		OUTPUT_VARIABLE	revparseout
 		ERROR_VARIABLE err

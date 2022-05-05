@@ -83,12 +83,11 @@ void iACompCombiTable::drawRow(int currDataInd, int currentColumn, double offset
 {
 	kdeData::kdeBins currDataset = getActiveData()->at(currDataInd);
 	vtkSmartPointer<vtkPolyData> currBinPolyData = getActiveBinPolyData()->at(currentColumn);
-	int numberOfBins = currDataset.size();
 
 	double min_x = 0.0;
 	double min_y = (m_vis->getColSize() * currentColumn) + offset;
 	double max_x = m_vis->getRowSize();
-	double max_y = (m_vis->getColSize() * (1 + currentColumn)) + offset;
+	double max_y = (m_vis->getColSize() * (1.0 + currentColumn)) + offset;
 	double drawingDimensions[4] = {min_x, max_x, min_y, max_y};
 
 	//draw border line
@@ -129,7 +128,6 @@ void iACompCombiTable::drawRow(int currDataInd, int currentColumn, double offset
 	//add X Ticks
 	if (m_vis->getXAxis())
 	{
-		double drawingDimensions[4] = {min_x, max_x, min_y, max_y};
 		double yheight = min_y;
 		double tickLength = (max_y - min_y) * 0.05;
 		drawXTicks(drawingDimensions, yheight, tickLength);
@@ -140,17 +138,15 @@ vtkSmartPointer<vtkPolyData> iACompCombiTable::drawCurve(double drawingDimension
 	vtkSmartPointer<vtkPolyData> currBinPolyData, int currDataInd, int currentColumn, double offset)
 {
 	double min_x = drawingDimensions[0];
-	double max_x = drawingDimensions[1];
 	double min_y = drawingDimensions[2];
-	double max_y = drawingDimensions[3];
 
-	int numberOfBins = currDataset.size();
+	int numberOfBins = static_cast<int>(currDataset.size());
 
 	vtkSmartPointer<vtkPoints> curvePoints = vtkSmartPointer<vtkPoints>::New();
 	int numberOPoints = 0;
 	for (int i = 0; i < numberOfBins; i++)
 	{
-		numberOPoints = numberOPoints + currDataset.at(i).size();
+		numberOPoints = numberOPoints + static_cast<int>(currDataset.at(i).size());
 	}
 
 	vtkSmartPointer<vtkUnsignedCharArray> colorArray = vtkSmartPointer<vtkUnsignedCharArray>::New();
@@ -160,7 +156,7 @@ vtkSmartPointer<vtkPolyData> iACompCombiTable::drawCurve(double drawingDimension
 	for (int binId = 0; binId < numberOfBins; binId++)
 	{
 		int numberOfObjectsForColor = (int)getNumberOfObjectsOfActiveData()->at(currDataInd).at(binId);
-		int numberOfObjects = currDataset.at(binId).size();
+		int numberOfObjects = static_cast<int>(currDataset.at(binId).size());
 		double binXMin = currBinPolyData->GetPointData()->GetArray("originArray")->GetTuple3(binId)[0];
 		double binXMax = currBinPolyData->GetPointData()->GetArray("point1Array")->GetTuple3(binId)[0];
 
@@ -265,11 +261,11 @@ vtkSmartPointer<vtkPolyData> iACompCombiTable::drawCurve(double drawingDimension
 			double nextPoint[3] = {0.0, min_y, 0.0};
 
 			vtkSmartPointer<vtkPoints> pointsOfNextSegment = vtkSmartPointer<vtkPoints>::New();
-			bool nextSegmentIsAvailable = (binId < (numberOfBins - 1)) && (currDataset.at(binId + 1).size() != 0);
+			bool nextSegmentIsAvailable = (binId < (numberOfBins - 1.0)) && (currDataset.at(binId + 1.0).size() != 0);
 			if (nextSegmentIsAvailable)
 			{
-				computePoints(&currDataset.at(binId + 1), currentColumn, offset, pointsOfNextSegment);
-				for (int nP = 0; nP < pointsOfNextSegment->GetNumberOfPoints(); nP++)
+				computePoints(&currDataset.at(binId + 1.0), currentColumn, offset, pointsOfNextSegment);
+				for (int nP = 0; nP < static_cast<int>(pointsOfNextSegment->GetNumberOfPoints()); nP++)
 				{
 					nextPoint[0] = pointsOfNextSegment->GetPoint(0)[0];
 					nextPoint[1] = binPoints->GetPoint(binPoints->GetNumberOfPoints() - 1)[1];

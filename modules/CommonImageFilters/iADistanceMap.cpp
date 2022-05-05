@@ -1,7 +1,7 @@
 /*************************************  open_iA  ************************************ *
 * **********   A tool for visual analysis and processing of 3D CT images   ********** *
 * *********************************************************************************** *
-* Copyright (C) 2016-2021  C. Heinzl, M. Reiter, A. Reh, W. Li, M. Arikan, Ar. &  Al. *
+* Copyright (C) 2016-2022  C. Heinzl, M. Reiter, A. Reh, W. Li, M. Arikan, Ar. &  Al. *
 *                 Amirkhanov, J. Weissenböck, B. Fröhler, M. Schiwarth, P. Weinberger *
 * *********************************************************************************** *
 * This program is free software: you can redistribute it and/or modify it under the   *
@@ -37,7 +37,7 @@ void signed_maurer_distancemap(iAFilter* filter, QMap<QString, QVariant> const &
 	typedef itk::Image< float, 3 > RealImageType;
 	typedef itk::SignedMaurerDistanceMapImageFilter< InputImageType, RealImageType > SDDMType;
 	auto distFilter = SDDMType::New();
-	distFilter->SetInput( dynamic_cast< InputImageType * >( filter->input()[0]->itkImage() ) );
+	distFilter->SetInput( dynamic_cast< InputImageType * >( filter->input(0)->itkImage() ) );
 	distFilter->SetBackgroundValue(parameters["Background Value"].toDouble());
 	distFilter->SetUseImageSpacing(parameters["Use image spacing"].toBool());
 	distFilter->SetSquaredDistance(parameters["Squared distance"].toBool());
@@ -95,7 +95,7 @@ void danielsson_distancemap(iAFilter* filter, QMap<QString, QVariant> const & pa
 
 	auto distFilter = danielssonDistFilterType::New();
 	distFilter->SetInputIsBinary(parameters["Input binary"].toBool());
-	distFilter->SetInput( dynamic_cast< InputImageType * >(filter->input()[0]->itkImage() ) );
+	distFilter->SetInput( dynamic_cast< InputImageType * >(filter->input(0)->itkImage() ) );
 	filter->progress()->observe(distFilter);
 	distFilter->Update();
 

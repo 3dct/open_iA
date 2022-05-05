@@ -1,7 +1,7 @@
 /*************************************  open_iA  ************************************ *
 * **********   A tool for visual analysis and processing of 3D CT images   ********** *
 * *********************************************************************************** *
-* Copyright (C) 2016-2021  C. Heinzl, M. Reiter, A. Reh, W. Li, M. Arikan, Ar. &  Al. *
+* Copyright (C) 2016-2022  C. Heinzl, M. Reiter, A. Reh, W. Li, M. Arikan, Ar. &  Al. *
 *                 Amirkhanov, J. Weissenböck, B. Fröhler, M. Schiwarth, P. Weinberger *
 * *********************************************************************************** *
 * This program is free software: you can redistribute it and/or modify it under the   *
@@ -22,7 +22,7 @@
 
 #include "iALog.h"
 
-#include <QApplication>    // for qApp->palette()
+#include <QApplication>
 #include <QPainter>
 #include <QVBoxLayout>
 
@@ -35,7 +35,7 @@ public:
 	void paintEvent(QPaintEvent* /*ev*/) override
 	{
 		QPainter p(this);
-		p.fillRect(rect(), qApp->palette().color(QWidget::backgroundRole()));
+		p.fillRect(rect(), QApplication::palette().color(QWidget::backgroundRole()));
 	}
 };
 

@@ -1,7 +1,7 @@
 /*************************************  open_iA  ************************************ *
 * **********   A tool for visual analysis and processing of 3D CT images   ********** *
 * *********************************************************************************** *
-* Copyright (C) 2016-2021  C. Heinzl, M. Reiter, A. Reh, W. Li, M. Arikan, Ar. &  Al. *
+* Copyright (C) 2016-2022  C. Heinzl, M. Reiter, A. Reh, W. Li, M. Arikan, Ar. &  Al. *
 *                 Amirkhanov, J. Weissenböck, B. Fröhler, M. Schiwarth, P. Weinberger *
 * *********************************************************************************** *
 * This program is free software: you can redistribute it and/or modify it under the   *
@@ -35,7 +35,7 @@ template<class T> void additiveGaussianNoise(iAFilter* filter, QMap<QString, QVa
 	typedef itk::Image< T, DIM> InputImageType;
 	typedef itk::AdditiveGaussianNoiseImageFilter<InputImageType, InputImageType> NoiseFilterType;
 	auto noiseFilter = NoiseFilterType::New();
-	noiseFilter->SetInput(dynamic_cast< InputImageType * >(filter->input()[0]->itkImage()));
+	noiseFilter->SetInput(dynamic_cast< InputImageType * >(filter->input(0)->itkImage()));
 	noiseFilter->SetMean(parameters["Mean"].toDouble());
 	noiseFilter->SetStandardDeviation(parameters["Standard deviation"].toDouble());
 	filter->progress()->observe( noiseFilter );
@@ -70,7 +70,7 @@ template<class T> void saltAndPepperNoise(iAFilter* filter, QMap<QString, QVaria
 	typedef itk::Image< T, DIM> InputImageType;
 	typedef itk::SaltAndPepperNoiseImageFilter<InputImageType, InputImageType> NoiseFilterType;
 	auto noiseFilter = NoiseFilterType::New();
-	noiseFilter->SetInput(dynamic_cast< InputImageType * >(filter->input()[0]->itkImage()));
+	noiseFilter->SetInput(dynamic_cast< InputImageType * >(filter->input(0)->itkImage()));
 	noiseFilter->SetProbability(parameters["Probability"].toDouble());
 	filter->progress()->observe( noiseFilter );
 	noiseFilter->Update();
@@ -103,7 +103,7 @@ template<class T> void shotNoise(iAFilter* filter, QMap<QString, QVariant> const
 	typedef itk::Image< T, DIM> InputImageType;
 	typedef itk::ShotNoiseImageFilter<InputImageType, InputImageType> NoiseFilterType;
 	auto noiseFilter = NoiseFilterType::New();
-	noiseFilter->SetInput(dynamic_cast< InputImageType * >(filter->input()[0]->itkImage()));
+	noiseFilter->SetInput(dynamic_cast< InputImageType * >(filter->input(0)->itkImage()));
 	noiseFilter->SetScale(parameters["Scale"].toDouble());
 	filter->progress()->observe( noiseFilter );
 	noiseFilter->Update();
@@ -136,7 +136,7 @@ template<class T> void speckleNoise(iAFilter* filter, QMap<QString, QVariant> co
 	typedef itk::Image< T, DIM> InputImageType;
 	typedef itk::SpeckleNoiseImageFilter<InputImageType, InputImageType> NoiseFilterType;
 	auto noiseFilter = NoiseFilterType::New();
-	noiseFilter->SetInput(dynamic_cast< InputImageType * >(filter->input()[0]->itkImage()));
+	noiseFilter->SetInput(dynamic_cast< InputImageType * >(filter->input(0)->itkImage()));
 	noiseFilter->SetStandardDeviation(parameters["Standard deviation"].toDouble());
 	filter->progress()->observe( noiseFilter );
 	noiseFilter->Update();

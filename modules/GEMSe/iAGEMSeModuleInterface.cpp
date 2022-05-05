@@ -1,7 +1,7 @@
 /*************************************  open_iA  ************************************ *
 * **********   A tool for visual analysis and processing of 3D CT images   ********** *
 * *********************************************************************************** *
-* Copyright (C) 2016-2021  C. Heinzl, M. Reiter, A. Reh, W. Li, M. Arikan, Ar. &  Al. *
+* Copyright (C) 2016-2022  C. Heinzl, M. Reiter, A. Reh, W. Li, M. Arikan, Ar. &  Al. *
 *                 Amirkhanov, J. Weissenböck, B. Fröhler, M. Schiwarth, P. Weinberger *
 * *********************************************************************************** *
 * This program is free software: you can redistribute it and/or modify it under the   *
@@ -59,8 +59,8 @@ iADifferenceMarker::iADifferenceMarker():
 void iADifferenceMarker::performWork(QMap<QString, QVariant> const & params)
 {
 	QVector<iAITKIO::ImagePointer> imgs;
-	imgs.push_back(input()[0]->itkImage());
-	imgs.push_back(input()[1]->itkImage());
+	imgs.push_back(input(0)->itkImage());
+	imgs.push_back(input(1)->itkImage());
 	auto out = CalculateDifferenceMarkers(imgs, params["Difference marker value"].toDouble());
 	if (!out)
 	{

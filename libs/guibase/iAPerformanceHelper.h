@@ -1,7 +1,7 @@
 /*************************************  open_iA  ************************************ *
 * **********   A tool for visual analysis and processing of 3D CT images   ********** *
 * *********************************************************************************** *
-* Copyright (C) 2016-2021  C. Heinzl, M. Reiter, A. Reh, W. Li, M. Arikan, Ar. &  Al. *
+* Copyright (C) 2016-2022  C. Heinzl, M. Reiter, A. Reh, W. Li, M. Arikan, Ar. &  Al. *
 *                 Amirkhanov, J. Weissenböck, B. Fröhler, M. Schiwarth, P. Weinberger *
 * *********************************************************************************** *
 * This program is free software: you can redistribute it and/or modify it under the   *
@@ -137,3 +137,6 @@ size_t getCurrentRSS();
 //! @param showMS whether to show the milliseconds part
 //! @param shortNames if true, use short time span names (s, m, h, d), otherwise (default), use long names (second, minute, hour, day)
 iAguibase_API QString formatDuration(double duration, bool showMS = true, bool shortNames=false);
+// TODO: refactor to use milliseconds input?
+//iAguibase_API QString formatDurationSeconds(double duration, bool showMS = true, bool shortNames = false);
+//iAguibase_API QString formatDurationMS(uint64_t ms, bool showMS = true, bool shortNames = false);

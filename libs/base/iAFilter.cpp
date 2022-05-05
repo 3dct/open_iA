@@ -1,7 +1,7 @@
 /*************************************  open_iA  ************************************ *
 * **********   A tool for visual analysis and processing of 3D CT images   ********** *
 * *********************************************************************************** *
-* Copyright (C) 2016-2021  C. Heinzl, M. Reiter, A. Reh, W. Li, M. Arikan, Ar. &  Al. *
+* Copyright (C) 2016-2022  C. Heinzl, M. Reiter, A. Reh, W. Li, M. Arikan, Ar. &  Al. *
 *                 Amirkhanov, J. Weissenböck, B. Fröhler, M. Schiwarth, P. Weinberger *
 * *********************************************************************************** *
 * This program is free software: you can redistribute it and/or modify it under the   *
@@ -23,6 +23,7 @@
 #include "iAAttributeDescriptor.h"
 #include "iAConnector.h"
 #include "iALog.h"
+#include "iAProgress.h"
 #include "iAStringHelper.h"
 
 #include <vtkImageData.h>
@@ -30,15 +31,34 @@
 #include <QColor>
 #include <QFileInfo>
 
+namespace
+{
+	// TODO: maybe move to iAConnector class itself!
+	std::shared_ptr<iAConnector> createConnector(itk::ImageBase<3>* itkImg)
+	{
+		auto con = std::make_shared<iAConnector>();
+		con->setImage(itkImg);
+		return con;
+	}
+	std::shared_ptr<iAConnector> createConnector(vtkSmartPointer<vtkImageData> vtkImg)
+	{
+		auto con = std::make_shared<iAConnector>();
+		con->setImage(vtkImg);
+		return con;
+	}
+}
+
 iAFilter::iAFilter(QString const & name, QString const & category, QString const & description,
-	unsigned int requiredInputs, unsigned int outputCount) :
+	unsigned int requiredInputs, unsigned int outputCount, bool supportsAbort) :
+	m_progress(std::make_unique<iAProgress>()),
 	m_log(iALog::get()),
 	m_name(name),
 	m_category(category),
 	m_description(description),
 	m_requiredInputs(requiredInputs),
 	m_outputCount(outputCount),
-	m_firstInputChannels(1)
+	m_firstInputChannels(1),
+	m_canAbort(supportsAbort)
 {}
 
 iAFilter::~iAFilter()
@@ -72,7 +92,7 @@ iAAttributes const & iAFilter::parameters() const
 	return m_parameters;
 }
 
-int iAFilter::requiredInputs() const
+unsigned int iAFilter::requiredInputs() const
 {
 	return m_requiredInputs;
 }
@@ -105,27 +125,17 @@ QVector<QPair<QString, QVariant> > const & iAFilter::outputValues() const
 
 void iAFilter::clearOutput()
 {
-	for (iAConnector* con : m_output)
-	{
-		delete con;
-	}
 	m_output.clear();
 }
 
 void iAFilter::addOutput(itk::ImageBase<3>* itkImg)
 {
-	iAConnector * con = new iAConnector();
-	con->setImage(itkImg);
-	con->modified();
-	m_output.push_back(con);
+	m_output.emplace_back(createConnector(itkImg));
 }
 
-void iAFilter::addOutput(vtkSmartPointer<vtkImageData> img)
+void iAFilter::addOutput(vtkSmartPointer<vtkImageData> vtkImg)
 {
-	iAConnector * con = new iAConnector();
-	con->setImage(img);
-	con->modified();
-	m_output.push_back(con);
+	m_output.emplace_back(createConnector(vtkImg));
 }
 
 void iAFilter::setPolyOutput(vtkSmartPointer<vtkPolyData> mesh)
@@ -138,12 +148,17 @@ vtkSmartPointer<vtkPolyData> iAFilter::polyOutput() const
 	return m_outputMesh;
 }
 
-QVector<iAConnector*> const & iAFilter::output() const
+iAConnector const * iAFilter::output(size_t idx) const
 {
-	return m_output;
+	return m_output[idx].get();
 }
 
-int iAFilter::outputCount() const
+size_t iAFilter::finalOutputCount() const
+{
+	return m_output.size();
+}
+
+unsigned int iAFilter::plannedOutputCount() const
 {
 	return m_outputCount;
 }
@@ -152,20 +167,36 @@ void iAFilter::clearInput()
 {
 	m_input.clear();
 	m_fileNames.clear();
+	m_isAborted = false;
 }
 
-// TODO: Allow to check type of input files (e.g. to check if input images are
-// of a specific type, or all of the same type), e.g. in addInput or
-// checkParameters.
-void iAFilter::addInput(iAConnector* con, QString const& fileName)
+// TODO: Allow to check type of input files
+// (e.g. to check if input images are of a specific type,
+// or all of the same type), e.g. in addInput or checkParameters.
+void iAFilter::addInput(itk::ImageBase<3>* itkImg, QString const& fileName)
 {
-	m_input.push_back(con);
+	addInput(createConnector(itkImg), fileName);
+}
+
+void iAFilter::addInput(vtkSmartPointer<vtkImageData> vtkImg, QString const& fileName)
+{
+	addInput(createConnector(vtkImg), fileName);
+}
+
+void iAFilter::addInput(std::shared_ptr<iAConnector> con, QString const& fileName)
+{
+	m_input.emplace_back(con);
 	m_fileNames.push_back(fileName);
 }
 
-QVector<iAConnector*> const & iAFilter::input() const
+iAConnector const * iAFilter::input(size_t idx) const
 {
-	return m_input;
+	return m_input[idx].get();
+}
+
+size_t iAFilter::inputCount() const
+{
+	return m_input.size();
 }
 
 QVector<QString> const& iAFilter::fileNames() const
@@ -181,11 +212,6 @@ itk::ImageIOBase::IOComponentType iAFilter::inputPixelType() const
 void iAFilter::setLogger(iALogger* log)
 {
 	m_log = log;
-}
-
-void iAFilter::setProgress(iAProgress* progress)
-{
-	m_progress = progress;
 }
 
 bool iAFilter::run(QMap<QString, QVariant> const & parameters)
@@ -355,7 +381,7 @@ void iAFilter::addMsg(QString const & msg)
 
 iAProgress* iAFilter::progress()
 {
-	return m_progress;
+	return m_progress.get();
 }
 
 iALogger* iAFilter::logger()
@@ -399,9 +425,29 @@ QString iAFilter::outputName(unsigned int i, QString defaultName) const
 	}
 }
 
+void iAFilter::abort()
+{
+	m_isAborted = false;
+}
+
+bool iAFilter::canAbort() const
+{
+	return false;
+}
+
+bool iAFilter::isAborted() const
+{
+	return m_isAborted;
+}
+
 void iAFilter::setOutputName(unsigned int i, QString const & name)
 {
 	m_outputNames.insert(i, name);
+}
+
+iAAttributes& iAFilter::paramsWritable()
+{
+	return m_parameters;
 }
 
 void iAFilter::addParameter(QString const & name, iAValueType valueType,
@@ -418,13 +464,4 @@ QVector<QString> const & iAFilter::outputValueNames() const
 void iAFilter::addOutputValue(QString const & name)
 {
 	m_outputValueNames.push_back(name);
-}
-
-void iAFilter::abort()
-{	// Filters don't support abort by default
-}
-
-bool iAFilter::canAbort() const
-{
-	return false;
 }

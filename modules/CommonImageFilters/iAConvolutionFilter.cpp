@@ -1,7 +1,7 @@
 /*************************************  open_iA  ************************************ *
 * **********   A tool for visual analysis and processing of 3D CT images   ********** *
 * *********************************************************************************** *
-* Copyright (C) 2016-2021  C. Heinzl, M. Reiter, A. Reh, W. Li, M. Arikan, Ar. &  Al. *
+* Copyright (C) 2016-2022  C. Heinzl, M. Reiter, A. Reh, W. Li, M. Arikan, Ar. &  Al. *
 *                 Amirkhanov, J. Weissenböck, B. Fröhler, M. Schiwarth, P. Weinberger *
 * *********************************************************************************** *
 * This program is free software: you can redistribute it and/or modify it under the   *
@@ -46,13 +46,13 @@ template<class T> void convolution(iAFilter* filter)
 	using ImageType = itk::Image<T, DIM>;
 	using ConvFilterType = itk::ConvolutionImageFilter<ImageType, FloatImageType, FloatImageType>;
 
-	if (itkScalarPixelType(filter->input()[1]->itkImage()) != itk::ImageIOBase::FLOAT)
+	if (itkScalarPixelType(filter->input(1)->itkImage()) != itk::ImageIOBase::FLOAT)
 	{
 		LOG(lvlWarn, "Kernel Image should be of float type; it will be typecast!");
 	}
-	auto kernelImg = castImageTo<float>(filter->input()[1]->itkImage());
+	auto kernelImg = castImageTo<float>(filter->input(1)->itkImage());
 	auto convFilter = ConvFilterType::New();
-	convFilter->SetInput(dynamic_cast<ImageType*>(filter->input()[0]->itkImage()));
+	convFilter->SetInput(dynamic_cast<ImageType*>(filter->input(0)->itkImage()));
 	convFilter->SetKernelImage(dynamic_cast<FloatImageType*>(kernelImg.GetPointer()));
 	filter->progress()->observe(convFilter);
 	convFilter->Update();
@@ -85,13 +85,13 @@ template<class T> void fft_convolution(iAFilter* filter)
 {
 	using ImageType = itk::Image<T, DIM>;
 	using ConvFilterType = itk::FFTConvolutionImageFilter<ImageType, FloatImageType, FloatImageType>;
-	if (itkScalarPixelType(filter->input()[1]->itkImage()) != itk::ImageIOBase::FLOAT)
+	if (itkScalarPixelType(filter->input(1)->itkImage()) != itk::ImageIOBase::FLOAT)
 	{
 		LOG(lvlWarn, "Kernel Image should be of float type; it will be typecast!");
 	}
-	auto kernelImg = castImageTo<float>(filter->input()[1]->itkImage());
+	auto kernelImg = castImageTo<float>(filter->input(1)->itkImage());
 	auto fftConvFilter = ConvFilterType::New();
-	fftConvFilter->SetInput(dynamic_cast<ImageType *>(filter->input()[0]->itkImage()));
+	fftConvFilter->SetInput(dynamic_cast<ImageType *>(filter->input(0)->itkImage()));
 	fftConvFilter->SetKernelImage(dynamic_cast<FloatImageType*>(kernelImg.GetPointer()));
 	fftConvFilter->SetNormalize(true);
 	filter->progress()->observe(fftConvFilter);
@@ -125,11 +125,11 @@ template<class T> void correlation(iAFilter* filter)
 	using ImageType = itk::Image<T, DIM>;
 	using CorrelationFilterType = itk::NormalizedCorrelationImageFilter<ImageType, FloatImageType, FloatImageType>;
 
-	if (itkScalarPixelType(filter->input()[1]->itkImage()) != itk::ImageIOBase::FLOAT)
+	if (itkScalarPixelType(filter->input(1)->itkImage()) != itk::ImageIOBase::FLOAT)
 	{
 		LOG(lvlWarn, "Kernel Image should be of float type; it will be typecast!");
 	}
-	auto kernelImg = castImageTo<float>(filter->input()[1]->itkImage());
+	auto kernelImg = castImageTo<float>(filter->input(1)->itkImage());
 	// The radius of the kernel must be the radius of the patch, NOT the size of the patch
 	itk::Size<3> radius = kernelImg->GetLargestPossibleRegion().GetSize();
 	radius[0] = (radius[0] - 1) / 2;
@@ -140,7 +140,7 @@ template<class T> void correlation(iAFilter* filter)
 	kernelOperator.SetImageKernel(dynamic_cast<FloatImageType*>(kernelImg.GetPointer()));
 	kernelOperator.CreateToRadius(radius);
 
-	auto img = dynamic_cast<ImageType *>(filter->input()[0]->itkImage());
+	auto img = dynamic_cast<ImageType *>(filter->input(0)->itkImage());
 	auto corrFilter = CorrelationFilterType::New();
 	corrFilter->SetInput(img);
 	corrFilter->SetTemplate(kernelOperator);
@@ -175,12 +175,12 @@ template<class T> void fft_correlation(iAFilter* filter)
 {
 	using CorrelationFilterType = itk::FFTNormalizedCorrelationImageFilter<FloatImageType, FloatImageType>;
 
-	auto inImg = castImageTo<float>(filter->input()[0]->itkImage());
-	if (itkScalarPixelType(filter->input()[1]->itkImage()) != itk::ImageIOBase::FLOAT)
+	auto inImg = castImageTo<float>(filter->input(0)->itkImage());
+	if (itkScalarPixelType(filter->input(1)->itkImage()) != itk::ImageIOBase::FLOAT)
 	{
 		LOG(lvlWarn, "Template Image should be of float type; it will be typecast!");
 	}
-	auto templateImg = castImageTo<float>(filter->input()[1]->itkImage());
+	auto templateImg = castImageTo<float>(filter->input(1)->itkImage());
 
 	auto corrFilter = CorrelationFilterType::New();
 	corrFilter->SetInput(dynamic_cast<FloatImageType*>(inImg.GetPointer()));
@@ -220,13 +220,13 @@ template<class T> void streamed_fft_correlation(iAFilter* filter)
 	using CorrelationFilterType = itk::FFTNormalizedCorrelationImageFilter<FloatImageType, FloatImageType>;
 	//using CorrelationFilterType = itk::NormalizedCorrelationImageFilter<FloatImageType, FloatImageType, FloatImageType>;
 
-	if (itkScalarPixelType(filter->input()[1]->itkImage()) != itk::ImageIOBase::FLOAT)
+	if (itkScalarPixelType(filter->input(1)->itkImage()) != itk::ImageIOBase::FLOAT)
 	{
 		LOG(lvlWarn, "Template Image should be of float type; it will be typecast!");
 	}
-	auto templateImg = castImageTo<float>(filter->input()[1]->itkImage());
+	auto templateImg = castImageTo<float>(filter->input(1)->itkImage());
 
-	auto inImg = castImageTo<float>(filter->input()[0]->itkImage());
+	auto inImg = castImageTo<float>(filter->input(0)->itkImage());
 	auto monitorFilter = MonitorFilterType::New();
 	monitorFilter->SetInput(dynamic_cast<FloatImageType*>(inImg.GetPointer()));
 	//monitorFilter->DebugOn();

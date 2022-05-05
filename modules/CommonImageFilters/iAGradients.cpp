@@ -1,7 +1,7 @@
 /*************************************  open_iA  ************************************ *
 * **********   A tool for visual analysis and processing of 3D CT images   ********** *
 * *********************************************************************************** *
-* Copyright (C) 2016-2021  C. Heinzl, M. Reiter, A. Reh, W. Li, M. Arikan, Ar. &  Al. *
+* Copyright (C) 2016-2022  C. Heinzl, M. Reiter, A. Reh, W. Li, M. Arikan, Ar. &  Al. *
 *                 Amirkhanov, J. Weissenböck, B. Fröhler, M. Schiwarth, P. Weinberger *
 * *********************************************************************************** *
 * This program is free software: you can redistribute it and/or modify it under the   *
@@ -42,7 +42,7 @@ template<class T> void gradientMagnitude(iAFilter* filter, QMap<QString, QVarian
 	typedef itk::GradientMagnitudeImageFilter< InputImageType, InputImageType > GMFType;
 
 	auto gmFilter = GMFType::New();
-	gmFilter->SetInput(dynamic_cast< InputImageType * >(filter->input()[0]->itkImage()));
+	gmFilter->SetInput(dynamic_cast< InputImageType * >(filter->input(0)->itkImage()));
 	gmFilter->SetUseImageSpacing(params["Use Image Spacing"].toBool());
 	filter->progress()->observe(gmFilter);
 	gmFilter->Update();
@@ -76,7 +76,7 @@ template<class T> void gradientMagnitudeRecursiveGaussian(iAFilter* filter, QMap
 	typedef itk::GradientMagnitudeRecursiveGaussianImageFilter< InputImageType, InputImageType > GMFType;
 
 	auto gmFilter = GMFType::New();
-	gmFilter->SetInput(dynamic_cast<InputImageType *>(filter->input()[0]->itkImage()));
+	gmFilter->SetInput(dynamic_cast<InputImageType *>(filter->input(0)->itkImage()));
 	gmFilter->SetNormalizeAcrossScale(params["Normalize across scale"].toBool());
 	gmFilter->SetSigma(params["Sigma"].toDouble());
 	filter->progress()->observe(gmFilter);
@@ -116,7 +116,7 @@ void derivative(iAFilter* filter, QMap<QString, QVariant> const & params)
 	auto derFilter = DIFType::New();
 	derFilter->SetOrder(params["Order"].toUInt());
 	derFilter->SetDirection(params["Direction"].toUInt());
-	derFilter->SetInput( dynamic_cast< InputImageType * >(filter->input()[0]->itkImage()) );
+	derFilter->SetInput( dynamic_cast< InputImageType * >(filter->input(0)->itkImage()) );
 	filter->progress()->observe( derFilter );
 	derFilter->Update();
 	filter->addOutput(derFilter->GetOutput());
@@ -156,7 +156,7 @@ void hoaDerivative(iAFilter* filter, QMap<QString, QVariant> const & parameters)
 	hoaFilter->SetOrder(parameters["Order"].toUInt());
 	hoaFilter->SetDirection(parameters["Direction"].toUInt());
 	hoaFilter->SetOrderOfAccuracy(parameters["Order of Accuracy"].toUInt());
-	hoaFilter->SetInput(dynamic_cast<InputImageType *>(filter->input()[0]->itkImage()));
+	hoaFilter->SetInput(dynamic_cast<InputImageType *>(filter->input(0)->itkImage()));
 	filter->progress()->observe(hoaFilter);
 	hoaFilter->Update();
 	filter->addOutput(hoaFilter->GetOutput());

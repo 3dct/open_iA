@@ -1,7 +1,7 @@
 /*************************************  open_iA  ************************************ *
 * **********   A tool for visual analysis and processing of 3D CT images   ********** *
 * *********************************************************************************** *
-* Copyright (C) 2016-2021  C. Heinzl, M. Reiter, A. Reh, W. Li, M. Arikan, Ar. &  Al. *
+* Copyright (C) 2016-2022  C. Heinzl, M. Reiter, A. Reh, W. Li, M. Arikan, Ar. &  Al. *
 *                 Amirkhanov, J. Weissenböck, B. Fröhler, M. Schiwarth, P. Weinberger *
 * *********************************************************************************** *
 * This program is free software: you can redistribute it and/or modify it under the   *
@@ -147,7 +147,7 @@ void fcm(iAFilter* filter, QMap<QString, QVariant> const & params)
 	classifier->SetCentroids(centroidsArray);
 	classifier->SetIgnoreBackgroundPixels(params["Ignore Background"].toBool());
 	classifier->SetBackgroundPixel(params["Background Value"].toDouble());
-	classifier->SetInput(dynamic_cast<InputImageType *>(filter->input()[0]->itkImage()));
+	classifier->SetInput(dynamic_cast<InputImageType *>(filter->input(0)->itkImage()));
 	classifier->Update();
 	auto probs = classifier->GetOutput();
 	auto labelClass = TLabelClassifier::New();
@@ -253,7 +253,7 @@ void kfcm(iAFilter* filter, QMap<QString, QVariant> const & parameters)
 	classifier->SetStructuringElement(structuringElement);
 	classifier->SetIgnoreBackgroundPixels(parameters["Ignore Background"].toBool());
 	classifier->SetBackgroundPixel(parameters["Background Value"].toDouble());
-	classifier->SetInput(dynamic_cast<InputImageType *>(filter->input()[0]->itkImage()));
+	classifier->SetInput(dynamic_cast<InputImageType *>(filter->input(0)->itkImage()));
 	classifier->Update();
 	auto probs = classifier->GetOutput();
 	TLabelClassifier::Pointer labelClass = TLabelClassifier::New();
@@ -328,7 +328,7 @@ void mskfcm(iAFilter* filter, QMap<QString, QVariant> const & parameters)
 #endif
 	classifier->SetNumberOfClasses(numberOfClasses);
 	typename TFuzzyClassifier::CentroidArrayType centroidsArray;
-	for (int i = 0; i < numberOfClasses; i++)
+	for (unsigned int i = 0; i < numberOfClasses; i++)
 	{
 		centroidsArray.push_back(centroids[i]);
 	}
@@ -352,7 +352,7 @@ void mskfcm(iAFilter* filter, QMap<QString, QVariant> const & parameters)
 	classifier->SetStructuringElement(structuringElement);
 	classifier->SetIgnoreBackgroundPixels(parameters["Ignore Background"].toBool());
 	classifier->SetBackgroundPixel(parameters["Background Value"].toDouble());
-	classifier->SetInput(dynamic_cast<InputImageType *>(filter->input()[0]->itkImage()));
+	classifier->SetInput(dynamic_cast<InputImageType *>(filter->input(0)->itkImage()));
 	classifier->Update();
 	auto probs = classifier->GetOutput();
 	auto labelClass = TLabelClassifier::New();

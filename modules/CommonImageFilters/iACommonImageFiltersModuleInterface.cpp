@@ -1,7 +1,7 @@
 /*************************************  open_iA  ************************************ *
 * **********   A tool for visual analysis and processing of 3D CT images   ********** *
 * *********************************************************************************** *
-* Copyright (C) 2016-2021  C. Heinzl, M. Reiter, A. Reh, W. Li, M. Arikan, Ar. &  Al. *
+* Copyright (C) 2016-2022  C. Heinzl, M. Reiter, A. Reh, W. Li, M. Arikan, Ar. &  Al. *
 *                 Amirkhanov, J. Weissenböck, B. Fröhler, M. Schiwarth, P. Weinberger *
 * *********************************************************************************** *
 * This program is free software: you can redistribute it and/or modify it under the   *
@@ -64,6 +64,7 @@ void iACommonImageFiltersModuleInterface::Initialize()
 	REGISTER_FILTER(iAStreamedFFTCorrelation);
 
 	// Geometric transformations
+	REGISTER_FILTER(iAExtractComponent);
 	REGISTER_FILTER(iASimpleResampleFilter);
 	REGISTER_FILTER(iAResampleFilter);
 	REGISTER_FILTER(iAExtractImageFilter);
@@ -91,6 +92,7 @@ void iACommonImageFiltersModuleInterface::Initialize()
 	REGISTER_FILTER(iANormalizeIntensityFilter);
 	REGISTER_FILTER(iARescaleIntensityFilter);
 	REGISTER_FILTER(iAShiftScaleIntensityFilter);
+	REGISTER_FILTER(iAReplaceAndShiftFilter);
 	// Filters requiring 2 input images:
 	REGISTER_FILTER(iAAddFilter);
 	REGISTER_FILTER(iADifferenceFilter);

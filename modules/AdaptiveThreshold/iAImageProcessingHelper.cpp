@@ -1,7 +1,7 @@
 /*************************************  open_iA  ************************************ *
 * **********   A tool for visual analysis and processing of 3D CT images   ********** *
 * *********************************************************************************** *
-* Copyright (C) 2016-2021  C. Heinzl, M. Reiter, A. Reh, W. Li, M. Arikan, Ar. &  Al. *
+* Copyright (C) 2016-2022  C. Heinzl, M. Reiter, A. Reh, W. Li, M. Arikan, Ar. &  Al. *
 *                 Amirkhanov, J. Weissenböck, B. Fröhler, M. Schiwarth, P. Weinberger *
 * *********************************************************************************** *
 * This program is free software: you can redistribute it and/or modify it under the   *
@@ -84,19 +84,13 @@ void iAImageProcessingHelper::prepareFilter(double greyThresholdLower, double gr
 	{
 		throw std::invalid_argument("Change order of values");
 	}
-
-	iAConnector con;
-	con.setImage(m_child->imagePointer());
-
-	QScopedPointer<iAProgress> pObserver(new iAProgress());
-	//connect(pObserver.data(), &iAProgress::pprogress, this, &iAImageProcessingHelper::slotObserver);
 	auto filter = iAFilterRegistry::filter("Binary Thresholding");
+	//connect(filter->progress(), &iAProgress::pprogress, this, &iAImageProcessingHelper::slotObserver);
 	if (!filter)
 	{
 		throw std::invalid_argument("Could not retrieve Binary Thresholding filter. Make sure Segmentation plugin was loaded correctly!");
 	}
-	filter->setProgress(pObserver.data());
-	filter->addInput(&con, m_child->currentFile());
+	filter->addInput(m_child->imagePointer(), m_child->currentFile());
 	QMap<QString, QVariant> parameters;
 	parameters["Lower threshold"] = greyThresholdLower;
 	parameters["Upper threshold"] = greyThresholdUpper;
@@ -106,7 +100,7 @@ void iAImageProcessingHelper::prepareFilter(double greyThresholdLower, double gr
 
 	iAMdiChild* newChild = m_child->mainWnd()->createMdiChild(true);
 	newChild->show();
-	newChild->displayResult("Adaptive Thresholding", filter->output()[0]->vtkImage());
+	newChild->displayResult("Adaptive Thresholding", filter->output(0)->vtkImage());
 	newChild->enableRenderWindows();
 }
 

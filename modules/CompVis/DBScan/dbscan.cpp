@@ -69,7 +69,8 @@ auto dbscan(const std::vector<std::pair<float, float>>& data, float eps, int min
         if (matches.size() < static_cast<size_t>(min_pts)) continue;
         visited[i] = true;
 
-        auto cluster = std::vector({i});
+        //auto cluster = std::vector({i});
+		std::vector<size_t> cluster = {i};
 
         while (matches.empty() == false)
         {

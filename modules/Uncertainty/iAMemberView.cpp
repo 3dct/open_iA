@@ -1,7 +1,7 @@
 /*************************************  open_iA  ************************************ *
 * **********   A tool for visual analysis and processing of 3D CT images   ********** *
 * *********************************************************************************** *
-* Copyright (C) 2016-2021  C. Heinzl, M. Reiter, A. Reh, W. Li, M. Arikan, Ar. &  Al. *
+* Copyright (C) 2016-2022  C. Heinzl, M. Reiter, A. Reh, W. Li, M. Arikan, Ar. &  Al. *
 *                 Amirkhanov, J. Weissenböck, B. Fröhler, M. Schiwarth, P. Weinberger *
 * *********************************************************************************** *
 * This program is free software: you can redistribute it and/or modify it under the   *
@@ -26,6 +26,7 @@
 
 #include <qcustomplot.h>
 
+#include <QApplication>
 #include <QGuiApplication>
 #include <QHBoxLayout>
 
@@ -166,8 +167,8 @@ QVector<int > iAMemberView::SelectedMemberIDs() const
 
 void iAMemberView::StyleChanged()
 {
-	QColor bg(qApp->palette().color(QPalette::Window));
-	QColor fg(qApp->palette().color(QPalette::Text));
+	QColor bg(QApplication::palette().color(QPalette::Window));
+	QColor fg(QApplication::palette().color(QPalette::Text));
 	m_plot->setBackground(bg);
 	m_plot->axisRect()->setBackground(bg);
 	for (auto a : m_plot->axisRect()->axes())

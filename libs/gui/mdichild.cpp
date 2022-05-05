@@ -1,7 +1,7 @@
 /*************************************  open_iA  ************************************ *
 * **********   A tool for visual analysis and processing of 3D CT images   ********** *
 * *********************************************************************************** *
-* Copyright (C) 2016-2021  C. Heinzl, M. Reiter, A. Reh, W. Li, M. Arikan, Ar. &  Al. *
+* Copyright (C) 2016-2022  C. Heinzl, M. Reiter, A. Reh, W. Li, M. Arikan, Ar. &  Al. *
 *                 Amirkhanov, J. Weissenböck, B. Fröhler, M. Schiwarth, P. Weinberger *
 * *********************************************************************************** *
 * This program is free software: you can redistribute it and/or modify it under the   *
@@ -456,7 +456,6 @@ bool MdiChild::displayResult(QString const& title, vtkImageData* image, vtkPolyD
 {
 	// TODO: image is actually not the final imagedata here (or at least not always)
 	//    -> maybe skip all image-related initializations?
-	addStatusMsg("Creating Result View");
 	if (poly)
 	{
 		m_polyData->ReleaseData();
@@ -487,7 +486,6 @@ bool MdiChild::displayResult(QString const& title, vtkImageData* image, vtkPolyD
 		m_visibility &= (XY | TAB);
 	}
 	changeVisibility(m_visibility);
-	addStatusMsg("Ready");
 	return true;
 }
 
@@ -2592,7 +2590,7 @@ void MdiChild::computeStatisticsAsync(std::function<void()> callbackSlot, QShare
 	updateImageProperties();
 	auto compute = [mod] { mod->computeImageStatistics(); };
 	auto fw = runAsync(compute, callbackSlot, this);
-	iAJobListView::get()->addJob(QString("Computing statistics for modality %1...")
+	iAJobListView::get()->addJob(QString("Computing statistics for modality %1")
 		.arg(mod->name()), nullptr, fw);
 }
 
@@ -2649,7 +2647,7 @@ void MdiChild::histogramDataAvailable(int modalityIdx)
 	m_histogram->removePlot(m_histogramPlot);
 	m_histogramPlot = QSharedPointer<iABarGraphPlot>::create(
 		modality(modalityIdx)->histogramData(),
-		qApp->palette().color(QPalette::Shadow));
+		QApplication::palette().color(QPalette::Shadow));
 	m_histogram->addPlot(m_histogramPlot);
 	m_histogram->setXCaption("Histogram " + modalityName);
 	m_histogram->setTransferFunction(modality(modalityIdx)->transfer().data());
@@ -2695,7 +2693,7 @@ void MdiChild::computeHistogramAsync(std::function<void()> callbackSlot, size_t 
 		callbackSlot,
 		this);
 		// TODO: find way of terminating computation in case modality is deleted/application closed!
-	iAJobListView::get()->addJob(QString("Computing histogram for modality %1...")
+	iAJobListView::get()->addJob(QString("Computing histogram for modality %1")
 		.arg(mod->name()), nullptr, fw);
 }
 
@@ -2906,7 +2904,7 @@ void MdiChild::styleChanged()
 {
 	if (m_histogramPlot)
 	{
-		m_histogramPlot->setColor(qApp->palette().color(QPalette::Shadow));
+		m_histogramPlot->setColor(QApplication::palette().color(QPalette::Shadow));
 	}
 	if (renderSettings().UseStyleBGColor)
 	{

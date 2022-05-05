@@ -1,7 +1,7 @@
 /*************************************  open_iA  ************************************ *
 * **********   A tool for visual analysis and processing of 3D CT images   ********** *
 * *********************************************************************************** *
-* Copyright (C) 2016-2021  C. Heinzl, M. Reiter, A. Reh, W. Li, M. Arikan, Ar. &  Al. *
+* Copyright (C) 2016-2022  C. Heinzl, M. Reiter, A. Reh, W. Li, M. Arikan, Ar. &  Al. *
 *                 Amirkhanov, J. Weissenböck, B. Fröhler, M. Schiwarth, P. Weinberger *
 * *********************************************************************************** *
 * This program is free software: you can redistribute it and/or modify it under the   *
@@ -39,7 +39,7 @@ void connectedComponentFilter(iAFilter* filter, QMap<QString, QVariant> const & 
 	typedef itk::Image<long, DIM> OutputImageType;
 	typedef itk::ConnectedComponentImageFilter< InputImageType, OutputImageType > CCIFType;
 	auto ccFilter = CCIFType::New();
-	ccFilter->SetInput( dynamic_cast< InputImageType * >(filter->input()[0]->itkImage()) );
+	ccFilter->SetInput( dynamic_cast< InputImageType * >(filter->input(0)->itkImage()) );
 	ccFilter->SetBackgroundValue(0);
 	ccFilter->SetFullyConnected(parameters["Fully Connected"].toBool());
 	filter->progress()->observe(ccFilter);
@@ -78,7 +78,7 @@ void scalarConnectedComponentFilter(iAFilter* filter, QMap<QString, QVariant> co
 	typedef itk::Image<long, DIM>   OutputImageType;
 	typedef itk::ScalarConnectedComponentImageFilter< InputImageType, OutputImageType > SCCIFType;
 	typename SCCIFType::Pointer sccFilter = SCCIFType::New();
-	sccFilter->SetInput( dynamic_cast<InputImageType *>(filter->input()[0]->itkImage()) );
+	sccFilter->SetInput( dynamic_cast<InputImageType *>(filter->input(0)->itkImage()) );
 	sccFilter->SetDistanceThreshold(parameters["Distance Threshold"].toDouble());
 	filter->progress()->observe(sccFilter);
 	sccFilter->Update();
@@ -111,7 +111,7 @@ void relabelComponentImageFilter(iAFilter* filter, QMap<QString, QVariant> const
 	typedef itk::Image<long, DIM>   OutputImageType;
 	typedef itk::RelabelComponentImageFilter< InputImageType, OutputImageType > RCIFType;
 	typename RCIFType::Pointer rccFilter = RCIFType::New();
-	rccFilter->SetInput( dynamic_cast< InputImageType * >(filter->input()[0]->itkImage()) );
+	rccFilter->SetInput( dynamic_cast< InputImageType * >(filter->input(0)->itkImage()) );
 	rccFilter->SetMinimumObjectSize(parameters["Minimum object size"].toInt());
 	filter->progress()->observe(rccFilter);
 	rccFilter->Update();

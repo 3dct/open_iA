@@ -1,7 +1,7 @@
 /*************************************  open_iA  ************************************ *
 * **********   A tool for visual analysis and processing of 3D CT images   ********** *
 * *********************************************************************************** *
-* Copyright (C) 2016-2021  C. Heinzl, M. Reiter, A. Reh, W. Li, M. Arikan, Ar. &  Al. *
+* Copyright (C) 2016-2022  C. Heinzl, M. Reiter, A. Reh, W. Li, M. Arikan, Ar. &  Al. *
 *                 Amirkhanov, J. Weissenböck, B. Fröhler, M. Schiwarth, P. Weinberger *
 * *********************************************************************************** *
 * This program is free software: you can redistribute it and/or modify it under the   *
@@ -32,6 +32,7 @@ IAFILTER_DEFAULT_CLASS(iANormalizeIntensityFilter);
 IAFILTER_DEFAULT_CLASS(iARescaleIntensityFilter);
 IAFILTER_DEFAULT_CLASS(iAShiftScaleIntensityFilter);
 IAFILTER_DEFAULT_CLASS(iAHistogramFill);
+IAFILTER_DEFAULT_CLASS(iAReplaceAndShiftFilter);
 // Filters requiring 2 input images:
 IAFILTER_DEFAULT_CLASS(iAAddFilter);
 IAFILTER_DEFAULT_CLASS(iADifferenceFilter);

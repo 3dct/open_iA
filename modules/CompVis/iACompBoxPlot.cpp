@@ -1,3 +1,23 @@
+/*************************************  open_iA  ************************************ *
+* **********   A tool for visual analysis and processing of 3D CT images   ********** *
+* *********************************************************************************** *
+* Copyright (C) 2016-2022  C. Heinzl, M. Reiter, A. Reh, W. Li, M. Arikan, Ar. &  Al. *
+*                 Amirkhanov, J. Weissenböck, B. Fröhler, M. Schiwarth, P. Weinberger *
+* *********************************************************************************** *
+* This program is free software: you can redistribute it and/or modify it under the   *
+* terms of the GNU General Public License as published by the Free Software           *
+* Foundation, either version 3 of the License, or (at your option) any later version. *
+*                                                                                     *
+* This program is distributed in the hope that it will be useful, but WITHOUT ANY     *
+* WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS FOR A     *
+* PARTICULAR PURPOSE.  See the GNU General Public License for more details.           *
+*                                                                                     *
+* You should have received a copy of the GNU General Public License along with this   *
+* program.  If not, see http://www.gnu.org/licenses/                                  *
+* *********************************************************************************** *
+* Contact: FH OÖ Forschungs & Entwicklungs GmbH, Campus Wels, CT-Gruppe,              *
+*          Stelzhamerstraße 23, 4600 Wels / Austria, Email: c.heinzl@fh-wels.at       *
+* ************************************************************************************/
 #include "iACompBoxPlot.h"
 
 //CompVis
@@ -10,6 +30,7 @@
 //vtk
 
 #include "vtkRenderer.h"
+
 #include "vtkRenderWindow.h"
 #include "vtkContextView.h"
 #include "vtkContextScene.h"
@@ -77,6 +98,7 @@ iACompBoxPlot::iACompBoxPlot(iAMainWindow* parent, iACsvDataStorage* dataStorage
 	normalizedTable(nullptr),
 	reorderedNormalizedTable(nullptr),
 	currentQuartileTable(vtkSmartPointer<vtkTable>::New()),
+	
 	m_chartOriginal(nullptr),
 	m_boxOriginal(nullptr),
 	lutOriginal(nullptr),
@@ -105,6 +127,7 @@ iACompBoxPlot::iACompBoxPlot(iAMainWindow* parent, iACsvDataStorage* dataStorage
 
 void iACompBoxPlot::initializeChart()
 {
+
 	//reset chart if something was drawn before
 	m_view->GetScene()->ClearItems();
 
@@ -142,6 +165,7 @@ void iACompBoxPlot::initializeChart()
 	renderWidget();
 
 	//set size of chart
+
 	m_chartOriginal->SetPoint1(m_qvtkWidget->width() * 0.0, (m_qvtkWidget->height() * 0.3));
 	m_chartOriginal->SetPoint2(m_qvtkWidget->width() * 0.75, (m_qvtkWidget->height()) * 0.85);
 	m_chartOriginal->Update();
@@ -156,12 +180,16 @@ void iACompBoxPlot::initializeChart()
 	m_lastState = iACompVisOptions::lastState::Defined;
 }
 
+
 void iACompBoxPlot::showEvent(QShowEvent* event)
 {
+
 	QDockWidget::showEvent(event);
+
 
 	if (m_lastState == iACompVisOptions::lastState::Undefined)
 	{
+		//m_view->GetRenderer()->RemoveActor2D(m_legendAttributes->at(i));
 		initializeChart();
 	}
 	else if (m_lastState == iACompVisOptions::lastState::Defined)
@@ -173,6 +201,7 @@ void iACompBoxPlot::showEvent(QShowEvent* event)
 void iACompBoxPlot::initializeData()
 {
 	// data preparation
+
 	QList<csvFileData>* dataPoints = m_dataStorage->getData();
 	QStringList* attrNames = m_dataStorage->getAttributeNamesWithoutLabel();
 	m_numberOfAttr = attrNames->size(); //amount of attributes
@@ -200,6 +229,7 @@ void iACompBoxPlot::initializeData()
 
 	//calculate amount of objects(fibers)/rows
 	int numberOfRows = 0;
+
 	for (int i = 0; i < dataPoints->size(); i++)
 	{
 		numberOfRows += csvDataType::getRows(dataPoints->at(i).values);

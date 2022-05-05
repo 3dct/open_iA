@@ -1,7 +1,7 @@
 /*************************************  open_iA  ************************************ *
 * **********   A tool for visual analysis and processing of 3D CT images   ********** *
 * *********************************************************************************** *
-* Copyright (C) 2016-2021  C. Heinzl, M. Reiter, A. Reh, W. Li, M. Arikan, Ar. &  Al. *
+* Copyright (C) 2016-2022  C. Heinzl, M. Reiter, A. Reh, W. Li, M. Arikan, Ar. &  Al. *
 *                 Amirkhanov, J. Weissenböck, B. Fröhler, M. Schiwarth, P. Weinberger *
 * *********************************************************************************** *
 * This program is free software: you can redistribute it and/or modify it under the   *
@@ -20,7 +20,7 @@
 * ************************************************************************************/
 #include "iASignallingWidget.h"
 
-#include <QApplication>    // for qApp->palette()
+#include <QApplication>
 #include <QMouseEvent>
 #include <QPainter>
 
@@ -37,5 +37,5 @@ void iASignallingWidget::mouseReleaseEvent(QMouseEvent* ev)
 void iASignallingWidget::paintEvent(QPaintEvent* /*ev*/)
 {
 	QPainter painter(this);
-	painter.fillRect(rect(), qApp->palette().color(QWidget::backgroundRole()));
+	painter.fillRect(rect(), QApplication::palette().color(QWidget::backgroundRole()));
 }

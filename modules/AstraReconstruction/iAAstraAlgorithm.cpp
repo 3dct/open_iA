@@ -1,7 +1,7 @@
 /*************************************  open_iA  ************************************ *
 * **********   A tool for visual analysis and processing of 3D CT images   ********** *
 * *********************************************************************************** *
-* Copyright (C) 2016-2021  C. Heinzl, M. Reiter, A. Reh, W. Li, M. Arikan, Ar. &  Al. *
+* Copyright (C) 2016-2022  C. Heinzl, M. Reiter, A. Reh, W. Li, M. Arikan, Ar. &  Al. *
 *                 Amirkhanov, J. Weissenböck, B. Fröhler, M. Schiwarth, P. Weinberger *
 * *********************************************************************************** *
 * This program is free software: you can redistribute it and/or modify it under the   *
@@ -312,7 +312,7 @@ public:
 
 void iAASTRAForwardProject::performWork(QMap<QString, QVariant> const & parameters)
 {
-	vtkSmartPointer<vtkImageData> volImg = input()[0]->vtkImage();
+	vtkSmartPointer<vtkImageData> volImg = input(0)->vtkImage();
 	int * volDim = volImg->GetDimensions();
 	astra::Config projectorConfig;
 	projectorConfig.initialize("Projector3D");
@@ -441,7 +441,7 @@ void swapDimensions(vtkSmartPointer<vtkImageData> img, astra::float32* buf, int 
 
 void iAASTRAReconstruct::performWork(QMap<QString, QVariant> const & parameters)
 {
-	vtkSmartPointer<vtkImageData> projImg = input()[0]->vtkImage();
+	vtkSmartPointer<vtkImageData> projImg = input(0)->vtkImage();
 	int * projDim = projImg->GetDimensions();
 	if (projDim[0] == 0 || projDim[1] == 0 || projDim[2] == 0)
 	{

@@ -1,7 +1,7 @@
 /*************************************  open_iA  ************************************ *
 * **********   A tool for visual analysis and processing of 3D CT images   ********** *
 * *********************************************************************************** *
-* Copyright (C) 2016-2021  C. Heinzl, M. Reiter, A. Reh, W. Li, M. Arikan, Ar. &  Al. *
+* Copyright (C) 2016-2022  C. Heinzl, M. Reiter, A. Reh, W. Li, M. Arikan, Ar. &  Al. *
 *                 Amirkhanov, J. Weissenböck, B. Fröhler, M. Schiwarth, P. Weinberger *
 * *********************************************************************************** *
 * This program is free software: you can redistribute it and/or modify it under the   *
@@ -230,10 +230,10 @@ void iAJobListView::newJobSlot()
 		j = m_pendingJobs.pop();
 	}
 	auto jobWidget = addJobWidget(j);
-	LOG(lvlDebug, QString("Job added: %1").arg(j->name));
+	LOG(lvlDebug, QString("Job started: %1.").arg(j->name));
 	connect(j->object, &QObject::destroyed, [this, jobWidget, j]()
 	{
-		LOG(lvlDebug, QString("Job '%1': Done.").arg(j->name));
+		LOG(lvlDebug, QString("Job done: '%1'.").arg(j->name));
 		int remainingJobs = 0;
 		{
 			std::lock_guard<std::mutex> guard(jobsMutex);

@@ -1,7 +1,7 @@
 /*************************************  open_iA  ************************************ *
 * **********   A tool for visual analysis and processing of 3D CT images   ********** *
 * *********************************************************************************** *
-* Copyright (C) 2016-2021  C. Heinzl, M. Reiter, A. Reh, W. Li, M. Arikan, Ar. &  Al. *
+* Copyright (C) 2016-2022  C. Heinzl, M. Reiter, A. Reh, W. Li, M. Arikan, Ar. &  Al. *
 *                 Amirkhanov, J. Weissenböck, B. Fröhler, M. Schiwarth, P. Weinberger *
 * *********************************************************************************** *
 * This program is free software: you can redistribute it and/or modify it under the   *
@@ -27,7 +27,11 @@
 #include "iAAbortListener.h"
 
 // with Visual Studio 2022 preview, using AVIWriter leads to unresolved externals...
-#if defined(_WIN32) and defined(_MSC_VER) and _MSC_VER < 1930
+// and _MSC_VER < 1930
+// ... but the same problem also appeared on another VS 2019 PC.
+// Also there seems to exist no way in CMake to determine whether vtkAVIWriter is available.
+// So, disabling vtkAVIWriter for now, except if explicitly enabled via VTK_USE_AVIWRITER CMake option
+#if defined(_WIN32) and defined(_MSC_VER)  and defined(VTK_USE_AVIWRITER)
 #include <vtkAVIWriter.h>
 #endif
 #ifdef VTK_USE_OGGTHEORA_ENCODER
@@ -54,7 +58,7 @@ vtkSmartPointer<vtkGenericMovieWriter> GetMovieWriter(QString const & fileName, 
 		movieWriter = oggwriter;
 	}
 #endif
-#if defined(_WIN32) and defined(_MSC_VER) and _MSC_VER < 1930
+#if defined(_WIN32) and defined(_MSC_VER) and defined(VTK_USE_AVIWRITER)
 	if (fileName.endsWith(".avi")) {
 		vtkSmartPointer<vtkAVIWriter> aviwriter;
 		aviwriter = vtkSmartPointer<vtkAVIWriter>::New();
@@ -76,7 +80,7 @@ QString GetAvailableMovieFormats()
 #ifdef VTK_USE_OGGTHEORA_ENCODER
 	movie_file_types += "OGG (*.ogv);;";
 #endif
-#if defined(_WIN32) and defined(_MSC_VER) and _MSC_VER < 1930
+#if defined(_WIN32) and defined(_MSC_VER) and defined(VTK_USE_AVIWRITER)
 	movie_file_types += "AVI (*.avi);;";
 #endif
 	return movie_file_types;

@@ -1,7 +1,7 @@
 /*************************************  open_iA  ************************************ *
 * **********   A tool for visual analysis and processing of 3D CT images   ********** *
 * *********************************************************************************** *
-* Copyright (C) 2016-2021  C. Heinzl, M. Reiter, A. Reh, W. Li, M. Arikan, Ar. &  Al. *
+* Copyright (C) 2016-2022  C. Heinzl, M. Reiter, A. Reh, W. Li, M. Arikan, Ar. &  Al. *
 *                 Amirkhanov, J. Weissenböck, B. Fröhler, M. Schiwarth, P. Weinberger *
 * *********************************************************************************** *
 * This program is free software: you can redistribute it and/or modify it under the   *
@@ -78,8 +78,7 @@ iABatchFilter::iABatchFilter():
 		"Under <em>Work on</em> it can be specified whether the batched filter should get passed "
 		"only files, only folders, or both files and folders."
 		"<em>Output format</em> specifies the file format for the output image(s)."
-		).arg(spnContinueOnError), 0, 0),
-	m_aborted(false)
+		).arg(spnContinueOnError), 0, 0, true)
 {
 	QStringList filesFoldersBoth;
 	filesFoldersBoth << "Files" << "Folders" << "Both Files and Folders";
@@ -122,22 +121,20 @@ void iABatchFilter::performWork(QMap<QString, QVariant> const & parameters)
 		return;
 	}
 	QString batchDir = parameters["Image folder"].toString();
-	QVector<iAConnector*> inputImages;
+	QVector<iAITKIO::ImagePointer> inputImages;
 	QStringList additionalInput = splitPossiblyQuotedString(parameters["Additional Input"].toString());
 	QStringList additionalFileNames;
 	for (QString fileName : additionalInput)
 	{
-		if (m_aborted)
+		if (isAborted())
 		{
 			break;
 		}
 		fileName = MakeAbsolute(batchDir, fileName);
 		additionalFileNames.push_back(fileName);
-		auto newCon = new iAConnector();
 		iAITKIO::ScalarPixelType pixelType;
 		iAITKIO::ImagePointer img = iAITKIO::readFile(fileName, pixelType, false);
-		newCon->setImage(img);
-		inputImages.push_back(newCon);
+		inputImages.push_back(img);
 	}
 
 	for (int i = 0; i < filterParamStrs.size(); ++i)
@@ -160,8 +157,6 @@ void iABatchFilter::performWork(QMap<QString, QVariant> const & parameters)
 			file.close();
 		}
 	}
-	iAProgress dummyProgress;	// dummy progress swallowing progress from filter which we don't want to propagate
-	filter->setProgress(&dummyProgress);
 	filter->setLogger(logger());
 
 	QStringList filters = parameters["File mask"].toString().split(";");
@@ -214,7 +209,6 @@ void iABatchFilter::performWork(QMap<QString, QVariant> const & parameters)
 		try
 		{
 			filter->clearInput();
-			iAConnector con;
 			if (QFileInfo(fileName).isDir())
 			{
 				filterParams["Folder name"] = fileName;
@@ -225,8 +219,7 @@ void iABatchFilter::performWork(QMap<QString, QVariant> const & parameters)
 				{
 					iAITKIO::ScalarPixelType pixelType;
 					iAITKIO::ImagePointer img = iAITKIO::readFile(fileName, pixelType, false);
-					con.setImage(img);
-					filter->addInput(&con, fileName);
+					filter->addInput(img, fileName);
 					for (int i = 0; i < inputImages.size(); ++i)
 					{
 						filter->addInput(inputImages[i], additionalFileNames[i]);
@@ -295,10 +288,10 @@ void iABatchFilter::performWork(QMap<QString, QVariant> const & parameters)
 			QString textToAdd = (outputBuffer[curLine].isEmpty() || values.empty() ? "" : ",") + values.join(",");
 			outputBuffer[curLine] += textToAdd;
 			++curLine;
-			for (int o = 0; o < filter->output().size(); ++o)
+			for (size_t o = 0; o < filter->finalOutputCount(); ++o)
 			{
 				QFileInfo fi(outDir + "/" + relFileName);
-				QString multiFileSuffix = filter->output().size() > 1 ? QString::number(o) : "";
+				QString multiFileSuffix = filter->finalOutputCount() > 1 ? QString::number(o) : "";
 				QString outName = QString("%1/%2%3%4.%5").arg(fi.absolutePath()).arg(
 					parameters["Output format"].toString().contains("MetaImage") ? fi.fileName() : fi.baseName())
 					.arg(outSuffix).arg(multiFileSuffix).arg(
@@ -319,8 +312,8 @@ void iABatchFilter::performWork(QMap<QString, QVariant> const & parameters)
 				}
 				else
 				{
-					iAITKIO::writeFile(outName, filter->output()[o]->itkImage(),
-						filter->output()[o]->itkScalarPixelType(), useCompression);
+					iAITKIO::writeFile(outName, filter->output(o)->itkImage(),
+						filter->output(o)->itkScalarPixelType(), useCompression);
 				}
 			}
 		}
@@ -333,13 +326,13 @@ void iABatchFilter::performWork(QMap<QString, QVariant> const & parameters)
 			}
 		}
 		progress()->emitProgress( (curLine - 1.0) * 100.0 / files.size() );
-		if (m_aborted)
+		if (isAborted())
 		{
 			break;
 		}
 	}
 
-	if (!m_aborted && !outputFile.isEmpty())
+	if (!isAborted() && !outputFile.isEmpty())
 	{
 		QFile file(outputFile);
 		if (file.open(QIODevice::WriteOnly | QIODevice::Text))
@@ -352,16 +345,6 @@ void iABatchFilter::performWork(QMap<QString, QVariant> const & parameters)
 			file.close();
 		}
 	}
-}
-
-void iABatchFilter::abort()
-{
-	m_aborted = true;
-}
-
-bool iABatchFilter::canAbort() const
-{
-	return true;
 }
 
 IAFILTER_CREATE(iABatchFilter);

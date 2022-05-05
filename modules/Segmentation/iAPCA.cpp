@@ -1,7 +1,7 @@
 /*************************************  open_iA  ************************************ *
 * **********   A tool for visual analysis and processing of 3D CT images   ********** *
 * *********************************************************************************** *
-* Copyright (C) 2016-2021  C. Heinzl, M. Reiter, A. Reh, W. Li, M. Arikan, Ar. &  Al. *
+* Copyright (C) 2016-2022  C. Heinzl, M. Reiter, A. Reh, W. Li, M. Arikan, Ar. &  Al. *
 *                 Amirkhanov, J. Weissenböck, B. Fröhler, M. Schiwarth, P. Weinberger *
 * *********************************************************************************** *
 * This program is free software: you can redistribute it and/or modify it under the   *
@@ -56,11 +56,11 @@ void pca(iAFilter* filter, QMap<QString, QVariant> const & parameters)
 	typedef itk::ImagePCAShapeModelEstimator<ImageType, ImageType>  EstimatorType;
 
 	auto pcaFilter = EstimatorType::New();
-	pcaFilter->SetNumberOfTrainingImages(filter->input().size());
+	pcaFilter->SetNumberOfTrainingImages(filter->inputCount());
 	pcaFilter->SetNumberOfPrincipalComponentsRequired(parameters["Cutoff"].toUInt());
-	for (int k = 0; k < filter->input().size(); k++)
+	for (size_t k = 0; k < filter->inputCount(); k++)
 	{
-		pcaFilter->SetInput(static_cast<unsigned int>(k), dynamic_cast<ImageType*>(filter->input()[k]->itkImage()));
+		pcaFilter->SetInput(static_cast<unsigned int>(k), dynamic_cast<ImageType*>(filter->input(k)->itkImage()));
 	}
 	pcaFilter->Update();
 	auto scaler = ScaleType::New();

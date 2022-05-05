@@ -1,7 +1,7 @@
 /*************************************  open_iA  ************************************ *
 * **********   A tool for visual analysis and processing of 3D CT images   ********** *
 * *********************************************************************************** *
-* Copyright (C) 2016-2021  C. Heinzl, M. Reiter, A. Reh, W. Li, M. Arikan, Ar. &  Al. *
+* Copyright (C) 2016-2022  C. Heinzl, M. Reiter, A. Reh, W. Li, M. Arikan, Ar. &  Al. *
 *                 Amirkhanov, J. Weissenböck, B. Fröhler, M. Schiwarth, P. Weinberger *
 * *********************************************************************************** *
 * This program is free software: you can redistribute it and/or modify it under the   *
@@ -85,7 +85,7 @@ template <typename T> void computeHistogram(iAFilter* filter, size_t binCount,
 	const int ChannelCount = 1;
 	auto histogramFilter = ImageHistogramFilterType::New();
 	histogramFilter->ReleaseDataFlagOff();
-	histogramFilter->SetInput(dynamic_cast<InputImageType*>(filter->input()[0]->itkImage()));
+	histogramFilter->SetInput(dynamic_cast<InputImageType*>(filter->input(0)->itkImage()));
 	typename ImageHistogramFilterType::HistogramType::MeasurementVectorType	binMin(ChannelCount);
 	binMin.Fill(minVal);
 	typename ImageHistogramFilterType::HistogramType::MeasurementVectorType	binMax(ChannelCount);
@@ -115,7 +115,7 @@ void computeQ(iAQMeasure* filter, vtkSmartPointer<vtkImageData> img, QMap<QStrin
 
 	double minVal = img->GetScalarRange()[0];
 	double maxVal = img->GetScalarRange()[1];
-	auto size =	filter->input()[0]->itkImage()->GetLargestPossibleRegion().GetSize();
+	auto size =	filter->input(0)->itkImage()->GetLargestPossibleRegion().GetSize();
 	size_t voxelCount = size[0] * size[1] * size[2];
 	size_t binCount = std::max(static_cast<size_t>(2), static_cast<size_t>(histogramBinFactor * std::sqrt(voxelCount)));
 	std::vector<double> vecHist;
@@ -390,7 +390,7 @@ void iAQMeasure::performWork(QMap<QString, QVariant> const & parameters)
 	size_t size[3], index[3];
 	size[0] = parameters["Size X"].toUInt(); size[1] = parameters["Size Y"].toUInt(); size[2] = parameters["Size Z"].toUInt();
 	index[0] = parameters["Index X"].toUInt(); index[1] = parameters["Index Y"].toUInt(); index[2] = parameters["Index Z"].toUInt();
-	auto extractImg = extractImage(input()[0]->itkImage(), index, size);
+	auto extractImg = extractImage(input(0)->itkImage(), index, size);
 	iAConnector extractCon;
 	extractCon.setImage(extractImg);
 	computeQ(this, extractCon.vtkImage(), parameters);
@@ -476,7 +476,7 @@ void iASNR::performWork(QMap<QString, QVariant> const & parameters)
 	size_t size[3], index[3];
 	size[0] = parameters["Size X"].toUInt(); size[1] = parameters["Size Y"].toUInt(); size[2] = parameters["Size Z"].toUInt();
 	index[0] = parameters["Index X"].toUInt(); index[1] = parameters["Index Y"].toUInt(); index[2] = parameters["Index Z"].toUInt();
-	auto extractImg = extractImage(input()[0]->itkImage(), index, size);
+	auto extractImg = extractImage(input(0)->itkImage(), index, size);
 	double mean, stddev;
 	getStatistics(extractImg, nullptr, nullptr, &mean, &stddev);
 	addOutputValue("Signal-to-Noise Ratio", mean / stddev);
@@ -510,10 +510,10 @@ void iACNR::performWork(QMap<QString, QVariant> const & parameters)
 	size_t size[3], index[3];
 	size[0] = parameters["Region 1 Size X"].toUInt(); size[1] = parameters["Region 1 Size Y"].toUInt(); size[2] = parameters["Region 1 Size Z"].toUInt();
 	index[0] = parameters["Region 1 Index X"].toUInt(); index[1] = parameters["Region 1 Index Y"].toUInt(); index[2] = parameters["Region 1 Index Z"].toUInt();
-	auto extractImg1 = extractImage(input()[0]->itkImage(), index, size);
+	auto extractImg1 = extractImage(input(0)->itkImage(), index, size);
 	size[0] = parameters["Region 2 Size X"].toUInt(); size[1] = parameters["Region 2 Size Y"].toUInt(); size[2] = parameters["Region 2 Size Z"].toUInt();
 	index[0] = parameters["Region 2 Index X"].toUInt(); index[1] = parameters["Region 2 Index Y"].toUInt(); index[2] = parameters["Region 2 Index Z"].toUInt();
-	auto extractImg2 = extractImage(input()[0]->itkImage(), index, size);
+	auto extractImg2 = extractImage(input(0)->itkImage(), index, size);
 	double mean1, mean2, stddev2;
 	getStatistics(extractImg1, nullptr, nullptr, &mean1, nullptr);
 	getStatistics(extractImg2, nullptr, nullptr, &mean2, &stddev2);

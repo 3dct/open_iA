@@ -1,7 +1,7 @@
 /*************************************  open_iA  ************************************ *
 * **********   A tool for visual analysis and processing of 3D CT images   ********** *
 * *********************************************************************************** *
-* Copyright (C) 2016-2021  C. Heinzl, M. Reiter, A. Reh, W. Li, M. Arikan, Ar. &  Al. *
+* Copyright (C) 2016-2022  C. Heinzl, M. Reiter, A. Reh, W. Li, M. Arikan, Ar. &  Al. *
 *                 Amirkhanov, J. Weissenböck, B. Fröhler, M. Schiwarth, P. Weinberger *
 * *********************************************************************************** *
 * This program is free software: you can redistribute it and/or modify it under the   *
@@ -566,13 +566,13 @@ void iAVRMain::changeOctreeAndMetric()
 		m_volume->resetVolume();
 		addPropToOptionID(vtkProp3D::SafeDownCast(m_volume->getVolumeActor()), iAVRInteractionOptions::Volume);
 
-		if (touchpadPos == iAVRTouchpadPosition::Up)
+		if (touchpadPos == iAVRTouchpadPosition::Up && currentOctreeLevel < static_cast<int>(m_octrees->size()) - 1)
 		{
-			if (currentOctreeLevel < m_octrees->size() - 1)	currentOctreeLevel++;
+			currentOctreeLevel++;
 		}
-		if (touchpadPos == iAVRTouchpadPosition::Down)
+		if (touchpadPos == iAVRTouchpadPosition::Down && currentOctreeLevel > OCTREE_MIN_LEVEL)
 		{
-			if (currentOctreeLevel > OCTREE_MIN_LEVEL)	currentOctreeLevel--;
+			currentOctreeLevel--;
 		}
 
 		QString text = QString("Octree Level %1").arg(currentOctreeLevel);

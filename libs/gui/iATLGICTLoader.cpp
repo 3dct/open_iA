@@ -1,7 +1,7 @@
 /*************************************  open_iA  ************************************ *
 * **********   A tool for visual analysis and processing of 3D CT images   ********** *
 * *********************************************************************************** *
-* Copyright (C) 2016-2021  C. Heinzl, M. Reiter, A. Reh, W. Li, M. Arikan, Ar. &  Al. *
+* Copyright (C) 2016-2022  C. Heinzl, M. Reiter, A. Reh, W. Li, M. Arikan, Ar. &  Al. *
 *                 Amirkhanov, J. Weissenböck, B. Fröhler, M. Schiwarth, P. Weinberger *
 * *********************************************************************************** *
 * This program is free software: you can redistribute it and/or modify it under the   *
@@ -103,7 +103,7 @@ void iATLGICTLoader::start(MdiChild* child)
 	m_child = child;
 	m_child->show();
 	LOG(lvlInfo, tr("Loading TLGI-CT data."));
-	iAJobListView::get()->addJob("Loading TLGI-CT data.", m_multiStepObserver->progressObject(), this);
+	iAJobListView::get()->addJob("Loading TLGI-CT data", m_multiStepObserver->progressObject(), this);
 	connect(this, &iATLGICTLoader::finished, this, &iATLGICTLoader::finishUp);		// this needs to be last, as it deletes this object!
 	QThread::start();
 }

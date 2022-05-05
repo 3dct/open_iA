@@ -1,7 +1,7 @@
 /*************************************  open_iA  ************************************ *
 * **********   A tool for visual analysis and processing of 3D CT images   ********** *
 * *********************************************************************************** *
-* Copyright (C) 2016-2021  C. Heinzl, M. Reiter, A. Reh, W. Li, M. Arikan, Ar. &  Al. *
+* Copyright (C) 2016-2022  C. Heinzl, M. Reiter, A. Reh, W. Li, M. Arikan, Ar. &  Al. *
 *                 Amirkhanov, J. Weissenböck, B. Fröhler, M. Schiwarth, P. Weinberger *
 * *********************************************************************************** *
 * This program is free software: you can redistribute it and/or modify it under the   *
@@ -53,7 +53,7 @@ template<class T> void hessianEigenAnalysis(iAFilter* filter, QMap<QString, QVar
 
 	// Compute Hessian
 	auto hessianFilter = HessianFilterType::New();
-	hessianFilter->SetInput( dynamic_cast< InputImageType * >( filter->input()[0]->itkImage() ) );
+	hessianFilter->SetInput( dynamic_cast< InputImageType * >( filter->input(0)->itkImage() ) );
 	hessianFilter->SetSigma(parameters["Sigma"].toDouble());
 	filter->progress()->observe(hessianFilter);
 	hessianFilter->Update();
@@ -166,7 +166,7 @@ template<class T> void Laplacian(iAFilter* filter, QMap<QString, QVariant> const
 	typedef itk::LaplacianRecursiveGaussianImageFilter<ImageType, OutputImageType> LoGFilterType;
 
 	auto logFilter = LoGFilterType::New();
-	logFilter->SetInput(dynamic_cast< ImageType * >(filter->input()[0]->itkImage()));
+	logFilter->SetInput(dynamic_cast< ImageType * >(filter->input(0)->itkImage()));
 	logFilter->SetSigma(params["Sigma"].toDouble());
 	logFilter->Update();
 	filter->addOutput(logFilter->GetOutput());

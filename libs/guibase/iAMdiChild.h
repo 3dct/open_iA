@@ -1,7 +1,7 @@
 /*************************************  open_iA  ************************************ *
 * **********   A tool for visual analysis and processing of 3D CT images   ********** *
 * *********************************************************************************** *
-* Copyright (C) 2016-2021  C. Heinzl, M. Reiter, A. Reh, W. Li, M. Arikan, Ar. &  Al. *
+* Copyright (C) 2016-2022  C. Heinzl, M. Reiter, A. Reh, W. Li, M. Arikan, Ar. &  Al. *
 *                 Amirkhanov, J. Weissenböck, B. Fröhler, M. Schiwarth, P. Weinberger *
 * *********************************************************************************** *
 * This program is free software: you can redistribute it and/or modify it under the   *
@@ -26,6 +26,8 @@
 
 #include <QMainWindow>
 #include <QSharedPointer>
+
+#include <functional>
 
 class dlg_modalities;
 class iAAlgorithm;
@@ -94,8 +96,6 @@ public:
 	virtual QDockWidget* imagePropertyDockWidget() = 0;
 	//! Access to histogram dock widget
 	virtual QDockWidget* histogramDockWidget() = 0;
-
-
 
 	//! Access slicer for given mode (use iASlicerMode enum for mode values)
 	virtual iASlicer* slicer(int mode) = 0;

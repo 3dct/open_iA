@@ -1,7 +1,7 @@
 /*************************************  open_iA  ************************************ *
 * **********   A tool for visual analysis and processing of 3D CT images   ********** *
 * *********************************************************************************** *
-* Copyright (C) 2016-2021  C. Heinzl, M. Reiter, A. Reh, W. Li, M. Arikan, Ar. &  Al. *
+* Copyright (C) 2016-2022  C. Heinzl, M. Reiter, A. Reh, W. Li, M. Arikan, Ar. &  Al. *
 *                 Amirkhanov, J. Weissenböck, B. Fröhler, M. Schiwarth, P. Weinberger *
 * *********************************************************************************** *
 * This program is free software: you can redistribute it and/or modify it under the   *
@@ -246,7 +246,10 @@ void iAModuleDispatcher::InitializeModules(iALogger* logger)
 		}
 		QAction * filterAction = new QAction(tr(filter->name().toStdString().c_str()), m_mainWnd);
 		addToMenuSorted(filterMenu, filterAction);
-		m_mainWnd->makeActionChildDependent(filterAction);
+		if (filter->requiredInputs() > 0)
+		{
+			m_mainWnd->makeActionChildDependent(filterAction);
+		}
 		filterAction->setData(i);
 		connect(filterAction, &QAction::triggered, this, &iAModuleDispatcher::executeFilter);
 	}
@@ -258,7 +261,6 @@ void iAModuleDispatcher::InitializeModules(iALogger* logger)
 	{
 		QMenu * filterMenu = m_mainWnd->filtersMenu();
 		QAction * selectAndRunFilterAction = new QAction(tr("Select and Run Filter..."), m_mainWnd);
-		m_mainWnd->makeActionChildDependent(selectAndRunFilterAction);
 		filterMenu->insertAction(filterMenu->actions()[0], selectAndRunFilterAction);
 		connect(selectAndRunFilterAction, &QAction::triggered, this, &iAModuleDispatcher::selectAndRunFilter);
 	}

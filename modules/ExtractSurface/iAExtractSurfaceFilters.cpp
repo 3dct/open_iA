@@ -1,7 +1,7 @@
 /*************************************  open_iA  ************************************ *
 * **********   A tool for visual analysis and processing of 3D CT images   ********** *
 * *********************************************************************************** *
-* Copyright (C) 2016-2021  C. Heinzl, M. Reiter, A. Reh, W. Li, M. Arikan, Ar. &  Al. *
+* Copyright (C) 2016-2022  C. Heinzl, M. Reiter, A. Reh, W. Li, M. Arikan, Ar. &  Al. *
 *                 Amirkhanov, J. Weissenböck, B. Fröhler, M. Schiwarth, P. Weinberger *
 * *********************************************************************************** *
 * This program is free software: you can redistribute it and/or modify it under the   *
@@ -196,7 +196,7 @@ namespace
 
 void iAExtractSurface::performWork(QMap<QString, QVariant> const & parameters)
 {
-	auto surfaceFilter = createSurfaceFilter(parameters, input()[0]->vtkImage(), progress());
+	auto surfaceFilter = createSurfaceFilter(parameters, input(0)->vtkImage(), progress());
 	if (!surfaceFilter)
 	{
 		LOG(lvlError, "Generated surface filter is null");
@@ -209,11 +209,15 @@ void iAExtractSurface::performWork(QMap<QString, QVariant> const & parameters)
 
 	if (parameters["Simplification Algorithm"].toString() == "None")
 	{
+		surfaceFilter->Update();
+		setPolyOutput(surfaceFilter->GetOutput());
 		stlWriter->SetInputConnection(surfaceFilter->GetOutputPort());
 	}
 	else
 	{
 		auto simplifyFilter = createDecimation(parameters, surfaceFilter, progress());
+		simplifyFilter->Update();
+		setPolyOutput(simplifyFilter->GetOutput());
 		stlWriter->SetInputConnection(simplifyFilter->GetOutputPort());
 	}
 	stlWriter->Write();
@@ -269,7 +273,7 @@ iAExtractSurface::iAExtractSurface() :
 
 void iATriangulation::performWork(QMap<QString, QVariant> const& parameters) {
 
-	auto surfaceFilter = createSurfaceFilter(parameters, input()[0]->vtkImage(), progress());
+	auto surfaceFilter = createSurfaceFilter(parameters, input(0)->vtkImage(), progress());
 	if (!surfaceFilter)
 	{
 		LOG(lvlError, "Generated surface filter is null");
@@ -308,6 +312,8 @@ void iATriangulation::performWork(QMap<QString, QVariant> const& parameters) {
 
 	stlWriter->SetInputData(smoothing->GetOutput());
 	stlWriter->Write();
+
+	setPolyOutput(smoothing->GetOutput());
 }
 
 

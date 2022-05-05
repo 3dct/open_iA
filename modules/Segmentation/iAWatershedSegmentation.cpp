@@ -1,7 +1,7 @@
 /*************************************  open_iA  ************************************ *
 * **********   A tool for visual analysis and processing of 3D CT images   ********** *
 * *********************************************************************************** *
-* Copyright (C) 2016-2021  C. Heinzl, M. Reiter, A. Reh, W. Li, M. Arikan, Ar. &  Al. *
+* Copyright (C) 2016-2022  C. Heinzl, M. Reiter, A. Reh, W. Li, M. Arikan, Ar. &  Al. *
 *                 Amirkhanov, J. Weissenböck, B. Fröhler, M. Schiwarth, P. Weinberger *
 * *********************************************************************************** *
 * This program is free software: you can redistribute it and/or modify it under the   *
@@ -42,7 +42,7 @@ void watershed(iAFilter* filter, QMap<QString, QVariant> const & parameters)
 	auto wsFilter = WIFType::New();
 	wsFilter->SetLevel ( parameters["Level"].toDouble() );
 	wsFilter->SetThreshold ( parameters["Threshold"].toDouble() );
-	wsFilter->SetInput( dynamic_cast< InputImageType * >( filter->input()[0]->itkImage() ) );
+	wsFilter->SetInput( dynamic_cast< InputImageType * >( filter->input(0)->itkImage() ) );
 	filter->progress()->observe( wsFilter );
 	wsFilter->Update();
 	// return is unsigned long long, but vtk can't handle that, so convert to ulong:
@@ -84,7 +84,7 @@ void morph_watershed(iAFilter* filter, QMap<QString, QVariant> const & parameter
 	mWSFilter->SetMarkWatershedLine(parameters["Mark WS Lines"].toBool());
 	mWSFilter->SetFullyConnected(parameters["Fully Connected"].toBool());
 	mWSFilter->SetLevel( parameters["Level"].toDouble() );
-	mWSFilter->SetInput( dynamic_cast< InputImageType * >( filter->input()[0]->itkImage() ) );
+	mWSFilter->SetInput( dynamic_cast< InputImageType * >( filter->input(0)->itkImage() ) );
 	filter->progress()->observe( mWSFilter );
 	mWSFilter->Update();
 	filter->addOutput( mWSFilter->GetOutput() );

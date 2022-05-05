@@ -1,7 +1,7 @@
 /*************************************  open_iA  ************************************ *
 * **********   A tool for visual analysis and processing of 3D CT images   ********** *
 * *********************************************************************************** *
-* Copyright (C) 2016-2021  C. Heinzl, M. Reiter, A. Reh, W. Li, M. Arikan, Ar. &  Al. *
+* Copyright (C) 2016-2022  C. Heinzl, M. Reiter, A. Reh, W. Li, M. Arikan, Ar. &  Al. *
 *                 Amirkhanov, J. Weissenböck, B. Fröhler, M. Schiwarth, P. Weinberger *
 * *********************************************************************************** *
 * This program is free software: you can redistribute it and/or modify it under the   *
@@ -54,9 +54,9 @@ void entropy(iAFilter* filter, QMap<QString, QVariant> const & parameters)
 	typedef itk::Image<PixelType, DIM> InputImageType;
 	typedef iAEntropyImageFilter<InputImageType, InputImageType> EntropyFilter;
 	auto entropyFilter = EntropyFilter::New();
-	for (int i = 0; i < filter->input().size(); ++i)
+	for (size_t i = 0; i < filter->inputCount(); ++i)
 	{
-		entropyFilter->SetInput(i, dynamic_cast<InputImageType*>(filter->input()[i]->itkImage()));
+		entropyFilter->SetInput(i, dynamic_cast<InputImageType*>(filter->input(i)->itkImage()));
 	}
 	entropyFilter->SetNormalize(parameters["Normalize"].toBool());
 	entropyFilter->Update();

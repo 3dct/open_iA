@@ -1,7 +1,7 @@
 /*************************************  open_iA  ************************************ *
 * **********   A tool for visual analysis and processing of 3D CT images   ********** *
 * *********************************************************************************** *
-* Copyright (C) 2016-2021  C. Heinzl, M. Reiter, A. Reh, W. Li, M. Arikan, Ar. &  Al. *
+* Copyright (C) 2016-2022  C. Heinzl, M. Reiter, A. Reh, W. Li, M. Arikan, Ar. &  Al. *
 *                 Amirkhanov, J. Weissenböck, B. Fröhler, M. Schiwarth, P. Weinberger *
 * *********************************************************************************** *
 * This program is free software: you can redistribute it and/or modify it under the   *
@@ -56,7 +56,7 @@ IAFILTER_CREATE(iACopy)
 
 void iACopy::performWork(QMap<QString, QVariant> const & /*parameters*/)
 {
-	addOutput(input()[0]->itkImage());
+	addOutput(input(0)->vtkImage());
 }
 
 iACopy::iACopy() :
@@ -79,7 +79,7 @@ void binary_threshold(iAFilter* filter, QMap<QString, QVariant> const & paramete
 	binThreshFilter->SetUpperThreshold(T(parameters["Upper threshold"].toDouble()));
 	binThreshFilter->SetOutsideValue(T(parameters["Outside value"].toDouble()));
 	binThreshFilter->SetInsideValue(T(parameters["Inside value"].toDouble()));
-	binThreshFilter->SetInput(dynamic_cast<InputImageType *>(filter->input()[0]->itkImage()));
+	binThreshFilter->SetInput(dynamic_cast<InputImageType *>(filter->input(0)->itkImage()));
 	filter->progress()->observe(binThreshFilter);
 	binThreshFilter->Update();
 	filter->addOutput(binThreshFilter->GetOutput());
@@ -134,7 +134,7 @@ void multi_threshold(iAFilter* filter, QMap<QString, QVariant> const& parameters
 	typedef itk::ThresholdLabelerImageFilter<InputImageType, OutputImageType> BTIFType;
 	auto multiThreshFilter = BTIFType::New();
 	multiThreshFilter->SetThresholds(thresholds);
-	multiThreshFilter->SetInput(dynamic_cast<InputImageType*>(filter->input()[0]->itkImage()));
+	multiThreshFilter->SetInput(dynamic_cast<InputImageType*>(filter->input(0)->itkImage()));
 	filter->progress()->observe(multiThreshFilter);
 	multiThreshFilter->Update();
 	filter->addOutput(multiThreshFilter->GetOutput());
@@ -171,12 +171,12 @@ void rats_threshold(iAFilter* filter, QMap<QString, QVariant> const & parameters
 	typedef typename itk::Image< float, 3 >   GradientImageType;
 	typedef itk::GradientMagnitudeImageFilter< InputImageType, GradientImageType > GMFType;
 	typename GMFType::Pointer gmfilter = GMFType::New();
-	gmfilter->SetInput( dynamic_cast< InputImageType * >( filter->input()[0]->itkImage() ) );
+	gmfilter->SetInput( dynamic_cast< InputImageType * >( filter->input(0)->itkImage() ) );
 	filter->progress()->observe( gmfilter );
 	gmfilter->Update();
 	typedef typename itk::RobustAutomaticThresholdImageFilter < InputImageType, GradientImageType, OutputImageType > RATType;
 	auto ratsFilter = RATType::New();
-	ratsFilter->SetInput( dynamic_cast< InputImageType * >( filter->input()[0]->itkImage() ) );
+	ratsFilter->SetInput( dynamic_cast< InputImageType * >( filter->input(0)->itkImage() ) );
 	ratsFilter->SetGradientImage(gmfilter->GetOutput());
 	ratsFilter->SetOutsideValue( T(parameters["Outside value"].toDouble()) );
 	ratsFilter->SetInsideValue( T(parameters["Inside value"].toDouble()) );
@@ -213,7 +213,7 @@ iARatsThreshold::iARatsThreshold() :
 // Otsu's Threshold
 namespace
 {
-	const int OtsuThresholdDefaultNumBins = 128;
+	constexpr int OtsuThresholdDefaultNumBins = 128;
 }
 
 template<class T>
@@ -226,8 +226,8 @@ void otsu_threshold(iAFilter* filter, QMap<QString, QVariant> const & parameters
 	double numBins = parameters["Number of histogram bins"].toDouble();
 	double maxBins = std::numeric_limits<unsigned int>::max();
 	if (numBins < maxBins)
-	{
-		maxBins = std::numeric_limits<T>::max() + 1;
+	{	// max bins must be smaller than unsigned int max, but also smaller than number of values in current datatype!
+		maxBins = static_cast<double>(std::numeric_limits<T>::max()) + 1.0;
 	}
 	if (numBins < 2 || numBins > maxBins)
 	{
@@ -244,7 +244,7 @@ void otsu_threshold(iAFilter* filter, QMap<QString, QVariant> const & parameters
 		otsuFilter->SetNumberOfHistogramBins(static_cast<unsigned int>(numBins));
 		otsuFilter->SetOutsideValue(static_cast<T>(parameters["Outside value"].toDouble()));
 		otsuFilter->SetInsideValue(static_cast<T>(parameters["Inside value"].toDouble()));
-		otsuFilter->SetInput(dynamic_cast<InputImageType*>( filter->input()[0]->itkImage() ) );
+		otsuFilter->SetInput(dynamic_cast<InputImageType*>( filter->input(0)->itkImage() ) );
 		filter->progress()->observe( otsuFilter );
 		otsuFilter->Update();
 		filter->addOutputValue("Otsu threshold", (double)otsuFilter->GetThreshold());
@@ -257,7 +257,7 @@ void otsu_threshold(iAFilter* filter, QMap<QString, QVariant> const & parameters
 		otsuFilter->SetNumberOfHistogramBins(static_cast<unsigned int>(numBins));
 		otsuFilter->SetOutsideValue( static_cast<T>(parameters["Outside value"].toDouble()) );
 		otsuFilter->SetInsideValue(static_cast<T>(parameters["Inside value"].toDouble()));
-		otsuFilter->SetInput(dynamic_cast< InputImageType * >( filter->input()[0]->itkImage() ) );
+		otsuFilter->SetInput(dynamic_cast< InputImageType * >( filter->input(0)->itkImage() ) );
 		filter->progress()->observe( otsuFilter );
 		otsuFilter->Update();
 		filter->addOutputValue("Otsu threshold", (double)otsuFilter->GetThreshold());
@@ -300,7 +300,7 @@ void adaptive_otsu_threshold(iAFilter* filter, QMap<QString, QVariant> const & p
 	radius.Fill(T(parameters["Radius"].toDouble()));
 	typedef itk::AdaptiveOtsuThresholdImageFilter< InputImageType, OutputImageType > AOTIFType;
 	typename AOTIFType::Pointer adotFilter = AOTIFType::New();
-	adotFilter->SetInput(dynamic_cast< InputImageType * >(filter->input()[0]->itkImage()));
+	adotFilter->SetInput(dynamic_cast< InputImageType * >(filter->input(0)->itkImage()));
 	adotFilter->SetOutsideValue(T(parameters["Outside value"].toDouble()));
 	adotFilter->SetInsideValue(T(parameters["Inside value"].toDouble()));
 	adotFilter->SetNumberOfHistogramBins(parameters["Number of histogram bins"].toUInt());
@@ -351,7 +351,7 @@ void otsu_multiple_threshold(iAFilter* filter, QMap<QString, QVariant> const & p
 	auto otsumultiFilter = OMTIFType::New();
 	otsumultiFilter->SetNumberOfHistogramBins( T (parameters["Number of histogram bins"].toDouble()) );
 	otsumultiFilter->SetNumberOfThresholds( T (parameters["Number of thresholds"].toDouble()) );
-	otsumultiFilter->SetInput( dynamic_cast< InputImageType * >( filter->input()[0]->itkImage() ) );
+	otsumultiFilter->SetInput( dynamic_cast< InputImageType * >( filter->input(0)->itkImage() ) );
 	otsumultiFilter->SetValleyEmphasis( parameters["Valley emphasis"].toBool() );
 	filter->progress()->observe( otsumultiFilter );
 	otsumultiFilter->Update();
@@ -390,7 +390,7 @@ void maximum_distance(iAFilter* filter, QMap<QString, QVariant> const & paramete
 	typedef itk::Image< T, 3 >   InputImageType;
 	typedef iAMaximumDistanceFilter< InputImageType > MaximumDistanceType;
 	auto maxFilter = MaximumDistanceType::New();
-	maxFilter->SetInput(dynamic_cast< InputImageType * >(filter->input()[0]->itkImage()));
+	maxFilter->SetInput(dynamic_cast< InputImageType * >(filter->input(0)->itkImage()));
 	maxFilter->SetBinWidth(parameters["Width of histogram bin"].toDouble());
 	if (parameters["Use low intensity"].toBool())
 	{
@@ -542,7 +542,7 @@ void parameterless(iAFilter* filter, QMap<QString, QVariant> const & params)
 		break;
 	}
 	}
-	plFilter->SetInput(dynamic_cast<InputImageType*>(filter->input()[0]->itkImage()));
+	plFilter->SetInput(dynamic_cast<InputImageType*>(filter->input(0)->itkImage()));
 	plFilter->SetNumberOfHistogramBins(params["Number of histogram bins"].toUInt());
 	plFilter->SetOutsideValue(params["Outside value"].toDouble());
 	plFilter->SetInsideValue(params["Inside value"].toDouble());
