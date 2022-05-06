@@ -20,7 +20,6 @@
 * ************************************************************************************/
 #include "iAMeanObject.h"
 
-#include "ui_FeatureScoutMOTFView.h"
 #include "ui_FeatureScoutMeanObjectView.h"
 
 // base
@@ -78,15 +77,6 @@
 #include <QMessageBox>
 #include <QStandardItem>
 #include <QFileDialog>
-
-class iAMeanObjectTFView : public QDialog, public Ui_MOTFView
-{
-public:
-	iAMeanObjectTFView(QWidget* parent = nullptr) : QDialog(parent)
-	{
-		setupUi(this);
-	}
-};
 
 class iAMeanObjectDockWidget : public QDockWidget, public Ui_FeatureScoutMO
 {
@@ -521,20 +511,25 @@ void iAMeanObject::render(QStringList const& classNames, QList<vtkSmartPointer<v
 
 void iAMeanObject::modifyMeanObjectTF()
 {
-	m_motfView = new iAMeanObjectTFView(m_activeChild);
-	m_motfView->setWindowTitle(QString("%1 %2 Mean Object Transfer Function")
-								   .arg(m_dwMO->cb_Classes->itemText(m_dwMO->cb_Classes->currentIndex()))
-								   .arg(MapObjectTypeToString(m_filterID)));
-	iAChartWithFunctionsWidget* histogram = m_activeChild->histogram();
-	connect(histogram, &iAChartWithFunctionsWidget::updateViews, this, &iAMeanObject::updateMOView);
-	m_motfView->horizontalLayout->addWidget(histogram);
+	//delete m_motfView;	// in case it was previously open
+	int moIndex = m_dwMO->cb_Classes->currentIndex();
+	if (moIndex < 0 || moIndex >= m_MOData->moHistogramList.size())
+	{	// if outside valid range - just to be on the safe side
+		LOG(lvlError, QString("Invalid Mean Object index %1!").arg(moIndex));
+		return;
+	}
+	m_motfView = new QDialog(m_activeChild);
+	m_motfView->setWindowTitle(QString("%1 Mean Object Transfer Function")
+								   .arg(m_dwMO->cb_Classes->itemText(m_dwMO->cb_Classes->currentIndex())));
+	//iAChartWithFunctionsWidget* histogram = m_activeChild->histogram();
+	auto histogram = new iAChartWithFunctionsWidget(m_motfView, "Probability", "Frequency");
+	histogram->setTransferFunction(m_MOData->moHistogramList[moIndex]);
+	connect(histogram, &iAChartWithFunctionsWidget::updateViews, this,
+		[this] { m_meanObjectWidget->renderWindow()->Render(); });
+	m_motfView->setLayout(new QHBoxLayout);
+	m_motfView->layout()->addWidget(histogram);
 	histogram->show();
 	m_motfView->show();
-}
-
-void iAMeanObject::updateMOView()
-{
-	m_meanObjectWidget->renderWindow()->Render();
 }
 
 void iAMeanObject::saveStl()

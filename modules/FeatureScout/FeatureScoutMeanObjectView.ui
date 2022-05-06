@@ -9,8 +9,8 @@
    <rect>
     <x>0</x>
     <y>0</y>
-    <width>583</width>
-    <height>470</height>
+    <width>393</width>
+    <height>80</height>
    </rect>
   </property>
   <property name="sizePolicy">
@@ -21,7 +21,7 @@
   </property>
   <property name="minimumSize">
    <size>
-    <width>375</width>
+    <width>393</width>
     <height>80</height>
    </size>
   </property>
@@ -149,7 +149,7 @@
          <item>
           <widget class="QLabel" name="label">
            <property name="text">
-            <string>STL Iso:</string>
+            <string>Extract surface - Iso:</string>
            </property>
           </widget>
          </item>

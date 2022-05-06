@@ -28,8 +28,6 @@
 
 class iAMeanObjectData;
 class iAMeanObjectDockWidget;
-class iAMeanObjectTFView;
-
 class iAMdiChild;
 class iAQVTKWidget;
 
@@ -37,6 +35,7 @@ class vtkCamera;
 class vtkTable;
 
 class QColor;
+class QDialog;
 class QDockWidget;
 
 class iAMeanObject: public QObject
@@ -48,12 +47,11 @@ public:
 		int filterID, QDockWidget* nextToDW, vtkCamera* commonCamera, QList<QColor> const & classColor);
 private slots:
 	void modifyMeanObjectTF();
-	void updateMOView();
 	void saveStl();
 	void saveVolume();
 private:
 	iAMeanObjectDockWidget* m_dwMO;
-	iAMeanObjectTFView* m_motfView;
+	QDialog* m_motfView;
 	QSharedPointer<iAMeanObjectData> m_MOData;
 	iAQVTKWidget* m_meanObjectWidget;
 	iAMdiChild* m_activeChild;
