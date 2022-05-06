@@ -34,6 +34,7 @@
 #include <QTimer>
 
 #include <cassert>
+#include <cmath>
 
 // iANModalSeedTracker ----------------------------------------------------------------
 
@@ -222,7 +223,7 @@ inline void iANModalSeedVisualizer::drawLine(int lineY, double value, double max
 	}
 
 	double lineLength_double = (value / maxValue) * ((double)m_image.width());
-	int lineLength = ceil(lineLength_double);
+	int lineLength = std::ceil(lineLength_double);
 	assert((value == 0.0 && lineLength == 0) || (lineLength >= 1 && lineLength <= m_image.width()));
 
 	QRgb* line = (QRgb*)m_image.scanLine(lineY);
@@ -299,7 +300,7 @@ inline size_t iANModalSeedVisualizer::yToSliceNumber(int y)
 {
 	int y_inv = m_image.height() - 1 - y;
 	float valueIndex_float = ((float)y_inv / (float)(m_image.height() - 1) * (float)(m_values.size() - 1));
-	size_t valueIndex = round(valueIndex_float);
+	size_t valueIndex = std::round(valueIndex_float);
 	assert(valueIndex >= 0 && valueIndex < m_values.size());
 	return valueIndex;
 }
@@ -307,7 +308,7 @@ inline size_t iANModalSeedVisualizer::yToSliceNumber(int y)
 inline int iANModalSeedVisualizer::sliceNumberToY(size_t sliceNumber)
 {
 	float y_inv_float = (float)sliceNumber / (float)(m_values.size() - 1) * (float)(m_image.height() - 1);
-	int y_inv = round(y_inv_float);
+	int y_inv = std::round(y_inv_float);
 	int y = m_image.height() - 1 - y_inv;
 	assert(y >= 0 && y < m_image.height());
 	return y;
