@@ -27,6 +27,7 @@
 #include <vtkImageData.h>
 
 #include <cassert>
+#include <cmath>
 
 iASpectraHistograms::iASpectraHistograms(QSharedPointer<iAXRFData> xrfData, long numBins, double minCount, double maxCount ) :
 	m_numBins(numBins),
@@ -55,7 +56,7 @@ void computeHistogram(void* scalarPtr, long & count, double & binWidth, CountTyp
 	for (long i=0; i<count; ++i)
 	{
 		double bin = ( (double)data[i] - range[0] ) / binWidth;
-		if ( bin > 0.0 && fmod(bin, 1.0) == 0.0 )
+		if ( bin > 0.0 && std::fmod(bin, 1.0) == 0.0 )
 			--bin;
 		size_t binInd = bin;
 		histData_out[binInd]++;
