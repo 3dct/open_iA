@@ -504,12 +504,18 @@ void iAMeanObject::render(QStringList const& classNames, QList<vtkSmartPointer<v
 	}
 	catch (itk::ExceptionObject& excep)
 	{
-		QString msg = QString("MObject: Error in computation: %1 in File %2, Line %3.")
+		QString msg = QString("Error in computation: %1 in File %2, Line %3.")
 						  .arg(excep.GetDescription())
 						  .arg(excep.GetFile())
 						  .arg(excep.GetLine());
-		LOG(lvlError, msg);
+		LOG(lvlError, QString("MObjects: %1").arg(msg));
 		QMessageBox::warning(m_activeChild, "MObjects", msg + "\nCheck whether you provided a proper labeled image!");
+	}
+	catch (std::bad_alloc& e)
+	{
+		QString msg = QString("Allocation failed: %1").arg(e.what());
+		LOG(lvlError, QString("MObjects: %1").arg(msg));
+		QMessageBox::warning(m_activeChild, "MObjects", msg + "\nCheck whether you can free some memory, operate on a smaller dataset, or use a machine with more RAM!");
 	}
 }
 
