@@ -101,7 +101,10 @@ dlg_DynamicVolumeLines::dlg_DynamicVolumeLines(QWidget* parent, QDir datasetsDir
 	m_mrvBGRen(vtkSmartPointer<vtkRenderer>::New()),
 	m_mrvTxtAct(vtkSmartPointer<vtkTextActor>::New())
 {
-	m_mdiChild->renderer()->setAreaPicker();
+	if (m_mdiChild)
+	{
+		m_mdiChild->renderer()->setAreaPicker();
+	}
 
 	m_nonlinearScaledPlot->setObjectName("nonlinear");
 	m_linearScaledPlot->setObjectName("linear");
@@ -161,7 +164,8 @@ void dlg_DynamicVolumeLines::setupScaledPlot(QCustomPlot *qcp)
 	tb_MinMaxPlot->setStyleSheet("border: 1px solid; margin-left: 3px;");
 	tb_MinMaxPlot->setMinimumSize(QSize(0, 0));
 	tb_MinMaxPlot->setMaximumSize(QSize(13, 10));
-	tb_MinMaxPlot->setIcon(QIcon(QString(":/images/minus%1.svg").arg(!m_mdiChild->brightMode() ? "-dark" : "")));
+	tb_MinMaxPlot->setIcon(
+		QIcon(QString(":/images/minus%1.svg").arg(m_mdiChild && !m_mdiChild->brightMode() ? "-dark" : "")));
 	tb_MinMaxPlot->setIconSize(QSize(10, 10));
 	connect(tb_MinMaxPlot, &QToolButton::clicked, this, &dlg_DynamicVolumeLines::changePlotVisibility);
 
@@ -226,7 +230,7 @@ void dlg_DynamicVolumeLines::setupGUIElements()
 	cb_FBPView->setEnabled(false);
 
 	iALinearColorGradientBar *compLvl_colorBar = new iALinearColorGradientBar(this,
-		"Brewer single hue 5c grays", false);
+		"ColorBrewer sequential single hue (5c) grays", false);
 	m_compLvlLUT = compLvl_colorBar->getLut();
 	connect(this, QOverload<QVector<double>>::of(&dlg_DynamicVolumeLines::compLevelRangeChanged),
 		compLvl_colorBar, &iALinearColorGradientBar::compLevelRangeChanged);
@@ -275,8 +279,13 @@ void dlg_DynamicVolumeLines::setupGUIConnections()
 	connect(sb_subHistBinCnt, QOverload<int>::of(&QSpinBox::valueChanged), this, &dlg_DynamicVolumeLines::setSubHistBinCntFlag);
 	connect(sb_UpperCompLevelThr, QOverload<double>::of(&QDoubleSpinBox::valueChanged), this, QOverload<>::of(&dlg_DynamicVolumeLines::compLevelRangeChanged));
 	connect(sb_LowerCompLevelThr, QOverload<double>::of(&QDoubleSpinBox::valueChanged), this, QOverload<>::of(&dlg_DynamicVolumeLines::compLevelRangeChanged));
-	connect(m_mdiChild->renderer(), &iARenderer::cellsSelected, this, &dlg_DynamicVolumeLines::setSelectionForPlots);
-	connect(m_mdiChild->renderer(), &iARenderer::noCellsSelected, this, &dlg_DynamicVolumeLines::setNoSelectionForPlots);
+	if (m_mdiChild)
+	{
+		connect(
+			m_mdiChild->renderer(), &iARenderer::cellsSelected, this, &dlg_DynamicVolumeLines::setSelectionForPlots);
+		connect(m_mdiChild->renderer(), &iARenderer::noCellsSelected, this,
+			&dlg_DynamicVolumeLines::setNoSelectionForPlots);
+	}
 }
 
 void dlg_DynamicVolumeLines::changePlotVisibility()
@@ -303,14 +312,19 @@ void dlg_DynamicVolumeLines::setupMultiRendererView()
 	m_mrvBGRen->SetBackground(1.0, 1.0, 1.0);
 	m_mrvBGRen->AddActor2D(m_mrvTxtAct);
 
-	m_wgtContainer = new iAQVTKWidget();
-	auto mrvRenWin = m_wgtContainer->renderWindow();
-	mrvRenWin->SetNumberOfLayers(2);
-	mrvRenWin->AddRenderer(m_mrvBGRen);
-	mrvRenWin->Render();
-	m_mdiChild->tabifyDockWidget(m_mdiChild->renderDockWidget(), m_MultiRendererView);
-	m_MultiRendererView->verticalLayout->addWidget(m_wgtContainer);
-	m_MultiRendererView->show();
+
+		m_wgtContainer = new iAQVTKWidget();
+		auto mrvRenWin = m_wgtContainer->renderWindow();
+		mrvRenWin->SetNumberOfLayers(2);
+		mrvRenWin->AddRenderer(m_mrvBGRen);
+		mrvRenWin->Render();
+		if (m_mdiChild)
+		{
+			m_mdiChild->tabifyDockWidget(m_mdiChild->renderDockWidget(), m_MultiRendererView);
+		}
+		m_MultiRendererView->verticalLayout->addWidget(m_wgtContainer);
+		m_MultiRendererView->show();
+
 }
 
 void dlg_DynamicVolumeLines::generateHilbertIdx()
@@ -354,13 +368,16 @@ void dlg_DynamicVolumeLines::visualizePath()
 		lines->InsertNextCell(line);
 	}
 	linesPolyData->SetLines(lines);
-	m_mdiChild->renderer()->setPolyData(linesPolyData);
-	m_mdiChild->renderer()->polyActor()->GetProperty()->SetInterpolationToFlat();
-	m_mdiChild->renderer()->polyActor()->GetProperty()->SetOpacity(1.0);
-	m_mdiChild->renderer()->polyActor()->GetProperty()->SetColor(1.0, 0.0, 0.0);
-	m_mdiChild->renderer()->polyActor()->GetProperty()->SetLineWidth(4);
-	m_mdiChild->renderer()->polyActor()->GetProperty()->SetRenderLinesAsTubes(true);
-	m_mdiChild->renderer()->update();
+	if (m_mdiChild)
+	{
+		m_mdiChild->renderer()->setPolyData(linesPolyData);
+		m_mdiChild->renderer()->polyActor()->GetProperty()->SetInterpolationToFlat();
+		m_mdiChild->renderer()->polyActor()->GetProperty()->SetOpacity(1.0);
+		m_mdiChild->renderer()->polyActor()->GetProperty()->SetColor(1.0, 0.0, 0.0);
+		m_mdiChild->renderer()->polyActor()->GetProperty()->SetLineWidth(4);
+		m_mdiChild->renderer()->polyActor()->GetProperty()->SetRenderLinesAsTubes(true);
+		m_mdiChild->renderer()->update();
+	}
 }
 
 void dlg_DynamicVolumeLines::visualize()
@@ -545,6 +562,33 @@ void dlg_DynamicVolumeLines::visualize()
 	m_orientationWidget->update(m_linearScaledPlot, 0, m_nonlinearMappingVec.size() - 1,
 		m_minEnsembleIntensity - offsetY, m_maxEnsembleIntensity + offsetY);
 }
+
+#pragma optimize("", off)
+
+void dlg_DynamicVolumeLines::exportCSV(QString path)
+{
+
+
+		for (auto dataPair : m_DatasetIntensityMap)
+		{
+			QFile file(path + "\\" + dataPair.first + ".csv");
+			if (file.open(QIODevice::ReadWrite))
+			{
+				for (auto value : dataPair.second)
+				{
+					QTextStream stream(&file);
+					stream << value.intensity << endl;
+				}
+
+		}
+
+
+		
+	}
+
+
+}
+#pragma optimize("", on)
 
 void dlg_DynamicVolumeLines::calcNonLinearMapping()
 {
@@ -1293,17 +1337,22 @@ void dlg_DynamicVolumeLines::selectionChangedByUser()
 	else
 	{
 		m_mrvTxtAct->VisibilityOn();
-		iARenderer * ren = m_mdiChild->renderer();
-		vtkRenderWindow * renWin = ren->renderWindow();
-		renWin->GetRenderers()->GetFirstRenderer()->RemoveActor(ren->selectedActor());
-		renWin->Render();
+		if (m_mdiChild)
+		{
+			iARenderer* ren = m_mdiChild->renderer();
+			vtkRenderWindow* renWin = ren->renderWindow();
+			renWin->GetRenderers()->GetFirstRenderer()->RemoveActor(ren->selectedActor());
+			renWin->Render();
+		}
 		for (int i = 0; i < m_DatasetIntensityMap.size(); ++i)
 		{
 			plotP->graph(i)->setSelection(plotU->graph(i)->selection());
 		}
 	}
-
-	setSelectionForRenderer(selVisibleGraphsList);
+	if (m_mdiChild)
+	{
+		setSelectionForRenderer(selVisibleGraphsList);
+	}
 	m_scalingWidget->setSel(sel);
 	m_scalingWidget->update();
 	m_nonlinearScaledPlot->replot();
@@ -1539,8 +1588,10 @@ void dlg_DynamicVolumeLines::selectCompLevel()
 			}
 		}
 	}
-
-	setSelectionForRenderer(visibleGraphsList);
+	if (m_mdiChild)
+	{
+		setSelectionForRenderer(visibleGraphsList);
+	}
 	m_scalingWidget->setSel(selCompLvlRanges);
 	m_scalingWidget->update();
 	m_nonlinearScaledPlot->replot();
@@ -1762,8 +1813,10 @@ void dlg_DynamicVolumeLines::setSelectionForPlots(vtkPoints *selCellPoints)
 	{
 		m_mrvTxtAct->VisibilityOn();
 	}
-
-	setSelectionForRenderer(selVisibleGraphsList);
+	if (m_mdiChild)
+	{
+		setSelectionForRenderer(selVisibleGraphsList);
+	}
 	m_scalingWidget->setSel(sel);
 	m_scalingWidget->update();
 	m_nonlinearScaledPlot->replot();
