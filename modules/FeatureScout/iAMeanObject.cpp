@@ -112,9 +112,14 @@ iAMeanObject::iAMeanObject(iAMdiChild* activeChild, QString const& sourcePath) :
 void iAMeanObject::render(QStringList const& classNames, QList<vtkSmartPointer<vtkTable>> const& tableList,
 	int filterID, QDockWidget* nextToDW, vtkCamera* commonCamera, QList<QColor> const& classColor)
 {
+	int classCount = classNames.size();
+	if (classCount <= 1)
+	{
+		QMessageBox::warning(m_activeChild, "MObjects", "You need to define at least one class for Mean Objects to be computed!");
+		return;
+	}
 	try
 	{
-		int classCount = classNames.size();
 		m_filterID = filterID;
 		iAProgress p;
 		auto jobHandle = iAJobListView::get()->addJob("Compute Mean Object", &p);
@@ -534,18 +539,20 @@ void iAMeanObject::modifyMeanObjectTF()
 
 void iAMeanObject::saveStl()
 {
-	QString fileName =
-		QFileDialog::getSaveFileName(m_dwMO, tr("Save STL File"), m_sourcePath, tr("STL Files (*.stl)"));
+	int moIndex = m_dwMO->cb_Classes->currentIndex();
+	if (moIndex < 0 || moIndex >= m_MOData->moHistogramList.size())
+	{  // if outside valid range - just to be on the safe side
+		LOG(lvlError, QString("Invalid Mean Object index %1!").arg(moIndex));
+		return;
+	}
+	auto fileName = QFileDialog::getSaveFileName(m_dwMO, tr("Save STL File"), m_sourcePath, tr("STL Files (*.stl)"));
 	if (fileName.isEmpty())
 	{
 		return;
 	}
-
-	// fetch values from GUI to avoid GUI access from non-GUI thread
-	int moIndex = m_dwMO->cb_Classes->currentIndex();
 	int isoValue = m_dwMO->dsb_IsoValue->value();
 
-	iAMultiStepProgressObserver* progress = new iAMultiStepProgressObserver(2);
+	auto progress = new iAMultiStepProgressObserver(2);
 	auto job = runAsync(
 		[this, progress, moIndex, isoValue, fileName]
 		{
@@ -569,14 +576,19 @@ void iAMeanObject::saveStl()
 
 void iAMeanObject::saveVolume()
 {
-	QString fileName = QFileDialog::getSaveFileName(m_dwMO, tr("Save MObject as Volume"), 
+	int moIndex = m_dwMO->cb_Classes->currentIndex();
+	if (moIndex < 0 || moIndex >= m_MOData->moHistogramList.size())
+	{  // if outside valid range - just to be on the safe side
+		LOG(lvlError, QString("Invalid Mean Object index %1!").arg(moIndex));
+		return;
+	}
+	auto fileName = QFileDialog::getSaveFileName(m_dwMO, tr("Save MObject as Volume"),
 		m_sourcePath, tr("MHD files (*.mhd);;")); // TODO: enable choice of all other supported volume formats?
 	if (fileName.isEmpty())
 	{
 		return;
 	}
-	int moIndex = m_dwMO->cb_Classes->currentIndex();
-	iAProgress* progress = new iAProgress;
+	auto progress = new iAProgress;
 	auto job = runAsync([this, progress, moIndex, fileName]
 		{
 			storeImage(m_MOData->moImageDataList[moIndex], fileName);
