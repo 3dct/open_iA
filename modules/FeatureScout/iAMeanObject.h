@@ -49,8 +49,8 @@ public:
 private slots:
 	void modifyMeanObjectTF();
 	void updateMOView();
-	void browseFolderDialog();
 	void saveStl();
+	void saveVolume();
 private:
 	iAMeanObjectDockWidget* m_dwMO;
 	iAMeanObjectTFView* m_motfView;

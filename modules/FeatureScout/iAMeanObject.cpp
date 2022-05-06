@@ -20,12 +20,22 @@
 * ************************************************************************************/
 #include "iAMeanObject.h"
 
-#include "iALog.h"
-#include "iAObjectType.h"
 #include "ui_FeatureScoutMOTFView.h"
 #include "ui_FeatureScoutMeanObjectView.h"
 
+// base
 #include <defines.h>    // for DIM
+#include <iAFileUtils.h>
+#include <iALog.h>
+#include <iAToolsVTK.h>
+
+// charts
+#include <iAChartWithFunctionsWidget.h>
+
+// objectvis
+#include <iAObjectType.h>
+
+// guibase
 #include <iAJobListView.h>
 #include <iAModalityTransfer.h>
 #include <iAMultiStepProgressObserver.h>
@@ -33,10 +43,7 @@
 #include <iARunAsync.h>
 #include <iAMdiChild.h>
 
-#include <iAChartWithFunctionsWidget.h>
-
-#include <iAFileUtils.h>
-
+// ITK
 #include <itkAddImageFilter.h>
 #include <itkBinaryThresholdImageFilter.h>
 #include <itkCastImageFilter.h>
@@ -46,6 +53,7 @@
 #include <itkPasteImageFilter.h>
 #include <itkVTKImageToImageFilter.h>
 
+// VTK
 #include <vtkActor.h>
 #include <vtkCamera.h>
 #include <vtkCornerAnnotation.h>
@@ -66,6 +74,7 @@
 #include <vtkVolume.h>
 #include <vtkVolumeProperty.h>
 
+// Qt
 #include <QMessageBox>
 #include <QStandardItem>
 #include <QFileDialog>
@@ -391,8 +400,8 @@ void iAMeanObject::render(QStringList const& classNames, QList<vtkSmartPointer<v
 		{
 			m_dwMO = new iAMeanObjectDockWidget(m_activeChild);
 			connect(m_dwMO->pb_ModTF, &QToolButton::clicked, this, &iAMeanObject::modifyMeanObjectTF);
-			connect(m_dwMO->tb_OpenDataFolder, &QToolButton::clicked, this, &iAMeanObject::browseFolderDialog);
-			connect(m_dwMO->tb_SaveStl, &QToolButton::clicked, this, &iAMeanObject::saveStl);
+			connect(m_dwMO->tb_saveStl, &QToolButton::clicked, this, &iAMeanObject::saveStl);
+			connect(m_dwMO->tb_saveVolume, &QToolButton::clicked, this, &iAMeanObject::saveVolume);
 
 			// Create a render window and an interactor for all the MObjects
 			m_meanObjectWidget = new iAQVTKWidget();
@@ -522,41 +531,56 @@ void iAMeanObject::updateMOView()
 	m_meanObjectWidget->renderWindow()->Render();
 }
 
-void iAMeanObject::browseFolderDialog()
-{
-	QString filename = QFileDialog::getSaveFileName(m_dwMO, tr("Save STL File"), m_sourcePath, tr("STL Files (*.stl)"));
-	if (filename.isEmpty())
-	{
-		return;
-	}
-	m_dwMO->le_StlPath->setText(filename);
-}
-
 void iAMeanObject::saveStl()
 {
-	if (m_dwMO->le_StlPath->text().isEmpty())
+	QString fileName =
+		QFileDialog::getSaveFileName(m_dwMO, tr("Save STL File"), m_sourcePath, tr("STL Files (*.stl)"));
+	if (fileName.isEmpty())
 	{
-		QMessageBox::warning(m_activeChild, "FeatureScout", "No save file destination specified.");
 		return;
 	}
+
+	// fetch values from GUI to avoid GUI access from non-GUI thread
+	int moIndex = m_dwMO->cb_Classes->currentIndex();
+	int isoValue = m_dwMO->dsb_IsoValue->value();
 
 	iAMultiStepProgressObserver* progress = new iAMultiStepProgressObserver(2);
 	auto job = runAsync(
-		[this, progress] {
+		[this, progress, moIndex, isoValue, fileName]
+		{
 			auto moSurface = vtkSmartPointer<vtkMarchingCubes>::New();
 			progress->observe(moSurface);
-			moSurface->SetInputData(m_MOData->moImageDataList[m_dwMO->cb_Classes->currentIndex()]);
+			moSurface->SetInputData(m_MOData->moImageDataList[moIndex]);
 			moSurface->ComputeNormalsOn();
 			moSurface->ComputeGradientsOn();
-			moSurface->SetValue(0, m_dwMO->dsb_IsoValue->value());
+			moSurface->SetValue(0, isoValue);
 
 			progress->setCompletedSteps(1);
 			auto stlWriter = vtkSmartPointer<vtkSTLWriter>::New();
 			progress->observe(stlWriter);
-			stlWriter->SetFileName(getLocalEncodingFileName(m_dwMO->le_StlPath->text()).c_str());
+			stlWriter->SetFileName(getLocalEncodingFileName(fileName).c_str());
 			stlWriter->SetInputConnection(moSurface->GetOutputPort());
 			stlWriter->Write();
 		},
 		[progress] { delete progress; }, m_dwMO);
 	iAJobListView::get()->addJob("Saving STL", progress->progressObject(), job);
+}
+
+void iAMeanObject::saveVolume()
+{
+	QString fileName = QFileDialog::getSaveFileName(m_dwMO, tr("Save MObject as Volume"), 
+		m_sourcePath, tr("MHD files (*.mhd);;")); // TODO: enable choice of all other supported volume formats?
+	if (fileName.isEmpty())
+	{
+		return;
+	}
+	int moIndex = m_dwMO->cb_Classes->currentIndex();
+	iAProgress* progress = new iAProgress;
+	auto job = runAsync([this, progress, moIndex, fileName]
+		{
+			storeImage(m_MOData->moImageDataList[moIndex], fileName);
+			progress->emitProgress(100);
+		},
+		[progress] { delete progress; }, m_dwMO);
+	iAJobListView::get()->addJob("Saving Mean Object volume", progress, job);
 }
