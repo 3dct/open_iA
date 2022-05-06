@@ -20,6 +20,8 @@
 * ************************************************************************************/
 #pragma once
 
+#include <limits>
+
 #include <QString>
 
 #include "iAbase_export.h"

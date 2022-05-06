@@ -20,6 +20,8 @@
 * ************************************************************************************/
 #include "iAColorTheme.h"
 
+#include <limits>
+
 iAColorTheme::iAColorTheme(QString const & name):
 	m_name(name)
 {}

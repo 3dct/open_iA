@@ -26,6 +26,8 @@
 #include <QImage>
 #include <QTimer>
 
+#include <cmath>
+
 static const QImage::Format IMAGE_FORMAT = QImage::Format::Format_Grayscale8;
 static const int ONE_DIV_THREE = 1.0 / 3.0;
 static const int GRAY_VALUE_MIN = 48;
@@ -204,7 +206,7 @@ void iABarycentricContextRenderer::drawImageNow()
 	//double c = (double) GRAY_VALUE_INTERVAL / (double) max;
 	QImage *buf = new QImage(width, height, IMAGE_FORMAT);
 	buf->fill(Qt::white);
-	double k = (double)GRAY_VALUE_INTERVAL / (double)log(max);
+	double k = (double)GRAY_VALUE_INTERVAL / (double)std::log(max);
 	int grayValue, count;
 	QPoint p;
 	for (int y = 0; y < height; y++)
