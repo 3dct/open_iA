@@ -1,7 +1,7 @@
 /*************************************  open_iA  ************************************ *
 * **********   A tool for visual analysis and processing of 3D CT images   ********** *
 * *********************************************************************************** *
-* Copyright (C) 2016-2021  C. Heinzl, M. Reiter, A. Reh, W. Li, M. Arikan, Ar. &  Al. *
+* Copyright (C) 2016-2022  C. Heinzl, M. Reiter, A. Reh, W. Li, M. Arikan, Ar. &  Al. *
 *                 Amirkhanov, J. Weissenböck, B. Fröhler, M. Schiwarth, P. Weinberger *
 * *********************************************************************************** *
 * This program is free software: you can redistribute it and/or modify it under the   *
@@ -206,7 +206,7 @@ void dlg_InSpectr::init(double minEnergy, double maxEnergy, bool haveEnergyLevel
 	m_initialized = true;
 
 	m_colormapRen = vtkSmartPointer<vtkRenderer>::New();
-	QColor bgc(qApp->palette().color(QWidget::backgroundRole()));
+	QColor bgc(QApplication::palette().color(QWidget::backgroundRole()));
 	m_colormapRen->SetBackground(bgc.redF(), bgc.blueF(), bgc.greenF());
 
 	horizontalLayout_8->insertWidget(0, m_colormapWidget);

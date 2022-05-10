@@ -1,7 +1,7 @@
 /*************************************  open_iA  ************************************ *
 * **********   A tool for visual analysis and processing of 3D CT images   ********** *
 * *********************************************************************************** *
-* Copyright (C) 2016-2021  C. Heinzl, M. Reiter, A. Reh, W. Li, M. Arikan, Ar. &  Al. *
+* Copyright (C) 2016-2022  C. Heinzl, M. Reiter, A. Reh, W. Li, M. Arikan, Ar. &  Al. *
 *                 Amirkhanov, J. Weissenböck, B. Fröhler, M. Schiwarth, P. Weinberger *
 * *********************************************************************************** *
 * This program is free software: you can redistribute it and/or modify it under the   *
@@ -56,6 +56,7 @@
 #include "iAFileUtils.h"    // for fileNameOnly
 #include "iALog.h"
 #include "iALogLevelMappings.h"
+#include "iALUT.h"
 #include "iAMathUtility.h"
 #include "iAToolsVTK.h"
 #include "iAXmlSettings.h"
@@ -216,7 +217,7 @@ void MainWindow::quitTimerSlot()
 		return;
 	}
 	delete m_quitTimer;
-	qApp->closeAllWindows();
+	QApplication::closeAllWindows();
 }
 
 bool MainWindow::keepOpen()
@@ -2367,7 +2368,7 @@ void MainWindow::applyQSS()
 		styleFile.close();
 		qApp->setStyleSheet(style);
 
-		QPalette p = qApp->palette();
+		QPalette p = QApplication::palette();
 		p.setColor(QPalette::Window,          m_qssName.contains("bright") ? QColor(255, 255, 255) : QColor(  0,   0,   0));
 		p.setColor(QPalette::Base,            m_qssName.contains("bright") ? QColor(255, 255, 255) : QColor(  0,   0,   0));
 		p.setColor(QPalette::ToolTipBase,     m_qssName.contains("bright") ? QColor(255, 255, 255) : QColor(  0,   0,   0));
@@ -2385,7 +2386,7 @@ void MainWindow::applyQSS()
 		p.setColor(QPalette::PlaceholderText, m_qssName.contains("bright") ? QColor(  0,   0,   0) : QColor(255, 255, 255));
 #endif
 		p.setColor(QPalette::WindowText,      m_qssName.contains("bright") ? QColor(  0,   0,   0) : QColor(255, 255, 255));
-		qApp->setPalette(p);
+		QApplication::setPalette(p);
 		emit styleChanged();
 	}
 }
@@ -2804,6 +2805,7 @@ int MainWindow::runGUI(int argc, char * argv[], QString const & appName, QString
 	}
 	app.setAttribute(Qt::AA_DontCreateNativeWidgetSiblings);
 	iALog::setLogger(iALogWidget::get());
+	iALUT::loadMaps(QCoreApplication::applicationDirPath() + "/colormaps");
 	auto dwJobs = new iADockWidgetWrapper(iAJobListView::get(), "Job List", "Jobs");
 	MainWindow mainWin(appName, version, buildInformation, splashPath, dwJobs);
 	mainWin.addDockWidget(Qt::RightDockWidgetArea, iALogWidget::get());
@@ -2813,7 +2815,7 @@ int MainWindow::runGUI(int argc, char * argv[], QString const & appName, QString
 	mainWin.loadArguments(argc, argv);
 	// TODO: unify with logo in slicer/renderer!
 	app.setWindowIcon(QIcon(QPixmap(iconPath)));
-	qApp->setStyle(new iAProxyStyle(qApp->style()));
+	QApplication::setStyle(new iAProxyStyle(QApplication::style()));
 	mainWin.setWindowIcon(QIcon(QPixmap(iconPath)));
 	if (QDate::currentDate().dayOfYear() >= 350)
 	{

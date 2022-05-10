@@ -1,7 +1,7 @@
 /*************************************  open_iA  ************************************ *
 * **********   A tool for visual analysis and processing of 3D CT images   ********** *
 * *********************************************************************************** *
-* Copyright (C) 2016-2021  C. Heinzl, M. Reiter, A. Reh, W. Li, M. Arikan, Ar. &  Al. *
+* Copyright (C) 2016-2022  C. Heinzl, M. Reiter, A. Reh, W. Li, M. Arikan, Ar. &  Al. *
 *                 Amirkhanov, J. Weissenböck, B. Fröhler, M. Schiwarth, P. Weinberger *
 * *********************************************************************************** *
 * This program is free software: you can redistribute it and/or modify it under the   *
@@ -28,8 +28,6 @@
 
 class iAMeanObjectData;
 class iAMeanObjectDockWidget;
-class iAMeanObjectTFView;
-
 class iAMdiChild;
 class iAQVTKWidget;
 
@@ -37,6 +35,7 @@ class vtkCamera;
 class vtkTable;
 
 class QColor;
+class QDialog;
 class QDockWidget;
 
 class iAMeanObject: public QObject
@@ -48,12 +47,11 @@ public:
 		int filterID, QDockWidget* nextToDW, vtkCamera* commonCamera, QList<QColor> const & classColor);
 private slots:
 	void modifyMeanObjectTF();
-	void updateMOView();
-	void browseFolderDialog();
 	void saveStl();
+	void saveVolume();
 private:
 	iAMeanObjectDockWidget* m_dwMO;
-	iAMeanObjectTFView* m_motfView;
+	QDialog* m_motfView;
 	QSharedPointer<iAMeanObjectData> m_MOData;
 	iAQVTKWidget* m_meanObjectWidget;
 	iAMdiChild* m_activeChild;

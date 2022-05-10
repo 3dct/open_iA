@@ -1,7 +1,7 @@
 /*************************************  open_iA  ************************************ *
 * **********   A tool for visual analysis and processing of 3D CT images   ********** *
 * *********************************************************************************** *
-* Copyright (C) 2016-2021  C. Heinzl, M. Reiter, A. Reh, W. Li, M. Arikan, Ar. &  Al. *
+* Copyright (C) 2016-2022  C. Heinzl, M. Reiter, A. Reh, W. Li, M. Arikan, Ar. &  Al. *
 *                 Amirkhanov, J. Weissenböck, B. Fröhler, M. Schiwarth, P. Weinberger *
 * *********************************************************************************** *
 * This program is free software: you can redistribute it and/or modify it under the   *
@@ -229,11 +229,6 @@ void iANonLocalMeans::abort()
 	m_itkProcess->SetAbortGenerateData(true);
 }
 
-bool iANonLocalMeans::canAbort() const
-{
-	return true;
-}
-
 iANonLocalMeans::iANonLocalMeans() :
 	iAFilter("Non-Local Means", "Smoothing",
 		"Performs a non-local means (= patch-based denoising) filtering.<br/>"
@@ -247,7 +242,7 @@ iANonLocalMeans::iANonLocalMeans() :
 		//<em>Noise Sigma</em> specifies the sigma of the noise model, where appropriate (in percent of the image intensity range)."
 		"For more information, see the "
 		"<a href=\"https://itk.org/Doxygen/html/classitk_1_1PatchBasedDenoisingImageFilter.html\">"
-		"Patch Based Denoising Filter</a> in the ITK documentation."),
+		"Patch Based Denoising Filter</a> in the ITK documentation.", 1u, 1u, true),
 	m_itkProcess(nullptr)
 {
 	// parameters in base class:

@@ -279,7 +279,7 @@
        </property>
        <property name="icon">
         <iconset resource="../../libs/guibase/guibase.qrc">
-         <normaloff>:/images/saveClass.png</normaloff>:/images/saveClass.png</iconset>
+         <normaloff>:/images/save.png</normaloff>:/images/save.png</iconset>
        </property>
        <property name="iconSize">
         <size>
@@ -381,7 +381,7 @@
        </property>
        <property name="icon">
         <iconset resource="../../libs/guibase/guibase.qrc">
-         <normaloff>:/images/saveClass.png</normaloff>:/images/saveClass.png</iconset>
+         <normaloff>:/images/save.png</normaloff>:/images/save.png</iconset>
        </property>
        <property name="iconSize">
         <size>

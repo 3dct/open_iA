@@ -1,7 +1,7 @@
 /*************************************  open_iA  ************************************ *
 * **********   A tool for visual analysis and processing of 3D CT images   ********** *
 * *********************************************************************************** *
-* Copyright (C) 2016-2021  C. Heinzl, M. Reiter, A. Reh, W. Li, M. Arikan, Ar. &  Al. *
+* Copyright (C) 2016-2022  C. Heinzl, M. Reiter, A. Reh, W. Li, M. Arikan, Ar. &  Al. *
 *                 Amirkhanov, J. Weissenböck, B. Fröhler, M. Schiwarth, P. Weinberger *
 * *********************************************************************************** *
 * This program is free software: you can redistribute it and/or modify it under the   *
@@ -1008,7 +1008,7 @@ void iARendererImpl::setBackgroundColors(iARenderSettings const& settings)
 	QColor bgBottom(settings.BackgroundBottom);
 	if (settings.UseStyleBGColor)
 	{
-		bgBottom = bgTop = qApp->palette().color(QPalette::Window);
+		bgBottom = bgTop = QApplication::palette().color(QPalette::Window);
 	}
 	m_ren->SetBackground2(bgTop.redF(), bgTop.greenF(), bgTop.blueF());
 	m_ren->SetBackground(bgBottom.redF(), bgBottom.greenF(), bgBottom.blueF());

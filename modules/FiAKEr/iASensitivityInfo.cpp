@@ -1,7 +1,7 @@
 /*************************************  open_iA  ************************************ *
 * **********   A tool for visual analysis and processing of 3D CT images   ********** *
 * *********************************************************************************** *
-* Copyright (C) 2016-2021  C. Heinzl, M. Reiter, A. Reh, W. Li, M. Arikan, Ar. &  Al. *
+* Copyright (C) 2016-2022  C. Heinzl, M. Reiter, A. Reh, W. Li, M. Arikan, Ar. &  Al. *
 *                 Amirkhanov, J. Weissenböck, B. Fröhler, M. Schiwarth, P. Weinberger *
 * *********************************************************************************** *
 * This program is free software: you can redistribute it and/or modify it under the   *
@@ -1397,7 +1397,7 @@ public:
 		}
 		cmbboxDissimilarity->addItems(dissimilarities);
 
-		cmbboxSPColorMap->addItems(iALUT::GetColorMapNames());
+		cmbboxSPColorMap->addItems(iALUT::colorMapNames());
 		cmbboxSPColorMap->setCurrentText("Brewer single hue 5c grays");
 
 		cmbboxSPHighlightColorScale->addItems(iAColorThemeManager::instance().availableThemes());
@@ -1485,7 +1485,7 @@ public:
 			paramMatrix->setSortParameter(p);
 			paramMatrix->setSizePolicy(QSizePolicy::Expanding, QSizePolicy::Expanding);
 			paramMatrix->setData(0);
-			paramMatrix->setLookupTable(iALUT::Build(paramMatrix->range(), iALUT::GetColorMapNames()[0], 255, 255));
+			paramMatrix->setLookupTable(iALUT::Build(paramMatrix->range(), iALUT::colorMapNames()[0], 255, 255));
 			m_matrixPerParam.push_back(paramMatrix);
 			paramListLayout->addWidget(paramMatrix, p + 1, MatrixCol);
 		}
@@ -1505,7 +1505,7 @@ public:
 	{
 		for (auto paramMatrix : m_matrixPerParam)
 		{
-			paramMatrix->setLookupTable(iALUT::Build(paramMatrix->range(), iALUT::GetColorMapNames()[idx], 255, 255));
+			paramMatrix->setLookupTable(iALUT::Build(paramMatrix->range(), iALUT::colorMapNames()[idx], 255, 255));
 			paramMatrix->update();
 		}
 	}
@@ -1602,9 +1602,9 @@ public:
 		m_diff3DEmptyText->SetNonlinearFontScaleFactor(1);
 		m_diff3DEmptyText->SetMaximumFontSize(18);
 		m_diff3DEmptyText->SetText(2, "No Fiber/Result selected");
-		auto textColor = qApp->palette().color(QPalette::Text);
+		auto textColor = QApplication::palette().color(QPalette::Text);
 		m_diff3DEmptyText->GetTextProperty()->SetColor(textColor.redF(), textColor.greenF(), textColor.blueF());
-		auto bgColor = qApp->palette().color(QPalette::Window);
+		auto bgColor = QApplication::palette().color(QPalette::Window);
 		m_diff3DEmptyRenderer->SetBackground(bgColor.redF(), bgColor.greenF(), bgColor.blueF());
 		m_diff3DEmptyRenderer->AddViewProp(m_diff3DEmptyText);
 	}
@@ -1807,7 +1807,7 @@ QWidget* iASensitivityInfo::setupMatrixView(QVector<int> const& measures)
 	}
 	dissimDockContent->cbMeasure->addItems(computedMeasureNames);
 	dissimDockContent->cbParameter->addItems(m_paramNames);
-	dissimDockContent->cbColorMap->addItems(iALUT::GetColorMapNames());
+	dissimDockContent->cbColorMap->addItems(iALUT::colorMapNames());
 	connect(dissimDockContent->cbMeasure, QOverload<int>::of(&QComboBox::currentIndexChanged),
 		this, &iASensitivityInfo::dissimMatrixMeasureChanged);
 	connect(dissimDockContent->cbParameter, QOverload<int>::of(&QComboBox::currentIndexChanged),
@@ -1817,7 +1817,7 @@ QWidget* iASensitivityInfo::setupMatrixView(QVector<int> const& measures)
 	m_gui->m_matrixWidget = new iAMatrixWidget(m_resultDissimMatrix, m_paramValues, true, false);
 	m_gui->m_matrixWidget->setSortParameter(0);
 	m_gui->m_matrixWidget->setData(0);
-	m_gui->m_matrixWidget->setLookupTable(iALUT::Build(m_gui->m_matrixWidget->range(), iALUT::GetColorMapNames()[0], 255, 255));
+	m_gui->m_matrixWidget->setLookupTable(iALUT::Build(m_gui->m_matrixWidget->range(), iALUT::colorMapNames()[0], 255, 255));
 	dissimDockContent->matrix->layout()->addWidget(m_gui->m_matrixWidget);
 	return dissimDockContent;
 }
@@ -1837,7 +1837,7 @@ void iASensitivityInfo::dissimMatrixParameterChanged(int idx)
 
 void iASensitivityInfo::dissimMatrixColorMapChanged(int idx)
 {
-	m_gui->m_matrixWidget->setLookupTable(iALUT::Build(m_gui->m_matrixWidget->range(), iALUT::GetColorMapNames()[idx], 255, 255));
+	m_gui->m_matrixWidget->setLookupTable(iALUT::Build(m_gui->m_matrixWidget->range(), iALUT::colorMapNames()[idx], 255, 255));
 	m_gui->m_matrixWidget->update();
 	m_gui->m_parameterListView->dissimMatrixColorMapChanged(idx);
 }
@@ -2701,7 +2701,7 @@ void iASensitivityInfo::updateDifferenceView()
 			continue;
 		}
 		resultData->renderer = vtkSmartPointer<vtkRenderer>::New();
-		auto bgColor(qApp->palette().color(QPalette::Window));
+		auto bgColor(QApplication::palette().color(QPalette::Window));
 		resultData->renderer->SetBackground(bgColor.redF(), bgColor.greenF(), bgColor.blueF());
 		resultData->renderer->SetViewport(
 			static_cast<double>(i) / hp.size(), 0, static_cast<double>(i + 1) / hp.size(), 1);
@@ -2726,7 +2726,7 @@ void iASensitivityInfo::updateDifferenceView()
 		resultData->text->GetTextProperty()->SetColor(color.redF(), color.greenF(), color.blueF());
 		resultData->text->SetText(2, txt.toStdString().c_str());
 		// ToDo: add fiber id ;
-		//auto textColor = qApp->palette().color(QPalette::Text);
+		//auto textColor = QApplication::palette().color(QPalette::Text);
 		//resultData->text->GetTextProperty()->SetColor(textColor.redF(), textColor.greenF(), textColor.blueF());
 		//cornerAnnotation->GetTextProperty()->BoldOn();
 		resultData->renderer->AddViewProp(resultData->text);
@@ -2845,9 +2845,9 @@ void iASensitivityInfo::updateDifferenceView()
 
 void iASensitivityInfo::styleChanged()
 {
-	auto textColor = qApp->palette().color(QPalette::Text);
+	auto textColor = QApplication::palette().color(QPalette::Text);
 	m_gui->m_diff3DEmptyText->GetTextProperty()->SetColor(textColor.redF(), textColor.greenF(), textColor.blueF());
-	auto bgColor = qApp->palette().color(QPalette::Window);
+	auto bgColor = QApplication::palette().color(QPalette::Window);
 	m_gui->m_diff3DEmptyRenderer->SetBackground(bgColor.redF(), bgColor.greenF(), bgColor.blueF());
 	for (auto r : m_gui->m_diff3DRenderers)
 	{

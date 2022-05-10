@@ -1,7 +1,7 @@
 /*************************************  open_iA  ************************************ *
 * **********   A tool for visual analysis and processing of 3D CT images   ********** *
 * *********************************************************************************** *
-* Copyright (C) 2016-2021  C. Heinzl, M. Reiter, A. Reh, W. Li, M. Arikan, Ar. &  Al. *
+* Copyright (C) 2016-2022  C. Heinzl, M. Reiter, A. Reh, W. Li, M. Arikan, Ar. &  Al. *
 *                 Amirkhanov, J. Weissenböck, B. Fröhler, M. Schiwarth, P. Weinberger *
 * *********************************************************************************** *
 * This program is free software: you can redistribute it and/or modify it under the   *
@@ -23,7 +23,7 @@
 #include "iAMathUtility.h"
 #include "iAMapper.h"
 
-#include <QApplication>    // for qApp->palette()
+#include <QApplication>
 #include <QHelpEvent>    // required for Linux build
 #include <QPainter>
 #include <QToolTip>
@@ -86,7 +86,7 @@ void iAProfileWidget::drawPlots(QPainter &painter)
 		return;
 	}
 	double binWidth = (double)(chartWidth()) / m_numBin * m_xZoom;
-	painter.setPen(qApp->palette().color(QPalette::Text));
+	painter.setPen(QApplication::palette().color(QPalette::Text));
 	double scalingCoef = (double)(chartHeight()-1) / m_yHeight * m_yZoom;
 	for ( int j = 0; j < m_numBin-1; j++ )
 	{

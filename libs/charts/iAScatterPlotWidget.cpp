@@ -1,7 +1,7 @@
 /*************************************  open_iA  ************************************ *
 * **********   A tool for visual analysis and processing of 3D CT images   ********** *
 * *********************************************************************************** *
-* Copyright (C) 2016-2021  C. Heinzl, M. Reiter, A. Reh, W. Li, M. Arikan, Ar. &  Al. *
+* Copyright (C) 2016-2022  C. Heinzl, M. Reiter, A. Reh, W. Li, M. Arikan, Ar. &  Al. *
 *                 Amirkhanov, J. Weissenböck, B. Fröhler, M. Schiwarth, P. Weinberger *
 * *********************************************************************************** *
 * This program is free software: you can redistribute it and/or modify it under the   *
@@ -27,7 +27,7 @@
 #include "iAScatterPlotViewData.h"
 #include "iASPLOMData.h"
 
-#include <QApplication>    // for qApp->palette()
+#include <QApplication>
 
 #include <QActionGroup>
 #include <QMenu>
@@ -230,20 +230,21 @@ void iAScatterPlotWidget::paintEvent(QPaintEvent* event)
 	QPainter painter(this);
 	QFontMetrics fm = painter.fontMetrics();
 #if QT_VERSION >= QT_VERSION_CHECK(5, 11, 0)
-	if (m_fontHeight != fm.height() || m_maxTickLabelWidth != fm.horizontalAdvance("0.99"))
+	if (m_fontHeight != fm.height() || m_maxTickLabelWidth != fm.horizontalAdvance("-0.99"))
 	{
 		m_fontHeight = fm.height();
-		m_maxTickLabelWidth = fm.horizontalAdvance("0.99");
+		m_maxTickLabelWidth = fm.horizontalAdvance("-0.99");
+		adjustScatterPlotSize();
 #else
-	if (m_fontHeight != fm.height() || m_maxTickLabelWidth != fm.width("0.99"))
+	if (m_fontHeight != fm.height() || m_maxTickLabelWidth != fm.width("-0.99"))
 	{
 		m_fontHeight = fm.height();
-		m_maxTickLabelWidth = fm.width("0.99");
+		m_maxTickLabelWidth = fm.width("-0.99");
 #endif
 	}
 	painter.setRenderHint(QPainter::Antialiasing);
-	QColor bgColor(qApp->palette().color(QWidget::backgroundRole()));
-	QColor fg(qApp->palette().color(QPalette::Text));
+	QColor bgColor(QApplication::palette().color(QWidget::backgroundRole()));
+	QColor fg(QApplication::palette().color(QPalette::Text));
 	m_scatterplot->settings.tickLabelColor = fg;
 #if (defined(CHART_OPENGL))
 	painter.beginNativePainting();
@@ -304,9 +305,9 @@ void iAScatterPlotWidget::drawTooltip(QPainter& painter)
 	double pPM = m_scatterplot->settings.pickedPointMagnification;
 	double ptRad = m_scatterplot->getPointRadius();
 	popupPos.setY(popupPos.y() - pPM * ptRad);
-	QColor popupFillColor(qApp->palette().color(QPalette::Window));
+	QColor popupFillColor(QApplication::palette().color(QPalette::Window));
 	painter.setBrush(popupFillColor);
-	QColor popupBorderColor(qApp->palette().color(QPalette::Dark));
+	QColor popupBorderColor(QApplication::palette().color(QPalette::Dark));
 	painter.setPen(popupBorderColor);
 	painter.translate(popupPos);
 	QString text = "<b>#" + QString::number(curInd) + "</b><br> " +
@@ -331,7 +332,7 @@ void iAScatterPlotWidget::drawTooltip(QPainter& painter)
 
 	painter.translate(-popupWidthHalf, -popupHeight - tipDim[1]);
 	QAbstractTextDocumentLayout::PaintContext ctx;
-	QColor popupTextColor(qApp->palette().color(QPalette::ToolTipText));  // = settings.popupTextColor;
+	QColor popupTextColor(QApplication::palette().color(QPalette::ToolTipText));  // = settings.popupTextColor;
 	ctx.palette.setColor(QPalette::Text, popupTextColor);
 	doc.documentLayout()->draw(&painter, ctx); //doc.drawContents( &painter );
 	painter.restore();
