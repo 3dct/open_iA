@@ -21,7 +21,6 @@
 #include "iASelection.h"
 
 #include <vtkIdTypeArray.h>
-#include <vtkSelection.h>
 
 #include <QTreeWidget>
 
