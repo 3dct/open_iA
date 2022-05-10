@@ -92,6 +92,8 @@
 
 // TODO: VOLUME: check all places using modality(0)->transfer() !
 
+#include "iADataSet.h"
+
 #include <QByteArray>
 #include <QCloseEvent>
 #include <QFile>
@@ -101,6 +103,7 @@
 #include <QSettings>
 #include <QSpinBox>
 #include <QStatusBar>
+#include <QStringListModel>
 #include <QToolButton>
 #include <QtGlobal> // for QT_VERSION
 
@@ -136,7 +139,8 @@ MdiChild::MdiChild(MainWindow* mainWnd, iAPreferences const& prefs, bool unsaved
 	m_currentComponent(0),
 	m_currentHistogramModality(-1),
 	m_initVolumeRenderers(false),
-	m_interactionMode(imCamera)
+	m_interactionMode(imCamera),
+	m_dwDatasets(nullptr)
 {
 	m_histogram->setYMappingMode(prefs.HistogramLogarithmicYAxis ? iAChartWidget::Logarithmic : iAChartWidget::Linear);
 	std::fill(m_slicerVisibility, m_slicerVisibility + 3, false);
@@ -455,7 +459,48 @@ void MdiChild::showPoly()
 
 void MdiChild::addDataset(std::shared_ptr<iADataSet> dataset)
 {
+	if (!m_dwDatasets)
+	{
+		auto dataList = new QListView;
+		dataList->setEditTriggers(QAbstractItemView::NoEditTriggers);
+		m_dataModel = new QStringListModel;
+		//m_dataModel->set
+		dataList->setModel(m_dataModel);
+
+		auto buttons = new QWidget();
+		buttons->setLayout(new QVBoxLayout);
+		auto editButton = new QToolButton();
+		editButton->setText("Edit");
+		buttons->layout()->addWidget(editButton);
+
+		connect(editButton, &QToolButton::clicked, this,
+		[this, dataList]()
+		{
+			auto rows = dataList->selectionModel()->selectedRows();
+			if (rows.size() != 1)
+			{
+				return;
+			}
+			iAParameterDlg dlg(this, "Renderer parameters", m_dataRenderers[rows[0].row()]->attributes());
+			if (dlg.exec() != QDialog::Accepted)
+			{
+				return;
+			}
+			m_dataRenderers[rows[0].row()]->setAttributes(dlg.parameterValues());
+		});
+
+		auto content = new QWidget();
+		content->setLayout(new QHBoxLayout);
+		content->layout()->addWidget(dataList);
+		content->layout()->addWidget(buttons);
+		content->layout()->setContentsMargins(0, 0, 0, 0);
+		m_dwDatasets = new iADockWidgetWrapper(content, "Datasets", "datasets");
+		splitDockWidget(m_dwModalities, m_dwDatasets, Qt::Horizontal);
+	}
 	m_datasets.push_back(dataset);
+	auto curList = m_dataModel->stringList();
+	curList.append(dataset->name());
+	m_dataModel->setStringList(curList);
 	auto dataRenderer = createDataRenderer(dataset.get(), renderer());
 	dataRenderer->show();
 	m_dataRenderers.push_back(dataRenderer);

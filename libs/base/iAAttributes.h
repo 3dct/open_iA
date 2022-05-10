@@ -29,6 +29,7 @@
 
 class QTextStream;
 
+// TODO: move to iAAttributes?
 using iAAttributes = QVector<QSharedPointer<iAAttributeDescriptor>>;
 
 iAbase_API QSharedPointer<iAAttributes> createAttributes(QTextStream& in);

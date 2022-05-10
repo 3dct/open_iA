@@ -43,6 +43,9 @@
 #include <vector>
 #include <functional>
 
+class QListView;
+class QStringListModel;
+
 class vtkAbstractTransform;
 class vtkActor;
 class vtkColorTransferFunction;
@@ -137,9 +140,12 @@ public:
 	iASlicerSettings const & slicerSettings() const override;
 	iAPreferences    const & preferences()    const override;
 	iAVolumeStack * volumeStack() override;
+	//! @{
+	//! @deprecated iAAlgorithm will be removed soon. use iAFilter / iANewIO instead
 	void connectThreadSignalsToChildSlots(iAAlgorithm* thread) override;
 	void connectIOThreadSignals(iAIO* thread) override;
 	void connectAlgorithmSignalsToChildSlots(iAAlgorithm* thread);
+	//! @}
 
 	//! Access the opacity function of the "main image"
 	//! @deprecated all access to images should proceed via modalities (modality(int) / setModalities /...)
@@ -161,6 +167,7 @@ public:
 	//! Access to "main" polydata object (if any)
 	//! @deprecated move out of mdi child, into something like an iAModality
 	vtkPolyData* polyData() override;
+
 	//! Access to the 3D renderer widget
 	iARenderer* renderer() override;
 	//! Access slicer for given mode (use iASlicerMode enum for mode values)
@@ -185,11 +192,15 @@ public:
 
 	void setReInitializeRenderWindows(bool reInit) override;
 	vtkTransform* slicerTransform() override;
+
+	//! Whether results should be opened in a new window; if false, they replace the content of the current window instead
 	bool resultInNewWindow() const;
 	//! Whether this child has the linked MDIs feature enabled
 	bool linkedMDIs() const;
 	//! Whether this child has the linked views feature enabled
 	bool linkedViews() const override;
+
+	//! Access the histogram widget
 	iAChartWithFunctionsWidget* histogram() override;
 
 	int selectedFuncPoint();
@@ -506,4 +517,8 @@ private:
 	//! datasets:
 	std::vector<std::shared_ptr<iADataSet>> m_datasets;
 	std::vector<std::shared_ptr<iADataSetRenderer>> m_dataRenderers;
+
+	iADockWidgetWrapper* m_dwDatasets;
+	//QListView* m_dataList;
+	QStringListModel* m_dataModel;
 };
