@@ -17,7 +17,7 @@ iACompNaturalBreaksData::iACompNaturalBreaksData() :
 	 {  //check for every dataset
 
 		 auto currDataset = thisBinDataObjects->at(v);
-		 auto currentNumberOfBins = currDataset->size();
+		 auto currentNumberOfBins = static_cast<int>(currDataset->size());
 
 		 std::vector<double> bins;
 

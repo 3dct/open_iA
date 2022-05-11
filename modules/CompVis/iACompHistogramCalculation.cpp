@@ -98,7 +98,7 @@ void iACompHistogramCalculation::calculateUniformBinning()
 	m_uniformBinningData->computeSturgesRule();
 
 	m_uniformBinning =
-		new iACompUniformBinning(m_dataStorage, m_amountObjectsEveryDataset, m_datasets);
+		new iACompUniformBinning(m_dataStorage, m_datasets);
 	m_uniformBinning->setDataStructure(m_uniformBinningData);
 	m_uniformBinning->setCurrentNumberOfBins(m_uniformBinningData->getInitialNumberOfBins());
 	m_uniformBinning->calculateBins();
@@ -134,7 +134,7 @@ void iACompHistogramCalculation::calculateBayesianBlocks()
 	m_bayesianBlocksData->setAmountObjectsEveryDataset(m_amountObjectsEveryDataset);
 	m_bayesianBlocksData->setMaxAmountInAllBins(m_uniformBinningData->getMaxAmountInAllBins());
 
-	m_bayesianBlocks = new iACompBayesianBlocks(m_dataStorage, m_amountObjectsEveryDataset, m_datasets);
+	m_bayesianBlocks = new iACompBayesianBlocks(m_dataStorage, m_datasets);
 	m_bayesianBlocks->setDataStructure(m_bayesianBlocksData);
 	m_bayesianBlocks->calculateBins();
 
@@ -157,7 +157,7 @@ void iACompHistogramCalculation::calculateNaturalBreaks()
 	m_naturalBreaksData->setAmountObjectsEveryDataset(m_amountObjectsEveryDataset);
 	m_naturalBreaksData->setMaxAmountInAllBins(m_uniformBinningData->getMaxAmountInAllBins());
 	
-	m_naturalBreaks = new iACompNaturalBreaks(m_dataStorage, m_amountObjectsEveryDataset, m_datasets);
+	m_naturalBreaks = new iACompNaturalBreaks(m_dataStorage, m_datasets);
 	m_naturalBreaks->setDataStructure(m_naturalBreaksData);
 	m_naturalBreaks->calculateBins();
 
@@ -190,7 +190,7 @@ void iACompHistogramCalculation::calculateDensityEstimation()
 	m_densityEstimationData->setBoundariesBB(m_bayesianBlocksData->getBinBoundaries());
 
 
-	m_densityEstimation = new iACompKernelDensityEstimation(m_dataStorage, m_amountObjectsEveryDataset, m_datasets);
+	m_densityEstimation = new iACompKernelDensityEstimation(m_dataStorage, m_datasets);
 	m_densityEstimation->setDataStructure(m_densityEstimationData);
 	m_densityEstimation->calculateCurve(m_uniformBinningData, m_bayesianBlocksData, m_naturalBreaksData);
 }

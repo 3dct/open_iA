@@ -438,7 +438,7 @@ void iACompUniformTable::drawHistogramTableAccordingToCellSimilarity(Pick::Picke
 	drawHistogramTable(m_bins);
 
 	//highlight selected cells
-	for (int i = 0; i < indexOfCells->size(); i++)
+	for (int i = 0; i < static_cast<int>(indexOfCells->size()); i++)
 	{
 		highlightSelectedCell(m_originalPlaneActors->at(m_vis->getAmountDatasets() - 1), indexOfCells->at(i));
 	}
@@ -511,7 +511,7 @@ void iACompUniformTable::drawNonLinearZoom(
 				std::vector<vtkIdType>* cellIds = pos->second;
 				vtkSmartPointer<vtkActor> thisAcc = m_mainRenderer->GetActors()->GetLastActor();
 
-				for (int i = 0; i < cellIds->size(); i++)
+				for (int i = 0; i < static_cast<int>(cellIds->size()); i++)
 				{  //highlight each cell of the selected row
 
 					highlightSelectedCell(thisAcc, cellIds->at(i));
@@ -556,7 +556,7 @@ std::vector<vtkSmartPointer<vtkPolyData>>* iACompUniformTable::drawZoomedRow(int
 	std::vector<vtkSmartPointer<vtkPolyData>>* zoomedPlanes = new std::vector<vtkSmartPointer<vtkPolyData>>();
 
 	double selectedCellsWithObjects = 0;
-	for (int k = 0; k < currentData->size(); k++)
+	for (int k = 0; k < static_cast<int>(currentData->size()); k++)
 	{
 		if (currentData->at(k).size() > 1)
 		{
@@ -611,7 +611,7 @@ void iACompUniformTable::zoomInZoomedRow(int selectedBinNumber)
 {
 	int rowId = m_zoomedRowData->size() - 1;
 	int cellId = 0;
-	for (int zoomedRowDataInd = 0; zoomedRowDataInd < m_zoomedPlaneActors->size(); zoomedRowDataInd++)
+	for (int zoomedRowDataInd = 0; zoomedRowDataInd < static_cast<int>(m_zoomedPlaneActors->size()); zoomedRowDataInd++)
 	{  //for all zoomed planes
 
 		vtkSmartPointer<vtkActor> currAct = m_zoomedPlaneActors->at(zoomedRowDataInd);
@@ -620,7 +620,7 @@ void iACompUniformTable::zoomInZoomedRow(int selectedBinNumber)
 		drawZoomForZoomedRow(currAct, zoomedRowDataInd, currData, selectedBinNumber);
 
 		//get the correct data bins of zoomedRowData
-		if (cellId >= (m_zoomedRowData->at(rowId)->size() - 1))
+		if (cellId >= (static_cast<int>(m_zoomedRowData->at(rowId)->size()) - 1))
 		{
 			rowId--;
 			cellId = 0;
@@ -869,7 +869,7 @@ void iACompUniformTable::drawLineBetweenRowAndZoomedRow(std::vector<vtkSmartPoin
 	vtkSmartPointer<vtkDoubleArray> point1Array =
 		static_cast<vtkDoubleArray*>(originalRowPlane->GetPointData()->GetArray("point1Array"));
 
-	for (int i = 0; i < zoomedRowPlanes->size(); i++)
+	for (int i = 0; i < static_cast<int>(zoomedRowPlanes->size()); i++)
 	{
 		vtkSmartPointer<vtkPolyData> zoomedRowPlane = zoomedRowPlanes->at(i);
 		vtkSmartPointer<vtkDoubleArray> originA =
@@ -968,7 +968,7 @@ void iACompUniformTable::drawLineBetweenRowAndZoomedRow(std::vector<vtkSmartPoin
 				drawPolyLine(pointList, col, iACompVisOptions::LINE_WIDTH);
 			}
 		}
-		else if (i == (cellIdsOriginalPlane->size() - 1))
+		else if (i == (static_cast<int>(cellIdsOriginalPlane->size()) - 1))
 		{
 			//right line
 			vtkSmartPointer<vtkPoints> pointList = vtkSmartPointer<vtkPoints>::New();
@@ -986,7 +986,7 @@ void iACompUniformTable::drawLineBetweenRowAndZoomedRow(std::vector<vtkSmartPoin
 				drawPolyLine(points1, col, iACompVisOptions::LINE_WIDTH);
 			}
 		}
-		else if (i < cellIdsOriginalPlane->size() - 1)
+		else if (i < (static_cast<int>(cellIdsOriginalPlane->size()) - 1))
 		{
 			double nextCellId = cellIdsOriginalPlane->at(i + 1);
 			double lastCellId = cellIdsOriginalPlane->at(i - 1);
@@ -1052,7 +1052,7 @@ void iACompUniformTable::drawPointRepresentation()
 	std::map<int, std::vector<double>*> minMaxPerBin = std::map<int, std::vector<double>*>();
 	for (int datasetInd = 0; datasetInd < m_zoomedRowData->size(); datasetInd++)
 	{
-		for (int binId = 0; binId < m_zoomedRowData->at(datasetInd)->size(); binId++)
+		for (int binId = 0; binId < static_cast<int>(m_zoomedRowData->at(datasetInd)->size()); binId++)
 		{
 			minMaxPerBin.insert({binId, new std::vector<double>()});
 
@@ -1097,7 +1097,7 @@ void iACompUniformTable::drawPointRepresentation()
 			vtkSmartPointer<vtkActor> originalRowAct = it->first;
 			std::vector<vtkSmartPointer<vtkActor>>* zoomedRowActs = it->second;
 
-			for (int zoomedRowInd = 0; zoomedRowInd < zoomedRowActs->size(); zoomedRowInd++)
+			for (int zoomedRowInd = 0; static_cast<int>(zoomedRowInd < zoomedRowActs->size()); zoomedRowInd++)
 			{
 				vtkSmartPointer<vtkActor> zoomedRowAct = zoomedRowActs->at(zoomedRowInd);
 				vtkSmartPointer<vtkAlgorithm> algorithm =
@@ -1179,7 +1179,7 @@ void iACompUniformTable::drawPointRepresentation()
 				double newY = ymin + ((ymax - ymin) / 2.0);
 				//(newXMin + radius) --> so that min & max points do not lie on border
 				vtkSmartPointer<vtkPoints> points = calculatePointPosition(
-					data, (xmin + radius), (xmax - radius), newY, *minMaxPerBin.at(zoomedRowInd));
+					data, (xmin + radius), (xmax - radius), newY);
 				if (points == nullptr)
 				{
 					continue;
@@ -1277,7 +1277,7 @@ vtkSmartPointer<vtkActor> iACompUniformTable::drawPoints(
 }
 
 vtkSmartPointer<vtkPoints> iACompUniformTable::calculatePointPosition(
-	std::vector<double> dataPoints, double newMinX, double newMaxX, double y, std::vector<double> currMinMax)
+	std::vector<double> dataPoints, double newMinX, double newMaxX, double y)
 {
 	/*LOG(lvlDebug,"dataPoints.size() = " + QString::number(dataPoints.size()));
 
@@ -1306,7 +1306,7 @@ vtkSmartPointer<vtkPoints> iACompUniformTable::calculatePointPosition(
 	/*double min = currMinMax.at(0);
 	double max = currMinMax.at(1);*/
 
-	for (int i = 0; i < dataPoints.size(); i++)
+	for (int i = 0; i < static_cast<int>(dataPoints.size()); i++)
 	{
 		if (min == max)
 		{
@@ -1364,7 +1364,7 @@ std::tuple<QList<bin::BinType*>*, QList<std::vector<csvDataType::ArrayType*>*>*>
 			bin::BinType* newRowMDS = new bin::BinType();
 
 			//look for the selected cells in the current row
-			for (int i = 0; i < pickedCells->size(); i++)
+			for (int i = 0; i < static_cast<int>(pickedCells->size()); i++)
 			{
 				int currBin = pickedCells->at(i);
 				newRowIds->push_back(currRowIds->at(currBin));
@@ -1501,7 +1501,7 @@ double iACompUniformTable::calculateChiSquaredMetric(bin::BinType* observedFrequ
 {
 	double chiSquare = 0.0;
 
-	for (int i = 0; i < observedFrequency->size(); i++)
+	for (int i = 0; i < static_cast<int>(observedFrequency->size()); i++)
 	{//for each bin
 
 		if (expectedFrequency->at(i).size() != 0)
@@ -1633,7 +1633,7 @@ void iACompUniformTable::removeBarCharShowingAmountOfObjects()
 {
 	m_useDarkerLut = false;
 
-	for (int i = 0; i < m_barActors->size(); i++)
+	for (int i = 0; i < static_cast<int>(m_barActors->size()); i++)
 	{
 		m_mainRenderer->RemoveActor(m_barActors->at(i));
 		m_mainRenderer->RemoveActor2D(m_barTextActors->at(i));
@@ -1763,7 +1763,7 @@ void iACompUniformTable::drawBarChartShowingAmountOfObjects(std::vector<int> amo
 	auto minMax = std::minmax_element(begin(amountObjectsEveryDataset), end(amountObjectsEveryDataset));
 	int max = *minMax.second;
 
-	for (int i = 0; i < m_originalPlaneActors->size(); i++)
+	for (int i = 0; i < static_cast<int>(m_originalPlaneActors->size()); i++)
 	{
 		vtkSmartPointer<vtkActor> currAct = m_originalPlaneActors->at(i);
 		vtkSmartPointer<vtkAlgorithm> currAlgorithm = currAct->GetMapper()->GetInputConnection(0, 0)->GetProducer();
@@ -1834,7 +1834,7 @@ void iACompUniformTable::showSelectionOfCorrelationMap(std::map<int, double>* da
 					{
 						std::vector<vtkIdType>* cells = pos->second;
 
-						for (int i = 0; i < cells->size(); i++)
+						for (int i = 0; i < static_cast<int>(cells->size()); i++)
 						{
 							vtkIdType cellId = cells->at(i);
 
@@ -1913,7 +1913,7 @@ void iACompUniformTable::drawStippledTexture(double* origin, double* point1, dou
 
 void iACompUniformTable::removeSelectionOfCorrelationMap()
 {
-	for (int i = 0; i < m_stippledActors->size(); i++)
+	for (int i = 0; i < static_cast<int>(m_stippledActors->size()); i++)
 	{
 		m_mainRenderer->RemoveActor(m_stippledActors->at(i));
 	}

@@ -25,7 +25,7 @@ class iACompKernelDensityEstimation
 public:
 
 	iACompKernelDensityEstimation(
-		iACsvDataStorage* dataStorage, std::vector<int>* amountObjectsEveryDataset, bin::BinType* datasets);
+		iACsvDataStorage* dataStorage, bin::BinType* datasets);
 
 	void setDataStructure(iACompKernelDensityEstimationData* datastructure);
 

@@ -43,7 +43,8 @@ void iACompVariableTableInteractorStyle::OnLeftButtonDown()
 		return;
 	}
 
-	int cellPicked = m_picker->Pick(pos[0], pos[1], 0, this->CurrentRenderer);
+	int cellPicked = INFINITY;
+	cellPicked = m_picker->Pick(pos[0], pos[1], 0, this->CurrentRenderer);
 
 	if (cellPicked == 0)
 	{
@@ -53,7 +54,7 @@ void iACompVariableTableInteractorStyle::OnLeftButtonDown()
 		return;
 	}
 	
-	if (cellPicked != NULL && this->GetInteractor()->GetShiftKey() && m_picker->GetActor()!= NULL)
+	if (cellPicked != INFINITY && this->GetInteractor()->GetShiftKey() && m_picker->GetActor()!= NULL)
 	{
 		if (m_picked->empty())
 		{ //when it is the first time of a new picking time --> remove the highlight from the last one
@@ -139,7 +140,7 @@ void iACompVariableTableInteractorStyle::setPickList(std::vector<vtkSmartPointer
 {
 	m_picker->InitializePickList();
 
-	for (int i = 0; i < originalRowActors->size(); i++)
+	for (int i = 0; i < static_cast<int>(originalRowActors->size()); i++)
 	{
 		m_picker->AddPickList(originalRowActors->at(i));
 	}

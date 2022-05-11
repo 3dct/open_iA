@@ -2,7 +2,7 @@
 
 #include "iACompNaturalBreaksData.h"
 
-iACompNaturalBreaks::iACompNaturalBreaks(iACsvDataStorage* dataStorage, std::vector<int>* amountObjectsEveryDataset, bin::BinType* datasets) :
+iACompNaturalBreaks::iACompNaturalBreaks(iACsvDataStorage* dataStorage, bin::BinType* datasets) :
 	iACompBinning(dataStorage, datasets), 
 	m_naturalBreaksData(nullptr)
 {
@@ -26,7 +26,7 @@ void iACompNaturalBreaks::calculateBins()
 
 	QList<std::vector<double>>* binningStrategies = new QList<std::vector<double>>; //stores number of bins for each dataset
 
-	for (int i = 0; i < m_naturalBreaksData->getAmountObjectsEveryDataset()->size(); i++)
+	for (int i = 0; i < static_cast<int>(m_naturalBreaksData->getAmountObjectsEveryDataset()->size()); i++)
 	{  // do for every dataset
 
 		std::vector<double> values = m_datasets->at(i);
@@ -69,7 +69,7 @@ void iACompNaturalBreaks::calculateBins()
 			int datasetInd = (int)values.size();
 
 			//check for every value inside a dataset for the corresponding bin
-			for (int v = 0; v < values.size(); v++)
+			for (int v = 0; v < static_cast<int>(values.size()); v++)
 			{
 				for (int b = 0; b < currentNumberOfBins; b++)
 				{
@@ -141,7 +141,7 @@ double iACompNaturalBreaks::computeGoodnessOfVarianceFit(
 	std::for_each(values.begin(), values.end(), [&](double m) { valuesMean += m; });
 	valuesMean = valuesMean / values.size();
 	double SDAM = 0.0;
-	for (int l = 0; l < values.size(); l++)
+	for (int l = 0; l < static_cast<int>(values.size()); l++)
 	{
 		//sum of squared deviations from values mean
 		double sqDev = std::pow((values.at(l) - valuesMean), 2);
@@ -150,7 +150,7 @@ double iACompNaturalBreaks::computeGoodnessOfVarianceFit(
 
 	//compute the squared deviations from the bin (class) means(SDCM)
 	double SDCM = 0.0;
-	for (int j = 0; j < currBinningStrategy.size(); j++)
+	for (int j = 0; j < static_cast<int>(currBinningStrategy.size()); j++)
 	{
 		std::vector<double> valsInBin = bins->at(j);
 
@@ -158,7 +158,7 @@ double iACompNaturalBreaks::computeGoodnessOfVarianceFit(
 		std::for_each(valsInBin.begin(), valsInBin.end(), [&](double m) { binMean += m; });
 		binMean = binMean / valsInBin.size();
 		double preSDCM = 0.0;
-		for (int p = 0; p < valsInBin.size(); p++)
+		for (int p = 0; p < static_cast<int>(valsInBin.size()); p++)
 		{
 			double sqDev2 = std::pow((valsInBin.at(p) - binMean), 2);
 			preSDCM += sqDev2;

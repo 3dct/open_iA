@@ -2,8 +2,9 @@
 #include "iACompDBScanData.h"
 
 iACompDBScan::iACompDBScan(
-	iACsvDataStorage* dataStorage, std::vector<int>* amountObjectsEveryDataset, bin::BinType* datasets) :
-	iACompBinning(dataStorage, datasets), m_dbData(nullptr)
+	iACsvDataStorage* dataStorage, bin::BinType* datasets) :
+	iACompBinning(dataStorage, datasets), 
+	m_dbData(nullptr)
 {
 	//test();
 }

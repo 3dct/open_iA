@@ -39,9 +39,9 @@
 
 iACompVariableTable::iACompVariableTable(iACompHistogramVis* vis, iACompBayesianBlocksData* bayesianBlocksData, iACompNaturalBreaksData* naturalBreaksData):
 	iACompTable(vis),
-	m_interactionStyle(vtkSmartPointer<iACompVariableTableInteractorStyle>::New()),
 	m_bbData(bayesianBlocksData), 
 	m_nbData(naturalBreaksData),
+	m_interactionStyle(vtkSmartPointer<iACompVariableTableInteractorStyle>::New()),
 	m_originalRowActors(new std::vector<vtkSmartPointer<vtkActor>>())
 {
 	m_activeData = m_nbData;
@@ -357,7 +357,7 @@ void iACompVariableTable::drawBarChartShowingAmountOfObjects(std::vector<int> am
 	auto minMax = std::minmax_element(begin(amountObjectsEveryDataset), end(amountObjectsEveryDataset));
 	int max = *minMax.second;
 
-	for (int i = 0; i < m_originalRowActors->size(); i++)
+	for (int i = 0; i < static_cast<int>(m_originalRowActors->size()); i++)
 	{
 		vtkSmartPointer<vtkActor> currAct = m_originalRowActors->at(i);
 		vtkSmartPointer<vtkPolyData> polyData = vtkProgrammableGlyphFilter::SafeDownCast(
@@ -466,7 +466,7 @@ std::tuple<QList<bin::BinType*>*, QList<std::vector<csvDataType::ArrayType*>*>*>
 			bin::BinType* newRowMDS = new bin::BinType();
 
 			//look for the selected cells in the current row
-			for (int i = 0; i < pickedCells->size(); i++)
+			for (int i = 0; i < static_cast<int>(pickedCells->size()); i++)
 			{
 				int currBin = pickedCells->at(i);
 				newRowIds->push_back(currRowIds->at(currBin));

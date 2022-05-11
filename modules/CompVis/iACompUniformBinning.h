@@ -8,7 +8,7 @@ class iACompUniformBinning : public iACompBinning
 {
 public:
 
-	iACompUniformBinning(iACsvDataStorage* dataStorage, std::vector<int>* amountObjectsEveryDataset, bin::BinType* datasets);
+	iACompUniformBinning(iACsvDataStorage* dataStorage, bin::BinType* datasets);
 
 	//calculate a uniform binning for the data points (there is always the same amount of bins for each dataset)
 	virtual void calculateBins();

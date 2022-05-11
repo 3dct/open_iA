@@ -64,7 +64,7 @@ class iACompBayesianBlocks : public iACompBinning
 {
 public:
 	iACompBayesianBlocks(
-		iACsvDataStorage* dataStorage, std::vector<int>* amountObjectsEveryDataset, bin::BinType* datasets);
+		iACsvDataStorage* dataStorage, bin::BinType* datasets);
 
 	//calculate the binning for the data points
 	virtual void calculateBins();

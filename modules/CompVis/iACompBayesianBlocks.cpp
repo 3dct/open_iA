@@ -16,7 +16,7 @@
 #include <fstream>
 
 iACompBayesianBlocks::iACompBayesianBlocks(
-	iACsvDataStorage* dataStorage, std::vector<int>* amountObjectsEveryDataset, bin::BinType* datasets) :
+	iACsvDataStorage* dataStorage, bin::BinType* datasets) :
 	iACompBinning(dataStorage, datasets), 
 	m_bayesianBlocksData(nullptr)
 {

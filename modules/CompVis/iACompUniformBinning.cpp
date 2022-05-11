@@ -2,7 +2,7 @@
 
 #include "iACompUniformBinningData.h"
 
-iACompUniformBinning::iACompUniformBinning(iACsvDataStorage* dataStorage, std::vector<int>* amountObjectsEveryDataset, bin::BinType* datasets) :
+iACompUniformBinning::iACompUniformBinning(iACsvDataStorage* dataStorage, bin::BinType* datasets) :
 	iACompBinning(dataStorage, datasets), 
 	m_maxAmountInAllBins(-1),
 	m_uniformBinningData(nullptr),
@@ -29,7 +29,7 @@ void iACompUniformBinning::calculateBins()
 
 	QList<std::vector<double>>* binBoundaries = new QList<std::vector<double>>();
 
-	for (int i = 0; i < m_uniformBinningData->getAmountObjectsEveryDataset()->size(); i++)
+	for (int i = 0; i < static_cast<int>(m_uniformBinningData->getAmountObjectsEveryDataset()->size()); i++)
 	{// do for every dataset
 
 		std::vector<double> values = m_datasets->at(i);
@@ -46,7 +46,7 @@ void iACompUniformBinning::calculateBins()
 		int datasetInd = static_cast<int> (values.size());
 
 		//check for every value inside a dataset for the corresponding bin
-		for (int v = 0; v < values.size(); v++)
+		for (int v = 0; v < static_cast<int>(values.size()); v++)
 		{
 			for (int b = 0; b < m_currentNumberOfBins; b++)
 			{
@@ -116,7 +116,7 @@ std::vector<double> iACompUniformBinning::calculateBinBoundaries(
 
 	std::vector<double> bins = std::vector<double>();
 
-	for (size_t b = 0; b < numberOfBins; b++)
+	for (int b = 0; b < numberOfBins; b++)
 	{
 		double lowerBound = minVal + (binLength * b);
 		bins.push_back(lowerBound);
@@ -147,7 +147,7 @@ double iACompUniformBinning::computeIntervalLength(double minVal, double maxVal)
 
 bin::BinType* iACompUniformBinning::calculateBins(bin::BinType* data, int currData)
 {
-	if (currData >= data->size()) return nullptr;
+	if (currData >= static_cast<int>(data->size())) return nullptr;
 
 	size_t amountVals = data->at(currData).size();
 

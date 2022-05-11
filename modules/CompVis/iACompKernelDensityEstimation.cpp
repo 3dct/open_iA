@@ -7,8 +7,12 @@
 #include <vector>
 
 iACompKernelDensityEstimation::iACompKernelDensityEstimation(
-	iACsvDataStorage* dataStorage, std::vector<int>* amountObjectsEveryDataset, bin::BinType* datasets) :
-	m_dataStorage(dataStorage), m_datasets(datasets), m_kdeData(nullptr), m_maxKDE(-INFINITY), m_minKDE(INFINITY)
+	iACsvDataStorage* dataStorage, bin::BinType* datasets) :
+	m_datasets(datasets), 
+	m_dataStorage(dataStorage), 
+	m_kdeData(nullptr), 
+	m_maxKDE(-INFINITY), 
+	m_minKDE(INFINITY)
 {
 	numSteps = 1000;  //(*std::minmax_element(amountObjectsEveryDataset->begin(), amountObjectsEveryDataset->end()).second); //
 }
@@ -130,18 +134,18 @@ void iACompKernelDensityEstimation::calculateKDE(std::vector<double>* dataIn, kd
 void iACompKernelDensityEstimation::calculateKDEBinning(
 	kdeData::kdeBin* input, double maxMDSVal, std::vector<double>* binBoundaries, kdeData::kdeBins* result)
 {
-	for (int pairId = 0; pairId < input->size(); pairId++)
+	for (int pairId = 0; pairId < static_cast<int>(input->size()); pairId++)
 	{
 		kdeData::kdePair pair = input->at(pairId); 
 		double mdsVal = pair[0];
 		
-		for (int bin = 0; bin < binBoundaries->size(); bin++)
+		for (int bin = 0; bin < static_cast<int>(binBoundaries->size()); bin++)
 		{  //look for the boundaries of each bin
 
 			double lowerBorder;
 			double upperBorder;
 
-			if (bin < (binBoundaries->size() - 1))
+			if (bin < (static_cast<int>(binBoundaries->size()) - 1))
 			{
 				lowerBorder = binBoundaries->at(bin);
 				upperBorder = binBoundaries->at(bin + 1);
@@ -170,7 +174,7 @@ void iACompKernelDensityEstimation::calculateKDEBinning(
 				break;
 			}
 
-			if ((bin == binBoundaries->size() - 1) && mdsVal == upperBorder)
+			if ((bin == ((static_cast<int>(binBoundaries->size()) - 1))) && mdsVal == upperBorder)
 			{
 				result->at(bin).push_back(pair);
 				break;

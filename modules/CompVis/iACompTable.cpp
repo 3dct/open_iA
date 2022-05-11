@@ -38,8 +38,8 @@ iACompTable::iACompTable(iACompHistogramVis* vis) :
 	m_lutDarker(vtkSmartPointer<vtkLookupTable>::New()),
 	m_useDarkerLut(false),
 	m_tableSize(11),
-	m_mainRenderer(vtkSmartPointer<vtkRenderer>::New()),
 	m_rendererColorLegend(vtkSmartPointer<vtkRenderer>::New()),
+	m_mainRenderer(vtkSmartPointer<vtkRenderer>::New()),
 	m_lastState(iACompVisOptions::lastState::Undefined),
 	m_numberOfTicks(20),
 	m_barActors(new std::vector<vtkSmartPointer<vtkActor>>()),
@@ -114,7 +114,7 @@ void iACompTable::makeLUTFromCTF()
 	int startVal = 1;
 	
 	
-	for (size_t i = 0; i < m_tableSize; i++)
+	for (int i = 0; i < m_tableSize; i++)
 	{
 		double* rgb;
 		rgb = ctf->GetColor(static_cast<double>(i) / (double)m_tableSize);
@@ -204,7 +204,7 @@ void iACompTable::makeLUTDarker()
 	double max = 0;
 	int startVal = 1;
 	
-	for (size_t i = 0; i < m_tableSize; i++)
+	for (int i = 0; i < m_tableSize; i++)
 	{
 		double* rgb;
 		rgb = ctf->GetColor(static_cast<double>(i) / (double)m_tableSize);
@@ -730,7 +730,7 @@ void iACompTable::removeBarCharShowingAmountOfObjects()
 {
 	m_useDarkerLut = false;
 
-	for (int i = 0; i < m_barActors->size(); i++)
+	for (int i = 0; i < static_cast<int>(m_barActors->size()); i++)
 	{
 		m_mainRenderer->RemoveActor(m_barActors->at(i));
 		m_mainRenderer->RemoveActor2D(m_barTextActors->at(i));
@@ -888,7 +888,7 @@ double iACompTable::round_up(double value, int decimal_places)
 
 void iACompTable::removeHighlightedCells()
 {
-	for (int i = 0; i < m_highlighingActors->size(); i++)
+	for (int i = 0; i < static_cast<int>(m_highlighingActors->size()); i++)
 	{
 		m_mainRenderer->RemoveActor(m_highlighingActors->at(i));
 	}

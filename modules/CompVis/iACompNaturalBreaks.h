@@ -199,7 +199,7 @@ class iACompNaturalBreaks : public iACompBinning
 {
 
 public:
-	iACompNaturalBreaks(iACsvDataStorage* dataStorage, std::vector<int>* amountObjectsEveryDataset, bin::BinType* datasets);
+	iACompNaturalBreaks(iACsvDataStorage* dataStorage, bin::BinType* datasets);
 
 	//calculate the binning for the data points
 	virtual void calculateBins();

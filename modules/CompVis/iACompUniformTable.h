@@ -159,7 +159,7 @@ private:
 		vtkSmartPointer<vtkPoints> points, double color[3], double radius, double lineColor[3], double lineWidth);
 
 	vtkSmartPointer<vtkPoints> calculatePointPosition(
-		std::vector<double> dataPoints, double newMinX, double newMaxX, double y, std::vector<double> currMinMax);
+		std::vector<double> dataPoints, double newMinX, double newMaxX, double y);
 
 	/******************************************  Ordering/Ranking  **********************************/
 	//draws the bar chart for showing the number of objects for each dataset

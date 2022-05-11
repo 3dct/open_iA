@@ -10,7 +10,7 @@ class iACompDBScan : public iACompBinning
 public:
 
 	iACompDBScan(
-		iACsvDataStorage* dataStorage, std::vector<int>* amountObjectsEveryDataset, bin::BinType* datasets);
+		iACsvDataStorage* dataStorage, bin::BinType* datasets);
 
 	//calculate the binning for the data points
 	virtual void calculateBins();
