@@ -1,7 +1,7 @@
 /*************************************  open_iA  ************************************ *
 * **********   A tool for visual analysis and processing of 3D CT images   ********** *
 * *********************************************************************************** *
-* Copyright (C) 2016-2021  C. Heinzl, M. Reiter, A. Reh, W. Li, M. Arikan, Ar. &  Al. *
+* Copyright (C) 2016-2022  C. Heinzl, M. Reiter, A. Reh, W. Li, M. Arikan, Ar. &  Al. *
 *                 Amirkhanov, J. Weissenböck, B. Fröhler, M. Schiwarth, P. Weinberger *
 * *********************************************************************************** *
 * This program is free software: you can redistribute it and/or modify it under the   *
@@ -57,7 +57,7 @@ void iACompVisMain::start(iAMainWindow* mainWin)
 	result->initializeCorrelationCoefficient();
 
 	//open iAMainWindow with its dockWidgets
-	result->m_mainW = new dlg_VisMainWindow(result->m_dataStorage->getData(), result->m_mds, result->m_mainWindow, result);
+	result->m_mainW = new dlg_VisMainWindow(result->m_dataStorage->getData(), result->m_mds, mainWin, result);
 	if (result->m_mainW->failed())
 	{
 		result->m_mainW->parent()->deleteLater();
@@ -101,7 +101,7 @@ void iACompVisMain::initGUI()
 
 bool iACompVisMain::loadData()
 {
-	dlg_CSVReader* dlg = new dlg_CSVReader();
+	dlg_CSVReader* dlg = new dlg_CSVReader(m_mainWindow);
 
 	if (dlg->exec() != QDialog::Accepted)
 	{

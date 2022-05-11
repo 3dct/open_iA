@@ -1,7 +1,7 @@
 /*************************************  open_iA  ************************************ *
 * **********   A tool for visual analysis and processing of 3D CT images   ********** *
 * *********************************************************************************** *
-* Copyright (C) 2016-2021  C. Heinzl, M. Reiter, A. Reh, W. Li, M. Arikan, Ar. &  Al. *
+* Copyright (C) 2016-2022  C. Heinzl, M. Reiter, A. Reh, W. Li, M. Arikan, Ar. &  Al. *
 *                 Amirkhanov, J. Weissenböck, B. Fröhler, M. Schiwarth, P. Weinberger *
 * *********************************************************************************** *
 * This program is free software: you can redistribute it and/or modify it under the   *
@@ -25,7 +25,7 @@
 #include "iACsvDataStorage.h"
 #include "iAMultidimensionalScaling.h"
 //Qt
-#include "qdialog.h"
+#include <QDialog>
 #include <QCheckBox>
 
 class dlg_MultidimensionalScalingDialog : public QDialog, public Ui_MultidimensionalScalingDialog
@@ -33,7 +33,7 @@ class dlg_MultidimensionalScalingDialog : public QDialog, public Ui_Multidimensi
 	Q_OBJECT
 
    public:
-	dlg_MultidimensionalScalingDialog(QList<csvFileData>* data, iAMultidimensionalScaling* mds);
+	dlg_MultidimensionalScalingDialog(QWidget* parent, QList<csvFileData>* data, iAMultidimensionalScaling* mds);
 
    public slots:
 	void onCellChanged(int row, int column);

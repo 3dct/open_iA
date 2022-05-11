@@ -1,7 +1,7 @@
 /*************************************  open_iA  ************************************ *
 * **********   A tool for visual analysis and processing of 3D CT images   ********** *
 * *********************************************************************************** *
-* Copyright (C) 2016-2021  C. Heinzl, M. Reiter, A. Reh, W. Li, M. Arikan, Ar. &  Al. *
+* Copyright (C) 2016-2022  C. Heinzl, M. Reiter, A. Reh, W. Li, M. Arikan, Ar. &  Al. *
 *                 Amirkhanov, J. Weissenböck, B. Fröhler, M. Schiwarth, P. Weinberger *
 * *********************************************************************************** *
 * This program is free software: you can redistribute it and/or modify it under the   *
@@ -281,8 +281,60 @@ iAParameterDlg::iAParameterDlg(QWidget* parent, QString const& title, ParamListT
 	gridLayout->addWidget(m_buttonBox, 2, 0);
 }
 
+void iAParameterDlg::setValue(QString const& key, QString const& value)
+{
+	auto param = std::find_if(m_parameters.begin(), m_parameters.end(), [key](auto p) { return p->name() == key; });
+	if (param == m_parameters.end())
+	{
+		LOG(lvlError, QString("iAParameterDlg::setValue: no parameter with key '%1' exists!").arg(key));
+		return;
+	}
+	auto idx = param - m_parameters.begin();
+	auto widget = m_widgetList[idx];
+	switch ((*param)->valueType())
+	{
+	case iAValueType::FilterParameters:
+		// fall through
+	case iAValueType::Continuous:
+		// fall through
+	case iAValueType::String:
+		qobject_cast<QLineEdit*>(widget)->setText(value);
+		break;
+	case iAValueType::Text:
+		qobject_cast<QPlainTextEdit*>(widget)->setPlainText(value);
+		break;
+	case iAValueType::FilterName:
+		qobject_cast<QPushButton*>(widget)->setText(value);
+		break;
+	case iAValueType::Discrete:
+		qobject_cast<QSpinBox*>(widget)->setValue(value.toInt());
+		break;
+	case iAValueType::Boolean:
+		qobject_cast<QCheckBox*>(widget)->setChecked(value == "true");
+		break;
+	case iAValueType::Categorical:
+		qobject_cast<QComboBox*>(widget)->setCurrentText(value);
+		break;
+	case iAValueType::FileNameOpen:
+		// fall through
+	case iAValueType::FileNamesOpen:
+		// fall through
+	case iAValueType::FileNameSave:
+		// fall through
+	case iAValueType::Folder:
+		qobject_cast<iAFileChooserWidget*>(widget)->setText(value);
+		break;
+	default:
+		LOG(lvlError,
+			QString("iAParameterDlg::setValue: value type %1 not implemented (key: %2)")
+				.arg(static_cast<int>((*param)->valueType()))
+				.arg(key));
+	}
+}
+
 void  iAParameterDlg::setSourceMdi(iAMdiChild* child, iAMainWindow* mainWnd)
 {
+	assert(child);
 	m_sourceMdiChild = child;
 	m_mainWnd = mainWnd;
 	connect(child, &iAMdiChild::closed, this, &iAParameterDlg::sourceChildClosed);

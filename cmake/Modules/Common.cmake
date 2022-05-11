@@ -208,7 +208,7 @@ set(VTK_LIB_PREFIX "VTK::")
 if (VTK_VERSION VERSION_LESS "9.0.0")
 	set(VTK_COMP_PREFIX "vtk")
 	set(VTK_BASE_LIB_LIST kwiml)
-set(VTK_LIB_PREFIX "vtk")
+	set(VTK_LIB_PREFIX "vtk")
 else()
 	set(VTK_COMP_PREFIX "")
 endif()
@@ -313,6 +313,7 @@ else()
 endif()
 message(STATUS "    VTK_LIB_DIR: ${VTK_LIB_DIR}")
 list(APPEND BUNDLE_DIRS "${VTK_LIB_DIR}")
+option(VTK_USE_AVIWRITER "Enable usage of *.avi (an old Windows movie file format) writer. Note that enabling this might cause linker errors, since we cannot reliably determine whether VTK builds the required parts or not." OFF)
 if ( vtkoggtheora_LOADED OR vtkogg_LOADED OR
      (VTK_ogg_FOUND EQUAL 1 AND VTK_theora_FOUND EQUAL 1 AND VTK_IOOggTheora_FOUND EQUAL 1) )
 	message(STATUS "    Video: Ogg Theora Encoder available")
@@ -598,7 +599,7 @@ set(openiA_AVX_SUPPORT_DISABLED "off")
 set(openiA_AVX_SUPPORT_OPTIONS "${openiA_AVX_SUPPORT_DISABLED}" "AVX" "AVX2")
 list (FIND openiA_AVX_SUPPORT_OPTIONS "${openiA_AVX_SUPPORT}" avx_support_index)
 if (${avx_support_index} EQUAL -1)
-	set(openiA_AVX_SUPPORT_DEFAULT "AVX")
+	set(openiA_AVX_SUPPORT_DEFAULT ${openiA_AVX_SUPPORT_DISABLED})
 	if (DEFINED openiA_AVX_SUPPORT)
 		message(WARNING "Invalid openiA_AVX_SUPPORT, resetting to default ${openiA_AVX_SUPPORT_DEFAULT}!")
 	endif()
@@ -791,8 +792,8 @@ set(BUILD_INFO "${BUILD_INFO}    \"git revision: ${openiA_HASH}\\n\"\n")
 add_compile_definitions(UNICODE _UNICODE)    # Enable Unicode
 
 if (UNIX)
-    set(CMAKE_INSTALL_RPATH "\$ORIGIN")      # Set RunPath in all created libraries / executables to $ORIGIN
-    #    set(CMAKE_BUILD_RPATH_USE_ORIGIN ON)
+	set(CMAKE_INSTALL_RPATH "\$ORIGIN")      # Set RunPath in all created libraries / executables to $ORIGIN
+	#    set(CMAKE_BUILD_RPATH_USE_ORIGIN ON)
 endif()
 
 

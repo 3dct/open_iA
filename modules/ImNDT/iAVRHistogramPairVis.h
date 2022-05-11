@@ -97,21 +97,21 @@ private:
 	void initialize();
 	void mergeActors();
 	void showHistogramInView();
-	void calculateAxisPositionInCircle(int axis, int numberOfAxes, double centerPos[3], double radius, double pointOnCircle[3]);
+	void calculateAxisPositionInCircle(double axis, double numberOfAxes, double centerPos[3], double radius, double pointOnCircle[3]);
 	void drawAxes(int visibleAxis);
 	void drawHistogram(int visibleAxis);
 	void createHistogramMapper(vtkSmartPointer<vtkGlyph3DMapper> glyphMapper);
-	void calculateHistogram(int axis);
+	void calculateHistogram(size_t axis);
 	void calculateAxis(double pos1[3], double pos2[3]);
 	void calculateCenterOffsetPos(double pos1[3], double pos2[3], double newPos[3]);
 	double calculateAxisLength(double pos1[3], double radius);
-	void createAxisMarks(int axis);
-	void createAxisLabels(int axis);
-	void calculateAxesViewPoint(int axis);
+	void createAxisMarks(size_t axis);
+	void createAxisLabels(size_t axis);
+	void calculateAxesViewPoint(size_t axis);
 	void calculateBarsWithCubes(double* markPos, double* cubeSize, int stackSize, vtkPoints* barPoints, vtkUnsignedCharArray* colorArray, QColor barColor);
 	double getXZCubeSize();
-	int getMaxBinOccurrences(int axis);
-	double getMinYCubeSize(int axis);
+	int getMaxBinOccurrences(size_t axis);
+	double getMinYCubeSize(size_t axis);
 
 	iAVec3d applyShiftToVector(double point1[3], double point2[3], double shift[3]);
 };

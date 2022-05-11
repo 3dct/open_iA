@@ -167,7 +167,7 @@ void iAVRHistogramPairVis::createVisualization(double* pos, double visSize, doub
 	for (size_t i = 0; i < featureList->size(); i++)
 	{
 		double posOnCircle[3]{};
-		calculateAxisPositionInCircle(i, static_cast<int>(featureList->size() - 1), pos, m_radius, posOnCircle);
+		calculateAxisPositionInCircle(i, static_cast<double>(featureList->size()) - 1, pos, m_radius, posOnCircle);
 		calculateCenterOffsetPos(pos, posOnCircle, newCenterPos);
 		calculateAxis(newCenterPos, posOnCircle);
 		createAxisMarks(i);
@@ -237,7 +237,7 @@ void iAVRHistogramPairVis::determineHistogramInView(double* viewDir)
 			if (tempDistance < minDistance)
 			{
 				minDistance = tempDistance;
-				newAxisInView = i;
+				newAxisInView = static_cast<int>(i);
 			}
 		}
 
@@ -487,10 +487,10 @@ void iAVRHistogramPairVis::showHistogramInView()
 
 //! Calculates the point on the half circle for a specific Axis.
 //! The half circle with the given radius and centerPos gets equally divided and the position is return in pointOnCircle
-void iAVRHistogramPairVis::calculateAxisPositionInCircle(int axis, int numberOfAxes, double centerPos[3], double radius, double pointOnCircle[3])
+void iAVRHistogramPairVis::calculateAxisPositionInCircle(double axis, double numberOfAxes, double centerPos[3], double radius, double pointOnCircle[3])
 {
 	//axisAngle = (2.0 * vtkMath::Pi()) / double(numberOfAxes); // 360° = 2*PI
-	axisAngle = (vtkMath::Pi()) / double(numberOfAxes); // 180° = PI
+	axisAngle = (vtkMath::Pi()) / numberOfAxes; // 180° = PI
 	double currentAngle = axis * axisAngle;
 
 	pointOnCircle[0] = centerPos[0] + (radius * cos(currentAngle));
@@ -608,7 +608,7 @@ void iAVRHistogramPairVis::createHistogramMapper(vtkSmartPointer<vtkGlyph3DMappe
 	glyphMapper->SetOrientationModeToRotation();
 }
 
-void iAVRHistogramPairVis::calculateHistogram(int axis)
+void iAVRHistogramPairVis::calculateHistogram(size_t axis)
 {
 	vtkSmartPointer<vtkPoints> barPoints = vtkSmartPointer<vtkPoints>::New();
 	vtkSmartPointer<vtkPolyData> bars = vtkSmartPointer<vtkPolyData>::New();
@@ -627,7 +627,7 @@ void iAVRHistogramPairVis::calculateHistogram(int axis)
 
 	double cubeXZSize = getXZCubeSize(); //Should depend on size between two marks
 	double minYBarSize = getMinYCubeSize(axis);
-	double rotAngle = -(vtkMath::DegreesFromRadians(axisAngle * (double)axis));
+	double rotAngle = -(vtkMath::DegreesFromRadians(axisAngle * static_cast<double>(axis)));
 
 	iAVec3d direction = iAVec3d(0, 0, 0);
 	direction = iAVec3d(m_axesPoly->at(axis)->GetPoint(1)) - iAVec3d(m_axesPoly->at(axis)->GetPoint(0));
@@ -720,7 +720,7 @@ void iAVRHistogramPairVis::calculateCenterOffsetPos(double pos1[3], double pos2[
 double iAVRHistogramPairVis::calculateAxisLength(double pos1[3], double radius)
 {
 	double pos2[3]{};
-	calculateAxisPositionInCircle(0, 1, pos1, radius, pos2); // axis and number of Axes are not important as we just want any point on the circle
+	calculateAxisPositionInCircle(0.0, 1.0, pos1, radius, pos2); // axis and number of Axes are not important as we just want any point on the circle
 
 	double newPos1[3]{};
 	calculateCenterOffsetPos(pos1, pos2, newPos1);
@@ -735,7 +735,7 @@ double iAVRHistogramPairVis::calculateAxisLength(double pos1[3], double radius)
 //! Creates as many Marks on the axis as defined by m_numberOfXBins and m_numberOfYBins
 //! Y Range has m_numberOfYBins without the zero mark
 //! The Marks have 2% of the length of the axis
-void iAVRHistogramPairVis::createAxisMarks(int axis)
+void iAVRHistogramPairVis::createAxisMarks(size_t axis)
 {
 	m_axesMarksPoly->push_back(std::vector<vtkSmartPointer<vtkPolyData>>());
 
@@ -823,7 +823,7 @@ void iAVRHistogramPairVis::createAxisMarks(int axis)
 	m_axesMarksPoly->at(axis).push_back(markPoly);
 }
 
-void iAVRHistogramPairVis::createAxisLabels(int axis)
+void iAVRHistogramPairVis::createAxisLabels(size_t axis)
 {
 	m_axisTitleActor->push_back(iAVR3DText(m_renderer));
 	m_axisLabelActor->push_back(std::vector<std::vector<iAVR3DText>>());
@@ -880,7 +880,7 @@ void iAVRHistogramPairVis::createAxisLabels(int axis)
 }
 
 //! Calculates with the 3 points of the two axes, the middle point of the plane which they create
-void iAVRHistogramPairVis::calculateAxesViewPoint(int axis)
+void iAVRHistogramPairVis::calculateAxesViewPoint(size_t axis)
 {
 	//Calc middle point of plane
 	iAVec3d pos1 = iAVec3d(m_axesPoly->at(axis)->GetPoint(0));
@@ -890,7 +890,7 @@ void iAVRHistogramPairVis::calculateAxesViewPoint(int axis)
 	iAVec3d planeVec1 = pos2 - pos1;
 	iAVec3d planeVec2 = pos2 - pos3;
 	iAVec3d middlePoint = iAVec3d(pos1[0] + (planeVec1[0] / 2), pos2[1] + (planeVec2[1] / 2), pos1[2] + (planeVec1[2] / 2));
-	m_AxesViewDir->insert(std::make_pair(axis, middlePoint));
+	m_AxesViewDir->insert(std::make_pair(static_cast<vtkIdType>(axis), middlePoint));
 }
 
 void iAVRHistogramPairVis::calculateBarsWithCubes(double* markPos, double* cubeSize, int stackSize, vtkPoints* barPoints, vtkUnsignedCharArray* colorArray, QColor barColor)
@@ -921,7 +921,7 @@ double iAVRHistogramPairVis::getXZCubeSize()
 	return (m_axisLength / m_numberOfXBins) / 2.2;
 }
 
-int iAVRHistogramPairVis::getMaxBinOccurrences(int axis)
+int iAVRHistogramPairVis::getMaxBinOccurrences(size_t axis)
 {
 	auto r1 = std::max_element(m_histogram01.at(axis).m_histogramParameters.observations.begin(), m_histogram01.at(axis).m_histogramParameters.observations.end());
 	auto r2 = std::max_element(m_histogram02.at(axis).m_histogramParameters.observations.begin(), m_histogram02.at(axis).m_histogramParameters.observations.end());
@@ -931,7 +931,7 @@ int iAVRHistogramPairVis::getMaxBinOccurrences(int axis)
 }
 
 //! Calculates the smallest y size by dividing the y axis length by the max occurences of that feature
-double iAVRHistogramPairVis::getMinYCubeSize(int axis)
+double iAVRHistogramPairVis::getMinYCubeSize(size_t axis)
 {
 	double ySize = (m_axisLength / (double)getMaxBinOccurrences(axis));
 	return ySize;

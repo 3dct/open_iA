@@ -1,7 +1,7 @@
 /*************************************  open_iA  ************************************ *
 * **********   A tool for visual analysis and processing of 3D CT images   ********** *
 * *********************************************************************************** *
-* Copyright (C) 2016-2021  C. Heinzl, M. Reiter, A. Reh, W. Li, M. Arikan, Ar. &  Al. *
+* Copyright (C) 2016-2022  C. Heinzl, M. Reiter, A. Reh, W. Li, M. Arikan, Ar. &  Al. *
 *                 Amirkhanov, J. Weissenböck, B. Fröhler, M. Schiwarth, P. Weinberger *
 * *********************************************************************************** *
 * This program is free software: you can redistribute it and/or modify it under the   *
@@ -37,7 +37,7 @@ void iAThresholdCalculator::testPeakDetect()
 {
 	std::vector<double> data{ 6.1, 8.0, 9.0, 14.1, 10.0,14.3, 12.1, 14.4 };
 	double res = m_calcHelper.findMaxPeak(data);
-	LOG(lvlInfo, QString("max peak %1").arg(res))
+	LOG(lvlInfo, QString("max peak %1").arg(res));
 }
 
 threshold_defs::iAThresIndx iAThresholdCalculator::testFindIndex(double value) {

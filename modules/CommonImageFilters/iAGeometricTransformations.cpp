@@ -1,7 +1,7 @@
 /*************************************  open_iA  ************************************ *
 * **********   A tool for visual analysis and processing of 3D CT images   ********** *
 * *********************************************************************************** *
-* Copyright (C) 2016-2021  C. Heinzl, M. Reiter, A. Reh, W. Li, M. Arikan, Ar. &  Al. *
+* Copyright (C) 2016-2022  C. Heinzl, M. Reiter, A. Reh, W. Li, M. Arikan, Ar. &  Al. *
 *                 Amirkhanov, J. Weissenböck, B. Fröhler, M. Schiwarth, P. Weinberger *
 * *********************************************************************************** *
 * This program is free software: you can redistribute it and/or modify it under the   *
@@ -242,7 +242,7 @@ iAResampleFilter::iAResampleFilter() :
 	iAFilter("Resample", "Geometric Transformations",
 		"Resample the image to a new size.<br/>"
 		"For more information, see the "
-		"<a href=\"https ://itk.org/Doxygen/html/classitk_1_1ResampleImageFilter.html\">"
+		"<a href=\"https://itk.org/Doxygen/html/classitk_1_1ResampleImageFilter.html\">"
 		"Resample Filter</a> in the ITK documentation.")
 {
 	addParameter("Origin X", iAValueType::Discrete, 0);

@@ -1,7 +1,7 @@
 /*************************************  open_iA  ************************************ *
  * * **********   A tool for visual analysis and processing of 3D CT images   ********** *
  * * *********************************************************************************** *
- * * Copyright (C) 2016-2021  C. Heinzl, M. Reiter, A. Reh, W. Li, M. Arikan, Ar. &  Al. *
+ * * Copyright (C) 2016-2022  C. Heinzl, M. Reiter, A. Reh, W. Li, M. Arikan, Ar. &  Al. *
  * *                 Amirkhanov, J. Weissenböck, B. Fröhler, M. Schiwarth, P. Weinberger *
  * * *********************************************************************************** *
  * * This program is free software: you can redistribute it and/or modify it under the   *
@@ -108,9 +108,9 @@ void iASVMImageFilter::performWork(QMap<QString, QVariant> const & parameters)
 		if (seed.second < labelMin) labelMin = seed.second;
 		if (seed.second > labelMax) labelMax = seed.second;
 		problem.x[seedIdx] = &x_space[curSpaceIdx];
-		for (int m = 0; m < inputCount(); ++m)
+		for (size_t m = 0; m < inputCount(); ++m)
 		{
-			x_space[curSpaceIdx].index = m;
+			x_space[curSpaceIdx].index = static_cast<int>(m);
 			x_space[curSpaceIdx].value = input(m)->vtkImage()
 				->GetScalarComponentAsDouble(seed.first.x, seed.first.y, seed.first.z, 0);
 				// TODO: potentially slow! use GetScalarPointer instead?

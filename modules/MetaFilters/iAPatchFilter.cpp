@@ -1,7 +1,7 @@
 /*************************************  open_iA  ************************************ *
 * **********   A tool for visual analysis and processing of 3D CT images   ********** *
 * *********************************************************************************** *
-* Copyright (C) 2016-2021  C. Heinzl, M. Reiter, A. Reh, W. Li, M. Arikan, Ar. &  Al. *
+* Copyright (C) 2016-2022  C. Heinzl, M. Reiter, A. Reh, W. Li, M. Arikan, Ar. &  Al. *
 *                 Amirkhanov, J. Weissenböck, B. Fröhler, M. Schiwarth, P. Weinberger *
 * *********************************************************************************** *
 * This program is free software: you can redistribute it and/or modify it under the   *
@@ -327,8 +327,7 @@ iAPatchFilter::iAPatchFilter():
 		.arg(spnFilter)
 		.arg(spnCompressOutput)
 		.arg(spnContinueOnError)
-		, 1, 0),
-	m_aborted(false)
+		, 1, 0, true)
 {
 	addParameter("Patch size X", iAValueType::Discrete, 1, 1);
 	addParameter("Patch size Y", iAValueType::Discrete, 1, 1);
@@ -351,21 +350,6 @@ iAPatchFilter::iAPatchFilter():
 void iAPatchFilter::performWork(QMap<QString, QVariant> const & parameters)
 {
 	ITK_TYPED_CALL(patch, inputPixelType(), this, parameters);
-}
-
-void iAPatchFilter::abort()
-{
-	m_aborted = true;
-}
-
-bool iAPatchFilter::canAbort() const
-{
-	return true;
-}
-
-bool iAPatchFilter::isAborted() const
-{
-	return m_aborted;
 }
 
 IAFILTER_CREATE(iAPatchFilter);

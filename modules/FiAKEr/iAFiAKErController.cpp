@@ -1,7 +1,7 @@
 /*************************************  open_iA  ************************************ *
 * **********   A tool for visual analysis and processing of 3D CT images   ********** *
 * *********************************************************************************** *
-* Copyright (C) 2016-2021  C. Heinzl, M. Reiter, A. Reh, W. Li, M. Arikan, Ar. &  Al. *
+* Copyright (C) 2016-2022  C. Heinzl, M. Reiter, A. Reh, W. Li, M. Arikan, Ar. &  Al. *
 *                 Amirkhanov, J. Weissenböck, B. Fröhler, M. Schiwarth, P. Weinberger *
 * *********************************************************************************** *
 * This program is free software: you can redistribute it and/or modify it under the   *
@@ -216,7 +216,7 @@ iAFiAKErController::iAFiAKErController(iAMainWindow* mainWnd, iAMdiChild* mdiChi
 	m_mainWnd(mainWnd),
 	m_mdiChild(mdiChild),
 	m_referenceID(NoResult),
-	m_colorByThemeName(iALUT::GetColorMapNames()[0]),
+	m_colorByThemeName(iALUT::colorMapNames()[0]),
 	m_useStepData(false),
 	m_showPreviews(false),
 	m_showCharts(false),
@@ -478,7 +478,7 @@ void iAFiAKErController::setupSettingsView()
 	m_settingsView->cmbboxStackedBarChartColors->addItems(iAColorThemeManager::instance().availableThemes());
 	m_settingsView->cmbboxStackedBarChartColors->setCurrentText(DefaultStackedBarColorTheme);
 
-	m_settingsView->cmbboxDistributionColors->addItems(iALUT::GetColorMapNames());
+	m_settingsView->cmbboxDistributionColors->addItems(iALUT::colorMapNames());
 	m_settingsView->cmbboxDistributionColors->setCurrentIndex(0);
 
 	m_settingsView->cmbboxResultColors->addItems(iAColorThemeManager::instance().availableThemes());
@@ -2119,12 +2119,12 @@ void iAFiAKErController::updateBoundingBox()
 		newBounds[i * 2] = m_teBoundingBox[i]->text().toDouble(&ok);
 		if (!ok)
 		{
-			LOG(lvlError, QString("Invalid bounding box value: %1").arg(m_teBoundingBox[i]->text()))
+			LOG(lvlError, QString("Invalid bounding box value: %1").arg(m_teBoundingBox[i]->text()));
 		}
 		newBounds[i * 2 + 1] = m_teBoundingBox[i + 3]->text().toDouble(&ok);
 		if (!ok)
 		{
-			LOG(lvlError, QString("Invalid bounding box value: %1").arg(m_teBoundingBox[i]->text()))
+			LOG(lvlError, QString("Invalid bounding box value: %1").arg(m_teBoundingBox[i]->text()));
 		}
 	}
 	m_customBoundingBoxSource->SetBounds(newBounds);
@@ -2226,7 +2226,7 @@ namespace
 {
 	void setResultBackground(iAFiberResultUIData & ui, QPalette::ColorRole role)
 	{
-		QColor color(qApp->palette().color(role));
+		QColor color(QApplication::palette().color(role));
 		ui.nameActions->setBackgroundRole(role);
 		ui.topFiller->setStyleSheet("background-color: " + color.name());
 		ui.bottomFiller->setStyleSheet("background-color: " + color.name());

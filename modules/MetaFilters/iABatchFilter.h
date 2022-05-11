@@ -1,7 +1,7 @@
 /*************************************  open_iA  ************************************ *
 * **********   A tool for visual analysis and processing of 3D CT images   ********** *
 * *********************************************************************************** *
-* Copyright (C) 2016-2021  C. Heinzl, M. Reiter, A. Reh, W. Li, M. Arikan, Ar. &  Al. *
+* Copyright (C) 2016-2022  C. Heinzl, M. Reiter, A. Reh, W. Li, M. Arikan, Ar. &  Al. *
 *                 Amirkhanov, J. Weissenböck, B. Fröhler, M. Schiwarth, P. Weinberger *
 * *********************************************************************************** *
 * This program is free software: you can redistribute it and/or modify it under the   *
@@ -22,14 +22,4 @@
 
 #include <iAFilter.h>
 
-class iABatchFilter : public iAFilter
-{
-public:
-	static QSharedPointer<iABatchFilter> create();
-	void abort() override;
-	bool canAbort() const override;
-private:
-	void performWork(QMap<QString, QVariant> const& parameters) override;
-	iABatchFilter();
-	bool m_aborted;
-};
+IAFILTER_DEFAULT_CLASS(iABatchFilter)

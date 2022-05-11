@@ -1,7 +1,7 @@
 /*************************************  open_iA  ************************************ *
 * **********   A tool for visual analysis and processing of 3D CT images   ********** *
 * *********************************************************************************** *
-* Copyright (C) 2016-2021  C. Heinzl, M. Reiter, A. Reh, W. Li, M. Arikan, Ar. &  Al. *
+* Copyright (C) 2016-2022  C. Heinzl, M. Reiter, A. Reh, W. Li, M. Arikan, Ar. &  Al. *
 *                 Amirkhanov, J. Weissenböck, B. Fröhler, M. Schiwarth, P. Weinberger *
 * *********************************************************************************** *
 * This program is free software: you can redistribute it and/or modify it under the   *
@@ -146,6 +146,9 @@ private:
 
 	//! Catches events from list view to be able  to react on delete key event
 	bool eventFilter(QObject *obj, QEvent *event) override;
+
+	//! ask for a name for a format (for saving/exporting)
+	QString askForFormatName(bool forLocalSave);
 
 	iACsvConfig m_confParams;
 	QString m_path;

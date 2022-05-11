@@ -1,0 +1,14 @@
+{
+	"name": "ColorBrewer sequential multi-hue 5-class YlOrRd",
+	"source": "https://colorbrewer2.org",
+	"type": "continuous",
+	"subType": "sequential",
+	"colorRange": 255.0,
+	"colors" : [
+		[255, 255, 178],
+		[254, 204,  92],
+		[253, 141,  60],
+		[240,  59,  32],
+		[189,   0,  38]
+	]
+}

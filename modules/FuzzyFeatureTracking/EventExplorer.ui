@@ -34,7 +34,7 @@
      <number>0</number>
     </property>
     <item>
-     <widget class="iAQWidgetToolbar" name="toolBar" native="true">
+     <widget class="QWidget" name="toolBar" native="true">
       <property name="minimumSize">
        <size>
         <width>0</width>
@@ -459,13 +459,6 @@
    </layout>
   </widget>
  </widget>
- <customwidgets>
-  <customwidget>
-   <class>iAQWidgetToolbar</class>
-   <extends>QWidget</extends>
-   <header>iAQWidgetToolbar.h</header>
-  </customwidget>
- </customwidgets>
  <resources>
   <include location="../../libs/guibase/guibase.qrc"/>
  </resources>

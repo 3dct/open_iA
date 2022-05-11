@@ -1,7 +1,7 @@
 /*************************************  open_iA  ************************************ *
 * **********   A tool for visual analysis and processing of 3D CT images   ********** *
 * *********************************************************************************** *
-* Copyright (C) 2016-2021  C. Heinzl, M. Reiter, A. Reh, W. Li, M. Arikan, Ar. &  Al. *
+* Copyright (C) 2016-2022  C. Heinzl, M. Reiter, A. Reh, W. Li, M. Arikan, Ar. &  Al. *
 *                 Amirkhanov, J. Weissenböck, B. Fröhler, M. Schiwarth, P. Weinberger *
 * *********************************************************************************** *
 * This program is free software: you can redistribute it and/or modify it under the   *
@@ -245,7 +245,7 @@ void iARefDistCompute::run()
 		if (m_measuresToCompute.size() == 0)
 		{
 			LOG(lvlWarn, QString("Tried to set reference without specifying which measure to use. "
-				"This might happen if you use an old project file. In this case, please select the reference again."))
+				"This might happen if you use an old project file. In this case, please select the reference again."));
 			return;
 		}
 		writeResultCache[resultID] = true;

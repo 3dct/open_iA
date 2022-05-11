@@ -1,7 +1,7 @@
 /*************************************  open_iA  ************************************ *
 * **********   A tool for visual analysis and processing of 3D CT images   ********** *
 * *********************************************************************************** *
-* Copyright (C) 2016-2021  C. Heinzl, M. Reiter, A. Reh, W. Li, M. Arikan, Ar. &  Al. *
+* Copyright (C) 2016-2022  C. Heinzl, M. Reiter, A. Reh, W. Li, M. Arikan, Ar. &  Al. *
 *                 Amirkhanov, J. Weissenböck, B. Fröhler, M. Schiwarth, P. Weinberger *
 * *********************************************************************************** *
 * This program is free software: you can redistribute it and/or modify it under the   *
@@ -26,7 +26,7 @@
 #include <iAStringHelper.h>
 
 #include <QAction>
-#include <QApplication>    // for qApp->palette()
+#include <QApplication>
 #include <QGridLayout>
 #include <QLabel>
 #include <QMenu>
@@ -182,7 +182,7 @@ public:
 	{
 		Q_UNUSED(ev);
 		QPainter painter(this);
-		painter.fillRect(rect(), qApp->palette().color(m_s->backgroundRole()));
+		painter.fillRect(rect(), QApplication::palette().color(m_s->backgroundRole()));
 		m_s->drawBar(painter, m_barID, m_barID == 0 ? m_s->m_leftMargin : 0, 0,
 			std::min(geometry().height(), iAStackedBarChart::MaxBarHeight) - (m_s->m_header ? 0 : 2 * BarVSpacing)
 		);
@@ -454,7 +454,7 @@ void iAStackedBarChart::drawBar(QPainter& painter, size_t barID, int left, int t
 	painter.fillRect(barRect, barBrush);
 	int segmentWidth = (m_stack ? bWidth : static_cast<int>(bar->weight * (m_chartAreaPixelWidth - m_leftMargin))) - 1;
 	QRect segmentBox(left, 0, segmentWidth, barHeight);
-	painter.setPen(qApp->palette().color(foregroundRole()));
+	painter.setPen(QApplication::palette().color(foregroundRole()));
 	if (m_selectedBar == static_cast<int>(barID))
 	{
 		if (m_header)
@@ -477,8 +477,8 @@ void iABarsWidget::paintEvent(QPaintEvent* ev)
 {
 	Q_UNUSED(ev);
 	QPainter painter(this);
-	painter.fillRect(rect(), qApp->palette().color(m_s->backgroundRole()));
-	painter.setPen(qApp->palette().color(QPalette::Text));
+	painter.fillRect(rect(), QApplication::palette().color(m_s->backgroundRole()));
+	painter.setPen(QApplication::palette().color(QPalette::Text));
 	int accumulatedWidth = 0;
 	int barHeight =
 		std::min(geometry().height(), iAStackedBarChart::MaxBarHeight) - (m_s->m_header ? 0 : 2 * BarVSpacing);

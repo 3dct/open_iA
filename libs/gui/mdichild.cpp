@@ -1,7 +1,7 @@
 /*************************************  open_iA  ************************************ *
 * **********   A tool for visual analysis and processing of 3D CT images   ********** *
 * *********************************************************************************** *
-* Copyright (C) 2016-2021  C. Heinzl, M. Reiter, A. Reh, W. Li, M. Arikan, Ar. &  Al. *
+* Copyright (C) 2016-2022  C. Heinzl, M. Reiter, A. Reh, W. Li, M. Arikan, Ar. &  Al. *
 *                 Amirkhanov, J. Weissenböck, B. Fröhler, M. Schiwarth, P. Weinberger *
 * *********************************************************************************** *
 * This program is free software: you can redistribute it and/or modify it under the   *
@@ -2647,7 +2647,7 @@ void MdiChild::histogramDataAvailable(int modalityIdx)
 	m_histogram->removePlot(m_histogramPlot);
 	m_histogramPlot = QSharedPointer<iABarGraphPlot>::create(
 		modality(modalityIdx)->histogramData(),
-		qApp->palette().color(QPalette::Shadow));
+		QApplication::palette().color(QPalette::Shadow));
 	m_histogram->addPlot(m_histogramPlot);
 	m_histogram->setXCaption("Histogram " + modalityName);
 	m_histogram->setTransferFunction(modality(modalityIdx)->transfer().data());
@@ -2904,7 +2904,7 @@ void MdiChild::styleChanged()
 {
 	if (m_histogramPlot)
 	{
-		m_histogramPlot->setColor(qApp->palette().color(QPalette::Shadow));
+		m_histogramPlot->setColor(QApplication::palette().color(QPalette::Shadow));
 	}
 	if (renderSettings().UseStyleBGColor)
 	{

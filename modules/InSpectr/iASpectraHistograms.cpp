@@ -1,7 +1,7 @@
 /*************************************  open_iA  ************************************ *
 * **********   A tool for visual analysis and processing of 3D CT images   ********** *
 * *********************************************************************************** *
-* Copyright (C) 2016-2021  C. Heinzl, M. Reiter, A. Reh, W. Li, M. Arikan, Ar. &  Al. *
+* Copyright (C) 2016-2022  C. Heinzl, M. Reiter, A. Reh, W. Li, M. Arikan, Ar. &  Al. *
 *                 Amirkhanov, J. Weissenböck, B. Fröhler, M. Schiwarth, P. Weinberger *
 * *********************************************************************************** *
 * This program is free software: you can redistribute it and/or modify it under the   *
@@ -27,6 +27,7 @@
 #include <vtkImageData.h>
 
 #include <cassert>
+#include <cmath>
 
 iASpectraHistograms::iASpectraHistograms(QSharedPointer<iAXRFData> xrfData, long numBins, double minCount, double maxCount ) :
 	m_numBins(numBins),
@@ -55,7 +56,7 @@ void computeHistogram(void* scalarPtr, long & count, double & binWidth, CountTyp
 	for (long i=0; i<count; ++i)
 	{
 		double bin = ( (double)data[i] - range[0] ) / binWidth;
-		if ( bin > 0.0 && fmod(bin, 1.0) == 0.0 )
+		if ( bin > 0.0 && std::fmod(bin, 1.0) == 0.0 )
 			--bin;
 		size_t binInd = bin;
 		histData_out[binInd]++;

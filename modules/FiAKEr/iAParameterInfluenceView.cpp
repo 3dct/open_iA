@@ -1,7 +1,7 @@
 /*************************************  open_iA  ************************************ *
 * **********   A tool for visual analysis and processing of 3D CT images   ********** *
 * *********************************************************************************** *
-* Copyright (C) 2016-2021  C. Heinzl, M. Reiter, A. Reh, W. Li, M. Arikan, Ar. &  Al. *
+* Copyright (C) 2016-2022  C. Heinzl, M. Reiter, A. Reh, W. Li, M. Arikan, Ar. &  Al. *
 *                 Amirkhanov, J. Weissenböck, B. Fröhler, M. Schiwarth, P. Weinberger *
 * *********************************************************************************** *
 * This program is free software: you can redistribute it and/or modify it under the   *
@@ -37,7 +37,7 @@
 #include <iAXYPlotData.h>
 
 #include <QAction>
-#include <QApplication>    // for qApp->palette()
+#include <QApplication>
 #include <QGridLayout>
 #include <QHBoxLayout>
 #include <QLabel>
@@ -441,7 +441,7 @@ void iAParameterInfluenceView::setSelectedParam(int param)
 		for (int col = colMin; col <= colStep; ++col)
 		{
 			m_table[paramIdx]->labels[col]->setAutoFillBackground(true);
-			m_table[paramIdx]->labels[col]->setPalette(qApp->palette());
+			m_table[paramIdx]->labels[col]->setPalette(QApplication::palette());
 			m_table[paramIdx]->labels[col]->setBackgroundRole(bgRole);
 		}
 		m_table[paramIdx]->head->setBackgroundRole(bgRole);

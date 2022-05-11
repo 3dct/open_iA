@@ -1,7 +1,7 @@
 /*************************************  open_iA  ************************************ *
 * **********   A tool for visual analysis and processing of 3D CT images   ********** *
 * *********************************************************************************** *
-* Copyright (C) 2016-2021  C. Heinzl, M. Reiter, A. Reh, W. Li, M. Arikan, Ar. &  Al. *
+* Copyright (C) 2016-2022  C. Heinzl, M. Reiter, A. Reh, W. Li, M. Arikan, Ar. &  Al. *
 *                 Amirkhanov, J. Weissenböck, B. Fröhler, M. Schiwarth, P. Weinberger *
 * *********************************************************************************** *
 * This program is free software: you can redistribute it and/or modify it under the   *
@@ -49,7 +49,7 @@ namespace
 }
 
 iAFilter::iAFilter(QString const & name, QString const & category, QString const & description,
-	unsigned int requiredInputs, unsigned int outputCount) :
+	unsigned int requiredInputs, unsigned int outputCount, bool supportsAbort) :
 	m_progress(std::make_unique<iAProgress>()),
 	m_log(iALog::get()),
 	m_name(name),
@@ -57,7 +57,8 @@ iAFilter::iAFilter(QString const & name, QString const & category, QString const
 	m_description(description),
 	m_requiredInputs(requiredInputs),
 	m_outputCount(outputCount),
-	m_firstInputChannels(1)
+	m_firstInputChannels(1),
+	m_canAbort(supportsAbort)
 {}
 
 iAFilter::~iAFilter()
@@ -166,6 +167,7 @@ void iAFilter::clearInput()
 {
 	m_input.clear();
 	m_fileNames.clear();
+	m_isAborted = false;
 }
 
 // TODO: Allow to check type of input files
@@ -423,6 +425,21 @@ QString iAFilter::outputName(unsigned int i, QString defaultName) const
 	}
 }
 
+void iAFilter::abort()
+{
+	m_isAborted = false;
+}
+
+bool iAFilter::canAbort() const
+{
+	return m_canAbort;
+}
+
+bool iAFilter::isAborted() const
+{
+	return m_isAborted;
+}
+
 void iAFilter::setOutputName(unsigned int i, QString const & name)
 {
 	m_outputNames.insert(i, name);
@@ -447,13 +464,4 @@ QVector<QString> const & iAFilter::outputValueNames() const
 void iAFilter::addOutputValue(QString const & name)
 {
 	m_outputValueNames.push_back(name);
-}
-
-void iAFilter::abort()
-{	// Filters don't support abort by default
-}
-
-bool iAFilter::canAbort() const
-{
-	return false;
 }

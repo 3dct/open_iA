@@ -1,7 +1,7 @@
 /*************************************  open_iA  ************************************ *
 * **********   A tool for visual analysis and processing of 3D CT images   ********** *
 * *********************************************************************************** *
-* Copyright (C) 2016-2021  C. Heinzl, M. Reiter, A. Reh, W. Li, M. Arikan, Ar. &  Al. *
+* Copyright (C) 2016-2022  C. Heinzl, M. Reiter, A. Reh, W. Li, M. Arikan, Ar. &  Al. *
 *                 Amirkhanov, J. Weissenböck, B. Fröhler, M. Schiwarth, P. Weinberger *
 * *********************************************************************************** *
 * This program is free software: you can redistribute it and/or modify it under the   *
@@ -52,11 +52,11 @@ iABoneThicknessAttachment::iABoneThicknessAttachment(iAMainWindow* mainWnd, iAMd
 	m_pBoneThicknessTable->set(m_pBoneThickness.data(), m_pBoneThicknessChartBar);
 
 	QPushButton* pPushButtonOpen(new QPushButton("Open control points file...", pWidget));
-	pPushButtonOpen->setIcon(qApp->style()->standardIcon(QStyle::SP_DialogOpenButton));
+	pPushButtonOpen->setIcon(QApplication::style()->standardIcon(QStyle::SP_DialogOpenButton));
 	connect(pPushButtonOpen, &QPushButton::clicked, this, &iABoneThicknessAttachment::slotPushButtonOpen);
 
 	QPushButton* pPushButtonSave(new QPushButton("Save table to file...", pWidget));
-	pPushButtonSave->setIcon(qApp->style()->standardIcon(QStyle::SP_DialogSaveButton));
+	pPushButtonSave->setIcon(QApplication::style()->standardIcon(QStyle::SP_DialogSaveButton));
 	connect(pPushButtonSave, &QPushButton::clicked, this, &iABoneThicknessAttachment::slotPushButtonSave);
 
 	QGroupBox* pGroupBoxBound(new QGroupBox("Model Statistics", pWidget));
@@ -162,7 +162,7 @@ void iABoneThicknessAttachment::slotDoubleSpinBoxSphereRadius()
 
 	if (m_pBoneThickness->sphereRadius() != dSphereRadius)
 	{
-		qApp->setOverrideCursor(Qt::WaitCursor);
+		QApplication::setOverrideCursor(Qt::WaitCursor);
 		m_pBoneThickness->setSphereRadius(dSphereRadius);
 		m_pBoneThickness->calculate();
 		setStatistics();
@@ -170,7 +170,7 @@ void iABoneThicknessAttachment::slotDoubleSpinBoxSphereRadius()
 		m_pBoneThickness->setTable(m_pBoneThicknessTable);
 		m_pBoneThickness->setWindowSpheres();
 		m_child->renderer()->update();
-		qApp->restoreOverrideCursor();
+		QApplication::restoreOverrideCursor();
 	}
 }
 
@@ -180,14 +180,14 @@ void iABoneThicknessAttachment::slotDoubleSpinBoxSurfaceDistanceMaximum() {
 
 	if (m_pBoneThickness->surfaceDistanceMaximum() != dSurfaceDistanceMaximum)
 	{
-		qApp->setOverrideCursor(Qt::WaitCursor);
+		QApplication::setOverrideCursor(Qt::WaitCursor);
 		m_pBoneThickness->setSurfaceDistanceMaximum(dSurfaceDistanceMaximum);
 		m_pBoneThickness->calculate();
 		setStatistics();
 		m_pBoneThickness->setChart(m_pBoneThicknessChartBar);
 		m_pBoneThickness->setTable(m_pBoneThicknessTable);
 		m_pBoneThickness->setWindow();
-		qApp->restoreOverrideCursor();
+		QApplication::restoreOverrideCursor();
 	}
 }
 
@@ -197,14 +197,14 @@ void iABoneThicknessAttachment::slotDoubleSpinBoxThicknessMaximum()
 
 	if (m_pBoneThickness->thicknessMaximum() != dThicknessMaximum)
 	{
-		qApp->setOverrideCursor(Qt::WaitCursor);
+		QApplication::setOverrideCursor(Qt::WaitCursor);
 		m_pBoneThickness->setThicknessMaximum(dThicknessMaximum);
 		m_pBoneThickness->calculate();
 		setStatistics();
 		m_pBoneThickness->setChart(m_pBoneThicknessChartBar);
 		m_pBoneThickness->setTable(m_pBoneThicknessTable);
 		m_pBoneThickness->setWindow();
-		qApp->restoreOverrideCursor();
+		QApplication::restoreOverrideCursor();
 	}
 }
 
@@ -221,15 +221,15 @@ void iABoneThicknessAttachment::slotPushButtonOpen()
 
 	if (pFileDialog.exec())
 	{
-		qApp->setOverrideCursor(Qt::WaitCursor);
-		qApp->processEvents();
+		QApplication::setOverrideCursor(Qt::WaitCursor);
+		QApplication::processEvents();
 		m_pBoneThickness->open(pFileDialog.selectedFiles().first());
 		m_pBoneThickness->calculate();
 		setStatistics();
 		m_pBoneThickness->setChart(m_pBoneThicknessChartBar);
 		m_pBoneThickness->setTable(m_pBoneThicknessTable);
 		m_pBoneThickness->setWindow();
-		qApp->restoreOverrideCursor();
+		QApplication::restoreOverrideCursor();
 	}
 }
 
@@ -246,9 +246,9 @@ void iABoneThicknessAttachment::slotPushButtonSave()
 
 	if (pFileDialog.exec())
 	{
-		qApp->setOverrideCursor(Qt::WaitCursor);
-		qApp->processEvents();
+		QApplication::setOverrideCursor(Qt::WaitCursor);
+		QApplication::processEvents();
 		m_pBoneThickness->save(pFileDialog.selectedFiles().first());
-		qApp->restoreOverrideCursor();
+		QApplication::restoreOverrideCursor();
 	}
 }

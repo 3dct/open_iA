@@ -1,7 +1,7 @@
 /*************************************  open_iA  ************************************ *
 * **********   A tool for visual analysis and processing of 3D CT images   ********** *
 * *********************************************************************************** *
-* Copyright (C) 2016-2021  C. Heinzl, M. Reiter, A. Reh, W. Li, M. Arikan, Ar. &  Al. *
+* Copyright (C) 2016-2022  C. Heinzl, M. Reiter, A. Reh, W. Li, M. Arikan, Ar. &  Al. *
 *                 Amirkhanov, J. Weissenböck, B. Fröhler, M. Schiwarth, P. Weinberger *
 * *********************************************************************************** *
 * This program is free software: you can redistribute it and/or modify it under the   *
@@ -1456,6 +1456,7 @@ void iASlicerImpl::printVoxelInformation()
 	{
 		setCursor(mouseCursor());
 	}
+	bool infoAvailable = false;
 	QString strDetails;
 	if (!m_interactorStyle->windowLevelAdjustEnabled() || !m_interactorStyle->leftButtonDown())
 	{
@@ -1471,6 +1472,7 @@ void iASlicerImpl::printVoxelInformation()
 
 		if (m_interactorStyle->windowLevelAdjustEnabled() && m_interactorStyle->leftButtonDown())
 		{
+			infoAvailable = true;
 			strDetails += QString("%1: window: %2; level: %3")
 				.arg(padOrTruncate(m_channels[channelID]->name(), MaxNameLength))
 				.arg(m_channels[channelID]->imageActor()->GetProperty()->GetColorWindow())
@@ -1505,6 +1507,7 @@ void iASlicerImpl::printVoxelInformation()
 			}
 			double coords[3];
 			computeCoords(coords, channelID);
+			infoAvailable = true;
 			strDetails += QString("%1: %2 [%3 %4 %5]")
 				.arg(padOrTruncate(m_channels[channelID]->name(), MaxNameLength))
 				.arg(valueStr)
@@ -1533,10 +1536,12 @@ void iASlicerImpl::printVoxelInformation()
 			int slicerXAxisIdx = mapSliceToGlobalAxis(m_mode, iAAxisIndex::X),
 				slicerYAxisIdx = mapSliceToGlobalAxis(m_mode, iAAxisIndex::Y),
 				slicerZAxisIdx = mapSliceToGlobalAxis(m_mode, iAAxisIndex::Z);
+			// TODO: check if coords inside other window's image(s)?
 			tmpChild->slicer(m_mode)->setIndex(tmpCoord[0], tmpCoord[1], tmpCoord[2]);
 			dynamic_cast<iASlicerImpl*>(tmpChild->slicer(m_mode))->setPositionMarkerCenter(m_globalPt[slicerXAxisIdx], m_globalPt[slicerYAxisIdx], m_globalPt[slicerZAxisIdx]);
 			tmpChild->slicer(m_mode)->setSliceNumber(tmpCoord[slicerZAxisIdx]);
 			tmpChild->slicer(m_mode)->update();
+			infoAvailable = true;
 			strDetails += filePixel(tmpChild->slicer(m_mode), tmpCoord, slicerXAxisIdx, slicerYAxisIdx);
 			tmpChild->update();
 		}
@@ -1551,13 +1556,18 @@ void iASlicerImpl::printVoxelInformation()
 		m_diskSource->SetOuterRadius(distance);
 		m_diskSource->SetInnerRadius(distance);
 		m_diskSource->Update();
+		infoAvailable = true;
 		strDetails += QString("%1: %2\n").arg(padOrTruncate("Distance", MaxNameLength)).arg(distance);
 	}
-
-	// Update the info text with pixel coordinates/value if requested.
-	m_textInfo->setPosition(m_renWin->GetInteractor()->GetEventPosition()[0] + 10, m_renWin->GetInteractor()->GetEventPosition()[1] + 10);
-	m_textInfo->setText(strDetails.toStdString().c_str());
-	m_positionMarkerMapper->Update();
+	if (infoAvailable)
+	{
+		// Update the info text with pixel coordinates/value if requested.
+		m_textInfo->setPosition(m_renWin->GetInteractor()->GetEventPosition()[0] + 10,
+			m_renWin->GetInteractor()->GetEventPosition()[1] + 10);
+		m_textInfo->setText(strDetails.toStdString().c_str());
+		m_positionMarkerMapper->Update();
+	}
+	m_textInfo->show(infoAvailable);
 }
 
 void iASlicerImpl::executeKeyPressEvent()

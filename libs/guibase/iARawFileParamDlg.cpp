@@ -1,7 +1,7 @@
 /*************************************  open_iA  ************************************ *
 * **********   A tool for visual analysis and processing of 3D CT images   ********** *
 * *********************************************************************************** *
-* Copyright (C) 2016-2021  C. Heinzl, M. Reiter, A. Reh, W. Li, M. Arikan, Ar. &  Al. *
+* Copyright (C) 2016-2022  C. Heinzl, M. Reiter, A. Reh, W. Li, M. Arikan, Ar. &  Al. *
 *                 Amirkhanov, J. Weissenböck, B. Fröhler, M. Schiwarth, P. Weinberger *
 * *********************************************************************************** *
 * This program is free software: you can redistribute it and/or modify it under the   *
@@ -21,12 +21,15 @@
 #include "iARawFileParamDlg.h"
 
 #include "io/iARawFileParameters.h"
+#include "iALog.h"
 #include "iAToolsVTK.h"    // for mapVTKTypeToReadableDataType, readableDataTypes, ...
 
 #include <QComboBox>
 #include <QFileInfo>
 #include <QLabel>
 #include <QLayout>
+#include <QPushButton>
+#include <QRegularExpression>
 #include <QSpinBox>
 
 namespace
@@ -70,13 +73,23 @@ iARawFileParamDlg::iARawFileParamDlg(QString const& fileName, QWidget* parent, Q
 	params.append(additionalParams);
 	m_inputDlg = new iAParameterDlg(parent, title, params);
 
-	m_actualSizeLabel = new QLabel("Actual file size: " + QString::number(m_fileSize) + " bytes");
-	m_actualSizeLabel->setAlignment(Qt::AlignRight);
-	m_inputDlg->layout()->addWidget(m_actualSizeLabel);
+	auto fileNameLabel = new QLabel(QString("File Name: %1").arg(QFileInfo(fileName).fileName()));
+	fileNameLabel->setToolTip(fileName);
+	m_inputDlg->layout()->addWidget(fileNameLabel);
+	auto guessFromFileNameButton = new QPushButton("Guess parameters from filename");
+	m_inputDlg->layout()->addWidget(guessFromFileNameButton);
+	connect(guessFromFileNameButton, &QPushButton::pressed, this, [this, fileName]{
+		guessParameters(fileName);
+	});
+
+	auto actualSizeLabel = new QLabel("Actual file size: " + QString::number(m_fileSize) + " bytes");
+	actualSizeLabel->setAlignment(Qt::AlignRight);
+	m_inputDlg->layout()->addWidget(actualSizeLabel);
 
 	m_proposedSizeLabel = new QLabel("Predicted file size: ");
 	m_proposedSizeLabel->setAlignment(Qt::AlignRight);
 	m_inputDlg->layout()->addWidget(m_proposedSizeLabel);
+
 	// indices here refer to the order that the items are inserted in above!
 	connect(qobject_cast<QSpinBox*>(m_inputDlg->widgetList()[0]), QOverload<int>::of(&QSpinBox::valueChanged), this, &iARawFileParamDlg::checkFileSize);
 	connect(qobject_cast<QSpinBox*>(m_inputDlg->widgetList()[1]), QOverload<int>::of(&QSpinBox::valueChanged), this, &iARawFileParamDlg::checkFileSize);
@@ -130,6 +143,59 @@ void iARawFileParamDlg::checkFileSize()
 	m_proposedSizeLabel->setStyleSheet(
 		QString("QLabel { background-color : %1; }").arg(proposedSize == m_fileSize ? "#BFB" : "#FBB"));
 	m_inputDlg->setOKEnabled(proposedSize == m_fileSize);
+}
+
+void iARawFileParamDlg::guessParameters(QString fileName)
+{
+	QRegularExpression sizeRegEx("(\\d+)x(\\d+)x(\\d+)");
+	// TODO: also recognize trailing k/K for 1000
+	auto sizeMatch = sizeRegEx.match(fileName);
+	if (sizeMatch.hasMatch())
+	{
+		m_inputDlg->setValue("Size X", sizeMatch.captured(1));
+		m_inputDlg->setValue("Size Y", sizeMatch.captured(2));
+		m_inputDlg->setValue("Size Z", sizeMatch.captured(3));
+	}
+	QString spcGrp("(\\d+(?:[.-]\\d+)?)(um|mm)");
+	QRegularExpression spcRegEx1(QString("%1x%2x%3").arg(spcGrp).arg(spcGrp).arg(spcGrp));
+	auto spc1Match = spcRegEx1.match(fileName);
+	if (spc1Match.hasMatch())
+	{
+		m_inputDlg->setValue("Spacing X", spc1Match.captured(1).replace("-", "."));
+		m_inputDlg->setValue("Spacing Y", spc1Match.captured(3).replace("-", "."));
+		m_inputDlg->setValue("Spacing Z", spc1Match.captured(5).replace("-", "."));
+	}
+	else
+	{
+		QRegularExpression spcRegEx2(spcGrp);
+		auto spc2Match = spcRegEx2.match(fileName);
+		if (spc2Match.hasMatch())
+		{
+			m_inputDlg->setValue("Spacing X", spc2Match.captured(1).replace("-", "."));
+			m_inputDlg->setValue("Spacing Y", spc2Match.captured(1).replace("-", "."));
+			m_inputDlg->setValue("Spacing Z", spc2Match.captured(1).replace("-", "."));
+		}
+	}
+	QRegularExpression scalarTypeRegEx("(\\d+)bit");
+	auto scalarTypeMatch = scalarTypeRegEx.match(fileName);
+	if (scalarTypeMatch.hasMatch())
+	{
+		auto bits = scalarTypeMatch.captured(1);
+		int vtkTypeID = (bits == "8") ? VTK_UNSIGNED_CHAR
+			: (bits == "16")          ? VTK_UNSIGNED_SHORT
+			: (bits == "32")          ? VTK_UNSIGNED_INT
+			: (bits == "64")          ? VTK_UNSIGNED_LONG_LONG
+									  : -1;
+		if (vtkTypeID == -1)
+		{
+			LOG(lvlWarn, QString("Invalid bits string %1 cannot be resolved to a type").arg(bits));
+		}
+		else
+		{
+			QString scalarTypeStr = mapVTKTypeToReadableDataType(vtkTypeID);
+			m_inputDlg->setValue("Data Type", scalarTypeStr);
+		}
+	}
 }
 
 bool iARawFileParamDlg::accepted() const

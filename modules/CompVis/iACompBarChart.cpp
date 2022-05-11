@@ -1,7 +1,7 @@
 /*************************************  open_iA  ************************************ *
 * **********   A tool for visual analysis and processing of 3D CT images   ********** *
 * *********************************************************************************** *
-* Copyright (C) 2016-2021  C. Heinzl, M. Reiter, A. Reh, W. Li, M. Arikan, Ar. &  Al. *
+* Copyright (C) 2016-2022  C. Heinzl, M. Reiter, A. Reh, W. Li, M. Arikan, Ar. &  Al. *
 *                 Amirkhanov, J. Weissenböck, B. Fröhler, M. Schiwarth, P. Weinberger *
 * *********************************************************************************** *
 * This program is free software: you can redistribute it and/or modify it under the   *
@@ -867,7 +867,7 @@ vtkTooltipItem* iACompBarChart::BarChartInteractorStyle::GetTooltip()
 void iACompBarChart::BarChartInteractorStyle::setTooltipTextOriginalBarChart(std::vector<double> values)
 {
 	int percent = values.at(3);
-	vtkStdString tooltipLabel = "" + std::to_string(percent) + " \%";
+	vtkStdString tooltipLabel = "" + std::to_string(percent) + " %";
 
 	this->m_toolTip->SetText(tooltipLabel);
 }
@@ -877,8 +877,8 @@ void iACompBarChart::BarChartInteractorStyle::setTooltipTextSelectedBarChart(std
 	int percentOriginal = valuesOriginal.at(3);
 	int percentSelected = valuesSelected.at(3);
 
-	vtkStdString tooltipLabel = "Selected: " + std::to_string(percentSelected) + " \% \n" +
-								"Original: " + std::to_string(percentOriginal) + " \%" ;
+	vtkStdString tooltipLabel = "Selected: " + std::to_string(percentSelected) + " % \n" +
+								"Original: " + std::to_string(percentOriginal) + " %" ;
 
 	this->m_toolTip->SetText(tooltipLabel);
 }

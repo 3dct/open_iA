@@ -1,7 +1,7 @@
 /*************************************  open_iA  ************************************ *
 * **********   A tool for visual analysis and processing of 3D CT images   ********** *
 * *********************************************************************************** *
-* Copyright (C) 2016-2021  C. Heinzl, M. Reiter, A. Reh, W. Li, M. Arikan, Ar. &  Al. *
+* Copyright (C) 2016-2022  C. Heinzl, M. Reiter, A. Reh, W. Li, M. Arikan, Ar. &  Al. *
 *                 Amirkhanov, J. Weissenböck, B. Fröhler, M. Schiwarth, P. Weinberger *
 * *********************************************************************************** *
 * This program is free software: you can redistribute it and/or modify it under the   *
@@ -78,8 +78,7 @@ iABatchFilter::iABatchFilter():
 		"Under <em>Work on</em> it can be specified whether the batched filter should get passed "
 		"only files, only folders, or both files and folders."
 		"<em>Output format</em> specifies the file format for the output image(s)."
-		).arg(spnContinueOnError), 0, 0),
-	m_aborted(false)
+		).arg(spnContinueOnError), 0, 0, true)
 {
 	QStringList filesFoldersBoth;
 	filesFoldersBoth << "Files" << "Folders" << "Both Files and Folders";
@@ -127,7 +126,7 @@ void iABatchFilter::performWork(QMap<QString, QVariant> const & parameters)
 	QStringList additionalFileNames;
 	for (QString fileName : additionalInput)
 	{
-		if (m_aborted)
+		if (isAborted())
 		{
 			break;
 		}
@@ -289,7 +288,7 @@ void iABatchFilter::performWork(QMap<QString, QVariant> const & parameters)
 			QString textToAdd = (outputBuffer[curLine].isEmpty() || values.empty() ? "" : ",") + values.join(",");
 			outputBuffer[curLine] += textToAdd;
 			++curLine;
-			for (int o = 0; o < filter->finalOutputCount(); ++o)
+			for (size_t o = 0; o < filter->finalOutputCount(); ++o)
 			{
 				QFileInfo fi(outDir + "/" + relFileName);
 				QString multiFileSuffix = filter->finalOutputCount() > 1 ? QString::number(o) : "";
@@ -327,13 +326,13 @@ void iABatchFilter::performWork(QMap<QString, QVariant> const & parameters)
 			}
 		}
 		progress()->emitProgress( (curLine - 1.0) * 100.0 / files.size() );
-		if (m_aborted)
+		if (isAborted())
 		{
 			break;
 		}
 	}
 
-	if (!m_aborted && !outputFile.isEmpty())
+	if (!isAborted() && !outputFile.isEmpty())
 	{
 		QFile file(outputFile);
 		if (file.open(QIODevice::WriteOnly | QIODevice::Text))
@@ -346,16 +345,6 @@ void iABatchFilter::performWork(QMap<QString, QVariant> const & parameters)
 			file.close();
 		}
 	}
-}
-
-void iABatchFilter::abort()
-{
-	m_aborted = true;
-}
-
-bool iABatchFilter::canAbort() const
-{
-	return true;
 }
 
 IAFILTER_CREATE(iABatchFilter);

@@ -1,7 +1,7 @@
 /*************************************  open_iA  ************************************ *
 * **********   A tool for visual analysis and processing of 3D CT images   ********** *
 * *********************************************************************************** *
-* Copyright (C) 2016-2021  C. Heinzl, M. Reiter, A. Reh, W. Li, M. Arikan, Ar. &  Al. *
+* Copyright (C) 2016-2022  C. Heinzl, M. Reiter, A. Reh, W. Li, M. Arikan, Ar. &  Al. *
 *                 Amirkhanov, J. Weissenböck, B. Fröhler, M. Schiwarth, P. Weinberger *
 * *********************************************************************************** *
 * This program is free software: you can redistribute it and/or modify it under the   *
@@ -51,6 +51,7 @@
 #include <iADockWidgetWrapper.h>
 
 // base:
+#include "iAToolsVTK.h"
 #include <defines.h>    // for DIM
 #include <iAConnector.h>
 #include <iAFileUtils.h>
@@ -770,7 +771,7 @@ void dlg_FeatureScout::renderMeanObject()
 {
 	if (m_visualization != iACsvConfig::UseVolume)
 	{
-		QMessageBox::warning(this, "FeatureScout", "Mean objects feature only available for the Labelled Volume visualization at the moment!");
+		QMessageBox::warning(this, "FeatureScout", "Mean objects feature only available for the Labeled Volume visualization at the moment!");
 		return;
 	}
 	int classCount = m_classTreeModel->invisibleRootItem()->rowCount();
