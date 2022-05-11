@@ -3,7 +3,7 @@
 
 iACompDBScan::iACompDBScan(
 	iACsvDataStorage* dataStorage, std::vector<int>* amountObjectsEveryDataset, bin::BinType* datasets) :
-	iACompBinning(dataStorage, amountObjectsEveryDataset, datasets), m_dbData(nullptr)
+	iACompBinning(dataStorage, datasets), m_dbData(nullptr)
 {
 	//test();
 }
@@ -27,7 +27,7 @@ void iACompDBScan::calculateBins()
 	QList<std::vector<double>>* binningStrategies =
 		new QList<std::vector<double>>;  //stores number of bins for each dataset
 
-	for (int i = 0; i < m_dbData->getAmountObjectsEveryDataset()->size(); i++)
+	for (int i = 0; i < static_cast<int>(m_dbData->getAmountObjectsEveryDataset()->size()); i++)
 	{  // do for every dataset
 
 		//how to compute parameters: DBSCAN Revisited, Revisited: Why and How You Should(Still) Use DBSCAN by Schubert et.al.

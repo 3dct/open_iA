@@ -22,19 +22,19 @@ public:
 	iACompUniformTable(iACompHistogramVis* vis, iACompUniformBinningData* uniformBinningData);
 
 	//set the visualization is active (it will be drawn)
-	virtual void setActive();
+	virtual void setActive() override;
 	//set the visualization inactive (it will no longer be drawn)
-	virtual void setInactive();
+	virtual void setInactive() override;
 	//initialize the camera. The camera set by vtk in this view will be given to all other tables
-	virtual void initializeCamera();
+	virtual void initializeCamera() override;
 
 	/******************************************  Ordering/Ranking  **********************************/
 	//draw Histogram table with rows ordered ascending to its amount of objects
-	virtual void drawHistogramTableInAscendingOrder();
+	virtual void drawHistogramTableInAscendingOrder() override;
 	//draw Histogram table with rows ordered descending to its amount of objects
-	virtual void drawHistogramTableInDescendingOrder();
+	virtual void drawHistogramTableInDescendingOrder() override;
 	//draw Histogram table with rows ordered according to loading the datasets
-	virtual void drawHistogramTableInOriginalOrder();
+	virtual void drawHistogramTableInOriginalOrder() override;
 
 	/******************************************  Rendering  **********************************/
 	//draw initial Histogram Table
@@ -65,7 +65,7 @@ public:
 	//dehighlihgte the selcted row
 	bool removeHighlightedRow();
 	//highlight the selected cells with an outline
-	virtual void highlightSelectedCell(vtkSmartPointer<vtkActor> pickedActor, vtkIdType pickedCellId);
+	virtual void highlightSelectedCell(vtkSmartPointer<vtkActor> pickedActor, vtkIdType pickedCellId) override;
 	void highlightSelectedRow(vtkSmartPointer<vtkActor> pickedActor);
 
 	void removePointRepresentation();
@@ -88,30 +88,30 @@ public:
 
 	/******************************************  Getter & Setter  **********************************************/
 	//return the actors representing the original rows
-	virtual std::vector<vtkSmartPointer<vtkActor>>* getOriginalRowActors();
+	virtual std::vector<vtkSmartPointer<vtkActor>>* getOriginalRowActors() override;
 
 	vtkSmartPointer<vtkActor> getHighlightingRowActor();
 	int getBins();
 	void setBins(int bins);
 	int getBinsZoomed();
 	void setBinsZoomed(int bins);
-	const int getMinBins();
-	const int getMaxBins();
+	int getMinBins();
+	int getMaxBins();
 
 	vtkSmartPointer<iACompUniformTableInteractorStyle> getInteractorStyle();
 
 	/******************************************  Update THIS  **********************************************/
-	virtual void showSelectionOfCorrelationMap(std::map<int, double>* dataIndxSelectedType);
-	virtual void removeSelectionOfCorrelationMap();
+	virtual void showSelectionOfCorrelationMap(std::map<int, double>* dataIndxSelectedType) override;
+	virtual void removeSelectionOfCorrelationMap() override;
 	
 protected:
 
-	virtual void initializeTable();
-	virtual void initializeInteraction();
+	virtual void initializeTable() override;
+	virtual void initializeInteraction() override;
 
 	//define the range of the bins for the visualization
 	//for uniform binning, the range of the objects is divded by the number of bins
-	virtual void calculateBinRange();
+	virtual void calculateBinRange() override;
 
 private:
 
@@ -163,7 +163,7 @@ private:
 
 	/******************************************  Ordering/Ranking  **********************************/
 	//draws the bar chart for showing the number of objects for each dataset
-	virtual void drawBarChartShowingAmountOfObjects(std::vector<int> amountObjectsEveryDataset);
+	virtual void drawBarChartShowingAmountOfObjects(std::vector<int> amountObjectsEveryDataset) override;
 
 	double calculateChiSquaredMetric(bin::BinType* observedFrequency, bin::BinType* expectedFrequency);
 

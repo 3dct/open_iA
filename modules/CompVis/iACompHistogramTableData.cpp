@@ -32,10 +32,10 @@
 iACompHistogramTableData::iACompHistogramTableData() :
 	m_maxVal(-1),
 	m_minVal(-1),
+	amountObjectsEveryDataset(new std::vector<int>),
 	binData(new QList<bin::BinType*>()),
 	zoomedBinData(bin::initialize(1)),
 	binDataObjects(new QList<std::vector<csvDataType::ArrayType*>*>()),
-	amountObjectsEveryDataset(new std::vector<int>),
 	m_maxAmountInAllBins(0),
 	m_binsBoundaries(nullptr),
 	m_binPolyDatasets(new QList<vtkSmartPointer<vtkPolyData>>())
@@ -123,7 +123,7 @@ QList<std::vector<double>>* iACompHistogramTableData::getNumberOfObjectsPerBinAl
 		bin::BinType* currDataset = binData->at(dataId);
 
 		std::vector<double> bins = std::vector<double>(currDataset->size(), 0);
-		for (int binId = 0; binId < currDataset->size(); binId++)
+		for (int binId = 0; binId < static_cast<int>(currDataset->size()); binId++)
 		{  //bins
 			std::vector<double> currBin = currDataset->at(binId);
 			bins.at(binId) = currBin.size();
@@ -161,12 +161,12 @@ void iACompHistogramTableData::debugBinDataObjects()
 	for (int i = 0; i < binDataObjects->size(); i++)
 	{  //datasets
 		LOG(lvlDebug, "Dataset " + QString::number(i));
-		for (int k = 0; k < binDataObjects->at(i)->size(); k++)
+		for (int k = 0; k < static_cast<int>(binDataObjects->at(i)->size()); k++)
 		{  //bins
 
 			csvDataType::ArrayType* data = binDataObjects->at(i)->at(k);
 
-			for (int j = 0; j < data->size(); j++)
+			for (int j = 0; j < static_cast<int>(data->size()); j++)
 			{
 				//LOG(lvlDebug,
 				//	"fiberLabelId = " + QString::number(data->at(j).at(0)) + " --> at Bin: " + QString::number(k));
@@ -247,11 +247,11 @@ std::vector<double>* bin::getMinimumAndMaximum(bin::BinType* input)
 	double min = INFINITY;
 	double max = -INFINITY;
 
-	for (int i = 0; i < input->size(); i++)
+	for (int i = 0; i < static_cast<int>(input->size()); i++)
 	{
 		std::vector<double> bin = input->at(i);
 
-		for (int k = 0; k < bin.size(); k++)
+		for (int k = 0; k < static_cast<int>(bin.size()); k++)
 		{
 			double val = bin.at(k);
 			if (min > val)

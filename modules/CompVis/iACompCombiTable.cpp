@@ -388,7 +388,7 @@ void iACompCombiTable::drawBins(QList<vtkSmartPointer<vtkPolyData>>* binPolyData
 }
 
 /****************************************** Ordering/Ranking **********************************************/
-void iACompCombiTable::drawBarChartShowingAmountOfObjects(std::vector<int> amountObjectsEveryDataset)
+void iACompCombiTable::drawBarChartShowingAmountOfObjects(std::vector<int> )
 {
 }
 

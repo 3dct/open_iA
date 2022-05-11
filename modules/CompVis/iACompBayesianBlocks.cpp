@@ -17,7 +17,7 @@
 
 iACompBayesianBlocks::iACompBayesianBlocks(
 	iACsvDataStorage* dataStorage, std::vector<int>* amountObjectsEveryDataset, bin::BinType* datasets) :
-	iACompBinning(dataStorage, amountObjectsEveryDataset, datasets), 
+	iACompBinning(dataStorage, datasets), 
 	m_bayesianBlocksData(nullptr)
 {
 }
@@ -38,7 +38,7 @@ void iACompBayesianBlocks::calculateBins()
 
 	QList<std::vector<double>>* binningStrategies = new QList<std::vector<double>>;
 	
-	for (int i = 0; i < m_bayesianBlocksData->getAmountObjectsEveryDataset()->size(); i++)
+	for (int i = 0; i < static_cast<int>(m_bayesianBlocksData->getAmountObjectsEveryDataset()->size()); i++)
 	{  // do for every dataset
 
 		std::vector<double> values = m_datasets->at(i);
@@ -91,7 +91,7 @@ void iACompBayesianBlocks::calculateBins()
 		int datasetInd = static_cast<int>(values.size());
 
 		//check for every value inside a dataset for the corresponding bin	
-		for (int v = 0; v < values.size(); v++)
+		for (int v = 0; v < static_cast<int>(values.size()); v++)
 		{
 			for (int b = 0; b < currentNumberOfBins; b++)
 			{

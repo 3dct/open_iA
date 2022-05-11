@@ -12,6 +12,7 @@
 
 //iA
 #include "iAMainWindow.h"
+#include "iAVtkVersion.h"
 
 //Qt
 #include <QBoxLayout>
@@ -26,17 +27,17 @@
 
 iACompHistogramVis::iACompHistogramVis(
 	iACompHistogramTable* table, iAMainWindow* parent, int amountDatasets, bool MDSComputedFlag) :
-	m_main(table),
 	QDockWidget(parent),
+	mainCamera(vtkSmartPointer<vtkCamera>::New()),
 	m_amountDatasets(amountDatasets),
+	m_AreaOpacity(0.25),  //0.15
+	m_lineWidth(3),
 	m_initialRendering(true),
 	m_windowWidth(-1),
 	m_windowHeight(-1),
 	xAxis(false),
 	m_drawingPositionForRegions(new std::map<int, std::vector<double>>()),
-	mainCamera(vtkSmartPointer<vtkCamera>::New()),
-	m_AreaOpacity(0.25), //0.15
-	m_lineWidth(3),
+	m_main(table),
 	m_activeVis(iACompVisOptions::activeVisualization::Undefined),
 	m_activeBinning(iACompVisOptions::binningType::Undefined)
 {
@@ -601,7 +602,7 @@ std::vector<int>* iACompHistogramVis::reorderAccordingTo(std::vector<int>* newPo
 {
 	std::vector<int>* result = new std::vector<int>(newPositions->size(), 0);
 
-	for (int i = 0; i < newPositions->size(); i++)
+	for (int i = 0; i < static_cast<int>(newPositions->size()); i++)
 	{
 		result->at((newPositions->size() - 1) - i) = newPositions->at(i);
 	}

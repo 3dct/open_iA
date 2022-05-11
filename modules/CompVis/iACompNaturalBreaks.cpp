@@ -3,7 +3,7 @@
 #include "iACompNaturalBreaksData.h"
 
 iACompNaturalBreaks::iACompNaturalBreaks(iACsvDataStorage* dataStorage, std::vector<int>* amountObjectsEveryDataset, bin::BinType* datasets) :
-	iACompBinning(dataStorage, amountObjectsEveryDataset, datasets), 
+	iACompBinning(dataStorage, datasets), 
 	m_naturalBreaksData(nullptr)
 {
 	//test();

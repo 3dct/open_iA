@@ -35,7 +35,7 @@ protected:
 
 	/*** Rendering ***/
 	//draw initial Histogram Table
-	virtual void drawHistogramTable();
+	virtual void drawHistogramTable() override;
 	virtual void drawRow(int currDataInd, int currentColumn, double offset) override;
 
 private:

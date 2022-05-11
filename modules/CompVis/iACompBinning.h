@@ -13,7 +13,7 @@ class iACompBinning
 
 public:
 
-	iACompBinning(iACsvDataStorage* dataStorage, std::vector<int>* amountObjectsEveryDataset, bin::BinType* datasets);
+	iACompBinning(iACsvDataStorage* dataStorage, bin::BinType* datasets);
 
 	//calculate the binning for the data points
 	virtual void calculateBins() = 0;

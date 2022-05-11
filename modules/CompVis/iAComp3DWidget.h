@@ -50,7 +50,7 @@ public:
 
 	/*** Update ***/
 	void resetWidget();
-	void drawSelection(std::vector<size_t> selectedIds, QColor color);
+	void drawSelection(std::vector<size_t> selectedIds);
 
 
 private:

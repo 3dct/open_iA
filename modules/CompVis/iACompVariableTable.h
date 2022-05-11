@@ -61,7 +61,7 @@ protected:
 	virtual void initializeInteraction() override;
 
 	//define the range of the color map bins for the visualization
-	void calculateBinRange();
+	void calculateBinRange() override;
 	//define the range of the color map bins for the visualization
 	//range of the bins of the color map is calculated by the uniform binning
 	double calculateUniformBinRange();

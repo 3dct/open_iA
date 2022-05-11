@@ -4,9 +4,10 @@
 #include "qlist.h"
 
 
-iACompBinning::iACompBinning(iACsvDataStorage* dataStorage, std::vector<int>* amountObjectsEveryDataset, bin::BinType* datasets) :
-	m_dataStorage(dataStorage), 
-	m_datasets(datasets)
+iACompBinning::iACompBinning(iACsvDataStorage* dataStorage, bin::BinType* datasets) :
+	m_datasets(datasets),
+	m_dataStorage(dataStorage)
+	
 {};
 
 bool iACompBinning::checkRange(double value, double low, double high)
@@ -36,7 +37,7 @@ std::vector<double>* iACompBinning::calculateSilhouetteCoefficient(iACompHistogr
 		std::vector<double>* cluster_points;
 		std::vector<double>* nearest_cluster_points;
 
-		for (int pID = 0; pID < allPoints.size(); pID++)
+		for (int pID = 0; pID < static_cast<int>(allPoints.size()); pID++)
 		{
 			double thisPoint = allPoints.at(pID);
 
@@ -76,7 +77,7 @@ std::vector<double>* iACompBinning::calculateSilhouetteCoefficient(iACompHistogr
 	}
 
 	////DEBUG
-	for (int s = 0; s < resultPerDataset->size(); s++)
+	for (int s = 0; s < static_cast<int>(resultPerDataset->size()); s++)
 	{
 		LOG(lvlDebug, "silhouette for dataset " + QString::number(s) + ": " + QString::number(resultPerDataset->at(s)));
 		//LOG(lvlDebug, QString::number(resultPerDataset->at(s)));
@@ -88,7 +89,7 @@ std::vector<double>* iACompBinning::calculateSilhouetteCoefficient(iACompHistogr
 
 double iACompBinning::getPointsFromCluster(bin::BinType* clusters, double point)
 {
-	for (int binID = 0; binID < clusters->size(); binID++)
+	for (int binID = 0; binID < static_cast<int>(clusters->size()); binID++)
 	{
 		std::vector<double> currBin = clusters->at(binID);
 		if (std::find(currBin.begin(), currBin.end(), point) != currBin.end())
@@ -108,12 +109,12 @@ double iACompBinning::getNearestCluster(std::vector<double> clusterBoundaries, d
 	double nearestBinID = -1;
 	double currBinID = 0;
 
-	for (int id = 0; id < clusterBoundaries.size(); id++)
+	for (int id = 0; id < static_cast<int>(clusterBoundaries.size()); id++)
 	{
 		double minBoundary = clusterBoundaries.at(id);
 
 		double maxBoundary;
-		if (id != (clusterBoundaries.size()-1))
+		if (id != (static_cast<int>(clusterBoundaries.size())-1))
 		{
 			maxBoundary = clusterBoundaries.at(id + 1) * 0.99;
 		}
@@ -141,7 +142,7 @@ double iACompBinning::getASilhouette(std::vector<double>* points_from_cluster, d
 {
 	double dist = 0.0;
 
-	for (int i = 0; i < points_from_cluster->size(); i++)
+	for (int i = 0; i < static_cast<int>(points_from_cluster->size()); i++)
 	{
 		double point = points_from_cluster->at(i);
 

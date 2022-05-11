@@ -194,7 +194,7 @@ void iAComp3DWidget::resetWidget()
 	renderWidget();
 }
 
-void iAComp3DWidget::drawSelection(std::vector<size_t> selectedIds, QColor color)
+void iAComp3DWidget::drawSelection(std::vector<size_t> selectedIds)
 {
 	std::sort(selectedIds.begin(), selectedIds.end());
 	const std::vector<size_t> constSelectedIds(selectedIds);

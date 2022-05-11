@@ -3,7 +3,7 @@
 #include "iACompUniformBinningData.h"
 
 iACompUniformBinning::iACompUniformBinning(iACsvDataStorage* dataStorage, std::vector<int>* amountObjectsEveryDataset, bin::BinType* datasets) :
-	iACompBinning(dataStorage, amountObjectsEveryDataset, datasets), 
+	iACompBinning(dataStorage, datasets), 
 	m_maxAmountInAllBins(-1),
 	m_uniformBinningData(nullptr),
 	m_currentNumberOfBins(-1)

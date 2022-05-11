@@ -33,7 +33,6 @@
 iACompCurve::iACompCurve(
 	iACompHistogramVis* vis, iACompKernelDensityEstimationData* kdeData, double lineWidth, double opacity) :
 	iACompTable(vis), 
-	m_interactionStyle(vtkSmartPointer<iACompCurveInteractorStyle>::New()),
 	m_opacity(opacity),
 	m_lineWidth(lineWidth),
 	m_kdeData(kdeData),
@@ -41,7 +40,8 @@ iACompCurve::iACompCurve(
 	m_UBbinPolyDatasets(nullptr),
 	m_NBbinPolyDatasets(nullptr),
 	m_BBbinPolyDatasets(nullptr),
-	m_drawWhiteCurves(false)
+	m_drawWhiteCurves(false),
+	m_interactionStyle(vtkSmartPointer<iACompCurveInteractorStyle>::New())
 {
 	//initialize interaction
 	initializeInteraction();
@@ -172,7 +172,7 @@ void iACompCurve::makeLUTFromCTF()
 
 	double binRange = calculateUniformBinRange();
 
-	for (size_t i = 0; i < m_tableSize; i++)
+	for (int i = 0; i < m_tableSize; i++)
 	{
 		double* rgb;
 		rgb = ctf->GetColor(static_cast<double>(i) / (double)m_tableSize);
@@ -252,7 +252,7 @@ void iACompCurve::makeLUTDarker()
 
 	double binRange = calculateUniformBinRange();
 
-	for (size_t i = 0; i < m_tableSize; i++)
+	for (int i = 0; i < m_tableSize; i++)
 	{
 		double* rgb;
 		rgb = ctf->GetColor(static_cast<double>(i) / (double)m_tableSize);
@@ -1185,7 +1185,7 @@ void iACompCurve::drawHistogramTableInOriginalOrder()
 	renderWidget();
 }
 
-void iACompCurve::drawBarChartShowingAmountOfObjects(std::vector<int> amountObjectsEveryDataset)
+void iACompCurve::drawBarChartShowingAmountOfObjects(std::vector<int>)
 {
 }
 

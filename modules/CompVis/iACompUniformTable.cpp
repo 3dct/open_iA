@@ -1671,12 +1671,12 @@ void iACompUniformTable::setBins(int bins)
 	m_bins = bins;
 }
 
-const int iACompUniformTable::getMinBins()
+int iACompUniformTable::getMinBins()
 {
 	return minBins;
 }
 
-const int iACompUniformTable::getMaxBins()
+int iACompUniformTable::getMaxBins()
 {
 	return maxBins;
 }

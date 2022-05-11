@@ -103,9 +103,9 @@
 
 iACompHistogramTable::iACompHistogramTable(
 	iAMainWindow* parent, iACsvDataStorage* dataStorage, iACompVisMain* main, bool MDSComputedFlag) :
-	m_main(main),
-	m_inputData(dataStorage->getData()),
-	m_dataStorage(dataStorage)
+	m_main(main), 
+	m_dataStorage(dataStorage),
+	m_inputData(dataStorage->getData())
 {
 	std::vector<int>* dataResolution = csvFileData::getAmountObjectsEveryDataset(m_inputData);
 	m_amountDatasets = (int)dataResolution->size();

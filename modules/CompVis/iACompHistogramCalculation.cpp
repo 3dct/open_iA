@@ -1,4 +1,3 @@
-#pragma once
 #include "iACompHistogramCalculation.h"
 
 //CompVis
@@ -49,7 +48,7 @@ iACompHistogramCalculation::iACompHistogramCalculation(iACsvDataStorage* dataSto
 			
 			std::vector<double> distribution = std::vector<double>();
 
-			for (int row = 0; row < (dataset.values->size()); row++)
+			for (int row = 0; row < static_cast<int>(dataset.values->size()); row++)
 			{
 				distribution.push_back(dataset.values->at(row).at(1));
 			}
@@ -77,7 +76,7 @@ void iACompHistogramCalculation::orderDataPointsByDatasetAffiliation(std::vector
 	m_amountObjectsEveryDataset = csvFileData::getAmountObjectsEveryDataset(m_dataStorage->getData());
 
 	int add = 0;
-	for (int i = 0; i < m_amountObjectsEveryDataset->size(); i++)
+	for (int i = 0; i < static_cast<int>(m_amountObjectsEveryDataset->size()); i++)
 	{
 		std::vector<double>::const_iterator first = histbinlist->begin() + add;
 		add += m_amountObjectsEveryDataset->at(i);
