@@ -207,7 +207,6 @@ public:
 	{
 		setSizePolicy(QSizePolicy::Preferred, QSizePolicy::Fixed);
 		m_label->setSizePolicy(QSizePolicy::Preferred, QSizePolicy::Fixed);
-		//setAutoFillBackground(false);
 		setFrameShape(QFrame::NoFrame);
 		setWidgetResizable(true);
 		setContentsMargins(0, 0, 0, 0);
@@ -313,7 +312,6 @@ QWidget* iAJobListView::addJobWidget(QSharedPointer<iAJob> j)
 		m_jobs.push_back(j);
 	}
 	auto titleLabel = new iAQShorteningLabel(j->name, "titleLabel");
-	//titleLabel->setSizePolicy(QSizePolicy::Preferred, QSizePolicy::Fixed);
 
 	auto progressBar = new QProgressBar();
 	progressBar->setRange(0, 1000);
@@ -330,11 +328,12 @@ QWidget* iAJobListView::addJobWidget(QSharedPointer<iAJob> j)
 	timesLayout->addWidget(remainingLabel);
 
 	auto statusWidget = new QWidget();
-	//statusWidget->setMinimumHeight(20);
+	statusWidget->setSizePolicy(QSizePolicy::Preferred, QSizePolicy::Fixed);
 	auto statusLayout = new QVBoxLayout();
 	statusWidget->setLayout(statusLayout);
 	statusLayout->setContentsMargins(0, 0, 0, 0);
 	statusLayout->setSpacing(2);
+	statusLayout->addWidget(titleLabel);
 	statusLayout->addWidget(statusLabel);
 	statusLayout->addLayout(timesLayout);
 	statusLayout->addWidget(progressBar);
@@ -343,20 +342,15 @@ QWidget* iAJobListView::addJobWidget(QSharedPointer<iAJob> j)
 	abortButton->setIcon(QIcon(":/images/remove.png"));
 	abortButton->setEnabled(j->abortListener);
 
-	auto contentWidget = new QWidget();
-	contentWidget->setLayout(new QHBoxLayout);
-	contentWidget->layout()->setContentsMargins(0, 0, 0, 0);
-	contentWidget->layout()->setSpacing(2);
-	contentWidget->layout()->addWidget(statusWidget);
-	contentWidget->layout()->addWidget(abortButton);
-
 	auto jobWidget = new QWidget();
+	jobWidget->setSizePolicy(QSizePolicy::Preferred, QSizePolicy::Fixed);
 	jobWidget->setProperty("qssClass", "jobWidget");
-	jobWidget->setLayout(new QVBoxLayout());
+	auto jobVLayout = new QHBoxLayout();
+	jobWidget->setLayout(jobVLayout);
 	jobWidget->layout()->setContentsMargins(4, 4, 4, 4);
 	jobWidget->layout()->setSpacing(4);
-	jobWidget->layout()->addWidget(titleLabel);
-	jobWidget->layout()->addWidget(contentWidget);
+	jobWidget->layout()->addWidget(statusWidget);
+	jobWidget->layout()->addWidget(abortButton);
 
 	m_insideWidget->layout()->addWidget(jobWidget);
 	
