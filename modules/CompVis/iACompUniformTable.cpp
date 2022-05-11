@@ -576,7 +576,7 @@ std::vector<vtkSmartPointer<vtkPolyData>>* iACompUniformTable::drawZoomedRow(int
 	double startY = (colSize * currentColumn) + offsetHeight;
 	double endY = startY + (colSize);  //startY + (1.5 * colSize); ///////////////////////////////
 
-	for (int i = 0; i < cellIdsOriginalPlane->size(); i++)
+	for (int i = 0; i < static_cast<int>(cellIdsOriginalPlane->size()); i++)
 	{
 		vtkSmartPointer<vtkPolyData> plane = drawZoomedPlane(amountOfBins, startX, startY, endX, endY, i, currentData); 
 		if (plane == nullptr)
@@ -586,7 +586,7 @@ std::vector<vtkSmartPointer<vtkPolyData>>* iACompUniformTable::drawZoomedRow(int
 
 		zoomedPlanes->push_back(plane);
 
-		if (i < cellIdsOriginalPlane->size() - 1)
+		if (i < (static_cast<int>(cellIdsOriginalPlane->size()) - 1))
 		{
 			vtkIdType lastCellId = cellIdsOriginalPlane->at(i);
 			vtkIdType currCellId = cellIdsOriginalPlane->at(i + 1);
@@ -1056,7 +1056,7 @@ void iACompUniformTable::drawPointRepresentation()
 		{
 			minMaxPerBin.insert({binId, new std::vector<double>()});
 
-			for (int valId = 0; valId < m_zoomedRowData->at(datasetInd)->at(binId).size(); valId++)
+			for (int valId = 0; valId < static_cast<int>(m_zoomedRowData->at(datasetInd)->at(binId).size()); valId++)
 			{
 				auto binData = m_zoomedRowData->at(datasetInd)->at(binId);
 				auto minMax = std::minmax_element(binData.begin(), binData.end());
@@ -1097,7 +1097,7 @@ void iACompUniformTable::drawPointRepresentation()
 			vtkSmartPointer<vtkActor> originalRowAct = it->first;
 			std::vector<vtkSmartPointer<vtkActor>>* zoomedRowActs = it->second;
 
-			for (int zoomedRowInd = 0; static_cast<int>(zoomedRowInd < zoomedRowActs->size()); zoomedRowInd++)
+			for (int zoomedRowInd = 0; zoomedRowInd < static_cast<int>(zoomedRowActs->size()); zoomedRowInd++)
 			{
 				vtkSmartPointer<vtkActor> zoomedRowAct = zoomedRowActs->at(zoomedRowInd);
 				vtkSmartPointer<vtkAlgorithm> algorithm =
