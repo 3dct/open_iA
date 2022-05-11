@@ -87,119 +87,6 @@ private:
 	std::chrono::system_clock::time_point m_start;
 };
 
-#define LABELOPT 2
-
-#ifndef LABELOPT
-using iAQShorteningLabel = QLabel;
-#endif
-
-#if LABELOPT == 1
-
-// works half-way:
-//     - height is not adapting properly (fm.height is about half of what it should be), 
-//     - formatting (bold) doesn't work with drawText
-class iAQShorteningLabel: public QWidget
-{
-public:
-	iAQShorteningLabel(QString const& text, QString const& qssClass = QString()) :
-		m_text(text),
-		m_updateRequired(true),
-		m_textHeight(10)
-	{
-		setSizePolicy(QSizePolicy::Preferred, QSizePolicy::Fixed);
-		if (!qssClass.isEmpty())
-		{
-			setProperty("qssClass", qssClass);
-		}
-	}
-	void paintEvent(QPaintEvent* /* ev*/) override
-	{
-		QPainter p(this);
-		if (m_updateRequired)
-		{
-			updatePrintedText(p);
-			m_updateRequired = false;
-		}
-		p.drawRect(QRect(2, 2, width()-4, height()-4));
-		p.drawText(QRect(0, 0, width(), height()), Qt::AlignLeft, m_printedText);
-	}
-	void updatePrintedText(QPainter const & p)
-	{
-		QString ellipsis("..");
-		int w = geometry().width();
-		auto fm = p.fontMetrics();
-
-		if (fm.horizontalAdvance(m_text) < w)
-		{
-			m_printedText = m_text;
-		}
-		else if (w <= fm.horizontalAdvance(ellipsis + "m"))  // space for ellipsis + at least one letter?
-		{
-			m_printedText = "";
-		}
-		else
-		{
-			// determine how much of the text can be printed:
-			int len = m_text.length();
-			bool found = false;
-			int stepSize = len / 2;
-			while (!found && stepSize > 0)
-			{
-				auto oldLen = len;
-				if (fm.horizontalAdvance(m_text.left(len) + ellipsis) >= w)
-				{
-					len -= stepSize;
-				}
-				else
-				{
-					len += stepSize;
-				}
-				stepSize /= 2;
-				// we want to find the length such that text[0..len] is within width, but text[0..len+1] isn't anymore
-				found = fm.horizontalAdvance(m_text.left(len)     + ellipsis) < w &&
-						fm.horizontalAdvance(m_text.left(len + 1) + ellipsis) >= w;
-				LOG(lvlDebug,
-					QString("oldLen=%1, newLen=%2, width=%3, found=%4")
-						.arg(oldLen)
-						.arg(len)
-						.arg(fm.horizontalAdvance(m_text.left(len)))
-						.arg(found));
-			}
-			if (!found)
-			{
-				LOG(lvlDebug, QString("NOT FOUND for text: %1 and width: %2!").arg(m_text).arg(w));
-			}
-			m_printedText = m_text.left(len) + ellipsis;
-		}
-		m_textHeight = fm.boundingRect(m_printedText).height();
-	}
-	void resizeEvent(QResizeEvent* /*ev*/)
-	{
-		m_updateRequired = true;
-	}
-	QSize sizeHint() const override
-	{
-		return QSize(20, m_textHeight);
-	}
-public slots:
-	void setText(QString const& text)
-	{
-		m_text = text;
-		m_updateRequired = true;
-		update();
-	}
-
-private:
-	QString m_text, m_printedText;
-	int m_textHeight;
-	bool m_updateRequired;
-};
-
-#elif LABELOPT == 2
-
-// seems to work best, even though height distribution of widgets still not ideal:
-//     title widget too high, other widgets too little height
-
 class iAQShorteningLabel : public QScrollArea
 {
 public:
@@ -207,7 +94,7 @@ public:
 	{
 		setSizePolicy(QSizePolicy::Preferred, QSizePolicy::Fixed);
 		m_label->setSizePolicy(QSizePolicy::Preferred, QSizePolicy::Fixed);
-		setFrameShape(QFrame::NoFrame);
+		setFrameShape(QFrame::NoFrame); // this to remove borders; background-color: transparent; in qss to make background transparent
 		setWidgetResizable(true);
 		setContentsMargins(0, 0, 0, 0);
 		setHorizontalScrollBarPolicy(Qt::ScrollBarAlwaysOff);
@@ -226,47 +113,6 @@ public slots:
 private:
 	QLabel* m_label;
 };
-
-#else
-// does not help since initial setting of width already causes unwanted resize...
-class iAQShorteningLabel : public QLabel
-{
-public:
-	iAQShorteningLabel(QString const & text, QString const& qssClass = QString()): QLabel(text), settingText(false)
-	{
-		setSizePolicy(QSizePolicy::Preferred, QSizePolicy::Fixed);
-		if (!qssClass.isEmpty())
-		{
-			setProperty("qssClass", qssClass);
-		}
-	}
-	// cannot use setText since it isn't declared virtual...
-	void mySetText(const QString & text)
-	{
-		myMax = maximumSize();
-		myMin = minimumSize();
-		setMinimumSize(size());
-		setMaximumSize(size());
-		settingText = true;
-
-		QLabel::setText(text);
-	}
-
-	void resizeEvent(QResizeEvent *event) override
-	{
-		QLabel::resizeEvent(event);
-		if(settingText){
-			setMinimumSize(myMin);
-			setMaximumSize(myMax);
-			settingText = false;
-		}
-	}
-private:
-	QSize myMin, myMax;
-	bool settingText;
-};
-
-#endif
 
 iAJobListView* iAJobListView::get()
 {
