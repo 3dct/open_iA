@@ -19,7 +19,7 @@ class iAMainWindow;
 //iA
 class iAQVTKWidget;
 class iACsvIO;
-class iACsvConfig;
+struct iACsvConfig;
 class iA3DEllipseObjectVis;
 class iA3DCylinderObjectVis;
 

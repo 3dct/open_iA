@@ -33,7 +33,7 @@
 #include "vtkSmartPointer.h"
 
 class iACsvIO;
-class iACsvConfig;
+struct iACsvConfig;
 class iACompHistogramTableData;
 class dlg_CSVInput;
 class vtkTable;
@@ -84,11 +84,11 @@ struct csvFileData
 class iACsvDataStorage
 {
    public:
-	iACsvDataStorage(QStringList* csvFiles);
+	iACsvDataStorage(QStringList* csvFiles, int headerLineNumber);
 	//read in the csv file
 	QList<QStringList>* readCSV(QString csvFile);
 	//store the csv file data in a csvFileData data structure
-	void storeCSVToVectorArray(QList<QStringList>* list);
+	void storeCSVToVectorArray(QList<QStringList>* list, int headerLineNumber);
 	//returns the data of all csv files
 	QList<csvFileData>* getData();
 
@@ -124,11 +124,11 @@ class iACsvDataStorage
 
    private:
 	//fill a list with the attribute names
-	void initializeHeader(QList<QStringList>* list, QStringList* headers);
+	   void initializeHeader(QList<QStringList>* list, QStringList* headers, int headerLineNumber);
 	//fill a vector array with all values
 	void initializeValueArray(QList<QStringList>* list, int const attrCount, csvDataType::ArrayType* values);
 	//resize the file to header & values without meta info in the first columns
-	void customizeCSVFile(QList<QStringList>* list);
+	void customizeCSVFile(QList<QStringList>* list, int headerLineNumber);
 	//creates a vtkTable storing the object that should be drawn and their mapping
 	void initializeObjectTableFor3DRendering();
 

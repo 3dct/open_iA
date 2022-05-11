@@ -84,11 +84,10 @@ void dlg_CSVReader::okBtnClicked()
 
 	if (show3DViewsCheckBox->isChecked())
 	{
-		//m_compute3DViews = true;
 		iACompVisOptions::setShow3DViews(true);
 	}
 
-	m_dataStorage = new iACsvDataStorage(&m_filenames);
+	m_dataStorage = new iACsvDataStorage(&m_filenames, headerPosition->value());
 
 	this->accept();
 }

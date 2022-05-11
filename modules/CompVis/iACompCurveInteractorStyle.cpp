@@ -21,21 +21,21 @@ void iACompCurveInteractorStyle::OnMouseWheelForward()
 	iACompTableInteractorStyle::OnMouseWheelForward();
 
 	//camera zoom
-	bool zoomed = generalZoomIn();
+	generalZoomIn();
 }
 void iACompCurveInteractorStyle::OnMouseWheelBackward()
 {
 	iACompTableInteractorStyle::OnMouseWheelBackward();
 
 	//camera zoom
-	bool zoomed = generalZoomOut();
+	generalZoomOut();
 }
 
 void iACompCurveInteractorStyle::updateCharts()
 {
 }
 void iACompCurveInteractorStyle::updateOtherCharts(
-	QList<std::vector<csvDataType::ArrayType*>*>* selectedObjectAttributes)
+	QList<std::vector<csvDataType::ArrayType*>*>* )
 {
 }
 
@@ -45,7 +45,7 @@ iACompTable* iACompCurveInteractorStyle::getVisualization()
 }
 
 std::map<int, std::vector<double>>* iACompCurveInteractorStyle::calculatePickedObjects(
-	QList<bin::BinType*>* zoomedRowData)
+	QList<bin::BinType*>* )
 {
 	return nullptr;
 }

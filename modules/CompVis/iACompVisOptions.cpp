@@ -92,7 +92,7 @@ namespace iACompVisOptions
 
 	double computeIntervalLength(double minVal, double maxVal)
 	{
-		double length;
+		double length = 0.0;
 
 		if (minVal < 0 || maxVal >= 0)
 		{

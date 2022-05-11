@@ -73,7 +73,7 @@ void iACompVariableTableInteractorStyle::OnMouseWheelForward()
 	iACompTableInteractorStyle::OnMouseWheelForward();
 	
 	//camera zoom
-	bool zoomed = generalZoomIn();
+	generalZoomIn();
 }
 
 void iACompVariableTableInteractorStyle::OnMouseWheelBackward()
@@ -81,7 +81,7 @@ void iACompVariableTableInteractorStyle::OnMouseWheelBackward()
 	iACompTableInteractorStyle::OnMouseWheelBackward();
 	
 	//camera zoom
-	bool zoomed = generalZoomOut();
+	generalZoomOut();
 }
 
 void iACompVariableTableInteractorStyle::OnKeyPress()
@@ -159,7 +159,7 @@ void iACompVariableTableInteractorStyle::updateCharts()
 void iACompVariableTableInteractorStyle::updateOtherCharts(
 	QList<std::vector<csvDataType::ArrayType*>*>* selectedObjectAttributes)
 {
-	std::vector<int>* indexOfPickedRows = m_visualization->getIndexOfPickedRows();
+	//std::vector<int>* indexOfPickedRows = m_visualization->getIndexOfPickedRows();
 	csvDataType::ArrayType* selectedData = formatPickedObjects(selectedObjectAttributes);
 	
 	std::map<int, std::vector<double>>* pickStatistic = calculatePickedObjects(m_zoomedRowData);

@@ -6,7 +6,7 @@ iACompDBScanData::iACompDBScanData() :
 }
 
 void iACompDBScanData::calculateNumberOfObjectsInEachBin(
-	QList<std::vector<csvDataType::ArrayType*>*>* thisBinDataObjects)
+	QList<std::vector<csvDataType::ArrayType*>*>* )
 {
 	//TODO
 }

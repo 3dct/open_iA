@@ -393,7 +393,7 @@ void iACompCombiTable::drawBarChartShowingAmountOfObjects(std::vector<int> amoun
 }
 
 /****************************************** Update THIS **********************************************/
-void iACompCombiTable::showSelectionOfCorrelationMap(std::map<int, double>* dataIndxSelectedType)
+void iACompCombiTable::showSelectionOfCorrelationMap(std::map<int, double>* )
 {
 }
 
@@ -402,12 +402,12 @@ void iACompCombiTable::removeSelectionOfCorrelationMap()
 }
 
 /****************************************** Interaction Picking **********************************************/
-void iACompCombiTable::highlightSelectedCell(vtkSmartPointer<vtkActor> pickedActor, vtkIdType pickedCellId)
+void iACompCombiTable::highlightSelectedCell(vtkSmartPointer<vtkActor> , vtkIdType )
 {
 }
 
 std::tuple<QList<bin::BinType*>*, QList<std::vector<csvDataType::ArrayType*>*>*> iACompCombiTable::getSelectedData(
-	Pick::PickedMap* map)
+	Pick::PickedMap* )
 {
 	auto tuple = std::make_tuple(nullptr, nullptr);
 	return tuple;

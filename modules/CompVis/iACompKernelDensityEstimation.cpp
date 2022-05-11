@@ -37,15 +37,15 @@ void iACompKernelDensityEstimation::calculateCurve(
 		kdeData::kdeBin* result = new kdeData::kdeBin();
 		calculateKDE(&m_datasets->at(dataID), result);
 
-		kdeData::kdeBins* kdeUniform = kdeData::initializeBins(uDataStore->at(dataID)->size());
+		kdeData::kdeBins* kdeUniform = kdeData::initializeBins(static_cast<int>(uDataStore->at(dataID)->size()));
 		std::vector<double> binBoundariesUB = uData->getBinBoundaries()->at(dataID);
 		calculateKDEBinning(result, uData->getMaxVal(), &binBoundariesUB, kdeUniform);
 
-		kdeData::kdeBins* kdeNB = kdeData::initializeBins(nbDataStore->at(dataID)->size());
+		kdeData::kdeBins* kdeNB = kdeData::initializeBins(static_cast<int>(nbDataStore->at(dataID)->size()));
 		std::vector<double> binBoundariesNB = nbData->getBinBoundaries()->at(dataID);
 		calculateKDEBinning(result, nbData->getMaxVal(), &binBoundariesNB, kdeNB);
 
-		kdeData::kdeBins* kdeBB = kdeData::initializeBins(bbDataStore->at(dataID)->size());
+		kdeData::kdeBins* kdeBB = kdeData::initializeBins(static_cast<int>(bbDataStore->at(dataID)->size()));
 		std::vector<double> binBoundariesBB = bbData->getBinBoundaries()->at(dataID);
 		calculateKDEBinning(result, bbData->getMaxVal(), &binBoundariesBB, kdeBB);
 
@@ -72,7 +72,7 @@ void iACompKernelDensityEstimation::calculateCurveUB(iACompUniformBinningData* u
 		kdeData::kdeBin* result = new kdeData::kdeBin();
 		calculateKDE(&m_datasets->at(dataID), result);
 
-		kdeData::kdeBins* kdeUniform = kdeData::initializeBins(uDataStore->at(dataID)->size());
+		kdeData::kdeBins* kdeUniform = kdeData::initializeBins(static_cast<int>(uDataStore->at(dataID)->size()));
 		std::vector<double> binBoundariesUB = uData->getBinBoundaries()->at(dataID);
 		calculateKDEBinning(result, uData->getMaxVal(), &binBoundariesUB, kdeUniform);
 

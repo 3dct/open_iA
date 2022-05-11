@@ -378,7 +378,7 @@ void iACompVariableTable::drawBarChartShowingAmountOfObjects(std::vector<int> am
 }
 
 /****************************************** Update THIS **********************************************/
-void iACompVariableTable::showSelectionOfCorrelationMap(std::map<int, double>* dataIndxSelectedType)
+void iACompVariableTable::showSelectionOfCorrelationMap(std::map<int, double>*)
 {
 }
 

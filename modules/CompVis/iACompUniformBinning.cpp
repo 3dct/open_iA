@@ -43,7 +43,7 @@ void iACompUniformBinning::calculateBins()
 			binsWithFiberIds->push_back(init);
 		}
 
-		int datasetInd = values.size();
+		int datasetInd = static_cast<int> (values.size());
 
 		//check for every value inside a dataset for the corresponding bin
 		for (int v = 0; v < values.size(); v++)
@@ -112,11 +112,11 @@ std::vector<double> iACompUniformBinning::calculateBinBoundaries(
 	double minVal, double maxVal, int numberOfBins)
 {
 	double length = computeIntervalLength(minVal, maxVal);
-	double binLength = length / m_currentNumberOfBins;
+	double binLength = length / numberOfBins;
 
 	std::vector<double> bins = std::vector<double>();
 
-	for (size_t b = 0; b < m_currentNumberOfBins; b++)
+	for (size_t b = 0; b < numberOfBins; b++)
 	{
 		double lowerBound = minVal + (binLength * b);
 		bins.push_back(lowerBound);
@@ -127,7 +127,7 @@ std::vector<double> iACompUniformBinning::calculateBinBoundaries(
 
 double iACompUniformBinning::computeIntervalLength(double minVal, double maxVal)
 {
-	double length;
+	double length = 0.0;
 
 	if (minVal < 0 || maxVal >= 0)
 	{
@@ -168,7 +168,6 @@ bin::BinType* iACompUniformBinning::calculateBins(bin::BinType* data, int currDa
 
 	bin::BinType* bins = bin::initialize(m_currentNumberOfBins);
 
-
 	for (size_t v = 0; v < amountVals; v++)
 	{
 		for (int b = 0; b < m_currentNumberOfBins; b++)
@@ -191,6 +190,7 @@ bin::BinType* iACompUniformBinning::calculateBins(bin::BinType* data, int currDa
 	}
 
 	m_uniformBinningData->setZoomedBinData(bins);
+	return bins;
 }
 
 int iACompUniformBinning::getMaxAmountInAllBins()
@@ -202,7 +202,7 @@ void iACompUniformBinning::initializeMaxAmountInBins(bin::BinType* bins, int ini
 {
 	for (int ind = 0; ind < initialNumberBins; ind++)
 	{
-		int size = bins->at(ind).size();
+		int size = static_cast<int>(bins->at(ind).size());
 		if (m_maxAmountInAllBins < size)
 		{
 			m_maxAmountInAllBins = size;

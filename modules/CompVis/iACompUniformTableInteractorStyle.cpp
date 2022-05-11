@@ -465,7 +465,8 @@ void iACompUniformTableInteractorStyle::linearZoomInHistogram()
 {
 	//linear zooming in on histogram over all bins
 	int bins = m_visualization->getBins();
-	if (bins >= m_visualization->getMinBins() && bins < m_visualization->getMaxBins())
+	//if (bins >= m_visualization->getMinBins() && bins < m_visualization->getMaxBins())
+	if (bins < m_visualization->getMaxBins())
 	{
 		bins = bins * 2;
 
@@ -478,7 +479,7 @@ void iACompUniformTableInteractorStyle::linearZoomOutHistogram()
 {
 	//linear zooming out on histogram over all bins
 	int bins = m_visualization->getBins();
-	if (bins > m_visualization->getMinBins() && bins <= m_visualization->getMaxBins())
+	if (bins > m_visualization->getMinBins())
 	{
 		bins = bins / 2;
 
@@ -491,13 +492,13 @@ void iACompUniformTableInteractorStyle::linearZoomOutHistogram()
 void iACompUniformTableInteractorStyle::nonLinearZoomIn()
 {
 	int bins = m_visualization->getBinsZoomed();
-	if (bins >= m_visualization->getMinBins() && bins < m_visualization->getMaxBins())
+	if (bins < m_visualization->getMaxBins())
 	{
 		bins = bins * 2;
 		m_visualization->setBinsZoomed(bins);
 		m_visualization->zoomInZoomedRow(bins);
 	}
-	else if (bins == m_visualization->getMaxBins())
+	else if (bins >= m_visualization->getMaxBins())
 	{  //draw point representation
 		m_visualization->drawPointRepresentation();
 		m_pointRepresentationOn = true;
@@ -516,7 +517,7 @@ void iACompUniformTableInteractorStyle::nonLinearZoomOut()
 		m_visualization->setBinsZoomed(bins);
 		m_visualization->zoomInZoomedRow(bins);
 	}
-	else if (bins > m_visualization->getMinBins() && bins <= m_visualization->getMaxBins())
+	else if (bins > m_visualization->getMinBins())
 	{
 		bins = bins / 2;
 
@@ -548,7 +549,7 @@ void iACompUniformTableInteractorStyle::updateCharts()
 
 void iACompUniformTableInteractorStyle::updateOtherCharts(QList<std::vector<csvDataType::ArrayType*>*>* selectedObjectAttributes)
 {
-	std::vector<int>* indexOfPickedRows = m_visualization->getIndexOfPickedRows();
+	//std::vector<int>* indexOfPickedRows = m_visualization->getIndexOfPickedRows();
 	csvDataType::ArrayType* selectedData = formatPickedObjects(selectedObjectAttributes);
 
 	std::map<int, std::vector<double>>* pickStatistic = calculatePickedObjects(m_zoomedRowData);

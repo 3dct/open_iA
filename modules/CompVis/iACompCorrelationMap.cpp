@@ -1239,9 +1239,10 @@ void iACompCorrelationMap::GraphInteractorStyle::drawSelectedArc(vtkSmartPointer
 
 void iACompCorrelationMap::GraphInteractorStyle::drawPercentLabel(vtkSmartPointer<vtkActor> arcActor)
 {
-	std::map<vtkSmartPointer<vtkActor>, double>* arcPercentPair = m_baseClass->getArcPercentPairs();
-	std::map<vtkSmartPointer<vtkActor>, double>::iterator iter = arcPercentPair->find(arcActor);
-	if (iter == arcPercentPair->end()) return;
+	std::map<vtkSmartPointer<vtkActor>, double>* thisArcPercentPair = m_baseClass->getArcPercentPairs();
+	std::map<vtkSmartPointer<vtkActor>, double>::iterator iter = thisArcPercentPair->find(arcActor);
+	if (iter == thisArcPercentPair->end())
+		return;
 
 	vtkSmartPointer<vtkAlgorithm> algorithm = arcActor->GetMapper()->GetInputConnection(0, 0)->GetProducer();
 	vtkSmartPointer<vtkArcSource> arc = vtkArcSource::SafeDownCast(algorithm);

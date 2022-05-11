@@ -247,7 +247,6 @@ vtkSmartPointer<vtkPolyData> iACompUniformTable::drawRow(int currDataInd, int cu
 	//store row and for each row the index which dataset it is showing
 	m_rowDataIndexPair->insert({actor, currDataInd});
 
-	double x = m_vis->getRowSize();
 	double y = (m_vis->getColSize() * currentColumn) + offset;
 
 	//add name of dataset/row

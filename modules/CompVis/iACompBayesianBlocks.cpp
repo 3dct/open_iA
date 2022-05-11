@@ -34,7 +34,7 @@ void iACompBayesianBlocks::calculateBins()
 		new QList<std::vector<csvDataType::ArrayType*>*>;  //stores data of selected objects attributes
 
 	double maxVal = m_bayesianBlocksData->getMaxVal();
-	double minVal = m_bayesianBlocksData->getMinVal();
+	
 
 	QList<std::vector<double>>* binningStrategies = new QList<std::vector<double>>;
 	
@@ -68,7 +68,7 @@ void iACompBayesianBlocks::calculateBins()
 		//calculate for each dataset the adaptive histogram according to its lower bounds of each bin
 		auto currBinningStrategy = BayesianBlocks::blocks(binningValues, 0.01, false, true);
 		
-		int currentNumberOfBins = currBinningStrategy.size();
+		int currentNumberOfBins = static_cast<int>(currBinningStrategy.size());
 		bin::BinType* bins = bin::initialize(currentNumberOfBins);
 		std::vector<csvDataType::ArrayType*>* binsWithFiberIds = new std::vector<csvDataType::ArrayType*>();
 		for (int k = 0; k < currentNumberOfBins; k++)
@@ -88,7 +88,7 @@ void iACompBayesianBlocks::calculateBins()
 		LOG(lvlDebug, " ");*/
 		//////////////////////////////////////////////////////////////////////////////////////
 		
-		int datasetInd = values.size();
+		int datasetInd = static_cast<int>(values.size());
 
 		//check for every value inside a dataset for the corresponding bin	
 		for (int v = 0; v < values.size(); v++)
@@ -166,7 +166,7 @@ void iACompBayesianBlocks::calculateBins()
 }
 
 
-bin::BinType* iACompBayesianBlocks::calculateBins(bin::BinType* data, int currData)
+bin::BinType* iACompBayesianBlocks::calculateBins(bin::BinType* , int )
 {
 	return nullptr;
 }

@@ -135,7 +135,6 @@ void iAComp3DWidget::removeAllRendererFromWidget()
 /*************** Initialization ****************************/
 void iAComp3DWidget::create3DVis()
 {
-	int vis = m_csvConfig->visType;
 	int cylinderQuality = m_csvConfig->cylinderQuality;
 	size_t segmentSkip = m_csvConfig->segmentSkip;
 	QSharedPointer<QMap<uint, uint>> columnMapping = m_io->getOutputMapping();

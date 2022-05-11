@@ -141,7 +141,7 @@ void iACompBarChart::showEvent(QShowEvent* event)
 
 void iACompBarChart::initializeBarChart()
 {
-	int numberOfBars = coefficients->size();
+	int numberOfBars = static_cast<int>(coefficients->size());
 
 	vtkBoundingBox bounds = vtkBoundingBox();
 	bounds.SetBounds(0, numberOfBars + 1, 0, 100, 0, 0);
@@ -444,7 +444,7 @@ void iACompBarChart::updateBarChart(std::vector<double>* coefficientsOriginal, s
 
 	//calculate width of selected
 	double width = (m_barWidth / maxNumberObjects) * selectedNumberObjects;
-	int numberOfBars = coefficientsSelected->size();
+	int numberOfBars = static_cast<int>(coefficientsSelected->size());
 
 	vtkSmartPointer<vtkPoints> barPositionsSelected = vtkSmartPointer<vtkPoints>::New();
 	
@@ -494,7 +494,7 @@ void iACompBarChart::updateOriginalBarChart()
 {
 	m_area->GetDrawAreaItem()->RemoveItem(m_originalBarChart);
 
-	int numberOfBars = coefficients->size();
+	int numberOfBars = static_cast<int>(coefficients->size());
 
 	vtkSmartPointer<vtkPoints> barPositionsOriginal = vtkSmartPointer<vtkPoints>::New();
 

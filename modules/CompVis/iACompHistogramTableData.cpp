@@ -190,7 +190,7 @@ bin::BinType* bin::initialize(int amountBins)
 
 void bin::debugBinType(BinType* input)
 {
-	int amountCols = input->size();
+	int amountCols = static_cast<int>(input->size());
 
 	//DEBUG
 	LOG(lvlDebug," ");
@@ -214,7 +214,7 @@ QList<bin::BinType*>* bin::DeepCopy(QList<bin::BinType*>* input)
 	for (int binInd = 0; binInd < input->size(); binInd++) 
 	{
 		bin::BinType* curBin = input->at(binInd);
-		bin::BinType* newBin = initialize(curBin->size());
+		bin::BinType* newBin = initialize(static_cast<int>(curBin->size()));
 
 		for (int indVals = 0; indVals < ((int)curBin->size()); indVals++)
 		{

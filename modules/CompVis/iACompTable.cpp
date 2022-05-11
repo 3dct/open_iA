@@ -273,7 +273,7 @@ void iACompTable::constructBins(iACompHistogramTableData* data, bin::BinType* cu
 
 	double intervalStart = 0.0;
 	std::vector<double> binBoundaries = data->getBinBoundaries()->at(currDataInd);
-	int numberOfBins = binBoundaries.size();
+	int numberOfBins = static_cast<int>(binBoundaries.size());
 
 	for (int i = 0; i < numberOfBins; i++)
 	{
@@ -489,8 +489,6 @@ vtkSmartPointer<vtkPoints> iACompTable::drawXTicks(double drawingDimensions[4], 
 {
 	double min_x = drawingDimensions[0];
 	double max_x = drawingDimensions[1];
-	double min_y = drawingDimensions[2];
-	double max_y = drawingDimensions[3];
 
 	double tickDistance = max_x / (m_numberOfTicks - 1);  //compute the regions inbetween the ticks
 

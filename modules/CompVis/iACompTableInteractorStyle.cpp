@@ -345,7 +345,7 @@ csvDataType::ArrayType* iACompTableInteractorStyle::formatPickedObjects(
 		return result;
 	}
 
-	int amountAttributes = zoomedRowData->at(0)->at(0)->at(0).size();
+	int amountAttributes = static_cast<int>(zoomedRowData->at(0)->at(0)->at(0).size());
 
 	for (int attrInd = 0; attrInd < amountAttributes; attrInd++)
 	{  //for all attributes
@@ -353,12 +353,12 @@ csvDataType::ArrayType* iACompTableInteractorStyle::formatPickedObjects(
 
 		for (int datasetInd = 0; datasetInd < amountDatasets; datasetInd++)
 		{  //for the datasets that were picked
-			int amountBins = zoomedRowData->at(datasetInd)->size();
+			int amountBins = static_cast<int>(zoomedRowData->at(datasetInd)->size());
 
 			for (int binId = 0; binId < amountBins; binId++)
 			{  //for the bins that were picked
 
-				int amountVals = zoomedRowData->at(datasetInd)->at(binId)->size();
+				int amountVals = static_cast<int>(zoomedRowData->at(datasetInd)->at(binId)->size());
 
 				for (int objInd = 0; objInd < amountVals; objInd++)
 				{

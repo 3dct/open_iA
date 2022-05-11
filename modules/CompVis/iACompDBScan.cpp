@@ -21,7 +21,7 @@ void iACompDBScan::calculateBins()
 	QList<std::vector<csvDataType::ArrayType*>*>* binDataObjects =
 		new QList<std::vector<csvDataType::ArrayType*>*>;  //stores data of selected objects attributes
 
-	double maxVal = m_dbData->getMaxVal();
+	//double maxVal = m_dbData->getMaxVal();
 	//double minVal = m_naturalBreaksData->getMinVal();
 
 	QList<std::vector<double>>* binningStrategies =
@@ -32,7 +32,7 @@ void iACompDBScan::calculateBins()
 
 		//how to compute parameters: DBSCAN Revisited, Revisited: Why and How You Should(Still) Use DBSCAN by Schubert et.al.
 		//heuristic approach: minPts = 2 · dim. --> we have 1 dimension --> minPts = 2;
-		int minPts = 2;
+		///int minPts = 2;
 		//Once you know which MinPts to choose, you can determine Epsilon:
 		/*float eps = ;
 
@@ -52,7 +52,7 @@ void iACompDBScan::calculateBins()
 	//m_dbData->debugBinDataObjects();
 }
 
-bin::BinType* iACompDBScan::calculateBins(bin::BinType* data, int currData)
+bin::BinType* iACompDBScan::calculateBins(bin::BinType* , int )
 {
 	//TODO
 	return nullptr;

@@ -30,12 +30,11 @@ void iACompNaturalBreaks::calculateBins()
 	{  // do for every dataset
 
 		std::vector<double> values = m_datasets->at(i);
-		const int n = ((int)values.size());
 
-		bin::BinType* bins;
-		bin::BinType* bestBins;
-		std::vector<csvDataType::ArrayType*>* binsWithFiberIds;
-		std::vector<csvDataType::ArrayType*>* bestBinsWithFiberIds;
+		bin::BinType* bins = new bin::BinType();
+		bin::BinType* bestBins = new bin::BinType();
+		std::vector<csvDataType::ArrayType*>* binsWithFiberIds = new std::vector<csvDataType::ArrayType*>();
+		std::vector<csvDataType::ArrayType*>* bestBinsWithFiberIds = new std::vector<csvDataType::ArrayType*>();
 		FishersNaturalBreaks::LimitsContainer currBinningStrategy;
 		FishersNaturalBreaks::LimitsContainer bestCurrBinningStrategy;
 		
@@ -173,7 +172,7 @@ double iACompNaturalBreaks::computeGoodnessOfVarianceFit(
 	return gvf;
 }
 
-bin::BinType* iACompNaturalBreaks::calculateBins(bin::BinType* data, int currData)
+bin::BinType* iACompNaturalBreaks::calculateBins(bin::BinType* , int )
 {
 	return nullptr;
 }
