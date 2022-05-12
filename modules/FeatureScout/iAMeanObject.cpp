@@ -412,9 +412,19 @@ void iAMeanObject::render(QStringList const& classNames, QList<vtkSmartPointer<v
 
 		// Update MOClass comboBox
 		m_dwMO->cb_Classes->clear();       // skip the "Unclassified" class, for which no MObject was created
-		QStringList mobjectNames(classNames.begin()+1, classNames.end());
 
-		m_dwMO->cb_Classes->addItems(classNames);
+#if QT_VERSION < QT_VERSION_CHECK(5, 14, 0)
+		QStringList mobjectNames;
+		auto it = classNames.begin() + 1;
+		while (it != classNames.end())
+		{
+			mobjectNames.append(*it);
+		}
+#else
+		QStringList mobjectNames(classNames.begin()+1, classNames.end());
+#endif
+
+		m_dwMO->cb_Classes->addItems(mobjectNames);
 		m_activeChild->tabifyDockWidget(nextToDW, m_dwMO);
 		m_dwMO->show();
 		m_dwMO->raise();
