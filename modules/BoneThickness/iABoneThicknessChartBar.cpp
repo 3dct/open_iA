@@ -271,7 +271,7 @@ int iABoneThicknessChartBar::selected(const int& _iX, const int& _iY) const
 		const double dX(screenToValueX(_iX));
 		const double dY(screenToValueY(_iY));
 
-		const vtkIdType idSelected(floor(dX));
+		const vtkIdType idSelected(std::floor(dX));
 
 		if ((dY > m_dAxisY1) && (dY < m_daThickness->GetValue(idSelected)))
 		{

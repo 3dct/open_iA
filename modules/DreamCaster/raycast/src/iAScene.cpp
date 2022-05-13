@@ -295,7 +295,7 @@ int IntersectCyl(const iARay & ray, const iAaabb & box, float & /*tmin*/, float 
 	float a = rd.x()*rd.x() + rd.y()*rd.y();
 	float b = 2*(ro.x()*rd.x() + ro.y()*rd.y());
 	float c = ro.x()*ro.x() + ro.y()*ro.y() - cylRad*cylRad;
-	float sqD = sqrt(b*b-4*a*c);
+	float sqD = std::sqrt(b*b-4*a*c);
 	float t[2] = {(-b - sqD)/(2*a), (-b + sqD)/(2*a)};
 	float z[2] = {ro.z()+t[0]*rd.z(), ro.z()+t[1]*rd.z()};
 

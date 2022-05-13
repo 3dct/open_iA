@@ -42,8 +42,6 @@ class vtkLookupTable;
 class vtkRenderer;
 class vtkScalarsToColors;
 class vtkScalarBarActor;
-class vtkScatterPlotMatrix;
-class vtkSelection;
 class vtkTable;
 
 class iAFAQSplom;

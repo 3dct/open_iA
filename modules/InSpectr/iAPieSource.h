@@ -112,8 +112,8 @@ protected:
 		{
 			double currentAngle = startAngleRad + i*theta;
 
-			x[0] = m_radius * cos(currentAngle);
-			x[1] = m_radius * sin(currentAngle);
+			x[0] = m_radius * std::cos(currentAngle);
+			x[1] = m_radius * std::sin(currentAngle);
 			x[2] = 0.0;
 			newPoints->InsertNextPoint(x);
 		}

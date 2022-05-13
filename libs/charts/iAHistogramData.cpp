@@ -291,7 +291,7 @@ QSharedPointer<iAHistogramData> iAHistogramData::create(QString const& name, iAV
 #if (defined(_MSC_VER) && _MSC_VER < 1800)
 static inline double Round(double val)
 {
-	return floor(val + 0.5);
+	return std::floor(val + 0.5);
 }
 #else
 #define Round std::round

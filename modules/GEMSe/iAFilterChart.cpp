@@ -208,12 +208,12 @@ void iAFilterChart::mousePressEvent( QMouseEvent *event )
 
 			int minX = xMapper().srcToDst(m_minSliderPos);
 			int maxX = xMapper().srcToDst(m_maxSliderPos);
-			if ( abs(x-minX) <= MarkerTriangleWidthHalf)
+			if ( std::abs(x-minX) <= MarkerTriangleWidthHalf)
 			{
 				m_selectedHandle = 0;
 				m_selectionOffset = minX - x;
 			}
-			else if ( abs(x-maxX) <= MarkerTriangleWidthHalf)
+			else if ( std::abs(x-maxX) <= MarkerTriangleWidthHalf)
 			{
 				m_selectedHandle = 1;
 				m_selectionOffset = maxX - x;

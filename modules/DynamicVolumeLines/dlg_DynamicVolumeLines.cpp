@@ -544,10 +544,10 @@ void dlg_DynamicVolumeLines::visualize()
 	else
 	{
 		double lowerBinBoarder = m_nonlinearScaledPlot->xAxis->range().lower / m_stepSize;
-		double lowerVisibleBinBoarder = ceil(lowerBinBoarder);
+		double lowerVisibleBinBoarder = std::ceil(lowerBinBoarder);
 		double lowerVisibleRest = lowerVisibleBinBoarder - lowerBinBoarder;
 		double upperBinBoarder = (m_nonlinearScaledPlot->xAxis->range().upper - m_nonlinearScaledPlot->xAxis->range().lower) / m_stepSize;	//TODO: check
-		double upperVisibleBinBoarder = floor(upperBinBoarder);
+		double upperVisibleBinBoarder = std::floor(upperBinBoarder);
 		double upperVisibleRest = upperBinBoarder - upperVisibleBinBoarder;
 		double lowerLinearVisibleRest = m_linearHistBinBoarderVec[lowerVisibleBinBoarder - 1] - m_linearScaledPlot->xAxis->range().lower;
 		double upperLinearVisibleRest = m_linearScaledPlot->xAxis->range().upper - m_linearHistBinBoarderVec[upperVisibleBinBoarder - 1];
@@ -632,7 +632,7 @@ void dlg_DynamicVolumeLines::calcNonLinearMapping()
 			imp = innerEnsembleDistList[i];
 			imp /= maxInnerEnsableDist;
 		}
-		imp = pow(imp * 1, sb_nonlinearScalingFactor->value()); // //imp = pow(imp*2,-0.9);
+		imp = std::pow(imp * 1, sb_nonlinearScalingFactor->value()); // //imp = pow(imp*2,-0.9);
 		m_impFunctVec.append(imp);
 		m_nonlinearMappingVec.append(i == 0 ? imp : m_nonlinearMappingVec[i - 1] + imp);
 
@@ -663,7 +663,7 @@ void dlg_DynamicVolumeLines::generateSegmentTree()
 	int subhistBinCnt = sb_subHistBinCnt->value(), lowerBnd = 0, upperBnd = 65535,
 		plotBinWidth = sb_histBinWidth->value(),
 		plotWidth = m_linearScaledPlot->axisRect()->rect().width(),
-		plotBinCnt = ceil(plotWidth / (double)plotBinWidth);
+		plotBinCnt = std::ceil(plotWidth / (double)plotBinWidth);
 	double rgb[3]; QColor c;
 	m_stepSize = (m_nonlinearMappingVec.last() - m_nonlinearMappingVec.first()) / (plotWidth / (double)plotBinWidth);
 	m_histBinImpFunctAvgVec.clear();
@@ -721,8 +721,8 @@ void dlg_DynamicVolumeLines::generateSegmentTree()
 
 		double linearLowerDbl = nonlinearLowerIdx + lowerDistToCurrPoint / lowerDistToNextPoint;
 		double linearUpperDbl = nonlinearUpperIdx - 1 + upperDistToCurrPoint / upperDistToNextPoint;
-		int linearLowerIdx = floor(linearLowerDbl);
-		int linearUpperIdx = floor(linearUpperDbl);
+		int linearLowerIdx = std::floor(linearLowerDbl);
+		int linearUpperIdx = std::floor(linearUpperDbl);
 
 		double sum = 0.0, avg = 0.0;
 		for (int i = nonlinearLowerIdx; i <= nonlinearUpperIdx; ++i)
@@ -1019,10 +1019,10 @@ void dlg_DynamicVolumeLines::syncLinearXAxis(QCPRange nonlinearXRange)
 	else
 	{
 		double lowerBinBoarder = nonlinearXRange.lower / m_stepSize;
-		double lowerVisibleBinBoarder = ceil(lowerBinBoarder);
+		double lowerVisibleBinBoarder = std::ceil(lowerBinBoarder);
 		double lowerVisibleRest = lowerVisibleBinBoarder - lowerBinBoarder;
 		double upperBinBoarder = (nonlinearXRange.upper /*- nonlinearXRange.lower*/) / m_stepSize;
-		double upperVisibleBinBoarder = floor(upperBinBoarder);
+		double upperVisibleBinBoarder = std::floor(upperBinBoarder);
 		double upperVisibleRest = upperBinBoarder - upperVisibleBinBoarder;
 		double lowerLinearVisibleRest = m_linearHistBinBoarderVec[lowerVisibleBinBoarder - 1] - linearLowerBinBoarder;
 		double upperLinearVisibleRest = linearUpperBinBoarder - m_linearHistBinBoarderVec[upperVisibleBinBoarder - 1];
@@ -1071,27 +1071,27 @@ void dlg_DynamicVolumeLines::syncNonlinearXAxis(QCPRange linearXRange)
 		m_linearScaledPlot->xAxis->setRange(boundedRange);
 	}
 
-	double lowerDistToNextPoint = m_nonlinearMappingVec[ceil(linearXRange.lower)] -
-		m_nonlinearMappingVec[floor(linearXRange.lower)];
-	double lowerDistToCurrPoint = linearXRange.lower - floor(linearXRange.lower);
+	double lowerDistToNextPoint = m_nonlinearMappingVec[std::ceil(linearXRange.lower)] -
+		m_nonlinearMappingVec[std::floor(linearXRange.lower)];
+	double lowerDistToCurrPoint = linearXRange.lower - std::floor(linearXRange.lower);
 	if (lowerDistToCurrPoint < 0)
 	{
 		lowerDistToCurrPoint = 0;
 	}
 
 	double upperDistToNextPoint = 1.0, upperDistToCurrPoint = 0.0;
-	if (ceil(linearXRange.upper) < m_nonlinearMappingVec.size())
+	if (std::ceil(linearXRange.upper) < m_nonlinearMappingVec.size())
 	{
 		upperDistToNextPoint =
-			m_nonlinearMappingVec[ceil(linearXRange.upper)] -
-			m_nonlinearMappingVec[floor(linearXRange.upper)];
+			m_nonlinearMappingVec[std::ceil(linearXRange.upper)] -
+			m_nonlinearMappingVec[std::floor(linearXRange.upper)];
 		upperDistToCurrPoint =
-			linearXRange.upper - floor(linearXRange.upper);
+			linearXRange.upper - std::floor(linearXRange.upper);
 	}
 
-	double newLower = m_nonlinearMappingVec[floor(linearXRange.lower)] +
+	double newLower = m_nonlinearMappingVec[std::floor(linearXRange.lower)] +
 		lowerDistToCurrPoint * lowerDistToNextPoint;
-	double newUpper = m_nonlinearMappingVec[floor(linearXRange.upper)] +
+	double newUpper = m_nonlinearMappingVec[std::floor(linearXRange.upper)] +
 		upperDistToCurrPoint * upperDistToNextPoint;
 
 	m_nonlinearScaledPlot->xAxis->blockSignals(true);
@@ -1103,20 +1103,20 @@ void dlg_DynamicVolumeLines::syncNonlinearXAxis(QCPRange linearXRange)
 	if (!m_histVisMode)
 	{
 		m_scalingWidget->setRange(
-			floor(linearXRange.lower),
-			ceil(linearXRange.upper),
+			std::floor(linearXRange.lower),
+			std::ceil(linearXRange.upper),
 			lowerDistToCurrPoint * lowerDistToNextPoint,
-			(ceil(linearXRange.upper) - linearXRange.upper) * upperDistToNextPoint,
+			(std::ceil(linearXRange.upper) - linearXRange.upper) * upperDistToNextPoint,
 			lowerDistToCurrPoint,
 			upperDistToCurrPoint);
 	}
 	else
 	{
 		double lowerBinBoarder = newLower / m_stepSize;
-		double lowerVisibleBinBoarder = ceil(lowerBinBoarder);
+		double lowerVisibleBinBoarder = std::ceil(lowerBinBoarder);
 		double lowerVisibleRest = lowerVisibleBinBoarder - lowerBinBoarder;
 		double upperBinBoarder = (newUpper /*- nonlinearXRange.lower*/) / m_stepSize;
-		double upperVisibleBinBoarder = floor(upperBinBoarder);
+		double upperVisibleBinBoarder = std::floor(upperBinBoarder);
 		double upperVisibleRest = upperBinBoarder - upperVisibleBinBoarder;
 		double lowerLinearVisibleRest = m_linearHistBinBoarderVec[lowerVisibleBinBoarder - 1] - linearXRange.lower;
 		double upperLinearVisibleRest = linearXRange.upper - m_linearHistBinBoarderVec[upperVisibleBinBoarder - 1];
@@ -1258,9 +1258,9 @@ void dlg_DynamicVolumeLines::mouseMove(QMouseEvent* e)
 				.arg(int(x)).arg((int)y));
 		}
 
-		double nonlinearDistToNextPoint = m_nonlinearMappingVec[ceil(x)] - m_nonlinearMappingVec[floor(x)];
-		double distToCurrPoint = x - floor(x);
-		double nonlinearXCoord = m_nonlinearMappingVec[floor(x)] + distToCurrPoint * nonlinearDistToNextPoint;
+		double nonlinearDistToNextPoint = m_nonlinearMappingVec[std::ceil(x)] - m_nonlinearMappingVec[std::floor(x)];
+		double distToCurrPoint = x - std::floor(x);
+		double nonlinearXCoord = m_nonlinearMappingVec[std::floor(x)] + distToCurrPoint * nonlinearDistToNextPoint;
 
 		m_nonlinearIdxLine->point1->setCoords(nonlinearXCoord, 0.0);
 		m_nonlinearIdxLine->point2->setCoords(nonlinearXCoord, 1.0);
@@ -1489,7 +1489,7 @@ void dlg_DynamicVolumeLines::updateFBPView()
 
 void dlg_DynamicVolumeLines::setFBPTransparency(int value)
 {
-	double alpha = round(value * 255 / 100.0);
+	double alpha = std::round(value * 255 / 100.0);
 	QPen p; QColor c; QBrush b;
 	for (int i = m_DatasetIntensityMap.size(); i < m_nonlinearScaledPlot->graphCount(); ++i)
 	{
@@ -1655,7 +1655,7 @@ void dlg_DynamicVolumeLines::setSelectionForRenderer(QList<QCPGraph *> visSelGra
 
 		m_imgDataList[datasetIdx]->Modified();
 		float viewportCols = visSelGraphList.size() < 3.0 ? fmod(visSelGraphList.size(), 3.0) : 3.0;
-		float viewportRows = ceil(visSelGraphList.size() / viewportCols);
+		float viewportRows = std::ceil(visSelGraphList.size() / viewportCols);
 		float fieldLengthX = 1.0 / viewportCols, fieldLengthY = 1.0 / viewportRows;
 
 		auto cornerAnnotation = vtkSmartPointer<vtkCornerAnnotation>::New();
@@ -1688,9 +1688,9 @@ void dlg_DynamicVolumeLines::setSelectionForRenderer(QList<QCPGraph *> visSelGra
 		ren->SetActiveCamera(m_mdiChild->renderer()->camera());
 		ren->GetActiveCamera()->ParallelProjectionOn();
 		ren->SetViewport(fmod(i, viewportCols) * fieldLengthX,
-			1 - (ceil((i + 1.0) / viewportCols) / viewportRows),
+			1 - (std::ceil((i + 1.0) / viewportCols) / viewportRows),
 			fmod(i, viewportCols) * fieldLengthX + fieldLengthX,
-			1 - (ceil((i + 1.0) / viewportCols) / viewportRows) + fieldLengthY);
+			1 - (std::ceil((i + 1.0) / viewportCols) / viewportRows) + fieldLengthY);
 		ren->AddViewProp(cornerAnnotation);
 		ren->ResetCamera();
 		m_volRen = QSharedPointer<iAVolumeRenderer>::create(&tf, m_imgDataList[datasetIdx]);

@@ -20,12 +20,21 @@
 * ************************************************************************************/
 #include "iAMeanObject.h"
 
-#include "iALog.h"
-#include "iAObjectType.h"
-#include "ui_FeatureScoutMOTFView.h"
 #include "ui_FeatureScoutMeanObjectView.h"
 
+// base
 #include <defines.h>    // for DIM
+#include <iAFileUtils.h>
+#include <iALog.h>
+#include <iAToolsVTK.h>
+
+// charts
+#include <iAChartWithFunctionsWidget.h>
+
+// objectvis
+#include <iAObjectType.h>
+
+// guibase
 #include <iAJobListView.h>
 #include <iAModalityTransfer.h>
 #include <iAMultiStepProgressObserver.h>
@@ -33,10 +42,7 @@
 #include <iARunAsync.h>
 #include <iAMdiChild.h>
 
-#include <iAChartWithFunctionsWidget.h>
-
-#include <iAFileUtils.h>
-
+// ITK
 #include <itkAddImageFilter.h>
 #include <itkBinaryThresholdImageFilter.h>
 #include <itkCastImageFilter.h>
@@ -46,6 +52,7 @@
 #include <itkPasteImageFilter.h>
 #include <itkVTKImageToImageFilter.h>
 
+// VTK
 #include <vtkActor.h>
 #include <vtkCamera.h>
 #include <vtkCornerAnnotation.h>
@@ -66,18 +73,10 @@
 #include <vtkVolume.h>
 #include <vtkVolumeProperty.h>
 
+// Qt
 #include <QMessageBox>
 #include <QStandardItem>
 #include <QFileDialog>
-
-class iAMeanObjectTFView : public QDialog, public Ui_MOTFView
-{
-public:
-	iAMeanObjectTFView(QWidget* parent = nullptr) : QDialog(parent)
-	{
-		setupUi(this);
-	}
-};
 
 class iAMeanObjectDockWidget : public QDockWidget, public Ui_FeatureScoutMO
 {
@@ -113,9 +112,14 @@ iAMeanObject::iAMeanObject(iAMdiChild* activeChild, QString const& sourcePath) :
 void iAMeanObject::render(QStringList const& classNames, QList<vtkSmartPointer<vtkTable>> const& tableList,
 	int filterID, QDockWidget* nextToDW, vtkCamera* commonCamera, QList<QColor> const& classColor)
 {
+	int classCount = classNames.size();
+	if (classCount <= 1)
+	{
+		QMessageBox::warning(m_activeChild, "MObjects", "You need to define at least one class for Mean Objects to be computed!");
+		return;
+	}
 	try
 	{
-		int classCount = classNames.size();
 		m_filterID = filterID;
 		iAProgress p;
 		auto jobHandle = iAJobListView::get()->addJob("Compute Mean Object", &p);
@@ -276,7 +280,7 @@ void iAMeanObject::render(QStringList const& classNames, QList<vtkSmartPointer<v
 				addFilter->Update();
 				addImage = addFilter->GetOutput();
 
-				double percentage = round((currClass - 1) * 100.0 / (classCount - 1) +
+				double percentage = std::round((currClass - 1) * 100.0 / (classCount - 1) +
 					(progress + 1.0) * (100.0 / (classCount - 1)) / meanObjectIds.size());
 				p.emitProgress(percentage);
 				QCoreApplication::processEvents();
@@ -391,8 +395,8 @@ void iAMeanObject::render(QStringList const& classNames, QList<vtkSmartPointer<v
 		{
 			m_dwMO = new iAMeanObjectDockWidget(m_activeChild);
 			connect(m_dwMO->pb_ModTF, &QToolButton::clicked, this, &iAMeanObject::modifyMeanObjectTF);
-			connect(m_dwMO->tb_OpenDataFolder, &QToolButton::clicked, this, &iAMeanObject::browseFolderDialog);
-			connect(m_dwMO->tb_SaveStl, &QToolButton::clicked, this, &iAMeanObject::saveStl);
+			connect(m_dwMO->tb_saveStl, &QToolButton::clicked, this, &iAMeanObject::saveStl);
+			connect(m_dwMO->tb_saveVolume, &QToolButton::clicked, this, &iAMeanObject::saveVolume);
 
 			// Create a render window and an interactor for all the MObjects
 			m_meanObjectWidget = new iAQVTKWidget();
@@ -407,8 +411,20 @@ void iAMeanObject::render(QStringList const& classNames, QList<vtkSmartPointer<v
 		}
 
 		// Update MOClass comboBox
-		m_dwMO->cb_Classes->clear();
-		m_dwMO->cb_Classes->addItems(classNames);
+		m_dwMO->cb_Classes->clear();       // skip the "Unclassified" class, for which no MObject was created
+
+#if QT_VERSION < QT_VERSION_CHECK(5, 14, 0)
+		QStringList mobjectNames;
+		auto it = classNames.begin() + 1;
+		while (it != classNames.end())
+		{
+			mobjectNames.append(*it);
+		}
+#else
+		QStringList mobjectNames(classNames.begin()+1, classNames.end());
+#endif
+
+		m_dwMO->cb_Classes->addItems(mobjectNames);
 		m_activeChild->tabifyDockWidget(nextToDW, m_dwMO);
 		m_dwMO->show();
 		m_dwMO->raise();
@@ -419,7 +435,7 @@ void iAMeanObject::render(QStringList const& classNames, QList<vtkSmartPointer<v
 		// Define viewport variables
 		int numberOfMeanObjectVolumes = m_MOData->moVolumesList.size();
 		float viewportColumns = numberOfMeanObjectVolumes < 3 ? fmod(numberOfMeanObjectVolumes, 3.0) : 3.0;
-		float viewportRows = ceil(numberOfMeanObjectVolumes / viewportColumns);
+		float viewportRows = std::ceil(numberOfMeanObjectVolumes / viewportColumns);
 		float fieldLengthX = 1.0 / viewportColumns, fieldLengthY = 1.0 / viewportRows;
 		int numOfViewPorts = static_cast<int>(viewportColumns * viewportRows);
 		// Set up viewports
@@ -431,9 +447,9 @@ void iAMeanObject::render(QStringList const& classNames, QList<vtkSmartPointer<v
 			renderer->SetBackground(1.0, 1.0, 1.0);
 			m_meanObjectWidget->renderWindow()->AddRenderer(m_MOData->moRendererList[i]);
 			renderer->SetViewport(fmod(i, viewportColumns) * fieldLengthX,
-				1 - (ceil((i + 1.0) / viewportColumns) / viewportRows),
+				1 - (std::ceil((i + 1.0) / viewportColumns) / viewportRows),
 				fmod(i, viewportColumns) * fieldLengthX + fieldLengthX,
-				1 - (ceil((i + 1.0) / viewportColumns) / viewportRows) + fieldLengthY);
+				1 - (std::ceil((i + 1.0) / viewportColumns) / viewportRows) + fieldLengthY);
 
 			if (i < m_MOData->moVolumesList.size())
 			{
@@ -495,68 +511,101 @@ void iAMeanObject::render(QStringList const& classNames, QList<vtkSmartPointer<v
 	}
 	catch (itk::ExceptionObject& excep)
 	{
-		QString msg = QString("MObject: Error in computation: %1 in File %2, Line %3.")
+		QString msg = QString("Error in computation: %1 in File %2, Line %3.")
 						  .arg(excep.GetDescription())
 						  .arg(excep.GetFile())
 						  .arg(excep.GetLine());
-		LOG(lvlError, msg);
+		LOG(lvlError, QString("MObjects: %1").arg(msg));
 		QMessageBox::warning(m_activeChild, "MObjects", msg + "\nCheck whether you provided a proper labeled image!");
+	}
+	catch (std::bad_alloc& e)
+	{
+		QString msg = QString("Allocation failed: %1").arg(e.what());
+		LOG(lvlError, QString("MObjects: %1").arg(msg));
+		QMessageBox::warning(m_activeChild, "MObjects", msg + "\nCheck whether you can free some memory, operate on a smaller dataset, or use a machine with more RAM!");
 	}
 }
 
 void iAMeanObject::modifyMeanObjectTF()
 {
-	m_motfView = new iAMeanObjectTFView(m_activeChild);
-	m_motfView->setWindowTitle(QString("%1 %2 Mean Object Transfer Function")
-								   .arg(m_dwMO->cb_Classes->itemText(m_dwMO->cb_Classes->currentIndex()))
-								   .arg(MapObjectTypeToString(m_filterID)));
-	iAChartWithFunctionsWidget* histogram = m_activeChild->histogram();
-	connect(histogram, &iAChartWithFunctionsWidget::updateViews, this, &iAMeanObject::updateMOView);
-	m_motfView->horizontalLayout->addWidget(histogram);
+	//delete m_motfView;	// in case it was previously open
+	int moIndex = m_dwMO->cb_Classes->currentIndex();
+	if (moIndex < 0 || moIndex >= m_MOData->moHistogramList.size())
+	{	// if outside valid range - just to be on the safe side
+		LOG(lvlError, QString("Invalid Mean Object index %1!").arg(moIndex));
+		return;
+	}
+	m_motfView = new QDialog(m_activeChild);
+	m_motfView->setWindowTitle(QString("%1 Mean Object Transfer Function")
+								   .arg(m_dwMO->cb_Classes->itemText(m_dwMO->cb_Classes->currentIndex())));
+	//iAChartWithFunctionsWidget* histogram = m_activeChild->histogram();
+	auto histogram = new iAChartWithFunctionsWidget(m_motfView, "Probability", "Frequency");
+	histogram->setTransferFunction(m_MOData->moHistogramList[moIndex]);
+	connect(histogram, &iAChartWithFunctionsWidget::updateViews, this,
+		[this] { m_meanObjectWidget->renderWindow()->Render(); });
+	m_motfView->setLayout(new QHBoxLayout);
+	m_motfView->layout()->addWidget(histogram);
 	histogram->show();
 	m_motfView->show();
 }
 
-void iAMeanObject::updateMOView()
-{
-	m_meanObjectWidget->renderWindow()->Render();
-}
-
-void iAMeanObject::browseFolderDialog()
-{
-	QString filename = QFileDialog::getSaveFileName(m_dwMO, tr("Save STL File"), m_sourcePath, tr("STL Files (*.stl)"));
-	if (filename.isEmpty())
-	{
-		return;
-	}
-	m_dwMO->le_StlPath->setText(filename);
-}
-
 void iAMeanObject::saveStl()
 {
-	if (m_dwMO->le_StlPath->text().isEmpty())
-	{
-		QMessageBox::warning(m_activeChild, "FeatureScout", "No save file destination specified.");
+	int moIndex = m_dwMO->cb_Classes->currentIndex();
+	if (moIndex < 0 || moIndex >= m_MOData->moHistogramList.size())
+	{  // if outside valid range - just to be on the safe side
+		LOG(lvlError, QString("Invalid Mean Object index %1!").arg(moIndex));
 		return;
 	}
+	auto fileName = QFileDialog::getSaveFileName(m_dwMO, tr("Save STL File"), m_sourcePath, tr("STL Files (*.stl)"));
+	if (fileName.isEmpty())
+	{
+		return;
+	}
+	int isoValue = m_dwMO->dsb_IsoValue->value();
 
-	iAMultiStepProgressObserver* progress = new iAMultiStepProgressObserver(2);
+	auto progress = new iAMultiStepProgressObserver(2);
 	auto job = runAsync(
-		[this, progress] {
+		[this, progress, moIndex, isoValue, fileName]
+		{
 			auto moSurface = vtkSmartPointer<vtkMarchingCubes>::New();
 			progress->observe(moSurface);
-			moSurface->SetInputData(m_MOData->moImageDataList[m_dwMO->cb_Classes->currentIndex()]);
+			moSurface->SetInputData(m_MOData->moImageDataList[moIndex]);
 			moSurface->ComputeNormalsOn();
 			moSurface->ComputeGradientsOn();
-			moSurface->SetValue(0, m_dwMO->dsb_IsoValue->value());
+			moSurface->SetValue(0, isoValue);
 
 			progress->setCompletedSteps(1);
 			auto stlWriter = vtkSmartPointer<vtkSTLWriter>::New();
 			progress->observe(stlWriter);
-			stlWriter->SetFileName(getLocalEncodingFileName(m_dwMO->le_StlPath->text()).c_str());
+			stlWriter->SetFileName(getLocalEncodingFileName(fileName).c_str());
 			stlWriter->SetInputConnection(moSurface->GetOutputPort());
 			stlWriter->Write();
 		},
 		[progress] { delete progress; }, m_dwMO);
 	iAJobListView::get()->addJob("Saving STL", progress->progressObject(), job);
+}
+
+void iAMeanObject::saveVolume()
+{
+	int moIndex = m_dwMO->cb_Classes->currentIndex();
+	if (moIndex < 0 || moIndex >= m_MOData->moHistogramList.size())
+	{  // if outside valid range - just to be on the safe side
+		LOG(lvlError, QString("Invalid Mean Object index %1!").arg(moIndex));
+		return;
+	}
+	auto fileName = QFileDialog::getSaveFileName(m_dwMO, tr("Save MObject as Volume"),
+		m_sourcePath, tr("MHD files (*.mhd);;")); // TODO: enable choice of all other supported volume formats?
+	if (fileName.isEmpty())
+	{
+		return;
+	}
+	auto progress = new iAProgress;
+	auto job = runAsync([this, progress, moIndex, fileName]
+		{
+			storeImage(m_MOData->moImageDataList[moIndex], fileName);
+			progress->emitProgress(100);
+		},
+		[progress] { delete progress; }, m_dwMO);
+	iAJobListView::get()->addJob("Saving Mean Object volume", progress, job);
 }

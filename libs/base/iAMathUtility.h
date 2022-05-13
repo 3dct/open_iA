@@ -173,15 +173,9 @@ T invertValue(T const * range, T const value)
 	return range[1] + range[0] - value;
 }
 
-//! Round a number to the nearest integer representation (by "round half away from zero" method).
-//! @param number the number to round
-//! @return the rounded number
-template <typename T>
-T round(T const & number)
-{
-	return number < 0.0 ? std::ceil(number - 0.5) : std::floor(number + 0.5);
-}
-
+//#if __cplusplus >= 202002L
+// TODO: replace with std::lerp when C++ standard is raised to C++20
+//#endif
 //! Linear interpolation in a given range.
 //! @param a minimum of the interpolation range
 //! @param b maximum of the interpolation range

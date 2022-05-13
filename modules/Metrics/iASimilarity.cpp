@@ -110,7 +110,7 @@ void similarity_metrics(iAFilter* filter, QMap<QString, QVariant> const & parame
 	}
 	if (parameters["Peak Signal-to-Noise Ratio"].toBool())
 	{
-		double psnr = 20 * std::log10(range) - 10 * log10(mse);
+		double psnr = 20 * std::log10(range) - 10 * std::log10(mse);
 		filter->addOutputValue("Peak Signal-to-Noise Ratio", psnr);
 	}
 	if (parameters["Mean Absolute Error"].toBool())

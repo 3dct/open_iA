@@ -97,8 +97,8 @@ iAFiberData iAFiberData::getOrientationCorrected(iAFiberData const & source, iAF
 		}
 		else
 		{
-			result.phi = asin(dir.y() / sqrt(dir.x()*dir.x() + dir.y() * dir.y()));
-			result.theta = acos(dir.z() / sqrt(dir.x()*dir.x() + dir.y() * dir.y() + dir.z() * dir.z()));
+			result.phi = std::asin(dir.y() / std::sqrt(dir.x()*dir.x() + dir.y() * dir.y()));
+			result.theta = std::acos(dir.z() / std::sqrt(dir.x()*dir.x() + dir.y() * dir.y() + dir.z() * dir.z()));
 			result.phi = vtkMath::DegreesFromRadians(result.phi);
 			result.theta = vtkMath::DegreesFromRadians(result.theta);
 			// locate the phi value to quadrant
@@ -221,7 +221,7 @@ namespace
 		{
 			sqdiffsum += std::pow(vec2[cur] - vec1[cur], 2);
 		}
-		return sqrt(sqdiffsum);
+		return std::sqrt(sqdiffsum);
 	}
 
 	void sampleSegmentPoints(iAVec3f const & start, iAVec3f const & dir, double radius, std::vector<iAVec3f> & result, size_t numSamples)

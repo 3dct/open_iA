@@ -845,9 +845,9 @@ void dlg_FeatureScout::RenderOrientation()
 		{
 			double phi_rad = vtkMath::RadiansFromDegrees((double)phi),
 				theta_rad = vtkMath::RadiansFromDegrees((double)theta);
-			double recCoord[3] = { sin(theta_rad) * cos(phi_rad),
-				sin(theta_rad) * sin(phi_rad),
-				cos(theta_rad) };
+			double recCoord[3] = { std::sin(theta_rad) * std::cos(phi_rad),
+				std::sin(theta_rad) * std::sin(phi_rad),
+				std::cos(theta_rad) };
 			double* p = static_cast<double*>(oi->GetScalarPointer(theta, phi, 0));
 			vtkMath::Normalize(recCoord);
 			getColorMap(m_dwPP->orientationColorMap->currentIndex())(recCoord, p);
@@ -871,8 +871,8 @@ void dlg_FeatureScout::RenderOrientation()
 		for (int theta = 0; theta < 91; ++theta)
 		{
 			angle = phi * M_PI / 180.0;
-			xx = theta * cos(angle);
-			yy = theta * sin(angle);
+			xx = theta * std::cos(angle);
+			yy = theta * std::sin(angle);
 			points->InsertNextPoint(xx, yy, 0.0);
 			double* p = static_cast<double*>(oi->GetScalarPointer(theta, phi, 0));
 			unsigned char color[3];
@@ -1282,7 +1282,7 @@ void dlg_FeatureScout::CsvDVSaveButton()
 	//Sets up a chart matrix for the feature distribution charts
 	vtkNew<vtkChartMatrix> distributionChartMatrix;
 	distributionChartMatrix->SetSize(vtkVector2i(characteristicsList.count() < 3 ?
-		characteristicsList.count() % 3 : 3, ceil(characteristicsList.count() / 3.0)));
+		characteristicsList.count() % 3 : 3, std::ceil(characteristicsList.count() / 3.0)));
 	distributionChartMatrix->SetGutter(vtkVector2f(70.0, 70.0));
 
 	//Calculates histogram for each selected characteristic
@@ -2698,8 +2698,8 @@ void dlg_FeatureScout::drawAnnotations(vtkRenderer* renderer)
 			rx = 95.0;
 		}
 
-		x[0] = rx * cos(phi);
-		x[1] = rx * sin(phi);
+		x[0] = rx * std::cos(phi);
+		x[1] = rx * std::sin(phi);
 		x[2] = 0.0;
 
 		pts->SetPoint(i, x);
@@ -2712,8 +2712,8 @@ void dlg_FeatureScout::drawAnnotations(vtkRenderer* renderer)
 	{
 		double phi = 270.0 * M_PI / 180.0;
 		double rx = (numPoints - i) * 15.0;
-		x[0] = rx * cos(phi);
-		x[1] = rx * sin(phi);
+		x[0] = rx * std::cos(phi);
+		x[1] = rx * std::sin(phi);
 		x[2] = 0.0;
 
 		pts->SetPoint(i, x);
@@ -2759,8 +2759,8 @@ void dlg_FeatureScout::drawPolarPlotMesh(vtkRenderer* renderer)
 		for (int j = 0; j < at; ++j)
 		{
 			double rx = j * re;
-			xx = rx * cos(phi);
-			yy = rx * sin(phi);
+			xx = rx * std::cos(phi);
+			yy = rx * std::sin(phi);
 			points->InsertNextPoint(xx, yy, 0.0);
 		}
 	}
@@ -2846,8 +2846,8 @@ void dlg_FeatureScout::updatePolarPlotView(vtkTable* it)
 		for (int y = 0; y < m_gPhi; ++y)
 		{
 			double phi = y * m_PolarPlotPhiResolution * M_PI / 180.0;
-			double xx = rx * cos(phi);
-			double yy = rx * sin(phi);
+			double xx = rx * std::cos(phi);
+			double yy = rx * std::sin(phi);
 			double zz = table->GetValue(y, x).ToDouble();
 
 			if (m_draw3DPolarPlot)

@@ -43,7 +43,6 @@ class iASelectionsView;
 class QTreeWidgetItem;
 class QTableWidget;
 class vtkIdTypeArray;
-class vtkSelection;
 struct iASelection;
 class iASegm3DView;
 class iAPreviewSPLOMView;

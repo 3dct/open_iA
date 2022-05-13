@@ -1044,11 +1044,11 @@ void iAChartWidget::mouseMoveEvent(QMouseEvent *event)
 #endif
 			if (diff < 0)
 			{
-				zoomAlongY(-pow(ZoomYStep,-diff)+ m_yZoomStart, false);
+				zoomAlongY(-std::pow(ZoomYStep,-diff)+ m_yZoomStart, false);
 			}
 			else
 			{
-				zoomAlongY(pow(ZoomYStep,diff)+ m_yZoomStart, false);
+				zoomAlongY(std::pow(ZoomYStep,diff)+ m_yZoomStart, false);
 			}
 			update();
 		}

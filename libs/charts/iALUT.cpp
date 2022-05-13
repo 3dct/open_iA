@@ -89,8 +89,7 @@ void iALUT::loadMaps(QString const& folder)
 		}
 		auto name = jsonName.toString();
 
-		double colorRange;
-		;
+		double colorRange = 0;
 		if (!jsonValToDouble(rootObj.value("colorRange"), colorRange) )
 		{
 			LOG(lvlWarn,

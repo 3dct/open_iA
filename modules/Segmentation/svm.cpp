@@ -50,12 +50,7 @@ SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 int libsvm_version = LIBSVM_VERSION;
 typedef float Qfloat;
 typedef signed char schar;
-#ifndef min
-template <class T> static inline T min(T x,T y) { return (x<y)?x:y; }
-#endif
-#ifndef max
-template <class T> static inline T max(T x,T y) { return (x>y)?x:y; }
-#endif
+
 template <class S, class T> static inline void clone(T*& dst, S* src, int n)
 {
 	dst = new T[n];
@@ -138,7 +133,7 @@ Cache::Cache(int l_,long int size_):l(l_),size(size_)
 	head = (head_t *)calloc(l,sizeof(head_t));	// initialized to 0
 	size /= sizeof(Qfloat);
 	size -= l * sizeof(head_t) / sizeof(Qfloat);
-	size = max(size, 2 * (long int) l);	// cache must be large enough for two columns
+	size = std::max(size, 2 * (long int) l);	// cache must be large enough for two columns
 	lru_head.next = lru_head.prev = &lru_head;
 }
 
@@ -280,7 +275,7 @@ private:
 	}
 	double kernel_rbf(int i, int j) const
 	{
-		return exp(-gamma*(x_square[i]+x_square[j]-2*dot(x[i],x[j])));
+		return std::exp(-gamma*(x_square[i]+x_square[j]-2*dot(x[i],x[j])));
 	}
 	double kernel_sigmoid(int i, int j) const
 	{
@@ -403,7 +398,7 @@ double Kernel::k_function(const svm_node *x, const svm_node *y,
 				++y;
 			}
 
-			return exp(-param.gamma*sum);
+			return std::exp(-param.gamma*sum);
 		}
 		case SIGMOID:
 			return tanh(param.gamma*dot(x,y)+param.coef0);
@@ -600,8 +595,8 @@ void Solver::Solve(int l, const Q_Matrix& Q, const double *p_, const schar *y_,
 	// optimization step
 
 	int iter = 0;
-	int max_iter = max(10000000, l>INT_MAX/100 ? INT_MAX : 100*l);
-	int counter = min(l,1000)+1;
+	int max_iter = std::max(10000000, l>INT_MAX/100 ? INT_MAX : 100*l);
+	int counter = std::min(l,1000)+1;
 
 	while(iter < max_iter)
 	{
@@ -609,7 +604,7 @@ void Solver::Solve(int l, const Q_Matrix& Q, const double *p_, const schar *y_,
 
 		if(--counter == 0)
 		{
-			counter = min(l,1000);
+			counter = std::min(l,1000);
 			if(shrinking) do_shrinking();
 			info(".");
 		}
@@ -1017,16 +1012,16 @@ double Solver::calculate_rho()
 		if(is_upper_bound(i))
 		{
 			if(m_y[i]==-1)
-				ub = min(ub,yG);
+				ub = std::min(ub,yG);
 			else
-				lb = max(lb,yG);
+				lb = std::max(lb,yG);
 		}
 		else if(is_lower_bound(i))
 		{
 			if(m_y[i]==+1)
-				ub = min(ub,yG);
+				ub = std::min(ub,yG);
 			else
-				lb = max(lb,yG);
+				lb = std::max(lb,yG);
 		}
 		else
 		{
@@ -1168,7 +1163,7 @@ int Solver_NU::select_working_set(int &out_i, int &out_j)
 		}
 	}
 
-	if(max(Gmaxp+Gmaxp2,Gmaxn+Gmaxn2) < m_eps || Gmin_idx == -1)
+	if(std::max(Gmaxp+Gmaxp2,Gmaxn+Gmaxn2) < m_eps || Gmin_idx == -1)
 		return 1;
 
 	if (m_y[Gmin_idx] == +1)
@@ -1229,7 +1224,7 @@ void Solver_NU::do_shrinking()
 		}
 	}
 
-	if(m_unshrink == false && max(Gmax1+Gmax2,Gmax3+Gmax4) <= m_eps*10)
+	if(m_unshrink == false && std::max(Gmax1+Gmax2,Gmax3+Gmax4) <= m_eps*10)
 	{
 		m_unshrink = true;
 		reconstruct_gradient();
@@ -1264,9 +1259,9 @@ double Solver_NU::calculate_rho()
 		if(m_y[i]==+1)
 		{
 			if(is_upper_bound(i))
-				lb1 = max(lb1, m_G[i]);
+				lb1 = std::max(lb1, m_G[i]);
 			else if(is_lower_bound(i))
-				ub1 = min(ub1, m_G[i]);
+				ub1 = std::min(ub1, m_G[i]);
 			else
 			{
 				++nr_free1;
@@ -1276,9 +1271,9 @@ double Solver_NU::calculate_rho()
 		else
 		{
 			if(is_upper_bound(i))
-				lb2 = max(lb2, m_G[i]);
+				lb2 = std::max(lb2, m_G[i]);
 			else if(is_lower_bound(i))
-				ub2 = min(ub2, m_G[i]);
+				ub2 = std::min(ub2, m_G[i]);
 			else
 			{
 				++nr_free2;
@@ -1536,12 +1531,12 @@ static void solve_nu_svc(
 	for(i=0;i<l;i++)
 		if(y[i] == +1)
 		{
-			alpha[i] = min(1.0,sum_pos);
+			alpha[i] = std::min(1.0,sum_pos);
 			sum_pos -= alpha[i];
 		}
 		else
 		{
-			alpha[i] = min(1.0,sum_neg);
+			alpha[i] = std::min(1.0,sum_neg);
 			sum_neg -= alpha[i];
 		}
 
@@ -1653,7 +1648,7 @@ static void solve_nu_svr(
 	double sum = C * param->nu * l / 2;
 	for(i=0;i<l;i++)
 	{
-		alpha2[i] = alpha2[i+l] = min(sum,C);
+		alpha2[i] = alpha2[i+l] = std::min(sum,C);
 		sum -= alpha2[i];
 
 		linear_term[i] = - prob->y[i];
@@ -1768,7 +1763,7 @@ static void sigmoid_train(
 	int iter;
 
 	// Initial Point and Initial Fun Value
-	A=0.0; B=log((prior0+1.0)/(prior1+1.0));
+	A=0.0; B=std::log((prior0+1.0)/(prior1+1.0));
 	double fval = 0.0;
 
 	for (i=0;i<l;i++)
@@ -1777,9 +1772,9 @@ static void sigmoid_train(
 		else t[i]=loTarget;
 		fApB = dec_values[i]*A+B;
 		if (fApB>=0)
-			fval += t[i]*fApB + log(1+exp(-fApB));
+			fval += t[i]*fApB + std::log(1+std::exp(-fApB));
 		else
-			fval += (t[i] - 1)*fApB +log(1+exp(fApB));
+			fval += (t[i] - 1)*fApB +std::log(1+std::exp(fApB));
 	}
 	for (iter=0;iter<max_iter;iter++)
 	{
@@ -1792,13 +1787,13 @@ static void sigmoid_train(
 			fApB = dec_values[i]*A+B;
 			if (fApB >= 0)
 			{
-				p=exp(-fApB)/(1.0+exp(-fApB));
-				q=1.0/(1.0+exp(-fApB));
+				p=std::exp(-fApB)/(1.0+std::exp(-fApB));
+				q=1.0/(1.0+std::exp(-fApB));
 			}
 			else
 			{
-				p=1.0/(1.0+exp(fApB));
-				q=exp(fApB)/(1.0+exp(fApB));
+				p=1.0/(1.0+std::exp(fApB));
+				q=std::exp(fApB)/(1.0+std::exp(fApB));
 			}
 			d2=p*q;
 			h11+=dec_values[i]*dec_values[i]*d2;
@@ -1832,9 +1827,9 @@ static void sigmoid_train(
 			{
 				fApB = dec_values[i]*newA+newB;
 				if (fApB >= 0)
-					newf += t[i]*fApB + log(1+exp(-fApB));
+					newf += t[i]*fApB + std::log(1+std::exp(-fApB));
 				else
-					newf += (t[i] - 1)*fApB +log(1+exp(fApB));
+					newf += (t[i] - 1)*fApB +std::log(1+std::exp(fApB));
 			}
 			// Check sufficient decrease
 			if (newf<fval+0.0001*stepsize*gd)
@@ -1863,16 +1858,16 @@ static double sigmoid_predict(double decision_value, double A, double B)
 	double fApB = decision_value*A+B;
 	// 1-p used later; avoid catastrophic cancellation
 	if (fApB >= 0)
-		return exp(-fApB)/(1.0+exp(-fApB));
+		return std::exp(-fApB)/(1.0+std::exp(-fApB));
 	else
-		return 1.0/(1+exp(fApB)) ;
+		return 1.0/(1+std::exp(fApB)) ;
 }
 
 // Method 2 from the multiclass_prob paper by Wu, Lin, and Weng
 static void multiclass_probability(int k, double **r, double *p)
 {
 	int t,j;
-	int iter = 0, max_iter=max(100,k);
+	int iter = 0, max_iter=std::max(100,k);
 	double **Q=Malloc(double *,k);
 	double *Qp=Malloc(double,k);
 	double pQp, eps=0.005/k;
@@ -2037,7 +2032,7 @@ static double svm_svr_probability(
 		mae += fabs(ymv[i]);
 	}
 	mae /= prob->l;
-	double std=sqrt(2*mae*mae);
+	double std=std::sqrt(2*mae*mae);
 	int count=0;
 	mae=0;
 	for(i=0;i<prob->l;i++)
@@ -2651,7 +2646,7 @@ double svm_predict_probability(
 		for(i=0;i<nr_class;i++)
 			for(int j=i+1;j<nr_class;j++)
 			{
-				pairwise_prob[i][j]=min(max(sigmoid_predict(dec_values[k],model->probA[k],model->probB[k]),min_prob),1-min_prob);
+				pairwise_prob[i][j]=std::min(std::max(sigmoid_predict(dec_values[k],model->probA[k],model->probB[k]),min_prob),1-min_prob);
 				pairwise_prob[j][i]=1-pairwise_prob[i][j];
 				k++;
 			}
@@ -3192,7 +3187,7 @@ const char *svm_check_parameter(const svm_problem *prob, const svm_parameter *pa
 			for(int j=i+1;j<nr_class;j++)
 			{
 				int n2 = count[j];
-				if(param->nu*(n1+n2)/2 > min(n1,n2))
+				if(param->nu*(n1+n2)/2 > std::min(n1,n2))
 				{
 					free(label);
 					free(count);

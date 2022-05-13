@@ -179,14 +179,14 @@ template<class T> void calcFeatureCharacteristics_template(iAConnector const * i
 			dz = z2 - z1;
 		}
 
-		double phi = asin( dy / sqrt( dx*dx + dy*dy ) );
-		double theta = acos( dz / sqrt( dx*dx + dy*dy + dz*dz ) );
-		double a11 = cos( phi )*cos( phi )*sin( theta )*sin( theta );
-		double a22 = sin( phi )*sin( phi )*sin( theta )*sin( theta );
-		double a33 = cos( theta )*cos( theta );
-		double a12 = cos( phi )*sin( theta )*sin( theta )*sin( phi );
-		double a13 = cos( phi )*sin( theta )*cos( theta );
-		double a23 = sin( phi )*sin( theta )*cos( theta );
+		double phi = std::asin( dy / std::sqrt( dx*dx + dy*dy ) );
+		double theta = std::acos( dz / std::sqrt( dx*dx + dy*dy + dz*dz ) );
+		double a11 = std::cos( phi )*std::cos( phi )*std::sin( theta )*std::sin( theta );
+		double a22 = std::sin( phi )*std::sin( phi )*std::sin( theta )*std::sin( theta );
+		double a33 = std::cos( theta )*std::cos( theta );
+		double a12 = std::cos( phi )*std::sin( theta )*std::sin( theta )*std::sin( phi );
+		double a13 = std::cos( phi )*std::sin( theta )*std::cos( theta );
+		double a23 = std::sin( phi )*std::sin( theta )*std::cos( theta );
 
 		phi = ( phi*180.0f ) / vtkMath::Pi();
 		theta = ( theta*180.0f ) / vtkMath::Pi();
@@ -212,9 +212,9 @@ template<class T> void calcFeatureCharacteristics_template(iAConnector const * i
 		}
 		double majorlength = labelGeometryImageFilter->GetMajorAxisLength( labelValue );
 		double minorlength = labelGeometryImageFilter->GetMinorAxisLength( labelValue );
-		int dimX = abs( labelGeometryImageFilter->GetBoundingBox( labelValue )[0] - labelGeometryImageFilter->GetBoundingBox( labelValue )[1] ) + 1;
-		int dimY = abs( labelGeometryImageFilter->GetBoundingBox( labelValue )[2] - labelGeometryImageFilter->GetBoundingBox( labelValue )[3] ) + 1;
-		int dimZ = abs( labelGeometryImageFilter->GetBoundingBox( labelValue )[4] - labelGeometryImageFilter->GetBoundingBox( labelValue )[5] ) + 1;
+		int dimX = std::abs( labelGeometryImageFilter->GetBoundingBox( labelValue )[0] - labelGeometryImageFilter->GetBoundingBox( labelValue )[1] ) + 1;
+		int dimY = std::abs( labelGeometryImageFilter->GetBoundingBox( labelValue )[2] - labelGeometryImageFilter->GetBoundingBox( labelValue )[3] ) + 1;
+		int dimZ = std::abs( labelGeometryImageFilter->GetBoundingBox( labelValue )[4] - labelGeometryImageFilter->GetBoundingBox( labelValue )[5] ) + 1;
 
 		// Calculation of other pore characteristics and writing the csv file
 		ShapeLabelObjectType *labelObject = labelMap->GetNthLabelObject( labelValue -1); // debug -1 delated	// labelMap index contaions first pore at 0
@@ -254,7 +254,7 @@ template<class T> void calcFeatureCharacteristics_template(iAConnector const * i
 			<< ym * spacing << ',' 	// unit = microns
 			<< zm * spacing << ',' 	// unit = microns
 			//<< poresPtr->operator[]( it->first ).getShapeFactor() << ','	//no that correct -> see roundness
-			<< labelGeometryImageFilter->GetVolume(labelValue)* pow(spacing, 3.0) << ','	// unit = microns^3
+			<< labelGeometryImageFilter->GetVolume(labelValue)* std::pow(spacing, 3.0) << ','	// unit = microns^3
 			<< roundness << ','
 			<< labelObject->GetFeretDiameter() << ','	// unit = microns
 			<< labelObject->GetFlatness() << ','
@@ -266,13 +266,13 @@ template<class T> void calcFeatureCharacteristics_template(iAConnector const * i
 
 		if (calculateAdvancedChars)
 		{
-			//double sphericity = std::pow(vtkMath::Pi(), 1.0 / 3.0) * std::pow(6.0 * labelGeometryImageFilter->GetVolume(labelValue) * pow(spacing, 3.0), 2.0 / 3.0) / perimeter;
+			//double sphericity = std::pow(vtkMath::Pi(), 1.0 / 3.0) * std::pow(6.0 * labelGeometryImageFilter->GetVolume(labelValue) * std::pow(spacing, 3.0), 2.0 / 3.0) / perimeter;
 			//double surface = 4.0 * vtkMath::Pi() *std::pow(equivSphericalRadius/**spacing*/,2.0);
-			//double sphericalRadiusManually = std::pow((6.0 / vtkMath::Pi() * labelGeometryImageFilter->GetVolume(labelValue) * pow(spacing, 3.0)), 1 / 3);
-				//std::pow(labelGeometryImageFilter->GetVolume(labelValue) * pow(spacing, 3.0) / (4.0 / 3.0 * vtkMath::Pi()), 1.0/3.0);  // Vsphere =  4/3*pI*r^3
+			//double sphericalRadiusManually = std::pow((6.0 / vtkMath::Pi() * labelGeometryImageFilter->GetVolume(labelValue) * std::pow(spacing, 3.0)), 1 / 3);
+				//std::pow(labelGeometryImageFilter->GetVolume(labelValue) * std::pow(spacing, 3.0) / (4.0 / 3.0 * vtkMath::Pi()), 1.0/3.0);  // Vsphere =  4/3*pI*r^3
 			double elongation = labelGeometryImageFilter->GetElongation(labelValue);
 			double perimeter = labelObject->GetPerimeter();
-			double secondAxisLengh = 4 * sqrt(eigenvalue[1]); //second prinzipal axis
+			double secondAxisLengh = 4 * std::sqrt(eigenvalue[1]); //second prinzipal axis
 			double equivSphericalRadius = labelObject->GetEquivalentSphericalRadius();
 			double ratioLongestToMiddle = majorlength / secondAxisLengh;
 			double ratioMiddleToSmallest = secondAxisLengh / minorlength;

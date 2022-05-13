@@ -1456,6 +1456,7 @@ void iASlicerImpl::printVoxelInformation()
 	{
 		setCursor(mouseCursor());
 	}
+	bool infoAvailable = false;
 	QString strDetails;
 	if (!m_interactorStyle->windowLevelAdjustEnabled() || !m_interactorStyle->leftButtonDown())
 	{
@@ -1471,6 +1472,7 @@ void iASlicerImpl::printVoxelInformation()
 
 		if (m_interactorStyle->windowLevelAdjustEnabled() && m_interactorStyle->leftButtonDown())
 		{
+			infoAvailable = true;
 			strDetails += QString("%1: window: %2; level: %3")
 				.arg(padOrTruncate(m_channels[channelID]->name(), MaxNameLength))
 				.arg(m_channels[channelID]->imageActor()->GetProperty()->GetColorWindow())
@@ -1505,6 +1507,7 @@ void iASlicerImpl::printVoxelInformation()
 			}
 			double coords[3];
 			computeCoords(coords, channelID);
+			infoAvailable = true;
 			strDetails += QString("%1: %2 [%3 %4 %5]")
 				.arg(padOrTruncate(m_channels[channelID]->name(), MaxNameLength))
 				.arg(valueStr)
@@ -1533,10 +1536,12 @@ void iASlicerImpl::printVoxelInformation()
 			int slicerXAxisIdx = mapSliceToGlobalAxis(m_mode, iAAxisIndex::X),
 				slicerYAxisIdx = mapSliceToGlobalAxis(m_mode, iAAxisIndex::Y),
 				slicerZAxisIdx = mapSliceToGlobalAxis(m_mode, iAAxisIndex::Z);
+			// TODO: check if coords inside other window's image(s)?
 			tmpChild->slicer(m_mode)->setIndex(tmpCoord[0], tmpCoord[1], tmpCoord[2]);
 			dynamic_cast<iASlicerImpl*>(tmpChild->slicer(m_mode))->setPositionMarkerCenter(m_globalPt[slicerXAxisIdx], m_globalPt[slicerYAxisIdx], m_globalPt[slicerZAxisIdx]);
 			tmpChild->slicer(m_mode)->setSliceNumber(tmpCoord[slicerZAxisIdx]);
 			tmpChild->slicer(m_mode)->update();
+			infoAvailable = true;
 			strDetails += filePixel(tmpChild->slicer(m_mode), tmpCoord, slicerXAxisIdx, slicerYAxisIdx);
 			tmpChild->update();
 		}
@@ -1545,19 +1550,24 @@ void iASlicerImpl::printVoxelInformation()
 	// if requested calculate distance and show actor
 	if (m_lineActor && m_lineActor->GetVisibility())
 	{
-		double distance = sqrt(pow((m_startMeasurePoint[0] - m_slicerPt[0]), 2) +
-			pow((m_startMeasurePoint[1] - m_slicerPt[1]), 2));
+		double distance = std::sqrt(std::pow((m_startMeasurePoint[0] - m_slicerPt[0]), 2) +
+			std::pow((m_startMeasurePoint[1] - m_slicerPt[1]), 2));
 		m_lineSource->SetPoint2(m_slicerPt[0], m_slicerPt[1], 0.0);
 		m_diskSource->SetOuterRadius(distance);
 		m_diskSource->SetInnerRadius(distance);
 		m_diskSource->Update();
+		infoAvailable = true;
 		strDetails += QString("%1: %2\n").arg(padOrTruncate("Distance", MaxNameLength)).arg(distance);
 	}
-
-	// Update the info text with pixel coordinates/value if requested.
-	m_textInfo->setPosition(m_renWin->GetInteractor()->GetEventPosition()[0] + 10, m_renWin->GetInteractor()->GetEventPosition()[1] + 10);
-	m_textInfo->setText(strDetails.toStdString().c_str());
-	m_positionMarkerMapper->Update();
+	if (infoAvailable)
+	{
+		// Update the info text with pixel coordinates/value if requested.
+		m_textInfo->setPosition(m_renWin->GetInteractor()->GetEventPosition()[0] + 10,
+			m_renWin->GetInteractor()->GetEventPosition()[1] + 10);
+		m_textInfo->setText(strDetails.toStdString().c_str());
+		m_positionMarkerMapper->Update();
+	}
+	m_textInfo->show(infoAvailable);
 }
 
 void iASlicerImpl::executeKeyPressEvent()
@@ -1635,7 +1645,7 @@ void iASlicerImpl::snapToHighGradient(double &x, double &y)
 			double derivativeX = fabs(right_pix - left_pix);
 			double derivativeY = fabs(top_pix - bottom_pix);
 
-			double gradmag = sqrt ( pow(derivativeX,2) + pow(derivativeY,2) );
+			double gradmag = std::sqrt ( std::pow(derivativeX,2) + std::pow(derivativeY,2) );
 
 			H_x.push_back(center[0]);
 			H_y.push_back(center[1]);
@@ -1651,8 +1661,8 @@ void iASlicerImpl::snapToHighGradient(double &x, double &y)
 				if ( gradmag == H_maxGradMag )
 				{
 					//calculate the distance
-					double newdist = sqrt (pow( (cursorposition[0]-center[0]),2) + pow( (cursorposition[1]-center[1]),2));
-					double maxdist = sqrt (pow( (cursorposition[0]-H_maxcoord[0]),2) + pow( (cursorposition[1]-H_maxcoord[1]),2));
+					double newdist = std::sqrt (std::pow( (cursorposition[0]-center[0]),2) + std::pow( (cursorposition[1]-center[1]),2));
+					double maxdist = std::sqrt (std::pow( (cursorposition[0]-H_maxcoord[0]),2) + std::pow( (cursorposition[1]-H_maxcoord[1]),2));
 					//if newdist is < than the maxdist (meaning the current center position is closer to the cursor position
 					//replace the hMaxCoord with the current center position
 					if ( newdist < maxdist )
@@ -1699,7 +1709,7 @@ void iASlicerImpl::snapToHighGradient(double &x, double &y)
 			double derivativeX = fabs(right_pix - left_pix);
 			double derivativeY = fabs(top_pix - bottom_pix);
 
-			double gradmag = sqrt ( pow(derivativeX,2) + pow(derivativeY,2) );
+			double gradmag = std::sqrt ( std::pow(derivativeX,2) + std::pow(derivativeY,2) );
 
 			V_x.push_back(center[0]);
 			V_y.push_back(center[1]);
@@ -1715,8 +1725,8 @@ void iASlicerImpl::snapToHighGradient(double &x, double &y)
 				if ( gradmag == V_maxGradMag )
 				{
 					//calculate the distance
-					double newdist = sqrt (pow( (cursorposition[0]-center[0]),2) + pow( (cursorposition[1]-center[1]),2));
-					double maxdist = sqrt (pow( (cursorposition[0]-V_maxcoord[0]),2) + pow( (cursorposition[1]-V_maxcoord[1]),2));
+					double newdist = std::sqrt (std::pow( (cursorposition[0]-center[0]),2) + std::pow( (cursorposition[1]-center[1]),2));
+					double maxdist = std::sqrt (std::pow( (cursorposition[0]-V_maxcoord[0]),2) + std::pow( (cursorposition[1]-V_maxcoord[1]),2));
 					//if newdist is < than the maxdist (meaning the current center position is closer to the cursor position
 					//replace the hMaxCoord with the current center position
 					if ( newdist < maxdist )
@@ -1751,8 +1761,8 @@ void iASlicerImpl::snapToHighGradient(double &x, double &y)
 	else if ( v_bool == true && h_bool == true )
 	{
 		//pointselectionkey = 3; //new point is shortest distance between V_maxcoord,currentposition and H_maxcoord ,currentposition
-		double Hdist = sqrt (pow( (cursorposition[0]-H_maxcoord[0]),2) + pow( (cursorposition[1]-H_maxcoord[1]),2));
-		double Vdist = sqrt (pow( (cursorposition[0]-V_maxcoord[0]),2) + pow( (cursorposition[1]-V_maxcoord[1]),2));
+		double Hdist = std::sqrt (std::pow( (cursorposition[0]-H_maxcoord[0]),2) + std::pow( (cursorposition[1]-H_maxcoord[1]),2));
+		double Vdist = std::sqrt (std::pow( (cursorposition[0]-V_maxcoord[0]),2) + std::pow( (cursorposition[1]-V_maxcoord[1]),2));
 		if ( Hdist < Vdist )
 			pointselectionkey = 1; //new point is in horizontal direction H_maxcoord
 		else if ( Hdist > Vdist )
