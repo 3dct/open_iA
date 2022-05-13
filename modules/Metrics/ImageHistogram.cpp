@@ -260,7 +260,7 @@ unsigned int cImageHistogram::DetectPeaksValleys(unsigned int nPeaks, unsigned i
 			sum = 0.0;
 			for(int i=-knl_sz; i<=knl_sz; i++)
 			{
-				double value = 1/(std::sqrt(2*vtkMath::Pi())* new_gauss_sigma)*exp(-0.5*i*i/(new_gauss_sigma * new_gauss_sigma));
+				double value = 1/(std::sqrt(2*vtkMath::Pi())* new_gauss_sigma)*std::exp(-0.5*i*i/(new_gauss_sigma * new_gauss_sigma));
 				gauss_knl_P2P.push_back(value);
 				sum+=value;
 			}
