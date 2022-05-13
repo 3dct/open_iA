@@ -113,12 +113,12 @@ void iAMaximumDistanceFilter<TImageType>::GenerateData()
 	double max_diff = 0;
 	//calculation of angle CDE
 	double alphaWithoutATan = static_cast<double>(histogram[m_high_intensity] - histogram[m_low_intensity]) / (m_high_intensity - m_low_intensity);
-	double alpha = atan( alphaWithoutATan );
+	double alpha = std::atan( alphaWithoutATan );
 	int intensity = 0;
 	for(int i = m_low_intensity; i < m_high_intensity; ++i )
 	{
 		//calculation of new height                // first atan and then tan -> one is inverse of the other, so couldn't we simply skip both?
-		double tanatanalpha = tan(alpha);
+		double tanatanalpha = std::tan(alpha);
 		double new_height =  ((static_cast<double>(i) - m_low_intensity) * tanatanalpha) + histogram[m_low_intensity];
 
 		// the difference between the new height and the original histogram height

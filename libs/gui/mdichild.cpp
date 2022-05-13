@@ -1265,9 +1265,9 @@ void MdiChild::updateSnakeSlicer(QSpinBox* spinBox, iASlicer* slicer, int ptInde
 		PointToOrigin_Translation->DeepCopy(PointToOrigin_matrix);
 
 		//rotate around Z to bring the vector to XZ plane
-		double alpha = acos(pow(normal[0], 2) / (sqrt(pow(normal[0], 2)) * (sqrt(pow(normal[0], 2) + pow(normal[1], 2)))));
-		double cos_theta_xz = cos(alpha);
-		double sin_theta_xz = sin(alpha);
+		double alpha = std::acos(std::pow(normal[0], 2) / (std::sqrt(std::pow(normal[0], 2)) * (std::sqrt(std::pow(normal[0], 2) + std::pow(normal[1], 2)))));
+		double cos_theta_xz = std::cos(alpha);
+		double sin_theta_xz = std::sin(alpha);
 
 		double rxz_matrix[16] = { cos_theta_xz,	-sin_theta_xz,	0,	 0,
 			sin_theta_xz,	cos_theta_xz,	0,	 0,
@@ -1278,9 +1278,9 @@ void MdiChild::updateSnakeSlicer(QSpinBox* spinBox, iASlicer* slicer, int ptInde
 		rotate_around_xz->DeepCopy(rxz_matrix);
 
 		//rotate around Y to bring vector parallel to Z axis
-		double beta = acos(pow(normal[2], 2) / sqrt(pow(normal[2], 2)) + sqrt(pow(cos_theta_xz, 2) + pow(normal[2], 2)));
-		double cos_theta_y = cos(beta);
-		double sin_theta_y = sin(beta);
+		double beta = std::acos(std::pow(normal[2], 2) / std::sqrt(std::pow(normal[2], 2)) + std::sqrt(std::pow(cos_theta_xz, 2) + std::pow(normal[2], 2)));
+		double cos_theta_y = std::cos(beta);
+		double sin_theta_y = std::sin(beta);
 
 		double ry_matrix[16] = { cos_theta_y,	0,	sin_theta_y,	0,
 			0,			1,		0,			0,
@@ -1291,8 +1291,8 @@ void MdiChild::updateSnakeSlicer(QSpinBox* spinBox, iASlicer* slicer, int ptInde
 		rotate_around_y->DeepCopy(ry_matrix);
 
 		//rotate around Z by 180 degree - to bring object correct view
-		double cos_theta_z = cos(vtkMath::Pi());
-		double sin_theta_z = sin(vtkMath::Pi());
+		double cos_theta_z = std::cos(vtkMath::Pi());
+		double sin_theta_z = std::sin(vtkMath::Pi());
 
 		double rz_matrix[16] = { cos_theta_z,	-sin_theta_z,	0,	0,
 			sin_theta_z,	cos_theta_z,	0,	0,

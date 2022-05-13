@@ -409,7 +409,7 @@ void iAvtkInteractStyleActor::rotate3D()
 
 	this->ComputeWorldToDisplay(outsidept[0], outsidept[1], outsidept[2], outsidept);
 
-	double radius = sqrt(vtkMath::Distance2BetweenPoints(disp_obj_center, outsidept));
+	double radius = std::sqrt(vtkMath::Distance2BetweenPoints(disp_obj_center, outsidept));
 	double nxf = (rwi->GetEventPosition()[0] - disp_obj_center[0]) / radius;
 
 	double nyf = (rwi->GetEventPosition()[1] - disp_obj_center[1]) / radius;
@@ -420,10 +420,10 @@ void iAvtkInteractStyleActor::rotate3D()
 
 	if (((nxf * nxf + nyf * nyf) <= 1.0) && ((oxf * oxf + oyf * oyf) <= 1.0))
 	{
-		double newXAngle = vtkMath::DegreesFromRadians(asin(nxf));
-		double newYAngle = vtkMath::DegreesFromRadians(asin(nyf));
-		double oldXAngle = vtkMath::DegreesFromRadians(asin(oxf));
-		double oldYAngle = vtkMath::DegreesFromRadians(asin(oyf));
+		double newXAngle = vtkMath::DegreesFromRadians(std::asin(nxf));
+		double newYAngle = vtkMath::DegreesFromRadians(std::asin(nyf));
+		double oldXAngle = vtkMath::DegreesFromRadians(std::asin(oxf));
+		double oldYAngle = vtkMath::DegreesFromRadians(std::asin(oyf));
 
 		double scale[3];
 		scale[0] = scale[1] = scale[2] = 1.0;

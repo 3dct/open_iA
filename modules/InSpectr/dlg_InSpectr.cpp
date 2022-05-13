@@ -422,7 +422,7 @@ void dlg_InSpectr::initSpectraLinesDrawer()
 	}
 
 	long numberOfSpectra = (extent[1]-extent[0]+1)*(extent[3]-extent[2]+1)*(extent[5]-extent[4]+1);
-	int step = static_cast<int>(std::max(1.0, log10(static_cast<double>(numberOfSpectra))));
+	int step = static_cast<int>(std::max(1.0, std::log10(static_cast<double>(numberOfSpectra))));
 	int transparency = 255 / (step * 3);
 	for (int x=extent[0]; x<=extent[1]; x += step)
 	{

@@ -113,7 +113,7 @@ void iANModalPCAModalityReducer::itkPCA(std::vector<iAConnector>& c)
 
 	// Debug. TODO: remove
 	typename PCASMEType::VectorOfDoubleType eigenValues = pca->GetEigenValues();
-	double sv_mean = sqrt(eigenValues[0]);
+	double sv_mean = std::sqrt(eigenValues[0]);
 	printf("sv_mean = %d\n", sv_mean);
 
 	auto count = pca->GetNumberOfOutputs();

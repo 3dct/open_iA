@@ -587,7 +587,7 @@ void dlg_DynamicVolumeLines::calcNonLinearMapping()
 			imp = innerEnsembleDistList[i];
 			imp /= maxInnerEnsableDist;
 		}
-		imp = pow(imp * 1, sb_nonlinearScalingFactor->value()); // //imp = pow(imp*2,-0.9);
+		imp = std::pow(imp * 1, sb_nonlinearScalingFactor->value()); // //imp = pow(imp*2,-0.9);
 		m_impFunctVec.append(imp);
 		m_nonlinearMappingVec.append(i == 0 ? imp : m_nonlinearMappingVec[i - 1] + imp);
 
@@ -1439,7 +1439,7 @@ void dlg_DynamicVolumeLines::updateFBPView()
 
 void dlg_DynamicVolumeLines::setFBPTransparency(int value)
 {
-	double alpha = round(value * 255 / 100.0);
+	double alpha = std::round(value * 255 / 100.0);
 	QPen p; QColor c; QBrush b;
 	for (int i = m_DatasetIntensityMap.size(); i < m_nonlinearScaledPlot->graphCount(); ++i)
 	{

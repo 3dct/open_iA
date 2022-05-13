@@ -280,7 +280,7 @@ void iAMeanObject::render(QStringList const& classNames, QList<vtkSmartPointer<v
 				addFilter->Update();
 				addImage = addFilter->GetOutput();
 
-				double percentage = round((currClass - 1) * 100.0 / (classCount - 1) +
+				double percentage = std::round((currClass - 1) * 100.0 / (classCount - 1) +
 					(progress + 1.0) * (100.0 / (classCount - 1)) / meanObjectIds.size());
 				p.emitProgress(percentage);
 				QCoreApplication::processEvents();

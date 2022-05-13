@@ -144,7 +144,7 @@ void CalculateMeasures(LabelImagePointer refImg, LabelImagePointer curImg, int l
 
 		chanceAgreement = actTot[i] * refTot[i];
 	}
-	chanceAgreement /= static_cast<double>(pow(totalSum, 2));
+	chanceAgreement /= static_cast<double>(std::pow(totalSum, 2));
 	double oa = diagSum / static_cast<double>(totalSum);
 	double kappa = (oa - chanceAgreement) / (1 - chanceAgreement);
 

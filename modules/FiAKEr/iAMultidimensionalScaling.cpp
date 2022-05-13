@@ -76,7 +76,7 @@ namespace
 				double temp = 0;
 				for (size_t c2 = 0; c2 < dataMatrix[0].size(); c2++)
 				{
-					temp += pow(dataMatrix[r][c2] - dataMatrix[c][c2], 2);
+					temp += std::pow(dataMatrix[r][c2] - dataMatrix[c][c2], 2);
 				}
 				distanceMatrix[r][c] = std::sqrt(temp);
 			}
@@ -186,8 +186,8 @@ std::vector<std::vector<double>> computeMDS(std::vector<std::vector<double>> con
 	matrixAddScalar(X, -0.5);
 	//LOG(lvlDebug, QString("subt X: %1").arg(matrixToString(X)));
 
-	// before this step, mean distance is 1/3*sqrt(d)
-	matrixMultiplyScalar(X, 0.1 * meanD / (1.0 / 3.0 * sqrt((double)outputDimensions)));
+	// before this step, mean distance is 1/3*std::sqrt(d)
+	matrixMultiplyScalar(X, 0.1 * meanD / (1.0 / 3.0 * std::sqrt(outputDimensions)));
 	//LOG(lvlDebug, QString("normalized X: %1").arg(matrixToString(X)));
 
 	iAMatrixType Z(X);

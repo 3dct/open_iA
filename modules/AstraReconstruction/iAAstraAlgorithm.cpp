@@ -115,16 +115,16 @@ namespace
 					- qDegreesToRadians(parameters[ProjAngleStart].toDouble())) /
 				(projAngleCnt - 1);
 			iAVec3f sourcePos(
-				sin(curAngle) * parameters[DstOrigSrc].toDouble(),
-				-cos(curAngle) * parameters[DstOrigSrc].toDouble(),
+				std::sin(curAngle) * parameters[DstOrigSrc].toDouble(),
+				-std::cos(curAngle) * parameters[DstOrigSrc].toDouble(),
 				0);
 			iAVec3f detectorCenter(
-				-sin(curAngle) * parameters[DstOrigDet].toDouble(),
-				cos(curAngle) * parameters[DstOrigDet].toDouble(),
+				-std::sin(curAngle) * parameters[DstOrigDet].toDouble(),
+				std::cos(curAngle) * parameters[DstOrigDet].toDouble(),
 				0);
 			iAVec3f detectorPixelHorizVec(				// vector from detector pixel(0, 0) to(0, 1)
-				cos(curAngle) * parameters[DetSpcX].toDouble(),
-				sin(curAngle) * parameters[DetSpcX].toDouble(),
+				std::cos(curAngle) * parameters[DetSpcX].toDouble(),
+				std::sin(curAngle) * parameters[DetSpcX].toDouble(),
 				0);
 			iAVec3f detectorPixelVertVec(0, 0, parameters[DetSpcY].toDouble()); // vector from detector pixel(0, 0) to(1, 0)
 			iAVec3f shiftVec = detectorPixelHorizVec.normalized() * parameters[CenterOfRotOfs].toDouble();
