@@ -81,7 +81,7 @@ namespace
 		QString result;
 		for (int i = 0; i <= projAnglesCount - 2; i++)
 		{
-			double temp = projAngleStart + i*(projAngleEnd - projAngleStart) / (floor((double)projAnglesCount) - 1);
+			double temp = projAngleStart + i*(projAngleEnd - projAngleStart) / (std::floor(static_cast<double>(projAnglesCount)) - 1);
 			result.append(QString::number(temp) + ",");
 		}
 		result.append(QString::number(projAngleEnd));

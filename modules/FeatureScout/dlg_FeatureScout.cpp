@@ -1282,7 +1282,7 @@ void dlg_FeatureScout::CsvDVSaveButton()
 	//Sets up a chart matrix for the feature distribution charts
 	vtkNew<vtkChartMatrix> distributionChartMatrix;
 	distributionChartMatrix->SetSize(vtkVector2i(characteristicsList.count() < 3 ?
-		characteristicsList.count() % 3 : 3, ceil(characteristicsList.count() / 3.0)));
+		characteristicsList.count() % 3 : 3, std::ceil(characteristicsList.count() / 3.0)));
 	distributionChartMatrix->SetGutter(vtkVector2f(70.0, 70.0));
 
 	//Calculates histogram for each selected characteristic

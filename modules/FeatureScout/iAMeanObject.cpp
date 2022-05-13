@@ -435,7 +435,7 @@ void iAMeanObject::render(QStringList const& classNames, QList<vtkSmartPointer<v
 		// Define viewport variables
 		int numberOfMeanObjectVolumes = m_MOData->moVolumesList.size();
 		float viewportColumns = numberOfMeanObjectVolumes < 3 ? fmod(numberOfMeanObjectVolumes, 3.0) : 3.0;
-		float viewportRows = ceil(numberOfMeanObjectVolumes / viewportColumns);
+		float viewportRows = std::ceil(numberOfMeanObjectVolumes / viewportColumns);
 		float fieldLengthX = 1.0 / viewportColumns, fieldLengthY = 1.0 / viewportRows;
 		int numOfViewPorts = static_cast<int>(viewportColumns * viewportRows);
 		// Set up viewports
@@ -447,9 +447,9 @@ void iAMeanObject::render(QStringList const& classNames, QList<vtkSmartPointer<v
 			renderer->SetBackground(1.0, 1.0, 1.0);
 			m_meanObjectWidget->renderWindow()->AddRenderer(m_MOData->moRendererList[i]);
 			renderer->SetViewport(fmod(i, viewportColumns) * fieldLengthX,
-				1 - (ceil((i + 1.0) / viewportColumns) / viewportRows),
+				1 - (std::ceil((i + 1.0) / viewportColumns) / viewportRows),
 				fmod(i, viewportColumns) * fieldLengthX + fieldLengthX,
-				1 - (ceil((i + 1.0) / viewportColumns) / viewportRows) + fieldLengthY);
+				1 - (std::ceil((i + 1.0) / viewportColumns) / viewportRows) + fieldLengthY);
 
 			if (i < m_MOData->moVolumesList.size())
 			{

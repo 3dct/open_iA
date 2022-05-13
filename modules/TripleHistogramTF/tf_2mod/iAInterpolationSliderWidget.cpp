@@ -413,7 +413,7 @@ void iAInterpolationSlider::calculateHistogramNow()
 	FOR_VTKIMG_PIXELS(m_interpolationVolume, x, y, z)
 	{
 		float t = m_interpolationVolume->GetScalarComponentAsFloat(x, y, z, 0);
-		int pos = floor( (h-1) * t );
+		int pos = std::floor( (h-1) * t );
 
 		assert(pos >= 0 && pos < h);
 
