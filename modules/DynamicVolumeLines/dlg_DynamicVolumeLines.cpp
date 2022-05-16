@@ -39,6 +39,7 @@
 #include <iAChartWithFunctionsWidget.h>
 
 #include <iAColorTheme.h>
+#include <qthelper/iAQtEndl.h>
 #include <iATransferFunction.h>
 #include <iATypedCallHelper.h>
 
@@ -565,29 +566,20 @@ void dlg_DynamicVolumeLines::visualize()
 }
 
 #pragma optimize("", off)
-
 void dlg_DynamicVolumeLines::exportCSV(QString path)
 {
-
-
-		for (auto dataPair : m_DatasetIntensityMap)
+	for (auto dataPair : m_DatasetIntensityMap)
+	{
+		QFile file(path + "\\" + dataPair.first + ".csv");
+		if (file.open(QIODevice::ReadWrite))
 		{
-			QFile file(path + "\\" + dataPair.first + ".csv");
-			if (file.open(QIODevice::ReadWrite))
+			for (auto value : dataPair.second)
 			{
-				for (auto value : dataPair.second)
-				{
-					QTextStream stream(&file);
-					stream << value.intensity << endl;
-				}
-
+				QTextStream stream(&file);
+				stream << value.intensity << QTENDL;
+			}
 		}
-
-
-		
 	}
-
-
 }
 #pragma optimize("", on)
 
