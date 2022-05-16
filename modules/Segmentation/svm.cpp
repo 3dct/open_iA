@@ -46,6 +46,8 @@ SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 #include <climits>
 #include <clocale>
 
+
+#include <algorithm>    // for min/max
 #include <utility> // for std::swap
 int libsvm_version = LIBSVM_VERSION;
 typedef float Qfloat;
