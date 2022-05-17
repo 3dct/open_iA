@@ -1,0 +1,30 @@
+#ifndef KERNEL_DENSITY_ESTIMATION_MODULE
+#define KERNEL_DENSITY_ESTIMATION_MODULE
+
+#include <cmath>
+#include <cassert>
+#include <cstdlib>
+#include <iostream>
+#include <limits>
+#include <vector>
+#include <string>
+#include <fstream>
+#include <random>
+#include <fstream>
+#include <iomanip>
+#include <chrono>
+#include <sstream>
+
+#include <Eigen/Core>
+#include <Eigen/Dense>
+
+#include <KernelDensityEstimation/nanoflann.hpp>
+
+#include "KernelDensityEstimation/utils.hpp"
+#include "KernelDensityEstimation/Gaussian.hpp"
+#include "KernelDensityEstimation/DiagonalBandwidthMatrix.hpp"
+#include "KernelDensityEstimation/AllNeighbours.hpp"
+#include "KernelDensityEstimation/KernelDensityEstimation.hpp"
+#include "KernelDensityEstimation/NearestNeighboursKDTree.hpp"
+
+#endif//KERNEL_DENSITY_ESTIMATION_MODULE

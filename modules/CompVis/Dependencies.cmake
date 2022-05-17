@@ -1,5 +1,7 @@
 set(DEPENDENCIES_LIBRARIES
 	iA::guibase
+	iA::objectvis
+	iA::renderer
 )
 set(DEPENDENCIES_VTK_MODULES
 	ChartsCore            # for vtkAxis
@@ -13,4 +15,16 @@ set(DEPENDENCIES_VTK_MODULES
 	ViewsInfovis
 	FiltersStatistics
 	FiltersExtraction
+	FiltersProgrammable
+	CommonComputationalGeometry
+	
 )
+
+IF (EIGEN3_FOUND)
+	SET( DEPENDENCIES_INCLUDE_DIRS
+		${EIGEN3_INCLUDE_DIR}
+	)
+ELSE()
+	message(WARNING "Eigen3 not found! Please add it to EIGEN3_INCLUDE_DIR to enable the CompVis Module!")
+ENDIF()
+

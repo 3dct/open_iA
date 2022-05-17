@@ -20,21 +20,33 @@
 * ************************************************************************************/
 #pragma once
 
+//CompVis
+#include "iACompVisOptions.h"
+#include "iACorrelationCoefficient.h"
+
 //Qt
 #include <QDockWidget>
 #include "ui_CompHistogramTable.h"
 
+//vtk
 #include "vtkInteractorStyleRubberBand2D.h"
 #include "vtkRenderedGraphRepresentation.h"
-#include "iACorrelationCoefficient.h"
 #include "vtkGraphLayoutStrategy.h"
 #include "vtkSmartPointer.h"
 #include "vtkCommand.h"
 
+//CompVis
 class iAMainWindow;
 class iACorrelationCoefficient;
 class iACsvDataStorage;
+
+class iACompVisMain;
+
+//vtk
+//class QVTKOpenGLNativeWidget;
+
 class iAQVTKWidget;
+
 
 class vtkRenderer;
 class vtkGraphLayoutView;
@@ -49,7 +61,6 @@ class vtkPropPicker;
 class vtkTextActor;
 class vtkHoverWidget;
 class vtkBalloonWidget;
-class iACompVisMain;
 
 class iACompCorrelationMap : public QDockWidget, public Ui_CompHistogramTable
 {
@@ -64,8 +75,6 @@ class iACompCorrelationMap : public QDockWidget, public Ui_CompHistogramTable
 	std::vector<vtkSmartPointer<vtkActor>>* getArcActors();
 	std::map<vtkSmartPointer<vtkActor>, double>* getArcPercentPairs();
 	std::map<vtkSmartPointer<vtkActor>, vtkSmartPointer<vtkTextActor>>* getOuterArcsWithLegends();
-
-	void reinitializeCorrelationMap(iACorrelationCoefficient* newCorrCalculation);
 
 private:
 
@@ -109,6 +118,11 @@ private:
 
 	//stores for every vertex its name
 	std::map<vtkIdType, QString>* m_vertices;
+	
+	QStringList m_attrNames;
+	int m_numberOfAttr;
+	double m_radius = 0.75;
+	double m_PI = std::atan(1) * 4;
 
 	//inner class
 	//class copied from vtkForceDirectedLayoutStrategy with changed methods:
@@ -350,7 +364,7 @@ private:
 			vtkSmartPointer<vtkLookupTable> lutForLabels;
 	};
 
-	
+	vtkSmartPointer<GraphInteractorStyle> style;
 	vtkSmartPointer<CorrelationGraphLayout> m_graphLayout;
 	vtkSmartPointer<vtkGraphLayoutView> m_graphLayoutView;
 	vtkSmartPointer<vtkViewTheme> m_theme;
@@ -373,12 +387,8 @@ private:
 	std::vector<vtkSmartPointer<vtkActor>>* glyphActors;
 	std::vector<vtkSmartPointer<vtkTextActor>>* legendActors;
 
-	vtkSmartPointer<GraphInteractorStyle> style;
-
-	double m_radius = 0.75;
-	double m_PI = std::atan(1) * 4;
-	QStringList m_attrNames;
-	int m_numberOfAttr;
+	//stores the last interaction that was performed to make a reinitialization after minimizing etc. possible
+	iACompVisOptions::lastState m_lastState;
 
 };
 

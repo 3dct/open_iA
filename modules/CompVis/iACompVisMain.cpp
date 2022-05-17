@@ -33,6 +33,7 @@
 #include "iAMultidimensionalScaling.h"
 #include "iACoefficientOfVariation.h"
 #include "iACorrelationCoefficient.h"
+#include "iAComp3DView.h"
 
 //QT
 #include <QMessageBox>
@@ -57,12 +58,14 @@ void iACompVisMain::start(iAMainWindow* mainWin)
 	result->initializeCorrelationCoefficient();
 
 	//open iAMainWindow with its dockWidgets
-	result->m_mainW = new dlg_VisMainWindow(result->m_dataStorage->getData(), result->m_mds, mainWin, result);
+	result->m_mainW = new dlg_VisMainWindow(result->m_dataStorage, result->m_mds, mainWin, result, iACompVisOptions::getComputeMDS());
+
 	if (result->m_mainW->failed())
 	{
 		result->m_mainW->parent()->deleteLater();
 		return;
 	}
+
 	result->initGUI();
 	// ensure that iACompVisMain is deleted when dlg_VisMainWindow is closed
 	QObject::connect(result->m_mainW, &QObject::destroyed, [result] { delete result; });
@@ -70,12 +73,25 @@ void iACompVisMain::start(iAMainWindow* mainWin)
 
 void iACompVisMain::initGUI()
 {
+	QHBoxLayout* layout3D = new QHBoxLayout;
+	m_mainW->centralwidget->setLayout(layout3D);
+
+	//add 3D View
+	if (iACompVisOptions::getShow3DViews())
+	{
+		QGridLayout* gridL = new QGridLayout;
+		layout3D->insertLayout(0, gridL);
+		m_3DViewDockWidget = new iAComp3DView(m_mainWindow, m_dataStorage);
+		m_3DViewDockWidget->constructGridLayout(gridL);
+	}
+
 	QVBoxLayout* layout1 = new QVBoxLayout;
-	m_mainW->centralwidget->setLayout(layout1);
+	layout3D->insertLayout(0, layout1);
 
 	//add histogram table
-	m_HistogramTableDockWidget = new iACompHistogramTable(m_mainWindow, m_mds, m_dataStorage, this);
-	layout1->addWidget(m_HistogramTableDockWidget);
+	m_HistogramTableDockWidget =
+		new iACompHistogramTable(m_mainWindow, m_dataStorage, this, iACompVisOptions::getComputeMDS());
+	layout1->addWidget(m_HistogramTableDockWidget->getHistogramTableVis());
 
 	QHBoxLayout* layout2 = new QHBoxLayout;
 	layout1->addLayout(layout2);
@@ -101,7 +117,7 @@ void iACompVisMain::initGUI()
 
 bool iACompVisMain::loadData()
 {
-	dlg_CSVReader* dlg = new dlg_CSVReader(m_mainWindow);
+	dlg_CSVReader* dlg = new dlg_CSVReader();
 
 	if (dlg->exec() != QDialog::Accepted)
 	{
@@ -122,7 +138,7 @@ bool iACompVisMain::loadData()
 
 void iACompVisMain::noDatasetChosenMessage()
 {
-	LOG(lvlDebug,QString("No Dataset was chosen. Therefore the module CompVis closed."));
+	LOG(lvlError,QString("No Dataset was chosen. Therefore the module CompVis closed."));
 }
 
 /******************************************  Initialization Methods  **********************************/
@@ -141,46 +157,62 @@ void iACompVisMain::initializeCorrelationCoefficient()
 	m_corCoeff = new iACorrelationCoefficient(m_dataStorage);
 }
 
-void iACompVisMain::reintitalizeMetrics()
-{
-	//calculate metrics
-	initializeMDS();
-	m_mainW->updateMDS(m_mds);
+void iACompVisMain::reinitializeCharts(iACsvDataStorage* storage)
+{	
+	//reinitialize histogram table
+	m_HistogramTableDockWidget->setDataStorage(storage);
+	m_HistogramTableDockWidget->reinitializeHistogramTable();
 
-	initializeVariationCoefficient();
-	initializeCorrelationCoefficient();
+	//reset all other charts
+	resetOtherCharts();
 }
 
-void iACompVisMain::reinitializeCharts()
+/******************************************  Change Table Visualization Methods  **********************************/
+
+void iACompVisMain::enableUniformTable()
 {
-	//reinitialize histogram table
-	m_HistogramTableDockWidget->reinitializeHistogramTable(m_mds);
+	m_HistogramTableDockWidget->drawUniformTable();
+}
 
-	//reinitialize correlation map
-	m_CorrelationMapDockWidget->reinitializeCorrelationMap(m_corCoeff);
+void iACompVisMain::enableBayesianBlocks()
+{
+	m_HistogramTableDockWidget->drawBayesianBlocksTable();
+}
 
-	//reinitialize bar chart
-	m_BarChartDockWidget->reinitializeBarChart(m_cofVar);
+void iACompVisMain::enableNaturalBreaks()
+{
+	m_HistogramTableDockWidget->drawNaturalBreaksTable();
+}
 
-	//reinitialize box plot
-	m_BoxPlotDockWidget->setOrderedPositions(m_BarChartDockWidget->getOrderedPositions());
-	m_BoxPlotDockWidget->reinitializeBoxPlot();
+void iACompVisMain::enableCurveTable()
+{
+	m_HistogramTableDockWidget->drawWhiteCurveTable();
+}
+
+void iACompVisMain::deactivateOrderingButton()
+{
+	m_mainW->deactivateOrdering();
+}
+
+void iACompVisMain::activateOrderingButton()
+{
+	m_mainW->activateOrdering();
 }
 
 /******************************************  Order Methods  **********************************/
 void iACompVisMain::orderHistogramTableAscending()
 {
-	m_HistogramTableDockWidget->drawHistogramTableInAscendingOrder();
+	m_HistogramTableDockWidget->drawDatasetsInAscendingOrder();
 }
 
 void iACompVisMain::orderHistogramTableDescending()
 {
-	m_HistogramTableDockWidget->drawHistogramTableInDescendingOrder();
+	m_HistogramTableDockWidget->drawDatasetsInDescendingOrder();
 }
 
 void iACompVisMain::orderHistogramTableAsLoaded()
 {
-	m_HistogramTableDockWidget->drawHistogramTableInOriginalOrder();
+	m_HistogramTableDockWidget->drawDatasetsInOriginalOrder();
 }
 
 /******************************************  Update Methods  **********************************/
@@ -195,6 +227,18 @@ void iACompVisMain::updateOtherCharts(csvDataType::ArrayType* selectedData, std:
 
 	//Choropleth Map
 	updateCorrelationMap(selectedData, pickStatistic);
+
+	//3D View
+	if (iACompVisOptions::getShow3DViews())
+	{
+		update3DView(selectedData, pickStatistic);
+	}
+}
+
+void iACompVisMain::update3DView(
+	csvDataType::ArrayType* selectedData, std::map<int, std::vector<double>>* pickStatistic)
+{
+	m_3DViewDockWidget->update3DViews(selectedData, pickStatistic);
 }
 
 void iACompVisMain::updateCorrelationMap(csvDataType::ArrayType* selectedData, std::map<int, std::vector<double>>* pickStatistic)
@@ -219,6 +263,12 @@ void iACompVisMain::resetOtherCharts()
 	resetBarChart();
 	resetBoxPlot(); 
 	resetCorrelationMap();
+
+	//3D View
+	if (iACompVisOptions:: getShow3DViews())
+	{
+		reset3DViews();
+	}
 }
 
 void iACompVisMain::resetBarChart()
@@ -236,13 +286,18 @@ void iACompVisMain::resetCorrelationMap()
 	m_CorrelationMapDockWidget->resetCorrelationMap();
 }
 
+void iACompVisMain::reset3DViews()
+{
+	m_3DViewDockWidget->reset3DViews();
+}
+
 void iACompVisMain::updateHistogramTableFromCorrelationMap(std::map<int, double>* dataIndxSelectedType)
 {
-	m_HistogramTableDockWidget->showSelectionOfCorrelationMap(dataIndxSelectedType);
+	m_HistogramTableDockWidget->getHistogramTableVis()->showSelectionOfCorrelationMap(dataIndxSelectedType);
 }
 
 void iACompVisMain::resetHistogramTableFromCorrelationMap()
 {
-	m_HistogramTableDockWidget->removeSelectionOfCorrelationMap();
-	m_HistogramTableDockWidget->renderWidget();
+	m_HistogramTableDockWidget->getHistogramTableVis()->removeSelectionOfCorrelationMap();
+	m_HistogramTableDockWidget->getHistogramTableVis()->renderWidget();
 }
