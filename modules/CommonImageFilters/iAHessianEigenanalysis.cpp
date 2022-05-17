@@ -124,9 +124,9 @@ template<class T> void hessianEigenAnalysis(iAFilter* filter, QMap<QString, QVar
 		//LOG(lvlInfo, QString("%1 -> ").arg(j));
 		EigenValueArrayType eigenArray = eigenImageIt.Get();
 
-		eigenTempVector[0] = fabs(eigenArray[1])/fabs(eigenArray[2]);
-		eigenTempVector[1] = fabs(eigenArray[0])/(sqrt(fabs(eigenArray[1]*eigenArray[2])));
-		eigenTempVector[2] = sqrt(pow(eigenArray[0],2)+pow(eigenArray[1],2)+pow(eigenArray[2],2));
+		eigenTempVector[0] = std::fabs(eigenArray[1])/std::fabs(eigenArray[2]);
+		eigenTempVector[1] = std::fabs(eigenArray[0])/(std::sqrt(std::fabs(eigenArray[1]*eigenArray[2])));
+		eigenTempVector[2] = std::sqrt(std::pow(eigenArray[0],2)+std::pow(eigenArray[1],2)+std::pow(eigenArray[2],2));
 
 		eigenRaRbSIt.Set(eigenTempVector);
 		++eigenRaRbSIt;

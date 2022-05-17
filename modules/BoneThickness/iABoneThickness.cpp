@@ -239,10 +239,10 @@ void iABoneThickness::calculate()
 			// Landmark to first intersection
 			// Thickness of mesh: intersection1 to intersection2
 			if (flag1 == -1) {
-				setResults(id, sqrt(vtkMath::Distance2BetweenPoints(x1, x2)), -sqrt(vtkMath::Distance2BetweenPoints(pStart, x1)));
+				setResults(id, std::sqrt(vtkMath::Distance2BetweenPoints(x1, x2)), -std::sqrt(vtkMath::Distance2BetweenPoints(pStart, x1)));
 			}
 			else {
-				setResults(id, sqrt(vtkMath::Distance2BetweenPoints(x1, x2)), sqrt(vtkMath::Distance2BetweenPoints(pStart, x1)));
+				setResults(id, std::sqrt(vtkMath::Distance2BetweenPoints(x1, x2)), std::sqrt(vtkMath::Distance2BetweenPoints(pStart, x1)));
 			}
 
 			// Store coordinates in order to draw thickness and projection lines
@@ -270,7 +270,7 @@ void iABoneThickness::calculate()
 			m_dThicknessSTD += (m_daThickness->GetValue(i) - m_dThicknessMean) * (m_daThickness->GetValue(i) - m_dThicknessMean);
 		}
 		m_dThicknessSTD /= m_daThickness->GetNumberOfTuples() - 1;
-		m_dThicknessSTD = sqrt(m_dThicknessSTD);
+		m_dThicknessSTD = std::sqrt(m_dThicknessSTD);
 
 		// Calculate mean surface distance
 		m_dSurfaceDistanceMean = 0.0;
@@ -287,7 +287,7 @@ void iABoneThickness::calculate()
 			m_dSurfaceDistanceSTD += (m_daDistance->GetValue(i) - m_dSurfaceDistanceMean) * (m_daDistance->GetValue(i) - m_dSurfaceDistanceMean);
 		}
 		m_dSurfaceDistanceSTD /= m_daDistance->GetNumberOfTuples() - 1;
-		m_dSurfaceDistanceSTD = sqrt(m_dSurfaceDistanceSTD);
+		m_dSurfaceDistanceSTD = std::sqrt(m_dSurfaceDistanceSTD);
 
 	}
 }

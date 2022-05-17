@@ -33,8 +33,8 @@ namespace
 {
 	double computeGaussValue(double mean, double sigma, double multiplier, double x)
 	{
-		return 1.0 / (sigma * sqrt(2 * vtkMath::Pi())) *
-			exp(-pow((x - mean) / sigma, 2) / 2) * multiplier;
+		return 1.0 / (sigma * std::sqrt(2 * vtkMath::Pi())) *
+			std::exp(-std::pow((x - mean) / sigma, 2) / 2) * multiplier;
 	}
 	double const SigmaHandleFactor = 2;
 }
@@ -113,7 +113,7 @@ void iAChartFunctionGaussian::draw(QPainter &painter, QColor color, int lineWidt
 	painter.setPen(pen);
 
 	int x, lx, rx, y;
-	double meanValue = 1.0/(m_sigma*sqrt(2*vtkMath::Pi()))*m_multiplier;
+	double meanValue = 1.0/(m_sigma*std::sqrt(2*vtkMath::Pi()))*m_multiplier;
 
 	x  = m_chart->xMapper().srcToDst(m_mean);
 	lx = m_chart->xMapper().srcToDst(m_mean - SigmaHandleFactor * m_sigma);
@@ -130,7 +130,7 @@ void iAChartFunctionGaussian::draw(QPainter &painter, QColor color, int lineWidt
 
 int iAChartFunctionGaussian::selectPoint(int mouseX, int mouseY)
 {
-	double meanValue = 1.0/(m_sigma*sqrt(2*vtkMath::Pi()));
+	double meanValue = 1.0/(m_sigma*std::sqrt(2*vtkMath::Pi()));
 
 	int viewXPoint = m_chart->data2MouseX(m_mean);
 	int viewYPoint = m_chart->yMapper().srcToDst(meanValue*m_multiplier);
@@ -175,14 +175,14 @@ void iAChartFunctionGaussian::moveSelectedPoint(int mouseX, int mouseY)
 			case 1:
 			case 2:
 			{
-				m_sigma = fabs(m_mean - m_chart->mouse2DataX(mouseX)) / SigmaHandleFactor;
+				m_sigma = std::fabs(m_mean - m_chart->mouse2DataX(mouseX)) / SigmaHandleFactor;
 				if (m_sigma <= std::numeric_limits<double>::epsilon())
 				{
-					m_sigma = fabs(m_mean - m_chart->mouse2DataX(mouseX+1));
+					m_sigma = std::fabs(m_mean - m_chart->mouse2DataX(mouseX+1));
 				}
 			}
 		}
-		double maxValue = 1.0/(m_sigma*sqrt(2*vtkMath::Pi()));
+		double maxValue = 1.0/(m_sigma*std::sqrt(2*vtkMath::Pi()));
 		m_multiplier  = m_chart->yMapper().dstToSrc(mouseY) / maxValue;
 	}
 }

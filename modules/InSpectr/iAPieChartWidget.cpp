@@ -87,8 +87,8 @@ void iAPieChartWidget::paintEvent(QPaintEvent * e)
 			alpha -= 270;
 			ySign = 1;
 		}
-		int xFromCenter = (cos(alpha) * radius / 1.5);
-		int yFromCenter = (sin(alpha) * radius / 1.5);
+		int xFromCenter = (std::cos(alpha) * radius / 1.5);
+		int yFromCenter = (std::sin(alpha) * radius / 1.5);
 		int textX = pieCenterX + (xSign) * xFromCenter;
 		int textY = pieCenterY + (ySign) * yFromCenter;
 

@@ -2135,9 +2135,9 @@ namespace
 	vtkSmartPointer<vtkActor> getCubeActor(iAVec3T<double> const & start, iAVec3T<double> const & end)
 	{
 		auto cube = vtkSmartPointer<vtkCubeSource>::New();
-		cube->SetXLength(abs(start[0] - end[0]));
-		cube->SetYLength(abs(start[1] - end[1]));
-		cube->SetZLength(abs(start[2] - end[2]));
+		cube->SetXLength(std::abs(start[0] - end[0]));
+		cube->SetYLength(std::abs(start[1] - end[1]));
+		cube->SetZLength(std::abs(start[2] - end[2]));
 		auto mapper = vtkSmartPointer<vtkPolyDataMapper>::New();
 		mapper->SetInputConnection(cube->GetOutputPort());
 		auto actor = vtkSmartPointer<vtkActor>::New();

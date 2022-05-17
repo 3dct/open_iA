@@ -58,7 +58,7 @@ QSharedPointer<QImage> CalculateSpectraHistogramImage(
 	initSpectraColormap(colormapLUT, accData, sensVal, sensMax, spectraHistogramColormap);
 
 	double opacThreshold = 0.1 * threshVal / threshMax;
-	int width = abs(static_cast<int>(numHist));
+	int width = std::abs(static_cast<int>(numHist));
 	auto result = QSharedPointer<QImage>::create(width, numBin, QImage::Format_ARGB32);
 	for (size_t x = 0; x < numHist; ++x)
 	{
@@ -71,7 +71,7 @@ QSharedPointer<QImage> CalculateSpectraHistogramImage(
 			QColor color(255.0*rgb[0], 255.0*rgb[1], 255.0*rgb[2]);
 			if( normVal < opacThreshold )
 				smoothFade ? color.setAlpha( 255.0 * normVal / opacThreshold ) : color.setAlpha( 0.0 );
-			result->setPixel( abs(static_cast<int>(x)), inv_y, color.rgba());
+			result->setPixel( std::abs(static_cast<int>(x)), inv_y, color.rgba());
 		}
 	}
 	return result;

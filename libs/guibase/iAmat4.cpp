@@ -265,8 +265,8 @@ iAMat4 scale ( const iAVec3f & v )
 iAMat4 rotateX ( float angle )
 {
 	iAMat4 res ( 1 );
-	float  cosine = cos ( angle );
-	float  sine   = sin ( angle );
+	float  cosine = std::cos ( angle );
+	float  sine   = std::sin ( angle );
 
 	res.x [1][1] = cosine;
 	res.x [1][2] = -sine;
@@ -279,8 +279,8 @@ iAMat4 rotateX ( float angle )
 iAMat4 rotateY ( float angle )
 {
 	iAMat4 res ( 1 );
-	float  cosine = cos ( angle );
-	float  sine   = sin ( angle );
+	float  cosine = std::cos ( angle );
+	float  sine   = std::sin ( angle );
 
 	res.x [0][0] = cosine;
 	res.x [0][2] = -sine;
@@ -293,8 +293,8 @@ iAMat4 rotateY ( float angle )
 iAMat4 rotateZ ( float angle )
 {
 	iAMat4 res ( 1 );
-	float  cosine = cos ( angle );
-	float  sine   = sin ( angle );
+	float  cosine = std::cos ( angle );
+	float  sine   = std::sin ( angle );
 
 	res.x [0][0] = cosine;
 	res.x [0][1] = -sine;
@@ -308,8 +308,8 @@ iAMat4 rotateZ ( float angle )
 iAMat4 rotation ( const iAVec3f & axis, float angle )
 {
 	iAMat4 res ( 1 );
-	float  cosine = cos ( angle );
-	float  sine   = sin ( angle );
+	float  cosine = std::cos ( angle );
+	float  sine   = std::sin ( angle );
 
 	res.x [0][0] = axis.x() * axis.x() + ( 1 - axis.x() * axis.x() ) * cosine;
 	res.x [1][0] = axis.x() * axis.y() * ( 1 - cosine ) + axis.z() * sine;

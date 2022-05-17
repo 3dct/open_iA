@@ -445,5 +445,5 @@ int iAChartFunctionBezier::getFunctionPointIndex(int index)
 
 double iAChartFunctionBezier::getLength(QPointF start, QPointF end)
 {
-	return sqrt(pow(end.x() - start.x(), 2)+pow(end.y() - start.y(), 2));
+	return std::sqrt(std::pow(end.x() - start.x(), 2)+std::pow(end.y() - start.y(), 2));
 }

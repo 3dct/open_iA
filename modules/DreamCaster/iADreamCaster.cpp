@@ -2005,7 +2005,7 @@ void iADreamCaster::ShowDipAnglesSlot()
 		iAVec3f tri_norm = mat*triangles[i]->m_N;
 		iAVec3f ray = tri_center - tracer->o;
 		ray.normalize();
-		abscos = abs(ray&tri_norm);
+		abscos = std::abs(ray&tri_norm);
 		if(abscos>=rmin && abscos<=rmax)
 		{
 			//colour corresponding tris
@@ -2149,7 +2149,7 @@ int iADreamCaster::UpdateStabilityWidget()
 		{
 			indx = indx % renderCntX;
 		}
-		double val =  fabs( ( (placementsParams[indx][curIndZ])[curParamInd] - (placementsParams[curIndX][curIndZ])[curParamInd] ) / stabilitySensitivity );
+		double val =  std::fabs( ( (placementsParams[indx][curIndZ])[curParamInd] - (placementsParams[curIndX][curIndZ])[curParamInd] ) / stabilitySensitivity );
 		if (val > 1.)
 		{
 			val = 1.0;
@@ -2187,7 +2187,7 @@ int iADreamCaster::UpdateStabilityWidget()
 		{
 			indx = indx % renderCntZ;
 		}
-		double val =  fabs( ( (placementsParams[curIndX][indx])[curParamInd] - (placementsParams[curIndX][curIndZ])[curParamInd] ) / stabilitySensitivity );
+		double val =  std::fabs( ( (placementsParams[curIndX][indx])[curParamInd] - (placementsParams[curIndX][curIndZ])[curParamInd] ) / stabilitySensitivity );
 		if (val > 1.)
 		{
 			val = 1.0;
@@ -2234,7 +2234,7 @@ int iADreamCaster::UpdateStabilityWidget()
 			{
 				indxX = indxX % renderCntX;
 			}
-			double val =  fabs( ( (placementsParams[indxX][indxZ])[curParamInd] - (placementsParams[curIndX][curIndZ])[curParamInd] ) / stabilitySensitivity );
+			double val =  std::fabs( ( (placementsParams[indxX][indxZ])[curParamInd] - (placementsParams[curIndX][curIndZ])[curParamInd] ) / stabilitySensitivity );
 			if (val > 1.)
 			{
 				val = 1.0;
@@ -3233,18 +3233,18 @@ void iADreamCaster::ColorBadAngles()
 	iATriPrim* tri;
 	iAVec3f triNorm;
 	float d;
-	float torusRadius = fabs(0.5f*stngs.ORIGIN_Z);
+	float torusRadius = std::fabs(0.5f*stngs.ORIGIN_Z);
 	for (unsigned int i = 0; i < numTriangles; i++ )
 	{
 		tri = tracer->scene()->getTriangle((int)i);
 		triNorm = tri->normal();
 		d = tri->d();
 		float triSurf = tri->surface();
-		abscos = fabs( triNorm & rotAxis);
+		abscos = std::fabs( triNorm & rotAxis);
 		float a = d*abscos;
-		float b = sqrt(d*d-a*a);
+		float b = std::sqrt(d*d-a*a);
 		b = b - torusRadius;
-		float dist2TorusCenter = sqrt(a*a+b*b);
+		float dist2TorusCenter = std::sqrt(a*a+b*b);
 		if(dist2TorusCenter>torusRadius)
 		{
 			scalars[i]=99;
@@ -3262,7 +3262,7 @@ void iADreamCaster::ColorBadAngles()
 		cur_area = 0.5f*((*tri->vertices[1]-*tri->vertices[0])^(*tri->vertices[2]-*tri->vertices[0])).length();
 		iAVec3f tri_center = (*tri->vertices[0]+*tri->vertices[1]+*tri->vertices[2])/3.0f;
 		iAVec3f o2tri_center = tri_center-o; o2tri_center.normalize();
-		abscos = abs( tri->N & o2tri_center);
+		abscos = std::abs( tri->N & o2tri_center);
 		if(abscos<badCos)
 		{
 			scalars[i]=1;
@@ -3303,7 +3303,7 @@ double iADreamCaster::RandonSpaceAnalysis()
 	iATriPrim* tri;
 	iAVec3f triNorm;
 	float d;
-	float torusRadius = fabs(0.5f*stngs.ORIGIN_Z);
+	float torusRadius = std::fabs(0.5f*stngs.ORIGIN_Z);
 	float bad_area = 0.f;
 	float good_area = 0.f;
 	int i;
@@ -3315,11 +3315,11 @@ double iADreamCaster::RandonSpaceAnalysis()
 		triNorm = tri->normal();
 		d = tri->d();
 		float triSurfArea = tri->surface();
-		abscos = fabs( triNorm & rotAxis);
+		abscos = std::fabs( triNorm & rotAxis);
 		float a = d*abscos;
-		float b = sqrt(d*d-a*a);
+		float b = std::sqrt(d*d-a*a);
 		b = b - torusRadius;
-		float dist2TorusCenter = sqrt(a*a+b*b);
+		float dist2TorusCenter = std::sqrt(a*a+b*b);
 		if (dist2TorusCenter > torusRadius)
 		{
 			bad_area += triSurfArea;
@@ -3669,7 +3669,7 @@ void iADreamCaster::PositionSpecimen()
 {
 	float freeSpacePart = 0.1;
 	float maxSize = mdata.box.half_size().length();
-	float o2plane_dist = fabs(stngs.ORIGIN_Z) + fabs(stngs.PLANE_Z);
+	float o2plane_dist = std::fabs(stngs.ORIGIN_Z) + std::fabs(stngs.PLANE_Z);
 	stngs.ORIGIN_Z = o2plane_dist * ( maxSize / ( stngs.PLANE_H_W * (1 - freeSpacePart) ) );
 	stngs.PLANE_Z = o2plane_dist - stngs.ORIGIN_Z;
 	stngs.ORIGIN_Z = -stngs.ORIGIN_Z;
