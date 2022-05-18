@@ -3,6 +3,7 @@
 //Qt
 #include "qlist.h"
 
+#include <cmath>
 
 iACompBinning::iACompBinning(iACsvDataStorage* dataStorage, bin::BinType* datasets) :
 	m_datasets(datasets),
@@ -62,7 +63,7 @@ std::vector<double>* iACompBinning::calculateSilhouetteCoefficient(iACompHistogr
 			{
 				silhouette += (minAverageDist - averageDist) / (std::max(minAverageDist, averageDist));
 
-				if (isnan((minAverageDist - averageDist) / (std::max(minAverageDist, averageDist))))
+				if (std::isnan((minAverageDist - averageDist) / (std::max(minAverageDist, averageDist))))
 				{ //capture NANs
 					LOG(lvlDebug, "NAN ");
 					LOG(lvlDebug, "averageDist " + QString::number(averageDist));
