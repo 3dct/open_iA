@@ -116,7 +116,7 @@ void iACompCombiTable::drawRow(int currDataInd, int currentColumn, double offset
 	lineMapper->InterpolateScalarsBeforeMappingOff();
 
 	vtkSmartPointer<vtkActor> actor = vtkSmartPointer<vtkActor>::New();
-	actor->SetMapper(lineMapper);
+	actor->SetMapper(lineMapper.Get());
 	actor->GetProperty()->SetLineWidth(m_lineWidth);
 
 	m_mainRenderer->AddActor(actor);
@@ -313,11 +313,11 @@ vtkSmartPointer<vtkPolyData> iACompCombiTable::drawCurve(double drawingDimension
 
 	// Create a cell array to store the lines in and add the lines to it
 	vtkNew<vtkCellArray> cells;
-	cells->InsertNextCell(polyLine);
+	cells->InsertNextCell(polyLine.Get());
 
-	vtkNew<vtkPolyData> polyData;
+	auto polyData = vtkSmartPointer<vtkPolyData>::New();
 	polyData->SetPoints(curvePoints);
-	polyData->SetLines(cells);
+	polyData->SetLines(cells.Get());
 	polyData->GetPointData()->AddArray(colorArray);
 	polyData->GetPointData()->SetActiveScalars("colorArray");
 

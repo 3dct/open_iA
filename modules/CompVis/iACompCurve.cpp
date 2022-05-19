@@ -722,15 +722,15 @@ void iACompCurve::drawWhiteCurve(vtkSmartPointer<vtkPoints> curvePoints)
 
 	// Create a cell array to store the lines in and add the lines to it
 	vtkNew<vtkCellArray> cells;
-	cells->InsertNextCell(polyLine);
+	cells->InsertNextCell(polyLine.Get());
 
 	vtkNew<vtkPolyData> curvePolyData;
 	curvePolyData->SetPoints(curvePoints);
-	curvePolyData->SetLines(cells);
+	curvePolyData->SetLines(cells.Get());
 	curvePolyData->GetPointData()->AddArray(colorArray);
 	curvePolyData->GetPointData()->SetActiveScalars("colorArray");
 	vtkNew<vtkPolyDataMapper> lineMapper;
-	lineMapper->SetInputData(curvePolyData);
+	lineMapper->SetInputData(curvePolyData.Get());
 	lineMapper->SetScalarRange(curvePolyData->GetScalarRange());
 	lineMapper->SetColorModeToDefault();
 	lineMapper->SetScalarModeToUsePointData();
@@ -738,7 +738,7 @@ void iACompCurve::drawWhiteCurve(vtkSmartPointer<vtkPoints> curvePoints)
 	lineMapper->InterpolateScalarsBeforeMappingOff();
 
 	vtkSmartPointer<vtkActor> actor = vtkSmartPointer<vtkActor>::New();
-	actor->SetMapper(lineMapper);
+	actor->SetMapper(lineMapper.Get());
 	actor->GetProperty()->SetLineWidth(m_lineWidth);
 
 	m_mainRenderer->AddActor(actor);
@@ -754,7 +754,7 @@ vtkSmartPointer<vtkPolyData> iACompCurve::createPolygon(vtkSmartPointer<vtkPoint
 	}
 
 	vtkNew<vtkCellArray> cells;
-	cells->InsertNextCell(polygon);
+	cells->InsertNextCell(polygon.Get());
 
 	vtkSmartPointer<vtkUnsignedCharArray> colorArray = vtkSmartPointer<vtkUnsignedCharArray>::New();
 	colorArray->SetName("colorArray");
@@ -764,9 +764,9 @@ vtkSmartPointer<vtkPolyData> iACompCurve::createPolygon(vtkSmartPointer<vtkPoint
 	colorPolygon(points, colorArray, numberOfObjectsInsideBin);
 
 	// Create a polydata to store everything in
-	vtkNew<vtkPolyData> polyData;
+	auto polyData = vtkSmartPointer<vtkPolyData>::New();
 	polyData->SetPoints(points);
-	polyData->SetPolys(cells);
+	polyData->SetPolys(cells.Get());
 	polyData->GetCellData()->AddArray(colorArray);
 	polyData->GetCellData()->SetActiveScalars("colorArray");
 
@@ -817,14 +817,14 @@ void iACompCurve::drawPolygon(vtkSmartPointer<vtkPoints> curvePoints, vtkSmartPo
 
 		// Create a cell array to store the lines in and add the lines to it
 		vtkNew<vtkCellArray> cells;
-		cells->InsertNextCell(polygon);
+		cells->InsertNextCell(polygon.Get());
 
 		vtkNew<vtkPolyData> curvePolyData;
 		curvePolyData->SetPoints(currBinCurvePoints);
-		curvePolyData->SetPolys(cells);
+		curvePolyData->SetPolys(cells.Get());
 		curvePolyData->GetCellData()->SetScalars(currBinColorArray);
 		
-		appendFilter->AddInputData(curvePolyData);
+		appendFilter->AddInputData(curvePolyData.Get());
 	}
 	
 	appendFilter->Update();
@@ -840,7 +840,7 @@ void iACompCurve::drawPolygon(vtkSmartPointer<vtkPoints> curvePoints, vtkSmartPo
 	lineMapper->SetColorModeToDirectScalars();
 
 	vtkSmartPointer<vtkActor> actor = vtkSmartPointer<vtkActor>::New();
-	actor->SetMapper(lineMapper);
+	actor->SetMapper(lineMapper.Get());
 
 	m_mainRenderer->AddActor(actor);
 }
@@ -867,15 +867,15 @@ void iACompCurve::drawCurve(
 
 	// Create a cell array to store the lines in and add the lines to it
 	vtkNew<vtkCellArray> cells;
-	cells->InsertNextCell(polyLine);
+	cells->InsertNextCell(polyLine.Get());
 
 	vtkNew<vtkPolyData> curvePolyData;
 	curvePolyData->SetPoints(curvePoints);
-	curvePolyData->SetLines(cells);
+	curvePolyData->SetLines(cells.Get());
 	curvePolyData->GetPointData()->AddArray(colorArray);
 	curvePolyData->GetPointData()->SetActiveScalars("colorArray");
 	vtkNew<vtkPolyDataMapper> lineMapper;
-	lineMapper->SetInputData(curvePolyData);
+	lineMapper->SetInputData(curvePolyData.Get());
 	lineMapper->SetScalarRange(curvePolyData->GetScalarRange());
 	lineMapper->SetColorModeToDefault();
 	lineMapper->SetScalarModeToUsePointData();
@@ -883,7 +883,7 @@ void iACompCurve::drawCurve(
 	lineMapper->InterpolateScalarsBeforeMappingOff();
 
 	vtkSmartPointer<vtkActor> actor = vtkSmartPointer<vtkActor>::New();
-	actor->SetMapper(lineMapper);
+	actor->SetMapper(lineMapper.Get());
 	actor->GetProperty()->SetLineWidth(m_lineWidth);
 
 	m_mainRenderer->AddActor(actor);
@@ -900,7 +900,7 @@ vtkSmartPointer<vtkPolyData> iACompCurve::drawLine(vtkSmartPointer<vtkPoints> po
 
 	// Create a cell array to store the lines in and add the lines to it
 	vtkNew<vtkCellArray> cells;
-	cells->InsertNextCell(polyLine);
+	cells->InsertNextCell(polyLine.Get());
 
 	vtkSmartPointer<vtkUnsignedCharArray> colorArray = vtkSmartPointer<vtkUnsignedCharArray>::New();
 	colorArray->SetName("colorArray");
@@ -913,24 +913,24 @@ vtkSmartPointer<vtkPolyData> iACompCurve::drawLine(vtkSmartPointer<vtkPoints> po
 	}
 
 	// Create a polydata to store everything in
-	vtkNew<vtkPolyData> polyData;
+	auto polyData = vtkSmartPointer<vtkPolyData>::New();
 	polyData->SetPoints(points);
-	polyData->SetLines(cells);
+	polyData->SetLines(cells.Get());
 	polyData->GetCellData()->AddArray(colorArray);
 	polyData->GetCellData()->SetActiveScalars("colorArray");
 
 	// Setup actor and mapper
 	vtkNew<vtkPolyDataMapper> mapper;
-	mapper->SetInputData(polyData);
+	mapper->SetInputData(polyData.Get());
 	mapper->SetColorModeToDefault();
 	mapper->SetScalarModeToUseCellData();
 	mapper->GetInput()->GetCellData()->SetScalars(colorArray);
 	mapper->ScalarVisibilityOn();
 
 	vtkNew<vtkActor> actor;
-	actor->SetMapper(mapper);
+	actor->SetMapper(mapper.Get());
 
-	m_mainRenderer->AddActor(actor);
+	m_mainRenderer->AddActor(actor.Get());
 
 	return polyData;
 }
@@ -962,7 +962,7 @@ void iACompCurve::drawTicks(double numberOfTicks, double drawingDimensions[4])
 
 		// Create a cell array to store the lines in and add the lines to it
 		vtkNew<vtkCellArray> cells;
-		cells->InsertNextCell(polyLine);
+		cells->InsertNextCell(polyLine.Get());
 
 		vtkSmartPointer<vtkUnsignedCharArray> colorArray = vtkSmartPointer<vtkUnsignedCharArray>::New();
 		colorArray->SetName("colorArray");
@@ -977,11 +977,11 @@ void iACompCurve::drawTicks(double numberOfTicks, double drawingDimensions[4])
 		// Create a polydata to store everything in
 		vtkNew<vtkPolyData> tickPolyData;
 		tickPolyData->SetPoints(tickPoints);
-		tickPolyData->SetLines(cells);
+		tickPolyData->SetLines(cells.Get());
 		tickPolyData->GetCellData()->AddArray(colorArray);
 		tickPolyData->GetCellData()->SetActiveScalars("colorArray");
 
-		appendFilter->AddInputData(tickPolyData);
+		appendFilter->AddInputData(tickPolyData.Get());
 	}
 
 	// Setup actor and mapper
@@ -989,9 +989,9 @@ void iACompCurve::drawTicks(double numberOfTicks, double drawingDimensions[4])
 	mapper->SetInputConnection(appendFilter->GetOutputPort());
 	
 	vtkNew<vtkActor> actor;
-	actor->SetMapper(mapper);
+	actor->SetMapper(mapper.Get());
 
-	m_mainRenderer->AddActor(actor);
+	m_mainRenderer->AddActor(actor.Get());
 }
 
 void iACompCurve::colorCurve(vtkSmartPointer<vtkPoints> points, vtkSmartPointer<vtkUnsignedCharArray> colorArray,

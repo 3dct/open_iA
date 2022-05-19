@@ -11,6 +11,7 @@
 #include "vtkTextProperty.h"
 #include "vtkLookupTable.h"
 #include "vtkActor.h"
+#include <vtkNew.h>
 #include "vtkScalarBarActor.h"
 #include "vtkProperty2D.h"
 #include "vtkPlaneSource.h"
@@ -473,7 +474,7 @@ void iACompTable::drawXAxis(double drawingDimensions[4])
 		xAxisMapper->SetInputConnection(lineSource->GetOutputPort());
 		vtkNew<vtkActor> xAxisActor;
 		xAxisActor->SetMapper(xAxisMapper);
-		m_mainRenderer->AddActor(xAxisActor);
+		m_mainRenderer->AddActor(xAxisActor.Get());
 
 		//draw ticks on x-axis
 		vtkSmartPointer<vtkPoints> tickLabelPoints = drawXTicks(drawingDimensions, yheight, tickLength);
@@ -543,7 +544,7 @@ vtkSmartPointer<vtkPoints> iACompTable::drawXTicks(double drawingDimensions[4], 
 	vtkNew<vtkActor> xAxisActor;
 	xAxisActor->SetMapper(xAxisMapper);
 
-	m_mainRenderer->AddActor(xAxisActor);
+	m_mainRenderer->AddActor(xAxisActor.Get());
 
 	return tickLabelPoints;
 }
