@@ -24,6 +24,9 @@
 #include <QString>
 
 #include "vtkSmartPointer.h"
+
+#include <vector>
+
 class vtkActor;
 
 namespace iACompVisOptions
