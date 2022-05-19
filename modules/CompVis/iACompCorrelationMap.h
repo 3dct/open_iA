@@ -42,12 +42,9 @@ class iACsvDataStorage;
 
 class iACompVisMain;
 
-//vtk
-//class QVTKOpenGLNativeWidget;
-
 class iAQVTKWidget;
 
-
+//vtk
 class vtkRenderer;
 class vtkGraphLayoutView;
 class vtkMutableUndirectedGraph;

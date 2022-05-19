@@ -12,13 +12,13 @@
 
 //iA
 #include "iAMainWindow.h"
+#include "iAQVTKWidget.h"
 #include "iAVtkVersion.h"
 
 //Qt
 #include <QBoxLayout>
 
 //vtk
-#include "QVTKOpenGLNativeWidget.h"
 #include "vtkRenderer.h"
 #include "vtkRenderWindow.h"
 #include "vtkInteractorObserver.h"
@@ -55,7 +55,7 @@ iACompHistogramVis::iACompHistogramVis(
 	QVBoxLayout* layout = new QVBoxLayout;
 	dockWidgetContents->setLayout(layout);
 
-	m_qvtkWidget = new QVTKOpenGLNativeWidget(this);
+	m_qvtkWidget = new iAQVTKWidget(this);
 	layout->addWidget(m_qvtkWidget);
 
 	//4.initialize x-axis when univariate datasets are drawn

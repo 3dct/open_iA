@@ -21,9 +21,10 @@ class iACompCurve;
 class iACompCombiTable;
 class iACsvDataStorage;
 
+class iAQVTKWidget;
+
 //vtk
 class vtkInteractorObserver;
-class QVTKOpenGLNativeWidget;
 class vtkRenderer;
 class vtkCamera;
 
@@ -142,7 +143,7 @@ private:
 	void initializeOrderOfIndices();
 
 	/*************** Rendering ****************************/
-	QVTKOpenGLNativeWidget* m_qvtkWidget;
+	iAQVTKWidget* m_qvtkWidget;
 	vtkSmartPointer<vtkRenderer> m_renderer;
 	vtkSmartPointer<vtkCamera> mainCamera;
 
