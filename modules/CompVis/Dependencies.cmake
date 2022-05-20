@@ -19,12 +19,9 @@ set(DEPENDENCIES_VTK_MODULES
 	CommonComputationalGeometry
 	
 )
-
-IF (EIGEN3_FOUND)
-	SET( DEPENDENCIES_INCLUDE_DIRS
-		${EIGEN3_INCLUDE_DIR}
-	)
-ELSE()
-	message(WARNING "Eigen3 not found! Please add it to EIGEN3_INCLUDE_DIR to enable the CompVis Module!")
-ENDIF()
-
+set(DEPENDENCIES_INCLUDE_DIRS
+	${EIGEN3_INCLUDE_DIR}
+)
+set(DEPENDENCIES_CMAKE
+	EIGEN3_FOUND
+)
