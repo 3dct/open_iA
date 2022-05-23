@@ -225,12 +225,24 @@ void iAVRObjectCoverage::calculateEllipseCoverage()
 				double zSize = calculateLineCoverageRatio(zMinus, zPlus, 1.0);;
 				double ellipseSize = xSize + ySize + zSize;
 
-				getOctreeFiberCoverage(center, xMinus, level, row, ellipseSize);
-				getOctreeFiberCoverage(center, xPlus, level, row, ellipseSize);
-				getOctreeFiberCoverage(center, yMinus, level, row, ellipseSize);
-				getOctreeFiberCoverage(center, yPlus, level, row, ellipseSize);
-				getOctreeFiberCoverage(center, zMinus, level, row, ellipseSize);
-				getOctreeFiberCoverage(center, zPlus, level, row, ellipseSize);
+				//Only if at least one radius is > 0
+				if (ellipseSize != 0)
+				{
+					getOctreeFiberCoverage(center, xMinus, level, row, ellipseSize);
+					getOctreeFiberCoverage(center, xPlus, level, row, ellipseSize);
+					getOctreeFiberCoverage(center, yMinus, level, row, ellipseSize);
+					getOctreeFiberCoverage(center, yPlus, level, row, ellipseSize);
+					getOctreeFiberCoverage(center, zMinus, level, row, ellipseSize);
+					getOctreeFiberCoverage(center, zPlus, level, row, ellipseSize);
+				}
+				else
+				{
+					// ellipse is a single point
+					double eps = 0.00001;
+					getOctreeFiberCoverage(center, xMinus, level, row, eps);
+				}
+
+
 			}
 		}
 	}
@@ -420,13 +432,23 @@ bool iAVRObjectCoverage::checkIntersectionWithBox(double startPoint[3], double e
 	return false;
 }
 
-//! Calculates the ratio between the startPoint to endPoint length versus the overall line lenght
+//! Calculates the ratio between the startPoint to endPoint length versus the overall line length
 double iAVRObjectCoverage::calculateLineCoverageRatio(double startPoint[3], double endPoint[3], double lineLength)
 {
+	double eps = 0.00001;
+
 	double vectorBetweenStartAndEnd[3]{};
 	for (int i = 0; i < 3; i++)
 	{
 		vectorBetweenStartAndEnd[i] = (endPoint[i] - startPoint[i]);
+	}
+
+	// If startPoint == endPoint -> set to eps
+	if (vectorBetweenStartAndEnd[0] == 0 && vectorBetweenStartAndEnd[1] == 0 && vectorBetweenStartAndEnd[2] == 0)
+	{
+		vectorBetweenStartAndEnd[0] == eps;
+		vectorBetweenStartAndEnd[1] == eps;
+		vectorBetweenStartAndEnd[2] == eps;
 	}
 
 	double coverage = sqrt(pow(vectorBetweenStartAndEnd[0], 2) + pow(vectorBetweenStartAndEnd[1], 2) + pow(vectorBetweenStartAndEnd[2], 2));

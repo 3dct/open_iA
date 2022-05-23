@@ -893,7 +893,7 @@ void dlg_FeatureScout::selectionChanged3D()
 	auto sel = vis->selection();
 	setPCSelection(sel);
 	m_splom->setFilteredSelection(sel);	// TODO: test with classes!
-	LOG(lvlError, QString("New selection with %1 selected objects!").arg(sel.size()));
+	LOG(lvlDebug, QString("New selection with %1 selected objects!").arg(sel.size()));
 }
 
 void dlg_FeatureScout::renderLengthDistribution()
