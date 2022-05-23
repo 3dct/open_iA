@@ -82,10 +82,12 @@ class vtkVolume;
 class vtkVolumeProperty;
 
 class QComboBox;
+class QSettings;
 class QStandardItem;
 class QStandardItemModel;
 class QTreeView;
 class QTableView;
+class QXmlStreamReader;
 class QXmlStreamWriter;
 
 class FeatureScout_API dlg_FeatureScout : public QDockWidget
@@ -97,6 +99,9 @@ public:
 		std::vector<iAVec3f> > & curvedFiberInfo, int cylinderQuality, size_t segmentSkip);
 	~dlg_FeatureScout();
 	void changeFeatureScout_Options(int idx);
+	void saveProject(QSettings& projectFile);
+	void loadProject(QSettings& projectFile);
+
 private slots:
 	void SaveBlobMovie();
 	void ClassSaveButton();
@@ -160,6 +165,8 @@ private:
 	void updateLookupTable(double alpha = 0.7);
 	void updateClassStatistics(QStandardItem *item);
 	int calcOrientationProbability(vtkTable *t, vtkTable *ot);
+	void saveClassesXML(QXmlStreamWriter& stream);
+	void loadClassesXML(QXmlStreamReader& reader);
 	void writeClassesAndChildren(QXmlStreamWriter *writer, QStandardItem *item) const;
 	void writeWisetex(QXmlStreamWriter *writer);
 	//void autoAddClass(int NbOfClasses);

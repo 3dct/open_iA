@@ -118,6 +118,7 @@
 #include <QMenu>
 #include <QMessageBox>
 #include <QPushButton>
+#include <QSettings>
 #include <QString>
 #include <QStandardItem>
 #include <QStandardItemModel>
@@ -142,6 +143,7 @@ const QString PercentAttribute("PERCENT");
 const QString IDColumnAttribute("IDColumn");
 const QString LabelAttribute("Label");
 const QString LabelAttributePore("LabelId");
+const QString ClassesProjectFile("Classes");
 
 namespace
 {
@@ -1609,25 +1611,30 @@ void dlg_FeatureScout::ClassSaveButton()
 {
 	if (m_classTreeModel->invisibleRootItem()->rowCount() == 1)
 	{
-		QMessageBox::warning(this, "FeatureScout", "No classes was defined.");
+		QMessageBox::warning(this, "FeatureScout", "No classes were defined.");
 		return;
 	}
 
-	QString filename = QFileDialog::getSaveFileName(this, tr("Save File"), m_sourcePath, tr("XML Files (*.xml *.XML)"));
-	if (filename.isEmpty())
+	QString fileName = QFileDialog::getSaveFileName(this, tr("Save File"), m_sourcePath, tr("XML Files (*.xml *.XML)"));
+	if (fileName.isEmpty())
 	{
 		return;
 	}
-
-	QFile file(filename);
+	QFile file(fileName);
 	if (!file.open(QIODevice::WriteOnly | QIODevice::Text))
 	{
-		QMessageBox::warning(this, "FeatureScout", "Could not open XML file for writing.");
+		LOG(lvlError, QString("Could not open classes XML file (%1) for writing.").arg(fileName));
+		QMessageBox::warning(
+			this, "FeatureScout", QString("Could not open classes XML file (%1) for writing.").arg(fileName));
 		return;
 	}
 
 	QXmlStreamWriter stream(&file);
+	saveClassesXML(stream);
+}
 
+void dlg_FeatureScout::saveClassesXML(QXmlStreamWriter& stream)
+{
 	stream.setAutoFormatting(true);
 	stream.writeStartDocument();
 	stream.writeStartElement(IFVTag);
@@ -1646,47 +1653,50 @@ void dlg_FeatureScout::ClassSaveButton()
 
 void dlg_FeatureScout::ClassLoadButton()
 {
-	// open xml file and get meta information
-	QString filename = QFileDialog::getOpenFileName(this, tr("Load xml file"), m_sourcePath, tr("XML Files (*.xml *.XML)"));
-	if (filename.isEmpty())
+	QString fileName = QFileDialog::getOpenFileName(this, tr("Load xml file"), m_sourcePath, tr("XML Files (*.xml *.XML)"));
+	if (fileName.isEmpty())
 	{
 		return;
 	}
-
-	QFile file(filename);
+	QFile file(fileName);
 	if (!file.open(QIODevice::ReadOnly))
 	{
 		QMessageBox::warning(this, "FeatureScout", "Class load error: Could not open source xml file.");
 		return;
 	}
+	QXmlStreamReader reader(&file);
+	loadClassesXML(reader);
+}
 
+void dlg_FeatureScout::loadClassesXML(QXmlStreamReader& reader)
+{
 	// checking xml file correctness
-	QXmlStreamReader checker(&file);
-	checker.readNext(); // skip xml tag?
-	checker.readNext(); // read IFV_Class_Tree element
+	reader.readNext();  // skip xml tag?
+	reader.readNext();  // read IFV_Class_Tree element
 	QString IDColumnName = (m_filterID == iAObjectType::Fibers) ? LabelAttribute : LabelAttributePore;
-	if (checker.name() == IFVTag)
+	if (reader.name() == IFVTag)
 	{
 		// if the object number is not correct, stop the load process
-		if (checker.attributes().value(CountAllAttribute).toString().toInt() != m_objectCount)
+		auto xmlObjectCount = reader.attributes().value(CountAllAttribute).toString().toInt();
+		if (xmlObjectCount != m_objectCount)
 		{
-			QMessageBox::warning(this, "FeatureScout", "Class load error: Incorrect xml file for current dataset, please check.");
-			checker.clear();
+			QString msg = QString("Class load error: Object count in xml file (%1) does not match object count of current dataset (%2)"
+				", please check; the xml file was probably created from a different dataset.").arg(xmlObjectCount).arg(m_objectCount);
+			LOG(lvlWarn, msg);
+			QMessageBox::warning(this, "FeatureScout", msg);
 			return;
 		}
-		if (checker.attributes().hasAttribute(IDColumnAttribute))
+		if (reader.attributes().hasAttribute(IDColumnAttribute))
 		{
-			IDColumnName = checker.attributes().value(IDColumnAttribute).toString();
+			IDColumnName = reader.attributes().value(IDColumnAttribute).toString();
 		}
 	}
 	else // incompatible xml file
 	{
+		LOG(lvlWarn, "Class load error: xml file incompatible with FeatureScout, please check.");
 		QMessageBox::warning(this, "FeatureScout", "Class load error: xml file incompatible with FeatureScout, please check.");
-		checker.clear();
 		return;
 	}
-	checker.clear();
-	file.close();
 
 	m_chartTable->DeepCopy(m_csvTable); // reset charttable
 	m_tableList.clear();
@@ -1705,13 +1715,6 @@ void dlg_FeatureScout::ClassLoadButton()
 	QStandardItem* rootItem = m_classTreeModel->invisibleRootItem();
 	QStandardItem* activeItem = nullptr;
 
-	QFile readFile(filename);
-	if (!readFile.open(QIODevice::ReadOnly))
-	{
-		return;
-	}
-
-	QXmlStreamReader reader(&readFile);
 	while (!reader.atEnd())
 	{
 		if (reader.readNext() != QXmlStreamReader::EndDocument && reader.isStartElement())
@@ -1755,22 +1758,15 @@ void dlg_FeatureScout::ClassLoadButton()
 	}
 	m_splom->classesChanged();
 
+	assert(rootItem->rowCount() == idxClass);
+
 	//upadate TableList
-	if (rootItem->rowCount() == idxClass)
+	for (int i = 0; i < idxClass; ++i)
 	{
-		for (int i = 0; i < idxClass; ++i)
-		{
-			this->recalculateChartTable(rootItem->child(i));
-		}
-		this->setActiveClassItem(rootItem->child(0), 0);
-		MultiClassRendering();
+		this->recalculateChartTable(rootItem->child(i));
 	}
-	else
-	{
-		QMessageBox::warning(this, "FeatureScout", "Class load error: unclear class load process.");
-	}
-	reader.clear();
-	readFile.close();
+	this->setActiveClassItem(rootItem->child(0), 0);
+	MultiClassRendering();
 }
 
 void dlg_FeatureScout::ClassDeleteButton()
@@ -3105,6 +3101,29 @@ void dlg_FeatureScout::changeFeatureScout_Options(int idx)
 		showPCSettings();
 		break;
 	}
+}
+
+void dlg_FeatureScout::saveProject(QSettings& projectFile)
+{
+	if (m_classTreeModel->invisibleRootItem()->rowCount() <= 1)
+	{
+		return;
+	}
+	QString outXML;
+	QXmlStreamWriter writer(&outXML);
+	saveClassesXML(writer);
+	projectFile.setValue(ClassesProjectFile, outXML);
+}
+
+void dlg_FeatureScout::loadProject(QSettings& projectFile)
+{
+	if (!projectFile.contains(ClassesProjectFile))
+	{
+		return;
+	}
+	QString classesString = projectFile.value(ClassesProjectFile).toString();
+	QXmlStreamReader reader(classesString);
+	loadClassesXML(reader);
 }
 
 void dlg_FeatureScout::updateAxisProperties()

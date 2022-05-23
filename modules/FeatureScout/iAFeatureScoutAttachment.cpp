@@ -43,3 +43,13 @@ void iAFeatureScoutAttachment::FeatureScout_Options(int idx)
 	}
 	imgFS->changeFeatureScout_Options(idx);
 }
+
+void iAFeatureScoutAttachment::saveProject(QSettings& projectFile)
+{
+	imgFS->saveProject(projectFile);
+}
+
+void iAFeatureScoutAttachment::loadProject(QSettings& projectFile)
+{
+	imgFS->loadProject(projectFile);
+}

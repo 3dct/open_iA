@@ -32,6 +32,8 @@ class dlg_FeatureScout;
 
 class vtkTable;
 
+class QSettings;
+
 class iAFeatureScoutAttachment : public iAModuleAttachmentToChild
 {
 	Q_OBJECT
@@ -41,6 +43,9 @@ public:
 		QSharedPointer<QMap<uint, uint> > columnMapping, std::map<size_t,
 		std::vector<iAVec3f> > & curvedFiberInfo, int cylinderQuality, size_t segmentSkip);
 	void FeatureScout_Options(int idx);
+	void saveProject(QSettings& projectFile);
+	void loadProject(QSettings& projectFile);
+
 private:
 	dlg_FeatureScout * imgFS;
 };
