@@ -1589,6 +1589,22 @@ void dlg_FeatureScout::CreateLabelledOutputMask(iAConnector& con, const QString&
 	LOG(lvlInfo, "Stored image of of classes.");
 }
 
+namespace
+{
+	QString filterToXMLAttributeName(QString const& str)
+	{
+		QString result(str);
+		const QRegularExpression validFirstChar("^[a-zA-Z_:]");
+		while (!validFirstChar.match(result).hasMatch() && result.size() > 0)
+		{
+			result.remove(0, 1);
+		}
+		const QRegularExpression invalidChars("[^a-zA-Z0-9_:.-]");
+		result.remove(invalidChars);
+		return result;
+	}
+}
+
 void dlg_FeatureScout::ClassSaveButton()
 {
 	if (m_classTreeModel->invisibleRootItem()->rowCount() == 1)
@@ -1617,7 +1633,7 @@ void dlg_FeatureScout::ClassSaveButton()
 	stream.writeStartElement(IFVTag);
 	stream.writeAttribute(VersionAttribute, "1.0");
 	stream.writeAttribute(CountAllAttribute, QString("%1").arg(m_objectCount));
-	stream.writeAttribute(IDColumnAttribute, m_csvTable->GetColumnName(0)); // store name of ID  -> TODO: ID mapping!
+	stream.writeAttribute(IDColumnAttribute, filterToXMLAttributeName(m_csvTable->GetColumnName(0)));  // store name of ID  -> TODO: ID mapping!
 
 	for (int i = 0; i < m_classTreeModel->invisibleRootItem()->rowCount(); ++i)
 	{
