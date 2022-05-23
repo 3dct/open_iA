@@ -1719,6 +1719,10 @@ void dlg_FeatureScout::ClassLoadButton()
 			if (reader.name() == ObjectTag)
 			{
 				QString label = reader.attributes().value(IDColumnName).toString();
+				if (!reader.attributes().hasAttribute(IDColumnName))
+				{
+					LOG(lvlError, QString("ID attribute %1 is not set!").arg(IDColumnName));
+				}
 				QStandardItem* item = new QStandardItem(label);
 
 				// add objects to firstLevelClassItem
