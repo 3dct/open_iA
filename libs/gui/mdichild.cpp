@@ -775,14 +775,9 @@ void MdiChild::setupView(bool active)
 
 void MdiChild::setupProject(bool /*active*/)
 {
-	QSharedPointer<iAModalityList> m = m_ioThread->modalities();
 	QString fileName = m_ioThread->fileName();
-	setModalities(m);
-	setCurrentFile(fileName);
-	m_mainWnd->setCurrentFile(fileName);
-	if (fileName.toLower().endsWith(iAIOProvider::NewProjectFileExtension))
-	{
-		// TODO: make asynchronous, put into iASavableProject?
+	QSharedPointer<iAModalityList> m = m_ioThread->modalities();
+	auto projectLoader = [this, fileName]()	{
 		QSettings projectFile(fileName, QSettings::IniFormat);
 #if QT_VERSION < QT_VERSION_CHECK(5, 99, 0)
 		projectFile.setIniCodec("UTF-8");
@@ -802,6 +797,17 @@ void MdiChild::setupProject(bool /*active*/)
 				addProject(projectKey, project);
 			}
 		}
+	};
+	if (fileName.toLower().endsWith(iAIOProvider::NewProjectFileExtension) && m->size() > 0)
+	{	// if volume data available, wait for it to fully load before loading the projects:
+		connect(this, &iAMdiChild::histogramAvailable, this, projectLoader);
+	}
+	setModalities(m);
+	setCurrentFile(fileName);
+	m_mainWnd->setCurrentFile(fileName);
+	if (fileName.toLower().endsWith(iAIOProvider::NewProjectFileExtension) && m->size() == 0)
+	{	// if no modalities loaded, continue immediately with loading the projects:
+		projectLoader();
 	}
 }
 
