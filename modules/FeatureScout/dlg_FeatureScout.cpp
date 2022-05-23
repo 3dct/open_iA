@@ -1721,7 +1721,7 @@ void dlg_FeatureScout::ClassLoadButton()
 				QString label = reader.attributes().value(IDColumnName).toString();
 				if (!reader.attributes().hasAttribute(IDColumnName))
 				{
-					LOG(lvlError, QString("ID attribute %1 is not set!").arg(IDColumnName));
+					LOG(lvlError, QString("Invalid XML: ID attribute %1 is not set!").arg(IDColumnName));
 				}
 				QStandardItem* item = new QStandardItem(label);
 
@@ -2312,55 +2312,35 @@ double dlg_FeatureScout::calculateOpacity(QStandardItem* item)
 	return 1.0;
 }
 
-namespace
-{
-	QString filterToXMLAttributeName(QString const& str)
-	{
-		QString result(str);
-		const QRegularExpression validFirstChar("^[a-zA-Z_:]");
-		while (!validFirstChar.match(result).hasMatch() && result.size() > 0)
-		{
-			result.remove(0, 1);
-		}
-		const QRegularExpression invalidChars("[^a-zA-Z0-9_:.-]");
-		result.remove(invalidChars);
-		return result;
-	}
-}
-
 void dlg_FeatureScout::writeClassesAndChildren(QXmlStreamWriter* writer, QStandardItem* item) const
 {
-	// check if it is a class item
-	if (item->hasChildren())
+	writer->writeStartElement(ClassTag);
+	writer->writeAttribute(NameAttribute, item->text());
+
+	QString color = QString(m_colorList.at(item->index().row()).name());
+
+	writer->writeAttribute(ColorAttribute, color);
+	writer->writeAttribute(CountAttribute, m_classTreeModel->invisibleRootItem()->child(item->index().row(), 1)->text());
+	writer->writeAttribute(PercentAttribute, m_classTreeModel->invisibleRootItem()->child(item->index().row(), 2)->text());
+	for (int i = 0; i < item->rowCount(); ++i)
 	{
-		writer->writeStartElement(ClassTag);
-		writer->writeAttribute(NameAttribute, item->text());
-
-		QString color = QString(m_colorList.at(item->index().row()).name());
-
-		writer->writeAttribute(ColorAttribute, color);
-		writer->writeAttribute(CountAttribute, m_classTreeModel->invisibleRootItem()->child(item->index().row(), 1)->text());
-		writer->writeAttribute(PercentAttribute, m_classTreeModel->invisibleRootItem()->child(item->index().row(), 2)->text());
-		for (int i = 0; i < item->rowCount(); ++i)
+		writer->writeStartElement(ObjectTag);
+		for (int j = 0; j < m_elementCount; ++j)
 		{
-			writer->writeStartElement(ObjectTag);
-			for (int j = 0; j < m_elementCount; ++j)
-			{
-				vtkVariant v = m_csvTable->GetValue(item->child(i)->text().toInt() - 1, j);
-				vtkVariant v1 = m_elementTable->GetValue(j, 0);
+			vtkVariant v = m_csvTable->GetValue(item->child(i)->text().toInt() - 1, j);
+			vtkVariant v1 = m_elementTable->GetValue(j, 0);
 #if VTK_VERSION_NUMBER < VTK_VERSION_CHECK(9, 1, 0)
-				QString str = QString::fromUtf8(v.ToUnicodeString().utf8_str()).trimmed();
-				QString str1 = filterToXMLAttributeName(QString::fromUtf8(v1.ToUnicodeString().utf8_str()).trimmed());
+			QString str = QString::fromUtf8(v.ToUnicodeString().utf8_str()).trimmed();
+			QString str1 = filterToXMLAttributeName(QString::fromUtf8(v1.ToUnicodeString().utf8_str()).trimmed());
 #else
-				QString str = QString::fromUtf8(v.ToString().c_str()).trimmed();
-				QString str1 = filterToXMLAttributeName(QString::fromUtf8(v1.ToString().c_str()).trimmed());
+			QString str = QString::fromUtf8(v.ToString().c_str()).trimmed();
+			QString str1 = filterToXMLAttributeName(QString::fromUtf8(v1.ToString().c_str()).trimmed());
 #endif
-				writer->writeAttribute(str1, str);
-			}
-			writer->writeEndElement(); // end object tag
+			writer->writeAttribute(str1, str);
 		}
-		writer->writeEndElement(); // end class tag
+		writer->writeEndElement(); // end object tag
 	}
+	writer->writeEndElement(); // end class tag
 }
 
 void dlg_FeatureScout::setActiveClassItem(QStandardItem* item, int situ)
