@@ -60,7 +60,7 @@ private:
 	vtkSmartPointer<vtkOpenVRRenderer> m_renderer;
 	vtkSmartPointer<vtkOpenVRRenderWindow> m_renderWindow;
 	vtkSmartPointer<vtkOpenVRRenderWindowInteractor> m_interactor;
-	vtkSmartPointer<vtkSkybox> skyboxActor;
+	vtkSmartPointer<vtkSkybox> m_skyboxActor;
 	//Stores the world scale at start
 	double m_worldScale;
 	bool m_skyBoxVisible = false;

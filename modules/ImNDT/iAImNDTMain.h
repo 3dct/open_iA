@@ -72,6 +72,8 @@ enum class iAVROperations {
   ChangeMiMDisplacementType,
   ChangeJaccardIndex,
   FlipHistoBookPages,
+  LeftGrid,
+  ToggleArView,
   NumberOfOperations
 };
 
@@ -86,12 +88,12 @@ public:
 	void endInteraction(vtkEventDataDevice3D* device, vtkProp3D* pickedProp, double eventPosition[3], double eventOrientation[4]); //Release, Untouch
 	void onMove(vtkEventDataDevice3D* device, double movePosition[3], double eventOrientation[4]); //Movement
 	void onZoom();
-	bool toggleArView();
 	vtkIdType currentOctreeLevel;
 
 signals:
 	void selectionChanged();
 
+	
 private:
 	iAVREnvironment* m_vrEnv;
 	std::vector<iAVROctree*>* m_octrees;
@@ -164,4 +166,5 @@ private:
 	void changeMiMDisplacementType();
 	void flipDistributionVis();
 	void displayNodeLinkD();
+	void toggleArView();
 };

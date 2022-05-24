@@ -45,12 +45,16 @@ public:
 	void ImNDT(QSharedPointer<iA3DColoredPolyObjectVis> polyObject, vtkSmartPointer<vtkTable> objectTable, iACsvIO io,
 		iACsvConfig csvConfig);
 	vtkRenderer* getRenderer();
-	bool toggleARView();
+
+signals:
+	void selectionChanged();
+	void arViewToggled();
 
 private:
 	iAModuleAttachmentToChild* CreateAttachment(iAMainWindow* mainWnd, iAMdiChild* child) override;
 	bool vrAvailable();
 	bool loadImNDT();
+	void vrInfo();
 	QSharedPointer<iAVREnvironment> m_vrEnv;
 	QSharedPointer<iA3DColoredPolyObjectVis> m_polyObject;
 	iAImNDTMain* m_vrMain;
@@ -60,16 +64,11 @@ private:
 	vtkSmartPointer<vtkTable> m_objectTable;
 
 	QAction* m_actionVRStartAnalysis;
-	QAction* m_actionVR_ARView;
 
 private slots:
 	void info();
 	void render();
 
 	void startAnalysis();
-	void startARView();
 	void vrDone();
-
-signals:
-	void selectionChanged();
 };

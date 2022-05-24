@@ -159,7 +159,7 @@ void iAVREnvironment::showSkybox()
 	{
 		return;
 	}
-	m_renderer->AddActor(skyboxActor);
+	m_renderer->AddActor(m_skyboxActor);
 	m_skyBoxVisible = true;
 }
 
@@ -169,7 +169,7 @@ void iAVREnvironment::hideSkybox()
 	{
 		return;
 	}
-	m_renderer->RemoveActor(skyboxActor);
+	m_renderer->RemoveActor(m_skyboxActor);
 	m_skyBoxVisible = false;
 }
 
@@ -227,8 +227,8 @@ void iAVREnvironment::createSkybox(int skyboxImage)
 	//m_renderer->UseImageBasedLightingOn();
 	//m_renderer->SetEnvironmentTexture(cubemap);
 
-	skyboxActor = vtkSmartPointer<vtkSkybox>::New();
-	skyboxActor->SetTexture(skybox);
+	m_skyboxActor = vtkSmartPointer<vtkSkybox>::New();
+	m_skyboxActor->SetTexture(skybox);
 }
 
 vtkSmartPointer<vtkTexture> iAVREnvironment::ReadCubeMap(std::string const& folderPath,

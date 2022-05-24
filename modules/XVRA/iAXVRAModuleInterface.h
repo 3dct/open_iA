@@ -22,11 +22,11 @@ private:
 	iAImNDTModuleInterface* m_vrMain;
 	iAFrustumActor* fsFrustum;
 	iAFrustumActor* vrFrustum;
-	QAction* m_actionXVRA_ARView;
 	QTimer m_updateRenderer;
 	bool m_updateRequired;
+
 private slots:
 	void info();
 	void startXVRA();
-	void startARView();
+
 };

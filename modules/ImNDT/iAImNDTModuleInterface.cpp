@@ -62,19 +62,21 @@ void iAImNDTModuleInterface::Initialize()
 	connect(m_actionVRStartAnalysis, &QAction::triggered, this, &iAImNDTModuleInterface::startAnalysis);
 
 
-	m_actionVR_ARView = new QAction(tr("Start AR Environment"), m_mainWnd);
-	connect(m_actionVR_ARView, &QAction::triggered, this, &iAImNDTModuleInterface::startARView);
-	m_actionVR_ARView->setDisabled(true);
-
 	QMenu* vrMenu = getOrAddSubMenu(m_mainWnd->toolsMenu(), tr("ImNDT"), false);
 	vrMenu->addAction(actionVRInfo);
 	vrMenu->addAction(actionVRRender);
 
 	vrMenu->addAction(m_actionVRStartAnalysis);
-	vrMenu->addAction(m_actionVR_ARView);
 }
 
 void iAImNDTModuleInterface::info()
+{
+	QString infoTxt("ImNDT: Immersive Workspace for the Analysis of Multidimensional Material Data From Non-Destructive Testing \n\n Actions with Right Controller: \n (1) Picking is detected at the bottom inner edge of the controller and activated by pressing the trigger inside cube in the MiM or the fiber model. \n (2) Multi-selection is made possible by holding one grip and then picking by triggering the right controller. To confirm the selection release the grip. Deselection by selecting the already selected cube again. \n (3) Pressing the trigger outside an object resets any highlighting. \n (4) Pressing the Application Button switches between similarity network and fiber model (only possible if MiM is present). \n (5) Picking two cubes (Multi-selection) in the similarity network opens the Histo-book through which the user can switch between the distributions by holding the right trigger - swiping left or right and releasing it. \n (6) The Trackpad changes the octree level or feature (both only possible if MiM is present) and resets the Fiber Model. Octree Level can be adjusted by pressing up (higher/detailed level) and down (lower/coarser level) on the trackpad. Feature can be changed by pressing right (next feature) and left (previous feature) on the trackpad. \n\n Actions with Left Controller: \n (1) Pressing the Application Button shows or hides the MiM. \n (2) Pressing the trigger changes the displacement mode. \n (3) The Trackpad changes the applied displacement (only possible if MiM is present) or the Jaccard index (only possible if similarity network is shown). Displacement can be adjusted by pressing up (shift away from center) and down (merge together) on the trackpad. Jaccard index can be changed by pressing right (shows higher similarity) and left (shows lower similarity) on the trackpad. \n (4) By holding one grip and then pressing the trigger on the right controller the AR View can be turned on/off. \n\n Actions using Both Controllers: \n  (1) Pressing a grid button on both controllers zooms or translates the world. The zoom can be controlled by pulling controllers apart (zoom in) or together (zoom out). To translate the world both controllers pull in the same direction (grab and pull closer or away). \n");
+	QMessageBox::information(m_mainWnd, "ImNDT Module", infoTxt);
+
+}
+
+void iAImNDTModuleInterface::vrInfo()
 {
 	LOG(lvlInfo, QString("VR Information:"));
 	LOG(lvlInfo, QString("    Is Runtime installed: %1").arg(vr::VR_IsRuntimeInstalled() ? "yes" : "no"));
@@ -132,13 +134,11 @@ void iAImNDTModuleInterface::startAnalysis()
 		ImNDT(m_polyObject, m_objectTable, m_io, m_csvConfig);
 
 		connect(m_vrEnv.data(), &iAVREnvironment::finished, this, &iAImNDTModuleInterface::vrDone);
-		m_actionVR_ARView->setEnabled(true);
 		m_actionVRStartAnalysis->setText("Stop Analysis");
 	}
 	else
 	{
 		m_vrEnv->stop();
-		m_actionVR_ARView->setDisabled(true);
 	}
 }
 
@@ -192,18 +192,6 @@ vtkRenderer* iAImNDTModuleInterface::getRenderer()
 	return m_vrEnv->renderer();
 }
 
-void iAImNDTModuleInterface::startARView()
-{
-	if(toggleARView())
-	{
-		m_actionVR_ARView->setText("Stop AR Environment");
-	}
-	else
-	{
-		m_actionVR_ARView->setText("Start AR Environment");
-	}
-	
-}
 
 bool iAImNDTModuleInterface::loadImNDT()
 {
@@ -246,11 +234,6 @@ bool iAImNDTModuleInterface::loadImNDT()
 	return true;
 }
 
-bool iAImNDTModuleInterface::toggleARView()
-{
-	return m_vrMain->toggleArView();
-}
-
 iAModuleAttachmentToChild * iAImNDTModuleInterface::CreateAttachment( iAMainWindow* mainWnd, iAMdiChild* child)
 {
 	return new iAImNDTAttachment( mainWnd, child );
@@ -261,5 +244,4 @@ void iAImNDTModuleInterface::vrDone()
 	delete m_vrMain;
 	m_vrMain = nullptr;
 	m_actionVRStartAnalysis->setText("Start Analysis");
-	m_actionVR_ARView->setDisabled(true);
 }

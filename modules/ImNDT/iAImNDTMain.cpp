@@ -154,10 +154,16 @@ iAImNDTMain::iAImNDTMain(iAVREnvironment* vrEnv, iAImNDTInteractorStyle* style, 
 		iAVRInteractionOptions::MiniatureModel, iAVROperations::SpawnModelInMiniature);
 	this->setInputScheme(vtkEventDataDevice::RightController, vtkEventDataDeviceInput::Grip, vtkEventDataAction::Press,
 		iAVRInteractionOptions::Anywhere, iAVROperations::MultiPickMiMRegion);
+	this->setInputScheme(vtkEventDataDevice::LeftController, vtkEventDataDeviceInput::Trigger, vtkEventDataAction::Press,
+		iAVRInteractionOptions::Anywhere, iAVROperations::ToggleArView);
+	this->setInputScheme(vtkEventDataDevice::LeftController, vtkEventDataDeviceInput::Grip, vtkEventDataAction::Press,
+		iAVRInteractionOptions::Anywhere, iAVROperations::LeftGrid);
 
 	//Release, Untouch
 	this->setInputScheme(vtkEventDataDevice::RightController, vtkEventDataDeviceInput::Grip, vtkEventDataAction::Release,
 		iAVRInteractionOptions::Anywhere, iAVROperations::MultiPickMiMRegion);
+	this->setInputScheme(vtkEventDataDevice::LeftController, vtkEventDataDeviceInput::Grip, vtkEventDataAction::Release,
+		iAVRInteractionOptions::Anywhere, iAVROperations::LeftGrid);
 
 	//For Oculus
 	this->setInputScheme(vtkEventDataDevice::RightController, vtkEventDataDeviceInput::Joystick, vtkEventDataAction::Press,
@@ -236,6 +242,12 @@ void iAImNDTMain::startInteraction(vtkEventDataDevice3D* device, vtkProp3D* pick
 	case iAVROperations::ExplodeMiM:
 		this->pressLeftTouchpad();
 		break;
+	case iAVROperations::ToggleArView:
+		if (activeInput->at(deviceID) == static_cast<int>(iAVROperations::ToggleArView))
+		{
+			this->toggleArView();
+		}
+		break;
 	case iAVROperations::ChangeMiMDisplacementType:
 		this->changeMiMDisplacementType();
 		break;
@@ -248,6 +260,9 @@ void iAImNDTMain::startInteraction(vtkEventDataDevice3D* device, vtkProp3D* pick
 	case iAVROperations::FlipHistoBookPages:
 		activeInput->at(deviceID) = static_cast<int>(iAVROperations::FlipHistoBookPages);
 		this->flipDistributionVis();
+		break;
+	case iAVROperations::LeftGrid:
+		activeInput->at(deviceID) = static_cast<int>(iAVROperations::ToggleArView);
 		break;
 	default:
 		LOG(lvlDebug, QString("Start Operation %1 is not defined").arg(operation));
@@ -281,6 +296,9 @@ void iAImNDTMain::endInteraction(vtkEventDataDevice3D* device, vtkProp3D* picked
 		break;
 	case iAVROperations::FlipHistoBookPages:
 		this->flipDistributionVis();
+		activeInput->at(deviceID) = 0;
+		break;
+	case iAVROperations::LeftGrid:
 		activeInput->at(deviceID) = 0;
 		break;
 	default:
@@ -933,8 +951,9 @@ void iAImNDTMain::displayNodeLinkD()
 	}
 }
 
-bool iAImNDTMain::toggleArView()
+void iAImNDTMain::toggleArView()
 {
+
 	if (!arEnabled)
 	{
 		m_vrEnv->hideSkybox();
@@ -944,11 +963,10 @@ bool iAImNDTMain::toggleArView()
 		arViewer->refreshImage();
 		arEnabled = true;
 
-		return arEnabled;
+		return;
 	}
 
 	arEnabled = false;
 	m_vrEnv->showSkybox();
-
-	return arEnabled;
+	
 }
