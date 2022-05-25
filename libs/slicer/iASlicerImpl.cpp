@@ -1325,6 +1325,10 @@ void iASlicerImpl::execute(vtkObject * /*caller*/, unsigned long eventId, void *
 	case vtkCommand::MouseMoveEvent:
 	{
 		//LOG(lvlInfo, "iASlicerImpl::execute vtkCommand::MouseMoveEvent");
+		if (m_cursorSet && cursor() != mouseCursor())
+		{
+			setCursor(mouseCursor());
+		}
 		if (m_decorations)
 		{
 			m_positionMarkerActor->SetVisibility(false);
