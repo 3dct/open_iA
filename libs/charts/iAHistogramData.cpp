@@ -30,7 +30,6 @@
 #include <vtkImageCast.h>
 #include <vtkImageData.h>
 
-
 #include <algorithm>
 #include <cassert>
 #include <cmath>
@@ -154,13 +153,45 @@ QString iAHistogramData::toolTipText(DataType dataX) const
 	return QString("%1 (%2): %3").arg(name()).arg(range).arg(freq);
 }
 
+size_t iAHistogramData::finalNumBin(vtkImageData* img, size_t desiredBins)
+{
+	auto newBinCount = desiredBins;
+	if (desiredBins > std::numeric_limits<int>::max())
+	{
+		LOG(lvlWarn,
+			QString("iAHistogramData::create: Only up to %1 bins supported, but requested %2! Bin number will be set "
+					"to %1!")
+				.arg(std::numeric_limits<int>::max())
+				.arg(desiredBins));
+		newBinCount = std::numeric_limits<int>::max();
+	}
+	if (isVtkIntegerImage(img))	// for images with discrete pixel data types...
+	{
+		// ...the maximum number of bins that makes sense is the number of different values
+		auto const scalarRange = img->GetScalarRange();
+		double rangeSize = (scalarRange[1] - scalarRange[0]) + 1;
+		newBinCount = std::min(newBinCount, static_cast<size_t>(rangeSize));
+		// ...and make sure we have bins of integer step size; round to closest integral number, so that actual numBin is closest to desired numBin
+		double stepSize = std::round(rangeSize / newBinCount);
+		// adapt numBin so that the maximum is as close as possible to the last number in actual data:
+		newBinCount = std::ceil(rangeSize / stepSize);
+	}
+	return newBinCount;
+}
+
 QSharedPointer<iAHistogramData> iAHistogramData::create(QString const& name,
-	vtkImageData* img, size_t numBin, iAImageInfo* info)
+	vtkImageData* img, size_t desiredNumBin, iAImageInfo* info)
 {
 	if (!img)
 	{
 		LOG(lvlWarn, "iAHistogram::create: No image given!");
 		return QSharedPointer<iAHistogramData>(); // return "dummy": histogram with range 0..1, 1 bin with value 0?
+	}
+	if (img->GetNumberOfScalarComponents() != 1)
+	{
+		LOG(lvlDebug,
+			QString("Image has %2 components, only computing histogram of first one!")
+				.arg(img->GetNumberOfScalarComponents()));
 	}
 	auto accumulate = vtkSmartPointer<vtkImageAccumulate>::New();
 	accumulate->ReleaseDataFlagOn();
@@ -169,18 +200,11 @@ QSharedPointer<iAHistogramData> iAHistogramData::create(QString const& name,
 	double * const scalarRange = img->GetScalarRange();
 	double valueRange = scalarRange[1] - scalarRange[0];
 	double histRange = valueRange;
-	if (numBin > std::numeric_limits<int>::max())
-	{
-		LOG(lvlWarn, QString("iAHistogramData::create: Only up to %1 bins supported, but requested %2! Bin number will be set to %1!")
-				.arg(std::numeric_limits<int>::max()).arg(numBin));
-		numBin = std::numeric_limits<int>::max();
-	}
 	auto valueType = isVtkIntegerImage(img) ? iAValueType::Discrete : iAValueType::Continuous;
+	auto numBin = finalNumBin(img, desiredNumBin);
 	if (valueType == iAValueType::Discrete)
-	{	// make sure we have bins of integer step size; round to closest integral number, so that actual numBin is closest to desired numBin
-		double stepSize = std::round((valueRange+1) / numBin);
-		// adapt numBin so that the maximum is as close as possible to the last number in actual data:
-		numBin = std::ceil((valueRange+1) / stepSize);
+	{
+		double stepSize = std::max(1.0, std::round((valueRange + 1) / numBin));
 		double newMax = scalarRange[0] + static_cast<int>(stepSize * numBin);
 		histRange = newMax - scalarRange[0];
 	}

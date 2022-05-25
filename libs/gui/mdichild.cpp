@@ -2667,22 +2667,6 @@ void MdiChild::histogramDataAvailable(int modalityIdx)
 	emit histogramAvailable();
 }
 
-size_t MdiChild::histogramNewBinCount(QSharedPointer<iAModality> mod)
-{
-	size_t newBinCount = m_preferences.HistogramBins;
-	auto img = mod->image();
-	if (img->GetNumberOfScalarComponents() != 1)
-	{
-		LOG(lvlDebug, QString("Image of modality %1 has %2 components, only computing histogram of first one!").arg(mod->name()).arg(img->GetNumberOfScalarComponents()));
-	}
-	auto scalarRange = img->GetScalarRange();
-	if (isVtkIntegerImage(mod->image()))
-	{
-		newBinCount = std::min(newBinCount, static_cast<size_t>(scalarRange[1] - scalarRange[0] + 1));
-	}
-	return newBinCount;
-}
-
 bool MdiChild::histogramComputed(size_t newBinCount, QSharedPointer<iAModality> mod)
 {
 	auto histData = mod->histogramData();
@@ -2711,7 +2695,7 @@ void MdiChild::displayHistogram(int modalityIdx)
 		return;
 	}
 	auto mod = modality(modalityIdx);
-	size_t newBinCount = histogramNewBinCount(mod);
+	size_t newBinCount = iAHistogramData::finalNumBin(mod->image(), m_preferences.HistogramBins);
 	if (histogramComputed(newBinCount, mod))
 	{
 		histogramDataAvailable(modalityIdx);

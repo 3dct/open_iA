@@ -67,10 +67,10 @@ public:
 	//! create a histogram for a vtk image.
 	//! @param name the name of the plot
 	//! @param img a pointer to the vtk image for which to create the histogram
-	//! @param numBin the number of bins the data will be split into
+	//! @param desiredNumBin the desired number of bins the data will be split into; can be adapted, depending on the actual number of different values in image
 	//! @param imageInfo optional iAImageInfo struct that will be filled with the statistical information determined while computing the histogram
 	static QSharedPointer<iAHistogramData> create(QString const& name,
-		vtkImageData* img, size_t numBin, iAImageInfo* imageInfo = nullptr);
+		vtkImageData* img, size_t desiredNumBin, iAImageInfo* imageInfo = nullptr);
 	//! create a histogram for the given (raw) data vector.
 	//! @param name the name of the plot
 	//! @param type the type of the data values (continuous or discrete)
@@ -118,6 +118,9 @@ public:
 	//! @param histoData the histogram frequencies
 	static QSharedPointer<iAHistogramData> create(QString const& name, iAValueType type,
 		DataType minX, DataType maxX, QVector<DataType> const& histoData);
+
+	//! compute the final bin count for a given image and desired bin count
+	static size_t finalNumBin(vtkImageData* img, size_t desiredNumBin);
 
 protected:
 	//! Create an empty histogram (with numBin bins, initialized to 0).
