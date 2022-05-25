@@ -261,6 +261,7 @@ iASlicerImpl::iASlicerImpl(QWidget* parent, const iASlicerMode mode,
 	m_cameraOwner(true),
 	m_transform(transform ? transform : vtkTransform::New()),
 	m_pointPicker(vtkSmartPointer<vtkWorldPointPicker>::New()),
+	m_textInfo(vtkSmartPointer<iAVtkText>::New()),
 	m_slabThickness(0),
 	m_roiActive(false),
 	m_sliceNumber(0),
@@ -334,6 +335,10 @@ iASlicerImpl::iASlicerImpl(QWidget* parent, const iASlicerMode mode,
 		actionGr->addAction(m_actionMagicLensOffset);
 	}
 
+	m_textInfo->addToScene(m_ren);
+	m_textInfo->setText(" ");
+	m_textInfo->show(m_decorations);
+
 	if (decorations)
 	{
 		m_snakeSpline = new iASnakeSpline;
@@ -371,12 +376,7 @@ iASlicerImpl::iASlicerImpl(QWidget* parent, const iASlicerMode mode,
 			m_axisTransform[i] = vtkSmartPointer<vtkTransform>::New();
 			m_axisTextActor[i] = vtkSmartPointer<vtkTextActor3D>::New();
 		}
-		m_textInfo = vtkSmartPointer<iAVtkText>::New();
 		m_rulerWidget = vtkSmartPointer<iARulerWidget>::New();
-
-		m_textInfo->addToScene(m_ren);
-		m_textInfo->setText(" ");
-		m_textInfo->show(true);
 
 		QImage img;
 		img.load(":/images/fhlogo.png");
@@ -631,9 +631,13 @@ void iASlicerImpl::setup( iASingleSlicerSettings const & settings )
 	{
 		m_axisTextActor[0]->SetVisibility(settings.ShowAxesCaption);
 		m_axisTextActor[1]->SetVisibility(settings.ShowAxesCaption);
-		m_textInfo->setFontSize(settings.ToolTipFontSize);
-		m_textInfo->show(settings.ShowTooltip);
 	}
+	// compromise between keeping old behavior (tooltips disabled if m_decorations == false),
+	// but still making it possible to enable tooltips via context menu: only enable tooltips
+	// from settings if decorations turned on:
+	m_settings.ShowTooltip &= m_decorations;
+	m_textInfo->setFontSize(settings.ToolTipFontSize);
+	m_textInfo->show(m_settings.ShowTooltip);
 	if (m_magicLens)
 	{
 		updateMagicLens();
@@ -1448,13 +1452,9 @@ bool operator!=(QCursor const & a, QCursor const & b)
 
 void iASlicerImpl::printVoxelInformation()
 {
-	if (!m_decorations)
+	if (!m_decorations || !m_settings.ShowTooltip)
 	{
 		return;
-	}
-	if (m_cursorSet && cursor() != mouseCursor())
-	{
-		setCursor(mouseCursor());
 	}
 	bool infoAvailable = false;
 	QString strDetails;
@@ -2239,7 +2239,7 @@ void iASlicerImpl::mouseDoubleClickEvent(QMouseEvent* event)
 void iASlicerImpl::contextMenuEvent(QContextMenuEvent *event)
 {
 	m_actionToggleWindowLevelAdjust->setChecked(m_interactorStyle->windowLevelAdjustEnabled());
-	m_actionShowTooltip->setChecked(m_textInfo->isShown());
+	m_actionShowTooltip->setChecked(m_settings.ShowTooltip);
 	m_actionFisheyeLens->setChecked(m_fisheyeLensActivated);
 	if (m_magicLens)
 	{
@@ -2484,7 +2484,8 @@ void iASlicerImpl::toggleWindowLevelAdjust()
 
 void iASlicerImpl::toggleShowTooltip()
 {
-	m_textInfo->show(m_actionShowTooltip->isChecked());
+	m_settings.ShowTooltip = !m_settings.ShowTooltip;
+	m_textInfo->show(m_settings.ShowTooltip);
 }
 
 void iASlicerImpl::fisheyeLensToggled(bool enabled)
