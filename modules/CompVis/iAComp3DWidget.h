@@ -56,18 +56,12 @@ public:
 private:
 
 	/*** Initialization ***/
-	void create3DVis();
-
-	/*** Initialization for Rendering with iAobjectvis***/
-	vtkSmartPointer<vtkTable> m_objectTable;
-	iACsvIO* m_io;
-	const iACsvConfig* m_csvConfig;
-
-	std::shared_ptr<iA3DColoredPolyObjectVis> m_3dvisData;
-	std::shared_ptr<iA3DPolyObjectActor> m_3dvisActor;
-	
+	void create3DVis(vtkSmartPointer<vtkTable> objectTable, iACsvIO* io, const iACsvConfig* csvConfig);
 
 	/*** Rendering ***/
+	std::shared_ptr<iA3DColoredPolyObjectVis> m_3dvisData;
+	std::shared_ptr<iA3DPolyObjectActor> m_3dvisActor;
+
 	iAQVTKWidget* m_qvtkWidget;
 	vtkSmartPointer<vtkRenderer> m_renderer;
 
