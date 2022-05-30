@@ -227,7 +227,7 @@ set(VTK_COMPONENTS
 	${VTK_COMP_PREFIX}ViewsContext2D          # for vtkContextView, vtkContextInteractorStyle
 	${VTK_COMP_PREFIX}ViewsInfovis)           # for vtkGraphItem
 if (VTK_MAJOR_VERSION GREATER_EQUAL 9)
-	list(APPEND VTK_COMPONENTS         # components not pulled in automatically anymore in VTK >= 9:
+	list(APPEND VTK_COMPONENTS          # components not pulled in automatically anymore in VTK >= 9:
 		ChartsCore                  # for vtkAxis, vtkChart, vtkChartParallelCoordinates, used in FeatureScout, FuzzyFeatureTracking, GEMSE, PorosityAnalyzer
 		CommonColor                 # for vtkNamedColors, vtkColorSeries, used in CompVis
 		CommonComputationalGeometry # for vtkParametricSpline, used in core - iASpline/iAParametricSpline
@@ -240,6 +240,8 @@ if (VTK_MAJOR_VERSION GREATER_EQUAL 9)
 		InfovisLayout               # for vtkGraphLayoutStrategy used in CompVis
 		IOXML                       # for vtkXMLImageDataReader used in iAIO
 	)
+else()
+	list(APPEND VTK_COMPONENTS vtkFiltersProgrammable)     # for vtkProgrammableGlyphFilter in CompVis
 endif()
 if ("${vtkRenderingOSPRay_LOADED}")
 	add_compile_definitions(VTK_OSPRAY_AVAILABLE)

@@ -83,7 +83,7 @@ void iAGaussianNormalizer::UpdateValueFactor()
 
 iADistanceType iAGaussianNormalizer::Normalize(iADistanceType d) const
 {
-	return 1 - exp(m_valueFactor * d );
+	return 1 - std::exp(m_valueFactor * d );
 }
 
 void iAGaussianNormalizer::SetBeta(double beta)

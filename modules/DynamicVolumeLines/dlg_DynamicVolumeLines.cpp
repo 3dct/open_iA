@@ -39,6 +39,7 @@
 #include <iAChartWithFunctionsWidget.h>
 
 #include <iAColorTheme.h>
+#include <qthelper/iAQtEndl.h>
 #include <iATransferFunction.h>
 #include <iATypedCallHelper.h>
 
@@ -101,7 +102,10 @@ dlg_DynamicVolumeLines::dlg_DynamicVolumeLines(QWidget* parent, QDir datasetsDir
 	m_mrvBGRen(vtkSmartPointer<vtkRenderer>::New()),
 	m_mrvTxtAct(vtkSmartPointer<vtkTextActor>::New())
 {
-	m_mdiChild->renderer()->setAreaPicker();
+	if (m_mdiChild)
+	{
+		m_mdiChild->renderer()->setAreaPicker();
+	}
 
 	m_nonlinearScaledPlot->setObjectName("nonlinear");
 	m_linearScaledPlot->setObjectName("linear");
@@ -161,7 +165,8 @@ void dlg_DynamicVolumeLines::setupScaledPlot(QCustomPlot *qcp)
 	tb_MinMaxPlot->setStyleSheet("border: 1px solid; margin-left: 3px;");
 	tb_MinMaxPlot->setMinimumSize(QSize(0, 0));
 	tb_MinMaxPlot->setMaximumSize(QSize(13, 10));
-	tb_MinMaxPlot->setIcon(QIcon(QString(":/images/minus%1.svg").arg(!m_mdiChild->brightMode() ? "-dark" : "")));
+	tb_MinMaxPlot->setIcon(
+		QIcon(QString(":/images/minus%1.svg").arg(m_mdiChild && !m_mdiChild->brightMode() ? "-dark" : "")));
 	tb_MinMaxPlot->setIconSize(QSize(10, 10));
 	connect(tb_MinMaxPlot, &QToolButton::clicked, this, &dlg_DynamicVolumeLines::changePlotVisibility);
 
@@ -226,7 +231,7 @@ void dlg_DynamicVolumeLines::setupGUIElements()
 	cb_FBPView->setEnabled(false);
 
 	iALinearColorGradientBar *compLvl_colorBar = new iALinearColorGradientBar(this,
-		"Brewer single hue 5c grays", false);
+		"ColorBrewer sequential single hue (5c) grays", false);
 	m_compLvlLUT = compLvl_colorBar->getLut();
 	connect(this, QOverload<QVector<double>>::of(&dlg_DynamicVolumeLines::compLevelRangeChanged),
 		compLvl_colorBar, &iALinearColorGradientBar::compLevelRangeChanged);
@@ -275,8 +280,13 @@ void dlg_DynamicVolumeLines::setupGUIConnections()
 	connect(sb_subHistBinCnt, QOverload<int>::of(&QSpinBox::valueChanged), this, &dlg_DynamicVolumeLines::setSubHistBinCntFlag);
 	connect(sb_UpperCompLevelThr, QOverload<double>::of(&QDoubleSpinBox::valueChanged), this, QOverload<>::of(&dlg_DynamicVolumeLines::compLevelRangeChanged));
 	connect(sb_LowerCompLevelThr, QOverload<double>::of(&QDoubleSpinBox::valueChanged), this, QOverload<>::of(&dlg_DynamicVolumeLines::compLevelRangeChanged));
-	connect(m_mdiChild->renderer(), &iARenderer::cellsSelected, this, &dlg_DynamicVolumeLines::setSelectionForPlots);
-	connect(m_mdiChild->renderer(), &iARenderer::noCellsSelected, this, &dlg_DynamicVolumeLines::setNoSelectionForPlots);
+	if (m_mdiChild)
+	{
+		connect(
+			m_mdiChild->renderer(), &iARenderer::cellsSelected, this, &dlg_DynamicVolumeLines::setSelectionForPlots);
+		connect(m_mdiChild->renderer(), &iARenderer::noCellsSelected, this,
+			&dlg_DynamicVolumeLines::setNoSelectionForPlots);
+	}
 }
 
 void dlg_DynamicVolumeLines::changePlotVisibility()
@@ -303,14 +313,20 @@ void dlg_DynamicVolumeLines::setupMultiRendererView()
 	m_mrvBGRen->SetBackground(1.0, 1.0, 1.0);
 	m_mrvBGRen->AddActor2D(m_mrvTxtAct);
 
-	m_wgtContainer = new iAQVTKWidget();
-	auto mrvRenWin = m_wgtContainer->renderWindow();
-	mrvRenWin->SetNumberOfLayers(2);
-	mrvRenWin->AddRenderer(m_mrvBGRen);
-	mrvRenWin->Render();
-	m_mdiChild->tabifyDockWidget(m_mdiChild->renderDockWidget(), m_MultiRendererView);
-	m_MultiRendererView->verticalLayout->addWidget(m_wgtContainer);
-	m_MultiRendererView->show();
+
+		m_wgtContainer = new iAQVTKWidget();
+		auto mrvRenWin = m_wgtContainer->renderWindow();
+		mrvRenWin->SetNumberOfLayers(2);
+		mrvRenWin->AddRenderer(m_mrvBGRen);
+		mrvRenWin->Render();
+		if (m_mdiChild)
+		{
+			m_mdiChild->tabifyDockWidget(m_mdiChild->renderDockWidget(), m_MultiRendererView);
+
+			m_MultiRendererView->verticalLayout->addWidget(m_wgtContainer);
+			m_MultiRendererView->show();
+		}
+
 }
 
 void dlg_DynamicVolumeLines::generateHilbertIdx()
@@ -354,13 +370,16 @@ void dlg_DynamicVolumeLines::visualizePath()
 		lines->InsertNextCell(line);
 	}
 	linesPolyData->SetLines(lines);
-	m_mdiChild->renderer()->setPolyData(linesPolyData);
-	m_mdiChild->renderer()->polyActor()->GetProperty()->SetInterpolationToFlat();
-	m_mdiChild->renderer()->polyActor()->GetProperty()->SetOpacity(1.0);
-	m_mdiChild->renderer()->polyActor()->GetProperty()->SetColor(1.0, 0.0, 0.0);
-	m_mdiChild->renderer()->polyActor()->GetProperty()->SetLineWidth(4);
-	m_mdiChild->renderer()->polyActor()->GetProperty()->SetRenderLinesAsTubes(true);
-	m_mdiChild->renderer()->update();
+	if (m_mdiChild)
+	{
+		m_mdiChild->renderer()->setPolyData(linesPolyData);
+		m_mdiChild->renderer()->polyActor()->GetProperty()->SetInterpolationToFlat();
+		m_mdiChild->renderer()->polyActor()->GetProperty()->SetOpacity(1.0);
+		m_mdiChild->renderer()->polyActor()->GetProperty()->SetColor(1.0, 0.0, 0.0);
+		m_mdiChild->renderer()->polyActor()->GetProperty()->SetLineWidth(4);
+		m_mdiChild->renderer()->polyActor()->GetProperty()->SetRenderLinesAsTubes(true);
+		m_mdiChild->renderer()->update();
+	}
 }
 
 void dlg_DynamicVolumeLines::visualize()
@@ -526,10 +545,10 @@ void dlg_DynamicVolumeLines::visualize()
 	else
 	{
 		double lowerBinBoarder = m_nonlinearScaledPlot->xAxis->range().lower / m_stepSize;
-		double lowerVisibleBinBoarder = ceil(lowerBinBoarder);
+		double lowerVisibleBinBoarder = std::ceil(lowerBinBoarder);
 		double lowerVisibleRest = lowerVisibleBinBoarder - lowerBinBoarder;
 		double upperBinBoarder = (m_nonlinearScaledPlot->xAxis->range().upper - m_nonlinearScaledPlot->xAxis->range().lower) / m_stepSize;	//TODO: check
-		double upperVisibleBinBoarder = floor(upperBinBoarder);
+		double upperVisibleBinBoarder = std::floor(upperBinBoarder);
 		double upperVisibleRest = upperBinBoarder - upperVisibleBinBoarder;
 		double lowerLinearVisibleRest = m_linearHistBinBoarderVec[lowerVisibleBinBoarder - 1] - m_linearScaledPlot->xAxis->range().lower;
 		double upperLinearVisibleRest = m_linearScaledPlot->xAxis->range().upper - m_linearHistBinBoarderVec[upperVisibleBinBoarder - 1];
@@ -545,6 +564,24 @@ void dlg_DynamicVolumeLines::visualize()
 	m_orientationWidget->update(m_linearScaledPlot, 0, m_nonlinearMappingVec.size() - 1,
 		m_minEnsembleIntensity - offsetY, m_maxEnsembleIntensity + offsetY);
 }
+
+#pragma optimize("", off)
+void dlg_DynamicVolumeLines::exportCSV(QString path)
+{
+	for (auto dataPair : m_DatasetIntensityMap)
+	{
+		QFile file(path + "\\" + dataPair.first + ".csv");
+		if (file.open(QIODevice::ReadWrite))
+		{
+			for (auto value : dataPair.second)
+			{
+				QTextStream stream(&file);
+				stream << value.intensity << QTENDL;
+			}
+		}
+	}
+}
+#pragma optimize("", on)
 
 void dlg_DynamicVolumeLines::calcNonLinearMapping()
 {
@@ -587,7 +624,7 @@ void dlg_DynamicVolumeLines::calcNonLinearMapping()
 			imp = innerEnsembleDistList[i];
 			imp /= maxInnerEnsableDist;
 		}
-		imp = pow(imp * 1, sb_nonlinearScalingFactor->value()); // //imp = pow(imp*2,-0.9);
+		imp = std::pow(imp * 1, sb_nonlinearScalingFactor->value()); // //imp = pow(imp*2,-0.9);
 		m_impFunctVec.append(imp);
 		m_nonlinearMappingVec.append(i == 0 ? imp : m_nonlinearMappingVec[i - 1] + imp);
 
@@ -618,7 +655,7 @@ void dlg_DynamicVolumeLines::generateSegmentTree()
 	int subhistBinCnt = sb_subHistBinCnt->value(), lowerBnd = 0, upperBnd = 65535,
 		plotBinWidth = sb_histBinWidth->value(),
 		plotWidth = m_linearScaledPlot->axisRect()->rect().width(),
-		plotBinCnt = ceil(plotWidth / (double)plotBinWidth);
+		plotBinCnt = std::ceil(plotWidth / (double)plotBinWidth);
 	double rgb[3]; QColor c;
 	m_stepSize = (m_nonlinearMappingVec.last() - m_nonlinearMappingVec.first()) / (plotWidth / (double)plotBinWidth);
 	m_histBinImpFunctAvgVec.clear();
@@ -676,8 +713,8 @@ void dlg_DynamicVolumeLines::generateSegmentTree()
 
 		double linearLowerDbl = nonlinearLowerIdx + lowerDistToCurrPoint / lowerDistToNextPoint;
 		double linearUpperDbl = nonlinearUpperIdx - 1 + upperDistToCurrPoint / upperDistToNextPoint;
-		int linearLowerIdx = floor(linearLowerDbl);
-		int linearUpperIdx = floor(linearUpperDbl);
+		int linearLowerIdx = std::floor(linearLowerDbl);
+		int linearUpperIdx = std::floor(linearUpperDbl);
 
 		double sum = 0.0, avg = 0.0;
 		for (int i = nonlinearLowerIdx; i <= nonlinearUpperIdx; ++i)
@@ -974,10 +1011,10 @@ void dlg_DynamicVolumeLines::syncLinearXAxis(QCPRange nonlinearXRange)
 	else
 	{
 		double lowerBinBoarder = nonlinearXRange.lower / m_stepSize;
-		double lowerVisibleBinBoarder = ceil(lowerBinBoarder);
+		double lowerVisibleBinBoarder = std::ceil(lowerBinBoarder);
 		double lowerVisibleRest = lowerVisibleBinBoarder - lowerBinBoarder;
 		double upperBinBoarder = (nonlinearXRange.upper /*- nonlinearXRange.lower*/) / m_stepSize;
-		double upperVisibleBinBoarder = floor(upperBinBoarder);
+		double upperVisibleBinBoarder = std::floor(upperBinBoarder);
 		double upperVisibleRest = upperBinBoarder - upperVisibleBinBoarder;
 		double lowerLinearVisibleRest = m_linearHistBinBoarderVec[lowerVisibleBinBoarder - 1] - linearLowerBinBoarder;
 		double upperLinearVisibleRest = linearUpperBinBoarder - m_linearHistBinBoarderVec[upperVisibleBinBoarder - 1];
@@ -1026,27 +1063,27 @@ void dlg_DynamicVolumeLines::syncNonlinearXAxis(QCPRange linearXRange)
 		m_linearScaledPlot->xAxis->setRange(boundedRange);
 	}
 
-	double lowerDistToNextPoint = m_nonlinearMappingVec[ceil(linearXRange.lower)] -
-		m_nonlinearMappingVec[floor(linearXRange.lower)];
-	double lowerDistToCurrPoint = linearXRange.lower - floor(linearXRange.lower);
+	double lowerDistToNextPoint = m_nonlinearMappingVec[std::ceil(linearXRange.lower)] -
+		m_nonlinearMappingVec[std::floor(linearXRange.lower)];
+	double lowerDistToCurrPoint = linearXRange.lower - std::floor(linearXRange.lower);
 	if (lowerDistToCurrPoint < 0)
 	{
 		lowerDistToCurrPoint = 0;
 	}
 
 	double upperDistToNextPoint = 1.0, upperDistToCurrPoint = 0.0;
-	if (ceil(linearXRange.upper) < m_nonlinearMappingVec.size())
+	if (std::ceil(linearXRange.upper) < m_nonlinearMappingVec.size())
 	{
 		upperDistToNextPoint =
-			m_nonlinearMappingVec[ceil(linearXRange.upper)] -
-			m_nonlinearMappingVec[floor(linearXRange.upper)];
+			m_nonlinearMappingVec[std::ceil(linearXRange.upper)] -
+			m_nonlinearMappingVec[std::floor(linearXRange.upper)];
 		upperDistToCurrPoint =
-			linearXRange.upper - floor(linearXRange.upper);
+			linearXRange.upper - std::floor(linearXRange.upper);
 	}
 
-	double newLower = m_nonlinearMappingVec[floor(linearXRange.lower)] +
+	double newLower = m_nonlinearMappingVec[std::floor(linearXRange.lower)] +
 		lowerDistToCurrPoint * lowerDistToNextPoint;
-	double newUpper = m_nonlinearMappingVec[floor(linearXRange.upper)] +
+	double newUpper = m_nonlinearMappingVec[std::floor(linearXRange.upper)] +
 		upperDistToCurrPoint * upperDistToNextPoint;
 
 	m_nonlinearScaledPlot->xAxis->blockSignals(true);
@@ -1058,20 +1095,20 @@ void dlg_DynamicVolumeLines::syncNonlinearXAxis(QCPRange linearXRange)
 	if (!m_histVisMode)
 	{
 		m_scalingWidget->setRange(
-			floor(linearXRange.lower),
-			ceil(linearXRange.upper),
+			std::floor(linearXRange.lower),
+			std::ceil(linearXRange.upper),
 			lowerDistToCurrPoint * lowerDistToNextPoint,
-			(ceil(linearXRange.upper) - linearXRange.upper) * upperDistToNextPoint,
+			(std::ceil(linearXRange.upper) - linearXRange.upper) * upperDistToNextPoint,
 			lowerDistToCurrPoint,
 			upperDistToCurrPoint);
 	}
 	else
 	{
 		double lowerBinBoarder = newLower / m_stepSize;
-		double lowerVisibleBinBoarder = ceil(lowerBinBoarder);
+		double lowerVisibleBinBoarder = std::ceil(lowerBinBoarder);
 		double lowerVisibleRest = lowerVisibleBinBoarder - lowerBinBoarder;
 		double upperBinBoarder = (newUpper /*- nonlinearXRange.lower*/) / m_stepSize;
-		double upperVisibleBinBoarder = floor(upperBinBoarder);
+		double upperVisibleBinBoarder = std::floor(upperBinBoarder);
 		double upperVisibleRest = upperBinBoarder - upperVisibleBinBoarder;
 		double lowerLinearVisibleRest = m_linearHistBinBoarderVec[lowerVisibleBinBoarder - 1] - linearXRange.lower;
 		double upperLinearVisibleRest = linearXRange.upper - m_linearHistBinBoarderVec[upperVisibleBinBoarder - 1];
@@ -1213,9 +1250,9 @@ void dlg_DynamicVolumeLines::mouseMove(QMouseEvent* e)
 				.arg(int(x)).arg((int)y));
 		}
 
-		double nonlinearDistToNextPoint = m_nonlinearMappingVec[ceil(x)] - m_nonlinearMappingVec[floor(x)];
-		double distToCurrPoint = x - floor(x);
-		double nonlinearXCoord = m_nonlinearMappingVec[floor(x)] + distToCurrPoint * nonlinearDistToNextPoint;
+		double nonlinearDistToNextPoint = m_nonlinearMappingVec[std::ceil(x)] - m_nonlinearMappingVec[std::floor(x)];
+		double distToCurrPoint = x - std::floor(x);
+		double nonlinearXCoord = m_nonlinearMappingVec[std::floor(x)] + distToCurrPoint * nonlinearDistToNextPoint;
 
 		m_nonlinearIdxLine->point1->setCoords(nonlinearXCoord, 0.0);
 		m_nonlinearIdxLine->point2->setCoords(nonlinearXCoord, 1.0);
@@ -1293,17 +1330,22 @@ void dlg_DynamicVolumeLines::selectionChangedByUser()
 	else
 	{
 		m_mrvTxtAct->VisibilityOn();
-		iARenderer * ren = m_mdiChild->renderer();
-		vtkRenderWindow * renWin = ren->renderWindow();
-		renWin->GetRenderers()->GetFirstRenderer()->RemoveActor(ren->selectedActor());
-		renWin->Render();
+		if (m_mdiChild)
+		{
+			iARenderer* ren = m_mdiChild->renderer();
+			vtkRenderWindow* renWin = ren->renderWindow();
+			renWin->GetRenderers()->GetFirstRenderer()->RemoveActor(ren->selectedActor());
+			renWin->Render();
+		}
 		for (int i = 0; i < m_DatasetIntensityMap.size(); ++i)
 		{
 			plotP->graph(i)->setSelection(plotU->graph(i)->selection());
 		}
 	}
-
-	setSelectionForRenderer(selVisibleGraphsList);
+	if (m_mdiChild)
+	{
+		setSelectionForRenderer(selVisibleGraphsList);
+	}
 	m_scalingWidget->setSel(sel);
 	m_scalingWidget->update();
 	m_nonlinearScaledPlot->replot();
@@ -1439,7 +1481,7 @@ void dlg_DynamicVolumeLines::updateFBPView()
 
 void dlg_DynamicVolumeLines::setFBPTransparency(int value)
 {
-	double alpha = round(value * 255 / 100.0);
+	double alpha = std::round(value * 255 / 100.0);
 	QPen p; QColor c; QBrush b;
 	for (int i = m_DatasetIntensityMap.size(); i < m_nonlinearScaledPlot->graphCount(); ++i)
 	{
@@ -1539,8 +1581,10 @@ void dlg_DynamicVolumeLines::selectCompLevel()
 			}
 		}
 	}
-
-	setSelectionForRenderer(visibleGraphsList);
+	if (m_mdiChild)
+	{
+		setSelectionForRenderer(visibleGraphsList);
+	}
 	m_scalingWidget->setSel(selCompLvlRanges);
 	m_scalingWidget->update();
 	m_nonlinearScaledPlot->replot();
@@ -1603,7 +1647,7 @@ void dlg_DynamicVolumeLines::setSelectionForRenderer(QList<QCPGraph *> visSelGra
 
 		m_imgDataList[datasetIdx]->Modified();
 		float viewportCols = visSelGraphList.size() < 3.0 ? fmod(visSelGraphList.size(), 3.0) : 3.0;
-		float viewportRows = ceil(visSelGraphList.size() / viewportCols);
+		float viewportRows = std::ceil(visSelGraphList.size() / viewportCols);
 		float fieldLengthX = 1.0 / viewportCols, fieldLengthY = 1.0 / viewportRows;
 
 		auto cornerAnnotation = vtkSmartPointer<vtkCornerAnnotation>::New();
@@ -1636,9 +1680,9 @@ void dlg_DynamicVolumeLines::setSelectionForRenderer(QList<QCPGraph *> visSelGra
 		ren->SetActiveCamera(m_mdiChild->renderer()->camera());
 		ren->GetActiveCamera()->ParallelProjectionOn();
 		ren->SetViewport(fmod(i, viewportCols) * fieldLengthX,
-			1 - (ceil((i + 1.0) / viewportCols) / viewportRows),
+			1 - (std::ceil((i + 1.0) / viewportCols) / viewportRows),
 			fmod(i, viewportCols) * fieldLengthX + fieldLengthX,
-			1 - (ceil((i + 1.0) / viewportCols) / viewportRows) + fieldLengthY);
+			1 - (std::ceil((i + 1.0) / viewportCols) / viewportRows) + fieldLengthY);
 		ren->AddViewProp(cornerAnnotation);
 		ren->ResetCamera();
 		m_volRen = QSharedPointer<iAVolumeRenderer>::create(&tf, m_imgDataList[datasetIdx]);
@@ -1762,8 +1806,10 @@ void dlg_DynamicVolumeLines::setSelectionForPlots(vtkPoints *selCellPoints)
 	{
 		m_mrvTxtAct->VisibilityOn();
 	}
-
-	setSelectionForRenderer(selVisibleGraphsList);
+	if (m_mdiChild)
+	{
+		setSelectionForRenderer(selVisibleGraphsList);
+	}
 	m_scalingWidget->setSel(sel);
 	m_scalingWidget->update();
 	m_nonlinearScaledPlot->replot();

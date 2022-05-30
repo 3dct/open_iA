@@ -225,7 +225,7 @@ void GetCellCenter(vtkUnstructuredGrid* data, const unsigned int cellId, double 
 	cell->EvaluateLocation(subId, pcoords, center, weights);
 	for (int i = 0; i < DIM; ++i)
 	{
-		center[i] = floor(center[i] / spacing[i]);
+		center[i] = std::floor(center[i] / spacing[i]);
 	}
 }
 

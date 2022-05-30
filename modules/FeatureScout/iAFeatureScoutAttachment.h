@@ -32,6 +32,8 @@ class dlg_FeatureScout;
 
 class vtkTable;
 
+class QSettings;
+
 class iAFeatureScoutAttachment : public iAModuleAttachmentToChild
 {
 	Q_OBJECT
@@ -44,6 +46,9 @@ public:
 	//! can de-register itself, before renderer gets destroyed - if destroyed through MdiChild's
 	//! destructing its child widgets, then this happens after renderer is destroyed!
 	~iAFeatureScoutAttachment();
+	void saveProject(QSettings& projectFile);
+	void loadProject(QSettings& projectFile);
+
 private:
 	dlg_FeatureScout * m_featureScout;
 };

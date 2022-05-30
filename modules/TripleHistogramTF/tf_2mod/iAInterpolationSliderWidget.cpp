@@ -413,7 +413,7 @@ void iAInterpolationSlider::calculateHistogramNow()
 	FOR_VTKIMG_PIXELS(m_interpolationVolume, x, y, z)
 	{
 		float t = m_interpolationVolume->GetScalarComponentAsFloat(x, y, z, 0);
-		int pos = floor( (h-1) * t );
+		int pos = std::floor( (h-1) * t );
 
 		assert(pos >= 0 && pos < h);
 
@@ -433,13 +433,13 @@ void iAInterpolationSlider::calculateHistogramNow()
 	buf->fill(Qt::white);
 	if (max > 0)
 	{
-		double k = (double)histogramBarLengthInterval / (double)log(max);
+		double k = static_cast<double>(histogramBarLengthInterval) / std::log(max);
 		for (int y = 0; y < h; y++)
 		{
 			unsigned long c = counter[y];
 			if (c > 0)
 			{
-				int length = k * log(c) + HISTOGRAM_BAR_LENGTH_MIN;
+				int length = k * std::log(c) + HISTOGRAM_BAR_LENGTH_MIN;
 				//int length = (c / max) * histogramBarLengthInterval + HISTOGRAM_BAR_LENGTH_MIN;
 				assert(length >= 0 && length <= w);
 				for (int x = 0; x < length; x++)

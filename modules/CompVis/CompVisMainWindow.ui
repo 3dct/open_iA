@@ -44,8 +44,19 @@
     <addaction name="separator"/>
     <addaction name="actionAs_Loaded"/>
    </widget>
+   <widget class="QMenu" name="menuDiscretization">
+    <property name="title">
+     <string>Discretization</string>
+    </property>
+    <addaction name="actionUniform"/>
+    <addaction name="actionBayesian_Blocks"/>
+    <addaction name="actionNatual_Breaks"/>
+    <addaction name="separator"/>
+    <addaction name="actionCurve_Representation"/>
+   </widget>
    <addaction name="menuMDS"/>
    <addaction name="menuOrdering"/>
+   <addaction name="menuDiscretization"/>
   </widget>
   <action name="actionRecalculateMDS">
    <property name="text">
@@ -68,6 +79,26 @@
   <action name="actionAs_Loaded">
    <property name="text">
     <string>As Loaded</string>
+   </property>
+  </action>
+  <action name="actionUniform">
+   <property name="text">
+    <string>Uniform</string>
+   </property>
+  </action>
+  <action name="actionBayesian_Blocks">
+   <property name="text">
+    <string>Bayesian Blocks</string>
+   </property>
+  </action>
+  <action name="actionNatual_Breaks">
+   <property name="text">
+    <string>Natual Breaks</string>
+   </property>
+  </action>
+  <action name="actionCurve_Representation">
+   <property name="text">
+    <string>Curve Representation</string>
    </property>
   </action>
  </widget>

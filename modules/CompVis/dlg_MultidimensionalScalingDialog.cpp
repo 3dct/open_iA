@@ -20,14 +20,17 @@
 * ************************************************************************************/
 #include "dlg_MultidimensionalScalingDialog.h"
 
+//Debug
+#include "iALog.h"
+
 //QT
 #include "qbuttongroup.h"
 #include "qstringlist.h"
 #include <QHeaderView>
 #include "qstring.h"
 
-dlg_MultidimensionalScalingDialog::dlg_MultidimensionalScalingDialog(QWidget* parent, QList<csvFileData>* data, iAMultidimensionalScaling* mds) :
-	QDialog(parent),
+dlg_MultidimensionalScalingDialog::dlg_MultidimensionalScalingDialog(QList<csvFileData>* data, iAMultidimensionalScaling* mds) :
+	QDialog(),
 	m_data(data),
 	m_weights(mds->getWeights()),
 	m_mds(mds)

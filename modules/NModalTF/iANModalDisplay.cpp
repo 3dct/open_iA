@@ -50,7 +50,7 @@ iANModalDisplay::iANModalDisplay(QWidget* parent, iAMdiChild* mdiChild,
 	assert(modalities.size() >= 0);
 
 	numOfRows = numOfRows < 1 ? 1 : numOfRows;
-	int numOfCols = ceil((float)modalities.size() / (float)numOfRows);
+	int numOfCols = std::ceil((float)modalities.size() / (float)numOfRows);
 
 	auto layoutMain = new QVBoxLayout(this);
 
@@ -68,7 +68,7 @@ iANModalDisplay::iANModalDisplay(QWidget* parent, iAMdiChild* mdiChild,
 		m_slicers.append(slicer);
 
 		int col = i % numOfCols;
-		int row = floor(i / numOfCols);
+		int row = std::floor(i / numOfCols);
 		layoutGrid->addWidget(createSlicerContainer(slicer, mod, group /*, isSingleSelection() && i == 0*/), row, col);
 	}
 

@@ -20,12 +20,18 @@
 * ************************************************************************************/
 #include "dlg_CSVReader.h"
 
+
+//Debug
+#include "iALog.h"
+#include "iACompVisOptions.h"
+
+#include <QDirIterator>
 #include <QFileDialog>
 #include <QStringListModel>
 #include <QPushButton>
 
 
-dlg_CSVReader::dlg_CSVReader(QWidget* parent) : QDialog(parent)
+dlg_CSVReader::dlg_CSVReader() : QDialog()
 {
 	setupUi(this);
 	connectSignals();
@@ -37,7 +43,6 @@ void dlg_CSVReader::connectSignals()
 	connect(btnDeleteFile, &QPushButton::clicked, this, &dlg_CSVReader::btnDeleteFileClicked);
 	connect(buttonBox, &QDialogButtonBox::accepted, this, &dlg_CSVReader::okBtnClicked);
 }
-
 
 void dlg_CSVReader::btnAddFilesClicked()
 {
@@ -75,9 +80,28 @@ void dlg_CSVReader::btnDeleteFileClicked()
 
 void dlg_CSVReader::okBtnClicked()
 {
-	m_dataStorage = new iACsvDataStorage(&m_filenames);
+	checkMDS();
+
+	if (show3DViewsCheckBox->isChecked())
+	{
+		iACompVisOptions::setShow3DViews(true);
+	}
+
+	m_dataStorage = new iACsvDataStorage(&m_filenames, headerPosition->value());
 
 	this->accept();
+}
+
+void dlg_CSVReader::checkMDS()
+{
+	if (noMDSCheckBox->isChecked())
+	{
+		iACompVisOptions::setComputeMDS(false);
+	}
+	else
+	{
+		iACompVisOptions::setComputeMDS(true);
+	}
 }
 
 iACsvDataStorage* dlg_CSVReader::getCsvDataStorage()

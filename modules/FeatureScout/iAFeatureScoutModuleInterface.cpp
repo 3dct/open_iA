@@ -105,6 +105,13 @@ void iAFeatureScoutProject::loadProject(QSettings & projectFile, QString const &
 	{
 		m_mdiChild->loadLayout(layoutName);
 	}
+	iAFeatureScoutAttachment* attach = featureScout->attachment<iAFeatureScoutAttachment>(m_mdiChild);
+	if (!attach)
+	{
+		LOG(lvlError, "Error while attaching FeatureScout to mdi child window!");
+		return;
+	}
+	attach->loadProject(projectFile);
 }
 
 void iAFeatureScoutProject::saveProject(QSettings & projectFile, QString const & fileName)
@@ -119,6 +126,17 @@ void iAFeatureScoutProject::saveProject(QSettings & projectFile, QString const &
 	if (m_mdiChild)
 	{
 		projectFile.setValue("Layout", m_mdiChild->layoutName());
+	}
+
+	iAFeatureScoutModuleInterface* featureScout = m_mainWindow->moduleDispatcher().module<iAFeatureScoutModuleInterface>();
+	iAFeatureScoutAttachment* attach = featureScout->attachment<iAFeatureScoutAttachment>(m_mdiChild);
+	if (attach)
+	{
+		attach->saveProject(projectFile);
+	}
+	else
+	{
+		LOG(lvlError, "Error: FeatureScoutProject:saveProject called, but no FeatureScout attachment exists!");
 	}
 }
 

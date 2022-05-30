@@ -242,7 +242,7 @@ void computeQ(iAQMeasure* filter, vtkSmartPointer<vtkImageData> img, QMap<QStrin
 		{
 			double sigma = std::sqrt(variance[p]);
 			double binDifferenceFactor = static_cast<double>(binCount) / filter->m_mdiChild->preferences().HistogramBins;
-			double multiplier = binDifferenceFactor * vecHist[peaks[p].first] * sigma * sqrt(2 * vtkMath::Pi());
+			double multiplier = binDifferenceFactor * vecHist[peaks[p].first] * sigma * std::sqrt(2 * vtkMath::Pi());
 			filter->m_mdiChild->histogram()->addGaussianFunction(mean[p], sigma, multiplier);
 		}
 	}

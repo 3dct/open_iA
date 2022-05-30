@@ -22,7 +22,9 @@
 
 //compVis
 #include "iACoefficientOfVariation.h"
+#include "iAVtkVersion.h"
 #include "iACompVisOptions.h"
+
 
 // core
 #include "iAMainWindow.h"
@@ -82,15 +84,17 @@ iACompBarChart::iACompBarChart(iAMainWindow* parent, iACoefficientOfVariation* c
 	m_dataStorage(dataStorage),
 	m_coeffVar(coeffVar),
 	m_qvtkWidget(new iAQVTKWidget(this)),
+	m_area(vtkSmartPointer<vtkContextArea>::New()),
 	orderedPositions(new std::vector<double>()),
 	selected_orderedPositions(nullptr),
-	m_area(vtkSmartPointer<vtkContextArea>::New()),
 	m_originalBarChart(vtkSmartPointer<vtkPropItem>::New()),
 	m_originalBarChartRepositioned(nullptr),
-	m_selectedBarChart(vtkSmartPointer<vtkPropItem>::New())
+	m_selectedBarChart(vtkSmartPointer<vtkPropItem>::New()),
+	m_lastState(iACompVisOptions::lastState::Undefined)
 {
 	setupUi(this);
 	this->setFeatures(DockWidgetVerticalTitleBar);
+	this->setWindowTitle("Bar Chart");
 
 	QVBoxLayout* layout = new QVBoxLayout;
 	dockWidgetContents->setLayout(layout);
@@ -108,7 +112,6 @@ iACompBarChart::iACompBarChart(iAMainWindow* parent, iACoefficientOfVariation* c
 
 	m_view->SetRenderWindow(m_qvtkWidget->renderWindow());
 	m_view->SetInteractor(m_qvtkWidget->interactor());
-
 	m_view->GetInteractor()->SetInteractorStyle(style);
 
 	//data preparation
@@ -126,49 +129,19 @@ iACompBarChart::iACompBarChart(iAMainWindow* parent, iACoefficientOfVariation* c
 
 void iACompBarChart::showEvent(QShowEvent* event)
 {
-	QDockWidget::showEvent(event);
-
-	m_view->GetScene()->ClearItems();
-
-	initializeBarChart();
-
-	this->renderWidget();
-}
-
-void iACompBarChart::reinitializeBarChart(iACoefficientOfVariation* newCoeffVar)
-{
-	m_coeffVar = newCoeffVar;
-
-	orderedPositions->clear();
-	delete orderedPositions;
-	orderedPositions = new std::vector<double>();
-
-	m_area = vtkSmartPointer<vtkContextArea>::New();
-	m_originalBarChart = vtkSmartPointer<vtkPropItem>::New();
-	m_selectedBarChart = vtkSmartPointer<vtkPropItem>::New();
-
-	m_view->GetScene()->ClearItems();
-
-	//data preparation
-	attrNames = m_dataStorage->getAttributeNamesWithoutLabel();
-	std::vector<double>* coefficientsOriginal = m_coeffVar->getCoefficientOfVariation();
-	removeLabelAttribute(coefficientsOriginal);
-
-	//change interval from [0,1] to [0,100]
-	coefficients = changeInterval(coefficientsOriginal, 100.0, 0.0, 1.0, 0.0);
-	coefficientsUnordered = new std::vector<double>(coefficients->size(), 0);
-	iACompVisOptions::copyVector(coefficients, coefficientsUnordered);
-
-	orderedPositions = sortWithMemory(coefficients);
-
-	initializeBarChart();
-
-	this->renderWidget();
+	if (m_lastState == iACompVisOptions::lastState::Undefined)
+	{
+		initializeBarChart();
+	}
+	else if (m_lastState == iACompVisOptions::lastState::Defined)
+	{
+		renderWidget();
+	}	
 }
 
 void iACompBarChart::initializeBarChart()
 {
-	int numberOfBars = coefficients->size();
+	int numberOfBars = static_cast<int>(coefficients->size());
 
 	vtkBoundingBox bounds = vtkBoundingBox();
 	bounds.SetBounds(0, numberOfBars + 1, 0, 100, 0, 0);
@@ -219,6 +192,8 @@ void iACompBarChart::initializeBarChart()
 	m_view->Update();
 
 	initializeAxes(orderedPositions);
+
+	m_lastState = iACompVisOptions::lastState::Defined;
 }
 
 void iACompBarChart::initializeAxes(std::vector<double>* orderedPos)
@@ -469,7 +444,7 @@ void iACompBarChart::updateBarChart(std::vector<double>* coefficientsOriginal, s
 
 	//calculate width of selected
 	double width = (m_barWidth / maxNumberObjects) * selectedNumberObjects;
-	int numberOfBars = coefficientsSelected->size();
+	int numberOfBars = static_cast<int>(coefficientsSelected->size());
 
 	vtkSmartPointer<vtkPoints> barPositionsSelected = vtkSmartPointer<vtkPoints>::New();
 	
@@ -519,7 +494,7 @@ void iACompBarChart::updateOriginalBarChart()
 {
 	m_area->GetDrawAreaItem()->RemoveItem(m_originalBarChart);
 
-	int numberOfBars = coefficients->size();
+	int numberOfBars = static_cast<int>(coefficients->size());
 
 	vtkSmartPointer<vtkPoints> barPositionsOriginal = vtkSmartPointer<vtkPoints>::New();
 

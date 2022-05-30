@@ -60,8 +60,12 @@ public:
 	dlg_DynamicVolumeLines(QWidget* parent, QDir datasetsDir);
 	~dlg_DynamicVolumeLines();
 
+
+
 	QDir m_datasetsDir;
 	QList<QPair <QString, QList<icData> >> m_DatasetIntensityMap;
+
+
 
 public slots:
 	void mousePress(QMouseEvent*);
@@ -70,6 +74,7 @@ public slots:
 	void setFBPTransparency(int);
 	void showFBPGraphs();
 	void visualize();
+	void exportCSV(QString path);
 	void updateDynamicVolumeLines();
 	void updateFBPView();
 	void visualizePath();

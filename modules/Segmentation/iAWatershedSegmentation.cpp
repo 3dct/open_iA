@@ -58,9 +58,12 @@ iAWatershed::iAWatershed() :
 		"Both parameters <em>Threshold</em> and <em>Level</em> are percentage "
 		"points of the maximum height value in the input (they must be in the "
 		"interval [0..1]).<br/>"
-		"For more information, see the "
+		"For more information, see the article "
+		"<a href=\"https://www.insight-journal.org/browse/publication/92/\">"
+		"The watershed transform in ITK - discussion and new developments</a> "
+		"in the ITK journal, as well as the information on"
 		"<a href=\"https://itk.org/Doxygen/html/classitk_1_1WatershedImageFilter.html\">"
-		"Watershed filter</a> in the ITK documentation.")
+		"Watershed filter in the ITK documentation</a>.")
 {
 	addParameter("Level", iAValueType::Continuous, 0);
 	addParameter("Threshold", iAValueType::Continuous, 0);

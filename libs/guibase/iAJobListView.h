@@ -30,6 +30,8 @@ class iADurationEstimator;
 class iAJob;
 class iAProgress;
 
+class QVBoxLayout;
+
 //! A list of currently running jobs and their progress.
 //! Implemented as singleton, since there is only one such list per program instance.
 class iAguibase_API iAJobListView : public QWidget
@@ -113,7 +115,7 @@ private:
 	iAJobListView();
 	QWidget* addJobWidget(QSharedPointer<iAJob> j);
 	//! The container widget for all job entries
-	QWidget* m_insideWidget;
+	QVBoxLayout* m_insideLayout;
 	//! List of jobs pending to be added (needed to be able to add jobs also from non-GUI-threads
 	QStack<QSharedPointer<iAJob>> m_pendingJobs;
 	//! Currently running jobs

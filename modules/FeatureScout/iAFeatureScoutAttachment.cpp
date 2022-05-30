@@ -54,3 +54,13 @@ void iAFeatureScoutAttachment::init(int filterID, QString const & fileName, vtkS
 		m_child, static_cast<iAObjectType>(filterID),
 		fileName, csvtbl, visType, columnMapping, objvis);
 }
+
+void iAFeatureScoutAttachment::saveProject(QSettings& projectFile)
+{
+	imgFS->saveProject(projectFile);
+}
+
+void iAFeatureScoutAttachment::loadProject(QSettings& projectFile)
+{
+	imgFS->loadProject(projectFile);
+}

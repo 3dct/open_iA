@@ -24,7 +24,11 @@
 
 #include "iACsvDataStorage.h"
 #include "dlg_VisMainWindow.h"
-//#include "iACompHistogramTableData.h"
+#include "iACompHistogramTableData.h"
+#include "vtkSmartPointer.h"
+
+//QT
+#include "qlist.h"
 
 class iAMultidimensionalScaling;
 class iACoefficientOfVariation;
@@ -35,22 +39,32 @@ class iACompHistogramTable;
 class iACompBoxPlot;
 class iACompCorrelationMap;
 class iAHistogramData;
-
+class iAComp3DView;
 
 class iACompVisMain
 {
 public:
 	static void start(iAMainWindow* mainWin);
+
 	//load the CSV datasets
 	//when nothing was loaded it returns false
 	bool loadData();
 
-	void reinitializeCharts();
-	void reintitalizeMetrics();
+	//reinitalize all charts after the MDS is recomputed
+	void reinitializeCharts(iACsvDataStorage* storage);
+
+	void enableUniformTable();
+	void enableBayesianBlocks();
+	void enableNaturalBreaks();
+	void enableCurveTable();
 
 	void orderHistogramTableAscending();
 	void orderHistogramTableDescending();
 	void orderHistogramTableAsLoaded();
+	//deactivates the ordering button in the menu
+	void deactivateOrderingButton();
+	//activates the ordering button in the menu
+	void activateOrderingButton();
 
 	//update all charts according to the Histogram Table selection
 	//zoomedRowData stores bin data of selected rows that will be zoomed.
@@ -62,11 +76,13 @@ public:
 	void updateBarChart(csvDataType::ArrayType* selectedData, std::map<int, std::vector<double>>* pickStatistic);
 	void updateBoxPlot(csvDataType::ArrayType* selectedData);
 	void updateCorrelationMap(csvDataType::ArrayType* selectedData, std::map<int, std::vector<double>>* pickStatistic);
+	void update3DView(csvDataType::ArrayType* selectedData, std::map<int, std::vector<double>>* pickStatistic);
 
 	void resetOtherCharts();
 	void resetBarChart();
 	void resetBoxPlot();
 	void resetCorrelationMap();
+	void reset3DViews();
 
 	void updateHistogramTableFromCorrelationMap(std::map<int, double>* dataIndxSelectedType);
 	void resetHistogramTableFromCorrelationMap();
@@ -93,4 +109,5 @@ private:
 	iACompHistogramTable* m_HistogramTableDockWidget;
 	iACompBoxPlot* m_BoxPlotDockWidget;
 	iACompCorrelationMap* m_CorrelationMapDockWidget;
+	iAComp3DView* m_3DViewDockWidget;
 };
