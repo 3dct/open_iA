@@ -20,8 +20,8 @@ class iAMainWindow;
 class iAQVTKWidget;
 class iACsvIO;
 struct iACsvConfig;
-class iA3DEllipseObjectVis;
-class iA3DCylinderObjectVis;
+class iA3DColoredPolyObjectVis;
+class iA3DPolyObjectActor;
 
 //vtk
 class vtkTable;
@@ -63,8 +63,9 @@ private:
 	iACsvIO* m_io;
 	const iACsvConfig* m_csvConfig;
 
-	iA3DCylinderObjectVis* m_3dvisCylinders;
-	iA3DEllipseObjectVis* m_3dvisEllipses;
+	std::shared_ptr<iA3DColoredPolyObjectVis> m_3dvisData;
+	std::shared_ptr<iA3DPolyObjectActor> m_3dvisActor;
+	
 
 	/*** Rendering ***/
 	iAQVTKWidget* m_qvtkWidget;

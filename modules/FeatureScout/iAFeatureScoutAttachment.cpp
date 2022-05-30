@@ -57,10 +57,10 @@ void iAFeatureScoutAttachment::init(int filterID, QString const & fileName, vtkS
 
 void iAFeatureScoutAttachment::saveProject(QSettings& projectFile)
 {
-	imgFS->saveProject(projectFile);
+	m_featureScout->saveProject(projectFile);
 }
 
 void iAFeatureScoutAttachment::loadProject(QSettings& projectFile)
 {
-	imgFS->loadProject(projectFile);
+	m_featureScout->loadProject(projectFile);
 }
