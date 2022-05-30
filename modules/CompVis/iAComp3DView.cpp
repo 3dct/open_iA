@@ -34,61 +34,68 @@ iAComp3DView::iAComp3DView(iAMainWindow* parent, iACsvDataStorage* dataStorage) 
 
  void iAComp3DView::constructGridLayout(QGridLayout* layout)
 {
-	 int row = 0;
+	int row = 0;
 	int col = 0;
-	 for (int i = 0; i < static_cast<int>(m_dockWidgets->size()); i++)
-	 {
-		 if ((i == (static_cast<int>(m_dockWidgets->size())-1)) && ((i%2) == 0))
-		 {
-			 layout->addWidget(m_dockWidgets->at(i), row, col , 1, col);
-		 }
-		 else
-		 {
-			 layout->addWidget(m_dockWidgets->at(i), row, col);
-		 }
+	for (int i = 0; i < static_cast<int>(m_dockWidgets->size()); i++)
+	{
+		if ((i == (static_cast<int>(m_dockWidgets->size())-1)) && ((i%2) == 0))
+		{
+			layout->addWidget(m_dockWidgets->at(i), row, col , 1, col);
+		}
+		else
+		{
+			layout->addWidget(m_dockWidgets->at(i), row, col);
+		}
 
 		if ((i+1) % 2 == 0)
-		 { //uneven
+		{ //uneven
 			col = 0;
-			 row += 1;
-		 }
-		 else
-		 { //even
-			 col = 1;
-		 }
-	 }
+			row += 1;
+		}
+		else
+		{ //even
+			col = 1;
+		}
+	}
 }
 
- void iAComp3DView::update3DViews(
+void iAComp3DView::update3DViews(
 	csvDataType::ArrayType* selectedData, std::map<int, std::vector<double>>* pickStatistic)
 {
-	 QStringList allDatasetNames = *m_dataStorage->getDatasetNames();
-	 QStringList names = QStringList();
+	if (selectedData->empty() || m_dockWidgets->empty())
+	{
+		return;
+	}
+	QStringList allDatasetNames = *m_dataStorage->getDatasetNames();
+	QStringList names = QStringList();
 
-	 int indexInSelectedData = 0;
-	 std::vector<double> allObjectLables = selectedData->at(0);
+	int indexInSelectedData = 0;
+	std::vector<double> allObjectLables = selectedData->at(0);
 
-	 for (std::map<int, std::vector<double>>::const_iterator it = pickStatistic->begin(); it != pickStatistic->end();
-		  ++it)
-	 {
-		 int selectedDataInd = it->first;
-		 int numberOfObjectsPicked = it->second.at(1);
+	for (std::map<int, std::vector<double>>::const_iterator it = pickStatistic->begin(); it != pickStatistic->end();
+		++it)
+	{
+		int selectedDataInd = it->first;
+		if (selectedDataInd >= m_dockWidgets->size())
+		{
+			continue;
+		}
+		int numberOfObjectsPicked = it->second.at(1);
 
-		 std::vector<size_t> selectedIds;
-		 for (int objectId = 0; objectId < numberOfObjectsPicked; objectId++)
-		 {
-			 size_t labelId = allObjectLables.at(indexInSelectedData);
+		std::vector<size_t> selectedIds;
+		for (int objectId = 0; objectId < numberOfObjectsPicked; objectId++)
+		{
+			size_t labelId = allObjectLables.at(indexInSelectedData);
 			 
-			 selectedIds.push_back(labelId);
+			selectedIds.push_back(labelId);
 				 
 				 
-			 indexInSelectedData++;
-		 }
+			indexInSelectedData++;
+		}
 
-		 iAComp3DWidget* currWidget = m_dockWidgets->at(selectedDataInd);
-		 currWidget->drawSelection(selectedIds);
-	 }
-
+		iAComp3DWidget* currWidget = m_dockWidgets->at(selectedDataInd);
+		currWidget->drawSelection(selectedIds);
+	}
 }
 
  void iAComp3DView::reset3DViews()
