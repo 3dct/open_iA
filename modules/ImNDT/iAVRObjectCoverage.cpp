@@ -446,9 +446,9 @@ double iAVRObjectCoverage::calculateLineCoverageRatio(double startPoint[3], doub
 	// If startPoint == endPoint -> set to eps
 	if (vectorBetweenStartAndEnd[0] == 0 && vectorBetweenStartAndEnd[1] == 0 && vectorBetweenStartAndEnd[2] == 0)
 	{
-		vectorBetweenStartAndEnd[0] == eps;
-		vectorBetweenStartAndEnd[1] == eps;
-		vectorBetweenStartAndEnd[2] == eps;
+		vectorBetweenStartAndEnd[0] = eps;
+		vectorBetweenStartAndEnd[1] = eps;
+		vectorBetweenStartAndEnd[2] = eps;
 	}
 
 	double coverage = sqrt(pow(vectorBetweenStartAndEnd[0], 2) + pow(vectorBetweenStartAndEnd[1], 2) + pow(vectorBetweenStartAndEnd[2], 2));
