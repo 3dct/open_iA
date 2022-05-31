@@ -186,7 +186,7 @@ namespace
 	{
 		static QMap<int, QString> nameVTKTypeMap{
 			{VTK_UNSIGNED_CHAR     , "8 bit unsigned integer (0 to 255, unsigned char)"},
-			{VTK_CHAR              , "8 bit signed integer (-128 to 127, char)"},
+			{VTK_SIGNED_CHAR       , "8 bit signed integer (-128 to 127, char)"},
 			{VTK_UNSIGNED_SHORT    , "16 bit unsigned integer (0 to 65,535, unsigned short)"},
 			{VTK_SHORT             , "16 bit signed integer (-32,768 to 32,767, short)"},
 			{VTK_UNSIGNED_INT      , "32 bit unsigned integer (0 to 4,294,967,295, unsigned int)"},
@@ -216,7 +216,7 @@ int mapReadableDataTypeToVTKType(QString const& dataTypeName)
 QString mapVTKTypeToReadableDataType(int vtkType)
 {
 	// map aliases to the values contained in the map:
-	if (vtkType == VTK_SIGNED_CHAR)   vtkType = VTK_CHAR;
+	if (vtkType == VTK_CHAR)          vtkType = VTK_SIGNED_CHAR;
 	if (vtkType == VTK_LONG)          vtkType = VTK_INT;
 	if (vtkType == VTK_UNSIGNED_LONG) vtkType = VTK_UNSIGNED_INT;
 	// look up type in map:

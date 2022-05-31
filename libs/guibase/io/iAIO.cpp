@@ -333,9 +333,9 @@ namespace
 		case H5T_INTEGER: {
 			switch (numBytes)
 			{
-			case 1: return (sign == H5T_SGN_NONE) ? VTK_UNSIGNED_CHAR : VTK_CHAR;
-			case 2: return (sign == H5T_SGN_NONE) ? VTK_UNSIGNED_SHORT : VTK_SHORT;
-			case 4: return (sign == H5T_SGN_NONE) ? VTK_UNSIGNED_INT : VTK_INT;
+			case 1: return (sign == H5T_SGN_NONE) ? VTK_UNSIGNED_CHAR      : VTK_SIGNED_CHAR;
+			case 2: return (sign == H5T_SGN_NONE) ? VTK_UNSIGNED_SHORT     : VTK_SHORT;
+			case 4: return (sign == H5T_SGN_NONE) ? VTK_UNSIGNED_INT       : VTK_INT;
 			case 8: return (sign == H5T_SGN_NONE) ? VTK_UNSIGNED_LONG_LONG : VTK_LONG_LONG;
 			default: return InvalidHDF5Type;
 			}
